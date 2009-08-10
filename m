@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + tracing-page-allocator-add-a-postprocessing-script-for-page-allocator-related-ftrace-events.patch added to -mm tree
-Date: Mon, 10 Aug 2009 15:10:03 -0700
-Message-ID: <200908102210.n7AMA4vS014062@imap1.linux-foundation.org>
+Subject: + tracing-documentation-add-a-document-describing-how-to-do-some-performance-analysis-with-tracepoints.patch added to -mm tree
+Date: Mon, 10 Aug 2009 15:10:05 -0700
+Message-ID: <200908102210.n7AMA6w4014107@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53340 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34247 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754042AbZHJWM2 (ORCPT
+	by vger.kernel.org with ESMTP id S1754042AbZHJWMa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Aug 2009 18:12:28 -0400
+	Mon, 10 Aug 2009 18:12:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mel@csn.ul.ie, lwoodman@redhat.com, macli@brc.ubc.ca, mingo@elte.hu, peterz@
 
 
 The patch titled
-     tracing, page-allocator: add a postprocessing script for page-allocator-related ftrace events
+     tracing, documentation: add a document describing how to do some performance analysis with tracepoints
 has been added to the -mm tree.  Its filename is
-     tracing-page-allocator-add-a-postprocessing-script-for-page-allocator-related-ftrace-events.patch
+     tracing-documentation-add-a-document-describing-how-to-do-some-performance-analysis-with-tracepoints.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,16 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tracing, page-allocator: add a postprocessing script for page-allocator-related ftrace events
+Subject: tracing, documentation: add a document describing how to do some performance analysis with tracepoints
 From: Mel Gorman <mel@csn.ul.ie>
 
-This patch adds a simple post-processing script for the
-page-allocator-related trace events.  It can be used to give an indication
-of who the most allocator-intensive processes are and how often the zone
-lock was taken during the tracing period.  Example output looks like
+The documentation for ftrace, events and tracepoints is pretty extensive. 
+Similarly, the perf PCL tools help files --help are there and the code
+simple enough to figure out what much of the switches mean.  However,
+pulling the discrete bits and pieces together and translating that into
+"how do I solve a problem" requires a fair amount of imagination.
 
-Process                   Pages      Pages      Pages    Pages       PCPU     PCPU     PCPU   Fragment Fragment  MigType Fragment Fragment  Unknown
-details                  allocd     allocd      freed    freed      pages   drains  refills   Fallback  Causing  Changed   Severe Moderate
-                                under lock     direct  pagevec      drain
-swapper-0                     0          0          2        0          0        0        0          0        0        0        0        0        0
-Xorg-3770                 10603       5952       3685     6978       5996      194      192          0        0        0        0        0        0
-modprobe-21397               51          0          0       86         31        1        0          0        0        0        0        0        0
-xchat-5370                  228         93          0        0          0        0        3          0        0        0        0        0        0
-awesome-4317                 32         32          0        0          0        0       32          0        0        0        0        0        0
-thinkfan-3863                 2          0          1        1          0        0        0          0        0        0        0        0        0
-hald-addon-stor-3935          2          0          0        0          0        0        0          0        0        0        0        0        0
-akregator-4506                1          1          0        0          0        0        1          0        0        0        0        0        0
-xmms-14888                    0          0          1        0          0        0        0          0        0        0        0        0        0
-khelper-12                    1          0          0        0          0        0        0          0        0        0        0        0        0
-
-Optionally, the output can include information on the parent or aggregate
-based on process name instead of aggregating based on each pid. Example output
-including parent information and stripped out the PID looks something like;
-
-Process                        Pages      Pages      Pages    Pages       PCPU     PCPU     PCPU   Fragment Fragment  MigType Fragment Fragment  Unknown
-details                       allocd     allocd      freed    freed      pages   drains  refills   Fallback  Causing  Changed   Severe Moderate
-                                     under lock     direct  pagevec      drain
-gdm-3756 :: Xorg-3770           3796       2976         99     3813       3224      104       98          0        0        0        0        0        0
-init-1 :: hald-3892                1          0          0        0          0        0        0          0        0        0        0        0        0
-git-21447 :: editor-21448          4          0          4        0          0        0        0          0        0        0        0        0        0
-
-This says that Xorg allocated 3796 pages and it's parent process is gdm
-with a PID of 3756;
-
-The postprocessor parses the text output of tracing.  While there is a
-binary format, the expectation is that the binary output can be readily
-translated into text and post-processed offline.  Obviously if the text
-format changes, the parser will break but the regular expression parser is
-fairly rudimentary so should be readily adjustable.
+This patch adds a simple document intended to get someone started on the
 
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
 Cc: Rik van Riel <riel@redhat.com>
@@ -85,431 +54,340 @@ Cc: Li Ming Chun <macli@brc.ubc.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/trace/postprocess/trace-pagealloc-postprocess.pl |  418 ++++++++++
- 1 file changed, 418 insertions(+)
+ Documentation/trace/tracepoint-analysis.txt |  327 ++++++++++++++++++
+ 1 file changed, 327 insertions(+)
 
-diff -puN /dev/null Documentation/trace/postprocess/trace-pagealloc-postprocess.pl
+diff -puN /dev/null Documentation/trace/tracepoint-analysis.txt
 --- /dev/null
-+++ a/Documentation/trace/postprocess/trace-pagealloc-postprocess.pl
-@@ -0,0 +1,418 @@
-+#!/usr/bin/perl
-+# This is a POC (proof of concept or piece of crap, take your pick) for reading the
-+# text representation of trace output related to page allocation. It makes an attempt
-+# to extract some high-level information on what is going on. The accuracy of the parser
-+# may vary considerably
-+#
-+# Example usage: trace-pagealloc-postprocess.pl < /sys/kernel/debug/tracing/trace_pipe
-+# other options
-+#   --prepend-parent	Report on the parent proc and PID
-+#   --read-procstat	If the trace lacks process info, get it from /proc
-+#   --ignore-pid	Aggregate processes of the same name together
-+#
-+# Copyright (c) IBM Corporation 2009
-+# Author: Mel Gorman <mel@csn.ul.ie>
-+use strict;
-+use Getopt::Long;
++++ a/Documentation/trace/tracepoint-analysis.txt
+@@ -0,0 +1,327 @@
++		Notes on Analysing Behaviour Using Events and Tracepoints
 +
-+# Tracepoint events
-+use constant MM_PAGE_ALLOC		=> 1;
-+use constant MM_PAGE_FREE_DIRECT 	=> 2;
-+use constant MM_PAGEVEC_FREE		=> 3;
-+use constant MM_PAGE_PCPU_DRAIN		=> 4;
-+use constant MM_PAGE_ALLOC_ZONE_LOCKED	=> 5;
-+use constant MM_PAGE_ALLOC_EXTFRAG	=> 6;
-+use constant EVENT_UNKNOWN		=> 7;
++			Documentation written by Mel Gorman
++		PCL information heavily based on email from Ingo Molnar
 +
-+# Constants used to track state
-+use constant STATE_PCPU_PAGES_DRAINED	=> 8;
-+use constant STATE_PCPU_PAGES_REFILLED	=> 9;
++1. Introduction
++===============
 +
-+# High-level events extrapolated from tracepoints
-+use constant HIGH_PCPU_DRAINS		=> 10;
-+use constant HIGH_PCPU_REFILLS		=> 11;
-+use constant HIGH_EXT_FRAGMENT		=> 12;
-+use constant HIGH_EXT_FRAGMENT_SEVERE	=> 13;
-+use constant HIGH_EXT_FRAGMENT_MODERATE	=> 14;
-+use constant HIGH_EXT_FRAGMENT_CHANGED	=> 15;
++Tracepoints (see Documentation/trace/tracepoints.txt) can be used without
++creating custom kernel modules to register probe functions using the event
++tracing infrastructure.
 +
-+my %perprocesspid;
-+my %perprocess;
-+my $opt_ignorepid;
-+my $opt_read_procstat;
-+my $opt_prepend_parent;
++Simplistically, tracepoints will represent an important event that when can
++be taken in conjunction with other tracepoints to build a "Big Picture" of
++what is going on within the system. There are a large number of methods for
++gathering and interpreting these events. Lacking any current Best Practises,
++this document describes some of the methods that can be used.
 +
-+# Catch sigint and exit on request
-+my $sigint_report = 0;
-+my $sigint_exit = 0;
-+my $sigint_pending = 0;
-+my $sigint_received = 0;
-+sub sigint_handler {
-+	my $current_time = time;
-+	if ($current_time - 2 > $sigint_received) {
-+		print "SIGINT received, report pending. Hit ctrl-c again to exit\n";
-+		$sigint_report = 1;
-+	} else {
-+		if (!$sigint_exit) {
-+			print "Second SIGINT received quickly, exiting\n";
-+		}
-+		$sigint_exit++;
-+	}
++This document assumes that debugfs is mounted on /sys/kernel/debug and that
++the appropriate tracing options have been configured into the kernel. It is
++assumed that the PCL tool tools/perf has been installed and is in your path.
 +
-+	if ($sigint_exit > 3) {
-+		print "Many SIGINTs received, exiting now without report\n";
-+		exit;
-+	}
++2. Listing Available Events
++===========================
 +
-+	$sigint_received = $current_time;
-+	$sigint_pending = 1;
-+}
-+$SIG{INT} = "sigint_handler";
++2.1 Standard Utilities
++----------------------
 +
-+# Parse command line options
-+GetOptions(
-+	'ignore-pid'	 =>	\$opt_ignorepid,
-+	'read-procstat'	 =>	\$opt_read_procstat,
-+	'prepend-parent' =>	\$opt_prepend_parent,
-+);
++All possible events are visible from /sys/kernel/debug/tracing/events. Simply
++calling
 +
-+# Defaults for dynamically discovered regex's
-+my $regex_fragdetails_default = 'page=([0-9a-f]*) pfn=([0-9]*) alloc_order=([-0-9]*) fallback_order=([-0-9]*) pageblock_order=([-0-9]*) alloc_migratetype=([-0-9]*) fallback_migratetype=([-0-9]*) fragmenting=([-0-9]) change_ownership=([-0-9])';
++  $ find /sys/kernel/debug/tracing/events -type d
 +
-+# Dyanically discovered regex
-+my $regex_fragdetails;
++will give a fair indication of the number of events available.
 +
-+# Static regex used. Specified like this for readability and for use with /o
-+#                      (process_pid)     (cpus      )   ( time  )   (tpoint    ) (details)
-+my $regex_traceevent = '\s*([a-zA-Z0-9-]*)\s*(\[[0-9]*\])\s*([0-9.]*):\s*([a-zA-Z_]*):\s*(.*)';
-+my $regex_statname = '[-0-9]*\s\((.*)\).*';
-+my $regex_statppid = '[-0-9]*\s\(.*\)\s[A-Za-z]\s([0-9]*).*';
++2.2 PCL
++-------
 +
-+sub generate_traceevent_regex {
-+	my $event = shift;
-+	my $default = shift;
-+	my $regex;
++Discovery and enumeration of all counters and events, including tracepoints
++are available with the perf tool. Getting a list of available events is a
++simple case of
 +
-+	# Read the event format or use the default
-+	if (!open (FORMAT, "/sys/kernel/debug/tracing/events/$event/format")) {
-+		$regex = $default;
-+	} else {
-+		my $line;
-+		while (!eof(FORMAT)) {
-+			$line = <FORMAT>;
-+			if ($line =~ /^print fmt:\s"(.*)",.*/) {
-+				$regex = $1;
-+				$regex =~ s/%p/\([0-9a-f]*\)/g;
-+				$regex =~ s/%d/\([-0-9]*\)/g;
-+				$regex =~ s/%lu/\([0-9]*\)/g;
-+			}
-+		}
-+	}
++  $ perf list 2>&1 | grep Tracepoint
++  ext4:ext4_free_inode                     [Tracepoint event]
++  ext4:ext4_request_inode                  [Tracepoint event]
++  ext4:ext4_allocate_inode                 [Tracepoint event]
++  ext4:ext4_write_begin                    [Tracepoint event]
++  ext4:ext4_ordered_write_end              [Tracepoint event]
++  [ .... remaining output snipped .... ]
 +
-+	# Verify fields are in the right order
-+	my $tuple;
-+	foreach $tuple (split /\s/, $regex) {
-+		my ($key, $value) = split(/=/, $tuple);
-+		my $expected = shift;
-+		if ($key ne $expected) {
-+			print("WARNING: Format not as expected '$key' != '$expected'");
-+			$regex =~ s/$key=\((.*)\)/$key=$1/;
-+		}
-+	}
 +
-+	if (defined shift) {
-+		die("Fewer fields than expected in format");
-+	}
++2. Enabling Events
++==================
 +
-+	return $regex;
-+}
-+$regex_fragdetails = generate_traceevent_regex("kmem/mm_page_alloc_extfrag",
-+			$regex_fragdetails_default,
-+			"page", "pfn",
-+			"alloc_order", "fallback_order", "pageblock_order",
-+			"alloc_migratetype", "fallback_migratetype",
-+			"fragmenting", "change_ownership");
++2.1 System-Wide Event Enabling
++------------------------------
 +
-+sub read_statline($) {
-+	my $pid = $_[0];
-+	my $statline;
++See Documentation/trace/events.txt for a proper description on how events
++can be enabled system-wide. A short example of enabling all events related
++to page allocation would look something like
 +
-+	if (open(STAT, "/proc/$pid/stat")) {
-+		$statline = <STAT>;
-+		close(STAT);
-+	}
++  $ for i in `find /sys/kernel/debug/tracing/events -name "enable" | grep mm_`; do echo 1 > $i; done
 +
-+	if ($statline eq '') {
-+		$statline = "-1 (UNKNOWN_PROCESS_NAME) R 0";
-+	}
++2.2 System-Wide Event Enabling with SystemTap
++---------------------------------------------
 +
-+	return $statline;
-+}
++In SystemTap, tracepoints are accessible using the kernel.trace() function
++call. The following is an example that reports every 5 seconds what processes
++were allocating the pages.
 +
-+sub guess_process_pid($$) {
-+	my $pid = $_[0];
-+	my $statline = $_[1];
++  global page_allocs
 +
-+	if ($pid == 0) {
-+		return "swapper-0";
-+	}
++  probe kernel.trace("mm_page_alloc") {
++  	page_allocs[execname()]++
++  }
 +
-+	if ($statline !~ /$regex_statname/o) {
-+		die("Failed to math stat line for process name :: $statline");
-+	}
-+	return "$1-$pid";
-+}
++  function print_count() {
++  	printf ("%-25s %-s\n", "#Pages Allocated", "Process Name")
++  	foreach (proc in page_allocs-)
++  		printf("%-25d %s\n", page_allocs[proc], proc)
++  	printf ("\n")
++  	delete page_allocs
++  }
 +
-+sub parent_info($$) {
-+	my $pid = $_[0];
-+	my $statline = $_[1];
-+	my $ppid;
++  probe timer.s(5) {
++          print_count()
++  }
 +
-+	if ($pid == 0) {
-+		return "NOPARENT-0";
-+	}
++2.3 System-Wide Event Enabling with PCL
++---------------------------------------
 +
-+	if ($statline !~ /$regex_statppid/o) {
-+		die("Failed to match stat line process ppid:: $statline");
-+	}
++By specifying the -a switch and analysing sleep, the system-wide events
++for a duration of time can be examined.
 +
-+	# Read the ppid stat line
-+	$ppid = $1;
-+	return guess_process_pid($ppid, read_statline($ppid));
-+}
++ $ perf stat -a \
++	-e kmem:mm_page_alloc -e kmem:mm_page_free_direct \
++	-e kmem:mm_pagevec_free \
++	sleep 10
++ Performance counter stats for 'sleep 10':
 +
-+sub process_events {
-+	my $traceevent;
-+	my $process_pid;
-+	my $cpus;
-+	my $timestamp;
-+	my $tracepoint;
-+	my $details;
-+	my $statline;
++           9630  kmem:mm_page_alloc
++           2143  kmem:mm_page_free_direct
++           7424  kmem:mm_pagevec_free
 +
-+	# Read each line of the event log
-+EVENT_PROCESS:
-+	while ($traceevent = <STDIN>) {
-+		if ($traceevent =~ /$regex_traceevent/o) {
-+			$process_pid = $1;
-+			$tracepoint = $4;
++   10.002577764  seconds time elapsed
 +
-+			if ($opt_read_procstat || $opt_prepend_parent) {
-+				$process_pid =~ /(.*)-([0-9]*)$/;
-+				my $process = $1;
-+				my $pid = $2;
++Similarly, one could execute a shell and exit it as desired to get a report
++at that point.
 +
-+				$statline = read_statline($pid);
++2.4 Local Event Enabling
++------------------------
 +
-+				if ($opt_read_procstat && $process eq '') {
-+					$process_pid = guess_process_pid($pid, $statline);
-+				}
++Documentation/trace/ftrace.txt describes how to enable events on a per-thread
++basis using set_ftrace_pid.
 +
-+				if ($opt_prepend_parent) {
-+					$process_pid = parent_info($pid, $statline) . " :: $process_pid";
-+				}
-+			}
++2.5 Local Event Enablement with PCL
++-----------------------------------
 +
-+			# Unnecessary in this script. Uncomment if required
-+			# $cpus = $2;
-+			# $timestamp = $3;
-+		} else {
-+			next;
-+		}
++Events can be activate and tracked for the duration of a process on a local
++basis using PCL such as follows.
 +
-+		# Perl Switch() sucks majorly
-+		if ($tracepoint eq "mm_page_alloc") {
-+			$perprocesspid{$process_pid}->{MM_PAGE_ALLOC}++;
-+		} elsif ($tracepoint eq "mm_page_free_direct") {
-+			$perprocesspid{$process_pid}->{MM_PAGE_FREE_DIRECT}++;
-+		} elsif ($tracepoint eq "mm_pagevec_free") {
-+			$perprocesspid{$process_pid}->{MM_PAGEVEC_FREE}++;
-+		} elsif ($tracepoint eq "mm_page_pcpu_drain") {
-+			$perprocesspid{$process_pid}->{MM_PAGE_PCPU_DRAIN}++;
-+			$perprocesspid{$process_pid}->{STATE_PCPU_PAGES_DRAINED}++;
-+		} elsif ($tracepoint eq "mm_page_alloc_zone_locked") {
-+			$perprocesspid{$process_pid}->{MM_PAGE_ALLOC_ZONE_LOCKED}++;
-+			$perprocesspid{$process_pid}->{STATE_PCPU_PAGES_REFILLED}++;
-+		} elsif ($tracepoint eq "mm_page_alloc_extfrag") {
++  $ perf stat -e kmem:mm_page_alloc -e kmem:mm_page_free_direct \
++		 -e kmem:mm_pagevec_free ./hackbench 10
++  Time: 0.909
 +
-+			# Extract the details of the event now
-+			$details = $5;
++    Performance counter stats for './hackbench 10':
 +
-+			my ($page, $pfn);
-+			my ($alloc_order, $fallback_order, $pageblock_order);
-+			my ($alloc_migratetype, $fallback_migratetype);
-+			my ($fragmenting, $change_ownership);
++          17803  kmem:mm_page_alloc
++          12398  kmem:mm_page_free_direct
++           4827  kmem:mm_pagevec_free
 +
-+			if ($details !~ /$regex_fragdetails/o) {
-+				print "WARNING: Failed to parse mm_page_alloc_extfrag as expected\n";
-+				next;
-+			}
++    0.973913387  seconds time elapsed
 +
-+			$perprocesspid{$process_pid}->{MM_PAGE_ALLOC_EXTFRAG}++;
-+			$page = $1;
-+			$pfn = $2;
-+			$alloc_order = $3;
-+			$fallback_order = $4;
-+			$pageblock_order = $5;
-+			$alloc_migratetype = $6;
-+			$fallback_migratetype = $7;
-+			$fragmenting = $8;
-+			$change_ownership = $9;
++3. Event Filtering
++==================
 +
-+			if ($fragmenting) {
-+				$perprocesspid{$process_pid}->{HIGH_EXT_FRAG}++;
-+				if ($fallback_order <= 3) {
-+					$perprocesspid{$process_pid}->{HIGH_EXT_FRAGMENT_SEVERE}++;
-+				} else {
-+					$perprocesspid{$process_pid}->{HIGH_EXT_FRAGMENT_MODERATE}++;
-+				}
-+			}
-+			if ($change_ownership) {
-+				$perprocesspid{$process_pid}->{HIGH_EXT_FRAGMENT_CHANGED}++;
-+			}
-+		} else {
-+			$perprocesspid{$process_pid}->{EVENT_UNKNOWN}++;
-+		}
++Documentation/trace/ftrace.txt covers in-depth how to filter events in
++ftrace.  Obviously using grep and awk of trace_pipe is an option as well
++as any script reading trace_pipe.
 +
-+		# Catch a full pcpu drain event
-+		if ($perprocesspid{$process_pid}->{STATE_PCPU_PAGES_DRAINED} &&
-+				$tracepoint ne "mm_page_pcpu_drain") {
++4. Analysing Event Variances with PCL
++=====================================
 +
-+			$perprocesspid{$process_pid}->{HIGH_PCPU_DRAINS}++;
-+			$perprocesspid{$process_pid}->{STATE_PCPU_PAGES_DRAINED} = 0;
-+		}
++Any workload can exhibit variances between runs and it can be important
++to know what the standard deviation in. By and large, this is left to the
++performance analyst to do it by hand. In the event that the discrete event
++occurrences are useful to the performance analyst, then perf can be used.
 +
-+		# Catch a full pcpu refill event
-+		if ($perprocesspid{$process_pid}->{STATE_PCPU_PAGES_REFILLED} &&
-+				$tracepoint ne "mm_page_alloc_zone_locked") {
-+			$perprocesspid{$process_pid}->{HIGH_PCPU_REFILLS}++;
-+			$perprocesspid{$process_pid}->{STATE_PCPU_PAGES_REFILLED} = 0;
-+		}
++  $ perf stat --repeat 5 -e kmem:mm_page_alloc -e kmem:mm_page_free_direct
++			-e kmem:mm_pagevec_free ./hackbench 10
++  Time: 0.890
++  Time: 0.895
++  Time: 0.915
++  Time: 1.001
++  Time: 0.899
 +
-+		if ($sigint_pending) {
-+			last EVENT_PROCESS;
-+		}
-+	}
-+}
++   Performance counter stats for './hackbench 10' (5 runs):
 +
-+sub dump_stats {
-+	my $hashref = shift;
-+	my %stats = %$hashref;
++          16630  kmem:mm_page_alloc         ( +-   3.542% )
++          11486  kmem:mm_page_free_direct   ( +-   4.771% )
++           4730  kmem:mm_pagevec_free       ( +-   2.325% )
 +
-+	# Dump per-process stats
-+	my $process_pid;
-+	my $max_strlen = 0;
++    0.982653002  seconds time elapsed   ( +-   1.448% )
 +
-+	# Get the maximum process name
-+	foreach $process_pid (keys %perprocesspid) {
-+		my $len = length($process_pid);
-+		if ($len > $max_strlen) {
-+			$max_strlen = $len;
-+		}
-+	}
-+	$max_strlen += 2;
++In the event that some higher-level event is required that depends on some
++aggregation of discrete events, then a script would need to be developed.
 +
-+	printf("\n");
-+	printf("%-" . $max_strlen . "s %8s %10s   %8s %8s   %8s %8s %8s   %8s %8s %8s %8s %8s %8s\n",
-+		"Process", "Pages",  "Pages",      "Pages", "Pages", "PCPU",  "PCPU",   "PCPU",    "Fragment",  "Fragment", "MigType", "Fragment", "Fragment", "Unknown");
-+	printf("%-" . $max_strlen . "s %8s %10s   %8s %8s   %8s %8s %8s   %8s %8s %8s %8s %8s %8s\n",
-+		"details", "allocd", "allocd",     "freed", "freed", "pages", "drains", "refills", "Fallback", "Causing",   "Changed", "Severe", "Moderate", "");
++Using --repeat, it is also possible to view how events are fluctuating over
++time on a system wide basis using -a and sleep.
 +
-+	printf("%-" . $max_strlen . "s %8s %10s   %8s %8s   %8s %8s %8s   %8s %8s %8s %8s %8s %8s\n",
-+		"",        "",       "under lock", "direct", "pagevec", "drain", "", "", "", "", "", "", "", "");
++  $ perf stat -e kmem:mm_page_alloc -e kmem:mm_page_free_direct \
++		-e kmem:mm_pagevec_free \
++		-a --repeat 10 \
++		sleep 1
++  Performance counter stats for 'sleep 1' (10 runs):
 +
-+	foreach $process_pid (keys %stats) {
-+		# Dump final aggregates
-+		if ($stats{$process_pid}->{STATE_PCPU_PAGES_DRAINED}) {
-+			$stats{$process_pid}->{HIGH_PCPU_DRAINS}++;
-+			$stats{$process_pid}->{STATE_PCPU_PAGES_DRAINED} = 0;
-+		}
-+		if ($stats{$process_pid}->{STATE_PCPU_PAGES_REFILLED}) {
-+			$stats{$process_pid}->{HIGH_PCPU_REFILLS}++;
-+			$stats{$process_pid}->{STATE_PCPU_PAGES_REFILLED} = 0;
-+		}
++           1066  kmem:mm_page_alloc         ( +-  26.148% )
++            182  kmem:mm_page_free_direct   ( +-   5.464% )
++            890  kmem:mm_pagevec_free       ( +-  30.079% )
 +
-+		printf("%-" . $max_strlen . "s %8d %10d   %8d %8d   %8d %8d %8d   %8d %8d %8d %8d %8d %8d\n",
-+			$process_pid,
-+			$stats{$process_pid}->{MM_PAGE_ALLOC},
-+			$stats{$process_pid}->{MM_PAGE_ALLOC_ZONE_LOCKED},
-+			$stats{$process_pid}->{MM_PAGE_FREE_DIRECT},
-+			$stats{$process_pid}->{MM_PAGEVEC_FREE},
-+			$stats{$process_pid}->{MM_PAGE_PCPU_DRAIN},
-+			$stats{$process_pid}->{HIGH_PCPU_DRAINS},
-+			$stats{$process_pid}->{HIGH_PCPU_REFILLS},
-+			$stats{$process_pid}->{MM_PAGE_ALLOC_EXTFRAG},
-+			$stats{$process_pid}->{HIGH_EXT_FRAG},
-+			$stats{$process_pid}->{HIGH_EXT_FRAGMENT_CHANGED},
-+			$stats{$process_pid}->{HIGH_EXT_FRAGMENT_SEVERE},
-+			$stats{$process_pid}->{HIGH_EXT_FRAGMENT_MODERATE},
-+			$stats{$process_pid}->{EVENT_UNKNOWN});
-+	}
-+}
++    1.002251757  seconds time elapsed   ( +-   0.005% )
 +
-+sub aggregate_perprocesspid() {
-+	my $process_pid;
-+	my $process;
-+	undef %perprocess;
++5. Higher-Level Analysis with Helper Scripts
++============================================
 +
-+	foreach $process_pid (keys %perprocesspid) {
-+		$process = $process_pid;
-+		$process =~ s/-([0-9])*$//;
-+		if ($process eq '') {
-+			$process = "NO_PROCESS_NAME";
-+		}
++When events are enabled the events that are triggering can be read from
++/sys/kernel/debug/tracing/trace_pipe in human-readable format although binary
++options exist as well. By post-processing the output, further information can
++be gathered on-line as appropriate. Examples of post-processing might include
 +
-+		$perprocess{$process}->{MM_PAGE_ALLOC} += $perprocesspid{$process_pid}->{MM_PAGE_ALLOC};
-+		$perprocess{$process}->{MM_PAGE_ALLOC_ZONE_LOCKED} += $perprocesspid{$process_pid}->{MM_PAGE_ALLOC_ZONE_LOCKED};
-+		$perprocess{$process}->{MM_PAGE_FREE_DIRECT} += $perprocesspid{$process_pid}->{MM_PAGE_FREE_DIRECT};
-+		$perprocess{$process}->{MM_PAGEVEC_FREE} += $perprocesspid{$process_pid}->{MM_PAGEVEC_FREE};
-+		$perprocess{$process}->{MM_PAGE_PCPU_DRAIN} += $perprocesspid{$process_pid}->{MM_PAGE_PCPU_DRAIN};
-+		$perprocess{$process}->{HIGH_PCPU_DRAINS} += $perprocesspid{$process_pid}->{HIGH_PCPU_DRAINS};
-+		$perprocess{$process}->{HIGH_PCPU_REFILLS} += $perprocesspid{$process_pid}->{HIGH_PCPU_REFILLS};
-+		$perprocess{$process}->{MM_PAGE_ALLOC_EXTFRAG} += $perprocesspid{$process_pid}->{MM_PAGE_ALLOC_EXTFRAG};
-+		$perprocess{$process}->{HIGH_EXT_FRAG} += $perprocesspid{$process_pid}->{HIGH_EXT_FRAG};
-+		$perprocess{$process}->{HIGH_EXT_FRAGMENT_CHANGED} += $perprocesspid{$process_pid}->{HIGH_EXT_FRAGMENT_CHANGED};
-+		$perprocess{$process}->{HIGH_EXT_FRAGMENT_SEVERE} += $perprocesspid{$process_pid}->{HIGH_EXT_FRAGMENT_SEVERE};
-+		$perprocess{$process}->{HIGH_EXT_FRAGMENT_MODERATE} += $perprocesspid{$process_pid}->{HIGH_EXT_FRAGMENT_MODERATE};
-+		$perprocess{$process}->{EVENT_UNKNOWN} += $perprocesspid{$process_pid}->{EVENT_UNKNOWN};
-+	}
-+}
++  o Reading information from /proc for the PID that triggered the event
++  o Deriving a higher-level event from a series of lower-level events.
++  o Calculate latencies between two events
 +
-+sub report() {
-+	if (!$opt_ignorepid) {
-+		dump_stats(\%perprocesspid);
-+	} else {
-+		aggregate_perprocesspid();
-+		dump_stats(\%perprocess);
-+	}
-+}
++Documentation/trace/postprocess/trace-pagealloc-postprocess.pl is an example
++script that can read trace_pipe from STDIN or a copy of a trace. When used
++on-line, it can be interrupted once to generate a report without existing
++and twice to exit.
 +
-+# Process events or signals until neither is available
-+sub signal_loop() {
-+	my $sigint_processed;
-+	do {
-+		$sigint_processed = 0;
-+		process_events();
++Simplistically, the script just reads STDIN and counts up events but it
++also can do more such as
 +
-+		# Handle pending signals if any
-+		if ($sigint_pending) {
-+			my $current_time = time;
++  o Derive high-level events from many low-level events. If a number of pages
++    are freed to the main allocator from the per-CPU lists, it recognises
++    that as one per-CPU drain even though there is no specific tracepoint
++    for that event
++  o It can aggregate based on PID or individual process number
++  o In the event memory is getting externally fragmented, it reports
++    on whether the fragmentation event was severe or moderate.
++  o When receiving an event about a PID, it can record who the parent was so
++    that if large numbers of events are coming from very short-lived
++    processes, the parent process responsible for creating all the helpers
++    can be identified
 +
-+			if ($sigint_exit) {
-+				print "Received exit signal\n";
-+				$sigint_pending = 0;
-+			}
-+			if ($sigint_report) {
-+				if ($current_time >= $sigint_received + 2) {
-+					report();
-+					$sigint_report = 0;
-+					$sigint_pending = 0;
-+					$sigint_processed = 1;
-+				}
-+			}
-+		}
-+	} while ($sigint_pending || $sigint_processed);
-+}
++6. Lower-Level Analysis with PCL
++================================
 +
-+signal_loop();
-+report();
++There may also be a requirement to identify what functions with a program
++were generating events within the kernel. To begin this sort of analysis, the
++data must be recorded. At the time of writing, this required root
++
++  $ perf record -c 1 \
++	-e kmem:mm_page_alloc -e kmem:mm_page_free_direct \
++	-e kmem:mm_pagevec_free \
++	./hackbench 10
++  Time: 0.894
++  [ perf record: Captured and wrote 0.733 MB perf.data (~32010 samples) ]
++
++Note the use of '-c 1' to set the event period to sample. The default sample
++period is quite high to minimise overhead but the information collected can be
++very coarse as a result.
++
++This record outputted a file called perf.data which can be analysed using
++perf report.
++
++  $ perf report
++  # Samples: 30922
++  #
++  # Overhead    Command                     Shared Object
++  # ........  .........  ................................
++  #
++      87.27%  hackbench  [vdso]
++       6.85%  hackbench  /lib/i686/cmov/libc-2.9.so
++       2.62%  hackbench  /lib/ld-2.9.so
++       1.52%       perf  [vdso]
++       1.22%  hackbench  ./hackbench
++       0.48%  hackbench  [kernel]
++       0.02%       perf  /lib/i686/cmov/libc-2.9.so
++       0.01%       perf  /usr/bin/perf
++       0.01%       perf  /lib/ld-2.9.so
++       0.00%  hackbench  /lib/i686/cmov/libpthread-2.9.so
++  #
++  # (For more details, try: perf report --sort comm,dso,symbol)
++  #
++
++According to this, the vast majority of events occured triggered on events
++within the VDSO. With simple binaries, this will often be the case so lets
++take a slightly different example. In the course of writing this, it was
++noticed that X was generating an insane amount of page allocations so lets look
++at it
++
++  $ perf record -c 1 -f \
++		-e kmem:mm_page_alloc -e kmem:mm_page_free_direct \
++		-e kmem:mm_pagevec_free \
++		-p `pidof X`
++
++This was interrupted after a few seconds and
++
++  $ perf report
++  # Samples: 27666
++  #
++  # Overhead  Command                            Shared Object
++  # ........  .......  .......................................
++  #
++      51.95%     Xorg  [vdso]
++      47.95%     Xorg  /opt/gfx-test/lib/libpixman-1.so.0.13.1
++       0.09%     Xorg  /lib/i686/cmov/libc-2.9.so
++       0.01%     Xorg  [kernel]
++  #
++  # (For more details, try: perf report --sort comm,dso,symbol)
++  #
++
++So, almost half of the events are occuring in a library. To get an idea which
++symbol.
++
++  $ perf report --sort comm,dso,symbol
++  # Samples: 27666
++  #
++  # Overhead  Command                            Shared Object  Symbol
++  # ........  .......  .......................................  ......
++  #
++      51.95%     Xorg  [vdso]                                   [.] 0x000000ffffe424
++      47.93%     Xorg  /opt/gfx-test/lib/libpixman-1.so.0.13.1  [.] pixmanFillsse2
++       0.09%     Xorg  /lib/i686/cmov/libc-2.9.so               [.] _int_malloc
++       0.01%     Xorg  /opt/gfx-test/lib/libpixman-1.so.0.13.1  [.] pixman_region32_copy_f
++       0.01%     Xorg  [kernel]                                 [k] read_hpet
++       0.01%     Xorg  /opt/gfx-test/lib/libpixman-1.so.0.13.1  [.] get_fast_path
++       0.00%     Xorg  [kernel]                                 [k] ftrace_trace_userstack
++
++To see where within the function pixmanFillsse2 things are going wrong
++
++  $ perf annotate pixmanFillsse2
++  [ ... ]
++    0.00 :         34eeb:       0f 18 08                prefetcht0 (%eax)
++         :      }
++         :
++         :      extern __inline void __attribute__((__gnu_inline__, __always_inline__, _
++         :      _mm_store_si128 (__m128i *__P, __m128i __B) :      {
++         :        *__P = __B;
++   12.40 :         34eee:       66 0f 7f 80 40 ff ff    movdqa %xmm0,-0xc0(%eax)
++    0.00 :         34ef5:       ff
++   12.40 :         34ef6:       66 0f 7f 80 50 ff ff    movdqa %xmm0,-0xb0(%eax)
++    0.00 :         34efd:       ff
++   12.39 :         34efe:       66 0f 7f 80 60 ff ff    movdqa %xmm0,-0xa0(%eax)
++    0.00 :         34f05:       ff
++   12.67 :         34f06:       66 0f 7f 80 70 ff ff    movdqa %xmm0,-0x90(%eax)
++    0.00 :         34f0d:       ff
++   12.58 :         34f0e:       66 0f 7f 40 80          movdqa %xmm0,-0x80(%eax)
++   12.31 :         34f13:       66 0f 7f 40 90          movdqa %xmm0,-0x70(%eax)
++   12.40 :         34f18:       66 0f 7f 40 a0          movdqa %xmm0,-0x60(%eax)
++   12.31 :         34f1d:       66 0f 7f 40 b0          movdqa %xmm0,-0x50(%eax)
++
++At a glance, it looks like the time is being spent copying pixmaps to
++the card.  Further investigation would be needed to determine why pixmaps
++are being copied around so much but a starting point would be to take an
++ancient build of libpixmap out of the library path where it was totally
++forgotten about from months ago!
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
