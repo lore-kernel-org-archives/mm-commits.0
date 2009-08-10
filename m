@@ -1,100 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: [merged] i915-fix-read-outside-array-bounds.patch removed from -mm tree
-Date: Mon, 10 Aug 2009 12:28:54 -0700
-Message-ID: <200908101928.n7AJSshi028433@imap1.linux-foundation.org>
+Subject: [merged] lib-decompress_-only-include-linux-slabh-if-static-is-not-defined.patch removed from -mm tree
+Date: Mon, 10 Aug 2009 12:27:48 -0700
+Message-ID: <200908101927.n7AJRmJT026567@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41697 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59456 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752581AbZHJT30 (ORCPT
+	by vger.kernel.org with ESMTP id S1752607AbZHJT30 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 10 Aug 2009 15:29:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, airlied@linux.ie, jbarnes@virtuousgeek.org, pavel@ucw.cz, mm-commits@vger.kernel.org
+To: albin.tonnerre@free-electrons.com, eduard.munteanu@linux360.ro, hpa@zytor.com, mingo@elte.hu, penberg@cs.helsinki.fi, phillip@lougher.demon.co.uk, rmk@arm.linux.org.uk, sam@ravnborg.o
 
 
 The patch titled
-     i915: fix read outside array bounds
+     lib/decompress_*: only include <linux/slab.h> if STATIC is not defined
 has been removed from the -mm tree.  Its filename was
-     i915-fix-read-outside-array-bounds.patch
+     lib-decompress_-only-include-linux-slabh-if-static-is-not-defined.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: i915: fix read outside array bounds
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: lib/decompress_*: only include <linux/slab.h> if STATIC is not defined
+From: Albin Tonnerre <albin.tonnerre@free-electrons.com>
 
-dev_priv->saveSWF1 is a 16 element array, but this reads up to index 22
+These includes were added by 079effb6933f34b9b1b67b08bd4fd7fb672d16ef
+("kmemtrace, kbuild: fix slab.h dependency problem in
+lib/decompress_inflate.c") to fix the build when using kmemtrace.  However
+this is not necessary when used to create a compressed kernel, and
+actually creates issues (brings a lot of things unavailable in the
+decompression environment), so don't include it if STATIC is defined.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Dave Airlie <airlied@linux.ie>
-Acked-by: Jesse Barnes <jbarnes@virtuousgeek.org>
+Signed-off-by: Albin Tonnerre <albin.tonnerre@free-electrons.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Eduard - Gabriel Munteanu <eduard.munteanu@linux360.ro>
+Cc: Phillip Lougher <phillip@lougher.demon.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/i915_suspend.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/decompress_bunzip2.c |    2 +-
+ lib/decompress_inflate.c |    2 +-
+ lib/decompress_unlzma.c  |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/gpu/drm/i915/i915_suspend.c~i915-fix-read-outside-array-bounds drivers/gpu/drm/i915/i915_suspend.c
---- a/drivers/gpu/drm/i915/i915_suspend.c~i915-fix-read-outside-array-bounds
-+++ a/drivers/gpu/drm/i915/i915_suspend.c
-@@ -598,7 +598,7 @@ int i915_restore_state(struct drm_device
+diff -puN lib/decompress_bunzip2.c~lib-decompress_-only-include-linux-slabh-if-static-is-not-defined lib/decompress_bunzip2.c
+--- a/lib/decompress_bunzip2.c~lib-decompress_-only-include-linux-slabh-if-static-is-not-defined
++++ a/lib/decompress_bunzip2.c
+@@ -49,10 +49,10 @@
+ #define PREBOOT
+ #else
+ #include <linux/decompress/bunzip2.h>
++#include <linux/slab.h>
+ #endif /* STATIC */
  
- 	for (i = 0; i < 16; i++) {
- 		I915_WRITE(SWF00 + (i << 2), dev_priv->saveSWF0[i]);
--		I915_WRITE(SWF10 + (i << 2), dev_priv->saveSWF1[i+7]);
-+		I915_WRITE(SWF10 + (i << 2), dev_priv->saveSWF1[i]);
- 	}
- 	for (i = 0; i < 3; i++)
- 		I915_WRITE(SWF30 + (i << 2), dev_priv->saveSWF2[i]);
+ #include <linux/decompress/mm.h>
+-#include <linux/slab.h>
+ 
+ #ifndef INT_MAX
+ #define INT_MAX 0x7fffffff
+diff -puN lib/decompress_inflate.c~lib-decompress_-only-include-linux-slabh-if-static-is-not-defined lib/decompress_inflate.c
+--- a/lib/decompress_inflate.c~lib-decompress_-only-include-linux-slabh-if-static-is-not-defined
++++ a/lib/decompress_inflate.c
+@@ -19,11 +19,11 @@
+ #include "zlib_inflate/inflate.h"
+ 
+ #include "zlib_inflate/infutil.h"
++#include <linux/slab.h>
+ 
+ #endif /* STATIC */
+ 
+ #include <linux/decompress/mm.h>
+-#include <linux/slab.h>
+ 
+ #define GZIP_IOBUF_SIZE (16*1024)
+ 
+diff -puN lib/decompress_unlzma.c~lib-decompress_-only-include-linux-slabh-if-static-is-not-defined lib/decompress_unlzma.c
+--- a/lib/decompress_unlzma.c~lib-decompress_-only-include-linux-slabh-if-static-is-not-defined
++++ a/lib/decompress_unlzma.c
+@@ -33,10 +33,10 @@
+ #define PREBOOT
+ #else
+ #include <linux/decompress/unlzma.h>
++#include <linux/slab.h>
+ #endif /* STATIC */
+ 
+ #include <linux/decompress/mm.h>
+-#include <linux/slab.h>
+ 
+ #define	MIN(a, b) (((a) < (b)) ? (a) : (b))
+ 
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from albin.tonnerre@free-electrons.com are
 
 origin.patch
 linux-next.patch
-s3c-fix-check-of-index-into-s3c_gpios.patch
-stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
-dm-strncpy-does-not-null-terminate-string.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-powerpc-avoid-calculating-possibly-invalid-address.patch
-media-strncpy-does-not-null-terminate-string.patch
-siano-read-buffer-overflow.patch
-drivers-media-video-bw-qcamc-fix-read-buffer-overflow.patch
-stk-webcam-read-buffer-overflow.patch
-mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
-slram-read-buffer-overflow.patch
-mtd-fix-read-buffer-overflow.patch
-irda-fix-read-buffer-overflow.patch
-hfc_usb-fix-read-buffer-overflow.patch
-atlx-strncpy-does-not-null-terminate-string.patch
-ext4-remove-redundant-test-on-unsigned.patch
-cyclades-read-buffer-overflow.patch
-serial167-fix-read-buffer-overflow.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-blackfin-fix-read-buffer-overflow.patch
-arch-alpha-boot-tools-objstripc-wrong-variable-tested-after-open.patch
-m32r-remove-redundant-tests-on-unsigned.patch
-m68k-count-can-reach-51-not-50.patch
-m68k-cnt-reaches-1-not-0.patch
-dme1737-keep-index-within-pwm_config.patch
-ncpfs-read-buffer-overflow.patch
-smbfs-read-buffer-overflow.patch
-platinumfb-misplaced-parenthesis.patch
-sisfb-read-buffer-overflow.patch
-drivers-video-console-newport_conc-fix-read-outside-array-bounds.patch
-mwave-fix-read-buffer-overflow.patch
-adfs-remove-redundant-test-on-unsigned.patch
+include-linux-unaligned-lbe_byteshifth-fix-usage-for-compressed-kernels.patch
+lzo-add-support-for-lzo-compressed-kernels.patch
+lzo-arm-add-support-for-lzo-compressed-kernels.patch
+lzo-x86-add-support-for-lzo-compressed-kernels.patch
+lzo-add-lzo-compression-support-for-initramfs-and-old-style-initrd.patch
 
