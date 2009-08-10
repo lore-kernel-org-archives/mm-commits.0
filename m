@@ -1,53 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [merged] powerpc-fsl-booke-read-buffer-overflow.patch removed from -mm tree
-Date: Mon, 10 Aug 2009 12:28:05 -0700
-Message-ID: <200908101928.n7AJS5e0026992@imap1.linux-foundation.org>
+Subject: [merged] x86-fix-buffer-overflow-in-efi_init.patch removed from -mm tree
+Date: Mon, 10 Aug 2009 12:28:02 -0700
+Message-ID: <200908101928.n7AJS2jE026929@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51606 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50973 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752061AbZHJT2G (ORCPT
+	by vger.kernel.org with ESMTP id S1752387AbZHJT2G (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 10 Aug 2009 15:28:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     powerpc/fsl-booke: read buffer overflow
+     x86: fix buffer overflow in efi_init()
 has been removed from the -mm tree.  Its filename was
-     powerpc-fsl-booke-read-buffer-overflow.patch
+     x86-fix-buffer-overflow-in-efi_init.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc/fsl-booke: read buffer overflow
+Subject: x86: fix buffer overflow in efi_init()
 From: Roel Kluin <roel.kluin@gmail.com>
 
-cam[tlbcam_index] is checked before tlbcam_index < ARRAY_SIZE(cam)
+If the vendor name (from c16) can be longer than 100 bytes (or missing a
+terminating null), then the null is written past the end of vendor[].
+
+Found with Parfait, http://research.sun.com/projects/parfait/
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/fsl_booke_mmu.c |    2 +-
+ arch/x86/kernel/efi.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/powerpc/mm/fsl_booke_mmu.c~powerpc-fsl-booke-read-buffer-overflow arch/powerpc/mm/fsl_booke_mmu.c
---- a/arch/powerpc/mm/fsl_booke_mmu.c~powerpc-fsl-booke-read-buffer-overflow
-+++ a/arch/powerpc/mm/fsl_booke_mmu.c
-@@ -161,7 +161,7 @@ unsigned long __init mmu_mapin_ram(void)
- 	unsigned long virt = PAGE_OFFSET;
- 	phys_addr_t phys = memstart_addr;
- 
--	while (cam[tlbcam_index] && tlbcam_index < ARRAY_SIZE(cam)) {
-+	while (tlbcam_index < ARRAY_SIZE(cam) && cam[tlbcam_index]) {
- 		settlbcam(tlbcam_index, virt, phys, cam[tlbcam_index], PAGE_KERNEL_X, 0);
- 		virt += cam[tlbcam_index];
- 		phys += cam[tlbcam_index];
+diff -puN arch/x86/kernel/efi.c~x86-fix-buffer-overflow-in-efi_init arch/x86/kernel/efi.c
+--- a/arch/x86/kernel/efi.c~x86-fix-buffer-overflow-in-efi_init
++++ a/arch/x86/kernel/efi.c
+@@ -354,7 +354,7 @@ void __init efi_init(void)
+ 	 */
+ 	c16 = tmp = early_ioremap(efi.systab->fw_vendor, 2);
+ 	if (c16) {
+-		for (i = 0; i < sizeof(vendor) && *c16; ++i)
++		for (i = 0; i < sizeof(vendor) - 1 && *c16; ++i)
+ 			vendor[i] = *c16++;
+ 		vendor[i] = '\0';
+ 	} else
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
