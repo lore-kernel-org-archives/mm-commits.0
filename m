@@ -1,110 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-hid-introduce-missing-kfree.patch removed from -mm tree
-Date: Mon, 10 Aug 2009 12:28:17 -0700
-Message-ID: <200908101928.n7AJSHQE027453@imap1.linux-foundation.org>
+Subject: [merged] ipath-strncpy-does-not-null-terminate-string.patch removed from -mm tree
+Date: Mon, 10 Aug 2009 12:28:26 -0700
+Message-ID: <200908101928.n7AJSQOr027641@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60745 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52872 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752392AbZHJT2W (ORCPT
+	by vger.kernel.org with ESMTP id S1752439AbZHJT23 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Aug 2009 15:28:22 -0400
+	Mon, 10 Aug 2009 15:28:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: julia@diku.dk, jkosina@suse.cz, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, ralph.campbell@qlogic.com, rolandd@cisco.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/hid: introduce missing kfree
+     ipath: strncpy does not null terminate string
 has been removed from the -mm tree.  Its filename was
-     drivers-hid-introduce-missing-kfree.patch
+     ipath-strncpy-does-not-null-terminate-string.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/hid: introduce missing kfree
-From: Julia Lawall <julia@diku.dk>
+Subject: ipath: strncpy does not null terminate string
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Error handling code following a kzalloc should free the allocated data.
+strlcpy() will always null terminate the string.
 
-The semantic match that finds the problem is as follows:
-(http://www.emn.fr/x-info/coccinelle/)
-
-// <smpl>
-@r exists@
-local idexpression x;
-statement S;
-expression E;
-identifier f,f1,l;
-position p1,p2;
-expression *ptr != NULL;
-@@
-
-x@p1 = \(kmalloc\|kzalloc\|kcalloc\)(...);
-...
-if (x == NULL) S
-<... when != x
-     when != if (...) { <+...x...+> }
-(
-x->f1 = E
-|
- (x->f1 == NULL || ...)
-|
- f(...,x->f1,...)
-)
-...>
-(
- return \(0\|<+...x...+>\|ptr\);
-|
- return@p2 ...;
-)
-
-@script:python@
-p1 << r.p1;
-p2 << r.p2;
-@@
-
-print "* file: %s kmalloc %s return %s" % (p1[0].file,p1[0].line,p2[0].line)
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Jiri Kosina <jkosina@suse.cz>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Acked-by: Ralph Campbell <ralph.campbell@qlogic.com>
+Cc: Roland Dreier <rolandd@cisco.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hid/hid-debug.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/infiniband/hw/ipath/ipath_file_ops.c |    2 +-
+ drivers/infiniband/hw/ipath/ipath_mad.c      |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/hid/hid-debug.c~drivers-hid-introduce-missing-kfree drivers/hid/hid-debug.c
---- a/drivers/hid/hid-debug.c~drivers-hid-introduce-missing-kfree
-+++ a/drivers/hid/hid-debug.c
-@@ -928,6 +928,7 @@ static int hid_debug_events_open(struct 
+diff -puN drivers/infiniband/hw/ipath/ipath_file_ops.c~ipath-strncpy-does-not-null-terminate-string drivers/infiniband/hw/ipath/ipath_file_ops.c
+--- a/drivers/infiniband/hw/ipath/ipath_file_ops.c~ipath-strncpy-does-not-null-terminate-string
++++ a/drivers/infiniband/hw/ipath/ipath_file_ops.c
+@@ -1616,7 +1616,7 @@ static int try_alloc_port(struct ipath_d
+ 		pd->port_cnt = 1;
+ 		port_fp(fp) = pd;
+ 		pd->port_pid = get_pid(task_pid(current));
+-		strncpy(pd->port_comm, current->comm, sizeof(pd->port_comm));
++		strlcpy(pd->port_comm, current->comm, sizeof(pd->port_comm));
+ 		ipath_stats.sps_ports++;
+ 		ret = 0;
+ 	} else
+diff -puN drivers/infiniband/hw/ipath/ipath_mad.c~ipath-strncpy-does-not-null-terminate-string drivers/infiniband/hw/ipath/ipath_mad.c
+--- a/drivers/infiniband/hw/ipath/ipath_mad.c~ipath-strncpy-does-not-null-terminate-string
++++ a/drivers/infiniband/hw/ipath/ipath_mad.c
+@@ -60,7 +60,7 @@ static int recv_subn_get_nodedescription
+ 	if (smp->attr_mod)
+ 		smp->status |= IB_SMP_INVALID_FIELD;
  
- 	if (!(list->hid_debug_buf = kzalloc(sizeof(char) * HID_DEBUG_BUFSIZE, GFP_KERNEL))) {
- 		err = -ENOMEM;
-+		kfree(list);
- 		goto out;
- 	}
- 	list->hdev = (struct hid_device *) inode->i_private;
+-	strncpy(smp->data, ibdev->node_desc, sizeof(smp->data));
++	strlcpy(smp->data, ibdev->node_desc, sizeof(smp->data));
+ 
+ 	return reply(smp);
+ }
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 origin.patch
 linux-next.patch
-drivers-media-dvb-use-dst_type-field-instead-of-type_flags.patch
-drivers-media-video-gspca-introduce-missing-kfree.patch
-drivers-ata-use-resource_size.patch
-drivers-ata-introduce-missing-kfree.patch
-drivers-md-introduce-missing-kfree.patch
-drivers-rtc-correct-error-handling-code.patch
-drivers-rtc-introduce-missing-kfree.patch
-drivers-video-imxfbc-fix-resource-size-off-by-1-error.patch
-drivers-video-add-kmalloc-null-tests.patch
-drivers-video-add-kmalloc-null-tests-fix.patch
-edac-fix-resource-size-calculation.patch
-fs-romfs-correct-error-handling-code.patch
-drivers-vlynq-vlynqc-fix-resource-size-off-by-1-error.patch
+s3c-fix-check-of-index-into-s3c_gpios.patch
+stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
+dm-strncpy-does-not-null-terminate-string.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+powerpc-avoid-calculating-possibly-invalid-address.patch
+media-strncpy-does-not-null-terminate-string.patch
+siano-read-buffer-overflow.patch
+drivers-media-video-bw-qcamc-fix-read-buffer-overflow.patch
+stk-webcam-read-buffer-overflow.patch
+mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
+slram-read-buffer-overflow.patch
+mtd-fix-read-buffer-overflow.patch
+irda-fix-read-buffer-overflow.patch
+hfc_usb-fix-read-buffer-overflow.patch
+atlx-strncpy-does-not-null-terminate-string.patch
+ext4-remove-redundant-test-on-unsigned.patch
+cyclades-read-buffer-overflow.patch
+serial167-fix-read-buffer-overflow.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+blackfin-fix-read-buffer-overflow.patch
+arch-alpha-boot-tools-objstripc-wrong-variable-tested-after-open.patch
+m32r-remove-redundant-tests-on-unsigned.patch
+m68k-count-can-reach-51-not-50.patch
+m68k-cnt-reaches-1-not-0.patch
+dme1737-keep-index-within-pwm_config.patch
+ncpfs-read-buffer-overflow.patch
+smbfs-read-buffer-overflow.patch
+platinumfb-misplaced-parenthesis.patch
+sisfb-read-buffer-overflow.patch
+drivers-video-console-newport_conc-fix-read-outside-array-bounds.patch
+mwave-fix-read-buffer-overflow.patch
+adfs-remove-redundant-test-on-unsigned.patch
 
