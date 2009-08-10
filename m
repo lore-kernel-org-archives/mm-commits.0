@@ -1,236 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: [merged] imx31-eventually-fix-framebuffer-locking-regressions.patch removed from -mm tree
-Date: Mon, 10 Aug 2009 12:27:34 -0700
-Message-ID: <200908101927.n7AJRYRA026062@imap1.linux-foundation.org>
+Subject: [merged] fbcon-dont-use-vc_resize-on-initialization.patch removed from -mm tree
+Date: Mon, 10 Aug 2009 12:27:26 -0700
+Message-ID: <200908101927.n7AJRQ6G025913@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49304 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41203 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752366AbZHJT1u (ORCPT
+	by vger.kernel.org with ESMTP id S1752355AbZHJT1q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Aug 2009 15:27:50 -0400
+	Mon, 10 Aug 2009 15:27:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: g.liakhovetski@gmx.de, krzysztof.h1@poczta.fm, s.hauer@pengutronix.de, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, catalin.marinas@arm.com, hidave.darkstar@gmail.com, krzysztof.h1@poczta.fm, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i.MX31: fix framebuffer locking regressions
+     fbcon: don't use vc_resize() on initialization
 has been removed from the -mm tree.  Its filename was
-     imx31-eventually-fix-framebuffer-locking-regressions.patch
+     fbcon-dont-use-vc_resize-on-initialization.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: i.MX31: fix framebuffer locking regressions
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: fbcon: don't use vc_resize() on initialization
+From: Johannes Weiner <hannes@cmpxchg.org>
 
-Recent framebuffer locking patches first made affected systems unbootable,
-then the dead-lock has been fixed but as of 2.6.31-rc4 the framebuffer on
-mx3 machines doesn't work. Fix this.
+Catalin and kmemleak spotted a leak of a VC screen buffer in
+vc_allocate() due to the following chain of events:
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Sascha Hauer <s.hauer@pengutronix.de>
+	vc_allocate()
+	  visual_init(init=1)
+	    vc->vc_sw->con_init(init=1)
+              fbcon_init()
+	        vc_resize()
+	          vc->screen_buf = kmalloc()
+	  vc->screen_buf = kmalloc()
+
+The common way for the VC drivers is to set the screen dimension
+parameters manually in the init case and only call vc_resize() for
+!init - which allocates a screen buffer according to the new
+dimensions.
+
+fbcon instead would do vc_resize() unconditionally and afterwards set
+the dimensions manually (again) for !init - i.e. completely upside
+down.  The vc_resize() allocated buffer would then get lost by
+vc_allocate() allocating a fresh one.
+
+Use vc_resize() only for actual resizing to close the leak.
+
+Set the dimensions manually only in initialization mode to remove the
+redundant setting in resize mode.
+
+The kmemleak trace from Catalin:
+
+unreferenced object 0xde158000 (size 12288):
+  comm "Xorg", pid 1439, jiffies 4294961016
+  hex dump (first 32 bytes):
+    20 00 20 00 20 00 20 00 20 00 20 00 20 00 20 00   . . . . . . . .
+    20 00 20 00 20 00 20 00 20 00 20 00 20 00 20 00   . . . . . . . .
+  backtrace:
+    [<c006f74b>] __save_stack_trace+0x17/0x1c
+    [<c006f81d>] create_object+0xcd/0x188
+    [<c01f5457>] kmemleak_alloc+0x1b/0x3c
+    [<c006e303>] __kmalloc+0xdb/0xe8
+    [<c012cc4b>] vc_do_resize+0x73/0x1e0
+    [<c012cdf1>] vc_resize+0x15/0x18
+    [<c011afc1>] fbcon_init+0x1f9/0x2b8
+    [<c0129e87>] visual_init+0x9f/0xdc
+    [<c012aff3>] vc_allocate+0x7f/0xfc
+    [<c012b087>] con_open+0x17/0x80
+    [<c0120e43>] tty_open+0x1f7/0x2e4
+    [<c0072fa1>] chrdev_open+0x101/0x118
+    [<c006ffad>] __dentry_open+0x105/0x1cc
+    [<c00700fd>] nameidata_to_filp+0x2d/0x38
+    [<c00788cd>] do_filp_open+0x2c1/0x54c
+    [<c006fdff>] do_sys_open+0x3b/0xb4
+
+Reported-by: Catalin Marinas <catalin.marinas@arm.com>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Tested-by: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
 Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Tested-by: Dave Young <hidave.darkstar@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/mx3fb.c |   86 ++++++++++++++++++++++++++--------------
- 1 file changed, 56 insertions(+), 30 deletions(-)
+ drivers/video/console/fbcon.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/video/mx3fb.c~imx31-eventually-fix-framebuffer-locking-regressions drivers/video/mx3fb.c
---- a/drivers/video/mx3fb.c~imx31-eventually-fix-framebuffer-locking-regressions
-+++ a/drivers/video/mx3fb.c
-@@ -669,7 +669,8 @@ static uint32_t bpp_to_pixfmt(int bpp)
- }
+diff -puN drivers/video/console/fbcon.c~fbcon-dont-use-vc_resize-on-initialization drivers/video/console/fbcon.c
+--- a/drivers/video/console/fbcon.c~fbcon-dont-use-vc_resize-on-initialization
++++ a/drivers/video/console/fbcon.c
+@@ -1082,7 +1082,6 @@ static void fbcon_init(struct vc_data *v
+ 	new_rows = FBCON_SWAP(ops->rotate, info->var.yres, info->var.xres);
+ 	new_cols /= vc->vc_font.width;
+ 	new_rows /= vc->vc_font.height;
+-	vc_resize(vc, new_cols, new_rows);
  
- static int mx3fb_blank(int blank, struct fb_info *fbi);
--static int mx3fb_map_video_memory(struct fb_info *fbi, unsigned int mem_len);
-+static int mx3fb_map_video_memory(struct fb_info *fbi, unsigned int mem_len,
-+				  bool lock);
- static int mx3fb_unmap_video_memory(struct fb_info *fbi);
+ 	/*
+ 	 * We must always set the mode. The mode of the previous console
+@@ -1111,10 +1110,11 @@ static void fbcon_init(struct vc_data *v
+ 	 *  vc_{cols,rows}, but we must not set those if we are only
+ 	 *  resizing the console.
+ 	 */
+-	if (!init) {
++	if (init) {
+ 		vc->vc_cols = new_cols;
+ 		vc->vc_rows = new_rows;
+-	}
++	} else
++		vc_resize(vc, new_cols, new_rows);
  
- /**
-@@ -711,12 +712,7 @@ static void mx3fb_dma_done(void *arg)
- 	complete(&mx3_fbi->flip_cmpl);
- }
- 
--/**
-- * mx3fb_set_par() - set framebuffer parameters and change the operating mode.
-- * @fbi:	framebuffer information pointer.
-- * @return:	0 on success or negative error code on failure.
-- */
--static int mx3fb_set_par(struct fb_info *fbi)
-+static int __set_par(struct fb_info *fbi, bool lock)
- {
- 	u32 mem_len;
- 	struct ipu_di_signal_cfg sig_cfg;
-@@ -727,10 +723,6 @@ static int mx3fb_set_par(struct fb_info 
- 	struct idmac_video_param *video = &ichan->params.video;
- 	struct scatterlist *sg = mx3_fbi->sg;
- 
--	dev_dbg(mx3fb->dev, "%s [%c]\n", __func__, list_empty(&ichan->queue) ? '-' : '+');
--
--	mutex_lock(&mx3_fbi->mutex);
--
- 	/* Total cleanup */
- 	if (mx3_fbi->txd)
- 		sdc_disable_channel(mx3_fbi);
-@@ -742,10 +734,8 @@ static int mx3fb_set_par(struct fb_info 
- 		if (fbi->fix.smem_start)
- 			mx3fb_unmap_video_memory(fbi);
- 
--		if (mx3fb_map_video_memory(fbi, mem_len) < 0) {
--			mutex_unlock(&mx3_fbi->mutex);
-+		if (mx3fb_map_video_memory(fbi, mem_len, lock) < 0)
- 			return -ENOMEM;
--		}
- 	}
- 
- 	sg_init_table(&sg[0], 1);
-@@ -791,7 +781,6 @@ static int mx3fb_set_par(struct fb_info 
- 				   fbi->var.vsync_len,
- 				   fbi->var.lower_margin +
- 				   fbi->var.vsync_len, sig_cfg) != 0) {
--			mutex_unlock(&mx3_fbi->mutex);
- 			dev_err(fbi->device,
- 				"mx3fb: Error initializing panel.\n");
- 			return -EINVAL;
-@@ -810,9 +799,30 @@ static int mx3fb_set_par(struct fb_info 
- 	if (mx3_fbi->blank == FB_BLANK_UNBLANK)
- 		sdc_enable_channel(mx3_fbi);
- 
-+	return 0;
-+}
-+
-+/**
-+ * mx3fb_set_par() - set framebuffer parameters and change the operating mode.
-+ * @fbi:	framebuffer information pointer.
-+ * @return:	0 on success or negative error code on failure.
-+ */
-+static int mx3fb_set_par(struct fb_info *fbi)
-+{
-+	struct mx3fb_info *mx3_fbi = fbi->par;
-+	struct mx3fb_data *mx3fb = mx3_fbi->mx3fb;
-+	struct idmac_channel *ichan = mx3_fbi->idmac_channel;
-+	int ret;
-+
-+	dev_dbg(mx3fb->dev, "%s [%c]\n", __func__, list_empty(&ichan->queue) ? '-' : '+');
-+
-+	mutex_lock(&mx3_fbi->mutex);
-+
-+	ret = __set_par(fbi, true);
-+
- 	mutex_unlock(&mx3_fbi->mutex);
- 
--	return 0;
-+	return ret;
- }
- 
- /**
-@@ -966,21 +976,11 @@ static int mx3fb_setcolreg(unsigned int 
- 	return ret;
- }
- 
--/**
-- * mx3fb_blank() - blank the display.
-- */
--static int mx3fb_blank(int blank, struct fb_info *fbi)
-+static void __blank(int blank, struct fb_info *fbi)
- {
- 	struct mx3fb_info *mx3_fbi = fbi->par;
- 	struct mx3fb_data *mx3fb = mx3_fbi->mx3fb;
- 
--	dev_dbg(fbi->device, "%s, blank = %d, base %p, len %u\n", __func__,
--		blank, fbi->screen_base, fbi->fix.smem_len);
--
--	if (mx3_fbi->blank == blank)
--		return 0;
--
--	mutex_lock(&mx3_fbi->mutex);
- 	mx3_fbi->blank = blank;
- 
- 	switch (blank) {
-@@ -999,6 +999,23 @@ static int mx3fb_blank(int blank, struct
- 		sdc_set_brightness(mx3fb, mx3fb->backlight_level);
- 		break;
- 	}
-+}
-+
-+/**
-+ * mx3fb_blank() - blank the display.
-+ */
-+static int mx3fb_blank(int blank, struct fb_info *fbi)
-+{
-+	struct mx3fb_info *mx3_fbi = fbi->par;
-+
-+	dev_dbg(fbi->device, "%s, blank = %d, base %p, len %u\n", __func__,
-+		blank, fbi->screen_base, fbi->fix.smem_len);
-+
-+	if (mx3_fbi->blank == blank)
-+		return 0;
-+
-+	mutex_lock(&mx3_fbi->mutex);
-+	__blank(blank, fbi);
- 	mutex_unlock(&mx3_fbi->mutex);
- 
- 	return 0;
-@@ -1198,6 +1215,7 @@ static int mx3fb_resume(struct platform_
-  * mx3fb_map_video_memory() - allocates the DRAM memory for the frame buffer.
-  * @fbi:	framebuffer information pointer
-  * @mem_len:	length of mapped memory
-+ * @lock:	do not lock during initialisation
-  * @return:	Error code indicating success or failure
-  *
-  * This buffer is remapped into a non-cached, non-buffered, memory region to
-@@ -1205,7 +1223,8 @@ static int mx3fb_resume(struct platform_
-  * area is remapped, all virtual memory access to the video memory should occur
-  * at the new region.
-  */
--static int mx3fb_map_video_memory(struct fb_info *fbi, unsigned int mem_len)
-+static int mx3fb_map_video_memory(struct fb_info *fbi, unsigned int mem_len,
-+				  bool lock)
- {
- 	int retval = 0;
- 	dma_addr_t addr;
-@@ -1221,10 +1240,12 @@ static int mx3fb_map_video_memory(struct
- 		goto err0;
- 	}
- 
--	mutex_lock(&fbi->mm_lock);
-+	if (lock)
-+		mutex_lock(&fbi->mm_lock);
- 	fbi->fix.smem_start = addr;
- 	fbi->fix.smem_len = mem_len;
--	mutex_unlock(&fbi->mm_lock);
-+	if (lock)
-+		mutex_unlock(&fbi->mm_lock);
- 
- 	dev_dbg(fbi->device, "allocated fb @ p=0x%08x, v=0x%p, size=%d.\n",
- 		(uint32_t) fbi->fix.smem_start, fbi->screen_base, fbi->fix.smem_len);
-@@ -1365,6 +1386,11 @@ static int init_fb_chan(struct mx3fb_dat
- 	init_completion(&mx3fbi->flip_cmpl);
- 	disable_irq(ichan->eof_irq);
- 	dev_dbg(mx3fb->dev, "disabling irq %d\n", ichan->eof_irq);
-+	ret = __set_par(fbi, false);
-+	if (ret < 0)
-+		goto esetpar;
-+
-+	__blank(FB_BLANK_UNBLANK, fbi);
- 
- 	dev_info(dev, "registered, using mode %s\n", fb_mode);
- 
+ 	if (logo)
+ 		fbcon_prepare_logo(vc, info, cols, rows, new_cols, new_rows);
 _
 
-Patches currently in -mm which might be from g.liakhovetski@gmx.de are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 origin.patch
 linux-next.patch
-mmc-make-the-configuration-memory-resource-optional.patch
-tmio_mmc-optionally-support-using-platform-clock.patch
-sh-switch-migo-r-to-use-the-tmio-mmc-driver-instead-of-spi.patch
-spi-remove-imx-spi-driver.patch
-spi-add-spi-driver-for-most-known-imx-socs.patch
+mm-make-swap-token-dummies-static-inlines.patch
+mm-make-swap-token-dummies-static-inlines-fix.patch
+mm-make-swap-token-dummies-static-inlines-fix-2.patch
+mm-count-only-reclaimable-lru-pages-v2.patch
+vmscan-move-clearpageactive-from-move_active_pages-to-shrink_active_list.patch
+vmscan-kill-unnecessary-page-flag-test.patch
+vmscan-kill-unnecessary-prefetch.patch
+mm-perform-non-atomic-test-clear-of-pg_mlocked-on-free.patch
+mm-warn-once-when-a-page-is-freed-with-pg_mlocked-set.patch
 
