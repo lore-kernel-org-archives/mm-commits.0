@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + edac-i3200-memory-controller-driver.patch added to -mm tree
-Date: Mon, 10 Aug 2009 14:55:02 -0700
-Message-ID: <200908102155.n7ALt2KD020628@imap1.linux-foundation.org>
+Subject: + tracing-page-allocator-add-trace-events-for-page-allocation-and-page-freeing.patch added to -mm tree
+Date: Mon, 10 Aug 2009 15:09:53 -0700
+Message-ID: <200908102209.n7AM9r7f013772@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47693 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48968 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753627AbZHJVzQ (ORCPT
+	by vger.kernel.org with ESMTP id S1754037AbZHJWMN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Aug 2009 17:55:16 -0400
+	Mon, 10 Aug 2009 18:12:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: juhlenko@akamai.com, dougthompson@xmission.com, hpa@zytor.com, mingo@elte.hu
+Cc: mel@csn.ul.ie, lwoodman@redhat.com, macli@brc.ubc.ca, mingo@elte.hu, peterz@infradead.org, riel@redhat.com
 
 
 The patch titled
-     edac: i3200 memory controller driver
+     tracing, page-allocator: add trace events for page allocation and page freeing
 has been added to the -mm tree.  Its filename is
-     edac-i3200-memory-controller-driver.patch
+     tracing-page-allocator-add-trace-events-for-page-allocation-and-page-freeing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,592 +34,190 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: edac: i3200 memory controller driver
-From: Jason Uhlenkott <juhlenko@akamai.com>
+Subject: tracing, page-allocator: add trace events for page allocation and page freeing
+From: Mel Gorman <mel@csn.ul.ie>
 
-A driver for the Intel 3200 and 3210 memory controllers.  It has only had
-light testing so far, and currently makes no attempt to decode error
-addresses at anything finer than csrow granularity.
+This patch adds trace events for the allocation and freeing of pages,
+including the freeing of pagevecs.  Using the events, it will be known
+what struct page and pfns are being allocated and freed and what the call
+site was in many cases.
 
-Signed-off-by: Jason Uhlenkott <juhlenko@akamai.com>
-Signed-off-by: Doug Thompson <dougthompson@xmission.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+The page alloc tracepoints be used as an indicator as to whether the
+workload was heavily dependant on the page allocator or not.  You can make
+a guess based on vmstat but you can't get a per-process breakdown. 
+Depending on the call path, the call_site for page allocation may be
+__get_free_pages() instead of a useful callsite.  Instead of passing down
+a return address similar to slab debugging, the user should enable the
+stacktrace and seg-addr options to get a proper stack trace.
+
+The pagevec free tracepoint has a different usecase.  It can be used to
+get a idea of how many pages are being dumped off the LRU and whether it
+is kswapd doing the work or a process doing direct reclaim.
+
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Acked-by: Rik van Riel <riel@redhat.com>
+Reviewed-by: Ingo Molnar <mingo@elte.hu>
+Cc: Larry Woodman <lwoodman@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Li Ming Chun <macli@brc.ubc.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/Kconfig      |    7 
- drivers/edac/Makefile     |    2 
- drivers/edac/i3200_edac.c |  527 ++++++++++++++++++++++++++++++++++++
- 3 files changed, 536 insertions(+)
+ include/trace/events/kmem.h |   74 ++++++++++++++++++++++++++++++++++
+ mm/page_alloc.c             |    7 ++-
+ 2 files changed, 80 insertions(+), 1 deletion(-)
 
-diff -puN drivers/edac/Kconfig~edac-i3200-memory-controller-driver drivers/edac/Kconfig
---- a/drivers/edac/Kconfig~edac-i3200-memory-controller-driver
-+++ a/drivers/edac/Kconfig
-@@ -133,6 +133,13 @@ config EDAC_I3000
- 	  Support for error detection and correction on the Intel
- 	  3000 and 3010 server chipsets.
+diff -puN include/trace/events/kmem.h~tracing-page-allocator-add-trace-events-for-page-allocation-and-page-freeing include/trace/events/kmem.h
+--- a/include/trace/events/kmem.h~tracing-page-allocator-add-trace-events-for-page-allocation-and-page-freeing
++++ a/include/trace/events/kmem.h
+@@ -225,6 +225,80 @@ TRACE_EVENT(kmem_cache_free,
  
-+config EDAC_I3200
-+	tristate "Intel 3200"
-+	depends on EDAC_MM_EDAC && PCI && X86 && EXPERIMENTAL
-+	help
-+	  Support for error detection and correction on the Intel
-+	  3200 and 3210 server chipsets.
+ 	TP_printk("call_site=%lx ptr=%p", __entry->call_site, __entry->ptr)
+ );
 +
- config EDAC_X38
- 	tristate "Intel X38"
- 	depends on EDAC_MM_EDAC && PCI && X86
-diff -puN drivers/edac/Makefile~edac-i3200-memory-controller-driver drivers/edac/Makefile
---- a/drivers/edac/Makefile~edac-i3200-memory-controller-driver
-+++ a/drivers/edac/Makefile
-@@ -32,6 +32,7 @@ obj-$(CONFIG_EDAC_I82443BXGX)		+= i82443
- obj-$(CONFIG_EDAC_I82875P)		+= i82875p_edac.o
- obj-$(CONFIG_EDAC_I82975X)		+= i82975x_edac.o
- obj-$(CONFIG_EDAC_I3000)		+= i3000_edac.o
-+obj-$(CONFIG_EDAC_I3200)		+= i3200_edac.o
- obj-$(CONFIG_EDAC_X38)			+= x38_edac.o
- obj-$(CONFIG_EDAC_I82860)		+= i82860_edac.o
- obj-$(CONFIG_EDAC_R82600)		+= r82600_edac.o
-@@ -49,3 +50,4 @@ obj-$(CONFIG_EDAC_CELL)			+= cell_edac.o
- obj-$(CONFIG_EDAC_PPC4XX)		+= ppc4xx_edac.o
- obj-$(CONFIG_EDAC_AMD8111)		+= amd8111_edac.o
- obj-$(CONFIG_EDAC_AMD8131)		+= amd8131_edac.o
++TRACE_EVENT(mm_page_free_direct,
 +
-diff -puN /dev/null drivers/edac/i3200_edac.c
---- /dev/null
-+++ a/drivers/edac/i3200_edac.c
-@@ -0,0 +1,527 @@
-+/*
-+ * Intel 3200/3210 Memory Controller kernel module
-+ * Copyright (C) 2008-2009 Akamai Technologies, Inc.
-+ * Portions by Hitoshi Mitake <h.mitake@gmail.com>.
-+ *
-+ * This file may be distributed under the terms of the
-+ * GNU General Public License.
-+ */
++	TP_PROTO(struct page *page, unsigned int order),
 +
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/pci.h>
-+#include <linux/pci_ids.h>
-+#include <linux/slab.h>
-+#include <linux/edac.h>
-+#include <linux/io.h>
-+#include "edac_core.h"
++	TP_ARGS(page, order),
 +
-+#define I3200_REVISION        "1.1"
++	TP_STRUCT__entry(
++		__field(	struct page *,	page		)
++		__field(	unsigned int,	order		)
++	),
 +
-+#define EDAC_MOD_STR        "i3200_edac"
++	TP_fast_assign(
++		__entry->page		= page;
++		__entry->order		= order;
++	),
 +
-+#define PCI_DEVICE_ID_INTEL_3200_HB    0x29f0
++	TP_printk("page=%p pfn=%lu order=%d",
++			__entry->page,
++			page_to_pfn(__entry->page),
++			__entry->order)
++);
 +
-+#define I3200_RANKS		8
-+#define I3200_RANKS_PER_CHANNEL	4
-+#define I3200_CHANNELS		2
++TRACE_EVENT(mm_pagevec_free,
 +
-+/* Intel 3200 register addresses - device 0 function 0 - DRAM Controller */
++	TP_PROTO(struct page *page, int cold),
 +
-+#define I3200_MCHBAR_LOW	0x48	/* MCH Memory Mapped Register BAR */
-+#define I3200_MCHBAR_HIGH	0x4b
-+#define I3200_MCHBAR_MASK	0xfffffc000ULL	/* bits 35:14 */
-+#define I3200_MMR_WINDOW_SIZE	16384
++	TP_ARGS(page, cold),
 +
-+#define I3200_TOM		0xa0	/* Top of Memory (16b)
-+		 *
-+		 * 15:10 reserved
-+		 *  9:0  total populated physical memory
-+		 */
-+#define I3200_TOM_MASK		0x3ff	/* bits 9:0 */
-+#define I3200_TOM_SHIFT		26	/* 64MiB grain */
++	TP_STRUCT__entry(
++		__field(	struct page *,	page		)
++		__field(	int,		cold		)
++	),
 +
-+#define I3200_ERRSTS		0xc8	/* Error Status Register (16b)
-+		 *
-+		 * 15    reserved
-+		 * 14    Isochronous TBWRR Run Behind FIFO Full
-+		 *       (ITCV)
-+		 * 13    Isochronous TBWRR Run Behind FIFO Put
-+		 *       (ITSTV)
-+		 * 12    reserved
-+		 * 11    MCH Thermal Sensor Event
-+		 *       for SMI/SCI/SERR (GTSE)
-+		 * 10    reserved
-+		 *  9    LOCK to non-DRAM Memory Flag (LCKF)
-+		 *  8    reserved
-+		 *  7    DRAM Throttle Flag (DTF)
-+		 *  6:2  reserved
-+		 *  1    Multi-bit DRAM ECC Error Flag (DMERR)
-+		 *  0    Single-bit DRAM ECC Error Flag (DSERR)
-+		 */
-+#define I3200_ERRSTS_UE		0x0002
-+#define I3200_ERRSTS_CE		0x0001
-+#define I3200_ERRSTS_BITS	(I3200_ERRSTS_UE | I3200_ERRSTS_CE)
++	TP_fast_assign(
++		__entry->page		= page;
++		__entry->cold		= cold;
++	),
 +
++	TP_printk("page=%p pfn=%lu order=0 cold=%d",
++			__entry->page,
++			page_to_pfn(__entry->page),
++			__entry->cold)
++);
 +
-+/* Intel  MMIO register space - device 0 function 0 - MMR space */
++TRACE_EVENT(mm_page_alloc,
 +
-+#define I3200_C0DRB	0x200	/* Channel 0 DRAM Rank Boundary (16b x 4)
-+		 *
-+		 * 15:10 reserved
-+		 *  9:0  Channel 0 DRAM Rank Boundary Address
-+		 */
-+#define I3200_C1DRB	0x600	/* Channel 1 DRAM Rank Boundary (16b x 4) */
-+#define I3200_DRB_MASK	0x3ff	/* bits 9:0 */
-+#define I3200_DRB_SHIFT	26	/* 64MiB grain */
++	TP_PROTO(struct page *page, unsigned int order,
++			gfp_t gfp_flags, int migratetype),
 +
-+#define I3200_C0ECCERRLOG	0x280	/* Channel 0 ECC Error Log (64b)
-+		 *
-+		 * 63:48 Error Column Address (ERRCOL)
-+		 * 47:32 Error Row Address (ERRROW)
-+		 * 31:29 Error Bank Address (ERRBANK)
-+		 * 28:27 Error Rank Address (ERRRANK)
-+		 * 26:24 reserved
-+		 * 23:16 Error Syndrome (ERRSYND)
-+		 * 15: 2 reserved
-+		 *    1  Multiple Bit Error Status (MERRSTS)
-+		 *    0  Correctable Error Status (CERRSTS)
-+		 */
-+#define I3200_C1ECCERRLOG		0x680	/* Chan 1 ECC Error Log (64b) */
-+#define I3200_ECCERRLOG_CE		0x1
-+#define I3200_ECCERRLOG_UE		0x2
-+#define I3200_ECCERRLOG_RANK_BITS	0x18000000
-+#define I3200_ECCERRLOG_RANK_SHIFT	27
-+#define I3200_ECCERRLOG_SYNDROME_BITS	0xff0000
-+#define I3200_ECCERRLOG_SYNDROME_SHIFT	16
-+#define I3200_CAPID0			0xe0	/* P.95 of spec for details */
++	TP_ARGS(page, order, gfp_flags, migratetype),
 +
-+struct i3200_priv {
-+	void __iomem *window;
-+};
++	TP_STRUCT__entry(
++		__field(	struct page *,	page		)
++		__field(	unsigned int,	order		)
++		__field(	gfp_t,		gfp_flags	)
++		__field(	int,		migratetype	)
++	),
 +
-+static int nr_channels;
++	TP_fast_assign(
++		__entry->page		= page;
++		__entry->order		= order;
++		__entry->gfp_flags	= gfp_flags;
++		__entry->migratetype	= migratetype;
++	),
 +
-+static int how_many_channels(struct pci_dev *pdev)
-+{
-+	unsigned char capid0_8b; /* 8th byte of CAPID0 */
++	TP_printk("page=%p pfn=%lu order=%d migratetype=%d gfp_flags=%s",
++		__entry->page,
++		page_to_pfn(__entry->page),
++		__entry->order,
++		__entry->migratetype,
++		show_gfp_flags(__entry->gfp_flags))
++);
 +
-+	pci_read_config_byte(pdev, I3200_CAPID0 + 8, &capid0_8b);
-+	if (capid0_8b & 0x20) { /* check DCD: Dual Channel Disable */
-+		debugf0("In single channel mode.\n");
-+		return 1;
-+	} else {
-+		debugf0("In dual channel mode.\n");
-+		return 2;
+ #endif /* _TRACE_KMEM_H */
+ 
+ /* This part must be outside protection */
+diff -puN mm/page_alloc.c~tracing-page-allocator-add-trace-events-for-page-allocation-and-page-freeing mm/page_alloc.c
+--- a/mm/page_alloc.c~tracing-page-allocator-add-trace-events-for-page-allocation-and-page-freeing
++++ a/mm/page_alloc.c
+@@ -1097,6 +1097,7 @@ static void free_hot_cold_page(struct pa
+ 
+ void free_hot_page(struct page *page)
+ {
++	trace_mm_page_free_direct(page, 0);
+ 	free_hot_cold_page(page, 0);
+ }
+ 	
+@@ -1941,6 +1942,7 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
+ 				zonelist, high_zoneidx, nodemask,
+ 				preferred_zone, migratetype);
+ 
++	trace_mm_page_alloc(page, order, gfp_mask, migratetype);
+ 	return page;
+ }
+ EXPORT_SYMBOL(__alloc_pages_nodemask);
+@@ -1975,13 +1977,16 @@ void __pagevec_free(struct pagevec *pvec
+ {
+ 	int i = pagevec_count(pvec);
+ 
+-	while (--i >= 0)
++	while (--i >= 0) {
++		trace_mm_pagevec_free(pvec->pages[i], pvec->cold);
+ 		free_hot_cold_page(pvec->pages[i], pvec->cold);
 +	}
-+}
-+
-+static unsigned long eccerrlog_syndrome(u64 log)
-+{
-+	return (log & I3200_ECCERRLOG_SYNDROME_BITS) >>
-+		I3200_ECCERRLOG_SYNDROME_SHIFT;
-+}
-+
-+static int eccerrlog_row(int channel, u64 log)
-+{
-+	u64 rank = ((log & I3200_ECCERRLOG_RANK_BITS) >>
-+		I3200_ECCERRLOG_RANK_SHIFT);
-+	return rank | (channel * I3200_RANKS_PER_CHANNEL);
-+}
-+
-+enum i3200_chips {
-+	I3200 = 0,
-+};
-+
-+struct i3200_dev_info {
-+	const char *ctl_name;
-+};
-+
-+struct i3200_error_info {
-+	u16 errsts;
-+	u16 errsts2;
-+	u64 eccerrlog[I3200_CHANNELS];
-+};
-+
-+static const struct i3200_dev_info i3200_devs[] = {
-+	[I3200] = {
-+		.ctl_name = "i3200"
-+	},
-+};
-+
-+static struct pci_dev *mci_pdev;
-+static int i3200_registered = 1;
-+
-+
-+static void i3200_clear_error_info(struct mem_ctl_info *mci)
-+{
-+	struct pci_dev *pdev;
-+
-+	pdev = to_pci_dev(mci->dev);
-+
-+	/*
-+	 * Clear any error bits.
-+	 * (Yes, we really clear bits by writing 1 to them.)
-+	 */
-+	pci_write_bits16(pdev, I3200_ERRSTS, I3200_ERRSTS_BITS,
-+		I3200_ERRSTS_BITS);
-+}
-+
-+static void i3200_get_and_clear_error_info(struct mem_ctl_info *mci,
-+		struct i3200_error_info *info)
-+{
-+	struct pci_dev *pdev;
-+	struct i3200_priv *priv = mci->pvt_info;
-+	void __iomem *window = priv->window;
-+
-+	pdev = to_pci_dev(mci->dev);
-+
-+	/*
-+	 * This is a mess because there is no atomic way to read all the
-+	 * registers at once and the registers can transition from CE being
-+	 * overwritten by UE.
-+	 */
-+	pci_read_config_word(pdev, I3200_ERRSTS, &info->errsts);
-+	if (!(info->errsts & I3200_ERRSTS_BITS))
-+		return;
-+
-+	info->eccerrlog[0] = readq(window + I3200_C0ECCERRLOG);
-+	if (nr_channels == 2)
-+		info->eccerrlog[1] = readq(window + I3200_C1ECCERRLOG);
-+
-+	pci_read_config_word(pdev, I3200_ERRSTS, &info->errsts2);
-+
-+	/*
-+	 * If the error is the same for both reads then the first set
-+	 * of reads is valid.  If there is a change then there is a CE
-+	 * with no info and the second set of reads is valid and
-+	 * should be UE info.
-+	 */
-+	if ((info->errsts ^ info->errsts2) & I3200_ERRSTS_BITS) {
-+		info->eccerrlog[0] = readq(window + I3200_C0ECCERRLOG);
-+		if (nr_channels == 2)
-+			info->eccerrlog[1] = readq(window + I3200_C1ECCERRLOG);
-+	}
-+
-+	i3200_clear_error_info(mci);
-+}
-+
-+static void i3200_process_error_info(struct mem_ctl_info *mci,
-+		struct i3200_error_info *info)
-+{
-+	int channel;
-+	u64 log;
-+
-+	if (!(info->errsts & I3200_ERRSTS_BITS))
-+		return;
-+
-+	if ((info->errsts ^ info->errsts2) & I3200_ERRSTS_BITS) {
-+		edac_mc_handle_ce_no_info(mci, "UE overwrote CE");
-+		info->errsts = info->errsts2;
-+	}
-+
-+	for (channel = 0; channel < nr_channels; channel++) {
-+		log = info->eccerrlog[channel];
-+		if (log & I3200_ECCERRLOG_UE) {
-+			edac_mc_handle_ue(mci, 0, 0,
-+				eccerrlog_row(channel, log),
-+				"i3200 UE");
-+		} else if (log & I3200_ECCERRLOG_CE) {
-+			edac_mc_handle_ce(mci, 0, 0,
-+				eccerrlog_syndrome(log),
-+				eccerrlog_row(channel, log), 0,
-+				"i3200 CE");
-+		}
-+	}
-+}
-+
-+static void i3200_check(struct mem_ctl_info *mci)
-+{
-+	struct i3200_error_info info;
-+
-+	debugf1("MC%d: %s()\n", mci->mc_idx, __func__);
-+	i3200_get_and_clear_error_info(mci, &info);
-+	i3200_process_error_info(mci, &info);
-+}
-+
-+
-+void __iomem *i3200_map_mchbar(struct pci_dev *pdev)
-+{
-+	union {
-+		u64 mchbar;
-+		struct {
-+			u32 mchbar_low;
-+			u32 mchbar_high;
-+		};
-+	} u;
-+	void __iomem *window;
-+
-+	pci_read_config_dword(pdev, I3200_MCHBAR_LOW, &u.mchbar_low);
-+	pci_read_config_dword(pdev, I3200_MCHBAR_HIGH, &u.mchbar_high);
-+	u.mchbar &= I3200_MCHBAR_MASK;
-+
-+	if (u.mchbar != (resource_size_t)u.mchbar) {
-+		printk(KERN_ERR
-+			"i3200: mmio space beyond accessible range (0x%llx)\n",
-+			(unsigned long long)u.mchbar);
-+		return NULL;
-+	}
-+
-+	window = ioremap_nocache(u.mchbar, I3200_MMR_WINDOW_SIZE);
-+	if (!window)
-+		printk(KERN_ERR "i3200: cannot map mmio space at 0x%llx\n",
-+			(unsigned long long)u.mchbar);
-+
-+	return window;
-+}
-+
-+
-+static void i3200_get_drbs(void __iomem *window,
-+	u16 drbs[I3200_CHANNELS][I3200_RANKS_PER_CHANNEL])
-+{
-+	int i;
-+
-+	for (i = 0; i < I3200_RANKS_PER_CHANNEL; i++) {
-+		drbs[0][i] = readw(window + I3200_C0DRB + 2*i) & I3200_DRB_MASK;
-+		drbs[1][i] = readw(window + I3200_C1DRB + 2*i) & I3200_DRB_MASK;
-+	}
-+}
-+
-+static bool i3200_is_stacked(struct pci_dev *pdev,
-+	u16 drbs[I3200_CHANNELS][I3200_RANKS_PER_CHANNEL])
-+{
-+	u16 tom;
-+
-+	pci_read_config_word(pdev, I3200_TOM, &tom);
-+	tom &= I3200_TOM_MASK;
-+
-+	return drbs[I3200_CHANNELS - 1][I3200_RANKS_PER_CHANNEL - 1] == tom;
-+}
-+
-+static unsigned long drb_to_nr_pages(
-+	u16 drbs[I3200_CHANNELS][I3200_RANKS_PER_CHANNEL], bool stacked,
-+	int channel, int rank)
-+{
-+	int n;
-+
-+	n = drbs[channel][rank];
-+	if (rank > 0)
-+		n -= drbs[channel][rank - 1];
-+	if (stacked && (channel == 1) &&
-+	drbs[channel][rank] == drbs[channel][I3200_RANKS_PER_CHANNEL - 1])
-+		n -= drbs[0][I3200_RANKS_PER_CHANNEL - 1];
-+
-+	n <<= (I3200_DRB_SHIFT - PAGE_SHIFT);
-+	return n;
-+}
-+
-+static int i3200_probe1(struct pci_dev *pdev, int dev_idx)
-+{
-+	int rc;
-+	int i;
-+	struct mem_ctl_info *mci = NULL;
-+	unsigned long last_page;
-+	u16 drbs[I3200_CHANNELS][I3200_RANKS_PER_CHANNEL];
-+	bool stacked;
-+	void __iomem *window;
-+	struct i3200_priv *priv;
-+
-+	debugf0("MC: %s()\n", __func__);
-+
-+	window = i3200_map_mchbar(pdev);
-+	if (!window)
-+		return -ENODEV;
-+
-+	i3200_get_drbs(window, drbs);
-+	nr_channels = how_many_channels(pdev);
-+
-+	mci = edac_mc_alloc(sizeof(struct i3200_priv), I3200_RANKS,
-+		nr_channels, 0);
-+	if (!mci)
-+		return -ENOMEM;
-+
-+	debugf3("MC: %s(): init mci\n", __func__);
-+
-+	mci->dev = &pdev->dev;
-+	mci->mtype_cap = MEM_FLAG_DDR2;
-+
-+	mci->edac_ctl_cap = EDAC_FLAG_SECDED;
-+	mci->edac_cap = EDAC_FLAG_SECDED;
-+
-+	mci->mod_name = EDAC_MOD_STR;
-+	mci->mod_ver = I3200_REVISION;
-+	mci->ctl_name = i3200_devs[dev_idx].ctl_name;
-+	mci->dev_name = pci_name(pdev);
-+	mci->edac_check = i3200_check;
-+	mci->ctl_page_to_phys = NULL;
-+	priv = mci->pvt_info;
-+	priv->window = window;
-+
-+	stacked = i3200_is_stacked(pdev, drbs);
-+
-+	/*
-+	 * The dram rank boundary (DRB) reg values are boundary addresses
-+	 * for each DRAM rank with a granularity of 64MB.  DRB regs are
-+	 * cumulative; the last one will contain the total memory
-+	 * contained in all ranks.
-+	 */
-+	last_page = -1UL;
-+	for (i = 0; i < mci->nr_csrows; i++) {
-+		unsigned long nr_pages;
-+		struct csrow_info *csrow = &mci->csrows[i];
-+
-+		nr_pages = drb_to_nr_pages(drbs, stacked,
-+			i / I3200_RANKS_PER_CHANNEL,
-+			i % I3200_RANKS_PER_CHANNEL);
-+
-+		if (nr_pages == 0) {
-+			csrow->mtype = MEM_EMPTY;
-+			continue;
-+		}
-+
-+		csrow->first_page = last_page + 1;
-+		last_page += nr_pages;
-+		csrow->last_page = last_page;
-+		csrow->nr_pages = nr_pages;
-+
-+		csrow->grain = nr_pages << PAGE_SHIFT;
-+		csrow->mtype = MEM_DDR2;
-+		csrow->dtype = DEV_UNKNOWN;
-+		csrow->edac_mode = EDAC_UNKNOWN;
-+	}
-+
-+	i3200_clear_error_info(mci);
-+
-+	rc = -ENODEV;
-+	if (edac_mc_add_mc(mci)) {
-+		debugf3("MC: %s(): failed edac_mc_add_mc()\n", __func__);
-+		goto fail;
-+	}
-+
-+	/* get this far and it's successful */
-+	debugf3("MC: %s(): success\n", __func__);
-+	return 0;
-+
-+fail:
-+	iounmap(window);
-+	if (mci)
-+		edac_mc_free(mci);
-+
-+	return rc;
-+}
-+
-+static int __devinit i3200_init_one(struct pci_dev *pdev,
-+		const struct pci_device_id *ent)
-+{
-+	int rc;
-+
-+	debugf0("MC: %s()\n", __func__);
-+
-+	if (pci_enable_device(pdev) < 0)
-+		return -EIO;
-+
-+	rc = i3200_probe1(pdev, ent->driver_data);
-+	if (!mci_pdev)
-+		mci_pdev = pci_dev_get(pdev);
-+
-+	return rc;
-+}
-+
-+static void __devexit i3200_remove_one(struct pci_dev *pdev)
-+{
-+	struct mem_ctl_info *mci;
-+	struct i3200_priv *priv;
-+
-+	debugf0("%s()\n", __func__);
-+
-+	mci = edac_mc_del_mc(&pdev->dev);
-+	if (!mci)
-+		return;
-+
-+	priv = mci->pvt_info;
-+	iounmap(priv->window);
-+
-+	edac_mc_free(mci);
-+}
-+
-+static const struct pci_device_id i3200_pci_tbl[] __devinitdata = {
-+	{
-+		PCI_VEND_DEV(INTEL, 3200_HB), PCI_ANY_ID, PCI_ANY_ID, 0, 0,
-+		I3200},
-+	{
-+		0,
-+	}            /* 0 terminated list. */
-+};
-+
-+MODULE_DEVICE_TABLE(pci, i3200_pci_tbl);
-+
-+static struct pci_driver i3200_driver = {
-+	.name = EDAC_MOD_STR,
-+	.probe = i3200_init_one,
-+	.remove = __devexit_p(i3200_remove_one),
-+	.id_table = i3200_pci_tbl,
-+};
-+
-+static int __init i3200_init(void)
-+{
-+	int pci_rc;
-+
-+	debugf3("MC: %s()\n", __func__);
-+
-+	/* Ensure that the OPSTATE is set correctly for POLL or NMI */
-+	opstate_init();
-+
-+	pci_rc = pci_register_driver(&i3200_driver);
-+	if (pci_rc < 0)
-+		goto fail0;
-+
-+	if (!mci_pdev) {
-+		i3200_registered = 0;
-+		mci_pdev = pci_get_device(PCI_VENDOR_ID_INTEL,
-+				PCI_DEVICE_ID_INTEL_3200_HB, NULL);
-+		if (!mci_pdev) {
-+			debugf0("i3200 pci_get_device fail\n");
-+			pci_rc = -ENODEV;
-+			goto fail1;
-+		}
-+
-+		pci_rc = i3200_init_one(mci_pdev, i3200_pci_tbl);
-+		if (pci_rc < 0) {
-+			debugf0("i3200 init fail\n");
-+			pci_rc = -ENODEV;
-+			goto fail1;
-+		}
-+	}
-+
-+	return 0;
-+
-+fail1:
-+	pci_unregister_driver(&i3200_driver);
-+
-+fail0:
-+	if (mci_pdev)
-+		pci_dev_put(mci_pdev);
-+
-+	return pci_rc;
-+}
-+
-+static void __exit i3200_exit(void)
-+{
-+	debugf3("MC: %s()\n", __func__);
-+
-+	pci_unregister_driver(&i3200_driver);
-+	if (!i3200_registered) {
-+		i3200_remove_one(mci_pdev);
-+		pci_dev_put(mci_pdev);
-+	}
-+}
-+
-+module_init(i3200_init);
-+module_exit(i3200_exit);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Akamai Technologies, Inc.");
-+MODULE_DESCRIPTION("MC support for Intel 3200 memory hub controllers");
-+
-+module_param(edac_op_state, int, 0444);
-+MODULE_PARM_DESC(edac_op_state, "EDAC Error Reporting state: 0=Poll,1=NMI");
+ }
+ 
+ void __free_pages(struct page *page, unsigned int order)
+ {
+ 	if (put_page_testzero(page)) {
++		trace_mm_page_free_direct(page, order);
+ 		if (order == 0)
+ 			free_hot_page(page);
+ 		else
 _
 
-Patches currently in -mm which might be from juhlenko@akamai.com are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
-edac-i3200-memory-controller-driver.patch
+memory-hotplug-update-zone-pcp-at-memory-online.patch
+memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
+memory-hotplug-exclude-isolated-page-from-pco-page-alloc.patch
+memory-hotplug-make-pages-from-movable-zone-always-isolatable.patch
+memory-hotplug-alloc-page-from-other-node-in-memory-online.patch
+memory-hotplug-migrate-swap-cache-page.patch
+hugetlb-balance-freeing-of-huge-pages-across-nodes.patch
+hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages.patch
+hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages-fix.patch
+hugetlb-clean-up-and-update-huge-pages-documentation.patch
+hugetlb-restore-interleaving-of-bootmem-huge-pages.patch
+mm-clean-up-page_remove_rmap.patch
+mm-update-alloc_flags-after-oom-killer-has-been-called.patch
+vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
+vmscan-move-clearpageactive-from-move_active_pages-to-shrink_active_list.patch
+vmscan-kill-unnecessary-page-flag-test.patch
+vmscan-kill-unnecessary-prefetch.patch
+mm-perform-non-atomic-test-clear-of-pg_mlocked-on-free.patch
+mm-warn-once-when-a-page-is-freed-with-pg_mlocked-set.patch
+page-allocator-change-migratetype-for-all-pageblocks-within-a-high-order-page-during-__rmqueue_fallback.patch
+page-allocator-remove-dead-function-free_cold_page.patch
+tracing-page-allocator-add-trace-events-for-page-allocation-and-page-freeing.patch
+tracing-page-allocator-add-trace-events-for-anti-fragmentation-falling-back-to-other-migratetypes.patch
+tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists.patch
+tracing-page-allocator-add-a-postprocessing-script-for-page-allocator-related-ftrace-events.patch
+tracing-documentation-add-a-document-describing-how-to-do-some-performance-analysis-with-tracepoints.patch
+tracing-documentation-add-a-document-on-the-kmem-tracepoints.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
 
