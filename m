@@ -1,99 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: [merged] usb-gadget-read-buffer-overflow.patch removed from -mm tree
-Date: Mon, 10 Aug 2009 12:28:41 -0700
-Message-ID: <200908101928.n7AJSf9Y028107@imap1.linux-foundation.org>
+Subject: [merged] gigaset-really-fix-chars_in_buffer.patch removed from -mm tree
+Date: Mon, 10 Aug 2009 12:28:57 -0700
+Message-ID: <200908101928.n7AJSvIk028615@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56718 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37589 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752553AbZHJT3A (ORCPT
+	by vger.kernel.org with ESMTP id S1752558AbZHJT3D (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Aug 2009 15:29:00 -0400
+	Mon, 10 Aug 2009 15:29:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, david-b@pacbell.net, greg@kroah.com, mm-commits@vger.kernel.org
+To: tilman@imap.cc, davem@davemloft.net, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usb gadget: Read buffer overflow
+     gigaset: really fix chars_in_buffer
 has been removed from the -mm tree.  Its filename was
-     usb-gadget-read-buffer-overflow.patch
+     gigaset-really-fix-chars_in_buffer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb gadget: Read buffer overflow
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: gigaset: really fix chars_in_buffer
+From: Tilman Schmidt <tilman@imap.cc>
 
-Check whether index is within bounds before testing the element.
+The tty_operation chars_in_buffer() is not allowed to return a negative
+value to signal an error.  Corrects the problem flagged by commit
+23198fda7182969b619613a555f8645fdc3dc334, "tty: fix chars_in_buffers".
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: David Brownell <david-b@pacbell.net>
+Signed-off-by: Tilman Schmidt <tilman@imap.cc>
 Cc: Greg KH <greg@kroah.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/gadget/composite.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/isdn/gigaset/interface.c |   19 +++++++------------
+ 1 file changed, 7 insertions(+), 12 deletions(-)
 
-diff -puN drivers/usb/gadget/composite.c~usb-gadget-read-buffer-overflow drivers/usb/gadget/composite.c
---- a/drivers/usb/gadget/composite.c~usb-gadget-read-buffer-overflow
-+++ a/drivers/usb/gadget/composite.c
-@@ -602,7 +602,7 @@ static int get_string(struct usb_composi
- 			}
- 		}
+diff -puN drivers/isdn/gigaset/interface.c~gigaset-really-fix-chars_in_buffer drivers/isdn/gigaset/interface.c
+--- a/drivers/isdn/gigaset/interface.c~gigaset-really-fix-chars_in_buffer
++++ a/drivers/isdn/gigaset/interface.c
+@@ -408,33 +408,28 @@ static int if_write_room(struct tty_stru
+ 	return retval;
+ }
  
--		for (len = 0; s->wData[len] && len <= 126; len++)
-+		for (len = 0; len <= 126 && s->wData[len]; len++)
- 			continue;
- 		if (!len)
- 			return -EINVAL;
+-/* FIXME: This function does not have error returns */
+-
+ static int if_chars_in_buffer(struct tty_struct *tty)
+ {
+ 	struct cardstate *cs;
+-	int retval = -ENODEV;
++	int retval = 0;
+ 
+ 	cs = (struct cardstate *) tty->driver_data;
+ 	if (!cs) {
+ 		pr_err("%s: no cardstate\n", __func__);
+-		return -ENODEV;
++		return 0;
+ 	}
+ 
+ 	gig_dbg(DEBUG_IF, "%u: %s()", cs->minor_index, __func__);
+ 
+-	if (mutex_lock_interruptible(&cs->mutex))
+-		return -ERESTARTSYS; // FIXME -EINTR?
++	mutex_lock(&cs->mutex);
+ 
+-	if (!cs->connected) {
++	if (!cs->connected)
+ 		gig_dbg(DEBUG_IF, "not connected");
+-		retval = -ENODEV;
+-	} else if (!cs->open_count)
++	else if (!cs->open_count)
+ 		dev_warn(cs->dev, "%s: device not opened\n", __func__);
+-	else if (cs->mstate != MS_LOCKED) {
++	else if (cs->mstate != MS_LOCKED)
+ 		dev_warn(cs->dev, "can't write to unlocked device\n");
+-		retval = -EBUSY;
+-	} else
++	else
+ 		retval = cs->ops->chars_in_buffer(cs);
+ 
+ 	mutex_unlock(&cs->mutex);
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from tilman@imap.cc are
 
-origin.patch
 linux-next.patch
-s3c-fix-check-of-index-into-s3c_gpios.patch
-stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
-dm-strncpy-does-not-null-terminate-string.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-powerpc-avoid-calculating-possibly-invalid-address.patch
-media-strncpy-does-not-null-terminate-string.patch
-siano-read-buffer-overflow.patch
-drivers-media-video-bw-qcamc-fix-read-buffer-overflow.patch
-stk-webcam-read-buffer-overflow.patch
-mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
-slram-read-buffer-overflow.patch
-mtd-fix-read-buffer-overflow.patch
-irda-fix-read-buffer-overflow.patch
-hfc_usb-fix-read-buffer-overflow.patch
-atlx-strncpy-does-not-null-terminate-string.patch
-ext4-remove-redundant-test-on-unsigned.patch
-cyclades-read-buffer-overflow.patch
-serial167-fix-read-buffer-overflow.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-blackfin-fix-read-buffer-overflow.patch
-arch-alpha-boot-tools-objstripc-wrong-variable-tested-after-open.patch
-m32r-remove-redundant-tests-on-unsigned.patch
-m68k-count-can-reach-51-not-50.patch
-m68k-cnt-reaches-1-not-0.patch
-dme1737-keep-index-within-pwm_config.patch
-ncpfs-read-buffer-overflow.patch
-smbfs-read-buffer-overflow.patch
-platinumfb-misplaced-parenthesis.patch
-sisfb-read-buffer-overflow.patch
-drivers-video-console-newport_conc-fix-read-outside-array-bounds.patch
-mwave-fix-read-buffer-overflow.patch
-adfs-remove-redundant-test-on-unsigned.patch
 
