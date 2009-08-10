@@ -1,111 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-decompress_-only-include-linux-slabh-if-static-is-not-defined.patch removed from -mm tree
-Date: Mon, 10 Aug 2009 12:27:48 -0700
-Message-ID: <200908101927.n7AJRmJT026567@imap1.linux-foundation.org>
+Subject: [merged] hpfall-reduce-risk-that-hpfall-can-do-harm.patch removed from -mm tree
+Date: Mon, 10 Aug 2009 12:29:12 -0700
+Message-ID: <200908101929.n7AJTCuS029000@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59456 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58284 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752607AbZHJT30 (ORCPT
+	by vger.kernel.org with ESMTP id S1752574AbZHJT30 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 10 Aug 2009 15:29:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: albin.tonnerre@free-electrons.com, eduard.munteanu@linux360.ro, hpa@zytor.com, mingo@elte.hu, penberg@cs.helsinki.fi, phillip@lougher.demon.co.uk, rmk@arm.linux.org.uk, sam@ravnborg.o
+To: ct@pipapo.org, elendil@planet.nl, pavel@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lib/decompress_*: only include <linux/slab.h> if STATIC is not defined
+     hpfall: reduce risk that hpfall can do harm
 has been removed from the -mm tree.  Its filename was
-     lib-decompress_-only-include-linux-slabh-if-static-is-not-defined.patch
+     hpfall-reduce-risk-that-hpfall-can-do-harm.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib/decompress_*: only include <linux/slab.h> if STATIC is not defined
-From: Albin Tonnerre <albin.tonnerre@free-electrons.com>
+Subject: hpfall: reduce risk that hpfall can do harm
+From: Christian Thaeter <ct@pipapo.org>
 
-These includes were added by 079effb6933f34b9b1b67b08bd4fd7fb672d16ef
-("kmemtrace, kbuild: fix slab.h dependency problem in
-lib/decompress_inflate.c") to fix the build when using kmemtrace.  However
-this is not necessary when used to create a compressed kernel, and
-actually creates issues (brings a lot of things unavailable in the
-decompression environment), so don't include it if STATIC is defined.
+Improve the example code to be at least useable, as in not causing harm
+(as shown below).  Code can still be improved further, but this adds some
+basic safeguards.
 
-Signed-off-by: Albin Tonnerre <albin.tonnerre@free-electrons.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: Eduard - Gabriel Munteanu <eduard.munteanu@linux360.ro>
-Cc: Phillip Lougher <phillip@lougher.demon.co.uk>
+1. hpfall *MUST* mlockall(MCL_CURRENT|MCL_FUTURE); itself!  Since the
+   Program sits and waits most of the time it becomes very likely swapped
+   out.  If it gets woken up when the laptop drops from the table while it
+   is swapped out it actually triggers harddrive activity!
+
+2. Daemonize hpfall using 'daemon(0,0)' (quick and dirty).
+
+3. Give hpfall realtime priority.  Should give a chance that it has
+   less latency when woken up.
+
+Signed-off-by: Christian Thaeter <ct@pipapo.org>
+Signed-off-by: Frans Pop <elendil@planet.nl>
+Acked-by: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/decompress_bunzip2.c |    2 +-
- lib/decompress_inflate.c |    2 +-
- lib/decompress_unlzma.c  |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ Documentation/hwmon/hpfall.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN lib/decompress_bunzip2.c~lib-decompress_-only-include-linux-slabh-if-static-is-not-defined lib/decompress_bunzip2.c
---- a/lib/decompress_bunzip2.c~lib-decompress_-only-include-linux-slabh-if-static-is-not-defined
-+++ a/lib/decompress_bunzip2.c
-@@ -49,10 +49,10 @@
- #define PREBOOT
- #else
- #include <linux/decompress/bunzip2.h>
-+#include <linux/slab.h>
- #endif /* STATIC */
+diff -puN Documentation/hwmon/hpfall.c~hpfall-reduce-risk-that-hpfall-can-do-harm Documentation/hwmon/hpfall.c
+--- a/Documentation/hwmon/hpfall.c~hpfall-reduce-risk-that-hpfall-can-do-harm
++++ a/Documentation/hwmon/hpfall.c
+@@ -16,6 +16,8 @@
+ #include <stdint.h>
+ #include <errno.h>
+ #include <signal.h>
++#include <sys/mman.h>
++#include <sched.h>
  
- #include <linux/decompress/mm.h>
--#include <linux/slab.h>
+ void write_int(char *path, int i)
+ {
+@@ -62,6 +64,7 @@ void ignore_me(void)
+ int main(int argc, char *argv[])
+ {
+ 	int fd, ret;
++	struct sched_param param;
  
- #ifndef INT_MAX
- #define INT_MAX 0x7fffffff
-diff -puN lib/decompress_inflate.c~lib-decompress_-only-include-linux-slabh-if-static-is-not-defined lib/decompress_inflate.c
---- a/lib/decompress_inflate.c~lib-decompress_-only-include-linux-slabh-if-static-is-not-defined
-+++ a/lib/decompress_inflate.c
-@@ -19,11 +19,11 @@
- #include "zlib_inflate/inflate.h"
+ 	fd = open("/dev/freefall", O_RDONLY);
+ 	if (fd < 0) {
+@@ -69,6 +72,11 @@ int main(int argc, char *argv[])
+ 		return EXIT_FAILURE;
+ 	}
  
- #include "zlib_inflate/infutil.h"
-+#include <linux/slab.h>
++	daemon(0, 0);
++	param.sched_priority = sched_get_priority_max(SCHED_FIFO);
++	sched_setscheduler(0, SCHED_FIFO, &param);
++	mlockall(MCL_CURRENT|MCL_FUTURE);
++
+ 	signal(SIGALRM, ignore_me);
  
- #endif /* STATIC */
- 
- #include <linux/decompress/mm.h>
--#include <linux/slab.h>
- 
- #define GZIP_IOBUF_SIZE (16*1024)
- 
-diff -puN lib/decompress_unlzma.c~lib-decompress_-only-include-linux-slabh-if-static-is-not-defined lib/decompress_unlzma.c
---- a/lib/decompress_unlzma.c~lib-decompress_-only-include-linux-slabh-if-static-is-not-defined
-+++ a/lib/decompress_unlzma.c
-@@ -33,10 +33,10 @@
- #define PREBOOT
- #else
- #include <linux/decompress/unlzma.h>
-+#include <linux/slab.h>
- #endif /* STATIC */
- 
- #include <linux/decompress/mm.h>
--#include <linux/slab.h>
- 
- #define	MIN(a, b) (((a) < (b)) ? (a) : (b))
- 
+ 	for (;;) {
 _
 
-Patches currently in -mm which might be from albin.tonnerre@free-electrons.com are
+Patches currently in -mm which might be from ct@pipapo.org are
 
-origin.patch
 linux-next.patch
-include-linux-unaligned-lbe_byteshifth-fix-usage-for-compressed-kernels.patch
-lzo-add-support-for-lzo-compressed-kernels.patch
-lzo-arm-add-support-for-lzo-compressed-kernels.patch
-lzo-x86-add-support-for-lzo-compressed-kernels.patch
-lzo-add-lzo-compression-support-for-initramfs-and-old-style-initrd.patch
+vm-document-that-setting-vfs_cache_pressure-to-0-isnt-a-good-idea.patch
 
