@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + tracing-page-allocator-add-trace-events-for-page-allocation-and-page-freeing.patch added to -mm tree
-Date: Mon, 10 Aug 2009 15:09:53 -0700
-Message-ID: <200908102209.n7AM9r7f013772@imap1.linux-foundation.org>
+Subject: + tracing-page-allocator-add-trace-events-for-anti-fragmentation-falling-back-to-other-migratetypes.patch added to -mm tree
+Date: Mon, 10 Aug 2009 15:09:57 -0700
+Message-ID: <200908102209.n7AM9vZB013840@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48968 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37061 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754037AbZHJWMN (ORCPT
+	by vger.kernel.org with ESMTP id S1753675AbZHJWML (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Aug 2009 18:12:13 -0400
+	Mon, 10 Aug 2009 18:12:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mel@csn.ul.ie, lwoodman@redhat.com, macli@brc.ubc.ca, mingo@elte.hu, peterz@
 
 
 The patch titled
-     tracing, page-allocator: add trace events for page allocation and page freeing
+     tracing, page-allocator: add trace events for anti-fragmentation falling back to other migratetypes
 has been added to the -mm tree.  Its filename is
-     tracing-page-allocator-add-trace-events-for-page-allocation-and-page-freeing.patch
+     tracing-page-allocator-add-trace-events-for-anti-fragmentation-falling-back-to-other-migratetypes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,25 +34,24 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tracing, page-allocator: add trace events for page allocation and page freeing
+Subject: tracing, page-allocator: add trace events for anti-fragmentation falling back to other migratetypes
 From: Mel Gorman <mel@csn.ul.ie>
 
-This patch adds trace events for the allocation and freeing of pages,
-including the freeing of pagevecs.  Using the events, it will be known
-what struct page and pfns are being allocated and freed and what the call
-site was in many cases.
+Fragmentation avoidance depends on being able to use free pages from lists
+of the appropriate migrate type.  In the event this is not possible,
+__rmqueue_fallback() selects a different list and in some circumstances
+change the migratetype of the pageblock.  Simplistically, the more times
+this event occurs, the more likely that fragmentation will be a problem
+later for hugepage allocation at least but there are other considerations
+such as the order of page being split to satisfy the allocation.
 
-The page alloc tracepoints be used as an indicator as to whether the
-workload was heavily dependant on the page allocator or not.  You can make
-a guess based on vmstat but you can't get a per-process breakdown. 
-Depending on the call path, the call_site for page allocation may be
-__get_free_pages() instead of a useful callsite.  Instead of passing down
-a return address similar to slab debugging, the user should enable the
-stacktrace and seg-addr options to get a proper stack trace.
-
-The pagevec free tracepoint has a different usecase.  It can be used to
-get a idea of how many pages are being dumped off the LRU and whether it
-is kswapd doing the work or a process doing direct reclaim.
+This patch adds a trace event for __rmqueue_fallback() that reports what
+page is being used for the fallback, the orders of relevant pages, the
+desired migratetype and the migratetype of the lists being used, whether
+the pageblock changed type and whether this event is important with
+respect to fragmentation avoidance or not.  This information can be used
+to help analyse fragmentation avoidance and help decide whether
+min_free_kbytes should be increased or not.
 
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
 Acked-by: Rik van Riel <riel@redhat.com>
@@ -63,131 +62,72 @@ Cc: Li Ming Chun <macli@brc.ubc.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/kmem.h |   74 ++++++++++++++++++++++++++++++++++
- mm/page_alloc.c             |    7 ++-
- 2 files changed, 80 insertions(+), 1 deletion(-)
+ include/trace/events/kmem.h |   38 ++++++++++++++++++++++++++++++++++
+ mm/page_alloc.c             |    4 +++
+ 2 files changed, 42 insertions(+)
 
-diff -puN include/trace/events/kmem.h~tracing-page-allocator-add-trace-events-for-page-allocation-and-page-freeing include/trace/events/kmem.h
---- a/include/trace/events/kmem.h~tracing-page-allocator-add-trace-events-for-page-allocation-and-page-freeing
+diff -puN include/trace/events/kmem.h~tracing-page-allocator-add-trace-events-for-anti-fragmentation-falling-back-to-other-migratetypes include/trace/events/kmem.h
+--- a/include/trace/events/kmem.h~tracing-page-allocator-add-trace-events-for-anti-fragmentation-falling-back-to-other-migratetypes
 +++ a/include/trace/events/kmem.h
-@@ -225,6 +225,80 @@ TRACE_EVENT(kmem_cache_free,
- 
- 	TP_printk("call_site=%lx ptr=%p", __entry->call_site, __entry->ptr)
+@@ -299,6 +299,44 @@ TRACE_EVENT(mm_page_alloc,
+ 		show_gfp_flags(__entry->gfp_flags))
  );
+ 
++TRACE_EVENT(mm_page_alloc_extfrag,
 +
-+TRACE_EVENT(mm_page_free_direct,
++	TP_PROTO(struct page *page,
++			int alloc_order, int fallback_order,
++			int alloc_migratetype, int fallback_migratetype),
 +
-+	TP_PROTO(struct page *page, unsigned int order),
-+
-+	TP_ARGS(page, order),
++	TP_ARGS(page,
++		alloc_order, fallback_order,
++		alloc_migratetype, fallback_migratetype),
 +
 +	TP_STRUCT__entry(
-+		__field(	struct page *,	page		)
-+		__field(	unsigned int,	order		)
++		__field(	struct page *,	page			)
++		__field(	int,		alloc_order		)
++		__field(	int,		fallback_order		)
++		__field(	int,		alloc_migratetype	)
++		__field(	int,		fallback_migratetype	)
 +	),
 +
 +	TP_fast_assign(
-+		__entry->page		= page;
-+		__entry->order		= order;
++		__entry->page			= page;
++		__entry->alloc_order		= alloc_order;
++		__entry->fallback_order		= fallback_order;
++		__entry->alloc_migratetype	= alloc_migratetype;
++		__entry->fallback_migratetype	= fallback_migratetype;
 +	),
 +
-+	TP_printk("page=%p pfn=%lu order=%d",
-+			__entry->page,
-+			page_to_pfn(__entry->page),
-+			__entry->order)
-+);
-+
-+TRACE_EVENT(mm_pagevec_free,
-+
-+	TP_PROTO(struct page *page, int cold),
-+
-+	TP_ARGS(page, cold),
-+
-+	TP_STRUCT__entry(
-+		__field(	struct page *,	page		)
-+		__field(	int,		cold		)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->page		= page;
-+		__entry->cold		= cold;
-+	),
-+
-+	TP_printk("page=%p pfn=%lu order=0 cold=%d",
-+			__entry->page,
-+			page_to_pfn(__entry->page),
-+			__entry->cold)
-+);
-+
-+TRACE_EVENT(mm_page_alloc,
-+
-+	TP_PROTO(struct page *page, unsigned int order,
-+			gfp_t gfp_flags, int migratetype),
-+
-+	TP_ARGS(page, order, gfp_flags, migratetype),
-+
-+	TP_STRUCT__entry(
-+		__field(	struct page *,	page		)
-+		__field(	unsigned int,	order		)
-+		__field(	gfp_t,		gfp_flags	)
-+		__field(	int,		migratetype	)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->page		= page;
-+		__entry->order		= order;
-+		__entry->gfp_flags	= gfp_flags;
-+		__entry->migratetype	= migratetype;
-+	),
-+
-+	TP_printk("page=%p pfn=%lu order=%d migratetype=%d gfp_flags=%s",
++	TP_printk("page=%p pfn=%lu alloc_order=%d fallback_order=%d pageblock_order=%d alloc_migratetype=%d fallback_migratetype=%d fragmenting=%d change_ownership=%d",
 +		__entry->page,
 +		page_to_pfn(__entry->page),
-+		__entry->order,
-+		__entry->migratetype,
-+		show_gfp_flags(__entry->gfp_flags))
++		__entry->alloc_order,
++		__entry->fallback_order,
++		pageblock_order,
++		__entry->alloc_migratetype,
++		__entry->fallback_migratetype,
++		__entry->fallback_order < pageblock_order,
++		__entry->alloc_migratetype == __entry->fallback_migratetype)
 +);
 +
  #endif /* _TRACE_KMEM_H */
  
  /* This part must be outside protection */
-diff -puN mm/page_alloc.c~tracing-page-allocator-add-trace-events-for-page-allocation-and-page-freeing mm/page_alloc.c
---- a/mm/page_alloc.c~tracing-page-allocator-add-trace-events-for-page-allocation-and-page-freeing
+diff -puN mm/page_alloc.c~tracing-page-allocator-add-trace-events-for-anti-fragmentation-falling-back-to-other-migratetypes mm/page_alloc.c
+--- a/mm/page_alloc.c~tracing-page-allocator-add-trace-events-for-anti-fragmentation-falling-back-to-other-migratetypes
 +++ a/mm/page_alloc.c
-@@ -1097,6 +1097,7 @@ static void free_hot_cold_page(struct pa
+@@ -874,6 +874,10 @@ __rmqueue_fallback(struct zone *zone, in
+ 							start_migratetype);
  
- void free_hot_page(struct page *page)
- {
-+	trace_mm_page_free_direct(page, 0);
- 	free_hot_cold_page(page, 0);
- }
- 	
-@@ -1941,6 +1942,7 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
- 				zonelist, high_zoneidx, nodemask,
- 				preferred_zone, migratetype);
- 
-+	trace_mm_page_alloc(page, order, gfp_mask, migratetype);
- 	return page;
- }
- EXPORT_SYMBOL(__alloc_pages_nodemask);
-@@ -1975,13 +1977,16 @@ void __pagevec_free(struct pagevec *pvec
- {
- 	int i = pagevec_count(pvec);
- 
--	while (--i >= 0)
-+	while (--i >= 0) {
-+		trace_mm_pagevec_free(pvec->pages[i], pvec->cold);
- 		free_hot_cold_page(pvec->pages[i], pvec->cold);
-+	}
- }
- 
- void __free_pages(struct page *page, unsigned int order)
- {
- 	if (put_page_testzero(page)) {
-+		trace_mm_page_free_direct(page, order);
- 		if (order == 0)
- 			free_hot_page(page);
- 		else
+ 			expand(zone, page, order, current_order, area, migratetype);
++
++			trace_mm_page_alloc_extfrag(page, order, current_order,
++				start_migratetype, migratetype);
++
+ 			return page;
+ 		}
+ 	}
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
