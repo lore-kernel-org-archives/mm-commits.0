@@ -1,118 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] genirq-do-not-disable-irq_wakeup-marked-irqs-on-suspend.patch removed from -mm tree
-Date: Tue, 11 Aug 2009 00:08:52 -0700
-Message-ID: <200908110708.n7B78qsu029142@imap1.linux-foundation.org>
+Subject: [merged] zorro8390-fix-read-buffer-overflow-in-zorro8390_init_one.patch removed from -mm tree
+Date: Tue, 11 Aug 2009 12:58:08 -0700
+Message-ID: <200908111958.n7BJw8HE022505@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52186 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52552 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752255AbZHKL6J (ORCPT
+	by vger.kernel.org with ESMTP id S1752325AbZHKT6i (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Aug 2009 07:58:09 -0400
+	Tue, 11 Aug 2009 15:58:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, khilman@deeprootsystems.com, rjw@sisk.pl, rmk@arm.linux.org.uk, stable@kernel.org, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     genirq: do not disable IRQ_WAKEUP marked irqs on suspend
+     zorro8390: fix read buffer overflow in zorro8390_init_one()
 has been removed from the -mm tree.  Its filename was
-     genirq-do-not-disable-irq_wakeup-marked-irqs-on-suspend.patch
+     zorro8390-fix-read-buffer-overflow-in-zorro8390_init_one.patch
 
-This patch was dropped because it was withdrawn
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: genirq: do not disable IRQ_WAKEUP marked irqs on suspend
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: zorro8390: fix read buffer overflow in zorro8390_init_one()
+From: Roel Kluin <roel.kluin@gmail.com>
 
-commit 0a0c5168df (PM: Introduce functions for suspending and resuming
-device interrupts) iterates through all interrupts and disables them on
-the hardware level.  Some architectures have functionality implemented to
-mark an interrupt source as wakeup source for suspend, but the new power
-management code disables them unconditionally which breaks the resume on
-interrupt functionality.
+Prevent read from cards[-1] when no card was found.
 
-The wakeup interrupts are marked in the status with the IRQ_WAKEUP bit. 
-Skip the disablement for those interrupts which have the IRQ_WAKEUP bit
-set.
-
-rmk didst say:
-
-  This sounds like a regression fix to me - if IRQs are disabled on the
-  controllers, it means we have systems which can only ever be suspended. 
-  The only way to wake them back up would be to hard-reset them.
-
-  IOW, the regression turns suspend into a hang.
-
-rmk didst further say:
-
-  ARM systems can only be woken up by unmasked interrupts.  If the
-  current kernel masks all interrupts, suspending ARM systems is a _one_
-  way ticket to a full reboot.
-
-With all interrupts masked, there is NO WAY to wake up ARM interrupts.
-
-  So I'm afraid my comment here without any further suggestion that the
-  problem has been fixed in some other way is that this patch _is_
-  required _if_ the kernel is still masking all interrupts on suspend.
-
-  Now, given that ARM systems were able to be resumed up until the
-  offending commit was added to the kernel, it _is_ a regression, and I
-  think under Linus' rules, a fix is not a fix if it causes regressions
-  for some people.  So IMHO it needs to be backed out and another approach
-  taken, _if_ the problem is still present.
-
-  Unfortunately, I've no time to verify if the problem is present at the
-  moment.  I'm sure someone else in the ARM community can do the necessary
-  testing though.  Eg, anyone with a PXA platform will do.
-
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Acked-by: Russell King <rmk@arm.linux.org.uk>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/irq/pm.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/net/zorro8390.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN kernel/irq/pm.c~genirq-do-not-disable-irq_wakeup-marked-irqs-on-suspend kernel/irq/pm.c
---- a/kernel/irq/pm.c~genirq-do-not-disable-irq_wakeup-marked-irqs-on-suspend
-+++ a/kernel/irq/pm.c
-@@ -29,7 +29,8 @@ void suspend_device_irqs(void)
- 		unsigned long flags;
- 
- 		spin_lock_irqsave(&desc->lock, flags);
--		__disable_irq(desc, irq, true);
-+		if (!(desc->status & IRQ_WAKEUP))
-+			__disable_irq(desc, irq, true);
- 		spin_unlock_irqrestore(&desc->lock, flags);
- 	}
- 
+diff -puN drivers/net/zorro8390.c~zorro8390-fix-read-buffer-overflow-in-zorro8390_init_one drivers/net/zorro8390.c
+--- a/drivers/net/zorro8390.c~zorro8390-fix-read-buffer-overflow-in-zorro8390_init_one
++++ a/drivers/net/zorro8390.c
+@@ -120,6 +120,9 @@ static int __devinit zorro8390_init_one(
+     for (i = ARRAY_SIZE(cards)-1; i >= 0; i--)
+ 	if (z->id == cards[i].id)
+ 	    break;
++    if (i < 0)
++        return -ENODEV;
++
+     board = z->resource.start;
+     ioaddr = board+cards[i].offset;
+     dev = alloc_ei_netdev();
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 origin.patch
 linux-next.patch
-arch-x86-kernel-cpu-amdc-fix-x86_64-allnoconfig-build.patch
-kernel-core-add-smp_call_function_any.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-mtd-nand-add-page-parameter-to-all-read_page-read_page_raw-apis.patch
-mtd-nand-add-new-ecc-mode-ecc_hw_oob_first.patch
-mtd-nand-davinci-add-4-bit-ecc-support-for-large-page-nand-chips.patch
-mtd-nand-davinci-add-4-bit-ecc-support-for-large-page-nand-chips-update.patch
-genirq-do-not-disable-irq_wakeup-marked-irqs-on-suspend.patch
-time-add-function-to-convert-between-calendar-time-and-broken-down-time-for-universal-use.patch
-fatfs-use-common-time_to_tm-in-fat_time_unix2fat.patch
-linux-futexh-place-kernel-types-behind-__kernel__.patch
-include-linux-unaligned-lbe_byteshifth-fix-usage-for-compressed-kernels.patch
-lzo-add-support-for-lzo-compressed-kernels.patch
-lzo-arm-add-support-for-lzo-compressed-kernels.patch
-lzo-x86-add-support-for-lzo-compressed-kernels.patch
-lzo-add-lzo-compression-support-for-initramfs-and-old-style-initrd.patch
+s3c-fix-check-of-index-into-s3c_gpios.patch
+stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
+dm-strncpy-does-not-null-terminate-string.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+powerpc-avoid-calculating-possibly-invalid-address.patch
+drm-i915-intel_sdvo_multifunc_encoder-sdvo_output_svid0-tested-twice.patch
+media-strncpy-does-not-null-terminate-string.patch
+siano-read-buffer-overflow.patch
+drivers-media-video-bw-qcamc-fix-read-buffer-overflow.patch
+stk-webcam-read-buffer-overflow.patch
+mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
+slram-read-buffer-overflow.patch
+mtd-fix-read-buffer-overflow.patch
+hfc_usb-fix-read-buffer-overflow.patch
+zorro8390-fix-read-buffer-overflow-in-zorro8390_init_one-checkpatch-fixes.patch
+ext4-remove-redundant-test-on-unsigned.patch
+cyclades-read-buffer-overflow.patch
+serial167-fix-read-buffer-overflow.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+blackfin-fix-read-buffer-overflow.patch
+arch-alpha-boot-tools-objstripc-wrong-variable-tested-after-open.patch
+m32r-remove-redundant-tests-on-unsigned.patch
+m68k-count-can-reach-51-not-50.patch
+m68k-cnt-reaches-1-not-0.patch
+dme1737-keep-index-within-pwm_config.patch
+ncpfs-read-buffer-overflow.patch
+smbfs-read-buffer-overflow.patch
+platinumfb-misplaced-parenthesis.patch
+sisfb-read-buffer-overflow.patch
+drivers-video-console-newport_conc-fix-read-outside-array-bounds.patch
+mwave-fix-read-buffer-overflow.patch
+adfs-remove-redundant-test-on-unsigned.patch
 
