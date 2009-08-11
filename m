@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes-checkpatch-fixes.patch added to -mm tree
-Date: Mon, 10 Aug 2009 22:04:11 -0700
-Message-ID: <200908110504.n7B54B64010435@imap1.linux-foundation.org>
+Subject: + alpha-use-printk_once.patch added to -mm tree
+Date: Mon, 10 Aug 2009 22:45:06 -0700
+Message-ID: <200908110545.n7B5j6H9015575@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from smtp1.linux-foundation.org ([140.211.169.13]:34410 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751902AbZHKLyv (ORCPT
+	by vger.kernel.org with ESMTP id S1751629AbZHKLyn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Aug 2009 07:54:51 -0400
+	Tue, 11 Aug 2009 07:54:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, dhowells@redhat.com, mingo@elte.hu, peterz@infradead.org, tiwai@suse.de
+Cc: marcin.slusarz@gmail.com, ink@jurassic.park.msu.ru, rth@twiddle.net
 
 
 The patch titled
-     waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes-checkpatch-fixes
+     alpha: use printk_once
 has been added to the -mm tree.  Its filename is
-     waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes-checkpatch-fixes.patch
+     alpha-use-printk_once.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,118 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: alpha: use printk_once
+From: Marcin Slusarz <marcin.slusarz@gmail.com>
 
-WARNING: line over 80 characters
-#29: FILE: include/linux/wait.h:80:
-+extern void __init_waitqueue_head(wait_queue_head_t *q, struct lock_class_key *);
-
-WARNING: EXPORT_SYMBOL(foo); should immediately follow its function/variable
-#56: FILE: kernel/wait.c:20:
-+EXPORT_SYMBOL(__init_waitqueue_head);
-
-total: 0 errors, 2 warnings, 31 lines checked
-
-./patches/waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: David Howells <dhowells@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Takashi Iwai <tiwai@suse.de>
+Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Richard Henderson <rth@twiddle.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/wait.c |    1 -
- 1 file changed, 1 deletion(-)
+ arch/alpha/kernel/pci_iommu.c |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN kernel/wait.c~waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes-checkpatch-fixes kernel/wait.c
---- a/kernel/wait.c~waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes-checkpatch-fixes
-+++ a/kernel/wait.c
-@@ -16,7 +16,6 @@ void __init_waitqueue_head(wait_queue_he
- 	lockdep_set_class(&q->lock, key);
- 	INIT_LIST_HEAD(&q->task_list);
- }
--
- EXPORT_SYMBOL(__init_waitqueue_head);
+diff -puN arch/alpha/kernel/pci_iommu.c~alpha-use-printk_once arch/alpha/kernel/pci_iommu.c
+--- a/arch/alpha/kernel/pci_iommu.c~alpha-use-printk_once
++++ a/arch/alpha/kernel/pci_iommu.c
+@@ -268,11 +268,7 @@ pci_map_single_1(struct pci_dev *pdev, v
+ 	   assume it doesn't support sg mapping, and, since we tried to
+ 	   use direct_map above, it now must be considered an error. */
+ 	if (! alpha_mv.mv_pci_tbi) {
+-		static int been_here = 0; /* Only print the message once. */
+-		if (!been_here) {
+-		    printk(KERN_WARNING "pci_map_single: no HW sg\n");
+-		    been_here = 1;
+-		}
++		printk_once(KERN_WARNING "pci_map_single: no HW sg\n");
+ 		return 0;
+ 	}
  
- void add_wait_queue(wait_queue_head_t *q, wait_queue_t *wait)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from marcin.slusarz@gmail.com are
 
-origin.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-amdc-fix-x86_64-allnoconfig-build.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-checkincludespl-add-option-to-remove-duplicates-in-place.patch
-leds-gpio-leds-fix-typographics-fault.patch
-leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio.patch
-slram-read-buffer-overflow.patch
-proc-connector-add-event-for-process-becoming-session-leader.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-serial167-fix-read-buffer-overflow.patch
-waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes-checkpatch-fixes.patch
-drivers-usb-gadget-s3c2410_udcc-fix.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
-vfs-optimize-touch_time-too.patch
-revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
-mm-make-swap-token-dummies-static-inlines-fix.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
-vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
-ummunotify-userspace-support-for-mmu-notifications-v3-fix.patch
-arches-drop-superfluous-casts-in-nr_free_pages-callers-checkpatch-fixes.patch
-oom-fix-oom_adjust_write-input-sanity-check-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
-generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
-kernel-smpc-relocate-some-code.patch
-mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
-sdio-add-cd-disable-support-cleanup.patch
-procfs-provide-stack-information-for-threads-v011-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
-rtc-philips-nxp-pcf2123-driver-v03-fix.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes-fix.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
-drivers-video-add-kmalloc-null-tests-fix.patch
-v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
-exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
-exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
-elf-clean-up-fill_note_info-fix.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+alpha-use-printk_once.patch
 
