@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ibmvscsi-avoid-unnecessary-use-of-kzalloc_pool.patch added to -mm tree
-Date: Tue, 11 Aug 2009 14:53:19 -0700
-Message-ID: <200908112153.n7BLrKq5026282@imap1.linux-foundation.org>
+Subject: + md-avoid-use-of-broken-kzalloc-mempool.patch added to -mm tree
+Date: Tue, 11 Aug 2009 14:53:17 -0700
+Message-ID: <200908112153.n7BLrHpJ026205@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35239 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37885 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753983AbZHKVxk (ORCPT
+	by vger.kernel.org with ESMTP id S1752740AbZHKVye (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Aug 2009 17:53:40 -0400
+	Tue, 11 Aug 2009 17:54:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sage@newdream.net, James.Bottomley@HansenPartnership.com, brking@linux.vnet.ibm.com
+Cc: sage@newdream.net, neilb@suse.de, stable@kernel.org
 
 
 The patch titled
-     ibmvscsi: avoid unnecessary use of kzalloc_pool
+     md: avoid use of broken kzalloc mempool
 has been added to the -mm tree.  Its filename is
-     ibmvscsi-avoid-unnecessary-use-of-kzalloc_pool.patch
+     md-avoid-use-of-broken-kzalloc-mempool.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ibmvscsi: avoid unnecessary use of kzalloc_pool
+Subject: md: avoid use of broken kzalloc mempool
 From: Sage Weil <sage@newdream.net>
 
-The allocated struct is manually zeroed after allocation, so avoid using
-the (broken) kzalloc mempool (which does not re-zero previously used items
-when they are returned to the pool).
+The kzalloc mempool does not re-zero items that have been used and then
+returned to the pool.  Manually zero the allocated multipath_bh instead.
 
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Acked-by: Neil Brown <neilb@suse.de>
+Cc: <stable@kernel.org>
 Signed-off-by: Sage Weil <sage@newdream.net>
-Acked-by: Brian King <brking@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/ibmvscsi/ibmvfc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/md/multipath.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/scsi/ibmvscsi/ibmvfc.c~ibmvscsi-avoid-unnecessary-use-of-kzalloc_pool drivers/scsi/ibmvscsi/ibmvfc.c
---- a/drivers/scsi/ibmvscsi/ibmvfc.c~ibmvscsi-avoid-unnecessary-use-of-kzalloc_pool
-+++ a/drivers/scsi/ibmvscsi/ibmvfc.c
-@@ -4217,7 +4217,7 @@ static int ibmvfc_alloc_mem(struct ibmvf
- 	if (!vhost->trace)
- 		goto free_disc_buffer;
+diff -puN drivers/md/multipath.c~md-avoid-use-of-broken-kzalloc-mempool drivers/md/multipath.c
+--- a/drivers/md/multipath.c~md-avoid-use-of-broken-kzalloc-mempool
++++ a/drivers/md/multipath.c
+@@ -150,6 +150,7 @@ static int multipath_make_request (struc
+ 	}
  
--	vhost->tgt_pool = mempool_create_kzalloc_pool(IBMVFC_TGT_MEMPOOL_SZ,
-+	vhost->tgt_pool = mempool_create_kmalloc_pool(IBMVFC_TGT_MEMPOOL_SZ,
- 						      sizeof(struct ibmvfc_target));
+ 	mp_bh = mempool_alloc(conf->pool, GFP_NOIO);
++	memset(mp_bh, 0, sizeof(*mp_bh));
  
- 	if (!vhost->tgt_pool) {
+ 	mp_bh->master_bio = bio;
+ 	mp_bh->mddev = mddev;
+@@ -493,7 +494,7 @@ static int multipath_run (mddev_t *mddev
+ 	}
+ 	mddev->degraded = conf->raid_disks - conf->working_disks;
+ 
+-	conf->pool = mempool_create_kzalloc_pool(NR_RESERVED_BUFS,
++	conf->pool = mempool_create_kmalloc_pool(NR_RESERVED_BUFS,
+ 						 sizeof(struct multipath_bh));
+ 	if (conf->pool == NULL) {
+ 		printk(KERN_ERR 
 _
 
 Patches currently in -mm which might be from sage@newdream.net are
