@@ -1,83 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: [merged] atlx-strncpy-does-not-null-terminate-string.patch removed from -mm tree
-Date: Tue, 11 Aug 2009 12:58:06 -0700
-Message-ID: <200908111958.n7BJw6Iw022391@imap1.linux-foundation.org>
+Subject: [merged] irda-fix-read-buffer-overflow.patch removed from -mm tree
+Date: Tue, 11 Aug 2009 12:58:03 -0700
+Message-ID: <200908111958.n7BJw3jC022277@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35870 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52475 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752740AbZHKT6l (ORCPT
+	by vger.kernel.org with ESMTP id S1754078AbZHKT6t (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Aug 2009 15:58:41 -0400
+	Tue, 11 Aug 2009 15:58:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, csnook@redhat.com, jcliburn@gmail.com, jie.yang@atheros.com, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, samuel@sortiz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atlx: strncpy does not null terminate string
+     irda: fix read buffer overflow
 has been removed from the -mm tree.  Its filename was
-     atlx-strncpy-does-not-null-terminate-string.patch
+     irda-fix-read-buffer-overflow.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atlx: strncpy does not null terminate string
+Subject: irda: fix read buffer overflow
 From: Roel Kluin <roel.kluin@gmail.com>
 
-strlcpy() will always null terminate the string.
+io[i] is read before the bounds check on i, order should be reversed.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Jay Cliburn <jcliburn@gmail.com>
-Cc: Chris Snook <csnook@redhat.com>
-Cc: Jie Yang <jie.yang@atheros.com>
+Cc: Samuel Ortiz <samuel@sortiz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/atl1c/atl1c_ethtool.c |    8 ++++----
- drivers/net/atlx/atl1.c           |    8 ++++----
- 2 files changed, 8 insertions(+), 8 deletions(-)
+ drivers/net/irda/w83977af_ir.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/atl1c/atl1c_ethtool.c~atlx-strncpy-does-not-null-terminate-string drivers/net/atl1c/atl1c_ethtool.c
---- a/drivers/net/atl1c/atl1c_ethtool.c~atlx-strncpy-does-not-null-terminate-string
-+++ a/drivers/net/atl1c/atl1c_ethtool.c
-@@ -232,11 +232,11 @@ static void atl1c_get_drvinfo(struct net
- {
- 	struct atl1c_adapter *adapter = netdev_priv(netdev);
+diff -puN drivers/net/irda/w83977af_ir.c~irda-fix-read-buffer-overflow drivers/net/irda/w83977af_ir.c
+--- a/drivers/net/irda/w83977af_ir.c~irda-fix-read-buffer-overflow
++++ a/drivers/net/irda/w83977af_ir.c
+@@ -115,7 +115,7 @@ static int __init w83977af_init(void)
  
--	strncpy(drvinfo->driver,  atl1c_driver_name, sizeof(drvinfo->driver));
--	strncpy(drvinfo->version, atl1c_driver_version,
-+	strlcpy(drvinfo->driver,  atl1c_driver_name, sizeof(drvinfo->driver));
-+	strlcpy(drvinfo->version, atl1c_driver_version,
- 		sizeof(drvinfo->version));
--	strncpy(drvinfo->fw_version, "N/A", sizeof(drvinfo->fw_version));
--	strncpy(drvinfo->bus_info, pci_name(adapter->pdev),
-+	strlcpy(drvinfo->fw_version, "N/A", sizeof(drvinfo->fw_version));
-+	strlcpy(drvinfo->bus_info, pci_name(adapter->pdev),
- 		sizeof(drvinfo->bus_info));
- 	drvinfo->n_stats = 0;
- 	drvinfo->testinfo_len = 0;
-diff -puN drivers/net/atlx/atl1.c~atlx-strncpy-does-not-null-terminate-string drivers/net/atlx/atl1.c
---- a/drivers/net/atlx/atl1.c~atlx-strncpy-does-not-null-terminate-string
-+++ a/drivers/net/atlx/atl1.c
-@@ -3378,11 +3378,11 @@ static void atl1_get_drvinfo(struct net_
- {
- 	struct atl1_adapter *adapter = netdev_priv(netdev);
+ 	IRDA_DEBUG(0, "%s()\n", __func__ );
  
--	strncpy(drvinfo->driver, ATLX_DRIVER_NAME, sizeof(drvinfo->driver));
--	strncpy(drvinfo->version, ATLX_DRIVER_VERSION,
-+	strlcpy(drvinfo->driver, ATLX_DRIVER_NAME, sizeof(drvinfo->driver));
-+	strlcpy(drvinfo->version, ATLX_DRIVER_VERSION,
- 		sizeof(drvinfo->version));
--	strncpy(drvinfo->fw_version, "N/A", sizeof(drvinfo->fw_version));
--	strncpy(drvinfo->bus_info, pci_name(adapter->pdev),
-+	strlcpy(drvinfo->fw_version, "N/A", sizeof(drvinfo->fw_version));
-+	strlcpy(drvinfo->bus_info, pci_name(adapter->pdev),
- 		sizeof(drvinfo->bus_info));
- 	drvinfo->eedump_len = ATL1_EEDUMP_LEN;
- }
+-	for (i=0; (io[i] < 2000) && (i < ARRAY_SIZE(dev_self)); i++) {
++	for (i=0; i < ARRAY_SIZE(dev_self) && io[i] < 2000; i++) {
+ 		if (w83977af_open(i, io[i], irq[i], dma[i]) == 0)
+ 			return 0;
+ 	}
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
