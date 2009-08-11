@@ -1,60 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-update-atlx-contact-info.patch removed from -mm tree
-Date: Tue, 11 Aug 2009 12:58:16 -0700
-Message-ID: <200908111958.n7BJwGfL022692@imap1.linux-foundation.org>
+Subject: [merged] mn10300-includecheck-fix-mn10300-pcih.patch removed from -mm tree
+Date: Tue, 11 Aug 2009 12:58:18 -0700
+Message-ID: <200908111958.n7BJwI1F022804@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43240 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54560 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752740AbZHKT7o (ORCPT
+	by vger.kernel.org with ESMTP id S1752379AbZHKUAZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Aug 2009 15:59:44 -0400
+	Tue, 11 Aug 2009 16:00:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chris.snook@gmail.com, davem@davemloft.net, jcliburn@gmail.com, jie.yang@atheros.com, mm-commits@vger.kernel.org
+To: jaswinder@kernel.org, dhowells@redhat.com, jaswinderrajput@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MAINTAINERS: update atlx contact info
+     mn10300: includecheck fix: mn10300, pci.h
 has been removed from the -mm tree.  Its filename was
-     maintainers-update-atlx-contact-info.patch
+     mn10300-includecheck-fix-mn10300-pcih.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: update atlx contact info
-From: Chris Snook <chris.snook@gmail.com>
+Subject: mn10300: includecheck fix: mn10300, pci.h
+From: Jaswinder Singh Rajput <jaswinder@kernel.org>
 
-Update MAINTAINERS to reflect my current (non-)affiliation.  Anyone
-hiring?
+Fix the following 'make includecheck' warning:
 
-Signed-off-by: Chris Snook <chris.snook@gmail.com>
-Cc: Jay Cliburn <jcliburn@gmail.com>
-Cc: Jie Yang <jie.yang@atheros.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+  arch/mn10300/include/asm/pci.h: linux/mm.h is included more than once.
+
+Signed-off-by: Jaswinder Singh Rajput <jaswinderrajput@gmail.com>
+Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/mn10300/include/asm/pci.h |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-update-atlx-contact-info MAINTAINERS
---- a/MAINTAINERS~maintainers-update-atlx-contact-info
-+++ a/MAINTAINERS
-@@ -915,7 +915,7 @@ F:	drivers/input/misc/ati_remote2.c
+diff -puN arch/mn10300/include/asm/pci.h~mn10300-includecheck-fix-mn10300-pcih arch/mn10300/include/asm/pci.h
+--- a/arch/mn10300/include/asm/pci.h~mn10300-includecheck-fix-mn10300-pcih
++++ a/arch/mn10300/include/asm/pci.h
+@@ -59,7 +59,6 @@ void pcibios_penalize_isa_irq(int irq);
+ #include <linux/slab.h>
+ #include <asm/scatterlist.h>
+ #include <linux/string.h>
+-#include <linux/mm.h>
+ #include <asm/io.h>
  
- ATLX ETHERNET DRIVERS
- M:	Jay Cliburn <jcliburn@gmail.com>
--M:	Chris Snook <csnook@redhat.com>
-+M:	Chris Snook <chris.snook@gmail.com>
- M:	Jie Yang <jie.yang@atheros.com>
- L:	atl1-devel@lists.sourceforge.net
- W:	http://sourceforge.net/projects/atl1
+ struct pci_dev;
 _
 
-Patches currently in -mm which might be from chris.snook@gmail.com are
+Patches currently in -mm which might be from jaswinder@kernel.org are
 
+origin.patch
 linux-next.patch
+kernel-core-add-smp_call_function_any.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+gitignore-usr-initramfs_datacpiobz2-and-usr-initramfs_datacpiolzma.patch
+net-cs89x0-includecheck-fix-for-cs89x0c.patch
+mm-includecheck-fix-for-mm-shmemc.patch
+mm-includecheck-fix-for-mm-nommuc.patch
 
