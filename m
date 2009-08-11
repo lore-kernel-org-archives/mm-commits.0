@@ -1,63 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pcap-regulator-register-earlier.patch removed from -mm tree
-Date: Tue, 11 Aug 2009 12:58:10 -0700
-Message-ID: <200908111958.n7BJwAtT022524@imap1.linux-foundation.org>
+Subject: [merged] waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes.patch removed from -mm tree
+Date: Tue, 11 Aug 2009 12:58:13 -0700
+Message-ID: <200908111958.n7BJwDjA022570@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42855 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47593 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752325AbZHKT7S (ORCPT
+	by vger.kernel.org with ESMTP id S1752325AbZHKT7i (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Aug 2009 15:59:18 -0400
+	Tue, 11 Aug 2009 15:59:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ospite@studenti.unina.it, broonie@opensource.wolfsonmicro.com, dbrownell@users.sourceforge.net, drwyrm@gmail.com, eric.y.miao@gmail.com, lrg@slimlogic.co.uk, sameo@linux.intel.com, mm
+To: peterz@infradead.org, a.p.zijlstra@chello.nl, dhowells@redhat.com, mingo@elte.hu, tiwai@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pcap-regulator: register earlier
+     waitqueues: give waitqueue spinlocks their own lockdep classes
 has been removed from the -mm tree.  Its filename was
-     pcap-regulator-register-earlier.patch
+     waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pcap-regulator: register earlier
-From: Antonio Ospite <ospite@studenti.unina.it>
+Subject: waitqueues: give waitqueue spinlocks their own lockdep classes
+From: Peter Zijlstra <peterz@infradead.org>
 
-Register pcap-regulator earlier so it can be used with cpufreq
+Give waitqueue spinlocks their own lockdep classes when they are
+initialised from init_waitqueue_head().  This means that struct
+wait_queue::func functions can operate other waitqueues.
 
-Signed-off-by: Daniel Ribeiro <drwyrm@gmail.com>
-Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Eric Miao <eric.y.miao@gmail.com>
-Cc: Daniel Ribeiro <drwyrm@gmail.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
-Cc: Liam Girdwood <lrg@slimlogic.co.uk>
+This is used by CacheFiles to catch the page from a backing fs being
+unlocked and to wake up another thread to take a copy of it.
+
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Signed-off-by: David Howells <dhowells@redhat.com>
+Tested-by: Takashi Iwai <tiwai@suse.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/regulator/pcap-regulator.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/wait.h |    9 ++++++++-
+ kernel/wait.c        |    5 +++--
+ 2 files changed, 11 insertions(+), 3 deletions(-)
 
-diff -puN drivers/regulator/pcap-regulator.c~pcap-regulator-register-earlier drivers/regulator/pcap-regulator.c
---- a/drivers/regulator/pcap-regulator.c~pcap-regulator-register-earlier
-+++ a/drivers/regulator/pcap-regulator.c
-@@ -310,7 +310,7 @@ static void __exit pcap_regulator_exit(v
- 	platform_driver_unregister(&pcap_regulator_driver);
+diff -puN include/linux/wait.h~waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes include/linux/wait.h
+--- a/include/linux/wait.h~waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes
++++ a/include/linux/wait.h
+@@ -77,7 +77,14 @@ struct task_struct;
+ #define __WAIT_BIT_KEY_INITIALIZER(word, bit)				\
+ 	{ .flags = word, .bit_nr = bit, }
+ 
+-extern void init_waitqueue_head(wait_queue_head_t *q);
++extern void __init_waitqueue_head(wait_queue_head_t *q, struct lock_class_key *);
++
++#define init_waitqueue_head(q)				\
++	do {						\
++		static struct lock_class_key __key;	\
++							\
++		__init_waitqueue_head((q), &__key);	\
++	} while (0)
+ 
+ #ifdef CONFIG_LOCKDEP
+ # define __WAIT_QUEUE_HEAD_INIT_ONSTACK(name) \
+diff -puN kernel/wait.c~waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes kernel/wait.c
+--- a/kernel/wait.c~waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes
++++ a/kernel/wait.c
+@@ -10,13 +10,14 @@
+ #include <linux/wait.h>
+ #include <linux/hash.h>
+ 
+-void init_waitqueue_head(wait_queue_head_t *q)
++void __init_waitqueue_head(wait_queue_head_t *q, struct lock_class_key *key)
+ {
+ 	spin_lock_init(&q->lock);
++	lockdep_set_class(&q->lock, key);
+ 	INIT_LIST_HEAD(&q->task_list);
  }
  
--module_init(pcap_regulator_init);
-+subsys_initcall(pcap_regulator_init);
- module_exit(pcap_regulator_exit);
+-EXPORT_SYMBOL(init_waitqueue_head);
++EXPORT_SYMBOL(__init_waitqueue_head);
  
- MODULE_AUTHOR("Daniel Ribeiro <drwyrm@gmail.com>");
+ void add_wait_queue(wait_queue_head_t *q, wait_queue_t *wait)
+ {
 _
 
-Patches currently in -mm which might be from ospite@studenti.unina.it are
+Patches currently in -mm which might be from peterz@infradead.org are
 
+origin.patch
 linux-next.patch
-pxa2xx_spi-register-earlier.patch
+waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes-checkpatch-fixes.patch
+tracing-page-allocator-add-trace-events-for-page-allocation-and-page-freeing.patch
+tracing-page-allocator-add-trace-events-for-anti-fragmentation-falling-back-to-other-migratetypes.patch
+tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists.patch
+tracing-page-allocator-add-a-postprocessing-script-for-page-allocator-related-ftrace-events.patch
+tracing-documentation-add-a-document-describing-how-to-do-some-performance-analysis-with-tracepoints.patch
+tracing-documentation-add-a-document-on-the-kmem-tracepoints.patch
+generic-ipi-make-struct-call_function_data-lockless.patch
+generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
+generic-ipi-cleanup-for-generic_smp_call_function_interrupt.patch
+kernel-smpc-relocate-some-code.patch
+generic-ipi-fix-the-race-between-generic_smp_call_function_-and-hotplug_cfd.patch
+generic-ipi-fix-the-race-between-generic_smp_call_function_-and-hotplug_cfd-fix.patch
 
