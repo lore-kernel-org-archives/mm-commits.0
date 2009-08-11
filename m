@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + soc-fix-i2c-build-errors.patch added to -mm tree
-Date: Mon, 10 Aug 2009 21:09:03 -0700
-Message-ID: <200908110409.n7B493nM013403@imap1.linux-foundation.org>
+Subject: + dvb-siano-uses-depends-on-input.patch added to -mm tree
+Date: Mon, 10 Aug 2009 21:09:35 -0700
+Message-ID: <200908110409.n7B49ZIE014316@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from smtp1.linux-foundation.org ([140.211.169.13]:34410 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751992AbZHKLzG (ORCPT
+	by vger.kernel.org with ESMTP id S1752018AbZHKLzI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Aug 2009 07:55:06 -0400
+	Tue, 11 Aug 2009 07:55:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, broonie@opensource.wolfsonmicro.com, timur@freescale.com
+Cc: randy.dunlap@oracle.com, mchehab@infradead.org, mkrufky@linuxtv.org, uris@siano-ms.com
 
 
 The patch titled
-     soc: fix I2C build errors
+     dvb: siano uses/depends on INPUT
 has been added to the -mm tree.  Its filename is
-     soc-fix-i2c-build-errors.patch
+     dvb-siano-uses-depends-on-input.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: soc: fix I2C build errors
+Subject: dvb: siano uses/depends on INPUT
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix soc build errors when I2C is built as a loadable module:
+siano uses input_*() functions so it should depend on INPUT
+to prevent build errors:
 
-(.text+0x5d26b): undefined reference to `i2c_master_send'
-soc-cache.c:(.text+0x5d32d): undefined reference to `i2c_transfer'
+ERROR: "input_event" [drivers/media/dvb/siano/sms1xxx.ko] undefined!
+ERROR: "input_register_device" [drivers/media/dvb/siano/sms1xxx.ko] undefined!
+ERROR: "input_free_device" [drivers/media/dvb/siano/sms1xxx.ko] undefined!
+ERROR: "input_unregister_device" [drivers/media/dvb/siano/sms1xxx.ko] undefined!
+ERROR: "input_allocate_device" [drivers/media/dvb/siano/sms1xxx.ko] undefined!
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Timur Tabi <timur@freescale.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Michael Krufky <mkrufky@linuxtv.org>
+Cc: Uri Shkolnik <uris@siano-ms.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/soc/soc-cache.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/dvb/siano/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN sound/soc/soc-cache.c~soc-fix-i2c-build-errors sound/soc/soc-cache.c
---- a/sound/soc/soc-cache.c~soc-fix-i2c-build-errors
-+++ a/sound/soc/soc-cache.c
-@@ -108,7 +108,7 @@ static unsigned int snd_soc_8_16_read(st
- 		return cache[reg];
- }
+diff -puN drivers/media/dvb/siano/Kconfig~dvb-siano-uses-depends-on-input drivers/media/dvb/siano/Kconfig
+--- a/drivers/media/dvb/siano/Kconfig~dvb-siano-uses-depends-on-input
++++ a/drivers/media/dvb/siano/Kconfig
+@@ -4,7 +4,7 @@
  
--#if defined(CONFIG_I2C) || defined(CONFIG_I2C_MODULE)
-+#if defined(CONFIG_I2C) || (defined(CONFIG_I2C_MODULE) && defined(MODULE))
- static unsigned int snd_soc_8_16_read_i2c(struct snd_soc_codec *codec,
- 					  unsigned int r)
- {
-@@ -200,7 +200,7 @@ int snd_soc_codec_set_cache_io(struct sn
- 		break;
+ config DVB_SIANO_SMS1XXX
+ 	tristate "Siano SMS1XXX USB dongle support"
+-	depends on DVB_CORE && USB
++	depends on DVB_CORE && USB && INPUT
+ 	---help---
+ 	  Choose Y here if you have a USB dongle with a SMS1XXX chipset.
  
- 	case SND_SOC_I2C:
--#if defined(CONFIG_I2C) || defined(CONFIG_I2C_MODULE)
-+#if defined(CONFIG_I2C) || (defined(CONFIG_I2C_MODULE) && defined(MODULE))
- 		codec->hw_write = (hw_write_t)i2c_master_send;
- #endif
- 		if (io_types[i].i2c_read)
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
@@ -80,6 +76,7 @@ origin.patch
 linux-next.patch
 soc-fix-i2c-build-errors.patch
 media-zr364xx-fix-build-errors.patch
+dvb-siano-uses-depends-on-input.patch
 input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
 kernel-hacking-move-strip_asm_syms-from-general.patch
 mtd-make-onenand-genericc-more-generic-fix.patch
