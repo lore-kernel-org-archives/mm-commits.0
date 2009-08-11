@@ -1,106 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [merged] waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes.patch removed from -mm tree
-Date: Tue, 11 Aug 2009 12:58:13 -0700
-Message-ID: <200908111958.n7BJwDjA022570@imap1.linux-foundation.org>
+Subject: [merged] maintainers-update-atlx-contact-info.patch removed from -mm tree
+Date: Tue, 11 Aug 2009 12:58:16 -0700
+Message-ID: <200908111958.n7BJwGfL022692@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47593 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43240 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752325AbZHKT7i (ORCPT
+	by vger.kernel.org with ESMTP id S1752740AbZHKT7o (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Aug 2009 15:59:38 -0400
+	Tue, 11 Aug 2009 15:59:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: peterz@infradead.org, a.p.zijlstra@chello.nl, dhowells@redhat.com, mingo@elte.hu, tiwai@suse.de, mm-commits@vger.kernel.org
+To: chris.snook@gmail.com, davem@davemloft.net, jcliburn@gmail.com, jie.yang@atheros.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     waitqueues: give waitqueue spinlocks their own lockdep classes
+     MAINTAINERS: update atlx contact info
 has been removed from the -mm tree.  Its filename was
-     waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes.patch
+     maintainers-update-atlx-contact-info.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: waitqueues: give waitqueue spinlocks their own lockdep classes
-From: Peter Zijlstra <peterz@infradead.org>
+Subject: MAINTAINERS: update atlx contact info
+From: Chris Snook <chris.snook@gmail.com>
 
-Give waitqueue spinlocks their own lockdep classes when they are
-initialised from init_waitqueue_head().  This means that struct
-wait_queue::func functions can operate other waitqueues.
+Update MAINTAINERS to reflect my current (non-)affiliation.  Anyone
+hiring?
 
-This is used by CacheFiles to catch the page from a backing fs being
-unlocked and to wake up another thread to take a copy of it.
-
-Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Signed-off-by: David Howells <dhowells@redhat.com>
-Tested-by: Takashi Iwai <tiwai@suse.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Chris Snook <chris.snook@gmail.com>
+Cc: Jay Cliburn <jcliburn@gmail.com>
+Cc: Jie Yang <jie.yang@atheros.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/wait.h |    9 ++++++++-
- kernel/wait.c        |    5 +++--
- 2 files changed, 11 insertions(+), 3 deletions(-)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/wait.h~waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes include/linux/wait.h
---- a/include/linux/wait.h~waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes
-+++ a/include/linux/wait.h
-@@ -77,7 +77,14 @@ struct task_struct;
- #define __WAIT_BIT_KEY_INITIALIZER(word, bit)				\
- 	{ .flags = word, .bit_nr = bit, }
+diff -puN MAINTAINERS~maintainers-update-atlx-contact-info MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-atlx-contact-info
++++ a/MAINTAINERS
+@@ -915,7 +915,7 @@ F:	drivers/input/misc/ati_remote2.c
  
--extern void init_waitqueue_head(wait_queue_head_t *q);
-+extern void __init_waitqueue_head(wait_queue_head_t *q, struct lock_class_key *);
-+
-+#define init_waitqueue_head(q)				\
-+	do {						\
-+		static struct lock_class_key __key;	\
-+							\
-+		__init_waitqueue_head((q), &__key);	\
-+	} while (0)
- 
- #ifdef CONFIG_LOCKDEP
- # define __WAIT_QUEUE_HEAD_INIT_ONSTACK(name) \
-diff -puN kernel/wait.c~waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes kernel/wait.c
---- a/kernel/wait.c~waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes
-+++ a/kernel/wait.c
-@@ -10,13 +10,14 @@
- #include <linux/wait.h>
- #include <linux/hash.h>
- 
--void init_waitqueue_head(wait_queue_head_t *q)
-+void __init_waitqueue_head(wait_queue_head_t *q, struct lock_class_key *key)
- {
- 	spin_lock_init(&q->lock);
-+	lockdep_set_class(&q->lock, key);
- 	INIT_LIST_HEAD(&q->task_list);
- }
- 
--EXPORT_SYMBOL(init_waitqueue_head);
-+EXPORT_SYMBOL(__init_waitqueue_head);
- 
- void add_wait_queue(wait_queue_head_t *q, wait_queue_t *wait)
- {
+ ATLX ETHERNET DRIVERS
+ M:	Jay Cliburn <jcliburn@gmail.com>
+-M:	Chris Snook <csnook@redhat.com>
++M:	Chris Snook <chris.snook@gmail.com>
+ M:	Jie Yang <jie.yang@atheros.com>
+ L:	atl1-devel@lists.sourceforge.net
+ W:	http://sourceforge.net/projects/atl1
 _
 
-Patches currently in -mm which might be from peterz@infradead.org are
+Patches currently in -mm which might be from chris.snook@gmail.com are
 
-origin.patch
 linux-next.patch
-waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes-checkpatch-fixes.patch
-tracing-page-allocator-add-trace-events-for-page-allocation-and-page-freeing.patch
-tracing-page-allocator-add-trace-events-for-anti-fragmentation-falling-back-to-other-migratetypes.patch
-tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists.patch
-tracing-page-allocator-add-a-postprocessing-script-for-page-allocator-related-ftrace-events.patch
-tracing-documentation-add-a-document-describing-how-to-do-some-performance-analysis-with-tracepoints.patch
-tracing-documentation-add-a-document-on-the-kmem-tracepoints.patch
-generic-ipi-make-struct-call_function_data-lockless.patch
-generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
-generic-ipi-cleanup-for-generic_smp_call_function_interrupt.patch
-kernel-smpc-relocate-some-code.patch
-generic-ipi-fix-the-race-between-generic_smp_call_function_-and-hotplug_cfd.patch
-generic-ipi-fix-the-race-between-generic_smp_call_function_-and-hotplug_cfd-fix.patch
 
