@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hpet-hpet-driver-periodic-timer-setup-bug-fixes.patch added to -mm tree
-Date: Mon, 10 Aug 2009 21:03:23 -0700
-Message-ID: <200908110403.n7B43N0e003684@imap1.linux-foundation.org>
+Subject: + vfs-make-get_sb_pseudo-set-s_maxbytes-to-value-that-can-be-cast-to-signed.patch added to -mm tree
+Date: Mon, 10 Aug 2009 21:42:33 -0700
+Message-ID: <200908110442.n7B4gXFf005962@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from smtp1.linux-foundation.org ([140.211.169.13]:34410 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751857AbZHKLzN (ORCPT
+	by vger.kernel.org with ESMTP id S1751929AbZHKLy5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Aug 2009 07:55:13 -0400
+	Tue, 11 Aug 2009 07:54:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nils.carlson@ericsson.com, venkatesh.pallipadi@intel.com
+Cc: jlayton@redhat.com, hannes@cmpxchg.org, hch@lst.de, smfrench@gmail.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     hpet: hpet driver periodic timer setup bug fixes
+     vfs: make get_sb_pseudo set s_maxbytes to value that can be cast to signed
 has been added to the -mm tree.  Its filename is
-     hpet-hpet-driver-periodic-timer-setup-bug-fixes.patch
+     vfs-make-get_sb_pseudo-set-s_maxbytes-to-value-that-can-be-cast-to-signed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,95 +34,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hpet: hpet driver periodic timer setup bug fixes
-From: Nils Carlson <nils.carlson@ericsson.com>
+Subject: vfs: make get_sb_pseudo set s_maxbytes to value that can be cast to signed
+From: Jeff Layton <jlayton@redhat.com>
+DESC
+vfs: make get_sb_pseudo set s_maxbytes to value that can be cast to signed
+DESC
 
-The periodic interrupt from drivers/char/hpet.c does not work correctly,
-both when using the periodic capability of the hardware and while
-emulating the periodic interrupt (when hardware does not support periodic
-mode).
+get_sb_pseudo sets s_maxbytes to ~0ULL which becomes negative when cast to
+a signed value.  Fix it to use MAX_LFS_FILESIZE which casts properly to a
+positive signed value.
 
-With timers capable of periodic interrupts, the comparator field is first
-set with the period value followed by set of hidden accumulator, which has
-the side effect of overwriting the comparator value.  This results in
-wrong periodicity for the interrupts.  For, periodic interrupts to work,
-following steps are necessary, in that order.
-
-* Set config with Tn_VAL_SET_CNF bit
-
-* Write to hidden accumulator, the value written is the time when the
-  first interrupt should be generated
-
-* Write compartor with period interval for subsequent interrupts
-  (http://www.intel.com/hardwaredesign/hpetspec_1.pdf )
-
-When emulating periodic timer with timers not capable of periodic
-interrupt, driver is adding the period to counter value instead of
-comparator value, which causes slow drift when using this emulation.
-
-Also, driver seems to add hpetp->hp_delta both while setting up periodic
-interrupt and while emulating periodic interrupts with timers not capable
-of doing periodic interrupts.  This hp_delta will result in slower than
-expected interrupt rate and should not be used while setting the interval.
-
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Signed-off-by: Nils Carlson <nils.carlson@ericsson.com>
+Signed-off-by: Jeff Layton <jlayton@redhat.com>
+Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Steve French <smfrench@gmail.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/hpet.c |   21 ++++++++++++---------
- 1 file changed, 12 insertions(+), 9 deletions(-)
+ fs/libfs.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/hpet.c~hpet-hpet-driver-periodic-timer-setup-bug-fixes drivers/char/hpet.c
---- a/drivers/char/hpet.c~hpet-hpet-driver-periodic-timer-setup-bug-fixes
-+++ a/drivers/char/hpet.c
-@@ -166,9 +166,8 @@ static irqreturn_t hpet_interrupt(int ir
- 		unsigned long m, t;
+diff -puN fs/libfs.c~vfs-make-get_sb_pseudo-set-s_maxbytes-to-value-that-can-be-cast-to-signed fs/libfs.c
+--- a/fs/libfs.c~vfs-make-get_sb_pseudo-set-s_maxbytes-to-value-that-can-be-cast-to-signed
++++ a/fs/libfs.c
+@@ -217,7 +217,7 @@ int get_sb_pseudo(struct file_system_typ
+ 		return PTR_ERR(s);
  
- 		t = devp->hd_ireqfreq;
--		m = read_counter(&devp->hd_hpet->hpet_mc);
--		write_counter(t + m + devp->hd_hpets->hp_delta,
--			      &devp->hd_timer->hpet_compare);
-+		m = read_counter(&devp->hd_timer->hpet_compare);
-+		write_counter(t + m, &devp->hd_timer->hpet_compare);
- 	}
- 
- 	if (devp->hd_flags & HPET_SHARED_IRQ)
-@@ -504,21 +503,25 @@ static int hpet_ioctl_ieon(struct hpet_d
- 	g = v | Tn_32MODE_CNF_MASK | Tn_INT_ENB_CNF_MASK;
- 
- 	if (devp->hd_flags & HPET_PERIODIC) {
--		write_counter(t, &timer->hpet_compare);
- 		g |= Tn_TYPE_CNF_MASK;
--		v |= Tn_TYPE_CNF_MASK;
--		writeq(v, &timer->hpet_config);
--		v |= Tn_VAL_SET_CNF_MASK;
-+		v |= Tn_TYPE_CNF_MASK | Tn_VAL_SET_CNF_MASK;
- 		writeq(v, &timer->hpet_config);
- 		local_irq_save(flags);
- 
--		/* NOTE:  what we modify here is a hidden accumulator
-+		/*
-+		 * NOTE: First we modify the hidden accumulator
- 		 * register supported by periodic-capable comparators.
- 		 * We never want to modify the (single) counter; that
--		 * would affect all the comparators.
-+		 * would affect all the comparators. The value written
-+		 * is the counter value when the first interrupt is due.
- 		 */
- 		m = read_counter(&hpet->hpet_mc);
- 		write_counter(t + m + hpetp->hp_delta, &timer->hpet_compare);
-+		/*
-+		 * Then we modify the comparator, indicating the period
-+		 * for subsequent interrupt.
-+		 */
-+		write_counter(t, &timer->hpet_compare);
- 	} else {
- 		local_irq_save(flags);
- 		m = read_counter(&hpet->hpet_mc);
+ 	s->s_flags = MS_NOUSER;
+-	s->s_maxbytes = ~0ULL;
++	s->s_maxbytes = MAX_LFS_FILESIZE;
+ 	s->s_blocksize = PAGE_SIZE;
+ 	s->s_blocksize_bits = PAGE_SHIFT;
+ 	s->s_magic = magic;
 _
 
-Patches currently in -mm which might be from nils.carlson@ericsson.com are
+Patches currently in -mm which might be from jlayton@redhat.com are
 
-hpet-hpet-driver-periodic-timer-setup-bug-fixes.patch
+origin.patch
+vfs-make-get_sb_pseudo-set-s_maxbytes-to-value-that-can-be-cast-to-signed.patch
+vfs-remove-redundant-position-check-in-do_sendfile.patch
+vfs-change-sb-s_maxbytes-to-a-loff_t.patch
 
