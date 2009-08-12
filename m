@@ -1,55 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ext4-remove-redundant-test-on-unsigned.patch removed from -mm tree
-Date: Wed, 12 Aug 2009 12:55:02 -0700
-Message-ID: <200908121955.n7CJt23R000460@imap1.linux-foundation.org>
+Subject: [merged] siano-read-buffer-overflow.patch removed from -mm tree
+Date: Wed, 12 Aug 2009 12:54:49 -0700
+Message-ID: <200908121954.n7CJsnVZ032468@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46071 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43336 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753220AbZHLTzD (ORCPT
+	by vger.kernel.org with ESMTP id S1752372AbZHLTzC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Aug 2009 15:55:03 -0400
+	Wed, 12 Aug 2009 15:55:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext4: remove redundant test on unsigned
+     siano: read buffer overflow
 has been removed from the -mm tree.  Its filename was
-     ext4-remove-redundant-test-on-unsigned.patch
+     siano-read-buffer-overflow.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext4: remove redundant test on unsigned
+Subject: siano: read buffer overflow
 From: Roel Kluin <roel.kluin@gmail.com>
 
-unsigned i_block cannot be less than 0.
+With mode DEVICE_MODE_RAW_TUNER a read occurs past the end of smscore_fw_lkup[].
+Subsequently an attempt is made to load the firmware from the resulting
+filename.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/inode.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/media/dvb/siano/smscoreapi.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ext4/inode.c~ext4-remove-redundant-test-on-unsigned fs/ext4/inode.c
---- a/fs/ext4/inode.c~ext4-remove-redundant-test-on-unsigned
-+++ a/fs/ext4/inode.c
-@@ -343,9 +343,7 @@ static int ext4_block_to_path(struct ino
- 	int n = 0;
- 	int final = 0;
+diff -puN drivers/media/dvb/siano/smscoreapi.c~siano-read-buffer-overflow drivers/media/dvb/siano/smscoreapi.c
+--- a/drivers/media/dvb/siano/smscoreapi.c~siano-read-buffer-overflow
++++ a/drivers/media/dvb/siano/smscoreapi.c
+@@ -816,7 +816,7 @@ int smscore_set_device_mode(struct smsco
  
--	if (i_block < 0) {
--		ext4_warning(inode->i_sb, "ext4_block_to_path", "block < 0");
--	} else if (i_block < direct_blocks) {
-+	if (i_block < direct_blocks) {
- 		offsets[n++] = i_block;
- 		final = direct_blocks;
- 	} else if ((i_block -= direct_blocks) < indirect_blocks) {
+ 	sms_debug("set device mode to %d", mode);
+ 	if (coredev->device_flags & SMS_DEVICE_FAMILY2) {
+-		if (mode < DEVICE_MODE_DVBT || mode > DEVICE_MODE_RAW_TUNER) {
++		if (mode < DEVICE_MODE_DVBT || mode >= DEVICE_MODE_RAW_TUNER) {
+ 			sms_err("invalid mode specified %d", mode);
+ 			return -EINVAL;
+ 		}
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
