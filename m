@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-introduce-page_lru_base_type.patch added to -mm tree
-Date: Wed, 12 Aug 2009 15:57:04 -0700
-Message-ID: <200908122257.n7CMv4XP021472@imap1.linux-foundation.org>
+Subject: + mm-drop-unneeded-double-negations.patch added to -mm tree
+Date: Wed, 12 Aug 2009 15:57:01 -0700
+Message-ID: <200908122257.n7CMv1QM021457@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45893 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56149 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752725AbZHLW50 (ORCPT
+	by vger.kernel.org with ESMTP id S1752759AbZHLW5e (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Aug 2009 18:57:26 -0400
+	Wed, 12 Aug 2009 18:57:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hannes@cmpxchg.org, minchan.kim@gmail.com, riel@redhat.com
+Cc: hannes@cmpxchg.org, mel@csn.ul.ie
 
 
 The patch titled
-     mm: introduce page_lru_base_type()
+     mm: drop unneeded double negations
 has been added to the -mm tree.  Its filename is
-     mm-introduce-page_lru_base_type.patch
+     mm-drop-unneeded-double-negations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,120 +34,84 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: introduce page_lru_base_type()
+Subject: mm: drop unneeded double negations
 From: Johannes Weiner <hannes@cmpxchg.org>
 
-Instead of abusing page_is_file_cache() for LRU list index arithmetic, add
-another helper with a more appropriate name and convert the non-boolean
-users of page_is_file_cache() accordingly.
-
-This new helper gives the LRU base type a page is supposed to live on,
-inactive anon or inactive file.
+Remove double negations where the operand is already boolean.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_inline.h |   19 +++++++++++++++++--
- mm/swap.c                 |    4 ++--
- mm/vmscan.c               |    6 +++---
- 3 files changed, 22 insertions(+), 7 deletions(-)
+ mm/memcontrol.c |    2 +-
+ mm/memory.c     |    2 +-
+ mm/vmscan.c     |    8 ++++----
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/mm_inline.h~mm-introduce-page_lru_base_type include/linux/mm_inline.h
---- a/include/linux/mm_inline.h~mm-introduce-page_lru_base_type
-+++ a/include/linux/mm_inline.h
-@@ -60,6 +60,21 @@ del_page_from_lru(struct zone *zone, str
- }
+diff -puN mm/memcontrol.c~mm-drop-unneeded-double-negations mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-drop-unneeded-double-negations
++++ a/mm/memcontrol.c
+@@ -648,7 +648,7 @@ unsigned long mem_cgroup_isolate_pages(u
+ 	int nid = z->zone_pgdat->node_id;
+ 	int zid = zone_idx(z);
+ 	struct mem_cgroup_per_zone *mz;
+-	int lru = LRU_FILE * !!file + !!active;
++	int lru = LRU_FILE * file + active;
+ 	int ret;
  
- /**
-+ * page_lru_base_type - which LRU list type should a page be on?
-+ * @page: the page to test
-+ *
-+ * Used for LRU list index arithmetic.
-+ *
-+ * Returns the base LRU type - file or anon - @page should be on.
-+ */
-+static enum lru_list page_lru_base_type(struct page *page)
-+{
-+	if (page_is_file_cache(page))
-+		return LRU_INACTIVE_FILE;
-+	return LRU_INACTIVE_ANON;
-+}
-+
-+/**
-  * page_lru - which LRU list should a page be on?
-  * @page: the page to test
-  *
-@@ -68,14 +83,14 @@ del_page_from_lru(struct zone *zone, str
-  */
- static inline enum lru_list page_lru(struct page *page)
- {
--	enum lru_list lru = LRU_BASE;
-+	enum lru_list lru;
- 
- 	if (PageUnevictable(page))
- 		lru = LRU_UNEVICTABLE;
- 	else {
-+		lru = page_lru_base_type(page);
- 		if (PageActive(page))
- 			lru += LRU_ACTIVE;
--		lru += page_is_file_cache(page);
+ 	BUG_ON(!mem_cont);
+diff -puN mm/memory.c~mm-drop-unneeded-double-negations mm/memory.c
+--- a/mm/memory.c~mm-drop-unneeded-double-negations
++++ a/mm/memory.c
+@@ -598,7 +598,7 @@ copy_one_pte(struct mm_struct *dst_mm, s
+ 	if (page) {
+ 		get_page(page);
+ 		page_dup_rmap(page);
+-		rss[!!PageAnon(page)]++;
++		rss[PageAnon(page)]++;
  	}
  
- 	return lru;
-diff -puN mm/swap.c~mm-introduce-page_lru_base_type mm/swap.c
---- a/mm/swap.c~mm-introduce-page_lru_base_type
-+++ a/mm/swap.c
-@@ -118,7 +118,7 @@ static void pagevec_move_tail(struct pag
- 			spin_lock(&zone->lru_lock);
- 		}
- 		if (PageLRU(page) && !PageActive(page) && !PageUnevictable(page)) {
--			int lru = page_is_file_cache(page);
-+			int lru = page_lru_base_type(page);
- 			list_move_tail(&page->lru, &zone->lru[lru].list);
- 			pgmoved++;
- 		}
-@@ -181,7 +181,7 @@ void activate_page(struct page *page)
- 	spin_lock_irq(&zone->lru_lock);
- 	if (PageLRU(page) && !PageActive(page) && !PageUnevictable(page)) {
- 		int file = page_is_file_cache(page);
--		int lru = LRU_BASE + file;
-+		int lru = page_lru_base_type(page);
- 		del_page_from_lru_list(zone, page, lru);
- 
- 		SetPageActive(page);
-diff -puN mm/vmscan.c~mm-introduce-page_lru_base_type mm/vmscan.c
---- a/mm/vmscan.c~mm-introduce-page_lru_base_type
+ out_set_pte:
+diff -puN mm/vmscan.c~mm-drop-unneeded-double-negations mm/vmscan.c
+--- a/mm/vmscan.c~mm-drop-unneeded-double-negations
 +++ a/mm/vmscan.c
-@@ -531,7 +531,7 @@ redo:
- 		 * unevictable page on [in]active list.
- 		 * We know how to handle that.
- 		 */
--		lru = active + page_is_file_cache(page);
-+		lru = active + page_lru_base_type(page);
- 		lru_cache_add_lru(page, lru);
- 	} else {
- 		/*
-@@ -981,7 +981,7 @@ static unsigned long clear_active_flags(
- 	struct page *page;
+@@ -966,7 +966,7 @@ static unsigned long isolate_pages_globa
+ 	if (file)
+ 		lru += LRU_FILE;
+ 	return isolate_lru_pages(nr, &z->lru[lru].list, dst, scanned, order,
+-								mode, !!file);
++								mode, file);
+ }
  
- 	list_for_each_entry(page, page_list, lru) {
--		lru = page_is_file_cache(page);
-+		lru = page_lru_base_type(page);
- 		if (PageActive(page)) {
- 			lru += LRU_ACTIVE;
- 			ClearPageActive(page);
-@@ -2647,7 +2647,7 @@ static void check_move_unevictable_page(
- retry:
- 	ClearPageUnevictable(page);
- 	if (page_evictable(page, NULL)) {
--		enum lru_list l = LRU_INACTIVE_ANON + page_is_file_cache(page);
-+		enum lru_list l = page_lru_base_type(page);
+ /*
+@@ -1204,7 +1204,7 @@ static unsigned long shrink_inactive_lis
+ 			lru = page_lru(page);
+ 			add_page_to_lru_list(zone, page, lru);
+ 			if (is_active_lru(lru)) {
+-				int file = !!is_file_lru(lru);
++				int file = is_file_lru(lru);
+ 				reclaim_stat->recent_rotated[file]++;
+ 			}
+ 			if (!pagevec_add(&pvec, page)) {
+@@ -1314,7 +1314,7 @@ static void shrink_active_list(unsigned 
+ 	if (scanning_global_lru(sc)) {
+ 		zone->pages_scanned += pgscanned;
+ 	}
+-	reclaim_stat->recent_scanned[!!file] += nr_taken;
++	reclaim_stat->recent_scanned[file] += nr_taken;
  
- 		__dec_zone_state(zone, NR_UNEVICTABLE);
- 		list_move(&page->lru, &zone->lru[l].list);
+ 	__count_zone_vm_events(PGREFILL, zone, pgscanned);
+ 	if (file)
+@@ -1367,7 +1367,7 @@ static void shrink_active_list(unsigned 
+ 	 * helps balance scan pressure between file and anonymous pages in
+ 	 * get_scan_ratio.
+ 	 */
+-	reclaim_stat->recent_rotated[!!file] += nr_rotated;
++	reclaim_stat->recent_rotated[file] += nr_rotated;
+ 
+ 	move_active_pages_to_lru(zone, &l_active,
+ 						LRU_ACTIVE + file * LRU_FILE);
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
