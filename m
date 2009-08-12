@@ -1,58 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: [merged] stk-webcam-read-buffer-overflow.patch removed from -mm tree
-Date: Wed, 12 Aug 2009 12:54:53 -0700
-Message-ID: <200908121954.n7CJsrv4032682@imap1.linux-foundation.org>
+Subject: [merged] drivers-media-video-bw-qcamc-fix-read-buffer-overflow.patch removed from -mm tree
+Date: Wed, 12 Aug 2009 12:54:51 -0700
+Message-ID: <200908121954.n7CJsp3S032568@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39335 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50367 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753988AbZHLTzF (ORCPT
+	by vger.kernel.org with ESMTP id S1753602AbZHLTzD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Aug 2009 15:55:05 -0400
+	Wed, 12 Aug 2009 15:55:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, hverkuil@xs4all.nl, mchehab@infradead.org, xyzzy@speakeasy.org, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     stk-webcam: read buffer overflow
+     drivers/media/video/bw-qcam.c: fix read buffer overflow
 has been removed from the -mm tree.  Its filename was
-     stk-webcam-read-buffer-overflow.patch
+     drivers-media-video-bw-qcamc-fix-read-buffer-overflow.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: stk-webcam: read buffer overflow
+Subject: drivers/media/video/bw-qcam.c: fix read buffer overflow
 From: Roel Kluin <roel.kluin@gmail.com>
 
-It tested the value of stk_sizes[i].m before checking whether i was in range.
+parport[n] is checked before n < MAX_CAMS
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
 Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Trent Piepho <xyzzy@speakeasy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/stk-webcam.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/video/bw-qcam.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/media/video/stk-webcam.c~stk-webcam-read-buffer-overflow drivers/media/video/stk-webcam.c
---- a/drivers/media/video/stk-webcam.c~stk-webcam-read-buffer-overflow
-+++ a/drivers/media/video/stk-webcam.c
-@@ -1050,8 +1050,8 @@ static int stk_setup_format(struct stk_c
- 		depth = 1;
- 	else
- 		depth = 2;
--	while (stk_sizes[i].m != dev->vsettings.mode
--			&& i < ARRAY_SIZE(stk_sizes))
-+	while (i < ARRAY_SIZE(stk_sizes) &&
-+			stk_sizes[i].m != dev->vsettings.mode)
- 		i++;
- 	if (i == ARRAY_SIZE(stk_sizes)) {
- 		STK_ERROR("Something is broken in %s\n", __func__);
+diff -puN drivers/media/video/bw-qcam.c~drivers-media-video-bw-qcamc-fix-read-buffer-overflow drivers/media/video/bw-qcam.c
+--- a/drivers/media/video/bw-qcam.c~drivers-media-video-bw-qcamc-fix-read-buffer-overflow
++++ a/drivers/media/video/bw-qcam.c
+@@ -992,7 +992,7 @@ static int accept_bwqcam(struct parport 
+ 
+ 	if (parport[0] && strncmp(parport[0], "auto", 4) != 0) {
+ 		/* user gave parport parameters */
+-		for(n=0; parport[n] && n<MAX_CAMS; n++){
++		for (n = 0; n < MAX_CAMS && parport[n]; n++) {
+ 			char *ep;
+ 			unsigned long r;
+ 			r = simple_strtoul(parport[n], &ep, 0);
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
