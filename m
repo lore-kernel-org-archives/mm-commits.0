@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + input-add-a-driver-for-the-winbond-wpcd376i-consumer-ir-hardware-fixes.patch added to -mm tree
-Date: Wed, 12 Aug 2009 14:57:09 -0700
-Message-ID: <200908122157.n7CLvAmb015882@imap1.linux-foundation.org>
+Subject: + rt2870-new-usb-id-for-belkin-n-f5d8055.patch added to -mm tree
+Date: Wed, 12 Aug 2009 15:02:10 -0700
+Message-ID: <200908122202.n7CM2AsN024515@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58696 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40849 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751812AbZHLV5U (ORCPT
+	by vger.kernel.org with ESMTP id S1751827AbZHLWCL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Aug 2009 17:57:20 -0400
+	Wed, 12 Aug 2009 18:02:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david@hardeman.nu, dtor@mail.ru, jbarnes@virtuousgeek.org
+Cc: dnax88@gmail.com
 
 
 The patch titled
-     Fixes for the Winbond WPCD376I driver
+     rt2870: new USB ID for Belkin N+ F5D8055
 has been added to the -mm tree.  Its filename is
-     input-add-a-driver-for-the-winbond-wpcd376i-consumer-ir-hardware-f=
-ixes.patch
+     rt2870-new-usb-id-for-belkin-n-f5d8055.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -30,135 +26,40 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Fixes for the Winbond WPCD376I driver
-=46rom: David H=E4rdeman <david@hardeman.nu>
+Subject: rt2870: new USB ID for Belkin N+ F5D8055
+From: Daniele Napolitano <dnax88@gmail.com>
 
-Adds a couple of fixes for the IR RX handling in the
-drivers/input/misc/winbond-cir.c driver.
+New USB ID for Belkin N+ F5D8055 (USB 802.11n adapter).
 
-Most importantly, the hardware forces a FIFO RX/TX buffer size of 16
-even though this isn't documented in the specs (meaning that an
-interrupt is generated when 8 bytes are loaded, not when 16 bytes are
-loaded).
-
-Second, a loop was using the wrong parameter.
-
-Third, it makes more sense to disable RX before draining the RX buffer
-rather than the other way around.
-
-This patch applies on top of the patches already in the -mm tree.
-
-Signed-off-by: David H=E4rdeman <david@hardeman.nu>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Signed-off-by: Daniele Napolitano <dnax88@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/misc/winbond-cir.c |   25 +++++++++++++------------
- 1 file changed, 13 insertions(+), 12 deletions(-)
+ drivers/staging/rt2870/rt2870.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/input/misc/winbond-cir.c~input-add-a-driver-for-the-w=
-inbond-wpcd376i-consumer-ir-hardware-fixes drivers/input/misc/winbond-c=
-ir.c
---- a/drivers/input/misc/winbond-cir.c~input-add-a-driver-for-the-winbo=
-nd-wpcd376i-consumer-ir-hardware-fixes
-+++ a/drivers/input/misc/winbond-cir.c
-@@ -941,7 +941,7 @@ wbcir_irq_handler(int irqno, void *cooki
- 	struct device *dev =3D &device->dev;
- 	u8 status;
- 	unsigned long flags;
--	u8 irdata[16];
-+	u8 irdata[8];
- 	int i;
- 	unsigned int hw;
-=20
-@@ -962,11 +962,10 @@ wbcir_irq_handler(int irqno, void *cooki
- 	if (!(status & WBCIR_IRQ_RX))
- 		goto out;
-=20
--	/* Since RXHDLEV is set, at least 16 bytes are in the FIFO */
-+	/* Since RXHDLEV is set, at least 8 bytes are in the FIFO */
- 	insb(data->sbase + WBCIR_REG_SP3_RXDATA, &irdata[0], 8);
--	insb(data->sbase + WBCIR_REG_SP3_RXDATA, &irdata[8], 8);
-=20
--	for (i =3D 0; i < sizeof(data); i++) {
-+	for (i =3D 0; i < sizeof(irdata); i++) {
- 		hw =3D hweight8(irdata[i]);
- 		if (hw > 4)
- 			add_irdata_bit(data, 0);
-@@ -980,13 +979,13 @@ wbcir_irq_handler(int irqno, void *cooki
- 	}
-=20
- 	if (data->idle_count > WBCIR_MAX_IDLE_BYTES) {
--		/* Drain the FIFO */
-+		/* Set RXINACTIVE... */
-+		outb(WBCIR_RX_DISABLE, data->sbase + WBCIR_REG_SP3_ASCR);
-+
-+		/* ...and drain the FIFO */
- 		while (inb(data->sbase + WBCIR_REG_SP3_LSR) & WBCIR_RX_AVAIL)
- 			inb(data->sbase + WBCIR_REG_SP3_RXDATA);
-=20
--		/* And set RXINACTIVE */
--		outb(WBCIR_RX_DISABLE, data->sbase + WBCIR_REG_SP3_ASCR);
--
- 		dev_dbg(dev, "IRDATA:\n");
- 		for (i =3D 0; i < data->irdata_count; i +=3D BITS_PER_LONG)
- 			dev_dbg(dev, "0x%08lX\n", data->irdata[i/BITS_PER_LONG]);
-@@ -1438,10 +1437,13 @@ wbcir_probe(struct pnp_dev *device, cons
- 	 *
- 	 * The ECIR registers include a flag to change the
- 	 * 24Mhz clock freq to 48Mhz.
-+	 *
-+	 * It's not documented in the specs, but fifo levels
-+	 * other than 16 seem to be unsupported.
- 	 */
-=20
--	/* prescaler 1.0, tx/rx fifo lvl 32 */
--	outb(0x35, data->sbase + WBCIR_REG_SP3_EXCR2);
-+	/* prescaler 1.0, tx/rx fifo lvl 16 */
-+	outb(0x30, data->sbase + WBCIR_REG_SP3_EXCR2);
-=20
- 	/* Set baud divisor to generate one byte per bit/cell */
- 	switch (protocol) {
-@@ -1490,7 +1492,7 @@ wbcir_probe(struct pnp_dev *device, cons
- 	else
- 		outb(0x00, data->sbase + WBCIR_REG_SP3_IRCFG4);
-=20
--	/* Set FIFO thresholds (RX =3D 16, TX =3D 7), reset RX/TX */
-+	/* Set FIFO thresholds (RX =3D 8, TX =3D 3), reset RX/TX */
- 	wbcir_select_bank(data, WBCIR_BANK_0);
- 	outb(0x97, data->sbase + WBCIR_REG_SP3_FCR);
-=20
-@@ -1498,7 +1500,6 @@ wbcir_probe(struct pnp_dev *device, cons
- 	outb(0xE0, data->sbase + WBCIR_REG_SP3_ASCR);
-=20
- 	/* Enable interrupts */
--	wbcir_select_bank(data, WBCIR_BANK_0);
- 	outb(WBCIR_IRQ_RX | WBCIR_IRQ_ERR, data->sbase + WBCIR_REG_SP3_IER);
-=20
- 	return 0;
+diff -puN drivers/staging/rt2870/rt2870.h~rt2870-new-usb-id-for-belkin-n-f5d8055 drivers/staging/rt2870/rt2870.h
+--- a/drivers/staging/rt2870/rt2870.h~rt2870-new-usb-id-for-belkin-n-f5d8055
++++ a/drivers/staging/rt2870/rt2870.h
+@@ -102,6 +102,7 @@
+ 	{USB_DEVICE(0x14B2,0x3C12)}, /* AL */           \
+ 	{USB_DEVICE(0x050D,0x8053)}, /* Belkin */		\
+ 	{USB_DEVICE(0x050D,0x815C)}, /* Belkin */		\
++	{USB_DEVICE(0x050D,0x825a)}, /* Belkin */		\
+ 	{USB_DEVICE(0x14B2,0x3C23)}, /* Airlink */		\
+ 	{USB_DEVICE(0x14B2,0x3C27)}, /* Airlink */		\
+ 	{USB_DEVICE(0x07AA,0x002F)}, /* Corega */		\
 _
 
-Patches currently in -mm which might be from david@hardeman.nu are
+Patches currently in -mm which might be from dnax88@gmail.com are
 
-acpi-reintroduce-acpi_device_ops-shutdown-method.patch
-input-add-a-shutdown-method-to-pnp-drivers.patch
-input-add-a-driver-for-the-winbond-wpcd376i-consumer-ir-hardware.patch
-input-add-a-driver-for-the-winbond-wpcd376i-consumer-ir-hardware-fixes.=
-patch
+rt2870-new-usb-id-for-belkin-n-f5d8055.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
