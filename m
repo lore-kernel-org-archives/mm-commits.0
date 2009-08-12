@@ -1,67 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [merged] soc-fix-i2c-build-errors.patch removed from -mm tree
-Date: Wed, 12 Aug 2009 12:54:46 -0700
-Message-ID: <200908121954.n7CJskfJ032385@imap1.linux-foundation.org>
+Subject: [merged] dvb-siano-uses-depends-on-input.patch removed from -mm tree
+Date: Wed, 12 Aug 2009 12:54:59 -0700
+Message-ID: <200908121954.n7CJsxZS000301@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45628 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34957 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753969AbZHLTzK (ORCPT
+	by vger.kernel.org with ESMTP id S1753602AbZHLTzz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Aug 2009 15:55:10 -0400
+	Wed, 12 Aug 2009 15:55:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, broonie@opensource.wolfsonmicro.com, timur@freescale.com, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, mchehab@infradead.org, mkrufky@linuxtv.org, uris@siano-ms.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     soc: fix I2C build errors
+     dvb: siano uses/depends on INPUT
 has been removed from the -mm tree.  Its filename was
-     soc-fix-i2c-build-errors.patch
+     dvb-siano-uses-depends-on-input.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: soc: fix I2C build errors
+Subject: dvb: siano uses/depends on INPUT
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix soc build errors when I2C is built as a loadable module:
+siano uses input_*() functions so it should depend on INPUT
+to prevent build errors:
 
-(.text+0x5d26b): undefined reference to `i2c_master_send'
-soc-cache.c:(.text+0x5d32d): undefined reference to `i2c_transfer'
+ERROR: "input_event" [drivers/media/dvb/siano/sms1xxx.ko] undefined!
+ERROR: "input_register_device" [drivers/media/dvb/siano/sms1xxx.ko] undefined!
+ERROR: "input_free_device" [drivers/media/dvb/siano/sms1xxx.ko] undefined!
+ERROR: "input_unregister_device" [drivers/media/dvb/siano/sms1xxx.ko] undefined!
+ERROR: "input_allocate_device" [drivers/media/dvb/siano/sms1xxx.ko] undefined!
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Timur Tabi <timur@freescale.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Michael Krufky <mkrufky@linuxtv.org>
+Cc: Uri Shkolnik <uris@siano-ms.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/soc/soc-cache.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/dvb/siano/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN sound/soc/soc-cache.c~soc-fix-i2c-build-errors sound/soc/soc-cache.c
---- a/sound/soc/soc-cache.c~soc-fix-i2c-build-errors
-+++ a/sound/soc/soc-cache.c
-@@ -108,7 +108,7 @@ static unsigned int snd_soc_8_16_read(st
- 		return cache[reg];
- }
+diff -puN drivers/media/dvb/siano/Kconfig~dvb-siano-uses-depends-on-input drivers/media/dvb/siano/Kconfig
+--- a/drivers/media/dvb/siano/Kconfig~dvb-siano-uses-depends-on-input
++++ a/drivers/media/dvb/siano/Kconfig
+@@ -4,7 +4,7 @@
  
--#if defined(CONFIG_I2C) || defined(CONFIG_I2C_MODULE)
-+#if defined(CONFIG_I2C) || (defined(CONFIG_I2C_MODULE) && defined(MODULE))
- static unsigned int snd_soc_8_16_read_i2c(struct snd_soc_codec *codec,
- 					  unsigned int r)
- {
-@@ -200,7 +200,7 @@ int snd_soc_codec_set_cache_io(struct sn
- 		break;
+ config DVB_SIANO_SMS1XXX
+ 	tristate "Siano SMS1XXX USB dongle support"
+-	depends on DVB_CORE && USB
++	depends on DVB_CORE && USB && INPUT
+ 	---help---
+ 	  Choose Y here if you have a USB dongle with a SMS1XXX chipset.
  
- 	case SND_SOC_I2C:
--#if defined(CONFIG_I2C) || defined(CONFIG_I2C_MODULE)
-+#if defined(CONFIG_I2C) || (defined(CONFIG_I2C_MODULE) && defined(MODULE))
- 		codec->hw_write = (hw_write_t)i2c_master_send;
- #endif
- 		if (io_types[i].i2c_read)
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
