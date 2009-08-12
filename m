@@ -1,99 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: [merged] media-zr364xx-fix-build-errors.patch removed from -mm tree
-Date: Wed, 12 Aug 2009 12:54:56 -0700
-Message-ID: <200908121954.n7CJsu7A032686@imap1.linux-foundation.org>
+Subject: [merged] stk-webcam-read-buffer-overflow.patch removed from -mm tree
+Date: Wed, 12 Aug 2009 12:54:53 -0700
+Message-ID: <200908121954.n7CJsrv4032682@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58994 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39335 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754131AbZHLTzK (ORCPT
+	by vger.kernel.org with ESMTP id S1753988AbZHLTzF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Aug 2009 15:55:10 -0400
+	Wed, 12 Aug 2009 15:55:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, mchehab@infradead.org, royale@zerezo.com, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, hverkuil@xs4all.nl, mchehab@infradead.org, xyzzy@speakeasy.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     media/zr364xx: fix build errors
+     stk-webcam: read buffer overflow
 has been removed from the -mm tree.  Its filename was
-     media-zr364xx-fix-build-errors.patch
+     stk-webcam-read-buffer-overflow.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: media/zr364xx: fix build errors
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: stk-webcam: read buffer overflow
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Fix build errors in zr364xx by adding selects:
+It tested the value of stk_sizes[i].m before checking whether i was in range.
 
-zr364xx.c:(.text+0x195ed7): undefined reference to `videobuf_streamon'
-zr364xx.c:(.text+0x196030): undefined reference to `videobuf_dqbuf'
-zr364xx.c:(.text+0x1960c4): undefined reference to `videobuf_qbuf'
-zr364xx.c:(.text+0x196123): undefined reference to `videobuf_querybuf'
-zr364xx.c:(.text+0x196182): undefined reference to `videobuf_reqbufs'
-zr364xx.c:(.text+0x196224): undefined reference to `videobuf_queue_is_busy'
-zr364xx.c:(.text+0x196390): undefined reference to `videobuf_vmalloc_free'
-zr364xx.c:(.text+0x196571): undefined reference to `videobuf_iolock'
-zr364xx.c:(.text+0x196678): undefined reference to `videobuf_mmap_mapper'
-zr364xx.c:(.text+0x196760): undefined reference to `videobuf_poll_stream'
-zr364xx.c:(.text+0x19689a): undefined reference to `videobuf_read_one'
-zr364xx.c:(.text+0x1969ec): undefined reference to `videobuf_mmap_free'
-zr364xx.c:(.text+0x197862): undefined reference to `videobuf_queue_vmalloc_init'
-zr364xx.c:(.text+0x197a28): undefined reference to `videobuf_streamoff'
-zr364xx.c:(.text+0x198203): undefined reference to `videobuf_to_vmalloc'
-zr364xx.c:(.text+0x198603): undefined reference to `videobuf_streamoff'
-drivers/built-in.o: In function `free_buffer':
-zr364xx.c:(.text+0x19930c): undefined reference to `videobuf_vmalloc_free'
-drivers/built-in.o: In function `zr364xx_open':
-zr364xx.c:(.text+0x19a7de): undefined reference to `videobuf_queue_vmalloc_init'
-drivers/built-in.o: In function `read_pipe_completion':
-zr364xx.c:(.text+0x19b17f): undefined reference to `videobuf_to_vmalloc'
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Antoine Jacquet <royale@zerezo.com>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
 Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Trent Piepho <xyzzy@speakeasy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/Kconfig |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/media/video/stk-webcam.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/media/video/Kconfig~media-zr364xx-fix-build-errors drivers/media/video/Kconfig
---- a/drivers/media/video/Kconfig~media-zr364xx-fix-build-errors
-+++ a/drivers/media/video/Kconfig
-@@ -1000,6 +1000,8 @@ source "drivers/media/video/pwc/Kconfig"
- config USB_ZR364XX
- 	tristate "USB ZR364XX Camera support"
- 	depends on VIDEO_V4L2
-+	select VIDEOBUF_GEN
-+	select VIDEOBUF_VMALLOC
- 	---help---
- 	  Say Y here if you want to connect this type of camera to your
- 	  computer's USB port.
+diff -puN drivers/media/video/stk-webcam.c~stk-webcam-read-buffer-overflow drivers/media/video/stk-webcam.c
+--- a/drivers/media/video/stk-webcam.c~stk-webcam-read-buffer-overflow
++++ a/drivers/media/video/stk-webcam.c
+@@ -1050,8 +1050,8 @@ static int stk_setup_format(struct stk_c
+ 		depth = 1;
+ 	else
+ 		depth = 2;
+-	while (stk_sizes[i].m != dev->vsettings.mode
+-			&& i < ARRAY_SIZE(stk_sizes))
++	while (i < ARRAY_SIZE(stk_sizes) &&
++			stk_sizes[i].m != dev->vsettings.mode)
+ 		i++;
+ 	if (i == ARRAY_SIZE(stk_sizes)) {
+ 		STK_ERROR("Something is broken in %s\n", __func__);
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 origin.patch
 linux-next.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-kernel-hacking-move-strip_asm_syms-from-general.patch
-mtd-make-onenand-genericc-more-generic-fix.patch
-isdn-fix-netjet-build-errors.patch
-usb-otg-fix-twl4030-usb-build.patch
-mm-make-swap-token-dummies-static-inlines-fix-2.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-page_alloc-fix-kernel-doc-warning.patch
-ksm-add-some-documentation.patch
-lis3-add-power-management-functions-fix.patch
-procfs-provide-stack-information-for-threads-v011-fix.patch
-spih-add-missing-kernel-doc-for-struct-spi_master.patch
-gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links-update-fix.patch
-doc-filesystems-remove-smount-program.patch
-doc-filesystems-more-mount-cleanups.patch
-documentation-update-stale-definition-of-file-nr-in-fstxt.patch
-reiser4-export-remove_from_page_cache-fix.patch
+s3c-fix-check-of-index-into-s3c_gpios.patch
+stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
+dm-strncpy-does-not-null-terminate-string.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+powerpc-avoid-calculating-possibly-invalid-address.patch
+drm-i915-intel_sdvo_multifunc_encoder-sdvo_output_svid0-tested-twice.patch
+media-strncpy-does-not-null-terminate-string.patch
+mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
+slram-read-buffer-overflow.patch
+mtd-fix-read-buffer-overflow.patch
+hfc_usb-fix-read-buffer-overflow.patch
+zorro8390-fix-read-buffer-overflow-in-zorro8390_init_one-checkpatch-fixes.patch
+cyclades-read-buffer-overflow.patch
+serial167-fix-read-buffer-overflow.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+blackfin-fix-read-buffer-overflow.patch
+arch-alpha-boot-tools-objstripc-wrong-variable-tested-after-open.patch
+m32r-remove-redundant-tests-on-unsigned.patch
+m68k-count-can-reach-51-not-50.patch
+m68k-cnt-reaches-1-not-0.patch
+dme1737-keep-index-within-pwm_config.patch
+ncpfs-read-buffer-overflow.patch
+smbfs-read-buffer-overflow.patch
+platinumfb-misplaced-parenthesis.patch
+sisfb-read-buffer-overflow.patch
+drivers-video-console-newport_conc-fix-read-outside-array-bounds.patch
+mwave-fix-read-buffer-overflow.patch
+adfs-remove-redundant-test-on-unsigned.patch
 
