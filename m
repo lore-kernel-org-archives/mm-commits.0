@@ -1,94 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-media-video-bw-qcamc-fix-read-buffer-overflow.patch removed from -mm tree
-Date: Wed, 12 Aug 2009 12:54:51 -0700
-Message-ID: <200908121954.n7CJsp3S032568@imap1.linux-foundation.org>
+Subject: [merged] soc-fix-i2c-build-errors.patch removed from -mm tree
+Date: Wed, 12 Aug 2009 12:54:46 -0700
+Message-ID: <200908121954.n7CJskfJ032385@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50367 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45628 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753602AbZHLTzD (ORCPT
+	by vger.kernel.org with ESMTP id S1753969AbZHLTzK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Aug 2009 15:55:03 -0400
+	Wed, 12 Aug 2009 15:55:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, broonie@opensource.wolfsonmicro.com, timur@freescale.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/media/video/bw-qcam.c: fix read buffer overflow
+     soc: fix I2C build errors
 has been removed from the -mm tree.  Its filename was
-     drivers-media-video-bw-qcamc-fix-read-buffer-overflow.patch
+     soc-fix-i2c-build-errors.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/media/video/bw-qcam.c: fix read buffer overflow
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: soc: fix I2C build errors
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-parport[n] is checked before n < MAX_CAMS
+Fix soc build errors when I2C is built as a loadable module:
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+(.text+0x5d26b): undefined reference to `i2c_master_send'
+soc-cache.c:(.text+0x5d32d): undefined reference to `i2c_transfer'
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Timur Tabi <timur@freescale.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/bw-qcam.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ sound/soc/soc-cache.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/media/video/bw-qcam.c~drivers-media-video-bw-qcamc-fix-read-buffer-overflow drivers/media/video/bw-qcam.c
---- a/drivers/media/video/bw-qcam.c~drivers-media-video-bw-qcamc-fix-read-buffer-overflow
-+++ a/drivers/media/video/bw-qcam.c
-@@ -992,7 +992,7 @@ static int accept_bwqcam(struct parport 
+diff -puN sound/soc/soc-cache.c~soc-fix-i2c-build-errors sound/soc/soc-cache.c
+--- a/sound/soc/soc-cache.c~soc-fix-i2c-build-errors
++++ a/sound/soc/soc-cache.c
+@@ -108,7 +108,7 @@ static unsigned int snd_soc_8_16_read(st
+ 		return cache[reg];
+ }
  
- 	if (parport[0] && strncmp(parport[0], "auto", 4) != 0) {
- 		/* user gave parport parameters */
--		for(n=0; parport[n] && n<MAX_CAMS; n++){
-+		for (n = 0; n < MAX_CAMS && parport[n]; n++) {
- 			char *ep;
- 			unsigned long r;
- 			r = simple_strtoul(parport[n], &ep, 0);
+-#if defined(CONFIG_I2C) || defined(CONFIG_I2C_MODULE)
++#if defined(CONFIG_I2C) || (defined(CONFIG_I2C_MODULE) && defined(MODULE))
+ static unsigned int snd_soc_8_16_read_i2c(struct snd_soc_codec *codec,
+ 					  unsigned int r)
+ {
+@@ -200,7 +200,7 @@ int snd_soc_codec_set_cache_io(struct sn
+ 		break;
+ 
+ 	case SND_SOC_I2C:
+-#if defined(CONFIG_I2C) || defined(CONFIG_I2C_MODULE)
++#if defined(CONFIG_I2C) || (defined(CONFIG_I2C_MODULE) && defined(MODULE))
+ 		codec->hw_write = (hw_write_t)i2c_master_send;
+ #endif
+ 		if (io_types[i].i2c_read)
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
 linux-next.patch
-s3c-fix-check-of-index-into-s3c_gpios.patch
-stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
-dm-strncpy-does-not-null-terminate-string.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-powerpc-avoid-calculating-possibly-invalid-address.patch
-drm-i915-intel_sdvo_multifunc_encoder-sdvo_output_svid0-tested-twice.patch
-media-strncpy-does-not-null-terminate-string.patch
-mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
-slram-read-buffer-overflow.patch
-mtd-fix-read-buffer-overflow.patch
-hfc_usb-fix-read-buffer-overflow.patch
-zorro8390-fix-read-buffer-overflow-in-zorro8390_init_one-checkpatch-fixes.patch
-cyclades-read-buffer-overflow.patch
-serial167-fix-read-buffer-overflow.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-blackfin-fix-read-buffer-overflow.patch
-arch-alpha-boot-tools-objstripc-wrong-variable-tested-after-open.patch
-m32r-remove-redundant-tests-on-unsigned.patch
-m68k-count-can-reach-51-not-50.patch
-m68k-cnt-reaches-1-not-0.patch
-dme1737-keep-index-within-pwm_config.patch
-ncpfs-read-buffer-overflow.patch
-smbfs-read-buffer-overflow.patch
-platinumfb-misplaced-parenthesis.patch
-sisfb-read-buffer-overflow.patch
-drivers-video-console-newport_conc-fix-read-outside-array-bounds.patch
-mwave-fix-read-buffer-overflow.patch
-adfs-remove-redundant-test-on-unsigned.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+kernel-hacking-move-strip_asm_syms-from-general.patch
+mtd-make-onenand-genericc-more-generic-fix.patch
+isdn-fix-netjet-build-errors.patch
+usb-otg-fix-twl4030-usb-build.patch
+mm-make-swap-token-dummies-static-inlines-fix-2.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+page_alloc-fix-kernel-doc-warning.patch
+ksm-add-some-documentation.patch
+lis3-add-power-management-functions-fix.patch
+procfs-provide-stack-information-for-threads-v011-fix.patch
+spih-add-missing-kernel-doc-for-struct-spi_master.patch
+gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links-update-fix.patch
+doc-filesystems-remove-smount-program.patch
+doc-filesystems-more-mount-cleanups.patch
+documentation-update-stale-definition-of-file-nr-in-fstxt.patch
+reiser4-export-remove_from_page_cache-fix.patch
 
