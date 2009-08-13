@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + um-convert-to-asm-generic-hardirqh.patch added to -mm tree
-Date: Wed, 12 Aug 2009 17:17:35 -0700
-Message-ID: <200908130017.n7D0HZl9030365@imap1.linux-foundation.org>
+Subject: + mmc-add-the-new-linux-mmc-mailing-list-to-maintainers.patch added to -mm tree
+Date: Wed, 12 Aug 2009 22:24:21 -0700
+Message-ID: <200908130524.n7D5OL8c004358@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51175 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54319 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750853AbZHMASA (ORCPT
+	by vger.kernel.org with ESMTP id S1751216AbZHMFZR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Aug 2009 20:18:00 -0400
+	Thu, 13 Aug 2009 01:25:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hch@lst.de, jdike@addtoit.com
+Cc: akpm@linux-foundation.org, HaraldWelte@viatech.com, JosephChan@via.com.tw, ben-linux@fluff.org, drzeus@drzeus.cx, ian@mnementh.co.uk, jarkko.lavinen@nokia.com, linux-mmc@vger.kernel.org, manuel.lauss@gmail.com, nico@cam.org, ppisa@pikron.com, saschasommer@freenet.de
 
 
 The patch titled
-     um: convert to asm-generic/hardirq.h
+     mmc: add the new linux-mmc mailing list to MAINTAINERS
 has been added to the -mm tree.  Its filename is
-     um-convert-to-asm-generic-hardirqh.patch
+     mmc-add-the-new-linux-mmc-mailing-list-to-maintainers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,67 +34,115 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: um: convert to asm-generic/hardirq.h
-From: Christoph Hellwig <hch@lst.de>
+Subject: mmc: add the new linux-mmc mailing list to MAINTAINERS
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Jeff Dike <jdike@addtoit.com>
+There are a number of individual MMC drivers listed in MAINTAINERS.  I
+didn't modify those records.  Perhaps I should have.
+
+Cc: <linux-mmc@vger.kernel.org>
+Cc: Manuel Lauss <manuel.lauss@gmail.com>
+Cc: Nicolas Pitre <nico@cam.org>
+Cc: Pierre Ossman <drzeus@drzeus.cx>
+Cc: Pavel Pisa <ppisa@pikron.com>
+Cc: Jarkko Lavinen <jarkko.lavinen@nokia.com>
+Cc: Ben Dooks <ben-linux@fluff.org>
+Cc: Sascha Sommer <saschasommer@freenet.de>
+Cc: Ian Molton <ian@mnementh.co.uk>
+Cc: Joseph Chan <JosephChan@via.com.tw>
+Cc: Harald Welte <HaraldWelte@viatech.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/asm/hardirq.h |   26 +-------------------------
- 1 file changed, 1 insertion(+), 25 deletions(-)
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/um/include/asm/hardirq.h~um-convert-to-asm-generic-hardirqh arch/um/include/asm/hardirq.h
---- a/arch/um/include/asm/hardirq.h~um-convert-to-asm-generic-hardirqh
-+++ a/arch/um/include/asm/hardirq.h
-@@ -1,25 +1 @@
--/* (c) 2004 cw@f00f.org, GPLv2 blah blah */
--
--#ifndef __ASM_UM_HARDIRQ_H
--#define __ASM_UM_HARDIRQ_H
--
--#include <linux/threads.h>
--#include <linux/irq.h>
--
--/* NOTE: When SMP works again we might want to make this
-- * ____cacheline_aligned or maybe use per_cpu state? --cw */
--typedef struct {
--	unsigned int __softirq_pending;
--} irq_cpustat_t;
--
--#include <linux/irq_cpustat.h>
--
--/* As this would be very strange for UML to get we BUG() after the
-- * printk. */
--static inline void ack_bad_irq(unsigned int irq)
--{
--	printk(KERN_ERR "unexpected IRQ %02x\n", irq);
--	BUG();
--}
--
--#endif /* __ASM_UM_HARDIRQ_H */
-+#include <asm-generic/hardirq.h>
+diff -puN MAINTAINERS~mmc-add-the-new-linux-mmc-mailing-list-to-maintainers MAINTAINERS
+--- a/MAINTAINERS~mmc-add-the-new-linux-mmc-mailing-list-to-maintainers
++++ a/MAINTAINERS
+@@ -3469,6 +3469,7 @@ F:	drivers/mfd/
+ 
+ MULTIMEDIA CARD (MMC), SECURE DIGITAL (SD) AND SDIO SUBSYSTEM
+ S:	Orphan
++L:	linux-mmc@vger.kernel.org
+ F:	drivers/mmc/
+ F:	include/linux/mmc/
+ 
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-vfs-make-get_sb_pseudo-set-s_maxbytes-to-value-that-can-be-cast-to-signed.patch
 linux-next.patch
-vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
-vfs-split-generic_forget_inode-so-that-hugetlbfs-does-not-have-to-copy-it.patch
-vfs-allow-file-truncations-when-both-suid-and-write-permissions-set.patch
-vfs-remove-redundant-position-check-in-do_sendfile.patch
-vfs-change-sb-s_maxbytes-to-a-loff_t.patch
-alpha-convert-to-asm-generic-hardirqh.patch
-avr32-convert-to-asm-generic-hardirqh.patch
-cris-convert-to-asm-generic-hardirqh.patch
-frv-convert-to-asm-generic-hardirqh.patch
-h8300-convert-to-asm-generic-hardirqh.patch
-m32r-convert-to-asm-generic-hardirqh.patch
-m68k-convert-to-asm-generic-hardirqh.patch
-sparc32-convert-to-asm-generic-hardirqh.patch
-um-convert-to-asm-generic-hardirqh.patch
-xtensa-convert-to-asm-generic-hardirqh.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-kernel-cpu-amdc-fix-x86_64-allnoconfig-build.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+video-initial-support-for-adv7180-update-fix.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+checkincludespl-add-option-to-remove-duplicates-in-place.patch
+leds-gpio-leds-fix-typographics-fault.patch
+leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio.patch
+slram-read-buffer-overflow.patch
+zorro8390-fix-read-buffer-overflow-in-zorro8390_init_one-checkpatch-fixes.patch
+3x59x-fix-pci-resource-management.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+serial167-fix-read-buffer-overflow.patch
+waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes-checkpatch-fixes.patch
+drivers-usb-gadget-s3c2410_udcc-fix.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
+vfs-optimize-touch_time-too.patch
+mmc-add-the-new-linux-mmc-mailing-list-to-maintainers.patch
+revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
+mm-make-swap-token-dummies-static-inlines-fix.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
+vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
+ummunotify-userspace-support-for-mmu-notifications-v3-fix.patch
+arches-drop-superfluous-casts-in-nr_free_pages-callers-checkpatch-fixes.patch
+tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
+printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
+generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
+proc-connector-add-event-for-process-becoming-session-leader.patch
+kernel-smpc-relocate-some-code.patch
+mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
+sdio-add-cd-disable-support-cleanup.patch
+procfs-provide-stack-information-for-threads-v011-fix.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
+rtc-philips-nxp-pcf2123-driver-v03-fix.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes-fix.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
+drivers-video-add-kmalloc-null-tests-fix.patch
+v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
+memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
+memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
+memcg-improve-resource-counter-scalability-checkpatch-fixes.patch
+exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
+exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
+elf-clean-up-fill_note_info-fix.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
