@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + korina-add-error-handling-to-korina_alloc_ring.patch added to -mm tree
-Date: Thu, 13 Aug 2009 15:58:10 -0700
-Message-ID: <200908132258.n7DMwAVv003297@imap1.linux-foundation.org>
+Subject: + fs-proc-task_mmuc-v1-fix-clear_refs_write-input-sanity-check.patch added to -mm tree
+Date: Thu, 13 Aug 2009 15:57:28 -0700
+Message-ID: <200908132257.n7DMvSpk002067@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40749 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56167 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752671AbZHMW6T (ORCPT
+	by vger.kernel.org with ESMTP id S1753226AbZHMW6g (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Aug 2009 18:58:19 -0400
+	Thu, 13 Aug 2009 18:58:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: n0-1@freewrt.org, roel.kluin@gmail.com
+Cc: macli@brc.ubc.ca, mpm@selenic.com, rientjes@google.com, xiyou.wangcong@gmail.com
 
 
 The patch titled
-     korina: add error-handling to korina_alloc_ring
+     fs/proc/task_mmu.c v1: fix clear_refs_write() input sanity check
 has been added to the -mm tree.  Its filename is
-     korina-add-error-handling-to-korina_alloc_ring.patch
+     fs-proc-task_mmuc-v1-fix-clear_refs_write-input-sanity-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,68 +34,77 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: korina: add error-handling to korina_alloc_ring
-From: Phil Sutter <n0-1@freewrt.org>
+Subject: fs/proc/task_mmu.c v1: fix clear_refs_write() input sanity check
+From: Vincent Li <macli@brc.ubc.ca>
 
-This also avoids a potential buffer overflow in case the very first
-receive descriptor fails to allocate, as an index of -1 would be used
-afterwards. Kudos to Roel Kluin for pointing this out and providing an
-initial patch.
+Andrew Morton pointed out similar string hacking and obfuscated check for
+zero-length input at the end of the function, David Rientjes suggested to
+use strict_strtol to replace simple_strtol, this patch cover above
+suggestions, add removing of leading and trailing whitespace from user
+input.  It does not change function behavious.
 
-Signed-off-by: Phil Sutter <n0-1@freewrt.org>
-Cc: Roel Kluin <roel.kluin@gmail.com>
+Signed-off-by: Vincent Li <macli@brc.ubc.ca>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Amerigo Wang <xiyou.wangcong@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/korina.c |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ fs/proc/task_mmu.c |   14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
 
-diff -puN drivers/net/korina.c~korina-add-error-handling-to-korina_alloc_ring drivers/net/korina.c
---- a/drivers/net/korina.c~korina-add-error-handling-to-korina_alloc_ring
-+++ a/drivers/net/korina.c
-@@ -750,7 +750,7 @@ static struct ethtool_ops netdev_ethtool
- 	.get_link               = netdev_get_link,
- };
- 
--static void korina_alloc_ring(struct net_device *dev)
-+static int korina_alloc_ring(struct net_device *dev)
+diff -puN fs/proc/task_mmu.c~fs-proc-task_mmuc-v1-fix-clear_refs_write-input-sanity-check fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~fs-proc-task_mmuc-v1-fix-clear_refs_write-input-sanity-check
++++ a/fs/proc/task_mmu.c
+@@ -473,21 +473,20 @@ static ssize_t clear_refs_write(struct f
+ 				size_t count, loff_t *ppos)
  {
- 	struct korina_private *lp = netdev_priv(dev);
- 	struct sk_buff *skb;
-@@ -771,7 +771,7 @@ static void korina_alloc_ring(struct net
- 	for (i = 0; i < KORINA_NUM_RDS; i++) {
- 		skb = dev_alloc_skb(KORINA_RBSIZE + 2);
- 		if (!skb)
--			break;
-+			return -ENOMEM;
- 		skb_reserve(skb, 2);
- 		lp->rx_skb[i] = skb;
- 		lp->rd_ring[i].control = DMA_DESC_IOD |
-@@ -790,6 +790,8 @@ static void korina_alloc_ring(struct net
- 	lp->rx_chain_head = 0;
- 	lp->rx_chain_tail = 0;
- 	lp->rx_chain_status = desc_empty;
+ 	struct task_struct *task;
+-	char buffer[PROC_NUMBUF], *end;
++	char buffer[PROC_NUMBUF];
+ 	struct mm_struct *mm;
+ 	struct vm_area_struct *vma;
+-	int type;
++	long type;
+ 
+ 	memset(buffer, 0, sizeof(buffer));
+ 	if (count > sizeof(buffer) - 1)
+ 		count = sizeof(buffer) - 1;
+ 	if (copy_from_user(buffer, buf, count))
+ 		return -EFAULT;
+-	type = simple_strtol(buffer, &end, 0);
++	if (strict_strtol(strstrip(buffer), 10, &type))
++		return -EINVAL;
+ 	if (type < CLEAR_REFS_ALL || type > CLEAR_REFS_MAPPED)
+ 		return -EINVAL;
+-	if (*end == '\n')
+-		end++;
+ 	task = get_proc_task(file->f_path.dentry->d_inode);
+ 	if (!task)
+ 		return -ESRCH;
+@@ -523,9 +522,8 @@ static ssize_t clear_refs_write(struct f
+ 		mmput(mm);
+ 	}
+ 	put_task_struct(task);
+-	if (end - buffer == 0)
+-		return -EIO;
+-	return end - buffer;
 +
-+	return 0;
++	return count;
  }
  
- static void korina_free_ring(struct net_device *dev)
-@@ -832,7 +834,11 @@ static int korina_init(struct net_device
- 	writel(ETH_INT_FC_EN, &lp->eth_regs->ethintfc);
- 
- 	/* Allocate rings */
--	korina_alloc_ring(dev);
-+	if (korina_alloc_ring(dev)) {
-+		printk(KERN_ERR "%s: descriptor allocation failed\n", dev->name);
-+		korina_free_ring(dev);
-+		return -ENOMEM;
-+	}
- 
- 	writel(0, &lp->rx_dma_regs->dmas);
- 	/* Start Rx DMA */
+ const struct file_operations proc_clear_refs_operations = {
 _
 
-Patches currently in -mm which might be from n0-1@freewrt.org are
+Patches currently in -mm which might be from macli@brc.ubc.ca are
 
-korina-add-error-handling-to-korina_alloc_ring.patch
+mm-count-only-reclaimable-lru-pages-v2.patch
+tracing-page-allocator-add-trace-events-for-page-allocation-and-page-freeing.patch
+tracing-page-allocator-add-trace-events-for-anti-fragmentation-falling-back-to-other-migratetypes.patch
+tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists.patch
+tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists-fix.patch
+tracing-page-allocator-add-a-postprocessing-script-for-page-allocator-related-ftrace-events.patch
+tracing-documentation-add-a-document-describing-how-to-do-some-performance-analysis-with-tracepoints.patch
+tracing-documentation-add-a-document-on-the-kmem-tracepoints.patch
+fs-proc-task_mmuc-v1-fix-clear_refs_write-input-sanity-check.patch
 
