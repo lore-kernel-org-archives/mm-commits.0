@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + includecheck-fix-drivers-char-vtc.patch added to -mm tree
-Date: Thu, 13 Aug 2009 15:03:45 -0700
-Message-ID: <200908132203.n7DM3jhG005455@imap1.linux-foundation.org>
+Subject: + includecheck-fix-documentation-cfag12864b-examplec.patch added to -mm tree
+Date: Thu, 13 Aug 2009 15:04:11 -0700
+Message-ID: <200908132204.n7DM4BGJ006310@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45012 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44057 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752373AbZHMWFa (ORCPT
+	by vger.kernel.org with ESMTP id S1752135AbZHMWFp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Aug 2009 18:05:30 -0400
+	Thu, 13 Aug 2009 18:05:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jaswinder@kernel.org, jaswinderrajput@gmail.com
+Cc: jaswinder@kernel.org, jaswinderrajput@gmail.com, randy.dunlap@oracle.com
 
 
 The patch titled
-     includecheck fix: drivers/char/vt.c
+     includecheck fix: Documentation, cfag12864b-example.c
 has been added to the -mm tree.  Its filename is
-     includecheck-fix-drivers-char-vtc.patch
+     includecheck-fix-documentation-cfag12864b-examplec.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,30 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: includecheck fix: drivers/char/vt.c
+Subject: includecheck fix: Documentation, cfag12864b-example.c
 From: Jaswinder Singh Rajput <jaswinder@kernel.org>
 
-Fix the following 'make includecheck' warning:
+fix the following 'make includecheck' warning:
 
-  drivers/char/vt.c: linux/device.h is included more than once.
+  Documentation/auxdisplay/cfag12864b-example.c: string.h is included more than once.
 
 Signed-off-by: Jaswinder Singh Rajput <jaswinderrajput@gmail.com>
+Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/vt.c |    1 -
+ Documentation/auxdisplay/cfag12864b-example.c |    1 -
  1 file changed, 1 deletion(-)
 
-diff -puN drivers/char/vt.c~includecheck-fix-drivers-char-vtc drivers/char/vt.c
---- a/drivers/char/vt.c~includecheck-fix-drivers-char-vtc
-+++ a/drivers/char/vt.c
-@@ -2957,7 +2957,6 @@ int __init vty_init(const struct file_op
- }
+diff -puN Documentation/auxdisplay/cfag12864b-example.c~includecheck-fix-documentation-cfag12864b-examplec Documentation/auxdisplay/cfag12864b-example.c
+--- a/Documentation/auxdisplay/cfag12864b-example.c~includecheck-fix-documentation-cfag12864b-examplec
++++ a/Documentation/auxdisplay/cfag12864b-example.c
+@@ -194,7 +194,6 @@ static void cfag12864b_blit(void)
+  */
  
- #ifndef VT_SINGLE_DRIVER
--#include <linux/device.h>
+ #include <stdio.h>
+-#include <string.h>
  
- static struct class *vtconsole_class;
+ #define EXAMPLES	6
  
 _
 
@@ -72,4 +73,5 @@ net-cs89x0-includecheck-fix-for-cs89x0c.patch
 mm-includecheck-fix-for-mm-shmemc.patch
 mm-includecheck-fix-for-mm-nommuc.patch
 includecheck-fix-drivers-char-vtc.patch
+includecheck-fix-documentation-cfag12864b-examplec.patch
 
