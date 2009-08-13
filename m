@@ -1,119 +1,153 @@
 From: akpm@linux-foundation.org
-Subject: [merged] media-strncpy-does-not-null-terminate-string.patch removed from -mm tree
-Date: Thu, 13 Aug 2009 12:19:37 -0700
-Message-ID: <200908131919.n7DJJbMo012689@imap1.linux-foundation.org>
+Subject: [merged] drivers-media-video-cx88-cx88-add-support-for-winfast-dtv2000h-rev-j.patch removed from -mm tree
+Date: Thu, 13 Aug 2009 12:19:34 -0700
+Message-ID: <200908131919.n7DJJYUt012661@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53474 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54633 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753125AbZHMTUO (ORCPT
+	by vger.kernel.org with ESMTP id S1755428AbZHMTUV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Aug 2009 15:20:14 -0400
+	Thu, 13 Aug 2009 15:20:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: vlasta.labsky@gmail.com, kraxel@bytesex.org, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     media: strncpy does not null terminate string
+     drivers/media/video/cx88/cx88: add support for WinFast DTV2000H rev. J
 has been removed from the -mm tree.  Its filename was
-     media-strncpy-does-not-null-terminate-string.patch
+     drivers-media-video-cx88-cx88-add-support-for-winfast-dtv2000h-rev-j.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: media: strncpy does not null terminate string
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: drivers/media/video/cx88/cx88: add support for WinFast DTV2000H rev. J
+From: Vlastimil Labsky <vlasta.labsky@gmail.com>
 
-strlcpy() will always null terminate the string.
+I updated and simplyfied patch from Zbynek Hrabovsky for recent kernel. 
+It enables autodetection of card, sound in analog TV , sound in FM radio
+and switching between antenna and cable RF input.  Radio tuner still
+doesn't work, I don't even know how it works.  Some guys wrote me that FM
+radio works with TV tuner used instead of radio part (symlink video0 ->
+radio0).
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Signed-off-by: Vlastimil Labsky <vlasta.labsky@gmail.com>
+Cc: Gerd Knorr <kraxel@bytesex.org>
 Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/dvb-usb/dvb-usb-i2c.c |    2 +-
- drivers/media/video/pwc/pwc-v4l.c       |    2 +-
- drivers/media/video/zoran/zoran_card.c  |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/media/video/cx88/cx88-cards.c |   49 ++++++++++++++++++++++++
+ drivers/media/video/cx88/cx88-dvb.c   |    1 
+ drivers/media/video/cx88/cx88-input.c |    1 
+ drivers/media/video/cx88/cx88.h       |    1 
+ 4 files changed, 52 insertions(+)
 
-diff -puN drivers/media/dvb/dvb-usb/dvb-usb-i2c.c~media-strncpy-does-not-null-terminate-string drivers/media/dvb/dvb-usb/dvb-usb-i2c.c
---- a/drivers/media/dvb/dvb-usb/dvb-usb-i2c.c~media-strncpy-does-not-null-terminate-string
-+++ a/drivers/media/dvb/dvb-usb/dvb-usb-i2c.c
-@@ -19,7 +19,7 @@ int dvb_usb_i2c_init(struct dvb_usb_devi
- 		return -EINVAL;
- 	}
- 
--	strncpy(d->i2c_adap.name, d->desc->name, sizeof(d->i2c_adap.name));
-+	strlcpy(d->i2c_adap.name, d->desc->name, sizeof(d->i2c_adap.name));
- 	d->i2c_adap.class = I2C_CLASS_TV_DIGITAL,
- 	d->i2c_adap.algo      = d->props.i2c_algo;
- 	d->i2c_adap.algo_data = NULL;
-diff -puN drivers/media/video/pwc/pwc-v4l.c~media-strncpy-does-not-null-terminate-string drivers/media/video/pwc/pwc-v4l.c
---- a/drivers/media/video/pwc/pwc-v4l.c~media-strncpy-does-not-null-terminate-string
-+++ a/drivers/media/video/pwc/pwc-v4l.c
-@@ -1033,7 +1033,7 @@ long pwc_video_do_ioctl(struct file *fil
- 			if (std->index != 0)
- 				return -EINVAL;
- 			std->id = V4L2_STD_UNKNOWN;
--			strncpy(std->name, "webcam", sizeof(std->name));
-+			strlcpy(std->name, "webcam", sizeof(std->name));
- 			return 0;
+diff -puN drivers/media/video/cx88/cx88-cards.c~drivers-media-video-cx88-cx88-add-support-for-winfast-dtv2000h-rev-j drivers/media/video/cx88/cx88-cards.c
+--- a/drivers/media/video/cx88/cx88-cards.c~drivers-media-video-cx88-cx88-add-support-for-winfast-dtv2000h-rev-j
++++ a/drivers/media/video/cx88/cx88-cards.c
+@@ -1283,6 +1283,51 @@ static const struct cx88_board cx88_boar
+ 		},
+ 		.mpeg           = CX88_MPEG_DVB,
+ 	},
++	[CX88_BOARD_WINFAST_DTV2000H_J] = {
++		.name           = "WinFast DTV2000 H rev. J",
++		.tuner_type     = TUNER_PHILIPS_FMD1216ME_MK3,
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.input          = {{
++			.type   = CX88_VMUX_TELEVISION,
++			.vmux   = 0,
++			.gpio0  = 0x00017300,
++			.gpio1  = 0x00008207,
++			.gpio2	= 0x00000000,
++			.gpio3  = 0x02000000,
++		},{
++			.type   = CX88_VMUX_TELEVISION,
++			.vmux   = 0,
++			.gpio0  = 0x00018300,
++			.gpio1  = 0x0000f207,
++			.gpio2	= 0x00017304,
++			.gpio3  = 0x02000000,
++		},{
++			.type   = CX88_VMUX_COMPOSITE1,
++			.vmux   = 1,
++			.gpio0  = 0x00018301,
++			.gpio1  = 0x0000f207,
++			.gpio2	= 0x00017304,
++			.gpio3  = 0x02000000,
++		},{
++			.type   = CX88_VMUX_SVIDEO,
++			.vmux   = 2,
++			.gpio0  = 0x00018301,
++			.gpio1  = 0x0000f207,
++			.gpio2	= 0x00017304,
++			.gpio3  = 0x02000000,
++		}},
++		.radio = {
++			 .type  = CX88_RADIO,
++			 .gpio0 = 0x00015702,
++			 .gpio1 = 0x0000f207,
++			 .gpio2 = 0x00015702,
++			 .gpio3 = 0x02000000,
++		},
++		.mpeg           = CX88_MPEG_DVB,
++	},
+ 	[CX88_BOARD_GENIATECH_DVBS] = {
+ 		.name          = "Geniatech DVB-S",
+ 		.tuner_type    = TUNER_ABSENT,
+@@ -2282,6 +2327,10 @@ static const struct cx88_subid cx88_subi
+ 		.subdevice = 0x665e,
+ 		.card      = CX88_BOARD_WINFAST_DTV2000H,
+ 	},{
++		.subvendor = 0x107d,
++		.subdevice = 0x6f2b,
++		.card      = CX88_BOARD_WINFAST_DTV2000H_J,
++	},{
+ 		.subvendor = 0x18ac,
+ 		.subdevice = 0xd800, /* FusionHDTV 3 Gold (original revision) */
+ 		.card      = CX88_BOARD_DVICO_FUSIONHDTV_3_GOLD_Q,
+diff -puN drivers/media/video/cx88/cx88-dvb.c~drivers-media-video-cx88-cx88-add-support-for-winfast-dtv2000h-rev-j drivers/media/video/cx88/cx88-dvb.c
+--- a/drivers/media/video/cx88/cx88-dvb.c~drivers-media-video-cx88-cx88-add-support-for-winfast-dtv2000h-rev-j
++++ a/drivers/media/video/cx88/cx88-dvb.c
+@@ -695,6 +695,7 @@ static int dvb_register(struct cx8802_de
  		}
+ 		break;
+ 	case CX88_BOARD_WINFAST_DTV2000H:
++	case CX88_BOARD_WINFAST_DTV2000H_J:
+ 	case CX88_BOARD_HAUPPAUGE_HVR1100:
+ 	case CX88_BOARD_HAUPPAUGE_HVR1100LP:
+ 	case CX88_BOARD_HAUPPAUGE_HVR1300:
+diff -puN drivers/media/video/cx88/cx88-input.c~drivers-media-video-cx88-cx88-add-support-for-winfast-dtv2000h-rev-j drivers/media/video/cx88/cx88-input.c
+--- a/drivers/media/video/cx88/cx88-input.c~drivers-media-video-cx88-cx88-add-support-for-winfast-dtv2000h-rev-j
++++ a/drivers/media/video/cx88/cx88-input.c
+@@ -225,6 +225,7 @@ int cx88_ir_init(struct cx88_core *core,
+ 		ir->sampling = 1;
+ 		break;
+ 	case CX88_BOARD_WINFAST_DTV2000H:
++	case CX88_BOARD_WINFAST_DTV2000H_J:
+ 	case CX88_BOARD_WINFAST_DTV1800H:
+ 		ir_codes = ir_codes_winfast;
+ 		ir->gpio_addr = MO_GP0_IO;
+diff -puN drivers/media/video/cx88/cx88.h~drivers-media-video-cx88-cx88-add-support-for-winfast-dtv2000h-rev-j drivers/media/video/cx88/cx88.h
+--- a/drivers/media/video/cx88/cx88.h~drivers-media-video-cx88-cx88-add-support-for-winfast-dtv2000h-rev-j
++++ a/drivers/media/video/cx88/cx88.h
+@@ -237,6 +237,7 @@ extern struct sram_channel cx88_sram_cha
+ #define CX88_BOARD_TERRATEC_CINERGY_HT_PCI_MKII 79
+ #define CX88_BOARD_HAUPPAUGE_IRONLY        80
+ #define CX88_BOARD_WINFAST_DTV1800H        81
++#define CX88_BOARD_WINFAST_DTV2000H_J      82
  
-diff -puN drivers/media/video/zoran/zoran_card.c~media-strncpy-does-not-null-terminate-string drivers/media/video/zoran/zoran_card.c
---- a/drivers/media/video/zoran/zoran_card.c~media-strncpy-does-not-null-terminate-string
-+++ a/drivers/media/video/zoran/zoran_card.c
-@@ -1169,7 +1169,7 @@ zoran_setup_videocodec (struct zoran *zr
- 	m->type = 0;
- 
- 	m->flags = CODEC_FLAG_ENCODER | CODEC_FLAG_DECODER;
--	strncpy(m->name, ZR_DEVNAME(zr), sizeof(m->name));
-+	strlcpy(m->name, ZR_DEVNAME(zr), sizeof(m->name));
- 	m->data = zr;
- 
- 	switch (type)
+ enum cx88_itype {
+ 	CX88_VMUX_COMPOSITE1 = 1,
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from vlasta.labsky@gmail.com are
 
-origin.patch
 linux-next.patch
-s3c-fix-check-of-index-into-s3c_gpios.patch
-stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
-dm-strncpy-does-not-null-terminate-string.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-powerpc-avoid-calculating-possibly-invalid-address.patch
-drm-i915-intel_sdvo_multifunc_encoder-sdvo_output_svid0-tested-twice.patch
-mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
-slram-read-buffer-overflow.patch
-mtd-fix-read-buffer-overflow.patch
-hfc_usb-fix-read-buffer-overflow.patch
-zorro8390-fix-read-buffer-overflow-in-zorro8390_init_one-checkpatch-fixes.patch
-cyclades-read-buffer-overflow.patch
-serial167-fix-read-buffer-overflow.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-blackfin-fix-read-buffer-overflow.patch
-arch-alpha-boot-tools-objstripc-wrong-variable-tested-after-open.patch
-m32r-remove-redundant-tests-on-unsigned.patch
-m68k-count-can-reach-51-not-50.patch
-m68k-cnt-reaches-1-not-0.patch
-dme1737-keep-index-within-pwm_config.patch
-ncpfs-read-buffer-overflow.patch
-smbfs-read-buffer-overflow.patch
-platinumfb-misplaced-parenthesis.patch
-sisfb-read-buffer-overflow.patch
-drivers-video-console-newport_conc-fix-read-outside-array-bounds.patch
-mwave-fix-read-buffer-overflow.patch
-adfs-remove-redundant-test-on-unsigned.patch
 
