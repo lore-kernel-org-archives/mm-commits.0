@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-proc-task_mmuc-v1-fix-clear_refs_write-input-sanity-check.patch added to -mm tree
-Date: Thu, 13 Aug 2009 15:57:28 -0700
-Message-ID: <200908132257.n7DMvSpk002067@imap1.linux-foundation.org>
+Subject: + tty-fix-regression-caused-by-tty-make-the-kref-destructor-occur-asynchronously.patch added to -mm tree
+Date: Thu, 13 Aug 2009 16:43:01 -0700
+Message-ID: <200908132343.n7DNh14l016736@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56167 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46619 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753226AbZHMW6g (ORCPT
+	by vger.kernel.org with ESMTP id S1754077AbZHMXnW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Aug 2009 18:58:36 -0400
+	Thu, 13 Aug 2009 19:43:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: macli@brc.ubc.ca, mpm@selenic.com, rientjes@google.com, xiyou.wangcong@gmail.com
+Cc: hidave.darkstar@gmail.com, alan@linux.intel.com, alan@lxorguk.ukuu.org.uk, greg@kroah.com, rjw@sisk.pl
 
 
 The patch titled
-     fs/proc/task_mmu.c v1: fix clear_refs_write() input sanity check
+     tty: fix regression caused by "tty: make the kref destructor occur asynchronously"
 has been added to the -mm tree.  Its filename is
-     fs-proc-task_mmuc-v1-fix-clear_refs_write-input-sanity-check.patch
+     tty-fix-regression-caused-by-tty-make-the-kref-destructor-occur-asynchronously.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,77 +34,70 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/proc/task_mmu.c v1: fix clear_refs_write() input sanity check
-From: Vincent Li <macli@brc.ubc.ca>
+Subject: tty: fix regression caused by "tty: make the kref destructor occur asynchronously"
+From: Dave Young <hidave.darkstar@gmail.com>
 
-Andrew Morton pointed out similar string hacking and obfuscated check for
-zero-length input at the end of the function, David Rientjes suggested to
-use strict_strtol to replace simple_strtol, this patch cover above
-suggestions, add removing of leading and trailing whitespace from user
-input.  It does not change function behavious.
+Repair
 
-Signed-off-by: Vincent Li <macli@brc.ubc.ca>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Amerigo Wang <xiyou.wangcong@gmail.com>
+    commit d966976924119acd35a431adbb95292082f73f8c
+    Author: Alan Cox <alan@linux.intel.com>
+    Date:   Tue Aug 11 10:23:05 2009 +1000
+
+        tty: make the kref destructor occur asynchronously
+
+Due to tty release routines runs in workqueue now, error like following
+will be reported while booting:
+
+INIT open /dev/console input/output error
+
+Opening a tty while closing not finished is what cause such problem.
+
+Fix it by flush hangup_work in such case and then call tty_init_dev.
+
+Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+ drivers/char/tty_io.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~fs-proc-task_mmuc-v1-fix-clear_refs_write-input-sanity-check fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~fs-proc-task_mmuc-v1-fix-clear_refs_write-input-sanity-check
-+++ a/fs/proc/task_mmu.c
-@@ -473,21 +473,20 @@ static ssize_t clear_refs_write(struct f
- 				size_t count, loff_t *ppos)
- {
- 	struct task_struct *task;
--	char buffer[PROC_NUMBUF], *end;
-+	char buffer[PROC_NUMBUF];
- 	struct mm_struct *mm;
- 	struct vm_area_struct *vma;
--	int type;
-+	long type;
- 
- 	memset(buffer, 0, sizeof(buffer));
- 	if (count > sizeof(buffer) - 1)
- 		count = sizeof(buffer) - 1;
- 	if (copy_from_user(buffer, buf, count))
- 		return -EFAULT;
--	type = simple_strtol(buffer, &end, 0);
-+	if (strict_strtol(strstrip(buffer), 10, &type))
-+		return -EINVAL;
- 	if (type < CLEAR_REFS_ALL || type > CLEAR_REFS_MAPPED)
- 		return -EINVAL;
--	if (*end == '\n')
--		end++;
- 	task = get_proc_task(file->f_path.dentry->d_inode);
- 	if (!task)
- 		return -ESRCH;
-@@ -523,9 +522,8 @@ static ssize_t clear_refs_write(struct f
- 		mmput(mm);
+diff -puN drivers/char/tty_io.c~tty-fix-regression-caused-by-tty-make-the-kref-destructor-occur-asynchronously drivers/char/tty_io.c
+--- a/drivers/char/tty_io.c~tty-fix-regression-caused-by-tty-make-the-kref-destructor-occur-asynchronously
++++ a/drivers/char/tty_io.c
+@@ -1771,9 +1771,14 @@ got_driver:
  	}
- 	put_task_struct(task);
--	if (end - buffer == 0)
--		return -EIO;
--	return end - buffer;
-+
-+	return count;
- }
  
- const struct file_operations proc_clear_refs_operations = {
+ 	if (tty) {
+-		retval = tty_reopen(tty);
+-		if (retval)
+-			tty = ERR_PTR(retval);
++		if (test_bit(TTY_CLOSING, &tty->flags)) {
++			flush_work(&tty->hangup_work);
++			tty = tty_init_dev(driver, index, 0);
++		} else {
++			retval = tty_reopen(tty);
++			if (retval)
++				tty = ERR_PTR(retval);
++		}
+ 	} else
+ 		tty = tty_init_dev(driver, index, 0);
+ 
 _
 
-Patches currently in -mm which might be from macli@brc.ubc.ca are
+Patches currently in -mm which might be from hidave.darkstar@gmail.com are
 
-mm-count-only-reclaimable-lru-pages-v2.patch
-tracing-page-allocator-add-trace-events-for-page-allocation-and-page-freeing.patch
-tracing-page-allocator-add-trace-events-for-anti-fragmentation-falling-back-to-other-migratetypes.patch
-tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists.patch
-tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists-fix.patch
-tracing-page-allocator-add-a-postprocessing-script-for-page-allocator-related-ftrace-events.patch
-tracing-documentation-add-a-document-describing-how-to-do-some-performance-analysis-with-tracepoints.patch
-tracing-documentation-add-a-document-on-the-kmem-tracepoints.patch
-fs-proc-task_mmuc-v1-fix-clear_refs_write-input-sanity-check.patch
+origin.patch
+linux-next.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+tty-fix-regression-caused-by-tty-make-the-kref-destructor-occur-asynchronously.patch
+printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec.patch
+printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
+printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix-2.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
+pc-fs-char_devc-remove-useless-loop-fix.patch
 
