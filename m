@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + frv-convert-to-asm-generic-hardirqh.patch added to -mm tree
-Date: Wed, 12 Aug 2009 17:17:23 -0700
-Message-ID: <200908130017.n7D0HNu4029965@imap1.linux-foundation.org>
+Subject: + h8300-convert-to-asm-generic-hardirqh.patch added to -mm tree
+Date: Wed, 12 Aug 2009 17:17:25 -0700
+Message-ID: <200908130017.n7D0HPOX030073@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51149 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34485 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751004AbZHMARs (ORCPT
+	by vger.kernel.org with ESMTP id S1751004AbZHMARv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Aug 2009 20:17:48 -0400
+	Wed, 12 Aug 2009 20:17:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hch@lst.de, dhowells@redhat.com
+Cc: hch@lst.de, ysato@users.sourceforge.jp
 
 
 The patch titled
-     frv: convert to asm-generic/hardirq.h
+     h8300: convert to asm-generic/hardirq.h
 has been added to the -mm tree.  Its filename is
-     frv-convert-to-asm-generic-hardirqh.patch
+     h8300-convert-to-asm-generic-hardirqh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,63 +34,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: frv: convert to asm-generic/hardirq.h
+Subject: h8300: convert to asm-generic/hardirq.h
 From: Christoph Hellwig <hch@lst.de>
 
-And also remove the unused idle_timestamp field in irq_cpustat.
-
 Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: David Howells <dhowells@redhat.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/include/asm/hardirq.h |   17 +++--------------
- arch/frv/kernel/process.c      |    2 --
- 2 files changed, 3 insertions(+), 16 deletions(-)
+ arch/h8300/include/asm/hardirq.h |   15 +++------------
+ arch/h8300/kernel/irq.c          |    5 -----
+ 2 files changed, 3 insertions(+), 17 deletions(-)
 
-diff -puN arch/frv/include/asm/hardirq.h~frv-convert-to-asm-generic-hardirqh arch/frv/include/asm/hardirq.h
---- a/arch/frv/include/asm/hardirq.h~frv-convert-to-asm-generic-hardirqh
-+++ a/arch/frv/include/asm/hardirq.h
-@@ -12,24 +12,13 @@
- #ifndef __ASM_HARDIRQ_H
- #define __ASM_HARDIRQ_H
+diff -puN arch/h8300/include/asm/hardirq.h~h8300-convert-to-asm-generic-hardirqh arch/h8300/include/asm/hardirq.h
+--- a/arch/h8300/include/asm/hardirq.h~h8300-convert-to-asm-generic-hardirqh
++++ a/arch/h8300/include/asm/hardirq.h
+@@ -1,18 +1,7 @@
+ #ifndef __H8300_HARDIRQ_H
+ #define __H8300_HARDIRQ_H
  
+-#include <linux/kernel.h>
 -#include <linux/threads.h>
+-#include <linux/interrupt.h>
 -#include <linux/irq.h>
 -
 -typedef struct {
 -	unsigned int __softirq_pending;
--	unsigned long idle_timestamp;
 -} ____cacheline_aligned irq_cpustat_t;
 -
 -#include <linux/irq_cpustat.h>	/* Standard mappings for irq_cpustat_t above */
 -
--#ifdef CONFIG_SMP
--#error SMP not available on FR-V
--#endif /* CONFIG_SMP */
--
- extern atomic_t irq_err_count;
- static inline void ack_bad_irq(int irq)
- {
- 	atomic_inc(&irq_err_count);
- }
-+#define ack_bad_irq ack_bad_irq
-+
-+#include <asm-generic/hardirq.h>
+-extern void ack_bad_irq(unsigned int irq);
++#include <asm/irq.h>
  
+ #define HARDIRQ_BITS	8
+ 
+@@ -25,4 +14,6 @@ extern void ack_bad_irq(unsigned int irq
+ # error HARDIRQ_BITS is too low!
  #endif
-diff -puN arch/frv/kernel/process.c~frv-convert-to-asm-generic-hardirqh arch/frv/kernel/process.c
---- a/arch/frv/kernel/process.c~frv-convert-to-asm-generic-hardirqh
-+++ a/arch/frv/kernel/process.c
-@@ -88,8 +88,6 @@ void cpu_idle(void)
- 	/* endless idle loop with no priority at all */
- 	while (1) {
- 		while (!need_resched()) {
--			irq_stat[cpu].idle_timestamp = jiffies;
--
- 			check_pgt_cache();
  
- 			if (!frv_dma_inprogress && idle)
++#include <asm-generic/hardirq.h>
++
+ #endif
+diff -puN arch/h8300/kernel/irq.c~h8300-convert-to-asm-generic-hardirqh arch/h8300/kernel/irq.c
+--- a/arch/h8300/kernel/irq.c~h8300-convert-to-asm-generic-hardirqh
++++ a/arch/h8300/kernel/irq.c
+@@ -81,11 +81,6 @@ struct irq_chip h8300irq_chip = {
+ 	.end		= h8300_end_irq,
+ };
+ 
+-void ack_bad_irq(unsigned int irq)
+-{
+-	printk("unexpected IRQ trap at vector %02x\n", irq);
+-}
+-
+ #if defined(CONFIG_RAMKERNEL)
+ static unsigned long __init *get_vector_address(void)
+ {
 _
 
 Patches currently in -mm which might be from hch@lst.de are
