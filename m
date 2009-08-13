@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + acerhdf-convert-to-dev_pm_ops.patch added to -mm tree
-Date: Thu, 13 Aug 2009 13:59:52 -0700
-Message-ID: <200908132059.n7DKxq7W024618@imap1.linux-foundation.org>
+Subject: + acerhdf-additional-bios-versions.patch added to -mm tree
+Date: Thu, 13 Aug 2009 13:59:55 -0700
+Message-ID: <200908132059.n7DKxt9F024706@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39464 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39854 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755062AbZHMVB5 (ORCPT
+	by vger.kernel.org with ESMTP id S1755068AbZHMVCB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Aug 2009 17:01:57 -0400
+	Thu, 13 Aug 2009 17:02:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: petkovbb@gmail.com, andi@lisas.de, dtor@mail.ru, lenb@kernel.org, peter@piie.net
+Cc: peter@piie.net, andi@lisas.de, lenb@kernel.org, petkovbb@googlemail.com
 
 
 The patch titled
-     acerhdf: convert to dev_pm_ops
+     acerhdf: additional BIOS versions
 has been added to the -mm tree.  Its filename is
-     acerhdf-convert-to-dev_pm_ops.patch
+     acerhdf-additional-bios-versions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,83 +34,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acerhdf: convert to dev_pm_ops
-From: Borislav Petkov <petkovbb@gmail.com>
+Subject: acerhdf: additional BIOS versions
+From: Peter Feuerer <peter@piie.net>
 
-Signed-off-by: Borislav Petkov <petkovbb@gmail.com>
+Added BIOS versions:
+Acer: AOA110-v0.3307, AOA150-v0.3301, AOA150-v0.3307
+Packard Bell: AOA150-v0.3105
+
 Signed-off-by: Peter Feuerer <peter@piie.net>
 Cc: Andreas Mohr <andi@lisas.de>
+Cc: Borislav Petkov <petkovbb@googlemail.com>
 Cc: Len Brown <lenb@kernel.org>
-Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/acerhdf.c |   22 +++++++++-------------
- 1 file changed, 9 insertions(+), 13 deletions(-)
+ drivers/platform/x86/acerhdf.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN drivers/platform/x86/acerhdf.c~acerhdf-convert-to-dev_pm_ops drivers/platform/x86/acerhdf.c
---- a/drivers/platform/x86/acerhdf.c~acerhdf-convert-to-dev_pm_ops
+diff -puN drivers/platform/x86/acerhdf.c~acerhdf-additional-bios-versions drivers/platform/x86/acerhdf.c
+--- a/drivers/platform/x86/acerhdf.c~acerhdf-additional-bios-versions
 +++ a/drivers/platform/x86/acerhdf.c
-@@ -52,7 +52,7 @@
-  */
- #undef START_IN_KERNEL_MODE
- 
--#define DRV_VER "0.5.16"
-+#define DRV_VER "0.5.17"
- 
- /*
-  * According to the Atom N270 datasheet,
-@@ -435,7 +435,7 @@ struct thermal_cooling_device_ops acerhd
+@@ -139,13 +139,16 @@ static const struct bios_settings_t bios
+ 	{"Acer", "AOA110", "v0.3301", 0x55, 0x58, {0xaf, 0x00} },
+ 	{"Acer", "AOA110", "v0.3304", 0x55, 0x58, {0xaf, 0x00} },
+ 	{"Acer", "AOA110", "v0.3305", 0x55, 0x58, {0xaf, 0x00} },
++	{"Acer", "AOA110", "v0.3307", 0x55, 0x58, {0xaf, 0x00} },
+ 	{"Acer", "AOA110", "v0.3308", 0x55, 0x58, {0x21, 0x00} },
+ 	{"Acer", "AOA110", "v0.3309", 0x55, 0x58, {0x21, 0x00} },
+ 	{"Acer", "AOA110", "v0.3310", 0x55, 0x58, {0x21, 0x00} },
+ 	/* AOA150 */
+ 	{"Acer", "AOA150", "v0.3114", 0x55, 0x58, {0x20, 0x00} },
++	{"Acer", "AOA150", "v0.3301", 0x55, 0x58, {0x20, 0x00} },
+ 	{"Acer", "AOA150", "v0.3304", 0x55, 0x58, {0x20, 0x00} },
+ 	{"Acer", "AOA150", "v0.3305", 0x55, 0x58, {0x20, 0x00} },
++	{"Acer", "AOA150", "v0.3307", 0x55, 0x58, {0x20, 0x00} },
+ 	{"Acer", "AOA150", "v0.3308", 0x55, 0x58, {0x20, 0x00} },
+ 	{"Acer", "AOA150", "v0.3309", 0x55, 0x58, {0x20, 0x00} },
+ 	{"Acer", "AOA150", "v0.3310", 0x55, 0x58, {0x20, 0x00} },
+@@ -154,6 +157,7 @@ static const struct bios_settings_t bios
+ 	{"Gateway", "AOA150", "v0.3103", 0x55, 0x58, {0x20, 0x00} },
+ 	{"Packard Bell", "DOA150", "v0.3104", 0x55, 0x58, {0x21, 0x00} },
+ 	{"Packard Bell", "AOA110", "v0.3105", 0x55, 0x58, {0x21, 0x00} },
++	{"Packard Bell", "AOA150", "v0.3105", 0x55, 0x58, {0x20, 0x00} },
+ 	/* pewpew-terminator */
+ 	{"", "", "", 0, 0, {0, 0} }
  };
- 
- /* suspend / resume functionality */
--static int acerhdf_suspend(struct platform_device *dev, pm_message_t state)
-+static int acerhdf_suspend(struct device *dev)
- {
- 	if (kernelmode)
- 		acerhdf_change_fanstate(ACERHDF_FAN_AUTO);
-@@ -446,14 +446,6 @@ static int acerhdf_suspend(struct platfo
- 	return 0;
- }
- 
--static int acerhdf_resume(struct platform_device *device)
--{
--	if (verbose)
--		pr_notice("resuming\n");
--
--	return 0;
--}
--
- static int __devinit acerhdf_probe(struct platform_device *device)
- {
- 	return 0;
-@@ -464,15 +456,19 @@ static int acerhdf_remove(struct platfor
- 	return 0;
- }
- 
-+static struct dev_pm_ops acerhdf_pm_ops = {
-+	.suspend = acerhdf_suspend,
-+	.freeze  = acerhdf_suspend,
-+};
-+
- static struct platform_driver acerhdf_driver = {
- 	.driver = {
--		.name = "acerhdf",
-+		.name  = "acerhdf",
- 		.owner = THIS_MODULE,
-+		.pm    = &acerhdf_pm_ops,
- 	},
- 	.probe = acerhdf_probe,
- 	.remove = acerhdf_remove,
--	.suspend = acerhdf_suspend,
--	.resume = acerhdf_resume,
- };
- 
- 
 _
 
-Patches currently in -mm which might be from petkovbb@gmail.com are
+Patches currently in -mm which might be from peter@piie.net are
 
-linux-next.patch
+acerhdf-fix-fan-control-for-aoa150-model.patch
 acerhdf-convert-to-dev_pm_ops.patch
+acerhdf-additional-bios-versions.patch
 
