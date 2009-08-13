@@ -1,49 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] oom-oom_kill-doesnt-kill-vfork-parentor-child.patch removed from -mm tree
-Date: Wed, 12 Aug 2009 17:05:07 -0700
-Message-ID: <200908130005.n7D0578g008713@imap1.linux-foundation.org>
+Subject: [alternative-merged] oom-fix-oom_adjust_write-input-sanity-check.patch removed from -mm tree
+Date: Wed, 12 Aug 2009 17:05:23 -0700
+Message-ID: <200908130005.n7D05NLn009155@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58683 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59615 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750897AbZHMAF3 (ORCPT
+	by vger.kernel.org with ESMTP id S1750866AbZHMAFn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Aug 2009 20:05:29 -0400
+	Wed, 12 Aug 2009 20:05:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     oom: oom_kill doesn't kill vfork parent(or child)
+     oom: fix oom_adjust_write() input sanity check
 has been removed from the -mm tree.  Its filename was
-     oom-oom_kill-doesnt-kill-vfork-parentor-child.patch
+     oom-fix-oom_adjust_write-input-sanity-check.patch
 
 This patch was dropped because an alternative patch was merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: oom_kill doesn't kill vfork parent(or child)
+Subject: oom: fix oom_adjust_write() input sanity check
 
 
-Current oom_kill doesn't only kill victim process, but also kill mm shread
-task.  it mean vfork parent will be killed.
-
-but, That's bogus.  another process have another oom_adj.  we shouldn't
-ignore their oom_adj (it might have OOM_DISABLE).
-
-following caller hit the minefield.
-
----------------------------------------
-        switch (constraint) {
-        case CONSTRAINT_MEMORY_POLICY:
-                oom_kill_process(current, gfp_mask, order, 0, NULL,
-                                "No available memory (MPOL_BIND)");
-                break;
-
-Note: force_sig(SIGKILL) send SIGKILL to all thread in the process.
-We don't need to care multi thread in here.
+Andrew Morton pointed out oom_adjust_write() has very strange EIO and new
+line handling.  this patch fixes it.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Paul Menage <menage@google.com>
@@ -53,36 +38,42 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   12 ------------
- 1 file changed, 12 deletions(-)
+ fs/proc/base.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-diff -puN mm/oom_kill.c~oom-oom_kill-doesnt-kill-vfork-parentor-child mm/oom_kill.c
---- a/mm/oom_kill.c~oom-oom_kill-doesnt-kill-vfork-parentor-child
-+++ a/mm/oom_kill.c
-@@ -399,23 +399,11 @@ static void __oom_kill_task(struct task_
- 
- static int oom_kill_task(struct task_struct *p)
- {
--	struct task_struct *g, *q;
--
- 	if (get_oom_adj(p) == OOM_DISABLE)
- 		return 1;
- 
- 	__oom_kill_task(p, 1);
- 
--	/*
--	 * kill all processes that share the ->mm (i.e. all threads),
--	 * but are in a different thread group. Don't let them have access
--	 * to memory reserves though, otherwise we might deplete all memory.
--	 */
--	do_each_thread(g, q) {
--		if (q->mm == p->mm && !same_thread_group(q, p))
--			force_sig(SIGKILL, q);
--	} while_each_thread(g, q);
--
- 	return 0;
+diff -puN fs/proc/base.c~oom-fix-oom_adjust_write-input-sanity-check fs/proc/base.c
+--- a/fs/proc/base.c~oom-fix-oom_adjust_write-input-sanity-check
++++ a/fs/proc/base.c
+@@ -1032,12 +1032,15 @@ static ssize_t oom_adjust_write(struct f
+ 		count = sizeof(buffer) - 1;
+ 	if (copy_from_user(buffer, buf, count))
+ 		return -EFAULT;
++
++	strstrip(buffer);
+ 	oom_adjust = simple_strtol(buffer, &end, 0);
++	if (*end)
++		return -EINVAL;
+ 	if ((oom_adjust < OOM_ADJUST_MIN || oom_adjust > OOM_ADJUST_MAX) &&
+ 	     oom_adjust != OOM_DISABLE)
+ 		return -EINVAL;
+-	if (*end == '\n')
+-		end++;
++
+ 	task = get_proc_task(file->f_path.dentry->d_inode);
+ 	if (!task)
+ 		return -ESRCH;
+@@ -1056,9 +1059,8 @@ static ssize_t oom_adjust_write(struct f
+ 	task->signal->oom_adj = oom_adjust;
+ 	unlock_task_sighand(task, &flags);
+ 	put_task_struct(task);
+-	if (end - buffer == 0)
+-		return -EIO;
+-	return end - buffer;
++
++	return count;
  }
  
+ static const struct file_operations proc_oom_adjust_operations = {
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
@@ -111,7 +102,6 @@ vmscan-move-clearpageactive-from-move_active_pages-to-shrink_active_list.patch
 vmscan-kill-unnecessary-page-flag-test.patch
 vmscan-kill-unnecessary-prefetch.patch
 mm-perform-non-atomic-test-clear-of-pg_mlocked-on-free.patch
-oom-oom_kill-doesnt-kill-vfork-parentor-child.patch
 oom-fix-oom_adjust_write-input-sanity-check.patch
 oom-fix-oom_adjust_write-input-sanity-check-fix.patch
 tracing-page-allocator-add-trace-events-for-page-allocation-and-page-freeing.patch
