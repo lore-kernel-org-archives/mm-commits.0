@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-get_maintainerpl-add-sections-in-pattern-match-depth-order.patch added to -mm tree
-Date: Thu, 13 Aug 2009 14:49:06 -0700
-Message-ID: <200908132149.n7DLn7g9012700@imap1.linux-foundation.org>
+Subject: + scripts-get_maintainerpl-add-mailmap-use-shell-and-email-cleanups.patch added to -mm tree
+Date: Thu, 13 Aug 2009 14:49:15 -0700
+Message-ID: <200908132149.n7DLnF6S012902@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42557 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37428 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751566AbZHMVuN (ORCPT
+	by vger.kernel.org with ESMTP id S1753567AbZHMVuP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Aug 2009 17:50:13 -0400
+	Thu, 13 Aug 2009 17:50:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, James.Bottomley@HansenPartnership.com, zaga@fly.cc.fer.hr
+Cc: joe@perches.com
 
 
 The patch titled
-     scripts/get_maintainer.pl: add sections in pattern match depth order
+     scripts/get_maintainer.pl: add .mailmap use, shell and email cleanups
 has been added to the -mm tree.  Its filename is
-     scripts-get_maintainerpl-add-sections-in-pattern-match-depth-order.patch
+     scripts-get_maintainerpl-add-mailmap-use-shell-and-email-cleanups.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,83 +34,151 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts/get_maintainer.pl: add sections in pattern match depth order
+Subject: scripts/get_maintainer.pl: add .mailmap use, shell and email cleanups
 From: Joe Perches <joe@perches.com>
 
-Before this change, matched sections were added in the order
-of appearance in the normally alphabetic section order of
-the MAINTAINERS file.
-
-For instance, finding the maintainer for drivers/scsi/wd7000.c
-would first find "SCSI SUBSYSTEM", then "WD7000 SCSI SUBSYSTEM",
-then "THE REST".
-
-before patch:
-
-$ ./scripts/get_maintainer.pl --nogit -f drivers/scsi/wd7000.c
-James E.J. Bottomley <James.Bottomley@HansenPartnership.com>
-Miroslav Zagorac <zaga@fly.cc.fer.hr>
-linux-scsi@vger.kernel.org
-linux-kernel@vger.kernel.org
-
-get_maintainer.pl now selects matched sections by longest pattern match.
-Longest is the number of "/"s and any specific file pattern.
-
-This changes the example output order of MAINTAINERS to whatever is
-selected in "WD7000 SUBSYSTEM", then "SCSI SYSTEM", then "THE REST".
-
-after patch:
-
-$ ./scripts/get_maintainer.pl --nogit -f drivers/scsi/wd7000.c
-Miroslav Zagorac <zaga@fly.cc.fer.hr>
-James E.J. Bottomley <James.Bottomley@HansenPartnership.com>
-linux-scsi@vger.kernel.org
-linux-kernel@vger.kernel.org
+Add reading and using .mailmap file if it exists
+Convert address entries in .mailmap to first encountered address
+Don't terminate shell commands with \n
+Strip characters found after sign-offs by: name <address> [stripped]
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ scripts/get_maintainer.pl |   72 ++++++++++++++++++++++++++++++++----
+ 1 file changed, 65 insertions(+), 7 deletions(-)
 
-diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-add-sections-in-pattern-match-depth-order scripts/get_maintainer.pl
---- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-add-sections-in-pattern-match-depth-order
+diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-add-mailmap-use-shell-and-email-cleanups scripts/get_maintainer.pl
+--- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-add-mailmap-use-shell-and-email-cleanups
 +++ a/scripts/get_maintainer.pl
-@@ -211,6 +211,7 @@ foreach my $file (@files) {
- 	    if ($type eq 'X') {
- 		if (file_match_pattern($file, $value)) {
- 		    $exclude = 1;
-+		    last;
- 		}
- 	    }
- 	}
-@@ -218,18 +219,24 @@ foreach my $file (@files) {
+@@ -152,6 +152,36 @@ while (<MAINT>) {
+ }
+ close(MAINT);
  
-     if (!$exclude) {
- 	my $tvi = 0;
-+	my %hash;
- 	foreach my $line (@typevalue) {
- 	    if ($line =~ m/^(\C):\s*(.*)/) {
- 		my $type = $1;
- 		my $value = $2;
- 		if ($type eq 'F') {
- 		    if (file_match_pattern($file, $value)) {
--			add_categories($tvi);
-+			my $pattern_depth = ($value =~ tr@/@@);
-+			$pattern_depth++ if (!(substr($value,-1,1) eq "/"));
-+			$hash{$tvi} = $pattern_depth;
- 		    }
- 		}
- 	    }
- 	    $tvi++;
- 	}
-+	foreach my $line (sort {$hash{$b} <=> $hash{$a}} keys %hash) {
-+	    add_categories($line);
-+	}
++my %mailmap;
++
++open(MAILMAP, "<${lk_path}.mailmap") || warn "$P: Can't open .mailmap\n";
++while (<MAILMAP>) {
++    my $line = $_;
++
++    next if ($line =~ m/^\s*#/);
++    next if ($line =~ m/^\s*$/);
++
++    my ($name, $address) = parse_email($line);
++    $line = format_email($name, $address);
++
++    next if ($line =~ m/^\s*$/);
++
++    if (exists($mailmap{$name})) {
++	my $obj = $mailmap{$name};
++	push(@$obj, $address);
++    } else {
++	my @arr = ($address);
++	$mailmap{$name} = \@arr;
++    }
++}
++close(MAILMAP);
++
++foreach my $name (sort {$mailmap{$a} <=> $mailmap{$b}} keys %mailmap) {
++    my $obj = $mailmap{$name};
++    foreach my $address (@$obj) {
++    }
++}
++
+ ## use the filenames on the command line or find the filenames in the patchfiles
+ 
+ my @files = ();
+@@ -403,12 +433,12 @@ sub parse_email {
+     my $name = "";
+     my $address = "";
+ 
+-    if ($formatted_email =~ /^([^<]+)<(.*\@.*)>$/) {
++    if ($formatted_email =~ /^([^<]+)<(.*\@.*)>.*$/) {
+ 	$name = $1;
+ 	$address = $2;
+-    } elsif ($formatted_email =~ /^<(.*\@.*)>$/) {
++    } elsif ($formatted_email =~ /^\s*<(.*\@.*)>.*$/) {
+ 	$address = $1;
+-    } elsif ($formatted_email =~ /^(.*\@.*)$/) {
++    } elsif ($formatted_email =~ /^\s*(.*\@.*)$/) {
+ 	$address = $1;
      }
  
-     if ($email && $email_git) {
+@@ -557,6 +587,29 @@ sub which {
+     return "";
+ }
+ 
++sub mailmap {
++    my @lines = @_;
++    my %hash;
++
++    foreach my $line (@lines) {
++	my ($name, $address) = parse_email($line);
++	if (!exists($hash{$name})) {
++	    $hash{$name} = $address;
++	}
++	if (exists($mailmap{$name})) {
++	    my $obj = $mailmap{$name};
++	    foreach my $map_address (@$obj) {
++		if (($map_address eq $address) &&
++		    ($map_address ne $hash{$name})) {
++		    $line = format_email($name, $hash{$name});
++		}
++	    }
++	}
++    }
++
++    return @lines;
++}
++
+ sub recent_git_signoffs {
+     my ($file) = @_;
+ 
+@@ -592,9 +645,10 @@ sub recent_git_signoffs {
+     # cut -f2- -d":"
+     s/.*:\s*(.+)\s*/$1/ for (@lines);
+ 
++    $total_sign_offs = @lines;
++
+     @lines = mailmap(@lines);
+ 
+-    $total_sign_offs = @lines;
+     @lines = sort(@lines);
+     # uniq -c
+     foreach my $line (@lines) {
+@@ -655,12 +709,12 @@ sub git_assign_blame {
+ 	    my $diff_start = $2;
+ 	    my $diff_length = $3;
+ 	    next if (!("$file" eq "$diff_file"));
+-	    $cmd = "git blame -l -L $diff_start,+$diff_length $file\n";
++	    $cmd = "git blame -l -L $diff_start,+$diff_length $file";
+ 	    @commits = save_commits($cmd, @commits);
+ 	}
+     } else {
+ 	if (-f $file) {
+-	    $cmd = "git blame -l $file\n";
++	    $cmd = "git blame -l $file";
+ 	    @commits = save_commits($cmd, @commits);
+ 	}
+     }
+@@ -678,11 +732,15 @@ sub git_assign_blame {
+ 	if (!$email_git_penguin_chiefs) {
+ 	    @lines = grep(!/${penguin_chiefs}/i, @lines);
+ 	}
++
+ 	# cut -f2- -d":"
+ 	s/.*:\s*(.+)\s*/$1/ for (@lines);
+ 
+-	$hash{$_}++ for @lines;
+ 	$total_sign_offs += @lines;
++
++	@lines = mailmap(@lines);
++
++	$hash{$_}++ for @lines;
+     }
+ 
+     $count = 0;
 _
 
 Patches currently in -mm which might be from joe@perches.com are
