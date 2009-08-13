@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-get_maintainerpl-add-remove-duplicates.patch added to -mm tree
-Date: Thu, 13 Aug 2009 14:49:19 -0700
-Message-ID: <200908132149.n7DLnKgm013131@imap1.linux-foundation.org>
+Subject: + scripts-get_maintainerpl-add-pattern-depth.patch added to -mm tree
+Date: Thu, 13 Aug 2009 14:49:10 -0700
+Message-ID: <200908132149.n7DLnAxt012831@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41476 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58004 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753412AbZHMV7s (ORCPT
+	by vger.kernel.org with ESMTP id S1752716AbZHMV7r (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Aug 2009 17:59:48 -0400
+	Thu, 13 Aug 2009 17:59:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, adobriyan@gmail.com, alan@linux.intel.com, alan@lxorguk.ukuu.org.uk, alan@redhat.com, gregkh@suse.de, vapier@gentoo.org
+Cc: joe@perches.com, davem@davemloft.net, horms@verge.net.au, ja@ssi.bg, kaber@trash.net, torvalds@linux-foundation.org, wensong@linux-vs.org
 
 
 The patch titled
-     scripts/get_maintainer.pl: add --remove-duplicates
+     scripts/get_maintainer.pl: add --pattern-depth
 has been added to the -mm tree.  Its filename is
-     scripts-get_maintainerpl-add-remove-duplicates.patch
+     scripts-get_maintainerpl-add-pattern-depth.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,248 +34,138 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts/get_maintainer.pl: add --remove-duplicates
+Subject: scripts/get_maintainer.pl: add --pattern-depth
 From: Joe Perches <joe@perches.com>
 
-Allow control over the elimination of duplicate email names and addresses
-
---remove-duplicates will use the first email name or address presented
---noremove-duplicates will emit all names and addresses
-
---remove-duplicates is enabled by default
+--pattern-depth is used to control how many levels of directory traversal
+should be performed to find maintainers.  default is 0 (all directory levels).
 
 For instance:
 
-$ ./scripts/get_maintainer.pl -f drivers/char/tty_ioctl.c
-Greg Kroah-Hartman <gregkh@suse.de>
-Alan Cox <alan@linux.intel.com>
-Mike Frysinger <vapier@gentoo.org>
-Alexey Dobriyan <adobriyan@gmail.com>
-linux-kernel@vger.kernel.org
+MAINTAINERS currently has multiple M: and F: entries that match
+net/netfilter/ipvs/ip_vs_app.c
 
-$ ./scripts/get_maintainer.pl -f --noremove-duplicates drivers/char/tty_ioctl.c
-Greg Kroah-Hartman <gregkh@suse.de>
-Alan Cox <alan@redhat.com>
-Alan Cox <alan@linux.intel.com>
-Alan Cox <alan@lxorguk.ukuu.org.uk>
-Mike Frysinger <vapier@gentoo.org>
-Alexey Dobriyan <adobriyan@gmail.com>
-linux-kernel@vger.kernel.org
+IPVS
+M:	Wensong Zhang <wensong@linux-vs.org>
+M:	Simon Horman <horms@verge.net.au>
+M:	Julian Anastasov <ja@ssi.bg>
+[...]
+F:	net/netfilter/ipvs/
 
-Using --remove-duplicates could eliminate multiple maintainers that
-share the same name but not the same email address.
+NETFILTER/IPTABLES/IPCHAINS
+[...]
+M:	Patrick McHardy <kaber@trash.net>
+[...]
+F:	net/netfilter/
+
+NETWORKING [GENERAL]
+M:	"David S. Miller" <davem@davemloft.net>
+[...]
+F:	net/
+
+THE REST
+M:	Linus Torvalds <torvalds@linux-foundation.org>
+[...]
+F:	*/
+
+Using this command will return all of those maintainers:
+(except Linus unless --git-chief-maintainers is specified)
+
+$ ./scripts/get_maintainer.pl --nogit -nol \
+	-f net/netfilter/ipvs/ip_vs_app.c
+Julian Anastasov <ja@ssi.bg>
+Simon Horman <horms@verge.net.au>
+Wensong Zhang <wensong@linux-vs.org>
+Patrick McHardy <kaber@trash.net>
+David S. Miller <davem@davemloft.net>
+
+Adding --pattern-depth=1 will match at the deepest level
+$ ./scripts/get_maintainer.pl --nogit -nol --pattern-depth=1 \
+	-f net/netfilter/ipvs/ip_vs_app.c
+Julian Anastasov <ja@ssi.bg>
+Simon Horman <horms@verge.net.au>
+Wensong Zhang <wensong@linux-vs.org>
+
+Adding --pattern-depth=2 will match at the deepest level and 1 higher
+$ ./scripts/get_maintainer.pl --nogit -nol --pattern-depth=2 \
+	-f net/netfilter/ipvs/ip_vs_app.c
+Julian Anastasov <ja@ssi.bg>
+Simon Horman <horms@verge.net.au>
+Wensong Zhang <wensong@linux-vs.org>
+Patrick McHardy <kaber@trash.net>
+
+and so on.
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |  108 ++++++++++++++++++------------------
- 1 file changed, 55 insertions(+), 53 deletions(-)
+ scripts/get_maintainer.pl |   21 ++++++++++++++-------
+ 1 file changed, 14 insertions(+), 7 deletions(-)
 
-diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-add-remove-duplicates scripts/get_maintainer.pl
---- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-add-remove-duplicates
+diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-add-pattern-depth scripts/get_maintainer.pl
+--- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-add-pattern-depth
 +++ a/scripts/get_maintainer.pl
-@@ -30,6 +30,7 @@ my $email_git_max_maintainers = 5;
- my $email_git_min_percent = 5;
- my $email_git_since = "1-year-ago";
- my $email_git_blame = 0;
-+my $email_remove_duplicates = 1;
- my $output_multiline = 1;
- my $output_separator = ", ";
- my $scm = 0;
-@@ -71,6 +72,7 @@ if (!GetOptions(
- 		'git-min-percent=i' => \$email_git_min_percent,
- 		'git-since=s' => \$email_git_since,
- 		'git-blame!' => \$email_git_blame,
-+		'remove-duplicates!' => \$email_remove_duplicates,
- 		'm!' => \$email_maintainer,
- 		'n!' => \$email_usename,
- 		'l!' => \$email_list,
-@@ -158,32 +160,28 @@ close(MAINT);
+@@ -13,7 +13,7 @@
+ use strict;
  
- my %mailmap;
+ my $P = $0;
+-my $V = '0.18beta2';
++my $V = '0.19';
  
--open(MAILMAP, "<${lk_path}.mailmap") || warn "$P: Can't open .mailmap\n";
--while (<MAILMAP>) {
--    my $line = $_;
-+if ($email_remove_duplicates) {
-+    open(MAILMAP, "<${lk_path}.mailmap") || warn "$P: Can't open .mailmap\n";
-+    while (<MAILMAP>) {
-+	my $line = $_;
+ use Getopt::Long qw(:config no_auto_abbrev);
  
--    next if ($line =~ m/^\s*#/);
--    next if ($line =~ m/^\s*$/);
-+	next if ($line =~ m/^\s*#/);
-+	next if ($line =~ m/^\s*$/);
+@@ -37,6 +37,7 @@ my $web = 0;
+ my $subsystem = 0;
+ my $status = 0;
+ my $from_filename = 0;
++my $pattern_depth = 0;
+ my $version = 0;
+ my $help = 0;
  
--    my ($name, $address) = parse_email($line);
--    $line = format_email($name, $address);
-+	my ($name, $address) = parse_email($line);
-+	$line = format_email($name, $address);
+@@ -80,6 +81,7 @@ if (!GetOptions(
+ 		'status!' => \$status,
+ 		'scm!' => \$scm,
+ 		'web!' => \$web,
++		'pattern-depth=i' => \$pattern_depth,
+ 		'f|file' => \$from_filename,
+ 		'v|version' => \$version,
+ 		'h|help' => \$help,
+@@ -226,9 +228,13 @@ foreach my $file (@files) {
+ 		my $value = $2;
+ 		if ($type eq 'F') {
+ 		    if (file_match_pattern($file, $value)) {
+-			my $pattern_depth = ($value =~ tr@/@@);
+-			$pattern_depth++ if (!(substr($value,-1,1) eq "/"));
+-			$hash{$tvi} = $pattern_depth;
++			my $value_pd = ($value =~ tr@/@@);
++			my $file_pd = ($file  =~ tr@/@@);
++			$value_pd++ if (substr($value,-1,1) ne "/");
++			if ($pattern_depth == 0 ||
++			    (($file_pd - $value_pd) < $pattern_depth)) {
++			    $hash{$tvi} = $value_pd;
++			}
+ 		    }
+ 		}
+ 	    }
+@@ -345,13 +351,14 @@ Output type options:
+   --separator [, ] => separator for multiple entries on 1 line
+   --multiline => print 1 entry per line
  
--    next if ($line =~ m/^\s*$/);
-+	next if ($line =~ m/^\s*$/);
- 
--    if (exists($mailmap{$name})) {
--	my $obj = $mailmap{$name};
--	push(@$obj, $address);
--    } else {
--	my @arr = ($address);
--	$mailmap{$name} = \@arr;
--    }
--}
--close(MAILMAP);
+-Default options:
+-  [--email --git --m --n --l --multiline]
 -
--foreach my $name (sort {$mailmap{$a} <=> $mailmap{$b}} keys %mailmap) {
--    my $obj = $mailmap{$name};
--    foreach my $address (@$obj) {
-+	if (exists($mailmap{$name})) {
-+	    my $obj = $mailmap{$name};
-+	    push(@$obj, $address);
-+	} else {
-+	    my @arr = ($address);
-+	    $mailmap{$name} = \@arr;
-+	}
-     }
-+    close(MAILMAP);
- }
- 
- ## use the filenames on the command line or find the filenames in the patchfiles
-@@ -373,6 +371,7 @@ MAINTAINER field selection options:
-     --n => include name 'Full Name <addr\@domain.tld>'
-     --l => include list(s) if any
-     --s => include subscriber only list(s) if any
-+    --remove-duplicates => minimize duplicate email names/addresses
-   --scm => print SCM tree(s) if any
-   --status => print status if any
-   --subsystem => print subsystem name if any
-@@ -389,7 +388,7 @@ Other options:
+ Other options:
++  --pattern-depth => Number of pattern directory traversals (default: 0 (all))
+   --version => show version
    --help => show this help information
  
- Default options:
--  [--email --git --m --n --l --multiline --pattern-depth=0]
-+  [--email --git --m --n --l --multiline --pattern-depth=0 --remove-duplicates]
- 
++Default options:
++  [--email --git --m --n --l --multiline --pattern-depth=0]
++
  Notes:
    Using "-f directory" may give unexpected results:
-@@ -438,12 +437,12 @@ sub parse_email {
-     my $name = "";
-     my $address = "";
- 
--    if ($formatted_email =~ /^([^<]+)<(.*\@.*)>.*$/) {
-+    if ($formatted_email =~ /^([^<]+)<(.+\@.*)>.*$/) {
- 	$name = $1;
- 	$address = $2;
--    } elsif ($formatted_email =~ /^\s*<(.*\@.*)>.*$/) {
-+    } elsif ($formatted_email =~ /^\s*<(.+\@\S*)>.*$/) {
- 	$address = $1;
--    } elsif ($formatted_email =~ /^\s*(.*\@.*)$/) {
-+    } elsif ($formatted_email =~ /^(.+\@\S*)$/) {
- 	$address = $1;
-     }
- 
-@@ -542,14 +541,16 @@ sub add_categories {
-     }
- }
- 
--sub email_address_inuse {
--    my ($test_address) = @_;
-+my %email_hash_name;
-+my %email_hash_address;
- 
--    foreach my $line (@email_to) {
--	my ($name, $address) = parse_email($line);
-+sub email_inuse {
-+    my ($name, $address) = @_;
-+
-+    return 1 if (($name eq "") && ($address eq ""));
-+    return 1 if (($name ne "") && exists($email_hash_name{$name}));
-+    return 1 if (($address ne "") && exists($email_hash_address{$address}));
- 
--	return 1 if ($address eq $test_address);
--    }
-     return 0;
- }
- 
-@@ -558,8 +559,12 @@ sub push_email_address {
- 
-     my ($name, $address) = parse_email($line);
- 
--    if (!email_address_inuse($address)) {
-+    if (!$email_remove_duplicates) {
-+	push(@email_to, format_email($name, $address));
-+    } elsif (!email_inuse($name, $address)) {
- 	push(@email_to, format_email($name, $address));
-+	$email_hash_name{$name}++;
-+	$email_hash_address{$address}++;
-     }
- }
- 
-@@ -600,6 +605,9 @@ sub mailmap {
- 	my ($name, $address) = parse_email($line);
- 	if (!exists($hash{$name})) {
- 	    $hash{$name} = $address;
-+	} elsif ($address ne $hash{$name}) {
-+	    $address = $hash{$name};
-+	    $line = format_email($name, $address);
- 	}
- 	if (exists($mailmap{$name})) {
- 	    my $obj = $mailmap{$name};
-@@ -652,31 +660,23 @@ sub recent_git_signoffs {
- 
-     $total_sign_offs = @lines;
- 
--    @lines = mailmap(@lines);
-+    if ($email_remove_duplicates) {
-+	@lines = mailmap(@lines);
-+    }
- 
-     @lines = sort(@lines);
-+
-     # uniq -c
--    foreach my $line (@lines) {
--	$hash{$line}++;
--    }
-+    $hash{$_}++ for @lines;
-+
-     # sort -rn
--    @lines = ();
-     foreach my $line (sort {$hash{$b} <=> $hash{$a}} keys %hash) {
--	push(@lines,"$hash{$line}	$line");
--    }
--
--    foreach my $line (@lines) {
--	if ($line =~ m/([0-9]+)\s+(.*)/) {
--	    my $sign_offs = $1;
--	    $line = $2;
--	    $count++;
--	    if ($sign_offs < $email_git_min_signatures ||
--	        $count > $email_git_max_maintainers ||
--		$sign_offs * 100 / $total_sign_offs < $email_git_min_percent) {
--		last;
--	    }
--	    push_email_address($line);
--	}
-+	my $sign_offs = $hash{$line};
-+	$count++;
-+	last if ($sign_offs < $email_git_min_signatures ||
-+		 $count > $email_git_max_maintainers ||
-+		 $sign_offs * 100 / $total_sign_offs < $email_git_min_percent);
-+	push_email_address($line);
-     }
- }
- 
-@@ -743,7 +743,9 @@ sub git_assign_blame {
- 
- 	$total_sign_offs += @lines;
- 
--	@lines = mailmap(@lines);
-+	if ($email_remove_duplicates) {
-+	    @lines = mailmap(@lines);
-+	}
- 
- 	$hash{$_}++ for @lines;
-     }
+       Used with "--git", git signators for _all_ files in and below
 _
 
 Patches currently in -mm which might be from joe@perches.com are
