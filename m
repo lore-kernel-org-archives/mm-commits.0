@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + acerhdf-additional-bios-versions.patch added to -mm tree
-Date: Thu, 13 Aug 2009 13:59:55 -0700
-Message-ID: <200908132059.n7DKxt9F024706@imap1.linux-foundation.org>
+Subject: + printk_once-use-bool-for-boolean-flag.patch added to -mm tree
+Date: Thu, 13 Aug 2009 14:21:54 -0700
+Message-ID: <200908132121.n7DLLsCe030440@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39854 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53231 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755068AbZHMVCB (ORCPT
+	by vger.kernel.org with ESMTP id S1751192AbZHMVWp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Aug 2009 17:02:01 -0400
+	Thu, 13 Aug 2009 17:22:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: peter@piie.net, andi@lisas.de, lenb@kernel.org, petkovbb@googlemail.com
+Cc: rdreier@cisco.com, rolandd@cisco.com
 
 
 The patch titled
-     acerhdf: additional BIOS versions
+     printk_once(): use bool for boolean flag
 has been added to the -mm tree.  Its filename is
-     acerhdf-additional-bios-versions.patch
+     printk_once-use-bool-for-boolean-flag.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,56 +34,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acerhdf: additional BIOS versions
-From: Peter Feuerer <peter@piie.net>
+Subject: printk_once(): use bool for boolean flag
+From: Roland Dreier <rdreier@cisco.com>
 
-Added BIOS versions:
-Acer: AOA110-v0.3307, AOA150-v0.3301, AOA150-v0.3307
-Packard Bell: AOA150-v0.3105
+Using the type bool (instead of int) for the __print_once flag in the
+printk_once() macro matches the intent of the code better, and allows the
+compiler to generate smaller code; eg a typical callsite with gcc 4.3.3 on
+i386:
 
-Signed-off-by: Peter Feuerer <peter@piie.net>
-Cc: Andreas Mohr <andi@lisas.de>
-Cc: Borislav Petkov <petkovbb@googlemail.com>
-Cc: Len Brown <lenb@kernel.org>
+add/remove: 0/0 grow/shrink: 0/2 up/down: 0/-6 (-6)
+function                                     old     new   delta
+static.__print_once                            4       1      -3
+get_cpu_vendor                               146     143      -3
+
+Saving 6 bytes of object size per callsite by slightly improving the
+readability of the source seems like a win to me.
+
+Signed-off-by: Roland Dreier <rolandd@cisco.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/acerhdf.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ include/linux/kernel.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/platform/x86/acerhdf.c~acerhdf-additional-bios-versions drivers/platform/x86/acerhdf.c
---- a/drivers/platform/x86/acerhdf.c~acerhdf-additional-bios-versions
-+++ a/drivers/platform/x86/acerhdf.c
-@@ -139,13 +139,16 @@ static const struct bios_settings_t bios
- 	{"Acer", "AOA110", "v0.3301", 0x55, 0x58, {0xaf, 0x00} },
- 	{"Acer", "AOA110", "v0.3304", 0x55, 0x58, {0xaf, 0x00} },
- 	{"Acer", "AOA110", "v0.3305", 0x55, 0x58, {0xaf, 0x00} },
-+	{"Acer", "AOA110", "v0.3307", 0x55, 0x58, {0xaf, 0x00} },
- 	{"Acer", "AOA110", "v0.3308", 0x55, 0x58, {0x21, 0x00} },
- 	{"Acer", "AOA110", "v0.3309", 0x55, 0x58, {0x21, 0x00} },
- 	{"Acer", "AOA110", "v0.3310", 0x55, 0x58, {0x21, 0x00} },
- 	/* AOA150 */
- 	{"Acer", "AOA150", "v0.3114", 0x55, 0x58, {0x20, 0x00} },
-+	{"Acer", "AOA150", "v0.3301", 0x55, 0x58, {0x20, 0x00} },
- 	{"Acer", "AOA150", "v0.3304", 0x55, 0x58, {0x20, 0x00} },
- 	{"Acer", "AOA150", "v0.3305", 0x55, 0x58, {0x20, 0x00} },
-+	{"Acer", "AOA150", "v0.3307", 0x55, 0x58, {0x20, 0x00} },
- 	{"Acer", "AOA150", "v0.3308", 0x55, 0x58, {0x20, 0x00} },
- 	{"Acer", "AOA150", "v0.3309", 0x55, 0x58, {0x20, 0x00} },
- 	{"Acer", "AOA150", "v0.3310", 0x55, 0x58, {0x20, 0x00} },
-@@ -154,6 +157,7 @@ static const struct bios_settings_t bios
- 	{"Gateway", "AOA150", "v0.3103", 0x55, 0x58, {0x20, 0x00} },
- 	{"Packard Bell", "DOA150", "v0.3104", 0x55, 0x58, {0x21, 0x00} },
- 	{"Packard Bell", "AOA110", "v0.3105", 0x55, 0x58, {0x21, 0x00} },
-+	{"Packard Bell", "AOA150", "v0.3105", 0x55, 0x58, {0x20, 0x00} },
- 	/* pewpew-terminator */
- 	{"", "", "", 0, 0, {0, 0} }
- };
+diff -puN include/linux/kernel.h~printk_once-use-bool-for-boolean-flag include/linux/kernel.h
+--- a/include/linux/kernel.h~printk_once-use-bool-for-boolean-flag
++++ a/include/linux/kernel.h
+@@ -342,10 +342,10 @@ extern bool printk_timed_ratelimit(unsig
+  * Print a one-time message (analogous to WARN_ONCE() et al):
+  */
+ #define printk_once(x...) ({			\
+-	static int __print_once = 1;		\
++	static bool __print_once = true;	\
+ 						\
+ 	if (__print_once) {			\
+-		__print_once = 0;		\
++		__print_once = false;		\
+ 		printk(x);			\
+ 	}					\
+ })
 _
 
-Patches currently in -mm which might be from peter@piie.net are
+Patches currently in -mm which might be from rdreier@cisco.com are
 
-acerhdf-fix-fan-control-for-aoa150-model.patch
-acerhdf-convert-to-dev_pm_ops.patch
-acerhdf-additional-bios-versions.patch
+origin.patch
+linux-next.patch
+ecryptfs-another-lockdep-issue.patch
+printk_once-use-bool-for-boolean-flag.patch
 
