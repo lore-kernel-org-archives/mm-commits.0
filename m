@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + percpu-use-the-right-flag-for-get_vm_area.patch added to -mm tree
-Date: Thu, 13 Aug 2009 15:16:50 -0700
-Message-ID: <200908132216.n7DMGotU028139@imap1.linux-foundation.org>
+Subject: + korina-add-error-handling-to-korina_alloc_ring.patch added to -mm tree
+Date: Thu, 13 Aug 2009 15:58:10 -0700
+Message-ID: <200908132258.n7DMwAVv003297@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36806 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40749 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753462AbZHMWSQ (ORCPT
+	by vger.kernel.org with ESMTP id S1752671AbZHMW6T (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Aug 2009 18:18:16 -0400
+	Thu, 13 Aug 2009 18:58:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: amwang@redhat.com, mingo@elte.hu, tj@kernel.org
+Cc: n0-1@freewrt.org, roel.kluin@gmail.com
 
 
 The patch titled
-     percpu: use the right flag for get_vm_area()
+     korina: add error-handling to korina_alloc_ring
 has been added to the -mm tree.  Its filename is
-     percpu-use-the-right-flag-for-get_vm_area.patch
+     korina-add-error-handling-to-korina_alloc_ring.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,68 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: percpu: use the right flag for get_vm_area()
-From: Amerigo Wang <amwang@redhat.com>
+Subject: korina: add error-handling to korina_alloc_ring
+From: Phil Sutter <n0-1@freewrt.org>
 
-get_vm_area() only accepts VM_* flags, not GFP_*.
+This also avoids a potential buffer overflow in case the very first
+receive descriptor fails to allocate, as an index of -1 would be used
+afterwards. Kudos to Roel Kluin for pointing this out and providing an
+initial patch.
 
-And according to the doc of get_vm_area(), here should be VM_ALLOC.
-
-Signed-off-by: WANG Cong <amwang@redhat.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Phil Sutter <n0-1@freewrt.org>
+Cc: Roel Kluin <roel.kluin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/percpu.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/korina.c |   12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-diff -puN mm/percpu.c~percpu-use-the-right-flag-for-get_vm_area mm/percpu.c
---- a/mm/percpu.c~percpu-use-the-right-flag-for-get_vm_area
-+++ a/mm/percpu.c
-@@ -1004,7 +1004,7 @@ static struct pcpu_chunk *alloc_pcpu_chu
- 	chunk->map_alloc = PCPU_DFL_MAP_ALLOC;
- 	chunk->map[chunk->map_used++] = pcpu_unit_size;
+diff -puN drivers/net/korina.c~korina-add-error-handling-to-korina_alloc_ring drivers/net/korina.c
+--- a/drivers/net/korina.c~korina-add-error-handling-to-korina_alloc_ring
++++ a/drivers/net/korina.c
+@@ -750,7 +750,7 @@ static struct ethtool_ops netdev_ethtool
+ 	.get_link               = netdev_get_link,
+ };
  
--	chunk->vm = get_vm_area(pcpu_chunk_size, GFP_KERNEL);
-+	chunk->vm = get_vm_area(pcpu_chunk_size, VM_ALLOC);
- 	if (!chunk->vm) {
- 		free_pcpu_chunk(chunk);
- 		return NULL;
+-static void korina_alloc_ring(struct net_device *dev)
++static int korina_alloc_ring(struct net_device *dev)
+ {
+ 	struct korina_private *lp = netdev_priv(dev);
+ 	struct sk_buff *skb;
+@@ -771,7 +771,7 @@ static void korina_alloc_ring(struct net
+ 	for (i = 0; i < KORINA_NUM_RDS; i++) {
+ 		skb = dev_alloc_skb(KORINA_RBSIZE + 2);
+ 		if (!skb)
+-			break;
++			return -ENOMEM;
+ 		skb_reserve(skb, 2);
+ 		lp->rx_skb[i] = skb;
+ 		lp->rd_ring[i].control = DMA_DESC_IOD |
+@@ -790,6 +790,8 @@ static void korina_alloc_ring(struct net
+ 	lp->rx_chain_head = 0;
+ 	lp->rx_chain_tail = 0;
+ 	lp->rx_chain_status = desc_empty;
++
++	return 0;
+ }
+ 
+ static void korina_free_ring(struct net_device *dev)
+@@ -832,7 +834,11 @@ static int korina_init(struct net_device
+ 	writel(ETH_INT_FC_EN, &lp->eth_regs->ethintfc);
+ 
+ 	/* Allocate rings */
+-	korina_alloc_ring(dev);
++	if (korina_alloc_ring(dev)) {
++		printk(KERN_ERR "%s: descriptor allocation failed\n", dev->name);
++		korina_free_ring(dev);
++		return -ENOMEM;
++	}
+ 
+ 	writel(0, &lp->rx_dma_regs->dmas);
+ 	/* Start Rx DMA */
 _
 
-Patches currently in -mm which might be from amwang@redhat.com are
+Patches currently in -mm which might be from n0-1@freewrt.org are
 
-linux-next.patch
-vfs-allow-file-truncations-when-both-suid-and-write-permissions-set.patch
-xtensa-use-generic-sys_pipe.patch
-percpu-use-the-right-flag-for-get_vm_area.patch
-kcore-fix-proc-kcores-statst_size.patch
-elf-clean-up-fill_note_info.patch
-elf-clean-up-fill_note_info-fix.patch
+korina-add-error-handling-to-korina_alloc_ring.patch
 
