@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-proc-basec-fix-proc_fault_inject_write-input-sanity-check.patch added to -mm tree
-Date: Fri, 14 Aug 2009 15:40:06 -0700
-Message-ID: <200908142240.n7EMe7ew030818@imap1.linux-foundation.org>
+Subject: + viafb-fix-ioremap_nocache-error-handling.patch added to -mm tree
+Date: Fri, 14 Aug 2009 15:42:06 -0700
+Message-ID: <200908142242.n7EMg6Lj001784@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35587 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49526 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753661AbZHNWlY (ORCPT
+	by vger.kernel.org with ESMTP id S1753661AbZHNWmJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Aug 2009 18:41:24 -0400
+	Fri, 14 Aug 2009 18:42:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: macli@brc.ubc.ca
+Cc: FlorianSchandinat@gmx.de, JosephChan@via.com.tw, ScottFang@viatech.com.cn
 
 
 The patch titled
-     fs/proc/base.c: fix proc_fault_inject_write() input sanity check
+     viafb: fix ioremap_nocache error handling
 has been added to the -mm tree.  Its filename is
-     fs-proc-basec-fix-proc_fault_inject_write-input-sanity-check.patch
+     viafb-fix-ioremap_nocache-error-handling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,71 +34,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/proc/base.c: fix proc_fault_inject_write() input sanity check
-From: Vincent Li <macli@brc.ubc.ca>
+Subject: viafb: fix ioremap_nocache error handling
+From: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 
-Remove obfuscated zero-length input check and return -EINVAL instead of
--EIO error to make the error message clear to user.  Add whitespace
-stripping.  No functionality changes.
+Correct the returned error code for remapping the video framebuffer. 
+Introduce error handling for remapping MMIO register address space to
+avoid a NULL pointer dereference.  Disable hardware acceleration if
+remapping MMIO register address space failed as those registers are only
+used for hardware acceleration.
 
-The old code:
-
-echo  1  > /proc/pid/make-it-fail (ok)
-echo 1foo > /proc/pid/make-it-fail (-bash: echo: write error: Input/output error)
-
-The new code:
-
-echo  1  > /proc/pid/make-it-fail (ok)
-echo 1foo > /proc/pid/make-it-fail (-bash: echo: write error: Invalid argument)
-
-This patch is conservative in changes to not breaking existing
-scripts/applications.
-
-Signed-off-by: Vincent Li <macli@brc.ubc.ca>
+Signed-off-by: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Cc: Scott Fang <ScottFang@viatech.com.cn>
+Cc: Joseph Chan <JosephChan@via.com.tw>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ drivers/video/via/viafbdev.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN fs/proc/base.c~fs-proc-basec-fix-proc_fault_inject_write-input-sanity-check fs/proc/base.c
---- a/fs/proc/base.c~fs-proc-basec-fix-proc_fault_inject_write-input-sanity-check
-+++ a/fs/proc/base.c
-@@ -1169,17 +1169,16 @@ static ssize_t proc_fault_inject_write(s
- 		count = sizeof(buffer) - 1;
- 	if (copy_from_user(buffer, buf, count))
- 		return -EFAULT;
--	make_it_fail = simple_strtol(buffer, &end, 0);
--	if (*end == '\n')
--		end++;
-+	make_it_fail = simple_strtol(strstrip(buffer), &end, 0);
-+	if (*end)
-+		return -EINVAL;
- 	task = get_proc_task(file->f_dentry->d_inode);
- 	if (!task)
- 		return -ESRCH;
- 	task->make_it_fail = make_it_fail;
- 	put_task_struct(task);
--	if (end - buffer == 0)
--		return -EIO;
--	return end - buffer;
-+
-+	return count;
- }
+diff -puN drivers/video/via/viafbdev.c~viafb-fix-ioremap_nocache-error-handling drivers/video/via/viafbdev.c
+--- a/drivers/video/via/viafbdev.c~viafb-fix-ioremap_nocache-error-handling
++++ a/drivers/video/via/viafbdev.c
+@@ -2134,12 +2134,16 @@ static int __devinit via_pci_probe(void)
  
- static const struct file_operations proc_fault_inject_operations = {
+ 	if (!viaparinfo->fbmem_virt) {
+ 		printk(KERN_INFO "ioremap failed\n");
+-		return -1;
++		return -ENOMEM;
+ 	}
+ 
+ 	viafb_get_mmio_info(&viaparinfo->mmio_base, &viaparinfo->mmio_len);
+ 	viaparinfo->io_virt = ioremap_nocache(viaparinfo->mmio_base,
+ 		viaparinfo->mmio_len);
++	if (!viaparinfo->io_virt) {
++		printk(KERN_WARNING "ioremap failed: hardware acceleration disabled\n");
++		viafb_accel = 0;
++	}
+ 
+ 	viafbinfo->node = 0;
+ 	viafbinfo->fbops = &viafb_ops;
 _
 
-Patches currently in -mm which might be from macli@brc.ubc.ca are
+Patches currently in -mm which might be from FlorianSchandinat@gmx.de are
 
-mm-count-only-reclaimable-lru-pages-v2.patch
-tracing-page-allocator-add-trace-events-for-page-allocation-and-page-freeing.patch
-tracing-page-allocator-add-trace-events-for-anti-fragmentation-falling-back-to-other-migratetypes.patch
-tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists.patch
-tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists-fix.patch
-tracing-page-allocator-add-a-postprocessing-script-for-page-allocator-related-ftrace-events.patch
-tracing-documentation-add-a-document-describing-how-to-do-some-performance-analysis-with-tracepoints.patch
-tracing-documentation-add-a-document-on-the-kmem-tracepoints.patch
-fs-proc-task_mmuc-v1-fix-clear_refs_write-input-sanity-check.patch
-fs-proc-basec-fix-proc_fault_inject_write-input-sanity-check.patch
+viafb-remove-duplicated-cx700-register-init.patch
+viafb-remove-temporary-start-address-setting.patch
+viafb-merge-viafb_update_viafb_par-in-viafb_update_fix.patch
+viafb-split-viafb_set_start_addr-up.patch
+viafb-fix-ioremap_nocache-error-handling.patch
+fb-fix-fb_pan_display-range-check.patch
 
