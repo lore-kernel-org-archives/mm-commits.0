@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + nommu-check-fd-read-permission-in-validate_mmap_request.patch added to -mm tree
-Date: Fri, 14 Aug 2009 16:45:19 -0700
-Message-ID: <200908142345.n7ENjJe4013836@imap1.linux-foundation.org>
+Subject: + poll-select-initialize-triggered-field-of-struct-poll_wqueues.patch added to -mm tree
+Date: Sat, 15 Aug 2009 12:04:17 -0700
+Message-ID: <200908151904.n7FJ4HVm000852@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46145 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34897 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932238AbZHNXpn (ORCPT
+	by vger.kernel.org with ESMTP id S1751838AbZHOTGJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Aug 2009 19:45:43 -0400
+	Sat, 15 Aug 2009 15:06:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: graff.yang@gmail.com, dhowells@redhat.com, gerg@snapgear.com, lethal@linux-sh.org
+Cc: gknispel@proformatique.com, davidel@xmailserver.org, hch@infradead.org, mszeredi@suse.cz, tj@kernel.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     nommu: check fd read permission in validate_mmap_request()
+     poll/select: initialize triggered field of struct poll_wqueues
 has been added to the -mm tree.  Its filename is
-     nommu-check-fd-read-permission-in-validate_mmap_request.patch
+     poll-select-initialize-triggered-field-of-struct-poll_wqueues.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nommu: check fd read permission in validate_mmap_request()
-From: Graff Yang <graff.yang@gmail.com>
+Subject: poll/select: initialize triggered field of struct poll_wqueues
+From: Guillaume Knispel <gknispel@proformatique.com>
 
-According to the POSIX (1003.1-2008), the file descriptor shall have been
-opened with read permission, regardless of the protection options specified to
-mmap().  The ltp test cases mmap06/07 need this.
+The triggered field of struct poll_wqueues introduced in commit
+5f820f648c92a5ecc771a96b3c29aa6e90013bba "poll: allow f_op->poll to sleep"
+was set to 1 in pollwake() (now __pollwake() ), tested and later set to 0
+in poll_schedule_timeout(), but not initialized before.
 
-Signed-off-by: Graff Yang <graff.yang@gmail.com>
-Acked-by: Paul Mundt <lethal@linux-sh.org>
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Greg Ungerer <gerg@snapgear.com>
+As a result when the process needs to sleep, triggered was likely to be
+non-zero even if pollwake() is not called before the first
+poll_schedule_timeout(), meaning schedule_hrtimeout_range() would not be
+called and an extra loop calling all ->poll() would be done.
+
+This patch initializes `triggered' to 0 in poll_initwait() so the ->poll()
+are not called twice before the process goes to sleep when it needs to.
+
+Signed-off-by: Guillaume Knispel <gknispel@proformatique.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Davide Libenzi <davidel@xmailserver.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nommu.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ fs/select.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/nommu.c~nommu-check-fd-read-permission-in-validate_mmap_request mm/nommu.c
---- a/mm/nommu.c~nommu-check-fd-read-permission-in-validate_mmap_request
-+++ a/mm/nommu.c
-@@ -919,6 +919,10 @@ static int validate_mmap_request(struct 
- 		if (!file->f_op->read)
- 			capabilities &= ~BDI_CAP_MAP_COPY;
- 
-+		/* The file shall have been opened with read permission. */
-+		if (!(file->f_mode & FMODE_READ))
-+			return -EACCES;
-+
- 		if (flags & MAP_SHARED) {
- 			/* do checks for writing, appending and locking */
- 			if ((prot & PROT_WRITE) &&
+diff -puN fs/select.c~poll-select-initialize-triggered-field-of-struct-poll_wqueues fs/select.c
+--- a/fs/select.c~poll-select-initialize-triggered-field-of-struct-poll_wqueues
++++ a/fs/select.c
+@@ -110,6 +110,7 @@ void poll_initwait(struct poll_wqueues *
+ {
+ 	init_poll_funcptr(&pwq->pt, __pollwait);
+ 	pwq->polling_task = current;
++	pwq->triggered = 0;
+ 	pwq->error = 0;
+ 	pwq->table = NULL;
+ 	pwq->inline_index = 0;
 _
 
-Patches currently in -mm which might be from graff.yang@gmail.com are
+Patches currently in -mm which might be from gknispel@proformatique.com are
 
-nommu-check-fd-read-permission-in-validate_mmap_request.patch
+poll-select-initialize-triggered-field-of-struct-poll_wqueues.patch
 
