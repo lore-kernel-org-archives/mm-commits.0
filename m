@@ -1,79 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [merged] splice-update-mtime-and-atime-on-files.patch removed from -mm tree
-Date: Mon, 17 Aug 2009 13:04:57 -0700
-Message-ID: <200908172004.n7HK4vEO017577@imap1.linux-foundation.org>
+Subject: [merged] poll-select-initialize-triggered-field-of-struct-poll_wqueues.patch removed from -mm tree
+Date: Mon, 17 Aug 2009 13:04:50 -0700
+Message-ID: <200908172004.n7HK4pk4017437@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42962 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45841 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757726AbZHQUGF (ORCPT
+	by vger.kernel.org with ESMTP id S1756829AbZHQUGq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Aug 2009 16:06:05 -0400
+	Mon, 17 Aug 2009 16:06:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mszeredi@suse.cz, jens.axboe@oracle.com, mm-commits@vger.kernel.org
+To: gknispel@proformatique.com, davidel@xmailserver.org, hch@infradead.org, mszeredi@suse.cz, stable@kernel.org, tglx@linutronix.de, tj@kernel.org, viro@zeniv.linux.org.uk, mm-commits@vge
 
 
 The patch titled
-     splice: update mtime and atime on files
+     poll/select: initialize triggered field of struct poll_wqueues
 has been removed from the -mm tree.  Its filename was
-     splice-update-mtime-and-atime-on-files.patch
+     poll-select-initialize-triggered-field-of-struct-poll_wqueues.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: splice: update mtime and atime on files
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: poll/select: initialize triggered field of struct poll_wqueues
+From: Guillaume Knispel <gknispel@proformatique.com>
 
-Splice should update the modification and access times on regular files
-just like read and write.  Not updating mtime will confuse backup tools,
-etc...
+The triggered field of struct poll_wqueues introduced in commit
+5f820f648c92a5ecc771a96b3c29aa6e90013bba "poll: allow f_op->poll to sleep"
+was set to 1 in pollwake() (now __pollwake() ), tested and later set to 0
+in poll_schedule_timeout(), but not initialized before.
 
-This patch only adds the time updates for regular files.  For pipes and
-other special files that splice touches the need for updating the times is
-less clear.  Let's discuss and fix that separately.
+As a result when the process needs to sleep, triggered was likely to be
+non-zero even if pollwake() is not called before the first
+poll_schedule_timeout(), meaning schedule_hrtimeout_range() would not be
+called and an extra loop calling all ->poll() would be done.
 
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+This patch initializes `triggered' to 0 in poll_initwait() so the ->poll()
+are not called twice before the process goes to sleep when it needs to.
+
+Signed-off-by: Guillaume Knispel <gknispel@proformatique.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Davide Libenzi <davidel@xmailserver.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/splice.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ fs/select.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/splice.c~splice-update-mtime-and-atime-on-files fs/splice.c
---- a/fs/splice.c~splice-update-mtime-and-atime-on-files
-+++ a/fs/splice.c
-@@ -502,8 +502,10 @@ ssize_t generic_file_splice_read(struct 
- 		len = left;
- 
- 	ret = __generic_file_splice_read(in, ppos, pipe, len, flags);
--	if (ret > 0)
-+	if (ret > 0) {
- 		*ppos += ret;
-+		file_accessed(in);
-+	}
- 
- 	return ret;
- }
-@@ -963,8 +965,10 @@ generic_file_splice_write(struct pipe_in
- 
- 		mutex_lock_nested(&inode->i_mutex, I_MUTEX_CHILD);
- 		ret = file_remove_suid(out);
--		if (!ret)
-+		if (!ret) {
-+			file_update_time(out);
- 			ret = splice_from_pipe_feed(pipe, &sd, pipe_to_file);
-+		}
- 		mutex_unlock(&inode->i_mutex);
- 	} while (ret > 0);
- 	splice_from_pipe_end(pipe, &sd);
+diff -puN fs/select.c~poll-select-initialize-triggered-field-of-struct-poll_wqueues fs/select.c
+--- a/fs/select.c~poll-select-initialize-triggered-field-of-struct-poll_wqueues
++++ a/fs/select.c
+@@ -110,6 +110,7 @@ void poll_initwait(struct poll_wqueues *
+ {
+ 	init_poll_funcptr(&pwq->pt, __pollwait);
+ 	pwq->polling_task = current;
++	pwq->triggered = 0;
+ 	pwq->error = 0;
+ 	pwq->table = NULL;
+ 	pwq->inline_index = 0;
 _
 
-Patches currently in -mm which might be from mszeredi@suse.cz are
+Patches currently in -mm which might be from gknispel@proformatique.com are
 
-linux-next.patch
-vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
+origin.patch
 
