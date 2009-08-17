@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + kcore-use-usual-list-for-kclist.patch added to -mm tree
-Date: Mon, 17 Aug 2009 14:25:51 -0700
-Message-ID: <200908172125.n7HLPqnR029009@imap1.linux-foundation.org>
+Subject: + kcore-register-text-area-in-generic-way.patch added to -mm tree
+Date: Mon, 17 Aug 2009 14:25:59 -0700
+Message-ID: <200908172126.n7HLQ0pC029305@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53015 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50926 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753249AbZHQV1G (ORCPT
+	by vger.kernel.org with ESMTP id S1753714AbZHQV1G (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 17 Aug 2009 17:27:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kamezawa.hiroyu@jp.fujitsu.com, benh@kernel.crashing.org, ralf@linux-mips.or
 
 
 The patch titled
-     kcore: use usual list for kclist
+     kcore: register text area in generic way
 has been added to the -mm tree.  Its filename is
-     kcore-use-usual-list-for-kclist.patch
+     kcore-register-text-area-in-generic-way.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,29 +34,19 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kcore: use usual list for kclist
+Subject: kcore: register text area in generic way
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-This patchset is for /proc/kcore.  With this,
+Some 64bit arch has special segment for mapping kernel text.  It should be
+entried to /proc/kcore in addtion to direct-linear-map, vmalloc area. 
+This patch unifies KCORE_TEXT entry scattered under x86 and ia64.
 
- - many per-arch hooks are removed.
+I'm not familiar with other archs (mips has its own even after this patch)
+but range of [_stext ..._end) is a valid area of text and it's not in
+direct-map area, defining CONFIG_ARCH_PROC_KCORE_TEXT is only a necessary
+thing to do.
 
- - /proc/kcore will know really valid physical memory area.
-
- - /proc/kcore will be aware of memory hotplug.
-
- - /proc/kcore will be architecture independent i.e.
-   if an arch supports CONFIG_MMU, it can use /proc/kcore.
-   (if the arch uses usual memory layout.)
-
-
-
-This patch:
-
-/proc/kcore uses its own list handling codes. It's better to use
-generic list codes.
-
-No changes in logic. just clean up.
+Note: I left mips as it is now.
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Ralf Baechle <ralf@linux-mips.org>
@@ -65,79 +55,120 @@ Cc: WANG Cong <xiyou.wangcong@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/kcore.c         |   12 ++++++------
- include/linux/proc_fs.h |    2 +-
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ arch/ia64/Kconfig     |    4 ++++
+ arch/ia64/mm/init.c   |    2 --
+ arch/x86/Kconfig      |    4 ++++
+ arch/x86/mm/init_64.c |    4 +---
+ fs/proc/kcore.c       |   19 ++++++++++++++++++-
+ 5 files changed, 27 insertions(+), 6 deletions(-)
 
-diff -puN fs/proc/kcore.c~kcore-use-usual-list-for-kclist fs/proc/kcore.c
---- a/fs/proc/kcore.c~kcore-use-usual-list-for-kclist
+diff -puN arch/ia64/Kconfig~kcore-register-text-area-in-generic-way arch/ia64/Kconfig
+--- a/arch/ia64/Kconfig~kcore-register-text-area-in-generic-way
++++ a/arch/ia64/Kconfig
+@@ -496,6 +496,10 @@ config HAVE_ARCH_NODEDATA_EXTENSION
+ 	def_bool y
+ 	depends on NUMA
+ 
++config ARCH_PROC_KCORE_TEXT
++	def_bool y
++	depends on PROC_KCORE
++
+ config IA32_SUPPORT
+ 	bool "Support for Linux/x86 binaries"
+ 	help
+diff -puN arch/ia64/mm/init.c~kcore-register-text-area-in-generic-way arch/ia64/mm/init.c
+--- a/arch/ia64/mm/init.c~kcore-register-text-area-in-generic-way
++++ a/arch/ia64/mm/init.c
+@@ -617,7 +617,6 @@ mem_init (void)
+ 	long reserved_pages, codesize, datasize, initsize;
+ 	pg_data_t *pgdat;
+ 	int i;
+-	static struct kcore_list kcore_kernel;
+ 
+ 	BUG_ON(PTRS_PER_PGD * sizeof(pgd_t) != PAGE_SIZE);
+ 	BUG_ON(PTRS_PER_PMD * sizeof(pmd_t) != PAGE_SIZE);
+@@ -637,7 +636,6 @@ mem_init (void)
+ 	max_mapnr = max_low_pfn;
+ #endif
+ 	high_memory = __va(max_low_pfn * PAGE_SIZE);
+-	kclist_add(&kcore_kernel, _stext, _end - _stext, KCORE_TEXT);
+ 
+ 	for_each_online_pgdat(pgdat)
+ 		if (pgdat->bdata->node_bootmem_map)
+diff -puN arch/x86/Kconfig~kcore-register-text-area-in-generic-way arch/x86/Kconfig
+--- a/arch/x86/Kconfig~kcore-register-text-area-in-generic-way
++++ a/arch/x86/Kconfig
+@@ -1250,6 +1250,10 @@ config ARCH_MEMORY_PROBE
+ 	def_bool X86_64
+ 	depends on MEMORY_HOTPLUG
+ 
++config ARCH_PROC_KCORE_TEXT
++	def_bool y
++	depends on X86_64 && PROC_KCORE
++
+ config ILLEGAL_POINTER_VALUE
+        hex
+        default 0 if X86_32
+diff -puN arch/x86/mm/init_64.c~kcore-register-text-area-in-generic-way arch/x86/mm/init_64.c
+--- a/arch/x86/mm/init_64.c~kcore-register-text-area-in-generic-way
++++ a/arch/x86/mm/init_64.c
+@@ -647,8 +647,7 @@ EXPORT_SYMBOL_GPL(memory_add_physaddr_to
+ 
+ #endif /* CONFIG_MEMORY_HOTPLUG */
+ 
+-static struct kcore_list kcore_mem, kcore_kernel,
+-			 kcore_modules, kcore_vsyscall;
++static struct kcore_list kcore_mem, kcore_modules, kcore_vsyscall;
+ 
+ void __init mem_init(void)
+ {
+@@ -678,7 +677,6 @@ void __init mem_init(void)
+ 
+ 	/* Register memory areas for /proc/kcore */
+ 	kclist_add(&kcore_mem, __va(0), max_low_pfn << PAGE_SHIFT, KCORE_RAM);
+-	kclist_add(&kcore_kernel, &_stext, _end - _stext, KCORE_TEXT);
+ 	kclist_add(&kcore_modules, (void *)MODULES_VADDR, MODULES_LEN,
+ 			KCORE_OTHER);
+ 	kclist_add(&kcore_vsyscall, (void *)VSYSCALL_START,
+diff -puN fs/proc/kcore.c~kcore-register-text-area-in-generic-way fs/proc/kcore.c
+--- a/fs/proc/kcore.c~kcore-register-text-area-in-generic-way
 +++ a/fs/proc/kcore.c
-@@ -20,6 +20,7 @@
- #include <linux/init.h>
+@@ -21,6 +21,7 @@
  #include <asm/uaccess.h>
  #include <asm/io.h>
-+#include <linux/list.h>
+ #include <linux/list.h>
++#include <asm/sections.h>
  
  #define CORE_STR "CORE"
  
-@@ -57,7 +58,7 @@ struct memelfnote
- 	void *data;
- };
+@@ -374,10 +375,26 @@ read_kcore(struct file *file, char __use
  
--static struct kcore_list *kclist;
-+static LIST_HEAD(kclist_head);
- static DEFINE_RWLOCK(kclist_lock);
+ static struct kcore_list kcore_vmalloc;
  
- void
-@@ -67,8 +68,7 @@ kclist_add(struct kcore_list *new, void 
- 	new->size = size;
- 
- 	write_lock(&kclist_lock);
--	new->next = kclist;
--	kclist = new;
-+	list_add_tail(&new->list, &kclist_head);
- 	write_unlock(&kclist_lock);
- }
- 
-@@ -80,7 +80,7 @@ static size_t get_kcore_size(int *nphdr,
- 	*nphdr = 1; /* PT_NOTE */
- 	size = 0;
- 
--	for (m=kclist; m; m=m->next) {
-+	list_for_each_entry(m, &kclist_head, list) {
- 		try = kc_vaddr_to_offset((size_t)m->addr + m->size);
- 		if (try > size)
- 			size = try;
-@@ -192,7 +192,7 @@ static void elf_kcore_store_hdr(char *bu
- 	nhdr->p_align	= 0;
- 
- 	/* setup ELF PT_LOAD program header for every area */
--	for (m=kclist; m; m=m->next) {
-+	list_for_each_entry(m, &kclist_head, list) {
- 		phdr = (struct elf_phdr *) bufp;
- 		bufp += sizeof(struct elf_phdr);
- 		offset += sizeof(struct elf_phdr);
-@@ -317,7 +317,7 @@ read_kcore(struct file *file, char __use
- 		struct kcore_list *m;
- 
- 		read_lock(&kclist_lock);
--		for (m=kclist; m; m=m->next) {
-+		list_for_each_entry(m, &kclist_head, list) {
- 			if (start >= m->addr && start < (m->addr+m->size))
- 				break;
- 		}
-diff -puN include/linux/proc_fs.h~kcore-use-usual-list-for-kclist include/linux/proc_fs.h
---- a/include/linux/proc_fs.h~kcore-use-usual-list-for-kclist
-+++ a/include/linux/proc_fs.h
-@@ -79,7 +79,7 @@ struct proc_dir_entry {
- };
- 
- struct kcore_list {
--	struct kcore_list *next;
-+	struct list_head list;
- 	unsigned long addr;
- 	size_t size;
- };
++#ifdef CONFIG_ARCH_PROC_KCORE_TEXT
++static struct kcore_list kcore_text;
++/*
++ * If defined, special segment is used for mapping kernel text instead of
++ * direct-map area. We need to create special TEXT section.
++ */
++static void __init proc_kcore_text_init(void)
++{
++	kclist_add(&kcore_text, _stext, _end - _stext, KCORE_TEXT);
++}
++#else
++static void __init proc_kcore_text_init(void)
++{
++}
++#endif
++
+ static int __init proc_kcore_init(void)
+ {
+ 	proc_root_kcore = proc_create("kcore", S_IRUSR, NULL, &proc_kcore_operations);
+-
++	proc_kcore_text_init();
+ 	kclist_add(&kcore_vmalloc, (void *)VMALLOC_START,
+ 		VMALLOC_END - VMALLOC_START, KCORE_VMALLOC);
+ 	return 0;
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
