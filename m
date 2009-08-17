@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kcore-use-registerd-physmem-information-checkpatch-fixes.patch added to -mm tree
-Date: Mon, 17 Aug 2009 14:27:17 -0700
-Message-ID: <200908172127.n7HLRI53031685@imap1.linux-foundation.org>
+Subject: + walk-system-ram-range.patch added to -mm tree
+Date: Mon, 17 Aug 2009 14:26:01 -0700
+Message-ID: <200908172126.n7HLQ2xO029309@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54687 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48576 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756503AbZHQV1h (ORCPT
+	by vger.kernel.org with ESMTP id S1757985AbZHQV3m (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Aug 2009 17:27:37 -0400
+	Mon, 17 Aug 2009 17:29:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com
+Cc: kamezawa.hiroyu@jp.fujitsu.com, benh@kernel.crashing.org, ralf@linux-mips.org, xiyou.wangcong@gmail.com
 
 
 The patch titled
-     kcore-use-registerd-physmem-information-checkpatch-fixes
+     walk system ram range
 has been added to the -mm tree.  Its filename is
-     kcore-use-registerd-physmem-information-checkpatch-fixes.patch
+     walk-system-ram-range.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,125 +34,237 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kcore-use-registerd-physmem-information-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: walk system ram range
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-ERROR: "foo * bar" should be "foo *bar"
-#357: FILE: fs/proc/kcore.c:486:
-+static int open_kcore(struct inode * inode, struct file *filp)
+Originally, walk_memory_resource() was introduced to traverse all memory
+of "System RAM" for detecting memory hotplug/unplug range.  For doing so,
+flags of IORESOUCE_MEM|IORESOURCE_BUSY was used and this was enough for
+memory hotplug.
 
-total: 1 errors, 0 warnings, 309 lines checked
+But for using other purpose, /proc/kcore, this may includes some firmware
+area marked as IORESOURCE_BUSY | IORESOUCE_MEM.  This patch makes the
+check strict to find out busy "System RAM".
 
-./patches/kcore-use-registerd-physmem-information.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
+Note: PPC64 keeps their own walk_memory_resouce(), which walk through
+ppc64's lmb informaton.  Because old kclist_add() is called per lmb, this
+patch makes no difference in behavior, finally.
 
-Please run checkpatch prior to sending patches
+And this patch removes CONFIG_MEMORY_HOTPLUG check from this function. 
+Because pfn_valid() just show "there is memmap or not* and cannot be used
+for "there is physical memory or not", this function is useful in generic
+to scan physical memory range.
 
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: WANG Cong <xiyou.wangcong@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/kcore.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ arch/powerpc/mm/mem.c          |    4 ++--
+ drivers/net/ehea/ehea_qmr.c    |    2 +-
+ include/linux/ioport.h         |    4 ++++
+ include/linux/memory_hotplug.h |    8 --------
+ kernel/resource.c              |   23 ++++++++++++++++-------
+ mm/memory_hotplug.c            |    6 +++---
+ 6 files changed, 26 insertions(+), 21 deletions(-)
 
-diff -puN fs/proc/kcore.c~kcore-use-registerd-physmem-information-checkpatch-fixes fs/proc/kcore.c
---- a/fs/proc/kcore.c~kcore-use-registerd-physmem-information-checkpatch-fixes
-+++ a/fs/proc/kcore.c
-@@ -482,8 +482,7 @@ read_kcore(struct file *file, char __use
- 	return acc;
- }
- 
--
--static int open_kcore(struct inode * inode, struct file *filp)
-+static int open_kcore(struct inode *inode, struct file *filp)
+diff -puN arch/powerpc/mm/mem.c~walk-system-ram-range arch/powerpc/mm/mem.c
+--- a/arch/powerpc/mm/mem.c~walk-system-ram-range
++++ a/arch/powerpc/mm/mem.c
+@@ -143,8 +143,8 @@ int arch_add_memory(int nid, u64 start, 
+  * memory regions, find holes and callback for contiguous regions.
+  */
+ int
+-walk_memory_resource(unsigned long start_pfn, unsigned long nr_pages, void *arg,
+-			int (*func)(unsigned long, unsigned long, void *))
++walk_system_ram_range(unsigned long start_pfn, unsigned long nr_pages,
++		void *arg, int (*func)(unsigned long, unsigned long, void *))
  {
- 	if (!capable(CAP_SYS_RAWIO))
- 		return -EPERM;
-@@ -492,7 +491,6 @@ static int open_kcore(struct inode * ino
+ 	struct lmb_property res;
+ 	unsigned long pfn, len;
+diff -puN drivers/net/ehea/ehea_qmr.c~walk-system-ram-range drivers/net/ehea/ehea_qmr.c
+--- a/drivers/net/ehea/ehea_qmr.c~walk-system-ram-range
++++ a/drivers/net/ehea/ehea_qmr.c
+@@ -751,7 +751,7 @@ int ehea_create_busmap(void)
+ 
+ 	mutex_lock(&ehea_busmap_mutex);
+ 	ehea_mr_len = 0;
+-	ret = walk_memory_resource(0, 1ULL << MAX_PHYSMEM_BITS, NULL,
++	ret = walk_system_ram_range(0, 1ULL << MAX_PHYSMEM_BITS, NULL,
+ 				   ehea_create_busmap_callback);
+ 	mutex_unlock(&ehea_busmap_mutex);
+ 	return ret;
+diff -puN include/linux/ioport.h~walk-system-ram-range include/linux/ioport.h
+--- a/include/linux/ioport.h~walk-system-ram-range
++++ a/include/linux/ioport.h
+@@ -184,5 +184,9 @@ extern void __devm_release_region(struct
+ extern int iomem_map_sanity_check(resource_size_t addr, unsigned long size);
+ extern int iomem_is_exclusive(u64 addr);
+ 
++extern int
++walk_system_ram_range(unsigned long start_pfn, unsigned long nr_pages,
++		void *arg, int (*func)(unsigned long, unsigned long, void *));
++
+ #endif /* __ASSEMBLY__ */
+ #endif	/* _LINUX_IOPORT_H */
+diff -puN include/linux/memory_hotplug.h~walk-system-ram-range include/linux/memory_hotplug.h
+--- a/include/linux/memory_hotplug.h~walk-system-ram-range
++++ a/include/linux/memory_hotplug.h
+@@ -191,14 +191,6 @@ static inline void register_page_bootmem
+ 
+ #endif /* ! CONFIG_MEMORY_HOTPLUG */
+ 
+-/*
+- * Walk through all memory which is registered as resource.
+- * arg is (start_pfn, nr_pages, private_arg_pointer)
+- */
+-extern int walk_memory_resource(unsigned long start_pfn,
+-			unsigned long nr_pages, void *arg,
+-			int (*func)(unsigned long, unsigned long, void *));
+-
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+ 
+ extern int is_mem_section_removable(unsigned long pfn, unsigned long nr_pages);
+diff -puN kernel/resource.c~walk-system-ram-range kernel/resource.c
+--- a/kernel/resource.c~walk-system-ram-range
++++ a/kernel/resource.c
+@@ -223,13 +223,13 @@ int release_resource(struct resource *ol
+ 
+ EXPORT_SYMBOL(release_resource);
+ 
+-#if defined(CONFIG_MEMORY_HOTPLUG) && !defined(CONFIG_ARCH_HAS_WALK_MEMORY)
++#if !defined(CONFIG_ARCH_HAS_WALK_MEMORY)
+ /*
+  * Finds the lowest memory reosurce exists within [res->start.res->end)
+- * the caller must specify res->start, res->end, res->flags.
++ * the caller must specify res->start, res->end, res->flags and "name".
+  * If found, returns 0, res is overwritten, if not found, returns -1.
+  */
+-static int find_next_system_ram(struct resource *res)
++static int find_next_system_ram(struct resource *res, char *name)
+ {
+ 	resource_size_t start, end;
+ 	struct resource *p;
+@@ -245,6 +245,8 @@ static int find_next_system_ram(struct r
+ 		/* system ram is just marked as IORESOURCE_MEM */
+ 		if (p->flags != res->flags)
+ 			continue;
++		if (name && strcmp(p->name, name))
++			continue;
+ 		if (p->start > end) {
+ 			p = NULL;
+ 			break;
+@@ -262,19 +264,26 @@ static int find_next_system_ram(struct r
+ 		res->end = p->end;
  	return 0;
  }
+-int
+-walk_memory_resource(unsigned long start_pfn, unsigned long nr_pages, void *arg,
+-			int (*func)(unsigned long, unsigned long, void *))
++
++/*
++ * This function calls callback against all memory range of "System RAM"
++ * which are marked as IORESOURCE_MEM and IORESOUCE_BUSY.
++ * Now, this function is only for "System RAM".
++ */
++int walk_system_ram_range(unsigned long start_pfn, unsigned long nr_pages,
++		void *arg, int (*func)(unsigned long, unsigned long, void *))
+ {
+ 	struct resource res;
+ 	unsigned long pfn, len;
+ 	u64 orig_end;
+ 	int ret = -1;
++
+ 	res.start = (u64) start_pfn << PAGE_SHIFT;
+ 	res.end = ((u64)(start_pfn + nr_pages) << PAGE_SHIFT) - 1;
+ 	res.flags = IORESOURCE_MEM | IORESOURCE_BUSY;
+ 	orig_end = res.end;
+-	while ((res.start < res.end) && (find_next_system_ram(&res) >= 0)) {
++	while ((res.start < res.end) &&
++		(find_next_system_ram(&res, "System RAM") >= 0)) {
+ 		pfn = (unsigned long)(res.start >> PAGE_SHIFT);
+ 		len = (unsigned long)((res.end + 1 - res.start) >> PAGE_SHIFT);
+ 		ret = (*func)(pfn, len, arg);
+diff -puN mm/memory_hotplug.c~walk-system-ram-range mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~walk-system-ram-range
++++ a/mm/memory_hotplug.c
+@@ -410,7 +410,7 @@ int online_pages(unsigned long pfn, unsi
+ 	if (!populated_zone(zone))
+ 		need_zonelists_rebuild = 1;
  
--
- static const struct file_operations proc_kcore_operations = {
- 	.read		= read_kcore,
- 	.open		= open_kcore,
+-	ret = walk_memory_resource(pfn, nr_pages, &onlined_pages,
++	ret = walk_system_ram_range(pfn, nr_pages, &onlined_pages,
+ 		online_pages_range);
+ 	if (ret) {
+ 		printk(KERN_DEBUG "online_pages %lx at %lx failed\n",
+@@ -702,7 +702,7 @@ offline_isolated_pages_cb(unsigned long 
+ static void
+ offline_isolated_pages(unsigned long start_pfn, unsigned long end_pfn)
+ {
+-	walk_memory_resource(start_pfn, end_pfn - start_pfn, NULL,
++	walk_system_ram_range(start_pfn, end_pfn - start_pfn, NULL,
+ 				offline_isolated_pages_cb);
+ }
+ 
+@@ -728,7 +728,7 @@ check_pages_isolated(unsigned long start
+ 	long offlined = 0;
+ 	int ret;
+ 
+-	ret = walk_memory_resource(start_pfn, end_pfn - start_pfn, &offlined,
++	ret = walk_system_ram_range(start_pfn, end_pfn - start_pfn, &offlined,
+ 			check_pages_isolated_cb);
+ 	if (ret < 0)
+ 		offlined = (long)ret;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
-origin.patch
-mmc-add-the-new-linux-mmc-mailing-list-to-maintainers.patch
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-amdc-fix-x86_64-allnoconfig-build.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-video-initial-support-for-adv7180-update-fix.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-checkincludespl-add-option-to-remove-duplicates-in-place.patch
-leds-gpio-leds-fix-typographics-fault.patch
-leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio.patch
-slram-read-buffer-overflow.patch
-zorro8390-fix-read-buffer-overflow-in-zorro8390_init_one-checkpatch-fixes.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-serial167-fix-read-buffer-overflow.patch
-waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes-checkpatch-fixes.patch
-drivers-usb-gadget-s3c2410_udcc-fix.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
-vfs-optimize-touch_time-too.patch
-revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
-mm-make-swap-token-dummies-static-inlines-fix.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
+mm-revert-oom-move-oom_adj-value.patch
+mm-clean-up-page_remove_rmap.patch
+vmscan-throttle-direct-reclaim-when-too-many-pages-are-isolated-already.patch
+mm-remove-__addsub_zone_page_state.patch
 vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
-ummunotify-userspace-support-for-mmu-notifications-v3-fix.patch
-arches-drop-superfluous-casts-in-nr_free_pages-callers-checkpatch-fixes.patch
-tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
-generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
-proc-connector-add-event-for-process-becoming-session-leader.patch
-kernel-smpc-relocate-some-code.patch
-mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
-sdio-add-cd-disable-support-cleanup.patch
-procfs-provide-stack-information-for-threads-v011-fix.patch
-kcore-use-registerd-physmem-information-checkpatch-fixes.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
-rtc-philips-nxp-pcf2123-driver-v03-fix.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes-fix.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
-drivers-video-add-kmalloc-null-tests-fix.patch
-v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
+ksm-add-mmu_notifier-set_pte_at_notify.patch
+ksm-first-tidy-up-madvise_vma.patch
+ksm-define-madv_mergeable-and-madv_unmergeable.patch
+ksm-the-mm-interface-to-ksm.patch
+ksm-no-debug-in-page_dup_rmap.patch
+ksm-identify-pageksm-pages.patch
+ksm-kernel-samepage-merging.patch
+ksm-prevent-mremap-move-poisoning.patch
+ksm-change-copyright-message.patch
+ksm-change-ksm-nice-level-to-be-5.patch
+vmalloc-unmap-vmalloc-area-after-hiding-it.patch
+kcore-fix-vread-vwrite-to-be-aware-of-holes.patch
+kcore-fix-vread-vwrite-to-be-aware-of-holes-update.patch
+kcore-proc-kcore-should-use-vread.patch
+mm-add_to_swap_cache-must-not-sleep.patch
+mm-add_to_swap_cache-does-not-return-eexist.patch
+kcore-fix-proc-kcores-statst_size.patch
+kcore-use-usual-list-for-kclist.patch
+kcore-add-kclist-type.patch
+kcore-register-vmalloc-area-in-generic-way.patch
+kcore-register-text-area-in-generic-way.patch
+walk-system-ram-range.patch
+kcore-use-registerd-physmem-information.patch
+cgroups-support-named-cgroups-hierarchies.patch
+cgroups-move-the-cgroup-debug-subsys-into-cgroupc-to-access-internal-state.patch
+cgroups-add-a-back-pointer-from-struct-cg_cgroup_link-to-struct-cgroup.patch
+cgroups-allow-cgroup-hierarchies-to-be-created-with-no-bound-subsystems.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup.patch
 memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup-fix-2.patch
+memcg-add-comments-explaining-memory-barriers.patch
 memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
+memory-controller-soft-limit-documentation-v9.patch
+memory-controller-soft-limit-interface-v9.patch
+memory-controller-soft-limit-organize-cgroups-v9.patch
+memory-controller-soft-limit-organize-cgroups-v9-fix.patch
+memory-controller-soft-limit-refactor-reclaim-flags-v9.patch
+memory-controller-soft-limit-reclaim-on-contention-v9.patch
 memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
-memcg-improve-resource-counter-scalability-checkpatch-fixes.patch
-exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
-exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
-elf-clean-up-fill_note_info-fix.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+memcg-improve-resource-counter-scalability.patch
+memcg-improve-resource-counter-scalability-v5.patch
 
