@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + kcore-register-text-area-in-generic-way.patch added to -mm tree
-Date: Mon, 17 Aug 2009 14:25:59 -0700
-Message-ID: <200908172126.n7HLQ0pC029305@imap1.linux-foundation.org>
+Subject: + kcore-register-vmalloc-area-in-generic-way.patch added to -mm tree
+Date: Mon, 17 Aug 2009 14:25:57 -0700
+Message-ID: <200908172125.n7HLPvQh029302@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50926 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51049 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753714AbZHQV1G (ORCPT
+	by vger.kernel.org with ESMTP id S1753931AbZHQV1G (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 17 Aug 2009 17:27:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kamezawa.hiroyu@jp.fujitsu.com, benh@kernel.crashing.org, ralf@linux-mips.or
 
 
 The patch titled
-     kcore: register text area in generic way
+     kcore: register vmalloc area in generic way
 has been added to the -mm tree.  Its filename is
-     kcore-register-text-area-in-generic-way.patch
+     kcore-register-vmalloc-area-in-generic-way.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,19 +34,13 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kcore: register text area in generic way
+Subject: kcore: register vmalloc area in generic way
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Some 64bit arch has special segment for mapping kernel text.  It should be
-entried to /proc/kcore in addtion to direct-linear-map, vmalloc area. 
-This patch unifies KCORE_TEXT entry scattered under x86 and ia64.
-
-I'm not familiar with other archs (mips has its own even after this patch)
-but range of [_stext ..._end) is a valid area of text and it's not in
-direct-map area, defining CONFIG_ARCH_PROC_KCORE_TEXT is only a necessary
-thing to do.
-
-Note: I left mips as it is now.
+For /proc/kcore, vmalloc areas are registered per arch.  But, all of them
+registers same range of [VMALLOC_START...VMALLOC_END) This patch unifies
+them.  By this.  archs which have no kclist_add() hooks can see vmalloc
+area correctly.
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Ralf Baechle <ralf@linux-mips.org>
@@ -55,120 +49,185 @@ Cc: WANG Cong <xiyou.wangcong@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/Kconfig     |    4 ++++
- arch/ia64/mm/init.c   |    2 --
- arch/x86/Kconfig      |    4 ++++
- arch/x86/mm/init_64.c |    4 +---
- fs/proc/kcore.c       |   19 ++++++++++++++++++-
- 5 files changed, 27 insertions(+), 6 deletions(-)
+ arch/ia64/mm/init.c       |    7 +------
+ arch/mips/mm/init.c       |    4 +---
+ arch/powerpc/mm/init_32.c |    4 ----
+ arch/powerpc/mm/init_64.c |    4 ----
+ arch/sh/mm/init.c         |    4 +---
+ arch/x86/mm/init_32.c     |    4 +---
+ arch/x86/mm/init_64.c     |    4 +---
+ fs/proc/kcore.c           |    5 +++++
+ 8 files changed, 10 insertions(+), 26 deletions(-)
 
-diff -puN arch/ia64/Kconfig~kcore-register-text-area-in-generic-way arch/ia64/Kconfig
---- a/arch/ia64/Kconfig~kcore-register-text-area-in-generic-way
-+++ a/arch/ia64/Kconfig
-@@ -496,6 +496,10 @@ config HAVE_ARCH_NODEDATA_EXTENSION
- 	def_bool y
- 	depends on NUMA
- 
-+config ARCH_PROC_KCORE_TEXT
-+	def_bool y
-+	depends on PROC_KCORE
-+
- config IA32_SUPPORT
- 	bool "Support for Linux/x86 binaries"
- 	help
-diff -puN arch/ia64/mm/init.c~kcore-register-text-area-in-generic-way arch/ia64/mm/init.c
---- a/arch/ia64/mm/init.c~kcore-register-text-area-in-generic-way
+diff -puN arch/ia64/mm/init.c~kcore-register-vmalloc-area-in-generic-way arch/ia64/mm/init.c
+--- a/arch/ia64/mm/init.c~kcore-register-vmalloc-area-in-generic-way
 +++ a/arch/ia64/mm/init.c
-@@ -617,7 +617,6 @@ mem_init (void)
+@@ -617,7 +617,7 @@ mem_init (void)
  	long reserved_pages, codesize, datasize, initsize;
  	pg_data_t *pgdat;
  	int i;
--	static struct kcore_list kcore_kernel;
+-	static struct kcore_list kcore_mem, kcore_vmem, kcore_kernel;
++	static struct kcore_list kcore_kernel;
  
  	BUG_ON(PTRS_PER_PGD * sizeof(pgd_t) != PAGE_SIZE);
  	BUG_ON(PTRS_PER_PMD * sizeof(pmd_t) != PAGE_SIZE);
-@@ -637,7 +636,6 @@ mem_init (void)
+@@ -636,12 +636,7 @@ mem_init (void)
+ 	BUG_ON(!mem_map);
  	max_mapnr = max_low_pfn;
  #endif
+-
  	high_memory = __va(max_low_pfn * PAGE_SIZE);
--	kclist_add(&kcore_kernel, _stext, _end - _stext, KCORE_TEXT);
+-
+-	kclist_add(&kcore_mem, __va(0), max_low_pfn * PAGE_SIZE, KCORE_RAM);
+-	kclist_add(&kcore_vmem, (void *)VMALLOC_START,
+-			VMALLOC_END-VMALLOC_START, KCORE_VMALLOC);
+ 	kclist_add(&kcore_kernel, _stext, _end - _stext, KCORE_TEXT);
  
  	for_each_online_pgdat(pgdat)
- 		if (pgdat->bdata->node_bootmem_map)
-diff -puN arch/x86/Kconfig~kcore-register-text-area-in-generic-way arch/x86/Kconfig
---- a/arch/x86/Kconfig~kcore-register-text-area-in-generic-way
-+++ a/arch/x86/Kconfig
-@@ -1250,6 +1250,10 @@ config ARCH_MEMORY_PROBE
- 	def_bool X86_64
- 	depends on MEMORY_HOTPLUG
+diff -puN arch/mips/mm/init.c~kcore-register-vmalloc-area-in-generic-way arch/mips/mm/init.c
+--- a/arch/mips/mm/init.c~kcore-register-vmalloc-area-in-generic-way
++++ a/arch/mips/mm/init.c
+@@ -352,7 +352,7 @@ void __init paging_init(void)
+ 	free_area_init_nodes(max_zone_pfns);
+ }
  
-+config ARCH_PROC_KCORE_TEXT
-+	def_bool y
-+	depends on X86_64 && PROC_KCORE
-+
- config ILLEGAL_POINTER_VALUE
-        hex
-        default 0 if X86_32
-diff -puN arch/x86/mm/init_64.c~kcore-register-text-area-in-generic-way arch/x86/mm/init_64.c
---- a/arch/x86/mm/init_64.c~kcore-register-text-area-in-generic-way
-+++ a/arch/x86/mm/init_64.c
-@@ -647,8 +647,7 @@ EXPORT_SYMBOL_GPL(memory_add_physaddr_to
+-static struct kcore_list kcore_mem, kcore_vmalloc;
++static struct kcore_list kcore_mem;
+ #ifdef CONFIG_64BIT
+ static struct kcore_list kcore_kseg0;
+ #endif
+@@ -413,8 +413,6 @@ void __init mem_init(void)
+ 				0x80000000 - 4, KCORE_TEXT);
+ #endif
+ 	kclist_add(&kcore_mem, __va(0), max_low_pfn << PAGE_SHIFT, KCORE_RAM);
+-	kclist_add(&kcore_vmalloc, (void *)VMALLOC_START,
+-		   VMALLOC_END-VMALLOC_START, KCORE_VMALLOC);
  
- #endif /* CONFIG_MEMORY_HOTPLUG */
+ 	printk(KERN_INFO "Memory: %luk/%luk available (%ldk kernel code, "
+ 	       "%ldk reserved, %ldk data, %ldk init, %ldk highmem)\n",
+diff -puN arch/powerpc/mm/init_32.c~kcore-register-vmalloc-area-in-generic-way arch/powerpc/mm/init_32.c
+--- a/arch/powerpc/mm/init_32.c~kcore-register-vmalloc-area-in-generic-way
++++ a/arch/powerpc/mm/init_32.c
+@@ -243,7 +243,6 @@ void free_initrd_mem(unsigned long start
+ #endif
  
--static struct kcore_list kcore_mem, kcore_kernel,
--			 kcore_modules, kcore_vsyscall;
-+static struct kcore_list kcore_mem, kcore_modules, kcore_vsyscall;
+ #ifdef CONFIG_PROC_KCORE
+-static struct kcore_list kcore_vmem;
+ 
+ static int __init setup_kcore(void)
+ {
+@@ -271,9 +270,6 @@ static int __init setup_kcore(void)
+ 		kclist_add(kcore_mem, __va(base), size, KCORE_RAM);
+ 	}
+ 
+-	kclist_add(&kcore_vmem, (void *)VMALLOC_START,
+-		VMALLOC_END-VMALLOC_START, KCORE_VMALLOC);
+-
+ 	return 0;
+ }
+ module_init(setup_kcore);
+diff -puN arch/powerpc/mm/init_64.c~kcore-register-vmalloc-area-in-generic-way arch/powerpc/mm/init_64.c
+--- a/arch/powerpc/mm/init_64.c~kcore-register-vmalloc-area-in-generic-way
++++ a/arch/powerpc/mm/init_64.c
+@@ -110,7 +110,6 @@ void free_initrd_mem(unsigned long start
+ #endif
+ 
+ #ifdef CONFIG_PROC_KCORE
+-static struct kcore_list kcore_vmem;
+ 
+ static int __init setup_kcore(void)
+ {
+@@ -131,9 +130,6 @@ static int __init setup_kcore(void)
+ 		kclist_add(kcore_mem, __va(base), size, KCORE_RAM);
+ 	}
+ 
+-	kclist_add(&kcore_vmem, (void *)VMALLOC_START,
+-		VMALLOC_END-VMALLOC_START, KCORE_VMALLOC);
+-
+ 	return 0;
+ }
+ module_init(setup_kcore);
+diff -puN arch/sh/mm/init.c~kcore-register-vmalloc-area-in-generic-way arch/sh/mm/init.c
+--- a/arch/sh/mm/init.c~kcore-register-vmalloc-area-in-generic-way
++++ a/arch/sh/mm/init.c
+@@ -181,7 +181,7 @@ void __init paging_init(void)
+ 	set_fixmap_nocache(FIX_UNCACHED, __pa(&__uncached_start));
+ }
+ 
+-static struct kcore_list kcore_mem, kcore_vmalloc;
++static struct kcore_list kcore_mem;
  
  void __init mem_init(void)
  {
-@@ -678,7 +677,6 @@ void __init mem_init(void)
+@@ -219,8 +219,6 @@ void __init mem_init(void)
+ 	initsize =  (unsigned long) &__init_end - (unsigned long) &__init_begin;
+ 
+ 	kclist_add(&kcore_mem, __va(0), max_low_pfn << PAGE_SHIFT, KCORE_RAM);
+-	kclist_add(&kcore_vmalloc, (void *)VMALLOC_START,
+-		   VMALLOC_END - VMALLOC_START, KCORE_VMALLOC);
+ 
+ 	printk(KERN_INFO "Memory: %luk/%luk available (%dk kernel code, "
+ 	       "%dk data, %dk init)\n",
+diff -puN arch/x86/mm/init_32.c~kcore-register-vmalloc-area-in-generic-way arch/x86/mm/init_32.c
+--- a/arch/x86/mm/init_32.c~kcore-register-vmalloc-area-in-generic-way
++++ a/arch/x86/mm/init_32.c
+@@ -857,7 +857,7 @@ static void __init test_wp_bit(void)
+ 	}
+ }
+ 
+-static struct kcore_list kcore_mem, kcore_vmalloc;
++static struct kcore_list kcore_mem;
+ 
+ void __init mem_init(void)
+ {
+@@ -887,8 +887,6 @@ void __init mem_init(void)
+ 	initsize =  (unsigned long) &__init_end - (unsigned long) &__init_begin;
+ 
+ 	kclist_add(&kcore_mem, __va(0), max_low_pfn << PAGE_SHIFT, KCORE_RAM);
+-	kclist_add(&kcore_vmalloc, (void *)VMALLOC_START,
+-		   VMALLOC_END-VMALLOC_START, KCORE_VMALLOC);
+ 
+ 	printk(KERN_INFO "Memory: %luk/%luk available (%dk kernel code, "
+ 			"%dk reserved, %dk data, %dk init, %ldk highmem)\n",
+diff -puN arch/x86/mm/init_64.c~kcore-register-vmalloc-area-in-generic-way arch/x86/mm/init_64.c
+--- a/arch/x86/mm/init_64.c~kcore-register-vmalloc-area-in-generic-way
++++ a/arch/x86/mm/init_64.c
+@@ -647,7 +647,7 @@ EXPORT_SYMBOL_GPL(memory_add_physaddr_to
+ 
+ #endif /* CONFIG_MEMORY_HOTPLUG */
+ 
+-static struct kcore_list kcore_mem, kcore_vmalloc, kcore_kernel,
++static struct kcore_list kcore_mem, kcore_kernel,
+ 			 kcore_modules, kcore_vsyscall;
+ 
+ void __init mem_init(void)
+@@ -678,8 +678,6 @@ void __init mem_init(void)
  
  	/* Register memory areas for /proc/kcore */
  	kclist_add(&kcore_mem, __va(0), max_low_pfn << PAGE_SHIFT, KCORE_RAM);
--	kclist_add(&kcore_kernel, &_stext, _end - _stext, KCORE_TEXT);
+-	kclist_add(&kcore_vmalloc, (void *)VMALLOC_START,
+-		   VMALLOC_END-VMALLOC_START, KCORE_VMALLOC);
+ 	kclist_add(&kcore_kernel, &_stext, _end - _stext, KCORE_TEXT);
  	kclist_add(&kcore_modules, (void *)MODULES_VADDR, MODULES_LEN,
  			KCORE_OTHER);
- 	kclist_add(&kcore_vsyscall, (void *)VSYSCALL_START,
-diff -puN fs/proc/kcore.c~kcore-register-text-area-in-generic-way fs/proc/kcore.c
---- a/fs/proc/kcore.c~kcore-register-text-area-in-generic-way
+diff -puN fs/proc/kcore.c~kcore-register-vmalloc-area-in-generic-way fs/proc/kcore.c
+--- a/fs/proc/kcore.c~kcore-register-vmalloc-area-in-generic-way
 +++ a/fs/proc/kcore.c
-@@ -21,6 +21,7 @@
- #include <asm/uaccess.h>
- #include <asm/io.h>
- #include <linux/list.h>
-+#include <asm/sections.h>
+@@ -372,9 +372,14 @@ read_kcore(struct file *file, char __use
+ 	return acc;
+ }
  
- #define CORE_STR "CORE"
- 
-@@ -374,10 +375,26 @@ read_kcore(struct file *file, char __use
- 
- static struct kcore_list kcore_vmalloc;
- 
-+#ifdef CONFIG_ARCH_PROC_KCORE_TEXT
-+static struct kcore_list kcore_text;
-+/*
-+ * If defined, special segment is used for mapping kernel text instead of
-+ * direct-map area. We need to create special TEXT section.
-+ */
-+static void __init proc_kcore_text_init(void)
-+{
-+	kclist_add(&kcore_text, _stext, _end - _stext, KCORE_TEXT);
-+}
-+#else
-+static void __init proc_kcore_text_init(void)
-+{
-+}
-+#endif
++static struct kcore_list kcore_vmalloc;
 +
  static int __init proc_kcore_init(void)
  {
  	proc_root_kcore = proc_create("kcore", S_IRUSR, NULL, &proc_kcore_operations);
--
-+	proc_kcore_text_init();
- 	kclist_add(&kcore_vmalloc, (void *)VMALLOC_START,
- 		VMALLOC_END - VMALLOC_START, KCORE_VMALLOC);
++
++	kclist_add(&kcore_vmalloc, (void *)VMALLOC_START,
++		VMALLOC_END - VMALLOC_START, KCORE_VMALLOC);
  	return 0;
+ }
+ module_init(proc_kcore_init);
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
