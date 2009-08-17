@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + misdn-fix-reversed-if-in-st_own_ctrl.patch added to -mm tree
-Date: Mon, 17 Aug 2009 15:29:27 -0700
-Message-ID: <200908172229.n7HMTRlh010299@imap1.linux-foundation.org>
+Subject: + sdio-fix-read-buffer-overflow.patch added to -mm tree
+Date: Mon, 17 Aug 2009 15:32:56 -0700
+Message-ID: <200908172232.n7HMWuEO016403__2764.64817948199$1250548399$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58681 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48754 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750991AbZHQW3b (ORCPT
+	by vger.kernel.org with ESMTP id S1750991AbZHQWdE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Aug 2009 18:29:31 -0400
+	Mon, 17 Aug 2009 18:33:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: error27@gmail.com, isdn@linux-pingi.de
+Cc: roel.kluin@gmail.com, david.vrabel@csr.com, linux-mmc@vger.kernel.org
 
 
 The patch titled
-     mISDN: fix reversed if in st_own_ctrl()
+     sdio: fix read buffer overflow
 has been added to the -mm tree.  Its filename is
-     misdn-fix-reversed-if-in-st_own_ctrl.patch
+     sdio-fix-read-buffer-overflow.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,72 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mISDN: fix reversed if in st_own_ctrl()
-From: Dan Carpenter <error27@gmail.com>
+Subject: sdio: fix read buffer overflow
+From: Roel Kluin <roel.kluin@gmail.com>
 
-The current code probably returns -EINVAL a lot.  Otherwise it would oops.
+Avoid buffer underrun when parsing an invalid CISTPL_VERS_1.
 
-Compile tested only.  Found by smatch (http://repo.or.cz/w/smatch.git).
-
-Signed-off-by: Dan Carpenter <error27@gmail.com>
-Cc: Karsten Keil <isdn@linux-pingi.de>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: David Vrabel <david.vrabel@csr.com>
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/mISDN/stack.c |    2 +-
+ drivers/mmc/core/sdio_cis.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/isdn/mISDN/stack.c~misdn-fix-reversed-if-in-st_own_ctrl drivers/isdn/mISDN/stack.c
---- a/drivers/isdn/mISDN/stack.c~misdn-fix-reversed-if-in-st_own_ctrl
-+++ a/drivers/isdn/mISDN/stack.c
-@@ -364,7 +364,7 @@ add_layer2(struct mISDNchannel *ch, stru
- static int
- st_own_ctrl(struct mISDNchannel *ch, u_int cmd, void *arg)
- {
--	if (!ch->st || ch->st->layer1)
-+	if (!ch->st || !ch->st->layer1)
- 		return -EINVAL;
- 	return ch->st->layer1->ctrl(ch->st->layer1, cmd, arg);
- }
+diff -puN drivers/mmc/core/sdio_cis.c~sdio-fix-read-buffer-overflow drivers/mmc/core/sdio_cis.c
+--- a/drivers/mmc/core/sdio_cis.c~sdio-fix-read-buffer-overflow
++++ a/drivers/mmc/core/sdio_cis.c
+@@ -40,7 +40,7 @@ static int cistpl_vers_1(struct mmc_card
+ 			nr_strings++;
+ 	}
+ 
+-	if (buf[i-1] != '\0') {
++	if (nr_strings < 4) {
+ 		printk(KERN_WARNING "SDIO: ignoring broken CISTPL_VERS_1\n");
+ 		return 0;
+ 	}
 _
 
-Patches currently in -mm which might be from error27@gmail.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
+origin.patch
 linux-next.patch
-misdn-fix-reversed-if-in-st_own_ctrl.patch
-drivers-char-rio-rioctrlc-off-by-one-error-in-rioctrlc.patch
+s3c-fix-check-of-index-into-s3c_gpios.patch
+stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
+dm-strncpy-does-not-null-terminate-string.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+powerpc-avoid-calculating-possibly-invalid-address.patch
+drm-i915-intel_sdvo_multifunc_encoder-sdvo_output_svid0-tested-twice.patch
+mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
+slram-read-buffer-overflow.patch
+mtd-fix-read-buffer-overflow.patch
+hfc_usb-fix-read-buffer-overflow.patch
+zorro8390-fix-read-buffer-overflow-in-zorro8390_init_one-checkpatch-fixes.patch
+cyclades-read-buffer-overflow.patch
+serial167-fix-read-buffer-overflow.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+blackfin-fix-read-buffer-overflow.patch
+arch-alpha-boot-tools-objstripc-wrong-variable-tested-after-open.patch
+m32r-remove-redundant-tests-on-unsigned.patch
+m68k-count-can-reach-51-not-50.patch
+m68k-cnt-reaches-1-not-0.patch
+dme1737-keep-index-within-pwm_config.patch
+sdio-fix-read-buffer-overflow.patch
+ncpfs-read-buffer-overflow.patch
+smbfs-read-buffer-overflow.patch
+platinumfb-misplaced-parenthesis.patch
+sisfb-read-buffer-overflow.patch
+drivers-video-console-newport_conc-fix-read-outside-array-bounds.patch
+mwave-fix-read-buffer-overflow.patch
+adfs-remove-redundant-test-on-unsigned.patch
 
