@@ -1,83 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [merged] usb-otg-fix-twl4030-usb-build.patch removed from -mm tree
-Date: Mon, 17 Aug 2009 13:05:02 -0700
-Message-ID: <200908172005.n7HK52A2017733@imap1.linux-foundation.org>
+Subject: + jbd2h-bitfields-should-be-unsigned.patch added to -mm tree
+Date: Mon, 17 Aug 2009 14:08:49 -0700
+Message-ID: <200908172108.n7HL8nug031731@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44955 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52782 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752477AbZHQULw (ORCPT
+	by vger.kernel.org with ESMTP id S1758084AbZHQVJY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Aug 2009 16:11:52 -0400
+	Mon, 17 Aug 2009 17:09:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, felipe.balbi@nokia.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: hartleys@visionengravers.com, hsweeten@visionengravers.com, jack@ucw.cz, tytso@mit.edu
 
 
 The patch titled
-     usb/otg: fix twl4030-usb build
-has been removed from the -mm tree.  Its filename was
-     usb-otg-fix-twl4030-usb-build.patch
+     jbd2.h: bitfields should be unsigned
+has been added to the -mm tree.  Its filename is
+     jbd2h-bitfields-should-be-unsigned.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb/otg: fix twl4030-usb build
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: jbd2.h: bitfields should be unsigned
+From: H Hartley Sweeten <hartleys@visionengravers.com>
 
-subsys_initcall_sync() is only defined for built-in code, not for loadable
-modules, so this driver build fails when built as a module.  However, the
-_sync() forms of the initcalls are not implemented, so this should not be
-used -- just use the non-sync form of it.
+bitfields should be unsigned.
 
-drivers/usb/otg/twl4030-usb.c:777: warning: data definition has no type or storage class
-drivers/usb/otg/twl4030-usb.c:777: warning: type defaults to 'int' in declaration of 'subsys_initcall_sync'
-drivers/usb/otg/twl4030-usb.c:777: warning: parameter names (without types) in function declaration
+This fixes sparse noise:
+  error: dubious one-bit signed bitfield
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Felipe Balbi <felipe.balbi@nokia.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: H Hartley Sweeten <hsweeten@visionengravers.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: Jan Kara <jack@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/otg/twl4030-usb.c |    2 +-
+ include/linux/jbd2.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/usb/otg/twl4030-usb.c~usb-otg-fix-twl4030-usb-build drivers/usb/otg/twl4030-usb.c
---- a/drivers/usb/otg/twl4030-usb.c~usb-otg-fix-twl4030-usb-build
-+++ a/drivers/usb/otg/twl4030-usb.c
-@@ -774,7 +774,7 @@ static int __init twl4030_usb_init(void)
- {
- 	return platform_driver_register(&twl4030_usb_driver);
- }
--subsys_initcall_sync(twl4030_usb_init);
-+subsys_initcall(twl4030_usb_init);
+diff -puN include/linux/jbd.h~jbd2h-bitfields-should-be-unsigned include/linux/jbd.h
+diff -puN include/linux/jbd2.h~jbd2h-bitfields-should-be-unsigned include/linux/jbd2.h
+--- a/include/linux/jbd2.h~jbd2h-bitfields-should-be-unsigned
++++ a/include/linux/jbd2.h
+@@ -652,7 +652,7 @@ struct transaction_s
+ 	 * This transaction is being forced and some process is
+ 	 * waiting for it to finish.
+ 	 */
+-	int t_synchronous_commit:1;
++	unsigned int t_synchronous_commit:1;
  
- static void __exit twl4030_usb_exit(void)
- {
+ 	/*
+ 	 * For use by the filesystem to store fs-specific data
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from hartleys@visionengravers.com are
 
-origin.patch
 linux-next.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-kernel-hacking-move-strip_asm_syms-from-general.patch
-mtd-make-onenand-genericc-more-generic-fix.patch
-isdn-fix-netjet-build-errors.patch
-mm-make-swap-token-dummies-static-inlines-fix-2.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-page_alloc-fix-kernel-doc-warning.patch
-ksm-add-some-documentation.patch
-lis3-add-power-management-functions-fix.patch
-procfs-provide-stack-information-for-threads-v011-fix.patch
-spih-add-missing-kernel-doc-for-struct-spi_master.patch
-gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links-update-fix.patch
-doc-filesystems-remove-smount-program.patch
-doc-filesystems-more-mount-cleanups.patch
-documentation-update-stale-definition-of-file-nr-in-fstxt.patch
-includecheck-fix-documentation-cfag12864b-examplec.patch
-reiser4-export-remove_from_page_cache-fix.patch
+mtd-sst25l-non-jedec-spi-flash-driver.patch
+drivers-mtd-mtdcorec-make-symbols-static.patch
+jbd2h-bitfields-should-be-unsigned.patch
+gpio-include-linux-gpioh-not-asm-gpioh.patch
+atyfb-coding-style-cleanup.patch
+jbdh-bitfields-should-be-unsigned.patch
 
