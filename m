@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-85xx-add-esdhc-support-for-mpc8536ds-boards.patch added to -mm tree
-Date: Mon, 17 Aug 2009 16:09:17 -0700
-Message-ID: <200908172309.n7HN9Imj015141@imap1.linux-foundation.org>
+Subject: + sdhci-of-avoid-writing-reserved-bits-into-host-control-register.patch added to -mm tree
+Date: Mon, 17 Aug 2009 16:09:04 -0700
+Message-ID: <200908172309.n7HN94Cp014704__32041.6555078284$1250550825$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34409 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42003 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757830AbZHQXNT (ORCPT
+	by vger.kernel.org with ESMTP id S1752336AbZHQXNK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Aug 2009 19:13:19 -0400
+	Mon, 17 Aug 2009 19:13:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: avorontsov@ru.mvista.com, ben@fluff.org, benh@kernel.crashing.org, david.vrabel@csr.com, galak@kernel.crashing.org, linux-mmc@vger.kernel.org, pierre@ossman.eu, s.hauer@pengutronix.de
+Cc: avorontsov@ru.mvista.com, ben@fluff.org, david.vrabel@csr.com, galak@kernel.crashing.org, linux-mmc@vger.kernel.org, pierre@ossman.eu, s.hauer@pengutronix.de
 
 
 The patch titled
-     powerpc/85xx: add eSDHC support for MPC8536DS boards
+     sdhci-of: avoid writing reserved bits into host control register
 has been added to the -mm tree.  Its filename is
-     powerpc-85xx-add-esdhc-support-for-mpc8536ds-boards.patch
+     sdhci-of-avoid-writing-reserved-bits-into-host-control-register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,15 +34,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc/85xx: add eSDHC support for MPC8536DS boards
+Subject: sdhci-of: avoid writing reserved bits into host control register
 From: Anton Vorontsov <avorontsov@ru.mvista.com>
 
-This patch simply adds sdhci node to the device tree.
-
-We specify clock-frequency manually, so that eSDHC will work without
-upgrading U-Boot.  Though, that'll only work for default setup (1500 MHz)
-on new board revisions.  For non-default setups, it's recommended to
-upgrade U-Boot, since it will fixup clock-frequency automatically.
+SDHCI core tries to write HISPD bit into the host control register, but
+the eSDHC controllers don't have that bit, and that causes all sorts of
+misbehaviour when using 4-bit mode capable SD cards.
 
 Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
 Cc: Pierre Ossman <pierre@ossman.eu>
@@ -50,32 +47,36 @@ Cc: Kumar Gala <galak@kernel.crashing.org>
 Cc: David Vrabel <david.vrabel@csr.com>
 Cc: Ben Dooks <ben@fluff.org>
 Cc: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/boot/dts/mpc8536ds.dts |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/mmc/host/sdhci-of.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN arch/powerpc/boot/dts/mpc8536ds.dts~powerpc-85xx-add-esdhc-support-for-mpc8536ds-boards arch/powerpc/boot/dts/mpc8536ds.dts
---- a/arch/powerpc/boot/dts/mpc8536ds.dts~powerpc-85xx-add-esdhc-support-for-mpc8536ds-boards
-+++ a/arch/powerpc/boot/dts/mpc8536ds.dts
-@@ -250,6 +250,14 @@
- 			phy_type = "ulpi";
- 		};
+diff -puN drivers/mmc/host/sdhci-of.c~sdhci-of-avoid-writing-reserved-bits-into-host-control-register drivers/mmc/host/sdhci-of.c
+--- a/drivers/mmc/host/sdhci-of.c~sdhci-of-avoid-writing-reserved-bits-into-host-control-register
++++ a/drivers/mmc/host/sdhci-of.c
+@@ -48,6 +48,8 @@ struct sdhci_of_host {
+ #define ESDHC_CLOCK_HCKEN	0x00000002
+ #define ESDHC_CLOCK_IPGEN	0x00000001
  
-+		sdhci@2e000 {
-+			compatible = "fsl,mpc8536-esdhc", "fsl,esdhc";
-+			reg = <0x2e000 0x1000>;
-+			interrupts = <72 0x2>;
-+			interrupt-parent = <&mpic>;
-+			clock-frequency = <250000000>;
-+		};
++#define ESDHC_HOST_CONTROL_RES	0x05
 +
- 		serial0: serial@4500 {
- 			cell-index = <0>;
- 			device_type = "serial";
+ static u32 esdhc_readl(struct sdhci_host *host, int reg)
+ {
+ 	return in_be32(host->ioaddr + reg);
+@@ -109,6 +111,10 @@ static void esdhc_writeb(struct sdhci_ho
+ 	int base = reg & ~0x3;
+ 	int shift = (reg & 0x3) * 8;
+ 
++	/* Prevent SDHCI core from writing reserved bits (e.g. HISPD). */
++	if (reg == SDHCI_HOST_CONTROL)
++		val &= ~ESDHC_HOST_CONTROL_RES;
++
+ 	clrsetbits_be32(host->ioaddr + base , 0xff << shift, val << shift);
+ }
+ 
 _
 
 Patches currently in -mm which might be from avorontsov@ru.mvista.com are
