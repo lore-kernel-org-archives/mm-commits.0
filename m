@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sdio-fix-read-buffer-overflow.patch added to -mm tree
-Date: Mon, 17 Aug 2009 15:32:56 -0700
-Message-ID: <200908172232.n7HMWuEO016403__2764.64817948199$1250548399$gmane$org@imap1.linux-foundation.org>
+Subject: + reporting-bugs-add-get_maintainerpl-blurb.patch added to -mm tree
+Date: Mon, 17 Aug 2009 15:42:25 -0700
+Message-ID: <200908172242.n7HMgPt6000639@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48754 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43589 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750991AbZHQWdE (ORCPT
+	by vger.kernel.org with ESMTP id S1751679AbZHQWm4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Aug 2009 18:33:04 -0400
+	Mon, 17 Aug 2009 18:42:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, david.vrabel@csr.com, linux-mmc@vger.kernel.org
+Cc: joe@perches.com
 
 
 The patch titled
-     sdio: fix read buffer overflow
+     REPORTING-BUGS: add get_maintainer.pl blurb
 has been added to the -mm tree.  Its filename is
-     sdio-fix-read-buffer-overflow.patch
+     reporting-bugs-add-get_maintainerpl-blurb.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,72 +34,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sdio: fix read buffer overflow
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: REPORTING-BUGS: add get_maintainer.pl blurb
+From: Joe Perches <joe@perches.com>
 
-Avoid buffer underrun when parsing an invalid CISTPL_VERS_1.
-
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: David Vrabel <david.vrabel@csr.com>
-Cc: <linux-mmc@vger.kernel.org>
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/sdio_cis.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ REPORTING-BUGS |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/mmc/core/sdio_cis.c~sdio-fix-read-buffer-overflow drivers/mmc/core/sdio_cis.c
---- a/drivers/mmc/core/sdio_cis.c~sdio-fix-read-buffer-overflow
-+++ a/drivers/mmc/core/sdio_cis.c
-@@ -40,7 +40,7 @@ static int cistpl_vers_1(struct mmc_card
- 			nr_strings++;
- 	}
+diff -puN REPORTING-BUGS~reporting-bugs-add-get_maintainerpl-blurb REPORTING-BUGS
+--- a/REPORTING-BUGS~reporting-bugs-add-get_maintainerpl-blurb
++++ a/REPORTING-BUGS
+@@ -15,7 +15,10 @@ worry too much about getting the wrong p
+ to the person responsible for the code relevant to what you were doing.
+ If it occurs repeatably try and describe how to recreate it. That is
+ worth even more than the oops itself.  The list of maintainers and
+-mailing lists is in the MAINTAINERS file in this directory.
++mailing lists is in the MAINTAINERS file in this directory.  If you
++know the file name that causes the problem you can use the following
++command in this directory to find some of the maintainers of that file:
++     perl scripts/get_maintainer.pl -f <filename>
  
--	if (buf[i-1] != '\0') {
-+	if (nr_strings < 4) {
- 		printk(KERN_WARNING "SDIO: ignoring broken CISTPL_VERS_1\n");
- 		return 0;
- 	}
+       If it is a security bug, please copy the Security Contact listed
+ in the MAINTAINERS file.  They can help coordinate bugfix and disclosure.
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-origin.patch
+maintainers-osd-library-and-filesystem-pattern-fix.patch
+reporting-bugs-add-get_maintainerpl-blurb.patch
 linux-next.patch
-s3c-fix-check-of-index-into-s3c_gpios.patch
-stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
-dm-strncpy-does-not-null-terminate-string.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-powerpc-avoid-calculating-possibly-invalid-address.patch
-drm-i915-intel_sdvo_multifunc_encoder-sdvo_output_svid0-tested-twice.patch
-mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
-slram-read-buffer-overflow.patch
-mtd-fix-read-buffer-overflow.patch
-hfc_usb-fix-read-buffer-overflow.patch
-zorro8390-fix-read-buffer-overflow-in-zorro8390_init_one-checkpatch-fixes.patch
-cyclades-read-buffer-overflow.patch
-serial167-fix-read-buffer-overflow.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-blackfin-fix-read-buffer-overflow.patch
-arch-alpha-boot-tools-objstripc-wrong-variable-tested-after-open.patch
-m32r-remove-redundant-tests-on-unsigned.patch
-m68k-count-can-reach-51-not-50.patch
-m68k-cnt-reaches-1-not-0.patch
-dme1737-keep-index-within-pwm_config.patch
-sdio-fix-read-buffer-overflow.patch
-ncpfs-read-buffer-overflow.patch
-smbfs-read-buffer-overflow.patch
-platinumfb-misplaced-parenthesis.patch
-sisfb-read-buffer-overflow.patch
-drivers-video-console-newport_conc-fix-read-outside-array-bounds.patch
-mwave-fix-read-buffer-overflow.patch
-adfs-remove-redundant-test-on-unsigned.patch
+maintainers-add-ipvs-include-files.patch
+scripts-get_maintainerpl-add-git-blame.patch
+scripts-get_maintainerpl-add-sections-in-pattern-match-depth-order.patch
+scripts-get_maintainerpl-add-pattern-depth.patch
+scripts-get_maintainerpl-better-email-routines-use-perl-not-shell-where-possible.patch
+scripts-get_maintainerpl-add-mailmap-use-shell-and-email-cleanups.patch
+scripts-get_maintainerpl-using-separator-implies-nomultiline.patch
+scripts-get_maintainerpl-add-remove-duplicates.patch
+mmc-msm_sdccc-driver-for-htc-dream.patch
+msm_sdccc-convert-printkkern_level-to-pr_level.patch
+msm_sdccc-stylistic-cleaning.patch
+msm_sdccc-move-overly-indented-code-to-separate-function.patch
+maintainers-add-matt-mackall-and-herbert-xu-to-hardware-random-number-generator.patch
 
