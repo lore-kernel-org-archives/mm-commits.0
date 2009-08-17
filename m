@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mtd-prevent-a-read-from-regions.patch added to -mm tree
-Date: Mon, 17 Aug 2009 16:58:41 -0700
-Message-ID: <200908172358.n7HNwfvW003749@imap1.linux-foundation.org>
+Subject: + mtd-prevent-a-read-from-eraseregions.patch added to -mm tree
+Date: Mon, 17 Aug 2009 16:58:39 -0700
+Message-ID: <200908172358.n7HNwdS1003679@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55934 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54712 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752122AbZHQX6r (ORCPT
+	by vger.kernel.org with ESMTP id S1751793AbZHQX6q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Aug 2009 19:58:47 -0400
+	Mon, 17 Aug 2009 19:58:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: roel.kluin@gmail.com, dwmw2@infradead.org
 
 
 The patch titled
-     mtd: prevent a read from regions[-1]
+     mtd: prevent a read from eraseregions[-1]
 has been added to the -mm tree.  Its filename is
-     mtd-prevent-a-read-from-regions.patch
+     mtd-prevent-a-read-from-eraseregions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd: prevent a read from regions[-1]
+Subject: mtd: prevent a read from eraseregions[-1]
 From: Roel Kluin <roel.kluin@gmail.com>
 
 If the erase region was found in the first iteration we read from
-regions[-1]
+eraseregions[-1]
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
 Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/mtdpart.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/mtd/mtdconcat.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/mtd/mtdpart.c~mtd-prevent-a-read-from-regions drivers/mtd/mtdpart.c
---- a/drivers/mtd/mtdpart.c~mtd-prevent-a-read-from-regions
-+++ a/drivers/mtd/mtdpart.c
-@@ -453,7 +453,8 @@ static struct mtd_part *add_one_partitio
- 		for (i = 0; i < max && regions[i].offset <= slave->offset; i++)
- 			;
- 		/* The loop searched for the region _behind_ the first one */
--		i--;
-+		if (i > 0)
-+			i--;
+diff -puN drivers/mtd/mtdconcat.c~mtd-prevent-a-read-from-eraseregions drivers/mtd/mtdconcat.c
+--- a/drivers/mtd/mtdconcat.c~mtd-prevent-a-read-from-eraseregions
++++ a/drivers/mtd/mtdconcat.c
+@@ -427,7 +427,7 @@ static int concat_erase(struct mtd_info 
+ 		 * to-be-erased area begins. Verify that the starting
+ 		 * offset is aligned to this region's erase size:
+ 		 */
+-		if (instr->addr & (erase_regions[i].erasesize - 1))
++		if (i < 0 || instr->addr & (erase_regions[i].erasesize - 1))
+ 			return -EINVAL;
  
- 		/* Pick biggest erasesize */
- 		for (; i < max && regions[i].offset < end; i++) {
+ 		/*
+@@ -440,8 +440,8 @@ static int concat_erase(struct mtd_info 
+ 		/*
+ 		 * check if the ending offset is aligned to this region's erase size
+ 		 */
+-		if ((instr->addr + instr->len) & (erase_regions[i].erasesize -
+-						  1))
++		if (i < 0 || ((instr->addr + instr->len) &
++					(erase_regions[i].erasesize - 1)))
+ 			return -EINVAL;
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
