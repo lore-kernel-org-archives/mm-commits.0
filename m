@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vt6655-fix-read-buffer-overflow.patch added to -mm tree
-Date: Mon, 17 Aug 2009 16:39:54 -0700
-Message-ID: <200908172339.n7HNdsVv003414@imap1.linux-foundation.org>
+Subject: + synaptics-touchscreen-for-htc-dream-check-that-smbus-is-available.patch added to -mm tree
+Date: Mon, 17 Aug 2009 16:48:18 -0700
+Message-ID: <200908172348.n7HNmIAR018153@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60791 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34472 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758223AbZHQXkH (ORCPT
+	by vger.kernel.org with ESMTP id S1758428AbZHQXsa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Aug 2009 19:40:07 -0400
+	Mon, 17 Aug 2009 19:48:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, forest@alittletooquiet.net, gregkh@suse.de
+Cc: pavel@ucw.cz, arve@android.com, dtor@mail.ru, greg@kroah.com, soni.trilok@gmail.com, swetland@google.com
 
 
 The patch titled
-     vt6655: fix read buffer overflow
+     Synaptics touchscreen for HTC Dream: check that smbus is available
 has been added to the -mm tree.  Its filename is
-     vt6655-fix-read-buffer-overflow.patch
+     synaptics-touchscreen-for-htc-dream-check-that-smbus-is-available.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,106 +34,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vt6655: fix read buffer overflow
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: Synaptics touchscreen for HTC Dream: check that smbus is available
+From: Pavel Machek <pavel@ucw.cz>
 
-If pDevice->sOpts.nRxDescs{0,1} or nTxDescs[{0,1}] is zero, the loop ends with
-i == 0, and we write aRD{0,1}Ring[-1]. apTD{0,1}Rings[-1] respectively.
-
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Forest Bond <forest@alittletooquiet.net>
+Check that SMBUS APIs are available in touchscreen driver.
+    
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
+Cc: Trilok Soni <soni.trilok@gmail.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: <arve@android.com>
+Cc: Brian Swetland <swetland@google.com>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/vt6655/device_main.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ drivers/staging/dream/synaptics_i2c_rmi.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN drivers/staging/vt6655/device_main.c~vt6655-fix-read-buffer-overflow drivers/staging/vt6655/device_main.c
---- a/drivers/staging/vt6655/device_main.c~vt6655-fix-read-buffer-overflow
-+++ a/drivers/staging/vt6655/device_main.c
-@@ -1449,7 +1449,8 @@ static void device_init_rd0_ring(PSDevic
-         pDesc->next_desc = cpu_to_le32(curr + sizeof(SRxDesc));
-     }
+diff -puN drivers/staging/dream/synaptics_i2c_rmi.c~synaptics-touchscreen-for-htc-dream-check-that-smbus-is-available drivers/staging/dream/synaptics_i2c_rmi.c
+--- a/drivers/staging/dream/synaptics_i2c_rmi.c~synaptics-touchscreen-for-htc-dream-check-that-smbus-is-available
++++ a/drivers/staging/dream/synaptics_i2c_rmi.c
+@@ -373,6 +373,12 @@ static int __devinit synaptics_ts_probe(
+ 		goto err_check_functionality_failed;
+ 	}
  
--    pDevice->aRD0Ring[i-1].next_desc = cpu_to_le32(pDevice->rd0_pool_dma);
-+    if (i > 0)
-+        pDevice->aRD0Ring[i-1].next_desc = cpu_to_le32(pDevice->rd0_pool_dma);
-     pDevice->pCurrRD[0] = &(pDevice->aRD0Ring[0]);
- }
- 
-@@ -1473,7 +1474,8 @@ static void device_init_rd1_ring(PSDevic
-         pDesc->next_desc = cpu_to_le32(curr + sizeof(SRxDesc));
-     }
- 
--    pDevice->aRD1Ring[i-1].next_desc = cpu_to_le32(pDevice->rd1_pool_dma);
-+    if (i > 0)
-+        pDevice->aRD1Ring[i-1].next_desc = cpu_to_le32(pDevice->rd1_pool_dma);
-     pDevice->pCurrRD[1] = &(pDevice->aRD1Ring[0]);
- }
- 
-@@ -1566,7 +1568,8 @@ static void device_init_td0_ring(PSDevic
-         pDesc->next_desc = cpu_to_le32(curr+sizeof(STxDesc));
-     }
- 
--    pDevice->apTD0Rings[i-1].next_desc = cpu_to_le32(pDevice->td0_pool_dma);
-+    if (i > 0)
-+        pDevice->apTD0Rings[i-1].next_desc = cpu_to_le32(pDevice->td0_pool_dma);
-     pDevice->apTailTD[0] = pDevice->apCurrTD[0] =&(pDevice->apTD0Rings[0]);
- 
- }
-@@ -1591,7 +1594,8 @@ static void device_init_td1_ring(PSDevic
-         pDesc->next_desc = cpu_to_le32(curr+sizeof(STxDesc));
-     }
- 
--    pDevice->apTD1Rings[i-1].next_desc = cpu_to_le32(pDevice->td1_pool_dma);
-+    if (i > 0)
-+        pDevice->apTD1Rings[i-1].next_desc = cpu_to_le32(pDevice->td1_pool_dma);
-     pDevice->apTailTD[1] = pDevice->apCurrTD[1] = &(pDevice->apTD1Rings[0]);
- }
- 
++	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_WORD_DATA)) {
++		pr_err("synaptics_ts_probe: need I2C_FUNC_SMBUS_WORD_DATA\n");
++		ret = -ENODEV;
++		goto err_check_functionality_failed;
++	}
++
+ 	ts = kzalloc(sizeof(*ts), GFP_KERNEL);
+ 	if (ts == NULL) {
+ 		ret = -ENOMEM;
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from pavel@ucw.cz are
 
-origin.patch
 linux-next.patch
-s3c-fix-check-of-index-into-s3c_gpios.patch
-stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
-dm-strncpy-does-not-null-terminate-string.patch
-pcmcia-fix-read-buffer-overflow.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-powerpc-avoid-calculating-possibly-invalid-address.patch
-drm-i915-intel_sdvo_multifunc_encoder-sdvo_output_svid0-tested-twice.patch
-mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
-slram-read-buffer-overflow.patch
-mtd-fix-read-buffer-overflow.patch
-hfc_usb-fix-read-buffer-overflow.patch
-zorro8390-fix-read-buffer-overflow-in-zorro8390_init_one-checkpatch-fixes.patch
-cyclades-read-buffer-overflow.patch
-serial167-fix-read-buffer-overflow.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-vt6655-fix-read-buffer-overflow.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-blackfin-fix-read-buffer-overflow.patch
-arch-alpha-boot-tools-objstripc-wrong-variable-tested-after-open.patch
-m32r-remove-redundant-tests-on-unsigned.patch
-m68k-count-can-reach-51-not-50.patch
-m68k-cnt-reaches-1-not-0.patch
-dme1737-keep-index-within-pwm_config.patch
-sdio-fix-read-buffer-overflow.patch
-ncpfs-read-buffer-overflow.patch
-smbfs-read-buffer-overflow.patch
-platinumfb-misplaced-parenthesis.patch
-sisfb-read-buffer-overflow.patch
-drivers-video-console-newport_conc-fix-read-outside-array-bounds.patch
-mwave-fix-read-buffer-overflow.patch
-adfs-remove-redundant-test-on-unsigned.patch
+spitz-fix-touchscreen-max-presure.patch
+synaptics-touchscreen-for-htc-dream-check-that-smbus-is-available.patch
+mmc-msm_sdccc-driver-for-htc-dream.patch
+msm_sdccc-convert-printkkern_level-to-pr_level.patch
+msm_sdccc-stylistic-cleaning.patch
+msm_sdccc-move-overly-indented-code-to-separate-function.patch
+lis3-fix-typo.patch
+lis3-add-free-fall-wakeup-function-via-platform_data.patch
+lis3-add-power-management-functions.patch
+lis3-add-power-management-functions-fix.patch
+lis3_spi-code-cleanups.patch
+framebuffer-support-for-htc-dream.patch
+framebuffer-support-for-htc-dream-checkpatch-fixes.patch
+time-add-function-to-convert-between-calendar-time-and-broken-down-time-for-universal-use.patch
+fatfs-use-common-time_to_tm-in-fat_time_unix2fat.patch
+fdpic-ignore-the-loaders-pt_gnu_stack-when-calculating-the-stack-size.patch
 
