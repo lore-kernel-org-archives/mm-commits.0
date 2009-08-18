@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + hpilo-add-poll-f_op.patch added to -mm tree
-Date: Tue, 18 Aug 2009 14:30:14 -0700
-Message-ID: <200908182130.n7ILUEb9018279@imap1.linux-foundation.org>
+Subject: + hpilo-add-interrupt-handler.patch added to -mm tree
+Date: Tue, 18 Aug 2009 14:30:12 -0700
+Message-ID: <200908182130.n7ILUCo3018258@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53568 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47350 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751152AbZHRVaQ (ORCPT
+	by vger.kernel.org with ESMTP id S1751106AbZHRVaP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Aug 2009 17:30:16 -0400
+	Tue, 18 Aug 2009 17:30:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: david.altobelli@hp.com, greg@kroah.com
 
 
 The patch titled
-     hpilo: add poll f_op
+     hpilo: add interrupt handler
 has been added to the -mm tree.  Its filename is
-     hpilo-add-poll-f_op.patch
+     hpilo-add-interrupt-handler.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,107 +34,377 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hpilo: add poll f_op
+Subject: hpilo: add interrupt handler
 From: David Altobelli <david.altobelli@hp.com>
 
-Add poll handler to hpilo, to allow applications a low overhead method
-of waiting for data.
+Add interrupt handler to hpilo.  This is enablement for poll handler, and
+it also simplifies the logic for handling an iLO reset, because now
+only the interrupt handler needs to look for reset, the file system interfaces
+only need to return failure when a reset has happened.
+
+Please CC me on any replies.
 
 Signed-off-by: David Altobelli <david.altobelli@hp.com>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/hpilo.c |   42 ++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 41 insertions(+), 1 deletion(-)
+ drivers/misc/hpilo.c |  138 +++++++++++++++++++++++++++--------------
+ drivers/misc/hpilo.h |    8 ++
+ 2 files changed, 101 insertions(+), 45 deletions(-)
 
-diff -puN drivers/misc/hpilo.c~hpilo-add-poll-f_op drivers/misc/hpilo.c
---- a/drivers/misc/hpilo.c~hpilo-add-poll-f_op
+diff -puN drivers/misc/hpilo.c~hpilo-add-interrupt-handler drivers/misc/hpilo.c
+--- a/drivers/misc/hpilo.c~hpilo-add-interrupt-handler
 +++ a/drivers/misc/hpilo.c
-@@ -23,6 +23,7 @@
+@@ -13,6 +13,7 @@
+ #include <linux/module.h>
+ #include <linux/fs.h>
+ #include <linux/pci.h>
++#include <linux/interrupt.h>
+ #include <linux/ioport.h>
+ #include <linux/device.h>
+ #include <linux/file.h>
+@@ -21,6 +22,7 @@
+ #include <linux/delay.h>
  #include <linux/uaccess.h>
  #include <linux/io.h>
- #include <linux/wait.h>
-+#include <linux/poll.h>
++#include <linux/wait.h>
  #include "hpilo.h"
  
  static struct class *ilo_class;
-@@ -102,6 +103,22 @@ static int fifo_dequeue(struct ilo_hwinf
- 	return ret;
- }
- 
-+static int fifo_check_recv(struct ilo_hwinfo *hw, char *fifobar)
-+{
-+	struct fifo *fifo_q = FIFOBARTOHANDLE(fifobar);
+@@ -61,9 +63,10 @@ static inline int desc_mem_sz(int nr_ent
+ static int fifo_enqueue(struct ilo_hwinfo *hw, char *fifobar, int entry)
+ {
+ 	struct fifo *fifo_q = FIFOBARTOHANDLE(fifobar);
 +	unsigned long flags;
-+	int ret = 0;
-+	u64 c;
-+
+ 	int ret = 0;
+ 
+-	spin_lock(&hw->fifo_lock);
 +	spin_lock_irqsave(&hw->fifo_lock, flags);
-+	c = fifo_q->fifobar[fifo_q->head & fifo_q->imask];
-+	if (c & ENTRY_MASK_C)
-+		ret = 1;
+ 	if (!(fifo_q->fifobar[(fifo_q->tail + 1) & fifo_q->imask]
+ 	      & ENTRY_MASK_O)) {
+ 		fifo_q->fifobar[fifo_q->tail & fifo_q->imask] |=
+@@ -71,7 +74,7 @@ static int fifo_enqueue(struct ilo_hwinf
+ 		fifo_q->tail += 1;
+ 		ret = 1;
+ 	}
+-	spin_unlock(&hw->fifo_lock);
 +	spin_unlock_irqrestore(&hw->fifo_lock, flags);
-+
-+	return ret;
-+}
-+
- static int ilo_pkt_enqueue(struct ilo_hwinfo *hw, struct ccb *ccb,
- 			   int dir, int id, int len)
- {
-@@ -146,6 +163,13 @@ static int ilo_pkt_dequeue(struct ilo_hw
+ 
  	return ret;
  }
- 
-+static int ilo_pkt_recv(struct ilo_hwinfo *hw, struct ccb *ccb)
-+{
-+	char *fifobar = ccb->ccb_u3.recv_fifobar;
-+
-+	return fifo_check_recv(hw, fifobar);
-+}
-+
- static inline void doorbell_set(struct ccb *ccb)
+@@ -79,10 +82,11 @@ static int fifo_enqueue(struct ilo_hwinf
+ static int fifo_dequeue(struct ilo_hwinfo *hw, char *fifobar, int *entry)
  {
- 	iowrite8(1, ccb->ccb_u5.db_base);
-@@ -486,6 +510,21 @@ static ssize_t ilo_write(struct file *fp
- 	return err ? -EFAULT : len;
+ 	struct fifo *fifo_q = FIFOBARTOHANDLE(fifobar);
++	unsigned long flags;
+ 	int ret = 0;
+ 	u64 c;
+ 
+-	spin_lock(&hw->fifo_lock);
++	spin_lock_irqsave(&hw->fifo_lock, flags);
+ 	c = fifo_q->fifobar[fifo_q->head & fifo_q->imask];
+ 	if (c & ENTRY_MASK_C) {
+ 		if (entry)
+@@ -93,7 +97,7 @@ static int fifo_dequeue(struct ilo_hwinf
+ 		fifo_q->head += 1;
+ 		ret = 1;
+ 	}
+-	spin_unlock(&hw->fifo_lock);
++	spin_unlock_irqrestore(&hw->fifo_lock, flags);
+ 
+ 	return ret;
+ }
+@@ -374,7 +378,18 @@ static inline void clear_device(struct i
+ 	clear_pending_db(hw, -1);
  }
  
-+static unsigned int ilo_poll(struct file *fp, poll_table *wait)
+-static void ilo_locked_reset(struct ilo_hwinfo *hw)
++static inline void ilo_enable_interrupts(struct ilo_hwinfo *hw)
 +{
-+	struct ccb_data *data = fp->private_data;
-+	struct ccb *driver_ccb = &data->driver_ccb;
-+
-+	poll_wait(fp, &data->ccb_waitq, wait);
-+
-+	if (is_channel_reset(driver_ccb))
-+		return POLLERR;
-+	else if (ilo_pkt_recv(data->ilo_hw, driver_ccb))
-+		return POLLIN | POLLRDNORM;
-+
-+	return 0;
++	iowrite8(ioread8(&hw->mmio_vaddr[DB_IRQ]) | 1, &hw->mmio_vaddr[DB_IRQ]);
 +}
 +
- static int ilo_close(struct inode *ip, struct file *fp)
++static inline void ilo_disable_interrupts(struct ilo_hwinfo *hw)
++{
++	iowrite8(ioread8(&hw->mmio_vaddr[DB_IRQ]) & ~1,
++		 &hw->mmio_vaddr[DB_IRQ]);
++}
++
++static void ilo_set_reset(struct ilo_hwinfo *hw)
  {
  	int slot;
-@@ -595,6 +634,7 @@ static const struct file_operations ilo_
- 	.owner		= THIS_MODULE,
- 	.read		= ilo_read,
- 	.write		= ilo_write,
-+	.poll		= ilo_poll,
- 	.open 		= ilo_open,
- 	.release 	= ilo_close,
- };
-@@ -835,7 +875,7 @@ static void __exit ilo_exit(void)
- 	class_destroy(ilo_class);
+ 
+@@ -387,19 +402,6 @@ static void ilo_locked_reset(struct ilo_
+ 			continue;
+ 		set_channel_reset(&hw->ccb_alloc[slot]->driver_ccb);
+ 	}
+-
+-	clear_device(hw);
+-}
+-
+-static void ilo_reset(struct ilo_hwinfo *hw)
+-{
+-	spin_lock(&hw->alloc_lock);
+-
+-	/* reset might have been handled after lock was taken */
+-	if (is_device_reset(hw))
+-		ilo_locked_reset(hw);
+-
+-	spin_unlock(&hw->alloc_lock);
  }
  
--MODULE_VERSION("1.1");
-+MODULE_VERSION("1.2");
- MODULE_ALIAS(ILO_NAME);
- MODULE_DESCRIPTION(ILO_NAME);
- MODULE_AUTHOR("David Altobelli <david.altobelli@hp.com>");
+ static ssize_t ilo_read(struct file *fp, char __user *buf,
+@@ -411,12 +413,11 @@ static ssize_t ilo_read(struct file *fp,
+ 	struct ilo_hwinfo *hw = data->ilo_hw;
+ 	void *pkt;
+ 
+-	if (is_device_reset(hw) || is_channel_reset(driver_ccb)) {
++	if (is_channel_reset(driver_ccb)) {
+ 		/*
+ 		 * If the device has been reset, applications
+ 		 * need to close and reopen all ccbs.
+ 		 */
+-		ilo_reset(hw);
+ 		return -ENODEV;
+ 	}
+ 
+@@ -462,14 +463,8 @@ static ssize_t ilo_write(struct file *fp
+ 	struct ilo_hwinfo *hw = data->ilo_hw;
+ 	void *pkt;
+ 
+-	if (is_device_reset(hw) || is_channel_reset(driver_ccb)) {
+-		/*
+-		 * If the device has been reset, applications
+-		 * need to close and reopen all ccbs.
+-		 */
+-		ilo_reset(hw);
++	if (is_channel_reset(driver_ccb))
+ 		return -ENODEV;
+-	}
+ 
+ 	/* get a packet to send the user command */
+ 	if (!ilo_pkt_dequeue(hw, driver_ccb, SENDQ, &pkt_id, &pkt_len, &pkt))
+@@ -496,27 +491,28 @@ static int ilo_close(struct inode *ip, s
+ 	int slot;
+ 	struct ccb_data *data;
+ 	struct ilo_hwinfo *hw;
++	unsigned long flags;
+ 
+ 	slot = iminor(ip) % MAX_CCB;
+ 	hw = container_of(ip->i_cdev, struct ilo_hwinfo, cdev);
+ 
+-	spin_lock(&hw->alloc_lock);
+-
+-	if (is_device_reset(hw))
+-		ilo_locked_reset(hw);
++	spin_lock(&hw->open_lock);
+ 
+ 	if (hw->ccb_alloc[slot]->ccb_cnt == 1) {
+ 
+ 		data = fp->private_data;
+ 
++		spin_lock_irqsave(&hw->alloc_lock, flags);
++		hw->ccb_alloc[slot] = NULL;
++		spin_unlock_irqrestore(&hw->alloc_lock, flags);
++
+ 		ilo_ccb_close(hw->ilo_dev, data);
+ 
+ 		kfree(data);
+-		hw->ccb_alloc[slot] = NULL;
+ 	} else
+ 		hw->ccb_alloc[slot]->ccb_cnt--;
+ 
+-	spin_unlock(&hw->alloc_lock);
++	spin_unlock(&hw->open_lock);
+ 
+ 	return 0;
+ }
+@@ -526,6 +522,7 @@ static int ilo_open(struct inode *ip, st
+ 	int slot, error;
+ 	struct ccb_data *data;
+ 	struct ilo_hwinfo *hw;
++	unsigned long flags;
+ 
+ 	slot = iminor(ip) % MAX_CCB;
+ 	hw = container_of(ip->i_cdev, struct ilo_hwinfo, cdev);
+@@ -535,10 +532,7 @@ static int ilo_open(struct inode *ip, st
+ 	if (!data)
+ 		return -ENOMEM;
+ 
+-	spin_lock(&hw->alloc_lock);
+-
+-	if (is_device_reset(hw))
+-		ilo_locked_reset(hw);
++	spin_lock(&hw->open_lock);
+ 
+ 	/* each fd private_data holds sw/hw view of ccb */
+ 	if (hw->ccb_alloc[slot] == NULL) {
+@@ -549,22 +543,31 @@ static int ilo_open(struct inode *ip, st
+ 			goto out;
+ 		}
+ 
++		data->ccb_cnt = 1;
++		data->ccb_excl = fp->f_flags & O_EXCL;
++		data->ilo_hw = hw;
++		init_waitqueue_head(&data->ccb_waitq);
++
+ 		/* write the ccb to hw */
++		spin_lock_irqsave(&hw->alloc_lock, flags);
+ 		ilo_ccb_open(hw, data, slot);
++		hw->ccb_alloc[slot] = data;
++		spin_unlock_irqrestore(&hw->alloc_lock, flags);
+ 
+ 		/* make sure the channel is functional */
+ 		error = ilo_ccb_verify(hw, data);
+ 		if (error) {
++
++			spin_lock_irqsave(&hw->alloc_lock, flags);
++			hw->ccb_alloc[slot] = NULL;
++			spin_unlock_irqrestore(&hw->alloc_lock, flags);
++
+ 			ilo_ccb_close(hw->ilo_dev, data);
++
+ 			kfree(data);
+ 			goto out;
+ 		}
+ 
+-		data->ccb_cnt = 1;
+-		data->ccb_excl = fp->f_flags & O_EXCL;
+-		data->ilo_hw = hw;
+-		hw->ccb_alloc[slot] = data;
+-
+ 	} else {
+ 		kfree(data);
+ 		if (fp->f_flags & O_EXCL || hw->ccb_alloc[slot]->ccb_excl) {
+@@ -580,7 +583,7 @@ static int ilo_open(struct inode *ip, st
+ 		}
+ 	}
+ out:
+-	spin_unlock(&hw->alloc_lock);
++	spin_unlock(&hw->open_lock);
+ 
+ 	if (!error)
+ 		fp->private_data = hw->ccb_alloc[slot];
+@@ -596,6 +599,41 @@ static const struct file_operations ilo_
+ 	.release 	= ilo_close,
+ };
+ 
++static irqreturn_t ilo_isr(int irq, void *data)
++{
++	struct ilo_hwinfo *hw = data;
++	int pending, i;
++
++	spin_lock(&hw->alloc_lock);
++
++	/* check for ccbs which have data */
++	pending = get_device_outbound(hw);
++	if (!pending) {
++		spin_unlock(&hw->alloc_lock);
++		return IRQ_NONE;
++	}
++
++	if (is_db_reset(pending)) {
++		/* wake up all ccbs if the device was reset */
++		pending = -1;
++		ilo_set_reset(hw);
++	}
++
++	for (i = 0; i < MAX_CCB; i++) {
++		if (!hw->ccb_alloc[i])
++			continue;
++		if (pending & (1 << i))
++			wake_up_interruptible(&hw->ccb_alloc[i]->ccb_waitq);
++	}
++
++	/* clear the device of the channels that have been handled */
++	clear_pending_db(hw, pending);
++
++	spin_unlock(&hw->alloc_lock);
++
++	return IRQ_HANDLED;
++}
++
+ static void ilo_unmap_device(struct pci_dev *pdev, struct ilo_hwinfo *hw)
+ {
+ 	pci_iounmap(pdev, hw->db_vaddr);
+@@ -649,6 +687,8 @@ static void ilo_remove(struct pci_dev *p
+ 		device_destroy(ilo_class, MKDEV(ilo_major, i));
+ 
+ 	cdev_del(&ilo_hw->cdev);
++	ilo_disable_interrupts(ilo_hw);
++	free_irq(pdev->irq, ilo_hw);
+ 	ilo_unmap_device(pdev, ilo_hw);
+ 	pci_release_regions(pdev);
+ 	pci_disable_device(pdev);
+@@ -684,6 +724,7 @@ static int __devinit ilo_probe(struct pc
+ 	ilo_hw->ilo_dev = pdev;
+ 	spin_lock_init(&ilo_hw->alloc_lock);
+ 	spin_lock_init(&ilo_hw->fifo_lock);
++	spin_lock_init(&ilo_hw->open_lock);
+ 
+ 	error = pci_enable_device(pdev);
+ 	if (error)
+@@ -702,13 +743,19 @@ static int __devinit ilo_probe(struct pc
+ 	pci_set_drvdata(pdev, ilo_hw);
+ 	clear_device(ilo_hw);
+ 
++	error = request_irq(pdev->irq, ilo_isr, IRQF_SHARED, "hpilo", ilo_hw);
++	if (error)
++		goto unmap;
++
++	ilo_enable_interrupts(ilo_hw);
++
+ 	cdev_init(&ilo_hw->cdev, &ilo_fops);
+ 	ilo_hw->cdev.owner = THIS_MODULE;
+ 	start = devnum * MAX_CCB;
+ 	error = cdev_add(&ilo_hw->cdev, MKDEV(ilo_major, start), MAX_CCB);
+ 	if (error) {
+ 		dev_err(&pdev->dev, "Could not add cdev\n");
+-		goto unmap;
++		goto remove_isr;
+ 	}
+ 
+ 	for (minor = 0 ; minor < MAX_CCB; minor++) {
+@@ -721,6 +768,9 @@ static int __devinit ilo_probe(struct pc
+ 	}
+ 
+ 	return 0;
++remove_isr:
++	ilo_disable_interrupts(ilo_hw);
++	free_irq(pdev->irq, ilo_hw);
+ unmap:
+ 	ilo_unmap_device(pdev, ilo_hw);
+ free_regions:
+diff -puN drivers/misc/hpilo.h~hpilo-add-interrupt-handler drivers/misc/hpilo.h
+--- a/drivers/misc/hpilo.h~hpilo-add-interrupt-handler
++++ a/drivers/misc/hpilo.h
+@@ -46,11 +46,14 @@ struct ilo_hwinfo {
+ 
+ 	spinlock_t alloc_lock;
+ 	spinlock_t fifo_lock;
++	spinlock_t open_lock;
+ 
+ 	struct cdev cdev;
+ };
+ 
+-/* offset from mmio_vaddr */
++/* offset from mmio_vaddr for enabling doorbell interrupts */
++#define DB_IRQ		0xB2
++/* offset from mmio_vaddr for outbound communications */
+ #define DB_OUT		0xD4
+ /* DB_OUT reset bit */
+ #define DB_RESET	26
+@@ -131,6 +134,9 @@ struct ccb_data {
+ 	/* pointer to hardware device info */
+ 	struct ilo_hwinfo *ilo_hw;
+ 
++	/* queue for this ccb to wait for recv data */
++	wait_queue_head_t ccb_waitq;
++
+ 	/* usage count, to allow for shared ccb's */
+ 	int	    ccb_cnt;
+ 
 _
 
 Patches currently in -mm which might be from david.altobelli@hp.com are
