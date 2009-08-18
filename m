@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + hpilo-staging-for-interrupt-handling.patch added to -mm tree
-Date: Tue, 18 Aug 2009 14:30:10 -0700
-Message-ID: <200908182130.n7ILUBcg018107@imap1.linux-foundation.org>
+Subject: + hpilo-add-poll-f_op.patch added to -mm tree
+Date: Tue, 18 Aug 2009 14:30:14 -0700
+Message-ID: <200908182130.n7ILUEb9018279@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56105 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53568 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751100AbZHRVaN (ORCPT
+	by vger.kernel.org with ESMTP id S1751152AbZHRVaQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Aug 2009 17:30:13 -0400
+	Tue, 18 Aug 2009 17:30:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: david.altobelli@hp.com, greg@kroah.com
 
 
 The patch titled
-     hpilo: staging for interrupt handling
+     hpilo: add poll f_op
 has been added to the -mm tree.  Its filename is
-     hpilo-staging-for-interrupt-handling.patch
+     hpilo-add-poll-f_op.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,273 +34,107 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hpilo: staging for interrupt handling
+Subject: hpilo: add poll f_op
 From: David Altobelli <david.altobelli@hp.com>
 
-Add a .poll() in order for applications to wait for a packet without wasting 
-system resources by repeatedly reading a mostly empty channel.
-
-Three patches follow: some minor refactoring that shouldn't be functionally 
-different, adding an interrupt handler, and finally adding a .poll().
-
-
-This patch:
-
-Refactor some hpilo routines in order to allow for locking changes in
-interrupt handling.  Should not be functionally different.
-
-Please CC me on any replies.
+Add poll handler to hpilo, to allow applications a low overhead method
+of waiting for data.
 
 Signed-off-by: David Altobelli <david.altobelli@hp.com>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/hpilo.c |  120 ++++++++++++++++++++++++-----------------
- 1 file changed, 73 insertions(+), 47 deletions(-)
+ drivers/misc/hpilo.c |   42 ++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 41 insertions(+), 1 deletion(-)
 
-diff -puN drivers/misc/hpilo.c~hpilo-staging-for-interrupt-handling drivers/misc/hpilo.c
---- a/drivers/misc/hpilo.c~hpilo-staging-for-interrupt-handling
+diff -puN drivers/misc/hpilo.c~hpilo-add-poll-f_op drivers/misc/hpilo.c
+--- a/drivers/misc/hpilo.c~hpilo-add-poll-f_op
 +++ a/drivers/misc/hpilo.c
-@@ -151,6 +151,7 @@ static inline void doorbell_clr(struct c
- {
- 	iowrite8(2, ccb->ccb_u5.db_base);
- }
-+
- static inline int ctrl_set(int l2sz, int idxmask, int desclim)
- {
- 	int active = 0, go = 1;
-@@ -160,6 +161,7 @@ static inline int ctrl_set(int l2sz, int
- 	       active << CTRL_BITPOS_A |
- 	       go << CTRL_BITPOS_G;
- }
-+
- static void ctrl_setup(struct ccb *ccb, int nr_desc, int l2desc_sz)
- {
- 	/* for simplicity, use the same parameters for send and recv ctrls */
-@@ -192,13 +194,10 @@ static void fifo_setup(void *base_addr, 
+@@ -23,6 +23,7 @@
+ #include <linux/uaccess.h>
+ #include <linux/io.h>
+ #include <linux/wait.h>
++#include <linux/poll.h>
+ #include "hpilo.h"
  
- static void ilo_ccb_close(struct pci_dev *pdev, struct ccb_data *data)
+ static struct class *ilo_class;
+@@ -102,6 +103,22 @@ static int fifo_dequeue(struct ilo_hwinf
+ 	return ret;
+ }
+ 
++static int fifo_check_recv(struct ilo_hwinfo *hw, char *fifobar)
++{
++	struct fifo *fifo_q = FIFOBARTOHANDLE(fifobar);
++	unsigned long flags;
++	int ret = 0;
++	u64 c;
++
++	spin_lock_irqsave(&hw->fifo_lock, flags);
++	c = fifo_q->fifobar[fifo_q->head & fifo_q->imask];
++	if (c & ENTRY_MASK_C)
++		ret = 1;
++	spin_unlock_irqrestore(&hw->fifo_lock, flags);
++
++	return ret;
++}
++
+ static int ilo_pkt_enqueue(struct ilo_hwinfo *hw, struct ccb *ccb,
+ 			   int dir, int id, int len)
  {
--	struct ccb *driver_ccb;
--	struct ccb __iomem *device_ccb;
+@@ -146,6 +163,13 @@ static int ilo_pkt_dequeue(struct ilo_hw
+ 	return ret;
+ }
+ 
++static int ilo_pkt_recv(struct ilo_hwinfo *hw, struct ccb *ccb)
++{
++	char *fifobar = ccb->ccb_u3.recv_fifobar;
++
++	return fifo_check_recv(hw, fifobar);
++}
++
+ static inline void doorbell_set(struct ccb *ccb)
+ {
+ 	iowrite8(1, ccb->ccb_u5.db_base);
+@@ -486,6 +510,21 @@ static ssize_t ilo_write(struct file *fp
+ 	return err ? -EFAULT : len;
+ }
+ 
++static unsigned int ilo_poll(struct file *fp, poll_table *wait)
++{
++	struct ccb_data *data = fp->private_data;
 +	struct ccb *driver_ccb = &data->driver_ccb;
-+	struct ccb __iomem *device_ccb = data->mapped_ccb;
- 	int retries;
- 
--	driver_ccb = &data->driver_ccb;
--	device_ccb = data->mapped_ccb;
--
- 	/* complicated dance to tell the hw we are stopping */
- 	doorbell_clr(driver_ccb);
- 	iowrite32(ioread32(&device_ccb->send_ctrl) & ~(1 << CTRL_BITPOS_G),
-@@ -225,26 +224,22 @@ static void ilo_ccb_close(struct pci_dev
- 	pci_free_consistent(pdev, data->dma_size, data->dma_va, data->dma_pa);
- }
- 
--static int ilo_ccb_open(struct ilo_hwinfo *hw, struct ccb_data *data, int slot)
-+static int ilo_ccb_setup(struct ilo_hwinfo *hw, struct ccb_data *data, int slot)
- {
- 	char *dma_va, *dma_pa;
--	int pkt_id, pkt_sz, i, error;
- 	struct ccb *driver_ccb, *ilo_ccb;
--	struct pci_dev *pdev;
- 
- 	driver_ccb = &data->driver_ccb;
- 	ilo_ccb = &data->ilo_ccb;
--	pdev = hw->ilo_dev;
- 
- 	data->dma_size = 2 * fifo_sz(NR_QENTRY) +
- 			 2 * desc_mem_sz(NR_QENTRY) +
- 			 ILO_START_ALIGN + ILO_CACHE_SZ;
- 
--	error = -ENOMEM;
--	data->dma_va = pci_alloc_consistent(pdev, data->dma_size,
-+	data->dma_va = pci_alloc_consistent(hw->ilo_dev, data->dma_size,
- 					    &data->dma_pa);
- 	if (!data->dma_va)
--		goto out;
-+		return -ENOMEM;
- 
- 	dma_va = (char *)data->dma_va;
- 	dma_pa = (char *)data->dma_pa;
-@@ -290,10 +285,18 @@ static int ilo_ccb_open(struct ilo_hwinf
- 	driver_ccb->ccb_u5.db_base = hw->db_vaddr + (slot << L2_DB_SIZE);
- 	ilo_ccb->ccb_u5.db_base = NULL; /* hw ccb's doorbell is not used */
- 
++
++	poll_wait(fp, &data->ccb_waitq, wait);
++
++	if (is_channel_reset(driver_ccb))
++		return POLLERR;
++	else if (ilo_pkt_recv(data->ilo_hw, driver_ccb))
++		return POLLIN | POLLRDNORM;
++
 +	return 0;
 +}
 +
-+static void ilo_ccb_open(struct ilo_hwinfo *hw, struct ccb_data *data, int slot)
-+{
-+	int pkt_id, pkt_sz;
-+	struct ccb *driver_ccb = &data->driver_ccb;
-+
- 	/* copy the ccb with physical addrs to device memory */
- 	data->mapped_ccb = (struct ccb __iomem *)
- 				(hw->ram_vaddr + (slot * ILOHW_CCB_SZ));
--	memcpy_toio(data->mapped_ccb, ilo_ccb, sizeof(struct ccb));
-+	memcpy_toio(data->mapped_ccb, &data->ilo_ccb, sizeof(struct ccb));
- 
- 	/* put packets on the send and receive queues */
- 	pkt_sz = 0;
-@@ -306,7 +309,14 @@ static int ilo_ccb_open(struct ilo_hwinf
- 	for (pkt_id = 0; pkt_id < NR_QENTRY; pkt_id++)
- 		ilo_pkt_enqueue(hw, driver_ccb, RECVQ, pkt_id, pkt_sz);
- 
-+	/* the ccb is ready to use */
- 	doorbell_clr(driver_ccb);
-+}
-+
-+static int ilo_ccb_verify(struct ilo_hwinfo *hw, struct ccb_data *data)
-+{
-+	int pkt_id, i;
-+	struct ccb *driver_ccb = &data->driver_ccb;
- 
- 	/* make sure iLO is really handling requests */
- 	for (i = MAX_WAIT; i > 0; i--) {
-@@ -315,20 +325,14 @@ static int ilo_ccb_open(struct ilo_hwinf
- 		udelay(WAIT_TIME);
- 	}
- 
--	if (i) {
--		ilo_pkt_enqueue(hw, driver_ccb, SENDQ, pkt_id, 0);
--		doorbell_set(driver_ccb);
--	} else {
--		dev_err(&pdev->dev, "Open could not dequeue a packet\n");
--		error = -EBUSY;
--		goto free;
-+	if (i == 0) {
-+		dev_err(&hw->ilo_dev->dev, "Open could not dequeue a packet\n");
-+		return -EBUSY;
- 	}
- 
-+	ilo_pkt_enqueue(hw, driver_ccb, SENDQ, pkt_id, 0);
-+	doorbell_set(driver_ccb);
- 	return 0;
--free:
--	ilo_ccb_close(pdev, data);
--out:
--	return error;
+ static int ilo_close(struct inode *ip, struct file *fp)
+ {
+ 	int slot;
+@@ -595,6 +634,7 @@ static const struct file_operations ilo_
+ 	.owner		= THIS_MODULE,
+ 	.read		= ilo_read,
+ 	.write		= ilo_write,
++	.poll		= ilo_poll,
+ 	.open 		= ilo_open,
+ 	.release 	= ilo_close,
+ };
+@@ -835,7 +875,7 @@ static void __exit ilo_exit(void)
+ 	class_destroy(ilo_class);
  }
  
- static inline int is_channel_reset(struct ccb *ccb)
-@@ -343,16 +347,31 @@ static inline void set_channel_reset(str
- 	FIFOBARTOHANDLE(ccb->ccb_u1.send_fifobar)->reset = 1;
- }
- 
-+static inline int get_device_outbound(struct ilo_hwinfo *hw)
-+{
-+	return ioread32(&hw->mmio_vaddr[DB_OUT]);
-+}
-+
-+static inline int is_db_reset(int db_out)
-+{
-+	return db_out & (1 << DB_RESET);
-+}
-+
- static inline int is_device_reset(struct ilo_hwinfo *hw)
- {
- 	/* check for global reset condition */
--	return ioread32(&hw->mmio_vaddr[DB_OUT]) & (1 << DB_RESET);
-+	return is_db_reset(get_device_outbound(hw));
-+}
-+
-+static inline void clear_pending_db(struct ilo_hwinfo *hw, int clr)
-+{
-+	iowrite32(clr, &hw->mmio_vaddr[DB_OUT]);
- }
- 
- static inline void clear_device(struct ilo_hwinfo *hw)
- {
- 	/* clear the device (reset bits, pending channel entries) */
--	iowrite32(-1, &hw->mmio_vaddr[DB_OUT]);
-+	clear_pending_db(hw, -1);
- }
- 
- static void ilo_locked_reset(struct ilo_hwinfo *hw)
-@@ -387,15 +406,11 @@ static ssize_t ilo_read(struct file *fp,
- 			size_t len, loff_t *off)
- {
- 	int err, found, cnt, pkt_id, pkt_len;
--	struct ccb_data *data;
--	struct ccb *driver_ccb;
--	struct ilo_hwinfo *hw;
-+	struct ccb_data *data = fp->private_data;
-+	struct ccb *driver_ccb = &data->driver_ccb;
-+	struct ilo_hwinfo *hw = data->ilo_hw;
- 	void *pkt;
- 
--	data = fp->private_data;
--	driver_ccb = &data->driver_ccb;
--	hw = data->ilo_hw;
--
- 	if (is_device_reset(hw) || is_channel_reset(driver_ccb)) {
- 		/*
- 		 * If the device has been reset, applications
-@@ -442,15 +457,11 @@ static ssize_t ilo_write(struct file *fp
- 			 size_t len, loff_t *off)
- {
- 	int err, pkt_id, pkt_len;
--	struct ccb_data *data;
--	struct ccb *driver_ccb;
--	struct ilo_hwinfo *hw;
-+	struct ccb_data *data = fp->private_data;
-+	struct ccb *driver_ccb = &data->driver_ccb;
-+	struct ilo_hwinfo *hw = data->ilo_hw;
- 	void *pkt;
- 
--	data = fp->private_data;
--	driver_ccb = &data->driver_ccb;
--	hw = data->ilo_hw;
--
- 	if (is_device_reset(hw) || is_channel_reset(driver_ccb)) {
- 		/*
- 		 * If the device has been reset, applications
-@@ -532,14 +543,28 @@ static int ilo_open(struct inode *ip, st
- 	/* each fd private_data holds sw/hw view of ccb */
- 	if (hw->ccb_alloc[slot] == NULL) {
- 		/* create a channel control block for this minor */
--		error = ilo_ccb_open(hw, data, slot);
--		if (!error) {
--			hw->ccb_alloc[slot] = data;
--			hw->ccb_alloc[slot]->ccb_cnt = 1;
--			hw->ccb_alloc[slot]->ccb_excl = fp->f_flags & O_EXCL;
--			hw->ccb_alloc[slot]->ilo_hw = hw;
--		} else
-+		error = ilo_ccb_setup(hw, data, slot);
-+		if (error) {
-+			kfree(data);
-+			goto out;
-+		}
-+
-+		/* write the ccb to hw */
-+		ilo_ccb_open(hw, data, slot);
-+
-+		/* make sure the channel is functional */
-+		error = ilo_ccb_verify(hw, data);
-+		if (error) {
-+			ilo_ccb_close(hw->ilo_dev, data);
- 			kfree(data);
-+			goto out;
-+		}
-+
-+		data->ccb_cnt = 1;
-+		data->ccb_excl = fp->f_flags & O_EXCL;
-+		data->ilo_hw = hw;
-+		hw->ccb_alloc[slot] = data;
-+
- 	} else {
- 		kfree(data);
- 		if (fp->f_flags & O_EXCL || hw->ccb_alloc[slot]->ccb_excl) {
-@@ -554,6 +579,7 @@ static int ilo_open(struct inode *ip, st
- 			error = 0;
- 		}
- 	}
-+out:
- 	spin_unlock(&hw->alloc_lock);
- 
- 	if (!error)
+-MODULE_VERSION("1.1");
++MODULE_VERSION("1.2");
+ MODULE_ALIAS(ILO_NAME);
+ MODULE_DESCRIPTION(ILO_NAME);
+ MODULE_AUTHOR("David Altobelli <david.altobelli@hp.com>");
 _
 
 Patches currently in -mm which might be from david.altobelli@hp.com are
