@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + signals-inline-__fatal_signal_pending.patch added to -mm tree
-Date: Tue, 18 Aug 2009 16:08:50 -0700
-Message-ID: <200908182308.n7IN8owH029551@imap1.linux-foundation.org>
+Subject: + misc-remove-redundant-start_kernel-prototypes.patch added to -mm tree
+Date: Tue, 18 Aug 2009 16:09:37 -0700
+Message-ID: <200908182309.n7IN9bSb030882@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54270 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59145 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750865AbZHRXJF (ORCPT
+	by vger.kernel.org with ESMTP id S1750865AbZHRXJ6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Aug 2009 19:09:05 -0400
+	Tue, 18 Aug 2009 19:09:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roland@redhat.com, oleg@redhat.com
+Cc: rusty@rustcorp.com.au, dhowells@redhat.com
 
 
 The patch titled
-     signals: inline __fatal_signal_pending
+     misc: remove redundant start_kernel prototypes
 has been added to the -mm tree.  Its filename is
-     signals-inline-__fatal_signal_pending.patch
+     misc-remove-redundant-start_kernel-prototypes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,83 +34,61 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signals: inline __fatal_signal_pending
-From: Roland McGrath <roland@redhat.com>
+Subject: misc: remove redundant start_kernel prototypes
+From: Rusty Russell <rusty@rustcorp.com.au>
 
-__fatal_signal_pending inlines to one instruction on x86, probably two
-instructions on other machines.  It takes two longer x86 instructions just
-to call it and test its return value, not to mention the function itself.
+Impact: cleanup
 
-On my random x86_64 config, this saved 70 bytes of text (59 of those being
-__fatal_signal_pending itself).
+No need for redeclaration.
 
-Signed-off-by: Roland McGrath <roland@redhat.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    5 ++++-
- kernel/signal.c       |    6 ------
- 2 files changed, 4 insertions(+), 7 deletions(-)
+ arch/frv/include/asm/gdb-stub.h     |    1 -
+ arch/mn10300/include/asm/gdb-stub.h |    1 -
+ 2 files changed, 2 deletions(-)
 
-diff -puN include/linux/sched.h~signals-inline-__fatal_signal_pending include/linux/sched.h
---- a/include/linux/sched.h~signals-inline-__fatal_signal_pending
-+++ a/include/linux/sched.h
-@@ -2294,7 +2294,10 @@ static inline int signal_pending(struct 
- 	return unlikely(test_tsk_thread_flag(p,TIF_SIGPENDING));
- }
+diff -puN arch/frv/include/asm/gdb-stub.h~misc-remove-redundant-start_kernel-prototypes arch/frv/include/asm/gdb-stub.h
+--- a/arch/frv/include/asm/gdb-stub.h~misc-remove-redundant-start_kernel-prototypes
++++ a/arch/frv/include/asm/gdb-stub.h
+@@ -90,7 +90,6 @@ extern void gdbstub_do_rx(void);
+ extern asmlinkage void __debug_stub_init_break(void);
+ extern asmlinkage void __break_hijack_kernel_event(void);
+ extern asmlinkage void __break_hijack_kernel_event_breaks_here(void);
+-extern asmlinkage void start_kernel(void);
  
--extern int __fatal_signal_pending(struct task_struct *p);
-+static inline int __fatal_signal_pending(struct task_struct *p)
-+{
-+	return unlikely(sigismember(&p->pending.signal, SIGKILL));
-+}
+ extern asmlinkage void gdbstub_rx_handler(void);
+ extern asmlinkage void gdbstub_rx_irq(void);
+diff -puN arch/mn10300/include/asm/gdb-stub.h~misc-remove-redundant-start_kernel-prototypes arch/mn10300/include/asm/gdb-stub.h
+--- a/arch/mn10300/include/asm/gdb-stub.h~misc-remove-redundant-start_kernel-prototypes
++++ a/arch/mn10300/include/asm/gdb-stub.h
+@@ -109,7 +109,6 @@ extern asmlinkage int  gdbstub_intercept
+ extern asmlinkage void gdbstub_exception(struct pt_regs *, enum exception_code);
+ extern asmlinkage void __gdbstub_bug_trap(void);
+ extern asmlinkage void __gdbstub_pause(void);
+-extern asmlinkage void start_kernel(void);
  
- static inline int fatal_signal_pending(struct task_struct *p)
- {
-diff -puN kernel/signal.c~signals-inline-__fatal_signal_pending kernel/signal.c
---- a/kernel/signal.c~signals-inline-__fatal_signal_pending
-+++ a/kernel/signal.c
-@@ -1050,12 +1050,6 @@ void zap_other_threads(struct task_struc
- 	}
- }
- 
--int __fatal_signal_pending(struct task_struct *tsk)
--{
--	return sigismember(&tsk->pending.signal, SIGKILL);
--}
--EXPORT_SYMBOL(__fatal_signal_pending);
--
- struct sighand_struct *lock_task_sighand(struct task_struct *tsk, unsigned long *flags)
- {
- 	struct sighand_struct *sighand;
+ #ifndef CONFIG_MN10300_CACHE_DISABLED
+ extern asmlinkage void gdbstub_purge_cache(void);
 _
 
-Patches currently in -mm which might be from roland@redhat.com are
+Patches currently in -mm which might be from rusty@rustcorp.com.au are
 
 linux-next.patch
-proc_flush_task-flush-proc-tid-task-pid-when-a-sub-thread-exits.patch
-ptrace-__ptrace_detach-do-__wake_up_parent-if-we-reap-the-tracee.patch
-do_wait-wakeup-optimization-shift-security_task_wait-from-eligible_child-to-wait_consider_task.patch
-do_wait-wakeup-optimization-change-__wake_up_parent-to-use-filtered-wakeup.patch
-do_wait-wakeup-optimization-change-__wake_up_parent-to-use-filtered-wakeup-selinux_bprm_committed_creds-use-__wake_up_parent.patch
-do_wait-wakeup-optimization-child_wait_callback-check-__wnothread-case.patch
-do_wait-optimization-do-not-place-sub-threads-on-task_struct-children-list.patch
-wait_consider_task-kill-parent-argument.patch
-do_wait-fix-sys_waitid-specific-behaviour.patch
-wait_noreap_copyout-check-for-wo_info-=-null.patch
-signals-introduce-do_send_sig_info-helper.patch
-signals-send_sigio-use-do_send_sig_info-to-avoid-check_kill_permission.patch
-fcntl-add-f_etown_ex.patch
-signals-inline-__fatal_signal_pending.patch
-signals-tracehook_notify_jctl-change.patch
-signals-tracehook_notify_jctl-change-do_signal_stop-do-not-call-tracehook_notify_jctl-in-task_stopped-state.patch
-signals-introduce-tracehook_finish_jctl-helper.patch
-utrace-core.patch
+kernel-core-add-smp_call_function_any.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+kmod-fix-race-in-usermodehelper-code.patch
+generic-ipi-make-struct-call_function_data-lockless.patch
+generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
+misc-remove-redundant-start_kernel-prototypes.patch
+generic-ipi-cleanup-for-generic_smp_call_function_interrupt.patch
+kernel-smpc-relocate-some-code.patch
+generic-ipi-fix-the-race-between-generic_smp_call_function_-and-hotplug_cfd.patch
+generic-ipi-fix-the-race-between-generic_smp_call_function_-and-hotplug_cfd-fix.patch
 exec-fix-set_binfmt-vs-sys_delete_module-race.patch
-elf-clean-up-fill_note_info.patch
-elf-clean-up-fill_note_info-fix.patch
-fork-disable-clone_parent-for-init.patch
-pidns-deny-clone_parentclone_newpid-combination.patch
+cpu_hotplug-dont-affect-current-tasks-affinity.patch
 task_struct-cleanup-move-binfmt-field-to-mm_struct.patch
+reiser4.patch
 
