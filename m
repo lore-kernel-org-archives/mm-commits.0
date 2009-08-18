@@ -1,131 +1,622 @@
 From: akpm@linux-foundation.org
-Subject: [merged] vt6655-fix-read-buffer-overflow.patch removed from -mm tree
-Date: Tue, 18 Aug 2009 13:18:29 -0700
-Message-ID: <200908182018.n7IKIT8Q021936@imap1.linux-foundation.org>
+Subject: [merged] rtc-add-support-for-rtcs-on-wolfson-wm831x-devices.patch removed from -mm tree
+Date: Tue, 18 Aug 2009 13:18:32 -0700
+Message-ID: <200908182018.n7IKIWSE021960@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37269 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53677 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751793AbZHRUTG (ORCPT
+	by vger.kernel.org with ESMTP id S1751124AbZHRUTQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Aug 2009 16:19:06 -0400
+	Tue, 18 Aug 2009 16:19:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, forest@alittletooquiet.net, gregkh@suse.de, mm-commits@vger.kernel.org
+To: broonie@opensource.wolfsonmicro.com, a.zummo@towertech.it, david-b@pacbell.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vt6655: fix read buffer overflow
+     rtc: add support for RTCs on Wolfson WM831x devices
 has been removed from the -mm tree.  Its filename was
-     vt6655-fix-read-buffer-overflow.patch
+     rtc-add-support-for-rtcs-on-wolfson-wm831x-devices.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vt6655: fix read buffer overflow
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: rtc: add support for RTCs on Wolfson WM831x devices
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-If pDevice->sOpts.nRxDescs{0,1} or nTxDescs[{0,1}] is zero, the loop ends with
-i == 0, and we write aRD{0,1}Ring[-1]. apTD{0,1}Rings[-1] respectively.
+The WM831x series of PMICs contain RTC functionality.  The hardware
+provides a 32 bit counter incrementing at 1Hz together with a per tick
+interrupt and an alarm value.  For simplicity the driver chooses to define
+the epoch for the counter as the Unix epoch - if required platform data
+can be used in future to customise this.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Forest Bond <forest@alittletooquiet.net>
+When powered on from a completely cold state the RTC reports that it has
+not been configured - when this happens an error is returned when
+attempting to read the RTC in order to avoid use of values we know to be
+invalid.
+
+The hardware also provides security features which mean that it can ignore
+attempts to set the RTC time in certain circumstances, most notably if the
+RTC is written to too often.  These errors are detected by verifying the
+written RTC value.
+
+Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Acked-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/vt6655/device_main.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ drivers/rtc/Kconfig      |   10 
+ drivers/rtc/Makefile     |    1 
+ drivers/rtc/rtc-wm831x.c |  524 +++++++++++++++++++++++++++++++++++++
+ 3 files changed, 535 insertions(+)
 
-diff -puN drivers/staging/vt6655/device_main.c~vt6655-fix-read-buffer-overflow drivers/staging/vt6655/device_main.c
---- a/drivers/staging/vt6655/device_main.c~vt6655-fix-read-buffer-overflow
-+++ a/drivers/staging/vt6655/device_main.c
-@@ -1449,7 +1449,8 @@ static void device_init_rd0_ring(PSDevic
-         pDesc->next_desc = cpu_to_le32(curr + sizeof(SRxDesc));
-     }
+diff -puN drivers/rtc/Kconfig~rtc-add-support-for-rtcs-on-wolfson-wm831x-devices drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-add-support-for-rtcs-on-wolfson-wm831x-devices
++++ a/drivers/rtc/Kconfig
+@@ -557,6 +557,16 @@ config RTC_DRV_V3020
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called rtc-v3020.
  
--    pDevice->aRD0Ring[i-1].next_desc = cpu_to_le32(pDevice->rd0_pool_dma);
-+    if (i > 0)
-+        pDevice->aRD0Ring[i-1].next_desc = cpu_to_le32(pDevice->rd0_pool_dma);
-     pDevice->pCurrRD[0] = &(pDevice->aRD0Ring[0]);
- }
- 
-@@ -1473,7 +1474,8 @@ static void device_init_rd1_ring(PSDevic
-         pDesc->next_desc = cpu_to_le32(curr + sizeof(SRxDesc));
-     }
- 
--    pDevice->aRD1Ring[i-1].next_desc = cpu_to_le32(pDevice->rd1_pool_dma);
-+    if (i > 0)
-+        pDevice->aRD1Ring[i-1].next_desc = cpu_to_le32(pDevice->rd1_pool_dma);
-     pDevice->pCurrRD[1] = &(pDevice->aRD1Ring[0]);
- }
- 
-@@ -1566,7 +1568,8 @@ static void device_init_td0_ring(PSDevic
-         pDesc->next_desc = cpu_to_le32(curr+sizeof(STxDesc));
-     }
- 
--    pDevice->apTD0Rings[i-1].next_desc = cpu_to_le32(pDevice->td0_pool_dma);
-+    if (i > 0)
-+        pDevice->apTD0Rings[i-1].next_desc = cpu_to_le32(pDevice->td0_pool_dma);
-     pDevice->apTailTD[0] = pDevice->apCurrTD[0] =&(pDevice->apTD0Rings[0]);
- 
- }
-@@ -1591,7 +1594,8 @@ static void device_init_td1_ring(PSDevic
-         pDesc->next_desc = cpu_to_le32(curr+sizeof(STxDesc));
-     }
- 
--    pDevice->apTD1Rings[i-1].next_desc = cpu_to_le32(pDevice->td1_pool_dma);
-+    if (i > 0)
-+        pDevice->apTD1Rings[i-1].next_desc = cpu_to_le32(pDevice->td1_pool_dma);
-     pDevice->apTailTD[1] = pDevice->apCurrTD[1] = &(pDevice->apTD1Rings[0]);
- }
- 
++config RTC_DRV_WM831X
++	tristate "Wolfson Microelectronics WM831x RTC"
++	depends on MFD_WM831X
++	help
++	  If you say yes here you will get support for the RTC subsystem
++	  of the Wolfson Microelectronics WM831X series PMICs.
++
++	  This driver can also be built as a module. If so, the module
++	  will be called "rtc-wm831x".
++
+ config RTC_DRV_WM8350
+ 	tristate "Wolfson Microelectronics WM8350 RTC"
+ 	depends on MFD_WM8350
+diff -puN drivers/rtc/Makefile~rtc-add-support-for-rtcs-on-wolfson-wm831x-devices drivers/rtc/Makefile
+--- a/drivers/rtc/Makefile~rtc-add-support-for-rtcs-on-wolfson-wm831x-devices
++++ a/drivers/rtc/Makefile
+@@ -83,5 +83,6 @@ obj-$(CONFIG_RTC_DRV_TWL4030)	+= rtc-twl
+ obj-$(CONFIG_RTC_DRV_TX4939)	+= rtc-tx4939.o
+ obj-$(CONFIG_RTC_DRV_V3020)	+= rtc-v3020.o
+ obj-$(CONFIG_RTC_DRV_VR41XX)	+= rtc-vr41xx.o
++obj-$(CONFIG_RTC_DRV_WM831X)	+= rtc-wm831x.o
+ obj-$(CONFIG_RTC_DRV_WM8350)	+= rtc-wm8350.o
+ obj-$(CONFIG_RTC_DRV_X1205)	+= rtc-x1205.o
+diff -puN /dev/null drivers/rtc/rtc-wm831x.c
+--- /dev/null
++++ a/drivers/rtc/rtc-wm831x.c
+@@ -0,0 +1,524 @@
++/*
++ *	Real Time Clock driver for Wolfson Microelectronics WM831x
++ *
++ *	Copyright (C) 2009 Wolfson Microelectronics PLC.
++ *
++ *  Author: Mark Brown <broonie@opensource.wolfsonmicro.com>
++ *
++ *  This program is free software; you can redistribute  it and/or modify it
++ *  under  the terms of  the GNU General  Public License as published by the
++ *  Free Software Foundation;  either version 2 of the  License, or (at your
++ *  option) any later version.
++ *
++ */
++
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/time.h>
++#include <linux/rtc.h>
++#include <linux/bcd.h>
++#include <linux/interrupt.h>
++#include <linux/ioctl.h>
++#include <linux/completion.h>
++#include <linux/mfd/wm831x/core.h>
++#include <linux/delay.h>
++#include <linux/platform_device.h>
++
++
++/*
++ * R16416 (0x4020) - RTC Write Counter
++ */
++#define WM831X_RTC_WR_CNT_MASK                  0xFFFF  /* RTC_WR_CNT - [15:0] */
++#define WM831X_RTC_WR_CNT_SHIFT                      0  /* RTC_WR_CNT - [15:0] */
++#define WM831X_RTC_WR_CNT_WIDTH                     16  /* RTC_WR_CNT - [15:0] */
++
++/*
++ * R16417 (0x4021) - RTC Time 1
++ */
++#define WM831X_RTC_TIME_MASK                    0xFFFF  /* RTC_TIME - [15:0] */
++#define WM831X_RTC_TIME_SHIFT                        0  /* RTC_TIME - [15:0] */
++#define WM831X_RTC_TIME_WIDTH                       16  /* RTC_TIME - [15:0] */
++
++/*
++ * R16418 (0x4022) - RTC Time 2
++ */
++#define WM831X_RTC_TIME_MASK                    0xFFFF  /* RTC_TIME - [15:0] */
++#define WM831X_RTC_TIME_SHIFT                        0  /* RTC_TIME - [15:0] */
++#define WM831X_RTC_TIME_WIDTH                       16  /* RTC_TIME - [15:0] */
++
++/*
++ * R16419 (0x4023) - RTC Alarm 1
++ */
++#define WM831X_RTC_ALM_MASK                     0xFFFF  /* RTC_ALM - [15:0] */
++#define WM831X_RTC_ALM_SHIFT                         0  /* RTC_ALM - [15:0] */
++#define WM831X_RTC_ALM_WIDTH                        16  /* RTC_ALM - [15:0] */
++
++/*
++ * R16420 (0x4024) - RTC Alarm 2
++ */
++#define WM831X_RTC_ALM_MASK                     0xFFFF  /* RTC_ALM - [15:0] */
++#define WM831X_RTC_ALM_SHIFT                         0  /* RTC_ALM - [15:0] */
++#define WM831X_RTC_ALM_WIDTH                        16  /* RTC_ALM - [15:0] */
++
++/*
++ * R16421 (0x4025) - RTC Control
++ */
++#define WM831X_RTC_VALID                        0x8000  /* RTC_VALID */
++#define WM831X_RTC_VALID_MASK                   0x8000  /* RTC_VALID */
++#define WM831X_RTC_VALID_SHIFT                      15  /* RTC_VALID */
++#define WM831X_RTC_VALID_WIDTH                       1  /* RTC_VALID */
++#define WM831X_RTC_SYNC_BUSY                    0x4000  /* RTC_SYNC_BUSY */
++#define WM831X_RTC_SYNC_BUSY_MASK               0x4000  /* RTC_SYNC_BUSY */
++#define WM831X_RTC_SYNC_BUSY_SHIFT                  14  /* RTC_SYNC_BUSY */
++#define WM831X_RTC_SYNC_BUSY_WIDTH                   1  /* RTC_SYNC_BUSY */
++#define WM831X_RTC_ALM_ENA                      0x0400  /* RTC_ALM_ENA */
++#define WM831X_RTC_ALM_ENA_MASK                 0x0400  /* RTC_ALM_ENA */
++#define WM831X_RTC_ALM_ENA_SHIFT                    10  /* RTC_ALM_ENA */
++#define WM831X_RTC_ALM_ENA_WIDTH                     1  /* RTC_ALM_ENA */
++#define WM831X_RTC_PINT_FREQ_MASK               0x0070  /* RTC_PINT_FREQ - [6:4] */
++#define WM831X_RTC_PINT_FREQ_SHIFT                   4  /* RTC_PINT_FREQ - [6:4] */
++#define WM831X_RTC_PINT_FREQ_WIDTH                   3  /* RTC_PINT_FREQ - [6:4] */
++
++/*
++ * R16422 (0x4026) - RTC Trim
++ */
++#define WM831X_RTC_TRIM_MASK                    0x03FF  /* RTC_TRIM - [9:0] */
++#define WM831X_RTC_TRIM_SHIFT                        0  /* RTC_TRIM - [9:0] */
++#define WM831X_RTC_TRIM_WIDTH                       10  /* RTC_TRIM - [9:0] */
++
++#define WM831X_SET_TIME_RETRIES	5
++#define WM831X_GET_TIME_RETRIES	5
++
++struct wm831x_rtc {
++	struct wm831x *wm831x;
++	struct rtc_device *rtc;
++	unsigned int alarm_enabled:1;
++};
++
++/*
++ * Read current time and date in RTC
++ */
++static int wm831x_rtc_readtime(struct device *dev, struct rtc_time *tm)
++{
++	struct wm831x_rtc *wm831x_rtc = dev_get_drvdata(dev);
++	struct wm831x *wm831x = wm831x_rtc->wm831x;
++	u16 time1[2], time2[2];
++	int ret;
++	int count = 0;
++
++	/* Has the RTC been programmed? */
++	ret = wm831x_reg_read(wm831x, WM831X_RTC_CONTROL);
++	if (ret < 0) {
++		dev_err(dev, "Failed to read RTC control: %d\n", ret);
++		return ret;
++	}
++	if (!(ret & WM831X_RTC_VALID)) {
++		dev_dbg(dev, "RTC not yet configured\n");
++		return -EINVAL;
++	}
++
++	/* Read twice to make sure we don't read a corrupt, partially
++	 * incremented, value.
++	 */
++	do {
++		ret = wm831x_bulk_read(wm831x, WM831X_RTC_TIME_1,
++				       2, time1);
++		if (ret != 0)
++			continue;
++
++		ret = wm831x_bulk_read(wm831x, WM831X_RTC_TIME_1,
++				       2, time2);
++		if (ret != 0)
++			continue;
++
++		if (memcmp(time1, time2, sizeof(time1)) == 0) {
++			u32 time = (time1[0] << 16) | time1[1];
++
++			rtc_time_to_tm(time, tm);
++
++			return rtc_valid_tm(tm);
++		}
++
++	} while (++count < WM831X_GET_TIME_RETRIES);
++
++	dev_err(dev, "Timed out reading current time\n");
++
++	return -EIO;
++}
++
++/*
++ * Set current time and date in RTC
++ */
++static int wm831x_rtc_set_mmss(struct device *dev, unsigned long time)
++{
++	struct wm831x_rtc *wm831x_rtc = dev_get_drvdata(dev);
++	struct wm831x *wm831x = wm831x_rtc->wm831x;
++	struct rtc_time new_tm;
++	unsigned long new_time;
++	int ret;
++	int count = 0;
++
++	ret = wm831x_reg_write(wm831x, WM831X_RTC_TIME_1,
++			       (time >> 16) & 0xffff);
++	if (ret < 0) {
++		dev_err(dev, "Failed to write TIME_1: %d\n", ret);
++		return ret;
++	}
++
++	ret = wm831x_reg_write(wm831x, WM831X_RTC_TIME_2, time & 0xffff);
++	if (ret < 0) {
++		dev_err(dev, "Failed to write TIME_2: %d\n", ret);
++		return ret;
++	}
++
++	/* Wait for the update to complete - should happen first time
++	 * round but be conservative.
++	 */
++	do {
++		msleep(1);
++
++		ret = wm831x_reg_read(wm831x, WM831X_RTC_CONTROL);
++		if (ret < 0)
++			ret = WM831X_RTC_SYNC_BUSY;
++	} while (!(ret & WM831X_RTC_SYNC_BUSY) &&
++		 ++count < WM831X_SET_TIME_RETRIES);
++
++	if (ret & WM831X_RTC_SYNC_BUSY) {
++		dev_err(dev, "Timed out writing RTC update\n");
++		return -EIO;
++	}
++
++	/* Check that the update was accepted; security features may
++	 * have caused the update to be ignored.
++	 */
++	ret = wm831x_rtc_readtime(dev, &new_tm);
++	if (ret < 0)
++		return ret;
++
++	ret = rtc_tm_to_time(&new_tm, &new_time);
++	if (ret < 0) {
++		dev_err(dev, "Failed to convert time: %d\n", ret);
++		return ret;
++	}
++
++	/* Allow a second of change in case of tick */
++	if (new_time - time > 1) {
++		dev_err(dev, "RTC update not permitted by hardware\n");
++		return -EPERM;
++	}
++
++	return 0;
++}
++
++/*
++ * Read alarm time and date in RTC
++ */
++static int wm831x_rtc_readalarm(struct device *dev, struct rtc_wkalrm *alrm)
++{
++	struct wm831x_rtc *wm831x_rtc = dev_get_drvdata(dev);
++	int ret;
++	u16 data[2];
++	u32 time;
++
++	ret = wm831x_bulk_read(wm831x_rtc->wm831x, WM831X_RTC_ALARM_1,
++			       2, data);
++	if (ret != 0) {
++		dev_err(dev, "Failed to read alarm time: %d\n", ret);
++		return ret;
++	}
++
++	time = (data[0] << 16) | data[1];
++
++	rtc_time_to_tm(time, &alrm->time);
++
++	ret = wm831x_reg_read(wm831x_rtc->wm831x, WM831X_RTC_CONTROL);
++	if (ret < 0) {
++		dev_err(dev, "Failed to read RTC control: %d\n", ret);
++		return ret;
++	}
++
++	if (ret & WM831X_RTC_ALM_ENA)
++		alrm->enabled = 1;
++	else
++		alrm->enabled = 0;
++
++	return 0;
++}
++
++static int wm831x_rtc_stop_alarm(struct wm831x_rtc *wm831x_rtc)
++{
++	wm831x_rtc->alarm_enabled = 0;
++
++	return wm831x_set_bits(wm831x_rtc->wm831x, WM831X_RTC_CONTROL,
++			       WM831X_RTC_ALM_ENA, 0);
++}
++
++static int wm831x_rtc_start_alarm(struct wm831x_rtc *wm831x_rtc)
++{
++	wm831x_rtc->alarm_enabled = 1;
++
++	return wm831x_set_bits(wm831x_rtc->wm831x, WM831X_RTC_CONTROL,
++			       WM831X_RTC_ALM_ENA, WM831X_RTC_ALM_ENA);
++}
++
++static int wm831x_rtc_setalarm(struct device *dev, struct rtc_wkalrm *alrm)
++{
++	struct wm831x_rtc *wm831x_rtc = dev_get_drvdata(dev);
++	struct wm831x *wm831x = wm831x_rtc->wm831x;
++	int ret;
++	unsigned long time;
++
++	ret = rtc_tm_to_time(&alrm->time, &time);
++	if (ret < 0) {
++		dev_err(dev, "Failed to convert time: %d\n", ret);
++		return ret;
++	}
++
++	ret = wm831x_rtc_stop_alarm(wm831x_rtc);
++	if (ret < 0) {
++		dev_err(dev, "Failed to stop alarm: %d\n", ret);
++		return ret;
++	}
++
++	ret = wm831x_reg_write(wm831x, WM831X_RTC_ALARM_1,
++			       (time >> 16) & 0xffff);
++	if (ret < 0) {
++		dev_err(dev, "Failed to write ALARM_1: %d\n", ret);
++		return ret;
++	}
++
++	ret = wm831x_reg_write(wm831x, WM831X_RTC_ALARM_2, time & 0xffff);
++	if (ret < 0) {
++		dev_err(dev, "Failed to write ALARM_2: %d\n", ret);
++		return ret;
++	}
++
++	if (alrm->enabled) {
++		ret = wm831x_rtc_start_alarm(wm831x_rtc);
++		if (ret < 0) {
++			dev_err(dev, "Failed to start alarm: %d\n", ret);
++			return ret;
++		}
++	}
++
++	return 0;
++}
++
++static int wm831x_rtc_alarm_irq_enable(struct device *dev,
++				       unsigned int enabled)
++{
++	struct wm831x_rtc *wm831x_rtc = dev_get_drvdata(dev);
++
++	if (enabled)
++		return wm831x_rtc_start_alarm(wm831x_rtc);
++	else
++		return wm831x_rtc_stop_alarm(wm831x_rtc);
++}
++
++static int wm831x_rtc_update_irq_enable(struct device *dev,
++					unsigned int enabled)
++{
++	struct wm831x_rtc *wm831x_rtc = dev_get_drvdata(dev);
++	int val;
++
++	if (enabled)
++		val = 1 << WM831X_RTC_PINT_FREQ_SHIFT;
++	else
++		val = 0;
++
++	return wm831x_set_bits(wm831x_rtc->wm831x, WM831X_RTC_CONTROL,
++			       WM831X_RTC_PINT_FREQ_MASK, val);
++}
++
++static irqreturn_t wm831x_alm_irq(int irq, void *data)
++{
++	struct wm831x_rtc *wm831x_rtc = data;
++
++	rtc_update_irq(wm831x_rtc->rtc, 1, RTC_IRQF | RTC_AF);
++
++	return IRQ_HANDLED;
++}
++
++static irqreturn_t wm831x_per_irq(int irq, void *data)
++{
++	struct wm831x_rtc *wm831x_rtc = data;
++
++	rtc_update_irq(wm831x_rtc->rtc, 1, RTC_IRQF | RTC_UF);
++
++	return IRQ_HANDLED;
++}
++
++static const struct rtc_class_ops wm831x_rtc_ops = {
++	.read_time = wm831x_rtc_readtime,
++	.set_mmss = wm831x_rtc_set_mmss,
++	.read_alarm = wm831x_rtc_readalarm,
++	.set_alarm = wm831x_rtc_setalarm,
++	.alarm_irq_enable = wm831x_rtc_alarm_irq_enable,
++	.update_irq_enable = wm831x_rtc_update_irq_enable,
++};
++
++#ifdef CONFIG_PM
++/* Turn off the alarm if it should not be a wake source. */
++static int wm831x_rtc_suspend(struct device *dev)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct wm831x_rtc *wm831x_rtc = dev_get_drvdata(&pdev->dev);
++	int ret, enable;
++
++	if (wm831x_rtc->alarm_enabled && device_may_wakeup(&pdev->dev))
++		enable = WM831X_RTC_ALM_ENA;
++	else
++		enable = 0;
++
++	ret = wm831x_set_bits(wm831x_rtc->wm831x, WM831X_RTC_CONTROL,
++			      WM831X_RTC_ALM_ENA, enable);
++	if (ret != 0)
++		dev_err(&pdev->dev, "Failed to update RTC alarm: %d\n", ret);
++
++	return 0;
++}
++
++/* Enable the alarm if it should be enabled (in case it was disabled to
++ * prevent use as a wake source).
++ */
++static int wm831x_rtc_resume(struct device *dev)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct wm831x_rtc *wm831x_rtc = dev_get_drvdata(&pdev->dev);
++	int ret;
++
++	if (wm831x_rtc->alarm_enabled) {
++		ret = wm831x_rtc_start_alarm(wm831x_rtc);
++		if (ret != 0)
++			dev_err(&pdev->dev,
++				"Failed to restart RTC alarm: %d\n", ret);
++	}
++
++	return 0;
++}
++
++/* Unconditionally disable the alarm */
++static int wm831x_rtc_freeze(struct device *dev)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct wm831x_rtc *wm831x_rtc = dev_get_drvdata(&pdev->dev);
++	int ret;
++
++	ret = wm831x_set_bits(wm831x_rtc->wm831x, WM831X_RTC_CONTROL,
++			      WM831X_RTC_ALM_ENA, 0);
++	if (ret != 0)
++		dev_err(&pdev->dev, "Failed to stop RTC alarm: %d\n", ret);
++
++	return 0;
++}
++#else
++#define wm831x_rtc_suspend NULL
++#define wm831x_rtc_resume NULL
++#define wm831x_rtc_freeze NULL
++#endif
++
++static int wm831x_rtc_probe(struct platform_device *pdev)
++{
++	struct wm831x *wm831x = dev_get_drvdata(pdev->dev.parent);
++	struct wm831x_rtc *wm831x_rtc;
++	int per_irq = platform_get_irq_byname(pdev, "PER");
++	int alm_irq = platform_get_irq_byname(pdev, "ALM");
++	int ret = 0;
++
++	wm831x_rtc = kzalloc(sizeof(*wm831x_rtc), GFP_KERNEL);
++	if (wm831x_rtc == NULL)
++		return -ENOMEM;
++
++	platform_set_drvdata(pdev, wm831x_rtc);
++	wm831x_rtc->wm831x = wm831x;
++
++	ret = wm831x_reg_read(wm831x, WM831X_RTC_CONTROL);
++	if (ret < 0) {
++		dev_err(&pdev->dev, "Failed to read RTC control: %d\n", ret);
++		goto err;
++	}
++	if (ret & WM831X_RTC_ALM_ENA)
++		wm831x_rtc->alarm_enabled = 1;
++
++	device_init_wakeup(&pdev->dev, 1);
++
++	wm831x_rtc->rtc = rtc_device_register("wm831x", &pdev->dev,
++					      &wm831x_rtc_ops, THIS_MODULE);
++	if (IS_ERR(wm831x_rtc->rtc)) {
++		ret = PTR_ERR(wm831x_rtc->rtc);
++		goto err;
++	}
++
++	ret = wm831x_request_irq(wm831x, per_irq, wm831x_per_irq,
++				 IRQF_TRIGGER_RISING, "wm831x_rtc_per",
++				 wm831x_rtc);
++	if (ret != 0) {
++		dev_err(&pdev->dev, "Failed to request periodic IRQ %d: %d\n",
++			per_irq, ret);
++	}
++
++	ret = wm831x_request_irq(wm831x, alm_irq, wm831x_alm_irq,
++				 IRQF_TRIGGER_RISING, "wm831x_rtc_alm",
++				 wm831x_rtc);
++	if (ret != 0) {
++		dev_err(&pdev->dev, "Failed to request alarm IRQ %d: %d\n",
++			alm_irq, ret);
++	}
++
++	return 0;
++
++err:
++	kfree(wm831x_rtc);
++	return ret;
++}
++
++static int __devexit wm831x_rtc_remove(struct platform_device *pdev)
++{
++	struct wm831x_rtc *wm831x_rtc = platform_get_drvdata(pdev);
++	int per_irq = platform_get_irq_byname(pdev, "PER");
++	int alm_irq = platform_get_irq_byname(pdev, "ALM");
++
++	wm831x_free_irq(wm831x_rtc->wm831x, alm_irq, wm831x_rtc);
++	wm831x_free_irq(wm831x_rtc->wm831x, per_irq, wm831x_rtc);
++	rtc_device_unregister(wm831x_rtc->rtc);
++	kfree(wm831x_rtc);
++
++	return 0;
++}
++
++static struct dev_pm_ops wm831x_rtc_pm_ops = {
++	.suspend = wm831x_rtc_suspend,
++	.resume = wm831x_rtc_resume,
++
++	.freeze = wm831x_rtc_freeze,
++	.thaw = wm831x_rtc_resume,
++	.restore = wm831x_rtc_resume,
++
++	.poweroff = wm831x_rtc_suspend,
++};
++
++static struct platform_driver wm831x_rtc_driver = {
++	.probe = wm831x_rtc_probe,
++	.remove = __devexit_p(wm831x_rtc_remove),
++	.driver = {
++		.name = "wm831x-rtc",
++		.pm = &wm831x_rtc_pm_ops,
++	},
++};
++
++static int __init wm831x_rtc_init(void)
++{
++	return platform_driver_register(&wm831x_rtc_driver);
++}
++module_init(wm831x_rtc_init);
++
++static void __exit wm831x_rtc_exit(void)
++{
++	platform_driver_unregister(&wm831x_rtc_driver);
++}
++module_exit(wm831x_rtc_exit);
++
++MODULE_AUTHOR("Mark Brown <broonie@opensource.wolfsonmicro.com>");
++MODULE_DESCRIPTION("RTC driver for the WM831x series PMICs");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:wm831x-rtc");
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from broonie@opensource.wolfsonmicro.com are
 
-origin.patch
 linux-next.patch
-s3c-fix-check-of-index-into-s3c_gpios.patch
-stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
-dm-strncpy-does-not-null-terminate-string.patch
-pcmcia-fix-read-buffer-overflow.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-powerpc-avoid-calculating-possibly-invalid-address.patch
-drm-i915-intel_sdvo_multifunc_encoder-sdvo_output_svid0-tested-twice.patch
-mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
-slram-read-buffer-overflow.patch
-mtd-fix-read-buffer-overflow.patch
-mtd-jffs2-fix-read-buffer-overflow.patch
-mtd-prevent-a-read-from-eraseregions.patch
-mtd-prevent-a-read-from-regions.patch
-hfc_usb-fix-read-buffer-overflow.patch
-zorro8390-fix-read-buffer-overflow-in-zorro8390_init_one-checkpatch-fixes.patch
-cyclades-read-buffer-overflow.patch
-serial167-fix-read-buffer-overflow.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-blackfin-fix-read-buffer-overflow.patch
-arch-alpha-boot-tools-objstripc-wrong-variable-tested-after-open.patch
-m32r-remove-redundant-tests-on-unsigned.patch
-m68k-count-can-reach-51-not-50.patch
-m68k-cnt-reaches-1-not-0.patch
-dme1737-keep-index-within-pwm_config.patch
-sdio-fix-read-buffer-overflow.patch
-ncpfs-read-buffer-overflow.patch
-smbfs-read-buffer-overflow.patch
-platinumfb-misplaced-parenthesis.patch
-sisfb-read-buffer-overflow.patch
-drivers-video-console-newport_conc-fix-read-outside-array-bounds.patch
-mwave-fix-read-buffer-overflow.patch
-adfs-remove-redundant-test-on-unsigned.patch
+pxa2xx_spi-register-earlier.patch
+rtc-driver-for-pcap2-pmic-get-pcap-data-from-the-parent-device.patch
 
