@@ -1,35 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-build_zonelists-move-clear-node_load-to-__build_all_zonelists-fix.patch added to -mm tree
-Date: Tue, 18 Aug 2009 13:52:55 -0700
-Message-ID: <200908182052.n7IKqtEG017417@imap1.linux-foundation.org>
+Subject: [folded] mm-build_zonelists-move-clear-node_load-to-__build_all_zonelists-fix.patch removed from -mm tree
+Date: Tue, 18 Aug 2009 14:10:29 -0700
+Message-ID: <200908182110.n7ILATPA015918@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54293 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58869 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751760AbZHRUyy (ORCPT
+	by vger.kernel.org with ESMTP id S1751603AbZHRVL7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Aug 2009 16:54:54 -0400
+	Tue, 18 Aug 2009 17:11:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bo-liu@hotmail.com, cl@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, stable@kernel.org
+To: akpm@linux-foundation.org, bo-liu@hotmail.com, cl@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
      mm-build_zonelists-move-clear-node_load-to-__build_all_zonelists-fix
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      mm-build_zonelists-move-clear-node_load-to-__build_all_zonelists-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into mm-build_zonelists-move-clear-node_load-to-__build_all_zonelists.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -72,6 +62,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 mmc-add-the-new-linux-mmc-mailing-list-to-maintainers.patch
+mm-build_zonelists-move-clear-node_load-to-__build_all_zonelists.patch
 mm-build_zonelists-move-clear-node_load-to-__build_all_zonelists-fix.patch
 linux-next.patch
 next-remove-localversion.patch
