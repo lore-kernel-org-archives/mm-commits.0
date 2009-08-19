@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + page-allocator-limit-the-number-of-migrate_reserve-pageblocks-per-zone.patch added to -mm tree
-Date: Wed, 19 Aug 2009 11:46:15 -0700
-Message-ID: <200908191846.n7JIkF3o019100@imap1.linux-foundation.org>
+Subject: + viafb-clean-up-viamodeh.patch added to -mm tree
+Date: Wed, 19 Aug 2009 11:49:54 -0700
+Message-ID: <200908191849.n7JInsww025623@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39680 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36772 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752694AbZHSSsC (ORCPT
+	by vger.kernel.org with ESMTP id S1752911AbZHSSuQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Aug 2009 14:48:02 -0400
+	Wed, 19 Aug 2009 14:50:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mel@csn.ul.ie, stable@kernel.org
+Cc: FlorianSchandinat@gmx.de, JosephChan@via.com.tw, ScottFang@viatech.com.cn
 
 
 The patch titled
-     page-allocator: limit the number of MIGRATE_RESERVE pageblocks per zone
+     viafb: clean up viamode.h
 has been added to the -mm tree.  Its filename is
-     page-allocator-limit-the-number-of-migrate_reserve-pageblocks-per-zone.patch
+     viafb-clean-up-viamodeh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,116 +34,206 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page-allocator: limit the number of MIGRATE_RESERVE pageblocks per zone
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: viafb: clean up viamode.h
+From: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 
-After anti-fragmentation was merged, a bug was reported whereby devices
-that depended on high-order atomic allocations were failing.  The solution
-was to preserve a property in the buddy allocator which tended to keep the
-minimum number of free pages in the zone at the lower physical addresses
-and contiguous.  To preserve this property, MIGRATE_RESERVE was introduced
-and a number of pageblocks at the start of a zone would be marked
-"reserve", the number of which depended on min_free_kbytes.
+Remove unneeeded declarations from the header and makes it more
+maintainable by evaluating the array size in the file the array exist in
+and exporting it via variables.  This removes the need to keep the array
+size in the header in sync with the real array size.
 
-Anti-fragmentation works by avoiding the mixing of page migratetypes
-within the same pageblock.  One way of helping this is to increase
-min_free_kbytes because it becomes less like that it will be necessary to
-place pages of of MIGRATE_RESERVE is unbounded, the free memory is kept
-there in large contiguous blocks instead of helping anti-fragmentation as
-much as it should.  With the page-allocator tracepoint patches applied, it
-was found during anti-fragmentation tests that the number of
-fragmentation-related events were far higher than expected even with
-min_free_kbytes at higher values.
-
-This patch limits the number of MIGRATE_RESERVE blocks that exist per zone
-to two.  For example, with a sufficient min_free_kbytes, 4MB of memory
-will be kept aside on an x86-64 and remain more or less free and
-contiguous for the systems uptime.  This should be sufficient for devices
-depending on high-order atomic allocations while helping fragmentation
-control when min_free_kbytes is tuned appropriately.  As side-effect of
-this patch is that the reserve variable is converted to int as unsigned
-long was the wrong type to use when ensuring that only the required number
-of reserve blocks are created.
-
-With the patches applied, fragmentation-related events as measured by the
-page allocator tracepoints were significantly reduced when running some
-fragmentation stress-tests on systems with min_free_kbytes tuned to a
-value appropriate for hugepage allocations at runtime.  On x86, the events
-recorded were reduced by 99.8%, on x86-64 by 99.72% and on ppc64 by
-99.83%.
-
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Cc: <stable@kernel.org>
+Signed-off-by: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Cc: Scott Fang <ScottFang@viatech.com.cn>
+Cc: Joseph Chan <JosephChan@via.com.tw>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ drivers/video/via/viamode.c |   10 ++
+ drivers/video/via/viamode.h |  138 +++++-----------------------------
+ 2 files changed, 32 insertions(+), 116 deletions(-)
 
-diff -puN mm/page_alloc.c~page-allocator-limit-the-number-of-migrate_reserve-pageblocks-per-zone mm/page_alloc.c
---- a/mm/page_alloc.c~page-allocator-limit-the-number-of-migrate_reserve-pageblocks-per-zone
-+++ a/mm/page_alloc.c
-@@ -2857,7 +2857,8 @@ static void setup_zone_migrate_reserve(s
- {
- 	unsigned long start_pfn, pfn, end_pfn;
- 	struct page *page;
--	unsigned long reserve, block_migratetype;
-+	unsigned long block_migratetype;
-+	int reserve;
- 
- 	/* Get the start pfn, end pfn and the number of blocks to reserve */
- 	start_pfn = zone->zone_start_pfn;
-@@ -2865,6 +2866,15 @@ static void setup_zone_migrate_reserve(s
- 	reserve = roundup(min_wmark_pages(zone), pageblock_nr_pages) >>
- 							pageblock_order;
- 
-+	/*
-+	 * Reserve blocks are generally in place to help high-order atomic
-+	 * allocations that are short-lived. A min_free_kbytes value that
-+	 * would result in more than 2 reserve blocks for atomic allocations
-+	 * is assumed to be in place to help anti-fragmentation for the
-+	 * future allocation of hugepages at runtime.
-+	 */
-+	reserve = min(2, reserve);
+diff -puN drivers/video/via/viamode.c~viafb-clean-up-viamodeh drivers/video/via/viamode.c
+--- a/drivers/video/via/viamode.c~viafb-clean-up-viamodeh
++++ a/drivers/video/via/viamode.c
+@@ -1006,3 +1006,13 @@ struct VideoModeTable CEA_HDMI_Modes[] =
+ 	{VIA_RES_1280X720, CEAM1280x720, ARRAY_SIZE(CEAM1280x720)},
+ 	{VIA_RES_1920X1080, CEAM1920x1080, ARRAY_SIZE(CEAM1920x1080)}
+ };
 +
- 	for (pfn = start_pfn; pfn < end_pfn; pfn += pageblock_nr_pages) {
- 		if (!pfn_valid(pfn))
- 			continue;
++int NUM_TOTAL_RES_MAP_REFRESH = ARRAY_SIZE(res_map_refresh_tbl);
++int NUM_TOTAL_CEA_MODES = ARRAY_SIZE(CEA_HDMI_Modes);
++int NUM_TOTAL_CN400_ModeXregs = ARRAY_SIZE(CN400_ModeXregs);
++int NUM_TOTAL_CN700_ModeXregs = ARRAY_SIZE(CN700_ModeXregs);
++int NUM_TOTAL_KM400_ModeXregs = ARRAY_SIZE(KM400_ModeXregs);
++int NUM_TOTAL_CX700_ModeXregs = ARRAY_SIZE(CX700_ModeXregs);
++int NUM_TOTAL_CLE266_ModeXregs = ARRAY_SIZE(CLE266_ModeXregs);
++int NUM_TOTAL_PATCH_MODE = ARRAY_SIZE(res_patch_table);
++int NUM_TOTAL_MODETABLE = ARRAY_SIZE(CLE266Modes);
+diff -puN drivers/video/via/viamode.h~viafb-clean-up-viamodeh drivers/video/via/viamode.h
+--- a/drivers/video/via/viamode.h~viafb-clean-up-viamodeh
++++ a/drivers/video/via/viamode.h
+@@ -50,127 +50,33 @@ struct res_map_refresh {
+ 	int vmode_refresh;
+ };
+ 
+-#define NUM_TOTAL_RES_MAP_REFRESH ARRAY_SIZE(res_map_refresh_tbl)
+-#define NUM_TOTAL_CEA_MODES  ARRAY_SIZE(CEA_HDMI_Modes)
+-#define NUM_TOTAL_CN400_ModeXregs ARRAY_SIZE(CN400_ModeXregs)
+-#define NUM_TOTAL_CN700_ModeXregs ARRAY_SIZE(CN700_ModeXregs)
+-#define NUM_TOTAL_KM400_ModeXregs ARRAY_SIZE(KM400_ModeXregs)
+-#define NUM_TOTAL_CX700_ModeXregs ARRAY_SIZE(CX700_ModeXregs)
+-#define NUM_TOTAL_CLE266_ModeXregs ARRAY_SIZE(CLE266_ModeXregs)
+-#define NUM_TOTAL_PATCH_MODE ARRAY_SIZE(res_patch_table)
+-#define NUM_TOTAL_MODETABLE ARRAY_SIZE(CLE266Modes)
++extern int NUM_TOTAL_RES_MAP_REFRESH;
++extern int NUM_TOTAL_CEA_MODES;
++extern int NUM_TOTAL_CN400_ModeXregs;
++extern int NUM_TOTAL_CN700_ModeXregs;
++extern int NUM_TOTAL_KM400_ModeXregs;
++extern int NUM_TOTAL_CX700_ModeXregs;
++extern int NUM_TOTAL_CLE266_ModeXregs;
++extern int NUM_TOTAL_PATCH_MODE;
++extern int NUM_TOTAL_MODETABLE;
+ 
+ /********************/
+ /* Mode Table       */
+ /********************/
+ 
+-/* 480x640 */
+-extern struct crt_mode_table CRTM480x640[1];
+-/* 640x480*/
+-extern struct crt_mode_table CRTM640x480[5];
+-/*720x480 (GTF)*/
+-extern struct crt_mode_table CRTM720x480[1];
+-/*720x576 (GTF)*/
+-extern struct crt_mode_table CRTM720x576[1];
+-/* 800x480 (CVT) */
+-extern struct crt_mode_table CRTM800x480[1];
+-/* 800x600*/
+-extern struct crt_mode_table CRTM800x600[5];
+-/* 848x480 (CVT) */
+-extern struct crt_mode_table CRTM848x480[1];
+-/*856x480 (GTF) convert to 852x480*/
+-extern struct crt_mode_table CRTM852x480[1];
+-/*1024x512 (GTF)*/
+-extern struct crt_mode_table CRTM1024x512[1];
+-/* 1024x600*/
+-extern struct crt_mode_table CRTM1024x600[1];
+-/* 1024x768*/
+-extern struct crt_mode_table CRTM1024x768[4];
+-/* 1152x864*/
+-extern struct crt_mode_table CRTM1152x864[1];
+-/* 1280x720 (HDMI 720P)*/
+-extern struct crt_mode_table CRTM1280x720[2];
+-/*1280x768 (GTF)*/
+-extern struct crt_mode_table CRTM1280x768[2];
+-/* 1280x800 (CVT) */
+-extern struct crt_mode_table CRTM1280x800[1];
+-/*1280x960*/
+-extern struct crt_mode_table CRTM1280x960[1];
+-/* 1280x1024*/
+-extern struct crt_mode_table CRTM1280x1024[3];
+-/* 1368x768 (GTF) */
+-extern struct crt_mode_table CRTM1368x768[1];
+-/*1440x1050 (GTF)*/
+-extern struct crt_mode_table CRTM1440x1050[1];
+-/* 1600x1200*/
+-extern struct crt_mode_table CRTM1600x1200[2];
+-/* 1680x1050 (CVT) */
+-extern struct crt_mode_table CRTM1680x1050[2];
+-/* 1680x1050 (CVT Reduce Blanking) */
+-extern struct crt_mode_table CRTM1680x1050_RB[1];
+-/* 1920x1080 (CVT)*/
+-extern struct crt_mode_table CRTM1920x1080[1];
+-/* 1920x1080 (CVT with Reduce Blanking) */
+-extern struct crt_mode_table CRTM1920x1080_RB[1];
+-/* 1920x1440*/
+-extern struct crt_mode_table CRTM1920x1440[2];
+-/* 1400x1050 (CVT) */
+-extern struct crt_mode_table CRTM1400x1050[2];
+-/* 1400x1050 (CVT Reduce Blanking) */
+-extern struct crt_mode_table CRTM1400x1050_RB[1];
+-/* 960x600 (CVT) */
+-extern struct crt_mode_table CRTM960x600[1];
+-/* 1000x600 (GTF) */
+-extern struct crt_mode_table CRTM1000x600[1];
+-/* 1024x576 (GTF) */
+-extern struct crt_mode_table CRTM1024x576[1];
+-/* 1088x612 (CVT) */
+-extern struct crt_mode_table CRTM1088x612[1];
+-/* 1152x720 (CVT) */
+-extern struct crt_mode_table CRTM1152x720[1];
+-/* 1200x720 (GTF) */
+-extern struct crt_mode_table CRTM1200x720[1];
+-/* 1280x600 (GTF) */
+-extern struct crt_mode_table CRTM1280x600[1];
+-/* 1360x768 (CVT) */
+-extern struct crt_mode_table CRTM1360x768[1];
+-/* 1360x768 (CVT Reduce Blanking) */
+-extern struct crt_mode_table CRTM1360x768_RB[1];
+-/* 1366x768 (GTF) */
+-extern struct crt_mode_table CRTM1366x768[2];
+-/* 1440x900 (CVT) */
+-extern struct crt_mode_table CRTM1440x900[2];
+-/* 1440x900 (CVT Reduce Blanking) */
+-extern struct crt_mode_table CRTM1440x900_RB[1];
+-/* 1600x900 (CVT) */
+-extern struct crt_mode_table CRTM1600x900[1];
+-/* 1600x900 (CVT Reduce Blanking) */
+-extern struct crt_mode_table CRTM1600x900_RB[1];
+-/* 1600x1024 (GTF) */
+-extern struct crt_mode_table CRTM1600x1024[1];
+-/* 1792x1344 (DMT) */
+-extern struct crt_mode_table CRTM1792x1344[1];
+-/* 1856x1392 (DMT) */
+-extern struct crt_mode_table CRTM1856x1392[1];
+-/* 1920x1200 (CVT) */
+-extern struct crt_mode_table CRTM1920x1200[1];
+-/* 1920x1200 (CVT with Reduce Blanking) */
+-extern struct crt_mode_table CRTM1920x1200_RB[1];
+-/* 2048x1536 (CVT) */
+-extern struct crt_mode_table CRTM2048x1536[1];
+-extern struct VideoModeTable CLE266Modes[47];
+-extern struct crt_mode_table CEAM1280x720[1];
+-extern struct crt_mode_table CEAM1920x1080[1];
+-extern struct VideoModeTable CEA_HDMI_Modes[2];
++extern struct VideoModeTable CLE266Modes[];
++extern struct crt_mode_table CEAM1280x720[];
++extern struct crt_mode_table CEAM1920x1080[];
++extern struct VideoModeTable CEA_HDMI_Modes[];
+ 
+-extern struct res_map_refresh res_map_refresh_tbl[61];
+-extern struct io_reg CN400_ModeXregs[52];
+-extern struct io_reg CN700_ModeXregs[66];
+-extern struct io_reg KM400_ModeXregs[55];
+-extern struct io_reg CX700_ModeXregs[58];
+-extern struct io_reg VX800_ModeXregs[58];
+-extern struct io_reg CLE266_ModeXregs[32];
+-extern struct io_reg PM1024x768[2];
+-extern struct patch_table res_patch_table[1];
++extern struct res_map_refresh res_map_refresh_tbl[];
++extern struct io_reg CN400_ModeXregs[];
++extern struct io_reg CN700_ModeXregs[];
++extern struct io_reg KM400_ModeXregs[];
++extern struct io_reg CX700_ModeXregs[];
++extern struct io_reg VX800_ModeXregs[];
++extern struct io_reg CLE266_ModeXregs[];
++extern struct io_reg PM1024x768[];
++extern struct patch_table res_patch_table[];
+ extern struct VPITTable VPIT;
+ #endif /* __VIAMODE_H__ */
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from FlorianSchandinat@gmx.de are
 
-mm-revert-oom-move-oom_adj-value.patch
-mm-build_zonelists-move-clear-node_load-to-__build_all_zonelists.patch
-memory-hotplug-update-zone-pcp-at-memory-online.patch
-memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
-memory-hotplug-exclude-isolated-page-from-pco-page-alloc.patch
-memory-hotplug-make-pages-from-movable-zone-always-isolatable.patch
-memory-hotplug-alloc-page-from-other-node-in-memory-online.patch
-memory-hotplug-migrate-swap-cache-page.patch
-hugetlb-balance-freeing-of-huge-pages-across-nodes.patch
-hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages.patch
-hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages-fix.patch
-hugetlb-clean-up-and-update-huge-pages-documentation.patch
-hugetlb-restore-interleaving-of-bootmem-huge-pages.patch
-mm-clean-up-page_remove_rmap.patch
-mm-update-alloc_flags-after-oom-killer-has-been-called.patch
-vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
-vmscan-move-clearpageactive-from-move_active_pages-to-shrink_active_list.patch
-vmscan-kill-unnecessary-page-flag-test.patch
-vmscan-kill-unnecessary-prefetch.patch
-mm-perform-non-atomic-test-clear-of-pg_mlocked-on-free.patch
-mm-warn-once-when-a-page-is-freed-with-pg_mlocked-set.patch
-page-allocator-change-migratetype-for-all-pageblocks-within-a-high-order-page-during-__rmqueue_fallback.patch
-page-allocator-remove-dead-function-free_cold_page.patch
-tracing-page-allocator-add-trace-events-for-page-allocation-and-page-freeing.patch
-tracing-page-allocator-add-trace-events-for-anti-fragmentation-falling-back-to-other-migratetypes.patch
-tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists.patch
-tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists-fix.patch
-tracing-page-allocator-add-a-postprocessing-script-for-page-allocator-related-ftrace-events.patch
-tracing-documentation-add-a-document-describing-how-to-do-some-performance-analysis-with-tracepoints.patch
-tracing-documentation-add-a-document-on-the-kmem-tracepoints.patch
-mm-drop-unneeded-double-negations.patch
-page-allocator-limit-the-number-of-migrate_reserve-pageblocks-per-zone.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
+viafb-remove-duplicated-cx700-register-init.patch
+viafb-remove-temporary-start-address-setting.patch
+viafb-merge-viafb_update_viafb_par-in-viafb_update_fix.patch
+viafb-split-viafb_set_start_addr-up.patch
+viafb-fix-ioremap_nocache-error-handling.patch
+viafb-clean-up-viamodeh.patch
+viafb-remove-duplicated-mode-information.patch
+viafb-clean-up-duoview.patch
+viafb-clean-up-virtual-memory-handling.patch
+fb-fix-fb_pan_display-range-check.patch
 
