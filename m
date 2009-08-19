@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + video-console-use-div_round_up.patch added to -mm tree
-Date: Wed, 19 Aug 2009 11:44:21 -0700
-Message-ID: <200908191844.n7JIiLq6015717@imap1.linux-foundation.org>
+Subject: + page-allocator-limit-the-number-of-migrate_reserve-pageblocks-per-zone.patch added to -mm tree
+Date: Wed, 19 Aug 2009 11:46:15 -0700
+Message-ID: <200908191846.n7JIkF3o019100@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58813 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39680 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752343AbZHSSoy (ORCPT
+	by vger.kernel.org with ESMTP id S1752694AbZHSSsC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Aug 2009 14:44:54 -0400
+	Wed, 19 Aug 2009 14:48:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com, andi@firstfloor.org, krzysztof.h1@poczta.fm, sergey.senozhatsky@gmail.com
+Cc: mel@csn.ul.ie, stable@kernel.org
 
 
 The patch titled
-     video: console, use DIV_ROUND_UP
+     page-allocator: limit the number of MIGRATE_RESERVE pageblocks per zone
 has been added to the -mm tree.  Its filename is
-     video-console-use-div_round_up.patch
+     page-allocator-limit-the-number-of-migrate_reserve-pageblocks-per-zone.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,79 +34,116 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: video: console, use DIV_ROUND_UP
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: page-allocator: limit the number of MIGRATE_RESERVE pageblocks per zone
+From: Mel Gorman <mel@csn.ul.ie>
 
-Use DIV_ROUND_UP explicitly instead of manual shifts and adds.  It makes
-the code more readable and consistent (sometimes there were shifts,
-sometimes divs).
+After anti-fragmentation was merged, a bug was reported whereby devices
+that depended on high-order atomic allocations were failing.  The solution
+was to preserve a property in the buddy allocator which tended to keep the
+minimum number of free pages in the zone at the lower physical addresses
+and contiguous.  To preserve this property, MIGRATE_RESERVE was introduced
+and a number of pageblocks at the start of a zone would be marked
+"reserve", the number of which depended on min_free_kbytes.
 
-There is no change on the assembly level (compilers should do the right
-job).
+Anti-fragmentation works by avoiding the mixing of page migratetypes
+within the same pageblock.  One way of helping this is to increase
+min_free_kbytes because it becomes less like that it will be necessary to
+place pages of of MIGRATE_RESERVE is unbounded, the free memory is kept
+there in large contiguous blocks instead of helping anti-fragmentation as
+much as it should.  With the page-allocator tracepoint patches applied, it
+was found during anti-fragmentation tests that the number of
+fragmentation-related events were far higher than expected even with
+min_free_kbytes at higher values.
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+This patch limits the number of MIGRATE_RESERVE blocks that exist per zone
+to two.  For example, with a sufficient min_free_kbytes, 4MB of memory
+will be kept aside on an x86-64 and remain more or less free and
+contiguous for the systems uptime.  This should be sufficient for devices
+depending on high-order atomic allocations while helping fragmentation
+control when min_free_kbytes is tuned appropriately.  As side-effect of
+this patch is that the reserve variable is converted to int as unsigned
+long was the wrong type to use when ensuring that only the required number
+of reserve blocks are created.
+
+With the patches applied, fragmentation-related events as measured by the
+page allocator tracepoints were significantly reduced when running some
+fragmentation stress-tests on systems with min_free_kbytes tuned to a
+value appropriate for hugepage allocations at runtime.  On x86, the events
+recorded were reduced by 99.8%, on x86-64 by 99.72% and on ppc64 by
+99.83%.
+
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/console/bitblit.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/page_alloc.c |   12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
-diff -puN drivers/video/console/bitblit.c~video-console-use-div_round_up drivers/video/console/bitblit.c
---- a/drivers/video/console/bitblit.c~video-console-use-div_round_up
-+++ a/drivers/video/console/bitblit.c
-@@ -25,7 +25,7 @@ static inline void update_attr(u8 *dst, 
- 			       struct vc_data *vc)
+diff -puN mm/page_alloc.c~page-allocator-limit-the-number-of-migrate_reserve-pageblocks-per-zone mm/page_alloc.c
+--- a/mm/page_alloc.c~page-allocator-limit-the-number-of-migrate_reserve-pageblocks-per-zone
++++ a/mm/page_alloc.c
+@@ -2857,7 +2857,8 @@ static void setup_zone_migrate_reserve(s
  {
- 	int i, offset = (vc->vc_font.height < 10) ? 1 : 2;
--	int width = (vc->vc_font.width + 7) >> 3;
-+	int width = DIV_ROUND_UP(vc->vc_font.width, 8);
- 	unsigned int cellsize = vc->vc_font.height * width;
- 	u8 c;
+ 	unsigned long start_pfn, pfn, end_pfn;
+ 	struct page *page;
+-	unsigned long reserve, block_migratetype;
++	unsigned long block_migratetype;
++	int reserve;
  
-@@ -144,7 +144,7 @@ static void bit_putcs(struct vc_data *vc
- 		      int fg, int bg)
- {
- 	struct fb_image image;
--	u32 width = (vc->vc_font.width + 7)/8;
-+	u32 width = DIV_ROUND_UP(vc->vc_font.width, 8);
- 	u32 cellsize = width * vc->vc_font.height;
- 	u32 maxcnt = info->pixmap.size/cellsize;
- 	u32 scan_align = info->pixmap.scan_align - 1;
-@@ -173,7 +173,7 @@ static void bit_putcs(struct vc_data *vc
- 			cnt = count;
+ 	/* Get the start pfn, end pfn and the number of blocks to reserve */
+ 	start_pfn = zone->zone_start_pfn;
+@@ -2865,6 +2866,15 @@ static void setup_zone_migrate_reserve(s
+ 	reserve = roundup(min_wmark_pages(zone), pageblock_nr_pages) >>
+ 							pageblock_order;
  
- 		image.width = vc->vc_font.width * cnt;
--		pitch = ((image.width + 7) >> 3) + scan_align;
-+		pitch = DIV_ROUND_UP(image.width, 8) + scan_align;
- 		pitch &= ~scan_align;
- 		size = pitch * image.height + buf_align;
- 		size &= ~buf_align;
-@@ -239,7 +239,7 @@ static void bit_cursor(struct vc_data *v
- 	struct fb_cursor cursor;
- 	struct fbcon_ops *ops = info->fbcon_par;
- 	unsigned short charmask = vc->vc_hi_font_mask ? 0x1ff : 0xff;
--	int w = (vc->vc_font.width + 7) >> 3, c;
-+	int w = DIV_ROUND_UP(vc->vc_font.width, 8), c;
- 	int y = real_y(ops->p, vc->vc_y);
- 	int attribute, use_sw = (vc->vc_cursor_type & 0x10);
- 	int err = 1;
++	/*
++	 * Reserve blocks are generally in place to help high-order atomic
++	 * allocations that are short-lived. A min_free_kbytes value that
++	 * would result in more than 2 reserve blocks for atomic allocations
++	 * is assumed to be in place to help anti-fragmentation for the
++	 * future allocation of hugepages at runtime.
++	 */
++	reserve = min(2, reserve);
++
+ 	for (pfn = start_pfn; pfn < end_pfn; pfn += pageblock_nr_pages) {
+ 		if (!pfn_valid(pfn))
+ 			continue;
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
-linux-next.patch
-toshiba_acpi-return-on-a-fail-path.patch
-mtd-sst25l-fix-lock-imbalance.patch
-isdn-hisax-fix-lock-imbalance.patch
-icom-converting-space-to-tabs.patch
-cyclades-read-buffer-overflow.patch
-serial167-fix-read-buffer-overflow.patch
-video-console-use-div_round_up.patch
-memory-controller-soft-limit-organize-cgroups-v9-fix.patch
-cyclades-allow-overriding-isa-defaults-also-when-the-driver-is-built-in.patch
-drivers-char-rio-rioctrlc-off-by-one-error-in-rioctrlc.patch
-reiser4.patch
+mm-revert-oom-move-oom_adj-value.patch
+mm-build_zonelists-move-clear-node_load-to-__build_all_zonelists.patch
+memory-hotplug-update-zone-pcp-at-memory-online.patch
+memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
+memory-hotplug-exclude-isolated-page-from-pco-page-alloc.patch
+memory-hotplug-make-pages-from-movable-zone-always-isolatable.patch
+memory-hotplug-alloc-page-from-other-node-in-memory-online.patch
+memory-hotplug-migrate-swap-cache-page.patch
+hugetlb-balance-freeing-of-huge-pages-across-nodes.patch
+hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages.patch
+hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages-fix.patch
+hugetlb-clean-up-and-update-huge-pages-documentation.patch
+hugetlb-restore-interleaving-of-bootmem-huge-pages.patch
+mm-clean-up-page_remove_rmap.patch
+mm-update-alloc_flags-after-oom-killer-has-been-called.patch
+vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
+vmscan-move-clearpageactive-from-move_active_pages-to-shrink_active_list.patch
+vmscan-kill-unnecessary-page-flag-test.patch
+vmscan-kill-unnecessary-prefetch.patch
+mm-perform-non-atomic-test-clear-of-pg_mlocked-on-free.patch
+mm-warn-once-when-a-page-is-freed-with-pg_mlocked-set.patch
+page-allocator-change-migratetype-for-all-pageblocks-within-a-high-order-page-during-__rmqueue_fallback.patch
+page-allocator-remove-dead-function-free_cold_page.patch
+tracing-page-allocator-add-trace-events-for-page-allocation-and-page-freeing.patch
+tracing-page-allocator-add-trace-events-for-anti-fragmentation-falling-back-to-other-migratetypes.patch
+tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists.patch
+tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists-fix.patch
+tracing-page-allocator-add-a-postprocessing-script-for-page-allocator-related-ftrace-events.patch
+tracing-documentation-add-a-document-describing-how-to-do-some-performance-analysis-with-tracepoints.patch
+tracing-documentation-add-a-document-on-the-kmem-tracepoints.patch
+mm-drop-unneeded-double-negations.patch
+page-allocator-limit-the-number-of-migrate_reserve-pageblocks-per-zone.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
 
