@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-fix-func-names-in-kernel-doc.patch added to -mm tree
-Date: Wed, 19 Aug 2009 11:36:42 -0700
-Message-ID: <200908191836.n7JIag5g002244@imap1.linux-foundation.org>
+Subject: + poll-select-avoid-arithmetic-overflow-in-__estimate_accuracy.patch added to -mm tree
+Date: Wed, 19 Aug 2009 11:40:48 -0700
+Message-ID: <200908191840.n7JIemwb009380@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56222 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51819 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752202AbZHSSgr (ORCPT
+	by vger.kernel.org with ESMTP id S1752059AbZHSSme (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Aug 2009 14:36:47 -0400
+	Wed, 19 Aug 2009 14:42:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, James.Bottomley@HansenPartnership.com
+Cc: gknispel@proformatique.com, arjan@infradead.org, heiko.carstens@de.ibm.com, tglx@linutronix.de, tj@kernel.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     scsi: fix func names in kernel-doc
+     poll/select: avoid arithmetic overflow in __estimate_accuracy()
 has been added to the -mm tree.  Its filename is
-     scsi-fix-func-names-in-kernel-doc.patch
+     poll-select-avoid-arithmetic-overflow-in-__estimate_accuracy.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,63 +34,72 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi: fix func names in kernel-doc
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: poll/select: avoid arithmetic overflow in __estimate_accuracy()
+From: Guillaume Knispel <gknispel@proformatique.com>
 
-Fix scsi_devinfo.c kernel-doc function names to match actual function
-names.
+__estimate_accuracy() was prone to integer overflow, for example if *tv ==
+{2147, 483648000} on a 32 bit computer (or even for delays as small as
+{429, 500000000} if the task is niced).
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Because the result was already forced between 0 and 100ms, the effect of
+the overflow was not too problematic, but the use of the hrtimer range
+feature was not optimal in overflow cases.
+
+This patch ensures that there can not be an integer overflow in this
+function.
+
+Signed-off-by: Guillaume Knispel <gknispel@proformatique.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Arjan van de Ven <arjan@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/scsi_devinfo.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/select.c |   14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
-diff -puN drivers/scsi/scsi_devinfo.c~scsi-fix-func-names-in-kernel-doc drivers/scsi/scsi_devinfo.c
---- a/drivers/scsi/scsi_devinfo.c~scsi-fix-func-names-in-kernel-doc
-+++ a/drivers/scsi/scsi_devinfo.c
-@@ -454,7 +454,7 @@ int scsi_get_device_flags(struct scsi_de
+diff -puN fs/select.c~poll-select-avoid-arithmetic-overflow-in-__estimate_accuracy fs/select.c
+--- a/fs/select.c~poll-select-avoid-arithmetic-overflow-in-__estimate_accuracy
++++ a/fs/select.c
+@@ -41,22 +41,28 @@
+  * better solutions..
+  */
  
- 
- /**
-- * get_device_flags_keyed - get device specific flags from the dynamic device list.
-+ * scsi_get_device_flags_keyed - get device specific flags from the dynamic device list
-  * @sdev:       &scsi_device to get flags for
-  * @vendor:	vendor name
-  * @model:	model name
-@@ -685,7 +685,7 @@ MODULE_PARM_DESC(default_dev_flags,
- 		 "scsi default device flag integer value");
- 
- /**
-- * scsi_dev_info_list_delete - called from scsi.c:exit_scsi to remove the scsi_dev_info_list.
-+ * scsi_exit_devinfo - remove /proc/scsi/device_info & the scsi_dev_info_list
-  **/
- void scsi_exit_devinfo(void)
++#define MAX_SLACK	(100 * NSEC_PER_MSEC)
++
+ static long __estimate_accuracy(struct timespec *tv)
  {
+ 	long slack;
+ 	int divfactor = 1000;
+ 
++	if (tv->tv_sec < 0)
++		return 0;
++
+ 	if (task_nice(current) > 0)
+ 		divfactor = divfactor / 5;
+ 
++	if (tv->tv_sec > MAX_SLACK / (NSEC_PER_SEC/divfactor))
++		return MAX_SLACK;
++
+ 	slack = tv->tv_nsec / divfactor;
+ 	slack += tv->tv_sec * (NSEC_PER_SEC/divfactor);
+ 
+-	if (slack > 100 * NSEC_PER_MSEC)
+-		slack =  100 * NSEC_PER_MSEC;
++	if (slack > MAX_SLACK)
++		return MAX_SLACK;
+ 
+-	if (slack < 0)
+-		slack = 0;
+ 	return slack;
+ }
+ 
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from gknispel@proformatique.com are
 
 origin.patch
-linux-next.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-kernel-hacking-move-strip_asm_syms-from-general.patch
-mtd-make-onenand-genericc-more-generic-fix.patch
-isdn-fix-netjet-build-errors.patch
-scsi-fix-func-names-in-kernel-doc.patch
-mm-make-swap-token-dummies-static-inlines-fix-2.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-page_alloc-fix-kernel-doc-warning.patch
-ksm-add-some-documentation.patch
-lis3-add-power-management-functions-fix.patch
-procfs-provide-stack-information-for-threads-v011-fix.patch
-spih-add-missing-kernel-doc-for-struct-spi_master.patch
-gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links-update-fix.patch
-doc-filesystems-remove-smount-program.patch
-doc-filesystems-more-mount-cleanups.patch
-documentation-update-stale-definition-of-file-nr-in-fstxt.patch
-includecheck-fix-documentation-cfag12864b-examplec.patch
-reiser4-export-remove_from_page_cache-fix.patch
+poll-select-avoid-arithmetic-overflow-in-__estimate_accuracy.patch
 
