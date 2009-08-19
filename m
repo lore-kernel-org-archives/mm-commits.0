@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-dont-use-alloc_bootmem_low-where-not-strictly-needed.patch added to -mm tree
-Date: Wed, 19 Aug 2009 14:35:58 -0700
-Message-ID: <200908192135.n7JLZw1P025038@imap1.linux-foundation.org>
+Subject: + mm-also-use-alloc_large_system_hash-for-the-pid-hash-table.patch added to -mm tree
+Date: Wed, 19 Aug 2009 14:38:03 -0700
+Message-ID: <200908192138.n7JLc3fK028640@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55608 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57028 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753114AbZHSVgW (ORCPT
+	by vger.kernel.org with ESMTP id S1752930AbZHSVim (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Aug 2009 17:36:22 -0400
+	Wed, 19 Aug 2009 17:38:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: JBeulich@novell.com, hpa@zytor.com, jbeulich@novell.com, mingo@elte.hu, tglx@linutronix.de
+Cc: JBeulich@novell.com, ebiederm@xmission.com, jbeulich@novell.com, mel@csn.ul.ie, mingo@elte.hu
 
 
 The patch titled
-     mm: don't use alloc_bootmem_low() where not strictly needed
+     mm: also use alloc_large_system_hash() for the PID hash table
 has been added to the -mm tree.  Its filename is
-     mm-dont-use-alloc_bootmem_low-where-not-strictly-needed.patch
+     mm-also-use-alloc_large_system_hash-for-the-pid-hash-table.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,90 +34,115 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: don't use alloc_bootmem_low() where not strictly needed
+Subject: mm: also use alloc_large_system_hash() for the PID hash table
 From: "Jan Beulich" <JBeulich@novell.com>
 
-Since alloc_bootmem() will never return inaccessible (via virtual
-addressing) memory anyway, using the ..._low() variant only makes sense
-when the physical address range of the allocated memory must fulfill
-further constraints, espacially since on 64-bits (or more generally in all
-cases where the pools the two variants allocate from are than the full
-available range.
+This is being done by allowing boot time allocations to specify that they
+may want a sub-page sized amount of memory.
 
-Probably the use in alloc_tce_table() could also be eliminated (based on
-code inspection of pci-calgary_64.c), but that seems too risky given I
-know nothing about that hardware and have no way to test it.
+Overall this seems more consistent with the other hash table allocations,
+and allows making two supposedly mm-only variables really mm-only
+(nr_{kernel,all}_pages).
 
 Signed-off-by: Jan Beulich <jbeulich@novell.com>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/e820.c    |    2 +-
- arch/x86/mm/init_32.c     |    4 ++--
- drivers/firmware/memmap.c |    2 +-
- kernel/power/snapshot.c   |    2 +-
- 4 files changed, 5 insertions(+), 5 deletions(-)
+ include/linux/bootmem.h |    5 ++---
+ kernel/pid.c            |   15 ++++-----------
+ mm/page_alloc.c         |   13 ++++++++++---
+ 3 files changed, 16 insertions(+), 17 deletions(-)
 
-diff -puN arch/x86/kernel/e820.c~mm-dont-use-alloc_bootmem_low-where-not-strictly-needed arch/x86/kernel/e820.c
---- a/arch/x86/kernel/e820.c~mm-dont-use-alloc_bootmem_low-where-not-strictly-needed
-+++ a/arch/x86/kernel/e820.c
-@@ -1331,7 +1331,7 @@ void __init e820_reserve_resources(void)
- 	struct resource *res;
- 	u64 end;
+diff -puN include/linux/bootmem.h~mm-also-use-alloc_large_system_hash-for-the-pid-hash-table include/linux/bootmem.h
+--- a/include/linux/bootmem.h~mm-also-use-alloc_large_system_hash-for-the-pid-hash-table
++++ a/include/linux/bootmem.h
+@@ -132,9 +132,6 @@ static inline void *alloc_remap(int nid,
+ }
+ #endif /* CONFIG_HAVE_ARCH_ALLOC_REMAP */
  
--	res = alloc_bootmem_low(sizeof(struct resource) * e820.nr_map);
-+	res = alloc_bootmem(sizeof(struct resource) * e820.nr_map);
- 	e820_res = res;
- 	for (i = 0; i < e820.nr_map; i++) {
- 		end = e820.map[i].addr + e820.map[i].size - 1;
-diff -puN arch/x86/mm/init_32.c~mm-dont-use-alloc_bootmem_low-where-not-strictly-needed arch/x86/mm/init_32.c
---- a/arch/x86/mm/init_32.c~mm-dont-use-alloc_bootmem_low-where-not-strictly-needed
-+++ a/arch/x86/mm/init_32.c
-@@ -84,7 +84,7 @@ static pmd_t * __init one_md_table_init(
- #ifdef CONFIG_X86_PAE
- 	if (!(pgd_val(*pgd) & _PAGE_PRESENT)) {
- 		if (after_bootmem)
--			pmd_table = (pmd_t *)alloc_bootmem_low_pages(PAGE_SIZE);
-+			pmd_table = (pmd_t *)alloc_bootmem_pages(PAGE_SIZE);
- 		else
- 			pmd_table = (pmd_t *)alloc_low_page();
- 		paravirt_alloc_pmd(&init_mm, __pa(pmd_table) >> PAGE_SHIFT);
-@@ -116,7 +116,7 @@ static pte_t * __init one_page_table_ini
- #endif
- 			if (!page_table)
- 				page_table =
--				(pte_t *)alloc_bootmem_low_pages(PAGE_SIZE);
-+				(pte_t *)alloc_bootmem_pages(PAGE_SIZE);
- 		} else
- 			page_table = (pte_t *)alloc_low_page();
+-extern unsigned long __meminitdata nr_kernel_pages;
+-extern unsigned long __meminitdata nr_all_pages;
+-
+ extern void *alloc_large_system_hash(const char *tablename,
+ 				     unsigned long bucketsize,
+ 				     unsigned long numentries,
+@@ -145,6 +142,8 @@ extern void *alloc_large_system_hash(con
+ 				     unsigned long limit);
  
-diff -puN drivers/firmware/memmap.c~mm-dont-use-alloc_bootmem_low-where-not-strictly-needed drivers/firmware/memmap.c
---- a/drivers/firmware/memmap.c~mm-dont-use-alloc_bootmem_low-where-not-strictly-needed
-+++ a/drivers/firmware/memmap.c
-@@ -164,7 +164,7 @@ int __init firmware_map_add_early(u64 st
+ #define HASH_EARLY	0x00000001	/* Allocating during early boot? */
++#define HASH_SMALL	0x00000002	/* sub-page allocation allowed, min
++					 * shift passed via *_hash_shift */
+ 
+ /* Only NUMA needs hash distribution. 64bit NUMA architectures have
+  * sufficient vmalloc space.
+diff -puN kernel/pid.c~mm-also-use-alloc_large_system_hash-for-the-pid-hash-table kernel/pid.c
+--- a/kernel/pid.c~mm-also-use-alloc_large_system_hash-for-the-pid-hash-table
++++ a/kernel/pid.c
+@@ -40,7 +40,7 @@
+ #define pid_hashfn(nr, ns)	\
+ 	hash_long((unsigned long)nr + (unsigned long)ns, pidhash_shift)
+ static struct hlist_head *pid_hash;
+-static int pidhash_shift;
++static unsigned int pidhash_shift = 4;
+ struct pid init_struct_pid = INIT_STRUCT_PID;
+ 
+ int pid_max = PID_MAX_DEFAULT;
+@@ -499,19 +499,12 @@ struct pid *find_ge_pid(int nr, struct p
+ void __init pidhash_init(void)
  {
- 	struct firmware_map_entry *entry;
+ 	int i, pidhash_size;
+-	unsigned long megabytes = nr_kernel_pages >> (20 - PAGE_SHIFT);
  
--	entry = alloc_bootmem_low(sizeof(struct firmware_map_entry));
-+	entry = alloc_bootmem(sizeof(struct firmware_map_entry));
- 	if (WARN_ON(!entry))
- 		return -ENOMEM;
+-	pidhash_shift = max(4, fls(megabytes * 4));
+-	pidhash_shift = min(12, pidhash_shift);
++	pid_hash = alloc_large_system_hash("PID", sizeof(*pid_hash), 0, 18,
++					   HASH_EARLY | HASH_SMALL,
++					   &pidhash_shift, NULL, 4096);
+ 	pidhash_size = 1 << pidhash_shift;
  
-diff -puN kernel/power/snapshot.c~mm-dont-use-alloc_bootmem_low-where-not-strictly-needed kernel/power/snapshot.c
---- a/kernel/power/snapshot.c~mm-dont-use-alloc_bootmem_low-where-not-strictly-needed
-+++ a/kernel/power/snapshot.c
-@@ -619,7 +619,7 @@ __register_nosave_region(unsigned long s
- 		BUG_ON(!region);
- 	} else
- 		/* This allocation cannot fail */
--		region = alloc_bootmem_low(sizeof(struct nosave_region));
-+		region = alloc_bootmem(sizeof(struct nosave_region));
- 	region->start_pfn = start_pfn;
- 	region->end_pfn = end_pfn;
- 	list_add_tail(&region->list, &nosave_regions);
+-	printk("PID hash table entries: %d (order: %d, %Zd bytes)\n",
+-		pidhash_size, pidhash_shift,
+-		pidhash_size * sizeof(struct hlist_head));
+-
+-	pid_hash = alloc_bootmem(pidhash_size *	sizeof(*(pid_hash)));
+-	if (!pid_hash)
+-		panic("Could not alloc pidhash!\n");
+ 	for (i = 0; i < pidhash_size; i++)
+ 		INIT_HLIST_HEAD(&pid_hash[i]);
+ }
+diff -puN mm/page_alloc.c~mm-also-use-alloc_large_system_hash-for-the-pid-hash-table mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-also-use-alloc_large_system_hash-for-the-pid-hash-table
++++ a/mm/page_alloc.c
+@@ -124,8 +124,8 @@ static char * const zone_names[MAX_NR_ZO
+ 
+ int min_free_kbytes = 1024;
+ 
+-unsigned long __meminitdata nr_kernel_pages;
+-unsigned long __meminitdata nr_all_pages;
++static unsigned long __meminitdata nr_kernel_pages;
++static unsigned long __meminitdata nr_all_pages;
+ static unsigned long __meminitdata dma_reserve;
+ 
+ #ifdef CONFIG_ARCH_POPULATES_NODE_MAP
+@@ -4842,7 +4842,14 @@ void *__init alloc_large_system_hash(con
+ 			numentries <<= (PAGE_SHIFT - scale);
+ 
+ 		/* Make sure we've got at least a 0-order allocation.. */
+-		if (unlikely((numentries * bucketsize) < PAGE_SIZE))
++		if (unlikely(flags & HASH_SMALL)) {
++			/* Makes no sense without HASH_EARLY */
++			WARN_ON(!(flags & HASH_EARLY));
++			if (!(numentries >> *_hash_shift)) {
++				numentries = 1UL << *_hash_shift;
++				BUG_ON(!numentries);
++			}
++		} else if (unlikely((numentries * bucketsize) < PAGE_SIZE))
+ 			numentries = PAGE_SIZE / bucketsize;
+ 	}
+ 	numentries = roundup_pow_of_two(numentries);
 _
 
 Patches currently in -mm which might be from JBeulich@novell.com are
@@ -126,4 +151,5 @@ linux-next.patch
 memory-hotplug-fix-updating-of-num_physpages-for-hot-plugged-memory.patch
 mm-replace-various-uses-of-num_physpages-by-totalram_pages.patch
 mm-dont-use-alloc_bootmem_low-where-not-strictly-needed.patch
+mm-also-use-alloc_large_system_hash-for-the-pid-hash-table.patch
 
