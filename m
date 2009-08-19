@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-_end-symbol-missing-from-symbolmap.patch added to -mm tree
-Date: Wed, 19 Aug 2009 09:37:09 -0700
-Message-ID: <200908191637.n7JGb9JF019253@imap1.linux-foundation.org>
+Subject: + scsi-fix-func-names-in-kernel-doc.patch added to -mm tree
+Date: Wed, 19 Aug 2009 11:36:42 -0700
+Message-ID: <200908191836.n7JIag5g002244@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54314 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56222 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753207AbZHSQij (ORCPT
+	by vger.kernel.org with ESMTP id S1752202AbZHSSgr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Aug 2009 12:38:39 -0400
+	Wed, 19 Aug 2009 14:36:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hare@suse.de, mingo@elte.hu, sam@ravnborg.org, stable@kernel.org
+Cc: randy.dunlap@oracle.com, James.Bottomley@HansenPartnership.com
 
 
 The patch titled
-     x86: _end symbol missing from Symbol.map
+     scsi: fix func names in kernel-doc
 has been added to the -mm tree.  Its filename is
-     x86-_end-symbol-missing-from-symbolmap.patch
+     scsi-fix-func-names-in-kernel-doc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: _end symbol missing from Symbol.map
-From: Hannes Reinecke <hare@suse.de>
+Subject: scsi: fix func names in kernel-doc
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-With 2.6.31 'crash' on x86_64 falls flat on its face as the '_end' symbol
-is missing from the System.map file.
+Fix scsi_devinfo.c kernel-doc function names to match actual function
+names.
 
-The culprit is commit 091e52c3551d3031343df24b573b770b4c6c72b6, which
-moved the '_end' symbol into it's own section.  Apparently this causes
-kallsyms to not reference it properly.
-
-So either we'd need to revert part of the patch to not include _end in
-it's own section.
-
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: <stable@kernel.org>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/vmlinux.lds.S |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/scsi/scsi_devinfo.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/vmlinux.lds.S~x86-_end-symbol-missing-from-symbolmap arch/x86/kernel/vmlinux.lds.S
---- a/arch/x86/kernel/vmlinux.lds.S~x86-_end-symbol-missing-from-symbolmap
-+++ a/arch/x86/kernel/vmlinux.lds.S
-@@ -376,9 +376,7 @@ SECTIONS
- 		__brk_limit = .;
- 	}
+diff -puN drivers/scsi/scsi_devinfo.c~scsi-fix-func-names-in-kernel-doc drivers/scsi/scsi_devinfo.c
+--- a/drivers/scsi/scsi_devinfo.c~scsi-fix-func-names-in-kernel-doc
++++ a/drivers/scsi/scsi_devinfo.c
+@@ -454,7 +454,7 @@ int scsi_get_device_flags(struct scsi_de
  
--	.end : AT(ADDR(.end) - LOAD_OFFSET) {
--		_end = .;
--	}
-+	_end = .;
  
-         STABS_DEBUG
-         DWARF_DEBUG
+ /**
+- * get_device_flags_keyed - get device specific flags from the dynamic device list.
++ * scsi_get_device_flags_keyed - get device specific flags from the dynamic device list
+  * @sdev:       &scsi_device to get flags for
+  * @vendor:	vendor name
+  * @model:	model name
+@@ -685,7 +685,7 @@ MODULE_PARM_DESC(default_dev_flags,
+ 		 "scsi default device flag integer value");
+ 
+ /**
+- * scsi_dev_info_list_delete - called from scsi.c:exit_scsi to remove the scsi_dev_info_list.
++ * scsi_exit_devinfo - remove /proc/scsi/device_info & the scsi_dev_info_list
+  **/
+ void scsi_exit_devinfo(void)
+ {
 _
 
-Patches currently in -mm which might be from hare@suse.de are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
+origin.patch
 linux-next.patch
-x86-_end-symbol-missing-from-symbolmap.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+kernel-hacking-move-strip_asm_syms-from-general.patch
+mtd-make-onenand-genericc-more-generic-fix.patch
+isdn-fix-netjet-build-errors.patch
+scsi-fix-func-names-in-kernel-doc.patch
+mm-make-swap-token-dummies-static-inlines-fix-2.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+page_alloc-fix-kernel-doc-warning.patch
+ksm-add-some-documentation.patch
+lis3-add-power-management-functions-fix.patch
+procfs-provide-stack-information-for-threads-v011-fix.patch
+spih-add-missing-kernel-doc-for-struct-spi_master.patch
+gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links-update-fix.patch
+doc-filesystems-remove-smount-program.patch
+doc-filesystems-more-mount-cleanups.patch
+documentation-update-stale-definition-of-file-nr-in-fstxt.patch
+includecheck-fix-documentation-cfag12864b-examplec.patch
+reiser4-export-remove_from_page_cache-fix.patch
 
