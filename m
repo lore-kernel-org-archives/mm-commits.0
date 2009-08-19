@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-also-use-alloc_large_system_hash-for-the-pid-hash-table.patch added to -mm tree
-Date: Wed, 19 Aug 2009 14:38:03 -0700
-Message-ID: <200908192138.n7JLc3fK028640@imap1.linux-foundation.org>
+Subject: + build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it.patch added to -mm tree
+Date: Wed, 19 Aug 2009 14:49:08 -0700
+Message-ID: <200908192149.n7JLn8Hr015645@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57028 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44165 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752930AbZHSVim (ORCPT
+	by vger.kernel.org with ESMTP id S1753271AbZHSVtc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Aug 2009 17:38:42 -0400
+	Wed, 19 Aug 2009 17:49:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: JBeulich@novell.com, ebiederm@xmission.com, jbeulich@novell.com, mel@csn.ul.ie, mingo@elte.hu
+Cc: JBeulich@novell.com, andi@firstfloor.org, catalin.marinas@arm.com, davem@davemloft.net, jbeulich@novell.com, rusty@rustcorp.com.au
 
 
 The patch titled
-     mm: also use alloc_large_system_hash() for the PID hash table
+     BUILD_BUG_ON(): fix it and a couple of bogus uses of it
 has been added to the -mm tree.  Its filename is
-     mm-also-use-alloc_large_system_hash-for-the-pid-hash-table.patch
+     build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,115 +34,128 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: also use alloc_large_system_hash() for the PID hash table
+Subject: BUILD_BUG_ON(): fix it and a couple of bogus uses of it
 From: "Jan Beulich" <JBeulich@novell.com>
 
-This is being done by allowing boot time allocations to specify that they
-may want a sub-page sized amount of memory.
+gcc permitting variable length arrays makes the current construct used for
+BUILD_BUG_ON() useless, as that doesn't produce any diagnostic if the
+controlling expression isn't really constant.  Instead, this patch makes
+it so that a bit field gets used here.  Consequently, those uses where the
+condition isn't really constant now also need fixing.
 
-Overall this seems more consistent with the other hash table allocations,
-and allows making two supposedly mm-only variables really mm-only
-(nr_{kernel,all}_pages).
+Note that in the gfp.h, kmemcheck.h, and virtio_config.h cases
+MAYBE_BUILD_BUG_ON() really just serves documentation purposes - even if
+the expression is compile time constant (__builtin_constant_p() yields
+true), the array is still deemed of variable length by gcc, and hence the
+whole expression doesn't have the intended effect.
 
 Signed-off-by: Jan Beulich <jbeulich@novell.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bootmem.h |    5 ++---
- kernel/pid.c            |   15 ++++-----------
- mm/page_alloc.c         |   13 ++++++++++---
- 3 files changed, 16 insertions(+), 17 deletions(-)
+ drivers/char/tpm/tpm.c        |    2 --
+ drivers/net/niu.c             |    2 +-
+ include/linux/gfp.h           |    2 +-
+ include/linux/kernel.h        |    8 ++++++--
+ include/linux/kmemcheck.h     |    2 +-
+ include/linux/virtio_config.h |    3 +--
+ 6 files changed, 10 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/bootmem.h~mm-also-use-alloc_large_system_hash-for-the-pid-hash-table include/linux/bootmem.h
---- a/include/linux/bootmem.h~mm-also-use-alloc_large_system_hash-for-the-pid-hash-table
-+++ a/include/linux/bootmem.h
-@@ -132,9 +132,6 @@ static inline void *alloc_remap(int nid,
- }
- #endif /* CONFIG_HAVE_ARCH_ALLOC_REMAP */
+diff -puN drivers/char/tpm/tpm.c~build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it drivers/char/tpm/tpm.c
+--- a/drivers/char/tpm/tpm.c~build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it
++++ a/drivers/char/tpm/tpm.c
+@@ -696,7 +696,6 @@ int __tpm_pcr_read(struct tpm_chip *chip
  
--extern unsigned long __meminitdata nr_kernel_pages;
--extern unsigned long __meminitdata nr_all_pages;
--
- extern void *alloc_large_system_hash(const char *tablename,
- 				     unsigned long bucketsize,
- 				     unsigned long numentries,
-@@ -145,6 +142,8 @@ extern void *alloc_large_system_hash(con
- 				     unsigned long limit);
+ 	cmd.header.in = pcrread_header;
+ 	cmd.params.pcrread_in.pcr_idx = cpu_to_be32(pcr_idx);
+-	BUILD_BUG_ON(cmd.header.in.length > READ_PCR_RESULT_SIZE);
+ 	rc = transmit_cmd(chip, &cmd, cmd.header.in.length,
+ 			  "attempting to read a pcr value");
  
- #define HASH_EARLY	0x00000001	/* Allocating during early boot? */
-+#define HASH_SMALL	0x00000002	/* sub-page allocation allowed, min
-+					 * shift passed via *_hash_shift */
+@@ -760,7 +759,6 @@ int tpm_pcr_extend(u32 chip_num, int pcr
+ 		return -ENODEV;
  
- /* Only NUMA needs hash distribution. 64bit NUMA architectures have
-  * sufficient vmalloc space.
-diff -puN kernel/pid.c~mm-also-use-alloc_large_system_hash-for-the-pid-hash-table kernel/pid.c
---- a/kernel/pid.c~mm-also-use-alloc_large_system_hash-for-the-pid-hash-table
-+++ a/kernel/pid.c
-@@ -40,7 +40,7 @@
- #define pid_hashfn(nr, ns)	\
- 	hash_long((unsigned long)nr + (unsigned long)ns, pidhash_shift)
- static struct hlist_head *pid_hash;
--static int pidhash_shift;
-+static unsigned int pidhash_shift = 4;
- struct pid init_struct_pid = INIT_STRUCT_PID;
+ 	cmd.header.in = pcrextend_header;
+-	BUILD_BUG_ON(be32_to_cpu(cmd.header.in.length) > EXTEND_PCR_SIZE);
+ 	cmd.params.pcrextend_in.pcr_idx = cpu_to_be32(pcr_idx);
+ 	memcpy(cmd.params.pcrextend_in.hash, hash, TPM_DIGEST_SIZE);
+ 	rc = transmit_cmd(chip, &cmd, cmd.header.in.length,
+diff -puN drivers/net/niu.c~build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it drivers/net/niu.c
+--- a/drivers/net/niu.c~build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it
++++ a/drivers/net/niu.c
+@@ -5615,7 +5615,7 @@ static void niu_init_tx_mac(struct niu *
+ 	/* The XMAC_MIN register only accepts values for TX min which
+ 	 * have the low 3 bits cleared.
+ 	 */
+-	BUILD_BUG_ON(min & 0x7);
++	BUG_ON(min & 0x7);
  
- int pid_max = PID_MAX_DEFAULT;
-@@ -499,19 +499,12 @@ struct pid *find_ge_pid(int nr, struct p
- void __init pidhash_init(void)
+ 	if (np->flags & NIU_FLAGS_XMAC)
+ 		niu_init_tx_xmac(np, min, max);
+diff -puN include/linux/gfp.h~build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it include/linux/gfp.h
+--- a/include/linux/gfp.h~build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it
++++ a/include/linux/gfp.h
+@@ -220,7 +220,7 @@ static inline enum zone_type gfp_zone(gf
+ 					 ((1 << ZONES_SHIFT) - 1);
+ 
+ 	if (__builtin_constant_p(bit))
+-		BUILD_BUG_ON((GFP_ZONE_BAD >> bit) & 1);
++		MAYBE_BUILD_BUG_ON((GFP_ZONE_BAD >> bit) & 1);
+ 	else {
+ #ifdef CONFIG_DEBUG_VM
+ 		BUG_ON((GFP_ZONE_BAD >> bit) & 1);
+diff -puN include/linux/kernel.h~build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it include/linux/kernel.h
+--- a/include/linux/kernel.h~build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it
++++ a/include/linux/kernel.h
+@@ -678,13 +678,17 @@ struct sysinfo {
+ };
+ 
+ /* Force a compilation error if condition is true */
+-#define BUILD_BUG_ON(condition) ((void)sizeof(char[1 - 2*!!(condition)]))
++#define BUILD_BUG_ON(condition) ((void)BUILD_BUG_ON_ZERO(condition))
++
++/* Force a compilation error if condition is constant and true */
++#define MAYBE_BUILD_BUG_ON(cond) ((void)sizeof(char[1 - 2 * !!(cond)]))
+ 
+ /* Force a compilation error if condition is true, but also produce a
+    result (of value 0 and type size_t), so the expression can be used
+    e.g. in a structure initializer (or where-ever else comma expressions
+    aren't permitted). */
+-#define BUILD_BUG_ON_ZERO(e) (sizeof(char[1 - 2 * !!(e)]) - 1)
++#define BUILD_BUG_ON_ZERO(e) (sizeof(struct { int:-!!(e); }))
++#define BUILD_BUG_ON_NULL(e) ((void *)sizeof(struct { int:-!!(e); }))
+ 
+ /* Trap pasters of __FUNCTION__ at compile-time */
+ #define __FUNCTION__ (__func__)
+diff -puN include/linux/kmemcheck.h~build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it include/linux/kmemcheck.h
+--- a/include/linux/kmemcheck.h~build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it
++++ a/include/linux/kmemcheck.h
+@@ -140,7 +140,7 @@ static inline void kmemcheck_mark_initia
+ 	do if (ptr) {							\
+ 		int _n = (long) &((ptr)->name##_end)			\
+ 			- (long) &((ptr)->name##_begin);		\
+-		BUILD_BUG_ON(_n < 0);					\
++		MAYBE_BUILD_BUG_ON(_n < 0);				\
+ 									\
+ 		kmemcheck_mark_initialized(&((ptr)->name##_begin), _n);	\
+ 	} while (0)
+diff -puN include/linux/virtio_config.h~build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it include/linux/virtio_config.h
+--- a/include/linux/virtio_config.h~build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it
++++ a/include/linux/virtio_config.h
+@@ -109,8 +109,7 @@ static inline bool virtio_has_feature(co
+ 				      unsigned int fbit)
  {
- 	int i, pidhash_size;
--	unsigned long megabytes = nr_kernel_pages >> (20 - PAGE_SHIFT);
+ 	/* Did you forget to fix assumptions on max features? */
+-	if (__builtin_constant_p(fbit))
+-		BUILD_BUG_ON(fbit >= 32);
++	MAYBE_BUILD_BUG_ON(fbit >= 32);
  
--	pidhash_shift = max(4, fls(megabytes * 4));
--	pidhash_shift = min(12, pidhash_shift);
-+	pid_hash = alloc_large_system_hash("PID", sizeof(*pid_hash), 0, 18,
-+					   HASH_EARLY | HASH_SMALL,
-+					   &pidhash_shift, NULL, 4096);
- 	pidhash_size = 1 << pidhash_shift;
- 
--	printk("PID hash table entries: %d (order: %d, %Zd bytes)\n",
--		pidhash_size, pidhash_shift,
--		pidhash_size * sizeof(struct hlist_head));
--
--	pid_hash = alloc_bootmem(pidhash_size *	sizeof(*(pid_hash)));
--	if (!pid_hash)
--		panic("Could not alloc pidhash!\n");
- 	for (i = 0; i < pidhash_size; i++)
- 		INIT_HLIST_HEAD(&pid_hash[i]);
- }
-diff -puN mm/page_alloc.c~mm-also-use-alloc_large_system_hash-for-the-pid-hash-table mm/page_alloc.c
---- a/mm/page_alloc.c~mm-also-use-alloc_large_system_hash-for-the-pid-hash-table
-+++ a/mm/page_alloc.c
-@@ -124,8 +124,8 @@ static char * const zone_names[MAX_NR_ZO
- 
- int min_free_kbytes = 1024;
- 
--unsigned long __meminitdata nr_kernel_pages;
--unsigned long __meminitdata nr_all_pages;
-+static unsigned long __meminitdata nr_kernel_pages;
-+static unsigned long __meminitdata nr_all_pages;
- static unsigned long __meminitdata dma_reserve;
- 
- #ifdef CONFIG_ARCH_POPULATES_NODE_MAP
-@@ -4842,7 +4842,14 @@ void *__init alloc_large_system_hash(con
- 			numentries <<= (PAGE_SHIFT - scale);
- 
- 		/* Make sure we've got at least a 0-order allocation.. */
--		if (unlikely((numentries * bucketsize) < PAGE_SIZE))
-+		if (unlikely(flags & HASH_SMALL)) {
-+			/* Makes no sense without HASH_EARLY */
-+			WARN_ON(!(flags & HASH_EARLY));
-+			if (!(numentries >> *_hash_shift)) {
-+				numentries = 1UL << *_hash_shift;
-+				BUG_ON(!numentries);
-+			}
-+		} else if (unlikely((numentries * bucketsize) < PAGE_SIZE))
- 			numentries = PAGE_SIZE / bucketsize;
- 	}
- 	numentries = roundup_pow_of_two(numentries);
+ 	if (fbit < VIRTIO_TRANSPORT_F_START)
+ 		virtio_check_driver_offered_feature(vdev, fbit);
 _
 
 Patches currently in -mm which might be from JBeulich@novell.com are
@@ -152,4 +165,5 @@ memory-hotplug-fix-updating-of-num_physpages-for-hot-plugged-memory.patch
 mm-replace-various-uses-of-num_physpages-by-totalram_pages.patch
 mm-dont-use-alloc_bootmem_low-where-not-strictly-needed.patch
 mm-also-use-alloc_large_system_hash-for-the-pid-hash-table.patch
+build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it.patch
 
