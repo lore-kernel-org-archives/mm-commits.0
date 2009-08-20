@@ -1,210 +1,135 @@
 From: akpm@linux-foundation.org
-Subject: + mips-octeon-add-hardware-rng-platform-device.patch added to -mm tree
-Date: Thu, 20 Aug 2009 16:29:32 -0700
-Message-ID: <200908202329.n7KNTXMA004310@imap1.linux-foundation.org>
+Subject: [failures] hwmon-enhance-the-sysfs-api-for-power-meters.patch removed from -mm tree
+Date: Thu, 20 Aug 2009 16:48:06 -0700
+Message-ID: <200908202348.n7KNm7io004460@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50528 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53393 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754117AbZHTXaf (ORCPT
+	by vger.kernel.org with ESMTP id S932119AbZHTXtg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Aug 2009 19:30:35 -0400
+	Thu, 20 Aug 2009 19:49:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: ddaney@caviumnetworks.com, herbert@gondor.apana.org.au, mpm@selenic.com, ralf@linux-mips.org
+To: djwong@us.ibm.com, lenb@kernel.org, pavel@ucw.cz, rui.zhang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mips: octeon: add hardware RNG platform device
-has been added to the -mm tree.  Its filename is
-     mips-octeon-add-hardware-rng-platform-device.patch
+     hwmon: enhance the sysfs API for power meters
+has been removed from the -mm tree.  Its filename was
+     hwmon-enhance-the-sysfs-api-for-power-meters.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mips: octeon: add hardware RNG platform device
-From: David Daney <ddaney@caviumnetworks.com>
+Subject: hwmon: enhance the sysfs API for power meters
+From: "Darrick J. Wong" <djwong@us.ibm.com>
 
-Add a platform device for the Octeon Random Number Generator (RNG).
+Augment the documentation of the hwmon sysfs API to accomodate ACPI power
+meters.
 
-Signed-off-by: David Daney <ddaney@caviumnetworks.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/cavium-octeon/setup.c              |   43 ++++++++
- arch/mips/include/asm/octeon/cvmx-rnm-defs.h |   88 +++++++++++++++++
- 2 files changed, 131 insertions(+)
+ Documentation/hwmon/sysfs-interface |   60 +++++++++++++++++++++++++-
+ 1 file changed, 59 insertions(+), 1 deletion(-)
 
-diff -puN arch/mips/cavium-octeon/setup.c~mips-octeon-add-hardware-rng-platform-device arch/mips/cavium-octeon/setup.c
---- a/arch/mips/cavium-octeon/setup.c~mips-octeon-add-hardware-rng-platform-device
-+++ a/arch/mips/cavium-octeon/setup.c
-@@ -33,6 +33,7 @@
- #include <asm/time.h>
+diff -puN Documentation/hwmon/sysfs-interface~hwmon-enhance-the-sysfs-api-for-power-meters Documentation/hwmon/sysfs-interface
+--- a/Documentation/hwmon/sysfs-interface~hwmon-enhance-the-sysfs-api-for-power-meters
++++ a/Documentation/hwmon/sysfs-interface
+@@ -353,10 +353,20 @@ power[1-*]_average		Average power use
+ 				Unit: microWatt
+ 				RO
  
- #include <asm/octeon/octeon.h>
-+#include <asm/octeon/cvmx-rnm-defs.h>
+-power[1-*]_average_interval	Power use averaging interval
++power[1-*]_average_interval	Power use averaging interval.  A poll
++				notification is sent to this file if the
++				hardware changes the averaging interval.
+ 				Unit: milliseconds
+ 				RW
  
- #ifdef CONFIG_CAVIUM_DECODE_RSL
- extern void cvmx_interrupt_rsl_decode(void);
-@@ -926,3 +927,45 @@ out:
- 	return ret;
- }
- device_initcall(octeon_cf_device_init);
++power[1-*]_average_interval_max	Maximum power use averaging interval
++				Unit: milliseconds
++				RO
 +
-+/* Octeon Random Number Generator.  */
-+static int __init octeon_rng_device_init(void)
-+{
-+	struct platform_device *pd;
-+	int ret = 0;
++power[1-*]_average_interval_min	Minimum power use averaging interval
++				Unit: milliseconds
++				RO
 +
-+	struct resource rng_resources[] = {
-+		{
-+			.flags	= IORESOURCE_MEM,
-+			.start	= XKPHYS_TO_PHYS(CVMX_RNM_CTL_STATUS),
-+			.end	= XKPHYS_TO_PHYS(CVMX_RNM_CTL_STATUS) + 0xf
-+		}, {
-+			.flags	= IORESOURCE_MEM,
-+			.start	= cvmx_build_io_address(8, 0),
-+			.end	= cvmx_build_io_address(8, 0) + 0x7
-+		}
-+	};
+ power[1-*]_average_highest	Historical average maximum power use
+ 				Unit: microWatt
+ 				RO
+@@ -365,6 +375,18 @@ power[1-*]_average_lowest	Historical ave
+ 				Unit: microWatt
+ 				RO
+ 
++power[1-*]_average_max		A poll notification is sent to
++				power[1-*]_average when power use
++				rises above this value.
++				Unit: microWatt
++				RW
 +
-+	pd = platform_device_alloc("octeon_rng", -1);
-+	if (!pd) {
-+		ret = -ENOMEM;
-+		goto out;
-+	}
++power[1-*]_average_min		A poll notification is sent to
++				power[1-*]_average when power use
++				sinks below this value.
++				Unit: microWatt
++				RW
 +
-+	ret = platform_device_add_resources(pd, rng_resources,
-+					    ARRAY_SIZE(rng_resources));
-+	if (ret)
-+		goto fail;
+ power[1-*]_input		Instantaneous power use
+ 				Unit: microWatt
+ 				RO
+@@ -381,6 +403,42 @@ power[1-*]_reset_history	Reset input_hig
+ 				average_highest and average_lowest.
+ 				WO
+ 
++power[1-*]_accuracy		Accuracy of the power meter.
++				Unit: Percent
++				RO
 +
-+	ret = platform_device_add(pd);
-+	if (ret)
-+		goto fail;
++power[1-*]_alarm		1 if the system is drawing more power than the
++				cap allows; 0 otherwise.  A poll notification is
++				sent to this file if the power use exceeds the
++				cap.  The action that is taken when this event
++				happens is undefined--it is possible that the
++				hardware will reduce performance to cut the
++				power use, but it is also possible that the
++				system designer expects the OS to try to
++				reduce power consumption.  Contact your
++				machine's vendor to find out which.
++				RO
 +
-+	return ret;
-+fail:
-+	platform_device_put(pd);
++power[1-*]_cap			If power use rises above this limit, the
++				system should take action to reduce power use.
++				A poll notification is sent to this file if the
++				cap is changed by the hardware.
++				Unit: microWatt
++				RW
 +
-+out:
-+	return ret;
-+}
-+device_initcall(octeon_rng_device_init);
-diff -puN /dev/null arch/mips/include/asm/octeon/cvmx-rnm-defs.h
---- /dev/null
-+++ a/arch/mips/include/asm/octeon/cvmx-rnm-defs.h
-@@ -0,0 +1,88 @@
-+/***********************license start***************
-+ * Author: Cavium Networks
-+ *
-+ * Contact: support@caviumnetworks.com
-+ * This file is part of the OCTEON SDK
-+ *
-+ * Copyright (c) 2003-2008 Cavium Networks
-+ *
-+ * This file is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License, Version 2, as
-+ * published by the Free Software Foundation.
-+ *
-+ * This file is distributed in the hope that it will be useful, but
-+ * AS-IS and WITHOUT ANY WARRANTY; without even the implied warranty
-+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE, TITLE, or
-+ * NONINFRINGEMENT.  See the GNU General Public License for more
-+ * details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this file; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
-+ * or visit http://www.gnu.org/licenses/.
-+ *
-+ * This file may also be available under a different license from Cavium.
-+ * Contact Cavium Networks for more information
-+ ***********************license end**************************************/
++power[1-*]_cap_hyst		Margin of hysteresis built around capping and
++				notification.
++				Unit: microWatt
++				RW
 +
-+#ifndef __CVMX_RNM_DEFS_H__
-+#define __CVMX_RNM_DEFS_H__
++power[1-*]_cap_max		Maximum cap that can be set.
++				Unit: microWatt
++				RO
 +
-+#include <linux/types.h>
++power[1-*]_cap_min		Minimum cap that can be set.
++				Unit: microWatt
++				RO
 +
-+#define CVMX_RNM_BIST_STATUS \
-+	 CVMX_ADD_IO_SEG(0x0001180040000008ull)
-+#define CVMX_RNM_CTL_STATUS \
-+	 CVMX_ADD_IO_SEG(0x0001180040000000ull)
-+
-+union cvmx_rnm_bist_status {
-+	uint64_t u64;
-+	struct cvmx_rnm_bist_status_s {
-+		uint64_t reserved_2_63:62;
-+		uint64_t rrc:1;
-+		uint64_t mem:1;
-+	} s;
-+	struct cvmx_rnm_bist_status_s cn30xx;
-+	struct cvmx_rnm_bist_status_s cn31xx;
-+	struct cvmx_rnm_bist_status_s cn38xx;
-+	struct cvmx_rnm_bist_status_s cn38xxp2;
-+	struct cvmx_rnm_bist_status_s cn50xx;
-+	struct cvmx_rnm_bist_status_s cn52xx;
-+	struct cvmx_rnm_bist_status_s cn52xxp1;
-+	struct cvmx_rnm_bist_status_s cn56xx;
-+	struct cvmx_rnm_bist_status_s cn56xxp1;
-+	struct cvmx_rnm_bist_status_s cn58xx;
-+	struct cvmx_rnm_bist_status_s cn58xxp1;
-+};
-+
-+union cvmx_rnm_ctl_status {
-+	uint64_t u64;
-+	struct cvmx_rnm_ctl_status_s {
-+		uint64_t reserved_9_63:55;
-+		uint64_t ent_sel:4;
-+		uint64_t exp_ent:1;
-+		uint64_t rng_rst:1;
-+		uint64_t rnm_rst:1;
-+		uint64_t rng_en:1;
-+		uint64_t ent_en:1;
-+	} s;
-+	struct cvmx_rnm_ctl_status_cn30xx {
-+		uint64_t reserved_4_63:60;
-+		uint64_t rng_rst:1;
-+		uint64_t rnm_rst:1;
-+		uint64_t rng_en:1;
-+		uint64_t ent_en:1;
-+	} cn30xx;
-+	struct cvmx_rnm_ctl_status_cn30xx cn31xx;
-+	struct cvmx_rnm_ctl_status_cn30xx cn38xx;
-+	struct cvmx_rnm_ctl_status_cn30xx cn38xxp2;
-+	struct cvmx_rnm_ctl_status_s cn50xx;
-+	struct cvmx_rnm_ctl_status_s cn52xx;
-+	struct cvmx_rnm_ctl_status_s cn52xxp1;
-+	struct cvmx_rnm_ctl_status_s cn56xx;
-+	struct cvmx_rnm_ctl_status_s cn56xxp1;
-+	struct cvmx_rnm_ctl_status_s cn58xx;
-+	struct cvmx_rnm_ctl_status_s cn58xxp1;
-+};
-+
-+#endif
+ **********
+ * Energy *
+ **********
 _
 
-Patches currently in -mm which might be from ddaney@caviumnetworks.com are
+Patches currently in -mm which might be from djwong@us.ibm.com are
 
-origin.patch
-mips-octeon-add-hardware-rng-platform-device.patch
-hw_random-add-hardware-rng-for-octeon-socs.patch
-maintainers-add-matt-mackall-and-herbert-xu-to-hardware-random-number-generator.patch
+hwmon-enhance-the-sysfs-api-for-power-meters.patch
 
