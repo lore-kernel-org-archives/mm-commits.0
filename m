@@ -1,69 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] vfs-make-get_sb_pseudo-set-s_maxbytes-to-value-that-can-be-cast-to-signed.patch removed from -mm tree
-Date: Thu, 20 Aug 2009 13:12:41 -0700
-Message-ID: <200908202012.n7KKCfbe015355@imap1.linux-foundation.org>
+Subject: [merged] maintainers-osd-library-and-filesystem-pattern-fix.patch removed from -mm tree
+Date: Thu, 20 Aug 2009 13:12:38 -0700
+Message-ID: <200908202012.n7KKCccM015264@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56971 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36578 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755297AbZHTUNo (ORCPT
+	by vger.kernel.org with ESMTP id S1755290AbZHTUNk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Aug 2009 16:13:44 -0400
+	Thu, 20 Aug 2009 16:13:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jlayton@redhat.com, hannes@cmpxchg.org, hch@lst.de, rlove@google.com, smfrench@gmail.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: joe@perches.com, bhalevy@panasas.com, bharrosh@panasas.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vfs: make get_sb_pseudo set s_maxbytes to value that can be cast to signed
+     MAINTAINERS: OSD LIBRARY and FILESYSTEM pattern fix
 has been removed from the -mm tree.  Its filename was
-     vfs-make-get_sb_pseudo-set-s_maxbytes-to-value-that-can-be-cast-to-signed.patch
+     maintainers-osd-library-and-filesystem-pattern-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: make get_sb_pseudo set s_maxbytes to value that can be cast to signed
-From: Jeff Layton <jlayton@redhat.com>
-DESC
-vfs: make get_sb_pseudo set s_maxbytes to value that can be cast to signed
-DESC
+Subject: MAINTAINERS: OSD LIBRARY and FILESYSTEM pattern fix
+From: Joe Perches <joe@perches.com>
 
-get_sb_pseudo sets s_maxbytes to ~0ULL which becomes negative when cast to
-a signed value.  Fix it to use MAX_LFS_FILESIZE which casts properly to a
-positive signed value.
-
-Signed-off-by: Jeff Layton <jlayton@redhat.com>
-Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Steve French <smfrench@gmail.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Robert Love <rlove@google.com>
+Signed-off-by: Joe Perches <joe@perches.com>
+Acked-by: Benny Halevy <bhalevy@panasas.com>
+Cc: Boaz Harrosh <bharrosh@panasas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/libfs.c |    2 +-
+ MAINTAINERS |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/libfs.c~vfs-make-get_sb_pseudo-set-s_maxbytes-to-value-that-can-be-cast-to-signed fs/libfs.c
---- a/fs/libfs.c~vfs-make-get_sb_pseudo-set-s_maxbytes-to-value-that-can-be-cast-to-signed
-+++ a/fs/libfs.c
-@@ -217,7 +217,7 @@ int get_sb_pseudo(struct file_system_typ
- 		return PTR_ERR(s);
+diff -puN MAINTAINERS~maintainers-osd-library-and-filesystem-pattern-fix MAINTAINERS
+--- a/MAINTAINERS~maintainers-osd-library-and-filesystem-pattern-fix
++++ a/MAINTAINERS
+@@ -3804,7 +3804,7 @@ W:	http://open-osd.org
+ T:	git git://git.open-osd.org/open-osd.git
+ S:	Maintained
+ F:	drivers/scsi/osd/
+-F:	drivers/include/scsi/osd_*
++F:	include/scsi/osd_*
+ F:	fs/exofs/
  
- 	s->s_flags = MS_NOUSER;
--	s->s_maxbytes = ~0ULL;
-+	s->s_maxbytes = MAX_LFS_FILESIZE;
- 	s->s_blocksize = PAGE_SIZE;
- 	s->s_blocksize_bits = PAGE_SHIFT;
- 	s->s_magic = magic;
+ P54 WIRELESS DRIVER
 _
 
-Patches currently in -mm which might be from jlayton@redhat.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
-vfs-explicitly-cast-s_maxbytes-in-fiemap_check_ranges.patch
-vfs-change-sb-s_maxbytes-to-a-loff_t.patch
-vfs-remove-redundant-position-check-in-do_sendfile.patch
+linux-next.patch
+maintainers-add-ipvs-include-files.patch
+scripts-get_maintainerpl-add-git-blame.patch
+scripts-get_maintainerpl-add-sections-in-pattern-match-depth-order.patch
+scripts-get_maintainerpl-add-pattern-depth.patch
+scripts-get_maintainerpl-better-email-routines-use-perl-not-shell-where-possible.patch
+scripts-get_maintainerpl-add-mailmap-use-shell-and-email-cleanups.patch
+scripts-get_maintainerpl-using-separator-implies-nomultiline.patch
+scripts-get_maintainerpl-add-remove-duplicates.patch
+mmc-msm_sdccc-driver-for-htc-dream.patch
+msm_sdccc-convert-printkkern_level-to-pr_level.patch
+msm_sdccc-stylistic-cleaning.patch
+msm_sdccc-move-overly-indented-code-to-separate-function.patch
+maintainers-add-matt-mackall-and-herbert-xu-to-hardware-random-number-generator.patch
 
