@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + tmpfs-convert-to-use-the-new-truncate-convention.patch added to -mm tree
-Date: Thu, 20 Aug 2009 15:48:26 -0700
-Message-ID: <200908202248.n7KMmQDH029602@imap1.linux-foundation.org>
+Subject: + btrfs-convert-to-use-the-new-truncate-convention.patch added to -mm tree
+Date: Thu, 20 Aug 2009 15:48:33 -0700
+Message-ID: <200908202248.n7KMmXfs029817@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33713 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41605 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932079AbZHTWtb (ORCPT
+	by vger.kernel.org with ESMTP id S1755039AbZHTWtb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 20 Aug 2009 18:49:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: npiggin@suse.de, chris.mason@oracle.com, hch@lst.de, hirofumi@mail.parknet.c
 
 
 The patch titled
-     tmpfs: convert to use the new truncate convention
+     btrfs: convert to use the new truncate convention
 has been added to the -mm tree.  Its filename is
-     tmpfs-convert-to-use-the-new-truncate-convention.patch
+     btrfs-convert-to-use-the-new-truncate-convention.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,16 +34,16 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tmpfs: convert to use the new truncate convention
+Subject: btrfs: convert to use the new truncate convention
 From: Nick Piggin <npiggin@suse.de>
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
+Cc: Chris Mason <chris.mason@oracle.com>
 Cc: Christoph Hellwig <hch@lst.de>
-Acked-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Dave Kleikamp <shaggy@linux.vnet.ibm.com>
-Cc: Chris Mason <chris.mason@oracle.com>
 Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Cc: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
 Cc: Steven French <sfrench@us.ibm.com>
@@ -51,129 +51,240 @@ Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   44 +++++++++++++++++++++++---------------------
- 1 file changed, 23 insertions(+), 21 deletions(-)
+ fs/btrfs/ctree.h |    1 
+ fs/btrfs/inode.c |  132 ++++++++++++++++++++++++++++-----------------
+ fs/btrfs/ioctl.c |    2 
+ 3 files changed, 86 insertions(+), 49 deletions(-)
 
-diff -puN mm/shmem.c~tmpfs-convert-to-use-the-new-truncate-convention mm/shmem.c
---- a/mm/shmem.c~tmpfs-convert-to-use-the-new-truncate-convention
-+++ a/mm/shmem.c
-@@ -730,10 +730,11 @@ done2:
- 	if (inode->i_mapping->nrpages && (info->flags & SHMEM_PAGEIN)) {
- 		/*
- 		 * Call truncate_inode_pages again: racing shmem_unuse_inode
--		 * may have swizzled a page in from swap since vmtruncate or
--		 * generic_delete_inode did it, before we lowered next_index.
--		 * Also, though shmem_getpage checks i_size before adding to
--		 * cache, no recheck after: so fix the narrow window there too.
-+		 * may have swizzled a page in from swap since
-+		 * truncate_pagecache or generic_delete_inode did it, before we
-+		 * lowered next_index.  Also, though shmem_getpage checks
-+		 * i_size before adding to cache, no recheck after: so fix the
-+		 * narrow window there too.
- 		 *
- 		 * Recalling truncate_inode_pages_range and unmap_mapping_range
- 		 * every time for punch_hole (which never got a chance to clear
-@@ -763,19 +764,16 @@ done2:
- 	}
+diff -puN fs/btrfs/ctree.h~btrfs-convert-to-use-the-new-truncate-convention fs/btrfs/ctree.h
+--- a/fs/btrfs/ctree.h~btrfs-convert-to-use-the-new-truncate-convention
++++ a/fs/btrfs/ctree.h
+@@ -2275,6 +2275,7 @@ int btrfs_orphan_add(struct btrfs_trans_
+ int btrfs_orphan_del(struct btrfs_trans_handle *trans, struct inode *inode);
+ void btrfs_orphan_cleanup(struct btrfs_root *root);
+ int btrfs_cont_expand(struct inode *inode, loff_t size);
++void btrfs_truncate_blocks(struct inode *inode, loff_t offset);
+ 
+ /* ioctl.c */
+ long btrfs_ioctl(struct file *file, unsigned int cmd, unsigned long arg);
+diff -puN fs/btrfs/inode.c~btrfs-convert-to-use-the-new-truncate-convention fs/btrfs/inode.c
+--- a/fs/btrfs/inode.c~btrfs-convert-to-use-the-new-truncate-convention
++++ a/fs/btrfs/inode.c
+@@ -81,7 +81,6 @@ static unsigned char btrfs_type_by_mode[
+ 	[S_IFLNK >> S_SHIFT]	= BTRFS_FT_SYMLINK,
+ };
+ 
+-static void btrfs_truncate(struct inode *inode);
+ static int btrfs_finish_ordered_io(struct inode *inode, u64 start, u64 end);
+ static noinline int cow_file_range(struct inode *inode,
+ 				   struct page *locked_page,
+@@ -1990,7 +1989,7 @@ void btrfs_orphan_cleanup(struct btrfs_r
+ 		/* if we have links, this was a truncate, lets do that */
+ 		if (inode->i_nlink) {
+ 			nr_truncate++;
+-			btrfs_truncate(inode);
++			btrfs_truncate_blocks(inode, inode->i_size);
+ 		} else {
+ 			nr_unlink++;
+ 		}
+@@ -2956,39 +2955,6 @@ int btrfs_cont_expand(struct inode *inod
+ 	return err;
  }
  
--static void shmem_truncate(struct inode *inode)
+-static int btrfs_setattr(struct dentry *dentry, struct iattr *attr)
 -{
--	shmem_truncate_range(inode, inode->i_size, (loff_t)-1);
+-	struct inode *inode = dentry->d_inode;
+-	int err;
+-
+-	err = inode_change_ok(inode, attr);
+-	if (err)
+-		return err;
+-
+-	if (S_ISREG(inode->i_mode) && (attr->ia_valid & ATTR_SIZE)) {
+-		if (attr->ia_size > inode->i_size) {
+-			err = btrfs_cont_expand(inode, attr->ia_size);
+-			if (err)
+-				return err;
+-		} else if (inode->i_size > 0 &&
+-			   attr->ia_size == 0) {
+-
+-			/* we're truncating a file that used to have good
+-			 * data down to zero.  Make sure it gets into
+-			 * the ordered flush list so that any new writes
+-			 * get down to disk quickly.
+-			 */
+-			BTRFS_I(inode)->ordered_data_close = 1;
+-		}
+-	}
+-
+-	err = inode_setattr(inode, attr);
+-
+-	if (!err && ((attr->ia_valid & ATTR_MODE)))
+-		err = btrfs_acl_chmod(inode);
+-	return err;
 -}
 -
- static int shmem_notify_change(struct dentry *dentry, struct iattr *attr)
+ void btrfs_delete_inode(struct inode *inode)
  {
- 	struct inode *inode = dentry->d_inode;
--	struct page *page = NULL;
- 	int error;
- 
- 	if (S_ISREG(inode->i_mode) && (attr->ia_valid & ATTR_SIZE)) {
--		if (attr->ia_size < inode->i_size) {
-+		loff_t newsize = attr->ia_size;
-+		struct page *page = NULL;
-+
-+		if (newsize < inode->i_size) {
- 			/*
- 			 * If truncating down to a partial page, then
- 			 * if that page is already allocated, hold it
-@@ -783,9 +781,9 @@ static int shmem_notify_change(struct de
- 			 * truncate_partial_page cannnot miss it were
- 			 * it assigned to swap.
- 			 */
--			if (attr->ia_size & (PAGE_CACHE_SIZE-1)) {
-+			if (newsize & (PAGE_CACHE_SIZE-1)) {
- 				(void) shmem_getpage(inode,
--					attr->ia_size>>PAGE_CACHE_SHIFT,
-+					newsize >> PAGE_CACHE_SHIFT,
- 						&page, SGP_READ, NULL);
- 				if (page)
- 					unlock_page(page);
-@@ -797,24 +795,29 @@ static int shmem_notify_change(struct de
- 			 * if it's being fully truncated to zero-length: the
- 			 * nrpages check is efficient enough in that case.
- 			 */
--			if (attr->ia_size) {
-+			if (newsize) {
- 				struct shmem_inode_info *info = SHMEM_I(inode);
- 				spin_lock(&info->lock);
- 				info->flags &= ~SHMEM_PAGEIN;
- 				spin_unlock(&info->lock);
- 			}
- 		}
-+
-+		error = simple_setsize(inode, newsize);
-+		if (page)
-+			page_cache_release(page);
-+		if (error)
-+			return error;
-+		shmem_truncate_range(inode, newsize, (loff_t)-1);
- 	}
- 
- 	error = inode_change_ok(inode, attr);
- 	if (!error)
--		error = inode_setattr(inode, attr);
-+		generic_setattr(inode, attr);
- #ifdef CONFIG_TMPFS_POSIX_ACL
- 	if (!error && (attr->ia_valid & ATTR_MODE))
- 		error = generic_acl_chmod(inode, &shmem_acl_ops);
- #endif
--	if (page)
--		page_cache_release(page);
- 	return error;
+ 	struct btrfs_trans_handle *trans;
+@@ -4438,7 +4404,7 @@ static void btrfs_invalidatepage(struct 
+  *
+  * We are not allowed to take the i_mutex here so we have to play games to
+  * protect against truncate races as the page could now be beyond EOF.  Because
+- * vmtruncate() writes the inode size before removing pages, once we have the
++ * btrfs_setsize() writes the inode size before removing pages, once we have the
+  * page lock we can determine safely if the page is beyond EOF. If it is not
+  * beyond EOF, then the page is guaranteed safe against truncation until we
+  * unlock the page.
+@@ -4524,7 +4490,7 @@ out:
+ 	return ret;
  }
  
-@@ -822,11 +825,11 @@ static void shmem_delete_inode(struct in
+-static void btrfs_truncate(struct inode *inode)
++static void __btrfs_truncate_blocks(struct inode *inode, loff_t offset)
  {
- 	struct shmem_inode_info *info = SHMEM_I(inode);
+ 	struct btrfs_root *root = BTRFS_I(inode)->root;
+ 	int ret;
+@@ -4532,13 +4498,8 @@ static void btrfs_truncate(struct inode 
+ 	unsigned long nr;
+ 	u64 mask = root->sectorsize - 1;
  
--	if (inode->i_op->truncate == shmem_truncate) {
-+	if (inode->i_mapping->a_ops == &shmem_aops) {
- 		truncate_inode_pages(inode->i_mapping, 0);
- 		shmem_unacct_size(info->flags, inode->i_size);
- 		inode->i_size = 0;
--		shmem_truncate(inode);
-+		shmem_truncate_range(inode, 0, (loff_t)-1);
- 		if (!list_empty(&info->swaplist)) {
- 			mutex_lock(&shmem_swaplist_mutex);
- 			list_del_init(&info->swaplist);
-@@ -2018,7 +2021,6 @@ static const struct inode_operations shm
+-	if (!S_ISREG(inode->i_mode))
+-		return;
+-	if (IS_APPEND(inode) || IS_IMMUTABLE(inode))
+-		return;
+-
+-	btrfs_truncate_page(inode->i_mapping, inode->i_size);
+-	btrfs_wait_ordered_range(inode, inode->i_size & (~mask), (u64)-1);
++	btrfs_truncate_page(inode->i_mapping, offset);
++	btrfs_wait_ordered_range(inode, offset & (~mask), (u64)-1);
+ 
+ 	trans = btrfs_start_transaction(root, 1);
+ 
+@@ -4559,17 +4520,17 @@ static void btrfs_truncate(struct inode 
+ 	 * using truncate to replace the contents of the file will
+ 	 * end up with a zero length file after a crash.
+ 	 */
+-	if (inode->i_size == 0 && BTRFS_I(inode)->ordered_data_close)
++	if (offset == 0 && BTRFS_I(inode)->ordered_data_close)
+ 		btrfs_add_ordered_operation(trans, root, inode);
+ 
+ 	btrfs_set_trans_block_group(trans, inode);
+-	btrfs_i_size_write(inode, inode->i_size);
++	btrfs_i_size_write(inode, offset);
+ 
+ 	ret = btrfs_orphan_add(trans, inode);
+ 	if (ret)
+ 		goto out;
+ 	/* FIXME, add redo link to tree so we don't leak on crash */
+-	ret = btrfs_truncate_inode_items(trans, root, inode, inode->i_size,
++	ret = btrfs_truncate_inode_items(trans, root, inode, offset,
+ 				      BTRFS_EXTENT_DATA_KEY);
+ 	btrfs_update_inode(trans, root, inode);
+ 
+@@ -4583,6 +4544,81 @@ out:
+ 	btrfs_btree_balance_dirty(root, nr);
+ }
+ 
++void btrfs_truncate_blocks(struct inode *inode, loff_t offset)
++{
++	if (!S_ISREG(inode->i_mode))
++		return;
++	/* XXX: should allow IS_APPEND and IS_IMMUTABLE files to have
++	 * blocks trimmed past i_size */
++	if (IS_APPEND(inode) || IS_IMMUTABLE(inode))
++		return;
++
++	__btrfs_truncate_blocks(inode, offset);
++	mark_inode_dirty(inode);
++}
++
++static int btrfs_setsize(struct inode *inode, loff_t newsize)
++{
++	int error;
++	loff_t oldsize;
++
++	if (!S_ISREG(inode->i_mode))
++		return -EINVAL;
++	if (IS_APPEND(inode) || IS_IMMUTABLE(inode))
++		return -EPERM;
++
++	error = inode_newsize_ok(inode, newsize);
++	if (error)
++		return error;
++
++	oldsize = inode->i_size;
++	__btrfs_truncate_blocks(inode, newsize);
++	truncate_pagecache(inode, oldsize, newsize);
++
++	return error;
++}
++
++static int btrfs_setattr(struct dentry *dentry, struct iattr *attr)
++{
++	struct inode *inode = dentry->d_inode;
++	int err;
++
++	err = inode_change_ok(inode, attr);
++	if (err)
++		return err;
++
++	if (S_ISREG(inode->i_mode) && (attr->ia_valid & ATTR_SIZE)) {
++		loff_t newsize = attr->ia_size;
++
++		if (newsize > inode->i_size) {
++			err = btrfs_cont_expand(inode, newsize);
++			if (err)
++				return err;
++		} else if (inode->i_size > 0 &&
++			   newsize == 0) {
++
++			/* we're truncating a file that used to have good
++			 * data down to zero.  Make sure it gets into
++			 * the ordered flush list so that any new writes
++			 * get down to disk quickly.
++			 */
++			BTRFS_I(inode)->ordered_data_close = 1;
++		}
++
++		err = btrfs_setsize(inode, newsize);
++		if (err)
++			return err;
++	}
++
++	generic_setattr(inode, attr);
++
++	if ((attr->ia_valid & ATTR_MODE))
++		err = btrfs_acl_chmod(inode);
++	mark_inode_dirty(inode);
++
++	return err;
++}
++
+ /*
+  * create a new subvolume directory/inode (helper for the ioctl).
+  */
+@@ -5272,7 +5308,7 @@ static struct address_space_operations b
  };
  
- static const struct inode_operations shmem_symlink_inode_operations = {
--	.truncate	= shmem_truncate,
- 	.readlink	= generic_readlink,
- 	.follow_link	= shmem_follow_link,
- 	.put_link	= shmem_put_link,
-@@ -2438,7 +2440,7 @@ static const struct file_operations shme
- };
- 
- static const struct inode_operations shmem_inode_operations = {
--	.truncate	= shmem_truncate,
+ static struct inode_operations btrfs_file_inode_operations = {
+-	.truncate	= btrfs_truncate,
 +	.new_truncate	= 1,
- 	.setattr	= shmem_notify_change,
- 	.truncate_range	= shmem_truncate_range,
- #ifdef CONFIG_TMPFS_POSIX_ACL
+ 	.getattr	= btrfs_getattr,
+ 	.setattr	= btrfs_setattr,
+ 	.setxattr	= btrfs_setxattr,
+diff -puN fs/btrfs/ioctl.c~btrfs-convert-to-use-the-new-truncate-convention fs/btrfs/ioctl.c
+--- a/fs/btrfs/ioctl.c~btrfs-convert-to-use-the-new-truncate-convention
++++ a/fs/btrfs/ioctl.c
+@@ -1148,7 +1148,7 @@ out:
+ 	btrfs_end_transaction(trans, root);
+ 	unlock_extent(&BTRFS_I(src)->io_tree, off, off+len, GFP_NOFS);
+ 	if (ret)
+-		vmtruncate(inode, 0);
++		btrfs_truncate_blocks(inode, 0);
+ out_unlock:
+ 	mutex_unlock(&src->i_mutex);
+ 	mutex_unlock(&inode->i_mutex);
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
