@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-remove-dead-ncpfs-list.patch added to -mm tree
-Date: Thu, 20 Aug 2009 14:44:55 -0700
-Message-ID: <200908202144.n7KLitS5015518@imap1.linux-foundation.org>
+Subject: + pci-dmar-correct-off-by-one-error.patch added to -mm tree
+Date: Thu, 20 Aug 2009 14:46:25 -0700
+Message-ID: <200908202146.n7KLkP5w018146@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55634 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54423 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751467AbZHTVp7 (ORCPT
+	by vger.kernel.org with ESMTP id S1752853AbZHTVrE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Aug 2009 17:45:59 -0400
+	Thu, 20 Aug 2009 17:47:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bzolnier@gmail.com, linware@sh.cvut.cz, vandrove@vc.cvut.cz
+Cc: troy.heber@hp.com, dwmw2@infradead.org
 
 
 The patch titled
-     MAINTAINERS: remove dead ncpfs list
+     pci/dmar: correct off-by-one error in dmar_fault()
 has been added to the -mm tree.  Its filename is
-     maintainers-remove-dead-ncpfs-list.patch
+     pci-dmar-correct-off-by-one-error.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: remove dead ncpfs list
-From: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Subject: pci/dmar: correct off-by-one error in dmar_fault()
+From: Troy Heber <troy.heber@hp.com>
 
-On Saturday 01 August 2009 00:30:39 Mail Delivery Subsystem wrote:
-> Delivery to the following recipient failed permanently:
->
->      linware@sh.cvut.cz
->
-> Technical details of permanent failure:
-> Google tried to deliver your message, but it was rejected by the recipient
-> domain. We recommend contacting the other email provider for further
-> information about the cause of this error. The error that the other server
-> returned was: 450 450 <linware@sh.cvut.cz>: Recipient address rejected:
-> undeliverable address: unknown user: "linware" (state 14).
+DMAR faults are recorded into a ring of "fault recording registers". 
+fault_index is a 0-based index into the ring.  The code allows the 0-based
+fault_index to be equal to the total number of fault registers available
+from the cap_num_fault_regs() macro, which causes access beyond the last
+available register.
 
-Cc: Petr Vandrovec <vandrove@vc.cvut.cz>
-Signed-off-by: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Signed-off-by Troy Heber <troy.heber@hp.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/pci/dmar.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-remove-dead-ncpfs-list MAINTAINERS
---- a/MAINTAINERS~maintainers-remove-dead-ncpfs-list
-+++ a/MAINTAINERS
-@@ -3550,7 +3550,6 @@ F:	drivers/net/natsemi.c
+diff -puN drivers/pci/dmar.c~pci-dmar-correct-off-by-one-error drivers/pci/dmar.c
+--- a/drivers/pci/dmar.c~pci-dmar-correct-off-by-one-error
++++ a/drivers/pci/dmar.c
+@@ -1225,7 +1225,7 @@ irqreturn_t dmar_fault(int irq, void *de
+ 				source_id, guest_addr);
  
- NCP FILESYSTEM
- M:	Petr Vandrovec <vandrove@vc.cvut.cz>
--L:	linware@sh.cvut.cz
- S:	Maintained
- F:	fs/ncpfs/
- 
+ 		fault_index++;
+-		if (fault_index > cap_num_fault_regs(iommu->cap))
++		if (fault_index >= cap_num_fault_regs(iommu->cap))
+ 			fault_index = 0;
+ 		spin_lock_irqsave(&iommu->register_lock, flag);
+ 	}
 _
 
-Patches currently in -mm which might be from bzolnier@gmail.com are
+Patches currently in -mm which might be from troy.heber@hp.com are
 
-origin.patch
-linux-next.patch
-maintainers-remove-dead-ncpfs-list.patch
-cyclades-allow-overriding-isa-defaults-also-when-the-driver-is-built-in.patch
+pci-dmar-correct-off-by-one-error.patch
 
