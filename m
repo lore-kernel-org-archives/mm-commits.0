@@ -1,97 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [merged] spi_s3c24xx-fix-clock-rate-calculation.patch removed from -mm tree
-Date: Thu, 20 Aug 2009 13:12:55 -0700
-Message-ID: <200908202012.n7KKCtFj015783@imap1.linux-foundation.org>
+Subject: [merged] nommu-check-fd-read-permission-in-validate_mmap_request.patch removed from -mm tree
+Date: Thu, 20 Aug 2009 13:13:00 -0700
+Message-ID: <200908202013.n7KKD0nX015941@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49994 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46307 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755287AbZHTUSP (ORCPT
+	by vger.kernel.org with ESMTP id S1755289AbZHTUSd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Aug 2009 16:18:15 -0400
+	Thu, 20 Aug 2009 16:18:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ben@simtec.co.uk, david-b@pacbell.net, mm-commits@vger.kernel.org
+To: graff.yang@gmail.com, dhowells@redhat.com, gerg@snapgear.com, lethal@linux-sh.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi_s3c24xx: fix clock rate calculation
+     nommu: check fd read permission in validate_mmap_request()
 has been removed from the -mm tree.  Its filename was
-     spi_s3c24xx-fix-clock-rate-calculation.patch
+     nommu-check-fd-read-permission-in-validate_mmap_request.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi_s3c24xx: fix clock rate calculation
-From: Ben Dooks <ben@simtec.co.uk>
+Subject: nommu: check fd read permission in validate_mmap_request()
+From: Graff Yang <graff.yang@gmail.com>
 
-Currently the clock rate calculation may round as pleased, which means
-that it is possible that we will round down and end up with a faster clock
-rate than intended.
+According to the POSIX (1003.1-2008), the file descriptor shall have been
+opened with read permission, regardless of the protection options specified to
+mmap().  The ltp test cases mmap06/07 need this.
 
-Change the calculation to use DIV_ROUND_UP() to ensure that we end up with
-a clock rate either the same as or lower than the user requested one.
-
-Signed-off-by: Ben Dooks <ben@simtec.co.uk>
-Cc: David Brownell <david-b@pacbell.net>
+Signed-off-by: Graff Yang <graff.yang@gmail.com>
+Acked-by: Paul Mundt <lethal@linux-sh.org>
+Signed-off-by: David Howells <dhowells@redhat.com>
+Acked-by: Greg Ungerer <gerg@snapgear.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_s3c24xx.c |   17 +++++++----------
- 1 file changed, 7 insertions(+), 10 deletions(-)
+ mm/nommu.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN drivers/spi/spi_s3c24xx.c~spi_s3c24xx-fix-clock-rate-calculation drivers/spi/spi_s3c24xx.c
---- a/drivers/spi/spi_s3c24xx.c~spi_s3c24xx-fix-clock-rate-calculation
-+++ a/drivers/spi/spi_s3c24xx.c
-@@ -111,6 +111,7 @@ static int s3c24xx_spi_setupxfer(struct 
- 	unsigned int bpw;
- 	unsigned int hz;
- 	unsigned int div;
-+	unsigned long clk;
+diff -puN mm/nommu.c~nommu-check-fd-read-permission-in-validate_mmap_request mm/nommu.c
+--- a/mm/nommu.c~nommu-check-fd-read-permission-in-validate_mmap_request
++++ a/mm/nommu.c
+@@ -919,6 +919,10 @@ static int validate_mmap_request(struct 
+ 		if (!file->f_op->read)
+ 			capabilities &= ~BDI_CAP_MAP_COPY;
  
- 	bpw = t ? t->bits_per_word : spi->bits_per_word;
- 	hz  = t ? t->speed_hz : spi->max_speed_hz;
-@@ -120,20 +121,16 @@ static int s3c24xx_spi_setupxfer(struct 
- 		return -EINVAL;
- 	}
- 
--	div = clk_get_rate(hw->clk) / hz;
--
--	/* is clk = pclk / (2 * (pre+1)), or is it
--	 *    clk = (pclk * 2) / ( pre + 1) */
--
--	div /= 2;
--
--	if (div > 0)
--		div -= 1;
-+	clk = clk_get_rate(hw->clk);
-+	div = DIV_ROUND_UP(clk, hz * 2) - 1;
- 
- 	if (div > 255)
- 		div = 255;
- 
--	dev_dbg(&spi->dev, "setting pre-scaler to %d (hz %d)\n", div, hz);
-+	dev_dbg(&spi->dev, "setting pre-scaler to %d (wanted %d, got %ld)\n",
-+		div, hz, clk / (2 * (div + 1)));
++		/* The file shall have been opened with read permission. */
++		if (!(file->f_mode & FMODE_READ))
++			return -EACCES;
 +
-+
- 	writeb(div, hw->regs + S3C2410_SPPRE);
- 
- 	spin_lock(&hw->bitbang.lock);
+ 		if (flags & MAP_SHARED) {
+ 			/* do checks for writing, appending and locking */
+ 			if ((prot & PROT_WRITE) &&
 _
 
-Patches currently in -mm which might be from ben@simtec.co.uk are
+Patches currently in -mm which might be from graff.yang@gmail.com are
 
 origin.patch
-linux-next.patch
-spi-fix-spelling-of-automatically-in-documentation.patch
-spi_s3c24xx-fix-header-includes.patch
-spi_s3c24xx-use-resource_size-to-get-resource-size.patch
-spi_s3c24xx-use-dev_pm_ops.patch
-spi_s3c24xx-cache-device-setup-data.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes-fix.patch
 
