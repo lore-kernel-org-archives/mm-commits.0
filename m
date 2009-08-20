@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + fs-introduce-new-truncate-sequence.patch added to -mm tree
-Date: Thu, 20 Aug 2009 15:48:22 -0700
-Message-ID: <200908202248.n7KMmMma029487@imap1.linux-foundation.org>
+Subject: + fs-new-truncate-helpers.patch added to -mm tree
+Date: Thu, 20 Aug 2009 15:48:13 -0700
+Message-ID: <200908202248.n7KMmDXe029218@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33462 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46962 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755417AbZHTWtY (ORCPT
+	by vger.kernel.org with ESMTP id S1755181AbZHTWtZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Aug 2009 18:49:24 -0400
+	Thu, 20 Aug 2009 18:49:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: npiggin@suse.de, chris.mason@oracle.com, hch@lst.de, hirofumi@mail.parknet.c
 
 
 The patch titled
-     fs: introduce new truncate sequence
+     fs: new truncate helpers
 has been added to the -mm tree.  Its filename is
-     fs-introduce-new-truncate-sequence.patch
+     fs-new-truncate-helpers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,15 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs: introduce new truncate sequence
+Subject: fs: new truncate helpers
 From: Nick Piggin <npiggin@suse.de>
 
-Introduce a new truncate calling sequence into fs/mm subsystems.  Rather
-than setattr > vmtruncate > truncate, have filesystems call their truncate
-sequence from ->setattr if filesystem specific operations are required. 
-vmtruncate is deprecated, and truncate_pagecache and inode_newsize_ok
-helpers introduced previously should be used.
-
-simple_setattr is introduced for simple in-ram filesystems to implement
-the new truncate sequence.  Eventually all filesystems should be converted
-to implement a setattr, and the default code in notify_change should go
-away.
-
-simple_setsize is also introduced to perform just the ATTR_SIZE portion of
-simple_setattr (ie.  changing i_size and trimming pagecache).
-
-A new attribute is introduced into inode_operations structure;
-.new_truncate is a temporary hack to distinguish filesystems that
-implement the new truncate system.
-
-To implement the new truncate sequence:
-- set .new_truncate = 1
-- filesystem specific manipulations (eg freeing blocks) must be done in
-  the setattr method rather than ->truncate.
-- vmtruncate can not be used by core code to trim blocks past i_size in
-  the event of write failure after allocation, so this must be performed
-  in the fs code.
-- make use of the better opportunity to catch errors with the above 2 changes.
-- inode_setattr should not be used. generic_setattr is a new function
-  to be used to copy simple attributes into the generic inode.
-
-Big problem with the previous calling sequence: the filesystem is not
-called until i_size has already changed.  This means it is not allowed to
-fail the call, and also it does not know what the previous i_size was. 
-Also, generic code calling vmtruncate to truncate allocated blocks in case
-of error had no good way to return a meaningful error (or, for example,
-atomically handle block deallocation).
+Introduce new truncate helpers truncate_pagecache and inode_newsize_ok. 
+vmtruncate is also consolidated from mm/memory.c and mm/nommu.c and into
+mm/truncate.c.
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Dave Kleikamp <shaggy@linux.vnet.ibm.com>
 Cc: Chris Mason <chris.mason@oracle.com>
@@ -87,341 +55,344 @@ Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/vfs.txt |    7 ++
- fs/attr.c                         |   51 +++++++++++++----
- fs/buffer.c                       |   12 +++-
- fs/direct-io.c                    |    7 +-
- fs/libfs.c                        |   83 ++++++++++++++++++++++++++++
- include/linux/fs.h                |    4 +
- mm/truncate.c                     |   10 +--
- 7 files changed, 152 insertions(+), 22 deletions(-)
+ Documentation/vm/locking |    2 -
+ fs/attr.c                |   44 ++++++++++++++++++++++++-
+ include/linux/fs.h       |    1 
+ include/linux/mm.h       |    5 +-
+ mm/filemap.c             |    2 -
+ mm/memory.c              |   62 +----------------------------------
+ mm/mremap.c              |    4 +-
+ mm/nommu.c               |   40 -----------------------
+ mm/truncate.c            |   64 +++++++++++++++++++++++++++++++++++++
+ 9 files changed, 118 insertions(+), 106 deletions(-)
 
-diff -puN Documentation/filesystems/vfs.txt~fs-introduce-new-truncate-sequence Documentation/filesystems/vfs.txt
---- a/Documentation/filesystems/vfs.txt~fs-introduce-new-truncate-sequence
-+++ a/Documentation/filesystems/vfs.txt
-@@ -402,11 +402,16 @@ otherwise noted.
-   	started might not be in the page cache at the end of the
-   	walk).
+diff -puN Documentation/vm/locking~fs-new-truncate-helpers Documentation/vm/locking
+--- a/Documentation/vm/locking~fs-new-truncate-helpers
++++ a/Documentation/vm/locking
+@@ -80,7 +80,7 @@ Note: PTL can also be used to guarantee 
+ mm start up ... this is a loose form of stability on mm_users. For
+ example, it is used in copy_mm to protect against a racing tlb_gather_mmu
+ single address space optimization, so that the zap_page_range (from
+-vmtruncate) does not lose sending ipi's to cloned threads that might 
++truncate) does not lose sending ipi's to cloned threads that might
+ be spawned underneath it and go to user mode to drag in pte's into tlbs.
  
--  truncate: called by the VFS to change the size of a file.  The
-+  truncate: Deprecated. This will not be called if ->setsize is defined.
-+	Called by the VFS to change the size of a file.  The
-  	i_size field of the inode is set to the desired size by the
-  	VFS before this method is called.  This method is called by
-  	the truncate(2) system call and related functionality.
- 
-+	Note: ->truncate and vmtruncate are deprecated. Do not add new
-+	instances/calls of these. Filesystems shoud be converted to do their
-+	truncate sequence via ->setattr().
-+
-   permission: called by the VFS to check for access rights on a POSIX-like
-   	filesystem.
- 
-diff -puN fs/attr.c~fs-introduce-new-truncate-sequence fs/attr.c
---- a/fs/attr.c~fs-introduce-new-truncate-sequence
+ swap_lock
+diff -puN fs/attr.c~fs-new-truncate-helpers fs/attr.c
+--- a/fs/attr.c~fs-new-truncate-helpers
 +++ a/fs/attr.c
-@@ -68,14 +68,14 @@ EXPORT_SYMBOL(inode_change_ok);
-  * @offset:	the new size to assign to the inode
-  * @Returns:	0 on success, -ve errno on failure
-  *
-+ * inode_newsize_ok must be called with i_mutex held.
-+ *
-  * inode_newsize_ok will check filesystem limits and ulimits to check that the
-  * new inode size is within limits. inode_newsize_ok will also send SIGXFSZ
-  * when necessary. Caller must not proceed with inode size change if failure is
-  * returned. @inode must be a file (not directory), with appropriate
-  * permissions to allow truncate (inode_newsize_ok does NOT check these
-  * conditions).
-- *
-- * inode_newsize_ok must be called with i_mutex held.
-  */
- int inode_newsize_ok(struct inode *inode, loff_t offset)
- {
-@@ -105,17 +105,25 @@ out_big:
+@@ -60,9 +60,51 @@ fine:
+ error:
+ 	return retval;
  }
- EXPORT_SYMBOL(inode_newsize_ok);
- 
--int inode_setattr(struct inode * inode, struct iattr * attr)
-+/**
-+ * generic_setattr - copy simple metadata updates into the generic inode
-+ * @inode:	the inode to be updated
-+ * @attr:	the new attributes
-+ *
-+ * generic_setattr must be called with i_mutex held.
-+ *
-+ * generic_setattr updates the inode's metadata with that specified
-+ * in attr. Noticably missing is inode size update, which is more complex
-+ * as it requires pagecache updates. See simple_setsize.
-+ *
-+ * The inode is not marked as dirty after this operation. The rationale is
-+ * that for "simple" filesystems, the struct inode is the inode storage.
-+ * The caller is free to mark the inode dirty afterwards if needed.
-+ */
-+void generic_setattr(struct inode *inode, struct iattr *attr)
- {
- 	unsigned int ia_valid = attr->ia_valid;
- 
--	if (ia_valid & ATTR_SIZE &&
--	    attr->ia_size != i_size_read(inode)) {
--		int error = vmtruncate(inode, attr->ia_size);
--		if (error)
--			return error;
--	}
 -
- 	if (ia_valid & ATTR_UID)
- 		inode->i_uid = attr->ia_uid;
- 	if (ia_valid & ATTR_GID)
-@@ -136,6 +144,29 @@ int inode_setattr(struct inode * inode, 
- 			mode &= ~S_ISGID;
- 		inode->i_mode = mode;
- 	}
-+}
-+EXPORT_SYMBOL(generic_setattr);
-+
-+/*
-+ * note this function is deprecated, the new truncate sequence should be
-+ * used instead -- see eg. simple_setsize, generic_setattr.
+ EXPORT_SYMBOL(inode_change_ok);
+ 
++/**
++ * inode_newsize_ok - may this inode be truncated to a given size
++ * @inode:	the inode to be truncated
++ * @offset:	the new size to assign to the inode
++ * @Returns:	0 on success, -ve errno on failure
++ *
++ * inode_newsize_ok will check filesystem limits and ulimits to check that the
++ * new inode size is within limits. inode_newsize_ok will also send SIGXFSZ
++ * when necessary. Caller must not proceed with inode size change if failure is
++ * returned. @inode must be a file (not directory), with appropriate
++ * permissions to allow truncate (inode_newsize_ok does NOT check these
++ * conditions).
++ *
++ * inode_newsize_ok must be called with i_mutex held.
 + */
-+int inode_setattr(struct inode *inode, struct iattr * attr)
++int inode_newsize_ok(struct inode *inode, loff_t offset)
 +{
-+	unsigned int ia_valid = attr->ia_valid;
++	if (inode->i_size < offset) {
++		unsigned long limit;
 +
-+	if (ia_valid & ATTR_SIZE &&
-+	    attr->ia_size != i_size_read(inode)) {
-+		int error;
-+
-+		BUG_ON(inode->i_op->new_truncate);
-+		error = vmtruncate(inode, attr->ia_size);
-+		if (error)
-+			return error;
++		limit = current->signal->rlim[RLIMIT_FSIZE].rlim_cur;
++		if (limit != RLIM_INFINITY && offset > limit)
++			goto out_sig;
++		if (offset > inode->i_sb->s_maxbytes)
++			goto out_big;
++	} else {
++		/*
++		 * truncation of in-use swapfiles is disallowed - it would
++		 * cause subsequent swapout to scribble on the now-freed
++		 * blocks.
++		 */
++		if (IS_SWAPFILE(inode))
++			return -ETXTBSY;
 +	}
 +
-+	generic_setattr(inode, attr);
++	return 0;
++out_sig:
++	send_sig(SIGXFSZ, current, 0);
++out_big:
++	return -EFBIG;
++}
++EXPORT_SYMBOL(inode_newsize_ok);
 +
- 	mark_inode_dirty(inode);
+ int inode_setattr(struct inode * inode, struct iattr * attr)
+ {
+ 	unsigned int ia_valid = attr->ia_valid;
+diff -puN include/linux/fs.h~fs-new-truncate-helpers include/linux/fs.h
+--- a/include/linux/fs.h~fs-new-truncate-helpers
++++ a/include/linux/fs.h
+@@ -2388,6 +2388,7 @@ extern int buffer_migrate_page(struct ad
+ #endif
  
- 	return 0;
-diff -puN fs/buffer.c~fs-introduce-new-truncate-sequence fs/buffer.c
---- a/fs/buffer.c~fs-introduce-new-truncate-sequence
-+++ a/fs/buffer.c
-@@ -1992,9 +1992,14 @@ int block_write_begin(struct file *file,
- 			 * prepare_write() may have instantiated a few blocks
- 			 * outside i_size.  Trim these off again. Don't need
- 			 * i_size_read because we hold i_mutex.
-+			 *
-+			 * Filesystems which set i_op->new_truncate must
-+			 * handle this themselves. Eventually this will go
-+			 * away because everyone will be converted.
- 			 */
- 			if (pos + len > inode->i_size)
--				vmtruncate(inode, inode->i_size);
-+				if (!inode->i_op->new_truncate)
-+					vmtruncate(inode, inode->i_size);
- 		}
- 	}
+ extern int inode_change_ok(struct inode *, struct iattr *);
++extern int inode_newsize_ok(struct inode *, loff_t offset);
+ extern int __must_check inode_setattr(struct inode *, struct iattr *);
  
-@@ -2371,7 +2376,7 @@ int block_commit_write(struct page *page
+ extern void file_update_time(struct file *file);
+diff -puN include/linux/mm.h~fs-new-truncate-helpers include/linux/mm.h
+--- a/include/linux/mm.h~fs-new-truncate-helpers
++++ a/include/linux/mm.h
+@@ -791,8 +791,9 @@ static inline void unmap_shared_mapping_
+ 	unmap_mapping_range(mapping, holebegin, holelen, 0);
+ }
+ 
+-extern int vmtruncate(struct inode * inode, loff_t offset);
+-extern int vmtruncate_range(struct inode * inode, loff_t offset, loff_t end);
++extern void truncate_pagecache(struct inode *inode, loff_t old, loff_t new);
++extern int vmtruncate(struct inode *inode, loff_t offset);
++extern int vmtruncate_range(struct inode *inode, loff_t offset, loff_t end);
+ 
+ int truncate_inode_page(struct address_space *mapping, struct page *page);
+ int generic_error_remove_page(struct address_space *mapping, struct page *page);
+diff -puN mm/filemap.c~fs-new-truncate-helpers mm/filemap.c
+--- a/mm/filemap.c~fs-new-truncate-helpers
++++ a/mm/filemap.c
+@@ -59,7 +59,7 @@
+ /*
+  * Lock ordering:
   *
-  * We are not allowed to take the i_mutex here so we have to play games to
-  * protect against truncate races as the page could now be beyond EOF.  Because
-- * vmtruncate() writes the inode size before removing pages, once we have the
-+ * truncate writes the inode size before removing pages, once we have the
-  * page lock we can determine safely if the page is beyond EOF. If it is not
-  * beyond EOF, then the page is guaranteed safe against truncation until we
-  * unlock the page.
-@@ -2595,7 +2600,8 @@ out_release:
- 	*pagep = NULL;
+- *  ->i_mmap_lock		(vmtruncate)
++ *  ->i_mmap_lock		(truncate_pagecache)
+  *    ->private_lock		(__free_pte->__set_page_dirty_buffers)
+  *      ->swap_lock		(exclusive_swap_page, others)
+  *        ->mapping->tree_lock
+diff -puN mm/memory.c~fs-new-truncate-helpers mm/memory.c
+--- a/mm/memory.c~fs-new-truncate-helpers
++++ a/mm/memory.c
+@@ -283,7 +283,8 @@ void free_pgtables(struct mmu_gather *tl
+ 		unsigned long addr = vma->vm_start;
  
- 	if (pos + len > inode->i_size)
--		vmtruncate(inode, inode->i_size);
-+		if (!inode->i_op->new_truncate)
-+			vmtruncate(inode, inode->i_size);
- 
- 	return ret;
+ 		/*
+-		 * Hide vma from rmap and vmtruncate before freeing pgtables
++		 * Hide vma from rmap and truncate_pagecache before freeing
++		 * pgtables
+ 		 */
+ 		anon_vma_unlink(vma);
+ 		unlink_file_vma(vma);
+@@ -2360,7 +2361,7 @@ restart:
+  * @mapping: the address space containing mmaps to be unmapped.
+  * @holebegin: byte in first page to unmap, relative to the start of
+  * the underlying file.  This will be rounded down to a PAGE_SIZE
+- * boundary.  Note that this is different from vmtruncate(), which
++ * boundary.  Note that this is different from truncate_pagecache(), which
+  * must keep the partial page.  In contrast, we must get rid of
+  * partial pages.
+  * @holelen: size of prospective hole in bytes.  This will be rounded
+@@ -2411,63 +2412,6 @@ void unmap_mapping_range(struct address_
  }
-diff -puN fs/direct-io.c~fs-introduce-new-truncate-sequence fs/direct-io.c
---- a/fs/direct-io.c~fs-introduce-new-truncate-sequence
-+++ a/fs/direct-io.c
-@@ -1210,14 +1210,15 @@ __blockdev_direct_IO(int rw, struct kioc
- 	/*
- 	 * In case of error extending write may have instantiated a few
- 	 * blocks outside i_size. Trim these off again for DIO_LOCKING.
--	 * NOTE: DIO_NO_LOCK/DIO_OWN_LOCK callers have to handle this by
--	 * it's own meaner.
-+	 * NOTE: DIO_NO_LOCK/DIO_OWN_LOCK callers have to handle this in
-+	 * their own manner.
- 	 */
- 	if (unlikely(retval < 0 && (rw & WRITE))) {
- 		loff_t isize = i_size_read(inode);
+ EXPORT_SYMBOL(unmap_mapping_range);
  
- 		if (end > isize && dio_lock_type == DIO_LOCKING)
--			vmtruncate(inode, isize);
-+			if (!inode->i_op->new_truncate)
-+				vmtruncate(inode, isize);
- 	}
+-/**
+- * vmtruncate - unmap mappings "freed" by truncate() syscall
+- * @inode: inode of the file used
+- * @offset: file offset to start truncating
+- *
+- * NOTE! We have to be ready to update the memory sharing
+- * between the file and the memory map for a potential last
+- * incomplete page.  Ugly, but necessary.
+- */
+-int vmtruncate(struct inode * inode, loff_t offset)
+-{
+-	if (inode->i_size < offset) {
+-		unsigned long limit;
+-
+-		limit = current->signal->rlim[RLIMIT_FSIZE].rlim_cur;
+-		if (limit != RLIM_INFINITY && offset > limit)
+-			goto out_sig;
+-		if (offset > inode->i_sb->s_maxbytes)
+-			goto out_big;
+-		i_size_write(inode, offset);
+-	} else {
+-		struct address_space *mapping = inode->i_mapping;
+-
+-		/*
+-		 * truncation of in-use swapfiles is disallowed - it would
+-		 * cause subsequent swapout to scribble on the now-freed
+-		 * blocks.
+-		 */
+-		if (IS_SWAPFILE(inode))
+-			return -ETXTBSY;
+-		i_size_write(inode, offset);
+-
+-		/*
+-		 * unmap_mapping_range is called twice, first simply for
+-		 * efficiency so that truncate_inode_pages does fewer
+-		 * single-page unmaps.  However after this first call, and
+-		 * before truncate_inode_pages finishes, it is possible for
+-		 * private pages to be COWed, which remain after
+-		 * truncate_inode_pages finishes, hence the second
+-		 * unmap_mapping_range call must be made for correctness.
+-		 */
+-		unmap_mapping_range(mapping, offset + PAGE_SIZE - 1, 0, 1);
+-		truncate_inode_pages(mapping, offset);
+-		unmap_mapping_range(mapping, offset + PAGE_SIZE - 1, 0, 1);
+-	}
+-
+-	if (inode->i_op->truncate)
+-		inode->i_op->truncate(inode);
+-	return 0;
+-
+-out_sig:
+-	send_sig(SIGXFSZ, current, 0);
+-out_big:
+-	return -EFBIG;
+-}
+-EXPORT_SYMBOL(vmtruncate);
+-
+ int vmtruncate_range(struct inode *inode, loff_t offset, loff_t end)
+ {
+ 	struct address_space *mapping = inode->i_mapping;
+diff -puN mm/mremap.c~fs-new-truncate-helpers mm/mremap.c
+--- a/mm/mremap.c~fs-new-truncate-helpers
++++ a/mm/mremap.c
+@@ -85,8 +85,8 @@ static void move_ptes(struct vm_area_str
+ 	if (vma->vm_file) {
+ 		/*
+ 		 * Subtle point from Rajesh Venkatasubramanian: before
+-		 * moving file-based ptes, we must lock vmtruncate out,
+-		 * since it might clean the dst vma before the src vma,
++		 * moving file-based ptes, we must lock truncate_pagecache
++		 * out, since it might clean the dst vma before the src vma,
+ 		 * and we propagate stale pages into the dst afterward.
+ 		 */
+ 		mapping = vma->vm_file->f_mapping;
+diff -puN mm/nommu.c~fs-new-truncate-helpers mm/nommu.c
+--- a/mm/nommu.c~fs-new-truncate-helpers
++++ a/mm/nommu.c
+@@ -83,46 +83,6 @@ struct vm_operations_struct generic_file
+ };
  
- 	if (rw == READ && dio_lock_type == DIO_LOCKING)
-diff -puN fs/libfs.c~fs-introduce-new-truncate-sequence fs/libfs.c
---- a/fs/libfs.c~fs-introduce-new-truncate-sequence
-+++ a/fs/libfs.c
-@@ -7,6 +7,7 @@
- #include <linux/pagemap.h>
- #include <linux/mount.h>
- #include <linux/vfs.h>
-+#include <linux/quotaops.h>
- #include <linux/mutex.h>
- #include <linux/exportfs.h>
- #include <linux/writeback.h>
-@@ -329,6 +330,88 @@ int simple_rename(struct inode *old_dir,
- 	return 0;
+ /*
+- * Handle all mappings that got truncated by a "truncate()"
+- * system call.
+- *
+- * NOTE! We have to be ready to update the memory sharing
+- * between the file and the memory map for a potential last
+- * incomplete page.  Ugly, but necessary.
+- */
+-int vmtruncate(struct inode *inode, loff_t offset)
+-{
+-	struct address_space *mapping = inode->i_mapping;
+-	unsigned long limit;
+-
+-	if (inode->i_size < offset)
+-		goto do_expand;
+-	i_size_write(inode, offset);
+-
+-	truncate_inode_pages(mapping, offset);
+-	goto out_truncate;
+-
+-do_expand:
+-	limit = current->signal->rlim[RLIMIT_FSIZE].rlim_cur;
+-	if (limit != RLIM_INFINITY && offset > limit)
+-		goto out_sig;
+-	if (offset > inode->i_sb->s_maxbytes)
+-		goto out;
+-	i_size_write(inode, offset);
+-
+-out_truncate:
+-	if (inode->i_op->truncate)
+-		inode->i_op->truncate(inode);
+-	return 0;
+-out_sig:
+-	send_sig(SIGXFSZ, current, 0);
+-out:
+-	return -EFBIG;
+-}
+-
+-EXPORT_SYMBOL(vmtruncate);
+-
+-/*
+  * Return the total memory allocated for this pointer, not
+  * just what the caller asked for.
+  *
+diff -puN mm/truncate.c~fs-new-truncate-helpers mm/truncate.c
+--- a/mm/truncate.c~fs-new-truncate-helpers
++++ a/mm/truncate.c
+@@ -497,3 +497,67 @@ int invalidate_inode_pages2(struct addre
+ 	return invalidate_inode_pages2_range(mapping, 0, -1);
  }
- 
+ EXPORT_SYMBOL_GPL(invalidate_inode_pages2);
++
 +/**
-+ * simple_setsize - handle core mm and vfs requirements for file size change
++ * truncate_pagecache - unmap and remove pagecache that has been truncated
 + * @inode: inode
-+ * @newsize: new file size
++ * @old: old file offset
++ * @new: new file offset
 + *
-+ * Returns 0 on success, -error on failure.
++ * inode's new i_size must already be written before truncate_pagecache
++ * is called.
 + *
-+ * simple_setsize must be called with inode_mutex held.
-+ *
-+ * simple_setsize will check that the requested new size is OK (see
-+ * inode_newsize_ok), and then will perform the necessary i_size update
-+ * and pagecache truncation (if necessary). It will be typically be called
-+ * from the filesystem's setattr function when ATTR_SIZE is passed in.
-+ *
-+ * The inode itself must have correct permissions and attributes to allow
-+ * i_size to be changed, this function then just checks that the new size
-+ * requested is valid.
-+ *
-+ * In the case of simple in-memory filesystems with inodes stored solely
-+ * in the inode cache, and file data in the pagecache, nothing more needs
-+ * to be done to satisfy a truncate request. Filesystems with on-disk
-+ * blocks for example will need to free them in the case of truncate, in
-+ * that case it may be easier not to use simple_setsize (but each of its
-+ * components will likely be required at some point to update pagecache
-+ * and inode etc).
++ * This function should typically be called before the filesystem
++ * releases resources associated with the freed range (eg. deallocates
++ * blocks). This way, pagecache will always stay logically coherent
++ * with on-disk format, and the filesystem would not have to deal with
++ * situations such as writepage being called for a page that has already
++ * had its underlying blocks deallocated.
 + */
-+int simple_setsize(struct inode *inode, loff_t newsize)
++void truncate_pagecache(struct inode *inode, loff_t old, loff_t new)
++{
++	if (new < old) {
++		struct address_space *mapping = inode->i_mapping;
++
++		/*
++		 * unmap_mapping_range is called twice, first simply for
++		 * efficiency so that truncate_inode_pages does fewer
++		 * single-page unmaps.  However after this first call, and
++		 * before truncate_inode_pages finishes, it is possible for
++		 * private pages to be COWed, which remain after
++		 * truncate_inode_pages finishes, hence the second
++		 * unmap_mapping_range call must be made for correctness.
++		 */
++		unmap_mapping_range(mapping, new + PAGE_SIZE - 1, 0, 1);
++		truncate_inode_pages(mapping, new);
++		unmap_mapping_range(mapping, new + PAGE_SIZE - 1, 0, 1);
++	}
++}
++EXPORT_SYMBOL(truncate_pagecache);
++
++/**
++ * vmtruncate - unmap mappings "freed" by truncate() syscall
++ * @inode: inode of the file used
++ * @offset: file offset to start truncating
++ *
++ * NOTE! We have to be ready to update the memory sharing
++ * between the file and the memory map for a potential last
++ * incomplete page.  Ugly, but necessary.
++ */
++int vmtruncate(struct inode *inode, loff_t offset)
 +{
 +	loff_t oldsize;
 +	int error;
 +
-+	error = inode_newsize_ok(inode, newsize);
++	error = inode_newsize_ok(inode, offset);
 +	if (error)
 +		return error;
-+
 +	oldsize = inode->i_size;
-+	i_size_write(inode, newsize);
-+	truncate_pagecache(inode, oldsize, newsize);
++	i_size_write(inode, offset);
++	truncate_pagecache(inode, oldsize, offset);
++	if (inode->i_op->truncate)
++		inode->i_op->truncate(inode);
 +
 +	return error;
 +}
-+EXPORT_SYMBOL(simple_setsize);
-+
-+/**
-+ * simple_setattr - setattr for simple in-memory filesystem
-+ * @dentry: dentry
-+ * @iattr: iattr structure
-+ *
-+ * Returns 0 on success, -error on failure.
-+ *
-+ * simple_setattr implements setattr for an in-memory filesystem which
-+ * does not store its own file data or metadata (eg. uses the page cache
-+ * and inode cache as its data store).
-+ */
-+int simple_setattr(struct dentry *dentry, struct iattr *iattr)
-+{
-+	struct inode *inode = dentry->d_inode;
-+	int error;
-+
-+	error = inode_change_ok(inode, iattr);
-+	if (error)
-+		return error;
-+
-+	if ((iattr->ia_valid & ATTR_UID && iattr->ia_uid != inode->i_uid) ||
-+	    (iattr->ia_valid & ATTR_GID && iattr->ia_gid != inode->i_gid)) {
-+		error = vfs_dq_transfer(inode, iattr) ? -EDQUOT : 0;
-+		if (error)
-+			return error;
-+	}
-+
-+	if (iattr->ia_valid & ATTR_SIZE) {
-+		error = simple_setsize(inode, iattr->ia_size);
-+		if (error)
-+			return error;
-+	}
-+
-+	generic_setattr(inode, iattr);
-+
-+	return error;
-+}
-+EXPORT_SYMBOL(simple_setattr);
-+
- int simple_readpage(struct file *file, struct page *page)
- {
- 	clear_highpage(page);
-diff -puN include/linux/fs.h~fs-introduce-new-truncate-sequence include/linux/fs.h
---- a/include/linux/fs.h~fs-introduce-new-truncate-sequence
-+++ a/include/linux/fs.h
-@@ -1526,6 +1526,7 @@ struct inode_operations {
- 	void * (*follow_link) (struct dentry *, struct nameidata *);
- 	void (*put_link) (struct dentry *, struct nameidata *, void *);
- 	void (*truncate) (struct inode *);
-+	int new_truncate; /* nasty hack to transition to new truncate code */
- 	int (*permission) (struct inode *, int);
- 	int (*setattr) (struct dentry *, struct iattr *);
- 	int (*getattr) (struct vfsmount *mnt, struct dentry *, struct kstat *);
-@@ -2347,12 +2348,14 @@ extern int dcache_dir_open(struct inode 
- extern int dcache_dir_close(struct inode *, struct file *);
- extern loff_t dcache_dir_lseek(struct file *, loff_t, int);
- extern int dcache_readdir(struct file *, void *, filldir_t);
-+extern int simple_setattr(struct dentry *dentry, struct iattr *attr);
- extern int simple_getattr(struct vfsmount *, struct dentry *, struct kstat *);
- extern int simple_statfs(struct dentry *, struct kstatfs *);
- extern int simple_link(struct dentry *, struct inode *, struct dentry *);
- extern int simple_unlink(struct inode *, struct dentry *);
- extern int simple_rmdir(struct inode *, struct dentry *);
- extern int simple_rename(struct inode *, struct dentry *, struct inode *, struct dentry *);
-+extern int simple_setsize(struct inode *inode, loff_t newsize);
- extern int simple_sync_file(struct file *, struct dentry *, int);
- extern int simple_empty(struct dentry *);
- extern int simple_readpage(struct file *file, struct page *page);
-@@ -2390,6 +2393,7 @@ extern int buffer_migrate_page(struct ad
- extern int inode_change_ok(struct inode *, struct iattr *);
- extern int inode_newsize_ok(struct inode *, loff_t offset);
- extern int __must_check inode_setattr(struct inode *, struct iattr *);
-+extern void generic_setattr(struct inode *inode, struct iattr *attr);
- 
- extern void file_update_time(struct file *file);
- 
-diff -puN mm/truncate.c~fs-introduce-new-truncate-sequence mm/truncate.c
---- a/mm/truncate.c~fs-introduce-new-truncate-sequence
-+++ a/mm/truncate.c
-@@ -543,18 +543,18 @@ EXPORT_SYMBOL(truncate_pagecache);
-  * NOTE! We have to be ready to update the memory sharing
-  * between the file and the memory map for a potential last
-  * incomplete page.  Ugly, but necessary.
-+ *
-+ * This function is deprecated and simple_setsize or truncate_pagecache
-+ * should be used instead.
-  */
- int vmtruncate(struct inode *inode, loff_t offset)
- {
--	loff_t oldsize;
- 	int error;
- 
--	error = inode_newsize_ok(inode, offset);
-+	error = simple_setsize(inode, offset);
- 	if (error)
- 		return error;
--	oldsize = inode->i_size;
--	i_size_write(inode, offset);
--	truncate_pagecache(inode, oldsize, offset);
-+
- 	if (inode->i_op->truncate)
- 		inode->i_op->truncate(inode);
- 
++EXPORT_SYMBOL(vmtruncate);
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
