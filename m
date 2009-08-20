@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + udf-convert-to-use-the-new-truncate-convention.patch added to -mm tree
-Date: Thu, 20 Aug 2009 15:48:37 -0700
-Message-ID: <200908202248.n7KMmbTX029911@imap1.linux-foundation.org>
+Subject: + minix-convert-to-use-the-new-truncate-convention.patch added to -mm tree
+Date: Thu, 20 Aug 2009 15:48:39 -0700
+Message-ID: <200908202248.n7KMmdAJ030008@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58762 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34669 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932084AbZHTWts (ORCPT
+	by vger.kernel.org with ESMTP id S932086AbZHTWts (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 20 Aug 2009 18:49:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: npiggin@suse.de, chris.mason@oracle.com, hch@lst.de, hirofumi@mail.parknet.c
 
 
 The patch titled
-     udf: convert to use the new truncate convention
+     minix: convert to use the new truncate convention
 has been added to the -mm tree.  Its filename is
-     udf-convert-to-use-the-new-truncate-convention.patch
+     minix-convert-to-use-the-new-truncate-convention.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: udf: convert to use the new truncate convention
+Subject: minix: convert to use the new truncate convention
 From: Nick Piggin <npiggin@suse.de>
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Jan Kara <jack@suse.cz>
 Cc: Christoph Hellwig <hch@lst.de>
+Cc: Jan Kara <jack@suse.cz>
 Cc: Dave Kleikamp <shaggy@linux.vnet.ibm.com>
 Cc: Chris Mason <chris.mason@oracle.com>
 Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
@@ -51,62 +51,68 @@ Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/udf/file.c    |    3 +
- fs/udf/inode.c   |   73 +++++++++++++++++++++++++++++++++++++++++----
- fs/udf/udfdecl.h |    2 -
- 3 files changed, 71 insertions(+), 7 deletions(-)
+ fs/minix/file.c         |    3 -
+ fs/minix/inode.c        |   82 ++++++++++++++++++++++++++++++++++----
+ fs/minix/itree_common.c |    5 --
+ fs/minix/itree_v1.c     |    4 -
+ fs/minix/itree_v2.c     |    4 -
+ fs/minix/minix.h        |    6 +-
+ 6 files changed, 85 insertions(+), 19 deletions(-)
 
-diff -puN fs/udf/file.c~udf-convert-to-use-the-new-truncate-convention fs/udf/file.c
---- a/fs/udf/file.c~udf-convert-to-use-the-new-truncate-convention
-+++ a/fs/udf/file.c
-@@ -215,5 +215,6 @@ const struct file_operations udf_file_op
+diff -puN fs/minix/file.c~minix-convert-to-use-the-new-truncate-convention fs/minix/file.c
+--- a/fs/minix/file.c~minix-convert-to-use-the-new-truncate-convention
++++ a/fs/minix/file.c
+@@ -24,6 +24,7 @@ const struct file_operations minix_file_
  };
  
- const struct inode_operations udf_file_inode_operations = {
--	.truncate = udf_truncate,
-+	.new_truncate = 1,
-+	.setattr = udf_setattr,
+ const struct inode_operations minix_file_inode_operations = {
+-	.truncate	= minix_truncate,
++	.new_truncate	= 1,
++	.setattr	= minix_setattr,
+ 	.getattr	= minix_getattr,
  };
-diff -puN fs/udf/inode.c~udf-convert-to-use-the-new-truncate-convention fs/udf/inode.c
---- a/fs/udf/inode.c~udf-convert-to-use-the-new-truncate-convention
-+++ a/fs/udf/inode.c
-@@ -67,6 +67,7 @@ static void udf_update_extents(struct in
- 			       struct extent_position *);
- static int udf_get_block(struct inode *, sector_t, struct buffer_head *, int);
+diff -puN fs/minix/inode.c~minix-convert-to-use-the-new-truncate-convention fs/minix/inode.c
+--- a/fs/minix/inode.c~minix-convert-to-use-the-new-truncate-convention
++++ a/fs/minix/inode.c
+@@ -18,15 +18,16 @@
+ #include <linux/highuid.h>
+ #include <linux/vfs.h>
  
-+static void udf_truncate_blocks(struct inode *inode);
+-static int minix_write_inode(struct inode * inode, int wait);
++static int minix_write_inode(struct inode *inode, int wait);
+ static int minix_statfs(struct dentry *dentry, struct kstatfs *buf);
+-static int minix_remount (struct super_block * sb, int * flags, char * data);
++static int minix_remount(struct super_block *sb, int *flags, char *data);
++static void minix_truncate_blocks(struct inode *inode, loff_t offset);
  
- void udf_delete_inode(struct inode *inode)
+ static void minix_delete_inode(struct inode *inode)
  {
-@@ -76,7 +77,7 @@ void udf_delete_inode(struct inode *inod
- 		goto no_delete;
- 
+ 	truncate_inode_pages(&inode->i_data, 0);
  	inode->i_size = 0;
--	udf_truncate(inode);
-+	udf_truncate_blocks(inode);
- 	lock_kernel();
+-	minix_truncate(inode);
++	minix_truncate_blocks(inode, 0);
+ 	minix_free_inode(inode);
+ }
  
- 	udf_update_inode(inode, IS_SYNC(inode));
-@@ -124,9 +125,34 @@ static int udf_write_begin(struct file *
+@@ -367,8 +368,33 @@ static int minix_write_begin(struct file
  			loff_t pos, unsigned len, unsigned flags,
  			struct page **pagep, void **fsdata)
  {
 +	int ret;
 +
  	*pagep = NULL;
--	return block_write_begin(file, mapping, pos, len, flags, pagep, fsdata,
-+	ret = block_write_begin(file, mapping, pos, len, flags, pagep, fsdata,
- 				udf_get_block);
+-	return __minix_write_begin(file, mapping, pos, len, flags, pagep, fsdata);
++	ret = __minix_write_begin(file, mapping, pos, len, flags, pagep,fsdata);
 +	if (ret < 0) {
 +		struct inode *inode = mapping->host;
 +		loff_t isize = inode->i_size;
 +		if (pos + len > isize)
-+			udf_truncate_blocks(inode);
++			minix_truncate_blocks(inode, isize);
 +	}
 +	return ret;
 +}
 +
-+static int udf_write_end(struct file *file, struct address_space *mapping,
++static int minix_write_end(struct file *file, struct address_space *mapping,
 +			loff_t pos, unsigned len, unsigned copied,
 +			struct page *page, void *fsdata)
 +{
@@ -117,37 +123,39 @@ diff -puN fs/udf/inode.c~udf-convert-to-use-the-new-truncate-convention fs/udf/i
 +		struct inode *inode = mapping->host;
 +		loff_t isize = inode->i_size;
 +		if (pos + len > isize)
-+			udf_truncate_blocks(inode);
++			minix_truncate_blocks(inode, isize);
 +	}
 +	return ret;
  }
  
- static sector_t udf_bmap(struct address_space *mapping, sector_t block)
-@@ -138,8 +164,8 @@ const struct address_space_operations ud
- 	.readpage	= udf_readpage,
- 	.writepage	= udf_writepage,
- 	.sync_page	= block_sync_page,
--	.write_begin		= udf_write_begin,
--	.write_end		= generic_write_end,
-+	.write_begin	= udf_write_begin,
-+	.write_end	= udf_write_end,
- 	.bmap		= udf_bmap,
+ static sector_t minix_bmap(struct address_space *mapping, sector_t block)
+@@ -381,7 +407,7 @@ static const struct address_space_operat
+ 	.writepage = minix_writepage,
+ 	.sync_page = block_sync_page,
+ 	.write_begin = minix_write_begin,
+-	.write_end = generic_write_end,
++	.write_end = minix_write_end,
+ 	.bmap = minix_bmap
  };
  
-@@ -1012,7 +1038,7 @@ struct buffer_head *udf_bread(struct ino
- 	return NULL;
- }
- 
--void udf_truncate(struct inode *inode)
-+static void udf_truncate_blocks(struct inode *inode)
+@@ -591,14 +617,54 @@ int minix_getattr(struct vfsmount *mnt, 
+ /*
+  * The function that is called for file truncation.
+  */
+-void minix_truncate(struct inode * inode)
++static void minix_truncate_blocks(struct inode *inode, loff_t offset)
  {
- 	int offset;
- 	int err;
-@@ -1058,6 +1084,43 @@ void udf_truncate(struct inode *inode)
- 	unlock_kernel();
- }
- 
-+static int udf_setsize(struct inode *inode, loff_t newsize)
+ 	if (!(S_ISREG(inode->i_mode) || S_ISDIR(inode->i_mode) || S_ISLNK(inode->i_mode)))
+ 		return;
+ 	if (INODE_VERSION(inode) == MINIX_V1)
+-		V1_minix_truncate(inode);
++		V1_minix_truncate_blocks(inode, offset);
+ 	else
+-		V2_minix_truncate(inode);
++		V2_minix_truncate_blocks(inode, offset);
++}
++
++static int minix_setsize(struct inode *inode, loff_t newsize)
 +{
 +	loff_t oldsize;
 +	int error;
@@ -160,45 +168,107 @@ diff -puN fs/udf/inode.c~udf-convert-to-use-the-new-truncate-convention fs/udf/i
 +	i_size_write(inode, newsize);
 +	truncate_pagecache(inode, oldsize, newsize);
 +
-+	udf_truncate_blocks(inode);
++	error = block_truncate_page(inode->i_mapping, newsize, minix_get_block);
++	if (error)
++		return error;
++	minix_truncate_blocks(inode, newsize);
 +
 +	return error;
 +}
 +
-+int udf_setattr(struct dentry *dentry, struct iattr *attr)
++int minix_setattr(struct dentry *dentry, struct iattr *iattr)
 +{
 +	struct inode *inode = dentry->d_inode;
 +	int error;
 +
-+	if (attr->ia_valid & ATTR_SIZE) {
-+		error = udf_setsize(inode, attr->ia_size);
++	error = inode_change_ok(inode, iattr);
++	if (error)
++		return error;
++	if (iattr->ia_valid & ATTR_SIZE) {
++		error = minix_setsize(inode, iattr->ia_size);
 +		if (error)
 +			return error;
 +	}
-+
-+	error = simple_setattr(dentry, attr);
-+	if (error)
-+		return error;
-+
++	generic_setattr(inode, iattr);
 +	mark_inode_dirty(inode);
-+	return error;
-+}
 +
- static void __udf_read_inode(struct inode *inode)
++	return error;
+ }
+ 
+ static int minix_get_sb(struct file_system_type *fs_type,
+diff -puN fs/minix/itree_common.c~minix-convert-to-use-the-new-truncate-convention fs/minix/itree_common.c
+--- a/fs/minix/itree_common.c~minix-convert-to-use-the-new-truncate-convention
++++ a/fs/minix/itree_common.c
+@@ -290,7 +290,7 @@ static void free_branches(struct inode *
+ 		free_data(inode, p, q);
+ }
+ 
+-static inline void truncate (struct inode * inode)
++static inline void truncate_blocks(struct inode *inode, loff_t offset)
  {
- 	struct buffer_head *bh = NULL;
-diff -puN fs/udf/udfdecl.h~udf-convert-to-use-the-new-truncate-convention fs/udf/udfdecl.h
---- a/fs/udf/udfdecl.h~udf-convert-to-use-the-new-truncate-convention
-+++ a/fs/udf/udfdecl.h
-@@ -138,7 +138,7 @@ extern int udf_sync_inode(struct inode *
- extern void udf_expand_file_adinicb(struct inode *, int, int *);
- extern struct buffer_head *udf_expand_dir_adinicb(struct inode *, int *, int *);
- extern struct buffer_head *udf_bread(struct inode *, int, int, int *);
--extern void udf_truncate(struct inode *);
-+extern int udf_setattr(struct dentry *, struct iattr *);
- extern void udf_read_inode(struct inode *);
- extern void udf_delete_inode(struct inode *);
- extern void udf_clear_inode(struct inode *);
+ 	struct super_block *sb = inode->i_sb;
+ 	block_t *idata = i_data(inode);
+@@ -302,8 +302,7 @@ static inline void truncate (struct inod
+ 	int first_whole;
+ 	long iblock;
+ 
+-	iblock = (inode->i_size + sb->s_blocksize -1) >> sb->s_blocksize_bits;
+-	block_truncate_page(inode->i_mapping, inode->i_size, get_block);
++	iblock = (offset + sb->s_blocksize - 1) >> sb->s_blocksize_bits;
+ 
+ 	n = block_to_path(inode, iblock, offsets);
+ 	if (!n)
+diff -puN fs/minix/itree_v1.c~minix-convert-to-use-the-new-truncate-convention fs/minix/itree_v1.c
+--- a/fs/minix/itree_v1.c~minix-convert-to-use-the-new-truncate-convention
++++ a/fs/minix/itree_v1.c
+@@ -55,9 +55,9 @@ int V1_minix_get_block(struct inode * in
+ 	return get_block(inode, block, bh_result, create);
+ }
+ 
+-void V1_minix_truncate(struct inode * inode)
++void V1_minix_truncate_blocks(struct inode *inode, loff_t offset)
+ {
+-	truncate(inode);
++	truncate_blocks(inode, offset);
+ }
+ 
+ unsigned V1_minix_blocks(loff_t size, struct super_block *sb)
+diff -puN fs/minix/itree_v2.c~minix-convert-to-use-the-new-truncate-convention fs/minix/itree_v2.c
+--- a/fs/minix/itree_v2.c~minix-convert-to-use-the-new-truncate-convention
++++ a/fs/minix/itree_v2.c
+@@ -61,9 +61,9 @@ int V2_minix_get_block(struct inode * in
+ 	return get_block(inode, block, bh_result, create);
+ }
+ 
+-void V2_minix_truncate(struct inode * inode)
++void V2_minix_truncate_blocks(struct inode *inode, loff_t offset)
+ {
+-	truncate(inode);
++	truncate_blocks(inode, offset);
+ }
+ 
+ unsigned V2_minix_blocks(loff_t size, struct super_block *sb)
+diff -puN fs/minix/minix.h~minix-convert-to-use-the-new-truncate-convention fs/minix/minix.h
+--- a/fs/minix/minix.h~minix-convert-to-use-the-new-truncate-convention
++++ a/fs/minix/minix.h
+@@ -52,14 +52,14 @@ extern unsigned long minix_count_free_in
+ extern int minix_new_block(struct inode * inode);
+ extern void minix_free_block(struct inode *inode, unsigned long block);
+ extern unsigned long minix_count_free_blocks(struct minix_sb_info *sbi);
++extern int minix_setattr(struct dentry *dentry, struct iattr *iattr);
+ extern int minix_getattr(struct vfsmount *, struct dentry *, struct kstat *);
+ extern int __minix_write_begin(struct file *file, struct address_space *mapping,
+ 			loff_t pos, unsigned len, unsigned flags,
+ 			struct page **pagep, void **fsdata);
+ 
+-extern void V1_minix_truncate(struct inode *);
+-extern void V2_minix_truncate(struct inode *);
+-extern void minix_truncate(struct inode *);
++extern void V1_minix_truncate_blocks(struct inode *, loff_t);
++extern void V2_minix_truncate_blocks(struct inode *, loff_t);
+ extern void minix_set_inode(struct inode *, dev_t);
+ extern int V1_minix_get_block(struct inode *, long, struct buffer_head *, int);
+ extern int V2_minix_get_block(struct inode *, long, struct buffer_head *, int);
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
