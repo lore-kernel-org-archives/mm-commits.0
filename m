@@ -1,117 +1,403 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-for-infinite-churning-of-mlocked-pages.patch added to -mm tree
-Date: Wed, 19 Aug 2009 17:41:44 -0700
-Message-ID: <200908200041.n7K0fi7F026873@imap1.linux-foundation.org>
+Subject: [merged] hpilo-add-interrupt-handler.patch removed from -mm tree
+Date: Thu, 20 Aug 2009 13:13:14 -0700
+Message-ID: <200908202013.n7KKDECN016328@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43637 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53083 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752525AbZHTAmE (ORCPT
+	by vger.kernel.org with ESMTP id S1755294AbZHTUNn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Aug 2009 20:42:04 -0400
+	Thu, 20 Aug 2009 16:13:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: minchan.kim@gmail.com, fengguang.wu@intel.com, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, riel@redhat.com
+To: david.altobelli@hp.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: fix for infinite churning of mlocked pages
-has been added to the -mm tree.  Its filename is
-     mm-fix-for-infinite-churning-of-mlocked-pages.patch
+     hpilo: add interrupt handler
+has been removed from the -mm tree.  Its filename was
+     hpilo-add-interrupt-handler.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: fix for infinite churning of mlocked pages
-From: Minchan Kim <minchan.kim@gmail.com>
+Subject: hpilo: add interrupt handler
+From: David Altobelli <david.altobelli@hp.com>
 
-An mlocked page might lose the isolatation race.  This causes the page to
-clear PG_mlocked while it remains in a VM_LOCKED vma.  This means it can
-be put onto the [in]active list.  We can rescue it by using try_to_unmap()
-in shrink_page_list().
+Add interrupt handler to hpilo.  This is enablement for poll handler, and
+it also simplifies the logic for handling an iLO reset, because now
+only the interrupt handler needs to look for reset, the file system interfaces
+only need to return failure when a reset has happened.
 
-But now, As Wu Fengguang pointed out, vmscan has a bug.  If the page has
-PG_referenced, it can't reach try_to_unmap() in shrink_page_list() but is
-put into the active list.  If the page is referenced repeatedly, it can
-remain on the [in]active list without being moving to the unevictable
-list.
+Please CC me on any replies.
 
-This patch fixes it.
-
-Reported-by: Wu Fengguang <fengguang.wu@intel.com>
-Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
-Cc: KOSAKI Motohiro <<kosaki.motohiro@jp.fujitsu.com>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Acked-by: Rik van Riel <riel@redhat.com>
+Signed-off-by: David Altobelli <david.altobelli@hp.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c   |    1 +
- mm/vmscan.c |    9 +++++++--
- 2 files changed, 8 insertions(+), 2 deletions(-)
+ drivers/misc/hpilo.c |  138 +++++++++++++++++++++++++++--------------
+ drivers/misc/hpilo.h |    8 ++
+ 2 files changed, 101 insertions(+), 45 deletions(-)
 
-diff -puN mm/rmap.c~mm-fix-for-infinite-churning-of-mlocked-pages mm/rmap.c
---- a/mm/rmap.c~mm-fix-for-infinite-churning-of-mlocked-pages
-+++ a/mm/rmap.c
-@@ -363,6 +363,7 @@ static int page_referenced_one(struct pa
- 	 */
- 	if (vma->vm_flags & VM_LOCKED) {
- 		*mapcount = 1;	/* break early from loop */
-+		*vm_flags |= VM_LOCKED;
- 		goto out_unmap;
+diff -puN drivers/misc/hpilo.c~hpilo-add-interrupt-handler drivers/misc/hpilo.c
+--- a/drivers/misc/hpilo.c~hpilo-add-interrupt-handler
++++ a/drivers/misc/hpilo.c
+@@ -13,6 +13,7 @@
+ #include <linux/module.h>
+ #include <linux/fs.h>
+ #include <linux/pci.h>
++#include <linux/interrupt.h>
+ #include <linux/ioport.h>
+ #include <linux/device.h>
+ #include <linux/file.h>
+@@ -21,6 +22,7 @@
+ #include <linux/delay.h>
+ #include <linux/uaccess.h>
+ #include <linux/io.h>
++#include <linux/wait.h>
+ #include "hpilo.h"
+ 
+ static struct class *ilo_class;
+@@ -61,9 +63,10 @@ static inline int desc_mem_sz(int nr_ent
+ static int fifo_enqueue(struct ilo_hwinfo *hw, char *fifobar, int entry)
+ {
+ 	struct fifo *fifo_q = FIFOBARTOHANDLE(fifobar);
++	unsigned long flags;
+ 	int ret = 0;
+ 
+-	spin_lock(&hw->fifo_lock);
++	spin_lock_irqsave(&hw->fifo_lock, flags);
+ 	if (!(fifo_q->fifobar[(fifo_q->tail + 1) & fifo_q->imask]
+ 	      & ENTRY_MASK_O)) {
+ 		fifo_q->fifobar[fifo_q->tail & fifo_q->imask] |=
+@@ -71,7 +74,7 @@ static int fifo_enqueue(struct ilo_hwinf
+ 		fifo_q->tail += 1;
+ 		ret = 1;
+ 	}
+-	spin_unlock(&hw->fifo_lock);
++	spin_unlock_irqrestore(&hw->fifo_lock, flags);
+ 
+ 	return ret;
+ }
+@@ -79,10 +82,11 @@ static int fifo_enqueue(struct ilo_hwinf
+ static int fifo_dequeue(struct ilo_hwinfo *hw, char *fifobar, int *entry)
+ {
+ 	struct fifo *fifo_q = FIFOBARTOHANDLE(fifobar);
++	unsigned long flags;
+ 	int ret = 0;
+ 	u64 c;
+ 
+-	spin_lock(&hw->fifo_lock);
++	spin_lock_irqsave(&hw->fifo_lock, flags);
+ 	c = fifo_q->fifobar[fifo_q->head & fifo_q->imask];
+ 	if (c & ENTRY_MASK_C) {
+ 		if (entry)
+@@ -93,7 +97,7 @@ static int fifo_dequeue(struct ilo_hwinf
+ 		fifo_q->head += 1;
+ 		ret = 1;
+ 	}
+-	spin_unlock(&hw->fifo_lock);
++	spin_unlock_irqrestore(&hw->fifo_lock, flags);
+ 
+ 	return ret;
+ }
+@@ -374,7 +378,18 @@ static inline void clear_device(struct i
+ 	clear_pending_db(hw, -1);
+ }
+ 
+-static void ilo_locked_reset(struct ilo_hwinfo *hw)
++static inline void ilo_enable_interrupts(struct ilo_hwinfo *hw)
++{
++	iowrite8(ioread8(&hw->mmio_vaddr[DB_IRQ]) | 1, &hw->mmio_vaddr[DB_IRQ]);
++}
++
++static inline void ilo_disable_interrupts(struct ilo_hwinfo *hw)
++{
++	iowrite8(ioread8(&hw->mmio_vaddr[DB_IRQ]) & ~1,
++		 &hw->mmio_vaddr[DB_IRQ]);
++}
++
++static void ilo_set_reset(struct ilo_hwinfo *hw)
+ {
+ 	int slot;
+ 
+@@ -387,19 +402,6 @@ static void ilo_locked_reset(struct ilo_
+ 			continue;
+ 		set_channel_reset(&hw->ccb_alloc[slot]->driver_ccb);
+ 	}
+-
+-	clear_device(hw);
+-}
+-
+-static void ilo_reset(struct ilo_hwinfo *hw)
+-{
+-	spin_lock(&hw->alloc_lock);
+-
+-	/* reset might have been handled after lock was taken */
+-	if (is_device_reset(hw))
+-		ilo_locked_reset(hw);
+-
+-	spin_unlock(&hw->alloc_lock);
+ }
+ 
+ static ssize_t ilo_read(struct file *fp, char __user *buf,
+@@ -411,12 +413,11 @@ static ssize_t ilo_read(struct file *fp,
+ 	struct ilo_hwinfo *hw = data->ilo_hw;
+ 	void *pkt;
+ 
+-	if (is_device_reset(hw) || is_channel_reset(driver_ccb)) {
++	if (is_channel_reset(driver_ccb)) {
+ 		/*
+ 		 * If the device has been reset, applications
+ 		 * need to close and reopen all ccbs.
+ 		 */
+-		ilo_reset(hw);
+ 		return -ENODEV;
  	}
  
-diff -puN mm/vmscan.c~mm-fix-for-infinite-churning-of-mlocked-pages mm/vmscan.c
---- a/mm/vmscan.c~mm-fix-for-infinite-churning-of-mlocked-pages
-+++ a/mm/vmscan.c
-@@ -630,9 +630,14 @@ static unsigned long shrink_page_list(st
+@@ -462,14 +463,8 @@ static ssize_t ilo_write(struct file *fp
+ 	struct ilo_hwinfo *hw = data->ilo_hw;
+ 	void *pkt;
  
- 		referenced = page_referenced(page, 1,
- 						sc->mem_cgroup, &vm_flags);
--		/* In active use or really unfreeable?  Activate it. */
-+		/*
-+		 * In active use or really unfreeable?  Activate it.
-+		 * If page which have PG_mlocked lost isoltation race,
-+		 * try_to_unmap moves it to unevictable list
-+		 */
- 		if (sc->order <= PAGE_ALLOC_COSTLY_ORDER &&
--					referenced && page_mapping_inuse(page))
-+					referenced && page_mapping_inuse(page)
-+					&& !(vm_flags & VM_LOCKED))
- 			goto activate_locked;
+-	if (is_device_reset(hw) || is_channel_reset(driver_ccb)) {
+-		/*
+-		 * If the device has been reset, applications
+-		 * need to close and reopen all ccbs.
+-		 */
+-		ilo_reset(hw);
++	if (is_channel_reset(driver_ccb))
+ 		return -ENODEV;
+-	}
  
- 		/*
+ 	/* get a packet to send the user command */
+ 	if (!ilo_pkt_dequeue(hw, driver_ccb, SENDQ, &pkt_id, &pkt_len, &pkt))
+@@ -496,27 +491,28 @@ static int ilo_close(struct inode *ip, s
+ 	int slot;
+ 	struct ccb_data *data;
+ 	struct ilo_hwinfo *hw;
++	unsigned long flags;
+ 
+ 	slot = iminor(ip) % MAX_CCB;
+ 	hw = container_of(ip->i_cdev, struct ilo_hwinfo, cdev);
+ 
+-	spin_lock(&hw->alloc_lock);
+-
+-	if (is_device_reset(hw))
+-		ilo_locked_reset(hw);
++	spin_lock(&hw->open_lock);
+ 
+ 	if (hw->ccb_alloc[slot]->ccb_cnt == 1) {
+ 
+ 		data = fp->private_data;
+ 
++		spin_lock_irqsave(&hw->alloc_lock, flags);
++		hw->ccb_alloc[slot] = NULL;
++		spin_unlock_irqrestore(&hw->alloc_lock, flags);
++
+ 		ilo_ccb_close(hw->ilo_dev, data);
+ 
+ 		kfree(data);
+-		hw->ccb_alloc[slot] = NULL;
+ 	} else
+ 		hw->ccb_alloc[slot]->ccb_cnt--;
+ 
+-	spin_unlock(&hw->alloc_lock);
++	spin_unlock(&hw->open_lock);
+ 
+ 	return 0;
+ }
+@@ -526,6 +522,7 @@ static int ilo_open(struct inode *ip, st
+ 	int slot, error;
+ 	struct ccb_data *data;
+ 	struct ilo_hwinfo *hw;
++	unsigned long flags;
+ 
+ 	slot = iminor(ip) % MAX_CCB;
+ 	hw = container_of(ip->i_cdev, struct ilo_hwinfo, cdev);
+@@ -535,10 +532,7 @@ static int ilo_open(struct inode *ip, st
+ 	if (!data)
+ 		return -ENOMEM;
+ 
+-	spin_lock(&hw->alloc_lock);
+-
+-	if (is_device_reset(hw))
+-		ilo_locked_reset(hw);
++	spin_lock(&hw->open_lock);
+ 
+ 	/* each fd private_data holds sw/hw view of ccb */
+ 	if (hw->ccb_alloc[slot] == NULL) {
+@@ -549,22 +543,31 @@ static int ilo_open(struct inode *ip, st
+ 			goto out;
+ 		}
+ 
++		data->ccb_cnt = 1;
++		data->ccb_excl = fp->f_flags & O_EXCL;
++		data->ilo_hw = hw;
++		init_waitqueue_head(&data->ccb_waitq);
++
+ 		/* write the ccb to hw */
++		spin_lock_irqsave(&hw->alloc_lock, flags);
+ 		ilo_ccb_open(hw, data, slot);
++		hw->ccb_alloc[slot] = data;
++		spin_unlock_irqrestore(&hw->alloc_lock, flags);
+ 
+ 		/* make sure the channel is functional */
+ 		error = ilo_ccb_verify(hw, data);
+ 		if (error) {
++
++			spin_lock_irqsave(&hw->alloc_lock, flags);
++			hw->ccb_alloc[slot] = NULL;
++			spin_unlock_irqrestore(&hw->alloc_lock, flags);
++
+ 			ilo_ccb_close(hw->ilo_dev, data);
++
+ 			kfree(data);
+ 			goto out;
+ 		}
+ 
+-		data->ccb_cnt = 1;
+-		data->ccb_excl = fp->f_flags & O_EXCL;
+-		data->ilo_hw = hw;
+-		hw->ccb_alloc[slot] = data;
+-
+ 	} else {
+ 		kfree(data);
+ 		if (fp->f_flags & O_EXCL || hw->ccb_alloc[slot]->ccb_excl) {
+@@ -580,7 +583,7 @@ static int ilo_open(struct inode *ip, st
+ 		}
+ 	}
+ out:
+-	spin_unlock(&hw->alloc_lock);
++	spin_unlock(&hw->open_lock);
+ 
+ 	if (!error)
+ 		fp->private_data = hw->ccb_alloc[slot];
+@@ -596,6 +599,41 @@ static const struct file_operations ilo_
+ 	.release 	= ilo_close,
+ };
+ 
++static irqreturn_t ilo_isr(int irq, void *data)
++{
++	struct ilo_hwinfo *hw = data;
++	int pending, i;
++
++	spin_lock(&hw->alloc_lock);
++
++	/* check for ccbs which have data */
++	pending = get_device_outbound(hw);
++	if (!pending) {
++		spin_unlock(&hw->alloc_lock);
++		return IRQ_NONE;
++	}
++
++	if (is_db_reset(pending)) {
++		/* wake up all ccbs if the device was reset */
++		pending = -1;
++		ilo_set_reset(hw);
++	}
++
++	for (i = 0; i < MAX_CCB; i++) {
++		if (!hw->ccb_alloc[i])
++			continue;
++		if (pending & (1 << i))
++			wake_up_interruptible(&hw->ccb_alloc[i]->ccb_waitq);
++	}
++
++	/* clear the device of the channels that have been handled */
++	clear_pending_db(hw, pending);
++
++	spin_unlock(&hw->alloc_lock);
++
++	return IRQ_HANDLED;
++}
++
+ static void ilo_unmap_device(struct pci_dev *pdev, struct ilo_hwinfo *hw)
+ {
+ 	pci_iounmap(pdev, hw->db_vaddr);
+@@ -649,6 +687,8 @@ static void ilo_remove(struct pci_dev *p
+ 		device_destroy(ilo_class, MKDEV(ilo_major, i));
+ 
+ 	cdev_del(&ilo_hw->cdev);
++	ilo_disable_interrupts(ilo_hw);
++	free_irq(pdev->irq, ilo_hw);
+ 	ilo_unmap_device(pdev, ilo_hw);
+ 	pci_release_regions(pdev);
+ 	pci_disable_device(pdev);
+@@ -684,6 +724,7 @@ static int __devinit ilo_probe(struct pc
+ 	ilo_hw->ilo_dev = pdev;
+ 	spin_lock_init(&ilo_hw->alloc_lock);
+ 	spin_lock_init(&ilo_hw->fifo_lock);
++	spin_lock_init(&ilo_hw->open_lock);
+ 
+ 	error = pci_enable_device(pdev);
+ 	if (error)
+@@ -702,13 +743,19 @@ static int __devinit ilo_probe(struct pc
+ 	pci_set_drvdata(pdev, ilo_hw);
+ 	clear_device(ilo_hw);
+ 
++	error = request_irq(pdev->irq, ilo_isr, IRQF_SHARED, "hpilo", ilo_hw);
++	if (error)
++		goto unmap;
++
++	ilo_enable_interrupts(ilo_hw);
++
+ 	cdev_init(&ilo_hw->cdev, &ilo_fops);
+ 	ilo_hw->cdev.owner = THIS_MODULE;
+ 	start = devnum * MAX_CCB;
+ 	error = cdev_add(&ilo_hw->cdev, MKDEV(ilo_major, start), MAX_CCB);
+ 	if (error) {
+ 		dev_err(&pdev->dev, "Could not add cdev\n");
+-		goto unmap;
++		goto remove_isr;
+ 	}
+ 
+ 	for (minor = 0 ; minor < MAX_CCB; minor++) {
+@@ -721,6 +768,9 @@ static int __devinit ilo_probe(struct pc
+ 	}
+ 
+ 	return 0;
++remove_isr:
++	ilo_disable_interrupts(ilo_hw);
++	free_irq(pdev->irq, ilo_hw);
+ unmap:
+ 	ilo_unmap_device(pdev, ilo_hw);
+ free_regions:
+diff -puN drivers/misc/hpilo.h~hpilo-add-interrupt-handler drivers/misc/hpilo.h
+--- a/drivers/misc/hpilo.h~hpilo-add-interrupt-handler
++++ a/drivers/misc/hpilo.h
+@@ -46,11 +46,14 @@ struct ilo_hwinfo {
+ 
+ 	spinlock_t alloc_lock;
+ 	spinlock_t fifo_lock;
++	spinlock_t open_lock;
+ 
+ 	struct cdev cdev;
+ };
+ 
+-/* offset from mmio_vaddr */
++/* offset from mmio_vaddr for enabling doorbell interrupts */
++#define DB_IRQ		0xB2
++/* offset from mmio_vaddr for outbound communications */
+ #define DB_OUT		0xD4
+ /* DB_OUT reset bit */
+ #define DB_RESET	26
+@@ -131,6 +134,9 @@ struct ccb_data {
+ 	/* pointer to hardware device info */
+ 	struct ilo_hwinfo *ilo_hw;
+ 
++	/* queue for this ccb to wait for recv data */
++	wait_queue_head_t ccb_waitq;
++
+ 	/* usage count, to allow for shared ccb's */
+ 	int	    ccb_cnt;
+ 
 _
 
-Patches currently in -mm which might be from minchan.kim@gmail.com are
+Patches currently in -mm which might be from david.altobelli@hp.com are
 
 linux-next.patch
-mm-fix-for-infinite-churning-of-mlocked-pages.patch
-mm-show_free_areas-display-slab-pages-in-two-separate-fields.patch
-mm-oom-analysis-add-per-zone-statistics-to-show_free_areas.patch
-mm-oom-analysis-show-kernel-stack-usage-in-proc-meminfo-and-oom-log-output.patch
-mm-rename-pgmoved-variable-in-shrink_active_list.patch
-mm-shrink_inactive_list-nr_scan-accounting-fix-fix.patch
-mm-vmstat-add-isolate-pages.patch
-mm-vmstat-add-isolate-pages-fix.patch
-mm-remove-__addsub_zone_page_state.patch
-mm-count-only-reclaimable-lru-pages-v2.patch
-vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
-vmscan-move-clearpageactive-from-move_active_pages-to-shrink_active_list.patch
-vmscan-kill-unnecessary-page-flag-test.patch
-vmscan-kill-unnecessary-prefetch.patch
-mm-introduce-page_lru_base_type.patch
-memory-hotplug-fix-updating-of-num_physpages-for-hot-plugged-memory.patch
 
