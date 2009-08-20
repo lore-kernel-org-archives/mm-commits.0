@@ -1,130 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-usb-gadget-s3c2410_udcc-fix.patch removed from -mm tree
-Date: Thu, 20 Aug 2009 13:13:09 -0700
-Message-ID: <200908202013.n7KKD9bI016233@imap1.linux-foundation.org>
+Subject: [merged] hpilo-add-poll-f_op.patch removed from -mm tree
+Date: Thu, 20 Aug 2009 13:13:16 -0700
+Message-ID: <200908202013.n7KKDGEh016467@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58663 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35135 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755347AbZHTUOs (ORCPT
+	by vger.kernel.org with ESMTP id S1755278AbZHTUSK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Aug 2009 16:14:48 -0400
+	Thu, 20 Aug 2009 16:18:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, david-b@pacbell.net, greg@kroah.com, stable@kernel.org, stern@rowland.harvard.edu, mm-commits@vger.kernel.org
+To: david.altobelli@hp.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/usb/gadget/s3c2410_udc.c: fix
+     hpilo: add poll f_op
 has been removed from the -mm tree.  Its filename was
-     drivers-usb-gadget-s3c2410_udcc-fix.patch
+     hpilo-add-poll-f_op.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/usb/gadget/s3c2410_udc.c: fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: hpilo: add poll f_op
+From: David Altobelli <david.altobelli@hp.com>
 
-http://bugzilla.kernel.org/show_bug.cgi?id=13530 reminder
+Add poll handler to hpilo, to allow applications a low overhead method
+of waiting for data.
 
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Cc: David Brownell <david-b@pacbell.net>
+Signed-off-by: David Altobelli <david.altobelli@hp.com>
 Cc: Greg KH <greg@kroah.com>
-Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/gadget/s3c2410_udc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/misc/hpilo.c |   42 ++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 41 insertions(+), 1 deletion(-)
 
-diff -puN drivers/usb/gadget/s3c2410_udc.c~drivers-usb-gadget-s3c2410_udcc-fix drivers/usb/gadget/s3c2410_udc.c
---- a/drivers/usb/gadget/s3c2410_udc.c~drivers-usb-gadget-s3c2410_udcc-fix
-+++ a/drivers/usb/gadget/s3c2410_udc.c
-@@ -1704,7 +1704,7 @@ int usb_gadget_unregister_driver(struct 
- 		driver->driver.name);
+diff -puN drivers/misc/hpilo.c~hpilo-add-poll-f_op drivers/misc/hpilo.c
+--- a/drivers/misc/hpilo.c~hpilo-add-poll-f_op
++++ a/drivers/misc/hpilo.c
+@@ -23,6 +23,7 @@
+ #include <linux/uaccess.h>
+ #include <linux/io.h>
+ #include <linux/wait.h>
++#include <linux/poll.h>
+ #include "hpilo.h"
  
- 	if (driver->disconnect)
--		driver->disconnect(&udc->gadget);
-+		driver->unbind(&udc->gadget);
+ static struct class *ilo_class;
+@@ -102,6 +103,22 @@ static int fifo_dequeue(struct ilo_hwinf
+ 	return ret;
+ }
  
- 	device_del(&udc->gadget.dev);
- 	udc->driver = NULL;
++static int fifo_check_recv(struct ilo_hwinfo *hw, char *fifobar)
++{
++	struct fifo *fifo_q = FIFOBARTOHANDLE(fifobar);
++	unsigned long flags;
++	int ret = 0;
++	u64 c;
++
++	spin_lock_irqsave(&hw->fifo_lock, flags);
++	c = fifo_q->fifobar[fifo_q->head & fifo_q->imask];
++	if (c & ENTRY_MASK_C)
++		ret = 1;
++	spin_unlock_irqrestore(&hw->fifo_lock, flags);
++
++	return ret;
++}
++
+ static int ilo_pkt_enqueue(struct ilo_hwinfo *hw, struct ccb *ccb,
+ 			   int dir, int id, int len)
+ {
+@@ -146,6 +163,13 @@ static int ilo_pkt_dequeue(struct ilo_hw
+ 	return ret;
+ }
+ 
++static int ilo_pkt_recv(struct ilo_hwinfo *hw, struct ccb *ccb)
++{
++	char *fifobar = ccb->ccb_u3.recv_fifobar;
++
++	return fifo_check_recv(hw, fifobar);
++}
++
+ static inline void doorbell_set(struct ccb *ccb)
+ {
+ 	iowrite8(1, ccb->ccb_u5.db_base);
+@@ -486,6 +510,21 @@ static ssize_t ilo_write(struct file *fp
+ 	return err ? -EFAULT : len;
+ }
+ 
++static unsigned int ilo_poll(struct file *fp, poll_table *wait)
++{
++	struct ccb_data *data = fp->private_data;
++	struct ccb *driver_ccb = &data->driver_ccb;
++
++	poll_wait(fp, &data->ccb_waitq, wait);
++
++	if (is_channel_reset(driver_ccb))
++		return POLLERR;
++	else if (ilo_pkt_recv(data->ilo_hw, driver_ccb))
++		return POLLIN | POLLRDNORM;
++
++	return 0;
++}
++
+ static int ilo_close(struct inode *ip, struct file *fp)
+ {
+ 	int slot;
+@@ -595,6 +634,7 @@ static const struct file_operations ilo_
+ 	.owner		= THIS_MODULE,
+ 	.read		= ilo_read,
+ 	.write		= ilo_write,
++	.poll		= ilo_poll,
+ 	.open 		= ilo_open,
+ 	.release 	= ilo_close,
+ };
+@@ -835,7 +875,7 @@ static void __exit ilo_exit(void)
+ 	class_destroy(ilo_class);
+ }
+ 
+-MODULE_VERSION("1.1");
++MODULE_VERSION("1.2");
+ MODULE_ALIAS(ILO_NAME);
+ MODULE_DESCRIPTION(ILO_NAME);
+ MODULE_AUTHOR("David Altobelli <david.altobelli@hp.com>");
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from david.altobelli@hp.com are
 
-origin.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-amdc-fix-x86_64-allnoconfig-build.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-video-initial-support-for-adv7180-update-fix.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-checkincludespl-add-option-to-remove-duplicates-in-place.patch
-leds-gpio-leds-fix-typographics-fault.patch
-leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio.patch
-slram-read-buffer-overflow.patch
-zorro8390-fix-read-buffer-overflow-in-zorro8390_init_one-checkpatch-fixes.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-serial167-fix-read-buffer-overflow.patch
-waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes-checkpatch-fixes.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
-vfs-optimize-touch_time-too.patch
-revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
-mm-make-swap-token-dummies-static-inlines-fix.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
-vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
-ummunotify-userspace-support-for-mmu-notifications-v3-fix.patch
-arches-drop-superfluous-casts-in-nr_free_pages-callers-checkpatch-fixes.patch
-tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
-generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
-proc-connector-add-event-for-process-becoming-session-leader.patch
-kernel-smpc-relocate-some-code.patch
-mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
-sdio-add-cd-disable-support-cleanup.patch
-procfs-provide-stack-information-for-threads-v011-fix.patch
-kcore-use-registerd-physmem-information-checkpatch-fixes.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
-rtc-philips-nxp-pcf2123-driver-v03-fix.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes-fix.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
-drivers-video-add-kmalloc-null-tests-fix.patch
-v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
-memcg-improve-resource-counter-scalability-checkpatch-fixes.patch
-exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
-exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
-elf-clean-up-fill_note_info-fix.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
 
