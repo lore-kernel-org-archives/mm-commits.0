@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-use-new-truncate-helpers.patch added to -mm tree
-Date: Thu, 20 Aug 2009 15:48:18 -0700
-Message-ID: <200908202248.n7KMmJlk029335@imap1.linux-foundation.org>
+Subject: + fat-convert-to-use-the-new-truncate-convention.patch added to -mm tree
+Date: Thu, 20 Aug 2009 15:48:31 -0700
+Message-ID: <200908202248.n7KMmVFk029791@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40598 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42121 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754670AbZHTWtU (ORCPT
+	by vger.kernel.org with ESMTP id S1755359AbZHTWtX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Aug 2009 18:49:20 -0400
+	Thu, 20 Aug 2009 18:49:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, chris.mason@oracle.com, hch@lst.de, hirofumi@mail.parknet.co.jp, hugh.dickins@tiscali.co.uk, jack@suse.cz, linux-cifs-client@lists.samba.org, linux-nfs@vger.kernel.org, miklos@szeredi.hu, sfrench@us.ibm.com, shaggy@linux.vnet.ibm.com, trond.myklebust@fys.uio.no, viro@zeniv.linux.org.uk
+Cc: npiggin@suse.de, chris.mason@oracle.com, hch@lst.de, hirofumi@mail.parknet.co.jp, hugh.dickins@tiscali.co.uk, jack@suse.cz, miklos@szeredi.hu, sfrench@us.ibm.com, shaggy@linux.vnet.ibm.com, trond.myklebust@fys.uio.no, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     fs: use new truncate helpers
+     fat: convert to use the new truncate convention
 has been added to the -mm tree.  Its filename is
-     fs-use-new-truncate-helpers.patch
+     fat-convert-to-use-the-new-truncate-convention.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,304 +34,187 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs: use new truncate helpers
+Subject: fat: convert to use the new truncate convention
 From: Nick Piggin <npiggin@suse.de>
 
-Update some fs code to make use of new helper functions introduced in the
-previous patch.  Should be no significant change in behaviour (except CIFS
-now calls send_sig under i_lock, via inode_newsize_ok).
-
 Signed-off-by: Nick Piggin <npiggin@suse.de>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Acked-by: Miklos Szeredi <miklos@szeredi.hu>
-Cc: <linux-nfs@vger.kernel.org>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: <linux-cifs-client@lists.samba.org>
-Cc: Steven French <sfrench@us.ibm.com>
+Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: Christoph Hellwig <hch@lst.de>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Dave Kleikamp <shaggy@linux.vnet.ibm.com>
 Cc: Chris Mason <chris.mason@oracle.com>
-Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
 Cc: Steven French <sfrench@us.ibm.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c           |   10 +------
- fs/cifs/inode.c       |   53 +++++++---------------------------------
- fs/fuse/dir.c         |   14 +++-------
- fs/fuse/fuse_i.h      |    2 -
- fs/fuse/inode.c       |   11 --------
- fs/nfs/inode.c        |   52 +++++++++------------------------------
- fs/ramfs/file-nommu.c |   18 +++----------
- 7 files changed, 34 insertions(+), 126 deletions(-)
+ fs/fat/fat.h   |    2 +-
+ fs/fat/file.c  |   35 +++++++++++++++++++++++++++--------
+ fs/fat/inode.c |   25 ++++++++++++++++++++++---
+ 3 files changed, 50 insertions(+), 12 deletions(-)
 
-diff -puN fs/buffer.c~fs-use-new-truncate-helpers fs/buffer.c
---- a/fs/buffer.c~fs-use-new-truncate-helpers
-+++ a/fs/buffer.c
-@@ -2225,16 +2225,10 @@ int generic_cont_expand_simple(struct in
- 	struct address_space *mapping = inode->i_mapping;
- 	struct page *page;
- 	void *fsdata;
--	unsigned long limit;
- 	int err;
- 
--	err = -EFBIG;
--        limit = current->signal->rlim[RLIMIT_FSIZE].rlim_cur;
--	if (limit != RLIM_INFINITY && size > (loff_t)limit) {
--		send_sig(SIGXFSZ, current, 0);
--		goto out;
--	}
--	if (size > inode->i_sb->s_maxbytes)
-+	err = inode_newsize_ok(inode, size);
-+	if (err)
- 		goto out;
- 
- 	err = pagecache_write_begin(NULL, mapping, size, 0,
-diff -puN fs/cifs/inode.c~fs-use-new-truncate-helpers fs/cifs/inode.c
---- a/fs/cifs/inode.c~fs-use-new-truncate-helpers
-+++ a/fs/cifs/inode.c
-@@ -1557,57 +1557,24 @@ static int cifs_truncate_page(struct add
- 
- static int cifs_vmtruncate(struct inode *inode, loff_t offset)
- {
--	struct address_space *mapping = inode->i_mapping;
--	unsigned long limit;
-+	loff_t oldsize;
-+	int err;
- 
- 	spin_lock(&inode->i_lock);
--	if (inode->i_size < offset)
--		goto do_expand;
--	/*
--	 * truncation of in-use swapfiles is disallowed - it would cause
--	 * subsequent swapout to scribble on the now-freed blocks.
--	 */
--	if (IS_SWAPFILE(inode)) {
-+	err = inode_newsize_ok(inode, offset);
-+	if (err) {
- 		spin_unlock(&inode->i_lock);
--		goto out_busy;
--	}
--	i_size_write(inode, offset);
--	spin_unlock(&inode->i_lock);
--	/*
--	 * unmap_mapping_range is called twice, first simply for efficiency
--	 * so that truncate_inode_pages does fewer single-page unmaps. However
--	 * after this first call, and before truncate_inode_pages finishes,
--	 * it is possible for private pages to be COWed, which remain after
--	 * truncate_inode_pages finishes, hence the second unmap_mapping_range
--	 * call must be made for correctness.
--	 */
--	unmap_mapping_range(mapping, offset + PAGE_SIZE - 1, 0, 1);
--	truncate_inode_pages(mapping, offset);
--	unmap_mapping_range(mapping, offset + PAGE_SIZE - 1, 0, 1);
--	goto out_truncate;
--
--do_expand:
--	limit = current->signal->rlim[RLIMIT_FSIZE].rlim_cur;
--	if (limit != RLIM_INFINITY && offset > limit) {
--		spin_unlock(&inode->i_lock);
--		goto out_sig;
--	}
--	if (offset > inode->i_sb->s_maxbytes) {
--		spin_unlock(&inode->i_lock);
--		goto out_big;
-+		goto out;
- 	}
-+
-+	oldsize = inode->i_size;
- 	i_size_write(inode, offset);
- 	spin_unlock(&inode->i_lock);
--out_truncate:
-+	truncate_pagecache(inode, oldsize, offset);
- 	if (inode->i_op->truncate)
- 		inode->i_op->truncate(inode);
--	return 0;
--out_sig:
--	send_sig(SIGXFSZ, current, 0);
--out_big:
--	return -EFBIG;
--out_busy:
--	return -ETXTBSY;
-+out:
-+	return err;
+diff -puN fs/fat/fat.h~fat-convert-to-use-the-new-truncate-convention fs/fat/fat.h
+--- a/fs/fat/fat.h~fat-convert-to-use-the-new-truncate-convention
++++ a/fs/fat/fat.h
+@@ -302,7 +302,7 @@ extern int fat_generic_ioctl(struct inod
+ extern const struct file_operations fat_file_operations;
+ extern const struct inode_operations fat_file_inode_operations;
+ extern int fat_setattr(struct dentry * dentry, struct iattr * attr);
+-extern void fat_truncate(struct inode *inode);
++extern void fat_truncate_blocks(struct inode *inode, loff_t offset);
+ extern int fat_getattr(struct vfsmount *mnt, struct dentry *dentry,
+ 		       struct kstat *stat);
+ extern int fat_file_fsync(struct file *file, struct dentry *dentry,
+diff -puN fs/fat/file.c~fat-convert-to-use-the-new-truncate-convention fs/fat/file.c
+--- a/fs/fat/file.c~fat-convert-to-use-the-new-truncate-convention
++++ a/fs/fat/file.c
+@@ -252,7 +252,7 @@ static int fat_free(struct inode *inode,
+ 	return fat_free_clusters(inode, free_start);
  }
  
- static int
-diff -puN fs/fuse/dir.c~fs-use-new-truncate-helpers fs/fuse/dir.c
---- a/fs/fuse/dir.c~fs-use-new-truncate-helpers
-+++ a/fs/fuse/dir.c
-@@ -1276,14 +1276,9 @@ static int fuse_do_setattr(struct dentry
- 		return 0;
- 
- 	if (attr->ia_valid & ATTR_SIZE) {
--		unsigned long limit;
--		if (IS_SWAPFILE(inode))
--			return -ETXTBSY;
--		limit = current->signal->rlim[RLIMIT_FSIZE].rlim_cur;
--		if (limit != RLIM_INFINITY && attr->ia_size > (loff_t) limit) {
--			send_sig(SIGXFSZ, current, 0);
--			return -EFBIG;
--		}
-+		err = inode_newsize_ok(inode, attr->ia_size);
-+		if (err)
-+			return err;
- 		is_truncate = true;
- 	}
- 
-@@ -1350,8 +1345,7 @@ static int fuse_do_setattr(struct dentry
- 	 * FUSE_NOWRITE, otherwise fuse_launder_page() would deadlock.
+-void fat_truncate(struct inode *inode)
++void fat_truncate_blocks(struct inode *inode, loff_t offset)
+ {
+ 	struct msdos_sb_info *sbi = MSDOS_SB(inode->i_sb);
+ 	const unsigned int cluster_size = sbi->cluster_size;
+@@ -262,10 +262,10 @@ void fat_truncate(struct inode *inode)
+ 	 * This protects against truncating a file bigger than it was then
+ 	 * trying to write into the hole.
  	 */
- 	if (S_ISREG(inode->i_mode) && oldsize != outarg.attr.size) {
--		if (outarg.attr.size < oldsize)
--			fuse_truncate(inode->i_mapping, outarg.attr.size);
-+		truncate_pagecache(inode, oldsize, outarg.attr.size);
- 		invalidate_inode_pages2(inode->i_mapping);
- 	}
+-	if (MSDOS_I(inode)->mmu_private > inode->i_size)
+-		MSDOS_I(inode)->mmu_private = inode->i_size;
++	if (MSDOS_I(inode)->mmu_private > offset)
++		MSDOS_I(inode)->mmu_private = offset;
  
-diff -puN fs/fuse/fuse_i.h~fs-use-new-truncate-helpers fs/fuse/fuse_i.h
---- a/fs/fuse/fuse_i.h~fs-use-new-truncate-helpers
-+++ a/fs/fuse/fuse_i.h
-@@ -602,8 +602,6 @@ void fuse_change_attributes(struct inode
- void fuse_change_attributes_common(struct inode *inode, struct fuse_attr *attr,
- 				   u64 attr_valid);
+-	nr_clusters = (inode->i_size + (cluster_size - 1)) >> sbi->cluster_bits;
++	nr_clusters = (offset + (cluster_size - 1)) >> sbi->cluster_bits;
  
--void fuse_truncate(struct address_space *mapping, loff_t offset);
--
- /**
-  * Initialize the client device
-  */
-diff -puN fs/fuse/inode.c~fs-use-new-truncate-helpers fs/fuse/inode.c
---- a/fs/fuse/inode.c~fs-use-new-truncate-helpers
-+++ a/fs/fuse/inode.c
-@@ -121,14 +121,6 @@ static int fuse_remount_fs(struct super_
+ 	fat_free(inode, nr_clusters);
+ 	fat_flush_inodes(inode->i_sb, inode, NULL);
+@@ -333,6 +333,18 @@ static int fat_allow_set_time(struct msd
  	return 0;
  }
  
--void fuse_truncate(struct address_space *mapping, loff_t offset)
--{
--	/* See vmtruncate() */
--	unmap_mapping_range(mapping, offset + PAGE_SIZE - 1, 0, 1);
--	truncate_inode_pages(mapping, offset);
--	unmap_mapping_range(mapping, offset + PAGE_SIZE - 1, 0, 1);
--}
--
- void fuse_change_attributes_common(struct inode *inode, struct fuse_attr *attr,
- 				   u64 attr_valid)
- {
-@@ -186,8 +178,7 @@ void fuse_change_attributes(struct inode
- 	spin_unlock(&fc->lock);
- 
- 	if (S_ISREG(inode->i_mode) && oldsize != attr->size) {
--		if (attr->size < oldsize)
--			fuse_truncate(inode->i_mapping, attr->size);
-+		truncate_pagecache(inode, oldsize, attr->size);
- 		invalidate_inode_pages2(inode->i_mapping);
++static int fat_setsize(struct inode *inode, loff_t offset)
++{
++	int error;
++
++	error = simple_setsize(inode, offset);
++	if (error)
++		return error;
++	fat_truncate_blocks(inode, offset);
++
++	return error;
++}
++
+ #define TIMES_SET_FLAGS	(ATTR_MTIME_SET | ATTR_ATIME_SET | ATTR_TIMES_SET)
+ /* valid file mode bits */
+ #define FAT_VALID_MODE	(S_IFREG | S_IFDIR | S_IRWXUGO)
+@@ -347,7 +359,8 @@ int fat_setattr(struct dentry *dentry, s
+ 	/*
+ 	 * Expand the file. Since inode_setattr() updates ->i_size
+ 	 * before calling the ->truncate(), but FAT needs to fill the
+-	 * hole before it.
++	 * hole before it. XXX: this is no longer true with new truncate
++	 * sequence.
+ 	 */
+ 	if (attr->ia_valid & ATTR_SIZE) {
+ 		if (attr->ia_size > inode->i_size) {
+@@ -396,15 +409,21 @@ int fat_setattr(struct dentry *dentry, s
+ 			attr->ia_valid &= ~ATTR_MODE;
  	}
+ 
+-	if (attr->ia_valid)
+-		error = inode_setattr(inode, attr);
++	if (attr->ia_valid & ATTR_SIZE) {
++		error = fat_setsize(inode, attr->ia_size);
++		if (error)
++			goto out;
++	}
++
++	generic_setattr(inode, attr);
++	mark_inode_dirty(inode);
+ out:
+ 	return error;
  }
-diff -puN fs/nfs/inode.c~fs-use-new-truncate-helpers fs/nfs/inode.c
---- a/fs/nfs/inode.c~fs-use-new-truncate-helpers
-+++ a/fs/nfs/inode.c
-@@ -458,49 +458,21 @@ nfs_setattr(struct dentry *dentry, struc
-  */
- static int nfs_vmtruncate(struct inode * inode, loff_t offset)
+ EXPORT_SYMBOL_GPL(fat_setattr);
+ 
+ const struct inode_operations fat_file_inode_operations = {
+-	.truncate	= fat_truncate,
++	.new_truncate	= 1,
+ 	.setattr	= fat_setattr,
+ 	.getattr	= fat_getattr,
+ };
+diff -puN fs/fat/inode.c~fat-convert-to-use-the-new-truncate-convention fs/fat/inode.c
+--- a/fs/fat/inode.c~fat-convert-to-use-the-new-truncate-convention
++++ a/fs/fat/inode.c
+@@ -146,10 +146,19 @@ static int fat_write_begin(struct file *
+ 			loff_t pos, unsigned len, unsigned flags,
+ 			struct page **pagep, void **fsdata)
  {
--	if (i_size_read(inode) < offset) {
--		unsigned long limit;
-+	loff_t oldsize;
 +	int err;
- 
--		limit = current->signal->rlim[RLIMIT_FSIZE].rlim_cur;
--		if (limit != RLIM_INFINITY && offset > limit)
--			goto out_sig;
--		if (offset > inode->i_sb->s_maxbytes)
--			goto out_big;
--		spin_lock(&inode->i_lock);
--		i_size_write(inode, offset);
--		spin_unlock(&inode->i_lock);
--	} else {
--		struct address_space *mapping = inode->i_mapping;
-+	err = inode_newsize_ok(inode, offset);
-+	if (err)
-+		goto out;
- 
--		/*
--		 * truncation of in-use swapfiles is disallowed - it would
--		 * cause subsequent swapout to scribble on the now-freed
--		 * blocks.
--		 */
--		if (IS_SWAPFILE(inode))
--			return -ETXTBSY;
--		spin_lock(&inode->i_lock);
--		i_size_write(inode, offset);
--		spin_unlock(&inode->i_lock);
-+	spin_lock(&inode->i_lock);
-+	oldsize = inode->i_size;
-+	i_size_write(inode, offset);
-+	spin_unlock(&inode->i_lock);
- 
--		/*
--		 * unmap_mapping_range is called twice, first simply for
--		 * efficiency so that truncate_inode_pages does fewer
--		 * single-page unmaps.  However after this first call, and
--		 * before truncate_inode_pages finishes, it is possible for
--		 * private pages to be COWed, which remain after
--		 * truncate_inode_pages finishes, hence the second
--		 * unmap_mapping_range call must be made for correctness.
--		 */
--		unmap_mapping_range(mapping, offset + PAGE_SIZE - 1, 0, 1);
--		truncate_inode_pages(mapping, offset);
--		unmap_mapping_range(mapping, offset + PAGE_SIZE - 1, 0, 1);
--	}
--	return 0;
--out_sig:
--	send_sig(SIGXFSZ, current, 0);
--out_big:
--	return -EFBIG;
-+	truncate_pagecache(inode, oldsize, offset);
-+out:
++
+ 	*pagep = NULL;
+-	return cont_write_begin(file, mapping, pos, len, flags, pagep, fsdata,
++	err = cont_write_begin(file, mapping, pos, len, flags, pagep, fsdata,
+ 				fat_get_block,
+ 				&MSDOS_I(mapping->host)->mmu_private);
++	if (err < 0) {
++		struct inode *inode = mapping->host;
++		loff_t isize = inode->i_size;
++		if (pos + len > isize)
++			fat_truncate_blocks(inode, isize);
++	}
 +	return err;
  }
  
- /**
-diff -puN fs/ramfs/file-nommu.c~fs-use-new-truncate-helpers fs/ramfs/file-nommu.c
---- a/fs/ramfs/file-nommu.c~fs-use-new-truncate-helpers
-+++ a/fs/ramfs/file-nommu.c
-@@ -69,14 +69,11 @@ int ramfs_nommu_expand_for_mapping(struc
- 	/* make various checks */
- 	order = get_order(newsize);
- 	if (unlikely(order >= MAX_ORDER))
--		goto too_big;
-+		return -EFBIG;
+ static int fat_write_end(struct file *file, struct address_space *mapping,
+@@ -159,6 +168,11 @@ static int fat_write_end(struct file *fi
+ 	struct inode *inode = mapping->host;
+ 	int err;
+ 	err = generic_write_end(file, mapping, pos, len, copied, pagep, fsdata);
++	if (err < len) {
++		loff_t isize = inode->i_size;
++		if (pos + len > isize)
++			fat_truncate_blocks(inode, isize);
++	}
+ 	if (!(err < 0) && !(MSDOS_I(inode)->i_attrs & ATTR_ARCH)) {
+ 		inode->i_mtime = inode->i_ctime = CURRENT_TIME_SEC;
+ 		MSDOS_I(inode)->i_attrs |= ATTR_ARCH;
+@@ -173,6 +187,7 @@ static ssize_t fat_direct_IO(int rw, str
+ {
+ 	struct file *file = iocb->ki_filp;
+ 	struct inode *inode = file->f_mapping->host;
++	ssize_t ret;
  
--	limit = current->signal->rlim[RLIMIT_FSIZE].rlim_cur;
--	if (limit != RLIM_INFINITY && newsize > limit)
--		goto fsize_exceeded;
--
--	if (newsize > inode->i_sb->s_maxbytes)
--		goto too_big;
-+	ret = inode_newsize_ok(inode, newsize);
-+	if (ret)
-+		return ret;
+ 	if (rw == WRITE) {
+ 		/*
+@@ -193,8 +208,12 @@ static ssize_t fat_direct_IO(int rw, str
+ 	 * FAT need to use the DIO_LOCKING for avoiding the race
+ 	 * condition of fat_get_block() and ->truncate().
+ 	 */
+-	return blockdev_direct_IO(rw, iocb, inode, inode->i_sb->s_bdev, iov,
++	ret = blockdev_direct_IO(rw, iocb, inode, inode->i_sb->s_bdev, iov,
+ 				  offset, nr_segs, fat_get_block, NULL);
++	if (ret < 0 && (rw & WRITE))
++		fat_truncate_blocks(inode, inode->i_size);
++
++	return ret;
+ }
  
- 	i_size_write(inode, newsize);
+ static sector_t _fat_bmap(struct address_space *mapping, sector_t block)
+@@ -429,7 +448,7 @@ static void fat_delete_inode(struct inod
+ {
+ 	truncate_inode_pages(&inode->i_data, 0);
+ 	inode->i_size = 0;
+-	fat_truncate(inode);
++	fat_truncate_blocks(inode, 0);
+ 	clear_inode(inode);
+ }
  
-@@ -118,12 +115,7 @@ int ramfs_nommu_expand_for_mapping(struc
- 
- 	return 0;
- 
-- fsize_exceeded:
--	send_sig(SIGXFSZ, current, 0);
-- too_big:
--	return -EFBIG;
--
-- add_error:
-+add_error:
- 	while (loop < npages)
- 		__free_page(pages + loop++);
- 	return ret;
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
