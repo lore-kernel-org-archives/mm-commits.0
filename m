@@ -1,71 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: [merged] reporting-bugs-add-get_maintainerpl-blurb.patch removed from -mm tree
-Date: Thu, 20 Aug 2009 13:13:02 -0700
-Message-ID: <200908202013.n7KKD28g015969@imap1.linux-foundation.org>
+Subject: [merged] mm-build_zonelists-move-clear-node_load-to-__build_all_zonelists.patch removed from -mm tree
+Date: Thu, 20 Aug 2009 13:13:04 -0700
+Message-ID: <200908202013.n7KKD4wr016035@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43562 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43002 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755297AbZHTUSh (ORCPT
+	by vger.kernel.org with ESMTP id S1755298AbZHTUTg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Aug 2009 16:18:37 -0400
+	Thu, 20 Aug 2009 16:19:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: bo-liu@hotmail.com, cl@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     REPORTING-BUGS: add get_maintainer.pl blurb
+     mm: build_zonelists(): move clear node_load[] to __build_all_zonelists()
 has been removed from the -mm tree.  Its filename was
-     reporting-bugs-add-get_maintainerpl-blurb.patch
+     mm-build_zonelists-move-clear-node_load-to-__build_all_zonelists.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: REPORTING-BUGS: add get_maintainer.pl blurb
-From: Joe Perches <joe@perches.com>
+Subject: mm: build_zonelists(): move clear node_load[] to __build_all_zonelists()
+From: Bo Liu <bo-liu@hotmail.com>
 
-Signed-off-by: Joe Perches <joe@perches.com>
+If node_load[] is cleared everytime build_zonelists() is
+called,node_load[] will have no help to find the next node that should
+appear in the given node's fallback list.
+
+Because of the bug, zonelist's node_order is not calculated as expected. 
+This bug affects on big machine, which has asynmetric node distance.
+
+[synmetric NUMA's node distance]
+     0    1    2
+0   10   12   12
+1   12   10   12
+2   12   12   10
+
+[asynmetric NUMA's node distance]
+     0    1    2
+0   10   12   20
+1   12   10   14
+2   20   14   10
+
+
+This (my bug) is very old but no one has reported this for a long time. 
+Maybe because the number of asynmetric NUMA is very small and they use
+cpuset for customizing node memory allocation fallback.
+
+[akpm@linux-foundation.org: fix CONFIG_NUMA=n build]
+Signed-off-by: Bo Liu <bo-liu@hotmail.com>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- REPORTING-BUGS |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/page_alloc.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN REPORTING-BUGS~reporting-bugs-add-get_maintainerpl-blurb REPORTING-BUGS
---- a/REPORTING-BUGS~reporting-bugs-add-get_maintainerpl-blurb
-+++ a/REPORTING-BUGS
-@@ -15,7 +15,10 @@ worry too much about getting the wrong p
- to the person responsible for the code relevant to what you were doing.
- If it occurs repeatably try and describe how to recreate it. That is
- worth even more than the oops itself.  The list of maintainers and
--mailing lists is in the MAINTAINERS file in this directory.
-+mailing lists is in the MAINTAINERS file in this directory.  If you
-+know the file name that causes the problem you can use the following
-+command in this directory to find some of the maintainers of that file:
-+     perl scripts/get_maintainer.pl -f <filename>
+diff -puN mm/page_alloc.c~mm-build_zonelists-move-clear-node_load-to-__build_all_zonelists mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-build_zonelists-move-clear-node_load-to-__build_all_zonelists
++++ a/mm/page_alloc.c
+@@ -2544,7 +2544,6 @@ static void build_zonelists(pg_data_t *p
+ 	prev_node = local_node;
+ 	nodes_clear(used_mask);
  
-       If it is a security bug, please copy the Security Contact listed
- in the MAINTAINERS file.  They can help coordinate bugfix and disclosure.
+-	memset(node_load, 0, sizeof(node_load));
+ 	memset(node_order, 0, sizeof(node_order));
+ 	j = 0;
+ 
+@@ -2653,6 +2652,9 @@ static int __build_all_zonelists(void *d
+ {
+ 	int nid;
+ 
++#ifdef CONFIG_NUMA
++	memset(node_load, 0, sizeof(node_load));
++#endif
+ 	for_each_online_node(nid) {
+ 		pg_data_t *pgdat = NODE_DATA(nid);
+ 
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from bo-liu@hotmail.com are
 
 origin.patch
-linux-next.patch
-maintainers-add-ipvs-include-files.patch
-scripts-get_maintainerpl-add-git-blame.patch
-scripts-get_maintainerpl-add-sections-in-pattern-match-depth-order.patch
-scripts-get_maintainerpl-add-pattern-depth.patch
-scripts-get_maintainerpl-better-email-routines-use-perl-not-shell-where-possible.patch
-scripts-get_maintainerpl-add-mailmap-use-shell-and-email-cleanups.patch
-scripts-get_maintainerpl-using-separator-implies-nomultiline.patch
-scripts-get_maintainerpl-add-remove-duplicates.patch
-mmc-msm_sdccc-driver-for-htc-dream.patch
-msm_sdccc-convert-printkkern_level-to-pr_level.patch
-msm_sdccc-stylistic-cleaning.patch
-msm_sdccc-move-overly-indented-code-to-separate-function.patch
-maintainers-add-matt-mackall-and-herbert-xu-to-hardware-random-number-generator.patch
 
