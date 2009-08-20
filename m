@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-allow-file-truncations-when-both-suid-and-write-permissions-set.patch added to -mm tree
-Date: Thu, 20 Aug 2009 14:35:15 -0700
-Message-ID: <200908202135.n7KLZGI7031011@imap1.linux-foundation.org>
+Subject: + selinux-adjust-rules-for-attr_force.patch added to -mm tree
+Date: Thu, 20 Aug 2009 14:35:13 -0700
+Message-ID: <200908202135.n7KLZDsI031004@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48275 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43502 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751068AbZHTVgA (ORCPT
+	by vger.kernel.org with ESMTP id S1751068AbZHTVgG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Aug 2009 17:36:00 -0400
+	Thu, 20 Aug 2009 17:36:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: amwang@redhat.com, eparis@redhat.com, esandeen@redhat.com, eteo@redhat.com, hch@lst.de, hirofumi@mail.parknet.co.jp, viro@zeniv.linux.org.uk
+Cc: amwang@redhat.com, eparis@redhat.com, eteo@redhat.com, hch@lst.de, hirofumi@mail.parknet.co.jp, sds@tycho.nsa.gov, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     vfs: allow file truncations when both suid and write permissions set
+     selinux: adjust rules for ATTR_FORCE
 has been added to the -mm tree.  Its filename is
-     vfs-allow-file-truncations-when-both-suid-and-write-permissions-set.patch
+     selinux-adjust-rules-for-attr_force.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,70 +34,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: allow file truncations when both suid and write permissions set
+Subject: selinux: adjust rules for ATTR_FORCE
 From: Amerigo Wang <amwang@redhat.com>
 
-When suid is set and the non-owner user has write permission, any writing
-into this file should be allowed and suid should be removed after that.
+As suggested by OGAWA Hirofumi in thread:
+http://lkml.org/lkml/2009/8/7/132, we should let selinux_inode_setattr()
+to match our ATTR_* rules.  ATTR_FORCE should not force things like
+ATTR_SIZE.
 
-However, current kernel only allows writing without truncations, when we
-do truncations on that file, we get EPERM.  This is a bug.
-
-Steps to reproduce this bug:
-
-% ls -l rootdir/file1
--rwsrwsrwx 1 root root 3 Jun 25 15:42 rootdir/file1
-% echo h > rootdir/file1
-zsh: operation not permitted: rootdir/file1
-% ls -l rootdir/file1
--rwsrwsrwx 1 root root 3 Jun 25 15:42 rootdir/file1
-% echo h >> rootdir/file1
-% ls -l rootdir/file1
--rwxrwxrwx 1 root root 5 Jun 25 16:34 rootdir/file1
-
+[hirofumi@mail.parknet.co.jp: tweaks]
 Signed-off-by: WANG Cong <amwang@redhat.com>
-Cc: Eric Sandeen <esandeen@redhat.com>
+Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Acked-by: Stephen Smalley <sds@tycho.nsa.gov>
 Cc: Eric Paris <eparis@redhat.com>
 Cc: Eugene Teo <eteo@redhat.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/open.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ security/selinux/hooks.c |   14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
-diff -puN fs/open.c~vfs-allow-file-truncations-when-both-suid-and-write-permissions-set fs/open.c
---- a/fs/open.c~vfs-allow-file-truncations-when-both-suid-and-write-permissions-set
-+++ a/fs/open.c
-@@ -199,7 +199,7 @@ out:
- int do_truncate(struct dentry *dentry, loff_t length, unsigned int time_attrs,
- 	struct file *filp)
+diff -puN security/selinux/hooks.c~selinux-adjust-rules-for-attr_force security/selinux/hooks.c
+--- a/security/selinux/hooks.c~selinux-adjust-rules-for-attr_force
++++ a/security/selinux/hooks.c
+@@ -2711,12 +2711,18 @@ static int selinux_inode_permission(stru
+ static int selinux_inode_setattr(struct dentry *dentry, struct iattr *iattr)
  {
--	int err;
-+	int ret;
- 	struct iattr newattrs;
+ 	const struct cred *cred = current_cred();
++	unsigned int ia_valid = iattr->ia_valid;
  
- 	/* Not pretty: "inode->i_size" shouldn't really be signed. But it is. */
-@@ -214,12 +214,14 @@ int do_truncate(struct dentry *dentry, l
- 	}
+-	if (iattr->ia_valid & ATTR_FORCE)
+-		return 0;
++	/* ATTR_FORCE is just used for ATTR_KILL_S[UG]ID. */
++	if (ia_valid & ATTR_FORCE) {
++		ia_valid &= ~(ATTR_KILL_SUID | ATTR_KILL_SGID | ATTR_MODE |
++			      ATTR_FORCE);
++		if (!ia_valid)
++			return 0;
++	}
  
- 	/* Remove suid/sgid on truncate too */
--	newattrs.ia_valid |= should_remove_suid(dentry);
-+	ret = should_remove_suid(dentry);
-+	if (ret)
-+		newattrs.ia_valid |= ret | ATTR_FORCE;
+-	if (iattr->ia_valid & (ATTR_MODE | ATTR_UID | ATTR_GID |
+-			       ATTR_ATIME_SET | ATTR_MTIME_SET))
++	if (ia_valid & (ATTR_MODE | ATTR_UID | ATTR_GID |
++			ATTR_ATIME_SET | ATTR_MTIME_SET | ATTR_TIMES_SET))
+ 		return dentry_has_perm(cred, NULL, dentry, FILE__SETATTR);
  
- 	mutex_lock(&dentry->d_inode->i_mutex);
--	err = notify_change(dentry, &newattrs);
-+	ret = notify_change(dentry, &newattrs);
- 	mutex_unlock(&dentry->d_inode->i_mutex);
--	return err;
-+	return ret;
- }
- 
- static long do_sys_truncate(const char __user *pathname, loff_t length)
+ 	return dentry_has_perm(cred, NULL, dentry, FILE__WRITE);
 _
 
 Patches currently in -mm which might be from amwang@redhat.com are
