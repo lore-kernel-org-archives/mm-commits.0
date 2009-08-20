@@ -1,63 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mmc-add-the-new-linux-mmc-mailing-list-to-maintainers.patch removed from -mm tree
-Date: Thu, 20 Aug 2009 13:12:48 -0700
-Message-ID: <200908202012.n7KKCmdT015561@imap1.linux-foundation.org>
+Subject: [merged] drivers-usb-gadget-s3c2410_udcc-fix.patch removed from -mm tree
+Date: Thu, 20 Aug 2009 13:13:09 -0700
+Message-ID: <200908202013.n7KKD9bI016233@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42999 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58663 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755305AbZHTUOO (ORCPT
+	by vger.kernel.org with ESMTP id S1755347AbZHTUOs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Aug 2009 16:14:14 -0400
+	Thu, 20 Aug 2009 16:14:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, HaraldWelte@viatech.com, JosephChan@via.com.tw, ben-linux@fluff.org, drzeus@drzeus.cx, ian@mnementh.co.uk, jarkko.lavinen@nokia.com, linux-mmc@vger.kernel.o
+To: akpm@linux-foundation.org, david-b@pacbell.net, greg@kroah.com, stable@kernel.org, stern@rowland.harvard.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mmc: add the new linux-mmc mailing list to MAINTAINERS
+     drivers/usb/gadget/s3c2410_udc.c: fix
 has been removed from the -mm tree.  Its filename was
-     mmc-add-the-new-linux-mmc-mailing-list-to-maintainers.patch
+     drivers-usb-gadget-s3c2410_udcc-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: add the new linux-mmc mailing list to MAINTAINERS
+Subject: drivers/usb/gadget/s3c2410_udc.c: fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-There are a number of individual MMC drivers listed in MAINTAINERS.  I
-didn't modify those records.  Perhaps I should have.
+http://bugzilla.kernel.org/show_bug.cgi?id=13530 reminder
 
-Cc: <linux-mmc@vger.kernel.org>
-Cc: Manuel Lauss <manuel.lauss@gmail.com>
-Cc: Nicolas Pitre <nico@cam.org>
-Cc: Pierre Ossman <drzeus@drzeus.cx>
-Cc: Pavel Pisa <ppisa@pikron.com>
-Cc: Jarkko Lavinen <jarkko.lavinen@nokia.com>
-Cc: Ben Dooks <ben-linux@fluff.org>
-Cc: Sascha Sommer <saschasommer@freenet.de>
-Cc: Ian Molton <ian@mnementh.co.uk>
-Cc: Joseph Chan <JosephChan@via.com.tw>
-Cc: Harald Welte <HaraldWelte@viatech.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Greg KH <greg@kroah.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/usb/gadget/s3c2410_udc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~mmc-add-the-new-linux-mmc-mailing-list-to-maintainers MAINTAINERS
---- a/MAINTAINERS~mmc-add-the-new-linux-mmc-mailing-list-to-maintainers
-+++ a/MAINTAINERS
-@@ -3429,6 +3429,7 @@ F:	drivers/mfd/
+diff -puN drivers/usb/gadget/s3c2410_udc.c~drivers-usb-gadget-s3c2410_udcc-fix drivers/usb/gadget/s3c2410_udc.c
+--- a/drivers/usb/gadget/s3c2410_udc.c~drivers-usb-gadget-s3c2410_udcc-fix
++++ a/drivers/usb/gadget/s3c2410_udc.c
+@@ -1704,7 +1704,7 @@ int usb_gadget_unregister_driver(struct 
+ 		driver->driver.name);
  
- MULTIMEDIA CARD (MMC), SECURE DIGITAL (SD) AND SDIO SUBSYSTEM
- S:	Orphan
-+L:	linux-mmc@vger.kernel.org
- F:	drivers/mmc/
- F:	include/linux/mmc/
+ 	if (driver->disconnect)
+-		driver->disconnect(&udc->gadget);
++		driver->unbind(&udc->gadget);
  
+ 	device_del(&udc->gadget.dev);
+ 	udc->driver = NULL;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
