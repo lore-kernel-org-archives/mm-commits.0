@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + btrfs-convert-to-use-the-new-truncate-convention.patch added to -mm tree
-Date: Thu, 20 Aug 2009 15:48:33 -0700
-Message-ID: <200908202248.n7KMmXfs029817@imap1.linux-foundation.org>
+Subject: + udf-convert-to-use-the-new-truncate-convention.patch added to -mm tree
+Date: Thu, 20 Aug 2009 15:48:37 -0700
+Message-ID: <200908202248.n7KMmbTX029911@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41605 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58762 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755039AbZHTWtb (ORCPT
+	by vger.kernel.org with ESMTP id S932084AbZHTWts (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Aug 2009 18:49:31 -0400
+	Thu, 20 Aug 2009 18:49:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: npiggin@suse.de, chris.mason@oracle.com, hch@lst.de, hirofumi@mail.parknet.c
 
 
 The patch titled
-     btrfs: convert to use the new truncate convention
+     udf: convert to use the new truncate convention
 has been added to the -mm tree.  Its filename is
-     btrfs-convert-to-use-the-new-truncate-convention.patch
+     udf-convert-to-use-the-new-truncate-convention.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,14 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: btrfs: convert to use the new truncate convention
+Subject: udf: convert to use the new truncate convention
 From: Nick Piggin <npiggin@suse.de>
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Chris Mason <chris.mason@oracle.com>
-Cc: Christoph Hellwig <hch@lst.de>
 Cc: Jan Kara <jack@suse.cz>
+Cc: Christoph Hellwig <hch@lst.de>
 Cc: Dave Kleikamp <shaggy@linux.vnet.ibm.com>
+Cc: Chris Mason <chris.mason@oracle.com>
 Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Cc: Miklos Szeredi <miklos@szeredi.hu>
@@ -51,240 +51,154 @@ Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/btrfs/ctree.h |    1 
- fs/btrfs/inode.c |  132 ++++++++++++++++++++++++++++-----------------
- fs/btrfs/ioctl.c |    2 
- 3 files changed, 86 insertions(+), 49 deletions(-)
+ fs/udf/file.c    |    3 +
+ fs/udf/inode.c   |   73 +++++++++++++++++++++++++++++++++++++++++----
+ fs/udf/udfdecl.h |    2 -
+ 3 files changed, 71 insertions(+), 7 deletions(-)
 
-diff -puN fs/btrfs/ctree.h~btrfs-convert-to-use-the-new-truncate-convention fs/btrfs/ctree.h
---- a/fs/btrfs/ctree.h~btrfs-convert-to-use-the-new-truncate-convention
-+++ a/fs/btrfs/ctree.h
-@@ -2275,6 +2275,7 @@ int btrfs_orphan_add(struct btrfs_trans_
- int btrfs_orphan_del(struct btrfs_trans_handle *trans, struct inode *inode);
- void btrfs_orphan_cleanup(struct btrfs_root *root);
- int btrfs_cont_expand(struct inode *inode, loff_t size);
-+void btrfs_truncate_blocks(struct inode *inode, loff_t offset);
- 
- /* ioctl.c */
- long btrfs_ioctl(struct file *file, unsigned int cmd, unsigned long arg);
-diff -puN fs/btrfs/inode.c~btrfs-convert-to-use-the-new-truncate-convention fs/btrfs/inode.c
---- a/fs/btrfs/inode.c~btrfs-convert-to-use-the-new-truncate-convention
-+++ a/fs/btrfs/inode.c
-@@ -81,7 +81,6 @@ static unsigned char btrfs_type_by_mode[
- 	[S_IFLNK >> S_SHIFT]	= BTRFS_FT_SYMLINK,
+diff -puN fs/udf/file.c~udf-convert-to-use-the-new-truncate-convention fs/udf/file.c
+--- a/fs/udf/file.c~udf-convert-to-use-the-new-truncate-convention
++++ a/fs/udf/file.c
+@@ -215,5 +215,6 @@ const struct file_operations udf_file_op
  };
  
--static void btrfs_truncate(struct inode *inode);
- static int btrfs_finish_ordered_io(struct inode *inode, u64 start, u64 end);
- static noinline int cow_file_range(struct inode *inode,
- 				   struct page *locked_page,
-@@ -1990,7 +1989,7 @@ void btrfs_orphan_cleanup(struct btrfs_r
- 		/* if we have links, this was a truncate, lets do that */
- 		if (inode->i_nlink) {
- 			nr_truncate++;
--			btrfs_truncate(inode);
-+			btrfs_truncate_blocks(inode, inode->i_size);
- 		} else {
- 			nr_unlink++;
- 		}
-@@ -2956,39 +2955,6 @@ int btrfs_cont_expand(struct inode *inod
- 	return err;
- }
+ const struct inode_operations udf_file_inode_operations = {
+-	.truncate = udf_truncate,
++	.new_truncate = 1,
++	.setattr = udf_setattr,
+ };
+diff -puN fs/udf/inode.c~udf-convert-to-use-the-new-truncate-convention fs/udf/inode.c
+--- a/fs/udf/inode.c~udf-convert-to-use-the-new-truncate-convention
++++ a/fs/udf/inode.c
+@@ -67,6 +67,7 @@ static void udf_update_extents(struct in
+ 			       struct extent_position *);
+ static int udf_get_block(struct inode *, sector_t, struct buffer_head *, int);
  
--static int btrfs_setattr(struct dentry *dentry, struct iattr *attr)
--{
--	struct inode *inode = dentry->d_inode;
--	int err;
--
--	err = inode_change_ok(inode, attr);
--	if (err)
--		return err;
--
--	if (S_ISREG(inode->i_mode) && (attr->ia_valid & ATTR_SIZE)) {
--		if (attr->ia_size > inode->i_size) {
--			err = btrfs_cont_expand(inode, attr->ia_size);
--			if (err)
--				return err;
--		} else if (inode->i_size > 0 &&
--			   attr->ia_size == 0) {
--
--			/* we're truncating a file that used to have good
--			 * data down to zero.  Make sure it gets into
--			 * the ordered flush list so that any new writes
--			 * get down to disk quickly.
--			 */
--			BTRFS_I(inode)->ordered_data_close = 1;
--		}
--	}
--
--	err = inode_setattr(inode, attr);
--
--	if (!err && ((attr->ia_valid & ATTR_MODE)))
--		err = btrfs_acl_chmod(inode);
--	return err;
--}
--
- void btrfs_delete_inode(struct inode *inode)
++static void udf_truncate_blocks(struct inode *inode);
+ 
+ void udf_delete_inode(struct inode *inode)
  {
- 	struct btrfs_trans_handle *trans;
-@@ -4438,7 +4404,7 @@ static void btrfs_invalidatepage(struct 
-  *
-  * We are not allowed to take the i_mutex here so we have to play games to
-  * protect against truncate races as the page could now be beyond EOF.  Because
-- * vmtruncate() writes the inode size before removing pages, once we have the
-+ * btrfs_setsize() writes the inode size before removing pages, once we have the
-  * page lock we can determine safely if the page is beyond EOF. If it is not
-  * beyond EOF, then the page is guaranteed safe against truncation until we
-  * unlock the page.
-@@ -4524,7 +4490,7 @@ out:
- 	return ret;
- }
+@@ -76,7 +77,7 @@ void udf_delete_inode(struct inode *inod
+ 		goto no_delete;
  
--static void btrfs_truncate(struct inode *inode)
-+static void __btrfs_truncate_blocks(struct inode *inode, loff_t offset)
+ 	inode->i_size = 0;
+-	udf_truncate(inode);
++	udf_truncate_blocks(inode);
+ 	lock_kernel();
+ 
+ 	udf_update_inode(inode, IS_SYNC(inode));
+@@ -124,9 +125,34 @@ static int udf_write_begin(struct file *
+ 			loff_t pos, unsigned len, unsigned flags,
+ 			struct page **pagep, void **fsdata)
  {
- 	struct btrfs_root *root = BTRFS_I(inode)->root;
- 	int ret;
-@@ -4532,13 +4498,8 @@ static void btrfs_truncate(struct inode 
- 	unsigned long nr;
- 	u64 mask = root->sectorsize - 1;
- 
--	if (!S_ISREG(inode->i_mode))
--		return;
--	if (IS_APPEND(inode) || IS_IMMUTABLE(inode))
--		return;
--
--	btrfs_truncate_page(inode->i_mapping, inode->i_size);
--	btrfs_wait_ordered_range(inode, inode->i_size & (~mask), (u64)-1);
-+	btrfs_truncate_page(inode->i_mapping, offset);
-+	btrfs_wait_ordered_range(inode, offset & (~mask), (u64)-1);
- 
- 	trans = btrfs_start_transaction(root, 1);
- 
-@@ -4559,17 +4520,17 @@ static void btrfs_truncate(struct inode 
- 	 * using truncate to replace the contents of the file will
- 	 * end up with a zero length file after a crash.
- 	 */
--	if (inode->i_size == 0 && BTRFS_I(inode)->ordered_data_close)
-+	if (offset == 0 && BTRFS_I(inode)->ordered_data_close)
- 		btrfs_add_ordered_operation(trans, root, inode);
- 
- 	btrfs_set_trans_block_group(trans, inode);
--	btrfs_i_size_write(inode, inode->i_size);
-+	btrfs_i_size_write(inode, offset);
- 
- 	ret = btrfs_orphan_add(trans, inode);
- 	if (ret)
- 		goto out;
- 	/* FIXME, add redo link to tree so we don't leak on crash */
--	ret = btrfs_truncate_inode_items(trans, root, inode, inode->i_size,
-+	ret = btrfs_truncate_inode_items(trans, root, inode, offset,
- 				      BTRFS_EXTENT_DATA_KEY);
- 	btrfs_update_inode(trans, root, inode);
- 
-@@ -4583,6 +4544,81 @@ out:
- 	btrfs_btree_balance_dirty(root, nr);
- }
- 
-+void btrfs_truncate_blocks(struct inode *inode, loff_t offset)
-+{
-+	if (!S_ISREG(inode->i_mode))
-+		return;
-+	/* XXX: should allow IS_APPEND and IS_IMMUTABLE files to have
-+	 * blocks trimmed past i_size */
-+	if (IS_APPEND(inode) || IS_IMMUTABLE(inode))
-+		return;
++	int ret;
 +
-+	__btrfs_truncate_blocks(inode, offset);
-+	mark_inode_dirty(inode);
+ 	*pagep = NULL;
+-	return block_write_begin(file, mapping, pos, len, flags, pagep, fsdata,
++	ret = block_write_begin(file, mapping, pos, len, flags, pagep, fsdata,
+ 				udf_get_block);
++	if (ret < 0) {
++		struct inode *inode = mapping->host;
++		loff_t isize = inode->i_size;
++		if (pos + len > isize)
++			udf_truncate_blocks(inode);
++	}
++	return ret;
 +}
 +
-+static int btrfs_setsize(struct inode *inode, loff_t newsize)
++static int udf_write_end(struct file *file, struct address_space *mapping,
++			loff_t pos, unsigned len, unsigned copied,
++			struct page *page, void *fsdata)
 +{
-+	int error;
-+	loff_t oldsize;
++	int ret;
 +
-+	if (!S_ISREG(inode->i_mode))
-+		return -EINVAL;
-+	if (IS_APPEND(inode) || IS_IMMUTABLE(inode))
-+		return -EPERM;
++	ret = generic_write_end(file, mapping, pos, len, copied, page, fsdata);
++	if (ret < len) {
++		struct inode *inode = mapping->host;
++		loff_t isize = inode->i_size;
++		if (pos + len > isize)
++			udf_truncate_blocks(inode);
++	}
++	return ret;
+ }
+ 
+ static sector_t udf_bmap(struct address_space *mapping, sector_t block)
+@@ -138,8 +164,8 @@ const struct address_space_operations ud
+ 	.readpage	= udf_readpage,
+ 	.writepage	= udf_writepage,
+ 	.sync_page	= block_sync_page,
+-	.write_begin		= udf_write_begin,
+-	.write_end		= generic_write_end,
++	.write_begin	= udf_write_begin,
++	.write_end	= udf_write_end,
+ 	.bmap		= udf_bmap,
+ };
+ 
+@@ -1012,7 +1038,7 @@ struct buffer_head *udf_bread(struct ino
+ 	return NULL;
+ }
+ 
+-void udf_truncate(struct inode *inode)
++static void udf_truncate_blocks(struct inode *inode)
+ {
+ 	int offset;
+ 	int err;
+@@ -1058,6 +1084,43 @@ void udf_truncate(struct inode *inode)
+ 	unlock_kernel();
+ }
+ 
++static int udf_setsize(struct inode *inode, loff_t newsize)
++{
++	loff_t oldsize;
++	int error;
 +
 +	error = inode_newsize_ok(inode, newsize);
 +	if (error)
 +		return error;
 +
 +	oldsize = inode->i_size;
-+	__btrfs_truncate_blocks(inode, newsize);
++	i_size_write(inode, newsize);
 +	truncate_pagecache(inode, oldsize, newsize);
++
++	udf_truncate_blocks(inode);
 +
 +	return error;
 +}
 +
-+static int btrfs_setattr(struct dentry *dentry, struct iattr *attr)
++int udf_setattr(struct dentry *dentry, struct iattr *attr)
 +{
 +	struct inode *inode = dentry->d_inode;
-+	int err;
++	int error;
 +
-+	err = inode_change_ok(inode, attr);
-+	if (err)
-+		return err;
-+
-+	if (S_ISREG(inode->i_mode) && (attr->ia_valid & ATTR_SIZE)) {
-+		loff_t newsize = attr->ia_size;
-+
-+		if (newsize > inode->i_size) {
-+			err = btrfs_cont_expand(inode, newsize);
-+			if (err)
-+				return err;
-+		} else if (inode->i_size > 0 &&
-+			   newsize == 0) {
-+
-+			/* we're truncating a file that used to have good
-+			 * data down to zero.  Make sure it gets into
-+			 * the ordered flush list so that any new writes
-+			 * get down to disk quickly.
-+			 */
-+			BTRFS_I(inode)->ordered_data_close = 1;
-+		}
-+
-+		err = btrfs_setsize(inode, newsize);
-+		if (err)
-+			return err;
++	if (attr->ia_valid & ATTR_SIZE) {
++		error = udf_setsize(inode, attr->ia_size);
++		if (error)
++			return error;
 +	}
 +
-+	generic_setattr(inode, attr);
++	error = simple_setattr(dentry, attr);
++	if (error)
++		return error;
 +
-+	if ((attr->ia_valid & ATTR_MODE))
-+		err = btrfs_acl_chmod(inode);
 +	mark_inode_dirty(inode);
-+
-+	return err;
++	return error;
 +}
 +
- /*
-  * create a new subvolume directory/inode (helper for the ioctl).
-  */
-@@ -5272,7 +5308,7 @@ static struct address_space_operations b
- };
- 
- static struct inode_operations btrfs_file_inode_operations = {
--	.truncate	= btrfs_truncate,
-+	.new_truncate	= 1,
- 	.getattr	= btrfs_getattr,
- 	.setattr	= btrfs_setattr,
- 	.setxattr	= btrfs_setxattr,
-diff -puN fs/btrfs/ioctl.c~btrfs-convert-to-use-the-new-truncate-convention fs/btrfs/ioctl.c
---- a/fs/btrfs/ioctl.c~btrfs-convert-to-use-the-new-truncate-convention
-+++ a/fs/btrfs/ioctl.c
-@@ -1148,7 +1148,7 @@ out:
- 	btrfs_end_transaction(trans, root);
- 	unlock_extent(&BTRFS_I(src)->io_tree, off, off+len, GFP_NOFS);
- 	if (ret)
--		vmtruncate(inode, 0);
-+		btrfs_truncate_blocks(inode, 0);
- out_unlock:
- 	mutex_unlock(&src->i_mutex);
- 	mutex_unlock(&inode->i_mutex);
+ static void __udf_read_inode(struct inode *inode)
+ {
+ 	struct buffer_head *bh = NULL;
+diff -puN fs/udf/udfdecl.h~udf-convert-to-use-the-new-truncate-convention fs/udf/udfdecl.h
+--- a/fs/udf/udfdecl.h~udf-convert-to-use-the-new-truncate-convention
++++ a/fs/udf/udfdecl.h
+@@ -138,7 +138,7 @@ extern int udf_sync_inode(struct inode *
+ extern void udf_expand_file_adinicb(struct inode *, int, int *);
+ extern struct buffer_head *udf_expand_dir_adinicb(struct inode *, int *, int *);
+ extern struct buffer_head *udf_bread(struct inode *, int, int, int *);
+-extern void udf_truncate(struct inode *);
++extern int udf_setattr(struct dentry *, struct iattr *);
+ extern void udf_read_inode(struct inode *);
+ extern void udf_delete_inode(struct inode *);
+ extern void udf_clear_inode(struct inode *);
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
