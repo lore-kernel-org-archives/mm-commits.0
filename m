@@ -1,299 +1,376 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hpilo-staging-for-interrupt-handling.patch removed from -mm tree
-Date: Thu, 20 Aug 2009 13:13:12 -0700
-Message-ID: <200908202013.n7KKDCuC016279@imap1.linux-foundation.org>
+Subject: [merged] mm-revert-oom-move-oom_adj-value.patch removed from -mm tree
+Date: Thu, 20 Aug 2009 13:12:44 -0700
+Message-ID: <200908202012.n7KKCick015471@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60796 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46908 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755298AbZHTUNo (ORCPT
+	by vger.kernel.org with ESMTP id S1755301AbZHTUOE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Aug 2009 16:13:44 -0400
+	Thu, 20 Aug 2009 16:14:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david.altobelli@hp.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, menage@google.com, npiggin@suse.de, oleg@redhat.com, riel@redhat.com, rientjes@google.com, torvalds@linu
 
 
 The patch titled
-     hpilo: staging for interrupt handling
+     mm: revert "oom: move oom_adj value"
 has been removed from the -mm tree.  Its filename was
-     hpilo-staging-for-interrupt-handling.patch
+     mm-revert-oom-move-oom_adj-value.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hpilo: staging for interrupt handling
-From: David Altobelli <david.altobelli@hp.com>
+Subject: mm: revert "oom: move oom_adj value"
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Add a .poll() in order for applications to wait for a packet without wasting 
-system resources by repeatedly reading a mostly empty channel.
+The commit 2ff05b2b (oom: move oom_adj value) moveed the oom_adj value to
+the mm_struct.  It was a very good first step for sanitize OOM.
 
-Three patches follow: some minor refactoring that shouldn't be functionally 
-different, adding an interrupt handler, and finally adding a .poll().
+However Paul Menage reported the commit makes regression to his job
+scheduler.  Current OOM logic can kill OOM_DISABLED process.
 
+Why? His program has the code of similar to the following.
 
-This patch:
+	...
+	set_oom_adj(OOM_DISABLE); /* The job scheduler never killed by oom */
+	...
+	if (vfork() == 0) {
+		set_oom_adj(0); /* Invoked child can be killed */
+		execve("foo-bar-cmd");
+	}
+	....
 
-Refactor some hpilo routines in order to allow for locking changes in
-interrupt handling.  Should not be functionally different.
+vfork() parent and child are shared the same mm_struct.  then above
+set_oom_adj(0) doesn't only change oom_adj for vfork() child, it's also
+change oom_adj for vfork() parent.  Then, vfork() parent (job scheduler)
+lost OOM immune and it was killed.
 
-Please CC me on any replies.
+Actually, fork-setting-exec idiom is very frequently used in userland program.
+We must not break this assumption.
 
-Signed-off-by: David Altobelli <david.altobelli@hp.com>
-Cc: Greg KH <greg@kroah.com>
+Then, this patch revert commit 2ff05b2b and related commit.
+
+Reverted commit list
+---------------------
+- commit 2ff05b2b4e (oom: move oom_adj value from task_struct to mm_struct)
+- commit 4d8b9135c3 (oom: avoid unnecessary mm locking and scanning for OOM_DISABLE)
+- commit 8123681022 (oom: only oom kill exiting tasks with attached memory)
+- commit 933b787b57 (mm: copy over oom_adj value at fork time)
+
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Paul Menage <menage@google.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/hpilo.c |  120 ++++++++++++++++++++++++-----------------
- 1 file changed, 73 insertions(+), 47 deletions(-)
+ Documentation/filesystems/proc.txt |   15 ++----
+ fs/proc/base.c                     |   19 +-------
+ include/linux/mm_types.h           |    2 
+ include/linux/sched.h              |    1 
+ kernel/fork.c                      |    1 
+ mm/oom_kill.c                      |   64 ++++++++++++++++-----------
+ 6 files changed, 48 insertions(+), 54 deletions(-)
 
-diff -puN drivers/misc/hpilo.c~hpilo-staging-for-interrupt-handling drivers/misc/hpilo.c
---- a/drivers/misc/hpilo.c~hpilo-staging-for-interrupt-handling
-+++ a/drivers/misc/hpilo.c
-@@ -151,6 +151,7 @@ static inline void doorbell_clr(struct c
- {
- 	iowrite8(2, ccb->ccb_u5.db_base);
- }
-+
- static inline int ctrl_set(int l2sz, int idxmask, int desclim)
- {
- 	int active = 0, go = 1;
-@@ -160,6 +161,7 @@ static inline int ctrl_set(int l2sz, int
- 	       active << CTRL_BITPOS_A |
- 	       go << CTRL_BITPOS_G;
- }
-+
- static void ctrl_setup(struct ccb *ccb, int nr_desc, int l2desc_sz)
- {
- 	/* for simplicity, use the same parameters for send and recv ctrls */
-@@ -192,13 +194,10 @@ static void fifo_setup(void *base_addr, 
+diff -puN Documentation/filesystems/proc.txt~mm-revert-oom-move-oom_adj-value Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~mm-revert-oom-move-oom_adj-value
++++ a/Documentation/filesystems/proc.txt
+@@ -1167,13 +1167,11 @@ CHAPTER 3: PER-PROCESS PARAMETERS
+ 3.1 /proc/<pid>/oom_adj - Adjust the oom-killer score
+ ------------------------------------------------------
  
- static void ilo_ccb_close(struct pci_dev *pdev, struct ccb_data *data)
- {
--	struct ccb *driver_ccb;
--	struct ccb __iomem *device_ccb;
-+	struct ccb *driver_ccb = &data->driver_ccb;
-+	struct ccb __iomem *device_ccb = data->mapped_ccb;
- 	int retries;
+-This file can be used to adjust the score used to select which processes should
+-be killed in an out-of-memory situation.  The oom_adj value is a characteristic
+-of the task's mm, so all threads that share an mm with pid will have the same
+-oom_adj value.  A high value will increase the likelihood of this process being
+-killed by the oom-killer.  Valid values are in the range -16 to +15 as
+-explained below and a special value of -17, which disables oom-killing
+-altogether for threads sharing pid's mm.
++This file can be used to adjust the score used to select which processes
++should be killed in an  out-of-memory  situation.  Giving it a high score will
++increase the likelihood of this process being killed by the oom-killer.  Valid
++values are in the range -16 to +15, plus the special value -17, which disables
++oom-killing altogether for this process.
  
--	driver_ccb = &data->driver_ccb;
--	device_ccb = data->mapped_ccb;
+ The process to be killed in an out-of-memory situation is selected among all others
+ based on its badness score. This value equals the original memory size of the process
+@@ -1187,9 +1185,6 @@ the parent's score if they do not share 
+ are the prime candidates to be killed. Having only one 'hungry' child will make
+ parent less preferable than the child.
+ 
+-/proc/<pid>/oom_adj cannot be changed for kthreads since they are immune from
+-oom-killing already.
 -
- 	/* complicated dance to tell the hw we are stopping */
- 	doorbell_clr(driver_ccb);
- 	iowrite32(ioread32(&device_ccb->send_ctrl) & ~(1 << CTRL_BITPOS_G),
-@@ -225,26 +224,22 @@ static void ilo_ccb_close(struct pci_dev
- 	pci_free_consistent(pdev, data->dma_size, data->dma_va, data->dma_pa);
- }
+ /proc/<pid>/oom_score shows process' current badness score.
  
--static int ilo_ccb_open(struct ilo_hwinfo *hw, struct ccb_data *data, int slot)
-+static int ilo_ccb_setup(struct ilo_hwinfo *hw, struct ccb_data *data, int slot)
- {
- 	char *dma_va, *dma_pa;
--	int pkt_id, pkt_sz, i, error;
- 	struct ccb *driver_ccb, *ilo_ccb;
--	struct pci_dev *pdev;
+ The following heuristics are then applied:
+diff -puN fs/proc/base.c~mm-revert-oom-move-oom_adj-value fs/proc/base.c
+--- a/fs/proc/base.c~mm-revert-oom-move-oom_adj-value
++++ a/fs/proc/base.c
+@@ -1003,12 +1003,7 @@ static ssize_t oom_adjust_read(struct fi
  
- 	driver_ccb = &data->driver_ccb;
- 	ilo_ccb = &data->ilo_ccb;
--	pdev = hw->ilo_dev;
+ 	if (!task)
+ 		return -ESRCH;
+-	task_lock(task);
+-	if (task->mm)
+-		oom_adjust = task->mm->oom_adj;
+-	else
+-		oom_adjust = OOM_DISABLE;
+-	task_unlock(task);
++	oom_adjust = task->oomkilladj;
+ 	put_task_struct(task);
  
- 	data->dma_size = 2 * fifo_sz(NR_QENTRY) +
- 			 2 * desc_mem_sz(NR_QENTRY) +
- 			 ILO_START_ALIGN + ILO_CACHE_SZ;
+ 	len = snprintf(buffer, sizeof(buffer), "%i\n", oom_adjust);
+@@ -1037,19 +1032,11 @@ static ssize_t oom_adjust_write(struct f
+ 	task = get_proc_task(file->f_path.dentry->d_inode);
+ 	if (!task)
+ 		return -ESRCH;
+-	task_lock(task);
+-	if (!task->mm) {
+-		task_unlock(task);
+-		put_task_struct(task);
+-		return -EINVAL;
+-	}
+-	if (oom_adjust < task->mm->oom_adj && !capable(CAP_SYS_RESOURCE)) {
+-		task_unlock(task);
++	if (oom_adjust < task->oomkilladj && !capable(CAP_SYS_RESOURCE)) {
+ 		put_task_struct(task);
+ 		return -EACCES;
+ 	}
+-	task->mm->oom_adj = oom_adjust;
+-	task_unlock(task);
++	task->oomkilladj = oom_adjust;
+ 	put_task_struct(task);
+ 	if (end - buffer == 0)
+ 		return -EIO;
+diff -puN include/linux/mm_types.h~mm-revert-oom-move-oom_adj-value include/linux/mm_types.h
+--- a/include/linux/mm_types.h~mm-revert-oom-move-oom_adj-value
++++ a/include/linux/mm_types.h
+@@ -240,8 +240,6 @@ struct mm_struct {
  
--	error = -ENOMEM;
--	data->dma_va = pci_alloc_consistent(pdev, data->dma_size,
-+	data->dma_va = pci_alloc_consistent(hw->ilo_dev, data->dma_size,
- 					    &data->dma_pa);
- 	if (!data->dma_va)
--		goto out;
-+		return -ENOMEM;
+ 	unsigned long saved_auxv[AT_VECTOR_SIZE]; /* for /proc/PID/auxv */
  
- 	dma_va = (char *)data->dma_va;
- 	dma_pa = (char *)data->dma_pa;
-@@ -290,10 +285,18 @@ static int ilo_ccb_open(struct ilo_hwinf
- 	driver_ccb->ccb_u5.db_base = hw->db_vaddr + (slot << L2_DB_SIZE);
- 	ilo_ccb->ccb_u5.db_base = NULL; /* hw ccb's doorbell is not used */
+-	s8 oom_adj;	/* OOM kill score adjustment (bit shift) */
+-
+ 	cpumask_t cpu_vm_mask;
  
-+	return 0;
-+}
-+
-+static void ilo_ccb_open(struct ilo_hwinfo *hw, struct ccb_data *data, int slot)
-+{
-+	int pkt_id, pkt_sz;
-+	struct ccb *driver_ccb = &data->driver_ccb;
-+
- 	/* copy the ccb with physical addrs to device memory */
- 	data->mapped_ccb = (struct ccb __iomem *)
- 				(hw->ram_vaddr + (slot * ILOHW_CCB_SZ));
--	memcpy_toio(data->mapped_ccb, ilo_ccb, sizeof(struct ccb));
-+	memcpy_toio(data->mapped_ccb, &data->ilo_ccb, sizeof(struct ccb));
+ 	/* Architecture-specific MM context */
+diff -puN include/linux/sched.h~mm-revert-oom-move-oom_adj-value include/linux/sched.h
+--- a/include/linux/sched.h~mm-revert-oom-move-oom_adj-value
++++ a/include/linux/sched.h
+@@ -1198,6 +1198,7 @@ struct task_struct {
+ 	 * a short time
+ 	 */
+ 	unsigned char fpu_counter;
++	s8 oomkilladj; /* OOM kill score adjustment (bit shift). */
+ #ifdef CONFIG_BLK_DEV_IO_TRACE
+ 	unsigned int btrace_seq;
+ #endif
+diff -puN kernel/fork.c~mm-revert-oom-move-oom_adj-value kernel/fork.c
+--- a/kernel/fork.c~mm-revert-oom-move-oom_adj-value
++++ a/kernel/fork.c
+@@ -426,7 +426,6 @@ static struct mm_struct * mm_init(struct
+ 	init_rwsem(&mm->mmap_sem);
+ 	INIT_LIST_HEAD(&mm->mmlist);
+ 	mm->flags = (current->mm) ? current->mm->flags : default_dump_filter;
+-	mm->oom_adj = (current->mm) ? current->mm->oom_adj : 0;
+ 	mm->core_state = NULL;
+ 	mm->nr_ptes = 0;
+ 	set_mm_counter(mm, file_rss, 0);
+diff -puN mm/oom_kill.c~mm-revert-oom-move-oom_adj-value mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-revert-oom-move-oom_adj-value
++++ a/mm/oom_kill.c
+@@ -58,7 +58,6 @@ unsigned long badness(struct task_struct
+ 	unsigned long points, cpu_time, run_time;
+ 	struct mm_struct *mm;
+ 	struct task_struct *child;
+-	int oom_adj;
  
- 	/* put packets on the send and receive queues */
- 	pkt_sz = 0;
-@@ -306,7 +309,14 @@ static int ilo_ccb_open(struct ilo_hwinf
- 	for (pkt_id = 0; pkt_id < NR_QENTRY; pkt_id++)
- 		ilo_pkt_enqueue(hw, driver_ccb, RECVQ, pkt_id, pkt_sz);
+ 	task_lock(p);
+ 	mm = p->mm;
+@@ -66,11 +65,6 @@ unsigned long badness(struct task_struct
+ 		task_unlock(p);
+ 		return 0;
+ 	}
+-	oom_adj = mm->oom_adj;
+-	if (oom_adj == OOM_DISABLE) {
+-		task_unlock(p);
+-		return 0;
+-	}
  
-+	/* the ccb is ready to use */
- 	doorbell_clr(driver_ccb);
-+}
-+
-+static int ilo_ccb_verify(struct ilo_hwinfo *hw, struct ccb_data *data)
-+{
-+	int pkt_id, i;
-+	struct ccb *driver_ccb = &data->driver_ccb;
+ 	/*
+ 	 * The memory size of the process is the basis for the badness.
+@@ -154,15 +148,15 @@ unsigned long badness(struct task_struct
+ 		points /= 8;
  
- 	/* make sure iLO is really handling requests */
- 	for (i = MAX_WAIT; i > 0; i--) {
-@@ -315,20 +325,14 @@ static int ilo_ccb_open(struct ilo_hwinf
- 		udelay(WAIT_TIME);
+ 	/*
+-	 * Adjust the score by oom_adj.
++	 * Adjust the score by oomkilladj.
+ 	 */
+-	if (oom_adj) {
+-		if (oom_adj > 0) {
++	if (p->oomkilladj) {
++		if (p->oomkilladj > 0) {
+ 			if (!points)
+ 				points = 1;
+-			points <<= oom_adj;
++			points <<= p->oomkilladj;
+ 		} else
+-			points >>= -(oom_adj);
++			points >>= -(p->oomkilladj);
  	}
  
--	if (i) {
--		ilo_pkt_enqueue(hw, driver_ccb, SENDQ, pkt_id, 0);
--		doorbell_set(driver_ccb);
--	} else {
--		dev_err(&pdev->dev, "Open could not dequeue a packet\n");
--		error = -EBUSY;
--		goto free;
-+	if (i == 0) {
-+		dev_err(&hw->ilo_dev->dev, "Open could not dequeue a packet\n");
-+		return -EBUSY;
- 	}
- 
-+	ilo_pkt_enqueue(hw, driver_ccb, SENDQ, pkt_id, 0);
-+	doorbell_set(driver_ccb);
- 	return 0;
--free:
--	ilo_ccb_close(pdev, data);
--out:
--	return error;
- }
- 
- static inline int is_channel_reset(struct ccb *ccb)
-@@ -343,16 +347,31 @@ static inline void set_channel_reset(str
- 	FIFOBARTOHANDLE(ccb->ccb_u1.send_fifobar)->reset = 1;
- }
- 
-+static inline int get_device_outbound(struct ilo_hwinfo *hw)
-+{
-+	return ioread32(&hw->mmio_vaddr[DB_OUT]);
-+}
-+
-+static inline int is_db_reset(int db_out)
-+{
-+	return db_out & (1 << DB_RESET);
-+}
-+
- static inline int is_device_reset(struct ilo_hwinfo *hw)
- {
- 	/* check for global reset condition */
--	return ioread32(&hw->mmio_vaddr[DB_OUT]) & (1 << DB_RESET);
-+	return is_db_reset(get_device_outbound(hw));
-+}
-+
-+static inline void clear_pending_db(struct ilo_hwinfo *hw, int clr)
-+{
-+	iowrite32(clr, &hw->mmio_vaddr[DB_OUT]);
- }
- 
- static inline void clear_device(struct ilo_hwinfo *hw)
- {
- 	/* clear the device (reset bits, pending channel entries) */
--	iowrite32(-1, &hw->mmio_vaddr[DB_OUT]);
-+	clear_pending_db(hw, -1);
- }
- 
- static void ilo_locked_reset(struct ilo_hwinfo *hw)
-@@ -387,15 +406,11 @@ static ssize_t ilo_read(struct file *fp,
- 			size_t len, loff_t *off)
- {
- 	int err, found, cnt, pkt_id, pkt_len;
--	struct ccb_data *data;
--	struct ccb *driver_ccb;
--	struct ilo_hwinfo *hw;
-+	struct ccb_data *data = fp->private_data;
-+	struct ccb *driver_ccb = &data->driver_ccb;
-+	struct ilo_hwinfo *hw = data->ilo_hw;
- 	void *pkt;
- 
--	data = fp->private_data;
--	driver_ccb = &data->driver_ccb;
--	hw = data->ilo_hw;
--
- 	if (is_device_reset(hw) || is_channel_reset(driver_ccb)) {
- 		/*
- 		 * If the device has been reset, applications
-@@ -442,15 +457,11 @@ static ssize_t ilo_write(struct file *fp
- 			 size_t len, loff_t *off)
- {
- 	int err, pkt_id, pkt_len;
--	struct ccb_data *data;
--	struct ccb *driver_ccb;
--	struct ilo_hwinfo *hw;
-+	struct ccb_data *data = fp->private_data;
-+	struct ccb *driver_ccb = &data->driver_ccb;
-+	struct ilo_hwinfo *hw = data->ilo_hw;
- 	void *pkt;
- 
--	data = fp->private_data;
--	driver_ccb = &data->driver_ccb;
--	hw = data->ilo_hw;
--
- 	if (is_device_reset(hw) || is_channel_reset(driver_ccb)) {
- 		/*
- 		 * If the device has been reset, applications
-@@ -532,14 +543,28 @@ static int ilo_open(struct inode *ip, st
- 	/* each fd private_data holds sw/hw view of ccb */
- 	if (hw->ccb_alloc[slot] == NULL) {
- 		/* create a channel control block for this minor */
--		error = ilo_ccb_open(hw, data, slot);
--		if (!error) {
--			hw->ccb_alloc[slot] = data;
--			hw->ccb_alloc[slot]->ccb_cnt = 1;
--			hw->ccb_alloc[slot]->ccb_excl = fp->f_flags & O_EXCL;
--			hw->ccb_alloc[slot]->ilo_hw = hw;
--		} else
-+		error = ilo_ccb_setup(hw, data, slot);
-+		if (error) {
-+			kfree(data);
-+			goto out;
-+		}
-+
-+		/* write the ccb to hw */
-+		ilo_ccb_open(hw, data, slot);
-+
-+		/* make sure the channel is functional */
-+		error = ilo_ccb_verify(hw, data);
-+		if (error) {
-+			ilo_ccb_close(hw->ilo_dev, data);
- 			kfree(data);
-+			goto out;
-+		}
-+
-+		data->ccb_cnt = 1;
-+		data->ccb_excl = fp->f_flags & O_EXCL;
-+		data->ilo_hw = hw;
-+		hw->ccb_alloc[slot] = data;
-+
- 	} else {
- 		kfree(data);
- 		if (fp->f_flags & O_EXCL || hw->ccb_alloc[slot]->ccb_excl) {
-@@ -554,6 +579,7 @@ static int ilo_open(struct inode *ip, st
- 			error = 0;
+ #ifdef DEBUG
+@@ -257,8 +251,11 @@ static struct task_struct *select_bad_pr
+ 			*ppoints = ULONG_MAX;
  		}
- 	}
-+out:
- 	spin_unlock(&hw->alloc_lock);
  
- 	if (!error)
++		if (p->oomkilladj == OOM_DISABLE)
++			continue;
++
+ 		points = badness(p, uptime.tv_sec);
+-		if (points > *ppoints) {
++		if (points > *ppoints || !chosen) {
+ 			chosen = p;
+ 			*ppoints = points;
+ 		}
+@@ -307,7 +304,8 @@ static void dump_tasks(const struct mem_
+ 		}
+ 		printk(KERN_INFO "[%5d] %5d %5d %8lu %8lu %3d     %3d %s\n",
+ 		       p->pid, __task_cred(p)->uid, p->tgid, mm->total_vm,
+-		       get_mm_rss(mm), (int)task_cpu(p), mm->oom_adj, p->comm);
++		       get_mm_rss(mm), (int)task_cpu(p), p->oomkilladj,
++		       p->comm);
+ 		task_unlock(p);
+ 	} while_each_thread(g, p);
+ }
+@@ -325,8 +323,11 @@ static void __oom_kill_task(struct task_
+ 		return;
+ 	}
+ 
+-	if (!p->mm)
++	if (!p->mm) {
++		WARN_ON(1);
++		printk(KERN_WARNING "tried to kill an mm-less task!\n");
+ 		return;
++	}
+ 
+ 	if (verbose)
+ 		printk(KERN_ERR "Killed process %d (%s)\n",
+@@ -348,13 +349,28 @@ static int oom_kill_task(struct task_str
+ 	struct mm_struct *mm;
+ 	struct task_struct *g, *q;
+ 
+-	task_lock(p);
+ 	mm = p->mm;
+-	if (!mm || mm->oom_adj == OOM_DISABLE) {
+-		task_unlock(p);
++
++	/* WARNING: mm may not be dereferenced since we did not obtain its
++	 * value from get_task_mm(p).  This is OK since all we need to do is
++	 * compare mm to q->mm below.
++	 *
++	 * Furthermore, even if mm contains a non-NULL value, p->mm may
++	 * change to NULL at any time since we do not hold task_lock(p).
++	 * However, this is of no concern to us.
++	 */
++
++	if (mm == NULL)
+ 		return 1;
+-	}
+-	task_unlock(p);
++
++	/*
++	 * Don't kill the process if any threads are set to OOM_DISABLE
++	 */
++	do_each_thread(g, q) {
++		if (q->mm == mm && q->oomkilladj == OOM_DISABLE)
++			return 1;
++	} while_each_thread(g, q);
++
+ 	__oom_kill_task(p, 1);
+ 
+ 	/*
+@@ -377,11 +393,10 @@ static int oom_kill_process(struct task_
+ 	struct task_struct *c;
+ 
+ 	if (printk_ratelimit()) {
+-		task_lock(current);
+ 		printk(KERN_WARNING "%s invoked oom-killer: "
+-			"gfp_mask=0x%x, order=%d, oom_adj=%d\n",
+-			current->comm, gfp_mask, order,
+-			current->mm ? current->mm->oom_adj : OOM_DISABLE);
++			"gfp_mask=0x%x, order=%d, oomkilladj=%d\n",
++			current->comm, gfp_mask, order, current->oomkilladj);
++		task_lock(current);
+ 		cpuset_print_task_mems_allowed(current);
+ 		task_unlock(current);
+ 		dump_stack();
+@@ -394,9 +409,8 @@ static int oom_kill_process(struct task_
+ 	/*
+ 	 * If the task is already exiting, don't alarm the sysadmin or kill
+ 	 * its children or threads, just set TIF_MEMDIE so it can die quickly
+-	 * if its mm is still attached.
+ 	 */
+-	if (p->mm && (p->flags & PF_EXITING)) {
++	if (p->flags & PF_EXITING) {
+ 		__oom_kill_task(p, 0);
+ 		return 0;
+ 	}
 _
 
-Patches currently in -mm which might be from david.altobelli@hp.com are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
+origin.patch
 linux-next.patch
+mm-fix-for-infinite-churning-of-mlocked-pages.patch
+readahead-add-blk_run_backing_dev.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+mm-clean-up-page_remove_rmap.patch
+mm-show_free_areas-display-slab-pages-in-two-separate-fields.patch
+mm-oom-analysis-add-per-zone-statistics-to-show_free_areas.patch
+mm-oom-analysis-add-buffer-cache-information-to-show_free_areas.patch
+mm-oom-analysis-show-kernel-stack-usage-in-proc-meminfo-and-oom-log-output.patch
+mm-oom-analysis-add-shmem-vmstat.patch
+mm-rename-pgmoved-variable-in-shrink_active_list.patch
+mm-shrink_inactive_list-nr_scan-accounting-fix-fix.patch
+mm-vmstat-add-isolate-pages.patch
+mm-vmstat-add-isolate-pages-fix.patch
+vmscan-throttle-direct-reclaim-when-too-many-pages-are-isolated-already.patch
+mm-remove-__addsub_zone_page_state.patch
+mm-count-only-reclaimable-lru-pages-v2.patch
+vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
+vmscan-move-clearpageactive-from-move_active_pages-to-shrink_active_list.patch
+vmscan-kill-unnecessary-page-flag-test.patch
+vmscan-kill-unnecessary-prefetch.patch
+mm-perform-non-atomic-test-clear-of-pg_mlocked-on-free.patch
+tracing-page-allocator-add-trace-events-for-page-allocation-and-page-freeing.patch
+tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists.patch
+mm-drop-unneeded-double-negations.patch
+mm-introduce-page_lru_base_type.patch
+mm-return-boolean-from-page_is_file_cache.patch
+mm-return-boolean-from-page_has_private.patch
+mm-document-is_page_cache_freeable.patch
+getrusage-fill-ru_maxrss-value.patch
+getrusage-fill-ru_maxrss-value-update.patch
+memory-controller-soft-limit-documentation-v9.patch
+memory-controller-soft-limit-interface-v9.patch
+memory-controller-soft-limit-organize-cgroups-v9.patch
+memory-controller-soft-limit-organize-cgroups-v9-fix.patch
+memory-controller-soft-limit-refactor-reclaim-flags-v9.patch
+memory-controller-soft-limit-reclaim-on-contention-v9.patch
+memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
+memcg-improve-resource-counter-scalability.patch
+memcg-improve-resource-counter-scalability-v5.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
