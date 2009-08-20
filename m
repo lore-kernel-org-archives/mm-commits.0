@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + cgroups-ensure-correct-concurrent-opening-reading-of-pidlists-across-pid-namespaces.patch added to -mm tree
-Date: Thu, 20 Aug 2009 14:14:11 -0700
-Message-ID: <200908202114.n7KLECgJ026319@imap1.linux-foundation.org>
+Subject: + cgroups-use-vmalloc-for-large-cgroups-pidlist-allocations.patch added to -mm tree
+Date: Thu, 20 Aug 2009 14:14:14 -0700
+Message-ID: <200908202114.n7KLEE0H026324@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51536 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40618 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754457AbZHTVU1 (ORCPT
+	by vger.kernel.org with ESMTP id S1755457AbZHTVUg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Aug 2009 17:20:27 -0400
+	Thu, 20 Aug 2009 17:20:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: bblum@google.com, ebiederm@xmission.com, lizf@cn.fujitsu.com, matthltc@us.ib
 
 
 The patch titled
-     cgroups: ensure correct concurrent opening/reading of pidlists across pid namespaces
+     cgroups: use vmalloc for large cgroups pidlist allocations
 has been added to the -mm tree.  Its filename is
-     cgroups-ensure-correct-concurrent-opening-reading-of-pidlists-across-pid-namespaces.patch
+     cgroups-use-vmalloc-for-large-cgroups-pidlist-allocations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,281 +34,120 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: ensure correct concurrent opening/reading of pidlists across pid namespaces
+Subject: cgroups: use vmalloc for large cgroups pidlist allocations
 From: Ben Blum <bblum@google.com>
 
-Previously there was the problem in which two processes from different pid
-namespaces reading the tasks or procs file could result in one process
-seeing results from the other's namespace.  Rather than one pidlist for
-each file in a cgroup, we now keep a list of pidlists keyed by namespace
-and file type (tasks versus procs) in which entries are placed on demand. 
-Each pidlist has its own lock, and that the pidlists themselves are passed
-around in the seq_file's private pointer means we don't have to touch the
-cgroup or its master list except when creating and destroying entries.
+Separates all pidlist allocation requests to a separate function that
+judges based on the requested size whether or not the array needs to be
+vmalloced or can be gotten via kmalloc, and similar for kfree/vfree.
 
 Signed-off-by: Ben Blum <bblum@google.com>
 Signed-off-by: Paul Menage <menage@google.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
+Acked-by: Li Zefan <lizf@cn.fujitsu.com>
 Cc: Matt Helsley <matthltc@us.ibm.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cgroup.h |   34 ++++++++++--
- kernel/cgroup.c        |  107 ++++++++++++++++++++++++++++++++-------
- 2 files changed, 119 insertions(+), 22 deletions(-)
+ kernel/cgroup.c |   47 +++++++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 42 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/cgroup.h~cgroups-ensure-correct-concurrent-opening-reading-of-pidlists-across-pid-namespaces include/linux/cgroup.h
---- a/include/linux/cgroup.h~cgroups-ensure-correct-concurrent-opening-reading-of-pidlists-across-pid-namespaces
-+++ a/include/linux/cgroup.h
-@@ -141,15 +141,36 @@ enum {
- 	CGRP_WAIT_ON_RMDIR,
- };
- 
-+/* which pidlist file are we talking about? */
-+enum cgroup_filetype {
-+	CGROUP_FILE_PROCS,
-+	CGROUP_FILE_TASKS,
-+};
-+
-+/*
-+ * A pidlist is a list of pids that virtually represents the contents of one
-+ * of the cgroup files ("procs" or "tasks"). We keep a list of such pidlists,
-+ * a pair (one each for procs, tasks) for each pid namespace that's relevant
-+ * to the cgroup.
-+ */
- struct cgroup_pidlist {
--	/* protects the other fields */
--	struct rw_semaphore mutex;
-+	/*
-+	 * used to find which pidlist is wanted. doesn't change as long as
-+	 * this particular list stays in the list.
-+	 */
-+	struct { enum cgroup_filetype type; struct pid_namespace *ns; } key;
- 	/* array of xids */
- 	pid_t *list;
- 	/* how many elements the above list has */
- 	int length;
- 	/* how many files are using the current array */
- 	int use_count;
-+	/* each of these stored in a list by its cgroup */
-+	struct list_head links;
-+	/* pointer to the cgroup we belong to, for list removal purposes */
-+	struct cgroup *owner;
-+	/* protects the other fields */
-+	struct rw_semaphore mutex;
- };
- 
- struct cgroup {
-@@ -190,9 +211,12 @@ struct cgroup {
- 	 */
- 	struct list_head release_list;
- 
--	/* we will have two separate pidlists, one for pids (the tasks file)
--	 * and one for tgids (the procs file). */
--	struct cgroup_pidlist tasks, procs;
-+	/*
-+	 * list of pidlists, up to two for each namespace (one for procs, one
-+	 * for tasks); created on demand.
-+	 */
-+	struct list_head pidlists;
-+	struct mutex pidlist_mutex;
- 
- 	/* For RCU-protected deletion */
- 	struct rcu_head rcu_head;
-diff -puN kernel/cgroup.c~cgroups-ensure-correct-concurrent-opening-reading-of-pidlists-across-pid-namespaces kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-ensure-correct-concurrent-opening-reading-of-pidlists-across-pid-namespaces
+diff -puN kernel/cgroup.c~cgroups-use-vmalloc-for-large-cgroups-pidlist-allocations kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-use-vmalloc-for-large-cgroups-pidlist-allocations
 +++ a/kernel/cgroup.c
-@@ -776,6 +776,12 @@ static void cgroup_diput(struct dentry *
- 		 */
- 		deactivate_super(cgrp->root->sb);
+@@ -50,6 +50,7 @@
+ #include <linux/smp_lock.h>
+ #include <linux/pid_namespace.h>
+ #include <linux/idr.h>
++#include <linux/vmalloc.h> /* TODO: replace with more sophisticated array */
  
-+		/*
-+		 * if we're getting rid of the cgroup, refcount should ensure
-+		 * that there are no pidlists left.
-+		 */
-+		BUG_ON(!list_empty(&cgrp->pidlists));
-+
- 		call_rcu(&cgrp->rcu_head, free_cgroup_rcu);
- 	}
- 	iput(inode);
-@@ -1121,8 +1127,8 @@ static void init_cgroup_housekeeping(str
- 	INIT_LIST_HEAD(&cgrp->children);
- 	INIT_LIST_HEAD(&cgrp->css_sets);
- 	INIT_LIST_HEAD(&cgrp->release_list);
--	init_rwsem(&(cgrp->tasks.mutex));
--	init_rwsem(&(cgrp->procs.mutex));
-+	INIT_LIST_HEAD(&cgrp->pidlists);
-+	mutex_init(&cgrp->pidlist_mutex);
- }
+ #include <asm/atomic.h>
  
- static void init_cgroup_root(struct cgroupfs_root *root)
-@@ -2396,9 +2402,59 @@ static int cmppid(const void *a, const v
- }
+@@ -2351,6 +2352,42 @@ int cgroup_scan_tasks(struct cgroup_scan
+  */
  
  /*
-+ * find the appropriate pidlist for our purpose (given procs vs tasks)
-+ * returns with the lock on that pidlist already held, and takes care
-+ * of the use count, or returns NULL with no locks held if we're out of
-+ * memory.
++ * The following two functions "fix" the issue where there are more pids
++ * than kmalloc will give memory for; in such cases, we use vmalloc/vfree.
++ * TODO: replace with a kernel-wide solution to this problem
 + */
-+static struct cgroup_pidlist *cgroup_pidlist_find(struct cgroup *cgrp,
-+						  enum cgroup_filetype type)
++#define PIDLIST_TOO_LARGE(c) ((c) * sizeof(pid_t) > (PAGE_SIZE * 2))
++static void *pidlist_allocate(int count)
 +{
-+	struct cgroup_pidlist *l;
-+	/* don't need task_nsproxy() if we're looking at ourself */
-+	struct pid_namespace *ns = get_pid_ns(current->nsproxy->pid_ns);
-+	/*
-+	 * We can't drop the pidlist_mutex before taking the l->mutex in case
-+	 * the last ref-holder is trying to remove l from the list at the same
-+	 * time. Holding the pidlist_mutex precludes somebody taking whichever
-+	 * list we find out from under us - compare release_pid_array().
-+	 */
-+	mutex_lock(&cgrp->pidlist_mutex);
-+	list_for_each_entry(l, &cgrp->pidlists, links) {
-+		if (l->key.type == type && l->key.ns == ns) {
-+			/* found a matching list - drop the extra refcount */
-+			put_pid_ns(ns);
-+			/* make sure l doesn't vanish out from under us */
-+			down_write(&l->mutex);
-+			mutex_unlock(&cgrp->pidlist_mutex);
-+			l->use_count++;
-+			return l;
-+		}
++	if (PIDLIST_TOO_LARGE(count))
++		return vmalloc(count * sizeof(pid_t));
++	else
++		return kmalloc(count * sizeof(pid_t), GFP_KERNEL);
++}
++static void pidlist_free(void *p)
++{
++	if (is_vmalloc_addr(p))
++		vfree(p);
++	else
++		kfree(p);
++}
++static void *pidlist_resize(void *p, int newcount)
++{
++	void *newlist;
++	/* note: if new alloc fails, old p will still be valid either way */
++	if (is_vmalloc_addr(p)) {
++		newlist = vmalloc(newcount * sizeof(pid_t));
++		if (!newlist)
++			return NULL;
++		memcpy(newlist, p, newcount * sizeof(pid_t));
++		vfree(p);
++	} else {
++		newlist = krealloc(p, newcount * sizeof(pid_t), GFP_KERNEL);
 +	}
-+	/* entry not found; create a new one */
-+	l = kmalloc(sizeof(struct cgroup_pidlist), GFP_KERNEL);
-+	if (!l) {
-+		mutex_unlock(&cgrp->pidlist_mutex);
-+		put_pid_ns(ns);
-+		return l;
-+	}
-+	init_rwsem(&l->mutex);
-+	down_write(&l->mutex);
-+	l->key.type = type;
-+	l->key.ns = ns;
-+	l->use_count = 0; /* don't increment here */
-+	l->list = NULL;
-+	l->owner = cgrp;
-+	list_add(&l->links, &cgrp->pidlists);
-+	mutex_unlock(&cgrp->pidlist_mutex);
-+	return l;
++	return newlist;
 +}
 +
 +/*
-  * Load a cgroup's pidarray with either procs' tgids or tasks' pids
-  */
--static int pidlist_array_load(struct cgroup *cgrp, bool procs)
-+static int pidlist_array_load(struct cgroup *cgrp, enum cgroup_filetype type,
-+			      struct cgroup_pidlist **lp)
- {
- 	pid_t *array;
- 	int length;
-@@ -2423,7 +2479,10 @@ static int pidlist_array_load(struct cgr
- 		if (unlikely(n == length))
- 			break;
- 		/* get tgid or pid for procs or tasks file respectively */
--		pid = (procs ? task_tgid_vnr(tsk) : task_pid_vnr(tsk));
-+		if (type == CGROUP_FILE_PROCS)
-+			pid = task_tgid_vnr(tsk);
-+		else
-+			pid = task_pid_vnr(tsk);
- 		if (pid > 0) /* make sure to only use valid results */
- 			array[n++] = pid;
+  * pidlist_uniq - given a kmalloc()ed list, strip out all duplicate entries
+  * If the new stripped list is sufficiently smaller and there's enough memory
+  * to allocate a new buffer, will let go of the unneeded memory. Returns the
+@@ -2389,7 +2426,7 @@ after:
+ 	 * we'll just stay with what we've got.
+ 	 */
+ 	if (PIDLIST_REALLOC_DIFFERENCE(length, dest)) {
+-		newlist = krealloc(list, dest * sizeof(pid_t), GFP_KERNEL);
++		newlist = pidlist_resize(list, dest);
+ 		if (newlist)
+ 			*p = newlist;
  	}
-@@ -2431,19 +2490,20 @@ static int pidlist_array_load(struct cgr
- 	length = n;
- 	/* now sort & (if procs) strip out duplicates */
- 	sort(array, length, sizeof(pid_t), cmppid, NULL);
--	if (procs) {
-+	if (type == CGROUP_FILE_PROCS)
+@@ -2470,7 +2507,7 @@ static int pidlist_array_load(struct cgr
+ 	 * show up until sometime later on.
+ 	 */
+ 	length = cgroup_task_count(cgrp);
+-	array = kmalloc(length * sizeof(pid_t), GFP_KERNEL);
++	array = pidlist_allocate(length);
+ 	if (!array)
+ 		return -ENOMEM;
+ 	/* now, populate the array */
+@@ -2494,11 +2531,11 @@ static int pidlist_array_load(struct cgr
  		length = pidlist_uniq(&array, length);
--		l = &(cgrp->procs);
--	} else {
--		l = &(cgrp->tasks);
-+	l = cgroup_pidlist_find(cgrp, type);
-+	if (!l) {
-+		kfree(array);
-+		return -ENOMEM;
+ 	l = cgroup_pidlist_find(cgrp, type);
+ 	if (!l) {
+-		kfree(array);
++		pidlist_free(array);
+ 		return -ENOMEM;
  	}
--	/* store array in cgroup, freeing old if necessary */
--	down_write(&l->mutex);
-+	/* store array, freeing old if necessary - lock already held */
- 	kfree(l->list);
+ 	/* store array, freeing old if necessary - lock already held */
+-	kfree(l->list);
++	pidlist_free(l->list);
  	l->list = array;
  	l->length = length;
  	l->use_count++;
- 	up_write(&l->mutex);
-+	*lp = l;
- 	return 0;
- }
- 
-@@ -2586,13 +2646,26 @@ static const struct seq_operations cgrou
- 
- static void cgroup_release_pid_array(struct cgroup_pidlist *l)
- {
-+	/*
-+	 * the case where we're the last user of this particular pidlist will
-+	 * have us remove it from the cgroup's list, which entails taking the
-+	 * mutex. since in pidlist_find the pidlist->lock depends on cgroup->
-+	 * pidlist_mutex, we have to take pidlist_mutex first.
-+	 */
-+	mutex_lock(&l->owner->pidlist_mutex);
- 	down_write(&l->mutex);
- 	BUG_ON(!l->use_count);
- 	if (!--l->use_count) {
-+		/* we're the last user if refcount is 0; remove and free */
-+		list_del(&l->links);
-+		mutex_unlock(&l->owner->pidlist_mutex);
- 		kfree(l->list);
--		l->list = NULL;
--		l->length = 0;
-+		put_pid_ns(l->key.ns);
-+		up_write(&l->mutex);
-+		kfree(l);
-+		return;
- 	}
-+	mutex_unlock(&l->owner->pidlist_mutex);
- 	up_write(&l->mutex);
- }
- 
-@@ -2623,10 +2696,10 @@ static const struct file_operations cgro
-  * in the cgroup.
-  */
- /* helper function for the two below it */
--static int cgroup_pidlist_open(struct file *file, bool procs)
-+static int cgroup_pidlist_open(struct file *file, enum cgroup_filetype type)
- {
- 	struct cgroup *cgrp = __d_cgrp(file->f_dentry->d_parent);
--	struct cgroup_pidlist *l = (procs ? &cgrp->procs : &cgrp->tasks);
-+	struct cgroup_pidlist *l;
- 	int retval;
- 
- 	/* Nothing to do for write-only files */
-@@ -2634,7 +2707,7 @@ static int cgroup_pidlist_open(struct fi
- 		return 0;
- 
- 	/* have the array populated */
--	retval = pidlist_array_load(cgrp, procs);
-+	retval = pidlist_array_load(cgrp, type, &l);
- 	if (retval)
- 		return retval;
- 	/* configure file information */
-@@ -2650,11 +2723,11 @@ static int cgroup_pidlist_open(struct fi
- }
- static int cgroup_tasks_open(struct inode *unused, struct file *file)
- {
--	return cgroup_pidlist_open(file, false);
-+	return cgroup_pidlist_open(file, CGROUP_FILE_TASKS);
- }
- static int cgroup_procs_open(struct inode *unused, struct file *file)
- {
--	return cgroup_pidlist_open(file, true);
-+	return cgroup_pidlist_open(file, CGROUP_FILE_PROCS);
- }
- 
- static u64 cgroup_read_notify_on_release(struct cgroup *cgrp,
+@@ -2659,7 +2696,7 @@ static void cgroup_release_pid_array(str
+ 		/* we're the last user if refcount is 0; remove and free */
+ 		list_del(&l->links);
+ 		mutex_unlock(&l->owner->pidlist_mutex);
+-		kfree(l->list);
++		pidlist_free(l->list);
+ 		put_pid_ns(l->key.ns);
+ 		up_write(&l->mutex);
+ 		kfree(l);
 _
 
 Patches currently in -mm which might be from bblum@google.com are
