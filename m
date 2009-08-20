@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + selinux-adjust-rules-for-attr_force.patch added to -mm tree
-Date: Thu, 20 Aug 2009 14:35:13 -0700
-Message-ID: <200908202135.n7KLZDsI031004@imap1.linux-foundation.org>
+Subject: + bsdacct-switch-credentials-for-writing-to-the-accounting-file.patch added to -mm tree
+Date: Thu, 20 Aug 2009 14:39:52 -0700
+Message-ID: <200908202139.n7KLdq6D006632@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43502 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49463 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751068AbZHTVgG (ORCPT
+	by vger.kernel.org with ESMTP id S1753018AbZHTVlS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Aug 2009 17:36:06 -0400
+	Thu, 20 Aug 2009 17:41:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: amwang@redhat.com, eparis@redhat.com, eteo@redhat.com, hch@lst.de, hirofumi@mail.parknet.co.jp, sds@tycho.nsa.gov, viro@zeniv.linux.org.uk
+Cc: mschmidt@redhat.com, dhowells@redhat.com, jmorris@namei.org, sds@tycho.nsa.gov, serue@us.ibm.com
 
 
 The patch titled
-     selinux: adjust rules for ATTR_FORCE
+     bsdacct: switch credentials for writing to the accounting file
 has been added to the -mm tree.  Its filename is
-     selinux-adjust-rules-for-attr_force.patch
+     bsdacct-switch-credentials-for-writing-to-the-accounting-file.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,64 +34,67 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: selinux: adjust rules for ATTR_FORCE
-From: Amerigo Wang <amwang@redhat.com>
+Subject: bsdacct: switch credentials for writing to the accounting file
+From: Michal Schmidt <mschmidt@redhat.com>
 
-As suggested by OGAWA Hirofumi in thread:
-http://lkml.org/lkml/2009/8/7/132, we should let selinux_inode_setattr()
-to match our ATTR_* rules.  ATTR_FORCE should not force things like
-ATTR_SIZE.
+When process accounting is enabled, every exiting process writes a log to
+the account file.  In addition, every once in a while one of the exiting
+processes checks whether there's enough free space for the log.
 
-[hirofumi@mail.parknet.co.jp: tweaks]
-Signed-off-by: WANG Cong <amwang@redhat.com>
-Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Acked-by: Stephen Smalley <sds@tycho.nsa.gov>
-Cc: Eric Paris <eparis@redhat.com>
-Cc: Eugene Teo <eteo@redhat.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
+SELinux policy may or may not allow the exiting process to stat the fs. 
+So unsuspecting processes start generating AVC denials just because
+someone enabled process accounting.
+
+For these filesystem operations, the exiting process's credentials should
+be temporarily switched to that of the process which enabled accounting,
+because it's really that process which wanted to have the accounting
+information logged.
+
+Signed-off-by: Michal Schmidt <mschmidt@redhat.com>
+Acked-by: David Howells <dhowells@redhat.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: Serge Hallyn <serue@us.ibm.com>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/selinux/hooks.c |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ kernel/acct.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN security/selinux/hooks.c~selinux-adjust-rules-for-attr_force security/selinux/hooks.c
---- a/security/selinux/hooks.c~selinux-adjust-rules-for-attr_force
-+++ a/security/selinux/hooks.c
-@@ -2711,12 +2711,18 @@ static int selinux_inode_permission(stru
- static int selinux_inode_setattr(struct dentry *dentry, struct iattr *iattr)
- {
- 	const struct cred *cred = current_cred();
-+	unsigned int ia_valid = iattr->ia_valid;
+diff -puN kernel/acct.c~bsdacct-switch-credentials-for-writing-to-the-accounting-file kernel/acct.c
+--- a/kernel/acct.c~bsdacct-switch-credentials-for-writing-to-the-accounting-file
++++ a/kernel/acct.c
+@@ -491,13 +491,17 @@ static void do_acct_process(struct bsd_a
+ 	u64 run_time;
+ 	struct timespec uptime;
+ 	struct tty_struct *tty;
++	const struct cred *orig_cred;
++
++	/* Perform file operations on behalf of whoever enabled accounting */
++	orig_cred = override_creds(file->f_cred);
  
--	if (iattr->ia_valid & ATTR_FORCE)
--		return 0;
-+	/* ATTR_FORCE is just used for ATTR_KILL_S[UG]ID. */
-+	if (ia_valid & ATTR_FORCE) {
-+		ia_valid &= ~(ATTR_KILL_SUID | ATTR_KILL_SGID | ATTR_MODE |
-+			      ATTR_FORCE);
-+		if (!ia_valid)
-+			return 0;
-+	}
+ 	/*
+ 	 * First check to see if there is enough free_space to continue
+ 	 * the process accounting system.
+ 	 */
+ 	if (!check_free_space(acct, file))
+-		return;
++		goto out;
  
--	if (iattr->ia_valid & (ATTR_MODE | ATTR_UID | ATTR_GID |
--			       ATTR_ATIME_SET | ATTR_MTIME_SET))
-+	if (ia_valid & (ATTR_MODE | ATTR_UID | ATTR_GID |
-+			ATTR_ATIME_SET | ATTR_MTIME_SET | ATTR_TIMES_SET))
- 		return dentry_has_perm(cred, NULL, dentry, FILE__SETATTR);
+ 	/*
+ 	 * Fill the accounting struct with the needed info as recorded
+@@ -578,6 +582,8 @@ static void do_acct_process(struct bsd_a
+ 			       sizeof(acct_t), &file->f_pos);
+ 	current->signal->rlim[RLIMIT_FSIZE].rlim_cur = flim;
+ 	set_fs(fs);
++out:
++	revert_creds(orig_cred);
+ }
  
- 	return dentry_has_perm(cred, NULL, dentry, FILE__WRITE);
+ /**
 _
 
-Patches currently in -mm which might be from amwang@redhat.com are
+Patches currently in -mm which might be from mschmidt@redhat.com are
 
-origin.patch
-linux-next.patch
-selinux-adjust-rules-for-attr_force.patch
-vfs-allow-file-truncations-when-both-suid-and-write-permissions-set.patch
-xtensa-use-generic-sys_pipe.patch
-kcore-fix-proc-kcores-statst_size.patch
-elf-clean-up-fill_note_info.patch
-elf-clean-up-fill_note_info-fix.patch
+bsdacct-switch-credentials-for-writing-to-the-accounting-file.patch
 
