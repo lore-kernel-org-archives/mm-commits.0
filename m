@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dma-debug-fix-check_unmap-null-pointer-dereference.patch added to -mm tree
-Date: Thu, 20 Aug 2009 14:55:35 -0700
-Message-ID: <200908202155.n7KLtZwb001792@imap1.linux-foundation.org>
+Subject: + s3c2410fb-fix-clockrate-calculation.patch added to -mm tree
+Date: Thu, 20 Aug 2009 15:19:48 -0700
+Message-ID: <200908202219.n7KMJmHb011898@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36161 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51726 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751851AbZHTV4H (ORCPT
+	by vger.kernel.org with ESMTP id S1753715AbZHTWUC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Aug 2009 17:56:07 -0400
+	Thu, 20 Aug 2009 18:20:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kyle@redhat.com, joerg.roedel@amd.com, mchehab@infradead.org, mingo@elte.hu
+Cc: ben@simtec.co.uk
 
 
 The patch titled
-     dma-debug: fix check_unmap null pointer dereference
+     s3c2410fb: fix clockrate calculation
 has been added to the -mm tree.  Its filename is
-     dma-debug-fix-check_unmap-null-pointer-dereference.patch
+     s3c2410fb-fix-clockrate-calculation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,83 +34,50 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dma-debug: fix check_unmap null pointer dereference
-From: Kyle McMartin <kyle@redhat.com>
+Subject: s3c2410fb: fix clockrate calculation
+From: Ben Dooks <ben@simtec.co.uk>
 
-While it's debatable whether or not a NULL device argument to the DMA API
-functions is valid...  since it certainly isn't valid on devices with an
-IOMMU...  dma-debug really shouldn't be dereferencing null pointers
-either.
+In the final part of the calculation for the tft display clockrate we
+divide the output pf s3c2410fb_calc_pixclk() by 2 which leaves us with a
+rounding error if the result is odd.
 
-Guard against that in err_printk and the driver_filter functions.  A
-Fedora rawhide user was seeing this in one of the dvb drivers resulting in
-an oops on boot.
+Change to using DIV_ROUND_UP() to ensure that we always choose a higher
+divisor and thus a lower frequency.
 
-A patch has been sent for testing to the driver, but I feel the dma
-debugging support should be fixed as well.  (There's still a pile of
-legacy garbage in the kernel passing null pointers to dma_{alloc,free}_*. :(
-
-Signed-off-by: Kyle McMartin <kyle@redhat.com>
-Cc: Joerg Roedel <joerg.roedel@amd.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: Ben Dooks <ben@simtec.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/dma-debug.c |   28 ++++++++++++++++------------
- 1 file changed, 16 insertions(+), 12 deletions(-)
+ drivers/video/s3c2410fb.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN lib/dma-debug.c~dma-debug-fix-check_unmap-null-pointer-dereference lib/dma-debug.c
---- a/lib/dma-debug.c~dma-debug-fix-check_unmap-null-pointer-dereference
-+++ a/lib/dma-debug.c
-@@ -156,9 +156,13 @@ static bool driver_filter(struct device 
- 		return true;
- 
- 	/* driver filter on and initialized */
--	if (current_driver && dev->driver == current_driver)
-+	if (current_driver && dev && dev->driver == current_driver)
- 		return true;
- 
-+	/* driver filter on, but we can't filter on a NULL device... */
-+	if (!dev)
-+		return false;
+diff -puN drivers/video/s3c2410fb.c~s3c2410fb-fix-clockrate-calculation drivers/video/s3c2410fb.c
+--- a/drivers/video/s3c2410fb.c~s3c2410fb-fix-clockrate-calculation
++++ a/drivers/video/s3c2410fb.c
+@@ -369,7 +369,9 @@ static void s3c2410fb_activate_var(struc
+ 	void __iomem *regs = fbi->io;
+ 	int type = fbi->regs.lcdcon1 & S3C2410_LCDCON1_TFT;
+ 	struct fb_var_screeninfo *var = &info->var;
+-	int clkdiv = s3c2410fb_calc_pixclk(fbi, var->pixclock) / 2;
++	int clkdiv;
 +
- 	if (current_driver || !current_driver_name[0])
- 		return false;
++	clkdiv = DIV_ROUND_UP(s3c2410fb_calc_pixclk(fbi, var->pixclock), 2);
  
-@@ -183,17 +187,17 @@ static bool driver_filter(struct device 
- 	return ret;
- }
- 
--#define err_printk(dev, entry, format, arg...) do {		\
--		error_count += 1;				\
--		if (driver_filter(dev) &&			\
--		    (show_all_errors || show_num_errors > 0)) {	\
--			WARN(1, "%s %s: " format,		\
--			     dev_driver_string(dev),		\
--			     dev_name(dev) , ## arg);		\
--			dump_entry_trace(entry);		\
--		}						\
--		if (!show_all_errors && show_num_errors > 0)	\
--			show_num_errors -= 1;			\
-+#define err_printk(dev, entry, format, arg...) do {			\
-+		error_count += 1;					\
-+		if (driver_filter(dev) &&				\
-+		    (show_all_errors || show_num_errors > 0)) {		\
-+			WARN(1, "%s %s: " format,			\
-+			     dev ? dev_driver_string(dev) : "NULL",	\
-+			     dev ? dev_name(dev) : "NULL", ## arg);	\
-+			dump_entry_trace(entry);			\
-+		}							\
-+		if (!show_all_errors && show_num_errors > 0)		\
-+			show_num_errors -= 1;				\
- 	} while (0);
- 
- /*
+ 	dprintk("%s: var->xres  = %d\n", __func__, var->xres);
+ 	dprintk("%s: var->yres  = %d\n", __func__, var->yres);
 _
 
-Patches currently in -mm which might be from kyle@redhat.com are
+Patches currently in -mm which might be from ben@simtec.co.uk are
 
 origin.patch
-dma-debug-fix-check_unmap-null-pointer-dereference.patch
+linux-next.patch
+spi-fix-spelling-of-automatically-in-documentation.patch
+spi_s3c24xx-fix-header-includes.patch
+spi_s3c24xx-use-resource_size-to-get-resource-size.patch
+spi_s3c24xx-use-dev_pm_ops.patch
+spi_s3c24xx-cache-device-setup-data.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes-fix.patch
+s3c2410fb-fix-clockrate-calculation.patch
 
