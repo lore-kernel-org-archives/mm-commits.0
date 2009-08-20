@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cgroups-add-functionality-to-read-write-lock-clone_thread-forking-per-threadgroup-fix.patch added to -mm tree
-Date: Thu, 20 Aug 2009 14:14:25 -0700
-Message-ID: <200908202114.n7KLEP1u026738@imap1.linux-foundation.org>
+Subject: + cgroups-ensure-correct-concurrent-opening-reading-of-pidlists-across-pid-namespaces.patch added to -mm tree
+Date: Thu, 20 Aug 2009 14:14:11 -0700
+Message-ID: <200908202114.n7KLECgJ026319@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40859 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51536 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755164AbZHTVTk (ORCPT
+	by vger.kernel.org with ESMTP id S1754457AbZHTVU1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Aug 2009 17:19:40 -0400
+	Thu, 20 Aug 2009 17:20:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bblum@google.com, ebiederm@xmission.com, lizf@cn.fujitsu.com, matthltc@us.ibm.com, menage@google.com, oleg@redhat.com
+Cc: bblum@google.com, ebiederm@xmission.com, lizf@cn.fujitsu.com, matthltc@us.ibm.com, menage@google.com, oleg@redhat.com
 
 
 The patch titled
-     cgroups-add-functionality-to-read-write-lock-clone_thread-forking-per-threadgroup-fix
+     cgroups: ensure correct concurrent opening/reading of pidlists across pid namespaces
 has been added to the -mm tree.  Its filename is
-     cgroups-add-functionality-to-read-write-lock-clone_thread-forking-per-threadgroup-fix.patch
+     cgroups-ensure-correct-concurrent-opening-reading-of-pidlists-across-pid-namespaces.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,108 +34,291 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups-add-functionality-to-read-write-lock-clone_thread-forking-per-threadgroup-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: cgroups: ensure correct concurrent opening/reading of pidlists across pid namespaces
+From: Ben Blum <bblum@google.com>
 
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Ben Blum <bblum@google.com>
+Previously there was the problem in which two processes from different pid
+namespaces reading the tasks or procs file could result in one process
+seeing results from the other's namespace.  Rather than one pidlist for
+each file in a cgroup, we now keep a list of pidlists keyed by namespace
+and file type (tasks versus procs) in which entries are placed on demand. 
+Each pidlist has its own lock, and that the pidlists themselves are passed
+around in the seq_file's private pointer means we don't have to touch the
+cgroup or its master list except when creating and destroying entries.
+
+Signed-off-by: Ben Blum <bblum@google.com>
+Signed-off-by: Paul Menage <menage@google.com>
 Cc: Li Zefan <lizf@cn.fujitsu.com>
 Cc: Matt Helsley <matthltc@us.ibm.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/cgroup.h |   34 ++++++++++--
+ kernel/cgroup.c        |  107 ++++++++++++++++++++++++++++++++-------
+ 2 files changed, 119 insertions(+), 22 deletions(-)
 
-diff -puN kernel/cgroup.c~cgroups-add-functionality-to-read-write-lock-clone_thread-forking-per-threadgroup-fix kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-add-functionality-to-read-write-lock-clone_thread-forking-per-threadgroup-fix
+diff -puN include/linux/cgroup.h~cgroups-ensure-correct-concurrent-opening-reading-of-pidlists-across-pid-namespaces include/linux/cgroup.h
+--- a/include/linux/cgroup.h~cgroups-ensure-correct-concurrent-opening-reading-of-pidlists-across-pid-namespaces
++++ a/include/linux/cgroup.h
+@@ -141,15 +141,36 @@ enum {
+ 	CGRP_WAIT_ON_RMDIR,
+ };
+ 
++/* which pidlist file are we talking about? */
++enum cgroup_filetype {
++	CGROUP_FILE_PROCS,
++	CGROUP_FILE_TASKS,
++};
++
++/*
++ * A pidlist is a list of pids that virtually represents the contents of one
++ * of the cgroup files ("procs" or "tasks"). We keep a list of such pidlists,
++ * a pair (one each for procs, tasks) for each pid namespace that's relevant
++ * to the cgroup.
++ */
+ struct cgroup_pidlist {
+-	/* protects the other fields */
+-	struct rw_semaphore mutex;
++	/*
++	 * used to find which pidlist is wanted. doesn't change as long as
++	 * this particular list stays in the list.
++	 */
++	struct { enum cgroup_filetype type; struct pid_namespace *ns; } key;
+ 	/* array of xids */
+ 	pid_t *list;
+ 	/* how many elements the above list has */
+ 	int length;
+ 	/* how many files are using the current array */
+ 	int use_count;
++	/* each of these stored in a list by its cgroup */
++	struct list_head links;
++	/* pointer to the cgroup we belong to, for list removal purposes */
++	struct cgroup *owner;
++	/* protects the other fields */
++	struct rw_semaphore mutex;
+ };
+ 
+ struct cgroup {
+@@ -190,9 +211,12 @@ struct cgroup {
+ 	 */
+ 	struct list_head release_list;
+ 
+-	/* we will have two separate pidlists, one for pids (the tasks file)
+-	 * and one for tgids (the procs file). */
+-	struct cgroup_pidlist tasks, procs;
++	/*
++	 * list of pidlists, up to two for each namespace (one for procs, one
++	 * for tasks); created on demand.
++	 */
++	struct list_head pidlists;
++	struct mutex pidlist_mutex;
+ 
+ 	/* For RCU-protected deletion */
+ 	struct rcu_head rcu_head;
+diff -puN kernel/cgroup.c~cgroups-ensure-correct-concurrent-opening-reading-of-pidlists-across-pid-namespaces kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-ensure-correct-concurrent-opening-reading-of-pidlists-across-pid-namespaces
 +++ a/kernel/cgroup.c
-@@ -1557,7 +1557,7 @@ struct sighand_struct *threadgroup_fork_
- 		rcu_read_lock();
- 		list_for_each_entry_rcu(p, &tsk->thread_group, thread_group) {
- 			if (p->sighand) {
--				sighand = tsk->sighand;
-+				sighand = p->sighand;
- 				break;
- 			}
- 		}
+@@ -776,6 +776,12 @@ static void cgroup_diput(struct dentry *
+ 		 */
+ 		deactivate_super(cgrp->root->sb);
+ 
++		/*
++		 * if we're getting rid of the cgroup, refcount should ensure
++		 * that there are no pidlists left.
++		 */
++		BUG_ON(!list_empty(&cgrp->pidlists));
++
+ 		call_rcu(&cgrp->rcu_head, free_cgroup_rcu);
+ 	}
+ 	iput(inode);
+@@ -1121,8 +1127,8 @@ static void init_cgroup_housekeeping(str
+ 	INIT_LIST_HEAD(&cgrp->children);
+ 	INIT_LIST_HEAD(&cgrp->css_sets);
+ 	INIT_LIST_HEAD(&cgrp->release_list);
+-	init_rwsem(&(cgrp->tasks.mutex));
+-	init_rwsem(&(cgrp->procs.mutex));
++	INIT_LIST_HEAD(&cgrp->pidlists);
++	mutex_init(&cgrp->pidlist_mutex);
+ }
+ 
+ static void init_cgroup_root(struct cgroupfs_root *root)
+@@ -2396,9 +2402,59 @@ static int cmppid(const void *a, const v
+ }
+ 
+ /*
++ * find the appropriate pidlist for our purpose (given procs vs tasks)
++ * returns with the lock on that pidlist already held, and takes care
++ * of the use count, or returns NULL with no locks held if we're out of
++ * memory.
++ */
++static struct cgroup_pidlist *cgroup_pidlist_find(struct cgroup *cgrp,
++						  enum cgroup_filetype type)
++{
++	struct cgroup_pidlist *l;
++	/* don't need task_nsproxy() if we're looking at ourself */
++	struct pid_namespace *ns = get_pid_ns(current->nsproxy->pid_ns);
++	/*
++	 * We can't drop the pidlist_mutex before taking the l->mutex in case
++	 * the last ref-holder is trying to remove l from the list at the same
++	 * time. Holding the pidlist_mutex precludes somebody taking whichever
++	 * list we find out from under us - compare release_pid_array().
++	 */
++	mutex_lock(&cgrp->pidlist_mutex);
++	list_for_each_entry(l, &cgrp->pidlists, links) {
++		if (l->key.type == type && l->key.ns == ns) {
++			/* found a matching list - drop the extra refcount */
++			put_pid_ns(ns);
++			/* make sure l doesn't vanish out from under us */
++			down_write(&l->mutex);
++			mutex_unlock(&cgrp->pidlist_mutex);
++			l->use_count++;
++			return l;
++		}
++	}
++	/* entry not found; create a new one */
++	l = kmalloc(sizeof(struct cgroup_pidlist), GFP_KERNEL);
++	if (!l) {
++		mutex_unlock(&cgrp->pidlist_mutex);
++		put_pid_ns(ns);
++		return l;
++	}
++	init_rwsem(&l->mutex);
++	down_write(&l->mutex);
++	l->key.type = type;
++	l->key.ns = ns;
++	l->use_count = 0; /* don't increment here */
++	l->list = NULL;
++	l->owner = cgrp;
++	list_add(&l->links, &cgrp->pidlists);
++	mutex_unlock(&cgrp->pidlist_mutex);
++	return l;
++}
++
++/*
+  * Load a cgroup's pidarray with either procs' tgids or tasks' pids
+  */
+-static int pidlist_array_load(struct cgroup *cgrp, bool procs)
++static int pidlist_array_load(struct cgroup *cgrp, enum cgroup_filetype type,
++			      struct cgroup_pidlist **lp)
+ {
+ 	pid_t *array;
+ 	int length;
+@@ -2423,7 +2479,10 @@ static int pidlist_array_load(struct cgr
+ 		if (unlikely(n == length))
+ 			break;
+ 		/* get tgid or pid for procs or tasks file respectively */
+-		pid = (procs ? task_tgid_vnr(tsk) : task_pid_vnr(tsk));
++		if (type == CGROUP_FILE_PROCS)
++			pid = task_tgid_vnr(tsk);
++		else
++			pid = task_pid_vnr(tsk);
+ 		if (pid > 0) /* make sure to only use valid results */
+ 			array[n++] = pid;
+ 	}
+@@ -2431,19 +2490,20 @@ static int pidlist_array_load(struct cgr
+ 	length = n;
+ 	/* now sort & (if procs) strip out duplicates */
+ 	sort(array, length, sizeof(pid_t), cmppid, NULL);
+-	if (procs) {
++	if (type == CGROUP_FILE_PROCS)
+ 		length = pidlist_uniq(&array, length);
+-		l = &(cgrp->procs);
+-	} else {
+-		l = &(cgrp->tasks);
++	l = cgroup_pidlist_find(cgrp, type);
++	if (!l) {
++		kfree(array);
++		return -ENOMEM;
+ 	}
+-	/* store array in cgroup, freeing old if necessary */
+-	down_write(&l->mutex);
++	/* store array, freeing old if necessary - lock already held */
+ 	kfree(l->list);
+ 	l->list = array;
+ 	l->length = length;
+ 	l->use_count++;
+ 	up_write(&l->mutex);
++	*lp = l;
+ 	return 0;
+ }
+ 
+@@ -2586,13 +2646,26 @@ static const struct seq_operations cgrou
+ 
+ static void cgroup_release_pid_array(struct cgroup_pidlist *l)
+ {
++	/*
++	 * the case where we're the last user of this particular pidlist will
++	 * have us remove it from the cgroup's list, which entails taking the
++	 * mutex. since in pidlist_find the pidlist->lock depends on cgroup->
++	 * pidlist_mutex, we have to take pidlist_mutex first.
++	 */
++	mutex_lock(&l->owner->pidlist_mutex);
+ 	down_write(&l->mutex);
+ 	BUG_ON(!l->use_count);
+ 	if (!--l->use_count) {
++		/* we're the last user if refcount is 0; remove and free */
++		list_del(&l->links);
++		mutex_unlock(&l->owner->pidlist_mutex);
+ 		kfree(l->list);
+-		l->list = NULL;
+-		l->length = 0;
++		put_pid_ns(l->key.ns);
++		up_write(&l->mutex);
++		kfree(l);
++		return;
+ 	}
++	mutex_unlock(&l->owner->pidlist_mutex);
+ 	up_write(&l->mutex);
+ }
+ 
+@@ -2623,10 +2696,10 @@ static const struct file_operations cgro
+  * in the cgroup.
+  */
+ /* helper function for the two below it */
+-static int cgroup_pidlist_open(struct file *file, bool procs)
++static int cgroup_pidlist_open(struct file *file, enum cgroup_filetype type)
+ {
+ 	struct cgroup *cgrp = __d_cgrp(file->f_dentry->d_parent);
+-	struct cgroup_pidlist *l = (procs ? &cgrp->procs : &cgrp->tasks);
++	struct cgroup_pidlist *l;
+ 	int retval;
+ 
+ 	/* Nothing to do for write-only files */
+@@ -2634,7 +2707,7 @@ static int cgroup_pidlist_open(struct fi
+ 		return 0;
+ 
+ 	/* have the array populated */
+-	retval = pidlist_array_load(cgrp, procs);
++	retval = pidlist_array_load(cgrp, type, &l);
+ 	if (retval)
+ 		return retval;
+ 	/* configure file information */
+@@ -2650,11 +2723,11 @@ static int cgroup_pidlist_open(struct fi
+ }
+ static int cgroup_tasks_open(struct inode *unused, struct file *file)
+ {
+-	return cgroup_pidlist_open(file, false);
++	return cgroup_pidlist_open(file, CGROUP_FILE_TASKS);
+ }
+ static int cgroup_procs_open(struct inode *unused, struct file *file)
+ {
+-	return cgroup_pidlist_open(file, true);
++	return cgroup_pidlist_open(file, CGROUP_FILE_PROCS);
+ }
+ 
+ static u64 cgroup_read_notify_on_release(struct cgroup *cgrp,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from bblum@google.com are
 
-origin.patch
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-amdc-fix-x86_64-allnoconfig-build.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-video-initial-support-for-adv7180-update-fix.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-checkincludespl-add-option-to-remove-duplicates-in-place.patch
-leds-gpio-leds-fix-typographics-fault.patch
-leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio.patch
-slram-read-buffer-overflow.patch
-zorro8390-fix-read-buffer-overflow-in-zorro8390_init_one-checkpatch-fixes.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-serial167-fix-read-buffer-overflow.patch
-waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes-checkpatch-fixes.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
-vfs-optimize-touch_time-too.patch
-revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
-mm-make-swap-token-dummies-static-inlines-fix.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
-vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
-ummunotify-userspace-support-for-mmu-notifications-v3-fix.patch
-arches-drop-superfluous-casts-in-nr_free_pages-callers-checkpatch-fixes.patch
-tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-m68k-count-can-reach-51-not-50.patch
-arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
-generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
-proc-connector-add-event-for-process-becoming-session-leader.patch
-kernel-smpc-relocate-some-code.patch
-mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
-sdio-add-cd-disable-support-cleanup.patch
-procfs-provide-stack-information-for-threads-v011-fix.patch
-kcore-use-registerd-physmem-information-checkpatch-fixes.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
-rtc-philips-nxp-pcf2123-driver-v03-fix.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes-fix.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
-drivers-video-add-kmalloc-null-tests-fix.patch
-v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
+cgroups-add-a-read-only-procs-file-similar-to-tasks-that-shows-only-unique-tgids.patch
+cgroups-ensure-correct-concurrent-opening-reading-of-pidlists-across-pid-namespaces.patch
+cgroups-use-vmalloc-for-large-cgroups-pidlist-allocations.patch
+cgroups-change-css_set-freeing-mechanism-to-be-under-rcu.patch
+cgroups-let-ss-can_attach-and-ss-attach-do-whole-threadgroups-at-a-time.patch
+cgroups-add-functionality-to-read-write-lock-clone_thread-forking-per-threadgroup.patch
 cgroups-add-functionality-to-read-write-lock-clone_thread-forking-per-threadgroup-fix.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
-memcg-improve-resource-counter-scalability-checkpatch-fixes.patch
-exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
-exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
-elf-clean-up-fill_note_info-fix.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+cgroups-add-ability-to-move-all-threads-in-a-process-to-a-new-cgroup-atomically.patch
 
