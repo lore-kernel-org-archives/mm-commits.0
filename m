@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fb-do-not-ignore-fb_set_par-errors.patch added to -mm tree
-Date: Fri, 21 Aug 2009 14:46:22 -0700
-Message-ID: <200908212146.n7LLkMeI012895@imap1.linux-foundation.org>
+Subject: + anonfd-split-interface-into-file-creation-and-install.patch added to -mm tree
+Date: Fri, 21 Aug 2009 14:48:31 -0700
+Message-ID: <200908212148.n7LLmVCq016739@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53938 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60968 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932982AbZHUVqr (ORCPT
+	by vger.kernel.org with ESMTP id S932243AbZHUVtY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Aug 2009 17:46:47 -0400
+	Fri, 21 Aug 2009 17:49:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: FlorianSchandinat@gmx.de, krzysztof.h1@poczta.fm
+Cc: davidel@xmailserver.org, a.p.zijlstra@chello.nl, ghaskins@novell.com, jmorris@namei.org, serue@us.ibm.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     fb: do not ignore fb_set_par errors
+     anonfd: split interface into file creation and install
 has been added to the -mm tree.  Its filename is
-     fb-do-not-ignore-fb_set_par-errors.patch
+     anonfd-split-interface-into-file-creation-and-install.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,189 +34,297 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fb: do not ignore fb_set_par errors
-From: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Subject: anonfd: split interface into file creation and install
+From: Davide Libenzi <davidel@xmailserver.org>
 
-At the moment about half of the framebuffer drivers can return an error
-code in fb_set_par. Until now it would be silently ignored by fbmem.c
-and fbcon.c. This patch fixes fbmem.c to return the error code and
-restore var on error.
+Split the anonfd interface into a bare file pointer creation one, and a
+file pointer creation plus install one.
 
-But it is not clear in which video mode the device is when fb_set_par
-fails.  It would be good and reasonable if it were in the old state but
-there is no guarantee that this is true for all existing drivers. 
-Additionally print a message if a failing fb_set_par is detected in
-fbmem.c or fbcon.c.
+There are cases, like the usage of eventfds inside other kernel
+interfaces, where the file pointer created by anonfd needs to be used
+inside the initialization of other structures.
 
-Although most errors should be caught by the previous fb_check_var some
-errors can't as they are dynamic (memory allocations, ...) and can only be
-detected while performing the operations which is forbidden in
-fb_check_var.
+As it is right now, as soon as anon_inode_getfd() returns, the kenrle can
+race with userspace closing the newly installed file descriptor.
 
-This patch shouldn't have a negative impact on normal operation as all
-drivers return 0 on success.  The impact in case of error depends heavily
-on the driver and caller but it's expected to be better than before.
+This patch, while keeping the old anon_inode_getfd(), introduces a new
+anon_inode_getfile() (whose services are reused in anon_inode_getfd())
+that allows to split the file creation phase and the fd install one.
 
-Signed-off-by: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Once all the kernel structures are initialized, the code can call the
+proper fd_install().
+
+Gregory manifested the need for something like this inside KVM.
+
+Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: James Morris <jmorris@namei.org>
+Cc: Serge Hallyn <serue@us.ibm.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Gregory Haskins <ghaskins@novell.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/console/fbcon.c |   48 ++++++++++++++++++++++++--------
- drivers/video/fbmem.c         |   15 ++++++++--
- 2 files changed, 50 insertions(+), 13 deletions(-)
+ fs/anon_inodes.c            |   68 +++++++++++++++++++++++++---------
+ fs/eventfd.c                |   67 +++++++++++++++++++++++++++------
+ include/linux/anon_inodes.h |    3 +
+ include/linux/eventfd.h     |    6 +++
+ 4 files changed, 114 insertions(+), 30 deletions(-)
 
-diff -puN drivers/video/console/fbcon.c~fb-do-not-ignore-fb_set_par-errors drivers/video/console/fbcon.c
---- a/drivers/video/console/fbcon.c~fb-do-not-ignore-fb_set_par-errors
-+++ a/drivers/video/console/fbcon.c
-@@ -725,7 +725,7 @@ static int con2fb_release_oldinfo(struct
- 				  int oldidx, int found)
+diff -puN fs/anon_inodes.c~anonfd-split-interface-into-file-creation-and-install fs/anon_inodes.c
+--- a/fs/anon_inodes.c~anonfd-split-interface-into-file-creation-and-install
++++ a/fs/anon_inodes.c
+@@ -77,28 +77,24 @@ static const struct address_space_operat
+  *
+  * Creates a new file by hooking it on a single inode. This is useful for files
+  * that do not need to have a full-fledged inode in order to operate correctly.
+- * All the files created with anon_inode_getfd() will share a single inode,
++ * All the files created with anon_inode_getfile() will share a single inode,
+  * hence saving memory and avoiding code duplication for the file/inode/dentry
+- * setup.  Returns new descriptor or -error.
++ * setup.  Returns the newly created file* or an error pointer.
+  */
+-int anon_inode_getfd(const char *name, const struct file_operations *fops,
+-		     void *priv, int flags)
++struct file *anon_inode_getfile(const char *name,
++				const struct file_operations *fops,
++				void *priv, int flags)
  {
- 	struct fbcon_ops *ops = oldinfo->fbcon_par;
--	int err = 0;
-+	int err = 0, ret;
+ 	struct qstr this;
+ 	struct dentry *dentry;
+ 	struct file *file;
+-	int error, fd;
++	int error;
  
- 	if (oldinfo->fbops->fb_release &&
- 	    oldinfo->fbops->fb_release(oldinfo, 0)) {
-@@ -752,8 +752,14 @@ static int con2fb_release_oldinfo(struct
- 		  newinfo in an undefined state. Thus, a call to
- 		  fb_set_par() may be needed for the newinfo.
- 		*/
--		if (newinfo->fbops->fb_set_par)
--			newinfo->fbops->fb_set_par(newinfo);
-+		if (newinfo->fbops->fb_set_par) {
-+			ret = newinfo->fbops->fb_set_par(newinfo);
+ 	if (IS_ERR(anon_inode_inode))
+-		return -ENODEV;
++		return ERR_PTR(-ENODEV);
+ 
+ 	if (fops->owner && !try_module_get(fops->owner))
+-		return -ENOENT;
+-
+-	error = get_unused_fd_flags(flags);
+-	if (error < 0)
+-		goto err_module;
+-	fd = error;
++		return ERR_PTR(-ENOENT);
+ 
+ 	/*
+ 	 * Link the inode to a directory entry by creating a unique name
+@@ -110,7 +106,7 @@ int anon_inode_getfd(const char *name, c
+ 	this.hash = 0;
+ 	dentry = d_alloc(anon_inode_mnt->mnt_sb->s_root, &this);
+ 	if (!dentry)
+-		goto err_put_unused_fd;
++		goto err_module;
+ 
+ 	/*
+ 	 * We know the anon_inode inode count is always greater than zero,
+@@ -136,16 +132,54 @@ int anon_inode_getfd(const char *name, c
+ 	file->f_version = 0;
+ 	file->private_data = priv;
+ 
++	return file;
 +
-+			if (ret)
-+				printk(KERN_ERR "con2fb_release_oldinfo: "
-+					"detected unhandled fb_set_par error, "
-+					"error code %d\n", ret);
-+		}
- 	}
- 
- 	return err;
-@@ -763,11 +769,18 @@ static void con2fb_init_display(struct v
- 				int unit, int show_logo)
- {
- 	struct fbcon_ops *ops = info->fbcon_par;
-+	int ret;
- 
- 	ops->currcon = fg_console;
- 
--	if (info->fbops->fb_set_par && !(ops->flags & FBCON_FLAGS_INIT))
--		info->fbops->fb_set_par(info);
-+	if (info->fbops->fb_set_par && !(ops->flags & FBCON_FLAGS_INIT)) {
-+		ret = info->fbops->fb_set_par(info);
++err_dput:
++	dput(dentry);
++err_module:
++	module_put(fops->owner);
++	return ERR_PTR(error);
++}
++EXPORT_SYMBOL_GPL(anon_inode_getfile);
 +
-+		if (ret)
-+			printk(KERN_ERR "con2fb_init_display: detected "
-+				"unhandled fb_set_par error, "
-+				"error code %d\n", ret);
++/**
++ * anon_inode_getfd - creates a new file instance by hooking it up to an
++ *                    anonymous inode, and a dentry that describe the "class"
++ *                    of the file
++ *
++ * @name:    [in]    name of the "class" of the new file
++ * @fops:    [in]    file operations for the new file
++ * @priv:    [in]    private data for the new file (will be file's private_data)
++ * @flags:   [in]    flags
++ *
++ * Creates a new file by hooking it on a single inode. This is useful for files
++ * that do not need to have a full-fledged inode in order to operate correctly.
++ * All the files created with anon_inode_getfd() will share a single inode,
++ * hence saving memory and avoiding code duplication for the file/inode/dentry
++ * setup.  Returns new descriptor or an error code.
++ */
++int anon_inode_getfd(const char *name, const struct file_operations *fops,
++		     void *priv, int flags)
++{
++	int error, fd;
++	struct file *file;
++
++	error = get_unused_fd_flags(flags);
++	if (error < 0)
++		return error;
++	fd = error;
++
++	file = anon_inode_getfile(name, fops, priv, flags);
++	if (IS_ERR(file)) {
++		error = PTR_ERR(file);
++		goto err_put_unused_fd;
 +	}
+ 	fd_install(fd, file);
  
- 	ops->flags |= FBCON_FLAGS_INIT;
- 	ops->graphics = 0;
-@@ -1006,7 +1019,7 @@ static void fbcon_init(struct vc_data *v
- 	struct vc_data *svc = *default_mode;
- 	struct display *t, *p = &fb_display[vc->vc_num];
- 	int logo = 1, new_rows, new_cols, rows, cols, charcnt = 256;
--	int cap;
-+	int cap, ret;
+ 	return fd;
  
- 	if (info_idx == -1 || info == NULL)
- 	    return;
-@@ -1092,8 +1105,15 @@ static void fbcon_init(struct vc_data *v
- 	 */
- 	if (CON_IS_VISIBLE(vc) && vc->vc_mode == KD_TEXT) {
- 		if (info->fbops->fb_set_par &&
--		    !(ops->flags & FBCON_FLAGS_INIT))
--			info->fbops->fb_set_par(info);
-+		    !(ops->flags & FBCON_FLAGS_INIT)) {
-+			ret = info->fbops->fb_set_par(info);
+-err_dput:
+-	dput(dentry);
+ err_put_unused_fd:
+ 	put_unused_fd(fd);
+-err_module:
+-	module_put(fops->owner);
+ 	return error;
+ }
+ EXPORT_SYMBOL_GPL(anon_inode_getfd);
+diff -puN fs/eventfd.c~anonfd-split-interface-into-file-creation-and-install fs/eventfd.c
+--- a/fs/eventfd.c~anonfd-split-interface-into-file-creation-and-install
++++ a/fs/eventfd.c
+@@ -68,11 +68,16 @@ int eventfd_signal(struct eventfd_ctx *c
+ }
+ EXPORT_SYMBOL_GPL(eventfd_signal);
+ 
++static void eventfd_free_ctx(struct eventfd_ctx *ctx)
++{
++	kfree(ctx);
++}
 +
-+			if (ret)
-+				printk(KERN_ERR "fbcon_init: detected "
-+					"unhandled fb_set_par error, "
-+					"error code %d\n", ret);
-+		}
+ static void eventfd_free(struct kref *kref)
+ {
+ 	struct eventfd_ctx *ctx = container_of(kref, struct eventfd_ctx, kref);
+ 
+-	kfree(ctx);
++	eventfd_free_ctx(ctx);
+ }
+ 
+ /**
+@@ -298,9 +303,23 @@ struct eventfd_ctx *eventfd_ctx_fileget(
+ }
+ EXPORT_SYMBOL_GPL(eventfd_ctx_fileget);
+ 
+-SYSCALL_DEFINE2(eventfd2, unsigned int, count, int, flags)
++/**
++ * eventfd_file_create - Creates an eventfd file pointer.
++ * @count: Initial eventfd counter value.
++ * @flags: Flags for the eventfd file.
++ *
++ * This function creates an eventfd file pointer, w/out installing it into
++ * the fd table. This is useful when the eventfd file is used during the
++ * initialization of data structures that require extra setup after the eventfd
++ * creation. So the eventfd creation is split into the file pointer creation
++ * phase, and the file descriptor installation phase.
++ * In this way races with userspace closing the newly installed file descriptor
++ * can be avoided.
++ * Returns an eventfd file pointer, or a proper error pointer.
++ */
++struct file *eventfd_file_create(unsigned int count, int flags)
+ {
+-	int fd;
++	struct file *file;
+ 	struct eventfd_ctx *ctx;
+ 
+ 	/* Check the EFD_* constants for consistency.  */
+@@ -308,26 +327,48 @@ SYSCALL_DEFINE2(eventfd2, unsigned int, 
+ 	BUILD_BUG_ON(EFD_NONBLOCK != O_NONBLOCK);
+ 
+ 	if (flags & ~EFD_FLAGS_SET)
+-		return -EINVAL;
++		return ERR_PTR(-EINVAL);
+ 
+ 	ctx = kmalloc(sizeof(*ctx), GFP_KERNEL);
+ 	if (!ctx)
+-		return -ENOMEM;
++		return ERR_PTR(-ENOMEM);
+ 
+ 	kref_init(&ctx->kref);
+ 	init_waitqueue_head(&ctx->wqh);
+ 	ctx->count = count;
+ 	ctx->flags = flags;
+ 
+-	/*
+-	 * When we call this, the initialization must be complete, since
+-	 * anon_inode_getfd() will install the fd.
+-	 */
+-	fd = anon_inode_getfd("[eventfd]", &eventfd_fops, ctx,
+-			      flags & EFD_SHARED_FCNTL_FLAGS);
+-	if (fd < 0)
+-		kfree(ctx);
++	file = anon_inode_getfile("[eventfd]", &eventfd_fops, ctx,
++				  flags & EFD_SHARED_FCNTL_FLAGS);
++	if (IS_ERR(file))
++		eventfd_free_ctx(ctx);
 +
- 		ops->flags |= FBCON_FLAGS_INIT;
- 	}
- 
-@@ -2119,7 +2139,7 @@ static int fbcon_switch(struct vc_data *
- 	struct fbcon_ops *ops;
- 	struct display *p = &fb_display[vc->vc_num];
- 	struct fb_var_screeninfo var;
--	int i, prev_console, charcnt = 256;
-+	int i, ret, prev_console, charcnt = 256;
- 
- 	info = registered_fb[con2fb_map[vc->vc_num]];
- 	ops = info->fbcon_par;
-@@ -2174,8 +2194,14 @@ static int fbcon_switch(struct vc_data *
- 
- 	if (old_info != NULL && (old_info != info ||
- 				 info->flags & FBINFO_MISC_ALWAYS_SETPAR)) {
--		if (info->fbops->fb_set_par)
--			info->fbops->fb_set_par(info);
-+		if (info->fbops->fb_set_par) {
-+			ret = info->fbops->fb_set_par(info);
++	return file;
++}
 +
-+			if (ret)
-+				printk(KERN_ERR "fbcon_switch: detected "
-+					"unhandled fb_set_par error, "
-+					"error code %d\n", ret);
-+		}
- 
- 		if (old_info != info)
- 			fbcon_del_cursor_timer(old_info);
-diff -puN drivers/video/fbmem.c~fb-do-not-ignore-fb_set_par-errors drivers/video/fbmem.c
---- a/drivers/video/fbmem.c~fb-do-not-ignore-fb_set_par-errors
-+++ a/drivers/video/fbmem.c
-@@ -954,6 +954,7 @@ fb_set_var(struct fb_info *info, struct 
- 			goto done;
- 
- 		if ((var->activate & FB_ACTIVATE_MASK) == FB_ACTIVATE_NOW) {
-+			struct fb_var_screeninfo old_var;
- 			struct fb_videomode mode;
- 
- 			if (info->fbops->fb_get_caps) {
-@@ -963,10 +964,20 @@ fb_set_var(struct fb_info *info, struct 
- 					goto done;
- 			}
- 
-+			old_var = info->var;
- 			info->var = *var;
- 
--			if (info->fbops->fb_set_par)
--				info->fbops->fb_set_par(info);
-+			if (info->fbops->fb_set_par) {
-+				ret = info->fbops->fb_set_par(info);
++SYSCALL_DEFINE2(eventfd2, unsigned int, count, int, flags)
++{
++	int fd, error;
++	struct file *file;
 +
-+				if (ret) {
-+					info->var = old_var;
-+					printk(KERN_WARNING "detected "
-+						"fb_set_par error, "
-+						"error code: %d\n", ret);
-+					goto done;
-+				}
-+			}
++	error = get_unused_fd_flags(flags & EFD_SHARED_FCNTL_FLAGS);
++	if (error < 0)
++		return error;
++	fd = error;
++
++	file = eventfd_file_create(count, flags);
++	if (IS_ERR(file)) {
++		error = PTR_ERR(file);
++		goto err_put_unused_fd;
++	}
++	fd_install(fd, file);
++
+ 	return fd;
++
++err_put_unused_fd:
++	put_unused_fd(fd);
++
++	return error;
+ }
  
- 			fb_pan_display(info, &info->var);
- 			fb_set_cmap(&info->cmap, info);
+ SYSCALL_DEFINE1(eventfd, unsigned int, count)
+diff -puN include/linux/anon_inodes.h~anonfd-split-interface-into-file-creation-and-install include/linux/anon_inodes.h
+--- a/include/linux/anon_inodes.h~anonfd-split-interface-into-file-creation-and-install
++++ a/include/linux/anon_inodes.h
+@@ -8,6 +8,9 @@
+ #ifndef _LINUX_ANON_INODES_H
+ #define _LINUX_ANON_INODES_H
+ 
++struct file *anon_inode_getfile(const char *name,
++				const struct file_operations *fops,
++				void *priv, int flags);
+ int anon_inode_getfd(const char *name, const struct file_operations *fops,
+ 		     void *priv, int flags);
+ 
+diff -puN include/linux/eventfd.h~anonfd-split-interface-into-file-creation-and-install include/linux/eventfd.h
+--- a/include/linux/eventfd.h~anonfd-split-interface-into-file-creation-and-install
++++ a/include/linux/eventfd.h
+@@ -27,6 +27,7 @@
+ 
+ #ifdef CONFIG_EVENTFD
+ 
++struct file *eventfd_file_create(unsigned int count, int flags);
+ struct eventfd_ctx *eventfd_ctx_get(struct eventfd_ctx *ctx);
+ void eventfd_ctx_put(struct eventfd_ctx *ctx);
+ struct file *eventfd_fget(int fd);
+@@ -40,6 +41,11 @@ int eventfd_signal(struct eventfd_ctx *c
+  * Ugly ugly ugly error layer to support modules that uses eventfd but
+  * pretend to work in !CONFIG_EVENTFD configurations. Namely, AIO.
+  */
++static inline struct file *eventfd_file_create(unsigned int count, int flags)
++{
++	return ERR_PTR(-ENOSYS);
++}
++
+ static inline struct eventfd_ctx *eventfd_ctx_fdget(int fd)
+ {
+ 	return ERR_PTR(-ENOSYS);
 _
 
-Patches currently in -mm which might be from FlorianSchandinat@gmx.de are
+Patches currently in -mm which might be from davidel@xmailserver.org are
 
-viafb-remove-duplicated-cx700-register-init.patch
-viafb-remove-temporary-start-address-setting.patch
-viafb-merge-viafb_update_viafb_par-in-viafb_update_fix.patch
-viafb-split-viafb_set_start_addr-up.patch
-viafb-fix-ioremap_nocache-error-handling.patch
-viafb-clean-up-viamodeh.patch
-viafb-remove-duplicated-mode-information.patch
-viafb-clean-up-duoview.patch
-viafb-clean-up-virtual-memory-handling.patch
-viafb-remove-unused-video-device-stuff.patch
-fb-fix-fb_pan_display-range-check.patch
-fb-do-not-ignore-fb_set_par-errors.patch
+linux-next.patch
+anonfd-split-interface-into-file-creation-and-install.patch
 
