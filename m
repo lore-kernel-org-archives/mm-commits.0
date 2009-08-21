@@ -1,330 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: + anonfd-split-interface-into-file-creation-and-install.patch added to -mm tree
-Date: Fri, 21 Aug 2009 14:48:31 -0700
-Message-ID: <200908212148.n7LLmVCq016739@imap1.linux-foundation.org>
+Subject: [withdrawn] ummunotify-userspace-support-for-mmu-notifications-v3-fix.patch removed from -mm tree
+Date: Fri, 21 Aug 2009 15:23:08 -0700
+Message-ID: <200908212223.n7LMNBN9012799@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60968 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37298 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932243AbZHUVtY (ORCPT
+	by vger.kernel.org with ESMTP id S932587AbZHUWX3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Aug 2009 17:49:24 -0400
+	Fri, 21 Aug 2009 18:23:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: davidel@xmailserver.org, a.p.zijlstra@chello.nl, ghaskins@novell.com, jmorris@namei.org, serue@us.ibm.com, viro@zeniv.linux.org.uk
+To: akpm@linux-foundation.org, jgunthorpe@obsidianresearch.com, jsquyres@cisco.com, rolandd@cisco.com, rostedt@goodmis.org, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     anonfd: split interface into file creation and install
-has been added to the -mm tree.  Its filename is
-     anonfd-split-interface-into-file-creation-and-install.patch
+     ummunotify-userspace-support-for-mmu-notifications-v3 fix
+has been removed from the -mm tree.  Its filename was
+     ummunotify-userspace-support-for-mmu-notifications-v3-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: anonfd: split interface into file creation and install
-From: Davide Libenzi <davidel@xmailserver.org>
+Subject: ummunotify-userspace-support-for-mmu-notifications-v3 fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Split the anonfd interface into a bare file pointer creation one, and a
-file pointer creation plus install one.
+Documentation/ummunotify/umn-test.c:23:30: error: linux/ummunotify.h: No such file or directory
+Documentation/ummunotify/umn-test.c:33: error: expected '=', ',', ';', 'asm' or '__attribute__' before '*' token
+...
 
-There are cases, like the usage of eventfds inside other kernel
-interfaces, where the file pointer created by anonfd needs to be used
-inside the initialization of other structures.
-
-As it is right now, as soon as anon_inode_getfd() returns, the kenrle can
-race with userspace closing the newly installed file descriptor.
-
-This patch, while keeping the old anon_inode_getfd(), introduces a new
-anon_inode_getfile() (whose services are reused in anon_inode_getfd())
-that allows to split the file creation phase and the fd install one.
-
-Once all the kernel structures are initialized, the code can call the
-proper fd_install().
-
-Gregory manifested the need for something like this inside KVM.
-
-Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: James Morris <jmorris@namei.org>
-Cc: Serge Hallyn <serue@us.ibm.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Gregory Haskins <ghaskins@novell.com>
+Cc: Roland Dreier <rolandd@cisco.com>
+Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: Jeff Squyres <jsquyres@cisco.com> 
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/anon_inodes.c            |   68 +++++++++++++++++++++++++---------
- fs/eventfd.c                |   67 +++++++++++++++++++++++++++------
- include/linux/anon_inodes.h |    3 +
- include/linux/eventfd.h     |    6 +++
- 4 files changed, 114 insertions(+), 30 deletions(-)
+ Documentation/ummunotify/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/anon_inodes.c~anonfd-split-interface-into-file-creation-and-install fs/anon_inodes.c
---- a/fs/anon_inodes.c~anonfd-split-interface-into-file-creation-and-install
-+++ a/fs/anon_inodes.c
-@@ -77,28 +77,24 @@ static const struct address_space_operat
-  *
-  * Creates a new file by hooking it on a single inode. This is useful for files
-  * that do not need to have a full-fledged inode in order to operate correctly.
-- * All the files created with anon_inode_getfd() will share a single inode,
-+ * All the files created with anon_inode_getfile() will share a single inode,
-  * hence saving memory and avoiding code duplication for the file/inode/dentry
-- * setup.  Returns new descriptor or -error.
-+ * setup.  Returns the newly created file* or an error pointer.
-  */
--int anon_inode_getfd(const char *name, const struct file_operations *fops,
--		     void *priv, int flags)
-+struct file *anon_inode_getfile(const char *name,
-+				const struct file_operations *fops,
-+				void *priv, int flags)
- {
- 	struct qstr this;
- 	struct dentry *dentry;
- 	struct file *file;
--	int error, fd;
-+	int error;
+diff -puN Documentation/ummunotify/Makefile~ummunotify-userspace-support-for-mmu-notifications-v3-fix Documentation/ummunotify/Makefile
+--- a/Documentation/ummunotify/Makefile~ummunotify-userspace-support-for-mmu-notifications-v3-fix
++++ a/Documentation/ummunotify/Makefile
+@@ -4,4 +4,4 @@ hostprogs-y := umn-test
+ # Tell kbuild to always build the programs
+ always := $(hostprogs-y)
  
- 	if (IS_ERR(anon_inode_inode))
--		return -ENODEV;
-+		return ERR_PTR(-ENODEV);
- 
- 	if (fops->owner && !try_module_get(fops->owner))
--		return -ENOENT;
--
--	error = get_unused_fd_flags(flags);
--	if (error < 0)
--		goto err_module;
--	fd = error;
-+		return ERR_PTR(-ENOENT);
- 
- 	/*
- 	 * Link the inode to a directory entry by creating a unique name
-@@ -110,7 +106,7 @@ int anon_inode_getfd(const char *name, c
- 	this.hash = 0;
- 	dentry = d_alloc(anon_inode_mnt->mnt_sb->s_root, &this);
- 	if (!dentry)
--		goto err_put_unused_fd;
-+		goto err_module;
- 
- 	/*
- 	 * We know the anon_inode inode count is always greater than zero,
-@@ -136,16 +132,54 @@ int anon_inode_getfd(const char *name, c
- 	file->f_version = 0;
- 	file->private_data = priv;
- 
-+	return file;
-+
-+err_dput:
-+	dput(dentry);
-+err_module:
-+	module_put(fops->owner);
-+	return ERR_PTR(error);
-+}
-+EXPORT_SYMBOL_GPL(anon_inode_getfile);
-+
-+/**
-+ * anon_inode_getfd - creates a new file instance by hooking it up to an
-+ *                    anonymous inode, and a dentry that describe the "class"
-+ *                    of the file
-+ *
-+ * @name:    [in]    name of the "class" of the new file
-+ * @fops:    [in]    file operations for the new file
-+ * @priv:    [in]    private data for the new file (will be file's private_data)
-+ * @flags:   [in]    flags
-+ *
-+ * Creates a new file by hooking it on a single inode. This is useful for files
-+ * that do not need to have a full-fledged inode in order to operate correctly.
-+ * All the files created with anon_inode_getfd() will share a single inode,
-+ * hence saving memory and avoiding code duplication for the file/inode/dentry
-+ * setup.  Returns new descriptor or an error code.
-+ */
-+int anon_inode_getfd(const char *name, const struct file_operations *fops,
-+		     void *priv, int flags)
-+{
-+	int error, fd;
-+	struct file *file;
-+
-+	error = get_unused_fd_flags(flags);
-+	if (error < 0)
-+		return error;
-+	fd = error;
-+
-+	file = anon_inode_getfile(name, fops, priv, flags);
-+	if (IS_ERR(file)) {
-+		error = PTR_ERR(file);
-+		goto err_put_unused_fd;
-+	}
- 	fd_install(fd, file);
- 
- 	return fd;
- 
--err_dput:
--	dput(dentry);
- err_put_unused_fd:
- 	put_unused_fd(fd);
--err_module:
--	module_put(fops->owner);
- 	return error;
- }
- EXPORT_SYMBOL_GPL(anon_inode_getfd);
-diff -puN fs/eventfd.c~anonfd-split-interface-into-file-creation-and-install fs/eventfd.c
---- a/fs/eventfd.c~anonfd-split-interface-into-file-creation-and-install
-+++ a/fs/eventfd.c
-@@ -68,11 +68,16 @@ int eventfd_signal(struct eventfd_ctx *c
- }
- EXPORT_SYMBOL_GPL(eventfd_signal);
- 
-+static void eventfd_free_ctx(struct eventfd_ctx *ctx)
-+{
-+	kfree(ctx);
-+}
-+
- static void eventfd_free(struct kref *kref)
- {
- 	struct eventfd_ctx *ctx = container_of(kref, struct eventfd_ctx, kref);
- 
--	kfree(ctx);
-+	eventfd_free_ctx(ctx);
- }
- 
- /**
-@@ -298,9 +303,23 @@ struct eventfd_ctx *eventfd_ctx_fileget(
- }
- EXPORT_SYMBOL_GPL(eventfd_ctx_fileget);
- 
--SYSCALL_DEFINE2(eventfd2, unsigned int, count, int, flags)
-+/**
-+ * eventfd_file_create - Creates an eventfd file pointer.
-+ * @count: Initial eventfd counter value.
-+ * @flags: Flags for the eventfd file.
-+ *
-+ * This function creates an eventfd file pointer, w/out installing it into
-+ * the fd table. This is useful when the eventfd file is used during the
-+ * initialization of data structures that require extra setup after the eventfd
-+ * creation. So the eventfd creation is split into the file pointer creation
-+ * phase, and the file descriptor installation phase.
-+ * In this way races with userspace closing the newly installed file descriptor
-+ * can be avoided.
-+ * Returns an eventfd file pointer, or a proper error pointer.
-+ */
-+struct file *eventfd_file_create(unsigned int count, int flags)
- {
--	int fd;
-+	struct file *file;
- 	struct eventfd_ctx *ctx;
- 
- 	/* Check the EFD_* constants for consistency.  */
-@@ -308,26 +327,48 @@ SYSCALL_DEFINE2(eventfd2, unsigned int, 
- 	BUILD_BUG_ON(EFD_NONBLOCK != O_NONBLOCK);
- 
- 	if (flags & ~EFD_FLAGS_SET)
--		return -EINVAL;
-+		return ERR_PTR(-EINVAL);
- 
- 	ctx = kmalloc(sizeof(*ctx), GFP_KERNEL);
- 	if (!ctx)
--		return -ENOMEM;
-+		return ERR_PTR(-ENOMEM);
- 
- 	kref_init(&ctx->kref);
- 	init_waitqueue_head(&ctx->wqh);
- 	ctx->count = count;
- 	ctx->flags = flags;
- 
--	/*
--	 * When we call this, the initialization must be complete, since
--	 * anon_inode_getfd() will install the fd.
--	 */
--	fd = anon_inode_getfd("[eventfd]", &eventfd_fops, ctx,
--			      flags & EFD_SHARED_FCNTL_FLAGS);
--	if (fd < 0)
--		kfree(ctx);
-+	file = anon_inode_getfile("[eventfd]", &eventfd_fops, ctx,
-+				  flags & EFD_SHARED_FCNTL_FLAGS);
-+	if (IS_ERR(file))
-+		eventfd_free_ctx(ctx);
-+
-+	return file;
-+}
-+
-+SYSCALL_DEFINE2(eventfd2, unsigned int, count, int, flags)
-+{
-+	int fd, error;
-+	struct file *file;
-+
-+	error = get_unused_fd_flags(flags & EFD_SHARED_FCNTL_FLAGS);
-+	if (error < 0)
-+		return error;
-+	fd = error;
-+
-+	file = eventfd_file_create(count, flags);
-+	if (IS_ERR(file)) {
-+		error = PTR_ERR(file);
-+		goto err_put_unused_fd;
-+	}
-+	fd_install(fd, file);
-+
- 	return fd;
-+
-+err_put_unused_fd:
-+	put_unused_fd(fd);
-+
-+	return error;
- }
- 
- SYSCALL_DEFINE1(eventfd, unsigned int, count)
-diff -puN include/linux/anon_inodes.h~anonfd-split-interface-into-file-creation-and-install include/linux/anon_inodes.h
---- a/include/linux/anon_inodes.h~anonfd-split-interface-into-file-creation-and-install
-+++ a/include/linux/anon_inodes.h
-@@ -8,6 +8,9 @@
- #ifndef _LINUX_ANON_INODES_H
- #define _LINUX_ANON_INODES_H
- 
-+struct file *anon_inode_getfile(const char *name,
-+				const struct file_operations *fops,
-+				void *priv, int flags);
- int anon_inode_getfd(const char *name, const struct file_operations *fops,
- 		     void *priv, int flags);
- 
-diff -puN include/linux/eventfd.h~anonfd-split-interface-into-file-creation-and-install include/linux/eventfd.h
---- a/include/linux/eventfd.h~anonfd-split-interface-into-file-creation-and-install
-+++ a/include/linux/eventfd.h
-@@ -27,6 +27,7 @@
- 
- #ifdef CONFIG_EVENTFD
- 
-+struct file *eventfd_file_create(unsigned int count, int flags);
- struct eventfd_ctx *eventfd_ctx_get(struct eventfd_ctx *ctx);
- void eventfd_ctx_put(struct eventfd_ctx *ctx);
- struct file *eventfd_fget(int fd);
-@@ -40,6 +41,11 @@ int eventfd_signal(struct eventfd_ctx *c
-  * Ugly ugly ugly error layer to support modules that uses eventfd but
-  * pretend to work in !CONFIG_EVENTFD configurations. Namely, AIO.
-  */
-+static inline struct file *eventfd_file_create(unsigned int count, int flags)
-+{
-+	return ERR_PTR(-ENOSYS);
-+}
-+
- static inline struct eventfd_ctx *eventfd_ctx_fdget(int fd)
- {
- 	return ERR_PTR(-ENOSYS);
+-HOSTCFLAGS_umn-test.o += -I$(objtree)/usr/include
++HOSTCFLAGS_umn-test.o += -I$(objtree)/include
 _
 
-Patches currently in -mm which might be from davidel@xmailserver.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
-anonfd-split-interface-into-file-creation-and-install.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-kernel-cpu-amdc-fix-x86_64-allnoconfig-build.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+video-initial-support-for-adv7180-update-fix.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+checkincludespl-add-option-to-remove-duplicates-in-place.patch
+leds-gpio-leds-fix-typographics-fault.patch
+leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio.patch
+slram-read-buffer-overflow.patch
+zorro8390-fix-read-buffer-overflow-in-zorro8390_init_one-checkpatch-fixes.patch
+3x59x-fix-pci-resource-management.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+serial167-fix-read-buffer-overflow.patch
+waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes-checkpatch-fixes.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
+vfs-optimize-touch_time-too.patch
+revert-mm-prevent-balance_dirty_pages-from-doing-too-much-work.patch
+mm-make-swap-token-dummies-static-inlines-fix.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
+vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
+ummunotify-userspace-support-for-mmu-notifications-v3-fix.patch
+arches-drop-superfluous-casts-in-nr_free_pages-callers-checkpatch-fixes.patch
+tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+m68k-count-can-reach-51-not-50.patch
+arch-m68k-include-asm-motorola_pgalloch-fix-kunmap-arg.patch
+printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
+generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
+proc-connector-add-event-for-process-becoming-session-leader.patch
+kernel-smpc-relocate-some-code.patch
+mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
+sdio-add-cd-disable-support-cleanup.patch
+procfs-provide-stack-information-for-threads-v011-fix.patch
+kcore-use-registerd-physmem-information-fix.patch
+kcore-use-registerd-physmem-information-checkpatch-fixes.patch
+lib-swiotlbc-fix-strange-panic-message-selection-logic-when-swiotlb-fills-up-fix.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
+rtc-philips-nxp-pcf2123-driver-v03-fix.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes-fix.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
+drivers-video-add-kmalloc-null-tests-fix.patch
+v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
+cgroups-add-functionality-to-read-write-lock-clone_thread-forking-per-threadgroup-fix.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
+memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
+memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
+memcg-improve-resource-counter-scalability-checkpatch-fixes.patch
+exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
+exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
+elf-clean-up-fill_note_info-fix.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
