@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + staging-iio-fix-duplicate-dev_attr_name.patch added to -mm tree
-Date: Fri, 21 Aug 2009 15:26:00 -0700
-Message-ID: <200908212226.n7LMQ0BL017747@imap1.linux-foundation.org>
+Subject: + mm-balance_dirty_pages-reduce-calls-to-global_page_state-to-reduce-cache-references.patch added to -mm tree
+Date: Fri, 21 Aug 2009 15:50:59 -0700
+Message-ID: <200908212250.n7LMox3g029154@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58239 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39024 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932982AbZHUW0L (ORCPT
+	by vger.kernel.org with ESMTP id S932720AbZHUWwO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Aug 2009 18:26:11 -0400
+	Fri, 21 Aug 2009 18:52:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, greg@kroah.com, sfr@canb.auug.org.au
+Cc: richard@rsk.demon.co.uk, a.p.zijlstra@chello.nl, chris.mason@oracle.com, fengguang.wu@intel.com, jens.axboe@oracle.com, mbligh@mbligh.org, miklos@szeredi.hu
 
 
 The patch titled
-     staging/iio: fix duplicate dev_attr_name
+     mm: balance_dirty_pages(): reduce calls to global_page_state to reduce cache references
 has been added to the -mm tree.  Its filename is
-     staging-iio-fix-duplicate-dev_attr_name.patch
+     mm-balance_dirty_pages-reduce-calls-to-global_page_state-to-reduce-cache-references.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,88 +34,223 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: staging/iio: fix duplicate dev_attr_name
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: mm: balance_dirty_pages(): reduce calls to global_page_state to reduce cache references
+From: Richard Kennedy <richard@rsk.demon.co.uk>
 
-device attr's should be static, otherwise duplicate identifiers are
-created:
+Reducing the number of times balance_dirty_pages calls global_page_state
+reduces the cache references and so improves write performance on a
+variety of workloads.
 
-drivers/staging/iio/trigger/iio-trig-gpio.o:(.data+0x1c): multiple definition of `dev_attr_name'
+'perf stats' of simple fio write tests shows the reduction in cache
+access.  Where the test is fio 'write,mmap,600Mb,pre_read' on AMD AthlonX2
+with 3Gb memory (dirty_threshold approx 600 Mb) running each test 10
+times, taking the average & standard deviation
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Greg KH <greg@kroah.com>
+		average (s.d.) in millions (10^6)
+2.6.31-rc6	661 (9.88)
++patch		604 (4.19)
+
+Achieving this reduction is by dropping clip_bdi_dirty_limit as it rereads
+the counters to apply the dirty_threshold and moving this check up into
+balance_dirty_pages where it has already read the counters.
+
+Also by rearrange the for loop to only contain one copy of the limit tests
+allows the pdflush test after the loop to use the local copies of the
+counters rather than rereading then.
+
+In the common case with no throttling it now calls global_page_state 5
+fewer times and bdi_stat 2 fewer.
+
+I have tried to retain the existing behavior as much as possible, but have
+added NR_WRITEBACK_TEMP to nr_writeback.  This counter was used in
+clip_bdi_dirty_limit but not in balance_dirty_pages, grep suggests this is
+only used by FUSE but I haven't done any testing on that.  It does seem
+logical to count all the WRITEBACK pages when making the throttling
+decisions so this change should be more correct ;)
+
+I have been running this patch for over a week and have had no problems
+with it and generally see improved disk write performance on a variety of
+tests & workloads, even in the worst cases performance is the same as the
+unpatched kernel.  I also tried this on a Intel ATOM 330 twincore system
+and saw similar improvements.
+
+Signed-off-by: Richard Kennedy <richard@rsk.demon.co.uk>
+Cc: Chris Mason <chris.mason@oracle.com>
+Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Martin Bligh <mbligh@mbligh.org>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/iio/accel/lis3l02dq_ring.c          |    2 +-
- drivers/staging/iio/trigger/iio-trig-gpio.c         |    2 +-
- drivers/staging/iio/trigger/iio-trig-periodic-rtc.c |    4 ++--
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ mm/page-writeback.c |  116 +++++++++++++++---------------------------
+ 1 file changed, 43 insertions(+), 73 deletions(-)
 
-diff -puN drivers/staging/iio/accel/lis3l02dq_ring.c~staging-iio-fix-duplicate-dev_attr_name drivers/staging/iio/accel/lis3l02dq_ring.c
---- a/drivers/staging/iio/accel/lis3l02dq_ring.c~staging-iio-fix-duplicate-dev_attr_name
-+++ a/drivers/staging/iio/accel/lis3l02dq_ring.c
-@@ -441,7 +441,7 @@ static int lis3l02dq_data_rdy_trigger_se
- 				 &t);
- 	return ret;
- }
--DEVICE_ATTR(name, S_IRUGO, iio_trigger_read_name, NULL);
-+static DEVICE_ATTR(name, S_IRUGO, iio_trigger_read_name, NULL);
- 
- static struct attribute *lis3l02dq_trigger_attrs[] = {
- 	&dev_attr_name.attr,
-diff -puN drivers/staging/iio/trigger/iio-trig-gpio.c~staging-iio-fix-duplicate-dev_attr_name drivers/staging/iio/trigger/iio-trig-gpio.c
---- a/drivers/staging/iio/trigger/iio-trig-gpio.c~staging-iio-fix-duplicate-dev_attr_name
-+++ a/drivers/staging/iio/trigger/iio-trig-gpio.c
-@@ -46,7 +46,7 @@ static irqreturn_t iio_gpio_trigger_poll
- 	return IRQ_HANDLED;
+diff -puN mm/page-writeback.c~mm-balance_dirty_pages-reduce-calls-to-global_page_state-to-reduce-cache-references mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-balance_dirty_pages-reduce-calls-to-global_page_state-to-reduce-cache-references
++++ a/mm/page-writeback.c
+@@ -249,32 +249,6 @@ static void bdi_writeout_fraction(struct
+ 	}
  }
  
--DEVICE_ATTR(name, S_IRUGO, iio_trigger_read_name, NULL);
-+static DEVICE_ATTR(name, S_IRUGO, iio_trigger_read_name, NULL);
+-/*
+- * Clip the earned share of dirty pages to that which is actually available.
+- * This avoids exceeding the total dirty_limit when the floating averages
+- * fluctuate too quickly.
+- */
+-static void clip_bdi_dirty_limit(struct backing_dev_info *bdi,
+-		unsigned long dirty, unsigned long *pbdi_dirty)
+-{
+-	unsigned long avail_dirty;
+-
+-	avail_dirty = global_page_state(NR_FILE_DIRTY) +
+-		 global_page_state(NR_WRITEBACK) +
+-		 global_page_state(NR_UNSTABLE_NFS) +
+-		 global_page_state(NR_WRITEBACK_TEMP);
+-
+-	if (avail_dirty < dirty)
+-		avail_dirty = dirty - avail_dirty;
+-	else
+-		avail_dirty = 0;
+-
+-	avail_dirty += bdi_stat(bdi, BDI_RECLAIMABLE) +
+-		bdi_stat(bdi, BDI_WRITEBACK);
+-
+-	*pbdi_dirty = min(*pbdi_dirty, avail_dirty);
+-}
+-
+ static inline void task_dirties_fraction(struct task_struct *tsk,
+ 		long *numerator, long *denominator)
+ {
+@@ -465,7 +439,6 @@ get_dirty_limits(unsigned long *pbackgro
+ 			bdi_dirty = dirty * bdi->max_ratio / 100;
  
- static struct attribute *iio_gpio_trigger_attrs[] = {
- 	&dev_attr_name.attr,
-diff -puN drivers/staging/iio/trigger/iio-trig-periodic-rtc.c~staging-iio-fix-duplicate-dev_attr_name drivers/staging/iio/trigger/iio-trig-periodic-rtc.c
---- a/drivers/staging/iio/trigger/iio-trig-periodic-rtc.c~staging-iio-fix-duplicate-dev_attr_name
-+++ a/drivers/staging/iio/trigger/iio-trig-periodic-rtc.c
-@@ -81,10 +81,10 @@ static ssize_t iio_trig_periodic_read_na
- 	return sprintf(buf, "%s\n", trig_info->name);
+ 		*pbdi_dirty = bdi_dirty;
+-		clip_bdi_dirty_limit(bdi, dirty, pbdi_dirty);
+ 		task_dirty_limit(current, pbdi_dirty);
+ 	}
  }
+@@ -499,45 +472,12 @@ static void balance_dirty_pages(struct a
+ 		};
  
--DEVICE_ATTR(name, S_IRUGO,
-+static DEVICE_ATTR(name, S_IRUGO,
- 	    iio_trig_periodic_read_name,
- 	    NULL);
--DEVICE_ATTR(frequency, S_IRUGO | S_IWUSR,
-+static DEVICE_ATTR(frequency, S_IRUGO | S_IWUSR,
- 	    iio_trig_periodic_read_freq,
- 	    iio_trig_periodic_write_freq);
+ 		get_dirty_limits(&background_thresh, &dirty_thresh,
+-				&bdi_thresh, bdi);
++				 &bdi_thresh, bdi);
+ 
+ 		nr_reclaimable = global_page_state(NR_FILE_DIRTY) +
+-					global_page_state(NR_UNSTABLE_NFS);
+-		nr_writeback = global_page_state(NR_WRITEBACK);
+-
+-		bdi_nr_reclaimable = bdi_stat(bdi, BDI_RECLAIMABLE);
+-		bdi_nr_writeback = bdi_stat(bdi, BDI_WRITEBACK);
+-
+-		if (bdi_nr_reclaimable + bdi_nr_writeback <= bdi_thresh)
+-			break;
+-
+-		/*
+-		 * Throttle it only when the background writeback cannot
+-		 * catch-up. This avoids (excessively) small writeouts
+-		 * when the bdi limits are ramping up.
+-		 */
+-		if (nr_reclaimable + nr_writeback <
+-				(background_thresh + dirty_thresh) / 2)
+-			break;
+-
+-		if (!bdi->dirty_exceeded)
+-			bdi->dirty_exceeded = 1;
+-
+-		/* Note: nr_reclaimable denotes nr_dirty + nr_unstable.
+-		 * Unstable writes are a feature of certain networked
+-		 * filesystems (i.e. NFS) in which data may have been
+-		 * written to the server's write cache, but has not yet
+-		 * been flushed to permanent storage.
+-		 * Only move pages to writeback if this bdi is over its
+-		 * threshold otherwise wait until the disk writes catch
+-		 * up.
+-		 */
+-		if (bdi_nr_reclaimable > bdi_thresh) {
+-			generic_sync_bdi_inodes(NULL, &wbc);
+-			pages_written += write_chunk - wbc.nr_to_write;
+-			get_dirty_limits(&background_thresh, &dirty_thresh,
+-				       &bdi_thresh, bdi);
+-		}
++			global_page_state(NR_UNSTABLE_NFS);
++		nr_writeback = global_page_state(NR_WRITEBACK) +
++			global_page_state(NR_WRITEBACK_TEMP);
+ 
+ 		/*
+ 		 * In order to avoid the stacked BDI deadlock we need
+@@ -557,16 +497,48 @@ static void balance_dirty_pages(struct a
+ 			bdi_nr_writeback = bdi_stat(bdi, BDI_WRITEBACK);
+ 		}
+ 
+-		if (bdi_nr_reclaimable + bdi_nr_writeback <= bdi_thresh)
+-			break;
+-		if (pages_written >= write_chunk)
+-			break;		/* We've done our duty */
++		/* always throttle if over threshold */
++		if (nr_reclaimable + nr_writeback < dirty_thresh) {
++
++			if (bdi_nr_reclaimable + bdi_nr_writeback <= bdi_thresh)
++				break;
++
++			/*
++			 * Throttle it only when the background writeback cannot
++			 * catch-up. This avoids (excessively) small writeouts
++			 * when the bdi limits are ramping up.
++			 */
++			if (nr_reclaimable + nr_writeback <
++			    (background_thresh + dirty_thresh) / 2)
++				break;
++
++			/* done enough? */
++			if (pages_written >= write_chunk)
++				break;
++		}
++		if (!bdi->dirty_exceeded)
++			bdi->dirty_exceeded = 1;
+ 
++		/* Note: nr_reclaimable denotes nr_dirty + nr_unstable.
++		 * Unstable writes are a feature of certain networked
++		 * filesystems (i.e. NFS) in which data may have been
++		 * written to the server's write cache, but has not yet
++		 * been flushed to permanent storage.
++		 * Only move pages to writeback if this bdi is over its
++		 * threshold otherwise wait until the disk writes catch
++		 * up.
++		 */
++		if (bdi_nr_reclaimable > bdi_thresh) {
++			writeback_inodes(&wbc);
++			pages_written += write_chunk - wbc.nr_to_write;
++			if (wbc.nr_to_write == 0)
++				continue;
++		}
+ 		congestion_wait(BLK_RW_ASYNC, HZ/10);
+ 	}
+ 
+ 	if (bdi_nr_reclaimable + bdi_nr_writeback < bdi_thresh &&
+-			bdi->dirty_exceeded)
++	    bdi->dirty_exceeded)
+ 		bdi->dirty_exceeded = 0;
+ 
+ 	if (writeback_in_progress(bdi))
+@@ -580,10 +552,8 @@ static void balance_dirty_pages(struct a
+ 	 * In normal mode, we start background writeout at the lower
+ 	 * background_thresh, to keep the amount of dirty memory low.
+ 	 */
+-	if ((laptop_mode && pages_written) ||
+-			(!laptop_mode && (global_page_state(NR_FILE_DIRTY)
+-					  + global_page_state(NR_UNSTABLE_NFS)
+-					  > background_thresh)))
++	if ((laptop_mode && pages_written) || (!laptop_mode &&
++	     (nr_reclaimable > background_thresh)))
+ 		bdi_start_writeback(bdi, NULL, 0, WB_SYNC_NONE);
+ }
  
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from richard@rsk.demon.co.uk are
 
-origin.patch
-linux-next.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-kernel-hacking-move-strip_asm_syms-from-general.patch
-mtd-make-onenand-genericc-more-generic-fix.patch
-isdn-fix-netjet-build-errors.patch
-scsi-fix-func-names-in-kernel-doc.patch
-staging-iio-fix-duplicate-dev_attr_name.patch
-mm-make-swap-token-dummies-static-inlines-fix-2.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-page_alloc-fix-kernel-doc-warning.patch
-ksm-add-some-documentation.patch
-lis3-add-power-management-functions-fix.patch
-procfs-provide-stack-information-for-threads-v011-fix.patch
-spih-add-missing-kernel-doc-for-struct-spi_master.patch
-gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links-update-fix.patch
-doc-filesystems-remove-smount-program.patch
-doc-filesystems-more-mount-cleanups.patch
-documentation-update-stale-definition-of-file-nr-in-fstxt.patch
-includecheck-fix-documentation-cfag12864b-examplec.patch
-reiser4-export-remove_from_page_cache-fix.patch
+mm-balance_dirty_pages-reduce-calls-to-global_page_state-to-reduce-cache-references.patch
 
