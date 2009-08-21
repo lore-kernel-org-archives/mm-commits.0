@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + flex_array-poison-free-elements.patch added to -mm tree
-Date: Fri, 21 Aug 2009 16:49:47 -0700
-Message-ID: <200908212349.n7LNnmEt002317@imap1.linux-foundation.org>
+Subject: + flex_array-convert-element_nr-formals-to-unsigned.patch added to -mm tree
+Date: Fri, 21 Aug 2009 16:49:43 -0700
+Message-ID: <200908212349.n7LNninD002256@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58252 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39988 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932374AbZHUXtv (ORCPT
+	by vger.kernel.org with ESMTP id S1753729AbZHUXtu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Aug 2009 19:49:51 -0400
+	Fri, 21 Aug 2009 19:49:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: rientjes@google.com, dave@linux.vnet.ibm.com
 
 
 The patch titled
-     flex_array: poison free elements
+     flex_array: convert element_nr formals to unsigned
 has been added to the -mm tree.  Its filename is
-     flex_array-poison-free-elements.patch
+     flex_array-convert-element_nr-formals-to-unsigned.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,87 +34,125 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: flex_array: poison free elements
+Subject: flex_array: convert element_nr formals to unsigned
 From: David Rientjes <rientjes@google.com>
 
-Newly initialized flex_array's and/or flex_array_part's are now poisoned
-with a new poison value, FLEX_ARRAY_FREE.  It's value is similar to
-POISON_FREE used in the various slab allocators, but is different to
-distinguish between flex array's poisoned kmem and slab allocator poisoned
-kmem.
+It's problematic to allow signed element_nr's or total's to be passed as
+part of the flex array API.
 
-This will allow us to identify flex_array_part's that only contain free
-elements (and free them with an addition to the flex_array API).  This
-could also be extended in the future to identify `get' uses on elements
-that have not been `put'.
+flex_array_alloc() allows total_nr_elements to be set to a negative
+quantity, which is obviously erroneous.
 
-If __GFP_ZERO is passed for a part's gfp mask, the poisoning is avoided. 
-These elements are considered to be in-use since they have been
-initialized.
+flex_array_get() and flex_array_put() allows negative array indices in
+dereferencing an array part, which could address memory mapped before
+struct flex_array.
+
+The fix is to convert all existing element_nr formals to be qualified as
+unsigned.  Existing checks to compare it to total_nr_elements or the max
+array size based on element_size need not be changed.
 
 Signed-off-by: David Rientjes <rientjes@google.com>
 Cc: Dave Hansen <dave@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/poison.h |    3 +++
- lib/flex_array.c       |   15 +++++++--------
- 2 files changed, 10 insertions(+), 8 deletions(-)
+ include/linux/flex_array.h |   10 ++++++----
+ lib/flex_array.c           |   24 +++++++++++++-----------
+ 2 files changed, 19 insertions(+), 15 deletions(-)
 
-diff -puN include/linux/poison.h~flex_array-poison-free-elements include/linux/poison.h
---- a/include/linux/poison.h~flex_array-poison-free-elements
-+++ a/include/linux/poison.h
-@@ -77,6 +77,9 @@
- #define MUTEX_DEBUG_INIT	0x11
- #define MUTEX_DEBUG_FREE	0x22
+diff -puN include/linux/flex_array.h~flex_array-convert-element_nr-formals-to-unsigned include/linux/flex_array.h
+--- a/include/linux/flex_array.h~flex_array-convert-element_nr-formals-to-unsigned
++++ a/include/linux/flex_array.h
+@@ -36,12 +36,14 @@ struct flex_array {
+ 	.total_nr_elements = (total),	\
+ } } }
  
-+/********** lib/flex_array.c **********/
-+#define FLEX_ARRAY_FREE	0x6c	/* for use-after-free poisoning */
-+
- /********** security/ **********/
- #define KEY_DESTROY		0xbd
+-struct flex_array *flex_array_alloc(int element_size, int total, gfp_t flags);
+-int flex_array_prealloc(struct flex_array *fa, int start, int end, gfp_t flags);
++struct flex_array *flex_array_alloc(int element_size, unsigned int total,
++		gfp_t flags);
++int flex_array_prealloc(struct flex_array *fa, unsigned int start,
++		unsigned int end, gfp_t flags);
+ void flex_array_free(struct flex_array *fa);
+ void flex_array_free_parts(struct flex_array *fa);
+-int flex_array_put(struct flex_array *fa, int element_nr, void *src,
++int flex_array_put(struct flex_array *fa, unsigned int element_nr, void *src,
+ 		gfp_t flags);
+-void *flex_array_get(struct flex_array *fa, int element_nr);
++void *flex_array_get(struct flex_array *fa, unsigned int element_nr);
  
-diff -puN lib/flex_array.c~flex_array-poison-free-elements lib/flex_array.c
---- a/lib/flex_array.c~flex_array-poison-free-elements
+ #endif /* _FLEX_ARRAY_H */
+diff -puN lib/flex_array.c~flex_array-convert-element_nr-formals-to-unsigned lib/flex_array.c
+--- a/lib/flex_array.c~flex_array-convert-element_nr-formals-to-unsigned
 +++ a/lib/flex_array.c
-@@ -113,6 +113,8 @@ struct flex_array *flex_array_alloc(int 
- 		return NULL;
- 	ret->element_size = element_size;
- 	ret->total_nr_elements = total;
-+	if (elements_fit_in_base(ret) && !(flags & __GFP_ZERO))
-+		memset(ret->parts[0], FLEX_ARRAY_FREE, bytes_left_in_base());
+@@ -99,7 +99,8 @@ static inline int elements_fit_in_base(s
+  * capacity in the base structure.  Also note that no effort is made
+  * to efficiently pack objects across page boundaries.
+  */
+-struct flex_array *flex_array_alloc(int element_size, int total, gfp_t flags)
++struct flex_array *flex_array_alloc(int element_size, unsigned int total,
++					gfp_t flags)
+ {
+ 	struct flex_array *ret;
+ 	int max_size = nr_base_part_ptrs() * __elements_per_part(element_size);
+@@ -115,7 +116,8 @@ struct flex_array *flex_array_alloc(int 
  	return ret;
  }
  
-@@ -159,15 +161,12 @@ __fa_get_part(struct flex_array *fa, int
+-static int fa_element_to_part_nr(struct flex_array *fa, int element_nr)
++static int fa_element_to_part_nr(struct flex_array *fa,
++					unsigned int element_nr)
  {
- 	struct flex_array_part *part = fa->parts[part_nr];
- 	if (!part) {
--		/*
--		 * This leaves the part pages uninitialized
--		 * and with potentially random data, just
--		 * as if the user had kmalloc()'d the whole.
--		 * __GFP_ZERO can be used to zero it.
--		 */
--		part = kmalloc(FLEX_ARRAY_PART_SIZE, flags);
-+		part = kmalloc(sizeof(struct flex_array_part), flags);
- 		if (!part)
- 			return NULL;
-+		if (!(flags & __GFP_ZERO))
-+			memset(part, FLEX_ARRAY_FREE,
-+				sizeof(struct flex_array_part));
- 		fa->parts[part_nr] = part;
- 	}
- 	return part;
-@@ -228,7 +227,7 @@ int flex_array_clear(struct flex_array *
- 			return -EINVAL;
- 	}
- 	dst = &part->elements[index_inside_part(fa, element_nr)];
--	memset(dst, 0, fa->element_size);
-+	memset(dst, FLEX_ARRAY_FREE, fa->element_size);
- 	return 0;
+ 	return element_nr / __elements_per_part(fa->element_size);
+ }
+@@ -143,14 +145,12 @@ void flex_array_free(struct flex_array *
+ 	kfree(fa);
  }
  
+-static int fa_index_inside_part(struct flex_array *fa, int element_nr)
++static unsigned int index_inside_part(struct flex_array *fa,
++					unsigned int element_nr)
+ {
+-	return element_nr % __elements_per_part(fa->element_size);
+-}
++	unsigned int part_offset;
+ 
+-static int index_inside_part(struct flex_array *fa, int element_nr)
+-{
+-	int part_offset = fa_index_inside_part(fa, element_nr);
++	part_offset = element_nr % __elements_per_part(fa->element_size);
+ 	return part_offset * fa->element_size;
+ }
+ 
+@@ -185,7 +185,8 @@ __fa_get_part(struct flex_array *fa, int
+  *
+  * Locking must be provided by the caller.
+  */
+-int flex_array_put(struct flex_array *fa, int element_nr, void *src, gfp_t flags)
++int flex_array_put(struct flex_array *fa, unsigned int element_nr, void *src,
++			gfp_t flags)
+ {
+ 	int part_nr = fa_element_to_part_nr(fa, element_nr);
+ 	struct flex_array_part *part;
+@@ -217,7 +218,8 @@ int flex_array_put(struct flex_array *fa
+  *
+  * Locking must be provided by the caller.
+  */
+-int flex_array_prealloc(struct flex_array *fa, int start, int end, gfp_t flags)
++int flex_array_prealloc(struct flex_array *fa, unsigned int start,
++			unsigned int end, gfp_t flags)
+ {
+ 	int start_part;
+ 	int end_part;
+@@ -248,7 +250,7 @@ int flex_array_prealloc(struct flex_arra
+  *
+  * Locking must be provided by the caller.
+  */
+-void *flex_array_get(struct flex_array *fa, int element_nr)
++void *flex_array_get(struct flex_array *fa, unsigned int element_nr)
+ {
+ 	int part_nr = fa_element_to_part_nr(fa, element_nr);
+ 	struct flex_array_part *part;
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
