@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-indent-checks-stop-when-we-run-out-of-continuation-lines.patch added to -mm tree
-Date: Fri, 21 Aug 2009 15:24:55 -0700
-Message-ID: <200908212224.n7LMOtSR015922@imap1.linux-foundation.org>
+Subject: + checkpatch-handle-c99-comments-correctly-performance-issue.patch added to -mm tree
+Date: Fri, 21 Aug 2009 15:24:53 -0700
+Message-ID: <200908212224.n7LMOrsd015823@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42299 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51337 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932609AbZHUWY5 (ORCPT
+	by vger.kernel.org with ESMTP id S932390AbZHUWY4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Aug 2009 18:24:57 -0400
+	Fri, 21 Aug 2009 18:24:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: apw@canonical.com, daikerjohn@gmail.com
+Cc: dwalker@fifo99.com, apw@canonical.com
 
 
 The patch titled
-     checkpatch: indent checks -- stop when we run out of continuation lines
+     checkpatch: handle C99 comments correctly (performance issue)
 has been added to the -mm tree.  Its filename is
-     checkpatch-indent-checks-stop-when-we-run-out-of-continuation-lines.patch
+     checkpatch-handle-c99-comments-correctly-performance-issue.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: indent checks -- stop when we run out of continuation lines
-From: Andy Whitcroft <apw@canonical.com>
+Subject: checkpatch: handle C99 comments correctly (performance issue)
+From: Daniel Walker <dwalker@fifo99.com>
 
-Ensure we terminate when there are no futher continuation lines when
-trying to determine relative indent of conditionals and their blocks.
+This fixes the sanitation process in checkpatch.pl so that it blocks out
+the text after a C99 style comment the same way it does with block style
+comments.  This prevents the text from getting processed as regular code.
 
-Reported-by: John Daiker <daikerjohn@gmail.com>
+Signed-off-by: Daniel Walker <dwalker@fifo99.com>
 Signed-off-by: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ scripts/checkpatch.pl |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-indent-checks-stop-when-we-run-out-of-continuation-lines scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-indent-checks-stop-when-we-run-out-of-continuation-lines
+diff -puN scripts/checkpatch.pl~checkpatch-handle-c99-comments-correctly-performance-issue scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-handle-c99-comments-correctly-performance-issue
 +++ a/scripts/checkpatch.pl
-@@ -1547,8 +1547,9 @@ sub process {
- 				    $s =~ /^\s*#\s*?/ ||
- 				    $s =~ /^\s*$Ident\s*:/) {
- 					$continuation = ($s =~ /^.*?\\\n/) ? 1 : 0;
--					$s =~ s/^.*?\n//;
--					$cond_lines++;
-+					if ($s =~ s/^.*?\n//) {
-+						$cond_lines++;
-+					}
- 				}
- 			}
+@@ -356,6 +356,13 @@ sub sanitise_line {
+ 			$off++;
+ 			next;
+ 		}
++		if ($sanitise_quote eq '' && substr($line, $off, 2) eq '//') {
++			$sanitise_quote = '//';
++
++			substr($res, $off, 2, $sanitise_quote);
++			$off++;
++			next;
++		}
  
+ 		# A \ in a string means ignore the next character.
+ 		if (($sanitise_quote eq "'" || $sanitise_quote eq '"') &&
+@@ -379,6 +386,8 @@ sub sanitise_line {
+ 		#print "c<$c> SQ<$sanitise_quote>\n";
+ 		if ($off != 0 && $sanitise_quote eq '*/' && $c ne "\t") {
+ 			substr($res, $off, 1, $;);
++		} elsif ($off != 0 && $sanitise_quote eq '//' && $c ne "\t") {
++			substr($res, $off, 1, $;);
+ 		} elsif ($off != 0 && $sanitise_quote && $c ne "\t") {
+ 			substr($res, $off, 1, 'X');
+ 		} else {
+@@ -386,6 +395,10 @@ sub sanitise_line {
+ 		}
+ 	}
+ 
++	if ($sanitise_quote eq '//') {
++		$sanitise_quote = '';
++	}
++
+ 	# The pathname on a #include may be surrounded by '<' and '>'.
+ 	if ($res =~ /^.\s*\#\s*include\s+\<(.*)\>/) {
+ 		my $clean = 'X' x length($1);
 _
 
-Patches currently in -mm which might be from apw@canonical.com are
+Patches currently in -mm which might be from dwalker@fifo99.com are
 
-hugetlb-balance-freeing-of-huge-pages-across-nodes.patch
-hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages.patch
-hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages-fix.patch
-hugetlb-clean-up-and-update-huge-pages-documentation.patch
-hugetlb-restore-interleaving-of-bootmem-huge-pages.patch
-checkpatch-possible-types-else-cannot-start-a-type.patch
+linux-next.patch
 checkpatch-handle-c99-comments-correctly-performance-issue.patch
-checkpatch-indent-checks-stop-when-we-run-out-of-continuation-lines.patch
-checkpatch-make-f-alias-file-add-help-more-verbose-help-message.patch
-checkpatch-format-strings-should-not-have-brackets-in-macros.patch
-checkpatch-limit-sn-un-matches-to-actual-bit-sizes.patch
-checkpatch-version-029.patch
 
