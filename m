@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + kcore-use-registerd-physmem-information-define-node__pfn-for-non-numa-builds.patch added to -mm tree
-Date: Fri, 21 Aug 2009 16:16:40 -0700
-Message-ID: <200908212316.n7LNGefC009228@imap1.linux-foundation.org>
+Subject: + kcore-use-registerd-physmem-information-fix2.patch added to -mm tree
+Date: Fri, 21 Aug 2009 16:17:36 -0700
+Message-ID: <200908212317.n7LNHalV010821@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44677 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59786 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932561AbZHUXQq (ORCPT
+	by vger.kernel.org with ESMTP id S932548AbZHUXRj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Aug 2009 19:16:46 -0400
+	Fri, 21 Aug 2009 19:17:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jirislaby@gmail.com, kamezawa.hiroyu@jp.fujitsu.com
 
 
 The patch titled
-     define node_*_pfn for non-NUMA builds
+     kcore-use-registerd-physmem-information-fix2
 has been added to the -mm tree.  Its filename is
-     kcore-use-registerd-physmem-information-define-node__pfn-for-non-numa-builds.patch
+     kcore-use-registerd-physmem-information-fix2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,45 +34,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: define node_*_pfn for non-NUMA builds
+Subject: kcore-use-registerd-physmem-information-fix2
 From: Jiri Slaby <jirislaby@gmail.com>
 
-FWIW "Latest fs/proc/kcore updates" in the changelog are these
-from mmotm:
-> kcore-use-registerd-physmem-information.patch
-> kcore-use-registerd-physmem-information-fix.patch
-> kcore-use-registerd-physmem-information-checkpatch-fixes.patch
-
---
-
-Latest fs/proc/kcore updates need node_end_pfn. To avoid a compiler
-error:
-fs/proc/kcore.c: In function `kcore_update_ram':
-fs/proc/kcore.c:200: error: implicit declaration of function `node_end_pfn'
-define node_start_pfn and node_end_pfn as simple contig_page_data
-accessors on !NUMA builds.
+Fix this compilation warning on x86_64:
+fs/proc/kcore.c: In function `kclist_add_private':
+fs/proc/kcore.c:175: warning: comparison between pointer and integer
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    3 +++
- 1 file changed, 3 insertions(+)
+ fs/proc/kcore.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/mmzone.h~kcore-use-registerd-physmem-information-define-node__pfn-for-non-numa-builds include/linux/mmzone.h
---- a/include/linux/mmzone.h~kcore-use-registerd-physmem-information-define-node__pfn-for-non-numa-builds
-+++ a/include/linux/mmzone.h
-@@ -771,6 +771,9 @@ extern char numa_zonelist_order[];
- extern struct pglist_data contig_page_data;
- #define NODE_DATA(nid)		(&contig_page_data)
- #define NODE_MEM_MAP(nid)	mem_map
-+#define node_start_pfn(nid)	(contig_page_data.node_start_pfn)
-+#define node_end_pfn(nid)	(contig_page_data.node_start_pfn +	\
-+				 contig_page_data.node_spanned_pages)
+diff -puN fs/proc/kcore.c~kcore-use-registerd-physmem-information-fix2 fs/proc/kcore.c
+--- a/fs/proc/kcore.c~kcore-use-registerd-physmem-information-fix2
++++ a/fs/proc/kcore.c
+@@ -172,7 +172,7 @@ kclist_add_private(unsigned long pfn, un
+ 		ent->size = ULONG_MAX - ent->addr;
  
- #else /* CONFIG_NEED_MULTIPLE_NODES */
- 
+ 	/* cut when vmalloc() area is higher than direct-map area */
+-	if (VMALLOC_START > __va(0)) {
++	if (VMALLOC_START > (unsigned long)__va(0)) {
+ 		if (ent->addr > VMALLOC_START)
+ 			goto free_out;
+ 		if (VMALLOC_START - ent->addr < ent->size)
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
@@ -85,6 +73,7 @@ icom-converting-space-to-tabs.patch
 cyclades-read-buffer-overflow.patch
 serial167-fix-read-buffer-overflow.patch
 kcore-use-registerd-physmem-information-define-node__pfn-for-non-numa-builds.patch
+kcore-use-registerd-physmem-information-fix2.patch
 video-console-use-div_round_up.patch
 memory-controller-soft-limit-organize-cgroups-v9-fix.patch
 cyclades-allow-overriding-isa-defaults-also-when-the-driver-is-built-in.patch
