@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + flex_array-add-flex_array_clear-function.patch added to -mm tree
-Date: Fri, 21 Aug 2009 16:49:45 -0700
-Message-ID: <200908212349.n7LNnkDf002264@imap1.linux-foundation.org>
+Subject: + flex_array-add-flex_array_shrink-function.patch added to -mm tree
+Date: Fri, 21 Aug 2009 16:49:49 -0700
+Message-ID: <200908212349.n7LNnnOT002324@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39239 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32928 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932584AbZHUXtv (ORCPT
+	by vger.kernel.org with ESMTP id S932469AbZHUXtx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Aug 2009 19:49:51 -0400
+	Fri, 21 Aug 2009 19:49:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: rientjes@google.com, dave@linux.vnet.ibm.com
 
 
 The patch titled
-     flex_array: add flex_array_clear function
+     flex_array: add flex_array_shrink function
 has been added to the -mm tree.  Its filename is
-     flex_array-add-flex_array_clear-function.patch
+     flex_array-add-flex_array_shrink-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,78 +34,85 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: flex_array: add flex_array_clear function
+Subject: flex_array: add flex_array_shrink function
 From: David Rientjes <rientjes@google.com>
 
 Add a new function to the flex_array API:
 
-	int flex_array_clear(struct flex_array *fa,
-				unsigned int element_nr)
+	int flex_array_shrink(struct flex_array *fa)
 
-This function will zero the element at element_nr in the flex_array.
+This function will free all unused second-level pages.  Since elements are
+now poisoned if they are not allocated with __GFP_ZERO, it's possible to
+identify parts that consist solely of unused elements.
 
-Although this is equivalent to using flex_array_put() and passing a
-pointer to zero'd memory, flex_array_clear() does not require such a
-pointer to memory that would most likely need to be allocated on the
-caller's stack which could be significantly large depending on
-element_size.
+flex_array_shrink() returns the number of pages freed.
 
 Signed-off-by: David Rientjes <rientjes@google.com>
 Cc: Dave Hansen <dave@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/flex_array.h |    1 +
- lib/flex_array.c           |   26 ++++++++++++++++++++++++++
- 2 files changed, 27 insertions(+)
+ include/linux/flex_array.h |    1 
+ lib/flex_array.c           |   40 +++++++++++++++++++++++++++++++++++
+ 2 files changed, 41 insertions(+)
 
-diff -puN include/linux/flex_array.h~flex_array-add-flex_array_clear-function include/linux/flex_array.h
---- a/include/linux/flex_array.h~flex_array-add-flex_array_clear-function
+diff -puN include/linux/flex_array.h~flex_array-add-flex_array_shrink-function include/linux/flex_array.h
+--- a/include/linux/flex_array.h~flex_array-add-flex_array_shrink-function
 +++ a/include/linux/flex_array.h
-@@ -44,6 +44,7 @@ void flex_array_free(struct flex_array *
- void flex_array_free_parts(struct flex_array *fa);
- int flex_array_put(struct flex_array *fa, unsigned int element_nr, void *src,
+@@ -46,5 +46,6 @@ int flex_array_put(struct flex_array *fa
  		gfp_t flags);
-+int flex_array_clear(struct flex_array *fa, unsigned int element_nr);
+ int flex_array_clear(struct flex_array *fa, unsigned int element_nr);
  void *flex_array_get(struct flex_array *fa, unsigned int element_nr);
++int flex_array_shrink(struct flex_array *fa);
  
  #endif /* _FLEX_ARRAY_H */
-diff -puN lib/flex_array.c~flex_array-add-flex_array_clear-function lib/flex_array.c
---- a/lib/flex_array.c~flex_array-add-flex_array_clear-function
+diff -puN lib/flex_array.c~flex_array-add-flex_array_shrink-function lib/flex_array.c
+--- a/lib/flex_array.c~flex_array-add-flex_array_shrink-function
 +++ a/lib/flex_array.c
-@@ -207,6 +207,32 @@ int flex_array_put(struct flex_array *fa
+@@ -291,3 +291,43 @@ void *flex_array_get(struct flex_array *
+ 	}
+ 	return &part->elements[index_inside_part(fa, element_nr)];
  }
- 
- /**
-+ * flex_array_clear - clear element in array at @element_nr
-+ * @element_nr:	index of the position to clear.
-+ *
-+ * Locking must be provided by the caller.
-+ */
-+int flex_array_clear(struct flex_array *fa, unsigned int element_nr)
-+{
-+	int part_nr = fa_element_to_part_nr(fa, element_nr);
-+	struct flex_array_part *part;
-+	void *dst;
 +
-+	if (element_nr >= fa->total_nr_elements)
-+		return -ENOSPC;
-+	if (elements_fit_in_base(fa))
-+		part = (struct flex_array_part *)&fa->parts[0];
-+	else {
-+		part = fa->parts[part_nr];
-+		if (!part)
-+			return -EINVAL;
-+	}
-+	dst = &part->elements[index_inside_part(fa, element_nr)];
-+	memset(dst, 0, fa->element_size);
-+	return 0;
++static int part_is_free(struct flex_array_part *part)
++{
++	int i;
++
++	for (i = 0; i < sizeof(struct flex_array_part); i++)
++		if (part->elements[i] != FLEX_ARRAY_FREE)
++			return 0;
++	return 1;
 +}
 +
 +/**
-  * flex_array_prealloc - guarantee that array space exists
-  * @start:	index of first array element for which space is allocated
-  * @end:	index of last (inclusive) element for which space is allocated
++ * flex_array_shrink - free unused second-level pages
++ *
++ * Frees all second-level pages that consist solely of unused
++ * elements.  Returns the number of pages freed.
++ *
++ * Locking must be provided by the caller.
++ */
++int flex_array_shrink(struct flex_array *fa)
++{
++	struct flex_array_part *part;
++	int max_part = nr_base_part_ptrs();
++	int part_nr;
++	int ret = 0;
++
++	if (elements_fit_in_base(fa))
++		return ret;
++	for (part_nr = 0; part_nr < max_part; part_nr++) {
++		part = fa->parts[part_nr];
++		if (!part)
++			continue;
++		if (part_is_free(part)) {
++			fa->parts[part_nr] = NULL;
++			kfree(part);
++			ret++;
++		}
++	}
++	return ret;
++}
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
