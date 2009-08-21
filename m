@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-limit-sn-un-matches-to-actual-bit-sizes.patch added to -mm tree
-Date: Fri, 21 Aug 2009 15:25:01 -0700
-Message-ID: <200908212225.n7LMP15x016004@imap1.linux-foundation.org>
+Subject: + checkpatch-version-029.patch added to -mm tree
+Date: Fri, 21 Aug 2009 15:25:03 -0700
+Message-ID: <200908212225.n7LMP3hu016125@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44827 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42445 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932952AbZHUWZC (ORCPT
+	by vger.kernel.org with ESMTP id S932800AbZHUWZE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Aug 2009 18:25:02 -0400
+	Fri, 21 Aug 2009 18:25:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: apw@canonical.com
 
 
 The patch titled
-     checkpatch: limit sN/uN matches to actual bit sizes
+     checkpatch: version 0.29
 has been added to the -mm tree.  Its filename is
-     checkpatch-limit-sn-un-matches-to-actual-bit-sizes.patch
+     checkpatch-version-029.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,28 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: limit sN/uN matches to actual bit sizes
+Subject: checkpatch: version 0.29
 From: Andy Whitcroft <apw@canonical.com>
-
-Limit our type matcher to the s/u/le/be etc sizes that actually exist to
-prevent miss categorising s2 as a type.  Fix up the spelling of the error
-also.
 
 Signed-off-by: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-limit-sn-un-matches-to-actual-bit-sizes scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-limit-sn-un-matches-to-actual-bit-sizes
+diff -puN scripts/checkpatch.pl~checkpatch-version-029 scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-version-029
 +++ a/scripts/checkpatch.pl
-@@ -182,7 +182,7 @@ our $UTF8	= qr {
- }x;
+@@ -10,7 +10,7 @@ use strict;
+ my $P = $0;
+ $P =~ s@.*/@@g;
  
- our $typeTypedefs = qr{(?x:
--	(?:__)?(?:u|s|be|le)(?:\d|\d\d)|
-+	(?:__)?(?:u|s|be|le)(?:8|16|32|64)|
- 	atomic_t
- )};
+-my $V = '0.28';
++my $V = '0.29';
  
-@@ -1936,7 +1936,7 @@ sub process {
- 						# A unary '*' may be const
+ use Getopt::Long qw(:config no_auto_abbrev);
  
- 					} elsif ($ctx =~ /.xW/) {
--						ERROR("Aspace prohibited after that '$op' $at\n" . $hereptr);
-+						ERROR("space prohibited after that '$op' $at\n" . $hereptr);
- 					}
- 
- 				# unary ++ and unary -- are allowed no space on one side.
 _
 
 Patches currently in -mm which might be from apw@canonical.com are
