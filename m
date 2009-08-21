@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + flex_array-convert-element_nr-formals-to-unsigned.patch added to -mm tree
-Date: Fri, 21 Aug 2009 16:49:43 -0700
-Message-ID: <200908212349.n7LNninD002256@imap1.linux-foundation.org>
+Subject: + flex_array-add-flex_array_clear-function.patch added to -mm tree
+Date: Fri, 21 Aug 2009 16:49:45 -0700
+Message-ID: <200908212349.n7LNnkDf002264@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39988 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39239 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753729AbZHUXtu (ORCPT
+	by vger.kernel.org with ESMTP id S932584AbZHUXtv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Aug 2009 19:49:50 -0400
+	Fri, 21 Aug 2009 19:49:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: rientjes@google.com, dave@linux.vnet.ibm.com
 
 
 The patch titled
-     flex_array: convert element_nr formals to unsigned
+     flex_array: add flex_array_clear function
 has been added to the -mm tree.  Its filename is
-     flex_array-convert-element_nr-formals-to-unsigned.patch
+     flex_array-add-flex_array_clear-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,125 +34,78 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: flex_array: convert element_nr formals to unsigned
+Subject: flex_array: add flex_array_clear function
 From: David Rientjes <rientjes@google.com>
 
-It's problematic to allow signed element_nr's or total's to be passed as
-part of the flex array API.
+Add a new function to the flex_array API:
 
-flex_array_alloc() allows total_nr_elements to be set to a negative
-quantity, which is obviously erroneous.
+	int flex_array_clear(struct flex_array *fa,
+				unsigned int element_nr)
 
-flex_array_get() and flex_array_put() allows negative array indices in
-dereferencing an array part, which could address memory mapped before
-struct flex_array.
+This function will zero the element at element_nr in the flex_array.
 
-The fix is to convert all existing element_nr formals to be qualified as
-unsigned.  Existing checks to compare it to total_nr_elements or the max
-array size based on element_size need not be changed.
+Although this is equivalent to using flex_array_put() and passing a
+pointer to zero'd memory, flex_array_clear() does not require such a
+pointer to memory that would most likely need to be allocated on the
+caller's stack which could be significantly large depending on
+element_size.
 
 Signed-off-by: David Rientjes <rientjes@google.com>
 Cc: Dave Hansen <dave@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/flex_array.h |   10 ++++++----
- lib/flex_array.c           |   24 +++++++++++++-----------
- 2 files changed, 19 insertions(+), 15 deletions(-)
+ include/linux/flex_array.h |    1 +
+ lib/flex_array.c           |   26 ++++++++++++++++++++++++++
+ 2 files changed, 27 insertions(+)
 
-diff -puN include/linux/flex_array.h~flex_array-convert-element_nr-formals-to-unsigned include/linux/flex_array.h
---- a/include/linux/flex_array.h~flex_array-convert-element_nr-formals-to-unsigned
+diff -puN include/linux/flex_array.h~flex_array-add-flex_array_clear-function include/linux/flex_array.h
+--- a/include/linux/flex_array.h~flex_array-add-flex_array_clear-function
 +++ a/include/linux/flex_array.h
-@@ -36,12 +36,14 @@ struct flex_array {
- 	.total_nr_elements = (total),	\
- } } }
- 
--struct flex_array *flex_array_alloc(int element_size, int total, gfp_t flags);
--int flex_array_prealloc(struct flex_array *fa, int start, int end, gfp_t flags);
-+struct flex_array *flex_array_alloc(int element_size, unsigned int total,
-+		gfp_t flags);
-+int flex_array_prealloc(struct flex_array *fa, unsigned int start,
-+		unsigned int end, gfp_t flags);
- void flex_array_free(struct flex_array *fa);
+@@ -44,6 +44,7 @@ void flex_array_free(struct flex_array *
  void flex_array_free_parts(struct flex_array *fa);
--int flex_array_put(struct flex_array *fa, int element_nr, void *src,
-+int flex_array_put(struct flex_array *fa, unsigned int element_nr, void *src,
+ int flex_array_put(struct flex_array *fa, unsigned int element_nr, void *src,
  		gfp_t flags);
--void *flex_array_get(struct flex_array *fa, int element_nr);
-+void *flex_array_get(struct flex_array *fa, unsigned int element_nr);
++int flex_array_clear(struct flex_array *fa, unsigned int element_nr);
+ void *flex_array_get(struct flex_array *fa, unsigned int element_nr);
  
  #endif /* _FLEX_ARRAY_H */
-diff -puN lib/flex_array.c~flex_array-convert-element_nr-formals-to-unsigned lib/flex_array.c
---- a/lib/flex_array.c~flex_array-convert-element_nr-formals-to-unsigned
+diff -puN lib/flex_array.c~flex_array-add-flex_array_clear-function lib/flex_array.c
+--- a/lib/flex_array.c~flex_array-add-flex_array_clear-function
 +++ a/lib/flex_array.c
-@@ -99,7 +99,8 @@ static inline int elements_fit_in_base(s
-  * capacity in the base structure.  Also note that no effort is made
-  * to efficiently pack objects across page boundaries.
-  */
--struct flex_array *flex_array_alloc(int element_size, int total, gfp_t flags)
-+struct flex_array *flex_array_alloc(int element_size, unsigned int total,
-+					gfp_t flags)
- {
- 	struct flex_array *ret;
- 	int max_size = nr_base_part_ptrs() * __elements_per_part(element_size);
-@@ -115,7 +116,8 @@ struct flex_array *flex_array_alloc(int 
- 	return ret;
+@@ -207,6 +207,32 @@ int flex_array_put(struct flex_array *fa
  }
  
--static int fa_element_to_part_nr(struct flex_array *fa, int element_nr)
-+static int fa_element_to_part_nr(struct flex_array *fa,
-+					unsigned int element_nr)
- {
- 	return element_nr / __elements_per_part(fa->element_size);
- }
-@@ -143,14 +145,12 @@ void flex_array_free(struct flex_array *
- 	kfree(fa);
- }
- 
--static int fa_index_inside_part(struct flex_array *fa, int element_nr)
-+static unsigned int index_inside_part(struct flex_array *fa,
-+					unsigned int element_nr)
- {
--	return element_nr % __elements_per_part(fa->element_size);
--}
-+	unsigned int part_offset;
- 
--static int index_inside_part(struct flex_array *fa, int element_nr)
--{
--	int part_offset = fa_index_inside_part(fa, element_nr);
-+	part_offset = element_nr % __elements_per_part(fa->element_size);
- 	return part_offset * fa->element_size;
- }
- 
-@@ -185,7 +185,8 @@ __fa_get_part(struct flex_array *fa, int
-  *
-  * Locking must be provided by the caller.
-  */
--int flex_array_put(struct flex_array *fa, int element_nr, void *src, gfp_t flags)
-+int flex_array_put(struct flex_array *fa, unsigned int element_nr, void *src,
-+			gfp_t flags)
- {
- 	int part_nr = fa_element_to_part_nr(fa, element_nr);
- 	struct flex_array_part *part;
-@@ -217,7 +218,8 @@ int flex_array_put(struct flex_array *fa
-  *
-  * Locking must be provided by the caller.
-  */
--int flex_array_prealloc(struct flex_array *fa, int start, int end, gfp_t flags)
-+int flex_array_prealloc(struct flex_array *fa, unsigned int start,
-+			unsigned int end, gfp_t flags)
- {
- 	int start_part;
- 	int end_part;
-@@ -248,7 +250,7 @@ int flex_array_prealloc(struct flex_arra
-  *
-  * Locking must be provided by the caller.
-  */
--void *flex_array_get(struct flex_array *fa, int element_nr)
-+void *flex_array_get(struct flex_array *fa, unsigned int element_nr)
- {
- 	int part_nr = fa_element_to_part_nr(fa, element_nr);
- 	struct flex_array_part *part;
+ /**
++ * flex_array_clear - clear element in array at @element_nr
++ * @element_nr:	index of the position to clear.
++ *
++ * Locking must be provided by the caller.
++ */
++int flex_array_clear(struct flex_array *fa, unsigned int element_nr)
++{
++	int part_nr = fa_element_to_part_nr(fa, element_nr);
++	struct flex_array_part *part;
++	void *dst;
++
++	if (element_nr >= fa->total_nr_elements)
++		return -ENOSPC;
++	if (elements_fit_in_base(fa))
++		part = (struct flex_array_part *)&fa->parts[0];
++	else {
++		part = fa->parts[part_nr];
++		if (!part)
++			return -EINVAL;
++	}
++	dst = &part->elements[index_inside_part(fa, element_nr)];
++	memset(dst, 0, fa->element_size);
++	return 0;
++}
++
++/**
+  * flex_array_prealloc - guarantee that array space exists
+  * @start:	index of first array element for which space is allocated
+  * @end:	index of last (inclusive) element for which space is allocated
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
