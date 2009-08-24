@@ -1,56 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [merged] m68k-count-can-reach-51-not-50.patch removed from -mm tree
-Date: Mon, 24 Aug 2009 11:59:58 -0700
-Message-ID: <200908241859.n7OIxwXW031083@imap1.linux-foundation.org>
+Subject: [merged] m68k-cnt-reaches-1-not-0.patch removed from -mm tree
+Date: Mon, 24 Aug 2009 12:00:01 -0700
+Message-ID: <200908241900.n7OJ01wL031155@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37267 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54724 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753158AbZHXTAM (ORCPT
+	by vger.kernel.org with ESMTP id S1752542AbZHXTAN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Aug 2009 15:00:12 -0400
+	Mon, 24 Aug 2009 15:00:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: roel.kluin@gmail.com, geert@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     m68k: count can reach 51, not 50
+     m68k: cnt reaches -1, not 0
 has been removed from the -mm tree.  Its filename was
-     m68k-count-can-reach-51-not-50.patch
+     m68k-cnt-reaches-1-not-0.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m68k: count can reach 51, not 50
+Subject: m68k: cnt reaches -1, not 0
 From: Roel Kluin <roel.kluin@gmail.com>
 
-With while (count++ < 50) { ...  } count can reach 51, not 50, so we
-shouldn't give an error message on a count of 50.
+With the postfix decrement cnt reaches -1 rather than 0.
 
-[akpm@linux-foundation.org: coding-style fixes]
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
 Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/macintosh/via-maciisi.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/m68k/amiga/config.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/macintosh/via-maciisi.c~m68k-count-can-reach-51-not-50 drivers/macintosh/via-maciisi.c
---- a/drivers/macintosh/via-maciisi.c~m68k-count-can-reach-51-not-50
-+++ a/drivers/macintosh/via-maciisi.c
-@@ -288,7 +288,7 @@ static void maciisi_sync(struct adb_requ
- 	}
- 	/* This could be BAD... when the ADB controller doesn't respond
- 	 * for this long, it's probably not coming back :-( */
--	if(count >= 50) /* Hopefully shouldn't happen */
-+	if (count > 50) /* Hopefully shouldn't happen */
- 		printk(KERN_ERR "maciisi_send_request: poll timed out!\n");
- }
+diff -puN arch/m68k/amiga/config.c~m68k-cnt-reaches-1-not-0 arch/m68k/amiga/config.c
+--- a/arch/m68k/amiga/config.c~m68k-cnt-reaches-1-not-0
++++ a/arch/m68k/amiga/config.c
+@@ -574,10 +574,11 @@ static int a2000_hwclk(int op, struct rt
  
+ 	tod_2000.cntrl1 = TOD2000_CNTRL1_HOLD;
+ 
+-	while ((tod_2000.cntrl1 & TOD2000_CNTRL1_BUSY) && cnt--) {
++	while ((tod_2000.cntrl1 & TOD2000_CNTRL1_BUSY) && cnt) {
+ 		tod_2000.cntrl1 &= ~TOD2000_CNTRL1_HOLD;
+ 		udelay(70);
+ 		tod_2000.cntrl1 |= TOD2000_CNTRL1_HOLD;
++		--cnt;
+ 	}
+ 
+ 	if (!cnt)
+@@ -649,10 +650,11 @@ static int amiga_set_clock_mmss(unsigned
+ 
+ 		tod_2000.cntrl1 |= TOD2000_CNTRL1_HOLD;
+ 
+-		while ((tod_2000.cntrl1 & TOD2000_CNTRL1_BUSY) && cnt--) {
++		while ((tod_2000.cntrl1 & TOD2000_CNTRL1_BUSY) && cnt) {
+ 			tod_2000.cntrl1 &= ~TOD2000_CNTRL1_HOLD;
+ 			udelay(70);
+ 			tod_2000.cntrl1 |= TOD2000_CNTRL1_HOLD;
++			--cnt;
+ 		}
+ 
+ 		if (!cnt)
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
