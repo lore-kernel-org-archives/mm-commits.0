@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hwmon-fix-freeing-of-gpio_data-and-irq.patch added to -mm tree
-Date: Mon, 24 Aug 2009 13:17:09 -0700
-Message-ID: <200908242017.n7OKH9jQ006179@imap1.linux-foundation.org>
+Subject: + gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch added to -mm tree
+Date: Mon, 24 Aug 2009 13:49:31 -0700
+Message-ID: <200908242049.n7OKnVW9031229@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41644 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57305 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752216AbZHXURp (ORCPT
+	by vger.kernel.org with ESMTP id S1753252AbZHXUuY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Aug 2009 16:17:45 -0400
+	Mon, 24 Aug 2009 16:50:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, david-b@pacbell.net, jic23@cam.ac.uk
+Cc: roel.kluin@gmail.com, James.Bottomley@HansenPartnership.com, achim_leubner@adaptec.com
 
 
 The patch titled
-     hwmon: fix freeing of gpio_data and irq
+     gdth: unmap ccb_phys when scsi_add_host() fails in gdth_eisa_probe_one()
 has been added to the -mm tree.  Its filename is
-     hwmon-fix-freeing-of-gpio_data-and-irq.patch
+     gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hwmon: fix freeing of gpio_data and irq
+Subject: gdth: unmap ccb_phys when scsi_add_host() fails in gdth_eisa_probe_one()
 From: Roel Kluin <roel.kluin@gmail.com>
 
-If already requested, gpio_data and irq should be freed in the case of an
-error.
+unmap ccb_phys as well when scsi_add_host() fails
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Acked-by: Jonathan Cameron <jic23@cam.ac.uk>
-Cc: David Brownell <david-b@pacbell.net>
+Cc: Achim Leubner <achim_leubner@adaptec.com>
+Cc: James E.J. Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/sht15.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/scsi/gdth.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/hwmon/sht15.c~hwmon-fix-freeing-of-gpio_data-and-irq drivers/hwmon/sht15.c
---- a/drivers/hwmon/sht15.c~hwmon-fix-freeing-of-gpio_data-and-irq
-+++ a/drivers/hwmon/sht15.c
-@@ -562,7 +562,7 @@ static int __devinit sht15_probe(struct 
- 	ret = sysfs_create_group(&pdev->dev.kobj, &sht15_attr_group);
- 	if (ret) {
- 		dev_err(&pdev->dev, "sysfs create failed");
--		goto err_free_data;
-+		goto err_release_gpio_data;
- 	}
+diff -puN drivers/scsi/gdth.c~gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one drivers/scsi/gdth.c
+--- a/drivers/scsi/gdth.c~gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one
++++ a/drivers/scsi/gdth.c
+@@ -4900,7 +4900,7 @@ static int __init gdth_eisa_probe_one(us
  
- 	ret = request_irq(gpio_to_irq(data->pdata->gpio_data),
-@@ -581,10 +581,12 @@ static int __devinit sht15_probe(struct 
- 	data->hwmon_dev = hwmon_device_register(data->dev);
- 	if (IS_ERR(data->hwmon_dev)) {
- 		ret = PTR_ERR(data->hwmon_dev);
--		goto err_release_gpio_data;
-+		goto err_release_irq;
- 	}
- 	return 0;
+ 	error = scsi_add_host(shp, NULL);
+ 	if (error)
+-		goto out_free_coal_stat;
++		goto out_free_ccb_phys;
+ 	list_add_tail(&ha->list, &gdth_instances);
+ 	gdth_timer_init();
  
-+err_release_irq:
-+	free_irq(gpio_to_irq(data->pdata->gpio_data), data);
- err_release_gpio_data:
- 	gpio_free(data->pdata->gpio_data);
- err_release_gpio_sck:
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -103,6 +88,7 @@ drivers-scsi-gdthc-fix-buffer-overflow.patch
 drivers-scsi-u14-34fc-fix-uffer-overflow.patch
 drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
 osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
 frv-duplicate-output_buffer-of-e03.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 blackfin-fix-read-buffer-overflow.patch
