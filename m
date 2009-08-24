@@ -1,104 +1,246 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-show-swap-usage-in-stat-file.patch added to -mm tree
-Date: Mon, 24 Aug 2009 13:04:30 -0700
-Message-ID: <200908242004.n7OK4VT8016136@imap1.linux-foundation.org>
+Subject: [to-be-updated] mm-balance_dirty_pages-reduce-calls-to-global_page_state-to-reduce-cache-references.patch removed from -mm tree
+Date: Mon, 24 Aug 2009 13:08:11 -0700
+Message-ID: <200908242008.n7OK8CDZ022691@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57092 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57746 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753067AbZHXUFW (ORCPT
+	by vger.kernel.org with ESMTP id S1753369AbZHXUJ3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Aug 2009 16:05:22 -0400
+	Mon, 24 Aug 2009 16:09:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: nishimura@mxp.nes.nec.co.jp, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com
+To: richard@rsk.demon.co.uk, a.p.zijlstra@chello.nl, chris.mason@oracle.com, fengguang.wu@intel.com, jens.axboe@oracle.com, mbligh@mbligh.org, miklos@szeredi.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: show swap usage in stat file
-has been added to the -mm tree.  Its filename is
-     memcg-show-swap-usage-in-stat-file.patch
+     mm: balance_dirty_pages(): reduce calls to global_page_state to reduce cache references
+has been removed from the -mm tree.  Its filename was
+     mm-balance_dirty_pages-reduce-calls-to-global_page_state-to-reduce-cache-references.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: show swap usage in stat file
-From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Subject: mm: balance_dirty_pages(): reduce calls to global_page_state to reduce cache references
+From: Richard Kennedy <richard@rsk.demon.co.uk>
 
-We now count MEM_CGROUP_STAT_SWAPOUT, so we can show swap usage.  It would
-be useful for users to show swap usage in memory.stat file, because they
-don't need calculate memsw.usage - res.usage to know swap usage.
+Reducing the number of times balance_dirty_pages calls global_page_state
+reduces the cache references and so improves write performance on a
+variety of workloads.
 
-Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Reviewed-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+'perf stats' of simple fio write tests shows the reduction in cache
+access.  Where the test is fio 'write,mmap,600Mb,pre_read' on AMD AthlonX2
+with 3Gb memory (dirty_threshold approx 600 Mb) running each test 10
+times, taking the average & standard deviation
+
+		average (s.d.) in millions (10^6)
+2.6.31-rc6	661 (9.88)
++patch		604 (4.19)
+
+Achieving this reduction is by dropping clip_bdi_dirty_limit as it rereads
+the counters to apply the dirty_threshold and moving this check up into
+balance_dirty_pages where it has already read the counters.
+
+Also by rearrange the for loop to only contain one copy of the limit tests
+allows the pdflush test after the loop to use the local copies of the
+counters rather than rereading then.
+
+In the common case with no throttling it now calls global_page_state 5
+fewer times and bdi_stat 2 fewer.
+
+I have tried to retain the existing behavior as much as possible, but have
+added NR_WRITEBACK_TEMP to nr_writeback.  This counter was used in
+clip_bdi_dirty_limit but not in balance_dirty_pages, grep suggests this is
+only used by FUSE but I haven't done any testing on that.  It does seem
+logical to count all the WRITEBACK pages when making the throttling
+decisions so this change should be more correct ;)
+
+I have been running this patch for over a week and have had no problems
+with it and generally see improved disk write performance on a variety of
+tests & workloads, even in the worst cases performance is the same as the
+unpatched kernel.  I also tried this on a Intel ATOM 330 twincore system
+and saw similar improvements.
+
+Signed-off-by: Richard Kennedy <richard@rsk.demon.co.uk>
+Cc: Chris Mason <chris.mason@oracle.com>
+Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Martin Bligh <mbligh@mbligh.org>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   17 ++++++++++++++---
- 1 file changed, 14 insertions(+), 3 deletions(-)
+ mm/page-writeback.c |  116 +++++++++++++++---------------------------
+ 1 file changed, 43 insertions(+), 73 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-show-swap-usage-in-stat-file mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-show-swap-usage-in-stat-file
-+++ a/mm/memcontrol.c
-@@ -2663,6 +2663,7 @@ enum {
- 	MCS_MAPPED_FILE,
- 	MCS_PGPGIN,
- 	MCS_PGPGOUT,
-+	MCS_SWAP,
- 	MCS_INACTIVE_ANON,
- 	MCS_ACTIVE_ANON,
- 	MCS_INACTIVE_FILE,
-@@ -2684,6 +2685,7 @@ struct {
- 	{"mapped_file", "total_mapped_file"},
- 	{"pgpgin", "total_pgpgin"},
- 	{"pgpgout", "total_pgpgout"},
-+	{"swap", "total_swap"},
- 	{"inactive_anon", "total_inactive_anon"},
- 	{"active_anon", "total_active_anon"},
- 	{"inactive_file", "total_inactive_file"},
-@@ -2708,6 +2710,10 @@ static int mem_cgroup_get_local_stat(str
- 	s->stat[MCS_PGPGIN] += val;
- 	val = mem_cgroup_read_stat(&mem->stat, MEM_CGROUP_STAT_PGPGOUT_COUNT);
- 	s->stat[MCS_PGPGOUT] += val;
-+	if (do_swap_account) {
-+		val = mem_cgroup_read_stat(&mem->stat, MEM_CGROUP_STAT_SWAPOUT);
-+		s->stat[MCS_SWAP] += val;
-+	}
+diff -puN mm/page-writeback.c~mm-balance_dirty_pages-reduce-calls-to-global_page_state-to-reduce-cache-references mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-balance_dirty_pages-reduce-calls-to-global_page_state-to-reduce-cache-references
++++ a/mm/page-writeback.c
+@@ -249,32 +249,6 @@ static void bdi_writeout_fraction(struct
+ 	}
+ }
  
- 	/* per zone stat */
- 	val = mem_cgroup_get_local_zonestat(mem, LRU_INACTIVE_ANON);
-@@ -2739,8 +2745,11 @@ static int mem_control_stat_show(struct 
- 	memset(&mystat, 0, sizeof(mystat));
- 	mem_cgroup_get_local_stat(mem_cont, &mystat);
+-/*
+- * Clip the earned share of dirty pages to that which is actually available.
+- * This avoids exceeding the total dirty_limit when the floating averages
+- * fluctuate too quickly.
+- */
+-static void clip_bdi_dirty_limit(struct backing_dev_info *bdi,
+-		unsigned long dirty, unsigned long *pbdi_dirty)
+-{
+-	unsigned long avail_dirty;
+-
+-	avail_dirty = global_page_state(NR_FILE_DIRTY) +
+-		 global_page_state(NR_WRITEBACK) +
+-		 global_page_state(NR_UNSTABLE_NFS) +
+-		 global_page_state(NR_WRITEBACK_TEMP);
+-
+-	if (avail_dirty < dirty)
+-		avail_dirty = dirty - avail_dirty;
+-	else
+-		avail_dirty = 0;
+-
+-	avail_dirty += bdi_stat(bdi, BDI_RECLAIMABLE) +
+-		bdi_stat(bdi, BDI_WRITEBACK);
+-
+-	*pbdi_dirty = min(*pbdi_dirty, avail_dirty);
+-}
+-
+ static inline void task_dirties_fraction(struct task_struct *tsk,
+ 		long *numerator, long *denominator)
+ {
+@@ -465,7 +439,6 @@ get_dirty_limits(unsigned long *pbackgro
+ 			bdi_dirty = dirty * bdi->max_ratio / 100;
  
--	for (i = 0; i < NR_MCS_STAT; i++)
-+	for (i = 0; i < NR_MCS_STAT; i++) {
-+		if (i == MCS_SWAP && !do_swap_account)
-+			continue;
- 		cb->fill(cb, memcg_stat_strings[i].local_name, mystat.stat[i]);
-+	}
+ 		*pbdi_dirty = bdi_dirty;
+-		clip_bdi_dirty_limit(bdi, dirty, pbdi_dirty);
+ 		task_dirty_limit(current, pbdi_dirty);
+ 	}
+ }
+@@ -499,45 +472,12 @@ static void balance_dirty_pages(struct a
+ 		};
  
- 	/* Hierarchical information */
- 	{
-@@ -2753,9 +2762,11 @@ static int mem_control_stat_show(struct 
+ 		get_dirty_limits(&background_thresh, &dirty_thresh,
+-				&bdi_thresh, bdi);
++				 &bdi_thresh, bdi);
  
- 	memset(&mystat, 0, sizeof(mystat));
- 	mem_cgroup_get_total_stat(mem_cont, &mystat);
--	for (i = 0; i < NR_MCS_STAT; i++)
-+	for (i = 0; i < NR_MCS_STAT; i++) {
-+		if (i == MCS_SWAP && !do_swap_account)
-+			continue;
- 		cb->fill(cb, memcg_stat_strings[i].total_name, mystat.stat[i]);
+ 		nr_reclaimable = global_page_state(NR_FILE_DIRTY) +
+-					global_page_state(NR_UNSTABLE_NFS);
+-		nr_writeback = global_page_state(NR_WRITEBACK);
+-
+-		bdi_nr_reclaimable = bdi_stat(bdi, BDI_RECLAIMABLE);
+-		bdi_nr_writeback = bdi_stat(bdi, BDI_WRITEBACK);
+-
+-		if (bdi_nr_reclaimable + bdi_nr_writeback <= bdi_thresh)
+-			break;
+-
+-		/*
+-		 * Throttle it only when the background writeback cannot
+-		 * catch-up. This avoids (excessively) small writeouts
+-		 * when the bdi limits are ramping up.
+-		 */
+-		if (nr_reclaimable + nr_writeback <
+-				(background_thresh + dirty_thresh) / 2)
+-			break;
+-
+-		if (!bdi->dirty_exceeded)
+-			bdi->dirty_exceeded = 1;
+-
+-		/* Note: nr_reclaimable denotes nr_dirty + nr_unstable.
+-		 * Unstable writes are a feature of certain networked
+-		 * filesystems (i.e. NFS) in which data may have been
+-		 * written to the server's write cache, but has not yet
+-		 * been flushed to permanent storage.
+-		 * Only move pages to writeback if this bdi is over its
+-		 * threshold otherwise wait until the disk writes catch
+-		 * up.
+-		 */
+-		if (bdi_nr_reclaimable > bdi_thresh) {
+-			generic_sync_bdi_inodes(NULL, &wbc);
+-			pages_written += write_chunk - wbc.nr_to_write;
+-			get_dirty_limits(&background_thresh, &dirty_thresh,
+-				       &bdi_thresh, bdi);
+-		}
++			global_page_state(NR_UNSTABLE_NFS);
++		nr_writeback = global_page_state(NR_WRITEBACK) +
++			global_page_state(NR_WRITEBACK_TEMP);
+ 
+ 		/*
+ 		 * In order to avoid the stacked BDI deadlock we need
+@@ -557,16 +497,48 @@ static void balance_dirty_pages(struct a
+ 			bdi_nr_writeback = bdi_stat(bdi, BDI_WRITEBACK);
+ 		}
+ 
+-		if (bdi_nr_reclaimable + bdi_nr_writeback <= bdi_thresh)
+-			break;
+-		if (pages_written >= write_chunk)
+-			break;		/* We've done our duty */
++		/* always throttle if over threshold */
++		if (nr_reclaimable + nr_writeback < dirty_thresh) {
++
++			if (bdi_nr_reclaimable + bdi_nr_writeback <= bdi_thresh)
++				break;
++
++			/*
++			 * Throttle it only when the background writeback cannot
++			 * catch-up. This avoids (excessively) small writeouts
++			 * when the bdi limits are ramping up.
++			 */
++			if (nr_reclaimable + nr_writeback <
++			    (background_thresh + dirty_thresh) / 2)
++				break;
++
++			/* done enough? */
++			if (pages_written >= write_chunk)
++				break;
++		}
++		if (!bdi->dirty_exceeded)
++			bdi->dirty_exceeded = 1;
+ 
++		/* Note: nr_reclaimable denotes nr_dirty + nr_unstable.
++		 * Unstable writes are a feature of certain networked
++		 * filesystems (i.e. NFS) in which data may have been
++		 * written to the server's write cache, but has not yet
++		 * been flushed to permanent storage.
++		 * Only move pages to writeback if this bdi is over its
++		 * threshold otherwise wait until the disk writes catch
++		 * up.
++		 */
++		if (bdi_nr_reclaimable > bdi_thresh) {
++			writeback_inodes(&wbc);
++			pages_written += write_chunk - wbc.nr_to_write;
++			if (wbc.nr_to_write == 0)
++				continue;
++		}
+ 		congestion_wait(BLK_RW_ASYNC, HZ/10);
+ 	}
+ 
+ 	if (bdi_nr_reclaimable + bdi_nr_writeback < bdi_thresh &&
+-			bdi->dirty_exceeded)
++	    bdi->dirty_exceeded)
+ 		bdi->dirty_exceeded = 0;
+ 
+ 	if (writeback_in_progress(bdi))
+@@ -580,10 +552,8 @@ static void balance_dirty_pages(struct a
+ 	 * In normal mode, we start background writeout at the lower
+ 	 * background_thresh, to keep the amount of dirty memory low.
+ 	 */
+-	if ((laptop_mode && pages_written) ||
+-			(!laptop_mode && (global_page_state(NR_FILE_DIRTY)
+-					  + global_page_state(NR_UNSTABLE_NFS)
+-					  > background_thresh)))
++	if ((laptop_mode && pages_written) || (!laptop_mode &&
++	     (nr_reclaimable > background_thresh)))
+ 		bdi_start_writeback(bdi, NULL, 0, WB_SYNC_NONE);
+ }
+ 
+_
+
+Patches currently in -mm which might be from richard@rsk.demon.co.uk are
+
+mm-balance_dirty_pages-reduce-calls-to-global_page_state-to-reduce-cache-references.patch
+
