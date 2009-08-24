@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + md-dm-log-fix-cn_ulog_callback-declaration.patch added to -mm tree
-Date: Mon, 24 Aug 2009 13:59:51 -0700
-Message-ID: <200908242059.n7OKxpn8017091@imap1.linux-foundation.org>
+Subject: + memstick-move-dev_dbg.patch added to -mm tree
+Date: Mon, 24 Aug 2009 14:01:04 -0700
+Message-ID: <200908242101.n7OL14n6019303@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60072 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59610 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753489AbZHXVAw (ORCPT
+	by vger.kernel.org with ESMTP id S1753505AbZHXVBw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Aug 2009 17:00:52 -0400
+	Mon, 24 Aug 2009 17:01:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com, agk@redhat.com, davem@davemloft.net, vapier@gentoo.org
+Cc: jirislaby@gmail.com, oakad@yahoo.com
 
 
 The patch titled
-     md: dm-log, fix cn_ulog_callback declaration
+     memstick: move dev_dbg
 has been added to the -mm tree.  Its filename is
-     md-dm-log-fix-cn_ulog_callback-declaration.patch
+     memstick-move-dev_dbg.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: md: dm-log, fix cn_ulog_callback declaration
+Subject: memstick: move dev_dbg
 From: Jiri Slaby <jirislaby@gmail.com>
 
-The third parameter of cn_add_callback accepts functions with void
-*()(struct cn_msg *) prototype.  Change cn_ulog_callback to match it by
-removing void * and adding struct cn_msg * directly.
-
-It's introduced by commit:
-connector: make callback argument type explicit
+id_reg.if_mode might be unitialized when (*mrq)->error is nonzero.  move
+dev_dbg() inside the if so that we are sure we can use id_reg values.
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Mike Frysinger <vapier@gentoo.org>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Alasdair G Kergon <agk@redhat.com>
+Cc: Alex Dubov <oakad@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/dm-log-userspace-transfer.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/memstick/core/memstick.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/md/dm-log-userspace-transfer.c~md-dm-log-fix-cn_ulog_callback-declaration drivers/md/dm-log-userspace-transfer.c
---- a/drivers/md/dm-log-userspace-transfer.c~md-dm-log-fix-cn_ulog_callback-declaration
-+++ a/drivers/md/dm-log-userspace-transfer.c
-@@ -129,9 +129,8 @@ static int fill_pkg(struct cn_msg *msg, 
-  * This is the connector callback that delivers data
-  * that was sent from userspace.
-  */
--static void cn_ulog_callback(void *data)
-+static void cn_ulog_callback(struct cn_msg *msg)
- {
--	struct cn_msg *msg = (struct cn_msg *)data;
- 	struct dm_ulog_request *tfr = (struct dm_ulog_request *)(msg + 1);
- 
- 	spin_lock(&receiving_list_lock);
+diff -puN drivers/memstick/core/memstick.c~memstick-move-dev_dbg drivers/memstick/core/memstick.c
+--- a/drivers/memstick/core/memstick.c~memstick-move-dev_dbg
++++ a/drivers/memstick/core/memstick.c
+@@ -339,9 +339,9 @@ static int h_memstick_read_dev_id(struct
+ 			card->id.type = id_reg.type;
+ 			card->id.category = id_reg.category;
+ 			card->id.class = id_reg.class;
++			dev_dbg(&card->dev, "if_mode = %02x\n", id_reg.if_mode);
+ 		}
+ 		complete(&card->mrq_complete);
+-		dev_dbg(&card->dev, "if_mode = %02x\n", id_reg.if_mode);
+ 		return -EAGAIN;
+ 	}
+ }
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
@@ -90,6 +84,7 @@ video-console-use-div_round_up.patch
 memory-controller-soft-limit-organize-cgroups-v9-fix.patch
 cyclades-allow-overriding-isa-defaults-also-when-the-driver-is-built-in.patch
 drivers-char-rio-rioctrlc-off-by-one-error-in-rioctrlc.patch
+memstick-move-dev_dbg.patch
 reiser4.patch
 fs-reiser4-add-parenths-around-x-y.patch
 
