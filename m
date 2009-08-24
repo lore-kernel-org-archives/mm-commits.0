@@ -1,103 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hwpoison-shift-madv_hwpoison-to-100.patch removed from -mm tree
-Date: Mon, 24 Aug 2009 11:59:49 -0700
-Message-ID: <200908241859.n7OIxnXf030786@imap1.linux-foundation.org>
+Subject: [merged] m68k-count-can-reach-51-not-50.patch removed from -mm tree
+Date: Mon, 24 Aug 2009 11:59:58 -0700
+Message-ID: <200908241859.n7OIxwXW031083@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46083 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37267 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751724AbZHXTAE (ORCPT
+	by vger.kernel.org with ESMTP id S1753158AbZHXTAM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Aug 2009 15:00:04 -0400
+	Mon, 24 Aug 2009 15:00:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh.dickins@tiscali.co.uk, andi@firstfloor.org, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, geert@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hwpoison: shift MADV_HWPOISON to 100
+     m68k: count can reach 51, not 50
 has been removed from the -mm tree.  Its filename was
-     hwpoison-shift-madv_hwpoison-to-100.patch
+     m68k-count-can-reach-51-not-50.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hwpoison: shift MADV_HWPOISON to 100
-From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Subject: m68k: count can reach 51, not 50
+From: Roel Kluin <roel.kluin@gmail.com>
 
-mm assigns KSM's MADV_MERGEABLE to 12: shift MADV_HWPOISON from 12 to 100,
-out of the way so that poisoning test programs can safely probe for it.
+With while (count++ < 50) { ...  } count can reach 51, not 50, so we
+shouldn't give an error message on a count of 50.
 
-Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Cc: Andi Kleen <andi@firstfloor.org>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/mman-common.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/macintosh/via-maciisi.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/asm-generic/mman-common.h~hwpoison-shift-madv_hwpoison-to-100 include/asm-generic/mman-common.h
---- a/include/asm-generic/mman-common.h~hwpoison-shift-madv_hwpoison-to-100
-+++ a/include/asm-generic/mman-common.h
-@@ -34,7 +34,8 @@
- #define MADV_REMOVE	9		/* remove these pages & resources */
- #define MADV_DONTFORK	10		/* don't inherit across fork */
- #define MADV_DOFORK	11		/* do inherit across fork */
--#define MADV_HWPOISON	12		/* poison a page for testing */
-+
-+#define MADV_HWPOISON	100		/* poison a page for testing */
+diff -puN drivers/macintosh/via-maciisi.c~m68k-count-can-reach-51-not-50 drivers/macintosh/via-maciisi.c
+--- a/drivers/macintosh/via-maciisi.c~m68k-count-can-reach-51-not-50
++++ a/drivers/macintosh/via-maciisi.c
+@@ -288,7 +288,7 @@ static void maciisi_sync(struct adb_requ
+ 	}
+ 	/* This could be BAD... when the ADB controller doesn't respond
+ 	 * for this long, it's probably not coming back :-( */
+-	if(count >= 50) /* Hopefully shouldn't happen */
++	if (count > 50) /* Hopefully shouldn't happen */
+ 		printk(KERN_ERR "maciisi_send_request: poll timed out!\n");
+ }
  
- /* compatibility flags */
- #define MAP_FILE	0
 _
 
-Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 linux-next.patch
-acpi-fix-null-bug-for-hid-uid-string-2.patch
-fs-new-truncate-helpers.patch
-fs-use-new-truncate-helpers.patch
-fs-introduce-new-truncate-sequence.patch
-fs-convert-simple-fs-to-new-truncate.patch
-tmpfs-convert-to-use-the-new-truncate-convention.patch
-ext2-convert-to-use-the-new-truncate-convention.patch
-fat-convert-to-use-the-new-truncate-convention.patch
-btrfs-convert-to-use-the-new-truncate-convention.patch
-jfs-convert-to-use-the-new-truncate-convention.patch
-udf-convert-to-use-the-new-truncate-convention.patch
-minix-convert-to-use-the-new-truncate-convention.patch
-mm-oom-analysis-add-shmem-vmstat.patch
-ksm-add-mmu_notifier-set_pte_at_notify.patch
-ksm-first-tidy-up-madvise_vma.patch
-ksm-define-madv_mergeable-and-madv_unmergeable.patch
-ksm-the-mm-interface-to-ksm.patch
-ksm-no-debug-in-page_dup_rmap.patch
-ksm-identify-pageksm-pages.patch
-ksm-kernel-samepage-merging.patch
-ksm-prevent-mremap-move-poisoning.patch
-ksm-change-copyright-message.patch
-ksm-change-ksm-nice-level-to-be-5.patch
-ksm-rename-kernel_pages_allocated.patch
-ksm-move-pages_sharing-updates.patch
-ksm-pages_unshared-and-pages_volatile.patch
-ksm-break-cow-once-unshared.patch
-ksm-keep-quiet-while-list-empty.patch
-ksm-five-little-cleanups.patch
-ksm-fix-endless-loop-on-oom.patch
-ksm-distribute-remove_mm_from_lists.patch
-ksm-fix-oom-deadlock.patch
-ksm-sysfs-and-defaults.patch
-ksm-add-some-documentation.patch
-ksm-remove-vm_mergeable_flags.patch
-mm-add_to_swap_cache-must-not-sleep.patch
-mm-add_to_swap_cache-does-not-return-eexist.patch
-mm-includecheck-fix-for-mm-shmemc.patch
-mm-replace-various-uses-of-num_physpages-by-totalram_pages.patch
-getrusage-fill-ru_maxrss-value.patch
-getrusage-fill-ru_maxrss-value-update.patch
-ramfs-move-ramfs_magic-to-include-linux-magich.patch
-memory-controller-soft-limit-organize-cgroups-v9-fix.patch
-prio_tree-debugging-patch.patch
+s3c-fix-check-of-index-into-s3c_gpios.patch
+stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
+dm-strncpy-does-not-null-terminate-string.patch
+pcmcia-fix-read-buffer-overflow.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+drm-i915-intel_sdvo_multifunc_encoder-sdvo_output_svid0-tested-twice.patch
+mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
+slram-read-buffer-overflow.patch
+mtd-fix-read-buffer-overflow.patch
+mtd-jffs2-fix-read-buffer-overflow.patch
+mtd-prevent-a-read-from-eraseregions.patch
+mtd-prevent-a-read-from-regions.patch
+hfc_usb-fix-read-buffer-overflow.patch
+zorro8390-fix-read-buffer-overflow-in-zorro8390_init_one-checkpatch-fixes.patch
+cyclades-read-buffer-overflow.patch
+serial167-fix-read-buffer-overflow.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+blackfin-fix-read-buffer-overflow.patch
+arch-alpha-boot-tools-objstripc-wrong-variable-tested-after-open.patch
+m32r-remove-redundant-tests-on-unsigned.patch
+dme1737-keep-index-within-pwm_config.patch
+sdio-fix-read-buffer-overflow.patch
+ncpfs-read-buffer-overflow.patch
+smbfs-read-buffer-overflow.patch
+platinumfb-misplaced-parenthesis.patch
+sisfb-read-buffer-overflow.patch
+drivers-video-console-newport_conc-fix-read-outside-array-bounds.patch
+mwave-fix-read-buffer-overflow.patch
+adfs-remove-redundant-test-on-unsigned.patch
 
