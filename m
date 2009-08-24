@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch added to -mm tree
-Date: Mon, 24 Aug 2009 15:28:42 -0700
-Message-ID: <200908242228.n7OMSgHQ013249@imap1.linux-foundation.org>
+Subject: + bluetooth-fix-l2cap-build-error.patch added to -mm tree
+Date: Mon, 24 Aug 2009 15:32:06 -0700
+Message-ID: <200908242232.n7OMW6A2019344@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46007 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53332 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753476AbZHXW3A (ORCPT
+	by vger.kernel.org with ESMTP id S1753856AbZHXWcR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Aug 2009 18:29:00 -0400
+	Mon, 24 Aug 2009 18:32:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, James.Bottomley@HansenPartnership.com, michaelc@cs.wisc.edu, yjwei@cn.fujitsu.com
+Cc: randy.dunlap@oracle.com, davem@davemloft.net, marcel@holtmann.org
 
 
 The patch titled
-     zfcp: test kmalloc failure in scsi_get_vpd_page()
+     bluetooth: fix l2cap build error
 has been added to the -mm tree.  Its filename is
-     zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
+     bluetooth-fix-l2cap-build-error.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,80 +34,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: zfcp: test kmalloc failure in scsi_get_vpd_page()
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: bluetooth: fix l2cap build error
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-kmalloc() may fail, so test whether it succeeded.
+Fix net/bluetooth/l2cap.c build errors:
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Wei Yongjun <yjwei@cn.fujitsu.com>
-Cc: Mike Christie <michaelc@cs.wisc.edu>
+l2cap.c:(.text+0x126035): undefined reference to `crc16'
+l2cap.c:(.text+0x126323): undefined reference to `crc16'
+l2cap.c:(.text+0x12668e): undefined reference to `crc16'
+l2cap.c:(.text+0x12683b): undefined reference to `crc16'
+l2cap.c:(.text+0x126956): undefined reference to `crc16'
+net/built-in.o:l2cap.c:(.text+0x129041): more undefined references to `crc16' follow
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: David Miller <davem@davemloft.net>
+Cc: Marcel Holtmann <marcel@holtmann.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/scsi.c |    2 ++
- 1 file changed, 2 insertions(+)
+ net/bluetooth/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/scsi/scsi.c~zfcp-test-kmalloc-failure-in-scsi_get_vpd_page drivers/scsi/scsi.c
---- a/drivers/scsi/scsi.c~zfcp-test-kmalloc-failure-in-scsi_get_vpd_page
-+++ a/drivers/scsi/scsi.c
-@@ -1057,6 +1057,8 @@ unsigned char *scsi_get_vpd_page(struct 
- 
- 	kfree(buf);
- 	buf = kmalloc(len, GFP_KERNEL);
-+	if (!buf)
-+		return NULL;
- 	result = scsi_vpd_inquiry(sdev, buf, page, len);
- 	if (result)
- 		goto fail;
+diff -puN net/bluetooth/Kconfig~bluetooth-fix-l2cap-build-error net/bluetooth/Kconfig
+--- a/net/bluetooth/Kconfig~bluetooth-fix-l2cap-build-error
++++ a/net/bluetooth/Kconfig
+@@ -34,6 +34,7 @@ menuconfig BT
+ config BT_L2CAP
+ 	tristate "L2CAP protocol support"
+ 	depends on BT
++	select CRC16
+ 	help
+ 	  L2CAP (Logical Link Control and Adaptation Protocol) provides
+ 	  connection oriented and connection-less data transport.  L2CAP
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 linux-next.patch
-s3c-fix-check-of-index-into-s3c_gpios.patch
-stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
-dm-strncpy-does-not-null-terminate-string.patch
-pcmcia-fix-read-buffer-overflow.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-drm-i915-intel_sdvo_multifunc_encoder-sdvo_output_svid0-tested-twice.patch
-mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
-slram-read-buffer-overflow.patch
-mtd-fix-read-buffer-overflow.patch
-mtd-jffs2-fix-read-buffer-overflow.patch
-mtd-prevent-a-read-from-eraseregions.patch
-mtd-prevent-a-read-from-regions.patch
-hfc_usb-fix-read-buffer-overflow.patch
-zorro8390-fix-read-buffer-overflow-in-zorro8390_init_one-checkpatch-fixes.patch
-cyclades-read-buffer-overflow.patch
-serial167-fix-read-buffer-overflow.patch
-cio-double-put_device-in-subchannel_register.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
-nl80211-jump-to-out_err-upon-unsupported-iftype.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-blackfin-fix-read-buffer-overflow.patch
-arch-alpha-boot-tools-objstripc-wrong-variable-tested-after-open.patch
-m32r-remove-redundant-tests-on-unsigned.patch
-uml-fix-order-of-pud-and-pmd_free.patch
-dme1737-keep-index-within-pwm_config.patch
-sdio-fix-read-buffer-overflow.patch
-hwmon-fix-freeing-of-gpio_data-and-irq.patch
-ncpfs-read-buffer-overflow.patch
-smbfs-read-buffer-overflow.patch
-platinumfb-misplaced-parenthesis.patch
-sisfb-read-buffer-overflow.patch
-drivers-video-console-newport_conc-fix-read-outside-array-bounds.patch
+gspca-fix-sn9c20x-build-errors.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+kernel-hacking-move-strip_asm_syms-from-general.patch
+mtd-make-onenand-genericc-more-generic-fix.patch
+isdn-fix-netjet-build-errors.patch
+bluetooth-fix-l2cap-build-error.patch
+scsi-fix-func-names-in-kernel-doc.patch
+staging-iio-fix-duplicate-dev_attr_name.patch
+mm-make-swap-token-dummies-static-inlines-fix-2.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+page_alloc-fix-kernel-doc-warning.patch
+ksm-add-some-documentation.patch
+lis3-add-power-management-functions-fix.patch
+procfs-provide-stack-information-for-threads-v011-fix.patch
+spih-add-missing-kernel-doc-for-struct-spi_master.patch
+gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links-update-fix.patch
+doc-filesystems-remove-smount-program.patch
+doc-filesystems-more-mount-cleanups.patch
+documentation-update-stale-definition-of-file-nr-in-fstxt.patch
+includecheck-fix-documentation-cfag12864b-examplec.patch
 kref-documentation-double-kref_put-in-my_data_handler.patch
-mwave-fix-read-buffer-overflow.patch
-adfs-remove-redundant-test-on-unsigned.patch
+reiser4-export-remove_from_page_cache-fix.patch
 
