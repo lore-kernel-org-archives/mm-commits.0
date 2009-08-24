@@ -1,105 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged] dma-debug-fix-check_unmap-null-pointer-dereference.patch removed from -mm tree
-Date: Mon, 24 Aug 2009 11:59:46 -0700
-Message-ID: <200908241859.n7OIxkDP030775@imap1.linux-foundation.org>
+Subject: [merged] lib-swiotlbc-fix-strange-panic-message-selection-logic-when-swiotlb-fills-up.patch removed from -mm tree
+Date: Mon, 24 Aug 2009 12:00:05 -0700
+Message-ID: <200908241900.n7OJ05v7031375@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36427 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38303 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753168AbZHXTAU (ORCPT
+	by vger.kernel.org with ESMTP id S1751724AbZHXTAg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Aug 2009 15:00:20 -0400
+	Mon, 24 Aug 2009 15:00:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kyle@redhat.com, joerg.roedel@amd.com, mchehab@infradead.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: cdahlin@redhat.com, beckyb@kernel.crashing.org, fujita.tomonori@lab.ntt.co.jp, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dma-debug: fix check_unmap null pointer dereference
+     lib/swiotlb.c: fix strange panic message selection logic when swiotlb fills up
 has been removed from the -mm tree.  Its filename was
-     dma-debug-fix-check_unmap-null-pointer-dereference.patch
+     lib-swiotlbc-fix-strange-panic-message-selection-logic-when-swiotlb-fills-up.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dma-debug: fix check_unmap null pointer dereference
-From: Kyle McMartin <kyle@redhat.com>
+Subject: lib/swiotlb.c: fix strange panic message selection logic when swiotlb fills up
+From: Casey Dahlin <cdahlin@redhat.com>
 
-While it's debatable whether or not a NULL device argument to the DMA API
-functions is valid...  since it certainly isn't valid on devices with an
-IOMMU...  dma-debug really shouldn't be dereferencing null pointers
-either.
+swiotlb_full in lib/swiotlb.c throws one of two panic messages based on
+whether the direction of transfer is from the device or to the device. 
+The logic around this is somewhat weird in the case of bidirectional
+transfers.  It appears to want to throw both in succession, but since its
+a panic only the first makes it.
 
-Guard against that in err_printk and the driver_filter functions.  A
-Fedora rawhide user was seeing this in one of the dvb drivers resulting in
-an oops on boot.
+This patch adds a third, separate error for DMA_BIDIRECTIONAL to make
+things a bit clearer.
 
-A patch has been sent for testing to the driver, but I feel the dma
-debugging support should be fixed as well.  (There's still a pile of
-legacy garbage in the kernel passing null pointers to dma_{alloc,free}_*. :(
-
-Signed-off-by: Kyle McMartin <kyle@redhat.com>
-Cc: Joerg Roedel <joerg.roedel@amd.com>
+Signed-off-by: Casey Dahlin <cdahlin@redhat.com>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Becky Bruce <beckyb@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/dma-debug.c |   28 ++++++++++++++++------------
- 1 file changed, 16 insertions(+), 12 deletions(-)
+ lib/swiotlb.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
-diff -puN lib/dma-debug.c~dma-debug-fix-check_unmap-null-pointer-dereference lib/dma-debug.c
---- a/lib/dma-debug.c~dma-debug-fix-check_unmap-null-pointer-dereference
-+++ a/lib/dma-debug.c
-@@ -156,9 +156,13 @@ static bool driver_filter(struct device 
- 		return true;
+diff -puN lib/swiotlb.c~lib-swiotlbc-fix-strange-panic-message-selection-logic-when-swiotlb-fills-up lib/swiotlb.c
+--- a/lib/swiotlb.c~lib-swiotlbc-fix-strange-panic-message-selection-logic-when-swiotlb-fills-up
++++ a/lib/swiotlb.c
+@@ -581,12 +581,15 @@ swiotlb_full(struct device *dev, size_t 
+ 	printk(KERN_ERR "DMA: Out of SW-IOMMU space for %zu bytes at "
+ 	       "device %s\n", size, dev ? dev_name(dev) : "?");
  
- 	/* driver filter on and initialized */
--	if (current_driver && dev->driver == current_driver)
-+	if (current_driver && dev && dev->driver == current_driver)
- 		return true;
- 
-+	/* driver filter on, but we can't filter on a NULL device... */
-+	if (!dev)
-+		return false;
+-	if (size > io_tlb_overflow && do_panic) {
+-		if (dir == DMA_FROM_DEVICE || dir == DMA_BIDIRECTIONAL)
+-			panic("DMA: Memory would be corrupted\n");
+-		if (dir == DMA_TO_DEVICE || dir == DMA_BIDIRECTIONAL)
+-			panic("DMA: Random memory would be DMAed\n");
+-	}
++	if (size <= io_tlb_overflow || !do_panic)
++		return;
 +
- 	if (current_driver || !current_driver_name[0])
- 		return false;
- 
-@@ -183,17 +187,17 @@ static bool driver_filter(struct device 
- 	return ret;
++	if (dir == DMA_BIDIRECTIONAL)
++		panic("DMA: Random memory could be corrupted or DMAed\n");
++	if (dir == DMA_FROM_DEVICE)
++		panic("DMA: Memory would be corrupted\n");
++	if (dir == DMA_TO_DEVICE)
++		panic("DMA: Random memory would be DMAed\n");
  }
- 
--#define err_printk(dev, entry, format, arg...) do {		\
--		error_count += 1;				\
--		if (driver_filter(dev) &&			\
--		    (show_all_errors || show_num_errors > 0)) {	\
--			WARN(1, "%s %s: " format,		\
--			     dev_driver_string(dev),		\
--			     dev_name(dev) , ## arg);		\
--			dump_entry_trace(entry);		\
--		}						\
--		if (!show_all_errors && show_num_errors > 0)	\
--			show_num_errors -= 1;			\
-+#define err_printk(dev, entry, format, arg...) do {			\
-+		error_count += 1;					\
-+		if (driver_filter(dev) &&				\
-+		    (show_all_errors || show_num_errors > 0)) {		\
-+			WARN(1, "%s %s: " format,			\
-+			     dev ? dev_driver_string(dev) : "NULL",	\
-+			     dev ? dev_name(dev) : "NULL", ## arg);	\
-+			dump_entry_trace(entry);			\
-+		}							\
-+		if (!show_all_errors && show_num_errors > 0)		\
-+			show_num_errors -= 1;				\
- 	} while (0);
  
  /*
 _
 
-Patches currently in -mm which might be from kyle@redhat.com are
+Patches currently in -mm which might be from cdahlin@redhat.com are
 
 linux-next.patch
 
