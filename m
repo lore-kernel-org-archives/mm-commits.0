@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-improve-remountro-vs-buffercache-coherency.patch added to -mm tree
-Date: Mon, 24 Aug 2009 14:59:35 -0700
-Message-ID: <200908242159.n7OLxZlL026178@imap1.linux-foundation.org>
+Subject: + fs-improve-remountro-vs-buffercache-coherency-fix.patch added to -mm tree
+Date: Mon, 24 Aug 2009 15:00:55 -0700
+Message-ID: <200908242200.n7OM0tYX028557@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45295 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52953 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753495AbZHXV7l (ORCPT
+	by vger.kernel.org with ESMTP id S1753484AbZHXWB0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Aug 2009 17:59:41 -0400
+	Mon, 24 Aug 2009 18:01:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, jorge@dti2.net, viro@zeniv.linux.org.uk
+Cc: akpm@linux-foundation.org, npiggin@suse.de
 
 
 The patch titled
-     fs: improve remount,ro vs buffercache coherency
+     fs-improve-remountro-vs-buffercache-coherency-fix
 has been added to the -mm tree.  Its filename is
-     fs-improve-remountro-vs-buffercache-coherency.patch
+     fs-improve-remountro-vs-buffercache-coherency-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,112 +34,115 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs: improve remount,ro vs buffercache coherency
-From: Nick Piggin <npiggin@suse.de>
+Subject: fs-improve-remountro-vs-buffercache-coherency-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Invalidate sb->s_bdev on remount,ro.
+repair comment layout
 
-Fixes a problem reported by Jorge Boncompte who is seeing corruption
-trying to snapshot a minix filesystem image.  Some filesystems modify
-their metadata via a path other than the bdev buffer cache (eg.  they may
-use a private linear mapping for their metadata, or implement directories
-in pagecache, etc).  Also, file data modifications usually go to the bdev
-via their own mappings.
-
-These updates are not coherent with buffercache IO (eg.  via /dev/bdev)
-and never have been.  However there could be a reasonable expectation that
-after a mount -oremount,ro operation then the buffercache should
-subsequently be coherent with previous filesystem modifications.
-
-So invalidate the bdev mappings on a remount,ro operation to provide a
-coherency point.
-
-The problem was exposed when we switched the old rd to brd because old rd
-didn't really function like a normal block device and updates to rd via
-mappings other than the buffercache would still end up going into its
-buffercache.  But the same problem has always affected other "normal"
-block devices, including loop.
-
-Reported-by: "Jorge Boncompte [DTI2]" <jorge@dti2.net>
-Tested-by: "Jorge Boncompte [DTI2]" <jorge@dti2.net>
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/super.c |   16 +++++++++++++---
- 1 file changed, 13 insertions(+), 3 deletions(-)
+ fs/super.c |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
-diff -puN fs/super.c~fs-improve-remountro-vs-buffercache-coherency fs/super.c
---- a/fs/super.c~fs-improve-remountro-vs-buffercache-coherency
+diff -puN fs/super.c~fs-improve-remountro-vs-buffercache-coherency-fix fs/super.c
+--- a/fs/super.c~fs-improve-remountro-vs-buffercache-coherency-fix
 +++ a/fs/super.c
-@@ -527,7 +527,7 @@ out:
- int do_remount_sb(struct super_block *sb, int flags, void *data, int force)
- {
- 	int retval;
--	int remount_rw;
-+	int remount_rw, remount_ro;
- 	
- #ifdef CONFIG_BLOCK
- 	if (!(flags & MS_RDONLY) && bdev_read_only(sb->s_bdev))
-@@ -538,9 +538,12 @@ int do_remount_sb(struct super_block *sb
- 	shrink_dcache_sb(sb);
- 	sync_filesystem(sb);
- 
-+	remount_ro = (flags & MS_RDONLY) && !(sb->s_flags & MS_RDONLY);
-+	remount_rw = !(flags & MS_RDONLY) && (sb->s_flags & MS_RDONLY);
-+
- 	/* If we are remounting RDONLY and current sb is read/write,
- 	   make sure there are no rw files opened */
--	if ((flags & MS_RDONLY) && !(sb->s_flags & MS_RDONLY)) {
-+	if (remount_ro) {
- 		if (force)
- 			mark_files_ro(sb);
- 		else if (!fs_may_remount_ro(sb))
-@@ -549,7 +552,6 @@ int do_remount_sb(struct super_block *sb
- 		if (retval < 0 && retval != -ENOSYS)
- 			return -EBUSY;
- 	}
--	remount_rw = !(flags & MS_RDONLY) && (sb->s_flags & MS_RDONLY);
- 
- 	if (sb->s_op->remount_fs) {
- 		retval = sb->s_op->remount_fs(sb, &flags, data);
-@@ -559,6 +561,14 @@ int do_remount_sb(struct super_block *sb
+@@ -561,12 +561,14 @@ int do_remount_sb(struct super_block *sb
  	sb->s_flags = (sb->s_flags & ~MS_RMT_MASK) | (flags & MS_RMT_MASK);
  	if (remount_rw)
  		vfs_dq_quota_on_remount(sb);
-+	 /* Some filesystems modify their metadata via some other path
-+	    than the bdev buffer cache (eg. use a private mapping, or
-+	    directories in pagecache, etc). Also file data modifications
-+	    go via their own mappings. So If we try to mount readonly
-+	    then copy the filesystem from bdev, we could get stale data,
-+	    so invalidate it to give a best effort at coherency. */
-+	if (remount_ro && sb->s_bdev)
-+		invalidate_bdev(sb->s_bdev);
+-	 /* Some filesystems modify their metadata via some other path
+-	    than the bdev buffer cache (eg. use a private mapping, or
+-	    directories in pagecache, etc). Also file data modifications
+-	    go via their own mappings. So If we try to mount readonly
+-	    then copy the filesystem from bdev, we could get stale data,
+-	    so invalidate it to give a best effort at coherency. */
++	/*
++	 * Some filesystems modify their metadata via some other path than the
++	 * bdev buffer cache (eg. use a private mapping, or directories in
++	 * pagecache, etc). Also file data modifications go via their own
++	 * mappings. So If we try to mount readonly then copy the filesystem
++	 * from bdev, we could get stale data, so invalidate it to give a best
++	 * effort at coherency.
++	 */
+ 	if (remount_ro && sb->s_bdev)
+ 		invalidate_bdev(sb->s_bdev);
  	return 0;
- }
- 
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-fs-remove-unneeded-dcache_unhashed-tricks.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-fs-new-truncate-helpers.patch
-fs-use-new-truncate-helpers.patch
-fs-introduce-new-truncate-sequence.patch
-fs-convert-simple-fs-to-new-truncate.patch
-tmpfs-convert-to-use-the-new-truncate-convention.patch
-ext2-convert-to-use-the-new-truncate-convention.patch
-ext2-convert-to-use-the-new-truncate-convention-fix.patch
-fat-convert-to-use-the-new-truncate-convention.patch
-btrfs-convert-to-use-the-new-truncate-convention.patch
-jfs-convert-to-use-the-new-truncate-convention.patch
-udf-convert-to-use-the-new-truncate-convention.patch
-minix-convert-to-use-the-new-truncate-convention.patch
-ksm-no-debug-in-page_dup_rmap.patch
-fs-turn-iprune_mutex-into-rwsem.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-kernel-cpu-amdc-fix-x86_64-allnoconfig-build.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+video-initial-support-for-adv7180-update-fix.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+checkincludespl-add-option-to-remove-duplicates-in-place.patch
+leds-gpio-leds-fix-typographics-fault.patch
+leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio.patch
+slram-read-buffer-overflow.patch
+zorro8390-fix-read-buffer-overflow-in-zorro8390_init_one-checkpatch-fixes.patch
+3x59x-fix-pci-resource-management.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+serial167-fix-read-buffer-overflow.patch
+waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes-checkpatch-fixes.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
+vfs-optimize-touch_time-too.patch
+fs-improve-remountro-vs-buffercache-coherency-fix.patch
+mm-fix-hugetlb-bug-due-to-user_shm_unlock-call.patch
+mm-make-swap-token-dummies-static-inlines-fix.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
+vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
+arches-drop-superfluous-casts-in-nr_free_pages-callers-checkpatch-fixes.patch
+tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
+generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
+proc-connector-add-event-for-process-becoming-session-leader.patch
+kernel-smpc-relocate-some-code.patch
+mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
+sdio-add-cd-disable-support-cleanup.patch
+procfs-provide-stack-information-for-threads-v011-fix.patch
+kcore-use-registerd-physmem-information-fix.patch
+kcore-use-registerd-physmem-information-checkpatch-fixes.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
+rtc-philips-nxp-pcf2123-driver-v03-fix.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes-fix.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
+drivers-video-add-kmalloc-null-tests-fix.patch
+v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
+cgroups-add-functionality-to-read-write-lock-clone_thread-forking-per-threadgroup-fix.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
+memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
+memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
+memcg-improve-resource-counter-scalability-checkpatch-fixes.patch
+exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
+exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
+elf-clean-up-fill_note_info-fix.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
 reiser4.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
