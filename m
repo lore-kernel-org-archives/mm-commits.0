@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-reiser4-add-parenths-around-x-y.patch added to -mm tree
-Date: Mon, 24 Aug 2009 13:56:08 -0700
-Message-ID: <200908242056.n7OKu8RA010535@imap1.linux-foundation.org>
+Subject: + isdn-eicon-return-on-error.patch added to -mm tree
+Date: Mon, 24 Aug 2009 13:58:35 -0700
+Message-ID: <200908242058.n7OKwZH5014970@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37338 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34913 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753063AbZHXU4y (ORCPT
+	by vger.kernel.org with ESMTP id S1753522AbZHXU73 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Aug 2009 16:56:54 -0400
+	Mon, 24 Aug 2009 16:59:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com, edward.shishkin@gmail.com
+Cc: jirislaby@gmail.com, armin@melware.de, isdn@linux-pingi.de
 
 
 The patch titled
-     fs: reiser4, add parenths around !X & Y
+     isdn: eicon, return on error
 has been added to the -mm tree.  Its filename is
-     fs-reiser4-add-parenths-around-x-y.patch
+     isdn-eicon-return-on-error.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs: reiser4, add parenths around !X & Y
+Subject: isdn: eicon, return on error
 From: Jiri Slaby <jirislaby@gmail.com>
 
-Change !X & Y to !(X & Y) to avoid compiler confusion and fix a bug.
+When diva_strace_read_uint returns an error, return even from
+process_idi_event, because l2_state is uninitialized.
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Edward Shishkin <edward.shishkin@gmail.com>
+Cc: Karsten Keil <isdn@linux-pingi.de>
+Acked-by: Armin Schindler <armin@melware.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiser4/carry_ops.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/isdn/hardware/eicon/maintidi.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN fs/reiser4/carry_ops.c~fs-reiser4-add-parenths-around-x-y fs/reiser4/carry_ops.c
---- a/fs/reiser4/carry_ops.c~fs-reiser4-add-parenths-around-x-y
-+++ a/fs/reiser4/carry_ops.c
-@@ -79,7 +79,7 @@ static carry_node *find_left_neighbor(ca
- 	left->free = 1;
+diff -puN drivers/isdn/hardware/eicon/maintidi.c~isdn-eicon-return-on-error drivers/isdn/hardware/eicon/maintidi.c
+--- a/drivers/isdn/hardware/eicon/maintidi.c~isdn-eicon-return-on-error
++++ a/drivers/isdn/hardware/eicon/maintidi.c
+@@ -959,8 +959,9 @@ static int process_idi_event (diva_strac
+ 	}
+ 	if (!strncmp("State\\Layer2 No1", path, pVar->path_length)) {
+ 		char* tmp = &pLib->lines[0].pInterface->Layer2[0];
+-    dword l2_state;
+-    diva_strace_read_uint (pVar, &l2_state);
++		dword l2_state;
++		if (diva_strace_read_uint(pVar, &l2_state))
++			return -1;
  
- 	flags = GN_TRY_LOCK;
--	if (!op->u.insert.flags & COPI_LOAD_LEFT)
-+	if (!(op->u.insert.flags & COPI_LOAD_LEFT))
- 		flags |= GN_NO_ALLOC;
- 
- 	/* then, feeling lucky, peek left neighbor in the cache. */
-@@ -203,7 +203,7 @@ static carry_node *find_right_neighbor(c
- 	read_unlock_tree(tree);
- 
- 	flags = GN_CAN_USE_UPPER_LEVELS;
--	if (!op->u.insert.flags & COPI_LOAD_RIGHT)
-+	if (!(op->u.insert.flags & COPI_LOAD_RIGHT))
- 		flags = GN_NO_ALLOC;
- 
- 	/* then, try to lock right neighbor */
+ 		switch (l2_state) {
+ 			case 0:
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
@@ -76,6 +72,8 @@ linux-next.patch
 toshiba_acpi-return-on-a-fail-path.patch
 mtd-sst25l-fix-lock-imbalance.patch
 isdn-hisax-fix-lock-imbalance.patch
+isdn-eicon-use-offsetof.patch
+isdn-eicon-return-on-error.patch
 icom-converting-space-to-tabs.patch
 cyclades-read-buffer-overflow.patch
 serial167-fix-read-buffer-overflow.patch
