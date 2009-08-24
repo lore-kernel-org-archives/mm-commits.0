@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + uml-fix-order-of-pud-and-pmd_free.patch added to -mm tree
-Date: Mon, 24 Aug 2009 13:13:31 -0700
-Message-ID: <200908242013.n7OKDVCg032188@imap1.linux-foundation.org>
+Subject: + hwmon-fix-freeing-of-gpio_data-and-irq.patch added to -mm tree
+Date: Mon, 24 Aug 2009 13:17:09 -0700
+Message-ID: <200908242017.n7OKH9jQ006179@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32903 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41644 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752378AbZHXUOH (ORCPT
+	by vger.kernel.org with ESMTP id S1752216AbZHXURp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Aug 2009 16:14:07 -0400
+	Mon, 24 Aug 2009 16:17:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, jdike@addtoit.com
+Cc: roel.kluin@gmail.com, david-b@pacbell.net, jic23@cam.ac.uk
 
 
 The patch titled
-     uml: fix order of pud and pmd_free()
+     hwmon: fix freeing of gpio_data and irq
 has been added to the -mm tree.  Its filename is
-     uml-fix-order-of-pud-and-pmd_free.patch
+     hwmon-fix-freeing-of-gpio_data-and-irq.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: fix order of pud and pmd_free()
+Subject: hwmon: fix freeing of gpio_data and irq
 From: Roel Kluin <roel.kluin@gmail.com>
 
-If pmd_alloc() fails we should only free the prior allocated pud, if
-pte_alloc_map() fails, we should free pmd as well.
+If already requested, gpio_data and irq should be freed in the case of an
+error.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Jeff Dike <jdike@addtoit.com>
+Acked-by: Jonathan Cameron <jic23@cam.ac.uk>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/skas/mmu.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/hwmon/sht15.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN arch/um/kernel/skas/mmu.c~uml-fix-order-of-pud-and-pmd_free arch/um/kernel/skas/mmu.c
---- a/arch/um/kernel/skas/mmu.c~uml-fix-order-of-pud-and-pmd_free
-+++ a/arch/um/kernel/skas/mmu.c
-@@ -38,10 +38,10 @@ static int init_stub_pte(struct mm_struc
- 	*pte = pte_mkread(*pte);
+diff -puN drivers/hwmon/sht15.c~hwmon-fix-freeing-of-gpio_data-and-irq drivers/hwmon/sht15.c
+--- a/drivers/hwmon/sht15.c~hwmon-fix-freeing-of-gpio_data-and-irq
++++ a/drivers/hwmon/sht15.c
+@@ -562,7 +562,7 @@ static int __devinit sht15_probe(struct 
+ 	ret = sysfs_create_group(&pdev->dev.kobj, &sht15_attr_group);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "sysfs create failed");
+-		goto err_free_data;
++		goto err_release_gpio_data;
+ 	}
+ 
+ 	ret = request_irq(gpio_to_irq(data->pdata->gpio_data),
+@@ -581,10 +581,12 @@ static int __devinit sht15_probe(struct 
+ 	data->hwmon_dev = hwmon_device_register(data->dev);
+ 	if (IS_ERR(data->hwmon_dev)) {
+ 		ret = PTR_ERR(data->hwmon_dev);
+-		goto err_release_gpio_data;
++		goto err_release_irq;
+ 	}
  	return 0;
  
-- out_pmd:
--	pud_free(mm, pud);
-  out_pte:
- 	pmd_free(mm, pmd);
-+ out_pmd:
-+	pud_free(mm, pud);
-  out:
- 	return -ENOMEM;
- }
++err_release_irq:
++	free_irq(gpio_to_irq(data->pdata->gpio_data), data);
+ err_release_gpio_data:
+ 	gpio_free(data->pdata->gpio_data);
+ err_release_gpio_sck:
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -100,6 +111,7 @@ m32r-remove-redundant-tests-on-unsigned.patch
 uml-fix-order-of-pud-and-pmd_free.patch
 dme1737-keep-index-within-pwm_config.patch
 sdio-fix-read-buffer-overflow.patch
+hwmon-fix-freeing-of-gpio_data-and-irq.patch
 ncpfs-read-buffer-overflow.patch
 smbfs-read-buffer-overflow.patch
 platinumfb-misplaced-parenthesis.patch
