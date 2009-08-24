@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-improve-remountro-vs-buffercache-coherency-fix.patch added to -mm tree
-Date: Mon, 24 Aug 2009 15:00:55 -0700
-Message-ID: <200908242200.n7OM0tYX028557@imap1.linux-foundation.org>
+Subject: + ntfs-remove-ntfs_file_write.patch added to -mm tree
+Date: Mon, 24 Aug 2009 15:04:26 -0700
+Message-ID: <200908242204.n7OM4Q1L002383@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52953 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46449 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753484AbZHXWB0 (ORCPT
+	by vger.kernel.org with ESMTP id S1753526AbZHXWFG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Aug 2009 18:01:26 -0400
+	Mon, 24 Aug 2009 18:05:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, npiggin@suse.de
+Cc: hch@lst.de, aia21@cantab.net
 
 
 The patch titled
-     fs-improve-remountro-vs-buffercache-coherency-fix
+     ntfs: remove ntfs_file_write
 has been added to the -mm tree.  Its filename is
-     fs-improve-remountro-vs-buffercache-coherency-fix.patch
+     ntfs-remove-ntfs_file_write.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,115 +34,114 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs-improve-remountro-vs-buffercache-coherency-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ntfs: remove ntfs_file_write
+From: Christoph Hellwig <hch@lst.de>
 
-repair comment layout
+do_sync_write() does the right thing for turning the aio_writev method
+into a normal non-vectored synchronous write, no need to duplicate it in
+ntfs.
 
-Cc: Nick Piggin <npiggin@suse.de>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Acked-by: Anton Altaparmakov <aia21@cantab.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/super.c |   14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ fs/ntfs/file.c |   42 +-----------------------------------------
+ 1 file changed, 1 insertion(+), 41 deletions(-)
 
-diff -puN fs/super.c~fs-improve-remountro-vs-buffercache-coherency-fix fs/super.c
---- a/fs/super.c~fs-improve-remountro-vs-buffercache-coherency-fix
-+++ a/fs/super.c
-@@ -561,12 +561,14 @@ int do_remount_sb(struct super_block *sb
- 	sb->s_flags = (sb->s_flags & ~MS_RMT_MASK) | (flags & MS_RMT_MASK);
- 	if (remount_rw)
- 		vfs_dq_quota_on_remount(sb);
--	 /* Some filesystems modify their metadata via some other path
--	    than the bdev buffer cache (eg. use a private mapping, or
--	    directories in pagecache, etc). Also file data modifications
--	    go via their own mappings. So If we try to mount readonly
--	    then copy the filesystem from bdev, we could get stale data,
--	    so invalidate it to give a best effort at coherency. */
-+	/*
-+	 * Some filesystems modify their metadata via some other path than the
-+	 * bdev buffer cache (eg. use a private mapping, or directories in
-+	 * pagecache, etc). Also file data modifications go via their own
-+	 * mappings. So If we try to mount readonly then copy the filesystem
-+	 * from bdev, we could get stale data, so invalidate it to give a best
-+	 * effort at coherency.
-+	 */
- 	if (remount_ro && sb->s_bdev)
- 		invalidate_bdev(sb->s_bdev);
- 	return 0;
+diff -puN fs/ntfs/file.c~ntfs-remove-ntfs_file_write fs/ntfs/file.c
+--- a/fs/ntfs/file.c~ntfs-remove-ntfs_file_write
++++ a/fs/ntfs/file.c
+@@ -2154,46 +2154,6 @@ static ssize_t ntfs_file_aio_write(struc
+ }
+ 
+ /**
+- * ntfs_file_writev -
+- *
+- * Basically the same as generic_file_writev() except that it ends up calling
+- * ntfs_file_aio_write_nolock() instead of __generic_file_aio_write_nolock().
+- */
+-static ssize_t ntfs_file_writev(struct file *file, const struct iovec *iov,
+-		unsigned long nr_segs, loff_t *ppos)
+-{
+-	struct address_space *mapping = file->f_mapping;
+-	struct inode *inode = mapping->host;
+-	struct kiocb kiocb;
+-	ssize_t ret;
+-
+-	mutex_lock(&inode->i_mutex);
+-	init_sync_kiocb(&kiocb, file);
+-	ret = ntfs_file_aio_write_nolock(&kiocb, iov, nr_segs, ppos);
+-	if (ret == -EIOCBQUEUED)
+-		ret = wait_on_sync_kiocb(&kiocb);
+-	mutex_unlock(&inode->i_mutex);
+-	if (ret > 0 && ((file->f_flags & O_SYNC) || IS_SYNC(inode))) {
+-		int err = sync_page_range(inode, mapping, *ppos - ret, ret);
+-		if (err < 0)
+-			ret = err;
+-	}
+-	return ret;
+-}
+-
+-/**
+- * ntfs_file_write - simple wrapper for ntfs_file_writev()
+- */
+-static ssize_t ntfs_file_write(struct file *file, const char __user *buf,
+-		size_t count, loff_t *ppos)
+-{
+-	struct iovec local_iov = { .iov_base = (void __user *)buf,
+-				   .iov_len = count };
+-
+-	return ntfs_file_writev(file, &local_iov, 1, ppos);
+-}
+-
+-/**
+  * ntfs_file_fsync - sync a file to disk
+  * @filp:	file to be synced
+  * @dentry:	dentry describing the file to sync
+@@ -2255,7 +2215,7 @@ const struct file_operations ntfs_file_o
+ 	.read		= do_sync_read,		 /* Read from file. */
+ 	.aio_read	= generic_file_aio_read, /* Async read from file. */
+ #ifdef NTFS_RW
+-	.write		= ntfs_file_write,	 /* Write to file. */
++	.write		= do_sync_write,	 /* Write to file. */
+ 	.aio_write	= ntfs_file_aio_write,	 /* Async write to file. */
+ 	/*.release	= ,*/			 /* Last file is closed.  See
+ 						    fs/ext2/file.c::
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hch@lst.de are
 
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-amdc-fix-x86_64-allnoconfig-build.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-video-initial-support-for-adv7180-update-fix.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-checkincludespl-add-option-to-remove-duplicates-in-place.patch
-leds-gpio-leds-fix-typographics-fault.patch
-leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio.patch
-slram-read-buffer-overflow.patch
-zorro8390-fix-read-buffer-overflow-in-zorro8390_init_one-checkpatch-fixes.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-serial167-fix-read-buffer-overflow.patch
-waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes-checkpatch-fixes.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
-vfs-optimize-touch_time-too.patch
-fs-improve-remountro-vs-buffercache-coherency-fix.patch
-mm-fix-hugetlb-bug-due-to-user_shm_unlock-call.patch
-mm-make-swap-token-dummies-static-inlines-fix.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
-vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
-arches-drop-superfluous-casts-in-nr_free_pages-callers-checkpatch-fixes.patch
-tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
-generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
-proc-connector-add-event-for-process-becoming-session-leader.patch
-kernel-smpc-relocate-some-code.patch
-mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
-sdio-add-cd-disable-support-cleanup.patch
-procfs-provide-stack-information-for-threads-v011-fix.patch
-kcore-use-registerd-physmem-information-fix.patch
-kcore-use-registerd-physmem-information-checkpatch-fixes.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
-rtc-philips-nxp-pcf2123-driver-v03-fix.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes-fix.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
-drivers-video-add-kmalloc-null-tests-fix.patch
-v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
-cgroups-add-functionality-to-read-write-lock-clone_thread-forking-per-threadgroup-fix.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
-memcg-improve-resource-counter-scalability-checkpatch-fixes.patch
-exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
-exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
-elf-clean-up-fill_note_info-fix.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+avr32-convert-to-asm-generic-hardirqh.patch
+sparc32-convert-to-asm-generic-hardirqh.patch
+vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
+vfs-split-generic_forget_inode-so-that-hugetlbfs-does-not-have-to-copy-it.patch
+vfs-explicitly-cast-s_maxbytes-in-fiemap_check_ranges.patch
+vfs-change-sb-s_maxbytes-to-a-loff_t.patch
+vfs-remove-redundant-position-check-in-do_sendfile.patch
+vfs-fix-d_path-for-unreachable-paths.patch
+fs-remove-unneeded-dcache_unhashed-tricks.patch
+fs-new-truncate-helpers.patch
+fs-use-new-truncate-helpers.patch
+fs-introduce-new-truncate-sequence.patch
+fs-convert-simple-fs-to-new-truncate.patch
+tmpfs-convert-to-use-the-new-truncate-convention.patch
+ext2-convert-to-use-the-new-truncate-convention.patch
+fat-convert-to-use-the-new-truncate-convention.patch
+btrfs-convert-to-use-the-new-truncate-convention.patch
+jfs-convert-to-use-the-new-truncate-convention.patch
+udf-convert-to-use-the-new-truncate-convention.patch
+minix-convert-to-use-the-new-truncate-convention.patch
+xtensa-convert-to-asm-generic-hardirqh.patch
+frv-convert-to-asm-generic-hardirqh.patch
+h8300-convert-to-asm-generic-hardirqh.patch
+alpha-convert-to-asm-generic-hardirqh.patch
+m32r-convert-to-asm-generic-hardirqh.patch
+m68k-convert-to-asm-generic-hardirqh.patch
+cris-convert-to-asm-generic-hardirqh.patch
+um-convert-to-asm-generic-hardirqh.patch
+fs-turn-iprune_mutex-into-rwsem.patch
+ntfs-remove-ntfs_file_write.patch
+fcntl-add-f_etown_ex.patch
 
