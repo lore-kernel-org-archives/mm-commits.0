@@ -1,24 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + bsdacct-switch-credentials-for-writing-to-the-accounting-file.patch added to -mm tree
-Date: Mon, 24 Aug 2009 14:31:10 -0700
-Message-ID: <200908242131.n7OLVBSJ007997@imap1.linux-foundation.org>
+Subject: + gspca-fix-sn9c20x-build-errors.patch added to -mm tree
+Date: Mon, 24 Aug 2009 14:36:24 -0700
+Message-ID: <200908242136.n7OLaOq8017192@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36058 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34319 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752637AbZHXVcK (ORCPT
+	by vger.kernel.org with ESMTP id S1752660AbZHXVgh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Aug 2009 17:32:10 -0400
+	Mon, 24 Aug 2009 17:36:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mschmidt@redhat.com, dhowells@redhat.com, jmorris@namei.org, sds@tycho.nsa.gov, serue@us.ibm.com
+Cc: randy.dunlap@oracle.com, brijohn@gmail.com, mchehab@infradead.org, toralf.foerster@gmx.de
 
 
 The patch titled
-     bsdacct: switch credentials for writing to the accounting file
+     gspca: fix sn9c20x build errors
 has been added to the -mm tree.  Its filename is
-     bsdacct-switch-credentials-for-writing-to-the-accounting-file.patch
+     gspca-fix-sn9c20x-build-errors.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -26,75 +29,86 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: bsdacct: switch credentials for writing to the accounting file
-From: Michal Schmidt <mschmidt@redhat.com>
+Subject: gspca: fix sn9c20x build errors
+=46rom: Randy Dunlap <randy.dunlap@oracle.com>
 
-When process accounting is enabled, every exiting process writes a log to
-the account file.  In addition, every once in a while one of the exiting
-processes checks whether there's enough free space for the log.
+=46ix gscpa sn9c20x build errors:
+ERROR: "input_event" [drivers/media/video/gspca/gspca_sn9c20x.ko] undef=
+ined!
+ERROR: "input_register_device" [drivers/media/video/gspca/gspca_sn9c20x=
+=2Eko] undefined!
+ERROR: "input_free_device" [drivers/media/video/gspca/gspca_sn9c20x.ko]=
+ undefined!
+ERROR: "input_unregister_device" [drivers/media/video/gspca/gspca_sn9c2=
+0x.ko] undefined!
+ERROR: "input_allocate_device" [drivers/media/video/gspca/gspca_sn9c20x=
+=2Eko] undefined!
 
-SELinux policy may or may not allow the exiting process to stat the fs. 
-So unsuspecting processes start generating AVC denials just because
-someone enabled process accounting.
-
-For these filesystem operations, the exiting process's credentials should
-be temporarily switched to that of the process which enabled accounting,
-because it's really that process which wanted to have the accounting
-information logged.
-
-Signed-off-by: Michal Schmidt <mschmidt@redhat.com>
-Acked-by: David Howells <dhowells@redhat.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: Serge Hallyn <serue@us.ibm.com>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
+Reported-by: Toralf F=F6rster <toralf.foerster@gmx.de
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Brian Johnson <brijohn@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/acct.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ drivers/media/video/gspca/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/acct.c~bsdacct-switch-credentials-for-writing-to-the-accounting-file kernel/acct.c
---- a/kernel/acct.c~bsdacct-switch-credentials-for-writing-to-the-accounting-file
-+++ a/kernel/acct.c
-@@ -491,13 +491,17 @@ static void do_acct_process(struct bsd_a
- 	u64 run_time;
- 	struct timespec uptime;
- 	struct tty_struct *tty;
-+	const struct cred *orig_cred;
-+
-+	/* Perform file operations on behalf of whoever enabled accounting */
-+	orig_cred = override_creds(file->f_cred);
- 
- 	/*
- 	 * First check to see if there is enough free_space to continue
- 	 * the process accounting system.
- 	 */
- 	if (!check_free_space(acct, file))
--		return;
-+		goto out;
- 
- 	/*
- 	 * Fill the accounting struct with the needed info as recorded
-@@ -578,6 +582,8 @@ static void do_acct_process(struct bsd_a
- 			       sizeof(acct_t), &file->f_pos);
- 	current->signal->rlim[RLIMIT_FSIZE].rlim_cur = flim;
- 	set_fs(fs);
-+out:
-+	revert_creds(orig_cred);
- }
- 
- /**
+diff -puN drivers/media/video/gspca/Kconfig~gspca-fix-sn9c20x-build-err=
+ors drivers/media/video/gspca/Kconfig
+--- a/drivers/media/video/gspca/Kconfig~gspca-fix-sn9c20x-build-errors
++++ a/drivers/media/video/gspca/Kconfig
+@@ -123,7 +123,7 @@ config USB_GSPCA_SN9C20X
+=20
+ config USB_GSPCA_SN9C20X_EVDEV
+ 	bool "Enable evdev support"
+-	depends on USB_GSPCA_SN9C20X
++       depends on USB_GSPCA_SN9C20X && INPUT
+ 	---help---
+ 	  Say Y here in order to enable evdev support for sn9c20x webcam butt=
+on.
+=20
 _
 
-Patches currently in -mm which might be from mschmidt@redhat.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com ar=
+e
 
-bsdacct-switch-credentials-for-writing-to-the-accounting-file.patch
+linux-next.patch
+gspca-fix-sn9c20x-build-errors.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sys=
+fs-interface.patch
+kernel-hacking-move-strip_asm_syms-from-general.patch
+mtd-make-onenand-genericc-more-generic-fix.patch
+isdn-fix-netjet-build-errors.patch
+scsi-fix-func-names-in-kernel-doc.patch
+staging-iio-fix-duplicate-dev_attr_name.patch
+mm-make-swap-token-dummies-static-inlines-fix-2.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+page_alloc-fix-kernel-doc-warning.patch
+ksm-add-some-documentation.patch
+lis3-add-power-management-functions-fix.patch
+procfs-provide-stack-information-for-threads-v011-fix.patch
+spih-add-missing-kernel-doc-for-struct-spi_master.patch
+gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links-update-=
+fix.patch
+doc-filesystems-remove-smount-program.patch
+doc-filesystems-more-mount-cleanups.patch
+documentation-update-stale-definition-of-file-nr-in-fstxt.patch
+includecheck-fix-documentation-cfag12864b-examplec.patch
+reiser4-export-remove_from_page_cache-fix.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
