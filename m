@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hwmon-applesmc-restore-keyboard-backlight-on-resume.patch added to -mm tree
-Date: Mon, 24 Aug 2009 14:06:29 -0700
-Message-ID: <200908242106.n7OL6TuA028903@imap1.linux-foundation.org>
+Subject: + char-impi-adding-__init-macro-fix-of-__exit-macro-location-in-ipmi_poweroffc.patch added to -mm tree
+Date: Mon, 24 Aug 2009 14:08:36 -0700
+Message-ID: <200908242108.n7OL8a8D032758@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57721 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45502 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753419AbZHXVGs (ORCPT
+	by vger.kernel.org with ESMTP id S1753549AbZHXVIn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Aug 2009 17:06:48 -0400
+	Mon, 24 Aug 2009 17:08:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rydberg@euromail.se, nicolas@boichat.ch
+Cc: peterhuewe@gmx.de, jkosina@suse.cz, minyard@acm.org
 
 
 The patch titled
-     hwmon: applesmc: restore keyboard backlight on resume
+     char/impi: add __init macro/ fix of __exit macro location in ipmi_poweroff.c
 has been added to the -mm tree.  Its filename is
-     hwmon-applesmc-restore-keyboard-backlight-on-resume.patch
+     char-impi-adding-__init-macro-fix-of-__exit-macro-location-in-ipmi_poweroffc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,70 +34,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hwmon: applesmc: restore keyboard backlight on resume
-From: Henrik Rydberg <rydberg@euromail.se>
+Subject: char/impi: add __init macro/ fix of __exit macro location in ipmi_poweroff.c
+From: Peter Huewe <peterhuewe@gmx.de>
 
-On resume from suspend, the driver currently resets the logical state as
-if it was brought up from halt.  This patch uses the dev_pm_ops.resume
-method to synchronize the hardware with the memorized logical state,
-bringing back the backlight to the level prior to suspend.
+Add the __init to the module_init function of
+drivers/char/ipmi/ipmy_poweroff.c and corrects the location of __exit for
+the cleanup function.
 
-Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
-Cc: Nicolas Boichat <nicolas@boichat.ch>
+Signed-off-by: Peter Huewe <peterhuewe@gmx.de>
+Cc: Corey Minyard <minyard@acm.org>
+Cc: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/applesmc.c |   27 +++++++++++++++------------
- 1 file changed, 15 insertions(+), 12 deletions(-)
+ drivers/char/ipmi/ipmi_poweroff.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/hwmon/applesmc.c~hwmon-applesmc-restore-keyboard-backlight-on-resume drivers/hwmon/applesmc.c
---- a/drivers/hwmon/applesmc.c~hwmon-applesmc-restore-keyboard-backlight-on-resume
-+++ a/drivers/hwmon/applesmc.c
-@@ -178,6 +178,8 @@ static const int debug;
- static struct platform_device *pdev;
- static s16 rest_x;
- static s16 rest_y;
-+static u8 backlight_state[2];
-+
- static struct device *hwmon_dev;
- static struct input_polled_dev *applesmc_idev;
- 
-@@ -497,17 +499,25 @@ static int applesmc_probe(struct platfor
- 	return 0;
- }
- 
--static int applesmc_resume(struct platform_device *dev)
-+/* Synchronize device with memorized backlight state */
-+static int applesmc_pm_resume(struct device *dev)
+diff -puN drivers/char/ipmi/ipmi_poweroff.c~char-impi-adding-__init-macro-fix-of-__exit-macro-location-in-ipmi_poweroffc drivers/char/ipmi/ipmi_poweroff.c
+--- a/drivers/char/ipmi/ipmi_poweroff.c~char-impi-adding-__init-macro-fix-of-__exit-macro-location-in-ipmi_poweroffc
++++ a/drivers/char/ipmi/ipmi_poweroff.c
+@@ -691,7 +691,7 @@ static struct ctl_table_header *ipmi_tab
+ /*
+  * Startup and shutdown functions.
+  */
+-static int ipmi_poweroff_init(void)
++static int __init ipmi_poweroff_init(void)
  {
--	return applesmc_device_init();
-+	mutex_lock(&applesmc_lock);
-+	applesmc_write_key(BACKLIGHT_KEY, backlight_state, 2);
-+	mutex_unlock(&applesmc_lock);
-+	return 0;
+ 	int rv;
+ 
+@@ -725,7 +725,7 @@ static int ipmi_poweroff_init(void)
  }
  
-+static struct dev_pm_ops applesmc_pm_ops = {
-+	.resume = applesmc_pm_resume,
-+};
-+
- static struct platform_driver applesmc_driver = {
- 	.probe = applesmc_probe,
--	.resume = applesmc_resume,
- 	.driver	= {
- 		.name = "applesmc",
- 		.owner = THIS_MODULE,
-+		.pm = &applesmc_pm_ops,
- 	},
- };
- 
-@@ -804,17 +814,10 @@ static ssize_t applesmc_calibrate_store(
- 	return count;
- }
- 
--/* Store the next backlight value to be written by the work */
--static unsigned int backlight_value;
--
- static void applesmc_backlight_set(struct work_struct *work)
+ #ifdef MODULE
+-static __exit void ipmi_poweroff_cleanup(void)
++static void __exit ipmi_poweroff_cleanup(void)
  {
--	u8 buffer[2];
+ 	int rv;
+ 
+_
+
+Patches currently in -mm which might be from peterhuewe@gmx.de are
+
+linux-next.patch
+scsi-add-__init-__exit-macros-to-ibmvstgtc.patch
+char-impi-adding-__init-macro-fix-of-__exit-macro-location-in-ipmi_poweroffc.patch
+
