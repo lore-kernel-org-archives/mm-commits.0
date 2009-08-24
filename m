@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-gpio-bt8xxgpioc-add-missing-__init-__exit-markers.patch added to -mm tree
-Date: Mon, 24 Aug 2009 14:09:50 -0700
-Message-ID: <200908242109.n7OL9oa8002397@imap1.linux-foundation.org>
+Subject: + dm-snapshot-implement-iterate_devices.patch added to -mm tree
+Date: Mon, 24 Aug 2009 14:16:25 -0700
+Message-ID: <200908242116.n7OLGPpd014141@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59116 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38939 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753252AbZHXVKN (ORCPT
+	by vger.kernel.org with ESMTP id S1753596AbZHXVQi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Aug 2009 17:10:13 -0400
+	Mon, 24 Aug 2009 17:16:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: peterhuewe@gmx.de, david-b@pacbell.net, jkosina@suse.cz, mb@bu3sch.de
+Cc: snitzer@redhat.com, agk@redhat.com
 
 
 The patch titled
-     drivers/gpio/bt8xxgpio.c: add missing __init/__exit markers
+     dm snapshot: implement .iterate_devices
 has been added to the -mm tree.  Its filename is
-     drivers-gpio-bt8xxgpioc-add-missing-__init-__exit-markers.patch
+     dm-snapshot-implement-iterate_devices.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,92 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/gpio/bt8xxgpio.c: add missing __init/__exit markers
-From: Peter Huewe <peterhuewe@gmx.de>
+Subject: dm snapshot: implement .iterate_devices
+From: Mike Snitzer <snitzer@redhat.com>
 
-Signed-off-by: Peter Huewe <peterhuewe@gmx.de>
-Acked-by: Michael Buesch <mb@bu3sch.de>
-Cc: Jiri Kosina <jkosina@suse.cz>
-Cc: David Brownell <david-b@pacbell.net>
+Implement the .iterate_devices for the origin and snapshot targets. 
+dm-snapshot's lack of .iterate_devices resulted in the inability to
+properly establish queue_limits for both targets.
+
+With 4K sector drives: an unfortunate side-effect of not establishing
+proper limits in either targets' DM device was that IO to the devices
+would fail even though both had been created without error.
+
+Commit af4874e03ed82f050d5872d8c39ce64bf16b5c38 ("dm target:s introduce
+iterate devices fn") should have implemented .iterate_devices for
+dm-snap.c's origin and snapshot targets.
+
+Signed-off-by: Mike Snitzer <snitzer@redhat.com>
+Cc: Alasdair G Kergon <agk@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/bt8xxgpio.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/md/dm-snap.c |   23 +++++++++++++++++++++--
+ 1 file changed, 21 insertions(+), 2 deletions(-)
 
-diff -puN drivers/gpio/bt8xxgpio.c~drivers-gpio-bt8xxgpioc-add-missing-__init-__exit-markers drivers/gpio/bt8xxgpio.c
---- a/drivers/gpio/bt8xxgpio.c~drivers-gpio-bt8xxgpioc-add-missing-__init-__exit-markers
-+++ a/drivers/gpio/bt8xxgpio.c
-@@ -330,13 +330,13 @@ static struct pci_driver bt8xxgpio_pci_d
- 	.resume		= bt8xxgpio_resume,
+diff -puN drivers/md/dm-snap.c~dm-snapshot-implement-iterate_devices drivers/md/dm-snap.c
+--- a/drivers/md/dm-snap.c~dm-snapshot-implement-iterate_devices
++++ a/drivers/md/dm-snap.c
+@@ -1176,6 +1176,15 @@ static int snapshot_status(struct dm_tar
+ 	return 0;
+ }
+ 
++static int snapshot_iterate_devices(struct dm_target *ti,
++				    iterate_devices_callout_fn fn, void *data)
++{
++	struct dm_snapshot *snap = ti->private;
++
++	return fn(ti, snap->origin, 0, ti->len, data);
++}
++
++
+ /*-----------------------------------------------------------------
+  * Origin methods
+  *---------------------------------------------------------------*/
+@@ -1410,20 +1419,29 @@ static int origin_status(struct dm_targe
+ 	return 0;
+ }
+ 
++static int origin_iterate_devices(struct dm_target *ti,
++				  iterate_devices_callout_fn fn, void *data)
++{
++	struct dm_dev *dev = ti->private;
++
++	return fn(ti, dev, 0, ti->len, data);
++}
++
+ static struct target_type origin_target = {
+ 	.name    = "snapshot-origin",
+-	.version = {1, 6, 0},
++	.version = {1, 7, 0},
+ 	.module  = THIS_MODULE,
+ 	.ctr     = origin_ctr,
+ 	.dtr     = origin_dtr,
+ 	.map     = origin_map,
+ 	.resume  = origin_resume,
+ 	.status  = origin_status,
++	.iterate_devices = origin_iterate_devices,
  };
  
--static int bt8xxgpio_init(void)
-+static int __init bt8xxgpio_init(void)
- {
- 	return pci_register_driver(&bt8xxgpio_pci_driver);
- }
- module_init(bt8xxgpio_init)
+ static struct target_type snapshot_target = {
+ 	.name    = "snapshot",
+-	.version = {1, 6, 0},
++	.version = {1, 7, 0},
+ 	.module  = THIS_MODULE,
+ 	.ctr     = snapshot_ctr,
+ 	.dtr     = snapshot_dtr,
+@@ -1431,6 +1449,7 @@ static struct target_type snapshot_targe
+ 	.end_io  = snapshot_end_io,
+ 	.resume  = snapshot_resume,
+ 	.status  = snapshot_status,
++	.iterate_devices = snapshot_iterate_devices,
+ };
  
--static void bt8xxgpio_exit(void)
-+static void __exit bt8xxgpio_exit(void)
- {
- 	pci_unregister_driver(&bt8xxgpio_pci_driver);
- }
+ static int __init dm_snapshot_init(void)
 _
 
-Patches currently in -mm which might be from peterhuewe@gmx.de are
+Patches currently in -mm which might be from snitzer@redhat.com are
 
 linux-next.patch
-scsi-add-__init-__exit-macros-to-ibmvstgtc.patch
-drivers-gpio-bt8xxgpioc-add-missing-__init-__exit-markers.patch
-char-impi-adding-__init-macro-fix-of-__exit-macro-location-in-ipmi_poweroffc.patch
+dm-snapshot-implement-iterate_devices.patch
 
