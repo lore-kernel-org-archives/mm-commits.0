@@ -1,27 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + usb-fix-paths-in-usbmon-documentation.patch added to -mm tree
-Date: Mon, 24 Aug 2009 14:05:11 -0700
-Message-ID: <200908242105.n7OL5B8m026567@imap1.linux-foundation.org>
+Subject: + hwmon-applesmc-restore-keyboard-backlight-on-resume.patch added to -mm tree
+Date: Mon, 24 Aug 2009 14:06:29 -0700
+Message-ID: <200908242106.n7OL6TuA028903@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45203 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57721 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753234AbZHXVFV (ORCPT
+	by vger.kernel.org with ESMTP id S1753419AbZHXVGs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Aug 2009 17:05:21 -0400
+	Mon, 24 Aug 2009 17:06:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rbrito@ime.usp.br, greg@kroah.com, stern@rowland.harvard.edu
+Cc: rydberg@euromail.se, nicolas@boichat.ch
 
 
 The patch titled
-     usb: fix paths in usbmon documentation
+     hwmon: applesmc: restore keyboard backlight on resume
 has been added to the -mm tree.  Its filename is
-     usb-fix-paths-in-usbmon-documentation.patch
+     hwmon-applesmc-restore-keyboard-backlight-on-resume.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -29,70 +26,78 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb: fix paths in usbmon documentation
-=46rom: Rog=E9rio Brito <rbrito@ime.usp.br>
+Subject: hwmon: applesmc: restore keyboard backlight on resume
+From: Henrik Rydberg <rydberg@euromail.se>
 
-The documentation for usbmon in the kernel 2.6.31-rc7 kernel doesn't
-match what the kernel exposes in the debug fs tree. This patch fixes it=
-=2E
+On resume from suspend, the driver currently resets the logical state as
+if it was brought up from halt.  This patch uses the dev_pm_ops.resume
+method to synchronize the hardware with the memorized logical state,
+bringing back the backlight to the level prior to suspend.
 
-Signed-off-by: Rog=E9rio Brito <rbrito@ime.usp.br>
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+Cc: Nicolas Boichat <nicolas@boichat.ch>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/usb/usbmon.txt |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/hwmon/applesmc.c |   27 +++++++++++++++------------
+ 1 file changed, 15 insertions(+), 12 deletions(-)
 
-diff -puN Documentation/usb/usbmon.txt~usb-fix-paths-in-usbmon-document=
-ation Documentation/usb/usbmon.txt
---- a/Documentation/usb/usbmon.txt~usb-fix-paths-in-usbmon-documentatio=
-n
-+++ a/Documentation/usb/usbmon.txt
-@@ -33,7 +33,7 @@ if usbmon is built into the kernel.
-=20
- Verify that bus sockets are present.
-=20
--# ls /sys/kernel/debug/usbmon
-+# ls /sys/kernel/debug/usb/usbmon
- 0s  0u  1s  1t  1u  2s  2t  2u  3s  3t  3u  4s  4t  4u
- #
-=20
-@@ -58,11 +58,11 @@ Bus=3D03 means it's bus 3.
-=20
- 3. Start 'cat'
-=20
--# cat /sys/kernel/debug/usbmon/3u > /tmp/1.mon.out
-+# cat /sys/kernel/debug/usb/usbmon/3u > /tmp/1.mon.out
-=20
- to listen on a single bus, otherwise, to listen on all buses, type:
-=20
--# cat /sys/kernel/debug/usbmon/0u > /tmp/1.mon.out
-+# cat /sys/kernel/debug/usb/usbmon/0u > /tmp/1.mon.out
-=20
- This process will be reading until killed. Naturally, the output can b=
-e
- redirected to a desirable location. This is preferred, because it is g=
-oing
-_
-
-Patches currently in -mm which might be from rbrito@ime.usp.br are
-
-usb-fix-paths-in-usbmon-documentation.patch
-
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff -puN drivers/hwmon/applesmc.c~hwmon-applesmc-restore-keyboard-backlight-on-resume drivers/hwmon/applesmc.c
+--- a/drivers/hwmon/applesmc.c~hwmon-applesmc-restore-keyboard-backlight-on-resume
++++ a/drivers/hwmon/applesmc.c
+@@ -178,6 +178,8 @@ static const int debug;
+ static struct platform_device *pdev;
+ static s16 rest_x;
+ static s16 rest_y;
++static u8 backlight_state[2];
++
+ static struct device *hwmon_dev;
+ static struct input_polled_dev *applesmc_idev;
+ 
+@@ -497,17 +499,25 @@ static int applesmc_probe(struct platfor
+ 	return 0;
+ }
+ 
+-static int applesmc_resume(struct platform_device *dev)
++/* Synchronize device with memorized backlight state */
++static int applesmc_pm_resume(struct device *dev)
+ {
+-	return applesmc_device_init();
++	mutex_lock(&applesmc_lock);
++	applesmc_write_key(BACKLIGHT_KEY, backlight_state, 2);
++	mutex_unlock(&applesmc_lock);
++	return 0;
+ }
+ 
++static struct dev_pm_ops applesmc_pm_ops = {
++	.resume = applesmc_pm_resume,
++};
++
+ static struct platform_driver applesmc_driver = {
+ 	.probe = applesmc_probe,
+-	.resume = applesmc_resume,
+ 	.driver	= {
+ 		.name = "applesmc",
+ 		.owner = THIS_MODULE,
++		.pm = &applesmc_pm_ops,
+ 	},
+ };
+ 
+@@ -804,17 +814,10 @@ static ssize_t applesmc_calibrate_store(
+ 	return count;
+ }
+ 
+-/* Store the next backlight value to be written by the work */
+-static unsigned int backlight_value;
+-
+ static void applesmc_backlight_set(struct work_struct *work)
+ {
+-	u8 buffer[2];
