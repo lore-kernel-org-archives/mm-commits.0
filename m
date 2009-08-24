@@ -1,24 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + gpu-vgaarb-use-%p-in-pointers-prints.patch added to -mm tree
-Date: Mon, 24 Aug 2009 14:02:27 -0700
-Message-ID: <200908242102.n7OL2RtG021836@imap1.linux-foundation.org>
+Subject: + usb-fix-paths-in-usbmon-documentation.patch added to -mm tree
+Date: Mon, 24 Aug 2009 14:05:11 -0700
+Message-ID: <200908242105.n7OL5B8m026567@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56324 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45203 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753489AbZHXVDh (ORCPT
+	by vger.kernel.org with ESMTP id S1753234AbZHXVFV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Aug 2009 17:03:37 -0400
+	Mon, 24 Aug 2009 17:05:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com, airlied@redhat.com, benh@kernel.crashing.org, jbarnes@virtuousgeek.org, tiago.vignatti@nokia.com
+Cc: rbrito@ime.usp.br, greg@kroah.com, stern@rowland.harvard.edu
 
 
 The patch titled
-     gpu: vgaarb, use %p in pointers prints
+     usb: fix paths in usbmon documentation
 has been added to the -mm tree.  Its filename is
-     gpu-vgaarb-use-%p-in-pointers-prints.patch
+     usb-fix-paths-in-usbmon-documentation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -26,103 +29,70 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: gpu: vgaarb, use %p in pointers prints
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: usb: fix paths in usbmon documentation
+=46rom: Rog=E9rio Brito <rbrito@ime.usp.br>
 
-To avoid compiler warnings about different size, remove pointer-to-int
-cast and use %p directly.
+The documentation for usbmon in the kernel 2.6.31-rc7 kernel doesn't
+match what the kernel exposes in the debug fs tree. This patch fixes it=
+=2E
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Tiago Vignatti <tiago.vignatti@nokia.com>
-Cc: Dave Airlie <airlied@redhat.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Signed-off-by: Rog=E9rio Brito <rbrito@ime.usp.br>
+Cc: Alan Stern <stern@rowland.harvard.edu>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/vga/vgaarb.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ Documentation/usb/usbmon.txt |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/gpu/vga/vgaarb.c~gpu-vgaarb-use-%p-in-pointers-prints drivers/gpu/vga/vgaarb.c
---- a/drivers/gpu/vga/vgaarb.c~gpu-vgaarb-use-%p-in-pointers-prints
-+++ a/drivers/gpu/vga/vgaarb.c
-@@ -831,7 +831,7 @@ static ssize_t vga_arb_write(struct file
- 		curr_pos += 5;
- 		remaining -= 5;
- 
--		pr_devel("client 0x%X called 'lock'\n", (int)priv);
-+		pr_devel("client %p called 'lock'\n", priv);
- 
- 		if (!vga_str_to_iostate(curr_pos, remaining, &io_state)) {
- 			ret_val = -EPROTO;
-@@ -867,7 +867,7 @@ static ssize_t vga_arb_write(struct file
- 		curr_pos += 7;
- 		remaining -= 7;
- 
--		pr_devel("client 0x%X called 'unlock'\n", (int)priv);
-+		pr_devel("client %p called 'unlock'\n", priv);
- 
- 		if (strncmp(curr_pos, "all", 3) == 0)
- 			io_state = VGA_RSRC_LEGACY_IO | VGA_RSRC_LEGACY_MEM;
-@@ -917,7 +917,7 @@ static ssize_t vga_arb_write(struct file
- 		curr_pos += 8;
- 		remaining -= 8;
- 
--		pr_devel("client 0x%X called 'trylock'\n", (int)priv);
-+		pr_devel("client %p called 'trylock'\n", priv);
- 
- 		if (!vga_str_to_iostate(curr_pos, remaining, &io_state)) {
- 			ret_val = -EPROTO;
-@@ -960,7 +960,7 @@ static ssize_t vga_arb_write(struct file
- 
- 		curr_pos += 7;
- 		remaining -= 7;
--		pr_devel("client 0x%X called 'target'\n", (int)priv);
-+		pr_devel("client %p called 'target'\n", priv);
- 		/* if target is default */
- 		if (!strncmp(buf, "default", 7))
- 			pdev = pci_dev_get(vga_default_device());
-@@ -1014,7 +1014,7 @@ static ssize_t vga_arb_write(struct file
- 	} else if (strncmp(curr_pos, "decodes ", 8) == 0) {
- 		curr_pos += 8;
- 		remaining -= 8;
--		pr_devel("vgaarb: client 0x%X called 'decodes'\n", (int)priv);
-+		pr_devel("vgaarb: client %p called 'decodes'\n", priv);
- 
- 		if (!vga_str_to_iostate(curr_pos, remaining, &io_state)) {
- 			ret_val = -EPROTO;
+diff -puN Documentation/usb/usbmon.txt~usb-fix-paths-in-usbmon-document=
+ation Documentation/usb/usbmon.txt
+--- a/Documentation/usb/usbmon.txt~usb-fix-paths-in-usbmon-documentatio=
+n
++++ a/Documentation/usb/usbmon.txt
+@@ -33,7 +33,7 @@ if usbmon is built into the kernel.
+=20
+ Verify that bus sockets are present.
+=20
+-# ls /sys/kernel/debug/usbmon
++# ls /sys/kernel/debug/usb/usbmon
+ 0s  0u  1s  1t  1u  2s  2t  2u  3s  3t  3u  4s  4t  4u
+ #
+=20
+@@ -58,11 +58,11 @@ Bus=3D03 means it's bus 3.
+=20
+ 3. Start 'cat'
+=20
+-# cat /sys/kernel/debug/usbmon/3u > /tmp/1.mon.out
++# cat /sys/kernel/debug/usb/usbmon/3u > /tmp/1.mon.out
+=20
+ to listen on a single bus, otherwise, to listen on all buses, type:
+=20
+-# cat /sys/kernel/debug/usbmon/0u > /tmp/1.mon.out
++# cat /sys/kernel/debug/usb/usbmon/0u > /tmp/1.mon.out
+=20
+ This process will be reading until killed. Naturally, the output can b=
+e
+ redirected to a desirable location. This is preferred, because it is g=
+oing
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from rbrito@ime.usp.br are
 
-md-dm-log-fix-cn_ulog_callback-declaration.patch
-linux-next.patch
-toshiba_acpi-return-on-a-fail-path.patch
-gpu-vgaarb-use-%p-in-pointers-prints.patch
-mtd-sst25l-fix-lock-imbalance.patch
-isdn-hisax-fix-lock-imbalance.patch
-isdn-eicon-use-offsetof.patch
-isdn-eicon-return-on-error.patch
-icom-converting-space-to-tabs.patch
-cyclades-read-buffer-overflow.patch
-serial167-fix-read-buffer-overflow.patch
-usb-make-usb_buffer_map_sg-consistent-with-doc.patch
-char-riscom8-fix-shutdown-declaration.patch
-kcore-use-registerd-physmem-information-define-node__pfn-for-non-numa-builds.patch
-kcore-use-registerd-physmem-information-fix2.patch
-video-console-use-div_round_up.patch
-memory-controller-soft-limit-organize-cgroups-v9-fix.patch
-cyclades-allow-overriding-isa-defaults-also-when-the-driver-is-built-in.patch
-drivers-char-rio-rioctrlc-off-by-one-error-in-rioctrlc.patch
-memstick-move-dev_dbg.patch
-reiser4.patch
-fs-reiser4-add-parenths-around-x-y.patch
+usb-fix-paths-in-usbmon-documentation.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
