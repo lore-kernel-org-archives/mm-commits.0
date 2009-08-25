@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rt2860-fix-test-in-rt_ioctl_siwfrag.patch added to -mm tree
-Date: Tue, 25 Aug 2009 13:27:33 -0700
-Message-ID: <200908252027.n7PKRXdm002364@imap1.linux-foundation.org>
+Subject: + st-fix-test-of-value-range-in-st_set_options.patch added to -mm tree
+Date: Tue, 25 Aug 2009 13:28:32 -0700
+Message-ID: <200908252028.n7PKSWNY004099@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58243 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50696 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752638AbZHYU2C (ORCPT
+	by vger.kernel.org with ESMTP id S1755274AbZHYU3D (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Aug 2009 16:28:02 -0400
+	Tue, 25 Aug 2009 16:29:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com
+Cc: roel.kluin@gmail.com, James.Bottomley@HansenPartnership.com, osst@riede.org
 
 
 The patch titled
-     rt2860: fix test in rt_ioctl_siwfrag()
+     st: fix test of value range in st_set_options()
 has been added to the -mm tree.  Its filename is
-     rt2860-fix-test-in-rt_ioctl_siwfrag.patch
+     st-fix-test-of-value-range-in-st_set_options.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rt2860: fix test in rt_ioctl_siwfrag()
+Subject: st: fix test of value range in st_set_options()
 From: Roel Kluin <roel.kluin@gmail.com>
 
-The test always evaluated to true.
+value cannot logically be less than START and greater than BUFFERSIZE.
 
-MIN_FRAG_THRESHOLD is defined 256,
-MAX_FRAG_THRESHOLD is defined 2346
+#define EXTENDED_SENSE_START  18
+
+// vi include/scsi/scsi_cmnd.h +105
+#define SCSI_SENSE_BUFFERSIZE 	96
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Willem Riede <osst@riede.org>
+Cc: James E.J. Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/rt2860/sta_ioctl.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/scsi/st.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/staging/rt2860/sta_ioctl.c~rt2860-fix-test-in-rt_ioctl_siwfrag drivers/staging/rt2860/sta_ioctl.c
---- a/drivers/staging/rt2860/sta_ioctl.c~rt2860-fix-test-in-rt_ioctl_siwfrag
-+++ a/drivers/staging/rt2860/sta_ioctl.c
-@@ -1383,8 +1383,8 @@ int rt_ioctl_siwfrag(struct net_device *
- 
- 	if (frag->disabled)
- 		val = MAX_FRAG_THRESHOLD;
--	else if (frag->value >= MIN_FRAG_THRESHOLD || frag->value <= MAX_FRAG_THRESHOLD)
--        val = __cpu_to_le16(frag->value & ~0x1); /* even numbers only */
-+	else if (frag->value >= MIN_FRAG_THRESHOLD && frag->value <= MAX_FRAG_THRESHOLD)
-+		val = __cpu_to_le16(frag->value & ~0x1); /* even numbers only */
- 	else if (frag->value == 0)
- 	    val = MAX_FRAG_THRESHOLD;
- 	else
+diff -puN drivers/scsi/st.c~st-fix-test-of-value-range-in-st_set_options drivers/scsi/st.c
+--- a/drivers/scsi/st.c~st-fix-test-of-value-range-in-st_set_options
++++ a/drivers/scsi/st.c
+@@ -2280,7 +2280,7 @@ static int st_set_options(struct scsi_ta
+ 	} else if (code == MT_ST_SET_CLN) {
+ 		value = (options & ~MT_ST_OPTIONS) & 0xff;
+ 		if (value != 0 &&
+-		    value < EXTENDED_SENSE_START && value >= SCSI_SENSE_BUFFERSIZE)
++		    value < EXTENDED_SENSE_START || value >= SCSI_SENSE_BUFFERSIZE)
+ 			return (-EINVAL);
+ 		STp->cln_mode = value;
+ 		STp->cln_sense_mask = (options >> 8) & 0xff;
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -95,6 +97,7 @@ drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
 osst-fix-read-buffer-overflow.patch
 gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
 zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
+st-fix-test-of-value-range-in-st_set_options.patch
 rt2860-fix-test-in-rt_ioctl_siwfrag.patch
 usb-fix-double-put_tty_drivergs_tty_driver-in-gserial_setup.patch
 txx9wdtc-52-fix-txx9wdt_probe-cleaning-up-after-errors.patch
