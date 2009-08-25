@@ -1,143 +1,217 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] kcore-use-registerd-physmem-information-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 25 Aug 2009 12:56:37 -0700
-Message-ID: <200908251956.n7PJubTx011746@imap1.linux-foundation.org>
+Subject: [to-be-updated] kcore-register-text-area-in-generic-way.patch removed from -mm tree
+Date: Tue, 25 Aug 2009 12:56:25 -0700
+Message-ID: <200908251956.n7PJuPNJ011434@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57182 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48849 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755299AbZHYT4i (ORCPT
+	by vger.kernel.org with ESMTP id S1755517AbZHYT4n (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Aug 2009 15:56:38 -0400
+	Tue, 25 Aug 2009 15:56:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, benh@kernel.crashing.org, ralf@linux-mips.org, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kcore-use-registerd-physmem-information-checkpatch-fixes
+     kcore: register text area in generic way
 has been removed from the -mm tree.  Its filename was
-     kcore-use-registerd-physmem-information-checkpatch-fixes.patch
+     kcore-register-text-area-in-generic-way.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kcore-use-registerd-physmem-information-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kcore: register text area in generic way
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-ERROR: "foo * bar" should be "foo *bar"
-#357: FILE: fs/proc/kcore.c:486:
-+static int open_kcore(struct inode * inode, struct file *filp)
+Some 64bit arch has special segment for mapping kernel text.  It should be
+entried to /proc/kcore in addtion to direct-linear-map, vmalloc area. 
+This patch unifies KCORE_TEXT entry scattered under x86 and ia64.
 
-total: 1 errors, 0 warnings, 309 lines checked
+I'm not familiar with other archs (mips has its own even after this patch)
+but range of [_stext ..._end) is a valid area of text and it's not in
+direct-map area, defining CONFIG_ARCH_PROC_KCORE_TEXT is only a necessary
+thing to do.
 
-./patches/kcore-use-registerd-physmem-information.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
+Note: I left mips as it is now.
 
-Please run checkpatch prior to sending patches
-
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: WANG Cong <xiyou.wangcong@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/kcore.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ arch/ia64/Kconfig     |    4 ++++
+ arch/ia64/mm/init.c   |    2 --
+ arch/x86/Kconfig      |    4 ++++
+ arch/x86/mm/init_64.c |    4 +---
+ fs/proc/kcore.c       |   19 ++++++++++++++++++-
+ 5 files changed, 27 insertions(+), 6 deletions(-)
 
-diff -puN fs/proc/kcore.c~kcore-use-registerd-physmem-information-checkpatch-fixes fs/proc/kcore.c
---- a/fs/proc/kcore.c~kcore-use-registerd-physmem-information-checkpatch-fixes
-+++ a/fs/proc/kcore.c
-@@ -483,8 +483,7 @@ read_kcore(struct file *file, char __use
- 	return acc;
- }
+diff -puN arch/ia64/Kconfig~kcore-register-text-area-in-generic-way arch/ia64/Kconfig
+--- a/arch/ia64/Kconfig~kcore-register-text-area-in-generic-way
++++ a/arch/ia64/Kconfig
+@@ -496,6 +496,10 @@ config HAVE_ARCH_NODEDATA_EXTENSION
+ 	def_bool y
+ 	depends on NUMA
  
--
--static int open_kcore(struct inode * inode, struct file *filp)
-+static int open_kcore(struct inode *inode, struct file *filp)
++config ARCH_PROC_KCORE_TEXT
++	def_bool y
++	depends on PROC_KCORE
++
+ config IA32_SUPPORT
+ 	bool "Support for Linux/x86 binaries"
+ 	help
+diff -puN arch/ia64/mm/init.c~kcore-register-text-area-in-generic-way arch/ia64/mm/init.c
+--- a/arch/ia64/mm/init.c~kcore-register-text-area-in-generic-way
++++ a/arch/ia64/mm/init.c
+@@ -617,7 +617,6 @@ mem_init (void)
+ 	long reserved_pages, codesize, datasize, initsize;
+ 	pg_data_t *pgdat;
+ 	int i;
+-	static struct kcore_list kcore_kernel;
+ 
+ 	BUG_ON(PTRS_PER_PGD * sizeof(pgd_t) != PAGE_SIZE);
+ 	BUG_ON(PTRS_PER_PMD * sizeof(pmd_t) != PAGE_SIZE);
+@@ -637,7 +636,6 @@ mem_init (void)
+ 	max_mapnr = max_low_pfn;
+ #endif
+ 	high_memory = __va(max_low_pfn * PAGE_SIZE);
+-	kclist_add(&kcore_kernel, _stext, _end - _stext, KCORE_TEXT);
+ 
+ 	for_each_online_pgdat(pgdat)
+ 		if (pgdat->bdata->node_bootmem_map)
+diff -puN arch/x86/Kconfig~kcore-register-text-area-in-generic-way arch/x86/Kconfig
+--- a/arch/x86/Kconfig~kcore-register-text-area-in-generic-way
++++ a/arch/x86/Kconfig
+@@ -1251,6 +1251,10 @@ config ARCH_MEMORY_PROBE
+ 	def_bool X86_64
+ 	depends on MEMORY_HOTPLUG
+ 
++config ARCH_PROC_KCORE_TEXT
++	def_bool y
++	depends on X86_64 && PROC_KCORE
++
+ config ILLEGAL_POINTER_VALUE
+        hex
+        default 0 if X86_32
+diff -puN arch/x86/mm/init_64.c~kcore-register-text-area-in-generic-way arch/x86/mm/init_64.c
+--- a/arch/x86/mm/init_64.c~kcore-register-text-area-in-generic-way
++++ a/arch/x86/mm/init_64.c
+@@ -647,8 +647,7 @@ EXPORT_SYMBOL_GPL(memory_add_physaddr_to
+ 
+ #endif /* CONFIG_MEMORY_HOTPLUG */
+ 
+-static struct kcore_list kcore_mem, kcore_kernel,
+-			 kcore_modules, kcore_vsyscall;
++static struct kcore_list kcore_mem, kcore_modules, kcore_vsyscall;
+ 
+ void __init mem_init(void)
  {
- 	if (!capable(CAP_SYS_RAWIO))
- 		return -EPERM;
-@@ -493,7 +492,6 @@ static int open_kcore(struct inode * ino
- 	return 0;
- }
+@@ -678,7 +677,6 @@ void __init mem_init(void)
  
+ 	/* Register memory areas for /proc/kcore */
+ 	kclist_add(&kcore_mem, __va(0), max_low_pfn << PAGE_SHIFT, KCORE_RAM);
+-	kclist_add(&kcore_kernel, &_stext, _end - _stext, KCORE_TEXT);
+ 	kclist_add(&kcore_modules, (void *)MODULES_VADDR, MODULES_LEN,
+ 			KCORE_OTHER);
+ 	kclist_add(&kcore_vsyscall, (void *)VSYSCALL_START,
+diff -puN fs/proc/kcore.c~kcore-register-text-area-in-generic-way fs/proc/kcore.c
+--- a/fs/proc/kcore.c~kcore-register-text-area-in-generic-way
++++ a/fs/proc/kcore.c
+@@ -21,6 +21,7 @@
+ #include <asm/uaccess.h>
+ #include <asm/io.h>
+ #include <linux/list.h>
++#include <asm/sections.h>
+ 
+ #define CORE_STR "CORE"
+ 
+@@ -374,10 +375,26 @@ read_kcore(struct file *file, char __use
+ 
+ static struct kcore_list kcore_vmalloc;
+ 
++#ifdef CONFIG_ARCH_PROC_KCORE_TEXT
++static struct kcore_list kcore_text;
++/*
++ * If defined, special segment is used for mapping kernel text instead of
++ * direct-map area. We need to create special TEXT section.
++ */
++static void __init proc_kcore_text_init(void)
++{
++	kclist_add(&kcore_text, _stext, _end - _stext, KCORE_TEXT);
++}
++#else
++static void __init proc_kcore_text_init(void)
++{
++}
++#endif
++
+ static int __init proc_kcore_init(void)
+ {
+ 	proc_root_kcore = proc_create("kcore", S_IRUSR, NULL, &proc_kcore_operations);
 -
- static const struct file_operations proc_kcore_operations = {
- 	.read		= read_kcore,
- 	.open		= open_kcore,
++	proc_kcore_text_init();
+ 	kclist_add(&kcore_vmalloc, (void *)VMALLOC_START,
+ 		VMALLOC_END - VMALLOC_START, KCORE_VMALLOC);
+ 	return 0;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-amdc-fix-x86_64-allnoconfig-build.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-video-initial-support-for-adv7180-update-fix.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-checkincludespl-add-option-to-remove-duplicates-in-place.patch
-leds-gpio-leds-fix-typographics-fault.patch
-leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio.patch
-slram-read-buffer-overflow.patch
-zorro8390-fix-read-buffer-overflow-in-zorro8390_init_one-checkpatch-fixes.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-serial167-fix-read-buffer-overflow.patch
-waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes-checkpatch-fixes.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
-vfs-optimize-touch_time-too.patch
-fs-improve-remountro-vs-buffercache-coherency-fix.patch
-mm-make-swap-token-dummies-static-inlines-fix.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
+clone-fix-race-between-copy_process-and-de_thread.patch
+mm-clean-up-page_remove_rmap.patch
+vmscan-throttle-direct-reclaim-when-too-many-pages-are-isolated-already.patch
+mm-remove-__addsub_zone_page_state.patch
 vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
-arches-drop-superfluous-casts-in-nr_free_pages-callers-checkpatch-fixes.patch
-tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
-generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
-proc-connector-add-event-for-process-becoming-session-leader.patch
-kernel-smpc-relocate-some-code.patch
-mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
-sdio-add-cd-disable-support-cleanup.patch
-procfs-provide-stack-information-for-threads-v011-fix.patch
+ksm-add-mmu_notifier-set_pte_at_notify.patch
+ksm-first-tidy-up-madvise_vma.patch
+ksm-define-madv_mergeable-and-madv_unmergeable.patch
+ksm-the-mm-interface-to-ksm.patch
+ksm-no-debug-in-page_dup_rmap.patch
+ksm-identify-pageksm-pages.patch
+ksm-kernel-samepage-merging.patch
+ksm-prevent-mremap-move-poisoning.patch
+ksm-change-copyright-message.patch
+ksm-change-ksm-nice-level-to-be-5.patch
+vmalloc-unmap-vmalloc-area-after-hiding-it.patch
+kcore-fix-vread-vwrite-to-be-aware-of-holes.patch
+kcore-fix-vread-vwrite-to-be-aware-of-holes-update.patch
+kcore-proc-kcore-should-use-vread.patch
+mm-add_to_swap_cache-must-not-sleep.patch
+mm-add_to_swap_cache-does-not-return-eexist.patch
+memory-hotplug-fix-updating-of-num_physpages-for-hot-plugged-memory.patch
+mm-vmscan-rename-zone_nr_pages-to-zone_lru_nr_pages.patch
+mm-do-batched-scans-for-mem_cgroup.patch
+kcore-fix-proc-kcores-statst_size.patch
+kcore-register-text-area-in-generic-way.patch
+walk-system-ram-range.patch
+kcore-use-registerd-physmem-information.patch
+kcore-use-registerd-physmem-information-fix.patch
 kcore-use-registerd-physmem-information-checkpatch-fixes.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
-rtc-philips-nxp-pcf2123-driver-v03-fix.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes-fix.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
-drivers-video-add-kmalloc-null-tests-fix.patch
-v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
-cgroups-add-functionality-to-read-write-lock-clone_thread-forking-per-threadgroup-fix.patch
+kcore-use-registerd-physmem-information-define-node__pfn-for-non-numa-builds.patch
+kcore-use-registerd-physmem-information-fix2.patch
+cgroups-support-named-cgroups-hierarchies.patch
+cgroups-move-the-cgroup-debug-subsys-into-cgroupc-to-access-internal-state.patch
+cgroups-add-a-back-pointer-from-struct-cg_cgroup_link-to-struct-cgroup.patch
+cgroups-allow-cgroup-hierarchies-to-be-created-with-no-bound-subsystems.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup.patch
 memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup-fix-2.patch
+memcg-add-comments-explaining-memory-barriers.patch
 memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
+memory-controller-soft-limit-documentation-v9.patch
+memory-controller-soft-limit-interface-v9.patch
+memory-controller-soft-limit-organize-cgroups-v9.patch
+memory-controller-soft-limit-organize-cgroups-v9-fix.patch
+memory-controller-soft-limit-refactor-reclaim-flags-v9.patch
+memory-controller-soft-limit-reclaim-on-contention-v9.patch
 memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
-memcg-improve-resource-counter-scalability-checkpatch-fixes.patch
-exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
-exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
-elf-clean-up-fill_note_info-fix.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+memcg-improve-resource-counter-scalability.patch
+memcg-improve-resource-counter-scalability-v5.patch
+memcg-show-swap-usage-in-stat-file.patch
 
