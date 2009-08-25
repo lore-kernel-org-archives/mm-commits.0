@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] kcore-add-kclist-type.patch removed from -mm tree
-Date: Tue, 25 Aug 2009 12:56:20 -0700
-Message-ID: <200908251956.n7PJuKxf011213@imap1.linux-foundation.org>
+Subject: [to-be-updated] walk-system-ram-range.patch removed from -mm tree
+Date: Tue, 25 Aug 2009 12:56:28 -0700
+Message-ID: <200908251956.n7PJuSex011449@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34334 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45833 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755550AbZHYT4n (ORCPT
+	by vger.kernel.org with ESMTP id S1755351AbZHYT4n (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 25 Aug 2009 15:56:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,29 +15,35 @@ To: kamezawa.hiroyu@jp.fujitsu.com, benh@kernel.crashing.org, ralf@linux-mips.or
 
 
 The patch titled
-     kcore: add kclist type
+     walk system ram range
 has been removed from the -mm tree.  Its filename was
-     kcore-add-kclist-type.patch
+     walk-system-ram-range.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kcore: add kclist type
+Subject: walk system ram range
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Presently, kclist_add() only eats start address and size as its arguments.
- Considering to make kclist dynamically reconfigulable, it's necessary to
-know which kclists are for System RAM and which are not.
+Originally, walk_memory_resource() was introduced to traverse all memory
+of "System RAM" for detecting memory hotplug/unplug range.  For doing so,
+flags of IORESOUCE_MEM|IORESOURCE_BUSY was used and this was enough for
+memory hotplug.
 
-This patch add kclist types as
-  KCORE_RAM
-  KCORE_VMALLOC
-  KCORE_TEXT
-  KCORE_OTHER
+But for using other purpose, /proc/kcore, this may includes some firmware
+area marked as IORESOURCE_BUSY | IORESOUCE_MEM.  This patch makes the
+check strict to find out busy "System RAM".
 
-This "type" is used in a patch following this for detecting KCORE_RAM.
+Note: PPC64 keeps their own walk_memory_resouce(), which walk through
+ppc64's lmb informaton.  Because old kclist_add() is called per lmb, this
+patch makes no difference in behavior, finally.
+
+And this patch removes CONFIG_MEMORY_HOTPLUG check from this function. 
+Because pfn_valid() just show "there is memmap or not* and cannot be used
+for "there is physical memory or not", this function is useful in generic
+to scan physical memory range.
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Ralf Baechle <ralf@linux-mips.org>
@@ -46,193 +52,161 @@ Cc: WANG Cong <xiyou.wangcong@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/mm/init.c       |    7 ++++---
- arch/mips/mm/init.c       |    7 ++++---
- arch/powerpc/mm/init_32.c |    4 ++--
- arch/powerpc/mm/init_64.c |    5 +++--
- arch/sh/mm/init.c         |    4 ++--
- arch/x86/mm/init_32.c     |    4 ++--
- arch/x86/mm/init_64.c     |   11 ++++++-----
- fs/proc/kcore.c           |    3 ++-
- include/linux/proc_fs.h   |   13 +++++++++++--
- 9 files changed, 36 insertions(+), 22 deletions(-)
+ arch/powerpc/mm/mem.c          |    4 ++--
+ drivers/net/ehea/ehea_qmr.c    |    2 +-
+ include/linux/ioport.h         |    4 ++++
+ include/linux/memory_hotplug.h |    8 --------
+ kernel/resource.c              |   23 ++++++++++++++++-------
+ mm/memory_hotplug.c            |    6 +++---
+ 6 files changed, 26 insertions(+), 21 deletions(-)
 
-diff -puN arch/ia64/mm/init.c~kcore-add-kclist-type arch/ia64/mm/init.c
---- a/arch/ia64/mm/init.c~kcore-add-kclist-type
-+++ a/arch/ia64/mm/init.c
-@@ -639,9 +639,10 @@ mem_init (void)
- 
- 	high_memory = __va(max_low_pfn * PAGE_SIZE);
- 
--	kclist_add(&kcore_mem, __va(0), max_low_pfn * PAGE_SIZE);
--	kclist_add(&kcore_vmem, (void *)VMALLOC_START, VMALLOC_END-VMALLOC_START);
--	kclist_add(&kcore_kernel, _stext, _end - _stext);
-+	kclist_add(&kcore_mem, __va(0), max_low_pfn * PAGE_SIZE, KCORE_RAM);
-+	kclist_add(&kcore_vmem, (void *)VMALLOC_START,
-+			VMALLOC_END-VMALLOC_START, KCORE_VMALLOC);
-+	kclist_add(&kcore_kernel, _stext, _end - _stext, KCORE_TEXT);
- 
- 	for_each_online_pgdat(pgdat)
- 		if (pgdat->bdata->node_bootmem_map)
-diff -puN arch/mips/mm/init.c~kcore-add-kclist-type arch/mips/mm/init.c
---- a/arch/mips/mm/init.c~kcore-add-kclist-type
-+++ a/arch/mips/mm/init.c
-@@ -409,11 +409,12 @@ void __init mem_init(void)
- 	if ((unsigned long) &_text > (unsigned long) CKSEG0)
- 		/* The -4 is a hack so that user tools don't have to handle
- 		   the overflow.  */
--		kclist_add(&kcore_kseg0, (void *) CKSEG0, 0x80000000 - 4);
-+		kclist_add(&kcore_kseg0, (void *) CKSEG0,
-+				0x80000000 - 4, KCORE_TEXT);
- #endif
--	kclist_add(&kcore_mem, __va(0), max_low_pfn << PAGE_SHIFT);
-+	kclist_add(&kcore_mem, __va(0), max_low_pfn << PAGE_SHIFT, KCORE_RAM);
- 	kclist_add(&kcore_vmalloc, (void *)VMALLOC_START,
--		   VMALLOC_END-VMALLOC_START);
-+		   VMALLOC_END-VMALLOC_START, KCORE_VMALLOC);
- 
- 	printk(KERN_INFO "Memory: %luk/%luk available (%ldk kernel code, "
- 	       "%ldk reserved, %ldk data, %ldk init, %ldk highmem)\n",
-diff -puN arch/powerpc/mm/init_32.c~kcore-add-kclist-type arch/powerpc/mm/init_32.c
---- a/arch/powerpc/mm/init_32.c~kcore-add-kclist-type
-+++ a/arch/powerpc/mm/init_32.c
-@@ -268,11 +268,11 @@ static int __init setup_kcore(void)
- 						size);
- 		}
- 
--		kclist_add(kcore_mem, __va(base), size);
-+		kclist_add(kcore_mem, __va(base), size, KCORE_RAM);
- 	}
- 
- 	kclist_add(&kcore_vmem, (void *)VMALLOC_START,
--		VMALLOC_END-VMALLOC_START);
-+		VMALLOC_END-VMALLOC_START, KCORE_VMALLOC);
- 
- 	return 0;
- }
-diff -puN arch/powerpc/mm/init_64.c~kcore-add-kclist-type arch/powerpc/mm/init_64.c
---- a/arch/powerpc/mm/init_64.c~kcore-add-kclist-type
-+++ a/arch/powerpc/mm/init_64.c
-@@ -128,10 +128,11 @@ static int __init setup_kcore(void)
- 		if (!kcore_mem)
- 			panic("%s: kmalloc failed\n", __func__);
- 
--		kclist_add(kcore_mem, __va(base), size);
-+		kclist_add(kcore_mem, __va(base), size, KCORE_RAM);
- 	}
- 
--	kclist_add(&kcore_vmem, (void *)VMALLOC_START, VMALLOC_END-VMALLOC_START);
-+	kclist_add(&kcore_vmem, (void *)VMALLOC_START,
-+		VMALLOC_END-VMALLOC_START, KCORE_VMALLOC);
- 
- 	return 0;
- }
-diff -puN arch/sh/mm/init.c~kcore-add-kclist-type arch/sh/mm/init.c
---- a/arch/sh/mm/init.c~kcore-add-kclist-type
-+++ a/arch/sh/mm/init.c
-@@ -218,9 +218,9 @@ void __init mem_init(void)
- 	datasize =  (unsigned long) &_edata - (unsigned long) &_etext;
- 	initsize =  (unsigned long) &__init_end - (unsigned long) &__init_begin;
- 
--	kclist_add(&kcore_mem, __va(0), max_low_pfn << PAGE_SHIFT);
-+	kclist_add(&kcore_mem, __va(0), max_low_pfn << PAGE_SHIFT, KCORE_RAM);
- 	kclist_add(&kcore_vmalloc, (void *)VMALLOC_START,
--		   VMALLOC_END - VMALLOC_START);
-+		   VMALLOC_END - VMALLOC_START, KCORE_VMALLOC);
- 
- 	printk(KERN_INFO "Memory: %luk/%luk available (%dk kernel code, "
- 	       "%dk data, %dk init)\n",
-diff -puN arch/x86/mm/init_32.c~kcore-add-kclist-type arch/x86/mm/init_32.c
---- a/arch/x86/mm/init_32.c~kcore-add-kclist-type
-+++ a/arch/x86/mm/init_32.c
-@@ -886,9 +886,9 @@ void __init mem_init(void)
- 	datasize =  (unsigned long) &_edata - (unsigned long) &_etext;
- 	initsize =  (unsigned long) &__init_end - (unsigned long) &__init_begin;
- 
--	kclist_add(&kcore_mem, __va(0), max_low_pfn << PAGE_SHIFT);
-+	kclist_add(&kcore_mem, __va(0), max_low_pfn << PAGE_SHIFT, KCORE_RAM);
- 	kclist_add(&kcore_vmalloc, (void *)VMALLOC_START,
--		   VMALLOC_END-VMALLOC_START);
-+		   VMALLOC_END-VMALLOC_START, KCORE_VMALLOC);
- 
- 	printk(KERN_INFO "Memory: %luk/%luk available (%dk kernel code, "
- 			"%dk reserved, %dk data, %dk init, %ldk highmem)\n",
-diff -puN arch/x86/mm/init_64.c~kcore-add-kclist-type arch/x86/mm/init_64.c
---- a/arch/x86/mm/init_64.c~kcore-add-kclist-type
-+++ a/arch/x86/mm/init_64.c
-@@ -677,13 +677,14 @@ void __init mem_init(void)
- 	initsize =  (unsigned long) &__init_end - (unsigned long) &__init_begin;
- 
- 	/* Register memory areas for /proc/kcore */
--	kclist_add(&kcore_mem, __va(0), max_low_pfn << PAGE_SHIFT);
-+	kclist_add(&kcore_mem, __va(0), max_low_pfn << PAGE_SHIFT, KCORE_RAM);
- 	kclist_add(&kcore_vmalloc, (void *)VMALLOC_START,
--		   VMALLOC_END-VMALLOC_START);
--	kclist_add(&kcore_kernel, &_stext, _end - _stext);
--	kclist_add(&kcore_modules, (void *)MODULES_VADDR, MODULES_LEN);
-+		   VMALLOC_END-VMALLOC_START, KCORE_VMALLOC);
-+	kclist_add(&kcore_kernel, &_stext, _end - _stext, KCORE_TEXT);
-+	kclist_add(&kcore_modules, (void *)MODULES_VADDR, MODULES_LEN,
-+			KCORE_OTHER);
- 	kclist_add(&kcore_vsyscall, (void *)VSYSCALL_START,
--				 VSYSCALL_END - VSYSCALL_START);
-+			 VSYSCALL_END - VSYSCALL_START, KCORE_OTHER);
- 
- 	printk(KERN_INFO "Memory: %luk/%luk available (%ldk kernel code, "
- 			 "%ldk absent, %ldk reserved, %ldk data, %ldk init)\n",
-diff -puN fs/proc/kcore.c~kcore-add-kclist-type fs/proc/kcore.c
---- a/fs/proc/kcore.c~kcore-add-kclist-type
-+++ a/fs/proc/kcore.c
-@@ -62,10 +62,11 @@ static LIST_HEAD(kclist_head);
- static DEFINE_RWLOCK(kclist_lock);
- 
- void
--kclist_add(struct kcore_list *new, void *addr, size_t size)
-+kclist_add(struct kcore_list *new, void *addr, size_t size, int type)
+diff -puN arch/powerpc/mm/mem.c~walk-system-ram-range arch/powerpc/mm/mem.c
+--- a/arch/powerpc/mm/mem.c~walk-system-ram-range
++++ a/arch/powerpc/mm/mem.c
+@@ -143,8 +143,8 @@ int arch_add_memory(int nid, u64 start, 
+  * memory regions, find holes and callback for contiguous regions.
+  */
+ int
+-walk_memory_resource(unsigned long start_pfn, unsigned long nr_pages, void *arg,
+-			int (*func)(unsigned long, unsigned long, void *))
++walk_system_ram_range(unsigned long start_pfn, unsigned long nr_pages,
++		void *arg, int (*func)(unsigned long, unsigned long, void *))
  {
- 	new->addr = (unsigned long)addr;
- 	new->size = size;
-+	new->type = type;
+ 	struct lmb_property res;
+ 	unsigned long pfn, len;
+diff -puN drivers/net/ehea/ehea_qmr.c~walk-system-ram-range drivers/net/ehea/ehea_qmr.c
+--- a/drivers/net/ehea/ehea_qmr.c~walk-system-ram-range
++++ a/drivers/net/ehea/ehea_qmr.c
+@@ -751,7 +751,7 @@ int ehea_create_busmap(void)
  
- 	write_lock(&kclist_lock);
- 	list_add_tail(&new->list, &kclist_head);
-diff -puN include/linux/proc_fs.h~kcore-add-kclist-type include/linux/proc_fs.h
---- a/include/linux/proc_fs.h~kcore-add-kclist-type
-+++ a/include/linux/proc_fs.h
-@@ -78,10 +78,18 @@ struct proc_dir_entry {
- 	struct list_head pde_openers;	/* who did ->open, but not ->release */
- };
+ 	mutex_lock(&ehea_busmap_mutex);
+ 	ehea_mr_len = 0;
+-	ret = walk_memory_resource(0, 1ULL << MAX_PHYSMEM_BITS, NULL,
++	ret = walk_system_ram_range(0, 1ULL << MAX_PHYSMEM_BITS, NULL,
+ 				   ehea_create_busmap_callback);
+ 	mutex_unlock(&ehea_busmap_mutex);
+ 	return ret;
+diff -puN include/linux/ioport.h~walk-system-ram-range include/linux/ioport.h
+--- a/include/linux/ioport.h~walk-system-ram-range
++++ a/include/linux/ioport.h
+@@ -184,5 +184,9 @@ extern void __devm_release_region(struct
+ extern int iomem_map_sanity_check(resource_size_t addr, unsigned long size);
+ extern int iomem_is_exclusive(u64 addr);
  
-+enum kcore_type {
-+	KCORE_TEXT,
-+	KCORE_VMALLOC,
-+	KCORE_RAM,
-+	KCORE_OTHER,
-+};
++extern int
++walk_system_ram_range(unsigned long start_pfn, unsigned long nr_pages,
++		void *arg, int (*func)(unsigned long, unsigned long, void *));
 +
- struct kcore_list {
- 	struct list_head list;
- 	unsigned long addr;
- 	size_t size;
-+	int type;
- };
+ #endif /* __ASSEMBLY__ */
+ #endif	/* _LINUX_IOPORT_H */
+diff -puN include/linux/memory_hotplug.h~walk-system-ram-range include/linux/memory_hotplug.h
+--- a/include/linux/memory_hotplug.h~walk-system-ram-range
++++ a/include/linux/memory_hotplug.h
+@@ -191,14 +191,6 @@ static inline void register_page_bootmem
  
- struct vmcore {
-@@ -233,11 +241,12 @@ static inline void dup_mm_exe_file(struc
- #endif /* CONFIG_PROC_FS */
+ #endif /* ! CONFIG_MEMORY_HOTPLUG */
  
- #if !defined(CONFIG_PROC_KCORE)
--static inline void kclist_add(struct kcore_list *new, void *addr, size_t size)
-+static inline void
-+kclist_add(struct kcore_list *new, void *addr, size_t size, int type)
+-/*
+- * Walk through all memory which is registered as resource.
+- * arg is (start_pfn, nr_pages, private_arg_pointer)
+- */
+-extern int walk_memory_resource(unsigned long start_pfn,
+-			unsigned long nr_pages, void *arg,
+-			int (*func)(unsigned long, unsigned long, void *));
+-
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+ 
+ extern int is_mem_section_removable(unsigned long pfn, unsigned long nr_pages);
+diff -puN kernel/resource.c~walk-system-ram-range kernel/resource.c
+--- a/kernel/resource.c~walk-system-ram-range
++++ a/kernel/resource.c
+@@ -223,13 +223,13 @@ int release_resource(struct resource *ol
+ 
+ EXPORT_SYMBOL(release_resource);
+ 
+-#if defined(CONFIG_MEMORY_HOTPLUG) && !defined(CONFIG_ARCH_HAS_WALK_MEMORY)
++#if !defined(CONFIG_ARCH_HAS_WALK_MEMORY)
+ /*
+  * Finds the lowest memory reosurce exists within [res->start.res->end)
+- * the caller must specify res->start, res->end, res->flags.
++ * the caller must specify res->start, res->end, res->flags and "name".
+  * If found, returns 0, res is overwritten, if not found, returns -1.
+  */
+-static int find_next_system_ram(struct resource *res)
++static int find_next_system_ram(struct resource *res, char *name)
  {
+ 	resource_size_t start, end;
+ 	struct resource *p;
+@@ -245,6 +245,8 @@ static int find_next_system_ram(struct r
+ 		/* system ram is just marked as IORESOURCE_MEM */
+ 		if (p->flags != res->flags)
+ 			continue;
++		if (name && strcmp(p->name, name))
++			continue;
+ 		if (p->start > end) {
+ 			p = NULL;
+ 			break;
+@@ -262,19 +264,26 @@ static int find_next_system_ram(struct r
+ 		res->end = p->end;
+ 	return 0;
  }
- #else
--extern void kclist_add(struct kcore_list *, void *, size_t);
-+extern void kclist_add(struct kcore_list *, void *, size_t, int type);
- #endif
+-int
+-walk_memory_resource(unsigned long start_pfn, unsigned long nr_pages, void *arg,
+-			int (*func)(unsigned long, unsigned long, void *))
++
++/*
++ * This function calls callback against all memory range of "System RAM"
++ * which are marked as IORESOURCE_MEM and IORESOUCE_BUSY.
++ * Now, this function is only for "System RAM".
++ */
++int walk_system_ram_range(unsigned long start_pfn, unsigned long nr_pages,
++		void *arg, int (*func)(unsigned long, unsigned long, void *))
+ {
+ 	struct resource res;
+ 	unsigned long pfn, len;
+ 	u64 orig_end;
+ 	int ret = -1;
++
+ 	res.start = (u64) start_pfn << PAGE_SHIFT;
+ 	res.end = ((u64)(start_pfn + nr_pages) << PAGE_SHIFT) - 1;
+ 	res.flags = IORESOURCE_MEM | IORESOURCE_BUSY;
+ 	orig_end = res.end;
+-	while ((res.start < res.end) && (find_next_system_ram(&res) >= 0)) {
++	while ((res.start < res.end) &&
++		(find_next_system_ram(&res, "System RAM") >= 0)) {
+ 		pfn = (unsigned long)(res.start >> PAGE_SHIFT);
+ 		len = (unsigned long)((res.end + 1 - res.start) >> PAGE_SHIFT);
+ 		ret = (*func)(pfn, len, arg);
+diff -puN mm/memory_hotplug.c~walk-system-ram-range mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~walk-system-ram-range
++++ a/mm/memory_hotplug.c
+@@ -413,7 +413,7 @@ int online_pages(unsigned long pfn, unsi
+ 	if (!populated_zone(zone))
+ 		need_zonelists_rebuild = 1;
  
- union proc_op {
+-	ret = walk_memory_resource(pfn, nr_pages, &onlined_pages,
++	ret = walk_system_ram_range(pfn, nr_pages, &onlined_pages,
+ 		online_pages_range);
+ 	if (ret) {
+ 		printk(KERN_DEBUG "online_pages %lx at %lx failed\n",
+@@ -705,7 +705,7 @@ offline_isolated_pages_cb(unsigned long 
+ static void
+ offline_isolated_pages(unsigned long start_pfn, unsigned long end_pfn)
+ {
+-	walk_memory_resource(start_pfn, end_pfn - start_pfn, NULL,
++	walk_system_ram_range(start_pfn, end_pfn - start_pfn, NULL,
+ 				offline_isolated_pages_cb);
+ }
+ 
+@@ -731,7 +731,7 @@ check_pages_isolated(unsigned long start
+ 	long offlined = 0;
+ 	int ret;
+ 
+-	ret = walk_memory_resource(start_pfn, end_pfn - start_pfn, &offlined,
++	ret = walk_system_ram_range(start_pfn, end_pfn - start_pfn, &offlined,
+ 			check_pages_isolated_cb);
+ 	if (ret < 0)
+ 		offlined = (long)ret;
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
@@ -262,9 +236,6 @@ memory-hotplug-fix-updating-of-num_physpages-for-hot-plugged-memory.patch
 mm-vmscan-rename-zone_nr_pages-to-zone_lru_nr_pages.patch
 mm-do-batched-scans-for-mem_cgroup.patch
 kcore-fix-proc-kcores-statst_size.patch
-kcore-add-kclist-type.patch
-kcore-register-vmalloc-area-in-generic-way.patch
-kcore-register-text-area-in-generic-way.patch
 walk-system-ram-range.patch
 kcore-use-registerd-physmem-information.patch
 kcore-use-registerd-physmem-information-fix.patch
