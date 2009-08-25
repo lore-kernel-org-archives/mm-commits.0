@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + st-fix-test-of-value-range-in-st_set_options.patch added to -mm tree
-Date: Tue, 25 Aug 2009 13:28:32 -0700
-Message-ID: <200908252028.n7PKSWNY004099@imap1.linux-foundation.org>
+Subject: + apci3200-fix-test-of-ui_delaytime-range-in-i_apci3200_commandtestanaloginput.patch added to -mm tree
+Date: Tue, 25 Aug 2009 13:29:19 -0700
+Message-ID: <200908252029.n7PKTJxT005586@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50696 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35201 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755274AbZHYU3D (ORCPT
+	by vger.kernel.org with ESMTP id S1754644AbZHYU3z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Aug 2009 16:29:03 -0400
+	Tue, 25 Aug 2009 16:29:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, James.Bottomley@HansenPartnership.com, osst@riede.org
+Cc: roel.kluin@gmail.com, gregkh@suse.de, wfp5p@virginia.edu
 
 
 The patch titled
-     st: fix test of value range in st_set_options()
+     apci3200: fix test of ui_DelayTime range in i_APCI3200_CommandTestAnalogInput()
 has been added to the -mm tree.  Its filename is
-     st-fix-test-of-value-range-in-st_set_options.patch
+     apci3200-fix-test-of-ui_delaytime-range-in-i_apci3200_commandtestanaloginput.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: st: fix test of value range in st_set_options()
+Subject: apci3200: fix test of ui_DelayTime range in i_APCI3200_CommandTestAnalogInput()
 From: Roel Kluin <roel.kluin@gmail.com>
 
-value cannot logically be less than START and greater than BUFFERSIZE.
-
-#define EXTENDED_SENSE_START  18
-
-// vi include/scsi/scsi_cmnd.h +105
-#define SCSI_SENSE_BUFFERSIZE 	96
+For ui_DelayTime to be less than 1 and greater than 1023 is logically
+impossible.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Willem Riede <osst@riede.org>
-Cc: James E.J. Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Bill Pemberton <wfp5p@virginia.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/st.c |    2 +-
+ drivers/staging/comedi/drivers/addi-data/hwdrv_apci3200.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/st.c~st-fix-test-of-value-range-in-st_set_options drivers/scsi/st.c
---- a/drivers/scsi/st.c~st-fix-test-of-value-range-in-st_set_options
-+++ a/drivers/scsi/st.c
-@@ -2280,7 +2280,7 @@ static int st_set_options(struct scsi_ta
- 	} else if (code == MT_ST_SET_CLN) {
- 		value = (options & ~MT_ST_OPTIONS) & 0xff;
- 		if (value != 0 &&
--		    value < EXTENDED_SENSE_START && value >= SCSI_SENSE_BUFFERSIZE)
-+		    value < EXTENDED_SENSE_START || value >= SCSI_SENSE_BUFFERSIZE)
- 			return (-EINVAL);
- 		STp->cln_mode = value;
- 		STp->cln_sense_mask = (options >> 8) & 0xff;
+diff -puN drivers/staging/comedi/drivers/addi-data/hwdrv_apci3200.c~apci3200-fix-test-of-ui_delaytime-range-in-i_apci3200_commandtestanaloginput drivers/staging/comedi/drivers/addi-data/hwdrv_apci3200.c
+--- a/drivers/staging/comedi/drivers/addi-data/hwdrv_apci3200.c~apci3200-fix-test-of-ui_delaytime-range-in-i_apci3200_commandtestanaloginput
++++ a/drivers/staging/comedi/drivers/addi-data/hwdrv_apci3200.c
+@@ -2669,7 +2669,7 @@ int i_APCI3200_CommandTestAnalogInput(st
+ 			err++;
+ 			printk("\nThe Delay time base selection is in error\n");
+ 		}
+-		if (ui_DelayTime < 1 && ui_DelayTime > 1023) {
++		if (ui_DelayTime < 1 || ui_DelayTime > 1023) {
+ 			err++;
+ 			printk("\nThe Delay time value is in error\n");
+ 		}
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -99,6 +95,7 @@ gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
 zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
 st-fix-test-of-value-range-in-st_set_options.patch
 rt2860-fix-test-in-rt_ioctl_siwfrag.patch
+apci3200-fix-test-of-ui_delaytime-range-in-i_apci3200_commandtestanaloginput.patch
 usb-fix-double-put_tty_drivergs_tty_driver-in-gserial_setup.patch
 txx9wdtc-52-fix-txx9wdt_probe-cleaning-up-after-errors.patch
 frv-duplicate-output_buffer-of-e03.patch
