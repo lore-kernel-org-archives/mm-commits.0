@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-fix-x86_model-test-in-es7000_apic_is_cluster.patch added to -mm tree
-Date: Tue, 25 Aug 2009 13:35:15 -0700
-Message-ID: <200908252035.n7PKZFWd016234@imap1.linux-foundation.org>
+Subject: + v4l-dvb-fix-test-of-bandwidth-range-in-cx22700_set_tps.patch added to -mm tree
+Date: Tue, 25 Aug 2009 13:35:12 -0700
+Message-ID: <200908252035.n7PKZChv016064@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51789 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33644 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932097AbZHYUgB (ORCPT
+	by vger.kernel.org with ESMTP id S1756183AbZHYUgs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Aug 2009 16:36:01 -0400
+	Tue, 25 Aug 2009 16:36:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de
+Cc: roel.kluin@gmail.com, dougsland@redhat.com, mchehab@infradead.org, obi@linuxtv.org, zzam@gentoo.org
 
 
 The patch titled
-     x86: fix x86_model test in es7000_apic_is_cluster()
+     v4l/dvb: fix test of bandwidth range in cx22700_set_tps()
 has been added to the -mm tree.  Its filename is
-     x86-fix-x86_model-test-in-es7000_apic_is_cluster.patch
+     v4l-dvb-fix-test-of-bandwidth-range-in-cx22700_set_tps.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: fix x86_model test in es7000_apic_is_cluster()
+Subject: v4l/dvb: fix test of bandwidth range in cx22700_set_tps()
 From: Roel Kluin <roel.kluin@gmail.com>
 
-For the x86_model to be greater than 6 or less than 12 is logically
-always true.
+For the bandwidth to be less than 8 MHZ and greater than 6 MHZ is logically
+impossible.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Matthias Schwarzott <zzam@gentoo.org>
+Cc: Douglas Schilling Landgraf <dougsland@redhat.com>
+Cc: Andreas Oberritter <obi@linuxtv.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/apic/es7000_32.c |    2 +-
+ drivers/media/dvb/frontends/cx22700.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/apic/es7000_32.c~x86-fix-x86_model-test-in-es7000_apic_is_cluster arch/x86/kernel/apic/es7000_32.c
---- a/arch/x86/kernel/apic/es7000_32.c~x86-fix-x86_model-test-in-es7000_apic_is_cluster
-+++ a/arch/x86/kernel/apic/es7000_32.c
-@@ -167,7 +167,7 @@ static int es7000_apic_is_cluster(void)
- {
- 	/* MPENTIUMIII */
- 	if (boot_cpu_data.x86 == 6 &&
--	    (boot_cpu_data.x86_model >= 7 || boot_cpu_data.x86_model <= 11))
-+	    (boot_cpu_data.x86_model >= 7 && boot_cpu_data.x86_model <= 11))
- 		return 1;
+diff -puN drivers/media/dvb/frontends/cx22700.c~v4l-dvb-fix-test-of-bandwidth-range-in-cx22700_set_tps drivers/media/dvb/frontends/cx22700.c
+--- a/drivers/media/dvb/frontends/cx22700.c~v4l-dvb-fix-test-of-bandwidth-range-in-cx22700_set_tps
++++ a/drivers/media/dvb/frontends/cx22700.c
+@@ -155,7 +155,7 @@ static int cx22700_set_tps (struct cx227
+ 	    p->hierarchy_information > HIERARCHY_4)
+ 		return -EINVAL;
  
- 	return 0;
+-	if (p->bandwidth < BANDWIDTH_8_MHZ && p->bandwidth > BANDWIDTH_6_MHZ)
++	if (p->bandwidth < BANDWIDTH_8_MHZ || p->bandwidth > BANDWIDTH_6_MHZ)
+ 		return -EINVAL;
+ 
+ 	if (p->bandwidth == BANDWIDTH_7_MHZ)
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
