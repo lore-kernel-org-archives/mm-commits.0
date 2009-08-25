@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + regulator-fix-calculation-of-voltage-range-in-da9034_set_ldo12_voltage.patch added to -mm tree
-Date: Tue, 25 Aug 2009 13:35:17 -0700
-Message-ID: <200908252035.n7PKZH6A016307@imap1.linux-foundation.org>
+Subject: + x86-fix-x86_model-test-in-es7000_apic_is_cluster.patch added to -mm tree
+Date: Tue, 25 Aug 2009 13:35:15 -0700
+Message-ID: <200908252035.n7PKZFWd016234@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52785 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51789 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932095AbZHYUgA (ORCPT
+	by vger.kernel.org with ESMTP id S932097AbZHYUgB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Aug 2009 16:36:00 -0400
+	Tue, 25 Aug 2009 16:36:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, broonie@opensource.wolfsonmicro.com, lrg@slimlogic.co.uk
+Cc: roel.kluin@gmail.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     regulator: fix calculation of voltage range in da9034_set_ldo12_voltage()
+     x86: fix x86_model test in es7000_apic_is_cluster()
 has been added to the -mm tree.  Its filename is
-     regulator-fix-calculation-of-voltage-range-in-da9034_set_ldo12_voltage.patch
+     x86-fix-x86_model-test-in-es7000_apic_is_cluster.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: regulator: fix calculation of voltage range in da9034_set_ldo12_voltage()
+Subject: x86: fix x86_model test in es7000_apic_is_cluster()
 From: Roel Kluin <roel.kluin@gmail.com>
 
-For val to be greater than 7 or less than 20 is logically always true.
+For the x86_model to be greater than 6 or less than 12 is logically
+always true.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Liam Girdwood <lrg@slimlogic.co.uk>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/regulator/da903x.c |    2 +-
+ arch/x86/kernel/apic/es7000_32.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/regulator/da903x.c~regulator-fix-calculation-of-voltage-range-in-da9034_set_ldo12_voltage drivers/regulator/da903x.c
---- a/drivers/regulator/da903x.c~regulator-fix-calculation-of-voltage-range-in-da9034_set_ldo12_voltage
-+++ a/drivers/regulator/da903x.c
-@@ -301,7 +301,7 @@ static int da9034_set_ldo12_voltage(stru
- 	}
+diff -puN arch/x86/kernel/apic/es7000_32.c~x86-fix-x86_model-test-in-es7000_apic_is_cluster arch/x86/kernel/apic/es7000_32.c
+--- a/arch/x86/kernel/apic/es7000_32.c~x86-fix-x86_model-test-in-es7000_apic_is_cluster
++++ a/arch/x86/kernel/apic/es7000_32.c
+@@ -167,7 +167,7 @@ static int es7000_apic_is_cluster(void)
+ {
+ 	/* MPENTIUMIII */
+ 	if (boot_cpu_data.x86 == 6 &&
+-	    (boot_cpu_data.x86_model >= 7 || boot_cpu_data.x86_model <= 11))
++	    (boot_cpu_data.x86_model >= 7 && boot_cpu_data.x86_model <= 11))
+ 		return 1;
  
- 	val = (min_uV - info->min_uV + info->step_uV - 1) / info->step_uV;
--	val = (val > 7 || val < 20) ? 8 : val - 12;
-+	val = (val > 7 && val < 20) ? 8 : val - 12;
- 	val <<= info->vol_shift;
- 	mask = ((1 << info->vol_nbits) - 1)  << info->vol_shift;
- 
+ 	return 0;
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
