@@ -1,158 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: + txx9wdtc-52-fix-txx9wdt_probe-cleaning-up-after-errors.patch added to -mm tree
-Date: Tue, 25 Aug 2009 12:55:35 -0700
-Message-ID: <200908251955.n7PJtZei009930@imap1.linux-foundation.org>
+Subject: [to-be-updated] kcore-use-registerd-physmem-information-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 25 Aug 2009 12:56:37 -0700
+Message-ID: <200908251956.n7PJubTx011746@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55770 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57182 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754127AbZHYTzi (ORCPT
+	by vger.kernel.org with ESMTP id S1755299AbZHYT4i (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Aug 2009 15:55:38 -0400
+	Tue, 25 Aug 2009 15:56:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, wim@iguana.be
+To: akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     txx9wdt.c:52: fix txx9wdt_probe() cleaning up after errors
-has been added to the -mm tree.  Its filename is
-     txx9wdtc-52-fix-txx9wdt_probe-cleaning-up-after-errors.patch
+     kcore-use-registerd-physmem-information-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     kcore-use-registerd-physmem-information-checkpatch-fixes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: txx9wdt.c:52: fix txx9wdt_probe() cleaning up after errors
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: kcore-use-registerd-physmem-information-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Make txx9wdt_probe() clean up after errors.
+ERROR: "foo * bar" should be "foo *bar"
+#357: FILE: fs/proc/kcore.c:486:
++static int open_kcore(struct inode * inode, struct file *filp)
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Wim Van Sebroeck <wim@iguana.be>
+total: 1 errors, 0 warnings, 309 lines checked
+
+./patches/kcore-use-registerd-physmem-information.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/txx9wdt.c |   29 +++++++++++++++++++----------
- 1 file changed, 19 insertions(+), 10 deletions(-)
+ fs/proc/kcore.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/watchdog/txx9wdt.c~txx9wdtc-52-fix-txx9wdt_probe-cleaning-up-after-errors drivers/watchdog/txx9wdt.c
---- a/drivers/watchdog/txx9wdt.c~txx9wdtc-52-fix-txx9wdt_probe-cleaning-up-after-errors
-+++ a/drivers/watchdog/txx9wdt.c
-@@ -212,25 +212,31 @@ static int __init txx9wdt_probe(struct p
- 	}
+diff -puN fs/proc/kcore.c~kcore-use-registerd-physmem-information-checkpatch-fixes fs/proc/kcore.c
+--- a/fs/proc/kcore.c~kcore-use-registerd-physmem-information-checkpatch-fixes
++++ a/fs/proc/kcore.c
+@@ -483,8 +483,7 @@ read_kcore(struct file *file, char __use
+ 	return acc;
+ }
  
- 	res = platform_get_resource(dev, IORESOURCE_MEM, 0);
--	if (!res)
--		goto exit_busy;
-+	if (!res) {
-+		ret = -EBUSY;
-+		goto exit;
-+	}
- 	if (!devm_request_mem_region(&dev->dev,
- 				     res->start, res->end - res->start + 1,
--				     "txx9wdt"))
--		goto exit_busy;
-+				     "txx9wdt")) {
-+		ret = -EBUSY;
-+		goto exit;
-+	}
- 	txx9wdt_reg = devm_ioremap(&dev->dev,
- 				   res->start, res->end - res->start + 1);
--	if (!txx9wdt_reg)
--		goto exit_busy;
-+	if (!txx9wdt_reg) {
-+		ret = -EBUSY;
-+		goto exit_release_mem;
-+	}
- 
- 	ret = register_reboot_notifier(&txx9wdt_notifier);
- 	if (ret)
--		goto exit;
-+		goto exit_iounmap;
- 
- 	ret = misc_register(&txx9wdt_miscdev);
- 	if (ret) {
- 		unregister_reboot_notifier(&txx9wdt_notifier);
--		goto exit;
-+		goto exit_iounmap;
- 	}
- 
- 	printk(KERN_INFO "Hardware Watchdog Timer for TXx9: "
-@@ -238,8 +244,11 @@ static int __init txx9wdt_probe(struct p
- 	       timeout, WD_MAX_TIMEOUT, nowayout);
- 
+-
+-static int open_kcore(struct inode * inode, struct file *filp)
++static int open_kcore(struct inode *inode, struct file *filp)
+ {
+ 	if (!capable(CAP_SYS_RAWIO))
+ 		return -EPERM;
+@@ -493,7 +492,6 @@ static int open_kcore(struct inode * ino
  	return 0;
--exit_busy:
--	ret = -EBUSY;
-+
-+exit_iounmap:
-+	devm_iounmap(&dev->dev, txx9wdt_reg);
-+exit_release_mem:
-+	devm_release_mem_region(&dev->dev, res->start, res->end - res->start + 1);
- exit:
- 	if (txx9_imclk) {
- 		clk_disable(txx9_imclk);
+ }
+ 
+-
+ static const struct file_operations proc_kcore_operations = {
+ 	.read		= read_kcore,
+ 	.open		= open_kcore,
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-origin.patch
 linux-next.patch
-s3c-fix-check-of-index-into-s3c_gpios.patch
-stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
-dm-strncpy-does-not-null-terminate-string.patch
-pcmcia-fix-read-buffer-overflow.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-drm-i915-intel_sdvo_multifunc_encoder-sdvo_output_svid0-tested-twice.patch
-mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-kernel-cpu-amdc-fix-x86_64-allnoconfig-build.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+video-initial-support-for-adv7180-update-fix.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+checkincludespl-add-option-to-remove-duplicates-in-place.patch
+leds-gpio-leds-fix-typographics-fault.patch
+leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio.patch
 slram-read-buffer-overflow.patch
-mtd-fix-read-buffer-overflow.patch
-mtd-jffs2-fix-read-buffer-overflow.patch
-mtd-prevent-a-read-from-eraseregions.patch
-mtd-prevent-a-read-from-regions.patch
-hfc_usb-fix-read-buffer-overflow.patch
 zorro8390-fix-read-buffer-overflow-in-zorro8390_init_one-checkpatch-fixes.patch
-cyclades-read-buffer-overflow.patch
+3x59x-fix-pci-resource-management.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
 serial167-fix-read-buffer-overflow.patch
-cio-double-put_device-in-subchannel_register.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
-usb-fix-double-put_tty_drivergs_tty_driver-in-gserial_setup.patch
-txx9wdtc-52-fix-txx9wdt_probe-cleaning-up-after-errors.patch
-frv-duplicate-output_buffer-of-e03.patch
+waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes-checkpatch-fixes.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
+vfs-optimize-touch_time-too.patch
+fs-improve-remountro-vs-buffercache-coherency-fix.patch
+mm-make-swap-token-dummies-static-inlines-fix.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
+vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
+arches-drop-superfluous-casts-in-nr_free_pages-callers-checkpatch-fixes.patch
+tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists-fix.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-blackfin-fix-read-buffer-overflow.patch
-arch-alpha-boot-tools-objstripc-wrong-variable-tested-after-open.patch
-m32r-remove-redundant-tests-on-unsigned.patch
-uml-fix-order-of-pud-and-pmd_free.patch
-dme1737-keep-index-within-pwm_config.patch
-sdio-fix-read-buffer-overflow.patch
-hwmon-fix-freeing-of-gpio_data-and-irq.patch
-ncpfs-read-buffer-overflow.patch
-smbfs-read-buffer-overflow.patch
-platinumfb-misplaced-parenthesis.patch
-sisfb-read-buffer-overflow.patch
-drivers-video-console-newport_conc-fix-read-outside-array-bounds.patch
-kref-documentation-double-kref_put-in-my_data_handler.patch
-mwave-fix-read-buffer-overflow.patch
-adfs-remove-redundant-test-on-unsigned.patch
+printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
+generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
+proc-connector-add-event-for-process-becoming-session-leader.patch
+kernel-smpc-relocate-some-code.patch
+mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
+sdio-add-cd-disable-support-cleanup.patch
+procfs-provide-stack-information-for-threads-v011-fix.patch
+kcore-use-registerd-physmem-information-checkpatch-fixes.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
+rtc-philips-nxp-pcf2123-driver-v03-fix.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes-fix.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
+drivers-video-add-kmalloc-null-tests-fix.patch
+v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
+cgroups-add-functionality-to-read-write-lock-clone_thread-forking-per-threadgroup-fix.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
+memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
+memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
+memcg-improve-resource-counter-scalability-checkpatch-fixes.patch
+exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
+exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
+elf-clean-up-fill_note_info-fix.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
