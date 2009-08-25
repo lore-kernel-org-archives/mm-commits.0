@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + usb-fix-double-put_tty_drivergs_tty_driver-in-gserial_setup.patch added to -mm tree
-Date: Tue, 25 Aug 2009 12:21:15 -0700
-Message-ID: <200908251921.n7PJLFOE013010@imap1.linux-foundation.org>
+Subject: + txx9wdtc-52-fix-txx9wdt_probe-cleaning-up-after-errors.patch added to -mm tree
+Date: Tue, 25 Aug 2009 12:55:35 -0700
+Message-ID: <200908251955.n7PJtZei009930@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53671 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55770 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755940AbZHYTVw (ORCPT
+	by vger.kernel.org with ESMTP id S1754127AbZHYTzi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Aug 2009 15:21:52 -0400
+	Tue, 25 Aug 2009 15:55:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, david-b@pacbell.net, greg@kroah.com
+Cc: roel.kluin@gmail.com, wim@iguana.be
 
 
 The patch titled
-     usb: fix double put_tty_driver(gs_tty_driver) in gserial_setup()
+     txx9wdt.c:52: fix txx9wdt_probe() cleaning up after errors
 has been added to the -mm tree.  Its filename is
-     usb-fix-double-put_tty_drivergs_tty_driver-in-gserial_setup.patch
+     txx9wdtc-52-fix-txx9wdt_probe-cleaning-up-after-errors.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,76 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb: fix double put_tty_driver(gs_tty_driver) in gserial_setup()
+Subject: txx9wdt.c:52: fix txx9wdt_probe() cleaning up after errors
 From: Roel Kluin <roel.kluin@gmail.com>
 
-If the driver cannot be registered, put_tty_driver(gs_tty_driver) occurred
-here as well as at label fail.
-
-put_tty_driver() already occurs at label fail
+Make txx9wdt_probe() clean up after errors.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Greg KH <greg@kroah.com>
+Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/gadget/u_serial.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/watchdog/txx9wdt.c |   29 +++++++++++++++++++----------
+ 1 file changed, 19 insertions(+), 10 deletions(-)
 
-diff -puN drivers/usb/gadget/u_serial.c~usb-fix-double-put_tty_drivergs_tty_driver-in-gserial_setup drivers/usb/gadget/u_serial.c
---- a/drivers/usb/gadget/u_serial.c~usb-fix-double-put_tty_drivergs_tty_driver-in-gserial_setup
-+++ a/drivers/usb/gadget/u_serial.c
-@@ -1114,7 +1114,6 @@ int __init gserial_setup(struct usb_gadg
- 	/* export the driver ... */
- 	status = tty_register_driver(gs_tty_driver);
- 	if (status) {
--		put_tty_driver(gs_tty_driver);
- 		pr_err("%s: cannot register, err %d\n",
- 				__func__, status);
- 		goto fail;
+diff -puN drivers/watchdog/txx9wdt.c~txx9wdtc-52-fix-txx9wdt_probe-cleaning-up-after-errors drivers/watchdog/txx9wdt.c
+--- a/drivers/watchdog/txx9wdt.c~txx9wdtc-52-fix-txx9wdt_probe-cleaning-up-after-errors
++++ a/drivers/watchdog/txx9wdt.c
+@@ -212,25 +212,31 @@ static int __init txx9wdt_probe(struct p
+ 	}
+ 
+ 	res = platform_get_resource(dev, IORESOURCE_MEM, 0);
+-	if (!res)
+-		goto exit_busy;
++	if (!res) {
++		ret = -EBUSY;
++		goto exit;
++	}
+ 	if (!devm_request_mem_region(&dev->dev,
+ 				     res->start, res->end - res->start + 1,
+-				     "txx9wdt"))
+-		goto exit_busy;
++				     "txx9wdt")) {
++		ret = -EBUSY;
++		goto exit;
++	}
+ 	txx9wdt_reg = devm_ioremap(&dev->dev,
+ 				   res->start, res->end - res->start + 1);
+-	if (!txx9wdt_reg)
+-		goto exit_busy;
++	if (!txx9wdt_reg) {
++		ret = -EBUSY;
++		goto exit_release_mem;
++	}
+ 
+ 	ret = register_reboot_notifier(&txx9wdt_notifier);
+ 	if (ret)
+-		goto exit;
++		goto exit_iounmap;
+ 
+ 	ret = misc_register(&txx9wdt_miscdev);
+ 	if (ret) {
+ 		unregister_reboot_notifier(&txx9wdt_notifier);
+-		goto exit;
++		goto exit_iounmap;
+ 	}
+ 
+ 	printk(KERN_INFO "Hardware Watchdog Timer for TXx9: "
+@@ -238,8 +244,11 @@ static int __init txx9wdt_probe(struct p
+ 	       timeout, WD_MAX_TIMEOUT, nowayout);
+ 
+ 	return 0;
+-exit_busy:
+-	ret = -EBUSY;
++
++exit_iounmap:
++	devm_iounmap(&dev->dev, txx9wdt_reg);
++exit_release_mem:
++	devm_release_mem_region(&dev->dev, res->start, res->end - res->start + 1);
+ exit:
+ 	if (txx9_imclk) {
+ 		clk_disable(txx9_imclk);
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -95,6 +137,7 @@ osst-fix-read-buffer-overflow.patch
 gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
 zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
 usb-fix-double-put_tty_drivergs_tty_driver-in-gserial_setup.patch
+txx9wdtc-52-fix-txx9wdt_probe-cleaning-up-after-errors.patch
 frv-duplicate-output_buffer-of-e03.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 blackfin-fix-read-buffer-overflow.patch
