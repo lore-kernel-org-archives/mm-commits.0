@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hwmon-applesmc-restore-accelerometer-and-keyboard-backlight-on-resume.patch added to -mm tree
-Date: Tue, 25 Aug 2009 12:17:44 -0700
-Message-ID: <200908251917.n7PJHiU7006750@imap1.linux-foundation.org>
+Subject: + usb-fix-double-put_tty_drivergs_tty_driver-in-gserial_setup.patch added to -mm tree
+Date: Tue, 25 Aug 2009 12:21:15 -0700
+Message-ID: <200908251921.n7PJLFOE013010@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50328 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53671 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755920AbZHYTS0 (ORCPT
+	by vger.kernel.org with ESMTP id S1755940AbZHYTVw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Aug 2009 15:18:26 -0400
+	Tue, 25 Aug 2009 15:21:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rydberg@euromail.se, nicolas@boichat.ch
+Cc: roel.kluin@gmail.com, david-b@pacbell.net, greg@kroah.com
 
 
 The patch titled
-     hwmon: applesmc: restore accelerometer and keyboard backlight on resume
+     usb: fix double put_tty_driver(gs_tty_driver) in gserial_setup()
 has been added to the -mm tree.  Its filename is
-     hwmon-applesmc-restore-accelerometer-and-keyboard-backlight-on-resume.patch
+     usb-fix-double-put_tty_drivergs_tty_driver-in-gserial_setup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,83 +34,82 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hwmon: applesmc: restore accelerometer and keyboard backlight on resume
-From: Henrik Rydberg <rydberg@euromail.se>
+Subject: usb: fix double put_tty_driver(gs_tty_driver) in gserial_setup()
+From: Roel Kluin <roel.kluin@gmail.com>
 
-On resume from suspend, the driver currently resets the logical state as
-if it was brought up from halt.  This patch uses the
-dev_pm_ops.resume/restore methods to synchronize the hardware with the
-memorized logical state, in effect bringing back the accelerometer and
-backlight to the state prior to suspend.  Works for both suspend to ram
-and hibernation.  The patch has zero effect on the running state.
+If the driver cannot be registered, put_tty_driver(gs_tty_driver) occurred
+here as well as at label fail.
 
-Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
-Cc: Nicolas Boichat <nicolas@boichat.ch>
+put_tty_driver() already occurs at label fail
+
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/applesmc.c |   38 +++++++++++++++++++++++++------------
- 1 file changed, 26 insertions(+), 12 deletions(-)
+ drivers/usb/gadget/u_serial.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/hwmon/applesmc.c~hwmon-applesmc-restore-accelerometer-and-keyboard-backlight-on-resume drivers/hwmon/applesmc.c
---- a/drivers/hwmon/applesmc.c~hwmon-applesmc-restore-accelerometer-and-keyboard-backlight-on-resume
-+++ a/drivers/hwmon/applesmc.c
-@@ -178,6 +178,8 @@ static const int debug;
- static struct platform_device *pdev;
- static s16 rest_x;
- static s16 rest_y;
-+static u8 backlight_state[2];
-+
- static struct device *hwmon_dev;
- static struct input_polled_dev *applesmc_idev;
- 
-@@ -497,17 +499,36 @@ static int applesmc_probe(struct platfor
- 	return 0;
- }
- 
--static int applesmc_resume(struct platform_device *dev)
-+/* Synchronize device with memorized backlight state */
-+static int applesmc_pm_resume(struct device *dev)
- {
--	return applesmc_device_init();
-+	mutex_lock(&applesmc_lock);
-+	if (applesmc_light)
-+		applesmc_write_key(BACKLIGHT_KEY, backlight_state, 2);
-+	mutex_unlock(&applesmc_lock);
-+	return 0;
- }
- 
-+/* Reinitialize device on resume from hibernation */
-+static int applesmc_pm_restore(struct device *dev)
-+{
-+	int ret = applesmc_device_init();
-+	if (ret)
-+		return ret;
-+	return applesmc_pm_resume(dev);
-+}
-+
-+static struct dev_pm_ops applesmc_pm_ops = {
-+	.resume = applesmc_pm_resume,
-+	.restore = applesmc_pm_restore,
-+};
-+
- static struct platform_driver applesmc_driver = {
- 	.probe = applesmc_probe,
--	.resume = applesmc_resume,
- 	.driver	= {
- 		.name = "applesmc",
- 		.owner = THIS_MODULE,
-+		.pm = &applesmc_pm_ops,
- 	},
- };
- 
-@@ -804,17 +825,10 @@ static ssize_t applesmc_calibrate_store(
- 	return count;
- }
- 
--/* Store the next backlight value to be written by the work */
--static unsigned int backlight_value;
--
- static void applesmc_backlight_set(struct work_struct *work)
- {
--	u8 buffer[2];
+diff -puN drivers/usb/gadget/u_serial.c~usb-fix-double-put_tty_drivergs_tty_driver-in-gserial_setup drivers/usb/gadget/u_serial.c
+--- a/drivers/usb/gadget/u_serial.c~usb-fix-double-put_tty_drivergs_tty_driver-in-gserial_setup
++++ a/drivers/usb/gadget/u_serial.c
+@@ -1114,7 +1114,6 @@ int __init gserial_setup(struct usb_gadg
+ 	/* export the driver ... */
+ 	status = tty_register_driver(gs_tty_driver);
+ 	if (status) {
+-		put_tty_driver(gs_tty_driver);
+ 		pr_err("%s: cannot register, err %d\n",
+ 				__func__, status);
+ 		goto fail;
+_
+
+Patches currently in -mm which might be from roel.kluin@gmail.com are
+
+origin.patch
+linux-next.patch
+s3c-fix-check-of-index-into-s3c_gpios.patch
+stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
+dm-strncpy-does-not-null-terminate-string.patch
+pcmcia-fix-read-buffer-overflow.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+drm-i915-intel_sdvo_multifunc_encoder-sdvo_output_svid0-tested-twice.patch
+mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
+slram-read-buffer-overflow.patch
+mtd-fix-read-buffer-overflow.patch
+mtd-jffs2-fix-read-buffer-overflow.patch
+mtd-prevent-a-read-from-eraseregions.patch
+mtd-prevent-a-read-from-regions.patch
+hfc_usb-fix-read-buffer-overflow.patch
+zorro8390-fix-read-buffer-overflow-in-zorro8390_init_one-checkpatch-fixes.patch
+cyclades-read-buffer-overflow.patch
+serial167-fix-read-buffer-overflow.patch
+cio-double-put_device-in-subchannel_register.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
+zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
+usb-fix-double-put_tty_drivergs_tty_driver-in-gserial_setup.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+blackfin-fix-read-buffer-overflow.patch
+arch-alpha-boot-tools-objstripc-wrong-variable-tested-after-open.patch
+m32r-remove-redundant-tests-on-unsigned.patch
+uml-fix-order-of-pud-and-pmd_free.patch
+dme1737-keep-index-within-pwm_config.patch
+sdio-fix-read-buffer-overflow.patch
+hwmon-fix-freeing-of-gpio_data-and-irq.patch
+ncpfs-read-buffer-overflow.patch
+smbfs-read-buffer-overflow.patch
+platinumfb-misplaced-parenthesis.patch
+sisfb-read-buffer-overflow.patch
+drivers-video-console-newport_conc-fix-read-outside-array-bounds.patch
+kref-documentation-double-kref_put-in-my_data_handler.patch
+mwave-fix-read-buffer-overflow.patch
+adfs-remove-redundant-test-on-unsigned.patch
+
