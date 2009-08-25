@@ -1,65 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-gpio-bt8xxgpioc-add-missing-__init-__exit-markers.patch removed from -mm tree
-Date: Tue, 25 Aug 2009 11:45:27 -0700
-Message-ID: <200908251845.n7PIjRbT013710@imap1.linux-foundation.org>
+Subject: [merged] bsdacct-switch-credentials-for-writing-to-the-accounting-file.patch removed from -mm tree
+Date: Tue, 25 Aug 2009 11:45:23 -0700
+Message-ID: <200908251845.n7PIjNjM013511@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32770 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34800 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755558AbZHYSqL (ORCPT
+	by vger.kernel.org with ESMTP id S1755359AbZHYSrF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Aug 2009 14:46:11 -0400
+	Tue, 25 Aug 2009 14:47:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: peterhuewe@gmx.de, david-b@pacbell.net, jkosina@suse.cz, mb@bu3sch.de, mm-commits@vger.kernel.org
+To: mschmidt@redhat.com, dhowells@redhat.com, jmorris@namei.org, sds@tycho.nsa.gov, serue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/gpio/bt8xxgpio.c: add missing __init/__exit markers
+     bsdacct: switch credentials for writing to the accounting file
 has been removed from the -mm tree.  Its filename was
-     drivers-gpio-bt8xxgpioc-add-missing-__init-__exit-markers.patch
+     bsdacct-switch-credentials-for-writing-to-the-accounting-file.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/gpio/bt8xxgpio.c: add missing __init/__exit markers
-From: Peter Huewe <peterhuewe@gmx.de>
+Subject: bsdacct: switch credentials for writing to the accounting file
+From: Michal Schmidt <mschmidt@redhat.com>
 
-Signed-off-by: Peter Huewe <peterhuewe@gmx.de>
-Acked-by: Michael Buesch <mb@bu3sch.de>
-Cc: Jiri Kosina <jkosina@suse.cz>
-Cc: David Brownell <david-b@pacbell.net>
+When process accounting is enabled, every exiting process writes a log to
+the account file.  In addition, every once in a while one of the exiting
+processes checks whether there's enough free space for the log.
+
+SELinux policy may or may not allow the exiting process to stat the fs. 
+So unsuspecting processes start generating AVC denials just because
+someone enabled process accounting.
+
+For these filesystem operations, the exiting process's credentials should
+be temporarily switched to that of the process which enabled accounting,
+because it's really that process which wanted to have the accounting
+information logged.
+
+Signed-off-by: Michal Schmidt <mschmidt@redhat.com>
+Acked-by: David Howells <dhowells@redhat.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: Serge Hallyn <serue@us.ibm.com>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/bt8xxgpio.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/acct.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN drivers/gpio/bt8xxgpio.c~drivers-gpio-bt8xxgpioc-add-missing-__init-__exit-markers drivers/gpio/bt8xxgpio.c
---- a/drivers/gpio/bt8xxgpio.c~drivers-gpio-bt8xxgpioc-add-missing-__init-__exit-markers
-+++ a/drivers/gpio/bt8xxgpio.c
-@@ -330,13 +330,13 @@ static struct pci_driver bt8xxgpio_pci_d
- 	.resume		= bt8xxgpio_resume,
- };
+diff -puN kernel/acct.c~bsdacct-switch-credentials-for-writing-to-the-accounting-file kernel/acct.c
+--- a/kernel/acct.c~bsdacct-switch-credentials-for-writing-to-the-accounting-file
++++ a/kernel/acct.c
+@@ -491,13 +491,17 @@ static void do_acct_process(struct bsd_a
+ 	u64 run_time;
+ 	struct timespec uptime;
+ 	struct tty_struct *tty;
++	const struct cred *orig_cred;
++
++	/* Perform file operations on behalf of whoever enabled accounting */
++	orig_cred = override_creds(file->f_cred);
  
--static int bt8xxgpio_init(void)
-+static int __init bt8xxgpio_init(void)
- {
- 	return pci_register_driver(&bt8xxgpio_pci_driver);
- }
- module_init(bt8xxgpio_init)
+ 	/*
+ 	 * First check to see if there is enough free_space to continue
+ 	 * the process accounting system.
+ 	 */
+ 	if (!check_free_space(acct, file))
+-		return;
++		goto out;
  
--static void bt8xxgpio_exit(void)
-+static void __exit bt8xxgpio_exit(void)
- {
- 	pci_unregister_driver(&bt8xxgpio_pci_driver);
+ 	/*
+ 	 * Fill the accounting struct with the needed info as recorded
+@@ -578,6 +582,8 @@ static void do_acct_process(struct bsd_a
+ 			       sizeof(acct_t), &file->f_pos);
+ 	current->signal->rlim[RLIMIT_FSIZE].rlim_cur = flim;
+ 	set_fs(fs);
++out:
++	revert_creds(orig_cred);
  }
+ 
+ /**
 _
 
-Patches currently in -mm which might be from peterhuewe@gmx.de are
+Patches currently in -mm which might be from mschmidt@redhat.com are
 
 linux-next.patch
-scsi-add-__init-__exit-macros-to-ibmvstgtc.patch
 
