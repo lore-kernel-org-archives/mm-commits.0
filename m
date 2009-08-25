@@ -1,70 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [merged] char-impi-adding-__init-macro-fix-of-__exit-macro-location-in-ipmi_poweroffc.patch removed from -mm tree
-Date: Tue, 25 Aug 2009 11:45:30 -0700
-Message-ID: <200908251845.n7PIjUZt013781@imap1.linux-foundation.org>
+Subject: [merged] cciss-fix-memory-leak-in-cciss_init_one.patch removed from -mm tree
+Date: Tue, 25 Aug 2009 11:43:28 -0700
+Message-ID: <200908251843.n7PIhSbi010170@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59998 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36317 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755449AbZHYSqG (ORCPT
+	by vger.kernel.org with ESMTP id S1755805AbZHYSpa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Aug 2009 14:46:06 -0400
+	Tue, 25 Aug 2009 14:45:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: peterhuewe@gmx.de, jkosina@suse.cz, minyard@acm.org, mm-commits@vger.kernel.org
+To: eric.dumazet@gmail.com, fujita.tomonori@lab.ntt.co.jp, jens.axboe@oracle.com, mike.miller@hp.com, scameron@beardog.cca.cpqcorp.net, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     char/impi: add __init macro/ fix of __exit macro location in ipmi_poweroff.c
+     cciss: fix memory leak in cciss_init_one()
 has been removed from the -mm tree.  Its filename was
-     char-impi-adding-__init-macro-fix-of-__exit-macro-location-in-ipmi_poweroffc.patch
+     cciss-fix-memory-leak-in-cciss_init_one.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: char/impi: add __init macro/ fix of __exit macro location in ipmi_poweroff.c
-From: Peter Huewe <peterhuewe@gmx.de>
+Subject: cciss: fix memory leak in cciss_init_one()
+From: Eric Dumazet <eric.dumazet@gmail.com>
 
-Add the __init to the module_init function of
-drivers/char/ipmi/ipmy_poweroff.c and corrects the location of __exit for
-the cleanup function.
+commit 22bece00dc1f28dd3374c55e464c9f02eb642876 (cciss: fix regression
+firmware not displayed in procfs) added a small memory leak in
+cciss_init_one()
 
-Signed-off-by: Peter Huewe <peterhuewe@gmx.de>
-Cc: Corey Minyard <minyard@acm.org>
-Cc: Jiri Kosina <jkosina@suse.cz>
+Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: Mike Miller <mike.miller@hp.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Stephen M. Cameron <scameron@beardog.cca.cpqcorp.net>
+Cc: <stable@kernel.org>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ipmi/ipmi_poweroff.c |    4 ++--
+ drivers/block/cciss.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/ipmi/ipmi_poweroff.c~char-impi-adding-__init-macro-fix-of-__exit-macro-location-in-ipmi_poweroffc drivers/char/ipmi/ipmi_poweroff.c
---- a/drivers/char/ipmi/ipmi_poweroff.c~char-impi-adding-__init-macro-fix-of-__exit-macro-location-in-ipmi_poweroffc
-+++ a/drivers/char/ipmi/ipmi_poweroff.c
-@@ -691,7 +691,7 @@ static struct ctl_table_header *ipmi_tab
- /*
-  * Startup and shutdown functions.
-  */
--static int ipmi_poweroff_init(void)
-+static int __init ipmi_poweroff_init(void)
- {
- 	int rv;
+diff -puN drivers/block/cciss.c~cciss-fix-memory-leak-in-cciss_init_one drivers/block/cciss.c
+--- a/drivers/block/cciss.c~cciss-fix-memory-leak-in-cciss_init_one
++++ a/drivers/block/cciss.c
+@@ -3889,7 +3889,7 @@ static int __devinit cciss_init_one(stru
+ 	int j = 0;
+ 	int rc;
+ 	int dac, return_code;
+-	InquiryData_struct *inq_buff = NULL;
++	InquiryData_struct *inq_buff;
  
-@@ -725,7 +725,7 @@ static int ipmi_poweroff_init(void)
- }
+ 	if (reset_devices) {
+ 		/* Reset the controller with a PCI power-cycle */
+@@ -4029,6 +4029,7 @@ static int __devinit cciss_init_one(stru
+ 		printk(KERN_WARNING "cciss: unable to determine firmware"
+ 			" version of controller\n");
+ 	}
++	kfree(inq_buff);
  
- #ifdef MODULE
--static __exit void ipmi_poweroff_cleanup(void)
-+static void __exit ipmi_poweroff_cleanup(void)
- {
- 	int rv;
+ 	cciss_procinit(i);
  
+@@ -4045,7 +4046,6 @@ static int __devinit cciss_init_one(stru
+ 	return 1;
+ 
+ clean4:
+-	kfree(inq_buff);
+ 	kfree(hba[i]->cmd_pool_bits);
+ 	if (hba[i]->cmd_pool)
+ 		pci_free_consistent(hba[i]->pdev,
 _
 
-Patches currently in -mm which might be from peterhuewe@gmx.de are
+Patches currently in -mm which might be from eric.dumazet@gmail.com are
 
 linux-next.patch
-scsi-add-__init-__exit-macros-to-ibmvstgtc.patch
 
