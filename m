@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + edac-core-remove-completion-wait-for-complete-with-rcu_barrier.patch added to -mm tree
-Date: Wed, 26 Aug 2009 14:25:32 -0700
-Message-ID: <200908262125.n7QLPXNe028617@imap1.linux-foundation.org>
+Subject: + scripts-get_maintainerpl-add-maintainers-in-order-listed-in-matched-section.patch added to -mm tree
+Date: Wed, 26 Aug 2009 15:49:42 -0700
+Message-ID: <200908262249.n7QMngRj017188@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38187 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40255 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753469AbZHZV0H (ORCPT
+	by vger.kernel.org with ESMTP id S1753692AbZHZWuN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Aug 2009 17:26:07 -0400
+	Wed, 26 Aug 2009 18:50:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hawk@comx.dk, dougthompson@xmission.com
+Cc: joe@perches.com
 
 
 The patch titled
-     edac: core: remove completion-wait for complete with rcu_barrier
+     scripts/get_maintainer.pl: add maintainers in order listed in matched section
 has been added to the -mm tree.  Its filename is
-     edac-core-remove-completion-wait-for-complete-with-rcu_barrier.patch
+     scripts-get_maintainerpl-add-maintainers-in-order-listed-in-matched-section.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,101 +34,200 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: edac: core: remove completion-wait for complete with rcu_barrier
-From: Jesper Dangaard Brouer <hawk@comx.dk>
+Subject: scripts/get_maintainer.pl: add maintainers in order listed in matched section
+From: Joe Perches <joe@perches.com>
 
-Module edac_core.ko uses call_rcu() callbacks in edac_device.c, edac_mc.c
-and edac_pci.c.
+Previous behavior was "bottom-up" in each section from the pattern "F:"
+entry that matched.  Now information is entered into the various lists in
+the "as entered" order for each matched section.
 
-They all use a wait_for_completion() scheme, but this scheme it not 100%
-safe on multiple CPUs.  See the _rcu_barrier() implementation which
-explains why extra precausion is needed.
+This also allows the F: entry to be put anywhere in a section, not just as
+the last entries in the section.
 
-The patch adds a comment about rcu_barrier() and as a precausion calls
-rcu_barrier().  A maintainer needs to look at removing the
-wait_for_completion code.
+And a couple of improvements:
 
-[dougthompson@xmission.com: remove the wait_for_completion code]
-Signed-off-by Jesper Dangaard Brouer <hawk@comx.dk>
-Signed-off-by: Doug Thompson <dougthompson@xmission.com>
+Don't alphabetically sort before outputting the matched scm, status,
+subsystem and web sections.
+
+Ignore content after a single email address so these entries are acceptable
+M:	name <address> whatever other comment
+
+And a fix:
+
+Make an M: entry without a name again use the name from an immediately
+preceding P: line if it exists.
+
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/edac_device.c |    5 +----
- drivers/edac/edac_mc.c     |    4 +---
- drivers/edac/edac_pci.c    |    4 +---
- 3 files changed, 3 insertions(+), 10 deletions(-)
+ scripts/get_maintainer.pl |   70 +++++++++++++++++++++++++++---------
+ 1 file changed, 54 insertions(+), 16 deletions(-)
 
-diff -puN drivers/edac/edac_device.c~edac-core-remove-completion-wait-for-complete-with-rcu_barrier drivers/edac/edac_device.c
---- a/drivers/edac/edac_device.c~edac-core-remove-completion-wait-for-complete-with-rcu_barrier
-+++ a/drivers/edac/edac_device.c
-@@ -356,7 +356,6 @@ static void complete_edac_device_list_de
- 
- 	edac_dev = container_of(head, struct edac_device_ctl_info, rcu);
- 	INIT_LIST_HEAD(&edac_dev->link);
--	complete(&edac_dev->removal_complete);
+diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-add-maintainers-in-order-listed-in-matched-section scripts/get_maintainer.pl
+--- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-add-maintainers-in-order-listed-in-matched-section
++++ a/scripts/get_maintainer.pl
+@@ -313,22 +313,22 @@ if ($email || $email_list) {
  }
  
- /*
-@@ -369,10 +368,8 @@ static void del_edac_device_from_global_
- 						*edac_device)
- {
- 	list_del_rcu(&edac_device->link);
+ if ($scm) {
+-    @scm = sort_and_uniq(@scm);
++    @scm = uniq(@scm);
+     output(@scm);
+ }
+ 
+ if ($status) {
+-    @status = sort_and_uniq(@status);
++    @status = uniq(@status);
+     output(@status);
+ }
+ 
+ if ($subsystem) {
+-    @subsystem = sort_and_uniq(@subsystem);
++    @subsystem = uniq(@subsystem);
+     output(@subsystem);
+ }
+ 
+ if ($web) {
+-    @web = sort_and_uniq(@web);
++    @web = uniq(@web);
+     output(@web);
+ }
+ 
+@@ -442,7 +442,7 @@ sub parse_email {
+ 	$address = $2;
+     } elsif ($formatted_email =~ /^\s*<(.+\@\S*)>.*$/) {
+ 	$address = $1;
+-    } elsif ($formatted_email =~ /^(.+\@\S*)$/) {
++    } elsif ($formatted_email =~ /^(.+\@\S*).*$/) {
+ 	$address = $1;
+     }
+ 
+@@ -485,12 +485,46 @@ sub format_email {
+     return $formatted_email;
+ }
+ 
+-sub add_categories {
++sub find_starting_index {
++
++    my ($index) = @_;
++
++    while ($index > 0) {
++	my $tv = $typevalue[$index];
++	if (!($tv =~ m/^(\C):\s*(.*)/)) {
++	    last;
++	}
++	$index--;
++    }
++
++    return $index;
++}
++
++sub find_ending_index {
+     my ($index) = @_;
+ 
+-    $index = $index - 1;
+-    while ($index >= 0) {
++    while ($index < @typevalue) {
+ 	my $tv = $typevalue[$index];
++	if (!($tv =~ m/^(\C):\s*(.*)/)) {
++	    last;
++	}
++	$index++;
++    }
++
++    return $index;
++}
++
++sub add_categories {
++    my ($index) = @_;
++
++    my $i;
++    my $start = find_starting_index($index);
++    my $end = find_ending_index($index);
++
++    push(@subsystem, $typevalue[$start]);
++
++    for ($i = $start + 1; $i < $end; $i++) {
++	my $tv = $typevalue[$i];
+ 	if ($tv =~ m/^(\C):\s*(.*)/) {
+ 	    my $ptype = $1;
+ 	    my $pvalue = $2;
+@@ -513,11 +547,12 @@ sub add_categories {
+ 	    } elsif ($ptype eq "M") {
+ 		my ($name, $address) = parse_email($pvalue);
+ 		if ($name eq "") {
+-		    if ($index >= 0) {
+-			my $tv = $typevalue[$index - 1];
++		    if ($i > 0) {
++			my $tv = $typevalue[$i - 1];
+ 			if ($tv =~ m/^(\C):\s*(.*)/) {
+ 			    if ($1 eq "P") {
+ 				$name = $2;
++				$pvalue = format_email($name, $address);
+ 			    }
+ 			}
+ 		    }
+@@ -532,11 +567,6 @@ sub add_categories {
+ 	    } elsif ($ptype eq "S") {
+ 		push(@status, $pvalue);
+ 	    }
 -
--	init_completion(&edac_device->removal_complete);
- 	call_rcu(&edac_device->rcu, complete_edac_device_list_del);
--	wait_for_completion(&edac_device->removal_complete);
-+	rcu_barrier();
+-	    $index--;
+-	} else {
+-	    push(@subsystem,$tv);
+-	    $index = -1;
+ 	}
+     }
+ }
+@@ -559,6 +589,10 @@ sub push_email_address {
+ 
+     my ($name, $address) = parse_email($line);
+ 
++    if ($address eq "") {
++	return 0;
++    }
++
+     if (!$email_remove_duplicates) {
+ 	push(@email_to, format_email($name, $address));
+     } elsif (!email_inuse($name, $address)) {
+@@ -566,6 +600,8 @@ sub push_email_address {
+ 	$email_hash_name{$name}++;
+ 	$email_hash_address{$address}++;
+     }
++
++    return 1;
  }
  
- /*
-diff -puN drivers/edac/edac_mc.c~edac-core-remove-completion-wait-for-complete-with-rcu_barrier drivers/edac/edac_mc.c
---- a/drivers/edac/edac_mc.c~edac-core-remove-completion-wait-for-complete-with-rcu_barrier
-+++ a/drivers/edac/edac_mc.c
-@@ -418,16 +418,14 @@ static void complete_mc_list_del(struct 
- 
- 	mci = container_of(head, struct mem_ctl_info, rcu);
- 	INIT_LIST_HEAD(&mci->link);
--	complete(&mci->complete);
+ sub push_email_addresses {
+@@ -581,7 +617,9 @@ sub push_email_addresses {
+ 	    push_email_address($entry);
+ 	}
+     } else {
+-	warn("Invalid MAINTAINERS address: '" . $address . "'\n");
++	if (!push_email_address($address)) {
++	    warn("Invalid MAINTAINERS address: '" . $address . "'\n");
++	}
+     }
  }
  
- static void del_mc_from_global_list(struct mem_ctl_info *mci)
- {
- 	atomic_dec(&edac_handlers);
- 	list_del_rcu(&mci->link);
--	init_completion(&mci->complete);
- 	call_rcu(&mci->rcu, complete_mc_list_del);
--	wait_for_completion(&mci->complete);
-+	rcu_barrier();
- }
- 
- /**
-diff -puN drivers/edac/edac_pci.c~edac-core-remove-completion-wait-for-complete-with-rcu_barrier drivers/edac/edac_pci.c
---- a/drivers/edac/edac_pci.c~edac-core-remove-completion-wait-for-complete-with-rcu_barrier
-+++ a/drivers/edac/edac_pci.c
-@@ -174,7 +174,6 @@ static void complete_edac_pci_list_del(s
- 
- 	pci = container_of(head, struct edac_pci_ctl_info, rcu);
- 	INIT_LIST_HEAD(&pci->link);
--	complete(&pci->complete);
- }
- 
- /*
-@@ -185,9 +184,8 @@ static void complete_edac_pci_list_del(s
- static void del_edac_pci_from_global_list(struct edac_pci_ctl_info *pci)
- {
- 	list_del_rcu(&pci->link);
--	init_completion(&pci->complete);
- 	call_rcu(&pci->rcu, complete_edac_pci_list_del);
--	wait_for_completion(&pci->complete);
-+	rcu_barrier();
- }
- 
- #if 0
 _
 
-Patches currently in -mm which might be from hawk@comx.dk are
+Patches currently in -mm which might be from joe@perches.com are
 
 linux-next.patch
-edac-core-remove-completion-wait-for-complete-with-rcu_barrier.patch
+maintainers-add-ipvs-include-files.patch
+scripts-get_maintainerpl-add-git-blame.patch
+scripts-get_maintainerpl-add-sections-in-pattern-match-depth-order.patch
+scripts-get_maintainerpl-add-pattern-depth.patch
+scripts-get_maintainerpl-better-email-routines-use-perl-not-shell-where-possible.patch
+scripts-get_maintainerpl-add-mailmap-use-shell-and-email-cleanups.patch
+scripts-get_maintainerpl-using-separator-implies-nomultiline.patch
+scripts-get_maintainerpl-add-remove-duplicates.patch
+scripts-get_maintainerpl-add-maintainers-in-order-listed-in-matched-section.patch
+mmc-msm_sdccc-driver-for-htc-dream.patch
+msm_sdccc-convert-printkkern_level-to-pr_level.patch
+msm_sdccc-stylistic-cleaning.patch
+msm_sdccc-move-overly-indented-code-to-separate-function.patch
+maintainers-add-matt-mackall-and-herbert-xu-to-hardware-random-number-generator.patch
 
