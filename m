@@ -1,99 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: [merged] txx9wdtc-52-fix-txx9wdt_probe-cleaning-up-after-errors.patch removed from -mm tree
-Date: Wed, 26 Aug 2009 12:40:16 -0700
-Message-ID: <200908261940.n7QJeG1a001940@imap1.linux-foundation.org>
+Subject: [merged] kref-documentation-double-kref_put-in-my_data_handler.patch removed from -mm tree
+Date: Wed, 26 Aug 2009 12:40:19 -0700
+Message-ID: <200908261940.n7QJeJEG002073@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54204 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50699 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752903AbZHZTkV (ORCPT
+	by vger.kernel.org with ESMTP id S1752973AbZHZTkW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Aug 2009 15:40:21 -0400
+	Wed, 26 Aug 2009 15:40:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, wim@iguana.be, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     txx9wdt.c:52: fix txx9wdt_probe() cleaning up after errors
+     kref documentation: double kref_put() in my_data_handler()
 has been removed from the -mm tree.  Its filename was
-     txx9wdtc-52-fix-txx9wdt_probe-cleaning-up-after-errors.patch
+     kref-documentation-double-kref_put-in-my_data_handler.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: txx9wdt.c:52: fix txx9wdt_probe() cleaning up after errors
+Subject: kref documentation: double kref_put() in my_data_handler()
 From: Roel Kluin <roel.kluin@gmail.com>
 
-Make txx9wdt_probe() clean up after errors.
+The kref_put() already occurs after the out label
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Wim Van Sebroeck <wim@iguana.be>
+Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/txx9wdt.c |   29 +++++++++++++++++++----------
- 1 file changed, 19 insertions(+), 10 deletions(-)
+ Documentation/kref.txt |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/watchdog/txx9wdt.c~txx9wdtc-52-fix-txx9wdt_probe-cleaning-up-after-errors drivers/watchdog/txx9wdt.c
---- a/drivers/watchdog/txx9wdt.c~txx9wdtc-52-fix-txx9wdt_probe-cleaning-up-after-errors
-+++ a/drivers/watchdog/txx9wdt.c
-@@ -212,25 +212,31 @@ static int __init txx9wdt_probe(struct p
+diff -puN Documentation/kref.txt~kref-documentation-double-kref_put-in-my_data_handler Documentation/kref.txt
+--- a/Documentation/kref.txt~kref-documentation-double-kref_put-in-my_data_handler
++++ a/Documentation/kref.txt
+@@ -84,7 +84,6 @@ int my_data_handler(void)
+ 	task = kthread_run(more_data_handling, data, "more_data_handling");
+ 	if (task == ERR_PTR(-ENOMEM)) {
+ 		rv = -ENOMEM;
+-	        kref_put(&data->refcount, data_release);
+ 		goto out;
  	}
  
- 	res = platform_get_resource(dev, IORESOURCE_MEM, 0);
--	if (!res)
--		goto exit_busy;
-+	if (!res) {
-+		ret = -EBUSY;
-+		goto exit;
-+	}
- 	if (!devm_request_mem_region(&dev->dev,
- 				     res->start, res->end - res->start + 1,
--				     "txx9wdt"))
--		goto exit_busy;
-+				     "txx9wdt")) {
-+		ret = -EBUSY;
-+		goto exit;
-+	}
- 	txx9wdt_reg = devm_ioremap(&dev->dev,
- 				   res->start, res->end - res->start + 1);
--	if (!txx9wdt_reg)
--		goto exit_busy;
-+	if (!txx9wdt_reg) {
-+		ret = -EBUSY;
-+		goto exit_release_mem;
-+	}
- 
- 	ret = register_reboot_notifier(&txx9wdt_notifier);
- 	if (ret)
--		goto exit;
-+		goto exit_iounmap;
- 
- 	ret = misc_register(&txx9wdt_miscdev);
- 	if (ret) {
- 		unregister_reboot_notifier(&txx9wdt_notifier);
--		goto exit;
-+		goto exit_iounmap;
- 	}
- 
- 	printk(KERN_INFO "Hardware Watchdog Timer for TXx9: "
-@@ -238,8 +244,11 @@ static int __init txx9wdt_probe(struct p
- 	       timeout, WD_MAX_TIMEOUT, nowayout);
- 
- 	return 0;
--exit_busy:
--	ret = -EBUSY;
-+
-+exit_iounmap:
-+	devm_iounmap(&dev->dev, txx9wdt_reg);
-+exit_release_mem:
-+	devm_release_mem_region(&dev->dev, res->start, res->end - res->start + 1);
- exit:
- 	if (txx9_imclk) {
- 		clk_disable(txx9_imclk);
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
