@@ -1,77 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: - serial-bfin_5xx-fix-building-as-module-when-early-printk-is-enabled.patch removed from -mm tree
-Date: Wed, 26 Aug 2009 13:24:04 -0700
-Message-ID: <200908262024.n7QKO4Vl015636@imap1.linux-foundation.org>
+Subject: + edac-core-remove-completion-wait-for-complete-with-rcu_barrier.patch added to -mm tree
+Date: Wed, 26 Aug 2009 14:25:32 -0700
+Message-ID: <200908262125.n7QLPXNe028617@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42552 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38187 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753017AbZHZUZc (ORCPT
+	by vger.kernel.org with ESMTP id S1753469AbZHZV0H (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Aug 2009 16:25:32 -0400
+	Wed, 26 Aug 2009 17:26:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vapier@gentoo.org, alan@lxorguk.ukuu.org.uk, stable@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: hawk@comx.dk, dougthompson@xmission.com
 
 
 The patch titled
-     serial: bfin_5xx: fix building as module when early printk is enabled
-has been removed from the -mm tree.  Its filename was
-     serial-bfin_5xx-fix-building-as-module-when-early-printk-is-enabled.patch
+     edac: core: remove completion-wait for complete with rcu_barrier
+has been added to the -mm tree.  Its filename is
+     edac-core-remove-completion-wait-for-complete-with-rcu_barrier.patch
 
-This patch was dropped because C code shouldn't set or unset Kconfig variables
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial: bfin_5xx: fix building as module when early printk is enabled
-From: Mike Frysinger <vapier@gentoo.org>
+Subject: edac: core: remove completion-wait for complete with rcu_barrier
+From: Jesper Dangaard Brouer <hawk@comx.dk>
 
-Since early printk only makes sense/works when the serial driver is built
-into the kernel, disable the option for this driver when it is going to be
-built as a module.  Otherwise we get build failures due to the ifdef
-handling.
+Module edac_core.ko uses call_rcu() callbacks in edac_device.c, edac_mc.c
+and edac_pci.c.
 
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: <stable@kernel.org>
+They all use a wait_for_completion() scheme, but this scheme it not 100%
+safe on multiple CPUs.  See the _rcu_barrier() implementation which
+explains why extra precausion is needed.
+
+The patch adds a comment about rcu_barrier() and as a precausion calls
+rcu_barrier().  A maintainer needs to look at removing the
+wait_for_completion code.
+
+[dougthompson@xmission.com: remove the wait_for_completion code]
+Signed-off-by Jesper Dangaard Brouer <hawk@comx.dk>
+Signed-off-by: Doug Thompson <dougthompson@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/bfin_5xx.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/edac/edac_device.c |    5 +----
+ drivers/edac/edac_mc.c     |    4 +---
+ drivers/edac/edac_pci.c    |    4 +---
+ 3 files changed, 3 insertions(+), 10 deletions(-)
 
-diff -puN drivers/serial/bfin_5xx.c~serial-bfin_5xx-fix-building-as-module-when-early-printk-is-enabled drivers/serial/bfin_5xx.c
---- a/drivers/serial/bfin_5xx.c~serial-bfin_5xx-fix-building-as-module-when-early-printk-is-enabled
-+++ a/drivers/serial/bfin_5xx.c
-@@ -46,6 +46,10 @@
- # undef CONFIG_EARLY_PRINTK
- #endif
+diff -puN drivers/edac/edac_device.c~edac-core-remove-completion-wait-for-complete-with-rcu_barrier drivers/edac/edac_device.c
+--- a/drivers/edac/edac_device.c~edac-core-remove-completion-wait-for-complete-with-rcu_barrier
++++ a/drivers/edac/edac_device.c
+@@ -356,7 +356,6 @@ static void complete_edac_device_list_de
  
-+#ifdef CONFIG_SERIAL_BFIN_MODULE
-+# undef CONFIG_EARLY_PRINTK
-+#endif
-+
- /* UART name and device definitions */
- #define BFIN_SERIAL_NAME	"ttyBF"
- #define BFIN_SERIAL_MAJOR	204
+ 	edac_dev = container_of(head, struct edac_device_ctl_info, rcu);
+ 	INIT_LIST_HEAD(&edac_dev->link);
+-	complete(&edac_dev->removal_complete);
+ }
+ 
+ /*
+@@ -369,10 +368,8 @@ static void del_edac_device_from_global_
+ 						*edac_device)
+ {
+ 	list_del_rcu(&edac_device->link);
+-
+-	init_completion(&edac_device->removal_complete);
+ 	call_rcu(&edac_device->rcu, complete_edac_device_list_del);
+-	wait_for_completion(&edac_device->removal_complete);
++	rcu_barrier();
+ }
+ 
+ /*
+diff -puN drivers/edac/edac_mc.c~edac-core-remove-completion-wait-for-complete-with-rcu_barrier drivers/edac/edac_mc.c
+--- a/drivers/edac/edac_mc.c~edac-core-remove-completion-wait-for-complete-with-rcu_barrier
++++ a/drivers/edac/edac_mc.c
+@@ -418,16 +418,14 @@ static void complete_mc_list_del(struct 
+ 
+ 	mci = container_of(head, struct mem_ctl_info, rcu);
+ 	INIT_LIST_HEAD(&mci->link);
+-	complete(&mci->complete);
+ }
+ 
+ static void del_mc_from_global_list(struct mem_ctl_info *mci)
+ {
+ 	atomic_dec(&edac_handlers);
+ 	list_del_rcu(&mci->link);
+-	init_completion(&mci->complete);
+ 	call_rcu(&mci->rcu, complete_mc_list_del);
+-	wait_for_completion(&mci->complete);
++	rcu_barrier();
+ }
+ 
+ /**
+diff -puN drivers/edac/edac_pci.c~edac-core-remove-completion-wait-for-complete-with-rcu_barrier drivers/edac/edac_pci.c
+--- a/drivers/edac/edac_pci.c~edac-core-remove-completion-wait-for-complete-with-rcu_barrier
++++ a/drivers/edac/edac_pci.c
+@@ -174,7 +174,6 @@ static void complete_edac_pci_list_del(s
+ 
+ 	pci = container_of(head, struct edac_pci_ctl_info, rcu);
+ 	INIT_LIST_HEAD(&pci->link);
+-	complete(&pci->complete);
+ }
+ 
+ /*
+@@ -185,9 +184,8 @@ static void complete_edac_pci_list_del(s
+ static void del_edac_pci_from_global_list(struct edac_pci_ctl_info *pci)
+ {
+ 	list_del_rcu(&pci->link);
+-	init_completion(&pci->complete);
+ 	call_rcu(&pci->rcu, complete_edac_pci_list_del);
+-	wait_for_completion(&pci->complete);
++	rcu_barrier();
+ }
+ 
+ #if 0
 _
 
-Patches currently in -mm which might be from vapier@gentoo.org are
+Patches currently in -mm which might be from hawk@comx.dk are
 
-md-dm-log-fix-cn_ulog_callback-declaration.patch
 linux-next.patch
-pcmcia-yenta-add-missing-__devexit-marking.patch
-serial-bfin_5xx-fix-building-as-module-when-early-printk-is-enabled.patch
-blackfin-fix-read-buffer-overflow.patch
-scripts-get_maintainerpl-add-remove-duplicates.patch
-asm-sections-add-text-data-checking-functions-for-arches-to-override.patch
-kallsyms-use-new-arch_is_kernel_text.patch
-lockdep-use-new-arch_is_kernel_data.patch
-blackfin-override-text-data-checking-functions.patch
-rtc-update-documentation-wrt-rtc_pie-irq_set_state.patch
-rtc-bfin-do-not-share-rtc-irq.patch
-fdpic-ignore-the-loaders-pt_gnu_stack-when-calculating-the-stack-size.patch
-flat-use-is_err_value-helper-macro.patch
-linux-futexh-place-kernel-types-behind-__kernel__.patch
+edac-core-remove-completion-wait-for-complete-with-rcu_barrier.patch
 
