@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + wmi-fix-kernel-panic-when-stack-protection-enabled.patch added to -mm tree
-Date: Wed, 26 Aug 2009 07:54:11 -0700
-Message-ID: <200908261454.n7QEsBab007418@imap1.linux-foundation.org>
+Subject: + acpi-processor-force-throttling-state-when-bios-returns-incorrect-value.patch added to -mm tree
+Date: Wed, 26 Aug 2009 12:11:50 -0700
+Message-ID: <200908261911.n7QJBoKD015829@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60016 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34273 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751064AbZHZOzl (ORCPT
+	by vger.kernel.org with ESMTP id S1751308AbZHZTNS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Aug 2009 10:55:41 -0400
+	Wed, 26 Aug 2009 15:13:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lcostantino@gmail.com, bjorn.helgaas@hp.com, carlos@strangeworlds.co.uk, len.brown@intel.com, rjw@sisk.pl, stable@kernel.org
+Cc: elendil@planet.nl, lenb@kernel.org, rjw@sisk.pl, rui.zhang@intel.com
 
 
 The patch titled
-     wmi: fix kernel panic when stack protection enabled.
+     ACPI processor: force throttling state when BIOS returns incorrect value
 has been added to the -mm tree.  Its filename is
-     wmi-fix-kernel-panic-when-stack-protection-enabled.patch
+     acpi-processor-force-throttling-state-when-bios-returns-incorrect-value.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,85 +34,212 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: wmi: fix kernel panic when stack protection enabled.
-From: Costantino Leandro <lcostantino@gmail.com>
+Subject: ACPI processor: force throttling state when BIOS returns incorrect value
+From: Frans Pop <elendil@planet.nl>
 
-Summary:
-Kernel panic arise when stack protection is enabled, since strncat will
-add a null terminating byte '\0'; So in functions
-like this one (wmi_query_block):
-        char wc[4]="WC";
-	....
-	strncat(method, block->object_id, 2);
-        ...
-the length of wc should be n+1 (wc[5]) or stack protection
-fault will arise. This is not noticeable when stack protection is
-disabled,but , isn't good either.
-Config used: [CONFIG_CC_STACKPROTECTOR_ALL=y,
-	      CONFIG_CC_STACKPROTECTOR=y]
+If the BIOS reports an invalid throttling state (which seems to be
+fairly common after system boot), a reset is done to state T0.
+Because of a check in acpi_processor_get_throttling_ptc(), the reset
+never actually gets executed, which results in the error reoccurring
+on every access of for example /proc/acpi/processor/CPU0/throttling.
 
-Panic Trace
-------------
-       .... stack-protector: kernel stack corrupted in : fa7b182c
-       2.6.30-rc8-obelisco-generic
-       call_trace:
-           [<c04a6c40>] ? panic+0x45/0xd9
-	   [<c012925d>] ? __stack_chk_fail+0x1c/0x40
-	   [<fa7b182c>] ? wmi_query_block+0x15a/0x162 [wmi]
-	   [<fa7b182c>] ? wmi_query_block+0x15a/0x162 [wmi]
-	   [<fa7e7000>] ? acer_wmi_init+0x00/0x61a [acer_wmi]
-	   [<fa7e7135>] ? acer_wmi_init+0x135/0x61a [acer_wmi]
-	   [<c0101159>] ? do_one_initcall+0x50+0x126
+Add a 'force' option to acpi_processor_set_throttling() to ensure
+the reset really takes effect.
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=13514
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=13389
 
-Signed-off-by: Costantino Leandro <lcostantino@gmail.com>
-Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Cc: Len Brown <len.brown@intel.com>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+
+This patch, together with the next one, fixes a regression introduced in
+2.6.30, listed on the regression list. They have been available for 2.5
+months now in bugzilla, but have not been picked up, despite various
+reminders and without any reason given.
+
+Google shows that numerous people are hitting this issue. The issue is in
+itself relatively minor, but the bug in the code is clear.
+
+The patches have been in all my kernels and today testing has shown that
+throttling works correctly with the patches applied when the system
+overheats (http://bugzilla.kernel.org/show_bug.cgi?id=13918#c14).
+
+Signed-off-by: Frans Pop <elendil@planet.nl>
+Acked-by: Zhang Rui <rui.zhang@intel.com>
+Cc: Len Brown <lenb@kernel.org>
 Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/wmi.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/acpi/processor_thermal.c    |    6 +++---
+ drivers/acpi/processor_throttling.c |   26 ++++++++++++++------------
+ include/acpi/processor.h            |    5 +++--
+ 3 files changed, 20 insertions(+), 17 deletions(-)
 
-diff -puN drivers/platform/x86/wmi.c~wmi-fix-kernel-panic-when-stack-protection-enabled drivers/platform/x86/wmi.c
---- a/drivers/platform/x86/wmi.c~wmi-fix-kernel-panic-when-stack-protection-enabled
-+++ a/drivers/platform/x86/wmi.c
-@@ -270,7 +270,7 @@ u32 method_id, const struct acpi_buffer 
- 	acpi_status status;
- 	struct acpi_object_list input;
- 	union acpi_object params[3];
--	char method[4] = "WM";
-+	char method[5] = "WM";
+diff -puN drivers/acpi/processor_thermal.c~acpi-processor-force-throttling-state-when-bios-returns-incorrect-value drivers/acpi/processor_thermal.c
+--- a/drivers/acpi/processor_thermal.c~acpi-processor-force-throttling-state-when-bios-returns-incorrect-value
++++ a/drivers/acpi/processor_thermal.c
+@@ -66,7 +66,7 @@ static int acpi_processor_apply_limit(st
+ 		if (pr->limit.thermal.tx > tx)
+ 			tx = pr->limit.thermal.tx;
  
- 	if (!find_guid(guid_string, &wblock))
- 		return AE_ERROR;
-@@ -328,8 +328,8 @@ struct acpi_buffer *out)
- 	acpi_status status, wc_status = AE_ERROR;
- 	struct acpi_object_list input, wc_input;
- 	union acpi_object wc_params[1], wq_params[1];
--	char method[4];
--	char wc_method[4] = "WC";
-+	char method[5];
-+	char wc_method[5] = "WC";
+-		result = acpi_processor_set_throttling(pr, tx);
++		result = acpi_processor_set_throttling(pr, tx, false);
+ 		if (result)
+ 			goto end;
+ 	}
+@@ -421,12 +421,12 @@ processor_set_cur_state(struct thermal_c
  
- 	if (!guid_string || !out)
- 		return AE_BAD_PARAMETER;
-@@ -410,7 +410,7 @@ const struct acpi_buffer *in)
- 	acpi_handle handle;
- 	struct acpi_object_list input;
- 	union acpi_object params[2];
--	char method[4] = "WS";
-+	char method[5] = "WS";
+ 	if (state <= max_pstate) {
+ 		if (pr->flags.throttling && pr->throttling.state)
+-			result = acpi_processor_set_throttling(pr, 0);
++			result = acpi_processor_set_throttling(pr, 0, false);
+ 		cpufreq_set_cur_state(pr->id, state);
+ 	} else {
+ 		cpufreq_set_cur_state(pr->id, max_pstate);
+ 		result = acpi_processor_set_throttling(pr,
+-				state - max_pstate);
++				state - max_pstate, false);
+ 	}
+ 	return result;
+ }
+diff -puN drivers/acpi/processor_throttling.c~acpi-processor-force-throttling-state-when-bios-returns-incorrect-value drivers/acpi/processor_throttling.c
+--- a/drivers/acpi/processor_throttling.c~acpi-processor-force-throttling-state-when-bios-returns-incorrect-value
++++ a/drivers/acpi/processor_throttling.c
+@@ -62,7 +62,8 @@ struct throttling_tstate {
+ #define THROTTLING_POSTCHANGE      (2)
  
- 	if (!guid_string || !in)
- 		return AE_BAD_DATA;
+ static int acpi_processor_get_throttling(struct acpi_processor *pr);
+-int acpi_processor_set_throttling(struct acpi_processor *pr, int state);
++int acpi_processor_set_throttling(struct acpi_processor *pr,
++						int state, bool force);
+ 
+ static int acpi_processor_update_tsd_coord(void)
+ {
+@@ -361,7 +362,7 @@ int acpi_processor_tstate_has_changed(st
+ 		 */
+ 		target_state = throttling_limit;
+ 	}
+-	return acpi_processor_set_throttling(pr, target_state);
++	return acpi_processor_set_throttling(pr, target_state, false);
+ }
+ 
+ /*
+@@ -842,7 +843,7 @@ static int acpi_processor_get_throttling
+ 			ACPI_WARNING((AE_INFO,
+ 				"Invalid throttling state, reset"));
+ 			state = 0;
+-			ret = acpi_processor_set_throttling(pr, state);
++			ret = acpi_processor_set_throttling(pr, state, true);
+ 			if (ret)
+ 				return ret;
+ 		}
+@@ -915,7 +916,7 @@ static int acpi_processor_get_fadt_info(
+ }
+ 
+ static int acpi_processor_set_throttling_fadt(struct acpi_processor *pr,
+-					      int state)
++					      int state, bool force)
+ {
+ 	u32 value = 0;
+ 	u32 duty_mask = 0;
+@@ -930,7 +931,7 @@ static int acpi_processor_set_throttling
+ 	if (!pr->flags.throttling)
+ 		return -ENODEV;
+ 
+-	if (state == pr->throttling.state)
++	if (!force && (state == pr->throttling.state))
+ 		return 0;
+ 
+ 	if (state < pr->throttling_platform_limit)
+@@ -988,7 +989,7 @@ static int acpi_processor_set_throttling
+ }
+ 
+ static int acpi_processor_set_throttling_ptc(struct acpi_processor *pr,
+-					     int state)
++					     int state, bool force)
+ {
+ 	int ret;
+ 	acpi_integer value;
+@@ -1002,7 +1003,7 @@ static int acpi_processor_set_throttling
+ 	if (!pr->flags.throttling)
+ 		return -ENODEV;
+ 
+-	if (state == pr->throttling.state)
++	if (!force && (state == pr->throttling.state))
+ 		return 0;
+ 
+ 	if (state < pr->throttling_platform_limit)
+@@ -1018,7 +1019,8 @@ static int acpi_processor_set_throttling
+ 	return 0;
+ }
+ 
+-int acpi_processor_set_throttling(struct acpi_processor *pr, int state)
++int acpi_processor_set_throttling(struct acpi_processor *pr,
++						int state, bool force)
+ {
+ 	cpumask_var_t saved_mask;
+ 	int ret = 0;
+@@ -1070,7 +1072,7 @@ int acpi_processor_set_throttling(struct
+ 		/* FIXME: use work_on_cpu() */
+ 		set_cpus_allowed_ptr(current, cpumask_of(pr->id));
+ 		ret = p_throttling->acpi_processor_set_throttling(pr,
+-						t_state.target_state);
++						t_state.target_state, force);
+ 	} else {
+ 		/*
+ 		 * When the T-state coordination is SW_ALL or HW_ALL,
+@@ -1103,7 +1105,7 @@ int acpi_processor_set_throttling(struct
+ 			set_cpus_allowed_ptr(current, cpumask_of(i));
+ 			ret = match_pr->throttling.
+ 				acpi_processor_set_throttling(
+-				match_pr, t_state.target_state);
++				match_pr, t_state.target_state, force);
+ 		}
+ 	}
+ 	/*
+@@ -1201,7 +1203,7 @@ int acpi_processor_get_throttling_info(s
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 				  "Disabling throttling (was T%d)\n",
+ 				  pr->throttling.state));
+-		result = acpi_processor_set_throttling(pr, 0);
++		result = acpi_processor_set_throttling(pr, 0, false);
+ 		if (result)
+ 			goto end;
+ 	}
+@@ -1307,7 +1309,7 @@ static ssize_t acpi_processor_write_thro
+ 	if (strcmp(tmpbuf, charp) != 0)
+ 		return -EINVAL;
+ 
+-	result = acpi_processor_set_throttling(pr, state_val);
++	result = acpi_processor_set_throttling(pr, state_val, false);
+ 	if (result)
+ 		return result;
+ 
+diff -puN include/acpi/processor.h~acpi-processor-force-throttling-state-when-bios-returns-incorrect-value include/acpi/processor.h
+--- a/include/acpi/processor.h~acpi-processor-force-throttling-state-when-bios-returns-incorrect-value
++++ a/include/acpi/processor.h
+@@ -174,7 +174,7 @@ struct acpi_processor_throttling {
+ 	cpumask_var_t shared_cpu_map;
+ 	int (*acpi_processor_get_throttling) (struct acpi_processor * pr);
+ 	int (*acpi_processor_set_throttling) (struct acpi_processor * pr,
+-					      int state);
++					      int state, bool force);
+ 
+ 	u32 address;
+ 	u8 duty_offset;
+@@ -321,7 +321,8 @@ static inline int acpi_processor_ppc_has
+ /* in processor_throttling.c */
+ int acpi_processor_tstate_has_changed(struct acpi_processor *pr);
+ int acpi_processor_get_throttling_info(struct acpi_processor *pr);
+-extern int acpi_processor_set_throttling(struct acpi_processor *pr, int state);
++extern int acpi_processor_set_throttling(struct acpi_processor *pr,
++					 int state, bool force);
+ extern const struct file_operations acpi_processor_throttling_fops;
+ extern void acpi_processor_throttling_init(void);
+ /* in processor_idle.c */
 _
 
-Patches currently in -mm which might be from lcostantino@gmail.com are
+Patches currently in -mm which might be from elendil@planet.nl are
 
-wmi-fix-kernel-panic-when-stack-protection-enabled.patch
+acpi-processor-force-throttling-state-when-bios-returns-incorrect-value.patch
+acpi-processor-remove-superfluous-warning-message.patch
+linux-next.patch
 
