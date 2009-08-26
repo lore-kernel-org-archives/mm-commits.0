@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-get_maintainerpl-add-maintainers-in-order-listed-in-matched-section.patch added to -mm tree
-Date: Wed, 26 Aug 2009 15:49:42 -0700
-Message-ID: <200908262249.n7QMngRj017188@imap1.linux-foundation.org>
+Subject: + hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions.patch added to -mm tree
+Date: Wed, 26 Aug 2009 16:24:43 -0700
+Message-ID: <200908262324.n7QNOh9F014868@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40255 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56444 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753692AbZHZWuN (ORCPT
+	by vger.kernel.org with ESMTP id S1753742AbZHZXZq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Aug 2009 18:50:13 -0400
+	Wed, 26 Aug 2009 19:25:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com
+Cc: ebmunson@us.ibm.com, agl@us.ibm.com, david@gibson.dropbear.id.au, hugh.dickins@tiscali.co.uk, lee.schermerhorn@hp.com, mel@csn.ul.ie, nickpiggin@yahoo.com.au, rientjes@google.com
 
 
 The patch titled
-     scripts/get_maintainer.pl: add maintainers in order listed in matched section
+     hugetlb: add MAP_HUGETLB for mmaping pseudo-anonymous huge page regions
 has been added to the -mm tree.  Its filename is
-     scripts-get_maintainerpl-add-maintainers-in-order-listed-in-matched-section.patch
+     hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,200 +34,106 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts/get_maintainer.pl: add maintainers in order listed in matched section
-From: Joe Perches <joe@perches.com>
+Subject: hugetlb: add MAP_HUGETLB for mmaping pseudo-anonymous huge page regions
+From: Eric B Munson <ebmunson@us.ibm.com>
 
-Previous behavior was "bottom-up" in each section from the pattern "F:"
-entry that matched.  Now information is entered into the various lists in
-the "as entered" order for each matched section.
+Add a flag for mmap that will be used to request a huge page region that
+will look like anonymous memory to userspace.  This is accomplished by
+using a file on the internal vfsmount.  MAP_HUGETLB is a modifier of
+MAP_ANONYMOUS and so must be specified with it.  The region will behave
+the same as a MAP_ANONYMOUS region using small pages.
 
-This also allows the F: entry to be put anywhere in a section, not just as
-the last entries in the section.
-
-And a couple of improvements:
-
-Don't alphabetically sort before outputting the matched scm, status,
-subsystem and web sections.
-
-Ignore content after a single email address so these entries are acceptable
-M:	name <address> whatever other comment
-
-And a fix:
-
-Make an M: entry without a name again use the name from an immediately
-preceding P: line if it exists.
-
-Signed-off-by: Joe Perches <joe@perches.com>
+Signed-off-by: Eric B Munson <ebmunson@us.ibm.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Adam Litke <agl@us.ibm.com>
+Cc: David Gibson <david@gibson.dropbear.id.au>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |   70 +++++++++++++++++++++++++++---------
- 1 file changed, 54 insertions(+), 16 deletions(-)
+ include/asm-generic/mman-common.h |    1 +
+ include/linux/hugetlb.h           |    7 +++++++
+ mm/mmap.c                         |   19 +++++++++++++++++++
+ 3 files changed, 27 insertions(+)
 
-diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-add-maintainers-in-order-listed-in-matched-section scripts/get_maintainer.pl
---- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-add-maintainers-in-order-listed-in-matched-section
-+++ a/scripts/get_maintainer.pl
-@@ -313,22 +313,22 @@ if ($email || $email_list) {
- }
+diff -puN include/asm-generic/mman-common.h~hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions include/asm-generic/mman-common.h
+--- a/include/asm-generic/mman-common.h~hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions
++++ a/include/asm-generic/mman-common.h
+@@ -19,6 +19,7 @@
+ #define MAP_TYPE	0x0f		/* Mask for type of mapping */
+ #define MAP_FIXED	0x10		/* Interpret addr exactly */
+ #define MAP_ANONYMOUS	0x20		/* don't use a file */
++#define MAP_HUGETLB	0x40		/* create a huge page mapping */
  
- if ($scm) {
--    @scm = sort_and_uniq(@scm);
-+    @scm = uniq(@scm);
-     output(@scm);
- }
+ #define MS_ASYNC	1		/* sync memory asynchronously */
+ #define MS_INVALIDATE	2		/* invalidate the caches */
+diff -puN include/linux/hugetlb.h~hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions
++++ a/include/linux/hugetlb.h
+@@ -110,12 +110,19 @@ static inline void hugetlb_report_meminf
  
- if ($status) {
--    @status = sort_and_uniq(@status);
-+    @status = uniq(@status);
-     output(@status);
- }
+ #endif /* !CONFIG_HUGETLB_PAGE */
  
- if ($subsystem) {
--    @subsystem = sort_and_uniq(@subsystem);
-+    @subsystem = uniq(@subsystem);
-     output(@subsystem);
- }
- 
- if ($web) {
--    @web = sort_and_uniq(@web);
-+    @web = uniq(@web);
-     output(@web);
- }
- 
-@@ -442,7 +442,7 @@ sub parse_email {
- 	$address = $2;
-     } elsif ($formatted_email =~ /^\s*<(.+\@\S*)>.*$/) {
- 	$address = $1;
--    } elsif ($formatted_email =~ /^(.+\@\S*)$/) {
-+    } elsif ($formatted_email =~ /^(.+\@\S*).*$/) {
- 	$address = $1;
-     }
- 
-@@ -485,12 +485,46 @@ sub format_email {
-     return $formatted_email;
- }
- 
--sub add_categories {
-+sub find_starting_index {
++#define HUGETLB_ANON_FILE "anon_hugepage"
 +
-+    my ($index) = @_;
+ enum {
+ 	/*
+ 	 * The file will be used as an shm file so shmfs accounting rules
+ 	 * apply
+ 	 */
+ 	HUGETLB_SHMFS_INODE     = 1,
++	/*
++	 * The file is being created on the internal vfs mount and shmfs
++	 * accounting rules do not apply
++	 */
++	HUGETLB_ANONHUGE_INODE  = 2,
+ };
+ 
+ #ifdef CONFIG_HUGETLBFS
+diff -puN mm/mmap.c~hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions mm/mmap.c
+--- a/mm/mmap.c~hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions
++++ a/mm/mmap.c
+@@ -30,6 +30,7 @@
+ #include <linux/ksm.h>
+ #include <linux/mmu_notifier.h>
+ #include <linux/perf_counter.h>
++#include <linux/hugetlb.h>
+ 
+ #include <asm/uaccess.h>
+ #include <asm/cacheflush.h>
+@@ -950,6 +951,24 @@ unsigned long do_mmap_pgoff(struct file 
+ 	if (mm->map_count > sysctl_max_map_count)
+ 		return -ENOMEM;
+ 
++	if (flags & MAP_HUGETLB) {
++		struct user_struct *user = NULL;
++		if (file)
++			return -EINVAL;
 +
-+    while ($index > 0) {
-+	my $tv = $typevalue[$index];
-+	if (!($tv =~ m/^(\C):\s*(.*)/)) {
-+	    last;
++		/*
++		 * VM_NORESERVE is used because the reservations will be
++		 * taken when vm_ops->mmap() is called
++		 * A dummy user value is used because we are not locking
++		 * memory so no accounting is necessary
++		 */
++		len = ALIGN(len, huge_page_size(&default_hstate));
++		file = hugetlb_file_setup(HUGETLB_ANON_FILE, len, VM_NORESERVE,
++						&user, HUGETLB_ANONHUGE_INODE);
++		if (IS_ERR(file))
++			return PTR_ERR(file);
 +	}
-+	$index--;
-+    }
 +
-+    return $index;
-+}
-+
-+sub find_ending_index {
-     my ($index) = @_;
- 
--    $index = $index - 1;
--    while ($index >= 0) {
-+    while ($index < @typevalue) {
- 	my $tv = $typevalue[$index];
-+	if (!($tv =~ m/^(\C):\s*(.*)/)) {
-+	    last;
-+	}
-+	$index++;
-+    }
-+
-+    return $index;
-+}
-+
-+sub add_categories {
-+    my ($index) = @_;
-+
-+    my $i;
-+    my $start = find_starting_index($index);
-+    my $end = find_ending_index($index);
-+
-+    push(@subsystem, $typevalue[$start]);
-+
-+    for ($i = $start + 1; $i < $end; $i++) {
-+	my $tv = $typevalue[$i];
- 	if ($tv =~ m/^(\C):\s*(.*)/) {
- 	    my $ptype = $1;
- 	    my $pvalue = $2;
-@@ -513,11 +547,12 @@ sub add_categories {
- 	    } elsif ($ptype eq "M") {
- 		my ($name, $address) = parse_email($pvalue);
- 		if ($name eq "") {
--		    if ($index >= 0) {
--			my $tv = $typevalue[$index - 1];
-+		    if ($i > 0) {
-+			my $tv = $typevalue[$i - 1];
- 			if ($tv =~ m/^(\C):\s*(.*)/) {
- 			    if ($1 eq "P") {
- 				$name = $2;
-+				$pvalue = format_email($name, $address);
- 			    }
- 			}
- 		    }
-@@ -532,11 +567,6 @@ sub add_categories {
- 	    } elsif ($ptype eq "S") {
- 		push(@status, $pvalue);
- 	    }
--
--	    $index--;
--	} else {
--	    push(@subsystem,$tv);
--	    $index = -1;
- 	}
-     }
- }
-@@ -559,6 +589,10 @@ sub push_email_address {
- 
-     my ($name, $address) = parse_email($line);
- 
-+    if ($address eq "") {
-+	return 0;
-+    }
-+
-     if (!$email_remove_duplicates) {
- 	push(@email_to, format_email($name, $address));
-     } elsif (!email_inuse($name, $address)) {
-@@ -566,6 +600,8 @@ sub push_email_address {
- 	$email_hash_name{$name}++;
- 	$email_hash_address{$address}++;
-     }
-+
-+    return 1;
- }
- 
- sub push_email_addresses {
-@@ -581,7 +617,9 @@ sub push_email_addresses {
- 	    push_email_address($entry);
- 	}
-     } else {
--	warn("Invalid MAINTAINERS address: '" . $address . "'\n");
-+	if (!push_email_address($address)) {
-+	    warn("Invalid MAINTAINERS address: '" . $address . "'\n");
-+	}
-     }
- }
- 
+ 	/* Obtain the address to map to. we verify (or select) it and ensure
+ 	 * that it represents a valid section of the address space.
+ 	 */
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from ebmunson@us.ibm.com are
 
-linux-next.patch
-maintainers-add-ipvs-include-files.patch
-scripts-get_maintainerpl-add-git-blame.patch
-scripts-get_maintainerpl-add-sections-in-pattern-match-depth-order.patch
-scripts-get_maintainerpl-add-pattern-depth.patch
-scripts-get_maintainerpl-better-email-routines-use-perl-not-shell-where-possible.patch
-scripts-get_maintainerpl-add-mailmap-use-shell-and-email-cleanups.patch
-scripts-get_maintainerpl-using-separator-implies-nomultiline.patch
-scripts-get_maintainerpl-add-remove-duplicates.patch
-scripts-get_maintainerpl-add-maintainers-in-order-listed-in-matched-section.patch
-mmc-msm_sdccc-driver-for-htc-dream.patch
-msm_sdccc-convert-printkkern_level-to-pr_level.patch
-msm_sdccc-stylistic-cleaning.patch
-msm_sdccc-move-overly-indented-code-to-separate-function.patch
-maintainers-add-matt-mackall-and-herbert-xu-to-hardware-random-number-generator.patch
+hugetlbfs-allow-the-creation-of-files-suitable-for-map_private-on-the-vfs-internal-mount.patch
+hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions.patch
+hugetlb-add-map_hugetlb-example.patch
 
