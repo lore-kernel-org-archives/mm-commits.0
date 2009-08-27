@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + viafb-another-small-cleanup-of-viafb_par.patch added to -mm tree
-Date: Wed, 26 Aug 2009 17:26:18 -0700
-Message-ID: <200908270026.n7R0QIKf027719@imap1.linux-foundation.org>
+Subject: + octeon-false-positive-timeout.patch added to -mm tree
+Date: Wed, 26 Aug 2009 17:29:22 -0700
+Message-ID: <200908270029.n7R0TMIg000828@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45860 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58425 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754205AbZH0A0V (ORCPT
+	by vger.kernel.org with ESMTP id S1754289AbZH0A3Y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Aug 2009 20:26:21 -0400
+	Wed, 26 Aug 2009 20:29:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: FlorianSchandinat@gmx.de, JosephChan@via.com.tw, ScottFang@viatech.com.cn
+Cc: roel.kluin@gmail.com, ddaney@caviumnetworks.com
 
 
 The patch titled
-     viafb: another small cleanup of viafb_par
+     octeon: false positive timeout
 has been added to the -mm tree.  Its filename is
-     viafb-another-small-cleanup-of-viafb_par.patch
+     octeon-false-positive-timeout.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,109 +34,91 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: viafb: another small cleanup of viafb_par
-From: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Subject: octeon: false positive timeout
+From: Roel Kluin <roel.kluin@gmail.com>
 
-This removes the completly useless io variable as well as the temporary
-used variables mmio_base and mmio_len in favor to use directly the fb_info
-variables.
+If we reach the test just below the loop with a `timeout' value of 0, this
+does not mean that the timeout caused the loop to end, but rather the
+`smi_rd.s.pending', in the last iteration.  If timeout caused the loop to
+end, then `timeout' is -1, not 0.
 
-This is a code cleanup only, no runtime change expected.
+Since this can occur only in the last iteration, it is not very likely to
+be a problem.  By changing the post- to prefix decrement we ensure that a
+timeout of 0 does mean it timed out.
 
-Signed-off-by: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Cc: Scott Fang <ScottFang@viatech.com.cn>
-Cc: Joseph Chan <JosephChan@via.com.tw>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Acked-by: David Daney <ddaney@caviumnetworks.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/via/hw.c       |    3 +--
- drivers/video/via/hw.h       |    3 +--
- drivers/video/via/viafbdev.c |    9 ++++-----
- drivers/video/via/viafbdev.h |    3 ---
- 4 files changed, 6 insertions(+), 12 deletions(-)
+ drivers/staging/octeon/cvmx-mdio.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/via/hw.c~viafb-another-small-cleanup-of-viafb_par drivers/video/via/hw.c
---- a/drivers/video/via/hw.c~viafb-another-small-cleanup-of-viafb_par
-+++ a/drivers/video/via/hw.c
-@@ -2496,8 +2496,7 @@ void viafb_crt_enable(void)
- 	viafb_write_reg_mask(CR36, VIACR, 0x0, BIT5 + BIT4);
- }
+diff -puN drivers/staging/octeon/cvmx-mdio.h~octeon-false-positive-timeout drivers/staging/octeon/cvmx-mdio.h
+--- a/drivers/staging/octeon/cvmx-mdio.h~octeon-false-positive-timeout
++++ a/drivers/staging/octeon/cvmx-mdio.h
+@@ -421,7 +421,7 @@ static inline int cvmx_mdio_45_read(int 
+ 	do {
+ 		cvmx_wait(1000);
+ 		smi_rd.u64 = cvmx_read_csr(CVMX_SMIX_RD_DAT(bus_id));
+-	} while (smi_rd.s.pending && timeout--);
++	} while (smi_rd.s.pending && --timeout);
  
--void viafb_get_mmio_info(unsigned long *mmio_base,
--	unsigned long *mmio_len)
-+void viafb_get_mmio_info(unsigned long *mmio_base, u32 *mmio_len)
- {
- 	struct pci_dev *pdev = NULL;
- 	u32 vendor, device;
-diff -puN drivers/video/via/hw.h~viafb-another-small-cleanup-of-viafb_par drivers/video/via/hw.h
---- a/drivers/video/via/hw.h~viafb-another-small-cleanup-of-viafb_par
-+++ a/drivers/video/via/hw.h
-@@ -923,8 +923,7 @@ int viafb_get_pixclock(int hres, int vre
- int viafb_get_refresh(int hres, int vres, u32 float_refresh);
- void viafb_update_device_setting(int hres, int vres, int bpp,
- 			   int vmode_refresh, int flag);
--void viafb_get_mmio_info(unsigned long *mmio_base,
--	unsigned long *mmio_len);
-+void viafb_get_mmio_info(unsigned long *mmio_base, u32 *mmio_len);
- 
- void viafb_set_iga_path(void);
- void viafb_set_primary_address(u32 addr);
-diff -puN drivers/video/via/viafbdev.c~viafb-another-small-cleanup-of-viafb_par drivers/video/via/viafbdev.c
---- a/drivers/video/via/viafbdev.c~viafb-another-small-cleanup-of-viafb_par
-+++ a/drivers/video/via/viafbdev.c
-@@ -69,8 +69,6 @@ static void viafb_setup_fixinfo(struct f
- 
- 	fix->smem_start = viaparinfo->fbmem;
- 	fix->smem_len = viaparinfo->fbmem_free;
--	fix->mmio_start = viaparinfo->mmio_base;
--	fix->mmio_len = viaparinfo->mmio_len;
- 
- 	fix->type = FB_TYPE_PACKED_PIXELS;
- 	fix->type_aux = 0;
-@@ -2004,9 +2002,10 @@ static int __devinit via_pci_probe(void)
- 		return -ENOMEM;
- 	}
- 
--	viafb_get_mmio_info(&viaparinfo->mmio_base, &viaparinfo->mmio_len);
--	viaparinfo->io_virt = ioremap_nocache(viaparinfo->mmio_base,
--		viaparinfo->mmio_len);
-+	viafb_get_mmio_info(&viafbinfo->fix.mmio_start,
-+		&viafbinfo->fix.mmio_len);
-+	viaparinfo->io_virt = ioremap_nocache(viafbinfo->fix.mmio_start,
-+		viafbinfo->fix.mmio_len);
- 	if (!viaparinfo->io_virt) {
- 		printk(KERN_WARNING "ioremap failed: hardware acceleration disabled\n");
- 		viafb_accel = 0;
-diff -puN drivers/video/via/viafbdev.h~viafb-another-small-cleanup-of-viafb_par drivers/video/via/viafbdev.h
---- a/drivers/video/via/viafbdev.h~viafb-another-small-cleanup-of-viafb_par
-+++ a/drivers/video/via/viafbdev.h
-@@ -41,9 +41,6 @@ struct viafb_par {
- 	void __iomem *io_virt;	/*iospace virtual memory address */
- 	unsigned int fbmem;	/*framebuffer physical memory address */
- 	unsigned int memsize;	/*size of fbmem */
--	unsigned int io;	/*io space address */
--	unsigned long mmio_base;	/*mmio base address */
--	unsigned long mmio_len;	/*mmio base length */
- 	u32 fbmem_free;		/* Free FB memory */
- 	u32 fbmem_used;		/* Use FB memory size */
- 	u32 cursor_start;	/* Cursor Start Address */
+ 	if (timeout <= 0) {
+ 		cvmx_dprintf("cvmx_mdio_45_read: bus_id %d phy_id %2d "
 _
 
-Patches currently in -mm which might be from FlorianSchandinat@gmx.de are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
-viafb-remove-duplicated-cx700-register-init.patch
-viafb-remove-temporary-start-address-setting.patch
-viafb-merge-viafb_update_viafb_par-in-viafb_update_fix.patch
-viafb-split-viafb_set_start_addr-up.patch
-viafb-fix-ioremap_nocache-error-handling.patch
-viafb-clean-up-viamodeh.patch
-viafb-remove-duplicated-mode-information.patch
-viafb-clean-up-duoview.patch
-viafb-clean-up-virtual-memory-handling.patch
-viafb-remove-unused-video-device-stuff.patch
-viafb-remove-lvds-initialization.patch
-viafb-another-small-cleanup-of-viafb_par.patch
-viafb-improve-viafb_par.patch
-fb-fix-fb_pan_display-range-check.patch
-fb-do-not-ignore-fb_set_par-errors.patch
+origin.patch
+linux-next.patch
+x86-fix-x86_model-test-in-es7000_apic_is_cluster.patch
+s3c-fix-check-of-index-into-s3c_gpios.patch
+stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
+dm-strncpy-does-not-null-terminate-string.patch
+pcmcia-fix-read-buffer-overflow.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+drm-i915-intel_sdvo_multifunc_encoder-sdvo_output_svid0-tested-twice.patch
+v4l-dvb-fix-test-of-bandwidth-range-in-cx22700_set_tps.patch
+mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
+slram-read-buffer-overflow.patch
+mtd-fix-read-buffer-overflow.patch
+mtd-jffs2-fix-read-buffer-overflow.patch
+mtd-prevent-a-read-from-eraseregions.patch
+mtd-prevent-a-read-from-regions.patch
+hfc_usb-fix-read-buffer-overflow.patch
+zorro8390-fix-read-buffer-overflow-in-zorro8390_init_one-checkpatch-fixes.patch
+cyclades-read-buffer-overflow.patch
+serial167-fix-read-buffer-overflow.patch
+regulator-fix-calculation-of-voltage-range-in-da9034_set_ldo12_voltage.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
+zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
+st-fix-test-of-value-range-in-st_set_options.patch
+rt2860-fix-test-in-rt_ioctl_siwfrag.patch
+apci3200-fix-test-of-ui_delaytime-range-in-i_apci3200_commandtestanaloginput.patch
+octeon-false-positive-timeout.patch
+usb-fix-double-put_tty_drivergs_tty_driver-in-gserial_setup.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+blackfin-fix-read-buffer-overflow.patch
+arch-alpha-boot-tools-objstripc-wrong-variable-tested-after-open.patch
+m32r-remove-redundant-tests-on-unsigned.patch
+uml-fix-order-of-pud-and-pmd_free.patch
+dme1737-keep-index-within-pwm_config.patch
+sdio-fix-read-buffer-overflow.patch
+hwmon-fix-freeing-of-gpio_data-and-irq.patch
+ncpfs-read-buffer-overflow.patch
+smbfs-read-buffer-overflow.patch
+platinumfb-misplaced-parenthesis.patch
+sisfb-read-buffer-overflow.patch
+drivers-video-console-newport_conc-fix-read-outside-array-bounds.patch
+mwave-fix-read-buffer-overflow.patch
+adfs-remove-redundant-test-on-unsigned.patch
 
