@@ -1,63 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: + i-need-old-gcc.patch added to -mm tree
-Date: Wed, 26 Aug 2009 23:41:34 -0700
-Message-ID: <200908270641.n7R6fY56017087@imap1.linux-foundation.org>
+Subject: [obsolete] arch-x86-kernel-cpu-amdc-fix-x86_64-allnoconfig-build.patch removed from -mm tree
+Date: Wed, 26 Aug 2009 23:41:46 -0700
+Message-ID: <200908270641.n7R6fkF7017493@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50829 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56316 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751153AbZH0Gle (ORCPT
+	by vger.kernel.org with ESMTP id S1751279AbZH0GmM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Aug 2009 02:41:34 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n7R6fYDW031698
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 26 Aug 2009 23:41:35 -0700
+	Thu, 27 Aug 2009 02:42:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, hpa@zytor.com, mingo@elte.hu, robert.richter@amd.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     a
-has been added to the -mm tree.  Its filename is
-     i-need-old-gcc.patch
+     arch/x86/kernel/cpu/amd.c: fix x86_64 allnoconfig build
+has been removed from the -mm tree.  Its filename was
+     arch-x86-kernel-cpu-amdc-fix-x86_64-allnoconfig-build.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: a
+Subject: arch/x86/kernel/cpu/amd.c: fix x86_64 allnoconfig build
 From: Andrew Morton <akpm@linux-foundation.org>
 
+arch/x86/kernel/cpu/amd.c: In function 'amd_fixup_dcm':
+arch/x86/kernel/cpu/amd.c:281: error: 'struct cpuinfo_x86' has no member named 'phys_proc_id'
+arch/x86/kernel/cpu/amd.c:290: error: 'struct cpuinfo_x86' has no member named 'cpu_core_id'
+arch/x86/kernel/cpu/amd.c:291: error: 'struct cpuinfo_x86' has no member named 'cpu_node_id'
+arch/x86/kernel/cpu/amd.c:293: error: 'struct cpuinfo_x86' has no member named 'cpu_node_id'
+arch/x86/kernel/cpu/amd.c:295: error: 'struct cpuinfo_x86' has no member named 'cpu_core_id'
+arch/x86/kernel/cpu/amd.c:296: error: 'struct cpuinfo_x86' has no member named 'cpu_node_id'
+arch/x86/kernel/cpu/amd.c:298: error: 'struct cpuinfo_x86' has no member named 'cpu_node_id'
+arch/x86/kernel/cpu/amd.c:302: error: 'struct cpuinfo_x86' has no member named 'cpu_core_id'
+arch/x86/kernel/cpu/amd.c:302: error: 'struct cpuinfo_x86' has no member named 'cpu_core_id'
+
+Cc: Robert Richter <robert.richter@amd.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler-gcc4.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/include/asm/processor.h |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN include/linux/compiler-gcc4.h~i-need-old-gcc include/linux/compiler-gcc4.h
---- a/include/linux/compiler-gcc4.h~i-need-old-gcc
-+++ a/include/linux/compiler-gcc4.h
-@@ -5,7 +5,7 @@
- /* GCC 4.1.[01] miscompiles __weak */
- #ifdef __KERNEL__
- # if __GNUC_MINOR__ == 1 && __GNUC_PATCHLEVEL__ <= 1
--#  error Your version of gcc miscompiles the __weak directive
-+//#  error Your version of gcc miscompiles the __weak directive
- # endif
- #endif
+diff -puN arch/x86/include/asm/processor.h~arch-x86-kernel-cpu-amdc-fix-x86_64-allnoconfig-build arch/x86/include/asm/processor.h
+--- a/arch/x86/include/asm/processor.h~arch-x86-kernel-cpu-amdc-fix-x86_64-allnoconfig-build
++++ a/arch/x86/include/asm/processor.h
+@@ -102,7 +102,6 @@ struct cpuinfo_x86 {
+ 	u16			apicid;
+ 	u16			initial_apicid;
+ 	u16			x86_clflush_size;
+-#ifdef CONFIG_SMP
+ 	/* number of cores as seen by the OS: */
+ 	u16			booted_cores;
+ 	/* Physical processor id: */
+@@ -113,7 +112,6 @@ struct cpuinfo_x86 {
+ 	u16			cpu_core_id;
+ 	/* Index into per_cpu list: */
+ 	u16			cpu_index;
+-#endif
+ 	unsigned int		x86_hyper_vendor;
+ } __attribute__((__aligned__(SMP_CACHE_BYTES)));
  
 _
 
