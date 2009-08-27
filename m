@@ -1,111 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: [merged] staging-iio-fix-duplicate-dev_attr_name.patch removed from -mm tree
-Date: Thu, 27 Aug 2009 12:18:44 -0700
-Message-ID: <200908271918.n7RJIiLj010754@imap1.linux-foundation.org>
+Subject: [merged] usb-fix-double-put_tty_drivergs_tty_driver-in-gserial_setup.patch removed from -mm tree
+Date: Thu, 27 Aug 2009 12:18:58 -0700
+Message-ID: <200908271918.n7RJIw14011189@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36808 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53530 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751835AbZH0TSy (ORCPT
+	by vger.kernel.org with ESMTP id S1751851AbZH0TTA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Aug 2009 15:18:54 -0400
+	Thu, 27 Aug 2009 15:19:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, greg@kroah.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, david-b@pacbell.net, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     staging/iio: fix duplicate dev_attr_name
+     usb: fix double put_tty_driver(gs_tty_driver) in gserial_setup()
 has been removed from the -mm tree.  Its filename was
-     staging-iio-fix-duplicate-dev_attr_name.patch
+     usb-fix-double-put_tty_drivergs_tty_driver-in-gserial_setup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: staging/iio: fix duplicate dev_attr_name
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: usb: fix double put_tty_driver(gs_tty_driver) in gserial_setup()
+From: Roel Kluin <roel.kluin@gmail.com>
 
-device attr's should be static, otherwise duplicate identifiers are
-created:
+If the driver cannot be registered, put_tty_driver(gs_tty_driver) occurred
+here as well as at label fail.
 
-drivers/staging/iio/trigger/iio-trig-gpio.o:(.data+0x1c): multiple definition of `dev_attr_name'
+put_tty_driver() already occurs at label fail
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: David Brownell <david-b@pacbell.net>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/iio/accel/lis3l02dq_ring.c          |    2 +-
- drivers/staging/iio/trigger/iio-trig-gpio.c         |    2 +-
- drivers/staging/iio/trigger/iio-trig-periodic-rtc.c |    4 ++--
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/usb/gadget/u_serial.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/staging/iio/accel/lis3l02dq_ring.c~staging-iio-fix-duplicate-dev_attr_name drivers/staging/iio/accel/lis3l02dq_ring.c
---- a/drivers/staging/iio/accel/lis3l02dq_ring.c~staging-iio-fix-duplicate-dev_attr_name
-+++ a/drivers/staging/iio/accel/lis3l02dq_ring.c
-@@ -441,7 +441,7 @@ static int lis3l02dq_data_rdy_trigger_se
- 				 &t);
- 	return ret;
- }
--DEVICE_ATTR(name, S_IRUGO, iio_trigger_read_name, NULL);
-+static DEVICE_ATTR(name, S_IRUGO, iio_trigger_read_name, NULL);
- 
- static struct attribute *lis3l02dq_trigger_attrs[] = {
- 	&dev_attr_name.attr,
-diff -puN drivers/staging/iio/trigger/iio-trig-gpio.c~staging-iio-fix-duplicate-dev_attr_name drivers/staging/iio/trigger/iio-trig-gpio.c
---- a/drivers/staging/iio/trigger/iio-trig-gpio.c~staging-iio-fix-duplicate-dev_attr_name
-+++ a/drivers/staging/iio/trigger/iio-trig-gpio.c
-@@ -46,7 +46,7 @@ static irqreturn_t iio_gpio_trigger_poll
- 	return IRQ_HANDLED;
- }
- 
--DEVICE_ATTR(name, S_IRUGO, iio_trigger_read_name, NULL);
-+static DEVICE_ATTR(name, S_IRUGO, iio_trigger_read_name, NULL);
- 
- static struct attribute *iio_gpio_trigger_attrs[] = {
- 	&dev_attr_name.attr,
-diff -puN drivers/staging/iio/trigger/iio-trig-periodic-rtc.c~staging-iio-fix-duplicate-dev_attr_name drivers/staging/iio/trigger/iio-trig-periodic-rtc.c
---- a/drivers/staging/iio/trigger/iio-trig-periodic-rtc.c~staging-iio-fix-duplicate-dev_attr_name
-+++ a/drivers/staging/iio/trigger/iio-trig-periodic-rtc.c
-@@ -81,10 +81,10 @@ static ssize_t iio_trig_periodic_read_na
- 	return sprintf(buf, "%s\n", trig_info->name);
- }
- 
--DEVICE_ATTR(name, S_IRUGO,
-+static DEVICE_ATTR(name, S_IRUGO,
- 	    iio_trig_periodic_read_name,
- 	    NULL);
--DEVICE_ATTR(frequency, S_IRUGO | S_IWUSR,
-+static DEVICE_ATTR(frequency, S_IRUGO | S_IWUSR,
- 	    iio_trig_periodic_read_freq,
- 	    iio_trig_periodic_write_freq);
- 
+diff -puN drivers/usb/gadget/u_serial.c~usb-fix-double-put_tty_drivergs_tty_driver-in-gserial_setup drivers/usb/gadget/u_serial.c
+--- a/drivers/usb/gadget/u_serial.c~usb-fix-double-put_tty_drivergs_tty_driver-in-gserial_setup
++++ a/drivers/usb/gadget/u_serial.c
+@@ -1114,7 +1114,6 @@ int __init gserial_setup(struct usb_gadg
+ 	/* export the driver ... */
+ 	status = tty_register_driver(gs_tty_driver);
+ 	if (status) {
+-		put_tty_driver(gs_tty_driver);
+ 		pr_err("%s: cannot register, err %d\n",
+ 				__func__, status);
+ 		goto fail;
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 origin.patch
 linux-next.patch
-gspca-fix-sn9c20x-build-errors.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-kernel-hacking-move-strip_asm_syms-from-general.patch
-mtd-make-onenand-genericc-more-generic-fix.patch
-isdn-fix-netjet-build-errors.patch
-scsi-fix-func-names-in-kernel-doc.patch
-mm-make-swap-token-dummies-static-inlines-fix-2.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-page_alloc-fix-kernel-doc-warning.patch
-ksm-add-some-documentation.patch
-lis3-add-power-management-functions-fix.patch
-procfs-provide-stack-information-for-threads-v011-fix.patch
-spih-add-missing-kernel-doc-for-struct-spi_master.patch
-gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links-update-fix.patch
-doc-filesystems-remove-smount-program.patch
-doc-filesystems-more-mount-cleanups.patch
-documentation-update-stale-definition-of-file-nr-in-fstxt.patch
-includecheck-fix-documentation-cfag12864b-examplec.patch
-reiser4-export-remove_from_page_cache-fix.patch
+x86-fix-x86_model-test-in-es7000_apic_is_cluster.patch
+s3c-fix-check-of-index-into-s3c_gpios.patch
+stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
+dm-strncpy-does-not-null-terminate-string.patch
+pcmcia-fix-read-buffer-overflow.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+drm-i915-intel_sdvo_multifunc_encoder-sdvo_output_svid0-tested-twice.patch
+v4l-dvb-fix-test-of-bandwidth-range-in-cx22700_set_tps.patch
+mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
+octeon-false-positive-timeout.patch
+slram-read-buffer-overflow.patch
+mtd-fix-read-buffer-overflow.patch
+mtd-jffs2-fix-read-buffer-overflow.patch
+mtd-prevent-a-read-from-eraseregions.patch
+mtd-prevent-a-read-from-regions.patch
+hfc_usb-fix-read-buffer-overflow.patch
+zorro8390-fix-read-buffer-overflow-in-zorro8390_init_one-checkpatch-fixes.patch
+cyclades-read-buffer-overflow.patch
+serial167-fix-read-buffer-overflow.patch
+regulator-fix-calculation-of-voltage-range-in-da9034_set_ldo12_voltage.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
+zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
+st-fix-test-of-value-range-in-st_set_options.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+blackfin-fix-read-buffer-overflow.patch
+arch-alpha-boot-tools-objstripc-wrong-variable-tested-after-open.patch
+m32r-remove-redundant-tests-on-unsigned.patch
+uml-fix-order-of-pud-and-pmd_free.patch
+dme1737-keep-index-within-pwm_config.patch
+sdio-fix-read-buffer-overflow.patch
+hwmon-fix-freeing-of-gpio_data-and-irq.patch
+ncpfs-read-buffer-overflow.patch
+smbfs-read-buffer-overflow.patch
+platinumfb-misplaced-parenthesis.patch
+sisfb-read-buffer-overflow.patch
+drivers-video-console-newport_conc-fix-read-outside-array-bounds.patch
+mwave-fix-read-buffer-overflow.patch
+adfs-remove-redundant-test-on-unsigned.patch
 
