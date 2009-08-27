@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-set-wakeup-capability-for-i2c-and-spi-rtc-drivers.patch added to -mm tree
-Date: Thu, 27 Aug 2009 14:10:38 -0700
-Message-ID: <200908272110.n7RLAdGt016582@imap1.linux-foundation.org>
+Subject: + oom-move-oom_adj-value-from-task_struct-to-signal_struct.patch added to -mm tree
+Date: Thu, 27 Aug 2009 14:27:43 -0700
+Message-ID: <200908272127.n7RLRiBr014769@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32972 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38992 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752100AbZH0VQL (ORCPT
+	by vger.kernel.org with ESMTP id S1753181AbZH0V2C (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Aug 2009 17:16:11 -0400
+	Thu, 27 Aug 2009 17:28:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: avorontsov@ru.mvista.com, a.zummo@towertech.it, ben-linux@fluff.org, dbrownell@users.sourceforge.net, khali@linux-fr.org
+Cc: kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, oleg@redhat.com, riel@redhat.com, rientjes@google.com
 
 
 The patch titled
-     rtc: set wakeup capability for I2C and SPI RTC drivers
+     oom: move oom_adj value from task_struct to signal_struct
 has been added to the -mm tree.  Its filename is
-     rtc-set-wakeup-capability-for-i2c-and-spi-rtc-drivers.patch
+     oom-move-oom_adj-value-from-task_struct-to-signal_struct.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,117 +34,276 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: set wakeup capability for I2C and SPI RTC drivers
-From: Anton Vorontsov <avorontsov@ru.mvista.com>
+Subject: oom: move oom_adj value from task_struct to signal_struct
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-RTC core won't allow wakeup alarms to be set if RTC devices' parent (i.e. 
-i2c_client or spi_device) isn't wakeup capable.
+Currently, OOM logic callflow is here.
 
-For I2C devices there is I2C_CLIENT_WAKE flag exists that we can pass via
-board info, and if set, I2C core will initialize wakeup capability.  For
-SPI devices there is no such flag at all.
+    __out_of_memory()
+        select_bad_process()            for each task
+            badness()                   calculate badness of one task
+                oom_kill_process()      search child
+                    oom_kill_task()     kill target task and mm shared tasks with it
 
-I believe that it's not platform code responsibility to allow or disallow
-wakeups, instead, drivers themselves should set the capability if a device
-can trigger wakeups.
+example, process-A have two thread, thread-A and thread-B and it have very
+fat memory and each thread have following oom_adj and oom_score.
 
-That's what drivers/base/power/sysfs.c says:
+     thread-A: oom_adj = OOM_DISABLE, oom_score = 0
+     thread-B: oom_adj = 0,           oom_score = very-high
 
- * It is the responsibility of device drivers to enable (or disable)
- * wakeup signaling as part of changing device power states, respecting
- * the policy choices provided through the driver model.
+Then, select_bad_process() select thread-B, but oom_kill_task() refuse
+kill the task because thread-A have OOM_DISABLE.  Thus __out_of_memory()
+call select_bad_process() again.  but select_bad_process() select the same
+task.  It mean kernel fall in livelock.
 
-I2C and SPI RTC devices send wakeup events via interrupt lines, so we
-should set the wakeup capability if IRQ is routed.
+The fact is, select_bad_process() must select killable task.  otherwise
+OOM logic go into livelock.
 
-Ideally we should also check irq for wakeup capability before setting
-device's capability, i.e.
+And root cause is, oom_adj shouldn't be per-thread value.  it should be
+per-process value because OOM-killer kill a process, not thread.  Thus
+This patch moves oomkilladj (now more appropriately named oom_adj) from
+struct task_struct to struct signal_struct.  it naturally prevent
+select_bad_process() choose wrong task.
 
-	if (can_irq_wake(irq))
-		device_set_wakeup_capable(&client->dev, 1);
-
-But there is no can_irq_wake() call exist, and it is not that trivial to
-implement it for all interrupts controllers and complex/cascaded setups.
-
-drivers/base/power/sysfs.c also covers these cases:
-
- * Devices may not be able to generate wakeup events from all power
- * states.  Also, the events may be ignored in some configurations;
- * for example, they might need help from other devices that aren't
- * active
-
-So there is no guarantee that wakeup will actually work, and so I think
-there is no point in being pedantic wrt checking IRQ wakeup capability.
-
-Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
-Cc: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Ben Dooks <ben-linux@fluff.org>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Paul Menage <menage@google.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1305.c |    2 ++
- drivers/rtc/rtc-ds1307.c |    2 ++
- drivers/rtc/rtc-ds1374.c |    2 ++
- 3 files changed, 6 insertions(+)
+ fs/proc/base.c        |   24 ++++++++++++++++++++----
+ include/linux/sched.h |    3 ++-
+ kernel/fork.c         |    2 ++
+ mm/oom_kill.c         |   34 +++++++++++++++-------------------
+ 4 files changed, 39 insertions(+), 24 deletions(-)
 
-diff -puN drivers/rtc/rtc-ds1305.c~rtc-set-wakeup-capability-for-i2c-and-spi-rtc-drivers drivers/rtc/rtc-ds1305.c
---- a/drivers/rtc/rtc-ds1305.c~rtc-set-wakeup-capability-for-i2c-and-spi-rtc-drivers
-+++ a/drivers/rtc/rtc-ds1305.c
-@@ -780,6 +780,8 @@ static int __devinit ds1305_probe(struct
- 					spi->irq, status);
- 			goto fail1;
- 		}
+diff -puN fs/proc/base.c~oom-move-oom_adj-value-from-task_struct-to-signal_struct fs/proc/base.c
+--- a/fs/proc/base.c~oom-move-oom_adj-value-from-task_struct-to-signal_struct
++++ a/fs/proc/base.c
+@@ -999,11 +999,17 @@ static ssize_t oom_adjust_read(struct fi
+ 	struct task_struct *task = get_proc_task(file->f_path.dentry->d_inode);
+ 	char buffer[PROC_NUMBUF];
+ 	size_t len;
+-	int oom_adjust;
++	int oom_adjust = OOM_DISABLE;
++	unsigned long flags;
+ 
+ 	if (!task)
+ 		return -ESRCH;
+-	oom_adjust = task->oomkilladj;
 +
-+		device_set_wakeup_capable(&spi->dev, 1);
++	if (lock_task_sighand(task, &flags)) {
++		oom_adjust = task->signal->oom_adj;
++		unlock_task_sighand(task, &flags);
++	}
++
+ 	put_task_struct(task);
+ 
+ 	len = snprintf(buffer, sizeof(buffer), "%i\n", oom_adjust);
+@@ -1017,6 +1023,7 @@ static ssize_t oom_adjust_write(struct f
+ 	struct task_struct *task;
+ 	char buffer[PROC_NUMBUF], *end;
+ 	int oom_adjust;
++	unsigned long flags;
+ 
+ 	memset(buffer, 0, sizeof(buffer));
+ 	if (count > sizeof(buffer) - 1)
+@@ -1032,11 +1039,20 @@ static ssize_t oom_adjust_write(struct f
+ 	task = get_proc_task(file->f_path.dentry->d_inode);
+ 	if (!task)
+ 		return -ESRCH;
+-	if (oom_adjust < task->oomkilladj && !capable(CAP_SYS_RESOURCE)) {
++	if (!lock_task_sighand(task, &flags)) {
++		put_task_struct(task);
++		return -ESRCH;
++	}
++
++	if (oom_adjust < task->signal->oom_adj && !capable(CAP_SYS_RESOURCE)) {
++		unlock_task_sighand(task, &flags);
+ 		put_task_struct(task);
+ 		return -EACCES;
+ 	}
+-	task->oomkilladj = oom_adjust;
++
++	task->signal->oom_adj = oom_adjust;
++
++	unlock_task_sighand(task, &flags);
+ 	put_task_struct(task);
+ 	if (end - buffer == 0)
+ 		return -EIO;
+diff -puN include/linux/sched.h~oom-move-oom_adj-value-from-task_struct-to-signal_struct include/linux/sched.h
+--- a/include/linux/sched.h~oom-move-oom_adj-value-from-task_struct-to-signal_struct
++++ a/include/linux/sched.h
+@@ -652,6 +652,8 @@ struct signal_struct {
+ 	unsigned audit_tty;
+ 	struct tty_audit_buf *tty_audit_buf;
+ #endif
++
++	int oom_adj;	/* OOM kill score adjustment (bit shift) */
+ };
+ 
+ /* Context switch must be unlocked if interrupts are to be enabled */
+@@ -1220,7 +1222,6 @@ struct task_struct {
+ 	 * a short time
+ 	 */
+ 	unsigned char fpu_counter;
+-	s8 oomkilladj; /* OOM kill score adjustment (bit shift). */
+ #ifdef CONFIG_BLK_DEV_IO_TRACE
+ 	unsigned int btrace_seq;
+ #endif
+diff -puN kernel/fork.c~oom-move-oom_adj-value-from-task_struct-to-signal_struct kernel/fork.c
+--- a/kernel/fork.c~oom-move-oom_adj-value-from-task_struct-to-signal_struct
++++ a/kernel/fork.c
+@@ -886,6 +886,8 @@ static int copy_signal(unsigned long clo
+ 
+ 	tty_audit_fork(sig);
+ 
++	sig->oom_adj = current->signal->oom_adj;
++
+ 	return 0;
+ }
+ 
+diff -puN mm/oom_kill.c~oom-move-oom_adj-value-from-task_struct-to-signal_struct mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-move-oom_adj-value-from-task_struct-to-signal_struct
++++ a/mm/oom_kill.c
+@@ -58,6 +58,10 @@ unsigned long badness(struct task_struct
+ 	unsigned long points, cpu_time, run_time;
+ 	struct mm_struct *mm;
+ 	struct task_struct *child;
++	int oom_adj = p->signal->oom_adj;
++
++	if (oom_adj == OOM_DISABLE)
++		return 0;
+ 
+ 	task_lock(p);
+ 	mm = p->mm;
+@@ -148,15 +152,15 @@ unsigned long badness(struct task_struct
+ 		points /= 8;
+ 
+ 	/*
+-	 * Adjust the score by oomkilladj.
++	 * Adjust the score by oom_adj.
+ 	 */
+-	if (p->oomkilladj) {
+-		if (p->oomkilladj > 0) {
++	if (oom_adj) {
++		if (oom_adj > 0) {
+ 			if (!points)
+ 				points = 1;
+-			points <<= p->oomkilladj;
++			points <<= oom_adj;
+ 		} else
+-			points >>= -(p->oomkilladj);
++			points >>= -(oom_adj);
  	}
  
- 	/* export NVRAM */
-diff -puN drivers/rtc/rtc-ds1307.c~rtc-set-wakeup-capability-for-i2c-and-spi-rtc-drivers drivers/rtc/rtc-ds1307.c
---- a/drivers/rtc/rtc-ds1307.c~rtc-set-wakeup-capability-for-i2c-and-spi-rtc-drivers
-+++ a/drivers/rtc/rtc-ds1307.c
-@@ -881,6 +881,8 @@ read_rtc:
- 				"unable to request IRQ!\n");
- 			goto exit_irq;
+ #ifdef DEBUG
+@@ -251,7 +255,7 @@ static struct task_struct *select_bad_pr
+ 			*ppoints = ULONG_MAX;
  		}
-+
-+		device_set_wakeup_capable(&client->dev, 1);
- 		set_bit(HAS_ALARM, &ds1307->flags);
- 		dev_dbg(&client->dev, "got IRQ %d\n", client->irq);
- 	}
-diff -puN drivers/rtc/rtc-ds1374.c~rtc-set-wakeup-capability-for-i2c-and-spi-rtc-drivers drivers/rtc/rtc-ds1374.c
---- a/drivers/rtc/rtc-ds1374.c~rtc-set-wakeup-capability-for-i2c-and-spi-rtc-drivers
-+++ a/drivers/rtc/rtc-ds1374.c
-@@ -383,6 +383,8 @@ static int ds1374_probe(struct i2c_clien
- 			dev_err(&client->dev, "unable to request IRQ\n");
- 			goto out_free;
- 		}
-+
-+		device_set_wakeup_capable(&client->dev, 1);
- 	}
  
- 	ds1374->rtc = rtc_device_register(client->name, &client->dev,
+-		if (p->oomkilladj == OOM_DISABLE)
++		if (p->signal->oom_adj == OOM_DISABLE)
+ 			continue;
+ 
+ 		points = badness(p, uptime.tv_sec);
+@@ -304,7 +308,7 @@ static void dump_tasks(const struct mem_
+ 		}
+ 		printk(KERN_INFO "[%5d] %5d %5d %8lu %8lu %3d     %3d %s\n",
+ 		       p->pid, __task_cred(p)->uid, p->tgid, mm->total_vm,
+-		       get_mm_rss(mm), (int)task_cpu(p), p->oomkilladj,
++		       get_mm_rss(mm), (int)task_cpu(p), p->signal->oom_adj,
+ 		       p->comm);
+ 		task_unlock(p);
+ 	} while_each_thread(g, p);
+@@ -359,18 +363,9 @@ static int oom_kill_task(struct task_str
+ 	 * change to NULL at any time since we do not hold task_lock(p).
+ 	 * However, this is of no concern to us.
+ 	 */
+-
+-	if (mm == NULL)
++	if (!mm || p->signal->oom_adj == OOM_DISABLE)
+ 		return 1;
+ 
+-	/*
+-	 * Don't kill the process if any threads are set to OOM_DISABLE
+-	 */
+-	do_each_thread(g, q) {
+-		if (q->mm == mm && q->oomkilladj == OOM_DISABLE)
+-			return 1;
+-	} while_each_thread(g, q);
+-
+ 	__oom_kill_task(p, 1);
+ 
+ 	/*
+@@ -394,8 +389,9 @@ static int oom_kill_process(struct task_
+ 
+ 	if (printk_ratelimit()) {
+ 		printk(KERN_WARNING "%s invoked oom-killer: "
+-			"gfp_mask=0x%x, order=%d, oomkilladj=%d\n",
+-			current->comm, gfp_mask, order, current->oomkilladj);
++			"gfp_mask=0x%x, order=%d, oom_adj=%d\n",
++			current->comm, gfp_mask, order,
++			current->signal->oom_adj);
+ 		task_lock(current);
+ 		cpuset_print_task_mems_allowed(current);
+ 		task_unlock(current);
 _
 
-Patches currently in -mm which might be from avorontsov@ru.mvista.com are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
+origin.patch
 linux-next.patch
-mtd-sst25l-non-jedec-spi-flash-driver.patch
-mtd-m25p80-fix-null-pointer-dereference-bug.patch
-sdhci-be-more-strict-with-get_min_clock-usage.patch
-sdhci-of-fix-sd-clock-calculation.patch
-sdhci-of-avoid-writing-reserved-bits-into-host-control-register.patch
-sdhci-of-fix-high-speed-cards-recognition.patch
-powerpc-introduce-and-document-sdhciwp-inverted-property-for-esdhc.patch
-sdhci-of-dont-hard-code-inverted-write-protect-quirk.patch
-sdhci-of-cleanup-esdhcs-set_clock-a-little-bit.patch
-powerpc-85xx-add-esdhc-support-for-mpc8536ds-boards.patch
-spi-add-support-for-device-table-matching.patch
-mtd-m25p80-convert-to-device-table-matching.patch
-of-remove-stmm25p40-alias.patch
-hwmon-adxx-convert-to-device-table-matching.patch
-hwmon-lm70-convert-to-device-table-matching.patch
-spi-prefix-modalias-with-spi.patch
-rtc-set-wakeup-capability-for-i2c-and-spi-rtc-drivers.patch
+readahead-add-blk_run_backing_dev.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+mm-clean-up-page_remove_rmap.patch
+mm-show_free_areas-display-slab-pages-in-two-separate-fields.patch
+mm-oom-analysis-add-per-zone-statistics-to-show_free_areas.patch
+mm-oom-analysis-add-buffer-cache-information-to-show_free_areas.patch
+mm-oom-analysis-show-kernel-stack-usage-in-proc-meminfo-and-oom-log-output.patch
+mm-oom-analysis-add-shmem-vmstat.patch
+mm-rename-pgmoved-variable-in-shrink_active_list.patch
+mm-shrink_inactive_list-nr_scan-accounting-fix-fix.patch
+mm-vmstat-add-isolate-pages.patch
+mm-vmstat-add-isolate-pages-fix.patch
+vmscan-throttle-direct-reclaim-when-too-many-pages-are-isolated-already.patch
+mm-remove-__addsub_zone_page_state.patch
+mm-count-only-reclaimable-lru-pages-v2.patch
+vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
+vmscan-move-clearpageactive-from-move_active_pages-to-shrink_active_list.patch
+vmscan-kill-unnecessary-page-flag-test.patch
+vmscan-kill-unnecessary-prefetch.patch
+mm-perform-non-atomic-test-clear-of-pg_mlocked-on-free.patch
+tracing-page-allocator-add-trace-events-for-page-allocation-and-page-freeing.patch
+tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists.patch
+mm-drop-unneeded-double-negations.patch
+mm-introduce-page_lru_base_type.patch
+mm-introduce-page_lru_base_type-fix.patch
+mm-return-boolean-from-page_is_file_cache.patch
+mm-return-boolean-from-page_has_private.patch
+mm-document-is_page_cache_freeable.patch
+mm-vmscan-rename-zone_nr_pages-to-zone_lru_nr_pages.patch
+oom-move-oom_killer_enable-oom_killer_disable-to-where-they-belong.patch
+mm-do-batched-scans-for-mem_cgroup.patch
+mm-vmscan-remove-page_queue_congested-comment.patch
+oom-move-oom_adj-value-from-task_struct-to-signal_struct.patch
+oom-make-oom_score-to-per-process-value.patch
+oom-oom_kill-doesnt-kill-vfork-parentor-child.patch
+oom-fix-oom_adjust_write-input-sanity-check.patch
+getrusage-fill-ru_maxrss-value.patch
+getrusage-fill-ru_maxrss-value-update.patch
+memory-controller-soft-limit-documentation-v9.patch
+memory-controller-soft-limit-interface-v9.patch
+memory-controller-soft-limit-organize-cgroups-v9.patch
+memory-controller-soft-limit-organize-cgroups-v9-fix.patch
+memory-controller-soft-limit-refactor-reclaim-flags-v9.patch
+memory-controller-soft-limit-reclaim-on-contention-v9.patch
+memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
+memcg-improve-resource-counter-scalability.patch
+memcg-improve-resource-counter-scalability-v5.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
