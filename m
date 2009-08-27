@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sdio-add-mmc_quirk_lenient_fn0-fix.patch added to -mm tree
-Date: Wed, 26 Aug 2009 16:43:02 -0700
-Message-ID: <200908262343.n7QNh2MJ015247@imap1.linux-foundation.org>
+Subject: + ima-allow-disabling-ima-at-runtime.patch added to -mm tree
+Date: Wed, 26 Aug 2009 17:02:39 -0700
+Message-ID: <200908270002.n7R02dwL017890@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44807 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52140 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753974AbZHZXnC (ORCPT
+	by vger.kernel.org with ESMTP id S1753336AbZH0ADo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Aug 2009 19:43:02 -0400
+	Wed, 26 Aug 2009 20:03:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, linux-mmc@vger.kernel.org, ohad@wizery.com
+Cc: kyle@redhat.com, eparis@redhat.com, jmorris@namei.org, zohar@us.ibm.com
 
 
 The patch titled
-     sdio-add-mmc_quirk_lenient_fn0-fix
+     ima: allow disabling IMA at runtime
 has been added to the -mm tree.  Its filename is
-     sdio-add-mmc_quirk_lenient_fn0-fix.patch
+     ima-allow-disabling-ima-at-runtime.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,107 +34,79 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sdio-add-mmc_quirk_lenient_fn0-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ima: allow disabling IMA at runtime
+From: Kyle McMartin <kyle@redhat.com>
 
-Code in C, not cpp!
+Due to a memory leak in IMA that we're currently debugging in Fedora
+rawhide, it would be nice to be able to disable that support at runtime. 
+Currently it's only able to be built in, and there's no toggle to avoid
+initializing it.
 
-Cc: <linux-mmc@vger.kernel.org>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>
+Provide one, in order to enhance debuggability.  If a user can reboot a
+machine and edit its command line, one can do a far sight worse things
+than disabling a security precaution.
+
+Signed-off-by: Kyle McMartin <kyle@redhat.com>
+Cc: Mimi Zohar <zohar@us.ibm.com>
+Cc: Eric Paris <eparis@redhat.com>
+Cc: James Morris <jmorris@namei.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmc/card.h |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ Documentation/kernel-parameters.txt |    5 +++++
+ security/integrity/ima/ima_main.c   |   17 +++++++++++++++++
+ 2 files changed, 22 insertions(+)
 
-diff -puN include/linux/mmc/card.h~sdio-add-mmc_quirk_lenient_fn0-fix include/linux/mmc/card.h
---- a/include/linux/mmc/card.h~sdio-add-mmc_quirk_lenient_fn0-fix
-+++ a/include/linux/mmc/card.h
-@@ -134,7 +134,10 @@ struct mmc_card {
- #define mmc_card_set_highspeed(c) ((c)->state |= MMC_STATE_HIGHSPEED)
- #define mmc_card_set_blockaddr(c) ((c)->state |= MMC_STATE_BLOCKADDR)
+diff -puN Documentation/kernel-parameters.txt~ima-allow-disabling-ima-at-runtime Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~ima-allow-disabling-ima-at-runtime
++++ a/Documentation/kernel-parameters.txt
+@@ -927,6 +927,11 @@ and is between 256 and 4096 characters. 
+ 	ihash_entries=	[KNL]
+ 			Set number of hash buckets for inode cache.
  
--#define mmc_card_lenient_fn0(c)	((c)->quirks & MMC_QUIRK_LENIENT_FN0)
-+static inline int mmc_card_lenient_fn0(const struct mmc_card *c)
++	ima=		[IMA]
++			Format: { "0" | "1" }
++			0 -- disable IMA.
++			1 -- enable IMA. (default)
++
+ 	ima_audit=	[IMA]
+ 			Format: { "0" | "1" }
+ 			0 -- integrity auditing messages. (Default)
+diff -puN security/integrity/ima/ima_main.c~ima-allow-disabling-ima-at-runtime security/integrity/ima/ima_main.c
+--- a/security/integrity/ima/ima_main.c~ima-allow-disabling-ima-at-runtime
++++ a/security/integrity/ima/ima_main.c
+@@ -339,10 +339,27 @@ int ima_bprm_check(struct linux_binprm *
+ 	return 0;
+ }
+ 
++static int ima_disabled = 0;
++static int __init ima_enabled(char *str)
 +{
-+	return c->quirks & MMC_QUIRK_LENIENT_FN0;
++	unsigned long enabled;
++
++	if (!strict_strtoul(str, 0, &enabled))
++		ima_disabled = enabled ? 0 : 1;
++
++	return 1;
 +}
++__setup("ima=", ima_enabled);
++
+ static int __init init_ima(void)
+ {
+ 	int error;
  
- #define mmc_card_name(c)	((c)->cid.prod_name)
- #define mmc_card_id(c)		(dev_name(&(c)->dev))
++	if (ima_disabled) {
++		pr_info("IMA disabled at user request.\n");
++		return 0;
++	}
++
+ 	ima_iintcache_init();
+ 	error = ima_init();
+ 	ima_initialized = 1;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kyle@redhat.com are
 
 origin.patch
-linux-next.patch
-linux-next-fixup.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-amdc-fix-x86_64-allnoconfig-build.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-video-initial-support-for-adv7180-update-fix.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-checkincludespl-add-option-to-remove-duplicates-in-place.patch
-leds-gpio-leds-fix-typographics-fault.patch
-leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio.patch
-slram-read-buffer-overflow.patch
-zorro8390-fix-read-buffer-overflow-in-zorro8390_init_one-checkpatch-fixes.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-serial167-fix-read-buffer-overflow.patch
-waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes-checkpatch-fixes.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
-vfs-optimize-touch_time-too.patch
-fs-improve-remountro-vs-buffercache-coherency-fix.patch
-mm-make-swap-token-dummies-static-inlines-fix.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
-vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
-arches-drop-superfluous-casts-in-nr_free_pages-callers-checkpatch-fixes.patch
-tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
-generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
-proc-connector-add-event-for-process-becoming-session-leader.patch
-kernel-smpc-relocate-some-code.patch
-mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
-sdio-add-cd-disable-support-cleanup.patch
-sdio-add-mmc_quirk_lenient_fn0-fix.patch
-procfs-provide-stack-information-for-threads-v011-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
-rtc-philips-nxp-pcf2123-driver-v03-fix.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes-fix.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
-drivers-video-add-kmalloc-null-tests-fix.patch
-v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
-cgroups-add-functionality-to-read-write-lock-clone_thread-forking-per-threadgroup-fix.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
-memcg-improve-resource-counter-scalability-checkpatch-fixes.patch
-exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
-exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
-elf-clean-up-fill_note_info-fix.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+ima-allow-disabling-ima-at-runtime.patch
 
