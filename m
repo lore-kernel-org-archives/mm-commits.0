@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + oom-make-oom_score-to-per-process-value.patch added to -mm tree
-Date: Thu, 27 Aug 2009 14:27:45 -0700
-Message-ID: <200908272127.n7RLRj69014774@imap1.linux-foundation.org>
+Subject: + oom-oom_kill-doesnt-kill-vfork-parentor-child.patch added to -mm tree
+Date: Thu, 27 Aug 2009 14:27:47 -0700
+Message-ID: <200908272127.n7RLRlvZ014777@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52333 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38084 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753188AbZH0V2D (ORCPT
+	by vger.kernel.org with ESMTP id S1753189AbZH0V2D (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 27 Aug 2009 17:28:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, menage@googl
 
 
 The patch titled
-     oom: make oom_score to per-process value
+     oom: oom_kill doesn't kill vfork parent (or child)
 has been added to the -mm tree.  Its filename is
-     oom-make-oom_score-to-per-process-value.patch
+     oom-oom_kill-doesnt-kill-vfork-parentor-child.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,26 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: make oom_score to per-process value
+Subject: oom: oom_kill doesn't kill vfork parent (or child)
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-oom-killer kills a process, not task.  Then oom_score should be calculated
-as per-process too.  it makes consistency more and makes speed up
-select_bad_process().
+Current oom_kill doesn't only kill the victim process, but also kill all
+thas shread the same mm.  it mean vfork parent will be killed.
+
+This is definitely incorrect.  another process have another oom_adj.  we
+shouldn't ignore their oom_adj (it might have OOM_DISABLE).
+
+following caller hit the minefield.
+
+===============================
+        switch (constraint) {
+        case CONSTRAINT_MEMORY_POLICY:
+                oom_kill_process(current, gfp_mask, order, 0, NULL,
+                                "No available memory (MPOL_BIND)");
+                break;
+
+Note: force_sig(SIGKILL) send SIGKILL to all thread in the process.
+We don't need to care multi thread in here.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Paul Menage <menage@google.com>
@@ -49,120 +63,47 @@ Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |    2 -
- fs/proc/base.c                     |    2 -
- mm/oom_kill.c                      |   35 ++++++++++++++++++++++-----
- 3 files changed, 31 insertions(+), 8 deletions(-)
+ mm/oom_kill.c |   17 +----------------
+ 1 file changed, 1 insertion(+), 16 deletions(-)
 
-diff -puN Documentation/filesystems/proc.txt~oom-make-oom_score-to-per-process-value Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~oom-make-oom_score-to-per-process-value
-+++ a/Documentation/filesystems/proc.txt
-@@ -1204,7 +1204,7 @@ The following heuristics are then applie
-  * if the task was reniced, its score doubles
-  * superuser or direct hardware access tasks (CAP_SYS_ADMIN, CAP_SYS_RESOURCE
-  	or CAP_SYS_RAWIO) have their score divided by 4
-- * if oom condition happened in one cpuset and checked task does not belong
-+ * if oom condition happened in one cpuset and checked process does not belong
-  	to it, its score is divided by 8
-  * the resulting score is multiplied by two to the power of oom_adj, i.e.
- 	points <<= oom_adj when it is positive and
-diff -puN fs/proc/base.c~oom-make-oom_score-to-per-process-value fs/proc/base.c
---- a/fs/proc/base.c~oom-make-oom_score-to-per-process-value
-+++ a/fs/proc/base.c
-@@ -447,7 +447,7 @@ static int proc_oom_score(struct task_st
- 
- 	do_posix_clock_monotonic_gettime(&uptime);
- 	read_lock(&tasklist_lock);
--	points = badness(task, uptime.tv_sec);
-+	points = badness(task->group_leader, uptime.tv_sec);
- 	read_unlock(&tasklist_lock);
- 	return sprintf(buffer, "%lu\n", points);
- }
-diff -puN mm/oom_kill.c~oom-make-oom_score-to-per-process-value mm/oom_kill.c
---- a/mm/oom_kill.c~oom-make-oom_score-to-per-process-value
+diff -puN mm/oom_kill.c~oom-oom_kill-doesnt-kill-vfork-parentor-child mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-oom_kill-doesnt-kill-vfork-parentor-child
 +++ a/mm/oom_kill.c
-@@ -34,6 +34,23 @@ int sysctl_oom_dump_tasks;
- static DEFINE_SPINLOCK(zone_scan_lock);
- /* #define DEBUG */
+@@ -373,11 +373,6 @@ static void __oom_kill_task(struct task_
  
-+/*
-+ * Is all threads of the target process nodes overlap ours?
-+ */
-+static int has_intersects_mems_allowed(struct task_struct *tsk)
-+{
-+	struct task_struct *t;
-+
-+	t = tsk;
-+	do {
-+		if (cpuset_mems_allowed_intersects(current, t))
-+			return 1;
-+		t = next_thread(t);
-+	} while (t != tsk);
-+
-+	return 0;
-+}
-+
- /**
-  * badness - calculate a numeric value for how bad this task has been
-  * @p: task struct of which task we should calculate
-@@ -59,6 +76,9 @@ unsigned long badness(struct task_struct
- 	struct mm_struct *mm;
- 	struct task_struct *child;
- 	int oom_adj = p->signal->oom_adj;
-+	struct task_cputime task_time;
-+	unsigned long utime;
-+	unsigned long stime;
- 
- 	if (oom_adj == OOM_DISABLE)
- 		return 0;
-@@ -106,8 +126,11 @@ unsigned long badness(struct task_struct
-          * of seconds. There is no particular reason for this other than
-          * that it turned out to work very well in practice.
- 	 */
--	cpu_time = (cputime_to_jiffies(p->utime) + cputime_to_jiffies(p->stime))
--		>> (SHIFT_HZ + 3);
-+	thread_group_cputime(p, &task_time);
-+	utime = cputime_to_jiffies(task_time.utime);
-+	stime = cputime_to_jiffies(task_time.stime);
-+	cpu_time = (utime + stime) >> (SHIFT_HZ + 3);
-+
- 
- 	if (uptime >= p->start_time.tv_sec)
- 		run_time = (uptime - p->start_time.tv_sec) >> 10;
-@@ -148,7 +171,7 @@ unsigned long badness(struct task_struct
- 	 * because p may have allocated or otherwise mapped memory on
- 	 * this node before. However it will be less likely.
- 	 */
--	if (!cpuset_mems_allowed_intersects(current, p))
-+	if (!has_intersects_mems_allowed(p))
- 		points /= 8;
- 
- 	/*
-@@ -204,13 +227,13 @@ static inline enum oom_constraint constr
- static struct task_struct *select_bad_process(unsigned long *ppoints,
- 						struct mem_cgroup *mem)
+ static int oom_kill_task(struct task_struct *p)
  {
--	struct task_struct *g, *p;
-+	struct task_struct *p;
- 	struct task_struct *chosen = NULL;
- 	struct timespec uptime;
- 	*ppoints = 0;
+-	struct mm_struct *mm;
+-	struct task_struct *g, *q;
+-
+-	mm = p->mm;
+-
+ 	/* WARNING: mm may not be dereferenced since we did not obtain its
+ 	 * value from get_task_mm(p).  This is OK since all we need to do is
+ 	 * compare mm to q->mm below.
+@@ -386,21 +381,11 @@ static int oom_kill_task(struct task_str
+ 	 * change to NULL at any time since we do not hold task_lock(p).
+ 	 * However, this is of no concern to us.
+ 	 */
+-	if (!mm || p->signal->oom_adj == OOM_DISABLE)
++	if (!p->mm || p->signal->oom_adj == OOM_DISABLE)
+ 		return 1;
  
- 	do_posix_clock_monotonic_gettime(&uptime);
--	do_each_thread(g, p) {
-+	for_each_process(p) {
- 		unsigned long points;
+ 	__oom_kill_task(p, 1);
  
- 		/*
-@@ -263,7 +286,7 @@ static struct task_struct *select_bad_pr
- 			chosen = p;
- 			*ppoints = points;
- 		}
--	} while_each_thread(g, p);
-+	}
- 
- 	return chosen;
+-	/*
+-	 * kill all processes that share the ->mm (i.e. all threads),
+-	 * but are in a different thread group. Don't let them have access
+-	 * to memory reserves though, otherwise we might deplete all memory.
+-	 */
+-	do_each_thread(g, q) {
+-		if (q->mm == mm && !same_thread_group(q, p))
+-			force_sig(SIGKILL, q);
+-	} while_each_thread(g, q);
+-
+ 	return 0;
  }
+ 
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
