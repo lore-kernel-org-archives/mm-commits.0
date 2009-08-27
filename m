@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-move-pgdeactivate-modification-to-shrink_active_list.patch added to -mm tree
-Date: Thu, 27 Aug 2009 14:30:19 -0700
-Message-ID: <200908272130.n7RLUJxT019262@imap1.linux-foundation.org>
+Subject: + tipc-fix-test-of-bearer_priority-range-in-tipc_register_media.patch added to -mm tree
+Date: Thu, 27 Aug 2009 14:32:41 -0700
+Message-ID: <200908272132.n7RLWfBn023631@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52095 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37688 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753189AbZH0VbG (ORCPT
+	by vger.kernel.org with ESMTP id S1752100AbZH0Vco (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Aug 2009 17:31:06 -0400
+	Thu, 27 Aug 2009 17:32:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, riel@redhat.com
+Cc: roel.kluin@gmail.com, allan.stephens@windriver.com, per.liden@ericsson.com
 
 
 The patch titled
-     vmscan: move PGDEACTIVATE modification to shrink_active_list()
+     tipc: fix test of bearer_priority range in tipc_register_media()
 has been added to the -mm tree.  Its filename is
-     vmscan-move-pgdeactivate-modification-to-shrink_active_list.patch
+     tipc-fix-test-of-bearer_priority-range-in-tipc_register_media.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,152 +34,84 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: move PGDEACTIVATE modification to shrink_active_list()
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: tipc: fix test of bearer_priority range in tipc_register_media()
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Pgmoved accounting in move_active_pages_to_lru() doesn't make any sense. 
-it can be calculated in irq enabled area.
+For the bearer_priority to be less than TIPC_MIN_LINK_PRI and greater than
+TIPC_MAX_LINK_PRI is logically impossible.
 
-This patch move #-of-deactivating-pages calcution to shrink_active_list().
- Fortunatelly, it also kill one branch.
-
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Per Liden <per.liden@ericsson.com>
+Cc: "Stephens, Allan" <allan.stephens@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ net/tipc/bearer.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~vmscan-move-pgdeactivate-modification-to-shrink_active_list mm/vmscan.c
---- a/mm/vmscan.c~vmscan-move-pgdeactivate-modification-to-shrink_active_list
-+++ a/mm/vmscan.c
-@@ -1269,7 +1269,6 @@ static void move_active_pages_to_lru(str
- 				     struct list_head *list,
- 				     enum lru_list lru)
- {
--	unsigned long pgmoved = 0;
- 	struct pagevec pvec;
- 	struct page *page;
- 
-@@ -1283,7 +1282,6 @@ static void move_active_pages_to_lru(str
- 
- 		list_move(&page->lru, &zone->lru[lru].list);
- 		mem_cgroup_add_lru_list(page, lru);
--		pgmoved++;
- 
- 		if (!pagevec_add(&pvec, page) || list_empty(list)) {
- 			spin_unlock_irq(&zone->lru_lock);
-@@ -1293,9 +1291,6 @@ static void move_active_pages_to_lru(str
- 			spin_lock_irq(&zone->lru_lock);
- 		}
+diff -puN net/tipc/bearer.c~tipc-fix-test-of-bearer_priority-range-in-tipc_register_media net/tipc/bearer.c
+--- a/net/tipc/bearer.c~tipc-fix-test-of-bearer_priority-range-in-tipc_register_media
++++ a/net/tipc/bearer.c
+@@ -119,7 +119,7 @@ int  tipc_register_media(u32 media_type,
+ 		warn("Media <%s> rejected, no broadcast address\n", name);
+ 		goto exit;
  	}
--	__mod_zone_page_state(zone, NR_LRU_BASE + lru, pgmoved);
--	if (!is_active_lru(lru))
--		__count_vm_events(PGDEACTIVATE, pgmoved);
- }
- 
- static void shrink_active_list(unsigned long nr_pages, struct zone *zone,
-@@ -1310,6 +1305,7 @@ static void shrink_active_list(unsigned 
- 	struct page *page;
- 	struct zone_reclaim_stat *reclaim_stat = get_reclaim_stat(zone, sc);
- 	unsigned long nr_rotated = 0;
-+	unsigned long nr_deactivated = 0;
- 
- 	lru_add_drain();
- 	spin_lock_irq(&zone->lru_lock);
-@@ -1364,12 +1360,18 @@ static void shrink_active_list(unsigned 
- 
- 		ClearPageActive(page);	/* we are de-activating */
- 		list_add(&page->lru, &l_inactive);
-+		nr_deactivated++;
- 	}
- 
- 	/*
- 	 * Move pages back to the lru list.
- 	 */
- 	spin_lock_irq(&zone->lru_lock);
-+	move_active_pages_to_lru(zone, &l_active,
-+						LRU_ACTIVE + file * LRU_FILE);
-+	move_active_pages_to_lru(zone, &l_inactive,
-+						LRU_BASE   + file * LRU_FILE);
-+
- 	/*
- 	 * Count referenced pages from currently used mappings as rotated,
- 	 * even though only some of them are actually re-activated.  This
-@@ -1377,12 +1379,10 @@ static void shrink_active_list(unsigned 
- 	 * get_scan_ratio.
- 	 */
- 	reclaim_stat->recent_rotated[file] += nr_rotated;
--
--	move_active_pages_to_lru(zone, &l_active,
--						LRU_ACTIVE + file * LRU_FILE);
--	move_active_pages_to_lru(zone, &l_inactive,
--						LRU_BASE   + file * LRU_FILE);
-+	__count_vm_events(PGDEACTIVATE, nr_deactivated);
- 	__mod_zone_page_state(zone, NR_ISOLATED_ANON + file, -nr_taken);
-+	__mod_zone_page_state(zone, LRU_ACTIVE + file * LRU_FILE, nr_rotated);
-+	__mod_zone_page_state(zone, LRU_BASE + file * LRU_FILE, nr_deactivated);
- 	spin_unlock_irq(&zone->lru_lock);
- }
- 
+-	if ((bearer_priority < TIPC_MIN_LINK_PRI) &&
++	if ((bearer_priority < TIPC_MIN_LINK_PRI) ||
+ 	    (bearer_priority > TIPC_MAX_LINK_PRI)) {
+ 		warn("Media <%s> rejected, illegal priority (%u)\n", name,
+ 		     bearer_priority);
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 origin.patch
 linux-next.patch
-readahead-add-blk_run_backing_dev.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-mm-clean-up-page_remove_rmap.patch
-mm-show_free_areas-display-slab-pages-in-two-separate-fields.patch
-mm-oom-analysis-add-per-zone-statistics-to-show_free_areas.patch
-mm-oom-analysis-add-buffer-cache-information-to-show_free_areas.patch
-mm-oom-analysis-show-kernel-stack-usage-in-proc-meminfo-and-oom-log-output.patch
-mm-oom-analysis-add-shmem-vmstat.patch
-mm-rename-pgmoved-variable-in-shrink_active_list.patch
-mm-shrink_inactive_list-nr_scan-accounting-fix-fix.patch
-mm-vmstat-add-isolate-pages.patch
-mm-vmstat-add-isolate-pages-fix.patch
-vmscan-throttle-direct-reclaim-when-too-many-pages-are-isolated-already.patch
-mm-remove-__addsub_zone_page_state.patch
-mm-count-only-reclaimable-lru-pages-v2.patch
-vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
-vmscan-move-clearpageactive-from-move_active_pages-to-shrink_active_list.patch
-vmscan-kill-unnecessary-page-flag-test.patch
-vmscan-kill-unnecessary-prefetch.patch
-mm-perform-non-atomic-test-clear-of-pg_mlocked-on-free.patch
-tracing-page-allocator-add-trace-events-for-page-allocation-and-page-freeing.patch
-tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists.patch
-mm-drop-unneeded-double-negations.patch
-mm-introduce-page_lru_base_type.patch
-mm-introduce-page_lru_base_type-fix.patch
-mm-return-boolean-from-page_is_file_cache.patch
-mm-return-boolean-from-page_has_private.patch
-mm-document-is_page_cache_freeable.patch
-mm-vmscan-rename-zone_nr_pages-to-zone_lru_nr_pages.patch
-oom-move-oom_killer_enable-oom_killer_disable-to-where-they-belong.patch
-mm-do-batched-scans-for-mem_cgroup.patch
-mm-vmscan-remove-page_queue_congested-comment.patch
-vmscan-move-pgdeactivate-modification-to-shrink_active_list.patch
-oom-move-oom_adj-value-from-task_struct-to-signal_struct.patch
-oom-make-oom_score-to-per-process-value.patch
-oom-oom_kill-doesnt-kill-vfork-parentor-child.patch
-oom-fix-oom_adjust_write-input-sanity-check.patch
-getrusage-fill-ru_maxrss-value.patch
-getrusage-fill-ru_maxrss-value-update.patch
-memory-controller-soft-limit-documentation-v9.patch
-memory-controller-soft-limit-interface-v9.patch
-memory-controller-soft-limit-organize-cgroups-v9.patch
-memory-controller-soft-limit-organize-cgroups-v9-fix.patch
-memory-controller-soft-limit-refactor-reclaim-flags-v9.patch
-memory-controller-soft-limit-reclaim-on-contention-v9.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
-memcg-improve-resource-counter-scalability.patch
-memcg-improve-resource-counter-scalability-v5.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
+x86-fix-x86_model-test-in-es7000_apic_is_cluster.patch
+s3c-fix-check-of-index-into-s3c_gpios.patch
+stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
+dm-strncpy-does-not-null-terminate-string.patch
+pcmcia-fix-read-buffer-overflow.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+drm-i915-intel_sdvo_multifunc_encoder-sdvo_output_svid0-tested-twice.patch
+v4l-dvb-fix-test-of-bandwidth-range-in-cx22700_set_tps.patch
+mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
+octeon-false-positive-timeout.patch
+slram-read-buffer-overflow.patch
+mtd-fix-read-buffer-overflow.patch
+mtd-jffs2-fix-read-buffer-overflow.patch
+mtd-prevent-a-read-from-eraseregions.patch
+mtd-prevent-a-read-from-regions.patch
+tipc-fix-test-of-bearer_priority-range-in-tipc_register_media.patch
+hfc_usb-fix-read-buffer-overflow.patch
+zorro8390-fix-read-buffer-overflow-in-zorro8390_init_one-checkpatch-fixes.patch
+cyclades-read-buffer-overflow.patch
+serial167-fix-read-buffer-overflow.patch
+regulator-fix-calculation-of-voltage-range-in-da9034_set_ldo12_voltage.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
+zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
+st-fix-test-of-value-range-in-st_set_options.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+blackfin-fix-read-buffer-overflow.patch
+arch-alpha-boot-tools-objstripc-wrong-variable-tested-after-open.patch
+m32r-remove-redundant-tests-on-unsigned.patch
+uml-fix-order-of-pud-and-pmd_free.patch
+dme1737-keep-index-within-pwm_config.patch
+sdio-fix-read-buffer-overflow.patch
+hwmon-fix-freeing-of-gpio_data-and-irq.patch
+ncpfs-read-buffer-overflow.patch
+smbfs-read-buffer-overflow.patch
+platinumfb-misplaced-parenthesis.patch
+sisfb-read-buffer-overflow.patch
+drivers-video-console-newport_conc-fix-read-outside-array-bounds.patch
+mwave-fix-read-buffer-overflow.patch
+adfs-remove-redundant-test-on-unsigned.patch
 
