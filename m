@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Thu, 27 Aug 2009 15:34:39 -0700
-Message-ID: <200908272234.n7RMYdOJ004963@imap1.linux-foundation.org>
+Subject: + st-fix-test-of-value-range-in-st_set_options-fix.patch added to -mm tree
+Date: Thu, 27 Aug 2009 16:27:41 -0700
+Message-ID: <200908272327.n7RNRfCX002394@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40260 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50324 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751166AbZH0Wej (ORCPT
+	by vger.kernel.org with ESMTP id S1751482AbZH0X2P (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Aug 2009 18:34:39 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n7RMYdTC025779
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 27 Aug 2009 15:34:40 -0700
+	Thu, 27 Aug 2009 19:28:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, osst@riede.org, roel.kluin@gmail.com
 
 
 The patch titled
-     linux-next-git-rejects
+     st-fix-test-of-value-range-in-st_set_options-fix
 has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     st-fix-test-of-value-range-in-st_set_options-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,111 +34,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
+Subject: st-fix-test-of-value-range-in-st_set_options-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+drivers/scsi/st.c: In function 'st_set_options':
+drivers/scsi/st.c:2283: warning: suggest parentheses around && within ||
+
+Cc: James E.J. Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Roel Kluin <roel.kluin@gmail.com>
+Cc: Willem Riede <osst@riede.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_throttling.c |   34 +++++++-------------------
- drivers/net/virtio_net.c            |    7 -----
- 2 files changed, 10 insertions(+), 31 deletions(-)
+ drivers/scsi/st.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/acpi/processor_throttling.c~linux-next-git-rejects drivers/acpi/processor_throttling.c
---- a/drivers/acpi/processor_throttling.c~linux-next-git-rejects
-+++ a/drivers/acpi/processor_throttling.c
-@@ -1015,14 +1015,11 @@ static int acpi_processor_set_throttling
- 	return 0;
- }
- 
--<<<<<<< HEAD:drivers/acpi/processor_throttling.c
--int acpi_processor_set_throttling(struct acpi_processor *pr,
--						int state, bool force)
--=======
- struct set_throttling_info {
- 	struct acpi_processor *pr;
- 	struct acpi_processor_throttling *p_throttling;
- 	int target_state;
-+	bool force;
- 	int ret;
- };
- 
-@@ -1031,11 +1028,11 @@ static void set_throttling(void *_sti)
- 	struct set_throttling_info *s = _sti;
- 
- 	s->ret = s->p_throttling->acpi_processor_set_throttling(s->pr,
--								s->target_state);
-+						s->target_state, s->force);
- }
- 
--int acpi_processor_set_throttling(struct acpi_processor *pr, int state)
-->>>>>>> FETCH_HEAD:drivers/acpi/processor_throttling.c
-+int acpi_processor_set_throttling(struct acpi_processor *pr, int state,
-+				bool force)
- {
- 	int ret = 0;
- 	unsigned int i;
-@@ -1077,17 +1074,13 @@ int acpi_processor_set_throttling(struct
- 	 * it can be called only for the cpu pointed by pr.
- 	 */
- 	if (p_throttling->shared_type == DOMAIN_COORD_TYPE_SW_ANY) {
--<<<<<<< HEAD:drivers/acpi/processor_throttling.c
--		/* FIXME: use work_on_cpu() */
--		set_cpus_allowed_ptr(current, cpumask_of(pr->id));
--		ret = p_throttling->acpi_processor_set_throttling(pr,
--						t_state.target_state, force);
--=======
--		struct set_throttling_info sti
--			= { pr, p_throttling, t_state.target_state };
-+		struct set_throttling_info sti = {
-+			.pr = pr,
-+			.p_throttling = p_throttling,
-+			.target_state = t_state.target_state,
-+			.force = force, };
- 		smp_call_function_single(pr->id, set_throttling, &sti, 1);
- 		ret = sti.ret;
-->>>>>>> FETCH_HEAD:drivers/acpi/processor_throttling.c
- 	} else {
- 		/*
- 		 * When the T-state coordination is SW_ALL or HW_ALL,
-@@ -1118,19 +1111,12 @@ int acpi_processor_set_throttling(struct
- 				continue;
- 			}
- 			t_state.cpu = i;
--<<<<<<< HEAD:drivers/acpi/processor_throttling.c
--			/* FIXME: use work_on_cpu() */
--			set_cpus_allowed_ptr(current, cpumask_of(i));
--			ret = match_pr->throttling.
--				acpi_processor_set_throttling(
--				match_pr, t_state.target_state, force);
--=======
- 			sti.pr = match_pr;
- 			sti.p_throttling = &match_pr->throttling;
- 			sti.target_state = t_state.target_state;
-+			sti.force = force;
- 			smp_call_function_single(i, set_throttling, &sti, 1);
- 			ret = sti.ret;
-->>>>>>> FETCH_HEAD:drivers/acpi/processor_throttling.c
- 		}
- 	}
- 	/*
-diff -puN drivers/net/virtio_net.c~linux-next-git-rejects drivers/net/virtio_net.c
---- a/drivers/net/virtio_net.c~linux-next-git-rejects
-+++ a/drivers/net/virtio_net.c
-@@ -884,13 +884,6 @@ static int virtnet_probe(struct virtio_d
- 	vdev->priv = vi;
- 	vi->pages = NULL;
- 	INIT_DELAYED_WORK(&vi->refill, refill_work);
--<<<<<<< HEAD:drivers/net/virtio_net.c
--
--	/* If they give us a callback when all buffers are done, we don't need
--	 * the timer. */
--	vi->free_in_tasklet = virtio_has_feature(vdev,VIRTIO_F_NOTIFY_ON_EMPTY);
--=======
-->>>>>>> FETCH_HEAD:drivers/net/virtio_net.c
- 
- 	/* If we can receive ANY GSO packets, we must allocate large ones. */
- 	if (virtio_has_feature(vdev, VIRTIO_NET_F_GUEST_TSO4)
+diff -puN drivers/scsi/st.c~st-fix-test-of-value-range-in-st_set_options-fix drivers/scsi/st.c
+--- a/drivers/scsi/st.c~st-fix-test-of-value-range-in-st_set_options-fix
++++ a/drivers/scsi/st.c
+@@ -2280,7 +2280,8 @@ static int st_set_options(struct scsi_ta
+ 	} else if (code == MT_ST_SET_CLN) {
+ 		value = (options & ~MT_ST_OPTIONS) & 0xff;
+ 		if (value != 0 &&
+-		    value < EXTENDED_SENSE_START || value >= SCSI_SENSE_BUFFERSIZE)
++			(value < EXTENDED_SENSE_START ||
++				value >= SCSI_SENSE_BUFFERSIZE))
+ 			return (-EINVAL);
+ 		STp->cln_mode = value;
+ 		STp->cln_sense_mask = (options >> 8) & 0xff;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -166,6 +85,7 @@ zorro8390-fix-read-buffer-overflow-in-zorro8390_init_one-checkpatch-fixes.patch
 bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
 serial167-fix-read-buffer-overflow.patch
 waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes-checkpatch-fixes.patch
+st-fix-test-of-value-range-in-st_set_options-fix.patch
 raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
 libfs-make-simple_read_from_buffer-conventional.patch
 fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
