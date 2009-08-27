@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + reiserfs-remove-proc-fs-reiserfs-version.patch added to -mm tree
-Date: Thu, 27 Aug 2009 14:13:17 -0700
-Message-ID: <200908272113.n7RLDHCt021275@imap1.linux-foundation.org>
+Subject: + rtc-set-wakeup-capability-for-i2c-and-spi-rtc-drivers.patch added to -mm tree
+Date: Thu, 27 Aug 2009 14:10:38 -0700
+Message-ID: <200908272110.n7RLAdGt016582@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55087 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32972 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752100AbZH0VN4 (ORCPT
+	by vger.kernel.org with ESMTP id S1752100AbZH0VQL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Aug 2009 17:13:56 -0400
+	Thu, 27 Aug 2009 17:16:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com, jeffm@suse.com
+Cc: avorontsov@ru.mvista.com, a.zummo@towertech.it, ben-linux@fluff.org, dbrownell@users.sourceforge.net, khali@linux-fr.org
 
 
 The patch titled
-     reiserfs: remove /proc/fs/reiserfs/version
+     rtc: set wakeup capability for I2C and SPI RTC drivers
 has been added to the -mm tree.  Its filename is
-     reiserfs-remove-proc-fs-reiserfs-version.patch
+     rtc-set-wakeup-capability-for-i2c-and-spi-rtc-drivers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,153 +34,117 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiserfs: remove /proc/fs/reiserfs/version
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: rtc: set wakeup capability for I2C and SPI RTC drivers
+From: Anton Vorontsov <avorontsov@ru.mvista.com>
 
-/proc/fs/reiserfs/version is on the way of removing ->read_proc interface.
- It's empty however, so simply remove it instead of doing dummy
-conversion.  It's hard to see what information userspace can extract from
-empty file.
+RTC core won't allow wakeup alarms to be set if RTC devices' parent (i.e. 
+i2c_client or spi_device) isn't wakeup capable.
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Jeff Mahoney <jeffm@suse.com>
+For I2C devices there is I2C_CLIENT_WAKE flag exists that we can pass via
+board info, and if set, I2C core will initialize wakeup capability.  For
+SPI devices there is no such flag at all.
+
+I believe that it's not platform code responsibility to allow or disallow
+wakeups, instead, drivers themselves should set the capability if a device
+can trigger wakeups.
+
+That's what drivers/base/power/sysfs.c says:
+
+ * It is the responsibility of device drivers to enable (or disable)
+ * wakeup signaling as part of changing device power states, respecting
+ * the policy choices provided through the driver model.
+
+I2C and SPI RTC devices send wakeup events via interrupt lines, so we
+should set the wakeup capability if IRQ is routed.
+
+Ideally we should also check irq for wakeup capability before setting
+device's capability, i.e.
+
+	if (can_irq_wake(irq))
+		device_set_wakeup_capable(&client->dev, 1);
+
+But there is no can_irq_wake() call exist, and it is not that trivial to
+implement it for all interrupts controllers and complex/cascaded setups.
+
+drivers/base/power/sysfs.c also covers these cases:
+
+ * Devices may not be able to generate wakeup events from all power
+ * states.  Also, the events may be ignored in some configurations;
+ * for example, they might need help from other devices that aren't
+ * active
+
+So there is no guarantee that wakeup will actually work, and so I think
+there is no point in being pedantic wrt checking IRQ wakeup capability.
+
+Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Ben Dooks <ben-linux@fluff.org>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/procfs.c        |   39 ----------------------------------
- fs/reiserfs/super.c         |    4 ---
- include/linux/reiserfs_fs.h |    5 ----
- 3 files changed, 48 deletions(-)
+ drivers/rtc/rtc-ds1305.c |    2 ++
+ drivers/rtc/rtc-ds1307.c |    2 ++
+ drivers/rtc/rtc-ds1374.c |    2 ++
+ 3 files changed, 6 insertions(+)
 
-diff -puN fs/reiserfs/procfs.c~reiserfs-remove-proc-fs-reiserfs-version fs/reiserfs/procfs.c
---- a/fs/reiserfs/procfs.c~reiserfs-remove-proc-fs-reiserfs-version
-+++ a/fs/reiserfs/procfs.c
-@@ -48,14 +48,6 @@ static int show_version(struct seq_file 
- 	return 0;
- }
- 
--int reiserfs_global_version_in_proc(char *buffer, char **start, off_t offset,
--				    int count, int *eof, void *data)
--{
--	*start = buffer;
--	*eof = 1;
--	return 0;
--}
--
- #define SF( x ) ( r -> x )
- #define SFP( x ) SF( s_proc_info_data.x )
- #define SFPL( x ) SFP( x[ level ] )
-@@ -538,19 +530,6 @@ int reiserfs_proc_info_done(struct super
- 	return 0;
- }
- 
--struct proc_dir_entry *reiserfs_proc_register_global(char *name,
--						     read_proc_t * func)
--{
--	return (proc_info_root) ? create_proc_read_entry(name, 0,
--							 proc_info_root,
--							 func, NULL) : NULL;
--}
--
--void reiserfs_proc_unregister_global(const char *name)
--{
--	remove_proc_entry(name, proc_info_root);
--}
--
- int reiserfs_proc_info_global_init(void)
- {
- 	if (proc_info_root == NULL) {
-@@ -585,16 +564,6 @@ int reiserfs_proc_info_done(struct super
- 	return 0;
- }
- 
--struct proc_dir_entry *reiserfs_proc_register_global(char *name,
--						     read_proc_t * func)
--{
--	return NULL;
--}
--
--void reiserfs_proc_unregister_global(const char *name)
--{;
--}
--
- int reiserfs_proc_info_global_init(void)
- {
- 	return 0;
-@@ -603,14 +572,6 @@ int reiserfs_proc_info_global_done(void)
- {
- 	return 0;
- }
--
--int reiserfs_global_version_in_proc(char *buffer, char **start,
--				    off_t offset,
--				    int count, int *eof, void *data)
--{
--	return 0;
--}
--
- /* REISERFS_PROC_INFO */
- #endif
- 
-diff -puN fs/reiserfs/super.c~reiserfs-remove-proc-fs-reiserfs-version fs/reiserfs/super.c
---- a/fs/reiserfs/super.c~reiserfs-remove-proc-fs-reiserfs-version
-+++ a/fs/reiserfs/super.c
-@@ -2222,8 +2222,6 @@ static int __init init_reiserfs_fs(void)
+diff -puN drivers/rtc/rtc-ds1305.c~rtc-set-wakeup-capability-for-i2c-and-spi-rtc-drivers drivers/rtc/rtc-ds1305.c
+--- a/drivers/rtc/rtc-ds1305.c~rtc-set-wakeup-capability-for-i2c-and-spi-rtc-drivers
++++ a/drivers/rtc/rtc-ds1305.c
+@@ -780,6 +780,8 @@ static int __devinit ds1305_probe(struct
+ 					spi->irq, status);
+ 			goto fail1;
+ 		}
++
++		device_set_wakeup_capable(&spi->dev, 1);
  	}
  
- 	reiserfs_proc_info_global_init();
--	reiserfs_proc_register_global("version",
--				      reiserfs_global_version_in_proc);
- 
- 	ret = register_filesystem(&reiserfs_fs_type);
- 
-@@ -2231,7 +2229,6 @@ static int __init init_reiserfs_fs(void)
- 		return 0;
+ 	/* export NVRAM */
+diff -puN drivers/rtc/rtc-ds1307.c~rtc-set-wakeup-capability-for-i2c-and-spi-rtc-drivers drivers/rtc/rtc-ds1307.c
+--- a/drivers/rtc/rtc-ds1307.c~rtc-set-wakeup-capability-for-i2c-and-spi-rtc-drivers
++++ a/drivers/rtc/rtc-ds1307.c
+@@ -881,6 +881,8 @@ read_rtc:
+ 				"unable to request IRQ!\n");
+ 			goto exit_irq;
+ 		}
++
++		device_set_wakeup_capable(&client->dev, 1);
+ 		set_bit(HAS_ALARM, &ds1307->flags);
+ 		dev_dbg(&client->dev, "got IRQ %d\n", client->irq);
+ 	}
+diff -puN drivers/rtc/rtc-ds1374.c~rtc-set-wakeup-capability-for-i2c-and-spi-rtc-drivers drivers/rtc/rtc-ds1374.c
+--- a/drivers/rtc/rtc-ds1374.c~rtc-set-wakeup-capability-for-i2c-and-spi-rtc-drivers
++++ a/drivers/rtc/rtc-ds1374.c
+@@ -383,6 +383,8 @@ static int ds1374_probe(struct i2c_clien
+ 			dev_err(&client->dev, "unable to request IRQ\n");
+ 			goto out_free;
+ 		}
++
++		device_set_wakeup_capable(&client->dev, 1);
  	}
  
--	reiserfs_proc_unregister_global("version");
- 	reiserfs_proc_info_global_done();
- 	destroy_inodecache();
- 
-@@ -2240,7 +2237,6 @@ static int __init init_reiserfs_fs(void)
- 
- static void __exit exit_reiserfs_fs(void)
- {
--	reiserfs_proc_unregister_global("version");
- 	reiserfs_proc_info_global_done();
- 	unregister_filesystem(&reiserfs_fs_type);
- 	destroy_inodecache();
-diff -puN include/linux/reiserfs_fs.h~reiserfs-remove-proc-fs-reiserfs-version include/linux/reiserfs_fs.h
---- a/include/linux/reiserfs_fs.h~reiserfs-remove-proc-fs-reiserfs-version
-+++ a/include/linux/reiserfs_fs.h
-@@ -2061,13 +2061,8 @@ struct dentry *reiserfs_get_parent(struc
- 
- int reiserfs_proc_info_init(struct super_block *sb);
- int reiserfs_proc_info_done(struct super_block *sb);
--struct proc_dir_entry *reiserfs_proc_register_global(char *name,
--						     read_proc_t * func);
--void reiserfs_proc_unregister_global(const char *name);
- int reiserfs_proc_info_global_init(void);
- int reiserfs_proc_info_global_done(void);
--int reiserfs_global_version_in_proc(char *buffer, char **start, off_t offset,
--				    int count, int *eof, void *data);
- 
- #if defined( REISERFS_PROC_INFO )
- 
+ 	ds1374->rtc = rtc_device_register(client->name, &client->dev,
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from avorontsov@ru.mvista.com are
 
-origin.patch
 linux-next.patch
-oom-move-oom_killer_enable-oom_killer_disable-to-where-they-belong.patch
-scripts-get_maintainerpl-add-remove-duplicates.patch
-proc_flush_task-flush-proc-tid-task-pid-when-a-sub-thread-exits.patch
-procfs-provide-stack-information-for-threads-v08.patch
-procfs-provide-stack-information-for-threads-v011.patch
-procfs-provide-stack-information-for-threads-v011-fix.patch
-reiserfs-remove-proc-fs-reiserfs-version.patch
-reiserfs-dont-compile-procfso-at-all-if-no-support.patch
-sysctl-remove-struct-file-argument-of-proc_handler.patch
-aio-ifdef-fields-in-mm_struct.patch
+mtd-sst25l-non-jedec-spi-flash-driver.patch
+mtd-m25p80-fix-null-pointer-dereference-bug.patch
+sdhci-be-more-strict-with-get_min_clock-usage.patch
+sdhci-of-fix-sd-clock-calculation.patch
+sdhci-of-avoid-writing-reserved-bits-into-host-control-register.patch
+sdhci-of-fix-high-speed-cards-recognition.patch
+powerpc-introduce-and-document-sdhciwp-inverted-property-for-esdhc.patch
+sdhci-of-dont-hard-code-inverted-write-protect-quirk.patch
+sdhci-of-cleanup-esdhcs-set_clock-a-little-bit.patch
+powerpc-85xx-add-esdhc-support-for-mpc8536ds-boards.patch
+spi-add-support-for-device-table-matching.patch
+mtd-m25p80-convert-to-device-table-matching.patch
+of-remove-stmm25p40-alias.patch
+hwmon-adxx-convert-to-device-table-matching.patch
+hwmon-lm70-convert-to-device-table-matching.patch
+spi-prefix-modalias-with-spi.patch
+rtc-set-wakeup-capability-for-i2c-and-spi-rtc-drivers.patch
 
