@@ -1,103 +1,206 @@
 From: akpm@linux-foundation.org
-Subject: [merged] acpi-dont-call-acpi_processor_init-if-acpi-is-disabled.patch removed from -mm tree
-Date: Thu, 27 Aug 2009 12:18:26 -0700
-Message-ID: <200908271918.n7RJIQp4010166@imap1.linux-foundation.org>
+Subject: [merged] clone-fix-race-between-copy_process-and-de_thread.patch removed from -mm tree
+Date: Thu, 27 Aug 2009 12:18:21 -0700
+Message-ID: <200908271918.n7RJILlX010128@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38674 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40160 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751526AbZH0TTr (ORCPT
+	by vger.kernel.org with ESMTP id S1751862AbZH0TTs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Aug 2009 15:19:47 -0400
+	Thu, 27 Aug 2009 15:19:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yinghai@kernel.org, jens@leia.mcbone.net, lenb@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: oleg@redhat.com, h-shimamoto@ct.jp.nec.com, kamezawa.hiroyu@jp.fujitsu.com, roland@redhat.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     acpi: don't call acpi_processor_init if acpi is disabled
+     clone(): fix race between copy_process() and de_thread()
 has been removed from the -mm tree.  Its filename was
-     acpi-dont-call-acpi_processor_init-if-acpi-is-disabled.patch
+     clone-fix-race-between-copy_process-and-de_thread.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi: don't call acpi_processor_init if acpi is disabled
-From: Yinghai Lu <yinghai@kernel.org>
+Subject: clone(): fix race between copy_process() and de_thread()
+From: Oleg Nesterov <oleg@redhat.com>
 
-Jens reported early_ioremap messages with old ASUS board...
+Spotted by Hiroshi Shimamoto who also provided the test-case below.
 
-> [    1.507461] pci 0000:00:09.0: Firmware left e100 interrupts enabled;
-> disabling
-> [    1.532778] early_ioremap(3fffd080, 0000005c) [0] => Pid: 1, comm:
-> swapper Not tainted 2.6.31-rc4 #36
-> [    1.561007] Call Trace:
-> [    1.568638]  [<c136e48b>] ? printk+0x18/0x1d
-> [    1.581734]  [<c15513ff>] __early_ioremap+0x74/0x1e9
-> [    1.596898]  [<c15515aa>] early_ioremap+0x1a/0x1c
-> [    1.611270]  [<c154a187>] __acpi_map_table+0x18/0x1a
-> [    1.626451]  [<c135a7f8>] acpi_os_map_memory+0x1d/0x25
-> [    1.642129]  [<c119459c>] acpi_tb_verify_table+0x20/0x49
-> [    1.658321]  [<c1193e50>] acpi_get_table_with_size+0x53/0xa1
-> [    1.675553]  [<c1193eae>] acpi_get_table+0x10/0x15
-> [    1.690192]  [<c155cc19>] acpi_processor_init+0x23/0xab
-> [    1.706126]  [<c1001043>] do_one_initcall+0x33/0x180
-> [    1.721279]  [<c155cbf6>] ? acpi_processor_init+0x0/0xab
-> [    1.737479]  [<c106893a>] ? register_irq_proc+0xaa/0xc0
-> [    1.753411]  [<c10689b7>] ? init_irq_proc+0x67/0x80
-> [    1.768316]  [<c15405e7>] kernel_init+0x120/0x176
-> [    1.782678]  [<c15404c7>] ? kernel_init+0x0/0x176
-> [    1.797062]  [<c10038b7>] kernel_thread_helper+0x7/0x10
-> [    1.812984] 00000080 + ffe00000
+copy_process() uses signal->count as a reference counter, but it is not. 
+This test case
 
-that is rather later.
-acpi_gbl_permanent_mmap should be set in acpi_early_init()
-if acpi is not disabled
+	#include <sys/types.h>
+	#include <sys/wait.h>
+	#include <unistd.h>
+	#include <stdio.h>
+	#include <errno.h>
+	#include <pthread.h>
 
-and we have
-> [    0.000000] ASUS P2B-DS detected: force use of acpi=ht
+	void *null_thread(void *p)
+	{
+		for (;;)
+			sleep(1);
 
-just don't load acpi_processor_init...
+		return NULL;
+	}
 
-Reported-and-tested-by: Jens Rosenboom <jens@leia.mcbone.net>
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Acked-by: Ingo Molnar <mingo@elte.hu>
-Cc: Len Brown <lenb@kernel.org>
+	void *exec_thread(void *p)
+	{
+		execl("/bin/true", "/bin/true", NULL);
+
+		return null_thread(p);
+	}
+
+	int main(int argc, char **argv)
+	{
+		for (;;) {
+			pid_t pid;
+			int ret, status;
+
+			pid = fork();
+			if (pid < 0)
+				break;
+
+			if (!pid) {
+				pthread_t tid;
+
+				pthread_create(&tid, NULL, exec_thread, NULL);
+				for (;;)
+					pthread_create(&tid, NULL, null_thread, NULL);
+			}
+
+			do {
+				ret = waitpid(pid, &status, 0);
+			} while (ret == -1 && errno == EINTR);
+		}
+
+		return 0;
+	}
+
+quickly creates an unkillable task.
+
+If copy_process(CLONE_THREAD) races with de_thread()
+copy_signal()->atomic(signal->count) breaks the signal->notify_count
+logic, and the execing thread can hang forever in kernel space.
+
+Change copy_process() to increment count/live only when we know for sure
+we can't fail.  In this case the forked thread will take care of its
+reference to signal correctly.
+
+If copy_process() fails, check CLONE_THREAD flag.  If it it set - do
+nothing, the counters were not changed and current belongs to the same
+thread group.  If it is not set, ->signal must be released in any case
+(and ->count must be == 1), the forked child is the only thread in the
+thread group.
+
+We need more cleanups here, in particular signal->count should not be used
+by de_thread/__exit_signal at all.  This patch only fixes the bug.
+
+Reported-by: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
+Tested-by: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Roland McGrath <roland@redhat.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_core.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ kernel/fork.c |   20 +++++---------------
+ 1 file changed, 5 insertions(+), 15 deletions(-)
 
-diff -puN drivers/acpi/processor_core.c~acpi-dont-call-acpi_processor_init-if-acpi-is-disabled drivers/acpi/processor_core.c
---- a/drivers/acpi/processor_core.c~acpi-dont-call-acpi_processor_init-if-acpi-is-disabled
-+++ a/drivers/acpi/processor_core.c
-@@ -1151,6 +1151,9 @@ static int __init acpi_processor_init(vo
+diff -puN kernel/fork.c~clone-fix-race-between-copy_process-and-de_thread kernel/fork.c
+--- a/kernel/fork.c~clone-fix-race-between-copy_process-and-de_thread
++++ a/kernel/fork.c
+@@ -815,11 +815,8 @@ static int copy_signal(unsigned long clo
  {
- 	int result = 0;
+ 	struct signal_struct *sig;
  
-+	if (acpi_disabled)
-+		return 0;
-+
- 	memset(&errata, 0, sizeof(errata));
+-	if (clone_flags & CLONE_THREAD) {
+-		atomic_inc(&current->signal->count);
+-		atomic_inc(&current->signal->live);
++	if (clone_flags & CLONE_THREAD)
+ 		return 0;
+-	}
  
- #ifdef CONFIG_SMP
-@@ -1197,6 +1200,9 @@ out_proc:
+ 	sig = kmem_cache_alloc(signal_cachep, GFP_KERNEL);
+ 	tsk->signal = sig;
+@@ -877,16 +874,6 @@ void __cleanup_signal(struct signal_stru
+ 	kmem_cache_free(signal_cachep, sig);
+ }
  
- static void __exit acpi_processor_exit(void)
+-static void cleanup_signal(struct task_struct *tsk)
+-{
+-	struct signal_struct *sig = tsk->signal;
+-
+-	atomic_dec(&sig->live);
+-
+-	if (atomic_dec_and_test(&sig->count))
+-		__cleanup_signal(sig);
+-}
+-
+ static void copy_flags(unsigned long clone_flags, struct task_struct *p)
  {
-+	if (acpi_disabled)
-+		return;
-+
- 	acpi_processor_ppc_exit();
+ 	unsigned long new_flags = p->flags;
+@@ -1239,6 +1226,8 @@ static struct task_struct *copy_process(
+ 	}
  
- 	acpi_thermal_cpufreq_exit();
+ 	if (clone_flags & CLONE_THREAD) {
++		atomic_inc(&current->signal->count);
++		atomic_inc(&current->signal->live);
+ 		p->group_leader = current->group_leader;
+ 		list_add_tail_rcu(&p->thread_group, &p->group_leader->thread_group);
+ 	}
+@@ -1282,7 +1271,8 @@ bad_fork_cleanup_mm:
+ 	if (p->mm)
+ 		mmput(p->mm);
+ bad_fork_cleanup_signal:
+-	cleanup_signal(p);
++	if (!(clone_flags & CLONE_THREAD))
++		__cleanup_signal(p->signal);
+ bad_fork_cleanup_sighand:
+ 	__cleanup_sighand(p->sighand);
+ bad_fork_cleanup_fs:
 _
 
-Patches currently in -mm which might be from yinghai@kernel.org are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 origin.patch
 linux-next.patch
+getrusage-fill-ru_maxrss-value.patch
+getrusage-fill-ru_maxrss-value-update.patch
+proc_flush_task-flush-proc-tid-task-pid-when-a-sub-thread-exits.patch
+cgroups-revert-cgroups-fix-pid-namespace-bug.patch
+cgroups-add-a-read-only-procs-file-similar-to-tasks-that-shows-only-unique-tgids.patch
+cgroups-ensure-correct-concurrent-opening-reading-of-pidlists-across-pid-namespaces.patch
+cgroups-use-vmalloc-for-large-cgroups-pidlist-allocations.patch
+cgroups-change-css_set-freeing-mechanism-to-be-under-rcu.patch
+cgroups-let-ss-can_attach-and-ss-attach-do-whole-threadgroups-at-a-time.patch
+cgroups-let-ss-can_attach-and-ss-attach-do-whole-threadgroups-at-a-time-fix.patch
+cgroups-add-functionality-to-read-write-lock-clone_thread-forking-per-threadgroup.patch
+cgroups-add-functionality-to-read-write-lock-clone_thread-forking-per-threadgroup-fix.patch
+cgroups-add-ability-to-move-all-threads-in-a-process-to-a-new-cgroup-atomically.patch
+ptrace-__ptrace_detach-do-__wake_up_parent-if-we-reap-the-tracee.patch
+do_wait-wakeup-optimization-shift-security_task_wait-from-eligible_child-to-wait_consider_task.patch
+do_wait-wakeup-optimization-change-__wake_up_parent-to-use-filtered-wakeup.patch
+do_wait-wakeup-optimization-change-__wake_up_parent-to-use-filtered-wakeup-selinux_bprm_committed_creds-use-__wake_up_parent.patch
+do_wait-wakeup-optimization-child_wait_callback-check-__wnothread-case.patch
+do_wait-optimization-do-not-place-sub-threads-on-task_struct-children-list.patch
+wait_consider_task-kill-parent-argument.patch
+do_wait-fix-sys_waitid-specific-behaviour.patch
+wait_noreap_copyout-check-for-wo_info-=-null.patch
+signals-introduce-do_send_sig_info-helper.patch
+signals-send_sigio-use-do_send_sig_info-to-avoid-check_kill_permission.patch
+fcntl-add-f_etown_ex.patch
+signals-inline-__fatal_signal_pending.patch
+signals-tracehook_notify_jctl-change.patch
+signals-tracehook_notify_jctl-change-do_signal_stop-do-not-call-tracehook_notify_jctl-in-task_stopped-state.patch
+signals-introduce-tracehook_finish_jctl-helper.patch
+utrace-core.patch
+exec-fix-set_binfmt-vs-sys_delete_module-race.patch
+fork-disable-clone_parent-for-init.patch
+pidns-deny-clone_parentclone_newpid-combination.patch
+task_struct-cleanup-move-binfmt-field-to-mm_struct.patch
 
