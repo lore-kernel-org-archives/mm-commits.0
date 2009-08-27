@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + oom-oom_kill-doesnt-kill-vfork-parentor-child.patch added to -mm tree
-Date: Thu, 27 Aug 2009 14:27:47 -0700
-Message-ID: <200908272127.n7RLRlvZ014777@imap1.linux-foundation.org>
+Subject: + oom-fix-oom_adjust_write-input-sanity-check.patch added to -mm tree
+Date: Thu, 27 Aug 2009 14:27:49 -0700
+Message-ID: <200908272127.n7RLRnHS014848@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38084 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34494 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753189AbZH0V2D (ORCPT
+	by vger.kernel.org with ESMTP id S1753191AbZH0V2E (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Aug 2009 17:28:03 -0400
+	Thu, 27 Aug 2009 17:28:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, menage@googl
 
 
 The patch titled
-     oom: oom_kill doesn't kill vfork parent (or child)
+     oom: fix oom_adjust_write() input sanity check
 has been added to the -mm tree.  Its filename is
-     oom-oom_kill-doesnt-kill-vfork-parentor-child.patch
+     oom-fix-oom_adjust_write-input-sanity-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,26 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: oom_kill doesn't kill vfork parent (or child)
+Subject: oom: fix oom_adjust_write() input sanity check
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Current oom_kill doesn't only kill the victim process, but also kill all
-thas shread the same mm.  it mean vfork parent will be killed.
-
-This is definitely incorrect.  another process have another oom_adj.  we
-shouldn't ignore their oom_adj (it might have OOM_DISABLE).
-
-following caller hit the minefield.
-
-===============================
-        switch (constraint) {
-        case CONSTRAINT_MEMORY_POLICY:
-                oom_kill_process(current, gfp_mask, order, 0, NULL,
-                                "No available memory (MPOL_BIND)");
-                break;
-
-Note: force_sig(SIGKILL) send SIGKILL to all thread in the process.
-We don't need to care multi thread in here.
+Andrew Morton pointed out oom_adjust_write() has very strange EIO
+and new line handling. this patch fixes it.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Paul Menage <menage@google.com>
@@ -63,47 +48,54 @@ Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   17 +----------------
- 1 file changed, 1 insertion(+), 16 deletions(-)
+ fs/proc/base.c |   18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
 
-diff -puN mm/oom_kill.c~oom-oom_kill-doesnt-kill-vfork-parentor-child mm/oom_kill.c
---- a/mm/oom_kill.c~oom-oom_kill-doesnt-kill-vfork-parentor-child
-+++ a/mm/oom_kill.c
-@@ -373,11 +373,6 @@ static void __oom_kill_task(struct task_
- 
- static int oom_kill_task(struct task_struct *p)
+diff -puN fs/proc/base.c~oom-fix-oom_adjust_write-input-sanity-check fs/proc/base.c
+--- a/fs/proc/base.c~oom-fix-oom_adjust_write-input-sanity-check
++++ a/fs/proc/base.c
+@@ -1021,21 +1021,24 @@ static ssize_t oom_adjust_write(struct f
+ 				size_t count, loff_t *ppos)
  {
--	struct mm_struct *mm;
--	struct task_struct *g, *q;
--
--	mm = p->mm;
--
- 	/* WARNING: mm may not be dereferenced since we did not obtain its
- 	 * value from get_task_mm(p).  This is OK since all we need to do is
- 	 * compare mm to q->mm below.
-@@ -386,21 +381,11 @@ static int oom_kill_task(struct task_str
- 	 * change to NULL at any time since we do not hold task_lock(p).
- 	 * However, this is of no concern to us.
- 	 */
--	if (!mm || p->signal->oom_adj == OOM_DISABLE)
-+	if (!p->mm || p->signal->oom_adj == OOM_DISABLE)
- 		return 1;
+ 	struct task_struct *task;
+-	char buffer[PROC_NUMBUF], *end;
+-	int oom_adjust;
++	char buffer[PROC_NUMBUF];
++	long oom_adjust;
+ 	unsigned long flags;
++	int err;
  
- 	__oom_kill_task(p, 1);
+ 	memset(buffer, 0, sizeof(buffer));
+ 	if (count > sizeof(buffer) - 1)
+ 		count = sizeof(buffer) - 1;
+ 	if (copy_from_user(buffer, buf, count))
+ 		return -EFAULT;
+-	oom_adjust = simple_strtol(buffer, &end, 0);
++
++	err = strict_strtol(strstrip(buffer), 0, &oom_adjust);
++	if (err)
++		return -EINVAL;
+ 	if ((oom_adjust < OOM_ADJUST_MIN || oom_adjust > OOM_ADJUST_MAX) &&
+ 	     oom_adjust != OOM_DISABLE)
+ 		return -EINVAL;
+-	if (*end == '\n')
+-		end++;
++
+ 	task = get_proc_task(file->f_path.dentry->d_inode);
+ 	if (!task)
+ 		return -ESRCH;
+@@ -1054,9 +1057,8 @@ static ssize_t oom_adjust_write(struct f
  
--	/*
--	 * kill all processes that share the ->mm (i.e. all threads),
--	 * but are in a different thread group. Don't let them have access
--	 * to memory reserves though, otherwise we might deplete all memory.
--	 */
--	do_each_thread(g, q) {
--		if (q->mm == mm && !same_thread_group(q, p))
--			force_sig(SIGKILL, q);
--	} while_each_thread(g, q);
--
- 	return 0;
+ 	unlock_task_sighand(task, &flags);
+ 	put_task_struct(task);
+-	if (end - buffer == 0)
+-		return -EIO;
+-	return end - buffer;
++
++	return count;
  }
  
+ static const struct file_operations proc_oom_adjust_operations = {
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
