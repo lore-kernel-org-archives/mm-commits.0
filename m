@@ -1,186 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-fixup.patch removed from -mm tree
-Date: Thu, 27 Aug 2009 12:16:15 -0700
-Message-ID: <200908271916.n7RJGFbo006228@imap1.linux-foundation.org>
+Subject: [merged] flex_array-fix-get-function-for-elements-in-base-starting-at-non-zero.patch removed from -mm tree
+Date: Thu, 27 Aug 2009 12:18:10 -0700
+Message-ID: <200908271918.n7RJIAKr009805@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47658 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53663 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751168AbZH0TR3 (ORCPT
+	by vger.kernel.org with ESMTP id S1751460AbZH0TSP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Aug 2009 15:17:29 -0400
+	Thu, 27 Aug 2009 15:18:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, elendil@planet.nl, lenb@kernel.org, rui.zhang@intel.com, rusty@rustcorp.com.au, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: rientjes@google.com, dave@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-fixup
+     flex_array: fix get function for elements in base starting at non-zero
 has been removed from the -mm tree.  Its filename was
-     linux-next-fixup.patch
+     flex_array-fix-get-function-for-elements-in-base-starting-at-non-zero.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-fixup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: flex_array: fix get function for elements in base starting at non-zero
+From: David Rientjes <rientjes@google.com>
 
-Fix up the wreckage which "ACPI processor: force throttling state when
-BIOS returns incorrect value" caused to linux-next's
-"misc:work_on_cpu-acpi".
+If all array elements fit into the base structure and data is copied using
+flex_array_put() starting at a non-zero index, flex_array_get() will fail
+to return the data.
 
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Zhang Rui <rui.zhang@intel.com>
-Cc: Frans Pop <elendil@planet.nl>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+This fixes the bug by only checking for NULL parts when all elements do
+not fit in the base structure when flex_array_get() is used.  Otherwise,
+fa_element_to_part_nr() will always be 0 since there are no parts
+structures needed and such element may never have been put.  Thus, it will
+remain NULL due to the kzalloc() of the base.
+
+Additionally, flex_array_put() now only checks for a NULL part when all
+elements do not fit in the base structure.  This is otherwise unnecessary
+since the base structure is guaranteed to exist (or we would have already
+hit a NULL pointer).
+
+Signed-off-by: David Rientjes <rientjes@google.com>
+Acked-by: Dave Hansen <dave@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_throttling.c |   40 +++++++++++++++++++-------
- 1 file changed, 30 insertions(+), 10 deletions(-)
+ lib/flex_array.c |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
-diff -puN drivers/acpi/processor_throttling.c~linux-next-fixup drivers/acpi/processor_throttling.c
---- a/drivers/acpi/processor_throttling.c~linux-next-fixup
-+++ a/drivers/acpi/processor_throttling.c
-@@ -1015,10 +1015,25 @@ static int acpi_processor_set_throttling
+diff -puN lib/flex_array.c~flex_array-fix-get-function-for-elements-in-base-starting-at-non-zero lib/flex_array.c
+--- a/lib/flex_array.c~flex_array-fix-get-function-for-elements-in-base-starting-at-non-zero
++++ a/lib/flex_array.c
+@@ -198,10 +198,11 @@ int flex_array_put(struct flex_array *fa
+ 		return -ENOSPC;
+ 	if (elements_fit_in_base(fa))
+ 		part = (struct flex_array_part *)&fa->parts[0];
+-	else
++	else {
+ 		part = __fa_get_part(fa, part_nr, flags);
+-	if (!part)
+-		return -ENOMEM;
++		if (!part)
++			return -ENOMEM;
++	}
+ 	dst = &part->elements[index_inside_part(fa, element_nr)];
+ 	memcpy(dst, src, fa->element_size);
  	return 0;
- }
+@@ -257,11 +258,12 @@ void *flex_array_get(struct flex_array *
  
-+struct set_throttling_info {
-+	struct acpi_processor *pr;
-+	struct acpi_processor_throttling *p_throttling;
-+	int target_state;
-+	bool force;
-+	int ret;
-+};
-+
-+static void set_throttling(void *_sti)
-+{
-+	struct set_throttling_info *s = _sti;
-+
-+	s->ret = s->p_throttling->acpi_processor_set_throttling(s->pr,
-+						s->target_state, s->force);
-+}
-+
- int acpi_processor_set_throttling(struct acpi_processor *pr,
- 						int state, bool force)
- {
--	cpumask_var_t saved_mask;
- 	int ret = 0;
- 	unsigned int i;
- 	struct acpi_processor *match_pr;
-@@ -1059,10 +1074,14 @@ int acpi_processor_set_throttling(struct
- 	 * it can be called only for the cpu pointed by pr.
- 	 */
- 	if (p_throttling->shared_type == DOMAIN_COORD_TYPE_SW_ANY) {
--		/* FIXME: use work_on_cpu() */
--		set_cpus_allowed_ptr(current, cpumask_of(pr->id));
--		ret = p_throttling->acpi_processor_set_throttling(pr,
--						t_state.target_state, force);
-+		struct set_throttling_info sti = {
-+			.pr = pr,
-+			.p_throttling = p_throttling,
-+			.target_state = t_state.target_state,
-+			.force = force
-+		};
-+		smp_call_function_single(pr->id, set_throttling, &sti, 1);
-+		ret = sti.ret;
- 	} else {
- 		/*
- 		 * When the T-state coordination is SW_ALL or HW_ALL,
-@@ -1093,11 +1112,12 @@ int acpi_processor_set_throttling(struct
- 				continue;
- 			}
- 			t_state.cpu = i;
--			/* FIXME: use work_on_cpu() */
--			set_cpus_allowed_ptr(current, cpumask_of(i));
--			ret = match_pr->throttling.
--				acpi_processor_set_throttling(
--				match_pr, t_state.target_state, force);
-+			sti.pr = match_pr;
-+			sti.p_throttling = &match_pr->throttling;
-+			sti.target_state = t_state.target_state;
-+			sti.force = force;
-+			smp_call_function_single(i, set_throttling, &sti, 1);
-+			ret = sti.ret;
- 		}
- 	}
- 	/*
+ 	if (element_nr >= fa->total_nr_elements)
+ 		return NULL;
+-	if (!fa->parts[part_nr])
+-		return NULL;
+ 	if (elements_fit_in_base(fa))
+ 		part = (struct flex_array_part *)&fa->parts[0];
+-	else
++	else {
+ 		part = fa->parts[part_nr];
++		if (!part)
++			return NULL;
++	}
+ 	return &part->elements[index_inside_part(fa, element_nr)];
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
 linux-next.patch
-linux-next-fixup.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-video-initial-support-for-adv7180-update-fix.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-checkincludespl-add-option-to-remove-duplicates-in-place.patch
-leds-gpio-leds-fix-typographics-fault.patch
-leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio.patch
-slram-read-buffer-overflow.patch
-zorro8390-fix-read-buffer-overflow-in-zorro8390_init_one-checkpatch-fixes.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-serial167-fix-read-buffer-overflow.patch
-waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes-checkpatch-fixes.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
-vfs-optimize-touch_time-too.patch
-fs-improve-remountro-vs-buffercache-coherency-fix.patch
-mm-make-swap-token-dummies-static-inlines-fix.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
-vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
-arches-drop-superfluous-casts-in-nr_free_pages-callers-checkpatch-fixes.patch
-tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
-generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
-proc-connector-add-event-for-process-becoming-session-leader.patch
-kernel-smpc-relocate-some-code.patch
-mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
-sdio-add-cd-disable-support-cleanup.patch
-sdio-add-mmc_quirk_lenient_fn0-fix.patch
-procfs-provide-stack-information-for-threads-v011-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
-rtc-philips-nxp-pcf2123-driver-v03-fix.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes-fix.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
-drivers-video-add-kmalloc-null-tests-fix.patch
-v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
-cgroups-add-functionality-to-read-write-lock-clone_thread-forking-per-threadgroup-fix.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
-memcg-improve-resource-counter-scalability-checkpatch-fixes.patch
-exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
-exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
-elf-clean-up-fill_note_info-fix.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+mm-remove-obsoleted-alloc_pages-cpuset-comment.patch
+hugetlb-balance-freeing-of-huge-pages-across-nodes.patch
+hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages.patch
+hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages-fix.patch
+hugetlb-clean-up-and-update-huge-pages-documentation.patch
+mm-oom-analysis-add-per-zone-statistics-to-show_free_areas.patch
+mm-oom-analysis-add-buffer-cache-information-to-show_free_areas.patch
+mm-oom-analysis-show-kernel-stack-usage-in-proc-meminfo-and-oom-log-output.patch
+mm-oom-analysis-add-shmem-vmstat.patch
+mm-update-alloc_flags-after-oom-killer-has-been-called.patch
+pagemap-clear_refs-modify-to-specify-anon-or-mapped-vma-clearing.patch
+oom-move-oom_killer_enable-oom_killer_disable-to-where-they-belong.patch
+hugetlbfs-allow-the-creation-of-files-suitable-for-map_private-on-the-vfs-internal-mount.patch
+hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions.patch
+hugetlb-add-map_hugetlb-example.patch
+flex_array-add-flex_array_clear-function.patch
+flex_array-poison-free-elements.patch
+flex_array-add-flex_array_shrink-function.patch
+fs-proc-task_mmuc-v1-fix-clear_refs_write-input-sanity-check.patch
+do_wait-optimization-do-not-place-sub-threads-on-task_struct-children-list.patch
 
