@@ -1,106 +1,158 @@
 From: akpm@linux-foundation.org
-Subject: [merged] tipc-fix-test-of-bearer_priority-range-in-tipc_register_media.patch removed from -mm tree
-Date: Mon, 31 Aug 2009 14:18:57 -0700
-Message-ID: <200908312118.n7VLIvll018942@imap1.linux-foundation.org>
+Subject: [merged] drivers-watchdog-booke_wdtc-fix-book-e-watchdog-to-take-wdioc_settimeout-arg-in-seconds.patch removed from -mm tree
+Date: Mon, 31 Aug 2009 14:19:00 -0700
+Message-ID: <200908312119.n7VLJ0hI018946@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56671 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58798 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750829AbZHaVTb (ORCPT
+	by vger.kernel.org with ESMTP id S1750878AbZHaVTj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 31 Aug 2009 17:19:31 -0400
+	Mon, 31 Aug 2009 17:19:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, allan.stephens@windriver.com, per.liden@ericsson.com, mm-commits@vger.kernel.org
+To: cfriesen@nortel.com, galak@gate.crashing.org, wim@iguana.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tipc: fix test of bearer_priority range in tipc_register_media()
+     drivers/watchdog/booke_wdt.c: fix book E watchdog to take WDIOC_SETTIMEOUT arg in seconds
 has been removed from the -mm tree.  Its filename was
-     tipc-fix-test-of-bearer_priority-range-in-tipc_register_media.patch
+     drivers-watchdog-booke_wdtc-fix-book-e-watchdog-to-take-wdioc_settimeout-arg-in-seconds.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tipc: fix test of bearer_priority range in tipc_register_media()
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: drivers/watchdog/booke_wdt.c: fix book E watchdog to take WDIOC_SETTIMEOUT arg in seconds
+From: "Chris Friesen" <cfriesen@nortel.com>
 
-For the bearer_priority to be less than TIPC_MIN_LINK_PRI and greater than
-TIPC_MAX_LINK_PRI is logically impossible.
+The WDIOC_SETTIMEOUT argument is supposed to be a "seconds" value. 
+However, the book E wdt currently treats it as a "period" which is
+interpreted in a board-specific way.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Per Liden <per.liden@ericsson.com>
-Cc: "Stephens, Allan" <allan.stephens@windriver.com>
+This patch allows the user to pass in a "seconds" value and the driver
+will set the smallest timeout that is at least as large as specified by
+the user.  It's been tested on e500 hardware and works as expected.
+
+The patch only modifies the CONFIG_FSL_BOOKE case, the CONFIG_4xx case is
+left unmodified as I don't have any hardware to test it on.
+
+Signed-off-by: Chris Friesen <cfriesen@nortel.com>
+Cc: Kumar Gala <galak@gate.crashing.org>
+Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/tipc/bearer.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/watchdog/booke_wdt.c |   57 ++++++++++++++++++++++++++++++---
+ 1 file changed, 53 insertions(+), 4 deletions(-)
 
-diff -puN net/tipc/bearer.c~tipc-fix-test-of-bearer_priority-range-in-tipc_register_media net/tipc/bearer.c
---- a/net/tipc/bearer.c~tipc-fix-test-of-bearer_priority-range-in-tipc_register_media
-+++ a/net/tipc/bearer.c
-@@ -119,7 +119,7 @@ int  tipc_register_media(u32 media_type,
- 		warn("Media <%s> rejected, no broadcast address\n", name);
- 		goto exit;
- 	}
--	if ((bearer_priority < TIPC_MIN_LINK_PRI) &&
-+	if ((bearer_priority < TIPC_MIN_LINK_PRI) ||
- 	    (bearer_priority > TIPC_MAX_LINK_PRI)) {
- 		warn("Media <%s> rejected, illegal priority (%u)\n", name,
- 		     bearer_priority);
+diff -puN drivers/watchdog/booke_wdt.c~drivers-watchdog-booke_wdtc-fix-book-e-watchdog-to-take-wdioc_settimeout-arg-in-seconds drivers/watchdog/booke_wdt.c
+--- a/drivers/watchdog/booke_wdt.c~drivers-watchdog-booke_wdtc-fix-book-e-watchdog-to-take-wdioc_settimeout-arg-in-seconds
++++ a/drivers/watchdog/booke_wdt.c
+@@ -22,6 +22,8 @@
+ 
+ #include <asm/reg_booke.h>
+ #include <asm/system.h>
++#include <asm/time.h>
++#include <asm/div64.h>
+ 
+ /* If the kernel parameter wdt=1, the watchdog will be enabled at boot.
+  * Also, the wdt_period sets the watchdog timer period timeout.
+@@ -32,7 +34,7 @@
+  */
+ 
+ #ifdef	CONFIG_FSL_BOOKE
+-#define WDT_PERIOD_DEFAULT 63	/* Ex. wdt_period=28 bus=333Mhz,reset=~40sec */
++#define WDT_PERIOD_DEFAULT 38	/* Ex. wdt_period=28 bus=333Mhz,reset=~40sec */
+ #else
+ #define WDT_PERIOD_DEFAULT 3	/* Refer to the PPC40x and PPC4xx manuals */
+ #endif				/* for timing information */
+@@ -41,7 +43,7 @@ u32 booke_wdt_enabled;
+ u32 booke_wdt_period = WDT_PERIOD_DEFAULT;
+ 
+ #ifdef	CONFIG_FSL_BOOKE
+-#define WDTP(x)		((((63-x)&0x3)<<30)|(((63-x)&0x3c)<<15))
++#define WDTP(x)		((((x)&0x3)<<30)|(((x)&0x3c)<<15))
+ #define WDTP_MASK	(WDTP(0))
+ #else
+ #define WDTP(x)		(TCR_WP(x))
+@@ -50,6 +52,45 @@ u32 booke_wdt_period = WDT_PERIOD_DEFAUL
+ 
+ static DEFINE_SPINLOCK(booke_wdt_lock);
+ 
++/* For the specified period, determine the number of seconds
++ * corresponding to the reset time.  There will be a watchdog
++ * exception at approximately 3/5 of this time.
++ *
++ * The formula to calculate this is given by:
++ * 2.5 * (2^(63-period+1)) / timebase_freq
++ *
++ * In order to simplify things, we assume that period is
++ * at least 1.  This will still result in a very long timeout.
++ */
++static unsigned long long period_to_sec(unsigned int period)
++{
++	unsigned long long tmp = 1ULL << (64 - period);
++	unsigned long tmp2 = ppc_tb_freq;
++
++	/* tmp may be a very large number and we don't want to overflow,
++	 * so divide the timebase freq instead of multiplying tmp
++	 */
++	tmp2 = tmp2 / 5 * 2;
++
++	do_div(tmp, tmp2);
++	return tmp;
++}
++
++/*
++ * This procedure will find the highest period which will give a timeout
++ * greater than the one required. e.g. for a bus speed of 66666666 and
++ * and a parameter of 2 secs, then this procedure will return a value of 38.
++ */
++static unsigned int sec_to_period(unsigned int secs)
++{
++	unsigned int period;
++	for (period = 63; period > 0; period--) {
++		if (period_to_sec(period) >= secs)
++			return period;
++	}
++	return 0;
++}
++
+ static void __booke_wdt_ping(void *data)
+ {
+ 	mtspr(SPRN_TSR, TSR_ENW|TSR_WIS);
+@@ -93,7 +134,7 @@ static long booke_wdt_ioctl(struct file 
+ 
+ 	switch (cmd) {
+ 	case WDIOC_GETSUPPORT:
+-		if (copy_to_user(arg, &ident, sizeof(struct watchdog_info)))
++		if (copy_to_user((void *)arg, &ident, sizeof(struct watchdog_info)))
+ 			return -EFAULT;
+ 	case WDIOC_GETSTATUS:
+ 		return put_user(ident.options, p);
+@@ -115,8 +156,16 @@ static long booke_wdt_ioctl(struct file 
+ 		booke_wdt_ping();
+ 		return 0;
+ 	case WDIOC_SETTIMEOUT:
+-		if (get_user(booke_wdt_period, p))
++		if (get_user(tmp, p))
+ 			return -EFAULT;
++#ifdef	CONFIG_FSL_BOOKE
++		/* period of 1 gives the largest possible timeout */
++		if (tmp > period_to_sec(1))
++			return -EINVAL;
++                booke_wdt_period = sec_to_period(tmp);
++#else
++		booke_wdt_period = tmp;
++#endif
+ 		mtspr(SPRN_TCR, (mfspr(SPRN_TCR) & ~WDTP_MASK) |
+ 						WDTP(booke_wdt_period));
+ 		return 0;
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from cfriesen@nortel.com are
 
 linux-next.patch
-x86-fix-x86_model-test-in-es7000_apic_is_cluster.patch
-s3c-fix-check-of-index-into-s3c_gpios.patch
-stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
-dm-strncpy-does-not-null-terminate-string.patch
-pcmcia-fix-read-buffer-overflow.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-drm-i915-intel_sdvo_multifunc_encoder-sdvo_output_svid0-tested-twice.patch
-v4l-dvb-fix-test-of-bandwidth-range-in-cx22700_set_tps.patch
-mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
-octeon-false-positive-timeout.patch
-slram-read-buffer-overflow.patch
-mtd-fix-read-buffer-overflow.patch
-mtd-jffs2-fix-read-buffer-overflow.patch
-mtd-prevent-a-read-from-eraseregions.patch
-mtd-prevent-a-read-from-regions.patch
-hfc_usb-fix-read-buffer-overflow.patch
-zorro8390-fix-read-buffer-overflow-in-zorro8390_init_one-checkpatch-fixes.patch
-cyclades-read-buffer-overflow.patch
-serial167-fix-read-buffer-overflow.patch
-regulator-fix-calculation-of-voltage-range-in-da9034_set_ldo12_voltage.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
-st-fix-test-of-value-range-in-st_set_options.patch
-st-fix-test-of-value-range-in-st_set_options-fix.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-blackfin-fix-read-buffer-overflow.patch
-arch-alpha-boot-tools-objstripc-wrong-variable-tested-after-open.patch
-m32r-remove-redundant-tests-on-unsigned.patch
-uml-fix-order-of-pud-and-pmd_free.patch
-dme1737-keep-index-within-pwm_config.patch
-sdio-fix-read-buffer-overflow.patch
-hwmon-fix-freeing-of-gpio_data-and-irq.patch
-ncpfs-read-buffer-overflow.patch
-smbfs-read-buffer-overflow.patch
-platinumfb-misplaced-parenthesis.patch
-sisfb-read-buffer-overflow.patch
-drivers-video-console-newport_conc-fix-read-outside-array-bounds.patch
-mwave-fix-read-buffer-overflow.patch
-adfs-remove-redundant-test-on-unsigned.patch
 
