@@ -1,106 +1,266 @@
 From: akpm@linux-foundation.org
-Subject: [merged] afs-stop-readlink-on-afs-crashing-because-file-not-passed-to-afs_readpage.patch removed from -mm tree
-Date: Mon, 31 Aug 2009 14:18:37 -0700
-Message-ID: <200908312118.n7VLIbEN018328@imap1.linux-foundation.org>
+Subject: [merged] acerhdf-fix-fan-control-for-aoa150-model.patch removed from -mm tree
+Date: Mon, 31 Aug 2009 14:18:47 -0700
+Message-ID: <200908312118.n7VLIlP7018634@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37348 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54745 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751048AbZHaVUV (ORCPT
+	by vger.kernel.org with ESMTP id S1751288AbZHaVUe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 31 Aug 2009 17:20:21 -0400
+	Mon, 31 Aug 2009 17:20:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, anton@samba.org, stable@kernel.org, mm-commits@vger.kernel.org
+To: peter@piie.net, andi@lisas.de, lenb@kernel.org, petkovbb@googlemail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     afs: stop readlink() on AFS crashing because file not passed to afs_readpage()
+     acerhdf: fix fan control for AOA150 model
 has been removed from the -mm tree.  Its filename was
-     afs-stop-readlink-on-afs-crashing-because-file-not-passed-to-afs_readpage.patch
+     acerhdf-fix-fan-control-for-aoa150-model.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: afs: stop readlink() on AFS crashing because file not passed to afs_readpage()
-From: David Howells <dhowells@redhat.com>
+Subject: acerhdf: fix fan control for AOA150 model
+From: Peter Feuerer <peter@piie.net>
 
-kAFS crashes when asked to read a symbolic link because page_getlink()
-passes a NULL file pointer to read_mapping_page(), but afs_readpage()
-expects a file pointer from which to extract a key.
+- Apply Borislav Petkov's patch (convert the fancmd[] array to a real
+  struct thus disambiguating command handling and making code more
+  readable.)
 
-Modify afs_readpage() to request the appropriate key from the calling
-process's keyrings if a file struct is not supplied with one attached.
+- Add BIOS product to BIOS table as AOA110 and AOA150 have different
+  register values
 
-Signed-off-by: David Howells <dhowells@redhat.com>
-Acked-by: Anton Blanchard <anton@samba.org>
-Cc: <stable@kernel.org>
+- Add force_product parameter to allow forcing different product
+
+- fix linker warning caused by "acerhdf_drv" not being named
+  "acerhdf_driver"
+
+Signed-off-by: Peter Feuerer <peter@piie.net>
+Cc: Andreas Mohr <andi@lisas.de>
+Cc: Borislav Petkov <petkovbb@googlemail.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/afs/file.c |   18 +++++++++++++++---
- 1 file changed, 15 insertions(+), 3 deletions(-)
+ drivers/platform/x86/acerhdf.c |   97 +++++++++++++++++++++----------
+ 1 file changed, 66 insertions(+), 31 deletions(-)
 
-diff -puN fs/afs/file.c~afs-stop-readlink-on-afs-crashing-because-file-not-passed-to-afs_readpage fs/afs/file.c
---- a/fs/afs/file.c~afs-stop-readlink-on-afs-crashing-because-file-not-passed-to-afs_readpage
-+++ a/fs/afs/file.c
-@@ -134,9 +134,16 @@ static int afs_readpage(struct file *fil
+diff -puN drivers/platform/x86/acerhdf.c~acerhdf-fix-fan-control-for-aoa150-model drivers/platform/x86/acerhdf.c
+--- a/drivers/platform/x86/acerhdf.c~acerhdf-fix-fan-control-for-aoa150-model
++++ a/drivers/platform/x86/acerhdf.c
+@@ -52,7 +52,7 @@
+  */
+ #undef START_IN_KERNEL_MODE
  
- 	inode = page->mapping->host;
+-#define DRV_VER "0.5.13"
++#define DRV_VER "0.5.16"
  
--	ASSERT(file != NULL);
--	key = file->private_data;
--	ASSERT(key != NULL);
-+	if (file) {
-+		key = file->private_data;
-+		ASSERT(key != NULL);
-+	} else {
-+		key = afs_request_key(AFS_FS_S(inode->i_sb)->volume->cell);
-+		if (IS_ERR(key)) {
-+			ret = PTR_ERR(key);
-+			goto error_nokey;
-+		}
-+	}
+ /*
+  * According to the Atom N270 datasheet,
+@@ -90,6 +90,7 @@ static unsigned int fanoff = 58;
+ static unsigned int verbose;
+ static unsigned int fanstate = ACERHDF_FAN_AUTO;
+ static char force_bios[16];
++static char force_product[16];
+ static unsigned int prev_interval;
+ struct thermal_zone_device *thz_dev;
+ struct thermal_cooling_device *cl_dev;
+@@ -107,34 +108,58 @@ module_param(verbose, uint, 0600);
+ MODULE_PARM_DESC(verbose, "Enable verbose dmesg output");
+ module_param_string(force_bios, force_bios, 16, 0);
+ MODULE_PARM_DESC(force_bios, "Force BIOS version and omit BIOS check");
++module_param_string(force_product, force_product, 16, 0);
++MODULE_PARM_DESC(force_product, "Force BIOS product and omit BIOS check");
++
++/*
++ * cmd_off: to switch the fan completely off / to check if the fan is off
++ *	cmd_auto: to set the BIOS in control of the fan. The BIOS regulates then
++ *		the fan speed depending on the temperature
++ */
++struct fancmd {
++	u8 cmd_off;
++	u8 cmd_auto;
++};
  
- 	_enter("{%x},{%lu},{%lu}", key_serial(key), inode->i_ino, page->index);
+ /* BIOS settings */
+ struct bios_settings_t {
+ 	const char *vendor;
++	const char *product;
+ 	const char *version;
+ 	unsigned char fanreg;
+ 	unsigned char tempreg;
+-	unsigned char fancmd[2]; /* fan off and auto commands */
++	struct fancmd cmd;
+ };
  
-@@ -207,12 +214,17 @@ static int afs_readpage(struct file *fil
- 		unlock_page(page);
+ /* Register addresses and values for different BIOS versions */
+ static const struct bios_settings_t bios_tbl[] = {
+-	{"Acer", "v0.3109", 0x55, 0x58, {0x1f, 0x00} },
+-	{"Acer", "v0.3114", 0x55, 0x58, {0x1f, 0x00} },
+-	{"Acer", "v0.3301", 0x55, 0x58, {0xaf, 0x00} },
+-	{"Acer", "v0.3304", 0x55, 0x58, {0xaf, 0x00} },
+-	{"Acer", "v0.3305", 0x55, 0x58, {0xaf, 0x00} },
+-	{"Acer", "v0.3308", 0x55, 0x58, {0x21, 0x00} },
+-	{"Acer", "v0.3309", 0x55, 0x58, {0x21, 0x00} },
+-	{"Acer", "v0.3310", 0x55, 0x58, {0x21, 0x00} },
+-	{"Gateway", "v0.3103", 0x55, 0x58, {0x21, 0x00} },
+-	{"Packard Bell", "v0.3105", 0x55, 0x58, {0x21, 0x00} },
+-	{"", "", 0, 0, {0, 0} }
++	/* AOA110 */
++	{"Acer", "AOA110", "v0.3109", 0x55, 0x58, {0x1f, 0x00} },
++	{"Acer", "AOA110", "v0.3114", 0x55, 0x58, {0x1f, 0x00} },
++	{"Acer", "AOA110", "v0.3301", 0x55, 0x58, {0xaf, 0x00} },
++	{"Acer", "AOA110", "v0.3304", 0x55, 0x58, {0xaf, 0x00} },
++	{"Acer", "AOA110", "v0.3305", 0x55, 0x58, {0xaf, 0x00} },
++	{"Acer", "AOA110", "v0.3308", 0x55, 0x58, {0x21, 0x00} },
++	{"Acer", "AOA110", "v0.3309", 0x55, 0x58, {0x21, 0x00} },
++	{"Acer", "AOA110", "v0.3310", 0x55, 0x58, {0x21, 0x00} },
++	/* AOA150 */
++	{"Acer", "AOA150", "v0.3114", 0x55, 0x58, {0x20, 0x00} },
++	{"Acer", "AOA150", "v0.3304", 0x55, 0x58, {0x20, 0x00} },
++	{"Acer", "AOA150", "v0.3305", 0x55, 0x58, {0x20, 0x00} },
++	{"Acer", "AOA150", "v0.3308", 0x55, 0x58, {0x20, 0x00} },
++	{"Acer", "AOA150", "v0.3309", 0x55, 0x58, {0x20, 0x00} },
++	{"Acer", "AOA150", "v0.3310", 0x55, 0x58, {0x20, 0x00} },
++	/* special BIOS / other */
++	{"Gateway", "AOA110", "v0.3103", 0x55, 0x58, {0x21, 0x00} },
++	{"Gateway", "AOA150", "v0.3103", 0x55, 0x58, {0x20, 0x00} },
++	{"Packard Bell", "DOA150", "v0.3104", 0x55, 0x58, {0x21, 0x00} },
++	{"Packard Bell", "AOA110", "v0.3105", 0x55, 0x58, {0x21, 0x00} },
++	/* pewpew-terminator */
++	{"", "", "", 0, 0, {0, 0} }
+ };
+ 
+ static const struct bios_settings_t *bios_cfg __read_mostly;
+ 
+-
+ static int acerhdf_get_temp(int *temp)
+ {
+ 	u8 read_temp;
+@@ -150,13 +175,14 @@ static int acerhdf_get_temp(int *temp)
+ static int acerhdf_get_fanstate(int *state)
+ {
+ 	u8 fan;
+-	bool tmp;
+ 
+ 	if (ec_read(bios_cfg->fanreg, &fan))
+ 		return -EINVAL;
+ 
+-	tmp = (fan == bios_cfg->fancmd[ACERHDF_FAN_OFF]);
+-	*state = tmp ? ACERHDF_FAN_OFF : ACERHDF_FAN_AUTO;
++	if (fan != bios_cfg->cmd.cmd_off)
++		*state = ACERHDF_FAN_AUTO;
++	else
++		*state = ACERHDF_FAN_OFF;
+ 
+ 	return 0;
+ }
+@@ -175,7 +201,8 @@ static void acerhdf_change_fanstate(int 
+ 		state = ACERHDF_FAN_AUTO;
  	}
  
-+	if (!file)
-+		key_put(key);
- 	_leave(" = 0");
- 	return 0;
+-	cmd = bios_cfg->fancmd[state];
++	cmd = (state == ACERHDF_FAN_OFF) ? bios_cfg->cmd.cmd_off
++					 : bios_cfg->cmd.cmd_auto;
+ 	fanstate = state;
  
- error:
- 	SetPageError(page);
- 	unlock_page(page);
-+	if (!file)
-+		key_put(key);
-+error_nokey:
- 	_leave(" = %d", ret);
- 	return ret;
+ 	ec_write(bios_cfg->fanreg, cmd);
+@@ -437,7 +464,7 @@ static int acerhdf_remove(struct platfor
+ 	return 0;
  }
+ 
+-struct platform_driver acerhdf_drv = {
++static struct platform_driver acerhdf_driver = {
+ 	.driver = {
+ 		.name = "acerhdf",
+ 		.owner = THIS_MODULE,
+@@ -454,32 +481,40 @@ static int acerhdf_check_hardware(void)
+ {
+ 	char const *vendor, *version, *product;
+ 	int i;
++	unsigned long prod_len = 0;
+ 
+ 	/* get BIOS data */
+ 	vendor  = dmi_get_system_info(DMI_SYS_VENDOR);
+ 	version = dmi_get_system_info(DMI_BIOS_VERSION);
+ 	product = dmi_get_system_info(DMI_PRODUCT_NAME);
+ 
++
+ 	pr_info("Acer Aspire One Fan driver, v.%s\n", DRV_VER);
+ 
+-	if (!force_bios[0]) {
+-		if (strncmp(product, "AO", 2)) {
+-			pr_err("no Aspire One hardware found\n");
+-			return -EINVAL;
+-		}
+-	} else {
+-		pr_info("forcing BIOS version: %s\n", version);
++	if (force_bios[0]) {
+ 		version = force_bios;
++		pr_info("forcing BIOS version: %s\n", version);
+ 		kernelmode = 0;
+ 	}
+ 
++	if (force_product[0]) {
++		product = force_product;
++		pr_info("forcing BIOS product: %s\n", product);
++		kernelmode = 0;
++	}
++
++	prod_len = strlen(product);
++
+ 	if (verbose)
+ 		pr_info("BIOS info: %s %s, product: %s\n",
+ 			vendor, version, product);
+ 
+ 	/* search BIOS version and vendor in BIOS settings table */
+ 	for (i = 0; bios_tbl[i].version[0]; i++) {
+-		if (!strcmp(bios_tbl[i].vendor, vendor) &&
++		if (strlen(bios_tbl[i].product) >= prod_len &&
++		    !strncmp(bios_tbl[i].product, product,
++			   strlen(bios_tbl[i].product)) &&
++		    !strcmp(bios_tbl[i].vendor, vendor) &&
+ 		    !strcmp(bios_tbl[i].version, version)) {
+ 			bios_cfg = &bios_tbl[i];
+ 			break;
+@@ -487,8 +522,8 @@ static int acerhdf_check_hardware(void)
+ 	}
+ 
+ 	if (!bios_cfg) {
+-		pr_err("unknown (unsupported) BIOS version %s/%s, "
+-			"please report, aborting!\n", vendor, version);
++		pr_err("unknown (unsupported) BIOS version %s/%s/%s, "
++			"please report, aborting!\n", vendor, product, version);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -509,7 +544,7 @@ static int acerhdf_register_platform(voi
+ {
+ 	int err = 0;
+ 
+-	err = platform_driver_register(&acerhdf_drv);
++	err = platform_driver_register(&acerhdf_driver);
+ 	if (err)
+ 		return err;
+ 
+@@ -525,7 +560,7 @@ static void acerhdf_unregister_platform(
+ 		return;
+ 
+ 	platform_device_del(acerhdf_dev);
+-	platform_driver_unregister(&acerhdf_drv);
++	platform_driver_unregister(&acerhdf_driver);
+ }
+ 
+ static int acerhdf_register_thermal(void)
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from peter@piie.net are
 
 linux-next.patch
-waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes-checkpatch-fixes.patch
-mm-count-only-reclaimable-lru-pages-v2.patch
-arches-drop-superfluous-casts-in-nr_free_pages-callers.patch
-mm-includecheck-fix-for-mm-nommuc.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-convert-to-asm-generic-hardirqh.patch
-misc-remove-redundant-start_kernel-prototypes.patch
-do_wait-wakeup-optimization-change-__wake_up_parent-to-use-filtered-wakeup-selinux_bprm_committed_creds-use-__wake_up_parent.patch
-elf-clean-up-fill_note_info.patch
-elf-clean-up-fill_note_info-fix.patch
-fdpic-ignore-the-loaders-pt_gnu_stack-when-calculating-the-stack-size.patch
-flat-use-is_err_value-helper-macro.patch
-sysctl-remove-struct-file-argument-of-proc_handler.patch
-mutex-subsystem-synchro-test-module.patch
+acerhdf-convert-to-dev_pm_ops.patch
+acerhdf-additional-bios-versions.patch
 
