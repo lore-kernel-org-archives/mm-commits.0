@@ -1,158 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-watchdog-booke_wdtc-fix-book-e-watchdog-to-take-wdioc_settimeout-arg-in-seconds.patch removed from -mm tree
-Date: Mon, 31 Aug 2009 14:19:00 -0700
-Message-ID: <200908312119.n7VLJ0hI018946@imap1.linux-foundation.org>
+Subject: [merged] acpi-battery-work-around-negative-s16-battery-current-on-acer.patch removed from -mm tree
+Date: Mon, 31 Aug 2009 14:18:40 -0700
+Message-ID: <200908312118.n7VLIe7D018331@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58798 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57510 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750878AbZHaVTj (ORCPT
+	by vger.kernel.org with ESMTP id S1750829AbZHaVUN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 31 Aug 2009 17:19:39 -0400
+	Mon, 31 Aug 2009 17:20:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cfriesen@nortel.com, galak@gate.crashing.org, wim@iguana.be, mm-commits@vger.kernel.org
+To: hector@marcansoft.com, astarikovskiy@suse.de, lenb@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/watchdog/booke_wdt.c: fix book E watchdog to take WDIOC_SETTIMEOUT arg in seconds
+     acpi battery: work around negative s16 battery current on Acer
 has been removed from the -mm tree.  Its filename was
-     drivers-watchdog-booke_wdtc-fix-book-e-watchdog-to-take-wdioc_settimeout-arg-in-seconds.patch
+     acpi-battery-work-around-negative-s16-battery-current-on-acer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/watchdog/booke_wdt.c: fix book E watchdog to take WDIOC_SETTIMEOUT arg in seconds
-From: "Chris Friesen" <cfriesen@nortel.com>
+Subject: acpi battery: work around negative s16 battery current on Acer
+From: Hector Martin <hector@marcansoft.com>
 
-The WDIOC_SETTIMEOUT argument is supposed to be a "seconds" value. 
-However, the book E wdt currently treats it as a "period" which is
-interpreted in a board-specific way.
+Acer Aspire 8930G laptops (and possibly others) report the battery current
+as a 16-bit signed negative when it is charging.  It also reports it as
+0x10000 when the current is 0.  This patch adds a quirk for this which
+takes the absolute value of the reported current cast to an s16.  This is
+a DSDT bug present in the latest BIOS revision (the EC register is 16 bits
+signed and the DSDT attempts to take the 16-bit two's complement of this,
+which works for discharge but not charge.  It also breaks zero values
+because a 32-bit register is used and the high bits aren't thrown away).
 
-This patch allows the user to pass in a "seconds" value and the driver
-will set the smallest timeout that is at least as large as specified by
-the user.  It's been tested on e500 hardware and works as expected.
+I've enabled this for all Acer systems which report in mA units.  This
+should be safe since it won't break compliant systems unless they report a
+current above 32A, which is insane.  The patch also detects the valid
+32-bit value -1, which indicates unknown status, and does not attempt the
+fix in that case (note that this does not conflict with 16-bit -1, which
+is 65535 as read normally and gets translated to 1mA).
 
-The patch only modifies the CONFIG_FSL_BOOKE case, the CONFIG_4xx case is
-left unmodified as I don't have any hardware to test it on.
-
-Signed-off-by: Chris Friesen <cfriesen@nortel.com>
-Cc: Kumar Gala <galak@gate.crashing.org>
-Cc: Wim Van Sebroeck <wim@iguana.be>
+Signed-off-by: Hector Martin <hector@marcansoft.com>
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/booke_wdt.c |   57 ++++++++++++++++++++++++++++++---
- 1 file changed, 53 insertions(+), 4 deletions(-)
+ drivers/acpi/battery.c |   19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
 
-diff -puN drivers/watchdog/booke_wdt.c~drivers-watchdog-booke_wdtc-fix-book-e-watchdog-to-take-wdioc_settimeout-arg-in-seconds drivers/watchdog/booke_wdt.c
---- a/drivers/watchdog/booke_wdt.c~drivers-watchdog-booke_wdtc-fix-book-e-watchdog-to-take-wdioc_settimeout-arg-in-seconds
-+++ a/drivers/watchdog/booke_wdt.c
-@@ -22,6 +22,8 @@
+diff -puN drivers/acpi/battery.c~acpi-battery-work-around-negative-s16-battery-current-on-acer drivers/acpi/battery.c
+--- a/drivers/acpi/battery.c~acpi-battery-work-around-negative-s16-battery-current-on-acer
++++ a/drivers/acpi/battery.c
+@@ -87,6 +87,10 @@ static const struct acpi_device_id batte
  
- #include <asm/reg_booke.h>
- #include <asm/system.h>
-+#include <asm/time.h>
-+#include <asm/div64.h>
+ MODULE_DEVICE_TABLE(acpi, battery_device_ids);
  
- /* If the kernel parameter wdt=1, the watchdog will be enabled at boot.
-  * Also, the wdt_period sets the watchdog timer period timeout.
-@@ -32,7 +34,7 @@
-  */
- 
- #ifdef	CONFIG_FSL_BOOKE
--#define WDT_PERIOD_DEFAULT 63	/* Ex. wdt_period=28 bus=333Mhz,reset=~40sec */
-+#define WDT_PERIOD_DEFAULT 38	/* Ex. wdt_period=28 bus=333Mhz,reset=~40sec */
- #else
- #define WDT_PERIOD_DEFAULT 3	/* Refer to the PPC40x and PPC4xx manuals */
- #endif				/* for timing information */
-@@ -41,7 +43,7 @@ u32 booke_wdt_enabled;
- u32 booke_wdt_period = WDT_PERIOD_DEFAULT;
- 
- #ifdef	CONFIG_FSL_BOOKE
--#define WDTP(x)		((((63-x)&0x3)<<30)|(((63-x)&0x3c)<<15))
-+#define WDTP(x)		((((x)&0x3)<<30)|(((x)&0x3c)<<15))
- #define WDTP_MASK	(WDTP(0))
- #else
- #define WDTP(x)		(TCR_WP(x))
-@@ -50,6 +52,45 @@ u32 booke_wdt_period = WDT_PERIOD_DEFAUL
- 
- static DEFINE_SPINLOCK(booke_wdt_lock);
- 
-+/* For the specified period, determine the number of seconds
-+ * corresponding to the reset time.  There will be a watchdog
-+ * exception at approximately 3/5 of this time.
-+ *
-+ * The formula to calculate this is given by:
-+ * 2.5 * (2^(63-period+1)) / timebase_freq
-+ *
-+ * In order to simplify things, we assume that period is
-+ * at least 1.  This will still result in a very long timeout.
++/* For buggy DSDTs that report negative 16-bit values for either charging
++ * or discharging current and/or report 0 as 65536 due to bad math.
 + */
-+static unsigned long long period_to_sec(unsigned int period)
++#define QUIRK_SIGNED16_CURRENT 0x0001
+ 
+ struct acpi_battery {
+ 	struct mutex lock;
+@@ -114,6 +118,7 @@ struct acpi_battery {
+ 	int state;
+ 	int power_unit;
+ 	u8 alarm_present;
++	long quirks;
+ };
+ 
+ #define to_acpi_battery(x) container_of(x, struct acpi_battery, bat);
+@@ -392,6 +397,11 @@ static int acpi_battery_get_state(struct
+ 				 state_offsets, ARRAY_SIZE(state_offsets));
+ 	battery->update_time = jiffies;
+ 	kfree(buffer.pointer);
++
++	if ((battery->quirks & QUIRK_SIGNED16_CURRENT) &&
++	    battery->rate_now != -1)
++		battery->rate_now = abs((s16)battery->rate_now);
++
+ 	return result;
+ }
+ 
+@@ -497,6 +507,14 @@ static void sysfs_remove_battery(struct 
+ }
+ #endif
+ 
++static void acpi_battery_quirks(struct acpi_battery *battery)
 +{
-+	unsigned long long tmp = 1ULL << (64 - period);
-+	unsigned long tmp2 = ppc_tb_freq;
-+
-+	/* tmp may be a very large number and we don't want to overflow,
-+	 * so divide the timebase freq instead of multiplying tmp
-+	 */
-+	tmp2 = tmp2 / 5 * 2;
-+
-+	do_div(tmp, tmp2);
-+	return tmp;
-+}
-+
-+/*
-+ * This procedure will find the highest period which will give a timeout
-+ * greater than the one required. e.g. for a bus speed of 66666666 and
-+ * and a parameter of 2 secs, then this procedure will return a value of 38.
-+ */
-+static unsigned int sec_to_period(unsigned int secs)
-+{
-+	unsigned int period;
-+	for (period = 63; period > 0; period--) {
-+		if (period_to_sec(period) >= secs)
-+			return period;
++	battery->quirks = 0;
++	if (dmi_name_in_vendors("Acer") && battery->power_unit) {
++		battery->quirks |= QUIRK_SIGNED16_CURRENT;
 +	}
-+	return 0;
 +}
 +
- static void __booke_wdt_ping(void *data)
+ static int acpi_battery_update(struct acpi_battery *battery)
  {
- 	mtspr(SPRN_TSR, TSR_ENW|TSR_WIS);
-@@ -93,7 +134,7 @@ static long booke_wdt_ioctl(struct file 
- 
- 	switch (cmd) {
- 	case WDIOC_GETSUPPORT:
--		if (copy_to_user(arg, &ident, sizeof(struct watchdog_info)))
-+		if (copy_to_user((void *)arg, &ident, sizeof(struct watchdog_info)))
- 			return -EFAULT;
- 	case WDIOC_GETSTATUS:
- 		return put_user(ident.options, p);
-@@ -115,8 +156,16 @@ static long booke_wdt_ioctl(struct file 
- 		booke_wdt_ping();
- 		return 0;
- 	case WDIOC_SETTIMEOUT:
--		if (get_user(booke_wdt_period, p))
-+		if (get_user(tmp, p))
- 			return -EFAULT;
-+#ifdef	CONFIG_FSL_BOOKE
-+		/* period of 1 gives the largest possible timeout */
-+		if (tmp > period_to_sec(1))
-+			return -EINVAL;
-+                booke_wdt_period = sec_to_period(tmp);
-+#else
-+		booke_wdt_period = tmp;
-+#endif
- 		mtspr(SPRN_TCR, (mfspr(SPRN_TCR) & ~WDTP_MASK) |
- 						WDTP(booke_wdt_period));
- 		return 0;
+ 	int result, old_present = acpi_battery_present(battery);
+@@ -515,6 +533,7 @@ static int acpi_battery_update(struct ac
+ 		result = acpi_battery_get_info(battery);
+ 		if (result)
+ 			return result;
++		acpi_battery_quirks(battery);
+ 		acpi_battery_init_alarm(battery);
+ 	}
+ #ifdef CONFIG_ACPI_SYSFS_POWER
 _
 
-Patches currently in -mm which might be from cfriesen@nortel.com are
+Patches currently in -mm which might be from hector@marcansoft.com are
 
 linux-next.patch
 
