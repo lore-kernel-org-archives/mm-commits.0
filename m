@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + spi-mcspi-support-for-omap4.patch added to -mm tree
-Date: Tue, 01 Sep 2009 13:59:13 -0700
-Message-ID: <200909012059.n81KxD0m017346@imap1.linux-foundation.org>
+Subject: + spi-handle-tx-only-rx-only.patch added to -mm tree
+Date: Tue, 01 Sep 2009 14:04:28 -0700
+Message-ID: <200909012104.n81L4ShB027008@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48848 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57606 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753889AbZIAVAC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Sep 2009 17:00:02 -0400
+	by vger.kernel.org with ESMTP id S1752150AbZIAVFL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Sep 2009 17:05:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rafiuddin.syed@ti.com, dbrownell@users.sourceforge.net, khilman@deeprootsystems.com, santosh.shilimkar@ti.com, tony@atomide.com
+Cc: dbrownell@users.sourceforge.net, m.szyprowski@samsung.com
 
 
 The patch titled
-     spi: McSPI support for OMAP4
+     spi: handle TX-only/RX-only
 has been added to the -mm tree.  Its filename is
-     spi-mcspi-support-for-omap4.patch
+     spi-handle-tx-only-rx-only.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,133 +33,188 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi: McSPI support for OMAP4
-From: Syed Rafiuddin <rafiuddin.syed@ti.com>
+Subject: spi: handle TX-only/RX-only
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-tAdd adds McSPI support for OMAP4430 SDP platform.  All the base addresses
-are changed between OMAP1/2/3 and OMAP4.  The fields of the resource
-structures are filled at runtime to have McSPI support on OMAP4.
+Support two new half-duplex SPI implementation restrictions, for links
+that talk to TX-only or RX-only devices.  (Existing half-duplex flavors
+support both transfer directions, just not at the same time.)
 
-Signed-off-by: Syed Rafiuddin <rafiuddin.syed@ti.com>
-Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Move spi_async() into the spi.c core, and stop inlining it.  Then make
+that function perform error checks and reject messages that demand more
+than the underlying controller can support.
+
+Based on a patch from Marek Szyprowski which did this only for the
+bitbanged GPIO driver.
+
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-omap2/devices.c |   29 +++++++++++++++++++++++------
- drivers/spi/omap2_mcspi.c     |   10 ++++++----
- 2 files changed, 29 insertions(+), 10 deletions(-)
+ drivers/spi/spi.c       |   59 ++++++++++++++++++++++++++++++++++++++
+ include/linux/spi/spi.h |   39 +------------------------
+ 2 files changed, 62 insertions(+), 36 deletions(-)
 
-diff -puN arch/arm/mach-omap2/devices.c~spi-mcspi-support-for-omap4 arch/arm/mach-omap2/devices.c
---- a/arch/arm/mach-omap2/devices.c~spi-mcspi-support-for-omap4
-+++ a/arch/arm/mach-omap2/devices.c
-@@ -257,6 +257,11 @@ static inline void omap_init_sti(void) {
- #define OMAP2_MCSPI3_BASE		0x480b8000
- #define OMAP2_MCSPI4_BASE		0x480ba000
- 
-+#define OMAP4_MCSPI1_BASE		0x48098100
-+#define OMAP4_MCSPI2_BASE		0x4809a100
-+#define OMAP4_MCSPI3_BASE		0x480b8100
-+#define OMAP4_MCSPI4_BASE		0x480ba100
-+
- static struct omap2_mcspi_platform_config omap2_mcspi1_config = {
- 	.num_cs		= 4,
- };
-@@ -301,7 +306,8 @@ static struct platform_device omap2_mcsp
- 	},
- };
- 
--#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3)
-+#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3) || \
-+	defined(CONFIG_ARCH_OMAP4)
- static struct omap2_mcspi_platform_config omap2_mcspi3_config = {
- 	.num_cs		= 2,
- };
-@@ -325,7 +331,7 @@ static struct platform_device omap2_mcsp
- };
- #endif
- 
--#ifdef CONFIG_ARCH_OMAP3
-+#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
- static struct omap2_mcspi_platform_config omap2_mcspi4_config = {
- 	.num_cs		= 1,
- };
-@@ -351,14 +357,25 @@ static struct platform_device omap2_mcsp
- 
- static void omap_init_mcspi(void)
- {
-+	if (cpu_is_omap44xx()) {
-+		omap2_mcspi1_resources[0].start	= OMAP4_MCSPI1_BASE;
-+		omap2_mcspi1_resources[0].end	= OMAP4_MCSPI1_BASE + 0xff;
-+		omap2_mcspi2_resources[0].start	= OMAP4_MCSPI2_BASE;
-+		omap2_mcspi2_resources[0].end	= OMAP4_MCSPI2_BASE + 0xff;
-+		omap2_mcspi3_resources[0].start	= OMAP4_MCSPI3_BASE;
-+		omap2_mcspi3_resources[0].end	= OMAP4_MCSPI3_BASE + 0xff;
-+		omap2_mcspi4_resources[0].start	= OMAP4_MCSPI4_BASE;
-+		omap2_mcspi4_resources[0].end	= OMAP4_MCSPI4_BASE + 0xff;
-+	}
- 	platform_device_register(&omap2_mcspi1);
- 	platform_device_register(&omap2_mcspi2);
--#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3)
--	if (cpu_is_omap2430() || cpu_is_omap343x())
-+#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3) || \
-+	defined(CONFIG_ARCH_OMAP4)
-+	if (cpu_is_omap2430() || cpu_is_omap343x() || cpu_is_omap44xx())
- 		platform_device_register(&omap2_mcspi3);
- #endif
--#ifdef CONFIG_ARCH_OMAP3
--	if (cpu_is_omap343x())
-+#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
-+	if (cpu_is_omap343x() || cpu_is_omap44xx())
- 		platform_device_register(&omap2_mcspi4);
- #endif
+diff -puN drivers/spi/spi.c~spi-handle-tx-only-rx-only drivers/spi/spi.c
+--- a/drivers/spi/spi.c~spi-handle-tx-only-rx-only
++++ a/drivers/spi/spi.c
+@@ -663,6 +663,65 @@ int spi_setup(struct spi_device *spi)
  }
-diff -puN drivers/spi/omap2_mcspi.c~spi-mcspi-support-for-omap4 drivers/spi/omap2_mcspi.c
---- a/drivers/spi/omap2_mcspi.c~spi-mcspi-support-for-omap4
-+++ a/drivers/spi/omap2_mcspi.c
-@@ -1014,7 +1014,8 @@ static u8 __initdata spi2_txdma_id[] = {
- 	OMAP24XX_DMA_SPI2_TX1,
- };
+ EXPORT_SYMBOL_GPL(spi_setup);
  
--#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP34XX)
-+#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP34XX) \
-+	|| defined(CONFIG_ARCH_OMAP4)
- static u8 __initdata spi3_rxdma_id[] = {
- 	OMAP24XX_DMA_SPI3_RX0,
- 	OMAP24XX_DMA_SPI3_RX1,
-@@ -1026,7 +1027,7 @@ static u8 __initdata spi3_txdma_id[] = {
- };
- #endif
++/**
++ * spi_async - asynchronous SPI transfer
++ * @spi: device with which data will be exchanged
++ * @message: describes the data transfers, including completion callback
++ * Context: any (irqs may be blocked, etc)
++ *
++ * This call may be used in_irq and other contexts which can't sleep,
++ * as well as from task contexts which can sleep.
++ *
++ * The completion callback is invoked in a context which can't sleep.
++ * Before that invocation, the value of message->status is undefined.
++ * When the callback is issued, message->status holds either zero (to
++ * indicate complete success) or a negative error code.  After that
++ * callback returns, the driver which issued the transfer request may
++ * deallocate the associated memory; it's no longer in use by any SPI
++ * core or controller driver code.
++ *
++ * Note that although all messages to a spi_device are handled in
++ * FIFO order, messages may go to different devices in other orders.
++ * Some device might be higher priority, or have various "hard" access
++ * time requirements, for example.
++ *
++ * On detection of any fault during the transfer, processing of
++ * the entire message is aborted, and the device is deselected.
++ * Until returning from the associated message completion callback,
++ * no other spi_message queued to that device will be processed.
++ * (This rule applies equally to all the synchronous transfer calls,
++ * which are wrappers around this core asynchronous primitive.)
++ */
++int spi_async(struct spi_device *spi, struct spi_message *message)
++{
++	struct spi_master *master = spi->master;
++
++	/* Half-duplex links include original MicroWire, and ones with
++	 * only one data pin like SPI_3WIRE (switches direction) or where
++	 * either MOSI or MISO is missing.  They can also be caused by
++	 * software limitations.
++	 */
++	if ((master->flags & SPI_MASTER_HALF_DUPLEX)
++			|| (spi->mode & SPI_3WIRE)) {
++		struct spi_transfer *xfer;
++		unsigned flags = master->flags;
++
++		list_for_each_entry(xfer, &message->transfers, transfer_list) {
++			if (xfer->rx_buf && xfer->tx_buf)
++				return -EINVAL;
++			if ((flags & SPI_MASTER_NO_TX) && xfer->tx_buf)
++				return -EINVAL;
++			if ((flags & SPI_MASTER_NO_RX) && xfer->rx_buf)
++				return -EINVAL;
++		}
++	}
++
++	message->spi = spi;
++	message->status = -EINPROGRESS;
++	return master->transfer(spi, message);
++}
++EXPORT_SYMBOL_GPL(spi_async);
++
  
--#ifdef CONFIG_ARCH_OMAP3
-+#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
- static u8 __initdata spi4_rxdma_id[] = {
- 	OMAP34XX_DMA_SPI4_RX0,
- };
-@@ -1056,14 +1057,15 @@ static int __init omap2_mcspi_probe(stru
- 		txdma_id = spi2_txdma_id;
- 		num_chipselect = 2;
- 		break;
--#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3)
-+#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3) \
-+	|| defined(CONFIG_ARCH_OMAP4)
- 	case 3:
- 		rxdma_id = spi3_rxdma_id;
- 		txdma_id = spi3_txdma_id;
- 		num_chipselect = 2;
- 		break;
- #endif
--#ifdef CONFIG_ARCH_OMAP3
-+#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
- 	case 4:
- 		rxdma_id = spi4_rxdma_id;
- 		txdma_id = spi4_txdma_id;
+ /*-------------------------------------------------------------------------*/
+ 
+diff -puN include/linux/spi/spi.h~spi-handle-tx-only-rx-only include/linux/spi/spi.h
+--- a/include/linux/spi/spi.h~spi-handle-tx-only-rx-only
++++ a/include/linux/spi/spi.h
+@@ -258,6 +258,8 @@ struct spi_master {
+ 	/* other constraints relevant to this driver */
+ 	u16			flags;
+ #define SPI_MASTER_HALF_DUPLEX	BIT(0)		/* can't do full duplex */
++#define SPI_MASTER_NO_RX	BIT(1)		/* can't do buffer read */
++#define SPI_MASTER_NO_TX	BIT(2)		/* can't do buffer write */
+ 
+ 	/* Setup mode and clock, etc (spi driver may call many times).
+ 	 *
+@@ -538,42 +540,7 @@ static inline void spi_message_free(stru
+ }
+ 
+ extern int spi_setup(struct spi_device *spi);
+-
+-/**
+- * spi_async - asynchronous SPI transfer
+- * @spi: device with which data will be exchanged
+- * @message: describes the data transfers, including completion callback
+- * Context: any (irqs may be blocked, etc)
+- *
+- * This call may be used in_irq and other contexts which can't sleep,
+- * as well as from task contexts which can sleep.
+- *
+- * The completion callback is invoked in a context which can't sleep.
+- * Before that invocation, the value of message->status is undefined.
+- * When the callback is issued, message->status holds either zero (to
+- * indicate complete success) or a negative error code.  After that
+- * callback returns, the driver which issued the transfer request may
+- * deallocate the associated memory; it's no longer in use by any SPI
+- * core or controller driver code.
+- *
+- * Note that although all messages to a spi_device are handled in
+- * FIFO order, messages may go to different devices in other orders.
+- * Some device might be higher priority, or have various "hard" access
+- * time requirements, for example.
+- *
+- * On detection of any fault during the transfer, processing of
+- * the entire message is aborted, and the device is deselected.
+- * Until returning from the associated message completion callback,
+- * no other spi_message queued to that device will be processed.
+- * (This rule applies equally to all the synchronous transfer calls,
+- * which are wrappers around this core asynchronous primitive.)
+- */
+-static inline int
+-spi_async(struct spi_device *spi, struct spi_message *message)
+-{
+-	message->spi = spi;
+-	return spi->master->transfer(spi, message);
+-}
++extern int spi_async(struct spi_device *spi, struct spi_message *message);
+ 
+ /*---------------------------------------------------------------------------*/
+ 
 _
 
-Patches currently in -mm which might be from rafiuddin.syed@ti.com are
+Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
 
 linux-next.patch
+mtd-nand-add-page-parameter-to-all-read_page-read_page_raw-apis.patch
+mtd-nand-add-new-ecc-mode-ecc_hw_oob_first.patch
+mtd-nand-davinci-add-4-bit-ecc-support-for-large-page-nand-chips.patch
+mtd-nand-davinci-add-4-bit-ecc-support-for-large-page-nand-chips-update.patch
+mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
+spi-omap2_mcspi-use-bitn.patch
+spi-add-spi_ppc4xx-driver.patch
+spih-add-missing-kernel-doc-for-struct-spi_master.patch
+spi-add-default-selection-of-pl022-for-arm-reference-platforms.patch
+spi-add-support-for-device-table-matching.patch
+mtd-m25p80-convert-to-device-table-matching.patch
+of-remove-stmm25p40-alias.patch
+hwmon-adxx-convert-to-device-table-matching.patch
+hwmon-lm70-convert-to-device-table-matching.patch
+spi-prefix-modalias-with-spi.patch
+pxa2xx_spi-register-earlier.patch
+spi-freescale-stmp-driver.patch
+spi-mcspi-off-mode-support.patch
+spi-mcspi-saves-chconfx-too.patch
 spi-mcspi-support-for-omap4.patch
+spi-handle-tx-only-rx-only.patch
+rtc-at91rm9200-fixes.patch
+rtc-set-wakeup-capability-for-i2c-and-spi-rtc-drivers.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes-fix.patch
+gpiolib-allow-poll-on-value.patch
+omapfb-add-support-for-the-2430sdp-lcd.patch
+omapfb-add-support-for-the-omap2evm-lcd.patch
+omapfb-add-support-for-the-omap3-evm-lcd.patch
+omapfb-add-support-for-the-omap3-beagle-dvi-output.patch
 
