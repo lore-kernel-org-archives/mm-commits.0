@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + do_wait-wakeup-optimization-fix-child_wait_callback-eligible_child-usage.patch added to -mm tree
-Date: Tue, 01 Sep 2009 15:20:56 -0700
-Message-ID: <200909012220.n81MKuhB004440@imap1.linux-foundation.org>
+Subject: + workqueues-introduce-__cancel_delayed_work.patch added to -mm tree
+Date: Tue, 01 Sep 2009 15:25:18 -0700
+Message-ID: <200909012225.n81MPIPa012484@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37449 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55991 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752543AbZIAWVP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Sep 2009 18:21:15 -0400
+	by vger.kernel.org with ESMTP id S1755230AbZIAWZk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Sep 2009 18:25:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, roland@redhat.com
+Cc: oleg@redhat.com, dmitry.torokhov@gmail.com, rdreier@cisco.com, stefanr@s5r6.in-berlin.de
 
 
 The patch titled
-     do_wait-wakeup-optimization: fix child_wait_callback()->eligible_child() usage
+     workqueues: introduce __cancel_delayed_work()
 has been added to the -mm tree.  Its filename is
-     do_wait-wakeup-optimization-fix-child_wait_callback-eligible_child-usage.patch
+     workqueues-introduce-__cancel_delayed_work.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,68 +33,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: do_wait-wakeup-optimization: fix child_wait_callback()->eligible_child() usage
+Subject: workqueues: introduce __cancel_delayed_work()
 From: Oleg Nesterov <oleg@redhat.com>
 
-child_wait_callback()->eligible_child() is not right, we can miss the
-wakeup if the task was detached before __wake_up_parent() and the caller
-of do_wait() didn't use __WALL.
+cancel_delayed_work() has to use del_timer_sync() to guarantee the timer
+function is not running after return.  But most users doesn't actually
+need this, and del_timer_sync() has problems: it is not useable from
+interrupt, and it depends on every lock which could be taken from irq.
 
-Move ->wo_pid checks from eligible_child() to the new helper,
-eligible_pid(), and change child_wait_callback() to use it instead of
-eligible_child().
+Introduce __cancel_delayed_work() which calls del_timer() instead.
 
-Note: actually I think it would be better to fix the __WCLONE check in
-eligible_child(), it doesn't look exactly right.  But it is not clear what
-is the supposed behaviour, and any change is user-visible.
+The immediate reason for this patch is
+http://bugzilla.kernel.org/show_bug.cgi?id=13757
+but hopefully this helper makes sense anyway.
 
-Reported-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+As for 13757 bug, actually we need requeue_delayed_work(), but its
+semantics is not clear yet.
+
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Roland McGrath <roland@redhat.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Roland Dreier <rdreier@cisco.com>
+Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ include/linux/workqueue.h |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-diff -puN kernel/exit.c~do_wait-wakeup-optimization-fix-child_wait_callback-eligible_child-usage kernel/exit.c
---- a/kernel/exit.c~do_wait-wakeup-optimization-fix-child_wait_callback-eligible_child-usage
-+++ a/kernel/exit.c
-@@ -1106,13 +1106,16 @@ static struct pid *task_pid_type(struct 
- 	return pid;
+diff -puN include/linux/workqueue.h~workqueues-introduce-__cancel_delayed_work include/linux/workqueue.h
+--- a/include/linux/workqueue.h~workqueues-introduce-__cancel_delayed_work
++++ a/include/linux/workqueue.h
+@@ -240,6 +240,21 @@ static inline int cancel_delayed_work(st
+ 	return ret;
  }
  
--static int eligible_child(struct wait_opts *wo, struct task_struct *p)
-+static inline int eligible_pid(struct wait_opts *wo, struct task_struct *p)
- {
--	if (wo->wo_type < PIDTYPE_MAX) {
--		if (task_pid_type(p, wo->wo_type) != wo->wo_pid)
--			return 0;
--	}
-+	return	wo->wo_type == PIDTYPE_MAX ||
-+		task_pid_type(p, wo->wo_type) == wo->wo_pid;
-+}
- 
-+static int eligible_child(struct wait_opts *wo, struct task_struct *p)
++/*
++ * Like above, but uses del_timer() instead of del_timer_sync(). This means,
++ * if it returns 0 the timer function may be running and the queueing is in
++ * progress.
++ */
++static inline int __cancel_delayed_work(struct delayed_work *work)
 +{
-+	if (!eligible_pid(wo, p))
-+		return 0;
- 	/* Wait for all children (clone and not) if __WALL is set;
- 	 * otherwise, wait for clone children *only* if __WCLONE is
- 	 * set; otherwise, wait for non-clone children *only*.  (Note:
-@@ -1573,7 +1576,7 @@ static int child_wait_callback(wait_queu
- 						child_wait);
- 	struct task_struct *p = key;
++	int ret;
++
++	ret = del_timer(&work->timer);
++	if (ret)
++		work_clear_pending(&work->work);
++	return ret;
++}
++
+ extern int cancel_delayed_work_sync(struct delayed_work *work);
  
--	if (!eligible_child(wo, p))
-+	if (!eligible_pid(wo, p))
- 		return 0;
- 
- 	if ((wo->wo_flags & __WNOTHREAD) && wait->private != p->parent)
+ /* Obsolete. use cancel_delayed_work_sync() */
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
 
+workqueues-introduce-__cancel_delayed_work.patch
 linux-next.patch
 oom-move-oom_adj-value-from-task_struct-to-signal_struct.patch
 oom-make-oom_score-to-per-process-value.patch
