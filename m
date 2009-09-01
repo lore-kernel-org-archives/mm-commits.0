@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + page-allocator-maintain-rolling-count-of-pages-to-free-from-the-pcp-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 01 Sep 2009 14:19:10 -0700
-Message-ID: <200909012119.n81LJBaV021446@imap1.linux-foundation.org>
+Subject: + fix-compat_sys_utimensat.patch added to -mm tree
+Date: Tue, 01 Sep 2009 14:23:04 -0700
+Message-ID: <200909012123.n81LN49b028569@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35343 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45399 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754772AbZIAVTm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Sep 2009 17:19:42 -0400
+	by vger.kernel.org with ESMTP id S1752302AbZIAVXU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Sep 2009 17:23:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mel@csn.ul.ie
+Cc: suzuki@in.ibm.com, drepper@redhat.com
 
 
 The patch titled
-     page-allocator-maintain-rolling-count-of-pages-to-free-from-the-pcp-checkpatch-fixes
+     fix compat_sys_utimensat()
 has been added to the -mm tree.  Its filename is
-     page-allocator-maintain-rolling-count-of-pages-to-free-from-the-pcp-checkpatch-fixes.patch
+     fix-compat_sys_utimensat.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,120 +33,83 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page-allocator-maintain-rolling-count-of-pages-to-free-from-the-pcp-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fix compat_sys_utimensat()
+From: Suzuki Poulose <suzuki@in.ibm.com>
 
-WARNING: line over 80 characters
-#45: FILE: mm/page_alloc.c:551:
-+		 * Remove pages from lists in a round-robin fashion. A batch_free
+Compat utimensat() returns EINVAL when the tv_nsec is one of UTIME_OMIT or
+UTIME_NOW and the tv_sec is set to non-zero.  As per man pages, the tv_sec
+field should be ignored.
 
-total: 0 errors, 1 warnings, 46 lines checked
+sys_utimensat() works fine in this case.
 
-./patches/page-allocator-maintain-rolling-count-of-pages-to-free-from-the-pcp.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
 
-Please run checkpatch prior to sending patches
+Test case:
 
-Cc: Mel Gorman <mel@csn.ul.ie>
+#define _GNU_SOURCE
+#define _ATFILE_SOURCE
+#include <stdio.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <stdlib.h>
+
+main(int argc, char *argv[])
+{
+	struct timespec ts[2];
+	struct timespec *tsp;
+	
+	if (argc < 2) {
+		fprintf(stderr, "Usage : %s filename\n", argv[0]);
+		exit (-1);
+	}
+	
+	ts[0].tv_nsec = ts[1].tv_nsec = UTIME_NOW;
+	ts[0].tv_sec = ts[1].tv_sec = 1;
+
+	tsp = ts;
+	
+	if (utimensat(AT_FDCWD, argv[1],tsp,0) == -1)
+		perror("utimensat");
+	else
+		fprintf(stdout, "utimensat success\n");
+	return 0;
+}
+mjs22lp5:~ # cc -m64 utimensat-test.c -o utimensat_test64
+mjs22lp5:~ # cc -m32 utimensat-test.c -o utimensat_test32
+mjs22lp5:~ # ./utimensat_test32 /tmp/utimensat_test
+utimensat: Invalid argument
+mjs22lp5:~ # ./utimensat_test64 /tmp/utimensat_test
+utimensat success
+mjs22lp5:~ # uname -r
+2.6.31-rc8
+
+With the patch :
+
+mjs22lp5:~ # ./utimensat_test64 /tmp/utimensat_test
+utimensat success
+mjs22lp5:~ # ./utimensat_test32 /tmp/utimensat_test
+utimensat success
+mjs22lp5:~ # uname -r
+2.6.31-rc8utimensat
+
+Signed-off-by: Suzuki K P <suzuki@in.ibm.com>
+Cc: Ulrich Drepper <drepper@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ fs/compat.c |    7 -------
+ 1 file changed, 7 deletions(-)
 
-diff -puN mm/page_alloc.c~page-allocator-maintain-rolling-count-of-pages-to-free-from-the-pcp-checkpatch-fixes mm/page_alloc.c
---- a/mm/page_alloc.c~page-allocator-maintain-rolling-count-of-pages-to-free-from-the-pcp-checkpatch-fixes
-+++ a/mm/page_alloc.c
-@@ -548,10 +548,11 @@ static void free_pcppages_bulk(struct zo
- 		struct list_head *list;
+diff -puN fs/compat.c~fix-compat_sys_utimensat fs/compat.c
+--- a/fs/compat.c~fix-compat_sys_utimensat
++++ a/fs/compat.c
+@@ -100,13 +100,6 @@ asmlinkage long compat_sys_utimensat(uns
+ 		    get_compat_timespec(&tv[1], &t[1]))
+ 			return -EFAULT;
  
- 		/*
--		 * Remove pages from lists in a round-robin fashion. A batch_free
--		 * count is maintained that is incremented when an empty list is
--		 * encountered. This is so more pages are freed off fuller lists
--		 * instead of spinning excessively around empty lists
-+		 * Remove pages from lists in a round-robin fashion. A
-+		 * batch_free count is maintained that is incremented when an
-+		 * empty list is encountered.  This is so more pages are freed
-+		 * off fuller lists instead of spinning excessively around empty
-+		 * lists
- 		 */
- 		do {
- 			batch_free++;
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-video-initial-support-for-adv7180-update-fix.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-checkincludespl-add-option-to-remove-duplicates-in-place.patch
-leds-gpio-leds-fix-typographics-fault.patch
-leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio.patch
-slram-read-buffer-overflow.patch
-zorro8390-fix-read-buffer-overflow-in-zorro8390_init_one-checkpatch-fixes.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-serial167-fix-read-buffer-overflow.patch
-waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes-checkpatch-fixes.patch
-st-fix-test-of-value-range-in-st_set_options-fix.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
-vfs-optimize-touch_time-too.patch
-fs-improve-remountro-vs-buffercache-coherency-fix.patch
-mm-make-swap-token-dummies-static-inlines-fix.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
-vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
-arches-drop-superfluous-casts-in-nr_free_pages-callers-checkpatch-fixes.patch
-tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists-fix.patch
-page-allocator-maintain-rolling-count-of-pages-to-free-from-the-pcp-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
-generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
-proc-connector-add-event-for-process-becoming-session-leader.patch
-kernel-smpc-relocate-some-code.patch
-mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
-sdio-add-cd-disable-support-cleanup.patch
-sdio-add-mmc_quirk_lenient_fn0-fix.patch
-procfs-provide-stack-information-for-threads-v011-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
-rtc-philips-nxp-pcf2123-driver-v03-fix.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes-fix.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
-drivers-video-add-kmalloc-null-tests-fix.patch
-v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
-cgroups-add-functionality-to-read-write-lock-clone_thread-forking-per-threadgroup-fix.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
-memcg-improve-resource-counter-scalability-checkpatch-fixes.patch
-exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
-exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
-elf-clean-up-fill_note_info-fix.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-
+-		if ((tv[0].tv_nsec == UTIME_OMIT || tv[0].tv_nsec == UTIME_NOW)
+-		    && tv[0].tv_sec != 0)
+-			return -EINVAL;
+-		if ((tv[1].tv_nsec == UTIME_OMIT || tv[1].tv_nsec == UTIME_NOW)
+-		    && tv[1].tv_sec != 0)
+-			return -EINVAL;
