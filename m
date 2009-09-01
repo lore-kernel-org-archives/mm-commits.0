@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + spi-mcspi-saves-chconfx-too.patch added to -mm tree
-Date: Tue, 01 Sep 2009 13:59:11 -0700
-Message-ID: <200909012059.n81KxB93017340@imap1.linux-foundation.org>
+Subject: + spi-mcspi-off-mode-support.patch added to -mm tree
+Date: Tue, 01 Sep 2009 13:59:09 -0700
+Message-ID: <200909012059.n81Kx99x017299@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51219 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56570 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750935AbZIAU75 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Sep 2009 16:59:57 -0400
+	by vger.kernel.org with ESMTP id S1752376AbZIAU76 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Sep 2009 16:59:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tero.kristo@nokia.com, dbrownell@users.sourceforge.net, khilman@deeprootsystems.com
+Cc: hemanthv@ti.com, Aaro.Koskinen@nokia.com, dbrownell@users.sourceforge.net, khilman@deeprootsystems.com
 
 
 The patch titled
-     spi: McSPI saves CHCONFx too
+     spi: McSPI off-mode support
 has been added to the -mm tree.  Its filename is
-     spi-mcspi-saves-chconfx-too.patch
+     spi-mcspi-off-mode-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,97 +33,311 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi: McSPI saves CHCONFx too
-From: Tero Kristo <tero.kristo@nokia.com>
+Subject: spi: McSPI off-mode support
+From: Hemanth V <hemanthv@ti.com>
 
-Previous restore was lazy and only restored CHxCONF when it was needed by
-a specific chip select.  This could cause occasional errors on an SPI bus
-where multiple chip selects are in use.
+Add context save/restore feature to McSPI driver.
 
-Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+Signed-off-by: Hemanth V <hemanthv@ti.com>
+Reviewed-by: Aaro Koskinen <Aaro.Koskinen@nokia.com>
 Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/omap2_mcspi.c |   16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ drivers/spi/omap2_mcspi.c |  136 ++++++++++++++++++++++++++----------
+ 1 file changed, 101 insertions(+), 35 deletions(-)
 
-diff -puN drivers/spi/omap2_mcspi.c~spi-mcspi-saves-chconfx-too drivers/spi/omap2_mcspi.c
---- a/drivers/spi/omap2_mcspi.c~spi-mcspi-saves-chconfx-too
+diff -puN drivers/spi/omap2_mcspi.c~spi-mcspi-off-mode-support drivers/spi/omap2_mcspi.c
+--- a/drivers/spi/omap2_mcspi.c~spi-mcspi-off-mode-support
 +++ a/drivers/spi/omap2_mcspi.c
-@@ -134,6 +134,7 @@ struct omap2_mcspi_cs {
+@@ -41,6 +41,9 @@
+ 
+ #define OMAP2_MCSPI_MAX_FREQ		48000000
+ 
++/* OMAP2 has 3 SPI controllers, while OMAP3 has 4 */
++#define OMAP2_MCSPI_MAX_CTRL 		4
++
+ #define OMAP2_MCSPI_REVISION		0x00
+ #define OMAP2_MCSPI_SYSCONFIG		0x10
+ #define OMAP2_MCSPI_SYSSTATUS		0x14
+@@ -131,8 +134,21 @@ struct omap2_mcspi_cs {
  	void __iomem		*base;
  	unsigned long		phys;
  	int			word_len;
-+	struct list_head	node;
- 	/* Context save and restore shadow register */
- 	u32			chconf0;
- };
-@@ -145,6 +146,7 @@ struct omap2_mcspi_regs {
- 	u32 sysconfig;
- 	u32 modulctrl;
- 	u32 wakeupenable;
-+	struct list_head cs;
- };
- 
- static struct omap2_mcspi_regs omap2_mcspi_ctx[OMAP2_MCSPI_MAX_CTRL];
-@@ -255,6 +257,7 @@ static void omap2_mcspi_set_master_mode(
- static void omap2_mcspi_restore_ctx(struct omap2_mcspi *mcspi)
- {
- 	struct spi_master *spi_cntrl;
-+	struct omap2_mcspi_cs *cs;
- 	spi_cntrl = mcspi->master;
- 
- 	/* McSPI: context restore */
-@@ -266,6 +269,10 @@ static void omap2_mcspi_restore_ctx(stru
- 
- 	mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_WAKEUPENABLE,
- 			omap2_mcspi_ctx[spi_cntrl->bus_num - 1].wakeupenable);
++	/* Context save and restore shadow register */
++	u32			chconf0;
++};
 +
-+	list_for_each_entry(cs, &omap2_mcspi_ctx[spi_cntrl->bus_num - 1].cs,
-+			node)
-+		__raw_writel(cs->chconf0, cs->base + OMAP2_MCSPI_CHCONF0);
- }
- static void omap2_mcspi_disable_clocks(struct omap2_mcspi *mcspi)
- {
-@@ -714,6 +721,9 @@ static int omap2_mcspi_setup(struct spi_
- 		cs->phys = mcspi->phys + spi->chip_select * 0x14;
- 		cs->chconf0 = 0;
- 		spi->controller_state = cs;
-+		/* Link this to context save list */
-+		list_add_tail(&cs->node,
-+			&omap2_mcspi_ctx[mcspi->master->bus_num - 1].cs);
- 	}
++/* used for context save and restore, structure members to be updated whenever
++ * corresponding registers are modified.
++ */
++struct omap2_mcspi_regs {
++	u32 sysconfig;
++	u32 modulctrl;
++	u32 wakeupenable;
+ };
  
- 	if (mcspi_dma->dma_rx_channel == -1
-@@ -736,10 +746,15 @@ static void omap2_mcspi_cleanup(struct s
++static struct omap2_mcspi_regs omap2_mcspi_ctx[OMAP2_MCSPI_MAX_CTRL];
++
+ static struct workqueue_struct *omap2_mcspi_wq;
+ 
+ #define MOD_REG_BIT(val, mask, set) do { \
+@@ -172,12 +188,27 @@ static inline u32 mcspi_read_cs_reg(cons
+ 	return __raw_readl(cs->base + idx);
+ }
+ 
++static inline u32 mcspi_cached_chconf0(const struct spi_device *spi)
++{
++	struct omap2_mcspi_cs *cs = spi->controller_state;
++
++	return cs->chconf0;
++}
++
++static inline void mcspi_write_chconf0(const struct spi_device *spi, u32 val)
++{
++	struct omap2_mcspi_cs *cs = spi->controller_state;
++
++	cs->chconf0 = val;
++	mcspi_write_cs_reg(spi, OMAP2_MCSPI_CHCONF0, val);
++}
++
+ static void omap2_mcspi_set_dma_req(const struct spi_device *spi,
+ 		int is_read, int enable)
  {
- 	struct omap2_mcspi	*mcspi;
- 	struct omap2_mcspi_dma	*mcspi_dma;
-+	struct omap2_mcspi_cs	*cs;
+ 	u32 l, rw;
+ 
+-	l = mcspi_read_cs_reg(spi, OMAP2_MCSPI_CHCONF0);
++	l = mcspi_cached_chconf0(spi);
+ 
+ 	if (is_read) /* 1 is read, 0 write */
+ 		rw = OMAP2_MCSPI_CHCONF_DMAR;
+@@ -185,7 +216,7 @@ static void omap2_mcspi_set_dma_req(cons
+ 		rw = OMAP2_MCSPI_CHCONF_DMAW;
+ 
+ 	MOD_REG_BIT(l, rw, enable);
+-	mcspi_write_cs_reg(spi, OMAP2_MCSPI_CHCONF0, l);
++	mcspi_write_chconf0(spi, l);
+ }
+ 
+ static void omap2_mcspi_set_enable(const struct spi_device *spi, int enable)
+@@ -200,9 +231,9 @@ static void omap2_mcspi_force_cs(struct 
+ {
+ 	u32 l;
+ 
+-	l = mcspi_read_cs_reg(spi, OMAP2_MCSPI_CHCONF0);
++	l = mcspi_cached_chconf0(spi);
+ 	MOD_REG_BIT(l, OMAP2_MCSPI_CHCONF_FORCE, cs_active);
+-	mcspi_write_cs_reg(spi, OMAP2_MCSPI_CHCONF0, l);
++	mcspi_write_chconf0(spi, l);
+ }
+ 
+ static void omap2_mcspi_set_master_mode(struct spi_master *master)
+@@ -217,6 +248,41 @@ static void omap2_mcspi_set_master_mode(
+ 	MOD_REG_BIT(l, OMAP2_MCSPI_MODULCTRL_MS, 0);
+ 	MOD_REG_BIT(l, OMAP2_MCSPI_MODULCTRL_SINGLE, 1);
+ 	mcspi_write_reg(master, OMAP2_MCSPI_MODULCTRL, l);
++
++	omap2_mcspi_ctx[master->bus_num - 1].modulctrl = l;
++}
++
++static void omap2_mcspi_restore_ctx(struct omap2_mcspi *mcspi)
++{
++	struct spi_master *spi_cntrl;
++	spi_cntrl = mcspi->master;
++
++	/* McSPI: context restore */
++	mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_MODULCTRL,
++			omap2_mcspi_ctx[spi_cntrl->bus_num - 1].modulctrl);
++
++	mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_SYSCONFIG,
++			omap2_mcspi_ctx[spi_cntrl->bus_num - 1].sysconfig);
++
++	mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_WAKEUPENABLE,
++			omap2_mcspi_ctx[spi_cntrl->bus_num - 1].wakeupenable);
++}
++static void omap2_mcspi_disable_clocks(struct omap2_mcspi *mcspi)
++{
++	clk_disable(mcspi->ick);
++	clk_disable(mcspi->fck);
++}
++
++static int omap2_mcspi_enable_clocks(struct omap2_mcspi *mcspi)
++{
++	if (clk_enable(mcspi->ick))
++		return -ENODEV;
++	if (clk_enable(mcspi->fck))
++		return -ENODEV;
++
++	omap2_mcspi_restore_ctx(mcspi);
++
++	return 0;
+ }
+ 
+ static unsigned
+@@ -357,7 +423,7 @@ omap2_mcspi_txrx_pio(struct spi_device *
+ 	c = count;
+ 	word_len = cs->word_len;
+ 
+-	l = mcspi_read_cs_reg(spi, OMAP2_MCSPI_CHCONF0);
++	l = mcspi_cached_chconf0(spi);
+ 	l &= ~OMAP2_MCSPI_CHCONF_TRM_MASK;
+ 
+ 	/* We store the pre-calculated register addresses on stack to speed
+@@ -397,8 +463,7 @@ omap2_mcspi_txrx_pio(struct spi_device *
+ 				 * more word i/o: switch to rx+tx
+ 				 */
+ 				if (c == 0 && tx == NULL)
+-					mcspi_write_cs_reg(spi,
+-							OMAP2_MCSPI_CHCONF0, l);
++					mcspi_write_chconf0(spi, l);
+ 				*rx++ = __raw_readl(rx_reg);
+ #ifdef VERBOSE
+ 				dev_dbg(&spi->dev, "read-%d %02x\n",
+@@ -436,8 +501,7 @@ omap2_mcspi_txrx_pio(struct spi_device *
+ 				 * more word i/o: switch to rx+tx
+ 				 */
+ 				if (c == 0 && tx == NULL)
+-					mcspi_write_cs_reg(spi,
+-							OMAP2_MCSPI_CHCONF0, l);
++					mcspi_write_chconf0(spi, l);
+ 				*rx++ = __raw_readl(rx_reg);
+ #ifdef VERBOSE
+ 				dev_dbg(&spi->dev, "read-%d %04x\n",
+@@ -475,8 +539,7 @@ omap2_mcspi_txrx_pio(struct spi_device *
+ 				 * more word i/o: switch to rx+tx
+ 				 */
+ 				if (c == 0 && tx == NULL)
+-					mcspi_write_cs_reg(spi,
+-							OMAP2_MCSPI_CHCONF0, l);
++					mcspi_write_chconf0(spi, l);
+ 				*rx++ = __raw_readl(rx_reg);
+ #ifdef VERBOSE
+ 				dev_dbg(&spi->dev, "read-%d %04x\n",
+@@ -505,10 +568,12 @@ static int omap2_mcspi_setup_transfer(st
+ {
+ 	struct omap2_mcspi_cs *cs = spi->controller_state;
+ 	struct omap2_mcspi *mcspi;
++	struct spi_master *spi_cntrl;
+ 	u32 l = 0, div = 0;
+ 	u8 word_len = spi->bits_per_word;
  
  	mcspi = spi_master_get_devdata(spi->master);
- 	mcspi_dma = &mcspi->dma_channels[spi->chip_select];
++	spi_cntrl = mcspi->master;
  
-+	/* Unlink controller state from context save list */
-+	cs = spi->controller_state;
-+	list_del(&cs->node);
+ 	if (t != NULL && t->bits_per_word)
+ 		word_len = t->bits_per_word;
+@@ -522,7 +587,7 @@ static int omap2_mcspi_setup_transfer(st
+ 	} else
+ 		div = 15;
+ 
+-	l = mcspi_read_cs_reg(spi, OMAP2_MCSPI_CHCONF0);
++	l = mcspi_cached_chconf0(spi);
+ 
+ 	/* standard 4-wire master mode:  SCK, MOSI/out, MISO/in, nCS
+ 	 * REVISIT: this controller could support SPI_3WIRE mode.
+@@ -554,7 +619,7 @@ static int omap2_mcspi_setup_transfer(st
+ 	else
+ 		l &= ~OMAP2_MCSPI_CHCONF_PHA;
+ 
+-	mcspi_write_cs_reg(spi, OMAP2_MCSPI_CHCONF0, l);
++	mcspi_write_chconf0(spi, l);
+ 
+ 	dev_dbg(&spi->dev, "setup: speed %d, sample %s edge, clk %s\n",
+ 			OMAP2_MCSPI_MAX_FREQ / (1 << div),
+@@ -647,6 +712,7 @@ static int omap2_mcspi_setup(struct spi_
+ 			return -ENOMEM;
+ 		cs->base = mcspi->base + spi->chip_select * 0x14;
+ 		cs->phys = mcspi->phys + spi->chip_select * 0x14;
++		cs->chconf0 = 0;
+ 		spi->controller_state = cs;
+ 	}
+ 
+@@ -657,11 +723,11 @@ static int omap2_mcspi_setup(struct spi_
+ 			return ret;
+ 	}
+ 
+-	clk_enable(mcspi->ick);
+-	clk_enable(mcspi->fck);
++	if (omap2_mcspi_enable_clocks(mcspi))
++		return -ENODEV;
 +
- 	kfree(spi->controller_state);
+ 	ret = omap2_mcspi_setup_transfer(spi, NULL);
+-	clk_disable(mcspi->fck);
+-	clk_disable(mcspi->ick);
++	omap2_mcspi_disable_clocks(mcspi);
  
- 	if (mcspi_dma->dma_rx_channel != -1) {
-@@ -1104,6 +1119,7 @@ static int __init omap2_mcspi_probe(stru
+ 	return ret;
+ }
+@@ -693,8 +759,8 @@ static void omap2_mcspi_work(struct work
+ 	mcspi = container_of(work, struct omap2_mcspi, work);
+ 	spin_lock_irq(&mcspi->lock);
  
- 	spin_lock_init(&mcspi->lock);
- 	INIT_LIST_HEAD(&mcspi->msg_queue);
-+	INIT_LIST_HEAD(&omap2_mcspi_ctx[master->bus_num - 1].cs);
+-	clk_enable(mcspi->ick);
+-	clk_enable(mcspi->fck);
++	if (omap2_mcspi_enable_clocks(mcspi))
++		goto out;
  
- 	mcspi->ick = clk_get(&pdev->dev, "ick");
- 	if (IS_ERR(mcspi->ick)) {
-_
-
-Patches currently in -mm which might be from tero.kristo@nokia.com are
-
-spi-mcspi-saves-chconfx-too.patch
-
+ 	/* We only enable one channel at a time -- the one whose message is
+ 	 * at the head of the queue -- although this controller would gladly
+@@ -741,13 +807,13 @@ static void omap2_mcspi_work(struct work
+ 				cs_active = 1;
+ 			}
+ 
+-			chconf = mcspi_read_cs_reg(spi, OMAP2_MCSPI_CHCONF0);
++			chconf = mcspi_cached_chconf0(spi);
+ 			chconf &= ~OMAP2_MCSPI_CHCONF_TRM_MASK;
+ 			if (t->tx_buf == NULL)
+ 				chconf |= OMAP2_MCSPI_CHCONF_TRM_RX_ONLY;
+ 			else if (t->rx_buf == NULL)
+ 				chconf |= OMAP2_MCSPI_CHCONF_TRM_TX_ONLY;
+-			mcspi_write_cs_reg(spi, OMAP2_MCSPI_CHCONF0, chconf);
++			mcspi_write_chconf0(spi, chconf);
+ 
+ 			if (t->len) {
+ 				unsigned	count;
+@@ -796,9 +862,9 @@ static void omap2_mcspi_work(struct work
+ 		spin_lock_irq(&mcspi->lock);
+ 	}
+ 
+-	clk_disable(mcspi->fck);
+-	clk_disable(mcspi->ick);
++	omap2_mcspi_disable_clocks(mcspi);
+ 
++out:
+ 	spin_unlock_irq(&mcspi->lock);
+ }
+ 
+@@ -885,8 +951,8 @@ static int __init omap2_mcspi_reset(stru
+ 	struct spi_master	*master = mcspi->master;
+ 	u32			tmp;
+ 
+-	clk_enable(mcspi->ick);
+-	clk_enable(mcspi->fck);
++	if (omap2_mcspi_enable_clocks(mcspi))
++		return -1;
+ 
+ 	mcspi_write_reg(master, OMAP2_MCSPI_SYSCONFIG,
+ 			OMAP2_MCSPI_SYSCONFIG_SOFTRESET);
+@@ -894,18 +960,18 @@ static int __init omap2_mcspi_reset(stru
+ 		tmp = mcspi_read_reg(master, OMAP2_MCSPI_SYSSTATUS);
+ 	} while (!(tmp & OMAP2_MCSPI_SYSSTATUS_RESETDONE));
+ 
+-	mcspi_write_reg(master, OMAP2_MCSPI_SYSCONFIG,
+-			OMAP2_MCSPI_SYSCONFIG_AUTOIDLE |
+-			OMAP2_MCSPI_SYSCONFIG_ENAWAKEUP |
+-			OMAP2_MCSPI_SYSCONFIG_SMARTIDLE);
+-
+-	mcspi_write_reg(master, OMAP2_MCSPI_WAKEUPENABLE,
+-			OMAP2_MCSPI_WAKEUPENABLE_WKEN);
++	tmp = OMAP2_MCSPI_SYSCONFIG_AUTOIDLE |
++		OMAP2_MCSPI_SYSCONFIG_ENAWAKEUP |
++		OMAP2_MCSPI_SYSCONFIG_SMARTIDLE;
++	mcspi_write_reg(master, OMAP2_MCSPI_SYSCONFIG, tmp);
++	omap2_mcspi_ctx[master->bus_num - 1].sysconfig = tmp;
++
++	tmp = OMAP2_MCSPI_WAKEUPENABLE_WKEN;
++	mcspi_write_reg(master, OMAP2_MCSPI_WAKEUPENABLE, tmp);
++	omap2_mcspi_ctx[master->bus_num - 1].wakeupenable = tmp;
+ 
+ 	omap2_mcspi_set_master_mode(master);
