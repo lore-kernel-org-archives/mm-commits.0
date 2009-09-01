@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pcmcia-switch-proc-bus-pccard-drivers-to-seq_file.patch added to -mm tree
-Date: Tue, 01 Sep 2009 15:45:12 -0700
-Message-ID: <200909012245.n81MjChD016303@imap1.linux-foundation.org>
+Subject: + mm-memory-failure-remove-config_unevictable_lru-config-option.patch added to -mm tree
+Date: Tue, 01 Sep 2009 15:47:41 -0700
+Message-ID: <200909012247.n81MlfuZ020934@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60414 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52806 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755249AbZIAWpo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Sep 2009 18:45:44 -0400
+	by vger.kernel.org with ESMTP id S1755309AbZIAWtP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Sep 2009 18:49:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com, linux@dominikbrodowski.net
+Cc: macli@brc.ubc.ca, andi@firstfloor.org, fengguang.wu@intel.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com
 
 
 The patch titled
-     pcmcia: switch /proc/bus/pccard/drivers to seq_file
+     mm/memory-failure: remove CONFIG_UNEVICTABLE_LRU config option
 has been added to the -mm tree.  Its filename is
-     pcmcia-switch-proc-bus-pccard-drivers-to-seq_file.patch
+     mm-memory-failure-remove-config_unevictable_lru-config-option.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,109 +33,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pcmcia: switch /proc/bus/pccard/drivers to seq_file
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: mm/memory-failure: remove CONFIG_UNEVICTABLE_LRU config option
+From: Vincent Li <macli@brc.ubc.ca>
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Dominik Brodowski <linux@dominikbrodowski.net>
+Commit 683776596 (remove CONFIG_UNEVICTABLE_LRU config option) removed
+this config option.  Removed it from mm/memory-failure too.
+
+Signed-off-by: Vincent Li <macli@brc.ubc.ca>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pcmcia/pcmcia_ioctl.c |   36 +++++++++++++++++---------------
- 1 file changed, 20 insertions(+), 16 deletions(-)
+ mm/memory-failure.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/pcmcia/pcmcia_ioctl.c~pcmcia-switch-proc-bus-pccard-drivers-to-seq_file drivers/pcmcia/pcmcia_ioctl.c
---- a/drivers/pcmcia/pcmcia_ioctl.c~pcmcia-switch-proc-bus-pccard-drivers-to-seq_file
-+++ a/drivers/pcmcia/pcmcia_ioctl.c
-@@ -27,6 +27,7 @@
- #include <linux/proc_fs.h>
- #include <linux/poll.h>
- #include <linux/pci.h>
-+#include <linux/seq_file.h>
- #include <linux/smp_lock.h>
- #include <linux/workqueue.h>
+diff -puN mm/memory-failure.c~mm-memory-failure-remove-config_unevictable_lru-config-option mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-memory-failure-remove-config_unevictable_lru-config-option
++++ a/mm/memory-failure.c
+@@ -587,10 +587,8 @@ static struct page_state {
+ 	{ sc|dirty,	sc|dirty,	"swapcache",	me_swapcache_dirty },
+ 	{ sc|dirty,	sc,		"swapcache",	me_swapcache_clean },
  
-@@ -105,37 +106,40 @@ static struct pcmcia_driver *get_pcmcia_
- #ifdef CONFIG_PROC_FS
- static struct proc_dir_entry *proc_pccard = NULL;
+-#ifdef CONFIG_UNEVICTABLE_LRU
+ 	{ unevict|dirty, unevict|dirty,	"unevictable LRU", me_pagecache_dirty},
+ 	{ unevict,	unevict,	"unevictable LRU", me_pagecache_clean},
+-#endif
  
--static int proc_read_drivers_callback(struct device_driver *driver, void *d)
-+static int proc_read_drivers_callback(struct device_driver *driver, void *_m)
- {
--	char **p = d;
-+	struct seq_file *m = _m;
- 	struct pcmcia_driver *p_drv = container_of(driver,
- 						   struct pcmcia_driver, drv);
- 
--	*p += sprintf(*p, "%-24.24s 1 %d\n", p_drv->drv.name,
-+	seq_printf(m, "%-24.24s 1 %d\n", p_drv->drv.name,
- #ifdef CONFIG_MODULE_UNLOAD
- 		      (p_drv->owner) ? module_refcount(p_drv->owner) : 1
- #else
- 		      1
- #endif
- 	);
--	d = (void *) p;
--
- 	return 0;
- }
- 
--static int proc_read_drivers(char *buf, char **start, off_t pos,
--			     int count, int *eof, void *data)
-+static int pccard_drivers_proc_show(struct seq_file *m, void *v)
- {
--	char *p = buf;
--	int rc;
--
--	rc = bus_for_each_drv(&pcmcia_bus_type, NULL,
--			      (void *) &p, proc_read_drivers_callback);
--	if (rc < 0)
--		return rc;
-+	return bus_for_each_drv(&pcmcia_bus_type, NULL,
-+				m, proc_read_drivers_callback);
-+}
- 
--	return (p - buf);
-+static int pccard_drivers_proc_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, pccard_drivers_proc_show, NULL);
- }
-+
-+static const struct file_operations pccard_drivers_proc_fops = {
-+	.owner		= THIS_MODULE,
-+	.open		= pccard_drivers_proc_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+};
- #endif
- 
- 
-@@ -1011,7 +1015,7 @@ void __init pcmcia_setup_ioctl(void) {
- #ifdef CONFIG_PROC_FS
- 	proc_pccard = proc_mkdir("bus/pccard", NULL);
- 	if (proc_pccard)
--		create_proc_read_entry("drivers",0,proc_pccard,proc_read_drivers,NULL);
-+		proc_create("drivers", 0, proc_pccard, &pccard_drivers_proc_fops);
- #endif
- }
- 
+ #ifdef CONFIG_HAVE_MLOCKED_PAGE_BIT
+ 	{ mlock|dirty,	mlock|dirty,	"mlocked LRU",	me_pagecache_dirty },
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from macli@brc.ubc.ca are
 
-linux-next.patch
-pcmcia-switch-proc-bus-pccard-drivers-to-seq_file.patch
-genirq-switch-proc-irq-spurious-to-seq_file.patch
-kernel-profilec-switch-proc-irq-prof_cpu_mask-to-seq_file.patch
-oom-move-oom_killer_enable-oom_killer_disable-to-where-they-belong.patch
-scripts-get_maintainerpl-add-remove-duplicates.patch
-proc_flush_task-flush-proc-tid-task-pid-when-a-sub-thread-exits.patch
-procfs-provide-stack-information-for-threads-v08.patch
-procfs-provide-stack-information-for-threads-v011.patch
-procfs-provide-stack-information-for-threads-v011-fix.patch
-reiserfs-remove-proc-fs-reiserfs-version.patch
-reiserfs-dont-compile-procfso-at-all-if-no-support.patch
-sysctl-remove-struct-file-argument-of-proc_handler.patch
-aio-ifdef-fields-in-mm_struct.patch
+mm-memory-failure-remove-config_unevictable_lru-config-option.patch
+mm-count-only-reclaimable-lru-pages-v2.patch
+tracing-page-allocator-add-trace-events-for-page-allocation-and-page-freeing.patch
+tracing-page-allocator-add-trace-events-for-anti-fragmentation-falling-back-to-other-migratetypes.patch
+tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists.patch
+tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists-fix.patch
+tracing-page-allocator-add-a-postprocessing-script-for-page-allocator-related-ftrace-events.patch
+tracing-documentation-add-a-document-describing-how-to-do-some-performance-analysis-with-tracepoints.patch
+tracing-documentation-add-a-document-on-the-kmem-tracepoints.patch
+mm-vmscan-rename-zone_nr_pages-to-zone_lru_nr_pages.patch
+mm-vmscan-remove-page_queue_congested-comment.patch
+fs-proc-task_mmuc-v1-fix-clear_refs_write-input-sanity-check.patch
+fs-proc-basec-fix-proc_fault_inject_write-input-sanity-check.patch
 
