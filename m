@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memory-failure-remove-config_unevictable_lru-config-option.patch added to -mm tree
-Date: Tue, 01 Sep 2009 15:47:41 -0700
-Message-ID: <200909012247.n81MlfuZ020934@imap1.linux-foundation.org>
+Subject: + vmscan-move-pgdeactivate-modification-to-shrink_active_list-fix.patch added to -mm tree
+Date: Tue, 01 Sep 2009 15:59:53 -0700
+Message-ID: <200909012259.n81Mxrka010718@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52806 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42380 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755309AbZIAWtP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Sep 2009 18:49:15 -0400
+	by vger.kernel.org with ESMTP id S1752559AbZIAXBP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Sep 2009 19:01:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: macli@brc.ubc.ca, andi@firstfloor.org, fengguang.wu@intel.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com
+Cc: hugh.dickins@tiscali.co.uk, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, riel@redhat.com
 
 
 The patch titled
-     mm/memory-failure: remove CONFIG_UNEVICTABLE_LRU config option
+     vmscan move pgdeactivate modification to shrink_active_list fix
 has been added to the -mm tree.  Its filename is
-     mm-memory-failure-remove-config_unevictable_lru-config-option.patch
+     vmscan-move-pgdeactivate-modification-to-shrink_active_list-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,52 +33,95 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/memory-failure: remove CONFIG_UNEVICTABLE_LRU config option
-From: Vincent Li <macli@brc.ubc.ca>
+Subject: vmscan move pgdeactivate modification to shrink_active_list fix
+From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
-Commit 683776596 (remove CONFIG_UNEVICTABLE_LRU config option) removed
-this config option.  Removed it from mm/memory-failure too.
+mmotm 2009-08-27-16-51 lets the OOM killer loose on my loads even quicker
+than last time: one bug fixed but another bug introduced. 
+vmscan-move-pgdeactivate-modification-to-shrink_active_list.patch forgot
+to add NR_LRU_BASE to lru index to make zone_page_state index.
 
-Signed-off-by: Vincent Li <macli@brc.ubc.ca>
+Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Reviewed-by: Rik van Riel <riel@redhat.com>
 Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Acked-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Andi Kleen <andi@firstfloor.org>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/vmscan.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN mm/memory-failure.c~mm-memory-failure-remove-config_unevictable_lru-config-option mm/memory-failure.c
---- a/mm/memory-failure.c~mm-memory-failure-remove-config_unevictable_lru-config-option
-+++ a/mm/memory-failure.c
-@@ -587,10 +587,8 @@ static struct page_state {
- 	{ sc|dirty,	sc|dirty,	"swapcache",	me_swapcache_dirty },
- 	{ sc|dirty,	sc,		"swapcache",	me_swapcache_clean },
+diff -puN mm/vmscan.c~vmscan-move-pgdeactivate-modification-to-shrink_active_list-fix mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-move-pgdeactivate-modification-to-shrink_active_list-fix
++++ a/mm/vmscan.c
+@@ -1381,8 +1381,10 @@ static void shrink_active_list(unsigned 
+ 	reclaim_stat->recent_rotated[file] += nr_rotated;
+ 	__count_vm_events(PGDEACTIVATE, nr_deactivated);
+ 	__mod_zone_page_state(zone, NR_ISOLATED_ANON + file, -nr_taken);
+-	__mod_zone_page_state(zone, LRU_ACTIVE + file * LRU_FILE, nr_rotated);
+-	__mod_zone_page_state(zone, LRU_BASE + file * LRU_FILE, nr_deactivated);
++	__mod_zone_page_state(zone, NR_ACTIVE_ANON + file * LRU_FILE,
++							nr_rotated);
++	__mod_zone_page_state(zone, NR_INACTIVE_ANON + file * LRU_FILE,
++							nr_deactivated);
+ 	spin_unlock_irq(&zone->lru_lock);
+ }
  
--#ifdef CONFIG_UNEVICTABLE_LRU
- 	{ unevict|dirty, unevict|dirty,	"unevictable LRU", me_pagecache_dirty},
- 	{ unevict,	unevict,	"unevictable LRU", me_pagecache_clean},
--#endif
- 
- #ifdef CONFIG_HAVE_MLOCKED_PAGE_BIT
- 	{ mlock|dirty,	mlock|dirty,	"mlocked LRU",	me_pagecache_dirty },
 _
 
-Patches currently in -mm which might be from macli@brc.ubc.ca are
+Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
 
-mm-memory-failure-remove-config_unevictable_lru-config-option.patch
-mm-count-only-reclaimable-lru-pages-v2.patch
-tracing-page-allocator-add-trace-events-for-page-allocation-and-page-freeing.patch
-tracing-page-allocator-add-trace-events-for-anti-fragmentation-falling-back-to-other-migratetypes.patch
-tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists.patch
-tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists-fix.patch
-tracing-page-allocator-add-a-postprocessing-script-for-page-allocator-related-ftrace-events.patch
-tracing-documentation-add-a-document-describing-how-to-do-some-performance-analysis-with-tracepoints.patch
-tracing-documentation-add-a-document-on-the-kmem-tracepoints.patch
-mm-vmscan-rename-zone_nr_pages-to-zone_lru_nr_pages.patch
-mm-vmscan-remove-page_queue_congested-comment.patch
-fs-proc-task_mmuc-v1-fix-clear_refs_write-input-sanity-check.patch
-fs-proc-basec-fix-proc_fault_inject_write-input-sanity-check.patch
+linux-next.patch
+acpi-fix-null-bug-for-hid-uid-string-2.patch
+fs-new-truncate-helpers.patch
+fs-use-new-truncate-helpers.patch
+fs-introduce-new-truncate-sequence.patch
+fs-convert-simple-fs-to-new-truncate.patch
+tmpfs-convert-to-use-the-new-truncate-convention.patch
+ext2-convert-to-use-the-new-truncate-convention.patch
+fat-convert-to-use-the-new-truncate-convention.patch
+btrfs-convert-to-use-the-new-truncate-convention.patch
+jfs-convert-to-use-the-new-truncate-convention.patch
+udf-convert-to-use-the-new-truncate-convention.patch
+minix-convert-to-use-the-new-truncate-convention.patch
+mm-oom-analysis-add-shmem-vmstat.patch
+ksm-add-mmu_notifier-set_pte_at_notify.patch
+ksm-first-tidy-up-madvise_vma.patch
+ksm-define-madv_mergeable-and-madv_unmergeable.patch
+ksm-the-mm-interface-to-ksm.patch
+ksm-no-debug-in-page_dup_rmap.patch
+ksm-identify-pageksm-pages.patch
+ksm-kernel-samepage-merging.patch
+ksm-prevent-mremap-move-poisoning.patch
+ksm-change-copyright-message.patch
+ksm-change-ksm-nice-level-to-be-5.patch
+ksm-rename-kernel_pages_allocated.patch
+ksm-move-pages_sharing-updates.patch
+ksm-pages_unshared-and-pages_volatile.patch
+ksm-break-cow-once-unshared.patch
+ksm-keep-quiet-while-list-empty.patch
+ksm-five-little-cleanups.patch
+ksm-fix-endless-loop-on-oom.patch
+ksm-distribute-remove_mm_from_lists.patch
+ksm-fix-oom-deadlock.patch
+ksm-sysfs-and-defaults.patch
+ksm-add-some-documentation.patch
+ksm-remove-vm_mergeable_flags.patch
+mm-add_to_swap_cache-must-not-sleep.patch
+mm-add_to_swap_cache-does-not-return-eexist.patch
+mm-includecheck-fix-for-mm-shmemc.patch
+mm-introduce-page_lru_base_type-fix.patch
+mm-replace-various-uses-of-num_physpages-by-totalram_pages.patch
+vmscan-move-pgdeactivate-modification-to-shrink_active_list-fix.patch
+hugetlbfs-allow-the-creation-of-files-suitable-for-map_private-on-the-vfs-internal-mount.patch
+hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions.patch
+hugetlb-add-map_hugetlb-example.patch
+getrusage-fill-ru_maxrss-value.patch
+getrusage-fill-ru_maxrss-value-update.patch
+ramfs-move-ramfs_magic-to-include-linux-magich.patch
+memory-controller-soft-limit-organize-cgroups-v9-fix.patch
+prio_tree-debugging-patch.patch
 
