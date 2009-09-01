@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-move-pgdeactivate-modification-to-shrink_active_list-fix.patch added to -mm tree
-Date: Tue, 01 Sep 2009 15:59:53 -0700
-Message-ID: <200909012259.n81Mxrka010718@imap1.linux-foundation.org>
+Subject: + cpqarray-switch-to-seq_file.patch added to -mm tree
+Date: Tue, 01 Sep 2009 16:01:07 -0700
+Message-ID: <200909012301.n81N17ch012929@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42380 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37519 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752559AbZIAXBP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Sep 2009 19:01:15 -0400
+	by vger.kernel.org with ESMTP id S1752559AbZIAXCs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Sep 2009 19:02:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hugh.dickins@tiscali.co.uk, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, riel@redhat.com
+Cc: adobriyan@gmail.com, chirag.kantharia@hp.com, grant.likely@secretlab.ca, jens.axboe@oracle.com, tj@kernel.org
 
 
 The patch titled
-     vmscan move pgdeactivate modification to shrink_active_list fix
+     cpqarray: switch to seq_file
 has been added to the -mm tree.  Its filename is
-     vmscan-move-pgdeactivate-modification-to-shrink_active_list-fix.patch
+     cpqarray-switch-to-seq_file.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,95 +33,175 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan move pgdeactivate modification to shrink_active_list fix
-From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Subject: cpqarray: switch to seq_file
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-mmotm 2009-08-27-16-51 lets the OOM killer loose on my loads even quicker
-than last time: one bug fixed but another bug introduced. 
-vmscan-move-pgdeactivate-modification-to-shrink_active_list.patch forgot
-to add NR_LRU_BASE to lru index to make zone_page_state index.
-
-Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Chirag Kantharia <chirag.kantharia@hp.com>   
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Grant Likely <grant.likely@secretlab.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/block/cpqarray.c |   61 +++++++++++++++++--------------------
+ 1 file changed, 29 insertions(+), 32 deletions(-)
 
-diff -puN mm/vmscan.c~vmscan-move-pgdeactivate-modification-to-shrink_active_list-fix mm/vmscan.c
---- a/mm/vmscan.c~vmscan-move-pgdeactivate-modification-to-shrink_active_list-fix
-+++ a/mm/vmscan.c
-@@ -1381,8 +1381,10 @@ static void shrink_active_list(unsigned 
- 	reclaim_stat->recent_rotated[file] += nr_rotated;
- 	__count_vm_events(PGDEACTIVATE, nr_deactivated);
- 	__mod_zone_page_state(zone, NR_ISOLATED_ANON + file, -nr_taken);
--	__mod_zone_page_state(zone, LRU_ACTIVE + file * LRU_FILE, nr_rotated);
--	__mod_zone_page_state(zone, LRU_BASE + file * LRU_FILE, nr_deactivated);
-+	__mod_zone_page_state(zone, NR_ACTIVE_ANON + file * LRU_FILE,
-+							nr_rotated);
-+	__mod_zone_page_state(zone, NR_INACTIVE_ANON + file * LRU_FILE,
-+							nr_deactivated);
- 	spin_unlock_irq(&zone->lru_lock);
+diff -puN drivers/block/cpqarray.c~cpqarray-switch-to-seq_file drivers/block/cpqarray.c
+--- a/drivers/block/cpqarray.c~cpqarray-switch-to-seq_file
++++ a/drivers/block/cpqarray.c
+@@ -32,6 +32,7 @@
+ #include <linux/blkpg.h>
+ #include <linux/timer.h>
+ #include <linux/proc_fs.h>
++#include <linux/seq_file.h>
+ #include <linux/init.h>
+ #include <linux/hdreg.h>
+ #include <linux/spinlock.h>
+@@ -177,7 +178,6 @@ static int cpqarray_register_ctlr(int ct
+ 
+ #ifdef CONFIG_PROC_FS
+ static void ida_procinit(int i);
+-static int ida_proc_get_info(char *buffer, char **start, off_t offset, int length, int *eof, void *data);
+ #else
+ static void ida_procinit(int i) {}
+ #endif
+@@ -206,6 +206,7 @@ static struct block_device_operations id
+ #ifdef CONFIG_PROC_FS
+ 
+ static struct proc_dir_entry *proc_array;
++static const struct file_operations ida_proc_fops;
+ 
+ /*
+  * Get us a file in /proc/array that says something about each controller.
+@@ -218,19 +219,16 @@ static void __init ida_procinit(int i)
+ 		if (!proc_array) return;
+ 	}
+ 
+-	create_proc_read_entry(hba[i]->devname, 0, proc_array,
+-			       ida_proc_get_info, hba[i]);
++	proc_create_data(hba[i]->devname, 0, proc_array, &ida_proc_fops, hba[i]);
  }
  
+ /*
+  * Report information about this controller.
+  */
+-static int ida_proc_get_info(char *buffer, char **start, off_t offset, int length, int *eof, void *data)
++static int ida_proc_show(struct seq_file *m, void *v)
+ {
+-	off_t pos = 0;
+-	off_t len = 0;
+-	int size, i, ctlr;
+-	ctlr_info_t *h = (ctlr_info_t*)data;
++	int i, ctlr;
++	ctlr_info_t *h = (ctlr_info_t*)m->private;
+ 	drv_info_t *drv;
+ #ifdef CPQ_PROC_PRINT_QUEUES
+ 	cmdlist_t *c;
+@@ -238,7 +236,7 @@ static int ida_proc_get_info(char *buffe
+ #endif
+ 
+ 	ctlr = h->ctlr;
+-	size = sprintf(buffer, "%s:  Compaq %s Controller\n"
++	seq_printf(m, "%s:  Compaq %s Controller\n"
+ 		"       Board ID: 0x%08lx\n"
+ 		"       Firmware Revision: %c%c%c%c\n"
+ 		"       Controller Sig: 0x%08lx\n"
+@@ -258,55 +256,54 @@ static int ida_proc_get_info(char *buffe
+ 		h->log_drives, h->phys_drives,
+ 		h->Qdepth, h->maxQsinceinit);
+ 
+-	pos += size; len += size;
+-	
+-	size = sprintf(buffer+len, "Logical Drive Info:\n");
+-	pos += size; len += size;
++	seq_puts(m, "Logical Drive Info:\n");
+ 
+ 	for(i=0; i<h->log_drives; i++) {
+ 		drv = &h->drv[i];
+-		size = sprintf(buffer+len, "ida/c%dd%d: blksz=%d nr_blks=%d\n",
++		seq_printf(m, "ida/c%dd%d: blksz=%d nr_blks=%d\n",
+ 				ctlr, i, drv->blk_size, drv->nr_blks);
+-		pos += size; len += size;
+ 	}
+ 
+ #ifdef CPQ_PROC_PRINT_QUEUES
+ 	spin_lock_irqsave(IDA_LOCK(h->ctlr), flags); 
+-	size = sprintf(buffer+len, "\nCurrent Queues:\n");
+-	pos += size; len += size;
++	seq_puts(m, "\nCurrent Queues:\n");
+ 
+ 	c = h->reqQ;
+-	size = sprintf(buffer+len, "reqQ = %p", c); pos += size; len += size;
++	seq_printf(m, "reqQ = %p", c);
+ 	if (c) c=c->next;
+ 	while(c && c != h->reqQ) {
+-		size = sprintf(buffer+len, "->%p", c);
+-		pos += size; len += size;
++		seq_printf(m, "->%p", c);
+ 		c=c->next;
+ 	}
+ 
+ 	c = h->cmpQ;
+-	size = sprintf(buffer+len, "\ncmpQ = %p", c); pos += size; len += size;
++	seq_printf(m, "\ncmpQ = %p", c);
+ 	if (c) c=c->next;
+ 	while(c && c != h->cmpQ) {
+-		size = sprintf(buffer+len, "->%p", c);
+-		pos += size; len += size;
++		seq_printf(m, "->%p", c);
+ 		c=c->next;
+ 	}
+ 
+-	size = sprintf(buffer+len, "\n"); pos += size; len += size;
++	seq_putc(m, '\n');
+ 	spin_unlock_irqrestore(IDA_LOCK(h->ctlr), flags); 
+ #endif
+-	size = sprintf(buffer+len, "nr_allocs = %d\nnr_frees = %d\n",
++	seq_printf(m, "nr_allocs = %d\nnr_frees = %d\n",
+ 			h->nr_allocs, h->nr_frees);
+-	pos += size; len += size;
++	return 0;
++}
+ 
+-	*eof = 1;
+-	*start = buffer+offset;
+-	len -= offset;
+-	if (len>length)
+-		len = length;
+-	return len;
++static int ida_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, ida_proc_show, PDE(inode)->data);
+ }
++
++static const struct file_operations ida_proc_fops = {
++	.owner		= THIS_MODULE,
++	.open		= ida_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++};
+ #endif /* CONFIG_PROC_FS */
+ 
+ module_param_array(eisa, int, NULL, 0);
 _
 
-Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
 linux-next.patch
-acpi-fix-null-bug-for-hid-uid-string-2.patch
-fs-new-truncate-helpers.patch
-fs-use-new-truncate-helpers.patch
-fs-introduce-new-truncate-sequence.patch
-fs-convert-simple-fs-to-new-truncate.patch
-tmpfs-convert-to-use-the-new-truncate-convention.patch
-ext2-convert-to-use-the-new-truncate-convention.patch
-fat-convert-to-use-the-new-truncate-convention.patch
-btrfs-convert-to-use-the-new-truncate-convention.patch
-jfs-convert-to-use-the-new-truncate-convention.patch
-udf-convert-to-use-the-new-truncate-convention.patch
-minix-convert-to-use-the-new-truncate-convention.patch
-mm-oom-analysis-add-shmem-vmstat.patch
-ksm-add-mmu_notifier-set_pte_at_notify.patch
-ksm-first-tidy-up-madvise_vma.patch
-ksm-define-madv_mergeable-and-madv_unmergeable.patch
-ksm-the-mm-interface-to-ksm.patch
-ksm-no-debug-in-page_dup_rmap.patch
-ksm-identify-pageksm-pages.patch
-ksm-kernel-samepage-merging.patch
-ksm-prevent-mremap-move-poisoning.patch
-ksm-change-copyright-message.patch
-ksm-change-ksm-nice-level-to-be-5.patch
-ksm-rename-kernel_pages_allocated.patch
-ksm-move-pages_sharing-updates.patch
-ksm-pages_unshared-and-pages_volatile.patch
-ksm-break-cow-once-unshared.patch
-ksm-keep-quiet-while-list-empty.patch
-ksm-five-little-cleanups.patch
-ksm-fix-endless-loop-on-oom.patch
-ksm-distribute-remove_mm_from_lists.patch
-ksm-fix-oom-deadlock.patch
-ksm-sysfs-and-defaults.patch
-ksm-add-some-documentation.patch
-ksm-remove-vm_mergeable_flags.patch
-mm-add_to_swap_cache-must-not-sleep.patch
-mm-add_to_swap_cache-does-not-return-eexist.patch
-mm-includecheck-fix-for-mm-shmemc.patch
-mm-introduce-page_lru_base_type-fix.patch
-mm-replace-various-uses-of-num_physpages-by-totalram_pages.patch
-vmscan-move-pgdeactivate-modification-to-shrink_active_list-fix.patch
-hugetlbfs-allow-the-creation-of-files-suitable-for-map_private-on-the-vfs-internal-mount.patch
-hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions.patch
-hugetlb-add-map_hugetlb-example.patch
-getrusage-fill-ru_maxrss-value.patch
-getrusage-fill-ru_maxrss-value-update.patch
-ramfs-move-ramfs_magic-to-include-linux-magich.patch
-memory-controller-soft-limit-organize-cgroups-v9-fix.patch
-prio_tree-debugging-patch.patch
+pcmcia-switch-proc-bus-pccard-drivers-to-seq_file.patch
+genirq-switch-proc-irq-spurious-to-seq_file.patch
+kernel-profilec-switch-proc-irq-prof_cpu_mask-to-seq_file.patch
+cpqarray-switch-to-seq_file.patch
+oom-move-oom_killer_enable-oom_killer_disable-to-where-they-belong.patch
+scripts-get_maintainerpl-add-remove-duplicates.patch
+proc_flush_task-flush-proc-tid-task-pid-when-a-sub-thread-exits.patch
+procfs-provide-stack-information-for-threads-v08.patch
+procfs-provide-stack-information-for-threads-v011.patch
+procfs-provide-stack-information-for-threads-v011-fix.patch
+reiserfs-remove-proc-fs-reiserfs-version.patch
+reiserfs-dont-compile-procfso-at-all-if-no-support.patch
+sysctl-remove-struct-file-argument-of-proc_handler.patch
+aio-ifdef-fields-in-mm_struct.patch
 
