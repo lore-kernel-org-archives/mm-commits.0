@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + kcore-use-usual-list-for-kclist.patch added to -mm tree
-Date: Wed, 02 Sep 2009 15:51:06 -0700
-Message-ID: <200909022251.n82Mp7L3028725@imap1.linux-foundation.org>
+Subject: + kcore-add-kclist-types.patch added to -mm tree
+Date: Wed, 02 Sep 2009 15:51:09 -0700
+Message-ID: <200909022251.n82MpAe0028734@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57280 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50807 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753816AbZIBWvj (ORCPT
+	by vger.kernel.org with ESMTP id S1753815AbZIBWvj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Sep 2009 18:51:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: kamezawa.hiroyu@jp.fujitsu.com, benh@kernel.crashing.org, ralf@linux-mips.or
 
 
 The patch titled
-     kcore: use usual list for kclist
+     kcore: add kclist types
 has been added to the -mm tree.  Its filename is
-     kcore-use-usual-list-for-kclist.patch
+     kcore-add-kclist-types.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,27 +33,20 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kcore: use usual list for kclist
+Subject: kcore: add kclist types
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-This patchset is for /proc/kcore.  With this,
+Presently, kclist_add() only eats start address and size as its arguments.
+Considering to make kclist dynamically reconfigulable, it's necessary to
+know which kclists are for System RAM and which are not.
 
- - many per-arch hooks are removed.
+This patch add kclist types as
+  KCORE_RAM
+  KCORE_VMALLOC
+  KCORE_TEXT
+  KCORE_OTHER
 
- - /proc/kcore will know really valid physical memory area.
-
- - /proc/kcore will be aware of memory hotplug.
-
- - /proc/kcore will be architecture independent i.e.
-   if an arch supports CONFIG_MMU, it can use /proc/kcore.
-   (if the arch uses usual memory layout.)
-
-This patch:
-
-/proc/kcore uses its own list handling codes. It's better to use
-generic list codes.
-
-No changes in logic. just clean up.
+This "type" is used in a patch following this for detecting KCORE_RAM.
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Ralf Baechle <ralf@linux-mips.org>
@@ -62,79 +55,193 @@ Cc: WANG Cong <xiyou.wangcong@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/kcore.c         |   12 ++++++------
- include/linux/proc_fs.h |    2 +-
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ arch/ia64/mm/init.c       |    7 ++++---
+ arch/mips/mm/init.c       |    7 ++++---
+ arch/powerpc/mm/init_32.c |    4 ++--
+ arch/powerpc/mm/init_64.c |    5 +++--
+ arch/sh/mm/init.c         |    4 ++--
+ arch/x86/mm/init_32.c     |    4 ++--
+ arch/x86/mm/init_64.c     |   11 ++++++-----
+ fs/proc/kcore.c           |    3 ++-
+ include/linux/proc_fs.h   |   13 +++++++++++--
+ 9 files changed, 36 insertions(+), 22 deletions(-)
 
-diff -puN fs/proc/kcore.c~kcore-use-usual-list-for-kclist fs/proc/kcore.c
---- a/fs/proc/kcore.c~kcore-use-usual-list-for-kclist
+diff -puN arch/ia64/mm/init.c~kcore-add-kclist-types arch/ia64/mm/init.c
+--- a/arch/ia64/mm/init.c~kcore-add-kclist-types
++++ a/arch/ia64/mm/init.c
+@@ -639,9 +639,10 @@ mem_init (void)
+ 
+ 	high_memory = __va(max_low_pfn * PAGE_SIZE);
+ 
+-	kclist_add(&kcore_mem, __va(0), max_low_pfn * PAGE_SIZE);
+-	kclist_add(&kcore_vmem, (void *)VMALLOC_START, VMALLOC_END-VMALLOC_START);
+-	kclist_add(&kcore_kernel, _stext, _end - _stext);
++	kclist_add(&kcore_mem, __va(0), max_low_pfn * PAGE_SIZE, KCORE_RAM);
++	kclist_add(&kcore_vmem, (void *)VMALLOC_START,
++			VMALLOC_END-VMALLOC_START, KCORE_VMALLOC);
++	kclist_add(&kcore_kernel, _stext, _end - _stext, KCORE_TEXT);
+ 
+ 	for_each_online_pgdat(pgdat)
+ 		if (pgdat->bdata->node_bootmem_map)
+diff -puN arch/mips/mm/init.c~kcore-add-kclist-types arch/mips/mm/init.c
+--- a/arch/mips/mm/init.c~kcore-add-kclist-types
++++ a/arch/mips/mm/init.c
+@@ -409,11 +409,12 @@ void __init mem_init(void)
+ 	if ((unsigned long) &_text > (unsigned long) CKSEG0)
+ 		/* The -4 is a hack so that user tools don't have to handle
+ 		   the overflow.  */
+-		kclist_add(&kcore_kseg0, (void *) CKSEG0, 0x80000000 - 4);
++		kclist_add(&kcore_kseg0, (void *) CKSEG0,
++				0x80000000 - 4, KCORE_TEXT);
+ #endif
+-	kclist_add(&kcore_mem, __va(0), max_low_pfn << PAGE_SHIFT);
++	kclist_add(&kcore_mem, __va(0), max_low_pfn << PAGE_SHIFT, KCORE_RAM);
+ 	kclist_add(&kcore_vmalloc, (void *)VMALLOC_START,
+-		   VMALLOC_END-VMALLOC_START);
++		   VMALLOC_END-VMALLOC_START, KCORE_VMALLOC);
+ 
+ 	printk(KERN_INFO "Memory: %luk/%luk available (%ldk kernel code, "
+ 	       "%ldk reserved, %ldk data, %ldk init, %ldk highmem)\n",
+diff -puN arch/powerpc/mm/init_32.c~kcore-add-kclist-types arch/powerpc/mm/init_32.c
+--- a/arch/powerpc/mm/init_32.c~kcore-add-kclist-types
++++ a/arch/powerpc/mm/init_32.c
+@@ -268,11 +268,11 @@ static int __init setup_kcore(void)
+ 						size);
+ 		}
+ 
+-		kclist_add(kcore_mem, __va(base), size);
++		kclist_add(kcore_mem, __va(base), size, KCORE_RAM);
+ 	}
+ 
+ 	kclist_add(&kcore_vmem, (void *)VMALLOC_START,
+-		VMALLOC_END-VMALLOC_START);
++		VMALLOC_END-VMALLOC_START, KCORE_VMALLOC);
+ 
+ 	return 0;
+ }
+diff -puN arch/powerpc/mm/init_64.c~kcore-add-kclist-types arch/powerpc/mm/init_64.c
+--- a/arch/powerpc/mm/init_64.c~kcore-add-kclist-types
++++ a/arch/powerpc/mm/init_64.c
+@@ -128,10 +128,11 @@ static int __init setup_kcore(void)
+ 		if (!kcore_mem)
+ 			panic("%s: kmalloc failed\n", __func__);
+ 
+-		kclist_add(kcore_mem, __va(base), size);
++		kclist_add(kcore_mem, __va(base), size, KCORE_RAM);
+ 	}
+ 
+-	kclist_add(&kcore_vmem, (void *)VMALLOC_START, VMALLOC_END-VMALLOC_START);
++	kclist_add(&kcore_vmem, (void *)VMALLOC_START,
++		VMALLOC_END-VMALLOC_START, KCORE_VMALLOC);
+ 
+ 	return 0;
+ }
+diff -puN arch/sh/mm/init.c~kcore-add-kclist-types arch/sh/mm/init.c
+--- a/arch/sh/mm/init.c~kcore-add-kclist-types
++++ a/arch/sh/mm/init.c
+@@ -218,9 +218,9 @@ void __init mem_init(void)
+ 	datasize =  (unsigned long) &_edata - (unsigned long) &_etext;
+ 	initsize =  (unsigned long) &__init_end - (unsigned long) &__init_begin;
+ 
+-	kclist_add(&kcore_mem, __va(0), max_low_pfn << PAGE_SHIFT);
++	kclist_add(&kcore_mem, __va(0), max_low_pfn << PAGE_SHIFT, KCORE_RAM);
+ 	kclist_add(&kcore_vmalloc, (void *)VMALLOC_START,
+-		   VMALLOC_END - VMALLOC_START);
++		   VMALLOC_END - VMALLOC_START, KCORE_VMALLOC);
+ 
+ 	printk(KERN_INFO "Memory: %luk/%luk available (%dk kernel code, "
+ 	       "%dk data, %dk init)\n",
+diff -puN arch/x86/mm/init_32.c~kcore-add-kclist-types arch/x86/mm/init_32.c
+--- a/arch/x86/mm/init_32.c~kcore-add-kclist-types
++++ a/arch/x86/mm/init_32.c
+@@ -886,9 +886,9 @@ void __init mem_init(void)
+ 	datasize =  (unsigned long) &_edata - (unsigned long) &_etext;
+ 	initsize =  (unsigned long) &__init_end - (unsigned long) &__init_begin;
+ 
+-	kclist_add(&kcore_mem, __va(0), max_low_pfn << PAGE_SHIFT);
++	kclist_add(&kcore_mem, __va(0), max_low_pfn << PAGE_SHIFT, KCORE_RAM);
+ 	kclist_add(&kcore_vmalloc, (void *)VMALLOC_START,
+-		   VMALLOC_END-VMALLOC_START);
++		   VMALLOC_END-VMALLOC_START, KCORE_VMALLOC);
+ 
+ 	printk(KERN_INFO "Memory: %luk/%luk available (%dk kernel code, "
+ 			"%dk reserved, %dk data, %dk init, %ldk highmem)\n",
+diff -puN arch/x86/mm/init_64.c~kcore-add-kclist-types arch/x86/mm/init_64.c
+--- a/arch/x86/mm/init_64.c~kcore-add-kclist-types
++++ a/arch/x86/mm/init_64.c
+@@ -677,13 +677,14 @@ void __init mem_init(void)
+ 	initsize =  (unsigned long) &__init_end - (unsigned long) &__init_begin;
+ 
+ 	/* Register memory areas for /proc/kcore */
+-	kclist_add(&kcore_mem, __va(0), max_low_pfn << PAGE_SHIFT);
++	kclist_add(&kcore_mem, __va(0), max_low_pfn << PAGE_SHIFT, KCORE_RAM);
+ 	kclist_add(&kcore_vmalloc, (void *)VMALLOC_START,
+-		   VMALLOC_END-VMALLOC_START);
+-	kclist_add(&kcore_kernel, &_stext, _end - _stext);
+-	kclist_add(&kcore_modules, (void *)MODULES_VADDR, MODULES_LEN);
++		   VMALLOC_END-VMALLOC_START, KCORE_VMALLOC);
++	kclist_add(&kcore_kernel, &_stext, _end - _stext, KCORE_TEXT);
++	kclist_add(&kcore_modules, (void *)MODULES_VADDR, MODULES_LEN,
++			KCORE_OTHER);
+ 	kclist_add(&kcore_vsyscall, (void *)VSYSCALL_START,
+-				 VSYSCALL_END - VSYSCALL_START);
++			 VSYSCALL_END - VSYSCALL_START, KCORE_OTHER);
+ 
+ 	printk(KERN_INFO "Memory: %luk/%luk available (%ldk kernel code, "
+ 			 "%ldk absent, %ldk reserved, %ldk data, %ldk init)\n",
+diff -puN fs/proc/kcore.c~kcore-add-kclist-types fs/proc/kcore.c
+--- a/fs/proc/kcore.c~kcore-add-kclist-types
 +++ a/fs/proc/kcore.c
-@@ -20,6 +20,7 @@
- #include <linux/init.h>
- #include <asm/uaccess.h>
- #include <asm/io.h>
-+#include <linux/list.h>
- 
- #define CORE_STR "CORE"
- 
-@@ -57,7 +58,7 @@ struct memelfnote
- 	void *data;
- };
- 
--static struct kcore_list *kclist;
-+static LIST_HEAD(kclist_head);
+@@ -62,10 +62,11 @@ static LIST_HEAD(kclist_head);
  static DEFINE_RWLOCK(kclist_lock);
  
  void
-@@ -67,8 +68,7 @@ kclist_add(struct kcore_list *new, void 
+-kclist_add(struct kcore_list *new, void *addr, size_t size)
++kclist_add(struct kcore_list *new, void *addr, size_t size, int type)
+ {
+ 	new->addr = (unsigned long)addr;
  	new->size = size;
++	new->type = type;
  
  	write_lock(&kclist_lock);
--	new->next = kclist;
--	kclist = new;
-+	list_add_tail(&new->list, &kclist_head);
- 	write_unlock(&kclist_lock);
- }
- 
-@@ -80,7 +80,7 @@ static size_t get_kcore_size(int *nphdr,
- 	*nphdr = 1; /* PT_NOTE */
- 	size = 0;
- 
--	for (m=kclist; m; m=m->next) {
-+	list_for_each_entry(m, &kclist_head, list) {
- 		try = kc_vaddr_to_offset((size_t)m->addr + m->size);
- 		if (try > size)
- 			size = try;
-@@ -192,7 +192,7 @@ static void elf_kcore_store_hdr(char *bu
- 	nhdr->p_align	= 0;
- 
- 	/* setup ELF PT_LOAD program header for every area */
--	for (m=kclist; m; m=m->next) {
-+	list_for_each_entry(m, &kclist_head, list) {
- 		phdr = (struct elf_phdr *) bufp;
- 		bufp += sizeof(struct elf_phdr);
- 		offset += sizeof(struct elf_phdr);
-@@ -317,7 +317,7 @@ read_kcore(struct file *file, char __use
- 		struct kcore_list *m;
- 
- 		read_lock(&kclist_lock);
--		for (m=kclist; m; m=m->next) {
-+		list_for_each_entry(m, &kclist_head, list) {
- 			if (start >= m->addr && start < (m->addr+m->size))
- 				break;
- 		}
-diff -puN include/linux/proc_fs.h~kcore-use-usual-list-for-kclist include/linux/proc_fs.h
---- a/include/linux/proc_fs.h~kcore-use-usual-list-for-kclist
+ 	list_add_tail(&new->list, &kclist_head);
+diff -puN include/linux/proc_fs.h~kcore-add-kclist-types include/linux/proc_fs.h
+--- a/include/linux/proc_fs.h~kcore-add-kclist-types
 +++ a/include/linux/proc_fs.h
-@@ -79,7 +79,7 @@ struct proc_dir_entry {
+@@ -78,10 +78,18 @@ struct proc_dir_entry {
+ 	struct list_head pde_openers;	/* who did ->open, but not ->release */
  };
  
++enum kcore_type {
++	KCORE_TEXT,
++	KCORE_VMALLOC,
++	KCORE_RAM,
++	KCORE_OTHER,
++};
++
  struct kcore_list {
--	struct kcore_list *next;
-+	struct list_head list;
+ 	struct list_head list;
  	unsigned long addr;
  	size_t size;
++	int type;
  };
+ 
+ struct vmcore {
+@@ -233,11 +241,12 @@ static inline void dup_mm_exe_file(struc
+ #endif /* CONFIG_PROC_FS */
+ 
+ #if !defined(CONFIG_PROC_KCORE)
+-static inline void kclist_add(struct kcore_list *new, void *addr, size_t size)
++static inline void
++kclist_add(struct kcore_list *new, void *addr, size_t size, int type)
+ {
+ }
+ #else
+-extern void kclist_add(struct kcore_list *, void *, size_t);
++extern void kclist_add(struct kcore_list *, void *, size_t, int type);
+ #endif
+ 
+ union proc_op {
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
