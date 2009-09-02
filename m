@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + matroxfb-make-config_fb_matrox_multihead=y-mandatory.patch added to -mm tree
-Date: Wed, 02 Sep 2009 14:12:20 -0700
-Message-ID: <200909022112.n82LCKkw010233@imap1.linux-foundation.org>
+Subject: + matroxfb-get-rid-of-unneeded-macro-minfo_from.patch added to -mm tree
+Date: Wed, 02 Sep 2009 14:12:32 -0700
+Message-ID: <200909022112.n82LCWc9010603@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40537 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33592 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751607AbZIBVNI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Sep 2009 17:13:08 -0400
+	by vger.kernel.org with ESMTP id S1752248AbZIBVNN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Sep 2009 17:13:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: khali@linux-fr.org, krzysztof.h1@poczta.fm, vandrove@vc.cvut.cz
 
 
 The patch titled
-     matroxfb: make CONFIG_FB_MATROX_MULTIHEAD=y mandatory
+     matroxfb: get rid of unneeded macro MINFO_FROM
 has been added to the -mm tree.  Its filename is
-     matroxfb-make-config_fb_matrox_multihead=y-mandatory.patch
+     matroxfb-get-rid-of-unneeded-macro-minfo_from.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,45 +33,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: matroxfb: make CONFIG_FB_MATROX_MULTIHEAD=y mandatory
+Subject: matroxfb: get rid of unneeded macro MINFO_FROM
 From: Jean Delvare <khali@linux-fr.org>
 
-I would like to get rid of option CONFIG_FB_MATROX_MULTIHEAD and just
-always enable it.  There are many reasons for doing this:
-
-* CONFIG_FB_MATROX_MULTIHEAD=y is what all x86 distributions do, so it
-  definitely works or we would know by now.
-
-* Building the matroxfb driver with CONFIG_FB_MATROX_MULTIHEAD not set
-  results in the following build warning:
-
-drivers/video/matrox/matroxfb_crtc2.c: In function 'matroxfb_dh_open':
-drivers/video/matrox/matroxfb_crtc2.c:265: warning: the address of 'matroxfb_global_mxinfo' will always evaluate as 'true'
-drivers/video/matrox/matroxfb_crtc2.c: In function 'matroxfb_dh_release':
-drivers/video/matrox/matroxfb_crtc2.c:285: warning: the address of 'matroxfb_global_mxinfo' will always evaluate as 'true'
-
-This is nothing to be worried about, the driver will work fine, but build
-warnings are still annoying.
-
-* The trick to get multihead support without CONFIG_FB_MATROX_MULTIHEAD,
-  which is described in the config help text, no longer works: you can't
-  load the same kernel module more than once.
-
-* I fail to see how CONFIG_FB_MATROX_MULTIHEAD=y would make the code
-  significantly slower, contrary to what the help text says.  A few extra
-  parameters on the stack here and there can't really slow things down in
-  comaprison to the rest of the code, and register access.
-
-* The driver built without CONFIG_FB_MATROX_MULTIHEAD is larger than the
-  driver build with CONFIG_FB_MATROX_MULTIHEAD=y by 8%.
-
-* One less configuration option makes things simpler.  We add options
-  all the time, being able to remove one for once is nice.  It improves
-  testing coverage.  And I don't think the Matrox adapters are still
-  popular enough to warrant overdetailed configuration settings.
-
-* We should be able to unobfuscate the driver code quite a bit after
-  this change (patches follow.)
+With multihead support always enabled, macros MINFO_FROM and
+MINFO_FROM_INFO are no longer needed and make the code harder to read.
 
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
 Acked-by: Petr Vandrovec <vandrove@vc.cvut.cz>
@@ -79,187 +45,316 @@ Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/fb/matroxfb.txt        |    4 +---
- drivers/video/Kconfig                |   20 --------------------
- drivers/video/matrox/matroxfb_base.c |   23 -----------------------
- drivers/video/matrox/matroxfb_base.h |   20 --------------------
- drivers/video/matrox/matroxfb_misc.c |    4 ----
- 5 files changed, 1 insertion(+), 70 deletions(-)
+ drivers/video/matrox/matroxfb_accel.c |   10 +++++-----
+ drivers/video/matrox/matroxfb_base.c  |   17 ++++++++---------
+ drivers/video/matrox/matroxfb_base.h  |    4 ----
+ drivers/video/matrox/matroxfb_crtc2.c |   16 ++++++++--------
+ drivers/video/matrox/matroxfb_g450.c  |   10 +++++-----
+ drivers/video/matrox/matroxfb_maven.c |   10 ++++++----
+ 6 files changed, 32 insertions(+), 35 deletions(-)
 
-diff -puN Documentation/fb/matroxfb.txt~matroxfb-make-config_fb_matrox_multihead=y-mandatory Documentation/fb/matroxfb.txt
---- a/Documentation/fb/matroxfb.txt~matroxfb-make-config_fb_matrox_multihead=y-mandatory
-+++ a/Documentation/fb/matroxfb.txt
-@@ -186,9 +186,7 @@ noinverse - show true colors on screen. 
- dev:X    - bind driver to device X. Driver numbers device from 0 up to N,
-            where device 0 is first `known' device found, 1 second and so on.
- 	   lspci lists devices in this order.
--	   Default is `every' known device for driver with multihead support
--	   and first working device (usually dev:0) for driver without
--	   multihead support.
-+	   Default is `every' known device.
- nohwcursor - disables hardware cursor (use software cursor instead).
- hwcursor - enables hardware cursor. It is default. If you are using
-            non-accelerated mode (`noaccel' or `fbset -accel false'), software
-diff -puN drivers/video/Kconfig~matroxfb-make-config_fb_matrox_multihead=y-mandatory drivers/video/Kconfig
---- a/drivers/video/Kconfig~matroxfb-make-config_fb_matrox_multihead=y-mandatory
-+++ a/drivers/video/Kconfig
-@@ -1275,26 +1275,6 @@ config FB_MATROX_MAVEN
- 	  painting procedures (the secondary head does not use acceleration
- 	  engine).
+diff -puN drivers/video/matrox/matroxfb_accel.c~matroxfb-get-rid-of-unneeded-macro-minfo_from drivers/video/matrox/matroxfb_accel.c
+--- a/drivers/video/matrox/matroxfb_accel.c~matroxfb-get-rid-of-unneeded-macro-minfo_from
++++ a/drivers/video/matrox/matroxfb_accel.c
+@@ -275,7 +275,7 @@ static void matrox_accel_bmove_lin(struc
+ }
  
--config FB_MATROX_MULTIHEAD
--	bool "Multihead support"
--	depends on FB_MATROX
--	---help---
--	  Say Y here if you have more than one (supported) Matrox device in
--	  your computer and you want to use all of them for different monitors
--	  ("multihead"). If you have only one device, you should say N because
--	  the driver compiled with Y is larger and a bit slower, especially on
--	  ia32 (ix86).
--
--	  If you said M to "Matrox unified accelerated driver" and N here, you
--	  will still be able to use several Matrox devices simultaneously:
--	  insert several instances of the module matroxfb into the kernel
--	  with insmod, supplying the parameter "dev=N" where N is 0, 1, etc.
--	  for the different Matrox devices. This method is slightly faster but
--	  uses 40 KB of kernel memory per Matrox card.
--
--	  There is no need for enabling 'Matrox multihead support' if you have
--	  only one Matrox card in the box.
--
- config FB_RADEON
- 	tristate "ATI Radeon display support"
- 	depends on FB && PCI
-diff -puN drivers/video/matrox/matroxfb_base.c~matroxfb-make-config_fb_matrox_multihead=y-mandatory drivers/video/matrox/matroxfb_base.c
---- a/drivers/video/matrox/matroxfb_base.c~matroxfb-make-config_fb_matrox_multihead=y-mandatory
+ static void matroxfb_cfb4_copyarea(struct fb_info* info, const struct fb_copyarea* area) {
+-	MINFO_FROM_INFO(info);
++	struct matrox_fb_info *minfo = info2minfo(info);
+ 
+ 	if ((area->sx | area->dx | area->width) & 1)
+ 		cfb_copyarea(info, area);
+@@ -284,7 +284,7 @@ static void matroxfb_cfb4_copyarea(struc
+ }
+ 
+ static void matroxfb_copyarea(struct fb_info* info, const struct fb_copyarea* area) {
+-	MINFO_FROM_INFO(info);
++	struct matrox_fb_info *minfo = info2minfo(info);
+ 
+ 	matrox_accel_bmove(minfo, minfo->fbcon.var.xres_virtual, area->sy, area->sx, area->dy, area->dx, area->height, area->width);
+ }
+@@ -309,7 +309,7 @@ static void matroxfb_accel_clear(struct 
+ }
+ 
+ static void matroxfb_fillrect(struct fb_info* info, const struct fb_fillrect* rect) {
+-	MINFO_FROM_INFO(info);
++	struct matrox_fb_info *minfo = info2minfo(info);
+ 
+ 	switch (rect->rop) {
+ 		case ROP_COPY:
+@@ -376,7 +376,7 @@ static void matroxfb_cfb4_clear(struct m
+ }
+ 
+ static void matroxfb_cfb4_fillrect(struct fb_info* info, const struct fb_fillrect* rect) {
+-	MINFO_FROM_INFO(info);
++	struct matrox_fb_info *minfo = info2minfo(info);
+ 
+ 	switch (rect->rop) {
+ 		case ROP_COPY:
+@@ -478,7 +478,7 @@ static void matroxfb_1bpp_imageblit(stru
+ 
+ 
+ static void matroxfb_imageblit(struct fb_info* info, const struct fb_image* image) {
+-	MINFO_FROM_INFO(info);
++	struct matrox_fb_info *minfo = info2minfo(info);
+ 
+ 	DBG_HEAVY(__func__);
+ 
+diff -puN drivers/video/matrox/matroxfb_base.c~matroxfb-get-rid-of-unneeded-macro-minfo_from drivers/video/matrox/matroxfb_base.c
+--- a/drivers/video/matrox/matroxfb_base.c~matroxfb-get-rid-of-unneeded-macro-minfo_from
 +++ a/drivers/video/matrox/matroxfb_base.c
-@@ -379,9 +379,7 @@ static void matroxfb_remove(WPMINFO int 
- 	mga_iounmap(ACCESS_FBINFO(video.vbase));
- 	release_mem_region(ACCESS_FBINFO(video.base), ACCESS_FBINFO(video.len_maximum));
- 	release_mem_region(ACCESS_FBINFO(mmio.base), 16384);
--#ifdef CONFIG_FB_MATROX_MULTIHEAD
- 	kfree(minfo);
--#endif
- }
- 
- 	/*
-@@ -644,9 +642,7 @@ static int matroxfb_setcolreg(unsigned r
- 			      unsigned blue, unsigned transp,
- 			      struct fb_info *fb_info)
+@@ -204,8 +204,7 @@ static irqreturn_t matrox_irq(int irq, v
  {
--#ifdef CONFIG_FB_MATROX_MULTIHEAD
- 	struct matrox_fb_info* minfo = container_of(fb_info, struct matrox_fb_info, fbcon);
--#endif
+ 	u_int32_t status;
+ 	int handled = 0;
+-
+-	MINFO_FROM(dev_id);
++	struct matrox_fb_info *minfo = dev_id;
+ 
+ 	status = mga_inl(M_STATUS);
+ 
+@@ -396,7 +395,7 @@ static void matroxfb_remove(struct matro
+ 
+ static int matroxfb_open(struct fb_info *info, int user)
+ {
+-	MINFO_FROM_INFO(info);
++	struct matrox_fb_info *minfo = info2minfo(info);
+ 
+ 	DBG_LOOP(__func__)
+ 
+@@ -412,7 +411,7 @@ static int matroxfb_open(struct fb_info 
+ 
+ static int matroxfb_release(struct fb_info *info, int user)
+ {
+-	MINFO_FROM_INFO(info);
++	struct matrox_fb_info *minfo = info2minfo(info);
+ 
+ 	DBG_LOOP(__func__)
+ 
+@@ -429,7 +428,7 @@ static int matroxfb_release(struct fb_in
+ 
+ static int matroxfb_pan_display(struct fb_var_screeninfo *var,
+ 		struct fb_info* info) {
+-	MINFO_FROM_INFO(info);
++	struct matrox_fb_info *minfo = info2minfo(info);
  
  	DBG(__func__)
  
-@@ -2011,9 +2007,6 @@ static int matroxfb_probe(struct pci_dev
- 	struct matrox_fb_info* minfo;
- 	int err;
- 	u_int32_t cmd;
--#ifndef CONFIG_FB_MATROX_MULTIHEAD
--	static int registered = 0;
--#endif
+@@ -749,7 +748,7 @@ static int matroxfb_check_var(struct fb_
+ 	int visual;
+ 	int cmap_len;
+ 	unsigned int ydstorg;
+-	MINFO_FROM_INFO(info);
++	struct matrox_fb_info *minfo = info2minfo(info);
+ 
+ 	if (minfo->dead) {
+ 		return -ENXIO;
+@@ -766,7 +765,7 @@ static int matroxfb_set_par(struct fb_in
+ 	int cmap_len;
+ 	unsigned int ydstorg;
+ 	struct fb_var_screeninfo *var;
+-	MINFO_FROM_INFO(info);
++	struct matrox_fb_info *minfo = info2minfo(info);
+ 
  	DBG(__func__)
  
- 	svid = pdev->subsystem_vendor;
-@@ -2037,15 +2030,9 @@ static int matroxfb_probe(struct pci_dev
- 		return -1;
- 	}
+@@ -890,7 +889,7 @@ static int matroxfb_ioctl(struct fb_info
+ 			  unsigned int cmd, unsigned long arg)
+ {
+ 	void __user *argp = (void __user *)arg;
+-	MINFO_FROM_INFO(info);
++	struct matrox_fb_info *minfo = info2minfo(info);
  
--#ifdef CONFIG_FB_MATROX_MULTIHEAD
- 	minfo = kmalloc(sizeof(*minfo), GFP_KERNEL);
- 	if (!minfo)
- 		return -1;
--#else
--	if (registered)	/* singlehead driver... */
--		return -1;
--	minfo = &matroxfb_global_mxinfo;
--#endif
- 	memset(MINFO, 0, sizeof(*MINFO));
+ 	DBG(__func__)
  
- 	ACCESS_FBINFO(pcidev) = pdev;
-@@ -2090,15 +2077,10 @@ static int matroxfb_probe(struct pci_dev
+@@ -1189,7 +1188,7 @@ static int matroxfb_blank(int blank, str
+ 	int seq;
+ 	int crtc;
+ 	CRITFLAGS
+-	MINFO_FROM_INFO(info);
++	struct matrox_fb_info *minfo = info2minfo(info);
  
- 	err = initMatrox2(PMINFO b);
- 	if (!err) {
--#ifndef CONFIG_FB_MATROX_MULTIHEAD
--		registered = 1;
--#endif
- 		matroxfb_register_device(MINFO);
- 		return 0;
- 	}
--#ifdef CONFIG_FB_MATROX_MULTIHEAD
- 	kfree(minfo);
--#endif
- 	return -1;
- }
+ 	DBG(__func__)
  
-@@ -2510,13 +2492,8 @@ module_param(inv24, int, 0);
- MODULE_PARM_DESC(inv24, "Inverts clock polarity for 24bpp and loop frequency > 100MHz (default=do not invert polarity)");
- module_param(inverse, int, 0);
- MODULE_PARM_DESC(inverse, "Inverse (0 or 1) (default=0)");
--#ifdef CONFIG_FB_MATROX_MULTIHEAD
- module_param(dev, int, 0);
- MODULE_PARM_DESC(dev, "Multihead support, attach to device ID (0..N) (default=all working)");
--#else
--module_param(dev, int, 0);
--MODULE_PARM_DESC(dev, "Multihead support, attach to device ID (0..N) (default=first working)");
--#endif
- module_param(vesa, int, 0);
- MODULE_PARM_DESC(vesa, "Startup videomode (0x000-0x1FF) (default=0x101)");
- module_param(xres, int, 0);
-diff -puN drivers/video/matrox/matroxfb_base.h~matroxfb-make-config_fb_matrox_multihead=y-mandatory drivers/video/matrox/matroxfb_base.h
---- a/drivers/video/matrox/matroxfb_base.h~matroxfb-make-config_fb_matrox_multihead=y-mandatory
+diff -puN drivers/video/matrox/matroxfb_base.h~matroxfb-get-rid-of-unneeded-macro-minfo_from drivers/video/matrox/matroxfb_base.h
+--- a/drivers/video/matrox/matroxfb_base.h~matroxfb-get-rid-of-unneeded-macro-minfo_from
 +++ a/drivers/video/matrox/matroxfb_base.h
-@@ -524,7 +524,6 @@ struct matrox_fb_info {
+@@ -524,10 +524,6 @@ struct matrox_fb_info {
  
  #define info2minfo(info) container_of(info, struct matrox_fb_info, fbcon)
  
--#ifdef CONFIG_FB_MATROX_MULTIHEAD
- #define ACCESS_FBINFO2(info, x) (info->x)
- #define ACCESS_FBINFO(x) ACCESS_FBINFO2(minfo,x)
+-#define MINFO_FROM(x)	   struct matrox_fb_info* minfo = x
+-
+-#define MINFO_FROM_INFO(x) MINFO_FROM(info2minfo(x))
+-
+ struct matrox_switch {
+ 	int	(*preinit)(struct matrox_fb_info *minfo);
+ 	void	(*reset)(struct matrox_fb_info *minfo);
+diff -puN drivers/video/matrox/matroxfb_crtc2.c~matroxfb-get-rid-of-unneeded-macro-minfo_from drivers/video/matrox/matroxfb_crtc2.c
+--- a/drivers/video/matrox/matroxfb_crtc2.c~matroxfb-get-rid-of-unneeded-macro-minfo_from
++++ a/drivers/video/matrox/matroxfb_crtc2.c
+@@ -65,7 +65,7 @@ static void matroxfb_dh_restore(struct m
+ 		unsigned int pos) {
+ 	u_int32_t tmp;
+ 	u_int32_t datactl;
+-	MINFO_FROM(m2info->primary_dev);
++	struct matrox_fb_info *minfo = m2info->primary_dev;
  
-@@ -538,25 +537,6 @@ struct matrox_fb_info {
- #define PMINFO   PMINFO2 ,
+ 	switch (mode) {
+ 		case 15:
+@@ -157,7 +157,7 @@ static void matroxfb_dh_restore(struct m
+ }
  
- #define MINFO_FROM(x)	   struct matrox_fb_info* minfo = x
--#else
--
--extern struct matrox_fb_info matroxfb_global_mxinfo;
--
--#define ACCESS_FBINFO(x) (matroxfb_global_mxinfo.x)
--#define ACCESS_FBINFO2(info, x) (matroxfb_global_mxinfo.x)
--
--#define MINFO (&matroxfb_global_mxinfo)
--
--#define WPMINFO2 void
--#define WPMINFO
--#define CPMINFO2 void
--#define CPMINFO
--#define PMINFO2
--#define PMINFO
--
--#define MINFO_FROM(x)
--
--#endif
+ static void matroxfb_dh_disable(struct matroxfb_dh_fb_info* m2info) {
+-	MINFO_FROM(m2info->primary_dev);
++	struct matrox_fb_info *minfo = m2info->primary_dev;
  
- #define MINFO_FROM_INFO(x) MINFO_FROM(info2minfo(x))
+ 	mga_outl(0x3C10, 0x00000004);	/* disable CRTC2, CRTC1->DAC1, PLL as clock source */
+ 	minfo->hw.crtc2.ctl = 0x00000004;
+@@ -168,7 +168,7 @@ static void matroxfb_dh_pan_var(struct m
+ 	unsigned int pos;
+ 	unsigned int linelen;
+ 	unsigned int pixelsize;
+-	MINFO_FROM(m2info->primary_dev);
++	struct matrox_fb_info *minfo = m2info->primary_dev;
  
-diff -puN drivers/video/matrox/matroxfb_misc.c~matroxfb-make-config_fb_matrox_multihead=y-mandatory drivers/video/matrox/matroxfb_misc.c
---- a/drivers/video/matrox/matroxfb_misc.c~matroxfb-make-config_fb_matrox_multihead=y-mandatory
-+++ a/drivers/video/matrox/matroxfb_misc.c
-@@ -784,10 +784,6 @@ EXPORT_SYMBOL(matroxfb_DAC_in);
- EXPORT_SYMBOL(matroxfb_DAC_out);
- EXPORT_SYMBOL(matroxfb_var2my);
- EXPORT_SYMBOL(matroxfb_PLL_calcclock);
--#ifndef CONFIG_FB_MATROX_MULTIHEAD
--struct matrox_fb_info matroxfb_global_mxinfo;
--EXPORT_SYMBOL(matroxfb_global_mxinfo);
--#endif
- EXPORT_SYMBOL(matroxfb_vgaHWinit);		/* DAC1064, Ti3026 */
- EXPORT_SYMBOL(matroxfb_vgaHWrestore);		/* DAC1064, Ti3026 */
- EXPORT_SYMBOL(matroxfb_read_pins);
+ 	m2info->fbcon.var.xoffset = var->xoffset;
+ 	m2info->fbcon.var.yoffset = var->yoffset;
+@@ -260,7 +260,7 @@ static int matroxfb_dh_decode_var(struct
+ 
+ static int matroxfb_dh_open(struct fb_info* info, int user) {
+ #define m2info (container_of(info, struct matroxfb_dh_fb_info, fbcon))
+-	MINFO_FROM(m2info->primary_dev);
++	struct matrox_fb_info *minfo = m2info->primary_dev;
+ 
+ 	if (minfo) {
+ 		int err;
+@@ -280,7 +280,7 @@ static int matroxfb_dh_open(struct fb_in
+ static int matroxfb_dh_release(struct fb_info* info, int user) {
+ #define m2info (container_of(info, struct matroxfb_dh_fb_info, fbcon))
+ 	int err = 0;
+-	MINFO_FROM(m2info->primary_dev);
++	struct matrox_fb_info *minfo = m2info->primary_dev;
+ 
+ 	if (minfo) {
+ 		err = minfo->fbops.fb_release(&minfo->fbcon, user);
+@@ -326,7 +326,7 @@ static int matroxfb_dh_set_par(struct fb
+ 	int mode;
+ 	int err;
+ 	struct fb_var_screeninfo* var = &info->var;
+-	MINFO_FROM(m2info->primary_dev);
++	struct matrox_fb_info *minfo = m2info->primary_dev;
+ 
+ 	if ((err = matroxfb_dh_decode_var(m2info, var, &visual, &cmap_len, &mode)) != 0)
+ 		return err;
+@@ -399,7 +399,7 @@ static int matroxfb_dh_pan_display(struc
+ }
+ 
+ static int matroxfb_dh_get_vblank(const struct matroxfb_dh_fb_info* m2info, struct fb_vblank* vblank) {
+-	MINFO_FROM(m2info->primary_dev);
++	struct matrox_fb_info *minfo = m2info->primary_dev;
+ 
+ 	matroxfb_enable_irq(minfo, 0);
+ 	memset(vblank, 0, sizeof(*vblank));
+@@ -423,7 +423,7 @@ static int matroxfb_dh_ioctl(struct fb_i
+ 		unsigned long arg)
+ {
+ #define m2info (container_of(info, struct matroxfb_dh_fb_info, fbcon))
+-	MINFO_FROM(m2info->primary_dev);
++	struct matrox_fb_info *minfo = m2info->primary_dev;
+ 
+ 	DBG(__func__)
+ 
+diff -puN drivers/video/matrox/matroxfb_g450.c~matroxfb-get-rid-of-unneeded-macro-minfo_from drivers/video/matrox/matroxfb_g450.c
+--- a/drivers/video/matrox/matroxfb_g450.c~matroxfb-get-rid-of-unneeded-macro-minfo_from
++++ a/drivers/video/matrox/matroxfb_g450.c
+@@ -161,7 +161,7 @@ static int g450_query_ctrl(void* md, str
+ 
+ static int g450_set_ctrl(void* md, struct v4l2_control *p) {
+ 	int i;
+-	MINFO_FROM(md);
++	struct matrox_fb_info *minfo = md;
+ 	
+ 	i = get_ctrl_id(p->id);
+ 	if (i < 0) return -EINVAL;
+@@ -215,7 +215,7 @@ static int g450_set_ctrl(void* md, struc
+ 
+ static int g450_get_ctrl(void* md, struct v4l2_control *p) {
+ 	int i;
+-	MINFO_FROM(md);
++	struct matrox_fb_info *minfo = md;
+ 	
+ 	i = get_ctrl_id(p->id);
+ 	if (i < 0) return -EINVAL;
+@@ -518,7 +518,7 @@ static void cve2_init_TV(struct matrox_f
+ }
+ 
+ static int matroxfb_g450_compute(void* md, struct my_timming* mt) {
+-	MINFO_FROM(md);
++	struct matrox_fb_info *minfo = md;
+ 
+ 	dprintk(KERN_DEBUG "Computing, mode=%u\n", minfo->outputs[1].mode);
+ 
+@@ -556,7 +556,7 @@ static int matroxfb_g450_compute(void* m
+ }
+ 
+ static int matroxfb_g450_program(void* md) {
+-	MINFO_FROM(md);
++	struct matrox_fb_info *minfo = md;
+ 	
+ 	if (minfo->outputs[1].mode != MATROXFB_OUTPUT_MODE_MONITOR) {
+ 		cve2_init_TV(minfo, &minfo->hw.maven);
+@@ -575,7 +575,7 @@ static int matroxfb_g450_verify_mode(voi
+ }
+ 
+ static int g450_dvi_compute(void* md, struct my_timming* mt) {
+-	MINFO_FROM(md);
++	struct matrox_fb_info *minfo = md;
+ 
+ 	if (mt->mnp < 0) {
+ 		mt->mnp = matroxfb_g450_setclk(minfo, mt->pixclock, (mt->crtc == MATROXFB_SRC_CRTC1) ? M_PIXEL_PLL_C : M_VIDEO_PLL);
+diff -puN drivers/video/matrox/matroxfb_maven.c~matroxfb-get-rid-of-unneeded-macro-minfo_from drivers/video/matrox/matroxfb_maven.c
+--- a/drivers/video/matrox/matroxfb_maven.c~matroxfb-get-rid-of-unneeded-macro-minfo_from
++++ a/drivers/video/matrox/matroxfb_maven.c
+@@ -458,7 +458,7 @@ static void maven_init_TVdata(const stru
+ 		0x00,	/* 3E written multiple times */
+ 		0x00,	/* never written */
+ 	}, MATROXFB_OUTPUT_MODE_NTSC, 525, 60 };
+-	MINFO_FROM(md->primary_head);
++	struct matrox_fb_info *minfo = md->primary_head;
+ 
+ 	if (minfo->outputs[1].mode == MATROXFB_OUTPUT_MODE_PAL)
+ 		*data = palregs;
+@@ -741,7 +741,7 @@ static inline int maven_compute_timming(
+ 		struct mavenregs* m) {
+ 	unsigned int tmpi;
+ 	unsigned int a, bv, c;
+-	MINFO_FROM(md->primary_head);
++	struct matrox_fb_info *minfo = md->primary_head;
+ 
+ 	m->mode = minfo->outputs[1].mode;
+ 	if (m->mode != MATROXFB_OUTPUT_MODE_MONITOR) {
+@@ -1184,7 +1184,9 @@ static struct matrox_altout maven_altout
+ 
+ static int maven_init_client(struct i2c_client* clnt) {
+ 	struct maven_data* md = i2c_get_clientdata(clnt);
+-	MINFO_FROM(container_of(clnt->adapter, struct i2c_bit_adapter, adapter)->minfo);
++	struct matrox_fb_info *minfo = container_of(clnt->adapter,
++						    struct i2c_bit_adapter,
++						    adapter)->minfo;
+ 
+ 	md->primary_head = minfo;
+ 	md->client = clnt;
+@@ -1218,7 +1220,7 @@ static int maven_shutdown_client(struct 
+ 	struct maven_data* md = i2c_get_clientdata(clnt);
+ 
+ 	if (md->primary_head) {
+-		MINFO_FROM(md->primary_head);
++		struct matrox_fb_info *minfo = md->primary_head;
+ 
+ 		down_write(&minfo->altout.lock);
+ 		minfo->outputs[1].src = MATROXFB_SRC_NONE;
 _
 
 Patches currently in -mm which might be from khali@linux-fr.org are
