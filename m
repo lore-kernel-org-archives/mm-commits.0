@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + kcore-register-vmemmap-range.patch added to -mm tree
-Date: Wed, 02 Sep 2009 15:51:22 -0700
-Message-ID: <200909022251.n82MpNK5029187@imap1.linux-foundation.org>
+Subject: + kcore-register-module-area-in-generic-way.patch added to -mm tree
+Date: Wed, 02 Sep 2009 15:51:25 -0700
+Message-ID: <200909022251.n82MpPv8029342@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53126 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60897 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753673AbZIBXBU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Sep 2009 19:01:20 -0400
+	by vger.kernel.org with ESMTP id S1753588AbZIBXBu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Sep 2009 19:01:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: kamezawa.hiroyu@jp.fujitsu.com, benh@kernel.crashing.org, jirislaby@gmail.co
 
 
 The patch titled
-     kcore: register vmemmap range
+     kcore: register module area in generic way
 has been added to the -mm tree.  Its filename is
-     kcore-register-vmemmap-range.patch
+     kcore-register-module-area-in-generic-way.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,21 +33,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kcore: register vmemmap range
+Subject: kcore: register module area in generic way
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Benjamin Herrenschmidt <benh@kernel.crashing.org> pointed out that vmemmap
-range is not included in KCORE_RAM, KCORE_VMALLOC ....
-
-This adds KCORE_VMEMMAP if SPARSEMEM_VMEMMAP is used.  By this, vmemmap
-can be readable via /proc/kcore
-
-Because it's not vmalloc area, vread/vwrite cannot be used.  But the range
-is static against the memory layout, this patch handles vmemmap area by
-the same scheme with physical memory.
-
-This patch assumes SPARSEMEM_VMEMMAP range is not in VMALLOC range.  It's
-correct now.
+Some archs define MODULED_VADDR/MODULES_END which is not in VMALLOC area. 
+This is handled only in x86-64.  This patch make it more generic.  And we
+can use vread/vwrite to access the area.  Fix it.
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Jiri Slaby <jirislaby@gmail.com>
@@ -57,104 +48,106 @@ Cc: WANG Cong <xiyou.wangcong@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/kcore.c         |   52 ++++++++++++++++++++++++++++++++++++--
- include/linux/proc_fs.h |    1 
- 2 files changed, 51 insertions(+), 2 deletions(-)
+ arch/x86/mm/init_64.c |    4 +---
+ fs/proc/kcore.c       |   19 ++++++++++++++++++-
+ include/linux/mm.h    |    8 ++++++++
+ mm/vmalloc.c          |    2 +-
+ 4 files changed, 28 insertions(+), 5 deletions(-)
 
-diff -puN fs/proc/kcore.c~kcore-register-vmemmap-range fs/proc/kcore.c
---- a/fs/proc/kcore.c~kcore-register-vmemmap-range
-+++ a/fs/proc/kcore.c
-@@ -103,7 +103,7 @@ static void free_kclist_ents(struct list
- 	}
- }
- /*
-- * Replace all KCORE_RAM information with passed list.
-+ * Replace all KCORE_RAM/KCORE_VMEMMAP information with passed list.
-  */
- static void __kcore_update_ram(struct list_head *list)
+diff -puN arch/x86/mm/init_64.c~kcore-register-module-area-in-generic-way arch/x86/mm/init_64.c
+--- a/arch/x86/mm/init_64.c~kcore-register-module-area-in-generic-way
++++ a/arch/x86/mm/init_64.c
+@@ -647,7 +647,7 @@ EXPORT_SYMBOL_GPL(memory_add_physaddr_to
+ 
+ #endif /* CONFIG_MEMORY_HOTPLUG */
+ 
+-static struct kcore_list kcore_modules, kcore_vsyscall;
++static struct kcore_list kcore_vsyscall;
+ 
+ void __init mem_init(void)
  {
-@@ -113,7 +113,8 @@ static void __kcore_update_ram(struct li
- 	write_lock(&kclist_lock);
- 	if (kcore_need_update) {
- 		list_for_each_entry_safe(pos, tmp, &kclist_head, list) {
--			if (pos->type == KCORE_RAM)
-+			if (pos->type == KCORE_RAM
-+				|| pos->type == KCORE_VMEMMAP)
- 				list_move(&pos->list, &garbage);
- 		}
- 		list_splice_tail(list, &kclist_head);
-@@ -151,6 +152,47 @@ static int kcore_update_ram(void)
+@@ -676,8 +676,6 @@ void __init mem_init(void)
+ 	initsize =  (unsigned long) &__init_end - (unsigned long) &__init_begin;
  
- #else /* !CONFIG_HIGHMEM */
+ 	/* Register memory areas for /proc/kcore */
+-	kclist_add(&kcore_modules, (void *)MODULES_VADDR, MODULES_LEN,
+-			KCORE_OTHER);
+ 	kclist_add(&kcore_vsyscall, (void *)VSYSCALL_START,
+ 			 VSYSCALL_END - VSYSCALL_START, KCORE_OTHER);
  
-+#ifdef CONFIG_SPARSEMEM_VMEMMAP
-+/* calculate vmemmap's address from given system ram pfn and register it */
-+int get_sparsemem_vmemmap_info(struct kcore_list *ent, struct list_head *head)
+diff -puN fs/proc/kcore.c~kcore-register-module-area-in-generic-way fs/proc/kcore.c
+--- a/fs/proc/kcore.c~kcore-register-module-area-in-generic-way
++++ a/fs/proc/kcore.c
+@@ -490,7 +490,7 @@ read_kcore(struct file *file, char __use
+ 		if (m == NULL) {
+ 			if (clear_user(buffer, tsz))
+ 				return -EFAULT;
+-		} else if (is_vmalloc_addr((void *)start)) {
++		} else if (is_vmalloc_or_module_addr((void *)start)) {
+ 			char * elf_buf;
+ 
+ 			elf_buf = kzalloc(tsz, GFP_KERNEL);
+@@ -586,6 +586,22 @@ static void __init proc_kcore_text_init(
+ }
+ #endif
+ 
++#if defined(CONFIG_MODULES) && defined(MODULES_VADDR)
++/*
++ * MODULES_VADDR has no intersection with VMALLOC_ADDR.
++ */
++struct kcore_list kcore_modules;
++static void __init add_modules_range(void)
 +{
-+	unsigned long pfn = __pa(ent->addr) >> PAGE_SHIFT;
-+	unsigned long nr_pages = ent->size >> PAGE_SHIFT;
-+	unsigned long start, end;
-+	struct kcore_list *vmm, *tmp;
-+
-+
-+	start = ((unsigned long)pfn_to_page(pfn)) & PAGE_MASK;
-+	end = ((unsigned long)pfn_to_page(pfn + nr_pages)) - 1;
-+	end = ALIGN(end, PAGE_SIZE);
-+	/* overlap check (because we have to align page */
-+	list_for_each_entry(tmp, head, list) {
-+		if (tmp->type != KCORE_VMEMMAP)
-+			continue;
-+		if (start < tmp->addr + tmp->size)
-+			if (end > tmp->addr)
-+				end = tmp->addr;
-+	}
-+	if (start < end) {
-+		vmm = kmalloc(sizeof(*vmm), GFP_KERNEL);
-+		if (!vmm)
-+			return 0;
-+		vmm->addr = start;
-+		vmm->size = end - start;
-+		vmm->type = KCORE_VMEMMAP;
-+		list_add_tail(&vmm->list, head);
-+	}
-+	return 1;
-+
++	kclist_add(&kcore_modules, (void *)MODULES_VADDR,
++			MODULES_END - MODULES_VADDR, KCORE_VMALLOC);
 +}
 +#else
-+int get_sparsemem_vmemamp_info(struct kcore_list *ent, struct list_head *head)
++static void __init add_modules_range(void)
 +{
-+	return 1;
 +}
-+
 +#endif
 +
- static int
- kclist_add_private(unsigned long pfn, unsigned long nr_pages, void *arg)
+ static int __init proc_kcore_init(void)
  {
-@@ -181,6 +223,12 @@ kclist_add_private(unsigned long pfn, un
- 
- 	ent->type = KCORE_RAM;
- 	list_add_tail(&ent->list, head);
-+
-+	if (!get_sparsemem_vmemmap_info(ent, head)) {
-+		list_del(&ent->list);
-+		goto free_out;
-+	}
-+
+ 	proc_root_kcore = proc_create("kcore", S_IRUSR, NULL,
+@@ -595,6 +611,7 @@ static int __init proc_kcore_init(void)
+ 	/* Store vmalloc area */
+ 	kclist_add(&kcore_vmalloc, (void *)VMALLOC_START,
+ 		VMALLOC_END - VMALLOC_START, KCORE_VMALLOC);
++	add_modules_range();
+ 	/* Store direct-map area from physical memory map */
+ 	kcore_update_ram();
+ 	hotplug_memory_notifier(kcore_callback, 0);
+diff -puN include/linux/mm.h~kcore-register-module-area-in-generic-way include/linux/mm.h
+--- a/include/linux/mm.h~kcore-register-module-area-in-generic-way
++++ a/include/linux/mm.h
+@@ -285,6 +285,14 @@ static inline int is_vmalloc_addr(const 
  	return 0;
- free_out:
- 	kfree(ent);
-diff -puN include/linux/proc_fs.h~kcore-register-vmemmap-range include/linux/proc_fs.h
---- a/include/linux/proc_fs.h~kcore-register-vmemmap-range
-+++ a/include/linux/proc_fs.h
-@@ -82,6 +82,7 @@ enum kcore_type {
- 	KCORE_TEXT,
- 	KCORE_VMALLOC,
- 	KCORE_RAM,
-+	KCORE_VMEMMAP,
- 	KCORE_OTHER,
- };
+ #endif
+ }
++#ifdef CONFIG_MMU
++extern int is_vmalloc_or_module_addr(const void *x);
++#else
++static int is_vmalloc_or_module_addr(const void *x)
++{
++	return 0;
++}
++#endif
  
+ static inline struct page *compound_head(struct page *page)
+ {
+diff -puN mm/vmalloc.c~kcore-register-module-area-in-generic-way mm/vmalloc.c
+--- a/mm/vmalloc.c~kcore-register-module-area-in-generic-way
++++ a/mm/vmalloc.c
+@@ -184,7 +184,7 @@ static int vmap_page_range(unsigned long
+ 	return ret;
+ }
+ 
+-static inline int is_vmalloc_or_module_addr(const void *x)
++int is_vmalloc_or_module_addr(const void *x)
+ {
+ 	/*
+ 	 * ARM, x86-64 and sparc64 put modules in a special place,
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
