@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pagemap-document-kpf_ksm-and-show-it-in-page-types.patch added to -mm tree
-Date: Wed, 02 Sep 2009 14:42:57 -0700
-Message-ID: <200909022142.n82LgvDN001523@imap1.linux-foundation.org>
+Subject: + nommu-fix-error-handling-in-do_mmap_pgoff.patch added to -mm tree
+Date: Wed, 02 Sep 2009 14:48:22 -0700
+Message-ID: <200909022148.n82LmM00011438@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51347 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50576 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752875AbZIBVn4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Sep 2009 17:43:56 -0400
+	by vger.kernel.org with ESMTP id S1751266AbZIBVtb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Sep 2009 17:49:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fengguang.wu@intel.com, aarcange@redhat.com, andi@firstfloor.org, chrisw@redhat.com, hugh.dickins@tiscali.co.uk, ieidus@redhat.com, josh@joshtriplett.org, kosaki.motohiro@jp.fujitsu.com, mpm@selenic.com
+Cc: dhowells@redhat.com, gerg@snapgear.com, lethal@linux-sh.org, mel@csn.ul.ie, penberg@cs.helsinki.fi
 
 
 The patch titled
-     pagemap: document KPF_KSM and show it in page-types
+     nommu: fix error handling in do_mmap_pgoff()
 has been added to the -mm tree.  Its filename is
-     pagemap-document-kpf_ksm-and-show-it-in-page-types.patch
+     nommu-fix-error-handling-in-do_mmap_pgoff.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,103 +33,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pagemap: document KPF_KSM and show it in page-types
-From: Wu Fengguang <fengguang.wu@intel.com>
+Subject: nommu: fix error handling in do_mmap_pgoff()
+From: David Howells <dhowells@redhat.com>
 
-It indicates to the system admin that processes mapping such pages may be
-eating less physical memory than the reported numbers by legacy tools.
+Fix the error handling in do_mmap_pgoff().  If do_mmap_shared_file() or
+do_mmap_private() fail, we jump to the error_put_region label at which
+point we cann __put_nommu_region() on the region - but we haven't yet
+added the region to the tree, and so __put_nommu_region() may BUG
+because the region tree is empty or it may corrupt the region tree.
 
-Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
-Acked-by: Chris Wright <chrisw@redhat.com>
-Cc: Izik Eidus <ieidus@redhat.com>
-Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Josh Triplett <josh@joshtriplett.org>
+To get around this, we can afford to add the region to the region tree
+before calling do_mmap_shared_file() or do_mmap_private() as we keep
+nommu_region_sem write-locked, so no-one can race with us by seeing a
+transient region.
+
+Signed-off-by: David Howells <dhowells@redhat.com>
+Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Acked-by: Paul Mundt <lethal@linux-sh.org>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Greg Ungerer <gerg@snapgear.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/pagemap.txt |    4 ++++
- tools/vm/page-types.c        |    2 ++
- 2 files changed, 6 insertions(+)
+ mm/nommu.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN Documentation/vm/pagemap.txt~pagemap-document-kpf_ksm-and-show-it-in-page-types Documentation/vm/pagemap.txt
---- a/Documentation/vm/pagemap.txt~pagemap-document-kpf_ksm-and-show-it-in-page-types
-+++ a/Documentation/vm/pagemap.txt
-@@ -59,6 +59,7 @@ There are three components to pagemap:
-     18. UNEVICTABLE
-     19. HWPOISON
-     20. NOPAGE
-+    21. KSM
+diff -puN mm/nommu.c~nommu-fix-error-handling-in-do_mmap_pgoff mm/nommu.c
+--- a/mm/nommu.c~nommu-fix-error-handling-in-do_mmap_pgoff
++++ a/mm/nommu.c
+@@ -1352,6 +1352,7 @@ unsigned long do_mmap_pgoff(struct file 
+ 	}
  
- Short descriptions to the page flags:
+ 	vma->vm_region = region;
++	add_nommu_region(region);
  
-@@ -93,6 +94,9 @@ Short descriptions to the page flags:
- 20. NOPAGE
-     no page frame exists at the requested address
+ 	/* set up the mapping */
+ 	if (file && vma->vm_flags & VM_SHARED)
+@@ -1361,8 +1362,6 @@ unsigned long do_mmap_pgoff(struct file 
+ 	if (ret < 0)
+ 		goto error_put_region;
  
-+21. KSM
-+    identical memory pages dynamically shared between one or more processes
-+
-     [IO related page flags]
-  1. ERROR     IO error occurred
-  3. UPTODATE  page has up-to-date data
-diff -puN tools/vm/page-types.c~pagemap-document-kpf_ksm-and-show-it-in-page-types tools/vm/page-types.c
---- a/tools/vm/page-types.c~pagemap-document-kpf_ksm-and-show-it-in-page-types
-+++ a/tools/vm/page-types.c
-@@ -49,6 +49,7 @@
- #define KPF_UNEVICTABLE		18
- #define KPF_HWPOISON		19
- #define KPF_NOPAGE		20
-+#define KPF_KSM			21
- 
- /* [32-] kernel hacking assistances */
- #define KPF_RESERVED		32
-@@ -97,6 +98,7 @@ static char *page_flag_names[] = {
- 	[KPF_UNEVICTABLE]	= "u:unevictable",
- 	[KPF_HWPOISON]		= "X:hwpoison",
- 	[KPF_NOPAGE]		= "n:nopage",
-+	[KPF_KSM]		= "x:ksm",
- 
- 	[KPF_RESERVED]		= "r:reserved",
- 	[KPF_MLOCKED]		= "m:mlocked",
-_
-
-Patches currently in -mm which might be from fengguang.wu@intel.com are
-
-linux-next.patch
-mm-memory-failure-remove-config_unevictable_lru-config-option.patch
-readahead-add-blk_run_backing_dev.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-mm-clean-up-page_remove_rmap.patch
-mm-oom-analysis-add-per-zone-statistics-to-show_free_areas.patch
-mm-oom-analysis-add-buffer-cache-information-to-show_free_areas.patch
-mm-oom-analysis-add-shmem-vmstat.patch
-mm-shrink_inactive_list-nr_scan-accounting-fix-fix.patch
-mm-vmstat-add-isolate-pages.patch
-mm-vmstat-add-isolate-pages-fix.patch
-vmscan-throttle-direct-reclaim-when-too-many-pages-are-isolated-already.patch
-mm-remove-__addsub_zone_page_state.patch
-mm-count-only-reclaimable-lru-pages-v2.patch
-vmscan-move-clearpageactive-from-move_active_pages-to-shrink_active_list.patch
-vmscan-kill-unnecessary-page-flag-test.patch
-vmscan-kill-unnecessary-prefetch.patch
-ksm-add-mmu_notifier-set_pte_at_notify.patch
-ksm-first-tidy-up-madvise_vma.patch
-ksm-define-madv_mergeable-and-madv_unmergeable.patch
-ksm-the-mm-interface-to-ksm.patch
-ksm-no-debug-in-page_dup_rmap.patch
-ksm-identify-pageksm-pages.patch
-ksm-kernel-samepage-merging.patch
-ksm-prevent-mremap-move-poisoning.patch
-ksm-change-copyright-message.patch
-ksm-change-ksm-nice-level-to-be-5.patch
-mm-do-batched-scans-for-mem_cgroup.patch
-page-types-move-from-documentation-vm-to-tools-vm.patch
-pagemap-export-kpf_hwpoison.patch
-pagemap-document-kpf_ksm-and-show-it-in-page-types.patch
-documentation-vm-gitignore-add-page-types.patch
-
+-	add_nommu_region(region);
