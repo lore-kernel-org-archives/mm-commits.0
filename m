@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + nommu-fix-error-handling-in-do_mmap_pgoff.patch added to -mm tree
-Date: Wed, 02 Sep 2009 14:48:22 -0700
-Message-ID: <200909022148.n82LmM00011438@imap1.linux-foundation.org>
+Subject: + page-allocator-always-change-pageblock-ownership-when-anti-fragmentation-is-disabled.patch added to -mm tree
+Date: Wed, 02 Sep 2009 14:49:55 -0700
+Message-ID: <200909022149.n82LntAm014175@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50576 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41187 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751266AbZIBVtb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Sep 2009 17:49:31 -0400
+	by vger.kernel.org with ESMTP id S1751266AbZIBVv3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Sep 2009 17:51:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com, gerg@snapgear.com, lethal@linux-sh.org, mel@csn.ul.ie, penberg@cs.helsinki.fi
+Cc: mel@csn.ul.ie, dhowells@redhat.com, gerg@snapgear.com, lethal@linux-sh.org, penberg@cs.helsinki.fi
 
 
 The patch titled
-     nommu: fix error handling in do_mmap_pgoff()
+     page-allocator: always change pageblock ownership when anti-fragmentation is disabled
 has been added to the -mm tree.  Its filename is
-     nommu-fix-error-handling-in-do_mmap_pgoff.patch
+     page-allocator-always-change-pageblock-ownership-when-anti-fragmentation-is-disabled.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,44 +33,105 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nommu: fix error handling in do_mmap_pgoff()
-From: David Howells <dhowells@redhat.com>
+Subject: page-allocator: always change pageblock ownership when anti-fragmentation is disabled
+From: Mel Gorman <mel@csn.ul.ie>
 
-Fix the error handling in do_mmap_pgoff().  If do_mmap_shared_file() or
-do_mmap_private() fail, we jump to the error_put_region label at which
-point we cann __put_nommu_region() on the region - but we haven't yet
-added the region to the tree, and so __put_nommu_region() may BUG
-because the region tree is empty or it may corrupt the region tree.
+On low-memory systems, anti-fragmentation gets disabled as fragmentation
+cannot be avoided on a sufficiently large boundary to be worthwhile.  Once
+disabled, there is a period of time when all the pageblocks are marked
+MOVABLE and the expectation is that they get marked UNMOVABLE at each call
+to __rmqueue_fallback().
 
-To get around this, we can afford to add the region to the region tree
-before calling do_mmap_shared_file() or do_mmap_private() as we keep
-nommu_region_sem write-locked, so no-one can race with us by seeing a
-transient region.
+However, when MAX_ORDER is large the pageblocks do not change ownership
+because the normal criteria are not met.  This has the effect of
+prematurely breaking up too many large contiguous blocks.  This is most
+serious on NOMMU systems which depend on high-order allocations to boot. 
+This patch causes pageblocks to change ownership on every fallback when
+anti-fragmentation is disabled.  This prevents the large blocks being
+prematurely broken up.
 
-Signed-off-by: David Howells <dhowells@redhat.com>
-Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
-Acked-by: Paul Mundt <lethal@linux-sh.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
+This is a fix to commit 49255c619fbd482d704289b5eb2795f8e3b7ff2e [page
+allocator: move check for disabled anti-fragmentation out of fastpath] and
+the problem affects 2.6.31-rc8.
+
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Tested-by: Paul Mundt <lethal@linux-sh.org>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
 Cc: Greg Ungerer <gerg@snapgear.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nommu.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/page_alloc.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN mm/nommu.c~nommu-fix-error-handling-in-do_mmap_pgoff mm/nommu.c
---- a/mm/nommu.c~nommu-fix-error-handling-in-do_mmap_pgoff
-+++ a/mm/nommu.c
-@@ -1352,6 +1352,7 @@ unsigned long do_mmap_pgoff(struct file 
- 	}
+diff -puN mm/page_alloc.c~page-allocator-always-change-pageblock-ownership-when-anti-fragmentation-is-disabled mm/page_alloc.c
+--- a/mm/page_alloc.c~page-allocator-always-change-pageblock-ownership-when-anti-fragmentation-is-disabled
++++ a/mm/page_alloc.c
+@@ -817,13 +817,15 @@ __rmqueue_fallback(struct zone *zone, in
+ 			 * agressive about taking ownership of free pages
+ 			 */
+ 			if (unlikely(current_order >= (pageblock_order >> 1)) ||
+-					start_migratetype == MIGRATE_RECLAIMABLE) {
++					start_migratetype == MIGRATE_RECLAIMABLE ||
++					page_group_by_mobility_disabled) {
+ 				unsigned long pages;
+ 				pages = move_freepages_block(zone, page,
+ 								start_migratetype);
  
- 	vma->vm_region = region;
-+	add_nommu_region(region);
+ 				/* Claim the whole block if over half of it is free */
+-				if (pages >= (1 << (pageblock_order-1)))
++				if (pages >= (1 << (pageblock_order-1)) ||
++						page_group_by_mobility_disabled)
+ 					set_pageblock_migratetype(page,
+ 								start_migratetype);
  
- 	/* set up the mapping */
- 	if (file && vma->vm_flags & VM_SHARED)
-@@ -1361,8 +1362,6 @@ unsigned long do_mmap_pgoff(struct file 
- 	if (ret < 0)
- 		goto error_put_region;
- 
--	add_nommu_region(region);
+_
+
+Patches currently in -mm which might be from mel@csn.ul.ie are
+
+nommu-fix-error-handling-in-do_mmap_pgoff.patch
+page-allocator-always-change-pageblock-ownership-when-anti-fragmentation-is-disabled.patch
+linux-next.patch
+memory-hotplug-update-zone-pcp-at-memory-online.patch
+memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
+memory-hotplug-exclude-isolated-page-from-pco-page-alloc.patch
+memory-hotplug-make-pages-from-movable-zone-always-isolatable.patch
+memory-hotplug-alloc-page-from-other-node-in-memory-online.patch
+memory-hotplug-migrate-swap-cache-page.patch
+hugetlb-balance-freeing-of-huge-pages-across-nodes.patch
+hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages.patch
+hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages-fix.patch
+hugetlb-clean-up-and-update-huge-pages-documentation.patch
+hugetlb-restore-interleaving-of-bootmem-huge-pages.patch
+mm-clean-up-page_remove_rmap.patch
+mm-update-alloc_flags-after-oom-killer-has-been-called.patch
+vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
+vmscan-move-clearpageactive-from-move_active_pages-to-shrink_active_list.patch
+vmscan-kill-unnecessary-page-flag-test.patch
+vmscan-kill-unnecessary-prefetch.patch
+mm-perform-non-atomic-test-clear-of-pg_mlocked-on-free.patch
+mm-warn-once-when-a-page-is-freed-with-pg_mlocked-set.patch
+page-allocator-change-migratetype-for-all-pageblocks-within-a-high-order-page-during-__rmqueue_fallback.patch
+page-allocator-remove-dead-function-free_cold_page.patch
+tracing-page-allocator-add-trace-events-for-page-allocation-and-page-freeing.patch
+tracing-page-allocator-add-trace-events-for-anti-fragmentation-falling-back-to-other-migratetypes.patch
+tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists.patch
+tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists-fix.patch
+tracing-page-allocator-add-a-postprocessing-script-for-page-allocator-related-ftrace-events.patch
+tracing-documentation-add-a-document-describing-how-to-do-some-performance-analysis-with-tracepoints.patch
+tracing-documentation-add-a-document-on-the-kmem-tracepoints.patch
+mm-drop-unneeded-double-negations.patch
+page-allocator-limit-the-number-of-migrate_reserve-pageblocks-per-zone.patch
+memory-hotplug-fix-updating-of-num_physpages-for-hot-plugged-memory.patch
+mm-also-use-alloc_large_system_hash-for-the-pid-hash-table.patch
+vmscan-move-pgdeactivate-modification-to-shrink_active_list.patch
+vmscan-move-pgdeactivate-modification-to-shrink_active_list-fix.patch
+hugetlbfs-allow-the-creation-of-files-suitable-for-map_private-on-the-vfs-internal-mount.patch
+hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions.patch
+hugetlb-add-map_hugetlb-example.patch
+page-allocator-split-per-cpu-list-into-one-list-per-migrate-type.patch
+page-allocator-maintain-rolling-count-of-pages-to-free-from-the-pcp.patch
+page-allocator-maintain-rolling-count-of-pages-to-free-from-the-pcp-checkpatch-fixes.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
+
