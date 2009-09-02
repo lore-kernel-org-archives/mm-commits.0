@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kcore-register-text-area-in-generic-way.patch added to -mm tree
-Date: Wed, 02 Sep 2009 15:51:14 -0700
-Message-ID: <200909022251.n82MpFnf029008@imap1.linux-foundation.org>
+Subject: + kcore-use-registerd-physmem-information.patch added to -mm tree
+Date: Wed, 02 Sep 2009 15:51:19 -0700
+Message-ID: <200909022251.n82MpKUD029043@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42447 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48000 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752156AbZIBWvz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Sep 2009 18:51:55 -0400
+	by vger.kernel.org with ESMTP id S1753640AbZIBWw2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Sep 2009 18:52:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, benh@kernel.crashing.org, ralf@linux-mips.org, xiyou.wangcong@gmail.com
+Cc: kamezawa.hiroyu@jp.fujitsu.com, benh@kernel.crashing.org, jirislaby@gmail.com, ralf@linux-mips.org, xiyou.wangcong@gmail.com
 
 
 The patch titled
-     kcore: register text area in generic way
+     kcore: use registerd physmem information
 has been added to the -mm tree.  Its filename is
-     kcore-register-text-area-in-generic-way.patch
+     kcore-use-registerd-physmem-information.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,142 +33,428 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kcore: register text area in generic way
+Subject: kcore: use registerd physmem information
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Some 64bit arch has special segment for mapping kernel text.  It should be
-entried to /proc/kcore in addtion to direct-linear-map, vmalloc area. 
-This patch unifies KCORE_TEXT entry scattered under x86 and ia64.
+For /proc/kcore, each arch registers its memory range by kclist_add().
+In usual,
 
-I'm not familiar with other archs (mips has its own even after this patch)
-but range of [_stext ..._end) is a valid area of text and it's not in
-direct-map area, defining CONFIG_ARCH_PROC_KCORE_TEXT is only a necessary
-thing to do.
+	- range of physical memory
+	- range of vmalloc area
+	- text, etc...
 
-Note: I left mips as it is now.
+are registered but "range of physical memory" has some troubles.  It
+doesn't updated at memory hotplug and it tend to include unnecessary
+memory holes.  Now, /proc/iomem (kernel/resource.c) includes required
+physical memory range information and it's properly updated at memory
+hotplug.  Then, it's good to avoid using its own code(duplicating
+information) and to rebuild kclist for physical memory based on
+/proc/iomem.
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Cc: Ralf Baechle <ralf@linux-mips.org>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: WANG Cong <xiyou.wangcong@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/Kconfig     |    4 ++++
- arch/ia64/mm/init.c   |    3 +--
- arch/x86/Kconfig      |    4 ++++
- arch/x86/mm/init_64.c |    4 +---
- fs/proc/kcore.c       |   19 ++++++++++++++++++-
- 5 files changed, 28 insertions(+), 6 deletions(-)
+ arch/mips/mm/init.c       |    2 
+ arch/powerpc/mm/init_32.c |   32 ------
+ arch/powerpc/mm/init_64.c |   26 -----
+ arch/sh/mm/init.c         |    4 
+ arch/x86/mm/init_32.c     |    4 
+ arch/x86/mm/init_64.c     |    3 
+ fs/proc/kcore.c           |  179 +++++++++++++++++++++++++++++++++---
+ 7 files changed, 168 insertions(+), 82 deletions(-)
 
-diff -puN arch/ia64/Kconfig~kcore-register-text-area-in-generic-way arch/ia64/Kconfig
---- a/arch/ia64/Kconfig~kcore-register-text-area-in-generic-way
-+++ a/arch/ia64/Kconfig
-@@ -496,6 +496,10 @@ config HAVE_ARCH_NODEDATA_EXTENSION
- 	def_bool y
- 	depends on NUMA
+diff -puN arch/mips/mm/init.c~kcore-use-registerd-physmem-information arch/mips/mm/init.c
+--- a/arch/mips/mm/init.c~kcore-use-registerd-physmem-information
++++ a/arch/mips/mm/init.c
+@@ -352,7 +352,6 @@ void __init paging_init(void)
+ 	free_area_init_nodes(max_zone_pfns);
+ }
  
-+config ARCH_PROC_KCORE_TEXT
-+	def_bool y
-+	depends on PROC_KCORE
-+
- config IA32_SUPPORT
- 	bool "Support for Linux/x86 binaries"
- 	help
-diff -puN arch/ia64/mm/init.c~kcore-register-text-area-in-generic-way arch/ia64/mm/init.c
---- a/arch/ia64/mm/init.c~kcore-register-text-area-in-generic-way
-+++ a/arch/ia64/mm/init.c
-@@ -617,7 +617,7 @@ mem_init (void)
- 	long reserved_pages, codesize, datasize, initsize;
- 	pg_data_t *pgdat;
- 	int i;
--	static struct kcore_list kcore_mem, kcore_kernel;
-+	static struct kcore_list kcore_mem;
+-static struct kcore_list kcore_mem;
+ #ifdef CONFIG_64BIT
+ static struct kcore_list kcore_kseg0;
+ #endif
+@@ -412,7 +411,6 @@ void __init mem_init(void)
+ 		kclist_add(&kcore_kseg0, (void *) CKSEG0,
+ 				0x80000000 - 4, KCORE_TEXT);
+ #endif
+-	kclist_add(&kcore_mem, __va(0), max_low_pfn << PAGE_SHIFT, KCORE_RAM);
  
- 	BUG_ON(PTRS_PER_PGD * sizeof(pgd_t) != PAGE_SIZE);
- 	BUG_ON(PTRS_PER_PMD * sizeof(pmd_t) != PAGE_SIZE);
-@@ -640,7 +640,6 @@ mem_init (void)
- 	high_memory = __va(max_low_pfn * PAGE_SIZE);
+ 	printk(KERN_INFO "Memory: %luk/%luk available (%ldk kernel code, "
+ 	       "%ldk reserved, %ldk data, %ldk init, %ldk highmem)\n",
+diff -puN arch/powerpc/mm/init_32.c~kcore-use-registerd-physmem-information arch/powerpc/mm/init_32.c
+--- a/arch/powerpc/mm/init_32.c~kcore-use-registerd-physmem-information
++++ a/arch/powerpc/mm/init_32.c
+@@ -242,35 +242,3 @@ void free_initrd_mem(unsigned long start
+ }
+ #endif
  
- 	kclist_add(&kcore_mem, __va(0), max_low_pfn * PAGE_SIZE, KCORE_RAM);
--	kclist_add(&kcore_kernel, _stext, _end - _stext, KCORE_TEXT);
+-#ifdef CONFIG_PROC_KCORE
+-
+-static int __init setup_kcore(void)
+-{
+-	int i;
+-
+-	for (i = 0; i < lmb.memory.cnt; i++) {
+-		unsigned long base;
+-		unsigned long size;
+-		struct kcore_list *kcore_mem;
+-
+-		base = lmb.memory.region[i].base;
+-		size = lmb.memory.region[i].size;
+-
+-		kcore_mem = kmalloc(sizeof(struct kcore_list), GFP_ATOMIC);
+-		if (!kcore_mem)
+-			panic("%s: kmalloc failed\n", __func__);
+-
+-		/* must stay under 32 bits */
+-		if ( 0xfffffffful - (unsigned long)__va(base) < size) {
+-			size = 0xfffffffful - (unsigned long)(__va(base));
+-			printk(KERN_DEBUG "setup_kcore: restrict size=%lx\n",
+-						size);
+-		}
+-
+-		kclist_add(kcore_mem, __va(base), size, KCORE_RAM);
+-	}
+-
+-	return 0;
+-}
+-module_init(setup_kcore);
+-#endif
+diff -puN arch/powerpc/mm/init_64.c~kcore-use-registerd-physmem-information arch/powerpc/mm/init_64.c
+--- a/arch/powerpc/mm/init_64.c~kcore-use-registerd-physmem-information
++++ a/arch/powerpc/mm/init_64.c
+@@ -109,32 +109,6 @@ void free_initrd_mem(unsigned long start
+ }
+ #endif
  
- 	for_each_online_pgdat(pgdat)
- 		if (pgdat->bdata->node_bootmem_map)
-diff -puN arch/x86/Kconfig~kcore-register-text-area-in-generic-way arch/x86/Kconfig
---- a/arch/x86/Kconfig~kcore-register-text-area-in-generic-way
-+++ a/arch/x86/Kconfig
-@@ -1251,6 +1251,10 @@ config ARCH_MEMORY_PROBE
- 	def_bool X86_64
- 	depends on MEMORY_HOTPLUG
+-#ifdef CONFIG_PROC_KCORE
+-
+-static int __init setup_kcore(void)
+-{
+-	int i;
+-
+-	for (i=0; i < lmb.memory.cnt; i++) {
+-		unsigned long base, size;
+-		struct kcore_list *kcore_mem;
+-
+-		base = lmb.memory.region[i].base;
+-		size = lmb.memory.region[i].size;
+-
+-		/* GFP_ATOMIC to avoid might_sleep warnings during boot */
+-		kcore_mem = kmalloc(sizeof(struct kcore_list), GFP_ATOMIC);
+-		if (!kcore_mem)
+-			panic("%s: kmalloc failed\n", __func__);
+-
+-		kclist_add(kcore_mem, __va(base), size, KCORE_RAM);
+-	}
+-
+-	return 0;
+-}
+-module_init(setup_kcore);
+-#endif
+-
+ static void pgd_ctor(void *addr)
+ {
+ 	memset(addr, 0, PGD_TABLE_SIZE);
+diff -puN arch/sh/mm/init.c~kcore-use-registerd-physmem-information arch/sh/mm/init.c
+--- a/arch/sh/mm/init.c~kcore-use-registerd-physmem-information
++++ a/arch/sh/mm/init.c
+@@ -181,8 +181,6 @@ void __init paging_init(void)
+ 	set_fixmap_nocache(FIX_UNCACHED, __pa(&__uncached_start));
+ }
  
-+config ARCH_PROC_KCORE_TEXT
-+	def_bool y
-+	depends on X86_64 && PROC_KCORE
-+
- config ILLEGAL_POINTER_VALUE
-        hex
-        default 0 if X86_32
-diff -puN arch/x86/mm/init_64.c~kcore-register-text-area-in-generic-way arch/x86/mm/init_64.c
---- a/arch/x86/mm/init_64.c~kcore-register-text-area-in-generic-way
+-static struct kcore_list kcore_mem;
+-
+ void __init mem_init(void)
+ {
+ 	int codesize, datasize, initsize;
+@@ -218,8 +216,6 @@ void __init mem_init(void)
+ 	datasize =  (unsigned long) &_edata - (unsigned long) &_etext;
+ 	initsize =  (unsigned long) &__init_end - (unsigned long) &__init_begin;
+ 
+-	kclist_add(&kcore_mem, __va(0), max_low_pfn << PAGE_SHIFT, KCORE_RAM);
+-
+ 	printk(KERN_INFO "Memory: %luk/%luk available (%dk kernel code, "
+ 	       "%dk data, %dk init)\n",
+ 		nr_free_pages() << (PAGE_SHIFT-10),
+diff -puN arch/x86/mm/init_32.c~kcore-use-registerd-physmem-information arch/x86/mm/init_32.c
+--- a/arch/x86/mm/init_32.c~kcore-use-registerd-physmem-information
++++ a/arch/x86/mm/init_32.c
+@@ -857,8 +857,6 @@ static void __init test_wp_bit(void)
+ 	}
+ }
+ 
+-static struct kcore_list kcore_mem;
+-
+ void __init mem_init(void)
+ {
+ 	int codesize, reservedpages, datasize, initsize;
+@@ -886,8 +884,6 @@ void __init mem_init(void)
+ 	datasize =  (unsigned long) &_edata - (unsigned long) &_etext;
+ 	initsize =  (unsigned long) &__init_end - (unsigned long) &__init_begin;
+ 
+-	kclist_add(&kcore_mem, __va(0), max_low_pfn << PAGE_SHIFT, KCORE_RAM);
+-
+ 	printk(KERN_INFO "Memory: %luk/%luk available (%dk kernel code, "
+ 			"%dk reserved, %dk data, %dk init, %ldk highmem)\n",
+ 		nr_free_pages() << (PAGE_SHIFT-10),
+diff -puN arch/x86/mm/init_64.c~kcore-use-registerd-physmem-information arch/x86/mm/init_64.c
+--- a/arch/x86/mm/init_64.c~kcore-use-registerd-physmem-information
 +++ a/arch/x86/mm/init_64.c
-@@ -647,8 +647,7 @@ EXPORT_SYMBOL_GPL(memory_add_physaddr_to
+@@ -647,7 +647,7 @@ EXPORT_SYMBOL_GPL(memory_add_physaddr_to
  
  #endif /* CONFIG_MEMORY_HOTPLUG */
  
--static struct kcore_list kcore_mem, kcore_kernel,
--			 kcore_modules, kcore_vsyscall;
-+static struct kcore_list kcore_mem, kcore_modules, kcore_vsyscall;
+-static struct kcore_list kcore_mem, kcore_modules, kcore_vsyscall;
++static struct kcore_list kcore_modules, kcore_vsyscall;
  
  void __init mem_init(void)
  {
-@@ -678,7 +677,6 @@ void __init mem_init(void)
+@@ -676,7 +676,6 @@ void __init mem_init(void)
+ 	initsize =  (unsigned long) &__init_end - (unsigned long) &__init_begin;
  
  	/* Register memory areas for /proc/kcore */
- 	kclist_add(&kcore_mem, __va(0), max_low_pfn << PAGE_SHIFT, KCORE_RAM);
--	kclist_add(&kcore_kernel, &_stext, _end - _stext, KCORE_TEXT);
+-	kclist_add(&kcore_mem, __va(0), max_low_pfn << PAGE_SHIFT, KCORE_RAM);
  	kclist_add(&kcore_modules, (void *)MODULES_VADDR, MODULES_LEN,
  			KCORE_OTHER);
  	kclist_add(&kcore_vsyscall, (void *)VSYSCALL_START,
-diff -puN fs/proc/kcore.c~kcore-register-text-area-in-generic-way fs/proc/kcore.c
---- a/fs/proc/kcore.c~kcore-register-text-area-in-generic-way
+diff -puN fs/proc/kcore.c~kcore-use-registerd-physmem-information fs/proc/kcore.c
+--- a/fs/proc/kcore.c~kcore-use-registerd-physmem-information
 +++ a/fs/proc/kcore.c
-@@ -21,6 +21,7 @@
+@@ -17,10 +17,14 @@
+ #include <linux/elfcore.h>
+ #include <linux/vmalloc.h>
+ #include <linux/highmem.h>
++#include <linux/bootmem.h>
+ #include <linux/init.h>
  #include <asm/uaccess.h>
  #include <asm/io.h>
  #include <linux/list.h>
-+#include <asm/sections.h>
++#include <linux/ioport.h>
++#include <linux/mm.h>
++#include <linux/memory.h>
+ #include <asm/sections.h>
  
  #define CORE_STR "CORE"
+@@ -31,17 +35,6 @@
  
-@@ -374,10 +375,26 @@ read_kcore(struct file *file, char __use
+ static struct proc_dir_entry *proc_root_kcore;
  
- static struct kcore_list kcore_vmalloc;
+-static int open_kcore(struct inode * inode, struct file * filp)
+-{
+-	return capable(CAP_SYS_RAWIO) ? 0 : -EPERM;
+-}
+-
+-static ssize_t read_kcore(struct file *, char __user *, size_t, loff_t *);
+-
+-static const struct file_operations proc_kcore_operations = {
+-	.read		= read_kcore,
+-	.open		= open_kcore,
+-};
  
-+#ifdef CONFIG_ARCH_PROC_KCORE_TEXT
-+static struct kcore_list kcore_text;
-+/*
-+ * If defined, special segment is used for mapping kernel text instead of
-+ * direct-map area. We need to create special TEXT section.
-+ */
-+static void __init proc_kcore_text_init(void)
+ #ifndef kc_vaddr_to_offset
+ #define	kc_vaddr_to_offset(v) ((v) - PAGE_OFFSET)
+@@ -61,6 +54,7 @@ struct memelfnote
+ 
+ static LIST_HEAD(kclist_head);
+ static DEFINE_RWLOCK(kclist_lock);
++static int kcore_need_update = 1;
+ 
+ void
+ kclist_add(struct kcore_list *new, void *addr, size_t size, int type)
+@@ -99,6 +93,126 @@ static size_t get_kcore_size(int *nphdr,
+ 	return size + *elf_buflen;
+ }
+ 
++static void free_kclist_ents(struct list_head *head)
 +{
-+	kclist_add(&kcore_text, _stext, _end - _stext, KCORE_TEXT);
++	struct kcore_list *tmp, *pos;
++
++	list_for_each_entry_safe(pos, tmp, head, list) {
++		list_del(&pos->list);
++		kfree(pos);
++	}
 +}
-+#else
-+static void __init proc_kcore_text_init(void)
++/*
++ * Replace all KCORE_RAM information with passed list.
++ */
++static void __kcore_update_ram(struct list_head *list)
 +{
++	struct kcore_list *tmp, *pos;
++	LIST_HEAD(garbage);
++
++	write_lock(&kclist_lock);
++	if (kcore_need_update) {
++		list_for_each_entry_safe(pos, tmp, &kclist_head, list) {
++			if (pos->type == KCORE_RAM)
++				list_move(&pos->list, &garbage);
++		}
++		list_splice_tail(list, &kclist_head);
++	} else
++		list_splice(list, &garbage);
++	kcore_need_update = 0;
++	write_unlock(&kclist_lock);
++
++	free_kclist_ents(&garbage);
++}
++
++
++#ifdef CONFIG_HIGHMEM
++/*
++ * If no highmem, we can assume [0...max_low_pfn) continuous range of memory
++ * because memory hole is not as big as !HIGHMEM case.
++ * (HIGHMEM is special because part of memory is _invisible_ from the kernel.)
++ */
++static int kcore_update_ram(void)
++{
++	LIST_HEAD(head);
++	struct kcore_list *ent;
++	int ret = 0;
++
++	ent = kmalloc(sizeof(*ent), GFP_KERNEL);
++	if (!ent)
++		return -ENOMEM;
++	ent->addr = (unsigned long)__va(0);
++	ent->size = max_low_pfn << PAGE_SHIFT;
++	ent->type = KCORE_RAM;
++	list_add(&ent->list, &head);
++	__kcore_update_ram(&head);
++	return ret;
++}
++
++#else /* !CONFIG_HIGHMEM */
++
++static int
++kclist_add_private(unsigned long pfn, unsigned long nr_pages, void *arg)
++{
++	struct list_head *head = (struct list_head *)arg;
++	struct kcore_list *ent;
++
++	ent = kmalloc(sizeof(*ent), GFP_KERNEL);
++	if (!ent)
++		return -ENOMEM;
++	ent->addr = (unsigned long)__va((pfn << PAGE_SHIFT));
++	ent->size = nr_pages << PAGE_SHIFT;
++
++	/* Sanity check: Can happen in 32bit arch...maybe */
++	if (ent->addr < (unsigned long) __va(0))
++		goto free_out;
++
++	/* cut not-mapped area. ....from ppc-32 code. */
++	if (ULONG_MAX - ent->addr < ent->size)
++		ent->size = ULONG_MAX - ent->addr;
++
++	/* cut when vmalloc() area is higher than direct-map area */
++	if (VMALLOC_START > (unsigned long)__va(0)) {
++		if (ent->addr > VMALLOC_START)
++			goto free_out;
++		if (VMALLOC_START - ent->addr < ent->size)
++			ent->size = VMALLOC_START - ent->addr;
++	}
++
++	ent->type = KCORE_RAM;
++	list_add_tail(&ent->list, head);
++	return 0;
++free_out:
++	kfree(ent);
++	return 1;
++}
++
++static int kcore_update_ram(void)
++{
++	int nid, ret;
++	unsigned long end_pfn;
++	LIST_HEAD(head);
++
++	/* Not inialized....update now */
++	/* find out "max pfn" */
++	end_pfn = 0;
++	for_each_node_state(nid, N_HIGH_MEMORY) {
++		unsigned long node_end;
++		node_end  = NODE_DATA(nid)->node_start_pfn +
++			NODE_DATA(nid)->node_spanned_pages;
++		if (end_pfn < node_end)
++			end_pfn = node_end;
++	}
++	/* scan 0 to max_pfn */
++	ret = walk_system_ram_range(0, end_pfn, &head, kclist_add_private);
++	if (ret) {
++		free_kclist_ents(&head);
++		return -ENOMEM;
++	}
++	__kcore_update_ram(&head);
++	return ret;
++}
++#endif /* CONFIG_HIGHMEM */
+ 
+ /*****************************************************************************/
+ /*
+@@ -373,6 +487,39 @@ read_kcore(struct file *file, char __use
+ 	return acc;
+ }
+ 
++
++static int open_kcore(struct inode *inode, struct file *filp)
++{
++	if (!capable(CAP_SYS_RAWIO))
++		return -EPERM;
++	if (kcore_need_update)
++		kcore_update_ram();
++	return 0;
++}
++
++
++static const struct file_operations proc_kcore_operations = {
++	.read		= read_kcore,
++	.open		= open_kcore,
++};
++
++#ifdef CONFIG_MEMORY_HOTPLUG
++/* just remember that we have to update kcore */
++static int __meminit kcore_callback(struct notifier_block *self,
++				    unsigned long action, void *arg)
++{
++	switch (action) {
++	case MEM_ONLINE:
++	case MEM_OFFLINE:
++		write_lock(&kclist_lock);
++		kcore_need_update = 1;
++		write_unlock(&kclist_lock);
++	}
++	return NOTIFY_OK;
 +}
 +#endif
 +
++
+ static struct kcore_list kcore_vmalloc;
+ 
+ #ifdef CONFIG_ARCH_PROC_KCORE_TEXT
+@@ -393,10 +540,18 @@ static void __init proc_kcore_text_init(
+ 
  static int __init proc_kcore_init(void)
  {
- 	proc_root_kcore = proc_create("kcore", S_IRUSR, NULL, &proc_kcore_operations);
--
-+	proc_kcore_text_init();
+-	proc_root_kcore = proc_create("kcore", S_IRUSR, NULL, &proc_kcore_operations);
++	proc_root_kcore = proc_create("kcore", S_IRUSR, NULL,
++				      &proc_kcore_operations);
++	/* Store text area if it's special */
+ 	proc_kcore_text_init();
++	/* Store vmalloc area */
  	kclist_add(&kcore_vmalloc, (void *)VMALLOC_START,
  		VMALLOC_END - VMALLOC_START, KCORE_VMALLOC);
++	/* Store direct-map area from physical memory map */
++	kcore_update_ram();
++	hotplug_memory_notifier(kcore_callback, 0);
++	/* Other special area, area-for-module etc is arch specific. */
++
  	return 0;
+ }
+ module_init(proc_kcore_init);
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
