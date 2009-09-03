@@ -1,123 +1,244 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] vmscan-move-pgdeactivate-modification-to-shrink_active_list-fix.patch removed from -mm tree
-Date: Thu, 03 Sep 2009 16:42:18 -0700
-Message-ID: <200909032342.n83NgJEG008778@imap1.linux-foundation.org>
+Subject: + flex_array-introduce-define_flex_array.patch added to -mm tree
+Date: Thu, 03 Sep 2009 16:44:32 -0700
+Message-ID: <200909032344.n83NiXx9012812@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49396 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42770 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932505AbZICXnG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Sep 2009 19:43:06 -0400
+	by vger.kernel.org with ESMTP id S932077AbZICXog (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Sep 2009 19:44:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh.dickins@tiscali.co.uk, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, riel@redhat.com, mm-commits@vger.
+To: mm-commits@vger.kernel.org
+Cc: rientjes@google.com, dave@linux.vnet.ibm.com
 
 
 The patch titled
-     vmscan move pgdeactivate modification to shrink_active_list fix
-has been removed from the -mm tree.  Its filename was
-     vmscan-move-pgdeactivate-modification-to-shrink_active_list-fix.patch
+     flex_array: introduce DEFINE_FLEX_ARRAY
+has been added to the -mm tree.  Its filename is
+     flex_array-introduce-define_flex_array.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan move pgdeactivate modification to shrink_active_list fix
-From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Subject: flex_array: introduce DEFINE_FLEX_ARRAY
+From: David Rientjes <rientjes@google.com>
 
-mmotm 2009-08-27-16-51 lets the OOM killer loose on my loads even quicker
-than last time: one bug fixed but another bug introduced. 
-vmscan-move-pgdeactivate-modification-to-shrink_active_list.patch forgot
-to add NR_LRU_BASE to lru index to make zone_page_state index.
+FLEX_ARRAY_INIT(element_size, total_nr_elements) cannot determine if
+either parameter is valid, so flex arrays which are statically allocated
+with this interface can easily become corrupted or reference beyond its
+allocated memory.
 
-Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+This removes FLEX_ARRAY_INIT() as a struct flex_array initializer since no
+initializer may perform the required checking.  Instead, the array is now
+defined with a new interface:
+
+	DEFINE_FLEX_ARRAY(name, element_size, total_nr_elements)
+
+This may be prefixed with `static' for file scope.
+
+This interface includes compile-time checking of the parameters to ensure
+they are valid.  Since the validity of both element_size and
+total_nr_elements depend on FLEX_ARRAY_BASE_SIZE and FLEX_ARRAY_PART_SIZE,
+the kernel build will fail if either of these predefined values changes
+such that the array parameters are no longer valid.
+
+Since BUILD_BUG_ON() requires compile time constants, several of the
+static inline functions that were once local to lib/flex_array.c had to be
+moved to include/linux/flex_array.h.
+
+Signed-off-by: David Rientjes <rientjes@google.com>
+Acked-by: Dave Hansen <dave@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ include/linux/flex_array.h |   30 +++++++++++++++++++++++++----
+ lib/flex_array.c           |   36 +++++++++--------------------------
+ 2 files changed, 36 insertions(+), 30 deletions(-)
 
-diff -puN mm/vmscan.c~vmscan-move-pgdeactivate-modification-to-shrink_active_list-fix mm/vmscan.c
---- a/mm/vmscan.c~vmscan-move-pgdeactivate-modification-to-shrink_active_list-fix
-+++ a/mm/vmscan.c
-@@ -1381,8 +1381,10 @@ static void shrink_active_list(unsigned 
- 	reclaim_stat->recent_rotated[file] += nr_rotated;
- 	__count_vm_events(PGDEACTIVATE, nr_deactivated);
- 	__mod_zone_page_state(zone, NR_ISOLATED_ANON + file, -nr_taken);
--	__mod_zone_page_state(zone, LRU_ACTIVE + file * LRU_FILE, nr_rotated);
--	__mod_zone_page_state(zone, LRU_BASE + file * LRU_FILE, nr_deactivated);
-+	__mod_zone_page_state(zone, NR_ACTIVE_ANON + file * LRU_FILE,
-+							nr_rotated);
-+	__mod_zone_page_state(zone, NR_INACTIVE_ANON + file * LRU_FILE,
-+							nr_deactivated);
- 	spin_unlock_irq(&zone->lru_lock);
+diff -puN include/linux/flex_array.h~flex_array-introduce-define_flex_array include/linux/flex_array.h
+--- a/include/linux/flex_array.h~flex_array-introduce-define_flex_array
++++ a/include/linux/flex_array.h
+@@ -31,10 +31,32 @@ struct flex_array {
+ 	};
+ };
+ 
+-#define FLEX_ARRAY_INIT(size, total) { { {\
+-	.element_size = (size),		\
+-	.total_nr_elements = (total),	\
+-} } }
++/* Number of bytes left in base struct flex_array, excluding metadata */
++#define FLEX_ARRAY_BASE_BYTES_LEFT					\
++	(FLEX_ARRAY_BASE_SIZE - offsetof(struct flex_array, parts))
++
++/* Number of pointers in base to struct flex_array_part pages */
++#define FLEX_ARRAY_NR_BASE_PTRS						\
++	(FLEX_ARRAY_BASE_BYTES_LEFT / sizeof(struct flex_array_part *))
++
++/* Number of elements of size that fit in struct flex_array_part */
++#define FLEX_ARRAY_ELEMENTS_PER_PART(size)				\
++	(FLEX_ARRAY_PART_SIZE / size)
++
++/*
++ * Defines a statically allocated flex array and ensures its parameters are
++ * valid.
++ */
++#define DEFINE_FLEX_ARRAY(__arrayname, __element_size, __total)		\
++	struct flex_array __arrayname = { { {				\
++		.element_size = (__element_size),			\
++		.total_nr_elements = (__total),				\
++	} } };								\
++	static inline void __arrayname##_invalid_parameter(void)	\
++	{								\
++		BUILD_BUG_ON((__total) > FLEX_ARRAY_NR_BASE_PTRS *	\
++			FLEX_ARRAY_ELEMENTS_PER_PART(__element_size));	\
++	}
+ 
+ struct flex_array *flex_array_alloc(int element_size, unsigned int total,
+ 		gfp_t flags);
+diff -puN lib/flex_array.c~flex_array-introduce-define_flex_array lib/flex_array.c
+--- a/lib/flex_array.c~flex_array-introduce-define_flex_array
++++ a/lib/flex_array.c
+@@ -28,23 +28,6 @@ struct flex_array_part {
+ 	char elements[FLEX_ARRAY_PART_SIZE];
+ };
+ 
+-static inline int __elements_per_part(int element_size)
+-{
+-	return FLEX_ARRAY_PART_SIZE / element_size;
+-}
+-
+-static inline int bytes_left_in_base(void)
+-{
+-	int element_offset = offsetof(struct flex_array, parts);
+-	int bytes_left = FLEX_ARRAY_BASE_SIZE - element_offset;
+-	return bytes_left;
+-}
+-
+-static inline int nr_base_part_ptrs(void)
+-{
+-	return bytes_left_in_base() / sizeof(struct flex_array_part *);
+-}
+-
+ /*
+  * If a user requests an allocation which is small
+  * enough, we may simply use the space in the
+@@ -54,7 +37,7 @@ static inline int nr_base_part_ptrs(void
+ static inline int elements_fit_in_base(struct flex_array *fa)
+ {
+ 	int data_size = fa->element_size * fa->total_nr_elements;
+-	if (data_size <= bytes_left_in_base())
++	if (data_size <= FLEX_ARRAY_BASE_BYTES_LEFT)
+ 		return 1;
+ 	return 0;
+ }
+@@ -103,7 +86,8 @@ struct flex_array *flex_array_alloc(int 
+ 					gfp_t flags)
+ {
+ 	struct flex_array *ret;
+-	int max_size = nr_base_part_ptrs() * __elements_per_part(element_size);
++	int max_size = FLEX_ARRAY_NR_BASE_PTRS *
++				FLEX_ARRAY_ELEMENTS_PER_PART(element_size);
+ 
+ 	/* max_size will end up 0 if element_size > PAGE_SIZE */
+ 	if (total > max_size)
+@@ -114,14 +98,15 @@ struct flex_array *flex_array_alloc(int 
+ 	ret->element_size = element_size;
+ 	ret->total_nr_elements = total;
+ 	if (elements_fit_in_base(ret) && !(flags & __GFP_ZERO))
+-		memset(ret->parts[0], FLEX_ARRAY_FREE, bytes_left_in_base());
++		memset(ret->parts[0], FLEX_ARRAY_FREE,
++						FLEX_ARRAY_BASE_BYTES_LEFT);
+ 	return ret;
  }
  
+ static int fa_element_to_part_nr(struct flex_array *fa,
+ 					unsigned int element_nr)
+ {
+-	return element_nr / __elements_per_part(fa->element_size);
++	return element_nr / FLEX_ARRAY_ELEMENTS_PER_PART(fa->element_size);
+ }
+ 
+ /**
+@@ -133,11 +118,10 @@ static int fa_element_to_part_nr(struct 
+ void flex_array_free_parts(struct flex_array *fa)
+ {
+ 	int part_nr;
+-	int max_part = nr_base_part_ptrs();
+ 
+ 	if (elements_fit_in_base(fa))
+ 		return;
+-	for (part_nr = 0; part_nr < max_part; part_nr++)
++	for (part_nr = 0; part_nr < FLEX_ARRAY_NR_BASE_PTRS; part_nr++)
+ 		kfree(fa->parts[part_nr]);
+ }
+ 
+@@ -152,7 +136,8 @@ static unsigned int index_inside_part(st
+ {
+ 	unsigned int part_offset;
+ 
+-	part_offset = element_nr % __elements_per_part(fa->element_size);
++	part_offset = element_nr %
++				FLEX_ARRAY_ELEMENTS_PER_PART(fa->element_size);
+ 	return part_offset * fa->element_size;
+ }
+ 
+@@ -313,13 +298,12 @@ static int part_is_free(struct flex_arra
+ int flex_array_shrink(struct flex_array *fa)
+ {
+ 	struct flex_array_part *part;
+-	int max_part = nr_base_part_ptrs();
+ 	int part_nr;
+ 	int ret = 0;
+ 
+ 	if (elements_fit_in_base(fa))
+ 		return ret;
+-	for (part_nr = 0; part_nr < max_part; part_nr++) {
++	for (part_nr = 0; part_nr < FLEX_ARRAY_NR_BASE_PTRS; part_nr++) {
+ 		part = fa->parts[part_nr];
+ 		if (!part)
+ 			continue;
 _
 
-Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
+Patches currently in -mm which might be from rientjes@google.com are
 
 linux-next.patch
-acpi-fix-null-bug-for-hid-uid-string-2.patch
-vfs-optimize-touch_time-too-fix.patch
-fs-new-truncate-helpers.patch
-fs-use-new-truncate-helpers.patch
-fs-introduce-new-truncate-sequence.patch
-fs-convert-simple-fs-to-new-truncate.patch
-tmpfs-convert-to-use-the-new-truncate-convention.patch
-ext2-convert-to-use-the-new-truncate-convention.patch
-fat-convert-to-use-the-new-truncate-convention.patch
-btrfs-convert-to-use-the-new-truncate-convention.patch
-jfs-convert-to-use-the-new-truncate-convention.patch
-udf-convert-to-use-the-new-truncate-convention.patch
-minix-convert-to-use-the-new-truncate-convention.patch
+mm-remove-obsoleted-alloc_pages-cpuset-comment.patch
+hugetlb-balance-freeing-of-huge-pages-across-nodes.patch
+hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages.patch
+hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages-fix.patch
+hugetlb-clean-up-and-update-huge-pages-documentation.patch
+mm-oom-analysis-add-per-zone-statistics-to-show_free_areas.patch
+mm-oom-analysis-add-buffer-cache-information-to-show_free_areas.patch
+mm-oom-analysis-show-kernel-stack-usage-in-proc-meminfo-and-oom-log-output.patch
 mm-oom-analysis-add-shmem-vmstat.patch
-ksm-add-mmu_notifier-set_pte_at_notify.patch
-ksm-first-tidy-up-madvise_vma.patch
-ksm-define-madv_mergeable-and-madv_unmergeable.patch
-ksm-the-mm-interface-to-ksm.patch
-ksm-no-debug-in-page_dup_rmap.patch
-ksm-identify-pageksm-pages.patch
-ksm-kernel-samepage-merging.patch
-ksm-prevent-mremap-move-poisoning.patch
-ksm-change-copyright-message.patch
-ksm-change-ksm-nice-level-to-be-5.patch
-ksm-rename-kernel_pages_allocated.patch
-ksm-move-pages_sharing-updates.patch
-ksm-pages_unshared-and-pages_volatile.patch
-ksm-break-cow-once-unshared.patch
-ksm-keep-quiet-while-list-empty.patch
-ksm-five-little-cleanups.patch
-ksm-fix-endless-loop-on-oom.patch
-ksm-distribute-remove_mm_from_lists.patch
-ksm-fix-oom-deadlock.patch
-ksm-fix-deadlock-with-munlock-in-exit_mmap.patch
-ksm-sysfs-and-defaults.patch
-ksm-add-some-documentation.patch
-ksm-remove-vm_mergeable_flags.patch
-mm-add_to_swap_cache-must-not-sleep.patch
-mm-add_to_swap_cache-does-not-return-eexist.patch
-mm-includecheck-fix-for-mm-shmemc.patch
-mm-introduce-page_lru_base_type-fix.patch
-mm-replace-various-uses-of-num_physpages-by-totalram_pages.patch
-vmscan-move-pgdeactivate-modification-to-shrink_active_list-fix.patch
+mm-update-alloc_flags-after-oom-killer-has-been-called.patch
+pagemap-clear_refs-modify-to-specify-anon-or-mapped-vma-clearing.patch
+oom-move-oom_killer_enable-oom_killer_disable-to-where-they-belong.patch
 hugetlbfs-allow-the-creation-of-files-suitable-for-map_private-on-the-vfs-internal-mount.patch
 hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions.patch
 hugetlb-add-map_hugetlb-example.patch
-page-types-move-from-documentation-vm-to-tools-vm.patch
-pagemap-export-kpf_hwpoison.patch
-pagemap-document-kpf_ksm-and-show-it-in-page-types.patch
-getrusage-fill-ru_maxrss-value.patch
-getrusage-fill-ru_maxrss-value-update.patch
-ramfs-move-ramfs_magic-to-include-linux-magich.patch
-memory-controller-soft-limit-organize-cgroups-v9-fix.patch
-prio_tree-debugging-patch.patch
-vmscan-move-pgdeactivate-modification-to-shrink_active_list-fix2.patch
+oom-move-oom_adj-value-from-task_struct-to-signal_struct.patch
+oom-make-oom_score-to-per-process-value.patch
+oom-oom_kill-doesnt-kill-vfork-parentor-child.patch
+oom-fix-oom_adjust_write-input-sanity-check.patch
+flex_array-add-flex_array_clear-function.patch
+flex_array-poison-free-elements.patch
+flex_array-add-flex_array_shrink-function.patch
+flex_array-introduce-define_flex_array.patch
+flex_array-add-missing-kerneldoc-annotations.patch
+fs-proc-task_mmuc-v1-fix-clear_refs_write-input-sanity-check.patch
+do_wait-optimization-do-not-place-sub-threads-on-task_struct-children-list.patch
 
