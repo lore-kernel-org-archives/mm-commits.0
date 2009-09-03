@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + flex_array-add-missing-kerneldoc-annotations.patch added to -mm tree
-Date: Thu, 03 Sep 2009 16:44:34 -0700
-Message-ID: <200909032344.n83NiY3A012904@imap1.linux-foundation.org>
+Subject: + tpm-fixup-pcrs-sysfs-file.patch added to -mm tree
+Date: Thu, 03 Sep 2009 16:52:36 -0700
+Message-ID: <200909032352.n83Nqaaj027911@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46075 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52404 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932499AbZICXom (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Sep 2009 19:44:42 -0400
+	by vger.kernel.org with ESMTP id S1752169AbZICXyT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Sep 2009 19:54:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, dave@linux.vnet.ibm.com, randy.dunlap@oracle.com
+Cc: jgunthorpe@obsidianresearch.com, debora@linux.vnet.ibm.com, jmorris@namei.org, m.selhorst@sirrix.com, srajiv@linux.vnet.ibm.com
 
 
 The patch titled
-     flex_array: add missing kerneldoc annotations
+     tpm: fix up pcrs sysfs file
 has been added to the -mm tree.  Its filename is
-     flex_array-add-missing-kerneldoc-annotations.patch
+     tpm-fixup-pcrs-sysfs-file.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,118 +33,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: flex_array: add missing kerneldoc annotations
-From: David Rientjes <rientjes@google.com>
+Subject: tpm: fix up pcrs sysfs file
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
 
-Add kerneldoc annotations for function formals of type struct flex_array
-and gfp_t which are currently lacking.
+I'm testing the tpm_tis low level driver with a winbond WPCT200:
 
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Dave Hansen <dave@linux.vnet.ibm.com>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+$ cat caps
+Manufacturer: 0x57454300
+TCG version: 1.2
+Firmware version: 2.16
+
+and noted that tpm_pcr_read for the pcrs sysfile file does not function. 
+tpm_tis_recv returned with an error because the expected reply size was
+set to 14 (the request size) and the chip returned 30 bytes.
+
+The TCG spec says the reply size is supposed to be 30 bytes.
+
+The length input to transmit_cmd is the size of the reply, not of the
+request.  It should be 30 for READ_PCR.
+
+With this change my chip reports all 23 pcrs.
+
+Also, the BUILD_BUG_ON() is just wrong - it's testing a value which isn't
+a compile-time constant.  Simply remove that assertion.
+
+Signed-off-by: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: Debora Velarde <debora@linux.vnet.ibm.com>
+Cc: Rajiv Andrade <srajiv@linux.vnet.ibm.com>
+Cc: Marcel Selhorst <m.selhorst@sirrix.com>
+Cc: James Morris <jmorris@namei.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/flex_array.c |   12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ drivers/char/tpm/tpm.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN lib/flex_array.c~flex_array-add-missing-kerneldoc-annotations lib/flex_array.c
---- a/lib/flex_array.c~flex_array-add-missing-kerneldoc-annotations
-+++ a/lib/flex_array.c
-@@ -46,6 +46,7 @@ static inline int elements_fit_in_base(s
-  * flex_array_alloc - allocate a new flexible array
-  * @element_size:	the size of individual elements in the array
-  * @total:		total number of elements that this should hold
-+ * @flags:		page allocation flags to use for base array
-  *
-  * Note: all locking must be provided by the caller.
-  *
-@@ -111,6 +112,7 @@ static int fa_element_to_part_nr(struct 
+diff -puN drivers/char/tpm/tpm.c~tpm-fixup-pcrs-sysfs-file drivers/char/tpm/tpm.c
+--- a/drivers/char/tpm/tpm.c~tpm-fixup-pcrs-sysfs-file
++++ a/drivers/char/tpm/tpm.c
+@@ -696,8 +696,7 @@ int __tpm_pcr_read(struct tpm_chip *chip
  
- /**
-  * flex_array_free_parts - just free the second-level pages
-+ * @fa:		the flex array from which to free parts
-  *
-  * This is to be used in cases where the base 'struct flex_array'
-  * has been statically allocated and should not be free.
-@@ -159,9 +161,12 @@ __fa_get_part(struct flex_array *fa, int
+ 	cmd.header.in = pcrread_header;
+ 	cmd.params.pcrread_in.pcr_idx = cpu_to_be32(pcr_idx);
+-	BUILD_BUG_ON(cmd.header.in.length > READ_PCR_RESULT_SIZE);
+-	rc = transmit_cmd(chip, &cmd, cmd.header.in.length,
++	rc = transmit_cmd(chip, &cmd, READ_PCR_RESULT_SIZE,,
+ 			  "attempting to read a pcr value");
  
- /**
-  * flex_array_put - copy data into the array at @element_nr
-- * @src:	address of data to copy into the array
-+ * @fa:		the flex array to copy data into
-  * @element_nr:	index of the position in which to insert
-  * 		the new element.
-+ * @src:	address of data to copy into the array
-+ * @flags:	page allocation flags to use for array expansion
-+ *
-  *
-  * Note that this *copies* the contents of @src into
-  * the array.  If you are trying to store an array of
-@@ -192,6 +197,7 @@ int flex_array_put(struct flex_array *fa
- 
- /**
-  * flex_array_clear - clear element in array at @element_nr
-+ * @fa:		the flex array of the element.
-  * @element_nr:	index of the position to clear.
-  *
-  * Locking must be provided by the caller.
-@@ -218,8 +224,10 @@ int flex_array_clear(struct flex_array *
- 
- /**
-  * flex_array_prealloc - guarantee that array space exists
-+ * @fa:		the flex array for which to preallocate parts
-  * @start:	index of first array element for which space is allocated
-  * @end:	index of last (inclusive) element for which space is allocated
-+ * @flags:	page allocation flags
-  *
-  * This will guarantee that no future calls to flex_array_put()
-  * will allocate memory.  It can be used if you are expecting to
-@@ -252,6 +260,7 @@ int flex_array_prealloc(struct flex_arra
- 
- /**
-  * flex_array_get - pull data back out of the array
-+ * @fa:		the flex array from which to extract data
-  * @element_nr:	index of the element to fetch from the array
-  *
-  * Returns a pointer to the data at index @element_nr.  Note
-@@ -289,6 +298,7 @@ static int part_is_free(struct flex_arra
- 
- /**
-  * flex_array_shrink - free unused second-level pages
-+ * @fa:		the flex array to shrink
-  *
-  * Frees all second-level pages that consist solely of unused
-  * elements.  Returns the number of pages freed.
+ 	if (rc == 0)
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from jgunthorpe@obsidianresearch.com are
 
+tpm-fixup-pcrs-sysfs-file.patch
 linux-next.patch
-mm-remove-obsoleted-alloc_pages-cpuset-comment.patch
-hugetlb-balance-freeing-of-huge-pages-across-nodes.patch
-hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages.patch
-hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages-fix.patch
-hugetlb-clean-up-and-update-huge-pages-documentation.patch
-mm-oom-analysis-add-per-zone-statistics-to-show_free_areas.patch
-mm-oom-analysis-add-buffer-cache-information-to-show_free_areas.patch
-mm-oom-analysis-show-kernel-stack-usage-in-proc-meminfo-and-oom-log-output.patch
-mm-oom-analysis-add-shmem-vmstat.patch
-mm-update-alloc_flags-after-oom-killer-has-been-called.patch
-pagemap-clear_refs-modify-to-specify-anon-or-mapped-vma-clearing.patch
-oom-move-oom_killer_enable-oom_killer_disable-to-where-they-belong.patch
-hugetlbfs-allow-the-creation-of-files-suitable-for-map_private-on-the-vfs-internal-mount.patch
-hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions.patch
-hugetlb-add-map_hugetlb-example.patch
-oom-move-oom_adj-value-from-task_struct-to-signal_struct.patch
-oom-make-oom_score-to-per-process-value.patch
-oom-oom_kill-doesnt-kill-vfork-parentor-child.patch
-oom-fix-oom_adjust_write-input-sanity-check.patch
-flex_array-add-flex_array_clear-function.patch
-flex_array-poison-free-elements.patch
-flex_array-add-flex_array_shrink-function.patch
-flex_array-introduce-define_flex_array.patch
-flex_array-add-missing-kerneldoc-annotations.patch
-fs-proc-task_mmuc-v1-fix-clear_refs_write-input-sanity-check.patch
-do_wait-optimization-do-not-place-sub-threads-on-task_struct-children-list.patch
 
