@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + octeon-request_irq-failure-ignored-in-cvm_oct_configure_common_hw.patch added to -mm tree
-Date: Thu, 03 Sep 2009 15:04:11 -0700
-Message-ID: <200909032204.n83M4Bh7022683@imap1.linux-foundation.org>
+Subject: + msp71xx-request_irq-failure-ignored-in-msp_pcibios_config_access.patch added to -mm tree
+Date: Thu, 03 Sep 2009 15:07:13 -0700
+Message-ID: <200909032207.n83M7DdV028254@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56468 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42512 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756035AbZICWEk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Sep 2009 18:04:40 -0400
+	by vger.kernel.org with ESMTP id S932302AbZICWIX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Sep 2009 18:08:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, ddaney@caviumnetworks.com, greg@kroah.com
+Cc: roel.kluin@gmail.com, ithamar.adema@team-embedded.nl, ralf@linux-mips.org
 
 
 The patch titled
-     octeon: request_irq() failure ignored in cvm_oct_configure_common_hw()
+     MSP71xx: request_irq() failure ignored in msp_pcibios_config_access()
 has been added to the -mm tree.  Its filename is
-     octeon-request_irq-failure-ignored-in-cvm_oct_configure_common_hw.patch
+     msp71xx-request_irq-failure-ignored-in-msp_pcibios_config_access.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,34 +33,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: octeon: request_irq() failure ignored in cvm_oct_configure_common_hw()
+Subject: MSP71xx: request_irq() failure ignored in msp_pcibios_config_access()
 From: Roel Kluin <roel.kluin@gmail.com>
 
-Produce an error if request_irq() failed.
+Produce an error if request_irq() fails.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: David Daney <ddaney@caviumnetworks.com>
-Cc: Greg KH <greg@kroah.com>
+Cc: "Ithamar R. Adema" <ithamar.adema@team-embedded.nl>
+Cc: Ralf Baechle <ralf@linux-mips.org
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/octeon/ethernet.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ arch/mips/pci/ops-pmcmsp.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/staging/octeon/ethernet.c~octeon-request_irq-failure-ignored-in-cvm_oct_configure_common_hw drivers/staging/octeon/ethernet.c
---- a/drivers/staging/octeon/ethernet.c~octeon-request_irq-failure-ignored-in-cvm_oct_configure_common_hw
-+++ a/drivers/staging/octeon/ethernet.c
-@@ -210,6 +210,10 @@ static __init void cvm_oct_configure_com
- 	r = request_irq(OCTEON_IRQ_WORKQ0 + pow_receive_group,
- 			cvm_oct_do_interrupt, IRQF_SHARED, "Ethernet",
- 			cvm_oct_device);
-+	if (r != 0) {
-+		pr_err("cvm_oct_configure_common_hw: request_irq failed");
-+		return;
-+	}
+diff -puN arch/mips/pci/ops-pmcmsp.c~msp71xx-request_irq-failure-ignored-in-msp_pcibios_config_access arch/mips/pci/ops-pmcmsp.c
+--- a/arch/mips/pci/ops-pmcmsp.c~msp71xx-request_irq-failure-ignored-in-msp_pcibios_config_access
++++ a/arch/mips/pci/ops-pmcmsp.c
+@@ -385,6 +385,7 @@ int msp_pcibios_config_access(unsigned c
+ 	unsigned long intr;
+ 	unsigned long value;
+ 	static char pciirqflag;
++	int ret;
+ #if defined(CONFIG_PMC_MSP7120_GW) || defined(CONFIG_PMC_MSP7120_EVAL)
+ 	unsigned int	vpe_status;
+ #endif
+@@ -402,11 +403,13 @@ int msp_pcibios_config_access(unsigned c
+ 	 * allocation assigns an interrupt handler to the interrupt.
+ 	 */
+ 	if (pciirqflag == 0) {
+-		request_irq(MSP_INT_PCI,/* Hardcoded internal MSP7120 wiring */
++		ret = request_irq(MSP_INT_PCI,/* Hardcoded internal MSP7120 wiring */
+ 				bpci_interrupt,
+ 				IRQF_SHARED | IRQF_DISABLED,
+ 				"PMC MSP PCI Host",
+ 				preg);
++		if (ret != 0)
++			return ret;
+ 		pciirqflag = ~0;
+ 	}
  
- #if defined(CONFIG_SMP) && 0
- 	if (USE_MULTICORE_RECEIVE) {
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -74,6 +86,7 @@ pcmcia-fix-read-buffer-overflow.patch
 powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
 mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
 octeon-false-positive-timeout.patch
+msp71xx-request_irq-failure-ignored-in-msp_pcibios_config_access.patch
 slram-read-buffer-overflow.patch
 mtd-fix-read-buffer-overflow.patch
 mtd-jffs2-fix-read-buffer-overflow.patch
