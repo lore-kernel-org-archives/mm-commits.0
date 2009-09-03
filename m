@@ -1,169 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] aoe-ensure-we-initialise-the-request_queue-correctly.patch removed from -mm tree
-Date: Thu, 03 Sep 2009 13:27:13 -0700
-Message-ID: <200909032027.n83KRDwt006246@imap1.linux-foundation.org>
+Subject: [merged] x86-fix-x86_model-test-in-es7000_apic_is_cluster.patch removed from -mm tree
+Date: Thu, 03 Sep 2009 13:32:03 -0700
+Message-ID: <200909032032.n83KW36p015194@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51438 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55797 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752384AbZICU32 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Sep 2009 16:29:28 -0400
+	by vger.kernel.org with ESMTP id S932160AbZICUcv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Sep 2009 16:32:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: apw@canonical.com, bonbons@linux-vserver.org, ecashin@coraid.com, jens.axboe@oracle.com, martin.petersen@oracle.com, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     aoe: ensure we initialise the request_queue correctly
+     x86: fix x86_model test in es7000_apic_is_cluster()
 has been removed from the -mm tree.  Its filename was
-     aoe-ensure-we-initialise-the-request_queue-correctly.patch
+     x86-fix-x86_model-test-in-es7000_apic_is_cluster.patch
 
-This patch was dropped because an alternative patch was merged
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: aoe: ensure we initialise the request_queue correctly
-From: Andy Whitcroft <apw@canonical.com>
+Subject: x86: fix x86_model test in es7000_apic_is_cluster()
+From: Roel Kluin <roel.kluin@gmail.com>
 
-When using the aoe driver we see an oops triggered by use of an
-incorrectly initialised request_queue object:
+For the x86_model to be greater than 6 or less than 12 is logically
+always true.
 
-  [ 2645.959090] kobject '<NULL>' (ffff880059ca22c0): tried to add
-		an uninitialized object, something is seriously wrong.
-  [ 2645.959104] Pid: 6, comm: events/0 Not tainted 2.6.31-5-generic #24-Ubuntu
-  [ 2645.959107] Call Trace:
-  [ 2645.959139] [<ffffffff8126ca2f>] kobject_add+0x5f/0x70
-  [ 2645.959151] [<ffffffff8125b4ab>] blk_register_queue+0x8b/0xf0
-  [ 2645.959155] [<ffffffff8126043f>] add_disk+0x8f/0x160
-  [ 2645.959161] [<ffffffffa01673c4>] aoeblk_gdalloc+0x164/0x1c0 [aoe]
-
-It seems this driver mearly embeds a request_queue object in its main
-control structure and does not attempt to initialise it.  Pull this out
-and use blk_init_queue/blk_cleanup_queue to handle initialisation and
-teardown of this object.
-
-Bruno bisected this regression down to
-
-  cd43e26f071524647e660706b784ebcbefbd2e44
-
-  block: Expose stacked device queues in sysfs
-
-"This seems to generate /sys/block/$device/queue and its contents for
- everyone who is using queues, not just for those queues that have a
- non-NULL queue->request_fn."
-
-Addresses http://bugs.launchpad.net/bugs/410198
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=13942
-
-Signed-off-by: Andy Whitcroft <apw@canonical.com>
-Acked-by: Ed Cashin <ecashin@coraid.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Bruno Premont <bonbons@linux-vserver.org>
-Cc: Martin K. Petersen <martin.petersen@oracle.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/aoe/aoe.h    |    2 +-
- drivers/block/aoe/aoeblk.c |    6 +++---
- drivers/block/aoe/aoedev.c |   11 ++++++++++-
- 3 files changed, 14 insertions(+), 5 deletions(-)
+ arch/x86/kernel/apic/es7000_32.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/block/aoe/aoe.h~aoe-ensure-we-initialise-the-request_queue-correctly drivers/block/aoe/aoe.h
---- a/drivers/block/aoe/aoe.h~aoe-ensure-we-initialise-the-request_queue-correctly
-+++ a/drivers/block/aoe/aoe.h
-@@ -155,7 +155,7 @@ struct aoedev {
- 	u16 fw_ver;		/* version of blade's firmware */
- 	struct work_struct work;/* disk create work struct */
- 	struct gendisk *gd;
--	struct request_queue blkq;
-+	struct request_queue *blkq;
- 	struct hd_geometry geo; 
- 	sector_t ssize;
- 	struct timer_list timer;
-diff -puN drivers/block/aoe/aoeblk.c~aoe-ensure-we-initialise-the-request_queue-correctly drivers/block/aoe/aoeblk.c
---- a/drivers/block/aoe/aoeblk.c~aoe-ensure-we-initialise-the-request_queue-correctly
-+++ a/drivers/block/aoe/aoeblk.c
-@@ -264,8 +264,8 @@ aoeblk_gdalloc(void *vp)
- 		goto err_disk;
- 	}
- 
--	blk_queue_make_request(&d->blkq, aoeblk_make_request);
--	if (bdi_init(&d->blkq.backing_dev_info))
-+	blk_queue_make_request(d->blkq, aoeblk_make_request);
-+	if (bdi_init(&d->blkq->backing_dev_info))
- 		goto err_mempool;
- 	spin_lock_irqsave(&d->lock, flags);
- 	gd->major = AOE_MAJOR;
-@@ -276,7 +276,7 @@ aoeblk_gdalloc(void *vp)
- 	snprintf(gd->disk_name, sizeof gd->disk_name, "etherd/e%ld.%d",
- 		d->aoemajor, d->aoeminor);
- 
--	gd->queue = &d->blkq;
-+	gd->queue = d->blkq;
- 	d->gd = gd;
- 	d->flags &= ~DEVFL_GDALLOC;
- 	d->flags |= DEVFL_UP;
-diff -puN drivers/block/aoe/aoedev.c~aoe-ensure-we-initialise-the-request_queue-correctly drivers/block/aoe/aoedev.c
---- a/drivers/block/aoe/aoedev.c~aoe-ensure-we-initialise-the-request_queue-correctly
-+++ a/drivers/block/aoe/aoedev.c
-@@ -113,6 +113,7 @@ aoedev_freedev(struct aoedev *d)
- 	if (d->bufpool)
- 		mempool_destroy(d->bufpool);
- 	skbpoolfree(d);
-+	blk_cleanup_queue(d->blkq);
- 	kfree(d);
- }
- 
-@@ -202,6 +203,7 @@ aoedev_by_sysminor_m(ulong sysminor)
+diff -puN arch/x86/kernel/apic/es7000_32.c~x86-fix-x86_model-test-in-es7000_apic_is_cluster arch/x86/kernel/apic/es7000_32.c
+--- a/arch/x86/kernel/apic/es7000_32.c~x86-fix-x86_model-test-in-es7000_apic_is_cluster
++++ a/arch/x86/kernel/apic/es7000_32.c
+@@ -167,7 +167,7 @@ static int es7000_apic_is_cluster(void)
  {
- 	struct aoedev *d;
- 	ulong flags;
-+	struct request_queue *rq;
+ 	/* MPENTIUMIII */
+ 	if (boot_cpu_data.x86 == 6 &&
+-	    (boot_cpu_data.x86_model >= 7 || boot_cpu_data.x86_model <= 11))
++	    (boot_cpu_data.x86_model >= 7 && boot_cpu_data.x86_model <= 11))
+ 		return 1;
  
- 	spin_lock_irqsave(&devlist_lock, flags);
- 
-@@ -210,9 +212,13 @@ aoedev_by_sysminor_m(ulong sysminor)
- 			break;
- 	if (d)
- 		goto out;
-+	rq = blk_init_queue(NULL, NULL);
-+	if (!rq)
-+		goto out;
- 	d = kcalloc(1, sizeof *d, GFP_ATOMIC);
- 	if (!d)
--		goto out;
-+		goto out_rq;
-+	d->blkq = rq;
- 	INIT_WORK(&d->work, aoecmd_sleepwork);
- 	spin_lock_init(&d->lock);
- 	skb_queue_head_init(&d->sendq);
-@@ -234,6 +240,9 @@ aoedev_by_sysminor_m(ulong sysminor)
-  out:
- 	spin_unlock_irqrestore(&devlist_lock, flags);
- 	return d;
-+ out_rq:
-+	blk_cleanup_queue(rq);
-+	goto out;
- }
- 
- static void
+ 	return 0;
 _
 
-Patches currently in -mm which might be from apw@canonical.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
-aoe-ensure-we-initialise-the-request_queue-correctly.patch
-hugetlb-balance-freeing-of-huge-pages-across-nodes.patch
-hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages.patch
-hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages-fix.patch
-hugetlb-clean-up-and-update-huge-pages-documentation.patch
-hugetlb-restore-interleaving-of-bootmem-huge-pages.patch
-checkpatch-possible-types-else-cannot-start-a-type.patch
-checkpatch-handle-c99-comments-correctly-performance-issue.patch
-checkpatch-indent-checks-stop-when-we-run-out-of-continuation-lines.patch
-checkpatch-make-f-alias-file-add-help-more-verbose-help-message.patch
-checkpatch-format-strings-should-not-have-brackets-in-macros.patch
-checkpatch-limit-sn-un-matches-to-actual-bit-sizes.patch
-checkpatch-version-029.patch
+origin.patch
+linux-next.patch
+s3c-fix-check-of-index-into-s3c_gpios.patch
+stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
+dm-strncpy-does-not-null-terminate-string.patch
+pcmcia-fix-read-buffer-overflow.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
+octeon-false-positive-timeout.patch
+slram-read-buffer-overflow.patch
+mtd-fix-read-buffer-overflow.patch
+mtd-jffs2-fix-read-buffer-overflow.patch
+mtd-prevent-a-read-from-eraseregions.patch
+mtd-prevent-a-read-from-regions.patch
+hfc_usb-fix-read-buffer-overflow.patch
+zorro8390-fix-read-buffer-overflow-in-zorro8390_init_one-checkpatch-fixes.patch
+cyclades-read-buffer-overflow.patch
+serial167-fix-read-buffer-overflow.patch
+regulator-fix-calculation-of-voltage-range-in-da9034_set_ldo12_voltage.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
+zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
+st-fix-test-of-value-range-in-st_set_options.patch
+st-fix-test-of-value-range-in-st_set_options-fix.patch
+comedi-null-dereference-of-amcc-in-v_pci_card_list_init.patch
+rt2860-possible-null-dereferences.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+blackfin-fix-read-buffer-overflow.patch
+arch-alpha-boot-tools-objstripc-wrong-variable-tested-after-open.patch
+m32r-remove-redundant-tests-on-unsigned.patch
+uml-fix-order-of-pud-and-pmd_free.patch
+dme1737-keep-index-within-pwm_config.patch
+sdio-fix-read-buffer-overflow.patch
+hwmon-fix-freeing-of-gpio_data-and-irq.patch
+ncpfs-read-buffer-overflow.patch
+smbfs-read-buffer-overflow.patch
+platinumfb-misplaced-parenthesis.patch
+sisfb-read-buffer-overflow.patch
+drivers-video-console-newport_conc-fix-read-outside-array-bounds.patch
+mwave-fix-read-buffer-overflow.patch
+adfs-remove-redundant-test-on-unsigned.patch
+gru-allocation-may-fail-in-quicktest1.patch
 
