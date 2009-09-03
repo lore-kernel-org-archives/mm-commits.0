@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-staging-octeon-ethernet-rgmiic-dont-ignore-request_irq-return-code.patch added to -mm tree
-Date: Thu, 03 Sep 2009 15:02:11 -0700
-Message-ID: <200909032202.n83M2Bui018992@imap1.linux-foundation.org>
+Subject: + octeon-request_irq-failure-ignored-in-cvm_oct_spi_init.patch added to -mm tree
+Date: Thu, 03 Sep 2009 15:03:08 -0700
+Message-ID: <200909032203.n83M387D020813@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58228 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52072 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753328AbZICWCm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Sep 2009 18:02:42 -0400
+	by vger.kernel.org with ESMTP id S1753328AbZICWDj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Sep 2009 18:03:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: roel.kluin@gmail.com, ddaney@caviumnetworks.com, greg@kroah.com
 
 
 The patch titled
-     drivers/staging/octeon/ethernet-rgmii.c: don't ignore request_irq() return code
+     octeon: request_irq() failure ignored in cvm_oct_spi_init()
 has been added to the -mm tree.  Its filename is
-     drivers-staging-octeon-ethernet-rgmiic-dont-ignore-request_irq-return-code.patch
+     octeon-request_irq-failure-ignored-in-cvm_oct_spi_init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,38 +33,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/staging/octeon/ethernet-rgmii.c: don't ignore request_irq() return code
+Subject: octeon: request_irq() failure ignored in cvm_oct_spi_init()
 From: Roel Kluin <roel.kluin@gmail.com>
 
+Produce an error if request_irq() failed.
+
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Acked-by: David Daney <ddaney@caviumnetworks.com>
+Cc: David Daney <ddaney@caviumnetworks.com>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/octeon/ethernet-rgmii.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/staging/octeon/ethernet-spi.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/staging/octeon/ethernet-rgmii.c~drivers-staging-octeon-ethernet-rgmiic-dont-ignore-request_irq-return-code drivers/staging/octeon/ethernet-rgmii.c
---- a/drivers/staging/octeon/ethernet-rgmii.c~drivers-staging-octeon-ethernet-rgmiic-dont-ignore-request_irq-return-code
-+++ a/drivers/staging/octeon/ethernet-rgmii.c
-@@ -308,7 +308,7 @@ int cvm_oct_rgmii_init(struct net_device
- 
- 	/*
- 	 * Due to GMX errata in CN3XXX series chips, it is necessary
--	 * to take the link down immediately whne the PHY changes
-+	 * to take the link down immediately when the PHY changes
- 	 * state. In order to do this we call the poll function every
- 	 * time the RGMII inband status changes.  This may cause
- 	 * problems if the PHY doesn't implement inband status
-@@ -317,6 +317,8 @@ int cvm_oct_rgmii_init(struct net_device
- 	if (number_rgmii_ports == 0) {
- 		r = request_irq(OCTEON_IRQ_RML, cvm_oct_rgmii_rml_interrupt,
- 				IRQF_SHARED, "RGMII", &number_rgmii_ports);
+diff -puN drivers/staging/octeon/ethernet-spi.c~octeon-request_irq-failure-ignored-in-cvm_oct_spi_init drivers/staging/octeon/ethernet-spi.c
+--- a/drivers/staging/octeon/ethernet-spi.c~octeon-request_irq-failure-ignored-in-cvm_oct_spi_init
++++ a/drivers/staging/octeon/ethernet-spi.c
+@@ -295,6 +295,8 @@ int cvm_oct_spi_init(struct net_device *
+ 	if (number_spi_ports == 0) {
+ 		r = request_irq(OCTEON_IRQ_RML, cvm_oct_spi_rml_interrupt,
+ 				IRQF_SHARED, "SPI", &number_spi_ports);
 +		if (r != 0)
 +			return r;
  	}
- 	number_rgmii_ports++;
+ 	number_spi_ports++;
  
 _
 
@@ -102,6 +95,8 @@ st-fix-test-of-value-range-in-st_set_options.patch
 st-fix-test-of-value-range-in-st_set_options-fix.patch
 comedi-null-dereference-of-amcc-in-v_pci_card_list_init.patch
 rt2860-possible-null-dereferences.patch
+drivers-staging-octeon-ethernet-rgmiic-dont-ignore-request_irq-return-code.patch
+octeon-request_irq-failure-ignored-in-cvm_oct_spi_init.patch
 frv-duplicate-output_buffer-of-e03.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 blackfin-fix-read-buffer-overflow.patch
@@ -119,5 +114,4 @@ drivers-video-console-newport_conc-fix-read-outside-array-bounds.patch
 mwave-fix-read-buffer-overflow.patch
 adfs-remove-redundant-test-on-unsigned.patch
 gru-allocation-may-fail-in-quicktest1.patch
-drivers-staging-octeon-ethernet-rgmiic-dont-ignore-request_irq-return-code.patch
 
