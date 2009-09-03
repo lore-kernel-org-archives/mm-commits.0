@@ -1,127 +1,169 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-fixup.patch removed from -mm tree
-Date: Thu, 03 Sep 2009 13:26:38 -0700
-Message-ID: <200909032026.n83KQcP9005195@imap1.linux-foundation.org>
+Subject: [alternative-merged] aoe-ensure-we-initialise-the-request_queue-correctly.patch removed from -mm tree
+Date: Thu, 03 Sep 2009 13:27:13 -0700
+Message-ID: <200909032027.n83KRDwt006246@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59933 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51438 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932185AbZICU1H (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Sep 2009 16:27:07 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n83KQdtK002223
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 3 Sep 2009 13:26:40 -0700
+	by vger.kernel.org with ESMTP id S1752384AbZICU32 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Sep 2009 16:29:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: apw@canonical.com, bonbons@linux-vserver.org, ecashin@coraid.com, jens.axboe@oracle.com, martin.petersen@oracle.com, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-fixup
+     aoe: ensure we initialise the request_queue correctly
 has been removed from the -mm tree.  Its filename was
-     linux-next-fixup.patch
+     aoe-ensure-we-initialise-the-request_queue-correctly.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because an alternative patch was merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-fixup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: aoe: ensure we initialise the request_queue correctly
+From: Andy Whitcroft <apw@canonical.com>
 
+When using the aoe driver we see an oops triggered by use of an
+incorrectly initialised request_queue object:
+
+  [ 2645.959090] kobject '<NULL>' (ffff880059ca22c0): tried to add
+		an uninitialized object, something is seriously wrong.
+  [ 2645.959104] Pid: 6, comm: events/0 Not tainted 2.6.31-5-generic #24-Ubuntu
+  [ 2645.959107] Call Trace:
+  [ 2645.959139] [<ffffffff8126ca2f>] kobject_add+0x5f/0x70
+  [ 2645.959151] [<ffffffff8125b4ab>] blk_register_queue+0x8b/0xf0
+  [ 2645.959155] [<ffffffff8126043f>] add_disk+0x8f/0x160
+  [ 2645.959161] [<ffffffffa01673c4>] aoeblk_gdalloc+0x164/0x1c0 [aoe]
+
+It seems this driver mearly embeds a request_queue object in its main
+control structure and does not attempt to initialise it.  Pull this out
+and use blk_init_queue/blk_cleanup_queue to handle initialisation and
+teardown of this object.
+
+Bruno bisected this regression down to
+
+  cd43e26f071524647e660706b784ebcbefbd2e44
+
+  block: Expose stacked device queues in sysfs
+
+"This seems to generate /sys/block/$device/queue and its contents for
+ everyone who is using queues, not just for those queues that have a
+ non-NULL queue->request_fn."
+
+Addresses http://bugs.launchpad.net/bugs/410198
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=13942
+
+Signed-off-by: Andy Whitcroft <apw@canonical.com>
+Acked-by: Ed Cashin <ecashin@coraid.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Bruno Premont <bonbons@linux-vserver.org>
+Cc: Martin K. Petersen <martin.petersen@oracle.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/aoe/aoeblk.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/block/aoe/aoe.h    |    2 +-
+ drivers/block/aoe/aoeblk.c |    6 +++---
+ drivers/block/aoe/aoedev.c |   11 ++++++++++-
+ 3 files changed, 14 insertions(+), 5 deletions(-)
 
-diff -puN drivers/block/aoe/aoeblk.c~linux-next-fixup drivers/block/aoe/aoeblk.c
---- a/drivers/block/aoe/aoeblk.c~linux-next-fixup
+diff -puN drivers/block/aoe/aoe.h~aoe-ensure-we-initialise-the-request_queue-correctly drivers/block/aoe/aoe.h
+--- a/drivers/block/aoe/aoe.h~aoe-ensure-we-initialise-the-request_queue-correctly
++++ a/drivers/block/aoe/aoe.h
+@@ -155,7 +155,7 @@ struct aoedev {
+ 	u16 fw_ver;		/* version of blade's firmware */
+ 	struct work_struct work;/* disk create work struct */
+ 	struct gendisk *gd;
+-	struct request_queue blkq;
++	struct request_queue *blkq;
+ 	struct hd_geometry geo; 
+ 	sector_t ssize;
+ 	struct timer_list timer;
+diff -puN drivers/block/aoe/aoeblk.c~aoe-ensure-we-initialise-the-request_queue-correctly drivers/block/aoe/aoeblk.c
+--- a/drivers/block/aoe/aoeblk.c~aoe-ensure-we-initialise-the-request_queue-correctly
 +++ a/drivers/block/aoe/aoeblk.c
-@@ -265,6 +265,7 @@ aoeblk_gdalloc(void *vp)
+@@ -264,8 +264,8 @@ aoeblk_gdalloc(void *vp)
+ 		goto err_disk;
  	}
  
- 	blk_queue_make_request(d->blkq, aoeblk_make_request);
-+	d->blkq.backing_dev_info.name = "aoe";
- 	if (bdi_init(&d->blkq->backing_dev_info))
+-	blk_queue_make_request(&d->blkq, aoeblk_make_request);
+-	if (bdi_init(&d->blkq.backing_dev_info))
++	blk_queue_make_request(d->blkq, aoeblk_make_request);
++	if (bdi_init(&d->blkq->backing_dev_info))
  		goto err_mempool;
  	spin_lock_irqsave(&d->lock, flags);
+ 	gd->major = AOE_MAJOR;
+@@ -276,7 +276,7 @@ aoeblk_gdalloc(void *vp)
+ 	snprintf(gd->disk_name, sizeof gd->disk_name, "etherd/e%ld.%d",
+ 		d->aoemajor, d->aoeminor);
+ 
+-	gd->queue = &d->blkq;
++	gd->queue = d->blkq;
+ 	d->gd = gd;
+ 	d->flags &= ~DEVFL_GDALLOC;
+ 	d->flags |= DEVFL_UP;
+diff -puN drivers/block/aoe/aoedev.c~aoe-ensure-we-initialise-the-request_queue-correctly drivers/block/aoe/aoedev.c
+--- a/drivers/block/aoe/aoedev.c~aoe-ensure-we-initialise-the-request_queue-correctly
++++ a/drivers/block/aoe/aoedev.c
+@@ -113,6 +113,7 @@ aoedev_freedev(struct aoedev *d)
+ 	if (d->bufpool)
+ 		mempool_destroy(d->bufpool);
+ 	skbpoolfree(d);
++	blk_cleanup_queue(d->blkq);
+ 	kfree(d);
+ }
+ 
+@@ -202,6 +203,7 @@ aoedev_by_sysminor_m(ulong sysminor)
+ {
+ 	struct aoedev *d;
+ 	ulong flags;
++	struct request_queue *rq;
+ 
+ 	spin_lock_irqsave(&devlist_lock, flags);
+ 
+@@ -210,9 +212,13 @@ aoedev_by_sysminor_m(ulong sysminor)
+ 			break;
+ 	if (d)
+ 		goto out;
++	rq = blk_init_queue(NULL, NULL);
++	if (!rq)
++		goto out;
+ 	d = kcalloc(1, sizeof *d, GFP_ATOMIC);
+ 	if (!d)
+-		goto out;
++		goto out_rq;
++	d->blkq = rq;
+ 	INIT_WORK(&d->work, aoecmd_sleepwork);
+ 	spin_lock_init(&d->lock);
+ 	skb_queue_head_init(&d->sendq);
+@@ -234,6 +240,9 @@ aoedev_by_sysminor_m(ulong sysminor)
+  out:
+ 	spin_unlock_irqrestore(&devlist_lock, flags);
+ 	return d;
++ out_rq:
++	blk_cleanup_queue(rq);
++	goto out;
+ }
+ 
+ static void
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from apw@canonical.com are
 
-origin.patch
-linux-next.patch
-linux-next-fixup.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-video-initial-support-for-adv7180-update-fix.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-checkincludespl-add-option-to-remove-duplicates-in-place.patch
-leds-gpio-leds-fix-typographics-fault.patch
-leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio.patch
-slram-read-buffer-overflow.patch
-zorro8390-fix-read-buffer-overflow-in-zorro8390_init_one-checkpatch-fixes.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-serial167-fix-read-buffer-overflow.patch
-waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes-checkpatch-fixes.patch
-st-fix-test-of-value-range-in-st_set_options-fix.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
-vfs-optimize-touch_time-too.patch
-fs-improve-remountro-vs-buffercache-coherency-fix.patch
-mm-make-swap-token-dummies-static-inlines-fix.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
-vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
-arches-drop-superfluous-casts-in-nr_free_pages-callers-checkpatch-fixes.patch
-tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists-fix.patch
-page-allocator-maintain-rolling-count-of-pages-to-free-from-the-pcp-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
-generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
-proc-connector-add-event-for-process-becoming-session-leader.patch
-kernel-smpc-relocate-some-code.patch
-mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
-sdio-add-cd-disable-support-cleanup.patch
-sdio-add-mmc_quirk_lenient_fn0-fix.patch
-at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver-checkpatch-fixes.patch
-procfs-provide-stack-information-for-threads-v011-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
-rtc-philips-nxp-pcf2123-driver-v03-fix.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes-fix.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
-drivers-video-add-kmalloc-null-tests-fix.patch
-v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
-cgroups-add-functionality-to-read-write-lock-clone_thread-forking-per-threadgroup-fix.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
-memcg-improve-resource-counter-scalability-checkpatch-fixes.patch
-exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
-exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
-elf-clean-up-fill_note_info-fix.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+aoe-ensure-we-initialise-the-request_queue-correctly.patch
+hugetlb-balance-freeing-of-huge-pages-across-nodes.patch
+hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages.patch
+hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages-fix.patch
+hugetlb-clean-up-and-update-huge-pages-documentation.patch
+hugetlb-restore-interleaving-of-bootmem-huge-pages.patch
+checkpatch-possible-types-else-cannot-start-a-type.patch
+checkpatch-handle-c99-comments-correctly-performance-issue.patch
+checkpatch-indent-checks-stop-when-we-run-out-of-continuation-lines.patch
+checkpatch-make-f-alias-file-add-help-more-verbose-help-message.patch
+checkpatch-format-strings-should-not-have-brackets-in-macros.patch
+checkpatch-limit-sn-un-matches-to-actual-bit-sizes.patch
+checkpatch-version-029.patch
 
