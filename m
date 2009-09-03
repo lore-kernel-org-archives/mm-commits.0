@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
 Subject: + tpm-fixup-pcrs-sysfs-file.patch added to -mm tree
-Date: Thu, 03 Sep 2009 16:52:36 -0700
-Message-ID: <200909032352.n83Nqaaj027911@imap1.linux-foundation.org>
+Date: Thu, 03 Sep 2009 16:52:50 -0700
+Message-ID: <200909032352.n83NqoAN028324@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52404 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41790 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752169AbZICXyT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Sep 2009 19:54:19 -0400
+	by vger.kernel.org with ESMTP id S1756580AbZICXy1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Sep 2009 19:54:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -77,7 +77,7 @@ diff -puN drivers/char/tpm/tpm.c~tpm-fixup-pcrs-sysfs-file drivers/char/tpm/tpm.
  	cmd.params.pcrread_in.pcr_idx = cpu_to_be32(pcr_idx);
 -	BUILD_BUG_ON(cmd.header.in.length > READ_PCR_RESULT_SIZE);
 -	rc = transmit_cmd(chip, &cmd, cmd.header.in.length,
-+	rc = transmit_cmd(chip, &cmd, READ_PCR_RESULT_SIZE,,
++	rc = transmit_cmd(chip, &cmd, READ_PCR_RESULT_SIZE,
  			  "attempting to read a pcr value");
  
  	if (rc == 0)
