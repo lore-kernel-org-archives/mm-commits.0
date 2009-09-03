@@ -1,179 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] vmscan-move-pgdeactivate-modification-to-shrink_active_list.patch removed from -mm tree
-Date: Thu, 03 Sep 2009 16:42:15 -0700
-Message-ID: <200909032342.n83NgFkC008691@imap1.linux-foundation.org>
+Subject: [to-be-updated] vmscan-move-pgdeactivate-modification-to-shrink_active_list-fix.patch removed from -mm tree
+Date: Thu, 03 Sep 2009 16:42:18 -0700
+Message-ID: <200909032342.n83NgJEG008778@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57213 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49396 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932499AbZICXnB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Sep 2009 19:43:01 -0400
+	by vger.kernel.org with ESMTP id S932505AbZICXnG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Sep 2009 19:43:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, riel@redhat.com, mm-commits@vger.kernel.org
+To: hugh.dickins@tiscali.co.uk, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, riel@redhat.com, mm-commits@vger.
 
 
 The patch titled
-     vmscan: move PGDEACTIVATE modification to shrink_active_list()
+     vmscan move pgdeactivate modification to shrink_active_list fix
 has been removed from the -mm tree.  Its filename was
-     vmscan-move-pgdeactivate-modification-to-shrink_active_list.patch
+     vmscan-move-pgdeactivate-modification-to-shrink_active_list-fix.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: move PGDEACTIVATE modification to shrink_active_list()
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: vmscan move pgdeactivate modification to shrink_active_list fix
+From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
-Pgmoved accounting in move_active_pages_to_lru() doesn't make any sense. 
-it can be calculated in irq enabled area.
+mmotm 2009-08-27-16-51 lets the OOM killer loose on my loads even quicker
+than last time: one bug fixed but another bug introduced. 
+vmscan-move-pgdeactivate-modification-to-shrink_active_list.patch forgot
+to add NR_LRU_BASE to lru index to make zone_page_state index.
 
-This patch move #-of-deactivating-pages calcution to shrink_active_list().
- Fortunatelly, it also kill one branch.
-
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Rik van Riel <riel@redhat.com>
+Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ mm/vmscan.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN mm/vmscan.c~vmscan-move-pgdeactivate-modification-to-shrink_active_list mm/vmscan.c
---- a/mm/vmscan.c~vmscan-move-pgdeactivate-modification-to-shrink_active_list
+diff -puN mm/vmscan.c~vmscan-move-pgdeactivate-modification-to-shrink_active_list-fix mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-move-pgdeactivate-modification-to-shrink_active_list-fix
 +++ a/mm/vmscan.c
-@@ -1269,7 +1269,6 @@ static void move_active_pages_to_lru(str
- 				     struct list_head *list,
- 				     enum lru_list lru)
- {
--	unsigned long pgmoved = 0;
- 	struct pagevec pvec;
- 	struct page *page;
- 
-@@ -1283,7 +1282,6 @@ static void move_active_pages_to_lru(str
- 
- 		list_move(&page->lru, &zone->lru[lru].list);
- 		mem_cgroup_add_lru_list(page, lru);
--		pgmoved++;
- 
- 		if (!pagevec_add(&pvec, page) || list_empty(list)) {
- 			spin_unlock_irq(&zone->lru_lock);
-@@ -1293,9 +1291,6 @@ static void move_active_pages_to_lru(str
- 			spin_lock_irq(&zone->lru_lock);
- 		}
- 	}
--	__mod_zone_page_state(zone, NR_LRU_BASE + lru, pgmoved);
--	if (!is_active_lru(lru))
--		__count_vm_events(PGDEACTIVATE, pgmoved);
- }
- 
- static void shrink_active_list(unsigned long nr_pages, struct zone *zone,
-@@ -1310,6 +1305,7 @@ static void shrink_active_list(unsigned 
- 	struct page *page;
- 	struct zone_reclaim_stat *reclaim_stat = get_reclaim_stat(zone, sc);
- 	unsigned long nr_rotated = 0;
-+	unsigned long nr_deactivated = 0;
- 
- 	lru_add_drain();
- 	spin_lock_irq(&zone->lru_lock);
-@@ -1364,12 +1360,18 @@ static void shrink_active_list(unsigned 
- 
- 		ClearPageActive(page);	/* we are de-activating */
- 		list_add(&page->lru, &l_inactive);
-+		nr_deactivated++;
- 	}
- 
- 	/*
- 	 * Move pages back to the lru list.
- 	 */
- 	spin_lock_irq(&zone->lru_lock);
-+	move_active_pages_to_lru(zone, &l_active,
-+						LRU_ACTIVE + file * LRU_FILE);
-+	move_active_pages_to_lru(zone, &l_inactive,
-+						LRU_BASE   + file * LRU_FILE);
-+
- 	/*
- 	 * Count referenced pages from currently used mappings as rotated,
- 	 * even though only some of them are actually re-activated.  This
-@@ -1377,12 +1379,10 @@ static void shrink_active_list(unsigned 
- 	 * get_scan_ratio.
- 	 */
+@@ -1381,8 +1381,10 @@ static void shrink_active_list(unsigned 
  	reclaim_stat->recent_rotated[file] += nr_rotated;
--
--	move_active_pages_to_lru(zone, &l_active,
--						LRU_ACTIVE + file * LRU_FILE);
--	move_active_pages_to_lru(zone, &l_inactive,
--						LRU_BASE   + file * LRU_FILE);
-+	__count_vm_events(PGDEACTIVATE, nr_deactivated);
+ 	__count_vm_events(PGDEACTIVATE, nr_deactivated);
  	__mod_zone_page_state(zone, NR_ISOLATED_ANON + file, -nr_taken);
-+	__mod_zone_page_state(zone, LRU_ACTIVE + file * LRU_FILE, nr_rotated);
-+	__mod_zone_page_state(zone, LRU_BASE + file * LRU_FILE, nr_deactivated);
+-	__mod_zone_page_state(zone, LRU_ACTIVE + file * LRU_FILE, nr_rotated);
+-	__mod_zone_page_state(zone, LRU_BASE + file * LRU_FILE, nr_deactivated);
++	__mod_zone_page_state(zone, NR_ACTIVE_ANON + file * LRU_FILE,
++							nr_rotated);
++	__mod_zone_page_state(zone, NR_INACTIVE_ANON + file * LRU_FILE,
++							nr_deactivated);
  	spin_unlock_irq(&zone->lru_lock);
  }
  
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
 
 linux-next.patch
-mm-memory-failure-remove-config_unevictable_lru-config-option.patch
-readahead-add-blk_run_backing_dev.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-mm-clean-up-page_remove_rmap.patch
-mm-show_free_areas-display-slab-pages-in-two-separate-fields.patch
-mm-oom-analysis-add-per-zone-statistics-to-show_free_areas.patch
-mm-oom-analysis-add-buffer-cache-information-to-show_free_areas.patch
-mm-oom-analysis-show-kernel-stack-usage-in-proc-meminfo-and-oom-log-output.patch
+acpi-fix-null-bug-for-hid-uid-string-2.patch
+vfs-optimize-touch_time-too-fix.patch
+fs-new-truncate-helpers.patch
+fs-use-new-truncate-helpers.patch
+fs-introduce-new-truncate-sequence.patch
+fs-convert-simple-fs-to-new-truncate.patch
+tmpfs-convert-to-use-the-new-truncate-convention.patch
+ext2-convert-to-use-the-new-truncate-convention.patch
+fat-convert-to-use-the-new-truncate-convention.patch
+btrfs-convert-to-use-the-new-truncate-convention.patch
+jfs-convert-to-use-the-new-truncate-convention.patch
+udf-convert-to-use-the-new-truncate-convention.patch
+minix-convert-to-use-the-new-truncate-convention.patch
 mm-oom-analysis-add-shmem-vmstat.patch
-mm-rename-pgmoved-variable-in-shrink_active_list.patch
-mm-shrink_inactive_list-nr_scan-accounting-fix-fix.patch
-mm-vmstat-add-isolate-pages.patch
-mm-vmstat-add-isolate-pages-fix.patch
-vmscan-throttle-direct-reclaim-when-too-many-pages-are-isolated-already.patch
-mm-remove-__addsub_zone_page_state.patch
-mm-count-only-reclaimable-lru-pages-v2.patch
-vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
-vmscan-move-clearpageactive-from-move_active_pages-to-shrink_active_list.patch
-vmscan-kill-unnecessary-page-flag-test.patch
-vmscan-kill-unnecessary-prefetch.patch
-mm-perform-non-atomic-test-clear-of-pg_mlocked-on-free.patch
-tracing-page-allocator-add-trace-events-for-page-allocation-and-page-freeing.patch
-tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists.patch
-mm-drop-unneeded-double-negations.patch
-mm-introduce-page_lru_base_type.patch
+ksm-add-mmu_notifier-set_pte_at_notify.patch
+ksm-first-tidy-up-madvise_vma.patch
+ksm-define-madv_mergeable-and-madv_unmergeable.patch
+ksm-the-mm-interface-to-ksm.patch
+ksm-no-debug-in-page_dup_rmap.patch
+ksm-identify-pageksm-pages.patch
+ksm-kernel-samepage-merging.patch
+ksm-prevent-mremap-move-poisoning.patch
+ksm-change-copyright-message.patch
+ksm-change-ksm-nice-level-to-be-5.patch
+ksm-rename-kernel_pages_allocated.patch
+ksm-move-pages_sharing-updates.patch
+ksm-pages_unshared-and-pages_volatile.patch
+ksm-break-cow-once-unshared.patch
+ksm-keep-quiet-while-list-empty.patch
+ksm-five-little-cleanups.patch
+ksm-fix-endless-loop-on-oom.patch
+ksm-distribute-remove_mm_from_lists.patch
+ksm-fix-oom-deadlock.patch
+ksm-fix-deadlock-with-munlock-in-exit_mmap.patch
+ksm-sysfs-and-defaults.patch
+ksm-add-some-documentation.patch
+ksm-remove-vm_mergeable_flags.patch
+mm-add_to_swap_cache-must-not-sleep.patch
+mm-add_to_swap_cache-does-not-return-eexist.patch
+mm-includecheck-fix-for-mm-shmemc.patch
 mm-introduce-page_lru_base_type-fix.patch
-mm-return-boolean-from-page_is_file_cache.patch
-mm-return-boolean-from-page_has_private.patch
-mm-document-is_page_cache_freeable.patch
-mm-vmscan-rename-zone_nr_pages-to-zone_lru_nr_pages.patch
-oom-move-oom_killer_enable-oom_killer_disable-to-where-they-belong.patch
-mm-do-batched-scans-for-mem_cgroup.patch
-mm-vmscan-remove-page_queue_congested-comment.patch
-vmscan-move-pgdeactivate-modification-to-shrink_active_list.patch
+mm-replace-various-uses-of-num_physpages-by-totalram_pages.patch
 vmscan-move-pgdeactivate-modification-to-shrink_active_list-fix.patch
-oom-move-oom_adj-value-from-task_struct-to-signal_struct.patch
-oom-make-oom_score-to-per-process-value.patch
-oom-oom_kill-doesnt-kill-vfork-parentor-child.patch
-oom-fix-oom_adjust_write-input-sanity-check.patch
+hugetlbfs-allow-the-creation-of-files-suitable-for-map_private-on-the-vfs-internal-mount.patch
+hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions.patch
+hugetlb-add-map_hugetlb-example.patch
 page-types-move-from-documentation-vm-to-tools-vm.patch
 pagemap-export-kpf_hwpoison.patch
 pagemap-document-kpf_ksm-and-show-it-in-page-types.patch
-mm-vsmcan-check-shrink_active_list-sc-isolate_pages-return-value.patch
 getrusage-fill-ru_maxrss-value.patch
 getrusage-fill-ru_maxrss-value-update.patch
-memory-controller-soft-limit-documentation-v9.patch
-memory-controller-soft-limit-interface-v9.patch
-memory-controller-soft-limit-organize-cgroups-v9.patch
+ramfs-move-ramfs_magic-to-include-linux-magich.patch
 memory-controller-soft-limit-organize-cgroups-v9-fix.patch
-memory-controller-soft-limit-refactor-reclaim-flags-v9.patch
-memory-controller-soft-limit-reclaim-on-contention-v9.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
-memcg-improve-resource-counter-scalability.patch
-memcg-improve-resource-counter-scalability-v5.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
+prio_tree-debugging-patch.patch
+vmscan-move-pgdeactivate-modification-to-shrink_active_list-fix2.patch
 
