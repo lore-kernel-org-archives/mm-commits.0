@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + octeon-request_irq-failure-ignored-in-cvm_oct_spi_init.patch added to -mm tree
-Date: Thu, 03 Sep 2009 15:03:08 -0700
-Message-ID: <200909032203.n83M387D020813@imap1.linux-foundation.org>
+Subject: + octeon-request_irq-failure-ignored-in-cvm_oct_configure_common_hw.patch added to -mm tree
+Date: Thu, 03 Sep 2009 15:04:11 -0700
+Message-ID: <200909032204.n83M4Bh7022683@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52072 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56468 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753328AbZICWDj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Sep 2009 18:03:39 -0400
+	by vger.kernel.org with ESMTP id S1756035AbZICWEk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Sep 2009 18:04:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: roel.kluin@gmail.com, ddaney@caviumnetworks.com, greg@kroah.com
 
 
 The patch titled
-     octeon: request_irq() failure ignored in cvm_oct_spi_init()
+     octeon: request_irq() failure ignored in cvm_oct_configure_common_hw()
 has been added to the -mm tree.  Its filename is
-     octeon-request_irq-failure-ignored-in-cvm_oct_spi_init.patch
+     octeon-request_irq-failure-ignored-in-cvm_oct_configure_common_hw.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,7 +33,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: octeon: request_irq() failure ignored in cvm_oct_spi_init()
+Subject: octeon: request_irq() failure ignored in cvm_oct_configure_common_hw()
 From: Roel Kluin <roel.kluin@gmail.com>
 
 Produce an error if request_irq() failed.
@@ -44,21 +44,23 @@ Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/octeon/ethernet-spi.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/staging/octeon/ethernet.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN drivers/staging/octeon/ethernet-spi.c~octeon-request_irq-failure-ignored-in-cvm_oct_spi_init drivers/staging/octeon/ethernet-spi.c
---- a/drivers/staging/octeon/ethernet-spi.c~octeon-request_irq-failure-ignored-in-cvm_oct_spi_init
-+++ a/drivers/staging/octeon/ethernet-spi.c
-@@ -295,6 +295,8 @@ int cvm_oct_spi_init(struct net_device *
- 	if (number_spi_ports == 0) {
- 		r = request_irq(OCTEON_IRQ_RML, cvm_oct_spi_rml_interrupt,
- 				IRQF_SHARED, "SPI", &number_spi_ports);
-+		if (r != 0)
-+			return r;
- 	}
- 	number_spi_ports++;
+diff -puN drivers/staging/octeon/ethernet.c~octeon-request_irq-failure-ignored-in-cvm_oct_configure_common_hw drivers/staging/octeon/ethernet.c
+--- a/drivers/staging/octeon/ethernet.c~octeon-request_irq-failure-ignored-in-cvm_oct_configure_common_hw
++++ a/drivers/staging/octeon/ethernet.c
+@@ -210,6 +210,10 @@ static __init void cvm_oct_configure_com
+ 	r = request_irq(OCTEON_IRQ_WORKQ0 + pow_receive_group,
+ 			cvm_oct_do_interrupt, IRQF_SHARED, "Ethernet",
+ 			cvm_oct_device);
++	if (r != 0) {
++		pr_err("cvm_oct_configure_common_hw: request_irq failed");
++		return;
++	}
  
+ #if defined(CONFIG_SMP) && 0
+ 	if (USE_MULTICORE_RECEIVE) {
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -97,6 +99,7 @@ comedi-null-dereference-of-amcc-in-v_pci_card_list_init.patch
 rt2860-possible-null-dereferences.patch
 drivers-staging-octeon-ethernet-rgmiic-dont-ignore-request_irq-return-code.patch
 octeon-request_irq-failure-ignored-in-cvm_oct_spi_init.patch
+octeon-request_irq-failure-ignored-in-cvm_oct_configure_common_hw.patch
 frv-duplicate-output_buffer-of-e03.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 blackfin-fix-read-buffer-overflow.patch
