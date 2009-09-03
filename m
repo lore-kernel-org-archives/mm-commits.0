@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vsmcan-check-shrink_active_list-sc-isolate_pages-return-value.patch added to -mm tree
-Date: Thu, 03 Sep 2009 14:06:06 -0700
-Message-ID: <200909032106.n83L66AK013019@imap1.linux-foundation.org>
+Subject: + mm-fix-numa-accounting-in-numastattxt.patch added to -mm tree
+Date: Thu, 03 Sep 2009 14:16:30 -0700
+Message-ID: <200909032116.n83LGU6s032200@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41921 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45175 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932244AbZICVHZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Sep 2009 17:07:25 -0400
+	by vger.kernel.org with ESMTP id S1752384AbZICVQd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Sep 2009 17:16:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: macli@brc.ubc.ca, fengguang.wu@intel.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, riel@redhat.com
+Cc: minchan.kim@gmail.com, cl@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com
 
 
 The patch titled
-     mm/vsmcan: check shrink_active_list() sc->isolate_pages() return value
+     mm: fix NUMA accounting in numastat.txt
 has been added to the -mm tree.  Its filename is
-     mm-vsmcan-check-shrink_active_list-sc-isolate_pages-return-value.patch
+     mm-fix-numa-accounting-in-numastattxt.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,69 +33,86 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/vsmcan: check shrink_active_list() sc->isolate_pages() return value
-From: Vincent Li <macli@brc.ubc.ca>
+Subject: mm: fix NUMA accounting in numastat.txt
+From: Minchan Kim <minchan.kim@gmail.com>
 
-If we can't isolate pages from LRU list, we don't have to account page
-movement, either.  Already, in commit 5343daceec, KOSAKI did it about
-shrink_inactive_list.
+In Documentation/numastat.txt, it confused me.  For example, there are
+nodes [0,1] in system.
 
-This patch removes unnecessary overhead of page accounting and locking in
-shrink_active_list as follow-up work of commit 5343daceec.
+barrios:~$ cat /proc/zoneinfo | egrep 'numa|zone'
+Node 0, zone	DMA
+	numa_hit	33226
+	numa_miss	1739
+	numa_foreign	27978
+	..
+	..
+Node 1, zone	DMA
+	numa_hit	307
+	numa_miss	46900
+	numa_foreign	0
 
-Signed-off-by: Vincent Li <macli@brc.ubc.ca>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Reviewed-by: Wu Fengguang <fengguang.wu@intel.com>
-Acked-by: Rik van Riel <riel@redhat.com>
+1) In node 0,  NUMA_MISS means it wanted to allocate page
+in node 1 but ended up with page in node 0
+
+2) In node 0, NUMA_FOREIGN means it wanted to allocate page
+in node 0 but ended up with page from Node 1.
+
+But now, numastat explains it oppositely about (MISS, FOREIGN).
+Let's fix up with viewpoint of zone.
+
+Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Christoph Lameter <cl@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ Documentation/numastat.txt |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vsmcan-check-shrink_active_list-sc-isolate_pages-return-value mm/vmscan.c
---- a/mm/vmscan.c~mm-vsmcan-check-shrink_active_list-sc-isolate_pages-return-value
-+++ a/mm/vmscan.c
-@@ -1319,9 +1319,12 @@ static void shrink_active_list(unsigned 
- 	if (scanning_global_lru(sc)) {
- 		zone->pages_scanned += pgscanned;
- 	}
--	reclaim_stat->recent_scanned[file] += nr_taken;
--
- 	__count_zone_vm_events(PGREFILL, zone, pgscanned);
-+
-+	if (nr_taken == 0)
-+		goto done;
-+
-+	reclaim_stat->recent_scanned[file] += nr_taken;
- 	if (file)
- 		__mod_zone_page_state(zone, NR_ACTIVE_FILE, -nr_taken);
- 	else
-@@ -1385,6 +1388,7 @@ static void shrink_active_list(unsigned 
- 							nr_rotated);
- 	__mod_zone_page_state(zone, NR_INACTIVE_ANON + file * LRU_FILE,
- 							nr_deactivated);
-+done:
- 	spin_unlock_irq(&zone->lru_lock);
- }
+diff -puN Documentation/numastat.txt~mm-fix-numa-accounting-in-numastattxt Documentation/numastat.txt
+--- a/Documentation/numastat.txt~mm-fix-numa-accounting-in-numastattxt
++++ a/Documentation/numastat.txt
+@@ -7,10 +7,10 @@ All units are pages. Hugepages have sepa
  
+ numa_hit			A process wanted to allocate memory from this node,
+ 					and succeeded.
+-numa_miss			A process wanted to allocate memory from this node,
+-					but ended up with memory from another.
+-numa_foreign		A process wanted to allocate on another node,
+-				    but ended up with memory from this one.
++numa_miss			A process wanted to allocate memory from another node,
++					but ended up with memory from this node.
++numa_foreign		A process wanted to allocate on this node,
++				    but ended up with memory from another one.
+ local_node			A process ran on this node and got memory from it.
+ other_node			A process ran on this node and got memory from another node.
+ interleave_hit 		Interleaving wanted to allocate from this node
 _
 
-Patches currently in -mm which might be from macli@brc.ubc.ca are
+Patches currently in -mm which might be from minchan.kim@gmail.com are
 
+linux-next.patch
 mm-memory-failure-remove-config_unevictable_lru-config-option.patch
+mm-show_free_areas-display-slab-pages-in-two-separate-fields.patch
+mm-oom-analysis-add-per-zone-statistics-to-show_free_areas.patch
+mm-oom-analysis-show-kernel-stack-usage-in-proc-meminfo-and-oom-log-output.patch
+mm-rename-pgmoved-variable-in-shrink_active_list.patch
+mm-shrink_inactive_list-nr_scan-accounting-fix-fix.patch
+mm-vmstat-add-isolate-pages.patch
+mm-vmstat-add-isolate-pages-fix.patch
+mm-remove-__addsub_zone_page_state.patch
 mm-count-only-reclaimable-lru-pages-v2.patch
-tracing-page-allocator-add-trace-events-for-page-allocation-and-page-freeing.patch
-tracing-page-allocator-add-trace-events-for-anti-fragmentation-falling-back-to-other-migratetypes.patch
-tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists.patch
-tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists-fix.patch
-tracing-page-allocator-add-a-postprocessing-script-for-page-allocator-related-ftrace-events.patch
-tracing-documentation-add-a-document-describing-how-to-do-some-performance-analysis-with-tracepoints.patch
-tracing-documentation-add-a-document-on-the-kmem-tracepoints.patch
-mm-vmscan-rename-zone_nr_pages-to-zone_lru_nr_pages.patch
-mm-vmscan-remove-page_queue_congested-comment.patch
+vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
+vmscan-move-clearpageactive-from-move_active_pages-to-shrink_active_list.patch
+vmscan-kill-unnecessary-page-flag-test.patch
+vmscan-kill-unnecessary-prefetch.patch
+mm-introduce-page_lru_base_type.patch
+mm-introduce-page_lru_base_type-fix.patch
+memory-hotplug-fix-updating-of-num_physpages-for-hot-plugged-memory.patch
+mm-do-batched-scans-for-mem_cgroup.patch
+vmscan-move-pgdeactivate-modification-to-shrink_active_list-fix.patch
+page-allocator-split-per-cpu-list-into-one-list-per-migrate-type.patch
+page-allocator-maintain-rolling-count-of-pages-to-free-from-the-pcp.patch
 mm-vsmcan-check-shrink_active_list-sc-isolate_pages-return-value.patch
-fs-proc-task_mmuc-v1-fix-clear_refs_write-input-sanity-check.patch
-fs-proc-basec-fix-proc_fault_inject_write-input-sanity-check.patch
+mm-fix-numa-accounting-in-numastattxt.patch
 
