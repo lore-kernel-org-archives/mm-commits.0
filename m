@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-document-the-sysfs-interface.patch added to -mm tree
-Date: Fri, 04 Sep 2009 16:22:15 -0700
-Message-ID: <200909042322.n84NMFpK032391@imap1.linux-foundation.org>
+Subject: + kcore-register-vmemmap-range-fix.patch added to -mm tree
+Date: Fri, 04 Sep 2009 16:39:47 -0700
+Message-ID: <200909042339.n84NdlKT000424@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45335 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51454 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934385AbZIDXWm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Sep 2009 19:22:42 -0400
+	by vger.kernel.org with ESMTP id S933904AbZIDXkj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Sep 2009 19:40:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mjg@redhat.com, a.zummo@towertech.it, broonie@opensource.wolfsonmicro.com, david-b@pacbell.net
+Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, jirislaby@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, ralf@linux-mips.org, randy.dunlap@oracle.com, xiyou.wangcong@gmail.com
 
 
 The patch titled
-     rtc: document the sysfs interface
+     kcore-register-vmemmap-range-fix
 has been added to the -mm tree.  Its filename is
-     rtc-document-the-sysfs-interface.patch
+     kcore-register-vmemmap-range-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,59 +33,108 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: document the sysfs interface
-From: Matthew Garrett <mjg@redhat.com>
+Subject: kcore-register-vmemmap-range-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The sysfs interface to the RTC class drivers is currently undocumented.
-Add some basic documentation defining the semantics of the fields.
-
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Acked-by: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Jiri Slaby <jirislaby@gmail.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: WANG Cong <xiyou.wangcong@gmail.com>
+Reported-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/rtc.txt |   22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ fs/proc/kcore.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/rtc.txt~rtc-document-the-sysfs-interface Documentation/rtc.txt
---- a/Documentation/rtc.txt~rtc-document-the-sysfs-interface
-+++ a/Documentation/rtc.txt
-@@ -135,6 +135,28 @@ a high functionality RTC is integrated i
- the system clock from the discrete RTC, but use the integrated one for all
- other tasks, because of its greater functionality.
+diff -puN fs/proc/kcore.c~kcore-register-vmemmap-range-fix fs/proc/kcore.c
+--- a/fs/proc/kcore.c~kcore-register-vmemmap-range-fix
++++ a/fs/proc/kcore.c
+@@ -186,7 +186,7 @@ int get_sparsemem_vmemmap_info(struct kc
  
-+SYSFS INTERFACE
-+---------------
-+
-+The sysfs interface under /sys/class/rtc/rtcN provides access to various
-+rtc attributes without requiring the use of ioctls. All dates and times
-+are in the RTC's timezone, rather than in system time.
-+
-+date:  	   	 RTC-provided date
-+max_user_freq:	 The maximum interrupt rate an unprivileged user may request
-+		 from this RTC.
-+name:		 The name of the RTC corresponding to this sysfs directory
-+since_epoch:	 The number of seconds since the epoch according to the RTC
-+time:		 RTC-provided time
-+wakealarm:	 The time at which the clock will generate a system wakeup
-+		 event. This is a one shot wakeup event, so must be reset
-+		 after wake if a daily wakeup is required. Format is either
-+		 seconds since the epoch or, if there's a leading +, seconds
-+		 in the future.
-+
-+IOCTL INTERFACE
-+---------------
-+
- The ioctl() calls supported by /dev/rtc are also supported by the RTC class
- framework.  However, because the chips and systems are not standardized,
- some PC/AT functionality might not be provided.  And in the same way, some
+ }
+ #else
+-int get_sparsemem_vmemamp_info(struct kcore_list *ent, struct list_head *head)
++int get_sparsemem_vmemmap_info(struct kcore_list *ent, struct list_head *head)
+ {
+ 	return 1;
+ }
 _
 
-Patches currently in -mm which might be from mjg@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
-video-mbp_nvidia_bl-add-support-for-macbookair-11.patch
-rtc-document-the-sysfs-interface.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+video-initial-support-for-adv7180-update-fix.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+checkincludespl-add-option-to-remove-duplicates-in-place.patch
+leds-gpio-leds-fix-typographics-fault.patch
+leds-fix-coding-style-in-worker-thread-code-for-ledtrig-gpio.patch
+slram-read-buffer-overflow.patch
+zorro8390-fix-read-buffer-overflow-in-zorro8390_init_one-checkpatch-fixes.patch
+3x59x-fix-pci-resource-management.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+serial167-fix-read-buffer-overflow.patch
+waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes-checkpatch-fixes.patch
+st-fix-test-of-value-range-in-st_set_options-fix.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
+vfs-optimize-touch_time-too.patch
+fs-improve-remountro-vs-buffercache-coherency-fix.patch
+mm-make-swap-token-dummies-static-inlines-fix.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
+vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
+arches-drop-superfluous-casts-in-nr_free_pages-callers-checkpatch-fixes.patch
+tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists-fix.patch
+page-allocator-maintain-rolling-count-of-pages-to-free-from-the-pcp-checkpatch-fixes.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
+generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
+proc-connector-add-event-for-process-becoming-session-leader.patch
+kernel-smpc-relocate-some-code.patch
+mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
+sdio-add-cd-disable-support-cleanup.patch
+sdio-add-mmc_quirk_lenient_fn0-fix.patch
+at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver-checkpatch-fixes.patch
+procfs-provide-stack-information-for-threads-v011-fix.patch
+kcore-register-vmemmap-range-fix.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
+rtc-philips-nxp-pcf2123-driver-v03-fix.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes-fix.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
+drivers-video-add-kmalloc-null-tests-fix.patch
+v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
+cgroups-add-functionality-to-read-write-lock-clone_thread-forking-per-threadgroup-fix.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
+memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
+memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
+memcg-improve-resource-counter-scalability-checkpatch-fixes.patch
+exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
+exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
+elf-clean-up-fill_note_info-fix.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
