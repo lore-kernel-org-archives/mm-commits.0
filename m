@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memory-controller-soft-limit-reclaim-on-contention-v9-fix-softlimit-css-refcnt-handling.patch added to -mm tree
-Date: Fri, 04 Sep 2009 13:57:49 -0700
-Message-ID: <200909042057.n84KvntL019241@imap1.linux-foundation.org>
+Subject: + tpm-fix-up-pubek-sysfs-file.patch added to -mm tree
+Date: Fri, 04 Sep 2009 14:02:00 -0700
+Message-ID: <200909042102.n84L21hf027228@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52776 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57698 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933903AbZIDU6D (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Sep 2009 16:58:03 -0400
+	by vger.kernel.org with ESMTP id S1757277AbZIDVDL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Sep 2009 17:03:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, kosaki.motohiro@jp.fujitsu.com, lizf@cn.fujitsu.com, nishimura@mxp.nes.nec.co.jp
+Cc: jgunthorpe@obsidianresearch.com, debora@linux.vnet.ibm.com, jmorris@namei.org, m.selhorst@sirrix.com, srajiv@linux.vnet.ibm.com
 
 
 The patch titled
-     memcg: fix softlimit css refcnt handling
+     tpm: fix up pubek sysfs file
 has been added to the -mm tree.  Its filename is
-     memory-controller-soft-limit-reclaim-on-contention-v9-fix-softlimit-css-refcnt-handling.patch
+     tpm-fix-up-pubek-sysfs-file.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,124 +33,188 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: fix softlimit css refcnt handling
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: tpm: fix up pubek sysfs file
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
 
-SoftLimit tree 'find next one' loop uses next_mz to remember next one to
-be visited if reclaimd==0.
+tpm_show_pubek is utterly and completely wrong, all the offsets into the
+binary blob are wrong, the output is garbage.  Do it again.
 
-But css'refcnt handling for next_mz is not enough and it makes css->refcnt
-leak.
+Before:
+Algorithm: 00 0C 00 00
+Encscheme: 08 00
+Sigscheme: 00 00
+Parameters: 00 00 00 00 01 00 AF 6B 30 9B 0D B3
+Modulus length: -1266846667
+Modulus:
+68 45 8D CA A5 EF A8 8A DD 0F D7 84 8E 8D 1F 40
+22 92 09 CF 12 C8 9F 6E 55 57 6A 2C A8 0B 5E 45
+C7 5E 3D 56 DA 64 E6 E1 F7 8C DD 41 92 28 2E 06
+41 02 3E 11 7D B2 C5 46 38 E5 8C 60 D2 96 EE 0C
+D6 3D F8 99 E3 02 3A 32 7A 02 C8 31 29 98 28 B9
+1B EF 30 A1 A0 45 A0 C0 05 0E C5 96 95 FD 91 47
+0A 35 E0 69 B0 8B 49 BD B9 F6 5D 25 21 25 79 1B
+20 0D C3 C7 1F 87 5E 5F 41 4B DE 32 DF 55 F3 BD
+7F CA D8 7D 3A B4 D5 0A EF CF 8E 72 20 52 15 FA
+FB C6 C0 2E C2 AB C6 07 D0 9D 96 6B 2E 30 F7 54
+C4 A5 CD 9B 13 54 A0 D1 71 66 91 97 06 12 B5 2D
+B2 33 62 FB 56 62 64 A8 AA E9 F2 F4 03 C3 F4 49
+2A 09 0D 7D 75 99 6C F0 47 1E 7D D5 A5 CA CE EF
+45 B2 DA 88 93 B4 EE EB FB B0 A6 A4 19 C4 B8 0D
+04 46 AE BD C5 2E 30 84 49 57 25 34 78 E6 ED C4
+50 AF 3B F6 86 43 54 0A D9 DB 54 9C 06 B3 50 7F
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Reviewed-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+After:
+Algorithm: 00 00 00 01
+Encscheme: 00 03
+Sigscheme: 00 01
+Parameters: 00 00 08 00 00 00 00 02 00 00 00 00
+Modulus length: 256
+Modulus:
+AF 6B 30 9B 0D B3 B4 7D 74 35 68 45 8D CA A5 EF
+A8 8A DD 0F D7 84 8E 8D 1F 40 22 92 09 CF 12 C8
+9F 6E 55 57 6A 2C A8 0B 5E 45 C7 5E 3D 56 DA 64
+E6 E1 F7 8C DD 41 92 28 2E 06 41 02 3E 11 7D B2
+C5 46 38 E5 8C 60 D2 96 EE 0C D6 3D F8 99 E3 02
+3A 32 7A 02 C8 31 29 98 28 B9 1B EF 30 A1 A0 45
+A0 C0 05 0E C5 96 95 FD 91 47 0A 35 E0 69 B0 8B
+49 BD B9 F6 5D 25 21 25 79 1B 20 0D C3 C7 1F 87
+5E 5F 41 4B DE 32 DF 55 F3 BD 7F CA D8 7D 3A B4
+D5 0A EF CF 8E 72 20 52 15 FA FB C6 C0 2E C2 AB
+C6 07 D0 9D 96 6B 2E 30 F7 54 C4 A5 CD 9B 13 54
+A0 D1 71 66 91 97 06 12 B5 2D B2 33 62 FB 56 62
+64 A8 AA E9 F2 F4 03 C3 F4 49 2A 09 0D 7D 75 99
+6C F0 47 1E 7D D5 A5 CA CE EF 45 B2 DA 88 93 B4
+EE EB FB B0 A6 A4 19 C4 B8 0D 04 46 AE BD C5 2E
+30 84 49 57 25 34 78 E6 ED C4 50 AF 3B F6 86 43
+
+I've checked this decoded output in two different ways.
+
+Tested on a winbond WPCT200
+
+Signed-off-by: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: Debora Velarde <debora@linux.vnet.ibm.com>
+Cc: Rajiv Andrade <srajiv@linux.vnet.ibm.com>
+Cc: Marcel Selhorst <m.selhorst@sirrix.com>
+Cc: James Morris <jmorris@namei.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ drivers/char/tpm/tpm.c |   77 ++++++++++++++++++++++++++-------------
+ 1 file changed, 53 insertions(+), 24 deletions(-)
 
-diff -puN mm/memcontrol.c~memory-controller-soft-limit-reclaim-on-contention-v9-fix-softlimit-css-refcnt-handling mm/memcontrol.c
---- a/mm/memcontrol.c~memory-controller-soft-limit-reclaim-on-contention-v9-fix-softlimit-css-refcnt-handling
-+++ a/mm/memcontrol.c
-@@ -2226,6 +2226,8 @@ unsigned long mem_cgroup_soft_limit_recl
- 		if (!reclaimed) {
- 			do {
- 				/*
-+				 * Loop until we find yet another one.
-+				 *
- 				 * By the time we get the soft_limit lock
- 				 * again, someone might have aded the
- 				 * group back on the RB tree. Iterate to
-@@ -2236,7 +2238,12 @@ unsigned long mem_cgroup_soft_limit_recl
- 				 */
- 				next_mz =
- 				__mem_cgroup_largest_soft_limit_node(mctz);
--			} while (next_mz == mz);
-+				if (next_mz == mz) {
-+					css_put(&next_mz->mem->css);
-+					next_mz = NULL;
-+				} else /* next_mz == NULL or other memcg */
-+					break;
-+			} while (1);
- 		}
- 		mz->usage_in_excess =
- 			res_counter_soft_limit_excess(&mz->mem->res);
-@@ -2264,6 +2271,8 @@ unsigned long mem_cgroup_soft_limit_recl
- 			loop > MEM_CGROUP_MAX_SOFT_LIMIT_RECLAIM_LOOPS))
- 			break;
- 	} while (!nr_reclaimed);
-+	if (next_mz)
-+		css_put(&next_mz->mem->css);
- 	return nr_reclaimed;
+diff -puN drivers/char/tpm/tpm.c~tpm-fix-up-pubek-sysfs-file drivers/char/tpm/tpm.c
+--- a/drivers/char/tpm/tpm.c~tpm-fix-up-pubek-sysfs-file
++++ a/drivers/char/tpm/tpm.c
+@@ -460,6 +460,11 @@ static ssize_t transmit_cmd(struct tpm_c
+ 		dev_dbg(chip->dev, "A TPM error (%d) occurred %s\n", err, desc);
+ 		return err;
+ 	}
++	if (len != be32_to_cpu(cmd->header.out.length)) {
++		dev_dbg(chip->dev, "TPM returned the wrong length %x %x\n",
++			len, be32_to_cpu(cmd->header.out.length));
++		return -1;
++	}
+ 	return 0;
  }
  
+@@ -811,43 +816,67 @@ ssize_t tpm_show_pubek(struct device *de
+ {
+ 	u8 *data;
+ 	struct tpm_cmd_t tpm_cmd;
+-	ssize_t err;
+-	int i, rc;
++	ssize_t len;
++	int i, rc, key_len;
+ 	char *str = buf;
+ 
+ 	struct tpm_chip *chip = dev_get_drvdata(dev);
+ 
+ 	tpm_cmd.header.in = tpm_readpubek_header;
+-	err = transmit_cmd(chip, &tpm_cmd, READ_PUBEK_RESULT_SIZE,
+-			"attempting to read the PUBEK");
+-	if (err)
++	if (transmit_cmd(chip, &tpm_cmd, READ_PUBEK_RESULT_SIZE,
++			 "attempting to read the PUBEK"))
++		goto out;
++
++	len = be32_to_cpu(tpm_cmd.header.out.length);
++	if (len <= 0)
+ 		goto out;
+ 
+-	/* 
+-	   ignore header 10 bytes
+-	   algorithm 32 bits (1 == RSA )
+-	   encscheme 16 bits
+-	   sigscheme 16 bits
+-	   parameters (RSA 12->bytes: keybit, #primes, expbit)  
+-	   keylenbytes 32 bits
+-	   256 byte modulus
+-	   ignore checksum 20 bytes
++	/* Format (in bytes):
++	     10 RPC Header (tpm_cmd.header)
++	     xx TPM_PUBKEY pubEK
++		xx TPM_KEY_PARMS
++		  4 algorithmID
++		  2 encScheme
++		  2 sigcScheme
++		  4 parmSize
++		  xx parms (typically 12 bytes for a RSA key)
++		xx TPM_STORE_PUBKEY
++		  4 keyLength
++		  xx key (typically 256 for a RSA key)
++	     20 TPM_DIGEST checksum
+ 	 */
+ 	data = tpm_cmd.params.readpubek_out_buffer;
++	len -= 10;
++	if (len < 24)
++		goto out;
+ 	str +=
+ 	    sprintf(str,
+ 		    "Algorithm: %02X %02X %02X %02X\nEncscheme: %02X %02X\n"
+ 		    "Sigscheme: %02X %02X\nParameters: %02X %02X %02X %02X"
+-		    " %02X %02X %02X %02X %02X %02X %02X %02X\n"
+-		    "Modulus length: %d\nModulus: \n",
+-		    data[10], data[11], data[12], data[13], data[14],
+-		    data[15], data[16], data[17], data[22], data[23],
+-		    data[24], data[25], data[26], data[27], data[28],
+-		    data[29], data[30], data[31], data[32], data[33],
+-		    be32_to_cpu(*((__be32 *) (data + 34))));
+-
+-	for (i = 0; i < 256; i++) {
+-		str += sprintf(str, "%02X ", data[i + 38]);
++		    " %02X %02X %02X %02X %02X %02X %02X %02X\n",
++		    data[0], data[1], data[2], data[3],
++		    data[4], data[5],
++		    data[6], data[7],
++		    data[12], data[13], data[14], data[15], data[16], data[17],
++		    data[18], data[19], data[20], data[21], data[22], data[23]);
++	/* Skip TPM_KEY_PARMS.parms and TPM_STORE_PBUKEY.keyLength */
++	i = 4 + 2 + 2 + 4 + be32_to_cpu(*((__be32 *) (data + 8))) + 4;
++	if (i > len)
++		goto out;
++	data += i;
++	len -= i;
++	key_len = be32_to_cpu(*((__be32 *) (data) - 1));
++
++	/* Note: The value printed here is the TPM_STORE_PUBKEY. For RSA keys
++	   this is a modulus, but it can vary for other key types. */
++	str += sprintf(str, "Modulus length: %d\nModulus: \n", key_len);
++
++	/* len is bounded, so key_len is bounded, so sprintf is bounded, so
++	   str doesn't overflow. Well, maybe. */
++	if (key_len > len)
++		goto out;
++	for (i = 0; i < key_len; i++) {
++		str += sprintf(str, "%02X ", data[i]);
+ 		if ((i + 1) % 16 == 0)
+ 			str += sprintf(str, "\n");
+ 	}
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from jgunthorpe@obsidianresearch.com are
 
-mm-clean-up-page_remove_rmap.patch
-vmscan-throttle-direct-reclaim-when-too-many-pages-are-isolated-already.patch
-mm-remove-__addsub_zone_page_state.patch
-vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
-ksm-add-mmu_notifier-set_pte_at_notify.patch
-ksm-first-tidy-up-madvise_vma.patch
-ksm-define-madv_mergeable-and-madv_unmergeable.patch
-ksm-the-mm-interface-to-ksm.patch
-ksm-no-debug-in-page_dup_rmap.patch
-ksm-identify-pageksm-pages.patch
-ksm-kernel-samepage-merging.patch
-ksm-prevent-mremap-move-poisoning.patch
-ksm-change-copyright-message.patch
-ksm-change-ksm-nice-level-to-be-5.patch
-vmalloc-unmap-vmalloc-area-after-hiding-it.patch
-kcore-fix-vread-vwrite-to-be-aware-of-holes.patch
-kcore-fix-vread-vwrite-to-be-aware-of-holes-update.patch
-kcore-proc-kcore-should-use-vread.patch
-mm-add_to_swap_cache-must-not-sleep.patch
-mm-add_to_swap_cache-does-not-return-eexist.patch
-memory-hotplug-fix-updating-of-num_physpages-for-hot-plugged-memory.patch
-mm-vmscan-rename-zone_nr_pages-to-zone_lru_nr_pages.patch
-mm-do-batched-scans-for-mem_cgroup.patch
-oom-move-oom_adj-value-from-task_struct-to-signal_struct.patch
-oom-make-oom_score-to-per-process-value.patch
-oom-oom_kill-doesnt-kill-vfork-parentor-child.patch
-oom-fix-oom_adjust_write-input-sanity-check.patch
-mm-fix-numa-accounting-in-numastattxt.patch
-kcore-fix-proc-kcores-statst_size.patch
-kcore-use-usual-list-for-kclist.patch
-kcore-add-kclist-types.patch
-kcore-register-vmalloc-area-in-generic-way.patch
-kcore-register-text-area-in-generic-way.patch
-walk-system-ram-range.patch
-kcore-use-registerd-physmem-information.patch
-kcore-register-vmemmap-range.patch
-kcore-register-module-area-in-generic-way.patch
-cgroups-support-named-cgroups-hierarchies.patch
-cgroups-move-the-cgroup-debug-subsys-into-cgroupc-to-access-internal-state.patch
-cgroups-add-a-back-pointer-from-struct-cg_cgroup_link-to-struct-cgroup.patch
-cgroups-allow-cgroup-hierarchies-to-be-created-with-no-bound-subsystems.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix-2.patch
-memcg-add-comments-explaining-memory-barriers.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
-memory-controller-soft-limit-documentation-v9.patch
-memory-controller-soft-limit-interface-v9.patch
-memory-controller-soft-limit-organize-cgroups-v9.patch
-memory-controller-soft-limit-organize-cgroups-v9-fix.patch
-memory-controller-soft-limit-refactor-reclaim-flags-v9.patch
-memory-controller-soft-limit-reclaim-on-contention-v9.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix-softlimit-css-refcnt-handling.patch
-memcg-improve-resource-counter-scalability.patch
-memcg-improve-resource-counter-scalability-v5.patch
-memcg-show-swap-usage-in-stat-file.patch
-memcg-show-swap-usage-in-stat-file-fix.patch
-do_wait-wakeup-optimization-fix-child_wait_callback-eligible_child-usage.patch
-do_wait-wakeup-optimization-simplify-task_pid_type.patch
+linux-next.patch
+tpm-fixup-pcrs-sysfs-file.patch
+tpm-fixup-pcrs-sysfs-file-update.patch
+tpm-fix-up-pubek-sysfs-file.patch
 
