@@ -1,77 +1,47 @@
-From: akpm@linux-foundation.org
-Subject: + memcg-show-swap-usage-in-stat-file-fix.patch added to -mm tree
-Date: Thu, 03 Sep 2009 17:23:24 -0700
-Message-ID: <200909040023.n840NOdp019992@imap1.linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [alternative-merged]
+ aoe-ensure-we-initialise-the-request_queue-correctly.patch removed from -mm
+ tree
+Date: Fri, 4 Sep 2009 09:05:00 -0700
+Message-ID: <20090904090500.c2929300.akpm@linux-foundation.org>
+References: <200909032027.n83KRDwt006246@imap1.linux-foundation.org>
+	<8917b63c0464303818acf3117236f999@coraid.com>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35025 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57016 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755393AbZIDAX2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Sep 2009 20:23:28 -0400
+	by vger.kernel.org with ESMTP id S1753631AbZIDQFd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Sep 2009 12:05:33 -0400
+In-Reply-To: <8917b63c0464303818acf3117236f999@coraid.com>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: nishimura@mxp.nes.nec.co.jp, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com
+To: Ed Cashin <ecashin@coraid.com>
+Cc: apw@canonical.com, bonbons@linux-vserver.org, jens.axboe@oracle.com, martin.petersen@oracle.com, rjw@sisk.pl, mm-commits@vger.kernel.org
 
+On Fri, 4 Sep 2009 08:22:17 -0400 Ed Cashin <ecashin@coraid.com> wrote:
 
-The patch titled
-     memcg-show-swap-usage-in-stat-file-fix
-has been added to the -mm tree.  Its filename is
-     memcg-show-swap-usage-in-stat-file-fix.patch
+> On Thu Sep  3 16:29:12 EDT 2009, akpm@linux-foundation.org wrote:
+> > 
+> > The patch titled
+> >      aoe: ensure we initialise the request_queue correctly
+> > has been removed from the -mm tree.  Its filename was
+> >      aoe-ensure-we-initialise-the-request_queue-correctly.patch
+> > 
+> > This patch was dropped because an alternative patch was merged
+> > 
+> > The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+> 
+> I'm having trouble finding the alternative patch that was merged.  I
+> don't see it in Linus's tree or in broken out mmotm.
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+I seem to have confused myself, sorry.
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+>  Does the new
+> patch incorporate Jens Axboe's suggestion to use blk_queue_alloc
+> instead of blk_queue_init?
+> 
 
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
-
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
-
-------------------------------------------------------
-Subject: memcg-show-swap-usage-in-stat-file-fix
-From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-
-The usage of swap should be showed in bytes.
-
-Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff -puN mm/memcontrol.c~memcg-show-swap-usage-in-stat-file-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-show-swap-usage-in-stat-file-fix
-+++ a/mm/memcontrol.c
-@@ -2712,7 +2712,7 @@ static int mem_cgroup_get_local_stat(str
- 	s->stat[MCS_PGPGOUT] += val;
- 	if (do_swap_account) {
- 		val = mem_cgroup_read_stat(&mem->stat, MEM_CGROUP_STAT_SWAPOUT);
--		s->stat[MCS_SWAP] += val;
-+		s->stat[MCS_SWAP] += val * PAGE_SIZE;
- 	}
- 
- 	/* per zone stat */
-_
-
-Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
-
-mm-add_to_swap_cache-must-not-sleep.patch
-mm-add_to_swap_cache-does-not-return-eexist.patch
-mm-add_to_swap_cache-does-not-return-eexist-fix.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix-2.patch
-memcg-add-comments-explaining-memory-barriers.patch
-memcg-improve-resource-counter-scalability.patch
-memcg-improve-resource-counter-scalability-v5.patch
-memcg-show-swap-usage-in-stat-file.patch
-memcg-show-swap-usage-in-stat-file-fix.patch
-
+No, I don't think I've seen a patch which includes that.
