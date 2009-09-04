@@ -1,204 +1,162 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-philips-nxp-pcf2123-driver-v03-update-fix.patch added to -mm tree
-Date: Fri, 04 Sep 2009 14:51:19 -0700
-Message-ID: <200909042151.n84LpJga022850@imap1.linux-foundation.org>
+Subject: [to-be-updated] lzo-add-lzo-compression-support-for-initramfs-and-old-style-initrd.patch removed from -mm tree
+Date: Fri, 04 Sep 2009 16:16:31 -0700
+Message-ID: <200909042316.n84NGVxT021600@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46137 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51457 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934318AbZIDVv4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Sep 2009 17:51:56 -0400
+	by vger.kernel.org with ESMTP id S934454AbZIDXRU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Sep 2009 19:17:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: chripell@gmail.com, a.zummo@towertech.it, chripell@fsfe.org, chrisv@cyberswitching.com
+To: albin.tonnerre@free-electrons.com, hpa@zytor.com, mingo@elte.hu, phillip@lougher.demon.co.uk, rmk@arm.linux.org.uk, sam@ravnborg.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc-pcf2123 fixes
-has been added to the -mm tree.  Its filename is
-     rtc-philips-nxp-pcf2123-driver-v03-update-fix.patch
+     lzo: add LZO compression support for initramfs and old-style initrd
+has been removed from the -mm tree.  Its filename was
+     lzo-add-lzo-compression-support-for-initramfs-and-old-style-initrd.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-pcf2123 fixes
-From: christian pellegrin <chripell@gmail.com>
+Subject: lzo: add LZO compression support for initramfs and old-style initrd
+From: Albin Tonnerre <albin.tonnerre@free-electrons.com>
 
-- Fix bug with write command bitfield
-
-- Fix bug on crashing when module unloaded but no chip present
-
-- Add access to registers via sysfs (needed for accessing calibration
-  register which is needed for a good stability of the RTC)
-
-Signed-off: Christian Pellegrin <chripell@fsfe.org>
-Tested-by: Christian Pellegrin <chripell@fsfe.org>
-Cc: Chris Verges <chrisv@cyberswitching.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Albin Tonnerre <albin.tonnerre@free-electrons.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Phillip Lougher <phillip@lougher.demon.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pcf2123.c |   95 ++++++++++++++++++++++++++++++++----
- 1 file changed, 86 insertions(+), 9 deletions(-)
+ lib/Kconfig      |    4 ++++
+ lib/Makefile     |    1 +
+ lib/decompress.c |    5 +++++
+ usr/Kconfig      |   26 +++++++++++++++++++++-----
+ 4 files changed, 31 insertions(+), 5 deletions(-)
 
-diff -puN drivers/rtc/rtc-pcf2123.c~rtc-philips-nxp-pcf2123-driver-v03-update-fix drivers/rtc/rtc-pcf2123.c
---- a/drivers/rtc/rtc-pcf2123.c~rtc-philips-nxp-pcf2123-driver-v03-update-fix
-+++ a/drivers/rtc/rtc-pcf2123.c
-@@ -10,6 +10,23 @@
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License version 2 as
-  * published by the Free Software Foundation.
-+ *
-+ * Please note that the CS is active high, so platform data
-+ * should look something like:
-+
-+ static struct spi_board_info ek_spi_devices[] = {
-+ ...
-+  {
-+    .modalias	= "rtc-pcf2123",
-+    .chip_select	= 1,
-+    .controller_data = (void *) AT91_PIN_PA10,
-+    .max_speed_hz	= 1000 * 1000,
-+    .mode = SPI_CS_HIGH,
-+    .bus_num	= 0,
-+  },
-+...
-+};
-+
-  */
+diff -puN lib/Kconfig~lzo-add-lzo-compression-support-for-initramfs-and-old-style-initrd lib/Kconfig
+--- a/lib/Kconfig~lzo-add-lzo-compression-support-for-initramfs-and-old-style-initrd
++++ a/lib/Kconfig
+@@ -117,6 +117,10 @@ config DECOMPRESS_BZIP2
+ config DECOMPRESS_LZMA
+ 	tristate
  
- #include <linux/bcd.h>
-@@ -20,10 +37,9 @@
- #include <linux/kernel.h>
++config DECOMPRESS_LZO
++	select LZO_DECOMPRESS
++	tristate
++
+ #
+ # Generic allocator support is selected if needed
+ #
+diff -puN lib/Makefile~lzo-add-lzo-compression-support-for-initramfs-and-old-style-initrd lib/Makefile
+--- a/lib/Makefile~lzo-add-lzo-compression-support-for-initramfs-and-old-style-initrd
++++ a/lib/Makefile
+@@ -69,6 +69,7 @@ obj-$(CONFIG_LZO_DECOMPRESS) += lzo/
+ lib-$(CONFIG_DECOMPRESS_GZIP) += decompress_inflate.o
+ lib-$(CONFIG_DECOMPRESS_BZIP2) += decompress_bunzip2.o
+ lib-$(CONFIG_DECOMPRESS_LZMA) += decompress_unlzma.o
++lib-$(CONFIG_DECOMPRESS_LZO) += decompress_unlzo.o
+ 
+ obj-$(CONFIG_TEXTSEARCH) += textsearch.o
+ obj-$(CONFIG_TEXTSEARCH_KMP) += ts_kmp.o
+diff -puN lib/decompress.c~lzo-add-lzo-compression-support-for-initramfs-and-old-style-initrd lib/decompress.c
+--- a/lib/decompress.c~lzo-add-lzo-compression-support-for-initramfs-and-old-style-initrd
++++ a/lib/decompress.c
+@@ -9,6 +9,7 @@
+ #include <linux/decompress/bunzip2.h>
+ #include <linux/decompress/unlzma.h>
+ #include <linux/decompress/inflate.h>
++#include <linux/decompress/unlzo.h>
+ 
+ #include <linux/types.h>
  #include <linux/string.h>
- #include <linux/rtc.h>
--#include <linux/workqueue.h>
- #include <linux/spi/spi.h>
+@@ -22,6 +23,9 @@
+ #ifndef CONFIG_DECOMPRESS_LZMA
+ # define unlzma NULL
+ #endif
++#ifndef CONFIG_DECOMPRESS_LZO
++# define unlzo NULL
++#endif
  
--#define DRV_VERSION "0.3"
-+#define DRV_VERSION "0.4"
- 
- #define PCF2123_REG_CTRL1	0x00 /* Control Register 1 */
- #define PCF2123_REG_CTRL2	0x01 /* Control Register 2 */
-@@ -36,13 +52,19 @@
- #define PCF2123_REG_MO		0x07
- #define PCF2123_REG_YR		0x08
- 
--#define PCF2123_CMD_W(addr)	(((addr) & 0x0F) | 0x40)  /* single write */
-+#define PCF2123_CMD_W(addr)	(((addr) & 0x0F) | 0x10)  /* single write */
- #define PCF2123_CMD_R(addr)	(((addr) & 0x0F) | 0x90)  /* single read */
- 
- static struct spi_driver pcf2123_driver;
- 
-+struct pcf2123_sysfs_reg {
-+	struct device_attribute attr; /* must be first */
-+	char name[2];
-+};
-+
- struct pcf2123_plat_data {
- 	struct rtc_device *rtc;
-+	struct pcf2123_sysfs_reg regs[16];
+ static const struct compress_format {
+ 	unsigned char magic[2];
+@@ -32,6 +36,7 @@ static const struct compress_format {
+ 	{ {037, 0236}, "gzip", gunzip },
+ 	{ {0x42, 0x5a}, "bzip2", bunzip2 },
+ 	{ {0x5d, 0x00}, "lzma", unlzma },
++	{ {0x89, 0x4c}, "lzo", unlzo },
+ 	{ {0, 0}, NULL, NULL }
  };
  
- /*
-@@ -55,6 +77,39 @@ static inline void pcf2123_delay_trec(vo
- 	ndelay(30);
- }
+diff -puN usr/Kconfig~lzo-add-lzo-compression-support-for-initramfs-and-old-style-initrd usr/Kconfig
+--- a/usr/Kconfig~lzo-add-lzo-compression-support-for-initramfs-and-old-style-initrd
++++ a/usr/Kconfig
+@@ -72,6 +72,15 @@ config RD_LZMA
+ 	  Support loading of a LZMA encoded initial ramdisk or cpio buffer
+ 	  If unsure, say N.
  
-+static ssize_t pcf2123_show(struct device *dev, struct device_attribute *attr,
-+			    char *buffer)
-+{
-+	struct spi_device *spi = to_spi_device(dev);
-+	struct pcf2123_sysfs_reg *r = (struct pcf2123_sysfs_reg *) attr;
-+	u8 txbuf[1], rxbuf[1];
-+	int ret;
++config RD_LZO
++	bool "Support initial ramdisks compressed using LZO" if EMBEDDED
++	default !EMBEDDED
++	depends on BLK_DEV_INITRD
++	select DECOMPRESS_LZO
++	help
++	  Support loading of a LZO encoded initial ramdisk or cpio buffer
++	  If unsure, say N.
 +
-+	txbuf[0] = PCF2123_CMD_R(simple_strtoul(r->name, NULL, 16));
-+	ret = spi_write_then_read(spi, txbuf, 1, rxbuf, 1);
-+	if (ret < 0)
-+		return sprintf(buffer, "error: %d", ret);
-+	pcf2123_delay_trec();
-+	return sprintf(buffer, "0x%x", rxbuf[0]);
-+}
+ choice
+ 	prompt "Built-in initramfs compression mode" if INITRAMFS_SOURCE!=""
+ 	help
+@@ -108,16 +117,15 @@ config INITRAMFS_COMPRESSION_GZIP
+ 	bool "Gzip"
+ 	depends on RD_GZIP
+ 	help
+-	  The old and tried gzip compression. Its compression ratio is
+-	  the poorest among the 3 choices; however its speed (both
+-	  compression and decompression) is the fastest.
++	  The old and tried gzip compression. It provides a good balance
++	  between compression ration and decompression speed.
+ 
+ config INITRAMFS_COMPRESSION_BZIP2
+ 	bool "Bzip2"
+ 	depends on RD_BZIP2
+ 	help
+ 	  Its compression ratio and speed is intermediate.
+-	  Decompression speed is slowest among the three.  The initramfs
++	  Decompression speed is slowest among the four.  The initramfs
+ 	  size is about 10% smaller with bzip2, in comparison to gzip.
+ 	  Bzip2 uses a large amount of memory. For modern kernels you
+ 	  will need at least 8MB RAM or more for booting.
+@@ -128,7 +136,15 @@ config INITRAMFS_COMPRESSION_LZMA
+ 	help
+ 	  The most recent compression algorithm.
+ 	  Its ratio is best, decompression speed is between the other
+-	  two. Compression is slowest.	The initramfs size is about 33%
++	  three. Compression is slowest. The initramfs size is about 33%
+ 	  smaller with LZMA in comparison to gzip.
+ 
++config INITRAMFS_COMPRESSION_LZO
++	bool "LZO"
++	depends on RD_LZO
++	help
++	  Its compression ratio is the poorest among the four. The kernel
++	  size is about about 10% bigger than gzip; however its speed
++	  (both compression and decompression) is the fastest.
 +
-+static ssize_t pcf2123_store(struct device *dev, struct device_attribute *attr,
-+			     const char *buffer, size_t count)
-+{
-+	struct spi_device *spi = to_spi_device(dev);
-+	struct pcf2123_sysfs_reg *r = (struct pcf2123_sysfs_reg *) attr;
-+	u8 txbuf[2];
-+	int ret;
-+
-+	txbuf[0] = PCF2123_CMD_W(simple_strtoul(r->name, NULL, 16));
-+	txbuf[1] = simple_strtoul(buffer, NULL, 0);
-+	ret = spi_write(spi, txbuf, sizeof(txbuf));
-+	if (ret < 0)
-+		return -EIO;
-+	pcf2123_delay_trec();
-+	return count;
-+}
-+
- static int pcf2123_rtc_read_time(struct device *dev, struct rtc_time *tm)
- {
- 	struct spi_device *spi = to_spi_device(dev);
-@@ -149,7 +204,7 @@ static int __devinit pcf2123_probe(struc
- 	struct rtc_device *rtc;
- 	struct pcf2123_plat_data *pdata;
- 	u8 txbuf[2], rxbuf[1];
--	int ret;
-+	int ret, i;
- 
- 	pdata = kzalloc(sizeof(struct pcf2123_plat_data), GFP_KERNEL);
- 	if (!pdata)
-@@ -201,28 +256,50 @@ static int __devinit pcf2123_probe(struc
- 			&pcf2123_rtc_ops, THIS_MODULE);
- 
- 	if (IS_ERR(rtc)) {
-+		dev_err(&spi->dev, "failed to register.\n");
- 		ret = PTR_ERR(rtc);
- 		goto kfree_exit;
- 	}
- 
- 	pdata->rtc = rtc;
- 
-+	for (i = 0; i < 16; i++) {
-+		sprintf(pdata->regs[i].name, "%1x", i);
-+		pdata->regs[i].attr.attr.mode = S_IRUGO | S_IWUSR;
-+		pdata->regs[i].attr.attr.name = pdata->regs[i].name;
-+		pdata->regs[i].attr.show = pcf2123_show;
-+		pdata->regs[i].attr.store = pcf2123_store;
-+		ret = device_create_file(&spi->dev, &pdata->regs[i].attr);
-+		if (ret) {
-+			dev_err(&spi->dev, "Unable to create sysfs %s\n",
-+				pdata->regs[i].name);
-+			pdata->regs[i].name[0] = '\0';
-+		}
-+	}
-+
- 	return 0;
- kfree_exit:
- 	kfree(pdata);
-+	spi->dev.platform_data = NULL;
- 	return ret;
- }
- 
- static int pcf2123_remove(struct spi_device *spi)
- {
- 	struct pcf2123_plat_data *pdata = spi->dev.platform_data;
--	struct rtc_device *rtc = pdata->rtc;
-+	int i;
- 
--	if (rtc)
--		rtc_device_unregister(rtc);
+ endchoice
+_
+
+Patches currently in -mm which might be from albin.tonnerre@free-electrons.com are
+
+linux-next.patch
+include-linux-unaligned-lbe_byteshifth-fix-usage-for-compressed-kernels.patch
+lzo-add-lzo-compression-support-for-initramfs-and-old-style-initrd.patch
+
