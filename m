@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] pagemap-document-kpf_ksm-and-show-it-in-page-types.patch removed from -mm tree
-Date: Thu, 03 Sep 2009 17:07:29 -0700
-Message-ID: <200909040007.n8407TJf023114@imap1.linux-foundation.org>
+Subject: [to-be-updated] pagemap-export-kpf_hwpoison.patch removed from -mm tree
+Date: Thu, 03 Sep 2009 17:07:26 -0700
+Message-ID: <200909040007.n8407QlB022936@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50267 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50573 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756586AbZIDAIH (ORCPT
+	by vger.kernel.org with ESMTP id S1756594AbZIDAIH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Sep 2009 20:08:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -14,24 +14,24 @@ To: fengguang.wu@intel.com, aarcange@redhat.com, andi@firstfloor.org, chrisw@red
 
 
 The patch titled
-     pagemap: document KPF_KSM and show it in page-types
+     pagemap: export KPF_HWPOISON
 has been removed from the -mm tree.  Its filename was
-     pagemap-document-kpf_ksm-and-show-it-in-page-types.patch
+     pagemap-export-kpf_hwpoison.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pagemap: document KPF_KSM and show it in page-types
+Subject: pagemap: export KPF_HWPOISON
 From: Wu Fengguang <fengguang.wu@intel.com>
 
-It indicates to the system admin that processes mapping such pages may be
-eating less physical memory than the reported numbers by legacy tools.
+This flag indicates a hardware detected memory corruption on the page. 
+Any future access of the page data may bring down the machine.
 
 Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
-Acked-by: Chris Wright <chrisw@redhat.com>
 Cc: Izik Eidus <ieidus@redhat.com>
+Cc: Chris Wright <chrisw@redhat.com>
 Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Andi Kleen <andi@firstfloor.org>
@@ -42,49 +42,72 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  Documentation/vm/pagemap.txt |    4 ++++
+ fs/proc/page.c               |    5 +++++
  tools/vm/page-types.c        |    2 ++
- 2 files changed, 6 insertions(+)
+ 3 files changed, 11 insertions(+)
 
-diff -puN Documentation/vm/pagemap.txt~pagemap-document-kpf_ksm-and-show-it-in-page-types Documentation/vm/pagemap.txt
---- a/Documentation/vm/pagemap.txt~pagemap-document-kpf_ksm-and-show-it-in-page-types
+diff -puN Documentation/vm/pagemap.txt~pagemap-export-kpf_hwpoison Documentation/vm/pagemap.txt
+--- a/Documentation/vm/pagemap.txt~pagemap-export-kpf_hwpoison
 +++ a/Documentation/vm/pagemap.txt
-@@ -59,6 +59,7 @@ There are three components to pagemap:
+@@ -57,6 +57,7 @@ There are three components to pagemap:
+     16. COMPOUND_TAIL
+     16. HUGE
      18. UNEVICTABLE
-     19. HWPOISON
++    19. HWPOISON
      20. NOPAGE
-+    21. KSM
  
  Short descriptions to the page flags:
+@@ -86,6 +87,9 @@ Short descriptions to the page flags:
+ 17. HUGE
+     this is an integral part of a HugeTLB page
  
-@@ -93,6 +94,9 @@ Short descriptions to the page flags:
++19. HWPOISON
++    hardware detected memory corruption on this page: don't touch the data!
++
  20. NOPAGE
      no page frame exists at the requested address
  
-+21. KSM
-+    identical memory pages dynamically shared between one or more processes
-+
-     [IO related page flags]
-  1. ERROR     IO error occurred
-  3. UPTODATE  page has up-to-date data
-diff -puN tools/vm/page-types.c~pagemap-document-kpf_ksm-and-show-it-in-page-types tools/vm/page-types.c
---- a/tools/vm/page-types.c~pagemap-document-kpf_ksm-and-show-it-in-page-types
-+++ a/tools/vm/page-types.c
-@@ -49,6 +49,7 @@
+diff -puN fs/proc/page.c~pagemap-export-kpf_hwpoison fs/proc/page.c
+--- a/fs/proc/page.c~pagemap-export-kpf_hwpoison
++++ a/fs/proc/page.c
+@@ -94,6 +94,7 @@ static const struct file_operations proc
+ #define KPF_COMPOUND_TAIL	16
+ #define KPF_HUGE		17
  #define KPF_UNEVICTABLE		18
- #define KPF_HWPOISON		19
++#define KPF_HWPOISON		19
  #define KPF_NOPAGE		20
-+#define KPF_KSM			21
+ 
+ #define KPF_KSM			21
+@@ -180,6 +181,10 @@ static u64 get_uflags(struct page *page)
+ 	u |= kpf_copy_bit(k, KPF_UNEVICTABLE,	PG_unevictable);
+ 	u |= kpf_copy_bit(k, KPF_MLOCKED,	PG_mlocked);
+ 
++#ifdef CONFIG_MEMORY_FAILURE
++	u |= kpf_copy_bit(k, KPF_HWPOISON,	PG_hwpoison);
++#endif
++
+ #ifdef CONFIG_IA64_UNCACHED_ALLOCATOR
+ 	u |= kpf_copy_bit(k, KPF_UNCACHED,	PG_uncached);
+ #endif
+diff -puN tools/vm/page-types.c~pagemap-export-kpf_hwpoison tools/vm/page-types.c
+--- a/tools/vm/page-types.c~pagemap-export-kpf_hwpoison
++++ a/tools/vm/page-types.c
+@@ -47,6 +47,7 @@
+ #define KPF_COMPOUND_TAIL	16
+ #define KPF_HUGE		17
+ #define KPF_UNEVICTABLE		18
++#define KPF_HWPOISON		19
+ #define KPF_NOPAGE		20
  
  /* [32-] kernel hacking assistances */
- #define KPF_RESERVED		32
-@@ -97,6 +98,7 @@ static char *page_flag_names[] = {
+@@ -94,6 +95,7 @@ static char *page_flag_names[] = {
+ 	[KPF_COMPOUND_TAIL]	= "T:compound_tail",
+ 	[KPF_HUGE]		= "G:huge",
  	[KPF_UNEVICTABLE]	= "u:unevictable",
- 	[KPF_HWPOISON]		= "X:hwpoison",
++	[KPF_HWPOISON]		= "X:hwpoison",
  	[KPF_NOPAGE]		= "n:nopage",
-+	[KPF_KSM]		= "x:ksm",
  
  	[KPF_RESERVED]		= "r:reserved",
- 	[KPF_MLOCKED]		= "m:mlocked",
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
@@ -118,6 +141,7 @@ ksm-prevent-mremap-move-poisoning.patch
 ksm-change-copyright-message.patch
 ksm-change-ksm-nice-level-to-be-5.patch
 mm-do-batched-scans-for-mem_cgroup.patch
+pagemap-export-kpf_hwpoison.patch
 pagemap-document-kpf_ksm-and-show-it-in-page-types.patch
 mm-vsmcan-check-shrink_active_list-sc-isolate_pages-return-value.patch
 documentation-vm-gitignore-add-page-types.patch
