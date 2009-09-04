@@ -1,97 +1,213 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mtd-m25p80-fix-null-pointer-dereference-bug.patch removed from -mm tree
-Date: Fri, 04 Sep 2009 11:36:36 -0700
-Message-ID: <200909041836.n84IaaNI011372@imap1.linux-foundation.org>
+Subject: [merged] nftl-fix-offset-alignments.patch removed from -mm tree
+Date: Fri, 04 Sep 2009 11:36:42 -0700
+Message-ID: <200909041836.n84IagN3011572@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44312 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39384 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933823AbZIDSgv (ORCPT
+	by vger.kernel.org with ESMTP id S933825AbZIDSgv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Sep 2009 14:36:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avorontsov@ru.mvista.com, david-b@pacbell.net, dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: dimitri.gorokhovik@free.fr, dwmw2@infradead.org, scott@canonical.com, tim.gardner@canonical.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mtd: m25p80: fix null pointer dereference bug
+     nftl: fix offset alignments
 has been removed from the -mm tree.  Its filename was
-     mtd-m25p80-fix-null-pointer-dereference-bug.patch
+     nftl-fix-offset-alignments.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: mtd: m25p80: fix null pointer dereference bug
-From: Anton Vorontsov <avorontsov@ru.mvista.com>
+Subject: nftl: fix offset alignments
+=46rom: dimitri.gorokhovik@free.fr
+Return-Path: <dimitri.gorokhovik@free.fr>
+X-Spam-Checker-Version: SpamAssassin 3.2.4 (2008-01-01) on y.localdomai=
+n
+X-Spam-Level:=20
+X-Spam-Status: No, score=3D0.0 required=3D5.0 tests=3Dnone autolearn=3D=
+ham
+	version=3D3.2.4
+Received: from y.localdomain (y.localdomain [127.0.0.1])
+	by y.localdomain (8.14.2/8.14.2) with ESMTP id n7KLGOeb024890
+	for <akpm@localhost>; Thu, 20 Aug 2009 14:16:25 -0700
+Received: from imap1.linux-foundation.org [140.211.169.55]
+	by y.localdomain with POP3 (fetchmail-6.3.8)
+	for <akpm@localhost> (single-drop); Thu, 20 Aug 2009 14:16:25 -0700 (P=
+DT)
+Received: from smtp1.linux-foundation.org (smtp1.linux-foundation.org [=
+140.211.169.13])
+	by imap1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.=
+1) with ESMTP id n7KLENDv026441
+	for <akpm@imap1.linux-foundation.org>; Thu, 20 Aug 2009 14:14:23 -0700
+Received: from wmproxy1-g27.free.fr (wmproxy1-g27.free.fr [212.27.42.91=
+])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with E=
+SMTP id n7KLDkPS021661
+	for <akpm@linux-foundation.org>; Thu, 20 Aug 2009 14:13:48 -0700
+Received: from wmproxy1-g27.free.fr (localhost [127.0.0.1])
+	by wmproxy1-g27.free.fr (Postfix) with ESMTP id ADA7B2E7C;
+	Thu, 20 Aug 2009 23:13:45 +0200 (CEST)
+Received: from zimbra3-e1.priv.proxad.net (zimbra3-e1.priv.proxad.net [=
+172.20.243.153])
+	by wmproxy1-g27.free.fr (Postfix) with ESMTP id 986B52BCE;
+	Thu, 20 Aug 2009 23:13:45 +0200 (CEST)
+Date: Thu, 20 Aug 2009 23:13:46 +0200 (CEST)
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: David Woodhouse <dwmw2@infradead.org>,
+        David Woodhouse <David.Woodhouse@intel.com>,
+        Tim Gardner <tim.gardner@canonical.com>,
+        Scott James Remnant <scott@canonical.com>,
+        Julia Lawall <julia@diku.dk>,
+        David Brownell <dbrownell@users.sourceforge.net>,
+        linux-mtd@lists.infradead.org, linux-kernel@vger.kernel.org
+Message-ID: <420676341.3665461250802826403.JavaMail.root@zimbra3-e1.pri=
+v.proxad.net>
+In-Reply-To: <20090819163426.fa90cf9f.akpm@linux-foundation.org>
+Subject: Re: [PATCH] nftl: fix offset alignments
+MIME-Version: 1.0
+Content-Type: text/plain; charset=3Dutf-8
+X-Originating-IP: [79.85.212.132]
+X-Mailer: Zimbra 5.0 (ZimbraWebClient - [unknown] (Linux)/5.0.15_GA_281=
+5.UBUNTU8_64)
+X-Authenticated-User: dimitri.gorokhovik@free.fr
+X-Virus-Scanned: ClamAV using ClamSMTP
+Received-SPF: none (domain of dimitri.gorokhovik@free.fr does not desig=
+nate permitted sender hosts)
+X-MIMEDefang-Filter: lf$Revision: 1.188 $
+X-Scanned-By: MIMEDefang 2.63 on 140.211.169.13
+Content-Transfer-Encoding: 8bit
+X-MIME-Autoconverted: from quoted-printable to 8bit by imap1.linux-foun=
+dation.org id n7KLENDv026441
 
-This patch fixes the following oops, observed with MTD_PARTITIONS=n:
+"Andrew Morton" <akpm@linux-foundation.org> a =C3=A9crit :
+> On Wed, 19 Aug 2009 00:06:28 +0200 (CEST) dimitri.gorokhovik@free.fr
+> wrote:
+> ...
+> > +	typeof(offs) mask =3D mtd->writesize - 1;
+>=20
+> I see no reason to use typeof here.  Plain old
+>=20
+> 	loff_t mask =3D mtd->writesize - 1;
+>=20
+> would be more conventional.
 
-m25p80 spi32766.0: m25p80 (1024 Kbytes)
-Unable to handle kernel paging request for data at address 0x00000008
-Faulting instruction address: 0xc03a54b0
-Oops: Kernel access of bad area, sig: 11 [#1]
-Modules linked in:
-NIP: c03a54b0 LR: c03a5494 CTR: c01e98b8
-REGS: ef82bb60 TRAP: 0300   Not tainted  (2.6.31-rc4-00167-g4733fd3)
-MSR: 00029000 <EE,ME,CE>  CR: 24022022  XER: 20000000
-DEAR: 00000008, ESR: 00000000
-TASK = ef82c000[1] 'swapper' THREAD: ef82a000
-GPR00: 00000000 ef82bc10 ef82c000 0000002e 00001eb8 ffffffff c01e9824 00000036
-GPR08: c054ed40 c0542a08 00001eb8 00004000 22022022 1001a1a0 3ff8fd00 00000000
-GPR16: 00000000 00000001 00000000 00000000 ef82bddc c0530000 efbef500 ef8356d0
-GPR24: 00000000 ef8356d0 00000000 efbf7a00 c0530ec4 ffffffed efbf5300 c0541f98
-NIP [c03a54b0] m25p_probe+0x22c/0x354
-LR [c03a5494] m25p_probe+0x210/0x354
-Call Trace:
-[ef82bc10] [c03a5494] m25p_probe+0x210/0x354 (unreliable)
-[ef82bca0] [c024e37c] spi_drv_probe+0x2c/0x3c
-[ef82bcb0] [c01f1afc] driver_probe_device+0xa4/0x178
-[ef82bcd0] [c01f06e8] bus_for_each_drv+0x6c/0xa8
-[ef82bd00] [c01f1a34] device_attach+0x84/0xa8
-...
+I use typeoff in this way to guard masking code against absent-minded
+modifications.=20
 
-Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: David Brownell <david-b@pacbell.net>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Attached is a corrected version as suggested.=20
+
+Maybe Julia can come up with a clever rule for detecting unusual maskin=
+g=20
+operations automatically :-) ?=20
+
 ---
+Subject: nftl: fix offset alignments
 
- drivers/mtd/devices/m25p80.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Arithmetic conversion in the mask computation makes the upper word
+of the second argument passed down to mtd->read_oob(), be always 0
+(assuming 'offs' being a 64-bit signed long long type, and
+'mtd->writesize' being a 32-bit unsigned int type).
 
-diff -puN drivers/mtd/devices/m25p80.c~mtd-m25p80-fix-null-pointer-dereference-bug drivers/mtd/devices/m25p80.c
---- a/drivers/mtd/devices/m25p80.c~mtd-m25p80-fix-null-pointer-dereference-bug
-+++ a/drivers/mtd/devices/m25p80.c
-@@ -736,7 +736,7 @@ static int __devinit m25p_probe(struct s
- 			flash->partitioned = 1;
- 			return add_mtd_partitions(&flash->mtd, parts, nr_parts);
- 		}
--	} else if (data->nr_parts)
-+	} else if (data && data->nr_parts)
- 		dev_warn(&spi->dev, "ignoring %d default partitions on %s\n",
- 				data->nr_parts, data->name);
- 
-_
+This patch applies over the other one adding masking in nftl_write,
+"nftl: write support is broken".
 
-Patches currently in -mm which might be from avorontsov@ru.mvista.com are
+Signed-off-by: Dimitri Gorokhovik <dimitri.gorokhovik@free.fr>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Tim Gardner <tim.gardner@canonical.com>
+Cc: Scott James Remnant <scott@canonical.com>
+---
+ drivers/mtd/nftlcore.c |   15 +++++++++------
+ 1 files changed, 9 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/mtd/nftlcore.c b/drivers/mtd/nftlcore.c
+index 665d3eb..1002e18 100644
+--- a/drivers/mtd/nftlcore.c
++++ b/drivers/mtd/nftlcore.c
+@@ -135,16 +135,17 @@ static void nftl_remove_dev(struct mtd_blktrans_d=
+ev *dev)
+ int nftl_read_oob(struct mtd_info *mtd, loff_t offs, size_t len,
+ 		  size_t *retlen, uint8_t *buf)
+ {
++	loff_t mask =3D mtd->writesize - 1;
+ 	struct mtd_oob_ops ops;
+ 	int res;
+=20
+ 	ops.mode =3D MTD_OOB_PLACE;
+-	ops.ooboffs =3D offs & (mtd->writesize - 1);
++	ops.ooboffs =3D offs & mask;
+ 	ops.ooblen =3D len;
+ 	ops.oobbuf =3D buf;
+ 	ops.datbuf =3D NULL;
+=20
+-	res =3D mtd->read_oob(mtd, offs & ~(mtd->writesize - 1), &ops);
++	res =3D mtd->read_oob(mtd, offs & ~mask, &ops);
+ 	*retlen =3D ops.oobretlen;
+ 	return res;
+ }
+@@ -155,16 +156,17 @@ int nftl_read_oob(struct mtd_info *mtd, loff_t of=
+fs, size_t len,
+ int nftl_write_oob(struct mtd_info *mtd, loff_t offs, size_t len,
+ 		   size_t *retlen, uint8_t *buf)
+ {
++	loff_t mask =3D mtd->writesize - 1;
+ 	struct mtd_oob_ops ops;
+ 	int res;
+=20
+ 	ops.mode =3D MTD_OOB_PLACE;
+-	ops.ooboffs =3D offs & (mtd->writesize - 1);
++	ops.ooboffs =3D offs & mask;
+ 	ops.ooblen =3D len;
+ 	ops.oobbuf =3D buf;
+ 	ops.datbuf =3D NULL;
+=20
+-	res =3D mtd->write_oob(mtd, offs & ~(mtd->writesize - 1), &ops);
++	res =3D mtd->write_oob(mtd, offs & ~mask, &ops);
+ 	*retlen =3D ops.oobretlen;
+ 	return res;
+ }
+@@ -177,17 +179,18 @@ int nftl_write_oob(struct mtd_info *mtd, loff_t o=
+ffs, size_t len,
+ static int nftl_write(struct mtd_info *mtd, loff_t offs, size_t len,
+ 		      size_t *retlen, uint8_t *buf, uint8_t *oob)
+ {
++	loff_t mask =3D mtd->writesize - 1;
+ 	struct mtd_oob_ops ops;
+ 	int res;
+=20
+ 	ops.mode =3D MTD_OOB_PLACE;
+-	ops.ooboffs =3D offs & (mtd->writesize - 1);
++	ops.ooboffs =3D offs & mask;
+ 	ops.ooblen =3D mtd->oobsize;
+ 	ops.oobbuf =3D oob;
+ 	ops.datbuf =3D buf;
+ 	ops.len =3D len;
+=20
+-	res =3D mtd->write_oob(mtd, offs & ~(mtd->writesize - 1), &ops);
++	res =3D mtd->write_oob(mtd, offs & ~mask, &ops);
+ 	*retlen =3D ops.retlen;
+ 	return res;
+ }
+--=20
+1.6.3.3
+
+
+Patches currently in -mm which might be from dimitri.gorokhovik@free.fr=
+ are
 
 linux-next.patch
-mtd-sst25l-non-jedec-spi-flash-driver.patch
-sdhci-be-more-strict-with-get_min_clock-usage.patch
-sdhci-of-fix-sd-clock-calculation.patch
-sdhci-of-avoid-writing-reserved-bits-into-host-control-register.patch
-sdhci-of-fix-high-speed-cards-recognition.patch
-powerpc-introduce-and-document-sdhciwp-inverted-property-for-esdhc.patch
-sdhci-of-dont-hard-code-inverted-write-protect-quirk.patch
-sdhci-of-cleanup-esdhcs-set_clock-a-little-bit.patch
-powerpc-85xx-add-esdhc-support-for-mpc8536ds-boards.patch
-spi-add-support-for-device-table-matching.patch
-mtd-m25p80-convert-to-device-table-matching.patch
-of-remove-stmm25p40-alias.patch
-hwmon-adxx-convert-to-device-table-matching.patch
-hwmon-lm70-convert-to-device-table-matching.patch
-spi-prefix-modalias-with-spi.patch
-rtc-set-wakeup-capability-for-i2c-and-spi-rtc-drivers.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
