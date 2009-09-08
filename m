@@ -1,79 +1,359 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mtd-make-onenand-genericc-more-generic-fix.patch removed from -mm tree
-Date: Tue, 08 Sep 2009 14:26:31 -0700
-Message-ID: <200909082126.n88LQVxU007172@imap1.linux-foundation.org>
+Subject: [merged] backlight-spi-driver-for-lms283gf05-lcd.patch removed from -mm tree
+Date: Tue, 08 Sep 2009 14:26:35 -0700
+Message-ID: <200909082126.n88LQZgp007293@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42408 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59881 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752200AbZIHV0s (ORCPT
+	by vger.kernel.org with ESMTP id S1752216AbZIHV0s (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2009 17:26:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lethal@linux-sh.org, damm@igel.co.jp, dwmw2@infradead.org, kmpark@infradead.org, randy.dunlap@oracle.com, tony@atomide.com, mm-commits@vger.kernel.org
+To: marek.vasut@gmail.com, david-b@pacbell.net, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mtd: onenand: select MTD_PARTITIONS
+     backlight: spi driver for LMS283GF05 LCD
 has been removed from the -mm tree.  Its filename was
-     mtd-make-onenand-genericc-more-generic-fix.patch
+     backlight-spi-driver-for-lms283gf05-lcd.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd: onenand: select MTD_PARTITIONS
-From: Paul Mundt <lethal@linux-sh.org>
+Subject: backlight: spi driver for LMS283GF05 LCD
+From: Marek Vasut <marek.vasut@gmail.com>
 
-All of the onenand drivers depend on mtd partition support being compiled
-in, so just select it.  Fixes up build breakage:
+ADd support for the SPI part of LMS283GF05 LCD.  The LCD uses SPI for
+initialization and powerdown sequences.  No further defails are specified
+in the datasheet about the initialization/powerdown sequence, just the
+magic numbers that have to be sent over SPI bus.  This LCD can be found in
+the Aeronix Zipit Z2 handheld.
 
-drivers/built-in.o: In function `generic_onenand_remove':
-generic.c:(.devexit.text+0x80): undefined reference to `del_mtd_partitions'
-
-Reported-by: Randy Dunlap <randy.dunlap@oracle.com>
-Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
-Signed-off-by: Paul Mundt <lethal@linux-sh.org>
-Cc: Magnus Damm <damm@igel.co.jp>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Kyungmin Park <kmpark@infradead.org>
+Signed-off-by: Marek Vasut <marek.vasut@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/onenand/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/backlight/Kconfig      |    7 
+ drivers/video/backlight/Makefile     |    1 
+ drivers/video/backlight/lms283gf05.c |  242 +++++++++++++++++++++++++
+ include/linux/spi/lms283gf05.h       |   28 ++
+ 4 files changed, 278 insertions(+)
 
-diff -puN drivers/mtd/onenand/Kconfig~mtd-make-onenand-genericc-more-generic-fix drivers/mtd/onenand/Kconfig
---- a/drivers/mtd/onenand/Kconfig~mtd-make-onenand-genericc-more-generic-fix
-+++ a/drivers/mtd/onenand/Kconfig
-@@ -5,6 +5,7 @@
- menuconfig MTD_ONENAND
- 	tristate "OneNAND Device Support"
- 	depends on MTD
-+	select MTD_PARTITIONS
- 	help
- 	  This enables support for accessing all type of OneNAND flash
- 	  devices. For further information see
-@@ -65,7 +66,6 @@ config MTD_ONENAND_2X_PROGRAM
+diff -puN drivers/video/backlight/Kconfig~backlight-spi-driver-for-lms283gf05-lcd drivers/video/backlight/Kconfig
+--- a/drivers/video/backlight/Kconfig~backlight-spi-driver-for-lms283gf05-lcd
++++ a/drivers/video/backlight/Kconfig
+@@ -31,6 +31,13 @@ config LCD_CORGI
+ 	  Say y here to support the LCD panels usually found on SHARP
+ 	  corgi (C7x0) and spitz (Cxx00) models.
  
- config MTD_ONENAND_SIM
- 	tristate "OneNAND simulator support"
--	depends on MTD_PARTITIONS
- 	help
- 	  The simulator may simulate various OneNAND flash chips for the
- 	  OneNAND MTD layer.
++config LCD_LMS283GF05
++	tristate "Samsung LMS283GF05 LCD"
++	depends on LCD_CLASS_DEVICE && SPI_MASTER && GENERIC_GPIO
++	help
++	  SPI driver for Samsung LMS283GF05. This provides basic support
++	  for powering the LCD up/down through a sysfs interface.
++
+ config LCD_LTV350QV
+ 	tristate "Samsung LTV350QV LCD Panel"
+ 	depends on LCD_CLASS_DEVICE && SPI_MASTER
+diff -puN drivers/video/backlight/Makefile~backlight-spi-driver-for-lms283gf05-lcd drivers/video/backlight/Makefile
+--- a/drivers/video/backlight/Makefile~backlight-spi-driver-for-lms283gf05-lcd
++++ a/drivers/video/backlight/Makefile
+@@ -3,6 +3,7 @@
+ obj-$(CONFIG_LCD_CLASS_DEVICE)     += lcd.o
+ obj-$(CONFIG_LCD_CORGI)		   += corgi_lcd.o
+ obj-$(CONFIG_LCD_HP700)		   += jornada720_lcd.o
++obj-$(CONFIG_LCD_LMS283GF05)	   += lms283gf05.o
+ obj-$(CONFIG_LCD_LTV350QV)	   += ltv350qv.o
+ obj-$(CONFIG_LCD_ILI9320)	   += ili9320.o
+ obj-$(CONFIG_LCD_PLATFORM)	   += platform_lcd.o
+diff -puN /dev/null drivers/video/backlight/lms283gf05.c
+--- /dev/null
++++ a/drivers/video/backlight/lms283gf05.c
+@@ -0,0 +1,242 @@
++/*
++ * lms283gf05.c -- support for Samsung LMS283GF05 LCD
++ *
++ * Copyright (c) 2009 Marek Vasut <marek.vasut@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/device.h>
++#include <linux/kernel.h>
++#include <linux/delay.h>
++#include <linux/gpio.h>
++#include <linux/lcd.h>
++
++#include <linux/spi/spi.h>
++#include <linux/spi/lms283gf05.h>
++
++struct lms283gf05_state {
++	struct spi_device	*spi;
++	struct lcd_device	*ld;
++};
++
++struct lms283gf05_seq {
++	unsigned char		reg;
++	unsigned short		value;
++	unsigned char		delay;
++};
++
++/* Magic sequences supplied by manufacturer, for details refer to datasheet */
++static struct lms283gf05_seq disp_initseq[] = {
++	/* REG, VALUE, DELAY */
++	{ 0x07, 0x0000, 0 },
++	{ 0x13, 0x0000, 10 },
++
++	{ 0x11, 0x3004, 0 },
++	{ 0x14, 0x200F, 0 },
++	{ 0x10, 0x1a20, 0 },
++	{ 0x13, 0x0040, 50 },
++
++	{ 0x13, 0x0060, 0 },
++	{ 0x13, 0x0070, 200 },
++
++	{ 0x01, 0x0127, 0 },
++	{ 0x02,	0x0700, 0 },
++	{ 0x03, 0x1030, 0 },
++	{ 0x08, 0x0208, 0 },
++	{ 0x0B, 0x0620, 0 },
++	{ 0x0C, 0x0110, 0 },
++	{ 0x30, 0x0120, 0 },
++	{ 0x31, 0x0127, 0 },
++	{ 0x32, 0x0000, 0 },
++	{ 0x33, 0x0503, 0 },
++	{ 0x34, 0x0727, 0 },
++	{ 0x35, 0x0124, 0 },
++	{ 0x36, 0x0706, 0 },
++	{ 0x37, 0x0701, 0 },
++	{ 0x38, 0x0F00, 0 },
++	{ 0x39, 0x0F00, 0 },
++	{ 0x40, 0x0000, 0 },
++	{ 0x41, 0x0000, 0 },
++	{ 0x42, 0x013f, 0 },
++	{ 0x43, 0x0000, 0 },
++	{ 0x44, 0x013f, 0 },
++	{ 0x45, 0x0000, 0 },
++	{ 0x46, 0xef00, 0 },
++	{ 0x47, 0x013f, 0 },
++	{ 0x48, 0x0000, 0 },
++	{ 0x07, 0x0015, 30 },
++
++	{ 0x07, 0x0017, 0 },
++
++	{ 0x20, 0x0000, 0 },
++	{ 0x21, 0x0000, 0 },
++	{ 0x22, 0x0000, 0 }
++};
++
++static struct lms283gf05_seq disp_pdwnseq[] = {
++	{ 0x07, 0x0016, 30 },
++
++	{ 0x07, 0x0004, 0 },
++	{ 0x10, 0x0220, 20 },
++
++	{ 0x13, 0x0060, 50 },
++
++	{ 0x13, 0x0040, 50 },
++
++	{ 0x13, 0x0000, 0 },
++	{ 0x10, 0x0000, 0 }
++};
++
++
++static void lms283gf05_reset(unsigned long gpio, bool inverted)
++{
++	gpio_set_value(gpio, !inverted);
++	mdelay(100);
++	gpio_set_value(gpio, inverted);
++	mdelay(20);
++	gpio_set_value(gpio, !inverted);
++	mdelay(20);
++}
++
++static void lms283gf05_toggle(struct spi_device *spi,
++			struct lms283gf05_seq *seq, int sz)
++{
++	char buf[3];
++	int i;
++
++	for (i = 0; i < sz; i++) {
++		buf[0] = 0x74;
++		buf[1] = 0x00;
++		buf[2] = seq[i].reg;
++		spi_write(spi, buf, 3);
++
++		buf[0] = 0x76;
++		buf[1] = seq[i].value >> 8;
++		buf[2] = seq[i].value & 0xff;
++		spi_write(spi, buf, 3);
++
++		mdelay(seq[i].delay);
++	}
++}
++
++static int lms283gf05_power_set(struct lcd_device *ld, int power)
++{
++	struct lms283gf05_state *st = lcd_get_data(ld);
++	struct spi_device *spi = st->spi;
++	struct lms283gf05_pdata *pdata = spi->dev.platform_data;
++
++	if (power) {
++		if (pdata)
++			lms283gf05_reset(pdata->reset_gpio,
++					pdata->reset_inverted);
++		lms283gf05_toggle(spi, disp_initseq, ARRAY_SIZE(disp_initseq));
++	} else {
++		lms283gf05_toggle(spi, disp_pdwnseq, ARRAY_SIZE(disp_pdwnseq));
++		if (pdata)
++			gpio_set_value(pdata->reset_gpio,
++					pdata->reset_inverted);
++	}
++
++	return 0;
++}
++
++static struct lcd_ops lms_ops = {
++	.set_power	= lms283gf05_power_set,
++	.get_power	= NULL,
++};
++
++static int __devinit lms283gf05_probe(struct spi_device *spi)
++{
++	struct lms283gf05_state *st;
++	struct lms283gf05_pdata *pdata = spi->dev.platform_data;
++	struct lcd_device *ld;
++	int ret = 0;
++
++	if (pdata != NULL) {
++		ret = gpio_request(pdata->reset_gpio, "LMS285GF05 RESET");
++		if (ret)
++			return ret;
++
++		ret = gpio_direction_output(pdata->reset_gpio,
++						!pdata->reset_inverted);
++		if (ret)
++			goto err;
++	}
++
++	st = kzalloc(sizeof(struct lms283gf05_state), GFP_KERNEL);
++	if (st == NULL) {
++		dev_err(&spi->dev, "No memory for device state\n");
++		ret = -ENOMEM;
++		goto err;
++	}
++
++	ld = lcd_device_register("lms283gf05", &spi->dev, st, &lms_ops);
++	if (IS_ERR(ld)) {
++		ret = PTR_ERR(ld);
++		goto err2;
++	}
++
++	st->spi = spi;
++	st->ld = ld;
++
++	dev_set_drvdata(&spi->dev, st);
++
++	/* kick in the LCD */
++	if (pdata)
++		lms283gf05_reset(pdata->reset_gpio, pdata->reset_inverted);
++	lms283gf05_toggle(spi, disp_initseq, ARRAY_SIZE(disp_initseq));
++
++	return 0;
++
++err2:
++	kfree(st);
++err:
++	if (pdata != NULL)
++		gpio_free(pdata->reset_gpio);
++
++	return ret;
++}
++
++static int __devexit lms283gf05_remove(struct spi_device *spi)
++{
++	struct lms283gf05_state *st = dev_get_drvdata(&spi->dev);
++	struct lms283gf05_pdata *pdata = st->spi->dev.platform_data;
++
++	lcd_device_unregister(st->ld);
++
++	if (pdata != NULL)
++		gpio_free(pdata->reset_gpio);
++
++	kfree(st);
++
++	return 0;
++}
++
++static struct spi_driver lms283gf05_driver = {
++	.driver = {
++		.name	= "lms283gf05",
++		.owner	= THIS_MODULE,
++	},
++	.probe		= lms283gf05_probe,
++	.remove		= __devexit_p(lms283gf05_remove),
++};
++
++static __init int lms283gf05_init(void)
++{
++	return spi_register_driver(&lms283gf05_driver);
++}
++
++static __exit void lms283gf05_exit(void)
++{
++	spi_unregister_driver(&lms283gf05_driver);
++}
++
++module_init(lms283gf05_init);
++module_exit(lms283gf05_exit);
++
++MODULE_AUTHOR("Marek Vasut <marek.vasut@gmail.com>");
++MODULE_DESCRIPTION("LCD283GF05 LCD");
++MODULE_LICENSE("GPL v2");
+diff -puN /dev/null include/linux/spi/lms283gf05.h
+--- /dev/null
++++ a/include/linux/spi/lms283gf05.h
+@@ -0,0 +1,28 @@
++/*
++ * lms283gf05.h - Platform glue for Samsung LMS283GF05 LCD
++ *
++ * Copyright (C) 2009 Marek Vasut <marek.vasut@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++*/
++
++#ifndef _INCLUDE_LINUX_SPI_LMS283GF05_H_
++#define _INCLUDE_LINUX_SPI_LMS283GF05_H_
++
++struct lms283gf05_pdata {
++	unsigned long	reset_gpio;
++	bool		reset_inverted;
++};
++
++#endif /* _INCLUDE_LINUX_SPI_LMS283GF05_H_ */
 _
 
-Patches currently in -mm which might be from lethal@linux-sh.org are
+Patches currently in -mm which might be from marek.vasut@gmail.com are
 
 linux-next.patch
-mtd-make-onenand-genericc-more-generic.patch
-arches-drop-superfluous-casts-in-nr_free_pages-callers.patch
-mmc-make-the-configuration-memory-resource-optional.patch
-tmio_mmc-optionally-support-using-platform-clock.patch
-sh-switch-migo-r-to-use-the-tmio-mmc-driver-instead-of-spi.patch
-fdpic-ignore-the-loaders-pt_gnu_stack-when-calculating-the-stack-size.patch
-flat-use-is_err_value-helper-macro.patch
+mfd-gpio-add-a-gpio-interface-to-the-ucb1400-mfd-chip-driver-via-gpiolib.patch
 
