@@ -1,291 +1,170 @@
 From: akpm@linux-foundation.org
-Subject: [merged] exec-do-not-sleep-in-task_traced-under-cred_guard_mutex.patch removed from -mm tree
-Date: Tue, 08 Sep 2009 14:26:10 -0700
-Message-ID: <200909082126.n88LQAti006467@imap1.linux-foundation.org>
+Subject: [obsolete] aoe-ensure-we-initialise-the-request_queue-correctly.patch removed from -mm tree
+Date: Tue, 08 Sep 2009 14:58:00 -0700
+Message-ID: <200909082158.n88Lw21Y003295@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50943 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50491 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751074AbZIHV1L (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2009 17:27:11 -0400
+	by vger.kernel.org with ESMTP id S1752150AbZIHV6s (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2009 17:58:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, dhowells@redhat.com, jmorris@namei.org, roland@redhat.com, tom.horsley@att.net, mm-commits@vger.kernel.org
+To: apw@canonical.com, bonbons@linux-vserver.org, ecashin@coraid.com, jens.axboe@oracle.com, martin.petersen@oracle.com, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     exec: do not sleep in TASK_TRACED under ->cred_guard_mutex
+     aoe: ensure we initialise the request_queue correctly
 has been removed from the -mm tree.  Its filename was
-     exec-do-not-sleep-in-task_traced-under-cred_guard_mutex.patch
+     aoe-ensure-we-initialise-the-request_queue-correctly.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: exec: do not sleep in TASK_TRACED under ->cred_guard_mutex
-From: Oleg Nesterov <oleg@redhat.com>
+Subject: aoe: ensure we initialise the request_queue correctly
+From: Andy Whitcroft <apw@canonical.com>
 
-Tom Horsley reports that his debugger hangs when it tries to read
-/proc/pid_of_tracee/maps, this happens since
+When using the aoe driver we see an oops triggered by use of an
+incorrectly initialised request_queue object:
 
-	"mm_for_maps: take ->cred_guard_mutex to fix the race with exec"
-	04b836cbf19e885f8366bccb2e4b0474346c02d
+  [ 2645.959090] kobject '<NULL>' (ffff880059ca22c0): tried to add
+		an uninitialized object, something is seriously wrong.
+  [ 2645.959104] Pid: 6, comm: events/0 Not tainted 2.6.31-5-generic #24-Ubuntu
+  [ 2645.959107] Call Trace:
+  [ 2645.959139] [<ffffffff8126ca2f>] kobject_add+0x5f/0x70
+  [ 2645.959151] [<ffffffff8125b4ab>] blk_register_queue+0x8b/0xf0
+  [ 2645.959155] [<ffffffff8126043f>] add_disk+0x8f/0x160
+  [ 2645.959161] [<ffffffffa01673c4>] aoeblk_gdalloc+0x164/0x1c0 [aoe]
 
-commit in 2.6.31.
+It seems this driver mearly embeds a request_queue object in its main
+control structure and does not attempt to initialise it.  Pull this out
+and use blk_init_queue/blk_cleanup_queue to handle initialisation and
+teardown of this object.
 
-But the root of the problem lies in the fact that do_execve() path calls
-tracehook_report_exec() which can stop if the tracer sets PT_TRACE_EXEC.
+Bruno bisected this regression down to
 
-The tracee must not sleep in TASK_TRACED holding this mutex.  Even if we
-remove ->cred_guard_mutex from mm_for_maps() and proc_pid_attr_write(),
-another task doing PTRACE_ATTACH should not hang until it is killed or the
-tracee resumes.
+  cd43e26f071524647e660706b784ebcbefbd2e44
 
-With this patch do_execve() does not use ->cred_guard_mutex directly and
-we do not hold it throughout, instead:
+  block: Expose stacked device queues in sysfs
 
-	- introduce prepare_bprm_creds() helper, it locks the mutex
-	  and calls prepare_exec_creds() to initialize bprm->cred.
+"This seems to generate /sys/block/$device/queue and its contents for
+ everyone who is using queues, not just for those queues that have a
+ non-NULL queue->request_fn."
 
-	- install_exec_creds() drops the mutex after commit_creds(),
-	  and thus before tracehook_report_exec()->ptrace_stop().
+Addresses http://bugs.launchpad.net/bugs/410198
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=13942
 
-	  or, if exec fails,
-
-	  free_bprm() drops this mutex when bprm->cred != NULL which
-	  indicates install_exec_creds() was not called.
-
-Reported-by: Tom Horsley <tom.horsley@att.net>
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: David Howells <dhowells@redhat.com>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: James Morris <jmorris@namei.org>
+Signed-off-by: Andy Whitcroft <apw@canonical.com>
+Acked-by: Ed Cashin <ecashin@coraid.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Bruno Premont <bonbons@linux-vserver.org>
+Cc: Martin K. Petersen <martin.petersen@oracle.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/compat.c             |   17 ++--------
- fs/exec.c               |   63 ++++++++++++++++++++++----------------
- include/linux/binfmts.h |    1 
- 3 files changed, 43 insertions(+), 38 deletions(-)
+ drivers/block/aoe/aoe.h    |    2 +-
+ drivers/block/aoe/aoeblk.c |    6 +++---
+ drivers/block/aoe/aoedev.c |   11 ++++++++++-
+ 3 files changed, 14 insertions(+), 5 deletions(-)
 
-diff -puN fs/compat.c~exec-do-not-sleep-in-task_traced-under-cred_guard_mutex fs/compat.c
---- a/fs/compat.c~exec-do-not-sleep-in-task_traced-under-cred_guard_mutex
-+++ a/fs/compat.c
-@@ -1485,20 +1485,15 @@ int compat_do_execve(char * filename,
- 	if (!bprm)
- 		goto out_files;
+diff -puN drivers/block/aoe/aoe.h~aoe-ensure-we-initialise-the-request_queue-correctly drivers/block/aoe/aoe.h
+--- a/drivers/block/aoe/aoe.h~aoe-ensure-we-initialise-the-request_queue-correctly
++++ a/drivers/block/aoe/aoe.h
+@@ -155,7 +155,7 @@ struct aoedev {
+ 	u16 fw_ver;		/* version of blade's firmware */
+ 	struct work_struct work;/* disk create work struct */
+ 	struct gendisk *gd;
+-	struct request_queue blkq;
++	struct request_queue *blkq;
+ 	struct hd_geometry geo; 
+ 	sector_t ssize;
+ 	struct timer_list timer;
+diff -puN drivers/block/aoe/aoeblk.c~aoe-ensure-we-initialise-the-request_queue-correctly drivers/block/aoe/aoeblk.c
+--- a/drivers/block/aoe/aoeblk.c~aoe-ensure-we-initialise-the-request_queue-correctly
++++ a/drivers/block/aoe/aoeblk.c
+@@ -264,9 +264,9 @@ aoeblk_gdalloc(void *vp)
+ 		goto err_disk;
+ 	}
  
--	retval = -ERESTARTNOINTR;
--	if (mutex_lock_interruptible(&current->cred_guard_mutex))
-+	retval = prepare_bprm_creds(bprm);
-+	if (retval)
- 		goto out_free;
--	current->in_execve = 1;
--
--	retval = -ENOMEM;
--	bprm->cred = prepare_exec_creds();
--	if (!bprm->cred)
--		goto out_unlock;
+-	blk_queue_make_request(&d->blkq, aoeblk_make_request);
++	blk_queue_make_request(d->blkq, aoeblk_make_request);
+ 	d->blkq.backing_dev_info.name = "aoe";
+-	if (bdi_init(&d->blkq.backing_dev_info))
++	if (bdi_init(d->blkq.backing_dev_info))
+ 		goto err_mempool;
+ 	spin_lock_irqsave(&d->lock, flags);
+ 	gd->major = AOE_MAJOR;
+@@ -277,7 +277,7 @@ aoeblk_gdalloc(void *vp)
+ 	snprintf(gd->disk_name, sizeof gd->disk_name, "etherd/e%ld.%d",
+ 		d->aoemajor, d->aoeminor);
  
- 	retval = check_unsafe_exec(bprm);
- 	if (retval < 0)
--		goto out_unlock;
-+		goto out_free;
- 	clear_in_exec = retval;
-+	current->in_execve = 1;
- 
- 	file = open_exec(filename);
- 	retval = PTR_ERR(file);
-@@ -1547,7 +1542,6 @@ int compat_do_execve(char * filename,
- 	/* execve succeeded */
- 	current->fs->in_exec = 0;
- 	current->in_execve = 0;
--	mutex_unlock(&current->cred_guard_mutex);
- 	acct_update_integrals(current);
- 	free_bprm(bprm);
- 	if (displaced)
-@@ -1567,10 +1561,7 @@ out_file:
- out_unmark:
- 	if (clear_in_exec)
- 		current->fs->in_exec = 0;
--
--out_unlock:
- 	current->in_execve = 0;
--	mutex_unlock(&current->cred_guard_mutex);
- 
- out_free:
- 	free_bprm(bprm);
-diff -puN fs/exec.c~exec-do-not-sleep-in-task_traced-under-cred_guard_mutex fs/exec.c
---- a/fs/exec.c~exec-do-not-sleep-in-task_traced-under-cred_guard_mutex
-+++ a/fs/exec.c
-@@ -1016,6 +1016,35 @@ out:
- EXPORT_SYMBOL(flush_old_exec);
- 
- /*
-+ * Prepare credentials and lock ->cred_guard_mutex.
-+ * install_exec_creds() commits the new creds and drops the lock.
-+ * Or, if exec fails before, free_bprm() should release ->cred and
-+ * and unlock.
-+ */
-+int prepare_bprm_creds(struct linux_binprm *bprm)
-+{
-+	if (mutex_lock_interruptible(&current->cred_guard_mutex))
-+		return -ERESTARTNOINTR;
-+
-+	bprm->cred = prepare_exec_creds();
-+	if (likely(bprm->cred))
-+		return 0;
-+
-+	mutex_unlock(&current->cred_guard_mutex);
-+	return -ENOMEM;
-+}
-+
-+void free_bprm(struct linux_binprm *bprm)
-+{
-+	free_arg_pages(bprm);
-+	if (bprm->cred) {
-+		mutex_unlock(&current->cred_guard_mutex);
-+		abort_creds(bprm->cred);
-+	}
-+	kfree(bprm);
-+}
-+
-+/*
-  * install the new credentials for this executable
-  */
- void install_exec_creds(struct linux_binprm *bprm)
-@@ -1024,12 +1053,13 @@ void install_exec_creds(struct linux_bin
- 
- 	commit_creds(bprm->cred);
- 	bprm->cred = NULL;
--
--	/* cred_guard_mutex must be held at least to this point to prevent
-+	/*
-+	 * cred_guard_mutex must be held at least to this point to prevent
- 	 * ptrace_attach() from altering our determination of the task's
--	 * credentials; any time after this it may be unlocked */
--
-+	 * credentials; any time after this it may be unlocked.
-+	 */
- 	security_bprm_committed_creds(bprm);
-+	mutex_unlock(&current->cred_guard_mutex);
+-	gd->queue = &d->blkq;
++	gd->queue = d->blkq;
+ 	d->gd = gd;
+ 	d->flags &= ~DEVFL_GDALLOC;
+ 	d->flags |= DEVFL_UP;
+diff -puN drivers/block/aoe/aoedev.c~aoe-ensure-we-initialise-the-request_queue-correctly drivers/block/aoe/aoedev.c
+--- a/drivers/block/aoe/aoedev.c~aoe-ensure-we-initialise-the-request_queue-correctly
++++ a/drivers/block/aoe/aoedev.c
+@@ -113,6 +113,7 @@ aoedev_freedev(struct aoedev *d)
+ 	if (d->bufpool)
+ 		mempool_destroy(d->bufpool);
+ 	skbpoolfree(d);
++	blk_cleanup_queue(d->blkq);
+ 	kfree(d);
  }
- EXPORT_SYMBOL(install_exec_creds);
  
-@@ -1246,14 +1276,6 @@ int search_binary_handler(struct linux_b
+@@ -202,6 +203,7 @@ aoedev_by_sysminor_m(ulong sysminor)
+ {
+ 	struct aoedev *d;
+ 	ulong flags;
++	struct request_queue *rq;
  
- EXPORT_SYMBOL(search_binary_handler);
+ 	spin_lock_irqsave(&devlist_lock, flags);
  
--void free_bprm(struct linux_binprm *bprm)
--{
--	free_arg_pages(bprm);
--	if (bprm->cred)
--		abort_creds(bprm->cred);
--	kfree(bprm);
--}
--
- /*
-  * sys_execve() executes a new program.
-  */
-@@ -1277,20 +1299,15 @@ int do_execve(char * filename,
- 	if (!bprm)
- 		goto out_files;
+@@ -210,9 +212,13 @@ aoedev_by_sysminor_m(ulong sysminor)
+ 			break;
+ 	if (d)
+ 		goto out;
++	rq = blk_init_queue(NULL, NULL);
++	if (!rq)
++		goto out;
+ 	d = kcalloc(1, sizeof *d, GFP_ATOMIC);
+ 	if (!d)
+-		goto out;
++		goto out_rq;
++	d->blkq = rq;
+ 	INIT_WORK(&d->work, aoecmd_sleepwork);
+ 	spin_lock_init(&d->lock);
+ 	skb_queue_head_init(&d->sendq);
+@@ -234,6 +240,9 @@ aoedev_by_sysminor_m(ulong sysminor)
+  out:
+ 	spin_unlock_irqrestore(&devlist_lock, flags);
+ 	return d;
++ out_rq:
++	blk_cleanup_queue(rq);
++	goto out;
+ }
  
--	retval = -ERESTARTNOINTR;
--	if (mutex_lock_interruptible(&current->cred_guard_mutex))
-+	retval = prepare_bprm_creds(bprm);
-+	if (retval)
- 		goto out_free;
--	current->in_execve = 1;
--
--	retval = -ENOMEM;
--	bprm->cred = prepare_exec_creds();
--	if (!bprm->cred)
--		goto out_unlock;
- 
- 	retval = check_unsafe_exec(bprm);
- 	if (retval < 0)
--		goto out_unlock;
-+		goto out_free;
- 	clear_in_exec = retval;
-+	current->in_execve = 1;
- 
- 	file = open_exec(filename);
- 	retval = PTR_ERR(file);
-@@ -1340,7 +1357,6 @@ int do_execve(char * filename,
- 	/* execve succeeded */
- 	current->fs->in_exec = 0;
- 	current->in_execve = 0;
--	mutex_unlock(&current->cred_guard_mutex);
- 	acct_update_integrals(current);
- 	free_bprm(bprm);
- 	if (displaced)
-@@ -1360,10 +1376,7 @@ out_file:
- out_unmark:
- 	if (clear_in_exec)
- 		current->fs->in_exec = 0;
--
--out_unlock:
- 	current->in_execve = 0;
--	mutex_unlock(&current->cred_guard_mutex);
- 
- out_free:
- 	free_bprm(bprm);
-diff -puN include/linux/binfmts.h~exec-do-not-sleep-in-task_traced-under-cred_guard_mutex include/linux/binfmts.h
---- a/include/linux/binfmts.h~exec-do-not-sleep-in-task_traced-under-cred_guard_mutex
-+++ a/include/linux/binfmts.h
-@@ -117,6 +117,7 @@ extern int setup_arg_pages(struct linux_
- 			   int executable_stack);
- extern int bprm_mm_init(struct linux_binprm *bprm);
- extern int copy_strings_kernel(int argc,char ** argv,struct linux_binprm *bprm);
-+extern int prepare_bprm_creds(struct linux_binprm *bprm);
- extern void install_exec_creds(struct linux_binprm *bprm);
- extern void do_coredump(long signr, int exit_code, struct pt_regs *regs);
- extern int set_binfmt(struct linux_binfmt *new);
+ static void
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from apw@canonical.com are
 
-linux-next.patch
-oom-move-oom_adj-value-from-task_struct-to-signal_struct.patch
-oom-make-oom_score-to-per-process-value.patch
-oom-oom_kill-doesnt-kill-vfork-parentor-child.patch
-oom-fix-oom_adjust_write-input-sanity-check.patch
-getrusage-fill-ru_maxrss-value.patch
-getrusage-fill-ru_maxrss-value-update.patch
-proc_flush_task-flush-proc-tid-task-pid-when-a-sub-thread-exits.patch
-cgroups-revert-cgroups-fix-pid-namespace-bug.patch
-cgroups-add-a-read-only-procs-file-similar-to-tasks-that-shows-only-unique-tgids.patch
-cgroups-ensure-correct-concurrent-opening-reading-of-pidlists-across-pid-namespaces.patch
-cgroups-use-vmalloc-for-large-cgroups-pidlist-allocations.patch
-cgroups-change-css_set-freeing-mechanism-to-be-under-rcu.patch
-cgroups-let-ss-can_attach-and-ss-attach-do-whole-threadgroups-at-a-time.patch
-cgroups-let-ss-can_attach-and-ss-attach-do-whole-threadgroups-at-a-time-fix.patch
-cgroups-add-functionality-to-read-write-lock-clone_thread-forking-per-threadgroup.patch
-cgroups-add-functionality-to-read-write-lock-clone_thread-forking-per-threadgroup-fix.patch
-cgroups-add-ability-to-move-all-threads-in-a-process-to-a-new-cgroup-atomically.patch
-ptrace-__ptrace_detach-do-__wake_up_parent-if-we-reap-the-tracee.patch
-do_wait-wakeup-optimization-shift-security_task_wait-from-eligible_child-to-wait_consider_task.patch
-do_wait-wakeup-optimization-change-__wake_up_parent-to-use-filtered-wakeup.patch
-do_wait-wakeup-optimization-change-__wake_up_parent-to-use-filtered-wakeup-selinux_bprm_committed_creds-use-__wake_up_parent.patch
-do_wait-wakeup-optimization-child_wait_callback-check-__wnothread-case.patch
-do_wait-wakeup-optimization-fix-child_wait_callback-eligible_child-usage.patch
-do_wait-wakeup-optimization-simplify-task_pid_type.patch
-do_wait-optimization-do-not-place-sub-threads-on-task_struct-children-list.patch
-wait_consider_task-kill-parent-argument.patch
-do_wait-fix-sys_waitid-specific-behaviour.patch
-wait_noreap_copyout-check-for-wo_info-=-null.patch
-signals-introduce-do_send_sig_info-helper.patch
-signals-send_sigio-use-do_send_sig_info-to-avoid-check_kill_permission.patch
-fcntl-add-f_etown_ex.patch
-signals-inline-__fatal_signal_pending.patch
-signals-tracehook_notify_jctl-change.patch
-signals-tracehook_notify_jctl-change-do_signal_stop-do-not-call-tracehook_notify_jctl-in-task_stopped-state.patch
-signals-introduce-tracehook_finish_jctl-helper.patch
-utrace-core.patch
-exec-fix-set_binfmt-vs-sys_delete_module-race.patch
-fork-disable-clone_parent-for-init.patch
-pidns-deny-clone_parentclone_newpid-combination.patch
-task_struct-cleanup-move-binfmt-field-to-mm_struct.patch
+aoe-ensure-we-initialise-the-request_queue-correctly.patch
+hugetlb-balance-freeing-of-huge-pages-across-nodes.patch
+hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages.patch
+hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages-fix.patch
+hugetlb-clean-up-and-update-huge-pages-documentation.patch
+hugetlb-restore-interleaving-of-bootmem-huge-pages.patch
+checkpatch-possible-types-else-cannot-start-a-type.patch
+checkpatch-handle-c99-comments-correctly-performance-issue.patch
+checkpatch-indent-checks-stop-when-we-run-out-of-continuation-lines.patch
+checkpatch-make-f-alias-file-add-help-more-verbose-help-message.patch
+checkpatch-format-strings-should-not-have-brackets-in-macros.patch
+checkpatch-limit-sn-un-matches-to-actual-bit-sizes.patch
+checkpatch-version-029.patch
 
