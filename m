@@ -1,62 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged] nilfs2-fix-format-string-compile-warning-ino_t.patch removed from -mm tree
-Date: Tue, 08 Sep 2009 14:26:38 -0700
-Message-ID: <200909082126.n88LQcTd007378@imap1.linux-foundation.org>
+Subject: [merged] mtd-make-onenand-genericc-more-generic-fix.patch removed from -mm tree
+Date: Tue, 08 Sep 2009 14:26:31 -0700
+Message-ID: <200909082126.n88LQVxU007172@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54045 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42408 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752148AbZIHV0j (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2009 17:26:39 -0400
+	by vger.kernel.org with ESMTP id S1752200AbZIHV0s (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2009 17:26:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: heiko.carstens@de.ibm.com, mm-commits@vger.kernel.org
+To: lethal@linux-sh.org, damm@igel.co.jp, dwmw2@infradead.org, kmpark@infradead.org, randy.dunlap@oracle.com, tony@atomide.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nilfs2: fix format string compile warning (ino_t)
+     mtd: onenand: select MTD_PARTITIONS
 has been removed from the -mm tree.  Its filename was
-     nilfs2-fix-format-string-compile-warning-ino_t.patch
+     mtd-make-onenand-genericc-more-generic-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nilfs2: fix format string compile warning (ino_t)
-From: Heiko Carstens <heiko.carstens@de.ibm.com>
+Subject: mtd: onenand: select MTD_PARTITIONS
+From: Paul Mundt <lethal@linux-sh.org>
 
-Unlike on most other architectures ino_t is an unsigned int on s390.
-So add an explicit cast to avoid this compile warning:
+All of the onenand drivers depend on mtd partition support being compiled
+in, so just select it.  Fixes up build breakage:
 
-fs/nilfs2/recovery.c: In function 'recover_dsync_blocks':
-fs/nilfs2/recovery.c:555: warning: format '%lu' expects type 'long unsigned int', but argument 3 has type 'ino_t'
+drivers/built-in.o: In function `generic_onenand_remove':
+generic.c:(.devexit.text+0x80): undefined reference to `del_mtd_partitions'
 
-Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+Reported-by: Randy Dunlap <randy.dunlap@oracle.com>
+Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Paul Mundt <lethal@linux-sh.org>
+Cc: Magnus Damm <damm@igel.co.jp>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Kyungmin Park <kmpark@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/recovery.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/mtd/onenand/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/nilfs2/recovery.c~nilfs2-fix-format-string-compile-warning-ino_t fs/nilfs2/recovery.c
---- a/fs/nilfs2/recovery.c~nilfs2-fix-format-string-compile-warning-ino_t
-+++ a/fs/nilfs2/recovery.c
-@@ -552,7 +552,8 @@ static int recover_dsync_blocks(struct n
- 		printk(KERN_WARNING
- 		       "NILFS warning: error recovering data block "
- 		       "(err=%d, ino=%lu, block-offset=%llu)\n",
--		       err, rb->ino, (unsigned long long)rb->blkoff);
-+		       err, (unsigned long)rb->ino,
-+		       (unsigned long long)rb->blkoff);
- 		if (!err2)
- 			err2 = err;
-  next:
+diff -puN drivers/mtd/onenand/Kconfig~mtd-make-onenand-genericc-more-generic-fix drivers/mtd/onenand/Kconfig
+--- a/drivers/mtd/onenand/Kconfig~mtd-make-onenand-genericc-more-generic-fix
++++ a/drivers/mtd/onenand/Kconfig
+@@ -5,6 +5,7 @@
+ menuconfig MTD_ONENAND
+ 	tristate "OneNAND Device Support"
+ 	depends on MTD
++	select MTD_PARTITIONS
+ 	help
+ 	  This enables support for accessing all type of OneNAND flash
+ 	  devices. For further information see
+@@ -65,7 +66,6 @@ config MTD_ONENAND_2X_PROGRAM
+ 
+ config MTD_ONENAND_SIM
+ 	tristate "OneNAND simulator support"
+-	depends on MTD_PARTITIONS
+ 	help
+ 	  The simulator may simulate various OneNAND flash chips for the
+ 	  OneNAND MTD layer.
 _
 
-Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
+Patches currently in -mm which might be from lethal@linux-sh.org are
 
 linux-next.patch
-poll-select-avoid-arithmetic-overflow-in-__estimate_accuracy.patch
-ext2-fix-format-string-compile-warning-ino_t.patch
+mtd-make-onenand-genericc-more-generic.patch
+arches-drop-superfluous-casts-in-nr_free_pages-callers.patch
+mmc-make-the-configuration-memory-resource-optional.patch
+tmio_mmc-optionally-support-using-platform-clock.patch
+sh-switch-migo-r-to-use-the-tmio-mmc-driver-instead-of-spi.patch
+fdpic-ignore-the-loaders-pt_gnu_stack-when-calculating-the-stack-size.patch
+flat-use-is_err_value-helper-macro.patch
 
