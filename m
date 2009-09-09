@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + tmpfs-depend-on-shmem.patch added to -mm tree
-Date: Wed, 09 Sep 2009 15:14:22 -0700
-Message-ID: <200909092214.n89MEMZl001537@imap1.linux-foundation.org>
+Subject: + binfmt_elf-fix-pt_interp-bss-handling.patch added to -mm tree
+Date: Wed, 09 Sep 2009 15:34:57 -0700
+Message-ID: <200909092234.n89MYv58009040@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33904 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39246 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751434AbZIIWOe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2009 18:14:34 -0400
+	by vger.kernel.org with ESMTP id S1751122AbZIIWgB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2009 18:36:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hugh.dickins@tiscali.co.uk, mpm@selenic.com
+Cc: roland@redhat.com, dhowells@redhat.com, jmorris@namei.org, jreiser@bitwagon.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     tmpfs: depend on shmem
+     binfmt_elf: fix PT_INTERP bss handling
 has been added to the -mm tree.  Its filename is
-     tmpfs-depend-on-shmem.patch
+     binfmt_elf-fix-pt_interp-bss-handling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,150 +33,121 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tmpfs: depend on shmem
-From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Subject: binfmt_elf: fix PT_INTERP bss handling
+From: Roland McGrath <roland@redhat.com>
 
-CONFIG_SHMEM off gives you (ramfs masquerading as) tmpfs, even when
-CONFIG_TMPFS is off: that's a little anomalous, and I'd intended to make
-more sense of it by removing CONFIG_TMPFS altogether, always enabling its
-code when CONFIG_SHMEM; but so many defconfigs have CONFIG_SHMEM on
-CONFIG_TMPFS off that we'd better leave that as is.
+In fs/binfmt_elf.c, load_elf_interp() calls padzero() for .bss even if the
+PT_LOAD has no PROT_WRITE and no .bss.  This generates EFAULT.
 
-But there is no point in asking for CONFIG_TMPFS if CONFIG_SHMEM is off:
-make TMPFS depend on SHMEM, which also prevents TMPFS_POSIX_ACL
-shmem_acl.o being pointlessly built into the kernel when SHMEM is off.
+Here is a small test case.  (Yes, there are other, useful PT_INTERP which
+have only .text and no .data/.bss.)
 
-And a selfish change, to prevent the world from being rebuilt when I
-switch between CONFIG_SHMEM on and off: the only CONFIG_SHMEM in the
-header files is mm.h shmem_lock() - give that a shmem.c stub instead.
+	----- ptinterp.S
+	_start: .globl _start
+		 nop
+		 int3
+	-----
+	$ gcc -m32 -nostartfiles -nostdlib -o ptinterp ptinterp.S
+	$ gcc -m32 -Wl,--dynamic-linker=ptinterp -o hello hello.c
+	$ ./hello
+	Segmentation fault  # during execve() itself
 
-Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Acked-by: Matt Mackall <mpm@selenic.com>
+	After applying the patch:
+	$ ./hello
+	Trace trap  # user-mode execution after execve() finishes
+
+If the ELF headers are actually self-inconsistent, then dying is fine. 
+But having no PROT_WRITE segment is perfectly normal and correct if there
+is no segment with p_memsz > p_filesz (i.e.  bss).  John Reiser suggested
+checking for PROT_WRITE in the bss logic.  I think it makes most sense to
+simply apply the bss logic only when there is bss.
+
+This patch looks less trivial than it is due to some reindentation.  It
+just moves the "if (last_bss > elf_bss) {" test up to include the
+partial-page bss logic as well as the more-pages bss logic.
+
+Reported-by: John Reiser <jreiser@bitwagon.com>
+Signed-off-by: Roland McGrath <roland@redhat.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: James Morris <jmorris@namei.org>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig         |    1 +
- include/linux/mm.h |   11 +----------
- mm/shmem.c         |    5 +++++
- 3 files changed, 7 insertions(+), 10 deletions(-)
+ fs/binfmt_elf.c |   28 ++++++++++++++--------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
 
-diff -puN fs/Kconfig~tmpfs-depend-on-shmem fs/Kconfig
---- a/fs/Kconfig~tmpfs-depend-on-shmem
-+++ a/fs/Kconfig
-@@ -109,6 +109,7 @@ source "fs/sysfs/Kconfig"
+diff -puN fs/binfmt_elf.c~binfmt_elf-fix-pt_interp-bss-handling fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~binfmt_elf-fix-pt_interp-bss-handling
++++ a/fs/binfmt_elf.c
+@@ -501,22 +501,22 @@ static unsigned long load_elf_interp(str
+ 		}
+ 	}
  
- config TMPFS
- 	bool "Virtual memory file system support (former shm fs)"
-+	depends on SHMEM
- 	help
- 	  Tmpfs is a file system which keeps all files in virtual memory.
+-	/*
+-	 * Now fill out the bss section.  First pad the last page up
+-	 * to the page boundary, and then perform a mmap to make sure
+-	 * that there are zero-mapped pages up to and including the 
+-	 * last bss page.
+-	 */
+-	if (padzero(elf_bss)) {
+-		error = -EFAULT;
+-		goto out_close;
+-	}
++	if (last_bss > elf_bss) {
++		/*
++		 * Now fill out the bss section.  First pad the last page up
++		 * to the page boundary, and then perform a mmap to make sure
++		 * that there are zero-mapped pages up to and including the
++		 * last bss page.
++		 */
++		if (padzero(elf_bss)) {
++			error = -EFAULT;
++			goto out_close;
++		}
  
-diff -puN include/linux/mm.h~tmpfs-depend-on-shmem include/linux/mm.h
---- a/include/linux/mm.h~tmpfs-depend-on-shmem
-+++ a/include/linux/mm.h
-@@ -703,17 +703,8 @@ extern void pagefault_out_of_memory(void
+-	/* What we have mapped so far */
+-	elf_bss = ELF_PAGESTART(elf_bss + ELF_MIN_ALIGN - 1);
++		/* What we have mapped so far */
++		elf_bss = ELF_PAGESTART(elf_bss + ELF_MIN_ALIGN - 1);
  
- extern void show_free_areas(void);
- 
--#ifdef CONFIG_SHMEM
--extern int shmem_lock(struct file *file, int lock, struct user_struct *user);
--#else
--static inline int shmem_lock(struct file *file, int lock,
--			    struct user_struct *user)
--{
--	return 0;
--}
--#endif
-+int shmem_lock(struct file *file, int lock, struct user_struct *user);
- struct file *shmem_file_setup(const char *name, loff_t size, unsigned long flags);
--
- int shmem_zero_setup(struct vm_area_struct *);
- 
- #ifndef CONFIG_MMU
-diff -puN mm/shmem.c~tmpfs-depend-on-shmem mm/shmem.c
---- a/mm/shmem.c~tmpfs-depend-on-shmem
-+++ a/mm/shmem.c
-@@ -2596,6 +2596,11 @@ int shmem_unuse(swp_entry_t entry, struc
- 	return 0;
- }
- 
-+int shmem_lock(struct file *file, int lock, struct user_struct *user)
-+{
-+	return 0;
-+}
-+
- #define shmem_vm_ops				generic_file_vm_ops
- #define shmem_file_operations			ramfs_file_operations
- #define shmem_get_inode(sb, mode, dev, flags)	ramfs_get_inode(sb, mode, dev)
+-	/* Map the last of the bss segment */
+-	if (last_bss > elf_bss) {
++		/* Map the last of the bss segment */
+ 		down_write(&current->mm->mmap_sem);
+ 		error = do_brk(elf_bss, last_bss - elf_bss);
+ 		up_write(&current->mm->mmap_sem);
 _
 
-Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
+Patches currently in -mm which might be from roland@redhat.com are
 
 linux-next.patch
-acpi-fix-null-bug-for-hid-uid-string-2.patch
-vfs-optimize-touch_time-too-fix.patch
-fs-new-truncate-helpers.patch
-fs-use-new-truncate-helpers.patch
-fs-introduce-new-truncate-sequence.patch
-fs-convert-simple-fs-to-new-truncate.patch
-tmpfs-convert-to-use-the-new-truncate-convention.patch
-ext2-convert-to-use-the-new-truncate-convention.patch
-fat-convert-to-use-the-new-truncate-convention.patch
-btrfs-convert-to-use-the-new-truncate-convention.patch
-jfs-convert-to-use-the-new-truncate-convention.patch
-udf-convert-to-use-the-new-truncate-convention.patch
-minix-convert-to-use-the-new-truncate-convention.patch
-vfs-seq_file-add-helpers-for-data-filling.patch
-vfs-revert-proc-mounts-to-old-behavior-for-unreachable-mountpoints.patch
-vfs-no-unreachable-prefix-for-sysvipc-maps-in-proc-pid-maps.patch
-mm-oom-analysis-add-shmem-vmstat.patch
-ksm-add-mmu_notifier-set_pte_at_notify.patch
-ksm-first-tidy-up-madvise_vma.patch
-ksm-define-madv_mergeable-and-madv_unmergeable.patch
-ksm-the-mm-interface-to-ksm.patch
-ksm-no-debug-in-page_dup_rmap.patch
-ksm-identify-pageksm-pages.patch
-ksm-kernel-samepage-merging.patch
-ksm-prevent-mremap-move-poisoning.patch
-ksm-change-copyright-message.patch
-ksm-change-ksm-nice-level-to-be-5.patch
-ksm-rename-kernel_pages_allocated.patch
-ksm-move-pages_sharing-updates.patch
-ksm-pages_unshared-and-pages_volatile.patch
-ksm-break-cow-once-unshared.patch
-ksm-keep-quiet-while-list-empty.patch
-ksm-five-little-cleanups.patch
-ksm-fix-endless-loop-on-oom.patch
-ksm-distribute-remove_mm_from_lists.patch
-ksm-fix-oom-deadlock.patch
-ksm-fix-deadlock-with-munlock-in-exit_mmap.patch
-ksm-sysfs-and-defaults.patch
-ksm-add-some-documentation.patch
-ksm-remove-vm_mergeable_flags.patch
-ksm-clean-up-obsolete-references.patch
-ksm-unmerge-is-an-origin-of-ooms.patch
-ksm-mremap-use-err-from-ksm_madvise.patch
-mm-add_to_swap_cache-must-not-sleep.patch
-mm-add_to_swap_cache-does-not-return-eexist.patch
-mm-includecheck-fix-for-mm-shmemc.patch
-mm-introduce-page_lru_base_type-fix.patch
-mm-replace-various-uses-of-num_physpages-by-totalram_pages.patch
-hugetlbfs-allow-the-creation-of-files-suitable-for-map_private-on-the-vfs-internal-mount.patch
-hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions.patch
-hugetlb-add-map_hugetlb-example.patch
-mm-munlock-use-follow_page.patch
-mm-remove-unused-gup-flags.patch
-mm-add-get_dump_page.patch
-mm-foll_dump-replace-foll_anon.patch
-mm-follow_hugetlb_page-flags.patch
-mm-fix-anonymous-dirtying.patch
-mm-reinstate-zero_page.patch
-mm-foll-flags-for-gup-flags.patch
-mmap-remove-unnecessary-code.patch
-tmpfs-depend-on-shmem.patch
-getrusage-fill-ru_maxrss-value.patch
-getrusage-fill-ru_maxrss-value-update.patch
-ramfs-move-ramfs_magic-to-include-linux-magich.patch
-memory-controller-soft-limit-organize-cgroups-v9-fix.patch
-prio_tree-debugging-patch.patch
+kconfig-cross_compile-option.patch
+proc_flush_task-flush-proc-tid-task-pid-when-a-sub-thread-exits.patch
+binfmt_elf-fix-pt_interp-bss-handling.patch
+ptrace-__ptrace_detach-do-__wake_up_parent-if-we-reap-the-tracee.patch
+do_wait-wakeup-optimization-shift-security_task_wait-from-eligible_child-to-wait_consider_task.patch
+do_wait-wakeup-optimization-change-__wake_up_parent-to-use-filtered-wakeup.patch
+do_wait-wakeup-optimization-change-__wake_up_parent-to-use-filtered-wakeup-selinux_bprm_committed_creds-use-__wake_up_parent.patch
+do_wait-wakeup-optimization-child_wait_callback-check-__wnothread-case.patch
+do_wait-wakeup-optimization-fix-child_wait_callback-eligible_child-usage.patch
+do_wait-wakeup-optimization-simplify-task_pid_type.patch
+do_wait-optimization-do-not-place-sub-threads-on-task_struct-children-list.patch
+wait_consider_task-kill-parent-argument.patch
+do_wait-fix-sys_waitid-specific-behaviour.patch
+wait_noreap_copyout-check-for-wo_info-=-null.patch
+signals-introduce-do_send_sig_info-helper.patch
+signals-send_sigio-use-do_send_sig_info-to-avoid-check_kill_permission.patch
+fcntl-add-f_etown_ex.patch
+signals-inline-__fatal_signal_pending.patch
+signals-tracehook_notify_jctl-change.patch
+signals-tracehook_notify_jctl-change-do_signal_stop-do-not-call-tracehook_notify_jctl-in-task_stopped-state.patch
+signals-introduce-tracehook_finish_jctl-helper.patch
+utrace-core.patch
+exec-fix-set_binfmt-vs-sys_delete_module-race.patch
+elf-clean-up-fill_note_info.patch
+elf-clean-up-fill_note_info-fix.patch
+fork-disable-clone_parent-for-init.patch
+pidns-deny-clone_parentclone_newpid-combination.patch
+task_struct-cleanup-move-binfmt-field-to-mm_struct.patch
 
