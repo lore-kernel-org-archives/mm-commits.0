@@ -1,77 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-add-atheros-linux-wireless-drivers-home-page.patch removed from -mm tree
-Date: Wed, 09 Sep 2009 12:55:59 -0700
-Message-ID: <200909091956.n89Jtxfw025135@imap1.linux-foundation.org>
+Subject: + memory-controller-soft-limit-reclaim-on-contention-v9-fix-softlimit-css-refcnt-handling-fix.patch added to -mm tree
+Date: Wed, 09 Sep 2009 13:22:01 -0700
+Message-ID: <200909092022.n89KM1Kx010617@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38616 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48204 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752823AbZIIT4l (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2009 15:56:41 -0400
+	by vger.kernel.org with ESMTP id S1752576AbZIIUWP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2009 16:22:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, linville@tuxdriver.com, mcgrof@gmail.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: nishimura@mxp.nes.nec.co.jp, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, lizf@cn.fujitsu.com
 
 
 The patch titled
-     MAINTAINERS: add Atheros Linux wireless drivers home page
-has been removed from the -mm tree.  Its filename was
-     maintainers-add-atheros-linux-wireless-drivers-home-page.patch
+     memory-controller-soft-limit-reclaim-on-contention-v9-fix-softlimit-css-refcnt-handling-fix
+has been added to the -mm tree.  Its filename is
+     memory-controller-soft-limit-reclaim-on-contention-v9-fix-softlimit-css-refcnt-handling-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: add Atheros Linux wireless drivers home page
-From: Joe Perches <joe@perches.com>
+Subject: memory-controller-soft-limit-reclaim-on-contention-v9-fix-softlimit-css-refcnt-handling-fix
+From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: "Luis R. Rodriguez" <mcgrof@gmail.com>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+refcount of the "victim" should be decremented before exiting the loop.
+
+Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/memcontrol.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-add-atheros-linux-wireless-drivers-home-page MAINTAINERS
---- a/MAINTAINERS~maintainers-add-atheros-linux-wireless-drivers-home-page
-+++ a/MAINTAINERS
-@@ -922,6 +922,7 @@ M:	"Luis R. Rodriguez" <lrodriguez@ather
- M:	Bob Copeland <me@bobcopeland.com>
- L:	linux-wireless@vger.kernel.org
- L:	ath5k-devel@lists.ath5k.org
-+W:	http://wireless.kernel.org/en/users/Drivers/ath5k
- S:	Maintained
- F:	drivers/net/wireless/ath/ath5k/
- 
-@@ -933,6 +934,7 @@ M:	Vasanthakumar Thiagarajan <vasanth@at
- M:	Senthil Balasubramanian <senthilkumar@atheros.com>
- L:	linux-wireless@vger.kernel.org
- L:	ath9k-devel@lists.ath9k.org
-+W:	http://wireless.kernel.org/en/users/Drivers/ath9k
- S:	Supported
- F:	drivers/net/wireless/ath/ath9k/
- 
+diff -puN mm/memcontrol.c~memory-controller-soft-limit-reclaim-on-contention-v9-fix-softlimit-css-refcnt-handling-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~memory-controller-soft-limit-reclaim-on-contention-v9-fix-softlimit-css-refcnt-handling-fix
++++ a/mm/memcontrol.c
+@@ -1133,8 +1133,10 @@ static int mem_cgroup_hierarchical_recla
+ 				 * anything, it might because there are
+ 				 * no reclaimable pages under this hierarchy
+ 				 */
+-				if (!check_soft || !total)
++				if (!check_soft || !total) {
++					css_put(&victim->css);
+ 					break;
++				}
+ 				/*
+ 				 * We want to do more targetted reclaim.
+ 				 * excess >> 2 is not to excessive so as to
+@@ -1142,8 +1144,10 @@ static int mem_cgroup_hierarchical_recla
+ 				 * coming back to reclaim from this cgroup
+ 				 */
+ 				if (total >= (excess >> 2) ||
+-					(loop > MEM_CGROUP_MAX_RECLAIM_LOOPS))
++					(loop > MEM_CGROUP_MAX_RECLAIM_LOOPS)) {
++					css_put(&victim->css);
+ 					break;
++				}
+ 			}
+ 		}
+ 		if (!mem_cgroup_local_usage(&victim->stat)) {
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
 
-linux-next.patch
-maintainers-add-ipvs-include-files.patch
-scripts-get_maintainerpl-add-git-blame.patch
-scripts-get_maintainerpl-add-sections-in-pattern-match-depth-order.patch
-scripts-get_maintainerpl-add-pattern-depth.patch
-scripts-get_maintainerpl-better-email-routines-use-perl-not-shell-where-possible.patch
-scripts-get_maintainerpl-add-mailmap-use-shell-and-email-cleanups.patch
-scripts-get_maintainerpl-using-separator-implies-nomultiline.patch
-scripts-get_maintainerpl-add-remove-duplicates.patch
-scripts-get_maintainerpl-add-maintainers-in-order-listed-in-matched-section.patch
-mmc-msm_sdccc-driver-for-htc-dream.patch
-msm_sdccc-convert-printkkern_level-to-pr_level.patch
-msm_sdccc-stylistic-cleaning.patch
-msm_sdccc-move-overly-indented-code-to-separate-function.patch
-ncpfs-remove-dead-url-from-documentation.patch
-maintainers-add-matt-mackall-and-herbert-xu-to-hardware-random-number-generator.patch
+mm-add_to_swap_cache-must-not-sleep.patch
+mm-add_to_swap_cache-does-not-return-eexist.patch
+mm-add_to_swap_cache-does-not-return-eexist-fix.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup-fix-2.patch
+memcg-add-comments-explaining-memory-barriers.patch
+memory-controller-soft-limit-reclaim-on-contention-v9-fix-softlimit-css-refcnt-handling.patch
+memory-controller-soft-limit-reclaim-on-contention-v9-fix-softlimit-css-refcnt-handling-fix.patch
+memcg-improve-resource-counter-scalability.patch
+memcg-improve-resource-counter-scalability-v5.patch
+memcg-show-swap-usage-in-stat-file.patch
+memcg-show-swap-usage-in-stat-file-fix.patch
 
