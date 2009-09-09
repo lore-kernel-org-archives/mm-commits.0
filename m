@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + ksm-clean-up-obsolete-references.patch added to -mm tree
-Date: Tue, 08 Sep 2009 22:40:45 -0700
-Message-ID: <200909090540.n895ejUs022715@imap1.linux-foundation.org>
+Subject: + ksm-mremap-use-err-from-ksm_madvise.patch added to -mm tree
+Date: Tue, 08 Sep 2009 22:40:50 -0700
+Message-ID: <200909090540.n895eoBE022908@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39341 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33331 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750721AbZIIFlC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2009 01:41:02 -0400
+	by vger.kernel.org with ESMTP id S1750815AbZIIFlE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2009 01:41:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: hugh.dickins@tiscali.co.uk, aarcange@redhat.com, ieidus@redhat.com
 
 
 The patch titled
-     ksm: clean up obsolete references
+     ksm: mremap use err from ksm_madvise
 has been added to the -mm tree.  Its filename is
-     ksm-clean-up-obsolete-references.patch
+     ksm-mremap-use-err-from-ksm_madvise.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,12 +33,13 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ksm: clean up obsolete references
+Subject: ksm: mremap use err from ksm_madvise
 From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
-A few cleanups, given the munlock fix: the comment on ksm_test_exit() no
-longer applies, and it can be made private to ksm.c; there's no more
-reference to mmu_gather or tlb.h, and mmap.c doesn't need ksm.h.
+mremap move's use of ksm_madvise() was assuming -ENOMEM on failure,
+because ksm_madvise used to say -EAGAIN for that; but ksm_madvise now says
+-ENOMEM (letting madvise convert that to -EAGAIN), and can also say
+-ERESTARTSYS when signalled: so pass the error from ksm_madvise.
 
 Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Acked-by: Izik Eidus <ieidus@redhat.com>
@@ -46,97 +47,34 @@ Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ksm.h |   20 --------------------
- mm/ksm.c            |   14 +++++++++++++-
- mm/mmap.c           |    1 -
- 3 files changed, 13 insertions(+), 22 deletions(-)
+ mm/mremap.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/ksm.h~ksm-clean-up-obsolete-references include/linux/ksm.h
---- a/include/linux/ksm.h~ksm-clean-up-obsolete-references
-+++ a/include/linux/ksm.h
-@@ -12,8 +12,6 @@
- #include <linux/sched.h>
- #include <linux/vmstat.h>
+diff -puN mm/mremap.c~ksm-mremap-use-err-from-ksm_madvise mm/mremap.c
+--- a/mm/mremap.c~ksm-mremap-use-err-from-ksm_madvise
++++ a/mm/mremap.c
+@@ -175,6 +175,7 @@ static unsigned long move_vma(struct vm_
+ 	unsigned long excess = 0;
+ 	unsigned long hiwater_vm;
+ 	int split = 0;
++	int err;
  
--struct mmu_gather;
--
- #ifdef CONFIG_KSM
- int ksm_madvise(struct vm_area_struct *vma, unsigned long start,
- 		unsigned long end, int advice, unsigned long *vm_flags);
-@@ -27,19 +25,6 @@ static inline int ksm_fork(struct mm_str
- 	return 0;
- }
+ 	/*
+ 	 * We'd prefer to avoid failure later on in do_munmap:
+@@ -190,9 +191,10 @@ static unsigned long move_vma(struct vm_
+ 	 * pages recently unmapped.  But leave vma->vm_flags as it was,
+ 	 * so KSM can come around to merge on vma and new_vma afterwards.
+ 	 */
+-	if (ksm_madvise(vma, old_addr, old_addr + old_len,
+-						MADV_UNMERGEABLE, &vm_flags))
+-		return -ENOMEM;
++	err = ksm_madvise(vma, old_addr, old_addr + old_len,
++						MADV_UNMERGEABLE, &vm_flags);
++	if (err)
++		return err;
  
--/*
-- * For KSM to handle OOM without deadlock when it's breaking COW in a
-- * likely victim of the OOM killer, exit_mmap() has to serialize with
-- * ksm_exit() after freeing mm's pages but before freeing its page tables.
-- * That leaves a window in which KSM might refault pages which have just
-- * been finally unmapped: guard against that with ksm_test_exit(), and
-- * use it after getting mmap_sem in ksm.c, to check if mm is exiting.
-- */
--static inline bool ksm_test_exit(struct mm_struct *mm)
--{
--	return atomic_read(&mm->mm_users) == 0;
--}
--
- static inline void ksm_exit(struct mm_struct *mm)
- {
- 	if (test_bit(MMF_VM_MERGEABLE, &mm->flags))
-@@ -79,11 +64,6 @@ static inline int ksm_fork(struct mm_str
- 	return 0;
- }
- 
--static inline bool ksm_test_exit(struct mm_struct *mm)
--{
--	return 0;
--}
--
- static inline void ksm_exit(struct mm_struct *mm)
- {
- }
-diff -puN mm/ksm.c~ksm-clean-up-obsolete-references mm/ksm.c
---- a/mm/ksm.c~ksm-clean-up-obsolete-references
-+++ a/mm/ksm.c
-@@ -32,7 +32,6 @@
- #include <linux/mmu_notifier.h>
- #include <linux/ksm.h>
- 
--#include <asm/tlb.h>
- #include <asm/tlbflush.h>
- 
- /*
-@@ -285,6 +284,19 @@ static inline int in_stable_tree(struct 
- }
- 
- /*
-+ * ksmd, and unmerge_and_remove_all_rmap_items(), must not touch an mm's
-+ * page tables after it has passed through ksm_exit() - which, if necessary,
-+ * takes mmap_sem briefly to serialize against them.  ksm_exit() does not set
-+ * a special flag: they can just back out as soon as mm_users goes to zero.
-+ * ksm_test_exit() is used throughout to make this test for exit: in some
-+ * places for correctness, in some places just to avoid unnecessary work.
-+ */
-+static inline bool ksm_test_exit(struct mm_struct *mm)
-+{
-+	return atomic_read(&mm->mm_users) == 0;
-+}
-+
-+/*
-  * We use break_ksm to break COW on a ksm page: it's a stripped down
-  *
-  *	if (get_user_pages(current, mm, addr, 1, 1, 1, &page, NULL) == 1)
-diff -puN mm/mmap.c~ksm-clean-up-obsolete-references mm/mmap.c
---- a/mm/mmap.c~ksm-clean-up-obsolete-references
-+++ a/mm/mmap.c
-@@ -27,7 +27,6 @@
- #include <linux/mount.h>
- #include <linux/mempolicy.h>
- #include <linux/rmap.h>
--#include <linux/ksm.h>
- #include <linux/mmu_notifier.h>
- #include <linux/perf_counter.h>
- 
+ 	new_pgoff = vma->vm_pgoff + ((old_addr - vma->vm_start) >> PAGE_SHIFT);
+ 	new_vma = copy_vma(&vma, new_addr, new_len, new_pgoff);
 _
 
 Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
