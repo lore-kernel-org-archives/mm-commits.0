@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + hwmon-driver-for-acpi-40-power-meters-fix.patch added to -mm tree
-Date: Wed, 09 Sep 2009 15:13:14 -0700
-Message-ID: <200909092213.n89MDEgS031879@imap1.linux-foundation.org>
+Subject: + tmpfs-depend-on-shmem.patch added to -mm tree
+Date: Wed, 09 Sep 2009 15:14:22 -0700
+Message-ID: <200909092214.n89MEMZl001537@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48546 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33904 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754454AbZIIWON (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2009 18:14:13 -0400
+	by vger.kernel.org with ESMTP id S1751434AbZIIWOe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2009 18:14:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, djwong@us.ibm.com, lenb@kernel.org, pavel@ucw.cz, rui.zhang@intel.com
+Cc: hugh.dickins@tiscali.co.uk, mpm@selenic.com
 
 
 The patch titled
-     hwmon-driver-for-acpi-40-power-meters-fix
+     tmpfs: depend on shmem
 has been added to the -mm tree.  Its filename is
-     hwmon-driver-for-acpi-40-power-meters-fix.patch
+     tmpfs-depend-on-shmem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,110 +33,150 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hwmon-driver-for-acpi-40-power-meters-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: tmpfs: depend on shmem
+From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
-defaults are eveil ;)
+CONFIG_SHMEM off gives you (ramfs masquerading as) tmpfs, even when
+CONFIG_TMPFS is off: that's a little anomalous, and I'd intended to make
+more sense of it by removing CONFIG_TMPFS altogether, always enabling its
+code when CONFIG_SHMEM; but so many defconfigs have CONFIG_SHMEM on
+CONFIG_TMPFS off that we'd better leave that as is.
 
-Cc: Darrick J. Wong <djwong@us.ibm.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Zhang Rui <rui.zhang@intel.com>
+But there is no point in asking for CONFIG_TMPFS if CONFIG_SHMEM is off:
+make TMPFS depend on SHMEM, which also prevents TMPFS_POSIX_ACL
+shmem_acl.o being pointlessly built into the kernel when SHMEM is off.
+
+And a selfish change, to prevent the world from being rebuilt when I
+switch between CONFIG_SHMEM on and off: the only CONFIG_SHMEM in the
+header files is mm.h shmem_lock() - give that a shmem.c stub instead.
+
+Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Acked-by: Matt Mackall <mpm@selenic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/Kconfig |    1 -
- 1 file changed, 1 deletion(-)
+ fs/Kconfig         |    1 +
+ include/linux/mm.h |   11 +----------
+ mm/shmem.c         |    5 +++++
+ 3 files changed, 7 insertions(+), 10 deletions(-)
 
-diff -puN drivers/acpi/Kconfig~hwmon-driver-for-acpi-40-power-meters-fix drivers/acpi/Kconfig
---- a/drivers/acpi/Kconfig~hwmon-driver-for-acpi-40-power-meters-fix
-+++ a/drivers/acpi/Kconfig
-@@ -89,7 +89,6 @@ config ACPI_PROCFS_POWER
- config ACPI_POWER_METER
- 	tristate "ACPI 4.0 power meter"
- 	depends on HWMON
--	default y
+diff -puN fs/Kconfig~tmpfs-depend-on-shmem fs/Kconfig
+--- a/fs/Kconfig~tmpfs-depend-on-shmem
++++ a/fs/Kconfig
+@@ -109,6 +109,7 @@ source "fs/sysfs/Kconfig"
+ 
+ config TMPFS
+ 	bool "Virtual memory file system support (former shm fs)"
++	depends on SHMEM
  	help
- 	  This driver exposes ACPI 4.0 power meters as hardware monitoring
- 	  devices.  Say Y (or M) if you have a computer with ACPI 4.0 firmware
+ 	  Tmpfs is a file system which keeps all files in virtual memory.
+ 
+diff -puN include/linux/mm.h~tmpfs-depend-on-shmem include/linux/mm.h
+--- a/include/linux/mm.h~tmpfs-depend-on-shmem
++++ a/include/linux/mm.h
+@@ -703,17 +703,8 @@ extern void pagefault_out_of_memory(void
+ 
+ extern void show_free_areas(void);
+ 
+-#ifdef CONFIG_SHMEM
+-extern int shmem_lock(struct file *file, int lock, struct user_struct *user);
+-#else
+-static inline int shmem_lock(struct file *file, int lock,
+-			    struct user_struct *user)
+-{
+-	return 0;
+-}
+-#endif
++int shmem_lock(struct file *file, int lock, struct user_struct *user);
+ struct file *shmem_file_setup(const char *name, loff_t size, unsigned long flags);
+-
+ int shmem_zero_setup(struct vm_area_struct *);
+ 
+ #ifndef CONFIG_MMU
+diff -puN mm/shmem.c~tmpfs-depend-on-shmem mm/shmem.c
+--- a/mm/shmem.c~tmpfs-depend-on-shmem
++++ a/mm/shmem.c
+@@ -2596,6 +2596,11 @@ int shmem_unuse(swp_entry_t entry, struc
+ 	return 0;
+ }
+ 
++int shmem_lock(struct file *file, int lock, struct user_struct *user)
++{
++	return 0;
++}
++
+ #define shmem_vm_ops				generic_file_vm_ops
+ #define shmem_file_operations			ramfs_file_operations
+ #define shmem_get_inode(sb, mode, dev, flags)	ramfs_get_inode(sb, mode, dev)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
 
-origin.patch
-fs-make-sure-data-stored-into-inode-is-properly-seen-before-unlocking-new-inode-fix.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-hwmon-driver-for-acpi-40-power-meters-fix.patch
-video-initial-support-for-adv7180-update-fix.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-checkincludespl-add-option-to-remove-duplicates-in-place.patch
-zorro8390-fix-read-buffer-overflow-in-zorro8390_init_one-checkpatch-fixes.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-serial167-fix-read-buffer-overflow.patch
-waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes-checkpatch-fixes.patch
-st-fix-test-of-value-range-in-st_set_options-fix.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
-vfs-optimize-touch_time-too.patch
-fs-improve-remountro-vs-buffercache-coherency-fix.patch
-mm-make-swap-token-dummies-static-inlines-fix.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
-revert-hugetlb-restore-interleaving-of-bootmem-huge-pages-2631.patch
-vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
-revert-proc-kcore-work-around-a-bug.patch
-arches-drop-superfluous-casts-in-nr_free_pages-callers-checkpatch-fixes.patch
-tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists-fix.patch
-page-allocator-maintain-rolling-count-of-pages-to-free-from-the-pcp-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
-generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
-proc-connector-add-event-for-process-becoming-session-leader.patch
-kernel-smpc-relocate-some-code.patch
-mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
-sdio-add-cd-disable-support-cleanup.patch
-sdio-add-mmc_quirk_lenient_fn0-fix.patch
-at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver-checkpatch-fixes.patch
-procfs-provide-stack-information-for-threads-v011-fix.patch
-kcore-register-vmemmap-range-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
-rtc-philips-nxp-pcf2123-driver-v03-fix.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes-fix.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
-drivers-video-add-kmalloc-null-tests-fix.patch
-v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
-page-types-add-feature-for-walking-process-address-space-checkpatch-fixes.patch
-cgroups-add-functionality-to-read-write-lock-clone_thread-forking-per-threadgroup-fix.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
-memcg-improve-resource-counter-scalability-checkpatch-fixes.patch
-exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
-exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
-elf-clean-up-fill_note_info-fix.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+acpi-fix-null-bug-for-hid-uid-string-2.patch
+vfs-optimize-touch_time-too-fix.patch
+fs-new-truncate-helpers.patch
+fs-use-new-truncate-helpers.patch
+fs-introduce-new-truncate-sequence.patch
+fs-convert-simple-fs-to-new-truncate.patch
+tmpfs-convert-to-use-the-new-truncate-convention.patch
+ext2-convert-to-use-the-new-truncate-convention.patch
+fat-convert-to-use-the-new-truncate-convention.patch
+btrfs-convert-to-use-the-new-truncate-convention.patch
+jfs-convert-to-use-the-new-truncate-convention.patch
+udf-convert-to-use-the-new-truncate-convention.patch
+minix-convert-to-use-the-new-truncate-convention.patch
+vfs-seq_file-add-helpers-for-data-filling.patch
+vfs-revert-proc-mounts-to-old-behavior-for-unreachable-mountpoints.patch
+vfs-no-unreachable-prefix-for-sysvipc-maps-in-proc-pid-maps.patch
+mm-oom-analysis-add-shmem-vmstat.patch
+ksm-add-mmu_notifier-set_pte_at_notify.patch
+ksm-first-tidy-up-madvise_vma.patch
+ksm-define-madv_mergeable-and-madv_unmergeable.patch
+ksm-the-mm-interface-to-ksm.patch
+ksm-no-debug-in-page_dup_rmap.patch
+ksm-identify-pageksm-pages.patch
+ksm-kernel-samepage-merging.patch
+ksm-prevent-mremap-move-poisoning.patch
+ksm-change-copyright-message.patch
+ksm-change-ksm-nice-level-to-be-5.patch
+ksm-rename-kernel_pages_allocated.patch
+ksm-move-pages_sharing-updates.patch
+ksm-pages_unshared-and-pages_volatile.patch
+ksm-break-cow-once-unshared.patch
+ksm-keep-quiet-while-list-empty.patch
+ksm-five-little-cleanups.patch
+ksm-fix-endless-loop-on-oom.patch
+ksm-distribute-remove_mm_from_lists.patch
+ksm-fix-oom-deadlock.patch
+ksm-fix-deadlock-with-munlock-in-exit_mmap.patch
+ksm-sysfs-and-defaults.patch
+ksm-add-some-documentation.patch
+ksm-remove-vm_mergeable_flags.patch
+ksm-clean-up-obsolete-references.patch
+ksm-unmerge-is-an-origin-of-ooms.patch
+ksm-mremap-use-err-from-ksm_madvise.patch
+mm-add_to_swap_cache-must-not-sleep.patch
+mm-add_to_swap_cache-does-not-return-eexist.patch
+mm-includecheck-fix-for-mm-shmemc.patch
+mm-introduce-page_lru_base_type-fix.patch
+mm-replace-various-uses-of-num_physpages-by-totalram_pages.patch
+hugetlbfs-allow-the-creation-of-files-suitable-for-map_private-on-the-vfs-internal-mount.patch
+hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions.patch
+hugetlb-add-map_hugetlb-example.patch
+mm-munlock-use-follow_page.patch
+mm-remove-unused-gup-flags.patch
+mm-add-get_dump_page.patch
+mm-foll_dump-replace-foll_anon.patch
+mm-follow_hugetlb_page-flags.patch
+mm-fix-anonymous-dirtying.patch
+mm-reinstate-zero_page.patch
+mm-foll-flags-for-gup-flags.patch
+mmap-remove-unnecessary-code.patch
+tmpfs-depend-on-shmem.patch
+getrusage-fill-ru_maxrss-value.patch
+getrusage-fill-ru_maxrss-value-update.patch
+ramfs-move-ramfs_magic-to-include-linux-magich.patch
+memory-controller-soft-limit-organize-cgroups-v9-fix.patch
+prio_tree-debugging-patch.patch
 
