@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-add-hctosys-sysfs-attribute.patch added to -mm tree
-Date: Tue, 08 Sep 2009 17:39:43 -0700
-Message-ID: <200909090039.n890dhnA024704@imap1.linux-foundation.org>
+Subject: + ksm-clean-up-obsolete-references.patch added to -mm tree
+Date: Tue, 08 Sep 2009 22:40:45 -0700
+Message-ID: <200909090540.n895ejUs022715@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41650 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39341 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751013AbZIIAkZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2009 20:40:25 -0400
+	by vger.kernel.org with ESMTP id S1750721AbZIIFlC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2009 01:41:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mjg59@srcf.ucam.org, a.zummo@towertech.it, broonie@opensource.wolfsonmicro.com, david-b@pacbell.net, mjg@redhat.com
+Cc: hugh.dickins@tiscali.co.uk, aarcange@redhat.com, ieidus@redhat.com
 
 
 The patch titled
-     rtc: add boot_timesource sysfs attribute
+     ksm: clean up obsolete references
 has been added to the -mm tree.  Its filename is
-     rtc-add-hctosys-sysfs-attribute.patch
+     ksm-clean-up-obsolete-references.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,73 +33,166 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: add boot_timesource sysfs attribute
-From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: ksm: clean up obsolete references
+From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
-CONFIG_RTC_HCTOSYS allows the kernel to read the system time from the RTC
-at boot and resume, avoiding the need for userspace to do so. 
-Unfortunately userspace currently has no way to know whether this
-configuration option is enabled and thus cannot sensibly choose whether to
-run hwclock itself or not.  Add a hctosys sysfs attribute which indicates
-whether a given RTC set the system clock.
+A few cleanups, given the munlock fix: the comment on ksm_test_exit() no
+longer applies, and it can be made private to ksm.c; there's no more
+reference to mmu_gather or tlb.h, and mmap.c doesn't need ksm.h.
 
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
-Acked-by: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: David Brownell <david-b@pacbell.net>
+Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Acked-by: Izik Eidus <ieidus@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/rtc.txt   |    2 ++
- drivers/rtc/rtc-sysfs.c |   14 ++++++++++++++
- 2 files changed, 16 insertions(+)
+ include/linux/ksm.h |   20 --------------------
+ mm/ksm.c            |   14 +++++++++++++-
+ mm/mmap.c           |    1 -
+ 3 files changed, 13 insertions(+), 22 deletions(-)
 
-diff -puN Documentation/rtc.txt~rtc-add-hctosys-sysfs-attribute Documentation/rtc.txt
---- a/Documentation/rtc.txt~rtc-add-hctosys-sysfs-attribute
-+++ a/Documentation/rtc.txt
-@@ -143,6 +143,8 @@ rtc attributes without requiring the use
- are in the RTC's timezone, rather than in system time.
+diff -puN include/linux/ksm.h~ksm-clean-up-obsolete-references include/linux/ksm.h
+--- a/include/linux/ksm.h~ksm-clean-up-obsolete-references
++++ a/include/linux/ksm.h
+@@ -12,8 +12,6 @@
+ #include <linux/sched.h>
+ #include <linux/vmstat.h>
  
- date:  	   	 RTC-provided date
-+hctosys:   	 1 if the RTC provided the system time at boot via the
-+		 CONFIG_RTC_HCTOSYS kernel option, 0 otherwise
- max_user_freq:	 The maximum interrupt rate an unprivileged user may request
- 		 from this RTC.
- name:		 The name of the RTC corresponding to this sysfs directory
-diff -puN drivers/rtc/rtc-sysfs.c~rtc-add-hctosys-sysfs-attribute drivers/rtc/rtc-sysfs.c
---- a/drivers/rtc/rtc-sysfs.c~rtc-add-hctosys-sysfs-attribute
-+++ a/drivers/rtc/rtc-sysfs.c
-@@ -102,6 +102,19 @@ rtc_sysfs_set_max_user_freq(struct devic
- 	return n;
+-struct mmu_gather;
+-
+ #ifdef CONFIG_KSM
+ int ksm_madvise(struct vm_area_struct *vma, unsigned long start,
+ 		unsigned long end, int advice, unsigned long *vm_flags);
+@@ -27,19 +25,6 @@ static inline int ksm_fork(struct mm_str
+ 	return 0;
  }
  
-+static ssize_t
-+rtc_sysfs_show_hctosys(struct device *dev, struct device_attribute *attr,
-+		char *buf)
+-/*
+- * For KSM to handle OOM without deadlock when it's breaking COW in a
+- * likely victim of the OOM killer, exit_mmap() has to serialize with
+- * ksm_exit() after freeing mm's pages but before freeing its page tables.
+- * That leaves a window in which KSM might refault pages which have just
+- * been finally unmapped: guard against that with ksm_test_exit(), and
+- * use it after getting mmap_sem in ksm.c, to check if mm is exiting.
+- */
+-static inline bool ksm_test_exit(struct mm_struct *mm)
+-{
+-	return atomic_read(&mm->mm_users) == 0;
+-}
+-
+ static inline void ksm_exit(struct mm_struct *mm)
+ {
+ 	if (test_bit(MMF_VM_MERGEABLE, &mm->flags))
+@@ -79,11 +64,6 @@ static inline int ksm_fork(struct mm_str
+ 	return 0;
+ }
+ 
+-static inline bool ksm_test_exit(struct mm_struct *mm)
+-{
+-	return 0;
+-}
+-
+ static inline void ksm_exit(struct mm_struct *mm)
+ {
+ }
+diff -puN mm/ksm.c~ksm-clean-up-obsolete-references mm/ksm.c
+--- a/mm/ksm.c~ksm-clean-up-obsolete-references
++++ a/mm/ksm.c
+@@ -32,7 +32,6 @@
+ #include <linux/mmu_notifier.h>
+ #include <linux/ksm.h>
+ 
+-#include <asm/tlb.h>
+ #include <asm/tlbflush.h>
+ 
+ /*
+@@ -285,6 +284,19 @@ static inline int in_stable_tree(struct 
+ }
+ 
+ /*
++ * ksmd, and unmerge_and_remove_all_rmap_items(), must not touch an mm's
++ * page tables after it has passed through ksm_exit() - which, if necessary,
++ * takes mmap_sem briefly to serialize against them.  ksm_exit() does not set
++ * a special flag: they can just back out as soon as mm_users goes to zero.
++ * ksm_test_exit() is used throughout to make this test for exit: in some
++ * places for correctness, in some places just to avoid unnecessary work.
++ */
++static inline bool ksm_test_exit(struct mm_struct *mm)
 +{
-+#ifdef CONFIG_RTC_HCTOSYS_DEVICE
-+	if (strcmp(dev_name(&to_rtc_device(dev)->dev),
-+		   CONFIG_RTC_HCTOSYS_DEVICE) == 0)
-+		return sprintf(buf, "1\n");
-+	else
-+#endif
-+		return sprintf(buf, "0\n");
++	return atomic_read(&mm->mm_users) == 0;
 +}
 +
- static struct device_attribute rtc_attrs[] = {
- 	__ATTR(name, S_IRUGO, rtc_sysfs_show_name, NULL),
- 	__ATTR(date, S_IRUGO, rtc_sysfs_show_date, NULL),
-@@ -109,6 +122,7 @@ static struct device_attribute rtc_attrs
- 	__ATTR(since_epoch, S_IRUGO, rtc_sysfs_show_since_epoch, NULL),
- 	__ATTR(max_user_freq, S_IRUGO | S_IWUSR, rtc_sysfs_show_max_user_freq,
- 			rtc_sysfs_set_max_user_freq),
-+	__ATTR(hctosys, S_IRUGO, rtc_sysfs_show_hctosys, NULL),
- 	{ },
- };
++/*
+  * We use break_ksm to break COW on a ksm page: it's a stripped down
+  *
+  *	if (get_user_pages(current, mm, addr, 1, 1, 1, &page, NULL) == 1)
+diff -puN mm/mmap.c~ksm-clean-up-obsolete-references mm/mmap.c
+--- a/mm/mmap.c~ksm-clean-up-obsolete-references
++++ a/mm/mmap.c
+@@ -27,7 +27,6 @@
+ #include <linux/mount.h>
+ #include <linux/mempolicy.h>
+ #include <linux/rmap.h>
+-#include <linux/ksm.h>
+ #include <linux/mmu_notifier.h>
+ #include <linux/perf_counter.h>
  
 _
 
-Patches currently in -mm which might be from mjg59@srcf.ucam.org are
+Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
 
-rtc-add-hctosys-sysfs-attribute.patch
+linux-next.patch
+acpi-fix-null-bug-for-hid-uid-string-2.patch
+vfs-optimize-touch_time-too-fix.patch
+fs-new-truncate-helpers.patch
+fs-use-new-truncate-helpers.patch
+fs-introduce-new-truncate-sequence.patch
+fs-convert-simple-fs-to-new-truncate.patch
+tmpfs-convert-to-use-the-new-truncate-convention.patch
+ext2-convert-to-use-the-new-truncate-convention.patch
+fat-convert-to-use-the-new-truncate-convention.patch
+btrfs-convert-to-use-the-new-truncate-convention.patch
+jfs-convert-to-use-the-new-truncate-convention.patch
+udf-convert-to-use-the-new-truncate-convention.patch
+minix-convert-to-use-the-new-truncate-convention.patch
+mm-oom-analysis-add-shmem-vmstat.patch
+ksm-add-mmu_notifier-set_pte_at_notify.patch
+ksm-first-tidy-up-madvise_vma.patch
+ksm-define-madv_mergeable-and-madv_unmergeable.patch
+ksm-the-mm-interface-to-ksm.patch
+ksm-no-debug-in-page_dup_rmap.patch
+ksm-identify-pageksm-pages.patch
+ksm-kernel-samepage-merging.patch
+ksm-prevent-mremap-move-poisoning.patch
+ksm-change-copyright-message.patch
+ksm-change-ksm-nice-level-to-be-5.patch
+ksm-rename-kernel_pages_allocated.patch
+ksm-move-pages_sharing-updates.patch
+ksm-pages_unshared-and-pages_volatile.patch
+ksm-break-cow-once-unshared.patch
+ksm-keep-quiet-while-list-empty.patch
+ksm-five-little-cleanups.patch
+ksm-fix-endless-loop-on-oom.patch
+ksm-distribute-remove_mm_from_lists.patch
+ksm-fix-oom-deadlock.patch
+ksm-fix-deadlock-with-munlock-in-exit_mmap.patch
+ksm-sysfs-and-defaults.patch
+ksm-add-some-documentation.patch
+ksm-remove-vm_mergeable_flags.patch
+ksm-clean-up-obsolete-references.patch
+ksm-unmerge-is-an-origin-of-ooms.patch
+ksm-mremap-use-err-from-ksm_madvise.patch
+mm-add_to_swap_cache-must-not-sleep.patch
+mm-add_to_swap_cache-does-not-return-eexist.patch
+mm-includecheck-fix-for-mm-shmemc.patch
+mm-introduce-page_lru_base_type-fix.patch
+mm-replace-various-uses-of-num_physpages-by-totalram_pages.patch
+hugetlbfs-allow-the-creation-of-files-suitable-for-map_private-on-the-vfs-internal-mount.patch
+hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions.patch
+hugetlb-add-map_hugetlb-example.patch
+getrusage-fill-ru_maxrss-value.patch
+getrusage-fill-ru_maxrss-value-update.patch
+ramfs-move-ramfs_magic-to-include-linux-magich.patch
+memory-controller-soft-limit-organize-cgroups-v9-fix.patch
+prio_tree-debugging-patch.patch
 
