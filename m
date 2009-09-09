@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + mm-follow_hugetlb_page-flags.patch added to -mm tree
-Date: Wed, 09 Sep 2009 14:40:55 -0700
-Message-ID: <200909092140.n89Leus6001422@imap1.linux-foundation.org>
+Subject: + mm-foll_dump-replace-foll_anon.patch added to -mm tree
+Date: Wed, 09 Sep 2009 14:40:53 -0700
+Message-ID: <200909092140.n89LesUP001353@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49322 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46135 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753039AbZIIVvN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2009 17:51:13 -0400
+	by vger.kernel.org with ESMTP id S1753937AbZIIVvc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2009 17:51:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: hugh.dickins@tiscali.co.uk, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@
 
 
 The patch titled
-     mm: follow_hugetlb_page flags
+     mm: FOLL_DUMP replace FOLL_ANON
 has been added to the -mm tree.  Its filename is
-     mm-follow_hugetlb_page-flags.patch
+     mm-foll_dump-replace-foll_anon.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,201 +33,134 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: follow_hugetlb_page flags
+Subject: mm: FOLL_DUMP replace FOLL_ANON
 From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
-follow_hugetlb_page() shouldn't be guessing about the coredump case
-either: pass the foll_flags down to it, instead of just the write bit.
+The "FOLL_ANON optimization" and its use_zero_page() test have caused
+confusion and bugs: why does it test VM_SHARED? for the very good but
+unsatisfying reason that VMware crashed without.  As we look to maybe
+reinstating anonymous use of the ZERO_PAGE, we need to sort this out.
 
-Remove that obscure huge_zeropage_ok() test.  The decision is easy,
-though unlike the non-huge case - here vm_ops->fault is always set.
-But we know that a fault would serve up zeroes, unless there's
-already a hugetlbfs pagecache page to back the range.
+Easily done: it's silly for __get_user_pages() and follow_page() to
+be guessing whether it's safe to assume that they're being used for
+a coredump (which can take a shortcut snapshot where other uses must
+handle a fault) - just tell them with GUP_FLAGS_DUMP and FOLL_DUMP.
 
-(Alternatively, since hugetlb pages aren't swapped out under pressure,
-you could save more dump space by arguing that a page not yet faulted
-into this process cannot be relevant to the dump; but that would be
-more surprising.)
+get_dump_page() doesn't even want a ZERO_PAGE: an error suits fine.
 
 Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Acked-by: Rik van Riel <riel@redhat.com>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Nick Piggin <npiggin@suse.de>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    4 +-
- mm/hugetlb.c            |   62 ++++++++++++++++++++++----------------
- mm/memory.c             |   14 ++++----
- 3 files changed, 48 insertions(+), 32 deletions(-)
+ include/linux/mm.h |    2 -
+ mm/internal.h      |    1 
+ mm/memory.c        |   45 ++++++++++++-------------------------------
+ 3 files changed, 15 insertions(+), 33 deletions(-)
 
-diff -puN include/linux/hugetlb.h~mm-follow_hugetlb_page-flags include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~mm-follow_hugetlb_page-flags
-+++ a/include/linux/hugetlb.h
-@@ -24,7 +24,9 @@ int hugetlb_sysctl_handler(struct ctl_ta
- int hugetlb_overcommit_handler(struct ctl_table *, int, struct file *, void __user *, size_t *, loff_t *);
- int hugetlb_treat_movable_handler(struct ctl_table *, int, struct file *, void __user *, size_t *, loff_t *);
- int copy_hugetlb_page_range(struct mm_struct *, struct mm_struct *, struct vm_area_struct *);
--int follow_hugetlb_page(struct mm_struct *, struct vm_area_struct *, struct page **, struct vm_area_struct **, unsigned long *, int *, int, int);
-+int follow_hugetlb_page(struct mm_struct *, struct vm_area_struct *,
-+			struct page **, struct vm_area_struct **,
-+			unsigned long *, int *, int, unsigned int flags);
- void unmap_hugepage_range(struct vm_area_struct *,
- 			unsigned long, unsigned long, struct page *);
- void __unmap_hugepage_range(struct vm_area_struct *,
-diff -puN mm/hugetlb.c~mm-follow_hugetlb_page-flags mm/hugetlb.c
---- a/mm/hugetlb.c~mm-follow_hugetlb_page-flags
-+++ a/mm/hugetlb.c
-@@ -2016,6 +2016,23 @@ static struct page *hugetlbfs_pagecache_
- 	return find_lock_page(mapping, idx);
+diff -puN include/linux/mm.h~mm-foll_dump-replace-foll_anon include/linux/mm.h
+--- a/include/linux/mm.h~mm-foll_dump-replace-foll_anon
++++ a/include/linux/mm.h
+@@ -1238,7 +1238,7 @@ struct page *follow_page(struct vm_area_
+ #define FOLL_WRITE	0x01	/* check pte is writable */
+ #define FOLL_TOUCH	0x02	/* mark page accessed */
+ #define FOLL_GET	0x04	/* do get_page on page */
+-#define FOLL_ANON	0x08	/* give ZERO_PAGE if no pgtable */
++#define FOLL_DUMP	0x08	/* give error on hole if it would be zero */
+ 
+ typedef int (*pte_fn_t)(pte_t *pte, pgtable_t token, unsigned long addr,
+ 			void *data);
+diff -puN mm/internal.h~mm-foll_dump-replace-foll_anon mm/internal.h
+--- a/mm/internal.h~mm-foll_dump-replace-foll_anon
++++ a/mm/internal.h
+@@ -252,6 +252,7 @@ static inline void mminit_validate_memmo
+ 
+ #define GUP_FLAGS_WRITE		0x01
+ #define GUP_FLAGS_FORCE		0x02
++#define GUP_FLAGS_DUMP		0x04
+ 
+ int __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
+ 		     unsigned long start, int len, int flags,
+diff -puN mm/memory.c~mm-foll_dump-replace-foll_anon mm/memory.c
+--- a/mm/memory.c~mm-foll_dump-replace-foll_anon
++++ a/mm/memory.c
+@@ -1174,41 +1174,22 @@ no_page:
+ 	pte_unmap_unlock(ptep, ptl);
+ 	if (!pte_none(pte))
+ 		return page;
+-	/* Fall through to ZERO_PAGE handling */
++
+ no_page_table:
+ 	/*
+ 	 * When core dumping an enormous anonymous area that nobody
+-	 * has touched so far, we don't want to allocate page tables.
+-	 */
+-	if (flags & FOLL_ANON) {
+-		page = ZERO_PAGE(0);
+-		if (flags & FOLL_GET)
+-			get_page(page);
+-		BUG_ON(flags & FOLL_WRITE);
+-	}
++	 * has touched so far, we don't want to allocate unnecessary pages or
++	 * page tables.  Return error instead of NULL to skip handle_mm_fault,
++	 * then get_dump_page() will return NULL to leave a hole in the dump.
++	 * But we can only make this optimization where a hole would surely
++	 * be zero-filled if handle_mm_fault() actually did handle it.
++	 */
++	if ((flags & FOLL_DUMP) &&
++	    (!vma->vm_ops || !vma->vm_ops->fault))
++		return ERR_PTR(-EFAULT);
+ 	return page;
  }
  
-+/* Return whether there is a pagecache page to back given address within VMA */
-+static bool hugetlbfs_backed(struct hstate *h,
-+			struct vm_area_struct *vma, unsigned long address)
-+{
-+	struct address_space *mapping;
-+	pgoff_t idx;
-+	struct page *page;
-+
-+	mapping = vma->vm_file->f_mapping;
-+	idx = vma_hugecache_offset(h, vma, address);
-+
-+	page = find_get_page(mapping, idx);
-+	if (page)
-+		put_page(page);
-+	return page != NULL;
-+}
-+
- static int hugetlb_no_page(struct mm_struct *mm, struct vm_area_struct *vma,
- 			unsigned long address, pte_t *ptep, unsigned int flags)
- {
-@@ -2211,54 +2228,52 @@ follow_huge_pud(struct mm_struct *mm, un
- 	return NULL;
- }
- 
--static int huge_zeropage_ok(pte_t *ptep, int write, int shared)
+-/* Can we do the FOLL_ANON optimization? */
+-static inline int use_zero_page(struct vm_area_struct *vma)
 -{
--	if (!ptep || write || shared)
+-	/*
+-	 * We don't want to optimize FOLL_ANON for make_pages_present()
+-	 * when it tries to page in a VM_LOCKED region. As to VM_SHARED,
+-	 * we want to get the page from the page tables to make sure
+-	 * that we serialize and update with any other user of that
+-	 * mapping.
+-	 */
+-	if (vma->vm_flags & (VM_LOCKED | VM_SHARED))
 -		return 0;
--	else
--		return huge_pte_none(huge_ptep_get(ptep));
+-	/*
+-	 * And if we have a fault routine, it's not an anonymous region.
+-	 */
+-	return !vma->vm_ops || !vma->vm_ops->fault;
 -}
 -
- int follow_hugetlb_page(struct mm_struct *mm, struct vm_area_struct *vma,
- 			struct page **pages, struct vm_area_struct **vmas,
- 			unsigned long *position, int *length, int i,
--			int write)
-+			unsigned int flags)
- {
- 	unsigned long pfn_offset;
- 	unsigned long vaddr = *position;
- 	int remainder = *length;
- 	struct hstate *h = hstate_vma(vma);
--	int zeropage_ok = 0;
--	int shared = vma->vm_flags & VM_SHARED;
- 
- 	spin_lock(&mm->page_table_lock);
- 	while (vaddr < vma->vm_end && remainder) {
- 		pte_t *pte;
-+		int absent;
- 		struct page *page;
- 
- 		/*
- 		 * Some archs (sparc64, sh*) have multiple pte_ts to
--		 * each hugepage.  We have to make * sure we get the
-+		 * each hugepage.  We have to make sure we get the
- 		 * first, for the page indexing below to work.
- 		 */
- 		pte = huge_pte_offset(mm, vaddr & huge_page_mask(h));
--		if (huge_zeropage_ok(pte, write, shared))
--			zeropage_ok = 1;
-+		absent = !pte || huge_pte_none(huge_ptep_get(pte));
-+
-+		/*
-+		 * When coredumping, it suits get_dump_page if we just return
-+		 * an error if there's a hole and no huge pagecache to back it.
-+		 */
-+		if (absent &&
-+		    ((flags & FOLL_DUMP) && !hugetlbfs_backed(h, vma, vaddr))) {
-+			remainder = 0;
-+			break;
-+		}
- 
--		if (!pte ||
--		    (huge_pte_none(huge_ptep_get(pte)) && !zeropage_ok) ||
--		    (write && !pte_write(huge_ptep_get(pte)))) {
-+		if (absent ||
-+		    ((flags & FOLL_WRITE) && !pte_write(huge_ptep_get(pte)))) {
- 			int ret;
- 
- 			spin_unlock(&mm->page_table_lock);
--			ret = hugetlb_fault(mm, vma, vaddr, write);
-+			ret = hugetlb_fault(mm, vma, vaddr,
-+				(flags & FOLL_WRITE) ? FAULT_FLAG_WRITE : 0);
- 			spin_lock(&mm->page_table_lock);
- 			if (!(ret & VM_FAULT_ERROR))
- 				continue;
- 
- 			remainder = 0;
--			if (!i)
--				i = -EFAULT;
- 			break;
- 		}
- 
-@@ -2266,10 +2281,7 @@ int follow_hugetlb_page(struct mm_struct
- 		page = pte_page(huge_ptep_get(pte));
- same_page:
- 		if (pages) {
--			if (zeropage_ok)
--				pages[i] = ZERO_PAGE(0);
--			else
--				pages[i] = mem_map_offset(page, pfn_offset);
-+			pages[i] = mem_map_offset(page, pfn_offset);
- 			get_page(pages[i]);
- 		}
- 
-@@ -2293,7 +2305,7 @@ same_page:
- 	*length = remainder;
- 	*position = vaddr;
- 
--	return i;
-+	return i ? i : -EFAULT;
- }
- 
- void hugetlb_change_protection(struct vm_area_struct *vma,
-diff -puN mm/memory.c~mm-follow_hugetlb_page-flags mm/memory.c
---- a/mm/memory.c~mm-follow_hugetlb_page-flags
-+++ a/mm/memory.c
-@@ -1260,17 +1260,19 @@ int __get_user_pages(struct task_struct 
- 		    !(vm_flags & vma->vm_flags))
- 			return i ? : -EFAULT;
- 
--		if (is_vm_hugetlb_page(vma)) {
--			i = follow_hugetlb_page(mm, vma, pages, vmas,
--						&start, &nr_pages, i, write);
--			continue;
--		}
 -
+-
+ int __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
+ 		     unsigned long start, int nr_pages, int flags,
+ 		     struct page **pages, struct vm_area_struct **vmas)
+@@ -1288,8 +1269,8 @@ int __get_user_pages(struct task_struct 
  		foll_flags = FOLL_TOUCH;
  		if (pages)
  			foll_flags |= FOLL_GET;
- 		if (flags & GUP_FLAGS_DUMP)
- 			foll_flags |= FOLL_DUMP;
-+		if (write)
-+			foll_flags |= FOLL_WRITE;
-+
-+		if (is_vm_hugetlb_page(vma)) {
-+			i = follow_hugetlb_page(mm, vma, pages, vmas,
-+					&start, &nr_pages, i, foll_flags);
-+			continue;
-+		}
+-		if (!write && use_zero_page(vma))
+-			foll_flags |= FOLL_ANON;
++		if (flags & GUP_FLAGS_DUMP)
++			foll_flags |= FOLL_DUMP;
  
  		do {
  			struct page *page;
+@@ -1447,7 +1428,7 @@ struct page *get_dump_page(unsigned long
+ 	struct page *page;
+ 
+ 	if (__get_user_pages(current, current->mm, addr, 1,
+-				GUP_FLAGS_FORCE, &page, &vma) < 1)
++			GUP_FLAGS_FORCE | GUP_FLAGS_DUMP, &page, &vma) < 1)
+ 		return NULL;
+ 	if (page == ZERO_PAGE(0)) {
+ 		page_cache_release(page);
 _
 
 Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
