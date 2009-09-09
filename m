@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-revert-proc-mounts-to-old-behavior-for-unreachable-mountpoints.patch added to -mm tree
-Date: Wed, 09 Sep 2009 14:15:14 -0700
-Message-ID: <200909092115.n89LFENC016375@imap1.linux-foundation.org>
+Subject: + vfs-fix-d_path-for-unreachable-paths.patch added to -mm tree
+Date: Wed, 09 Sep 2009 14:25:16 -0700
+Message-ID: <200909092125.n89LPG7u003440@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40836 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44594 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754180AbZIIVP0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2009 17:15:26 -0400
+	by vger.kernel.org with ESMTP id S1752543AbZIIVZx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2009 17:25:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mszeredi@suse.cz, Valdis.Kletnieks@vt.edu, agruen@suse.de, hch@lst.de, hugh.dickins@tiscali.co.uk, matthew@wil.cx, viro@zeniv.linux.org.uk
+Cc: mszeredi@suse.cz, agruen@suse.de, hch@lst.de, jjohansen@suse.de, matthew@wil.cx, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     vfs: revert /proc/mounts to old behavior for unreachable mountpoints
+     vfs: fix d_path() for unreachable paths
 has been added to the -mm tree.  Its filename is
-     vfs-revert-proc-mounts-to-old-behavior-for-unreachable-mountpoints.patch
+     vfs-fix-d_path-for-unreachable-paths.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,107 +33,85 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: revert /proc/mounts to old behavior for unreachable mountpoints
+Subject: vfs: fix d_path() for unreachable paths
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-"vfs: fix d_path() for unreachable paths" prefixes unreachable paths
-with "(unreachable)" in the result of getcwd(2), /proc/*/mounts,
-/proc/*/cwd, /proc/*/fd/*, etc...
+John Johansen pointed out, that getcwd(2) will give a garbled result if a
+bind mount of a non-filesystem-root directory is detached:
 
-Hugh Dickins reported that an old version of gnome-vfs-daemon crashes
-because it finds an entry in /proc/mounts where the mountpoint is
-unreachable.
+   > mkdir /mnt/foo
+   > mount --bind /etc /mnt/foo
+   > cd /mnt/foo/skel
+   > umount -l /mnt/foo
+   > /bin/pwd
+   etcskel
 
-This patch reverts /proc/mounts to the old behavior (or rather a less
-crazy version of the old behavior).
+If it was the root of the filesystem which was detached, it will give a
+saner looking result, but it still won't be a valid absolute path by which
+the CWD can be reached (assuming the process's root is not also on the
+detached mount).
 
-Reported-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Reported-by: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+A similar issue happens if the CWD is outside the process's root or in a
+different namespace.  These problems are relevant to symlinks under
+/proc/<pid>/ and /proc/<pid>/fd/ as well.
+
+This patch addresses all these issues, by prefixing such unreachable paths
+with "(unreachable)".  This isn't perfect since the returned path may
+still be a valid _relative_ path, and applications may not check the
+result of getcwd() for starting with a '/' before using it.
+
+For this reason Andreas Gruenbacher thinks getcwd(2) should return ENOENT
+in these cases, but that breaks /bin/pwd and bash in the above cases.
+
+Reported-by: John Johansen <jjohansen@suse.de>
 Cc: Matthew Wilcox <matthew@wil.cx>
 Cc: Andreas Gruenbacher <agruen@suse.de>
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namespace.c |   57 ++++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 56 insertions(+), 1 deletion(-)
+ fs/dcache.c |   20 ++++++++++++++++++--
+ 1 file changed, 18 insertions(+), 2 deletions(-)
 
-diff -puN fs/namespace.c~vfs-revert-proc-mounts-to-old-behavior-for-unreachable-mountpoints fs/namespace.c
---- a/fs/namespace.c~vfs-revert-proc-mounts-to-old-behavior-for-unreachable-mountpoints
-+++ a/fs/namespace.c
-@@ -789,6 +789,61 @@ static void show_type(struct seq_file *m
- 	}
+diff -puN fs/dcache.c~vfs-fix-d_path-for-unreachable-paths fs/dcache.c
+--- a/fs/dcache.c~vfs-fix-d_path-for-unreachable-paths
++++ a/fs/dcache.c
+@@ -1883,6 +1883,12 @@ static int prepend_name(char **buffer, i
+ 	return prepend(buffer, buflen, name->name, name->len);
  }
  
-+/*
-+ * Same as d_path() except it doesn't stick "(unreachable)" in front
-+ * of unreachable paths.
-+ */
-+static char *d_path_compat(struct path *path, char *buf, int buflen)
++static bool is_pseudo_root(struct dentry *dentry)
 +{
-+	char *res;
-+	struct path root;
-+	struct path tmp;
-+
-+	read_lock(&current->fs->lock);
-+	root = current->fs->root;
-+	path_get(&root);
-+	read_unlock(&current->fs->lock);
-+	spin_lock(&dcache_lock);
-+	tmp = root;
-+	res = __d_path(path, &tmp, buf, buflen);
-+	if (!IS_ERR(res) &&
-+	    (tmp.mnt != root.mnt || tmp.dentry != root.dentry)) {
-+		/*
-+		 * Unreachable path found, redo with the global root
-+		 * so we get a normal looking path.
-+		 */
-+		res = __d_path(path, &tmp, buf, buflen);
-+	}
-+	spin_unlock(&dcache_lock);
-+	path_put(&root);
-+
-+	return res;
++	return IS_ROOT(dentry) &&
++		(dentry->d_name.len != 1 || dentry->d_name.name[0] != '/');
 +}
 +
-+/*
-+ * Some old programs break if /proc/mounts contains a mountpoint
-+ * beginning with "(unreachable)".  Revert this back to the old way of
-+ * displaying the path from the global root instead.
-+ */
-+static int show_path_old(struct seq_file *m, struct path *path, char *esc)
-+{
-+	char *buf;
-+	size_t size = seq_get_buf(m, &buf);
-+	int res = -1;
-+
-+	if (size) {
-+		char *p = d_path_compat(path, buf, size);
-+		if (!IS_ERR(p)) {
-+			char *end = mangle_path(buf, p, esc);
-+			if (end)
-+				res = end - buf;
-+		}
-+	}
-+	seq_commit(m, res);
-+
-+	return res;
-+}
-+
- static int show_vfsmnt(struct seq_file *m, void *v)
- {
- 	struct vfsmount *mnt = list_entry(v, struct vfsmount, mnt_list);
-@@ -797,7 +852,7 @@ static int show_vfsmnt(struct seq_file *
+ /**
+  * __d_path - return the path of a dentry
+  * @path: the dentry/vfsmount to report
+@@ -1950,8 +1956,18 @@ out:
  
- 	mangle(m, mnt->mnt_devname ? mnt->mnt_devname : "none");
- 	seq_putc(m, ' ');
--	seq_path(m, &mnt_path, " \t\n\\");
-+	show_path_old(m, &mnt_path, " \t\n\\");
- 	seq_putc(m, ' ');
- 	show_type(m, mnt->mnt_sb);
- 	seq_puts(m, __mnt_is_readonly(mnt) ? " ro" : " rw");
+ global_root:
+ 	retval += 1;	/* hit the slash */
+-	if (prepend_name(&retval, &buflen, &dentry->d_name) != 0)
+-		goto Elong;
++
++	if (is_pseudo_root(dentry)) {
++		/* Pseudo filesystem with "foo:" prefix */
++		if (prepend_name(&retval, &buflen, &dentry->d_name) != 0)
++			goto Elong;
++	} else {
++		/*
++		 * Unreachable (detached or outside root or outside namespace)
++		 */
++		if (prepend(&retval, &buflen, "(unreachable)/", 14) != 0)
++			goto Elong;
++	}
+ 	root->mnt = vfsmnt;
+ 	root->dentry = dentry;
+ 	goto out;
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
@@ -141,6 +119,7 @@ Patches currently in -mm which might be from mszeredi@suse.cz are
 linux-next.patch
 vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
 fs-remove-unneeded-dcache_unhashed-tricks.patch
+vfs-fix-d_path-for-unreachable-paths.patch
 vfs-seq_file-add-helpers-for-data-filling.patch
 vfs-revert-proc-mounts-to-old-behavior-for-unreachable-mountpoints.patch
 
