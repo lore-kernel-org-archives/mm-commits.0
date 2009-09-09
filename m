@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-fix-d_path-for-unreachable-paths.patch added to -mm tree
-Date: Wed, 09 Sep 2009 14:25:16 -0700
-Message-ID: <200909092125.n89LPG7u003440@imap1.linux-foundation.org>
+Subject: + vfs-no-unreachable-prefix-for-sysvipc-maps-in-proc-pid-maps.patch added to -mm tree
+Date: Wed, 09 Sep 2009 14:26:47 -0700
+Message-ID: <200909092126.n89LQl8M006382@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44594 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57065 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752543AbZIIVZx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2009 17:25:53 -0400
+	by vger.kernel.org with ESMTP id S1754089AbZIIV12 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2009 17:27:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mszeredi@suse.cz, agruen@suse.de, hch@lst.de, jjohansen@suse.de, matthew@wil.cx, viro@zeniv.linux.org.uk
+Cc: mszeredi@suse.cz, Valdis.Kletnieks@vt.edu, agruen@suse.de, hch@lst.de, hugh.dickins@tiscali.co.uk, matthew@wil.cx, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     vfs: fix d_path() for unreachable paths
+     vfs: no "(unreachable)" prefix for SYSVIPC maps in /proc/PID/maps
 has been added to the -mm tree.  Its filename is
-     vfs-fix-d_path-for-unreachable-paths.patch
+     vfs-no-unreachable-prefix-for-sysvipc-maps-in-proc-pid-maps.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,85 +33,105 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: fix d_path() for unreachable paths
+Subject: vfs: no "(unreachable)" prefix for SYSVIPC maps in /proc/PID/maps
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-John Johansen pointed out, that getcwd(2) will give a garbled result if a
-bind mount of a non-filesystem-root directory is detached:
+The patch
 
-   > mkdir /mnt/foo
-   > mount --bind /etc /mnt/foo
-   > cd /mnt/foo/skel
-   > umount -l /mnt/foo
-   > /bin/pwd
-   etcskel
+  "vfs: fix d_path() for unreachable paths"
 
-If it was the root of the filesystem which was detached, it will give a
-saner looking result, but it still won't be a valid absolute path by which
-the CWD can be reached (assuming the process's root is not also on the
-detached mount).
+generally changed d_path() to report unreachable paths with a special
+prefix.  This has an effect on /proc/${PID}/maps as well for memory maps
+set up with shmem_file_setup() or hugetlb_file_setup().  These functions
+set up unlinked files under a kernel-private vfsmount.  Since this
+vfsmount is unreachable from userspace, these maps will be reported with
+the "(unreachable)" prefix.
 
-A similar issue happens if the CWD is outside the process's root or in a
-different namespace.  These problems are relevant to symlinks under
-/proc/<pid>/ and /proc/<pid>/fd/ as well.
+This is undesirable, because it changes the kernel ABI and might break
+applications for no good reason.
 
-This patch addresses all these issues, by prefixing such unreachable paths
-with "(unreachable)".  This isn't perfect since the returned path may
-still be a valid _relative_ path, and applications may not check the
-result of getcwd() for starting with a '/' before using it.
-
-For this reason Andreas Gruenbacher thinks getcwd(2) should return ENOENT
-in these cases, but that breaks /bin/pwd and bash in the above cases.
-
-Reported-by: John Johansen <jjohansen@suse.de>
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Acked-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
 Cc: Matthew Wilcox <matthew@wil.cx>
 Cc: Andreas Gruenbacher <agruen@suse.de>
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dcache.c |   20 ++++++++++++++++++--
- 1 file changed, 18 insertions(+), 2 deletions(-)
+ fs/hugetlbfs/inode.c |   17 +++++++++++++++++
+ mm/shmem.c           |   17 +++++++++++++++++
+ 2 files changed, 34 insertions(+)
 
-diff -puN fs/dcache.c~vfs-fix-d_path-for-unreachable-paths fs/dcache.c
---- a/fs/dcache.c~vfs-fix-d_path-for-unreachable-paths
-+++ a/fs/dcache.c
-@@ -1883,6 +1883,12 @@ static int prepend_name(char **buffer, i
- 	return prepend(buffer, buflen, name->name, name->len);
- }
+diff -puN fs/hugetlbfs/inode.c~vfs-no-unreachable-prefix-for-sysvipc-maps-in-proc-pid-maps fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~vfs-no-unreachable-prefix-for-sysvipc-maps-in-proc-pid-maps
++++ a/fs/hugetlbfs/inode.c
+@@ -906,6 +906,21 @@ static struct file_system_type hugetlbfs
  
-+static bool is_pseudo_root(struct dentry *dentry)
+ static struct vfsmount *hugetlbfs_vfsmount;
+ 
++/*
++ * Do a special d_dname function so that these are not prefixed by
++ * "(unreachable)".
++ */
++static char *hugetlb_unlinked_d_dname(struct dentry *dentry, char *buf,
++				      int buflen)
 +{
-+	return IS_ROOT(dentry) &&
-+		(dentry->d_name.len != 1 || dentry->d_name.name[0] != '/');
++	return dynamic_dname(dentry, buf, buflen, "/%s (deleted)",
++			     dentry->d_name.name);
 +}
 +
- /**
-  * __d_path - return the path of a dentry
-  * @path: the dentry/vfsmount to report
-@@ -1950,8 +1956,18 @@ out:
- 
- global_root:
- 	retval += 1;	/* hit the slash */
--	if (prepend_name(&retval, &buflen, &dentry->d_name) != 0)
--		goto Elong;
++static struct dentry_operations hugetlb_unlinked_dentry_operations = {
++	.d_dname = hugetlb_unlinked_d_dname,
++};
 +
-+	if (is_pseudo_root(dentry)) {
-+		/* Pseudo filesystem with "foo:" prefix */
-+		if (prepend_name(&retval, &buflen, &dentry->d_name) != 0)
-+			goto Elong;
-+	} else {
-+		/*
-+		 * Unreachable (detached or outside root or outside namespace)
-+		 */
-+		if (prepend(&retval, &buflen, "(unreachable)/", 14) != 0)
-+			goto Elong;
-+	}
- 	root->mnt = vfsmnt;
- 	root->dentry = dentry;
- 	goto out;
+ static int can_do_hugetlb_shm(void)
+ {
+ 	return capable(CAP_IPC_LOCK) || in_group_p(sysctl_hugetlb_shm_group);
+@@ -943,6 +958,8 @@ struct file *hugetlb_file_setup(const ch
+ 	if (!dentry)
+ 		goto out_shm_unlock;
+ 
++	dentry->d_op = &hugetlb_unlinked_dentry_operations;
++
+ 	error = -ENOSPC;
+ 	inode = hugetlbfs_get_inode(root->d_sb, current_fsuid(),
+ 				current_fsgid(), S_IFREG | S_IRWXUGO, 0);
+diff -puN mm/shmem.c~vfs-no-unreachable-prefix-for-sysvipc-maps-in-proc-pid-maps mm/shmem.c
+--- a/mm/shmem.c~vfs-no-unreachable-prefix-for-sysvipc-maps-in-proc-pid-maps
++++ a/mm/shmem.c
+@@ -2604,6 +2604,21 @@ int shmem_unuse(swp_entry_t entry, struc
+ 
+ /* common code */
+ 
++/*
++ * Do a special d_dname function so that these are not prefixed by
++ * "(unreachable)".
++ */
++static char *shmem_unlinked_d_dname(struct dentry *dentry, char *buf,
++				    int buflen)
++{
++	return dynamic_dname(dentry, buf, buflen, "/%s (deleted)",
++			     dentry->d_name.name);
++}
++
++static struct dentry_operations shmem_unlinked_dentry_operations = {
++	.d_dname = shmem_unlinked_d_dname,
++};
++
+ /**
+  * shmem_file_setup - get an unlinked file living in tmpfs
+  * @name: name for dentry (to be seen in /proc/<pid>/maps
+@@ -2636,6 +2651,8 @@ struct file *shmem_file_setup(const char
+ 	if (!dentry)
+ 		goto put_memory;
+ 
++	dentry->d_op = &shmem_unlinked_dentry_operations;
++
+ 	error = -ENFILE;
+ 	file = get_empty_filp();
+ 	if (!file)
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
@@ -122,4 +142,5 @@ fs-remove-unneeded-dcache_unhashed-tricks.patch
 vfs-fix-d_path-for-unreachable-paths.patch
 vfs-seq_file-add-helpers-for-data-filling.patch
 vfs-revert-proc-mounts-to-old-behavior-for-unreachable-mountpoints.patch
+vfs-no-unreachable-prefix-for-sysvipc-maps-in-proc-pid-maps.patch
 
