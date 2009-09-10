@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hwmon-driver-for-acpi-40-power-meters-fix-2.patch added to -mm tree
-Date: Wed, 09 Sep 2009 21:20:30 -0700
-Message-ID: <200909100420.n8A4KUF6001014@imap1.linux-foundation.org>
+Subject: + reiser4-disable.patch added to -mm tree
+Date: Wed, 09 Sep 2009 21:22:59 -0700
+Message-ID: <200909100422.n8A4Mxeh005900@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53429 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35213 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750781AbZIJEWH (ORCPT
+	by vger.kernel.org with ESMTP id S1750781AbZIJEX2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Sep 2009 00:22:07 -0400
+	Thu, 10 Sep 2009 00:23:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, djwong@us.ibm.com, lenb@kernel.org, pavel@ucw.cz, rui.zhang@intel.com
+Cc: akpm@linux-foundation.org, edward.shishkin@gmail.com
 
 
 The patch titled
-     hwmon-driver-for-acpi-40-power-meters-fix-2
+     reiser4-disable
 has been added to the -mm tree.  Its filename is
-     hwmon-driver-for-acpi-40-power-meters-fix-2.patch
+     reiser4-disable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,29 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hwmon-driver-for-acpi-40-power-meters-fix-2
+Subject: reiser4-disable
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/acpi/power_meter.c: In function 'acpi_power_meter_init':
-drivers/acpi/power_meter.c:995: error: implicit declaration of function 'dmi_check_system'
+disable reiser4 until people stop changing generic_sync_sb_inodes().
 
-Cc: Darrick J. Wong <djwong@us.ibm.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: Edward Shishkin <edward.shishkin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/power_meter.c |    1 +
+ fs/reiser4/Kconfig |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN Documentation/hwmon/acpi_power_meter~hwmon-driver-for-acpi-40-power-meters-fix-2 Documentation/hwmon/acpi_power_meter
-diff -puN drivers/acpi/Kconfig~hwmon-driver-for-acpi-40-power-meters-fix-2 drivers/acpi/Kconfig
-diff -puN drivers/acpi/Makefile~hwmon-driver-for-acpi-40-power-meters-fix-2 drivers/acpi/Makefile
-diff -puN drivers/acpi/power_meter.c~hwmon-driver-for-acpi-40-power-meters-fix-2 drivers/acpi/power_meter.c
---- a/drivers/acpi/power_meter.c~hwmon-driver-for-acpi-40-power-meters-fix-2
-+++ a/drivers/acpi/power_meter.c
-@@ -24,6 +24,7 @@
- #include <linux/hwmon-sysfs.h>
- #include <linux/jiffies.h>
- #include <linux/mutex.h>
-+#include <linux/dmi.h>
- #include <linux/kdev_t.h>
- #include <linux/sched.h>
- #include <linux/time.h>
+diff -puN fs/reiser4/Kconfig~reiser4-disable fs/reiser4/Kconfig
+--- a/fs/reiser4/Kconfig~reiser4-disable
++++ a/fs/reiser4/Kconfig
+@@ -1,6 +1,7 @@
+ config REISER4_FS
+ 	tristate "Reiser4 (EXPERIMENTAL)"
+ 	depends on EXPERIMENTAL
++	depends on BROKEN
+ 	select ZLIB_INFLATE
+ 	select ZLIB_DEFLATE
+ 	select LZO_COMPRESS
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -139,6 +132,7 @@ reiser4.patch
 reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
 fs-reiser4-contextc-current_is_pdflush-got-removed.patch
 reiser4-fix.patch
+reiser4-disable.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
 getblk-handle-2tb-devices.patch
