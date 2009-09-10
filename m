@@ -1,33 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - generic-ipi-fix-the-race-between-generic_smp_call_function_-and-hotplug_cfd-fix.patch removed from -mm tree
-Date: Thu, 10 Sep 2009 14:25:21 -0700
-Message-ID: <200909102125.n8ALPLKf018477@imap1.linux-foundation.org>
+Subject: - generic-ipi-fix-the-race-between-generic_smp_call_function_-and-hotplug_cfd.patch removed from -mm tree
+Date: Thu, 10 Sep 2009 14:25:18 -0700
+Message-ID: <200909102125.n8ALPIXw018428@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35362 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53133 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753682AbZIJVbT (ORCPT
+	by vger.kernel.org with ESMTP id S1753884AbZIJVbV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Sep 2009 17:31:19 -0400
+	Thu, 10 Sep 2009 17:31:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: xiaoguangrong@cn.fujitsu.com, jens.axboe@oracle.com, mingo@elte.hu, nickpiggin@yahoo.com.au, peterz@infradead.org, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     generic-ipi-fix-the-race-between-generic_smp_call_function_-and-hotplug_cfd fix
+     generic-ipi: fix the race between generic_smp_call_function_*() and hotplug_cfd()
 has been removed from the -mm tree.  Its filename was
-     generic-ipi-fix-the-race-between-generic_smp_call_function_-and-hotplug_cfd-fix.patch
+     generic-ipi-fix-the-race-between-generic_smp_call_function_-and-hotplug_cfd.patch
 
 This patch was dropped because of confusion
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: generic-ipi-fix-the-race-between-generic_smp_call_function_-and-hotplug_cfd fix
+Subject: generic-ipi: fix the race between generic_smp_call_function_*() and hotplug_cfd()
 From: Xiao Guangrong <xiaoguangrong@cn.fujitsu.com>
 
-This patch is incomplete and thanks for Peter Zijlstra to point out
+There is a race between generic_smp_call_function_*() and hotplug_cfd() in
+many cases, see below examples:
+
+1: hotplug_cfd() can free cfd->cpumask, the system will crash if the
+   cpu's cfd still in the call_function list:
+
+
+      CPU A:                         CPU B
+
+ smp_call_function_many()	    ......
+   cpu_down()                      ......
+  hotplug_cfd() ->                 ......
+ free_cpumask_var(cfd->cpumask)  (receive function IPI interrupte)
+                                /* read cfd->cpumask */
+                          generic_smp_call_function_interrupt() ->
+                         cpumask_test_and_clear_cpu(cpu, data->cpumask)
+
+                         	CRASH!!!
+
+2: It's not handle call_function list when cpu down, It's will lead to
+   dead-wait if other path is waiting this cpu to execute function
+
+    CPU A:                           CPU B
+
+ smp_call_function_many(wait=0)
+        ......			    CPU B down
+   smp_call_function_many() -->  (cpu down before recevie function
+    csd_lock(&data->csd);         IPI interrupte)
+
+    DEAD-WAIT!!!!
+
+  So, CPU A will dead-wait in csd_lock(), the same as
+  smp_call_function_single()
 
 Signed-off-by: Xiao Guangrong <xiaoguangrong@cn.fujitsu.com>
 Cc: Ingo Molnar <mingo@elte.hu>
@@ -38,32 +70,89 @@ Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/smp.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ kernel/smp.c |   38 ++++++++++++++++++++++++++++----------
+ 1 file changed, 28 insertions(+), 10 deletions(-)
 
-diff -puN kernel/smp.c~generic-ipi-fix-the-race-between-generic_smp_call_function_-and-hotplug_cfd-fix kernel/smp.c
---- a/kernel/smp.c~generic-ipi-fix-the-race-between-generic_smp_call_function_-and-hotplug_cfd-fix
+diff -puN kernel/smp.c~generic-ipi-fix-the-race-between-generic_smp_call_function_-and-hotplug_cfd kernel/smp.c
+--- a/kernel/smp.c~generic-ipi-fix-the-race-between-generic_smp_call_function_-and-hotplug_cfd
 +++ a/kernel/smp.c
-@@ -136,7 +136,8 @@ __generic_smp_call_function_interrupt(in
- 		if (!cpumask_test_and_clear_cpu(cpu, data->cpumask))
- 			continue;
+@@ -113,14 +113,10 @@ void generic_exec_single(int cpu, struct
+ 		csd_lock_wait(data);
+ }
  
--		data->csd.func(data->csd.info);
-+		if (run_callbacks)
-+			data->csd.func(data->csd.info);
+-/*
+- * Invoked by arch to handle an IPI for call function. Must be called with
+- * interrupts disabled.
+- */
+-void generic_smp_call_function_interrupt(void)
++static void
++__generic_smp_call_function_interrupt(int cpu, int run_callbacks)
+ {
+ 	struct call_function_data *data;
+-	int cpu = smp_processor_id();
  
- 		refs = atomic_dec_return(&data->refs);
- 		WARN_ON(refs < 0);
-@@ -187,7 +188,8 @@ __generic_smp_call_function_single_inter
- 		 */
- 		data_flags = data->flags;
+ 	/*
+ 	 * Ensure entry is visible on call_function_queue after we have
+@@ -159,12 +155,18 @@ void generic_smp_call_function_interrupt
+ }
  
--		data->func(data->info);
-+		if (run_callbacks)
-+			data->func(data->info);
+ /*
+- * Invoked by arch to handle an IPI for call function single. Must be
+- * called from the arch with interrupts disabled.
++ * Invoked by arch to handle an IPI for call function. Must be called with
++ * interrupts disabled.
+  */
+-void generic_smp_call_function_single_interrupt(void)
++void generic_smp_call_function_interrupt(void)
++{
++	__generic_smp_call_function_interrupt(smp_processor_id(), 1);
++}
++
++static void
++__generic_smp_call_function_single_interrupt(int cpu, int run_callbacks)
+ {
+-	struct call_single_queue *q = &__get_cpu_var(call_single_queue);
++	struct call_single_queue *q = &per_cpu(call_single_queue, cpu);
+ 	unsigned int data_flags;
+ 	LIST_HEAD(list);
  
- 		/*
- 		 * Unlocked CSDs are valid through generic_exec_single():
+@@ -195,6 +197,15 @@ void generic_smp_call_function_single_in
+ 	}
+ }
+ 
++/*
++ * Invoked by arch to handle an IPI for call function single. Must be
++ * called from the arch with interrupts disabled.
++ */
++void generic_smp_call_function_single_interrupt(void)
++{
++	__generic_smp_call_function_single_interrupt(smp_processor_id(), 1);
++}
++
+ static DEFINE_PER_CPU(struct call_single_data, csd_data);
+ 
+ /*
+@@ -443,6 +454,7 @@ static int
+ hotplug_cfd(struct notifier_block *nfb, unsigned long action, void *hcpu)
+ {
+ 	long cpu = (long)hcpu;
++	unsigned long flags;
+ 	struct call_function_data *cfd = &per_cpu(cfd_data, cpu);
+ 
+ 	switch (action) {
+@@ -459,6 +471,12 @@ hotplug_cfd(struct notifier_block *nfb, 
+ 
+ 	case CPU_DEAD:
+ 	case CPU_DEAD_FROZEN:
++		local_irq_save(flags);
++		__generic_smp_call_function_interrupt(cpu, 0);
++		__generic_smp_call_function_single_interrupt(cpu, 0);
++		local_irq_restore(flags);
++
++		csd_lock_wait(&cfd->csd);
+ 		free_cpumask_var(cfd->cpumask);
+ 		break;
+ #endif
 _
 
 Patches currently in -mm which might be from xiaoguangrong@cn.fujitsu.com are
@@ -73,5 +162,6 @@ generic-ipi-make-struct-call_function_data-lockless.patch
 generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
 generic-ipi-cleanup-for-generic_smp_call_function_interrupt.patch
 kernel-smpc-relocate-some-code.patch
+generic-ipi-fix-the-race-between-generic_smp_call_function_-and-hotplug_cfd.patch
 generic-ipi-fix-the-race-between-generic_smp_call_function_-and-hotplug_cfd-fix.patch
 
