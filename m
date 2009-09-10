@@ -1,140 +1,167 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Thu, 10 Sep 2009 12:53:12 -0700
-Message-ID: <200909101953.n8AJrCpU000566@imap1.linux-foundation.org>
+Subject: [merged] acpi-fix-null-bug-for-hid-uid-string-2.patch removed from -mm tree
+Date: Thu, 10 Sep 2009 12:56:11 -0700
+Message-ID: <200909101956.n8AJuBBT006422@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35913 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39191 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752915AbZIJTxi (ORCPT
+	by vger.kernel.org with ESMTP id S1753800AbZIJT4d (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Sep 2009 15:53:38 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n8AJrDGp021178
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 10 Sep 2009 12:53:14 -0700
+	Thu, 10 Sep 2009 15:56:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: hugh.dickins@tiscali.co.uk, Valdis.Kletnieks@vt.edu, ming.m.lin@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-git-rejects
+     acpi: fix NULL bug for HID/UID string
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     acpi-fix-null-bug-for-hid-uid-string-2.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: acpi: fix NULL bug for HID/UID string
+From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
+acpi_device->pnp.hardware_id and unique_id are now allocated pointers,
+replacing the previous arrays.  acpi_device_install_notify_handler()
+oopsed on the NULL hid when probing the video device, and perhaps other
+uses are vulnerable too.  So initialize those pointers to empty strings
+when there is no hid or uid.  Also, free hardware_id and unique_id when
+when acpi_device is going to be freed.
+
+Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+Cc: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/aoe/aoeblk.c |    6 ------
- 1 file changed, 6 deletions(-)
+ drivers/acpi/scan.c |   20 ++++++++++++--------
+ 1 file changed, 12 insertions(+), 8 deletions(-)
 
-diff -puN drivers/block/aoe/aoeblk.c~linux-next-git-rejects drivers/block/aoe/aoeblk.c
---- a/drivers/block/aoe/aoeblk.c~linux-next-git-rejects
-+++ a/drivers/block/aoe/aoeblk.c
-@@ -264,14 +264,8 @@ aoeblk_gdalloc(void *vp)
- 		goto err_disk;
- 	}
+diff -puN drivers/acpi/scan.c~acpi-fix-null-bug-for-hid-uid-string-2 drivers/acpi/scan.c
+--- a/drivers/acpi/scan.c~acpi-fix-null-bug-for-hid-uid-string-2
++++ a/drivers/acpi/scan.c
+@@ -309,6 +309,10 @@ static void acpi_device_release(struct d
+ 	struct acpi_device *acpi_dev = to_acpi_device(dev);
  
--<<<<<<< HEAD:drivers/block/aoe/aoeblk.c
- 	d->blkq = blk_alloc_queue(GFP_KERNEL);
- 	if (!d->blkq)
--=======
--	blk_queue_make_request(&d->blkq, aoeblk_make_request);
--	d->blkq.backing_dev_info.name = "aoe";
--	if (bdi_init(&d->blkq.backing_dev_info))
-->>>>>>> FETCH_HEAD:drivers/block/aoe/aoeblk.c
- 		goto err_mempool;
- 	blk_queue_make_request(d->blkq, aoeblk_make_request);
- 	if (bdi_init(&d->blkq->backing_dev_info))
+ 	kfree(acpi_dev->pnp.cid_list);
++	if (acpi_dev->flags.hardware_id)
++		kfree(acpi_dev->pnp.hardware_id);
++	if (acpi_dev->flags.unique_id)
++		kfree(acpi_dev->pnp.unique_id);
+ 	kfree(acpi_dev);
+ }
+ 
+@@ -1132,8 +1136,9 @@ static void acpi_device_set_id(struct ac
+ 			strcpy(device->pnp.hardware_id, hid);
+ 			device->flags.hardware_id = 1;
+ 		}
+-	} else
+-		device->pnp.hardware_id = NULL;
++	}
++	if (!device->flags.hardware_id)
++		device->pnp.hardware_id = "";
+ 
+ 	if (uid) {
+ 		device->pnp.unique_id = ACPI_ALLOCATE_ZEROED(strlen (uid) + 1);
+@@ -1141,8 +1146,9 @@ static void acpi_device_set_id(struct ac
+ 			strcpy(device->pnp.unique_id, uid);
+ 			device->flags.unique_id = 1;
+ 		}
+-	} else
+-		device->pnp.unique_id = NULL;
++	}
++	if (!device->flags.unique_id)
++		device->pnp.unique_id = "";
+ 
+ 	if (cid_list || cid_add) {
+ 		struct acpica_device_id_list *list;
+@@ -1357,10 +1363,8 @@ acpi_add_single_object(struct acpi_devic
+ end:
+ 	if (!result)
+ 		*child = device;
+-	else {
+-		kfree(device->pnp.cid_list);
+-		kfree(device);
+-	}
++	else
++		acpi_device_release(&device->dev);
+ 
+ 	return result;
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
 
-fs-make-sure-data-stored-into-inode-is-properly-seen-before-unlocking-new-inode-fix.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-hwmon-driver-for-acpi-40-power-meters-fix.patch
-hwmon-driver-for-acpi-40-power-meters-fix-2.patch
-video-initial-support-for-adv7180-update-fix.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-checkincludespl-add-option-to-remove-duplicates-in-place.patch
-zorro8390-fix-read-buffer-overflow-in-zorro8390_init_one-checkpatch-fixes.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-serial167-fix-read-buffer-overflow.patch
-waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes-checkpatch-fixes.patch
-st-fix-test-of-value-range-in-st_set_options-fix.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
-vfs-optimize-touch_time-too.patch
-fs-improve-remountro-vs-buffercache-coherency-fix.patch
-mm-make-swap-token-dummies-static-inlines-fix.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
-revert-hugetlb-restore-interleaving-of-bootmem-huge-pages-2631.patch
-vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
-revert-proc-kcore-work-around-a-bug.patch
-arches-drop-superfluous-casts-in-nr_free_pages-callers-checkpatch-fixes.patch
-tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists-fix.patch
-page-allocator-maintain-rolling-count-of-pages-to-free-from-the-pcp-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
-generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
-proc-connector-add-event-for-process-becoming-session-leader.patch
-kernel-smpc-relocate-some-code.patch
-mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
-sdio-add-cd-disable-support-cleanup.patch
-sdio-add-mmc_quirk_lenient_fn0-fix.patch
-at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver-checkpatch-fixes.patch
-procfs-provide-stack-information-for-threads-v011-fix.patch
-kcore-register-vmemmap-range-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
-rtc-philips-nxp-pcf2123-driver-v03-fix.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes-fix.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
-drivers-video-add-kmalloc-null-tests-fix.patch
-v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
-page-types-add-feature-for-walking-process-address-space-checkpatch-fixes.patch
-cgroups-add-functionality-to-read-write-lock-clone_thread-forking-per-threadgroup-fix.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
-memcg-improve-resource-counter-scalability-checkpatch-fixes.patch
-exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
-exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
-elf-clean-up-fill_note_info-fix.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-reiser4-disable.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+vfs-optimize-touch_time-too-fix.patch
+fs-new-truncate-helpers.patch
+fs-use-new-truncate-helpers.patch
+fs-introduce-new-truncate-sequence.patch
+fs-convert-simple-fs-to-new-truncate.patch
+tmpfs-convert-to-use-the-new-truncate-convention.patch
+ext2-convert-to-use-the-new-truncate-convention.patch
+fat-convert-to-use-the-new-truncate-convention.patch
+btrfs-convert-to-use-the-new-truncate-convention.patch
+jfs-convert-to-use-the-new-truncate-convention.patch
+udf-convert-to-use-the-new-truncate-convention.patch
+minix-convert-to-use-the-new-truncate-convention.patch
+vfs-seq_file-add-helpers-for-data-filling.patch
+vfs-revert-proc-mounts-to-old-behavior-for-unreachable-mountpoints.patch
+vfs-no-unreachable-prefix-for-sysvipc-maps-in-proc-pid-maps.patch
+mm-oom-analysis-add-shmem-vmstat.patch
+ksm-add-mmu_notifier-set_pte_at_notify.patch
+ksm-first-tidy-up-madvise_vma.patch
+ksm-define-madv_mergeable-and-madv_unmergeable.patch
+ksm-the-mm-interface-to-ksm.patch
+ksm-no-debug-in-page_dup_rmap.patch
+ksm-identify-pageksm-pages.patch
+ksm-kernel-samepage-merging.patch
+ksm-prevent-mremap-move-poisoning.patch
+ksm-change-copyright-message.patch
+ksm-change-ksm-nice-level-to-be-5.patch
+ksm-rename-kernel_pages_allocated.patch
+ksm-move-pages_sharing-updates.patch
+ksm-pages_unshared-and-pages_volatile.patch
+ksm-break-cow-once-unshared.patch
+ksm-keep-quiet-while-list-empty.patch
+ksm-five-little-cleanups.patch
+ksm-fix-endless-loop-on-oom.patch
+ksm-distribute-remove_mm_from_lists.patch
+ksm-fix-oom-deadlock.patch
+ksm-fix-deadlock-with-munlock-in-exit_mmap.patch
+ksm-sysfs-and-defaults.patch
+ksm-add-some-documentation.patch
+ksm-remove-vm_mergeable_flags.patch
+ksm-clean-up-obsolete-references.patch
+ksm-unmerge-is-an-origin-of-ooms.patch
+ksm-mremap-use-err-from-ksm_madvise.patch
+mm-add_to_swap_cache-must-not-sleep.patch
+mm-add_to_swap_cache-does-not-return-eexist.patch
+mm-includecheck-fix-for-mm-shmemc.patch
+mm-introduce-page_lru_base_type-fix.patch
+mm-replace-various-uses-of-num_physpages-by-totalram_pages.patch
+hugetlbfs-allow-the-creation-of-files-suitable-for-map_private-on-the-vfs-internal-mount.patch
+hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions.patch
+hugetlb-add-map_hugetlb-example.patch
+mm-munlock-use-follow_page.patch
+mm-remove-unused-gup-flags.patch
+mm-add-get_dump_page.patch
+mm-foll_dump-replace-foll_anon.patch
+mm-follow_hugetlb_page-flags.patch
+mm-fix-anonymous-dirtying.patch
+mm-reinstate-zero_page.patch
+mm-foll-flags-for-gup-flags.patch
+mmap-remove-unnecessary-code.patch
+tmpfs-depend-on-shmem.patch
+getrusage-fill-ru_maxrss-value.patch
+getrusage-fill-ru_maxrss-value-update.patch
+ramfs-move-ramfs_magic-to-include-linux-magich.patch
+memory-controller-soft-limit-organize-cgroups-v9-fix.patch
+prio_tree-debugging-patch.patch
 
