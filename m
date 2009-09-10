@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-add-per-node-hstate-attributes-fix.patch added to -mm tree
-Date: Thu, 10 Sep 2009 16:32:49 -0700
-Message-ID: <200909102332.n8ANWnBg007687@imap1.linux-foundation.org>
+Subject: + hugetlb-update-hugetlb-documentation-for-mempolicy-based-management.patch added to -mm tree
+Date: Thu, 10 Sep 2009 16:32:51 -0700
+Message-ID: <200909102332.n8ANWp1n007744@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47604 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35734 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752470AbZIJXdu (ORCPT
+	by vger.kernel.org with ESMTP id S1752472AbZIJXdw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Sep 2009 19:33:50 -0400
+	Thu, 10 Sep 2009 19:33:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, agl@us.ibm.com, andi@firstfloor.org, apw@canonical.com, cl@linux-foundation.org, lee.schermerhorn@hp.com, mel@csn.ul.ie, nacc@us.ibm.com, rientjes@google.com
+Cc: lee.schermerhorn@hp.com, agl@us.ibm.com, andi@firstfloor.org, apw@canonical.com, cl@linux-foundation.org, mel@csn.ul.ie, nacc@us.ibm.com, rientjes@google.com
 
 
 The patch titled
-     hugetlb-add-per-node-hstate-attributes-fix
+     hugetlb: update hugetlb documentation for mempolicy based management
 has been added to the -mm tree.  Its filename is
-     hugetlb-add-per-node-hstate-attributes-fix.patch
+     hugetlb-update-hugetlb-documentation-for-mempolicy-based-management.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,176 +34,419 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb-add-per-node-hstate-attributes-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: hugetlb: update hugetlb documentation for mempolicy based management
+From: Lee Schermerhorn <lee.schermerhorn@hp.com>
 
-be more conventional with typedefs
+Update the kernel huge tlb documentation to describe the numa memory
+policy based huge page management.  Additionaly, the patch includes a fair
+amount of rework to improve consistency, eliminate duplication and set the
+context for documenting the memory policy interaction.
 
-Cc: Adam Litke <agl@us.ibm.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Andy Whitcroft <apw@canonical.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
 Cc: Nishanth Aravamudan <nacc@us.ibm.com>
+Cc: Adam Litke <agl@us.ibm.com>
+Cc: Andy Whitcroft <apw@canonical.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Christoph Lameter <cl@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c  |   14 +++++++-------
- include/linux/node.h |   10 +++++-----
- 2 files changed, 12 insertions(+), 12 deletions(-)
+ Documentation/vm/hugetlbpage.txt |  263 +++++++++++++++++++----------
+ 1 file changed, 175 insertions(+), 88 deletions(-)
 
-diff -puN drivers/base/node.c~hugetlb-add-per-node-hstate-attributes-fix drivers/base/node.c
---- a/drivers/base/node.c~hugetlb-add-per-node-hstate-attributes-fix
-+++ a/drivers/base/node.c
-@@ -180,14 +180,14 @@ static SYSDEV_ATTR(distance, S_IRUGO, no
- /*
-  * hugetlbfs per node attributes registration interface:
-  * When/if hugetlb[fs] subsystem initializes [sometime after this module],
-- * it will register it's per node attributes for all nodes on-line at that
-- * point.  It will also call register_hugetlbfs_with_node(), below, to
-- * register it's attribute registration functions with this node driver.
-+ * it will register its per node attributes for all nodes online at that
-+ * time.  It will also call register_hugetlbfs_with_node(), below, to
-+ * register its attribute registration functions with this node driver.
-  * Once these hooks have been initialized, the node driver will call into
-  * the hugetlb module to [un]register attributes for hot-plugged nodes.
+diff -puN Documentation/vm/hugetlbpage.txt~hugetlb-update-hugetlb-documentation-for-mempolicy-based-management Documentation/vm/hugetlbpage.txt
+--- a/Documentation/vm/hugetlbpage.txt~hugetlb-update-hugetlb-documentation-for-mempolicy-based-management
++++ a/Documentation/vm/hugetlbpage.txt
+@@ -11,23 +11,21 @@ This optimization is more critical now a
+ (several GBs) are more readily available.
+ 
+ Users can use the huge page support in Linux kernel by either using the mmap
+-system call or standard SYSv shared memory system calls (shmget, shmat).
++system call or standard SYSV shared memory system calls (shmget, shmat).
+ 
+ First the Linux kernel needs to be built with the CONFIG_HUGETLBFS
+ (present under "File systems") and CONFIG_HUGETLB_PAGE (selected
+ automatically when CONFIG_HUGETLBFS is selected) configuration
+ options.
+ 
+-The kernel built with huge page support should show the number of configured
+-huge pages in the system by running the "cat /proc/meminfo" command.
++The /proc/meminfo file provides information about the total number of
++persistent hugetlb pages in the kernel's huge page pool.  It also displays
++information about the number of free, reserved and surplus huge pages and the
++default huge page size.  The huge page size is needed for generating the
++proper alignment and size of the arguments to system calls that map huge page
++regions.
+ 
+-/proc/meminfo also provides information about the total number of hugetlb
+-pages configured in the kernel.  It also displays information about the
+-number of free hugetlb pages at any time.  It also displays information about
+-the configured huge page size - this is needed for generating the proper
+-alignment and size of the arguments to the above system calls.
+-
+-The output of "cat /proc/meminfo" will have lines like:
++The output of "cat /proc/meminfo" will include lines like:
+ 
+ .....
+ HugePages_Total: vvv
+@@ -53,59 +51,63 @@ HugePages_Surp  is short for "surplus," 
+ /proc/filesystems should also show a filesystem of type "hugetlbfs" configured
+ in the kernel.
+ 
+-/proc/sys/vm/nr_hugepages indicates the current number of configured hugetlb
+-pages in the kernel.  Super user can dynamically request more (or free some
+-pre-configured) huge pages.
+-The allocation (or deallocation) of hugetlb pages is possible only if there are
+-enough physically contiguous free pages in system (freeing of huge pages is
+-possible only if there are enough hugetlb pages free that can be transferred
+-back to regular memory pool).
+-
+-Pages that are used as hugetlb pages are reserved inside the kernel and cannot
+-be used for other purposes.
+-
+-Once the kernel with Hugetlb page support is built and running, a user can
+-use either the mmap system call or shared memory system calls to start using
+-the huge pages.  It is required that the system administrator preallocate
+-enough memory for huge page purposes.
+-
+-The administrator can preallocate huge pages on the kernel boot command line by
+-specifying the "hugepages=N" parameter, where 'N' = the number of huge pages
+-requested.  This is the most reliable method for preallocating huge pages as
+-memory has not yet become fragmented.
++/proc/sys/vm/nr_hugepages indicates the current number of "persistent" huge
++pages in the kernel's huge page pool.  "Persistent" huge pages will be
++returned to the huge page pool when freed by a task.  A user with root
++privileges can dynamically allocate more or free some persistent huge pages
++by increasing or decreasing the value of 'nr_hugepages'.
++
++Pages that are used as huge pages are reserved inside the kernel and cannot
++be used for other purposes.  Huge pages cannot be swapped out under
++memory pressure.
++
++Once a number of huge pages have been pre-allocated to the kernel huge page
++pool, a user with appropriate privilege can use either the mmap system call
++or shared memory system calls to use the huge pages.  See the discussion of
++Using Huge Pages, below.
++
++The administrator can allocate persistent huge pages on the kernel boot
++command line by specifying the "hugepages=N" parameter, where 'N' = the
++number of huge pages requested.  This is the most reliable method of
++allocating huge pages as memory has not yet become fragmented.
+ 
+-Some platforms support multiple huge page sizes.  To preallocate huge pages
++Some platforms support multiple huge page sizes.  To allocate huge pages
+ of a specific size, one must preceed the huge pages boot command parameters
+ with a huge page size selection parameter "hugepagesz=<size>".  <size> must
+ be specified in bytes with optional scale suffix [kKmMgG].  The default huge
+ page size may be selected with the "default_hugepagesz=<size>" boot parameter.
+ 
+-/proc/sys/vm/nr_hugepages indicates the current number of configured [default
+-size] hugetlb pages in the kernel.  Super user can dynamically request more
+-(or free some pre-configured) huge pages.
+-
+-Use the following command to dynamically allocate/deallocate default sized
+-huge pages:
++When multiple huge page sizes are supported, /proc/sys/vm/nr_hugepages
++indicates the current number of pre-allocated huge pages of the default size.
++Thus, one can use the following command to dynamically allocate/deallocate
++default sized persistent huge pages:
+ 
+ 	echo 20 > /proc/sys/vm/nr_hugepages
+ 
+-This command will try to configure 20 default sized huge pages in the system.
++This command will try to adjust the number of default sized huge pages in the
++huge page pool to 20, allocating or freeing huge pages, as required.
++
+ On a NUMA platform, the kernel will attempt to distribute the huge page pool
+-over the all on-line nodes.  These huge pages, allocated when nr_hugepages
+-is increased, are called "persistent huge pages".
++over all the set of allowed nodes specified by the NUMA memory policy of the
++task that modifies nr_hugepages.  The default for the allowed nodes--when the
++task has default memory policy--is all on-line nodes.  Allowed nodes with
++insufficient available, contiguous memory for a huge page will be silently
++skipped when allocating persistent huge pages.  See the discussion below of
++the interaction of task memory policy, cpusets and per node attributes with
++the allocation and freeing of persistent huge pages.
+ 
+ The success or failure of huge page allocation depends on the amount of
+-physically contiguous memory that is preset in system at the time of the
++physically contiguous memory that is present in system at the time of the
+ allocation attempt.  If the kernel is unable to allocate huge pages from
+ some nodes in a NUMA system, it will attempt to make up the difference by
+ allocating extra pages on other nodes with sufficient available contiguous
+ memory, if any.
+ 
+-System administrators may want to put this command in one of the local rc init
+-files.  This will enable the kernel to request huge pages early in the boot
+-process when the possibility of getting physical contiguous pages is still
+-very high.  Administrators can verify the number of huge pages actually
+-allocated by checking the sysctl or meminfo.  To check the per node
++System administrators may want to put this command in one of the local rc
++init files.  This will enable the kernel to allocate huge pages early in
++the boot process when the possibility of getting physical contiguous pages
++is still very high.  Administrators can verify the number of huge pages
++actually allocated by checking the sysctl or meminfo.  To check the per node
+ distribution of huge pages in a NUMA system, use:
+ 
+ 	cat /sys/devices/system/node/node*/meminfo | fgrep Huge
+@@ -113,39 +115,40 @@ distribution of huge pages in a NUMA sys
+ /proc/sys/vm/nr_overcommit_hugepages specifies how large the pool of
+ huge pages can grow, if more huge pages than /proc/sys/vm/nr_hugepages are
+ requested by applications.  Writing any non-zero value into this file
+-indicates that the hugetlb subsystem is allowed to try to obtain "surplus"
+-huge pages from the buddy allocator, when the normal pool is exhausted. As
+-these surplus huge pages go out of use, they are freed back to the buddy
+-allocator.
++indicates that the hugetlb subsystem is allowed to try to obtain that
++number of "surplus" huge pages from the kernel's normal page pool, when the
++persistent huge page pool is exhausted. As these surplus huge pages become
++unused, they are freed back to the kernel's normal page pool.
+ 
+-When increasing the huge page pool size via nr_hugepages, any surplus
++When increasing the huge page pool size via nr_hugepages, any existing surplus
+ pages will first be promoted to persistent huge pages.  Then, additional
+ huge pages will be allocated, if necessary and if possible, to fulfill
+-the new huge page pool size.
++the new persistent huge page pool size.
+ 
+-The administrator may shrink the pool of preallocated huge pages for
++The administrator may shrink the pool of persistent huge pages for
+ the default huge page size by setting the nr_hugepages sysctl to a
+ smaller value.  The kernel will attempt to balance the freeing of huge pages
+-across all on-line nodes.  Any free huge pages on the selected nodes will
+-be freed back to the buddy allocator.
+-
+-Caveat: Shrinking the pool via nr_hugepages such that it becomes less
+-than the number of huge pages in use will convert the balance to surplus
+-huge pages even if it would exceed the overcommit value.  As long as
+-this condition holds, however, no more surplus huge pages will be
+-allowed on the system until one of the two sysctls are increased
+-sufficiently, or the surplus huge pages go out of use and are freed.
++across all nodes in the memory policy of the task modifying nr_hugepages.
++Any free huge pages on the selected nodes will be freed back to the kernel's
++normal page pool.
++
++Caveat: Shrinking the persistent huge page pool via nr_hugepages such that
++it becomes less than the number of huge pages in use will convert the balance
++of the in-use huge pages to surplus huge pages.  This will occur even if
++the number of surplus pages it would exceed the overcommit value.  As long as
++this condition holds--that is, until nr_hugepages+nr_overcommit_hugepages is
++increased sufficiently, or the surplus huge pages go out of use and are freed--
++no more surplus huge pages will be allowed to be allocated.
+ 
+ With support for multiple huge page pools at run-time available, much of
+-the huge page userspace interface has been duplicated in sysfs. The above
+-information applies to the default huge page size which will be
+-controlled by the /proc interfaces for backwards compatibility. The root
+-huge page control directory in sysfs is:
++the huge page userspace interface in /proc/sys/vm has been duplicated in sysfs.
++The /proc interfaces discussed above have been retained for backwards
++compatibility. The root huge page control directory in sysfs is:
+ 
+ 	/sys/kernel/mm/hugepages
+ 
+ For each huge page size supported by the running kernel, a subdirectory
+-will exist, of the form
++will exist, of the form:
+ 
+ 	hugepages-${size}kB
+ 
+@@ -159,6 +162,98 @@ Inside each of these directories, the sa
+ 
+ which function as described above for the default huge page-sized case.
+ 
++
++Interaction of Task Memory Policy with Huge Page Allocation/Freeing:
++
++Whether huge pages are allocated and freed via the /proc interface or
++the /sysfs interface, the NUMA nodes from which huge pages are allocated
++or freed are controlled by the NUMA memory policy of the task that modifies
++the nr_hugepages parameter.  [nr_overcommit_hugepages is a global limit.]
++
++The recommended method to allocate or free huge pages to/from the kernel
++huge page pool, using the nr_hugepages example above, is:
++
++    numactl --interleave <node-list> echo 20 >/proc/sys/vm/nr_hugepages
++
++or, more succinctly:
++
++    numactl -m <node-list> echo 20 >/proc/sys/vm/nr_hugepages
++
++This will allocate or free abs(20 - nr_hugepages) to or from the nodes
++specified in <node-list>, depending on whether nr_hugepages is initially
++less than or greater than 20, respectively.  No huge pages will be
++allocated nor freed on any node not included in the specified <node-list>.
++
++Any memory policy mode--bind, preferred, local or interleave--may be
++used.  The effect on persistent huge page allocation is as follows:
++
++1) Regardless of mempolicy mode [see Documentation/vm/numa_memory_policy.txt],
++   persistent huge pages will be distributed across the node or nodes
++   specified in the mempolicy as if "interleave" had been specified.
++   However, if a node in the policy does not contain sufficient contiguous
++   memory for a huge page, the allocation will not "fallback" to the nearest
++   neighbor node with sufficient contiguous memory.  To do this would cause
++   undesirable imbalance in the distribution of the huge page pool, or
++   possibly, allocation of persistent huge pages on nodes not allowed by
++   the task's memory policy.
++
++2) One or more nodes may be specified with the bind or interleave policy.
++   If more than one node is specified with the preferred policy, only the
++   lowest numeric id will be used.  Local policy will select the node where
++   the task is running at the time the nodes_allowed mask is constructed.
++
++3) For local policy to be deterministic, the task must be bound to a cpu or
++   cpus in a single node.  Otherwise, the task could be migrated to some
++   other node at any time after launch and the resulting node will be
++   indeterminate.  Thus, local policy is not very useful for this purpose.
++   Any of the other mempolicy modes may be used to specify a single node.
++
++4) The nodes allowed mask will be derived from any non-default task mempolicy,
++   whether this policy was set explicitly by the task itself or one of its
++   ancestors, such as numactl.  This means that if the task is invoked from a
++   shell with non-default policy, that policy will be used.  One can specify a
++   node list of "all" with numactl --interleave or --membind [-m] to achieve
++   interleaving over all nodes in the system or cpuset.
++
++5) Any task mempolicy specifed--e.g., using numactl--will be constrained by
++   the resource limits of any cpuset in which the task runs.  Thus, there will
++   be no way for a task with non-default policy running in a cpuset with a
++   subset of the system nodes to allocate huge pages outside the cpuset
++   without first moving to a cpuset that contains all of the desired nodes.
++
++6) Boot-time huge page allocation attempts to distribute the requested number
++   of huge pages over all on-lines nodes.
++
++Per Node Hugepages Attributes
++
++A subset of the contents of the root huge page control directory in sysfs,
++described above, has been replicated under each "node" system device in:
++
++	/sys/devices/system/node/node[0-9]*/hugepages/
++
++Under this directory, the subdirectory for each supported huge page size
++contains the following attribute files:
++
++	nr_hugepages
++	free_hugepages
++	surplus_hugepages
++
++The free_' and surplus_' attribute files are read-only.  They return the number
++of free and surplus [overcommitted] huge pages, respectively, on the parent
++node.
++
++The nr_hugepages attribute will return the total number of huge pages on the
++specified node.  When this attribute is written, the number of persistent huge
++pages on the parent node will be adjusted to the specified value, if sufficient
++resources exist, regardless of the task's mempolicy or cpuset constraints.
++
++Note that the number of overcommit and reserve pages remain global quantities,
++as we don't know until fault time, when the faulting task's mempolicy is applied,
++from which node the huge page allocation will be attempted.
++
++
++Using Huge Pages:
++
+ If the user applications are going to request huge pages using mmap system
+ call, then it is required that system administrator mount a file system of
+ type hugetlbfs:
+@@ -206,9 +301,11 @@ map_hugetlb.c.
+  * requesting huge pages.
+  *
+  * For the ia64 architecture, the Linux kernel reserves Region number 4 for
+- * huge pages.  That means the addresses starting with 0x800000... will need
+- * to be specified.  Specifying a fixed address is not required on ppc64,
+- * i386 or x86_64.
++ * huge pages.  That means that if one requires a fixed address, a huge page
++ * aligned address starting with 0x800000... will be required.  If a fixed
++ * address is not required, the kernel will select an address in the proper
++ * range.
++ * Other architectures, such as ppc64, i386 or x86_64 are not so constrained.
+  *
+  * Note: The default shared memory limit is quite low on many kernels,
+  * you may need to increase it via:
+@@ -237,14 +334,8 @@ map_hugetlb.c.
+ 
+ #define dprintf(x)  printf(x)
+ 
+-/* Only ia64 requires this */
+-#ifdef __ia64__
+-#define ADDR (void *)(0x8000000000000000UL)
+-#define SHMAT_FLAGS (SHM_RND)
+-#else
+-#define ADDR (void *)(0x0UL)
++#define ADDR (void *)(0x0UL)	/* let kernel choose address */
+ #define SHMAT_FLAGS (0)
+-#endif
+ 
+ int main(void)
+ {
+@@ -302,10 +393,12 @@ int main(void)
+  * example, the app is requesting memory of size 256MB that is backed by
+  * huge pages.
+  *
+- * For ia64 architecture, Linux kernel reserves Region number 4 for huge pages.
+- * That means the addresses starting with 0x800000... will need to be
+- * specified.  Specifying a fixed address is not required on ppc64, i386
+- * or x86_64.
++ * For the ia64 architecture, the Linux kernel reserves Region number 4 for
++ * huge pages.  That means that if one requires a fixed address, a huge page
++ * aligned address starting with 0x800000... will be required.  If a fixed
++ * address is not required, the kernel will select an address in the proper
++ * range.
++ * Other architectures, such as ppc64, i386 or x86_64 are not so constrained.
   */
--NODE_REGISTRATION_FUNC __hugetlb_register_node;
--NODE_REGISTRATION_FUNC __hugetlb_unregister_node;
-+static node_registration_func_t __hugetlb_register_node;
-+static node_registration_func_t __hugetlb_unregister_node;
+ #include <stdlib.h>
+ #include <stdio.h>
+@@ -317,14 +410,8 @@ int main(void)
+ #define LENGTH (256UL*1024*1024)
+ #define PROTECTION (PROT_READ | PROT_WRITE)
  
- static inline void hugetlb_register_node(struct node *node)
+-/* Only ia64 requires this */
+-#ifdef __ia64__
+-#define ADDR (void *)(0x8000000000000000UL)
+-#define FLAGS (MAP_SHARED | MAP_FIXED)
+-#else
+-#define ADDR (void *)(0x0UL)
++#define ADDR (void *)(0x0UL)	/* let kernel choose address */
+ #define FLAGS (MAP_SHARED)
+-#endif
+ 
+ void check_bytes(char *addr)
  {
-@@ -201,8 +201,8 @@ static inline void hugetlb_unregister_no
- 		__hugetlb_unregister_node(node);
- }
- 
--void register_hugetlbfs_with_node(NODE_REGISTRATION_FUNC doregister,
--				  NODE_REGISTRATION_FUNC unregister)
-+void register_hugetlbfs_with_node(node_registration_func_t doregister,
-+				  node_registration_func_t unregister)
- {
- 	__hugetlb_register_node   = doregister;
- 	__hugetlb_unregister_node = unregister;
-diff -puN include/linux/node.h~hugetlb-add-per-node-hstate-attributes-fix include/linux/node.h
---- a/include/linux/node.h~hugetlb-add-per-node-hstate-attributes-fix
-+++ a/include/linux/node.h
-@@ -28,7 +28,7 @@ struct node {
- 
- struct memory_block;
- extern struct node node_devices[];
--typedef  void (*NODE_REGISTRATION_FUNC)(struct node *);
-+typedef  void (*node_registration_func_t)(struct node *);
- 
- extern int register_node(struct node *, int, struct node *);
- extern void unregister_node(struct node *node);
-@@ -40,8 +40,8 @@ extern int unregister_cpu_under_node(uns
- extern int register_mem_sect_under_node(struct memory_block *mem_blk,
- 						int nid);
- extern int unregister_mem_sect_under_nodes(struct memory_block *mem_blk);
--extern void register_hugetlbfs_with_node(NODE_REGISTRATION_FUNC doregister,
--					 NODE_REGISTRATION_FUNC unregister);
-+extern void register_hugetlbfs_with_node(node_registration_func_t doregister,
-+					 node_registration_func_t unregister);
- #else
- static inline int register_one_node(int nid)
- {
-@@ -69,8 +69,8 @@ static inline int unregister_mem_sect_un
- 	return 0;
- }
- 
--static inline void register_hugetlbfs_with_node(NODE_REGISTRATION_FUNC reg,
--						NODE_REGISTRATION_FUNC unreg)
-+static inline void register_hugetlbfs_with_node(node_registration_func_t reg,
-+						node_registration_func_t unreg)
- {
- }
- #endif
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from lee.schermerhorn@hp.com are
 
-fs-make-sure-data-stored-into-inode-is-properly-seen-before-unlocking-new-inode-fix.patch
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-hwmon-driver-for-acpi-40-power-meters-fix.patch
-hwmon-driver-for-acpi-40-power-meters-fix-2.patch
-video-initial-support-for-adv7180-update-fix.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-checkincludespl-add-option-to-remove-duplicates-in-place.patch
-zorro8390-fix-read-buffer-overflow-in-zorro8390_init_one-checkpatch-fixes.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-serial167-fix-read-buffer-overflow.patch
-waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes-checkpatch-fixes.patch
-st-fix-test-of-value-range-in-st_set_options-fix.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
-vfs-optimize-touch_time-too.patch
-fs-improve-remountro-vs-buffercache-coherency-fix.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-mm-make-swap-token-dummies-static-inlines-fix.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
+hugetlb-restore-interleaving-of-bootmem-huge-pages-2631.patch
 revert-hugetlb-restore-interleaving-of-bootmem-huge-pages-2631.patch
-vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
-revert-proc-kcore-work-around-a-bug.patch
-arches-drop-superfluous-casts-in-nr_free_pages-callers-checkpatch-fixes.patch
-tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists-fix.patch
-page-allocator-maintain-rolling-count-of-pages-to-free-from-the-pcp-checkpatch-fixes.patch
+hugetlb-balance-freeing-of-huge-pages-across-nodes.patch
+hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages.patch
+hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages-fix.patch
+hugetlb-clean-up-and-update-huge-pages-documentation.patch
+hugetlb-restore-interleaving-of-bootmem-huge-pages.patch
+ksm-add-mmu_notifier-set_pte_at_notify.patch
+ksm-first-tidy-up-madvise_vma.patch
+ksm-define-madv_mergeable-and-madv_unmergeable.patch
+ksm-the-mm-interface-to-ksm.patch
+ksm-no-debug-in-page_dup_rmap.patch
+ksm-identify-pageksm-pages.patch
+ksm-kernel-samepage-merging.patch
+ksm-prevent-mremap-move-poisoning.patch
+ksm-change-copyright-message.patch
+ksm-change-ksm-nice-level-to-be-5.patch
+hugetlbfs-allow-the-creation-of-files-suitable-for-map_private-on-the-vfs-internal-mount.patch
+hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions.patch
+hugetlb-add-map_hugetlb-example.patch
+hugetlb-rework-hstate_next_node_-functions.patch
+hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-fcns.patch
+hugetlb-introduce-alloc_nodemask_of_node.patch
+hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy.patch
 hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy-fix.patch
+hugetlb-promote-numa_no_node-to-generic-constant.patch
+hugetlb-add-per-node-hstate-attributes.patch
 hugetlb-add-per-node-hstate-attributes-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
-generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
-proc-connector-add-event-for-process-becoming-session-leader.patch
-kernel-smpc-relocate-some-code.patch
-mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
-sdio-add-cd-disable-support-cleanup.patch
-sdio-add-mmc_quirk_lenient_fn0-fix.patch
-at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver-checkpatch-fixes.patch
-procfs-provide-stack-information-for-threads-v011-fix.patch
-kcore-register-vmemmap-range-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
-rtc-philips-nxp-pcf2123-driver-v03-fix.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes-fix.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
-drivers-video-add-kmalloc-null-tests-fix.patch
-v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
-page-types-add-feature-for-walking-process-address-space-checkpatch-fixes.patch
-cgroups-add-functionality-to-read-write-lock-clone_thread-forking-per-threadgroup-fix.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
-memcg-improve-resource-counter-scalability-checkpatch-fixes.patch
-exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
-exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
-elf-clean-up-fill_note_info-fix.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-reiser4-disable.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+hugetlb-update-hugetlb-documentation-for-mempolicy-based-management.patch
 
