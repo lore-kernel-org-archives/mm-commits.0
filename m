@@ -1,80 +1,157 @@
 From: akpm@linux-foundation.org
-Subject: + input-add-keyboard-quirk-for-samsung-r59p-r60p-r61p-laptops.patch added to -mm tree
-Date: Thu, 10 Sep 2009 14:33:55 -0700
-Message-ID: <200909102133.n8ALXtBV002926@imap1.linux-foundation.org>
+Subject: [withdrawn] omap_hsmmc-pass-host-capabilities-for-sd-only-and-mmc-only.patch removed from -mm tree
+Date: Thu, 10 Sep 2009 15:02:23 -0700
+Message-ID: <200909102202.n8AM2Oju025924@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36327 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37657 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751096AbZIJVec (ORCPT
+	by vger.kernel.org with ESMTP id S1752605AbZIJWDJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Sep 2009 17:34:32 -0400
+	Thu, 10 Sep 2009 18:03:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: keng-yu.lin@canonical.com, cdb@linkycat.com, dtor@mail.ru, sancheolz@gmail.com
+To: adrian.hunter@nokia.com, ext-denis.2.karpov@nokia.com, ian@mnementh.co.uk, jarkko.lavinen@nokia.com, madhu.cr@ti.com, matt@console-pimps.org, philipl@overt.org, pierre@ossman.eu, robe
 
 
 The patch titled
-     input: add keyboard quirk for Samsung R59P/R60P/R61P laptops
-has been added to the -mm tree.  Its filename is
-     input-add-keyboard-quirk-for-samsung-r59p-r60p-r61p-laptops.patch
+     omap_hsmmc: pass host capabilities for SD only and MMC only
+has been removed from the -mm tree.  Its filename was
+     omap_hsmmc-pass-host-capabilities-for-sd-only-and-mmc-only.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: input: add keyboard quirk for Samsung R59P/R60P/R61P laptops
-From: Keng-Yu Lin <keng-yu.lin@canonical.com>
+Subject: omap_hsmmc: pass host capabilities for SD only and MMC only
+From: Adrian Hunter <adrian.hunter@nokia.com>
 
-Add quirk for Samsung R59P/R60P/R61P to make the hotkeys work
+Some hosts can accept only certain types of cards.  For example, an eMMC
+is MMC only and a uSD slot may be SD only.  Pass host capabilities from
+the board through to the driver.
 
-Original Authors: Moiseev Vladimir, Alexander Huhlaev.
-
-Addresses http://bugs.launchpad.net/bugs/253874
-
-Signed-off-by: Keng-Yu Lin <keng-yu.lin@canonical.com>
-Cc: Moiseev Vladimir <cdb@linkycat.com>
-Cc: Alexander Huhlaev <sancheolz@gmail.com>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
+Acked-by: Matt Fleming <matt@console-pimps.org>
+Cc: Ian Molton <ian@mnementh.co.uk>
+Cc: "Roberto A. Foglietta" <roberto.foglietta@gmail.com>
+Cc: Jarkko Lavinen <jarkko.lavinen@nokia.com>
+Cc: Denis Karpov <ext-denis.2.karpov@nokia.com>
+Cc: Pierre Ossman <pierre@ossman.eu>
+Cc: Philip Langdale <philipl@overt.org>
+Cc: "Madhusudhan" <madhu.cr@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/keyboard/atkbd.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ arch/arm/mach-omap2/mmc-twl4030.c     |    5 ++---
+ arch/arm/mach-omap2/mmc-twl4030.h     |    2 +-
+ arch/arm/plat-omap/include/mach/mmc.h |    6 +++---
+ drivers/mmc/host/omap_hsmmc.c         |    7 ++++---
+ 4 files changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN drivers/input/keyboard/atkbd.c~input-add-keyboard-quirk-for-samsung-r59p-r60p-r61p-laptops drivers/input/keyboard/atkbd.c
---- a/drivers/input/keyboard/atkbd.c~input-add-keyboard-quirk-for-samsung-r59p-r60p-r61p-laptops
-+++ a/drivers/input/keyboard/atkbd.c
-@@ -1639,6 +1639,15 @@ static struct dmi_system_id atkbd_dmi_qu
- 		.driver_data = atkbd_samsung_forced_release_keys,
- 	},
- 	{
-+		.ident = "Samsung R59P/R60P/R61P",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "SAMSUNG ELECTRONICS CO., LTD."),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "R59P/R60P/R61P"),
-+		},
-+		.callback = atkbd_setup_fixup,
-+		.driver_data = atkbd_samsung_keymap_fixup,
-+	},
-+	{
- 		.ident = "Fujitsu Amilo PA 1510",
- 		.matches = {
- 			DMI_MATCH(DMI_SYS_VENDOR, "FUJITSU SIEMENS"),
+diff -puN arch/arm/mach-omap2/mmc-twl4030.c~omap_hsmmc-pass-host-capabilities-for-sd-only-and-mmc-only arch/arm/mach-omap2/mmc-twl4030.c
+--- a/arch/arm/mach-omap2/mmc-twl4030.c~omap_hsmmc-pass-host-capabilities-for-sd-only-and-mmc-only
++++ a/arch/arm/mach-omap2/mmc-twl4030.c
+@@ -470,12 +470,11 @@ void __init twl4030_mmc_init(struct twl4
+ 		} else
+ 			mmc->slots[0].gpio_wp = -EINVAL;
+ 
+-		if (c->nonremovable)
+-			mmc->slots[0].nonremovable = 1;
+-
+ 		if (c->power_saving)
+ 			mmc->slots[0].power_saving = 1;
+ 
++		mmc->slots[0].caps = c->caps;
++
+ 		/* NOTE:  MMC slots should have a Vcc regulator set up.
+ 		 * This may be from a TWL4030-family chip, another
+ 		 * controllable regulator, or a fixed supply.
+diff -puN arch/arm/mach-omap2/mmc-twl4030.h~omap_hsmmc-pass-host-capabilities-for-sd-only-and-mmc-only arch/arm/mach-omap2/mmc-twl4030.h
+--- a/arch/arm/mach-omap2/mmc-twl4030.h~omap_hsmmc-pass-host-capabilities-for-sd-only-and-mmc-only
++++ a/arch/arm/mach-omap2/mmc-twl4030.h
+@@ -12,8 +12,8 @@ struct twl4030_hsmmc_info {
+ 	bool	transceiver;	/* MMC-2 option */
+ 	bool	ext_clock;	/* use external pin for input clock */
+ 	bool	cover_only;	/* No card detect - just cover switch */
+-	bool	nonremovable;	/* Nonremovable e.g. eMMC */
+ 	bool	power_saving;	/* Try to sleep or power off when possible */
++	unsigned long caps;	/* MMC host capabilities */
+ 	int	gpio_cd;	/* or -EINVAL */
+ 	int	gpio_wp;	/* or -EINVAL */
+ 	char	*name;		/* or NULL for default */
+diff -puN arch/arm/plat-omap/include/mach/mmc.h~omap_hsmmc-pass-host-capabilities-for-sd-only-and-mmc-only arch/arm/plat-omap/include/mach/mmc.h
+--- a/arch/arm/plat-omap/include/mach/mmc.h~omap_hsmmc-pass-host-capabilities-for-sd-only-and-mmc-only
++++ a/arch/arm/plat-omap/include/mach/mmc.h
+@@ -83,12 +83,12 @@ struct omap_mmc_platform_data {
+ 		/* use the internal clock */
+ 		unsigned internal_clock:1;
+ 
+-		/* nonremovable e.g. eMMC */
+-		unsigned nonremovable:1;
+-
+ 		/* Try to sleep or power off when possible */
+ 		unsigned power_saving:1;
+ 
++		/* MMC host capabilities */
++		unsigned long caps;
++
+ 		int switch_pin;			/* gpio (card detect) */
+ 		int gpio_wp;			/* gpio (write protect) */
+ 
+diff -puN drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-pass-host-capabilities-for-sd-only-and-mmc-only drivers/mmc/host/omap_hsmmc.c
+--- a/drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-pass-host-capabilities-for-sd-only-and-mmc-only
++++ a/drivers/mmc/host/omap_hsmmc.c
+@@ -1671,10 +1671,11 @@ static int __init omap_mmc_probe(struct 
+ 	else if (mmc_slot(host).wires >= 4)
+ 		mmc->caps |= MMC_CAP_4_BIT_DATA;
+ 
+-	if (mmc_slot(host).nonremovable)
+-		mmc->caps |= MMC_CAP_NONREMOVABLE;
++	mmc->caps |= mmc_slot(host).caps;
+ 
+-	mmc->caps |= MMC_CAP_SDIO | MMC_CAP_SD | MMC_CAP_MMC;
++	/* If no card caps specified then assume them all */
++	if (!(mmc->caps & (MMC_CAP_SDIO | MMC_CAP_SD | MMC_CAP_MMC)))
++		mmc->caps |= MMC_CAP_SDIO | MMC_CAP_SD | MMC_CAP_MMC;
+ 
+ 	omap_hsmmc_init(host);
+ 
 _
 
-Patches currently in -mm which might be from keng-yu.lin@canonical.com are
+Patches currently in -mm which might be from adrian.hunter@nokia.com are
 
-input-add-keyboard-quirk-for-samsung-r59p-r60p-r61p-laptops.patch
+mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
+mmc-add-enable-and-disable-methods-to-mmc-host.patch
+mmc-allow-host-claim-release-nesting.patch
+mmc-add-mmc_cap_nonremovable-host-capability.patch
+mmc-add-ability-to-save-power-by-powering-off-cards.patch
+mmc-add-mmc-card-sleep-and-awake-support.patch
+mmc-power-off-once-at-removal.patch
+mmc-check-status-after-mmc-switch-command.patch
+omap_hsmmc-add-debugfs-entry-host-registers.patch
+omap_hsmmc-make-use-of-new-enable-disable-interface.patch
+arm-omap-mmc-twl4030-add-context-loss-counter-support.patch
+omap_hsmmc-keep-track-of-power-mode.patch
+omap_hsmmc-context-save-restore-support.patch
+omap_hsmmc-set-open-drain-bit-correctly.patch
+omap_hsmmc-ensure-workqueues-are-empty-before-suspend.patch
+omap_hsmmc-fix-scatter-gather-list-sanity-checking.patch
+omap_hsmmc-make-use-of-new-mmc_cap_nonremovable-host-capability.patch
+omap_hsmmc-support-for-deeper-power-saving-states.patch
+arm-omap-mmc-twl4030-add-regulator-sleep-wake-function.patch
+omap_hsmmc-put-mmc-regulator-to-sleep.patch
+omap_hsmmc-add-mmc-card-sleep-and-awake-support.patch
+omap_hsmmc-fix-null-pointer-dereference.patch
+omap_hsmmc-cleanup-macro-usage.patch
+omap_hsmmc-clear-interrupt-status-after-init-sequence.patch
+omap_hsmmc-cater-for-weird-cmd6-behaviour.patch
+omap_hsmmc-prevent-races-with-irq-handler.patch
+omap_hsmmc-code-refactoring.patch
+omap_hsmmc-protect-the-card-when-the-cover-is-open.patch
+omap_hsmmc-ensure-all-clock-enables-and-disables-are-paired.patch
+omap_hsmmc-ensure-all-clock-enables-and-disables-are-paired-fix-for-the-db-clock-failure-message.patch
+omap_hsmmc-set-a-large-data-timeout-for-commands-with-busy-signal.patch
+arm-omap-rx51-set-mmc-capabilities-and-power-saving-flag.patch
+arm-omap-rx51-set-mmc-capabilities-and-power-saving-flag-update.patch
 
