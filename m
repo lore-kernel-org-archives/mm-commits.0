@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-promote-numa_no_node-to-generic-constant.patch added to -mm tree
-Date: Thu, 10 Sep 2009 16:32:42 -0700
-Message-ID: <200909102332.n8ANWhxZ007416@imap1.linux-foundation.org>
+Subject: + hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy-fix.patch added to -mm tree
+Date: Thu, 10 Sep 2009 16:32:40 -0700
+Message-ID: <200909102332.n8ANWeDZ007373@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34831 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48280 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752446AbZIJXde (ORCPT
+	by vger.kernel.org with ESMTP id S1752338AbZIJXdn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Sep 2009 19:33:34 -0400
+	Thu, 10 Sep 2009 19:33:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Lee.Schermerhorn@hp.com, agl@us.ibm.com, andi@firstfloor.org, apw@canonical.com, cl@linux-foundation.org, lee.schermerhorn@hp.com, mel@csn.ul.ie, mingo@elte.hu, nacc@us.ibm.com, rientjes@google.com, tony.luck@intel.com
+Cc: akpm@linux-foundation.org, agl@us.ibm.com, andi@firstfloor.org, apw@canonical.com, cl@linux-foundation.org, lee.schermerhorn@hp.com, mel@csn.ul.ie, nacc@us.ibm.com, rientjes@google.com
 
 
 The patch titled
-     hugetlb: promote NUMA_NO_NODE to generic constant
+     hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy-fix
 has been added to the -mm tree.  Its filename is
-     hugetlb-promote-numa_no_node-to-generic-constant.patch
+     hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,20 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb: promote NUMA_NO_NODE to generic constant
-From: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Subject: hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Move definition of NUMA_NO_NODE from ia64 and x86_64 arch specific headers
-to generic header 'linux/numa.h' for use in generic code.  NUMA_NO_NODE
-replaces bare '-1' where it's used in this series to indicate "no node id
-specified".  Ultimately, it can be used to replace the -1 elsewhere where
-it is used similarly.
+don't leak an mpol_get()
 
-Note that in arch/x86/include/asm/topology.h, NUMA_NO_NODE is now only
-defined when CONFIG_NUMA is defined.  This seems to work for current usage
-of NUMA_NO_NODE in x86_64 arch code, with or without CONFIG_NUMA defined.
-
-Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Cc: Adam Litke <agl@us.ibm.com>
 Cc: Andi Kleen <andi@firstfloor.org>
 Cc: Andy Whitcroft <apw@canonical.com>
@@ -56,62 +47,128 @@ Cc: David Rientjes <rientjes@google.com>
 Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
 Cc: Nishanth Aravamudan <nacc@us.ibm.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/include/asm/numa.h    |    2 --
- arch/x86/include/asm/topology.h |    5 ++---
- include/linux/numa.h            |    2 ++
- 3 files changed, 4 insertions(+), 5 deletions(-)
+ mm/hugetlb.c   |    2 +-
+ mm/mempolicy.c |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/ia64/include/asm/numa.h~hugetlb-promote-numa_no_node-to-generic-constant arch/ia64/include/asm/numa.h
---- a/arch/ia64/include/asm/numa.h~hugetlb-promote-numa_no_node-to-generic-constant
-+++ a/arch/ia64/include/asm/numa.h
-@@ -22,8 +22,6 @@
+diff -puN mm/hugetlb.c~hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy-fix mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy-fix
++++ a/mm/hugetlb.c
+@@ -1253,7 +1253,7 @@ static unsigned long set_max_huge_pages(
  
- #include <asm/mmzone.h>
+ 	nodes_allowed = alloc_nodemask_of_mempolicy();
+ 	if (!nodes_allowed) {
+-		printk(KERN_WARNING "%s unable to allocate nodes allowed mask "
++		printk(KERN_WARNING "%s: unable to allocate nodes allowed mask "
+ 			"for huge page allocation.  Falling back to default.\n",
+ 			current->comm);
+ 		nodes_allowed = &node_online_map;
+diff -puN mm/mempolicy.c~hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy-fix mm/mempolicy.c
+--- a/mm/mempolicy.c~hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy-fix
++++ a/mm/mempolicy.c
+@@ -1589,7 +1589,7 @@ nodemask_t *alloc_nodemask_of_mempolicy(
+ 	mpol_get(current->mempolicy);
+ 	nodes_allowed = kmalloc(sizeof(*nodes_allowed), GFP_KERNEL);
+ 	if (!nodes_allowed)
+-		return NULL;		/* silently default */
++		goto out;		/* silently default */
  
--#define NUMA_NO_NODE	-1
+ 	nodes_clear(*nodes_allowed);
+ 	mempolicy = current->mempolicy;
+@@ -1611,7 +1611,7 @@ nodemask_t *alloc_nodemask_of_mempolicy(
+ 	default:
+ 		BUG();
+ 	}
 -
- extern u16 cpu_to_node_map[NR_CPUS] __cacheline_aligned;
- extern cpumask_t node_to_cpu_mask[MAX_NUMNODES] __cacheline_aligned;
- extern pg_data_t *pgdat_list[MAX_NUMNODES];
-diff -puN arch/x86/include/asm/topology.h~hugetlb-promote-numa_no_node-to-generic-constant arch/x86/include/asm/topology.h
---- a/arch/x86/include/asm/topology.h~hugetlb-promote-numa_no_node-to-generic-constant
-+++ a/arch/x86/include/asm/topology.h
-@@ -35,11 +35,10 @@
- # endif
- #endif
- 
--/* Node not present */
--#define NUMA_NO_NODE	(-1)
--
- #ifdef CONFIG_NUMA
- #include <linux/cpumask.h>
-+#include <linux/numa.h>
-+
- #include <asm/mpspec.h>
- 
- #ifdef CONFIG_X86_32
-diff -puN include/linux/numa.h~hugetlb-promote-numa_no_node-to-generic-constant include/linux/numa.h
---- a/include/linux/numa.h~hugetlb-promote-numa_no_node-to-generic-constant
-+++ a/include/linux/numa.h
-@@ -10,4 +10,6 @@
- 
- #define MAX_NUMNODES    (1 << NODES_SHIFT)
- 
-+#define	NUMA_NO_NODE	(-1)
-+
- #endif /* _LINUX_NUMA_H */
++out:
+ 	mpol_put(current->mempolicy);
+ 	return nodes_allowed;
+ }
 _
 
-Patches currently in -mm which might be from Lee.Schermerhorn@hp.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-hugetlb-restore-interleaving-of-bootmem-huge-pages-2631.patch
+fs-make-sure-data-stored-into-inode-is-properly-seen-before-unlocking-new-inode-fix.patch
 linux-next.patch
-hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages-fix.patch
-hugetlb-restore-interleaving-of-bootmem-huge-pages.patch
-hugetlb-promote-numa_no_node-to-generic-constant.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+hwmon-driver-for-acpi-40-power-meters-fix.patch
+hwmon-driver-for-acpi-40-power-meters-fix-2.patch
+video-initial-support-for-adv7180-update-fix.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+checkincludespl-add-option-to-remove-duplicates-in-place.patch
+zorro8390-fix-read-buffer-overflow-in-zorro8390_init_one-checkpatch-fixes.patch
+3x59x-fix-pci-resource-management.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+serial167-fix-read-buffer-overflow.patch
+waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes-checkpatch-fixes.patch
+st-fix-test-of-value-range-in-st_set_options-fix.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
+vfs-optimize-touch_time-too.patch
+fs-improve-remountro-vs-buffercache-coherency-fix.patch
+percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+mm-make-swap-token-dummies-static-inlines-fix.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
+revert-hugetlb-restore-interleaving-of-bootmem-huge-pages-2631.patch
+vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
+revert-proc-kcore-work-around-a-bug.patch
+arches-drop-superfluous-casts-in-nr_free_pages-callers-checkpatch-fixes.patch
+tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists-fix.patch
+page-allocator-maintain-rolling-count-of-pages-to-free-from-the-pcp-checkpatch-fixes.patch
+hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy-fix.patch
+hugetlb-add-per-node-hstate-attributes-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
+generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
+proc-connector-add-event-for-process-becoming-session-leader.patch
+kernel-smpc-relocate-some-code.patch
+mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
+sdio-add-cd-disable-support-cleanup.patch
+sdio-add-mmc_quirk_lenient_fn0-fix.patch
+at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver-checkpatch-fixes.patch
+procfs-provide-stack-information-for-threads-v011-fix.patch
+kcore-register-vmemmap-range-fix.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
+rtc-philips-nxp-pcf2123-driver-v03-fix.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes-fix.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
+drivers-video-add-kmalloc-null-tests-fix.patch
+v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
+page-types-add-feature-for-walking-process-address-space-checkpatch-fixes.patch
+cgroups-add-functionality-to-read-write-lock-clone_thread-forking-per-threadgroup-fix.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
+memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
+memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
+memcg-improve-resource-counter-scalability-checkpatch-fixes.patch
+exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
+exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
+elf-clean-up-fill_note_info-fix.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+reiser4-disable.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
