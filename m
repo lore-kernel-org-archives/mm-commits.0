@@ -1,155 +1,214 @@
 From: akpm@linux-foundation.org
-Subject: + percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch added to -mm tree
-Date: Thu, 10 Sep 2009 14:15:26 -0700
-Message-ID: <200909102115.n8ALFQCl031541@imap1.linux-foundation.org>
+Subject: [obsolete] cpu_hotplug-dont-affect-current-tasks-affinity.patch removed from -mm tree
+Date: Thu, 10 Sep 2009 14:23:57 -0700
+Message-ID: <200909102123.n8ALNvQh015836@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47344 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60845 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753632AbZIJVQQ (ORCPT
+	by vger.kernel.org with ESMTP id S1751096AbZIJVYo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Sep 2009 17:16:16 -0400
+	Thu, 10 Sep 2009 17:24:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, kamalesh@linux.vnet.ibm.com, rusty@rustcorp.com.au
+To: laijs@cn.fujitsu.com, mingo@elte.hu, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     percpu: avoid calling __pcpu_ptr_to_addr(NULL)
-has been added to the -mm tree.  Its filename is
-     percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+     cpu_hotplug: don't affect current task's affinity
+has been removed from the -mm tree.  Its filename was
+     cpu_hotplug-dont-affect-current-tasks-affinity.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: percpu: avoid calling __pcpu_ptr_to_addr(NULL)
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: cpu_hotplug: don't affect current task's affinity
+From: Lai Jiangshan <laijs@cn.fujitsu.com>
 
-__pcpu_ptr_to_addr() can be overridden by the architecture and might not
-behave well if passed a NULL pointer.  So avoid calling it until we have
-verified that its arg is not NULL.
+_cpu_down() changes the current task's affinity and then recovers it at
+the end.
 
+It has two problems:
+
+1) The recovery of the current tasks's cpus_allowed will fail under
+   some conditions.
+
+   # grep Cpus_allowed_list /proc/$$/status
+   Cpus_allowed_list:      0-3
+
+   # taskset -pc 2 $$
+   pid 29075's current affinity list: 0-3
+   pid 29075's new affinity list: 2
+
+   # grep Cpus_allowed_list /proc/$$/status
+   Cpus_allowed_list:      2
+
+   # echo 0 > /sys/devices/system/cpu/cpu2/online
+
+   # grep Cpus_allowed_list /proc/$$/status
+   Cpus_allowed_list:      0
+
+   Here, the Cpus_allowed_list was originally "2" and has become
+   "0-1,3" after cpu #2 is offlined.
+
+   This "Cpus_allowed_list:      0" is incorrect.
+
+2) If the current task is a userspace task, the user may change its
+   cpu-affinity during the CPU hot-unplugging.  This change can be
+   overwritten when _cpu_down() changes the current task's affinity.
+
+
+Fix all this by not changing the current tasks's affinity.  Instead we
+create a kernel thread to do the work.
+
+Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
 Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/percpu.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ kernel/cpu.c |   72 ++++++++++++++++++++++++++++---------------------
+ 1 file changed, 42 insertions(+), 30 deletions(-)
 
-diff -puN mm/percpu.c~percpu-avoid-calling-__pcpu_ptr_to_addrnull mm/percpu.c
---- a/mm/percpu.c~percpu-avoid-calling-__pcpu_ptr_to_addrnull
-+++ a/mm/percpu.c
-@@ -1211,7 +1211,7 @@ static void pcpu_reclaim(struct work_str
-  */
- void free_percpu(void *ptr)
+diff -puN kernel/cpu.c~cpu_hotplug-dont-affect-current-tasks-affinity kernel/cpu.c
+--- a/kernel/cpu.c~cpu_hotplug-dont-affect-current-tasks-affinity
++++ a/kernel/cpu.c
+@@ -162,15 +162,17 @@ static inline void check_for_tasks(int c
+ 	write_unlock_irq(&tasklist_lock);
+ }
+ 
+-struct take_cpu_down_param {
++struct cpu_down_param {
+ 	unsigned long mod;
+-	void *hcpu;
++	unsigned int cpu;
++	int ret;
++	struct completion done;
+ };
+ 
+ /* Take this CPU down. */
+ static int __ref take_cpu_down(void *_param)
  {
--	void *addr = __pcpu_ptr_to_addr(ptr);
-+	void *addr;
- 	struct pcpu_chunk *chunk;
- 	unsigned long flags;
- 	int off;
-@@ -1219,6 +1219,8 @@ void free_percpu(void *ptr)
- 	if (!ptr)
- 		return;
+-	struct take_cpu_down_param *param = _param;
++	struct cpu_down_param *param = _param;
+ 	int err;
  
-+	addr = __pcpu_ptr_to_addr(ptr);
+ 	/* Ensure this CPU doesn't handle any more interrupts. */
+@@ -179,7 +181,7 @@ static int __ref take_cpu_down(void *_pa
+ 		return err;
+ 
+ 	raw_notifier_call_chain(&cpu_chain, CPU_DYING | param->mod,
+-				param->hcpu);
++				(void *)(long)param->cpu);
+ 
+ 	/* Force idle task to run as soon as we yield: it should
+ 	   immediately notice cpu is offline and die quickly. */
+@@ -187,26 +189,13 @@ static int __ref take_cpu_down(void *_pa
+ 	return 0;
+ }
+ 
+-/* Requires cpu_add_remove_lock to be held */
+-static int __ref _cpu_down(unsigned int cpu, int tasks_frozen)
++static int __ref _cpu_down_thread(void *_param)
+ {
++	struct cpu_down_param *param = _param;
+ 	int err, nr_calls = 0;
+-	cpumask_var_t old_allowed;
++	unsigned long mod = param->mod;
++	unsigned int cpu = param->cpu;
+ 	void *hcpu = (void *)(long)cpu;
+-	unsigned long mod = tasks_frozen ? CPU_TASKS_FROZEN : 0;
+-	struct take_cpu_down_param tcd_param = {
+-		.mod = mod,
+-		.hcpu = hcpu,
+-	};
+-
+-	if (num_online_cpus() == 1)
+-		return -EBUSY;
+-
+-	if (!cpu_online(cpu))
+-		return -EINVAL;
+-
+-	if (!alloc_cpumask_var(&old_allowed, GFP_KERNEL))
+-		return -ENOMEM;
+ 
+ 	cpu_hotplug_begin();
+ 	err = __raw_notifier_call_chain(&cpu_chain, CPU_DOWN_PREPARE | mod,
+@@ -222,18 +211,16 @@ static int __ref _cpu_down(unsigned int 
+ 	}
+ 
+ 	/* Ensure that we are not runnable on dying cpu */
+-	cpumask_copy(old_allowed, &current->cpus_allowed);
+-	set_cpus_allowed_ptr(current,
+-			     cpumask_of(cpumask_any_but(cpu_online_mask, cpu)));
++	set_cpus_allowed_ptr(current, cpu_active_mask);
+ 
+-	err = __stop_machine(take_cpu_down, &tcd_param, cpumask_of(cpu));
++	err = __stop_machine(take_cpu_down, param, cpumask_of(cpu));
+ 	if (err) {
+ 		/* CPU didn't die: tell everyone.  Can't complain. */
+ 		if (raw_notifier_call_chain(&cpu_chain, CPU_DOWN_FAILED | mod,
+ 					    hcpu) == NOTIFY_BAD)
+ 			BUG();
+ 
+-		goto out_allowed;
++		goto out_release;
+ 	}
+ 	BUG_ON(cpu_online(cpu));
+ 
+@@ -251,8 +238,6 @@ static int __ref _cpu_down(unsigned int 
+ 
+ 	check_for_tasks(cpu);
+ 
+-out_allowed:
+-	set_cpus_allowed_ptr(current, old_allowed);
+ out_release:
+ 	cpu_hotplug_done();
+ 	if (!err) {
+@@ -260,8 +245,35 @@ out_release:
+ 					    hcpu) == NOTIFY_BAD)
+ 			BUG();
+ 	}
+-	free_cpumask_var(old_allowed);
+-	return err;
++	param->ret = err;
++	complete(&param->done);
 +
- 	spin_lock_irqsave(&pcpu_lock, flags);
++	return 0;
++}
++
++/* Requires cpu_add_remove_lock to be held */
++static int __ref _cpu_down(unsigned int cpu, int tasks_frozen)
++{
++	struct task_struct *k;
++	struct cpu_down_param param = {
++		.mod = tasks_frozen ? CPU_TASKS_FROZEN : 0,
++		.cpu = cpu,
++		.ret = 0,
++	};
++
++	if (num_online_cpus() == 1)
++		return -EBUSY;
++
++	if (!cpu_online(cpu))
++		return -EINVAL;
++
++	init_completion(&param.done);
++	k = kthread_run(_cpu_down_thread, &param, "kcpu_down");
++	if (IS_ERR(k))
++		return PTR_ERR(k);
++	wait_for_completion(&param.done);
++
++	return param.ret;
+ }
  
- 	chunk = pcpu_chunk_addr_search(addr);
+ int __ref cpu_down(unsigned int cpu)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from laijs@cn.fujitsu.com are
 
-fs-make-sure-data-stored-into-inode-is-properly-seen-before-unlocking-new-inode-fix.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-hwmon-driver-for-acpi-40-power-meters-fix.patch
-hwmon-driver-for-acpi-40-power-meters-fix-2.patch
-video-initial-support-for-adv7180-update-fix.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-checkincludespl-add-option-to-remove-duplicates-in-place.patch
-zorro8390-fix-read-buffer-overflow-in-zorro8390_init_one-checkpatch-fixes.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-serial167-fix-read-buffer-overflow.patch
-waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes-checkpatch-fixes.patch
-st-fix-test-of-value-range-in-st_set_options-fix.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
-vfs-optimize-touch_time-too.patch
-fs-improve-remountro-vs-buffercache-coherency-fix.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-mm-make-swap-token-dummies-static-inlines-fix.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
-revert-hugetlb-restore-interleaving-of-bootmem-huge-pages-2631.patch
-vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
-revert-proc-kcore-work-around-a-bug.patch
-arches-drop-superfluous-casts-in-nr_free_pages-callers-checkpatch-fixes.patch
-tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists-fix.patch
-page-allocator-maintain-rolling-count-of-pages-to-free-from-the-pcp-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
-generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
-proc-connector-add-event-for-process-becoming-session-leader.patch
-kernel-smpc-relocate-some-code.patch
-mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
-sdio-add-cd-disable-support-cleanup.patch
-sdio-add-mmc_quirk_lenient_fn0-fix.patch
-at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver-checkpatch-fixes.patch
-procfs-provide-stack-information-for-threads-v011-fix.patch
-kcore-register-vmemmap-range-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
-rtc-philips-nxp-pcf2123-driver-v03-fix.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes-fix.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
-drivers-video-add-kmalloc-null-tests-fix.patch
-v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
-page-types-add-feature-for-walking-process-address-space-checkpatch-fixes.patch
-cgroups-add-functionality-to-read-write-lock-clone_thread-forking-per-threadgroup-fix.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
-memcg-improve-resource-counter-scalability-checkpatch-fixes.patch
-exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
-exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
-elf-clean-up-fill_note_info-fix.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-reiser4-disable.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+cpu_hotplug-dont-affect-current-tasks-affinity.patch
 
