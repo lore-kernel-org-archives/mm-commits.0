@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + make-sure-the-value-in-abs-does-not-get-truncated-if-it-is-greater-than-232.patch added to -mm tree
-Date: Thu, 10 Sep 2009 13:41:02 -0700
-Message-ID: <200909102041.n8AKf3Vb029280@imap1.linux-foundation.org>
+Subject: + thermal-add-missing-kconfig-dependency.patch added to -mm tree
+Date: Thu, 10 Sep 2009 13:44:52 -0700
+Message-ID: <200909102044.n8AKiqxB004314@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56614 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47772 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752851AbZIJUla (ORCPT
+	by vger.kernel.org with ESMTP id S1751728AbZIJUqh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Sep 2009 16:41:30 -0400
+	Thu, 10 Sep 2009 16:46:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: eike-kernel@sf-tec.de
+Cc: JBeulich@novell.com, jbeulich@novell.com, lenb@kernel.org, mjg@redhat.com, rui.zhang@intel.com
 
 
 The patch titled
-     Make sure the value in abs() does not get truncated if it is greater than 2^32
+     thermal: add missing Kconfig dependency
 has been added to the -mm tree.  Its filename is
-     make-sure-the-value-in-abs-does-not-get-truncated-if-it-is-greater-than-232.patch
+     thermal-add-missing-kconfig-dependency.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Make sure the value in abs() does not get truncated if it is greater than 2^32
-From: Rolf Eike Beer <eike-kernel@sf-tec.de>
+Subject: thermal: add missing Kconfig dependency
+From: "Jan Beulich" <JBeulich@novell.com>
 
-abs() will truncate the input if is it outside the 2^32 range.  Fix that
-by assuming `long' input.
+Otherwise THERMAL_HWMON can be selected when HWMON=n and THERMAL=n, which
+fails to build.
 
-This might generate worse code in the common case.
-
-Signed-off-by: Rolf Eike Beer <eike-kernel@sf-tec.de>
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: Matthew Garrett <mjg@redhat.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/thermal/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/kernel.h~make-sure-the-value-in-abs-does-not-get-truncated-if-it-is-greater-than-232 include/linux/kernel.h
---- a/include/linux/kernel.h~make-sure-the-value-in-abs-does-not-get-truncated-if-it-is-greater-than-232
-+++ a/include/linux/kernel.h
-@@ -145,7 +145,7 @@ extern int _cond_resched(void);
- #define might_sleep_if(cond) do { if (cond) might_sleep(); } while (0)
+diff -puN drivers/thermal/Kconfig~thermal-add-missing-kconfig-dependency drivers/thermal/Kconfig
+--- a/drivers/thermal/Kconfig~thermal-add-missing-kconfig-dependency
++++ a/drivers/thermal/Kconfig
+@@ -15,6 +15,7 @@ menuconfig THERMAL
  
- #define abs(x) ({				\
--		int __x = (x);			\
-+		long __x = (x);			\
- 		(__x < 0) ? -__x : __x;		\
- 	})
- 
+ config THERMAL_HWMON
+ 	bool "Hardware monitoring support"
++	depends on THERMAL
+ 	depends on HWMON=y || HWMON=THERMAL
+ 	help
+ 	  The generic thermal sysfs driver's hardware monitoring support
 _
 
-Patches currently in -mm which might be from eike-kernel@sf-tec.de are
+Patches currently in -mm which might be from JBeulich@novell.com are
 
-make-sure-the-value-in-abs-does-not-get-truncated-if-it-is-greater-than-232.patch
+linux-next.patch
+thermal-add-missing-kconfig-dependency.patch
+kbuild-generate-modulesbuiltin.patch
+kbuild-rebuild-fix-for-makefilemodbuiltin.patch
+memory-hotplug-fix-updating-of-num_physpages-for-hot-plugged-memory.patch
+mm-replace-various-uses-of-num_physpages-by-totalram_pages.patch
+mm-dont-use-alloc_bootmem_low-where-not-strictly-needed.patch
+mm-also-use-alloc_large_system_hash-for-the-pid-hash-table.patch
+build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it.patch
 
