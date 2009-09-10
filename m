@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-rework-hstate_next_node_-functions.patch added to -mm tree
-Date: Thu, 10 Sep 2009 16:32:29 -0700
-Message-ID: <200909102332.n8ANWT7G007008@imap1.linux-foundation.org>
+Subject: + hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy.patch added to -mm tree
+Date: Thu, 10 Sep 2009 16:32:38 -0700
+Message-ID: <200909102332.n8ANWdr2007334@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54915 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34606 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752170AbZIJXdK (ORCPT
+	by vger.kernel.org with ESMTP id S1750860AbZIJXdT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Sep 2009 19:33:10 -0400
+	Thu, 10 Sep 2009 19:33:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: lee.schermerhorn@hp.com, agl@us.ibm.com, andi@firstfloor.org, apw@canonical.
 
 
 The patch titled
-     hugetlb: rework hstate_next_node_* functions
+     hugetlb: derive huge pages nodes allowed from task mempolicy
 has been added to the -mm tree.  Its filename is
-     hugetlb-rework-hstate_next_node_-functions.patch
+     hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,113 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb: rework hstate_next_node_* functions
+Subject: hugetlb: derive huge pages nodes allowed from task mempolicy
 From: Lee Schermerhorn <lee.schermerhorn@hp.com>
 
-This is V6 of a series of patches to provide control over the location of
-the allocation and freeing of persistent huge pages on a NUMA platform. 
-Please consider V6 [patches 1-6] for merging into mmotm.
+This patch derives a "nodes_allowed" node mask from the numa mempolicy of
+the task modifying the number of persistent huge pages to control the
+allocation, freeing and adjusting of surplus huge pages.  This mask is
+derived as follows:
 
-This series uses two mechanisms to constrain the nodes from which
-persistent huge pages are allocated: 1) the task NUMA mempolicy of the
-task modifying "nr_hugepages", based on a suggestion by Mel Gorman; and 2)
-a subset of the hugepages hstate sysfs attributes have been added [in V4]
-to each node system device under:
+* For "default" [NULL] task mempolicy, a NULL nodemask_t pointer is
+  produced.  This will cause the hugetlb subsystem to use node_online_map
+  as the "nodes_allowed".  This preserves the behavior before this patch.
 
-	/sys/devices/node/node[0-9]*/hugepages.
+* For "preferred" mempolicy, including explicit local allocation, a
+  nodemask with the single preferred node will be produced.  "local"
+  policy will NOT track any internode migrations of the task adjusting
+  nr_hugepages.
 
-The per node attibutes allow direct assignment of a huge page count on a
-specific node, regardless of the task's mempolicy or cpuset constraints.  
+* For "bind" and "interleave" policy, the mempolicy's nodemask will be
+  used.
 
+* Other than to inform the construction of the nodes_allowed node mask,
+  the actual mempolicy mode is ignored.  That is, all modes behave like
+  interleave over the resulting nodes_allowed mask with no "fallback".
 
+Notes:
 
-This patch:
+1) This patch introduces a subtle change in behavior: huge page
+   allocation and freeing will be constrained by any mempolicy that the
+   task adjusting the huge page pool inherits from its parent.  This
+   policy could come from a distant ancestor.  The adminstrator adjusting
+   the huge page pool without explicitly specifying a mempolicy via
+   numactl might be surprised by this.  Additionaly, any mempolicy
+   specified by numactl will be constrained by the cpuset in which numactl
+   is invoked.  Using sysfs per node hugepages attributes to adjust the
+   per node persistent huge pages count [subsequent patch] ignores
+   mempolicy and cpuset constraints.
 
-Modify the hstate_next_node* functions to allow them to be called to
-obtain the "start_nid".  Then, whereas prior to this patch we
-unconditionally called hstate_next_node_to_{alloc|free}(), whether or not
-we successfully allocated/freed a huge page on the node, now we only call
-these functions on failure to alloc/free to advance to next allowed node.
+2) Hugepages allocated at boot time use the node_online_map.  An
+   additional patch could implement a temporary boot time huge pages
+   nodes_allowed command line parameter.
 
-Factor out the next_node_allowed() function to handle wrap at end of
-node_online_map.  In this version, the allowed nodes include all of the
-online nodes.
+3) Using mempolicy to control persistent huge page allocation and
+   freeing requires no change to hugeadm when invoking it via numactl, as
+   shown in the examples below.  However, hugeadm could be enhanced to
+   take the allowed nodes as an argument and set its task mempolicy
+   itself.  This would allow it to detect and warn about any non-default
+   mempolicy that it inherited from its parent, thus alleviating the issue
+   described in Note 1 above.
 
-Acked-by: David Rientjes <rientjes@google.com>
-Reviewed-by: Mel Gorman <mel@csn.ul.ie>
+See the updated documentation [next patch] for more information
+about the implications of this patch.
+
+Examples:
+
+Starting with:
+
+	Node 0 HugePages_Total:     0
+	Node 1 HugePages_Total:     0
+	Node 2 HugePages_Total:     0
+	Node 3 HugePages_Total:     0
+
+Default behavior [with or without this patch] balances persistent hugepage
+allocation across nodes [with sufficient contiguous memory]:
+
+	hugeadm --pool-pages-min=2048Kb:32
+
+yields:
+
+	Node 0 HugePages_Total:     8
+	Node 1 HugePages_Total:     8
+	Node 2 HugePages_Total:     8
+	Node 3 HugePages_Total:     8
+
+Applying mempolicy--e.g., with numactl [using '-m' a.k.a.  '--membind'
+because it allows multiple nodes to be specified and it's easy to
+type]--we can allocate huge pages on individual nodes or sets of nodes. 
+So, starting from the condition above, with 8 huge pages per node:
+
+	numactl -m 2 hugeadm --pool-pages-min=2048Kb:+8
+
+yields:
+
+	Node 0 HugePages_Total:     8
+	Node 1 HugePages_Total:     8
+	Node 2 HugePages_Total:    16
+	Node 3 HugePages_Total:     8
+
+The incremental 8 huge pages were restricted to node 2 by the specified
+mempolicy.
+
+Similarly, we can use mempolicy to free persistent huge pages from
+specified nodes:
+
+	numactl -m 0,1 hugeadm --pool-pages-min=2048Kb:-8
+
+yields:
+
+	Node 0 HugePages_Total:     4
+	Node 1 HugePages_Total:     4
+	Node 2 HugePages_Total:    16
+	Node 3 HugePages_Total:     8
+
+The 8 huge pages freed were balanced over nodes 0 and 1.
+
 Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
+Cc: David Rientjes <rientjes@google.com>
 Cc: Nishanth Aravamudan <nacc@us.ibm.com>
 Cc: Adam Litke <agl@us.ibm.com>
 Cc: Andy Whitcroft <apw@canonical.com>
@@ -77,170 +149,125 @@ Cc: Christoph Lameter <cl@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   70 +++++++++++++++++++++++++++++++------------------
- 1 file changed, 45 insertions(+), 25 deletions(-)
+ include/linux/mempolicy.h |    3 ++
+ mm/hugetlb.c              |   12 +++++++-
+ mm/mempolicy.c            |   51 ++++++++++++++++++++++++++++++++++++
+ 3 files changed, 65 insertions(+), 1 deletion(-)
 
-diff -puN mm/hugetlb.c~hugetlb-rework-hstate_next_node_-functions mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-rework-hstate_next_node_-functions
+diff -puN include/linux/mempolicy.h~hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy include/linux/mempolicy.h
+--- a/include/linux/mempolicy.h~hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy
++++ a/include/linux/mempolicy.h
+@@ -201,6 +201,7 @@ extern void mpol_fix_fork_child_flag(str
+ extern struct zonelist *huge_zonelist(struct vm_area_struct *vma,
+ 				unsigned long addr, gfp_t gfp_flags,
+ 				struct mempolicy **mpol, nodemask_t **nodemask);
++extern nodemask_t *alloc_nodemask_of_mempolicy(void);
+ extern unsigned slab_node(struct mempolicy *policy);
+ 
+ extern enum zone_type policy_zone;
+@@ -328,6 +329,8 @@ static inline struct zonelist *huge_zone
+ 	return node_zonelist(0, gfp_flags);
+ }
+ 
++static inline nodemask_t *alloc_nodemask_of_mempolicy(void) { return NULL; }
++
+ static inline int do_migrate_pages(struct mm_struct *mm,
+ 			const nodemask_t *from_nodes,
+ 			const nodemask_t *to_nodes, int flags)
+diff -puN mm/hugetlb.c~hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy
 +++ a/mm/hugetlb.c
-@@ -622,6 +622,20 @@ static struct page *alloc_fresh_huge_pag
- }
- 
- /*
-+ * common helper function for hstate_next_node_to_{alloc|free}.
-+ * return next node in node_online_map, wrapping at end.
-+ */
-+static int next_node_allowed(int nid)
-+{
-+	nid = next_node(nid, node_online_map);
-+	if (nid == MAX_NUMNODES)
-+		nid = first_node(node_online_map);
-+	VM_BUG_ON(nid >= MAX_NUMNODES);
-+
-+	return nid;
-+}
-+
-+/*
-  * Use a helper variable to find the next node and then
-  * copy it back to next_nid_to_alloc afterwards:
-  * otherwise there's a window in which a racer might
-@@ -634,12 +648,12 @@ static struct page *alloc_fresh_huge_pag
-  */
- static int hstate_next_node_to_alloc(struct hstate *h)
+@@ -1246,11 +1246,19 @@ static int adjust_pool_surplus(struct hs
+ static unsigned long set_max_huge_pages(struct hstate *h, unsigned long count)
  {
--	int next_nid;
--	next_nid = next_node(h->next_nid_to_alloc, node_online_map);
--	if (next_nid == MAX_NUMNODES)
--		next_nid = first_node(node_online_map);
-+	int nid, next_nid;
+ 	unsigned long min_count, ret;
+-	nodemask_t *nodes_allowed = &node_online_map;
++	nodemask_t *nodes_allowed;
+ 
+ 	if (h->order >= MAX_ORDER)
+ 		return h->max_huge_pages;
+ 
++	nodes_allowed = alloc_nodemask_of_mempolicy();
++	if (!nodes_allowed) {
++		printk(KERN_WARNING "%s unable to allocate nodes allowed mask "
++			"for huge page allocation.  Falling back to default.\n",
++			current->comm);
++		nodes_allowed = &node_online_map;
++	}
 +
-+	nid = h->next_nid_to_alloc;
-+	next_nid = next_node_allowed(nid);
- 	h->next_nid_to_alloc = next_nid;
--	return next_nid;
-+	return nid;
- }
- 
- static int alloc_fresh_huge_page(struct hstate *h)
-@@ -649,15 +663,17 @@ static int alloc_fresh_huge_page(struct 
- 	int next_nid;
- 	int ret = 0;
- 
--	start_nid = h->next_nid_to_alloc;
-+	start_nid = hstate_next_node_to_alloc(h);
- 	next_nid = start_nid;
- 
- 	do {
- 		page = alloc_fresh_huge_page_node(h, next_nid);
--		if (page)
-+		if (page) {
- 			ret = 1;
-+			break;
-+		}
- 		next_nid = hstate_next_node_to_alloc(h);
--	} while (!page && next_nid != start_nid);
-+	} while (next_nid != start_nid);
- 
- 	if (ret)
- 		count_vm_event(HTLB_BUDDY_PGALLOC);
-@@ -668,17 +684,19 @@ static int alloc_fresh_huge_page(struct 
- }
- 
- /*
-- * helper for free_pool_huge_page() - find next node
-- * from which to free a huge page
-+ * helper for free_pool_huge_page() - return the next node
-+ * from which to free a huge page.  Advance the next node id
-+ * whether or not we find a free huge page to free so that the
-+ * next attempt to free addresses the next node.
-  */
- static int hstate_next_node_to_free(struct hstate *h)
- {
--	int next_nid;
--	next_nid = next_node(h->next_nid_to_free, node_online_map);
--	if (next_nid == MAX_NUMNODES)
--		next_nid = first_node(node_online_map);
-+	int nid, next_nid;
-+
-+	nid = h->next_nid_to_free;
-+	next_nid = next_node_allowed(nid);
- 	h->next_nid_to_free = next_nid;
--	return next_nid;
-+	return nid;
- }
- 
- /*
-@@ -693,7 +711,7 @@ static int free_pool_huge_page(struct hs
- 	int next_nid;
- 	int ret = 0;
- 
--	start_nid = h->next_nid_to_free;
-+	start_nid = hstate_next_node_to_free(h);
- 	next_nid = start_nid;
- 
- 	do {
-@@ -715,9 +733,10 @@ static int free_pool_huge_page(struct hs
- 			}
- 			update_and_free_page(h, page);
- 			ret = 1;
-+			break;
- 		}
- 		next_nid = hstate_next_node_to_free(h);
--	} while (!ret && next_nid != start_nid);
-+	} while (next_nid != start_nid);
- 
+ 	/*
+ 	 * Increase the pool size
+ 	 * First take pages out of surplus state.  Then make up the
+@@ -1311,6 +1319,8 @@ static unsigned long set_max_huge_pages(
+ out:
+ 	ret = persistent_huge_pages(h);
+ 	spin_unlock(&hugetlb_lock);
++	if (nodes_allowed != &node_online_map)
++		kfree(nodes_allowed);
  	return ret;
  }
-@@ -1028,10 +1047,9 @@ int __weak alloc_bootmem_huge_page(struc
- 		void *addr;
  
- 		addr = __alloc_bootmem_node_nopanic(
--				NODE_DATA(h->next_nid_to_alloc),
-+				NODE_DATA(hstate_next_node_to_alloc(h)),
- 				huge_page_size(h), huge_page_size(h), 0);
+diff -puN mm/mempolicy.c~hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy mm/mempolicy.c
+--- a/mm/mempolicy.c~hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy
++++ a/mm/mempolicy.c
+@@ -1564,6 +1564,57 @@ struct zonelist *huge_zonelist(struct vm
+ 	}
+ 	return zl;
+ }
++
++/*
++ * alloc_nodemask_of_mempolicy
++ *
++ * Returns a [pointer to a] nodelist based on the current task's mempolicy.
++ *
++ * If the task's mempolicy is "default" [NULL], return NULL for default
++ * behavior.  Otherwise, extract the policy nodemask for 'bind'
++ * or 'interleave' policy or construct a nodemask for 'preferred' or
++ * 'local' policy and return a pointer to a kmalloc()ed nodemask_t.
++ *
++ * N.B., it is the caller's responsibility to free a returned nodemask.
++ */
++nodemask_t *alloc_nodemask_of_mempolicy(void)
++{
++	nodemask_t *nodes_allowed = NULL;
++	struct mempolicy *mempolicy;
++	int nid;
++
++	if (!current->mempolicy)
++		return NULL;
++
++	mpol_get(current->mempolicy);
++	nodes_allowed = kmalloc(sizeof(*nodes_allowed), GFP_KERNEL);
++	if (!nodes_allowed)
++		return NULL;		/* silently default */
++
++	nodes_clear(*nodes_allowed);
++	mempolicy = current->mempolicy;
++	switch (mempolicy->mode) {
++	case MPOL_PREFERRED:
++		if (mempolicy->flags & MPOL_F_LOCAL)
++			nid = numa_node_id();
++		else
++			nid = mempolicy->v.preferred_node;
++		node_set(nid, *nodes_allowed);
++		break;
++
++	case MPOL_BIND:
++		/* Fall through */
++	case MPOL_INTERLEAVE:
++		*nodes_allowed =  mempolicy->v.nodes;
++		break;
++
++	default:
++		BUG();
++	}
++
++	mpol_put(current->mempolicy);
++	return nodes_allowed;
++}
+ #endif
  
--		hstate_next_node_to_alloc(h);
- 		if (addr) {
- 			/*
- 			 * Use the beginning of the huge page to store the
-@@ -1167,29 +1185,31 @@ static int adjust_pool_surplus(struct hs
- 	VM_BUG_ON(delta != -1 && delta != 1);
- 
- 	if (delta < 0)
--		start_nid = h->next_nid_to_alloc;
-+		start_nid = hstate_next_node_to_alloc(h);
- 	else
--		start_nid = h->next_nid_to_free;
-+		start_nid = hstate_next_node_to_free(h);
- 	next_nid = start_nid;
- 
- 	do {
- 		int nid = next_nid;
- 		if (delta < 0)  {
--			next_nid = hstate_next_node_to_alloc(h);
- 			/*
- 			 * To shrink on this node, there must be a surplus page
- 			 */
--			if (!h->surplus_huge_pages_node[nid])
-+			if (!h->surplus_huge_pages_node[nid]) {
-+				next_nid = hstate_next_node_to_alloc(h);
- 				continue;
-+			}
- 		}
- 		if (delta > 0) {
--			next_nid = hstate_next_node_to_free(h);
- 			/*
- 			 * Surplus cannot exceed the total number of pages
- 			 */
- 			if (h->surplus_huge_pages_node[nid] >=
--						h->nr_huge_pages_node[nid])
-+						h->nr_huge_pages_node[nid]) {
-+				next_nid = hstate_next_node_to_free(h);
- 				continue;
-+			}
- 		}
- 
- 		h->surplus_huge_pages += delta;
+ /* Allocate a page in interleaved policy.
 _
 
 Patches currently in -mm which might be from lee.schermerhorn@hp.com are
