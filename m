@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + reiser4-disable.patch added to -mm tree
-Date: Wed, 09 Sep 2009 21:22:59 -0700
-Message-ID: <200909100422.n8A4Mxeh005900@imap1.linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Wed, 09 Sep 2009 21:47:11 -0700
+Message-ID: <200909100447.n8A4lB7a020439@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35213 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42336 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750781AbZIJEX2 (ORCPT
+	by vger.kernel.org with ESMTP id S1750781AbZIJErj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Sep 2009 00:23:28 -0400
+	Thu, 10 Sep 2009 00:47:39 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n8A4lBh8032662
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 9 Sep 2009 21:47:12 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, edward.shishkin@gmail.com
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     reiser4-disable
+     linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     reiser4-disable.patch
+     linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,29 +38,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiser4-disable
+Subject: linux-next-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-disable reiser4 until people stop changing generic_sync_sb_inodes().
-
-Cc: Edward Shishkin <edward.shishkin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiser4/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/block/aoe/aoeblk.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN fs/reiser4/Kconfig~reiser4-disable fs/reiser4/Kconfig
---- a/fs/reiser4/Kconfig~reiser4-disable
-+++ a/fs/reiser4/Kconfig
-@@ -1,6 +1,7 @@
- config REISER4_FS
- 	tristate "Reiser4 (EXPERIMENTAL)"
- 	depends on EXPERIMENTAL
-+	depends on BROKEN
- 	select ZLIB_INFLATE
- 	select ZLIB_DEFLATE
- 	select LZO_COMPRESS
+diff -puN drivers/block/aoe/aoeblk.c~linux-next-git-rejects drivers/block/aoe/aoeblk.c
+--- a/drivers/block/aoe/aoeblk.c~linux-next-git-rejects
++++ a/drivers/block/aoe/aoeblk.c
+@@ -264,14 +264,8 @@ aoeblk_gdalloc(void *vp)
+ 		goto err_disk;
+ 	}
+ 
+-<<<<<<< HEAD:drivers/block/aoe/aoeblk.c
+ 	d->blkq = blk_alloc_queue(GFP_KERNEL);
+ 	if (!d->blkq)
+-=======
+-	blk_queue_make_request(&d->blkq, aoeblk_make_request);
+-	d->blkq.backing_dev_info.name = "aoe";
+-	if (bdi_init(&d->blkq.backing_dev_info))
+->>>>>>> FETCH_HEAD:drivers/block/aoe/aoeblk.c
+ 		goto err_mempool;
+ 	blk_queue_make_request(d->blkq, aoeblk_make_request);
+ 	if (bdi_init(&d->blkq->backing_dev_info))
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -64,6 +72,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 fs-make-sure-data-stored-into-inode-is-properly-seen-before-unlocking-new-inode-fix.patch
 linux-next.patch
+linux-next-git-rejects.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
 arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
