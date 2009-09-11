@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kcore-use-registerd-physmem-information-ia64-fix.patch added to -mm tree
-Date: Thu, 10 Sep 2009 18:31:56 -0700
-Message-ID: <200909110131.n8B1VuQI012955@imap1.linux-foundation.org>
+Subject: + sdio-recognize-io-card-without-powercycle.patch added to -mm tree
+Date: Thu, 10 Sep 2009 20:40:13 -0700
+Message-ID: <200909110340.n8B3eDt9003047@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45046 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48925 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751448AbZIKBb5 (ORCPT
+	by vger.kernel.org with ESMTP id S1753534AbZIKDkM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Sep 2009 21:31:57 -0400
+	Thu, 10 Sep 2009 23:40:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com
+Cc: albert_herranz@yahoo.es, linux-mmc@vger.kernel.org
 
 
 The patch titled
-     kcore-use-registerd-physmem-information-ia64-fix
+     sdio: recognize io card without powercycle
 has been added to the -mm tree.  Its filename is
-     kcore-use-registerd-physmem-information-ia64-fix.patch
+     sdio-recognize-io-card-without-powercycle.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,122 +34,133 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kcore-use-registerd-physmem-information-ia64-fix
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: sdio: recognize io card without powercycle
+From: Albert Herranz <albert_herranz@yahoo.es>
 
-kcore-use-registerd-physmem-information.patch registers physmem
-information based on ioresource.  Then, this addition is unnecessary.
+SDIO Simplified Specification V2.00 states that it is strongly recommended
+that the host executes either a power reset or issues a CMD52 (I/O Reset)
+to re-initialize an I/O only card or the I/O portion of a combo card. 
+Additionally, the CMD52 must be issued first because it cannot be issued
+after a CMD0.
 
-Why panic:
-  At boot, rebuilding kclist for physmem, all KCORE_RAM entries are kfreed.
-  Because this ramaining one entires kclist of KCORE_RAM in kernel data area
-  to ther list, this causes panic in kclist rebuilding which calls kfree().
+With this patch the Nintendo Wii SDIO-based WLAN card is detected after a
+system reset, without requiring a complete system powercycle.
 
-Reported-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Tested-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Albert Herranz <albert_herranz@yahoo.es>
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/mm/init.c |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/mmc/core/core.c     |    1 
+ drivers/mmc/core/sdio_ops.c |   36 ++++++++++++++++++++++++++++------
+ drivers/mmc/core/sdio_ops.h |    1 
+ 3 files changed, 32 insertions(+), 6 deletions(-)
 
-diff -puN arch/ia64/mm/init.c~kcore-use-registerd-physmem-information-ia64-fix arch/ia64/mm/init.c
---- a/arch/ia64/mm/init.c~kcore-use-registerd-physmem-information-ia64-fix
-+++ a/arch/ia64/mm/init.c
-@@ -617,7 +617,6 @@ mem_init (void)
- 	long reserved_pages, codesize, datasize, initsize;
- 	pg_data_t *pgdat;
- 	int i;
--	static struct kcore_list kcore_mem;
+diff -puN drivers/mmc/core/core.c~sdio-recognize-io-card-without-powercycle drivers/mmc/core/core.c
+--- a/drivers/mmc/core/core.c~sdio-recognize-io-card-without-powercycle
++++ a/drivers/mmc/core/core.c
+@@ -1073,6 +1073,7 @@ void mmc_rescan(struct work_struct *work
+ 	mmc_claim_host(host);
  
- 	BUG_ON(PTRS_PER_PGD * sizeof(pgd_t) != PAGE_SIZE);
- 	BUG_ON(PTRS_PER_PMD * sizeof(pmd_t) != PAGE_SIZE);
-@@ -639,8 +638,6 @@ mem_init (void)
+ 	mmc_power_up(host);
++	sdio_go_idle(host);
+ 	mmc_go_idle(host);
  
- 	high_memory = __va(max_low_pfn * PAGE_SIZE);
+ 	mmc_send_if_cond(host, host->ocr_avail);
+diff -puN drivers/mmc/core/sdio_ops.c~sdio-recognize-io-card-without-powercycle drivers/mmc/core/sdio_ops.c
+--- a/drivers/mmc/core/sdio_ops.c~sdio-recognize-io-card-without-powercycle
++++ a/drivers/mmc/core/sdio_ops.c
+@@ -67,13 +67,13 @@ int mmc_send_io_op_cond(struct mmc_host 
+ 	return err;
+ }
  
--	kclist_add(&kcore_mem, __va(0), max_low_pfn * PAGE_SIZE, KCORE_RAM);
--
- 	for_each_online_pgdat(pgdat)
- 		if (pgdat->bdata->node_bootmem_map)
- 			totalram_pages += free_all_bootmem_node(pgdat);
+-int mmc_io_rw_direct(struct mmc_card *card, int write, unsigned fn,
+-	unsigned addr, u8 in, u8* out)
++static int mmc_io_rw_direct_host(struct mmc_host *host, int write, unsigned fn,
++	unsigned addr, u8 in, u8 *out)
+ {
+ 	struct mmc_command cmd;
+ 	int err;
+ 
+-	BUG_ON(!card);
++	BUG_ON(!host);
+ 	BUG_ON(fn > 7);
+ 
+ 	/* sanity check */
+@@ -90,11 +90,11 @@ int mmc_io_rw_direct(struct mmc_card *ca
+ 	cmd.arg |= in;
+ 	cmd.flags = MMC_RSP_SPI_R5 | MMC_RSP_R5 | MMC_CMD_AC;
+ 
+-	err = mmc_wait_for_cmd(card->host, &cmd, 0);
++	err = mmc_wait_for_cmd(host, &cmd, 0);
+ 	if (err)
+ 		return err;
+ 
+-	if (mmc_host_is_spi(card->host)) {
++	if (mmc_host_is_spi(host)) {
+ 		/* host driver already reported errors */
+ 	} else {
+ 		if (cmd.resp[0] & R5_ERROR)
+@@ -106,7 +106,7 @@ int mmc_io_rw_direct(struct mmc_card *ca
+ 	}
+ 
+ 	if (out) {
+-		if (mmc_host_is_spi(card->host))
++		if (mmc_host_is_spi(host))
+ 			*out = (cmd.resp[0] >> 8) & 0xFF;
+ 		else
+ 			*out = cmd.resp[0] & 0xFF;
+@@ -115,6 +115,13 @@ int mmc_io_rw_direct(struct mmc_card *ca
+ 	return 0;
+ }
+ 
++int mmc_io_rw_direct(struct mmc_card *card, int write, unsigned fn,
++	unsigned addr, u8 in, u8 *out)
++{
++	BUG_ON(!card);
++	return mmc_io_rw_direct_host(card->host, write, fn, addr, in, out);
++}
++
+ int mmc_io_rw_extended(struct mmc_card *card, int write, unsigned fn,
+ 	unsigned addr, int incr_addr, u8 *buf, unsigned blocks, unsigned blksz)
+ {
+@@ -182,3 +189,20 @@ int mmc_io_rw_extended(struct mmc_card *
+ 	return 0;
+ }
+ 
++int sdio_go_idle(struct mmc_host *host)
++{
++	int ret;
++	u8 abort;
++
++	/* SDIO Simplified Specification V2.0, 4.4 Reset for SDIO */
++
++	ret = mmc_io_rw_direct_host(host, 0, 0, SDIO_CCCR_ABORT, 0, &abort);
++	if (ret)
++		abort = 0x08;
++	else
++		abort |= 0x08;
++
++	ret = mmc_io_rw_direct_host(host, 1, 0, SDIO_CCCR_ABORT, abort, NULL);
++	return ret;
++}
++
+diff -puN drivers/mmc/core/sdio_ops.h~sdio-recognize-io-card-without-powercycle drivers/mmc/core/sdio_ops.h
+--- a/drivers/mmc/core/sdio_ops.h~sdio-recognize-io-card-without-powercycle
++++ a/drivers/mmc/core/sdio_ops.h
+@@ -17,6 +17,7 @@ int mmc_io_rw_direct(struct mmc_card *ca
+ 	unsigned addr, u8 in, u8* out);
+ int mmc_io_rw_extended(struct mmc_card *card, int write, unsigned fn,
+ 	unsigned addr, int incr_addr, u8 *buf, unsigned blocks, unsigned blksz);
++int sdio_go_idle(struct mmc_host *host);
+ 
+ #endif
+ 
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from albert_herranz@yahoo.es are
 
-proc-kcore-work-around-a-bug.patch
-mm-clean-up-page_remove_rmap.patch
-vmscan-throttle-direct-reclaim-when-too-many-pages-are-isolated-already.patch
-mm-remove-__addsub_zone_page_state.patch
-vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
-ksm-add-mmu_notifier-set_pte_at_notify.patch
-ksm-first-tidy-up-madvise_vma.patch
-ksm-define-madv_mergeable-and-madv_unmergeable.patch
-ksm-the-mm-interface-to-ksm.patch
-ksm-no-debug-in-page_dup_rmap.patch
-ksm-identify-pageksm-pages.patch
-ksm-kernel-samepage-merging.patch
-ksm-prevent-mremap-move-poisoning.patch
-ksm-change-copyright-message.patch
-ksm-change-ksm-nice-level-to-be-5.patch
-page-allocator-change-migratetype-for-all-pageblocks-within-a-high-order-page-during-__rmqueue_fallback-fix.patch
-vmalloc-unmap-vmalloc-area-after-hiding-it.patch
-revert-proc-kcore-work-around-a-bug.patch
-kcore-fix-vread-vwrite-to-be-aware-of-holes.patch
-kcore-fix-vread-vwrite-to-be-aware-of-holes-update.patch
-kcore-proc-kcore-should-use-vread.patch
-mm-add_to_swap_cache-must-not-sleep.patch
-mm-add_to_swap_cache-does-not-return-eexist.patch
-memory-hotplug-fix-updating-of-num_physpages-for-hot-plugged-memory.patch
-mm-vmscan-rename-zone_nr_pages-to-zone_lru_nr_pages.patch
-mm-do-batched-scans-for-mem_cgroup.patch
-oom-move-oom_adj-value-from-task_struct-to-signal_struct.patch
-oom-make-oom_score-to-per-process-value.patch
-oom-oom_kill-doesnt-kill-vfork-parentor-child.patch
-oom-fix-oom_adjust_write-input-sanity-check.patch
-mm-fix-numa-accounting-in-numastattxt.patch
-mm-munlock-use-follow_page.patch
-mm-remove-unused-gup-flags.patch
-mm-add-get_dump_page.patch
-mm-foll_dump-replace-foll_anon.patch
-mm-follow_hugetlb_page-flags.patch
-mm-fix-anonymous-dirtying.patch
-mm-reinstate-zero_page.patch
-mm-foll-flags-for-gup-flags.patch
-kcore-fix-proc-kcores-statst_size.patch
-kcore-use-usual-list-for-kclist.patch
-kcore-add-kclist-types.patch
-kcore-register-vmalloc-area-in-generic-way.patch
-kcore-register-text-area-in-generic-way.patch
-walk-system-ram-range.patch
-kcore-use-registerd-physmem-information.patch
-kcore-use-registerd-physmem-information-ia64-fix.patch
-kcore-register-vmemmap-range.patch
-kcore-register-vmemmap-range-fix.patch
-kcore-register-module-area-in-generic-way.patch
-cgroups-support-named-cgroups-hierarchies.patch
-cgroups-move-the-cgroup-debug-subsys-into-cgroupc-to-access-internal-state.patch
-cgroups-add-a-back-pointer-from-struct-cg_cgroup_link-to-struct-cgroup.patch
-cgroups-allow-cgroup-hierarchies-to-be-created-with-no-bound-subsystems.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix-2.patch
-memcg-add-comments-explaining-memory-barriers.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
-memory-controller-soft-limit-documentation-v9.patch
-memory-controller-soft-limit-interface-v9.patch
-memory-controller-soft-limit-organize-cgroups-v9.patch
-memory-controller-soft-limit-organize-cgroups-v9-fix.patch
-memory-controller-soft-limit-refactor-reclaim-flags-v9.patch
-memory-controller-soft-limit-reclaim-on-contention-v9.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix-softlimit-css-refcnt-handling.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix-softlimit-css-refcnt-handling-fix.patch
-memcg-improve-resource-counter-scalability.patch
-memcg-improve-resource-counter-scalability-v5.patch
-memcg-show-swap-usage-in-stat-file.patch
-memcg-show-swap-usage-in-stat-file-fix.patch
-do_wait-wakeup-optimization-fix-child_wait_callback-eligible_child-usage.patch
-do_wait-wakeup-optimization-simplify-task_pid_type.patch
+linux-next.patch
+sdio-recognize-io-card-without-powercycle.patch
+sdio-pass-unknown-cis-tuples-to-sdio-drivers.patch
 
