@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + lowmemorykiller-fix-build-error-to-move-oom_adj.patch added to -mm tree
-Date: Fri, 11 Sep 2009 13:58:18 -0700
-Message-ID: <200909112058.n8BKwInx014203@imap1.linux-foundation.org>
+Subject: + revert-staging-android-lowmemorykillerc-fix-it-for-oom-move-oom_adj-value-from-task_struct-to-mm_struct.patch added to -mm tree
+Date: Fri, 11 Sep 2009 13:58:16 -0700
+Message-ID: <200909112058.n8BKwG4Z014125@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58496 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38263 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755952AbZIKU7Z (ORCPT
+	by vger.kernel.org with ESMTP id S1755918AbZIKU7k (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Sep 2009 16:59:25 -0400
+	Fri, 11 Sep 2009 16:59:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, greg@kroah.com, stable@kernel.org
+Cc: kosaki.motohiro@jp.fujitsu.com, geert@linux-m68k.org, greg@kroah.com, stable@kernel.org
 
 
 The patch titled
-     lowmemorykiller: fix build error to move oom_adj
+     Revert "Staging: android: lowmemorykiller.c: fix it for "oom: move oom_adj value from task_struct to mm_struct""
 has been added to the -mm tree.  Its filename is
-     lowmemorykiller-fix-build-error-to-move-oom_adj.patch
+     revert-staging-android-lowmemorykillerc-fix-it-for-oom-move-oom_adj-value-from-task_struct-to-mm_struct.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lowmemorykiller: fix build error to move oom_adj
+Subject: Revert "Staging: android: lowmemorykiller.c: fix it for "oom: move oom_adj value from task_struct to mm_struct""
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Recently, oom_adj moved from task_struct to signal_struct. Then, the oom_adj
-treating code in android driver also should be changed.
+commit 0753ba01 (mm: revert "oom: move oom_adj value") reverted some
+regression patch. but it didn't revert one oom retrieved driver patch.
 
+Then, it made build error to the driver. This reverts commit
+a6a9f81ccc9f5c86ccc22bbed1960a57d0316e8b too and fixes the build error.
+
+Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Greg KH <greg@kroah.com>
 Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/android/lowmemorykiller.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/staging/android/lowmemorykiller.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN drivers/staging/android/lowmemorykiller.c~lowmemorykiller-fix-build-error-to-move-oom_adj drivers/staging/android/lowmemorykiller.c
---- a/drivers/staging/android/lowmemorykiller.c~lowmemorykiller-fix-build-error-to-move-oom_adj
+diff -puN drivers/staging/android/lowmemorykiller.c~revert-staging-android-lowmemorykillerc-fix-it-for-oom-move-oom_adj-value-from-task_struct-to-mm_struct drivers/staging/android/lowmemorykiller.c
+--- a/drivers/staging/android/lowmemorykiller.c~revert-staging-android-lowmemorykillerc-fix-it-for-oom-move-oom_adj-value-from-task_struct-to-mm_struct
 +++ a/drivers/staging/android/lowmemorykiller.c
-@@ -106,7 +106,7 @@ static int lowmem_shrink(int nr_to_scan,
+@@ -99,21 +99,19 @@ static int lowmem_shrink(int nr_to_scan,
+ 
+ 	read_lock(&tasklist_lock);
+ 	for_each_process(p) {
+-		struct mm_struct *mm;
+ 		int oom_adj;
+ 
+ 		task_lock(p);
+-		mm = p->mm;
+-		if (!mm) {
++		if (!p->mm) {
  			task_unlock(p);
  			continue;
  		}
--		oom_adj = p->oomkilladj;
-+		oom_adj = p->signal->oom_adj;
+-		oom_adj = mm->oom_adj;
++		oom_adj = p->oomkilladj;
  		if (oom_adj < min_adj) {
  			task_unlock(p);
+ 			continue;
+ 		}
+-		tasksize = get_mm_rss(mm);
++		tasksize = get_mm_rss(p->mm);
+ 		task_unlock(p);
+ 		if (tasksize <= 0)
  			continue;
 _
 
