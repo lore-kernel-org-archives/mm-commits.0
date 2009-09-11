@@ -1,610 +1,217 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] hugetlb-add-per-node-hstate-attributes.patch removed from -mm tree
-Date: Fri, 11 Sep 2009 10:43:15 -0700
-Message-ID: <200909111743.n8BHhFNW022471@imap1.linux-foundation.org>
+Subject: + const-make-struct-super_block-s_qcop-const.patch added to -mm tree
+Date: Fri, 11 Sep 2009 13:27:13 -0700
+Message-ID: <200909112027.n8BKRDQx018478@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50615 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39638 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754291AbZIKRvG (ORCPT
+	by vger.kernel.org with ESMTP id S1751307AbZIKU13 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Sep 2009 13:51:06 -0400
+	Fri, 11 Sep 2009 16:27:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lee.schermerhorn@hp.com, agl@us.ibm.com, andi@firstfloor.org, apw@canonical.com, cl@linux-foundation.org, mel@csn.ul.ie, nacc@us.ibm.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: adobriyan@gmail.com
 
 
 The patch titled
-     hugetlb: add per node hstate attributes
-has been removed from the -mm tree.  Its filename was
-     hugetlb-add-per-node-hstate-attributes.patch
+     const: make struct super_block::s_qcop const
+has been added to the -mm tree.  Its filename is
+     const-make-struct-super_block-s_qcop-const.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb: add per node hstate attributes
-From: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Subject: const: make struct super_block::s_qcop const
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-Add the per huge page size control/query attributes to the per node
-sysdevs:
-
-/sys/devices/system/node/node<ID>/hugepages/hugepages-<size>/
-	nr_hugepages       - r/w
-	free_huge_pages    - r/o
-	surplus_huge_pages - r/o
-
-The patch attempts to re-use/share as much of the existing global hstate
-attribute initialization and handling, and the "nodes_allowed" constraint
-processing as possible.
-
-Calling set_max_huge_pages() with no node indicates a change to global
-hstate parameters.  In this case, any non-default task mempolicy will be
-used to generate the nodes_allowed mask.  A valid node id indicates an
-update to that node's hstate parameters, and the count argument specifies
-the target count for the specified node.  From this info, we compute the
-target global count for the hstate and construct a nodes_allowed node mask
-contain only the specified node.
-
-Setting the node specific nr_hugepages via the per node attribute
-effectively ignores any task mempolicy or cpuset constraints.
-
-With this patch:
-
-(me):ls /sys/devices/system/node/node0/hugepages/hugepages-2048kB
-./  ../  free_hugepages  nr_hugepages  surplus_hugepages
-
-Starting from:
-Node 0 HugePages_Total:     0
-Node 0 HugePages_Free:      0
-Node 0 HugePages_Surp:      0
-Node 1 HugePages_Total:     0
-Node 1 HugePages_Free:      0
-Node 1 HugePages_Surp:      0
-Node 2 HugePages_Total:     0
-Node 2 HugePages_Free:      0
-Node 2 HugePages_Surp:      0
-Node 3 HugePages_Total:     0
-Node 3 HugePages_Free:      0
-Node 3 HugePages_Surp:      0
-vm.nr_hugepages = 0
-
-Allocate 16 persistent huge pages on node 2:
-(me):echo 16 >/sys/devices/system/node/node2/hugepages/hugepages-2048kB/nr_hugepages
-
-[Note that this is equivalent to:
-	numactl -m 2 hugeadmin --pool-pages-min 2M:+16
-]
-
-Yields:
-Node 0 HugePages_Total:     0
-Node 0 HugePages_Free:      0
-Node 0 HugePages_Surp:      0
-Node 1 HugePages_Total:     0
-Node 1 HugePages_Free:      0
-Node 1 HugePages_Surp:      0
-Node 2 HugePages_Total:    16
-Node 2 HugePages_Free:     16
-Node 2 HugePages_Surp:      0
-Node 3 HugePages_Total:     0
-Node 3 HugePages_Free:      0
-Node 3 HugePages_Surp:      0
-vm.nr_hugepages = 16
-
-Global controls work as expected--reduce pool to 8 persistent huge pages:
-(me):echo 8 >/sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
-
-Node 0 HugePages_Total:     0
-Node 0 HugePages_Free:      0
-Node 0 HugePages_Surp:      0
-Node 1 HugePages_Total:     0
-Node 1 HugePages_Free:      0
-Node 1 HugePages_Surp:      0
-Node 2 HugePages_Total:     8
-Node 2 HugePages_Free:      8
-Node 2 HugePages_Surp:      0
-Node 3 HugePages_Total:     0
-Node 3 HugePages_Free:      0
-Node 3 HugePages_Surp:      0
-
-Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Nishanth Aravamudan <nacc@us.ibm.com>
-Cc: Adam Litke <agl@us.ibm.com>
-Cc: Andy Whitcroft <apw@canonical.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Christoph Lameter <cl@linux-foundation.org>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c  |   33 +++++
- include/linux/node.h |    8 +
- mm/hugetlb.c         |  240 +++++++++++++++++++++++++++++++++++------
- 3 files changed, 251 insertions(+), 30 deletions(-)
+ fs/cifs/cifsfs.c                |    4 ++--
+ fs/ext3/super.c                 |    2 +-
+ fs/ext4/super.c                 |    2 +-
+ fs/ocfs2/super.c                |    2 +-
+ fs/quota/dquot.c                |    2 +-
+ fs/reiserfs/super.c             |    2 +-
+ fs/xfs/linux-2.6/xfs_quotaops.c |    2 +-
+ fs/xfs/linux-2.6/xfs_super.h    |    2 +-
+ include/linux/fs.h              |    2 +-
+ include/linux/quotaops.h        |    2 +-
+ 10 files changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN drivers/base/node.c~hugetlb-add-per-node-hstate-attributes drivers/base/node.c
---- a/drivers/base/node.c~hugetlb-add-per-node-hstate-attributes
-+++ a/drivers/base/node.c
-@@ -177,6 +177,37 @@ static ssize_t node_read_distance(struct
- }
- static SYSDEV_ATTR(distance, S_IRUGO, node_read_distance, NULL);
+diff -puN fs/cifs/cifsfs.c~const-make-struct-super_block-s_qcop-const fs/cifs/cifsfs.c
+--- a/fs/cifs/cifsfs.c~const-make-struct-super_block-s_qcop-const
++++ a/fs/cifs/cifsfs.c
+@@ -50,7 +50,7 @@
+ #define CIFS_MAGIC_NUMBER 0xFF534D42	/* the first four bytes of SMB PDUs */
  
-+/*
-+ * hugetlbfs per node attributes registration interface:
-+ * When/if hugetlb[fs] subsystem initializes [sometime after this module],
-+ * it will register it's per node attributes for all nodes on-line at that
-+ * point.  It will also call register_hugetlbfs_with_node(), below, to
-+ * register it's attribute registration functions with this node driver.
-+ * Once these hooks have been initialized, the node driver will call into
-+ * the hugetlb module to [un]register attributes for hot-plugged nodes.
-+ */
-+NODE_REGISTRATION_FUNC __hugetlb_register_node;
-+NODE_REGISTRATION_FUNC __hugetlb_unregister_node;
-+
-+static inline void hugetlb_register_node(struct node *node)
-+{
-+	if (__hugetlb_register_node)
-+		__hugetlb_register_node(node);
-+}
-+
-+static inline void hugetlb_unregister_node(struct node *node)
-+{
-+	if (__hugetlb_unregister_node)
-+		__hugetlb_unregister_node(node);
-+}
-+
-+void register_hugetlbfs_with_node(NODE_REGISTRATION_FUNC doregister,
-+				  NODE_REGISTRATION_FUNC unregister)
-+{
-+	__hugetlb_register_node   = doregister;
-+	__hugetlb_unregister_node = unregister;
-+}
-+
+ #ifdef CONFIG_CIFS_QUOTA
+-static struct quotactl_ops cifs_quotactl_ops;
++static const struct quotactl_ops cifs_quotactl_ops;
+ #endif /* QUOTA */
  
- /*
-  * register_node - Setup a sysfs device for a node.
-@@ -200,6 +231,7 @@ int register_node(struct node *node, int
- 		sysdev_create_file(&node->sysdev, &attr_distance);
- 
- 		scan_unevictable_register_node(node);
-+		hugetlb_register_node(node);
- 	}
- 	return error;
- }
-@@ -220,6 +252,7 @@ void unregister_node(struct node *node)
- 	sysdev_remove_file(&node->sysdev, &attr_distance);
- 
- 	scan_unevictable_unregister_node(node);
-+	hugetlb_unregister_node(node);
- 
- 	sysdev_unregister(&node->sysdev);
- }
-diff -puN include/linux/node.h~hugetlb-add-per-node-hstate-attributes include/linux/node.h
---- a/include/linux/node.h~hugetlb-add-per-node-hstate-attributes
-+++ a/include/linux/node.h
-@@ -28,6 +28,7 @@ struct node {
- 
- struct memory_block;
- extern struct node node_devices[];
-+typedef  void (*NODE_REGISTRATION_FUNC)(struct node *);
- 
- extern int register_node(struct node *, int, struct node *);
- extern void unregister_node(struct node *node);
-@@ -39,6 +40,8 @@ extern int unregister_cpu_under_node(uns
- extern int register_mem_sect_under_node(struct memory_block *mem_blk,
- 						int nid);
- extern int unregister_mem_sect_under_nodes(struct memory_block *mem_blk);
-+extern void register_hugetlbfs_with_node(NODE_REGISTRATION_FUNC doregister,
-+					 NODE_REGISTRATION_FUNC unregister);
- #else
- static inline int register_one_node(int nid)
- {
-@@ -65,6 +68,11 @@ static inline int unregister_mem_sect_un
- {
- 	return 0;
- }
-+
-+static inline void register_hugetlbfs_with_node(NODE_REGISTRATION_FUNC reg,
-+						NODE_REGISTRATION_FUNC unreg)
-+{
-+}
- #endif
- 
- #define to_node(sys_device) container_of(sys_device, struct node, sysdev)
-diff -puN mm/hugetlb.c~hugetlb-add-per-node-hstate-attributes mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-add-per-node-hstate-attributes
-+++ a/mm/hugetlb.c
-@@ -24,6 +24,7 @@
- #include <asm/io.h>
- 
- #include <linux/hugetlb.h>
-+#include <linux/node.h>
- #include "internal.h"
- 
- const unsigned long hugetlb_zero = 0, hugetlb_infinity = ~0UL;
-@@ -1243,7 +1244,8 @@ static int adjust_pool_surplus(struct hs
+ int cifsFYI = 0;
+@@ -517,7 +517,7 @@ int cifs_xstate_get(struct super_block *
+ 	return rc;
  }
  
- #define persistent_huge_pages(h) (h->nr_huge_pages - h->surplus_huge_pages)
--static unsigned long set_max_huge_pages(struct hstate *h, unsigned long count)
-+static unsigned long set_max_huge_pages(struct hstate *h, unsigned long count,
-+								int nid)
- {
- 	unsigned long min_count, ret;
- 	nodemask_t *nodes_allowed;
-@@ -1251,7 +1253,17 @@ static unsigned long set_max_huge_pages(
- 	if (h->order >= MAX_ORDER)
- 		return h->max_huge_pages;
- 
--	nodes_allowed = alloc_nodemask_of_mempolicy();
-+	if (nid == NUMA_NO_NODE) {
-+		nodes_allowed = alloc_nodemask_of_mempolicy();
-+	} else {
-+		/*
-+		 * incoming 'count' is for node 'nid' only, so
-+		 * adjust count to global, but restrict alloc/free
-+		 * to the specified node.
-+		 */
-+		count += h->nr_huge_pages - h->nr_huge_pages_node[nid];
-+		nodes_allowed = alloc_nodemask_of_node(nid);
-+	}
- 	if (!nodes_allowed) {
- 		printk(KERN_WARNING "%s: unable to allocate nodes allowed mask "
- 			"for huge page allocation.  Falling back to default.\n",
-@@ -1334,51 +1346,71 @@ out:
- static struct kobject *hugepages_kobj;
- static struct kobject *hstate_kobjs[HUGE_MAX_HSTATE];
- 
--static struct hstate *kobj_to_hstate(struct kobject *kobj)
-+static struct hstate *kobj_to_node_hstate(struct kobject *kobj, int *nidp);
-+
-+static struct hstate *kobj_to_hstate(struct kobject *kobj, int *nidp)
- {
- 	int i;
-+
- 	for (i = 0; i < HUGE_MAX_HSTATE; i++)
--		if (hstate_kobjs[i] == kobj)
-+		if (hstate_kobjs[i] == kobj) {
-+			if (nidp)
-+				*nidp = NUMA_NO_NODE;
- 			return &hstates[i];
--	BUG();
--	return NULL;
-+		}
-+
-+	return kobj_to_node_hstate(kobj, nidp);
- }
- 
- static ssize_t nr_hugepages_show(struct kobject *kobj,
- 					struct kobj_attribute *attr, char *buf)
- {
--	struct hstate *h = kobj_to_hstate(kobj);
--	return sprintf(buf, "%lu\n", h->nr_huge_pages);
-+	struct hstate *h;
-+	unsigned long nr_huge_pages;
-+	int nid;
-+
-+	h = kobj_to_hstate(kobj, &nid);
-+	if (nid == NUMA_NO_NODE)
-+		nr_huge_pages = h->nr_huge_pages;
-+	else
-+		nr_huge_pages = h->nr_huge_pages_node[nid];
-+
-+	return sprintf(buf, "%lu\n", nr_huge_pages);
- }
-+
- static ssize_t nr_hugepages_store(struct kobject *kobj,
--		struct kobj_attribute *attr, const char *buf, size_t count)
-+		struct kobj_attribute *attr, const char *buf, size_t len)
- {
-+	unsigned long count;
-+	struct hstate *h;
-+	int nid;
- 	int err;
--	unsigned long input;
--	struct hstate *h = kobj_to_hstate(kobj);
- 
--	err = strict_strtoul(buf, 10, &input);
-+	err = strict_strtoul(buf, 10, &count);
- 	if (err)
- 		return 0;
- 
--	h->max_huge_pages = set_max_huge_pages(h, input);
-+	h = kobj_to_hstate(kobj, &nid);
-+	h->max_huge_pages = set_max_huge_pages(h, count, nid);
- 
--	return count;
-+	return len;
- }
- HSTATE_ATTR(nr_hugepages);
- 
- static ssize_t nr_overcommit_hugepages_show(struct kobject *kobj,
- 					struct kobj_attribute *attr, char *buf)
- {
--	struct hstate *h = kobj_to_hstate(kobj);
-+	struct hstate *h = kobj_to_hstate(kobj, NULL);
-+
- 	return sprintf(buf, "%lu\n", h->nr_overcommit_huge_pages);
- }
-+
- static ssize_t nr_overcommit_hugepages_store(struct kobject *kobj,
- 		struct kobj_attribute *attr, const char *buf, size_t count)
- {
- 	int err;
- 	unsigned long input;
--	struct hstate *h = kobj_to_hstate(kobj);
-+	struct hstate *h = kobj_to_hstate(kobj, NULL);
- 
- 	err = strict_strtoul(buf, 10, &input);
- 	if (err)
-@@ -1395,15 +1427,24 @@ HSTATE_ATTR(nr_overcommit_hugepages);
- static ssize_t free_hugepages_show(struct kobject *kobj,
- 					struct kobj_attribute *attr, char *buf)
- {
--	struct hstate *h = kobj_to_hstate(kobj);
--	return sprintf(buf, "%lu\n", h->free_huge_pages);
-+	struct hstate *h;
-+	unsigned long free_huge_pages;
-+	int nid;
-+
-+	h = kobj_to_hstate(kobj, &nid);
-+	if (nid == NUMA_NO_NODE)
-+		free_huge_pages = h->free_huge_pages;
-+	else
-+		free_huge_pages = h->free_huge_pages_node[nid];
-+
-+	return sprintf(buf, "%lu\n", free_huge_pages);
- }
- HSTATE_ATTR_RO(free_hugepages);
- 
- static ssize_t resv_hugepages_show(struct kobject *kobj,
- 					struct kobj_attribute *attr, char *buf)
- {
--	struct hstate *h = kobj_to_hstate(kobj);
-+	struct hstate *h = kobj_to_hstate(kobj, NULL);
- 	return sprintf(buf, "%lu\n", h->resv_huge_pages);
- }
- HSTATE_ATTR_RO(resv_hugepages);
-@@ -1411,8 +1452,17 @@ HSTATE_ATTR_RO(resv_hugepages);
- static ssize_t surplus_hugepages_show(struct kobject *kobj,
- 					struct kobj_attribute *attr, char *buf)
- {
--	struct hstate *h = kobj_to_hstate(kobj);
--	return sprintf(buf, "%lu\n", h->surplus_huge_pages);
-+	struct hstate *h;
-+	unsigned long surplus_huge_pages;
-+	int nid;
-+
-+	h = kobj_to_hstate(kobj, &nid);
-+	if (nid == NUMA_NO_NODE)
-+		surplus_huge_pages = h->surplus_huge_pages;
-+	else
-+		surplus_huge_pages = h->surplus_huge_pages_node[nid];
-+
-+	return sprintf(buf, "%lu\n", surplus_huge_pages);
- }
- HSTATE_ATTR_RO(surplus_hugepages);
- 
-@@ -1429,19 +1479,21 @@ static struct attribute_group hstate_att
- 	.attrs = hstate_attrs,
+-static struct quotactl_ops cifs_quotactl_ops = {
++static const struct quotactl_ops cifs_quotactl_ops = {
+ 	.set_xquota	= cifs_xquota_set,
+ 	.get_xquota	= cifs_xquota_get,
+ 	.set_xstate	= cifs_xstate_set,
+diff -puN fs/ext3/super.c~const-make-struct-super_block-s_qcop-const fs/ext3/super.c
+--- a/fs/ext3/super.c~const-make-struct-super_block-s_qcop-const
++++ a/fs/ext3/super.c
+@@ -737,7 +737,7 @@ static const struct dquot_operations ext
+ 	.destroy_dquot	= dquot_destroy,
  };
  
--static int __init hugetlb_sysfs_add_hstate(struct hstate *h)
-+static int __init hugetlb_sysfs_add_hstate(struct hstate *h,
-+				struct kobject *parent,
-+				struct kobject **hstate_kobjs,
-+				struct attribute_group *hstate_attr_group)
- {
- 	int retval;
-+	int hi = h - hstates;
+-static struct quotactl_ops ext3_qctl_operations = {
++static const struct quotactl_ops ext3_qctl_operations = {
+ 	.quota_on	= ext3_quota_on,
+ 	.quota_off	= vfs_quota_off,
+ 	.quota_sync	= vfs_quota_sync,
+diff -puN fs/ext4/super.c~const-make-struct-super_block-s_qcop-const fs/ext4/super.c
+--- a/fs/ext4/super.c~const-make-struct-super_block-s_qcop-const
++++ a/fs/ext4/super.c
+@@ -998,7 +998,7 @@ static const struct dquot_operations ext
+ 	.destroy_dquot	= dquot_destroy,
+ };
  
--	hstate_kobjs[h - hstates] = kobject_create_and_add(h->name,
--							hugepages_kobj);
--	if (!hstate_kobjs[h - hstates])
-+	hstate_kobjs[hi] = kobject_create_and_add(h->name, parent);
-+	if (!hstate_kobjs[hi])
- 		return -ENOMEM;
- 
--	retval = sysfs_create_group(hstate_kobjs[h - hstates],
--							&hstate_attr_group);
-+	retval = sysfs_create_group(hstate_kobjs[hi], hstate_attr_group);
- 	if (retval)
--		kobject_put(hstate_kobjs[h - hstates]);
-+		kobject_put(hstate_kobjs[hi]);
- 
- 	return retval;
- }
-@@ -1456,17 +1508,143 @@ static void __init hugetlb_sysfs_init(vo
- 		return;
- 
- 	for_each_hstate(h) {
--		err = hugetlb_sysfs_add_hstate(h);
-+		err = hugetlb_sysfs_add_hstate(h, hugepages_kobj,
-+					 hstate_kobjs, &hstate_attr_group);
- 		if (err)
- 			printk(KERN_ERR "Hugetlb: Unable to add hstate %s",
- 								h->name);
- 	}
+-static struct quotactl_ops ext4_qctl_operations = {
++static const struct quotactl_ops ext4_qctl_operations = {
+ 	.quota_on	= ext4_quota_on,
+ 	.quota_off	= vfs_quota_off,
+ 	.quota_sync	= vfs_quota_sync,
+diff -puN fs/ocfs2/super.c~const-make-struct-super_block-s_qcop-const fs/ocfs2/super.c
+--- a/fs/ocfs2/super.c~const-make-struct-super_block-s_qcop-const
++++ a/fs/ocfs2/super.c
+@@ -966,7 +966,7 @@ static int ocfs2_quota_off(struct super_
+ 	return vfs_quota_disable(sb, type, DQUOT_LIMITS_ENABLED);
  }
  
-+#ifdef CONFIG_NUMA
-+
-+struct node_hstate {
-+	struct kobject		*hugepages_kobj;
-+	struct kobject		*hstate_kobjs[HUGE_MAX_HSTATE];
-+};
-+struct node_hstate node_hstates[MAX_NUMNODES];
-+
-+static struct attribute *per_node_hstate_attrs[] = {
-+	&nr_hugepages_attr.attr,
-+	&free_hugepages_attr.attr,
-+	&surplus_hugepages_attr.attr,
-+	NULL,
-+};
-+
-+static struct attribute_group per_node_hstate_attr_group = {
-+	.attrs = per_node_hstate_attrs,
-+};
-+
-+static struct hstate *kobj_to_node_hstate(struct kobject *kobj, int *nidp)
-+{
-+	int nid;
-+
-+	for (nid = 0; nid < nr_node_ids; nid++) {
-+		struct node_hstate *nhs = &node_hstates[nid];
-+		int i;
-+		for (i = 0; i < HUGE_MAX_HSTATE; i++)
-+			if (nhs->hstate_kobjs[i] == kobj) {
-+				if (nidp)
-+					*nidp = nid;
-+				return &hstates[i];
-+			}
-+	}
-+
-+	BUG();
-+	return NULL;
-+}
-+
-+void hugetlb_unregister_node(struct node *node)
-+{
-+	struct hstate *h;
-+	struct node_hstate *nhs = &node_hstates[node->sysdev.id];
-+
-+	if (!nhs->hugepages_kobj)
-+		return;
-+
-+	for_each_hstate(h)
-+		if (nhs->hstate_kobjs[h - hstates]) {
-+			kobject_put(nhs->hstate_kobjs[h - hstates]);
-+			nhs->hstate_kobjs[h - hstates] = NULL;
-+		}
-+
-+	kobject_put(nhs->hugepages_kobj);
-+	nhs->hugepages_kobj = NULL;
-+}
-+
-+static void hugetlb_unregister_all_nodes(void)
-+{
-+	int nid;
-+
-+	for (nid = 0; nid < nr_node_ids; nid++)
-+		hugetlb_unregister_node(&node_devices[nid]);
-+
-+	register_hugetlbfs_with_node(NULL, NULL);
-+}
-+
-+void hugetlb_register_node(struct node *node)
-+{
-+	struct hstate *h;
-+	struct node_hstate *nhs = &node_hstates[node->sysdev.id];
-+	int err;
-+
-+	if (nhs->hugepages_kobj)
-+		return;		/* already allocated */
-+
-+	nhs->hugepages_kobj = kobject_create_and_add("hugepages",
-+							&node->sysdev.kobj);
-+	if (!nhs->hugepages_kobj)
-+		return;
-+
-+	for_each_hstate(h) {
-+		err = hugetlb_sysfs_add_hstate(h, nhs->hugepages_kobj,
-+						nhs->hstate_kobjs,
-+						&per_node_hstate_attr_group);
-+		if (err) {
-+			printk(KERN_ERR "Hugetlb: Unable to add hstate %s"
-+					" for node %d\n",
-+						h->name, node->sysdev.id);
-+			hugetlb_unregister_node(node);
-+			break;
-+		}
-+	}
-+}
-+
-+static void hugetlb_register_all_nodes(void)
-+{
-+	int nid;
-+
-+	for (nid = 0; nid < nr_node_ids; nid++) {
-+		struct node *node = &node_devices[nid];
-+		if (node->sysdev.id == nid)
-+			hugetlb_register_node(node);
-+	}
-+
-+	register_hugetlbfs_with_node(hugetlb_register_node,
-+				     hugetlb_unregister_node);
-+}
-+#else	/* !CONFIG_NUMA */
-+
-+static struct hstate *kobj_to_node_hstate(struct kobject *kobj, int *nidp)
-+{
-+	BUG();
-+	if (nidp)
-+		*nidp = -1;
-+	return NULL;
-+}
-+
-+static void hugetlb_unregister_all_nodes(void) { }
-+
-+static void hugetlb_register_all_nodes(void) { }
-+
-+#endif
-+
- static void __exit hugetlb_exit(void)
- {
- 	struct hstate *h;
- 
-+	hugetlb_unregister_all_nodes();
-+
- 	for_each_hstate(h) {
- 		kobject_put(hstate_kobjs[h - hstates]);
- 	}
-@@ -1501,6 +1679,8 @@ static int __init hugetlb_init(void)
- 
- 	hugetlb_sysfs_init();
- 
-+	hugetlb_register_all_nodes();
-+
- 	return 0;
+-static struct quotactl_ops ocfs2_quotactl_ops = {
++static const struct quotactl_ops ocfs2_quotactl_ops = {
+ 	.quota_on	= ocfs2_quota_on,
+ 	.quota_off	= ocfs2_quota_off,
+ 	.quota_sync	= vfs_quota_sync,
+diff -puN fs/quota/dquot.c~const-make-struct-super_block-s_qcop-const fs/quota/dquot.c
+--- a/fs/quota/dquot.c~const-make-struct-super_block-s_qcop-const
++++ a/fs/quota/dquot.c
+@@ -2461,7 +2461,7 @@ out:
  }
- module_init(hugetlb_init);
-@@ -1603,7 +1783,7 @@ int hugetlb_sysctl_handler(struct ctl_ta
- 	proc_doulongvec_minmax(table, write, file, buffer, length, ppos);
+ EXPORT_SYMBOL(vfs_set_dqinfo);
  
- 	if (write)
--		h->max_huge_pages = set_max_huge_pages(h, tmp);
-+		h->max_huge_pages = set_max_huge_pages(h, tmp, NUMA_NO_NODE);
+-struct quotactl_ops vfs_quotactl_ops = {
++const struct quotactl_ops vfs_quotactl_ops = {
+ 	.quota_on	= vfs_quota_on,
+ 	.quota_off	= vfs_quota_off,
+ 	.quota_sync	= vfs_quota_sync,
+diff -puN fs/reiserfs/super.c~const-make-struct-super_block-s_qcop-const fs/reiserfs/super.c
+--- a/fs/reiserfs/super.c~const-make-struct-super_block-s_qcop-const
++++ a/fs/reiserfs/super.c
+@@ -632,7 +632,7 @@ static const struct dquot_operations rei
+ 	.destroy_dquot	= dquot_destroy,
+ };
  
- 	return 0;
+-static struct quotactl_ops reiserfs_qctl_operations = {
++static const struct quotactl_ops reiserfs_qctl_operations = {
+ 	.quota_on = reiserfs_quota_on,
+ 	.quota_off = vfs_quota_off,
+ 	.quota_sync = vfs_quota_sync,
+diff -puN fs/xfs/linux-2.6/xfs_quotaops.c~const-make-struct-super_block-s_qcop-const fs/xfs/linux-2.6/xfs_quotaops.c
+--- a/fs/xfs/linux-2.6/xfs_quotaops.c~const-make-struct-super_block-s_qcop-const
++++ a/fs/xfs/linux-2.6/xfs_quotaops.c
+@@ -150,7 +150,7 @@ xfs_fs_set_xquota(
+ 	return -xfs_qm_scall_setqlim(mp, id, xfs_quota_type(type), fdq);
  }
+ 
+-struct quotactl_ops xfs_quotactl_operations = {
++const struct quotactl_ops xfs_quotactl_operations = {
+ 	.quota_sync		= xfs_fs_quota_sync,
+ 	.get_xstate		= xfs_fs_get_xstate,
+ 	.set_xstate		= xfs_fs_set_xstate,
+diff -puN fs/xfs/linux-2.6/xfs_super.h~const-make-struct-super_block-s_qcop-const fs/xfs/linux-2.6/xfs_super.h
+--- a/fs/xfs/linux-2.6/xfs_super.h~const-make-struct-super_block-s_qcop-const
++++ a/fs/xfs/linux-2.6/xfs_super.h
+@@ -93,7 +93,7 @@ extern void xfs_blkdev_issue_flush(struc
+ 
+ extern const struct export_operations xfs_export_operations;
+ extern struct xattr_handler *xfs_xattr_handlers[];
+-extern struct quotactl_ops xfs_quotactl_operations;
++extern const struct quotactl_ops xfs_quotactl_operations;
+ 
+ #define XFS_M(sb)		((struct xfs_mount *)((sb)->s_fs_info))
+ 
+diff -puN include/linux/fs.h~const-make-struct-super_block-s_qcop-const include/linux/fs.h
+--- a/include/linux/fs.h~const-make-struct-super_block-s_qcop-const
++++ a/include/linux/fs.h
+@@ -1321,7 +1321,7 @@ struct super_block {
+ 	struct file_system_type	*s_type;
+ 	const struct super_operations	*s_op;
+ 	const struct dquot_operations	*dq_op;
+- 	struct quotactl_ops	*s_qcop;
++	const struct quotactl_ops	*s_qcop;
+ 	const struct export_operations *s_export_op;
+ 	unsigned long		s_flags;
+ 	unsigned long		s_magic;
+diff -puN include/linux/quotaops.h~const-make-struct-super_block-s_qcop-const include/linux/quotaops.h
+--- a/include/linux/quotaops.h~const-make-struct-super_block-s_qcop-const
++++ a/include/linux/quotaops.h
+@@ -136,7 +136,7 @@ static inline int sb_any_quota_active(st
+  * Operations supported for diskquotas.
+  */
+ extern const struct dquot_operations dquot_operations;
+-extern struct quotactl_ops vfs_quotactl_ops;
++extern const struct quotactl_ops vfs_quotactl_ops;
+ 
+ #define sb_dquot_ops (&dquot_operations)
+ #define sb_quotactl_ops (&vfs_quotactl_ops)
 _
 
-Patches currently in -mm which might be from lee.schermerhorn@hp.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-hugetlb-restore-interleaving-of-bootmem-huge-pages-2631.patch
-revert-hugetlb-restore-interleaving-of-bootmem-huge-pages-2631.patch
-hugetlb-balance-freeing-of-huge-pages-across-nodes.patch
-hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages.patch
-hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages-fix.patch
-hugetlb-clean-up-and-update-huge-pages-documentation.patch
-hugetlb-restore-interleaving-of-bootmem-huge-pages.patch
-ksm-add-mmu_notifier-set_pte_at_notify.patch
-ksm-first-tidy-up-madvise_vma.patch
-ksm-define-madv_mergeable-and-madv_unmergeable.patch
-ksm-the-mm-interface-to-ksm.patch
-ksm-no-debug-in-page_dup_rmap.patch
-ksm-identify-pageksm-pages.patch
-ksm-kernel-samepage-merging.patch
-ksm-prevent-mremap-move-poisoning.patch
-ksm-change-copyright-message.patch
-ksm-change-ksm-nice-level-to-be-5.patch
-hugetlbfs-allow-the-creation-of-files-suitable-for-map_private-on-the-vfs-internal-mount.patch
-hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions.patch
-hugetlb-add-map_hugetlb-example.patch
-hugetlb-add-per-node-hstate-attributes.patch
-hugetlb-add-per-node-hstate-attributes-fix.patch
-hugetlb-update-hugetlb-documentation-for-mempolicy-based-management.patch
-mmap-avoid-unnecessary-anon_vma-lock-acquisition-in-vma_adjust.patch
+linux-next.patch
+acpi-switch-proc-acpi-debug_layerdebug_level-to-seq_file.patch
+pcmcia-switch-proc-bus-pccard-drivers-to-seq_file.patch
+genirq-switch-proc-irq-spurious-to-seq_file.patch
+kernel-profilec-switch-proc-irq-prof_cpu_mask-to-seq_file.patch
+cpqarray-switch-to-seq_file.patch
+dac960-switch-to-seq_file.patch
+const-make-struct-super_block-dq_op-const.patch
+const-make-struct-super_block-s_qcop-const.patch
+const-mark-remaining-super_operations-const.patch
+const-mark-remaining-export_operations-const.patch
+const-mark-remaining-address_space_operations-const.patch
+const-mark-remaining-inode_operations-as-const.patch
+const-make-file_lock_operations-const.patch
+const-make-lock_manager_operations-const.patch
+const-make-block_device_operations-const.patch
+oom-move-oom_killer_enable-oom_killer_disable-to-where-they-belong.patch
+scripts-get_maintainerpl-add-remove-duplicates.patch
+proc_flush_task-flush-proc-tid-task-pid-when-a-sub-thread-exits.patch
+procfs-provide-stack-information-for-threads-v08.patch
+procfs-provide-stack-information-for-threads-v011.patch
+procfs-provide-stack-information-for-threads-v011-fix.patch
+viafb-switch-to-seq_file.patch
+reiserfs-remove-proc-fs-reiserfs-version.patch
+reiserfs-dont-compile-procfso-at-all-if-no-support.patch
+sysctl-remove-struct-file-argument-of-proc_handler.patch
+aio-ifdef-fields-in-mm_struct.patch
+gru-use-proc_create.patch
 
