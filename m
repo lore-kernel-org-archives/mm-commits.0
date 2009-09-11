@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + oom-move-oom_adj-value-from-task_struct-to-signal_struct-fix.patch added to -mm tree
-Date: Fri, 11 Sep 2009 14:04:58 -0700
-Message-ID: <200909112104.n8BL4wrB027198@imap1.linux-foundation.org>
+Subject: + char-mxser-add-support-for-cp112ul.patch added to -mm tree
+Date: Fri, 11 Sep 2009 14:34:51 -0700
+Message-ID: <200909112134.n8BLYpcd020721@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37794 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53607 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756711AbZIKVFZ (ORCPT
+	by vger.kernel.org with ESMTP id S1754010AbZIKVf2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Sep 2009 17:05:25 -0400
+	Fri, 11 Sep 2009 17:35:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, greg@kroah.com
+Cc: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk
 
 
 The patch titled
-     lowmemorykiller: fix build error to move oom_adj
+     Char: mxser, add support for CP112UL
 has been added to the -mm tree.  Its filename is
-     oom-move-oom_adj-value-from-task_struct-to-signal_struct-fix.patch
+     char-mxser-add-support-for-cp112ul.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,100 +34,87 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lowmemorykiller: fix build error to move oom_adj
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: Char: mxser, add support for CP112UL
+From: Jiri Slaby <jirislaby@gmail.com>
 
-Recently, oom_adj moved from task_struct to signal_struct. Then, the oom_adj
-treating code in android driver also should be changed.
+Add support for MOXA:0x1120 pci device.  It's a 2-port device and differs
+in no way from the others.  So this turns out to be a trivial
+pci_device_id change.
 
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Greg KH <greg@kroah.com>
+Also increase the version number.
+
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/android/lowmemorykiller.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/mxser.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN drivers/staging/android/lowmemorykiller.c~oom-move-oom_adj-value-from-task_struct-to-signal_struct-fix drivers/staging/android/lowmemorykiller.c
---- a/drivers/staging/android/lowmemorykiller.c~oom-move-oom_adj-value-from-task_struct-to-signal_struct-fix
-+++ a/drivers/staging/android/lowmemorykiller.c
-@@ -106,7 +106,7 @@ static int lowmem_shrink(int nr_to_scan,
- 			task_unlock(p);
- 			continue;
- 		}
--		oom_adj = p->oomkilladj;
-+		oom_adj = p->signal->oom_adj;
- 		if (oom_adj < min_adj) {
- 			task_unlock(p);
- 			continue;
+diff -puN drivers/char/mxser.c~char-mxser-add-support-for-cp112ul drivers/char/mxser.c
+--- a/drivers/char/mxser.c~char-mxser-add-support-for-cp112ul
++++ a/drivers/char/mxser.c
+@@ -48,7 +48,7 @@
+ 
+ #include "mxser.h"
+ 
+-#define	MXSER_VERSION	"2.0.4"		/* 1.12 */
++#define	MXSER_VERSION	"2.0.5"		/* 1.14 */
+ #define	MXSERMAJOR	 174
+ 
+ #define MXSER_BOARDS		4	/* Max. boards */
+@@ -69,6 +69,7 @@
+ #define PCI_DEVICE_ID_POS104UL	0x1044
+ #define PCI_DEVICE_ID_CB108	0x1080
+ #define PCI_DEVICE_ID_CP102UF	0x1023
++#define PCI_DEVICE_ID_CP112UL	0x1120
+ #define PCI_DEVICE_ID_CB114	0x1142
+ #define PCI_DEVICE_ID_CP114UL	0x1143
+ #define PCI_DEVICE_ID_CB134I	0x1341
+@@ -139,7 +140,8 @@ static const struct mxser_cardinfo mxser
+ 	{ "CP-138U series",	8, },
+ 	{ "POS-104UL series",	4, },
+ 	{ "CP-114UL series",	4, },
+-/*30*/	{ "CP-102UF series",	2, }
++/*30*/	{ "CP-102UF series",	2, },
++	{ "CP-112UL series",	2, },
+ };
+ 
+ /* driver_data correspond to the lines in the structure above
+@@ -170,6 +172,7 @@ static struct pci_device_id mxser_pcibrd
+ 	{ PCI_VDEVICE(MOXA, PCI_DEVICE_ID_POS104UL),	.driver_data = 28 },
+ 	{ PCI_VDEVICE(MOXA, PCI_DEVICE_ID_CP114UL),	.driver_data = 29 },
+ 	{ PCI_VDEVICE(MOXA, PCI_DEVICE_ID_CP102UF),	.driver_data = 30 },
++	{ PCI_VDEVICE(MOXA, PCI_DEVICE_ID_CP112UL),	.driver_data = 31 },
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(pci, mxser_pcibrds);
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 linux-next.patch
-mm-memory-failure-remove-config_unevictable_lru-config-option.patch
-revert-staging-android-lowmemorykillerc-fix-it-for-oom-move-oom_adj-value-from-task_struct-to-mm_struct.patch
-readahead-add-blk_run_backing_dev.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-mm-clean-up-page_remove_rmap.patch
-mm-show_free_areas-display-slab-pages-in-two-separate-fields.patch
-mm-oom-analysis-add-per-zone-statistics-to-show_free_areas.patch
-mm-oom-analysis-add-buffer-cache-information-to-show_free_areas.patch
-mm-oom-analysis-show-kernel-stack-usage-in-proc-meminfo-and-oom-log-output.patch
-mm-oom-analysis-add-shmem-vmstat.patch
-mm-rename-pgmoved-variable-in-shrink_active_list.patch
-mm-shrink_inactive_list-nr_scan-accounting-fix-fix.patch
-mm-vmstat-add-isolate-pages.patch
-mm-vmstat-add-isolate-pages-fix.patch
-vmscan-throttle-direct-reclaim-when-too-many-pages-are-isolated-already.patch
-mm-remove-__addsub_zone_page_state.patch
-mm-count-only-reclaimable-lru-pages-v2.patch
-vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
-vmscan-move-clearpageactive-from-move_active_pages-to-shrink_active_list.patch
-vmscan-kill-unnecessary-page-flag-test.patch
-vmscan-kill-unnecessary-prefetch.patch
-mm-perform-non-atomic-test-clear-of-pg_mlocked-on-free.patch
-page-allocator-change-migratetype-for-all-pageblocks-within-a-high-order-page-during-__rmqueue_fallback-fix.patch
-tracing-page-allocator-add-trace-events-for-page-allocation-and-page-freeing.patch
-tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists.patch
-mm-drop-unneeded-double-negations.patch
-mm-introduce-page_lru_base_type.patch
-mm-introduce-page_lru_base_type-fix.patch
-mm-return-boolean-from-page_is_file_cache.patch
-mm-return-boolean-from-page_has_private.patch
-mm-document-is_page_cache_freeable.patch
-mm-vmscan-rename-zone_nr_pages-to-zone_lru_nr_pages.patch
-oom-move-oom_killer_enable-oom_killer_disable-to-where-they-belong.patch
-mm-do-batched-scans-for-mem_cgroup.patch
-mm-vmscan-remove-page_queue_congested-comment.patch
-oom-move-oom_adj-value-from-task_struct-to-signal_struct.patch
-oom-move-oom_adj-value-from-task_struct-to-signal_struct-fix.patch
-oom-make-oom_score-to-per-process-value.patch
-oom-oom_kill-doesnt-kill-vfork-parentor-child.patch
-oom-fix-oom_adjust_write-input-sanity-check.patch
-mm-vsmcan-check-shrink_active_list-sc-isolate_pages-return-value.patch
-mm-munlock-use-follow_page.patch
-mm-remove-unused-gup-flags.patch
-mm-add-get_dump_page.patch
-mm-foll_dump-replace-foll_anon.patch
-mm-follow_hugetlb_page-flags.patch
-mm-fix-anonymous-dirtying.patch
-mm-reinstate-zero_page.patch
-mm-foll-flags-for-gup-flags.patch
-getrusage-fill-ru_maxrss-value.patch
-getrusage-fill-ru_maxrss-value-update.patch
-kcore-use-registerd-physmem-information-ia64-fix.patch
-memory-controller-soft-limit-documentation-v9.patch
-memory-controller-soft-limit-interface-v9.patch
-memory-controller-soft-limit-organize-cgroups-v9.patch
+md-dm-log-fix-cn_ulog_callback-declaration.patch
+mtd-sst25l-fix-lock-imbalance.patch
+isdn-hisax-fix-lock-imbalance.patch
+isdn-eicon-use-offsetof.patch
+isdn-eicon-return-on-error.patch
+icom-converting-space-to-tabs.patch
+cyclades-read-buffer-overflow.patch
+serial167-fix-read-buffer-overflow.patch
+char-mxser-add-support-for-cp112ul.patch
+char-mxser-use-thre-for-aspp_oqueue-ioctl.patch
+usb-serial-mct_u232-fix-tty-refcnt.patch
+kcore-use-registerd-physmem-information.patch
+kcore-register-vmemmap-range.patch
+kcore-register-vmemmap-range-fix.patch
+kcore-register-module-area-in-generic-way.patch
+video-console-use-div_round_up.patch
 memory-controller-soft-limit-organize-cgroups-v9-fix.patch
-memory-controller-soft-limit-refactor-reclaim-flags-v9.patch
-memory-controller-soft-limit-reclaim-on-contention-v9.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix-softlimit-css-refcnt-handling.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix-softlimit-css-refcnt-handling-fix.patch
-memcg-improve-resource-counter-scalability.patch
-memcg-improve-resource-counter-scalability-v5.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
+cyclades-allow-overriding-isa-defaults-also-when-the-driver-is-built-in.patch
+drivers-char-rio-rioctrlc-off-by-one-error-in-rioctrlc.patch
+char-riscom8-fix-tty-refcnt.patch
+memstick-move-dev_dbg.patch
+reiser4.patch
+fs-reiser4-add-parenths-around-x-y.patch
 
