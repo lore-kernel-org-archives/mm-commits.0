@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + const-mark-remaining-inode_operations-as-const.patch added to -mm tree
-Date: Fri, 11 Sep 2009 13:27:22 -0700
-Message-ID: <200909112027.n8BKRMnn018773@imap1.linux-foundation.org>
+Subject: + const-mark-remaining-address_space_operations-const.patch added to -mm tree
+Date: Fri, 11 Sep 2009 13:27:20 -0700
+Message-ID: <200909112027.n8BKRK44018687@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56438 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37230 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755766AbZIKU1k (ORCPT
+	by vger.kernel.org with ESMTP id S1752527AbZIKU1k (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 11 Sep 2009 16:27:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: adobriyan@gmail.com
 
 
 The patch titled
-     const: mark remaining inode_operations as const
+     const: mark remaining address_space_operations const
 has been added to the -mm tree.  Its filename is
-     const-mark-remaining-inode_operations-as-const.patch
+     const-mark-remaining-address_space_operations-const.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,290 +34,191 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: const: mark remaining inode_operations as const
+Subject: const: mark remaining address_space_operations const
 From: Alexey Dobriyan <adobriyan@gmail.com>
 
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/cell/spufs/inode.c |    2 +-
- fs/btrfs/inode.c                          |   20 ++++++++++----------
- fs/cifs/cifs_dfs_ref.c                    |    2 +-
- fs/cifs/cifsfs.h                          |    2 +-
- fs/inode.c                                |    2 +-
- fs/nilfs2/file.c                          |    2 +-
- fs/nilfs2/mdt.c                           |    2 +-
- fs/nilfs2/namei.c                         |    6 +++---
- fs/nilfs2/nilfs.h                         |    8 ++++----
- fs/omfs/dir.c                             |    2 +-
- fs/omfs/file.c                            |    2 +-
- fs/omfs/omfs.h                            |    4 ++--
- fs/romfs/super.c                          |    2 +-
- kernel/cgroup.c                           |    4 ++--
- 14 files changed, 30 insertions(+), 30 deletions(-)
+ fs/btrfs/disk-io.c            |    2 +-
+ fs/btrfs/inode.c              |    8 ++++----
+ fs/ecryptfs/ecryptfs_kernel.h |    2 +-
+ fs/ecryptfs/mmap.c            |    2 +-
+ fs/nilfs2/btnode.c            |    2 +-
+ fs/nilfs2/gcinode.c           |    2 +-
+ fs/nilfs2/inode.c             |    2 +-
+ fs/nilfs2/mdt.c               |    2 +-
+ fs/nilfs2/nilfs.h             |    2 +-
+ fs/omfs/file.c                |    2 +-
+ fs/omfs/omfs.h                |    2 +-
+ fs/ubifs/xattr.c              |    2 +-
+ 12 files changed, 15 insertions(+), 15 deletions(-)
 
-diff -puN arch/powerpc/platforms/cell/spufs/inode.c~const-mark-remaining-inode_operations-as-const arch/powerpc/platforms/cell/spufs/inode.c
---- a/arch/powerpc/platforms/cell/spufs/inode.c~const-mark-remaining-inode_operations-as-const
-+++ a/arch/powerpc/platforms/cell/spufs/inode.c
-@@ -119,7 +119,7 @@ spufs_new_file(struct super_block *sb, s
- 		const struct file_operations *fops, int mode,
- 		size_t size, struct spu_context *ctx)
- {
--	static struct inode_operations spufs_file_iops = {
-+	static const struct inode_operations spufs_file_iops = {
- 		.setattr = spufs_setattr,
- 	};
- 	struct inode *inode;
-diff -puN fs/btrfs/inode.c~const-mark-remaining-inode_operations-as-const fs/btrfs/inode.c
---- a/fs/btrfs/inode.c~const-mark-remaining-inode_operations-as-const
+diff -puN fs/btrfs/disk-io.c~const-mark-remaining-address_space_operations-const fs/btrfs/disk-io.c
+--- a/fs/btrfs/disk-io.c~const-mark-remaining-address_space_operations-const
++++ a/fs/btrfs/disk-io.c
+@@ -772,7 +772,7 @@ static void btree_invalidatepage(struct 
+ 	}
+ }
+ 
+-static struct address_space_operations btree_aops = {
++static const struct address_space_operations btree_aops = {
+ 	.readpage	= btree_readpage,
+ 	.writepage	= btree_writepage,
+ 	.writepages	= btree_writepages,
+diff -puN fs/btrfs/inode.c~const-mark-remaining-address_space_operations-const fs/btrfs/inode.c
+--- a/fs/btrfs/inode.c~const-mark-remaining-address_space_operations-const
 +++ a/fs/btrfs/inode.c
-@@ -55,11 +55,11 @@ struct btrfs_iget_args {
- 	struct btrfs_root *root;
- };
- 
--static struct inode_operations btrfs_dir_inode_operations;
--static struct inode_operations btrfs_symlink_inode_operations;
--static struct inode_operations btrfs_dir_ro_inode_operations;
--static struct inode_operations btrfs_special_inode_operations;
--static struct inode_operations btrfs_file_inode_operations;
-+static const struct inode_operations btrfs_dir_inode_operations;
-+static const struct inode_operations btrfs_symlink_inode_operations;
-+static const struct inode_operations btrfs_dir_ro_inode_operations;
-+static const struct inode_operations btrfs_special_inode_operations;
-+static const struct inode_operations btrfs_file_inode_operations;
- static const struct address_space_operations btrfs_aops;
- static const struct address_space_operations btrfs_symlink_aops;
+@@ -60,8 +60,8 @@ static struct inode_operations btrfs_sym
+ static struct inode_operations btrfs_dir_ro_inode_operations;
+ static struct inode_operations btrfs_special_inode_operations;
+ static struct inode_operations btrfs_file_inode_operations;
+-static struct address_space_operations btrfs_aops;
+-static struct address_space_operations btrfs_symlink_aops;
++static const struct address_space_operations btrfs_aops;
++static const struct address_space_operations btrfs_symlink_aops;
  static struct file_operations btrfs_dir_file_operations;
-@@ -5237,7 +5237,7 @@ static int btrfs_permission(struct inode
- 	return generic_permission(inode, mask, btrfs_check_acl);
+ static struct extent_io_ops btrfs_extent_io_ops;
+ 
+@@ -5295,7 +5295,7 @@ static struct extent_io_ops btrfs_extent
+  *
+  * For now we're avoiding this by dropping bmap.
+  */
+-static struct address_space_operations btrfs_aops = {
++static const struct address_space_operations btrfs_aops = {
+ 	.readpage	= btrfs_readpage,
+ 	.writepage	= btrfs_writepage,
+ 	.writepages	= btrfs_writepages,
+@@ -5308,7 +5308,7 @@ static struct address_space_operations b
+ 	.error_remove_page = generic_error_remove_page,
+ };
+ 
+-static struct address_space_operations btrfs_symlink_aops = {
++static const struct address_space_operations btrfs_symlink_aops = {
+ 	.readpage	= btrfs_readpage,
+ 	.writepage	= btrfs_writepage,
+ 	.invalidatepage = btrfs_invalidatepage,
+diff -puN fs/ecryptfs/ecryptfs_kernel.h~const-mark-remaining-address_space_operations-const fs/ecryptfs/ecryptfs_kernel.h
+--- a/fs/ecryptfs/ecryptfs_kernel.h~const-mark-remaining-address_space_operations-const
++++ a/fs/ecryptfs/ecryptfs_kernel.h
+@@ -582,7 +582,7 @@ extern const struct inode_operations ecr
+ extern const struct inode_operations ecryptfs_symlink_iops;
+ extern const struct super_operations ecryptfs_sops;
+ extern const struct dentry_operations ecryptfs_dops;
+-extern struct address_space_operations ecryptfs_aops;
++extern const struct address_space_operations ecryptfs_aops;
+ extern int ecryptfs_verbosity;
+ extern unsigned int ecryptfs_message_buf_len;
+ extern signed long ecryptfs_message_wait_timeout;
+diff -puN fs/ecryptfs/mmap.c~const-mark-remaining-address_space_operations-const fs/ecryptfs/mmap.c
+--- a/fs/ecryptfs/mmap.c~const-mark-remaining-address_space_operations-const
++++ a/fs/ecryptfs/mmap.c
+@@ -545,7 +545,7 @@ static sector_t ecryptfs_bmap(struct add
+ 	return rc;
  }
  
--static struct inode_operations btrfs_dir_inode_operations = {
-+static const struct inode_operations btrfs_dir_inode_operations = {
- 	.getattr	= btrfs_getattr,
- 	.lookup		= btrfs_lookup,
- 	.create		= btrfs_create,
-@@ -5255,7 +5255,7 @@ static struct inode_operations btrfs_dir
- 	.removexattr	= btrfs_removexattr,
- 	.permission	= btrfs_permission,
- };
--static struct inode_operations btrfs_dir_ro_inode_operations = {
-+static const struct inode_operations btrfs_dir_ro_inode_operations = {
- 	.lookup		= btrfs_lookup,
- 	.permission	= btrfs_permission,
- };
-@@ -5315,7 +5315,7 @@ static const struct address_space_operat
- 	.releasepage	= btrfs_releasepage,
- };
- 
--static struct inode_operations btrfs_file_inode_operations = {
-+static const struct inode_operations btrfs_file_inode_operations = {
- 	.new_truncate	= 1,
- 	.getattr	= btrfs_getattr,
- 	.setattr	= btrfs_setattr,
-@@ -5327,7 +5327,7 @@ static struct inode_operations btrfs_fil
- 	.fallocate	= btrfs_fallocate,
- 	.fiemap		= btrfs_fiemap,
- };
--static struct inode_operations btrfs_special_inode_operations = {
-+static const struct inode_operations btrfs_special_inode_operations = {
- 	.getattr	= btrfs_getattr,
- 	.setattr	= btrfs_setattr,
- 	.permission	= btrfs_permission,
-@@ -5336,7 +5336,7 @@ static struct inode_operations btrfs_spe
- 	.listxattr	= btrfs_listxattr,
- 	.removexattr	= btrfs_removexattr,
- };
--static struct inode_operations btrfs_symlink_inode_operations = {
-+static const struct inode_operations btrfs_symlink_inode_operations = {
- 	.readlink	= generic_readlink,
- 	.follow_link	= page_follow_link_light,
- 	.put_link	= page_put_link,
-diff -puN fs/cifs/cifs_dfs_ref.c~const-mark-remaining-inode_operations-as-const fs/cifs/cifs_dfs_ref.c
---- a/fs/cifs/cifs_dfs_ref.c~const-mark-remaining-inode_operations-as-const
-+++ a/fs/cifs/cifs_dfs_ref.c
-@@ -385,7 +385,7 @@ out_err:
- 	goto out;
+-struct address_space_operations ecryptfs_aops = {
++const struct address_space_operations ecryptfs_aops = {
+ 	.writepage = ecryptfs_writepage,
+ 	.readpage = ecryptfs_readpage,
+ 	.write_begin = ecryptfs_write_begin,
+diff -puN fs/nilfs2/btnode.c~const-mark-remaining-address_space_operations-const fs/nilfs2/btnode.c
+--- a/fs/nilfs2/btnode.c~const-mark-remaining-address_space_operations-const
++++ a/fs/nilfs2/btnode.c
+@@ -46,7 +46,7 @@ void nilfs_btnode_cache_init_once(struct
+ 	INIT_LIST_HEAD(&btnc->i_mmap_nonlinear);
  }
  
--struct inode_operations cifs_dfs_referral_inode_operations = {
-+const struct inode_operations cifs_dfs_referral_inode_operations = {
- 	.follow_link = cifs_dfs_follow_mountpoint,
- };
- 
-diff -puN fs/cifs/cifsfs.h~const-mark-remaining-inode_operations-as-const fs/cifs/cifsfs.h
---- a/fs/cifs/cifsfs.h~const-mark-remaining-inode_operations-as-const
-+++ a/fs/cifs/cifsfs.h
-@@ -67,7 +67,7 @@ extern int cifs_setattr(struct dentry *,
- 
- extern const struct inode_operations cifs_file_inode_ops;
- extern const struct inode_operations cifs_symlink_inode_ops;
--extern struct inode_operations cifs_dfs_referral_inode_operations;
-+extern const struct inode_operations cifs_dfs_referral_inode_operations;
- 
- 
- /* Functions related to files and directories */
-diff -puN fs/inode.c~const-mark-remaining-inode_operations-as-const fs/inode.c
---- a/fs/inode.c~const-mark-remaining-inode_operations-as-const
-+++ a/fs/inode.c
-@@ -123,7 +123,7 @@ static void wake_up_inode(struct inode *
- int inode_init_always(struct super_block *sb, struct inode *inode)
- {
- 	static const struct address_space_operations empty_aops;
--	static struct inode_operations empty_iops;
-+	static const struct inode_operations empty_iops;
- 	static const struct file_operations empty_fops;
- 	struct address_space *const mapping = &inode->i_data;
- 
-diff -puN fs/nilfs2/file.c~const-mark-remaining-inode_operations-as-const fs/nilfs2/file.c
---- a/fs/nilfs2/file.c~const-mark-remaining-inode_operations-as-const
-+++ a/fs/nilfs2/file.c
-@@ -151,7 +151,7 @@ struct file_operations nilfs_file_operat
- 	.splice_read	= generic_file_splice_read,
- };
- 
--struct inode_operations nilfs_file_inode_operations = {
-+const struct inode_operations nilfs_file_inode_operations = {
- 	.truncate	= nilfs_truncate,
- 	.setattr	= nilfs_setattr,
- 	.permission     = nilfs_permission,
-diff -puN fs/nilfs2/mdt.c~const-mark-remaining-inode_operations-as-const fs/nilfs2/mdt.c
---- a/fs/nilfs2/mdt.c~const-mark-remaining-inode_operations-as-const
-+++ a/fs/nilfs2/mdt.c
-@@ -432,7 +432,7 @@ static const struct address_space_operat
+-static struct address_space_operations def_btnode_aops = {
++static const struct address_space_operations def_btnode_aops = {
  	.sync_page		= block_sync_page,
  };
  
--static struct inode_operations def_mdt_iops;
-+static const struct inode_operations def_mdt_iops;
- static struct file_operations def_mdt_fops;
+diff -puN fs/nilfs2/gcinode.c~const-mark-remaining-address_space_operations-const fs/nilfs2/gcinode.c
+--- a/fs/nilfs2/gcinode.c~const-mark-remaining-address_space_operations-const
++++ a/fs/nilfs2/gcinode.c
+@@ -52,7 +52,7 @@
+ #include "dat.h"
+ #include "ifile.h"
  
- /*
-diff -puN fs/nilfs2/namei.c~const-mark-remaining-inode_operations-as-const fs/nilfs2/namei.c
---- a/fs/nilfs2/namei.c~const-mark-remaining-inode_operations-as-const
-+++ a/fs/nilfs2/namei.c
-@@ -448,7 +448,7 @@ out:
- 	return err;
+-static struct address_space_operations def_gcinode_aops = {
++static const struct address_space_operations def_gcinode_aops = {
+ 	.sync_page		= block_sync_page,
+ };
+ 
+diff -puN fs/nilfs2/inode.c~const-mark-remaining-address_space_operations-const fs/nilfs2/inode.c
+--- a/fs/nilfs2/inode.c~const-mark-remaining-address_space_operations-const
++++ a/fs/nilfs2/inode.c
+@@ -238,7 +238,7 @@ nilfs_direct_IO(int rw, struct kiocb *io
+ 	return size;
  }
  
--struct inode_operations nilfs_dir_inode_operations = {
-+const struct inode_operations nilfs_dir_inode_operations = {
- 	.create		= nilfs_create,
- 	.lookup		= nilfs_lookup,
- 	.link		= nilfs_link,
-@@ -462,12 +462,12 @@ struct inode_operations nilfs_dir_inode_
- 	.permission	= nilfs_permission,
- };
+-struct address_space_operations nilfs_aops = {
++const struct address_space_operations nilfs_aops = {
+ 	.writepage		= nilfs_writepage,
+ 	.readpage		= nilfs_readpage,
+ 	.sync_page		= block_sync_page,
+diff -puN fs/nilfs2/mdt.c~const-mark-remaining-address_space_operations-const fs/nilfs2/mdt.c
+--- a/fs/nilfs2/mdt.c~const-mark-remaining-address_space_operations-const
++++ a/fs/nilfs2/mdt.c
+@@ -427,7 +427,7 @@ nilfs_mdt_write_page(struct page *page, 
+ }
  
--struct inode_operations nilfs_special_inode_operations = {
-+const struct inode_operations nilfs_special_inode_operations = {
- 	.setattr	= nilfs_setattr,
- 	.permission	= nilfs_permission,
- };
  
--struct inode_operations nilfs_symlink_inode_operations = {
-+const struct inode_operations nilfs_symlink_inode_operations = {
- 	.readlink	= generic_readlink,
- 	.follow_link	= page_follow_link_light,
- 	.put_link	= page_put_link,
-diff -puN fs/nilfs2/nilfs.h~const-mark-remaining-inode_operations-as-const fs/nilfs2/nilfs.h
---- a/fs/nilfs2/nilfs.h~const-mark-remaining-inode_operations-as-const
+-static struct address_space_operations def_mdt_aops = {
++static const struct address_space_operations def_mdt_aops = {
+ 	.writepage		= nilfs_mdt_write_page,
+ 	.sync_page		= block_sync_page,
+ };
+diff -puN fs/nilfs2/nilfs.h~const-mark-remaining-address_space_operations-const fs/nilfs2/nilfs.h
+--- a/fs/nilfs2/nilfs.h~const-mark-remaining-address_space_operations-const
 +++ a/fs/nilfs2/nilfs.h
-@@ -295,12 +295,12 @@ void nilfs_clear_gcdat_inode(struct the_
-  * Inodes and files operations
-  */
+@@ -297,7 +297,7 @@ void nilfs_clear_gcdat_inode(struct the_
  extern struct file_operations nilfs_dir_operations;
--extern struct inode_operations nilfs_file_inode_operations;
-+extern const struct inode_operations nilfs_file_inode_operations;
+ extern struct inode_operations nilfs_file_inode_operations;
  extern struct file_operations nilfs_file_operations;
- extern const struct address_space_operations nilfs_aops;
--extern struct inode_operations nilfs_dir_inode_operations;
--extern struct inode_operations nilfs_special_inode_operations;
--extern struct inode_operations nilfs_symlink_inode_operations;
-+extern const struct inode_operations nilfs_dir_inode_operations;
-+extern const struct inode_operations nilfs_special_inode_operations;
-+extern const struct inode_operations nilfs_symlink_inode_operations;
- 
- /*
-  * filesystem type
-diff -puN fs/omfs/dir.c~const-mark-remaining-inode_operations-as-const fs/omfs/dir.c
---- a/fs/omfs/dir.c~const-mark-remaining-inode_operations-as-const
-+++ a/fs/omfs/dir.c
-@@ -489,7 +489,7 @@ out:
- 	return ret;
- }
- 
--struct inode_operations omfs_dir_inops = {
-+const struct inode_operations omfs_dir_inops = {
- 	.lookup = omfs_lookup,
- 	.mkdir = omfs_mkdir,
- 	.rename = omfs_rename,
-diff -puN fs/omfs/file.c~const-mark-remaining-inode_operations-as-const fs/omfs/file.c
---- a/fs/omfs/file.c~const-mark-remaining-inode_operations-as-const
+-extern struct address_space_operations nilfs_aops;
++extern const struct address_space_operations nilfs_aops;
+ extern struct inode_operations nilfs_dir_inode_operations;
+ extern struct inode_operations nilfs_special_inode_operations;
+ extern struct inode_operations nilfs_symlink_inode_operations;
+diff -puN fs/omfs/file.c~const-mark-remaining-address_space_operations-const fs/omfs/file.c
+--- a/fs/omfs/file.c~const-mark-remaining-address_space_operations-const
 +++ a/fs/omfs/file.c
-@@ -333,7 +333,7 @@ struct file_operations omfs_file_operati
- 	.splice_read = generic_file_splice_read,
- };
- 
--struct inode_operations omfs_file_inops = {
-+const struct inode_operations omfs_file_inops = {
+@@ -337,7 +337,7 @@ struct inode_operations omfs_file_inops 
  	.truncate = omfs_truncate
  };
  
-diff -puN fs/omfs/omfs.h~const-mark-remaining-inode_operations-as-const fs/omfs/omfs.h
---- a/fs/omfs/omfs.h~const-mark-remaining-inode_operations-as-const
+-struct address_space_operations omfs_aops = {
++const struct address_space_operations omfs_aops = {
+ 	.readpage = omfs_readpage,
+ 	.readpages = omfs_readpages,
+ 	.writepage = omfs_writepage,
+diff -puN fs/omfs/omfs.h~const-mark-remaining-address_space_operations-const fs/omfs/omfs.h
+--- a/fs/omfs/omfs.h~const-mark-remaining-address_space_operations-const
 +++ a/fs/omfs/omfs.h
-@@ -45,14 +45,14 @@ extern int omfs_clear_range(struct super
- 
- /* dir.c */
- extern struct file_operations omfs_dir_operations;
--extern struct inode_operations omfs_dir_inops;
-+extern const struct inode_operations omfs_dir_inops;
- extern int omfs_make_empty(struct inode *inode, struct super_block *sb);
- extern int omfs_is_bad(struct omfs_sb_info *sbi, struct omfs_header *header,
- 			u64 fsblock);
- 
+@@ -53,7 +53,7 @@ extern int omfs_is_bad(struct omfs_sb_in
  /* file.c */
  extern struct file_operations omfs_file_operations;
--extern struct inode_operations omfs_file_inops;
-+extern const struct inode_operations omfs_file_inops;
- extern const struct address_space_operations omfs_aops;
+ extern struct inode_operations omfs_file_inops;
+-extern struct address_space_operations omfs_aops;
++extern const struct address_space_operations omfs_aops;
  extern void omfs_make_empty_table(struct buffer_head *bh, int offset);
  extern int omfs_shrink_inode(struct inode *inode);
-diff -puN fs/romfs/super.c~const-mark-remaining-inode_operations-as-const fs/romfs/super.c
---- a/fs/romfs/super.c~const-mark-remaining-inode_operations-as-const
-+++ a/fs/romfs/super.c
-@@ -284,7 +284,7 @@ static const struct file_operations romf
- 	.readdir	= romfs_readdir,
+ 
+diff -puN fs/ubifs/xattr.c~const-mark-remaining-address_space_operations-const fs/ubifs/xattr.c
+--- a/fs/ubifs/xattr.c~const-mark-remaining-address_space_operations-const
++++ a/fs/ubifs/xattr.c
+@@ -79,7 +79,7 @@ enum {
  };
  
--static struct inode_operations romfs_dir_inode_operations = {
-+static const struct inode_operations romfs_dir_inode_operations = {
- 	.lookup		= romfs_lookup,
- };
+ static const struct inode_operations none_inode_operations;
+-static struct address_space_operations none_address_operations;
++static const struct address_space_operations none_address_operations;
+ static const struct file_operations none_file_operations;
  
-diff -puN kernel/cgroup.c~const-mark-remaining-inode_operations-as-const kernel/cgroup.c
---- a/kernel/cgroup.c~const-mark-remaining-inode_operations-as-const
-+++ a/kernel/cgroup.c
-@@ -596,7 +596,7 @@ void cgroup_unlock(void)
- static int cgroup_mkdir(struct inode *dir, struct dentry *dentry, int mode);
- static int cgroup_rmdir(struct inode *unused_dir, struct dentry *dentry);
- static int cgroup_populate_dir(struct cgroup *cgrp);
--static struct inode_operations cgroup_dir_inode_operations;
-+static const struct inode_operations cgroup_dir_inode_operations;
- static struct file_operations proc_cgroupstats_operations;
- 
- static struct backing_dev_info cgroup_backing_dev_info = {
-@@ -1711,7 +1711,7 @@ static struct file_operations cgroup_fil
- 	.release = cgroup_file_release,
- };
- 
--static struct inode_operations cgroup_dir_inode_operations = {
-+static const struct inode_operations cgroup_dir_inode_operations = {
- 	.lookup = simple_lookup,
- 	.mkdir = cgroup_mkdir,
- 	.rmdir = cgroup_rmdir,
+ /**
 _
 
 Patches currently in -mm which might be from adobriyan@gmail.com are
