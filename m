@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + sdio-recognize-io-card-without-powercycle.patch added to -mm tree
-Date: Thu, 10 Sep 2009 20:40:13 -0700
-Message-ID: <200909110340.n8B3eDt9003047@imap1.linux-foundation.org>
+Subject: + sdio-pass-unknown-cis-tuples-to-sdio-drivers.patch added to -mm tree
+Date: Thu, 10 Sep 2009 20:40:15 -0700
+Message-ID: <200909110340.n8B3eFJK003082__33652.5613013238$1252640428$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48925 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54670 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753534AbZIKDkM (ORCPT
+	by vger.kernel.org with ESMTP id S1753703AbZIKDkO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Sep 2009 23:40:12 -0400
+	Thu, 10 Sep 2009 23:40:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: albert_herranz@yahoo.es, linux-mmc@vger.kernel.org
 
 
 The patch titled
-     sdio: recognize io card without powercycle
+     sdio: pass unknown cis tuples to sdio drivers
 has been added to the -mm tree.  Its filename is
-     sdio-recognize-io-card-without-powercycle.patch
+     sdio-pass-unknown-cis-tuples-to-sdio-drivers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,128 +34,106 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sdio: recognize io card without powercycle
+Subject: sdio: pass unknown cis tuples to sdio drivers
 From: Albert Herranz <albert_herranz@yahoo.es>
 
-SDIO Simplified Specification V2.00 states that it is strongly recommended
-that the host executes either a power reset or issues a CMD52 (I/O Reset)
-to re-initialize an I/O only card or the I/O portion of a combo card. 
-Additionally, the CMD52 must be issued first because it cannot be issued
-after a CMD0.
+Some manufacturers provide vendor information in non-vendor specific CIS
+tuples.  For example, Broadcom uses an Extended Function tuple to provide
+the MAC address on some of their network cards, as in the case of the
+Nintendo Wii WLAN daughter card.
 
-With this patch the Nintendo Wii SDIO-based WLAN card is detected after a
-system reset, without requiring a complete system powercycle.
+This patch allows passing correct tuples unknown to the SDIO core to a
+matching SDIO driver instead of rejecting them and failing.
 
 Signed-off-by: Albert Herranz <albert_herranz@yahoo.es>
 Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/core.c     |    1 
- drivers/mmc/core/sdio_ops.c |   36 ++++++++++++++++++++++++++++------
- drivers/mmc/core/sdio_ops.h |    1 
- 3 files changed, 32 insertions(+), 6 deletions(-)
+ drivers/mmc/core/sdio_cis.c |   46 ++++++++++++++++++----------------
+ 1 file changed, 25 insertions(+), 21 deletions(-)
 
-diff -puN drivers/mmc/core/core.c~sdio-recognize-io-card-without-powercycle drivers/mmc/core/core.c
---- a/drivers/mmc/core/core.c~sdio-recognize-io-card-without-powercycle
-+++ a/drivers/mmc/core/core.c
-@@ -1073,6 +1073,7 @@ void mmc_rescan(struct work_struct *work
- 	mmc_claim_host(host);
+diff -puN drivers/mmc/core/sdio_cis.c~sdio-pass-unknown-cis-tuples-to-sdio-drivers drivers/mmc/core/sdio_cis.c
+--- a/drivers/mmc/core/sdio_cis.c~sdio-pass-unknown-cis-tuples-to-sdio-drivers
++++ a/drivers/mmc/core/sdio_cis.c
+@@ -123,8 +123,9 @@ static int cistpl_funce_func(struct sdio
+ 	vsn = func->card->cccr.sdio_vsn;
+ 	min_size = (vsn == SDIO_SDIO_REV_1_00) ? 28 : 42;
  
- 	mmc_power_up(host);
-+	sdio_go_idle(host);
- 	mmc_go_idle(host);
++	/* let the SDIO driver take care of unknown tuples */
+ 	if (size < min_size || buf[0] != 1)
+-		return -EINVAL;
++		return -EILSEQ;
  
- 	mmc_send_if_cond(host, host->ocr_avail);
-diff -puN drivers/mmc/core/sdio_ops.c~sdio-recognize-io-card-without-powercycle drivers/mmc/core/sdio_ops.c
---- a/drivers/mmc/core/sdio_ops.c~sdio-recognize-io-card-without-powercycle
-+++ a/drivers/mmc/core/sdio_ops.c
-@@ -67,13 +67,13 @@ int mmc_send_io_op_cond(struct mmc_host 
- 	return err;
- }
+ 	/* TPLFE_MAX_BLK_SIZE */
+ 	func->max_blksize = buf[12] | (buf[13] << 8);
+@@ -154,13 +155,7 @@ static int cistpl_funce(struct mmc_card 
+ 	else
+ 		ret = cistpl_funce_common(card, buf, size);
  
--int mmc_io_rw_direct(struct mmc_card *card, int write, unsigned fn,
--	unsigned addr, u8 in, u8* out)
-+static int mmc_io_rw_direct_host(struct mmc_host *host, int write, unsigned fn,
-+	unsigned addr, u8 in, u8 *out)
- {
- 	struct mmc_command cmd;
- 	int err;
- 
--	BUG_ON(!card);
-+	BUG_ON(!host);
- 	BUG_ON(fn > 7);
- 
- 	/* sanity check */
-@@ -90,11 +90,11 @@ int mmc_io_rw_direct(struct mmc_card *ca
- 	cmd.arg |= in;
- 	cmd.flags = MMC_RSP_SPI_R5 | MMC_RSP_R5 | MMC_CMD_AC;
- 
--	err = mmc_wait_for_cmd(card->host, &cmd, 0);
-+	err = mmc_wait_for_cmd(host, &cmd, 0);
- 	if (err)
- 		return err;
- 
--	if (mmc_host_is_spi(card->host)) {
-+	if (mmc_host_is_spi(host)) {
- 		/* host driver already reported errors */
- 	} else {
- 		if (cmd.resp[0] & R5_ERROR)
-@@ -106,7 +106,7 @@ int mmc_io_rw_direct(struct mmc_card *ca
- 	}
- 
- 	if (out) {
--		if (mmc_host_is_spi(card->host))
-+		if (mmc_host_is_spi(host))
- 			*out = (cmd.resp[0] >> 8) & 0xFF;
- 		else
- 			*out = cmd.resp[0] & 0xFF;
-@@ -115,6 +115,13 @@ int mmc_io_rw_direct(struct mmc_card *ca
- 	return 0;
- }
- 
-+int mmc_io_rw_direct(struct mmc_card *card, int write, unsigned fn,
-+	unsigned addr, u8 in, u8 *out)
-+{
-+	BUG_ON(!card);
-+	return mmc_io_rw_direct_host(card->host, write, fn, addr, in, out);
-+}
-+
- int mmc_io_rw_extended(struct mmc_card *card, int write, unsigned fn,
- 	unsigned addr, int incr_addr, u8 *buf, unsigned blocks, unsigned blksz)
- {
-@@ -182,3 +189,20 @@ int mmc_io_rw_extended(struct mmc_card *
- 	return 0;
- }
- 
-+int sdio_go_idle(struct mmc_host *host)
-+{
-+	int ret;
-+	u8 abort;
-+
-+	/* SDIO Simplified Specification V2.0, 4.4 Reset for SDIO */
-+
-+	ret = mmc_io_rw_direct_host(host, 0, 0, SDIO_CCCR_ABORT, 0, &abort);
-+	if (ret)
-+		abort = 0x08;
-+	else
-+		abort |= 0x08;
-+
-+	ret = mmc_io_rw_direct_host(host, 1, 0, SDIO_CCCR_ABORT, abort, NULL);
+-	if (ret) {
+-		printk(KERN_ERR "%s: bad CISTPL_FUNCE size %u "
+-		       "type %u\n", mmc_hostname(card->host), size, buf[0]);
+-		return ret;
+-	}
+-
+-	return 0;
 +	return ret;
-+}
+ }
+ 
+ typedef int (tpl_parse_t)(struct mmc_card *, struct sdio_func *,
+@@ -253,21 +248,12 @@ static int sdio_read_cis(struct mmc_card
+ 		for (i = 0; i < ARRAY_SIZE(cis_tpl_list); i++)
+ 			if (cis_tpl_list[i].code == tpl_code)
+ 				break;
+-		if (i >= ARRAY_SIZE(cis_tpl_list)) {
+-			/* this tuple is unknown to the core */
+-			this->next = NULL;
+-			this->code = tpl_code;
+-			this->size = tpl_link;
+-			*prev = this;
+-			prev = &this->next;
+-			printk(KERN_DEBUG
+-			       "%s: queuing CIS tuple 0x%02x length %u\n",
+-			       mmc_hostname(card->host), tpl_code, tpl_link);
+-		} else {
++		if (i < ARRAY_SIZE(cis_tpl_list)) {
+ 			const struct cis_tpl *tpl = cis_tpl_list + i;
+ 			if (tpl_link < tpl->min_size) {
+ 				printk(KERN_ERR
+-				       "%s: bad CIS tuple 0x%02x (length = %u, expected >= %u)\n",
++				       "%s: bad CIS tuple 0x%02x"
++				       " (length = %u, expected >= %u)\n",
+ 				       mmc_hostname(card->host),
+ 				       tpl_code, tpl_link, tpl->min_size);
+ 				ret = -EINVAL;
+@@ -275,7 +261,25 @@ static int sdio_read_cis(struct mmc_card
+ 				ret = tpl->parse(card, func,
+ 						 this->data, tpl_link);
+ 			}
+-			kfree(this);
++			/* already successfully parsed, not needed anymore */
++			if (!ret)
++				kfree(this);
++		} else {
++			/* unknown tuple */
++			ret = -EILSEQ;
++		}
 +
-diff -puN drivers/mmc/core/sdio_ops.h~sdio-recognize-io-card-without-powercycle drivers/mmc/core/sdio_ops.h
---- a/drivers/mmc/core/sdio_ops.h~sdio-recognize-io-card-without-powercycle
-+++ a/drivers/mmc/core/sdio_ops.h
-@@ -17,6 +17,7 @@ int mmc_io_rw_direct(struct mmc_card *ca
- 	unsigned addr, u8 in, u8* out);
- int mmc_io_rw_extended(struct mmc_card *card, int write, unsigned fn,
- 	unsigned addr, int incr_addr, u8 *buf, unsigned blocks, unsigned blksz);
-+int sdio_go_idle(struct mmc_host *host);
++		if (ret == -EILSEQ) {
++			/* this tuple is unknown to the core */
++			this->next = NULL;
++			this->code = tpl_code;
++			this->size = tpl_link;
++			*prev = this;
++			prev = &this->next;
++			pr_debug("%s: queuing CIS tuple 0x%02x length %u\n",
++				 mmc_hostname(card->host), tpl_code, tpl_link);
++			/* keep on analyzing tuples */
++			ret = 0;
+ 		}
  
- #endif
- 
+ 		ptr += tpl_link;
 _
 
 Patches currently in -mm which might be from albert_herranz@yahoo.es are
