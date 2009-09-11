@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy-fix.patch removed from -mm tree
-Date: Fri, 11 Sep 2009 10:43:09 -0700
-Message-ID: <200909111743.n8BHh9uj022222@imap1.linux-foundation.org>
+Subject: [to-be-updated] hugetlb-add-per-node-hstate-attributes-fix.patch removed from -mm tree
+Date: Fri, 11 Sep 2009 10:43:19 -0700
+Message-ID: <200909111743.n8BHhJWi022581@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48159 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39639 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755766AbZIKRoJ (ORCPT
+	by vger.kernel.org with ESMTP id S1755779AbZIKRoM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Sep 2009 13:44:09 -0400
+	Fri, 11 Sep 2009 13:44:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, agl@us.ibm.com, andi@firstfloor.org, apw@canonical.com, cl@linux-foundation.org, lee.schermerhorn@hp.com, mel@csn.ul.ie, nacc@us.ibm.com, rientjes@google.co
 
 
 The patch titled
-     hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy-fix
+     hugetlb-add-per-node-hstate-attributes-fix
 has been removed from the -mm tree.  Its filename was
-     hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy-fix.patch
+     hugetlb-add-per-node-hstate-attributes-fix.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy-fix
+Subject: hugetlb-add-per-node-hstate-attributes-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-don't leak an mpol_get()
+be more conventional with typedefs
 
 Cc: Adam Litke <agl@us.ibm.com>
 Cc: Andi Kleen <andi@firstfloor.org>
@@ -40,43 +40,78 @@ Cc: Nishanth Aravamudan <nacc@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c   |    2 +-
- mm/mempolicy.c |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/base/node.c  |   14 +++++++-------
+ include/linux/node.h |   10 +++++-----
+ 2 files changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN mm/hugetlb.c~hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy-fix mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy-fix
-+++ a/mm/hugetlb.c
-@@ -1253,7 +1253,7 @@ static unsigned long set_max_huge_pages(
+diff -puN drivers/base/node.c~hugetlb-add-per-node-hstate-attributes-fix drivers/base/node.c
+--- a/drivers/base/node.c~hugetlb-add-per-node-hstate-attributes-fix
++++ a/drivers/base/node.c
+@@ -180,14 +180,14 @@ static SYSDEV_ATTR(distance, S_IRUGO, no
+ /*
+  * hugetlbfs per node attributes registration interface:
+  * When/if hugetlb[fs] subsystem initializes [sometime after this module],
+- * it will register it's per node attributes for all nodes on-line at that
+- * point.  It will also call register_hugetlbfs_with_node(), below, to
+- * register it's attribute registration functions with this node driver.
++ * it will register its per node attributes for all nodes online at that
++ * time.  It will also call register_hugetlbfs_with_node(), below, to
++ * register its attribute registration functions with this node driver.
+  * Once these hooks have been initialized, the node driver will call into
+  * the hugetlb module to [un]register attributes for hot-plugged nodes.
+  */
+-NODE_REGISTRATION_FUNC __hugetlb_register_node;
+-NODE_REGISTRATION_FUNC __hugetlb_unregister_node;
++static node_registration_func_t __hugetlb_register_node;
++static node_registration_func_t __hugetlb_unregister_node;
  
- 	nodes_allowed = alloc_nodemask_of_mempolicy();
- 	if (!nodes_allowed) {
--		printk(KERN_WARNING "%s unable to allocate nodes allowed mask "
-+		printk(KERN_WARNING "%s: unable to allocate nodes allowed mask "
- 			"for huge page allocation.  Falling back to default.\n",
- 			current->comm);
- 		nodes_allowed = &node_online_map;
-diff -puN mm/mempolicy.c~hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy-fix mm/mempolicy.c
---- a/mm/mempolicy.c~hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy-fix
-+++ a/mm/mempolicy.c
-@@ -1589,7 +1589,7 @@ nodemask_t *alloc_nodemask_of_mempolicy(
- 	mpol_get(current->mempolicy);
- 	nodes_allowed = kmalloc(sizeof(*nodes_allowed), GFP_KERNEL);
- 	if (!nodes_allowed)
--		return NULL;		/* silently default */
-+		goto out;		/* silently default */
- 
- 	nodes_clear(*nodes_allowed);
- 	mempolicy = current->mempolicy;
-@@ -1611,7 +1611,7 @@ nodemask_t *alloc_nodemask_of_mempolicy(
- 	default:
- 		BUG();
- 	}
--
-+out:
- 	mpol_put(current->mempolicy);
- 	return nodes_allowed;
+ static inline void hugetlb_register_node(struct node *node)
+ {
+@@ -201,8 +201,8 @@ static inline void hugetlb_unregister_no
+ 		__hugetlb_unregister_node(node);
  }
+ 
+-void register_hugetlbfs_with_node(NODE_REGISTRATION_FUNC doregister,
+-				  NODE_REGISTRATION_FUNC unregister)
++void register_hugetlbfs_with_node(node_registration_func_t doregister,
++				  node_registration_func_t unregister)
+ {
+ 	__hugetlb_register_node   = doregister;
+ 	__hugetlb_unregister_node = unregister;
+diff -puN include/linux/node.h~hugetlb-add-per-node-hstate-attributes-fix include/linux/node.h
+--- a/include/linux/node.h~hugetlb-add-per-node-hstate-attributes-fix
++++ a/include/linux/node.h
+@@ -28,7 +28,7 @@ struct node {
+ 
+ struct memory_block;
+ extern struct node node_devices[];
+-typedef  void (*NODE_REGISTRATION_FUNC)(struct node *);
++typedef  void (*node_registration_func_t)(struct node *);
+ 
+ extern int register_node(struct node *, int, struct node *);
+ extern void unregister_node(struct node *node);
+@@ -40,8 +40,8 @@ extern int unregister_cpu_under_node(uns
+ extern int register_mem_sect_under_node(struct memory_block *mem_blk,
+ 						int nid);
+ extern int unregister_mem_sect_under_nodes(struct memory_block *mem_blk);
+-extern void register_hugetlbfs_with_node(NODE_REGISTRATION_FUNC doregister,
+-					 NODE_REGISTRATION_FUNC unregister);
++extern void register_hugetlbfs_with_node(node_registration_func_t doregister,
++					 node_registration_func_t unregister);
+ #else
+ static inline int register_one_node(int nid)
+ {
+@@ -69,8 +69,8 @@ static inline int unregister_mem_sect_un
+ 	return 0;
+ }
+ 
+-static inline void register_hugetlbfs_with_node(NODE_REGISTRATION_FUNC reg,
+-						NODE_REGISTRATION_FUNC unreg)
++static inline void register_hugetlbfs_with_node(node_registration_func_t reg,
++						node_registration_func_t unreg)
+ {
+ }
+ #endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -115,7 +150,6 @@ revert-proc-kcore-work-around-a-bug.patch
 arches-drop-superfluous-casts-in-nr_free_pages-callers-checkpatch-fixes.patch
 tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists-fix.patch
 page-allocator-maintain-rolling-count-of-pages-to-free-from-the-pcp-checkpatch-fixes.patch
-hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy-fix.patch
 hugetlb-add-per-node-hstate-attributes-fix.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
