@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + dev-mem-remove-redundant-test-on-len.patch added to -mm tree
-Date: Fri, 11 Sep 2009 17:05:56 -0700
-Message-ID: <200909120005.n8C05urr023312@imap1.linux-foundation.org>
+Subject: + dev-mem-cleanup-unxlate_dev_mem_ptr-calls.patch added to -mm tree
+Date: Fri, 11 Sep 2009 17:06:00 -0700
+Message-ID: <200909120006.n8C060MC023411@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53436 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54395 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752447AbZILAGp (ORCPT
+	by vger.kernel.org with ESMTP id S1757252AbZILAGt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Sep 2009 20:06:45 -0400
+	Fri, 11 Sep 2009 20:06:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: fengguang.wu@intel.com, ak@linux.intel.com, avi@qumranet.com, broonie@openso
 
 
 The patch titled
-     /dev/mem: remove redundant test on len
+     /dev/mem: cleanup unxlate_dev_mem_ptr() calls
 has been added to the -mm tree.  Its filename is
-     dev-mem-remove-redundant-test-on-len.patch
+     dev-mem-cleanup-unxlate_dev_mem_ptr-calls.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: /dev/mem: remove redundant test on len
+Subject: /dev/mem: cleanup unxlate_dev_mem_ptr() calls
 From: Wu Fengguang <fengguang.wu@intel.com>
 
-The len test in write_kmem() is always true, so can be reduced.
+No behaviour change.
 
 Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
 Acked-by: Andi Kleen <ak@linux.intel.com>
@@ -49,33 +49,54 @@ Cc: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mem.c |   14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+ drivers/char/mem.c |   13 +++++--------
+ 1 file changed, 5 insertions(+), 8 deletions(-)
 
-diff -puN drivers/char/mem.c~dev-mem-remove-redundant-test-on-len drivers/char/mem.c
---- a/drivers/char/mem.c~dev-mem-remove-redundant-test-on-len
+diff -puN drivers/char/mem.c~dev-mem-cleanup-unxlate_dev_mem_ptr-calls drivers/char/mem.c
+--- a/drivers/char/mem.c~dev-mem-cleanup-unxlate_dev_mem_ptr-calls
 +++ a/drivers/char/mem.c
-@@ -582,14 +582,12 @@ static ssize_t write_kmem(struct file * 
+@@ -131,6 +131,7 @@ static ssize_t read_mem(struct file * fi
+ 			size_t count, loff_t *ppos)
+ {
+ 	unsigned long p = *ppos;
++	unsigned long ret;
+ 	ssize_t read, sz;
+ 	char *ptr;
  
- 			if (len > PAGE_SIZE)
- 				len = PAGE_SIZE;
--			if (len) {
--				written = copy_from_user(kbuf, buf, len);
--				if (written) {
--					if (wrote + virtr)
--						break;
--					free_page((unsigned long)kbuf);
--					return -EFAULT;
--				}
-+			written = copy_from_user(kbuf, buf, len);
-+			if (written) {
-+				if (wrote + virtr)
-+					break;
-+				free_page((unsigned long)kbuf);
-+				return -EFAULT;
- 			}
- 			len = vwrite(kbuf, (char *)p, len);
- 			count -= len;
+@@ -169,12 +170,10 @@ static ssize_t read_mem(struct file * fi
+ 		if (!ptr)
+ 			return -EFAULT;
+ 
+-		if (copy_to_user(buf, ptr, sz)) {
+-			unxlate_dev_mem_ptr(p, ptr);
+-			return -EFAULT;
+-		}
+-
++		ret = copy_to_user(buf, ptr, sz);
+ 		unxlate_dev_mem_ptr(p, ptr);
++		if (ret)
++			return -EFAULT;
+ 
+ 		buf += sz;
+ 		p += sz;
+@@ -232,16 +231,14 @@ static ssize_t write_mem(struct file * f
+ 		}
+ 
+ 		copied = copy_from_user(ptr, buf, sz);
++		unxlate_dev_mem_ptr(p, ptr);
+ 		if (copied) {
+ 			written += sz - copied;
+-			unxlate_dev_mem_ptr(p, ptr);
+ 			if (written)
+ 				break;
+ 			return -EFAULT;
+ 		}
+ 
+-		unxlate_dev_mem_ptr(p, ptr);
+-
+ 		buf += sz;
+ 		p += sz;
+ 		count -= sz;
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
