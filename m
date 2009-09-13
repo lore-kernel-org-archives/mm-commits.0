@@ -1,210 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: + hptiop-add-rr44xx-adapter-support.patch added to -mm tree
-Date: Sun, 13 Sep 2009 15:42:24 -0700
-Message-ID: <200909132242.n8DMgOPa002526@imap1.linux-foundation.org>
+Subject: [to-be-updated] sdio-pass-unknown-cis-tuples-to-sdio-drivers.patch removed from -mm tree
+Date: Sun, 13 Sep 2009 15:43:21 -0700
+Message-ID: <200909132243.n8DMhLIB004503@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42903 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35375 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752238AbZIMWmc (ORCPT
+	by vger.kernel.org with ESMTP id S1752552AbZIMWnT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 13 Sep 2009 18:42:32 -0400
+	Sun, 13 Sep 2009 18:43:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: linux@highpoint-tech.com, James.Bottomley@HansenPartnership.com
+To: albert_herranz@yahoo.es, linux-mmc@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scsi: hptiop: add RR44xx adapter support
-has been added to the -mm tree.  Its filename is
-     hptiop-add-rr44xx-adapter-support.patch
+     sdio: pass unknown cis tuples to sdio drivers
+has been removed from the -mm tree.  Its filename was
+     sdio-pass-unknown-cis-tuples-to-sdio-drivers.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi: hptiop: add RR44xx adapter support
-From: HighPoint Linux Team <linux@highpoint-tech.com>
+Subject: sdio: pass unknown cis tuples to sdio drivers
+From: Albert Herranz <albert_herranz@yahoo.es>
 
-Most code changes were made to support RR44xx adapters.
-- add more PCI device ID.
-- using PCI BAR[2] to access RR44xx IOP.
-- using PCI BAR[0] to check and clear RR44xx IRQ.
+Some manufacturers provide vendor information in non-vendor specific CIS
+tuples.  For example, Broadcom uses an Extended Function tuple to provide
+the MAC address on some of their network cards, as in the case of the
+Nintendo Wii WLAN daughter card.
 
-Signed-off-by: HighPoint Linux Team <linux@highpoint-tech.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+This patch allows passing correct tuples unknown to the SDIO core to a
+matching SDIO driver instead of rejecting them and failing.
+
+Signed-off-by: Albert Herranz <albert_herranz@yahoo.es>
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/scsi/hptiop.txt |   21 +++++++++++++++++-
- drivers/scsi/hptiop.c         |   37 ++++++++++++++++++++++----------
- drivers/scsi/hptiop.h         |    3 +-
- 3 files changed, 48 insertions(+), 13 deletions(-)
+ drivers/mmc/core/sdio_cis.c |   46 ++++++++++++++++++----------------
+ 1 file changed, 25 insertions(+), 21 deletions(-)
 
-diff -puN Documentation/scsi/hptiop.txt~hptiop-add-rr44xx-adapter-support Documentation/scsi/hptiop.txt
---- a/Documentation/scsi/hptiop.txt~hptiop-add-rr44xx-adapter-support
-+++ a/Documentation/scsi/hptiop.txt
-@@ -3,6 +3,25 @@ HIGHPOINT ROCKETRAID 3xxx/4xxx ADAPTER D
- Controller Register Map
- -------------------------
+diff -puN drivers/mmc/core/sdio_cis.c~sdio-pass-unknown-cis-tuples-to-sdio-drivers drivers/mmc/core/sdio_cis.c
+--- a/drivers/mmc/core/sdio_cis.c~sdio-pass-unknown-cis-tuples-to-sdio-drivers
++++ a/drivers/mmc/core/sdio_cis.c
+@@ -123,8 +123,9 @@ static int cistpl_funce_func(struct sdio
+ 	vsn = func->card->cccr.sdio_vsn;
+ 	min_size = (vsn == SDIO_SDIO_REV_1_00) ? 28 : 42;
  
-+For RR44xx Intel IOP based adapters, the controller IOP is accessed via PCI BAR0 and BAR2:
-+
-+     BAR0 offset    Register
-+            0x11C5C Link Interface IRQ Set
-+            0x11C60 Link Interface IRQ Clear
-+
-+     BAR2 offset    Register
-+            0x10    Inbound Message Register 0
-+            0x14    Inbound Message Register 1
-+            0x18    Outbound Message Register 0
-+            0x1C    Outbound Message Register 1
-+            0x20    Inbound Doorbell Register
-+            0x24    Inbound Interrupt Status Register
-+            0x28    Inbound Interrupt Mask Register
-+            0x30    Outbound Interrupt Status Register
-+            0x34    Outbound Interrupt Mask Register
-+            0x40    Inbound Queue Port
-+            0x44    Outbound Queue Port
-+
- For Intel IOP based adapters, the controller IOP is accessed via PCI BAR0:
++	/* let the SDIO driver take care of unknown tuples */
+ 	if (size < min_size || buf[0] != 1)
+-		return -EINVAL;
++		return -EILSEQ;
  
-      BAR0 offset    Register
-@@ -93,7 +112,7 @@ The driver exposes following sysfs attri
+ 	/* TPLFE_MAX_BLK_SIZE */
+ 	func->max_blksize = buf[12] | (buf[13] << 8);
+@@ -154,13 +155,7 @@ static int cistpl_funce(struct mmc_card 
+ 	else
+ 		ret = cistpl_funce_common(card, buf, size);
  
+-	if (ret) {
+-		printk(KERN_ERR "%s: bad CISTPL_FUNCE size %u "
+-		       "type %u\n", mmc_hostname(card->host), size, buf[0]);
+-		return ret;
+-	}
+-
+-	return 0;
++	return ret;
+ }
  
- -----------------------------------------------------------------------------
--Copyright (C) 2006-2007 HighPoint Technologies, Inc. All Rights Reserved.
-+Copyright (C) 2006-2009 HighPoint Technologies, Inc. All Rights Reserved.
- 
-   This file is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-diff -puN drivers/scsi/hptiop.c~hptiop-add-rr44xx-adapter-support drivers/scsi/hptiop.c
---- a/drivers/scsi/hptiop.c~hptiop-add-rr44xx-adapter-support
-+++ a/drivers/scsi/hptiop.c
-@@ -1,6 +1,6 @@
- /*
-  * HighPoint RR3xxx/4xxx controller driver for Linux
-- * Copyright (C) 2006-2007 HighPoint Technologies, Inc. All Rights Reserved.
-+ * Copyright (C) 2006-2009 HighPoint Technologies, Inc. All Rights Reserved.
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-@@ -41,7 +41,7 @@ MODULE_DESCRIPTION("HighPoint RocketRAID
- 
- static char driver_name[] = "hptiop";
- static const char driver_name_long[] = "RocketRAID 3xxx/4xxx Controller driver";
--static const char driver_ver[] = "v1.3 (071203)";
-+static const char driver_ver[] = "v1.6 (090910)";
- 
- static int iop_send_sync_msg(struct hptiop_hba *hba, u32 msg, u32 millisec);
- static void hptiop_finish_scsi_req(struct hptiop_hba *hba, u32 tag,
-@@ -115,9 +115,13 @@ static void hptiop_drain_outbound_queue_
- static int iop_intr_itl(struct hptiop_hba *hba)
- {
- 	struct hpt_iopmu_itl __iomem *iop = hba->u.itl.iop;
-+	void __iomem *plx = hba->u.itl.plx;
- 	u32 status;
- 	int ret = 0;
- 
-+	if (plx && readl(plx + 0x11C5C) & 0xf)
-+		writel(1, plx + 0x11C60);
-+
- 	status = readl(&iop->outbound_intstatus);
- 
- 	if (status & IOPMU_OUTBOUND_INT_MSG0) {
-@@ -460,15 +464,25 @@ static void __iomem *hptiop_map_pci_bar(
- 
- static int hptiop_map_pci_bar_itl(struct hptiop_hba *hba)
- {
-+	struct pci_dev *pcidev = hba->pcidev;
- 	hba->u.itl.iop = hptiop_map_pci_bar(hba, 0);
--	if (hba->u.itl.iop)
--		return 0;
--	else
-+	if (hba->u.itl.iop == NULL)
- 		return -1;
-+	if ((pcidev->device & 0xff00) == 0x4400) {
-+		hba->u.itl.plx = hba->u.itl.iop;
-+		hba->u.itl.iop = hptiop_map_pci_bar(hba, 2);
-+		if (hba->u.itl.iop == NULL) {
-+			iounmap(hba->u.itl.plx);
-+			return -1;
+ typedef int (tpl_parse_t)(struct mmc_card *, struct sdio_func *,
+@@ -253,21 +248,12 @@ static int sdio_read_cis(struct mmc_card
+ 		for (i = 0; i < ARRAY_SIZE(cis_tpl_list); i++)
+ 			if (cis_tpl_list[i].code == tpl_code)
+ 				break;
+-		if (i >= ARRAY_SIZE(cis_tpl_list)) {
+-			/* this tuple is unknown to the core */
+-			this->next = NULL;
+-			this->code = tpl_code;
+-			this->size = tpl_link;
+-			*prev = this;
+-			prev = &this->next;
+-			printk(KERN_DEBUG
+-			       "%s: queuing CIS tuple 0x%02x length %u\n",
+-			       mmc_hostname(card->host), tpl_code, tpl_link);
+-		} else {
++		if (i < ARRAY_SIZE(cis_tpl_list)) {
+ 			const struct cis_tpl *tpl = cis_tpl_list + i;
+ 			if (tpl_link < tpl->min_size) {
+ 				printk(KERN_ERR
+-				       "%s: bad CIS tuple 0x%02x (length = %u, expected >= %u)\n",
++				       "%s: bad CIS tuple 0x%02x"
++				       " (length = %u, expected >= %u)\n",
+ 				       mmc_hostname(card->host),
+ 				       tpl_code, tpl_link, tpl->min_size);
+ 				ret = -EINVAL;
+@@ -275,7 +261,25 @@ static int sdio_read_cis(struct mmc_card
+ 				ret = tpl->parse(card, func,
+ 						 this->data, tpl_link);
+ 			}
+-			kfree(this);
++			/* already successfully parsed, not needed anymore */
++			if (!ret)
++				kfree(this);
++		} else {
++			/* unknown tuple */
++			ret = -EILSEQ;
 +		}
-+	}
-+	return 0;
- }
++
++		if (ret == -EILSEQ) {
++			/* this tuple is unknown to the core */
++			this->next = NULL;
++			this->code = tpl_code;
++			this->size = tpl_link;
++			*prev = this;
++			prev = &this->next;
++			pr_debug("%s: queuing CIS tuple 0x%02x length %u\n",
++				 mmc_hostname(card->host), tpl_code, tpl_link);
++			/* keep on analyzing tuples */
++			ret = 0;
+ 		}
  
- static void hptiop_unmap_pci_bar_itl(struct hptiop_hba *hba)
- {
-+	if (hba->u.itl.plx)
-+		iounmap(hba->u.itl.plx);
- 	iounmap(hba->u.itl.iop);
- }
- 
-@@ -1239,22 +1253,23 @@ static struct hptiop_adapter_ops hptiop_
- static struct pci_device_id hptiop_id_table[] = {
- 	{ PCI_VDEVICE(TTI, 0x3220), (kernel_ulong_t)&hptiop_itl_ops },
- 	{ PCI_VDEVICE(TTI, 0x3320), (kernel_ulong_t)&hptiop_itl_ops },
--	{ PCI_VDEVICE(TTI, 0x3520), (kernel_ulong_t)&hptiop_itl_ops },
--	{ PCI_VDEVICE(TTI, 0x4320), (kernel_ulong_t)&hptiop_itl_ops },
-+	{ PCI_VDEVICE(TTI, 0x3410), (kernel_ulong_t)&hptiop_itl_ops },
- 	{ PCI_VDEVICE(TTI, 0x3510), (kernel_ulong_t)&hptiop_itl_ops },
- 	{ PCI_VDEVICE(TTI, 0x3511), (kernel_ulong_t)&hptiop_itl_ops },
-+	{ PCI_VDEVICE(TTI, 0x3520), (kernel_ulong_t)&hptiop_itl_ops },
- 	{ PCI_VDEVICE(TTI, 0x3521), (kernel_ulong_t)&hptiop_itl_ops },
- 	{ PCI_VDEVICE(TTI, 0x3522), (kernel_ulong_t)&hptiop_itl_ops },
--	{ PCI_VDEVICE(TTI, 0x3410), (kernel_ulong_t)&hptiop_itl_ops },
--	{ PCI_VDEVICE(TTI, 0x3540), (kernel_ulong_t)&hptiop_itl_ops },
- 	{ PCI_VDEVICE(TTI, 0x3530), (kernel_ulong_t)&hptiop_itl_ops },
-+	{ PCI_VDEVICE(TTI, 0x3540), (kernel_ulong_t)&hptiop_itl_ops },
- 	{ PCI_VDEVICE(TTI, 0x3560), (kernel_ulong_t)&hptiop_itl_ops },
--	{ PCI_VDEVICE(TTI, 0x4322), (kernel_ulong_t)&hptiop_itl_ops },
--	{ PCI_VDEVICE(TTI, 0x4321), (kernel_ulong_t)&hptiop_itl_ops },
- 	{ PCI_VDEVICE(TTI, 0x4210), (kernel_ulong_t)&hptiop_itl_ops },
- 	{ PCI_VDEVICE(TTI, 0x4211), (kernel_ulong_t)&hptiop_itl_ops },
- 	{ PCI_VDEVICE(TTI, 0x4310), (kernel_ulong_t)&hptiop_itl_ops },
- 	{ PCI_VDEVICE(TTI, 0x4311), (kernel_ulong_t)&hptiop_itl_ops },
-+	{ PCI_VDEVICE(TTI, 0x4320), (kernel_ulong_t)&hptiop_itl_ops },
-+	{ PCI_VDEVICE(TTI, 0x4321), (kernel_ulong_t)&hptiop_itl_ops },
-+	{ PCI_VDEVICE(TTI, 0x4322), (kernel_ulong_t)&hptiop_itl_ops },
-+	{ PCI_VDEVICE(TTI, 0x4400), (kernel_ulong_t)&hptiop_itl_ops },
- 	{ PCI_VDEVICE(TTI, 0x3120), (kernel_ulong_t)&hptiop_mv_ops },
- 	{ PCI_VDEVICE(TTI, 0x3122), (kernel_ulong_t)&hptiop_mv_ops },
- 	{ PCI_VDEVICE(TTI, 0x3020), (kernel_ulong_t)&hptiop_mv_ops },
-diff -puN drivers/scsi/hptiop.h~hptiop-add-rr44xx-adapter-support drivers/scsi/hptiop.h
---- a/drivers/scsi/hptiop.h~hptiop-add-rr44xx-adapter-support
-+++ a/drivers/scsi/hptiop.h
-@@ -1,6 +1,6 @@
- /*
-  * HighPoint RR3xxx/4xxx controller driver for Linux
-- * Copyright (C) 2006-2007 HighPoint Technologies, Inc. All Rights Reserved.
-+ * Copyright (C) 2006-2009 HighPoint Technologies, Inc. All Rights Reserved.
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-@@ -228,6 +228,7 @@ struct hptiop_hba {
- 	union {
- 		struct {
- 			struct hpt_iopmu_itl __iomem *iop;
-+			void __iomem *plx;
- 		} itl;
- 		struct {
- 			struct hpt_iopmv_regs *regs;
+ 		ptr += tpl_link;
 _
 
-Patches currently in -mm which might be from linux@highpoint-tech.com are
+Patches currently in -mm which might be from albert_herranz@yahoo.es are
 
-hptiop-add-rr44xx-adapter-support.patch
+linux-next.patch
+sdio-pass-unknown-cis-tuples-to-sdio-drivers.patch
 
