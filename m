@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + dev-mem-remove-redundant-parameter-from-do_write_kmem.patch added to -mm tree
-Date: Sun, 13 Sep 2009 16:47:26 -0700
-Message-ID: <200909132347.n8DNlQQ0031645@imap1.linux-foundation.org>
+Subject: + dev-mem-remove-the-written-variable-in-write_kmem.patch added to -mm tree
+Date: Sun, 13 Sep 2009 16:47:24 -0700
+Message-ID: <200909132347.n8DNlO44031566@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37621 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41075 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752459AbZIMXsU (ORCPT
+	by vger.kernel.org with ESMTP id S1753334AbZIMXsU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Sun, 13 Sep 2009 19:48:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: fengguang.wu@intel.com, ak@linux.intel.com, avi@qumranet.com, broonie@openso
 
 
 The patch titled
-     /dev/mem: remove redundant parameter from do_write_kmem()
+     /dev/mem: remove the "written" variable in write_kmem()
 has been added to the -mm tree.  Its filename is
-     dev-mem-remove-redundant-parameter-from-do_write_kmem.patch
+     dev-mem-remove-the-written-variable-in-write_kmem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,8 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: /dev/mem: remove redundant parameter from do_write_kmem()
+Subject: /dev/mem: remove the "written" variable in write_kmem()
 From: Wu Fengguang <fengguang.wu@intel.com>
+
+Also rename "len" to "sz". No behavior change.
 
 Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
 Cc: Andi Kleen <ak@linux.intel.com>
@@ -47,70 +49,94 @@ Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mem.c |   14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+ drivers/char/mem.c |   48 ++++++++++++++++++-------------------------
+ 1 file changed, 21 insertions(+), 27 deletions(-)
 
-diff -puN drivers/char/mem.c~dev-mem-remove-redundant-parameter-from-do_write_kmem drivers/char/mem.c
---- a/drivers/char/mem.c~dev-mem-remove-redundant-parameter-from-do_write_kmem
+diff -puN drivers/char/mem.c~dev-mem-remove-the-written-variable-in-write_kmem drivers/char/mem.c
+--- a/drivers/char/mem.c~dev-mem-remove-the-written-variable-in-write_kmem
 +++ a/drivers/char/mem.c
-@@ -463,7 +463,7 @@ static ssize_t read_kmem(struct file *fi
- 
- 
- static inline ssize_t
--do_write_kmem(void *p, unsigned long realp, const char __user * buf,
-+do_write_kmem(unsigned long p, const char __user *buf,
- 	      size_t count, loff_t *ppos)
- {
- 	ssize_t written, sz;
-@@ -472,12 +472,11 @@ do_write_kmem(void *p, unsigned long rea
- 	written = 0;
- #ifdef __ARCH_HAS_NO_PAGE_ZERO_MAPPED
- 	/* we don't have page 0 mapped on sparc and m68k.. */
--	if (realp < PAGE_SIZE) {
--		sz = size_inside_page(realp, count);
-+	if (p < PAGE_SIZE) {
-+		sz = size_inside_page(p, count);
- 		/* Hmm. Do something? */
- 		buf += sz;
- 		p += sz;
--		realp += sz;
- 		count -= sz;
- 		written += sz;
- 	}
-@@ -486,14 +485,14 @@ do_write_kmem(void *p, unsigned long rea
- 	while (count > 0) {
- 		char *ptr;
- 
--		sz = size_inside_page(realp, count);
-+		sz = size_inside_page(p, count);
- 
- 		/*
- 		 * On ia64 if a page has been mapped somewhere as
- 		 * uncached, then it must also be accessed uncached
- 		 * by the kernel or data corruption may occur
- 		 */
--		ptr = xlate_dev_kmem_ptr(p);
-+		ptr = xlate_dev_kmem_ptr((char *)p);
- 
- 		copied = copy_from_user(ptr, buf, sz);
- 		if (copied) {
-@@ -504,7 +503,6 @@ do_write_kmem(void *p, unsigned long rea
+@@ -442,19 +442,18 @@ static ssize_t read_kmem(struct file *fi
+ 		if (!kbuf)
+ 			return -ENOMEM;
+ 		while (count > 0) {
+-			int len = size_inside_page(p, count);
+-
+-			len = vread(kbuf, (char *)p, len);
+-			if (!len)
++			sz = size_inside_page(p, count);
++			sz = vread(kbuf, (char *)p, sz);
++			if (!sz)
+ 				break;
+-			if (copy_to_user(buf, kbuf, len)) {
++			if (copy_to_user(buf, kbuf, sz)) {
+ 				free_page((unsigned long)kbuf);
+ 				return -EFAULT;
+ 			}
+-			count -= len;
+-			buf += len;
+-			read += len;
+-			p += len;
++			count -= sz;
++			buf += sz;
++			read += sz;
++			p += sz;
  		}
- 		buf += sz;
- 		p += sz;
--		realp += sz;
- 		count -= sz;
- 		written += sz;
+ 		free_page((unsigned long)kbuf);
  	}
-@@ -528,7 +526,7 @@ static ssize_t write_kmem(struct file * 
+@@ -524,19 +523,14 @@ static ssize_t write_kmem(struct file * 
+ 	unsigned long p = *ppos;
+ 	ssize_t wrote = 0;
+ 	ssize_t virtr = 0;
+-	ssize_t written;
+ 	char * kbuf; /* k-addr because vwrite() takes vmlist_lock rwlock */
+ 
  	if (p < (unsigned long) high_memory) {
- 		unsigned long to_write = min_t(unsigned long, count,
- 					       (unsigned long)high_memory - p);
--		wrote = do_write_kmem((void *)p, p, buf, to_write, ppos);
-+		wrote = do_write_kmem(p, buf, to_write, ppos);
- 		if (wrote != to_write)
- 			return wrote;
+-
+-		wrote = count;
+-		if (count > (unsigned long) high_memory - p)
+-			wrote = (unsigned long) high_memory - p;
+-
+-		written = do_write_kmem((void*)p, p, buf, wrote, ppos);
+-		if (written != wrote)
+-			return written;
+-		wrote = written;
++		unsigned long to_write = min_t(unsigned long, count,
++					       (unsigned long)high_memory - p);
++		wrote = do_write_kmem((void *)p, p, buf, to_write, ppos);
++		if (wrote != to_write)
++			return wrote;
  		p += wrote;
+ 		buf += wrote;
+ 		count -= wrote;
+@@ -547,20 +541,20 @@ static ssize_t write_kmem(struct file * 
+ 		if (!kbuf)
+ 			return wrote ? wrote : -ENOMEM;
+ 		while (count > 0) {
+-			int len = size_inside_page(p, count);
++			unsigned long sz = size_inside_page(p, count);
+ 
+-			written = copy_from_user(kbuf, buf, len);
+-			if (written) {
++			sz = copy_from_user(kbuf, buf, sz);
++			if (sz) {
+ 				if (wrote + virtr)
+ 					break;
+ 				free_page((unsigned long)kbuf);
+ 				return -EFAULT;
+ 			}
+-			len = vwrite(kbuf, (char *)p, len);
+-			count -= len;
+-			buf += len;
+-			virtr += len;
+-			p += len;
++			sz = vwrite(kbuf, (char *)p, sz);
++			count -= sz;
++			buf += sz;
++			virtr += sz;
++			p += sz;
+ 		}
+ 		free_page((unsigned long)kbuf);
+ 	}
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
