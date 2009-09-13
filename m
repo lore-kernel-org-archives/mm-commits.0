@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-char-uv_mmtimerc-add-memory-mapped-rtc-driver-for-uv.patch added to -mm tree
-Date: Sun, 13 Sep 2009 15:57:56 -0700
-Message-ID: <200909132257.n8DMvuUT032708@imap1.linux-foundation.org>
+Subject: + ipc-shmc-fix-undefined-reference-to-user_shm_unlock.patch added to -mm tree
+Date: Sun, 13 Sep 2009 16:02:31 -0700
+Message-ID: <200909132302.n8DN2V85009262@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40438 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35089 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753028AbZIMW62 (ORCPT
+	by vger.kernel.org with ESMTP id S1751352AbZIMXDq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 13 Sep 2009 18:58:28 -0400
+	Sun, 13 Sep 2009 19:03:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sivanich@sgi.com
+Cc: hugh.dickins@tiscali.co.uk, stable@kernel.org, vapier@gentoo.org
 
 
 The patch titled
-     drivers/char/uv_mmtimer.c: add memory mapped RTC driver for UV
+     ipc/shm.c: fix undefined reference to user_shm_unlock
 has been added to the -mm tree.  Its filename is
-     drivers-char-uv_mmtimerc-add-memory-mapped-rtc-driver-for-uv.patch
+     ipc-shmc-fix-undefined-reference-to-user_shm_unlock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,284 +34,109 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/char/uv_mmtimer.c: add memory mapped RTC driver for UV
-From: Dimitri Sivanich <sivanich@sgi.com>
+Subject: ipc/shm.c: fix undefined reference to user_shm_unlock
+From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
-This driver memory maps the UV Hub RTC.
+My 353d5c30c666580347515da609dd74a2b8e9b828 "mm: fix hugetlb bug due to
+user_shm_unlock call" broke the CONFIG_SYSVIPC !CONFIG_MMU build of both
+2.6.31 and 2.6.30.6: "undefined reference to `user_shm_unlock'".
 
-Signed-off-by: Dimitri Sivanich <sivanich@sgi.com>
+gcc didn't understand my comment!  so couldn't figure out to optimize away
+user_shm_unlock() from the error path in the hugetlb-less case, as it does
+elsewhere.  Help it to do so, in a language it understands.
+
+Reported-by: Mike Frysinger <vapier@gentoo.org>
+Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: <stable@kernel.org>		[2.6.30.x, 2.6.31.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ioctl/ioctl-number.txt |    1 
- drivers/char/Kconfig                 |    8 
- drivers/char/Makefile                |    1 
- drivers/char/uv_mmtimer.c            |  216 +++++++++++++++++++++++++
- 4 files changed, 226 insertions(+)
+ ipc/shm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/ioctl/ioctl-number.txt~drivers-char-uv_mmtimerc-add-memory-mapped-rtc-driver-for-uv Documentation/ioctl/ioctl-number.txt
---- a/Documentation/ioctl/ioctl-number.txt~drivers-char-uv_mmtimerc-add-memory-mapped-rtc-driver-for-uv
-+++ a/Documentation/ioctl/ioctl-number.txt
-@@ -135,6 +135,7 @@ Code	Seq#	Include File		Comments
- 					<http://mikonos.dia.unisa.it/tcfs>
- 'l'	40-7F	linux/udf_fs_i.h	in development:
- 					<http://sourceforge.net/projects/linux-udf/>
-+'m'	00-09	linux/mmtimer.h
- 'm'	all	linux/mtio.h		conflict!
- 'm'	all	linux/soundcard.h	conflict!
- 'm'	all	linux/synclink.h	conflict!
-diff -puN drivers/char/Kconfig~drivers-char-uv_mmtimerc-add-memory-mapped-rtc-driver-for-uv drivers/char/Kconfig
---- a/drivers/char/Kconfig~drivers-char-uv_mmtimerc-add-memory-mapped-rtc-driver-for-uv
-+++ a/drivers/char/Kconfig
-@@ -1087,6 +1087,14 @@ config MMTIMER
- 	  The mmtimer device allows direct userspace access to the
- 	  Altix system timer.
+diff -puN ipc/shm.c~ipc-shmc-fix-undefined-reference-to-user_shm_unlock ipc/shm.c
+--- a/ipc/shm.c~ipc-shmc-fix-undefined-reference-to-user_shm_unlock
++++ a/ipc/shm.c
+@@ -410,7 +410,7 @@ static int newseg(struct ipc_namespace *
+ 	return error;
  
-+config UV_MMTIMER
-+	tristate "UV_MMTIMER Memory mapped RTC for SGI UV"
-+	depends on X86_UV
-+	default m
-+	help
-+	  The uv_mmtimer device allows direct userspace access to the
-+	  UV system timer.
-+
- source "drivers/char/tpm/Kconfig"
- 
- config TELCLOCK
-diff -puN drivers/char/Makefile~drivers-char-uv_mmtimerc-add-memory-mapped-rtc-driver-for-uv drivers/char/Makefile
---- a/drivers/char/Makefile~drivers-char-uv_mmtimerc-add-memory-mapped-rtc-driver-for-uv
-+++ a/drivers/char/Makefile
-@@ -58,6 +58,7 @@ obj-$(CONFIG_RAW_DRIVER)	+= raw.o
- obj-$(CONFIG_SGI_SNSC)		+= snsc.o snsc_event.o
- obj-$(CONFIG_MSPEC)		+= mspec.o
- obj-$(CONFIG_MMTIMER)		+= mmtimer.o
-+obj-$(CONFIG_UV_MMTIMER)	+= uv_mmtimer.o
- obj-$(CONFIG_VIOTAPE)		+= viotape.o
- obj-$(CONFIG_HVCS)		+= hvcs.o
- obj-$(CONFIG_IBM_BSR)		+= bsr.o
-diff -puN /dev/null drivers/char/uv_mmtimer.c
---- /dev/null
-+++ a/drivers/char/uv_mmtimer.c
-@@ -0,0 +1,216 @@
-+/*
-+ * Timer device implementation for SGI UV platform.
-+ *
-+ * This file is subject to the terms and conditions of the GNU General Public
-+ * License.  See the file "COPYING" in the main directory of this archive
-+ * for more details.
-+ *
-+ * Copyright (c) 2009 Silicon Graphics, Inc.  All rights reserved.
-+ *
-+ */
-+
-+#include <linux/types.h>
-+#include <linux/kernel.h>
-+#include <linux/ioctl.h>
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/errno.h>
-+#include <linux/mm.h>
-+#include <linux/fs.h>
-+#include <linux/mmtimer.h>
-+#include <linux/miscdevice.h>
-+#include <linux/posix-timers.h>
-+#include <linux/interrupt.h>
-+#include <linux/time.h>
-+#include <linux/math64.h>
-+#include <linux/smp_lock.h>
-+
-+#include <asm/genapic.h>
-+#include <asm/uv/uv_hub.h>
-+#include <asm/uv/bios.h>
-+#include <asm/uv/uv.h>
-+
-+MODULE_AUTHOR("Dimitri Sivanich <sivanich@sgi.com>");
-+MODULE_DESCRIPTION("SGI UV Memory Mapped RTC Timer");
-+MODULE_LICENSE("GPL");
-+
-+/* name of the device, usually in /dev */
-+#define UV_MMTIMER_NAME "mmtimer"
-+#define UV_MMTIMER_DESC "SGI UV Memory Mapped RTC Timer"
-+#define UV_MMTIMER_VERSION "1.0"
-+
-+static long uv_mmtimer_ioctl(struct file *file, unsigned int cmd,
-+						unsigned long arg);
-+static int uv_mmtimer_mmap(struct file *file, struct vm_area_struct *vma);
-+
-+/*
-+ * Period in femtoseconds (10^-15 s)
-+ */
-+static unsigned long uv_mmtimer_femtoperiod;
-+
-+static const struct file_operations uv_mmtimer_fops = {
-+	.owner = THIS_MODULE,
-+	.mmap =	uv_mmtimer_mmap,
-+	.unlocked_ioctl = uv_mmtimer_ioctl,
-+};
-+
-+/**
-+ * uv_mmtimer_ioctl - ioctl interface for /dev/uv_mmtimer
-+ * @file: file structure for the device
-+ * @cmd: command to execute
-+ * @arg: optional argument to command
-+ *
-+ * Executes the command specified by @cmd.  Returns 0 for success, < 0 for
-+ * failure.
-+ *
-+ * Valid commands:
-+ *
-+ * %MMTIMER_GETOFFSET - Should return the offset (relative to the start
-+ * of the page where the registers are mapped) for the counter in question.
-+ *
-+ * %MMTIMER_GETRES - Returns the resolution of the clock in femto (10^-15)
-+ * seconds
-+ *
-+ * %MMTIMER_GETFREQ - Copies the frequency of the clock in Hz to the address
-+ * specified by @arg
-+ *
-+ * %MMTIMER_GETBITS - Returns the number of bits in the clock's counter
-+ *
-+ * %MMTIMER_MMAPAVAIL - Returns 1 if registers can be mmap'd into userspace
-+ *
-+ * %MMTIMER_GETCOUNTER - Gets the current value in the counter and places it
-+ * in the address specified by @arg.
-+ */
-+static long uv_mmtimer_ioctl(struct file *file, unsigned int cmd,
-+						unsigned long arg)
-+{
-+	int ret = 0;
-+
-+	switch (cmd) {
-+	case MMTIMER_GETOFFSET:	/* offset of the counter */
-+		/*
-+		 * UV RTC register is on its own page
-+		 */
-+		if (PAGE_SIZE <= (1 << 16))
-+			ret = ((UV_LOCAL_MMR_BASE | UVH_RTC) & (PAGE_SIZE-1))
-+				/ 8;
-+		else
-+			ret = -ENOSYS;
-+		break;
-+
-+	case MMTIMER_GETRES: /* resolution of the clock in 10^-15 s */
-+		if (copy_to_user((unsigned long __user *)arg,
-+				&uv_mmtimer_femtoperiod, sizeof(unsigned long)))
-+			ret = -EFAULT;
-+		break;
-+
-+	case MMTIMER_GETFREQ: /* frequency in Hz */
-+		if (copy_to_user((unsigned long __user *)arg,
-+				&sn_rtc_cycles_per_second,
-+				sizeof(unsigned long)))
-+			ret = -EFAULT;
-+		break;
-+
-+	case MMTIMER_GETBITS: /* number of bits in the clock */
-+		ret = hweight64(UVH_RTC_REAL_TIME_CLOCK_MASK);
-+		break;
-+
-+	case MMTIMER_MMAPAVAIL: /* can we mmap the clock into userspace? */
-+		ret = (PAGE_SIZE <= (1 << 16)) ? 1 : 0;
-+		break;
-+
-+	case MMTIMER_GETCOUNTER:
-+		if (copy_to_user((unsigned long __user *)arg,
-+				(unsigned long *)uv_local_mmr_address(UVH_RTC),
-+				sizeof(unsigned long)))
-+			ret = -EFAULT;
-+		break;
-+	default:
-+		ret = -ENOTTY;
-+		break;
-+	}
-+	return ret;
-+}
-+
-+/**
-+ * uv_mmtimer_mmap - maps the clock's registers into userspace
-+ * @file: file structure for the device
-+ * @vma: VMA to map the registers into
-+ *
-+ * Calls remap_pfn_range() to map the clock's registers into
-+ * the calling process' address space.
-+ */
-+static int uv_mmtimer_mmap(struct file *file, struct vm_area_struct *vma)
-+{
-+	unsigned long uv_mmtimer_addr;
-+
-+	if (vma->vm_end - vma->vm_start != PAGE_SIZE)
-+		return -EINVAL;
-+
-+	if (vma->vm_flags & VM_WRITE)
-+		return -EPERM;
-+
-+	if (PAGE_SIZE > (1 << 16))
-+		return -ENOSYS;
-+
-+	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
-+
-+	uv_mmtimer_addr = UV_LOCAL_MMR_BASE | UVH_RTC;
-+	uv_mmtimer_addr &= ~(PAGE_SIZE - 1);
-+	uv_mmtimer_addr &= 0xfffffffffffffffUL;
-+
-+	if (remap_pfn_range(vma, vma->vm_start, uv_mmtimer_addr >> PAGE_SHIFT,
-+					PAGE_SIZE, vma->vm_page_prot)) {
-+		printk(KERN_ERR "remap_pfn_range failed in uv_mmtimer_mmap\n");
-+		return -EAGAIN;
-+	}
-+
-+	return 0;
-+}
-+
-+static struct miscdevice uv_mmtimer_miscdev = {
-+	MISC_DYNAMIC_MINOR,
-+	UV_MMTIMER_NAME,
-+	&uv_mmtimer_fops
-+};
-+
-+
-+/**
-+ * uv_mmtimer_init - device initialization routine
-+ *
-+ * Does initial setup for the uv_mmtimer device.
-+ */
-+static int __init uv_mmtimer_init(void)
-+{
-+	if (!is_uv_system()) {
-+		printk(KERN_ERR "%s: Hardware unsupported\n", UV_MMTIMER_NAME);
-+		return -1;
-+	}
-+
-+	/*
-+	 * Sanity check the cycles/sec variable
-+	 */
-+	if (sn_rtc_cycles_per_second < 100000) {
-+		printk(KERN_ERR "%s: unable to determine clock frequency\n",
-+		       UV_MMTIMER_NAME);
-+		return -1;
-+	}
-+
-+	uv_mmtimer_femtoperiod = ((unsigned long)1E15 +
-+				sn_rtc_cycles_per_second / 2) /
-+				sn_rtc_cycles_per_second;
-+
-+	if (misc_register(&uv_mmtimer_miscdev)) {
-+		printk(KERN_ERR "%s: failed to register device\n",
-+		       UV_MMTIMER_NAME);
-+		return -1;
-+	}
-+
-+	printk(KERN_INFO "%s: v%s, %ld MHz\n", UV_MMTIMER_DESC,
-+		UV_MMTIMER_VERSION,
-+		sn_rtc_cycles_per_second/(unsigned long)1E6);
-+
-+	return 0;
-+}
-+
-+module_init(uv_mmtimer_init);
+ no_id:
+-	if (shp->mlock_user)	/* shmflg & SHM_HUGETLB case */
++	if (is_file_hugepages(file) && shp->mlock_user)
+ 		user_shm_unlock(size, shp->mlock_user);
+ 	fput(file);
+ no_file:
 _
 
-Patches currently in -mm which might be from sivanich@sgi.com are
+Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
 
-drivers-char-uv_mmtimerc-add-memory-mapped-rtc-driver-for-uv.patch
+ipc-shmc-fix-undefined-reference-to-user_shm_unlock.patch
+linux-next.patch
+vfs-optimize-touch_time-too-fix.patch
+fs-new-truncate-helpers.patch
+fs-use-new-truncate-helpers.patch
+fs-introduce-new-truncate-sequence.patch
+fs-convert-simple-fs-to-new-truncate.patch
+tmpfs-convert-to-use-the-new-truncate-convention.patch
+ext2-convert-to-use-the-new-truncate-convention.patch
+fat-convert-to-use-the-new-truncate-convention.patch
+btrfs-convert-to-use-the-new-truncate-convention.patch
+jfs-convert-to-use-the-new-truncate-convention.patch
+udf-convert-to-use-the-new-truncate-convention.patch
+minix-convert-to-use-the-new-truncate-convention.patch
+vfs-seq_file-add-helpers-for-data-filling.patch
+vfs-revert-proc-mounts-to-old-behavior-for-unreachable-mountpoints.patch
+vfs-no-unreachable-prefix-for-sysvipc-maps-in-proc-pid-maps.patch
+mm-oom-analysis-add-shmem-vmstat.patch
+ksm-add-mmu_notifier-set_pte_at_notify.patch
+ksm-first-tidy-up-madvise_vma.patch
+ksm-define-madv_mergeable-and-madv_unmergeable.patch
+ksm-the-mm-interface-to-ksm.patch
+ksm-no-debug-in-page_dup_rmap.patch
+ksm-identify-pageksm-pages.patch
+ksm-kernel-samepage-merging.patch
+ksm-prevent-mremap-move-poisoning.patch
+ksm-change-copyright-message.patch
+ksm-change-ksm-nice-level-to-be-5.patch
+ksm-rename-kernel_pages_allocated.patch
+ksm-move-pages_sharing-updates.patch
+ksm-pages_unshared-and-pages_volatile.patch
+ksm-break-cow-once-unshared.patch
+ksm-keep-quiet-while-list-empty.patch
+ksm-five-little-cleanups.patch
+ksm-fix-endless-loop-on-oom.patch
+ksm-distribute-remove_mm_from_lists.patch
+ksm-fix-oom-deadlock.patch
+ksm-fix-deadlock-with-munlock-in-exit_mmap.patch
+ksm-sysfs-and-defaults.patch
+ksm-add-some-documentation.patch
+ksm-remove-vm_mergeable_flags.patch
+ksm-clean-up-obsolete-references.patch
+ksm-unmerge-is-an-origin-of-ooms.patch
+ksm-mremap-use-err-from-ksm_madvise.patch
+mm-add_to_swap_cache-must-not-sleep.patch
+mm-add_to_swap_cache-does-not-return-eexist.patch
+mm-includecheck-fix-for-mm-shmemc.patch
+mm-introduce-page_lru_base_type-fix.patch
+mm-replace-various-uses-of-num_physpages-by-totalram_pages.patch
+hugetlbfs-allow-the-creation-of-files-suitable-for-map_private-on-the-vfs-internal-mount.patch
+hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions.patch
+hugetlb-add-map_hugetlb-example.patch
+mm-munlock-use-follow_page.patch
+mm-remove-unused-gup-flags.patch
+mm-add-get_dump_page.patch
+mm-foll_dump-replace-foll_anon.patch
+mm-follow_hugetlb_page-flags.patch
+mm-fix-anonymous-dirtying.patch
+mm-reinstate-zero_page.patch
+mm-foll-flags-for-gup-flags.patch
+mmap-remove-unnecessary-code.patch
+tmpfs-depend-on-shmem.patch
+mmap-avoid-unnecessary-anon_vma-lock-acquisition-in-vma_adjust.patch
+mmap-save-some-cycles-for-the-shared-anonymous-mapping.patch
+getrusage-fill-ru_maxrss-value.patch
+getrusage-fill-ru_maxrss-value-update.patch
+ramfs-move-ramfs_magic-to-include-linux-magich.patch
+memory-controller-soft-limit-organize-cgroups-v9-fix.patch
+prio_tree-debugging-patch.patch
 
