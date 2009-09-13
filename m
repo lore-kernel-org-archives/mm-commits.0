@@ -1,25 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] sdio-recognize-io-card-without-powercycle.patch removed from -mm tree
-Date: Sun, 13 Sep 2009 15:43:18 -0700
-Message-ID: <200909132243.n8DMhID6004383__23208.9082747281$1252881818$gmane$org@imap1.linux-foundation.org>
+Subject: + sdio-recognize-io-card-without-powercycle.patch added to -mm tree
+Date: Sun, 13 Sep 2009 15:45:04 -0700
+Message-ID: <200909132245.n8DMj4P5007763@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57810 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48256 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752479AbZIMWnQ (ORCPT
+	by vger.kernel.org with ESMTP id S1752552AbZIMWpD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 13 Sep 2009 18:43:16 -0400
+	Sun, 13 Sep 2009 18:45:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: albert_herranz@yahoo.es, linux-mmc@vger.kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: albert_herranz@yahoo.es, linux-mmc@vger.kernel.org
 
 
 The patch titled
      sdio: recognize io card without powercycle
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      sdio-recognize-io-card-without-powercycle.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -53,7 +63,7 @@ diff -puN drivers/mmc/core/core.c~sdio-recognize-io-card-without-powercycle driv
  	mmc_claim_host(host);
  
  	mmc_power_up(host);
-+	sdio_go_idle(host);
++		sdio_reset(host);
  	mmc_go_idle(host);
  
  	mmc_send_if_cond(host, host->ocr_avail);
@@ -118,7 +128,7 @@ diff -puN drivers/mmc/core/sdio_ops.c~sdio-recognize-io-card-without-powercycle 
  	return 0;
  }
  
-+int sdio_go_idle(struct mmc_host *host)
++int sdio_reset(struct mmc_host *host)
 +{
 +	int ret;
 +	u8 abort;
@@ -142,7 +152,7 @@ diff -puN drivers/mmc/core/sdio_ops.h~sdio-recognize-io-card-without-powercycle 
  	unsigned addr, u8 in, u8* out);
  int mmc_io_rw_extended(struct mmc_card *card, int write, unsigned fn,
  	unsigned addr, int incr_addr, u8 *buf, unsigned blocks, unsigned blksz);
-+int sdio_go_idle(struct mmc_host *host);
++int sdio_reset(struct mmc_host *host);
  
  #endif
  
@@ -152,5 +162,5 @@ Patches currently in -mm which might be from albert_herranz@yahoo.es are
 
 linux-next.patch
 sdio-recognize-io-card-without-powercycle.patch
-sdio-pass-unknown-cis-tuples-to-sdio-drivers.patch
+sdio-pass-whitelisted-cis-funce-tuples-to-sdio-drivers.patch
 
