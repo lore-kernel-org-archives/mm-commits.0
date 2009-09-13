@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sdio-pass-whitelisted-cis-funce-tuples-to-sdio-drivers.patch added to -mm tree
-Date: Sun, 13 Sep 2009 15:45:06 -0700
-Message-ID: <200909132245.n8DMj6l2007798@imap1.linux-foundation.org>
+Subject: + libfs-return-error-code-on-failed-attr-set.patch added to -mm tree
+Date: Sun, 13 Sep 2009 15:46:08 -0700
+Message-ID: <200909132246.n8DMk8fY009880@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52004 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34470 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752570AbZIMWpE (ORCPT
+	by vger.kernel.org with ESMTP id S1752552AbZIMWqX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 13 Sep 2009 18:45:04 -0400
+	Sun, 13 Sep 2009 18:46:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: albert_herranz@yahoo.es, linux-mmc@vger.kernel.org
+Cc: fengguang.wu@intel.com, hch@lst.de, npiggin@suse.de, tytso@mit.edu, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     sdio: pass whitelisted cis funce tuples to sdio drivers
+     libfs: return error code on failed attr set
 has been added to the -mm tree.  Its filename is
-     sdio-pass-whitelisted-cis-funce-tuples-to-sdio-drivers.patch
+     libfs-return-error-code-on-failed-attr-set.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,140 +34,80 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sdio: pass whitelisted cis funce tuples to sdio drivers
-From: Albert Herranz <albert_herranz@yahoo.es>
+Subject: libfs: return error code on failed attr set
+From: Wu Fengguang <fengguang.wu@intel.com>
 
-Some manufacturers provide vendor information in non-vendor specific CIS
-tuples.  For example, Broadcom uses an Extended Function tuple to provide
-the MAC address on some of their network cards, as in the case of the
-Nintendo Wii WLAN daughter card.
+Currently all simple_attr.set handlers return 0 on success and negative
+codes on error.  Fix simple_attr_write() to return these error codes.
 
-This patch allows passing whitelisted FUNCE tuples unknown to the SDIO
-core to a matching SDIO driver instead of rejecting them and failing.
-
-Signed-off-by: Albert Herranz <albert_herranz@yahoo.es>
-Cc: <linux-mmc@vger.kernel.org>
+Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/sdio_cis.c |   65 +++++++++++++++++++++++++---------
- 1 file changed, 49 insertions(+), 16 deletions(-)
+ fs/libfs.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/mmc/core/sdio_cis.c~sdio-pass-whitelisted-cis-funce-tuples-to-sdio-drivers drivers/mmc/core/sdio_cis.c
---- a/drivers/mmc/core/sdio_cis.c~sdio-pass-whitelisted-cis-funce-tuples-to-sdio-drivers
-+++ a/drivers/mmc/core/sdio_cis.c
-@@ -98,6 +98,22 @@ static const unsigned char speed_val[16]
- static const unsigned int speed_unit[8] =
- 	{ 10000, 100000, 1000000, 10000000, 0, 0, 0, 0 };
+diff -puN fs/libfs.c~libfs-return-error-code-on-failed-attr-set fs/libfs.c
+--- a/fs/libfs.c~libfs-return-error-code-on-failed-attr-set
++++ a/fs/libfs.c
+@@ -822,10 +822,11 @@ ssize_t simple_attr_write(struct file *f
+ 	if (copy_from_user(attr->set_buf, buf, size))
+ 		goto out;
  
-+/* FUNCE tuples with these types get passed to SDIO drivers */
-+static const unsigned char funce_type_whitelist[] = {
-+	4 /* CISTPL_FUNCE_LAN_NODE_ID used in Broadcom cards */
-+};
-+
-+static int cistpl_funce_whitelisted(unsigned char type)
-+{
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(funce_type_whitelist); i++) {
-+		if (funce_type_whitelist[i] == type)
-+			return 1;
-+	}
-+	return 0;
-+}
-+
- static int cistpl_funce_common(struct mmc_card *card,
- 			       const unsigned char *buf, unsigned size)
- {
-@@ -120,6 +136,10 @@ static int cistpl_funce_func(struct sdio
- 	unsigned vsn;
- 	unsigned min_size;
- 
-+	/* let SDIO drivers take care of whitelisted FUNCE tuples */
-+	if (cistpl_funce_whitelisted(buf[0]))
-+		return -EILSEQ;
-+
- 	vsn = func->card->cccr.sdio_vsn;
- 	min_size = (vsn == SDIO_SDIO_REV_1_00) ? 28 : 42;
- 
-@@ -154,13 +174,12 @@ static int cistpl_funce(struct mmc_card 
- 	else
- 		ret = cistpl_funce_common(card, buf, size);
- 
--	if (ret) {
-+	if (ret && ret != -EILSEQ) {
- 		printk(KERN_ERR "%s: bad CISTPL_FUNCE size %u "
- 		       "type %u\n", mmc_hostname(card->host), size, buf[0]);
--		return ret;
- 	}
- 
--	return 0;
-+	return ret;
- }
- 
- typedef int (tpl_parse_t)(struct mmc_card *, struct sdio_func *,
-@@ -253,21 +272,12 @@ static int sdio_read_cis(struct mmc_card
- 		for (i = 0; i < ARRAY_SIZE(cis_tpl_list); i++)
- 			if (cis_tpl_list[i].code == tpl_code)
- 				break;
--		if (i >= ARRAY_SIZE(cis_tpl_list)) {
--			/* this tuple is unknown to the core */
--			this->next = NULL;
--			this->code = tpl_code;
--			this->size = tpl_link;
--			*prev = this;
--			prev = &this->next;
--			printk(KERN_DEBUG
--			       "%s: queuing CIS tuple 0x%02x length %u\n",
--			       mmc_hostname(card->host), tpl_code, tpl_link);
--		} else {
-+		if (i < ARRAY_SIZE(cis_tpl_list)) {
- 			const struct cis_tpl *tpl = cis_tpl_list + i;
- 			if (tpl_link < tpl->min_size) {
- 				printk(KERN_ERR
--				       "%s: bad CIS tuple 0x%02x (length = %u, expected >= %u)\n",
-+				       "%s: bad CIS tuple 0x%02x"
-+				       " (length = %u, expected >= %u)\n",
- 				       mmc_hostname(card->host),
- 				       tpl_code, tpl_link, tpl->min_size);
- 				ret = -EINVAL;
-@@ -275,7 +285,30 @@ static int sdio_read_cis(struct mmc_card
- 				ret = tpl->parse(card, func,
- 						 this->data, tpl_link);
- 			}
--			kfree(this);
-+			/*
-+			 * We don't need the tuple anymore if it was
-+			 * successfully parsed by the SDIO core or if it is
-+			 * not going to be parsed by SDIO drivers.
-+			 */
-+			if (!ret || ret != -EILSEQ)
-+				kfree(this);
-+		} else {
-+			/* unknown tuple */
-+			ret = -EILSEQ;
-+		}
-+
-+		if (ret == -EILSEQ) {
-+			/* this tuple is unknown to the core or whitelisted */
-+			this->next = NULL;
-+			this->code = tpl_code;
-+			this->size = tpl_link;
-+			*prev = this;
-+			prev = &this->next;
-+			printk(KERN_DEBUG
-+			       "%s: queuing CIS tuple 0x%02x length %u\n",
-+			       mmc_hostname(card->host), tpl_code, tpl_link);
-+			/* keep on analyzing tuples */
-+			ret = 0;
- 		}
- 
- 		ptr += tpl_link;
+-	ret = len; /* claim we got the whole input */
+ 	attr->set_buf[size] = '\0';
+ 	val = simple_strtol(attr->set_buf, NULL, 0);
+-	attr->set(attr->data, val);
++	ret = attr->set(attr->data, val);
++	if (ret == 0)
++		ret = len; /* on success, claim we got the whole input */
+ out:
+ 	mutex_unlock(&attr->mutex);
+ 	return ret;
 _
 
-Patches currently in -mm which might be from albert_herranz@yahoo.es are
+Patches currently in -mm which might be from fengguang.wu@intel.com are
 
 linux-next.patch
-sdio-recognize-io-card-without-powercycle.patch
-sdio-pass-whitelisted-cis-funce-tuples-to-sdio-drivers.patch
+mm-memory-failure-remove-config_unevictable_lru-config-option.patch
+libfs-return-error-code-on-failed-attr-set.patch
+readahead-add-blk_run_backing_dev.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+mm-clean-up-page_remove_rmap.patch
+mm-oom-analysis-add-per-zone-statistics-to-show_free_areas.patch
+mm-oom-analysis-add-buffer-cache-information-to-show_free_areas.patch
+mm-oom-analysis-add-shmem-vmstat.patch
+mm-shrink_inactive_list-nr_scan-accounting-fix-fix.patch
+mm-vmstat-add-isolate-pages.patch
+mm-vmstat-add-isolate-pages-fix.patch
+vmscan-throttle-direct-reclaim-when-too-many-pages-are-isolated-already.patch
+mm-remove-__addsub_zone_page_state.patch
+mm-count-only-reclaimable-lru-pages-v2.patch
+vmscan-move-clearpageactive-from-move_active_pages-to-shrink_active_list.patch
+vmscan-kill-unnecessary-page-flag-test.patch
+vmscan-kill-unnecessary-prefetch.patch
+ksm-add-mmu_notifier-set_pte_at_notify.patch
+ksm-first-tidy-up-madvise_vma.patch
+ksm-define-madv_mergeable-and-madv_unmergeable.patch
+ksm-the-mm-interface-to-ksm.patch
+ksm-no-debug-in-page_dup_rmap.patch
+ksm-identify-pageksm-pages.patch
+ksm-kernel-samepage-merging.patch
+ksm-prevent-mremap-move-poisoning.patch
+ksm-change-copyright-message.patch
+ksm-change-ksm-nice-level-to-be-5.patch
+mm-do-batched-scans-for-mem_cgroup.patch
+mm-vsmcan-check-shrink_active_list-sc-isolate_pages-return-value.patch
+dev-mem-remove-redundant-test-on-len.patch
+dev-mem-introduce-size_inside_page.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
+documentation-vm-gitignore-add-page-types.patch
+page-types-add-feature-for-walking-process-address-space.patch
+page-types-add-feature-for-walking-process-address-space-checkpatch-fixes.patch
 
