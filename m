@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch added to -mm tree
-Date: Fri, 11 Sep 2009 17:06:02 -0700
-Message-ID: <200909120006.n8C062jo023479@imap1.linux-foundation.org>
+Subject: + hptiop-add-rr44xx-adapter-support.patch added to -mm tree
+Date: Sun, 13 Sep 2009 15:42:24 -0700
+Message-ID: <200909132242.n8DMgOPa002526@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57170 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42903 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757260AbZILAGv (ORCPT
+	by vger.kernel.org with ESMTP id S1752238AbZIMWmc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Sep 2009 20:06:51 -0400
+	Sun, 13 Sep 2009 18:42:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@linux.intel.com, avi@qumranet.com, broonie@opensource.wolfsonmicro.com, fengguang.wu@intel.com, gregkh@suse.de, johannes@sipsolutions.net, mtosatti@redhat.com
+Cc: linux@highpoint-tech.com, James.Bottomley@HansenPartnership.com
 
 
 The patch titled
-     dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix
+     scsi: hptiop: add RR44xx adapter support
 has been added to the -mm tree.  Its filename is
-     dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
+     hptiop-add-rr44xx-adapter-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,137 +34,177 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: scsi: hptiop: add RR44xx adapter support
+From: HighPoint Linux Team <linux@highpoint-tech.com>
 
-cleanuplets.
+Most code changes were made to support RR44xx adapters.
+- add more PCI device ID.
+- using PCI BAR[2] to access RR44xx IOP.
+- using PCI BAR[0] to check and clear RR44xx IRQ.
 
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Avi Kivity <avi@qumranet.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Johannes Berg <johannes@sipsolutions.net>
-Cc: Marcelo Tosatti <mtosatti@redhat.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+Signed-off-by: HighPoint Linux Team <linux@highpoint-tech.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mem.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ Documentation/scsi/hptiop.txt |   21 +++++++++++++++++-
+ drivers/scsi/hptiop.c         |   37 ++++++++++++++++++++++----------
+ drivers/scsi/hptiop.h         |    3 +-
+ 3 files changed, 48 insertions(+), 13 deletions(-)
 
-diff -puN drivers/char/mem.c~dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix drivers/char/mem.c
---- a/drivers/char/mem.c~dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix
-+++ a/drivers/char/mem.c
-@@ -131,7 +131,6 @@ static ssize_t read_mem(struct file * fi
- 			size_t count, loff_t *ppos)
- {
- 	unsigned long p = *ppos;
--	unsigned long ret;
- 	ssize_t read, sz;
- 	char *ptr;
+diff -puN Documentation/scsi/hptiop.txt~hptiop-add-rr44xx-adapter-support Documentation/scsi/hptiop.txt
+--- a/Documentation/scsi/hptiop.txt~hptiop-add-rr44xx-adapter-support
++++ a/Documentation/scsi/hptiop.txt
+@@ -3,6 +3,25 @@ HIGHPOINT ROCKETRAID 3xxx/4xxx ADAPTER D
+ Controller Register Map
+ -------------------------
  
-@@ -156,6 +155,8 @@ static ssize_t read_mem(struct file * fi
- #endif
- 
- 	while (count > 0) {
-+		unsigned long remaining;
++For RR44xx Intel IOP based adapters, the controller IOP is accessed via PCI BAR0 and BAR2:
 +
- 		sz = size_inside_page(p, count);
++     BAR0 offset    Register
++            0x11C5C Link Interface IRQ Set
++            0x11C60 Link Interface IRQ Clear
++
++     BAR2 offset    Register
++            0x10    Inbound Message Register 0
++            0x14    Inbound Message Register 1
++            0x18    Outbound Message Register 0
++            0x1C    Outbound Message Register 1
++            0x20    Inbound Doorbell Register
++            0x24    Inbound Interrupt Status Register
++            0x28    Inbound Interrupt Mask Register
++            0x30    Outbound Interrupt Status Register
++            0x34    Outbound Interrupt Mask Register
++            0x40    Inbound Queue Port
++            0x44    Outbound Queue Port
++
+ For Intel IOP based adapters, the controller IOP is accessed via PCI BAR0:
  
- 		if (!range_is_allowed(p >> PAGE_SHIFT, count))
-@@ -170,9 +171,9 @@ static ssize_t read_mem(struct file * fi
- 		if (!ptr)
- 			return -EFAULT;
+      BAR0 offset    Register
+@@ -93,7 +112,7 @@ The driver exposes following sysfs attri
  
--		ret = copy_to_user(buf, ptr, sz);
-+		remaining = copy_to_user(buf, ptr, sz);
- 		unxlate_dev_mem_ptr(p, ptr);
--		if (ret)
-+		if (remaining)
- 			return -EFAULT;
  
- 		buf += sz;
+ -----------------------------------------------------------------------------
+-Copyright (C) 2006-2007 HighPoint Technologies, Inc. All Rights Reserved.
++Copyright (C) 2006-2009 HighPoint Technologies, Inc. All Rights Reserved.
+ 
+   This file is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+diff -puN drivers/scsi/hptiop.c~hptiop-add-rr44xx-adapter-support drivers/scsi/hptiop.c
+--- a/drivers/scsi/hptiop.c~hptiop-add-rr44xx-adapter-support
++++ a/drivers/scsi/hptiop.c
+@@ -1,6 +1,6 @@
+ /*
+  * HighPoint RR3xxx/4xxx controller driver for Linux
+- * Copyright (C) 2006-2007 HighPoint Technologies, Inc. All Rights Reserved.
++ * Copyright (C) 2006-2009 HighPoint Technologies, Inc. All Rights Reserved.
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+@@ -41,7 +41,7 @@ MODULE_DESCRIPTION("HighPoint RocketRAID
+ 
+ static char driver_name[] = "hptiop";
+ static const char driver_name_long[] = "RocketRAID 3xxx/4xxx Controller driver";
+-static const char driver_ver[] = "v1.3 (071203)";
++static const char driver_ver[] = "v1.6 (090910)";
+ 
+ static int iop_send_sync_msg(struct hptiop_hba *hba, u32 msg, u32 millisec);
+ static void hptiop_finish_scsi_req(struct hptiop_hba *hba, u32 tag,
+@@ -115,9 +115,13 @@ static void hptiop_drain_outbound_queue_
+ static int iop_intr_itl(struct hptiop_hba *hba)
+ {
+ 	struct hpt_iopmu_itl __iomem *iop = hba->u.itl.iop;
++	void __iomem *plx = hba->u.itl.plx;
+ 	u32 status;
+ 	int ret = 0;
+ 
++	if (plx && readl(plx + 0x11C5C) & 0xf)
++		writel(1, plx + 0x11C60);
++
+ 	status = readl(&iop->outbound_intstatus);
+ 
+ 	if (status & IOPMU_OUTBOUND_INT_MSG0) {
+@@ -460,15 +464,25 @@ static void __iomem *hptiop_map_pci_bar(
+ 
+ static int hptiop_map_pci_bar_itl(struct hptiop_hba *hba)
+ {
++	struct pci_dev *pcidev = hba->pcidev;
+ 	hba->u.itl.iop = hptiop_map_pci_bar(hba, 0);
+-	if (hba->u.itl.iop)
+-		return 0;
+-	else
++	if (hba->u.itl.iop == NULL)
+ 		return -1;
++	if ((pcidev->device & 0xff00) == 0x4400) {
++		hba->u.itl.plx = hba->u.itl.iop;
++		hba->u.itl.iop = hptiop_map_pci_bar(hba, 2);
++		if (hba->u.itl.iop == NULL) {
++			iounmap(hba->u.itl.plx);
++			return -1;
++		}
++	}
++	return 0;
+ }
+ 
+ static void hptiop_unmap_pci_bar_itl(struct hptiop_hba *hba)
+ {
++	if (hba->u.itl.plx)
++		iounmap(hba->u.itl.plx);
+ 	iounmap(hba->u.itl.iop);
+ }
+ 
+@@ -1239,22 +1253,23 @@ static struct hptiop_adapter_ops hptiop_
+ static struct pci_device_id hptiop_id_table[] = {
+ 	{ PCI_VDEVICE(TTI, 0x3220), (kernel_ulong_t)&hptiop_itl_ops },
+ 	{ PCI_VDEVICE(TTI, 0x3320), (kernel_ulong_t)&hptiop_itl_ops },
+-	{ PCI_VDEVICE(TTI, 0x3520), (kernel_ulong_t)&hptiop_itl_ops },
+-	{ PCI_VDEVICE(TTI, 0x4320), (kernel_ulong_t)&hptiop_itl_ops },
++	{ PCI_VDEVICE(TTI, 0x3410), (kernel_ulong_t)&hptiop_itl_ops },
+ 	{ PCI_VDEVICE(TTI, 0x3510), (kernel_ulong_t)&hptiop_itl_ops },
+ 	{ PCI_VDEVICE(TTI, 0x3511), (kernel_ulong_t)&hptiop_itl_ops },
++	{ PCI_VDEVICE(TTI, 0x3520), (kernel_ulong_t)&hptiop_itl_ops },
+ 	{ PCI_VDEVICE(TTI, 0x3521), (kernel_ulong_t)&hptiop_itl_ops },
+ 	{ PCI_VDEVICE(TTI, 0x3522), (kernel_ulong_t)&hptiop_itl_ops },
+-	{ PCI_VDEVICE(TTI, 0x3410), (kernel_ulong_t)&hptiop_itl_ops },
+-	{ PCI_VDEVICE(TTI, 0x3540), (kernel_ulong_t)&hptiop_itl_ops },
+ 	{ PCI_VDEVICE(TTI, 0x3530), (kernel_ulong_t)&hptiop_itl_ops },
++	{ PCI_VDEVICE(TTI, 0x3540), (kernel_ulong_t)&hptiop_itl_ops },
+ 	{ PCI_VDEVICE(TTI, 0x3560), (kernel_ulong_t)&hptiop_itl_ops },
+-	{ PCI_VDEVICE(TTI, 0x4322), (kernel_ulong_t)&hptiop_itl_ops },
+-	{ PCI_VDEVICE(TTI, 0x4321), (kernel_ulong_t)&hptiop_itl_ops },
+ 	{ PCI_VDEVICE(TTI, 0x4210), (kernel_ulong_t)&hptiop_itl_ops },
+ 	{ PCI_VDEVICE(TTI, 0x4211), (kernel_ulong_t)&hptiop_itl_ops },
+ 	{ PCI_VDEVICE(TTI, 0x4310), (kernel_ulong_t)&hptiop_itl_ops },
+ 	{ PCI_VDEVICE(TTI, 0x4311), (kernel_ulong_t)&hptiop_itl_ops },
++	{ PCI_VDEVICE(TTI, 0x4320), (kernel_ulong_t)&hptiop_itl_ops },
++	{ PCI_VDEVICE(TTI, 0x4321), (kernel_ulong_t)&hptiop_itl_ops },
++	{ PCI_VDEVICE(TTI, 0x4322), (kernel_ulong_t)&hptiop_itl_ops },
++	{ PCI_VDEVICE(TTI, 0x4400), (kernel_ulong_t)&hptiop_itl_ops },
+ 	{ PCI_VDEVICE(TTI, 0x3120), (kernel_ulong_t)&hptiop_mv_ops },
+ 	{ PCI_VDEVICE(TTI, 0x3122), (kernel_ulong_t)&hptiop_mv_ops },
+ 	{ PCI_VDEVICE(TTI, 0x3020), (kernel_ulong_t)&hptiop_mv_ops },
+diff -puN drivers/scsi/hptiop.h~hptiop-add-rr44xx-adapter-support drivers/scsi/hptiop.h
+--- a/drivers/scsi/hptiop.h~hptiop-add-rr44xx-adapter-support
++++ a/drivers/scsi/hptiop.h
+@@ -1,6 +1,6 @@
+ /*
+  * HighPoint RR3xxx/4xxx controller driver for Linux
+- * Copyright (C) 2006-2007 HighPoint Technologies, Inc. All Rights Reserved.
++ * Copyright (C) 2006-2009 HighPoint Technologies, Inc. All Rights Reserved.
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+@@ -228,6 +228,7 @@ struct hptiop_hba {
+ 	union {
+ 		struct {
+ 			struct hpt_iopmu_itl __iomem *iop;
++			void __iomem *plx;
+ 		} itl;
+ 		struct {
+ 			struct hpt_iopmv_regs *regs;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from linux@highpoint-tech.com are
 
-fs-make-sure-data-stored-into-inode-is-properly-seen-before-unlocking-new-inode-fix.patch
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-hwmon-driver-for-acpi-40-power-meters-fix.patch
-hwmon-driver-for-acpi-40-power-meters-fix-2.patch
-video-initial-support-for-adv7180-update-fix.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-checkincludespl-add-option-to-remove-duplicates-in-place.patch
-zorro8390-fix-read-buffer-overflow-in-zorro8390_init_one-checkpatch-fixes.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-serial167-fix-read-buffer-overflow.patch
-waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes-checkpatch-fixes.patch
-st-fix-test-of-value-range-in-st_set_options-fix.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
-vfs-optimize-touch_time-too.patch
-fs-improve-remountro-vs-buffercache-coherency-fix.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-mm-make-swap-token-dummies-static-inlines-fix.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
-revert-hugetlb-restore-interleaving-of-bootmem-huge-pages-2631.patch
-vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
-revert-proc-kcore-work-around-a-bug.patch
-arches-drop-superfluous-casts-in-nr_free_pages-callers-checkpatch-fixes.patch
-tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists-fix.patch
-page-allocator-maintain-rolling-count-of-pages-to-free-from-the-pcp-checkpatch-fixes.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
-generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
-proc-connector-add-event-for-process-becoming-session-leader.patch
-kernel-smpc-relocate-some-code.patch
-mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
-sdio-add-cd-disable-support-cleanup.patch
-sdio-add-mmc_quirk_lenient_fn0-fix.patch
-at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver-checkpatch-fixes.patch
-procfs-provide-stack-information-for-threads-v011-fix.patch
-kcore-register-vmemmap-range-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
-rtc-philips-nxp-pcf2123-driver-v03-fix.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes-fix.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
-drivers-video-add-kmalloc-null-tests-fix.patch
-v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
-page-types-add-feature-for-walking-process-address-space-checkpatch-fixes.patch
-cgroups-add-functionality-to-read-write-lock-clone_thread-forking-per-threadgroup-fix.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
-memcg-improve-resource-counter-scalability-checkpatch-fixes.patch
-exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
-exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
-elf-clean-up-fill_note_info-fix.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-reiser4-disable.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+hptiop-add-rr44xx-adapter-support.patch
 
