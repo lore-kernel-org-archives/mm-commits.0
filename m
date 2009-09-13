@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + dev-mem-remove-the-written-variable-in-write_kmem.patch added to -mm tree
-Date: Sun, 13 Sep 2009 16:47:24 -0700
-Message-ID: <200909132347.n8DNlO44031566@imap1.linux-foundation.org>
+Subject: + dev-mem-make-size_inside_page-logic-straight.patch added to -mm tree
+Date: Sun, 13 Sep 2009 16:47:21 -0700
+Message-ID: <200909132347.n8DNlLe7031419@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41075 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32883 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753334AbZIMXsU (ORCPT
+	by vger.kernel.org with ESMTP id S1753317AbZIMXsU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Sun, 13 Sep 2009 19:48:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: fengguang.wu@intel.com, ak@linux.intel.com, avi@qumranet.com, broonie@openso
 
 
 The patch titled
-     /dev/mem: remove the "written" variable in write_kmem()
+     /dev/mem: make size_inside_page() logic straight
 has been added to the -mm tree.  Its filename is
-     dev-mem-remove-the-written-variable-in-write_kmem.patch
+     dev-mem-make-size_inside_page-logic-straight.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: /dev/mem: remove the "written" variable in write_kmem()
+Subject: /dev/mem: make size_inside_page() logic straight
 From: Wu Fengguang <fengguang.wu@intel.com>
 
-Also rename "len" to "sz". No behavior change.
+Also convert more size_inside_page() users.
 
 Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
 Cc: Andi Kleen <ak@linux.intel.com>
@@ -49,94 +49,83 @@ Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mem.c |   48 ++++++++++++++++++-------------------------
- 1 file changed, 21 insertions(+), 27 deletions(-)
+ drivers/char/mem.c |   34 ++++++++++++----------------------
+ 1 file changed, 12 insertions(+), 22 deletions(-)
 
-diff -puN drivers/char/mem.c~dev-mem-remove-the-written-variable-in-write_kmem drivers/char/mem.c
---- a/drivers/char/mem.c~dev-mem-remove-the-written-variable-in-write_kmem
+diff -puN drivers/char/mem.c~dev-mem-make-size_inside_page-logic-straight drivers/char/mem.c
+--- a/drivers/char/mem.c~dev-mem-make-size_inside_page-logic-straight
 +++ a/drivers/char/mem.c
-@@ -442,19 +442,18 @@ static ssize_t read_kmem(struct file *fi
- 		if (!kbuf)
- 			return -ENOMEM;
- 		while (count > 0) {
--			int len = size_inside_page(p, count);
--
--			len = vread(kbuf, (char *)p, len);
--			if (!len)
-+			sz = size_inside_page(p, count);
-+			sz = vread(kbuf, (char *)p, sz);
-+			if (!sz)
- 				break;
--			if (copy_to_user(buf, kbuf, len)) {
-+			if (copy_to_user(buf, kbuf, sz)) {
- 				free_page((unsigned long)kbuf);
+@@ -40,12 +40,9 @@ static inline unsigned long size_inside_
+ {
+ 	unsigned long sz;
+ 
+-	if (-start & (PAGE_SIZE - 1))
+-		sz = -start & (PAGE_SIZE - 1);
+-	else
+-		sz = PAGE_SIZE;
++	sz = PAGE_SIZE - (start & (PAGE_SIZE - 1));
+ 
+-	return min_t(unsigned long, sz, size);
++	return min(sz, size);
+ }
+ 
+ /*
+@@ -140,9 +137,7 @@ static ssize_t read_mem(struct file * fi
+ #ifdef __ARCH_HAS_NO_PAGE_ZERO_MAPPED
+ 	/* we don't have page 0 mapped on sparc and m68k.. */
+ 	if (p < PAGE_SIZE) {
+-		sz = PAGE_SIZE - p;
+-		if (sz > count) 
+-			sz = count; 
++		sz = size_inside_page(p, count);
+ 		if (sz > 0) {
+ 			if (clear_user(buf, sz))
  				return -EFAULT;
- 			}
--			count -= len;
--			buf += len;
--			read += len;
--			p += len;
-+			count -= sz;
+@@ -203,9 +198,7 @@ static ssize_t write_mem(struct file * f
+ #ifdef __ARCH_HAS_NO_PAGE_ZERO_MAPPED
+ 	/* we don't have page 0 mapped on sparc and m68k.. */
+ 	if (p < PAGE_SIZE) {
+-		unsigned long sz = PAGE_SIZE - p;
+-		if (sz > count)
+-			sz = count;
++		sz = size_inside_page(p, count);
+ 		/* Hmm. Do something? */
+ 		buf += sz;
+ 		p += sz;
+@@ -414,15 +407,14 @@ static ssize_t read_kmem(struct file *fi
+ #ifdef __ARCH_HAS_NO_PAGE_ZERO_MAPPED
+ 		/* we don't have page 0 mapped on sparc and m68k.. */
+ 		if (p < PAGE_SIZE && low_count > 0) {
+-			size_t tmp = PAGE_SIZE - p;
+-			if (tmp > low_count) tmp = low_count;
+-			if (clear_user(buf, tmp))
++			sz = size_inside_page(p, low_count);
++			if (clear_user(buf, sz))
+ 				return -EFAULT;
+-			buf += tmp;
+-			p += tmp;
+-			read += tmp;
+-			low_count -= tmp;
+-			count -= tmp;
 +			buf += sz;
++			p += sz;
 +			read += sz;
-+			p += sz;
- 		}
- 		free_page((unsigned long)kbuf);
- 	}
-@@ -524,19 +523,14 @@ static ssize_t write_kmem(struct file * 
- 	unsigned long p = *ppos;
- 	ssize_t wrote = 0;
- 	ssize_t virtr = 0;
--	ssize_t written;
- 	char * kbuf; /* k-addr because vwrite() takes vmlist_lock rwlock */
- 
- 	if (p < (unsigned long) high_memory) {
--
--		wrote = count;
--		if (count > (unsigned long) high_memory - p)
--			wrote = (unsigned long) high_memory - p;
--
--		written = do_write_kmem((void*)p, p, buf, wrote, ppos);
--		if (written != wrote)
--			return written;
--		wrote = written;
-+		unsigned long to_write = min_t(unsigned long, count,
-+					       (unsigned long)high_memory - p);
-+		wrote = do_write_kmem((void *)p, p, buf, to_write, ppos);
-+		if (wrote != to_write)
-+			return wrote;
- 		p += wrote;
- 		buf += wrote;
- 		count -= wrote;
-@@ -547,20 +541,20 @@ static ssize_t write_kmem(struct file * 
- 		if (!kbuf)
- 			return wrote ? wrote : -ENOMEM;
- 		while (count > 0) {
--			int len = size_inside_page(p, count);
-+			unsigned long sz = size_inside_page(p, count);
- 
--			written = copy_from_user(kbuf, buf, len);
--			if (written) {
-+			sz = copy_from_user(kbuf, buf, sz);
-+			if (sz) {
- 				if (wrote + virtr)
- 					break;
- 				free_page((unsigned long)kbuf);
- 				return -EFAULT;
- 			}
--			len = vwrite(kbuf, (char *)p, len);
--			count -= len;
--			buf += len;
--			virtr += len;
--			p += len;
-+			sz = vwrite(kbuf, (char *)p, sz);
++			low_count -= sz;
 +			count -= sz;
-+			buf += sz;
-+			virtr += sz;
-+			p += sz;
  		}
- 		free_page((unsigned long)kbuf);
- 	}
+ #endif
+ 		while (low_count > 0) {
+@@ -482,9 +474,7 @@ do_write_kmem(void *p, unsigned long rea
+ #ifdef __ARCH_HAS_NO_PAGE_ZERO_MAPPED
+ 	/* we don't have page 0 mapped on sparc and m68k.. */
+ 	if (realp < PAGE_SIZE) {
+-		unsigned long sz = PAGE_SIZE - realp;
+-		if (sz > count)
+-			sz = count;
++		sz = size_inside_page(realp, count);
+ 		/* Hmm. Do something? */
+ 		buf += sz;
+ 		p += sz;
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
