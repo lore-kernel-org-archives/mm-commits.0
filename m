@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + docs-fix-various-documentation-paths-in-header-files.patch added to -mm tree
-Date: Sun, 13 Sep 2009 16:44:54 -0700
-Message-ID: <200909132344.n8DNisvw026721@imap1.linux-foundation.org>
+Subject: + dev-mem-remove-redundant-parameter-from-do_write_kmem.patch added to -mm tree
+Date: Sun, 13 Sep 2009 16:47:26 -0700
+Message-ID: <200909132347.n8DNlQQ0031645@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53586 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37621 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752310AbZIMXpB (ORCPT
+	by vger.kernel.org with ESMTP id S1752459AbZIMXsU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 13 Sep 2009 19:45:01 -0400
+	Sun, 13 Sep 2009 19:48:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, jj@chaosbits.net
+Cc: fengguang.wu@intel.com, ak@linux.intel.com, avi@qumranet.com, broonie@opensource.wolfsonmicro.com, gregkh@suse.de, johannes@sipsolutions.net, mtosatti@redhat.com
 
 
 The patch titled
-     docs: fix various Documentation/ paths in header files
+     /dev/mem: remove redundant parameter from do_write_kmem()
 has been added to the -mm tree.  Its filename is
-     docs-fix-various-documentation-paths-in-header-files.patch
+     dev-mem-remove-redundant-parameter-from-do_write_kmem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,109 +34,126 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: docs: fix various Documentation/ paths in header files
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: /dev/mem: remove redundant parameter from do_write_kmem()
+From: Wu Fengguang <fengguang.wu@intel.com>
 
-Fix various Documentation/ paths in include/linux/.
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Reviewed-by: Jesper Juhl <jj@chaosbits.net>
+Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Avi Kivity <avi@qumranet.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Johannes Berg <johannes@sipsolutions.net>
+Cc: Marcelo Tosatti <mtosatti@redhat.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/configfs.h   |    4 ++--
- include/linux/debugfs.h    |    2 +-
- include/linux/marker.h     |    2 +-
- include/linux/relay.h      |    2 +-
- include/linux/tracepoint.h |    2 +-
- 5 files changed, 6 insertions(+), 6 deletions(-)
+ drivers/char/mem.c |   14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/configfs.h~docs-fix-various-documentation-paths-in-header-files include/linux/configfs.h
---- a/include/linux/configfs.h~docs-fix-various-documentation-paths-in-header-files
-+++ a/include/linux/configfs.h
-@@ -27,8 +27,8 @@
-  *
-  * configfs Copyright (C) 2005 Oracle.  All rights reserved.
-  *
-- * Please read Documentation/filesystems/configfs.txt before using the
-- * configfs interface, ESPECIALLY the parts about reference counts and
-+ * Please read Documentation/filesystems/configfs/configfs.txt before using
-+ * the configfs interface, ESPECIALLY the parts about reference counts and
-  * item destructors.
-  */
+diff -puN drivers/char/mem.c~dev-mem-remove-redundant-parameter-from-do_write_kmem drivers/char/mem.c
+--- a/drivers/char/mem.c~dev-mem-remove-redundant-parameter-from-do_write_kmem
++++ a/drivers/char/mem.c
+@@ -463,7 +463,7 @@ static ssize_t read_kmem(struct file *fi
  
-diff -puN include/linux/debugfs.h~docs-fix-various-documentation-paths-in-header-files include/linux/debugfs.h
---- a/include/linux/debugfs.h~docs-fix-various-documentation-paths-in-header-files
-+++ a/include/linux/debugfs.h
-@@ -9,7 +9,7 @@
-  *	2 as published by the Free Software Foundation.
-  *
-  *  debugfs is for people to use instead of /proc or /sys.
-- *  See Documentation/DocBook/kernel-api for more details.
-+ *  See Documentation/DocBook/filesystems for more details.
-  */
  
- #ifndef _DEBUGFS_H_
-diff -puN include/linux/marker.h~docs-fix-various-documentation-paths-in-header-files include/linux/marker.h
---- a/include/linux/marker.h~docs-fix-various-documentation-paths-in-header-files
-+++ a/include/linux/marker.h
-@@ -4,7 +4,7 @@
- /*
-  * Code markup for dynamic and static tracing.
-  *
-- * See Documentation/marker.txt.
-+ * See Documentation/markers.txt.
-  *
-  * (C) Copyright 2006 Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-  *
-diff -puN include/linux/relay.h~docs-fix-various-documentation-paths-in-header-files include/linux/relay.h
---- a/include/linux/relay.h~docs-fix-various-documentation-paths-in-header-files
-+++ a/include/linux/relay.h
-@@ -140,7 +140,7 @@ struct rchan_callbacks
- 	 * cause relay_open() to create a single global buffer rather
- 	 * than the default set of per-cpu buffers.
- 	 *
--	 * See Documentation/filesystems/relayfs.txt for more info.
-+	 * See Documentation/filesystems/relay.txt for more info.
- 	 */
- 	struct dentry *(*create_buf_file)(const char *filename,
- 					  struct dentry *parent,
-diff -puN include/linux/tracepoint.h~docs-fix-various-documentation-paths-in-header-files include/linux/tracepoint.h
---- a/include/linux/tracepoint.h~docs-fix-various-documentation-paths-in-header-files
-+++ a/include/linux/tracepoint.h
-@@ -4,7 +4,7 @@
- /*
-  * Kernel Tracepoint API.
-  *
-- * See Documentation/tracepoint.txt.
-+ * See Documentation/trace/tracepoints.txt.
-  *
-  * (C) Copyright 2008 Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-  *
+ static inline ssize_t
+-do_write_kmem(void *p, unsigned long realp, const char __user * buf,
++do_write_kmem(unsigned long p, const char __user *buf,
+ 	      size_t count, loff_t *ppos)
+ {
+ 	ssize_t written, sz;
+@@ -472,12 +472,11 @@ do_write_kmem(void *p, unsigned long rea
+ 	written = 0;
+ #ifdef __ARCH_HAS_NO_PAGE_ZERO_MAPPED
+ 	/* we don't have page 0 mapped on sparc and m68k.. */
+-	if (realp < PAGE_SIZE) {
+-		sz = size_inside_page(realp, count);
++	if (p < PAGE_SIZE) {
++		sz = size_inside_page(p, count);
+ 		/* Hmm. Do something? */
+ 		buf += sz;
+ 		p += sz;
+-		realp += sz;
+ 		count -= sz;
+ 		written += sz;
+ 	}
+@@ -486,14 +485,14 @@ do_write_kmem(void *p, unsigned long rea
+ 	while (count > 0) {
+ 		char *ptr;
+ 
+-		sz = size_inside_page(realp, count);
++		sz = size_inside_page(p, count);
+ 
+ 		/*
+ 		 * On ia64 if a page has been mapped somewhere as
+ 		 * uncached, then it must also be accessed uncached
+ 		 * by the kernel or data corruption may occur
+ 		 */
+-		ptr = xlate_dev_kmem_ptr(p);
++		ptr = xlate_dev_kmem_ptr((char *)p);
+ 
+ 		copied = copy_from_user(ptr, buf, sz);
+ 		if (copied) {
+@@ -504,7 +503,6 @@ do_write_kmem(void *p, unsigned long rea
+ 		}
+ 		buf += sz;
+ 		p += sz;
+-		realp += sz;
+ 		count -= sz;
+ 		written += sz;
+ 	}
+@@ -528,7 +526,7 @@ static ssize_t write_kmem(struct file * 
+ 	if (p < (unsigned long) high_memory) {
+ 		unsigned long to_write = min_t(unsigned long, count,
+ 					       (unsigned long)high_memory - p);
+-		wrote = do_write_kmem((void *)p, p, buf, to_write, ppos);
++		wrote = do_write_kmem(p, buf, to_write, ppos);
+ 		if (wrote != to_write)
+ 			return wrote;
+ 		p += wrote;
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from fengguang.wu@intel.com are
 
 linux-next.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-kernel-hacking-move-strip_asm_syms-from-general.patch
-isdn-fix-netjet-build-errors.patch
-scsi-fix-func-names-in-kernel-doc.patch
-cciss-fix-schedule_timeout-parameters.patch
-mm-make-swap-token-dummies-static-inlines-fix-2.patch
+mm-memory-failure-remove-config_unevictable_lru-config-option.patch
+libfs-return-error-code-on-failed-attr-set.patch
+readahead-add-blk_run_backing_dev.patch
+readahead-add-blk_run_backing_dev-fix.patch
 readahead-add-blk_run_backing_dev-fix-fix-2.patch
-page_alloc-fix-kernel-doc-warning.patch
-ksm-add-some-documentation.patch
-flex_array-add-missing-kerneldoc-annotations.patch
-lis3-add-power-management-functions-fix.patch
-procfs-provide-stack-information-for-threads-v011-fix.patch
-kcore-register-vmemmap-range-fix.patch
-spih-add-missing-kernel-doc-for-struct-spi_master.patch
-gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links-update-fix.patch
-doc-filesystems-remove-smount-program.patch
-doc-filesystems-more-mount-cleanups.patch
-documentation-update-stale-definition-of-file-nr-in-fstxt.patch
-includecheck-fix-documentation-cfag12864b-examplec.patch
-docs-fix-various-documentation-paths-in-header-files.patch
-reiser4-export-remove_from_page_cache-fix.patch
+mm-clean-up-page_remove_rmap.patch
+mm-oom-analysis-add-per-zone-statistics-to-show_free_areas.patch
+mm-oom-analysis-add-buffer-cache-information-to-show_free_areas.patch
+mm-oom-analysis-add-shmem-vmstat.patch
+mm-shrink_inactive_list-nr_scan-accounting-fix-fix.patch
+mm-vmstat-add-isolate-pages.patch
+mm-vmstat-add-isolate-pages-fix.patch
+vmscan-throttle-direct-reclaim-when-too-many-pages-are-isolated-already.patch
+mm-remove-__addsub_zone_page_state.patch
+mm-count-only-reclaimable-lru-pages-v2.patch
+vmscan-move-clearpageactive-from-move_active_pages-to-shrink_active_list.patch
+vmscan-kill-unnecessary-page-flag-test.patch
+vmscan-kill-unnecessary-prefetch.patch
+ksm-add-mmu_notifier-set_pte_at_notify.patch
+ksm-first-tidy-up-madvise_vma.patch
+ksm-define-madv_mergeable-and-madv_unmergeable.patch
+ksm-the-mm-interface-to-ksm.patch
+ksm-no-debug-in-page_dup_rmap.patch
+ksm-identify-pageksm-pages.patch
+ksm-kernel-samepage-merging.patch
+ksm-prevent-mremap-move-poisoning.patch
+ksm-change-copyright-message.patch
+ksm-change-ksm-nice-level-to-be-5.patch
+mm-do-batched-scans-for-mem_cgroup.patch
+mm-vsmcan-check-shrink_active_list-sc-isolate_pages-return-value.patch
+dev-mem-remove-redundant-test-on-len.patch
+dev-mem-introduce-size_inside_page.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
+dev-mem-make-size_inside_page-logic-straight.patch
+dev-mem-remove-the-written-variable-in-write_kmem.patch
+dev-mem-remove-redundant-parameter-from-do_write_kmem.patch
+documentation-vm-gitignore-add-page-types.patch
+page-types-add-feature-for-walking-process-address-space.patch
+page-types-add-feature-for-walking-process-address-space-checkpatch-fixes.patch
 
