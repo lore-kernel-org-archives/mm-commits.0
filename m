@@ -1,195 +1,317 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] rtc-philips-nxp-pcf2123-driver-v03-update-fix.patch removed from -mm tree
-Date: Sun, 13 Sep 2009 15:56:50 -0700
-Message-ID: <200909132256.n8DMuoVU030614@imap1.linux-foundation.org>
+Subject: + drivers-char-uv_mmtimerc-add-memory-mapped-rtc-driver-for-uv.patch added to -mm tree
+Date: Sun, 13 Sep 2009 15:57:56 -0700
+Message-ID: <200909132257.n8DMvuUT032708@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45330 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40438 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753305AbZIMW5v (ORCPT
+	by vger.kernel.org with ESMTP id S1753028AbZIMW62 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 13 Sep 2009 18:57:51 -0400
+	Sun, 13 Sep 2009 18:58:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chripell@gmail.com, a.zummo@towertech.it, chripell@fsfe.org, chrisv@cyberswitching.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: sivanich@sgi.com
 
 
 The patch titled
-     rtc-pcf2123 fixes
-has been removed from the -mm tree.  Its filename was
-     rtc-philips-nxp-pcf2123-driver-v03-update-fix.patch
+     drivers/char/uv_mmtimer.c: add memory mapped RTC driver for UV
+has been added to the -mm tree.  Its filename is
+     drivers-char-uv_mmtimerc-add-memory-mapped-rtc-driver-for-uv.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-pcf2123 fixes
-From: christian pellegrin <chripell@gmail.com>
+Subject: drivers/char/uv_mmtimer.c: add memory mapped RTC driver for UV
+From: Dimitri Sivanich <sivanich@sgi.com>
 
-- Fix bug with write command bitfield
+This driver memory maps the UV Hub RTC.
 
-- Fix bug on crashing when module unloaded but no chip present
-
-- Add access to registers via sysfs (needed for accessing calibration
-  register which is needed for a good stability of the RTC)
-
-Signed-off: Christian Pellegrin <chripell@fsfe.org>
-Tested-by: Christian Pellegrin <chripell@fsfe.org>
-Cc: Chris Verges <chrisv@cyberswitching.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Dimitri Sivanich <sivanich@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pcf2123.c |   95 ++++++++++++++++++++++++++++++++----
- 1 file changed, 86 insertions(+), 9 deletions(-)
+ Documentation/ioctl/ioctl-number.txt |    1 
+ drivers/char/Kconfig                 |    8 
+ drivers/char/Makefile                |    1 
+ drivers/char/uv_mmtimer.c            |  216 +++++++++++++++++++++++++
+ 4 files changed, 226 insertions(+)
 
-diff -puN drivers/rtc/rtc-pcf2123.c~rtc-philips-nxp-pcf2123-driver-v03-update-fix drivers/rtc/rtc-pcf2123.c
---- a/drivers/rtc/rtc-pcf2123.c~rtc-philips-nxp-pcf2123-driver-v03-update-fix
-+++ a/drivers/rtc/rtc-pcf2123.c
-@@ -10,6 +10,23 @@
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License version 2 as
-  * published by the Free Software Foundation.
+diff -puN Documentation/ioctl/ioctl-number.txt~drivers-char-uv_mmtimerc-add-memory-mapped-rtc-driver-for-uv Documentation/ioctl/ioctl-number.txt
+--- a/Documentation/ioctl/ioctl-number.txt~drivers-char-uv_mmtimerc-add-memory-mapped-rtc-driver-for-uv
++++ a/Documentation/ioctl/ioctl-number.txt
+@@ -135,6 +135,7 @@ Code	Seq#	Include File		Comments
+ 					<http://mikonos.dia.unisa.it/tcfs>
+ 'l'	40-7F	linux/udf_fs_i.h	in development:
+ 					<http://sourceforge.net/projects/linux-udf/>
++'m'	00-09	linux/mmtimer.h
+ 'm'	all	linux/mtio.h		conflict!
+ 'm'	all	linux/soundcard.h	conflict!
+ 'm'	all	linux/synclink.h	conflict!
+diff -puN drivers/char/Kconfig~drivers-char-uv_mmtimerc-add-memory-mapped-rtc-driver-for-uv drivers/char/Kconfig
+--- a/drivers/char/Kconfig~drivers-char-uv_mmtimerc-add-memory-mapped-rtc-driver-for-uv
++++ a/drivers/char/Kconfig
+@@ -1087,6 +1087,14 @@ config MMTIMER
+ 	  The mmtimer device allows direct userspace access to the
+ 	  Altix system timer.
+ 
++config UV_MMTIMER
++	tristate "UV_MMTIMER Memory mapped RTC for SGI UV"
++	depends on X86_UV
++	default m
++	help
++	  The uv_mmtimer device allows direct userspace access to the
++	  UV system timer.
++
+ source "drivers/char/tpm/Kconfig"
+ 
+ config TELCLOCK
+diff -puN drivers/char/Makefile~drivers-char-uv_mmtimerc-add-memory-mapped-rtc-driver-for-uv drivers/char/Makefile
+--- a/drivers/char/Makefile~drivers-char-uv_mmtimerc-add-memory-mapped-rtc-driver-for-uv
++++ a/drivers/char/Makefile
+@@ -58,6 +58,7 @@ obj-$(CONFIG_RAW_DRIVER)	+= raw.o
+ obj-$(CONFIG_SGI_SNSC)		+= snsc.o snsc_event.o
+ obj-$(CONFIG_MSPEC)		+= mspec.o
+ obj-$(CONFIG_MMTIMER)		+= mmtimer.o
++obj-$(CONFIG_UV_MMTIMER)	+= uv_mmtimer.o
+ obj-$(CONFIG_VIOTAPE)		+= viotape.o
+ obj-$(CONFIG_HVCS)		+= hvcs.o
+ obj-$(CONFIG_IBM_BSR)		+= bsr.o
+diff -puN /dev/null drivers/char/uv_mmtimer.c
+--- /dev/null
++++ a/drivers/char/uv_mmtimer.c
+@@ -0,0 +1,216 @@
++/*
++ * Timer device implementation for SGI UV platform.
 + *
-+ * Please note that the CS is active high, so platform data
-+ * should look something like:
++ * This file is subject to the terms and conditions of the GNU General Public
++ * License.  See the file "COPYING" in the main directory of this archive
++ * for more details.
++ *
++ * Copyright (c) 2009 Silicon Graphics, Inc.  All rights reserved.
++ *
++ */
 +
-+ static struct spi_board_info ek_spi_devices[] = {
-+ ...
-+  {
-+    .modalias	= "rtc-pcf2123",
-+    .chip_select	= 1,
-+    .controller_data = (void *) AT91_PIN_PA10,
-+    .max_speed_hz	= 1000 * 1000,
-+    .mode = SPI_CS_HIGH,
-+    .bus_num	= 0,
-+  },
-+...
++#include <linux/types.h>
++#include <linux/kernel.h>
++#include <linux/ioctl.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/errno.h>
++#include <linux/mm.h>
++#include <linux/fs.h>
++#include <linux/mmtimer.h>
++#include <linux/miscdevice.h>
++#include <linux/posix-timers.h>
++#include <linux/interrupt.h>
++#include <linux/time.h>
++#include <linux/math64.h>
++#include <linux/smp_lock.h>
++
++#include <asm/genapic.h>
++#include <asm/uv/uv_hub.h>
++#include <asm/uv/bios.h>
++#include <asm/uv/uv.h>
++
++MODULE_AUTHOR("Dimitri Sivanich <sivanich@sgi.com>");
++MODULE_DESCRIPTION("SGI UV Memory Mapped RTC Timer");
++MODULE_LICENSE("GPL");
++
++/* name of the device, usually in /dev */
++#define UV_MMTIMER_NAME "mmtimer"
++#define UV_MMTIMER_DESC "SGI UV Memory Mapped RTC Timer"
++#define UV_MMTIMER_VERSION "1.0"
++
++static long uv_mmtimer_ioctl(struct file *file, unsigned int cmd,
++						unsigned long arg);
++static int uv_mmtimer_mmap(struct file *file, struct vm_area_struct *vma);
++
++/*
++ * Period in femtoseconds (10^-15 s)
++ */
++static unsigned long uv_mmtimer_femtoperiod;
++
++static const struct file_operations uv_mmtimer_fops = {
++	.owner = THIS_MODULE,
++	.mmap =	uv_mmtimer_mmap,
++	.unlocked_ioctl = uv_mmtimer_ioctl,
 +};
 +
-  */
- 
- #include <linux/bcd.h>
-@@ -20,10 +37,9 @@
- #include <linux/kernel.h>
- #include <linux/string.h>
- #include <linux/rtc.h>
--#include <linux/workqueue.h>
- #include <linux/spi/spi.h>
- 
--#define DRV_VERSION "0.3"
-+#define DRV_VERSION "0.4"
- 
- #define PCF2123_REG_CTRL1	0x00 /* Control Register 1 */
- #define PCF2123_REG_CTRL2	0x01 /* Control Register 2 */
-@@ -36,13 +52,19 @@
- #define PCF2123_REG_MO		0x07
- #define PCF2123_REG_YR		0x08
- 
--#define PCF2123_CMD_W(addr)	(((addr) & 0x0F) | 0x40)  /* single write */
-+#define PCF2123_CMD_W(addr)	(((addr) & 0x0F) | 0x10)  /* single write */
- #define PCF2123_CMD_R(addr)	(((addr) & 0x0F) | 0x90)  /* single read */
- 
- static struct spi_driver pcf2123_driver;
- 
-+struct pcf2123_sysfs_reg {
-+	struct device_attribute attr; /* must be first */
-+	char name[2];
-+};
-+
- struct pcf2123_plat_data {
- 	struct rtc_device *rtc;
-+	struct pcf2123_sysfs_reg regs[16];
- };
- 
- /*
-@@ -55,6 +77,39 @@ static inline void pcf2123_delay_trec(vo
- 	ndelay(30);
- }
- 
-+static ssize_t pcf2123_show(struct device *dev, struct device_attribute *attr,
-+			    char *buffer)
++/**
++ * uv_mmtimer_ioctl - ioctl interface for /dev/uv_mmtimer
++ * @file: file structure for the device
++ * @cmd: command to execute
++ * @arg: optional argument to command
++ *
++ * Executes the command specified by @cmd.  Returns 0 for success, < 0 for
++ * failure.
++ *
++ * Valid commands:
++ *
++ * %MMTIMER_GETOFFSET - Should return the offset (relative to the start
++ * of the page where the registers are mapped) for the counter in question.
++ *
++ * %MMTIMER_GETRES - Returns the resolution of the clock in femto (10^-15)
++ * seconds
++ *
++ * %MMTIMER_GETFREQ - Copies the frequency of the clock in Hz to the address
++ * specified by @arg
++ *
++ * %MMTIMER_GETBITS - Returns the number of bits in the clock's counter
++ *
++ * %MMTIMER_MMAPAVAIL - Returns 1 if registers can be mmap'd into userspace
++ *
++ * %MMTIMER_GETCOUNTER - Gets the current value in the counter and places it
++ * in the address specified by @arg.
++ */
++static long uv_mmtimer_ioctl(struct file *file, unsigned int cmd,
++						unsigned long arg)
 +{
-+	struct spi_device *spi = to_spi_device(dev);
-+	struct pcf2123_sysfs_reg *r = (struct pcf2123_sysfs_reg *) attr;
-+	u8 txbuf[1], rxbuf[1];
-+	int ret;
++	int ret = 0;
 +
-+	txbuf[0] = PCF2123_CMD_R(simple_strtoul(r->name, NULL, 16));
-+	ret = spi_write_then_read(spi, txbuf, 1, rxbuf, 1);
-+	if (ret < 0)
-+		return sprintf(buffer, "error: %d", ret);
-+	pcf2123_delay_trec();
-+	return sprintf(buffer, "0x%x", rxbuf[0]);
++	switch (cmd) {
++	case MMTIMER_GETOFFSET:	/* offset of the counter */
++		/*
++		 * UV RTC register is on its own page
++		 */
++		if (PAGE_SIZE <= (1 << 16))
++			ret = ((UV_LOCAL_MMR_BASE | UVH_RTC) & (PAGE_SIZE-1))
++				/ 8;
++		else
++			ret = -ENOSYS;
++		break;
++
++	case MMTIMER_GETRES: /* resolution of the clock in 10^-15 s */
++		if (copy_to_user((unsigned long __user *)arg,
++				&uv_mmtimer_femtoperiod, sizeof(unsigned long)))
++			ret = -EFAULT;
++		break;
++
++	case MMTIMER_GETFREQ: /* frequency in Hz */
++		if (copy_to_user((unsigned long __user *)arg,
++				&sn_rtc_cycles_per_second,
++				sizeof(unsigned long)))
++			ret = -EFAULT;
++		break;
++
++	case MMTIMER_GETBITS: /* number of bits in the clock */
++		ret = hweight64(UVH_RTC_REAL_TIME_CLOCK_MASK);
++		break;
++
++	case MMTIMER_MMAPAVAIL: /* can we mmap the clock into userspace? */
++		ret = (PAGE_SIZE <= (1 << 16)) ? 1 : 0;
++		break;
++
++	case MMTIMER_GETCOUNTER:
++		if (copy_to_user((unsigned long __user *)arg,
++				(unsigned long *)uv_local_mmr_address(UVH_RTC),
++				sizeof(unsigned long)))
++			ret = -EFAULT;
++		break;
++	default:
++		ret = -ENOTTY;
++		break;
++	}
++	return ret;
 +}
 +
-+static ssize_t pcf2123_store(struct device *dev, struct device_attribute *attr,
-+			     const char *buffer, size_t count)
++/**
++ * uv_mmtimer_mmap - maps the clock's registers into userspace
++ * @file: file structure for the device
++ * @vma: VMA to map the registers into
++ *
++ * Calls remap_pfn_range() to map the clock's registers into
++ * the calling process' address space.
++ */
++static int uv_mmtimer_mmap(struct file *file, struct vm_area_struct *vma)
 +{
-+	struct spi_device *spi = to_spi_device(dev);
-+	struct pcf2123_sysfs_reg *r = (struct pcf2123_sysfs_reg *) attr;
-+	u8 txbuf[2];
-+	int ret;
++	unsigned long uv_mmtimer_addr;
 +
-+	txbuf[0] = PCF2123_CMD_W(simple_strtoul(r->name, NULL, 16));
-+	txbuf[1] = simple_strtoul(buffer, NULL, 0);
-+	ret = spi_write(spi, txbuf, sizeof(txbuf));
-+	if (ret < 0)
-+		return -EIO;
-+	pcf2123_delay_trec();
-+	return count;
-+}
++	if (vma->vm_end - vma->vm_start != PAGE_SIZE)
++		return -EINVAL;
 +
- static int pcf2123_rtc_read_time(struct device *dev, struct rtc_time *tm)
- {
- 	struct spi_device *spi = to_spi_device(dev);
-@@ -149,7 +204,7 @@ static int __devinit pcf2123_probe(struc
- 	struct rtc_device *rtc;
- 	struct pcf2123_plat_data *pdata;
- 	u8 txbuf[2], rxbuf[1];
--	int ret;
-+	int ret, i;
- 
- 	pdata = kzalloc(sizeof(struct pcf2123_plat_data), GFP_KERNEL);
- 	if (!pdata)
-@@ -201,28 +256,50 @@ static int __devinit pcf2123_probe(struc
- 			&pcf2123_rtc_ops, THIS_MODULE);
- 
- 	if (IS_ERR(rtc)) {
-+		dev_err(&spi->dev, "failed to register.\n");
- 		ret = PTR_ERR(rtc);
- 		goto kfree_exit;
- 	}
- 
- 	pdata->rtc = rtc;
- 
-+	for (i = 0; i < 16; i++) {
-+		sprintf(pdata->regs[i].name, "%1x", i);
-+		pdata->regs[i].attr.attr.mode = S_IRUGO | S_IWUSR;
-+		pdata->regs[i].attr.attr.name = pdata->regs[i].name;
-+		pdata->regs[i].attr.show = pcf2123_show;
-+		pdata->regs[i].attr.store = pcf2123_store;
-+		ret = device_create_file(&spi->dev, &pdata->regs[i].attr);
-+		if (ret) {
-+			dev_err(&spi->dev, "Unable to create sysfs %s\n",
-+				pdata->regs[i].name);
-+			pdata->regs[i].name[0] = '\0';
-+		}
++	if (vma->vm_flags & VM_WRITE)
++		return -EPERM;
++
++	if (PAGE_SIZE > (1 << 16))
++		return -ENOSYS;
++
++	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
++
++	uv_mmtimer_addr = UV_LOCAL_MMR_BASE | UVH_RTC;
++	uv_mmtimer_addr &= ~(PAGE_SIZE - 1);
++	uv_mmtimer_addr &= 0xfffffffffffffffUL;
++
++	if (remap_pfn_range(vma, vma->vm_start, uv_mmtimer_addr >> PAGE_SHIFT,
++					PAGE_SIZE, vma->vm_page_prot)) {
++		printk(KERN_ERR "remap_pfn_range failed in uv_mmtimer_mmap\n");
++		return -EAGAIN;
 +	}
 +
- 	return 0;
- kfree_exit:
- 	kfree(pdata);
-+	spi->dev.platform_data = NULL;
- 	return ret;
- }
- 
- static int pcf2123_remove(struct spi_device *spi)
- {
- 	struct pcf2123_plat_data *pdata = spi->dev.platform_data;
--	struct rtc_device *rtc = pdata->rtc;
-+	int i;
- 
--	if (rtc)
--		rtc_device_unregister(rtc);
++	return 0;
++}
++
++static struct miscdevice uv_mmtimer_miscdev = {
++	MISC_DYNAMIC_MINOR,
++	UV_MMTIMER_NAME,
++	&uv_mmtimer_fops
++};
++
++
++/**
++ * uv_mmtimer_init - device initialization routine
++ *
++ * Does initial setup for the uv_mmtimer device.
++ */
++static int __init uv_mmtimer_init(void)
++{
++	if (!is_uv_system()) {
++		printk(KERN_ERR "%s: Hardware unsupported\n", UV_MMTIMER_NAME);
++		return -1;
++	}
++
++	/*
++	 * Sanity check the cycles/sec variable
++	 */
++	if (sn_rtc_cycles_per_second < 100000) {
++		printk(KERN_ERR "%s: unable to determine clock frequency\n",
++		       UV_MMTIMER_NAME);
++		return -1;
++	}
++
++	uv_mmtimer_femtoperiod = ((unsigned long)1E15 +
++				sn_rtc_cycles_per_second / 2) /
++				sn_rtc_cycles_per_second;
++
++	if (misc_register(&uv_mmtimer_miscdev)) {
++		printk(KERN_ERR "%s: failed to register device\n",
++		       UV_MMTIMER_NAME);
++		return -1;
++	}
++
++	printk(KERN_INFO "%s: v%s, %ld MHz\n", UV_MMTIMER_DESC,
++		UV_MMTIMER_VERSION,
++		sn_rtc_cycles_per_second/(unsigned long)1E6);
++
++	return 0;
++}
++
++module_init(uv_mmtimer_init);
+_
+
+Patches currently in -mm which might be from sivanich@sgi.com are
+
+drivers-char-uv_mmtimerc-add-memory-mapped-rtc-driver-for-uv.patch
+
