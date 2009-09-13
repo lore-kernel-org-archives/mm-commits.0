@@ -1,113 +1,197 @@
 From: akpm@linux-foundation.org
-Subject: + libfs-return-error-code-on-failed-attr-set.patch added to -mm tree
-Date: Sun, 13 Sep 2009 15:46:08 -0700
-Message-ID: <200909132246.n8DMk8fY009880@imap1.linux-foundation.org>
+Subject: [to-be-updated] rtc-philips-nxp-pcf2123-driver-v03.patch removed from -mm tree
+Date: Sun, 13 Sep 2009 15:56:42 -0700
+Message-ID: <200909132256.n8DMugwg030370@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34470 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48229 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752552AbZIMWqX (ORCPT
+	by vger.kernel.org with ESMTP id S1753028AbZIMW5S (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 13 Sep 2009 18:46:23 -0400
+	Sun, 13 Sep 2009 18:57:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: fengguang.wu@intel.com, hch@lst.de, npiggin@suse.de, tytso@mit.edu, viro@zeniv.linux.org.uk
+To: chrisv@cyberswitching.com, a.zummo@towertech.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     libfs: return error code on failed attr set
-has been added to the -mm tree.  Its filename is
-     libfs-return-error-code-on-failed-attr-set.patch
+     rtc-philips-nxp-pcf2123-driver-v03
+has been removed from the -mm tree.  Its filename was
+     rtc-philips-nxp-pcf2123-driver-v03.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: libfs: return error code on failed attr set
-From: Wu Fengguang <fengguang.wu@intel.com>
+Subject: rtc-philips-nxp-pcf2123-driver-v03
+From: "Chris Verges" <chrisv@cyberswitching.com>
 
-Currently all simple_attr.set handlers return 0 on success and negative
-codes on error.  Fix simple_attr_write() to return these error codes.
+Here's an updated patch with the changes requested by Andrew.
+Major points of the update include:
 
-Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Nick Piggin <npiggin@suse.de>
+   - Moved PCF2123 section in Kconfig to be inside the
+     "if SPI_MASTER" blob, to take care of dependencies.
+
+   - Changed udelay() to macro w/ comment, and shifted to
+     using ndelay() instead due to 30 nsec requirement,
+     not 30 usec as was originally coded.
+
+   - Bypass delay if spi_*() commands fail.
+
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/libfs.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/rtc/Kconfig       |   18 +++++++++---------
+ drivers/rtc/rtc-pcf2123.c |   21 ++++++++++++---------
+ 2 files changed, 21 insertions(+), 18 deletions(-)
 
-diff -puN fs/libfs.c~libfs-return-error-code-on-failed-attr-set fs/libfs.c
---- a/fs/libfs.c~libfs-return-error-code-on-failed-attr-set
-+++ a/fs/libfs.c
-@@ -822,10 +822,11 @@ ssize_t simple_attr_write(struct file *f
- 	if (copy_from_user(attr->set_buf, buf, size))
- 		goto out;
+diff -puN drivers/rtc/Kconfig~rtc-philips-nxp-pcf2123-driver-v03 drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-philips-nxp-pcf2123-driver-v03
++++ a/drivers/rtc/Kconfig
+@@ -224,15 +224,6 @@ config RTC_DRV_PCF8583
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called rtc-pcf8583.
  
--	ret = len; /* claim we got the whole input */
- 	attr->set_buf[size] = '\0';
- 	val = simple_strtol(attr->set_buf, NULL, 0);
--	attr->set(attr->data, val);
-+	ret = attr->set(attr->data, val);
-+	if (ret == 0)
-+		ret = len; /* on success, claim we got the whole input */
- out:
- 	mutex_unlock(&attr->mutex);
- 	return ret;
+-config RTC_DRV_PCF2123
+-	tristate "NXP PCF2123"
+-	help
+-	  If you say yes here you get support for the NXP PCF2123
+-	  RTC chip.
+-
+-	  This driver can also be built as a module. If so, the module
+-	  will be called rtc-pcf2123.
+-
+ config RTC_DRV_M41T80
+ 	tristate "ST M41T62/65/M41T80/81/82/83/84/85/87"
+ 	help
+@@ -387,6 +378,15 @@ config RTC_DRV_DS3234
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called rtc-ds3234.
+ 
++config RTC_DRV_PCF2123
++	tristate "NXP PCF2123"
++	help
++	  If you say yes here you get support for the NXP PCF2123
++	  RTC chip.
++
++	  This driver can also be built as a module. If so, the module
++	  will be called rtc-pcf2123.
++
+ endif # SPI_MASTER
+ 
+ comment "Platform RTC drivers"
+diff -puN drivers/rtc/rtc-pcf2123.c~rtc-philips-nxp-pcf2123-driver-v03 drivers/rtc/rtc-pcf2123.c
+--- a/drivers/rtc/rtc-pcf2123.c~rtc-philips-nxp-pcf2123-driver-v03
++++ a/drivers/rtc/rtc-pcf2123.c
+@@ -23,7 +23,7 @@
+ #include <linux/workqueue.h>
+ #include <linux/spi/spi.h>
+ 
+-#define DRV_VERSION "0.2"
++#define DRV_VERSION "0.3"
+ 
+ #define PCF2123_REG_CTRL1	0x00 /* Control Register 1 */
+ #define PCF2123_REG_CTRL2	0x01 /* Control Register 2 */
+@@ -39,6 +39,9 @@
+ #define PCF2123_CMD_W(addr)	(((addr) & 0x0F) | 0x40)  /* single write */
+ #define PCF2123_CMD_R(addr)	(((addr) & 0x0F) | 0x90)  /* single read */
+ 
++/* The Trec (chip enable recovery time) is specified by the PCF2123 */
++#define PCF2123_DELAY_TREC()	{ ndelay(30); }
++
+ static struct spi_driver pcf2123_driver;
+ 
+ struct pcf2123_plat_data {
+@@ -54,9 +57,9 @@ static int pcf2123_rtc_read_time(struct 
+ 	txbuf[0] = PCF2123_CMD_R(PCF2123_REG_SC);
+ 	ret = spi_write_then_read(spi, txbuf, sizeof(txbuf),
+ 			rxbuf, sizeof(rxbuf));
+-	udelay(30); /* Trec 30us */
+ 	if (ret < 0)
+ 		return ret;
++	PCF2123_DELAY_TREC();
+ 
+ 	tm->tm_sec = bcd2bin(rxbuf[0] & 0x7F);
+ 	tm->tm_min = bcd2bin(rxbuf[1] & 0x7F);
+@@ -99,9 +102,9 @@ static int pcf2123_rtc_set_time(struct d
+ 	txbuf[0] = PCF2123_CMD_W(PCF2123_REG_CTRL1);
+ 	txbuf[1] = 0x20;
+ 	ret = spi_write(spi, txbuf, 2);
+-	udelay(30); /* Trec 30us */
+ 	if (ret < 0)
+ 		return ret;
++	PCF2123_DELAY_TREC();
+ 
+ 	/* Set the new time */
+ 	txbuf[0] = PCF2123_CMD_W(PCF2123_REG_SC);
+@@ -114,17 +117,17 @@ static int pcf2123_rtc_set_time(struct d
+ 	txbuf[7] = bin2bcd(tm->tm_year < 100 ? tm->tm_year : tm->tm_year - 100);
+ 
+ 	ret = spi_write(spi, txbuf, sizeof(txbuf));
+-	udelay(30); /* Trec 30us */
+ 	if (ret < 0)
+ 		return ret;
++	PCF2123_DELAY_TREC();
+ 
+ 	/* Start the counter */
+ 	txbuf[0] = PCF2123_CMD_W(PCF2123_REG_CTRL1);
+ 	txbuf[1] = 0x00;
+ 	ret = spi_write(spi, txbuf, 2);
+-	udelay(30); /* Trec 30us */
+ 	if (ret < 0)
+ 		return ret;
++	PCF2123_DELAY_TREC();
+ 
+ 	return 0;
+ }
+@@ -150,24 +153,24 @@ static int __devinit pcf2123_probe(struc
+ 	txbuf[0] = PCF2123_CMD_W(PCF2123_REG_CTRL1);
+ 	txbuf[1] = 0x58;
+ 	ret = spi_write(spi, txbuf, sizeof(txbuf));
+-	udelay(30); /* Trec 30us */
+ 	if (ret < 0)
+ 		return ret;
++	PCF2123_DELAY_TREC();
+ 
+ 	/* Stop the counter */
+ 	txbuf[0] = PCF2123_CMD_W(PCF2123_REG_CTRL1);
+ 	txbuf[1] = 0x20;
+ 	ret = spi_write(spi, txbuf, sizeof(txbuf));
+-	udelay(30); /* Trec 30us */
+ 	if (ret < 0)
+ 		return ret;
++	PCF2123_DELAY_TREC();
+ 
+ 	/* See if the counter was actually stopped */
+ 	txbuf[0] = PCF2123_CMD_R(PCF2123_REG_CTRL1);
+ 	ret = spi_write_then_read(spi, txbuf, 1, rxbuf, sizeof(rxbuf));
+-	udelay(30); /* Trec 30us */
+ 	if (ret < 0)
+ 		goto kfree_exit;
++	PCF2123_DELAY_TREC();
+ 
+ 	if (!(rxbuf[0] & 0x20)) {
+ 		dev_err(&spi->dev, "not found.\n");
+@@ -182,9 +185,9 @@ static int __devinit pcf2123_probe(struc
+ 	txbuf[0] = PCF2123_CMD_W(PCF2123_REG_CTRL1);
+ 	txbuf[1] = 0x00;
+ 	ret = spi_write(spi, txbuf, sizeof(txbuf));
+-	udelay(30); /* Trec 30us */
+ 	if (ret < 0)
+ 		goto kfree_exit;
++	PCF2123_DELAY_TREC();
+ 
+ 	/* Finalize the initialization */
+ 	rtc = rtc_device_register(pcf2123_driver.driver.name, &spi->dev,
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from chrisv@cyberswitching.com are
 
-linux-next.patch
-mm-memory-failure-remove-config_unevictable_lru-config-option.patch
-libfs-return-error-code-on-failed-attr-set.patch
-readahead-add-blk_run_backing_dev.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-mm-clean-up-page_remove_rmap.patch
-mm-oom-analysis-add-per-zone-statistics-to-show_free_areas.patch
-mm-oom-analysis-add-buffer-cache-information-to-show_free_areas.patch
-mm-oom-analysis-add-shmem-vmstat.patch
-mm-shrink_inactive_list-nr_scan-accounting-fix-fix.patch
-mm-vmstat-add-isolate-pages.patch
-mm-vmstat-add-isolate-pages-fix.patch
-vmscan-throttle-direct-reclaim-when-too-many-pages-are-isolated-already.patch
-mm-remove-__addsub_zone_page_state.patch
-mm-count-only-reclaimable-lru-pages-v2.patch
-vmscan-move-clearpageactive-from-move_active_pages-to-shrink_active_list.patch
-vmscan-kill-unnecessary-page-flag-test.patch
-vmscan-kill-unnecessary-prefetch.patch
-ksm-add-mmu_notifier-set_pte_at_notify.patch
-ksm-first-tidy-up-madvise_vma.patch
-ksm-define-madv_mergeable-and-madv_unmergeable.patch
-ksm-the-mm-interface-to-ksm.patch
-ksm-no-debug-in-page_dup_rmap.patch
-ksm-identify-pageksm-pages.patch
-ksm-kernel-samepage-merging.patch
-ksm-prevent-mremap-move-poisoning.patch
-ksm-change-copyright-message.patch
-ksm-change-ksm-nice-level-to-be-5.patch
-mm-do-batched-scans-for-mem_cgroup.patch
-mm-vsmcan-check-shrink_active_list-sc-isolate_pages-return-value.patch
-dev-mem-remove-redundant-test-on-len.patch
-dev-mem-introduce-size_inside_page.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
-documentation-vm-gitignore-add-page-types.patch
-page-types-add-feature-for-walking-process-address-space.patch
-page-types-add-feature-for-walking-process-address-space-checkpatch-fixes.patch
+rtc-philips-pcf2123-rtc-spi-driver.patch
+rtc-philips-nxp-pcf2123-driver-v03.patch
+rtc-philips-nxp-pcf2123-driver-v03-fix.patch
+rtc-philips-nxp-pcf2123-driver-v03-update.patch
+rtc-philips-nxp-pcf2123-driver-v03-update-fix.patch
 
