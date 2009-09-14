@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-add-some-common-blackfin-checks.patch added to -mm tree
-Date: Mon, 14 Sep 2009 14:57:47 -0700
-Message-ID: <200909142157.n8ELvlZN003362@imap1.linux-foundation.org>
+Subject: + rtc-philips-pcf2123-rtc-spi-driver-updates.patch added to -mm tree
+Date: Mon, 14 Sep 2009 15:01:30 -0700
+Message-ID: <200909142201.n8EM1UVb010819@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51693 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57213 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933479AbZINWBW (ORCPT
+	by vger.kernel.org with ESMTP id S1751393AbZINWDA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Sep 2009 18:01:22 -0400
+	Mon, 14 Sep 2009 18:03:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vapier@gentoo.org, apw@shadowen.org, cooloney@kernel.org
+Cc: chrisv@cyberswitching.com, a.zummo@towertech.it, chripell@fsfe.org, david-b@pacbell.net
 
 
 The patch titled
-     checkpatch: add some common Blackfin checks
+     rtc-philips-pcf2123-rtc-spi-driver-updates
 has been added to the -mm tree.  Its filename is
-     checkpatch-add-some-common-blackfin-checks.patch
+     rtc-philips-pcf2123-rtc-spi-driver-updates.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,80 +34,130 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: add some common Blackfin checks
-From: Mike Frysinger <vapier@gentoo.org>
+Subject: rtc-philips-pcf2123-rtc-spi-driver-updates
+From: "Chris Verges" <chrisv@cyberswitching.com>
 
-Add checks for Blackfin-specific issues that seem to crop up from time to
-time.  In particular, we have helper macros to break a 32bit address into
-the hi/lo parts, and we want to make sure people use the csync/ssync
-variant that includes fun anomaly workarounds.
-
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Signed-off-by: Bryan Wu <cooloney@kernel.org>
-Cc: Andy Whitcroft <apw@shadowen.org>
+Signed-off: Chris Verges <chrisv@cyberswitching.com>
+Cc: Christian Pellegrin <chripell@fsfe.org>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ drivers/rtc/rtc-pcf2123.c |   44 ++++++++++++++++++++++++++----------
+ 1 file changed, 32 insertions(+), 12 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-some-common-blackfin-checks scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-some-common-blackfin-checks
-+++ a/scripts/checkpatch.pl
-@@ -1378,6 +1378,18 @@ sub process {
- 			WARN("adding a line without newline at end of file\n" . $herecurr);
- 		}
+diff -puN drivers/rtc/rtc-pcf2123.c~rtc-philips-pcf2123-rtc-spi-driver-updates drivers/rtc/rtc-pcf2123.c
+--- a/drivers/rtc/rtc-pcf2123.c~rtc-philips-pcf2123-rtc-spi-driver-updates
++++ a/drivers/rtc/rtc-pcf2123.c
+@@ -42,7 +42,7 @@
+ #include <linux/rtc.h>
+ #include <linux/spi/spi.h>
  
-+# Blackfin: use hi/lo macros
-+		if ($realfile =~ m@arch/blackfin/.*\.S$@) {
-+			if ($line =~ /\.[lL][[:space:]]*=.*&[[:space:]]*0x[fF][fF][fF][fF]/) {
-+				my $herevet = "$here\n" . cat_vet($line) . "\n";
-+				ERROR("use the LO() macro, not (... & 0xFFFF)\n" . $herevet);
-+			}
-+			if ($line =~ /\.[hH][[:space:]]*=.*>>[[:space:]]*16/) {
-+				my $herevet = "$here\n" . cat_vet($line) . "\n";
-+				ERROR("use the HI() macro, not (... >> 16)\n" . $herevet);
-+			}
-+		}
+-#define DRV_VERSION "0.5"
++#define DRV_VERSION "0.6"
+ 
+ #define PCF2123_REG_CTRL1	(0x00)	/* Control Register 1 */
+ #define PCF2123_REG_CTRL2	(0x01)	/* Control Register 2 */
+@@ -61,7 +61,7 @@
+ static struct spi_driver pcf2123_driver;
+ 
+ struct pcf2123_sysfs_reg {
+-	struct device_attribute attr; /* must be first */
++	struct device_attribute attr;
+ 	char name[2];
+ };
+ 
+@@ -84,27 +84,42 @@ static ssize_t pcf2123_show(struct devic
+ 			    char *buffer)
+ {
+ 	struct spi_device *spi = to_spi_device(dev);
+-	struct pcf2123_sysfs_reg *r = (struct pcf2123_sysfs_reg *) attr;
++	struct pcf2123_sysfs_reg *r;
+ 	u8 txbuf[1], rxbuf[1];
++	unsigned long reg;
+ 	int ret;
+ 
+-	txbuf[0] = PCF2123_READ | simple_strtoul(r->name, NULL, 16);
++	r = container_of(attr, struct pcf2123_sysfs_reg, attr);
 +
- # check we are in a valid source file C or perl if not then ignore this hunk
- 		next if ($realfile !~ /\.(h|c|pl)$/);
- 
-@@ -1397,6 +1409,16 @@ sub process {
- 			WARN("CVS style keyword markers, these will _not_ be updated\n". $herecurr);
- 		}
- 
-+# Blackfin: don't use __builtin_bfin_[cs]sync
-+		if ($line =~ /__builtin_bfin_csync/) {
-+			my $herevet = "$here\n" . cat_vet($line) . "\n";
-+			ERROR("use the CSYNC() macro in asm/blackfin.h\n" . $herevet);
-+		}
-+		if ($line =~ /__builtin_bfin_ssync/) {
-+			my $herevet = "$here\n" . cat_vet($line) . "\n";
-+			ERROR("use the SSYNC() macro in asm/blackfin.h\n" . $herevet);
-+		}
++	if (strict_strtoul(r->name, 16, &reg))
++		return -EINVAL;
 +
- # Check for potential 'bare' types
- 		my ($stat, $cond, $line_nr_next, $remain_next, $off_next);
- 		if ($realcnt && $line =~ /.\s*\S/) {
++	txbuf[0] = PCF2123_READ | reg;
+ 	ret = spi_write_then_read(spi, txbuf, 1, rxbuf, 1);
+ 	if (ret < 0)
+-		return sprintf(buffer, "error: %d", ret);
++		return -EIO;
+ 	pcf2123_delay_trec();
+-	return sprintf(buffer, "0x%x", rxbuf[0]);
++	return sprintf(buffer, "0x%x\n", rxbuf[0]);
+ }
+ 
+ static ssize_t pcf2123_store(struct device *dev, struct device_attribute *attr,
+ 			     const char *buffer, size_t count) {
+ 	struct spi_device *spi = to_spi_device(dev);
+-	struct pcf2123_sysfs_reg *r = (struct pcf2123_sysfs_reg *) attr;
++	struct pcf2123_sysfs_reg *r;
+ 	u8 txbuf[2];
++	unsigned long reg;
++	unsigned long val;
++
+ 	int ret;
+ 
+-	txbuf[0] = PCF2123_WRITE | simple_strtoul(r->name, NULL, 16);
+-	txbuf[1] = simple_strtoul(buffer, NULL, 0);
++	r = container_of(attr, struct pcf2123_sysfs_reg, attr);
++
++	if (strict_strtoul(r->name, 16, &reg)
++		|| strict_strtoul(buffer, 10, &val))
++		return -EINVAL;
++
++	txbuf[0] = PCF2123_WRITE | reg;
++	txbuf[1] = val;
+ 	ret = spi_write(spi, txbuf, sizeof(txbuf));
+ 	if (ret < 0)
+ 		return -EIO;
+@@ -220,7 +235,7 @@ static int __devinit pcf2123_probe(struc
+ 			txbuf[0], txbuf[1]);
+ 	ret = spi_write(spi, txbuf, 2 * sizeof(u8));
+ 	if (ret < 0)
+-		return ret;
++		goto kfree_exit;
+ 	pcf2123_delay_trec();
+ 
+ 	/* Stop the counter */
+@@ -230,7 +245,7 @@ static int __devinit pcf2123_probe(struc
+ 			txbuf[0], txbuf[1]);
+ 	ret = spi_write(spi, txbuf, 2 * sizeof(u8));
+ 	if (ret < 0)
+-		return ret;
++		goto kfree_exit;
+ 	pcf2123_delay_trec();
+ 
+ 	/* See if the counter was actually stopped */
+@@ -284,11 +299,16 @@ static int __devinit pcf2123_probe(struc
+ 		if (ret) {
+ 			dev_err(&spi->dev, "Unable to create sysfs %s\n",
+ 				pdata->regs[i].name);
+-			pdata->regs[i].name[0] = '\0';
++			goto sysfs_exit;
+ 		}
+ 	}
+ 
+ 	return 0;
++
++sysfs_exit:
++	for (i--; i >= 0; i--)
++		device_remove_file(&spi->dev, &pdata->regs[i].attr);
++
+ kfree_exit:
+ 	kfree(pdata);
+ 	spi->dev.platform_data = NULL;
 _
 
-Patches currently in -mm which might be from vapier@gentoo.org are
+Patches currently in -mm which might be from chrisv@cyberswitching.com are
 
-ipc-shmc-fix-undefined-reference-to-user_shm_unlock.patch
-linux-next.patch
-md-dm-log-fix-cn_ulog_callback-declaration.patch
-pcmcia-yenta-add-missing-__devexit-marking.patch
-blackfin-fix-read-buffer-overflow.patch
-scripts-get_maintainerpl-add-remove-duplicates.patch
-asm-sections-add-text-data-checking-functions-for-arches-to-override.patch
-kallsyms-use-new-arch_is_kernel_text.patch
-lockdep-use-new-arch_is_kernel_data.patch
-blackfin-override-text-data-checking-functions.patch
-checkpatch-add-some-common-blackfin-checks.patch
-rtc-update-documentation-wrt-rtc_pie-irq_set_state.patch
-rtc-bfin-do-not-share-rtc-irq.patch
-fdpic-ignore-the-loaders-pt_gnu_stack-when-calculating-the-stack-size.patch
-flat-use-is_err_value-helper-macro.patch
-linux-futexh-place-kernel-types-behind-__kernel__.patch
+rtc-philips-pcf2123-rtc-spi-driver.patch
+rtc-philips-pcf2123-rtc-spi-driver-updates.patch
 
