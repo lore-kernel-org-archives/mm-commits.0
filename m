@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-net-r8169c-remove-unused-label.patch added to -mm tree
-Date: Mon, 14 Sep 2009 01:26:43 -0700
-Message-ID: <200909140826.n8E8QhZf003812@imap1.linux-foundation.org>
+Subject: + cpuidle-a-new-variant-of-the-menu-governor-to-boost-io-performance-percpu-workaround.patch added to -mm tree
+Date: Mon, 14 Sep 2009 01:27:23 -0700
+Message-ID: <200909140827.n8E8RNeL005124@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34379 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57267 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750902AbZINI0o (ORCPT
+	by vger.kernel.org with ESMTP id S1753374AbZINI2i (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Sep 2009 04:26:44 -0400
+	Mon, 14 Sep 2009 04:28:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bhutchings@solarflare.com, davem@davemloft.net
+Cc: akpm@linux-foundation.org, arjan@infradead.org, mingo@elte.hu, tj@kernel.org
 
 
 The patch titled
-     drivers/net/r8169.c: remove unused label
+     cpuidle-a-new-variant-of-the-menu-governor-to-boost-io-performance percpu workaround
 has been added to the -mm tree.  Its filename is
-     drivers-net-r8169c-remove-unused-label.patch
+     cpuidle-a-new-variant-of-the-menu-governor-to-boost-io-performance-percpu-workaround.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,57 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/net/r8169.c: remove unused label
+Subject: cpuidle-a-new-variant-of-the-menu-governor-to-boost-io-performance percpu workaround
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/net/r8169.c: In function 'rtl8169_start_xmit':
-drivers/net/r8169.c:3419: warning: label 'out' defined but not used
-
-due, I assume, to
-
-commit 7ab0f2736bfe137a82a7084bbfb5f809da95cabd
-Author:     Ben Hutchings <bhutchings@solarflare.com>
-AuthorDate: Thu Sep 3 10:39:43 2009 +0000
-Commit:     David S. Miller <davem@davemloft.net>
-CommitDate: Thu Sep 3 20:02:11 2009 -0700
-
-    netdev: Remove redundant checks for CAP_NET_ADMIN in MDIO implementations
-
-
-Cc: Ben Hutchings <bhutchings@solarflare.com>
-Cc: David S. Miller <davem@davemloft.net>
+Cc: Arjan van de Ven <arjan@infradead.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/r8169.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/cpuidle/governors/menu-tng.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/net/r8169.c~drivers-net-r8169c-remove-unused-label drivers/net/r8169.c
---- a/drivers/net/r8169.c~drivers-net-r8169c-remove-unused-label
-+++ a/drivers/net/r8169.c
-@@ -3416,7 +3416,6 @@ static netdev_tx_t rtl8169_start_xmit(st
- 			netif_wake_queue(dev);
- 	}
+diff -puN drivers/cpuidle/governors/menu-tng.c~cpuidle-a-new-variant-of-the-menu-governor-to-boost-io-performance-percpu-workaround drivers/cpuidle/governors/menu-tng.c
+--- a/drivers/cpuidle/governors/menu-tng.c~cpuidle-a-new-variant-of-the-menu-governor-to-boost-io-performance-percpu-workaround
++++ a/drivers/cpuidle/governors/menu-tng.c
+@@ -167,7 +167,7 @@ static inline int performance_multiplier
+ 	return mult;
+ }
  
--out:
- 	return NETDEV_TX_OK;
+-static DEFINE_PER_CPU(struct menu_device, menu_devices);
++static DEFINE_PER_CPU(struct menu_device, tng_menu_devices);
  
- err_stop:
+ /**
+  * menu_select - selects the next idle state to enter
+@@ -175,7 +175,7 @@ static DEFINE_PER_CPU(struct menu_device
+  */
+ static int menu_select(struct cpuidle_device *dev)
+ {
+-	struct menu_device *data = &__get_cpu_var(menu_devices);
++	struct menu_device *data = &__get_cpu_var(tng_menu_devices);
+ 	int latency_req = pm_qos_requirement(PM_QOS_CPU_DMA_LATENCY);
+ 	int i, multiplier;
+ 
+@@ -241,7 +241,7 @@ static int menu_select(struct cpuidle_de
+  */
+ static void menu_reflect(struct cpuidle_device *dev)
+ {
+-	struct menu_device *data = &__get_cpu_var(menu_devices);
++	struct menu_device *data = &__get_cpu_var(tng_menu_devices);
+ 	int last_idx = data->last_state_idx;
+ 	unsigned int last_idle_us = cpuidle_get_last_residency(dev);
+ 	struct cpuidle_state *target = &dev->states[last_idx];
+@@ -297,7 +297,7 @@ static void menu_reflect(struct cpuidle_
+  */
+ static int menu_enable_device(struct cpuidle_device *dev)
+ {
+-	struct menu_device *data = &per_cpu(menu_devices, dev->cpu);
++	struct menu_device *data = &per_cpu(tng_menu_devices, dev->cpu);
+ 
+ 	memset(data, 0, sizeof(struct menu_device));
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
