@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regionspatch-in-mm-fix.patch added to -mm tree
-Date: Tue, 15 Sep 2009 14:45:00 -0700
-Message-ID: <200909152145.n8FLj0VK012468@imap1.linux-foundation.org>
+Subject: + maintainers-integrate-p-m-lines.patch added to -mm tree
+Date: Tue, 15 Sep 2009 15:13:40 -0700
+Message-ID: <200909152213.n8FMDemY003817@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59627 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60168 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751371AbZIOVpj (ORCPT
+	by vger.kernel.org with ESMTP id S1751840AbZIOWNt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Sep 2009 17:45:39 -0400
+	Tue, 15 Sep 2009 18:13:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebmunson@us.ibm.com, agl@us.ibm.com, david@gibson.dropbear.id.au, hugh.dickins@tiscali.co.uk, lee.schermerhorn@hp.com, mel@csn.ul.ie, nickpiggin@yahoo.com.au, rientjes@google.com
+Cc: joe@perches.com, anil_ravindranath@pmc-sierra.com, kalle.valo@nokia.com
 
 
 The patch titled
-     hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regionspatch-in-mm-fix
+     MAINTAINERS: integrate P:/M: lines
 has been added to the -mm tree.  Its filename is
-     hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regionspatch-in-mm-fix.patch
+     maintainers-integrate-p-m-lines.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,54 +34,66 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regionspatch-in-mm-fix
-From: Eric B Munson <ebmunson@us.ibm.com>
+Subject: MAINTAINERS: integrate P:/M: lines
+From: Joe Perches <joe@perches.com>
 
-The patch
-hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions.patch
-used the value 0x40 for MAP_HUGETLB which is the same value used for
-various other flags on some architectures.  This collision causes
-unexpected use of huge pages in the best case and mmap to fail with
-ENOMEM or ENOSYS in the worst.  This patch changes the value for
-MAP_HUGETLB to a value that is not currently used on any arch.
+A couple of new uses of separate "P: name" "M: address" lines are
+converted to single line "M: name <address>"
 
-This patch should be considered a fix to
-hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions.patch.
-
-Reported-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Signed-off-by: Eric B Munson <ebmunson@us.ibm.com>
-Acked-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Adam Litke <agl@us.ibm.com>
-Cc: David Gibson <david@gibson.dropbear.id.au>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Anil Ravindranath <anil_ravindranath@pmc-sierra.com>
+Cc: Kalle Valo <kalle.valo@nokia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/mman-common.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN include/asm-generic/mman-common.h~hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regionspatch-in-mm-fix include/asm-generic/mman-common.h
---- a/include/asm-generic/mman-common.h~hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regionspatch-in-mm-fix
-+++ a/include/asm-generic/mman-common.h
-@@ -19,7 +19,7 @@
- #define MAP_TYPE	0x0f		/* Mask for type of mapping */
- #define MAP_FIXED	0x10		/* Interpret addr exactly */
- #define MAP_ANONYMOUS	0x20		/* don't use a file */
--#define MAP_HUGETLB	0x40		/* create a huge page mapping */
-+#define MAP_HUGETLB	0x080000	/* create a huge page mapping */
+diff -puN MAINTAINERS~maintainers-integrate-p-m-lines MAINTAINERS
+--- a/MAINTAINERS~maintainers-integrate-p-m-lines
++++ a/MAINTAINERS
+@@ -4059,8 +4059,7 @@ F:	drivers/block/pktcdvd.c
+ F:	include/linux/pktcdvd.h
  
- #define MS_ASYNC	1		/* sync memory asynchronously */
- #define MS_INVALIDATE	2		/* invalidate the caches */
+ PMC SIERRA MaxRAID DRIVER
+-P:	Anil Ravindranath
+-M:	anil_ravindranath@pmc-sierra.com
++M:	Anil Ravindranath <anil_ravindranath@pmc-sierra.com>
+ L:	linux-scsi@vger.kernel.org
+ W:	http://www.pmc-sierra.com/
+ S:	Supported
+@@ -5703,8 +5702,7 @@ S:	Maintained
+ F:	drivers/input/misc/wistron_btns.c
+ 
+ WL1251 WIRELESS DRIVER
+-P:	Kalle Valo
+-M:	kalle.valo@nokia.com
++M:	Kalle Valo <kalle.valo@nokia.com>
+ L:	linux-wireless@vger.kernel.org
+ W:	http://wireless.kernel.org
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/linville/wireless-testing.git
 _
 
-Patches currently in -mm which might be from ebmunson@us.ibm.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-hugetlbfs-allow-the-creation-of-files-suitable-for-map_private-on-the-vfs-internal-mount.patch
-hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions.patch
-hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regionspatch-in-mm-fix.patch
-hugetlb-add-map_hugetlb-example.patch
+origin.patch
+linux-next.patch
+maintainers-add-ipvs-include-files.patch
+scripts-get_maintainerpl-add-git-blame.patch
+scripts-get_maintainerpl-add-sections-in-pattern-match-depth-order.patch
+scripts-get_maintainerpl-add-pattern-depth.patch
+scripts-get_maintainerpl-better-email-routines-use-perl-not-shell-where-possible.patch
+scripts-get_maintainerpl-add-mailmap-use-shell-and-email-cleanups.patch
+scripts-get_maintainerpl-using-separator-implies-nomultiline.patch
+scripts-get_maintainerpl-add-remove-duplicates.patch
+scripts-get_maintainerpl-add-maintainers-in-order-listed-in-matched-section.patch
+maintainers-acpi-add-include-acpi.patch
+maintainers-omap-fix-regex.patch
+maintainers-integrate-p-m-lines.patch
+mmc-msm_sdccc-driver-for-htc-dream.patch
+msm_sdccc-convert-printkkern_level-to-pr_level.patch
+msm_sdccc-stylistic-cleaning.patch
+msm_sdccc-move-overly-indented-code-to-separate-function.patch
+ncpfs-remove-dead-url-from-documentation.patch
+maintainers-add-matt-mackall-and-herbert-xu-to-hardware-random-number-generator.patch
 
