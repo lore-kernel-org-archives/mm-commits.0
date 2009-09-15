@@ -1,84 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [merged] char-mxser-add-support-for-cp112ul.patch removed from -mm tree
-Date: Tue, 15 Sep 2009 14:05:57 -0700
-Message-ID: <200909152105.n8FL5vfw000791@imap1.linux-foundation.org>
+Subject: [merged] char-mxser-use-thre-for-aspp_oqueue-ioctl.patch removed from -mm tree
+Date: Tue, 15 Sep 2009 14:06:00 -0700
+Message-ID: <200909152106.n8FL60Nu000933@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48688 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36907 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751389AbZIOVGd (ORCPT
+	by vger.kernel.org with ESMTP id S1758150AbZIOVGh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Sep 2009 17:06:33 -0400
+	Tue, 15 Sep 2009 17:06:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: mxser, add support for CP112UL
+     Char: mxser, use THRE for ASPP_OQUEUE ioctl
 has been removed from the -mm tree.  Its filename was
-     char-mxser-add-support-for-cp112ul.patch
+     char-mxser-use-thre-for-aspp_oqueue-ioctl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Char: mxser, add support for CP112UL
+Subject: Char: mxser, use THRE for ASPP_OQUEUE ioctl
 From: Jiri Slaby <jirislaby@gmail.com>
 
-Add support for MOXA:0x1120 pci device.  It's a 2-port device and differs
-in no way from the others.  So this turns out to be a trivial
-pci_device_id change.
+In moxa specific ASPP_OQUEUE ioctl command, they apparently want only know
+whether there is space in transmitter hold register.
 
-Also increase the version number.
+So switch UART_LSR_TEMT to UART_LSR_THRE in that specific case according
+to the change in 1.14 moxa drivers.
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mxser.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ drivers/char/mxser.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/mxser.c~char-mxser-add-support-for-cp112ul drivers/char/mxser.c
---- a/drivers/char/mxser.c~char-mxser-add-support-for-cp112ul
+diff -puN drivers/char/mxser.c~char-mxser-use-thre-for-aspp_oqueue-ioctl drivers/char/mxser.c
+--- a/drivers/char/mxser.c~char-mxser-use-thre-for-aspp_oqueue-ioctl
 +++ a/drivers/char/mxser.c
-@@ -48,7 +48,7 @@
+@@ -1806,7 +1806,7 @@ static int mxser_ioctl(struct tty_struct
  
- #include "mxser.h"
+ 		lock_kernel();
+ 		len = mxser_chars_in_buffer(tty);
+-		lsr = inb(info->ioaddr + UART_LSR) & UART_LSR_TEMT;
++		lsr = inb(info->ioaddr + UART_LSR) & UART_LSR_THRE;
+ 		len += (lsr ? 0 : 1);
+ 		unlock_kernel();
  
--#define	MXSER_VERSION	"2.0.4"		/* 1.12 */
-+#define	MXSER_VERSION	"2.0.5"		/* 1.14 */
- #define	MXSERMAJOR	 174
- 
- #define MXSER_BOARDS		4	/* Max. boards */
-@@ -69,6 +69,7 @@
- #define PCI_DEVICE_ID_POS104UL	0x1044
- #define PCI_DEVICE_ID_CB108	0x1080
- #define PCI_DEVICE_ID_CP102UF	0x1023
-+#define PCI_DEVICE_ID_CP112UL	0x1120
- #define PCI_DEVICE_ID_CB114	0x1142
- #define PCI_DEVICE_ID_CP114UL	0x1143
- #define PCI_DEVICE_ID_CB134I	0x1341
-@@ -139,7 +140,8 @@ static const struct mxser_cardinfo mxser
- 	{ "CP-138U series",	8, },
- 	{ "POS-104UL series",	4, },
- 	{ "CP-114UL series",	4, },
--/*30*/	{ "CP-102UF series",	2, }
-+/*30*/	{ "CP-102UF series",	2, },
-+	{ "CP-112UL series",	2, },
- };
- 
- /* driver_data correspond to the lines in the structure above
-@@ -170,6 +172,7 @@ static struct pci_device_id mxser_pcibrd
- 	{ PCI_VDEVICE(MOXA, PCI_DEVICE_ID_POS104UL),	.driver_data = 28 },
- 	{ PCI_VDEVICE(MOXA, PCI_DEVICE_ID_CP114UL),	.driver_data = 29 },
- 	{ PCI_VDEVICE(MOXA, PCI_DEVICE_ID_CP102UF),	.driver_data = 30 },
-+	{ PCI_VDEVICE(MOXA, PCI_DEVICE_ID_CP112UL),	.driver_data = 31 },
- 	{ }
- };
- MODULE_DEVICE_TABLE(pci, mxser_pcibrds);
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
