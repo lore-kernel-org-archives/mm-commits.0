@@ -1,93 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [folded] cpuidle-a-new-variant-of-the-menu-governor-to-boost-io-performance-percpu-workaround.patch removed from -mm tree
-Date: Mon, 14 Sep 2009 18:38:47 -0700
-Message-ID: <200909150138.n8F1clDA014982@imap1.linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Tue, 15 Sep 2009 14:00:08 -0700
+Message-ID: <200909152100.n8FL08CX021855@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56730 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44005 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752458AbZIOBkK (ORCPT
+	by vger.kernel.org with ESMTP id S1756251AbZIOVAR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Sep 2009 21:40:10 -0400
+	Tue, 15 Sep 2009 17:00:17 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n8FL0Jll030286
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 15 Sep 2009 14:00:20 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, arjan@infradead.org, mingo@elte.hu, tj@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     cpuidle-a-new-variant-of-the-menu-governor-to-boost-io-performance percpu workaround
-has been removed from the -mm tree.  Its filename was
-     cpuidle-a-new-variant-of-the-menu-governor-to-boost-io-performance-percpu-workaround.patch
+     linux-next-git-rejects
+has been added to the -mm tree.  Its filename is
+     linux-next-git-rejects.patch
 
-This patch was dropped because it was folded into cpuidle-a-new-variant-of-the-menu-governor-to-boost-io-performance.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpuidle-a-new-variant-of-the-menu-governor-to-boost-io-performance percpu workaround
+Subject: linux-next-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Arjan van de Ven <arjan@infradead.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpuidle/governors/menu-tng.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/percpu.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN drivers/cpuidle/governors/menu-tng.c~cpuidle-a-new-variant-of-the-menu-governor-to-boost-io-performance-percpu-workaround drivers/cpuidle/governors/menu-tng.c
---- a/drivers/cpuidle/governors/menu-tng.c~cpuidle-a-new-variant-of-the-menu-governor-to-boost-io-performance-percpu-workaround
-+++ a/drivers/cpuidle/governors/menu-tng.c
-@@ -167,7 +167,7 @@ static inline int performance_multiplier
- 	return mult;
+diff -puN mm/percpu.c~linux-next-git-rejects mm/percpu.c
+--- a/mm/percpu.c~linux-next-git-rejects
++++ a/mm/percpu.c
+@@ -347,11 +347,7 @@ static struct pcpu_chunk *pcpu_chunk_add
+ 	 * space.  Note that any possible cpu id can be used here, so
+ 	 * there's no need to worry about preemption or cpu hotplug.
+ 	 */
+-<<<<<<< HEAD:mm/percpu.c
+ 	addr += pcpu_unit_offsets[raw_smp_processor_id()];
+-=======
+-	addr += pcpu_unit_offsets[smp_processor_id()];
+->>>>>>> FETCH_HEAD:mm/percpu.c
+ 	return pcpu_get_page_chunk(vmalloc_to_page(addr));
  }
- 
--static DEFINE_PER_CPU(struct menu_device, menu_devices);
-+static DEFINE_PER_CPU(struct menu_device, tng_menu_devices);
- 
- /**
-  * menu_select - selects the next idle state to enter
-@@ -175,7 +175,7 @@ static DEFINE_PER_CPU(struct menu_device
-  */
- static int menu_select(struct cpuidle_device *dev)
- {
--	struct menu_device *data = &__get_cpu_var(menu_devices);
-+	struct menu_device *data = &__get_cpu_var(tng_menu_devices);
- 	int latency_req = pm_qos_requirement(PM_QOS_CPU_DMA_LATENCY);
- 	int i, multiplier;
- 
-@@ -241,7 +241,7 @@ static int menu_select(struct cpuidle_de
-  */
- static void menu_reflect(struct cpuidle_device *dev)
- {
--	struct menu_device *data = &__get_cpu_var(menu_devices);
-+	struct menu_device *data = &__get_cpu_var(tng_menu_devices);
- 	int last_idx = data->last_state_idx;
- 	unsigned int last_idle_us = cpuidle_get_last_residency(dev);
- 	struct cpuidle_state *target = &dev->states[last_idx];
-@@ -297,7 +297,7 @@ static void menu_reflect(struct cpuidle_
-  */
- static int menu_enable_device(struct cpuidle_device *dev)
- {
--	struct menu_device *data = &per_cpu(menu_devices, dev->cpu);
-+	struct menu_device *data = &per_cpu(tng_menu_devices, dev->cpu);
- 
- 	memset(data, 0, sizeof(struct menu_device));
  
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 fs-make-sure-data-stored-into-inode-is-properly-seen-before-unlocking-new-inode-fix.patch
 linux-next.patch
+linux-next-git-rejects.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
 arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
 hwmon-driver-for-acpi-40-power-meters-fix.patch
 hwmon-driver-for-acpi-40-power-meters-fix-2.patch
-cpuidle-a-new-variant-of-the-menu-governor-to-boost-io-performance.patch
-cpuidle-a-new-variant-of-the-menu-governor-to-boost-io-performance-percpu-workaround.patch
 video-initial-support-for-adv7180-update-fix.patch
 timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
 input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
