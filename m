@@ -1,67 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Tue, 15 Sep 2009 14:00:08 -0700
-Message-ID: <200909152100.n8FL08CX021855@imap1.linux-foundation.org>
+Subject: [merged] drivers-net-r8169c-remove-unused-label.patch removed from -mm tree
+Date: Tue, 15 Sep 2009 14:05:54 -0700
+Message-ID: <200909152105.n8FL5sHQ000713@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44005 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38299 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756251AbZIOVAR (ORCPT
+	by vger.kernel.org with ESMTP id S1754351AbZIOVGY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Sep 2009 17:00:17 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n8FL0Jll030286
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 15 Sep 2009 14:00:20 -0700
+	Tue, 15 Sep 2009 17:06:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, bhutchings@solarflare.com, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     drivers/net/r8169.c: remove unused label
+has been removed from the -mm tree.  Its filename was
+     drivers-net-r8169c-remove-unused-label.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
+Subject: drivers/net/r8169.c: remove unused label
 From: Andrew Morton <akpm@linux-foundation.org>
 
+drivers/net/r8169.c: In function 'rtl8169_start_xmit':
+drivers/net/r8169.c:3419: warning: label 'out' defined but not used
+
+due, I assume, to
+
+commit 7ab0f2736bfe137a82a7084bbfb5f809da95cabd
+Author:     Ben Hutchings <bhutchings@solarflare.com>
+AuthorDate: Thu Sep 3 10:39:43 2009 +0000
+Commit:     David S. Miller <davem@davemloft.net>
+CommitDate: Thu Sep 3 20:02:11 2009 -0700
+
+    netdev: Remove redundant checks for CAP_NET_ADMIN in MDIO implementations
+
+
+Cc: Ben Hutchings <bhutchings@solarflare.com>
+Cc: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/percpu.c |    4 ----
- 1 file changed, 4 deletions(-)
+ drivers/net/r8169.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/percpu.c~linux-next-git-rejects mm/percpu.c
---- a/mm/percpu.c~linux-next-git-rejects
-+++ a/mm/percpu.c
-@@ -347,11 +347,7 @@ static struct pcpu_chunk *pcpu_chunk_add
- 	 * space.  Note that any possible cpu id can be used here, so
- 	 * there's no need to worry about preemption or cpu hotplug.
- 	 */
--<<<<<<< HEAD:mm/percpu.c
- 	addr += pcpu_unit_offsets[raw_smp_processor_id()];
--=======
--	addr += pcpu_unit_offsets[smp_processor_id()];
-->>>>>>> FETCH_HEAD:mm/percpu.c
- 	return pcpu_get_page_chunk(vmalloc_to_page(addr));
- }
+diff -puN drivers/net/r8169.c~drivers-net-r8169c-remove-unused-label drivers/net/r8169.c
+--- a/drivers/net/r8169.c~drivers-net-r8169c-remove-unused-label
++++ a/drivers/net/r8169.c
+@@ -3416,7 +3416,6 @@ static netdev_tx_t rtl8169_start_xmit(st
+ 			netif_wake_queue(dev);
+ 	}
  
+-out:
+ 	return NETDEV_TX_OK;
+ 
+ err_stop:
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -81,7 +79,6 @@ input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interf
 input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
 checkincludespl-add-option-to-remove-duplicates-in-place.patch
 zorro8390-fix-read-buffer-overflow-in-zorro8390_init_one-checkpatch-fixes.patch
-drivers-net-r8169c-remove-unused-label.patch
 3x59x-fix-pci-resource-management.patch
 bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
 serial167-fix-read-buffer-overflow.patch
