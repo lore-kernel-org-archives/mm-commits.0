@@ -1,73 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [folded] cpuidle-a-new-variant-of-the-menu-governor-to-boost-io-performance-fix.patch removed from -mm tree
-Date: Mon, 14 Sep 2009 18:38:38 -0700
-Message-ID: <200909150138.n8F1cckE014679@imap1.linux-foundation.org>
+Subject: [folded] cpuidle-a-new-variant-of-the-menu-governor-to-boost-io-performance-percpu-workaround.patch removed from -mm tree
+Date: Mon, 14 Sep 2009 18:38:47 -0700
+Message-ID: <200909150138.n8F1clDA014982@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60188 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56730 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757450AbZIOBj4 (ORCPT
+	by vger.kernel.org with ESMTP id S1752458AbZIOBkK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Sep 2009 21:39:56 -0400
+	Mon, 14 Sep 2009 21:40:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, arjan@linux.intel.com, lenb@kernel.org, mingo@elte.hu, venkatesh.pallipadi@intel.com, yanmin_zhang@linux.intel.com, mm-commits@vger.
+To: akpm@linux-foundation.org, arjan@infradead.org, mingo@elte.hu, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpuidle-a-new-variant-of-the-menu-governor-to-boost-io-performance-fix
+     cpuidle-a-new-variant-of-the-menu-governor-to-boost-io-performance percpu workaround
 has been removed from the -mm tree.  Its filename was
-     cpuidle-a-new-variant-of-the-menu-governor-to-boost-io-performance-fix.patch
+     cpuidle-a-new-variant-of-the-menu-governor-to-boost-io-performance-percpu-workaround.patch
 
 This patch was dropped because it was folded into cpuidle-a-new-variant-of-the-menu-governor-to-boost-io-performance.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpuidle-a-new-variant-of-the-menu-governor-to-boost-io-performance-fix
+Subject: cpuidle-a-new-variant-of-the-menu-governor-to-boost-io-performance percpu workaround
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fix spellos
-
-Cc: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Arjan van de Ven <arjan@infradead.org>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Yanmin Zhang <yanmin_zhang@linux.intel.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpuidle/governors/menu-tng.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/cpuidle/governors/menu-tng.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/cpuidle/governors/menu-tng.c~cpuidle-a-new-variant-of-the-menu-governor-to-boost-io-performance-fix drivers/cpuidle/governors/menu-tng.c
---- a/drivers/cpuidle/governors/menu-tng.c~cpuidle-a-new-variant-of-the-menu-governor-to-boost-io-performance-fix
+diff -puN drivers/cpuidle/governors/menu-tng.c~cpuidle-a-new-variant-of-the-menu-governor-to-boost-io-performance-percpu-workaround drivers/cpuidle/governors/menu-tng.c
+--- a/drivers/cpuidle/governors/menu-tng.c~cpuidle-a-new-variant-of-the-menu-governor-to-boost-io-performance-percpu-workaround
 +++ a/drivers/cpuidle/governors/menu-tng.c
-@@ -32,7 +32,7 @@
-  *
-  * For the menu-tng governor, there are 3 decision factors for picking a C
-  * state:
-- * 1) Energie break even point
-+ * 1) Energy break even point
-  * 2) Performance impact
-  * 3) Latency tolerance (from pmqos infrastructure)
-  * These these three factors are treated independently.
-@@ -55,12 +55,12 @@
-  * menu-tng uses a running average for this correction factor, however it uses a
-  * set of factors, not just a single factor. This stems from the realization
-  * that the ratio is dependent on the order of magnitude of the expected
-- * duration; if we expect 500 milliseconds of idle time the likelyhood of
-+ * duration; if we expect 500 milliseconds of idle time the likelihood of
-  * getting an interrupt very early is much higher than if we expect 50 micro
-  * seconds of idle time. A second independent factor that has big impact on
-  * the actual factor is if there is (disk) IO outstanding or not.
-  * (as a special twist, we consider every sleep longer than 50 milliseconds
-- * as perfect; there is no power gains for sleeping longer than this)
-+ * as perfect; there are no power gains for sleeping longer than this)
-  *
-  * For these two reasons we keep an array of 12 independent factors, that gets
-  * indexed based on the magnitude of the expected duration as well as the
+@@ -167,7 +167,7 @@ static inline int performance_multiplier
+ 	return mult;
+ }
+ 
+-static DEFINE_PER_CPU(struct menu_device, menu_devices);
++static DEFINE_PER_CPU(struct menu_device, tng_menu_devices);
+ 
+ /**
+  * menu_select - selects the next idle state to enter
+@@ -175,7 +175,7 @@ static DEFINE_PER_CPU(struct menu_device
+  */
+ static int menu_select(struct cpuidle_device *dev)
+ {
+-	struct menu_device *data = &__get_cpu_var(menu_devices);
++	struct menu_device *data = &__get_cpu_var(tng_menu_devices);
+ 	int latency_req = pm_qos_requirement(PM_QOS_CPU_DMA_LATENCY);
+ 	int i, multiplier;
+ 
+@@ -241,7 +241,7 @@ static int menu_select(struct cpuidle_de
+  */
+ static void menu_reflect(struct cpuidle_device *dev)
+ {
+-	struct menu_device *data = &__get_cpu_var(menu_devices);
++	struct menu_device *data = &__get_cpu_var(tng_menu_devices);
+ 	int last_idx = data->last_state_idx;
+ 	unsigned int last_idle_us = cpuidle_get_last_residency(dev);
+ 	struct cpuidle_state *target = &dev->states[last_idx];
+@@ -297,7 +297,7 @@ static void menu_reflect(struct cpuidle_
+  */
+ static int menu_enable_device(struct cpuidle_device *dev)
+ {
+-	struct menu_device *data = &per_cpu(menu_devices, dev->cpu);
++	struct menu_device *data = &per_cpu(tng_menu_devices, dev->cpu);
+ 
+ 	memset(data, 0, sizeof(struct menu_device));
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -80,7 +87,6 @@ arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-sm
 hwmon-driver-for-acpi-40-power-meters-fix.patch
 hwmon-driver-for-acpi-40-power-meters-fix-2.patch
 cpuidle-a-new-variant-of-the-menu-governor-to-boost-io-performance.patch
-cpuidle-a-new-variant-of-the-menu-governor-to-boost-io-performance-fix.patch
 cpuidle-a-new-variant-of-the-menu-governor-to-boost-io-performance-percpu-workaround.patch
 video-initial-support-for-adv7180-update-fix.patch
 timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
