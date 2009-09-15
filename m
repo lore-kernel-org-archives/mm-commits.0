@@ -1,33 +1,43 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] cpuidle-a-new-variant-of-the-menu-governor-to-boost-io-performance.patch removed from -mm tree
-Date: Tue, 15 Sep 2009 16:16:24 -0700
-Message-ID: <200909152316.n8FNGO45029393@imap1.linux-foundation.org>
+Subject: + cpuidle-fix-the-menu-governor-to-boost-io-performance.patch added to -mm tree
+Date: Tue, 15 Sep 2009 16:17:59 -0700
+Message-ID: <200909152317.n8FNHxYm032429@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53545 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50098 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752698AbZIOXRr (ORCPT
+	by vger.kernel.org with ESMTP id S1752178AbZIOXT0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Sep 2009 19:17:47 -0400
+	Tue, 15 Sep 2009 19:19:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arjan@linux.intel.com, a.p.zijlstra@chello.nl, lenb@kernel.org, mingo@elte.hu, venkatesh.pallipadi@intel.com, yanmin_zhang@linux.intel.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: arjan@infradead.org, a.p.zijlstra@chello.nl, akpm@linux-foundation.org, arjan@linux.intel.com, lenb@kernel.org, mingo@elte.hu, venkatesh.pallipadi@intel.com, yanmin_zhang@linux.intel.com
 
 
 The patch titled
-     cpuidle: a new variant of the menu governor to boost IO performance
-has been removed from the -mm tree.  Its filename was
-     cpuidle-a-new-variant-of-the-menu-governor-to-boost-io-performance.patch
+     cpuidle: fix the menu governor to boost IO performance
+has been added to the -mm tree.  Its filename is
+     cpuidle-fix-the-menu-governor-to-boost-io-performance.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpuidle: a new variant of the menu governor to boost IO performance
-From: Arjan van de Ven <arjan@linux.intel.com>
+Subject: cpuidle: fix the menu governor to boost IO performance
+From: Arjan van de Ven <arjan@infradead.org>
 
-Add a new idle governor which balances power savings, energy efficiency
+Fix the menu idle governor which balances power savings, energy efficiency
 and performance impact.
 
 The reason for a reworked governor is that there have been serious
@@ -43,18 +53,15 @@ To show this I'm sure Andrew wants to see benchmark results:
 12 disks	590 Mb/s	320 Mb/s	585 Mb/s
 
 In various power benchmark measurements, no degredation was found by our
-measurement&diagnostics team.  Obviously a bit more power was used in the
-"fio" benchmark, due to the much higher performance.
-
-The integration plan for this is to first add the new governor, but for
-one kernel generation, leave the old menu governor in place so that it's
-possible to separate out behavior from this governor versus other things
-in diagnostics.  If no issues are found, I'll remove the old governor in
-the kernel cycle after that.
+measurement&diagnostics team.  Obviously a small percentage more power was
+used in the "fio" benchmark, due to the much higher performance.
 
 While it would be a novel idea to describe the new algorithm in this
 commit message, I cheaped out and described it in comments in the code
 instead.
+
+[changes since first post: spelling fixes from akpm, review feedback,
+folded menu-tng into menu.c]
 
 Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
 Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
@@ -63,73 +70,48 @@ Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: Yanmin Zhang <yanmin_zhang@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpuidle/Kconfig              |    5 
- drivers/cpuidle/governors/Makefile   |    2 
- drivers/cpuidle/governors/menu-tng.c |  334 +++++++++++++++++++++++++
- include/linux/sched.h                |    4 
- kernel/sched.c                       |   15 +
- 5 files changed, 360 insertions(+)
+ drivers/cpuidle/governors/menu.c |  251 ++++++++++++++++++++++++-----
+ include/linux/sched.h            |    4 
+ kernel/sched.c                   |   15 +
+ 3 files changed, 231 insertions(+), 39 deletions(-)
 
-diff -puN drivers/cpuidle/Kconfig~cpuidle-a-new-variant-of-the-menu-governor-to-boost-io-performance drivers/cpuidle/Kconfig
---- a/drivers/cpuidle/Kconfig~cpuidle-a-new-variant-of-the-menu-governor-to-boost-io-performance
-+++ a/drivers/cpuidle/Kconfig
-@@ -18,3 +18,8 @@ config CPU_IDLE_GOV_MENU
- 	bool
- 	depends on CPU_IDLE && NO_HZ
- 	default y
-+
-+config CPU_IDLE_GOV_MENU_TNG
-+	bool
-+	depends on CPU_IDLE && NO_HZ
-+	default y
-diff -puN drivers/cpuidle/governors/Makefile~cpuidle-a-new-variant-of-the-menu-governor-to-boost-io-performance drivers/cpuidle/governors/Makefile
---- a/drivers/cpuidle/governors/Makefile~cpuidle-a-new-variant-of-the-menu-governor-to-boost-io-performance
-+++ a/drivers/cpuidle/governors/Makefile
-@@ -4,3 +4,5 @@
- 
- obj-$(CONFIG_CPU_IDLE_GOV_LADDER) += ladder.o
- obj-$(CONFIG_CPU_IDLE_GOV_MENU) += menu.o
-+obj-$(CONFIG_CPU_IDLE_GOV_MENU_TNG) += menu-tng.o
-+
-diff -puN /dev/null drivers/cpuidle/governors/menu-tng.c
---- /dev/null
-+++ a/drivers/cpuidle/governors/menu-tng.c
-@@ -0,0 +1,334 @@
-+/*
-+ * menu-tng.c - the menu idle governor
-+ *
+diff -puN drivers/cpuidle/governors/menu.c~cpuidle-fix-the-menu-governor-to-boost-io-performance drivers/cpuidle/governors/menu.c
+--- a/drivers/cpuidle/governors/menu.c~cpuidle-fix-the-menu-governor-to-boost-io-performance
++++ a/drivers/cpuidle/governors/menu.c
+@@ -2,8 +2,12 @@
+  * menu.c - the menu idle governor
+  *
+  * Copyright (C) 2006-2007 Adam Belay <abelay@novell.com>
 + * Copyright (C) 2009 Intel Corporation
 + * Author:
 + *        Arjan van de Ven <arjan@linux.intel.com>
-+ *
-+ * Based on framework code from
-+ * Copyright (C) 2006-2007 Adam Belay <abelay@novell.com>
-+ *
+  *
+- * This code is licenced under the GPL.
 + * This code is licenced under the GPL version 2 as described
 + * in the COPYING file that acompanies the Linux Kernel.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/cpuidle.h>
-+#include <linux/pm_qos_params.h>
-+#include <linux/time.h>
-+#include <linux/ktime.h>
-+#include <linux/hrtimer.h>
-+#include <linux/tick.h>
+  */
+ 
+ #include <linux/kernel.h>
+@@ -13,20 +17,153 @@
+ #include <linux/ktime.h>
+ #include <linux/hrtimer.h>
+ #include <linux/tick.h>
 +#include <linux/sched.h>
-+
-+
+ 
+-#define BREAK_FUZZ	4	/* 4 us */
+-#define PRED_HISTORY_PCT	50
 +#define BUCKETS 12
 +#define RESOLUTION 1024
 +#define DECAY 4
 +#define MAX_INTERESTING 50000
 +
 +/*
-+ * Concepts and ideas behind the menu-tng governor
++ * Concepts and ideas behind the menu governor
 + *
-+ * For the menu-tng governor, there are 3 decision factors for picking a C
++ * For the menu governor, there are 3 decision factors for picking a C
 + * state:
 + * 1) Energy break even point
 + * 2) Performance impact
@@ -151,7 +133,7 @@ diff -puN /dev/null drivers/cpuidle/governors/menu-tng.c
 + * duration always was 50% of the next timer tick, the correction factor will
 + * be 0.5.
 + *
-+ * menu-tng uses a running average for this correction factor, however it uses a
++ * menu uses a running average for this correction factor, however it uses a
 + * set of factors, not just a single factor. This stems from the realization
 + * that the ratio is dependent on the order of magnitude of the expected
 + * duration; if we expect 500 milliseconds of idle time the likelihood of
@@ -171,7 +153,7 @@ diff -puN /dev/null drivers/cpuidle/governors/menu-tng.c
 + * noticable impact on workloads, which is not acceptable for most sysadmins,
 + * and in addition, less performance has a power price of its own.
 + *
-+ * As a general rule of thumb, menu-tng assumes that the following heuristic
++ * As a general rule of thumb, menu assumes that the following heuristic
 + * holds:
 + *     The busier the system, the less impact of C states is acceptable
 + *
@@ -195,18 +177,22 @@ diff -puN /dev/null drivers/cpuidle/governors/menu-tng.c
 + * represented in the system load average.
 + *
 + */
-+
-+struct menu_device {
-+	int		last_state_idx;
-+
-+	unsigned int	expected_us;
+ 
+ struct menu_device {
+ 	int		last_state_idx;
+ 
+ 	unsigned int	expected_us;
+-	unsigned int	predicted_us;
+-	unsigned int    current_predicted_us;
+-	unsigned int	last_measured_us;
+-	unsigned int	elapsed_us;
 +	u64		predicted_us;
 +	unsigned int	measured_us;
 +	unsigned int	exit_us;
 +	unsigned int	bucket;
 +	u64		correction_factor[BUCKETS];
-+};
-+
+ };
+ 
 +
 +#define LOAD_INT(x) ((x) >> FSHIFT)
 +#define LOAD_FRAC(x) LOAD_INT(((x) & (FIXED_1-1)) * 100)
@@ -266,28 +252,30 @@ diff -puN /dev/null drivers/cpuidle/governors/menu-tng.c
 +	return mult;
 +}
 +
-+static DEFINE_PER_CPU(struct menu_device, tng_menu_devices);
-+
-+/**
-+ * menu_select - selects the next idle state to enter
-+ * @dev: the CPU
-+ */
-+static int menu_select(struct cpuidle_device *dev)
-+{
-+	struct menu_device *data = &__get_cpu_var(tng_menu_devices);
-+	int latency_req = pm_qos_requirement(PM_QOS_CPU_DMA_LATENCY);
-+	int i, multiplier;
+ static DEFINE_PER_CPU(struct menu_device, menu_devices);
+ 
+ /**
+@@ -38,37 +175,59 @@ static int menu_select(struct cpuidle_de
+ 	struct menu_device *data = &__get_cpu_var(menu_devices);
+ 	int latency_req = pm_qos_requirement(PM_QOS_CPU_DMA_LATENCY);
+ 	int i;
++	int multiplier;
 +
 +	data->last_state_idx = 0;
 +	data->exit_us = 0;
-+
-+	/* Special case when user has set very strict latency requirement */
+ 
+ 	/* Special case when user has set very strict latency requirement */
+-	if (unlikely(latency_req == 0)) {
+-		data->last_state_idx = 0;
 +	if (unlikely(latency_req == 0))
-+		return 0;
-+
+ 		return 0;
+-	}
+ 
+-	/* determine the expected residency time */
 +	/* determine the expected residency time, round up */
-+	data->expected_us =
-+		(u32) (ktime_to_ns(tick_nohz_get_sleep_length())+999) / 1000;
+ 	data->expected_us =
+-		(u32) ktime_to_ns(tick_nohz_get_sleep_length()) / 1000;
++	    DIV_ROUND_UP((u32)ktime_to_ns(tick_nohz_get_sleep_length()), 1000);
 +
 +
 +	data->bucket = which_bucket(data->expected_us);
@@ -302,9 +290,9 @@ diff -puN /dev/null drivers/cpuidle/governors/menu-tng.c
 +		data->correction_factor[data->bucket] = RESOLUTION * DECAY;
 +
 +	/* Make sure to round up for half microseconds */
-+	data->predicted_us =
-+		(data->expected_us * data->correction_factor[data->bucket] +
-+		RESOLUTION * DECAY/2) / RESOLUTION / DECAY;
++	data->predicted_us = DIV_ROUND_CLOSEST(
++		data->expected_us * data->correction_factor[data->bucket],
++		RESOLUTION * DECAY);
 +
 +	/*
 +	 * We want to default to C1 (hlt), not to busy polling
@@ -312,56 +300,64 @@ diff -puN /dev/null drivers/cpuidle/governors/menu-tng.c
 +	 */
 +	if (data->expected_us > 5)
 +		data->last_state_idx = CPUIDLE_DRIVER_STATE_START;
-+
-+
-+	/* find the deepest idle state that satisfies our constraints */
+ 
+-	/* Recalculate predicted_us based on prediction_history_pct */
+-	data->predicted_us *= PRED_HISTORY_PCT;
+-	data->predicted_us += (100 - PRED_HISTORY_PCT) *
+-				data->current_predicted_us;
+-	data->predicted_us /= 100;
+ 
+ 	/* find the deepest idle state that satisfies our constraints */
+-	for (i = CPUIDLE_DRIVER_STATE_START + 1; i < dev->state_count; i++) {
 +	for (i = CPUIDLE_DRIVER_STATE_START; i < dev->state_count; i++) {
-+		struct cpuidle_state *s = &dev->states[i];
-+
-+		if (s->target_residency > data->predicted_us)
-+			break;
-+		if (s->exit_latency > latency_req)
-+			break;
+ 		struct cpuidle_state *s = &dev->states[i];
+ 
+-		if (s->target_residency > data->expected_us)
+-			break;
+ 		if (s->target_residency > data->predicted_us)
+ 			break;
+ 		if (s->exit_latency > latency_req)
+ 			break;
 +		if (s->exit_latency * multiplier > data->predicted_us)
 +			break;
 +		data->exit_us = s->exit_latency;
 +		data->last_state_idx = i;
-+	}
-+
+ 	}
+ 
+-	data->last_state_idx = i - 1;
+-	return i - 1;
 +	return data->last_state_idx;
-+}
-+
-+/**
-+ * menu_reflect - attempts to guess what happened after entry
-+ * @dev: the CPU
-+ *
-+ * NOTE: it's important to be fast here because this operation will add to
-+ *       the overall exit latency.
-+ */
-+static void menu_reflect(struct cpuidle_device *dev)
-+{
-+	struct menu_device *data = &__get_cpu_var(tng_menu_devices);
-+	int last_idx = data->last_state_idx;
-+	unsigned int last_idle_us = cpuidle_get_last_residency(dev);
-+	struct cpuidle_state *target = &dev->states[last_idx];
-+	unsigned int measured_us;
+ }
+ 
+ /**
+@@ -85,35 +244,49 @@ static void menu_reflect(struct cpuidle_
+ 	unsigned int last_idle_us = cpuidle_get_last_residency(dev);
+ 	struct cpuidle_state *target = &dev->states[last_idx];
+ 	unsigned int measured_us;
 +	u64 new_factor;
-+
-+	/*
-+	 * Ugh, this idle state doesn't support residency measurements, so we
-+	 * are basically lost in the dark.  As a compromise, assume we slept
+ 
+ 	/*
+ 	 * Ugh, this idle state doesn't support residency measurements, so we
+ 	 * are basically lost in the dark.  As a compromise, assume we slept
+-	 * for one full standard timer tick.  However, be aware that this
+-	 * could potentially result in a suboptimal state transition.
 +	 * for the whole expected time.
-+	 */
-+	if (unlikely(!(target->flags & CPUIDLE_FLAG_TIME_VALID)))
+ 	 */
+ 	if (unlikely(!(target->flags & CPUIDLE_FLAG_TIME_VALID)))
+-		last_idle_us = USEC_PER_SEC / HZ;
 +		last_idle_us = data->expected_us;
 +
 +
 +	measured_us = last_idle_us;
-+
-+	/*
+ 
+ 	/*
+-	 * measured_us and elapsed_us are the cumulative idle time, since the
+-	 * last time we were woken out of idle by an interrupt.
 +	 * We correct for the exit latency; we are assuming here that the
 +	 * exit latency happens after the event that we're interested in.
-+	 */
+ 	 */
+-	if (data->elapsed_us <= data->elapsed_us + last_idle_us)
+-		measured_us = data->elapsed_us + last_idle_us;
 +	if (measured_us > data->exit_us)
 +		measured_us -= data->exit_us;
 +
@@ -373,66 +369,36 @@ diff -puN /dev/null drivers/cpuidle/governors/menu-tng.c
 +
 +	if (data->expected_us > 0 && data->measured_us < MAX_INTERESTING)
 +		new_factor += RESOLUTION * measured_us / data->expected_us;
-+	else
+ 	else
+-		measured_us = -1;
 +		/*
 +		 * we were idle so long that we count it as a perfect
 +		 * prediction
 +		 */
 +		new_factor += RESOLUTION;
-+
+ 
+-	/* Predict time until next break event */
+-	data->current_predicted_us = max(measured_us, data->last_measured_us);
 +	/*
-+	 * We don't want as factor; we always want at least
++	 * We don't want 0 as factor; we always want at least
 +	 * a tiny bit of estimated time.
 +	 */
 +	if (new_factor == 0)
 +		new_factor = 1;
-+
+ 
+-	if (last_idle_us + BREAK_FUZZ <
+-	    data->expected_us - target->exit_latency) {
+-		data->last_measured_us = measured_us;
+-		data->elapsed_us = 0;
+-	} else {
+-		data->elapsed_us = measured_us;
+-	}
 +	data->correction_factor[data->bucket] = new_factor;
-+}
-+
-+/**
-+ * menu_enable_device - scans a CPU's states and does setup
-+ * @dev: the CPU
-+ */
-+static int menu_enable_device(struct cpuidle_device *dev)
-+{
-+	struct menu_device *data = &per_cpu(tng_menu_devices, dev->cpu);
-+
-+	memset(data, 0, sizeof(struct menu_device));
-+
-+	return 0;
-+}
-+
-+static struct cpuidle_governor menu_governor = {
-+	.name =		"menu-tng",
-+	.rating =	30,
-+	.enable =	menu_enable_device,
-+	.select =	menu_select,
-+	.reflect =	menu_reflect,
-+	.owner =	THIS_MODULE,
-+};
-+
-+/**
-+ * init_menu - initializes the governor
-+ */
-+static int __init init_menu(void)
-+{
-+	return cpuidle_register_governor(&menu_governor);
-+}
-+
-+/**
-+ * exit_menu - exits the governor
-+ */
-+static void __exit exit_menu(void)
-+{
-+	cpuidle_unregister_governor(&menu_governor);
-+}
-+
-+MODULE_LICENSE("GPL");
-+module_init(init_menu);
-+module_exit(exit_menu);
-diff -puN include/linux/sched.h~cpuidle-a-new-variant-of-the-menu-governor-to-boost-io-performance include/linux/sched.h
---- a/include/linux/sched.h~cpuidle-a-new-variant-of-the-menu-governor-to-boost-io-performance
+ }
+ 
+ /**
+diff -puN include/linux/sched.h~cpuidle-fix-the-menu-governor-to-boost-io-performance include/linux/sched.h
+--- a/include/linux/sched.h~cpuidle-fix-the-menu-governor-to-boost-io-performance
 +++ a/include/linux/sched.h
 @@ -140,6 +140,10 @@ extern int nr_processes(void);
  extern unsigned long nr_running(void);
@@ -445,10 +411,10 @@ diff -puN include/linux/sched.h~cpuidle-a-new-variant-of-the-menu-governor-to-bo
  extern void calc_global_load(void);
  extern u64 cpu_nr_migrations(int cpu);
  
-diff -puN kernel/sched.c~cpuidle-a-new-variant-of-the-menu-governor-to-boost-io-performance kernel/sched.c
---- a/kernel/sched.c~cpuidle-a-new-variant-of-the-menu-governor-to-boost-io-performance
+diff -puN kernel/sched.c~cpuidle-fix-the-menu-governor-to-boost-io-performance kernel/sched.c
+--- a/kernel/sched.c~cpuidle-fix-the-menu-governor-to-boost-io-performance
 +++ a/kernel/sched.c
-@@ -3052,6 +3052,21 @@ unsigned long nr_iowait(void)
+@@ -3064,6 +3064,21 @@ unsigned long nr_iowait(void)
  	return sum;
  }
  
@@ -472,9 +438,12 @@ diff -puN kernel/sched.c~cpuidle-a-new-variant-of-the-menu-governor-to-boost-io-
  static unsigned long calc_load_update;
 _
 
-Patches currently in -mm which might be from arjan@linux.intel.com are
+Patches currently in -mm which might be from arjan@infradead.org are
 
 origin.patch
 linux-next.patch
-cpuidle-a-new-variant-of-the-menu-governor-to-boost-io-performance.patch
+cpuidle-fix-the-menu-governor-to-boost-io-performance.patch
+markup_oops-use-modinfo-to-avoid-confusion-with-underscored-module-names.patch
+poll-select-avoid-arithmetic-overflow-in-__estimate_accuracy.patch
+drivers-hwmon-coretempc-enable-the-intel-atom.patch
 
