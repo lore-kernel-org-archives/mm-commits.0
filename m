@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mm-munlock-avoid-zero_page.patch added to -mm tree
-Date: Tue, 15 Sep 2009 14:41:39 -0700
-Message-ID: <200909152141.n8FLfdat005957@imap1.linux-foundation.org>
+Subject: + mm-move-highest_memmap_pfn.patch added to -mm tree
+Date: Tue, 15 Sep 2009 14:41:47 -0700
+Message-ID: <200909152141.n8FLfmrR006251@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43880 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57011 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758684AbZIOVmy (ORCPT
+	by vger.kernel.org with ESMTP id S1758615AbZIOVm5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Sep 2009 17:42:54 -0400
+	Tue, 15 Sep 2009 17:42:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: hugh.dickins@tiscali.co.uk, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@
 
 
 The patch titled
-     mm: m(un)lock avoid ZERO_PAGE
+     mm: move highest_memmap_pfn
 has been added to the -mm tree.  Its filename is
-     mm-munlock-avoid-zero_page.patch
+     mm-move-highest_memmap_pfn.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,20 +34,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: m(un)lock avoid ZERO_PAGE
+Subject: mm: move highest_memmap_pfn
 From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
-I'm still reluctant to clutter __get_user_pages() with another flag, just
-to avoid touching ZERO_PAGE count in mlock(); though we can add that later
-if it shows up as an issue in practice.
-
-But when mlocking, we can test page->mapping slightly earlier, to avoid
-the potentially bouncy rescheduling of lock_page on ZERO_PAGE - mlock
-didn't lock_page in olden ZERO_PAGE days, so we might have regressed.
-
-And when munlocking, it turns out that FOLL_DUMP coincidentally does
-what's needed to avoid all updates to ZERO_PAGE, so use that here also. 
-Plus add comment suggested by KAMEZAWA Hiroyuki.
+Move highest_memmap_pfn __read_mostly from page_alloc.c next to zero_pfn
+__read_mostly in memory.c: to help them share a cacheline, since they're
+very often tested together in vm_normal_page().
 
 Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Cc: Rik van Riel <riel@redhat.com>
@@ -59,76 +51,53 @@ Cc: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |   49 ++++++++++++++++++++++++++++++++++++-------------
- 1 file changed, 36 insertions(+), 13 deletions(-)
+ mm/internal.h   |    3 ++-
+ mm/memory.c     |    1 +
+ mm/page_alloc.c |    1 -
+ 3 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN mm/mlock.c~mm-munlock-avoid-zero_page mm/mlock.c
---- a/mm/mlock.c~mm-munlock-avoid-zero_page
-+++ a/mm/mlock.c
-@@ -198,17 +198,26 @@ static long __mlock_vma_pages_range(stru
- 		for (i = 0; i < ret; i++) {
- 			struct page *page = pages[i];
+diff -puN mm/internal.h~mm-move-highest_memmap_pfn mm/internal.h
+--- a/mm/internal.h~mm-move-highest_memmap_pfn
++++ a/mm/internal.h
+@@ -37,6 +37,8 @@ static inline void __put_page(struct pag
+ 	atomic_dec(&page->_count);
+ }
  
--			lock_page(page);
--			/*
--			 * Because we lock page here and migration is blocked
--			 * by the elevated reference, we need only check for
--			 * file-cache page truncation.  This page->mapping
--			 * check also neatly skips over the ZERO_PAGE(),
--			 * though if that's common we'd prefer not to lock it.
--			 */
--			if (page->mapping)
--				mlock_vma_page(page);
--			unlock_page(page);
-+			if (page->mapping) {
-+				/*
-+				 * That preliminary check is mainly to avoid
-+				 * the pointless overhead of lock_page on the
-+				 * ZERO_PAGE: which might bounce very badly if
-+				 * there is contention.  However, we're still
-+				 * dirtying its cacheline with get/put_page:
-+				 * we'll add another __get_user_pages flag to
-+				 * avoid it if that case turns out to matter.
-+				 */
-+				lock_page(page);
-+				/*
-+				 * Because we lock page here and migration is
-+				 * blocked by the elevated reference, we need
-+				 * only check for file-cache page truncation.
-+				 */
-+				if (page->mapping)
-+					mlock_vma_page(page);
-+				unlock_page(page);
-+			}
- 			put_page(page);	/* ref from get_user_pages() */
- 		}
++extern unsigned long highest_memmap_pfn;
++
+ /*
+  * in mm/vmscan.c:
+  */
+@@ -46,7 +48,6 @@ extern void putback_lru_page(struct page
+ /*
+  * in mm/page_alloc.c
+  */
+-extern unsigned long highest_memmap_pfn;
+ extern void __free_pages_bootmem(struct page *page, unsigned int order);
+ extern void prep_compound_page(struct page *page, unsigned long order);
  
-@@ -309,9 +318,23 @@ void munlock_vma_pages_range(struct vm_a
- 	vma->vm_flags &= ~VM_LOCKED;
+diff -puN mm/memory.c~mm-move-highest_memmap_pfn mm/memory.c
+--- a/mm/memory.c~mm-move-highest_memmap_pfn
++++ a/mm/memory.c
+@@ -108,6 +108,7 @@ static int __init disable_randmaps(char 
+ __setup("norandmaps", disable_randmaps);
  
- 	for (addr = start; addr < end; addr += PAGE_SIZE) {
--		struct page *page = follow_page(vma, addr, FOLL_GET);
--		if (page) {
-+		struct page *page;
-+		/*
-+		 * Although FOLL_DUMP is intended for get_dump_page(),
-+		 * it just so happens that its special treatment of the
-+		 * ZERO_PAGE (returning an error instead of doing get_page)
-+		 * suits munlock very well (and if somehow an abnormal page
-+		 * has sneaked into the range, we won't oops here: great).
-+		 */
-+		page = follow_page(vma, addr, FOLL_GET | FOLL_DUMP);
-+		if (page && !IS_ERR(page)) {
- 			lock_page(page);
-+			/*
-+			 * Like in __mlock_vma_pages_range(),
-+			 * because we lock page here and migration is
-+			 * blocked by the elevated reference, we need
-+			 * only check for file-cache page truncation.
-+			 */
- 			if (page->mapping)
- 				munlock_vma_page(page);
- 			unlock_page(page);
+ unsigned long zero_pfn __read_mostly;
++unsigned long highest_memmap_pfn __read_mostly;
+ 
+ /*
+  * CONFIG_MMU architectures set up ZERO_PAGE in their paging_init()
+diff -puN mm/page_alloc.c~mm-move-highest_memmap_pfn mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-move-highest_memmap_pfn
++++ a/mm/page_alloc.c
+@@ -72,7 +72,6 @@ EXPORT_SYMBOL(node_states);
+ 
+ unsigned long totalram_pages __read_mostly;
+ unsigned long totalreserve_pages __read_mostly;
+-unsigned long highest_memmap_pfn __read_mostly;
+ int percpu_pagelist_fraction;
+ gfp_t gfp_allowed_mask __read_mostly = GFP_BOOT_MASK;
+ 
 _
 
 Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
