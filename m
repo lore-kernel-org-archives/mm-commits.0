@@ -1,54 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-vmstat-add-isolate-pages-fix.patch removed from -mm tree
-Date: Tue, 15 Sep 2009 19:17:26 -0700
-Message-ID: <200909160217.n8G2HQng026903@imap1.linux-foundation.org>
+Subject: + mm-vmstat-add-isolate-pages-fix-fix-fix.patch added to -mm tree
+Date: Tue, 15 Sep 2009 19:17:15 -0700
+Message-ID: <200909160217.n8G2HFxl026524@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36054 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60787 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752496AbZIPCRk (ORCPT
+	by vger.kernel.org with ESMTP id S1752429AbZIPCRh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Sep 2009 22:17:40 -0400
+	Tue, 15 Sep 2009 22:17:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, fengguang.wu@intel.com, minchan.kim@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: kosaki.motohiro@jp.fujitsu.com, fengguang.wu@intel.com, hugh.dickins@tiscali.co.uk, minchan.kim@gmail.com, riel@redhat.com
 
 
 The patch titled
-     mm-vmstat-add-isolate-pages-fix
-has been removed from the -mm tree.  Its filename was
-     mm-vmstat-add-isolate-pages-fix.patch
+     Kill Isolated field in /proc/meminfo fix
+has been added to the -mm tree.  Its filename is
+     mm-vmstat-add-isolate-pages-fix-fix-fix.patch
 
-This patch was dropped because it was folded into mm-vmstat-add-isolate-pages.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-vmstat-add-isolate-pages-fix
+Subject: Kill Isolated field in /proc/meminfo fix
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
+Hugh Dickins pointed out Isolated field dislpay 0kB at almost time.
+It is only increased at heavy memory pressure case.
+
+So, if the system haven't get memory pressure, this field isn't useful.
+And now, we have an alternative way, (i.e. /prov/vmstat).
+Then, it can be removed.
+
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Cc: Rik van Riel <riel@redhat.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
 Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/base/node.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN mm/migrate.c~mm-vmstat-add-isolate-pages-fix mm/migrate.c
---- a/mm/migrate.c~mm-vmstat-add-isolate-pages-fix
-+++ a/mm/migrate.c
-@@ -746,7 +746,7 @@ int migrate_pages(struct list_head *from
- 	struct page *page2;
- 	int swapwrite = current->flags & PF_SWAPWRITE;
- 	int rc;
--	int flags;
-+	unsigned long flags;
- 
- 	local_irq_save(flags);
- 	list_for_each_entry(page, from, lru)
+diff -puN drivers/base/node.c~mm-vmstat-add-isolate-pages-fix-fix-fix drivers/base/node.c
+--- a/drivers/base/node.c~mm-vmstat-add-isolate-pages-fix-fix-fix
++++ a/drivers/base/node.c
+@@ -73,8 +73,6 @@ static ssize_t node_read_meminfo(struct 
+ 		       "Node %d Active(file):   %8lu kB\n"
+ 		       "Node %d Inactive(file): %8lu kB\n"
+ 		       "Node %d Unevictable:    %8lu kB\n"
+-		       "Node %d Isolated(anon): %8lu kB\n"
+-		       "Node %d Isolated(file): %8lu kB\n"
+ 		       "Node %d Mlocked:        %8lu kB\n"
+ #ifdef CONFIG_HIGHMEM
+ 		       "Node %d HighTotal:      %8lu kB\n"
+@@ -108,8 +106,6 @@ static ssize_t node_read_meminfo(struct 
+ 		       nid, K(node_page_state(nid, NR_ACTIVE_FILE)),
+ 		       nid, K(node_page_state(nid, NR_INACTIVE_FILE)),
+ 		       nid, K(node_page_state(nid, NR_UNEVICTABLE)),
+-		       nid, K(node_page_state(nid, NR_ISOLATED_ANON)),
+-		       nid, K(node_page_state(nid, NR_ISOLATED_FILE)),
+ 		       nid, K(node_page_state(nid, NR_MLOCK)),
+ #ifdef CONFIG_HIGHMEM
+ 		       nid, K(i.totalhigh),
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
