@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-disable-end-of-frame-interrupt.patch added to -mm tree
-Date: Wed, 16 Sep 2009 14:44:49 -0700
-Message-ID: <200909162144.n8GLinko013487@imap1.linux-foundation.org>
+Subject: + reiserfs-truncate-blocks-not-used-by-a-write-v2.patch added to -mm tree
+Date: Wed, 16 Sep 2009 14:47:30 -0700
+Message-ID: <200909162147.n8GLlUIX018776@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57660 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38271 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754997AbZIPVpZ (ORCPT
+	by vger.kernel.org with ESMTP id S1760147AbZIPVr7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Sep 2009 17:45:25 -0400
+	Wed, 16 Sep 2009 17:47:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sudhakar.raj@ti.com, krzysztof.h1@wp.pl, pkiryukhin@ru.mvista.com, schen@mvista.com
+Cc: jack@suse.cz, jeffm@suse.com
 
 
 The patch titled
-     davinci: fb: disable end-of-frame interrupt
+     reiserfs: truncate blocks not used by a write
 has been added to the -mm tree.  Its filename is
-     davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-disable-end-of-frame-interrupt.patch
+     reiserfs-truncate-blocks-not-used-by-a-write-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,150 +34,87 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: davinci: fb: disable end-of-frame interrupt
-From: Sudhakar Rajashekhara <sudhakar.raj@ti.com>
+Subject: reiserfs: truncate blocks not used by a write
+From: Jan Kara <jack@suse.cz>
 
-Currently end-of-frame interrupt is being used while disabling LCD
-controller to wait or the frame being diaplyed to complete.  But when the
-LCD is disabled by clearing the LCD Raster Control enable bit in the LCD
-Raster Control Register, the LCD allows the current frame to complete
-before it is disabled.
+It can happen that write does not use all the blocks allocated in
+write_begin either because of some filesystem error (like ENOSPC) or
+because page with data to write has been removed from memory.  We truncate
+these blocks so that we don't have dangling blocks beyond i_size.
 
-Hence disable end-of-frame interrupt and remove waitqueue related code
-which was used to handle this interrupt.
-
-Because of above modifications, modify the lcd_disable_raster() and
-lcd_reset() functions to return void instead of int.
-
-Signed-off-by: Sudhakar Rajashekhara <sudhakar.raj@ti.com>
-Cc: Pavel Kiryukhin <pkiryukhin@ru.mvista.com>
-Cc: Steve Chen <schen@mvista.com>
-Cc: Krzysztof Helt <krzysztof.h1@wp.pl>
+Cc: Jeff Mahoney <jeffm@suse.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/da8xx-fb.c |   36 ++++++++----------------------------
- 1 file changed, 8 insertions(+), 28 deletions(-)
+ fs/reiserfs/inode.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN drivers/video/da8xx-fb.c~davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-disable-end-of-frame-interrupt drivers/video/da8xx-fb.c
---- a/drivers/video/da8xx-fb.c~davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-disable-end-of-frame-interrupt
-+++ a/drivers/video/da8xx-fb.c
-@@ -107,7 +107,6 @@ static inline void lcdc_write(unsigned i
- }
- 
- struct da8xx_fb_par {
--	wait_queue_head_t da8xx_wq;
- 	resource_size_t p_palette_base;
- 	unsigned char *v_palette_base;
- 	struct clk *lcdc_clk;
-@@ -193,21 +192,13 @@ static struct da8xx_panel known_lcd_pane
- };
- 
- /* Disable the Raster Engine of the LCD Controller */
--static int lcd_disable_raster(struct da8xx_fb_par *par)
-+static void lcd_disable_raster(struct da8xx_fb_par *par)
- {
--	int ret = 0;
- 	u32 reg;
- 
- 	reg = lcdc_read(LCD_RASTER_CTRL_REG);
--	if (reg & LCD_RASTER_ENABLE) {
-+	if (reg & LCD_RASTER_ENABLE)
- 		lcdc_write(reg & ~LCD_RASTER_ENABLE, LCD_RASTER_CTRL_REG);
--		ret = wait_event_interruptible_timeout(par->da8xx_wq,
--						!lcdc_read(LCD_STAT_REG) &
--						LCD_END_OF_FRAME0, WSI_TIMEOUT);
--		if (ret == 0)
--			ret = -ETIMEDOUT;
--	}
--	return ret;
- }
- 
- static void lcd_blit(int load_mode, struct da8xx_fb_par *par)
-@@ -255,7 +246,7 @@ static int lcd_cfg_dma(int burst_size)
- 	default:
- 		return -EINVAL;
+diff -puN fs/reiserfs/inode.c~reiserfs-truncate-blocks-not-used-by-a-write-v2 fs/reiserfs/inode.c
+--- a/fs/reiserfs/inode.c~reiserfs-truncate-blocks-not-used-by-a-write-v2
++++ a/fs/reiserfs/inode.c
+@@ -2611,6 +2611,8 @@ static int reiserfs_write_begin(struct f
+ 	if (ret) {
+ 		unlock_page(page);
+ 		page_cache_release(page);
++		/* Truncate allocated blocks */
++		reiserfs_truncate_file(inode, 0);
  	}
--	lcdc_write(reg | LCD_END_OF_FRAME_INT_ENA, LCD_DMA_CTRL_REG);
-+	lcdc_write(reg, LCD_DMA_CTRL_REG);
- 
- 	return 0;
+ 	return ret;
  }
-@@ -450,19 +441,15 @@ static int fb_setcolreg(unsigned regno, 
- 	return 0;
- }
- 
--static int lcd_reset(struct da8xx_fb_par *par)
-+static void lcd_reset(struct da8xx_fb_par *par)
- {
--	int ret = 0;
+@@ -2708,9 +2710,7 @@ static int reiserfs_write_end(struct fil
+ 	 ** transaction tracking stuff when the size changes.  So, we have
+ 	 ** to do the i_size updates here.
+ 	 */
+-	pos += copied;
 -
- 	/* Disable the Raster if previously Enabled */
- 	if (lcdc_read(LCD_RASTER_CTRL_REG) & LCD_RASTER_ENABLE)
--		ret = lcd_disable_raster(par);
-+		lcd_disable_raster(par);
+-	if (pos > inode->i_size) {
++	if (pos + copied > inode->i_size) {
+ 		struct reiserfs_transaction_handle myth;
+ 		lock_depth = reiserfs_write_lock_once(inode->i_sb);
+ 		locked = true;
+@@ -2728,7 +2728,7 @@ static int reiserfs_write_end(struct fil
+ 			goto journal_error;
  
- 	/* DMA has to be disabled */
- 	lcdc_write(0, LCD_DMA_CTRL_REG);
- 	lcdc_write(0, LCD_RASTER_CTRL_REG);
--
--	return ret;
- }
+ 		reiserfs_update_inode_transaction(inode);
+-		inode->i_size = pos;
++		inode->i_size = pos + copied;
+ 		/*
+ 		 * this will just nest into our transaction.  It's important
+ 		 * to use mark_inode_dirty so the inode gets pushed around on the
+@@ -2758,6 +2758,10 @@ static int reiserfs_write_end(struct fil
+ 		reiserfs_write_unlock_once(inode->i_sb, lock_depth);
+ 	unlock_page(page);
+ 	page_cache_release(page);
++
++	if (pos + len > inode->i_size)
++		reiserfs_truncate_file(inode, 0);
++
+ 	return ret == 0 ? copied : ret;
  
- static int lcd_init(struct da8xx_fb_par *par, const struct lcd_ctrl_config *cfg,
-@@ -471,9 +458,7 @@ static int lcd_init(struct da8xx_fb_par 
- 	u32 bpp;
- 	int ret = 0;
- 
--	ret = lcd_reset(par);
--	if (ret != 0)
--		return ret;
-+	lcd_reset(par);
- 
- 	/* Configure the LCD clock divisor. */
- 	lcdc_write(LCD_CLK_DIVISOR(panel->pxl_clk) |
-@@ -529,7 +514,6 @@ static int lcd_init(struct da8xx_fb_par 
- static irqreturn_t lcdc_irq_handler(int irq, void *arg)
- {
- 	u32 stat = lcdc_read(LCD_STAT_REG);
--	struct da8xx_fb_par *par = arg;
- 	u32 reg;
- 
- 	if ((stat & LCD_SYNC_LOST) && (stat & LCD_FIFO_UNDERFLOW)) {
-@@ -540,7 +524,6 @@ static irqreturn_t lcdc_irq_handler(int 
- 	} else
- 		lcdc_write(stat, LCD_STAT_REG);
- 
--	wake_up_interruptible(&par->da8xx_wq);
- 	return IRQ_HANDLED;
- }
- 
-@@ -595,13 +578,12 @@ static int fb_check_var(struct fb_var_sc
- static int __devexit fb_remove(struct platform_device *dev)
- {
- 	struct fb_info *info = dev_get_drvdata(&dev->dev);
--	int ret = 0;
- 
- 	if (info) {
- 		struct da8xx_fb_par *par = info->par;
- 
- 		if (lcdc_read(LCD_RASTER_CTRL_REG) & LCD_RASTER_ENABLE)
--			ret = lcd_disable_raster(par);
-+			lcd_disable_raster(par);
- 		lcdc_write(0, LCD_RASTER_CTRL_REG);
- 
- 		/* disable DMA  */
-@@ -620,7 +602,7 @@ static int __devexit fb_remove(struct pl
- 		release_mem_region(lcdc_regs->start, resource_size(lcdc_regs));
- 
- 	}
--	return ret;
-+	return 0;
- }
- 
- static int fb_ioctl(struct fb_info *info, unsigned int cmd,
-@@ -774,8 +756,6 @@ static int __init fb_probe(struct platfo
- 
- 	par->lcdc_clk = fb_clk;
- 
--	init_waitqueue_head(&par->da8xx_wq);
+       journal_error:
+_
+
+Patches currently in -mm which might be from jack@suse.cz are
+
+origin.patch
+fs-make-sure-data-stored-into-inode-is-properly-seen-before-unlocking-new-inode.patch
+fs-make-sure-data-stored-into-inode-is-properly-seen-before-unlocking-new-inode-fix.patch
+linux-next.patch
+vfs-split-generic_forget_inode-so-that-hugetlbfs-does-not-have-to-copy-it.patch
+fs-new-truncate-helpers.patch
+fs-use-new-truncate-helpers.patch
+fs-introduce-new-truncate-sequence.patch
+fs-convert-simple-fs-to-new-truncate.patch
+tmpfs-convert-to-use-the-new-truncate-convention.patch
+ext2-convert-to-use-the-new-truncate-convention.patch
+ext2-convert-to-use-the-new-truncate-convention-fix.patch
+fat-convert-to-use-the-new-truncate-convention.patch
+btrfs-convert-to-use-the-new-truncate-convention.patch
+jfs-convert-to-use-the-new-truncate-convention.patch
+udf-convert-to-use-the-new-truncate-convention.patch
+minix-convert-to-use-the-new-truncate-convention.patch
+vm-document-that-setting-vfs_cache_pressure-to-0-isnt-a-good-idea.patch
+reiserfs-truncate-blocks-not-used-by-a-write-v2.patch
+reiser4-update-names-of-quota-methods.patch
+
