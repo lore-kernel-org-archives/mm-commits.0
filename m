@@ -1,112 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: + walk-system-ram-range-fix.patch added to -mm tree
-Date: Tue, 15 Sep 2009 17:33:27 -0700
-Message-ID: <200909160033.n8G0XRXn018083@imap1.linux-foundation.org>
+Subject: [folded] mm-vmstat-add-isolate-pages-fix.patch removed from -mm tree
+Date: Tue, 15 Sep 2009 19:17:26 -0700
+Message-ID: <200909160217.n8G2HQng026903@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36847 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36054 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751003AbZIPAdt (ORCPT
+	by vger.kernel.org with ESMTP id S1752496AbZIPCRk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Sep 2009 20:33:49 -0400
+	Tue, 15 Sep 2009 22:17:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, benh@kernel.crashing.org, hugh.dickins@tiscali.co.uk, ralf@linux-mips.org, xiyou.wangcong@gmail.com
+To: kosaki.motohiro@jp.fujitsu.com, fengguang.wu@intel.com, minchan.kim@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     walk-system-ram-range-fix
-has been added to the -mm tree.  Its filename is
-     walk-system-ram-range-fix.patch
+     mm-vmstat-add-isolate-pages-fix
+has been removed from the -mm tree.  Its filename was
+     mm-vmstat-add-isolate-pages-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into mm-vmstat-add-isolate-pages.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: walk-system-ram-range-fix
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: mm-vmstat-add-isolate-pages-fix
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-walk-system-ram-range.patch renames walk_memory_resource()
-to be walk_system_ram_range().
-But powerpc has its own one and it's exported.
-(Because ehea driver (IBM's one) uses this, powerpc export this.)
-
-> arch/powerpc/mm/mem.c:169: error: ‘walk_memory_resource’ undeclared here (not in a function)
-> cc1: warnings being treated as errors
-> arch/powerpc/mm/mem.c:169: error: type defaults to ‘int’ in declaration of ‘walk_memory_resource’
-> make[1]: *** [arch/powerpc/mm/mem.o] Error 1
->
-The patch failed to update powerpc's EXPORT_SYMBOL, this patch fixes it.
-
-Reported-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: WANG Cong <xiyou.wangcong@gmail.com>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/mem.c |    2 +-
+ mm/migrate.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/powerpc/mm/mem.c~walk-system-ram-range-fix arch/powerpc/mm/mem.c
---- a/arch/powerpc/mm/mem.c~walk-system-ram-range-fix
-+++ a/arch/powerpc/mm/mem.c
-@@ -166,7 +166,7 @@ walk_system_ram_range(unsigned long star
- 	}
- 	return ret;
- }
--EXPORT_SYMBOL_GPL(walk_memory_resource);
-+EXPORT_SYMBOL_GPL(walk_system_ram_range);
+diff -puN mm/migrate.c~mm-vmstat-add-isolate-pages-fix mm/migrate.c
+--- a/mm/migrate.c~mm-vmstat-add-isolate-pages-fix
++++ a/mm/migrate.c
+@@ -746,7 +746,7 @@ int migrate_pages(struct list_head *from
+ 	struct page *page2;
+ 	int swapwrite = current->flags & PF_SWAPWRITE;
+ 	int rc;
+-	int flags;
++	unsigned long flags;
  
- /*
-  * Initialize the bootmem system and give it all the memory we
+ 	local_irq_save(flags);
+ 	list_for_each_entry(page, from, lru)
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
-proc-kcore-work-around-a-bug.patch
+origin.patch
+linux-next.patch
+mm-memory-failure-remove-config_unevictable_lru-config-option.patch
+revert-staging-android-lowmemorykillerc-fix-it-for-oom-move-oom_adj-value-from-task_struct-to-mm_struct.patch
+readahead-add-blk_run_backing_dev.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
 mm-clean-up-page_remove_rmap.patch
+mm-show_free_areas-display-slab-pages-in-two-separate-fields.patch
+mm-oom-analysis-add-per-zone-statistics-to-show_free_areas.patch
+mm-oom-analysis-add-buffer-cache-information-to-show_free_areas.patch
+mm-oom-analysis-show-kernel-stack-usage-in-proc-meminfo-and-oom-log-output.patch
+mm-oom-analysis-add-shmem-vmstat.patch
+mm-rename-pgmoved-variable-in-shrink_active_list.patch
+mm-shrink_inactive_list-nr_scan-accounting-fix-fix.patch
+mm-vmstat-add-isolate-pages.patch
+mm-vmstat-add-isolate-pages-fix.patch
+mm-vmstat-add-isolate-pages-fix-fix.patch
+mm-vmstat-add-isolate-pages-fix-fix-fix.patch
 vmscan-throttle-direct-reclaim-when-too-many-pages-are-isolated-already.patch
 mm-remove-__addsub_zone_page_state.patch
+mm-count-only-reclaimable-lru-pages-v2.patch
 vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
-ksm-add-mmu_notifier-set_pte_at_notify.patch
-ksm-first-tidy-up-madvise_vma.patch
-ksm-define-madv_mergeable-and-madv_unmergeable.patch
-ksm-the-mm-interface-to-ksm.patch
-ksm-no-debug-in-page_dup_rmap.patch
-ksm-identify-pageksm-pages.patch
-ksm-kernel-samepage-merging.patch
-ksm-prevent-mremap-move-poisoning.patch
-ksm-change-copyright-message.patch
-ksm-change-ksm-nice-level-to-be-5.patch
+vmscan-move-clearpageactive-from-move_active_pages-to-shrink_active_list.patch
+vmscan-kill-unnecessary-page-flag-test.patch
+vmscan-kill-unnecessary-prefetch.patch
+mm-perform-non-atomic-test-clear-of-pg_mlocked-on-free.patch
 page-allocator-change-migratetype-for-all-pageblocks-within-a-high-order-page-during-__rmqueue_fallback-fix.patch
-vmalloc-unmap-vmalloc-area-after-hiding-it.patch
-revert-proc-kcore-work-around-a-bug.patch
-kcore-fix-vread-vwrite-to-be-aware-of-holes.patch
-kcore-fix-vread-vwrite-to-be-aware-of-holes-update.patch
-kcore-proc-kcore-should-use-vread.patch
-mm-add_to_swap_cache-must-not-sleep.patch
-mm-add_to_swap_cache-does-not-return-eexist.patch
-memory-hotplug-fix-updating-of-num_physpages-for-hot-plugged-memory.patch
+tracing-page-allocator-add-trace-events-for-page-allocation-and-page-freeing.patch
+tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists.patch
+mm-drop-unneeded-double-negations.patch
+mm-introduce-page_lru_base_type.patch
+mm-introduce-page_lru_base_type-fix.patch
+mm-return-boolean-from-page_is_file_cache.patch
+mm-return-boolean-from-page_has_private.patch
+mm-document-is_page_cache_freeable.patch
 mm-vmscan-rename-zone_nr_pages-to-zone_lru_nr_pages.patch
+oom-move-oom_killer_enable-oom_killer_disable-to-where-they-belong.patch
 mm-do-batched-scans-for-mem_cgroup.patch
+mm-vmscan-remove-page_queue_congested-comment.patch
 oom-move-oom_adj-value-from-task_struct-to-signal_struct.patch
+oom-move-oom_adj-value-from-task_struct-to-signal_struct-fix.patch
 oom-make-oom_score-to-per-process-value.patch
 oom-oom_kill-doesnt-kill-vfork-parentor-child.patch
 oom-fix-oom_adjust_write-input-sanity-check.patch
-mm-fix-numa-accounting-in-numastattxt.patch
+mm-vsmcan-check-shrink_active_list-sc-isolate_pages-return-value.patch
 mm-munlock-use-follow_page.patch
 mm-remove-unused-gup-flags.patch
 mm-add-get_dump_page.patch
@@ -119,27 +111,9 @@ mm-munlock-avoid-zero_page.patch
 mm-hugetlbfs_pagecache_present.patch
 mm-zero_page-without-pte_special.patch
 mm-move-highest_memmap_pfn.patch
-kcore-fix-proc-kcores-statst_size.patch
-kcore-use-usual-list-for-kclist.patch
-kcore-add-kclist-types.patch
-kcore-register-vmalloc-area-in-generic-way.patch
-kcore-register-text-area-in-generic-way.patch
-walk-system-ram-range.patch
-walk-system-ram-range-fix.patch
-kcore-use-registerd-physmem-information.patch
+getrusage-fill-ru_maxrss-value.patch
+getrusage-fill-ru_maxrss-value-update.patch
 kcore-use-registerd-physmem-information-ia64-fix.patch
-kcore-register-vmemmap-range.patch
-kcore-register-vmemmap-range-fix.patch
-kcore-register-module-area-in-generic-way.patch
-cgroups-support-named-cgroups-hierarchies.patch
-cgroups-move-the-cgroup-debug-subsys-into-cgroupc-to-access-internal-state.patch
-cgroups-add-a-back-pointer-from-struct-cg_cgroup_link-to-struct-cgroup.patch
-cgroups-allow-cgroup-hierarchies-to-be-created-with-no-bound-subsystems.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix-2.patch
-memcg-add-comments-explaining-memory-barriers.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
 memory-controller-soft-limit-documentation-v9.patch
 memory-controller-soft-limit-interface-v9.patch
 memory-controller-soft-limit-organize-cgroups-v9.patch
@@ -151,8 +125,5 @@ memory-controller-soft-limit-reclaim-on-contention-v9-fix-softlimit-css-refcnt-h
 memory-controller-soft-limit-reclaim-on-contention-v9-fix-softlimit-css-refcnt-handling-fix.patch
 memcg-improve-resource-counter-scalability.patch
 memcg-improve-resource-counter-scalability-v5.patch
-memcg-show-swap-usage-in-stat-file.patch
-memcg-show-swap-usage-in-stat-file-fix.patch
-do_wait-wakeup-optimization-fix-child_wait_callback-eligible_child-usage.patch
-do_wait-wakeup-optimization-simplify-task_pid_type.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
