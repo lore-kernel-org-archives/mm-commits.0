@@ -1,81 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmstat-add-isolate-pages-fix-fix-fix.patch added to -mm tree
-Date: Tue, 15 Sep 2009 19:17:15 -0700
-Message-ID: <200909160217.n8G2HFxl026524@imap1.linux-foundation.org>
+Subject: [folded] mm-vmstat-add-isolate-pages-fix-fix.patch removed from -mm tree
+Date: Tue, 15 Sep 2009 19:17:29 -0700
+Message-ID: <200909160217.n8G2HTpN027044@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60787 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58651 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752429AbZIPCRh (ORCPT
+	by vger.kernel.org with ESMTP id S1752850AbZIPCRr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Sep 2009 22:17:37 -0400
+	Tue, 15 Sep 2009 22:17:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, fengguang.wu@intel.com, hugh.dickins@tiscali.co.uk, minchan.kim@gmail.com, riel@redhat.com
+To: kosaki.motohiro@jp.fujitsu.com, fengguang.wu@intel.com, hugh.dickins@tiscali.co.uk, minchan.kim@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Kill Isolated field in /proc/meminfo fix
-has been added to the -mm tree.  Its filename is
-     mm-vmstat-add-isolate-pages-fix-fix-fix.patch
+     mm-vmstat-add-isolate-pages-fix-fix
+has been removed from the -mm tree.  Its filename was
+     mm-vmstat-add-isolate-pages-fix-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into mm-vmstat-add-isolate-pages.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Kill Isolated field in /proc/meminfo fix
+Subject: mm-vmstat-add-isolate-pages-fix-fix
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Hugh Dickins pointed out Isolated field dislpay 0kB at almost time.
-It is only increased at heavy memory pressure case.
+Hugh Dickins pointed out Isolated field dislpay 0kB at almost time.  It is
+only increased at heavy memory pressure case.
 
-So, if the system haven't get memory pressure, this field isn't useful.
-And now, we have an alternative way, (i.e. /prov/vmstat).
-Then, it can be removed.
+So, if the system haven't get memory pressure, this field isn't useful. 
+And now, we have two alternative way,
+/sys/device/system/node/node{n}/meminfo and /prov/vmstat.  Then, it can be
+removed.
 
+Reported-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Cc: Rik van Riel <riel@redhat.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Acked-by: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c |    4 ----
+ fs/proc/meminfo.c |    4 ----
  1 file changed, 4 deletions(-)
 
-diff -puN drivers/base/node.c~mm-vmstat-add-isolate-pages-fix-fix-fix drivers/base/node.c
---- a/drivers/base/node.c~mm-vmstat-add-isolate-pages-fix-fix-fix
-+++ a/drivers/base/node.c
-@@ -73,8 +73,6 @@ static ssize_t node_read_meminfo(struct 
- 		       "Node %d Active(file):   %8lu kB\n"
- 		       "Node %d Inactive(file): %8lu kB\n"
- 		       "Node %d Unevictable:    %8lu kB\n"
--		       "Node %d Isolated(anon): %8lu kB\n"
--		       "Node %d Isolated(file): %8lu kB\n"
- 		       "Node %d Mlocked:        %8lu kB\n"
+diff -puN fs/proc/meminfo.c~mm-vmstat-add-isolate-pages-fix-fix fs/proc/meminfo.c
+--- a/fs/proc/meminfo.c~mm-vmstat-add-isolate-pages-fix-fix
++++ a/fs/proc/meminfo.c
+@@ -65,8 +65,6 @@ static int meminfo_proc_show(struct seq_
+ 		"Active(file):   %8lu kB\n"
+ 		"Inactive(file): %8lu kB\n"
+ 		"Unevictable:    %8lu kB\n"
+-		"Isolated(anon): %8lu kB\n"
+-		"Isolated(file): %8lu kB\n"
+ 		"Mlocked:        %8lu kB\n"
  #ifdef CONFIG_HIGHMEM
- 		       "Node %d HighTotal:      %8lu kB\n"
-@@ -108,8 +106,6 @@ static ssize_t node_read_meminfo(struct 
- 		       nid, K(node_page_state(nid, NR_ACTIVE_FILE)),
- 		       nid, K(node_page_state(nid, NR_INACTIVE_FILE)),
- 		       nid, K(node_page_state(nid, NR_UNEVICTABLE)),
--		       nid, K(node_page_state(nid, NR_ISOLATED_ANON)),
--		       nid, K(node_page_state(nid, NR_ISOLATED_FILE)),
- 		       nid, K(node_page_state(nid, NR_MLOCK)),
+ 		"HighTotal:      %8lu kB\n"
+@@ -116,8 +114,6 @@ static int meminfo_proc_show(struct seq_
+ 		K(pages[LRU_ACTIVE_FILE]),
+ 		K(pages[LRU_INACTIVE_FILE]),
+ 		K(pages[LRU_UNEVICTABLE]),
+-		K(global_page_state(NR_ISOLATED_ANON)),
+-		K(global_page_state(NR_ISOLATED_FILE)),
+ 		K(global_page_state(NR_MLOCK)),
  #ifdef CONFIG_HIGHMEM
- 		       nid, K(i.totalhigh),
+ 		K(i.totalhigh),
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
@@ -96,7 +87,6 @@ mm-oom-analysis-add-shmem-vmstat.patch
 mm-rename-pgmoved-variable-in-shrink_active_list.patch
 mm-shrink_inactive_list-nr_scan-accounting-fix-fix.patch
 mm-vmstat-add-isolate-pages.patch
-mm-vmstat-add-isolate-pages-fix.patch
 mm-vmstat-add-isolate-pages-fix-fix.patch
 mm-vmstat-add-isolate-pages-fix-fix-fix.patch
 vmscan-throttle-direct-reclaim-when-too-many-pages-are-isolated-already.patch
