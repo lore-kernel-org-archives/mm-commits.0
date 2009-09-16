@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kmap_typesh-rename-d-macro.patch added to -mm tree
-Date: Wed, 16 Sep 2009 13:32:41 -0700
-Message-ID: <200909162032.n8GKWfXO001730@imap1.linux-foundation.org>
+Subject: + davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-disable-end-of-frame-interrupt.patch added to -mm tree
+Date: Wed, 16 Sep 2009 14:44:49 -0700
+Message-ID: <200909162144.n8GLinko013487@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56956 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57660 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759960AbZIPUco (ORCPT
+	by vger.kernel.org with ESMTP id S1754997AbZIPVpZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Sep 2009 16:32:44 -0400
+	Wed, 16 Sep 2009 17:45:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: andi@firstfloor.org, ak@linux.intel.com
+Cc: sudhakar.raj@ti.com, krzysztof.h1@wp.pl, pkiryukhin@ru.mvista.com, schen@mvista.com
 
 
 The patch titled
-     kmap_types.h: rename D macro
+     davinci: fb: disable end-of-frame interrupt
 has been added to the -mm tree.  Its filename is
-     kmap_typesh-rename-d-macro.patch
+     davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-disable-end-of-frame-interrupt.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,112 +34,150 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kmap_types.h: rename D macro
-From: Andi Kleen <andi@firstfloor.org>
+Subject: davinci: fb: disable end-of-frame interrupt
+From: Sudhakar Rajashekhara <sudhakar.raj@ti.com>
 
-I tend to use a 'D' debugging macro a lot during debugging.  When I define
-it before includes I often get conflicts with kmap_types.h's use of 'D'
-too.  It's not very nice when a global include pollutes the name space
-like this.
+Currently end-of-frame interrupt is being used while disabling LCD
+controller to wait or the frame being diaplyed to complete.  But when the
+LCD is disabled by clearing the LCD Raster Control enable bit in the LCD
+Raster Control Register, the LCD allows the current frame to complete
+before it is disabled.
 
-Rename the kmap_types.h D to KMAP_D.  It is only used temporarily in the
-header so has no effect on anything else.
+Hence disable end-of-frame interrupt and remove waitqueue related code
+which was used to handle this interrupt.
 
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Because of above modifications, modify the lcd_disable_raster() and
+lcd_reset() functions to return void instead of int.
+
+Signed-off-by: Sudhakar Rajashekhara <sudhakar.raj@ti.com>
+Cc: Pavel Kiryukhin <pkiryukhin@ru.mvista.com>
+Cc: Steve Chen <schen@mvista.com>
+Cc: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/kmap_types.h |   47 ++++++++++++++---------------
- 1 file changed, 24 insertions(+), 23 deletions(-)
+ drivers/video/da8xx-fb.c |   36 ++++++++----------------------------
+ 1 file changed, 8 insertions(+), 28 deletions(-)
 
-diff -puN include/asm-generic/kmap_types.h~kmap_typesh-rename-d-macro include/asm-generic/kmap_types.h
---- a/include/asm-generic/kmap_types.h~kmap_typesh-rename-d-macro
-+++ a/include/asm-generic/kmap_types.h
-@@ -2,34 +2,35 @@
- #define _ASM_GENERIC_KMAP_TYPES_H
+diff -puN drivers/video/da8xx-fb.c~davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-disable-end-of-frame-interrupt drivers/video/da8xx-fb.c
+--- a/drivers/video/da8xx-fb.c~davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-disable-end-of-frame-interrupt
++++ a/drivers/video/da8xx-fb.c
+@@ -107,7 +107,6 @@ static inline void lcdc_write(unsigned i
+ }
  
- #ifdef __WITH_KM_FENCE
--# define D(n) __KM_FENCE_##n ,
-+# define KMAP_D(n) __KM_FENCE_##n ,
- #else
--# define D(n)
-+# define KMAP_D(n)
- #endif
- 
- enum km_type {
--D(0)	KM_BOUNCE_READ,
--D(1)	KM_SKB_SUNRPC_DATA,
--D(2)	KM_SKB_DATA_SOFTIRQ,
--D(3)	KM_USER0,
--D(4)	KM_USER1,
--D(5)	KM_BIO_SRC_IRQ,
--D(6)	KM_BIO_DST_IRQ,
--D(7)	KM_PTE0,
--D(8)	KM_PTE1,
--D(9)	KM_IRQ0,
--D(10)	KM_IRQ1,
--D(11)	KM_SOFTIRQ0,
--D(12)	KM_SOFTIRQ1,
--D(13)	KM_SYNC_ICACHE,
--D(14)	KM_SYNC_DCACHE,
--D(15)	KM_UML_USERCOPY, /* UML specific, for copy_*_user - used in do_op_one_page */
--D(16)	KM_IRQ_PTE,
--D(17)	KM_NMI,
--D(18)	KM_NMI_PTE,
--D(19)	KM_TYPE_NR
-+KMAP_D(0)	KM_BOUNCE_READ,
-+KMAP_D(1)	KM_SKB_SUNRPC_DATA,
-+KMAP_D(2)	KM_SKB_DATA_SOFTIRQ,
-+KMAP_D(3)	KM_USER0,
-+KMAP_D(4)	KM_USER1,
-+KMAP_D(5)	KM_BIO_SRC_IRQ,
-+KMAP_D(6)	KM_BIO_DST_IRQ,
-+KMAP_D(7)	KM_PTE0,
-+KMAP_D(8)	KM_PTE1,
-+KMAP_D(9)	KM_IRQ0,
-+KMAP_D(10)	KM_IRQ1,
-+KMAP_D(11)	KM_SOFTIRQ0,
-+KMAP_D(12)	KM_SOFTIRQ1,
-+KMAP_D(13)	KM_SYNC_ICACHE,
-+KMAP_D(14)	KM_SYNC_DCACHE,
-+/* UML specific, for copy_*_user - used in do_op_one_page */
-+KMAP_D(15)	KM_UML_USERCOPY,
-+KMAP_D(16)	KM_IRQ_PTE,
-+KMAP_D(17)	KM_NMI,
-+KMAP_D(18)	KM_NMI_PTE,
-+KMAP_D(19)	KM_TYPE_NR
+ struct da8xx_fb_par {
+-	wait_queue_head_t da8xx_wq;
+ 	resource_size_t p_palette_base;
+ 	unsigned char *v_palette_base;
+ 	struct clk *lcdc_clk;
+@@ -193,21 +192,13 @@ static struct da8xx_panel known_lcd_pane
  };
  
--#undef D
-+#undef KMAP_D
+ /* Disable the Raster Engine of the LCD Controller */
+-static int lcd_disable_raster(struct da8xx_fb_par *par)
++static void lcd_disable_raster(struct da8xx_fb_par *par)
+ {
+-	int ret = 0;
+ 	u32 reg;
  
- #endif
-_
-
-Patches currently in -mm which might be from andi@firstfloor.org are
-
-origin.patch
-linux-next.patch
-mm-memory-failure-remove-config_unevictable_lru-config-option.patch
-kbuild-fix-ld-option-makefile-macro-to-really-work.patch
-kbuild-check-if-linker-supports-the-x-option.patch
-kbuild-echo-the-record_mcount-command.patch
-kbuild-fail-build-if-recordmcountpl-fails.patch
-kbuild-set-fconserve-stack-option-for-gcc-45.patch
-vfs-optimization-for-touch_atime.patch
-vfs-optimize-touch_time-too.patch
-hwpoison-fix-uninitialized-warning.patch
-hugetlb-restore-interleaving-of-bootmem-huge-pages.patch
-documentation-memorytxt-remove-some-very-outdated-recommendations.patch
-build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it.patch
-kmap_typesh-rename-d-macro.patch
-video-console-use-div_round_up.patch
-time-add-function-to-convert-between-calendar-time-and-broken-down-time-for-universal-use.patch
-fatfs-use-common-time_to_tm-in-fat_time_unix2fat.patch
-page-types-add-feature-for-walking-process-address-space.patch
-memcg-improve-resource-counter-scalability.patch
-memcg-improve-resource-counter-scalability-v5.patch
-exec-make-do_coredump-more-resilient-to-recursive-crashes-v9.patch
-exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9.patch
-exec-allow-do_coredump-to-wait-for-user-space-pipe-readers-to-complete-v9.patch
-
+ 	reg = lcdc_read(LCD_RASTER_CTRL_REG);
+-	if (reg & LCD_RASTER_ENABLE) {
++	if (reg & LCD_RASTER_ENABLE)
+ 		lcdc_write(reg & ~LCD_RASTER_ENABLE, LCD_RASTER_CTRL_REG);
+-		ret = wait_event_interruptible_timeout(par->da8xx_wq,
+-						!lcdc_read(LCD_STAT_REG) &
+-						LCD_END_OF_FRAME0, WSI_TIMEOUT);
+-		if (ret == 0)
+-			ret = -ETIMEDOUT;
+-	}
+-	return ret;
+ }
+ 
+ static void lcd_blit(int load_mode, struct da8xx_fb_par *par)
+@@ -255,7 +246,7 @@ static int lcd_cfg_dma(int burst_size)
+ 	default:
+ 		return -EINVAL;
+ 	}
+-	lcdc_write(reg | LCD_END_OF_FRAME_INT_ENA, LCD_DMA_CTRL_REG);
++	lcdc_write(reg, LCD_DMA_CTRL_REG);
+ 
+ 	return 0;
+ }
+@@ -450,19 +441,15 @@ static int fb_setcolreg(unsigned regno, 
+ 	return 0;
+ }
+ 
+-static int lcd_reset(struct da8xx_fb_par *par)
++static void lcd_reset(struct da8xx_fb_par *par)
+ {
+-	int ret = 0;
+-
+ 	/* Disable the Raster if previously Enabled */
+ 	if (lcdc_read(LCD_RASTER_CTRL_REG) & LCD_RASTER_ENABLE)
+-		ret = lcd_disable_raster(par);
++		lcd_disable_raster(par);
+ 
+ 	/* DMA has to be disabled */
+ 	lcdc_write(0, LCD_DMA_CTRL_REG);
+ 	lcdc_write(0, LCD_RASTER_CTRL_REG);
+-
+-	return ret;
+ }
+ 
+ static int lcd_init(struct da8xx_fb_par *par, const struct lcd_ctrl_config *cfg,
+@@ -471,9 +458,7 @@ static int lcd_init(struct da8xx_fb_par 
+ 	u32 bpp;
+ 	int ret = 0;
+ 
+-	ret = lcd_reset(par);
+-	if (ret != 0)
+-		return ret;
++	lcd_reset(par);
+ 
+ 	/* Configure the LCD clock divisor. */
+ 	lcdc_write(LCD_CLK_DIVISOR(panel->pxl_clk) |
+@@ -529,7 +514,6 @@ static int lcd_init(struct da8xx_fb_par 
+ static irqreturn_t lcdc_irq_handler(int irq, void *arg)
+ {
+ 	u32 stat = lcdc_read(LCD_STAT_REG);
+-	struct da8xx_fb_par *par = arg;
+ 	u32 reg;
+ 
+ 	if ((stat & LCD_SYNC_LOST) && (stat & LCD_FIFO_UNDERFLOW)) {
+@@ -540,7 +524,6 @@ static irqreturn_t lcdc_irq_handler(int 
+ 	} else
+ 		lcdc_write(stat, LCD_STAT_REG);
+ 
+-	wake_up_interruptible(&par->da8xx_wq);
+ 	return IRQ_HANDLED;
+ }
+ 
+@@ -595,13 +578,12 @@ static int fb_check_var(struct fb_var_sc
+ static int __devexit fb_remove(struct platform_device *dev)
+ {
+ 	struct fb_info *info = dev_get_drvdata(&dev->dev);
+-	int ret = 0;
+ 
+ 	if (info) {
+ 		struct da8xx_fb_par *par = info->par;
+ 
+ 		if (lcdc_read(LCD_RASTER_CTRL_REG) & LCD_RASTER_ENABLE)
+-			ret = lcd_disable_raster(par);
++			lcd_disable_raster(par);
+ 		lcdc_write(0, LCD_RASTER_CTRL_REG);
+ 
+ 		/* disable DMA  */
+@@ -620,7 +602,7 @@ static int __devexit fb_remove(struct pl
+ 		release_mem_region(lcdc_regs->start, resource_size(lcdc_regs));
+ 
+ 	}
+-	return ret;
++	return 0;
+ }
+ 
+ static int fb_ioctl(struct fb_info *info, unsigned int cmd,
+@@ -774,8 +756,6 @@ static int __init fb_probe(struct platfo
+ 
+ 	par->lcdc_clk = fb_clk;
+ 
+-	init_waitqueue_head(&par->da8xx_wq);
