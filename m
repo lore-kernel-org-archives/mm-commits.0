@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + net-fix-config_net=n-build-on-sparc64.patch added to -mm tree
-Date: Thu, 17 Sep 2009 15:50:25 -0700
-Message-ID: <200909172312.n8HNCgcv025128@imap1.linux-foundation.org>
+Subject: + build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix.patch added to -mm tree
+Date: Thu, 17 Sep 2009 16:02:57 -0700
+Message-ID: <200909172325.n8HNPEBZ017167@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36717 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54741 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751194AbZIQXNB (ORCPT
+	by vger.kernel.org with ESMTP id S1750741AbZIQX0P (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Sep 2009 19:13:01 -0400
+	Thu, 17 Sep 2009 19:26:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davem@davemloft.net
+Cc: akpm@linux-foundation.org, JBeulich@novell.com, andi@firstfloor.org, catalin.marinas@arm.com, davem@davemloft.net, jbeulich@novell.com, rusty@rustcorp.com.au
 
 
 The patch titled
-     net: fix CONFIG_NET=n build on sparc64
+     build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix
 has been added to the -mm tree.  Its filename is
-     net-fix-config_net=n-build-on-sparc64.patch
+     build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: net: fix CONFIG_NET=n build on sparc64
+Subject: build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-sparc64 allnoconfig:
+/usr/src/devel/arch/sparc/include/asm/vio.h: In function `vio_dring_avail':
+/usr/src/devel/arch/sparc/include/asm/vio.h:261: error: bit-field `<anonymous>' width not an integer constant
 
-arch/sparc/kernel/built-in.o(.text+0x134e0): In function `sys32_recvfrom':
-: undefined reference to `compat_sys_recvfrom'
-arch/sparc/kernel/built-in.o(.text+0x134e4): In function `sys32_recvfrom':
-: undefined reference to `compat_sys_recvfrom'
 
 Cc: "David S. Miller" <davem@davemloft.net>
+Cc: "Jan Beulich" <JBeulich@novell.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Jan Beulich <jbeulich@novell.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys_ni.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/sparc/include/asm/vio.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/sys_ni.c~net-fix-config_net=n-build-on-sparc64 kernel/sys_ni.c
---- a/kernel/sys_ni.c~net-fix-config_net=n-build-on-sparc64
-+++ a/kernel/sys_ni.c
-@@ -49,6 +49,7 @@ cond_syscall(sys_sendmsg);
- cond_syscall(compat_sys_sendmsg);
- cond_syscall(sys_recvmsg);
- cond_syscall(compat_sys_recvmsg);
-+cond_syscall(compat_sys_recvfrom);
- cond_syscall(sys_socketcall);
- cond_syscall(sys_futex);
- cond_syscall(compat_sys_futex);
+diff -puN arch/sparc/include/asm/vio.h~build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix arch/sparc/include/asm/vio.h
+--- a/arch/sparc/include/asm/vio.h~build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix
++++ a/arch/sparc/include/asm/vio.h
+@@ -258,7 +258,7 @@ static inline void *vio_dring_entry(stru
+ static inline u32 vio_dring_avail(struct vio_dring_state *dr,
+ 				  unsigned int ring_size)
+ {
+-	BUILD_BUG_ON(!is_power_of_2(ring_size));
++	MAYBE_BUILD_BUG_ON(!is_power_of_2(ring_size));
+ 
+ 	return (dr->pending -
+ 		((dr->prod - dr->cons) & (ring_size - 1)));
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -81,6 +84,7 @@ timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
 input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
 input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
 checkincludespl-add-option-to-remove-duplicates-in-place.patch
+net-fix-config_net=n-build-on-sparc64.patch
 zorro8390-fix-read-buffer-overflow-in-zorro8390_init_one-checkpatch-fixes.patch
 3x59x-fix-pci-resource-management.patch
 bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
@@ -114,6 +118,7 @@ printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
 printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
 generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
 proc-connector-add-event-for-process-becoming-session-leader.patch
+build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix.patch
 kernel-smpc-relocate-some-code.patch
 mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
 sdio-add-cd-disable-support-cleanup.patch
@@ -151,5 +156,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 notify_change-callers-must-hold-i_mutex.patch
-net-fix-config_net=n-build-on-sparc64.patch
 
