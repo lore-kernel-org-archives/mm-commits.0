@@ -1,190 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: - tty-fix-regression-caused-by-tty-make-the-kref-destructor-occur-asynchronously.patch removed from -mm tree
-Date: Thu, 17 Sep 2009 12:41:01 -0700
-Message-ID: <200909171941.n8HJf1Mc031259@imap1.linux-foundation.org>
+Subject: [merged] blackfin-fix-read-buffer-overflow.patch removed from -mm tree
+Date: Thu, 17 Sep 2009 12:45:22 -0700
+Message-ID: <200909171945.n8HJjMLH007254@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43172 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41568 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751068AbZIQTlc (ORCPT
+	by vger.kernel.org with ESMTP id S1750741AbZIQTpV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Sep 2009 15:41:32 -0400
+	Thu, 17 Sep 2009 15:45:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hidave.darkstar@gmail.com, alan@linux.intel.com, alan@lxorguk.ukuu.org.uk, benisty.e@gmail.com, greg@kroah.com, rjw@sisk.pl, stern@rowland.harvard.edu, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, vapier@gentoo.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tty: fix regression caused by "tty: make the kref destructor occur asynchronously"
+     blackfin: fix read buffer overflow
 has been removed from the -mm tree.  Its filename was
-     tty-fix-regression-caused-by-tty-make-the-kref-destructor-occur-asynchronously.patch
+     blackfin-fix-read-buffer-overflow.patch
 
-This patch was dropped because it might be fixed
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tty: fix regression caused by "tty: make the kref destructor occur asynchronously"
+Subject: blackfin: fix read buffer overflow
+From: Roel Kluin <roel.kluin@gmail.com>
 
+Check whether index is within bounds before testing the element.
 
-The following commit make console open fails while booting:
-
-	commit d966976924119acd35a431adbb95292082f73f8c
-	Author: Alan Cox <alan@linux.intel.com>
-	Date:   Tue Aug 11 10:23:05 2009 +1000
-
-	tty: make the kref destructor occur asynchronously
-
-Due to tty release routines runs in workqueue now, error like following
-will be reported while booting:
-
-INIT open /dev/console Input/output error
-
-The reason is that now there's latency issue with closing, but when we
-open a "closing not finished" tty, -EIO will be returned.
-
-Fix it as alan's following suggestion:
-
-Fun but its actually not a bug and the fix is wrong in itself as the port
-may be closing but not yet being destructed, in which case it seems to do
-the wrong thing.  Opening a tty that is closing (and could be closing for
-long periods) is supposed to return -EIO.
-
-I suspect a better way to deal with this and keep the old console timing
-is to split tty->shutdown into two functions.
-
-tty->shutdown() - called synchronously just before we dump the tty onto
-the waitqueue for destruction
-
-tty->cleanup() - called when the destructor runs.
-
-We would then do the shutdown part which can occur in IRQ context fine,
-before queueing the rest of the release (from tty->magic = 0 ...  the end)
-to occur asynchronously
-
-The USB update in -next would then need a call like
-
-       if (tty->cleanup)
-               tty->cleanup(tty);
-
-at the top of the async function and the USB shutdown to be split between
-shutdown and cleanup as the USB resource cleanup and final tidy cannot
-occur synchronously as it needs to sleep.
-
-In other words the logic becomes
-
-       final kref put
-               make object unfindable
-
-       async
-               clean it up
-
-Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Emmanuel Benisty <benisty.e@gmail.com>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Mike Frysinger <vapier@gentoo.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tty_io.c           |   15 ++++++++++-----
- drivers/usb/serial/usb-serial.c |    2 +-
- include/linux/tty_driver.h      |   13 +++++++++++--
- 3 files changed, 22 insertions(+), 8 deletions(-)
+ arch/blackfin/kernel/bfin_dma_5xx.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/char/tty_io.c~tty-fix-regression-caused-by-tty-make-the-kref-destructor-occur-asynchronously drivers/char/tty_io.c
---- a/drivers/char/tty_io.c~tty-fix-regression-caused-by-tty-make-the-kref-destructor-occur-asynchronously
-+++ a/drivers/char/tty_io.c
-@@ -1389,7 +1389,7 @@ EXPORT_SYMBOL(tty_shutdown);
-  *	of ttys that the driver keeps.
-  *
-  *	This method gets called from a work queue so that the driver private
-- *	shutdown ops can sleep (needed for USB at least)
-+ *	cleanup ops can sleep (needed for USB at least)
-  */
- static void release_one_tty(struct work_struct *work)
- {
-@@ -1397,10 +1397,9 @@ static void release_one_tty(struct work_
- 		container_of(work, struct tty_struct, hangup_work);
- 	struct tty_driver *driver = tty->driver;
+diff -puN arch/blackfin/kernel/bfin_dma_5xx.c~blackfin-fix-read-buffer-overflow arch/blackfin/kernel/bfin_dma_5xx.c
+--- a/arch/blackfin/kernel/bfin_dma_5xx.c~blackfin-fix-read-buffer-overflow
++++ a/arch/blackfin/kernel/bfin_dma_5xx.c
+@@ -146,8 +146,8 @@ EXPORT_SYMBOL(request_dma);
  
--	if (tty->ops->shutdown)
--		tty->ops->shutdown(tty);
--	else
--		tty_shutdown(tty);
-+	if (tty->ops->cleanup)
-+		tty->ops->cleanup(tty);
-+
- 	tty->magic = 0;
- 	tty_driver_kref_put(driver);
- 	module_put(driver->owner);
-@@ -1415,6 +1414,12 @@ static void release_one_tty(struct work_
- static void queue_release_one_tty(struct kref *kref)
+ int set_dma_callback(unsigned int channel, irq_handler_t callback, void *data)
  {
- 	struct tty_struct *tty = container_of(kref, struct tty_struct, kref);
-+
-+	if (tty->ops->shutdown)
-+		tty->ops->shutdown(tty);
-+	else
-+		tty_shutdown(tty);
-+
- 	/* The hangup queue is now free so we can reuse it rather than
- 	   waste a chunk of memory for each port */
- 	INIT_WORK(&tty->hangup_work, release_one_tty);
-diff -puN drivers/usb/serial/usb-serial.c~tty-fix-regression-caused-by-tty-make-the-kref-destructor-occur-asynchronously drivers/usb/serial/usb-serial.c
---- a/drivers/usb/serial/usb-serial.c~tty-fix-regression-caused-by-tty-make-the-kref-destructor-occur-asynchronously
-+++ a/drivers/usb/serial/usb-serial.c
-@@ -1269,7 +1269,7 @@ static const struct tty_operations seria
- 	.chars_in_buffer =	serial_chars_in_buffer,
- 	.tiocmget =		serial_tiocmget,
- 	.tiocmset =		serial_tiocmset,
--	.shutdown = 		serial_do_free,
-+	.cleanup = 		serial_do_free,
- 	.install = 		serial_install,
- 	.proc_fops =		&serial_proc_fops,
- };
-diff -puN include/linux/tty_driver.h~tty-fix-regression-caused-by-tty-make-the-kref-destructor-occur-asynchronously include/linux/tty_driver.h
---- a/include/linux/tty_driver.h~tty-fix-regression-caused-by-tty-make-the-kref-destructor-occur-asynchronously
-+++ a/include/linux/tty_driver.h
-@@ -45,8 +45,16 @@
-  *
-  * void (*shutdown)(struct tty_struct * tty);
-  *
-- * 	This routine is called when a particular tty device is closed for
-- *	the last time freeing up the resources.
-+ * 	This routine is called synchronously when a particular tty device
-+ *	is closed for the last time freeing up the resources.
-+ *
-+ *
-+ * void (*cleanup)(struct tty_struct * tty);
-+ *
-+ *	This routine is called asynchronously when a particular tty device
-+ *	is closed for the last time freeing up the resources. This is
-+ *	actually the second part of shutdown for routines that might sleep.
-+ *
-  *
-  * int (*write)(struct tty_struct * tty,
-  * 		 const unsigned char *buf, int count);
-@@ -233,6 +241,7 @@ struct tty_operations {
- 	int  (*open)(struct tty_struct * tty, struct file * filp);
- 	void (*close)(struct tty_struct * tty, struct file * filp);
- 	void (*shutdown)(struct tty_struct *tty);
-+	void (*cleanup)(struct tty_struct *tty);
- 	int  (*write)(struct tty_struct * tty,
- 		      const unsigned char *buf, int count);
- 	int  (*put_char)(struct tty_struct *tty, unsigned char ch);
+-	BUG_ON(!(dma_ch[channel].chan_status != DMA_CHANNEL_FREE
+-	       && channel < MAX_DMA_CHANNELS));
++	BUG_ON(channel >= MAX_DMA_CHANNELS ||
++			dma_ch[channel].chan_status == DMA_CHANNEL_FREE);
+ 
+ 	if (callback != NULL) {
+ 		int ret;
+@@ -181,8 +181,8 @@ static void clear_dma_buffer(unsigned in
+ void free_dma(unsigned int channel)
+ {
+ 	pr_debug("freedma() : BEGIN \n");
+-	BUG_ON(!(dma_ch[channel].chan_status != DMA_CHANNEL_FREE
+-	       && channel < MAX_DMA_CHANNELS));
++	BUG_ON(channel >= MAX_DMA_CHANNELS ||
++			dma_ch[channel].chan_status == DMA_CHANNEL_FREE);
+ 
+ 	/* Halt the DMA */
+ 	disable_dma(channel);
 _
 
-Patches currently in -mm which might be from hidave.darkstar@gmail.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-tty-fix-regression-caused-by-tty-make-the-kref-destructor-occur-asynchronously.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix-2.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
-cgroups-let-ss-can_attach-and-ss-attach-do-whole-threadgroups-at-a-time-fix.patch
-pc-fs-char_devc-remove-useless-loop-fix.patch
+origin.patch
+linux-next.patch
+s3c-fix-check-of-index-into-s3c_gpios.patch
+stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
+dm-strncpy-does-not-null-terminate-string.patch
+pcmcia-fix-read-buffer-overflow.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
+octeon-false-positive-timeout.patch
+msp71xx-request_irq-failure-ignored-in-msp_pcibios_config_access.patch
+mtd-jffs2-fix-read-buffer-overflow.patch
+mtd-prevent-a-read-from-eraseregions.patch
+mtd-prevent-a-read-from-regions.patch
+hfc_usb-fix-read-buffer-overflow.patch
+zorro8390-fix-read-buffer-overflow-in-zorro8390_init_one-checkpatch-fixes.patch
+cyclades-read-buffer-overflow.patch
+serial167-fix-read-buffer-overflow.patch
+regulator-fix-calculation-of-voltage-range-in-da9034_set_ldo12_voltage.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
+zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
+st-fix-test-of-value-range-in-st_set_options.patch
+st-fix-test-of-value-range-in-st_set_options-fix.patch
+drivers-staging-octeon-ethernet-rgmiic-dont-ignore-request_irq-return-code.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+arch-alpha-boot-tools-objstripc-wrong-variable-tested-after-open.patch
+m32r-remove-redundant-tests-on-unsigned.patch
+uml-fix-order-of-pud-and-pmd_free.patch
+dme1737-keep-index-within-pwm_config.patch
+sdio-fix-read-buffer-overflow.patch
+hwmon-fix-freeing-of-gpio_data-and-irq.patch
+ncpfs-read-buffer-overflow.patch
+smbfs-read-buffer-overflow.patch
+platinumfb-misplaced-parenthesis.patch
+sisfb-read-buffer-overflow.patch
+drivers-video-console-newport_conc-fix-read-outside-array-bounds.patch
+mwave-fix-read-buffer-overflow.patch
+adfs-remove-redundant-test-on-unsigned.patch
+gru-allocation-may-fail-in-quicktest1.patch
 
