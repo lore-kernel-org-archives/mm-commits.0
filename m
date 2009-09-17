@@ -1,115 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [merged] blackfin-fix-read-buffer-overflow.patch removed from -mm tree
-Date: Thu, 17 Sep 2009 12:45:22 -0700
-Message-ID: <200909171945.n8HJjMLH007254@imap1.linux-foundation.org>
+Subject: [merged] ssb-sdio-fix-printk-format-warnings.patch removed from -mm tree
+Date: Thu, 17 Sep 2009 12:45:31 -0700
+Message-ID: <200909171945.n8HJjVwK007562@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41568 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54910 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750741AbZIQTpV (ORCPT
+	by vger.kernel.org with ESMTP id S1750995AbZIQTpm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Sep 2009 15:45:21 -0400
+	Thu, 17 Sep 2009 15:45:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, vapier@gentoo.org, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, mb@bu3sch.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     blackfin: fix read buffer overflow
+     ssb/sdio: fix printk format warnings
 has been removed from the -mm tree.  Its filename was
-     blackfin-fix-read-buffer-overflow.patch
+     ssb-sdio-fix-printk-format-warnings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: blackfin: fix read buffer overflow
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: ssb/sdio: fix printk format warnings
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Check whether index is within bounds before testing the element.
+Fix printk format warnings:
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Mike Frysinger <vapier@gentoo.org>
+drivers/ssb/sdio.c:336: warning: format '%u' expects type 'unsigned int', but argument 7 has type 'size_t'
+drivers/ssb/sdio.c:443: warning: format '%u' expects type 'unsigned int', but argument 7 has type 'size_t'
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Michael Buesch <mb@bu3sch.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/blackfin/kernel/bfin_dma_5xx.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/ssb/sdio.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/blackfin/kernel/bfin_dma_5xx.c~blackfin-fix-read-buffer-overflow arch/blackfin/kernel/bfin_dma_5xx.c
---- a/arch/blackfin/kernel/bfin_dma_5xx.c~blackfin-fix-read-buffer-overflow
-+++ a/arch/blackfin/kernel/bfin_dma_5xx.c
-@@ -146,8 +146,8 @@ EXPORT_SYMBOL(request_dma);
+diff -puN drivers/ssb/sdio.c~ssb-sdio-fix-printk-format-warnings drivers/ssb/sdio.c
+--- a/drivers/ssb/sdio.c~ssb-sdio-fix-printk-format-warnings
++++ a/drivers/ssb/sdio.c
+@@ -333,7 +333,7 @@ static void ssb_sdio_block_read(struct s
+ 		goto out;
  
- int set_dma_callback(unsigned int channel, irq_handler_t callback, void *data)
- {
--	BUG_ON(!(dma_ch[channel].chan_status != DMA_CHANNEL_FREE
--	       && channel < MAX_DMA_CHANNELS));
-+	BUG_ON(channel >= MAX_DMA_CHANNELS ||
-+			dma_ch[channel].chan_status == DMA_CHANNEL_FREE);
+ err_out:
+-	dev_dbg(ssb_sdio_dev(bus), "%04X:%04X (width=%u, len=%u), error %d\n",
++	dev_dbg(ssb_sdio_dev(bus), "%04X:%04X (width=%u, len=%zu), error %d\n",
+ 		bus->sdio_sbaddr >> 16, offset, reg_width, saved_count, error);
+ out:
+ 	sdio_release_host(bus->host_sdio);
+@@ -440,7 +440,7 @@ static void ssb_sdio_block_write(struct 
+ 		goto out;
  
- 	if (callback != NULL) {
- 		int ret;
-@@ -181,8 +181,8 @@ static void clear_dma_buffer(unsigned in
- void free_dma(unsigned int channel)
- {
- 	pr_debug("freedma() : BEGIN \n");
--	BUG_ON(!(dma_ch[channel].chan_status != DMA_CHANNEL_FREE
--	       && channel < MAX_DMA_CHANNELS));
-+	BUG_ON(channel >= MAX_DMA_CHANNELS ||
-+			dma_ch[channel].chan_status == DMA_CHANNEL_FREE);
- 
- 	/* Halt the DMA */
- 	disable_dma(channel);
+ err_out:
+-	dev_dbg(ssb_sdio_dev(bus), "%04X:%04X (width=%u, len=%u), error %d\n",
++	dev_dbg(ssb_sdio_dev(bus), "%04X:%04X (width=%u, len=%zu), error %d\n",
+ 		bus->sdio_sbaddr >> 16, offset, reg_width, saved_count, error);
+ out:
+ 	sdio_release_host(bus->host_sdio);
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
 linux-next.patch
-s3c-fix-check-of-index-into-s3c_gpios.patch
-stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
-dm-strncpy-does-not-null-terminate-string.patch
-pcmcia-fix-read-buffer-overflow.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
-octeon-false-positive-timeout.patch
-msp71xx-request_irq-failure-ignored-in-msp_pcibios_config_access.patch
-mtd-jffs2-fix-read-buffer-overflow.patch
-mtd-prevent-a-read-from-eraseregions.patch
-mtd-prevent-a-read-from-regions.patch
-hfc_usb-fix-read-buffer-overflow.patch
-zorro8390-fix-read-buffer-overflow-in-zorro8390_init_one-checkpatch-fixes.patch
-cyclades-read-buffer-overflow.patch
-serial167-fix-read-buffer-overflow.patch
-regulator-fix-calculation-of-voltage-range-in-da9034_set_ldo12_voltage.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
-st-fix-test-of-value-range-in-st_set_options.patch
-st-fix-test-of-value-range-in-st_set_options-fix.patch
-drivers-staging-octeon-ethernet-rgmiic-dont-ignore-request_irq-return-code.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-arch-alpha-boot-tools-objstripc-wrong-variable-tested-after-open.patch
-m32r-remove-redundant-tests-on-unsigned.patch
-uml-fix-order-of-pud-and-pmd_free.patch
-dme1737-keep-index-within-pwm_config.patch
-sdio-fix-read-buffer-overflow.patch
-hwmon-fix-freeing-of-gpio_data-and-irq.patch
-ncpfs-read-buffer-overflow.patch
-smbfs-read-buffer-overflow.patch
-platinumfb-misplaced-parenthesis.patch
-sisfb-read-buffer-overflow.patch
-drivers-video-console-newport_conc-fix-read-outside-array-bounds.patch
-mwave-fix-read-buffer-overflow.patch
-adfs-remove-redundant-test-on-unsigned.patch
-gru-allocation-may-fail-in-quicktest1.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+kernel-hacking-move-strip_asm_syms-from-general.patch
+isdn-fix-netjet-build-errors.patch
+scsi-fix-func-names-in-kernel-doc.patch
+cciss-fix-schedule_timeout-parameters.patch
+mm-make-swap-token-dummies-static-inlines-fix-2.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+page_alloc-fix-kernel-doc-warning.patch
+ksm-add-some-documentation.patch
+flex_array-add-missing-kerneldoc-annotations.patch
+lis3-add-power-management-functions-fix.patch
+procfs-provide-stack-information-for-threads-v011-fix.patch
+kcore-register-vmemmap-range-fix.patch
+spih-add-missing-kernel-doc-for-struct-spi_master.patch
+gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links-update-fix.patch
+doc-filesystems-remove-smount-program.patch
+doc-filesystems-more-mount-cleanups.patch
+documentation-update-stale-definition-of-file-nr-in-fstxt.patch
+includecheck-fix-documentation-cfag12864b-examplec.patch
+docs-fix-various-documentation-paths-in-header-files.patch
+reiser4-export-remove_from_page_cache-fix.patch
 
