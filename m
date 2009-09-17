@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-usb-serial-sierrac-fix-config_pm=n-build.patch added to -mm tree
-Date: Thu, 17 Sep 2009 15:41:14 -0700
-Message-ID: <200909172303.n8HN3VN2007125@imap1.linux-foundation.org>
+Subject: + net-fix-config_net=n-build-on-sparc64.patch added to -mm tree
+Date: Thu, 17 Sep 2009 15:50:25 -0700
+Message-ID: <200909172312.n8HNCgcv025128@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53923 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36717 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751148AbZIQXEP (ORCPT
+	by vger.kernel.org with ESMTP id S1751194AbZIQXNB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Sep 2009 19:04:15 -0400
+	Thu, 17 Sep 2009 19:13:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, epasheva@sierrawireless.com, greg@kroah.com, oliver@neukum.org, sfr@canb.auug.org.au
+Cc: akpm@linux-foundation.org, davem@davemloft.net
 
 
 The patch titled
-     drivers/usb/serial/sierra.c: fix CONFIG_PM=n build
+     net: fix CONFIG_NET=n build on sparc64
 has been added to the -mm tree.  Its filename is
-     drivers-usb-serial-sierrac-fix-config_pm=n-build.patch
+     net-fix-config_net=n-build-on-sparc64.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,53 +34,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/usb/serial/sierra.c: fix CONFIG_PM=n build
+Subject: net: fix CONFIG_NET=n build on sparc64
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/usb/serial/sierra.c: In function 'sierra_suspend':
-drivers/usb/serial/sierra.c:936: error: 'struct usb_device' has no member named 'auto_pm'
+sparc64 allnoconfig:
 
-Repairs
+arch/sparc/kernel/built-in.o(.text+0x134e0): In function `sys32_recvfrom':
+: undefined reference to `compat_sys_recvfrom'
+arch/sparc/kernel/built-in.o(.text+0x134e4): In function `sys32_recvfrom':
+: undefined reference to `compat_sys_recvfrom'
 
-commit 5bec838b3c9f5a88dc5ffc6b93a98fb032a457d8
-Author:     Oliver Neukum <oliver@neukum.org>
-AuthorDate: Fri Sep 4 23:19:53 2009 +0200
-Commit:     Stephen Rothwell <sfr@canb.auug.org.au>
-CommitDate: Thu Sep 17 10:42:51 2009 +1000
-
-    USB: support for autosuspend in sierra while online
-
-Cc: Greg KH <greg@kroah.com>
-Cc: Oliver Neukum <oliver@neukum.org>
-Cc: Elina Pasheva <epasheva@sierrawireless.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/sierra.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ kernel/sys_ni.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/usb/serial/sierra.c~drivers-usb-serial-sierrac-fix-config_pm=n-build drivers/usb/serial/sierra.c
---- a/drivers/usb/serial/sierra.c~drivers-usb-serial-sierrac-fix-config_pm=n-build
-+++ a/drivers/usb/serial/sierra.c
-@@ -912,6 +912,7 @@ static void sierra_release(struct usb_se
- 	}
- }
- 
-+#ifdef CONFIG_PM
- static void stop_read_write_urbs(struct usb_serial *serial)
- {
- 	int i, j;
-@@ -988,6 +989,10 @@ static int sierra_resume(struct usb_seri
- 
- 	return ec ? -EIO : 0;
- }
-+#else
-+#define sierra_suspend NULL
-+#define sierra_resume NULL
-+#endif
- 
- static struct usb_serial_driver sierra_device = {
- 	.driver = {
+diff -puN kernel/sys_ni.c~net-fix-config_net=n-build-on-sparc64 kernel/sys_ni.c
+--- a/kernel/sys_ni.c~net-fix-config_net=n-build-on-sparc64
++++ a/kernel/sys_ni.c
+@@ -49,6 +49,7 @@ cond_syscall(sys_sendmsg);
+ cond_syscall(compat_sys_sendmsg);
+ cond_syscall(sys_recvmsg);
+ cond_syscall(compat_sys_recvmsg);
++cond_syscall(compat_sys_recvfrom);
+ cond_syscall(sys_socketcall);
+ cond_syscall(sys_futex);
+ cond_syscall(compat_sys_futex);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -170,4 +151,5 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 notify_change-callers-must-hold-i_mutex.patch
+net-fix-config_net=n-build-on-sparc64.patch
 
