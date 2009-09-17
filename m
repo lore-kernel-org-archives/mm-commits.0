@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + walk-system-ram-range-borkage.patch added to -mm tree
-Date: Thu, 17 Sep 2009 16:45:59 -0700
-Message-ID: <200909180008.n8I08GNo004182@imap1.linux-foundation.org>
+Subject: + drivers-mfd-ab3100-corec-make-powerpc-shut-up.patch added to -mm tree
+Date: Thu, 17 Sep 2009 16:59:32 -0700
+Message-ID: <200909180021.n8I0LnRE030778@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41365 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34612 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751148AbZIRAIp (ORCPT
+	by vger.kernel.org with ESMTP id S1751832AbZIRAWT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Sep 2009 20:08:45 -0400
+	Thu, 17 Sep 2009 20:22:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com
+Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, sameo@linux.intel.com
 
 
 The patch titled
-     walk-system-ram-range-borkage
+     drivers/mfd/ab3100-core.c: make powerpc shut up
 has been added to the -mm tree.  Its filename is
-     walk-system-ram-range-borkage.patch
+     drivers-mfd-ab3100-corec-make-powerpc-shut-up.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: walk-system-ram-range-borkage
+Subject: drivers/mfd/ab3100-core.c: make powerpc shut up
 From: Andrew Morton <akpm@linux-foundation.org>
 
-so it compiles.
+drivers/mfd/ab3100-core.c:651: error: ab3100_init_settings causes a section type conflict
 
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/hw/ehca/ehca_mrmw.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/mfd/ab3100-core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/infiniband/hw/ehca/ehca_mrmw.c~walk-system-ram-range-borkage drivers/infiniband/hw/ehca/ehca_mrmw.c
---- a/drivers/infiniband/hw/ehca/ehca_mrmw.c~walk-system-ram-range-borkage
-+++ a/drivers/infiniband/hw/ehca/ehca_mrmw.c
-@@ -2463,9 +2463,9 @@ int ehca_create_busmap(void)
- 	int ret;
+diff -puN drivers/mfd/ab3100-core.c~drivers-mfd-ab3100-corec-make-powerpc-shut-up drivers/mfd/ab3100-core.c
+--- a/drivers/mfd/ab3100-core.c~drivers-mfd-ab3100-corec-make-powerpc-shut-up
++++ a/drivers/mfd/ab3100-core.c
+@@ -647,7 +647,7 @@ struct ab3100_init_setting {
+ 	u8 setting;
+ };
  
- 	ehca_mr_len = 0;
--	ret = walk_memory_resource(0, 1ULL << MAX_PHYSMEM_BITS, NULL,
--				   ehca_create_busmap_callback);
--	return ret;
-+//	ret = walk_memory_resource(0, 1ULL << MAX_PHYSMEM_BITS, NULL,
-+//				   ehca_create_busmap_callback);
-+	return 0;
- }
- 
- static int ehca_reg_bmap_mr_rpages(struct ehca_shca *shca,
+-static const struct ab3100_init_setting __initdata
++static struct ab3100_init_setting __initdata
+ ab3100_init_settings[] = {
+ 	{
+ 		.abreg = AB3100_MCA,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -154,4 +151,5 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 notify_change-callers-must-hold-i_mutex.patch
+drivers-mfd-ab3100-corec-make-powerpc-shut-up.patch
 
