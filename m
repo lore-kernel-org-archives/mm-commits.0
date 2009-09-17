@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + alpha-convert-to-use-arch_gettimeoffset-fix.patch added to -mm tree
-Date: Thu, 17 Sep 2009 15:16:05 -0700
-Message-ID: <200909172238.n8HMcNuS022657@imap1.linux-foundation.org>
+Subject: + hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions-alpha-fix.patch added to -mm tree
+Date: Thu, 17 Sep 2009 15:21:53 -0700
+Message-ID: <200909172244.n8HMiAAw001575@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55889 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59812 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752403AbZIQWig (ORCPT
+	by vger.kernel.org with ESMTP id S1753284AbZIQWpZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Sep 2009 18:38:36 -0400
+	Thu, 17 Sep 2009 18:45:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ink@jurassic.park.msu.ru, johnstul@us.ibm.com, rth@twiddle.net
+Cc: akpm@linux-foundation.org, agl@us.ibm.com, david@gibson.dropbear.id.au, ebmunson@us.ibm.com, hugh.dickins@tiscali.co.uk, ink@jurassic.park.msu.ru, lee.schermerhorn@hp.com, mel@csn.ul.ie, nickpiggin@yahoo.com.au, rientjes@google.com, rth@twiddle.net
 
 
 The patch titled
-     alpha-convert-to-use-arch_gettimeoffset-fix
+     hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions-alpha-fix
 has been added to the -mm tree.  Its filename is
-     alpha-convert-to-use-arch_gettimeoffset-fix.patch
+     hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions-alpha-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,56 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alpha-convert-to-use-arch_gettimeoffset-fix
+Subject: hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions-alpha-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-cc1: warnings being treated as errors
-arch/alpha/kernel/time.c: In function 'arch_gettimeoffset':
-arch/alpha/kernel/time.c:413: warning: unused variable 'partial_tick'
-arch/alpha/kernel/time.c:413: warning: unused variable 'delta_cycles'
-make[1]: *** [arch/alpha/kernel/time.o] Error 1
+mm/mmap.c: In function 'do_mmap_pgoff':
+mm/mmap.c:953: error: 'MAP_HUGETLB' undeclared (first use in this function)
+mm/mmap.c:953: error: (Each undeclared identifier is reported only once
+mm/mmap.c:953: error: for each function it appears in.)
 
+Cc: Adam Litke <agl@us.ibm.com>
+Cc: David Gibson <david@gibson.dropbear.id.au>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Eric B Munson <ebmunson@us.ibm.com>
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: John Stultz <johnstul@us.ibm.com>
 Cc: Richard Henderson <rth@twiddle.net>
-Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/time.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ arch/alpha/include/asm/mman.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/alpha/kernel/time.c~alpha-convert-to-use-arch_gettimeoffset-fix arch/alpha/kernel/time.c
---- a/arch/alpha/kernel/time.c~alpha-convert-to-use-arch_gettimeoffset-fix
-+++ a/arch/alpha/kernel/time.c
-@@ -410,13 +410,13 @@ time_init(void)
-  */
- u32 arch_gettimeoffset(void)
- {
--	unsigned long delta_cycles, delta_usec, partial_tick;
--
- #ifdef CONFIG_SMP
- 	/* Until and unless we figure out how to get cpu cycle counters
- 	   in sync and keep them there, we can't use the rpcc tricks.  */
--	delta_usec = 0;
-+	return 0;
- #else
-+	unsigned long delta_cycles, delta_usec, partial_tick;
-+
- 	delta_cycles = rpcc() - state.last_time;
- 	partial_tick = state.partial_tick;
- 	/*
-@@ -435,9 +435,8 @@ u32 arch_gettimeoffset(void)
- 	delta_usec = (delta_cycles * state.scaled_ticks_per_cycle 
- 		      + partial_tick) * 15625;
- 	delta_usec = ((delta_usec / ((1UL << (FIX_SHIFT-6-1)) * HZ)) + 1) / 2;
--#endif
--
- 	return delta_usec * 1000;
-+#endif
- }
+diff -puN arch/alpha/include/asm/mman.h~hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions-alpha-fix arch/alpha/include/asm/mman.h
+--- a/arch/alpha/include/asm/mman.h~hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions-alpha-fix
++++ a/arch/alpha/include/asm/mman.h
+@@ -28,6 +28,7 @@
+ #define MAP_NORESERVE	0x10000		/* don't check for reservations */
+ #define MAP_POPULATE	0x20000		/* populate (prefault) pagetables */
+ #define MAP_NONBLOCK	0x40000		/* do not block on IO */
++#define MAP_HUGETLB	0x80000		/* create a huge page mapping */
  
- /*
+ #define MS_ASYNC	1		/* sync memory asynchronously */
+ #define MS_SYNC		2		/* synchronous memory sync */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -124,6 +109,7 @@ vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-
 revert-proc-kcore-work-around-a-bug.patch
 arches-drop-superfluous-casts-in-nr_free_pages-callers-checkpatch-fixes.patch
 tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists-fix.patch
+hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions-alpha-fix.patch
 page-allocator-maintain-rolling-count-of-pages-to-free-from-the-pcp-checkpatch-fixes.patch
 dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
 dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
