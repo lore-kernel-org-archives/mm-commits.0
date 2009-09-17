@@ -1,102 +1,190 @@
 From: akpm@linux-foundation.org
-Subject: + ssb-sdio-fix-printk-format-warnings.patch added to -mm tree
-Date: Wed, 16 Sep 2009 16:49:56 -0700
-Message-ID: <200909162349.n8GNnuPi032646@imap1.linux-foundation.org>
+Subject: - tty-fix-regression-caused-by-tty-make-the-kref-destructor-occur-asynchronously.patch removed from -mm tree
+Date: Thu, 17 Sep 2009 12:41:01 -0700
+Message-ID: <200909171941.n8HJf1Mc031259@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37389 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43172 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760181AbZIPXu0 (ORCPT
+	by vger.kernel.org with ESMTP id S1751068AbZIQTlc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Sep 2009 19:50:26 -0400
+	Thu, 17 Sep 2009 15:41:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, mb@bu3sch.de
+To: hidave.darkstar@gmail.com, alan@linux.intel.com, alan@lxorguk.ukuu.org.uk, benisty.e@gmail.com, greg@kroah.com, rjw@sisk.pl, stern@rowland.harvard.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ssb/sdio: fix printk format warnings
-has been added to the -mm tree.  Its filename is
-     ssb-sdio-fix-printk-format-warnings.patch
+     tty: fix regression caused by "tty: make the kref destructor occur asynchronously"
+has been removed from the -mm tree.  Its filename was
+     tty-fix-regression-caused-by-tty-make-the-kref-destructor-occur-asynchronously.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it might be fixed
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ssb/sdio: fix printk format warnings
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: tty: fix regression caused by "tty: make the kref destructor occur asynchronously"
 
-Fix printk format warnings:
 
-drivers/ssb/sdio.c:336: warning: format '%u' expects type 'unsigned int', but argument 7 has type 'size_t'
-drivers/ssb/sdio.c:443: warning: format '%u' expects type 'unsigned int', but argument 7 has type 'size_t'
+The following commit make console open fails while booting:
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Michael Buesch <mb@bu3sch.de>
+	commit d966976924119acd35a431adbb95292082f73f8c
+	Author: Alan Cox <alan@linux.intel.com>
+	Date:   Tue Aug 11 10:23:05 2009 +1000
+
+	tty: make the kref destructor occur asynchronously
+
+Due to tty release routines runs in workqueue now, error like following
+will be reported while booting:
+
+INIT open /dev/console Input/output error
+
+The reason is that now there's latency issue with closing, but when we
+open a "closing not finished" tty, -EIO will be returned.
+
+Fix it as alan's following suggestion:
+
+Fun but its actually not a bug and the fix is wrong in itself as the port
+may be closing but not yet being destructed, in which case it seems to do
+the wrong thing.  Opening a tty that is closing (and could be closing for
+long periods) is supposed to return -EIO.
+
+I suspect a better way to deal with this and keep the old console timing
+is to split tty->shutdown into two functions.
+
+tty->shutdown() - called synchronously just before we dump the tty onto
+the waitqueue for destruction
+
+tty->cleanup() - called when the destructor runs.
+
+We would then do the shutdown part which can occur in IRQ context fine,
+before queueing the rest of the release (from tty->magic = 0 ...  the end)
+to occur asynchronously
+
+The USB update in -next would then need a call like
+
+       if (tty->cleanup)
+               tty->cleanup(tty);
+
+at the top of the async function and the USB shutdown to be split between
+shutdown and cleanup as the USB resource cleanup and final tidy cannot
+occur synchronously as it needs to sleep.
+
+In other words the logic becomes
+
+       final kref put
+               make object unfindable
+
+       async
+               clean it up
+
+Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Emmanuel Benisty <benisty.e@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ssb/sdio.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/char/tty_io.c           |   15 ++++++++++-----
+ drivers/usb/serial/usb-serial.c |    2 +-
+ include/linux/tty_driver.h      |   13 +++++++++++--
+ 3 files changed, 22 insertions(+), 8 deletions(-)
 
-diff -puN drivers/ssb/sdio.c~ssb-sdio-fix-printk-format-warnings drivers/ssb/sdio.c
---- a/drivers/ssb/sdio.c~ssb-sdio-fix-printk-format-warnings
-+++ a/drivers/ssb/sdio.c
-@@ -333,7 +333,7 @@ static void ssb_sdio_block_read(struct s
- 		goto out;
+diff -puN drivers/char/tty_io.c~tty-fix-regression-caused-by-tty-make-the-kref-destructor-occur-asynchronously drivers/char/tty_io.c
+--- a/drivers/char/tty_io.c~tty-fix-regression-caused-by-tty-make-the-kref-destructor-occur-asynchronously
++++ a/drivers/char/tty_io.c
+@@ -1389,7 +1389,7 @@ EXPORT_SYMBOL(tty_shutdown);
+  *	of ttys that the driver keeps.
+  *
+  *	This method gets called from a work queue so that the driver private
+- *	shutdown ops can sleep (needed for USB at least)
++ *	cleanup ops can sleep (needed for USB at least)
+  */
+ static void release_one_tty(struct work_struct *work)
+ {
+@@ -1397,10 +1397,9 @@ static void release_one_tty(struct work_
+ 		container_of(work, struct tty_struct, hangup_work);
+ 	struct tty_driver *driver = tty->driver;
  
- err_out:
--	dev_dbg(ssb_sdio_dev(bus), "%04X:%04X (width=%u, len=%u), error %d\n",
-+	dev_dbg(ssb_sdio_dev(bus), "%04X:%04X (width=%u, len=%zu), error %d\n",
- 		bus->sdio_sbaddr >> 16, offset, reg_width, saved_count, error);
- out:
- 	sdio_release_host(bus->host_sdio);
-@@ -440,7 +440,7 @@ static void ssb_sdio_block_write(struct 
- 		goto out;
- 
- err_out:
--	dev_dbg(ssb_sdio_dev(bus), "%04X:%04X (width=%u, len=%u), error %d\n",
-+	dev_dbg(ssb_sdio_dev(bus), "%04X:%04X (width=%u, len=%zu), error %d\n",
- 		bus->sdio_sbaddr >> 16, offset, reg_width, saved_count, error);
- out:
- 	sdio_release_host(bus->host_sdio);
+-	if (tty->ops->shutdown)
+-		tty->ops->shutdown(tty);
+-	else
+-		tty_shutdown(tty);
++	if (tty->ops->cleanup)
++		tty->ops->cleanup(tty);
++
+ 	tty->magic = 0;
+ 	tty_driver_kref_put(driver);
+ 	module_put(driver->owner);
+@@ -1415,6 +1414,12 @@ static void release_one_tty(struct work_
+ static void queue_release_one_tty(struct kref *kref)
+ {
+ 	struct tty_struct *tty = container_of(kref, struct tty_struct, kref);
++
++	if (tty->ops->shutdown)
++		tty->ops->shutdown(tty);
++	else
++		tty_shutdown(tty);
++
+ 	/* The hangup queue is now free so we can reuse it rather than
+ 	   waste a chunk of memory for each port */
+ 	INIT_WORK(&tty->hangup_work, release_one_tty);
+diff -puN drivers/usb/serial/usb-serial.c~tty-fix-regression-caused-by-tty-make-the-kref-destructor-occur-asynchronously drivers/usb/serial/usb-serial.c
+--- a/drivers/usb/serial/usb-serial.c~tty-fix-regression-caused-by-tty-make-the-kref-destructor-occur-asynchronously
++++ a/drivers/usb/serial/usb-serial.c
+@@ -1269,7 +1269,7 @@ static const struct tty_operations seria
+ 	.chars_in_buffer =	serial_chars_in_buffer,
+ 	.tiocmget =		serial_tiocmget,
+ 	.tiocmset =		serial_tiocmset,
+-	.shutdown = 		serial_do_free,
++	.cleanup = 		serial_do_free,
+ 	.install = 		serial_install,
+ 	.proc_fops =		&serial_proc_fops,
+ };
+diff -puN include/linux/tty_driver.h~tty-fix-regression-caused-by-tty-make-the-kref-destructor-occur-asynchronously include/linux/tty_driver.h
+--- a/include/linux/tty_driver.h~tty-fix-regression-caused-by-tty-make-the-kref-destructor-occur-asynchronously
++++ a/include/linux/tty_driver.h
+@@ -45,8 +45,16 @@
+  *
+  * void (*shutdown)(struct tty_struct * tty);
+  *
+- * 	This routine is called when a particular tty device is closed for
+- *	the last time freeing up the resources.
++ * 	This routine is called synchronously when a particular tty device
++ *	is closed for the last time freeing up the resources.
++ *
++ *
++ * void (*cleanup)(struct tty_struct * tty);
++ *
++ *	This routine is called asynchronously when a particular tty device
++ *	is closed for the last time freeing up the resources. This is
++ *	actually the second part of shutdown for routines that might sleep.
++ *
+  *
+  * int (*write)(struct tty_struct * tty,
+  * 		 const unsigned char *buf, int count);
+@@ -233,6 +241,7 @@ struct tty_operations {
+ 	int  (*open)(struct tty_struct * tty, struct file * filp);
+ 	void (*close)(struct tty_struct * tty, struct file * filp);
+ 	void (*shutdown)(struct tty_struct *tty);
++	void (*cleanup)(struct tty_struct *tty);
+ 	int  (*write)(struct tty_struct * tty,
+ 		      const unsigned char *buf, int count);
+ 	int  (*put_char)(struct tty_struct *tty, unsigned char ch);
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from hidave.darkstar@gmail.com are
 
-origin.patch
-linux-next.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-kernel-hacking-move-strip_asm_syms-from-general.patch
-isdn-fix-netjet-build-errors.patch
-scsi-fix-func-names-in-kernel-doc.patch
-cciss-fix-schedule_timeout-parameters.patch
-mm-make-swap-token-dummies-static-inlines-fix-2.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-page_alloc-fix-kernel-doc-warning.patch
-ksm-add-some-documentation.patch
-flex_array-add-missing-kerneldoc-annotations.patch
-ssb-sdio-fix-printk-format-warnings.patch
-lis3-add-power-management-functions-fix.patch
-procfs-provide-stack-information-for-threads-v011-fix.patch
-kcore-register-vmemmap-range-fix.patch
-spih-add-missing-kernel-doc-for-struct-spi_master.patch
-gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links-update-fix.patch
-doc-filesystems-remove-smount-program.patch
-doc-filesystems-more-mount-cleanups.patch
-documentation-update-stale-definition-of-file-nr-in-fstxt.patch
-includecheck-fix-documentation-cfag12864b-examplec.patch
-docs-fix-various-documentation-paths-in-header-files.patch
-reiser4-export-remove_from_page_cache-fix.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+tty-fix-regression-caused-by-tty-make-the-kref-destructor-occur-asynchronously.patch
+printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec.patch
+printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
+printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix-2.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
+cgroups-let-ss-can_attach-and-ss-attach-do-whole-threadgroups-at-a-time-fix.patch
+pc-fs-char_devc-remove-useless-loop-fix.patch
 
