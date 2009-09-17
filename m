@@ -1,134 +1,200 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hwpoison-fix-uninitialized-warning.patch removed from -mm tree
-Date: Thu, 17 Sep 2009 12:45:28 -0700
-Message-ID: <200909171945.n8HJjSmM007469@imap1.linux-foundation.org>
+Subject: [merged] hptiop-add-rr44xx-adapter-support.patch removed from -mm tree
+Date: Thu, 17 Sep 2009 12:45:25 -0700
+Message-ID: <200909171945.n8HJjPqk007302@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58126 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41154 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750864AbZIQTpi (ORCPT
+	by vger.kernel.org with ESMTP id S1751063AbZIQTps (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Sep 2009 15:45:38 -0400
+	Thu, 17 Sep 2009 15:45:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh.dickins@tiscali.co.uk, andi@firstfloor.org, mm-commits@vger.kernel.org
+To: linux@highpoint-tech.com, James.Bottomley@HansenPartnership.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hwpoison: fix uninitialized warning
+     scsi: hptiop: add RR44xx adapter support
 has been removed from the -mm tree.  Its filename was
-     hwpoison-fix-uninitialized-warning.patch
+     hptiop-add-rr44xx-adapter-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hwpoison: fix uninitialized warning
-From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Subject: scsi: hptiop: add RR44xx adapter support
+From: HighPoint Linux Team <linux@highpoint-tech.com>
 
-mm/memory.c: In function `do_swap_page':
-mm/memory.c:2498: warning: `pte' may be used uninitialized in this function
+Most code changes were made to support RR44xx adapters.
+- add more PCI device ID.
+- using PCI BAR[2] to access RR44xx IOP.
+- using PCI BAR[0] to check and clear RR44xx IRQ.
 
-Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Cc: Andi Kleen <andi@firstfloor.org>
+Signed-off-by: HighPoint Linux Team <linux@highpoint-tech.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/scsi/hptiop.txt |   21 +++++++++++++++++-
+ drivers/scsi/hptiop.c         |   37 ++++++++++++++++++++++----------
+ drivers/scsi/hptiop.h         |    3 +-
+ 3 files changed, 48 insertions(+), 13 deletions(-)
 
-diff -puN mm/memory.c~hwpoison-fix-uninitialized-warning mm/memory.c
---- a/mm/memory.c~hwpoison-fix-uninitialized-warning
-+++ a/mm/memory.c
-@@ -2462,7 +2462,7 @@ static int do_swap_page(struct mm_struct
- 		} else if (is_hwpoison_entry(entry)) {
- 			ret = VM_FAULT_HWPOISON;
- 		} else {
--			print_bad_pte(vma, address, pte, NULL);
-+			print_bad_pte(vma, address, orig_pte, NULL);
- 			ret = VM_FAULT_OOM;
- 		}
- 		goto out;
+diff -puN Documentation/scsi/hptiop.txt~hptiop-add-rr44xx-adapter-support Documentation/scsi/hptiop.txt
+--- a/Documentation/scsi/hptiop.txt~hptiop-add-rr44xx-adapter-support
++++ a/Documentation/scsi/hptiop.txt
+@@ -3,6 +3,25 @@ HIGHPOINT ROCKETRAID 3xxx/4xxx ADAPTER D
+ Controller Register Map
+ -------------------------
+ 
++For RR44xx Intel IOP based adapters, the controller IOP is accessed via PCI BAR0 and BAR2:
++
++     BAR0 offset    Register
++            0x11C5C Link Interface IRQ Set
++            0x11C60 Link Interface IRQ Clear
++
++     BAR2 offset    Register
++            0x10    Inbound Message Register 0
++            0x14    Inbound Message Register 1
++            0x18    Outbound Message Register 0
++            0x1C    Outbound Message Register 1
++            0x20    Inbound Doorbell Register
++            0x24    Inbound Interrupt Status Register
++            0x28    Inbound Interrupt Mask Register
++            0x30    Outbound Interrupt Status Register
++            0x34    Outbound Interrupt Mask Register
++            0x40    Inbound Queue Port
++            0x44    Outbound Queue Port
++
+ For Intel IOP based adapters, the controller IOP is accessed via PCI BAR0:
+ 
+      BAR0 offset    Register
+@@ -93,7 +112,7 @@ The driver exposes following sysfs attri
+ 
+ 
+ -----------------------------------------------------------------------------
+-Copyright (C) 2006-2007 HighPoint Technologies, Inc. All Rights Reserved.
++Copyright (C) 2006-2009 HighPoint Technologies, Inc. All Rights Reserved.
+ 
+   This file is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+diff -puN drivers/scsi/hptiop.c~hptiop-add-rr44xx-adapter-support drivers/scsi/hptiop.c
+--- a/drivers/scsi/hptiop.c~hptiop-add-rr44xx-adapter-support
++++ a/drivers/scsi/hptiop.c
+@@ -1,6 +1,6 @@
+ /*
+  * HighPoint RR3xxx/4xxx controller driver for Linux
+- * Copyright (C) 2006-2007 HighPoint Technologies, Inc. All Rights Reserved.
++ * Copyright (C) 2006-2009 HighPoint Technologies, Inc. All Rights Reserved.
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+@@ -41,7 +41,7 @@ MODULE_DESCRIPTION("HighPoint RocketRAID
+ 
+ static char driver_name[] = "hptiop";
+ static const char driver_name_long[] = "RocketRAID 3xxx/4xxx Controller driver";
+-static const char driver_ver[] = "v1.3 (071203)";
++static const char driver_ver[] = "v1.6 (090910)";
+ 
+ static int iop_send_sync_msg(struct hptiop_hba *hba, u32 msg, u32 millisec);
+ static void hptiop_finish_scsi_req(struct hptiop_hba *hba, u32 tag,
+@@ -115,9 +115,13 @@ static void hptiop_drain_outbound_queue_
+ static int iop_intr_itl(struct hptiop_hba *hba)
+ {
+ 	struct hpt_iopmu_itl __iomem *iop = hba->u.itl.iop;
++	void __iomem *plx = hba->u.itl.plx;
+ 	u32 status;
+ 	int ret = 0;
+ 
++	if (plx && readl(plx + 0x11C5C) & 0xf)
++		writel(1, plx + 0x11C60);
++
+ 	status = readl(&iop->outbound_intstatus);
+ 
+ 	if (status & IOPMU_OUTBOUND_INT_MSG0) {
+@@ -460,15 +464,25 @@ static void __iomem *hptiop_map_pci_bar(
+ 
+ static int hptiop_map_pci_bar_itl(struct hptiop_hba *hba)
+ {
++	struct pci_dev *pcidev = hba->pcidev;
+ 	hba->u.itl.iop = hptiop_map_pci_bar(hba, 0);
+-	if (hba->u.itl.iop)
+-		return 0;
+-	else
++	if (hba->u.itl.iop == NULL)
+ 		return -1;
++	if ((pcidev->device & 0xff00) == 0x4400) {
++		hba->u.itl.plx = hba->u.itl.iop;
++		hba->u.itl.iop = hptiop_map_pci_bar(hba, 2);
++		if (hba->u.itl.iop == NULL) {
++			iounmap(hba->u.itl.plx);
++			return -1;
++		}
++	}
++	return 0;
+ }
+ 
+ static void hptiop_unmap_pci_bar_itl(struct hptiop_hba *hba)
+ {
++	if (hba->u.itl.plx)
++		iounmap(hba->u.itl.plx);
+ 	iounmap(hba->u.itl.iop);
+ }
+ 
+@@ -1239,22 +1253,23 @@ static struct hptiop_adapter_ops hptiop_
+ static struct pci_device_id hptiop_id_table[] = {
+ 	{ PCI_VDEVICE(TTI, 0x3220), (kernel_ulong_t)&hptiop_itl_ops },
+ 	{ PCI_VDEVICE(TTI, 0x3320), (kernel_ulong_t)&hptiop_itl_ops },
+-	{ PCI_VDEVICE(TTI, 0x3520), (kernel_ulong_t)&hptiop_itl_ops },
+-	{ PCI_VDEVICE(TTI, 0x4320), (kernel_ulong_t)&hptiop_itl_ops },
++	{ PCI_VDEVICE(TTI, 0x3410), (kernel_ulong_t)&hptiop_itl_ops },
+ 	{ PCI_VDEVICE(TTI, 0x3510), (kernel_ulong_t)&hptiop_itl_ops },
+ 	{ PCI_VDEVICE(TTI, 0x3511), (kernel_ulong_t)&hptiop_itl_ops },
++	{ PCI_VDEVICE(TTI, 0x3520), (kernel_ulong_t)&hptiop_itl_ops },
+ 	{ PCI_VDEVICE(TTI, 0x3521), (kernel_ulong_t)&hptiop_itl_ops },
+ 	{ PCI_VDEVICE(TTI, 0x3522), (kernel_ulong_t)&hptiop_itl_ops },
+-	{ PCI_VDEVICE(TTI, 0x3410), (kernel_ulong_t)&hptiop_itl_ops },
+-	{ PCI_VDEVICE(TTI, 0x3540), (kernel_ulong_t)&hptiop_itl_ops },
+ 	{ PCI_VDEVICE(TTI, 0x3530), (kernel_ulong_t)&hptiop_itl_ops },
++	{ PCI_VDEVICE(TTI, 0x3540), (kernel_ulong_t)&hptiop_itl_ops },
+ 	{ PCI_VDEVICE(TTI, 0x3560), (kernel_ulong_t)&hptiop_itl_ops },
+-	{ PCI_VDEVICE(TTI, 0x4322), (kernel_ulong_t)&hptiop_itl_ops },
+-	{ PCI_VDEVICE(TTI, 0x4321), (kernel_ulong_t)&hptiop_itl_ops },
+ 	{ PCI_VDEVICE(TTI, 0x4210), (kernel_ulong_t)&hptiop_itl_ops },
+ 	{ PCI_VDEVICE(TTI, 0x4211), (kernel_ulong_t)&hptiop_itl_ops },
+ 	{ PCI_VDEVICE(TTI, 0x4310), (kernel_ulong_t)&hptiop_itl_ops },
+ 	{ PCI_VDEVICE(TTI, 0x4311), (kernel_ulong_t)&hptiop_itl_ops },
++	{ PCI_VDEVICE(TTI, 0x4320), (kernel_ulong_t)&hptiop_itl_ops },
++	{ PCI_VDEVICE(TTI, 0x4321), (kernel_ulong_t)&hptiop_itl_ops },
++	{ PCI_VDEVICE(TTI, 0x4322), (kernel_ulong_t)&hptiop_itl_ops },
++	{ PCI_VDEVICE(TTI, 0x4400), (kernel_ulong_t)&hptiop_itl_ops },
+ 	{ PCI_VDEVICE(TTI, 0x3120), (kernel_ulong_t)&hptiop_mv_ops },
+ 	{ PCI_VDEVICE(TTI, 0x3122), (kernel_ulong_t)&hptiop_mv_ops },
+ 	{ PCI_VDEVICE(TTI, 0x3020), (kernel_ulong_t)&hptiop_mv_ops },
+diff -puN drivers/scsi/hptiop.h~hptiop-add-rr44xx-adapter-support drivers/scsi/hptiop.h
+--- a/drivers/scsi/hptiop.h~hptiop-add-rr44xx-adapter-support
++++ a/drivers/scsi/hptiop.h
+@@ -1,6 +1,6 @@
+ /*
+  * HighPoint RR3xxx/4xxx controller driver for Linux
+- * Copyright (C) 2006-2007 HighPoint Technologies, Inc. All Rights Reserved.
++ * Copyright (C) 2006-2009 HighPoint Technologies, Inc. All Rights Reserved.
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+@@ -228,6 +228,7 @@ struct hptiop_hba {
+ 	union {
+ 		struct {
+ 			struct hpt_iopmu_itl __iomem *iop;
++			void __iomem *plx;
+ 		} itl;
+ 		struct {
+ 			struct hpt_iopmv_regs *regs;
 _
 
-Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
+Patches currently in -mm which might be from linux@highpoint-tech.com are
 
-origin.patch
 linux-next.patch
-vfs-optimize-touch_time-too-fix.patch
-fs-new-truncate-helpers.patch
-fs-use-new-truncate-helpers.patch
-fs-introduce-new-truncate-sequence.patch
-fs-convert-simple-fs-to-new-truncate.patch
-tmpfs-convert-to-use-the-new-truncate-convention.patch
-ext2-convert-to-use-the-new-truncate-convention.patch
-fat-convert-to-use-the-new-truncate-convention.patch
-btrfs-convert-to-use-the-new-truncate-convention.patch
-jfs-convert-to-use-the-new-truncate-convention.patch
-udf-convert-to-use-the-new-truncate-convention.patch
-minix-convert-to-use-the-new-truncate-convention.patch
-vfs-seq_file-add-helpers-for-data-filling.patch
-vfs-revert-proc-mounts-to-old-behavior-for-unreachable-mountpoints.patch
-vfs-no-unreachable-prefix-for-sysvipc-maps-in-proc-pid-maps.patch
-mm-oom-analysis-add-shmem-vmstat.patch
-mm-vmstat-add-isolate-pages.patch
-ksm-add-mmu_notifier-set_pte_at_notify.patch
-ksm-first-tidy-up-madvise_vma.patch
-ksm-define-madv_mergeable-and-madv_unmergeable.patch
-ksm-the-mm-interface-to-ksm.patch
-ksm-no-debug-in-page_dup_rmap.patch
-ksm-identify-pageksm-pages.patch
-ksm-kernel-samepage-merging.patch
-ksm-prevent-mremap-move-poisoning.patch
-ksm-change-copyright-message.patch
-ksm-change-ksm-nice-level-to-be-5.patch
-ksm-rename-kernel_pages_allocated.patch
-ksm-move-pages_sharing-updates.patch
-ksm-pages_unshared-and-pages_volatile.patch
-ksm-break-cow-once-unshared.patch
-ksm-keep-quiet-while-list-empty.patch
-ksm-five-little-cleanups.patch
-ksm-fix-endless-loop-on-oom.patch
-ksm-distribute-remove_mm_from_lists.patch
-ksm-fix-oom-deadlock.patch
-ksm-fix-deadlock-with-munlock-in-exit_mmap.patch
-ksm-sysfs-and-defaults.patch
-ksm-add-some-documentation.patch
-ksm-remove-vm_mergeable_flags.patch
-ksm-clean-up-obsolete-references.patch
-ksm-unmerge-is-an-origin-of-ooms.patch
-ksm-mremap-use-err-from-ksm_madvise.patch
-mm-add_to_swap_cache-must-not-sleep.patch
-mm-add_to_swap_cache-does-not-return-eexist.patch
-mm-includecheck-fix-for-mm-shmemc.patch
-mm-introduce-page_lru_base_type-fix.patch
-mm-replace-various-uses-of-num_physpages-by-totalram_pages.patch
-hugetlbfs-allow-the-creation-of-files-suitable-for-map_private-on-the-vfs-internal-mount.patch
-hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions.patch
-hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regionspatch-in-mm-fix.patch
-hugetlb-add-map_hugetlb-example.patch
-mm-munlock-use-follow_page.patch
-mm-remove-unused-gup-flags.patch
-mm-add-get_dump_page.patch
-mm-foll_dump-replace-foll_anon.patch
-mm-follow_hugetlb_page-flags.patch
-mm-fix-anonymous-dirtying.patch
-mm-reinstate-zero_page.patch
-mm-foll-flags-for-gup-flags.patch
-mm-munlock-avoid-zero_page.patch
-mm-hugetlbfs_pagecache_present.patch
-mm-zero_page-without-pte_special.patch
-mm-move-highest_memmap_pfn.patch
-mmap-remove-unnecessary-code.patch
-tmpfs-depend-on-shmem.patch
-mmap-avoid-unnecessary-anon_vma-lock-acquisition-in-vma_adjust.patch
-mmap-avoid-unnecessary-anon_vma-lock-acquisition-in-vma_adjust-tweak.patch
-mmap-save-some-cycles-for-the-shared-anonymous-mapping.patch
-getrusage-fill-ru_maxrss-value.patch
-getrusage-fill-ru_maxrss-value-update.patch
-walk-system-ram-range-fix.patch
-ramfs-move-ramfs_magic-to-include-linux-magich.patch
-memory-controller-soft-limit-organize-cgroups-v9-fix.patch
-prio_tree-debugging-patch.patch
 
