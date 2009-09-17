@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix.patch added to -mm tree
-Date: Thu, 17 Sep 2009 16:02:57 -0700
-Message-ID: <200909172325.n8HNPEBZ017167@imap1.linux-foundation.org>
+Subject: + walk-system-ram-range-borkage.patch added to -mm tree
+Date: Thu, 17 Sep 2009 16:45:59 -0700
+Message-ID: <200909180008.n8I08GNo004182@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54741 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41365 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750741AbZIQX0P (ORCPT
+	by vger.kernel.org with ESMTP id S1751148AbZIRAIp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Sep 2009 19:26:15 -0400
+	Thu, 17 Sep 2009 20:08:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, JBeulich@novell.com, andi@firstfloor.org, catalin.marinas@arm.com, davem@davemloft.net, jbeulich@novell.com, rusty@rustcorp.com.au
+Cc: akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com
 
 
 The patch titled
-     build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix
+     walk-system-ram-range-borkage
 has been added to the -mm tree.  Its filename is
-     build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix.patch
+     walk-system-ram-range-borkage.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix
+Subject: walk-system-ram-range-borkage
 From: Andrew Morton <akpm@linux-foundation.org>
 
-/usr/src/devel/arch/sparc/include/asm/vio.h: In function `vio_dring_avail':
-/usr/src/devel/arch/sparc/include/asm/vio.h:261: error: bit-field `<anonymous>' width not an integer constant
+so it compiles.
 
-
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: "Jan Beulich" <JBeulich@novell.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Jan Beulich <jbeulich@novell.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/include/asm/vio.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/hw/ehca/ehca_mrmw.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/sparc/include/asm/vio.h~build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix arch/sparc/include/asm/vio.h
---- a/arch/sparc/include/asm/vio.h~build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix
-+++ a/arch/sparc/include/asm/vio.h
-@@ -258,7 +258,7 @@ static inline void *vio_dring_entry(stru
- static inline u32 vio_dring_avail(struct vio_dring_state *dr,
- 				  unsigned int ring_size)
- {
--	BUILD_BUG_ON(!is_power_of_2(ring_size));
-+	MAYBE_BUILD_BUG_ON(!is_power_of_2(ring_size));
+diff -puN drivers/infiniband/hw/ehca/ehca_mrmw.c~walk-system-ram-range-borkage drivers/infiniband/hw/ehca/ehca_mrmw.c
+--- a/drivers/infiniband/hw/ehca/ehca_mrmw.c~walk-system-ram-range-borkage
++++ a/drivers/infiniband/hw/ehca/ehca_mrmw.c
+@@ -2463,9 +2463,9 @@ int ehca_create_busmap(void)
+ 	int ret;
  
- 	return (dr->pending -
- 		((dr->prod - dr->cons) & (ring_size - 1)));
+ 	ehca_mr_len = 0;
+-	ret = walk_memory_resource(0, 1ULL << MAX_PHYSMEM_BITS, NULL,
+-				   ehca_create_busmap_callback);
+-	return ret;
++//	ret = walk_memory_resource(0, 1ULL << MAX_PHYSMEM_BITS, NULL,
++//				   ehca_create_busmap_callback);
++	return 0;
+ }
+ 
+ static int ehca_reg_bmap_mr_rpages(struct ehca_shca *shca,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -126,6 +123,7 @@ sdio-add-mmc_quirk_lenient_fn0-fix.patch
 at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver-checkpatch-fixes.patch
 mmc-core-sdio-suspend-resume-support-fix.patch
 procfs-provide-stack-information-for-threads-v011-fix.patch
+walk-system-ram-range-borkage.patch
 kcore-register-vmemmap-range-fix.patch
 rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
 rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
