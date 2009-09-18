@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-video-tmiofbc-fix-uninitialised-return-value.patch added to -mm tree
-Date: Fri, 18 Sep 2009 16:23:48 -0700
-Message-ID: <200909182346.n8INk6FG032486@imap1.linux-foundation.org>
+Subject: + drivers-net-wireless-ath-ar9170-phyc-fix-uninitialised-variable.patch added to -mm tree
+Date: Fri, 18 Sep 2009 16:40:05 -0700
+Message-ID: <200909190002.n8J02OiU032178@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58772 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44998 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751154AbZIRXqd (ORCPT
+	by vger.kernel.org with ESMTP id S1754508AbZISACh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Sep 2009 19:46:33 -0400
+	Fri, 18 Sep 2009 20:02:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dbaryshkov@gmail.com
+Cc: akpm@linux-foundation.org, chunkeey@googlemail.com, chunkeey@web.de, davem@davemloft.net, jal2@gmx.de, linville@tuxdriver.com, lrodriguez@atheros.com
 
 
 The patch titled
-     drivers/video/tmiofb.c: fix uninitialised return value
+     drivers/net/wireless/ath/ar9170/phy.c: fix uninitialised variable
 has been added to the -mm tree.  Its filename is
-     drivers-video-tmiofbc-fix-uninitialised-return-value.patch
+     drivers-net-wireless-ath-ar9170-phyc-fix-uninitialised-variable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/video/tmiofb.c: fix uninitialised return value
+Subject: drivers/net/wireless/ath/ar9170/phy.c: fix uninitialised variable
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/video/tmiofb.c: In function 'tmiofb_resume':
-drivers/video/tmiofb.c:977: warning: 'retval' may be used uninitialized in this function
+drivers/net/wireless/ath/ar9170/phy.c: In function 'ar9170_set_channel':
+drivers/net/wireless/ath/ar9170/phy.c:1211: warning: 'phy_data' may be used uninitialized in this function
 
-Cc: Dmitry Baryshkov <dbaryshkov@gmail.com>
+Cc: Christian Lamparter <chunkeey@web.de>
+Cc: John W. Linville <linville@tuxdriver.com>
+Cc: Joerg Albert <jal2@gmx.de>
+Cc: Christian Lamparter <chunkeey@googlemail.com>
+Cc: Luis R. Rodriguez <lrodriguez@atheros.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/tmiofb.c |    2 +-
+ drivers/net/wireless/ath/ar9170/phy.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/tmiofb.c~drivers-video-tmiofbc-fix-uninitialised-return-value drivers/video/tmiofb.c
---- a/drivers/video/tmiofb.c~drivers-video-tmiofbc-fix-uninitialised-return-value
-+++ a/drivers/video/tmiofb.c
-@@ -974,7 +974,7 @@ static int tmiofb_resume(struct platform
- {
- 	struct fb_info *info = platform_get_drvdata(dev);
- 	struct mfd_cell *cell = dev->dev.platform_data;
--	int retval;
-+	int retval = 0;
+diff -puN drivers/net/wireless/ath/ar9170/phy.c~drivers-net-wireless-ath-ar9170-phyc-fix-uninitialised-variable drivers/net/wireless/ath/ar9170/phy.c
+--- a/drivers/net/wireless/ath/ar9170/phy.c~drivers-net-wireless-ath-ar9170-phyc-fix-uninitialised-variable
++++ a/drivers/net/wireless/ath/ar9170/phy.c
+@@ -1208,7 +1208,7 @@ static int ar9170_set_freq_cal_data(stru
+ 		}
  
- 	acquire_console_sem();
+ 		for (i = 0; i < 76; i++) {
+-			u32 phy_data;
++			u32 phy_data = 0;
+ 			u8 tmp;
  
+ 			if (i < 25) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -93,6 +98,7 @@ fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
 vfs-optimize-touch_time-too.patch
 fs-improve-remountro-vs-buffercache-coherency.patch
 percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+drivers-net-wireless-ath-ar9170-phyc-fix-uninitialised-variable.patch
 mm-make-swap-token-dummies-static-inlines-fix.patch
 readahead-add-blk_run_backing_dev-fix.patch
 readahead-add-blk_run_backing_dev-fix-fix-2.patch
@@ -132,6 +138,7 @@ gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes-fix.patch
 davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
 davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
 drivers-video-add-kmalloc-null-tests-fix.patch
+drivers-video-tmiofbc-fix-uninitialised-return-value.patch
 v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
 page-types-add-feature-for-walking-process-address-space-checkpatch-fixes.patch
 memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
@@ -154,5 +161,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 notify_change-callers-must-hold-i_mutex.patch
-drivers-video-tmiofbc-fix-uninitialised-return-value.patch
 
