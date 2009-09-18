@@ -1,148 +1,186 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] walk-system-ram-range-borkage.patch removed from -mm tree
-Date: Thu, 17 Sep 2009 17:23:06 -0700
-Message-ID: <200909180023.n8I0N7a4000744@imap1.linux-foundation.org>
+Subject: + walk-system-ram-range-fix-2.patch added to -mm tree
+Date: Thu, 17 Sep 2009 17:25:03 -0700
+Message-ID: <200909180025.n8I0P3xS004546@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44403 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47983 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753809AbZIRAXe (ORCPT
+	by vger.kernel.org with ESMTP id S1753995AbZIRAZh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Sep 2009 20:23:34 -0400
+	Thu, 17 Sep 2009 20:25:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: kamezawa.hiroyu@jp.fujitsu.com, akpm@linux-foundation.org, rientjes@google.com, rolandd@cisco.com, xiyou.wangcong@gmail.com
 
 
 The patch titled
-     walk-system-ram-range-borkage
-has been removed from the -mm tree.  Its filename was
-     walk-system-ram-range-borkage.patch
+     walk-system-ram-range fix 2
+has been added to the -mm tree.  Its filename is
+     walk-system-ram-range-fix-2.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
+
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: walk-system-ram-range-borkage
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: walk-system-ram-range fix 2
+=46rom: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-so it compiles.
+On Thu, 17 Sep 2009 17:06:42 -0700
+Andrew Morton <akpm@linux-foundation.org> wrote:
 
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+> drivers/infiniband/hw/ehca/ehca_mrmw.c: In function 'ehca_create_busm=
+ap':
+> drivers/infiniband/hw/ehca/ehca_mrmw.c:2466: error: implicit declarat=
+ion of function 'walk_memory_resource'
+>
+Ya, yes. reported by David Rientjes <rientjes@google.com>
+I'm sorry for messes around this.
+
+Thanks,
+-Kame
+=3D=3D
+walk-system-ram-range.patch failes to catch recent change in
+inifiniband. This is a fix.
+
+Cc: Am=E9rico Wang <xiyou.wangcong@gmail.com>
+Reported-by: David Rientjes <rientjes@google.com>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Roland Dreier <rolandd@cisco.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/hw/ehca/ehca_mrmw.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/ehca/ehca_mrmw.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/infiniband/hw/ehca/ehca_mrmw.c~walk-system-ram-range-borkage drivers/infiniband/hw/ehca/ehca_mrmw.c
---- a/drivers/infiniband/hw/ehca/ehca_mrmw.c~walk-system-ram-range-borkage
+diff -puN drivers/infiniband/hw/ehca/ehca_mrmw.c~walk-system-ram-range-=
+fix-2 drivers/infiniband/hw/ehca/ehca_mrmw.c
+--- a/drivers/infiniband/hw/ehca/ehca_mrmw.c~walk-system-ram-range-fix-=
+2
 +++ a/drivers/infiniband/hw/ehca/ehca_mrmw.c
-@@ -2463,9 +2463,9 @@ int ehca_create_busmap(void)
+@@ -2463,7 +2463,7 @@ int ehca_create_busmap(void)
  	int ret;
- 
- 	ehca_mr_len = 0;
--	ret = walk_memory_resource(0, 1ULL << MAX_PHYSMEM_BITS, NULL,
--				   ehca_create_busmap_callback);
--	return ret;
-+//	ret = walk_memory_resource(0, 1ULL << MAX_PHYSMEM_BITS, NULL,
-+//				   ehca_create_busmap_callback);
-+	return 0;
+=20
+ 	ehca_mr_len =3D 0;
+-	ret =3D walk_memory_resource(0, 1ULL << MAX_PHYSMEM_BITS, NULL,
++	ret =3D walk_system_ram_range(0, 1ULL << MAX_PHYSMEM_BITS, NULL,
+ 				   ehca_create_busmap_callback);
+ 	return ret;
  }
- 
- static int ehca_reg_bmap_mr_rpages(struct ehca_shca *shca,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu=
+=2Ecom are
 
-origin.patch
-fs-make-sure-data-stored-into-inode-is-properly-seen-before-unlocking-new-inode-fix.patch
-linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-hwmon-driver-for-acpi-40-power-meters-fix.patch
-hwmon-driver-for-acpi-40-power-meters-fix-2.patch
-cpuidle-fix-the-menu-governor-to-boost-io-performance.patch
-video-initial-support-for-adv7180-update-fix.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-checkincludespl-add-option-to-remove-duplicates-in-place.patch
-drivers-mfd-ab3100-corec-make-powerpc-shut-up.patch
-net-fix-config_net=n-build-on-sparc64.patch
-zorro8390-fix-read-buffer-overflow-in-zorro8390_init_one-checkpatch-fixes.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-serial167-fix-read-buffer-overflow.patch
-waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes-checkpatch-fixes.patch
-st-fix-test-of-value-range-in-st_set_options-fix.patch
-drivers-usb-serial-sierrac-fix-config_pm=n-build.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
-vfs-optimize-touch_time-too.patch
-fs-improve-remountro-vs-buffercache-coherency-fix.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-mm-make-swap-token-dummies-static-inlines-fix.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
-revert-hugetlb-restore-interleaving-of-bootmem-huge-pages-2631.patch
-vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
+proc-kcore-work-around-a-bug.patch
+mm-clean-up-page_remove_rmap.patch
+vmscan-throttle-direct-reclaim-when-too-many-pages-are-isolated-already=
+=2Epatch
+mm-remove-__addsub_zone_page_state.patch
+vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-=
+space-is-avilable.patch
+ksm-add-mmu_notifier-set_pte_at_notify.patch
+ksm-first-tidy-up-madvise_vma.patch
+ksm-define-madv_mergeable-and-madv_unmergeable.patch
+ksm-the-mm-interface-to-ksm.patch
+ksm-no-debug-in-page_dup_rmap.patch
+ksm-identify-pageksm-pages.patch
+ksm-kernel-samepage-merging.patch
+ksm-prevent-mremap-move-poisoning.patch
+ksm-change-copyright-message.patch
+ksm-change-ksm-nice-level-to-be-5.patch
+page-allocator-change-migratetype-for-all-pageblocks-within-a-high-orde=
+r-page-during-__rmqueue_fallback-fix.patch
+vmalloc-unmap-vmalloc-area-after-hiding-it.patch
 revert-proc-kcore-work-around-a-bug.patch
-arches-drop-superfluous-casts-in-nr_free_pages-callers-checkpatch-fixes.patch
-tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists-fix.patch
-hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions-alpha-fix.patch
-page-allocator-maintain-rolling-count-of-pages-to-free-from-the-pcp-checkpatch-fixes.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-alpha-convert-to-use-arch_gettimeoffset-fix.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
-generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
-proc-connector-add-event-for-process-becoming-session-leader.patch
-build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix.patch
-kernel-smpc-relocate-some-code.patch
-mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
-sdio-add-cd-disable-support-cleanup.patch
-sdio-add-mmc_quirk_lenient_fn0-fix.patch
-at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver-checkpatch-fixes.patch
-mmc-core-sdio-suspend-resume-support-fix.patch
-procfs-provide-stack-information-for-threads-v011-fix.patch
-walk-system-ram-range-borkage.patch
+kcore-fix-vread-vwrite-to-be-aware-of-holes.patch
+kcore-fix-vread-vwrite-to-be-aware-of-holes-update.patch
+kcore-proc-kcore-should-use-vread.patch
+mm-add_to_swap_cache-must-not-sleep.patch
+mm-add_to_swap_cache-does-not-return-eexist.patch
+memory-hotplug-fix-updating-of-num_physpages-for-hot-plugged-memory.pat=
+ch
+mm-vmscan-rename-zone_nr_pages-to-zone_lru_nr_pages.patch
+mm-do-batched-scans-for-mem_cgroup.patch
+oom-move-oom_adj-value-from-task_struct-to-signal_struct.patch
+oom-make-oom_score-to-per-process-value.patch
+oom-oom_kill-doesnt-kill-vfork-parentor-child.patch
+oom-fix-oom_adjust_write-input-sanity-check.patch
+mm-fix-numa-accounting-in-numastattxt.patch
+mm-munlock-use-follow_page.patch
+mm-remove-unused-gup-flags.patch
+mm-add-get_dump_page.patch
+mm-foll_dump-replace-foll_anon.patch
+mm-follow_hugetlb_page-flags.patch
+mm-fix-anonymous-dirtying.patch
+mm-reinstate-zero_page.patch
+mm-foll-flags-for-gup-flags.patch
+mm-munlock-avoid-zero_page.patch
+mm-hugetlbfs_pagecache_present.patch
+mm-zero_page-without-pte_special.patch
+mm-move-highest_memmap_pfn.patch
+kcore-fix-proc-kcores-statst_size.patch
+kcore-use-usual-list-for-kclist.patch
+kcore-add-kclist-types.patch
+kcore-register-vmalloc-area-in-generic-way.patch
+kcore-register-text-area-in-generic-way.patch
+walk-system-ram-range.patch
+walk-system-ram-range-fix.patch
+walk-system-ram-range-fix-2.patch
+kcore-use-registerd-physmem-information.patch
+kcore-use-registerd-physmem-information-ia64-fix.patch
+kcore-register-vmemmap-range.patch
 kcore-register-vmemmap-range-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes-fix.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
-drivers-video-add-kmalloc-null-tests-fix.patch
-v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
-page-types-add-feature-for-walking-process-address-space-checkpatch-fixes.patch
+kcore-register-module-area-in-generic-way.patch
+cgroups-support-named-cgroups-hierarchies.patch
+cgroups-move-the-cgroup-debug-subsys-into-cgroupc-to-access-internal-st=
+ate.patch
+cgroups-add-a-back-pointer-from-struct-cg_cgroup_link-to-struct-cgroup.=
+patch
+cgroups-allow-cgroup-hierarchies-to-be-created-with-no-bound-subsystems=
+=2Epatch
+memcg-remove-the-overhead-associated-with-the-root-cgroup.patch
 memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup-fix-2.patch
+memcg-add-comments-explaining-memory-barriers.patch
 memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
+memory-controller-soft-limit-documentation-v9.patch
+memory-controller-soft-limit-interface-v9.patch
+memory-controller-soft-limit-organize-cgroups-v9.patch
+memory-controller-soft-limit-organize-cgroups-v9-fix.patch
+memory-controller-soft-limit-refactor-reclaim-flags-v9.patch
+memory-controller-soft-limit-reclaim-on-contention-v9.patch
 memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
-memcg-improve-resource-counter-scalability-checkpatch-fixes.patch
-exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
-exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
-elf-clean-up-fill_note_info-fix.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-reiser4-disable.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+memory-controller-soft-limit-reclaim-on-contention-v9-fix-softlimit-css=
+-refcnt-handling.patch
+memory-controller-soft-limit-reclaim-on-contention-v9-fix-softlimit-css=
+-refcnt-handling-fix.patch
+memcg-improve-resource-counter-scalability.patch
+memcg-improve-resource-counter-scalability-v5.patch
+memcg-show-swap-usage-in-stat-file.patch
+memcg-show-swap-usage-in-stat-file-fix.patch
+do_wait-wakeup-optimization-fix-child_wait_callback-eligible_child-usag=
+e.patch
+do_wait-wakeup-optimization-simplify-task_pid_type.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
