@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-dma-ioat-dma_v2c-fix-warnings.patch added to -mm tree
-Date: Fri, 18 Sep 2009 16:06:42 -0700
-Message-ID: <200909182329.n8INT10t031240@imap1.linux-foundation.org>
+Subject: + drivers-video-tmiofbc-fix-uninitialised-return-value.patch added to -mm tree
+Date: Fri, 18 Sep 2009 16:23:48 -0700
+Message-ID: <200909182346.n8INk6FG032486@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46182 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58772 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754406AbZIRX27 (ORCPT
+	by vger.kernel.org with ESMTP id S1751154AbZIRXqd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Sep 2009 19:28:59 -0400
+	Fri, 18 Sep 2009 19:46:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dan.j.williams@intel.com, maciej.sosnowski@intel.com
+Cc: akpm@linux-foundation.org, dbaryshkov@gmail.com
 
 
 The patch titled
-     drivers/dma/ioat/dma_v2.c: fix warnings
+     drivers/video/tmiofb.c: fix uninitialised return value
 has been added to the -mm tree.  Its filename is
-     drivers-dma-ioat-dma_v2c-fix-warnings.patch
+     drivers-video-tmiofbc-fix-uninitialised-return-value.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/dma/ioat/dma_v2.c: fix warnings
+Subject: drivers/video/tmiofb.c: fix uninitialised return value
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/dma/ioat/dma_v2.c: In function 'ioat2_dma_prep_memcpy_lock':
-drivers/dma/ioat/dma_v2.c:680: warning: 'hw' may be used uninitialized in this function
-drivers/dma/ioat/dma_v2.c:681: warning: 'desc' may be used uninitialized in this function
+drivers/video/tmiofb.c: In function 'tmiofb_resume':
+drivers/video/tmiofb.c:977: warning: 'retval' may be used uninitialized in this function
 
-Cc: Maciej Sosnowski <maciej.sosnowski@intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dmitry Baryshkov <dbaryshkov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/ioat/dma_v2.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/video/tmiofb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/dma/ioat/dma_v2.c~drivers-dma-ioat-dma_v2c-fix-warnings drivers/dma/ioat/dma_v2.c
---- a/drivers/dma/ioat/dma_v2.c~drivers-dma-ioat-dma_v2c-fix-warnings
-+++ a/drivers/dma/ioat/dma_v2.c
-@@ -692,7 +692,8 @@ ioat2_dma_prep_memcpy_lock(struct dma_ch
- 		/* pass */;
- 	else
- 		return NULL;
--	for (i = 0; i < num_descs; i++) {
-+	i = 0;
-+	do {
- 		size_t copy = min_t(size_t, len, 1 << ioat->xfercap_log);
+diff -puN drivers/video/tmiofb.c~drivers-video-tmiofbc-fix-uninitialised-return-value drivers/video/tmiofb.c
+--- a/drivers/video/tmiofb.c~drivers-video-tmiofbc-fix-uninitialised-return-value
++++ a/drivers/video/tmiofb.c
+@@ -974,7 +974,7 @@ static int tmiofb_resume(struct platform
+ {
+ 	struct fb_info *info = platform_get_drvdata(dev);
+ 	struct mfd_cell *cell = dev->dev.platform_data;
+-	int retval;
++	int retval = 0;
  
- 		desc = ioat2_get_ring_ent(ioat, idx + i);
-@@ -707,7 +708,7 @@ ioat2_dma_prep_memcpy_lock(struct dma_ch
- 		dst += copy;
- 		src += copy;
- 		dump_desc_dbg(ioat, desc);
--	}
-+	} while (++i < num_descs);
+ 	acquire_console_sem();
  
- 	desc->txd.flags = flags;
- 	desc->len = total_len;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -166,4 +154,5 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 notify_change-callers-must-hold-i_mutex.patch
+drivers-video-tmiofbc-fix-uninitialised-return-value.patch
 
