@@ -1,64 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-mfd-ab3100-corec-make-powerpc-shut-up.patch added to -mm tree
-Date: Thu, 17 Sep 2009 16:59:32 -0700
-Message-ID: <200909180021.n8I0LnRE030778@imap1.linux-foundation.org>
+Subject: [obsolete] walk-system-ram-range-borkage.patch removed from -mm tree
+Date: Thu, 17 Sep 2009 17:23:06 -0700
+Message-ID: <200909180023.n8I0N7a4000744@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34612 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44403 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751832AbZIRAWT (ORCPT
+	by vger.kernel.org with ESMTP id S1753809AbZIRAXe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Sep 2009 20:22:19 -0400
+	Thu, 17 Sep 2009 20:23:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, sameo@linux.intel.com
+To: akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/mfd/ab3100-core.c: make powerpc shut up
-has been added to the -mm tree.  Its filename is
-     drivers-mfd-ab3100-corec-make-powerpc-shut-up.patch
+     walk-system-ram-range-borkage
+has been removed from the -mm tree.  Its filename was
+     walk-system-ram-range-borkage.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/mfd/ab3100-core.c: make powerpc shut up
+Subject: walk-system-ram-range-borkage
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/mfd/ab3100-core.c:651: error: ab3100_init_settings causes a section type conflict
+so it compiles.
 
-Cc: Samuel Ortiz <sameo@linux.intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/ab3100-core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/hw/ehca/ehca_mrmw.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/mfd/ab3100-core.c~drivers-mfd-ab3100-corec-make-powerpc-shut-up drivers/mfd/ab3100-core.c
---- a/drivers/mfd/ab3100-core.c~drivers-mfd-ab3100-corec-make-powerpc-shut-up
-+++ a/drivers/mfd/ab3100-core.c
-@@ -647,7 +647,7 @@ struct ab3100_init_setting {
- 	u8 setting;
- };
+diff -puN drivers/infiniband/hw/ehca/ehca_mrmw.c~walk-system-ram-range-borkage drivers/infiniband/hw/ehca/ehca_mrmw.c
+--- a/drivers/infiniband/hw/ehca/ehca_mrmw.c~walk-system-ram-range-borkage
++++ a/drivers/infiniband/hw/ehca/ehca_mrmw.c
+@@ -2463,9 +2463,9 @@ int ehca_create_busmap(void)
+ 	int ret;
  
--static const struct ab3100_init_setting __initdata
-+static struct ab3100_init_setting __initdata
- ab3100_init_settings[] = {
- 	{
- 		.abreg = AB3100_MCA,
+ 	ehca_mr_len = 0;
+-	ret = walk_memory_resource(0, 1ULL << MAX_PHYSMEM_BITS, NULL,
+-				   ehca_create_busmap_callback);
+-	return ret;
++//	ret = walk_memory_resource(0, 1ULL << MAX_PHYSMEM_BITS, NULL,
++//				   ehca_create_busmap_callback);
++	return 0;
+ }
+ 
+ static int ehca_reg_bmap_mr_rpages(struct ehca_shca *shca,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -78,6 +71,7 @@ timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
 input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
 input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
 checkincludespl-add-option-to-remove-duplicates-in-place.patch
+drivers-mfd-ab3100-corec-make-powerpc-shut-up.patch
 net-fix-config_net=n-build-on-sparc64.patch
 zorro8390-fix-read-buffer-overflow-in-zorro8390_init_one-checkpatch-fixes.patch
 3x59x-fix-pci-resource-management.patch
@@ -151,5 +145,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 notify_change-callers-must-hold-i_mutex.patch
-drivers-mfd-ab3100-corec-make-powerpc-shut-up.patch
 
