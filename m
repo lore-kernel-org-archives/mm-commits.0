@@ -1,57 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [folded] st-fix-test-of-value-range-in-st_set_options-fix.patch removed from -mm tree
-Date: Fri, 18 Sep 2009 12:57:41 -0700
-Message-ID: <200909181957.n8IJvgX4003042@imap1.linux-foundation.org>
+Subject: [folded] fs-improve-remountro-vs-buffercache-coherency-fix.patch removed from -mm tree
+Date: Fri, 18 Sep 2009 13:03:15 -0700
+Message-ID: <200909182003.n8IK3GNp014188@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53120 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49819 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754318AbZIRT6A (ORCPT
+	by vger.kernel.org with ESMTP id S1758145AbZIRUDg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Sep 2009 15:58:00 -0400
+	Fri, 18 Sep 2009 16:03:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, osst@riede.org, roel.kluin@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     st-fix-test-of-value-range-in-st_set_options-fix
+     fs-improve-remountro-vs-buffercache-coherency-fix
 has been removed from the -mm tree.  Its filename was
-     st-fix-test-of-value-range-in-st_set_options-fix.patch
+     fs-improve-remountro-vs-buffercache-coherency-fix.patch
 
-This patch was dropped because it was folded into st-fix-test-of-value-range-in-st_set_options.patch
+This patch was dropped because it was folded into fs-improve-remountro-vs-buffercache-coherency.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: st-fix-test-of-value-range-in-st_set_options-fix
+Subject: fs-improve-remountro-vs-buffercache-coherency-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/scsi/st.c: In function 'st_set_options':
-drivers/scsi/st.c:2283: warning: suggest parentheses around && within ||
+repair comment layout
 
-Cc: James E.J. Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Roel Kluin <roel.kluin@gmail.com>
-Cc: Willem Riede <osst@riede.org>
+Cc: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/st.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/super.c |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
-diff -puN drivers/scsi/st.c~st-fix-test-of-value-range-in-st_set_options-fix drivers/scsi/st.c
---- a/drivers/scsi/st.c~st-fix-test-of-value-range-in-st_set_options-fix
-+++ a/drivers/scsi/st.c
-@@ -2280,7 +2280,8 @@ static int st_set_options(struct scsi_ta
- 	} else if (code == MT_ST_SET_CLN) {
- 		value = (options & ~MT_ST_OPTIONS) & 0xff;
- 		if (value != 0 &&
--		    value < EXTENDED_SENSE_START || value >= SCSI_SENSE_BUFFERSIZE)
-+			(value < EXTENDED_SENSE_START ||
-+				value >= SCSI_SENSE_BUFFERSIZE))
- 			return (-EINVAL);
- 		STp->cln_mode = value;
- 		STp->cln_sense_mask = (options >> 8) & 0xff;
+diff -puN fs/super.c~fs-improve-remountro-vs-buffercache-coherency-fix fs/super.c
+--- a/fs/super.c~fs-improve-remountro-vs-buffercache-coherency-fix
++++ a/fs/super.c
+@@ -561,12 +561,14 @@ int do_remount_sb(struct super_block *sb
+ 	sb->s_flags = (sb->s_flags & ~MS_RMT_MASK) | (flags & MS_RMT_MASK);
+ 	if (remount_rw)
+ 		vfs_dq_quota_on_remount(sb);
+-	 /* Some filesystems modify their metadata via some other path
+-	    than the bdev buffer cache (eg. use a private mapping, or
+-	    directories in pagecache, etc). Also file data modifications
+-	    go via their own mappings. So If we try to mount readonly
+-	    then copy the filesystem from bdev, we could get stale data,
+-	    so invalidate it to give a best effort at coherency. */
++	/*
++	 * Some filesystems modify their metadata via some other path than the
++	 * bdev buffer cache (eg. use a private mapping, or directories in
++	 * pagecache, etc). Also file data modifications go via their own
++	 * mappings. So If we try to mount readonly then copy the filesystem
++	 * from bdev, we could get stale data, so invalidate it to give a best
++	 * effort at coherency.
++	 */
+ 	if (remount_ro && sb->s_bdev)
+ 		invalidate_bdev(sb->s_bdev);
+ 	return 0;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -77,12 +85,12 @@ bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
 include-linux-credh-fix-build.patch
 serial167-fix-read-buffer-overflow.patch
 st-fix-test-of-value-range-in-st_set_options.patch
-st-fix-test-of-value-range-in-st_set_options-fix.patch
 drivers-usb-serial-sierrac-fix-config_pm=n-build.patch
 raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
 libfs-make-simple_read_from_buffer-conventional.patch
 fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
 vfs-optimize-touch_time-too.patch
+fs-improve-remountro-vs-buffercache-coherency.patch
 fs-improve-remountro-vs-buffercache-coherency-fix.patch
 percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
 mm-make-swap-token-dummies-static-inlines-fix.patch
