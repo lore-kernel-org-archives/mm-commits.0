@@ -1,33 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: [folded] hwmon-driver-for-acpi-40-power-meters-fix.patch removed from -mm tree
-Date: Fri, 18 Sep 2009 12:39:31 -0700
-Message-ID: <200909181939.n8IJdVSJ031732@imap1.linux-foundation.org>
+Subject: [folded] hwmon-driver-for-acpi-40-power-meters-fix-2.patch removed from -mm tree
+Date: Fri, 18 Sep 2009 12:39:36 -0700
+Message-ID: <200909181939.n8IJdbkX031929@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57072 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57572 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755265AbZIRTlC (ORCPT
+	by vger.kernel.org with ESMTP id S1756246AbZIRTlI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Sep 2009 15:41:02 -0400
+	Fri, 18 Sep 2009 15:41:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, djwong@us.ibm.com, lenb@kernel.org, pavel@ucw.cz, rui.zhang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hwmon-driver-for-acpi-40-power-meters-fix
+     hwmon-driver-for-acpi-40-power-meters-fix-2
 has been removed from the -mm tree.  Its filename was
-     hwmon-driver-for-acpi-40-power-meters-fix.patch
+     hwmon-driver-for-acpi-40-power-meters-fix-2.patch
 
 This patch was dropped because it was folded into hwmon-driver-for-acpi-40-power-meters.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hwmon-driver-for-acpi-40-power-meters-fix
+Subject: hwmon-driver-for-acpi-40-power-meters-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-defaults are eveil ;)
+drivers/acpi/power_meter.c: In function 'acpi_power_meter_init':
+drivers/acpi/power_meter.c:995: error: implicit declaration of function 'dmi_check_system'
 
 Cc: Darrick J. Wong <djwong@us.ibm.com>
 Cc: Len Brown <lenb@kernel.org>
@@ -36,20 +37,23 @@ Cc: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/Kconfig |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/acpi/power_meter.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/acpi/Kconfig~hwmon-driver-for-acpi-40-power-meters-fix drivers/acpi/Kconfig
---- a/drivers/acpi/Kconfig~hwmon-driver-for-acpi-40-power-meters-fix
-+++ a/drivers/acpi/Kconfig
-@@ -89,7 +89,6 @@ config ACPI_PROCFS_POWER
- config ACPI_POWER_METER
- 	tristate "ACPI 4.0 power meter"
- 	depends on HWMON
--	default y
- 	help
- 	  This driver exposes ACPI 4.0 power meters as hardware monitoring
- 	  devices.  Say Y (or M) if you have a computer with ACPI 4.0 firmware
+diff -puN Documentation/hwmon/acpi_power_meter~hwmon-driver-for-acpi-40-power-meters-fix-2 Documentation/hwmon/acpi_power_meter
+diff -puN drivers/acpi/Kconfig~hwmon-driver-for-acpi-40-power-meters-fix-2 drivers/acpi/Kconfig
+diff -puN drivers/acpi/Makefile~hwmon-driver-for-acpi-40-power-meters-fix-2 drivers/acpi/Makefile
+diff -puN drivers/acpi/power_meter.c~hwmon-driver-for-acpi-40-power-meters-fix-2 drivers/acpi/power_meter.c
+--- a/drivers/acpi/power_meter.c~hwmon-driver-for-acpi-40-power-meters-fix-2
++++ a/drivers/acpi/power_meter.c
+@@ -24,6 +24,7 @@
+ #include <linux/hwmon-sysfs.h>
+ #include <linux/jiffies.h>
+ #include <linux/mutex.h>
++#include <linux/dmi.h>
+ #include <linux/kdev_t.h>
+ #include <linux/sched.h>
+ #include <linux/time.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -63,7 +67,6 @@ next-remove-localversion.patch
 i-need-old-gcc.patch
 arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
 hwmon-driver-for-acpi-40-power-meters.patch
-hwmon-driver-for-acpi-40-power-meters-fix.patch
 hwmon-driver-for-acpi-40-power-meters-fix-2.patch
 cpuidle-fix-the-menu-governor-to-boost-io-performance.patch
 drivers-md-dm-log-userspace-basec-fix-warning.patch
