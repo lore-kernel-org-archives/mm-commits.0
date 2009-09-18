@@ -1,74 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [folded] tpm-fixup-pcrs-sysfs-file-update.patch removed from -mm tree
-Date: Fri, 18 Sep 2009 12:54:24 -0700
-Message-ID: <200909181954.n8IJsOfP028910@imap1.linux-foundation.org>
+Subject: [folded] spinlocks-check-spinlock_t-rwlock_t-argument-type-on-non-smp-builds-v3.patch removed from -mm tree
+Date: Fri, 18 Sep 2009 12:56:31 -0700
+Message-ID: <200909181956.n8IJuV1Z000713@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37799 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50521 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755059AbZIRT4n (ORCPT
+	by vger.kernel.org with ESMTP id S1750771AbZIRT46 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Sep 2009 15:56:43 -0400
+	Fri, 18 Sep 2009 15:56:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jgunthorpe@obsidianresearch.com, debora@linux.vnet.ibm.com, jmorris@namei.org, m.selhorst@sirrix.com, srajiv@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: kilroyd@googlemail.com, a.p.zijlstra@chello.nl, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tpm-fixup-pcrs-sysfs-file-update
+     spinlocks-check-spinlock_t-rwlock_t-argument-type-on-non-smp-builds-v3
 has been removed from the -mm tree.  Its filename was
-     tpm-fixup-pcrs-sysfs-file-update.patch
+     spinlocks-check-spinlock_t-rwlock_t-argument-type-on-non-smp-builds-v3.patch
 
-This patch was dropped because it was folded into tpm-fixup-pcrs-sysfs-file.patch
+This patch was dropped because it was folded into spinlocks-check-spinlock_t-rwlock_t-argument-type-on-non-smp-builds.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tpm-fixup-pcrs-sysfs-file-update
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Subject: spinlocks-check-spinlock_t-rwlock_t-argument-type-on-non-smp-builds-v3
+From: David Kilroy <kilroyd@googlemail.com>
 
-Signed-off-by: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: Debora Velarde <debora@linux.vnet.ibm.com>
-Cc: Rajiv Andrade <srajiv@linux.vnet.ibm.com>
-Cc: Marcel Selhorst <m.selhorst@sirrix.com>
-Cc: James Morris <jmorris@namei.org>
+ * Correct bug in _spin_trylock_bh
+
+Signed-off-by: David Kilroy <kilroyd@googlemail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tpm/tpm.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ include/linux/spinlock_api_up.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/tpm/tpm.c~tpm-fixup-pcrs-sysfs-file-update drivers/char/tpm/tpm.c
---- a/drivers/char/tpm/tpm.c~tpm-fixup-pcrs-sysfs-file-update
-+++ a/drivers/char/tpm/tpm.c
-@@ -741,7 +741,7 @@ EXPORT_SYMBOL_GPL(tpm_pcr_read);
-  * the module usage count.
-  */
- #define TPM_ORD_PCR_EXTEND cpu_to_be32(20)
--#define EXTEND_PCR_SIZE 34
-+#define EXTEND_PCR_RESULT_SIZE 34
- static struct tpm_input_header pcrextend_header = {
- 	.tag = TPM_TAG_RQU_COMMAND,
- 	.length = cpu_to_be32(34),
-@@ -759,10 +759,9 @@ int tpm_pcr_extend(u32 chip_num, int pcr
- 		return -ENODEV;
+diff -puN include/linux/spinlock_api_up.h~spinlocks-check-spinlock_t-rwlock_t-argument-type-on-non-smp-builds-v3 include/linux/spinlock_api_up.h
+--- a/include/linux/spinlock_api_up.h~spinlocks-check-spinlock_t-rwlock_t-argument-type-on-non-smp-builds-v3
++++ a/include/linux/spinlock_api_up.h
+@@ -97,7 +97,7 @@ static inline int _write_trylock(rwlock_
+ { __LOCK(lock); return 1; }
  
- 	cmd.header.in = pcrextend_header;
--	BUILD_BUG_ON(be32_to_cpu(cmd.header.in.length) > EXTEND_PCR_SIZE);
- 	cmd.params.pcrextend_in.pcr_idx = cpu_to_be32(pcr_idx);
- 	memcpy(cmd.params.pcrextend_in.hash, hash, TPM_DIGEST_SIZE);
--	rc = transmit_cmd(chip, &cmd, cmd.header.in.length,
-+	rc = transmit_cmd(chip, &cmd, EXTEND_PCR_RESULT_SIZE,
- 			  "attempting extend a PCR value");
+ static inline int _spin_trylock_bh(spinlock_t *lock)
+-{ __LOCK(lock); return 1; }
++{ __LOCK_BH(lock); return 1; }
  
- 	module_put(chip->dev->driver->owner);
+ static inline void _spin_unlock(spinlock_t *lock)
+ { __UNLOCK(lock); }
 _
 
-Patches currently in -mm which might be from jgunthorpe@obsidianresearch.com are
+Patches currently in -mm which might be from kilroyd@googlemail.com are
 
 origin.patch
-linux-next.patch
-tpm-fixup-pcrs-sysfs-file.patch
-tpm-fixup-pcrs-sysfs-file-update.patch
-tpm-fix-up-pubek-sysfs-file.patch
+spinlocks-check-spinlock_t-rwlock_t-argument-type-on-non-smp-builds.patch
+spinlocks-check-spinlock_t-rwlock_t-argument-type-on-non-smp-builds-v3.patch
 
