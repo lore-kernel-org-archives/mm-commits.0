@@ -1,84 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [folded] include-linux-credh-fix-build-fix.patch removed from -mm tree
-Date: Fri, 18 Sep 2009 12:54:41 -0700
-Message-ID: <200909181954.n8IJsg5M029484@imap1.linux-foundation.org>
+Subject: [folded] tpm-fixup-pcrs-sysfs-file-update.patch removed from -mm tree
+Date: Fri, 18 Sep 2009 12:54:24 -0700
+Message-ID: <200909181954.n8IJsOfP028910@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47846 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37799 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754194AbZIRT4X (ORCPT
+	by vger.kernel.org with ESMTP id S1755059AbZIRT4n (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Sep 2009 15:56:23 -0400
+	Fri, 18 Sep 2009 15:56:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, dhowells@redhat.com, jmorris@namei.org, serue@us.ibm.com, mm-commits@vger.kernel.org
+To: jgunthorpe@obsidianresearch.com, debora@linux.vnet.ibm.com, jmorris@namei.org, m.selhorst@sirrix.com, srajiv@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cred: export creds_are_invalid
+     tpm-fixup-pcrs-sysfs-file-update
 has been removed from the -mm tree.  Its filename was
-     include-linux-credh-fix-build-fix.patch
+     tpm-fixup-pcrs-sysfs-file-update.patch
 
-This patch was dropped because it was folded into include-linux-credh-fix-build.patch
+This patch was dropped because it was folded into tpm-fixup-pcrs-sysfs-file.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cred: export creds_are_invalid
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: tpm-fixup-pcrs-sysfs-file-update
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
 
-creds_are_invalid() needs to be exported for use by modules:
-
-ERROR: "creds_are_invalid" [fs/cachefiles/cachefiles.ko] undefined!
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: David Howells <dhowells@redhat.com>
+Signed-off-by: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: Debora Velarde <debora@linux.vnet.ibm.com>
+Cc: Rajiv Andrade <srajiv@linux.vnet.ibm.com>
+Cc: Marcel Selhorst <m.selhorst@sirrix.com>
 Cc: James Morris <jmorris@namei.org>
-Cc: Serge Hallyn <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cred.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/char/tpm/tpm.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN kernel/cred.c~include-linux-credh-fix-build-fix kernel/cred.c
---- a/kernel/cred.c~include-linux-credh-fix-build-fix
-+++ a/kernel/cred.c
-@@ -799,6 +799,7 @@ bool creds_are_invalid(const struct cred
- #endif
- 	return false;
- }
-+EXPORT_SYMBOL(creds_are_invalid);
+diff -puN drivers/char/tpm/tpm.c~tpm-fixup-pcrs-sysfs-file-update drivers/char/tpm/tpm.c
+--- a/drivers/char/tpm/tpm.c~tpm-fixup-pcrs-sysfs-file-update
++++ a/drivers/char/tpm/tpm.c
+@@ -741,7 +741,7 @@ EXPORT_SYMBOL_GPL(tpm_pcr_read);
+  * the module usage count.
+  */
+ #define TPM_ORD_PCR_EXTEND cpu_to_be32(20)
+-#define EXTEND_PCR_SIZE 34
++#define EXTEND_PCR_RESULT_SIZE 34
+ static struct tpm_input_header pcrextend_header = {
+ 	.tag = TPM_TAG_RQU_COMMAND,
+ 	.length = cpu_to_be32(34),
+@@ -759,10 +759,9 @@ int tpm_pcr_extend(u32 chip_num, int pcr
+ 		return -ENODEV;
  
- /*
-  * dump invalid credentials
+ 	cmd.header.in = pcrextend_header;
+-	BUILD_BUG_ON(be32_to_cpu(cmd.header.in.length) > EXTEND_PCR_SIZE);
+ 	cmd.params.pcrextend_in.pcr_idx = cpu_to_be32(pcr_idx);
+ 	memcpy(cmd.params.pcrextend_in.hash, hash, TPM_DIGEST_SIZE);
+-	rc = transmit_cmd(chip, &cmd, cmd.header.in.length,
++	rc = transmit_cmd(chip, &cmd, EXTEND_PCR_RESULT_SIZE,
+ 			  "attempting extend a PCR value");
+ 
+ 	module_put(chip->dev->driver->owner);
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from jgunthorpe@obsidianresearch.com are
 
 origin.patch
 linux-next.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-kernel-hacking-move-strip_asm_syms-from-general.patch
-isdn-fix-netjet-build-errors.patch
-include-linux-credh-fix-build.patch
-include-linux-credh-fix-build-fix.patch
-scsi-fix-func-names-in-kernel-doc.patch
-cciss-fix-schedule_timeout-parameters.patch
-mm-make-swap-token-dummies-static-inlines-fix-2.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-page_alloc-fix-kernel-doc-warning.patch
-ksm-add-some-documentation.patch
-flex_array-add-missing-kerneldoc-annotations.patch
-lis3-add-power-management-functions-fix.patch
-procfs-provide-stack-information-for-threads-v011-fix.patch
-kcore-register-vmemmap-range-fix.patch
-spih-add-missing-kernel-doc-for-struct-spi_master.patch
-gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links-update-fix.patch
-doc-filesystems-remove-smount-program.patch
-doc-filesystems-more-mount-cleanups.patch
-documentation-update-stale-definition-of-file-nr-in-fstxt.patch
-includecheck-fix-documentation-cfag12864b-examplec.patch
-docs-fix-various-documentation-paths-in-header-files.patch
-reiser4-export-remove_from_page_cache-fix.patch
+tpm-fixup-pcrs-sysfs-file.patch
+tpm-fixup-pcrs-sysfs-file-update.patch
+tpm-fix-up-pubek-sysfs-file.patch
 
