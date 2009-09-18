@@ -1,294 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: + mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions.patch added to -mm tree
-Date: Fri, 18 Sep 2009 14:18:47 -0700
-Message-ID: <200909182118.n8ILIlH4001426@imap1.linux-foundation.org>
+Subject: [obsolete] hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regionspatch-in-mm-fix.patch removed from -mm tree
+Date: Fri, 18 Sep 2009 14:18:17 -0700
+Message-ID: <200909182118.n8ILIH0N000435@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56770 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40482 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752253AbZIRVTf (ORCPT
+	by vger.kernel.org with ESMTP id S1755035AbZIRVTe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Sep 2009 17:19:35 -0400
+	Fri, 18 Sep 2009 17:19:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: arnd@arndb.de, ebmunson@us.ibm.com, hugh.dickins@tiscali.co.uk, linux-arch@vger.kernel.org, rientjes@google.com
+To: ebmunson@us.ibm.com, agl@us.ibm.com, david@gibson.dropbear.id.au, hugh.dickins@tiscali.co.uk, lee.schermerhorn@hp.com, mel@csn.ul.ie, nickpiggin@yahoo.com.au, rientjes@google.com, mm-
 
 
 The patch titled
-     mm: add MAP_HUGETLB for mmaping pseudo-anonymous huge page regions
-has been added to the -mm tree.  Its filename is
-     mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions.patch
+     hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regionspatch-in-mm-fix
+has been removed from the -mm tree.  Its filename was
+     hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regionspatch-in-mm-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: add MAP_HUGETLB for mmaping pseudo-anonymous huge page regions
-From: Arnd Bergmann <arnd@arndb.de>
+Subject: hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regionspatch-in-mm-fix
+From: Eric B Munson <ebmunson@us.ibm.com>
 
-Add a flag for mmap that will be used to request a huge page region that
-will look like anonymous memory to user space.  This is accomplished by
-using a file on the internal vfsmount.  MAP_HUGETLB is a modifier of
-MAP_ANONYMOUS and so must be specified with it.  The region will behave
-the same as a MAP_ANONYMOUS region using small pages.
+The patch
+hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions.patch
+used the value 0x40 for MAP_HUGETLB which is the same value used for
+various other flags on some architectures.  This collision causes
+unexpected use of huge pages in the best case and mmap to fail with
+ENOMEM or ENOSYS in the worst.  This patch changes the value for
+MAP_HUGETLB to a value that is not currently used on any arch.
 
-The patch also adds the MAP_STACK flag, which was previously defined only
-on some architectures but not on others.  Since MAP_STACK is meant to be a
-hint only, architectures can define it without assigning a specific
-meaning to it.
+This patch should be considered a fix to
+hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions.patch.
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Eric B Munson <ebmunson@us.ibm.com>
-Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Reported-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Signed-off-by: Eric B Munson <ebmunson@us.ibm.com>
+Acked-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Cc: David Rientjes <rientjes@google.com>
-Cc: <linux-arch@vger.kernel.org>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Adam Litke <agl@us.ibm.com>
+Cc: David Gibson <david@gibson.dropbear.id.au>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/mman.h   |    2 ++
- arch/arm/include/asm/mman.h     |    2 ++
- arch/avr32/include/asm/mman.h   |    2 ++
- arch/cris/include/asm/mman.h    |    2 ++
- arch/frv/include/asm/mman.h     |    2 ++
- arch/h8300/include/asm/mman.h   |    2 ++
- arch/ia64/include/asm/mman.h    |    2 ++
- arch/m32r/include/asm/mman.h    |    2 ++
- arch/m68k/include/asm/mman.h    |    2 ++
- arch/mips/include/asm/mman.h    |    2 ++
- arch/mn10300/include/asm/mman.h |    2 ++
- arch/parisc/include/asm/mman.h  |    2 ++
- arch/powerpc/include/asm/mman.h |    2 ++
- arch/s390/include/asm/mman.h    |    2 ++
- arch/sparc/include/asm/mman.h   |    2 ++
- arch/xtensa/include/asm/mman.h  |    2 ++
- include/asm-generic/mman.h      |    1 +
- 17 files changed, 33 insertions(+)
+ include/asm-generic/mman-common.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/alpha/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions arch/alpha/include/asm/mman.h
---- a/arch/alpha/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions
-+++ a/arch/alpha/include/asm/mman.h
-@@ -28,6 +28,8 @@
- #define MAP_NORESERVE	0x10000		/* don't check for reservations */
- #define MAP_POPULATE	0x20000		/* populate (prefault) pagetables */
- #define MAP_NONBLOCK	0x40000		/* do not block on IO */
-+#define MAP_STACK	0x80000		/* give out an address that is best suited for process/thread stacks */
-+#define MAP_HUGETLB	0x100000	/* create a huge page mapping */
+diff -puN include/asm-generic/mman-common.h~hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regionspatch-in-mm-fix include/asm-generic/mman-common.h
+--- a/include/asm-generic/mman-common.h~hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regionspatch-in-mm-fix
++++ a/include/asm-generic/mman-common.h
+@@ -19,7 +19,7 @@
+ #define MAP_TYPE	0x0f		/* Mask for type of mapping */
+ #define MAP_FIXED	0x10		/* Interpret addr exactly */
+ #define MAP_ANONYMOUS	0x20		/* don't use a file */
+-#define MAP_HUGETLB	0x40		/* create a huge page mapping */
++#define MAP_HUGETLB	0x080000	/* create a huge page mapping */
  
  #define MS_ASYNC	1		/* sync memory asynchronously */
- #define MS_SYNC		2		/* synchronous memory sync */
-diff -puN arch/arm/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions arch/arm/include/asm/mman.h
---- a/arch/arm/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions
-+++ a/arch/arm/include/asm/mman.h
-@@ -10,6 +10,8 @@
- #define MAP_NORESERVE	0x4000		/* don't check for reservations */
- #define MAP_POPULATE	0x8000		/* populate (prefault) page tables */
- #define MAP_NONBLOCK	0x10000		/* do not block on IO */
-+#define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
-+#define MAP_HUGETLB	0x40000		/* create a huge page mapping */
- 
- #define MCL_CURRENT	1		/* lock all current mappings */
- #define MCL_FUTURE	2		/* lock all future mappings */
-diff -puN arch/avr32/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions arch/avr32/include/asm/mman.h
---- a/arch/avr32/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions
-+++ a/arch/avr32/include/asm/mman.h
-@@ -10,6 +10,8 @@
- #define MAP_NORESERVE	0x4000		/* don't check for reservations */
- #define MAP_POPULATE	0x8000		/* populate (prefault) page tables */
- #define MAP_NONBLOCK	0x10000		/* do not block on IO */
-+#define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
-+#define MAP_HUGETLB	0x40000		/* create a huge page mapping */
- 
- #define MCL_CURRENT	1		/* lock all current mappings */
- #define MCL_FUTURE	2		/* lock all future mappings */
-diff -puN arch/cris/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions arch/cris/include/asm/mman.h
---- a/arch/cris/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions
-+++ a/arch/cris/include/asm/mman.h
-@@ -12,6 +12,8 @@
- #define MAP_NORESERVE	0x4000		/* don't check for reservations */
- #define MAP_POPULATE	0x8000		/* populate (prefault) pagetables */
- #define MAP_NONBLOCK	0x10000		/* do not block on IO */
-+#define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
-+#define MAP_HUGETLB	0x40000		/* create a huge page mapping */
- 
- #define MCL_CURRENT	1		/* lock all current mappings */
- #define MCL_FUTURE	2		/* lock all future mappings */
-diff -puN arch/frv/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions arch/frv/include/asm/mman.h
---- a/arch/frv/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions
-+++ a/arch/frv/include/asm/mman.h
-@@ -10,6 +10,8 @@
- #define MAP_NORESERVE	0x4000		/* don't check for reservations */
- #define MAP_POPULATE	0x8000		/* populate (prefault) pagetables */
- #define MAP_NONBLOCK	0x10000		/* do not block on IO */
-+#define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
-+#define MAP_HUGETLB	0x40000		/* create a huge page mapping */
- 
- #define MCL_CURRENT	1		/* lock all current mappings */
- #define MCL_FUTURE	2		/* lock all future mappings */
-diff -puN arch/h8300/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions arch/h8300/include/asm/mman.h
---- a/arch/h8300/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions
-+++ a/arch/h8300/include/asm/mman.h
-@@ -10,6 +10,8 @@
- #define MAP_NORESERVE	0x4000		/* don't check for reservations */
- #define MAP_POPULATE	0x8000		/* populate (prefault) pagetables */
- #define MAP_NONBLOCK	0x10000		/* do not block on IO */
-+#define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
-+#define MAP_HUGETLB	0x40000		/* create a huge page mapping */
- 
- #define MCL_CURRENT	1		/* lock all current mappings */
- #define MCL_FUTURE	2		/* lock all future mappings */
-diff -puN arch/ia64/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions arch/ia64/include/asm/mman.h
---- a/arch/ia64/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions
-+++ a/arch/ia64/include/asm/mman.h
-@@ -18,6 +18,8 @@
- #define MAP_NORESERVE	0x04000		/* don't check for reservations */
- #define MAP_POPULATE	0x08000		/* populate (prefault) pagetables */
- #define MAP_NONBLOCK	0x10000		/* do not block on IO */
-+#define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
-+#define MAP_HUGETLB	0x40000		/* create a huge page mapping */
- 
- #define MCL_CURRENT	1		/* lock all current mappings */
- #define MCL_FUTURE	2		/* lock all future mappings */
-diff -puN arch/m32r/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions arch/m32r/include/asm/mman.h
---- a/arch/m32r/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions
-+++ a/arch/m32r/include/asm/mman.h
-@@ -10,6 +10,8 @@
- #define MAP_NORESERVE	0x4000		/* don't check for reservations */
- #define MAP_POPULATE	0x8000		/* populate (prefault) pagetables */
- #define MAP_NONBLOCK	0x10000		/* do not block on IO */
-+#define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
-+#define MAP_HUGETLB	0x40000		/* create a huge page mapping */
- 
- #define MCL_CURRENT	1		/* lock all current mappings */
- #define MCL_FUTURE	2		/* lock all future mappings */
-diff -puN arch/m68k/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions arch/m68k/include/asm/mman.h
---- a/arch/m68k/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions
-+++ a/arch/m68k/include/asm/mman.h
-@@ -10,6 +10,8 @@
- #define MAP_NORESERVE	0x4000		/* don't check for reservations */
- #define MAP_POPULATE	0x8000		/* populate (prefault) pagetables */
- #define MAP_NONBLOCK	0x10000		/* do not block on IO */
-+#define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
-+#define MAP_HUGETLB	0x40000		/* create a huge page mapping */
- 
- #define MCL_CURRENT	1		/* lock all current mappings */
- #define MCL_FUTURE	2		/* lock all future mappings */
-diff -puN arch/mips/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions arch/mips/include/asm/mman.h
---- a/arch/mips/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions
-+++ a/arch/mips/include/asm/mman.h
-@@ -46,6 +46,8 @@
- #define MAP_LOCKED	0x8000		/* pages are locked */
- #define MAP_POPULATE	0x10000		/* populate (prefault) pagetables */
- #define MAP_NONBLOCK	0x20000		/* do not block on IO */
-+#define MAP_STACK	0x40000		/* give out an address that is best suited for process/thread stacks */
-+#define MAP_HUGETLB	0x80000		/* create a huge page mapping */
- 
- /*
-  * Flags for msync
-diff -puN arch/mn10300/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions arch/mn10300/include/asm/mman.h
---- a/arch/mn10300/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions
-+++ a/arch/mn10300/include/asm/mman.h
-@@ -21,6 +21,8 @@
- #define MAP_NORESERVE	0x4000		/* don't check for reservations */
- #define MAP_POPULATE	0x8000		/* populate (prefault) pagetables */
- #define MAP_NONBLOCK	0x10000		/* do not block on IO */
-+#define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
-+#define MAP_HUGETLB	0x40000		/* create a huge page mapping */
- 
- #define MCL_CURRENT	1		/* lock all current mappings */
- #define MCL_FUTURE	2		/* lock all future mappings */
-diff -puN arch/parisc/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions arch/parisc/include/asm/mman.h
---- a/arch/parisc/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions
-+++ a/arch/parisc/include/asm/mman.h
-@@ -22,6 +22,8 @@
- #define MAP_GROWSDOWN	0x8000		/* stack-like segment */
- #define MAP_POPULATE	0x10000		/* populate (prefault) pagetables */
- #define MAP_NONBLOCK	0x20000		/* do not block on IO */
-+#define MAP_STACK	0x40000		/* give out an address that is best suited for process/thread stacks */
-+#define MAP_HUGETLB	0x80000		/* create a huge page mapping */
- 
- #define MS_SYNC		1		/* synchronous memory sync */
- #define MS_ASYNC	2		/* sync memory asynchronously */
-diff -puN arch/powerpc/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions arch/powerpc/include/asm/mman.h
---- a/arch/powerpc/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions
-+++ a/arch/powerpc/include/asm/mman.h
-@@ -25,6 +25,8 @@
- 
- #define MAP_POPULATE	0x8000		/* populate (prefault) pagetables */
- #define MAP_NONBLOCK	0x10000		/* do not block on IO */
-+#define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
-+#define MAP_HUGETLB	0x40000		/* create a huge page mapping */
- 
- #ifdef __KERNEL__
- #ifdef CONFIG_PPC64
-diff -puN arch/s390/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions arch/s390/include/asm/mman.h
---- a/arch/s390/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions
-+++ a/arch/s390/include/asm/mman.h
-@@ -18,6 +18,8 @@
- #define MAP_NORESERVE	0x4000		/* don't check for reservations */
- #define MAP_POPULATE	0x8000		/* populate (prefault) pagetables */
- #define MAP_NONBLOCK	0x10000		/* do not block on IO */
-+#define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
-+#define MAP_HUGETLB	0x40000		/* create a huge page mapping */
- 
- #define MCL_CURRENT	1		/* lock all current mappings */
- #define MCL_FUTURE	2		/* lock all future mappings */
-diff -puN arch/sparc/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions arch/sparc/include/asm/mman.h
---- a/arch/sparc/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions
-+++ a/arch/sparc/include/asm/mman.h
-@@ -20,6 +20,8 @@
- 
- #define MAP_POPULATE	0x8000		/* populate (prefault) pagetables */
- #define MAP_NONBLOCK	0x10000		/* do not block on IO */
-+#define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
-+#define MAP_HUGETLB	0x40000		/* create a huge page mapping */
- 
- #ifdef __KERNEL__
- #ifndef __ASSEMBLY__
-diff -puN arch/x86/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions arch/x86/include/asm/mman.h
-diff -puN arch/xtensa/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions arch/xtensa/include/asm/mman.h
---- a/arch/xtensa/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions
-+++ a/arch/xtensa/include/asm/mman.h
-@@ -53,6 +53,8 @@
- #define MAP_LOCKED	0x8000		/* pages are locked */
- #define MAP_POPULATE	0x10000		/* populate (prefault) pagetables */
- #define MAP_NONBLOCK	0x20000		/* do not block on IO */
-+#define MAP_STACK	0x40000		/* give out an address that is best suited for process/thread stacks */
-+#define MAP_HUGETLB	0x80000		/* create a huge page mapping */
- 
- /*
-  * Flags for msync
-diff -puN include/asm-generic/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions include/asm-generic/mman.h
---- a/include/asm-generic/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions
-+++ a/include/asm-generic/mman.h
-@@ -11,6 +11,7 @@
- #define MAP_POPULATE	0x8000		/* populate (prefault) pagetables */
- #define MAP_NONBLOCK	0x10000		/* do not block on IO */
- #define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
-+#define MAP_HUGETLB	0x40000		/* create a huge page mapping */
- 
- #define MCL_CURRENT	1		/* lock all current mappings */
- #define MCL_FUTURE	2		/* lock all future mappings */
+ #define MS_INVALIDATE	2		/* invalidate the caches */
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from ebmunson@us.ibm.com are
 
-origin.patch
-linux-next.patch
+hugetlbfs-allow-the-creation-of-files-suitable-for-map_private-on-the-vfs-internal-mount.patch
 mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions.patch
+hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions.patch
 hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions-fix.patch
-asm-sections-add-text-data-checking-functions-for-arches-to-override.patch
-kallsyms-use-new-arch_is_kernel_text.patch
-lockdep-use-new-arch_is_kernel_data.patch
-blackfin-override-text-data-checking-functions.patch
+hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regionspatch-in-mm-fix.patch
+hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions-alpha-fix.patch
+hugetlb-add-map_hugetlb-example.patch
 
