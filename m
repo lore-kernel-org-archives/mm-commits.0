@@ -1,70 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes-checkpatch-fixes.patch removed from -mm tree
-Date: Fri, 18 Sep 2009 12:56:51 -0700
-Message-ID: <200909181956.n8IJupl0001377@imap1.linux-foundation.org>
+Subject: [folded] st-fix-test-of-value-range-in-st_set_options-fix.patch removed from -mm tree
+Date: Fri, 18 Sep 2009 12:57:41 -0700
+Message-ID: <200909181957.n8IJvgX4003042@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48781 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53120 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754105AbZIRT5h (ORCPT
+	by vger.kernel.org with ESMTP id S1754318AbZIRT6A (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Sep 2009 15:57:37 -0400
+	Fri, 18 Sep 2009 15:58:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, dhowells@redhat.com, mingo@elte.hu, peterz@infradead.org, tiwai@suse.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, osst@riede.org, roel.kluin@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes-checkpatch-fixes
+     st-fix-test-of-value-range-in-st_set_options-fix
 has been removed from the -mm tree.  Its filename was
-     waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes-checkpatch-fixes.patch
+     st-fix-test-of-value-range-in-st_set_options-fix.patch
 
-This patch was dropped because it was withdrawn
+This patch was dropped because it was folded into st-fix-test-of-value-range-in-st_set_options.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes-checkpatch-fixes
+Subject: st-fix-test-of-value-range-in-st_set_options-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: line over 80 characters
-#29: FILE: include/linux/wait.h:80:
-+extern void __init_waitqueue_head(wait_queue_head_t *q, struct lock_class_key *);
+drivers/scsi/st.c: In function 'st_set_options':
+drivers/scsi/st.c:2283: warning: suggest parentheses around && within ||
 
-WARNING: EXPORT_SYMBOL(foo); should immediately follow its function/variable
-#56: FILE: kernel/wait.c:20:
-+EXPORT_SYMBOL(__init_waitqueue_head);
-
-total: 0 errors, 2 warnings, 31 lines checked
-
-./patches/waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: David Howells <dhowells@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Takashi Iwai <tiwai@suse.de>
+Cc: James E.J. Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Roel Kluin <roel.kluin@gmail.com>
+Cc: Willem Riede <osst@riede.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/wait.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/scsi/st.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN kernel/wait.c~waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes-checkpatch-fixes kernel/wait.c
---- a/kernel/wait.c~waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes-checkpatch-fixes
-+++ a/kernel/wait.c
-@@ -16,7 +16,6 @@ void __init_waitqueue_head(wait_queue_he
- 	lockdep_set_class(&q->lock, key);
- 	INIT_LIST_HEAD(&q->task_list);
- }
--
- EXPORT_SYMBOL(__init_waitqueue_head);
- 
- void add_wait_queue(wait_queue_head_t *q, wait_queue_t *wait)
+diff -puN drivers/scsi/st.c~st-fix-test-of-value-range-in-st_set_options-fix drivers/scsi/st.c
+--- a/drivers/scsi/st.c~st-fix-test-of-value-range-in-st_set_options-fix
++++ a/drivers/scsi/st.c
+@@ -2280,7 +2280,8 @@ static int st_set_options(struct scsi_ta
+ 	} else if (code == MT_ST_SET_CLN) {
+ 		value = (options & ~MT_ST_OPTIONS) & 0xff;
+ 		if (value != 0 &&
+-		    value < EXTENDED_SENSE_START || value >= SCSI_SENSE_BUFFERSIZE)
++			(value < EXTENDED_SENSE_START ||
++				value >= SCSI_SENSE_BUFFERSIZE))
+ 			return (-EINVAL);
+ 		STp->cln_mode = value;
+ 		STp->cln_sense_mask = (options >> 8) & 0xff;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -89,7 +76,7 @@ net-fix-config_net=n-build-on-sparc64.patch
 bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
 include-linux-credh-fix-build.patch
 serial167-fix-read-buffer-overflow.patch
-waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes-checkpatch-fixes.patch
+st-fix-test-of-value-range-in-st_set_options.patch
 st-fix-test-of-value-range-in-st_set_options-fix.patch
 drivers-usb-serial-sierrac-fix-config_pm=n-build.patch
 raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
