@@ -1,36 +1,44 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions-alpha-fix.patch removed from -mm tree
-Date: Fri, 18 Sep 2009 14:18:30 -0700
-Message-ID: <200909182118.n8ILIVVG000888@imap1.linux-foundation.org>
+Subject: + hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions-fix.patch added to -mm tree
+Date: Fri, 18 Sep 2009 14:18:54 -0700
+Message-ID: <200909182118.n8ILIsUc001646@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57480 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50254 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752398AbZIRVT4 (ORCPT
+	by vger.kernel.org with ESMTP id S1752618AbZIRVT6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Sep 2009 17:19:56 -0400
+	Fri, 18 Sep 2009 17:19:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, agl@us.ibm.com, david@gibson.dropbear.id.au, ebmunson@us.ibm.com, hugh.dickins@tiscali.co.uk, ink@jurassic.park.msu.ru, lee.schermerhorn@hp.com, mel@csn.ul.
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, agl@us.ibm.com, arnd@arndb.de, david@gibson.dropbear.id.au, ebmunson@us.ibm.com, hugh.dickins@tiscali.co.uk, lee.schermerhorn@hp.com, mel@csn.ul.ie, nickpiggin@yahoo.com.au, rientjes@google.com
 
 
 The patch titled
-     hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions-alpha-fix
-has been removed from the -mm tree.  Its filename was
-     hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions-alpha-fix.patch
+     hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions-fix
+has been added to the -mm tree.  Its filename is
+     hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions-fix.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions-alpha-fix
+Subject: hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-mm/mmap.c: In function 'do_mmap_pgoff':
-mm/mmap.c:953: error: 'MAP_HUGETLB' undeclared (first use in this function)
-mm/mmap.c:953: error: (Each undeclared identifier is reported only once
-mm/mmap.c:953: error: for each function it appears in.)
+Unneeded with Arnd's
+mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions.patch.
 
 Cc: Adam Litke <agl@us.ibm.com>
 Cc: David Gibson <david@gibson.dropbear.id.au>
@@ -40,25 +48,27 @@ Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Richard Henderson <rth@twiddle.net>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/mman.h |    1 +
- 1 file changed, 1 insertion(+)
+ include/asm-generic/mman-common.h |    1 -
+ mmap.c                            |    0 
+ 2 files changed, 1 deletion(-)
 
-diff -puN arch/alpha/include/asm/mman.h~hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions-alpha-fix arch/alpha/include/asm/mman.h
---- a/arch/alpha/include/asm/mman.h~hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions-alpha-fix
-+++ a/arch/alpha/include/asm/mman.h
-@@ -28,6 +28,7 @@
- #define MAP_NORESERVE	0x10000		/* don't check for reservations */
- #define MAP_POPULATE	0x20000		/* populate (prefault) pagetables */
- #define MAP_NONBLOCK	0x40000		/* do not block on IO */
-+#define MAP_HUGETLB	0x80000		/* create a huge page mapping */
+diff -puN include/asm-generic/mman-common.h~hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions-fix include/asm-generic/mman-common.h
+--- a/include/asm-generic/mman-common.h~hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions-fix
++++ a/include/asm-generic/mman-common.h
+@@ -19,7 +19,6 @@
+ #define MAP_TYPE	0x0f		/* Mask for type of mapping */
+ #define MAP_FIXED	0x10		/* Interpret addr exactly */
+ #define MAP_ANONYMOUS	0x20		/* don't use a file */
+-#define MAP_HUGETLB	0x40		/* create a huge page mapping */
  
  #define MS_ASYNC	1		/* sync memory asynchronously */
- #define MS_SYNC		2		/* synchronous memory sync */
+ #define MS_INVALIDATE	2		/* invalidate the caches */
+diff -puN include/linux/hugetlb.h~hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions-fix include/linux/hugetlb.h
+diff -puN mm/mmap.c~hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions-fix mm/mmap.c
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -105,7 +115,6 @@ mm-zero_page-without-pte_special-mips-fix.patch
 dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
 dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
 hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions-fix.patch
-hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions-alpha-fix.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 alpha-convert-to-use-arch_gettimeoffset-fix.patch
 cpuidle-fix-the-menu-governor-to-boost-io-performance.patch
