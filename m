@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + proc-kcore-fix-statst_size.patch added to -mm tree
-Date: Fri, 18 Sep 2009 14:59:45 -0700
-Message-ID: <200909182159.n8ILxj88017338@imap1.linux-foundation.org>
+Subject: + proc-kcore-update-statst_size-after-memory-hotplug.patch added to -mm tree
+Date: Fri, 18 Sep 2009 15:00:43 -0700
+Message-ID: <200909182200.n8IM0hwx019354@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54555 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51126 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758455AbZIRWAQ (ORCPT
+	by vger.kernel.org with ESMTP id S1758721AbZIRWBK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Sep 2009 18:00:16 -0400
+	Fri, 18 Sep 2009 18:01:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kamezawa.hiroyu@jp.fujitsu.com, xiyou.wangcong@gmail.com
 
 
 The patch titled
-     /proc/kcore: fix stat.st_size
+     /proc/kcore: update stat.st_size after memory hotplug
 has been added to the -mm tree.  Its filename is
-     proc-kcore-fix-statst_size.patch
+     proc-kcore-update-statst_size-after-memory-hotplug.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,67 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: /proc/kcore: fix stat.st_size
+Subject: /proc/kcore: update stat.st_size after memory hotplug
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Presently the size of /proc/kcore which can be read by 'ls -l' is 0.  But
-it's not the correct value.
+After memory hotplug (or other events in future), kcore size can be
+modified.
 
-On x86-64, ls -l shows
- ... root root 140737486266368 2009-09-17 10:29 /proc/kcore
-Then, 7FFFFFFE02000. This comes from vmalloc area's size.
-(*) This shows "core" size, not  memory size.
-
-This patch shows the size by updating "size" field in struct
-proc_dir_entry.  Later, lookup routine will create inode and fill
-inode->i_size based on this value.  Then, this has a problem.
-
- - Once inode is cached, inode->i_size will never be updated.
-
-Then, this patch is not memory-hotplug-aware.
-
-To update inode->i_size, we have to know dentry or inode.
-But there is no way to lookup them by inside kernel. Hmmm....
-Next patch will try it.
+To update inode->i_size, we have to know inode/dentry but we can't get it
+from inside /proc directly.  But considerinyg memory hotplug, kcore image
+is updated only when it's opened.  Then, updating inode->i_size at open()
+is enough.
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Acked-by: WANG Cong <xiyou.wangcong@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/kcore.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ fs/proc/kcore.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN fs/proc/kcore.c~proc-kcore-fix-statst_size fs/proc/kcore.c
---- a/fs/proc/kcore.c~proc-kcore-fix-statst_size
+diff -puN fs/proc/kcore.c~proc-kcore-update-statst_size-after-memory-hotplug fs/proc/kcore.c
+--- a/fs/proc/kcore.c~proc-kcore-update-statst_size-after-memory-hotplug
 +++ a/fs/proc/kcore.c
-@@ -107,6 +107,8 @@ static void free_kclist_ents(struct list
-  */
- static void __kcore_update_ram(struct list_head *list)
- {
-+	int nphdr;
-+	size_t size;
- 	struct kcore_list *tmp, *pos;
- 	LIST_HEAD(garbage);
+@@ -546,6 +546,11 @@ static int open_kcore(struct inode *inod
+ 		return -EPERM;
+ 	if (kcore_need_update)
+ 		kcore_update_ram();
++	if (i_size_read(inode) != proc_root_kcore->size) {
++		mutex_lock(&inode->i_mutex);
++		i_size_write(inode, proc_root_kcore->size);
++		mutex_unlock(&inode->i_mutex);
++	}
+ 	return 0;
+ }
  
-@@ -121,6 +123,7 @@ static void __kcore_update_ram(struct li
- 	} else
- 		list_splice(list, &garbage);
- 	kcore_need_update = 0;
-+	proc_root_kcore->size = get_kcore_size(&nphdr, &size);
- 	write_unlock(&kclist_lock);
- 
- 	free_kclist_ents(&garbage);
-@@ -429,7 +432,8 @@ read_kcore(struct file *file, char __use
- 	unsigned long start;
- 
- 	read_lock(&kclist_lock);
--	proc_root_kcore->size = size = get_kcore_size(&nphdr, &elf_buflen);
-+	size = get_kcore_size(&nphdr, &elf_buflen);
-+
- 	if (buflen == 0 || *fpos >= size) {
- 		read_unlock(&kclist_lock);
- 		return 0;
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
@@ -158,6 +131,7 @@ kcore-register-vmemmap-range-fix.patch
 kcore-register-module-area-in-generic-way.patch
 kcore-more-fixes-for-init.patch
 proc-kcore-fix-statst_size.patch
+proc-kcore-update-statst_size-after-memory-hotplug.patch
 cgroups-support-named-cgroups-hierarchies.patch
 cgroups-move-the-cgroup-debug-subsys-into-cgroupc-to-access-internal-state.patch
 cgroups-add-a-back-pointer-from-struct-cg_cgroup_link-to-struct-cgroup.patch
