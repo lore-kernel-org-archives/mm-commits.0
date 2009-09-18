@@ -1,232 +1,149 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hw_random-add-hardware-rng-for-octeon-socs.patch removed from -mm tree
-Date: Fri, 18 Sep 2009 12:31:27 -0700
-Message-ID: <200909181931.n8IJVRvB015790@imap1.linux-foundation.org>
+Subject: [folded] hwmon-driver-for-acpi-40-power-meters-fix.patch removed from -mm tree
+Date: Fri, 18 Sep 2009 12:39:31 -0700
+Message-ID: <200909181939.n8IJdVSJ031732@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54018 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57072 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757498AbZIRTc1 (ORCPT
+	by vger.kernel.org with ESMTP id S1755265AbZIRTlC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Sep 2009 15:32:27 -0400
+	Fri, 18 Sep 2009 15:41:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ddaney@caviumnetworks.com, herbert@gondor.apana.org.au, mpm@selenic.com, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, djwong@us.ibm.com, lenb@kernel.org, pavel@ucw.cz, rui.zhang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hw_random: add hardware RNG for Octeon SOCs
+     hwmon-driver-for-acpi-40-power-meters-fix
 has been removed from the -mm tree.  Its filename was
-     hw_random-add-hardware-rng-for-octeon-socs.patch
+     hwmon-driver-for-acpi-40-power-meters-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into hwmon-driver-for-acpi-40-power-meters.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hw_random: add hardware RNG for Octeon SOCs
-From: David Daney <ddaney@caviumnetworks.com>
+Subject: hwmon-driver-for-acpi-40-power-meters-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: David Daney <ddaney@caviumnetworks.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
+defaults are eveil ;)
+
+Cc: Darrick J. Wong <djwong@us.ibm.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/hw_random/Kconfig      |   13 ++
- drivers/char/hw_random/Makefile     |    1 
- drivers/char/hw_random/octeon-rng.c |  147 ++++++++++++++++++++++++++
- 3 files changed, 161 insertions(+)
+ drivers/acpi/Kconfig |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/char/hw_random/Kconfig~hw_random-add-hardware-rng-for-octeon-socs drivers/char/hw_random/Kconfig
---- a/drivers/char/hw_random/Kconfig~hw_random-add-hardware-rng-for-octeon-socs
-+++ a/drivers/char/hw_random/Kconfig
-@@ -126,6 +126,19 @@ config HW_RANDOM_OMAP
- 
-  	  If unsure, say Y.
- 
-+config HW_RANDOM_OCTEON
-+	tristate "Octeon Random Number Generator support"
-+	depends on HW_RANDOM && CPU_CAVIUM_OCTEON
-+	default HW_RANDOM
-+ 	---help---
-+ 	  This driver provides kernel-side support for the Random Number
-+	  Generator hardware found on Octeon processors.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called octeon-rng.
-+
-+ 	  If unsure, say Y.
-+
- config HW_RANDOM_PASEMI
- 	tristate "PA Semi HW Random Number Generator support"
- 	depends on HW_RANDOM && PPC_PASEMI
-diff -puN drivers/char/hw_random/Makefile~hw_random-add-hardware-rng-for-octeon-socs drivers/char/hw_random/Makefile
---- a/drivers/char/hw_random/Makefile~hw_random-add-hardware-rng-for-octeon-socs
-+++ a/drivers/char/hw_random/Makefile
-@@ -17,3 +17,4 @@ obj-$(CONFIG_HW_RANDOM_PASEMI) += pasemi
- obj-$(CONFIG_HW_RANDOM_VIRTIO) += virtio-rng.o
- obj-$(CONFIG_HW_RANDOM_TX4939) += tx4939-rng.o
- obj-$(CONFIG_HW_RANDOM_MXC_RNGA) += mxc-rnga.o
-+obj-$(CONFIG_HW_RANDOM_OCTEON) += octeon-rng.o
-diff -puN /dev/null drivers/char/hw_random/octeon-rng.c
---- /dev/null
-+++ a/drivers/char/hw_random/octeon-rng.c
-@@ -0,0 +1,147 @@
-+/*
-+ * Hardware Random Number Generator support for Cavium Networks
-+ * Octeon processor family.
-+ *
-+ * This file is subject to the terms and conditions of the GNU General Public
-+ * License.  See the file "COPYING" in the main directory of this archive
-+ * for more details.
-+ *
-+ * Copyright (C) 2009 Cavium Networks
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/platform_device.h>
-+#include <linux/device.h>
-+#include <linux/hw_random.h>
-+#include <linux/io.h>
-+
-+#include <asm/octeon/octeon.h>
-+#include <asm/octeon/cvmx-rnm-defs.h>
-+
-+struct octeon_rng {
-+	struct hwrng ops;
-+	void __iomem *control_status;
-+	void __iomem *result;
-+};
-+
-+static int octeon_rng_init(struct hwrng *rng)
-+{
-+	union cvmx_rnm_ctl_status ctl;
-+	struct octeon_rng *p = container_of(rng, struct octeon_rng, ops);
-+
-+	ctl.u64 = 0;
-+	ctl.s.ent_en = 1; /* Enable the entropy source.  */
-+	ctl.s.rng_en = 1; /* Enable the RNG hardware.  */
-+	cvmx_write_csr((u64)p->control_status, ctl.u64);
-+	return 0;
-+}
-+
-+static void octeon_rng_cleanup(struct hwrng *rng)
-+{
-+	union cvmx_rnm_ctl_status ctl;
-+	struct octeon_rng *p = container_of(rng, struct octeon_rng, ops);
-+
-+	ctl.u64 = 0;
-+	/* Disable everything.  */
-+	cvmx_write_csr((u64)p->control_status, ctl.u64);
-+}
-+
-+static int octeon_rng_data_read(struct hwrng *rng, u32 *data)
-+{
-+	struct octeon_rng *p = container_of(rng, struct octeon_rng, ops);
-+
-+	*data = cvmx_read64_uint32((u64)p->result);
-+	return sizeof(u32);
-+}
-+
-+static int __devinit octeon_rng_probe(struct platform_device *pdev)
-+{
-+	struct resource *res_ports;
-+	struct resource *res_result;
-+	struct octeon_rng *rng;
-+	int ret;
-+	struct hwrng ops = {
-+		.name = "octeon",
-+		.init = octeon_rng_init,
-+		.cleanup = octeon_rng_cleanup,
-+		.data_read = octeon_rng_data_read
-+	};
-+
-+	rng = devm_kzalloc(&pdev->dev, sizeof(*rng), GFP_KERNEL);
-+	if (!rng)
-+		return -ENOMEM;
-+
-+	res_ports = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (!res_ports)
-+		goto err_ports;
-+
-+	res_result = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-+	if (!res_result)
-+		goto err_ports;
-+
-+
-+	rng->control_status = devm_ioremap_nocache(&pdev->dev,
-+						   res_ports->start,
-+						   sizeof(u64));
-+	if (!rng->control_status)
-+		goto err_ports;
-+
-+	rng->result = devm_ioremap_nocache(&pdev->dev,
-+					   res_result->start,
-+					   sizeof(u64));
-+	if (!rng->result)
-+		goto err_r;
-+
-+	rng->ops = ops;
-+
-+	dev_set_drvdata(&pdev->dev, &rng->ops);
-+	ret = hwrng_register(&rng->ops);
-+	if (ret)
-+		goto err;
-+
-+	dev_info(&pdev->dev, "Octeon Random Number Generator\n");
-+
-+	return 0;
-+err:
-+	devm_iounmap(&pdev->dev, rng->control_status);
-+err_r:
-+	devm_iounmap(&pdev->dev, rng->result);
-+err_ports:
-+	devm_kfree(&pdev->dev, rng);
-+	return -ENOENT;
-+}
-+
-+static int __exit octeon_rng_remove(struct platform_device *pdev)
-+{
-+	struct hwrng *rng = dev_get_drvdata(&pdev->dev);
-+
-+	hwrng_unregister(rng);
-+
-+	return 0;
-+}
-+
-+static struct platform_driver octeon_rng_driver = {
-+	.driver = {
-+		.name		= "octeon_rng",
-+		.owner		= THIS_MODULE,
-+	},
-+	.probe		= octeon_rng_probe,
-+	.remove		= __exit_p(octeon_rng_remove),
-+};
-+
-+static int __init octeon_rng_mod_init(void)
-+{
-+	return platform_driver_register(&octeon_rng_driver);
-+}
-+
-+static void __exit octeon_rng_mod_exit(void)
-+{
-+	platform_driver_unregister(&octeon_rng_driver);
-+}
-+
-+module_init(octeon_rng_mod_init);
-+module_exit(octeon_rng_mod_exit);
-+
-+MODULE_AUTHOR("David Daney");
-+MODULE_LICENSE("GPL");
+diff -puN drivers/acpi/Kconfig~hwmon-driver-for-acpi-40-power-meters-fix drivers/acpi/Kconfig
+--- a/drivers/acpi/Kconfig~hwmon-driver-for-acpi-40-power-meters-fix
++++ a/drivers/acpi/Kconfig
+@@ -89,7 +89,6 @@ config ACPI_PROCFS_POWER
+ config ACPI_POWER_METER
+ 	tristate "ACPI 4.0 power meter"
+ 	depends on HWMON
+-	default y
+ 	help
+ 	  This driver exposes ACPI 4.0 power meters as hardware monitoring
+ 	  devices.  Say Y (or M) if you have a computer with ACPI 4.0 firmware
 _
 
-Patches currently in -mm which might be from ddaney@caviumnetworks.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+fs-make-sure-data-stored-into-inode-is-properly-seen-before-unlocking-new-inode-fix.patch
+drivers-mfd-ab3100-corec-fiw-warning-and-powerpc-build-error.patch
 linux-next.patch
-drivers-staging-octeon-ethernet-rgmiic-dont-ignore-request_irq-return-code.patch
-maintainers-add-matt-mackall-and-herbert-xu-to-hardware-random-number-generator.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+hwmon-driver-for-acpi-40-power-meters.patch
+hwmon-driver-for-acpi-40-power-meters-fix.patch
+hwmon-driver-for-acpi-40-power-meters-fix-2.patch
+cpuidle-fix-the-menu-governor-to-boost-io-performance.patch
+drivers-md-dm-log-userspace-basec-fix-warning.patch
+video-initial-support-for-adv7180-update-fix.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+checkincludespl-add-option-to-remove-duplicates-in-place.patch
+net-fix-config_net=n-build-on-sparc64.patch
+zorro8390-fix-read-buffer-overflow-in-zorro8390_init_one-checkpatch-fixes.patch
+3x59x-fix-pci-resource-management.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+serial167-fix-read-buffer-overflow.patch
+waitqueues-give-waitqueue-spinlocks-their-own-lockdep-classes-checkpatch-fixes.patch
+st-fix-test-of-value-range-in-st_set_options-fix.patch
+drivers-usb-serial-sierrac-fix-config_pm=n-build.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
+vfs-optimize-touch_time-too.patch
+fs-improve-remountro-vs-buffercache-coherency-fix.patch
+percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+mm-make-swap-token-dummies-static-inlines-fix.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
+revert-hugetlb-restore-interleaving-of-bootmem-huge-pages-2631.patch
+vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
+revert-proc-kcore-work-around-a-bug.patch
+arches-drop-superfluous-casts-in-nr_free_pages-callers-checkpatch-fixes.patch
+tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists-fix.patch
+page-allocator-maintain-rolling-count-of-pages-to-free-from-the-pcp-checkpatch-fixes.patch
+mm-zero_page-without-pte_special-mips-fix.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
+include-linux-credh-fix-build.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+alpha-convert-to-use-arch_gettimeoffset-fix.patch
+printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
+generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
+proc-connector-add-event-for-process-becoming-session-leader.patch
+build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix.patch
+kernel-smpc-relocate-some-code.patch
+mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
+sdio-add-cd-disable-support-cleanup.patch
+sdio-add-mmc_quirk_lenient_fn0-fix.patch
+at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver-checkpatch-fixes.patch
+mmc-core-sdio-suspend-resume-support-fix.patch
+procfs-provide-stack-information-for-threads-v011-fix.patch
+walk-system-ram-range-fix-2.patch
+kcore-register-vmemmap-range-fix.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes-fix.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
+drivers-video-add-kmalloc-null-tests-fix.patch
+v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
+page-types-add-feature-for-walking-process-address-space-checkpatch-fixes.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
+memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
+memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
+memcg-improve-resource-counter-scalability-checkpatch-fixes.patch
+exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
+exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
+elf-clean-up-fill_note_info-fix.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+reiser4-disable.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
