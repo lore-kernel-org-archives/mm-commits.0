@@ -1,73 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-mfd-ab3100-corec-fiw-warning-and-powerpc-build-error.patch added to -mm tree
-Date: Thu, 17 Sep 2009 20:26:25 -0700
-Message-ID: <200909180326.n8I3QP6R002781@imap1.linux-foundation.org>
+Subject: [obsolete] drivers-mfd-ab3100-corec-make-powerpc-shut-up.patch removed from -mm tree
+Date: Thu, 17 Sep 2009 20:29:55 -0700
+Message-ID: <200909180329.n8I3TtgL009587@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38019 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51579 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751777AbZIRD1y (ORCPT
+	by vger.kernel.org with ESMTP id S1751832AbZIRD3z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Sep 2009 23:27:54 -0400
+	Thu, 17 Sep 2009 23:29:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, avorontsov@ru.mvista.com, benh@kernel.crashing.org, sameo@linux.intel.com, stable@kernel.org
+To: akpm@linux-foundation.org, benh@kernel.crashing.org, sameo@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/mfd/ab3100-core.c: fiw warning and powerpc build error
-has been added to the -mm tree.  Its filename is
-     drivers-mfd-ab3100-corec-fiw-warning-and-powerpc-build-error.patch
+     drivers/mfd/ab3100-core.c: make powerpc shut up
+has been removed from the -mm tree.  Its filename was
+     drivers-mfd-ab3100-corec-make-powerpc-shut-up.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/mfd/ab3100-core.c: fiw warning and powerpc build error
+Subject: drivers/mfd/ab3100-core.c: make powerpc shut up
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/mfd/ab3100-core.c:563: warning: initialization from incompatible pointer type
-drivers/mfd/ab3100-core.c:647: error: ab3100_init_settings causes a section type conflict
+drivers/mfd/ab3100-core.c:651: error: ab3100_init_settings causes a section type conflict
 
-Cc: Anton Vorontsov <avorontsov@ru.mvista.com>
 Cc: Samuel Ortiz <sameo@linux.intel.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/ab3100-core.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/mfd/ab3100-core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mfd/ab3100-core.c~drivers-mfd-ab3100-corec-fiw-warning-and-powerpc-build-error drivers/mfd/ab3100-core.c
---- a/drivers/mfd/ab3100-core.c~drivers-mfd-ab3100-corec-fiw-warning-and-powerpc-build-error
+diff -puN drivers/mfd/ab3100-core.c~drivers-mfd-ab3100-corec-make-powerpc-shut-up drivers/mfd/ab3100-core.c
+--- a/drivers/mfd/ab3100-core.c~drivers-mfd-ab3100-corec-make-powerpc-shut-up
 +++ a/drivers/mfd/ab3100-core.c
-@@ -465,7 +465,7 @@ static int ab3100_get_set_reg_open_file(
- 	return 0;
- }
- 
--static int ab3100_get_set_reg(struct file *file,
-+static ssize_t ab3100_get_set_reg(struct file *file,
- 			      const char __user *user_buf,
- 			      size_t count, loff_t *ppos)
- {
-@@ -643,7 +643,7 @@ struct ab3100_init_setting {
+@@ -647,7 +647,7 @@ struct ab3100_init_setting {
  	u8 setting;
  };
  
 -static const struct ab3100_init_setting __initdata
-+static const struct ab3100_init_setting __initconst
++static struct ab3100_init_setting __initdata
  ab3100_init_settings[] = {
  	{
  		.abreg = AB3100_MCA,
@@ -78,6 +56,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 fs-make-sure-data-stored-into-inode-is-properly-seen-before-unlocking-new-inode-fix.patch
 drivers-mfd-ab3100-corec-fiw-warning-and-powerpc-build-error.patch
+linux-next-pre.patch
 linux-next.patch
 linux-next-git-rejects.patch
 next-remove-localversion.patch
