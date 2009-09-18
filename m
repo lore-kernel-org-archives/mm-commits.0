@@ -1,90 +1,238 @@
 From: akpm@linux-foundation.org
-Subject: [folded] cs5535-gpio-request-function-mask-names-added-fix.patch removed from -mm tree
-Date: Fri, 18 Sep 2009 12:41:40 -0700
-Message-ID: <200909181941.n8IJffWW003576@imap1.linux-foundation.org>
+Subject: [folded] video-initial-support-for-adv7180-update.patch removed from -mm tree
+Date: Fri, 18 Sep 2009 12:46:41 -0700
+Message-ID: <200909181946.n8IJkgEZ013568@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41790 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60535 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757816AbZIRTmc (ORCPT
+	by vger.kernel.org with ESMTP id S1752217AbZIRTru (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Sep 2009 15:42:32 -0400
+	Fri, 18 Sep 2009 15:47:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dilinger@collabora.co.uk, Tobias_Mueller@twam.info, alessandro.zummo@towertech.it, david-b@pacbell.net, jordan@cosmicpenguin.net, tiwai@suse.de, mm-commits@vger.kernel.org
+To: richard.rojfors.ext@mocean-labs.com, hverkuil@xs4all.nl, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cs5535-gpio: make printk usage consistent
+     video-initial-support-for-adv7180-update
 has been removed from the -mm tree.  Its filename was
-     cs5535-gpio-request-function-mask-names-added-fix.patch
+     video-initial-support-for-adv7180-update.patch
 
-This patch was dropped because it was folded into cs5535-gpio-request-function-mask-names-added.patch
+This patch was dropped because it was folded into video-initial-support=
+-for-adv7180.patch
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: cs5535-gpio: make printk usage consistent
-From: Andres Salomon <dilinger@collabora.co.uk>
+Subject: video-initial-support-for-adv7180-update
+=46rom: Richard R=F6jfors <richard.rojfors.ext@mocean-labs.com>
 
-Clean up places where we were using printk()s instead of dev_*.
-
-Signed-off-by: Andres Salomon <dilinger@collabora.co.uk>
-Cc: Tobias Mueller <Tobias_Mueller@twam.info>
-Cc: Takashi Iwai <tiwai@suse.de>
-Cc: Jordan Crouse <jordan@cosmicpenguin.net>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Alessandro Zummo <alessandro.zummo@towertech.it>
+Signed-off-by: Richard R=F6jfors <richard.rojfors.ext@mocean-labs.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/cs5535-gpio.c |   13 +++++--------
- 1 file changed, 5 insertions(+), 8 deletions(-)
+ drivers/media/video/adv7180.c |   95 ++++++++++++--------------------
+ 1 file changed, 38 insertions(+), 57 deletions(-)
 
-diff -puN drivers/gpio/cs5535-gpio.c~cs5535-gpio-request-function-mask-names-added-fix drivers/gpio/cs5535-gpio.c
---- a/drivers/gpio/cs5535-gpio.c~cs5535-gpio-request-function-mask-names-added-fix
-+++ a/drivers/gpio/cs5535-gpio.c
-@@ -134,8 +134,8 @@ static int chip_gpio_request(struct gpio
- 
- 	/* check if this pin is available */
- 	if ((mask & (1 << offset)) == 0) {
--		printk(KERN_INFO DRV_NAME
--			": pin %u is not available (check mask)\n", offset);
-+		dev_info(&chip->pdev->dev,
-+			"pin %u is not available (check mask)\n", offset);
- 		spin_unlock_irqrestore(&chip->lock, flags);
- 		return -EINVAL;
- 	}
-@@ -265,18 +265,15 @@ static int __init cs5535_gpio_probe(stru
- 	mask &= ~(1 << 28);
- 
- 	if (mask_orig != mask)
--		printk(KERN_INFO DRV_NAME
--				": mask changed from 0x%08lX to 0x%08lX\n",
-+		dev_info(&pdev->dev, "mask changed from 0x%08lX to 0x%08lX\n",
- 				mask_orig, mask);
- 
- 	/* finally, register with the generic GPIO API */
- 	err = gpiochip_add(&cs5535_gpio_chip.chip);
--	if (err) {
--		dev_err(&pdev->dev, "failed to register gpio chip\n");
-+	if (err)
- 		goto release_region;
--	}
- 
--	printk(KERN_INFO DRV_NAME ": GPIO support successfully loaded.\n");
-+	dev_info(&pdev->dev, DRV_NAME ": GPIO support successfully loaded.\n");
+diff -puN drivers/media/video/adv7180.c~video-initial-support-for-adv71=
+80-update drivers/media/video/adv7180.c
+--- a/drivers/media/video/adv7180.c~video-initial-support-for-adv7180-u=
+pdate
++++ a/drivers/media/video/adv7180.c
+@@ -27,8 +27,8 @@
+ #include <linux/videodev2.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-chip-ident.h>
+-#include <media/v4l2-i2c-drv.h>
+=20
++#define DRIVER_NAME "adv7180"
+=20
+ #define ADV7180_INPUT_CONTROL_REG	0x00
+ #define ADV7180_INPUT_CONTROL_PAL_BG_NTSC_J_SECAM	0x00
+@@ -51,10 +51,6 @@
+ #define ADV7180_ID_7180 0x18
+=20
+=20
+-static unsigned short normal_i2c[] =3D { 0x42 >> 1, I2C_CLIENT_END };
+-
+-I2C_CLIENT_INSMOD;
+-
+ struct adv7180_state {
+ 	struct v4l2_subdev sd;
+ };
+@@ -98,16 +94,6 @@ static int adv7180_querystd(struct v4l2_
  	return 0;
- 
- release_region:
+ }
+=20
+-static int adv7180_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control =
+*ctrl)
+-{
+-	return -EINVAL;
+-}
+-
+-static int adv7180_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control =
+*ctrl)
+-{
+-	return -EINVAL;
+-}
+-
+ static int adv7180_g_chip_ident(struct v4l2_subdev *sd,
+ 	struct v4l2_dbg_chip_ident *chip)
+ {
+@@ -116,26 +102,12 @@ static int adv7180_g_chip_ident(struct v
+ 	return v4l2_chip_ident_i2c_client(client, chip, V4L2_IDENT_ADV7180, 0=
+);
+ }
+=20
+-static int adv7180_log_status(struct v4l2_subdev *sd)
+-{
+-	v4l2_info(sd, "Normal operation\n");
+-	return 0;
+-}
+-
+-static irqreturn_t adv7180_irq(int irq, void *devid)
+-{
+-	return IRQ_NONE;
+-}
+-
+ static const struct v4l2_subdev_video_ops adv7180_video_ops =3D {
+ 	.querystd =3D adv7180_querystd,
+ };
+=20
+ static const struct v4l2_subdev_core_ops adv7180_core_ops =3D {
+-	.log_status =3D adv7180_log_status,
+ 	.g_chip_ident =3D adv7180_g_chip_ident,
+-	.g_ctrl =3D adv7180_g_ctrl,
+-	.s_ctrl =3D adv7180_s_ctrl,
+ };
+=20
+ static const struct v4l2_subdev_ops adv7180_ops =3D {
+@@ -153,6 +125,7 @@ static int adv7180_probe(struct i2c_clie
+ {
+ 	struct adv7180_state *state;
+ 	struct v4l2_subdev *sd;
++	int ret;
+=20
+ 	/* Check if the adapter supports the needed features */
+ 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DAT=
+A))
+@@ -161,32 +134,26 @@ static int adv7180_probe(struct i2c_clie
+ 	v4l_info(client, "chip found @ 0x%02x (%s)\n",
+ 			client->addr << 1, client->adapter->name);
+=20
+-	state =3D kmalloc(sizeof(struct adv7180_state), GFP_KERNEL);
++	state =3D kzalloc(sizeof(struct adv7180_state), GFP_KERNEL);
+ 	if (state =3D=3D NULL)
+ 		return -ENOMEM;
+ 	sd =3D &state->sd;
+ 	v4l2_i2c_subdev_init(sd, client, &adv7180_ops);
+=20
+ 	/* Initialize adv7180 */
+-
+-	/* register interrupt, can be used later */
+-	if (client->irq > 0) {
+-		/* we can use IRQ */
+-		int err =3D request_irq(client->irq, adv7180_irq, IRQF_SHARED,
+-			"adv7180", sd);
+-		if (err) {
+-			printk(KERN_ERR "adv7180: Failed to request IRQ\n");
+-			v4l2_device_unregister_subdev(sd);
+-			kfree(state);
+-			return err;
+-		}
+-	}
+-
+ 	/* enable autodetection */
+-	i2c_smbus_write_byte_data(client, ADV7180_INPUT_CONTROL_REG,
++	ret =3D i2c_smbus_write_byte_data(client, ADV7180_INPUT_CONTROL_REG,
+ 		ADV7180_INPUT_CONTROL_PAL_BG_NTSC_J_SECAM);
+-	i2c_smbus_write_byte_data(client, ADV7180_AUTODETECT_ENABLE_REG,
+-		ADV7180_AUTODETECT_DEFAULT);
++	if (ret > 0)
++		ret =3D i2c_smbus_write_byte_data(client,
++			ADV7180_AUTODETECT_ENABLE_REG,
++			ADV7180_AUTODETECT_DEFAULT);
++	if (ret < 0) {
++		printk(KERN_ERR DRIVER_NAME
++			": Failed to communicate to chip: %d\n", ret);
++		return ret;
++	}
++
+ 	return 0;
+ }
+=20
+@@ -194,27 +161,41 @@ static int adv7180_remove(struct i2c_cli
+ {
+ 	struct v4l2_subdev *sd =3D i2c_get_clientdata(client);
+=20
+-	if (client->irq > 0)
+-		free_irq(client->irq, sd);
+-
+ 	v4l2_device_unregister_subdev(sd);
+ 	kfree(to_state(sd));
+ 	return 0;
+ }
+=20
+ static const struct i2c_device_id adv7180_id[] =3D {
+-	{ "adv7180", 0 },
+-	{ }
++	{DRIVER_NAME, 0},
++	{},
+ };
++
+ MODULE_DEVICE_TABLE(i2c, adv7180_id);
+=20
+-static struct v4l2_i2c_driver_data v4l2_i2c_data =3D {
+-	.name =3D "adv7180",
+-	.probe =3D adv7180_probe,
+-	.remove =3D adv7180_remove,
+-	.id_table =3D adv7180_id,
++static struct i2c_driver adv7180_driver =3D {
++	.driver =3D {
++		.owner	=3D THIS_MODULE,
++		.name	=3D DRIVER_NAME,
++	},
++	.probe		=3D adv7180_probe,
++	.remove		=3D adv7180_remove,
++	.id_table	=3D adv7180_id,
+ };
+=20
++static __init int adv7180_init(void)
++{
++	return i2c_add_driver(&adv7180_driver);
++}
++
++static __exit void adv7180_exit(void)
++{
++	i2c_del_driver(&adv7180_driver);
++}
++
++module_init(adv7180_init);
++module_exit(adv7180_exit);
++
+ MODULE_DESCRIPTION("Analog Devices ADV7180 video decoder driver");
+ MODULE_AUTHOR("Mocean Laboratories");
+ MODULE_LICENSE("GPL v2");
 _
 
-Patches currently in -mm which might be from dilinger@collabora.co.uk are
+Patches currently in -mm which might be from richard.rojfors.ext@mocean=
+-labs.com are
 
 origin.patch
-linux-next.patch
-cs5535-gpio-add-amd-cs5535-cs5536-gpio-driver-support.patch
-cs5535-gpio-request-function-mask-names-added.patch
-cs5535-gpio-request-function-mask-names-added-fix.patch
-alsa-cs5535audio-free-olpc-quirks-from-reliance-on-mgeode_lx-cpu-optimization.patch
+video-initial-support-for-adv7180.patch
+video-initial-support-for-adv7180-update.patch
+video-initial-support-for-adv7180-update-fix.patch
+gpio-add-mc33880-driver.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
