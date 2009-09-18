@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pcmcia-fix-controller-printk-warnings.patch added to -mm tree
-Date: Fri, 18 Sep 2009 14:35:24 -0700
-Message-ID: <200909182135.n8ILZOrb001806@imap1.linux-foundation.org>
+Subject: + x86-default-pcibus-cpumask-to-all-cpus-if-it-lacks-affinity.patch added to -mm tree
+Date: Fri, 18 Sep 2009 14:50:08 -0700
+Message-ID: <200909182150.n8ILo8As030900@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33939 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55758 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752068AbZIRVgI (ORCPT
+	by vger.kernel.org with ESMTP id S1750964AbZIRVvq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Sep 2009 17:36:08 -0400
+	Fri, 18 Sep 2009 17:51:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, greg@kroah.com, w.sang@pengutronix.de
+Cc: rientjes@google.com, jbarnes@virtuousgeek.org, sjayaraman@suse.de, yinghai@kernel.org
 
 
 The patch titled
-     pcmcia: fix controller printk warnings
+     x86: default pcibus cpumask to all cpus if it lacks affinity
 has been added to the -mm tree.  Its filename is
-     pcmcia-fix-controller-printk-warnings.patch
+     x86-default-pcibus-cpumask-to-all-cpus-if-it-lacks-affinity.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,82 +34,75 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pcmcia: fix controller printk warnings
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: x86: default pcibus cpumask to all cpus if it lacks affinity
+From: David Rientjes <rientjes@google.com>
 
-Fix new pcmcia printk format warnings:
+The early initialization of the pci bus to node mapping leaves all busses
+with a node id of -1 if it lacks memory affinity.  Thus, cpumask_of_pcibus
+must return all online cpus for such busses.
 
-drivers/pcmcia/i82365.c:1055: warning: format '%#x' expects type 'unsigned int', but argument 6 has type 'phys_addr_t'
-drivers/pcmcia/i82365.c:1055: warning: format '%#x' expects type 'unsigned int', but argument 7 has type 'phys_addr_t'
-drivers/pcmcia/tcic.c:734: warning: format '%#x' expects type 'unsigned int', but argument 6 has type 'phys_addr_t'
-drivers/pcmcia/tcic.c:734: warning: format '%#x' expects type 'unsigned int', but argument 7 has type 'phys_addr_t'
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Wolfram Sang <w.sang@pengutronix.de>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Tested-by: Suresh Jayaraman <sjayaraman@suse.de>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Yinghai Lu <yinghai@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pcmcia/i82365.c |    4 ++--
- drivers/pcmcia/tcic.c   |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ arch/x86/include/asm/pci.h |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN drivers/pcmcia/i82365.c~pcmcia-fix-controller-printk-warnings drivers/pcmcia/i82365.c
---- a/drivers/pcmcia/i82365.c~pcmcia-fix-controller-printk-warnings
-+++ a/drivers/pcmcia/i82365.c
-@@ -1053,8 +1053,8 @@ static int i365_set_io_map(u_short sock,
-     u_char map, ioctl;
-     
-     debug(1, "SetIOMap(%d, %d, %#2.2x, %d ns, "
--	  "%#x-%#x)\n", sock, io->map, io->flags,
--	  io->speed, io->start, io->stop);
-+	  "%#llx-%#llx)\n", sock, io->map, io->flags, io->speed,
-+	  (unsigned long long)io->start, (unsigned long long)io->stop);
-     map = io->map;
-     if ((map > 1) || (io->start > 0xffff) || (io->stop > 0xffff) ||
- 	(io->stop < io->start)) return -EINVAL;
-diff -puN drivers/pcmcia/tcic.c~pcmcia-fix-controller-printk-warnings drivers/pcmcia/tcic.c
---- a/drivers/pcmcia/tcic.c~pcmcia-fix-controller-printk-warnings
-+++ a/drivers/pcmcia/tcic.c
-@@ -732,8 +732,8 @@ static int tcic_set_io_map(struct pcmcia
-     u_short base, len, ioctl;
-     
-     debug(1, "SetIOMap(%d, %d, %#2.2x, %d ns, "
--	  "%#x-%#x)\n", psock, io->map, io->flags,
--	  io->speed, io->start, io->stop);
-+	  "%#llx-%#llx)\n", psock, io->map, io->flags, io->speed,
-+	  (unsigned long long)io->start, (unsigned long long)io->stop);
-     if ((io->map > 1) || (io->start > 0xffff) || (io->stop > 0xffff) ||
- 	(io->stop < io->start)) return -EINVAL;
-     tcic_setw(TCIC_ADDR+2, TCIC_ADR2_INDREG | (psock << TCIC_SS_SHFT));
+diff -puN arch/x86/include/asm/pci.h~x86-default-pcibus-cpumask-to-all-cpus-if-it-lacks-affinity arch/x86/include/asm/pci.h
+--- a/arch/x86/include/asm/pci.h~x86-default-pcibus-cpumask-to-all-cpus-if-it-lacks-affinity
++++ a/arch/x86/include/asm/pci.h
+@@ -143,7 +143,11 @@ static inline int __pcibus_to_node(const
+ static inline const struct cpumask *
+ cpumask_of_pcibus(const struct pci_bus *bus)
+ {
+-	return cpumask_of_node(__pcibus_to_node(bus));
++	int node;
++
++	node = __pcibus_to_node(bus);
++	return (node == -1) ? cpu_online_mask :
++			      cpumask_of_node(node);
+ }
+ #endif
+ 
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
+hugetlb-restore-interleaving-of-bootmem-huge-pages-2631.patch
 linux-next.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-kernel-hacking-move-strip_asm_syms-from-general.patch
-isdn-fix-netjet-build-errors.patch
-include-linux-credh-fix-build.patch
-scsi-fix-func-names-in-kernel-doc.patch
-cciss-fix-schedule_timeout-parameters.patch
-wl12xx-fix-kconfig-link-errors.patch
-mm-make-swap-token-dummies-static-inlines-fix-2.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-page_alloc-fix-kernel-doc-warning.patch
-ksm-add-some-documentation.patch
-pcmcia-fix-controller-printk-warnings.patch
+x86-default-pcibus-cpumask-to-all-cpus-if-it-lacks-affinity.patch
+mm-remove-obsoleted-alloc_pages-cpuset-comment.patch
+revert-hugetlb-restore-interleaving-of-bootmem-huge-pages-2631.patch
+hugetlb-balance-freeing-of-huge-pages-across-nodes.patch
+hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages.patch
+hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages-fix.patch
+hugetlb-clean-up-and-update-huge-pages-documentation.patch
+mm-oom-analysis-add-per-zone-statistics-to-show_free_areas.patch
+mm-oom-analysis-add-buffer-cache-information-to-show_free_areas.patch
+mm-oom-analysis-show-kernel-stack-usage-in-proc-meminfo-and-oom-log-output.patch
+mm-oom-analysis-add-shmem-vmstat.patch
+mm-update-alloc_flags-after-oom-killer-has-been-called.patch
+pagemap-clear_refs-modify-to-specify-anon-or-mapped-vma-clearing.patch
+oom-move-oom_killer_enable-oom_killer_disable-to-where-they-belong.patch
+oom-move-oom_adj-value-from-task_struct-to-signal_struct.patch
+oom-make-oom_score-to-per-process-value.patch
+oom-oom_kill-doesnt-kill-vfork-parentor-child.patch
+oom-fix-oom_adjust_write-input-sanity-check.patch
+hugetlbfs-allow-the-creation-of-files-suitable-for-map_private-on-the-vfs-internal-mount.patch
+mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions.patch
+hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions.patch
+hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions-fix.patch
+hugetlb-add-map_hugetlb-example.patch
+flex_array-add-flex_array_clear-function.patch
+flex_array-poison-free-elements.patch
+flex_array-add-flex_array_shrink-function.patch
+flex_array-introduce-define_flex_array.patch
 flex_array-add-missing-kerneldoc-annotations.patch
-lis3-add-power-management-functions-fix.patch
-procfs-provide-stack-information-for-threads-v011-fix.patch
-kcore-register-vmemmap-range-fix.patch
-spih-add-missing-kernel-doc-for-struct-spi_master.patch
-gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links-update-fix.patch
-doc-filesystems-remove-smount-program.patch
-doc-filesystems-more-mount-cleanups.patch
-documentation-update-stale-definition-of-file-nr-in-fstxt.patch
-includecheck-fix-documentation-cfag12864b-examplec.patch
-docs-fix-various-documentation-paths-in-header-files.patch
-reiser4-export-remove_from_page_cache-fix.patch
+fs-proc-task_mmuc-v1-fix-clear_refs_write-input-sanity-check.patch
+walk-system-ram-range-fix-2.patch
+do_wait-optimization-do-not-place-sub-threads-on-task_struct-children-list.patch
 
