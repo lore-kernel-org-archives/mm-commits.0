@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-md-dm-log-userspace-basec-fix-warning.patch added to -mm tree
-Date: Thu, 17 Sep 2009 18:32:20 -0700
-Message-ID: <200909180132.n8I1WKJO006579@imap1.linux-foundation.org>
+Subject: + linux-next-pre.patch added to -mm tree
+Date: Thu, 17 Sep 2009 20:27:57 -0700
+Message-ID: <200909180327.n8I3RvIj005786@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32942 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42390 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751778AbZIRBcd (ORCPT
+	by vger.kernel.org with ESMTP id S1751825AbZIRD1z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Sep 2009 21:32:33 -0400
+	Thu, 17 Sep 2009 23:27:55 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n8I3RvNh030836
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Thu, 17 Sep 2009 20:27:58 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, agk@redhat.com, jbrassow@redhat.com, neilb@suse.de
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     drivers/md/dm-log-userspace-base.c: fix warning
+     linux-next-pre
 has been added to the -mm tree.  Its filename is
-     drivers-md-dm-log-userspace-basec-fix-warning.patch
+     linux-next-pre.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +38,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/md/dm-log-userspace-base.c: fix warning
+Subject: linux-next-pre
 From: Andrew Morton <akpm@linux-foundation.org>
 
-mips:
-
-drivers/md/dm-log-userspace-base.c: In function `userspace_ctr':
-drivers/md/dm-log-userspace-base.c:159: warning: cast from pointer to integer of different size
-
-Cc: Neil Brown <neilb@suse.de>
-Cc: Jonathan Brassow <jbrassow@redhat.com>
-Cc: Alasdair G Kergon <agk@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/dm-log-userspace-base.c |    2 +-
+ drivers/mfd/ab3100-core.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/md/dm-log-userspace-base.c~drivers-md-dm-log-userspace-basec-fix-warning drivers/md/dm-log-userspace-base.c
---- a/drivers/md/dm-log-userspace-base.c~drivers-md-dm-log-userspace-basec-fix-warning
-+++ a/drivers/md/dm-log-userspace-base.c
-@@ -156,7 +156,7 @@ static int userspace_ctr(struct dm_dirty
- 	}
+diff -puN drivers/mfd/ab3100-core.c~linux-next-pre drivers/mfd/ab3100-core.c
+--- a/drivers/mfd/ab3100-core.c~linux-next-pre
++++ a/drivers/mfd/ab3100-core.c
+@@ -465,7 +465,7 @@ static int ab3100_get_set_reg_open_file(
+ 	return 0;
+ }
  
- 	/* The ptr value is sufficient for local unique id */
--	lc->luid = (uint64_t)lc;
-+	lc->luid = (unsigned long)lc;
- 
- 	lc->ti = ti;
- 
+-static ssize_t ab3100_get_set_reg(struct file *file,
++static int ab3100_get_set_reg(struct file *file,
+ 			      const char __user *user_buf,
+ 			      size_t count, loff_t *ppos)
+ {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 fs-make-sure-data-stored-into-inode-is-properly-seen-before-unlocking-new-inode-fix.patch
+drivers-mfd-ab3100-corec-fiw-warning-and-powerpc-build-error.patch
+linux-next-pre.patch
 linux-next.patch
 linux-next-git-rejects.patch
 next-remove-localversion.patch
@@ -77,6 +75,7 @@ arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-sm
 hwmon-driver-for-acpi-40-power-meters-fix.patch
 hwmon-driver-for-acpi-40-power-meters-fix-2.patch
 cpuidle-fix-the-menu-governor-to-boost-io-performance.patch
+drivers-md-dm-log-userspace-basec-fix-warning.patch
 video-initial-support-for-adv7180-update-fix.patch
 timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
 input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
@@ -156,5 +155,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 notify_change-callers-must-hold-i_mutex.patch
-drivers-md-dm-log-userspace-basec-fix-warning.patch
 
