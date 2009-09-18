@@ -1,108 +1,200 @@
 From: akpm@linux-foundation.org
-Subject: [merged] octeon-false-positive-timeout.patch removed from -mm tree
-Date: Fri, 18 Sep 2009 12:31:30 -0700
-Message-ID: <200909181931.n8IJVUa2015851@imap1.linux-foundation.org>
+Subject: [merged] mips-octeon-add-hardware-rng-platform-device.patch removed from -mm tree
+Date: Fri, 18 Sep 2009 12:31:22 -0700
+Message-ID: <200909181931.n8IJVMFD015581@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34208 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34123 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754018AbZIRTb3 (ORCPT
+	by vger.kernel.org with ESMTP id S1757085AbZIRTc1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Sep 2009 15:31:29 -0400
+	Fri, 18 Sep 2009 15:32:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, ddaney@caviumnetworks.com, mm-commits@vger.kernel.org
+To: ddaney@caviumnetworks.com, herbert@gondor.apana.org.au, mpm@selenic.com, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     octeon: false positive timeout
+     mips: octeon: add hardware RNG platform device
 has been removed from the -mm tree.  Its filename was
-     octeon-false-positive-timeout.patch
+     mips-octeon-add-hardware-rng-platform-device.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: octeon: false positive timeout
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: mips: octeon: add hardware RNG platform device
+From: David Daney <ddaney@caviumnetworks.com>
 
-If we reach the test just below the loop with a `timeout' value of 0, this
-does not mean that the timeout caused the loop to end, but rather the
-`smi_rd.s.pending', in the last iteration.  If timeout caused the loop to
-end, then `timeout' is -1, not 0.
+Add a platform device for the Octeon Random Number Generator (RNG).
 
-Since this can occur only in the last iteration, it is not very likely to
-be a problem.  By changing the post- to prefix decrement we ensure that a
-timeout of 0 does mean it timed out.
-
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Acked-by: David Daney <ddaney@caviumnetworks.com>
+Signed-off-by: David Daney <ddaney@caviumnetworks.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/octeon/cvmx-mdio.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/mips/cavium-octeon/setup.c              |   43 ++++++++
+ arch/mips/include/asm/octeon/cvmx-rnm-defs.h |   88 +++++++++++++++++
+ 2 files changed, 131 insertions(+)
 
-diff -puN drivers/staging/octeon/cvmx-mdio.h~octeon-false-positive-timeout drivers/staging/octeon/cvmx-mdio.h
---- a/drivers/staging/octeon/cvmx-mdio.h~octeon-false-positive-timeout
-+++ a/drivers/staging/octeon/cvmx-mdio.h
-@@ -421,7 +421,7 @@ static inline int cvmx_mdio_45_read(int 
- 	do {
- 		cvmx_wait(1000);
- 		smi_rd.u64 = cvmx_read_csr(CVMX_SMIX_RD_DAT(bus_id));
--	} while (smi_rd.s.pending && timeout--);
-+	} while (smi_rd.s.pending && --timeout);
+diff -puN arch/mips/cavium-octeon/setup.c~mips-octeon-add-hardware-rng-platform-device arch/mips/cavium-octeon/setup.c
+--- a/arch/mips/cavium-octeon/setup.c~mips-octeon-add-hardware-rng-platform-device
++++ a/arch/mips/cavium-octeon/setup.c
+@@ -33,6 +33,7 @@
+ #include <asm/time.h>
  
- 	if (timeout <= 0) {
- 		cvmx_dprintf("cvmx_mdio_45_read: bus_id %d phy_id %2d "
+ #include <asm/octeon/octeon.h>
++#include <asm/octeon/cvmx-rnm-defs.h>
+ 
+ #ifdef CONFIG_CAVIUM_DECODE_RSL
+ extern void cvmx_interrupt_rsl_decode(void);
+@@ -926,3 +927,45 @@ out:
+ 	return ret;
+ }
+ device_initcall(octeon_cf_device_init);
++
++/* Octeon Random Number Generator.  */
++static int __init octeon_rng_device_init(void)
++{
++	struct platform_device *pd;
++	int ret = 0;
++
++	struct resource rng_resources[] = {
++		{
++			.flags	= IORESOURCE_MEM,
++			.start	= XKPHYS_TO_PHYS(CVMX_RNM_CTL_STATUS),
++			.end	= XKPHYS_TO_PHYS(CVMX_RNM_CTL_STATUS) + 0xf
++		}, {
++			.flags	= IORESOURCE_MEM,
++			.start	= cvmx_build_io_address(8, 0),
++			.end	= cvmx_build_io_address(8, 0) + 0x7
++		}
++	};
++
++	pd = platform_device_alloc("octeon_rng", -1);
++	if (!pd) {
++		ret = -ENOMEM;
++		goto out;
++	}
++
++	ret = platform_device_add_resources(pd, rng_resources,
++					    ARRAY_SIZE(rng_resources));
++	if (ret)
++		goto fail;
++
++	ret = platform_device_add(pd);
++	if (ret)
++		goto fail;
++
++	return ret;
++fail:
++	platform_device_put(pd);
++
++out:
++	return ret;
++}
++device_initcall(octeon_rng_device_init);
+diff -puN /dev/null arch/mips/include/asm/octeon/cvmx-rnm-defs.h
+--- /dev/null
++++ a/arch/mips/include/asm/octeon/cvmx-rnm-defs.h
+@@ -0,0 +1,88 @@
++/***********************license start***************
++ * Author: Cavium Networks
++ *
++ * Contact: support@caviumnetworks.com
++ * This file is part of the OCTEON SDK
++ *
++ * Copyright (c) 2003-2008 Cavium Networks
++ *
++ * This file is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License, Version 2, as
++ * published by the Free Software Foundation.
++ *
++ * This file is distributed in the hope that it will be useful, but
++ * AS-IS and WITHOUT ANY WARRANTY; without even the implied warranty
++ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE, TITLE, or
++ * NONINFRINGEMENT.  See the GNU General Public License for more
++ * details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this file; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
++ * or visit http://www.gnu.org/licenses/.
++ *
++ * This file may also be available under a different license from Cavium.
++ * Contact Cavium Networks for more information
++ ***********************license end**************************************/
++
++#ifndef __CVMX_RNM_DEFS_H__
++#define __CVMX_RNM_DEFS_H__
++
++#include <linux/types.h>
++
++#define CVMX_RNM_BIST_STATUS \
++	 CVMX_ADD_IO_SEG(0x0001180040000008ull)
++#define CVMX_RNM_CTL_STATUS \
++	 CVMX_ADD_IO_SEG(0x0001180040000000ull)
++
++union cvmx_rnm_bist_status {
++	uint64_t u64;
++	struct cvmx_rnm_bist_status_s {
++		uint64_t reserved_2_63:62;
++		uint64_t rrc:1;
++		uint64_t mem:1;
++	} s;
++	struct cvmx_rnm_bist_status_s cn30xx;
++	struct cvmx_rnm_bist_status_s cn31xx;
++	struct cvmx_rnm_bist_status_s cn38xx;
++	struct cvmx_rnm_bist_status_s cn38xxp2;
++	struct cvmx_rnm_bist_status_s cn50xx;
++	struct cvmx_rnm_bist_status_s cn52xx;
++	struct cvmx_rnm_bist_status_s cn52xxp1;
++	struct cvmx_rnm_bist_status_s cn56xx;
++	struct cvmx_rnm_bist_status_s cn56xxp1;
++	struct cvmx_rnm_bist_status_s cn58xx;
++	struct cvmx_rnm_bist_status_s cn58xxp1;
++};
++
++union cvmx_rnm_ctl_status {
++	uint64_t u64;
++	struct cvmx_rnm_ctl_status_s {
++		uint64_t reserved_9_63:55;
++		uint64_t ent_sel:4;
++		uint64_t exp_ent:1;
++		uint64_t rng_rst:1;
++		uint64_t rnm_rst:1;
++		uint64_t rng_en:1;
++		uint64_t ent_en:1;
++	} s;
++	struct cvmx_rnm_ctl_status_cn30xx {
++		uint64_t reserved_4_63:60;
++		uint64_t rng_rst:1;
++		uint64_t rnm_rst:1;
++		uint64_t rng_en:1;
++		uint64_t ent_en:1;
++	} cn30xx;
++	struct cvmx_rnm_ctl_status_cn30xx cn31xx;
++	struct cvmx_rnm_ctl_status_cn30xx cn38xx;
++	struct cvmx_rnm_ctl_status_cn30xx cn38xxp2;
++	struct cvmx_rnm_ctl_status_s cn50xx;
++	struct cvmx_rnm_ctl_status_s cn52xx;
++	struct cvmx_rnm_ctl_status_s cn52xxp1;
++	struct cvmx_rnm_ctl_status_s cn56xx;
++	struct cvmx_rnm_ctl_status_s cn56xxp1;
++	struct cvmx_rnm_ctl_status_s cn58xx;
++	struct cvmx_rnm_ctl_status_s cn58xxp1;
++};
++
++#endif
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from ddaney@caviumnetworks.com are
 
 origin.patch
 linux-next.patch
-s3c-fix-check-of-index-into-s3c_gpios.patch
-stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
-dm-strncpy-does-not-null-terminate-string.patch
-pcmcia-fix-read-buffer-overflow.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
-msp71xx-request_irq-failure-ignored-in-msp_pcibios_config_access.patch
-mtd-jffs2-fix-read-buffer-overflow.patch
-mtd-prevent-a-read-from-eraseregions.patch
-mtd-prevent-a-read-from-regions.patch
-hfc_usb-fix-read-buffer-overflow.patch
-zorro8390-fix-read-buffer-overflow-in-zorro8390_init_one-checkpatch-fixes.patch
-cyclades-read-buffer-overflow.patch
-serial167-fix-read-buffer-overflow.patch
-regulator-fix-calculation-of-voltage-range-in-da9034_set_ldo12_voltage.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
-st-fix-test-of-value-range-in-st_set_options.patch
-st-fix-test-of-value-range-in-st_set_options-fix.patch
 drivers-staging-octeon-ethernet-rgmiic-dont-ignore-request_irq-return-code.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-arch-alpha-boot-tools-objstripc-wrong-variable-tested-after-open.patch
-m32r-remove-redundant-tests-on-unsigned.patch
-uml-fix-order-of-pud-and-pmd_free.patch
-dme1737-keep-index-within-pwm_config.patch
-sdio-fix-read-buffer-overflow.patch
-hwmon-fix-freeing-of-gpio_data-and-irq.patch
-ncpfs-read-buffer-overflow.patch
-smbfs-read-buffer-overflow.patch
-platinumfb-misplaced-parenthesis.patch
-sisfb-read-buffer-overflow.patch
-drivers-video-console-newport_conc-fix-read-outside-array-bounds.patch
-mwave-fix-read-buffer-overflow.patch
-adfs-remove-redundant-test-on-unsigned.patch
-gru-allocation-may-fail-in-quicktest1.patch
+maintainers-add-matt-mackall-and-herbert-xu-to-hardware-random-number-generator.patch
 
