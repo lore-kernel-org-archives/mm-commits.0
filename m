@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-zero_page-without-pte_special-mips-fix.patch added to -mm tree
-Date: Fri, 18 Sep 2009 00:00:25 -0700
-Message-ID: <200909180700.n8I70Pte031958@imap1.linux-foundation.org>
+Subject: + include-linux-credh-fix-build-fix.patch added to -mm tree
+Date: Fri, 18 Sep 2009 11:06:47 -0700
+Message-ID: <200909181806.n8II6lji011063@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39115 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47725 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751672AbZIRHBy (ORCPT
+	by vger.kernel.org with ESMTP id S933243AbZIRSIR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Sep 2009 03:01:54 -0400
+	Fri, 18 Sep 2009 14:08:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hugh.dickins@tiscali.co.uk, akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, npiggin@suse.de, ralf@linux-mips.org, riel@redhat.com
+Cc: randy.dunlap@oracle.com, dhowells@redhat.com, jmorris@namei.org, serue@us.ibm.com
 
 
 The patch titled
-     mm-zero_page-without-pte_special mips fix
+     cred: export creds_are_invalid
 has been added to the -mm tree.  Its filename is
-     mm-zero_page-without-pte_special-mips-fix.patch
+     include-linux-credh-fix-build-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,124 +34,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-zero_page-without-pte_special mips fix
-From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Subject: cred: export creds_are_invalid
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Use macro instead of inline to fix mips allmodconfig error:
+creds_are_invalid() needs to be exported for use by modules:
 
-/usr/src/devel/arch/mips/include/asm/pgtable.h: In function `my_zero_pfn':
-/usr/src/devel/arch/mips/include/asm/pgtable.h:90: error: `mem_map' undeclared (first use in this function)
-/usr/src/devel/arch/mips/include/asm/pgtable.h:90: error: (Each undeclared identifier is reported only once
-/usr/src/devel/arch/mips/include/asm/pgtable.h:90: error: for each function it appears in.)
+ERROR: "creds_are_invalid" [fs/cachefiles/cachefiles.ko] undefined!
 
-Reported-by: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Nick Piggin <npiggin@suse.de>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: Serge Hallyn <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/include/asm/pgtable.h |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ kernel/cred.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/mips/include/asm/pgtable.h~mm-zero_page-without-pte_special-mips-fix arch/mips/include/asm/pgtable.h
---- a/arch/mips/include/asm/pgtable.h~mm-zero_page-without-pte_special-mips-fix
-+++ a/arch/mips/include/asm/pgtable.h
-@@ -84,11 +84,7 @@ static inline int is_zero_pfn(unsigned l
- 	return offset_from_zero_pfn <= (zero_page_mask >> PAGE_SHIFT);
+diff -puN kernel/cred.c~include-linux-credh-fix-build-fix kernel/cred.c
+--- a/kernel/cred.c~include-linux-credh-fix-build-fix
++++ a/kernel/cred.c
+@@ -799,6 +799,7 @@ bool creds_are_invalid(const struct cred
+ #endif
+ 	return false;
  }
++EXPORT_SYMBOL(creds_are_invalid);
  
--#define my_zero_pfn my_zero_pfn
--static inline unsigned long my_zero_pfn(unsigned long addr)
--{
--	return page_to_pfn(ZERO_PAGE(addr));
--}
-+#define my_zero_pfn(addr)	page_to_pfn(ZERO_PAGE(addr))
- 
- extern void paging_init(void);
- 
+ /*
+  * dump invalid credentials
 _
 
-Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
 linux-next.patch
-vfs-optimize-touch_time-too-fix.patch
-fs-new-truncate-helpers.patch
-fs-use-new-truncate-helpers.patch
-fs-introduce-new-truncate-sequence.patch
-fs-convert-simple-fs-to-new-truncate.patch
-tmpfs-convert-to-use-the-new-truncate-convention.patch
-ext2-convert-to-use-the-new-truncate-convention.patch
-fat-convert-to-use-the-new-truncate-convention.patch
-btrfs-convert-to-use-the-new-truncate-convention.patch
-jfs-convert-to-use-the-new-truncate-convention.patch
-udf-convert-to-use-the-new-truncate-convention.patch
-minix-convert-to-use-the-new-truncate-convention.patch
-vfs-seq_file-add-helpers-for-data-filling.patch
-vfs-revert-proc-mounts-to-old-behavior-for-unreachable-mountpoints.patch
-vfs-no-unreachable-prefix-for-sysvipc-maps-in-proc-pid-maps.patch
-mm-oom-analysis-add-shmem-vmstat.patch
-mm-vmstat-add-isolate-pages.patch
-ksm-add-mmu_notifier-set_pte_at_notify.patch
-ksm-first-tidy-up-madvise_vma.patch
-ksm-define-madv_mergeable-and-madv_unmergeable.patch
-ksm-the-mm-interface-to-ksm.patch
-ksm-no-debug-in-page_dup_rmap.patch
-ksm-identify-pageksm-pages.patch
-ksm-kernel-samepage-merging.patch
-ksm-prevent-mremap-move-poisoning.patch
-ksm-change-copyright-message.patch
-ksm-change-ksm-nice-level-to-be-5.patch
-ksm-rename-kernel_pages_allocated.patch
-ksm-move-pages_sharing-updates.patch
-ksm-pages_unshared-and-pages_volatile.patch
-ksm-break-cow-once-unshared.patch
-ksm-keep-quiet-while-list-empty.patch
-ksm-five-little-cleanups.patch
-ksm-fix-endless-loop-on-oom.patch
-ksm-distribute-remove_mm_from_lists.patch
-ksm-fix-oom-deadlock.patch
-ksm-fix-deadlock-with-munlock-in-exit_mmap.patch
-ksm-sysfs-and-defaults.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+kernel-hacking-move-strip_asm_syms-from-general.patch
+isdn-fix-netjet-build-errors.patch
+scsi-fix-func-names-in-kernel-doc.patch
+cciss-fix-schedule_timeout-parameters.patch
+mm-make-swap-token-dummies-static-inlines-fix-2.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+page_alloc-fix-kernel-doc-warning.patch
 ksm-add-some-documentation.patch
-ksm-remove-vm_mergeable_flags.patch
-ksm-clean-up-obsolete-references.patch
-ksm-unmerge-is-an-origin-of-ooms.patch
-ksm-mremap-use-err-from-ksm_madvise.patch
-mm-add_to_swap_cache-must-not-sleep.patch
-mm-add_to_swap_cache-does-not-return-eexist.patch
-mm-includecheck-fix-for-mm-shmemc.patch
-mm-introduce-page_lru_base_type-fix.patch
-mm-replace-various-uses-of-num_physpages-by-totalram_pages.patch
-hugetlbfs-allow-the-creation-of-files-suitable-for-map_private-on-the-vfs-internal-mount.patch
-mm-munlock-use-follow_page.patch
-mm-remove-unused-gup-flags.patch
-mm-add-get_dump_page.patch
-mm-foll_dump-replace-foll_anon.patch
-mm-follow_hugetlb_page-flags.patch
-mm-fix-anonymous-dirtying.patch
-mm-reinstate-zero_page.patch
-mm-foll-flags-for-gup-flags.patch
-mm-munlock-avoid-zero_page.patch
-mm-hugetlbfs_pagecache_present.patch
-mm-zero_page-without-pte_special.patch
-mm-zero_page-without-pte_special-mips-fix.patch
-mm-move-highest_memmap_pfn.patch
-mmap-remove-unnecessary-code.patch
-tmpfs-depend-on-shmem.patch
-mmap-avoid-unnecessary-anon_vma-lock-acquisition-in-vma_adjust.patch
-mmap-avoid-unnecessary-anon_vma-lock-acquisition-in-vma_adjust-tweak.patch
-mmap-save-some-cycles-for-the-shared-anonymous-mapping.patch
-getrusage-fill-ru_maxrss-value.patch
-getrusage-fill-ru_maxrss-value-update.patch
-walk-system-ram-range-fix.patch
-ramfs-move-ramfs_magic-to-include-linux-magich.patch
-memory-controller-soft-limit-organize-cgroups-v9-fix.patch
-prio_tree-debugging-patch.patch
+include-linux-credh-fix-build-fix.patch
+flex_array-add-missing-kerneldoc-annotations.patch
+lis3-add-power-management-functions-fix.patch
+procfs-provide-stack-information-for-threads-v011-fix.patch
+kcore-register-vmemmap-range-fix.patch
+spih-add-missing-kernel-doc-for-struct-spi_master.patch
+gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links-update-fix.patch
+doc-filesystems-remove-smount-program.patch
+doc-filesystems-more-mount-cleanups.patch
+documentation-update-stale-definition-of-file-nr-in-fstxt.patch
+includecheck-fix-documentation-cfag12864b-examplec.patch
+docs-fix-various-documentation-paths-in-header-files.patch
+reiser4-export-remove_from_page_cache-fix.patch
 
