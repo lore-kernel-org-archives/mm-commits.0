@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + wl12xx-fix-kconfig-link-errors.patch added to -mm tree
-Date: Fri, 18 Sep 2009 14:31:48 -0700
-Message-ID: <200909182131.n8ILVm0w027267@imap1.linux-foundation.org>
+Subject: + pcmcia-fix-controller-printk-warnings.patch added to -mm tree
+Date: Fri, 18 Sep 2009 14:35:24 -0700
+Message-ID: <200909182135.n8ILZOrb001806@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55455 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33939 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751790AbZIRVca (ORCPT
+	by vger.kernel.org with ESMTP id S1752068AbZIRVgI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Sep 2009 17:32:30 -0400
+	Fri, 18 Sep 2009 17:36:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, linville@tuxdriver.com
+Cc: randy.dunlap@oracle.com, greg@kroah.com, w.sang@pengutronix.de
 
 
 The patch titled
-     wl12xx: fix kconfig/link errors
+     pcmcia: fix controller printk warnings
 has been added to the -mm tree.  Its filename is
-     wl12xx-fix-kconfig-link-errors.patch
+     pcmcia-fix-controller-printk-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: wl12xx: fix kconfig/link errors
+Subject: pcmcia: fix controller printk warnings
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-"boolean" converts a module dependency (MAC80211=m) to YES,
-then the WL12XX driver can be built-in instead of only
-modular, which leads to linker errors:
+Fix new pcmcia printk format warnings:
 
-wl1271_main.c:(.text+0x11177d): undefined reference to `ieee80211_frequency_to_channel'
-wl1271_main.c:(.text+0x111adc): undefined reference to `ieee80211_stop_queues'
-wl1271_main.c:(.text+0x112005): undefined reference to `ieee80211_scan_completed'
-(.text+0x1139c8): undefined reference to `ieee80211_scan_completed'
-(.text+0x113bb0): undefined reference to `ieee80211_tx_status'
-(.text+0x113e53): undefined reference to `ieee80211_stop_queues'
-(.text+0x113e8d): undefined reference to `ieee80211_wake_queues'
-(.text+0x113f3b): undefined reference to `ieee80211_tx_status'
-(.text+0x113f60): undefined reference to `ieee80211_tx_status'
-(.text+0x1140f0): undefined reference to `ieee80211_channel_to_frequency'
-(.text+0x114153): undefined reference to `ieee80211_rx'
-wl1271_main.c:(.devinit.text+0xca08): undefined reference to `ieee80211_alloc_hw'
-wl1271_main.c:(.devinit.text+0xccf5): undefined reference to `ieee80211_register_hw'
-wl1271_main.c:(.devinit.text+0xcd6b): undefined reference to `ieee80211_free_hw'
-wl1271_main.c:(.devexit.text+0x1353): undefined reference to `ieee80211_unregister_hw'
-wl1271_main.c:(.devexit.text+0x13c9): undefined reference to `ieee80211_free_hw'
+drivers/pcmcia/i82365.c:1055: warning: format '%#x' expects type 'unsigned int', but argument 6 has type 'phys_addr_t'
+drivers/pcmcia/i82365.c:1055: warning: format '%#x' expects type 'unsigned int', but argument 7 has type 'phys_addr_t'
+drivers/pcmcia/tcic.c:734: warning: format '%#x' expects type 'unsigned int', but argument 6 has type 'phys_addr_t'
+drivers/pcmcia/tcic.c:734: warning: format '%#x' expects type 'unsigned int', but argument 7 has type 'phys_addr_t'
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+Cc: Wolfram Sang <w.sang@pengutronix.de>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/wl12xx/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/pcmcia/i82365.c |    4 ++--
+ drivers/pcmcia/tcic.c   |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/net/wireless/wl12xx/Kconfig~wl12xx-fix-kconfig-link-errors drivers/net/wireless/wl12xx/Kconfig
---- a/drivers/net/wireless/wl12xx/Kconfig~wl12xx-fix-kconfig-link-errors
-+++ a/drivers/net/wireless/wl12xx/Kconfig
-@@ -1,5 +1,5 @@
- menuconfig WL12XX
--	boolean "TI wl12xx driver support"
-+	tristate "TI wl12xx driver support"
- 	depends on MAC80211 && WLAN_80211 && EXPERIMENTAL
- 	---help---
- 	  This will enable TI wl12xx driver support. The drivers make
+diff -puN drivers/pcmcia/i82365.c~pcmcia-fix-controller-printk-warnings drivers/pcmcia/i82365.c
+--- a/drivers/pcmcia/i82365.c~pcmcia-fix-controller-printk-warnings
++++ a/drivers/pcmcia/i82365.c
+@@ -1053,8 +1053,8 @@ static int i365_set_io_map(u_short sock,
+     u_char map, ioctl;
+     
+     debug(1, "SetIOMap(%d, %d, %#2.2x, %d ns, "
+-	  "%#x-%#x)\n", sock, io->map, io->flags,
+-	  io->speed, io->start, io->stop);
++	  "%#llx-%#llx)\n", sock, io->map, io->flags, io->speed,
++	  (unsigned long long)io->start, (unsigned long long)io->stop);
+     map = io->map;
+     if ((map > 1) || (io->start > 0xffff) || (io->stop > 0xffff) ||
+ 	(io->stop < io->start)) return -EINVAL;
+diff -puN drivers/pcmcia/tcic.c~pcmcia-fix-controller-printk-warnings drivers/pcmcia/tcic.c
+--- a/drivers/pcmcia/tcic.c~pcmcia-fix-controller-printk-warnings
++++ a/drivers/pcmcia/tcic.c
+@@ -732,8 +732,8 @@ static int tcic_set_io_map(struct pcmcia
+     u_short base, len, ioctl;
+     
+     debug(1, "SetIOMap(%d, %d, %#2.2x, %d ns, "
+-	  "%#x-%#x)\n", psock, io->map, io->flags,
+-	  io->speed, io->start, io->stop);
++	  "%#llx-%#llx)\n", psock, io->map, io->flags, io->speed,
++	  (unsigned long long)io->start, (unsigned long long)io->stop);
+     if ((io->map > 1) || (io->start > 0xffff) || (io->stop > 0xffff) ||
+ 	(io->stop < io->start)) return -EINVAL;
+     tcic_setw(TCIC_ADDR+2, TCIC_ADR2_INDREG | (psock << TCIC_SS_SHFT));
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
@@ -93,6 +99,7 @@ mm-make-swap-token-dummies-static-inlines-fix-2.patch
 readahead-add-blk_run_backing_dev-fix-fix-2.patch
 page_alloc-fix-kernel-doc-warning.patch
 ksm-add-some-documentation.patch
+pcmcia-fix-controller-printk-warnings.patch
 flex_array-add-missing-kerneldoc-annotations.patch
 lis3-add-power-management-functions-fix.patch
 procfs-provide-stack-information-for-threads-v011-fix.patch
