@@ -1,164 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-net-wireless-ath-ar9170-phyc-fix-uninitialised-variable.patch added to -mm tree
-Date: Fri, 18 Sep 2009 16:40:05 -0700
-Message-ID: <200909190002.n8J02OiU032178@imap1.linux-foundation.org>
+Subject: [obsolete] kbuild-check-if-linker-supports-the-x-option.patch removed from -mm tree
+Date: Fri, 18 Sep 2009 18:58:18 -0700
+Message-ID: <200909190158.n8J1wIIq000609@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44998 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44864 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754508AbZISACh (ORCPT
+	by vger.kernel.org with ESMTP id S1753356AbZISB6d (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Sep 2009 20:02:37 -0400
+	Fri, 18 Sep 2009 21:58:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, chunkeey@googlemail.com, chunkeey@web.de, davem@davemloft.net, jal2@gmx.de, linville@tuxdriver.com, lrodriguez@atheros.com
+To: andi@firstfloor.org, ak@linux.intel.com, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/net/wireless/ath/ar9170/phy.c: fix uninitialised variable
-has been added to the -mm tree.  Its filename is
-     drivers-net-wireless-ath-ar9170-phyc-fix-uninitialised-variable.patch
+     kbuild: check if linker supports the -X option
+has been removed from the -mm tree.  Its filename was
+     kbuild-check-if-linker-supports-the-x-option.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/net/wireless/ath/ar9170/phy.c: fix uninitialised variable
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kbuild: check if linker supports the -X option
+From: Andi Kleen <andi@firstfloor.org>
 
-drivers/net/wireless/ath/ar9170/phy.c: In function 'ar9170_set_channel':
-drivers/net/wireless/ath/ar9170/phy.c:1211: warning: 'phy_data' may be used uninitialized in this function
+The new alternative `gold' linker in recent binutils doesn't support the
+-X option.  This breaks allyesconfig builds that have
+CONFIG_STRIP_ASM_SYMS enabled.  Check if the linker really supports the
+option using ld-option.
 
-Cc: Christian Lamparter <chunkeey@web.de>
-Cc: John W. Linville <linville@tuxdriver.com>
-Cc: Joerg Albert <jal2@gmx.de>
-Cc: Christian Lamparter <chunkeey@googlemail.com>
-Cc: Luis R. Rodriguez <lrodriguez@atheros.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/ath/ar9170/phy.c |    2 +-
+ Makefile |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/wireless/ath/ar9170/phy.c~drivers-net-wireless-ath-ar9170-phyc-fix-uninitialised-variable drivers/net/wireless/ath/ar9170/phy.c
---- a/drivers/net/wireless/ath/ar9170/phy.c~drivers-net-wireless-ath-ar9170-phyc-fix-uninitialised-variable
-+++ a/drivers/net/wireless/ath/ar9170/phy.c
-@@ -1208,7 +1208,7 @@ static int ar9170_set_freq_cal_data(stru
- 		}
+diff -puN Makefile~kbuild-check-if-linker-supports-the-x-option Makefile
+--- a/Makefile~kbuild-check-if-linker-supports-the-x-option
++++ a/Makefile
+@@ -598,7 +598,7 @@ LDFLAGS_MODULE += $(LDFLAGS_BUILD_ID)
+ LDFLAGS_vmlinux += $(LDFLAGS_BUILD_ID)
  
- 		for (i = 0; i < 76; i++) {
--			u32 phy_data;
-+			u32 phy_data = 0;
- 			u8 tmp;
+ ifeq ($(CONFIG_STRIP_ASM_SYMS),y)
+-LDFLAGS_vmlinux	+= -X
++LDFLAGS_vmlinux	+= $(call ld-option, -X,)
+ endif
  
- 			if (i < 25) {
+ # Default kernel image to build when no specific target is given.
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from andi@firstfloor.org are
 
 origin.patch
-fs-make-sure-data-stored-into-inode-is-properly-seen-before-unlocking-new-inode-fix.patch
-drivers-mfd-ab3100-corec-fiw-warning-and-powerpc-build-error.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-hwmon-driver-for-acpi-40-power-meters.patch
-drivers-md-dm-log-userspace-basec-fix-warning.patch
-drivers-dma-ioat-dma_v3c-fix-warnings.patch
-drivers-dma-ioat-dma_v2c-fix-warnings.patch
-video-initial-support-for-adv7180.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-checkincludespl-add-option-to-remove-duplicates-in-place.patch
-net-fix-config_net=n-build-on-sparc64.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-include-linux-credh-fix-build.patch
-serial167-fix-read-buffer-overflow.patch
-st-fix-test-of-value-range-in-st_set_options.patch
-drivers-usb-serial-sierrac-fix-config_pm=n-build.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
+kbuild-fix-ld-option-makefile-macro-to-really-work.patch
+kbuild-check-if-linker-supports-the-x-option.patch
+kbuild-echo-the-record_mcount-command.patch
+kbuild-fail-build-if-recordmcountpl-fails.patch
+kbuild-set-fconserve-stack-option-for-gcc-45.patch
+vfs-optimization-for-touch_atime.patch
 vfs-optimize-touch_time-too.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-drivers-net-wireless-ath-ar9170-phyc-fix-uninitialised-variable.patch
-mm-make-swap-token-dummies-static-inlines-fix.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
-revert-hugetlb-restore-interleaving-of-bootmem-huge-pages-2631.patch
-vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
-revert-proc-kcore-work-around-a-bug.patch
-arches-drop-superfluous-casts-in-nr_free_pages-callers-checkpatch-fixes.patch
-tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists-fix.patch
-page-allocator-maintain-rolling-count-of-pages-to-free-from-the-pcp-checkpatch-fixes.patch
-mm-zero_page-without-pte_special-mips-fix.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
-hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-alpha-convert-to-use-arch_gettimeoffset-fix.patch
-cpuidle-fix-the-menu-governor-to-boost-io-performance.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
-generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
-proc-connector-add-event-for-process-becoming-session-leader.patch
+hugetlb-restore-interleaving-of-bootmem-huge-pages.patch
+documentation-memorytxt-remove-some-very-outdated-recommendations.patch
+build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it.patch
 build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix.patch
-kernel-smpc-relocate-some-code.patch
-mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
-sdio-add-cd-disable-support-cleanup.patch
-sdio-add-mmc_quirk_lenient_fn0-fix.patch
-at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver-checkpatch-fixes.patch
-mmc-core-sdio-suspend-resume-support-fix.patch
-procfs-provide-stack-information-for-threads-v011-fix.patch
-walk-system-ram-range-fix-2.patch
-kcore-register-vmemmap-range-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes-fix.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
-drivers-video-add-kmalloc-null-tests-fix.patch
-drivers-video-tmiofbc-fix-uninitialised-return-value.patch
-v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
-page-types-add-feature-for-walking-process-address-space-checkpatch-fixes.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
-memcg-improve-resource-counter-scalability-checkpatch-fixes.patch
-exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
-exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
-elf-clean-up-fill_note_info-fix.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-reiser4-disable.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+kmap_typesh-rename-d-macro.patch
+video-console-use-div_round_up.patch
+time-add-function-to-convert-between-calendar-time-and-broken-down-time-for-universal-use.patch
+fatfs-use-common-time_to_tm-in-fat_time_unix2fat.patch
+page-types-add-feature-for-walking-process-address-space.patch
+memcg-improve-resource-counter-scalability.patch
+memcg-improve-resource-counter-scalability-v5.patch
+exec-make-do_coredump-more-resilient-to-recursive-crashes-v9.patch
+exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9.patch
+exec-allow-do_coredump-to-wait-for-user-space-pipe-readers-to-complete-v9.patch
 
