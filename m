@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cpuidle-fix-the-menu-governor-to-boost-io-performance-fix.patch added to -mm tree
-Date: Sun, 20 Sep 2009 00:07:19 -0700
-Message-ID: <200909200707.n8K77JVJ032242@imap1.linux-foundation.org>
+Subject: + video-s3c_fbc-fix-build-with-config_hotplug=n.patch added to -mm tree
+Date: Sun, 20 Sep 2009 08:36:22 -0700
+Message-ID: <200909201536.n8KFaMjn026925@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48457 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40123 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751603AbZITHI5 (ORCPT
+	by vger.kernel.org with ESMTP id S1753435AbZITPhq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 20 Sep 2009 03:08:57 -0400
+	Sun, 20 Sep 2009 11:37:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: arjan@linux.intel.com, a.p.zijlstra@chello.nl, lenb@kernel.org, mingo@elte.hu, venkatesh.pallipadi@intel.com, yanmin_zhang@linux.intel.com
+Cc: jacmet@sunsite.dk, ben-linux@fluff.org, stable@kernel.org
 
 
 The patch titled
-     cpuidle-fix-the-menu-governor-to-boost-io-performance-fix
+     video: s3c_fb.c: fix build with CONFIG_HOTPLUG=n
 has been added to the -mm tree.  Its filename is
-     cpuidle-fix-the-menu-governor-to-boost-io-performance-fix.patch
+     video-s3c_fbc-fix-build-with-config_hotplug=n.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpuidle-fix-the-menu-governor-to-boost-io-performance-fix
-From: Arjan van de Ven <arjan@linux.intel.com>
+Subject: video: s3c_fb.c: fix build with CONFIG_HOTPLUG=n
+From: Peter Korsgaard <jacmet@sunsite.dk>
 
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Yanmin Zhang <yanmin_zhang@linux.intel.com>
-Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
+Fixes `s3c_fb_remove' referenced in section `.data' of
+drivers/built-in.o: defined in discarded section `.devexit.text' of
+drivers/built-in.o
+
+With CONFIG_HOTPLUG=n, functions marked with __devexit gets removed,
+so make sure we use __devexit_p when referencing pointers to them.
+
+Signed-off-by: Peter Korsgaard <jacmet@sunsite.dk>
+Acked-by: Ben Dooks <ben-linux@fluff.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ drivers/video/s3c-fb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/sched.c~cpuidle-fix-the-menu-governor-to-boost-io-performance-fix kernel/sched.c
---- a/kernel/sched.c~cpuidle-fix-the-menu-governor-to-boost-io-performance-fix
-+++ a/kernel/sched.c
-@@ -2906,16 +2906,14 @@ unsigned long nr_iowait(void)
+diff -puN drivers/video/s3c-fb.c~video-s3c_fbc-fix-build-with-config_hotplug=n drivers/video/s3c-fb.c
+--- a/drivers/video/s3c-fb.c~video-s3c_fbc-fix-build-with-config_hotplug=n
++++ a/drivers/video/s3c-fb.c
+@@ -1036,7 +1036,7 @@ static int s3c_fb_resume(struct platform
  
- unsigned long nr_iowait_cpu(void)
- {
--	int this_cpu = smp_processor_id();
--	struct rq *this_rq = cpu_rq(this_cpu);
--	return atomic_read(&this_rq->nr_iowait);
-+	struct rq *this = this_rq();
-+	return atomic_read(&this->nr_iowait);
- }
- 
- unsigned long this_cpu_load(void)
- {
--	int this_cpu = smp_processor_id();
--	struct rq *this_rq = cpu_rq(this_cpu);
--	return this_rq->cpu_load[0];
-+	struct rq *this = this_rq();
-+	return this->cpu_load[0];
- }
- 
- 
+ static struct platform_driver s3c_fb_driver = {
+ 	.probe		= s3c_fb_probe,
+-	.remove		= s3c_fb_remove,
++	.remove		= __devexit_p(s3c_fb_remove),
+ 	.suspend	= s3c_fb_suspend,
+ 	.resume		= s3c_fb_resume,
+ 	.driver		= {
 _
 
-Patches currently in -mm which might be from arjan@linux.intel.com are
+Patches currently in -mm which might be from jacmet@sunsite.dk are
 
 origin.patch
 linux-next.patch
-cpuidle-fix-the-menu-governor-to-boost-io-performance.patch
-cpuidle-fix-the-menu-governor-to-boost-io-performance-fix.patch
-cpuidle-menu-governor-reduce-latency-on-exit.patch
+video-s3c_fbc-fix-build-with-config_hotplug=n.patch
 
