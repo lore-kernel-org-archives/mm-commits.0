@@ -1,102 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: + scsi_transport_fc-fix-missing-kernel-doc.patch added to -mm tree
-Date: Mon, 21 Sep 2009 12:54:52 -0700
-Message-ID: <200909211954.n8LJsq5Q028134@imap1.linux-foundation.org>
+Subject: [to-be-updated] vfs-revert-proc-mounts-to-old-behavior-for-unreachable-mountpoints.patch removed from -mm tree
+Date: Mon, 21 Sep 2009 13:01:52 -0700
+Message-ID: <200909212001.n8LK1q0O009512@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42704 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43069 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753441AbZIUTyy (ORCPT
+	by vger.kernel.org with ESMTP id S1753518AbZIUUCd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Sep 2009 15:54:54 -0400
+	Mon, 21 Sep 2009 16:02:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com
+To: mszeredi@suse.cz, Valdis.Kletnieks@vt.edu, agruen@suse.de, hch@lst.de, hugh.dickins@tiscali.co.uk, matthew@wil.cx, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scsi_transport_fc: fix missing kernel-doc
-has been added to the -mm tree.  Its filename is
-     scsi_transport_fc-fix-missing-kernel-doc.patch
+     vfs: revert /proc/mounts to old behavior for unreachable mountpoints
+has been removed from the -mm tree.  Its filename was
+     vfs-revert-proc-mounts-to-old-behavior-for-unreachable-mountpoints.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi_transport_fc: fix missing kernel-doc
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: vfs: revert /proc/mounts to old behavior for unreachable mountpoints
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-Add missing kernel-doc notation in scsi_transport_fc.c:
+"vfs: fix d_path() for unreachable paths" prefixes unreachable paths
+with "(unreachable)" in the result of getcwd(2), /proc/*/mounts,
+/proc/*/cwd, /proc/*/fd/*, etc...
 
-Warning(drivers/scsi/scsi_transport_fc.c:3593): No description found for parameter 'q'
-Warning(drivers/scsi/scsi_transport_fc.c:3700): No description found for parameter 'q'
+Hugh Dickins reported that an old version of gnome-vfs-daemon crashes
+because it finds an entry in /proc/mounts where the mountpoint is
+unreachable.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+This patch reverts /proc/mounts to the old behavior (or rather a less
+crazy version of the old behavior).
+
+Reported-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Acked-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Reported-by: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Matthew Wilcox <matthew@wil.cx>
+Cc: Andreas Gruenbacher <agruen@suse.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/scsi_transport_fc.c |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/namespace.c |   57 ++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 56 insertions(+), 1 deletion(-)
 
-diff -puN drivers/scsi/scsi_transport_fc.c~scsi_transport_fc-fix-missing-kernel-doc drivers/scsi/scsi_transport_fc.c
---- a/drivers/scsi/scsi_transport_fc.c~scsi_transport_fc-fix-missing-kernel-doc
-+++ a/drivers/scsi/scsi_transport_fc.c
-@@ -3586,6 +3586,7 @@ enum fc_dispatch_result {
+diff -puN fs/namespace.c~vfs-revert-proc-mounts-to-old-behavior-for-unreachable-mountpoints fs/namespace.c
+--- a/fs/namespace.c~vfs-revert-proc-mounts-to-old-behavior-for-unreachable-mountpoints
++++ a/fs/namespace.c
+@@ -789,6 +789,61 @@ static void show_type(struct seq_file *m
+ 	}
+ }
  
- /**
-  * fc_bsg_host_dispatch - process fc host bsg requests and dispatch to LLDD
-+ * @q:		fc host request queue
-  * @shost:	scsi host rport attached to
-  * @job:	bsg job to be processed
-  */
-@@ -3693,6 +3694,7 @@ fc_bsg_goose_queue(struct fc_rport *rpor
++/*
++ * Same as d_path() except it doesn't stick "(unreachable)" in front
++ * of unreachable paths.
++ */
++static char *d_path_compat(struct path *path, char *buf, int buflen)
++{
++	char *res;
++	struct path root;
++	struct path tmp;
++
++	read_lock(&current->fs->lock);
++	root = current->fs->root;
++	path_get(&root);
++	read_unlock(&current->fs->lock);
++	spin_lock(&dcache_lock);
++	tmp = root;
++	res = __d_path(path, &tmp, buf, buflen);
++	if (!IS_ERR(res) &&
++	    (tmp.mnt != root.mnt || tmp.dentry != root.dentry)) {
++		/*
++		 * Unreachable path found, redo with the global root
++		 * so we get a normal looking path.
++		 */
++		res = __d_path(path, &tmp, buf, buflen);
++	}
++	spin_unlock(&dcache_lock);
++	path_put(&root);
++
++	return res;
++}
++
++/*
++ * Some old programs break if /proc/mounts contains a mountpoint
++ * beginning with "(unreachable)".  Revert this back to the old way of
++ * displaying the path from the global root instead.
++ */
++static int show_path_old(struct seq_file *m, struct path *path, char *esc)
++{
++	char *buf;
++	size_t size = seq_get_buf(m, &buf);
++	int res = -1;
++
++	if (size) {
++		char *p = d_path_compat(path, buf, size);
++		if (!IS_ERR(p)) {
++			char *end = mangle_path(buf, p, esc);
++			if (end)
++				res = end - buf;
++		}
++	}
++	seq_commit(m, res);
++
++	return res;
++}
++
+ static int show_vfsmnt(struct seq_file *m, void *v)
+ {
+ 	struct vfsmount *mnt = list_entry(v, struct vfsmount, mnt_list);
+@@ -797,7 +852,7 @@ static int show_vfsmnt(struct seq_file *
  
- /**
-  * fc_bsg_rport_dispatch - process rport bsg requests and dispatch to LLDD
-+ * @q:		rport request queue
-  * @shost:	scsi host rport attached to
-  * @rport:	rport request destined to
-  * @job:	bsg job to be processed
+ 	mangle(m, mnt->mnt_devname ? mnt->mnt_devname : "none");
+ 	seq_putc(m, ' ');
+-	seq_path(m, &mnt_path, " \t\n\\");
++	show_path_old(m, &mnt_path, " \t\n\\");
+ 	seq_putc(m, ' ');
+ 	show_type(m, mnt->mnt_sb);
+ 	seq_puts(m, __mnt_is_readonly(mnt) ? " ro" : " rw");
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
 origin.patch
-linux-next.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-kernel-hacking-move-strip_asm_syms-from-general.patch
-isdn-fix-netjet-build-errors.patch
-include-linux-credh-fix-build.patch
-scsi-fix-func-names-in-kernel-doc.patch
-scsi_transport_fc-fix-missing-kernel-doc.patch
-cciss-fix-schedule_timeout-parameters.patch
-wl12xx-fix-kconfig-link-errors.patch
-mm-make-swap-token-dummies-static-inlines-fix-2.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-page_alloc-fix-kernel-doc-warning.patch
-ksm-add-some-documentation.patch
-pcmcia-fix-controller-printk-warnings.patch
-flex_array-add-missing-kerneldoc-annotations.patch
-lis3-add-power-management-functions-fix.patch
-procfs-provide-stack-information-for-threads-v011-fix.patch
-kcore-register-vmemmap-range-fix.patch
-spih-add-missing-kernel-doc-for-struct-spi_master.patch
-gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links-update-fix.patch
-doc-filesystems-remove-smount-program.patch
-doc-filesystems-more-mount-cleanups.patch
-documentation-update-stale-definition-of-file-nr-in-fstxt.patch
-includecheck-fix-documentation-cfag12864b-examplec.patch
-docs-fix-various-documentation-paths-in-header-files.patch
-reiser4-export-remove_from_page_cache-fix.patch
+vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
+fs-remove-unneeded-dcache_unhashed-tricks.patch
+vfs-seq_file-add-helpers-for-data-filling.patch
+vfs-revert-proc-mounts-to-old-behavior-for-unreachable-mountpoints.patch
+vfs-no-unreachable-prefix-for-sysvipc-maps-in-proc-pid-maps.patch
 
