@@ -1,119 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: [folded] page-allocator-change-migratetype-for-all-pageblocks-within-a-high-order-page-during-__rmqueue_fallback-fix.patch removed from -mm tree
-Date: Mon, 21 Sep 2009 14:22:36 -0700
-Message-ID: <200909212122.n8LLMaRe006375@imap1.linux-foundation.org>
+Subject: [folded] arches-drop-superfluous-casts-in-nr_free_pages-callers-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 21 Sep 2009 14:23:31 -0700
+Message-ID: <200909212123.n8LLNWdN008235@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38655 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41133 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754002AbZIUVXo (ORCPT
+	by vger.kernel.org with ESMTP id S1754002AbZIUVYB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Sep 2009 17:23:44 -0400
+	Mon, 21 Sep 2009 17:24:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mel@csn.ul.ie, apw@shadowen.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, Geert.Uytterhoeven@sonycom.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     page-allocator-change-migratetype-for-all-pageblocks-within-a-high-order-page-during-__rmqueue_fallback fix
+     arches-drop-superfluous-casts-in-nr_free_pages-callers-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     page-allocator-change-migratetype-for-all-pageblocks-within-a-high-order-page-during-__rmqueue_fallback-fix.patch
+     arches-drop-superfluous-casts-in-nr_free_pages-callers-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into page-allocator-change-migratetype-for-all-pageblocks-within-a-high-order-page-during-__rmqueue_fallback.patch
+This patch was dropped because it was folded into arches-drop-superfluous-casts-in-nr_free_pages-callers.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page-allocator-change-migratetype-for-all-pageblocks-within-a-high-order-page-during-__rmqueue_fallback fix
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: arches-drop-superfluous-casts-in-nr_free_pages-callers-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Calculate the number of pageblocks within a range properly
+ERROR: code indent should use tabs where possible
+#219: FILE: arch/s390/mm/init.c:108:
++                nr_free_pages() << (PAGE_SHIFT-10),$
 
-Patch
-page-allocator-change-migratetype-for-all-pageblocks-within-a-high-order-page-during-__rmqueue_fallback
-is meant to change the pageblock ownership of each pageblock within a
-given range. This is necessary when the buddy to be split is of higher
-order than the pageblock_order. However, the calculation was wrong
-leading to crashes on ia-64 and slightly incorrect behaviour on x86.
-This patch corrects the calculation.
+total: 1 errors, 0 warnings, 162 lines checked
 
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+./patches/arches-drop-superfluous-casts-in-nr_free_pages-callers.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
+ arch/s390/mm/init.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~page-allocator-change-migratetype-for-all-pageblocks-within-a-high-order-page-during-__rmqueue_fallback-fix mm/page_alloc.c
---- a/mm/page_alloc.c~page-allocator-change-migratetype-for-all-pageblocks-within-a-high-order-page-during-__rmqueue_fallback-fix
-+++ a/mm/page_alloc.c
-@@ -809,7 +809,7 @@ static int move_freepages_block(struct z
- static void change_pageblock_range(struct page *pageblock_page,
- 					int start_order, int migratetype)
- {
--	int nr_pageblocks = 1 << (MAX_ORDER - 1 - start_order);
-+	int nr_pageblocks = 1 << (start_order - pageblock_order);
- 
- 	while (nr_pageblocks--) {
- 		set_pageblock_migratetype(pageblock_page, migratetype);
+diff -puN arch/s390/mm/init.c~arches-drop-superfluous-casts-in-nr_free_pages-callers-checkpatch-fixes arch/s390/mm/init.c
+--- a/arch/s390/mm/init.c~arches-drop-superfluous-casts-in-nr_free_pages-callers-checkpatch-fixes
++++ a/arch/s390/mm/init.c
+@@ -105,7 +105,7 @@ void __init mem_init(void)
+ 	datasize =  (unsigned long) &_edata - (unsigned long) &_etext;
+ 	initsize =  (unsigned long) &__init_end - (unsigned long) &__init_begin;
+         printk("Memory: %luk/%luk available (%ldk kernel code, %ldk reserved, %ldk data, %ldk init)\n",
+-                nr_free_pages() << (PAGE_SHIFT-10),
++		nr_free_pages() << (PAGE_SHIFT-10),
+                 max_mapnr << (PAGE_SHIFT-10),
+                 codesize >> 10,
+                 reservedpages << (PAGE_SHIFT-10),
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-hugetlb-restore-interleaving-of-bootmem-huge-pages-2631.patch
+origin.patch
+fs-make-sure-data-stored-into-inode-is-properly-seen-before-unlocking-new-inode-fix.patch
+drivers-mfd-ab3100-corec-fiw-warning-and-powerpc-build-error.patch
+mm-make-swap-token-dummies-static-inlines.patch
 memory-hotplug-update-zone-pcp-at-memory-online.patch
-memory-hotplug-exclude-isolated-page-from-pco-page-alloc.patch
-memory-hotplug-make-pages-from-movable-zone-always-isolatable.patch
-memory-hotplug-alloc-page-from-other-node-in-memory-online.patch
-memory-hotplug-migrate-swap-cache-page.patch
 revert-hugetlb-restore-interleaving-of-bootmem-huge-pages-2631.patch
-hugetlb-balance-freeing-of-huge-pages-across-nodes.patch
-hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages.patch
-hugetlb-clean-up-and-update-huge-pages-documentation.patch
-hugetlb-restore-interleaving-of-bootmem-huge-pages.patch
-mm-clean-up-page_remove_rmap.patch
-mm-update-alloc_flags-after-oom-killer-has-been-called.patch
 vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
-vmscan-move-clearpageactive-from-move_active_pages-to-shrink_active_list.patch
-vmscan-kill-unnecessary-page-flag-test.patch
-vmscan-kill-unnecessary-prefetch.patch
-mm-perform-non-atomic-test-clear-of-pg_mlocked-on-free.patch
-page-allocator-change-migratetype-for-all-pageblocks-within-a-high-order-page-during-__rmqueue_fallback.patch
-page-allocator-change-migratetype-for-all-pageblocks-within-a-high-order-page-during-__rmqueue_fallback-fix.patch
-page-allocator-remove-dead-function-free_cold_page.patch
-tracing-page-allocator-add-trace-events-for-page-allocation-and-page-freeing.patch
-tracing-page-allocator-add-trace-events-for-anti-fragmentation-falling-back-to-other-migratetypes.patch
-tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists.patch
+revert-proc-kcore-work-around-a-bug.patch
+arches-drop-superfluous-casts-in-nr_free_pages-callers.patch
+arches-drop-superfluous-casts-in-nr_free_pages-callers-checkpatch-fixes.patch
 tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists-fix.patch
-tracing-page-allocator-add-a-postprocessing-script-for-page-allocator-related-ftrace-events.patch
-tracing-documentation-add-a-document-describing-how-to-do-some-performance-analysis-with-tracepoints.patch
-tracing-documentation-add-a-document-on-the-kmem-tracepoints.patch
-mm-drop-unneeded-double-negations.patch
-page-allocator-limit-the-number-of-migrate_reserve-pageblocks-per-zone.patch
-memory-hotplug-fix-updating-of-num_physpages-for-hot-plugged-memory.patch
-mm-also-use-alloc_large_system_hash-for-the-pid-hash-table.patch
-page-allocator-split-per-cpu-list-into-one-list-per-migrate-type.patch
-page-allocator-maintain-rolling-count-of-pages-to-free-from-the-pcp.patch
 page-allocator-maintain-rolling-count-of-pages-to-free-from-the-pcp-checkpatch-fixes.patch
-mm-munlock-use-follow_page.patch
-mm-remove-unused-gup-flags.patch
-mm-add-get_dump_page.patch
-mm-foll_dump-replace-foll_anon.patch
-mm-follow_hugetlb_page-flags.patch
-mm-fix-anonymous-dirtying.patch
-mm-reinstate-zero_page.patch
-mm-foll-flags-for-gup-flags.patch
-mm-munlock-avoid-zero_page.patch
-mm-hugetlbfs_pagecache_present.patch
-mm-zero_page-without-pte_special.patch
 mm-zero_page-without-pte_special-mips-fix.patch
-mm-move-highest_memmap_pfn.patch
-hugetlbfs-allow-the-creation-of-files-suitable-for-map_private-on-the-vfs-internal-mount.patch
-hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
 hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions-fix.patch
-hugetlb-add-map_hugetlb-example.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+alpha-convert-to-use-arch_gettimeoffset-fix.patch
+cpuidle-fix-the-menu-governor-to-boost-io-performance.patch
+printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
+generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
+proc-connector-add-event-for-process-becoming-session-leader.patch
+build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix.patch
+kernel-smpc-relocate-some-code.patch
+mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
+sdio-add-cd-disable-support-cleanup.patch
+sdio-add-mmc_quirk_lenient_fn0-fix.patch
+at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver-checkpatch-fixes.patch
+mmc-core-sdio-suspend-resume-support-fix.patch
+procfs-provide-stack-information-for-threads-v011-fix.patch
+walk-system-ram-range-fix-2.patch
+kcore-register-vmemmap-range-fix.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes-fix.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
+drivers-video-add-kmalloc-null-tests-fix.patch
+drivers-video-tmiofbc-fix-uninitialised-return-value.patch
+v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
+page-types-add-feature-for-walking-process-address-space-checkpatch-fixes.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
+memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
+memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
+memcg-improve-resource-counter-scalability-checkpatch-fixes.patch
+exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
+exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
+elf-clean-up-fill_note_info-fix.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+reiser4-disable.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
