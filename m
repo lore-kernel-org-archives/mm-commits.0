@@ -1,64 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [folded] hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions-fix.patch removed from -mm tree
-Date: Mon, 21 Sep 2009 14:34:15 -0700
-Message-ID: <200909212134.n8LLYFQd029335@imap1.linux-foundation.org>
+Subject: [folded] alpha-convert-to-use-arch_gettimeoffset-fix.patch removed from -mm tree
+Date: Mon, 21 Sep 2009 14:37:08 -0700
+Message-ID: <200909212137.n8LLb9di002574@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53864 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40360 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752987AbZIUVe4 (ORCPT
+	by vger.kernel.org with ESMTP id S1750813AbZIUVhR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Sep 2009 17:34:56 -0400
+	Mon, 21 Sep 2009 17:37:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, agl@us.ibm.com, arnd@arndb.de, david@gibson.dropbear.id.au, ebmunson@us.ibm.com, hugh.dickins@tiscali.co.uk, lee.schermerhorn@hp.com, mel@csn.ul.ie, nickpig
+To: akpm@linux-foundation.org, ink@jurassic.park.msu.ru, johnstul@us.ibm.com, rth@twiddle.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions-fix
+     alpha-convert-to-use-arch_gettimeoffset-fix
 has been removed from the -mm tree.  Its filename was
-     hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions-fix.patch
+     alpha-convert-to-use-arch_gettimeoffset-fix.patch
 
-This patch was dropped because it was folded into hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions.patch
+This patch was dropped because it was folded into alpha-convert-to-use-arch_gettimeoffset.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions-fix
+Subject: alpha-convert-to-use-arch_gettimeoffset-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Unneeded with Arnd's
-mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions.patch.
+cc1: warnings being treated as errors
+arch/alpha/kernel/time.c: In function 'arch_gettimeoffset':
+arch/alpha/kernel/time.c:413: warning: unused variable 'partial_tick'
+arch/alpha/kernel/time.c:413: warning: unused variable 'delta_cycles'
+make[1]: *** [arch/alpha/kernel/time.o] Error 1
 
-Cc: Adam Litke <agl@us.ibm.com>
-Cc: David Gibson <david@gibson.dropbear.id.au>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Eric B Munson <ebmunson@us.ibm.com>
-Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: John Stultz <johnstul@us.ibm.com>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/mman-common.h |    1 -
- mmap.c                            |    0 
- 2 files changed, 1 deletion(-)
+ arch/alpha/kernel/time.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN include/asm-generic/mman-common.h~hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions-fix include/asm-generic/mman-common.h
---- a/include/asm-generic/mman-common.h~hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions-fix
-+++ a/include/asm-generic/mman-common.h
-@@ -19,7 +19,6 @@
- #define MAP_TYPE	0x0f		/* Mask for type of mapping */
- #define MAP_FIXED	0x10		/* Interpret addr exactly */
- #define MAP_ANONYMOUS	0x20		/* don't use a file */
--#define MAP_HUGETLB	0x40		/* create a huge page mapping */
+diff -puN arch/alpha/kernel/time.c~alpha-convert-to-use-arch_gettimeoffset-fix arch/alpha/kernel/time.c
+--- a/arch/alpha/kernel/time.c~alpha-convert-to-use-arch_gettimeoffset-fix
++++ a/arch/alpha/kernel/time.c
+@@ -410,13 +410,13 @@ time_init(void)
+  */
+ u32 arch_gettimeoffset(void)
+ {
+-	unsigned long delta_cycles, delta_usec, partial_tick;
+-
+ #ifdef CONFIG_SMP
+ 	/* Until and unless we figure out how to get cpu cycle counters
+ 	   in sync and keep them there, we can't use the rpcc tricks.  */
+-	delta_usec = 0;
++	return 0;
+ #else
++	unsigned long delta_cycles, delta_usec, partial_tick;
++
+ 	delta_cycles = rpcc() - state.last_time;
+ 	partial_tick = state.partial_tick;
+ 	/*
+@@ -435,9 +435,8 @@ u32 arch_gettimeoffset(void)
+ 	delta_usec = (delta_cycles * state.scaled_ticks_per_cycle 
+ 		      + partial_tick) * 15625;
+ 	delta_usec = ((delta_usec / ((1UL << (FIX_SHIFT-6-1)) * HZ)) + 1) / 2;
+-#endif
+-
+ 	return delta_usec * 1000;
++#endif
+ }
  
- #define MS_ASYNC	1		/* sync memory asynchronously */
- #define MS_INVALIDATE	2		/* invalidate the caches */
-diff -puN include/linux/hugetlb.h~hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions-fix include/linux/hugetlb.h
-diff -puN mm/mmap.c~hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions-fix mm/mmap.c
+ /*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -75,8 +90,7 @@ arches-drop-superfluous-casts-in-nr_free_pages-callers.patch
 tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists.patch
 page-allocator-maintain-rolling-count-of-pages-to-free-from-the-pcp.patch
 hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions.patch
-hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+alpha-convert-to-use-arch_gettimeoffset.patch
 alpha-convert-to-use-arch_gettimeoffset-fix.patch
 cpuidle-fix-the-menu-governor-to-boost-io-performance.patch
 printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
