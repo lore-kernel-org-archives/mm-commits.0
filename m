@@ -1,66 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [folded] readahead-add-blk_run_backing_dev-fix.patch removed from -mm tree
-Date: Mon, 21 Sep 2009 14:12:38 -0700
-Message-ID: <200909212112.n8LLCcG3019089@imap1.linux-foundation.org>
+Subject: [folded] readahead-add-blk_run_backing_dev-fix-fix-2.patch removed from -mm tree
+Date: Mon, 21 Sep 2009 14:12:42 -0700
+Message-ID: <200909212112.n8LLCgxS019259@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50145 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34716 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751848AbZIUVMm (ORCPT
+	by vger.kernel.org with ESMTP id S1751929AbZIUVMr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Sep 2009 17:12:42 -0400
+	Mon, 21 Sep 2009 17:12:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, fengguang.wu@intel.com, hifumi.hisashi@oss.ntt.co.jp, jens.axboe@oracle.com, kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, fengguang.wu@intel.com, hifumi.hisashi@oss.ntt.co.jp, jens.axboe@oracle.com, kosaki.motohiro@jp.fujitsu.com, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     readahead-add-blk_run_backing_dev-fix
+     readahead-add-blk_run_backing_dev-fix-fix-2
 has been removed from the -mm tree.  Its filename was
-     readahead-add-blk_run_backing_dev-fix.patch
+     readahead-add-blk_run_backing_dev-fix-fix-2.patch
 
 This patch was dropped because it was folded into readahead-add-blk_run_backing_dev.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: readahead-add-blk_run_backing_dev-fix
+Subject: readahead-add-blk_run_backing_dev-fix-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-unbust comment layout
+This is yuk.   It's just to amke Randy happy for now.
 
 Cc: Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
 Cc: Jens Axboe <jens.axboe@oracle.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/readahead.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ mm/readahead.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/readahead.c~readahead-add-blk_run_backing_dev-fix mm/readahead.c
---- a/mm/readahead.c~readahead-add-blk_run_backing_dev-fix
+diff -puN mm/readahead.c~readahead-add-blk_run_backing_dev-fix-fix-2 mm/readahead.c
+--- a/mm/readahead.c~readahead-add-blk_run_backing_dev-fix-fix-2
 +++ a/mm/readahead.c
-@@ -549,12 +549,12 @@ page_cache_async_readahead(struct addres
+@@ -548,6 +548,7 @@ page_cache_async_readahead(struct addres
+ 	/* do read-ahead */
  	ondemand_readahead(mapping, ra, filp, true, offset, req_size);
  
++#ifdef CONFIG_BLOCK
  	/*
--	* Normally the current page is !uptodate and lock_page() will be
--	* immediately called to implicitly unplug the device. However this
--	* is not always true for RAID conifgurations, where data arrives
--	* not strictly in their submission order. In this case we need to
--	* explicitly kick off the IO.
--	*/
-+	 * Normally the current page is !uptodate and lock_page() will be
-+	 * immediately called to implicitly unplug the device. However this
-+	 * is not always true for RAID conifgurations, where data arrives
-+	 * not strictly in their submission order. In this case we need to
-+	 * explicitly kick off the IO.
-+	 */
+ 	 * Normally the current page is !uptodate and lock_page() will be
+ 	 * immediately called to implicitly unplug the device. However this
+@@ -557,5 +558,6 @@ page_cache_async_readahead(struct addres
+ 	 */
  	if (PageUptodate(page))
  		blk_run_backing_dev(mapping->backing_dev_info, NULL);
++#endif
  }
+ EXPORT_SYMBOL_GPL(page_cache_async_readahead);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -70,7 +67,6 @@ fs-make-sure-data-stored-into-inode-is-properly-seen-before-unlocking-new-inode-
 drivers-mfd-ab3100-corec-fiw-warning-and-powerpc-build-error.patch
 mm-make-swap-token-dummies-static-inlines.patch
 readahead-add-blk_run_backing_dev.patch
-readahead-add-blk_run_backing_dev-fix.patch
 readahead-add-blk_run_backing_dev-fix-fix-2.patch
 memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
 revert-hugetlb-restore-interleaving-of-bootmem-huge-pages-2631.patch
