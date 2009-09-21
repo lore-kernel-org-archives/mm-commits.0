@@ -1,54 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mmap-avoid-unnecessary-anon_vma-lock-acquisition-in-vma_adjust-tweak.patch removed from -mm tree
-Date: Mon, 21 Sep 2009 14:30:16 -0700
-Message-ID: <200909212130.n8LLUGJH021563@imap1.linux-foundation.org>
+Subject: [folded] mm-zero_page-without-pte_special-mips-fix.patch removed from -mm tree
+Date: Mon, 21 Sep 2009 14:29:48 -0700
+Message-ID: <200909212129.n8LLTmhY020509@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58464 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56548 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753873AbZIUVaX (ORCPT
+	by vger.kernel.org with ESMTP id S1753900AbZIUVai (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Sep 2009 17:30:23 -0400
+	Mon, 21 Sep 2009 17:30:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh.dickins@tiscali.co.uk, eric.whitney@hp.com, lee.schermerhorn@hp.com, npiggin@suse.de, mm-commits@vger.kernel.org
+To: hugh.dickins@tiscali.co.uk, akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, npiggin@suse.de, ralf@linu
 
 
 The patch titled
-     mmap-avoid-unnecessary-anon_vma-lock-acquisition-in-vma_adjust-tweak
+     mm-zero_page-without-pte_special mips fix
 has been removed from the -mm tree.  Its filename was
-     mmap-avoid-unnecessary-anon_vma-lock-acquisition-in-vma_adjust-tweak.patch
+     mm-zero_page-without-pte_special-mips-fix.patch
 
-This patch was dropped because it was folded into mmap-avoid-unnecessary-anon_vma-lock-acquisition-in-vma_adjust.patch
+This patch was dropped because it was folded into mm-zero_page-without-pte_special.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmap-avoid-unnecessary-anon_vma-lock-acquisition-in-vma_adjust-tweak
+Subject: mm-zero_page-without-pte_special mips fix
 From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Use macro instead of inline to fix mips allmodconfig error:
+
+/usr/src/devel/arch/mips/include/asm/pgtable.h: In function `my_zero_pfn':
+/usr/src/devel/arch/mips/include/asm/pgtable.h:90: error: `mem_map' undeclared (first use in this function)
+/usr/src/devel/arch/mips/include/asm/pgtable.h:90: error: (Each undeclared identifier is reported only once
+/usr/src/devel/arch/mips/include/asm/pgtable.h:90: error: for each function it appears in.)
+
+Reported-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Nick Piggin <npiggin@suse.de>
-Cc: Eric Whitney <eric.whitney@hp.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/mips/include/asm/pgtable.h |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN mm/mmap.c~mmap-avoid-unnecessary-anon_vma-lock-acquisition-in-vma_adjust-tweak mm/mmap.c
---- a/mm/mmap.c~mmap-avoid-unnecessary-anon_vma-lock-acquisition-in-vma_adjust-tweak
-+++ a/mm/mmap.c
-@@ -573,7 +573,7 @@ again:			remove_next = 1 + (end > next->
- 	 * When changing only vma->vm_end, we don't really need
- 	 * anon_vma lock.
- 	 */
--	if ((file || insert || importer) && vma->anon_vma)
-+	if (vma->anon_vma && (insert || importer || start != vma->vm_start))
- 		anon_vma = vma->anon_vma;
- 	if (anon_vma) {
- 		spin_lock(&anon_vma->lock);
+diff -puN arch/mips/include/asm/pgtable.h~mm-zero_page-without-pte_special-mips-fix arch/mips/include/asm/pgtable.h
+--- a/arch/mips/include/asm/pgtable.h~mm-zero_page-without-pte_special-mips-fix
++++ a/arch/mips/include/asm/pgtable.h
+@@ -84,11 +84,7 @@ static inline int is_zero_pfn(unsigned l
+ 	return offset_from_zero_pfn <= (zero_page_mask >> PAGE_SHIFT);
+ }
+ 
+-#define my_zero_pfn my_zero_pfn
+-static inline unsigned long my_zero_pfn(unsigned long addr)
+-{
+-	return page_to_pfn(ZERO_PAGE(addr));
+-}
++#define my_zero_pfn(addr)	page_to_pfn(ZERO_PAGE(addr))
+ 
+ extern void paging_init(void);
+ 
 _
 
 Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
@@ -98,6 +114,7 @@ mm-foll-flags-for-gup-flags.patch
 mm-munlock-avoid-zero_page.patch
 mm-hugetlbfs_pagecache_present.patch
 mm-zero_page-without-pte_special.patch
+mm-zero_page-without-pte_special-mips-fix.patch
 mm-move-highest_memmap_pfn.patch
 mmap-remove-unnecessary-code.patch
 tmpfs-depend-on-shmem.patch
