@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mm-reduce-atomic-use-on-use_mm-fast-path.patch added to -mm tree
-Date: Mon, 21 Sep 2009 13:48:51 -0700
-Message-ID: <200909212048.n8LKmpCD004750@imap1.linux-foundation.org>
+Subject: + mm-move-use_mm-unuse_mm-from-aioc-to-mm.patch added to -mm tree
+Date: Mon, 21 Sep 2009 13:48:59 -0700
+Message-ID: <200909212048.n8LKmxqW005028@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45101 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39258 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752610AbZIUUtd (ORCPT
+	by vger.kernel.org with ESMTP id S1752679AbZIUUtj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Sep 2009 16:49:33 -0400
+	Mon, 21 Sep 2009 16:49:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mst@redhat.com, aarcange@redhat.com
 
 
 The patch titled
-     mm: reduce atomic use on use_mm fast path
+     mm: move use_mm/unuse_mm from aio.c to mm/
 has been added to the -mm tree.  Its filename is
-     mm-reduce-atomic-use-on-use_mm-fast-path.patch
+     mm-move-use_mm-unuse_mm-from-aioc-to-mm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,45 +34,180 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: reduce atomic use on use_mm fast path
+Subject: mm: move use_mm/unuse_mm from aio.c to mm/
 From: "Michael S. Tsirkin" <mst@redhat.com>
 
-When the mm being switched to matches the active mm, we don't need to
-increment and then drop the mm count.  In a simple benchmark this happens
-in about 50% of time.  Making that conditional reduces contention on that
-cacheline on SMP systems.
+Anyone who wants to do copy to/from user from a kernel thread, needs
+use_mm (like what fs/aio has).  Move that into mm/, to make reusing and
+exporting easier down the line, and make aio use it.  Next intended user,
+besides aio, will be vhost-net.
 
 Acked-by: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmu_context.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ fs/aio.c                    |   47 -----------------------------
+ include/linux/mmu_context.h |    9 +++++
+ mm/Makefile                 |    2 -
+ mm/mmu_context.c            |   55 ++++++++++++++++++++++++++++++++++
+ 4 files changed, 66 insertions(+), 47 deletions(-)
 
-diff -puN mm/mmu_context.c~mm-reduce-atomic-use-on-use_mm-fast-path mm/mmu_context.c
---- a/mm/mmu_context.c~mm-reduce-atomic-use-on-use_mm-fast-path
-+++ a/mm/mmu_context.c
-@@ -26,13 +26,16 @@ void use_mm(struct mm_struct *mm)
+diff -puN fs/aio.c~mm-move-use_mm-unuse_mm-from-aioc-to-mm fs/aio.c
+--- a/fs/aio.c~mm-move-use_mm-unuse_mm-from-aioc-to-mm
++++ a/fs/aio.c
+@@ -24,6 +24,7 @@
+ #include <linux/file.h>
+ #include <linux/mm.h>
+ #include <linux/mman.h>
++#include <linux/mmu_context.h>
+ #include <linux/slab.h>
+ #include <linux/timer.h>
+ #include <linux/aio.h>
+@@ -34,7 +35,6 @@
  
- 	task_lock(tsk);
- 	active_mm = tsk->active_mm;
--	atomic_inc(&mm->mm_count);
-+	if (active_mm != mm) {
-+		atomic_inc(&mm->mm_count);
-+		tsk->active_mm = mm;
-+	}
- 	tsk->mm = mm;
--	tsk->active_mm = mm;
- 	switch_mm(active_mm, mm, tsk);
- 	task_unlock(tsk);
+ #include <asm/kmap_types.h>
+ #include <asm/uaccess.h>
+-#include <asm/mmu_context.h>
  
--	mmdrop(active_mm);
-+	if (active_mm != mm)
-+		mmdrop(active_mm);
+ #if DEBUG > 1
+ #define dprintk		printk
+@@ -595,51 +595,6 @@ static struct kioctx *lookup_ioctx(unsig
  }
  
  /*
+- * use_mm
+- *	Makes the calling kernel thread take on the specified
+- *	mm context.
+- *	Called by the retry thread execute retries within the
+- *	iocb issuer's mm context, so that copy_from/to_user
+- *	operations work seamlessly for aio.
+- *	(Note: this routine is intended to be called only
+- *	from a kernel thread context)
+- */
+-static void use_mm(struct mm_struct *mm)
+-{
+-	struct mm_struct *active_mm;
+-	struct task_struct *tsk = current;
+-
+-	task_lock(tsk);
+-	active_mm = tsk->active_mm;
+-	atomic_inc(&mm->mm_count);
+-	tsk->mm = mm;
+-	tsk->active_mm = mm;
+-	switch_mm(active_mm, mm, tsk);
+-	task_unlock(tsk);
+-
+-	mmdrop(active_mm);
+-}
+-
+-/*
+- * unuse_mm
+- *	Reverses the effect of use_mm, i.e. releases the
+- *	specified mm context which was earlier taken on
+- *	by the calling kernel thread
+- *	(Note: this routine is intended to be called only
+- *	from a kernel thread context)
+- */
+-static void unuse_mm(struct mm_struct *mm)
+-{
+-	struct task_struct *tsk = current;
+-
+-	task_lock(tsk);
+-	tsk->mm = NULL;
+-	/* active_mm is still 'mm' */
+-	enter_lazy_tlb(mm, tsk);
+-	task_unlock(tsk);
+-}
+-
+-/*
+  * Queue up a kiocb to be retried. Assumes that the kiocb
+  * has already been marked as kicked, and places it on
+  * the retry run list for the corresponding ioctx, if it
+diff -puN /dev/null include/linux/mmu_context.h
+--- /dev/null
++++ a/include/linux/mmu_context.h
+@@ -0,0 +1,9 @@
++#ifndef _LINUX_MMU_CONTEXT_H
++#define _LINUX_MMU_CONTEXT_H
++
++struct mm_struct;
++
++void use_mm(struct mm_struct *mm);
++void unuse_mm(struct mm_struct *mm);
++
++#endif
+diff -puN mm/Makefile~mm-move-use_mm-unuse_mm-from-aioc-to-mm mm/Makefile
+--- a/mm/Makefile~mm-move-use_mm-unuse_mm-from-aioc-to-mm
++++ a/mm/Makefile
+@@ -11,7 +11,7 @@ obj-y			:= bootmem.o filemap.o mempool.o
+ 			   maccess.o page_alloc.o page-writeback.o \
+ 			   readahead.o swap.o truncate.o vmscan.o shmem.o \
+ 			   prio_tree.o util.o mmzone.o vmstat.o backing-dev.o \
+-			   page_isolation.o mm_init.o $(mmu-y)
++			   page_isolation.o mm_init.o mmu_context.o $(mmu-y)
+ obj-y += init-mm.o
+ 
+ obj-$(CONFIG_PROC_PAGE_MONITOR) += pagewalk.o
+diff -puN /dev/null mm/mmu_context.c
+--- /dev/null
++++ a/mm/mmu_context.c
+@@ -0,0 +1,55 @@
++/* Copyright (C) 2009 Red Hat, Inc.
++ *
++ * See ../COPYING for licensing terms.
++ */
++
++#include <linux/mm.h>
++#include <linux/mmu_context.h>
++#include <linux/sched.h>
++
++#include <asm/mmu_context.h>
++
++/*
++ * use_mm
++ *	Makes the calling kernel thread take on the specified
++ *	mm context.
++ *	Called by the retry thread execute retries within the
++ *	iocb issuer's mm context, so that copy_from/to_user
++ *	operations work seamlessly for aio.
++ *	(Note: this routine is intended to be called only
++ *	from a kernel thread context)
++ */
++void use_mm(struct mm_struct *mm)
++{
++	struct mm_struct *active_mm;
++	struct task_struct *tsk = current;
++
++	task_lock(tsk);
++	active_mm = tsk->active_mm;
++	atomic_inc(&mm->mm_count);
++	tsk->mm = mm;
++	tsk->active_mm = mm;
++	switch_mm(active_mm, mm, tsk);
++	task_unlock(tsk);
++
++	mmdrop(active_mm);
++}
++
++/*
++ * unuse_mm
++ *	Reverses the effect of use_mm, i.e. releases the
++ *	specified mm context which was earlier taken on
++ *	by the calling kernel thread
++ *	(Note: this routine is intended to be called only
++ *	from a kernel thread context)
++ */
++void unuse_mm(struct mm_struct *mm)
++{
++	struct task_struct *tsk = current;
++
++	task_lock(tsk);
++	tsk->mm = NULL;
++	/* active_mm is still 'mm' */
++	enter_lazy_tlb(mm, tsk);
++	task_unlock(tsk);
++}
 _
 
 Patches currently in -mm which might be from mst@redhat.com are
