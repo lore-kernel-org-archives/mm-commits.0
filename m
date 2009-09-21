@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sisfb-change-sis_ddc_port-type-to-sisioaddress.patch added to -mm tree
-Date: Mon, 21 Sep 2009 13:27:42 -0700
-Message-ID: <200909212027.n8LKRgUr027946@imap1.linux-foundation.org>
+Subject: + mm-reduce-atomic-use-on-use_mm-fast-path.patch added to -mm tree
+Date: Mon, 21 Sep 2009 13:48:51 -0700
+Message-ID: <200909212048.n8LKmpCD004750@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35432 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45101 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753520AbZIUU2z (ORCPT
+	by vger.kernel.org with ESMTP id S1752610AbZIUUtd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Sep 2009 16:28:55 -0400
+	Mon, 21 Sep 2009 16:49:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aaro.koskinen@iki.fi, stable@kernel.org, thomas@winischhofer.net
+Cc: mst@redhat.com, aarcange@redhat.com
 
 
 The patch titled
-     sisfb: change SiS_DDC_Port type to SISIOADDRESS
+     mm: reduce atomic use on use_mm fast path
 has been added to the -mm tree.  Its filename is
-     sisfb-change-sis_ddc_port-type-to-sisioaddress.patch
+     mm-reduce-atomic-use-on-use_mm-fast-path.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,88 +34,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sisfb: change SiS_DDC_Port type to SISIOADDRESS
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: mm: reduce atomic use on use_mm fast path
+From: "Michael S. Tsirkin" <mst@redhat.com>
 
-The patch enables the driver to be used on platforms such as ARM where an
-I/O address is a 32-bit memory address.
+When the mm being switched to matches the active mm, we don't need to
+increment and then drop the mm count.  In a simple benchmark this happens
+in about 50% of time.  Making that conditional reduces contention on that
+cacheline on SMP systems.
 
-The patch avoids the following kernel oops:
-
-debian:~# modprobe sisfb
-[   73.070000] sisfb: Video ROM found
-[   73.080000] sisfb: Video RAM at 0x80000000, mapped to 0xe0a00000, size 1024k
-[   73.090000] sisfb: MMIO at 0x84080000, mapped to 0xe0b80000, size 256k
-[   73.090000] sisfb: Memory heap starting at 800K, size 32K
-[   73.360000] Unable to handle kernel paging request at virtual address 6e000844
-[   73.380000] pgd = df230000
-[   73.380000] [6e000844] *pgd=00000000
-[   73.380000] Internal error: Oops: 8f5 [#1]
-[   73.380000] Modules linked in: sisfb(+) fb cfbcopyarea cfbimgblt cfbfillrect
-[   73.380000] CPU: 0    Not tainted  (2.6.31-iop32x #1)
-[   73.380000] PC is at SiS_SetRegANDOR+0x10/0x38 [sisfb]
-[   73.380000] LR is at SiS_SetSCLKHigh+0x38/0x94 [sisfb]
-[   73.380000] pc : [<bf01dc00>]    lr : [<bf0238f8>]    psr: 60000013
-[   73.380000] sp : df38fd00  ip : 6e000000  fp : 00000002
-[   73.380000] r10: 00000108  r9 : 00000000  r8 : 00000108
-[   73.380000] r7 : df064258  r6 : 00000110  r5 : 6e000844  r4 : 0000010a
-[   73.380000] r3 : 00000001  r2 : 0000000e  r1 : 00000011  r0 : 00000844
-[   73.380000] Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment user
-[   73.380000] Control: 0000397f  Table: bf230000  DAC: 00000015
-[   73.380000] Process modprobe (pid: 1849, stack limit = 0xdf38e270)
-[   73.380000] Stack: (0xdf38fd00 to 0xdf390000)
-[   73.380000] fd00: 0000010a 00000108 df064258 df064258 df064258 00000000 00000000 bf02c4e0
-[   73.380000] fd20: 00000114 bf02c50c 00000013 00000114 0000010a df064258 00000000 bf02c980
-[   73.380000] fd40: 00009c66 00000004 00000001 df064250 a0010000 a6a2a0a0 df064250 00000003
-[   73.380000] fd60: df064250 00000000 df064258 0000fffd 00000000 00000000 00000000 bf033948
-[   73.380000] fd80: 00000000 00000000 00000000 bf019e2c 00000000 df064a70 bf03b470 00010000
-[   73.380000] fda0: 00000000 df064250 00000000 df831c00 00000012 bf039f70 00000000 c00abed8
-[   73.380000] fdc0: 000008a6 000008a4 df0649b0 df064878 df064258 df064000 00000000 00000000
-[   73.380000] fde0: 00000001 00008000 00000001 00030000 df81c930 bf049f88 df831c00 00000000
-[   73.380000] fe00: bf049f58 df3952a0 c0447708 bf049f88 bf049fe0 c0191980 df831c00 c0191b10
-[   73.380000] fe20: df831c58 bf049f58 df831c00 bf04aca8 df3952a0 df831c58 df831c58 bf049f88
-[   73.380000] fe40: c01ba1b4 c01ba0a0 df831c58 df831c8c bf049f88 c01ba1b4 df3952a0 00000000
-[   73.380000] fe60: c03e265c c01ba240 00000000 df38fe78 bf049f88 c01b990c df812938 df81b8d0
-[   73.380000] fe80: df3952a0 df807780 00000000 00000060 bf049f88 c01b9224 bf0429c8 00000000
-[   73.380000] fea0: bf049f58 00000000 bf049f88 00000000 00000000 bf04aea8 00000000 c01ba4e4
-[   73.380000] fec0: e09861a0 bf049f58 00000000 bf049f88 00000000 c0191f20 00000000 00000000
-[   73.380000] fee0: c03f7bac bf04d418 0000fff2 0000fff1 bf04ad08 0002f260 0002f260 e0986038
-[   73.380000] ff00: e0986150 e098568b df143340 e0990280 00000036 c03d8b00 fffffffd 00000000
-[   73.380000] ff20: bf04acfc 00000000 fffffffc 0003cf4b 00018098 c03f7bac 00000000 bf04d000
-[   73.380000] ff40: df38e000 00000000 bedc0984 c00272a4 ffffffff c005bc88 00000000 00000000
-[   73.380000] ff60: 0003cf4b 0003cf4b 00018098 bf04acfc 00000000 c0027fe8 df38e000 00000000
-[   73.380000] ff80: bedc0984 c006882c 00001000 00000003 00000000 00009064 00000000 00008edc
-[   73.380000] ffa0: 00000080 c0027e20 00009064 00000000 4014e000 0003cf4b 00018098 0003cf4b
-[   73.380000] ffc0: 00009064 00000000 00008edc 00000080 00000000 00000000 40025000 bedc0984
-[   73.380000] ffe0: 00000000 bedc08fc 0000b6b0 400e8f34 60000010 4014e000 00000000 00000000
-[   73.380000] [<bf01dc00>] (SiS_SetRegANDOR+0x10/0x38 [sisfb]) from [<df064258>] (0xdf064258)
-[   73.380000] Code: e92d0030 e20110ff e280546e e3a0c46e (e5c51000)
-[   73.680000] ---[ end trace 62a93e01df37a5f2 ]---
-
-Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Thomas Winischhofer <thomas@winischhofer.net>
-Cc: <stable@kernel.org>
+Acked-by: Andrea Arcangeli <aarcange@redhat.com>
+Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/sis/vstruct.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mmu_context.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN drivers/video/sis/vstruct.h~sisfb-change-sis_ddc_port-type-to-sisioaddress drivers/video/sis/vstruct.h
---- a/drivers/video/sis/vstruct.h~sisfb-change-sis_ddc_port-type-to-sisioaddress
-+++ a/drivers/video/sis/vstruct.h
-@@ -342,7 +342,7 @@ struct SiS_Private
- 	unsigned short			SiS_RY4COE;
- 	unsigned short			SiS_LCDHDES;
- 	unsigned short			SiS_LCDVDES;
--	unsigned short			SiS_DDC_Port;
-+	SISIOADDRESS			SiS_DDC_Port;
- 	unsigned short			SiS_DDC_Index;
- 	unsigned short			SiS_DDC_Data;
- 	unsigned short			SiS_DDC_NData;
+diff -puN mm/mmu_context.c~mm-reduce-atomic-use-on-use_mm-fast-path mm/mmu_context.c
+--- a/mm/mmu_context.c~mm-reduce-atomic-use-on-use_mm-fast-path
++++ a/mm/mmu_context.c
+@@ -26,13 +26,16 @@ void use_mm(struct mm_struct *mm)
+ 
+ 	task_lock(tsk);
+ 	active_mm = tsk->active_mm;
+-	atomic_inc(&mm->mm_count);
++	if (active_mm != mm) {
++		atomic_inc(&mm->mm_count);
++		tsk->active_mm = mm;
++	}
+ 	tsk->mm = mm;
+-	tsk->active_mm = mm;
+ 	switch_mm(active_mm, mm, tsk);
+ 	task_unlock(tsk);
+ 
+-	mmdrop(active_mm);
++	if (active_mm != mm)
++		mmdrop(active_mm);
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from aaro.koskinen@iki.fi are
+Patches currently in -mm which might be from mst@redhat.com are
 
-sisfb-change-sis_ddc_port-type-to-sisioaddress.patch
+origin.patch
+linux-next.patch
+mm-move-use_mm-unuse_mm-from-aioc-to-mm.patch
+mm-reduce-atomic-use-on-use_mm-fast-path.patch
 
