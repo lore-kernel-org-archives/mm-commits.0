@@ -1,204 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sched-fix-raciness-in-runqueue_is_locked.patch removed from -mm tree
-Date: Mon, 21 Sep 2009 12:24:45 -0700
-Message-ID: <200909211924.n8LJOj3G001196@imap1.linux-foundation.org>
+Subject: + shmem-initialize-struct-shmem_sb_info-to-zero.patch added to -mm tree
+Date: Mon, 21 Sep 2009 12:53:29 -0700
+Message-ID: <200909211953.n8LJrTwY025422@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45670 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32846 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753371AbZIUTZW (ORCPT
+	by vger.kernel.org with ESMTP id S1753587AbZIUTxp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Sep 2009 15:25:22 -0400
+	Mon, 21 Sep 2009 15:53:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mingo@elte.hu, rostedt@goodmis.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: penberg@cs.helsinki.fi, hugh.dickins@tiscali.co.uk, mingo@elte.hu, vegard.nossum@gmail.com
 
 
 The patch titled
-     sched(): fix raciness in runqueue_is_locked()
-has been removed from the -mm tree.  Its filename was
-     sched-fix-raciness-in-runqueue_is_locked.patch
+     shmem: initialize struct shmem_sb_info to zero
+has been added to the -mm tree.  Its filename is
+     shmem-initialize-struct-shmem_sb_info-to-zero.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sched(): fix raciness in runqueue_is_locked()
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: shmem: initialize struct shmem_sb_info to zero
+From: Pekka Enberg <penberg@cs.helsinki.fi>
 
-runqueue_is_locked() is unavoidably racy due to a poor interface design. 
-It does
+Fixes the following kmemcheck false positive (the compiler is using
+a 32-bit mov to load the 16-bit sbinfo->mode in shmem_fill_super):
 
-	cpu = get_cpu()
-	ret = some_perpcu_thing(cpu);
-	put_cpu(cpu);
-	return ret;
+[    0.337000] Total of 1 processors activated (3088.38 BogoMIPS).
+[    0.352000] CPU0 attaching NULL sched-domain.
+[    0.360000] WARNING: kmemcheck: Caught 32-bit read from uninitialized
+memory (9f8020fc)
+[    0.361000]
+a44240820000000041f6998100000000000000000000000000000000ff030000
+[    0.368000]  i i i i i i i i i i i i i i i i u u u u i i i i i i i i i i u
+u
+[    0.375000]                                                          ^
+[    0.376000]
+[    0.377000] Pid: 9, comm: khelper Not tainted (2.6.31-tip #206) P4DC6
+[    0.378000] EIP: 0060:[<810a3a95>] EFLAGS: 00010246 CPU: 0
+[    0.379000] EIP is at shmem_fill_super+0xb5/0x120
+[    0.380000] EAX: 00000000 EBX: 9f845400 ECX: 824042a4 EDX: 8199f641
+[    0.381000] ESI: 9f8020c0 EDI: 9f845400 EBP: 9f81af68 ESP: 81cd6eec
+[    0.382000]  DS: 007b ES: 007b FS: 00d8 GS: 0000 SS: 0068
+[    0.383000] CR0: 8005003b CR2: 9f806200 CR3: 01ccd000 CR4: 000006d0
+[    0.384000] DR0: 00000000 DR1: 00000000 DR2: 00000000 DR3: 00000000
+[    0.385000] DR6: ffff4ff0 DR7: 00000400
+[    0.386000]  [<810c25fc>] get_sb_nodev+0x3c/0x80
+[    0.388000]  [<810a3514>] shmem_get_sb+0x14/0x20
+[    0.390000]  [<810c207f>] vfs_kern_mount+0x4f/0x120
+[    0.392000]  [<81b2849e>] init_tmpfs+0x7e/0xb0
+[    0.394000]  [<81b11597>] do_basic_setup+0x17/0x30
+[    0.396000]  [<81b11907>] kernel_init+0x57/0xa0
+[    0.398000]  [<810039b7>] kernel_thread_helper+0x7/0x10
+[    0.400000]  [<ffffffff>] 0xffffffff
+[    0.402000] khelper used greatest stack depth: 2820 bytes left
+[    0.407000] calling  init_mmap_min_addr+0x0/0x10 @ 1
+[    0.408000] initcall init_mmap_min_addr+0x0/0x10 returned 0 after 0 usecs
 
-Its return value is unreliable.
-
-Fix.
-
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Reported-by: Ingo Molnar <mingo@elte.hu>
+Analysed-by: Vegard Nossum <vegard.nossum@gmail.com>
+Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Acked-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    2 +-
- kernel/sched.c        |   10 ++--------
- kernel/trace/trace.c  |    8 +++++++-
- 3 files changed, 10 insertions(+), 10 deletions(-)
+ mm/shmem.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN kernel/trace/trace.c~sched-fix-raciness-in-runqueue_is_locked kernel/trace/trace.c
---- a/kernel/trace/trace.c~sched-fix-raciness-in-runqueue_is_locked
-+++ a/kernel/trace/trace.c
-@@ -274,12 +274,18 @@ unsigned long trace_flags = TRACE_ITER_P
-  */
- void trace_wake_up(void)
- {
-+	int cpu;
-+
-+	if (trace_flags & TRACE_ITER_BLOCK)
-+		return;
- 	/*
- 	 * The runqueue_is_locked() can fail, but this is the best we
- 	 * have for now:
- 	 */
--	if (!(trace_flags & TRACE_ITER_BLOCK) && !runqueue_is_locked())
-+	cpu = get_cpu();
-+ 	if (!runqueue_is_locked(cpu))
- 		wake_up(&trace_wait);
-+	put_cpu();
- }
+diff -puN mm/shmem.c~shmem-initialize-struct-shmem_sb_info-to-zero mm/shmem.c
+--- a/mm/shmem.c~shmem-initialize-struct-shmem_sb_info-to-zero
++++ a/mm/shmem.c
+@@ -2311,17 +2311,14 @@ int shmem_fill_super(struct super_block 
+ 	int err = -ENOMEM;
  
- static int __init set_buf_size(char *str)
-diff -puN kernel/sched.c~sched-fix-raciness-in-runqueue_is_locked kernel/sched.c
---- a/kernel/sched.c~sched-fix-raciness-in-runqueue_is_locked
-+++ a/kernel/sched.c
-@@ -715,15 +715,9 @@ inline void update_rq_clock(struct rq *r
-  * This interface allows printk to be called with the runqueue lock
-  * held and know whether or not it is OK to wake up the klogd.
-  */
--int runqueue_is_locked(void)
-+int runqueue_is_locked(int cpu)
- {
--	int cpu = get_cpu();
--	struct rq *rq = cpu_rq(cpu);
--	int ret;
--
--	ret = spin_is_locked(&rq->lock);
--	put_cpu();
--	return ret;
-+	return spin_is_locked(&cpu_rq(cpu)->lock);
- }
+ 	/* Round up to L1_CACHE_BYTES to resist false sharing */
+-	sbinfo = kmalloc(max((int)sizeof(struct shmem_sb_info),
++	sbinfo = kzalloc(max((int)sizeof(struct shmem_sb_info),
+ 				L1_CACHE_BYTES), GFP_KERNEL);
+ 	if (!sbinfo)
+ 		return -ENOMEM;
  
- /*
-diff -puN include/linux/sched.h~sched-fix-raciness-in-runqueue_is_locked include/linux/sched.h
---- a/include/linux/sched.h~sched-fix-raciness-in-runqueue_is_locked
-+++ a/include/linux/sched.h
-@@ -254,7 +254,7 @@ extern asmlinkage void schedule_tail(str
- extern void init_idle(struct task_struct *idle, int cpu);
- extern void init_idle_bootup_task(struct task_struct *idle);
+-	sbinfo->max_blocks = 0;
+-	sbinfo->max_inodes = 0;
+ 	sbinfo->mode = S_IRWXUGO | S_ISVTX;
+ 	sbinfo->uid = current_fsuid();
+ 	sbinfo->gid = current_fsgid();
+-	sbinfo->mpol = NULL;
+ 	sb->s_fs_info = sbinfo;
  
--extern int runqueue_is_locked(void);
-+extern int runqueue_is_locked(int cpu);
- extern void task_rq_unlock_wait(struct task_struct *p);
- 
- extern cpumask_var_t nohz_cpu_mask;
+ #ifdef CONFIG_TMPFS
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from penberg@cs.helsinki.fi are
 
 origin.patch
-fs-make-sure-data-stored-into-inode-is-properly-seen-before-unlocking-new-inode-fix.patch
-drivers-mfd-ab3100-corec-fiw-warning-and-powerpc-build-error.patch
+proc-kcore-work-around-a-bug.patch
+repeatable-slab-corruption-with-ltp-msgctl08.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-hwmon-driver-for-acpi-40-power-meters.patch
-drivers-md-dm-log-userspace-basec-fix-warning.patch
-drivers-dma-ioat-dma_v3c-fix-warnings.patch
-drivers-dma-ioat-dma_v2c-fix-warnings.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-checkincludespl-add-option-to-remove-duplicates-in-place.patch
-net-fix-config_net=n-build-on-sparc64.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-include-linux-credh-fix-build.patch
-serial167-fix-read-buffer-overflow.patch
-st-fix-test-of-value-range-in-st_set_options.patch
-drivers-usb-serial-sierrac-fix-config_pm=n-build.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
 fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
-vfs-optimize-touch_time-too.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-drivers-net-wireless-ath-ar9170-phyc-fix-uninitialised-variable.patch
-mm-make-swap-token-dummies-static-inlines-fix.patch
-readahead-add-blk_run_backing_dev-fix.patch
-readahead-add-blk_run_backing_dev-fix-fix-2.patch
-memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
-revert-hugetlb-restore-interleaving-of-bootmem-huge-pages-2631.patch
-vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
+mm-kmem_cache_create-make-it-easier-to-catch-null-cache-names.patch
 revert-proc-kcore-work-around-a-bug.patch
-arches-drop-superfluous-casts-in-nr_free_pages-callers-checkpatch-fixes.patch
-tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists-fix.patch
-page-allocator-maintain-rolling-count-of-pages-to-free-from-the-pcp-checkpatch-fixes.patch
-mm-zero_page-without-pte_special-mips-fix.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
-hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-alpha-convert-to-use-arch_gettimeoffset-fix.patch
-cpuidle-fix-the-menu-governor-to-boost-io-performance.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
-generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
-proc-connector-add-event-for-process-becoming-session-leader.patch
-build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix.patch
-kernel-smpc-relocate-some-code.patch
-mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
-sdio-add-cd-disable-support-cleanup.patch
-sdio-add-mmc_quirk_lenient_fn0-fix.patch
-at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver-checkpatch-fixes.patch
-mmc-core-sdio-suspend-resume-support-fix.patch
-procfs-provide-stack-information-for-threads-v011-fix.patch
-walk-system-ram-range-fix-2.patch
-kcore-register-vmemmap-range-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes-fix.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
-drivers-video-add-kmalloc-null-tests-fix.patch
-drivers-video-tmiofbc-fix-uninitialised-return-value.patch
-v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
-page-types-add-feature-for-walking-process-address-space-checkpatch-fixes.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
-memcg-improve-resource-counter-scalability-checkpatch-fixes.patch
-exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
-exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
-elf-clean-up-fill_note_info-fix.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-reiser4-disable.patch
+mm-replace-various-uses-of-num_physpages-by-totalram_pages.patch
+page-allocator-split-per-cpu-list-into-one-list-per-migrate-type.patch
+page-allocator-maintain-rolling-count-of-pages-to-free-from-the-pcp.patch
+shmem-initialize-struct-shmem_sb_info-to-zero.patch
+move-magic-numbers-into-magich.patch
+move-magic-numbers-into-magich-update.patch
 slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
 
