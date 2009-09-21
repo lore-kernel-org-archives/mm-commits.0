@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ksm-kernel-samepage-merging-fix-rare-page-leak.patch added to -mm tree
-Date: Mon, 21 Sep 2009 13:05:31 -0700
-Message-ID: <200909212005.n8LK5VqE016720@imap1.linux-foundation.org>
+Subject: + sisfb-change-sis_ddc_port-type-to-sisioaddress.patch added to -mm tree
+Date: Mon, 21 Sep 2009 13:27:42 -0700
+Message-ID: <200909212027.n8LKRgUr027946@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56849 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35432 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753798AbZIUUFo (ORCPT
+	by vger.kernel.org with ESMTP id S1753520AbZIUU2z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Sep 2009 16:05:44 -0400
+	Mon, 21 Sep 2009 16:28:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hugh.dickins@tiscali.co.uk, aarcange@redhat.com, ieidus@redhat.com
+Cc: aaro.koskinen@iki.fi, stable@kernel.org, thomas@winischhofer.net
 
 
 The patch titled
-     ksm: fix rare page leak
+     sisfb: change SiS_DDC_Port type to SISIOADDRESS
 has been added to the -mm tree.  Its filename is
-     ksm-kernel-samepage-merging-fix-rare-page-leak.patch
+     sisfb-change-sis_ddc_port-type-to-sisioaddress.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,175 +34,88 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ksm: fix rare page leak
-From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Subject: sisfb: change SiS_DDC_Port type to SISIOADDRESS
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
 
-In the rare case when stable_tree_insert() finds a match when the prior
-stable_tree_search() did not, it forgot to free the page reference (the
-omission looks intentional, but I think that's because something else used
-to be done there).
+The patch enables the driver to be used on platforms such as ARM where an
+I/O address is a 32-bit memory address.
 
-Fix that by one put_page() for all three cases, call it tree_page rather
-than page2[0], clarify the comment on this exceptional case, and remove
-the comment in stable_tree_search() which contradicts it!
+The patch avoids the following kernel oops:
 
-Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Acked-by: Izik Eidus <ieidus@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+debian:~# modprobe sisfb
+[   73.070000] sisfb: Video ROM found
+[   73.080000] sisfb: Video RAM at 0x80000000, mapped to 0xe0a00000, size 1024k
+[   73.090000] sisfb: MMIO at 0x84080000, mapped to 0xe0b80000, size 256k
+[   73.090000] sisfb: Memory heap starting at 800K, size 32K
+[   73.360000] Unable to handle kernel paging request at virtual address 6e000844
+[   73.380000] pgd = df230000
+[   73.380000] [6e000844] *pgd=00000000
+[   73.380000] Internal error: Oops: 8f5 [#1]
+[   73.380000] Modules linked in: sisfb(+) fb cfbcopyarea cfbimgblt cfbfillrect
+[   73.380000] CPU: 0    Not tainted  (2.6.31-iop32x #1)
+[   73.380000] PC is at SiS_SetRegANDOR+0x10/0x38 [sisfb]
+[   73.380000] LR is at SiS_SetSCLKHigh+0x38/0x94 [sisfb]
+[   73.380000] pc : [<bf01dc00>]    lr : [<bf0238f8>]    psr: 60000013
+[   73.380000] sp : df38fd00  ip : 6e000000  fp : 00000002
+[   73.380000] r10: 00000108  r9 : 00000000  r8 : 00000108
+[   73.380000] r7 : df064258  r6 : 00000110  r5 : 6e000844  r4 : 0000010a
+[   73.380000] r3 : 00000001  r2 : 0000000e  r1 : 00000011  r0 : 00000844
+[   73.380000] Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment user
+[   73.380000] Control: 0000397f  Table: bf230000  DAC: 00000015
+[   73.380000] Process modprobe (pid: 1849, stack limit = 0xdf38e270)
+[   73.380000] Stack: (0xdf38fd00 to 0xdf390000)
+[   73.380000] fd00: 0000010a 00000108 df064258 df064258 df064258 00000000 00000000 bf02c4e0
+[   73.380000] fd20: 00000114 bf02c50c 00000013 00000114 0000010a df064258 00000000 bf02c980
+[   73.380000] fd40: 00009c66 00000004 00000001 df064250 a0010000 a6a2a0a0 df064250 00000003
+[   73.380000] fd60: df064250 00000000 df064258 0000fffd 00000000 00000000 00000000 bf033948
+[   73.380000] fd80: 00000000 00000000 00000000 bf019e2c 00000000 df064a70 bf03b470 00010000
+[   73.380000] fda0: 00000000 df064250 00000000 df831c00 00000012 bf039f70 00000000 c00abed8
+[   73.380000] fdc0: 000008a6 000008a4 df0649b0 df064878 df064258 df064000 00000000 00000000
+[   73.380000] fde0: 00000001 00008000 00000001 00030000 df81c930 bf049f88 df831c00 00000000
+[   73.380000] fe00: bf049f58 df3952a0 c0447708 bf049f88 bf049fe0 c0191980 df831c00 c0191b10
+[   73.380000] fe20: df831c58 bf049f58 df831c00 bf04aca8 df3952a0 df831c58 df831c58 bf049f88
+[   73.380000] fe40: c01ba1b4 c01ba0a0 df831c58 df831c8c bf049f88 c01ba1b4 df3952a0 00000000
+[   73.380000] fe60: c03e265c c01ba240 00000000 df38fe78 bf049f88 c01b990c df812938 df81b8d0
+[   73.380000] fe80: df3952a0 df807780 00000000 00000060 bf049f88 c01b9224 bf0429c8 00000000
+[   73.380000] fea0: bf049f58 00000000 bf049f88 00000000 00000000 bf04aea8 00000000 c01ba4e4
+[   73.380000] fec0: e09861a0 bf049f58 00000000 bf049f88 00000000 c0191f20 00000000 00000000
+[   73.380000] fee0: c03f7bac bf04d418 0000fff2 0000fff1 bf04ad08 0002f260 0002f260 e0986038
+[   73.380000] ff00: e0986150 e098568b df143340 e0990280 00000036 c03d8b00 fffffffd 00000000
+[   73.380000] ff20: bf04acfc 00000000 fffffffc 0003cf4b 00018098 c03f7bac 00000000 bf04d000
+[   73.380000] ff40: df38e000 00000000 bedc0984 c00272a4 ffffffff c005bc88 00000000 00000000
+[   73.380000] ff60: 0003cf4b 0003cf4b 00018098 bf04acfc 00000000 c0027fe8 df38e000 00000000
+[   73.380000] ff80: bedc0984 c006882c 00001000 00000003 00000000 00009064 00000000 00008edc
+[   73.380000] ffa0: 00000080 c0027e20 00009064 00000000 4014e000 0003cf4b 00018098 0003cf4b
+[   73.380000] ffc0: 00009064 00000000 00008edc 00000080 00000000 00000000 40025000 bedc0984
+[   73.380000] ffe0: 00000000 bedc08fc 0000b6b0 400e8f34 60000010 4014e000 00000000 00000000
+[   73.380000] [<bf01dc00>] (SiS_SetRegANDOR+0x10/0x38 [sisfb]) from [<df064258>] (0xdf064258)
+[   73.380000] Code: e92d0030 e20110ff e280546e e3a0c46e (e5c51000)
+[   73.680000] ---[ end trace 62a93e01df37a5f2 ]---
+
+Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Thomas Winischhofer <thomas@winischhofer.net>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |   29 +++++++++++------------------
- 1 file changed, 11 insertions(+), 18 deletions(-)
+ drivers/video/sis/vstruct.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/ksm.c~ksm-kernel-samepage-merging-fix-rare-page-leak mm/ksm.c
---- a/mm/ksm.c~ksm-kernel-samepage-merging-fix-rare-page-leak
-+++ a/mm/ksm.c
-@@ -858,10 +858,6 @@ static struct rmap_item *stable_tree_sea
- 		if (!tree_rmap_item)
- 			return NULL;
- 
--		/*
--		 * We can trust the value of the memcmp as we know the pages
--		 * are write protected.
--		 */
- 		ret = memcmp_pages(page, page2[0]);
- 
- 		if (ret < 0) {
-@@ -893,18 +889,18 @@ static struct rmap_item *stable_tree_ins
- {
- 	struct rb_node **new = &root_stable_tree.rb_node;
- 	struct rb_node *parent = NULL;
--	struct page *page2[1];
- 
- 	while (*new) {
- 		struct rmap_item *tree_rmap_item, *next_rmap_item;
-+		struct page *tree_page;
- 		int ret;
- 
- 		tree_rmap_item = rb_entry(*new, struct rmap_item, node);
- 		while (tree_rmap_item) {
- 			BUG_ON(!in_stable_tree(tree_rmap_item));
- 			cond_resched();
--			page2[0] = get_ksm_page(tree_rmap_item);
--			if (page2[0])
-+			tree_page = get_ksm_page(tree_rmap_item);
-+			if (tree_page)
- 				break;
- 			next_rmap_item = tree_rmap_item->next;
- 			remove_rmap_item_from_tree(tree_rmap_item);
-@@ -913,22 +909,19 @@ static struct rmap_item *stable_tree_ins
- 		if (!tree_rmap_item)
- 			return NULL;
- 
--		ret = memcmp_pages(page, page2[0]);
-+		ret = memcmp_pages(page, tree_page);
-+		put_page(tree_page);
- 
- 		parent = *new;
--		if (ret < 0) {
--			put_page(page2[0]);
-+		if (ret < 0)
- 			new = &parent->rb_left;
--		} else if (ret > 0) {
--			put_page(page2[0]);
-+		else if (ret > 0)
- 			new = &parent->rb_right;
--		} else {
-+		else {
- 			/*
--			 * It is not a bug when we come here (the fact that
--			 * we didn't find the page inside the stable tree):
--			 * because when we searched for the page inside the
--			 * stable tree it was still not write-protected,
--			 * so therefore it could have changed later.
-+			 * It is not a bug that stable_tree_search() didn't
-+			 * find this node: because at that time our page was
-+			 * not yet write-protected, so may have changed since.
- 			 */
- 			return NULL;
- 		}
+diff -puN drivers/video/sis/vstruct.h~sisfb-change-sis_ddc_port-type-to-sisioaddress drivers/video/sis/vstruct.h
+--- a/drivers/video/sis/vstruct.h~sisfb-change-sis_ddc_port-type-to-sisioaddress
++++ a/drivers/video/sis/vstruct.h
+@@ -342,7 +342,7 @@ struct SiS_Private
+ 	unsigned short			SiS_RY4COE;
+ 	unsigned short			SiS_LCDHDES;
+ 	unsigned short			SiS_LCDVDES;
+-	unsigned short			SiS_DDC_Port;
++	SISIOADDRESS			SiS_DDC_Port;
+ 	unsigned short			SiS_DDC_Index;
+ 	unsigned short			SiS_DDC_Data;
+ 	unsigned short			SiS_DDC_NData;
 _
 
-Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
+Patches currently in -mm which might be from aaro.koskinen@iki.fi are
 
-origin.patch
-linux-next.patch
-vfs-optimize-touch_time-too.patch
-vfs-seq_file-add-helpers-for-data-filling.patch
-fs-new-truncate-helpers.patch
-fs-use-new-truncate-helpers.patch
-fs-introduce-new-truncate-sequence.patch
-fs-convert-simple-fs-to-new-truncate.patch
-tmpfs-convert-to-use-the-new-truncate-convention.patch
-ext2-convert-to-use-the-new-truncate-convention.patch
-fat-convert-to-use-the-new-truncate-convention.patch
-btrfs-convert-to-use-the-new-truncate-convention.patch
-jfs-convert-to-use-the-new-truncate-convention.patch
-udf-convert-to-use-the-new-truncate-convention.patch
-minix-convert-to-use-the-new-truncate-convention.patch
-mm-oom-analysis-add-shmem-vmstat.patch
-mm-vmstat-add-isolate-pages.patch
-ksm-add-mmu_notifier-set_pte_at_notify.patch
-ksm-first-tidy-up-madvise_vma.patch
-ksm-define-madv_mergeable-and-madv_unmergeable.patch
-ksm-the-mm-interface-to-ksm.patch
-ksm-no-debug-in-page_dup_rmap.patch
-ksm-identify-pageksm-pages.patch
-ksm-kernel-samepage-merging.patch
-ksm-kernel-samepage-merging-fix-rare-page-leak.patch
-ksm-prevent-mremap-move-poisoning.patch
-ksm-change-copyright-message.patch
-ksm-change-ksm-nice-level-to-be-5.patch
-ksm-rename-kernel_pages_allocated.patch
-ksm-move-pages_sharing-updates.patch
-ksm-pages_unshared-and-pages_volatile.patch
-ksm-break-cow-once-unshared.patch
-ksm-keep-quiet-while-list-empty.patch
-ksm-five-little-cleanups.patch
-ksm-fix-endless-loop-on-oom.patch
-ksm-distribute-remove_mm_from_lists.patch
-ksm-fix-oom-deadlock.patch
-ksm-fix-deadlock-with-munlock-in-exit_mmap.patch
-ksm-sysfs-and-defaults.patch
-ksm-add-some-documentation.patch
-ksm-remove-vm_mergeable_flags.patch
-ksm-clean-up-obsolete-references.patch
-ksm-unmerge-is-an-origin-of-ooms.patch
-ksm-mremap-use-err-from-ksm_madvise.patch
-mm-add_to_swap_cache-must-not-sleep.patch
-mm-add_to_swap_cache-does-not-return-eexist.patch
-mm-includecheck-fix-for-mm-shmemc.patch
-mm-introduce-page_lru_base_type-fix.patch
-mm-replace-various-uses-of-num_physpages-by-totalram_pages.patch
-mm-munlock-use-follow_page.patch
-mm-remove-unused-gup-flags.patch
-mm-add-get_dump_page.patch
-mm-foll_dump-replace-foll_anon.patch
-mm-follow_hugetlb_page-flags.patch
-mm-fix-anonymous-dirtying.patch
-mm-reinstate-zero_page.patch
-mm-foll-flags-for-gup-flags.patch
-mm-munlock-avoid-zero_page.patch
-mm-hugetlbfs_pagecache_present.patch
-mm-zero_page-without-pte_special.patch
-mm-zero_page-without-pte_special-mips-fix.patch
-mm-move-highest_memmap_pfn.patch
-mmap-remove-unnecessary-code.patch
-tmpfs-depend-on-shmem.patch
-mmap-avoid-unnecessary-anon_vma-lock-acquisition-in-vma_adjust.patch
-mmap-avoid-unnecessary-anon_vma-lock-acquisition-in-vma_adjust-tweak.patch
-mmap-save-some-cycles-for-the-shared-anonymous-mapping.patch
-hugetlbfs-allow-the-creation-of-files-suitable-for-map_private-on-the-vfs-internal-mount.patch
-mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions.patch
-hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions.patch
-hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions-fix.patch
-hugetlb-add-map_hugetlb-example.patch
-shmem-initialize-struct-shmem_sb_info-to-zero.patch
-getrusage-fill-ru_maxrss-value.patch
-getrusage-fill-ru_maxrss-value-update.patch
-walk-system-ram-range-fix.patch
-ramfs-move-ramfs_magic-to-include-linux-magich.patch
-memory-controller-soft-limit-organize-cgroups-v9-fix.patch
-prio_tree-debugging-patch.patch
+sisfb-change-sis_ddc_port-type-to-sisioaddress.patch
 
