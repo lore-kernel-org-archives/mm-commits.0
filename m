@@ -1,219 +1,209 @@
 From: akpm@linux-foundation.org
-Subject: + mm-move-use_mm-unuse_mm-from-aioc-to-mm.patch added to -mm tree
-Date: Mon, 21 Sep 2009 13:48:59 -0700
-Message-ID: <200909212048.n8LKmxqW005028@imap1.linux-foundation.org>
+Subject: [failures] spinlocks-check-spinlock_t-rwlock_t-argument-type-on-non-smp-builds.patch removed from -mm tree
+Date: Mon, 21 Sep 2009 13:52:10 -0700
+Message-ID: <200909212052.n8LKqAxP011320@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39258 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38621 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752679AbZIUUtj (ORCPT
+	by vger.kernel.org with ESMTP id S1752610AbZIUUwx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Sep 2009 16:49:39 -0400
+	Mon, 21 Sep 2009 16:52:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: mst@redhat.com, aarcange@redhat.com
+To: kilroyd@googlemail.com, a.p.zijlstra@chello.nl, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: move use_mm/unuse_mm from aio.c to mm/
-has been added to the -mm tree.  Its filename is
-     mm-move-use_mm-unuse_mm-from-aioc-to-mm.patch
+     spinlocks: check spinlock_t/rwlock_t argument type on non-SMP builds
+has been removed from the -mm tree.  Its filename was
+     spinlocks-check-spinlock_t-rwlock_t-argument-type-on-non-smp-builds.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: move use_mm/unuse_mm from aio.c to mm/
-From: "Michael S. Tsirkin" <mst@redhat.com>
+Subject: spinlocks: check spinlock_t/rwlock_t argument type on non-SMP builds
+From: David Kilroy <kilroyd@googlemail.com>
 
-Anyone who wants to do copy to/from user from a kernel thread, needs
-use_mm (like what fs/aio has).  Move that into mm/, to make reusing and
-exporting easier down the line, and make aio use it.  Next intended user,
-besides aio, will be vhost-net.
+When writing code for UP without CONFIG_DEBUG_SPINLOCK it's easy to get
+the first argument to the spinlock/rwlock functions wrong.  This is
+because the parameter is not actually used in this configuration.
 
-Acked-by: Andrea Arcangeli <aarcange@redhat.com>
-Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+Typically you will only find out it's wrong
+ * by rebuilding with CONFIG_SMP or CONFIG_DEBUG_SPINLOCK
+ * after you've submitted your beautiful patch series.
+
+The first means a long wait, and the latter is a bit late.
+
+Change the intermediate macros into inline functions.
+
+Signed-off-by: David Kilroy <kilroyd@googlemail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c                    |   47 -----------------------------
- include/linux/mmu_context.h |    9 +++++
- mm/Makefile                 |    2 -
- mm/mmu_context.c            |   55 ++++++++++++++++++++++++++++++++++
- 4 files changed, 66 insertions(+), 47 deletions(-)
+ include/linux/spinlock.h        |    6 -
+ include/linux/spinlock_api_up.h |  118 ++++++++++++++++++++++--------
+ 2 files changed, 92 insertions(+), 32 deletions(-)
 
-diff -puN fs/aio.c~mm-move-use_mm-unuse_mm-from-aioc-to-mm fs/aio.c
---- a/fs/aio.c~mm-move-use_mm-unuse_mm-from-aioc-to-mm
-+++ a/fs/aio.c
-@@ -24,6 +24,7 @@
- #include <linux/file.h>
- #include <linux/mm.h>
- #include <linux/mman.h>
-+#include <linux/mmu_context.h>
- #include <linux/slab.h>
- #include <linux/timer.h>
- #include <linux/aio.h>
-@@ -34,7 +35,6 @@
+diff -puN include/linux/spinlock.h~spinlocks-check-spinlock_t-rwlock_t-argument-type-on-non-smp-builds include/linux/spinlock.h
+--- a/include/linux/spinlock.h~spinlocks-check-spinlock_t-rwlock_t-argument-type-on-non-smp-builds
++++ a/include/linux/spinlock.h
+@@ -240,17 +240,17 @@ static inline void smp_mb__after_lock(vo
+ #define spin_lock_irqsave(lock, flags)			\
+ 	do {						\
+ 		typecheck(unsigned long, flags);	\
+-		_spin_lock_irqsave(lock, flags);	\
++		_spin_lock_irqsave(lock, &flags);	\
+ 	} while (0)
+ #define read_lock_irqsave(lock, flags)			\
+ 	do {						\
+ 		typecheck(unsigned long, flags);	\
+-		_read_lock_irqsave(lock, flags);	\
++		_read_lock_irqsave(lock, &flags);	\
+ 	} while (0)
+ #define write_lock_irqsave(lock, flags)			\
+ 	do {						\
+ 		typecheck(unsigned long, flags);	\
+-		_write_lock_irqsave(lock, flags);	\
++		_write_lock_irqsave(lock, &flags);	\
+ 	} while (0)
+ #define spin_lock_irqsave_nested(lock, flags, subclass)	\
+ 	spin_lock_irqsave(lock, flags)
+diff -puN include/linux/spinlock_api_up.h~spinlocks-check-spinlock_t-rwlock_t-argument-type-on-non-smp-builds include/linux/spinlock_api_up.h
+--- a/include/linux/spinlock_api_up.h~spinlocks-check-spinlock_t-rwlock_t-argument-type-on-non-smp-builds
++++ a/include/linux/spinlock_api_up.h
+@@ -48,34 +48,94 @@
+ #define __UNLOCK_IRQRESTORE(lock, flags) \
+   do { local_irq_restore(flags); __UNLOCK(lock); } while (0)
  
- #include <asm/kmap_types.h>
- #include <asm/uaccess.h>
--#include <asm/mmu_context.h>
+-#define _spin_lock(lock)			__LOCK(lock)
+-#define _spin_lock_nested(lock, subclass)	__LOCK(lock)
+-#define _read_lock(lock)			__LOCK(lock)
+-#define _write_lock(lock)			__LOCK(lock)
+-#define _spin_lock_bh(lock)			__LOCK_BH(lock)
+-#define _read_lock_bh(lock)			__LOCK_BH(lock)
+-#define _write_lock_bh(lock)			__LOCK_BH(lock)
+-#define _spin_lock_irq(lock)			__LOCK_IRQ(lock)
+-#define _read_lock_irq(lock)			__LOCK_IRQ(lock)
+-#define _write_lock_irq(lock)			__LOCK_IRQ(lock)
+-#define _spin_lock_irqsave(lock, flags)		__LOCK_IRQSAVE(lock, flags)
+-#define _read_lock_irqsave(lock, flags)		__LOCK_IRQSAVE(lock, flags)
+-#define _write_lock_irqsave(lock, flags)	__LOCK_IRQSAVE(lock, flags)
+-#define _spin_trylock(lock)			({ __LOCK(lock); 1; })
+-#define _read_trylock(lock)			({ __LOCK(lock); 1; })
+-#define _write_trylock(lock)			({ __LOCK(lock); 1; })
+-#define _spin_trylock_bh(lock)			({ __LOCK_BH(lock); 1; })
+-#define _spin_unlock(lock)			__UNLOCK(lock)
+-#define _read_unlock(lock)			__UNLOCK(lock)
+-#define _write_unlock(lock)			__UNLOCK(lock)
+-#define _spin_unlock_bh(lock)			__UNLOCK_BH(lock)
+-#define _write_unlock_bh(lock)			__UNLOCK_BH(lock)
+-#define _read_unlock_bh(lock)			__UNLOCK_BH(lock)
+-#define _spin_unlock_irq(lock)			__UNLOCK_IRQ(lock)
+-#define _read_unlock_irq(lock)			__UNLOCK_IRQ(lock)
+-#define _write_unlock_irq(lock)			__UNLOCK_IRQ(lock)
+-#define _spin_unlock_irqrestore(lock, flags)	__UNLOCK_IRQRESTORE(lock, flags)
+-#define _read_unlock_irqrestore(lock, flags)	__UNLOCK_IRQRESTORE(lock, flags)
+-#define _write_unlock_irqrestore(lock, flags)	__UNLOCK_IRQRESTORE(lock, flags)
++static inline void _spin_lock(spinlock_t *lock)
++{ __LOCK(lock); }
++
++static inline void _spin_lock_nested(spinlock_t *lock, int subclass)
++{ __LOCK(lock); }
++
++static inline void _read_lock(rwlock_t *lock)
++{ __LOCK(lock); }
++
++static inline void _write_lock(rwlock_t *lock)
++{ __LOCK(lock); }
++
++static inline void _spin_lock_bh(spinlock_t *lock)
++{ __LOCK_BH(lock); }
++
++static inline void _read_lock_bh(rwlock_t *lock)
++{ __LOCK_BH(lock); }
++
++static inline void _write_lock_bh(rwlock_t *lock)
++{ __LOCK_BH(lock); }
++
++static inline void _spin_lock_irq(spinlock_t *lock)
++{ __LOCK_IRQ(lock); }
++
++static inline void _read_lock_irq(rwlock_t *lock)
++{ __LOCK_IRQ(lock); }
++
++static inline void _write_lock_irq(rwlock_t *lock)
++{ __LOCK_IRQ(lock); }
++
++static inline void _spin_lock_irqsave(spinlock_t *lock, unsigned long *flags)
++{ __LOCK_IRQSAVE(lock, *flags); }
++
++static inline void _read_lock_irqsave(rwlock_t *lock, unsigned long *flags)
++{ __LOCK_IRQSAVE(lock, *flags); }
++
++static inline void _write_lock_irqsave(rwlock_t *lock, unsigned long *flags)
++{ __LOCK_IRQSAVE(lock, *flags); }
++
++static inline int _spin_trylock(spinlock_t *lock)
++{ __LOCK(lock); return 1; }
++
++static inline int _read_trylock(rwlock_t *lock)
++{ __LOCK(lock); return 1; }
++
++static inline int _write_trylock(rwlock_t *lock)
++{ __LOCK(lock); return 1; }
++
++static inline int _spin_trylock_bh(spinlock_t *lock)
++{ __LOCK_BH(lock); return 1; }
++
++static inline void _spin_unlock(spinlock_t *lock)
++{ __UNLOCK(lock); }
++
++static inline void _read_unlock(rwlock_t *lock)
++{ __UNLOCK(lock); }
++
++static inline void _write_unlock(rwlock_t *lock)
++{ __UNLOCK(lock); }
++
++static inline void _spin_unlock_bh(spinlock_t *lock)
++{ __UNLOCK_BH(lock); }
++
++static inline void _read_unlock_bh(rwlock_t *lock)
++{ __UNLOCK_BH(lock); }
++
++static inline void _write_unlock_bh(rwlock_t *lock)
++{ __UNLOCK_BH(lock); }
++
++static inline void _spin_unlock_irq(spinlock_t *lock)
++{ __UNLOCK_IRQ(lock); }
++
++static inline void _read_unlock_irq(rwlock_t *lock)
++{ __UNLOCK_IRQ(lock); }
++
++static inline void _write_unlock_irq(rwlock_t *lock)
++{ __UNLOCK_IRQ(lock); }
++
++static inline void _spin_unlock_irqrestore(spinlock_t *lock,
++					   unsigned long flags)
++{ __UNLOCK_IRQRESTORE(lock, flags); }
++
++static inline void _read_unlock_irqrestore(rwlock_t *lock,
++					   unsigned long flags)
++{ __UNLOCK_IRQRESTORE(lock, flags); }
++
++static inline void _write_unlock_irqrestore(rwlock_t *lock,
++					    unsigned long flags)
++{ __UNLOCK_IRQRESTORE(lock, flags); }
  
- #if DEBUG > 1
- #define dprintk		printk
-@@ -595,51 +595,6 @@ static struct kioctx *lookup_ioctx(unsig
- }
- 
- /*
-- * use_mm
-- *	Makes the calling kernel thread take on the specified
-- *	mm context.
-- *	Called by the retry thread execute retries within the
-- *	iocb issuer's mm context, so that copy_from/to_user
-- *	operations work seamlessly for aio.
-- *	(Note: this routine is intended to be called only
-- *	from a kernel thread context)
-- */
--static void use_mm(struct mm_struct *mm)
--{
--	struct mm_struct *active_mm;
--	struct task_struct *tsk = current;
--
--	task_lock(tsk);
--	active_mm = tsk->active_mm;
--	atomic_inc(&mm->mm_count);
--	tsk->mm = mm;
--	tsk->active_mm = mm;
--	switch_mm(active_mm, mm, tsk);
--	task_unlock(tsk);
--
--	mmdrop(active_mm);
--}
--
--/*
-- * unuse_mm
-- *	Reverses the effect of use_mm, i.e. releases the
-- *	specified mm context which was earlier taken on
-- *	by the calling kernel thread
-- *	(Note: this routine is intended to be called only
-- *	from a kernel thread context)
-- */
--static void unuse_mm(struct mm_struct *mm)
--{
--	struct task_struct *tsk = current;
--
--	task_lock(tsk);
--	tsk->mm = NULL;
--	/* active_mm is still 'mm' */
--	enter_lazy_tlb(mm, tsk);
--	task_unlock(tsk);
--}
--
--/*
-  * Queue up a kiocb to be retried. Assumes that the kiocb
-  * has already been marked as kicked, and places it on
-  * the retry run list for the corresponding ioctx, if it
-diff -puN /dev/null include/linux/mmu_context.h
---- /dev/null
-+++ a/include/linux/mmu_context.h
-@@ -0,0 +1,9 @@
-+#ifndef _LINUX_MMU_CONTEXT_H
-+#define _LINUX_MMU_CONTEXT_H
-+
-+struct mm_struct;
-+
-+void use_mm(struct mm_struct *mm);
-+void unuse_mm(struct mm_struct *mm);
-+
-+#endif
-diff -puN mm/Makefile~mm-move-use_mm-unuse_mm-from-aioc-to-mm mm/Makefile
---- a/mm/Makefile~mm-move-use_mm-unuse_mm-from-aioc-to-mm
-+++ a/mm/Makefile
-@@ -11,7 +11,7 @@ obj-y			:= bootmem.o filemap.o mempool.o
- 			   maccess.o page_alloc.o page-writeback.o \
- 			   readahead.o swap.o truncate.o vmscan.o shmem.o \
- 			   prio_tree.o util.o mmzone.o vmstat.o backing-dev.o \
--			   page_isolation.o mm_init.o $(mmu-y)
-+			   page_isolation.o mm_init.o mmu_context.o $(mmu-y)
- obj-y += init-mm.o
- 
- obj-$(CONFIG_PROC_PAGE_MONITOR) += pagewalk.o
-diff -puN /dev/null mm/mmu_context.c
---- /dev/null
-+++ a/mm/mmu_context.c
-@@ -0,0 +1,55 @@
-+/* Copyright (C) 2009 Red Hat, Inc.
-+ *
-+ * See ../COPYING for licensing terms.
-+ */
-+
-+#include <linux/mm.h>
-+#include <linux/mmu_context.h>
-+#include <linux/sched.h>
-+
-+#include <asm/mmu_context.h>
-+
-+/*
-+ * use_mm
-+ *	Makes the calling kernel thread take on the specified
-+ *	mm context.
-+ *	Called by the retry thread execute retries within the
-+ *	iocb issuer's mm context, so that copy_from/to_user
-+ *	operations work seamlessly for aio.
-+ *	(Note: this routine is intended to be called only
-+ *	from a kernel thread context)
-+ */
-+void use_mm(struct mm_struct *mm)
-+{
-+	struct mm_struct *active_mm;
-+	struct task_struct *tsk = current;
-+
-+	task_lock(tsk);
-+	active_mm = tsk->active_mm;
-+	atomic_inc(&mm->mm_count);
-+	tsk->mm = mm;
-+	tsk->active_mm = mm;
-+	switch_mm(active_mm, mm, tsk);
-+	task_unlock(tsk);
-+
-+	mmdrop(active_mm);
-+}
-+
-+/*
-+ * unuse_mm
-+ *	Reverses the effect of use_mm, i.e. releases the
-+ *	specified mm context which was earlier taken on
-+ *	by the calling kernel thread
-+ *	(Note: this routine is intended to be called only
-+ *	from a kernel thread context)
-+ */
-+void unuse_mm(struct mm_struct *mm)
-+{
-+	struct task_struct *tsk = current;
-+
-+	task_lock(tsk);
-+	tsk->mm = NULL;
-+	/* active_mm is still 'mm' */
-+	enter_lazy_tlb(mm, tsk);
-+	task_unlock(tsk);
-+}
+ #endif /* __LINUX_SPINLOCK_API_UP_H */
 _
 
-Patches currently in -mm which might be from mst@redhat.com are
+Patches currently in -mm which might be from kilroyd@googlemail.com are
 
 origin.patch
-linux-next.patch
-mm-move-use_mm-unuse_mm-from-aioc-to-mm.patch
-mm-reduce-atomic-use-on-use_mm-fast-path.patch
+spinlocks-check-spinlock_t-rwlock_t-argument-type-on-non-smp-builds.patch
 
