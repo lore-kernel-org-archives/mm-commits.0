@@ -1,79 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [folded] lis3-add-power-management-functions-fix.patch removed from -mm tree
-Date: Mon, 21 Sep 2009 14:41:52 -0700
-Message-ID: <200909212141.n8LLfqrQ011954@imap1.linux-foundation.org>
+Subject: [folded] drivers-hwmon-adm1021c-add-low_power-support-for-adm1021-driver-update.patch removed from -mm tree
+Date: Mon, 21 Sep 2009 14:42:27 -0700
+Message-ID: <200909212142.n8LLgRab013113@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46109 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50889 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752065AbZIUVmI (ORCPT
+	by vger.kernel.org with ESMTP id S1752309AbZIUVnF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Sep 2009 17:42:08 -0400
+	Mon, 21 Sep 2009 17:43:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, daniel@caiaq.de, eric.piel@tremplin-utc.net, pavel@ucw.cz, mm-commits@vger.kernel.org
+To: michael@araneidae.co.uk, khali@linux-fr.org, michael.abbott@diamond.ac.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hwmon: fix lis3-spi for CONFIG_PM=n
+     drivers-hwmon-adm1021c-add-low_power-support-for-adm1021-driver-update
 has been removed from the -mm tree.  Its filename was
-     lis3-add-power-management-functions-fix.patch
+     drivers-hwmon-adm1021c-add-low_power-support-for-adm1021-driver-update.patch
 
-This patch was dropped because it was folded into lis3-add-power-management-functions.patch
+This patch was dropped because it was folded into drivers-hwmon-adm1021c-add-low_power-support-for-adm1021-driver.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hwmon: fix lis3-spi for CONFIG_PM=n
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: drivers-hwmon-adm1021c-add-low_power-support-for-adm1021-driver-update
+From: Michael Abbott <michael@araneidae.co.uk>
 
-Fix build error when CONFIG_PM=n:
+Layout patch to fix earlier adm1021.c patch
 
-The suspend & resume function names are incorrect for the PM=n case.
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Daniel Mack <daniel@caiaq.de>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Eric Piel <eric.piel@tremplin-utc.net>
+Signed-off-by: Michael Abbott <michael.abbott@diamond.ac.uk>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/lis3lv02d_spi.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/hwmon/adm1021.c |   15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
 
-diff -puN drivers/hwmon/lis3lv02d_spi.c~lis3-add-power-management-functions-fix drivers/hwmon/lis3lv02d_spi.c
---- a/drivers/hwmon/lis3lv02d_spi.c~lis3-add-power-management-functions-fix
-+++ a/drivers/hwmon/lis3lv02d_spi.c
-@@ -109,8 +109,8 @@ static int lis3lv02d_spi_resume(struct s
+diff -puN drivers/hwmon/adm1021.c~drivers-hwmon-adm1021c-add-low_power-support-for-adm1021-driver-update drivers/hwmon/adm1021.c
+--- a/drivers/hwmon/adm1021.c~drivers-hwmon-adm1021c-add-low_power-support-for-adm1021-driver-update
++++ a/drivers/hwmon/adm1021.c
+@@ -214,22 +214,22 @@ static ssize_t set_temp_min(struct devic
+ 	return count;
  }
  
- #else
--#define lis3_spi_suspend	NULL
--#define lis3_spi_resume		NULL
-+#define lis3lv02d_spi_suspend	NULL
-+#define lis3lv02d_spi_resume	NULL
- #endif
+-static ssize_t show_low_power(
+-	struct device *dev, struct device_attribute *devattr, char *buf)
++static ssize_t show_low_power(struct device *dev,
++			      struct device_attribute *devattr, char *buf)
+ {
+ 	struct adm1021_data *data = adm1021_update_device(dev);
+ 	return sprintf(buf, "%d\n", data->low_power);
+ }
  
- static struct spi_driver lis302dl_spi_driver = {
+-static ssize_t set_low_power(
+-	struct device *dev, struct device_attribute *devattr,
+-	const char *buf, size_t count)
++static ssize_t set_low_power(struct device *dev,
++			     struct device_attribute *devattr,
++			     const char *buf, size_t count)
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct adm1021_data *data = i2c_get_clientdata(client);
+ 	int low_power = simple_strtol(buf, NULL, 10) != 0;
+-	mutex_lock(&data->update_lock);
+ 
++	mutex_lock(&data->update_lock);
+ 	if (low_power != data->low_power) {
+ 		int config = i2c_smbus_read_byte_data(
+ 			client, ADM1021_REG_CONFIG_R);
+@@ -260,8 +260,7 @@ static SENSOR_DEVICE_ATTR(temp2_min_alar
+ static SENSOR_DEVICE_ATTR(temp2_fault, S_IRUGO, show_alarm, NULL, 2);
+ 
+ static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
+-static DEVICE_ATTR(
+-	low_power, S_IWUSR | S_IRUGO, show_low_power, set_low_power);
++static DEVICE_ATTR(low_power, S_IWUSR | S_IRUGO, show_low_power, set_low_power);
+ 
+ static struct attribute *adm1021_attributes[] = {
+ 	&sensor_dev_attr_temp1_max.dev_attr.attr,
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from michael@araneidae.co.uk are
 
-origin.patch
-mm-make-swap-token-dummies-static-inlines.patch
-page_alloc-fix-kernel-doc-warning.patch
-ksm-add-some-documentation.patch
-flex_array-add-missing-kerneldoc-annotations.patch
-lis3-add-power-management-functions.patch
-lis3-add-power-management-functions-fix.patch
-procfs-provide-stack-information-for-threads-v011-fix.patch
-kcore-register-vmemmap-range-fix.patch
-spih-add-missing-kernel-doc-for-struct-spi_master.patch
-gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links-update-fix.patch
-doc-filesystems-remove-smount-program.patch
-doc-filesystems-more-mount-cleanups.patch
-documentation-update-stale-definition-of-file-nr-in-fstxt.patch
-includecheck-fix-documentation-cfag12864b-examplec.patch
-docs-fix-various-documentation-paths-in-header-files.patch
-reiser4-export-remove_from_page_cache-fix.patch
+drivers-hwmon-adm1021c-support-high-precision-adm1023-remote-sensor.patch
+drivers-hwmon-adm1021c-add-low_power-support-for-adm1021-driver.patch
+drivers-hwmon-adm1021c-add-low_power-support-for-adm1021-driver-update.patch
 
