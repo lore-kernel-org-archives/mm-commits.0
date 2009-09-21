@@ -1,320 +1,204 @@
 From: akpm@linux-foundation.org
-Subject: [merged] video-initial-support-for-adv7180.patch removed from -mm tree
-Date: Mon, 21 Sep 2009 12:24:39 -0700
-Message-ID: <200909211924.n8LJOd37000956@imap1.linux-foundation.org>
+Subject: [merged] sched-fix-raciness-in-runqueue_is_locked.patch removed from -mm tree
+Date: Mon, 21 Sep 2009 12:24:45 -0700
+Message-ID: <200909211924.n8LJOj3G001196@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45200 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45670 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753379AbZIUTZW (ORCPT
+	by vger.kernel.org with ESMTP id S1753371AbZIUTZW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 21 Sep 2009 15:25:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: richard.rojfors.ext@mocean-labs.com, hverkuil@xs4all.nl, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mingo@elte.hu, rostedt@goodmis.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     video: initial support for ADV7180
+     sched(): fix raciness in runqueue_is_locked()
 has been removed from the -mm tree.  Its filename was
-     video-initial-support-for-adv7180.patch
+     sched-fix-raciness-in-runqueue_is_locked.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: video: initial support for ADV7180
-=46rom: Richard R=F6jfors <richard.rojfors.ext@mocean-labs.com>
+Subject: sched(): fix raciness in runqueue_is_locked()
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This is an initial driver for Analog Devices ADV7180 Video Decoder.
+runqueue_is_locked() is unavoidably racy due to a poor interface design. 
+It does
 
-So far it only supports query standard.
+	cpu = get_cpu()
+	ret = some_perpcu_thing(cpu);
+	put_cpu(cpu);
+	return ret;
 
-[akpm@linux-foundation.org: remove unneeded cast]
-Signed-off-by: Richard R=F6jfors <richard.rojfors.ext@mocean-labs.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Its return value is unreliable.
+
+Fix.
+
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/Kconfig     |    9 +
- drivers/media/video/Makefile    |    1=20
- drivers/media/video/adv7180.c   |  202 ++++++++++++++++++++++++++++++
- include/media/v4l2-chip-ident.h |    3=20
- 4 files changed, 215 insertions(+)
+ include/linux/sched.h |    2 +-
+ kernel/sched.c        |   10 ++--------
+ kernel/trace/trace.c  |    8 +++++++-
+ 3 files changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN drivers/media/video/Kconfig~video-initial-support-for-adv7180=
- drivers/media/video/Kconfig
---- a/drivers/media/video/Kconfig~video-initial-support-for-adv7180
-+++ a/drivers/media/video/Kconfig
-@@ -265,6 +265,15 @@ config VIDEO_SAA6588
-=20
- comment "Video decoders"
-=20
-+config VIDEO_ADV7180
-+	tristate "Analog Devices ADV7180 decoder"
-+	depends on VIDEO_V4L2 && I2C
-+	---help---
-+	  Support for the Analog Devices ADV7180 video decoder.
+diff -puN kernel/trace/trace.c~sched-fix-raciness-in-runqueue_is_locked kernel/trace/trace.c
+--- a/kernel/trace/trace.c~sched-fix-raciness-in-runqueue_is_locked
++++ a/kernel/trace/trace.c
+@@ -274,12 +274,18 @@ unsigned long trace_flags = TRACE_ITER_P
+  */
+ void trace_wake_up(void)
+ {
++	int cpu;
 +
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called adv7180.
-+
- config VIDEO_BT819
- 	tristate "BT819A VideoStream decoder"
- 	depends on VIDEO_V4L2 && I2C
-diff -puN drivers/media/video/Makefile~video-initial-support-for-adv718=
-0 drivers/media/video/Makefile
---- a/drivers/media/video/Makefile~video-initial-support-for-adv7180
-+++ a/drivers/media/video/Makefile
-@@ -45,6 +45,7 @@ obj-$(CONFIG_VIDEO_SAA7185) +=3D saa7185.o
- obj-$(CONFIG_VIDEO_SAA7191) +=3D saa7191.o
- obj-$(CONFIG_VIDEO_ADV7170) +=3D adv7170.o
- obj-$(CONFIG_VIDEO_ADV7175) +=3D adv7175.o
-+obj-$(CONFIG_VIDEO_ADV7180) +=3D adv7180.o
- obj-$(CONFIG_VIDEO_ADV7343) +=3D adv7343.o
- obj-$(CONFIG_VIDEO_VPX3220) +=3D vpx3220.o
- obj-$(CONFIG_VIDEO_BT819) +=3D bt819.o
-diff -puN /dev/null drivers/media/video/adv7180.c
---- /dev/null
-+++ a/drivers/media/video/adv7180.c
-@@ -0,0 +1,202 @@
-+/*
-+ * adv7180.c Analog Devices ADV7180 video decoder driver
-+ * Copyright (c) 2009 Intel Corporation
-+ *
-+ * This program is free software; you can redistribute it and/or modif=
-y
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/errno.h>
-+#include <linux/kernel.h>
-+#include <linux/interrupt.h>
-+#include <linux/i2c.h>
-+#include <linux/i2c-id.h>
-+#include <media/v4l2-ioctl.h>
-+#include <linux/videodev2.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-chip-ident.h>
-+
-+#define DRIVER_NAME "adv7180"
-+
-+#define ADV7180_INPUT_CONTROL_REG	0x00
-+#define ADV7180_INPUT_CONTROL_PAL_BG_NTSC_J_SECAM	0x00
-+#define ADV7180_AUTODETECT_ENABLE_REG	0x07
-+#define ADV7180_AUTODETECT_DEFAULT	0x7f
-+
-+
-+#define ADV7180_STATUS1_REG 0x10
-+#define ADV7180_STATUS1_AUTOD_MASK 0x70
-+#define ADV7180_STATUS1_AUTOD_NTSM_M_J	0x00
-+#define ADV7180_STATUS1_AUTOD_NTSC_4_43 0x10
-+#define ADV7180_STATUS1_AUTOD_PAL_M	0x20
-+#define ADV7180_STATUS1_AUTOD_PAL_60	0x30
-+#define ADV7180_STATUS1_AUTOD_PAL_B_G	0x40
-+#define ADV7180_STATUS1_AUTOD_SECAM	0x50
-+#define ADV7180_STATUS1_AUTOD_PAL_COMB	0x60
-+#define ADV7180_STATUS1_AUTOD_SECAM_525	0x70
-+
-+#define ADV7180_IDENT_REG 0x11
-+#define ADV7180_ID_7180 0x18
-+
-+
-+struct adv7180_state {
-+	struct v4l2_subdev sd;
-+};
-+
-+static v4l2_std_id determine_norm(struct i2c_client *client)
-+{
-+	u8 status1 =3D i2c_smbus_read_byte_data(client, ADV7180_STATUS1_REG);
-+
-+	switch (status1 & ADV7180_STATUS1_AUTOD_MASK) {
-+	case ADV7180_STATUS1_AUTOD_NTSM_M_J:
-+		return V4L2_STD_NTSC_M_JP;
-+	case ADV7180_STATUS1_AUTOD_NTSC_4_43:
-+		return V4L2_STD_NTSC_443;
-+	case ADV7180_STATUS1_AUTOD_PAL_M:
-+		return V4L2_STD_PAL_M;
-+	case ADV7180_STATUS1_AUTOD_PAL_60:
-+		return V4L2_STD_PAL_60;
-+	case ADV7180_STATUS1_AUTOD_PAL_B_G:
-+		return V4L2_STD_PAL;
-+	case ADV7180_STATUS1_AUTOD_SECAM:
-+		return V4L2_STD_SECAM;
-+	case ADV7180_STATUS1_AUTOD_PAL_COMB:
-+		return V4L2_STD_PAL_Nc | V4L2_STD_PAL_N;
-+	case ADV7180_STATUS1_AUTOD_SECAM_525:
-+		return V4L2_STD_SECAM;
-+	default:
-+		return V4L2_STD_UNKNOWN;
-+	}
-+}
-+
-+static inline struct adv7180_state *to_state(struct v4l2_subdev *sd)
-+{
-+	return container_of(sd, struct adv7180_state, sd);
-+}
-+
-+static int adv7180_querystd(struct v4l2_subdev *sd, v4l2_std_id *std)
-+{
-+	struct i2c_client *client =3D v4l2_get_subdevdata(sd);
-+
-+	*std =3D determine_norm(client);
-+	return 0;
-+}
-+
-+static int adv7180_g_chip_ident(struct v4l2_subdev *sd,
-+	struct v4l2_dbg_chip_ident *chip)
-+{
-+	struct i2c_client *client =3D v4l2_get_subdevdata(sd);
-+
-+	return v4l2_chip_ident_i2c_client(client, chip, V4L2_IDENT_ADV7180, 0=
-);
-+}
-+
-+static const struct v4l2_subdev_video_ops adv7180_video_ops =3D {
-+	.querystd =3D adv7180_querystd,
-+};
-+
-+static const struct v4l2_subdev_core_ops adv7180_core_ops =3D {
-+	.g_chip_ident =3D adv7180_g_chip_ident,
-+};
-+
-+static const struct v4l2_subdev_ops adv7180_ops =3D {
-+	.core =3D &adv7180_core_ops,
-+	.video =3D &adv7180_video_ops,
-+};
-+
-+/*
-+ * Generic i2c probe
-+ * concerning the addresses: i2c wants 7 bit (without the r/w bit), so=
- '>>1'
-+ */
-+
-+static int adv7180_probe(struct i2c_client *client,
-+			const struct i2c_device_id *id)
-+{
-+	struct adv7180_state *state;
-+	struct v4l2_subdev *sd;
-+	int ret;
-+
-+	/* Check if the adapter supports the needed features */
-+	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DAT=
-A))
-+		return -EIO;
-+
-+	v4l_info(client, "chip found @ 0x%02x (%s)\n",
-+			client->addr << 1, client->adapter->name);
-+
-+	state =3D kzalloc(sizeof(struct adv7180_state), GFP_KERNEL);
-+	if (state =3D=3D NULL)
-+		return -ENOMEM;
-+	sd =3D &state->sd;
-+	v4l2_i2c_subdev_init(sd, client, &adv7180_ops);
-+
-+	/* Initialize adv7180 */
-+	/* enable autodetection */
-+	ret =3D i2c_smbus_write_byte_data(client, ADV7180_INPUT_CONTROL_REG,
-+		ADV7180_INPUT_CONTROL_PAL_BG_NTSC_J_SECAM);
-+	if (ret > 0)
-+		ret =3D i2c_smbus_write_byte_data(client,
-+			ADV7180_AUTODETECT_ENABLE_REG,
-+			ADV7180_AUTODETECT_DEFAULT);
-+	if (ret < 0) {
-+		printk(KERN_ERR DRIVER_NAME
-+			": Failed to communicate to chip: %d\n", ret);
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+static int adv7180_remove(struct i2c_client *client)
-+{
-+	struct v4l2_subdev *sd =3D i2c_get_clientdata(client);
-+
-+	v4l2_device_unregister_subdev(sd);
-+	kfree(to_state(sd));
-+	return 0;
-+}
-+
-+static const struct i2c_device_id adv7180_id[] =3D {
-+	{DRIVER_NAME, 0},
-+	{},
-+};
-+
-+MODULE_DEVICE_TABLE(i2c, adv7180_id);
-+
-+static struct i2c_driver adv7180_driver =3D {
-+	.driver =3D {
-+		.owner	=3D THIS_MODULE,
-+		.name	=3D DRIVER_NAME,
-+	},
-+	.probe		=3D adv7180_probe,
-+	.remove		=3D adv7180_remove,
-+	.id_table	=3D adv7180_id,
-+};
-+
-+static __init int adv7180_init(void)
-+{
-+	return i2c_add_driver(&adv7180_driver);
-+}
-+
-+static __exit void adv7180_exit(void)
-+{
-+	i2c_del_driver(&adv7180_driver);
-+}
-+
-+module_init(adv7180_init);
-+module_exit(adv7180_exit);
-+
-+MODULE_DESCRIPTION("Analog Devices ADV7180 video decoder driver");
-+MODULE_AUTHOR("Mocean Laboratories");
-+MODULE_LICENSE("GPL v2");
-+
-diff -puN include/media/v4l2-chip-ident.h~video-initial-support-for-adv=
-7180 include/media/v4l2-chip-ident.h
---- a/include/media/v4l2-chip-ident.h~video-initial-support-for-adv7180
-+++ a/include/media/v4l2-chip-ident.h
-@@ -135,6 +135,9 @@ enum {
- 	/* module adv7175: just ident 7175 */
- 	V4L2_IDENT_ADV7175 =3D 7175,
-=20
-+	/* module adv7180: just ident 7180 */
-+	V4L2_IDENT_ADV7180 =3D 7180,
-+
- 	/* module saa7185: just ident 7185 */
- 	V4L2_IDENT_SAA7185 =3D 7185,
-=20
++	if (trace_flags & TRACE_ITER_BLOCK)
++		return;
+ 	/*
+ 	 * The runqueue_is_locked() can fail, but this is the best we
+ 	 * have for now:
+ 	 */
+-	if (!(trace_flags & TRACE_ITER_BLOCK) && !runqueue_is_locked())
++	cpu = get_cpu();
++ 	if (!runqueue_is_locked(cpu))
+ 		wake_up(&trace_wait);
++	put_cpu();
+ }
+ 
+ static int __init set_buf_size(char *str)
+diff -puN kernel/sched.c~sched-fix-raciness-in-runqueue_is_locked kernel/sched.c
+--- a/kernel/sched.c~sched-fix-raciness-in-runqueue_is_locked
++++ a/kernel/sched.c
+@@ -715,15 +715,9 @@ inline void update_rq_clock(struct rq *r
+  * This interface allows printk to be called with the runqueue lock
+  * held and know whether or not it is OK to wake up the klogd.
+  */
+-int runqueue_is_locked(void)
++int runqueue_is_locked(int cpu)
+ {
+-	int cpu = get_cpu();
+-	struct rq *rq = cpu_rq(cpu);
+-	int ret;
+-
+-	ret = spin_is_locked(&rq->lock);
+-	put_cpu();
+-	return ret;
++	return spin_is_locked(&cpu_rq(cpu)->lock);
+ }
+ 
+ /*
+diff -puN include/linux/sched.h~sched-fix-raciness-in-runqueue_is_locked include/linux/sched.h
+--- a/include/linux/sched.h~sched-fix-raciness-in-runqueue_is_locked
++++ a/include/linux/sched.h
+@@ -254,7 +254,7 @@ extern asmlinkage void schedule_tail(str
+ extern void init_idle(struct task_struct *idle, int cpu);
+ extern void init_idle_bootup_task(struct task_struct *idle);
+ 
+-extern int runqueue_is_locked(void);
++extern int runqueue_is_locked(int cpu);
+ extern void task_rq_unlock_wait(struct task_struct *p);
+ 
+ extern cpumask_var_t nohz_cpu_mask;
 _
 
-Patches currently in -mm which might be from richard.rojfors.ext@mocean=
--labs.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-gpio-add-mc33880-driver.patch
+fs-make-sure-data-stored-into-inode-is-properly-seen-before-unlocking-new-inode-fix.patch
+drivers-mfd-ab3100-corec-fiw-warning-and-powerpc-build-error.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+hwmon-driver-for-acpi-40-power-meters.patch
+drivers-md-dm-log-userspace-basec-fix-warning.patch
+drivers-dma-ioat-dma_v3c-fix-warnings.patch
+drivers-dma-ioat-dma_v2c-fix-warnings.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+checkincludespl-add-option-to-remove-duplicates-in-place.patch
+net-fix-config_net=n-build-on-sparc64.patch
+3x59x-fix-pci-resource-management.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+include-linux-credh-fix-build.patch
+serial167-fix-read-buffer-overflow.patch
+st-fix-test-of-value-range-in-st_set_options.patch
+drivers-usb-serial-sierrac-fix-config_pm=n-build.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
+vfs-optimize-touch_time-too.patch
+fs-improve-remountro-vs-buffercache-coherency.patch
+percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+drivers-net-wireless-ath-ar9170-phyc-fix-uninitialised-variable.patch
+mm-make-swap-token-dummies-static-inlines-fix.patch
+readahead-add-blk_run_backing_dev-fix.patch
+readahead-add-blk_run_backing_dev-fix-fix-2.patch
+memory-hotplug-update-zone-pcp-at-memory-online-fix.patch
+revert-hugetlb-restore-interleaving-of-bootmem-huge-pages-2631.patch
+vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
+revert-proc-kcore-work-around-a-bug.patch
+arches-drop-superfluous-casts-in-nr_free_pages-callers-checkpatch-fixes.patch
+tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists-fix.patch
+page-allocator-maintain-rolling-count-of-pages-to-free-from-the-pcp-checkpatch-fixes.patch
+mm-zero_page-without-pte_special-mips-fix.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
+hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+alpha-convert-to-use-arch_gettimeoffset-fix.patch
+cpuidle-fix-the-menu-governor-to-boost-io-performance.patch
+printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
+generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
+proc-connector-add-event-for-process-becoming-session-leader.patch
+build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix.patch
+kernel-smpc-relocate-some-code.patch
+mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
+sdio-add-cd-disable-support-cleanup.patch
+sdio-add-mmc_quirk_lenient_fn0-fix.patch
+at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver-checkpatch-fixes.patch
+mmc-core-sdio-suspend-resume-support-fix.patch
+procfs-provide-stack-information-for-threads-v011-fix.patch
+walk-system-ram-range-fix-2.patch
+kcore-register-vmemmap-range-fix.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes-fix.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
+drivers-video-add-kmalloc-null-tests-fix.patch
+drivers-video-tmiofbc-fix-uninitialised-return-value.patch
+v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
+page-types-add-feature-for-walking-process-address-space-checkpatch-fixes.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
+memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
+memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
+memcg-improve-resource-counter-scalability-checkpatch-fixes.patch
+exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
+exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
+elf-clean-up-fill_note_info-fix.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+reiser4-disable.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
