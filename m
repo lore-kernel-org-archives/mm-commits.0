@@ -1,116 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: [merged] scripts-get_maintainerpl-add-sections-in-pattern-match-depth-order.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:44:58 -0700
-Message-ID: <200909222044.n8MKiw7M014699@imap1.linux-foundation.org>
+Subject: [merged] um-convert-to-asm-generic-hardirqh.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:44:46 -0700
+Message-ID: <200909222044.n8MKikKj014290@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59366 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51475 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752457AbZIVUpC (ORCPT
+	by vger.kernel.org with ESMTP id S1753181AbZIVUpE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:45:02 -0400
+	Tue, 22 Sep 2009 16:45:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, James.Bottomley@HansenPartnership.com, zaga@fly.cc.fer.hr, mm-commits@vger.kernel.org
+To: hch@lst.de, jdike@addtoit.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scripts/get_maintainer.pl: add sections in pattern match depth order
+     um: convert to asm-generic/hardirq.h
 has been removed from the -mm tree.  Its filename was
-     scripts-get_maintainerpl-add-sections-in-pattern-match-depth-order.patch
+     um-convert-to-asm-generic-hardirqh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts/get_maintainer.pl: add sections in pattern match depth order
-From: Joe Perches <joe@perches.com>
+Subject: um: convert to asm-generic/hardirq.h
+From: Christoph Hellwig <hch@lst.de>
 
-Before this change, matched sections were added in the order
-of appearance in the normally alphabetic section order of
-the MAINTAINERS file.
-
-For instance, finding the maintainer for drivers/scsi/wd7000.c
-would first find "SCSI SUBSYSTEM", then "WD7000 SCSI SUBSYSTEM",
-then "THE REST".
-
-before patch:
-
-$ ./scripts/get_maintainer.pl --nogit -f drivers/scsi/wd7000.c
-James E.J. Bottomley <James.Bottomley@HansenPartnership.com>
-Miroslav Zagorac <zaga@fly.cc.fer.hr>
-linux-scsi@vger.kernel.org
-linux-kernel@vger.kernel.org
-
-get_maintainer.pl now selects matched sections by longest pattern match.
-Longest is the number of "/"s and any specific file pattern.
-
-This changes the example output order of MAINTAINERS to whatever is
-selected in "WD7000 SUBSYSTEM", then "SCSI SYSTEM", then "THE REST".
-
-after patch:
-
-$ ./scripts/get_maintainer.pl --nogit -f drivers/scsi/wd7000.c
-Miroslav Zagorac <zaga@fly.cc.fer.hr>
-James E.J. Bottomley <James.Bottomley@HansenPartnership.com>
-linux-scsi@vger.kernel.org
-linux-kernel@vger.kernel.org
-
-Signed-off-by: Joe Perches <joe@perches.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: Jeff Dike <jdike@addtoit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ arch/um/include/asm/hardirq.h |   26 +-------------------------
+ 1 file changed, 1 insertion(+), 25 deletions(-)
 
-diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-add-sections-in-pattern-match-depth-order scripts/get_maintainer.pl
---- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-add-sections-in-pattern-match-depth-order
-+++ a/scripts/get_maintainer.pl
-@@ -211,6 +211,7 @@ foreach my $file (@files) {
- 	    if ($type eq 'X') {
- 		if (file_match_pattern($file, $value)) {
- 		    $exclude = 1;
-+		    last;
- 		}
- 	    }
- 	}
-@@ -218,18 +219,24 @@ foreach my $file (@files) {
- 
-     if (!$exclude) {
- 	my $tvi = 0;
-+	my %hash;
- 	foreach my $line (@typevalue) {
- 	    if ($line =~ m/^(\C):\s*(.*)/) {
- 		my $type = $1;
- 		my $value = $2;
- 		if ($type eq 'F') {
- 		    if (file_match_pattern($file, $value)) {
--			add_categories($tvi);
-+			my $pattern_depth = ($value =~ tr@/@@);
-+			$pattern_depth++ if (!(substr($value,-1,1) eq "/"));
-+			$hash{$tvi} = $pattern_depth;
- 		    }
- 		}
- 	    }
- 	    $tvi++;
- 	}
-+	foreach my $line (sort {$hash{$b} <=> $hash{$a}} keys %hash) {
-+	    add_categories($line);
-+	}
-     }
- 
-     if ($email && $email_git) {
+diff -puN arch/um/include/asm/hardirq.h~um-convert-to-asm-generic-hardirqh arch/um/include/asm/hardirq.h
+--- a/arch/um/include/asm/hardirq.h~um-convert-to-asm-generic-hardirqh
++++ a/arch/um/include/asm/hardirq.h
+@@ -1,25 +1 @@
+-/* (c) 2004 cw@f00f.org, GPLv2 blah blah */
+-
+-#ifndef __ASM_UM_HARDIRQ_H
+-#define __ASM_UM_HARDIRQ_H
+-
+-#include <linux/threads.h>
+-#include <linux/irq.h>
+-
+-/* NOTE: When SMP works again we might want to make this
+- * ____cacheline_aligned or maybe use per_cpu state? --cw */
+-typedef struct {
+-	unsigned int __softirq_pending;
+-} irq_cpustat_t;
+-
+-#include <linux/irq_cpustat.h>
+-
+-/* As this would be very strange for UML to get we BUG() after the
+- * printk. */
+-static inline void ack_bad_irq(unsigned int irq)
+-{
+-	printk(KERN_ERR "unexpected IRQ %02x\n", irq);
+-	BUG();
+-}
+-
+-#endif /* __ASM_UM_HARDIRQ_H */
++#include <asm-generic/hardirq.h>
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from hch@lst.de are
 
 origin.patch
 linux-next.patch
-mmc-msm_sdccc-driver-for-htc-dream.patch
-msm_sdccc-convert-printkkern_level-to-pr_level.patch
-msm_sdccc-stylistic-cleaning.patch
-msm_sdccc-move-overly-indented-code-to-separate-function.patch
-ncpfs-remove-dead-url-from-documentation.patch
-maintainers-add-matt-mackall-and-herbert-xu-to-hardware-random-number-generator.patch
+avr32-convert-to-asm-generic-hardirqh.patch
+sparc32-convert-to-asm-generic-hardirqh.patch
+vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
+vfs-split-generic_forget_inode-so-that-hugetlbfs-does-not-have-to-copy-it.patch
+vfs-explicitly-cast-s_maxbytes-in-fiemap_check_ranges.patch
+vfs-change-sb-s_maxbytes-to-a-loff_t.patch
+vfs-remove-redundant-position-check-in-do_sendfile.patch
+fs-remove-unneeded-dcache_unhashed-tricks.patch
+vfs-seq_file-add-helpers-for-data-filling.patch
+libfs-return-error-code-on-failed-attr-set.patch
+fs-new-truncate-helpers.patch
+fs-use-new-truncate-helpers.patch
+fs-introduce-new-truncate-sequence.patch
+fs-convert-simple-fs-to-new-truncate.patch
+tmpfs-convert-to-use-the-new-truncate-convention.patch
+ext2-convert-to-use-the-new-truncate-convention.patch
+fat-convert-to-use-the-new-truncate-convention.patch
+btrfs-convert-to-use-the-new-truncate-convention.patch
+jfs-convert-to-use-the-new-truncate-convention.patch
+udf-convert-to-use-the-new-truncate-convention.patch
+minix-convert-to-use-the-new-truncate-convention.patch
+xtensa-convert-to-asm-generic-hardirqh.patch
+frv-convert-to-asm-generic-hardirqh.patch
+fs-turn-iprune_mutex-into-rwsem.patch
+ntfs-remove-ntfs_file_write.patch
+qnx4-remove-write-support.patch
+fcntl-add-f_etown_ex.patch
 
