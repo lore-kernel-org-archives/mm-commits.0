@@ -1,156 +1,165 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ksm-move-pages_sharing-updates.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:39:45 -0700
-Message-ID: <200909222039.n8MKdjWi004094@imap1.linux-foundation.org>
+Subject: [merged] ksm-identify-pageksm-pages.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:39:24 -0700
+Message-ID: <200909222039.n8MKdOmk003379@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53218 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59813 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752570AbZIVUkV (ORCPT
+	by vger.kernel.org with ESMTP id S1752082AbZIVUkP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:40:21 -0400
+	Tue, 22 Sep 2009 16:40:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh.dickins@tiscali.co.uk, aarcange@redhat.com, ieidus@redhat.com, mm-commits@vger.kernel.org
+To: hugh.dickins@tiscali.co.uk, aarcange@redhat.com, avi@redhat.com, balbir@in.ibm.com, chrisw@redhat.com, fengguang.wu@intel.com, ieidus@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, lee.s
 
 
 The patch titled
-     ksm: move pages_sharing updates
+     ksm: identify PageKsm pages
 has been removed from the -mm tree.  Its filename was
-     ksm-move-pages_sharing-updates.patch
+     ksm-identify-pageksm-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ksm: move pages_sharing updates
+Subject: ksm: identify PageKsm pages
 From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
-The pages_shared count is incremented and decremented when adding a node
-to and removing a node from the stable tree: easy to understand.  But the
-pages_sharing count was hard to follow, being adjusted in various places:
-increment and decrement it when adding to and removing from the stable tree.
+KSM will need to identify its kernel merged pages unambiguously, and
+/proc/kpageflags will probably like to do so too.
 
-And the pages_sharing variable used to include the pages_shared, then those
-were subtracted when shown in the pages_sharing sysfs file: now keep it as
-an exclusive count of leaves hanging off the stable tree nodes, throughout.
+Since KSM will only be substituting anonymous pages, statistics are best
+preserved by making a PageKsm page a special PageAnon page: one with no
+anon_vma.
+
+But KSM then needs its own page_add_ksm_rmap() - keep it in ksm.h near
+PageKsm; and do_wp_page() must COW them, unlike singly mapped PageAnons.
 
 Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Acked-by: Izik Eidus <ieidus@redhat.com>
-Acked-by: Andrea Arcangeli <aarcange@redhat.com>
+Signed-off-by: Chris Wright <chrisw@redhat.com>
+Signed-off-by: Izik Eidus <ieidus@redhat.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Avi Kivity <avi@redhat.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |   24 +++++++++---------------
- 1 file changed, 9 insertions(+), 15 deletions(-)
+ fs/proc/page.c      |    5 +++++
+ include/linux/ksm.h |   29 +++++++++++++++++++++++++++++
+ mm/memory.c         |    3 ++-
+ 3 files changed, 36 insertions(+), 1 deletion(-)
 
-diff -puN mm/ksm.c~ksm-move-pages_sharing-updates mm/ksm.c
---- a/mm/ksm.c~ksm-move-pages_sharing-updates
-+++ a/mm/ksm.c
-@@ -152,7 +152,7 @@ static struct kmem_cache *mm_slot_cache;
- /* The number of nodes in the stable tree */
- static unsigned long ksm_pages_shared;
+diff -puN fs/proc/page.c~ksm-identify-pageksm-pages fs/proc/page.c
+--- a/fs/proc/page.c~ksm-identify-pageksm-pages
++++ a/fs/proc/page.c
+@@ -2,6 +2,7 @@
+ #include <linux/compiler.h>
+ #include <linux/fs.h>
+ #include <linux/init.h>
++#include <linux/ksm.h>
+ #include <linux/mm.h>
+ #include <linux/mmzone.h>
+ #include <linux/proc_fs.h>
+@@ -95,6 +96,8 @@ static const struct file_operations proc
+ #define KPF_UNEVICTABLE		18
+ #define KPF_NOPAGE		20
  
--/* The number of page slots sharing those nodes */
-+/* The number of page slots additionally sharing those nodes */
- static unsigned long ksm_pages_sharing;
- 
- /* Limit on the number of unswappable pages used */
-@@ -382,6 +382,7 @@ static void remove_rmap_item_from_tree(s
- 						&next_item->node,
- 						&root_stable_tree);
- 				next_item->address |= NODE_FLAG;
-+				ksm_pages_sharing--;
- 			} else {
- 				rb_erase(&rmap_item->node, &root_stable_tree);
- 				ksm_pages_shared--;
-@@ -395,10 +396,10 @@ static void remove_rmap_item_from_tree(s
- 				BUG_ON(next_item->prev != rmap_item);
- 				next_item->prev = rmap_item->prev;
- 			}
-+			ksm_pages_sharing--;
- 		}
- 
- 		rmap_item->next = NULL;
--		ksm_pages_sharing--;
- 
- 	} else if (rmap_item->address & NODE_FLAG) {
- 		unsigned char age;
-@@ -786,8 +787,6 @@ static int try_to_merge_two_pages(struct
- 		 */
- 		if (err)
- 			break_cow(mm1, addr1);
--		else
--			ksm_pages_sharing += 2;
- 	}
- 
- 	put_page(kpage);
-@@ -816,9 +815,6 @@ static int try_to_merge_with_ksm_page(st
- 	err = try_to_merge_one_page(vma, page1, kpage);
- 	up_read(&mm1->mmap_sem);
- 
--	if (!err)
--		ksm_pages_sharing++;
--
- 	return err;
- }
- 
-@@ -928,13 +924,12 @@ static struct rmap_item *stable_tree_ins
- 		}
- 	}
- 
--	ksm_pages_shared++;
--
- 	rmap_item->address |= NODE_FLAG | STABLE_FLAG;
- 	rmap_item->next = NULL;
- 	rb_link_node(&rmap_item->node, parent, new);
- 	rb_insert_color(&rmap_item->node, &root_stable_tree);
- 
-+	ksm_pages_shared++;
- 	return rmap_item;
- }
- 
-@@ -1019,6 +1014,8 @@ static void stable_tree_append(struct rm
- 
- 	tree_rmap_item->next = rmap_item;
- 	rmap_item->address |= STABLE_FLAG;
++#define KPF_KSM			21
 +
-+	ksm_pages_sharing++;
+ /* kernel hacking assistances
+  * WARNING: subject to change, never rely on them!
+  */
+@@ -137,6 +140,8 @@ static u64 get_uflags(struct page *page)
+ 		u |= 1 << KPF_MMAP;
+ 	if (PageAnon(page))
+ 		u |= 1 << KPF_ANON;
++	if (PageKsm(page))
++		u |= 1 << KPF_KSM;
+ 
+ 	/*
+ 	 * compound pages: export both head/tail info
+diff -puN include/linux/ksm.h~ksm-identify-pageksm-pages include/linux/ksm.h
+--- a/include/linux/ksm.h~ksm-identify-pageksm-pages
++++ a/include/linux/ksm.h
+@@ -10,6 +10,7 @@
+ #include <linux/bitops.h>
+ #include <linux/mm.h>
+ #include <linux/sched.h>
++#include <linux/vmstat.h>
+ 
+ #ifdef CONFIG_KSM
+ int ksm_madvise(struct vm_area_struct *vma, unsigned long start,
+@@ -29,6 +30,27 @@ static inline void ksm_exit(struct mm_st
+ 	if (test_bit(MMF_VM_MERGEABLE, &mm->flags))
+ 		__ksm_exit(mm);
  }
++
++/*
++ * A KSM page is one of those write-protected "shared pages" or "merged pages"
++ * which KSM maps into multiple mms, wherever identical anonymous page content
++ * is found in VM_MERGEABLE vmas.  It's a PageAnon page, with NULL anon_vma.
++ */
++static inline int PageKsm(struct page *page)
++{
++	return ((unsigned long)page->mapping == PAGE_MAPPING_ANON);
++}
++
++/*
++ * But we have to avoid the checking which page_add_anon_rmap() performs.
++ */
++static inline void page_add_ksm_rmap(struct page *page)
++{
++	if (atomic_inc_and_test(&page->_mapcount)) {
++		page->mapping = (void *) PAGE_MAPPING_ANON;
++		__inc_zone_page_state(page, NR_ANON_PAGES);
++	}
++}
+ #else  /* !CONFIG_KSM */
  
- /*
-@@ -1043,10 +1040,9 @@ static void cmp_and_merge_page(struct pa
- 	/* We first start with searching the page inside the stable tree */
- 	tree_rmap_item = stable_tree_search(page, page2, rmap_item);
- 	if (tree_rmap_item) {
--		if (page == page2[0]) {			/* forked */
--			ksm_pages_sharing++;
-+		if (page == page2[0])			/* forked */
- 			err = 0;
--		} else
-+		else
- 			err = try_to_merge_with_ksm_page(rmap_item->mm,
- 							 rmap_item->address,
- 							 page, page2[0]);
-@@ -1107,7 +1103,6 @@ static void cmp_and_merge_page(struct pa
- 				break_cow(tree_rmap_item->mm,
- 						tree_rmap_item->address);
- 				break_cow(rmap_item->mm, rmap_item->address);
--				ksm_pages_sharing -= 2;
- 			}
- 		}
- 
-@@ -1475,8 +1470,7 @@ KSM_ATTR_RO(pages_shared);
- static ssize_t pages_sharing_show(struct kobject *kobj,
- 				  struct kobj_attribute *attr, char *buf)
+ static inline int ksm_madvise(struct vm_area_struct *vma, unsigned long start,
+@@ -45,6 +67,13 @@ static inline int ksm_fork(struct mm_str
+ static inline void ksm_exit(struct mm_struct *mm)
  {
--	return sprintf(buf, "%lu\n",
--			ksm_pages_sharing - ksm_pages_shared);
-+	return sprintf(buf, "%lu\n", ksm_pages_sharing);
  }
- KSM_ATTR_RO(pages_sharing);
++
++static inline int PageKsm(struct page *page)
++{
++	return 0;
++}
++
++/* No stub required for page_add_ksm_rmap(page) */
+ #endif /* !CONFIG_KSM */
  
+ #endif
+diff -puN mm/memory.c~ksm-identify-pageksm-pages mm/memory.c
+--- a/mm/memory.c~ksm-identify-pageksm-pages
++++ a/mm/memory.c
+@@ -45,6 +45,7 @@
+ #include <linux/swap.h>
+ #include <linux/highmem.h>
+ #include <linux/pagemap.h>
++#include <linux/ksm.h>
+ #include <linux/rmap.h>
+ #include <linux/module.h>
+ #include <linux/delayacct.h>
+@@ -1974,7 +1975,7 @@ static int do_wp_page(struct mm_struct *
+ 	 * Take out anonymous pages first, anonymous shared vmas are
+ 	 * not dirty accountable.
+ 	 */
+-	if (PageAnon(old_page)) {
++	if (PageAnon(old_page) && !PageKsm(old_page)) {
+ 		if (!trylock_page(old_page)) {
+ 			page_cache_get(old_page);
+ 			pte_unmap_unlock(page_table, ptl);
 _
 
 Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
