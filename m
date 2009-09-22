@@ -1,168 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hugetlb-add-map_hugetlb-example.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:43:41 -0700
-Message-ID: <200909222043.n8MKhfmi012095@imap1.linux-foundation.org>
+Subject: [merged] mm-reduce-atomic-use-on-use_mm-fast-path.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:43:53 -0700
+Message-ID: <200909222043.n8MKhrvD012506@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40761 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45010 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753140AbZIVUnv (ORCPT
+	by vger.kernel.org with ESMTP id S1752971AbZIVUoC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:43:51 -0400
+	Tue, 22 Sep 2009 16:44:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebmunson@us.ibm.com, agl@us.ibm.com, david@gibson.dropbear.id.au, hugh.dickins@tiscali.co.uk, lee.schermerhorn@hp.com, mel@csn.ul.ie, nickpiggin@yahoo.com.au, rientjes@google.com, mm-
+To: mst@redhat.com, aarcange@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hugetlb: add MAP_HUGETLB example
+     mm: reduce atomic use on use_mm fast path
 has been removed from the -mm tree.  Its filename was
-     hugetlb-add-map_hugetlb-example.patch
+     mm-reduce-atomic-use-on-use_mm-fast-path.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb: add MAP_HUGETLB example
-From: Eric B Munson <ebmunson@us.ibm.com>
+Subject: mm: reduce atomic use on use_mm fast path
+From: "Michael S. Tsirkin" <mst@redhat.com>
 
-Add an example of how to use the MAP_HUGETLB flag to the vm documentation
-directory and a reference to the example in hugetlbpage.txt.
+When the mm being switched to matches the active mm, we don't need to
+increment and then drop the mm count.  In a simple benchmark this happens
+in about 50% of time.  Making that conditional reduces contention on that
+cacheline on SMP systems.
 
-Signed-off-by: Eric B Munson <ebmunson@us.ibm.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Adam Litke <agl@us.ibm.com>
-Cc: David Gibson <david@gibson.dropbear.id.au>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Acked-by: Andrea Arcangeli <aarcange@redhat.com>
+Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/00-INDEX        |    2 
- Documentation/vm/hugetlbpage.txt |   14 +++--
- Documentation/vm/map_hugetlb.c   |   77 +++++++++++++++++++++++++++++
- 3 files changed, 87 insertions(+), 6 deletions(-)
+ mm/mmu_context.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/vm/00-INDEX~hugetlb-add-map_hugetlb-example Documentation/vm/00-INDEX
---- a/Documentation/vm/00-INDEX~hugetlb-add-map_hugetlb-example
-+++ a/Documentation/vm/00-INDEX
-@@ -22,3 +22,5 @@ slabinfo.c
- 	- source code for a tool to get reports about slabs.
- slub.txt
- 	- a short users guide for SLUB.
-+map_hugetlb.c
-+	- an example program that uses the MAP_HUGETLB mmap flag.
-diff -puN Documentation/vm/hugetlbpage.txt~hugetlb-add-map_hugetlb-example Documentation/vm/hugetlbpage.txt
---- a/Documentation/vm/hugetlbpage.txt~hugetlb-add-map_hugetlb-example
-+++ a/Documentation/vm/hugetlbpage.txt
-@@ -187,12 +187,14 @@ Regular chown, chgrp, and chmod commands
- used to change the file attributes on hugetlbfs.
+diff -puN mm/mmu_context.c~mm-reduce-atomic-use-on-use_mm-fast-path mm/mmu_context.c
+--- a/mm/mmu_context.c~mm-reduce-atomic-use-on-use_mm-fast-path
++++ a/mm/mmu_context.c
+@@ -26,13 +26,16 @@ void use_mm(struct mm_struct *mm)
  
- Also, it is important to note that no such mount command is required if the
--applications are going to use only shmat/shmget system calls.  Users who
--wish to use hugetlb page via shared memory segment should be a member of
--a supplementary group and system admin needs to configure that gid into
--/proc/sys/vm/hugetlb_shm_group.  It is possible for same or different
--applications to use any combination of mmaps and shm* calls, though the
--mount of filesystem will be required for using mmap calls.
-+applications are going to use only shmat/shmget system calls or mmap with
-+MAP_HUGETLB.  Users who wish to use hugetlb page via shared memory segment
-+should be a member of a supplementary group and system admin needs to
-+configure that gid into /proc/sys/vm/hugetlb_shm_group.  It is possible for
-+same or different applications to use any combination of mmaps and shm*
-+calls, though the mount of filesystem will be required for using mmap calls
-+without MAP_HUGETLB.  For an example of how to use mmap with MAP_HUGETLB see
-+map_hugetlb.c.
- 
- *******************************************************************
- 
-diff -puN /dev/null Documentation/vm/map_hugetlb.c
---- /dev/null
-+++ a/Documentation/vm/map_hugetlb.c
-@@ -0,0 +1,77 @@
-+/*
-+ * Example of using hugepage memory in a user application using the mmap
-+ * system call with MAP_HUGETLB flag.  Before running this program make
-+ * sure the administrator has allocated enough default sized huge pages
-+ * to cover the 256 MB allocation.
-+ *
-+ * For ia64 architecture, Linux kernel reserves Region number 4 for hugepages.
-+ * That means the addresses starting with 0x800000... will need to be
-+ * specified.  Specifying a fixed address is not required on ppc64, i386
-+ * or x86_64.
-+ */
-+#include <stdlib.h>
-+#include <stdio.h>
-+#include <unistd.h>
-+#include <sys/mman.h>
-+#include <fcntl.h>
-+
-+#define LENGTH (256UL*1024*1024)
-+#define PROTECTION (PROT_READ | PROT_WRITE)
-+
-+#ifndef MAP_HUGETLB
-+#define MAP_HUGETLB 0x40
-+#endif
-+
-+/* Only ia64 requires this */
-+#ifdef __ia64__
-+#define ADDR (void *)(0x8000000000000000UL)
-+#define FLAGS (MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB | MAP_FIXED)
-+#else
-+#define ADDR (void *)(0x0UL)
-+#define FLAGS (MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB)
-+#endif
-+
-+void check_bytes(char *addr)
-+{
-+	printf("First hex is %x\n", *((unsigned int *)addr));
-+}
-+
-+void write_bytes(char *addr)
-+{
-+	unsigned long i;
-+
-+	for (i = 0; i < LENGTH; i++)
-+		*(addr + i) = (char)i;
-+}
-+
-+void read_bytes(char *addr)
-+{
-+	unsigned long i;
-+
-+	check_bytes(addr);
-+	for (i = 0; i < LENGTH; i++)
-+		if (*(addr + i) != (char)i) {
-+			printf("Mismatch at %lu\n", i);
-+			break;
-+		}
-+}
-+
-+int main(void)
-+{
-+	void *addr;
-+
-+	addr = mmap(ADDR, LENGTH, PROTECTION, FLAGS, 0, 0);
-+	if (addr == MAP_FAILED) {
-+		perror("mmap");
-+		exit(1);
+ 	task_lock(tsk);
+ 	active_mm = tsk->active_mm;
+-	atomic_inc(&mm->mm_count);
++	if (active_mm != mm) {
++		atomic_inc(&mm->mm_count);
++		tsk->active_mm = mm;
 +	}
-+
-+	printf("Returned address is %p\n", addr);
-+	check_bytes(addr);
-+	write_bytes(addr);
-+	read_bytes(addr);
-+
-+	munmap(addr, LENGTH);
-+
-+	return 0;
-+}
+ 	tsk->mm = mm;
+-	tsk->active_mm = mm;
+ 	switch_mm(active_mm, mm, tsk);
+ 	task_unlock(tsk);
+ 
+-	mmdrop(active_mm);
++	if (active_mm != mm)
++		mmdrop(active_mm);
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from ebmunson@us.ibm.com are
+Patches currently in -mm which might be from mst@redhat.com are
 
 origin.patch
+linux-next.patch
 
