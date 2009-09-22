@@ -1,112 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memory-hotplug-update-zone-pcp-at-memory-online.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:37:25 -0700
-Message-ID: <200909222037.n8MKbPF7031831@imap1.linux-foundation.org>
+Subject: [merged] mm-show_free_areas-display-slab-pages-in-two-separate-fields.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:38:01 -0700
+Message-ID: <200909222038.n8MKc1MA000567@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37486 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39770 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752313AbZIVUiN (ORCPT
+	by vger.kernel.org with ESMTP id S1752520AbZIVUi2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:38:13 -0400
+	Tue, 22 Sep 2009 16:38:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shaohua.li@intel.com, cl@linux-foundation.org, mel@csn.ul.ie, yakui.zhao@intel.com, mm-commits@vger.kernel.org
+To: kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memory hotplug: update zone pcp at memory online
+     mm: show_free_areas(): display slab pages in two separate fields
 has been removed from the -mm tree.  Its filename was
-     memory-hotplug-update-zone-pcp-at-memory-online.patch
+     mm-show_free_areas-display-slab-pages-in-two-separate-fields.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memory hotplug: update zone pcp at memory online
-From: Shaohua Li <shaohua.li@intel.com>
+Subject: mm: show_free_areas(): display slab pages in two separate fields
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-In my test, 128M memory is hot added, but zone's pcp batch is 0, which is
-an obvious error.  When pages are onlined, zone pcp should be updated
-accordingly.
+If an OOM happens, we really want to know the number of remaining
+reclaimable pages.  So the reclaimable slab and unreclaimable slab fields
+should not be combined for display.
 
-[akpm@linux-foundation.org: fix warnings]
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Yakui Zhao <yakui.zhao@intel.com>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h  |    2 ++
- mm/memory_hotplug.c |    1 +
- mm/page_alloc.c     |   26 ++++++++++++++++++++++++++
- 3 files changed, 29 insertions(+)
+ mm/page_alloc.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/mm.h~memory-hotplug-update-zone-pcp-at-memory-online include/linux/mm.h
---- a/include/linux/mm.h~memory-hotplug-update-zone-pcp-at-memory-online
-+++ a/include/linux/mm.h
-@@ -1058,6 +1058,8 @@ extern void setup_per_cpu_pageset(void);
- static inline void setup_per_cpu_pageset(void) {}
- #endif
- 
-+extern void zone_pcp_update(struct zone *zone);
-+
- /* nommu.c */
- extern atomic_long_t mmap_pages_allocated;
- 
-diff -puN mm/memory_hotplug.c~memory-hotplug-update-zone-pcp-at-memory-online mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~memory-hotplug-update-zone-pcp-at-memory-online
-+++ a/mm/memory_hotplug.c
-@@ -422,6 +422,7 @@ int online_pages(unsigned long pfn, unsi
- 	zone->present_pages += onlined_pages;
- 	zone->zone_pgdat->node_present_pages += onlined_pages;
- 
-+	zone_pcp_update(zone);
- 	setup_per_zone_wmarks();
- 	calculate_zone_inactive_ratio(zone);
- 	if (onlined_pages) {
-diff -puN mm/page_alloc.c~memory-hotplug-update-zone-pcp-at-memory-online mm/page_alloc.c
---- a/mm/page_alloc.c~memory-hotplug-update-zone-pcp-at-memory-online
+diff -puN mm/page_alloc.c~mm-show_free_areas-display-slab-pages-in-two-separate-fields mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-show_free_areas-display-slab-pages-in-two-separate-fields
 +++ a/mm/page_alloc.c
-@@ -3142,6 +3142,32 @@ int zone_wait_table_init(struct zone *zo
- 	return 0;
- }
- 
-+static int __zone_pcp_update(void *data)
-+{
-+	struct zone *zone = data;
-+	int cpu;
-+	unsigned long batch = zone_batchsize(zone), flags;
-+
-+	for (cpu = 0; cpu < NR_CPUS; cpu++) {
-+		struct per_cpu_pageset *pset;
-+		struct per_cpu_pages *pcp;
-+
-+		pset = zone_pcp(zone, cpu);
-+		pcp = &pset->pcp;
-+
-+		local_irq_save(flags);
-+		free_pages_bulk(zone, pcp->count, &pcp->list, 0);
-+		setup_pageset(pset, batch);
-+		local_irq_restore(flags);
-+	}
-+	return 0;
-+}
-+
-+void zone_pcp_update(struct zone *zone)
-+{
-+	stop_machine(__zone_pcp_update, zone, NULL);
-+}
-+
- static __meminit void zone_pcp_init(struct zone *zone)
- {
- 	int cpu;
+@@ -2138,7 +2138,8 @@ void show_free_areas(void)
+ 		" inactive_file:%lu"
+ 		" unevictable:%lu"
+ 		" dirty:%lu writeback:%lu unstable:%lu\n"
+-		" free:%lu slab:%lu mapped:%lu pagetables:%lu bounce:%lu\n",
++		" free:%lu slab_reclaimable:%lu slab_unreclaimable:%lu\n"
++		" mapped:%lu pagetables:%lu bounce:%lu\n",
+ 		global_page_state(NR_ACTIVE_ANON),
+ 		global_page_state(NR_ACTIVE_FILE),
+ 		global_page_state(NR_INACTIVE_ANON),
+@@ -2148,8 +2149,8 @@ void show_free_areas(void)
+ 		global_page_state(NR_WRITEBACK),
+ 		global_page_state(NR_UNSTABLE_NFS),
+ 		global_page_state(NR_FREE_PAGES),
+-		global_page_state(NR_SLAB_RECLAIMABLE) +
+-			global_page_state(NR_SLAB_UNRECLAIMABLE),
++		global_page_state(NR_SLAB_RECLAIMABLE),
++		global_page_state(NR_SLAB_UNRECLAIMABLE),
+ 		global_page_state(NR_FILE_MAPPED),
+ 		global_page_state(NR_PAGETABLE),
+ 		global_page_state(NR_BOUNCE));
 _
 
-Patches currently in -mm which might be from shaohua.li@intel.com are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 origin.patch
 linux-next.patch
+revert-staging-android-lowmemorykillerc-fix-it-for-oom-move-oom_adj-value-from-task_struct-to-mm_struct.patch
+readahead-add-blk_run_backing_dev.patch
+oom-move-oom_adj-value-from-task_struct-to-signal_struct-fix.patch
+mm-vsmcan-check-shrink_active_list-sc-isolate_pages-return-value.patch
+getrusage-fill-ru_maxrss-value.patch
+kcore-use-registerd-physmem-information-ia64-fix.patch
+memory-controller-soft-limit-documentation-v9.patch
+memory-controller-soft-limit-interface-v9.patch
+memory-controller-soft-limit-organize-cgroups-v9.patch
+memory-controller-soft-limit-organize-cgroups-v9-fix.patch
+memory-controller-soft-limit-refactor-reclaim-flags-v9.patch
+memory-controller-soft-limit-reclaim-on-contention-v9.patch
+memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
+memory-controller-soft-limit-reclaim-on-contention-v9-fix-softlimit-css-refcnt-handling.patch
+memory-controller-soft-limit-reclaim-on-contention-v9-fix-softlimit-css-refcnt-handling-fix.patch
+memcg-improve-resource-counter-scalability.patch
+memcg-improve-resource-counter-scalability-v5.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
