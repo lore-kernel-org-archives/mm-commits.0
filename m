@@ -1,78 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: [folded] davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 14:51:31 -0700
-Message-ID: <200909222151.n8MLpV2i016608@imap1.linux-foundation.org>
+Subject: [folded] davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v5.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 14:51:54 -0700
+Message-ID: <200909222151.n8MLpshd017347@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52603 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48677 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752803AbZIVVwE (ORCPT
+	by vger.kernel.org with ESMTP id S1751372AbZIVVw1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 17:52:04 -0400
+	Tue, 22 Sep 2009 17:52:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, krzysztof.h1@wp.pl, pkiryukhin@ru.mvista.com, schen@mvista.com, sudhakar.raj@ti.com, mm-commits@vger.kernel.org
+To: sudhakar.raj@ti.com, krzysztof.h1@wp.pl, pkiryukhin@ru.mvista.com, schen@mvista.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup
+     davinci: fb: Frame Buffer driver for TI DA8xx/OMAP-L1xx v5
 has been removed from the -mm tree.  Its filename was
-     davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
+     davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v5.patch
 
 This patch was dropped because it was folded into davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: davinci: fb: Frame Buffer driver for TI DA8xx/OMAP-L1xx v5
+From: Sudhakar Rajashekhara <sudhakar.raj@ti.com>
 
-simplify lcd_disable_raster()
+ Following are the changes since the previous version(v4):
+ a. An if loop check while returning from lcd_disable_raster()
+    function has been removed.
+ b. "invert_pxl_clock" variable has been renamed as "invert_pxl_clk"
+    and moved from lcd_ctrl_config structure in include/video/da8xx-fb.h
+    file to da8xx_panel structure in drivers/video/da8xx-fb.c file.
+    Appropriate changes in source code as a result of moving this
+    variable has also been done.
 
-Cc: Krzysztof Helt <krzysztof.h1@wp.pl>
+Signed-off-by: Sudhakar Rajashekhara <sudhakar.raj@ti.com>
 Cc: Pavel Kiryukhin <pkiryukhin@ru.mvista.com>
 Cc: Steve Chen <schen@mvista.com>
-Cc: Sudhakar Rajashekhara <sudhakar.raj@ti.com>
+Cc: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/da8xx-fb.c |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/video/da8xx-fb.c |   16 ++++++++++------
+ include/video/da8xx-fb.h |    3 ---
+ 2 files changed, 10 insertions(+), 9 deletions(-)
 
-diff -puN drivers/video/da8xx-fb.c~davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup drivers/video/da8xx-fb.c
---- a/drivers/video/da8xx-fb.c~davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup
+diff -puN drivers/video/da8xx-fb.c~davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v5 drivers/video/da8xx-fb.c
+--- a/drivers/video/da8xx-fb.c~davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v5
 +++ a/drivers/video/da8xx-fb.c
-@@ -201,8 +201,6 @@ static int lcd_disable_raster(struct da8
- 		ret = wait_event_interruptible_timeout(par->da8xx_wq,
- 						!lcdc_read(LCD_STAT_REG) &
- 						LCD_END_OF_FRAME0, WSI_TIMEOUT);
--		if (ret < 0)
--			return ret;
+@@ -158,6 +158,7 @@ struct da8xx_panel {
+ 	int		vbp;		/* Vertical back porch */
+ 	int		vsw;		/* Vertical Sync Pulse Width */
+ 	int		pxl_clk;	/* Pixel clock */
++	unsigned char	invert_pxl_clk;	/* Invert Pixel clock */
+ };
+ 
+ static struct da8xx_panel known_lcd_panels[] = {
+@@ -173,6 +174,7 @@ static struct da8xx_panel known_lcd_pane
+ 		.vbp = 2,
+ 		.vsw = 0,
+ 		.pxl_clk = 0x10,
++		.invert_pxl_clk = 1,
+ 	},
+ 	/* Sharp LK043T1DG01 */
+ 	[1] = {
+@@ -186,6 +188,7 @@ static struct da8xx_panel known_lcd_pane
+ 		.vbp = 2,
+ 		.vsw = 10,
+ 		.pxl_clk = 0x12,
++		.invert_pxl_clk = 0,
+ 	},
+ };
+ 
+@@ -204,7 +207,6 @@ static int lcd_disable_raster(struct da8
  		if (ret == 0)
  			ret = -ETIMEDOUT;
  	}
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios.patch
-generic-ipi-make-struct-call_function_data-lockless.patch
-proc-connector-add-event-for-process-becoming-session-leader.patch
-build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it.patch
-mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
-sdio-add-cd-disable-support.patch
-sdio-add-mmc_quirk_lenient_fn0.patch
-at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver.patch
-mmc-core-sdio-suspend-resume-support.patch
-procfs-provide-stack-information-for-threads-v08.patch
-kcore-register-vmemmap-range.patch
-rtc-add-driver-for-mxcs-internal-rtc-module.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
-drivers-video-add-kmalloc-null-tests-fix.patch
-drivers-video-tmiofbc-fix-uninitialised-return-value.patch
-v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
-
+-
+ 	return ret;
+ }
+ 
+@@ -339,11 +341,6 @@ static int lcd_cfg_display(const struct 
+ 	else
+ 		reg &= ~LCD_SYNC_EDGE;
+ 
+-	if (cfg->invert_pxl_clock)
+-		reg |= LCD_INVERT_PIXEL_CLOCK;
+-	else
+-		reg &= ~LCD_INVERT_PIXEL_CLOCK;
+-
+ 	if (cfg->invert_line_clock)
+ 		reg |= LCD_INVERT_LINE_CLOCK;
+ 	else
+@@ -482,6 +479,13 @@ static int lcd_init(struct da8xx_fb_par 
+ 	lcdc_write(LCD_CLK_DIVISOR(panel->pxl_clk) |
+ 			(LCD_RASTER_MODE & 0x1), LCD_CTRL_REG);
+ 
++	if (panel->invert_pxl_clk)
++		lcdc_write((lcdc_read(LCD_RASTER_TIMING_2_REG) |
++			LCD_INVERT_PIXEL_CLOCK), LCD_RASTER_TIMING_2_REG);
++	else
++		lcdc_write((lcdc_read(LCD_RASTER_TIMING_2_REG) &
++			~LCD_INVERT_PIXEL_CLOCK), LCD_RASTER_TIMING_2_REG);
++
+ 	/* Configure the DMA burst size. */
+ 	ret = lcd_cfg_dma(cfg->dma_burst_sz);
+ 	if (ret < 0)
+diff -puN include/video/da8xx-fb.h~davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v5 include/video/da8xx-fb.h
+--- a/include/video/da8xx-fb.h~davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v5
++++ a/include/video/da8xx-fb.h
+@@ -67,9 +67,6 @@ struct lcd_ctrl_config {
+ 	/* Mono 8-bit Mode: 1=D0-D7 or 0=D0-D3 */
+ 	unsigned char mono_8bit_mode;
+ 
+-	/* Invert pixel clock */
+-	unsigned char invert_pxl_clock;
