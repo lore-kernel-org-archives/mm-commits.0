@@ -1,63 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [folded] sdio-add-cd-disable-support-cleanup.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 14:40:28 -0700
-Message-ID: <200909222140.n8MLeTQ4027255@imap1.linux-foundation.org>
+Subject: [folded] sdio-add-mmc_quirk_lenient_fn0-fix.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 14:40:58 -0700
+Message-ID: <200909222140.n8MLewPn028199@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50407 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56292 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752321AbZIVVku (ORCPT
+	by vger.kernel.org with ESMTP id S1752244AbZIVVk4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 17:40:50 -0400
+	Tue, 22 Sep 2009 17:40:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, david.vrabel@csr.com, ian@mnementh.co.uk, matt@console-pimps.org, ohad@wizery.com, philipl@overt.org, pierre@ossman.eu, roberto.foglietta@gmail.com, mm-comm
+To: akpm@linux-foundation.org, linux-mmc@vger.kernel.org, ohad@wizery.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sdio-add-cd-disable-support-cleanup
+     sdio-add-mmc_quirk_lenient_fn0-fix
 has been removed from the -mm tree.  Its filename was
-     sdio-add-cd-disable-support-cleanup.patch
+     sdio-add-mmc_quirk_lenient_fn0-fix.patch
 
-This patch was dropped because it was folded into sdio-add-cd-disable-support.patch
+This patch was dropped because it was folded into sdio-add-mmc_quirk_lenient_fn0.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sdio-add-cd-disable-support-cleanup
+Subject: sdio-add-mmc_quirk_lenient_fn0-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-simplify sdio_disable_cd() a bit
+Code in C, not cpp!
 
-Cc: "Roberto A. Foglietta" <roberto.foglietta@gmail.com>
-Cc: Ian Molton <ian@mnementh.co.uk>
-Cc: Matt Fleming <matt@console-pimps.org>
+Cc: <linux-mmc@vger.kernel.org>
 Cc: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Philip Langdale <philipl@overt.org>
-Cc: Pierre Ossman <pierre@ossman.eu>
-Cc: David Vrabel <david.vrabel@csr.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/sdio.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ include/linux/mmc/card.h |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/mmc/core/sdio.c~sdio-add-cd-disable-support-cleanup drivers/mmc/core/sdio.c
---- a/drivers/mmc/core/sdio.c~sdio-add-cd-disable-support-cleanup
-+++ a/drivers/mmc/core/sdio.c
-@@ -184,11 +184,7 @@ static int sdio_disable_cd(struct mmc_ca
+diff -puN include/linux/mmc/card.h~sdio-add-mmc_quirk_lenient_fn0-fix include/linux/mmc/card.h
+--- a/include/linux/mmc/card.h~sdio-add-mmc_quirk_lenient_fn0-fix
++++ a/include/linux/mmc/card.h
+@@ -134,7 +134,10 @@ struct mmc_card {
+ #define mmc_card_set_highspeed(c) ((c)->state |= MMC_STATE_HIGHSPEED)
+ #define mmc_card_set_blockaddr(c) ((c)->state |= MMC_STATE_BLOCKADDR)
  
- 	ctrl |= SDIO_BUS_CD_DISABLE;
+-#define mmc_card_lenient_fn0(c)	((c)->quirks & MMC_QUIRK_LENIENT_FN0)
++static inline int mmc_card_lenient_fn0(const struct mmc_card *c)
++{
++	return c->quirks & MMC_QUIRK_LENIENT_FN0;
++}
  
--	ret = mmc_io_rw_direct(card, 1, 0, SDIO_CCCR_IF, ctrl, NULL);
--	if (ret)
--		return ret;
--
--	return 0;
-+	return mmc_io_rw_direct(card, 1, 0, SDIO_CCCR_IF, ctrl, NULL);
- }
- 
- /*
+ #define mmc_card_name(c)	((c)->cid.prod_name)
+ #define mmc_card_id(c)		(dev_name(&(c)->dev))
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -70,7 +64,7 @@ proc-connector-add-event-for-process-becoming-session-leader.patch
 build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it.patch
 mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
 sdio-add-cd-disable-support.patch
-sdio-add-cd-disable-support-cleanup.patch
+sdio-add-mmc_quirk_lenient_fn0.patch
 sdio-add-mmc_quirk_lenient_fn0-fix.patch
 at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver-checkpatch-fixes.patch
 mmc-core-sdio-suspend-resume-support-fix.patch
