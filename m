@@ -1,144 +1,162 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-shrink_inactive_list-nr_scan-accounting-fix-fix.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:38:24 -0700
-Message-ID: <200909222038.n8MKcO7W001366@imap1.linux-foundation.org>
+Subject: [merged] ksm-first-tidy-up-madvise_vma.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:39:07 -0700
+Message-ID: <200909222039.n8MKd7Xo002794@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60712 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41643 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752757AbZIVUmT (ORCPT
+	by vger.kernel.org with ESMTP id S1752835AbZIVUmW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:42:19 -0400
+	Tue, 22 Sep 2009 16:42:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, fengguang.wu@intel.com, minchan.kim@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: hugh.dickins@tiscali.co.uk, aarcange@redhat.com, avi@redhat.com, balbir@in.ibm.com, chrisw@redhat.com, fengguang.wu@intel.com, ieidus@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, lee.s
 
 
 The patch titled
-     mm: shrink_inactive_list() nr_scan accounting fix fix
+     ksm: first tidy up madvise_vma()
 has been removed from the -mm tree.  Its filename was
-     mm-shrink_inactive_list-nr_scan-accounting-fix-fix.patch
+     ksm-first-tidy-up-madvise_vma.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: shrink_inactive_list() nr_scan accounting fix fix
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: ksm: first tidy up madvise_vma()
+From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
-If sc->isolate_pages() return 0, we don't need to call shrink_page_list().
-In past days, shrink_inactive_list() handled it properly.
+madvise.c has several levels of switch statements, what to do in which? 
+Move MADV_DOFORK code down from madvise_vma() to madvise_behavior(), so
+madvise_vma() can be a simple router, to madvise_behavior() by default.
 
-But commit fb8d14e1 (three years ago commit!) breaked it.  current
-shrink_inactive_list() always call shrink_page_list() although
-isolate_pages() return 0.
+vma->vm_flags is an unsigned long so use the same type for new_flags.  Add
+missing comment lines to describe MADV_DONTFORK and MADV_DOFORK.
 
-This patch restore proper return value check.
-
-Requirements:
-  o "nr_taken == 0" condition should stay before calling shrink_page_list().
-  o "nr_taken == 0" condition should stay after nr_scan related statistics
-     modification.
-
+Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Signed-off-by: Chris Wright <chrisw@redhat.com>
+Signed-off-by: Izik Eidus <ieidus@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
 Cc: Wu Fengguang <fengguang.wu@intel.com>
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Avi Kivity <avi@redhat.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   30 ++++++++++++++++++------------
- 1 file changed, 18 insertions(+), 12 deletions(-)
+ mm/madvise.c |   39 +++++++++++++--------------------------
+ 1 file changed, 13 insertions(+), 26 deletions(-)
 
-diff -puN mm/vmscan.c~mm-shrink_inactive_list-nr_scan-accounting-fix-fix mm/vmscan.c
---- a/mm/vmscan.c~mm-shrink_inactive_list-nr_scan-accounting-fix-fix
-+++ a/mm/vmscan.c
-@@ -1076,6 +1076,20 @@ static unsigned long shrink_inactive_lis
- 		nr_taken = sc->isolate_pages(sc->swap_cluster_max,
- 			     &page_list, &nr_scan, sc->order, mode,
- 				zone, sc->mem_cgroup, 0, file);
-+
-+		if (scanning_global_lru(sc)) {
-+			zone->pages_scanned += nr_scan;
-+			if (current_is_kswapd())
-+				__count_zone_vm_events(PGSCAN_KSWAPD, zone,
-+						       nr_scan);
-+			else
-+				__count_zone_vm_events(PGSCAN_DIRECT, zone,
-+						       nr_scan);
+diff -puN mm/madvise.c~ksm-first-tidy-up-madvise_vma mm/madvise.c
+--- a/mm/madvise.c~ksm-first-tidy-up-madvise_vma
++++ a/mm/madvise.c
+@@ -41,7 +41,7 @@ static long madvise_behavior(struct vm_a
+ 	struct mm_struct * mm = vma->vm_mm;
+ 	int error = 0;
+ 	pgoff_t pgoff;
+-	int new_flags = vma->vm_flags;
++	unsigned long new_flags = vma->vm_flags;
+ 
+ 	switch (behavior) {
+ 	case MADV_NORMAL:
+@@ -57,6 +57,10 @@ static long madvise_behavior(struct vm_a
+ 		new_flags |= VM_DONTCOPY;
+ 		break;
+ 	case MADV_DOFORK:
++		if (vma->vm_flags & VM_IO) {
++			error = -EINVAL;
++			goto out;
 +		}
-+
-+		if (nr_taken == 0)
-+			goto done;
-+
- 		nr_active = clear_active_flags(&page_list, count);
- 		__count_vm_events(PGDEACTIVATE, nr_active);
- 
-@@ -1088,8 +1102,6 @@ static unsigned long shrink_inactive_lis
- 		__mod_zone_page_state(zone, NR_INACTIVE_ANON,
- 						-count[LRU_INACTIVE_ANON]);
- 
--		if (scanning_global_lru(sc))
--			zone->pages_scanned += nr_scan;
- 
- 		reclaim_stat->recent_scanned[0] += count[LRU_INACTIVE_ANON];
- 		reclaim_stat->recent_scanned[0] += count[LRU_ACTIVE_ANON];
-@@ -1123,18 +1135,12 @@ static unsigned long shrink_inactive_lis
- 		}
- 
- 		nr_reclaimed += nr_freed;
-+
- 		local_irq_disable();
--		if (current_is_kswapd()) {
--			__count_zone_vm_events(PGSCAN_KSWAPD, zone, nr_scan);
-+		if (current_is_kswapd())
- 			__count_vm_events(KSWAPD_STEAL, nr_freed);
--		} else if (scanning_global_lru(sc))
--			__count_zone_vm_events(PGSCAN_DIRECT, zone, nr_scan);
+ 		new_flags &= ~VM_DONTCOPY;
+ 		break;
+ 	}
+@@ -211,37 +215,16 @@ static long
+ madvise_vma(struct vm_area_struct *vma, struct vm_area_struct **prev,
+ 		unsigned long start, unsigned long end, int behavior)
+ {
+-	long error;
 -
- 		__count_zone_vm_events(PGSTEAL, zone, nr_freed);
- 
--		if (nr_taken == 0)
--			goto done;
+ 	switch (behavior) {
+-	case MADV_DOFORK:
+-		if (vma->vm_flags & VM_IO) {
+-			error = -EINVAL;
+-			break;
+-		}
+-	case MADV_DONTFORK:
+-	case MADV_NORMAL:
+-	case MADV_SEQUENTIAL:
+-	case MADV_RANDOM:
+-		error = madvise_behavior(vma, prev, start, end, behavior);
+-		break;
+ 	case MADV_REMOVE:
+-		error = madvise_remove(vma, prev, start, end);
+-		break;
 -
- 		spin_lock(&zone->lru_lock);
- 		/*
- 		 * Put back any unfreeable pages.
-@@ -1164,9 +1170,9 @@ static unsigned long shrink_inactive_lis
- 			}
- 		}
-   	} while (nr_scanned < max_scan);
--	spin_unlock(&zone->lru_lock);
-+
- done:
--	local_irq_enable();
-+	spin_unlock_irq(&zone->lru_lock);
- 	pagevec_release(&pvec);
- 	return nr_reclaimed;
++		return madvise_remove(vma, prev, start, end);
+ 	case MADV_WILLNEED:
+-		error = madvise_willneed(vma, prev, start, end);
+-		break;
+-
++		return madvise_willneed(vma, prev, start, end);
+ 	case MADV_DONTNEED:
+-		error = madvise_dontneed(vma, prev, start, end);
+-		break;
+-
++		return madvise_dontneed(vma, prev, start, end);
+ 	default:
+-		BUG();
+-		break;
++		return madvise_behavior(vma, prev, start, end, behavior);
+ 	}
+-	return error;
  }
+ 
+ static int
+@@ -262,6 +245,7 @@ madvise_behavior_valid(int behavior)
+ 		return 0;
+ 	}
+ }
++
+ /*
+  * The madvise(2) system call.
+  *
+@@ -286,6 +270,9 @@ madvise_behavior_valid(int behavior)
+  *		so the kernel can free resources associated with it.
+  *  MADV_REMOVE - the application wants to free up the given range of
+  *		pages and associated backing store.
++ *  MADV_DONTFORK - omit this area from child's address space when forking:
++ *		typically, to avoid COWing pages pinned by get_user_pages().
++ *  MADV_DOFORK - cancel MADV_DONTFORK: no longer omit this area when forking.
+  *
+  * return values:
+  *  zero    - success
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
 
 origin.patch
 linux-next.patch
-revert-staging-android-lowmemorykillerc-fix-it-for-oom-move-oom_adj-value-from-task_struct-to-mm_struct.patch
-readahead-add-blk_run_backing_dev.patch
-oom-move-oom_adj-value-from-task_struct-to-signal_struct-fix.patch
-mm-vsmcan-check-shrink_active_list-sc-isolate_pages-return-value.patch
+vfs-optimize-touch_time-too.patch
+vfs-seq_file-add-helpers-for-data-filling.patch
+fs-new-truncate-helpers.patch
+fs-use-new-truncate-helpers.patch
+fs-introduce-new-truncate-sequence.patch
+fs-convert-simple-fs-to-new-truncate.patch
+tmpfs-convert-to-use-the-new-truncate-convention.patch
+ext2-convert-to-use-the-new-truncate-convention.patch
+fat-convert-to-use-the-new-truncate-convention.patch
+btrfs-convert-to-use-the-new-truncate-convention.patch
+jfs-convert-to-use-the-new-truncate-convention.patch
+udf-convert-to-use-the-new-truncate-convention.patch
+minix-convert-to-use-the-new-truncate-convention.patch
 getrusage-fill-ru_maxrss-value.patch
-kcore-use-registerd-physmem-information-ia64-fix.patch
-memory-controller-soft-limit-documentation-v9.patch
-memory-controller-soft-limit-interface-v9.patch
-memory-controller-soft-limit-organize-cgroups-v9.patch
+walk-system-ram-range-fix.patch
+ramfs-move-ramfs_magic-to-include-linux-magich.patch
 memory-controller-soft-limit-organize-cgroups-v9-fix.patch
-memory-controller-soft-limit-refactor-reclaim-flags-v9.patch
-memory-controller-soft-limit-reclaim-on-contention-v9.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix-softlimit-css-refcnt-handling.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix-softlimit-css-refcnt-handling-fix.patch
-memcg-improve-resource-counter-scalability.patch
-memcg-improve-resource-counter-scalability-v5.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
+prio_tree-debugging-patch.patch
 
