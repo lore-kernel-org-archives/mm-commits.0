@@ -1,73 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [merged] vm-document-that-setting-vfs_cache_pressure-to-0-isnt-a-good-idea.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:38:36 -0700
-Message-ID: <200909222038.n8MKcaJ0001747@imap1.linux-foundation.org>
+Subject: [merged] vmscan-move-clearpageactive-from-move_active_pages-to-shrink_active_list.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:38:47 -0700
+Message-ID: <200909222038.n8MKclCN002116@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45079 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39233 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752489AbZIVUjL (ORCPT
+	by vger.kernel.org with ESMTP id S1751669AbZIVUjg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:39:11 -0400
+	Tue, 22 Sep 2009 16:39:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, ct@pipapo.org, mm-commits@vger.kernel.org
+To: kosaki.motohiro@jp.fujitsu.com, fengguang.wu@intel.com, hannes@cmpxchg.org, mel@csn.ul.ie, minchan.kim@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vm: document that setting vfs_cache_pressure to 0 isn't a good idea
+     vmscan: move ClearPageActive from move_active_pages() to shrink_active_list()
 has been removed from the -mm tree.  Its filename was
-     vm-document-that-setting-vfs_cache_pressure-to-0-isnt-a-good-idea.patch
+     vmscan-move-clearpageactive-from-move_active_pages-to-shrink_active_list.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vm: document that setting vfs_cache_pressure to 0 isn't a good idea
-From: Jan Kara <jack@suse.cz>
+Subject: vmscan: move ClearPageActive from move_active_pages() to shrink_active_list()
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Reported-by: Christian Thaeter <ct@pipapo.org>
-Signed-off-by: Jan Kara <jack@suse.cz>
+The move_active_pages_to_lru() function is called under irq disabled and
+ClearPageActive() doesn't need irq disabling.
+
+Then, this patch move it into shrink_active_list().
+
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/vm.txt |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/vmscan.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN Documentation/sysctl/vm.txt~vm-document-that-setting-vfs_cache_pressure-to-0-isnt-a-good-idea Documentation/sysctl/vm.txt
---- a/Documentation/sysctl/vm.txt~vm-document-that-setting-vfs_cache_pressure-to-0-isnt-a-good-idea
-+++ a/Documentation/sysctl/vm.txt
-@@ -585,7 +585,9 @@ caching of directory and inode objects.
- At the default value of vfs_cache_pressure=100 the kernel will attempt to
- reclaim dentries and inodes at a "fair" rate with respect to pagecache and
- swapcache reclaim.  Decreasing vfs_cache_pressure causes the kernel to prefer
--to retain dentry and inode caches.  Increasing vfs_cache_pressure beyond 100
-+to retain dentry and inode caches. When vfs_cache_pressure=0, the kernel will
-+never reclaim dentries and inodes due to memory pressure and this can easily
-+lead to out-of-memory conditions. Increasing vfs_cache_pressure beyond 100
- causes the kernel to prefer to reclaim dentries and inodes.
+diff -puN mm/vmscan.c~vmscan-move-clearpageactive-from-move_active_pages-to-shrink_active_list mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-move-clearpageactive-from-move_active_pages-to-shrink_active_list
++++ a/mm/vmscan.c
+@@ -1278,10 +1278,6 @@ static void move_active_pages_to_lru(str
+ 		VM_BUG_ON(PageLRU(page));
+ 		SetPageLRU(page);
  
- ==============================================================
+-		VM_BUG_ON(!PageActive(page));
+-		if (!is_active_lru(lru))
+-			ClearPageActive(page);	/* we are de-activating */
+-
+ 		list_move(&page->lru, &zone->lru[lru].list);
+ 		mem_cgroup_add_lru_list(page, lru);
+ 		pgmoved++;
+@@ -1363,6 +1359,7 @@ static void shrink_active_list(unsigned 
+ 			}
+ 		}
+ 
++		ClearPageActive(page);	/* we are de-activating */
+ 		list_add(&page->lru, &l_inactive);
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 origin.patch
 linux-next.patch
-vfs-split-generic_forget_inode-so-that-hugetlbfs-does-not-have-to-copy-it.patch
-fs-new-truncate-helpers.patch
-fs-use-new-truncate-helpers.patch
-fs-introduce-new-truncate-sequence.patch
-fs-convert-simple-fs-to-new-truncate.patch
-tmpfs-convert-to-use-the-new-truncate-convention.patch
-ext2-convert-to-use-the-new-truncate-convention.patch
-ext2-convert-to-use-the-new-truncate-convention-fix.patch
-fat-convert-to-use-the-new-truncate-convention.patch
-btrfs-convert-to-use-the-new-truncate-convention.patch
-jfs-convert-to-use-the-new-truncate-convention.patch
-udf-convert-to-use-the-new-truncate-convention.patch
-minix-convert-to-use-the-new-truncate-convention.patch
-reiserfs-truncate-blocks-not-used-by-a-write-v2.patch
-reiser4-update-names-of-quota-methods.patch
+revert-staging-android-lowmemorykillerc-fix-it-for-oom-move-oom_adj-value-from-task_struct-to-mm_struct.patch
+readahead-add-blk_run_backing_dev.patch
+oom-move-oom_adj-value-from-task_struct-to-signal_struct-fix.patch
+mm-vsmcan-check-shrink_active_list-sc-isolate_pages-return-value.patch
+getrusage-fill-ru_maxrss-value.patch
+kcore-use-registerd-physmem-information-ia64-fix.patch
+memory-controller-soft-limit-documentation-v9.patch
+memory-controller-soft-limit-interface-v9.patch
+memory-controller-soft-limit-organize-cgroups-v9.patch
+memory-controller-soft-limit-organize-cgroups-v9-fix.patch
+memory-controller-soft-limit-refactor-reclaim-flags-v9.patch
+memory-controller-soft-limit-reclaim-on-contention-v9.patch
+memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
+memory-controller-soft-limit-reclaim-on-contention-v9-fix-softlimit-css-refcnt-handling.patch
+memory-controller-soft-limit-reclaim-on-contention-v9-fix-softlimit-css-refcnt-handling-fix.patch
+memcg-improve-resource-counter-scalability.patch
+memcg-improve-resource-counter-scalability-v5.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
