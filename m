@@ -1,165 +1,165 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ksm-identify-pageksm-pages.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:39:24 -0700
-Message-ID: <200909222039.n8MKdOmk003379@imap1.linux-foundation.org>
+Subject: [merged] ksm-pages_unshared-and-pages_volatile.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:39:48 -0700
+Message-ID: <200909222039.n8MKdmkA004187@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59813 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37628 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752082AbZIVUkP (ORCPT
+	by vger.kernel.org with ESMTP id S1752501AbZIVUkV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:40:15 -0400
+	Tue, 22 Sep 2009 16:40:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh.dickins@tiscali.co.uk, aarcange@redhat.com, avi@redhat.com, balbir@in.ibm.com, chrisw@redhat.com, fengguang.wu@intel.com, ieidus@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, lee.s
+To: hugh.dickins@tiscali.co.uk, aarcange@redhat.com, ieidus@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ksm: identify PageKsm pages
+     ksm: pages_unshared and pages_volatile
 has been removed from the -mm tree.  Its filename was
-     ksm-identify-pageksm-pages.patch
+     ksm-pages_unshared-and-pages_volatile.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ksm: identify PageKsm pages
+Subject: ksm: pages_unshared and pages_volatile
 From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
-KSM will need to identify its kernel merged pages unambiguously, and
-/proc/kpageflags will probably like to do so too.
+The pages_shared and pages_sharing counts give a good picture of how
+successful KSM is at sharing; but no clue to how much wasted work it's
+doing to get there.  Add pages_unshared (count of unique pages waiting
+in the unstable tree, hoping to find a mate) and pages_volatile.
 
-Since KSM will only be substituting anonymous pages, statistics are best
-preserved by making a PageKsm page a special PageAnon page: one with no
-anon_vma.
+pages_volatile is harder to define.  It includes those pages changing
+too fast to get into the unstable tree, but also whatever other edge
+conditions prevent a page getting into the trees: a high value may
+deserve investigation.  Don't try to calculate it from the various
+conditions: it's the total of rmap_items less those accounted for.
 
-But KSM then needs its own page_add_ksm_rmap() - keep it in ksm.h near
-PageKsm; and do_wp_page() must COW them, unlike singly mapped PageAnons.
+Also show full_scans: the number of completed scans of everything
+registered in the mm list.
+
+The locking for all these counts is simply ksm_thread_mutex.
 
 Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Signed-off-by: Chris Wright <chrisw@redhat.com>
-Signed-off-by: Izik Eidus <ieidus@redhat.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Avi Kivity <avi@redhat.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Acked-by: Izik Eidus <ieidus@redhat.com>
+Acked-by: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/page.c      |    5 +++++
- include/linux/ksm.h |   29 +++++++++++++++++++++++++++++
- mm/memory.c         |    3 ++-
- 3 files changed, 36 insertions(+), 1 deletion(-)
+ mm/ksm.c |   52 +++++++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 51 insertions(+), 1 deletion(-)
 
-diff -puN fs/proc/page.c~ksm-identify-pageksm-pages fs/proc/page.c
---- a/fs/proc/page.c~ksm-identify-pageksm-pages
-+++ a/fs/proc/page.c
-@@ -2,6 +2,7 @@
- #include <linux/compiler.h>
- #include <linux/fs.h>
- #include <linux/init.h>
-+#include <linux/ksm.h>
- #include <linux/mm.h>
- #include <linux/mmzone.h>
- #include <linux/proc_fs.h>
-@@ -95,6 +96,8 @@ static const struct file_operations proc
- #define KPF_UNEVICTABLE		18
- #define KPF_NOPAGE		20
+diff -puN mm/ksm.c~ksm-pages_unshared-and-pages_volatile mm/ksm.c
+--- a/mm/ksm.c~ksm-pages_unshared-and-pages_volatile
++++ a/mm/ksm.c
+@@ -155,6 +155,12 @@ static unsigned long ksm_pages_shared;
+ /* The number of page slots additionally sharing those nodes */
+ static unsigned long ksm_pages_sharing;
  
-+#define KPF_KSM			21
++/* The number of nodes in the unstable tree */
++static unsigned long ksm_pages_unshared;
 +
- /* kernel hacking assistances
-  * WARNING: subject to change, never rely on them!
-  */
-@@ -137,6 +140,8 @@ static u64 get_uflags(struct page *page)
- 		u |= 1 << KPF_MMAP;
- 	if (PageAnon(page))
- 		u |= 1 << KPF_ANON;
-+	if (PageKsm(page))
-+		u |= 1 << KPF_KSM;
- 
- 	/*
- 	 * compound pages: export both head/tail info
-diff -puN include/linux/ksm.h~ksm-identify-pageksm-pages include/linux/ksm.h
---- a/include/linux/ksm.h~ksm-identify-pageksm-pages
-+++ a/include/linux/ksm.h
-@@ -10,6 +10,7 @@
- #include <linux/bitops.h>
- #include <linux/mm.h>
- #include <linux/sched.h>
-+#include <linux/vmstat.h>
- 
- #ifdef CONFIG_KSM
- int ksm_madvise(struct vm_area_struct *vma, unsigned long start,
-@@ -29,6 +30,27 @@ static inline void ksm_exit(struct mm_st
- 	if (test_bit(MMF_VM_MERGEABLE, &mm->flags))
- 		__ksm_exit(mm);
- }
++/* The number of rmap_items in use: to calculate pages_volatile */
++static unsigned long ksm_rmap_items;
 +
-+/*
-+ * A KSM page is one of those write-protected "shared pages" or "merged pages"
-+ * which KSM maps into multiple mms, wherever identical anonymous page content
-+ * is found in VM_MERGEABLE vmas.  It's a PageAnon page, with NULL anon_vma.
-+ */
-+static inline int PageKsm(struct page *page)
-+{
-+	return ((unsigned long)page->mapping == PAGE_MAPPING_ANON);
-+}
-+
-+/*
-+ * But we have to avoid the checking which page_add_anon_rmap() performs.
-+ */
-+static inline void page_add_ksm_rmap(struct page *page)
-+{
-+	if (atomic_inc_and_test(&page->_mapcount)) {
-+		page->mapping = (void *) PAGE_MAPPING_ANON;
-+		__inc_zone_page_state(page, NR_ANON_PAGES);
-+	}
-+}
- #else  /* !CONFIG_KSM */
+ /* Limit on the number of unswappable pages used */
+ static unsigned long ksm_max_kernel_pages;
  
- static inline int ksm_madvise(struct vm_area_struct *vma, unsigned long start,
-@@ -45,6 +67,13 @@ static inline int ksm_fork(struct mm_str
- static inline void ksm_exit(struct mm_struct *mm)
+@@ -204,11 +210,17 @@ static void __init ksm_slab_free(void)
+ 
+ static inline struct rmap_item *alloc_rmap_item(void)
  {
+-	return kmem_cache_zalloc(rmap_item_cache, GFP_KERNEL);
++	struct rmap_item *rmap_item;
++
++	rmap_item = kmem_cache_zalloc(rmap_item_cache, GFP_KERNEL);
++	if (rmap_item)
++		ksm_rmap_items++;
++	return rmap_item;
  }
-+
-+static inline int PageKsm(struct page *page)
-+{
-+	return 0;
-+}
-+
-+/* No stub required for page_add_ksm_rmap(page) */
- #endif /* !CONFIG_KSM */
  
- #endif
-diff -puN mm/memory.c~ksm-identify-pageksm-pages mm/memory.c
---- a/mm/memory.c~ksm-identify-pageksm-pages
-+++ a/mm/memory.c
-@@ -45,6 +45,7 @@
- #include <linux/swap.h>
- #include <linux/highmem.h>
- #include <linux/pagemap.h>
-+#include <linux/ksm.h>
- #include <linux/rmap.h>
- #include <linux/module.h>
- #include <linux/delayacct.h>
-@@ -1974,7 +1975,7 @@ static int do_wp_page(struct mm_struct *
- 	 * Take out anonymous pages first, anonymous shared vmas are
- 	 * not dirty accountable.
- 	 */
--	if (PageAnon(old_page)) {
-+	if (PageAnon(old_page) && !PageKsm(old_page)) {
- 		if (!trylock_page(old_page)) {
- 			page_cache_get(old_page);
- 			pte_unmap_unlock(page_table, ptl);
+ static inline void free_rmap_item(struct rmap_item *rmap_item)
+ {
++	ksm_rmap_items--;
+ 	rmap_item->mm = NULL;	/* debug safety */
+ 	kmem_cache_free(rmap_item_cache, rmap_item);
+ }
+@@ -419,6 +431,7 @@ static void remove_rmap_item_from_tree(s
+ 		BUG_ON(age > 2);
+ 		if (!age)
+ 			rb_erase(&rmap_item->node, &root_unstable_tree);
++		ksm_pages_unshared--;
+ 	}
+ 
+ 	rmap_item->address &= PAGE_MASK;
+@@ -995,6 +1008,7 @@ static struct rmap_item *unstable_tree_s
+ 	rb_link_node(&rmap_item->node, parent, new);
+ 	rb_insert_color(&rmap_item->node, &root_unstable_tree);
+ 
++	ksm_pages_unshared++;
+ 	return NULL;
+ }
+ 
+@@ -1091,6 +1105,8 @@ static void cmp_and_merge_page(struct pa
+ 		if (!err) {
+ 			rb_erase(&tree_rmap_item->node, &root_unstable_tree);
+ 			tree_rmap_item->address &= ~NODE_FLAG;
++			ksm_pages_unshared--;
++
+ 			/*
+ 			 * If we fail to insert the page into the stable tree,
+ 			 * we will have 2 virtual addresses that are pointing
+@@ -1474,6 +1490,37 @@ static ssize_t pages_sharing_show(struct
+ }
+ KSM_ATTR_RO(pages_sharing);
+ 
++static ssize_t pages_unshared_show(struct kobject *kobj,
++				   struct kobj_attribute *attr, char *buf)
++{
++	return sprintf(buf, "%lu\n", ksm_pages_unshared);
++}
++KSM_ATTR_RO(pages_unshared);
++
++static ssize_t pages_volatile_show(struct kobject *kobj,
++				   struct kobj_attribute *attr, char *buf)
++{
++	long ksm_pages_volatile;
++
++	ksm_pages_volatile = ksm_rmap_items - ksm_pages_shared
++				- ksm_pages_sharing - ksm_pages_unshared;
++	/*
++	 * It was not worth any locking to calculate that statistic,
++	 * but it might therefore sometimes be negative: conceal that.
++	 */
++	if (ksm_pages_volatile < 0)
++		ksm_pages_volatile = 0;
++	return sprintf(buf, "%ld\n", ksm_pages_volatile);
++}
++KSM_ATTR_RO(pages_volatile);
++
++static ssize_t full_scans_show(struct kobject *kobj,
++			       struct kobj_attribute *attr, char *buf)
++{
++	return sprintf(buf, "%lu\n", ksm_scan.seqnr);
++}
++KSM_ATTR_RO(full_scans);
++
+ static struct attribute *ksm_attrs[] = {
+ 	&sleep_millisecs_attr.attr,
+ 	&pages_to_scan_attr.attr,
+@@ -1481,6 +1528,9 @@ static struct attribute *ksm_attrs[] = {
+ 	&max_kernel_pages_attr.attr,
+ 	&pages_shared_attr.attr,
+ 	&pages_sharing_attr.attr,
++	&pages_unshared_attr.attr,
++	&pages_volatile_attr.attr,
++	&full_scans_attr.attr,
+ 	NULL,
+ };
+ 
 _
 
 Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
