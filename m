@@ -1,271 +1,157 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-add-get_dump_page.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:42:46 -0700
-Message-ID: <200909222042.n8MKgkpP010271@imap1.linux-foundation.org>
+Subject: [merged] mm-foll_dump-replace-foll_anon.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:42:49 -0700
+Message-ID: <200909222042.n8MKgnYp010352@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43058 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54101 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752978AbZIVUnF (ORCPT
+	by vger.kernel.org with ESMTP id S1753035AbZIVUnI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:43:05 -0400
+	Tue, 22 Sep 2009 16:43:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hugh.dickins@tiscali.co.uk, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, npiggin@suse.de, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: add get_dump_page
+     mm: FOLL_DUMP replace FOLL_ANON
 has been removed from the -mm tree.  Its filename was
-     mm-add-get_dump_page.patch
+     mm-foll_dump-replace-foll_anon.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: add get_dump_page
+Subject: mm: FOLL_DUMP replace FOLL_ANON
 From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
-In preparation for the next patch, add a simple get_dump_page(addr)
-interface for the CONFIG_ELF_CORE dumpers to use, instead of calling
-get_user_pages() directly.  They're not interested in errors: they
-just want to use holes as much as possible, to save space and make
-sure that the data is aligned where the headers said it would be.
+The "FOLL_ANON optimization" and its use_zero_page() test have caused
+confusion and bugs: why does it test VM_SHARED? for the very good but
+unsatisfying reason that VMware crashed without.  As we look to maybe
+reinstating anonymous use of the ZERO_PAGE, we need to sort this out.
 
-Oh, and don't use that horrid DUMP_SEEK(off) macro!
+Easily done: it's silly for __get_user_pages() and follow_page() to
+be guessing whether it's safe to assume that they're being used for
+a coredump (which can take a shortcut snapshot where other uses must
+handle a fault) - just tell them with GUP_FLAGS_DUMP and FOLL_DUMP.
+
+get_dump_page() doesn't even want a ZERO_PAGE: an error suits fine.
 
 Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Acked-by: Rik van Riel <riel@redhat.com>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Nick Piggin <npiggin@suse.de>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c       |   42 +++++++++---------------------
- fs/binfmt_elf_fdpic.c |   56 +++++++++++++---------------------------
- include/linux/mm.h    |    1 
- mm/memory.c           |   33 ++++++++++++++++++++++-
- 4 files changed, 65 insertions(+), 67 deletions(-)
+ include/linux/mm.h |    2 -
+ mm/internal.h      |    1 
+ mm/memory.c        |   45 ++++++++++++-------------------------------
+ 3 files changed, 15 insertions(+), 33 deletions(-)
 
-diff -puN fs/binfmt_elf.c~mm-add-get_dump_page fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~mm-add-get_dump_page
-+++ a/fs/binfmt_elf.c
-@@ -1280,9 +1280,6 @@ static int writenote(struct memelfnote *
- #define DUMP_WRITE(addr, nr)	\
- 	if ((size += (nr)) > limit || !dump_write(file, (addr), (nr))) \
- 		goto end_coredump;
--#define DUMP_SEEK(off)	\
--	if (!dump_seek(file, (off))) \
--		goto end_coredump;
- 
- static void fill_elf_header(struct elfhdr *elf, int segs,
- 			    u16 machine, u32 flags, u8 osabi)
-@@ -2016,7 +2013,8 @@ static int elf_core_dump(long signr, str
- 		goto end_coredump;
- 
- 	/* Align to page */
--	DUMP_SEEK(dataoff - foffset);
-+	if (!dump_seek(file, dataoff - foffset))
-+		goto end_coredump;
- 
- 	for (vma = first_vma(current, gate_vma); vma != NULL;
- 			vma = next_vma(vma, gate_vma)) {
-@@ -2027,33 +2025,19 @@ static int elf_core_dump(long signr, str
- 
- 		for (addr = vma->vm_start; addr < end; addr += PAGE_SIZE) {
- 			struct page *page;
--			struct vm_area_struct *tmp_vma;
-+			int stop;
- 
--			if (get_user_pages(current, current->mm, addr, 1, 0, 1,
--						&page, &tmp_vma) <= 0) {
--				DUMP_SEEK(PAGE_SIZE);
--			} else {
--				if (page == ZERO_PAGE(0)) {
--					if (!dump_seek(file, PAGE_SIZE)) {
--						page_cache_release(page);
--						goto end_coredump;
--					}
--				} else {
--					void *kaddr;
--					flush_cache_page(tmp_vma, addr,
--							 page_to_pfn(page));
--					kaddr = kmap(page);
--					if ((size += PAGE_SIZE) > limit ||
--					    !dump_write(file, kaddr,
--					    PAGE_SIZE)) {
--						kunmap(page);
--						page_cache_release(page);
--						goto end_coredump;
--					}
--					kunmap(page);
--				}
-+			page = get_dump_page(addr);
-+			if (page) {
-+				void *kaddr = kmap(page);
-+				stop = ((size += PAGE_SIZE) > limit) ||
-+					!dump_write(file, kaddr, PAGE_SIZE);
-+				kunmap(page);
- 				page_cache_release(page);
--			}
-+			} else
-+				stop = !dump_seek(file, PAGE_SIZE);
-+			if (stop)
-+				goto end_coredump;
- 		}
- 	}
- 
-diff -puN fs/binfmt_elf_fdpic.c~mm-add-get_dump_page fs/binfmt_elf_fdpic.c
---- a/fs/binfmt_elf_fdpic.c~mm-add-get_dump_page
-+++ a/fs/binfmt_elf_fdpic.c
-@@ -1325,9 +1325,6 @@ static int writenote(struct memelfnote *
- #define DUMP_WRITE(addr, nr)	\
- 	if ((size += (nr)) > limit || !dump_write(file, (addr), (nr))) \
- 		goto end_coredump;
--#define DUMP_SEEK(off)	\
--	if (!dump_seek(file, (off))) \
--		goto end_coredump;
- 
- static inline void fill_elf_fdpic_header(struct elfhdr *elf, int segs)
- {
-@@ -1518,6 +1515,7 @@ static int elf_fdpic_dump_segments(struc
- 			   unsigned long *limit, unsigned long mm_flags)
- {
- 	struct vm_area_struct *vma;
-+	int err = 0;
- 
- 	for (vma = current->mm->mmap; vma; vma = vma->vm_next) {
- 		unsigned long addr;
-@@ -1525,43 +1523,26 @@ static int elf_fdpic_dump_segments(struc
- 		if (!maydump(vma, mm_flags))
- 			continue;
- 
--		for (addr = vma->vm_start;
--		     addr < vma->vm_end;
--		     addr += PAGE_SIZE
--		     ) {
--			struct vm_area_struct *vma;
--			struct page *page;
--
--			if (get_user_pages(current, current->mm, addr, 1, 0, 1,
--					   &page, &vma) <= 0) {
--				DUMP_SEEK(file->f_pos + PAGE_SIZE);
--			}
--			else if (page == ZERO_PAGE(0)) {
--				page_cache_release(page);
--				DUMP_SEEK(file->f_pos + PAGE_SIZE);
--			}
--			else {
--				void *kaddr;
--
--				flush_cache_page(vma, addr, page_to_pfn(page));
--				kaddr = kmap(page);
--				if ((*size += PAGE_SIZE) > *limit ||
--				    !dump_write(file, kaddr, PAGE_SIZE)
--				    ) {
--					kunmap(page);
--					page_cache_release(page);
--					return -EIO;
--				}
-+		for (addr = vma->vm_start; addr < vma->vm_end;
-+							addr += PAGE_SIZE) {
-+			struct page *page = get_dump_page(addr);
-+			if (page) {
-+				void *kaddr = kmap(page);
-+				*size += PAGE_SIZE;
-+				if (*size > *limit)
-+					err = -EFBIG;
-+				else if (!dump_write(file, kaddr, PAGE_SIZE))
-+					err = -EIO;
- 				kunmap(page);
- 				page_cache_release(page);
--			}
-+			} else if (!dump_seek(file, file->f_pos + PAGE_SIZE))
-+				err = -EFBIG;
-+			if (err)
-+				goto out;
- 		}
- 	}
--
--	return 0;
--
--end_coredump:
--	return -EFBIG;
-+out:
-+	return err;
- }
- #endif
- 
-@@ -1802,7 +1783,8 @@ static int elf_fdpic_core_dump(long sign
- 				goto end_coredump;
- 	}
- 
--	DUMP_SEEK(dataoff);
-+	if (!dump_seek(file, dataoff))
-+		goto end_coredump;
- 
- 	if (elf_fdpic_dump_segments(file, &size, &limit, mm_flags) < 0)
- 		goto end_coredump;
-diff -puN include/linux/mm.h~mm-add-get_dump_page include/linux/mm.h
---- a/include/linux/mm.h~mm-add-get_dump_page
+diff -puN include/linux/mm.h~mm-foll_dump-replace-foll_anon include/linux/mm.h
+--- a/include/linux/mm.h~mm-foll_dump-replace-foll_anon
 +++ a/include/linux/mm.h
-@@ -817,6 +817,7 @@ int get_user_pages(struct task_struct *t
- 			struct page **pages, struct vm_area_struct **vmas);
- int get_user_pages_fast(unsigned long start, int nr_pages, int write,
- 			struct page **pages);
-+struct page *get_dump_page(unsigned long addr);
+@@ -1231,7 +1231,7 @@ struct page *follow_page(struct vm_area_
+ #define FOLL_WRITE	0x01	/* check pte is writable */
+ #define FOLL_TOUCH	0x02	/* mark page accessed */
+ #define FOLL_GET	0x04	/* do get_page on page */
+-#define FOLL_ANON	0x08	/* give ZERO_PAGE if no pgtable */
++#define FOLL_DUMP	0x08	/* give error on hole if it would be zero */
  
- extern int try_to_release_page(struct page * page, gfp_t gfp_mask);
- extern void do_invalidatepage(struct page *page, unsigned long offset);
-diff -puN mm/memory.c~mm-add-get_dump_page mm/memory.c
---- a/mm/memory.c~mm-add-get_dump_page
+ typedef int (*pte_fn_t)(pte_t *pte, pgtable_t token, unsigned long addr,
+ 			void *data);
+diff -puN mm/internal.h~mm-foll_dump-replace-foll_anon mm/internal.h
+--- a/mm/internal.h~mm-foll_dump-replace-foll_anon
++++ a/mm/internal.h
+@@ -252,6 +252,7 @@ static inline void mminit_validate_memmo
+ 
+ #define GUP_FLAGS_WRITE		0x01
+ #define GUP_FLAGS_FORCE		0x02
++#define GUP_FLAGS_DUMP		0x04
+ 
+ int __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
+ 		     unsigned long start, int len, int flags,
+diff -puN mm/memory.c~mm-foll_dump-replace-foll_anon mm/memory.c
+--- a/mm/memory.c~mm-foll_dump-replace-foll_anon
 +++ a/mm/memory.c
-@@ -1423,9 +1423,40 @@ int get_user_pages(struct task_struct *t
- 
- 	return __get_user_pages(tsk, mm, start, nr_pages, flags, pages, vmas);
+@@ -1174,41 +1174,22 @@ no_page:
+ 	pte_unmap_unlock(ptep, ptl);
+ 	if (!pte_none(pte))
+ 		return page;
+-	/* Fall through to ZERO_PAGE handling */
++
+ no_page_table:
+ 	/*
+ 	 * When core dumping an enormous anonymous area that nobody
+-	 * has touched so far, we don't want to allocate page tables.
+-	 */
+-	if (flags & FOLL_ANON) {
+-		page = ZERO_PAGE(0);
+-		if (flags & FOLL_GET)
+-			get_page(page);
+-		BUG_ON(flags & FOLL_WRITE);
+-	}
++	 * has touched so far, we don't want to allocate unnecessary pages or
++	 * page tables.  Return error instead of NULL to skip handle_mm_fault,
++	 * then get_dump_page() will return NULL to leave a hole in the dump.
++	 * But we can only make this optimization where a hole would surely
++	 * be zero-filled if handle_mm_fault() actually did handle it.
++	 */
++	if ((flags & FOLL_DUMP) &&
++	    (!vma->vm_ops || !vma->vm_ops->fault))
++		return ERR_PTR(-EFAULT);
+ 	return page;
  }
--
- EXPORT_SYMBOL(get_user_pages);
  
-+/**
-+ * get_dump_page() - pin user page in memory while writing it to core dump
-+ * @addr: user address
-+ *
-+ * Returns struct page pointer of user page pinned for dump,
-+ * to be freed afterwards by page_cache_release() or put_page().
-+ *
-+ * Returns NULL on any kind of failure - a hole must then be inserted into
-+ * the corefile, to preserve alignment with its headers; and also returns
-+ * NULL wherever the ZERO_PAGE, or an anonymous pte_none, has been found -
-+ * allowing a hole to be left in the corefile to save diskspace.
-+ *
-+ * Called without mmap_sem, but after all other threads have been killed.
-+ */
-+#ifdef CONFIG_ELF_CORE
-+struct page *get_dump_page(unsigned long addr)
-+{
-+	struct vm_area_struct *vma;
-+	struct page *page;
-+
-+	if (__get_user_pages(current, current->mm, addr, 1,
-+				GUP_FLAGS_FORCE, &page, &vma) < 1)
-+		return NULL;
-+	if (page == ZERO_PAGE(0)) {
-+		page_cache_release(page);
-+		return NULL;
-+	}
-+	flush_cache_page(vma, addr, page_to_pfn(page));
-+	return page;
-+}
-+#endif /* CONFIG_ELF_CORE */
-+
- pte_t *get_locked_pte(struct mm_struct *mm, unsigned long addr,
- 			spinlock_t **ptl)
- {
+-/* Can we do the FOLL_ANON optimization? */
+-static inline int use_zero_page(struct vm_area_struct *vma)
+-{
+-	/*
+-	 * We don't want to optimize FOLL_ANON for make_pages_present()
+-	 * when it tries to page in a VM_LOCKED region. As to VM_SHARED,
+-	 * we want to get the page from the page tables to make sure
+-	 * that we serialize and update with any other user of that
+-	 * mapping.
+-	 */
+-	if (vma->vm_flags & (VM_LOCKED | VM_SHARED))
+-		return 0;
+-	/*
+-	 * And if we have a fault routine, it's not an anonymous region.
+-	 */
+-	return !vma->vm_ops || !vma->vm_ops->fault;
+-}
+-
+-
+-
+ int __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
+ 		     unsigned long start, int nr_pages, int flags,
+ 		     struct page **pages, struct vm_area_struct **vmas)
+@@ -1288,8 +1269,8 @@ int __get_user_pages(struct task_struct 
+ 		foll_flags = FOLL_TOUCH;
+ 		if (pages)
+ 			foll_flags |= FOLL_GET;
+-		if (!write && use_zero_page(vma))
+-			foll_flags |= FOLL_ANON;
++		if (flags & GUP_FLAGS_DUMP)
++			foll_flags |= FOLL_DUMP;
+ 
+ 		do {
+ 			struct page *page;
+@@ -1446,7 +1427,7 @@ struct page *get_dump_page(unsigned long
+ 	struct page *page;
+ 
+ 	if (__get_user_pages(current, current->mm, addr, 1,
+-				GUP_FLAGS_FORCE, &page, &vma) < 1)
++			GUP_FLAGS_FORCE | GUP_FLAGS_DUMP, &page, &vma) < 1)
+ 		return NULL;
+ 	if (page == ZERO_PAGE(0)) {
+ 		page_cache_release(page);
 _
 
 Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
