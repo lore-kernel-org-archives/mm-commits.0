@@ -1,167 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: [merged] alpha-convert-to-use-arch_gettimeoffset.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:44:14 -0700
-Message-ID: <200909222044.n8MKiEi1013243@imap1.linux-foundation.org>
+Subject: [merged] mmap-avoid-unnecessary-anon_vma-lock-acquisition-in-vma_adjust.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:43:23 -0700
+Message-ID: <200909222043.n8MKhNLn011496@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33641 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52345 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751974AbZIVUoR (ORCPT
+	by vger.kernel.org with ESMTP id S1752244AbZIVUoV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:44:17 -0400
+	Tue, 22 Sep 2009 16:44:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: johnstul@us.ibm.com, ink@jurassic.park.msu.ru, rth@twiddle.net, mm-commits@vger.kernel.org
+To: Lee.Schermerhorn@hp.com, eric.whitney@hp.com, hugh.dickins@tiscali.co.uk, lee.schermerhorn@hp.com, npiggin@suse.de, stable@kernel.org, yanmin_zhang@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     alpha: convert to use arch_gettimeoffset()
+     mmap: avoid unnecessary anon_vma lock acquisition in vma_adjust()
 has been removed from the -mm tree.  Its filename was
-     alpha-convert-to-use-arch_gettimeoffset.patch
+     mmap-avoid-unnecessary-anon_vma-lock-acquisition-in-vma_adjust.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alpha: convert to use arch_gettimeoffset()
-From: john stultz <johnstul@us.ibm.com>
+Subject: mmap: avoid unnecessary anon_vma lock acquisition in vma_adjust()
+From: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
 
-Converts alpha to use GENERIC_TIME via the arch_getoffset()
-infrastructure, reducing the amount of arch specific code we need to
-maintain.
+We noticed very erratic behavior [throughput] with the AIM7 shared
+workload running on recent distro [SLES11] and mainline kernels on an
+8-socket, 32-core, 256GB x86_64 platform.  On the SLES11 kernel
+[2.6.27.19+] with Barcelona processors, as we increased the load [10s of
+thousands of tasks], the throughput would vary between two "plateaus"--one
+at ~65K jobs per minute and one at ~130K jpm.  The simple patch below
+causes the results to smooth out at the ~130k plateau.
 
-I suspect the alpha arch could even be further improved to provide and
-rpcc() based clocksource, but not having the hardware, I don't feel
-comfortable attempting the more complicated conversion (but I'd be glad to
-help if anyone else is interested).
+But wait, there's more:
 
-[akpm@linux-foundation.org: fix build]
-Signed-off-by: John Stultz <johnstul@us.ibm.com>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+We do not see this behavior on smaller platforms--e.g., 4 socket/8 core. 
+This could be the result of the larger number of cpus on the larger
+platform--a scalability issue--or it could be the result of the larger
+number of interconnect "hops" between some nodes in this platform and how
+the tasks for a given load end up distributed over the nodes' cpus and
+memories--a stochastic NUMA effect.
+
+The variability in the results are less pronounced [on the same platform]
+with Shanghai processors and with mainline kernels.  With 31-rc6 on
+Shanghai processors and 288 file systems on 288 fibre attached storage
+volumes, the curves [jpm vs load] are both quite flat with the patched
+kernel consistently producing ~3.9% better throughput [~80K jpm vs ~77K
+jpm] than the unpatched kernel.
+
+Profiling indicated that the "slow" runs were incurring high[er]
+contention on an anon_vma lock in vma_adjust(), apparently called from the
+sbrk() system call.
+
+The patch:
+
+A comment in mm/mmap.c:vma_adjust() suggests that we don't really need the
+anon_vma lock when we're only adjusting the end of a vma, as is the case
+for brk().  The comment questions whether it's worth while to optimize for
+this case.  Apparently, on the newer, larger x86_64 platforms, with
+interesting NUMA topologies, it is worth while--especially considering
+that the patch [if correct!] is quite simple.
+
+We can detect this condition--no overlap with next vma--by noting a NULL
+"importer".  The anon_vma pointer will also be NULL in this case, so
+simply avoid loading vma->anon_vma to avoid the lock.
+
+However, we DO need to take the anon_vma lock when we're inserting a vma
+['insert' non-NULL] even when we have no overlap [NULL "importer"], so we
+need to check for 'insert', as well.  And Hugh points out that we should
+also take it when adjusting vm_start (so that rmap.c can rely upon
+vma_address() while it holds the anon_vma lock).
+
+akpm: Zhang Yanmin reprts a 150% throughput improvement with aim7, so it
+might be -stable material even though thiss isn't a regression: "this
+issue is not clear on dual socket Nehalem machine (2*4*2 cpu), but is
+severe on large machine (4*8*2 cpu)"
+
+[hugh.dickins@tiscali.co.uk: test vma start too]
+Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Eric Whitney <eric.whitney@hp.com>
+Tested-by: "Zhang, Yanmin" <yanmin_zhang@linux.intel.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/Kconfig       |    8 +++
- arch/alpha/kernel/time.c |   79 +++----------------------------------
- 2 files changed, 15 insertions(+), 72 deletions(-)
+ mm/mmap.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/alpha/Kconfig~alpha-convert-to-use-arch_gettimeoffset arch/alpha/Kconfig
---- a/arch/alpha/Kconfig~alpha-convert-to-use-arch_gettimeoffset
-+++ a/arch/alpha/Kconfig
-@@ -45,6 +45,14 @@ config GENERIC_CALIBRATE_DELAY
- 	bool
- 	default y
+diff -puN mm/mmap.c~mmap-avoid-unnecessary-anon_vma-lock-acquisition-in-vma_adjust mm/mmap.c
+--- a/mm/mmap.c~mmap-avoid-unnecessary-anon_vma-lock-acquisition-in-vma_adjust
++++ a/mm/mmap.c
+@@ -570,9 +570,9 @@ again:			remove_next = 1 + (end > next->
  
-+config GENERIC_TIME
-+	bool
-+	default y
-+
-+config ARCH_USES_GETTIMEOFFSET
-+	bool
-+	default y
-+
- config ZONE_DMA
- 	bool
- 	default y
-diff -puN arch/alpha/kernel/time.c~alpha-convert-to-use-arch_gettimeoffset arch/alpha/kernel/time.c
---- a/arch/alpha/kernel/time.c~alpha-convert-to-use-arch_gettimeoffset
-+++ a/arch/alpha/kernel/time.c
-@@ -408,28 +408,17 @@ time_init(void)
-  * part.  So we can't do the "find absolute time in terms of cycles" thing
-  * that the other ports do.
-  */
--void
--do_gettimeofday(struct timeval *tv)
-+u32 arch_gettimeoffset(void)
- {
--	unsigned long flags;
--	unsigned long sec, usec, seq;
--	unsigned long delta_cycles, delta_usec, partial_tick;
--
--	do {
--		seq = read_seqbegin_irqsave(&xtime_lock, flags);
--
--		delta_cycles = rpcc() - state.last_time;
--		sec = xtime.tv_sec;
--		usec = (xtime.tv_nsec / 1000);
--		partial_tick = state.partial_tick;
--
--	} while (read_seqretry_irqrestore(&xtime_lock, seq, flags));
--
- #ifdef CONFIG_SMP
- 	/* Until and unless we figure out how to get cpu cycle counters
- 	   in sync and keep them there, we can't use the rpcc tricks.  */
--	delta_usec = 0;
-+	return 0;
- #else
-+	unsigned long delta_cycles, delta_usec, partial_tick;
-+
-+	delta_cycles = rpcc() - state.last_time;
-+	partial_tick = state.partial_tick;
  	/*
- 	 * usec = cycles * ticks_per_cycle * 2**48 * 1e6 / (2**48 * ticks)
- 	 *	= cycles * (s_t_p_c) * 1e6 / (2**48 * ticks)
-@@ -446,64 +435,10 @@ do_gettimeofday(struct timeval *tv)
- 	delta_usec = (delta_cycles * state.scaled_ticks_per_cycle 
- 		      + partial_tick) * 15625;
- 	delta_usec = ((delta_usec / ((1UL << (FIX_SHIFT-6-1)) * HZ)) + 1) / 2;
-+	return delta_usec * 1000;
- #endif
--
--	usec += delta_usec;
--	if (usec >= 1000000) {
--		sec += 1;
--		usec -= 1000000;
--	}
--
--	tv->tv_sec = sec;
--	tv->tv_usec = usec;
- }
- 
--EXPORT_SYMBOL(do_gettimeofday);
--
--int
--do_settimeofday(struct timespec *tv)
--{
--	time_t wtm_sec, sec = tv->tv_sec;
--	long wtm_nsec, nsec = tv->tv_nsec;
--	unsigned long delta_nsec;
--
--	if ((unsigned long)tv->tv_nsec >= NSEC_PER_SEC)
--		return -EINVAL;
--
--	write_seqlock_irq(&xtime_lock);
--
--	/* The offset that is added into time in do_gettimeofday above
--	   must be subtracted out here to keep a coherent view of the
--	   time.  Without this, a full-tick error is possible.  */
--
--#ifdef CONFIG_SMP
--	delta_nsec = 0;
--#else
--	delta_nsec = rpcc() - state.last_time;
--	delta_nsec = (delta_nsec * state.scaled_ticks_per_cycle 
--		      + state.partial_tick) * 15625;
--	delta_nsec = ((delta_nsec / ((1UL << (FIX_SHIFT-6-1)) * HZ)) + 1) / 2;
--	delta_nsec *= 1000;
--#endif
--
--	nsec -= delta_nsec;
--
--	wtm_sec  = wall_to_monotonic.tv_sec + (xtime.tv_sec - sec);
--	wtm_nsec = wall_to_monotonic.tv_nsec + (xtime.tv_nsec - nsec);
--
--	set_normalized_timespec(&xtime, sec, nsec);
--	set_normalized_timespec(&wall_to_monotonic, wtm_sec, wtm_nsec);
--
--	ntp_clear();
--
--	write_sequnlock_irq(&xtime_lock);
--	clock_was_set();
--	return 0;
--}
--
--EXPORT_SYMBOL(do_settimeofday);
--
+ 	 * When changing only vma->vm_end, we don't really need
+-	 * anon_vma lock: but is that case worth optimizing out?
++	 * anon_vma lock.
+ 	 */
+-	if (vma->anon_vma)
++	if (vma->anon_vma && (insert || importer || start != vma->vm_start))
+ 		anon_vma = vma->anon_vma;
+ 	if (anon_vma) {
+ 		spin_lock(&anon_vma->lock);
+_
+
+Patches currently in -mm which might be from Lee.Schermerhorn@hp.com are
+
+origin.patch
+linux-next.patch
+
