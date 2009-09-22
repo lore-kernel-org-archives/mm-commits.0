@@ -1,104 +1,328 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-hugetlbfs_pagecache_present.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:43:07 -0700
-Message-ID: <200909222043.n8MKh7mP010989@imap1.linux-foundation.org>
+Subject: [merged] arches-drop-superfluous-casts-in-nr_free_pages-callers.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:40:53 -0700
+Message-ID: <200909222040.n8MKerqh006472@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39893 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51101 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753096AbZIVUnY (ORCPT
+	by vger.kernel.org with ESMTP id S1753081AbZIVUnW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:43:24 -0400
+	Tue, 22 Sep 2009 16:43:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh.dickins@tiscali.co.uk, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, npiggin@suse.de, riel@redhat.com, mm-commits@vger.kernel.org
+To: Geert.Uytterhoeven@sonycom.com, benh@kernel.crashing.org, cl@linux-foundation.org, davem@davemloft.net, dhowells@redhat.com, hskinnemoen@atmel.com, ink@jurassic.park.msu.ru, kyle@mcmar
 
 
 The patch titled
-     mm: hugetlbfs_pagecache_present
+     arches: drop superfluous casts in nr_free_pages() callers
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlbfs_pagecache_present.patch
+     arches-drop-superfluous-casts-in-nr_free_pages-callers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: hugetlbfs_pagecache_present
-From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Subject: arches: drop superfluous casts in nr_free_pages() callers
+From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 
-Rename hugetlbfs_backed() to hugetlbfs_pagecache_present()
-and add more comments, as suggested by Mel Gorman.
+Commit 96177299416dbccb73b54e6b344260154a445375 ("Drop free_pages()")
+modified nr_free_pages() to return 'unsigned long' instead of 'unsigned
+int'.  This made the casts to 'unsigned long' in most callers superfluous,
+so remove them.
 
-Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Nick Piggin <npiggin@suse.de>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Minchan Kim <minchan.kim@gmail.com>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Reviewed-by: Christoph Lameter <cl@linux-foundation.org>
+Acked-by: Ingo Molnar <mingo@elte.hu>
+Acked-by: Russell King <rmk+kernel@arm.linux.org.uk>
+Acked-by: David S. Miller <davem@davemloft.net>
+Acked-by: Kyle McMartin <kyle@mcmartin.ca>
+Acked-by: WANG Cong <xiyou.wangcong@gmail.com>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: Mikael Starvik <starvik@axis.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Hirokazu Takata <takata@linux-m32r.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: David Howells <dhowells@redhat.com>
+Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Chris Zankel <zankel@tensilica.com>
+Cc: Michal Simek <monstr@monstr.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+ arch/alpha/mm/init.c      |    2 +-
+ arch/alpha/mm/numa.c      |    2 +-
+ arch/arm/mm/init.c        |    4 ++--
+ arch/avr32/mm/init.c      |    2 +-
+ arch/cris/mm/init.c       |    2 +-
+ arch/ia64/mm/init.c       |    2 +-
+ arch/m32r/mm/init.c       |    2 +-
+ arch/m68k/mm/init.c       |    2 +-
+ arch/microblaze/mm/init.c |    2 +-
+ arch/mips/mm/init.c       |    2 +-
+ arch/mn10300/mm/init.c    |    2 +-
+ arch/parisc/mm/init.c     |    2 +-
+ arch/powerpc/mm/mem.c     |    2 +-
+ arch/s390/mm/init.c       |    2 +-
+ arch/sh/mm/init.c         |    2 +-
+ arch/sparc/mm/init_32.c   |    2 +-
+ arch/um/kernel/mem.c      |    2 +-
+ arch/x86/mm/init_32.c     |    2 +-
+ arch/x86/mm/init_64.c     |    2 +-
+ arch/xtensa/mm/init.c     |    2 +-
+ 20 files changed, 21 insertions(+), 21 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlbfs_pagecache_present mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlbfs_pagecache_present
-+++ a/mm/hugetlb.c
-@@ -2016,8 +2016,11 @@ static struct page *hugetlbfs_pagecache_
- 	return find_lock_page(mapping, idx);
- }
+diff -puN arch/alpha/mm/init.c~arches-drop-superfluous-casts-in-nr_free_pages-callers arch/alpha/mm/init.c
+--- a/arch/alpha/mm/init.c~arches-drop-superfluous-casts-in-nr_free_pages-callers
++++ a/arch/alpha/mm/init.c
+@@ -299,7 +299,7 @@ printk_memory_info(void)
+ 	initsize =  (unsigned long) &__init_end - (unsigned long) &__init_begin;
  
--/* Return whether there is a pagecache page to back given address within VMA */
--static bool hugetlbfs_backed(struct hstate *h,
-+/*
-+ * Return whether there is a pagecache page to back given address within VMA.
-+ * Caller follow_hugetlb_page() holds page_table_lock so we cannot lock_page.
-+ */
-+static bool hugetlbfs_pagecache_present(struct hstate *h,
- 			struct vm_area_struct *vma, unsigned long address)
- {
- 	struct address_space *mapping;
-@@ -2254,10 +2257,13 @@ int follow_hugetlb_page(struct mm_struct
+ 	printk("Memory: %luk/%luk available (%luk kernel code, %luk reserved, %luk data, %luk init)\n",
+-	       (unsigned long) nr_free_pages() << (PAGE_SHIFT-10),
++	       nr_free_pages() << (PAGE_SHIFT-10),
+ 	       max_mapnr << (PAGE_SHIFT-10),
+ 	       codesize >> 10,
+ 	       reservedpages << (PAGE_SHIFT-10),
+diff -puN arch/alpha/mm/numa.c~arches-drop-superfluous-casts-in-nr_free_pages-callers arch/alpha/mm/numa.c
+--- a/arch/alpha/mm/numa.c~arches-drop-superfluous-casts-in-nr_free_pages-callers
++++ a/arch/alpha/mm/numa.c
+@@ -349,7 +349,7 @@ void __init mem_init(void)
  
- 		/*
- 		 * When coredumping, it suits get_dump_page if we just return
--		 * an error if there's a hole and no huge pagecache to back it.
-+		 * an error where there's an empty slot with no huge pagecache
-+		 * to back it.  This way, we avoid allocating a hugepage, and
-+		 * the sparse dumpfile avoids allocating disk blocks, but its
-+		 * huge holes still show up with zeroes where they need to be.
- 		 */
--		if (absent &&
--		    ((flags & FOLL_DUMP) && !hugetlbfs_backed(h, vma, vaddr))) {
-+		if (absent && (flags & FOLL_DUMP) &&
-+		    !hugetlbfs_pagecache_present(h, vma, vaddr)) {
- 			remainder = 0;
- 			break;
- 		}
+ 	printk("Memory: %luk/%luk available (%luk kernel code, %luk reserved, "
+ 	       "%luk data, %luk init)\n",
+-	       (unsigned long)nr_free_pages() << (PAGE_SHIFT-10),
++	       nr_free_pages() << (PAGE_SHIFT-10),
+ 	       num_physpages << (PAGE_SHIFT-10),
+ 	       codesize >> 10,
+ 	       reservedpages << (PAGE_SHIFT-10),
+diff -puN arch/arm/mm/init.c~arches-drop-superfluous-casts-in-nr_free_pages-callers arch/arm/mm/init.c
+--- a/arch/arm/mm/init.c~arches-drop-superfluous-casts-in-nr_free_pages-callers
++++ a/arch/arm/mm/init.c
+@@ -596,8 +596,8 @@ void __init mem_init(void)
+ 
+ 	printk(KERN_NOTICE "Memory: %luKB available (%dK code, "
+ 		"%dK data, %dK init, %luK highmem)\n",
+-		(unsigned long) nr_free_pages() << (PAGE_SHIFT-10),
+-		codesize >> 10, datasize >> 10, initsize >> 10,
++		nr_free_pages() << (PAGE_SHIFT-10), codesize >> 10,
++		datasize >> 10, initsize >> 10,
+ 		(unsigned long) (totalhigh_pages << (PAGE_SHIFT-10)));
+ 
+ 	if (PAGE_SIZE >= 16384 && num_physpages <= 128) {
+diff -puN arch/avr32/mm/init.c~arches-drop-superfluous-casts-in-nr_free_pages-callers arch/avr32/mm/init.c
+--- a/arch/avr32/mm/init.c~arches-drop-superfluous-casts-in-nr_free_pages-callers
++++ a/arch/avr32/mm/init.c
+@@ -141,7 +141,7 @@ void __init mem_init(void)
+ 
+ 	printk ("Memory: %luk/%luk available (%dk kernel code, "
+ 		"%dk reserved, %dk data, %dk init)\n",
+-		(unsigned long)nr_free_pages() << (PAGE_SHIFT - 10),
++		nr_free_pages() << (PAGE_SHIFT - 10),
+ 		totalram_pages << (PAGE_SHIFT - 10),
+ 		codesize >> 10,
+ 		reservedpages << (PAGE_SHIFT - 10),
+diff -puN arch/cris/mm/init.c~arches-drop-superfluous-casts-in-nr_free_pages-callers arch/cris/mm/init.c
+--- a/arch/cris/mm/init.c~arches-drop-superfluous-casts-in-nr_free_pages-callers
++++ a/arch/cris/mm/init.c
+@@ -54,7 +54,7 @@ mem_init(void)
+         printk(KERN_INFO
+                "Memory: %luk/%luk available (%dk kernel code, %dk reserved, %dk data, "
+ 	       "%dk init)\n" ,
+-	       (unsigned long) nr_free_pages() << (PAGE_SHIFT-10),
++	       nr_free_pages() << (PAGE_SHIFT-10),
+ 	       max_mapnr << (PAGE_SHIFT-10),
+ 	       codesize >> 10,
+ 	       reservedpages << (PAGE_SHIFT-10),
+diff -puN arch/ia64/mm/init.c~arches-drop-superfluous-casts-in-nr_free_pages-callers arch/ia64/mm/init.c
+--- a/arch/ia64/mm/init.c~arches-drop-superfluous-casts-in-nr_free_pages-callers
++++ a/arch/ia64/mm/init.c
+@@ -655,7 +655,7 @@ mem_init (void)
+ 	initsize =  (unsigned long) __init_end - (unsigned long) __init_begin;
+ 
+ 	printk(KERN_INFO "Memory: %luk/%luk available (%luk code, %luk reserved, "
+-	       "%luk data, %luk init)\n", (unsigned long) nr_free_pages() << (PAGE_SHIFT - 10),
++	       "%luk data, %luk init)\n", nr_free_pages() << (PAGE_SHIFT - 10),
+ 	       num_physpages << (PAGE_SHIFT - 10), codesize >> 10,
+ 	       reserved_pages << (PAGE_SHIFT - 10), datasize >> 10, initsize >> 10);
+ 
+diff -puN arch/m32r/mm/init.c~arches-drop-superfluous-casts-in-nr_free_pages-callers arch/m32r/mm/init.c
+--- a/arch/m32r/mm/init.c~arches-drop-superfluous-casts-in-nr_free_pages-callers
++++ a/arch/m32r/mm/init.c
+@@ -171,7 +171,7 @@ void __init mem_init(void)
+ 
+ 	printk(KERN_INFO "Memory: %luk/%luk available (%dk kernel code, "
+ 		"%dk reserved, %dk data, %dk init)\n",
+-		(unsigned long) nr_free_pages() << (PAGE_SHIFT-10),
++		nr_free_pages() << (PAGE_SHIFT-10),
+ 		num_physpages << (PAGE_SHIFT-10),
+ 		codesize >> 10,
+ 		reservedpages << (PAGE_SHIFT-10),
+diff -puN arch/m68k/mm/init.c~arches-drop-superfluous-casts-in-nr_free_pages-callers arch/m68k/mm/init.c
+--- a/arch/m68k/mm/init.c~arches-drop-superfluous-casts-in-nr_free_pages-callers
++++ a/arch/m68k/mm/init.c
+@@ -126,7 +126,7 @@ void __init mem_init(void)
+ #endif
+ 
+ 	printk("Memory: %luk/%luk available (%dk kernel code, %dk data, %dk init)\n",
+-	       (unsigned long)nr_free_pages() << (PAGE_SHIFT-10),
++	       nr_free_pages() << (PAGE_SHIFT-10),
+ 	       totalram_pages << (PAGE_SHIFT-10),
+ 	       codepages << (PAGE_SHIFT-10),
+ 	       datapages << (PAGE_SHIFT-10),
+diff -puN arch/microblaze/mm/init.c~arches-drop-superfluous-casts-in-nr_free_pages-callers arch/microblaze/mm/init.c
+--- a/arch/microblaze/mm/init.c~arches-drop-superfluous-casts-in-nr_free_pages-callers
++++ a/arch/microblaze/mm/init.c
+@@ -204,7 +204,7 @@ void __init mem_init(void)
+ 	totalram_pages += free_all_bootmem();
+ 
+ 	printk(KERN_INFO "Memory: %luk/%luk available\n",
+-	       (unsigned long) nr_free_pages() << (PAGE_SHIFT-10),
++	       nr_free_pages() << (PAGE_SHIFT-10),
+ 	       num_physpages << (PAGE_SHIFT-10));
+ #ifdef CONFIG_MMU
+ 	mem_init_done = 1;
+diff -puN arch/mips/mm/init.c~arches-drop-superfluous-casts-in-nr_free_pages-callers arch/mips/mm/init.c
+--- a/arch/mips/mm/init.c~arches-drop-superfluous-casts-in-nr_free_pages-callers
++++ a/arch/mips/mm/init.c
+@@ -417,7 +417,7 @@ void __init mem_init(void)
+ 
+ 	printk(KERN_INFO "Memory: %luk/%luk available (%ldk kernel code, "
+ 	       "%ldk reserved, %ldk data, %ldk init, %ldk highmem)\n",
+-	       (unsigned long) nr_free_pages() << (PAGE_SHIFT-10),
++	       nr_free_pages() << (PAGE_SHIFT-10),
+ 	       ram << (PAGE_SHIFT-10),
+ 	       codesize >> 10,
+ 	       reservedpages << (PAGE_SHIFT-10),
+diff -puN arch/mn10300/mm/init.c~arches-drop-superfluous-casts-in-nr_free_pages-callers arch/mn10300/mm/init.c
+--- a/arch/mn10300/mm/init.c~arches-drop-superfluous-casts-in-nr_free_pages-callers
++++ a/arch/mn10300/mm/init.c
+@@ -112,7 +112,7 @@ void __init mem_init(void)
+ 	       "Memory: %luk/%luk available"
+ 	       " (%dk kernel code, %dk reserved, %dk data, %dk init,"
+ 	       " %ldk highmem)\n",
+-	       (unsigned long) nr_free_pages() << (PAGE_SHIFT - 10),
++	       nr_free_pages() << (PAGE_SHIFT - 10),
+ 	       max_mapnr << (PAGE_SHIFT - 10),
+ 	       codesize >> 10,
+ 	       reservedpages << (PAGE_SHIFT - 10),
+diff -puN arch/parisc/mm/init.c~arches-drop-superfluous-casts-in-nr_free_pages-callers arch/parisc/mm/init.c
+--- a/arch/parisc/mm/init.c~arches-drop-superfluous-casts-in-nr_free_pages-callers
++++ a/arch/parisc/mm/init.c
+@@ -506,7 +506,7 @@ void __init mem_init(void)
+ #endif
+ 
+ 	printk(KERN_INFO "Memory: %luk/%luk available (%dk kernel code, %dk reserved, %dk data, %dk init)\n",
+-		(unsigned long)nr_free_pages() << (PAGE_SHIFT-10),
++		nr_free_pages() << (PAGE_SHIFT-10),
+ 		num_physpages << (PAGE_SHIFT-10),
+ 		codesize >> 10,
+ 		reservedpages << (PAGE_SHIFT-10),
+diff -puN arch/powerpc/mm/mem.c~arches-drop-superfluous-casts-in-nr_free_pages-callers arch/powerpc/mm/mem.c
+--- a/arch/powerpc/mm/mem.c~arches-drop-superfluous-casts-in-nr_free_pages-callers
++++ a/arch/powerpc/mm/mem.c
+@@ -372,7 +372,7 @@ void __init mem_init(void)
+ 
+ 	printk(KERN_INFO "Memory: %luk/%luk available (%luk kernel code, "
+ 	       "%luk reserved, %luk data, %luk bss, %luk init)\n",
+-		(unsigned long)nr_free_pages() << (PAGE_SHIFT-10),
++		nr_free_pages() << (PAGE_SHIFT-10),
+ 		num_physpages << (PAGE_SHIFT-10),
+ 		codesize >> 10,
+ 		reservedpages << (PAGE_SHIFT-10),
+diff -puN arch/s390/mm/init.c~arches-drop-superfluous-casts-in-nr_free_pages-callers arch/s390/mm/init.c
+--- a/arch/s390/mm/init.c~arches-drop-superfluous-casts-in-nr_free_pages-callers
++++ a/arch/s390/mm/init.c
+@@ -105,7 +105,7 @@ void __init mem_init(void)
+ 	datasize =  (unsigned long) &_edata - (unsigned long) &_etext;
+ 	initsize =  (unsigned long) &__init_end - (unsigned long) &__init_begin;
+         printk("Memory: %luk/%luk available (%ldk kernel code, %ldk reserved, %ldk data, %ldk init)\n",
+-                (unsigned long) nr_free_pages() << (PAGE_SHIFT-10),
++		nr_free_pages() << (PAGE_SHIFT-10),
+                 max_mapnr << (PAGE_SHIFT-10),
+                 codesize >> 10,
+                 reservedpages << (PAGE_SHIFT-10),
+diff -puN arch/sh/mm/init.c~arches-drop-superfluous-casts-in-nr_free_pages-callers arch/sh/mm/init.c
+--- a/arch/sh/mm/init.c~arches-drop-superfluous-casts-in-nr_free_pages-callers
++++ a/arch/sh/mm/init.c
+@@ -232,7 +232,7 @@ void __init mem_init(void)
+ 
+ 	printk(KERN_INFO "Memory: %luk/%luk available (%dk kernel code, "
+ 	       "%dk data, %dk init)\n",
+-		(unsigned long) nr_free_pages() << (PAGE_SHIFT-10),
++		nr_free_pages() << (PAGE_SHIFT-10),
+ 		num_physpages << (PAGE_SHIFT-10),
+ 		codesize >> 10,
+ 		datasize >> 10,
+diff -puN arch/sparc/mm/init_32.c~arches-drop-superfluous-casts-in-nr_free_pages-callers arch/sparc/mm/init_32.c
+--- a/arch/sparc/mm/init_32.c~arches-drop-superfluous-casts-in-nr_free_pages-callers
++++ a/arch/sparc/mm/init_32.c
+@@ -472,7 +472,7 @@ void __init mem_init(void)
+ 			reservedpages++;
+ 
+ 	printk(KERN_INFO "Memory: %luk/%luk available (%dk kernel code, %dk reserved, %dk data, %dk init, %ldk highmem)\n",
+-	       (unsigned long) nr_free_pages() << (PAGE_SHIFT-10),
++	       nr_free_pages() << (PAGE_SHIFT-10),
+ 	       num_physpages << (PAGE_SHIFT - 10),
+ 	       codepages << (PAGE_SHIFT-10),
+ 	       reservedpages << (PAGE_SHIFT - 10),
+diff -puN arch/um/kernel/mem.c~arches-drop-superfluous-casts-in-nr_free_pages-callers arch/um/kernel/mem.c
+--- a/arch/um/kernel/mem.c~arches-drop-superfluous-casts-in-nr_free_pages-callers
++++ a/arch/um/kernel/mem.c
+@@ -77,7 +77,7 @@ void __init mem_init(void)
+ 	num_physpages = totalram_pages;
+ 	max_pfn = totalram_pages;
+ 	printk(KERN_INFO "Memory: %luk available\n",
+-	       (unsigned long) nr_free_pages() << (PAGE_SHIFT-10));
++	       nr_free_pages() << (PAGE_SHIFT-10));
+ 	kmalloc_ok = 1;
+ 
+ #ifdef CONFIG_HIGHMEM
+diff -puN arch/x86/mm/init_32.c~arches-drop-superfluous-casts-in-nr_free_pages-callers arch/x86/mm/init_32.c
+--- a/arch/x86/mm/init_32.c~arches-drop-superfluous-casts-in-nr_free_pages-callers
++++ a/arch/x86/mm/init_32.c
+@@ -892,7 +892,7 @@ void __init mem_init(void)
+ 
+ 	printk(KERN_INFO "Memory: %luk/%luk available (%dk kernel code, "
+ 			"%dk reserved, %dk data, %dk init, %ldk highmem)\n",
+-		(unsigned long) nr_free_pages() << (PAGE_SHIFT-10),
++		nr_free_pages() << (PAGE_SHIFT-10),
+ 		num_physpages << (PAGE_SHIFT-10),
+ 		codesize >> 10,
+ 		reservedpages << (PAGE_SHIFT-10),
+diff -puN arch/x86/mm/init_64.c~arches-drop-superfluous-casts-in-nr_free_pages-callers arch/x86/mm/init_64.c
+--- a/arch/x86/mm/init_64.c~arches-drop-superfluous-casts-in-nr_free_pages-callers
++++ a/arch/x86/mm/init_64.c
+@@ -687,7 +687,7 @@ void __init mem_init(void)
+ 
+ 	printk(KERN_INFO "Memory: %luk/%luk available (%ldk kernel code, "
+ 			 "%ldk absent, %ldk reserved, %ldk data, %ldk init)\n",
+-		(unsigned long) nr_free_pages() << (PAGE_SHIFT-10),
++		nr_free_pages() << (PAGE_SHIFT-10),
+ 		max_pfn << (PAGE_SHIFT-10),
+ 		codesize >> 10,
+ 		absent_pages << (PAGE_SHIFT-10),
+diff -puN arch/xtensa/mm/init.c~arches-drop-superfluous-casts-in-nr_free_pages-callers arch/xtensa/mm/init.c
+--- a/arch/xtensa/mm/init.c~arches-drop-superfluous-casts-in-nr_free_pages-callers
++++ a/arch/xtensa/mm/init.c
+@@ -203,7 +203,7 @@ void __init mem_init(void)
+ 
+ 	printk("Memory: %luk/%luk available (%ldk kernel code, %ldk reserved, "
+ 	       "%ldk data, %ldk init %ldk highmem)\n",
+-	       (unsigned long) nr_free_pages() << (PAGE_SHIFT-10),
++	       nr_free_pages() << (PAGE_SHIFT-10),
+ 	       ram << (PAGE_SHIFT-10),
+ 	       codesize >> 10,
+ 	       reservedpages << (PAGE_SHIFT-10),
 _
 
-Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
+Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
 
 origin.patch
-linux-next.patch
-vfs-optimize-touch_time-too.patch
-vfs-seq_file-add-helpers-for-data-filling.patch
-fs-new-truncate-helpers.patch
-fs-use-new-truncate-helpers.patch
-fs-introduce-new-truncate-sequence.patch
-fs-convert-simple-fs-to-new-truncate.patch
-tmpfs-convert-to-use-the-new-truncate-convention.patch
-ext2-convert-to-use-the-new-truncate-convention.patch
-fat-convert-to-use-the-new-truncate-convention.patch
-btrfs-convert-to-use-the-new-truncate-convention.patch
-jfs-convert-to-use-the-new-truncate-convention.patch
-udf-convert-to-use-the-new-truncate-convention.patch
-minix-convert-to-use-the-new-truncate-convention.patch
-getrusage-fill-ru_maxrss-value.patch
-walk-system-ram-range-fix.patch
-ramfs-move-ramfs_magic-to-include-linux-magich.patch
-memory-controller-soft-limit-organize-cgroups-v9-fix.patch
-prio_tree-debugging-patch.patch
 
