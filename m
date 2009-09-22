@@ -1,96 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: [merged] alpha-convert-to-asm-generic-hardirqh.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:44:23 -0700
-Message-ID: <200909222044.n8MKiN6I013509@imap1.linux-foundation.org>
+Subject: [merged] m32r-remove-redundant-tests-on-unsigned.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:44:26 -0700
+Message-ID: <200909222044.n8MKiQID013622@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43757 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44842 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753161AbZIVUob (ORCPT
+	by vger.kernel.org with ESMTP id S1753163AbZIVUoc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:44:31 -0400
+	Tue, 22 Sep 2009 16:44:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hch@lst.de, ink@jurassic.park.msu.ru, rth@twiddle.net, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, takata@linux-m32r.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     alpha: convert to asm-generic/hardirq.h
+     m32r: remove redundant tests on unsigned
 has been removed from the -mm tree.  Its filename was
-     alpha-convert-to-asm-generic-hardirqh.patch
+     m32r-remove-redundant-tests-on-unsigned.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alpha: convert to asm-generic/hardirq.h
-From: Christoph Hellwig <hch@lst.de>
+Subject: m32r: remove redundant tests on unsigned
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+`off' and `max_cpus' are unsigned.  When negative they are wrapped and
+caught by the other test.
+
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Hirokazu Takata <takata@linux-m32r.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/hardirq.h |   14 +++-----------
- 1 file changed, 3 insertions(+), 11 deletions(-)
+ arch/m32r/kernel/ptrace.c  |    5 ++---
+ arch/m32r/kernel/smpboot.c |    2 +-
+ 2 files changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN arch/alpha/include/asm/hardirq.h~alpha-convert-to-asm-generic-hardirqh arch/alpha/include/asm/hardirq.h
---- a/arch/alpha/include/asm/hardirq.h~alpha-convert-to-asm-generic-hardirqh
-+++ a/arch/alpha/include/asm/hardirq.h
-@@ -1,17 +1,9 @@
- #ifndef _ALPHA_HARDIRQ_H
- #define _ALPHA_HARDIRQ_H
+diff -puN arch/m32r/kernel/ptrace.c~m32r-remove-redundant-tests-on-unsigned arch/m32r/kernel/ptrace.c
+--- a/arch/m32r/kernel/ptrace.c~m32r-remove-redundant-tests-on-unsigned
++++ a/arch/m32r/kernel/ptrace.c
+@@ -77,7 +77,7 @@ static int ptrace_read_user(struct task_
+ 	struct user * dummy = NULL;
+ #endif
  
--#include <linux/threads.h>
--#include <linux/cache.h>
--
--
--/* entry.S is sensitive to the offsets of these fields */
--typedef struct {
--	unsigned long __softirq_pending;
--} ____cacheline_aligned irq_cpustat_t;
--
--#include <linux/irq_cpustat.h>	/* Standard mappings for irq_cpustat_t above */
--
- void ack_bad_irq(unsigned int irq);
-+#define ack_bad_irq ack_bad_irq
-+
-+#include <asm-generic/hardirq.h>
+-	if ((off & 3) || (off < 0) || (off > sizeof(struct user) - 3))
++	if ((off & 3) || off > sizeof(struct user) - 3)
+ 		return -EIO;
  
- #endif /* _ALPHA_HARDIRQ_H */
+ 	off >>= 2;
+@@ -139,8 +139,7 @@ static int ptrace_write_user(struct task
+ 	struct user * dummy = NULL;
+ #endif
+ 
+-	if ((off & 3) || off < 0 ||
+-	    off > sizeof(struct user) - 3)
++	if ((off & 3) || off > sizeof(struct user) - 3)
+ 		return -EIO;
+ 
+ 	off >>= 2;
+diff -puN arch/m32r/kernel/smpboot.c~m32r-remove-redundant-tests-on-unsigned arch/m32r/kernel/smpboot.c
+--- a/arch/m32r/kernel/smpboot.c~m32r-remove-redundant-tests-on-unsigned
++++ a/arch/m32r/kernel/smpboot.c
+@@ -213,7 +213,7 @@ void __init smp_prepare_cpus(unsigned in
+ 		if (!physid_isset(phys_id, phys_cpu_present_map))
+ 			continue;
+ 
+-		if ((max_cpus >= 0) && (max_cpus <= cpucount + 1))
++		if (max_cpus <= cpucount + 1)
+ 			continue;
+ 
+ 		do_boot_cpu(phys_id);
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 origin.patch
 linux-next.patch
-avr32-convert-to-asm-generic-hardirqh.patch
-sparc32-convert-to-asm-generic-hardirqh.patch
-vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
-vfs-split-generic_forget_inode-so-that-hugetlbfs-does-not-have-to-copy-it.patch
-vfs-explicitly-cast-s_maxbytes-in-fiemap_check_ranges.patch
-vfs-change-sb-s_maxbytes-to-a-loff_t.patch
-vfs-remove-redundant-position-check-in-do_sendfile.patch
-fs-remove-unneeded-dcache_unhashed-tricks.patch
-vfs-seq_file-add-helpers-for-data-filling.patch
-libfs-return-error-code-on-failed-attr-set.patch
-fs-new-truncate-helpers.patch
-fs-use-new-truncate-helpers.patch
-fs-introduce-new-truncate-sequence.patch
-fs-convert-simple-fs-to-new-truncate.patch
-tmpfs-convert-to-use-the-new-truncate-convention.patch
-ext2-convert-to-use-the-new-truncate-convention.patch
-fat-convert-to-use-the-new-truncate-convention.patch
-btrfs-convert-to-use-the-new-truncate-convention.patch
-jfs-convert-to-use-the-new-truncate-convention.patch
-udf-convert-to-use-the-new-truncate-convention.patch
-minix-convert-to-use-the-new-truncate-convention.patch
-xtensa-convert-to-asm-generic-hardirqh.patch
-frv-convert-to-asm-generic-hardirqh.patch
-fs-turn-iprune_mutex-into-rwsem.patch
-ntfs-remove-ntfs_file_write.patch
-qnx4-remove-write-support.patch
-fcntl-add-f_etown_ex.patch
+s3c-fix-check-of-index-into-s3c_gpios.patch
+stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
+dm-strncpy-does-not-null-terminate-string.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
+msp71xx-request_irq-failure-ignored-in-msp_pcibios_config_access.patch
+mtd-jffs2-fix-read-buffer-overflow.patch
+mtd-prevent-a-read-from-eraseregions.patch
+mtd-prevent-a-read-from-regions.patch
+hfc_usb-fix-read-buffer-overflow.patch
+cyclades-read-buffer-overflow.patch
+serial167-fix-read-buffer-overflow.patch
+regulator-fix-calculation-of-voltage-range-in-da9034_set_ldo12_voltage.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
+zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
+st-fix-test-of-value-range-in-st_set_options.patch
+drivers-staging-octeon-ethernet-rgmiic-dont-ignore-request_irq-return-code.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+dme1737-keep-index-within-pwm_config.patch
+sdio-fix-read-buffer-overflow.patch
+ncpfs-read-buffer-overflow.patch
+smbfs-read-buffer-overflow.patch
+platinumfb-misplaced-parenthesis.patch
+sisfb-read-buffer-overflow.patch
+drivers-video-console-newport_conc-fix-read-outside-array-bounds.patch
+mwave-fix-read-buffer-overflow.patch
+adfs-remove-redundant-test-on-unsigned.patch
+gru-allocation-may-fail-in-quicktest1.patch
 
