@@ -1,69 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ksm-break-cow-once-unshared.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:39:51 -0700
-Message-ID: <200909222039.n8MKdpFa004273@imap1.linux-foundation.org>
+Subject: [merged] ksm-prevent-mremap-move-poisoning.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:39:32 -0700
+Message-ID: <200909222039.n8MKdWqM003629@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51566 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40611 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752561AbZIVUkV (ORCPT
+	by vger.kernel.org with ESMTP id S1752584AbZIVUkY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:40:21 -0400
+	Tue, 22 Sep 2009 16:40:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh.dickins@tiscali.co.uk, aarcange@redhat.com, ieidus@redhat.com, mm-commits@vger.kernel.org
+To: hugh.dickins@tiscali.co.uk, aarcange@redhat.com, avi@redhat.com, balbir@in.ibm.com, chrisw@redhat.com, fengguang.wu@intel.com, ieidus@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, lee.s
 
 
 The patch titled
-     ksm: break cow once unshared
+     ksm: prevent mremap move poisoning
 has been removed from the -mm tree.  Its filename was
-     ksm-break-cow-once-unshared.patch
+     ksm-prevent-mremap-move-poisoning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ksm: break cow once unshared
+Subject: ksm: prevent mremap move poisoning
 From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
-We kept agreeing not to bother about the unswappable shared KSM pages
-which later become unshared by others: observation suggests they're not
-a significant proportion.  But they are disadvantageous, and it is easier
-to break COW to replace them by swappable pages, than offer statistics
-to show that they don't matter; then we can stop worrying about them.
+KSM's scan allows for user pages to be COWed or unmapped at any time,
+without requiring any notification.  But its stable tree does assume that
+when it finds a KSM page where it placed a KSM page, then it is the same
+KSM page that it placed there.
 
-Doing this in ksm_do_scan, they don't go through cmp_and_merge_page on
-this pass: give them a good chance of getting into the unstable tree
-on the next pass, or back into the stable, by computing checksum now.
+mremap move could break that assumption: if an area containing a KSM page
+was unmapped, then an area containing a different KSM page was moved with
+mremap into the place of the original, before KSM's scan came around to
+notice.  That could then poison a node of the stable tree, so that memcmps
+would "lie" and upset the ordering of the tree.
+
+Probably noone will ever need mremap move on a VM_MERGEABLE area; except
+that prohibiting it would make trouble for schemes in which we try making
+everything VM_MERGEABLE e.g.  for testing: an mremap which normally works
+would then fail mysteriously.
+
+There's no need to go to any trouble, such as re-sorting KSM's list of
+rmap_items to match the new layout: simply unmerge the area to COW all its
+KSM pages before moving, but leave VM_MERGEABLE on so that they're
+remerged later.
 
 Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Acked-by: Izik Eidus <ieidus@redhat.com>
+Signed-off-by: Chris Wright <chrisw@redhat.com>
+Signed-off-by: Izik Eidus <ieidus@redhat.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Avi Kivity <avi@redhat.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ mm/mremap.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff -puN mm/ksm.c~ksm-break-cow-once-unshared mm/ksm.c
---- a/mm/ksm.c~ksm-break-cow-once-unshared
-+++ a/mm/ksm.c
-@@ -1268,6 +1268,14 @@ static void ksm_do_scan(unsigned int sca
- 			return;
- 		if (!PageKsm(page) || !in_stable_tree(rmap_item))
- 			cmp_and_merge_page(page, rmap_item);
-+		else if (page_mapcount(page) == 1) {
-+			/*
-+			 * Replace now-unshared ksm page by ordinary page.
-+			 */
-+			break_cow(rmap_item->mm, rmap_item->address);
-+			remove_rmap_item_from_tree(rmap_item);
-+			rmap_item->oldchecksum = calc_checksum(page);
-+		}
- 		put_page(page);
- 	}
- }
+diff -puN mm/mremap.c~ksm-prevent-mremap-move-poisoning mm/mremap.c
+--- a/mm/mremap.c~ksm-prevent-mremap-move-poisoning
++++ a/mm/mremap.c
+@@ -11,6 +11,7 @@
+ #include <linux/hugetlb.h>
+ #include <linux/slab.h>
+ #include <linux/shm.h>
++#include <linux/ksm.h>
+ #include <linux/mman.h>
+ #include <linux/swap.h>
+ #include <linux/capability.h>
+@@ -182,6 +183,17 @@ static unsigned long move_vma(struct vm_
+ 	if (mm->map_count >= sysctl_max_map_count - 3)
+ 		return -ENOMEM;
+ 
++	/*
++	 * Advise KSM to break any KSM pages in the area to be moved:
++	 * it would be confusing if they were to turn up at the new
++	 * location, where they happen to coincide with different KSM
++	 * pages recently unmapped.  But leave vma->vm_flags as it was,
++	 * so KSM can come around to merge on vma and new_vma afterwards.
++	 */
++	if (ksm_madvise(vma, old_addr, old_addr + old_len,
++						MADV_UNMERGEABLE, &vm_flags))
++		return -ENOMEM;
++
+ 	new_pgoff = vma->vm_pgoff + ((old_addr - vma->vm_start) >> PAGE_SHIFT);
+ 	new_vma = copy_vma(&vma, new_addr, new_len, new_pgoff);
+ 	if (!new_vma)
 _
 
 Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
