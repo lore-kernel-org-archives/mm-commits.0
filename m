@@ -1,106 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: [merged] shmem-initialize-struct-shmem_sb_info-to-zero.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:43:47 -0700
-Message-ID: <200909222043.n8MKhlIl012331@imap1.linux-foundation.org>
+Subject: [merged] h8300-convert-to-asm-generic-hardirqh.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:44:11 -0700
+Message-ID: <200909222044.n8MKiBZP013093@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48524 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38024 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753161AbZIVUoU (ORCPT
+	by vger.kernel.org with ESMTP id S1753160AbZIVUo3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:44:20 -0400
+	Tue, 22 Sep 2009 16:44:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: penberg@cs.helsinki.fi, hugh.dickins@tiscali.co.uk, mingo@elte.hu, vegard.nossum@gmail.com, mm-commits@vger.kernel.org
+To: hch@lst.de, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     shmem: initialize struct shmem_sb_info to zero
+     h8300: convert to asm-generic/hardirq.h
 has been removed from the -mm tree.  Its filename was
-     shmem-initialize-struct-shmem_sb_info-to-zero.patch
+     h8300-convert-to-asm-generic-hardirqh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: shmem: initialize struct shmem_sb_info to zero
-From: Pekka Enberg <penberg@cs.helsinki.fi>
+Subject: h8300: convert to asm-generic/hardirq.h
+From: Christoph Hellwig <hch@lst.de>
 
-Fixes the following kmemcheck false positive (the compiler is using
-a 32-bit mov to load the 16-bit sbinfo->mode in shmem_fill_super):
-
-[    0.337000] Total of 1 processors activated (3088.38 BogoMIPS).
-[    0.352000] CPU0 attaching NULL sched-domain.
-[    0.360000] WARNING: kmemcheck: Caught 32-bit read from uninitialized
-memory (9f8020fc)
-[    0.361000]
-a44240820000000041f6998100000000000000000000000000000000ff030000
-[    0.368000]  i i i i i i i i i i i i i i i i u u u u i i i i i i i i i i u
-u
-[    0.375000]                                                          ^
-[    0.376000]
-[    0.377000] Pid: 9, comm: khelper Not tainted (2.6.31-tip #206) P4DC6
-[    0.378000] EIP: 0060:[<810a3a95>] EFLAGS: 00010246 CPU: 0
-[    0.379000] EIP is at shmem_fill_super+0xb5/0x120
-[    0.380000] EAX: 00000000 EBX: 9f845400 ECX: 824042a4 EDX: 8199f641
-[    0.381000] ESI: 9f8020c0 EDI: 9f845400 EBP: 9f81af68 ESP: 81cd6eec
-[    0.382000]  DS: 007b ES: 007b FS: 00d8 GS: 0000 SS: 0068
-[    0.383000] CR0: 8005003b CR2: 9f806200 CR3: 01ccd000 CR4: 000006d0
-[    0.384000] DR0: 00000000 DR1: 00000000 DR2: 00000000 DR3: 00000000
-[    0.385000] DR6: ffff4ff0 DR7: 00000400
-[    0.386000]  [<810c25fc>] get_sb_nodev+0x3c/0x80
-[    0.388000]  [<810a3514>] shmem_get_sb+0x14/0x20
-[    0.390000]  [<810c207f>] vfs_kern_mount+0x4f/0x120
-[    0.392000]  [<81b2849e>] init_tmpfs+0x7e/0xb0
-[    0.394000]  [<81b11597>] do_basic_setup+0x17/0x30
-[    0.396000]  [<81b11907>] kernel_init+0x57/0xa0
-[    0.398000]  [<810039b7>] kernel_thread_helper+0x7/0x10
-[    0.400000]  [<ffffffff>] 0xffffffff
-[    0.402000] khelper used greatest stack depth: 2820 bytes left
-[    0.407000] calling  init_mmap_min_addr+0x0/0x10 @ 1
-[    0.408000] initcall init_mmap_min_addr+0x0/0x10 returned 0 after 0 usecs
-
-Reported-by: Ingo Molnar <mingo@elte.hu>
-Analysed-by: Vegard Nossum <vegard.nossum@gmail.com>
-Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
-Acked-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ arch/h8300/include/asm/hardirq.h |   15 +++------------
+ arch/h8300/kernel/irq.c          |    5 -----
+ 2 files changed, 3 insertions(+), 17 deletions(-)
 
-diff -puN mm/shmem.c~shmem-initialize-struct-shmem_sb_info-to-zero mm/shmem.c
---- a/mm/shmem.c~shmem-initialize-struct-shmem_sb_info-to-zero
-+++ a/mm/shmem.c
-@@ -2309,17 +2309,14 @@ int shmem_fill_super(struct super_block 
- 	int err = -ENOMEM;
+diff -puN arch/h8300/include/asm/hardirq.h~h8300-convert-to-asm-generic-hardirqh arch/h8300/include/asm/hardirq.h
+--- a/arch/h8300/include/asm/hardirq.h~h8300-convert-to-asm-generic-hardirqh
++++ a/arch/h8300/include/asm/hardirq.h
+@@ -1,18 +1,7 @@
+ #ifndef __H8300_HARDIRQ_H
+ #define __H8300_HARDIRQ_H
  
- 	/* Round up to L1_CACHE_BYTES to resist false sharing */
--	sbinfo = kmalloc(max((int)sizeof(struct shmem_sb_info),
-+	sbinfo = kzalloc(max((int)sizeof(struct shmem_sb_info),
- 				L1_CACHE_BYTES), GFP_KERNEL);
- 	if (!sbinfo)
- 		return -ENOMEM;
+-#include <linux/kernel.h>
+-#include <linux/threads.h>
+-#include <linux/interrupt.h>
+-#include <linux/irq.h>
+-
+-typedef struct {
+-	unsigned int __softirq_pending;
+-} ____cacheline_aligned irq_cpustat_t;
+-
+-#include <linux/irq_cpustat.h>	/* Standard mappings for irq_cpustat_t above */
+-
+-extern void ack_bad_irq(unsigned int irq);
++#include <asm/irq.h>
  
--	sbinfo->max_blocks = 0;
--	sbinfo->max_inodes = 0;
- 	sbinfo->mode = S_IRWXUGO | S_ISVTX;
- 	sbinfo->uid = current_fsuid();
- 	sbinfo->gid = current_fsgid();
--	sbinfo->mpol = NULL;
- 	sb->s_fs_info = sbinfo;
+ #define HARDIRQ_BITS	8
  
- #ifdef CONFIG_TMPFS
+@@ -25,4 +14,6 @@ extern void ack_bad_irq(unsigned int irq
+ # error HARDIRQ_BITS is too low!
+ #endif
+ 
++#include <asm-generic/hardirq.h>
++
+ #endif
+diff -puN arch/h8300/kernel/irq.c~h8300-convert-to-asm-generic-hardirqh arch/h8300/kernel/irq.c
+--- a/arch/h8300/kernel/irq.c~h8300-convert-to-asm-generic-hardirqh
++++ a/arch/h8300/kernel/irq.c
+@@ -81,11 +81,6 @@ struct irq_chip h8300irq_chip = {
+ 	.end		= h8300_end_irq,
+ };
+ 
+-void ack_bad_irq(unsigned int irq)
+-{
+-	printk("unexpected IRQ trap at vector %02x\n", irq);
+-}
+-
+ #if defined(CONFIG_RAMKERNEL)
+ static unsigned long __init *get_vector_address(void)
+ {
 _
 
-Patches currently in -mm which might be from penberg@cs.helsinki.fi are
+Patches currently in -mm which might be from hch@lst.de are
 
 origin.patch
 linux-next.patch
-fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
-move-magic-numbers-into-magich.patch
-move-magic-numbers-into-magich-update.patch
-slab-leaks3-default-y.patch
+avr32-convert-to-asm-generic-hardirqh.patch
+sparc32-convert-to-asm-generic-hardirqh.patch
+vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
+vfs-split-generic_forget_inode-so-that-hugetlbfs-does-not-have-to-copy-it.patch
+vfs-explicitly-cast-s_maxbytes-in-fiemap_check_ranges.patch
+vfs-change-sb-s_maxbytes-to-a-loff_t.patch
+vfs-remove-redundant-position-check-in-do_sendfile.patch
+fs-remove-unneeded-dcache_unhashed-tricks.patch
+vfs-seq_file-add-helpers-for-data-filling.patch
+libfs-return-error-code-on-failed-attr-set.patch
+fs-new-truncate-helpers.patch
+fs-use-new-truncate-helpers.patch
+fs-introduce-new-truncate-sequence.patch
+fs-convert-simple-fs-to-new-truncate.patch
+tmpfs-convert-to-use-the-new-truncate-convention.patch
+ext2-convert-to-use-the-new-truncate-convention.patch
+fat-convert-to-use-the-new-truncate-convention.patch
+btrfs-convert-to-use-the-new-truncate-convention.patch
+jfs-convert-to-use-the-new-truncate-convention.patch
+udf-convert-to-use-the-new-truncate-convention.patch
+minix-convert-to-use-the-new-truncate-convention.patch
+xtensa-convert-to-asm-generic-hardirqh.patch
+frv-convert-to-asm-generic-hardirqh.patch
+fs-turn-iprune_mutex-into-rwsem.patch
+ntfs-remove-ntfs_file_write.patch
+qnx4-remove-write-support.patch
+fcntl-add-f_etown_ex.patch
 
