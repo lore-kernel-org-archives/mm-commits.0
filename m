@@ -1,100 +1,141 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lis3-add-power-management-functions.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:46:16 -0700
-Message-ID: <200909222046.n8MKkGSX017401@imap1.linux-foundation.org>
+Subject: [merged] drivers-hwmon-adm1021c-support-high-precision-adm1023-remote-sensor.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:46:22 -0700
+Message-ID: <200909222046.n8MKkMRq017579@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51256 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48179 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753208AbZIVUrA (ORCPT
+	by vger.kernel.org with ESMTP id S1752929AbZIVUrP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:47:00 -0400
+	Tue, 22 Sep 2009 16:47:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: daniel@caiaq.de, eric.piel@tremplin-utc.net, pavel@ucw.cz, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: michael@araneidae.co.uk, khali@linux-fr.org, michael.abbott@diamond.ac.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lis3: add power management functions
+     drivers/hwmon/adm1021.c: support high precision ADM1023 remote sensor
 has been removed from the -mm tree.  Its filename was
-     lis3-add-power-management-functions.patch
+     drivers-hwmon-adm1021c-support-high-precision-adm1023-remote-sensor.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lis3: add power management functions
-From: Daniel Mack <daniel@caiaq.de>
+Subject: drivers/hwmon/adm1021.c: support high precision ADM1023 remote sensor
+From: Michael Abbott <michael@araneidae.co.uk>
 
-This enabled power management functions for the SPI transport layer of the
-lis3 devices.  The device's suspend mode is only entered in case no wakeup
-threshold has been given.  In this case, the device is supposed to wake up
-the system and must thus not be put to deep sleep.
+The ADM1023 temperature sensor supports higher resolution for its external
+sensor (sensitivity of 1/8 deg C).  This patch makes this higher
+resolution available through the appropriate temperature sysfs nodes.
 
-[randy.dunlap@oracle.com: fix lis3-spi for CONFIG_PM=n]
-Signed-off-by: Daniel Mack <daniel@caiaq.de>
-Acked-by: Pavel Machek <pavel@ucw.cz>
-Cc: Eric Piel <eric.piel@tremplin-utc.net>
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Curiously, this functionality was available in the 2.4 kernel driver (but
+formatted in a less helpful manner).
+
+Cc: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Michael Abbott <michael.abbott@diamond.ac.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/lis3lv02d_spi.c |   28 ++++++++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
+ drivers/hwmon/adm1021.c |   47 ++++++++++++++++++--------------------
+ 1 file changed, 23 insertions(+), 24 deletions(-)
 
-diff -puN drivers/hwmon/lis3lv02d_spi.c~lis3-add-power-management-functions drivers/hwmon/lis3lv02d_spi.c
---- a/drivers/hwmon/lis3lv02d_spi.c~lis3-add-power-management-functions
-+++ a/drivers/hwmon/lis3lv02d_spi.c
-@@ -87,6 +87,32 @@ static int __devexit lis302dl_spi_remove
- 	return 0;
+diff -puN drivers/hwmon/adm1021.c~drivers-hwmon-adm1021c-support-high-precision-adm1023-remote-sensor drivers/hwmon/adm1021.c
+--- a/drivers/hwmon/adm1021.c~drivers-hwmon-adm1021c-support-high-precision-adm1023-remote-sensor
++++ a/drivers/hwmon/adm1021.c
+@@ -85,14 +85,11 @@ struct adm1021_data {
+ 	char valid;		/* !=0 if following fields are valid */
+ 	unsigned long last_updated;	/* In jiffies */
+ 
+-	s8 temp_max[2];		/* Register values */
+-	s8 temp_min[2];
+-	s8 temp[2];
++	int temp_max[2];		/* Register values */
++	int temp_min[2];
++	int temp[2];
+ 	u8 alarms;
+ 	/* Special values for ADM1023 only */
+-	u8 remote_temp_prec;
+-	u8 remote_temp_os_prec;
+-	u8 remote_temp_hyst_prec;
+ 	u8 remote_temp_offset;
+ 	u8 remote_temp_offset_prec;
+ };
+@@ -141,7 +138,7 @@ static ssize_t show_temp(struct device *
+ 	int index = to_sensor_dev_attr(devattr)->index;
+ 	struct adm1021_data *data = adm1021_update_device(dev);
+ 
+-	return sprintf(buf, "%d\n", 1000 * data->temp[index]);
++	return sprintf(buf, "%d\n", data->temp[index]);
  }
  
-+#ifdef CONFIG_PM
-+static int lis3lv02d_spi_suspend(struct spi_device *spi, pm_message_t mesg)
-+{
-+	struct lis3lv02d *lis3 = spi_get_drvdata(spi);
-+
-+	if (!lis3->pdata->wakeup_flags)
-+		lis3lv02d_poweroff(&lis3_dev);
-+
-+	return 0;
-+}
-+
-+static int lis3lv02d_spi_resume(struct spi_device *spi)
-+{
-+	struct lis3lv02d *lis3 = spi_get_drvdata(spi);
-+
-+	if (!lis3->pdata->wakeup_flags)
-+		lis3lv02d_poweron(lis3);
-+
-+	return 0;
-+}
-+
-+#else
-+#define lis3lv02d_spi_suspend	NULL
-+#define lis3lv02d_spi_resume	NULL
-+#endif
-+
- static struct spi_driver lis302dl_spi_driver = {
- 	.driver	 = {
- 		.name   = DRV_NAME,
-@@ -94,6 +120,8 @@ static struct spi_driver lis302dl_spi_dr
- 	},
- 	.probe	= lis302dl_spi_probe,
- 	.remove	= __devexit_p(lis302dl_spi_remove),
-+	.suspend = lis3lv02d_spi_suspend,
-+	.resume  = lis3lv02d_spi_resume,
- };
+ static ssize_t show_temp_max(struct device *dev,
+@@ -150,7 +147,7 @@ static ssize_t show_temp_max(struct devi
+ 	int index = to_sensor_dev_attr(devattr)->index;
+ 	struct adm1021_data *data = adm1021_update_device(dev);
  
- static int __init lis302dl_init(void)
+-	return sprintf(buf, "%d\n", 1000 * data->temp_max[index]);
++	return sprintf(buf, "%d\n", data->temp_max[index]);
+ }
+ 
+ static ssize_t show_temp_min(struct device *dev,
+@@ -159,7 +156,7 @@ static ssize_t show_temp_min(struct devi
+ 	int index = to_sensor_dev_attr(devattr)->index;
+ 	struct adm1021_data *data = adm1021_update_device(dev);
+ 
+-	return sprintf(buf, "%d\n", 1000 * data->temp_min[index]);
++	return sprintf(buf, "%d\n", data->temp_min[index]);
+ }
+ 
+ static ssize_t show_alarm(struct device *dev, struct device_attribute *attr,
+@@ -412,25 +409,27 @@ static struct adm1021_data *adm1021_upda
+ 		dev_dbg(&client->dev, "Starting adm1021 update\n");
+ 
+ 		for (i = 0; i < 2; i++) {
+-			data->temp[i] = i2c_smbus_read_byte_data(client,
+-						ADM1021_REG_TEMP(i));
+-			data->temp_max[i] = i2c_smbus_read_byte_data(client,
+-						ADM1021_REG_TOS_R(i));
+-			data->temp_min[i] = i2c_smbus_read_byte_data(client,
+-						ADM1021_REG_THYST_R(i));
++			data->temp[i] = 1000 *
++				(s8) i2c_smbus_read_byte_data(
++					client, ADM1021_REG_TEMP(i));
++			data->temp_max[i] = 1000 *
++				(s8) i2c_smbus_read_byte_data(
++					client, ADM1021_REG_TOS_R(i));
++			data->temp_min[i] = 1000 *
++				(s8) i2c_smbus_read_byte_data(
++					client, ADM1021_REG_THYST_R(i));
+ 		}
+ 		data->alarms = i2c_smbus_read_byte_data(client,
+ 						ADM1021_REG_STATUS) & 0x7c;
+ 		if (data->type == adm1023) {
+-			data->remote_temp_prec =
+-				i2c_smbus_read_byte_data(client,
+-						ADM1023_REG_REM_TEMP_PREC);
+-			data->remote_temp_os_prec =
+-				i2c_smbus_read_byte_data(client,
+-						ADM1023_REG_REM_TOS_PREC);
+-			data->remote_temp_hyst_prec =
+-				i2c_smbus_read_byte_data(client,
+-						ADM1023_REG_REM_THYST_PREC);
++			/* The ADM1023 provides 3 extra bits of precision for
++			 * the remote sensor in extra registers. */
++			data->temp[1] += 125 * (i2c_smbus_read_byte_data(
++				client, ADM1023_REG_REM_TEMP_PREC) >> 5);
++			data->temp_max[1] += 125 * (i2c_smbus_read_byte_data(
++				client, ADM1023_REG_REM_TOS_PREC) >> 5);
++			data->temp_min[1] += 125 * (i2c_smbus_read_byte_data(
++				client, ADM1023_REG_REM_THYST_PREC) >> 5);
+ 			data->remote_temp_offset =
+ 				i2c_smbus_read_byte_data(client,
+ 						ADM1023_REG_REM_OFFSET);
 _
 
-Patches currently in -mm which might be from daniel@caiaq.de are
+Patches currently in -mm which might be from michael@araneidae.co.uk are
 
 origin.patch
-linux-next.patch
-rtc-add-driver-for-mxcs-internal-rtc-module.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
 
