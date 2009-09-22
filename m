@@ -1,301 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: [merged] scripts-get_maintainerpl-add-git-blame.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:44:55 -0700
-Message-ID: <200909222044.n8MKitxq014612@imap1.linux-foundation.org>
+Subject: [merged] uml-fix-order-of-pud-and-pmd_free.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:44:49 -0700
+Message-ID: <200909222044.n8MKin1n014381@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56974 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36640 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753179AbZIVUoz (ORCPT
+	by vger.kernel.org with ESMTP id S1753182AbZIVUoz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 22 Sep 2009 16:44:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, jdike@addtoit.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scripts/get_maintainer.pl: add --git-blame
+     uml: fix order of pud and pmd_free()
 has been removed from the -mm tree.  Its filename was
-     scripts-get_maintainerpl-add-git-blame.patch
+     uml-fix-order-of-pud-and-pmd_free.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts/get_maintainer.pl: add --git-blame
-From: Joe Perches <joe@perches.com>
+Subject: uml: fix order of pud and pmd_free()
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Julia Lawall suggested that get_maintainers.pl should have the
-ability to include signatories of commits that are modified by
-a particular patch.
+If pmd_alloc() fails we should only free the prior allocated pud, if
+pte_alloc_map() fails, we should free pmd as well.
 
-Vegard Nossum did something similar once.
-http://lkml.org/lkml/2008/5/29/449
-
-The modified script looks the commits for all lines in the
-patch, and includes the "-by:" signatories for those commits.
-It uses the same git-min-percent, git-max-maintainers, and
-git-min-signatures options.  git-since is ignored.
-
-It can be used independently from the --git default, so
-        ./scripts/get_maintainers.pl --nogit --git-blame <patch>
-or
-        ./scripts/get_maintainers.pl --nogit --git-blame -f <file>
-is acceptable.
-
-If used with -f <file>, all lines/commits for the file are
-checked.
-
---git-blame can be slow if used with -f <file>
---git-blame does not work with -f <directory>
-
-Signed-off-by: Joe Perches <joe@perches.com>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Jeff Dike <jdike@addtoit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |  138 ++++++++++++++++++++++++++++--------
- 1 file changed, 109 insertions(+), 29 deletions(-)
+ arch/um/kernel/skas/mmu.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-add-git-blame scripts/get_maintainer.pl
---- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-add-git-blame
-+++ a/scripts/get_maintainer.pl
-@@ -13,7 +13,7 @@
- use strict;
+diff -puN arch/um/kernel/skas/mmu.c~uml-fix-order-of-pud-and-pmd_free arch/um/kernel/skas/mmu.c
+--- a/arch/um/kernel/skas/mmu.c~uml-fix-order-of-pud-and-pmd_free
++++ a/arch/um/kernel/skas/mmu.c
+@@ -38,10 +38,10 @@ static int init_stub_pte(struct mm_struc
+ 	*pte = pte_mkread(*pte);
+ 	return 0;
  
- my $P = $0;
--my $V = '0.17';
-+my $V = '0.18beta2';
- 
- use Getopt::Long qw(:config no_auto_abbrev);
- 
-@@ -29,6 +29,7 @@ my $email_git_min_signatures = 1;
- my $email_git_max_maintainers = 5;
- my $email_git_min_percent = 5;
- my $email_git_since = "1-year-ago";
-+my $email_git_blame = 0;
- my $output_multiline = 1;
- my $output_separator = ", ";
- my $scm = 0;
-@@ -68,6 +69,7 @@ if (!GetOptions(
- 		'git-max-maintainers=i' => \$email_git_max_maintainers,
- 		'git-min-percent=i' => \$email_git_min_percent,
- 		'git-since=s' => \$email_git_since,
-+		'git-blame!' => \$email_git_blame,
- 		'm!' => \$email_maintainer,
- 		'n!' => \$email_usename,
- 		'l!' => \$email_list,
-@@ -107,8 +109,9 @@ if ($selections == 0) {
-     die "$P:  Missing required option: email, scm, status, subsystem or web\n";
+- out_pmd:
+-	pud_free(mm, pud);
+  out_pte:
+ 	pmd_free(mm, pmd);
++ out_pmd:
++	pud_free(mm, pud);
+  out:
+ 	return -ENOMEM;
  }
- 
--if ($email && ($email_maintainer + $email_list + $email_subscriber_list
--	       + $email_git + $email_git_penguin_chiefs) == 0) {
-+if ($email &&
-+    ($email_maintainer + $email_list + $email_subscriber_list +
-+     $email_git + $email_git_penguin_chiefs + $email_git_blame) == 0) {
-     usage();
-     die "$P: Please select at least 1 email option\n";
- }
-@@ -150,6 +153,7 @@ close(MAINT);
- ## use the filenames on the command line or find the filenames in the patchfiles
- 
- my @files = ();
-+my @range = ();
- 
- foreach my $file (@ARGV) {
-     ##if $file is a directory and it lacks a trailing slash, add one
-@@ -162,13 +166,19 @@ foreach my $file (@ARGV) {
- 	push(@files, $file);
-     } else {
- 	my $file_cnt = @files;
-+	my $lastfile;
- 	open(PATCH, "<$file") or die "$P: Can't open ${file}\n";
- 	while (<PATCH>) {
- 	    if (m/^\+\+\+\s+(\S+)/) {
- 		my $filename = $1;
- 		$filename =~ s@^[^/]*/@@;
- 		$filename =~ s@\n@@;
-+		$lastfile = $filename;
- 		push(@files, $filename);
-+	    } elsif (m/^\@\@ -(\d+),(\d+)/) {
-+		if ($email_git_blame) {
-+		    push(@range, "$lastfile:$1:$2");
-+		}
- 	    }
- 	}
- 	close(PATCH);
-@@ -226,6 +236,9 @@ foreach my $file (@files) {
- 	recent_git_signoffs($file);
-     }
- 
-+    if ($email && $email_git_blame) {
-+	git_assign_blame($file);
-+    }
- }
- 
- if ($email) {
-@@ -311,6 +324,7 @@ MAINTAINER field selection options:
-     --git-max-maintainers => maximum maintainers to add (default: 5)
-     --git-min-percent => minimum percentage of commits required (default: 5)
-     --git-since => git history to use (default: 1-year-ago)
-+    --git-blame => use git blame to find modified commits for patch or file
-     --m => include maintainer(s) if any
-     --n => include name 'Full Name <addr\@domain.tld>'
-     --l => include list(s) if any
-@@ -333,13 +347,15 @@ Other options:
- 
- Notes:
-   Using "-f directory" may give unexpected results:
--
--  Used with "--git", git signators for _all_ files in and below
--     directory are examined as git recurses directories.
--     Any specified X: (exclude) pattern matches are _not_ ignored.
--  Used with "--nogit", directory is used as a pattern match,
--     no individual file within the directory or subdirectory
--     is matched.
-+      Used with "--git", git signators for _all_ files in and below
-+          directory are examined as git recurses directories.
-+          Any specified X: (exclude) pattern matches are _not_ ignored.
-+      Used with "--nogit", directory is used as a pattern match,
-+         no individual file within the directory or subdirectory
-+         is matched.
-+      Used with "--git-blame", does not iterate all files in directory
-+  Using "--git-blame" is slow and may add old committers and authors
-+      that are no longer active maintainers to the output.
- EOT
- }
- 
-@@ -449,14 +465,19 @@ sub push_email_address {
-     my ($email_address) = @_;
- 
-     my $email_name = "";
--    if ($email_address =~ m/([^<]+)<(.*\@.*)>$/) {
--	$email_name = $1;
--	$email_address = $2;
--    }
- 
-     if ($email_maintainer) {
--	if ($email_usename && $email_name) {
--	    push(@email_to, format_email($email_name, $email_address));
-+	if ($email_address =~ m/([^<]+)<(.*\@.*)>$/) {
-+	    $email_name = $1;
-+	    $email_address = $2;
-+	    if ($email_usename) {
-+		push(@email_to, format_email($email_name, $email_address));
-+	    } else {
-+		push(@email_to, $email_address);
-+	    }
-+	} elsif ($email_address =~ m/<(.+)>/) {
-+	    $email_address = $1;
-+	    push(@email_to, $email_address);
- 	} else {
- 	    push(@email_to, $email_address);
- 	}
-@@ -545,20 +566,79 @@ sub recent_git_signoffs {
- 		last;
- 	    }
- 	}
--	if ($line =~ m/(.+)<(.+)>/) {
--	    my $git_name = $1;
--	    my $git_addr = $2;
--	    if ($email_usename) {
--		push(@email_to, format_email($git_name, $git_addr));
--	    } else {
--		push(@email_to, $git_addr);
--	    }
--	} elsif ($line =~ m/<(.+)>/) {
--	    my $git_addr = $1;
--	    push(@email_to, $git_addr);
--	} else {
--	    push(@email_to, $line);
-+	push_email_address($line);
-+    }
-+}
-+
-+sub save_commits {
-+    my ($cmd, @commits) = @_;
-+    my $output;
-+    my @lines = ();
-+
-+    $output = `${cmd}`;
-+
-+    @lines = split("\n", $output);
-+    foreach my $line (@lines) {
-+	if ($line =~ m/^(\w+) /) {
-+	    push (@commits, $1);
-+	}
-+    }
-+    return @commits;
-+}
-+
-+sub git_assign_blame {
-+    my ($file) = @_;
-+
-+    my @lines = ();
-+    my @commits = ();
-+    my $cmd;
-+    my $output;
-+    my %hash;
-+    my $total_sign_offs;
-+    my $count;
-+
-+    if (@range) {
-+	foreach my $file_range_diff (@range) {
-+	    next if (!($file_range_diff =~ m/(.+):(.+):(.+)/));
-+	    my $diff_file = $1;
-+	    my $diff_start = $2;
-+	    my $diff_length = $3;
-+	    next if (!("$file" eq "$diff_file"));
-+	    $cmd = "git blame -l -L $diff_start,+$diff_length $file\n";
-+	    @commits = save_commits($cmd, @commits);
- 	}
-+    } else {
-+	if (-f $file) {
-+	    $cmd = "git blame -l $file\n";
-+	    @commits = save_commits($cmd, @commits);
-+	}
-+    }
-+
-+    $total_sign_offs = 0;
-+    @commits = uniq(@commits);
-+    foreach my $commit (@commits) {
-+	$cmd = "git log -1 ${commit}";
-+	$cmd .= " | grep -Ei \"^[-_ 	a-z]+by:.*\\\@.*\$\"";
-+	if (!$email_git_penguin_chiefs) {
-+	    $cmd .= " | grep -Ev \"${penguin_chiefs}\"";
-+	}
-+	$cmd .= " | cut -f2- -d\":\"";
-+
-+	$output = `${cmd}`;
-+	$output =~ s/^\s*//gm;
-+	@lines = split("\n", $output);
-+	$hash{$_}++ for @lines;
-+	$total_sign_offs += @lines;
-+    }
-+
-+    $count = 0;
-+    foreach my $line (sort {$hash{$b} <=> $hash{$a}} keys %hash) {
-+	my $sign_offs = $hash{$line};
-+	$count++;
-+	last if ($sign_offs < $email_git_min_signatures ||
-+		 $count > $email_git_max_maintainers ||
-+		 $sign_offs * 100 / $total_sign_offs < $email_git_min_percent);
-+	push_email_address($line);
-     }
- }
- 
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 origin.patch
 linux-next.patch
-mmc-msm_sdccc-driver-for-htc-dream.patch
-msm_sdccc-convert-printkkern_level-to-pr_level.patch
-msm_sdccc-stylistic-cleaning.patch
-msm_sdccc-move-overly-indented-code-to-separate-function.patch
-ncpfs-remove-dead-url-from-documentation.patch
-maintainers-add-matt-mackall-and-herbert-xu-to-hardware-random-number-generator.patch
+s3c-fix-check-of-index-into-s3c_gpios.patch
+stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
+dm-strncpy-does-not-null-terminate-string.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
+msp71xx-request_irq-failure-ignored-in-msp_pcibios_config_access.patch
+mtd-jffs2-fix-read-buffer-overflow.patch
+mtd-prevent-a-read-from-eraseregions.patch
+mtd-prevent-a-read-from-regions.patch
+hfc_usb-fix-read-buffer-overflow.patch
+cyclades-read-buffer-overflow.patch
+serial167-fix-read-buffer-overflow.patch
+regulator-fix-calculation-of-voltage-range-in-da9034_set_ldo12_voltage.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
+zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
+st-fix-test-of-value-range-in-st_set_options.patch
+drivers-staging-octeon-ethernet-rgmiic-dont-ignore-request_irq-return-code.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+dme1737-keep-index-within-pwm_config.patch
+sdio-fix-read-buffer-overflow.patch
+ncpfs-read-buffer-overflow.patch
+smbfs-read-buffer-overflow.patch
+platinumfb-misplaced-parenthesis.patch
+sisfb-read-buffer-overflow.patch
+drivers-video-console-newport_conc-fix-read-outside-array-bounds.patch
+mwave-fix-read-buffer-overflow.patch
+adfs-remove-redundant-test-on-unsigned.patch
+gru-allocation-may-fail-in-quicktest1.patch
 
