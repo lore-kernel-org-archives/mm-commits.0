@@ -1,62 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: [folded] kcore-use-registerd-physmem-information-ia64-fix.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 14:45:53 -0700
-Message-ID: <200909222145.n8MLjrTa005483@imap1.linux-foundation.org>
+Subject: [folded] walk-system-ram-range-fix-2.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 14:45:25 -0700
+Message-ID: <200909222145.n8MLjPtZ004542@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44036 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49195 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750901AbZIVVqW (ORCPT
+	by vger.kernel.org with ESMTP id S1751614AbZIVVqY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 17:46:22 -0400
+	Tue, 22 Sep 2009 17:46:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, akpm@linux-foundation.org, rientjes@google.com, rolandd@cisco.com, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kcore-use-registerd-physmem-information-ia64-fix
+     walk-system-ram-range fix 2
 has been removed from the -mm tree.  Its filename was
-     kcore-use-registerd-physmem-information-ia64-fix.patch
+     walk-system-ram-range-fix-2.patch
 
-This patch was dropped because it was folded into kcore-use-registerd-physmem-information.patch
+This patch was dropped because it was folded into walk-system-ram-range=
+=2Epatch
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: kcore-use-registerd-physmem-information-ia64-fix
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: walk-system-ram-range fix 2
+=46rom: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-kcore-use-registerd-physmem-information.patch registers physmem
-information based on ioresource.  Then, this addition is unnecessary.
+On Thu, 17 Sep 2009 17:06:42 -0700
+Andrew Morton <akpm@linux-foundation.org> wrote:
 
-Why panic:
-  At boot, rebuilding kclist for physmem, all KCORE_RAM entries are kfreed.
-  Because this ramaining one entires kclist of KCORE_RAM in kernel data area
-  to ther list, this causes panic in kclist rebuilding which calls kfree().
+> drivers/infiniband/hw/ehca/ehca_mrmw.c: In function 'ehca_create_busm=
+ap':
+> drivers/infiniband/hw/ehca/ehca_mrmw.c:2466: error: implicit declarat=
+ion of function 'walk_memory_resource'
+>
+Ya, yes. reported by David Rientjes <rientjes@google.com>
+I'm sorry for messes around this.
 
-Reported-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Thanks,
+-Kame
+=3D=3D
+walk-system-ram-range.patch failes to catch recent change in
+inifiniband. This is a fix.
+
+Cc: Am=E9rico Wang <xiyou.wangcong@gmail.com>
+Reported-by: David Rientjes <rientjes@google.com>
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Tested-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Roland Dreier <rolandd@cisco.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/mm/init.c |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/infiniband/hw/ehca/ehca_mrmw.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/ia64/mm/init.c~kcore-use-registerd-physmem-information-ia64-fix arch/ia64/mm/init.c
---- a/arch/ia64/mm/init.c~kcore-use-registerd-physmem-information-ia64-fix
-+++ a/arch/ia64/mm/init.c
-@@ -617,7 +617,6 @@ mem_init (void)
- 	long reserved_pages, codesize, datasize, initsize;
- 	pg_data_t *pgdat;
- 	int i;
--	static struct kcore_list kcore_mem;
- 
- 	BUG_ON(PTRS_PER_PGD * sizeof(pgd_t) != PAGE_SIZE);
- 	BUG_ON(PTRS_PER_PMD * sizeof(pmd_t) != PAGE_SIZE);
-@@ -639,8 +638,6 @@ mem_init (void)
- 
- 	high_memory = __va(max_low_pfn * PAGE_SIZE);
- 
--	kclist_add(&kcore_mem, __va(0), max_low_pfn * PAGE_SIZE, KCORE_RAM);
+diff -puN drivers/infiniband/hw/ehca/ehca_mrmw.c~walk-system-ram-range-=
+fix-2 drivers/infiniband/hw/ehca/ehca_mrmw.c
+--- a/drivers/infiniband/hw/ehca/ehca_mrmw.c~walk-system-ram-range-fix-=
+2
++++ a/drivers/infiniband/hw/ehca/ehca_mrmw.c
+@@ -2463,7 +2463,7 @@ int ehca_create_busmap(void)
+ 	int ret;
+=20
+ 	ehca_mr_len =3D 0;
+-	ret =3D walk_memory_resource(0, 1ULL << MAX_PHYSMEM_BITS, NULL,
++	ret =3D walk_system_ram_range(0, 1ULL << MAX_PHYSMEM_BITS, NULL,
+ 				   ehca_create_busmap_callback);
+ 	return ret;
+ }
+_
+
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu=
+=2Ecom are
+
+origin.patch
+kcore-fix-proc-kcores-statst_size.patch
+kcore-use-usual-list-for-kclist.patch
+kcore-add-kclist-types.patch
+kcore-register-vmalloc-area-in-generic-way.patch
+kcore-register-text-area-in-generic-way.patch
+walk-system-ram-range.patch
+walk-system-ram-range-fix-2.patch
+kcore-use-registerd-physmem-information.patch
+kcore-use-registerd-physmem-information-ia64-fix.patch
+kcore-register-vmemmap-range.patch
+kcore-register-vmemmap-range-fix.patch
+kcore-register-module-area-in-generic-way.patch
+kcore-more-fixes-for-init.patch
+proc-kcore-fix-statst_size.patch
+proc-kcore-update-statst_size-after-memory-hotplug.patch
+
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
