@@ -1,146 +1,193 @@
 From: akpm@linux-foundation.org
-Subject: [merged] revert-hugetlb-restore-interleaving-of-bootmem-huge-pages-2631.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:37:42 -0700
-Message-ID: <200909222037.n8MKbgmt032394@imap1.linux-foundation.org>
+Subject: [merged] mm-oom-analysis-show-kernel-stack-usage-in-proc-meminfo-and-oom-log-output.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:38:12 -0700
+Message-ID: <200909222038.n8MKcCUe000937@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47192 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45114 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752184AbZIVUij (ORCPT
+	by vger.kernel.org with ESMTP id S1752222AbZIVUiu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:38:39 -0400
+	Tue, 22 Sep 2009 16:38:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, agl@us.ibm.com, ak@linux.intel.com, apw@canonical.com, eric.whitney@hp.com, lee.schermerhorn@hp.com, mel@csn.ul.ie, rientjes@google.com, mm-commits@vger.kernel.org
+To: kosaki.motohiro@jp.fujitsu.com, cl@linux-foundation.org, minchan.kim@gmail.com, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert "hugetlb: restore interleaving of bootmem huge pages (2.6.31)"
+     mm: oom analysis: Show kernel stack usage in /proc/meminfo and OOM log output
 has been removed from the -mm tree.  Its filename was
-     revert-hugetlb-restore-interleaving-of-bootmem-huge-pages-2631.patch
+     mm-oom-analysis-show-kernel-stack-usage-in-proc-meminfo-and-oom-log-output.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert "hugetlb: restore interleaving of bootmem huge pages (2.6.31)"
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm: oom analysis: Show kernel stack usage in /proc/meminfo and OOM log output
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Revert the 2.6.31 patch "hugetlb: restore interleaving of bootmem huge
-pages (2.6.31)" to make way for a more extensive fix
+The amount of memory allocated to kernel stacks can become significant and
+cause OOM conditions.  However, we do not display the amount of memory
+consumed by stacks.
 
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Add code to display the amount of memory used for stacks in /proc/meminfo.
+
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Reviewed-by: Christoph Lameter <cl@linux-foundation.org>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
 Cc: David Rientjes <rientjes@google.com>
-Cc: Adam Litke <agl@us.ibm.com>
-Cc: Andy Whitcroft <apw@canonical.com>
-Cc: Eric Whitney <eric.whitney@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/base/node.c    |    3 +++
+ fs/proc/meminfo.c      |    2 ++
+ include/linux/mmzone.h |    3 ++-
+ kernel/fork.c          |   11 +++++++++++
+ mm/page_alloc.c        |    3 +++
+ mm/vmstat.c            |    1 +
+ 6 files changed, 22 insertions(+), 1 deletion(-)
 
-diff -puN mm/hugetlb.c~revert-hugetlb-restore-interleaving-of-bootmem-huge-pages-2631 mm/hugetlb.c
---- a/mm/hugetlb.c~revert-hugetlb-restore-interleaving-of-bootmem-huge-pages-2631
-+++ a/mm/hugetlb.c
-@@ -1011,7 +1011,6 @@ int __weak alloc_bootmem_huge_page(struc
- 				NODE_DATA(h->hugetlb_next_nid),
- 				huge_page_size(h), huge_page_size(h), 0);
+diff -puN drivers/base/node.c~mm-oom-analysis-show-kernel-stack-usage-in-proc-meminfo-and-oom-log-output drivers/base/node.c
+--- a/drivers/base/node.c~mm-oom-analysis-show-kernel-stack-usage-in-proc-meminfo-and-oom-log-output
++++ a/drivers/base/node.c
+@@ -85,6 +85,7 @@ static ssize_t node_read_meminfo(struct 
+ 		       "Node %d FilePages:      %8lu kB\n"
+ 		       "Node %d Mapped:         %8lu kB\n"
+ 		       "Node %d AnonPages:      %8lu kB\n"
++		       "Node %d KernelStack:    %8lu kB\n"
+ 		       "Node %d PageTables:     %8lu kB\n"
+ 		       "Node %d NFS_Unstable:   %8lu kB\n"
+ 		       "Node %d Bounce:         %8lu kB\n"
+@@ -116,6 +117,8 @@ static ssize_t node_read_meminfo(struct 
+ 		       nid, K(node_page_state(nid, NR_FILE_PAGES)),
+ 		       nid, K(node_page_state(nid, NR_FILE_MAPPED)),
+ 		       nid, K(node_page_state(nid, NR_ANON_PAGES)),
++		       nid, node_page_state(nid, NR_KERNEL_STACK) *
++				THREAD_SIZE / 1024,
+ 		       nid, K(node_page_state(nid, NR_PAGETABLE)),
+ 		       nid, K(node_page_state(nid, NR_UNSTABLE_NFS)),
+ 		       nid, K(node_page_state(nid, NR_BOUNCE)),
+diff -puN fs/proc/meminfo.c~mm-oom-analysis-show-kernel-stack-usage-in-proc-meminfo-and-oom-log-output fs/proc/meminfo.c
+--- a/fs/proc/meminfo.c~mm-oom-analysis-show-kernel-stack-usage-in-proc-meminfo-and-oom-log-output
++++ a/fs/proc/meminfo.c
+@@ -84,6 +84,7 @@ static int meminfo_proc_show(struct seq_
+ 		"Slab:           %8lu kB\n"
+ 		"SReclaimable:   %8lu kB\n"
+ 		"SUnreclaim:     %8lu kB\n"
++		"KernelStack:    %8lu kB\n"
+ 		"PageTables:     %8lu kB\n"
+ #ifdef CONFIG_QUICKLIST
+ 		"Quicklists:     %8lu kB\n"
+@@ -128,6 +129,7 @@ static int meminfo_proc_show(struct seq_
+ 				global_page_state(NR_SLAB_UNRECLAIMABLE)),
+ 		K(global_page_state(NR_SLAB_RECLAIMABLE)),
+ 		K(global_page_state(NR_SLAB_UNRECLAIMABLE)),
++		global_page_state(NR_KERNEL_STACK) * THREAD_SIZE / 1024,
+ 		K(global_page_state(NR_PAGETABLE)),
+ #ifdef CONFIG_QUICKLIST
+ 		K(quicklist_total_size()),
+diff -puN include/linux/mmzone.h~mm-oom-analysis-show-kernel-stack-usage-in-proc-meminfo-and-oom-log-output include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-oom-analysis-show-kernel-stack-usage-in-proc-meminfo-and-oom-log-output
++++ a/include/linux/mmzone.h
+@@ -94,10 +94,11 @@ enum zone_stat_item {
+ 	NR_SLAB_RECLAIMABLE,
+ 	NR_SLAB_UNRECLAIMABLE,
+ 	NR_PAGETABLE,		/* used for pagetables */
++	NR_KERNEL_STACK,
++	/* Second 128 byte cacheline */
+ 	NR_UNSTABLE_NFS,	/* NFS unstable pages */
+ 	NR_BOUNCE,
+ 	NR_VMSCAN_WRITE,
+-	/* Second 128 byte cacheline */
+ 	NR_WRITEBACK_TEMP,	/* Writeback using temporary buffers */
+ #ifdef CONFIG_NUMA
+ 	NUMA_HIT,		/* allocated in intended node */
+diff -puN kernel/fork.c~mm-oom-analysis-show-kernel-stack-usage-in-proc-meminfo-and-oom-log-output kernel/fork.c
+--- a/kernel/fork.c~mm-oom-analysis-show-kernel-stack-usage-in-proc-meminfo-and-oom-log-output
++++ a/kernel/fork.c
+@@ -136,9 +136,17 @@ struct kmem_cache *vm_area_cachep;
+ /* SLAB cache for mm_struct structures (tsk->mm) */
+ static struct kmem_cache *mm_cachep;
  
--		hstate_next_node(h);
- 		if (addr) {
- 			/*
- 			 * Use the beginning of the huge page to store the
-@@ -1021,6 +1020,7 @@ int __weak alloc_bootmem_huge_page(struc
- 			m = addr;
- 			goto found;
- 		}
-+		hstate_next_node(h);
- 		nr_nodes--;
- 	}
- 	return 0;
++static void account_kernel_stack(struct thread_info *ti, int account)
++{
++	struct zone *zone = page_zone(virt_to_page(ti));
++
++	mod_zone_page_state(zone, NR_KERNEL_STACK, account);
++}
++
+ void free_task(struct task_struct *tsk)
+ {
+ 	prop_local_destroy_single(&tsk->dirties);
++	account_kernel_stack(tsk->stack, -1);
+ 	free_thread_info(tsk->stack);
+ 	rt_mutex_debug_task_free(tsk);
+ 	ftrace_graph_exit_task(tsk);
+@@ -253,6 +261,9 @@ static struct task_struct *dup_task_stru
+ 	tsk->btrace_seq = 0;
+ #endif
+ 	tsk->splice_pipe = NULL;
++
++	account_kernel_stack(ti, 1);
++
+ 	return tsk;
+ 
+ out:
+diff -puN mm/page_alloc.c~mm-oom-analysis-show-kernel-stack-usage-in-proc-meminfo-and-oom-log-output mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-oom-analysis-show-kernel-stack-usage-in-proc-meminfo-and-oom-log-output
++++ a/mm/page_alloc.c
+@@ -2177,6 +2177,7 @@ void show_free_areas(void)
+ 			" mapped:%lukB"
+ 			" slab_reclaimable:%lukB"
+ 			" slab_unreclaimable:%lukB"
++			" kernel_stack:%lukB"
+ 			" pagetables:%lukB"
+ 			" unstable:%lukB"
+ 			" bounce:%lukB"
+@@ -2201,6 +2202,8 @@ void show_free_areas(void)
+ 			K(zone_page_state(zone, NR_FILE_MAPPED)),
+ 			K(zone_page_state(zone, NR_SLAB_RECLAIMABLE)),
+ 			K(zone_page_state(zone, NR_SLAB_UNRECLAIMABLE)),
++			zone_page_state(zone, NR_KERNEL_STACK) *
++				THREAD_SIZE / 1024,
+ 			K(zone_page_state(zone, NR_PAGETABLE)),
+ 			K(zone_page_state(zone, NR_UNSTABLE_NFS)),
+ 			K(zone_page_state(zone, NR_BOUNCE)),
+diff -puN mm/vmstat.c~mm-oom-analysis-show-kernel-stack-usage-in-proc-meminfo-and-oom-log-output mm/vmstat.c
+--- a/mm/vmstat.c~mm-oom-analysis-show-kernel-stack-usage-in-proc-meminfo-and-oom-log-output
++++ a/mm/vmstat.c
+@@ -639,6 +639,7 @@ static const char * const vmstat_text[] 
+ 	"nr_slab_reclaimable",
+ 	"nr_slab_unreclaimable",
+ 	"nr_page_table_pages",
++	"nr_kernel_stack",
+ 	"nr_unstable",
+ 	"nr_bounce",
+ 	"nr_vmscan_write",
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-hwmon-driver-for-acpi-40-power-meters.patch
-drivers-md-dm-log-userspace-basec-fix-warning.patch
-drivers-dma-ioat-dma_v3c-fix-warnings.patch
-drivers-dma-ioat-dma_v2c-fix-warnings.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-checkincludespl-add-option-to-remove-duplicates-in-place.patch
-net-fix-config_net=n-build-on-sparc64.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-include-linux-credh-fix-build.patch
-serial167-fix-read-buffer-overflow.patch
-st-fix-test-of-value-range-in-st_set_options.patch
-drivers-usb-serial-sierrac-fix-config_pm=n-build.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-vfs-optimize-touch_time-too.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-drivers-net-wireless-ath-ar9170-phyc-fix-uninitialised-variable.patch
+revert-staging-android-lowmemorykillerc-fix-it-for-oom-move-oom_adj-value-from-task_struct-to-mm_struct.patch
 readahead-add-blk_run_backing_dev.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
-generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
-proc-connector-add-event-for-process-becoming-session-leader.patch
-build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix.patch
-kernel-smpc-relocate-some-code.patch
-mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
-sdio-add-cd-disable-support-cleanup.patch
-sdio-add-mmc_quirk_lenient_fn0-fix.patch
-at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver-checkpatch-fixes.patch
-mmc-core-sdio-suspend-resume-support-fix.patch
-procfs-provide-stack-information-for-threads-v011-fix.patch
-walk-system-ram-range-fix-2.patch
-kcore-register-vmemmap-range-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes-fix.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
-drivers-video-add-kmalloc-null-tests-fix.patch
-drivers-video-tmiofbc-fix-uninitialised-return-value.patch
-v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
-page-types-add-feature-for-walking-process-address-space-checkpatch-fixes.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
+oom-move-oom_adj-value-from-task_struct-to-signal_struct-fix.patch
+mm-vsmcan-check-shrink_active_list-sc-isolate_pages-return-value.patch
+getrusage-fill-ru_maxrss-value.patch
+kcore-use-registerd-physmem-information-ia64-fix.patch
+memory-controller-soft-limit-documentation-v9.patch
+memory-controller-soft-limit-interface-v9.patch
+memory-controller-soft-limit-organize-cgroups-v9.patch
+memory-controller-soft-limit-organize-cgroups-v9-fix.patch
+memory-controller-soft-limit-refactor-reclaim-flags-v9.patch
+memory-controller-soft-limit-reclaim-on-contention-v9.patch
 memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
-memcg-improve-resource-counter-scalability-checkpatch-fixes.patch
-exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
-exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
-elf-clean-up-fill_note_info-fix.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-reiser4-disable.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+memory-controller-soft-limit-reclaim-on-contention-v9-fix-softlimit-css-refcnt-handling.patch
+memory-controller-soft-limit-reclaim-on-contention-v9-fix-softlimit-css-refcnt-handling-fix.patch
+memcg-improve-resource-counter-scalability.patch
+memcg-improve-resource-counter-scalability-v5.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
