@@ -1,99 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: [merged] oom-oom_kill-doesnt-kill-vfork-parentor-child.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:42:25 -0700
-Message-ID: <200909222042.n8MKgPlO009562@imap1.linux-foundation.org>
+Subject: [merged] mm-clean-up-page_remove_rmap.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:37:58 -0700
+Message-ID: <200909222037.n8MKbwCn000478@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35295 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54507 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752871AbZIVUmj (ORCPT
+	by vger.kernel.org with ESMTP id S1752891AbZIVUmj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 22 Sep 2009 16:42:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, oleg@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: kosaki.motohiro@jp.fujitsu.com, fengguang.wu@intel.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     oom: oom_kill doesn't kill vfork parent (or child)
+     mm: clean up page_remove_rmap()
 has been removed from the -mm tree.  Its filename was
-     oom-oom_kill-doesnt-kill-vfork-parentor-child.patch
+     mm-clean-up-page_remove_rmap.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: oom_kill doesn't kill vfork parent (or child)
+Subject: mm: clean up page_remove_rmap()
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Current oom_kill doesn't only kill the victim process, but also kill all
-thas shread the same mm.  it mean vfork parent will be killed.
-
-This is definitely incorrect.  another process have another oom_adj.  we
-shouldn't ignore their oom_adj (it might have OOM_DISABLE).
-
-following caller hit the minefield.
-
-===============================
-        switch (constraint) {
-        case CONSTRAINT_MEMORY_POLICY:
-                oom_kill_process(current, gfp_mask, order, 0, NULL,
-                                "No available memory (MPOL_BIND)");
-                break;
-
-Note: force_sig(SIGKILL) send SIGKILL to all thread in the process.
-We don't need to care multi thread in here.
+page_remove_rmap() has multiple PageAnon() tests and it has deep nesting.
+Clean this up.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Paul Menage <menage@google.com>
-Cc: David Rientjes <rientjes@google.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
+Reviewed-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   17 +----------------
- 1 file changed, 1 insertion(+), 16 deletions(-)
+ mm/rmap.c |   57 +++++++++++++++++++++++++++-------------------------
+ 1 file changed, 30 insertions(+), 27 deletions(-)
 
-diff -puN mm/oom_kill.c~oom-oom_kill-doesnt-kill-vfork-parentor-child mm/oom_kill.c
---- a/mm/oom_kill.c~oom-oom_kill-doesnt-kill-vfork-parentor-child
-+++ a/mm/oom_kill.c
-@@ -373,11 +373,6 @@ static void __oom_kill_task(struct task_
- 
- static int oom_kill_task(struct task_struct *p)
+diff -puN mm/rmap.c~mm-clean-up-page_remove_rmap mm/rmap.c
+--- a/mm/rmap.c~mm-clean-up-page_remove_rmap
++++ a/mm/rmap.c
+@@ -739,34 +739,37 @@ void page_dup_rmap(struct page *page, st
+  */
+ void page_remove_rmap(struct page *page)
  {
--	struct mm_struct *mm;
--	struct task_struct *g, *q;
--
--	mm = p->mm;
--
- 	/* WARNING: mm may not be dereferenced since we did not obtain its
- 	 * value from get_task_mm(p).  This is OK since all we need to do is
- 	 * compare mm to q->mm below.
-@@ -386,21 +381,11 @@ static int oom_kill_task(struct task_str
- 	 * change to NULL at any time since we do not hold task_lock(p).
- 	 * However, this is of no concern to us.
- 	 */
--	if (!mm || p->signal->oom_adj == OOM_DISABLE)
-+	if (!p->mm || p->signal->oom_adj == OOM_DISABLE)
- 		return 1;
- 
- 	__oom_kill_task(p, 1);
- 
--	/*
--	 * kill all processes that share the ->mm (i.e. all threads),
--	 * but are in a different thread group. Don't let them have access
--	 * to memory reserves though, otherwise we might deplete all memory.
--	 */
--	do_each_thread(g, q) {
--		if (q->mm == mm && !same_thread_group(q, p))
--			force_sig(SIGKILL, q);
--	} while_each_thread(g, q);
--
- 	return 0;
+-	if (atomic_add_negative(-1, &page->_mapcount)) {
+-		/*
+-		 * Now that the last pte has gone, s390 must transfer dirty
+-		 * flag from storage key to struct page.  We can usually skip
+-		 * this if the page is anon, so about to be freed; but perhaps
+-		 * not if it's in swapcache - there might be another pte slot
+-		 * containing the swap entry, but page not yet written to swap.
+-		 */
+-		if ((!PageAnon(page) || PageSwapCache(page)) &&
+-		    page_test_dirty(page)) {
+-			page_clear_dirty(page);
+-			set_page_dirty(page);
+-		}
+-		if (PageAnon(page))
+-			mem_cgroup_uncharge_page(page);
+-		__dec_zone_page_state(page,
+-			PageAnon(page) ? NR_ANON_PAGES : NR_FILE_MAPPED);
+-		mem_cgroup_update_mapped_file_stat(page, -1);
+-		/*
+-		 * It would be tidy to reset the PageAnon mapping here,
+-		 * but that might overwrite a racing page_add_anon_rmap
+-		 * which increments mapcount after us but sets mapping
+-		 * before us: so leave the reset to free_hot_cold_page,
+-		 * and remember that it's only reliable while mapped.
+-		 * Leaving it set also helps swapoff to reinstate ptes
+-		 * faster for those pages still in swapcache.
+-		 */
++	/* page still mapped by someone else? */
++	if (!atomic_add_negative(-1, &page->_mapcount))
++		return;
++
++	/*
++	 * Now that the last pte has gone, s390 must transfer dirty
++	 * flag from storage key to struct page.  We can usually skip
++	 * this if the page is anon, so about to be freed; but perhaps
++	 * not if it's in swapcache - there might be another pte slot
++	 * containing the swap entry, but page not yet written to swap.
++	 */
++	if ((!PageAnon(page) || PageSwapCache(page)) && page_test_dirty(page)) {
++		page_clear_dirty(page);
++		set_page_dirty(page);
++	}
++	if (PageAnon(page)) {
++		mem_cgroup_uncharge_page(page);
++		__dec_zone_page_state(page, NR_ANON_PAGES);
++	} else {
++		__dec_zone_page_state(page, NR_FILE_MAPPED);
+ 	}
++	mem_cgroup_update_mapped_file_stat(page, -1);
++	/*
++	 * It would be tidy to reset the PageAnon mapping here,
++	 * but that might overwrite a racing page_add_anon_rmap
++	 * which increments mapcount after us but sets mapping
++	 * before us: so leave the reset to free_hot_cold_page,
++	 * and remember that it's only reliable while mapped.
++	 * Leaving it set also helps swapoff to reinstate ptes
++	 * faster for those pages still in swapcache.
++	 */
  }
  
+ /*
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
