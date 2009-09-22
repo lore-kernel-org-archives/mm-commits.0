@@ -1,70 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lis3_spi-code-cleanups.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:46:19 -0700
-Message-ID: <200909222046.n8MKkJBR017492@imap1.linux-foundation.org>
+Subject: [merged] lis3-add-power-management-functions.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:46:16 -0700
+Message-ID: <200909222046.n8MKkGSX017401@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51520 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51256 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753226AbZIVUqy (ORCPT
+	by vger.kernel.org with ESMTP id S1753208AbZIVUrA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:46:54 -0400
+	Tue, 22 Sep 2009 16:47:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: daniel@caiaq.de, eric.piel@tremplin-utc.net, pavel@ucw.cz, mm-commits@vger.kernel.org
+To: daniel@caiaq.de, eric.piel@tremplin-utc.net, pavel@ucw.cz, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lis3_spi: code cleanups
+     lis3: add power management functions
 has been removed from the -mm tree.  Its filename was
-     lis3_spi-code-cleanups.patch
+     lis3-add-power-management-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lis3_spi: code cleanups
+Subject: lis3: add power management functions
 From: Daniel Mack <daniel@caiaq.de>
 
+This enabled power management functions for the SPI transport layer of the
+lis3 devices.  The device's suspend mode is only entered in case no wakeup
+threshold has been given.  In this case, the device is supposed to wake up
+the system and must thus not be put to deep sleep.
+
+[randy.dunlap@oracle.com: fix lis3-spi for CONFIG_PM=n]
 Signed-off-by: Daniel Mack <daniel@caiaq.de>
 Acked-by: Pavel Machek <pavel@ucw.cz>
 Cc: Eric Piel <eric.piel@tremplin-utc.net>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/lis3lv02d_spi.c |   17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
+ drivers/hwmon/lis3lv02d_spi.c |   28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
 
-diff -puN drivers/hwmon/lis3lv02d_spi.c~lis3_spi-code-cleanups drivers/hwmon/lis3lv02d_spi.c
---- a/drivers/hwmon/lis3lv02d_spi.c~lis3_spi-code-cleanups
+diff -puN drivers/hwmon/lis3lv02d_spi.c~lis3-add-power-management-functions drivers/hwmon/lis3lv02d_spi.c
+--- a/drivers/hwmon/lis3lv02d_spi.c~lis3-add-power-management-functions
 +++ a/drivers/hwmon/lis3lv02d_spi.c
-@@ -66,17 +66,16 @@ static int __devinit lis302dl_spi_probe(
- 	if (ret < 0)
- 		return ret;
- 
--	lis3_dev.bus_priv = spi;
--	lis3_dev.init = lis3_spi_init;
--	lis3_dev.read = lis3_spi_read;
--	lis3_dev.write = lis3_spi_write;
--	lis3_dev.irq = spi->irq;
--	lis3_dev.ac = lis3lv02d_axis_normal;
--	lis3_dev.pdata = spi->dev.platform_data;
-+	lis3_dev.bus_priv	= spi;
-+	lis3_dev.init		= lis3_spi_init;
-+	lis3_dev.read		= lis3_spi_read;
-+	lis3_dev.write		= lis3_spi_write;
-+	lis3_dev.irq		= spi->irq;
-+	lis3_dev.ac		= lis3lv02d_axis_normal;
-+	lis3_dev.pdata		= spi->dev.platform_data;
- 	spi_set_drvdata(spi, &lis3_dev);
- 
--	ret = lis3lv02d_init_device(&lis3_dev);
--	return ret;
-+	return lis3lv02d_init_device(&lis3_dev);
+@@ -87,6 +87,32 @@ static int __devexit lis302dl_spi_remove
+ 	return 0;
  }
  
- static int __devexit lis302dl_spi_remove(struct spi_device *spi)
++#ifdef CONFIG_PM
++static int lis3lv02d_spi_suspend(struct spi_device *spi, pm_message_t mesg)
++{
++	struct lis3lv02d *lis3 = spi_get_drvdata(spi);
++
++	if (!lis3->pdata->wakeup_flags)
++		lis3lv02d_poweroff(&lis3_dev);
++
++	return 0;
++}
++
++static int lis3lv02d_spi_resume(struct spi_device *spi)
++{
++	struct lis3lv02d *lis3 = spi_get_drvdata(spi);
++
++	if (!lis3->pdata->wakeup_flags)
++		lis3lv02d_poweron(lis3);
++
++	return 0;
++}
++
++#else
++#define lis3lv02d_spi_suspend	NULL
++#define lis3lv02d_spi_resume	NULL
++#endif
++
+ static struct spi_driver lis302dl_spi_driver = {
+ 	.driver	 = {
+ 		.name   = DRV_NAME,
+@@ -94,6 +120,8 @@ static struct spi_driver lis302dl_spi_dr
+ 	},
+ 	.probe	= lis302dl_spi_probe,
+ 	.remove	= __devexit_p(lis302dl_spi_remove),
++	.suspend = lis3lv02d_spi_suspend,
++	.resume  = lis3lv02d_spi_resume,
+ };
+ 
+ static int __init lis302dl_init(void)
 _
 
 Patches currently in -mm which might be from daniel@caiaq.de are
