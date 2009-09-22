@@ -1,92 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [folded] at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 14:41:24 -0700
-Message-ID: <200909222141.n8MLfOgX029048@imap1.linux-foundation.org>
+Subject: [folded] procfs-provide-stack-information-for-threads-v011-fix.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 14:44:26 -0700
+Message-ID: <200909222144.n8MLiQJJ002523@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53932 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39543 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751386AbZIVVl0 (ORCPT
+	by vger.kernel.org with ESMTP id S1750803AbZIVVps (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 17:41:26 -0400
+	Tue, 22 Sep 2009 17:45:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, nicolas.ferre@atmel.com, rob@emanuele.us, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, Valdis.Kletnieks@vt.edu, a.p.zijlstra@chello.nl, adobriyan@gmail.com, ebiederm@xmission.com, mingo@elte.hu, randy.dunlap@oracle.com, stefani@seibold.net, mm
 
 
 The patch titled
-     at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver-checkpatch-fixes
+     procfs-provide-stack-information-for-threads-v011-fix
 has been removed from the -mm tree.  Its filename was
-     at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver-checkpatch-fixes.patch
+     procfs-provide-stack-information-for-threads-v011-fix.patch
 
-This patch was dropped because it was folded into at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver.patch
+This patch was dropped because it was folded into procfs-provide-stack-information-for-threads-v08.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver-checkpatch-fixes
+Subject: procfs-provide-stack-information-for-threads-v011-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: line over 80 characters
-#111: FILE: arch/arm/mach-at91/at91sam9260_devices.c:326:
-+				at91_set_gpio_input(data->slot[i].detect_pin, 1);
+fs/proc/array.c now needs walk_page_range()
 
-ERROR: space required before the open parenthesis '('
-#117: FILE: arch/arm/mach-at91/at91sam9260_devices.c:332:
-+			switch(i) {
-
-WARNING: line over 80 characters
-#144: FILE: arch/arm/mach-at91/at91sam9260_devices.c:359:
-+					"AT91: SD/MMC slot %d not available\n", i);
-
-WARNING: line over 80 characters
-#224: FILE: arch/arm/mach-at91/board-sam9g20ek-2slot-mmc.c:56:
-+	at91_register_uart(AT91SAM9260_ID_US0, 1, ATMEL_UART_CTS | ATMEL_UART_RTS
-
-WARNING: line over 80 characters
-#229: FILE: arch/arm/mach-at91/board-sam9g20ek-2slot-mmc.c:61:
-+	at91_register_uart(AT91SAM9260_ID_US1, 2, ATMEL_UART_CTS | ATMEL_UART_RTS);
-
-WARNING: line over 80 characters
-#310: FILE: arch/arm/mach-at91/board-sam9g20ek-2slot-mmc.c:142:
-+static struct mtd_partition * __init nand_partitions(int size, int *num_partitions)
-
-WARNING: line over 80 characters
-#344: FILE: arch/arm/mach-at91/board-sam9g20ek-2slot-mmc.c:176:
-+	.mode			= AT91_SMC_READMODE | AT91_SMC_WRITEMODE | AT91_SMC_EXNWMODE_DISABLE,
-
-WARNING: line over 80 characters
-#470: FILE: arch/arm/mach-at91/include/mach/board.h:78:
-+extern void __init at91_add_device_mci(short mmc_id, struct mci_platform_data *data);
-
-total: 1 errors, 7 warnings, 422 lines checked
-
-./patches/at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Nicolas Ferre <nicolas.ferre@atmel.com>
-Cc: Rob Emanuele <rob@emanuele.us>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Stefani Seibold <stefani@seibold.net>
+Cc: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
+Reported-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-at91/at91sam9260_devices.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/Makefile |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/arm/mach-at91/at91sam9260_devices.c~at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver-checkpatch-fixes arch/arm/mach-at91/at91sam9260_devices.c
---- a/arch/arm/mach-at91/at91sam9260_devices.c~at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver-checkpatch-fixes
-+++ a/arch/arm/mach-at91/at91sam9260_devices.c
-@@ -329,7 +329,7 @@ void __init at91_add_device_mci(short mm
- 			if (data->slot[i].wp_pin)
- 				at91_set_gpio_input(data->slot[i].wp_pin, 1);
+diff -puN mm/Makefile~procfs-provide-stack-information-for-threads-v011-fix mm/Makefile
+--- a/mm/Makefile~procfs-provide-stack-information-for-threads-v011-fix
++++ a/mm/Makefile
+@@ -11,10 +11,10 @@ obj-y			:= bootmem.o filemap.o mempool.o
+ 			   maccess.o page_alloc.o page-writeback.o \
+ 			   readahead.o swap.o truncate.o vmscan.o shmem.o \
+ 			   prio_tree.o util.o mmzone.o vmstat.o backing-dev.o \
+-			   page_isolation.o mm_init.o mmu_context.o $(mmu-y)
++			   page_isolation.o mm_init.o mmu_context.o \
++			   pagewalk.o $(mmu-y)
+ obj-y += init-mm.o
  
--			switch(i) {
-+			switch (i) {
- 			case 0:
- 				/* CMD */
- 				at91_set_A_periph(AT91_PIN_PA7, 1);
+-obj-$(CONFIG_PROC_PAGE_MONITOR) += pagewalk.o
+ obj-$(CONFIG_BOUNCE)	+= bounce.o
+ obj-$(CONFIG_SWAP)	+= page_io.o swap_state.o swapfile.o thrash.o
+ obj-$(CONFIG_HAS_DMA)	+= dmapool.o
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -101,8 +72,8 @@ mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
 sdio-add-cd-disable-support.patch
 sdio-add-mmc_quirk_lenient_fn0.patch
 at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver.patch
-at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver-checkpatch-fixes.patch
-mmc-core-sdio-suspend-resume-support-fix.patch
+mmc-core-sdio-suspend-resume-support.patch
+procfs-provide-stack-information-for-threads-v08.patch
 procfs-provide-stack-information-for-threads-v011-fix.patch
 walk-system-ram-range-fix-2.patch
 kcore-register-vmemmap-range-fix.patch
