@@ -1,206 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: [merged] flex_array-introduce-define_flex_array.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:45:41 -0700
-Message-ID: <200909222045.n8MKjfef016200@imap1.linux-foundation.org>
+Subject: [merged] flex_array-poison-free-elements.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:45:35 -0700
+Message-ID: <200909222045.n8MKjZSx016043@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58631 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43778 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753191AbZIVUqO (ORCPT
+	by vger.kernel.org with ESMTP id S1753223AbZIVUqE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:46:14 -0400
+	Tue, 22 Sep 2009 16:46:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: rientjes@google.com, dave@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     flex_array: introduce DEFINE_FLEX_ARRAY
+     flex_array: poison free elements
 has been removed from the -mm tree.  Its filename was
-     flex_array-introduce-define_flex_array.patch
+     flex_array-poison-free-elements.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: flex_array: introduce DEFINE_FLEX_ARRAY
+Subject: flex_array: poison free elements
 From: David Rientjes <rientjes@google.com>
 
-FLEX_ARRAY_INIT(element_size, total_nr_elements) cannot determine if
-either parameter is valid, so flex arrays which are statically allocated
-with this interface can easily become corrupted or reference beyond its
-allocated memory.
+Newly initialized flex_array's and/or flex_array_part's are now poisoned
+with a new poison value, FLEX_ARRAY_FREE.  It's value is similar to
+POISON_FREE used in the various slab allocators, but is different to
+distinguish between flex array's poisoned kmem and slab allocator poisoned
+kmem.
 
-This removes FLEX_ARRAY_INIT() as a struct flex_array initializer since no
-initializer may perform the required checking.  Instead, the array is now
-defined with a new interface:
+This will allow us to identify flex_array_part's that only contain free
+elements (and free them with an addition to the flex_array API).  This
+could also be extended in the future to identify `get' uses on elements
+that have not been `put'.
 
-	DEFINE_FLEX_ARRAY(name, element_size, total_nr_elements)
-
-This may be prefixed with `static' for file scope.
-
-This interface includes compile-time checking of the parameters to ensure
-they are valid.  Since the validity of both element_size and
-total_nr_elements depend on FLEX_ARRAY_BASE_SIZE and FLEX_ARRAY_PART_SIZE,
-the kernel build will fail if either of these predefined values changes
-such that the array parameters are no longer valid.
-
-Since BUILD_BUG_ON() requires compile time constants, several of the
-static inline functions that were once local to lib/flex_array.c had to be
-moved to include/linux/flex_array.h.
+If __GFP_ZERO is passed for a part's gfp mask, the poisoning is avoided. 
+These elements are considered to be in-use since they have been
+initialized.
 
 Signed-off-by: David Rientjes <rientjes@google.com>
-Acked-by: Dave Hansen <dave@linux.vnet.ibm.com>
+Cc: Dave Hansen <dave@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/flex_array.h |   30 +++++++++++++++++++++++++----
- lib/flex_array.c           |   36 +++++++++--------------------------
- 2 files changed, 36 insertions(+), 30 deletions(-)
+ include/linux/poison.h |    3 +++
+ lib/flex_array.c       |   15 +++++++--------
+ 2 files changed, 10 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/flex_array.h~flex_array-introduce-define_flex_array include/linux/flex_array.h
---- a/include/linux/flex_array.h~flex_array-introduce-define_flex_array
-+++ a/include/linux/flex_array.h
-@@ -31,10 +31,32 @@ struct flex_array {
- 	};
- };
+diff -puN include/linux/poison.h~flex_array-poison-free-elements include/linux/poison.h
+--- a/include/linux/poison.h~flex_array-poison-free-elements
++++ a/include/linux/poison.h
+@@ -65,6 +65,9 @@
+ #define MUTEX_DEBUG_INIT	0x11
+ #define MUTEX_DEBUG_FREE	0x22
  
--#define FLEX_ARRAY_INIT(size, total) { { {\
--	.element_size = (size),		\
--	.total_nr_elements = (total),	\
--} } }
-+/* Number of bytes left in base struct flex_array, excluding metadata */
-+#define FLEX_ARRAY_BASE_BYTES_LEFT					\
-+	(FLEX_ARRAY_BASE_SIZE - offsetof(struct flex_array, parts))
++/********** lib/flex_array.c **********/
++#define FLEX_ARRAY_FREE	0x6c	/* for use-after-free poisoning */
 +
-+/* Number of pointers in base to struct flex_array_part pages */
-+#define FLEX_ARRAY_NR_BASE_PTRS						\
-+	(FLEX_ARRAY_BASE_BYTES_LEFT / sizeof(struct flex_array_part *))
-+
-+/* Number of elements of size that fit in struct flex_array_part */
-+#define FLEX_ARRAY_ELEMENTS_PER_PART(size)				\
-+	(FLEX_ARRAY_PART_SIZE / size)
-+
-+/*
-+ * Defines a statically allocated flex array and ensures its parameters are
-+ * valid.
-+ */
-+#define DEFINE_FLEX_ARRAY(__arrayname, __element_size, __total)		\
-+	struct flex_array __arrayname = { { {				\
-+		.element_size = (__element_size),			\
-+		.total_nr_elements = (__total),				\
-+	} } };								\
-+	static inline void __arrayname##_invalid_parameter(void)	\
-+	{								\
-+		BUILD_BUG_ON((__total) > FLEX_ARRAY_NR_BASE_PTRS *	\
-+			FLEX_ARRAY_ELEMENTS_PER_PART(__element_size));	\
-+	}
+ /********** security/ **********/
+ #define KEY_DESTROY		0xbd
  
- struct flex_array *flex_array_alloc(int element_size, unsigned int total,
- 		gfp_t flags);
-diff -puN lib/flex_array.c~flex_array-introduce-define_flex_array lib/flex_array.c
---- a/lib/flex_array.c~flex_array-introduce-define_flex_array
+diff -puN lib/flex_array.c~flex_array-poison-free-elements lib/flex_array.c
+--- a/lib/flex_array.c~flex_array-poison-free-elements
 +++ a/lib/flex_array.c
-@@ -28,23 +28,6 @@ struct flex_array_part {
- 	char elements[FLEX_ARRAY_PART_SIZE];
- };
- 
--static inline int __elements_per_part(int element_size)
--{
--	return FLEX_ARRAY_PART_SIZE / element_size;
--}
--
--static inline int bytes_left_in_base(void)
--{
--	int element_offset = offsetof(struct flex_array, parts);
--	int bytes_left = FLEX_ARRAY_BASE_SIZE - element_offset;
--	return bytes_left;
--}
--
--static inline int nr_base_part_ptrs(void)
--{
--	return bytes_left_in_base() / sizeof(struct flex_array_part *);
--}
--
- /*
-  * If a user requests an allocation which is small
-  * enough, we may simply use the space in the
-@@ -54,7 +37,7 @@ static inline int nr_base_part_ptrs(void
- static inline int elements_fit_in_base(struct flex_array *fa)
- {
- 	int data_size = fa->element_size * fa->total_nr_elements;
--	if (data_size <= bytes_left_in_base())
-+	if (data_size <= FLEX_ARRAY_BASE_BYTES_LEFT)
- 		return 1;
- 	return 0;
- }
-@@ -103,7 +86,8 @@ struct flex_array *flex_array_alloc(int 
- 					gfp_t flags)
- {
- 	struct flex_array *ret;
--	int max_size = nr_base_part_ptrs() * __elements_per_part(element_size);
-+	int max_size = FLEX_ARRAY_NR_BASE_PTRS *
-+				FLEX_ARRAY_ELEMENTS_PER_PART(element_size);
- 
- 	/* max_size will end up 0 if element_size > PAGE_SIZE */
- 	if (total > max_size)
-@@ -114,14 +98,15 @@ struct flex_array *flex_array_alloc(int 
+@@ -113,6 +113,8 @@ struct flex_array *flex_array_alloc(int 
+ 		return NULL;
  	ret->element_size = element_size;
  	ret->total_nr_elements = total;
- 	if (elements_fit_in_base(ret) && !(flags & __GFP_ZERO))
--		memset(ret->parts[0], FLEX_ARRAY_FREE, bytes_left_in_base());
-+		memset(ret->parts[0], FLEX_ARRAY_FREE,
-+						FLEX_ARRAY_BASE_BYTES_LEFT);
++	if (elements_fit_in_base(ret) && !(flags & __GFP_ZERO))
++		memset(ret->parts[0], FLEX_ARRAY_FREE, bytes_left_in_base());
  	return ret;
  }
  
- static int fa_element_to_part_nr(struct flex_array *fa,
- 					unsigned int element_nr)
+@@ -159,15 +161,12 @@ __fa_get_part(struct flex_array *fa, int
  {
--	return element_nr / __elements_per_part(fa->element_size);
-+	return element_nr / FLEX_ARRAY_ELEMENTS_PER_PART(fa->element_size);
- }
- 
- /**
-@@ -133,11 +118,10 @@ static int fa_element_to_part_nr(struct 
- void flex_array_free_parts(struct flex_array *fa)
- {
- 	int part_nr;
--	int max_part = nr_base_part_ptrs();
- 
- 	if (elements_fit_in_base(fa))
- 		return;
--	for (part_nr = 0; part_nr < max_part; part_nr++)
-+	for (part_nr = 0; part_nr < FLEX_ARRAY_NR_BASE_PTRS; part_nr++)
- 		kfree(fa->parts[part_nr]);
- }
- 
-@@ -152,7 +136,8 @@ static unsigned int index_inside_part(st
- {
- 	unsigned int part_offset;
- 
--	part_offset = element_nr % __elements_per_part(fa->element_size);
-+	part_offset = element_nr %
-+				FLEX_ARRAY_ELEMENTS_PER_PART(fa->element_size);
- 	return part_offset * fa->element_size;
- }
- 
-@@ -313,13 +298,12 @@ static int part_is_free(struct flex_arra
- int flex_array_shrink(struct flex_array *fa)
- {
- 	struct flex_array_part *part;
--	int max_part = nr_base_part_ptrs();
- 	int part_nr;
- 	int ret = 0;
- 
- 	if (elements_fit_in_base(fa))
- 		return ret;
--	for (part_nr = 0; part_nr < max_part; part_nr++) {
-+	for (part_nr = 0; part_nr < FLEX_ARRAY_NR_BASE_PTRS; part_nr++) {
- 		part = fa->parts[part_nr];
+ 	struct flex_array_part *part = fa->parts[part_nr];
+ 	if (!part) {
+-		/*
+-		 * This leaves the part pages uninitialized
+-		 * and with potentially random data, just
+-		 * as if the user had kmalloc()'d the whole.
+-		 * __GFP_ZERO can be used to zero it.
+-		 */
+-		part = kmalloc(FLEX_ARRAY_PART_SIZE, flags);
++		part = kmalloc(sizeof(struct flex_array_part), flags);
  		if (!part)
- 			continue;
+ 			return NULL;
++		if (!(flags & __GFP_ZERO))
++			memset(part, FLEX_ARRAY_FREE,
++				sizeof(struct flex_array_part));
+ 		fa->parts[part_nr] = part;
+ 	}
+ 	return part;
+@@ -228,7 +227,7 @@ int flex_array_clear(struct flex_array *
+ 			return -EINVAL;
+ 	}
+ 	dst = &part->elements[index_inside_part(fa, element_nr)];
+-	memset(dst, 0, fa->element_size);
++	memset(dst, FLEX_ARRAY_FREE, fa->element_size);
+ 	return 0;
+ }
+ 
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
