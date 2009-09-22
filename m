@@ -1,115 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: [merged] documentation-memorytxt-remove-some-very-outdated-recommendations.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:38:04 -0700
-Message-ID: <200909222038.n8MKc4Ab000690@imap1.linux-foundation.org>
+Subject: [merged] revert-hugetlb-restore-interleaving-of-bootmem-huge-pages-2631.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:37:42 -0700
+Message-ID: <200909222037.n8MKbgmt032394@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58117 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47192 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752451AbZIVUie (ORCPT
+	by vger.kernel.org with ESMTP id S1752184AbZIVUij (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:38:34 -0400
+	Tue, 22 Sep 2009 16:38:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andi@firstfloor.org, ak@linux.intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, agl@us.ibm.com, ak@linux.intel.com, apw@canonical.com, eric.whitney@hp.com, lee.schermerhorn@hp.com, mel@csn.ul.ie, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Documentation/memory.txt: remove some very outdated recommendations
+     revert "hugetlb: restore interleaving of bootmem huge pages (2.6.31)"
 has been removed from the -mm tree.  Its filename was
-     documentation-memorytxt-remove-some-very-outdated-recommendations.patch
+     revert-hugetlb-restore-interleaving-of-bootmem-huge-pages-2631.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Documentation/memory.txt: remove some very outdated recommendations
-From: Andi Kleen <andi@firstfloor.org>
+Subject: revert "hugetlb: restore interleaving of bootmem huge pages (2.6.31)"
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Remove some very outdated recommendations in Documentation/memory.txt
+Revert the 2.6.31 patch "hugetlb: restore interleaving of bootmem huge
+pages (2.6.31)" to make way for a more extensive fix
 
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Adam Litke <agl@us.ibm.com>
+Cc: Andy Whitcroft <apw@canonical.com>
+Cc: Eric Whitney <eric.whitney@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/memory.txt |   31 ++-----------------------------
- 1 file changed, 2 insertions(+), 29 deletions(-)
+ mm/hugetlb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/memory.txt~documentation-memorytxt-remove-some-very-outdated-recommendations Documentation/memory.txt
---- a/Documentation/memory.txt~documentation-memorytxt-remove-some-very-outdated-recommendations
-+++ a/Documentation/memory.txt
-@@ -1,18 +1,7 @@
- There are several classic problems related to memory on Linux
- systems.
+diff -puN mm/hugetlb.c~revert-hugetlb-restore-interleaving-of-bootmem-huge-pages-2631 mm/hugetlb.c
+--- a/mm/hugetlb.c~revert-hugetlb-restore-interleaving-of-bootmem-huge-pages-2631
++++ a/mm/hugetlb.c
+@@ -1011,7 +1011,6 @@ int __weak alloc_bootmem_huge_page(struc
+ 				NODE_DATA(h->hugetlb_next_nid),
+ 				huge_page_size(h), huge_page_size(h), 0);
  
--	1) There are some buggy motherboards which cannot properly 
--	   deal with the memory above 16MB.  Consider exchanging
--	   your motherboard.
--
--	2) You cannot do DMA on the ISA bus to addresses above
--	   16M.  Most device drivers under Linux allow the use
--           of bounce buffers which work around this problem.  Drivers
--	   that don't use bounce buffers will be unstable with
--	   more than 16M installed.  Drivers that use bounce buffers
--	   will be OK, but may have slightly higher overhead.
--	
--	3) There are some motherboards that will not cache above
-+	1) There are some motherboards that will not cache above
- 	   a certain quantity of memory.  If you have one of these
- 	   motherboards, your system will be SLOWER, not faster
- 	   as you add more memory.  Consider exchanging your 
-@@ -24,7 +13,7 @@ It can also tell Linux to use less memor
- If you use "mem=" on a machine with PCI, consider using "memmap=" to avoid
- physical address space collisions.
- 
--See the documentation of your boot loader (LILO, loadlin, etc.) about
-+See the documentation of your boot loader (LILO, grub, loadlin, etc.) about
- how to pass options to the kernel.
- 
- There are other memory problems which Linux cannot deal with.  Random
-@@ -42,19 +31,3 @@ Try:
- 	  with the vendor. Consider testing it with memtest86 yourself.
- 	
- 	* Exchanging your CPU, cache, or motherboard for one that works.
--
--	* Disabling the cache from the BIOS.
--
--	* Try passing the "mem=4M" option to the kernel to limit
--	  Linux to using a very small amount of memory. Use "memmap="-option
--	  together with "mem=" on systems with PCI to avoid physical address
--	  space collisions.
--
--
--Other tricks:
--
--	* Try passing the "no-387" option to the kernel to ignore
--	  a buggy FPU.
--
--	* Try passing the "no-hlt" option to disable the potentially
--          buggy HLT instruction in your CPU.
+-		hstate_next_node(h);
+ 		if (addr) {
+ 			/*
+ 			 * Use the beginning of the huge page to store the
+@@ -1021,6 +1020,7 @@ int __weak alloc_bootmem_huge_page(struc
+ 			m = addr;
+ 			goto found;
+ 		}
++		hstate_next_node(h);
+ 		nr_nodes--;
+ 	}
+ 	return 0;
 _
 
-Patches currently in -mm which might be from andi@firstfloor.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-kbuild-fix-ld-option-makefile-macro-to-really-work.patch
-kbuild-echo-the-record_mcount-command.patch
-kbuild-fail-build-if-recordmcountpl-fails.patch
-kbuild-set-fconserve-stack-option-for-gcc-45.patch
-vfs-optimization-for-touch_atime.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+hwmon-driver-for-acpi-40-power-meters.patch
+drivers-md-dm-log-userspace-basec-fix-warning.patch
+drivers-dma-ioat-dma_v3c-fix-warnings.patch
+drivers-dma-ioat-dma_v2c-fix-warnings.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+checkincludespl-add-option-to-remove-duplicates-in-place.patch
+net-fix-config_net=n-build-on-sparc64.patch
+3x59x-fix-pci-resource-management.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+include-linux-credh-fix-build.patch
+serial167-fix-read-buffer-overflow.patch
+st-fix-test-of-value-range-in-st_set_options.patch
+drivers-usb-serial-sierrac-fix-config_pm=n-build.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
 vfs-optimize-touch_time-too.patch
-build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it.patch
+fs-improve-remountro-vs-buffercache-coherency.patch
+fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
+percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+drivers-net-wireless-ath-ar9170-phyc-fix-uninitialised-variable.patch
+readahead-add-blk_run_backing_dev.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
+generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
+proc-connector-add-event-for-process-becoming-session-leader.patch
 build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix.patch
-kmap_typesh-rename-d-macro.patch
-video-console-use-div_round_up.patch
-time-add-function-to-convert-between-calendar-time-and-broken-down-time-for-universal-use.patch
-fatfs-use-common-time_to_tm-in-fat_time_unix2fat.patch
-page-types-add-feature-for-walking-process-address-space.patch
-memcg-improve-resource-counter-scalability.patch
-memcg-improve-resource-counter-scalability-v5.patch
-exec-make-do_coredump-more-resilient-to-recursive-crashes-v9.patch
-exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9.patch
-exec-allow-do_coredump-to-wait-for-user-space-pipe-readers-to-complete-v9.patch
+kernel-smpc-relocate-some-code.patch
+mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
+sdio-add-cd-disable-support-cleanup.patch
+sdio-add-mmc_quirk_lenient_fn0-fix.patch
+at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver-checkpatch-fixes.patch
+mmc-core-sdio-suspend-resume-support-fix.patch
+procfs-provide-stack-information-for-threads-v011-fix.patch
+walk-system-ram-range-fix-2.patch
+kcore-register-vmemmap-range-fix.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes-fix.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
+drivers-video-add-kmalloc-null-tests-fix.patch
+drivers-video-tmiofbc-fix-uninitialised-return-value.patch
+v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
+page-types-add-feature-for-walking-process-address-space-checkpatch-fixes.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
+memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
+memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
+memcg-improve-resource-counter-scalability-checkpatch-fixes.patch
+exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
+exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
+elf-clean-up-fill_note_info-fix.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+reiser4-disable.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
