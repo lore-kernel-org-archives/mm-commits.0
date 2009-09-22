@@ -1,192 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-add_to_swap_cache-must-not-sleep.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:41:21 -0700
-Message-ID: <200909222041.n8MKfL3b007391@imap1.linux-foundation.org>
+Subject: [merged] const-mark-remaining-export_operations-const.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:37:06 -0700
+Message-ID: <200909222037.n8MKb678031180@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49087 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36547 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752643AbZIVUl6 (ORCPT
+	by vger.kernel.org with ESMTP id S1752659AbZIVUmA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:41:58 -0400
+	Tue, 22 Sep 2009 16:42:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nishimura@mxp.nes.nec.co.jp, balbir@linux.vnet.ibm.com, hannes@cmpxchg.org, hugh.dickins@tiscali.co.uk, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: add_to_swap_cache() must not sleep
+     const: mark remaining export_operations const
 has been removed from the -mm tree.  Its filename was
-     mm-add_to_swap_cache-must-not-sleep.patch
+     const-mark-remaining-export_operations-const.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: add_to_swap_cache() must not sleep
-From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Subject: const: mark remaining export_operations const
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-After commit 355cfa73 ("mm: modify swap_map and add SWAP_HAS_CACHE flag"),
-read_swap_cache_async() will busy-wait while a entry doesn't exist in swap
-cache but it has SWAP_HAS_CACHE flag.
-
-Such entries can exist on add/delete path of swap cache.  On add path,
-add_to_swap_cache() is called soon after SWAP_HAS_CACHE flag is set, and
-on delete path, swapcache_free() will be called (SWAP_HAS_CACHE flag is
-cleared) soon after __delete_from_swap_cache() is called.  So, the
-busy-wait works well in most cases.
-
-But this mechanism can cause soft lockup if add_to_swap_cache() sleeps and
-read_swap_cache_async() tries to swap-in the same entry on the same cpu.
-
-This patch calls radix_tree_preload() before swapcache_prepare() and
-divides add_to_swap_cache() into two part: radix_tree_preload() part and
-radix_tree_insert() part(define it as __add_to_swap_cache()).
-
-Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_state.c |   70 ++++++++++++++++++++++++++++++----------------
- 1 file changed, 46 insertions(+), 24 deletions(-)
+ fs/jffs2/super.c  |    2 +-
+ fs/nilfs2/super.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/swap_state.c~mm-add_to_swap_cache-must-not-sleep mm/swap_state.c
---- a/mm/swap_state.c~mm-add_to_swap_cache-must-not-sleep
-+++ a/mm/swap_state.c
-@@ -67,10 +67,10 @@ void show_swap_cache_info(void)
+diff -puN fs/jffs2/super.c~const-mark-remaining-export_operations-const fs/jffs2/super.c
+--- a/fs/jffs2/super.c~const-mark-remaining-export_operations-const
++++ a/fs/jffs2/super.c
+@@ -123,7 +123,7 @@ static struct dentry *jffs2_get_parent(s
+ 	return d_obtain_alias(jffs2_iget(child->d_inode->i_sb, pino));
  }
  
- /*
-- * add_to_swap_cache resembles add_to_page_cache_locked on swapper_space,
-+ * __add_to_swap_cache resembles add_to_page_cache_locked on swapper_space,
-  * but sets SwapCache flag and private instead of mapping and index.
-  */
--int add_to_swap_cache(struct page *page, swp_entry_t entry, gfp_t gfp_mask)
-+static int __add_to_swap_cache(struct page *page, swp_entry_t entry)
- {
- 	int error;
- 
-@@ -78,28 +78,37 @@ int add_to_swap_cache(struct page *page,
- 	VM_BUG_ON(PageSwapCache(page));
- 	VM_BUG_ON(!PageSwapBacked(page));
- 
-+	page_cache_get(page);
-+	SetPageSwapCache(page);
-+	set_page_private(page, entry.val);
-+
-+	spin_lock_irq(&swapper_space.tree_lock);
-+	error = radix_tree_insert(&swapper_space.page_tree, entry.val, page);
-+	if (likely(!error)) {
-+		total_swapcache_pages++;
-+		__inc_zone_page_state(page, NR_FILE_PAGES);
-+		INC_CACHE_INFO(add_total);
-+	}
-+	spin_unlock_irq(&swapper_space.tree_lock);
-+
-+	if (unlikely(error)) {
-+		set_page_private(page, 0UL);
-+		ClearPageSwapCache(page);
-+		page_cache_release(page);
-+	}
-+
-+	return error;
-+}
-+
-+
-+int add_to_swap_cache(struct page *page, swp_entry_t entry, gfp_t gfp_mask)
-+{
-+	int error;
-+
- 	error = radix_tree_preload(gfp_mask);
- 	if (!error) {
--		page_cache_get(page);
--		SetPageSwapCache(page);
--		set_page_private(page, entry.val);
--
--		spin_lock_irq(&swapper_space.tree_lock);
--		error = radix_tree_insert(&swapper_space.page_tree,
--						entry.val, page);
--		if (likely(!error)) {
--			total_swapcache_pages++;
--			__inc_zone_page_state(page, NR_FILE_PAGES);
--			INC_CACHE_INFO(add_total);
--		}
--		spin_unlock_irq(&swapper_space.tree_lock);
-+		error = __add_to_swap_cache(page, entry);
- 		radix_tree_preload_end();
--
--		if (unlikely(error)) {
--			set_page_private(page, 0UL);
--			ClearPageSwapCache(page);
--			page_cache_release(page);
--		}
- 	}
- 	return error;
+-static struct export_operations jffs2_export_ops = {
++static const struct export_operations jffs2_export_ops = {
+ 	.get_parent = jffs2_get_parent,
+ 	.fh_to_dentry = jffs2_fh_to_dentry,
+ 	.fh_to_parent = jffs2_fh_to_parent,
+diff -puN fs/nilfs2/super.c~const-mark-remaining-export_operations-const fs/nilfs2/super.c
+--- a/fs/nilfs2/super.c~const-mark-remaining-export_operations-const
++++ a/fs/nilfs2/super.c
+@@ -560,7 +560,7 @@ nilfs_fh_to_parent(struct super_block *s
+ 				    nilfs_nfs_get_inode);
  }
-@@ -290,13 +299,24 @@ struct page *read_swap_cache_async(swp_e
- 		}
  
- 		/*
-+		 * call radix_tree_preload() while we can wait.
-+		 */
-+		err = radix_tree_preload(gfp_mask & GFP_KERNEL);
-+		if (err)
-+			break;
-+
-+		/*
- 		 * Swap entry may have been freed since our caller observed it.
- 		 */
- 		err = swapcache_prepare(entry);
--		if (err == -EEXIST) /* seems racy */
-+		if (err == -EEXIST) {	/* seems racy */
-+			radix_tree_preload_end();
- 			continue;
--		if (err)           /* swp entry is obsolete ? */
-+		}
-+		if (err) {		/* swp entry is obsolete ? */
-+			radix_tree_preload_end();
- 			break;
-+		}
- 
- 		/*
- 		 * Associate the page with swap entry in the swap cache.
-@@ -308,8 +328,9 @@ struct page *read_swap_cache_async(swp_e
- 		 */
- 		__set_page_locked(new_page);
- 		SetPageSwapBacked(new_page);
--		err = add_to_swap_cache(new_page, entry, gfp_mask & GFP_KERNEL);
-+		err = __add_to_swap_cache(new_page, entry);
- 		if (likely(!err)) {
-+			radix_tree_preload_end();
- 			/*
- 			 * Initiate read into locked page and return.
- 			 */
-@@ -317,6 +338,7 @@ struct page *read_swap_cache_async(swp_e
- 			swap_readpage(new_page);
- 			return new_page;
- 		}
-+		radix_tree_preload_end();
- 		ClearPageSwapBacked(new_page);
- 		__clear_page_locked(new_page);
- 		swapcache_free(entry, NULL);
+-static struct export_operations nilfs_export_ops = {
++static const struct export_operations nilfs_export_ops = {
+ 	.fh_to_dentry = nilfs_fh_to_dentry,
+ 	.fh_to_parent = nilfs_fh_to_parent,
+ 	.get_parent = nilfs_get_parent,
 _
 
-Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
 origin.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix-2.patch
-memcg-add-comments-explaining-memory-barriers.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix-softlimit-css-refcnt-handling.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix-softlimit-css-refcnt-handling-fix.patch
-memcg-improve-resource-counter-scalability.patch
-memcg-improve-resource-counter-scalability-v5.patch
-memcg-show-swap-usage-in-stat-file.patch
-memcg-show-swap-usage-in-stat-file-fix.patch
+linux-next.patch
+acpi-switch-proc-acpi-debug_layerdebug_level-to-seq_file.patch
+genirq-switch-proc-irq-spurious-to-seq_file.patch
+cpqarray-switch-to-seq_file.patch
+dac960-switch-to-seq_file.patch
+proc_flush_task-flush-proc-tid-task-pid-when-a-sub-thread-exits.patch
+procfs-provide-stack-information-for-threads-v08.patch
+procfs-provide-stack-information-for-threads-v011.patch
+procfs-provide-stack-information-for-threads-v011-fix.patch
+viafb-switch-to-seq_file.patch
+reiserfs-remove-proc-fs-reiserfs-version.patch
+reiserfs-dont-compile-procfso-at-all-if-no-support.patch
+sysctl-remove-struct-file-argument-of-proc_handler.patch
+aio-ifdef-fields-in-mm_struct.patch
+gru-use-proc_create.patch
 
