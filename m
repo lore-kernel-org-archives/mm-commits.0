@@ -1,190 +1,161 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ksm-fix-deadlock-with-munlock-in-exit_mmap.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:40:10 -0700
-Message-ID: <200909222040.n8MKeAr9005004@imap1.linux-foundation.org>
+Subject: [merged] hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:37:48 -0700
+Message-ID: <200909222037.n8MKbmTS032615@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53246 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35385 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752779AbZIVUmT (ORCPT
+	by vger.kernel.org with ESMTP id S1752696AbZIVUmR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:42:19 -0400
+	Tue, 22 Sep 2009 16:42:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, hugh.dickins@tiscali.co.uk, ieidus@redhat.com, jforbes@redhat.com, mm-commits@vger.kernel.org
+To: lee.schermerhorn@hp.com, agl@us.ibm.com, apw@canonical.com, eric.whitney@hp.com, mel@csn.ul.ie, nacc@us.ibm.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ksm: fix deadlock with munlock in exit_mmap
+     hugetlb: use free_pool_huge_page() to return unused surplus pages
 has been removed from the -mm tree.  Its filename was
-     ksm-fix-deadlock-with-munlock-in-exit_mmap.patch
+     hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ksm: fix deadlock with munlock in exit_mmap
-From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: hugetlb: use free_pool_huge_page() to return unused surplus pages
+From: Lee Schermerhorn <lee.schermerhorn@hp.com>
 
-Rawhide users have reported hang at startup when cryptsetup is run: the
-same problem can be simply reproduced by running a program int main() {
-mlockall(MCL_CURRENT | MCL_FUTURE); return 0; }
+Use the [modified] free_pool_huge_page() function to return unused
+surplus pages.  This will help keep huge pages balanced across nodes
+between freeing of unused surplus pages and freeing of persistent huge
+pages [from set_max_huge_pages] by using the same node id "cursor". It
+also eliminates some code duplication.
 
-The problem is that exit_mmap() applies munlock_vma_pages_all() to
-clean up VM_LOCKED areas, and its current implementation (stupidly)
-tries to fault in absent pages, for example where PROT_NONE prevented
-them being faulted in when mlocking.  Whereas the "ksm: fix oom
-deadlock" patch, knowing there's a race by which KSM might try to fault
-in pages after exit_mmap() had finally zapped the range, backs out of
-such faults doing nothing when its ksm_test_exit() notices mm_users 0.
-
-So revert that part of "ksm: fix oom deadlock" which moved the
-ksm_exit() call from before exit_mmap() to the middle of exit_mmap();
-and remove those ksm_test_exit() checks from the page fault paths, so
-allowing the munlocking to proceed without interference.
-
-ksm_exit, if there are rmap_items still chained on this mm slot, takes
-mmap_sem write side: so preventing KSM from working on an mm while
-exit_mmap runs.  And KSM will bail out as soon as it notices that
-mm_users is already zero, thanks to its internal ksm_test_exit checks. 
-So that when a task is killed by OOM killer or the user, KSM will not
-indefinitely prevent it from running exit_mmap to release its memory.
-
-This does break a part of what "ksm: fix oom deadlock" was trying to
-achieve.  When unmerging KSM (echo 2 >/sys/kernel/mm/ksm), and even
-when ksmd itself has to cancel a KSM page, it is possible that the
-first OOM-kill victim would be the KSM process being faulted: then its
-memory won't be freed until a second victim has been selected (freeing
-memory for the unmerging fault to complete).
-
-But the OOM killer is already liable to kill a second victim once the
-intended victim's p->mm goes to NULL: so there's not much point in
-rejecting this KSM patch before fixing that OOM behaviour.  It is very
-much more important to allow KSM users to boot up, than to haggle over
-an unlikely and poorly supported OOM case.
-
-We also intend to fix munlocking to not fault pages: at which point
-this patch _could_ be reverted; though that would be controversial, so
-we hope to find a better solution.
-
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Acked-by: Justin M. Forbes <jforbes@redhat.com>
-Acked-for-now-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Cc: Izik Eidus <ieidus@redhat.com>
+Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Nishanth Aravamudan <nacc@us.ibm.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Adam Litke <agl@us.ibm.com>
+Cc: Andy Whitcroft <apw@canonical.com>
+Cc: Eric Whitney <eric.whitney@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ksm.h |   11 ++++-------
- kernel/fork.c       |    1 +
- mm/ksm.c            |    5 +----
- mm/memory.c         |    4 ++--
- mm/mmap.c           |    7 -------
- 5 files changed, 8 insertions(+), 20 deletions(-)
+ mm/hugetlb.c |   57 ++++++++++++++++++++-----------------------------
+ 1 file changed, 24 insertions(+), 33 deletions(-)
 
-diff -puN include/linux/ksm.h~ksm-fix-deadlock-with-munlock-in-exit_mmap include/linux/ksm.h
---- a/include/linux/ksm.h~ksm-fix-deadlock-with-munlock-in-exit_mmap
-+++ a/include/linux/ksm.h
-@@ -18,8 +18,7 @@ struct mmu_gather;
- int ksm_madvise(struct vm_area_struct *vma, unsigned long start,
- 		unsigned long end, int advice, unsigned long *vm_flags);
- int __ksm_enter(struct mm_struct *mm);
--void __ksm_exit(struct mm_struct *mm,
--		struct mmu_gather **tlbp, unsigned long end);
-+void __ksm_exit(struct mm_struct *mm);
- 
- static inline int ksm_fork(struct mm_struct *mm, struct mm_struct *oldmm)
+diff -puN mm/hugetlb.c~hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-use-free_pool_huge_page-to-return-unused-surplus-pages
++++ a/mm/hugetlb.c
+@@ -687,7 +687,7 @@ static int hstate_next_node_to_free(stru
+  * balanced over allowed nodes.
+  * Called with hugetlb_lock locked.
+  */
+-static int free_pool_huge_page(struct hstate *h)
++static int free_pool_huge_page(struct hstate *h, bool acct_surplus)
  {
-@@ -41,11 +40,10 @@ static inline bool ksm_test_exit(struct 
- 	return atomic_read(&mm->mm_users) == 0;
- }
+ 	int start_nid;
+ 	int next_nid;
+@@ -697,13 +697,22 @@ static int free_pool_huge_page(struct hs
+ 	next_nid = start_nid;
  
--static inline void ksm_exit(struct mm_struct *mm,
--			    struct mmu_gather **tlbp, unsigned long end)
-+static inline void ksm_exit(struct mm_struct *mm)
+ 	do {
+-		if (!list_empty(&h->hugepage_freelists[next_nid])) {
++		/*
++		 * If we're returning unused surplus pages, only examine
++		 * nodes with surplus pages.
++		 */
++		if ((!acct_surplus || h->surplus_huge_pages_node[next_nid]) &&
++		    !list_empty(&h->hugepage_freelists[next_nid])) {
+ 			struct page *page =
+ 				list_entry(h->hugepage_freelists[next_nid].next,
+ 					  struct page, lru);
+ 			list_del(&page->lru);
+ 			h->free_huge_pages--;
+ 			h->free_huge_pages_node[next_nid]--;
++			if (acct_surplus) {
++				h->surplus_huge_pages--;
++				h->surplus_huge_pages_node[next_nid]--;
++			}
+ 			update_and_free_page(h, page);
+ 			ret = 1;
+ 		}
+@@ -884,22 +893,13 @@ free:
+  * When releasing a hugetlb pool reservation, any surplus pages that were
+  * allocated to satisfy the reservation must be explicitly freed if they were
+  * never used.
++ * Called with hugetlb_lock held.
+  */
+ static void return_unused_surplus_pages(struct hstate *h,
+ 					unsigned long unused_resv_pages)
  {
- 	if (test_bit(MMF_VM_MERGEABLE, &mm->flags))
--		__ksm_exit(mm, tlbp, end);
-+		__ksm_exit(mm);
- }
+-	static int nid = -1;
+-	struct page *page;
+ 	unsigned long nr_pages;
  
- /*
-@@ -86,8 +84,7 @@ static inline bool ksm_test_exit(struct 
- 	return 0;
- }
+-	/*
+-	 * We want to release as many surplus pages as possible, spread
+-	 * evenly across all nodes. Iterate across all nodes until we
+-	 * can no longer free unreserved surplus pages. This occurs when
+-	 * the nodes with surplus pages have no free pages.
+-	 */
+-	unsigned long remaining_iterations = nr_online_nodes;
+-
+ 	/* Uncommit the reservation */
+ 	h->resv_huge_pages -= unused_resv_pages;
  
--static inline void ksm_exit(struct mm_struct *mm,
--			    struct mmu_gather **tlbp, unsigned long end)
-+static inline void ksm_exit(struct mm_struct *mm)
- {
- }
+@@ -909,26 +909,17 @@ static void return_unused_surplus_pages(
  
-diff -puN kernel/fork.c~ksm-fix-deadlock-with-munlock-in-exit_mmap kernel/fork.c
---- a/kernel/fork.c~ksm-fix-deadlock-with-munlock-in-exit_mmap
-+++ a/kernel/fork.c
-@@ -501,6 +501,7 @@ void mmput(struct mm_struct *mm)
+ 	nr_pages = min(unused_resv_pages, h->surplus_huge_pages);
  
- 	if (atomic_dec_and_test(&mm->mm_users)) {
- 		exit_aio(mm);
-+		ksm_exit(mm);
- 		exit_mmap(mm);
- 		set_mm_exe_file(mm, NULL);
- 		if (!list_empty(&mm->mmlist)) {
-diff -puN mm/ksm.c~ksm-fix-deadlock-with-munlock-in-exit_mmap mm/ksm.c
---- a/mm/ksm.c~ksm-fix-deadlock-with-munlock-in-exit_mmap
-+++ a/mm/ksm.c
-@@ -1416,8 +1416,7 @@ int __ksm_enter(struct mm_struct *mm)
- 	return 0;
- }
- 
--void __ksm_exit(struct mm_struct *mm,
--		struct mmu_gather **tlbp, unsigned long end)
-+void __ksm_exit(struct mm_struct *mm)
- {
- 	struct mm_slot *mm_slot;
- 	int easy_to_free = 0;
-@@ -1450,10 +1449,8 @@ void __ksm_exit(struct mm_struct *mm,
- 		clear_bit(MMF_VM_MERGEABLE, &mm->flags);
- 		mmdrop(mm);
- 	} else if (mm_slot) {
--		tlb_finish_mmu(*tlbp, 0, end);
- 		down_write(&mm->mmap_sem);
- 		up_write(&mm->mmap_sem);
--		*tlbp = tlb_gather_mmu(mm, 1);
+-	while (remaining_iterations-- && nr_pages) {
+-		nid = next_node(nid, node_online_map);
+-		if (nid == MAX_NUMNODES)
+-			nid = first_node(node_online_map);
+-
+-		if (!h->surplus_huge_pages_node[nid])
+-			continue;
+-
+-		if (!list_empty(&h->hugepage_freelists[nid])) {
+-			page = list_entry(h->hugepage_freelists[nid].next,
+-					  struct page, lru);
+-			list_del(&page->lru);
+-			update_and_free_page(h, page);
+-			h->free_huge_pages--;
+-			h->free_huge_pages_node[nid]--;
+-			h->surplus_huge_pages--;
+-			h->surplus_huge_pages_node[nid]--;
+-			nr_pages--;
+-			remaining_iterations = nr_online_nodes;
+-		}
++	/*
++	 * We want to release as many surplus pages as possible, spread
++	 * evenly across all nodes. Iterate across all nodes until we
++	 * can no longer free unreserved surplus pages. This occurs when
++	 * the nodes with surplus pages have no free pages.
++	 * free_pool_huge_page() will balance the the frees across the
++	 * on-line nodes for us and will handle the hstate accounting.
++	 */
++	while (nr_pages--) {
++		if (!free_pool_huge_page(h, 1))
++			break;
  	}
  }
  
-diff -puN mm/memory.c~ksm-fix-deadlock-with-munlock-in-exit_mmap mm/memory.c
---- a/mm/memory.c~ksm-fix-deadlock-with-munlock-in-exit_mmap
-+++ a/mm/memory.c
-@@ -2648,7 +2648,7 @@ static int do_anonymous_page(struct mm_s
- 	entry = maybe_mkwrite(pte_mkdirty(entry), vma);
- 
- 	page_table = pte_offset_map_lock(mm, pmd, address, &ptl);
--	if (!pte_none(*page_table) || ksm_test_exit(mm))
-+	if (!pte_none(*page_table))
- 		goto release;
- 
- 	inc_mm_counter(mm, anon_rss);
-@@ -2792,7 +2792,7 @@ static int __do_fault(struct mm_struct *
- 	 * handle that later.
- 	 */
- 	/* Only go through if we didn't race with anybody else... */
--	if (likely(pte_same(*page_table, orig_pte) && !ksm_test_exit(mm))) {
-+	if (likely(pte_same(*page_table, orig_pte))) {
- 		flush_icache_page(vma, page);
- 		entry = mk_pte(page, vma->vm_page_prot);
- 		if (flags & FAULT_FLAG_WRITE)
-diff -puN mm/mmap.c~ksm-fix-deadlock-with-munlock-in-exit_mmap mm/mmap.c
---- a/mm/mmap.c~ksm-fix-deadlock-with-munlock-in-exit_mmap
-+++ a/mm/mmap.c
-@@ -2113,13 +2113,6 @@ void exit_mmap(struct mm_struct *mm)
- 	end = unmap_vmas(&tlb, vma, 0, -1, &nr_accounted, NULL);
- 	vm_unacct_memory(nr_accounted);
- 
--	/*
--	 * For KSM to handle OOM without deadlock when it's breaking COW in a
--	 * likely victim of the OOM killer, we must serialize with ksm_exit()
--	 * after freeing mm's pages but before freeing its page tables.
--	 */
--	ksm_exit(mm, &tlb, end);
+@@ -1268,7 +1259,7 @@ static unsigned long set_max_huge_pages(
+ 	min_count = max(count, min_count);
+ 	try_to_free_low(h, min_count);
+ 	while (min_count < persistent_huge_pages(h)) {
+-		if (!free_pool_huge_page(h))
++		if (!free_pool_huge_page(h, 0))
+ 			break;
+ 	}
+ 	while (count < persistent_huge_pages(h)) {
+_
+
+Patches currently in -mm which might be from lee.schermerhorn@hp.com are
+
+origin.patch
+
