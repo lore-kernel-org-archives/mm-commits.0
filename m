@@ -1,185 +1,182 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ksm-add-some-documentation.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:40:16 -0700
-Message-ID: <200909222040.n8MKeGtA005226@imap1.linux-foundation.org>
+Subject: [merged] mm-do-batched-scans-for-mem_cgroup.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:42:15 -0700
+Message-ID: <200909222042.n8MKgFUg009229@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42882 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45112 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752831AbZIVUmX (ORCPT
+	by vger.kernel.org with ESMTP id S1752809AbZIVUmU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:42:23 -0400
+	Tue, 22 Sep 2009 16:42:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh.dickins@tiscali.co.uk, aarcange@redhat.com, ieidus@redhat.com, mtk.manpages@googlemail.com, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: fengguang.wu@intel.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ksm: add some documentation
+     mm: do batched scans for mem_cgroup
 has been removed from the -mm tree.  Its filename was
-     ksm-add-some-documentation.patch
+     mm-do-batched-scans-for-mem_cgroup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ksm: add some documentation
-From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Subject: mm: do batched scans for mem_cgroup
+From: Wu Fengguang <fengguang.wu@intel.com>
 
-Add Documentation/vm/ksm.txt: how to use the Kernel Samepage Merging feature
+For mem_cgroup, shrink_zone() may call shrink_list() with nr_to_scan=1, in
+which case shrink_list() _still_ calls isolate_pages() with the much
+larger SWAP_CLUSTER_MAX.  It effectively scales up the inactive list scan
+rate by up to 32 times.
 
-Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
-Acked-by: Izik Eidus <ieidus@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+For example, with 16k inactive pages and DEF_PRIORITY=12, (16k >> 12)=4. 
+So when shrink_zone() expects to scan 4 pages in the active/inactive list,
+the active list will be scanned 4 pages, while the inactive list will be
+(over) scanned SWAP_CLUSTER_MAX=32 pages in effect.  And that could break
+the balance between the two lists.
+
+It can further impact the scan of anon active list, due to the anon
+active/inactive ratio rebalance logic in balance_pgdat()/shrink_zone():
+
+inactive anon list over scanned => inactive_anon_is_low() == TRUE
+                                => shrink_active_list()
+                                => active anon list over scanned
+
+So the end result may be
+
+- anon inactive  => over scanned
+- anon active    => over scanned (maybe not as much)
+- file inactive  => over scanned
+- file active    => under scanned (relatively)
+
+The accesses to nr_saved_scan are not lock protected and so not 100%
+accurate, however we can tolerate small errors and the resulted small
+imbalanced scan rates between zones.
+
+Cc: Rik van Riel <riel@redhat.com>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/00-INDEX |    2 
- Documentation/vm/ksm.txt  |   89 ++++++++++++++++++++++++++++++++++++
- mm/Kconfig                |    1 
- 3 files changed, 92 insertions(+)
+ include/linux/mmzone.h |    6 +++++-
+ mm/page_alloc.c        |    2 +-
+ mm/vmscan.c            |   20 +++++++++++---------
+ 3 files changed, 17 insertions(+), 11 deletions(-)
 
-diff -puN Documentation/vm/00-INDEX~ksm-add-some-documentation Documentation/vm/00-INDEX
---- a/Documentation/vm/00-INDEX~ksm-add-some-documentation
-+++ a/Documentation/vm/00-INDEX
-@@ -6,6 +6,8 @@ balance
- 	- various information on memory balancing.
- hugetlbpage.txt
- 	- a brief summary of hugetlbpage support in the Linux kernel.
-+ksm.txt
-+	- how to use the Kernel Samepage Merging feature.
- locking
- 	- info on how locking and synchronization is done in the Linux vm code.
- numa
-diff -puN /dev/null Documentation/vm/ksm.txt
---- /dev/null
-+++ a/Documentation/vm/ksm.txt
-@@ -0,0 +1,89 @@
-+How to use the Kernel Samepage Merging feature
-+----------------------------------------------
+diff -puN include/linux/mmzone.h~mm-do-batched-scans-for-mem_cgroup include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-do-batched-scans-for-mem_cgroup
++++ a/include/linux/mmzone.h
+@@ -273,6 +273,11 @@ struct zone_reclaim_stat {
+ 	 */
+ 	unsigned long		recent_rotated[2];
+ 	unsigned long		recent_scanned[2];
 +
-+KSM is a memory-saving de-duplication feature, enabled by CONFIG_KSM=y,
-+added to the Linux kernel in 2.6.32.  See mm/ksm.c for its implementation,
-+and http://lwn.net/Articles/306704/ and http://lwn.net/Articles/330589/
-+
-+The KSM daemon ksmd periodically scans those areas of user memory which
-+have been registered with it, looking for pages of identical content which
-+can be replaced by a single write-protected page (which is automatically
-+copied if a process later wants to update its content).
-+
-+KSM was originally developed for use with KVM (where it was known as
-+Kernel Shared Memory), to fit more virtual machines into physical memory,
-+by sharing the data common between them.  But it can be useful to any
-+application which generates many instances of the same data.
-+
-+KSM only merges anonymous (private) pages, never pagecache (file) pages.
-+KSM's merged pages are at present locked into kernel memory for as long
-+as they are shared: so cannot be swapped out like the user pages they
-+replace (but swapping KSM pages should follow soon in a later release).
-+
-+KSM only operates on those areas of address space which an application
-+has advised to be likely candidates for merging, by using the madvise(2)
-+system call: int madvise(addr, length, MADV_MERGEABLE).
-+
-+The app may call int madvise(addr, length, MADV_UNMERGEABLE) to cancel
-+that advice and restore unshared pages: whereupon KSM unmerges whatever
-+it merged in that range.  Note: this unmerging call may suddenly require
-+more memory than is available - possibly failing with EAGAIN, but more
-+probably arousing the Out-Of-Memory killer.
-+
-+If KSM is not configured into the running kernel, madvise MADV_MERGEABLE
-+and MADV_UNMERGEABLE simply fail with EINVAL.  If the running kernel was
-+built with CONFIG_KSM=y, those calls will normally succeed: even if the
-+the KSM daemon is not currently running, MADV_MERGEABLE still registers
-+the range for whenever the KSM daemon is started; even if the range
-+cannot contain any pages which KSM could actually merge; even if
-+MADV_UNMERGEABLE is applied to a range which was never MADV_MERGEABLE.
-+
-+Like other madvise calls, they are intended for use on mapped areas of
-+the user address space: they will report ENOMEM if the specified range
-+includes unmapped gaps (though working on the intervening mapped areas),
-+and might fail with EAGAIN if not enough memory for internal structures.
-+
-+Applications should be considerate in their use of MADV_MERGEABLE,
-+restricting its use to areas likely to benefit.  KSM's scans may use
-+a lot of processing power, and its kernel-resident pages are a limited
-+resource.  Some installations will disable KSM for these reasons.
-+
-+The KSM daemon is controlled by sysfs files in /sys/kernel/mm/ksm/,
-+readable by all but writable only by root:
-+
-+max_kernel_pages - set to maximum number of kernel pages that KSM may use
-+                   e.g. "echo 2000 > /sys/kernel/mm/ksm/max_kernel_pages"
-+                   Value 0 imposes no limit on the kernel pages KSM may use;
-+                   but note that any process using MADV_MERGEABLE can cause
-+                   KSM to allocate these pages, unswappable until it exits.
-+                   Default: 2000 (chosen for demonstration purposes)
-+
-+pages_to_scan    - how many present pages to scan before ksmd goes to sleep
-+                   e.g. "echo 200 > /sys/kernel/mm/ksm/pages_to_scan"
-+                   Default: 200 (chosen for demonstration purposes)
-+
-+sleep_millisecs  - how many milliseconds ksmd should sleep before next scan
-+                   e.g. "echo 20 > /sys/kernel/mm/ksm/sleep_millisecs"
-+                   Default: 20 (chosen for demonstration purposes)
-+
-+run              - set 0 to stop ksmd from running but keep merged pages,
-+                   set 1 to run ksmd e.g. "echo 1 > /sys/kernel/mm/ksm/run",
-+                   set 2 to stop ksmd and unmerge all pages currently merged,
-+                         but leave mergeable areas registered for next run
-+                   Default: 1 (for immediate use by apps which register)
-+
-+The effectiveness of KSM and MADV_MERGEABLE is shown in /sys/kernel/mm/ksm/:
-+
-+pages_shared     - how many shared unswappable kernel pages KSM is using
-+pages_sharing    - how many more sites are sharing them i.e. how much saved
-+pages_unshared   - how many pages unique but repeatedly checked for merging
-+pages_volatile   - how many pages changing too fast to be placed in a tree
-+full_scans       - how many times all mergeable areas have been scanned
-+
-+A high ratio of pages_sharing to pages_shared indicates good sharing, but
-+a high ratio of pages_unshared to pages_sharing indicates wasted effort.
-+pages_volatile embraces several different kinds of activity, but a high
-+proportion there would also indicate poor use of madvise MADV_MERGEABLE.
-+
-+Izik Eidus,
-+Hugh Dickins, 30 July 2009
-diff -puN mm/Kconfig~ksm-add-some-documentation mm/Kconfig
---- a/mm/Kconfig~ksm-add-some-documentation
-+++ a/mm/Kconfig
-@@ -224,6 +224,7 @@ config KSM
- 	  the many instances by a single resident page with that content, so
- 	  saving memory until one or another app needs to modify the content.
- 	  Recommended for use with KVM, or with other duplicative applications.
-+	  See Documentation/vm/ksm.txt for more information.
++	/*
++	 * accumulated for batching
++	 */
++	unsigned long		nr_saved_scan[NR_LRU_LISTS];
+ };
  
- config DEFAULT_MMAP_MIN_ADDR
-         int "Low address space to protect from user allocation"
+ struct zone {
+@@ -327,7 +332,6 @@ struct zone {
+ 	spinlock_t		lru_lock;	
+ 	struct zone_lru {
+ 		struct list_head list;
+-		unsigned long nr_saved_scan;	/* accumulated for batching */
+ 	} lru[NR_LRU_LISTS];
+ 
+ 	struct zone_reclaim_stat reclaim_stat;
+diff -puN mm/page_alloc.c~mm-do-batched-scans-for-mem_cgroup mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-do-batched-scans-for-mem_cgroup
++++ a/mm/page_alloc.c
+@@ -3809,7 +3809,7 @@ static void __paginginit free_area_init_
+ 		zone_pcp_init(zone);
+ 		for_each_lru(l) {
+ 			INIT_LIST_HEAD(&zone->lru[l].list);
+-			zone->lru[l].nr_saved_scan = 0;
++			zone->reclaim_stat.nr_saved_scan[l] = 0;
+ 		}
+ 		zone->reclaim_stat.recent_rotated[0] = 0;
+ 		zone->reclaim_stat.recent_rotated[1] = 0;
+diff -puN mm/vmscan.c~mm-do-batched-scans-for-mem_cgroup mm/vmscan.c
+--- a/mm/vmscan.c~mm-do-batched-scans-for-mem_cgroup
++++ a/mm/vmscan.c
+@@ -1586,6 +1586,7 @@ static void shrink_zone(int priority, st
+ 	enum lru_list l;
+ 	unsigned long nr_reclaimed = sc->nr_reclaimed;
+ 	unsigned long swap_cluster_max = sc->swap_cluster_max;
++	struct zone_reclaim_stat *reclaim_stat = get_reclaim_stat(zone, sc);
+ 	int noswap = 0;
+ 
+ 	/* If we have no swap space, do not bother scanning anon pages. */
+@@ -1605,12 +1606,9 @@ static void shrink_zone(int priority, st
+ 			scan >>= priority;
+ 			scan = (scan * percent[file]) / 100;
+ 		}
+-		if (scanning_global_lru(sc))
+-			nr[l] = nr_scan_try_batch(scan,
+-						  &zone->lru[l].nr_saved_scan,
+-						  swap_cluster_max);
+-		else
+-			nr[l] = scan;
++		nr[l] = nr_scan_try_batch(scan,
++					  &reclaim_stat->nr_saved_scan[l],
++					  swap_cluster_max);
+ 	}
+ 
+ 	while (nr[LRU_INACTIVE_ANON] || nr[LRU_ACTIVE_FILE] ||
+@@ -2220,6 +2218,7 @@ static void shrink_all_zones(unsigned lo
+ {
+ 	struct zone *zone;
+ 	unsigned long nr_reclaimed = 0;
++	struct zone_reclaim_stat *reclaim_stat;
+ 
+ 	for_each_populated_zone(zone) {
+ 		enum lru_list l;
+@@ -2236,11 +2235,14 @@ static void shrink_all_zones(unsigned lo
+ 						l == LRU_ACTIVE_FILE))
+ 				continue;
+ 
+-			zone->lru[l].nr_saved_scan += (lru_pages >> prio) + 1;
+-			if (zone->lru[l].nr_saved_scan >= nr_pages || pass > 3) {
++			reclaim_stat = get_reclaim_stat(zone, sc);
++			reclaim_stat->nr_saved_scan[l] +=
++						(lru_pages >> prio) + 1;
++			if (reclaim_stat->nr_saved_scan[l]
++						>= nr_pages || pass > 3) {
+ 				unsigned long nr_to_scan;
+ 
+-				zone->lru[l].nr_saved_scan = 0;
++				reclaim_stat->nr_saved_scan[l] = 0;
+ 				nr_to_scan = min(nr_pages, lru_pages);
+ 				nr_reclaimed += shrink_list(l, nr_to_scan, zone,
+ 								sc, prio);
 _
 
-Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
+Patches currently in -mm which might be from fengguang.wu@intel.com are
 
 origin.patch
 linux-next.patch
-vfs-optimize-touch_time-too.patch
-vfs-seq_file-add-helpers-for-data-filling.patch
-fs-new-truncate-helpers.patch
-fs-use-new-truncate-helpers.patch
-fs-introduce-new-truncate-sequence.patch
-fs-convert-simple-fs-to-new-truncate.patch
-tmpfs-convert-to-use-the-new-truncate-convention.patch
-ext2-convert-to-use-the-new-truncate-convention.patch
-fat-convert-to-use-the-new-truncate-convention.patch
-btrfs-convert-to-use-the-new-truncate-convention.patch
-jfs-convert-to-use-the-new-truncate-convention.patch
-udf-convert-to-use-the-new-truncate-convention.patch
-minix-convert-to-use-the-new-truncate-convention.patch
-getrusage-fill-ru_maxrss-value.patch
-walk-system-ram-range-fix.patch
-ramfs-move-ramfs_magic-to-include-linux-magich.patch
-memory-controller-soft-limit-organize-cgroups-v9-fix.patch
-prio_tree-debugging-patch.patch
+libfs-return-error-code-on-failed-attr-set.patch
+readahead-add-blk_run_backing_dev.patch
+mm-vsmcan-check-shrink_active_list-sc-isolate_pages-return-value.patch
+dev-mem-remove-redundant-test-on-len.patch
+dev-mem-introduce-size_inside_page.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
+dev-mem-make-size_inside_page-logic-straight.patch
+dev-mem-remove-the-written-variable-in-write_kmem.patch
+dev-mem-remove-the-written-variable-in-write_kmem-fix.patch
+dev-mem-remove-redundant-parameter-from-do_write_kmem.patch
+documentation-vm-gitignore-add-page-types.patch
+page-types-add-feature-for-walking-process-address-space.patch
+page-types-add-feature-for-walking-process-address-space-checkpatch-fixes.patch
 
