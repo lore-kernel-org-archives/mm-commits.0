@@ -1,72 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memory-hotplug-make-pages-from-movable-zone-always-isolatable.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:37:31 -0700
-Message-ID: <200909222037.n8MKbVOI032008@imap1.linux-foundation.org>
+Subject: [merged] memory-hotplug-fix-updating-of-num_physpages-for-hot-plugged-memory.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:41:57 -0700
+Message-ID: <200909222041.n8MKfvaV008610@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34907 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54626 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752684AbZIVUmC (ORCPT
+	by vger.kernel.org with ESMTP id S1751076AbZIVUmG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:42:02 -0400
+	Tue, 22 Sep 2009 16:42:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shaohua.li@intel.com, cl@linux-foundation.org, mel@csn.ul.ie, yakui.zhao@intel.com, mm-commits@vger.kernel.org
+To: JBeulich@novell.com, haveblue@us.ibm.com, jbeulich@novell.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, pbadari@us.ibm.com, rusty@rustcorp.com.au, y-goto@
 
 
 The patch titled
-     memory hotplug: make pages from movable zone always isolatable
+     memory hotplug: fix updating of num_physpages for hot plugged memory
 has been removed from the -mm tree.  Its filename was
-     memory-hotplug-make-pages-from-movable-zone-always-isolatable.patch
+     memory-hotplug-fix-updating-of-num_physpages-for-hot-plugged-memory.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memory hotplug: make pages from movable zone always isolatable
-From: Shaohua Li <shaohua.li@intel.com>
+Subject: memory hotplug: fix updating of num_physpages for hot plugged memory
+From: "Jan Beulich" <JBeulich@novell.com>
 
-Pages on movable zone have two types, MIGRATE_MOVABLE and MIGRATE_RESERVE,
-both them can be movable, because only movable memory allocation can get
-pages from movable zone.  This makes pages in movable zone always be able
-to migrate.
+Sizing of memory allocations shouldn't depend on the number of physical
+pages found in a system, as that generally includes (perhaps a huge amount
+of) non-RAM pages.  The amount of what actually is usable as storage
+should instead be used as a basis here.
 
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+In line with that, the memory hotplug code should update num_physpages in
+a way that it retains its original (post-boot) meaning; in particular,
+decreasing the value should at best be done with great care - this patch
+doesn't try to ever decrease this value at all as it doesn't really seem
+meaningful to do so.
+
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Acked-by: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: Badari Pulavarty <pbadari@us.ibm.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Yakui Zhao <yakui.zhao@intel.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/memory_hotplug.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_alloc.c~memory-hotplug-make-pages-from-movable-zone-always-isolatable mm/page_alloc.c
---- a/mm/page_alloc.c~memory-hotplug-make-pages-from-movable-zone-always-isolatable
-+++ a/mm/page_alloc.c
-@@ -4906,13 +4906,16 @@ int set_migratetype_isolate(struct page 
- 	struct zone *zone;
- 	unsigned long flags;
- 	int ret = -EBUSY;
-+	int zone_idx;
+diff -puN mm/memory_hotplug.c~memory-hotplug-fix-updating-of-num_physpages-for-hot-plugged-memory mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~memory-hotplug-fix-updating-of-num_physpages-for-hot-plugged-memory
++++ a/mm/memory_hotplug.c
+@@ -339,8 +339,11 @@ EXPORT_SYMBOL_GPL(__remove_pages);
  
- 	zone = page_zone(page);
-+	zone_idx = zone_idx(zone);
- 	spin_lock_irqsave(&zone->lock, flags);
- 	/*
- 	 * In future, more migrate types will be able to be isolation target.
- 	 */
--	if (get_pageblock_migratetype(page) != MIGRATE_MOVABLE)
-+	if (get_pageblock_migratetype(page) != MIGRATE_MOVABLE &&
-+	    zone_idx != ZONE_MOVABLE)
- 		goto out;
- 	set_pageblock_migratetype(page, MIGRATE_ISOLATE);
- 	move_freepages_block(zone, page, MIGRATE_ISOLATE);
+ void online_page(struct page *page)
+ {
++	unsigned long pfn = page_to_pfn(page);
++
+ 	totalram_pages++;
+-	num_physpages++;
++	if (pfn >= num_physpages)
++		num_physpages = pfn + 1;
+ 
+ #ifdef CONFIG_HIGHMEM
+ 	if (PageHighMem(page))
+@@ -832,7 +835,6 @@ repeat:
+ 	zone->present_pages -= offlined_pages;
+ 	zone->zone_pgdat->node_present_pages -= offlined_pages;
+ 	totalram_pages -= offlined_pages;
+-	num_physpages -= offlined_pages;
+ 
+ 	setup_per_zone_wmarks();
+ 	calculate_zone_inactive_ratio(zone);
 _
 
-Patches currently in -mm which might be from shaohua.li@intel.com are
+Patches currently in -mm which might be from JBeulich@novell.com are
 
 origin.patch
 linux-next.patch
+thermal-add-missing-kconfig-dependency.patch
+kbuild-generate-modulesbuiltin.patch
+kbuild-rebuild-fix-for-makefilemodbuiltin.patch
+build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it.patch
+build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix.patch
 
