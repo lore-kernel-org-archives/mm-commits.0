@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ksm-pages_unshared-and-pages_volatile.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:39:48 -0700
-Message-ID: <200909222039.n8MKdmkA004187@imap1.linux-foundation.org>
+Subject: [merged] ksm-break-cow-once-unshared.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:39:51 -0700
+Message-ID: <200909222039.n8MKdpFa004273@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37628 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51566 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752501AbZIVUkV (ORCPT
+	by vger.kernel.org with ESMTP id S1752561AbZIVUkV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 22 Sep 2009 16:40:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,151 +15,55 @@ To: hugh.dickins@tiscali.co.uk, aarcange@redhat.com, ieidus@redhat.com, mm-commi
 
 
 The patch titled
-     ksm: pages_unshared and pages_volatile
+     ksm: break cow once unshared
 has been removed from the -mm tree.  Its filename was
-     ksm-pages_unshared-and-pages_volatile.patch
+     ksm-break-cow-once-unshared.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ksm: pages_unshared and pages_volatile
+Subject: ksm: break cow once unshared
 From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
-The pages_shared and pages_sharing counts give a good picture of how
-successful KSM is at sharing; but no clue to how much wasted work it's
-doing to get there.  Add pages_unshared (count of unique pages waiting
-in the unstable tree, hoping to find a mate) and pages_volatile.
+We kept agreeing not to bother about the unswappable shared KSM pages
+which later become unshared by others: observation suggests they're not
+a significant proportion.  But they are disadvantageous, and it is easier
+to break COW to replace them by swappable pages, than offer statistics
+to show that they don't matter; then we can stop worrying about them.
 
-pages_volatile is harder to define.  It includes those pages changing
-too fast to get into the unstable tree, but also whatever other edge
-conditions prevent a page getting into the trees: a high value may
-deserve investigation.  Don't try to calculate it from the various
-conditions: it's the total of rmap_items less those accounted for.
-
-Also show full_scans: the number of completed scans of everything
-registered in the mm list.
-
-The locking for all these counts is simply ksm_thread_mutex.
+Doing this in ksm_do_scan, they don't go through cmp_and_merge_page on
+this pass: give them a good chance of getting into the unstable tree
+on the next pass, or back into the stable, by computing checksum now.
 
 Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Acked-by: Izik Eidus <ieidus@redhat.com>
-Acked-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |   52 +++++++++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 51 insertions(+), 1 deletion(-)
+ mm/ksm.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN mm/ksm.c~ksm-pages_unshared-and-pages_volatile mm/ksm.c
---- a/mm/ksm.c~ksm-pages_unshared-and-pages_volatile
+diff -puN mm/ksm.c~ksm-break-cow-once-unshared mm/ksm.c
+--- a/mm/ksm.c~ksm-break-cow-once-unshared
 +++ a/mm/ksm.c
-@@ -155,6 +155,12 @@ static unsigned long ksm_pages_shared;
- /* The number of page slots additionally sharing those nodes */
- static unsigned long ksm_pages_sharing;
- 
-+/* The number of nodes in the unstable tree */
-+static unsigned long ksm_pages_unshared;
-+
-+/* The number of rmap_items in use: to calculate pages_volatile */
-+static unsigned long ksm_rmap_items;
-+
- /* Limit on the number of unswappable pages used */
- static unsigned long ksm_max_kernel_pages;
- 
-@@ -204,11 +210,17 @@ static void __init ksm_slab_free(void)
- 
- static inline struct rmap_item *alloc_rmap_item(void)
- {
--	return kmem_cache_zalloc(rmap_item_cache, GFP_KERNEL);
-+	struct rmap_item *rmap_item;
-+
-+	rmap_item = kmem_cache_zalloc(rmap_item_cache, GFP_KERNEL);
-+	if (rmap_item)
-+		ksm_rmap_items++;
-+	return rmap_item;
- }
- 
- static inline void free_rmap_item(struct rmap_item *rmap_item)
- {
-+	ksm_rmap_items--;
- 	rmap_item->mm = NULL;	/* debug safety */
- 	kmem_cache_free(rmap_item_cache, rmap_item);
- }
-@@ -419,6 +431,7 @@ static void remove_rmap_item_from_tree(s
- 		BUG_ON(age > 2);
- 		if (!age)
- 			rb_erase(&rmap_item->node, &root_unstable_tree);
-+		ksm_pages_unshared--;
+@@ -1268,6 +1268,14 @@ static void ksm_do_scan(unsigned int sca
+ 			return;
+ 		if (!PageKsm(page) || !in_stable_tree(rmap_item))
+ 			cmp_and_merge_page(page, rmap_item);
++		else if (page_mapcount(page) == 1) {
++			/*
++			 * Replace now-unshared ksm page by ordinary page.
++			 */
++			break_cow(rmap_item->mm, rmap_item->address);
++			remove_rmap_item_from_tree(rmap_item);
++			rmap_item->oldchecksum = calc_checksum(page);
++		}
+ 		put_page(page);
  	}
- 
- 	rmap_item->address &= PAGE_MASK;
-@@ -995,6 +1008,7 @@ static struct rmap_item *unstable_tree_s
- 	rb_link_node(&rmap_item->node, parent, new);
- 	rb_insert_color(&rmap_item->node, &root_unstable_tree);
- 
-+	ksm_pages_unshared++;
- 	return NULL;
  }
- 
-@@ -1091,6 +1105,8 @@ static void cmp_and_merge_page(struct pa
- 		if (!err) {
- 			rb_erase(&tree_rmap_item->node, &root_unstable_tree);
- 			tree_rmap_item->address &= ~NODE_FLAG;
-+			ksm_pages_unshared--;
-+
- 			/*
- 			 * If we fail to insert the page into the stable tree,
- 			 * we will have 2 virtual addresses that are pointing
-@@ -1474,6 +1490,37 @@ static ssize_t pages_sharing_show(struct
- }
- KSM_ATTR_RO(pages_sharing);
- 
-+static ssize_t pages_unshared_show(struct kobject *kobj,
-+				   struct kobj_attribute *attr, char *buf)
-+{
-+	return sprintf(buf, "%lu\n", ksm_pages_unshared);
-+}
-+KSM_ATTR_RO(pages_unshared);
-+
-+static ssize_t pages_volatile_show(struct kobject *kobj,
-+				   struct kobj_attribute *attr, char *buf)
-+{
-+	long ksm_pages_volatile;
-+
-+	ksm_pages_volatile = ksm_rmap_items - ksm_pages_shared
-+				- ksm_pages_sharing - ksm_pages_unshared;
-+	/*
-+	 * It was not worth any locking to calculate that statistic,
-+	 * but it might therefore sometimes be negative: conceal that.
-+	 */
-+	if (ksm_pages_volatile < 0)
-+		ksm_pages_volatile = 0;
-+	return sprintf(buf, "%ld\n", ksm_pages_volatile);
-+}
-+KSM_ATTR_RO(pages_volatile);
-+
-+static ssize_t full_scans_show(struct kobject *kobj,
-+			       struct kobj_attribute *attr, char *buf)
-+{
-+	return sprintf(buf, "%lu\n", ksm_scan.seqnr);
-+}
-+KSM_ATTR_RO(full_scans);
-+
- static struct attribute *ksm_attrs[] = {
- 	&sleep_millisecs_attr.attr,
- 	&pages_to_scan_attr.attr,
-@@ -1481,6 +1528,9 @@ static struct attribute *ksm_attrs[] = {
- 	&max_kernel_pages_attr.attr,
- 	&pages_shared_attr.attr,
- 	&pages_sharing_attr.attr,
-+	&pages_unshared_attr.attr,
-+	&pages_volatile_attr.attr,
-+	&full_scans_attr.attr,
- 	NULL,
- };
- 
 _
 
 Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
