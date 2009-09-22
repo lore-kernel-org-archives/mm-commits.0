@@ -1,62 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: [folded] printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix-2.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 14:35:55 -0700
-Message-ID: <200909222135.n8MLZtuM018156@imap1.linux-foundation.org>
+Subject: [folded] printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 14:36:31 -0700
+Message-ID: <200909222136.n8MLaWHJ019379@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48075 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40246 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753006AbZIVVgZ (ORCPT
+	by vger.kernel.org with ESMTP id S1752835AbZIVVgh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 17:36:25 -0400
+	Tue, 22 Sep 2009 17:36:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hidave.darkstar@gmail.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hidave.darkstar@gmail.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix 2
+     printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix
 has been removed from the -mm tree.  Its filename was
-     printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix-2.patch
+     printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
 
-This patch was dropped because it was folded into printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec.patch
+This patch was dropped because it was folded into printk-add-printk_delay-to-make-messages-readable-for-some-scenarios.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix 2
-From: Dave Young <hidave.darkstar@gmail.com>
+Subject: printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-use pr_debug for debug printk.
-
-Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
+Cc: Dave Young <hidave.darkstar@gmail.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/sysctl.h |    1 -
+ kernel/sysctl.c        |    4 +++-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN kernel/printk.c~printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix-2 kernel/printk.c
---- a/kernel/printk.c~printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix-2
-+++ a/kernel/printk.c
-@@ -219,7 +219,7 @@ static int __init boot_delay_setup(char 
- 	if (boot_delay > 10 * 1000)
- 		boot_delay = 0;
+diff -puN include/linux/sysctl.h~printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix include/linux/sysctl.h
+--- a/include/linux/sysctl.h~printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix
++++ a/include/linux/sysctl.h
+@@ -163,7 +163,6 @@ enum
+ 	KERN_MAX_LOCK_DEPTH=74,
+ 	KERN_NMI_WATCHDOG=75, /* int: enable/disable nmi watchdog */
+ 	KERN_PANIC_ON_NMI=76, /* int: whether we will panic on an unrecovered */
+-	KERN_PRINTK_DELAY = 77,	/* int: tune printk delay*/
+ };
  
--	printk(KERN_DEBUG "boot_delay: %u, preset_lpj: %ld, lpj: %lu, "
-+	pr_debug("boot_delay: %u, preset_lpj: %ld, lpj: %lu, "
- 		"HZ: %d, loops_per_msec: %llu\n",
- 		boot_delay, preset_lpj, lpj, HZ, loops_per_msec);
- 	return 1;
+ 
+diff -puN kernel/sysctl.c~printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix kernel/sysctl.c
+--- a/kernel/sysctl.c~printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix
++++ a/kernel/sysctl.c
+@@ -105,7 +105,9 @@ static int __maybe_unused one = 1;
+ static int __maybe_unused two = 2;
+ static unsigned long one_ul = 1;
+ static int one_hundred = 100;
++#ifdef CONFIG_PRINTK
+ static int ten_thousand = 10000;
++#endif
+ 
+ /* this is needed for the proc_doulongvec_minmax of vm_dirty_bytes */
+ static unsigned long dirty_bytes_min = 2 * PAGE_SIZE;
+@@ -715,7 +717,7 @@ static struct ctl_table kern_table[] = {
+ 		.proc_handler	= &proc_dointvec,
+ 	},
+ 	{
+-		.ctl_name	= KERN_PRINTK_DELAY,
++		.ctl_name	= CTL_UNNUMBERED,
+ 		.procname	= "printk_delay",
+ 		.data		= &printk_delay_msec,
+ 		.maxlen		= sizeof(int),
 _
 
-Patches currently in -mm which might be from hidave.darkstar@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix-2.patch
 printk-add-printk_delay-to-make-messages-readable-for-some-scenarios.patch
 printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
 printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
+generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
+proc-connector-add-event-for-process-becoming-session-leader.patch
+build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix.patch
+mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
+sdio-add-cd-disable-support-cleanup.patch
+sdio-add-mmc_quirk_lenient_fn0-fix.patch
+at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver-checkpatch-fixes.patch
+mmc-core-sdio-suspend-resume-support-fix.patch
+procfs-provide-stack-information-for-threads-v011-fix.patch
+walk-system-ram-range-fix-2.patch
+kcore-register-vmemmap-range-fix.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
+drivers-video-add-kmalloc-null-tests-fix.patch
+drivers-video-tmiofbc-fix-uninitialised-return-value.patch
+v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
 
