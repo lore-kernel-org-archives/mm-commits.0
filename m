@@ -1,100 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-add-some-common-blackfin-checks.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:46:04 -0700
-Message-ID: <200909222046.n8MKk46B017007@imap1.linux-foundation.org>
+Subject: [merged] hwmon-fix-freeing-of-gpio_data-and-irq.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:46:29 -0700
+Message-ID: <200909222046.n8MKkTLT017822@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46956 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35228 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753267AbZIVUzg (ORCPT
+	by vger.kernel.org with ESMTP id S1751467AbZIVUze (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:55:36 -0400
+	Tue, 22 Sep 2009 16:55:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vapier@gentoo.org, apw@shadowen.org, cooloney@kernel.org, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, david-b@pacbell.net, jic23@cam.ac.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     checkpatch: add some common Blackfin checks
+     hwmon: fix freeing of gpio_data and irq
 has been removed from the -mm tree.  Its filename was
-     checkpatch-add-some-common-blackfin-checks.patch
+     hwmon-fix-freeing-of-gpio_data-and-irq.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: add some common Blackfin checks
-From: Mike Frysinger <vapier@gentoo.org>
+Subject: hwmon: fix freeing of gpio_data and irq
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Add checks for Blackfin-specific issues that seem to crop up from time to
-time.  In particular, we have helper macros to break a 32bit address into
-the hi/lo parts, and we want to make sure people use the csync/ssync
-variant that includes fun anomaly workarounds.
+If already requested, gpio_data and irq should be freed in the case of an
+error.
 
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Signed-off-by: Bryan Wu <cooloney@kernel.org>
-Cc: Andy Whitcroft <apw@shadowen.org>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Acked-by: Jonathan Cameron <jic23@cam.ac.uk>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ drivers/hwmon/sht15.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-some-common-blackfin-checks scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-some-common-blackfin-checks
-+++ a/scripts/checkpatch.pl
-@@ -1378,6 +1378,18 @@ sub process {
- 			WARN("adding a line without newline at end of file\n" . $herecurr);
- 		}
+diff -puN drivers/hwmon/sht15.c~hwmon-fix-freeing-of-gpio_data-and-irq drivers/hwmon/sht15.c
+--- a/drivers/hwmon/sht15.c~hwmon-fix-freeing-of-gpio_data-and-irq
++++ a/drivers/hwmon/sht15.c
+@@ -562,7 +562,7 @@ static int __devinit sht15_probe(struct 
+ 	ret = sysfs_create_group(&pdev->dev.kobj, &sht15_attr_group);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "sysfs create failed");
+-		goto err_free_data;
++		goto err_release_gpio_data;
+ 	}
  
-+# Blackfin: use hi/lo macros
-+		if ($realfile =~ m@arch/blackfin/.*\.S$@) {
-+			if ($line =~ /\.[lL][[:space:]]*=.*&[[:space:]]*0x[fF][fF][fF][fF]/) {
-+				my $herevet = "$here\n" . cat_vet($line) . "\n";
-+				ERROR("use the LO() macro, not (... & 0xFFFF)\n" . $herevet);
-+			}
-+			if ($line =~ /\.[hH][[:space:]]*=.*>>[[:space:]]*16/) {
-+				my $herevet = "$here\n" . cat_vet($line) . "\n";
-+				ERROR("use the HI() macro, not (... >> 16)\n" . $herevet);
-+			}
-+		}
-+
- # check we are in a valid source file C or perl if not then ignore this hunk
- 		next if ($realfile !~ /\.(h|c|pl)$/);
+ 	ret = request_irq(gpio_to_irq(data->pdata->gpio_data),
+@@ -581,10 +581,12 @@ static int __devinit sht15_probe(struct 
+ 	data->hwmon_dev = hwmon_device_register(data->dev);
+ 	if (IS_ERR(data->hwmon_dev)) {
+ 		ret = PTR_ERR(data->hwmon_dev);
+-		goto err_release_gpio_data;
++		goto err_release_irq;
+ 	}
+ 	return 0;
  
-@@ -1397,6 +1409,16 @@ sub process {
- 			WARN("CVS style keyword markers, these will _not_ be updated\n". $herecurr);
- 		}
- 
-+# Blackfin: don't use __builtin_bfin_[cs]sync
-+		if ($line =~ /__builtin_bfin_csync/) {
-+			my $herevet = "$here\n" . cat_vet($line) . "\n";
-+			ERROR("use the CSYNC() macro in asm/blackfin.h\n" . $herevet);
-+		}
-+		if ($line =~ /__builtin_bfin_ssync/) {
-+			my $herevet = "$here\n" . cat_vet($line) . "\n";
-+			ERROR("use the SSYNC() macro in asm/blackfin.h\n" . $herevet);
-+		}
-+
- # Check for potential 'bare' types
- 		my ($stat, $cond, $line_nr_next, $remain_next, $off_next);
- 		if ($realcnt && $line =~ /.\s*\S/) {
++err_release_irq:
++	free_irq(gpio_to_irq(data->pdata->gpio_data), data);
+ err_release_gpio_data:
+ 	gpio_free(data->pdata->gpio_data);
+ err_release_gpio_sck:
 _
 
-Patches currently in -mm which might be from vapier@gentoo.org are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 origin.patch
 linux-next.patch
-md-dm-log-fix-cn_ulog_callback-declaration.patch
-asm-sections-add-text-data-checking-functions-for-arches-to-override.patch
-kallsyms-use-new-arch_is_kernel_text.patch
-lockdep-use-new-arch_is_kernel_data.patch
-blackfin-override-text-data-checking-functions.patch
-rtc-update-documentation-wrt-rtc_pie-irq_set_state.patch
-rtc-bfin-do-not-share-rtc-irq.patch
-gpio-gpio-support-for-adp5520-adp5501-mfd-pmics.patch
-fdpic-ignore-the-loaders-pt_gnu_stack-when-calculating-the-stack-size.patch
-flat-use-is_err_value-helper-macro.patch
-linux-futexh-place-kernel-types-behind-__kernel__.patch
+s3c-fix-check-of-index-into-s3c_gpios.patch
+stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
+dm-strncpy-does-not-null-terminate-string.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
+msp71xx-request_irq-failure-ignored-in-msp_pcibios_config_access.patch
+mtd-jffs2-fix-read-buffer-overflow.patch
+mtd-prevent-a-read-from-eraseregions.patch
+mtd-prevent-a-read-from-regions.patch
+hfc_usb-fix-read-buffer-overflow.patch
+cyclades-read-buffer-overflow.patch
+serial167-fix-read-buffer-overflow.patch
+regulator-fix-calculation-of-voltage-range-in-da9034_set_ldo12_voltage.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
+zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
+st-fix-test-of-value-range-in-st_set_options.patch
+drivers-staging-octeon-ethernet-rgmiic-dont-ignore-request_irq-return-code.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+dme1737-keep-index-within-pwm_config.patch
+sdio-fix-read-buffer-overflow.patch
+ncpfs-read-buffer-overflow.patch
+smbfs-read-buffer-overflow.patch
+platinumfb-misplaced-parenthesis.patch
+sisfb-read-buffer-overflow.patch
+drivers-video-console-newport_conc-fix-read-outside-array-bounds.patch
+mwave-fix-read-buffer-overflow.patch
+adfs-remove-redundant-test-on-unsigned.patch
+gru-allocation-may-fail-in-quicktest1.patch
 
