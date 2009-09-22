@@ -1,142 +1,214 @@
 From: akpm@linux-foundation.org
-Subject: [merged] const-make-struct-super_block-dq_op-const.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:37:00 -0700
-Message-ID: <200909222037.n8MKb0J8030940@imap1.linux-foundation.org>
+Subject: [merged] const-mark-remaining-address_space_operations-const.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:37:08 -0700
+Message-ID: <200909222037.n8MKb83t031251@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33104 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36133 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752675AbZIVUmA (ORCPT
+	by vger.kernel.org with ESMTP id S1752659AbZIVUmB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:42:00 -0400
+	Tue, 22 Sep 2009 16:42:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: adobriyan@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     const: make struct super_block::dq_op const
+     const: mark remaining address_space_operations const
 has been removed from the -mm tree.  Its filename was
-     const-make-struct-super_block-dq_op-const.patch
+     const-mark-remaining-address_space_operations-const.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: const: make struct super_block::dq_op const
+Subject: const: mark remaining address_space_operations const
 From: Alexey Dobriyan <adobriyan@gmail.com>
 
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/super.c          |    2 +-
- fs/ext4/super.c          |    2 +-
- fs/ocfs2/quota.h         |    2 +-
- fs/ocfs2/quota_global.c  |    2 +-
- fs/quota/dquot.c         |    2 +-
- fs/reiserfs/super.c      |    2 +-
- include/linux/fs.h       |    2 +-
- include/linux/quotaops.h |    2 +-
- 8 files changed, 8 insertions(+), 8 deletions(-)
+ fs/btrfs/disk-io.c            |    2 +-
+ fs/btrfs/inode.c              |    8 ++++----
+ fs/ecryptfs/ecryptfs_kernel.h |    2 +-
+ fs/ecryptfs/mmap.c            |    2 +-
+ fs/nilfs2/btnode.c            |    2 +-
+ fs/nilfs2/gcinode.c           |    2 +-
+ fs/nilfs2/inode.c             |    2 +-
+ fs/nilfs2/mdt.c               |    2 +-
+ fs/nilfs2/nilfs.h             |    2 +-
+ fs/omfs/file.c                |    2 +-
+ fs/omfs/omfs.h                |    2 +-
+ fs/ubifs/xattr.c              |    2 +-
+ 12 files changed, 15 insertions(+), 15 deletions(-)
 
-diff -puN fs/ext3/super.c~const-make-struct-super_block-dq_op-const fs/ext3/super.c
---- a/fs/ext3/super.c~const-make-struct-super_block-dq_op-const
-+++ a/fs/ext3/super.c
-@@ -720,7 +720,7 @@ static ssize_t ext3_quota_read(struct su
- static ssize_t ext3_quota_write(struct super_block *sb, int type,
- 				const char *data, size_t len, loff_t off);
- 
--static struct dquot_operations ext3_quota_operations = {
-+static const struct dquot_operations ext3_quota_operations = {
- 	.initialize	= dquot_initialize,
- 	.drop		= dquot_drop,
- 	.alloc_space	= dquot_alloc_space,
-diff -puN fs/ext4/super.c~const-make-struct-super_block-dq_op-const fs/ext4/super.c
---- a/fs/ext4/super.c~const-make-struct-super_block-dq_op-const
-+++ a/fs/ext4/super.c
-@@ -964,7 +964,7 @@ static ssize_t ext4_quota_read(struct su
- static ssize_t ext4_quota_write(struct super_block *sb, int type,
- 				const char *data, size_t len, loff_t off);
- 
--static struct dquot_operations ext4_quota_operations = {
-+static const struct dquot_operations ext4_quota_operations = {
- 	.initialize	= dquot_initialize,
- 	.drop		= dquot_drop,
- 	.alloc_space	= dquot_alloc_space,
-diff -puN fs/ocfs2/quota.h~const-make-struct-super_block-dq_op-const fs/ocfs2/quota.h
---- a/fs/ocfs2/quota.h~const-make-struct-super_block-dq_op-const
-+++ a/fs/ocfs2/quota.h
-@@ -109,7 +109,7 @@ void ocfs2_unlock_global_qf(struct ocfs2
- int ocfs2_read_quota_block(struct inode *inode, u64 v_block,
- 			   struct buffer_head **bh);
- 
--extern struct dquot_operations ocfs2_quota_operations;
-+extern const struct dquot_operations ocfs2_quota_operations;
- extern struct quota_format_type ocfs2_quota_format;
- 
- int ocfs2_quota_setup(void);
-diff -puN fs/ocfs2/quota_global.c~const-make-struct-super_block-dq_op-const fs/ocfs2/quota_global.c
---- a/fs/ocfs2/quota_global.c~const-make-struct-super_block-dq_op-const
-+++ a/fs/ocfs2/quota_global.c
-@@ -849,7 +849,7 @@ static void ocfs2_destroy_dquot(struct d
- 	kmem_cache_free(ocfs2_dquot_cachep, dquot);
+diff -puN fs/btrfs/disk-io.c~const-mark-remaining-address_space_operations-const fs/btrfs/disk-io.c
+--- a/fs/btrfs/disk-io.c~const-mark-remaining-address_space_operations-const
++++ a/fs/btrfs/disk-io.c
+@@ -772,7 +772,7 @@ static void btree_invalidatepage(struct 
+ 	}
  }
  
--struct dquot_operations ocfs2_quota_operations = {
-+const struct dquot_operations ocfs2_quota_operations = {
- 	.initialize	= dquot_initialize,
- 	.drop		= dquot_drop,
- 	.alloc_space	= dquot_alloc_space,
-diff -puN fs/quota/dquot.c~const-make-struct-super_block-dq_op-const fs/quota/dquot.c
---- a/fs/quota/dquot.c~const-make-struct-super_block-dq_op-const
-+++ a/fs/quota/dquot.c
-@@ -1839,7 +1839,7 @@ EXPORT_SYMBOL(dquot_commit_info);
- /*
-  * Definitions of diskquota operations.
-  */
--struct dquot_operations dquot_operations = {
-+const struct dquot_operations dquot_operations = {
- 	.initialize	= dquot_initialize,
- 	.drop		= dquot_drop,
- 	.alloc_space	= dquot_alloc_space,
-diff -puN fs/reiserfs/super.c~const-make-struct-super_block-dq_op-const fs/reiserfs/super.c
---- a/fs/reiserfs/super.c~const-make-struct-super_block-dq_op-const
-+++ a/fs/reiserfs/super.c
-@@ -612,7 +612,7 @@ static int reiserfs_mark_dquot_dirty(str
- static int reiserfs_write_info(struct super_block *, int);
- static int reiserfs_quota_on(struct super_block *, int, int, char *, int);
+-static struct address_space_operations btree_aops = {
++static const struct address_space_operations btree_aops = {
+ 	.readpage	= btree_readpage,
+ 	.writepage	= btree_writepage,
+ 	.writepages	= btree_writepages,
+diff -puN fs/btrfs/inode.c~const-mark-remaining-address_space_operations-const fs/btrfs/inode.c
+--- a/fs/btrfs/inode.c~const-mark-remaining-address_space_operations-const
++++ a/fs/btrfs/inode.c
+@@ -60,8 +60,8 @@ static struct inode_operations btrfs_sym
+ static struct inode_operations btrfs_dir_ro_inode_operations;
+ static struct inode_operations btrfs_special_inode_operations;
+ static struct inode_operations btrfs_file_inode_operations;
+-static struct address_space_operations btrfs_aops;
+-static struct address_space_operations btrfs_symlink_aops;
++static const struct address_space_operations btrfs_aops;
++static const struct address_space_operations btrfs_symlink_aops;
+ static struct file_operations btrfs_dir_file_operations;
+ static struct extent_io_ops btrfs_extent_io_ops;
  
--static struct dquot_operations reiserfs_quota_operations = {
-+static const struct dquot_operations reiserfs_quota_operations = {
- 	.initialize = dquot_initialize,
- 	.drop = dquot_drop,
- 	.alloc_space = dquot_alloc_space,
-diff -puN include/linux/fs.h~const-make-struct-super_block-dq_op-const include/linux/fs.h
---- a/include/linux/fs.h~const-make-struct-super_block-dq_op-const
-+++ a/include/linux/fs.h
-@@ -1318,7 +1318,7 @@ struct super_block {
- 	unsigned long long	s_maxbytes;	/* Max file size */
- 	struct file_system_type	*s_type;
- 	const struct super_operations	*s_op;
--	struct dquot_operations	*dq_op;
-+	const struct dquot_operations	*dq_op;
-  	struct quotactl_ops	*s_qcop;
- 	const struct export_operations *s_export_op;
- 	unsigned long		s_flags;
-diff -puN include/linux/quotaops.h~const-make-struct-super_block-dq_op-const include/linux/quotaops.h
---- a/include/linux/quotaops.h~const-make-struct-super_block-dq_op-const
-+++ a/include/linux/quotaops.h
-@@ -135,7 +135,7 @@ static inline int sb_any_quota_active(st
- /*
-  * Operations supported for diskquotas.
+@@ -5259,7 +5259,7 @@ static struct extent_io_ops btrfs_extent
+  *
+  * For now we're avoiding this by dropping bmap.
   */
--extern struct dquot_operations dquot_operations;
-+extern const struct dquot_operations dquot_operations;
- extern struct quotactl_ops vfs_quotactl_ops;
+-static struct address_space_operations btrfs_aops = {
++static const struct address_space_operations btrfs_aops = {
+ 	.readpage	= btrfs_readpage,
+ 	.writepage	= btrfs_writepage,
+ 	.writepages	= btrfs_writepages,
+@@ -5271,7 +5271,7 @@ static struct address_space_operations b
+ 	.set_page_dirty	= btrfs_set_page_dirty,
+ };
  
- #define sb_dquot_ops (&dquot_operations)
+-static struct address_space_operations btrfs_symlink_aops = {
++static const struct address_space_operations btrfs_symlink_aops = {
+ 	.readpage	= btrfs_readpage,
+ 	.writepage	= btrfs_writepage,
+ 	.invalidatepage = btrfs_invalidatepage,
+diff -puN fs/ecryptfs/ecryptfs_kernel.h~const-mark-remaining-address_space_operations-const fs/ecryptfs/ecryptfs_kernel.h
+--- a/fs/ecryptfs/ecryptfs_kernel.h~const-mark-remaining-address_space_operations-const
++++ a/fs/ecryptfs/ecryptfs_kernel.h
+@@ -582,7 +582,7 @@ extern const struct inode_operations ecr
+ extern const struct inode_operations ecryptfs_symlink_iops;
+ extern const struct super_operations ecryptfs_sops;
+ extern const struct dentry_operations ecryptfs_dops;
+-extern struct address_space_operations ecryptfs_aops;
++extern const struct address_space_operations ecryptfs_aops;
+ extern int ecryptfs_verbosity;
+ extern unsigned int ecryptfs_message_buf_len;
+ extern signed long ecryptfs_message_wait_timeout;
+diff -puN fs/ecryptfs/mmap.c~const-mark-remaining-address_space_operations-const fs/ecryptfs/mmap.c
+--- a/fs/ecryptfs/mmap.c~const-mark-remaining-address_space_operations-const
++++ a/fs/ecryptfs/mmap.c
+@@ -545,7 +545,7 @@ static sector_t ecryptfs_bmap(struct add
+ 	return rc;
+ }
+ 
+-struct address_space_operations ecryptfs_aops = {
++const struct address_space_operations ecryptfs_aops = {
+ 	.writepage = ecryptfs_writepage,
+ 	.readpage = ecryptfs_readpage,
+ 	.write_begin = ecryptfs_write_begin,
+diff -puN fs/nilfs2/btnode.c~const-mark-remaining-address_space_operations-const fs/nilfs2/btnode.c
+--- a/fs/nilfs2/btnode.c~const-mark-remaining-address_space_operations-const
++++ a/fs/nilfs2/btnode.c
+@@ -46,7 +46,7 @@ void nilfs_btnode_cache_init_once(struct
+ 	INIT_LIST_HEAD(&btnc->i_mmap_nonlinear);
+ }
+ 
+-static struct address_space_operations def_btnode_aops = {
++static const struct address_space_operations def_btnode_aops = {
+ 	.sync_page		= block_sync_page,
+ };
+ 
+diff -puN fs/nilfs2/gcinode.c~const-mark-remaining-address_space_operations-const fs/nilfs2/gcinode.c
+--- a/fs/nilfs2/gcinode.c~const-mark-remaining-address_space_operations-const
++++ a/fs/nilfs2/gcinode.c
+@@ -52,7 +52,7 @@
+ #include "dat.h"
+ #include "ifile.h"
+ 
+-static struct address_space_operations def_gcinode_aops = {
++static const struct address_space_operations def_gcinode_aops = {
+ 	.sync_page		= block_sync_page,
+ };
+ 
+diff -puN fs/nilfs2/inode.c~const-mark-remaining-address_space_operations-const fs/nilfs2/inode.c
+--- a/fs/nilfs2/inode.c~const-mark-remaining-address_space_operations-const
++++ a/fs/nilfs2/inode.c
+@@ -238,7 +238,7 @@ nilfs_direct_IO(int rw, struct kiocb *io
+ 	return size;
+ }
+ 
+-struct address_space_operations nilfs_aops = {
++const struct address_space_operations nilfs_aops = {
+ 	.writepage		= nilfs_writepage,
+ 	.readpage		= nilfs_readpage,
+ 	.sync_page		= block_sync_page,
+diff -puN fs/nilfs2/mdt.c~const-mark-remaining-address_space_operations-const fs/nilfs2/mdt.c
+--- a/fs/nilfs2/mdt.c~const-mark-remaining-address_space_operations-const
++++ a/fs/nilfs2/mdt.c
+@@ -427,7 +427,7 @@ nilfs_mdt_write_page(struct page *page, 
+ }
+ 
+ 
+-static struct address_space_operations def_mdt_aops = {
++static const struct address_space_operations def_mdt_aops = {
+ 	.writepage		= nilfs_mdt_write_page,
+ 	.sync_page		= block_sync_page,
+ };
+diff -puN fs/nilfs2/nilfs.h~const-mark-remaining-address_space_operations-const fs/nilfs2/nilfs.h
+--- a/fs/nilfs2/nilfs.h~const-mark-remaining-address_space_operations-const
++++ a/fs/nilfs2/nilfs.h
+@@ -297,7 +297,7 @@ void nilfs_clear_gcdat_inode(struct the_
+ extern struct file_operations nilfs_dir_operations;
+ extern struct inode_operations nilfs_file_inode_operations;
+ extern struct file_operations nilfs_file_operations;
+-extern struct address_space_operations nilfs_aops;
++extern const struct address_space_operations nilfs_aops;
+ extern struct inode_operations nilfs_dir_inode_operations;
+ extern struct inode_operations nilfs_special_inode_operations;
+ extern struct inode_operations nilfs_symlink_inode_operations;
+diff -puN fs/omfs/file.c~const-mark-remaining-address_space_operations-const fs/omfs/file.c
+--- a/fs/omfs/file.c~const-mark-remaining-address_space_operations-const
++++ a/fs/omfs/file.c
+@@ -337,7 +337,7 @@ struct inode_operations omfs_file_inops 
+ 	.truncate = omfs_truncate
+ };
+ 
+-struct address_space_operations omfs_aops = {
++const struct address_space_operations omfs_aops = {
+ 	.readpage = omfs_readpage,
+ 	.readpages = omfs_readpages,
+ 	.writepage = omfs_writepage,
+diff -puN fs/omfs/omfs.h~const-mark-remaining-address_space_operations-const fs/omfs/omfs.h
+--- a/fs/omfs/omfs.h~const-mark-remaining-address_space_operations-const
++++ a/fs/omfs/omfs.h
+@@ -53,7 +53,7 @@ extern int omfs_is_bad(struct omfs_sb_in
+ /* file.c */
+ extern struct file_operations omfs_file_operations;
+ extern struct inode_operations omfs_file_inops;
+-extern struct address_space_operations omfs_aops;
++extern const struct address_space_operations omfs_aops;
+ extern void omfs_make_empty_table(struct buffer_head *bh, int offset);
+ extern int omfs_shrink_inode(struct inode *inode);
+ 
+diff -puN fs/ubifs/xattr.c~const-mark-remaining-address_space_operations-const fs/ubifs/xattr.c
+--- a/fs/ubifs/xattr.c~const-mark-remaining-address_space_operations-const
++++ a/fs/ubifs/xattr.c
+@@ -79,7 +79,7 @@ enum {
+ };
+ 
+ static const struct inode_operations none_inode_operations;
+-static struct address_space_operations none_address_operations;
++static const struct address_space_operations none_address_operations;
+ static const struct file_operations none_file_operations;
+ 
+ /**
 _
 
 Patches currently in -mm which might be from adobriyan@gmail.com are
