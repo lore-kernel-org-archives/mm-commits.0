@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix-fix.patch added to -mm tree
-Date: Tue, 22 Sep 2009 14:59:55 -0700
-Message-ID: <200909222222.n8MMMJci012411@imap1.linux-foundation.org>
+Subject: + hugetlb_file_setup-use-c-not-cpp.patch added to -mm tree
+Date: Tue, 22 Sep 2009 15:45:57 -0700
+Message-ID: <200909222308.n8MN8Mp4005807@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36174 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48563 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752132AbZIVWWn (ORCPT
+	by vger.kernel.org with ESMTP id S1751677AbZIVXIz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 18:22:43 -0400
+	Tue, 22 Sep 2009 19:08:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, JBeulich@novell.com, andi@firstfloor.org, catalin.marinas@arm.com, davem@davemloft.net, jbeulich@novell.com, jmorris@namei.org, rusty@rustcorp.com.au, srajiv@linux.vnet.ibm.com, zohar@us.ibm.com
+Cc: akpm@linux-foundation.org, agl@us.ibm.com, apw@canonical.com, eric.whitney@hp.com, lee.schermerhorn@hp.com, mel@csn.ul.ie, nacc@us.ibm.com, rientjes@google.com
 
 
 The patch titled
-     build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix-fix
+     hugetlb_file_setup(): use C, not cpp
 has been added to the -mm tree.  Its filename is
-     build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix-fix.patch
+     hugetlb_file_setup-use-c-not-cpp.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,67 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix-fix
+Subject: hugetlb_file_setup(): use C, not cpp
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: "Jan Beulich" <JBeulich@novell.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: Jan Beulich <jbeulich@novell.com>
-Cc: Mimi Zohar <zohar@us.ibm.com>
-Cc: Rajiv Andrade <srajiv@linux.vnet.ibm.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+why macros are always wrong:
+
+mm/mmap.c: In function 'do_mmap_pgoff':
+mm/mmap.c:953: warning: unused variable 'user'
+
+also, move a couple of struct forward-decls outside `#ifdef
+CONFIG_HUGETLB_PAGE' - it's pointless and frequently harmful to make these
+conditional (eg, this patch needed `struct user_struct').
+
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Nishanth Aravamudan <nacc@us.ibm.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Adam Litke <agl@us.ibm.com>
+Cc: Andy Whitcroft <apw@canonical.com>
+Cc: Eric Whitney <eric.whitney@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tpm/tpm.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/hugetlb.h |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN drivers/char/tpm/tpm.c~build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix-fix drivers/char/tpm/tpm.c
---- a/drivers/char/tpm/tpm.c~build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix-fix
-+++ a/drivers/char/tpm/tpm.c
-@@ -760,7 +760,7 @@ int tpm_pcr_extend(u32 chip_num, int pcr
- 		return -ENODEV;
+diff -puN fs/hugetlbfs/inode.c~hugetlb_file_setup-use-c-not-cpp fs/hugetlbfs/inode.c
+diff -puN include/linux/hugetlb.h~hugetlb_file_setup-use-c-not-cpp include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~hugetlb_file_setup-use-c-not-cpp
++++ a/include/linux/hugetlb.h
+@@ -3,15 +3,15 @@
  
- 	cmd.header.in = pcrextend_header;
--	BUILD_BUG_ON(be32_to_cpu(cmd.header.in.length) > EXTEND_PCR_SIZE);
-+	BUG_ON(be32_to_cpu(cmd.header.in.length) > EXTEND_PCR_SIZE);
- 	cmd.params.pcrextend_in.pcr_idx = cpu_to_be32(pcr_idx);
- 	memcpy(cmd.params.pcrextend_in.hash, hash, TPM_DIGEST_SIZE);
- 	rc = transmit_cmd(chip, &cmd, cmd.header.in.length,
+ #include <linux/fs.h>
+ 
++struct ctl_table;
++struct user_struct;
++
+ #ifdef CONFIG_HUGETLB_PAGE
+ 
+ #include <linux/mempolicy.h>
+ #include <linux/shm.h>
+ #include <asm/tlbflush.h>
+ 
+-struct ctl_table;
+-struct user_struct;
+-
+ int PageHuge(struct page *page);
+ 
+ static inline int is_vm_hugetlb_page(struct vm_area_struct *vma)
+@@ -187,7 +187,11 @@ static inline void set_file_hugepages(st
+ 
+ #define is_file_hugepages(file)			0
+ #define set_file_hugepages(file)		BUG()
+-#define hugetlb_file_setup(name,size,acct,user,creat)	ERR_PTR(-ENOSYS)
++static inline struct file *hugetlb_file_setup(const char *name, size_t size, int acctflag,
++				struct user_struct **user, int creat_flags)
++{
++	return ERR_PTR(-ENOSYS);
++}
+ 
+ #endif /* !CONFIG_HUGETLBFS */
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -90,4 +121,5 @@ davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4.patch
 drivers-video-add-kmalloc-null-tests.patch
 drivers-video-tmiofbc-fix-uninitialised-return-value.patch
 v3-minixfs-add-missing-directory-type-checking.patch
+hugetlb_file_setup-use-c-not-cpp.patch
 
