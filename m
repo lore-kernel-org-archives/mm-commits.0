@@ -1,61 +1,144 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-indent-checks-stop-when-we-run-out-of-continuation-lines.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:45:52 -0700
-Message-ID: <200909222045.n8MKjqcb016570@imap1.linux-foundation.org>
+Subject: [merged] lis3-add-free-fall-wakeup-function-via-platform_data.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:46:13 -0700
+Message-ID: <200909222046.n8MKkDY0017282@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47808 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47882 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753197AbZIVUqT (ORCPT
+	by vger.kernel.org with ESMTP id S1752289AbZIVUqt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:46:19 -0400
+	Tue, 22 Sep 2009 16:46:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: apw@canonical.com, daikerjohn@gmail.com, mm-commits@vger.kernel.org
+To: daniel@caiaq.de, eric.piel@tremplin-utc.net, pavel@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     checkpatch: indent checks -- stop when we run out of continuation lines
+     lis3: add free-fall/wakeup function via platform_data
 has been removed from the -mm tree.  Its filename was
-     checkpatch-indent-checks-stop-when-we-run-out-of-continuation-lines.patch
+     lis3-add-free-fall-wakeup-function-via-platform_data.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: indent checks -- stop when we run out of continuation lines
-From: Andy Whitcroft <apw@canonical.com>
+Subject: lis3: add free-fall/wakeup function via platform_data
+From: Daniel Mack <daniel@caiaq.de>
 
-Ensure we terminate when there are no futher continuation lines when
-trying to determine relative indent of conditionals and their blocks.
+This offers a way for platforms to define flags and thresholds for the
+free-fall/wakeup functions of the lis302d chips.
 
-Reported-by: John Daiker <daikerjohn@gmail.com>
-Signed-off-by: Andy Whitcroft <apw@canonical.com>
+More registers needed to be seperated as they are specific to the
+
+Signed-off-by: Daniel Mack <daniel@caiaq.de>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+Cc: Eric Piel <eric.piel@tremplin-utc.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/hwmon/lis3lv02d.c |    9 +++++++++
+ drivers/hwmon/lis3lv02d.h |   24 ++++++++++++++++++------
+ include/linux/lis3lv02d.h |    9 +++++++++
+ 3 files changed, 36 insertions(+), 6 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-indent-checks-stop-when-we-run-out-of-continuation-lines scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-indent-checks-stop-when-we-run-out-of-continuation-lines
-+++ a/scripts/checkpatch.pl
-@@ -1547,8 +1547,9 @@ sub process {
- 				    $s =~ /^\s*#\s*?/ ||
- 				    $s =~ /^\s*$Ident\s*:/) {
- 					$continuation = ($s =~ /^.*?\\\n/) ? 1 : 0;
--					$s =~ s/^.*?\n//;
--					$cond_lines++;
-+					if ($s =~ s/^.*?\n//) {
-+						$cond_lines++;
-+					}
- 				}
- 			}
+diff -puN drivers/hwmon/lis3lv02d.c~lis3-add-free-fall-wakeup-function-via-platform_data drivers/hwmon/lis3lv02d.c
+--- a/drivers/hwmon/lis3lv02d.c~lis3-add-free-fall-wakeup-function-via-platform_data
++++ a/drivers/hwmon/lis3lv02d.c
+@@ -454,6 +454,15 @@ int lis3lv02d_init_device(struct lis3lv0
+ 					(p->click_thresh_y << 4));
+ 		}
  
++		if (p->wakeup_flags && (dev->whoami == LIS_SINGLE_ID)) {
++			dev->write(dev, FF_WU_CFG_1, p->wakeup_flags);
++			dev->write(dev, FF_WU_THS_1, p->wakeup_thresh & 0x7f);
++			/* default to 2.5ms for now */
++			dev->write(dev, FF_WU_DURATION_1, 1);
++			/* enable high pass filter for both free-fall units */
++			dev->write(dev, CTRL_REG2, HP_FF_WU1 | HP_FF_WU2);
++		}
++
+ 		if (p->irq_cfg)
+ 			dev->write(dev, CTRL_REG3, p->irq_cfg);
+ 	}
+diff -puN drivers/hwmon/lis3lv02d.h~lis3-add-free-fall-wakeup-function-via-platform_data drivers/hwmon/lis3lv02d.h
+--- a/drivers/hwmon/lis3lv02d.h~lis3-add-free-fall-wakeup-function-via-platform_data
++++ a/drivers/hwmon/lis3lv02d.h
+@@ -58,15 +58,17 @@ enum lis3_reg {
+ 	OUTZ_L		= 0x2C,
+ 	OUTZ_H		= 0x2D,
+ 	OUTZ		= 0x2D,
+-	FF_WU_CFG	= 0x30,
+-	FF_WU_SRC	= 0x31,
+-	FF_WU_ACK	= 0x32,
+-	FF_WU_THS_L	= 0x34,
+-	FF_WU_THS_H	= 0x35,
+-	FF_WU_DURATION	= 0x36,
+ };
+ 
+ enum lis302d_reg {
++	FF_WU_CFG_1	= 0x30,
++	FF_WU_SRC_1	= 0x31,
++	FF_WU_THS_1	= 0x32,
++	FF_WU_DURATION_1 = 0x33,
++	FF_WU_CFG_2	= 0x34,
++	FF_WU_SRC_2	= 0x35,
++	FF_WU_THS_2	= 0x36,
++	FF_WU_DURATION_2 = 0x37,
+ 	CLICK_CFG	= 0x38,
+ 	CLICK_SRC	= 0x39,
+ 	CLICK_THSY_X	= 0x3B,
+@@ -77,6 +79,12 @@ enum lis302d_reg {
+ };
+ 
+ enum lis3lv02d_reg {
++	FF_WU_CFG	= 0x30,
++	FF_WU_SRC	= 0x31,
++	FF_WU_ACK	= 0x32,
++	FF_WU_THS_L	= 0x34,
++	FF_WU_THS_H	= 0x35,
++	FF_WU_DURATION	= 0x36,
+ 	DD_CFG		= 0x38,
+ 	DD_SRC		= 0x39,
+ 	DD_ACK		= 0x3A,
+@@ -107,6 +115,10 @@ enum lis3lv02d_ctrl2 {
+ 	CTRL2_FS	= 0x80, /* Full Scale selection */
+ };
+ 
++enum lis302d_ctrl2 {
++	HP_FF_WU2	= 0x08,
++	HP_FF_WU1	= 0x04,
++};
+ 
+ enum lis3lv02d_ctrl3 {
+ 	CTRL3_CFS0	= 0x01,
+diff -puN include/linux/lis3lv02d.h~lis3-add-free-fall-wakeup-function-via-platform_data include/linux/lis3lv02d.h
+--- a/include/linux/lis3lv02d.h~lis3-add-free-fall-wakeup-function-via-platform_data
++++ a/include/linux/lis3lv02d.h
+@@ -34,6 +34,15 @@ struct lis3lv02d_platform_data {
+ #define LIS3_IRQ_OPEN_DRAIN	(1 << 6)
+ #define LIS3_IRQ_ACTIVE_LOW	(1 << 7)
+ 	unsigned char irq_cfg;
++
++#define LIS3_WAKEUP_X_LO	(1 << 0)
++#define LIS3_WAKEUP_X_HI	(1 << 1)
++#define LIS3_WAKEUP_Y_LO	(1 << 2)
++#define LIS3_WAKEUP_Y_HI	(1 << 3)
++#define LIS3_WAKEUP_Z_LO	(1 << 4)
++#define LIS3_WAKEUP_Z_HI	(1 << 5)
++	unsigned char wakeup_flags;
++	unsigned char wakeup_thresh;
+ };
+ 
+ #endif /* __LIS3LV02D_H_ */
 _
 
-Patches currently in -mm which might be from apw@canonical.com are
+Patches currently in -mm which might be from daniel@caiaq.de are
 
 origin.patch
+linux-next.patch
+rtc-add-driver-for-mxcs-internal-rtc-module.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
+rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
 
