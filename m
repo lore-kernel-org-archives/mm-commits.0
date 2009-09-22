@@ -1,56 +1,44 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-reinstate-zero_page.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:42:58 -0700
-Message-ID: <200909222042.n8MKgwHN010684@imap1.linux-foundation.org>
+Subject: [merged] mm-foll-flags-for-gup-flags.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:43:01 -0700
+Message-ID: <200909222043.n8MKh14x010752@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38967 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48335 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753055AbZIVUnQ (ORCPT
+	by vger.kernel.org with ESMTP id S1753072AbZIVUnV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:43:16 -0400
+	Tue, 22 Sep 2009 16:43:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hugh.dickins@tiscali.co.uk, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, npiggin@suse.de, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: reinstate ZERO_PAGE
+     mm: FOLL flags for GUP flags
 has been removed from the -mm tree.  Its filename was
-     mm-reinstate-zero_page.patch
+     mm-foll-flags-for-gup-flags.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: reinstate ZERO_PAGE
+Subject: mm: FOLL flags for GUP flags
 From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
-KAMEZAWA Hiroyuki has observed customers of earlier kernels taking
-advantage of the ZERO_PAGE: which we stopped do_anonymous_page() from
-using in 2.6.24.  And there were a couple of regression reports on LKML.
+__get_user_pages() has been taking its own GUP flags, then processing
+them into FOLL flags for follow_page().  Though oddly named, the FOLL
+flags are more widely used, so pass them to __get_user_pages() now.
+Sorry, VM flags, VM_FAULT flags and FAULT_FLAGs are still distinct.
 
-Following suggestions from Linus, reinstate do_anonymous_page() use of
-the ZERO_PAGE; but this time avoid dirtying its struct page cacheline
-with (map)count updates - let vm_normal_page() regard it as abnormal.
-
-Use it only on arches which __HAVE_ARCH_PTE_SPECIAL (x86, s390, sh32,
-most powerpc): that's not essential, but minimizes additional branches
-(keeping them in the unlikely pte_special case); and incidentally
-excludes mips (some models of which needed eight colours of ZERO_PAGE
-to avoid costly exceptions).
-
-Don't be fanatical about avoiding ZERO_PAGE updates: get_user_pages()
-callers won't want to make exceptions for it, so increment its count
-there.  Changes to mlock and migration? happily seems not needed.
-
-In most places it's quicker to check pfn than struct page address:
-prepare a __read_mostly zero_pfn for that.  Does get_dump_page()
-still need its ZERO_PAGE check? probably not, but keep it anyway.
+(The patch to __get_user_pages() looks peculiar, with both gup_flags
+and foll_flags: the gup_flags remain constant; but as before there's
+an exceptional case, out of scope of the patch, in which foll_flags
+per page have FOLL_WRITE masked off.)
 
 Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Nick Piggin <npiggin@suse.de>
@@ -59,115 +47,210 @@ Cc: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   53 +++++++++++++++++++++++++++++++++++++++++---------
- 1 file changed, 44 insertions(+), 9 deletions(-)
+ include/linux/mm.h |    1 
+ mm/internal.h      |    6 -----
+ mm/memory.c        |   44 ++++++++++++++++++-------------------------
+ mm/mlock.c         |    4 +--
+ mm/nommu.c         |   16 +++++++--------
+ 5 files changed, 31 insertions(+), 40 deletions(-)
 
-diff -puN mm/memory.c~mm-reinstate-zero_page mm/memory.c
---- a/mm/memory.c~mm-reinstate-zero_page
-+++ a/mm/memory.c
-@@ -108,6 +108,17 @@ static int __init disable_randmaps(char 
+diff -puN include/linux/mm.h~mm-foll-flags-for-gup-flags include/linux/mm.h
+--- a/include/linux/mm.h~mm-foll-flags-for-gup-flags
++++ a/include/linux/mm.h
+@@ -1232,6 +1232,7 @@ struct page *follow_page(struct vm_area_
+ #define FOLL_TOUCH	0x02	/* mark page accessed */
+ #define FOLL_GET	0x04	/* do get_page on page */
+ #define FOLL_DUMP	0x08	/* give error on hole if it would be zero */
++#define FOLL_FORCE	0x10	/* get_user_pages read/write w/o permission */
+ 
+ typedef int (*pte_fn_t)(pte_t *pte, pgtable_t token, unsigned long addr,
+ 			void *data);
+diff -puN mm/internal.h~mm-foll-flags-for-gup-flags mm/internal.h
+--- a/mm/internal.h~mm-foll-flags-for-gup-flags
++++ a/mm/internal.h
+@@ -250,12 +250,8 @@ static inline void mminit_validate_memmo
  }
- __setup("norandmaps", disable_randmaps);
+ #endif /* CONFIG_SPARSEMEM */
  
-+static unsigned long zero_pfn __read_mostly;
+-#define GUP_FLAGS_WRITE		0x01
+-#define GUP_FLAGS_FORCE		0x02
+-#define GUP_FLAGS_DUMP		0x04
+-
+ int __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
+-		     unsigned long start, int len, int flags,
++		     unsigned long start, int len, unsigned int foll_flags,
+ 		     struct page **pages, struct vm_area_struct **vmas);
+ 
+ #define ZONE_RECLAIM_NOSCAN	-2
+diff -puN mm/memory.c~mm-foll-flags-for-gup-flags mm/memory.c
+--- a/mm/memory.c~mm-foll-flags-for-gup-flags
++++ a/mm/memory.c
+@@ -1209,27 +1209,29 @@ no_page_table:
+ }
+ 
+ int __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
+-		     unsigned long start, int nr_pages, int flags,
++		     unsigned long start, int nr_pages, unsigned int gup_flags,
+ 		     struct page **pages, struct vm_area_struct **vmas)
+ {
+ 	int i;
+-	unsigned int vm_flags = 0;
+-	int write = !!(flags & GUP_FLAGS_WRITE);
+-	int force = !!(flags & GUP_FLAGS_FORCE);
++	unsigned long vm_flags;
+ 
+ 	if (nr_pages <= 0)
+ 		return 0;
 +
-+/*
-+ * CONFIG_MMU architectures set up ZERO_PAGE in their paging_init()
-+ */
-+static int __init init_zero_pfn(void)
-+{
-+	zero_pfn = page_to_pfn(ZERO_PAGE(0));
-+	return 0;
-+}
-+core_initcall(init_zero_pfn);
++	VM_BUG_ON(!!pages != !!(gup_flags & FOLL_GET));
++
+ 	/* 
+ 	 * Require read or write permissions.
+-	 * If 'force' is set, we only require the "MAY" flags.
++	 * If FOLL_FORCE is set, we only require the "MAY" flags.
+ 	 */
+-	vm_flags  = write ? (VM_WRITE | VM_MAYWRITE) : (VM_READ | VM_MAYREAD);
+-	vm_flags &= force ? (VM_MAYREAD | VM_MAYWRITE) : (VM_READ | VM_WRITE);
++	vm_flags  = (gup_flags & FOLL_WRITE) ?
++			(VM_WRITE | VM_MAYWRITE) : (VM_READ | VM_MAYREAD);
++	vm_flags &= (gup_flags & FOLL_FORCE) ?
++			(VM_MAYREAD | VM_MAYWRITE) : (VM_READ | VM_WRITE);
+ 	i = 0;
  
- /*
-  * If a p?d_bad entry is found while walking page tables, report
-@@ -499,7 +510,9 @@ struct page *vm_normal_page(struct vm_ar
- 	if (HAVE_PTE_SPECIAL) {
- 		if (likely(!pte_special(pte)))
- 			goto check_pfn;
--		if (!(vma->vm_flags & (VM_PFNMAP | VM_MIXEDMAP)))
-+		if (vma->vm_flags & (VM_PFNMAP | VM_MIXEDMAP))
-+			return NULL;
-+		if (pfn != zero_pfn)
- 			print_bad_pte(vma, addr, pte, NULL);
+ 	do {
+ 		struct vm_area_struct *vma;
+-		unsigned int foll_flags;
+ 
+ 		vma = find_extend_vma(mm, start);
+ 		if (!vma && in_gate_area(tsk, start)) {
+@@ -1241,7 +1243,7 @@ int __get_user_pages(struct task_struct 
+ 			pte_t *pte;
+ 
+ 			/* user gate pages are read-only */
+-			if (write)
++			if (gup_flags & FOLL_WRITE)
+ 				return i ? : -EFAULT;
+ 			if (pg > TASK_SIZE)
+ 				pgd = pgd_offset_k(pg);
+@@ -1278,22 +1280,15 @@ int __get_user_pages(struct task_struct 
+ 		    !(vm_flags & vma->vm_flags))
+ 			return i ? : -EFAULT;
+ 
+-		foll_flags = FOLL_TOUCH;
+-		if (pages)
+-			foll_flags |= FOLL_GET;
+-		if (flags & GUP_FLAGS_DUMP)
+-			foll_flags |= FOLL_DUMP;
+-		if (write)
+-			foll_flags |= FOLL_WRITE;
+-
+ 		if (is_vm_hugetlb_page(vma)) {
+ 			i = follow_hugetlb_page(mm, vma, pages, vmas,
+-					&start, &nr_pages, i, foll_flags);
++					&start, &nr_pages, i, gup_flags);
+ 			continue;
+ 		}
+ 
+ 		do {
+ 			struct page *page;
++			unsigned int foll_flags = gup_flags;
+ 
+ 			/*
+ 			 * If we have a pending SIGKILL, don't keep faulting
+@@ -1302,9 +1297,6 @@ int __get_user_pages(struct task_struct 
+ 			if (unlikely(fatal_signal_pending(current)))
+ 				return i ? i : -ERESTARTSYS;
+ 
+-			if (write)
+-				foll_flags |= FOLL_WRITE;
+-
+ 			cond_resched();
+ 			while (!(page = follow_page(vma, start, foll_flags))) {
+ 				int ret;
+@@ -1415,12 +1407,14 @@ int get_user_pages(struct task_struct *t
+ 		unsigned long start, int nr_pages, int write, int force,
+ 		struct page **pages, struct vm_area_struct **vmas)
+ {
+-	int flags = 0;
++	int flags = FOLL_TOUCH;
+ 
++	if (pages)
++		flags |= FOLL_GET;
+ 	if (write)
+-		flags |= GUP_FLAGS_WRITE;
++		flags |= FOLL_WRITE;
+ 	if (force)
+-		flags |= GUP_FLAGS_FORCE;
++		flags |= FOLL_FORCE;
+ 
+ 	return __get_user_pages(tsk, mm, start, nr_pages, flags, pages, vmas);
+ }
+@@ -1447,7 +1441,7 @@ struct page *get_dump_page(unsigned long
+ 	struct page *page;
+ 
+ 	if (__get_user_pages(current, current->mm, addr, 1,
+-			GUP_FLAGS_FORCE | GUP_FLAGS_DUMP, &page, &vma) < 1)
++			FOLL_FORCE | FOLL_DUMP | FOLL_GET, &page, &vma) < 1)
  		return NULL;
- 	}
-@@ -1144,9 +1157,14 @@ struct page *follow_page(struct vm_area_
- 		goto no_page;
- 	if ((flags & FOLL_WRITE) && !pte_write(pte))
- 		goto unlock;
-+
- 	page = vm_normal_page(vma, address, pte);
--	if (unlikely(!page))
--		goto bad_page;
-+	if (unlikely(!page)) {
-+		if ((flags & FOLL_DUMP) ||
-+		    pte_pfn(pte) != zero_pfn)
-+			goto bad_page;
-+		page = pte_page(pte);
-+	}
+ 	if (page == ZERO_PAGE(0)) {
+ 		page_cache_release(page);
+diff -puN mm/mlock.c~mm-foll-flags-for-gup-flags mm/mlock.c
+--- a/mm/mlock.c~mm-foll-flags-for-gup-flags
++++ a/mm/mlock.c
+@@ -166,9 +166,9 @@ static long __mlock_vma_pages_range(stru
+ 	VM_BUG_ON(end   > vma->vm_end);
+ 	VM_BUG_ON(!rwsem_is_locked(&mm->mmap_sem));
  
- 	if (flags & FOLL_GET)
- 		get_page(page);
-@@ -2084,10 +2102,19 @@ gotten:
+-	gup_flags = 0;
++	gup_flags = FOLL_TOUCH | FOLL_GET;
+ 	if (vma->vm_flags & VM_WRITE)
+-		gup_flags = GUP_FLAGS_WRITE;
++		gup_flags |= FOLL_WRITE;
  
- 	if (unlikely(anon_vma_prepare(vma)))
- 		goto oom;
--	VM_BUG_ON(old_page == ZERO_PAGE(0));
--	new_page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma, address);
--	if (!new_page)
--		goto oom;
-+
-+	if (pte_pfn(orig_pte) == zero_pfn) {
-+		new_page = alloc_zeroed_user_highpage_movable(vma, address);
-+		if (!new_page)
-+			goto oom;
-+	} else {
-+		new_page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma, address);
-+		if (!new_page)
-+			goto oom;
-+		cow_user_page(new_page, old_page, address, vma);
-+	}
-+	__SetPageUptodate(new_page);
-+
- 	/*
- 	 * Don't let another task, with possibly unlocked vma,
- 	 * keep the mlocked page.
-@@ -2097,8 +2124,6 @@ gotten:
- 		clear_page_mlock(old_page);
- 		unlock_page(old_page);
- 	}
--	cow_user_page(new_page, old_page, address, vma);
--	__SetPageUptodate(new_page);
+ 	while (nr_pages > 0) {
+ 		int i;
+diff -puN mm/nommu.c~mm-foll-flags-for-gup-flags mm/nommu.c
+--- a/mm/nommu.c~mm-foll-flags-for-gup-flags
++++ a/mm/nommu.c
+@@ -168,20 +168,20 @@ unsigned int kobjsize(const void *objp)
+ }
  
- 	if (mem_cgroup_newpage_charge(new_page, mm, GFP_KERNEL))
- 		goto oom_free_new;
-@@ -2639,6 +2664,15 @@ static int do_anonymous_page(struct mm_s
- 	spinlock_t *ptl;
- 	pte_t entry;
+ int __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
+-		     unsigned long start, int nr_pages, int flags,
++		     unsigned long start, int nr_pages, int foll_flags,
+ 		     struct page **pages, struct vm_area_struct **vmas)
+ {
+ 	struct vm_area_struct *vma;
+ 	unsigned long vm_flags;
+ 	int i;
+-	int write = !!(flags & GUP_FLAGS_WRITE);
+-	int force = !!(flags & GUP_FLAGS_FORCE);
  
-+	if (HAVE_PTE_SPECIAL && !(flags & FAULT_FLAG_WRITE)) {
-+		entry = pte_mkspecial(pfn_pte(zero_pfn, vma->vm_page_prot));
-+		ptl = pte_lockptr(mm, pmd);
-+		spin_lock(ptl);
-+		if (!pte_none(*page_table))
-+			goto unlock;
-+		goto setpte;
-+	}
-+
- 	/* Allocate our own private page. */
- 	pte_unmap(page_table);
+ 	/* calculate required read or write permissions.
+-	 * - if 'force' is set, we only require the "MAY" flags.
++	 * If FOLL_FORCE is set, we only require the "MAY" flags.
+ 	 */
+-	vm_flags  = write ? (VM_WRITE | VM_MAYWRITE) : (VM_READ | VM_MAYREAD);
+-	vm_flags &= force ? (VM_MAYREAD | VM_MAYWRITE) : (VM_READ | VM_WRITE);
++	vm_flags  = (foll_flags & FOLL_WRITE) ?
++			(VM_WRITE | VM_MAYWRITE) : (VM_READ | VM_MAYREAD);
++	vm_flags &= (foll_flags & FOLL_FORCE) ?
++			(VM_MAYREAD | VM_MAYWRITE) : (VM_READ | VM_WRITE);
  
-@@ -2662,6 +2696,7 @@ static int do_anonymous_page(struct mm_s
+ 	for (i = 0; i < nr_pages; i++) {
+ 		vma = find_vma(mm, start);
+@@ -223,9 +223,9 @@ int get_user_pages(struct task_struct *t
+ 	int flags = 0;
  
- 	inc_mm_counter(mm, anon_rss);
- 	page_add_new_anon_rmap(page, vma, address);
-+setpte:
- 	set_pte_at(mm, address, page_table, entry);
+ 	if (write)
+-		flags |= GUP_FLAGS_WRITE;
++		flags |= FOLL_WRITE;
+ 	if (force)
+-		flags |= GUP_FLAGS_FORCE;
++		flags |= FOLL_FORCE;
  
- 	/* No need to invalidate - it was non-present before */
+ 	return __get_user_pages(tsk, mm, start, nr_pages, flags, pages, vmas);
+ }
 _
 
 Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
