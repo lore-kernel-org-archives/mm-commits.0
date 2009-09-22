@@ -1,222 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pcmcia-cleanup-fixup-patch-for-sa1100_jornada_pcmcia-driver.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:44:05 -0700
-Message-ID: <200909222044.n8MKi525012939@imap1.linux-foundation.org>
+Subject: [merged] pcmcia-yenta-add-missing-__devexit-marking.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:43:56 -0700
+Message-ID: <200909222043.n8MKhuup012612@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36860 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51278 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753145AbZIVUoH (ORCPT
+	by vger.kernel.org with ESMTP id S1752900AbZIVUoA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:44:07 -0400
+	Tue, 22 Sep 2009 16:44:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kristoffer.ericson@gmail.com, greg@kroah.com, linux@dominikbrodowski.net, mm-commits@vger.kernel.org
+To: vapier@gentoo.org, daniel.ritz-ml@swissonline.ch, greg@kroah.com, linux@dominikbrodowski.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pcmcia: cleanup/fixup patch for sa1100_jornada_pcmcia driver
+     pcmcia: yenta: add missing __devexit marking
 has been removed from the -mm tree.  Its filename was
-     pcmcia-cleanup-fixup-patch-for-sa1100_jornada_pcmcia-driver.patch
+     pcmcia-yenta-add-missing-__devexit-marking.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pcmcia: cleanup/fixup patch for sa1100_jornada_pcmcia driver
-From: Kristoffer Ericson <kristoffer.ericson@gmail.com>
+Subject: pcmcia: yenta: add missing __devexit marking
+From: Mike Frysinger <vapier@gentoo.org>
 
-Clean up the /drivers/pcmcia/sa1100_jornada.c file with respect to
-formatting.  It also changes a build warning into a code comment (since
-its a pain to watch every build and havent seen any problems with driver
-in 3.5years).
+The remove member of the pci_driver yenta_cardbus_driver uses
+__devexit_p(), so the remove function itself should be marked with
+__devexit.  Even more so considering the probe function is marked with
+__devinit.
 
-Signed-off-by: Kristoffer Ericson <kristoffer.ericson@gmail.com>
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Cc: Daniel Ritz <daniel.ritz-ml@swissonline.ch>
 Cc: Dominik Brodowski <linux@dominikbrodowski.net>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pcmcia/sa1100_jornada720.c |  146 ++++++++++++++-------------
- 1 file changed, 80 insertions(+), 66 deletions(-)
+ drivers/pcmcia/yenta_socket.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/pcmcia/sa1100_jornada720.c~pcmcia-cleanup-fixup-patch-for-sa1100_jornada_pcmcia-driver drivers/pcmcia/sa1100_jornada720.c
---- a/drivers/pcmcia/sa1100_jornada720.c~pcmcia-cleanup-fixup-patch-for-sa1100_jornada_pcmcia-driver
-+++ a/drivers/pcmcia/sa1100_jornada720.c
-@@ -16,89 +16,103 @@
- 
- #include "sa1111_generic.h"
- 
--#define SOCKET0_POWER   GPIO_GPIO0
--#define SOCKET0_3V      GPIO_GPIO2
--#define SOCKET1_POWER   (GPIO_GPIO1 | GPIO_GPIO3)
--#warning *** Does SOCKET1_3V actually do anything?
-+/* Does SOCKET1_3V actually do anything? */
-+#define SOCKET0_POWER	GPIO_GPIO0
-+#define SOCKET0_3V	GPIO_GPIO2
-+#define SOCKET1_POWER	(GPIO_GPIO1 | GPIO_GPIO3)
- #define SOCKET1_3V	GPIO_GPIO3
- 
- static int jornada720_pcmcia_hw_init(struct soc_pcmcia_socket *skt)
+diff -puN drivers/pcmcia/yenta_socket.c~pcmcia-yenta-add-missing-__devexit-marking drivers/pcmcia/yenta_socket.c
+--- a/drivers/pcmcia/yenta_socket.c~pcmcia-yenta-add-missing-__devexit-marking
++++ a/drivers/pcmcia/yenta_socket.c
+@@ -717,7 +717,7 @@ static void yenta_free_resources(struct 
+ /*
+  * Close it down - release our resources and go home..
+  */
+-static void yenta_close(struct pci_dev *dev)
++static void __devexit yenta_close(struct pci_dev *dev)
  {
--  /*
--   * What is all this crap for?
--   */
--  GRER |= 0x00000002;
--  /* Set GPIO_A<3:1> to be outputs for PCMCIA/CF power controller: */
--  sa1111_set_io_dir(SA1111_DEV(skt->dev), GPIO_A0|GPIO_A1|GPIO_A2|GPIO_A3, 0, 0);
--  sa1111_set_io(SA1111_DEV(skt->dev), GPIO_A0|GPIO_A1|GPIO_A2|GPIO_A3, 0);
--  sa1111_set_sleep_io(SA1111_DEV(skt->dev), GPIO_A0|GPIO_A1|GPIO_A2|GPIO_A3, 0);
-+	unsigned int pin = GPIO_A0 | GPIO_A1 | GPIO_A2 | GPIO_A3;
+ 	struct yenta_socket *sock = pci_get_drvdata(dev);
  
--  return sa1111_pcmcia_hw_init(skt);
-+	/*
-+	* What is all this crap for?
-+	*/
-+	GRER |= 0x00000002;
-+	/* Set GPIO_A<3:1> to be outputs for PCMCIA/CF power controller: */
-+	sa1111_set_io_dir(SA1111_DEV(skt->dev), pin, 0, 0);
-+	sa1111_set_io(SA1111_DEV(skt->dev), pin, 0);
-+	sa1111_set_sleep_io(SA1111_DEV(skt->dev), pin, 0);
-+
-+	return sa1111_pcmcia_hw_init(skt);
- }
- 
- static int
- jornada720_pcmcia_configure_socket(struct soc_pcmcia_socket *skt, const socket_state_t *state)
- {
--  unsigned int pa_dwr_mask, pa_dwr_set;
--  int ret;
-+	unsigned int pa_dwr_mask, pa_dwr_set;
-+	int ret;
- 
--printk("%s(): config socket %d vcc %d vpp %d\n", __func__,
--	skt->nr, state->Vcc, state->Vpp);
-+	printk(KERN_INFO "%s(): config socket %d vcc %d vpp %d\n", __func__,
-+		skt->nr, state->Vcc, state->Vpp);
- 
--  switch (skt->nr) {
--  case 0:
--    pa_dwr_mask = SOCKET0_POWER | SOCKET0_3V;
--
--    switch (state->Vcc) {
--    default:
--    case 0:	pa_dwr_set = 0;					break;
--    case 33:	pa_dwr_set = SOCKET0_POWER | SOCKET0_3V;	break;
--    case 50:	pa_dwr_set = SOCKET0_POWER;			break;
--    }
--    break;
--
--  case 1:
--    pa_dwr_mask = SOCKET1_POWER;
--
--    switch (state->Vcc) {
--    default:
--    case 0:	pa_dwr_set = 0;					break;
--    case 33:	pa_dwr_set = SOCKET1_POWER;			break;
--    case 50:	pa_dwr_set = SOCKET1_POWER;			break;
--    }
--    break;
--
--  default:
--    return -1;
--  }
--
--  if (state->Vpp != state->Vcc && state->Vpp != 0) {
--    printk(KERN_ERR "%s(): slot cannot support VPP %u\n",
--	   __func__, state->Vpp);
--    return -1;
--  }
--
--  ret = sa1111_pcmcia_configure_socket(skt, state);
--  if (ret == 0) {
--    unsigned long flags;
--
--    local_irq_save(flags);
--    sa1111_set_io(SA1111_DEV(skt->dev), pa_dwr_mask, pa_dwr_set);
--    local_irq_restore(flags);
--  }
-+	switch (skt->nr) {
-+	case 0:
-+		pa_dwr_mask = SOCKET0_POWER | SOCKET0_3V;
-+
-+		switch (state->Vcc) {
-+		default:
-+		case  0:
-+			pa_dwr_set = 0;
-+			break;
-+		case 33:
-+			pa_dwr_set = SOCKET0_POWER | SOCKET0_3V;
-+			break;
-+		case 50:
-+			pa_dwr_set = SOCKET0_POWER;
-+			break;
-+		}
-+		break;
-+
-+	case 1:
-+		pa_dwr_mask = SOCKET1_POWER;
-+
-+		switch (state->Vcc) {
-+		default:
-+		case 0:
-+			pa_dwr_set = 0;
-+			break;
-+		case 33:
-+			pa_dwr_set = SOCKET1_POWER;
-+			break;
-+		case 50:
-+			pa_dwr_set = SOCKET1_POWER;
-+			break;
-+		}
-+		break;
-+
-+	default:
-+		return -1;
-+	}
-+
-+	if (state->Vpp != state->Vcc && state->Vpp != 0) {
-+		printk(KERN_ERR "%s(): slot cannot support VPP %u\n",
-+			__func__, state->Vpp);
-+		return -EPERM;
-+	}
-+
-+	ret = sa1111_pcmcia_configure_socket(skt, state);
-+	if (ret == 0) {
-+		unsigned long flags;
-+
-+		local_irq_save(flags);
-+		sa1111_set_io(SA1111_DEV(skt->dev), pa_dwr_mask, pa_dwr_set);
-+		local_irq_restore(flags);
-+	}
- 
--  return ret;
-+	return ret;
- }
- 
- static struct pcmcia_low_level jornada720_pcmcia_ops = {
--  .owner		= THIS_MODULE,
--  .hw_init		= jornada720_pcmcia_hw_init,
--  .hw_shutdown		= sa1111_pcmcia_hw_shutdown,
--  .socket_state		= sa1111_pcmcia_socket_state,
--  .configure_socket	= jornada720_pcmcia_configure_socket,
-+	.owner			= THIS_MODULE,
-+	.hw_init		= jornada720_pcmcia_hw_init,
-+	.hw_shutdown		= sa1111_pcmcia_hw_shutdown,
-+	.socket_state		= sa1111_pcmcia_socket_state,
-+	.configure_socket	= jornada720_pcmcia_configure_socket,
- 
--  .socket_init		= sa1111_pcmcia_socket_init,
--  .socket_suspend	= sa1111_pcmcia_socket_suspend,
-+	.socket_init		= sa1111_pcmcia_socket_init,
-+	.socket_suspend		= sa1111_pcmcia_socket_suspend,
- };
- 
- int __devinit pcmcia_jornada720_init(struct device *dev)
 _
 
-Patches currently in -mm which might be from kristoffer.ericson@gmail.com are
+Patches currently in -mm which might be from vapier@gentoo.org are
 
 origin.patch
+linux-next.patch
+md-dm-log-fix-cn_ulog_callback-declaration.patch
+asm-sections-add-text-data-checking-functions-for-arches-to-override.patch
+kallsyms-use-new-arch_is_kernel_text.patch
+lockdep-use-new-arch_is_kernel_data.patch
+blackfin-override-text-data-checking-functions.patch
+rtc-update-documentation-wrt-rtc_pie-irq_set_state.patch
+rtc-bfin-do-not-share-rtc-irq.patch
+gpio-gpio-support-for-adp5520-adp5501-mfd-pmics.patch
+fdpic-ignore-the-loaders-pt_gnu_stack-when-calculating-the-stack-size.patch
+flat-use-is_err_value-helper-macro.patch
+linux-futexh-place-kernel-types-behind-__kernel__.patch
 
