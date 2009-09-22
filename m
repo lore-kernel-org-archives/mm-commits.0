@@ -1,104 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [merged] tmpfs-depend-on-shmem.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:43:19 -0700
-Message-ID: <200909222043.n8MKhJGs011371@imap1.linux-foundation.org>
+Subject: [merged] mm-move-highest_memmap_pfn.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:43:13 -0700
+Message-ID: <200909222043.n8MKhDwh011177@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37283 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56869 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753112AbZIVUn1 (ORCPT
+	by vger.kernel.org with ESMTP id S1753099AbZIVUnY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:43:27 -0400
+	Tue, 22 Sep 2009 16:43:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh.dickins@tiscali.co.uk, mpm@selenic.com, mm-commits@vger.kernel.org
+To: hugh.dickins@tiscali.co.uk, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, npiggin@suse.de, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tmpfs: depend on shmem
+     mm: move highest_memmap_pfn
 has been removed from the -mm tree.  Its filename was
-     tmpfs-depend-on-shmem.patch
+     mm-move-highest_memmap_pfn.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tmpfs: depend on shmem
+Subject: mm: move highest_memmap_pfn
 From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
-CONFIG_SHMEM off gives you (ramfs masquerading as) tmpfs, even when
-CONFIG_TMPFS is off: that's a little anomalous, and I'd intended to make
-more sense of it by removing CONFIG_TMPFS altogether, always enabling its
-code when CONFIG_SHMEM; but so many defconfigs have CONFIG_SHMEM on
-CONFIG_TMPFS off that we'd better leave that as is.
-
-But there is no point in asking for CONFIG_TMPFS if CONFIG_SHMEM is off:
-make TMPFS depend on SHMEM, which also prevents TMPFS_POSIX_ACL
-shmem_acl.o being pointlessly built into the kernel when SHMEM is off.
-
-And a selfish change, to prevent the world from being rebuilt when I
-switch between CONFIG_SHMEM on and off: the only CONFIG_SHMEM in the
-header files is mm.h shmem_lock() - give that a shmem.c stub instead.
+Move highest_memmap_pfn __read_mostly from page_alloc.c next to zero_pfn
+__read_mostly in memory.c: to help them share a cacheline, since they're
+very often tested together in vm_normal_page().
 
 Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Acked-by: Matt Mackall <mpm@selenic.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig         |    1 +
- include/linux/mm.h |   11 +----------
- mm/shmem.c         |    5 +++++
- 3 files changed, 7 insertions(+), 10 deletions(-)
+ mm/internal.h   |    3 ++-
+ mm/memory.c     |    1 +
+ mm/page_alloc.c |    1 -
+ 3 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN fs/Kconfig~tmpfs-depend-on-shmem fs/Kconfig
---- a/fs/Kconfig~tmpfs-depend-on-shmem
-+++ a/fs/Kconfig
-@@ -109,6 +109,7 @@ source "fs/sysfs/Kconfig"
- 
- config TMPFS
- 	bool "Virtual memory file system support (former shm fs)"
-+	depends on SHMEM
- 	help
- 	  Tmpfs is a file system which keeps all files in virtual memory.
- 
-diff -puN include/linux/mm.h~tmpfs-depend-on-shmem include/linux/mm.h
---- a/include/linux/mm.h~tmpfs-depend-on-shmem
-+++ a/include/linux/mm.h
-@@ -702,17 +702,8 @@ extern void pagefault_out_of_memory(void
- 
- extern void show_free_areas(void);
- 
--#ifdef CONFIG_SHMEM
--extern int shmem_lock(struct file *file, int lock, struct user_struct *user);
--#else
--static inline int shmem_lock(struct file *file, int lock,
--			    struct user_struct *user)
--{
--	return 0;
--}
--#endif
-+int shmem_lock(struct file *file, int lock, struct user_struct *user);
- struct file *shmem_file_setup(const char *name, loff_t size, unsigned long flags);
--
- int shmem_zero_setup(struct vm_area_struct *);
- 
- #ifndef CONFIG_MMU
-diff -puN mm/shmem.c~tmpfs-depend-on-shmem mm/shmem.c
---- a/mm/shmem.c~tmpfs-depend-on-shmem
-+++ a/mm/shmem.c
-@@ -2593,6 +2593,11 @@ int shmem_unuse(swp_entry_t entry, struc
- 	return 0;
+diff -puN mm/internal.h~mm-move-highest_memmap_pfn mm/internal.h
+--- a/mm/internal.h~mm-move-highest_memmap_pfn
++++ a/mm/internal.h
+@@ -37,6 +37,8 @@ static inline void __put_page(struct pag
+ 	atomic_dec(&page->_count);
  }
  
-+int shmem_lock(struct file *file, int lock, struct user_struct *user)
-+{
-+	return 0;
-+}
++extern unsigned long highest_memmap_pfn;
 +
- #define shmem_vm_ops				generic_file_vm_ops
- #define shmem_file_operations			ramfs_file_operations
- #define shmem_get_inode(sb, mode, dev, flags)	ramfs_get_inode(sb, mode, dev)
+ /*
+  * in mm/vmscan.c:
+  */
+@@ -46,7 +48,6 @@ extern void putback_lru_page(struct page
+ /*
+  * in mm/page_alloc.c
+  */
+-extern unsigned long highest_memmap_pfn;
+ extern void __free_pages_bootmem(struct page *page, unsigned int order);
+ extern void prep_compound_page(struct page *page, unsigned long order);
+ 
+diff -puN mm/memory.c~mm-move-highest_memmap_pfn mm/memory.c
+--- a/mm/memory.c~mm-move-highest_memmap_pfn
++++ a/mm/memory.c
+@@ -109,6 +109,7 @@ static int __init disable_randmaps(char 
+ __setup("norandmaps", disable_randmaps);
+ 
+ unsigned long zero_pfn __read_mostly;
++unsigned long highest_memmap_pfn __read_mostly;
+ 
+ /*
+  * CONFIG_MMU architectures set up ZERO_PAGE in their paging_init()
+diff -puN mm/page_alloc.c~mm-move-highest_memmap_pfn mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-move-highest_memmap_pfn
++++ a/mm/page_alloc.c
+@@ -72,7 +72,6 @@ EXPORT_SYMBOL(node_states);
+ 
+ unsigned long totalram_pages __read_mostly;
+ unsigned long totalreserve_pages __read_mostly;
+-unsigned long highest_memmap_pfn __read_mostly;
+ int percpu_pagelist_fraction;
+ gfp_t gfp_allowed_mask __read_mostly = GFP_BOOT_MASK;
+ 
 _
 
 Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
