@@ -1,87 +1,170 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-remove-broken-kzalloc-mempool.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:41:36 -0700
-Message-ID: <200909222041.n8MKfaKF007909@imap1.linux-foundation.org>
+Subject: [merged] mm-introduce-page_lru_base_type.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:41:42 -0700
+Message-ID: <200909222041.n8MKfgla008077@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59487 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34921 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752637AbZIVUls (ORCPT
+	by vger.kernel.org with ESMTP id S1752639AbZIVUlt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:41:48 -0400
+	Tue, 22 Sep 2009 16:41:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sage@newdream.net, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: remove broken 'kzalloc' mempool
+     mm: introduce page_lru_base_type()
 has been removed from the -mm tree.  Its filename was
-     mm-remove-broken-kzalloc-mempool.patch
+     mm-introduce-page_lru_base_type.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: remove broken 'kzalloc' mempool
-From: Sage Weil <sage@newdream.net>
+Subject: mm: introduce page_lru_base_type()
+From: Johannes Weiner <hannes@cmpxchg.org>
 
-The kzalloc mempool zeros items when they are initially allocated, but
-does not rezero used items that are returned to the pool.  Consequently
-mempool_alloc()s may return non-zeroed memory.
+Instead of abusing page_is_file_cache() for LRU list index arithmetic, add
+another helper with a more appropriate name and convert the non-boolean
+users of page_is_file_cache() accordingly.
 
-Since there are/were only two in-tree users for
-mempool_create_kzalloc_pool(), and 'fixing' this in a way that will
-re-zero used (but not new) items before first use is non-trivial, just
-remove it.
+This new helper gives the LRU base type a page is supposed to live on,
+inactive anon or inactive file.
 
-Signed-off-by: Sage Weil <sage@newdream.net>
+[hugh.dickins@tiscali.co.uk: convert del_page_from_lru() also]
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mempool.h |   10 ++--------
- mm/mempool.c            |    7 -------
- 2 files changed, 2 insertions(+), 15 deletions(-)
+ include/linux/mm_inline.h |   23 +++++++++++++++++++----
+ mm/swap.c                 |    4 ++--
+ mm/vmscan.c               |    6 +++---
+ 3 files changed, 24 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/mempool.h~mm-remove-broken-kzalloc-mempool include/linux/mempool.h
---- a/include/linux/mempool.h~mm-remove-broken-kzalloc-mempool
-+++ a/include/linux/mempool.h
-@@ -47,22 +47,16 @@ mempool_create_slab_pool(int min_nr, str
+diff -puN include/linux/mm_inline.h~mm-introduce-page_lru_base_type include/linux/mm_inline.h
+--- a/include/linux/mm_inline.h~mm-introduce-page_lru_base_type
++++ a/include/linux/mm_inline.h
+@@ -39,21 +39,36 @@ del_page_from_lru_list(struct zone *zone
+ 	mem_cgroup_del_lru_list(page, l);
  }
  
- /*
-- * 2 mempool_alloc_t's and a mempool_free_t to kmalloc/kzalloc and kfree
-- * the amount of memory specified by pool_data
-+ * a mempool_alloc_t and a mempool_free_t to kmalloc and kfree the
-+ * amount of memory specified by pool_data
-  */
- void *mempool_kmalloc(gfp_t gfp_mask, void *pool_data);
--void *mempool_kzalloc(gfp_t gfp_mask, void *pool_data);
- void mempool_kfree(void *element, void *pool_data);
- static inline mempool_t *mempool_create_kmalloc_pool(int min_nr, size_t size)
++/**
++ * page_lru_base_type - which LRU list type should a page be on?
++ * @page: the page to test
++ *
++ * Used for LRU list index arithmetic.
++ *
++ * Returns the base LRU type - file or anon - @page should be on.
++ */
++static inline enum lru_list page_lru_base_type(struct page *page)
++{
++	if (page_is_file_cache(page))
++		return LRU_INACTIVE_FILE;
++	return LRU_INACTIVE_ANON;
++}
++
+ static inline void
+ del_page_from_lru(struct zone *zone, struct page *page)
  {
- 	return mempool_create(min_nr, mempool_kmalloc, mempool_kfree,
- 			      (void *) size);
- }
--static inline mempool_t *mempool_create_kzalloc_pool(int min_nr, size_t size)
--{
--	return mempool_create(min_nr, mempool_kzalloc, mempool_kfree,
--			      (void *) size);
--}
+-	enum lru_list l = LRU_BASE;
++	enum lru_list l;
  
- /*
-  * A mempool_alloc_t and mempool_free_t for a simple page allocator that
-diff -puN mm/mempool.c~mm-remove-broken-kzalloc-mempool mm/mempool.c
---- a/mm/mempool.c~mm-remove-broken-kzalloc-mempool
-+++ a/mm/mempool.c
-@@ -308,13 +308,6 @@ void *mempool_kmalloc(gfp_t gfp_mask, vo
- }
- EXPORT_SYMBOL(mempool_kmalloc);
+ 	list_del(&page->lru);
+ 	if (PageUnevictable(page)) {
+ 		__ClearPageUnevictable(page);
+ 		l = LRU_UNEVICTABLE;
+ 	} else {
++		l = page_lru_base_type(page);
+ 		if (PageActive(page)) {
+ 			__ClearPageActive(page);
+ 			l += LRU_ACTIVE;
+ 		}
+-		l += page_is_file_cache(page);
+ 	}
+ 	__dec_zone_state(zone, NR_LRU_BASE + l);
+ 	mem_cgroup_del_lru_list(page, l);
+@@ -68,14 +83,14 @@ del_page_from_lru(struct zone *zone, str
+  */
+ static inline enum lru_list page_lru(struct page *page)
+ {
+-	enum lru_list lru = LRU_BASE;
++	enum lru_list lru;
  
--void *mempool_kzalloc(gfp_t gfp_mask, void *pool_data)
--{
--	size_t size = (size_t)pool_data;
--	return kzalloc(size, gfp_mask);
--}
--EXPORT_SYMBOL(mempool_kzalloc);
+ 	if (PageUnevictable(page))
+ 		lru = LRU_UNEVICTABLE;
+ 	else {
++		lru = page_lru_base_type(page);
+ 		if (PageActive(page))
+ 			lru += LRU_ACTIVE;
+-		lru += page_is_file_cache(page);
+ 	}
+ 
+ 	return lru;
+diff -puN mm/swap.c~mm-introduce-page_lru_base_type mm/swap.c
+--- a/mm/swap.c~mm-introduce-page_lru_base_type
++++ a/mm/swap.c
+@@ -118,7 +118,7 @@ static void pagevec_move_tail(struct pag
+ 			spin_lock(&zone->lru_lock);
+ 		}
+ 		if (PageLRU(page) && !PageActive(page) && !PageUnevictable(page)) {
+-			int lru = page_is_file_cache(page);
++			int lru = page_lru_base_type(page);
+ 			list_move_tail(&page->lru, &zone->lru[lru].list);
+ 			pgmoved++;
+ 		}
+@@ -181,7 +181,7 @@ void activate_page(struct page *page)
+ 	spin_lock_irq(&zone->lru_lock);
+ 	if (PageLRU(page) && !PageActive(page) && !PageUnevictable(page)) {
+ 		int file = page_is_file_cache(page);
+-		int lru = LRU_BASE + file;
++		int lru = page_lru_base_type(page);
+ 		del_page_from_lru_list(zone, page, lru);
+ 
+ 		SetPageActive(page);
+diff -puN mm/vmscan.c~mm-introduce-page_lru_base_type mm/vmscan.c
+--- a/mm/vmscan.c~mm-introduce-page_lru_base_type
++++ a/mm/vmscan.c
+@@ -531,7 +531,7 @@ redo:
+ 		 * unevictable page on [in]active list.
+ 		 * We know how to handle that.
+ 		 */
+-		lru = active + page_is_file_cache(page);
++		lru = active + page_lru_base_type(page);
+ 		lru_cache_add_lru(page, lru);
+ 	} else {
+ 		/*
+@@ -986,7 +986,7 @@ static unsigned long clear_active_flags(
+ 	struct page *page;
+ 
+ 	list_for_each_entry(page, page_list, lru) {
+-		lru = page_is_file_cache(page);
++		lru = page_lru_base_type(page);
+ 		if (PageActive(page)) {
+ 			lru += LRU_ACTIVE;
+ 			ClearPageActive(page);
+@@ -2652,7 +2652,7 @@ static void check_move_unevictable_page(
+ retry:
+ 	ClearPageUnevictable(page);
+ 	if (page_evictable(page, NULL)) {
+-		enum lru_list l = LRU_INACTIVE_ANON + page_is_file_cache(page);
++		enum lru_list l = page_lru_base_type(page);
+ 
+ 		__dec_zone_state(zone, NR_UNEVICTABLE);
+ 		list_move(&page->lru, &zone->lru[l].list);
+_
+
+Patches currently in -mm which might be from hannes@cmpxchg.org are
+
+origin.patch
+linux-next.patch
+vfs-explicitly-cast-s_maxbytes-in-fiemap_check_ranges.patch
+vfs-change-sb-s_maxbytes-to-a-loff_t.patch
+vfs-remove-redundant-position-check-in-do_sendfile.patch
+mm-warn-once-when-a-page-is-freed-with-pg_mlocked-set.patch
+
