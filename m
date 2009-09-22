@@ -1,129 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-rename-pgmoved-variable-in-shrink_active_list.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:38:21 -0700
-Message-ID: <200909222038.n8MKcLTW001244@imap1.linux-foundation.org>
+Subject: [merged] oom-move-oom_killer_enable-oom_killer_disable-to-where-they-belong.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:42:12 -0700
+Message-ID: <200909222042.n8MKgCEX009082@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44562 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42162 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752764AbZIVUmR (ORCPT
+	by vger.kernel.org with ESMTP id S1752696AbZIVUmP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:42:17 -0400
+	Tue, 22 Sep 2009 16:42:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, kosaki.motohiro@jp.fujitsu.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: rename pgmoved variable in shrink_active_list()
+     oom: move oom_killer_enable()/oom_killer_disable to where they belong
 has been removed from the -mm tree.  Its filename was
-     mm-rename-pgmoved-variable-in-shrink_active_list.patch
+     oom-move-oom_killer_enable-oom_killer_disable-to-where-they-belong.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: rename pgmoved variable in shrink_active_list()
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: oom: move oom_killer_enable()/oom_killer_disable to where they belong
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-Currently the pgmoved variable has two meanings.  It causes harder
-reviewing.  This patch separates it.
-
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ include/linux/gfp.h    |   12 ------------
+ include/linux/oom.h    |   11 +++++++++++
+ kernel/power/process.c |    1 +
+ 3 files changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN mm/vmscan.c~mm-rename-pgmoved-variable-in-shrink_active_list mm/vmscan.c
---- a/mm/vmscan.c~mm-rename-pgmoved-variable-in-shrink_active_list
-+++ a/mm/vmscan.c
-@@ -1244,7 +1244,7 @@ static void move_active_pages_to_lru(str
- static void shrink_active_list(unsigned long nr_pages, struct zone *zone,
- 			struct scan_control *sc, int priority, int file)
- {
--	unsigned long pgmoved;
-+	unsigned long nr_taken;
- 	unsigned long pgscanned;
- 	unsigned long vm_flags;
- 	LIST_HEAD(l_hold);	/* The pages which were snipped off */
-@@ -1252,10 +1252,11 @@ static void shrink_active_list(unsigned 
- 	LIST_HEAD(l_inactive);
- 	struct page *page;
- 	struct zone_reclaim_stat *reclaim_stat = get_reclaim_stat(zone, sc);
-+	unsigned long nr_rotated = 0;
+diff -puN include/linux/gfp.h~oom-move-oom_killer_enable-oom_killer_disable-to-where-they-belong include/linux/gfp.h
+--- a/include/linux/gfp.h~oom-move-oom_killer_enable-oom_killer_disable-to-where-they-belong
++++ a/include/linux/gfp.h
+@@ -335,18 +335,6 @@ void drain_zone_pages(struct zone *zone,
+ void drain_all_pages(void);
+ void drain_local_pages(void *dummy);
  
- 	lru_add_drain();
- 	spin_lock_irq(&zone->lru_lock);
--	pgmoved = sc->isolate_pages(nr_pages, &l_hold, &pgscanned, sc->order,
-+	nr_taken = sc->isolate_pages(nr_pages, &l_hold, &pgscanned, sc->order,
- 					ISOLATE_ACTIVE, zone,
- 					sc->mem_cgroup, 1, file);
- 	/*
-@@ -1265,16 +1266,15 @@ static void shrink_active_list(unsigned 
- 	if (scanning_global_lru(sc)) {
- 		zone->pages_scanned += pgscanned;
- 	}
--	reclaim_stat->recent_scanned[!!file] += pgmoved;
-+	reclaim_stat->recent_scanned[!!file] += nr_taken;
+-extern bool oom_killer_disabled;
+-
+-static inline void oom_killer_disable(void)
+-{
+-	oom_killer_disabled = true;
+-}
+-
+-static inline void oom_killer_enable(void)
+-{
+-	oom_killer_disabled = false;
+-}
+-
+ extern gfp_t gfp_allowed_mask;
  
- 	__count_zone_vm_events(PGREFILL, zone, pgscanned);
- 	if (file)
--		__mod_zone_page_state(zone, NR_ACTIVE_FILE, -pgmoved);
-+		__mod_zone_page_state(zone, NR_ACTIVE_FILE, -nr_taken);
- 	else
--		__mod_zone_page_state(zone, NR_ACTIVE_ANON, -pgmoved);
-+		__mod_zone_page_state(zone, NR_ACTIVE_ANON, -nr_taken);
- 	spin_unlock_irq(&zone->lru_lock);
+ static inline void set_gfp_allowed_mask(gfp_t mask)
+diff -puN include/linux/oom.h~oom-move-oom_killer_enable-oom_killer_disable-to-where-they-belong include/linux/oom.h
+--- a/include/linux/oom.h~oom-move-oom_killer_enable-oom_killer_disable-to-where-they-belong
++++ a/include/linux/oom.h
+@@ -30,5 +30,16 @@ extern void out_of_memory(struct zonelis
+ extern int register_oom_notifier(struct notifier_block *nb);
+ extern int unregister_oom_notifier(struct notifier_block *nb);
  
--	pgmoved = 0;  /* count referenced (mapping) mapped pages */
- 	while (!list_empty(&l_hold)) {
- 		cond_resched();
- 		page = lru_to_page(&l_hold);
-@@ -1288,7 +1288,7 @@ static void shrink_active_list(unsigned 
- 		/* page_referenced clears PageReferenced */
- 		if (page_mapping_inuse(page) &&
- 		    page_referenced(page, 0, sc->mem_cgroup, &vm_flags)) {
--			pgmoved++;
-+			nr_rotated++;
- 			/*
- 			 * Identify referenced, file-backed active pages and
- 			 * give them one more trip around the active list. So
-@@ -1317,7 +1317,7 @@ static void shrink_active_list(unsigned 
- 	 * helps balance scan pressure between file and anonymous pages in
- 	 * get_scan_ratio.
- 	 */
--	reclaim_stat->recent_rotated[!!file] += pgmoved;
-+	reclaim_stat->recent_rotated[!!file] += nr_rotated;
++extern bool oom_killer_disabled;
++
++static inline void oom_killer_disable(void)
++{
++	oom_killer_disabled = true;
++}
++
++static inline void oom_killer_enable(void)
++{
++	oom_killer_disabled = false;
++}
+ #endif /* __KERNEL__*/
+ #endif /* _INCLUDE_LINUX_OOM_H */
+diff -puN kernel/power/process.c~oom-move-oom_killer_enable-oom_killer_disable-to-where-they-belong kernel/power/process.c
+--- a/kernel/power/process.c~oom-move-oom_killer_enable-oom_killer_disable-to-where-they-belong
++++ a/kernel/power/process.c
+@@ -9,6 +9,7 @@
+ #undef DEBUG
  
- 	move_active_pages_to_lru(zone, &l_active,
- 						LRU_ACTIVE + file * LRU_FILE);
+ #include <linux/interrupt.h>
++#include <linux/oom.h>
+ #include <linux/suspend.h>
+ #include <linux/module.h>
+ #include <linux/syscalls.h>
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
 origin.patch
 linux-next.patch
-revert-staging-android-lowmemorykillerc-fix-it-for-oom-move-oom_adj-value-from-task_struct-to-mm_struct.patch
-readahead-add-blk_run_backing_dev.patch
-oom-move-oom_adj-value-from-task_struct-to-signal_struct-fix.patch
-mm-vsmcan-check-shrink_active_list-sc-isolate_pages-return-value.patch
-getrusage-fill-ru_maxrss-value.patch
-kcore-use-registerd-physmem-information-ia64-fix.patch
-memory-controller-soft-limit-documentation-v9.patch
-memory-controller-soft-limit-interface-v9.patch
-memory-controller-soft-limit-organize-cgroups-v9.patch
-memory-controller-soft-limit-organize-cgroups-v9-fix.patch
-memory-controller-soft-limit-refactor-reclaim-flags-v9.patch
-memory-controller-soft-limit-reclaim-on-contention-v9.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix-softlimit-css-refcnt-handling.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix-softlimit-css-refcnt-handling-fix.patch
-memcg-improve-resource-counter-scalability.patch
-memcg-improve-resource-counter-scalability-v5.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
+acpi-switch-proc-acpi-debug_layerdebug_level-to-seq_file.patch
+genirq-switch-proc-irq-spurious-to-seq_file.patch
+cpqarray-switch-to-seq_file.patch
+dac960-switch-to-seq_file.patch
+proc_flush_task-flush-proc-tid-task-pid-when-a-sub-thread-exits.patch
+procfs-provide-stack-information-for-threads-v08.patch
+procfs-provide-stack-information-for-threads-v011.patch
+procfs-provide-stack-information-for-threads-v011-fix.patch
+viafb-switch-to-seq_file.patch
+reiserfs-remove-proc-fs-reiserfs-version.patch
+reiserfs-dont-compile-procfso-at-all-if-no-support.patch
+sysctl-remove-struct-file-argument-of-proc_handler.patch
+aio-ifdef-fields-in-mm_struct.patch
+gru-use-proc_create.patch
 
