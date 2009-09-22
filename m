@@ -1,118 +1,149 @@
 From: akpm@linux-foundation.org
-Subject: [merged] m32r-remove-redundant-tests-on-unsigned.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:44:26 -0700
-Message-ID: <200909222044.n8MKiQID013622@imap1.linux-foundation.org>
+Subject: [merged] m32r-convert-to-use-arch_gettimeoffset.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:44:29 -0700
+Message-ID: <200909222044.n8MKiTpP013715@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44842 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47436 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753163AbZIVUoc (ORCPT
+	by vger.kernel.org with ESMTP id S1753168AbZIVUog (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:44:32 -0400
+	Tue, 22 Sep 2009 16:44:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, takata@linux-m32r.org, mm-commits@vger.kernel.org
+To: johnstul@us.ibm.com, takata@linux-m32r.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     m32r: remove redundant tests on unsigned
+     m32r: convert to use arch_gettimeoffset()
 has been removed from the -mm tree.  Its filename was
-     m32r-remove-redundant-tests-on-unsigned.patch
+     m32r-convert-to-use-arch_gettimeoffset.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m32r: remove redundant tests on unsigned
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: m32r: convert to use arch_gettimeoffset()
+From: john stultz <johnstul@us.ibm.com>
 
-`off' and `max_cpus' are unsigned.  When negative they are wrapped and
-caught by the other test.
+Convert m32r to use GENERIC_TIME via the arch_getoffset() infrastructure,
+reducing the amount of arch specific code we need to maintain.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+I also noted that m32r doesn't seem to be taking the xtime write lock
+before calling do_timer()!  That looks like a pretty bad bug to me.  If
+folks agree, let me know and I can move the lock grab to the correct spot.
+
+Signed-off-by: John Stultz <johnstul@us.ibm.com>
 Cc: Hirokazu Takata <takata@linux-m32r.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/kernel/ptrace.c  |    5 ++---
- arch/m32r/kernel/smpboot.c |    2 +-
- 2 files changed, 3 insertions(+), 4 deletions(-)
+ arch/m32r/Kconfig       |    6 +++
+ arch/m32r/kernel/time.c |   74 +-------------------------------------
+ 2 files changed, 9 insertions(+), 71 deletions(-)
 
-diff -puN arch/m32r/kernel/ptrace.c~m32r-remove-redundant-tests-on-unsigned arch/m32r/kernel/ptrace.c
---- a/arch/m32r/kernel/ptrace.c~m32r-remove-redundant-tests-on-unsigned
-+++ a/arch/m32r/kernel/ptrace.c
-@@ -77,7 +77,7 @@ static int ptrace_read_user(struct task_
- 	struct user * dummy = NULL;
+diff -puN arch/m32r/Kconfig~m32r-convert-to-use-arch_gettimeoffset arch/m32r/Kconfig
+--- a/arch/m32r/Kconfig~m32r-convert-to-use-arch_gettimeoffset
++++ a/arch/m32r/Kconfig
+@@ -41,6 +41,12 @@ config HZ
+ 	int
+ 	default 100
+ 
++config GENERIC_TIME
++	def_bool y
++
++config ARCH_USES_GETTIMEOFFSET
++	def_bool y
++
+ source "init/Kconfig"
+ 
+ source "kernel/Kconfig.freezer"
+diff -puN arch/m32r/kernel/time.c~m32r-convert-to-use-arch_gettimeoffset arch/m32r/kernel/time.c
+--- a/arch/m32r/kernel/time.c~m32r-convert-to-use-arch_gettimeoffset
++++ a/arch/m32r/kernel/time.c
+@@ -48,7 +48,7 @@ extern void smp_local_timer_interrupt(vo
+ 
+ static unsigned long latch;
+ 
+-static unsigned long do_gettimeoffset(void)
++u32 arch_gettimeoffset(void)
+ {
+ 	unsigned long  elapsed_time = 0;  /* [us] */
+ 
+@@ -93,79 +93,10 @@ static unsigned long do_gettimeoffset(vo
+ #error no chip configuration
  #endif
  
--	if ((off & 3) || (off < 0) || (off > sizeof(struct user) - 3))
-+	if ((off & 3) || off > sizeof(struct user) - 3)
- 		return -EIO;
+-	return elapsed_time;
++	return elapsed_time * 1000;
+ }
  
- 	off >>= 2;
-@@ -139,8 +139,7 @@ static int ptrace_write_user(struct task
- 	struct user * dummy = NULL;
- #endif
- 
--	if ((off & 3) || off < 0 ||
--	    off > sizeof(struct user) - 3)
-+	if ((off & 3) || off > sizeof(struct user) - 3)
- 		return -EIO;
- 
- 	off >>= 2;
-diff -puN arch/m32r/kernel/smpboot.c~m32r-remove-redundant-tests-on-unsigned arch/m32r/kernel/smpboot.c
---- a/arch/m32r/kernel/smpboot.c~m32r-remove-redundant-tests-on-unsigned
-+++ a/arch/m32r/kernel/smpboot.c
-@@ -213,7 +213,7 @@ void __init smp_prepare_cpus(unsigned in
- 		if (!physid_isset(phys_id, phys_cpu_present_map))
- 			continue;
- 
--		if ((max_cpus >= 0) && (max_cpus <= cpucount + 1))
-+		if (max_cpus <= cpucount + 1)
- 			continue;
- 
- 		do_boot_cpu(phys_id);
-_
-
-Patches currently in -mm which might be from roel.kluin@gmail.com are
-
-origin.patch
-linux-next.patch
-s3c-fix-check-of-index-into-s3c_gpios.patch
-stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
-dm-strncpy-does-not-null-terminate-string.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
-msp71xx-request_irq-failure-ignored-in-msp_pcibios_config_access.patch
-mtd-jffs2-fix-read-buffer-overflow.patch
-mtd-prevent-a-read-from-eraseregions.patch
-mtd-prevent-a-read-from-regions.patch
-hfc_usb-fix-read-buffer-overflow.patch
-cyclades-read-buffer-overflow.patch
-serial167-fix-read-buffer-overflow.patch
-regulator-fix-calculation-of-voltage-range-in-da9034_set_ldo12_voltage.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
-st-fix-test-of-value-range-in-st_set_options.patch
-drivers-staging-octeon-ethernet-rgmiic-dont-ignore-request_irq-return-code.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-dme1737-keep-index-within-pwm_config.patch
-sdio-fix-read-buffer-overflow.patch
-ncpfs-read-buffer-overflow.patch
-smbfs-read-buffer-overflow.patch
-platinumfb-misplaced-parenthesis.patch
-sisfb-read-buffer-overflow.patch
-drivers-video-console-newport_conc-fix-read-outside-array-bounds.patch
-mwave-fix-read-buffer-overflow.patch
-adfs-remove-redundant-test-on-unsigned.patch
-gru-allocation-may-fail-in-quicktest1.patch
-
+ /*
+- * This version of gettimeofday has near microsecond resolution.
+- */
+-void do_gettimeofday(struct timeval *tv)
+-{
+-	unsigned long seq;
+-	unsigned long usec, sec;
+-	unsigned long max_ntp_tick = tick_usec - tickadj;
+-
+-	do {
+-		seq = read_seqbegin(&xtime_lock);
+-
+-		usec = do_gettimeoffset();
+-
+-		/*
+-		 * If time_adjust is negative then NTP is slowing the clock
+-		 * so make sure not to go into next possible interval.
+-		 * Better to lose some accuracy than have time go backwards..
+-		 */
+-		if (unlikely(time_adjust < 0))
+-			usec = min(usec, max_ntp_tick);
+-
+-		sec = xtime.tv_sec;
+-		usec += (xtime.tv_nsec / 1000);
+-	} while (read_seqretry(&xtime_lock, seq));
+-
+-	while (usec >= 1000000) {
+-		usec -= 1000000;
+-		sec++;
+-	}
+-
+-	tv->tv_sec = sec;
+-	tv->tv_usec = usec;
+-}
+-
+-EXPORT_SYMBOL(do_gettimeofday);
+-
+-int do_settimeofday(struct timespec *tv)
+-{
+-	time_t wtm_sec, sec = tv->tv_sec;
+- 	long wtm_nsec, nsec = tv->tv_nsec;
+-
+-	if ((unsigned long)tv->tv_nsec >= NSEC_PER_SEC)
+-		return -EINVAL;
+-
+-	write_seqlock_irq(&xtime_lock);
+-	/*
+-	 * This is revolting. We need to set "xtime" correctly. However, the
+-	 * value in this location is the value at the most recent update of
+-	 * wall time.  Discover what correction gettimeofday() would have
+-	 * made, and then undo it!
+-	 */
+-	nsec -= do_gettimeoffset() * NSEC_PER_USEC;
+-
+-	wtm_sec = wall_to_monotonic.tv_sec + (xtime.tv_sec - sec);
+-	wtm_nsec = wall_to_monotonic.tv_nsec + (xtime.tv_nsec - nsec);
+-
+-	set_normalized_timespec(&xtime, sec, nsec);
+-	set_normalized_timespec(&wall_to_monotonic, wtm_sec, wtm_nsec);
+-
+-	ntp_clear();
+-	write_sequnlock_irq(&xtime_lock);
+-	clock_was_set();
+-
+-	return 0;
+-}
+-
+-EXPORT_SYMBOL(do_settimeofday);
