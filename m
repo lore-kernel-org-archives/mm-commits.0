@@ -1,350 +1,156 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ksm-the-mm-interface-to-ksm.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:39:16 -0700
-Message-ID: <200909222039.n8MKdGo4003103@imap1.linux-foundation.org>
+Subject: [merged] ksm-move-pages_sharing-updates.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:39:45 -0700
+Message-ID: <200909222039.n8MKdjWi004094@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44325 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53218 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752540AbZIVUkM (ORCPT
+	by vger.kernel.org with ESMTP id S1752570AbZIVUkV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:40:12 -0400
+	Tue, 22 Sep 2009 16:40:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh.dickins@tiscali.co.uk, aarcange@redhat.com, avi@redhat.com, balbir@in.ibm.com, chrisw@redhat.com, fengguang.wu@intel.com, ieidus@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, lee.s
+To: hugh.dickins@tiscali.co.uk, aarcange@redhat.com, ieidus@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ksm: the mm interface to ksm
+     ksm: move pages_sharing updates
 has been removed from the -mm tree.  Its filename was
-     ksm-the-mm-interface-to-ksm.patch
+     ksm-move-pages_sharing-updates.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ksm: the mm interface to ksm
+Subject: ksm: move pages_sharing updates
 From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
-This patch presents the mm interface to a dummy version of ksm.c, for
-better scrutiny of that interface: the real ksm.c follows later.
+The pages_shared count is incremented and decremented when adding a node
+to and removing a node from the stable tree: easy to understand.  But the
+pages_sharing count was hard to follow, being adjusted in various places:
+increment and decrement it when adding to and removing from the stable tree.
 
-When CONFIG_KSM is not set, madvise(2) reject MADV_MERGEABLE and
-MADV_UNMERGEABLE with EINVAL, since that seems more helpful than
-pretending that they can be serviced.  But when CONFIG_KSM=y, accept them
-even if KSM is not currently running, and even on areas which KSM will not
-touch (e.g.  hugetlb or shared file or special driver mappings).
-
-Like other madvices, report ENOMEM despite success if any area in the
-range is unmapped, and use EAGAIN to report out of memory.
-
-Define vma flag VM_MERGEABLE to identify an area on which KSM may try
-merging pages: leave it to ksm_madvise() to decide whether to set it. 
-Define mm flag MMF_VM_MERGEABLE to identify an mm which might contain
-VM_MERGEABLE areas, to minimize callouts when forking or exiting.
-
-Based upon earlier patches by Chris Wright and Izik Eidus.
+And the pages_sharing variable used to include the pages_shared, then those
+were subtracted when shown in the pages_sharing sysfs file: now keep it as
+an exclusive count of leaves hanging off the stable tree nodes, throughout.
 
 Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Signed-off-by: Chris Wright <chrisw@redhat.com>
-Signed-off-by: Izik Eidus <ieidus@redhat.com>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Avi Kivity <avi@redhat.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Acked-by: Izik Eidus <ieidus@redhat.com>
+Acked-by: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ksm.h   |   50 +++++++++++++++++++++++++++++++++++
- include/linux/mm.h    |    1 
- include/linux/sched.h |    7 +++++
- kernel/fork.c         |    8 +++++
- mm/Kconfig            |   11 +++++++
- mm/Makefile           |    1 
- mm/ksm.c              |   56 ++++++++++++++++++++++++++++++++++++++++
- mm/madvise.c          |   14 ++++++++++
- 8 files changed, 147 insertions(+), 1 deletion(-)
+ mm/ksm.c |   24 +++++++++---------------
+ 1 file changed, 9 insertions(+), 15 deletions(-)
 
-diff -puN /dev/null include/linux/ksm.h
---- /dev/null
-+++ a/include/linux/ksm.h
-@@ -0,0 +1,50 @@
-+#ifndef __LINUX_KSM_H
-+#define __LINUX_KSM_H
-+/*
-+ * Memory merging support.
-+ *
-+ * This code enables dynamic sharing of identical pages found in different
-+ * memory areas, even if they are not shared by fork().
-+ */
-+
-+#include <linux/bitops.h>
-+#include <linux/mm.h>
-+#include <linux/sched.h>
-+
-+#ifdef CONFIG_KSM
-+int ksm_madvise(struct vm_area_struct *vma, unsigned long start,
-+		unsigned long end, int advice, unsigned long *vm_flags);
-+int __ksm_enter(struct mm_struct *mm);
-+void __ksm_exit(struct mm_struct *mm);
-+
-+static inline int ksm_fork(struct mm_struct *mm, struct mm_struct *oldmm)
-+{
-+	if (test_bit(MMF_VM_MERGEABLE, &oldmm->flags))
-+		return __ksm_enter(mm);
-+	return 0;
-+}
-+
-+static inline void ksm_exit(struct mm_struct *mm)
-+{
-+	if (test_bit(MMF_VM_MERGEABLE, &mm->flags))
-+		__ksm_exit(mm);
-+}
-+#else  /* !CONFIG_KSM */
-+
-+static inline int ksm_madvise(struct vm_area_struct *vma, unsigned long start,
-+		unsigned long end, int advice, unsigned long *vm_flags)
-+{
-+	return 0;
-+}
-+
-+static inline int ksm_fork(struct mm_struct *mm, struct mm_struct *oldmm)
-+{
-+	return 0;
-+}
-+
-+static inline void ksm_exit(struct mm_struct *mm)
-+{
-+}
-+#endif /* !CONFIG_KSM */
-+
-+#endif
-diff -puN include/linux/mm.h~ksm-the-mm-interface-to-ksm include/linux/mm.h
---- a/include/linux/mm.h~ksm-the-mm-interface-to-ksm
-+++ a/include/linux/mm.h
-@@ -103,6 +103,7 @@ extern unsigned int kobjsize(const void 
- #define VM_MIXEDMAP	0x10000000	/* Can contain "struct page" and pure PFN pages */
- #define VM_SAO		0x20000000	/* Strong Access Ordering (powerpc) */
- #define VM_PFN_AT_MMAP	0x40000000	/* PFNMAP vma that is fully mapped at mmap time */
-+#define VM_MERGEABLE	0x80000000	/* KSM may merge identical pages */
- 
- #ifndef VM_STACK_DEFAULT_FLAGS		/* arch can override this */
- #define VM_STACK_DEFAULT_FLAGS VM_DATA_DEFAULT_FLAGS
-diff -puN include/linux/sched.h~ksm-the-mm-interface-to-ksm include/linux/sched.h
---- a/include/linux/sched.h~ksm-the-mm-interface-to-ksm
-+++ a/include/linux/sched.h
-@@ -434,7 +434,9 @@ extern int get_dumpable(struct mm_struct
- /* dumpable bits */
- #define MMF_DUMPABLE      0  /* core dump is permitted */
- #define MMF_DUMP_SECURELY 1  /* core file is readable only by root */
-+
- #define MMF_DUMPABLE_BITS 2
-+#define MMF_DUMPABLE_MASK ((1 << MMF_DUMPABLE_BITS) - 1)
- 
- /* coredump filter bits */
- #define MMF_DUMP_ANON_PRIVATE	2
-@@ -444,6 +446,7 @@ extern int get_dumpable(struct mm_struct
- #define MMF_DUMP_ELF_HEADERS	6
- #define MMF_DUMP_HUGETLB_PRIVATE 7
- #define MMF_DUMP_HUGETLB_SHARED  8
-+
- #define MMF_DUMP_FILTER_SHIFT	MMF_DUMPABLE_BITS
- #define MMF_DUMP_FILTER_BITS	7
- #define MMF_DUMP_FILTER_MASK \
-@@ -457,6 +460,10 @@ extern int get_dumpable(struct mm_struct
- #else
- # define MMF_DUMP_MASK_DEFAULT_ELF	0
- #endif
-+					/* leave room for more dump flags */
-+#define MMF_VM_MERGEABLE	16	/* KSM may merge identical pages */
-+
-+#define MMF_INIT_MASK		(MMF_DUMPABLE_MASK | MMF_DUMP_FILTER_MASK)
- 
- struct sighand_struct {
- 	atomic_t		count;
-diff -puN kernel/fork.c~ksm-the-mm-interface-to-ksm kernel/fork.c
---- a/kernel/fork.c~ksm-the-mm-interface-to-ksm
-+++ a/kernel/fork.c
-@@ -49,6 +49,7 @@
- #include <linux/ftrace.h>
- #include <linux/profile.h>
- #include <linux/rmap.h>
-+#include <linux/ksm.h>
- #include <linux/acct.h>
- #include <linux/tsacct_kern.h>
- #include <linux/cn_proc.h>
-@@ -299,6 +300,9 @@ static int dup_mmap(struct mm_struct *mm
- 	rb_link = &mm->mm_rb.rb_node;
- 	rb_parent = NULL;
- 	pprev = &mm->mmap;
-+	retval = ksm_fork(mm, oldmm);
-+	if (retval)
-+		goto out;
- 
- 	for (mpnt = oldmm->mmap; mpnt; mpnt = mpnt->vm_next) {
- 		struct file *file;
-@@ -435,7 +439,8 @@ static struct mm_struct * mm_init(struct
- 	atomic_set(&mm->mm_count, 1);
- 	init_rwsem(&mm->mmap_sem);
- 	INIT_LIST_HEAD(&mm->mmlist);
--	mm->flags = (current->mm) ? current->mm->flags : default_dump_filter;
-+	mm->flags = (current->mm) ?
-+		(current->mm->flags & MMF_INIT_MASK) : default_dump_filter;
- 	mm->core_state = NULL;
- 	mm->nr_ptes = 0;
- 	set_mm_counter(mm, file_rss, 0);
-@@ -496,6 +501,7 @@ void mmput(struct mm_struct *mm)
- 
- 	if (atomic_dec_and_test(&mm->mm_users)) {
- 		exit_aio(mm);
-+		ksm_exit(mm);
- 		exit_mmap(mm);
- 		set_mm_exe_file(mm, NULL);
- 		if (!list_empty(&mm->mmlist)) {
-diff -puN mm/Kconfig~ksm-the-mm-interface-to-ksm mm/Kconfig
---- a/mm/Kconfig~ksm-the-mm-interface-to-ksm
-+++ a/mm/Kconfig
-@@ -214,6 +214,17 @@ config HAVE_MLOCKED_PAGE_BIT
- config MMU_NOTIFIER
- 	bool
- 
-+config KSM
-+	bool "Enable KSM for page merging"
-+	depends on MMU
-+	help
-+	  Enable Kernel Samepage Merging: KSM periodically scans those areas
-+	  of an application's address space that an app has advised may be
-+	  mergeable.  When it finds pages of identical content, it replaces
-+	  the many instances by a single resident page with that content, so
-+	  saving memory until one or another app needs to modify the content.
-+	  Recommended for use with KVM, or with other duplicative applications.
-+
- config DEFAULT_MMAP_MIN_ADDR
-         int "Low address space to protect from user allocation"
-         default 4096
-diff -puN mm/Makefile~ksm-the-mm-interface-to-ksm mm/Makefile
---- a/mm/Makefile~ksm-the-mm-interface-to-ksm
-+++ a/mm/Makefile
-@@ -25,6 +25,7 @@ obj-$(CONFIG_SPARSEMEM_VMEMMAP) += spars
- obj-$(CONFIG_TMPFS_POSIX_ACL) += shmem_acl.o
- obj-$(CONFIG_SLOB) += slob.o
- obj-$(CONFIG_MMU_NOTIFIER) += mmu_notifier.o
-+obj-$(CONFIG_KSM) += ksm.o
- obj-$(CONFIG_PAGE_POISONING) += debug-pagealloc.o
- obj-$(CONFIG_SLAB) += slab.o
- obj-$(CONFIG_SLUB) += slub.o
-diff -puN /dev/null mm/ksm.c
---- /dev/null
+diff -puN mm/ksm.c~ksm-move-pages_sharing-updates mm/ksm.c
+--- a/mm/ksm.c~ksm-move-pages_sharing-updates
 +++ a/mm/ksm.c
-@@ -0,0 +1,56 @@
-+/*
-+ * Initial dummy version just to illustrate KSM's interface to other files.
-+ */
-+
-+#include <linux/errno.h>
-+#include <linux/mman.h>
-+#include <linux/ksm.h>
-+
-+int ksm_madvise(struct vm_area_struct *vma, unsigned long start,
-+		unsigned long end, int advice, unsigned long *vm_flags)
-+{
-+	struct mm_struct *mm = vma->vm_mm;
-+
-+	switch (advice) {
-+	case MADV_MERGEABLE:
-+		/*
-+		 * Be somewhat over-protective for now!
-+		 */
-+		if (*vm_flags & (VM_MERGEABLE | VM_SHARED  | VM_MAYSHARE   |
-+				 VM_PFNMAP    | VM_IO      | VM_DONTEXPAND |
-+				 VM_RESERVED  | VM_HUGETLB | VM_INSERTPAGE |
-+				 VM_MIXEDMAP  | VM_SAO))
-+			return 0;		/* just ignore the advice */
-+
-+		if (!test_bit(MMF_VM_MERGEABLE, &mm->flags))
-+			if (__ksm_enter(mm) < 0)
-+				return -EAGAIN;
-+
-+		*vm_flags |= VM_MERGEABLE;
-+		break;
-+
-+	case MADV_UNMERGEABLE:
-+		if (!(*vm_flags & VM_MERGEABLE))
-+			return 0;		/* just ignore the advice */
-+
-+		/* Unmerge any merged pages here */
-+
-+		*vm_flags &= ~VM_MERGEABLE;
-+		break;
-+	}
-+
-+	return 0;
-+}
-+
-+int __ksm_enter(struct mm_struct *mm)
-+{
-+	/* Allocate a structure to track mm and link it into KSM's list */
-+	set_bit(MMF_VM_MERGEABLE, &mm->flags);
-+	return 0;
-+}
-+
-+void __ksm_exit(struct mm_struct *mm)
-+{
-+	/* Unlink and free all KSM's structures which track this mm */
-+	clear_bit(MMF_VM_MERGEABLE, &mm->flags);
-+}
-diff -puN mm/madvise.c~ksm-the-mm-interface-to-ksm mm/madvise.c
---- a/mm/madvise.c~ksm-the-mm-interface-to-ksm
-+++ a/mm/madvise.c
-@@ -11,6 +11,7 @@
- #include <linux/mempolicy.h>
- #include <linux/hugetlb.h>
- #include <linux/sched.h>
-+#include <linux/ksm.h>
+@@ -152,7 +152,7 @@ static struct kmem_cache *mm_slot_cache;
+ /* The number of nodes in the stable tree */
+ static unsigned long ksm_pages_shared;
  
- /*
-  * Any behaviour which results in changes to the vma->vm_flags needs to
-@@ -63,6 +64,12 @@ static long madvise_behavior(struct vm_a
+-/* The number of page slots sharing those nodes */
++/* The number of page slots additionally sharing those nodes */
+ static unsigned long ksm_pages_sharing;
+ 
+ /* Limit on the number of unswappable pages used */
+@@ -382,6 +382,7 @@ static void remove_rmap_item_from_tree(s
+ 						&next_item->node,
+ 						&root_stable_tree);
+ 				next_item->address |= NODE_FLAG;
++				ksm_pages_sharing--;
+ 			} else {
+ 				rb_erase(&rmap_item->node, &root_stable_tree);
+ 				ksm_pages_shared--;
+@@ -395,10 +396,10 @@ static void remove_rmap_item_from_tree(s
+ 				BUG_ON(next_item->prev != rmap_item);
+ 				next_item->prev = rmap_item->prev;
+ 			}
++			ksm_pages_sharing--;
  		}
- 		new_flags &= ~VM_DONTCOPY;
- 		break;
-+	case MADV_MERGEABLE:
-+	case MADV_UNMERGEABLE:
-+		error = ksm_madvise(vma, start, end, behavior, &new_flags);
-+		if (error)
-+			goto out;
-+		break;
+ 
+ 		rmap_item->next = NULL;
+-		ksm_pages_sharing--;
+ 
+ 	} else if (rmap_item->address & NODE_FLAG) {
+ 		unsigned char age;
+@@ -786,8 +787,6 @@ static int try_to_merge_two_pages(struct
+ 		 */
+ 		if (err)
+ 			break_cow(mm1, addr1);
+-		else
+-			ksm_pages_sharing += 2;
  	}
  
- 	if (new_flags == vma->vm_flags) {
-@@ -239,6 +246,10 @@ madvise_behavior_valid(int behavior)
- 	case MADV_REMOVE:
- 	case MADV_WILLNEED:
- 	case MADV_DONTNEED:
-+#ifdef CONFIG_KSM
-+	case MADV_MERGEABLE:
-+	case MADV_UNMERGEABLE:
-+#endif
- 		return 1;
+ 	put_page(kpage);
+@@ -816,9 +815,6 @@ static int try_to_merge_with_ksm_page(st
+ 	err = try_to_merge_one_page(vma, page1, kpage);
+ 	up_read(&mm1->mmap_sem);
  
- 	default:
-@@ -273,6 +284,9 @@ madvise_behavior_valid(int behavior)
-  *  MADV_DONTFORK - omit this area from child's address space when forking:
-  *		typically, to avoid COWing pages pinned by get_user_pages().
-  *  MADV_DOFORK - cancel MADV_DONTFORK: no longer omit this area when forking.
-+ *  MADV_MERGEABLE - the application recommends that KSM try to merge pages in
-+ *		this area with pages of identical content from other such areas.
-+ *  MADV_UNMERGEABLE- cancel MADV_MERGEABLE: no longer merge pages with others.
-  *
-  * return values:
-  *  zero    - success
+-	if (!err)
+-		ksm_pages_sharing++;
+-
+ 	return err;
+ }
+ 
+@@ -928,13 +924,12 @@ static struct rmap_item *stable_tree_ins
+ 		}
+ 	}
+ 
+-	ksm_pages_shared++;
+-
+ 	rmap_item->address |= NODE_FLAG | STABLE_FLAG;
+ 	rmap_item->next = NULL;
+ 	rb_link_node(&rmap_item->node, parent, new);
+ 	rb_insert_color(&rmap_item->node, &root_stable_tree);
+ 
++	ksm_pages_shared++;
+ 	return rmap_item;
+ }
+ 
+@@ -1019,6 +1014,8 @@ static void stable_tree_append(struct rm
+ 
+ 	tree_rmap_item->next = rmap_item;
+ 	rmap_item->address |= STABLE_FLAG;
++
++	ksm_pages_sharing++;
+ }
+ 
+ /*
+@@ -1043,10 +1040,9 @@ static void cmp_and_merge_page(struct pa
+ 	/* We first start with searching the page inside the stable tree */
+ 	tree_rmap_item = stable_tree_search(page, page2, rmap_item);
+ 	if (tree_rmap_item) {
+-		if (page == page2[0]) {			/* forked */
+-			ksm_pages_sharing++;
++		if (page == page2[0])			/* forked */
+ 			err = 0;
+-		} else
++		else
+ 			err = try_to_merge_with_ksm_page(rmap_item->mm,
+ 							 rmap_item->address,
+ 							 page, page2[0]);
+@@ -1107,7 +1103,6 @@ static void cmp_and_merge_page(struct pa
+ 				break_cow(tree_rmap_item->mm,
+ 						tree_rmap_item->address);
+ 				break_cow(rmap_item->mm, rmap_item->address);
+-				ksm_pages_sharing -= 2;
+ 			}
+ 		}
+ 
+@@ -1475,8 +1470,7 @@ KSM_ATTR_RO(pages_shared);
+ static ssize_t pages_sharing_show(struct kobject *kobj,
+ 				  struct kobj_attribute *attr, char *buf)
+ {
+-	return sprintf(buf, "%lu\n",
+-			ksm_pages_sharing - ksm_pages_shared);
++	return sprintf(buf, "%lu\n", ksm_pages_sharing);
+ }
+ KSM_ATTR_RO(pages_sharing);
+ 
 _
 
 Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
