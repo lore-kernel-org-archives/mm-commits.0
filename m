@@ -1,122 +1,162 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-dont-use-alloc_bootmem_low-where-not-strictly-needed.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:42:03 -0700
-Message-ID: <200909222042.n8MKg3Lo008808@imap1.linux-foundation.org>
+Subject: [merged] ksm-sysfs-and-defaults.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:40:13 -0700
+Message-ID: <200909222040.n8MKeDS7005114@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45301 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43440 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752681AbZIVUmP (ORCPT
+	by vger.kernel.org with ESMTP id S1752770AbZIVUmR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:42:15 -0400
+	Tue, 22 Sep 2009 16:42:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: JBeulich@novell.com, hpa@zytor.com, jbeulich@novell.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: hugh.dickins@tiscali.co.uk, aarcange@redhat.com, ieidus@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: don't use alloc_bootmem_low() where not strictly needed
+     ksm: sysfs and defaults
 has been removed from the -mm tree.  Its filename was
-     mm-dont-use-alloc_bootmem_low-where-not-strictly-needed.patch
+     ksm-sysfs-and-defaults.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: don't use alloc_bootmem_low() where not strictly needed
-From: "Jan Beulich" <JBeulich@novell.com>
+Subject: ksm: sysfs and defaults
+From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
-Since alloc_bootmem() will never return inaccessible (via virtual
-addressing) memory anyway, using the ..._low() variant only makes sense
-when the physical address range of the allocated memory must fulfill
-further constraints, espacially since on 64-bits (or more generally in all
-cases where the pools the two variants allocate from are than the full
-available range.
+At present KSM is just a waste of space if you don't have CONFIG_SYSFS=y
+to provide the /sys/kernel/mm/ksm files to tune and activate it.
 
-Probably the use in alloc_tce_table() could also be eliminated (based on
-code inspection of pci-calgary_64.c), but that seems too risky given I
-know nothing about that hardware and have no way to test it.
+Make KSM depend on SYSFS?  Could do, but it might be better to provide
+some defaults so that KSM works out-of-the-box, ready for testers to
+madvise MADV_MERGEABLE, even without SYSFS.
 
-Signed-off-by: Jan Beulich <jbeulich@novell.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Though anyone serious is likely to want to retune the numbers to their
+taste once they have experience; and whether these settings ever reach
+2.6.32 can be discussed along the way.
+
+Save 1kB from tiny kernels by #ifdef'ing the SYSFS side of it.
+
+Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Acked-by: Izik Eidus <ieidus@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/e820.c    |    2 +-
- arch/x86/mm/init_32.c     |    4 ++--
- drivers/firmware/memmap.c |    2 +-
- kernel/power/snapshot.c   |    2 +-
- 4 files changed, 5 insertions(+), 5 deletions(-)
+ mm/ksm.c |   26 +++++++++++++++++++-------
+ 1 file changed, 19 insertions(+), 7 deletions(-)
 
-diff -puN arch/x86/kernel/e820.c~mm-dont-use-alloc_bootmem_low-where-not-strictly-needed arch/x86/kernel/e820.c
---- a/arch/x86/kernel/e820.c~mm-dont-use-alloc_bootmem_low-where-not-strictly-needed
-+++ a/arch/x86/kernel/e820.c
-@@ -1331,7 +1331,7 @@ void __init e820_reserve_resources(void)
- 	struct resource *res;
- 	u64 end;
+diff -puN mm/ksm.c~ksm-sysfs-and-defaults mm/ksm.c
+--- a/mm/ksm.c~ksm-sysfs-and-defaults
++++ a/mm/ksm.c
+@@ -163,18 +163,18 @@ static unsigned long ksm_pages_unshared;
+ static unsigned long ksm_rmap_items;
  
--	res = alloc_bootmem_low(sizeof(struct resource) * e820.nr_map);
-+	res = alloc_bootmem(sizeof(struct resource) * e820.nr_map);
- 	e820_res = res;
- 	for (i = 0; i < e820.nr_map; i++) {
- 		end = e820.map[i].addr + e820.map[i].size - 1;
-diff -puN arch/x86/mm/init_32.c~mm-dont-use-alloc_bootmem_low-where-not-strictly-needed arch/x86/mm/init_32.c
---- a/arch/x86/mm/init_32.c~mm-dont-use-alloc_bootmem_low-where-not-strictly-needed
-+++ a/arch/x86/mm/init_32.c
-@@ -84,7 +84,7 @@ static pmd_t * __init one_md_table_init(
- #ifdef CONFIG_X86_PAE
- 	if (!(pgd_val(*pgd) & _PAGE_PRESENT)) {
- 		if (after_bootmem)
--			pmd_table = (pmd_t *)alloc_bootmem_low_pages(PAGE_SIZE);
-+			pmd_table = (pmd_t *)alloc_bootmem_pages(PAGE_SIZE);
- 		else
- 			pmd_table = (pmd_t *)alloc_low_page();
- 		paravirt_alloc_pmd(&init_mm, __pa(pmd_table) >> PAGE_SHIFT);
-@@ -116,7 +116,7 @@ static pte_t * __init one_page_table_ini
- #endif
- 			if (!page_table)
- 				page_table =
--				(pte_t *)alloc_bootmem_low_pages(PAGE_SIZE);
-+				(pte_t *)alloc_bootmem_pages(PAGE_SIZE);
- 		} else
- 			page_table = (pte_t *)alloc_low_page();
+ /* Limit on the number of unswappable pages used */
+-static unsigned long ksm_max_kernel_pages;
++static unsigned long ksm_max_kernel_pages = 2000;
  
-diff -puN drivers/firmware/memmap.c~mm-dont-use-alloc_bootmem_low-where-not-strictly-needed drivers/firmware/memmap.c
---- a/drivers/firmware/memmap.c~mm-dont-use-alloc_bootmem_low-where-not-strictly-needed
-+++ a/drivers/firmware/memmap.c
-@@ -164,7 +164,7 @@ int __init firmware_map_add_early(u64 st
+ /* Number of pages ksmd should scan in one batch */
+-static unsigned int ksm_thread_pages_to_scan;
++static unsigned int ksm_thread_pages_to_scan = 200;
+ 
+ /* Milliseconds ksmd should sleep between batches */
+-static unsigned int ksm_thread_sleep_millisecs;
++static unsigned int ksm_thread_sleep_millisecs = 20;
+ 
+ #define KSM_RUN_STOP	0
+ #define KSM_RUN_MERGE	1
+ #define KSM_RUN_UNMERGE	2
+-static unsigned int ksm_run;
++static unsigned int ksm_run = KSM_RUN_MERGE;
+ 
+ static DECLARE_WAIT_QUEUE_HEAD(ksm_thread_wait);
+ static DEFINE_MUTEX(ksm_thread_mutex);
+@@ -506,6 +506,10 @@ static int unmerge_ksm_pages(struct vm_a
+ 	return err;
+ }
+ 
++#ifdef CONFIG_SYSFS
++/*
++ * Only called through the sysfs control interface:
++ */
+ static int unmerge_and_remove_all_rmap_items(void)
  {
- 	struct firmware_map_entry *entry;
+ 	struct mm_slot *mm_slot;
+@@ -563,6 +567,7 @@ error:
+ 	spin_unlock(&ksm_mmlist_lock);
+ 	return err;
+ }
++#endif /* CONFIG_SYSFS */
  
--	entry = alloc_bootmem_low(sizeof(struct firmware_map_entry));
-+	entry = alloc_bootmem(sizeof(struct firmware_map_entry));
- 	if (WARN_ON(!entry))
- 		return -ENOMEM;
+ static u32 calc_checksum(struct page *page)
+ {
+@@ -1454,6 +1459,11 @@ void __ksm_exit(struct mm_struct *mm)
+ 	}
+ }
  
-diff -puN kernel/power/snapshot.c~mm-dont-use-alloc_bootmem_low-where-not-strictly-needed kernel/power/snapshot.c
---- a/kernel/power/snapshot.c~mm-dont-use-alloc_bootmem_low-where-not-strictly-needed
-+++ a/kernel/power/snapshot.c
-@@ -619,7 +619,7 @@ __register_nosave_region(unsigned long s
- 		BUG_ON(!region);
- 	} else
- 		/* This allocation cannot fail */
--		region = alloc_bootmem_low(sizeof(struct nosave_region));
-+		region = alloc_bootmem(sizeof(struct nosave_region));
- 	region->start_pfn = start_pfn;
- 	region->end_pfn = end_pfn;
- 	list_add_tail(&region->list, &nosave_regions);
++#ifdef CONFIG_SYSFS
++/*
++ * This all compiles without CONFIG_SYSFS, but is a waste of space.
++ */
++
+ #define KSM_ATTR_RO(_name) \
+ 	static struct kobj_attribute _name##_attr = __ATTR_RO(_name)
+ #define KSM_ATTR(_name) \
+@@ -1636,6 +1646,7 @@ static struct attribute_group ksm_attr_g
+ 	.attrs = ksm_attrs,
+ 	.name = "ksm",
+ };
++#endif /* CONFIG_SYSFS */
+ 
+ static int __init ksm_init(void)
+ {
+@@ -1657,16 +1668,17 @@ static int __init ksm_init(void)
+ 		goto out_free2;
+ 	}
+ 
++#ifdef CONFIG_SYSFS
+ 	err = sysfs_create_group(mm_kobj, &ksm_attr_group);
+ 	if (err) {
+ 		printk(KERN_ERR "ksm: register sysfs failed\n");
+-		goto out_free3;
++		kthread_stop(ksm_thread);
++		goto out_free2;
+ 	}
++#endif /* CONFIG_SYSFS */
+ 
+ 	return 0;
+ 
+-out_free3:
+-	kthread_stop(ksm_thread);
+ out_free2:
+ 	mm_slots_hash_free();
+ out_free1:
 _
 
-Patches currently in -mm which might be from JBeulich@novell.com are
+Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
 
 origin.patch
 linux-next.patch
-thermal-add-missing-kconfig-dependency.patch
-kbuild-generate-modulesbuiltin.patch
-kbuild-rebuild-fix-for-makefilemodbuiltin.patch
-build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it.patch
-build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix.patch
+vfs-optimize-touch_time-too.patch
+vfs-seq_file-add-helpers-for-data-filling.patch
+fs-new-truncate-helpers.patch
+fs-use-new-truncate-helpers.patch
+fs-introduce-new-truncate-sequence.patch
+fs-convert-simple-fs-to-new-truncate.patch
+tmpfs-convert-to-use-the-new-truncate-convention.patch
+ext2-convert-to-use-the-new-truncate-convention.patch
+fat-convert-to-use-the-new-truncate-convention.patch
+btrfs-convert-to-use-the-new-truncate-convention.patch
+jfs-convert-to-use-the-new-truncate-convention.patch
+udf-convert-to-use-the-new-truncate-convention.patch
+minix-convert-to-use-the-new-truncate-convention.patch
+getrusage-fill-ru_maxrss-value.patch
+walk-system-ram-range-fix.patch
+ramfs-move-ramfs_magic-to-include-linux-magich.patch
+memory-controller-soft-limit-organize-cgroups-v9-fix.patch
+prio_tree-debugging-patch.patch
 
