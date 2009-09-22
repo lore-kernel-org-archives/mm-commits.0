@@ -1,147 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-also-use-alloc_large_system_hash-for-the-pid-hash-table.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:42:06 -0700
-Message-ID: <200909222042.n8MKg6bE008912@imap1.linux-foundation.org>
+Subject: [merged] mm-rename-pgmoved-variable-in-shrink_active_list.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:38:21 -0700
+Message-ID: <200909222038.n8MKcLTW001244@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57187 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44562 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752654AbZIVUmM (ORCPT
+	by vger.kernel.org with ESMTP id S1752764AbZIVUmR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:42:12 -0400
+	Tue, 22 Sep 2009 16:42:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: JBeulich@novell.com, ebiederm@xmission.com, jbeulich@novell.com, mel@csn.ul.ie, mingo@elte.hu, mm-commits@vger.kernel.org
+To: kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: also use alloc_large_system_hash() for the PID hash table
+     mm: rename pgmoved variable in shrink_active_list()
 has been removed from the -mm tree.  Its filename was
-     mm-also-use-alloc_large_system_hash-for-the-pid-hash-table.patch
+     mm-rename-pgmoved-variable-in-shrink_active_list.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: also use alloc_large_system_hash() for the PID hash table
-From: "Jan Beulich" <JBeulich@novell.com>
+Subject: mm: rename pgmoved variable in shrink_active_list()
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-This is being done by allowing boot time allocations to specify that they
-may want a sub-page sized amount of memory.
+Currently the pgmoved variable has two meanings.  It causes harder
+reviewing.  This patch separates it.
 
-Overall this seems more consistent with the other hash table allocations,
-and allows making two supposedly mm-only variables really mm-only
-(nr_{kernel,all}_pages).
-
-Signed-off-by: Jan Beulich <jbeulich@novell.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bootmem.h |    5 ++---
- kernel/pid.c            |   15 ++++-----------
- mm/page_alloc.c         |   13 ++++++++++---
- 3 files changed, 16 insertions(+), 17 deletions(-)
+ mm/vmscan.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/bootmem.h~mm-also-use-alloc_large_system_hash-for-the-pid-hash-table include/linux/bootmem.h
---- a/include/linux/bootmem.h~mm-also-use-alloc_large_system_hash-for-the-pid-hash-table
-+++ a/include/linux/bootmem.h
-@@ -132,9 +132,6 @@ static inline void *alloc_remap(int nid,
- }
- #endif /* CONFIG_HAVE_ARCH_ALLOC_REMAP */
- 
--extern unsigned long __meminitdata nr_kernel_pages;
--extern unsigned long __meminitdata nr_all_pages;
--
- extern void *alloc_large_system_hash(const char *tablename,
- 				     unsigned long bucketsize,
- 				     unsigned long numentries,
-@@ -145,6 +142,8 @@ extern void *alloc_large_system_hash(con
- 				     unsigned long limit);
- 
- #define HASH_EARLY	0x00000001	/* Allocating during early boot? */
-+#define HASH_SMALL	0x00000002	/* sub-page allocation allowed, min
-+					 * shift passed via *_hash_shift */
- 
- /* Only NUMA needs hash distribution. 64bit NUMA architectures have
-  * sufficient vmalloc space.
-diff -puN kernel/pid.c~mm-also-use-alloc_large_system_hash-for-the-pid-hash-table kernel/pid.c
---- a/kernel/pid.c~mm-also-use-alloc_large_system_hash-for-the-pid-hash-table
-+++ a/kernel/pid.c
-@@ -40,7 +40,7 @@
- #define pid_hashfn(nr, ns)	\
- 	hash_long((unsigned long)nr + (unsigned long)ns, pidhash_shift)
- static struct hlist_head *pid_hash;
--static int pidhash_shift;
-+static unsigned int pidhash_shift = 4;
- struct pid init_struct_pid = INIT_STRUCT_PID;
- 
- int pid_max = PID_MAX_DEFAULT;
-@@ -499,19 +499,12 @@ struct pid *find_ge_pid(int nr, struct p
- void __init pidhash_init(void)
+diff -puN mm/vmscan.c~mm-rename-pgmoved-variable-in-shrink_active_list mm/vmscan.c
+--- a/mm/vmscan.c~mm-rename-pgmoved-variable-in-shrink_active_list
++++ a/mm/vmscan.c
+@@ -1244,7 +1244,7 @@ static void move_active_pages_to_lru(str
+ static void shrink_active_list(unsigned long nr_pages, struct zone *zone,
+ 			struct scan_control *sc, int priority, int file)
  {
- 	int i, pidhash_size;
--	unsigned long megabytes = nr_kernel_pages >> (20 - PAGE_SHIFT);
+-	unsigned long pgmoved;
++	unsigned long nr_taken;
+ 	unsigned long pgscanned;
+ 	unsigned long vm_flags;
+ 	LIST_HEAD(l_hold);	/* The pages which were snipped off */
+@@ -1252,10 +1252,11 @@ static void shrink_active_list(unsigned 
+ 	LIST_HEAD(l_inactive);
+ 	struct page *page;
+ 	struct zone_reclaim_stat *reclaim_stat = get_reclaim_stat(zone, sc);
++	unsigned long nr_rotated = 0;
  
--	pidhash_shift = max(4, fls(megabytes * 4));
--	pidhash_shift = min(12, pidhash_shift);
-+	pid_hash = alloc_large_system_hash("PID", sizeof(*pid_hash), 0, 18,
-+					   HASH_EARLY | HASH_SMALL,
-+					   &pidhash_shift, NULL, 4096);
- 	pidhash_size = 1 << pidhash_shift;
- 
--	printk("PID hash table entries: %d (order: %d, %Zd bytes)\n",
--		pidhash_size, pidhash_shift,
--		pidhash_size * sizeof(struct hlist_head));
--
--	pid_hash = alloc_bootmem(pidhash_size *	sizeof(*(pid_hash)));
--	if (!pid_hash)
--		panic("Could not alloc pidhash!\n");
- 	for (i = 0; i < pidhash_size; i++)
- 		INIT_HLIST_HEAD(&pid_hash[i]);
- }
-diff -puN mm/page_alloc.c~mm-also-use-alloc_large_system_hash-for-the-pid-hash-table mm/page_alloc.c
---- a/mm/page_alloc.c~mm-also-use-alloc_large_system_hash-for-the-pid-hash-table
-+++ a/mm/page_alloc.c
-@@ -124,8 +124,8 @@ static char * const zone_names[MAX_NR_ZO
- 
- int min_free_kbytes = 1024;
- 
--unsigned long __meminitdata nr_kernel_pages;
--unsigned long __meminitdata nr_all_pages;
-+static unsigned long __meminitdata nr_kernel_pages;
-+static unsigned long __meminitdata nr_all_pages;
- static unsigned long __meminitdata dma_reserve;
- 
- #ifdef CONFIG_ARCH_POPULATES_NODE_MAP
-@@ -4821,7 +4821,14 @@ void *__init alloc_large_system_hash(con
- 			numentries <<= (PAGE_SHIFT - scale);
- 
- 		/* Make sure we've got at least a 0-order allocation.. */
--		if (unlikely((numentries * bucketsize) < PAGE_SIZE))
-+		if (unlikely(flags & HASH_SMALL)) {
-+			/* Makes no sense without HASH_EARLY */
-+			WARN_ON(!(flags & HASH_EARLY));
-+			if (!(numentries >> *_hash_shift)) {
-+				numentries = 1UL << *_hash_shift;
-+				BUG_ON(!numentries);
-+			}
-+		} else if (unlikely((numentries * bucketsize) < PAGE_SIZE))
- 			numentries = PAGE_SIZE / bucketsize;
+ 	lru_add_drain();
+ 	spin_lock_irq(&zone->lru_lock);
+-	pgmoved = sc->isolate_pages(nr_pages, &l_hold, &pgscanned, sc->order,
++	nr_taken = sc->isolate_pages(nr_pages, &l_hold, &pgscanned, sc->order,
+ 					ISOLATE_ACTIVE, zone,
+ 					sc->mem_cgroup, 1, file);
+ 	/*
+@@ -1265,16 +1266,15 @@ static void shrink_active_list(unsigned 
+ 	if (scanning_global_lru(sc)) {
+ 		zone->pages_scanned += pgscanned;
  	}
- 	numentries = roundup_pow_of_two(numentries);
+-	reclaim_stat->recent_scanned[!!file] += pgmoved;
++	reclaim_stat->recent_scanned[!!file] += nr_taken;
+ 
+ 	__count_zone_vm_events(PGREFILL, zone, pgscanned);
+ 	if (file)
+-		__mod_zone_page_state(zone, NR_ACTIVE_FILE, -pgmoved);
++		__mod_zone_page_state(zone, NR_ACTIVE_FILE, -nr_taken);
+ 	else
+-		__mod_zone_page_state(zone, NR_ACTIVE_ANON, -pgmoved);
++		__mod_zone_page_state(zone, NR_ACTIVE_ANON, -nr_taken);
+ 	spin_unlock_irq(&zone->lru_lock);
+ 
+-	pgmoved = 0;  /* count referenced (mapping) mapped pages */
+ 	while (!list_empty(&l_hold)) {
+ 		cond_resched();
+ 		page = lru_to_page(&l_hold);
+@@ -1288,7 +1288,7 @@ static void shrink_active_list(unsigned 
+ 		/* page_referenced clears PageReferenced */
+ 		if (page_mapping_inuse(page) &&
+ 		    page_referenced(page, 0, sc->mem_cgroup, &vm_flags)) {
+-			pgmoved++;
++			nr_rotated++;
+ 			/*
+ 			 * Identify referenced, file-backed active pages and
+ 			 * give them one more trip around the active list. So
+@@ -1317,7 +1317,7 @@ static void shrink_active_list(unsigned 
+ 	 * helps balance scan pressure between file and anonymous pages in
+ 	 * get_scan_ratio.
+ 	 */
+-	reclaim_stat->recent_rotated[!!file] += pgmoved;
++	reclaim_stat->recent_rotated[!!file] += nr_rotated;
+ 
+ 	move_active_pages_to_lru(zone, &l_active,
+ 						LRU_ACTIVE + file * LRU_FILE);
 _
 
-Patches currently in -mm which might be from JBeulich@novell.com are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 origin.patch
 linux-next.patch
-thermal-add-missing-kconfig-dependency.patch
-kbuild-generate-modulesbuiltin.patch
-kbuild-rebuild-fix-for-makefilemodbuiltin.patch
-build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it.patch
-build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix.patch
+revert-staging-android-lowmemorykillerc-fix-it-for-oom-move-oom_adj-value-from-task_struct-to-mm_struct.patch
+readahead-add-blk_run_backing_dev.patch
+oom-move-oom_adj-value-from-task_struct-to-signal_struct-fix.patch
+mm-vsmcan-check-shrink_active_list-sc-isolate_pages-return-value.patch
+getrusage-fill-ru_maxrss-value.patch
+kcore-use-registerd-physmem-information-ia64-fix.patch
+memory-controller-soft-limit-documentation-v9.patch
+memory-controller-soft-limit-interface-v9.patch
+memory-controller-soft-limit-organize-cgroups-v9.patch
+memory-controller-soft-limit-organize-cgroups-v9-fix.patch
+memory-controller-soft-limit-refactor-reclaim-flags-v9.patch
+memory-controller-soft-limit-reclaim-on-contention-v9.patch
+memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
+memory-controller-soft-limit-reclaim-on-contention-v9-fix-softlimit-css-refcnt-handling.patch
+memory-controller-soft-limit-reclaim-on-contention-v9-fix-softlimit-css-refcnt-handling-fix.patch
+memcg-improve-resource-counter-scalability.patch
+memcg-improve-resource-counter-scalability-v5.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
