@@ -1,137 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-media-dvb-pt1-pt1c-needs-vmalloch.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:36:37 -0700
-Message-ID: <200909222036.n8MKabn3030214@imap1.linux-foundation.org>
+Subject: [merged] sdhci-orphan-driver-and-list.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:36:40 -0700
+Message-ID: <200909222036.n8MKaeRJ030266__33888.8100501665$1253651860$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38348 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50369 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751669AbZIVUhN (ORCPT
+	by vger.kernel.org with ESMTP id S1751782AbZIVUhO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:37:13 -0400
+	Tue, 22 Sep 2009 16:37:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: pierre@ossman.eu, linux-mmc@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/media/dvb/pt1/pt1.c needs vmalloc.h
+     sdhci: orphan driver and list
 has been removed from the -mm tree.  Its filename was
-     drivers-media-dvb-pt1-pt1c-needs-vmalloch.patch
+     sdhci-orphan-driver-and-list.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/media/dvb/pt1/pt1.c needs vmalloc.h
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: sdhci: orphan driver and list
+From: Pierre Ossman <pierre@ossman.eu>
 
-alpha:
+Remove myself as maintainer from the sdhci driver and steer people
+towards the new MMC list for discussing it.
 
-drivers/media/dvb/pt1/pt1.c: In function 'pt1_cleanup_tables':
-drivers/media/dvb/pt1/pt1.c:422: error: implicit declaration of function 'vfree'
-drivers/media/dvb/pt1/pt1.c: In function 'pt1_init_tables':
-drivers/media/dvb/pt1/pt1.c:431: error: implicit declaration of function 'vmalloc'
-drivers/media/dvb/pt1/pt1.c:431: warning: assignment makes pointer from integer without a cast
-
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: Pierre Ossman <pierre@ossman.eu>
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/pt1/pt1.c |    1 +
- 1 file changed, 1 insertion(+)
+ MAINTAINERS |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/media/dvb/pt1/pt1.c~drivers-media-dvb-pt1-pt1c-needs-vmalloch drivers/media/dvb/pt1/pt1.c
---- a/drivers/media/dvb/pt1/pt1.c~drivers-media-dvb-pt1-pt1c-needs-vmalloch
-+++ a/drivers/media/dvb/pt1/pt1.c
-@@ -23,6 +23,7 @@
+diff -puN MAINTAINERS~sdhci-orphan-driver-and-list MAINTAINERS
+--- a/MAINTAINERS~sdhci-orphan-driver-and-list
++++ a/MAINTAINERS
+@@ -4533,20 +4533,20 @@ S:	Maintained
+ F:	drivers/mmc/host/sdricoh_cs.c
  
- #include <linux/kernel.h>
- #include <linux/module.h>
-+#include <linux/vmalloc.h>
- #include <linux/pci.h>
- #include <linux/kthread.h>
- #include <linux/freezer.h>
+ SECURE DIGITAL HOST CONTROLLER INTERFACE (SDHCI) DRIVER
+-M:	Pierre Ossman <pierre@ossman.eu>
+-L:	sdhci-devel@lists.ossman.eu
+-S:	Maintained
++S:     Orphan
++L:     linux-mmc@vger.kernel.org
++F:     drivers/mmc/host/sdhci.*
+ 
+ SECURE DIGITAL HOST CONTROLLER INTERFACE, OPEN FIRMWARE BINDINGS (SDHCI-OF)
+ M:	Anton Vorontsov <avorontsov@ru.mvista.com>
+ L:	linuxppc-dev@ozlabs.org
+-L:	sdhci-devel@lists.ossman.eu
++L:     linux-mmc@vger.kernel.org
+ S:	Maintained
+-F:	drivers/mmc/host/sdhci.*
++F:     drivers/mmc/host/sdhci-of.*
+ 
+ SECURE DIGITAL HOST CONTROLLER INTERFACE (SDHCI) SAMSUNG DRIVER
+ M:	Ben Dooks <ben-linux@fluff.org>
+-L:	sdhci-devel@lists.ossman.eu
++L:     linux-mmc@vger.kernel.org
+ S:	Maintained
+ F:	drivers/mmc/host/sdhci-s3c.c
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from pierre@ossman.eu are
 
 origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-hwmon-driver-for-acpi-40-power-meters.patch
-drivers-md-dm-log-userspace-basec-fix-warning.patch
-drivers-dma-ioat-dma_v3c-fix-warnings.patch
-drivers-dma-ioat-dma_v2c-fix-warnings.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-checkincludespl-add-option-to-remove-duplicates-in-place.patch
-net-fix-config_net=n-build-on-sparc64.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-include-linux-credh-fix-build.patch
-serial167-fix-read-buffer-overflow.patch
-st-fix-test-of-value-range-in-st_set_options.patch
-drivers-usb-serial-sierrac-fix-config_pm=n-build.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-vfs-optimize-touch_time-too.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-drivers-net-wireless-ath-ar9170-phyc-fix-uninitialised-variable.patch
-readahead-add-blk_run_backing_dev.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
-generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
-proc-connector-add-event-for-process-becoming-session-leader.patch
-build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix.patch
-kernel-smpc-relocate-some-code.patch
-mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
+sdio-do-not-ignore-mmc_vdd_165_195.patch
+tmio_mmc-optionally-support-using-platform-clock.patch
+sh-switch-migo-r-to-use-the-tmio-mmc-driver-instead-of-spi.patch
+mmc-add-enable-and-disable-methods-to-mmc-host.patch
+mmc-allow-host-claim-release-nesting.patch
+mmc-add-mmc_cap_nonremovable-host-capability.patch
+mmc-add-ability-to-save-power-by-powering-off-cards.patch
+mmc-add-mmc-card-sleep-and-awake-support.patch
+mmc-power-off-once-at-removal.patch
+mmc-check-status-after-mmc-switch-command.patch
+omap_hsmmc-add-debugfs-entry-host-registers.patch
+omap_hsmmc-make-use-of-new-enable-disable-interface.patch
+arm-omap-mmc-twl4030-add-context-loss-counter-support.patch
+omap_hsmmc-keep-track-of-power-mode.patch
+omap_hsmmc-context-save-restore-support.patch
+omap_hsmmc-set-open-drain-bit-correctly.patch
+omap_hsmmc-ensure-workqueues-are-empty-before-suspend.patch
+omap_hsmmc-fix-scatter-gather-list-sanity-checking.patch
+omap_hsmmc-make-use-of-new-mmc_cap_nonremovable-host-capability.patch
+omap_hsmmc-support-for-deeper-power-saving-states.patch
+arm-omap-mmc-twl4030-add-regulator-sleep-wake-function.patch
+omap_hsmmc-put-mmc-regulator-to-sleep.patch
+omap_hsmmc-add-mmc-card-sleep-and-awake-support.patch
+omap_hsmmc-fix-null-pointer-dereference.patch
+omap_hsmmc-cleanup-macro-usage.patch
+omap_hsmmc-clear-interrupt-status-after-init-sequence.patch
+omap_hsmmc-cater-for-weird-cmd6-behaviour.patch
+omap_hsmmc-prevent-races-with-irq-handler.patch
+omap_hsmmc-code-refactoring.patch
+omap_hsmmc-protect-the-card-when-the-cover-is-open.patch
+omap_hsmmc-ensure-all-clock-enables-and-disables-are-paired.patch
+omap_hsmmc-ensure-all-clock-enables-and-disables-are-paired-fix-for-the-db-clock-failure-message.patch
+omap_hsmmc-set-a-large-data-timeout-for-commands-with-busy-signal.patch
+arm-omap-rx51-set-mmc-capabilities-and-power-saving-flag.patch
+arm-omap-rx51-set-mmc-capabilities-and-power-saving-flag-update.patch
+sdio-add-cd-disable-support.patch
 sdio-add-cd-disable-support-cleanup.patch
-sdio-add-mmc_quirk_lenient_fn0-fix.patch
-at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver-checkpatch-fixes.patch
-mmc-core-sdio-suspend-resume-support-fix.patch
-procfs-provide-stack-information-for-threads-v011-fix.patch
-walk-system-ram-range-fix-2.patch
-kcore-register-vmemmap-range-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes-fix.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
-drivers-video-add-kmalloc-null-tests-fix.patch
-drivers-video-tmiofbc-fix-uninitialised-return-value.patch
-v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
-page-types-add-feature-for-walking-process-address-space-checkpatch-fixes.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
-memcg-improve-resource-counter-scalability-checkpatch-fixes.patch
-exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
-exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
-elf-clean-up-fill_note_info-fix.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-reiser4-disable.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+sdhci-be-more-strict-with-get_min_clock-usage.patch
+sdhci-of-fix-sd-clock-calculation.patch
+sdhci-of-avoid-writing-reserved-bits-into-host-control-register.patch
+sdhci-of-fix-high-speed-cards-recognition.patch
+powerpc-introduce-and-document-sdhciwp-inverted-property-for-esdhc.patch
+sdhci-of-dont-hard-code-inverted-write-protect-quirk.patch
+sdhci-of-cleanup-esdhcs-set_clock-a-little-bit.patch
+powerpc-85xx-add-esdhc-support-for-mpc8536ds-boards.patch
+sdhci-increase-timeout-for-internal-clock-stabilization.patch
 
