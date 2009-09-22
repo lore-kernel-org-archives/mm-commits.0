@@ -1,97 +1,135 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pcmcia-fix-read-buffer-overflow.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:43:59 -0700
-Message-ID: <200909222043.n8MKhxnE012706@imap1.linux-foundation.org>
+Subject: [merged] pcmcia-switch-proc-bus-pccard-drivers-to-seq_file.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:44:02 -0700
+Message-ID: <200909222044.n8MKi2mG012795@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47475 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55295 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753144AbZIVUoG (ORCPT
+	by vger.kernel.org with ESMTP id S1753144AbZIVUoD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:44:06 -0400
+	Tue, 22 Sep 2009 16:44:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, greg@kroah.com, laforge@gnumonks.org, linux@dominikbrodowski.net, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, greg@kroah.com, linux@dominikbrodowski.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pcmcia: fix read buffer overflow
+     pcmcia: switch /proc/bus/pccard/drivers to seq_file
 has been removed from the -mm tree.  Its filename was
-     pcmcia-fix-read-buffer-overflow.patch
+     pcmcia-switch-proc-bus-pccard-drivers-to-seq_file.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pcmcia: fix read buffer overflow
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: pcmcia: switch /proc/bus/pccard/drivers to seq_file
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-If count > 0 and dev->rlen == dev->rpos and dev->proto == 0 then we read
-and write dev->rbuf[-1];
-
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Harald Welte <laforge@gnumonks.org>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Dominik Brodowski <linux@dominikbrodowski.net>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/pcmcia/cm4000_cs.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/pcmcia/pcmcia_ioctl.c |   36 +++++++++++++++++---------------
+ 1 file changed, 20 insertions(+), 16 deletions(-)
 
-diff -puN drivers/char/pcmcia/cm4000_cs.c~pcmcia-fix-read-buffer-overflow drivers/char/pcmcia/cm4000_cs.c
---- a/drivers/char/pcmcia/cm4000_cs.c~pcmcia-fix-read-buffer-overflow
-+++ a/drivers/char/pcmcia/cm4000_cs.c
-@@ -1017,7 +1017,7 @@ static ssize_t cmm_read(struct file *fil
- 		}
- 	}
+diff -puN drivers/pcmcia/pcmcia_ioctl.c~pcmcia-switch-proc-bus-pccard-drivers-to-seq_file drivers/pcmcia/pcmcia_ioctl.c
+--- a/drivers/pcmcia/pcmcia_ioctl.c~pcmcia-switch-proc-bus-pccard-drivers-to-seq_file
++++ a/drivers/pcmcia/pcmcia_ioctl.c
+@@ -27,6 +27,7 @@
+ #include <linux/proc_fs.h>
+ #include <linux/poll.h>
+ #include <linux/pci.h>
++#include <linux/seq_file.h>
+ #include <linux/smp_lock.h>
+ #include <linux/workqueue.h>
  
--	if (dev->proto == 0 && count > dev->rlen - dev->rpos) {
-+	if (dev->proto == 0 && count > dev->rlen - dev->rpos && i) {
- 		DEBUGP(4, dev, "T=0 and count > buffer\n");
- 		dev->rbuf[i] = dev->rbuf[i - 1];
- 		dev->rbuf[i - 1] = dev->procbyte;
+@@ -105,37 +106,40 @@ static struct pcmcia_driver *get_pcmcia_
+ #ifdef CONFIG_PROC_FS
+ static struct proc_dir_entry *proc_pccard = NULL;
+ 
+-static int proc_read_drivers_callback(struct device_driver *driver, void *d)
++static int proc_read_drivers_callback(struct device_driver *driver, void *_m)
+ {
+-	char **p = d;
++	struct seq_file *m = _m;
+ 	struct pcmcia_driver *p_drv = container_of(driver,
+ 						   struct pcmcia_driver, drv);
+ 
+-	*p += sprintf(*p, "%-24.24s 1 %d\n", p_drv->drv.name,
++	seq_printf(m, "%-24.24s 1 %d\n", p_drv->drv.name,
+ #ifdef CONFIG_MODULE_UNLOAD
+ 		      (p_drv->owner) ? module_refcount(p_drv->owner) : 1
+ #else
+ 		      1
+ #endif
+ 	);
+-	d = (void *) p;
+-
+ 	return 0;
+ }
+ 
+-static int proc_read_drivers(char *buf, char **start, off_t pos,
+-			     int count, int *eof, void *data)
++static int pccard_drivers_proc_show(struct seq_file *m, void *v)
+ {
+-	char *p = buf;
+-	int rc;
+-
+-	rc = bus_for_each_drv(&pcmcia_bus_type, NULL,
+-			      (void *) &p, proc_read_drivers_callback);
+-	if (rc < 0)
+-		return rc;
++	return bus_for_each_drv(&pcmcia_bus_type, NULL,
++				m, proc_read_drivers_callback);
++}
+ 
+-	return (p - buf);
++static int pccard_drivers_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, pccard_drivers_proc_show, NULL);
+ }
++
++static const struct file_operations pccard_drivers_proc_fops = {
++	.owner		= THIS_MODULE,
++	.open		= pccard_drivers_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++};
+ #endif
+ 
+ 
+@@ -1011,7 +1015,7 @@ void __init pcmcia_setup_ioctl(void) {
+ #ifdef CONFIG_PROC_FS
+ 	proc_pccard = proc_mkdir("bus/pccard", NULL);
+ 	if (proc_pccard)
+-		create_proc_read_entry("drivers",0,proc_pccard,proc_read_drivers,NULL);
++		proc_create("drivers", 0, proc_pccard, &pccard_drivers_proc_fops);
+ #endif
+ }
+ 
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
 origin.patch
 linux-next.patch
-s3c-fix-check-of-index-into-s3c_gpios.patch
-stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
-dm-strncpy-does-not-null-terminate-string.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
-msp71xx-request_irq-failure-ignored-in-msp_pcibios_config_access.patch
-mtd-jffs2-fix-read-buffer-overflow.patch
-mtd-prevent-a-read-from-eraseregions.patch
-mtd-prevent-a-read-from-regions.patch
-hfc_usb-fix-read-buffer-overflow.patch
-cyclades-read-buffer-overflow.patch
-serial167-fix-read-buffer-overflow.patch
-regulator-fix-calculation-of-voltage-range-in-da9034_set_ldo12_voltage.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
-st-fix-test-of-value-range-in-st_set_options.patch
-drivers-staging-octeon-ethernet-rgmiic-dont-ignore-request_irq-return-code.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-dme1737-keep-index-within-pwm_config.patch
-sdio-fix-read-buffer-overflow.patch
-ncpfs-read-buffer-overflow.patch
-smbfs-read-buffer-overflow.patch
-platinumfb-misplaced-parenthesis.patch
-sisfb-read-buffer-overflow.patch
-drivers-video-console-newport_conc-fix-read-outside-array-bounds.patch
-mwave-fix-read-buffer-overflow.patch
-adfs-remove-redundant-test-on-unsigned.patch
-gru-allocation-may-fail-in-quicktest1.patch
+acpi-switch-proc-acpi-debug_layerdebug_level-to-seq_file.patch
+genirq-switch-proc-irq-spurious-to-seq_file.patch
+cpqarray-switch-to-seq_file.patch
+dac960-switch-to-seq_file.patch
+proc_flush_task-flush-proc-tid-task-pid-when-a-sub-thread-exits.patch
+procfs-provide-stack-information-for-threads-v08.patch
+procfs-provide-stack-information-for-threads-v011.patch
+procfs-provide-stack-information-for-threads-v011-fix.patch
+viafb-switch-to-seq_file.patch
+reiserfs-remove-proc-fs-reiserfs-version.patch
+reiserfs-dont-compile-procfso-at-all-if-no-support.patch
+sysctl-remove-struct-file-argument-of-proc_handler.patch
+aio-ifdef-fields-in-mm_struct.patch
+gru-use-proc_create.patch
 
