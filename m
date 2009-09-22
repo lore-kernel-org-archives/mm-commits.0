@@ -1,81 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-kmem_cache_create-make-it-easier-to-catch-null-cache-names.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:40:34 -0700
-Message-ID: <200909222040.n8MKeYto005840@imap1.linux-foundation.org>
+Subject: [merged] ksm-unmerge-is-an-origin-of-ooms.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:40:25 -0700
+Message-ID: <200909222040.n8MKePBs005545@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47649 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38764 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752610AbZIVUlG (ORCPT
+	by vger.kernel.org with ESMTP id S1752602AbZIVUlE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:41:06 -0400
+	Tue, 22 Sep 2009 16:41:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: benh@kernel.crashing.org, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
+To: hugh.dickins@tiscali.co.uk, aarcange@redhat.com, ieidus@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: kmem_cache_create(): make it easier to catch NULL cache names
+     ksm: unmerge is an origin of OOMs
 has been removed from the -mm tree.  Its filename was
-     mm-kmem_cache_create-make-it-easier-to-catch-null-cache-names.patch
+     ksm-unmerge-is-an-origin-of-ooms.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: kmem_cache_create(): make it easier to catch NULL cache names
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Subject: ksm: unmerge is an origin of OOMs
+From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
-Right now, if you inadvertently pass NULL to kmem_cache_create() at boot
-time, it crashes much later after boot somewhere deep inside sysfs which
-makes it very non obvious to figure out what's going on.
+Just as the swapoff system call allocates many pages of RAM to various
+processes, perhaps triggering OOM, so "echo 2 >/sys/kernel/mm/ksm/run"
+(unmerge) is liable to allocate many pages of RAM to various processes,
+perhaps triggering OOM; and each is normally run from a modest admin
+process (swapoff or shell), easily repeated until it succeeds.
 
-Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+So treat unmerge_and_remove_all_rmap_items() in the same way that we treat
+try_to_unuse(): generalize PF_SWAPOFF to PF_OOM_ORIGIN, and bracket both
+with that, to ask the OOM killer to kill them first, to prevent them from
+spawning more and more OOM kills.
+
+Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Acked-by: Izik Eidus <ieidus@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    3 +++
- 1 file changed, 3 insertions(+)
+ include/linux/sched.h |    2 +-
+ mm/ksm.c              |    2 ++
+ mm/oom_kill.c         |    2 +-
+ mm/swapfile.c         |    4 ++--
+ 4 files changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN mm/slub.c~mm-kmem_cache_create-make-it-easier-to-catch-null-cache-names mm/slub.c
---- a/mm/slub.c~mm-kmem_cache_create-make-it-easier-to-catch-null-cache-names
-+++ a/mm/slub.c
-@@ -3345,6 +3345,9 @@ struct kmem_cache *kmem_cache_create(con
- {
- 	struct kmem_cache *s;
+diff -puN include/linux/sched.h~ksm-unmerge-is-an-origin-of-ooms include/linux/sched.h
+--- a/include/linux/sched.h~ksm-unmerge-is-an-origin-of-ooms
++++ a/include/linux/sched.h
+@@ -1720,7 +1720,7 @@ extern cputime_t task_gtime(struct task_
+ #define PF_FROZEN	0x00010000	/* frozen for system suspend */
+ #define PF_FSTRANS	0x00020000	/* inside a filesystem transaction */
+ #define PF_KSWAPD	0x00040000	/* I am kswapd */
+-#define PF_SWAPOFF	0x00080000	/* I am in swapoff */
++#define PF_OOM_ORIGIN	0x00080000	/* Allocating much memory to others */
+ #define PF_LESS_THROTTLE 0x00100000	/* Throttle me less: I clean memory */
+ #define PF_KTHREAD	0x00200000	/* I am a kernel thread */
+ #define PF_RANDOMIZE	0x00400000	/* randomize virtual address space */
+diff -puN mm/ksm.c~ksm-unmerge-is-an-origin-of-ooms mm/ksm.c
+--- a/mm/ksm.c~ksm-unmerge-is-an-origin-of-ooms
++++ a/mm/ksm.c
+@@ -1557,7 +1557,9 @@ static ssize_t run_store(struct kobject 
+ 	if (ksm_run != flags) {
+ 		ksm_run = flags;
+ 		if (flags & KSM_RUN_UNMERGE) {
++			current->flags |= PF_OOM_ORIGIN;
+ 			err = unmerge_and_remove_all_rmap_items();
++			current->flags &= ~PF_OOM_ORIGIN;
+ 			if (err) {
+ 				ksm_run = KSM_RUN_STOP;
+ 				count = err;
+diff -puN mm/oom_kill.c~ksm-unmerge-is-an-origin-of-ooms mm/oom_kill.c
+--- a/mm/oom_kill.c~ksm-unmerge-is-an-origin-of-ooms
++++ a/mm/oom_kill.c
+@@ -79,7 +79,7 @@ unsigned long badness(struct task_struct
+ 	/*
+ 	 * swapoff can easily use up all memory, so kill those first.
+ 	 */
+-	if (p->flags & PF_SWAPOFF)
++	if (p->flags & PF_OOM_ORIGIN)
+ 		return ULONG_MAX;
  
-+	if (WARN_ON(!name))
-+		return NULL;
-+
- 	down_write(&slub_lock);
- 	s = find_mergeable(size, align, flags, name, ctor);
- 	if (s) {
+ 	/*
+diff -puN mm/swapfile.c~ksm-unmerge-is-an-origin-of-ooms mm/swapfile.c
+--- a/mm/swapfile.c~ksm-unmerge-is-an-origin-of-ooms
++++ a/mm/swapfile.c
+@@ -1575,9 +1575,9 @@ SYSCALL_DEFINE1(swapoff, const char __us
+ 	p->flags &= ~SWP_WRITEOK;
+ 	spin_unlock(&swap_lock);
+ 
+-	current->flags |= PF_SWAPOFF;
++	current->flags |= PF_OOM_ORIGIN;
+ 	err = try_to_unuse(type);
+-	current->flags &= ~PF_SWAPOFF;
++	current->flags &= ~PF_OOM_ORIGIN;
+ 
+ 	if (err) {
+ 		/* re-insert swap space back into swap_list */
 _
 
-Patches currently in -mm which might be from benh@kernel.crashing.org are
+Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
 
 origin.patch
 linux-next.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-powerpc-introduce-and-document-sdhciwp-inverted-property-for-esdhc.patch
-powerpc-85xx-add-esdhc-support-for-mpc8536ds-boards.patch
-kcore-use-usual-list-for-kclist.patch
-kcore-add-kclist-types.patch
-kcore-register-vmalloc-area-in-generic-way.patch
-kcore-register-text-area-in-generic-way.patch
-walk-system-ram-range.patch
+vfs-optimize-touch_time-too.patch
+vfs-seq_file-add-helpers-for-data-filling.patch
+fs-new-truncate-helpers.patch
+fs-use-new-truncate-helpers.patch
+fs-introduce-new-truncate-sequence.patch
+fs-convert-simple-fs-to-new-truncate.patch
+tmpfs-convert-to-use-the-new-truncate-convention.patch
+ext2-convert-to-use-the-new-truncate-convention.patch
+fat-convert-to-use-the-new-truncate-convention.patch
+btrfs-convert-to-use-the-new-truncate-convention.patch
+jfs-convert-to-use-the-new-truncate-convention.patch
+udf-convert-to-use-the-new-truncate-convention.patch
+minix-convert-to-use-the-new-truncate-convention.patch
+getrusage-fill-ru_maxrss-value.patch
 walk-system-ram-range-fix.patch
-kcore-use-registerd-physmem-information.patch
-kcore-register-vmemmap-range.patch
-kcore-register-vmemmap-range-fix.patch
-kcore-register-module-area-in-generic-way.patch
-spi-add-support-for-device-table-matching.patch
-mtd-m25p80-convert-to-device-table-matching.patch
-of-remove-stmm25p40-alias.patch
-hwmon-adxx-convert-to-device-table-matching.patch
-hwmon-lm70-convert-to-device-table-matching.patch
-spi-prefix-modalias-with-spi.patch
-platinumfb-misplaced-parenthesis.patch
+ramfs-move-ramfs_magic-to-include-linux-magich.patch
+memory-controller-soft-limit-organize-cgroups-v9-fix.patch
+prio_tree-debugging-patch.patch
 
