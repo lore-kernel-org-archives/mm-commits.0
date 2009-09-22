@@ -1,103 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: [merged] m32r-convert-to-asm-generic-hardirqh.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:44:32 -0700
-Message-ID: <200909222044.n8MKiWST013802@imap1.linux-foundation.org>
+Subject: [merged] cpuidle-menu-governor-reduce-latency-on-exit.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:44:43 -0700
+Message-ID: <200909222044.n8MKihZ7014187@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34877 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59994 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752897AbZIVUop (ORCPT
+	by vger.kernel.org with ESMTP id S1753176AbZIVUoq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:44:45 -0400
+	Tue, 22 Sep 2009 16:44:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hch@lst.de, takata@linux-m32r.org, mm-commits@vger.kernel.org
+To: czoccolo@gmail.com, abelay@novell.com, arjan@linux.intel.com, len.brown@intel.com, venkatesh.pallipadi@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     m32r: convert to asm-generic/hardirq.h
+     cpuidle: menu governor: reduce latency on exit
 has been removed from the -mm tree.  Its filename was
-     m32r-convert-to-asm-generic-hardirqh.patch
+     cpuidle-menu-governor-reduce-latency-on-exit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m32r: convert to asm-generic/hardirq.h
-From: Christoph Hellwig <hch@lst.de>
+Subject: cpuidle: menu governor: reduce latency on exit
+From: Corrado Zoccolo <czoccolo@gmail.com>
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Hirokazu Takata <takata@linux-m32r.org>
+Move the state residency accounting and statistics computation off the hot
+exit path.
+
+On exit, the need to recompute statistics is recorded, and new statistics
+will be computed when menu_select is called again.
+
+The expected effect is to reduce processor wakeup latency from sleep
+(C-states).  We are speaking of few hundreds of cycles reduction out of a
+several microseconds latency (determined by the hardware transition), so
+it is difficult to measure.
+
+Signed-off-by: Corrado Zoccolo <czoccolo@gmail.com>
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Len Brown <len.brown@intel.com>
+Cc: Adam Belay <abelay@novell.com
+Acked-by: Arjan van de Ven <arjan@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/include/asm/hardirq.h |   15 ++-------------
- 1 file changed, 2 insertions(+), 13 deletions(-)
+ drivers/cpuidle/governors/menu.c |   20 +++++++++++++++++++-
+ 1 file changed, 19 insertions(+), 1 deletion(-)
 
-diff -puN arch/m32r/include/asm/hardirq.h~m32r-convert-to-asm-generic-hardirqh arch/m32r/include/asm/hardirq.h
---- a/arch/m32r/include/asm/hardirq.h~m32r-convert-to-asm-generic-hardirqh
-+++ a/arch/m32r/include/asm/hardirq.h
-@@ -2,14 +2,7 @@
- #ifndef __ASM_HARDIRQ_H
- #define __ASM_HARDIRQ_H
+diff -puN drivers/cpuidle/governors/menu.c~cpuidle-menu-governor-reduce-latency-on-exit drivers/cpuidle/governors/menu.c
+--- a/drivers/cpuidle/governors/menu.c~cpuidle-menu-governor-reduce-latency-on-exit
++++ a/drivers/cpuidle/governors/menu.c
+@@ -96,6 +96,7 @@
  
--#include <linux/threads.h>
--#include <linux/irq.h>
--
--typedef struct {
--	unsigned int __softirq_pending;
--} ____cacheline_aligned irq_cpustat_t;
--
--#include <linux/irq_cpustat.h>	/* Standard mappings for irq_cpustat_t above */
-+#include <asm/irq.h>
+ struct menu_device {
+ 	int		last_state_idx;
++	int             needs_update;
  
- #if NR_IRQS > 256
- #define HARDIRQ_BITS	9
-@@ -26,11 +19,7 @@ typedef struct {
- # error HARDIRQ_BITS is too low!
- #endif
+ 	unsigned int	expected_us;
+ 	u64		predicted_us;
+@@ -166,6 +167,8 @@ static inline int performance_multiplier
  
--static inline void ack_bad_irq(int irq)
--{
--	printk(KERN_CRIT "unexpected IRQ trap at vector %02x\n", irq);
--	BUG();
--}
-+#include <asm-generic/hardirq.h>
+ static DEFINE_PER_CPU(struct menu_device, menu_devices);
  
- #endif /* __ASM_HARDIRQ_H */
- #endif /* __KERNEL__ */
++static void menu_update(struct cpuidle_device *dev);
++
+ /**
+  * menu_select - selects the next idle state to enter
+  * @dev: the CPU
+@@ -180,6 +183,11 @@ static int menu_select(struct cpuidle_de
+ 	data->last_state_idx = 0;
+ 	data->exit_us = 0;
+ 
++	if (data->needs_update) {
++		menu_update(dev);
++		data->needs_update = 0;
++	}
++
+ 	/* Special case when user has set very strict latency requirement */
+ 	if (unlikely(latency_req == 0))
+ 		return 0;
+@@ -231,7 +239,7 @@ static int menu_select(struct cpuidle_de
+ }
+ 
+ /**
+- * menu_reflect - attempts to guess what happened after entry
++ * menu_reflect - records that data structures need update
+  * @dev: the CPU
+  *
+  * NOTE: it's important to be fast here because this operation will add to
+@@ -240,6 +248,16 @@ static int menu_select(struct cpuidle_de
+ static void menu_reflect(struct cpuidle_device *dev)
+ {
+ 	struct menu_device *data = &__get_cpu_var(menu_devices);
++	data->needs_update = 1;
++}
++
++/**
++ * menu_update - attempts to guess what happened after entry
++ * @dev: the CPU
++ */
++static void menu_update(struct cpuidle_device *dev)
++{
++	struct menu_device *data = &__get_cpu_var(menu_devices);
+ 	int last_idx = data->last_state_idx;
+ 	unsigned int last_idle_us = cpuidle_get_last_residency(dev);
+ 	struct cpuidle_state *target = &dev->states[last_idx];
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from czoccolo@gmail.com are
 
 origin.patch
-linux-next.patch
-avr32-convert-to-asm-generic-hardirqh.patch
-sparc32-convert-to-asm-generic-hardirqh.patch
-vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
-vfs-split-generic_forget_inode-so-that-hugetlbfs-does-not-have-to-copy-it.patch
-vfs-explicitly-cast-s_maxbytes-in-fiemap_check_ranges.patch
-vfs-change-sb-s_maxbytes-to-a-loff_t.patch
-vfs-remove-redundant-position-check-in-do_sendfile.patch
-fs-remove-unneeded-dcache_unhashed-tricks.patch
-vfs-seq_file-add-helpers-for-data-filling.patch
-libfs-return-error-code-on-failed-attr-set.patch
-fs-new-truncate-helpers.patch
-fs-use-new-truncate-helpers.patch
-fs-introduce-new-truncate-sequence.patch
-fs-convert-simple-fs-to-new-truncate.patch
-tmpfs-convert-to-use-the-new-truncate-convention.patch
-ext2-convert-to-use-the-new-truncate-convention.patch
-fat-convert-to-use-the-new-truncate-convention.patch
-btrfs-convert-to-use-the-new-truncate-convention.patch
-jfs-convert-to-use-the-new-truncate-convention.patch
-udf-convert-to-use-the-new-truncate-convention.patch
-minix-convert-to-use-the-new-truncate-convention.patch
-xtensa-convert-to-asm-generic-hardirqh.patch
-frv-convert-to-asm-generic-hardirqh.patch
-fs-turn-iprune_mutex-into-rwsem.patch
-ntfs-remove-ntfs_file_write.patch
-qnx4-remove-write-support.patch
-fcntl-add-f_etown_ex.patch
 
