@@ -1,303 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-remove-duplicate-asm-mmanh-files.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:43:44 -0700
-Message-ID: <200909222043.n8MKhijR012234@imap1.linux-foundation.org>
+Subject: [merged] hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:43:38 -0700
+Message-ID: <200909222043.n8MKhcT4012031@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53518 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40747 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753115AbZIVUnp (ORCPT
+	by vger.kernel.org with ESMTP id S1753145AbZIVUnx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:43:45 -0400
+	Tue, 22 Sep 2009 16:43:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, linux-arch@vger.kernel.org, mm-commits@vger.kernel.org
+To: ebmunson@us.ibm.com, agl@us.ibm.com, arnd@arndb.de, david@gibson.dropbear.id.au, hugh.dickins@tiscali.co.uk, lee.schermerhorn@hp.com, mel@csn.ul.ie, nickpiggin@yahoo.com.au, rientjes@
 
 
 The patch titled
-     mm: remove duplicate asm/mman.h files
+     hugetlb: add MAP_HUGETLB for mmaping pseudo-anonymous huge page regions
 has been removed from the -mm tree.  Its filename was
-     mm-remove-duplicate-asm-mmanh-files.patch
+     hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: remove duplicate asm/mman.h files
-From: Arnd Bergmann <arnd@arndb.de>
+Subject: hugetlb: add MAP_HUGETLB for mmaping pseudo-anonymous huge page regions
+From: Eric B Munson <ebmunson@us.ibm.com>
 
-A number of architectures have identical asm/mman.h files so they can all
-be merged by using the new generic file.
+Add a flag for mmap that will be used to request a huge page region that
+will look like anonymous memory to userspace.  This is accomplished by
+using a file on the internal vfsmount.  MAP_HUGETLB is a modifier of
+MAP_ANONYMOUS and so must be specified with it.  The region will behave
+the same as a MAP_ANONYMOUS region using small pages.
 
-The remaining asm/mman.h files are substantially different from each
-other.
-
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: <linux-arch@vger.kernel.org>
+[akpm@linux-foundation.org: fix arch definitions of MAP_HUGETLB]
+Signed-off-by: Eric B Munson <ebmunson@us.ibm.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Adam Litke <agl@us.ibm.com>
+Cc: David Gibson <david@gibson.dropbear.id.au>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/mman.h     |   20 -------------------
- arch/avr32/include/asm/mman.h   |   20 -------------------
- arch/cris/include/asm/mman.h    |   22 ---------------------
- arch/frv/include/asm/mman.h     |   21 --------------------
- arch/h8300/include/asm/mman.h   |   20 -------------------
- arch/ia64/include/asm/mman.h    |   16 +--------------
- arch/m32r/include/asm/mman.h    |   20 -------------------
- arch/m68k/include/asm/mman.h    |   20 -------------------
- arch/mn10300/include/asm/mman.h |   31 ------------------------------
- arch/s390/include/asm/mman.h    |   15 --------------
- 10 files changed, 11 insertions(+), 194 deletions(-)
+ include/linux/hugetlb.h |    7 +++++++
+ mm/mmap.c               |   18 ++++++++++++++++++
+ 2 files changed, 25 insertions(+)
 
-diff -puN arch/arm/include/asm/mman.h~mm-remove-duplicate-asm-mmanh-files arch/arm/include/asm/mman.h
---- a/arch/arm/include/asm/mman.h~mm-remove-duplicate-asm-mmanh-files
-+++ a/arch/arm/include/asm/mman.h
-@@ -1,19 +1 @@
--#ifndef __ARM_MMAN_H__
--#define __ARM_MMAN_H__
--
--#include <asm-generic/mman-common.h>
--
--#define MAP_GROWSDOWN	0x0100		/* stack-like segment */
--#define MAP_DENYWRITE	0x0800		/* ETXTBSY */
--#define MAP_EXECUTABLE	0x1000		/* mark it as an executable */
--#define MAP_LOCKED	0x2000		/* pages are locked */
--#define MAP_NORESERVE	0x4000		/* don't check for reservations */
--#define MAP_POPULATE	0x8000		/* populate (prefault) page tables */
--#define MAP_NONBLOCK	0x10000		/* do not block on IO */
--#define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
--#define MAP_HUGETLB	0x40000		/* create a huge page mapping */
--
--#define MCL_CURRENT	1		/* lock all current mappings */
--#define MCL_FUTURE	2		/* lock all future mappings */
--
--#endif /* __ARM_MMAN_H__ */
-+#include <asm-generic/mman.h>
-diff -puN arch/avr32/include/asm/mman.h~mm-remove-duplicate-asm-mmanh-files arch/avr32/include/asm/mman.h
---- a/arch/avr32/include/asm/mman.h~mm-remove-duplicate-asm-mmanh-files
-+++ a/arch/avr32/include/asm/mman.h
-@@ -1,19 +1 @@
--#ifndef __ASM_AVR32_MMAN_H__
--#define __ASM_AVR32_MMAN_H__
--
--#include <asm-generic/mman-common.h>
--
--#define MAP_GROWSDOWN	0x0100		/* stack-like segment */
--#define MAP_DENYWRITE	0x0800		/* ETXTBSY */
--#define MAP_EXECUTABLE	0x1000		/* mark it as an executable */
--#define MAP_LOCKED	0x2000		/* pages are locked */
--#define MAP_NORESERVE	0x4000		/* don't check for reservations */
--#define MAP_POPULATE	0x8000		/* populate (prefault) page tables */
--#define MAP_NONBLOCK	0x10000		/* do not block on IO */
--#define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
--#define MAP_HUGETLB	0x40000		/* create a huge page mapping */
--
--#define MCL_CURRENT	1		/* lock all current mappings */
--#define MCL_FUTURE	2		/* lock all future mappings */
--
--#endif /* __ASM_AVR32_MMAN_H__ */
-+#include <asm-generic/mman.h>
-diff -puN arch/cris/include/asm/mman.h~mm-remove-duplicate-asm-mmanh-files arch/cris/include/asm/mman.h
---- a/arch/cris/include/asm/mman.h~mm-remove-duplicate-asm-mmanh-files
-+++ a/arch/cris/include/asm/mman.h
-@@ -1,21 +1 @@
--#ifndef __CRIS_MMAN_H__
--#define __CRIS_MMAN_H__
--
--/* verbatim copy of asm-i386/ version */
--
--#include <asm-generic/mman-common.h>
--
--#define MAP_GROWSDOWN	0x0100		/* stack-like segment */
--#define MAP_DENYWRITE	0x0800		/* ETXTBSY */
--#define MAP_EXECUTABLE	0x1000		/* mark it as an executable */
--#define MAP_LOCKED	0x2000		/* pages are locked */
--#define MAP_NORESERVE	0x4000		/* don't check for reservations */
--#define MAP_POPULATE	0x8000		/* populate (prefault) pagetables */
--#define MAP_NONBLOCK	0x10000		/* do not block on IO */
--#define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
--#define MAP_HUGETLB	0x40000		/* create a huge page mapping */
--
--#define MCL_CURRENT	1		/* lock all current mappings */
--#define MCL_FUTURE	2		/* lock all future mappings */
--
--#endif /* __CRIS_MMAN_H__ */
-+#include <asm-generic/mman.h>
-diff -puN arch/frv/include/asm/mman.h~mm-remove-duplicate-asm-mmanh-files arch/frv/include/asm/mman.h
---- a/arch/frv/include/asm/mman.h~mm-remove-duplicate-asm-mmanh-files
-+++ a/arch/frv/include/asm/mman.h
-@@ -1,20 +1 @@
--#ifndef __ASM_MMAN_H__
--#define __ASM_MMAN_H__
--
--#include <asm-generic/mman-common.h>
--
--#define MAP_GROWSDOWN	0x0100		/* stack-like segment */
--#define MAP_DENYWRITE	0x0800		/* ETXTBSY */
--#define MAP_EXECUTABLE	0x1000		/* mark it as an executable */
--#define MAP_LOCKED	0x2000		/* pages are locked */
--#define MAP_NORESERVE	0x4000		/* don't check for reservations */
--#define MAP_POPULATE	0x8000		/* populate (prefault) pagetables */
--#define MAP_NONBLOCK	0x10000		/* do not block on IO */
--#define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
--#define MAP_HUGETLB	0x40000		/* create a huge page mapping */
--
--#define MCL_CURRENT	1		/* lock all current mappings */
--#define MCL_FUTURE	2		/* lock all future mappings */
--
--#endif /* __ASM_MMAN_H__ */
--
-+#include <asm-generic/mman.h>
-diff -puN arch/h8300/include/asm/mman.h~mm-remove-duplicate-asm-mmanh-files arch/h8300/include/asm/mman.h
---- a/arch/h8300/include/asm/mman.h~mm-remove-duplicate-asm-mmanh-files
-+++ a/arch/h8300/include/asm/mman.h
-@@ -1,19 +1 @@
--#ifndef __H8300_MMAN_H__
--#define __H8300_MMAN_H__
--
--#include <asm-generic/mman-common.h>
--
--#define MAP_GROWSDOWN	0x0100		/* stack-like segment */
--#define MAP_DENYWRITE	0x0800		/* ETXTBSY */
--#define MAP_EXECUTABLE	0x1000		/* mark it as an executable */
--#define MAP_LOCKED	0x2000		/* pages are locked */
--#define MAP_NORESERVE	0x4000		/* don't check for reservations */
--#define MAP_POPULATE	0x8000		/* populate (prefault) pagetables */
--#define MAP_NONBLOCK	0x10000		/* do not block on IO */
--#define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
--#define MAP_HUGETLB	0x40000		/* create a huge page mapping */
--
--#define MCL_CURRENT	1		/* lock all current mappings */
--#define MCL_FUTURE	2		/* lock all future mappings */
--
--#endif /* __H8300_MMAN_H__ */
-+#include <asm-generic/mman.h>
-diff -puN arch/ia64/include/asm/mman.h~mm-remove-duplicate-asm-mmanh-files arch/ia64/include/asm/mman.h
---- a/arch/ia64/include/asm/mman.h~mm-remove-duplicate-asm-mmanh-files
-+++ a/arch/ia64/include/asm/mman.h
-@@ -8,21 +8,9 @@
-  *	David Mosberger-Tang <davidm@hpl.hp.com>, Hewlett-Packard Co
-  */
+diff -puN include/linux/hugetlb.h~hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions
++++ a/include/linux/hugetlb.h
+@@ -112,12 +112,19 @@ static inline void hugetlb_report_meminf
  
--#include <asm-generic/mman-common.h>
-+#include <asm-generic/mman.h>
+ #endif /* !CONFIG_HUGETLB_PAGE */
  
--#define MAP_GROWSDOWN	0x00100		/* stack-like segment */
--#define MAP_GROWSUP	0x00200		/* register stack-like segment */
--#define MAP_DENYWRITE	0x00800		/* ETXTBSY */
--#define MAP_EXECUTABLE	0x01000		/* mark it as an executable */
--#define MAP_LOCKED	0x02000		/* pages are locked */
--#define MAP_NORESERVE	0x04000		/* don't check for reservations */
--#define MAP_POPULATE	0x08000		/* populate (prefault) pagetables */
--#define MAP_NONBLOCK	0x10000		/* do not block on IO */
--#define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
--#define MAP_HUGETLB	0x40000		/* create a huge page mapping */
--
--#define MCL_CURRENT	1		/* lock all current mappings */
--#define MCL_FUTURE	2		/* lock all future mappings */
-+#define MAP_GROWSUP	0x0200		/* register stack-like segment */
++#define HUGETLB_ANON_FILE "anon_hugepage"
++
+ enum {
+ 	/*
+ 	 * The file will be used as an shm file so shmfs accounting rules
+ 	 * apply
+ 	 */
+ 	HUGETLB_SHMFS_INODE     = 1,
++	/*
++	 * The file is being created on the internal vfs mount and shmfs
++	 * accounting rules do not apply
++	 */
++	HUGETLB_ANONHUGE_INODE  = 2,
+ };
  
- #ifdef __KERNEL__
- #ifndef __ASSEMBLY__
-diff -puN arch/m32r/include/asm/mman.h~mm-remove-duplicate-asm-mmanh-files arch/m32r/include/asm/mman.h
---- a/arch/m32r/include/asm/mman.h~mm-remove-duplicate-asm-mmanh-files
-+++ a/arch/m32r/include/asm/mman.h
-@@ -1,19 +1 @@
--#ifndef __M32R_MMAN_H__
--#define __M32R_MMAN_H__
--
--#include <asm-generic/mman-common.h>
--
--#define MAP_GROWSDOWN	0x0100		/* stack-like segment */
--#define MAP_DENYWRITE	0x0800		/* ETXTBSY */
--#define MAP_EXECUTABLE	0x1000		/* mark it as an executable */
--#define MAP_LOCKED	0x2000		/* pages are locked */
--#define MAP_NORESERVE	0x4000		/* don't check for reservations */
--#define MAP_POPULATE	0x8000		/* populate (prefault) pagetables */
--#define MAP_NONBLOCK	0x10000		/* do not block on IO */
--#define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
--#define MAP_HUGETLB	0x40000		/* create a huge page mapping */
--
--#define MCL_CURRENT	1		/* lock all current mappings */
--#define MCL_FUTURE	2		/* lock all future mappings */
--
--#endif /* __M32R_MMAN_H__ */
-+#include <asm-generic/mman.h>
-diff -puN arch/m68k/include/asm/mman.h~mm-remove-duplicate-asm-mmanh-files arch/m68k/include/asm/mman.h
---- a/arch/m68k/include/asm/mman.h~mm-remove-duplicate-asm-mmanh-files
-+++ a/arch/m68k/include/asm/mman.h
-@@ -1,19 +1 @@
--#ifndef __M68K_MMAN_H__
--#define __M68K_MMAN_H__
--
--#include <asm-generic/mman-common.h>
--
--#define MAP_GROWSDOWN	0x0100		/* stack-like segment */
--#define MAP_DENYWRITE	0x0800		/* ETXTBSY */
--#define MAP_EXECUTABLE	0x1000		/* mark it as an executable */
--#define MAP_LOCKED	0x2000		/* pages are locked */
--#define MAP_NORESERVE	0x4000		/* don't check for reservations */
--#define MAP_POPULATE	0x8000		/* populate (prefault) pagetables */
--#define MAP_NONBLOCK	0x10000		/* do not block on IO */
--#define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
--#define MAP_HUGETLB	0x40000		/* create a huge page mapping */
--
--#define MCL_CURRENT	1		/* lock all current mappings */
--#define MCL_FUTURE	2		/* lock all future mappings */
--
--#endif /* __M68K_MMAN_H__ */
-+#include <asm-generic/mman.h>
-diff -puN arch/mn10300/include/asm/mman.h~mm-remove-duplicate-asm-mmanh-files arch/mn10300/include/asm/mman.h
---- a/arch/mn10300/include/asm/mman.h~mm-remove-duplicate-asm-mmanh-files
-+++ a/arch/mn10300/include/asm/mman.h
-@@ -1,30 +1 @@
--/* MN10300 Constants for mmap and co.
-- *
-- * Copyright (C) 2007 Matsushita Electric Industrial Co., Ltd.
-- * Copyright (C) 2007 Red Hat, Inc. All Rights Reserved.
-- * - Derived from asm-x86/mman.h
-- *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public Licence
-- * as published by the Free Software Foundation; either version
-- * 2 of the Licence, or (at your option) any later version.
-- */
--#ifndef _ASM_MMAN_H
--#define _ASM_MMAN_H
--
--#include <asm-generic/mman-common.h>
--
--#define MAP_GROWSDOWN	0x0100		/* stack-like segment */
--#define MAP_DENYWRITE	0x0800		/* ETXTBSY */
--#define MAP_EXECUTABLE	0x1000		/* mark it as an executable */
--#define MAP_LOCKED	0x2000		/* pages are locked */
--#define MAP_NORESERVE	0x4000		/* don't check for reservations */
--#define MAP_POPULATE	0x8000		/* populate (prefault) pagetables */
--#define MAP_NONBLOCK	0x10000		/* do not block on IO */
--#define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
--#define MAP_HUGETLB	0x40000		/* create a huge page mapping */
--
--#define MCL_CURRENT	1		/* lock all current mappings */
--#define MCL_FUTURE	2		/* lock all future mappings */
--
--#endif /* _ASM_MMAN_H */
-+#include <asm-generic/mman.h>
-diff -puN arch/s390/include/asm/mman.h~mm-remove-duplicate-asm-mmanh-files arch/s390/include/asm/mman.h
---- a/arch/s390/include/asm/mman.h~mm-remove-duplicate-asm-mmanh-files
-+++ a/arch/s390/include/asm/mman.h
-@@ -9,20 +9,7 @@
- #ifndef __S390_MMAN_H__
- #define __S390_MMAN_H__
+ #ifdef CONFIG_HUGETLBFS
+diff -puN mm/mmap.c~hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions mm/mmap.c
+--- a/mm/mmap.c~hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions
++++ a/mm/mmap.c
+@@ -949,6 +949,24 @@ unsigned long do_mmap_pgoff(struct file 
+ 	if (mm->map_count > sysctl_max_map_count)
+ 		return -ENOMEM;
  
--#include <asm-generic/mman-common.h>
--
--#define MAP_GROWSDOWN	0x0100		/* stack-like segment */
--#define MAP_DENYWRITE	0x0800		/* ETXTBSY */
--#define MAP_EXECUTABLE	0x1000		/* mark it as an executable */
--#define MAP_LOCKED	0x2000		/* pages are locked */
--#define MAP_NORESERVE	0x4000		/* don't check for reservations */
--#define MAP_POPULATE	0x8000		/* populate (prefault) pagetables */
--#define MAP_NONBLOCK	0x10000		/* do not block on IO */
--#define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
--#define MAP_HUGETLB	0x40000		/* create a huge page mapping */
++	if (flags & MAP_HUGETLB) {
++		struct user_struct *user = NULL;
++		if (file)
++			return -EINVAL;
++
++		/*
++		 * VM_NORESERVE is used because the reservations will be
++		 * taken when vm_ops->mmap() is called
++		 * A dummy user value is used because we are not locking
++		 * memory so no accounting is necessary
++		 */
++		len = ALIGN(len, huge_page_size(&default_hstate));
++		file = hugetlb_file_setup(HUGETLB_ANON_FILE, len, VM_NORESERVE,
++						&user, HUGETLB_ANONHUGE_INODE);
++		if (IS_ERR(file))
++			return PTR_ERR(file);
++	}
++
+ 	/* Obtain the address to map to. we verify (or select) it and ensure
+ 	 * that it represents a valid section of the address space.
+ 	 */
+_
+
+Patches currently in -mm which might be from ebmunson@us.ibm.com are
+
+origin.patch
+
