@@ -1,58 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [folded] generic-ipi-make-struct-call_function_data-lockless-cleanup.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 14:37:32 -0700
-Message-ID: <200909222137.n8MLbWct021399@imap1.linux-foundation.org>
+Subject: [folded] build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 14:38:30 -0700
+Message-ID: <200909222138.n8MLcVYc023300@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59110 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59990 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752592AbZIVVht (ORCPT
+	by vger.kernel.org with ESMTP id S1752835AbZIVVit (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 17:37:49 -0400
+	Tue, 22 Sep 2009 17:38:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jens.axboe@oracle.com, mingo@elte.hu, nickpiggin@yahoo.com.au, peterz@infradead.org, rusty@rustcorp.com.au, xiaoguangrong@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, JBeulich@novell.com, andi@firstfloor.org, catalin.marinas@arm.com, davem@davemloft.net, jbeulich@novell.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     generic-ipi-make-struct-call_function_data-lockless-cleanup
+     build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix
 has been removed from the -mm tree.  Its filename was
-     generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
+     build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix.patch
 
-This patch was dropped because it was folded into generic-ipi-make-struct-call_function_data-lockless.patch
+This patch was dropped because it was folded into build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: generic-ipi-make-struct-call_function_data-lockless-cleanup
+Subject: build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Use atomic_dec_return().
+/usr/src/devel/arch/sparc/include/asm/vio.h: In function `vio_dring_avail':
+/usr/src/devel/arch/sparc/include/asm/vio.h:261: error: bit-field `<anonymous>' width not an integer constant
 
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Peter Zijlstra <peterz@infradead.org>
+
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: "Jan Beulich" <JBeulich@novell.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Jan Beulich <jbeulich@novell.com>
 Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Xiao Guangrong <xiaoguangrong@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/smp.c |    2 +-
+ arch/sparc/include/asm/vio.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/smp.c~generic-ipi-make-struct-call_function_data-lockless-cleanup kernel/smp.c
---- a/kernel/smp.c~generic-ipi-make-struct-call_function_data-lockless-cleanup
-+++ a/kernel/smp.c
-@@ -193,7 +193,7 @@ void generic_smp_call_function_interrupt
+diff -puN arch/sparc/include/asm/vio.h~build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix arch/sparc/include/asm/vio.h
+--- a/arch/sparc/include/asm/vio.h~build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix
++++ a/arch/sparc/include/asm/vio.h
+@@ -258,7 +258,7 @@ static inline void *vio_dring_entry(stru
+ static inline u32 vio_dring_avail(struct vio_dring_state *dr,
+ 				  unsigned int ring_size)
+ {
+-	BUILD_BUG_ON(!is_power_of_2(ring_size));
++	MAYBE_BUILD_BUG_ON(!is_power_of_2(ring_size));
  
- 		data->csd.func(data->csd.info);
- 
--		refs = atomic_sub_return(1, &data->refs);
-+		refs = atomic_dec_return(&data->refs);
- 		WARN_ON(refs < 0);
- 		if (!refs) {
- 			spin_lock(&call_function.lock);
+ 	return (dr->pending -
+ 		((dr->prod - dr->cons) & (ring_size - 1)));
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -61,8 +63,8 @@ origin.patch
 printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec.patch
 printk-add-printk_delay-to-make-messages-readable-for-some-scenarios.patch
 generic-ipi-make-struct-call_function_data-lockless.patch
-generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
 proc-connector-add-event-for-process-becoming-session-leader.patch
+build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it.patch
 build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix.patch
 mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
 sdio-add-cd-disable-support-cleanup.patch
