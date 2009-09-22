@@ -1,85 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-media-dvb-pt1-pt1c-needs-vmalloch.patch added to -mm tree
-Date: Mon, 21 Sep 2009 16:09:30 -0700
-Message-ID: <200909212331.n8LNVr5b001343@imap1.linux-foundation.org>
+Subject: [merged] video-mbp_nvidia_bl-add-support-for-macbookair-11.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 11:02:51 -0700
+Message-ID: <200909221802.n8MI2pPe018753@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52427 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35773 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754317AbZIUXcp (ORCPT
+	by vger.kernel.org with ESMTP id S1756681AbZIVSD5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Sep 2009 19:32:45 -0400
+	Tue, 22 Sep 2009 14:03:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mchehab@infradead.org
+To: rydberg@euromail.se, mjg@redhat.com, rpurdie@rpsys.net, schwalbe@inf.tu-dresden.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/media/dvb/pt1/pt1.c needs vmalloc.h
-has been added to the -mm tree.  Its filename is
-     drivers-media-dvb-pt1-pt1c-needs-vmalloch.patch
+     video: mbp_nvidia_bl: add support for MacBookAir 1,1
+has been removed from the -mm tree.  Its filename was
+     video-mbp_nvidia_bl-add-support-for-macbookair-11.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/media/dvb/pt1/pt1.c needs vmalloc.h
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: video: mbp_nvidia_bl: add support for MacBookAir 1,1
+From: "Henrik Rydberg" <rydberg@euromail.se>
 
-alpha:
+Add LCD backlight support for the Intel GMA965 found in the MacBookAir
+1,1.
 
-drivers/media/dvb/pt1/pt1.c: In function 'pt1_cleanup_tables':
-drivers/media/dvb/pt1/pt1.c:422: error: implicit declaration of function 'vfree'
-drivers/media/dvb/pt1/pt1.c: In function 'pt1_init_tables':
-drivers/media/dvb/pt1/pt1.c:431: error: implicit declaration of function 'vmalloc'
-drivers/media/dvb/pt1/pt1.c:431: warning: assignment makes pointer from integer without a cast
-
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Mario Schwalbe <schwalbe@inf.tu-dresden.de>
+Acked-by: Matthew Garrett <mjg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/pt1/pt1.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/video/backlight/mbp_nvidia_bl.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN drivers/media/dvb/pt1/pt1.c~drivers-media-dvb-pt1-pt1c-needs-vmalloch drivers/media/dvb/pt1/pt1.c
---- a/drivers/media/dvb/pt1/pt1.c~drivers-media-dvb-pt1-pt1c-needs-vmalloch
-+++ a/drivers/media/dvb/pt1/pt1.c
-@@ -23,6 +23,7 @@
- 
- #include <linux/kernel.h>
- #include <linux/module.h>
-+#include <linux/vmalloc.h>
- #include <linux/pci.h>
- #include <linux/kthread.h>
- #include <linux/freezer.h>
+diff -puN drivers/video/backlight/mbp_nvidia_bl.c~video-mbp_nvidia_bl-add-support-for-macbookair-11 drivers/video/backlight/mbp_nvidia_bl.c
+--- a/drivers/video/backlight/mbp_nvidia_bl.c~video-mbp_nvidia_bl-add-support-for-macbookair-11
++++ a/drivers/video/backlight/mbp_nvidia_bl.c
+@@ -166,6 +166,15 @@ static const struct dmi_system_id __init
+ 	},
+ 	{
+ 		.callback	= mbp_dmi_match,
++		.ident		= "MacBookAir 1,1",
++		.matches	= {
++			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
++			DMI_MATCH(DMI_PRODUCT_NAME, "MacBookAir1,1"),
++		},
++		.driver_data	= (void *)&intel_chipset_data,
++	},
++	{
++		.callback	= mbp_dmi_match,
+ 		.ident		= "MacBook 5,1",
+ 		.matches	= {
+ 			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rydberg@euromail.se are
 
-origin.patch
-fs-make-sure-data-stored-into-inode-is-properly-seen-before-unlocking-new-inode-fix.patch
-drivers-mfd-ab3100-corec-fiw-warning-and-powerpc-build-error.patch
-mm-make-swap-token-dummies-static-inlines.patch
-memory-hotplug-update-zone-pcp-at-memory-online.patch
-revert-hugetlb-restore-interleaving-of-bootmem-huge-pages-2631.patch
-vmscan-dont-attempt-to-reclaim-anon-page-in-lumpy-reclaim-when-no-swap-space-is-avilable.patch
-revert-proc-kcore-work-around-a-bug.patch
-arches-drop-superfluous-casts-in-nr_free_pages-callers.patch
-tracing-page-allocator-add-trace-event-for-page-traffic-related-to-the-buddy-lists.patch
-page-allocator-maintain-rolling-count-of-pages-to-free-from-the-pcp.patch
-hugetlb-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions.patch
-alpha-convert-to-use-arch_gettimeoffset.patch
-cpuidle-fix-the-menu-governor-to-boost-io-performance.patch
-drivers-media-dvb-pt1-pt1c-needs-vmalloch.patch
+linux-next.patch
+video-mbp_nvidia_bl-add-support-for-macbookair-11.patch
+hwmon-applesmc-restore-accelerometer-and-keyboard-backlight-on-resume.patch
 
