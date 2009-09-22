@@ -1,162 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-introduce-page_lru_base_type.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:41:42 -0700
-Message-ID: <200909222041.n8MKfgla008077@imap1.linux-foundation.org>
+Subject: [merged] mm-return-boolean-from-page_has_private.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:41:48 -0700
+Message-ID: <200909222041.n8MKfmE3008316@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34921 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55259 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752639AbZIVUlt (ORCPT
+	by vger.kernel.org with ESMTP id S1752641AbZIVUlu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:41:49 -0400
+	Tue, 22 Sep 2009 16:41:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, cl@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: introduce page_lru_base_type()
+     mm: return boolean from page_has_private()
 has been removed from the -mm tree.  Its filename was
-     mm-introduce-page_lru_base_type.patch
+     mm-return-boolean-from-page_has_private.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: introduce page_lru_base_type()
+Subject: mm: return boolean from page_has_private()
 From: Johannes Weiner <hannes@cmpxchg.org>
 
-Instead of abusing page_is_file_cache() for LRU list index arithmetic, add
-another helper with a more appropriate name and convert the non-boolean
-users of page_is_file_cache() accordingly.
+Make page_has_private() return a true boolean value and remove the double
+negations from the two callsites using it for arithmetic.
 
-This new helper gives the LRU base type a page is supposed to live on,
-inactive anon or inactive file.
-
-[hugh.dickins@tiscali.co.uk: convert del_page_from_lru() also]
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Reviewed-by: Christoph Lameter <cl@linux-foundation.org>
 Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_inline.h |   23 +++++++++++++++++++----
- mm/swap.c                 |    4 ++--
- mm/vmscan.c               |    6 +++---
- 3 files changed, 24 insertions(+), 9 deletions(-)
+ include/linux/page-flags.h |   13 ++++++++-----
+ mm/migrate.c               |    2 +-
+ mm/vmscan.c                |    2 +-
+ 3 files changed, 10 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/mm_inline.h~mm-introduce-page_lru_base_type include/linux/mm_inline.h
---- a/include/linux/mm_inline.h~mm-introduce-page_lru_base_type
-+++ a/include/linux/mm_inline.h
-@@ -39,21 +39,36 @@ del_page_from_lru_list(struct zone *zone
- 	mem_cgroup_del_lru_list(page, l);
- }
+diff -puN include/linux/page-flags.h~mm-return-boolean-from-page_has_private include/linux/page-flags.h
+--- a/include/linux/page-flags.h~mm-return-boolean-from-page_has_private
++++ a/include/linux/page-flags.h
+@@ -402,8 +402,8 @@ static inline void __ClearPageTail(struc
+  */
+ #define PAGE_FLAGS_CHECK_AT_PREP	((1 << NR_PAGEFLAGS) - 1)
  
-+/**
-+ * page_lru_base_type - which LRU list type should a page be on?
-+ * @page: the page to test
-+ *
-+ * Used for LRU list index arithmetic.
-+ *
-+ * Returns the base LRU type - file or anon - @page should be on.
-+ */
-+static inline enum lru_list page_lru_base_type(struct page *page)
+-#endif /* !__GENERATING_BOUNDS_H */
+-
++#define PAGE_FLAGS_PRIVATE				\
++	(1 << PG_private | 1 << PG_private_2)
+ /**
+  * page_has_private - Determine if page has private stuff
+  * @page: The page to be checked
+@@ -411,8 +411,11 @@ static inline void __ClearPageTail(struc
+  * Determine if a page has private stuff, indicating that release routines
+  * should be invoked upon it.
+  */
+-#define page_has_private(page)			\
+-	((page)->flags & ((1 << PG_private) |	\
+-			  (1 << PG_private_2)))
++static inline int page_has_private(struct page *page)
 +{
-+	if (page_is_file_cache(page))
-+		return LRU_INACTIVE_FILE;
-+	return LRU_INACTIVE_ANON;
++	return !!(page->flags & PAGE_FLAGS_PRIVATE);
 +}
 +
- static inline void
- del_page_from_lru(struct zone *zone, struct page *page)
- {
--	enum lru_list l = LRU_BASE;
-+	enum lru_list l;
++#endif /* !__GENERATING_BOUNDS_H */
  
- 	list_del(&page->lru);
- 	if (PageUnevictable(page)) {
- 		__ClearPageUnevictable(page);
- 		l = LRU_UNEVICTABLE;
- 	} else {
-+		l = page_lru_base_type(page);
- 		if (PageActive(page)) {
- 			__ClearPageActive(page);
- 			l += LRU_ACTIVE;
- 		}
--		l += page_is_file_cache(page);
- 	}
- 	__dec_zone_state(zone, NR_LRU_BASE + l);
- 	mem_cgroup_del_lru_list(page, l);
-@@ -68,14 +83,14 @@ del_page_from_lru(struct zone *zone, str
-  */
- static inline enum lru_list page_lru(struct page *page)
- {
--	enum lru_list lru = LRU_BASE;
-+	enum lru_list lru;
+ #endif	/* PAGE_FLAGS_H */
+diff -puN mm/migrate.c~mm-return-boolean-from-page_has_private mm/migrate.c
+--- a/mm/migrate.c~mm-return-boolean-from-page_has_private
++++ a/mm/migrate.c
+@@ -272,7 +272,7 @@ static int migrate_page_move_mapping(str
+ 	pslot = radix_tree_lookup_slot(&mapping->page_tree,
+  					page_index(page));
  
- 	if (PageUnevictable(page))
- 		lru = LRU_UNEVICTABLE;
- 	else {
-+		lru = page_lru_base_type(page);
- 		if (PageActive(page))
- 			lru += LRU_ACTIVE;
--		lru += page_is_file_cache(page);
- 	}
- 
- 	return lru;
-diff -puN mm/swap.c~mm-introduce-page_lru_base_type mm/swap.c
---- a/mm/swap.c~mm-introduce-page_lru_base_type
-+++ a/mm/swap.c
-@@ -118,7 +118,7 @@ static void pagevec_move_tail(struct pag
- 			spin_lock(&zone->lru_lock);
- 		}
- 		if (PageLRU(page) && !PageActive(page) && !PageUnevictable(page)) {
--			int lru = page_is_file_cache(page);
-+			int lru = page_lru_base_type(page);
- 			list_move_tail(&page->lru, &zone->lru[lru].list);
- 			pgmoved++;
- 		}
-@@ -181,7 +181,7 @@ void activate_page(struct page *page)
- 	spin_lock_irq(&zone->lru_lock);
- 	if (PageLRU(page) && !PageActive(page) && !PageUnevictable(page)) {
- 		int file = page_is_file_cache(page);
--		int lru = LRU_BASE + file;
-+		int lru = page_lru_base_type(page);
- 		del_page_from_lru_list(zone, page, lru);
- 
- 		SetPageActive(page);
-diff -puN mm/vmscan.c~mm-introduce-page_lru_base_type mm/vmscan.c
---- a/mm/vmscan.c~mm-introduce-page_lru_base_type
+-	expected_count = 2 + !!page_has_private(page);
++	expected_count = 2 + page_has_private(page);
+ 	if (page_count(page) != expected_count ||
+ 			(struct page *)radix_tree_deref_slot(pslot) != page) {
+ 		spin_unlock_irq(&mapping->tree_lock);
+diff -puN mm/vmscan.c~mm-return-boolean-from-page_has_private mm/vmscan.c
+--- a/mm/vmscan.c~mm-return-boolean-from-page_has_private
 +++ a/mm/vmscan.c
-@@ -531,7 +531,7 @@ redo:
- 		 * unevictable page on [in]active list.
- 		 * We know how to handle that.
- 		 */
--		lru = active + page_is_file_cache(page);
-+		lru = active + page_lru_base_type(page);
- 		lru_cache_add_lru(page, lru);
- 	} else {
- 		/*
-@@ -986,7 +986,7 @@ static unsigned long clear_active_flags(
- 	struct page *page;
+@@ -286,7 +286,7 @@ static inline int page_mapping_inuse(str
  
- 	list_for_each_entry(page, page_list, lru) {
--		lru = page_is_file_cache(page);
-+		lru = page_lru_base_type(page);
- 		if (PageActive(page)) {
- 			lru += LRU_ACTIVE;
- 			ClearPageActive(page);
-@@ -2652,7 +2652,7 @@ static void check_move_unevictable_page(
- retry:
- 	ClearPageUnevictable(page);
- 	if (page_evictable(page, NULL)) {
--		enum lru_list l = LRU_INACTIVE_ANON + page_is_file_cache(page);
-+		enum lru_list l = page_lru_base_type(page);
+ static inline int is_page_cache_freeable(struct page *page)
+ {
+-	return page_count(page) - !!page_has_private(page) == 2;
++	return page_count(page) - page_has_private(page) == 2;
+ }
  
- 		__dec_zone_state(zone, NR_UNEVICTABLE);
- 		list_move(&page->lru, &zone->lru[l].list);
+ static int may_write_to_queue(struct backing_dev_info *bdi)
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
