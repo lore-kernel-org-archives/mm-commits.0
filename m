@@ -1,142 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [merged] m68k-convert-to-use-arch_gettimeoffset.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:44:34 -0700
-Message-ID: <200909222044.n8MKiY6c013911@imap1.linux-foundation.org>
+Subject: [merged] m68k-convert-to-asm-generic-hardirqh.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:44:37 -0700
+Message-ID: <200909222044.n8MKibWL013988@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37839 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49899 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753169AbZIVUoq (ORCPT
+	by vger.kernel.org with ESMTP id S1753175AbZIVUoy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:44:46 -0400
+	Tue, 22 Sep 2009 16:44:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: johnstul@us.ibm.com, geert@linux-m68k.org, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: hch@lst.de, geert@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     m68k: convert to use arch_gettimeoffset()
+     m68k: convert to asm-generic/hardirq.h
 has been removed from the -mm tree.  Its filename was
-     m68k-convert-to-use-arch_gettimeoffset.patch
+     m68k-convert-to-asm-generic-hardirqh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m68k: convert to use arch_gettimeoffset()
-From: john stultz <johnstul@us.ibm.com>
+Subject: m68k: convert to asm-generic/hardirq.h
+From: Christoph Hellwig <hch@lst.de>
 
-Convert m68k to use GENERIC_TIME via the arch_getoffset() infrastructure,
-reducing the amount of arch specific code we need to maintain.
-
-I've taken my best swing at converting this, but I'm not 100% confident
-I got it right. My cross-compiler is now out of date (gcc4.2) so I
-wasn't able to  check if it compiled. Any assistance from arch
-maintainers or testers to get this merged would be great.
-
-Signed-off-by: John Stultz <johnstul@us.ibm.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/Kconfig       |    6 +++
- arch/m68k/kernel/time.c |   70 +-------------------------------------
- 2 files changed, 8 insertions(+), 68 deletions(-)
+ arch/m68k/include/asm/hardirq_mm.h |   12 ++----------
+ 1 file changed, 2 insertions(+), 10 deletions(-)
 
-diff -puN arch/m68k/Kconfig~m68k-convert-to-use-arch_gettimeoffset arch/m68k/Kconfig
---- a/arch/m68k/Kconfig~m68k-convert-to-use-arch_gettimeoffset
-+++ a/arch/m68k/Kconfig
-@@ -58,6 +58,12 @@ config HZ
- 	int
- 	default 100
+diff -puN arch/m68k/include/asm/hardirq_mm.h~m68k-convert-to-asm-generic-hardirqh arch/m68k/include/asm/hardirq_mm.h
+--- a/arch/m68k/include/asm/hardirq_mm.h~m68k-convert-to-asm-generic-hardirqh
++++ a/arch/m68k/include/asm/hardirq_mm.h
+@@ -1,16 +1,8 @@
+ #ifndef __M68K_HARDIRQ_H
+ #define __M68K_HARDIRQ_H
  
-+config GENERIC_TIME
-+	def_bool y
+-#include <linux/threads.h>
+-#include <linux/cache.h>
+-
+-/* entry.S is sensitive to the offsets of these fields */
+-typedef struct {
+-	unsigned int __softirq_pending;
+-} ____cacheline_aligned irq_cpustat_t;
+-
+-#include <linux/irq_cpustat.h>	/* Standard mappings for irq_cpustat_t above */
+-
+ #define HARDIRQ_BITS	8
+ 
++#include <asm-generic/hardirq.h>
 +
-+config ARCH_USES_GETTIMEOFFSET
-+	def_bool y
-+
- mainmenu "Linux/68k Kernel Configuration"
- 
- source "init/Kconfig"
-diff -puN arch/m68k/kernel/time.c~m68k-convert-to-use-arch_gettimeoffset arch/m68k/kernel/time.c
---- a/arch/m68k/kernel/time.c~m68k-convert-to-use-arch_gettimeoffset
-+++ a/arch/m68k/kernel/time.c
-@@ -91,77 +91,11 @@ void __init time_init(void)
- 	mach_sched_init(timer_interrupt);
- }
- 
--/*
-- * This version of gettimeofday has near microsecond resolution.
-- */
--void do_gettimeofday(struct timeval *tv)
-+u32 arch_gettimeoffset(void)
- {
--	unsigned long flags;
--	unsigned long seq;
--	unsigned long usec, sec;
--	unsigned long max_ntp_tick = tick_usec - tickadj;
--
--	do {
--		seq = read_seqbegin_irqsave(&xtime_lock, flags);
--
--		usec = mach_gettimeoffset();
--
--		/*
--		 * If time_adjust is negative then NTP is slowing the clock
--		 * so make sure not to go into next possible interval.
--		 * Better to lose some accuracy than have time go backwards..
--		 */
--		if (unlikely(time_adjust < 0))
--			usec = min(usec, max_ntp_tick);
--
--		sec = xtime.tv_sec;
--		usec += xtime.tv_nsec/1000;
--	} while (read_seqretry_irqrestore(&xtime_lock, seq, flags));
--
--
--	while (usec >= 1000000) {
--		usec -= 1000000;
--		sec++;
--	}
--
--	tv->tv_sec = sec;
--	tv->tv_usec = usec;
--}
--
--EXPORT_SYMBOL(do_gettimeofday);
--
--int do_settimeofday(struct timespec *tv)
--{
--	time_t wtm_sec, sec = tv->tv_sec;
--	long wtm_nsec, nsec = tv->tv_nsec;
--
--	if ((unsigned long)tv->tv_nsec >= NSEC_PER_SEC)
--		return -EINVAL;
--
--	write_seqlock_irq(&xtime_lock);
--	/* This is revolting. We need to set the xtime.tv_nsec
--	 * correctly. However, the value in this location is
--	 * is value at the last tick.
--	 * Discover what correction gettimeofday
--	 * would have done, and then undo it!
--	 */
--	nsec -= 1000 * mach_gettimeoffset();
--
--	wtm_sec  = wall_to_monotonic.tv_sec + (xtime.tv_sec - sec);
--	wtm_nsec = wall_to_monotonic.tv_nsec + (xtime.tv_nsec - nsec);
--
--	set_normalized_timespec(&xtime, sec, nsec);
--	set_normalized_timespec(&wall_to_monotonic, wtm_sec, wtm_nsec);
--
--	ntp_clear();
--	write_sequnlock_irq(&xtime_lock);
--	clock_was_set();
--	return 0;
-+	return mach_gettimeoffset() * 1000;
- }
- 
--EXPORT_SYMBOL(do_settimeofday);
--
+ #endif
+_
+
+Patches currently in -mm which might be from hch@lst.de are
+
+origin.patch
+linux-next.patch
+avr32-convert-to-asm-generic-hardirqh.patch
+sparc32-convert-to-asm-generic-hardirqh.patch
+vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
+vfs-split-generic_forget_inode-so-that-hugetlbfs-does-not-have-to-copy-it.patch
+vfs-explicitly-cast-s_maxbytes-in-fiemap_check_ranges.patch
+vfs-change-sb-s_maxbytes-to-a-loff_t.patch
+vfs-remove-redundant-position-check-in-do_sendfile.patch
+fs-remove-unneeded-dcache_unhashed-tricks.patch
+vfs-seq_file-add-helpers-for-data-filling.patch
+libfs-return-error-code-on-failed-attr-set.patch
+fs-new-truncate-helpers.patch
+fs-use-new-truncate-helpers.patch
+fs-introduce-new-truncate-sequence.patch
+fs-convert-simple-fs-to-new-truncate.patch
+tmpfs-convert-to-use-the-new-truncate-convention.patch
+ext2-convert-to-use-the-new-truncate-convention.patch
+fat-convert-to-use-the-new-truncate-convention.patch
+btrfs-convert-to-use-the-new-truncate-convention.patch
+jfs-convert-to-use-the-new-truncate-convention.patch
+udf-convert-to-use-the-new-truncate-convention.patch
+minix-convert-to-use-the-new-truncate-convention.patch
+xtensa-convert-to-asm-generic-hardirqh.patch
+frv-convert-to-asm-generic-hardirqh.patch
+fs-turn-iprune_mutex-into-rwsem.patch
+ntfs-remove-ntfs_file_write.patch
+qnx4-remove-write-support.patch
+fcntl-add-f_etown_ex.patch
+
