@@ -1,34 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: [merged] vmscan-kill-unnecessary-page-flag-test.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:38:50 -0700
-Message-ID: <200909222038.n8MKcoLW002184@imap1.linux-foundation.org>
+Subject: [merged] vmscan-kill-unnecessary-prefetch.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:38:53 -0700
+Message-ID: <200909222038.n8MKcrlw002328@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45386 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59556 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752064AbZIVUji (ORCPT
+	by vger.kernel.org with ESMTP id S1752507AbZIVUjp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:39:38 -0400
+	Tue, 22 Sep 2009 16:39:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kosaki.motohiro@jp.fujitsu.com, fengguang.wu@intel.com, hannes@cmpxchg.org, mel@csn.ul.ie, minchan.kim@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmscan: kill unnecessary page flag test
+     vmscan: kill unnecessary prefetch
 has been removed from the -mm tree.  Its filename was
-     vmscan-kill-unnecessary-page-flag-test.patch
+     vmscan-kill-unnecessary-prefetch.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: kill unnecessary page flag test
+Subject: vmscan: kill unnecessary prefetch
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-The page_lru() already evaluate PageActive() and PageSwapBacked().  We
-don't need to re-evaluate it.
+The pages in the list passed move_active_pages_to_lru() are already
+touched by shrink_active_list().  IOW the prefetch in
+move_active_pages_to_lru() don't populate any cache.  it's pointless.
+
+This patch remove it.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
@@ -39,23 +42,20 @@ Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/vmscan.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/vmscan.c~vmscan-kill-unnecessary-page-flag-test mm/vmscan.c
---- a/mm/vmscan.c~vmscan-kill-unnecessary-page-flag-test
+diff -puN mm/vmscan.c~vmscan-kill-unnecessary-prefetch mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-kill-unnecessary-prefetch
 +++ a/mm/vmscan.c
-@@ -1208,8 +1208,8 @@ static unsigned long shrink_inactive_lis
- 			SetPageLRU(page);
- 			lru = page_lru(page);
- 			add_page_to_lru_list(zone, page, lru);
--			if (PageActive(page)) {
--				int file = !!page_is_file_cache(page);
-+			if (is_active_lru(lru)) {
-+				int file = !!is_file_lru(lru);
- 				reclaim_stat->recent_rotated[file]++;
- 			}
- 			if (!pagevec_add(&pvec, page)) {
+@@ -1273,7 +1273,6 @@ static void move_active_pages_to_lru(str
+ 
+ 	while (!list_empty(list)) {
+ 		page = lru_to_page(list);
+-		prefetchw_prev_lru_page(page, list, flags);
+ 
+ 		VM_BUG_ON(PageLRU(page));
+ 		SetPageLRU(page);
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
