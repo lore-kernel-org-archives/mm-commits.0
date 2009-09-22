@@ -1,208 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-oom-analysis-add-shmem-vmstat.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:38:15 -0700
-Message-ID: <200909222038.n8MKcF0O001066@imap1.linux-foundation.org>
+Subject: [merged] proc-kcore-work-around-a-bug.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:36:43 -0700
+Message-ID: <200909222036.n8MKahLr030436@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51789 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35009 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752205AbZIVUjG (ORCPT
+	by vger.kernel.org with ESMTP id S1752217AbZIVUin (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:39:06 -0400
+	Tue, 22 Sep 2009 16:38:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, cl@linux-foundation.org, fengguang.wu@intel.com, hugh.dickins@tiscali.co.uk, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, kbowa@tuxedu.org, nick@craig-wood.com, penberg@cs.helsinki.fi, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: oom analysis: add shmem vmstat
+     /proc/kcore: work around a BUG()
 has been removed from the -mm tree.  Its filename was
-     mm-oom-analysis-add-shmem-vmstat.patch
+     proc-kcore-work-around-a-bug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: oom analysis: add shmem vmstat
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: /proc/kcore: work around a BUG()
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Recently we encountered OOM problems due to memory use of the GEM cache. 
-Generally a large amuont of Shmem/Tmpfs pages tend to create a memory
-shortage problem.
+Works around a BUG() which is triggered when the kernel accesses holes in
+vmalloc regions.
 
-We often use the following calculation to determine the amount of shmem
-pages:
+BUG: unable to handle kernel paging request at fa54c000
+IP: [<c04f687a>] read_kcore+0x260/0x31a
+*pde = 3540b067 *pte = 00000000
+Oops: 0000 [#1] SMP
+last sysfs file: /sys/devices/pci0000:00/0000:00:1c.2/0000:03:00.0/ieee80211/phy0/rfkill0/state
+Modules linked in: fuse sco bridge stp llc bnep l2cap bluetooth sunrpc nf_conntrack_ftp ip6t_REJECT nf_conntrack_ipv6 ip6table_filter ip6_tables ipv6 cpufreq_ondemand acpi_cpufreq dm_multipath uinput usb_storage arc4 ecb snd_hda_codec_realtek snd_hda_intel ath5k snd_hda_codec snd_hwdep iTCO_wdt snd_pcm iTCO_vendor_support pcspkr i2c_i801 mac80211 joydev snd_timer serio_raw r8169 snd soundcore mii snd_page_alloc ath cfg80211 ata_generic i915 drm i2c_algo_bit i2c_core video output [last unloaded: scsi_wait_scan]
+Sep  4 12:45:16 tuxedu kernel: Pid: 2266, comm: cat Not tainted (2.6.31-rc8 #2) Joybook Lite U101
+EIP: 0060:[<c04f687a>] EFLAGS: 00010286 CPU: 0
+EIP is at read_kcore+0x260/0x31a
+EAX: f5e5ea00 EBX: fa54d000 ECX: 00000400 EDX: 00001000
+ESI: fa54c000 EDI: f44ad000 EBP: e4533f4c ESP: e4533f24
+DS: 007b ES: 007b FS: 00d8 GS: 0033 SS: 0068
+Process cat (pid: 2266, ti=e4532000 task=f09d19a0 task.ti=e4532000)
+Stack:
+00005000 00000000 f44ad000 09d9c000 00003000 fa54c000 00001000 f6d16f60
+ e4520b80 fffffffb e4533f70 c04ef8eb e4533f98 00008000 09d97000 c04f661a
+ e4520b80 09d97000 c04ef88c e4533f8c c04ba531 e4533f98 c04c0930 e4520b80
+Call Trace:
+[<c04ef8eb>] ? proc_reg_read+0x5f/0x73
+[<c04f661a>] ? read_kcore+0x0/0x31a
+[<c04ef88c>] ? proc_reg_read+0x0/0x73
+[<c04ba531>] ? vfs_read+0x82/0xe1
+[<c04c0930>] ? path_put+0x1a/0x1d
+[<c04ba62e>] ? sys_read+0x40/0x62
+[<c0403298>] ? sysenter_do_call+0x12/0x2d
+Code: 39 f3 89 ca 0f 43 f3 89 fb 29 f2 29 f3 39 cf 0f 46 d3 29 55 dc 8d 1c 32 f6 40 0c 01 75 18 89 d1 89 f7 c1 e9 02 2b 7d ec 03 7d e0 <f3> a5 89 d1 83 e1 03 74 02 f3 a4 8b 00 83 7d dc 00 74 04 85 c0
+EIP: [<c04f687a>] read_kcore+0x260/0x31a SS:ESP 0068:e4533f24
+CR2: 00000000fa54c000
 
-shmem = NR_ACTIVE_ANON + NR_INACTIVE_ANON - NR_ANON_PAGES
 
-however the expression does not consider isolated and mlocked pages.
+To access vmalloc area which may have memory holes, copy_from_user is
+useful.  So this:
 
-This patch adds explicit accounting for pages used by shmem and tmpfs.
+ # cat /proc/kcore > /dev/null
 
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Acked-by: Rik van Riel <riel@redhat.com>
-Reviewed-by: Christoph Lameter <cl@linux-foundation.org>
-Acked-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+will not panic.
+
+This is a minimal fix, suitable for 2.6.30.x and 2.6.31.  More extensive
+/proc/kcore changes are planned for 2.6.32.
+
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Tested-by: Nick Craig-Wood <nick@craig-wood.com>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Reported-by: <kbowa@tuxedu.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c    |    2 ++
- fs/proc/meminfo.c      |    2 ++
- include/linux/mmzone.h |    1 +
- mm/filemap.c           |    4 ++++
- mm/migrate.c           |    5 ++++-
- mm/page_alloc.c        |    5 ++++-
- mm/vmstat.c            |    2 +-
- 7 files changed, 18 insertions(+), 3 deletions(-)
+ fs/proc/kcore.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN drivers/base/node.c~mm-oom-analysis-add-shmem-vmstat drivers/base/node.c
---- a/drivers/base/node.c~mm-oom-analysis-add-shmem-vmstat
-+++ a/drivers/base/node.c
-@@ -85,6 +85,7 @@ static ssize_t node_read_meminfo(struct 
- 		       "Node %d FilePages:      %8lu kB\n"
- 		       "Node %d Mapped:         %8lu kB\n"
- 		       "Node %d AnonPages:      %8lu kB\n"
-+		       "Node %d Shmem:          %8lu kB\n"
- 		       "Node %d KernelStack:    %8lu kB\n"
- 		       "Node %d PageTables:     %8lu kB\n"
- 		       "Node %d NFS_Unstable:   %8lu kB\n"
-@@ -117,6 +118,7 @@ static ssize_t node_read_meminfo(struct 
- 		       nid, K(node_page_state(nid, NR_FILE_PAGES)),
- 		       nid, K(node_page_state(nid, NR_FILE_MAPPED)),
- 		       nid, K(node_page_state(nid, NR_ANON_PAGES)),
-+		       nid, K(node_page_state(nid, NR_SHMEM)),
- 		       nid, node_page_state(nid, NR_KERNEL_STACK) *
- 				THREAD_SIZE / 1024,
- 		       nid, K(node_page_state(nid, NR_PAGETABLE)),
-diff -puN fs/proc/meminfo.c~mm-oom-analysis-add-shmem-vmstat fs/proc/meminfo.c
---- a/fs/proc/meminfo.c~mm-oom-analysis-add-shmem-vmstat
-+++ a/fs/proc/meminfo.c
-@@ -81,6 +81,7 @@ static int meminfo_proc_show(struct seq_
- 		"Writeback:      %8lu kB\n"
- 		"AnonPages:      %8lu kB\n"
- 		"Mapped:         %8lu kB\n"
-+		"Shmem:          %8lu kB\n"
- 		"Slab:           %8lu kB\n"
- 		"SReclaimable:   %8lu kB\n"
- 		"SUnreclaim:     %8lu kB\n"
-@@ -125,6 +126,7 @@ static int meminfo_proc_show(struct seq_
- 		K(global_page_state(NR_WRITEBACK)),
- 		K(global_page_state(NR_ANON_PAGES)),
- 		K(global_page_state(NR_FILE_MAPPED)),
-+		K(global_page_state(NR_SHMEM)),
- 		K(global_page_state(NR_SLAB_RECLAIMABLE) +
- 				global_page_state(NR_SLAB_UNRECLAIMABLE)),
- 		K(global_page_state(NR_SLAB_RECLAIMABLE)),
-diff -puN include/linux/mmzone.h~mm-oom-analysis-add-shmem-vmstat include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-oom-analysis-add-shmem-vmstat
-+++ a/include/linux/mmzone.h
-@@ -100,6 +100,7 @@ enum zone_stat_item {
- 	NR_BOUNCE,
- 	NR_VMSCAN_WRITE,
- 	NR_WRITEBACK_TEMP,	/* Writeback using temporary buffers */
-+	NR_SHMEM,		/* shmem pages (included tmpfs/GEM pages) */
- #ifdef CONFIG_NUMA
- 	NUMA_HIT,		/* allocated in intended node */
- 	NUMA_MISS,		/* allocated in non intended node */
-diff -puN mm/filemap.c~mm-oom-analysis-add-shmem-vmstat mm/filemap.c
---- a/mm/filemap.c~mm-oom-analysis-add-shmem-vmstat
-+++ a/mm/filemap.c
-@@ -119,6 +119,8 @@ void __remove_from_page_cache(struct pag
- 	page->mapping = NULL;
- 	mapping->nrpages--;
- 	__dec_zone_page_state(page, NR_FILE_PAGES);
-+	if (PageSwapBacked(page))
-+		__dec_zone_page_state(page, NR_SHMEM);
- 	BUG_ON(page_mapped(page));
- 
- 	/*
-@@ -431,6 +433,8 @@ int add_to_page_cache_locked(struct page
- 		if (likely(!error)) {
- 			mapping->nrpages++;
- 			__inc_zone_page_state(page, NR_FILE_PAGES);
-+			if (PageSwapBacked(page))
-+				__inc_zone_page_state(page, NR_SHMEM);
- 			spin_unlock_irq(&mapping->tree_lock);
- 		} else {
- 			page->mapping = NULL;
-diff -puN mm/migrate.c~mm-oom-analysis-add-shmem-vmstat mm/migrate.c
---- a/mm/migrate.c~mm-oom-analysis-add-shmem-vmstat
-+++ a/mm/migrate.c
-@@ -312,7 +312,10 @@ static int migrate_page_move_mapping(str
- 	 */
- 	__dec_zone_page_state(page, NR_FILE_PAGES);
- 	__inc_zone_page_state(newpage, NR_FILE_PAGES);
--
-+	if (PageSwapBacked(page)) {
-+		__dec_zone_page_state(page, NR_SHMEM);
-+		__inc_zone_page_state(newpage, NR_SHMEM);
-+	}
- 	spin_unlock_irq(&mapping->tree_lock);
- 
- 	return 0;
-diff -puN mm/page_alloc.c~mm-oom-analysis-add-shmem-vmstat mm/page_alloc.c
---- a/mm/page_alloc.c~mm-oom-analysis-add-shmem-vmstat
-+++ a/mm/page_alloc.c
-@@ -2139,7 +2139,7 @@ void show_free_areas(void)
- 		" unevictable:%lu"
- 		" dirty:%lu writeback:%lu unstable:%lu buffer:%lu\n"
- 		" free:%lu slab_reclaimable:%lu slab_unreclaimable:%lu\n"
--		" mapped:%lu pagetables:%lu bounce:%lu\n",
-+		" mapped:%lu shmem:%lu pagetables:%lu bounce:%lu\n",
- 		global_page_state(NR_ACTIVE_ANON),
- 		global_page_state(NR_ACTIVE_FILE),
- 		global_page_state(NR_INACTIVE_ANON),
-@@ -2153,6 +2153,7 @@ void show_free_areas(void)
- 		global_page_state(NR_SLAB_RECLAIMABLE),
- 		global_page_state(NR_SLAB_UNRECLAIMABLE),
- 		global_page_state(NR_FILE_MAPPED),
-+		global_page_state(NR_SHMEM),
- 		global_page_state(NR_PAGETABLE),
- 		global_page_state(NR_BOUNCE));
- 
-@@ -2175,6 +2176,7 @@ void show_free_areas(void)
- 			" dirty:%lukB"
- 			" writeback:%lukB"
- 			" mapped:%lukB"
-+			" shmem:%lukB"
- 			" slab_reclaimable:%lukB"
- 			" slab_unreclaimable:%lukB"
- 			" kernel_stack:%lukB"
-@@ -2200,6 +2202,7 @@ void show_free_areas(void)
- 			K(zone_page_state(zone, NR_FILE_DIRTY)),
- 			K(zone_page_state(zone, NR_WRITEBACK)),
- 			K(zone_page_state(zone, NR_FILE_MAPPED)),
-+			K(zone_page_state(zone, NR_SHMEM)),
- 			K(zone_page_state(zone, NR_SLAB_RECLAIMABLE)),
- 			K(zone_page_state(zone, NR_SLAB_UNRECLAIMABLE)),
- 			zone_page_state(zone, NR_KERNEL_STACK) *
-diff -puN mm/vmstat.c~mm-oom-analysis-add-shmem-vmstat mm/vmstat.c
---- a/mm/vmstat.c~mm-oom-analysis-add-shmem-vmstat
-+++ a/mm/vmstat.c
-@@ -644,7 +644,7 @@ static const char * const vmstat_text[] 
- 	"nr_bounce",
- 	"nr_vmscan_write",
- 	"nr_writeback_temp",
--
-+	"nr_shmem",
- #ifdef CONFIG_NUMA
- 	"numa_hit",
- 	"numa_miss",
+diff -puN fs/proc/kcore.c~proc-kcore-work-around-a-bug fs/proc/kcore.c
+--- a/fs/proc/kcore.c~proc-kcore-work-around-a-bug
++++ a/fs/proc/kcore.c
+@@ -361,7 +361,13 @@ read_kcore(struct file *file, char __use
+ 				/* don't dump ioremap'd stuff! (TA) */
+ 				if (m->flags & VM_IOREMAP)
+ 					continue;
+-				memcpy(elf_buf + (vmstart - start),
++				/*
++				 * we may access memory holes, then use
++				 * ex_table. checking return value just for
++				 * avoid warnings.
++				 */
++				vmsize = __copy_from_user_inatomic(
++					elf_buf + (vmstart - start),
+ 					(char *)vmstart, vmsize);
+ 			}
+ 			read_unlock(&vmlist_lock);
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
-linux-next.patch
-revert-staging-android-lowmemorykillerc-fix-it-for-oom-move-oom_adj-value-from-task_struct-to-mm_struct.patch
-readahead-add-blk_run_backing_dev.patch
-oom-move-oom_adj-value-from-task_struct-to-signal_struct-fix.patch
-mm-vsmcan-check-shrink_active_list-sc-isolate_pages-return-value.patch
-getrusage-fill-ru_maxrss-value.patch
+kcore-fix-proc-kcores-statst_size.patch
+kcore-use-usual-list-for-kclist.patch
+kcore-add-kclist-types.patch
+kcore-register-vmalloc-area-in-generic-way.patch
+kcore-register-text-area-in-generic-way.patch
+walk-system-ram-range.patch
+walk-system-ram-range-fix.patch
+walk-system-ram-range-fix-2.patch
+kcore-use-registerd-physmem-information.patch
 kcore-use-registerd-physmem-information-ia64-fix.patch
+kcore-register-vmemmap-range.patch
+kcore-register-vmemmap-range-fix.patch
+kcore-register-module-area-in-generic-way.patch
+kcore-more-fixes-for-init.patch
+proc-kcore-fix-statst_size.patch
+proc-kcore-update-statst_size-after-memory-hotplug.patch
+cgroups-support-named-cgroups-hierarchies.patch
+cgroups-move-the-cgroup-debug-subsys-into-cgroupc-to-access-internal-state.patch
+cgroups-add-a-back-pointer-from-struct-cg_cgroup_link-to-struct-cgroup.patch
+cgroups-allow-cgroup-hierarchies-to-be-created-with-no-bound-subsystems.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup-fix-2.patch
+memcg-add-comments-explaining-memory-barriers.patch
+memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
 memory-controller-soft-limit-documentation-v9.patch
 memory-controller-soft-limit-interface-v9.patch
 memory-controller-soft-limit-organize-cgroups-v9.patch
@@ -214,5 +140,8 @@ memory-controller-soft-limit-reclaim-on-contention-v9-fix-softlimit-css-refcnt-h
 memory-controller-soft-limit-reclaim-on-contention-v9-fix-softlimit-css-refcnt-handling-fix.patch
 memcg-improve-resource-counter-scalability.patch
 memcg-improve-resource-counter-scalability-v5.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
+memcg-show-swap-usage-in-stat-file.patch
+memcg-show-swap-usage-in-stat-file-fix.patch
+do_wait-wakeup-optimization-fix-child_wait_callback-eligible_child-usage.patch
+do_wait-wakeup-optimization-simplify-task_pid_type.patch
 
