@@ -1,190 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-add_to_swap_cache-does-not-return-eexist.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:41:24 -0700
-Message-ID: <200909222041.n8MKfO5L007509@imap1.linux-foundation.org>
+Subject: [merged] ksm-keep-quiet-while-list-empty.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:39:54 -0700
+Message-ID: <200909222039.n8MKdssu004390@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54197 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34237 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752726AbZIVUmQ (ORCPT
+	by vger.kernel.org with ESMTP id S1752757AbZIVUmR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:42:16 -0400
+	Tue, 22 Sep 2009 16:42:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nishimura@mxp.nes.nec.co.jp, balbir@linux.vnet.ibm.com, hannes@cmpxchg.org, hugh.dickins@tiscali.co.uk, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: hugh.dickins@tiscali.co.uk, aarcange@redhat.com, ieidus@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: add_to_swap_cache() does not return -EEXIST
+     ksm: keep quiet while list empty
 has been removed from the -mm tree.  Its filename was
-     mm-add_to_swap_cache-does-not-return-eexist.patch
+     ksm-keep-quiet-while-list-empty.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: add_to_swap_cache() does not return -EEXIST
-From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Subject: ksm: keep quiet while list empty
+From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
-After commit 355cfa73 ("mm: modify swap_map and add SWAP_HAS_CACHE flag"),
-only the context which have set SWAP_HAS_CACHE flag by swapcache_prepare()
-or get_swap_page() would call add_to_swap_cache().  So add_to_swap_cache()
-doesn't return -EEXIST any more.
+ksm_scan_thread already sleeps in wait_event_interruptible until setting
+ksm_run activates it; but if there's nothing on its list to look at, i.e.
+nobody has yet said madvise MADV_MERGEABLE, it's a shame to be clocking
+up system time and full_scans: ksmd_should_run added to check that too.
 
-Even though it doesn't return -EEXIST, it's not good behavior conceptually
-to call swapcache_prepare() in the -EEXIST case, because it means clearing
-SWAP_HAS_CACHE flag while the entry is on swap cache.
+And move the mutex_lock out around it: the new counts showed that when
+ksm_run is stopped, a little work often got done afterwards, because it
+had been read before taking the mutex.
 
-This patch removes redundant codes and comments from callers of it, and
-adds VM_BUG_ON() in error path of add_to_swap_cache() and some comments.
-
-Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Acked-by: Izik Eidus <ieidus@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c      |    4 ++
- mm/swap_state.c |   73 ++++++++++++++++++++++------------------------
- 2 files changed, 40 insertions(+), 37 deletions(-)
+ mm/ksm.c |   28 ++++++++++++++++++++++------
+ 1 file changed, 22 insertions(+), 6 deletions(-)
 
-diff -puN mm/shmem.c~mm-add_to_swap_cache-does-not-return-eexist mm/shmem.c
---- a/mm/shmem.c~mm-add_to_swap_cache-does-not-return-eexist
-+++ a/mm/shmem.c
-@@ -1097,6 +1097,10 @@ static int shmem_writepage(struct page *
- 	shmem_swp_unmap(entry);
- unlock:
- 	spin_unlock(&info->lock);
-+	/*
-+	 * add_to_swap_cache() doesn't return -EEXIST, so we can safely
-+	 * clear SWAP_HAS_CACHE flag.
-+	 */
- 	swapcache_free(swap, NULL);
- redirty:
- 	set_page_dirty(page);
-diff -puN mm/swap_state.c~mm-add_to_swap_cache-does-not-return-eexist mm/swap_state.c
---- a/mm/swap_state.c~mm-add_to_swap_cache-does-not-return-eexist
-+++ a/mm/swap_state.c
-@@ -92,6 +92,12 @@ static int __add_to_swap_cache(struct pa
- 	spin_unlock_irq(&swapper_space.tree_lock);
- 
- 	if (unlikely(error)) {
-+		/*
-+		 * Only the context which have set SWAP_HAS_CACHE flag
-+		 * would call add_to_swap_cache().
-+		 * So add_to_swap_cache() doesn't returns -EEXIST.
-+		 */
-+		VM_BUG_ON(error == -EEXIST);
- 		set_page_private(page, 0UL);
- 		ClearPageSwapCache(page);
- 		page_cache_release(page);
-@@ -146,38 +152,34 @@ int add_to_swap(struct page *page)
- 	VM_BUG_ON(!PageLocked(page));
- 	VM_BUG_ON(!PageUptodate(page));
- 
--	for (;;) {
--		entry = get_swap_page();
--		if (!entry.val)
--			return 0;
-+	entry = get_swap_page();
-+	if (!entry.val)
-+		return 0;
- 
-+	/*
-+	 * Radix-tree node allocations from PF_MEMALLOC contexts could
-+	 * completely exhaust the page allocator. __GFP_NOMEMALLOC
-+	 * stops emergency reserves from being allocated.
-+	 *
-+	 * TODO: this could cause a theoretical memory reclaim
-+	 * deadlock in the swap out path.
-+	 */
-+	/*
-+	 * Add it to the swap cache and mark it dirty
-+	 */
-+	err = add_to_swap_cache(page, entry,
-+			__GFP_HIGH|__GFP_NOMEMALLOC|__GFP_NOWARN);
-+
-+	if (!err) {	/* Success */
-+		SetPageDirty(page);
-+		return 1;
-+	} else {	/* -ENOMEM radix-tree allocation failure */
- 		/*
--		 * Radix-tree node allocations from PF_MEMALLOC contexts could
--		 * completely exhaust the page allocator. __GFP_NOMEMALLOC
--		 * stops emergency reserves from being allocated.
--		 *
--		 * TODO: this could cause a theoretical memory reclaim
--		 * deadlock in the swap out path.
--		 */
--		/*
--		 * Add it to the swap cache and mark it dirty
-+		 * add_to_swap_cache() doesn't return -EEXIST, so we can safely
-+		 * clear SWAP_HAS_CACHE flag.
- 		 */
--		err = add_to_swap_cache(page, entry,
--				__GFP_HIGH|__GFP_NOMEMALLOC|__GFP_NOWARN);
--
--		switch (err) {
--		case 0:				/* Success */
--			SetPageDirty(page);
--			return 1;
--		case -EEXIST:
--			/* Raced with "speculative" read_swap_cache_async */
--			swapcache_free(entry, NULL);
--			continue;
--		default:
--			/* -ENOMEM radix-tree allocation failure */
--			swapcache_free(entry, NULL);
--			return 0;
--		}
-+		swapcache_free(entry, NULL);
-+		return 0;
+diff -puN mm/ksm.c~ksm-keep-quiet-while-list-empty mm/ksm.c
+--- a/mm/ksm.c~ksm-keep-quiet-while-list-empty
++++ a/mm/ksm.c
+@@ -1280,21 +1280,27 @@ static void ksm_do_scan(unsigned int sca
  	}
  }
  
-@@ -318,14 +320,7 @@ struct page *read_swap_cache_async(swp_e
- 			break;
- 		}
++static int ksmd_should_run(void)
++{
++	return (ksm_run & KSM_RUN_MERGE) && !list_empty(&ksm_mm_head.mm_list);
++}
++
+ static int ksm_scan_thread(void *nothing)
+ {
+ 	set_user_nice(current, 5);
  
--		/*
--		 * Associate the page with swap entry in the swap cache.
--		 * May fail (-EEXIST) if there is already a page associated
--		 * with this entry in the swap cache: added by a racing
--		 * read_swap_cache_async, or add_to_swap or shmem_writepage
--		 * re-using the just freed swap entry for an existing page.
--		 * May fail (-ENOMEM) if radix-tree node allocation failed.
--		 */
-+		/* May fail (-ENOMEM) if radix-tree node allocation failed. */
- 		__set_page_locked(new_page);
- 		SetPageSwapBacked(new_page);
- 		err = __add_to_swap_cache(new_page, entry);
-@@ -341,6 +336,10 @@ struct page *read_swap_cache_async(swp_e
- 		radix_tree_preload_end();
- 		ClearPageSwapBacked(new_page);
- 		__clear_page_locked(new_page);
-+		/*
-+		 * add_to_swap_cache() doesn't return -EEXIST, so we can safely
-+		 * clear SWAP_HAS_CACHE flag.
-+		 */
- 		swapcache_free(entry, NULL);
- 	} while (err != -ENOMEM);
+ 	while (!kthread_should_stop()) {
+-		if (ksm_run & KSM_RUN_MERGE) {
+-			mutex_lock(&ksm_thread_mutex);
++		mutex_lock(&ksm_thread_mutex);
++		if (ksmd_should_run())
+ 			ksm_do_scan(ksm_thread_pages_to_scan);
+-			mutex_unlock(&ksm_thread_mutex);
++		mutex_unlock(&ksm_thread_mutex);
++
++		if (ksmd_should_run()) {
+ 			schedule_timeout_interruptible(
+ 				msecs_to_jiffies(ksm_thread_sleep_millisecs));
+ 		} else {
+ 			wait_event_interruptible(ksm_thread_wait,
+-					(ksm_run & KSM_RUN_MERGE) ||
+-					kthread_should_stop());
++				ksmd_should_run() || kthread_should_stop());
+ 		}
+ 	}
+ 	return 0;
+@@ -1339,10 +1345,16 @@ int ksm_madvise(struct vm_area_struct *v
+ 
+ int __ksm_enter(struct mm_struct *mm)
+ {
+-	struct mm_slot *mm_slot = alloc_mm_slot();
++	struct mm_slot *mm_slot;
++	int needs_wakeup;
++
++	mm_slot = alloc_mm_slot();
+ 	if (!mm_slot)
+ 		return -ENOMEM;
+ 
++	/* Check ksm_run too?  Would need tighter locking */
++	needs_wakeup = list_empty(&ksm_mm_head.mm_list);
++
+ 	spin_lock(&ksm_mmlist_lock);
+ 	insert_to_mm_slots_hash(mm, mm_slot);
+ 	/*
+@@ -1354,6 +1366,10 @@ int __ksm_enter(struct mm_struct *mm)
+ 	spin_unlock(&ksm_mmlist_lock);
+ 
+ 	set_bit(MMF_VM_MERGEABLE, &mm->flags);
++
++	if (needs_wakeup)
++		wake_up_interruptible(&ksm_thread_wait);
++
+ 	return 0;
+ }
  
 _
 
-Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
+Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
 
 origin.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix-2.patch
-memcg-add-comments-explaining-memory-barriers.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix-softlimit-css-refcnt-handling.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix-softlimit-css-refcnt-handling-fix.patch
-memcg-improve-resource-counter-scalability.patch
-memcg-improve-resource-counter-scalability-v5.patch
-memcg-show-swap-usage-in-stat-file.patch
-memcg-show-swap-usage-in-stat-file-fix.patch
+linux-next.patch
+vfs-optimize-touch_time-too.patch
+vfs-seq_file-add-helpers-for-data-filling.patch
+fs-new-truncate-helpers.patch
+fs-use-new-truncate-helpers.patch
+fs-introduce-new-truncate-sequence.patch
+fs-convert-simple-fs-to-new-truncate.patch
+tmpfs-convert-to-use-the-new-truncate-convention.patch
+ext2-convert-to-use-the-new-truncate-convention.patch
+fat-convert-to-use-the-new-truncate-convention.patch
+btrfs-convert-to-use-the-new-truncate-convention.patch
+jfs-convert-to-use-the-new-truncate-convention.patch
+udf-convert-to-use-the-new-truncate-convention.patch
+minix-convert-to-use-the-new-truncate-convention.patch
+getrusage-fill-ru_maxrss-value.patch
+walk-system-ram-range-fix.patch
+ramfs-move-ramfs_magic-to-include-linux-magich.patch
+memory-controller-soft-limit-organize-cgroups-v9-fix.patch
+prio_tree-debugging-patch.patch
 
