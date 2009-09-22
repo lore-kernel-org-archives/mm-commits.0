@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + include-linux-kmemcheckh-fix-a-trillion-warnings.patch added to -mm tree
-Date: Tue, 22 Sep 2009 14:53:45 -0700
-Message-ID: <200909222216.n8MMG9hj032704@imap1.linux-foundation.org>
+Subject: + build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix-fix.patch added to -mm tree
+Date: Tue, 22 Sep 2009 14:59:55 -0700
+Message-ID: <200909222222.n8MMMJci012411@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56525 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36174 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751043AbZIVWQt (ORCPT
+	by vger.kernel.org with ESMTP id S1752132AbZIVWWn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 18:16:49 -0400
+	Tue, 22 Sep 2009 18:22:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, johannes@sipsolutions.net, vegard.nossum@gmail.com
+Cc: akpm@linux-foundation.org, JBeulich@novell.com, andi@firstfloor.org, catalin.marinas@arm.com, davem@davemloft.net, jbeulich@novell.com, jmorris@namei.org, rusty@rustcorp.com.au, srajiv@linux.vnet.ibm.com, zohar@us.ibm.com
 
 
 The patch titled
-     include/linux/kmemcheck.h: fix a trillion warnings
+     build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix-fix
 has been added to the -mm tree.  Its filename is
-     include-linux-kmemcheckh-fix-a-trillion-warnings.patch
+     build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: include/linux/kmemcheck.h: fix a trillion warnings
+Subject: build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-of the form
-
-include/net/inet_sock.h:208: warning: ISO C90 forbids mixed declarations and code
-
-Cc: Johannes Berg <johannes@sipsolutions.net>
-Cc: Vegard Nossum <vegard.nossum@gmail.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: "Jan Beulich" <JBeulich@novell.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: Jan Beulich <jbeulich@novell.com>
+Cc: Mimi Zohar <zohar@us.ibm.com>
+Cc: Rajiv Andrade <srajiv@linux.vnet.ibm.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kmemcheck.h |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/char/tpm/tpm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/kmemcheck.h~include-linux-kmemcheckh-fix-a-trillion-warnings include/linux/kmemcheck.h
---- a/include/linux/kmemcheck.h~include-linux-kmemcheckh-fix-a-trillion-warnings
-+++ a/include/linux/kmemcheck.h
-@@ -145,10 +145,12 @@ static inline bool kmemcheck_is_obj_init
+diff -puN drivers/char/tpm/tpm.c~build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix-fix drivers/char/tpm/tpm.c
+--- a/drivers/char/tpm/tpm.c~build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix-fix
++++ a/drivers/char/tpm/tpm.c
+@@ -760,7 +760,7 @@ int tpm_pcr_extend(u32 chip_num, int pcr
+ 		return -ENODEV;
  
- #define kmemcheck_annotate_bitfield(ptr, name)				\
- 	do {								\
-+		int _n;							\
-+									\
- 		if (!ptr)						\
- 			break;						\
- 									\
--		int _n = (long) &((ptr)->name##_end)			\
-+		_n = (long) &((ptr)->name##_end)			\
- 			- (long) &((ptr)->name##_begin);		\
- 		BUILD_BUG_ON(_n < 0);					\
- 									\
+ 	cmd.header.in = pcrextend_header;
+-	BUILD_BUG_ON(be32_to_cpu(cmd.header.in.length) > EXTEND_PCR_SIZE);
++	BUG_ON(be32_to_cpu(cmd.header.in.length) > EXTEND_PCR_SIZE);
+ 	cmd.params.pcrextend_in.pcr_idx = cpu_to_be32(pcr_idx);
+ 	memcpy(cmd.params.pcrextend_in.hash, hash, TPM_DIGEST_SIZE);
+ 	rc = transmit_cmd(chip, &cmd, cmd.header.in.length,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -78,6 +76,7 @@ generic-ipi-make-struct-call_function_data-lockless.patch
 proc-connector-add-event-for-process-becoming-session-leader.patch
 build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it.patch
 build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix.patch
+build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix-fix.patch
 mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
 sdio-add-cd-disable-support.patch
 sdio-add-mmc_quirk_lenient_fn0.patch
