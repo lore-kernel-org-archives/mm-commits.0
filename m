@@ -1,93 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-make-sure-data-stored-into-inode-is-properly-seen-before-unlocking-new-inode.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:36:52 -0700
-Message-ID: <200909222036.n8MKaq5n030695@imap1.linux-foundation.org>
+Subject: [merged] mm-update-alloc_flags-after-oom-killer-has-been-called.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:38:18 -0700
+Message-ID: <200909222038.n8MKcITt001157@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46180 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45736 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752570AbZIVUi1 (ORCPT
+	by vger.kernel.org with ESMTP id S1752374AbZIVUiw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:38:27 -0400
+	Tue, 22 Sep 2009 16:38:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, hch@infradead.org, stable@kernel.org, mm-commits@vger.kernel.org
+To: rientjes@google.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs: make sure data stored into inode is properly seen before unlocking new inode
+     mm: update alloc_flags after oom killer has been called
 has been removed from the -mm tree.  Its filename was
-     fs-make-sure-data-stored-into-inode-is-properly-seen-before-unlocking-new-inode.patch
+     mm-update-alloc_flags-after-oom-killer-has-been-called.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs: make sure data stored into inode is properly seen before unlocking new inode
-From: Jan Kara <jack@suse.cz>
+Subject: mm: update alloc_flags after oom killer has been called
+From: David Rientjes <rientjes@google.com>
 
-In theory it could happen that on one CPU we initialize a new inode but
-clearing of I_NEW | I_LOCK gets reordered before some of the
-initialization.  Thus on another CPU we return not fully uptodate inode
-from iget_locked().
+It is possible for the oom killer to select current as the task to kill. 
+When this happens, alloc_flags needs to be updated accordingly to set
+ALLOC_NO_WATERMARKS so the subsequent allocation attempt may use memory
+reserves as the result of its thread having TIF_MEMDIE set if the
+allocation is not __GFP_NOMEMALLOC.
 
-This seems to fix a corruption issue on ext3 mounted over NFS.
-
-[akpm@linux-foundation.org: add some commentary]
-Signed-off-by: Jan Kara <jack@suse.cz>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: <stable@kernel.org>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/inode.c |   14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/inode.c~fs-make-sure-data-stored-into-inode-is-properly-seen-before-unlocking-new-inode fs/inode.c
---- a/fs/inode.c~fs-make-sure-data-stored-into-inode-is-properly-seen-before-unlocking-new-inode
-+++ a/fs/inode.c
-@@ -695,13 +695,15 @@ void unlock_new_inode(struct inode *inod
- 	}
- #endif
+diff -puN mm/page_alloc.c~mm-update-alloc_flags-after-oom-killer-has-been-called mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-update-alloc_flags-after-oom-killer-has-been-called
++++ a/mm/page_alloc.c
+@@ -1771,6 +1771,7 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
+ 
+ 	wake_all_kswapd(order, zonelist, high_zoneidx);
+ 
++restart:
  	/*
--	 * This is special!  We do not need the spinlock
--	 * when clearing I_LOCK, because we're guaranteed
--	 * that nobody else tries to do anything about the
--	 * state of the inode when it is locked, as we
--	 * just created it (so there can be no old holders
--	 * that haven't tested I_LOCK).
-+	 * This is special!  We do not need the spinlock when clearing I_LOCK,
-+	 * because we're guaranteed that nobody else tries to do anything about
-+	 * the state of the inode when it is locked, as we just created it (so
-+	 * there can be no old holders that haven't tested I_LOCK).
-+	 * However we must emit the memory barrier so that other CPUs reliably
-+	 * see the clearing of I_LOCK after the other inode initialisation has
-+	 * completed.
+ 	 * OK, we're below the kswapd watermark and have kicked background
+ 	 * reclaim. Now things get more complex, so set up alloc_flags according
+@@ -1778,7 +1779,6 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
  	 */
-+	smp_mb();
- 	WARN_ON((inode->i_state & (I_LOCK|I_NEW)) != (I_LOCK|I_NEW));
- 	inode->i_state &= ~(I_LOCK|I_NEW);
- 	wake_up_inode(inode);
+ 	alloc_flags = gfp_to_alloc_flags(gfp_mask);
+ 
+-restart:
+ 	/* This is the last chance, in general, before the goto nopage. */
+ 	page = get_page_from_freelist(gfp_mask, nodemask, order, zonelist,
+ 			high_zoneidx, alloc_flags & ~ALLOC_NO_WATERMARKS,
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
 linux-next.patch
-vfs-split-generic_forget_inode-so-that-hugetlbfs-does-not-have-to-copy-it.patch
-fs-new-truncate-helpers.patch
-fs-use-new-truncate-helpers.patch
-fs-introduce-new-truncate-sequence.patch
-fs-convert-simple-fs-to-new-truncate.patch
-tmpfs-convert-to-use-the-new-truncate-convention.patch
-ext2-convert-to-use-the-new-truncate-convention.patch
-ext2-convert-to-use-the-new-truncate-convention-fix.patch
-fat-convert-to-use-the-new-truncate-convention.patch
-btrfs-convert-to-use-the-new-truncate-convention.patch
-jfs-convert-to-use-the-new-truncate-convention.patch
-udf-convert-to-use-the-new-truncate-convention.patch
-minix-convert-to-use-the-new-truncate-convention.patch
-reiserfs-truncate-blocks-not-used-by-a-write-v2.patch
-reiser4-update-names-of-quota-methods.patch
+x86-default-pcibus-cpumask-to-all-cpus-if-it-lacks-affinity.patch
+fs-proc-task_mmuc-v1-fix-clear_refs_write-input-sanity-check.patch
+walk-system-ram-range-fix-2.patch
+do_wait-optimization-do-not-place-sub-threads-on-task_struct-children-list.patch
 
