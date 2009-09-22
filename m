@@ -1,135 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-mfd-ab3100-corec-fiw-warning-and-powerpc-build-error.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:36:57 -0700
-Message-ID: <200909222036.n8MKav4s030873@imap1.linux-foundation.org>
+Subject: [merged] oom-fix-oom_adjust_write-input-sanity-check.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:42:27 -0700
+Message-ID: <200909222042.n8MKgR3p009608@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41998 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50484 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752978AbZIVUm6 (ORCPT
+	by vger.kernel.org with ESMTP id S1752915AbZIVUmk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:42:58 -0400
+	Tue, 22 Sep 2009 16:42:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, avorontsov@ru.mvista.com, benh@kernel.crashing.org, sameo@linux.intel.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, oleg@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/mfd/ab3100-core.c: fix powerpc build error
+     oom: fix oom_adjust_write() input sanity check
 has been removed from the -mm tree.  Its filename was
-     drivers-mfd-ab3100-corec-fiw-warning-and-powerpc-build-error.patch
+     oom-fix-oom_adjust_write-input-sanity-check.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/mfd/ab3100-core.c: fix powerpc build error
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: oom: fix oom_adjust_write() input sanity check
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-drivers/mfd/ab3100-core.c:647: error: ab3100_init_settings causes a section type conflict
+Andrew Morton pointed out oom_adjust_write() has very strange EIO
+and new line handling. this patch fixes it.
 
-Cc: Anton Vorontsov <avorontsov@ru.mvista.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: <stable@kernel.org>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Paul Menage <menage@google.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/ab3100-core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/base.c |   18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
 
-diff -puN drivers/mfd/ab3100-core.c~drivers-mfd-ab3100-corec-fiw-warning-and-powerpc-build-error drivers/mfd/ab3100-core.c
---- a/drivers/mfd/ab3100-core.c~drivers-mfd-ab3100-corec-fiw-warning-and-powerpc-build-error
-+++ a/drivers/mfd/ab3100-core.c
-@@ -647,7 +647,7 @@ struct ab3100_init_setting {
- 	u8 setting;
- };
+diff -puN fs/proc/base.c~oom-fix-oom_adjust_write-input-sanity-check fs/proc/base.c
+--- a/fs/proc/base.c~oom-fix-oom_adjust_write-input-sanity-check
++++ a/fs/proc/base.c
+@@ -1021,21 +1021,24 @@ static ssize_t oom_adjust_write(struct f
+ 				size_t count, loff_t *ppos)
+ {
+ 	struct task_struct *task;
+-	char buffer[PROC_NUMBUF], *end;
+-	int oom_adjust;
++	char buffer[PROC_NUMBUF];
++	long oom_adjust;
+ 	unsigned long flags;
++	int err;
  
--static const struct ab3100_init_setting __initdata
-+static const struct ab3100_init_setting __initconst
- ab3100_init_settings[] = {
- 	{
- 		.abreg = AB3100_MCA,
+ 	memset(buffer, 0, sizeof(buffer));
+ 	if (count > sizeof(buffer) - 1)
+ 		count = sizeof(buffer) - 1;
+ 	if (copy_from_user(buffer, buf, count))
+ 		return -EFAULT;
+-	oom_adjust = simple_strtol(buffer, &end, 0);
++
++	err = strict_strtol(strstrip(buffer), 0, &oom_adjust);
++	if (err)
++		return -EINVAL;
+ 	if ((oom_adjust < OOM_ADJUST_MIN || oom_adjust > OOM_ADJUST_MAX) &&
+ 	     oom_adjust != OOM_DISABLE)
+ 		return -EINVAL;
+-	if (*end == '\n')
+-		end++;
++
+ 	task = get_proc_task(file->f_path.dentry->d_inode);
+ 	if (!task)
+ 		return -ESRCH;
+@@ -1054,9 +1057,8 @@ static ssize_t oom_adjust_write(struct f
+ 
+ 	unlock_task_sighand(task, &flags);
+ 	put_task_struct(task);
+-	if (end - buffer == 0)
+-		return -EIO;
+-	return end - buffer;
++
++	return count;
+ }
+ 
+ static const struct file_operations proc_oom_adjust_operations = {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-hwmon-driver-for-acpi-40-power-meters.patch
-drivers-md-dm-log-userspace-basec-fix-warning.patch
-drivers-dma-ioat-dma_v3c-fix-warnings.patch
-drivers-dma-ioat-dma_v2c-fix-warnings.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-checkincludespl-add-option-to-remove-duplicates-in-place.patch
-net-fix-config_net=n-build-on-sparc64.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-include-linux-credh-fix-build.patch
-serial167-fix-read-buffer-overflow.patch
-st-fix-test-of-value-range-in-st_set_options.patch
-drivers-usb-serial-sierrac-fix-config_pm=n-build.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-vfs-optimize-touch_time-too.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-drivers-net-wireless-ath-ar9170-phyc-fix-uninitialised-variable.patch
+revert-staging-android-lowmemorykillerc-fix-it-for-oom-move-oom_adj-value-from-task_struct-to-mm_struct.patch
 readahead-add-blk_run_backing_dev.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
-generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
-proc-connector-add-event-for-process-becoming-session-leader.patch
-build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix.patch
-kernel-smpc-relocate-some-code.patch
-mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
-sdio-add-cd-disable-support-cleanup.patch
-sdio-add-mmc_quirk_lenient_fn0-fix.patch
-at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver-checkpatch-fixes.patch
-mmc-core-sdio-suspend-resume-support-fix.patch
-procfs-provide-stack-information-for-threads-v011-fix.patch
-walk-system-ram-range-fix-2.patch
-kcore-register-vmemmap-range-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs-checkpatch-fixes-fix.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
-drivers-video-add-kmalloc-null-tests-fix.patch
-drivers-video-tmiofbc-fix-uninitialised-return-value.patch
-v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
-page-types-add-feature-for-walking-process-address-space-checkpatch-fixes.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
+oom-move-oom_adj-value-from-task_struct-to-signal_struct-fix.patch
+mm-vsmcan-check-shrink_active_list-sc-isolate_pages-return-value.patch
+getrusage-fill-ru_maxrss-value.patch
+kcore-use-registerd-physmem-information-ia64-fix.patch
+memory-controller-soft-limit-documentation-v9.patch
+memory-controller-soft-limit-interface-v9.patch
+memory-controller-soft-limit-organize-cgroups-v9.patch
+memory-controller-soft-limit-organize-cgroups-v9-fix.patch
+memory-controller-soft-limit-refactor-reclaim-flags-v9.patch
+memory-controller-soft-limit-reclaim-on-contention-v9.patch
 memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
-memcg-improve-resource-counter-scalability-checkpatch-fixes.patch
-exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
-exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
-elf-clean-up-fill_note_info-fix.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-reiser4-disable.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+memory-controller-soft-limit-reclaim-on-contention-v9-fix-softlimit-css-refcnt-handling.patch
+memory-controller-soft-limit-reclaim-on-contention-v9-fix-softlimit-css-refcnt-handling-fix.patch
+memcg-improve-resource-counter-scalability.patch
+memcg-improve-resource-counter-scalability-v5.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
