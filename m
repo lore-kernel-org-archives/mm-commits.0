@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ksm-remove-vm_mergeable_flags.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:40:19 -0700
-Message-ID: <200909222040.n8MKeJil005305@imap1.linux-foundation.org>
+Subject: [merged] ksm-rename-kernel_pages_allocated.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:39:42 -0700
+Message-ID: <200909222039.n8MKdgqk003955@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46106 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49908 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752744AbZIVUmR (ORCPT
+	by vger.kernel.org with ESMTP id S1752704AbZIVUmR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 22 Sep 2009 16:42:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,62 +15,189 @@ To: hugh.dickins@tiscali.co.uk, aarcange@redhat.com, ieidus@redhat.com, mm-commi
 
 
 The patch titled
-     ksm: remove VM_MERGEABLE_FLAGS
+     ksm: rename kernel_pages_allocated
 has been removed from the -mm tree.  Its filename was
-     ksm-remove-vm_mergeable_flags.patch
+     ksm-rename-kernel_pages_allocated.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ksm: remove VM_MERGEABLE_FLAGS
+Subject: ksm: rename kernel_pages_allocated
 From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
-KSM originally stood for Kernel Shared Memory: but the kernel has long
-supported shared memory, and VM_SHARED and VM_MAYSHARE vmas, and KSM is
-something else.  So we switched to saying "merge" instead of "share".
+We're not implementing swapping of KSM pages in its first release;
+but when that follows, "kernel_pages_allocated" will be a very poor
+name for the sysfs file showing number of nodes in the stable tree:
+rename that to "pages_shared" throughout.
 
-But Chris Wright points out that this is confusing where mmap.c merges
-adjacent vmas: most especially in the name VM_MERGEABLE_FLAGS, used by
-is_mergeable_vma() to let vmas be merged despite flags being different.
+But we already have a "pages_shared", counting those page slots
+sharing the shared pages: first rename that to... "pages_sharing".
 
-Call it VMA_MERGE_DESPITE_FLAGS?  Perhaps, but at present it consists
-only of VM_CAN_NONLINEAR: so for now it's clearer on all sides to use
-that directly, with a comment on it in is_mergeable_vma().
+What will become of "max_kernel_pages" when the pages shared can
+be swapped?  I guess it will just be removed, so keep that name.
 
 Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Acked-by: Izik Eidus <ieidus@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Acked-by: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ mm/ksm.c |   57 ++++++++++++++++++++++++++---------------------------
+ 1 file changed, 28 insertions(+), 29 deletions(-)
 
-diff -puN mm/mmap.c~ksm-remove-vm_mergeable_flags mm/mmap.c
---- a/mm/mmap.c~ksm-remove-vm_mergeable_flags
-+++ a/mm/mmap.c
-@@ -657,9 +657,6 @@ again:			remove_next = 1 + (end > next->
- 	validate_mm(mm);
- }
+diff -puN mm/ksm.c~ksm-rename-kernel_pages_allocated mm/ksm.c
+--- a/mm/ksm.c~ksm-rename-kernel_pages_allocated
++++ a/mm/ksm.c
+@@ -150,10 +150,10 @@ static struct kmem_cache *rmap_item_cach
+ static struct kmem_cache *mm_slot_cache;
  
--/* Flags that can be inherited from an existing mapping when merging */
--#define VM_MERGEABLE_FLAGS (VM_CAN_NONLINEAR)
+ /* The number of nodes in the stable tree */
+-static unsigned long ksm_kernel_pages_allocated;
++static unsigned long ksm_pages_shared;
+ 
+ /* The number of page slots sharing those nodes */
+-static unsigned long ksm_pages_shared;
++static unsigned long ksm_pages_sharing;
+ 
+ /* Limit on the number of unswappable pages used */
+ static unsigned long ksm_max_kernel_pages;
+@@ -384,7 +384,7 @@ static void remove_rmap_item_from_tree(s
+ 				next_item->address |= NODE_FLAG;
+ 			} else {
+ 				rb_erase(&rmap_item->node, &root_stable_tree);
+-				ksm_kernel_pages_allocated--;
++				ksm_pages_shared--;
+ 			}
+ 		} else {
+ 			struct rmap_item *prev_item = rmap_item->prev;
+@@ -398,7 +398,7 @@ static void remove_rmap_item_from_tree(s
+ 		}
+ 
+ 		rmap_item->next = NULL;
+-		ksm_pages_shared--;
++		ksm_pages_sharing--;
+ 
+ 	} else if (rmap_item->address & NODE_FLAG) {
+ 		unsigned char age;
+@@ -748,7 +748,7 @@ static int try_to_merge_two_pages(struct
+ 	 * is the number of kernel pages that we hold.
+ 	 */
+ 	if (ksm_max_kernel_pages &&
+-	    ksm_max_kernel_pages <= ksm_kernel_pages_allocated)
++	    ksm_max_kernel_pages <= ksm_pages_shared)
+ 		return err;
+ 
+ 	kpage = alloc_page(GFP_HIGHUSER);
+@@ -787,7 +787,7 @@ static int try_to_merge_two_pages(struct
+ 		if (err)
+ 			break_cow(mm1, addr1);
+ 		else
+-			ksm_pages_shared += 2;
++			ksm_pages_sharing += 2;
+ 	}
+ 
+ 	put_page(kpage);
+@@ -817,7 +817,7 @@ static int try_to_merge_with_ksm_page(st
+ 	up_read(&mm1->mmap_sem);
+ 
+ 	if (!err)
+-		ksm_pages_shared++;
++		ksm_pages_sharing++;
+ 
+ 	return err;
+ }
+@@ -928,7 +928,7 @@ static struct rmap_item *stable_tree_ins
+ 		}
+ 	}
+ 
+-	ksm_kernel_pages_allocated++;
++	ksm_pages_shared++;
+ 
+ 	rmap_item->address |= NODE_FLAG | STABLE_FLAG;
+ 	rmap_item->next = NULL;
+@@ -1044,7 +1044,7 @@ static void cmp_and_merge_page(struct pa
+ 	tree_rmap_item = stable_tree_search(page, page2, rmap_item);
+ 	if (tree_rmap_item) {
+ 		if (page == page2[0]) {			/* forked */
+-			ksm_pages_shared++;
++			ksm_pages_sharing++;
+ 			err = 0;
+ 		} else
+ 			err = try_to_merge_with_ksm_page(rmap_item->mm,
+@@ -1107,7 +1107,7 @@ static void cmp_and_merge_page(struct pa
+ 				break_cow(tree_rmap_item->mm,
+ 						tree_rmap_item->address);
+ 				break_cow(rmap_item->mm, rmap_item->address);
+-				ksm_pages_shared -= 2;
++				ksm_pages_sharing -= 2;
+ 			}
+ 		}
+ 
+@@ -1423,7 +1423,7 @@ static ssize_t run_store(struct kobject 
+ 	/*
+ 	 * KSM_RUN_MERGE sets ksmd running, and 0 stops it running.
+ 	 * KSM_RUN_UNMERGE stops it running and unmerges all rmap_items,
+-	 * breaking COW to free the kernel_pages_allocated (but leaves
++	 * breaking COW to free the unswappable pages_shared (but leaves
+ 	 * mm_slots on the list for when ksmd may be set running again).
+ 	 */
+ 
+@@ -1442,22 +1442,6 @@ static ssize_t run_store(struct kobject 
+ }
+ KSM_ATTR(run);
+ 
+-static ssize_t pages_shared_show(struct kobject *kobj,
+-				 struct kobj_attribute *attr, char *buf)
+-{
+-	return sprintf(buf, "%lu\n",
+-			ksm_pages_shared - ksm_kernel_pages_allocated);
+-}
+-KSM_ATTR_RO(pages_shared);
 -
- /*
-  * If the vma has a ->close operation then the driver probably needs to release
-  * per-vma resources, so we don't attempt to merge those.
-@@ -667,7 +664,8 @@ again:			remove_next = 1 + (end > next->
- static inline int is_mergeable_vma(struct vm_area_struct *vma,
- 			struct file *file, unsigned long vm_flags)
- {
--	if ((vma->vm_flags ^ vm_flags) & ~VM_MERGEABLE_FLAGS)
-+	/* VM_CAN_NONLINEAR may get set later by f_op->mmap() */
-+	if ((vma->vm_flags ^ vm_flags) & ~VM_CAN_NONLINEAR)
- 		return 0;
- 	if (vma->vm_file != file)
- 		return 0;
+-static ssize_t kernel_pages_allocated_show(struct kobject *kobj,
+-					   struct kobj_attribute *attr,
+-					   char *buf)
+-{
+-	return sprintf(buf, "%lu\n", ksm_kernel_pages_allocated);
+-}
+-KSM_ATTR_RO(kernel_pages_allocated);
+-
+ static ssize_t max_kernel_pages_store(struct kobject *kobj,
+ 				      struct kobj_attribute *attr,
+ 				      const char *buf, size_t count)
+@@ -1481,13 +1465,28 @@ static ssize_t max_kernel_pages_show(str
+ }
+ KSM_ATTR(max_kernel_pages);
+ 
++static ssize_t pages_shared_show(struct kobject *kobj,
++				 struct kobj_attribute *attr, char *buf)
++{
++	return sprintf(buf, "%lu\n", ksm_pages_shared);
++}
++KSM_ATTR_RO(pages_shared);
++
++static ssize_t pages_sharing_show(struct kobject *kobj,
++				  struct kobj_attribute *attr, char *buf)
++{
++	return sprintf(buf, "%lu\n",
++			ksm_pages_sharing - ksm_pages_shared);
++}
++KSM_ATTR_RO(pages_sharing);
++
+ static struct attribute *ksm_attrs[] = {
+ 	&sleep_millisecs_attr.attr,
+ 	&pages_to_scan_attr.attr,
+ 	&run_attr.attr,
+-	&pages_shared_attr.attr,
+-	&kernel_pages_allocated_attr.attr,
+ 	&max_kernel_pages_attr.attr,
++	&pages_shared_attr.attr,
++	&pages_sharing_attr.attr,
+ 	NULL,
+ };
+ 
 _
 
 Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
