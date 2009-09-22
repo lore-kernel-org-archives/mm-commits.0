@@ -1,281 +1,165 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:43:35 -0700
-Message-ID: <200909222043.n8MKhZw3011944@imap1.linux-foundation.org>
+Subject: [merged] tracing-documentation-add-a-document-on-the-kmem-tracepoints.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:41:18 -0700
+Message-ID: <200909222041.n8MKfIqb007302@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40085 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55050 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752696AbZIVUnq (ORCPT
+	by vger.kernel.org with ESMTP id S1752928AbZIVUno (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:43:46 -0400
+	Tue, 22 Sep 2009 16:43:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, ebmunson@us.ibm.com, hugh.dickins@tiscali.co.uk, linux-arch@vger.kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: mel@csn.ul.ie, lwoodman@redhat.com, macli@brc.ubc.ca, mingo@elte.hu, peterz@infradead.org, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: add MAP_HUGETLB for mmaping pseudo-anonymous huge page regions
+     tracing, documentation: Add a document on the kmem tracepoints
 has been removed from the -mm tree.  Its filename was
-     mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions.patch
+     tracing-documentation-add-a-document-on-the-kmem-tracepoints.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: add MAP_HUGETLB for mmaping pseudo-anonymous huge page regions
-From: Arnd Bergmann <arnd@arndb.de>
+Subject: tracing, documentation: Add a document on the kmem tracepoints
+From: Mel Gorman <mel@csn.ul.ie>
 
-Add a flag for mmap that will be used to request a huge page region that
-will look like anonymous memory to user space.  This is accomplished by
-using a file on the internal vfsmount.  MAP_HUGETLB is a modifier of
-MAP_ANONYMOUS and so must be specified with it.  The region will behave
-the same as a MAP_ANONYMOUS region using small pages.
+Knowing tracepoints exist is not quite the same as knowing what they
+should be used for.  This patch adds a document giving a basic description
+of the kmem tracepoints and why they might be useful to a performance
+analyst.
 
-The patch also adds the MAP_STACK flag, which was previously defined only
-on some architectures but not on others.  Since MAP_STACK is meant to be a
-hint only, architectures can define it without assigning a specific
-meaning to it.
-
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Eric B Munson <ebmunson@us.ibm.com>
-Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Cc: David Rientjes <rientjes@google.com>
-Cc: <linux-arch@vger.kernel.org>
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Cc: Rik van Riel <riel@redhat.com>
+Reviewed-by: Ingo Molnar <mingo@elte.hu>
+Cc: Larry Woodman <lwoodman@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Li Ming Chun <macli@brc.ubc.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/mman.h   |    2 ++
- arch/arm/include/asm/mman.h     |    2 ++
- arch/avr32/include/asm/mman.h   |    2 ++
- arch/cris/include/asm/mman.h    |    2 ++
- arch/frv/include/asm/mman.h     |    2 ++
- arch/h8300/include/asm/mman.h   |    2 ++
- arch/ia64/include/asm/mman.h    |    2 ++
- arch/m32r/include/asm/mman.h    |    2 ++
- arch/m68k/include/asm/mman.h    |    2 ++
- arch/mips/include/asm/mman.h    |    2 ++
- arch/mn10300/include/asm/mman.h |    2 ++
- arch/parisc/include/asm/mman.h  |    2 ++
- arch/powerpc/include/asm/mman.h |    2 ++
- arch/s390/include/asm/mman.h    |    2 ++
- arch/sparc/include/asm/mman.h   |    2 ++
- arch/xtensa/include/asm/mman.h  |    2 ++
- include/asm-generic/mman.h      |    1 +
- 17 files changed, 33 insertions(+)
+ Documentation/trace/events-kmem.txt |  107 ++++++++++++++++++++++++++
+ 1 file changed, 107 insertions(+)
 
-diff -puN arch/alpha/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions arch/alpha/include/asm/mman.h
---- a/arch/alpha/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions
-+++ a/arch/alpha/include/asm/mman.h
-@@ -28,6 +28,8 @@
- #define MAP_NORESERVE	0x10000		/* don't check for reservations */
- #define MAP_POPULATE	0x20000		/* populate (prefault) pagetables */
- #define MAP_NONBLOCK	0x40000		/* do not block on IO */
-+#define MAP_STACK	0x80000		/* give out an address that is best suited for process/thread stacks */
-+#define MAP_HUGETLB	0x100000	/* create a huge page mapping */
- 
- #define MS_ASYNC	1		/* sync memory asynchronously */
- #define MS_SYNC		2		/* synchronous memory sync */
-diff -puN arch/arm/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions arch/arm/include/asm/mman.h
---- a/arch/arm/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions
-+++ a/arch/arm/include/asm/mman.h
-@@ -10,6 +10,8 @@
- #define MAP_NORESERVE	0x4000		/* don't check for reservations */
- #define MAP_POPULATE	0x8000		/* populate (prefault) page tables */
- #define MAP_NONBLOCK	0x10000		/* do not block on IO */
-+#define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
-+#define MAP_HUGETLB	0x40000		/* create a huge page mapping */
- 
- #define MCL_CURRENT	1		/* lock all current mappings */
- #define MCL_FUTURE	2		/* lock all future mappings */
-diff -puN arch/avr32/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions arch/avr32/include/asm/mman.h
---- a/arch/avr32/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions
-+++ a/arch/avr32/include/asm/mman.h
-@@ -10,6 +10,8 @@
- #define MAP_NORESERVE	0x4000		/* don't check for reservations */
- #define MAP_POPULATE	0x8000		/* populate (prefault) page tables */
- #define MAP_NONBLOCK	0x10000		/* do not block on IO */
-+#define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
-+#define MAP_HUGETLB	0x40000		/* create a huge page mapping */
- 
- #define MCL_CURRENT	1		/* lock all current mappings */
- #define MCL_FUTURE	2		/* lock all future mappings */
-diff -puN arch/cris/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions arch/cris/include/asm/mman.h
---- a/arch/cris/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions
-+++ a/arch/cris/include/asm/mman.h
-@@ -12,6 +12,8 @@
- #define MAP_NORESERVE	0x4000		/* don't check for reservations */
- #define MAP_POPULATE	0x8000		/* populate (prefault) pagetables */
- #define MAP_NONBLOCK	0x10000		/* do not block on IO */
-+#define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
-+#define MAP_HUGETLB	0x40000		/* create a huge page mapping */
- 
- #define MCL_CURRENT	1		/* lock all current mappings */
- #define MCL_FUTURE	2		/* lock all future mappings */
-diff -puN arch/frv/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions arch/frv/include/asm/mman.h
---- a/arch/frv/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions
-+++ a/arch/frv/include/asm/mman.h
-@@ -10,6 +10,8 @@
- #define MAP_NORESERVE	0x4000		/* don't check for reservations */
- #define MAP_POPULATE	0x8000		/* populate (prefault) pagetables */
- #define MAP_NONBLOCK	0x10000		/* do not block on IO */
-+#define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
-+#define MAP_HUGETLB	0x40000		/* create a huge page mapping */
- 
- #define MCL_CURRENT	1		/* lock all current mappings */
- #define MCL_FUTURE	2		/* lock all future mappings */
-diff -puN arch/h8300/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions arch/h8300/include/asm/mman.h
---- a/arch/h8300/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions
-+++ a/arch/h8300/include/asm/mman.h
-@@ -10,6 +10,8 @@
- #define MAP_NORESERVE	0x4000		/* don't check for reservations */
- #define MAP_POPULATE	0x8000		/* populate (prefault) pagetables */
- #define MAP_NONBLOCK	0x10000		/* do not block on IO */
-+#define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
-+#define MAP_HUGETLB	0x40000		/* create a huge page mapping */
- 
- #define MCL_CURRENT	1		/* lock all current mappings */
- #define MCL_FUTURE	2		/* lock all future mappings */
-diff -puN arch/ia64/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions arch/ia64/include/asm/mman.h
---- a/arch/ia64/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions
-+++ a/arch/ia64/include/asm/mman.h
-@@ -18,6 +18,8 @@
- #define MAP_NORESERVE	0x04000		/* don't check for reservations */
- #define MAP_POPULATE	0x08000		/* populate (prefault) pagetables */
- #define MAP_NONBLOCK	0x10000		/* do not block on IO */
-+#define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
-+#define MAP_HUGETLB	0x40000		/* create a huge page mapping */
- 
- #define MCL_CURRENT	1		/* lock all current mappings */
- #define MCL_FUTURE	2		/* lock all future mappings */
-diff -puN arch/m32r/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions arch/m32r/include/asm/mman.h
---- a/arch/m32r/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions
-+++ a/arch/m32r/include/asm/mman.h
-@@ -10,6 +10,8 @@
- #define MAP_NORESERVE	0x4000		/* don't check for reservations */
- #define MAP_POPULATE	0x8000		/* populate (prefault) pagetables */
- #define MAP_NONBLOCK	0x10000		/* do not block on IO */
-+#define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
-+#define MAP_HUGETLB	0x40000		/* create a huge page mapping */
- 
- #define MCL_CURRENT	1		/* lock all current mappings */
- #define MCL_FUTURE	2		/* lock all future mappings */
-diff -puN arch/m68k/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions arch/m68k/include/asm/mman.h
---- a/arch/m68k/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions
-+++ a/arch/m68k/include/asm/mman.h
-@@ -10,6 +10,8 @@
- #define MAP_NORESERVE	0x4000		/* don't check for reservations */
- #define MAP_POPULATE	0x8000		/* populate (prefault) pagetables */
- #define MAP_NONBLOCK	0x10000		/* do not block on IO */
-+#define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
-+#define MAP_HUGETLB	0x40000		/* create a huge page mapping */
- 
- #define MCL_CURRENT	1		/* lock all current mappings */
- #define MCL_FUTURE	2		/* lock all future mappings */
-diff -puN arch/mips/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions arch/mips/include/asm/mman.h
---- a/arch/mips/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions
-+++ a/arch/mips/include/asm/mman.h
-@@ -46,6 +46,8 @@
- #define MAP_LOCKED	0x8000		/* pages are locked */
- #define MAP_POPULATE	0x10000		/* populate (prefault) pagetables */
- #define MAP_NONBLOCK	0x20000		/* do not block on IO */
-+#define MAP_STACK	0x40000		/* give out an address that is best suited for process/thread stacks */
-+#define MAP_HUGETLB	0x80000		/* create a huge page mapping */
- 
- /*
-  * Flags for msync
-diff -puN arch/mn10300/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions arch/mn10300/include/asm/mman.h
---- a/arch/mn10300/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions
-+++ a/arch/mn10300/include/asm/mman.h
-@@ -21,6 +21,8 @@
- #define MAP_NORESERVE	0x4000		/* don't check for reservations */
- #define MAP_POPULATE	0x8000		/* populate (prefault) pagetables */
- #define MAP_NONBLOCK	0x10000		/* do not block on IO */
-+#define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
-+#define MAP_HUGETLB	0x40000		/* create a huge page mapping */
- 
- #define MCL_CURRENT	1		/* lock all current mappings */
- #define MCL_FUTURE	2		/* lock all future mappings */
-diff -puN arch/parisc/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions arch/parisc/include/asm/mman.h
---- a/arch/parisc/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions
-+++ a/arch/parisc/include/asm/mman.h
-@@ -22,6 +22,8 @@
- #define MAP_GROWSDOWN	0x8000		/* stack-like segment */
- #define MAP_POPULATE	0x10000		/* populate (prefault) pagetables */
- #define MAP_NONBLOCK	0x20000		/* do not block on IO */
-+#define MAP_STACK	0x40000		/* give out an address that is best suited for process/thread stacks */
-+#define MAP_HUGETLB	0x80000		/* create a huge page mapping */
- 
- #define MS_SYNC		1		/* synchronous memory sync */
- #define MS_ASYNC	2		/* sync memory asynchronously */
-diff -puN arch/powerpc/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions arch/powerpc/include/asm/mman.h
---- a/arch/powerpc/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions
-+++ a/arch/powerpc/include/asm/mman.h
-@@ -25,6 +25,8 @@
- 
- #define MAP_POPULATE	0x8000		/* populate (prefault) pagetables */
- #define MAP_NONBLOCK	0x10000		/* do not block on IO */
-+#define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
-+#define MAP_HUGETLB	0x40000		/* create a huge page mapping */
- 
- #ifdef __KERNEL__
- #ifdef CONFIG_PPC64
-diff -puN arch/s390/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions arch/s390/include/asm/mman.h
---- a/arch/s390/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions
-+++ a/arch/s390/include/asm/mman.h
-@@ -18,6 +18,8 @@
- #define MAP_NORESERVE	0x4000		/* don't check for reservations */
- #define MAP_POPULATE	0x8000		/* populate (prefault) pagetables */
- #define MAP_NONBLOCK	0x10000		/* do not block on IO */
-+#define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
-+#define MAP_HUGETLB	0x40000		/* create a huge page mapping */
- 
- #define MCL_CURRENT	1		/* lock all current mappings */
- #define MCL_FUTURE	2		/* lock all future mappings */
-diff -puN arch/sparc/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions arch/sparc/include/asm/mman.h
---- a/arch/sparc/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions
-+++ a/arch/sparc/include/asm/mman.h
-@@ -20,6 +20,8 @@
- 
- #define MAP_POPULATE	0x8000		/* populate (prefault) pagetables */
- #define MAP_NONBLOCK	0x10000		/* do not block on IO */
-+#define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
-+#define MAP_HUGETLB	0x40000		/* create a huge page mapping */
- 
- #ifdef __KERNEL__
- #ifndef __ASSEMBLY__
-diff -puN arch/xtensa/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions arch/xtensa/include/asm/mman.h
---- a/arch/xtensa/include/asm/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions
-+++ a/arch/xtensa/include/asm/mman.h
-@@ -53,6 +53,8 @@
- #define MAP_LOCKED	0x8000		/* pages are locked */
- #define MAP_POPULATE	0x10000		/* populate (prefault) pagetables */
- #define MAP_NONBLOCK	0x20000		/* do not block on IO */
-+#define MAP_STACK	0x40000		/* give out an address that is best suited for process/thread stacks */
-+#define MAP_HUGETLB	0x80000		/* create a huge page mapping */
- 
- /*
-  * Flags for msync
-diff -puN include/asm-generic/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions include/asm-generic/mman.h
---- a/include/asm-generic/mman.h~mm-add-map_hugetlb-for-mmaping-pseudo-anonymous-huge-page-regions
-+++ a/include/asm-generic/mman.h
-@@ -11,6 +11,7 @@
- #define MAP_POPULATE	0x8000		/* populate (prefault) pagetables */
- #define MAP_NONBLOCK	0x10000		/* do not block on IO */
- #define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
-+#define MAP_HUGETLB	0x40000		/* create a huge page mapping */
- 
- #define MCL_CURRENT	1		/* lock all current mappings */
- #define MCL_FUTURE	2		/* lock all future mappings */
+diff -puN /dev/null Documentation/trace/events-kmem.txt
+--- /dev/null
++++ a/Documentation/trace/events-kmem.txt
+@@ -0,0 +1,107 @@
++			Subsystem Trace Points: kmem
++
++The tracing system kmem captures events related to object and page allocation
++within the kernel. Broadly speaking there are four major subheadings.
++
++  o Slab allocation of small objects of unknown type (kmalloc)
++  o Slab allocation of small objects of known type
++  o Page allocation
++  o Per-CPU Allocator Activity
++  o External Fragmentation
++
++This document will describe what each of the tracepoints are and why they
++might be useful.
++
++1. Slab allocation of small objects of unknown type
++===================================================
++kmalloc		call_site=%lx ptr=%p bytes_req=%zu bytes_alloc=%zu gfp_flags=%s
++kmalloc_node	call_site=%lx ptr=%p bytes_req=%zu bytes_alloc=%zu gfp_flags=%s node=%d
++kfree		call_site=%lx ptr=%p
++
++Heavy activity for these events may indicate that a specific cache is
++justified, particularly if kmalloc slab pages are getting significantly
++internal fragmented as a result of the allocation pattern. By correlating
++kmalloc with kfree, it may be possible to identify memory leaks and where
++the allocation sites were.
++
++
++2. Slab allocation of small objects of known type
++=================================================
++kmem_cache_alloc	call_site=%lx ptr=%p bytes_req=%zu bytes_alloc=%zu gfp_flags=%s
++kmem_cache_alloc_node	call_site=%lx ptr=%p bytes_req=%zu bytes_alloc=%zu gfp_flags=%s node=%d
++kmem_cache_free		call_site=%lx ptr=%p
++
++These events are similar in usage to the kmalloc-related events except that
++it is likely easier to pin the event down to a specific cache. At the time
++of writing, no information is available on what slab is being allocated from,
++but the call_site can usually be used to extrapolate that information
++
++3. Page allocation
++==================
++mm_page_alloc		  page=%p pfn=%lu order=%d migratetype=%d gfp_flags=%s
++mm_page_alloc_zone_locked page=%p pfn=%lu order=%u migratetype=%d cpu=%d percpu_refill=%d
++mm_page_free_direct	  page=%p pfn=%lu order=%d
++mm_pagevec_free		  page=%p pfn=%lu order=%d cold=%d
++
++These four events deal with page allocation and freeing. mm_page_alloc is
++a simple indicator of page allocator activity. Pages may be allocated from
++the per-CPU allocator (high performance) or the buddy allocator.
++
++If pages are allocated directly from the buddy allocator, the
++mm_page_alloc_zone_locked event is triggered. This event is important as high
++amounts of activity imply high activity on the zone->lock. Taking this lock
++impairs performance by disabling interrupts, dirtying cache lines between
++CPUs and serialising many CPUs.
++
++When a page is freed directly by the caller, the mm_page_free_direct event
++is triggered. Significant amounts of activity here could indicate that the
++callers should be batching their activities.
++
++When pages are freed using a pagevec, the mm_pagevec_free is
++triggered. Broadly speaking, pages are taken off the LRU lock in bulk and
++freed in batch with a pagevec. Significant amounts of activity here could
++indicate that the system is under memory pressure and can also indicate
++contention on the zone->lru_lock.
++
++4. Per-CPU Allocator Activity
++=============================
++mm_page_alloc_zone_locked	page=%p pfn=%lu order=%u migratetype=%d cpu=%d percpu_refill=%d
++mm_page_pcpu_drain		page=%p pfn=%lu order=%d cpu=%d migratetype=%d
++
++In front of the page allocator is a per-cpu page allocator. It exists only
++for order-0 pages, reduces contention on the zone->lock and reduces the
++amount of writing on struct page.
++
++When a per-CPU list is empty or pages of the wrong type are allocated,
++the zone->lock will be taken once and the per-CPU list refilled. The event
++triggered is mm_page_alloc_zone_locked for each page allocated with the
++event indicating whether it is for a percpu_refill or not.
++
++When the per-CPU list is too full, a number of pages are freed, each one
++which triggers a mm_page_pcpu_drain event.
++
++The individual nature of the events are so that pages can be tracked
++between allocation and freeing. A number of drain or refill pages that occur
++consecutively imply the zone->lock being taken once. Large amounts of PCP
++refills and drains could imply an imbalance between CPUs where too much work
++is being concentrated in one place. It could also indicate that the per-CPU
++lists should be a larger size. Finally, large amounts of refills on one CPU
++and drains on another could be a factor in causing large amounts of cache
++line bounces due to writes between CPUs and worth investigating if pages
++can be allocated and freed on the same CPU through some algorithm change.
++
++5. External Fragmentation
++=========================
++mm_page_alloc_extfrag		page=%p pfn=%lu alloc_order=%d fallback_order=%d pageblock_order=%d alloc_migratetype=%d fallback_migratetype=%d fragmenting=%d change_ownership=%d
++
++External fragmentation affects whether a high-order allocation will be
++successful or not. For some types of hardware, this is important although
++it is avoided where possible. If the system is using huge pages and needs
++to be able to resize the pool over the lifetime of the system, this value
++is important.
++
++Large numbers of this event implies that memory is fragmenting and
++high-order allocations will start failing at some time in the future. One
++means of reducing the occurange of this event is to increase the size of
++min_free_kbytes in increments of 3*pageblock_size*nr_online_nodes where
++pageblock_size is usually the size of the default hugepage size.
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
 origin.patch
-linux-next.patch
-asm-sections-add-text-data-checking-functions-for-arches-to-override.patch
-kallsyms-use-new-arch_is_kernel_text.patch
-lockdep-use-new-arch_is_kernel_data.patch
-blackfin-override-text-data-checking-functions.patch
+mm-warn-once-when-a-page-is-freed-with-pg_mlocked-set.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
 
