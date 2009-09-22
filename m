@@ -1,77 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [folded] rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 14:47:34 -0700
-Message-ID: <200909222147.n8MLlYNX008780@imap1.linux-foundation.org>
+Subject: [folded] gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links-update-fix.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 14:49:18 -0700
+Message-ID: <200909222149.n8MLnIsC012155@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37754 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39010 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752213AbZIVVtT (ORCPT
+	by vger.kernel.org with ESMTP id S1752349AbZIVVt4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 17:49:19 -0400
+	Tue, 22 Sep 2009 17:49:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.zummo@towertech.it, daniel@caiaq.de, s.hauer@pengutronix.de, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, david-b@pacbell.net, dsilvers@simtec.co.uk, ext-jani.1.nikula@nokia.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix
+     gpio.h: fix warning for GENERIC_GPIO=n
 has been removed from the -mm tree.  Its filename was
-     rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
+     gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links-update-fix.patch
 
-This patch was dropped because it was folded into rtc-add-driver-for-mxcs-internal-rtc-module.patch
+This patch was dropped because it was folded into gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: gpio.h: fix warning for GENERIC_GPIO=n
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-doh
+Fix build for CONFIG_GENERIC_GPIO=n, which causes this warning:
 
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Daniel Mack <daniel@caiaq.de>
-Cc: Sascha Hauer <s.hauer@pengutronix.de>
+include/linux/gpio.h:93: warning: 'struct device' declared inside parameter list
+include/linux/gpio.h:93: warning: its scope is only this definition or declaration, which is probably not what you want
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Jani Nikula <ext-jani.1.nikula@nokia.com>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Daniel Silverstone <dsilvers@simtec.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-mxc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/gpio.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/rtc/rtc-mxc.c~rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix drivers/rtc/rtc-mxc.c
---- a/drivers/rtc/rtc-mxc.c~rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix
-+++ a/drivers/rtc/rtc-mxc.c
-@@ -42,7 +42,7 @@
+diff -puN include/linux/gpio.h~gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links-update-fix include/linux/gpio.h
+--- a/include/linux/gpio.h~gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links-update-fix
++++ a/include/linux/gpio.h
+@@ -12,6 +12,8 @@
+ #include <linux/types.h>
+ #include <linux/errno.h>
  
- #define MAX_PIE_NUM     9
- #define MAX_PIE_FREQ    512
--statix const u32 PIE_BIT_DEF[MAX_PIE_NUM][2] = {
-+static const u32 PIE_BIT_DEF[MAX_PIE_NUM][2] = {
- 	{ 2,		RTC_2HZ_BIT },
- 	{ 4,		RTC_SAM0_BIT },
- 	{ 8,		RTC_SAM1_BIT },
++struct device;
++
+ /*
+  * Some platforms don't support the GPIO programming interface.
+  *
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios.patch
-generic-ipi-make-struct-call_function_data-lockless.patch
-proc-connector-add-event-for-process-becoming-session-leader.patch
-build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it.patch
-mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
-sdio-add-cd-disable-support.patch
-sdio-add-mmc_quirk_lenient_fn0.patch
-at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver.patch
-mmc-core-sdio-suspend-resume-support.patch
 procfs-provide-stack-information-for-threads-v08.patch
 kcore-register-vmemmap-range.patch
-rtc-add-driver-for-mxcs-internal-rtc-module.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
-drivers-video-add-kmalloc-null-tests-fix.patch
-drivers-video-tmiofbc-fix-uninitialised-return-value.patch
-v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
+spih-add-missing-kernel-doc-for-struct-spi_master.patch
+gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links.patch
+gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links-update-fix.patch
 
