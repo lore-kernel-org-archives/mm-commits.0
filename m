@@ -1,87 +1,223 @@
 From: akpm@linux-foundation.org
-Subject: [folded] procfs-provide-stack-information-for-threads-v011-fix.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 14:44:26 -0700
-Message-ID: <200909222144.n8MLiQJJ002523@imap1.linux-foundation.org>
+Subject: [folded] procfs-provide-stack-information-for-threads-v011.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 14:44:22 -0700
+Message-ID: <200909222144.n8MLiMnE002419@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39543 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33369 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750803AbZIVVps (ORCPT
+	by vger.kernel.org with ESMTP id S1750803AbZIVVpy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 17:45:48 -0400
+	Tue, 22 Sep 2009 17:45:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, Valdis.Kletnieks@vt.edu, a.p.zijlstra@chello.nl, adobriyan@gmail.com, ebiederm@xmission.com, mingo@elte.hu, randy.dunlap@oracle.com, stefani@seibold.net, mm
+To: stefani@seibold.net, Valdis.Kletnieks@vt.edu, a.p.zijlstra@chello.nl, adobriyan@gmail.com, ebiederm@xmission.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     procfs-provide-stack-information-for-threads-v011-fix
+     procfs-provide-stack-information-for-threads-v011
 has been removed from the -mm tree.  Its filename was
-     procfs-provide-stack-information-for-threads-v011-fix.patch
+     procfs-provide-stack-information-for-threads-v011.patch
 
 This patch was dropped because it was folded into procfs-provide-stack-information-for-threads-v08.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: procfs-provide-stack-information-for-threads-v011-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: procfs-provide-stack-information-for-threads-v011
+From: Stefani Seibold <stefani@seibold.net>
 
-fs/proc/array.c now needs walk_page_range()
+Changes since last posting:
 
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+ - fix compatibility with tools/perf/builtin-record.c in upstream kernel
+
+The patch is against 2.6.30 and is tested on intel and ppc architectures.
+
+ChangeLog:
+ 20. Jan 2009 V0.1
+  - First Version for Kernel 2.6.28.1
+ 31. Mar 2009 V0.2
+  - Ported to Kernel 2.6.29
+ 03. Jun 2009 V0.3
+  - Ported to Kernel 2.6.30
+  - Redesigned what was suggested by Ingo Molnar
+  - the thread watch monitor is gone
+  - the /proc/stackmon entry is also gone
+  - slim down
+ 04. Jun 2009 V0.4
+  - Redesigned everything that was suggested by Andrew Morton
+  - slim down
+ 04. Jun 2009 V0.5
+  - Code cleanup
+ 06. Jun 2009 V0.6
+  - Fix missing mm->mmap_sem locking in function task_show_stack_usage()
+  - Code cleanup
+ 10. Jun 2009 V0.7
+  - update Documentation/filesystem/proc.txt
+ 10. Jun 2009 V0.8
+  - change maps/smaps output, displays now the max. stack size
+ 24. Jun 2009 V0.9
+  - use walk_page_range() to determinate the stack usage high water mark
+  - include swapped pages to the stack usage high water mark count
+ 24. Jun 2009 V0.10
+  - fix off by one bug
+  - cleanup
+
+ fs/exec.c                          |    2
+ include/linux/sched.h              |    1
+ kernel/fork.c                      |    2
+
+Signed-off-by: Stefani Seibold <stefani@seibold.net>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Stefani Seibold <stefani@seibold.net>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
-Reported-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Makefile |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Documentation/filesystems/proc.txt |    4 -
+ fs/proc/array.c                    |   74 +++++++++++++++++++--------
+ fs/proc/task_mmu.c                 |    2 
+ 3 files changed, 57 insertions(+), 23 deletions(-)
 
-diff -puN mm/Makefile~procfs-provide-stack-information-for-threads-v011-fix mm/Makefile
---- a/mm/Makefile~procfs-provide-stack-information-for-threads-v011-fix
-+++ a/mm/Makefile
-@@ -11,10 +11,10 @@ obj-y			:= bootmem.o filemap.o mempool.o
- 			   maccess.o page_alloc.o page-writeback.o \
- 			   readahead.o swap.o truncate.o vmscan.o shmem.o \
- 			   prio_tree.o util.o mmzone.o vmstat.o backing-dev.o \
--			   page_isolation.o mm_init.o mmu_context.o $(mmu-y)
-+			   page_isolation.o mm_init.o mmu_context.o \
-+			   pagewalk.o $(mmu-y)
- obj-y += init-mm.o
+diff -puN Documentation/filesystems/proc.txt~procfs-provide-stack-information-for-threads-v011 Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~procfs-provide-stack-information-for-threads-v011
++++ a/Documentation/filesystems/proc.txt
+@@ -309,7 +309,7 @@ address           perms offset  dev   in
+ 08049000-0804a000 rw-p 00001000 03:00 8312       /opt/test
+ 0804a000-0806b000 rw-p 00000000 00:00 0          [heap]
+ a7cb1000-a7cb2000 ---p 00000000 00:00 0
+-a7cb2000-a7eb2000 rw-p 00000000 00:00 0          [thread stack: 001ff4b4]
++a7cb2000-a7eb2000 rw-p 00000000 00:00 0          [threadstack:001ff4b4]
+ a7eb2000-a7eb3000 ---p 00000000 00:00 0
+ a7eb3000-a7ed5000 rw-p 00000000 00:00 0
+ a7ed5000-a8008000 r-xp 00000000 03:00 4222       /lib/libc.so.6
+@@ -345,7 +345,7 @@ is not associated with a file:
+  [stack]                  = the stack of the main process
+  [vdso]                   = the "virtual dynamic shared object",
+                             the kernel system call handler
+- [thread stack, xxxxxxxx] = the stack of the thread, xxxxxxxx is the stack size
++ [threadstack:xxxxxxxx]   = the stack of the thread, xxxxxxxx is the stack size
  
--obj-$(CONFIG_PROC_PAGE_MONITOR) += pagewalk.o
- obj-$(CONFIG_BOUNCE)	+= bounce.o
- obj-$(CONFIG_SWAP)	+= page_io.o swap_state.o swapfile.o thrash.o
- obj-$(CONFIG_HAS_DMA)	+= dmapool.o
+  or if empty, the mapping is anonymous.
+ 
+diff -puN fs/proc/array.c~procfs-provide-stack-information-for-threads-v011 fs/proc/array.c
+--- a/fs/proc/array.c~procfs-provide-stack-information-for-threads-v011
++++ a/fs/proc/array.c
+@@ -82,6 +82,7 @@
+ #include <linux/pid_namespace.h>
+ #include <linux/ptrace.h>
+ #include <linux/tracehook.h>
++#include <linux/swapops.h>
+ 
+ #include <asm/pgtable.h>
+ #include <asm/processor.h>
+@@ -321,34 +322,67 @@ static inline void task_context_switch_c
+ 			p->nivcsw);
+ }
+ 
+-static inline unsigned long get_stack_usage_in_bytes(struct vm_area_struct *vma,
+-					struct task_struct *p)
+-{
+-	unsigned long	i;
+-	struct page	*page;
+-	unsigned long	stkpage;
++struct stack_stats {
++	struct vm_area_struct *vma;
++	unsigned long	startpage;
++	unsigned long	usage;
++};
+ 
+-	stkpage = KSTK_ESP(p) & PAGE_MASK;
++static int stack_usage_pte_range(pmd_t *pmd, unsigned long addr,
++				unsigned long end, struct mm_walk *walk)
++{
++	struct stack_stats *ss = walk->private;
++	struct vm_area_struct *vma = ss->vma;
++	pte_t *pte, ptent;
++	spinlock_t *ptl;
++	int ret = 0;
++
++	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
++	for (; addr != end; pte++, addr += PAGE_SIZE) {
++		ptent = *pte;
+ 
+ #ifdef CONFIG_STACK_GROWSUP
+-	for (i = vma->vm_end; i-PAGE_SIZE > stkpage; i -= PAGE_SIZE) {
+-
+-		page = follow_page(vma, i-PAGE_SIZE, 0);
+-
+-		if (!IS_ERR(page) && page)
++		if (pte_present(ptent) || is_swap_pte(ptent))
++			ss->usage = addr - ss->startpage + PAGE_SIZE;
++#else
++		if (pte_present(ptent) || is_swap_pte(ptent)) {
++			ss->usage = ss->startpage - addr + PAGE_SIZE;
++			pte++;
++			ret = 1;
+ 			break;
++		}
++#endif
+ 	}
+-	return i - (p->stack_start & PAGE_MASK);
+-#else
+-	for (i = vma->vm_start; i+PAGE_SIZE <= stkpage; i += PAGE_SIZE) {
++	pte_unmap_unlock(pte - 1, ptl);
++	cond_resched();
++	return ret;
++}
+ 
+-		page = follow_page(vma, i, 0);
++static inline unsigned long get_stack_usage_in_bytes(struct vm_area_struct *vma,
++				struct task_struct *task)
++{
++	struct stack_stats ss;
++	struct mm_walk stack_walk = {
++		.pmd_entry = stack_usage_pte_range,
++		.mm = vma->vm_mm,
++		.private = &ss,
++	};
++
++	if (!vma->vm_mm || is_vm_hugetlb_page(vma))
++		return 0;
++
++	ss.vma = vma;
++	ss.startpage = task->stack_start & PAGE_MASK;
++	ss.usage = 0;
+ 
+-		if (!IS_ERR(page) && page)
+-			break;
+-	}
+-	return (p->stack_start & PAGE_MASK) - i + PAGE_SIZE;
++#ifdef CONFIG_STACK_GROWSUP
++	walk_page_range(KSTK_ESP(task) & PAGE_MASK, vma->vm_end,
++		&stack_walk);
++#else
++	walk_page_range(vma->vm_start, (KSTK_ESP(task) & PAGE_MASK) + PAGE_SIZE,
++		&stack_walk);
+ #endif
++	return ss.usage;
+ }
+ 
+ static inline void task_show_stack_usage(struct seq_file *m,
+diff -puN fs/proc/task_mmu.c~procfs-provide-stack-information-for-threads-v011 fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~procfs-provide-stack-information-for-threads-v011
++++ a/fs/proc/task_mmu.c
+@@ -254,7 +254,7 @@ static void show_map_vma(struct seq_file
+ 					    vma->vm_end >= stack_start) {
+ 						pad_len_spaces(m, len);
+ 						seq_printf(m,
+-						 "[thread stack: %08lx]",
++						 "[threadstack:%08lx]",
+ #ifdef CONFIG_STACK_GROWSUP
+ 						 vma->vm_end - stack_start
+ #else
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from stefani@seibold.net are
 
-origin.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios.patch
-generic-ipi-make-struct-call_function_data-lockless.patch
-proc-connector-add-event-for-process-becoming-session-leader.patch
-build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it.patch
-mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
-sdio-add-cd-disable-support.patch
-sdio-add-mmc_quirk_lenient_fn0.patch
-at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver.patch
-mmc-core-sdio-suspend-resume-support.patch
 procfs-provide-stack-information-for-threads-v08.patch
+procfs-provide-stack-information-for-threads-v011.patch
 procfs-provide-stack-information-for-threads-v011-fix.patch
-walk-system-ram-range-fix-2.patch
-kcore-register-vmemmap-range-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix.patch
-rtc-add-driver-for-mxcs-internal-rtc-module-fix-fix.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4-cleanup.patch
-drivers-video-add-kmalloc-null-tests-fix.patch
-drivers-video-tmiofbc-fix-uninitialised-return-value.patch
-v3-minixfs-add-missing-directory-type-checking-checkpatch-fixes.patch
 
