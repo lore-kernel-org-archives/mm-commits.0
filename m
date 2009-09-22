@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: [folded] printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 14:36:31 -0700
-Message-ID: <200909222136.n8MLaWHJ019379@imap1.linux-foundation.org>
+Subject: [folded] printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 14:36:34 -0700
+Message-ID: <200909222136.n8MLaYfd019445@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40246 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57964 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752835AbZIVVgh (ORCPT
+	by vger.kernel.org with ESMTP id S1752708AbZIVVgj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 17:36:37 -0400
+	Tue, 22 Sep 2009 17:36:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, hidave.darkstar@gmail.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix
+     printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup
 has been removed from the -mm tree.  Its filename was
-     printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
+     printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
 
 This patch was dropped because it was folded into printk-add-printk_delay-to-make-messages-readable-for-some-scenarios.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix
+Subject: printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Dave Young <hidave.darkstar@gmail.com>
@@ -32,43 +32,27 @@ Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sysctl.h |    1 -
- kernel/sysctl.c        |    4 +++-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ kernel/printk.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/sysctl.h~printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix include/linux/sysctl.h
---- a/include/linux/sysctl.h~printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix
-+++ a/include/linux/sysctl.h
-@@ -163,7 +163,6 @@ enum
- 	KERN_MAX_LOCK_DEPTH=74,
- 	KERN_NMI_WATCHDOG=75, /* int: enable/disable nmi watchdog */
- 	KERN_PANIC_ON_NMI=76, /* int: whether we will panic on an unrecovered */
--	KERN_PRINTK_DELAY = 77,	/* int: tune printk delay*/
- };
+diff -puN kernel/printk.c~printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup kernel/printk.c
+--- a/kernel/printk.c~printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup
++++ a/kernel/printk.c
+@@ -653,12 +653,13 @@ static int recursion_bug;
+ static int new_text_line = 1;
+ static char printk_buf[1024];
  
+-int printk_delay_msec;
++int printk_delay_msec __read_mostly;
  
-diff -puN kernel/sysctl.c~printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix kernel/sysctl.c
---- a/kernel/sysctl.c~printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix
-+++ a/kernel/sysctl.c
-@@ -105,7 +105,9 @@ static int __maybe_unused one = 1;
- static int __maybe_unused two = 2;
- static unsigned long one_ul = 1;
- static int one_hundred = 100;
-+#ifdef CONFIG_PRINTK
- static int ten_thousand = 10000;
-+#endif
- 
- /* this is needed for the proc_doulongvec_minmax of vm_dirty_bytes */
- static unsigned long dirty_bytes_min = 2 * PAGE_SIZE;
-@@ -715,7 +717,7 @@ static struct ctl_table kern_table[] = {
- 		.proc_handler	= &proc_dointvec,
- 	},
- 	{
--		.ctl_name	= KERN_PRINTK_DELAY,
-+		.ctl_name	= CTL_UNNUMBERED,
- 		.procname	= "printk_delay",
- 		.data		= &printk_delay_msec,
- 		.maxlen		= sizeof(int),
+ static inline void printk_delay(void)
+ {
+ 	if (unlikely(printk_delay_msec)) {
+ 		int m = printk_delay_msec;
++
+ 		while (m--) {
+ 			mdelay(1);
+ 			touch_nmi_watchdog();
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -76,7 +60,6 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec.patch
 printk-add-printk_delay-to-make-messages-readable-for-some-scenarios.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-fix.patch
 printk-add-printk_delay-to-make-messages-readable-for-some-scenarios-cleanup.patch
 generic-ipi-make-struct-call_function_data-lockless-cleanup.patch
 proc-connector-add-event-for-process-becoming-session-leader.patch
