@@ -1,118 +1,147 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-perform-non-atomic-test-clear-of-pg_mlocked-on-free.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:39:00 -0700
-Message-ID: <200909222039.n8MKd0Ge002526@imap1.linux-foundation.org>
+Subject: [merged] mm-also-use-alloc_large_system_hash-for-the-pid-hash-table.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:42:06 -0700
+Message-ID: <200909222042.n8MKg6bE008912@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40752 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57187 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752684AbZIVUmI (ORCPT
+	by vger.kernel.org with ESMTP id S1752654AbZIVUmM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:42:08 -0400
+	Tue, 22 Sep 2009 16:42:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, cl@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
+To: JBeulich@novell.com, ebiederm@xmission.com, jbeulich@novell.com, mel@csn.ul.ie, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: perform non-atomic test-clear of PG_mlocked on free
+     mm: also use alloc_large_system_hash() for the PID hash table
 has been removed from the -mm tree.  Its filename was
-     mm-perform-non-atomic-test-clear-of-pg_mlocked-on-free.patch
+     mm-also-use-alloc_large_system_hash-for-the-pid-hash-table.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: perform non-atomic test-clear of PG_mlocked on free
-From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: also use alloc_large_system_hash() for the PID hash table
+From: "Jan Beulich" <JBeulich@novell.com>
 
-By the time PG_mlocked is cleared in the page freeing path, nobody else is
-looking at our page->flags anymore.
+This is being done by allowing boot time allocations to specify that they
+may want a sub-page sized amount of memory.
 
-It is thus safe to make the test-and-clear non-atomic and thereby removing
-an unnecessary and expensive operation from a hotpath.
+Overall this seems more consistent with the other hash table allocations,
+and allows making two supposedly mm-only variables really mm-only
+(nr_{kernel,all}_pages).
 
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Christoph Lameter <cl@linux-foundation.org>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |   12 +++++++++---
- mm/page_alloc.c            |    4 ++--
- 2 files changed, 11 insertions(+), 5 deletions(-)
+ include/linux/bootmem.h |    5 ++---
+ kernel/pid.c            |   15 ++++-----------
+ mm/page_alloc.c         |   13 ++++++++++---
+ 3 files changed, 16 insertions(+), 17 deletions(-)
 
-diff -puN include/linux/page-flags.h~mm-perform-non-atomic-test-clear-of-pg_mlocked-on-free include/linux/page-flags.h
---- a/include/linux/page-flags.h~mm-perform-non-atomic-test-clear-of-pg_mlocked-on-free
-+++ a/include/linux/page-flags.h
-@@ -158,6 +158,9 @@ static inline int TestSetPage##uname(str
- static inline int TestClearPage##uname(struct page *page)		\
- 		{ return test_and_clear_bit(PG_##lname, &page->flags); }
+diff -puN include/linux/bootmem.h~mm-also-use-alloc_large_system_hash-for-the-pid-hash-table include/linux/bootmem.h
+--- a/include/linux/bootmem.h~mm-also-use-alloc_large_system_hash-for-the-pid-hash-table
++++ a/include/linux/bootmem.h
+@@ -132,9 +132,6 @@ static inline void *alloc_remap(int nid,
+ }
+ #endif /* CONFIG_HAVE_ARCH_ALLOC_REMAP */
  
-+#define __TESTCLEARFLAG(uname, lname)					\
-+static inline int __TestClearPage##uname(struct page *page)		\
-+		{ return __test_and_clear_bit(PG_##lname, &page->flags); }
+-extern unsigned long __meminitdata nr_kernel_pages;
+-extern unsigned long __meminitdata nr_all_pages;
+-
+ extern void *alloc_large_system_hash(const char *tablename,
+ 				     unsigned long bucketsize,
+ 				     unsigned long numentries,
+@@ -145,6 +142,8 @@ extern void *alloc_large_system_hash(con
+ 				     unsigned long limit);
  
- #define PAGEFLAG(uname, lname) TESTPAGEFLAG(uname, lname)		\
- 	SETPAGEFLAG(uname, lname) CLEARPAGEFLAG(uname, lname)
-@@ -184,6 +187,9 @@ static inline void __ClearPage##uname(st
- #define TESTCLEARFLAG_FALSE(uname)					\
- static inline int TestClearPage##uname(struct page *page) { return 0; }
+ #define HASH_EARLY	0x00000001	/* Allocating during early boot? */
++#define HASH_SMALL	0x00000002	/* sub-page allocation allowed, min
++					 * shift passed via *_hash_shift */
  
-+#define __TESTCLEARFLAG_FALSE(uname)					\
-+static inline int __TestClearPage##uname(struct page *page) { return 0; }
-+
- struct page;	/* forward declaration */
+ /* Only NUMA needs hash distribution. 64bit NUMA architectures have
+  * sufficient vmalloc space.
+diff -puN kernel/pid.c~mm-also-use-alloc_large_system_hash-for-the-pid-hash-table kernel/pid.c
+--- a/kernel/pid.c~mm-also-use-alloc_large_system_hash-for-the-pid-hash-table
++++ a/kernel/pid.c
+@@ -40,7 +40,7 @@
+ #define pid_hashfn(nr, ns)	\
+ 	hash_long((unsigned long)nr + (unsigned long)ns, pidhash_shift)
+ static struct hlist_head *pid_hash;
+-static int pidhash_shift;
++static unsigned int pidhash_shift = 4;
+ struct pid init_struct_pid = INIT_STRUCT_PID;
  
- TESTPAGEFLAG(Locked, locked) TESTSETFLAG(Locked, locked)
-@@ -250,11 +256,11 @@ PAGEFLAG(Unevictable, unevictable) __CLE
- #ifdef CONFIG_HAVE_MLOCKED_PAGE_BIT
- #define MLOCK_PAGES 1
- PAGEFLAG(Mlocked, mlocked) __CLEARPAGEFLAG(Mlocked, mlocked)
--	TESTSCFLAG(Mlocked, mlocked)
-+	TESTSCFLAG(Mlocked, mlocked) __TESTCLEARFLAG(Mlocked, mlocked)
- #else
- #define MLOCK_PAGES 0
--PAGEFLAG_FALSE(Mlocked)
--	SETPAGEFLAG_NOOP(Mlocked) TESTCLEARFLAG_FALSE(Mlocked)
-+PAGEFLAG_FALSE(Mlocked) SETPAGEFLAG_NOOP(Mlocked)
-+	TESTCLEARFLAG_FALSE(Mlocked) __TESTCLEARFLAG_FALSE(Mlocked)
- #endif
+ int pid_max = PID_MAX_DEFAULT;
+@@ -499,19 +499,12 @@ struct pid *find_ge_pid(int nr, struct p
+ void __init pidhash_init(void)
+ {
+ 	int i, pidhash_size;
+-	unsigned long megabytes = nr_kernel_pages >> (20 - PAGE_SHIFT);
  
- #ifdef CONFIG_ARCH_USES_PG_UNCACHED
-diff -puN mm/page_alloc.c~mm-perform-non-atomic-test-clear-of-pg_mlocked-on-free mm/page_alloc.c
---- a/mm/page_alloc.c~mm-perform-non-atomic-test-clear-of-pg_mlocked-on-free
+-	pidhash_shift = max(4, fls(megabytes * 4));
+-	pidhash_shift = min(12, pidhash_shift);
++	pid_hash = alloc_large_system_hash("PID", sizeof(*pid_hash), 0, 18,
++					   HASH_EARLY | HASH_SMALL,
++					   &pidhash_shift, NULL, 4096);
+ 	pidhash_size = 1 << pidhash_shift;
+ 
+-	printk("PID hash table entries: %d (order: %d, %Zd bytes)\n",
+-		pidhash_size, pidhash_shift,
+-		pidhash_size * sizeof(struct hlist_head));
+-
+-	pid_hash = alloc_bootmem(pidhash_size *	sizeof(*(pid_hash)));
+-	if (!pid_hash)
+-		panic("Could not alloc pidhash!\n");
+ 	for (i = 0; i < pidhash_size; i++)
+ 		INIT_HLIST_HEAD(&pid_hash[i]);
+ }
+diff -puN mm/page_alloc.c~mm-also-use-alloc_large_system_hash-for-the-pid-hash-table mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-also-use-alloc_large_system_hash-for-the-pid-hash-table
 +++ a/mm/page_alloc.c
-@@ -557,7 +557,7 @@ static void __free_pages_ok(struct page 
- 	unsigned long flags;
- 	int i;
- 	int bad = 0;
--	int wasMlocked = TestClearPageMlocked(page);
-+	int wasMlocked = __TestClearPageMlocked(page);
+@@ -124,8 +124,8 @@ static char * const zone_names[MAX_NR_ZO
  
- 	kmemcheck_free_shadow(page, order);
+ int min_free_kbytes = 1024;
  
-@@ -1026,7 +1026,7 @@ static void free_hot_cold_page(struct pa
- 	struct zone *zone = page_zone(page);
- 	struct per_cpu_pages *pcp;
- 	unsigned long flags;
--	int wasMlocked = TestClearPageMlocked(page);
-+	int wasMlocked = __TestClearPageMlocked(page);
+-unsigned long __meminitdata nr_kernel_pages;
+-unsigned long __meminitdata nr_all_pages;
++static unsigned long __meminitdata nr_kernel_pages;
++static unsigned long __meminitdata nr_all_pages;
+ static unsigned long __meminitdata dma_reserve;
  
- 	kmemcheck_free_shadow(page, 0);
+ #ifdef CONFIG_ARCH_POPULATES_NODE_MAP
+@@ -4821,7 +4821,14 @@ void *__init alloc_large_system_hash(con
+ 			numentries <<= (PAGE_SHIFT - scale);
  
+ 		/* Make sure we've got at least a 0-order allocation.. */
+-		if (unlikely((numentries * bucketsize) < PAGE_SIZE))
++		if (unlikely(flags & HASH_SMALL)) {
++			/* Makes no sense without HASH_EARLY */
++			WARN_ON(!(flags & HASH_EARLY));
++			if (!(numentries >> *_hash_shift)) {
++				numentries = 1UL << *_hash_shift;
++				BUG_ON(!numentries);
++			}
++		} else if (unlikely((numentries * bucketsize) < PAGE_SIZE))
+ 			numentries = PAGE_SIZE / bucketsize;
+ 	}
+ 	numentries = roundup_pow_of_two(numentries);
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from JBeulich@novell.com are
 
 origin.patch
 linux-next.patch
-vfs-explicitly-cast-s_maxbytes-in-fiemap_check_ranges.patch
-vfs-change-sb-s_maxbytes-to-a-loff_t.patch
-vfs-remove-redundant-position-check-in-do_sendfile.patch
-mm-warn-once-when-a-page-is-freed-with-pg_mlocked-set.patch
+thermal-add-missing-kconfig-dependency.patch
+kbuild-generate-modulesbuiltin.patch
+kbuild-rebuild-fix-for-makefilemodbuiltin.patch
+build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it.patch
+build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix.patch
 
