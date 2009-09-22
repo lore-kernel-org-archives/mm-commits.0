@@ -1,101 +1,184 @@
 From: akpm@linux-foundation.org
-Subject: [merged] um-convert-to-asm-generic-hardirqh.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:44:46 -0700
-Message-ID: <200909222044.n8MKikKj014290@imap1.linux-foundation.org>
+Subject: [merged] scripts-get_maintainerpl-add-mailmap-use-shell-and-email-cleanups.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:45:09 -0700
+Message-ID: <200909222045.n8MKj980015120@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51475 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34091 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753181AbZIVUpE (ORCPT
+	by vger.kernel.org with ESMTP id S1752033AbZIVUpH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:45:04 -0400
+	Tue, 22 Sep 2009 16:45:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hch@lst.de, jdike@addtoit.com, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     um: convert to asm-generic/hardirq.h
+     scripts/get_maintainer.pl: add .mailmap use, shell and email cleanups
 has been removed from the -mm tree.  Its filename was
-     um-convert-to-asm-generic-hardirqh.patch
+     scripts-get_maintainerpl-add-mailmap-use-shell-and-email-cleanups.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: um: convert to asm-generic/hardirq.h
-From: Christoph Hellwig <hch@lst.de>
+Subject: scripts/get_maintainer.pl: add .mailmap use, shell and email cleanups
+From: Joe Perches <joe@perches.com>
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Jeff Dike <jdike@addtoit.com>
+Add reading and using .mailmap file if it exists
+Convert address entries in .mailmap to first encountered address
+Don't terminate shell commands with \n
+Strip characters found after sign-offs by: name <address> [stripped]
+
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/asm/hardirq.h |   26 +-------------------------
- 1 file changed, 1 insertion(+), 25 deletions(-)
+ scripts/get_maintainer.pl |   72 ++++++++++++++++++++++++++++++++----
+ 1 file changed, 65 insertions(+), 7 deletions(-)
 
-diff -puN arch/um/include/asm/hardirq.h~um-convert-to-asm-generic-hardirqh arch/um/include/asm/hardirq.h
---- a/arch/um/include/asm/hardirq.h~um-convert-to-asm-generic-hardirqh
-+++ a/arch/um/include/asm/hardirq.h
-@@ -1,25 +1 @@
--/* (c) 2004 cw@f00f.org, GPLv2 blah blah */
--
--#ifndef __ASM_UM_HARDIRQ_H
--#define __ASM_UM_HARDIRQ_H
--
--#include <linux/threads.h>
--#include <linux/irq.h>
--
--/* NOTE: When SMP works again we might want to make this
-- * ____cacheline_aligned or maybe use per_cpu state? --cw */
--typedef struct {
--	unsigned int __softirq_pending;
--} irq_cpustat_t;
--
--#include <linux/irq_cpustat.h>
--
--/* As this would be very strange for UML to get we BUG() after the
-- * printk. */
--static inline void ack_bad_irq(unsigned int irq)
--{
--	printk(KERN_ERR "unexpected IRQ %02x\n", irq);
--	BUG();
--}
--
--#endif /* __ASM_UM_HARDIRQ_H */
-+#include <asm-generic/hardirq.h>
+diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-add-mailmap-use-shell-and-email-cleanups scripts/get_maintainer.pl
+--- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-add-mailmap-use-shell-and-email-cleanups
++++ a/scripts/get_maintainer.pl
+@@ -152,6 +152,36 @@ while (<MAINT>) {
+ }
+ close(MAINT);
+ 
++my %mailmap;
++
++open(MAILMAP, "<${lk_path}.mailmap") || warn "$P: Can't open .mailmap\n";
++while (<MAILMAP>) {
++    my $line = $_;
++
++    next if ($line =~ m/^\s*#/);
++    next if ($line =~ m/^\s*$/);
++
++    my ($name, $address) = parse_email($line);
++    $line = format_email($name, $address);
++
++    next if ($line =~ m/^\s*$/);
++
++    if (exists($mailmap{$name})) {
++	my $obj = $mailmap{$name};
++	push(@$obj, $address);
++    } else {
++	my @arr = ($address);
++	$mailmap{$name} = \@arr;
++    }
++}
++close(MAILMAP);
++
++foreach my $name (sort {$mailmap{$a} <=> $mailmap{$b}} keys %mailmap) {
++    my $obj = $mailmap{$name};
++    foreach my $address (@$obj) {
++    }
++}
++
+ ## use the filenames on the command line or find the filenames in the patchfiles
+ 
+ my @files = ();
+@@ -403,12 +433,12 @@ sub parse_email {
+     my $name = "";
+     my $address = "";
+ 
+-    if ($formatted_email =~ /^([^<]+)<(.*\@.*)>$/) {
++    if ($formatted_email =~ /^([^<]+)<(.*\@.*)>.*$/) {
+ 	$name = $1;
+ 	$address = $2;
+-    } elsif ($formatted_email =~ /^<(.*\@.*)>$/) {
++    } elsif ($formatted_email =~ /^\s*<(.*\@.*)>.*$/) {
+ 	$address = $1;
+-    } elsif ($formatted_email =~ /^(.*\@.*)$/) {
++    } elsif ($formatted_email =~ /^\s*(.*\@.*)$/) {
+ 	$address = $1;
+     }
+ 
+@@ -557,6 +587,29 @@ sub which {
+     return "";
+ }
+ 
++sub mailmap {
++    my @lines = @_;
++    my %hash;
++
++    foreach my $line (@lines) {
++	my ($name, $address) = parse_email($line);
++	if (!exists($hash{$name})) {
++	    $hash{$name} = $address;
++	}
++	if (exists($mailmap{$name})) {
++	    my $obj = $mailmap{$name};
++	    foreach my $map_address (@$obj) {
++		if (($map_address eq $address) &&
++		    ($map_address ne $hash{$name})) {
++		    $line = format_email($name, $hash{$name});
++		}
++	    }
++	}
++    }
++
++    return @lines;
++}
++
+ sub recent_git_signoffs {
+     my ($file) = @_;
+ 
+@@ -592,9 +645,10 @@ sub recent_git_signoffs {
+     # cut -f2- -d":"
+     s/.*:\s*(.+)\s*/$1/ for (@lines);
+ 
++    $total_sign_offs = @lines;
++
+     @lines = mailmap(@lines);
+ 
+-    $total_sign_offs = @lines;
+     @lines = sort(@lines);
+     # uniq -c
+     foreach my $line (@lines) {
+@@ -655,12 +709,12 @@ sub git_assign_blame {
+ 	    my $diff_start = $2;
+ 	    my $diff_length = $3;
+ 	    next if (!("$file" eq "$diff_file"));
+-	    $cmd = "git blame -l -L $diff_start,+$diff_length $file\n";
++	    $cmd = "git blame -l -L $diff_start,+$diff_length $file";
+ 	    @commits = save_commits($cmd, @commits);
+ 	}
+     } else {
+ 	if (-f $file) {
+-	    $cmd = "git blame -l $file\n";
++	    $cmd = "git blame -l $file";
+ 	    @commits = save_commits($cmd, @commits);
+ 	}
+     }
+@@ -678,11 +732,15 @@ sub git_assign_blame {
+ 	if (!$email_git_penguin_chiefs) {
+ 	    @lines = grep(!/${penguin_chiefs}/i, @lines);
+ 	}
++
+ 	# cut -f2- -d":"
+ 	s/.*:\s*(.+)\s*/$1/ for (@lines);
+ 
+-	$hash{$_}++ for @lines;
+ 	$total_sign_offs += @lines;
++
++	@lines = mailmap(@lines);
++
++	$hash{$_}++ for @lines;
+     }
+ 
+     $count = 0;
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
 linux-next.patch
-avr32-convert-to-asm-generic-hardirqh.patch
-sparc32-convert-to-asm-generic-hardirqh.patch
-vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
-vfs-split-generic_forget_inode-so-that-hugetlbfs-does-not-have-to-copy-it.patch
-vfs-explicitly-cast-s_maxbytes-in-fiemap_check_ranges.patch
-vfs-change-sb-s_maxbytes-to-a-loff_t.patch
-vfs-remove-redundant-position-check-in-do_sendfile.patch
-fs-remove-unneeded-dcache_unhashed-tricks.patch
-vfs-seq_file-add-helpers-for-data-filling.patch
-libfs-return-error-code-on-failed-attr-set.patch
-fs-new-truncate-helpers.patch
-fs-use-new-truncate-helpers.patch
-fs-introduce-new-truncate-sequence.patch
-fs-convert-simple-fs-to-new-truncate.patch
-tmpfs-convert-to-use-the-new-truncate-convention.patch
-ext2-convert-to-use-the-new-truncate-convention.patch
-fat-convert-to-use-the-new-truncate-convention.patch
-btrfs-convert-to-use-the-new-truncate-convention.patch
-jfs-convert-to-use-the-new-truncate-convention.patch
-udf-convert-to-use-the-new-truncate-convention.patch
-minix-convert-to-use-the-new-truncate-convention.patch
-xtensa-convert-to-asm-generic-hardirqh.patch
-frv-convert-to-asm-generic-hardirqh.patch
-fs-turn-iprune_mutex-into-rwsem.patch
-ntfs-remove-ntfs_file_write.patch
-qnx4-remove-write-support.patch
-fcntl-add-f_etown_ex.patch
+mmc-msm_sdccc-driver-for-htc-dream.patch
+msm_sdccc-convert-printkkern_level-to-pr_level.patch
+msm_sdccc-stylistic-cleaning.patch
+msm_sdccc-move-overly-indented-code-to-separate-function.patch
+ncpfs-remove-dead-url-from-documentation.patch
+maintainers-add-matt-mackall-and-herbert-xu-to-hardware-random-number-generator.patch
 
