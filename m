@@ -1,84 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-handle-c99-comments-correctly-performance-issue.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:45:49 -0700
-Message-ID: <200909222045.n8MKjnXB016481@imap1.linux-foundation.org>
+Subject: [merged] checkpatch-indent-checks-stop-when-we-run-out-of-continuation-lines.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:45:52 -0700
+Message-ID: <200909222045.n8MKjqcb016570@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51268 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47808 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753210AbZIVUqU (ORCPT
+	by vger.kernel.org with ESMTP id S1753197AbZIVUqT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:46:20 -0400
+	Tue, 22 Sep 2009 16:46:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dwalker@fifo99.com, apw@canonical.com, mm-commits@vger.kernel.org
+To: apw@canonical.com, daikerjohn@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     checkpatch: handle C99 comments correctly (performance issue)
+     checkpatch: indent checks -- stop when we run out of continuation lines
 has been removed from the -mm tree.  Its filename was
-     checkpatch-handle-c99-comments-correctly-performance-issue.patch
+     checkpatch-indent-checks-stop-when-we-run-out-of-continuation-lines.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: handle C99 comments correctly (performance issue)
-From: Daniel Walker <dwalker@fifo99.com>
+Subject: checkpatch: indent checks -- stop when we run out of continuation lines
+From: Andy Whitcroft <apw@canonical.com>
 
-This fixes the sanitation process in checkpatch.pl so that it blocks out
-the text after a C99 style comment the same way it does with block style
-comments.  This prevents the text from getting processed as regular code.
+Ensure we terminate when there are no futher continuation lines when
+trying to determine relative indent of conditionals and their blocks.
 
-Signed-off-by: Daniel Walker <dwalker@fifo99.com>
+Reported-by: John Daiker <daikerjohn@gmail.com>
 Signed-off-by: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ scripts/checkpatch.pl |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-handle-c99-comments-correctly-performance-issue scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-handle-c99-comments-correctly-performance-issue
+diff -puN scripts/checkpatch.pl~checkpatch-indent-checks-stop-when-we-run-out-of-continuation-lines scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-indent-checks-stop-when-we-run-out-of-continuation-lines
 +++ a/scripts/checkpatch.pl
-@@ -356,6 +356,13 @@ sub sanitise_line {
- 			$off++;
- 			next;
- 		}
-+		if ($sanitise_quote eq '' && substr($line, $off, 2) eq '//') {
-+			$sanitise_quote = '//';
-+
-+			substr($res, $off, 2, $sanitise_quote);
-+			$off++;
-+			next;
-+		}
+@@ -1547,8 +1547,9 @@ sub process {
+ 				    $s =~ /^\s*#\s*?/ ||
+ 				    $s =~ /^\s*$Ident\s*:/) {
+ 					$continuation = ($s =~ /^.*?\\\n/) ? 1 : 0;
+-					$s =~ s/^.*?\n//;
+-					$cond_lines++;
++					if ($s =~ s/^.*?\n//) {
++						$cond_lines++;
++					}
+ 				}
+ 			}
  
- 		# A \ in a string means ignore the next character.
- 		if (($sanitise_quote eq "'" || $sanitise_quote eq '"') &&
-@@ -379,6 +386,8 @@ sub sanitise_line {
- 		#print "c<$c> SQ<$sanitise_quote>\n";
- 		if ($off != 0 && $sanitise_quote eq '*/' && $c ne "\t") {
- 			substr($res, $off, 1, $;);
-+		} elsif ($off != 0 && $sanitise_quote eq '//' && $c ne "\t") {
-+			substr($res, $off, 1, $;);
- 		} elsif ($off != 0 && $sanitise_quote && $c ne "\t") {
- 			substr($res, $off, 1, 'X');
- 		} else {
-@@ -386,6 +395,10 @@ sub sanitise_line {
- 		}
- 	}
- 
-+	if ($sanitise_quote eq '//') {
-+		$sanitise_quote = '';
-+	}
-+
- 	# The pathname on a #include may be surrounded by '<' and '>'.
- 	if ($res =~ /^.\s*\#\s*include\s+\<(.*)\>/) {
- 		my $clean = 'X' x length($1);
 _
 
-Patches currently in -mm which might be from dwalker@fifo99.com are
+Patches currently in -mm which might be from apw@canonical.com are
 
 origin.patch
 
