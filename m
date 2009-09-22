@@ -1,67 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [merged] md-avoid-use-of-broken-kzalloc-mempool.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:41:33 -0700
-Message-ID: <200909222041.n8MKfXue007795@imap1.linux-foundation.org>
+Subject: [merged] page-allocator-change-migratetype-for-all-pageblocks-within-a-high-order-page-during-__rmqueue_fallback.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:40:37 -0700
+Message-ID: <200909222040.n8MKebV7005931@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47807 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39726 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750978AbZIVUlf (ORCPT
+	by vger.kernel.org with ESMTP id S1752613AbZIVUlm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:41:35 -0400
+	Tue, 22 Sep 2009 16:41:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sage@newdream.net, neilb@suse.de, mm-commits@vger.kernel.org
+To: mel@csn.ul.ie, apw@shadowen.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     md: avoid use of broken kzalloc mempool
+     page-allocator: change migratetype for all pageblocks within a high-order page during __rmqueue_fallback
 has been removed from the -mm tree.  Its filename was
-     md-avoid-use-of-broken-kzalloc-mempool.patch
+     page-allocator-change-migratetype-for-all-pageblocks-within-a-high-order-page-during-__rmqueue_fallback.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: md: avoid use of broken kzalloc mempool
-From: Sage Weil <sage@newdream.net>
+Subject: page-allocator: change migratetype for all pageblocks within a high-order page during __rmqueue_fallback
+From: Mel Gorman <mel@csn.ul.ie>
 
-The kzalloc mempool does not re-zero items that have been used and then
-returned to the pool.  Manually zero the allocated multipath_bh instead.
+When there are no pages of a target migratetype free, the page allocator
+selects a high-order block of another migratetype to allocate from.  When
+the order of the page taken is greater than pageblock_order, all
+pageblocks within that high-order page should change migratetype so that
+pages are later freed to the correct free-lists.
 
-Acked-by: Neil Brown <neilb@suse.de>
-Signed-off-by: Sage Weil <sage@newdream.net>
+The current behaviour is that pageblocks change migratetype if the order
+being split matches the pageblock_order.  When pageblock_order <
+MAX_ORDER-1, ownership is not changing correct and pages are being later
+freed to the incorrect list and this impacts fragmentation avoidance.
+
+This patch changes all pageblocks within the high-order page being split
+to the correct migratetype.  Without the patch, allocation success rates
+for hugepages under stress were about 59% of physical memory on x86-64. 
+With the patch applied, this goes up to 65%.
+
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/multipath.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/page_alloc.c |   16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
 
-diff -puN drivers/md/multipath.c~md-avoid-use-of-broken-kzalloc-mempool drivers/md/multipath.c
---- a/drivers/md/multipath.c~md-avoid-use-of-broken-kzalloc-mempool
-+++ a/drivers/md/multipath.c
-@@ -150,6 +150,7 @@ static int multipath_make_request (struc
- 	}
+diff -puN mm/page_alloc.c~page-allocator-change-migratetype-for-all-pageblocks-within-a-high-order-page-during-__rmqueue_fallback mm/page_alloc.c
+--- a/mm/page_alloc.c~page-allocator-change-migratetype-for-all-pageblocks-within-a-high-order-page-during-__rmqueue_fallback
++++ a/mm/page_alloc.c
+@@ -783,6 +783,17 @@ static int move_freepages_block(struct z
+ 	return move_freepages(zone, start_page, end_page, migratetype);
+ }
  
- 	mp_bh = mempool_alloc(conf->pool, GFP_NOIO);
-+	memset(mp_bh, 0, sizeof(*mp_bh));
++static void change_pageblock_range(struct page *pageblock_page,
++					int start_order, int migratetype)
++{
++	int nr_pageblocks = 1 << (start_order - pageblock_order);
++
++	while (nr_pageblocks--) {
++		set_pageblock_migratetype(pageblock_page, migratetype);
++		pageblock_page += pageblock_nr_pages;
++	}
++}
++
+ /* Remove an element from the buddy allocator from the fallback list */
+ static inline struct page *
+ __rmqueue_fallback(struct zone *zone, int order, int start_migratetype)
+@@ -836,8 +847,9 @@ __rmqueue_fallback(struct zone *zone, in
+ 			list_del(&page->lru);
+ 			rmv_page_order(page);
  
- 	mp_bh->master_bio = bio;
- 	mp_bh->mddev = mddev;
-@@ -493,7 +494,7 @@ static int multipath_run (mddev_t *mddev
- 	}
- 	mddev->degraded = conf->raid_disks - conf->working_disks;
+-			if (current_order == pageblock_order)
+-				set_pageblock_migratetype(page,
++			/* Take ownership for orders >= pageblock_order */
++			if (current_order >= pageblock_order)
++				change_pageblock_range(page, current_order,
+ 							start_migratetype);
  
--	conf->pool = mempool_create_kzalloc_pool(NR_RESERVED_BUFS,
-+	conf->pool = mempool_create_kmalloc_pool(NR_RESERVED_BUFS,
- 						 sizeof(struct multipath_bh));
- 	if (conf->pool == NULL) {
- 		printk(KERN_ERR 
+ 			expand(zone, page, order, current_order, area, migratetype);
 _
 
-Patches currently in -mm which might be from sage@newdream.net are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
 origin.patch
-vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
+mm-warn-once-when-a-page-is-freed-with-pg_mlocked-set.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
 
