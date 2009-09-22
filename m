@@ -1,149 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: [merged] m32r-convert-to-use-arch_gettimeoffset.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 13:44:29 -0700
-Message-ID: <200909222044.n8MKiTpP013715@imap1.linux-foundation.org>
+Subject: [merged] m32r-convert-to-asm-generic-hardirqh.patch removed from -mm tree
+Date: Tue, 22 Sep 2009 13:44:32 -0700
+Message-ID: <200909222044.n8MKiWST013802@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47436 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34877 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753168AbZIVUog (ORCPT
+	by vger.kernel.org with ESMTP id S1752897AbZIVUop (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 16:44:36 -0400
+	Tue, 22 Sep 2009 16:44:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: johnstul@us.ibm.com, takata@linux-m32r.org, mm-commits@vger.kernel.org
+To: hch@lst.de, takata@linux-m32r.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     m32r: convert to use arch_gettimeoffset()
+     m32r: convert to asm-generic/hardirq.h
 has been removed from the -mm tree.  Its filename was
-     m32r-convert-to-use-arch_gettimeoffset.patch
+     m32r-convert-to-asm-generic-hardirqh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m32r: convert to use arch_gettimeoffset()
-From: john stultz <johnstul@us.ibm.com>
+Subject: m32r: convert to asm-generic/hardirq.h
+From: Christoph Hellwig <hch@lst.de>
 
-Convert m32r to use GENERIC_TIME via the arch_getoffset() infrastructure,
-reducing the amount of arch specific code we need to maintain.
-
-I also noted that m32r doesn't seem to be taking the xtime write lock
-before calling do_timer()!  That looks like a pretty bad bug to me.  If
-folks agree, let me know and I can move the lock grab to the correct spot.
-
-Signed-off-by: John Stultz <johnstul@us.ibm.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Hirokazu Takata <takata@linux-m32r.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/Kconfig       |    6 +++
- arch/m32r/kernel/time.c |   74 +-------------------------------------
- 2 files changed, 9 insertions(+), 71 deletions(-)
+ arch/m32r/include/asm/hardirq.h |   15 ++-------------
+ 1 file changed, 2 insertions(+), 13 deletions(-)
 
-diff -puN arch/m32r/Kconfig~m32r-convert-to-use-arch_gettimeoffset arch/m32r/Kconfig
---- a/arch/m32r/Kconfig~m32r-convert-to-use-arch_gettimeoffset
-+++ a/arch/m32r/Kconfig
-@@ -41,6 +41,12 @@ config HZ
- 	int
- 	default 100
+diff -puN arch/m32r/include/asm/hardirq.h~m32r-convert-to-asm-generic-hardirqh arch/m32r/include/asm/hardirq.h
+--- a/arch/m32r/include/asm/hardirq.h~m32r-convert-to-asm-generic-hardirqh
++++ a/arch/m32r/include/asm/hardirq.h
+@@ -2,14 +2,7 @@
+ #ifndef __ASM_HARDIRQ_H
+ #define __ASM_HARDIRQ_H
  
-+config GENERIC_TIME
-+	def_bool y
-+
-+config ARCH_USES_GETTIMEOFFSET
-+	def_bool y
-+
- source "init/Kconfig"
+-#include <linux/threads.h>
+-#include <linux/irq.h>
+-
+-typedef struct {
+-	unsigned int __softirq_pending;
+-} ____cacheline_aligned irq_cpustat_t;
+-
+-#include <linux/irq_cpustat.h>	/* Standard mappings for irq_cpustat_t above */
++#include <asm/irq.h>
  
- source "kernel/Kconfig.freezer"
-diff -puN arch/m32r/kernel/time.c~m32r-convert-to-use-arch_gettimeoffset arch/m32r/kernel/time.c
---- a/arch/m32r/kernel/time.c~m32r-convert-to-use-arch_gettimeoffset
-+++ a/arch/m32r/kernel/time.c
-@@ -48,7 +48,7 @@ extern void smp_local_timer_interrupt(vo
- 
- static unsigned long latch;
- 
--static unsigned long do_gettimeoffset(void)
-+u32 arch_gettimeoffset(void)
- {
- 	unsigned long  elapsed_time = 0;  /* [us] */
- 
-@@ -93,79 +93,10 @@ static unsigned long do_gettimeoffset(vo
- #error no chip configuration
+ #if NR_IRQS > 256
+ #define HARDIRQ_BITS	9
+@@ -26,11 +19,7 @@ typedef struct {
+ # error HARDIRQ_BITS is too low!
  #endif
  
--	return elapsed_time;
-+	return elapsed_time * 1000;
- }
+-static inline void ack_bad_irq(int irq)
+-{
+-	printk(KERN_CRIT "unexpected IRQ trap at vector %02x\n", irq);
+-	BUG();
+-}
++#include <asm-generic/hardirq.h>
  
- /*
-- * This version of gettimeofday has near microsecond resolution.
-- */
--void do_gettimeofday(struct timeval *tv)
--{
--	unsigned long seq;
--	unsigned long usec, sec;
--	unsigned long max_ntp_tick = tick_usec - tickadj;
--
--	do {
--		seq = read_seqbegin(&xtime_lock);
--
--		usec = do_gettimeoffset();
--
--		/*
--		 * If time_adjust is negative then NTP is slowing the clock
--		 * so make sure not to go into next possible interval.
--		 * Better to lose some accuracy than have time go backwards..
--		 */
--		if (unlikely(time_adjust < 0))
--			usec = min(usec, max_ntp_tick);
--
--		sec = xtime.tv_sec;
--		usec += (xtime.tv_nsec / 1000);
--	} while (read_seqretry(&xtime_lock, seq));
--
--	while (usec >= 1000000) {
--		usec -= 1000000;
--		sec++;
--	}
--
--	tv->tv_sec = sec;
--	tv->tv_usec = usec;
--}
--
--EXPORT_SYMBOL(do_gettimeofday);
--
--int do_settimeofday(struct timespec *tv)
--{
--	time_t wtm_sec, sec = tv->tv_sec;
-- 	long wtm_nsec, nsec = tv->tv_nsec;
--
--	if ((unsigned long)tv->tv_nsec >= NSEC_PER_SEC)
--		return -EINVAL;
--
--	write_seqlock_irq(&xtime_lock);
--	/*
--	 * This is revolting. We need to set "xtime" correctly. However, the
--	 * value in this location is the value at the most recent update of
--	 * wall time.  Discover what correction gettimeofday() would have
--	 * made, and then undo it!
--	 */
--	nsec -= do_gettimeoffset() * NSEC_PER_USEC;
--
--	wtm_sec = wall_to_monotonic.tv_sec + (xtime.tv_sec - sec);
--	wtm_nsec = wall_to_monotonic.tv_nsec + (xtime.tv_nsec - nsec);
--
--	set_normalized_timespec(&xtime, sec, nsec);
--	set_normalized_timespec(&wall_to_monotonic, wtm_sec, wtm_nsec);
--
--	ntp_clear();
--	write_sequnlock_irq(&xtime_lock);
--	clock_was_set();
--
--	return 0;
--}
--
--EXPORT_SYMBOL(do_settimeofday);
+ #endif /* __ASM_HARDIRQ_H */
+ #endif /* __KERNEL__ */
+_
+
+Patches currently in -mm which might be from hch@lst.de are
+
+origin.patch
+linux-next.patch
+avr32-convert-to-asm-generic-hardirqh.patch
+sparc32-convert-to-asm-generic-hardirqh.patch
+vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
+vfs-split-generic_forget_inode-so-that-hugetlbfs-does-not-have-to-copy-it.patch
+vfs-explicitly-cast-s_maxbytes-in-fiemap_check_ranges.patch
+vfs-change-sb-s_maxbytes-to-a-loff_t.patch
+vfs-remove-redundant-position-check-in-do_sendfile.patch
+fs-remove-unneeded-dcache_unhashed-tricks.patch
+vfs-seq_file-add-helpers-for-data-filling.patch
+libfs-return-error-code-on-failed-attr-set.patch
+fs-new-truncate-helpers.patch
+fs-use-new-truncate-helpers.patch
+fs-introduce-new-truncate-sequence.patch
+fs-convert-simple-fs-to-new-truncate.patch
+tmpfs-convert-to-use-the-new-truncate-convention.patch
+ext2-convert-to-use-the-new-truncate-convention.patch
+fat-convert-to-use-the-new-truncate-convention.patch
+btrfs-convert-to-use-the-new-truncate-convention.patch
+jfs-convert-to-use-the-new-truncate-convention.patch
+udf-convert-to-use-the-new-truncate-convention.patch
+minix-convert-to-use-the-new-truncate-convention.patch
+xtensa-convert-to-asm-generic-hardirqh.patch
+frv-convert-to-asm-generic-hardirqh.patch
+fs-turn-iprune_mutex-into-rwsem.patch
+ntfs-remove-ntfs_file_write.patch
+qnx4-remove-write-support.patch
+fcntl-add-f_etown_ex.patch
+
