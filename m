@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: [merged] viafb-use-read-only-mode-parsing.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 13:02:28 -0700
-Message-ID: <200909232002.n8NK2Svf017271@imap1.linux-foundation.org>
+Subject: [merged] viafb-clean-up-duoview.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 13:01:49 -0700
+Message-ID: <200909232001.n8NK1nBq015937@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46751 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49746 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752707AbZIWUKK (ORCPT
+	by vger.kernel.org with ESMTP id S1751605AbZIWUKK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 23 Sep 2009 16:10:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,22 +15,21 @@ To: FlorianSchandinat@gmx.de, JosephChan@via.com.tw, ScottFang@viatech.com.cn, c
 
 
 The patch titled
-     viafb: use read-only mode parsing
+     viafb: clean up duoview
 has been removed from the -mm tree.  Its filename was
-     viafb-use-read-only-mode-parsing.patch
+     viafb-clean-up-duoview.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: viafb: use read-only mode parsing
+Subject: viafb: clean up duoview
 From: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 
-viafb: use read-only mode parsing
-
-The previous method of mode parsing wrote to the strings resulting in
-truncated mode strings in the sysfs.
+Clean the duoview handling up by replacing the varible with the funtion in
+the only place where it is used.  This is a code cleanup only, no runtime
+change expected.
 
 Signed-off-by: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 Cc: Scott Fang <ScottFang@viatech.com.cn>
@@ -40,76 +39,70 @@ Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/via/viafbdev.c |   44 ++++++++++++++++++---------------
- 1 file changed, 25 insertions(+), 19 deletions(-)
+ drivers/video/via/viafbdev.c |   18 ++----------------
+ drivers/video/via/viafbdev.h |    1 -
+ 2 files changed, 2 insertions(+), 17 deletions(-)
 
-diff -puN drivers/video/via/viafbdev.c~viafb-use-read-only-mode-parsing drivers/video/via/viafbdev.c
---- a/drivers/video/via/viafbdev.c~viafb-use-read-only-mode-parsing
+diff -puN drivers/video/via/viafbdev.c~viafb-clean-up-duoview drivers/video/via/viafbdev.c
+--- a/drivers/video/via/viafbdev.c~viafb-clean-up-duoview
 +++ a/drivers/video/via/viafbdev.c
-@@ -1821,11 +1821,29 @@ static void viafb_remove_proc(struct pro
- 	remove_proc_entry("viafb", NULL);
+@@ -1009,7 +1009,8 @@ static int viafb_cursor(struct fb_info *
+ 		return -ENODEV;
+ 
+ 	/* When duoview and using lcd , use soft cursor */
+-	if (viafb_LCD_ON || ((struct viafb_par *)(info->par))->duoview)
++	if (viafb_LCD_ON || (!viafb_SAMM_ON &&
++		viafb_LCD2_ON + viafb_DVI_ON + viafb_CRT_ON == 2))
+ 		return -ENODEV;
+ 
+ 	viafb_show_hw_cursor(info, HW_Cursor_OFF);
+@@ -1379,18 +1380,6 @@ static int get_primary_device(void)
+ 	return primary_device;
  }
  
-+static void parse_mode(const char *str, u32 *xres, u32 *yres)
-+{
-+	char *ptr;
-+
-+	*xres = simple_strtoul(str, &ptr, 10);
-+	if (ptr[0] != 'x')
-+		goto out_default;
-+
-+	*yres = simple_strtoul(&ptr[1], &ptr, 10);
-+	if (ptr[0])
-+		goto out_default;
-+
-+	return;
-+
-+out_default:
-+	printk(KERN_WARNING "viafb received invalid mode string: %s\n", str);
-+	*xres = 640;
-+	*yres = 480;
-+}
-+
- static int __devinit via_pci_probe(void)
+-static u8 is_duoview(void)
+-{
+-	if (0 == viafb_SAMM_ON) {
+-		if (viafb_LCD_ON + viafb_LCD2_ON +
+-			viafb_DVI_ON + viafb_CRT_ON == 2)
+-			return true;
+-		return false;
+-	} else {
+-		return false;
+-	}
+-}
+-
+ static void apply_second_mode_setting(struct fb_var_screeninfo
+ 	*sec_var)
  {
--	unsigned long default_xres, default_yres;
--	char *tmpc, *tmpm;
--	char *tmpc_sec, *tmpm_sec;
-+	u32 default_xres, default_yres;
- 	int vmode_index;
- 	u32 viafb_par_length;
- 
-@@ -1902,26 +1920,14 @@ static int __devinit via_pci_probe(void)
- 			viafb_second_size * 1024 * 1024;
+@@ -1499,8 +1488,6 @@ static int apply_device_setting(struct v
+ 		need_set_mode = 1;
  	}
  
--	tmpm = viafb_mode;
--	tmpc = strsep(&tmpm, "x");
--	strict_strtoul(tmpc, 0, &default_xres);
--	strict_strtoul(tmpm, 0, &default_yres);
+-	viaparinfo->duoview = is_duoview();
 -
-+	parse_mode(viafb_mode, &default_xres, &default_yres);
- 	vmode_index = viafb_get_mode_index(default_xres, default_yres);
- 	DEBUG_MSG(KERN_INFO "0->index=%d\n", vmode_index);
+ 	if (!need_set_mode) {
+ 		;
+ 	} else {
+@@ -1621,7 +1608,6 @@ static void parse_active_dev(void)
+ 		viafb_CRT_ON = STATE_ON;
+ 		viafb_SAMM_ON = STATE_OFF;
+ 	}
+-	viaparinfo->duoview = is_duoview();
+ }
  
- 	if (viafb_SAMM_ON == 1) {
--		if (strcmp(viafb_mode, viafb_mode1)) {
--			tmpm_sec = viafb_mode1;
--			tmpc_sec = strsep(&tmpm_sec, "x");
--			strict_strtoul(tmpc_sec, 0,
--				(unsigned long *)&viafb_second_xres);
--			strict_strtoul(tmpm_sec, 0,
--				(unsigned long *)&viafb_second_yres);
--		} else {
--			viafb_second_xres = default_xres;
--			viafb_second_yres = default_yres;
--		}
-+		parse_mode(viafb_mode1, &viafb_second_xres,
-+			&viafb_second_yres);
-+
- 		if (0 == viafb_second_virtual_xres) {
- 			switch (viafb_second_xres) {
- 			case 1400:
+ static void parse_video_dev(void)
+diff -puN drivers/video/via/viafbdev.h~viafb-clean-up-duoview drivers/video/via/viafbdev.h
+--- a/drivers/video/via/viafbdev.h~viafb-clean-up-duoview
++++ a/drivers/video/via/viafbdev.h
+@@ -52,7 +52,6 @@ struct viafb_par {
+ 	u32 VQ_end;		/* Virtual Queue End Address */
+ 	u32 iga_path;
+ 	struct proc_dir_entry *proc_entry;	/*viafb proc entry */
+-	u8 duoview;		/*Is working in duoview mode? */
+ 
+ 	/* I2C stuff */
+ 	struct via_i2c_stuff i2c_stuff;
 _
 
 Patches currently in -mm which might be from FlorianSchandinat@gmx.de are
