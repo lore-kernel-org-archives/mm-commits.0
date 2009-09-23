@@ -1,192 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kcore-register-text-area-in-generic-way.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 12:57:01 -0700
-Message-ID: <200909231957.n8NJv1fO006040@imap1.linux-foundation.org>
+Subject: [merged] sisfb-read-buffer-overflow.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 13:01:17 -0700
+Message-ID: <200909232001.n8NK1Hkd014875@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48891 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51852 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753843AbZIWUBa (ORCPT
+	by vger.kernel.org with ESMTP id S1751988AbZIWUBv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 16:01:30 -0400
+	Wed, 23 Sep 2009 16:01:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, benh@kernel.crashing.org, ralf@linux-mips.org, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, krzysztof.h1@poczta.fm, thomas@winischhofer.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kcore: register text area in generic way
+     sisfb: read buffer overflow
 has been removed from the -mm tree.  Its filename was
-     kcore-register-text-area-in-generic-way.patch
+     sisfb-read-buffer-overflow.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kcore: register text area in generic way
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: sisfb: read buffer overflow
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Some 64bit arch has special segment for mapping kernel text.  It should be
-entried to /proc/kcore in addtion to direct-linear-map, vmalloc area. 
-This patch unifies KCORE_TEXT entry scattered under x86 and ia64.
+If called with mode_idx = 1, rate = 68, a read occurs from
+sisfb_vrate[-1].refresh.
 
-I'm not familiar with other archs (mips has its own even after this patch)
-but range of [_stext ..._end) is a valid area of text and it's not in
-direct-map area, defining CONFIG_ARCH_PROC_KCORE_TEXT is only a necessary
-thing to do.
-
-Note: I left mips as it is now.
-
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: WANG Cong <xiyou.wangcong@gmail.com>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Cc: Thomas Winischhofer <thomas@winischhofer.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/Kconfig     |    4 ++++
- arch/ia64/mm/init.c   |    3 +--
- arch/x86/Kconfig      |    4 ++++
- arch/x86/mm/init_64.c |    4 +---
- fs/proc/kcore.c       |   19 ++++++++++++++++++-
- 5 files changed, 28 insertions(+), 6 deletions(-)
+ drivers/video/sis/sis_main.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/ia64/Kconfig~kcore-register-text-area-in-generic-way arch/ia64/Kconfig
---- a/arch/ia64/Kconfig~kcore-register-text-area-in-generic-way
-+++ a/arch/ia64/Kconfig
-@@ -500,6 +500,10 @@ config HAVE_ARCH_NODEDATA_EXTENSION
- 	def_bool y
- 	depends on NUMA
- 
-+config ARCH_PROC_KCORE_TEXT
-+	def_bool y
-+	depends on PROC_KCORE
-+
- config IA32_SUPPORT
- 	bool "Support for Linux/x86 binaries"
- 	help
-diff -puN arch/ia64/mm/init.c~kcore-register-text-area-in-generic-way arch/ia64/mm/init.c
---- a/arch/ia64/mm/init.c~kcore-register-text-area-in-generic-way
-+++ a/arch/ia64/mm/init.c
-@@ -617,7 +617,7 @@ mem_init (void)
- 	long reserved_pages, codesize, datasize, initsize;
- 	pg_data_t *pgdat;
- 	int i;
--	static struct kcore_list kcore_mem, kcore_kernel;
-+	static struct kcore_list kcore_mem;
- 
- 	BUG_ON(PTRS_PER_PGD * sizeof(pgd_t) != PAGE_SIZE);
- 	BUG_ON(PTRS_PER_PMD * sizeof(pmd_t) != PAGE_SIZE);
-@@ -640,7 +640,6 @@ mem_init (void)
- 	high_memory = __va(max_low_pfn * PAGE_SIZE);
- 
- 	kclist_add(&kcore_mem, __va(0), max_low_pfn * PAGE_SIZE, KCORE_RAM);
--	kclist_add(&kcore_kernel, _stext, _end - _stext, KCORE_TEXT);
- 
- 	for_each_online_pgdat(pgdat)
- 		if (pgdat->bdata->node_bootmem_map)
-diff -puN arch/x86/Kconfig~kcore-register-text-area-in-generic-way arch/x86/Kconfig
---- a/arch/x86/Kconfig~kcore-register-text-area-in-generic-way
-+++ a/arch/x86/Kconfig
-@@ -1204,6 +1204,10 @@ config ARCH_DISCONTIGMEM_DEFAULT
- 	def_bool y
- 	depends on NUMA && X86_32
- 
-+config ARCH_PROC_KCORE_TEXT
-+	def_bool y
-+	depends on X86_64 && PROC_KCORE
-+
- config ARCH_SPARSEMEM_DEFAULT
- 	def_bool y
- 	depends on X86_64
-diff -puN arch/x86/mm/init_64.c~kcore-register-text-area-in-generic-way arch/x86/mm/init_64.c
---- a/arch/x86/mm/init_64.c~kcore-register-text-area-in-generic-way
-+++ a/arch/x86/mm/init_64.c
-@@ -647,8 +647,7 @@ EXPORT_SYMBOL_GPL(memory_add_physaddr_to
- 
- #endif /* CONFIG_MEMORY_HOTPLUG */
- 
--static struct kcore_list kcore_mem, kcore_kernel,
--			 kcore_modules, kcore_vsyscall;
-+static struct kcore_list kcore_mem, kcore_modules, kcore_vsyscall;
- 
- void __init mem_init(void)
- {
-@@ -678,7 +677,6 @@ void __init mem_init(void)
- 
- 	/* Register memory areas for /proc/kcore */
- 	kclist_add(&kcore_mem, __va(0), max_low_pfn << PAGE_SHIFT, KCORE_RAM);
--	kclist_add(&kcore_kernel, &_stext, _end - _stext, KCORE_TEXT);
- 	kclist_add(&kcore_modules, (void *)MODULES_VADDR, MODULES_LEN,
- 			KCORE_OTHER);
- 	kclist_add(&kcore_vsyscall, (void *)VSYSCALL_START,
-diff -puN fs/proc/kcore.c~kcore-register-text-area-in-generic-way fs/proc/kcore.c
---- a/fs/proc/kcore.c~kcore-register-text-area-in-generic-way
-+++ a/fs/proc/kcore.c
-@@ -21,6 +21,7 @@
- #include <asm/uaccess.h>
- #include <asm/io.h>
- #include <linux/list.h>
-+#include <asm/sections.h>
- 
- #define CORE_STR "CORE"
- 
-@@ -374,10 +375,26 @@ read_kcore(struct file *file, char __use
- 
- static struct kcore_list kcore_vmalloc;
- 
-+#ifdef CONFIG_ARCH_PROC_KCORE_TEXT
-+static struct kcore_list kcore_text;
-+/*
-+ * If defined, special segment is used for mapping kernel text instead of
-+ * direct-map area. We need to create special TEXT section.
-+ */
-+static void __init proc_kcore_text_init(void)
-+{
-+	kclist_add(&kcore_text, _stext, _end - _stext, KCORE_TEXT);
-+}
-+#else
-+static void __init proc_kcore_text_init(void)
-+{
-+}
-+#endif
-+
- static int __init proc_kcore_init(void)
- {
- 	proc_root_kcore = proc_create("kcore", S_IRUSR, NULL, &proc_kcore_operations);
--
-+	proc_kcore_text_init();
- 	kclist_add(&kcore_vmalloc, (void *)VMALLOC_START,
- 		VMALLOC_END - VMALLOC_START, KCORE_VMALLOC);
- 	return 0;
+diff -puN drivers/video/sis/sis_main.c~sisfb-read-buffer-overflow drivers/video/sis/sis_main.c
+--- a/drivers/video/sis/sis_main.c~sisfb-read-buffer-overflow
++++ a/drivers/video/sis/sis_main.c
+@@ -698,8 +698,8 @@ sisfb_search_refresh_rate(struct sis_vid
+ 						rate, sisfb_vrate[i].refresh);
+ 					ivideo->rate_idx = sisfb_vrate[i].idx;
+ 					ivideo->refresh_rate = sisfb_vrate[i].refresh;
+-				} else if(((rate - sisfb_vrate[i-1].refresh) <= 2)
+-						&& (sisfb_vrate[i].idx != 1)) {
++				} else if((sisfb_vrate[i].idx != 1) &&
++						((rate - sisfb_vrate[i-1].refresh) <= 2)) {
+ 					DPRINTK("sisfb: Adjusting rate from %d down to %d\n",
+ 						rate, sisfb_vrate[i-1].refresh);
+ 					ivideo->rate_idx = sisfb_vrate[i-1].idx;
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 origin.patch
-cgroups-support-named-cgroups-hierarchies.patch
-cgroups-move-the-cgroup-debug-subsys-into-cgroupc-to-access-internal-state.patch
-cgroups-add-a-back-pointer-from-struct-cg_cgroup_link-to-struct-cgroup.patch
-cgroups-allow-cgroup-hierarchies-to-be-created-with-no-bound-subsystems.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix-2.patch
-memcg-add-comments-explaining-memory-barriers.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
-memory-controller-soft-limit-documentation-v9.patch
-memory-controller-soft-limit-interface-v9.patch
-memory-controller-soft-limit-organize-cgroups-v9.patch
-memory-controller-soft-limit-organize-cgroups-v9-fix.patch
-memory-controller-soft-limit-refactor-reclaim-flags-v9.patch
-memory-controller-soft-limit-reclaim-on-contention-v9.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix-softlimit-css-refcnt-handling.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix-softlimit-css-refcnt-handling-fix.patch
-memcg-improve-resource-counter-scalability.patch
-memcg-improve-resource-counter-scalability-v5.patch
-memcg-show-swap-usage-in-stat-file.patch
-memcg-show-swap-usage-in-stat-file-fix.patch
-do_wait-wakeup-optimization-fix-child_wait_callback-eligible_child-usage.patch
-do_wait-wakeup-optimization-simplify-task_pid_type.patch
+linux-next.patch
+dm-strncpy-does-not-null-terminate-string.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
+msp71xx-request_irq-failure-ignored-in-msp_pcibios_config_access.patch
+hfc_usb-fix-read-buffer-overflow.patch
+cyclades-read-buffer-overflow.patch
+serial167-fix-read-buffer-overflow.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
+zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
+st-fix-test-of-value-range-in-st_set_options.patch
+drivers-staging-octeon-ethernet-rgmiic-dont-ignore-request_irq-return-code.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+mwave-fix-read-buffer-overflow.patch
+adfs-remove-redundant-test-on-unsigned.patch
+gru-allocation-may-fail-in-quicktest1.patch
 
