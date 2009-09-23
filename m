@@ -1,105 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mmc_spi-fail-gracefully-if-host-or-card-do-not-support-the-switch-command.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 12:56:15 -0700
-Message-ID: <200909231956.n8NJuFcf004517@imap1.linux-foundation.org>
+Subject: [merged] omapfb-dispc-various-typo-fixes.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 13:00:36 -0700
+Message-ID: <200909232000.n8NK0arR013481@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36225 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46062 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753856AbZIWUBC (ORCPT
+	by vger.kernel.org with ESMTP id S1753847AbZIWUBG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 16:01:02 -0400
+	Wed, 23 Sep 2009 16:01:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wolfgang.mues@auerswald.de, linux-mmc@vger.kernel.org, stable@kernel.org, mm-commits@vger.kernel.org
+To: imre.deak@nokia.com, arunedarath@mistralsolutions.com, balrog@zabor.org, ext-kalle.jokiniemi@nokia.com, krzysztof.h1@wp.pl, tony@atomide.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mmc_spi: fail gracefully if host or card do not support the switch command
+     omapfb: dispc: various typo fixes
 has been removed from the -mm tree.  Its filename was
-     mmc_spi-fail-gracefully-if-host-or-card-do-not-support-the-switch-command.patch
+     omapfb-dispc-various-typo-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc_spi: fail gracefully if host or card do not support the switch command
-From: Wolfgang Muees <wolfgang.mues@auerswald.de>
+Subject: omapfb: dispc: various typo fixes
+From: Imre Deak <imre.deak@nokia.com>
 
-Some time ago, I have send a patch to the mmc_spi subsystem changing the
-error codes.  This was after a discussion with Pierre about using EINVAL
-only for non-recoverable errors.  This patch was accepted as
+- value and register offset was swapped in a dispc write
+- DISPC_CONTROL register was used instead of DISPC_SYSCONFIG
+- FIFO size bit field had incorrect length for OMAP3
 
-http://git.kernel.org/linus/fdd858db7113ca64132de390188d7ca00701013d
-
-Unfortunately, several weeks later, I realized that this patch has opened
-a little can of worms because there are SD cards on the market which
-
-a) claim that they support the switch command
-AND
-b) refuse to execute this command if operating in SPI mode.
-
-So, such a card would get unusuable in an embedded linux system in SPI
-mode, because the init sequence terminates with an error.
-
-This patch adds the missing error codes to the caller of the switch
-command and restores the old behaviour to fail gracefully if these
-commands can not execute.
-
-Signed-off-by: Wolfgang Muees <wolfgang.mues@auerswald.de>
-Cc: <linux-mmc@vger.kernel.org>
-Cc: <stable@kernel.org>		[2.6.31.x]
+Fixed-by: arun <arunedarath@mistralsolutions.com>
+Fixed-by: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
+Fixed-by: Andrzej Zaborowski <balrog@zabor.org>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Imre Deak <imre.deak@nokia.com>
+Acked-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/mmc.c |   10 +++++-----
- drivers/mmc/core/sd.c  |   10 +++++-----
- 2 files changed, 10 insertions(+), 10 deletions(-)
+ drivers/video/omap/dispc.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/mmc/core/mmc.c~mmc_spi-fail-gracefully-if-host-or-card-do-not-support-the-switch-command drivers/mmc/core/mmc.c
---- a/drivers/mmc/core/mmc.c~mmc_spi-fail-gracefully-if-host-or-card-do-not-support-the-switch-command
-+++ a/drivers/mmc/core/mmc.c
-@@ -179,11 +179,11 @@ static int mmc_read_ext_csd(struct mmc_c
+diff -puN drivers/video/omap/dispc.c~omapfb-dispc-various-typo-fixes drivers/video/omap/dispc.c
+--- a/drivers/video/omap/dispc.c~omapfb-dispc-various-typo-fixes
++++ a/drivers/video/omap/dispc.c
+@@ -286,7 +286,7 @@ static void setup_plane_fifo(int plane, 
+ 	BUG_ON(plane > 2);
  
- 	err = mmc_send_ext_csd(card, ext_csd);
- 	if (err) {
--		/*
--		 * We all hosts that cannot perform the command
--		 * to fail more gracefully
--		 */
--		if (err != -EINVAL)
-+		/* If the host or the card can't do the switch,
-+		 * fail more gracefully. */
-+		if ((err != -EINVAL)
-+		 && (err != -ENOSYS)
-+		 && (err != -EFAULT))
- 			goto out;
+ 	l = dispc_read_reg(fsz_reg[plane]);
+-	l &= FLD_MASK(0, 9);
++	l &= FLD_MASK(0, 11);
+ 	if (ext_mode) {
+ 		low = l * 3 / 4;
+ 		high = l;
+@@ -294,7 +294,7 @@ static void setup_plane_fifo(int plane, 
+ 		low = l / 4;
+ 		high = l * 3 / 4;
+ 	}
+-	MOD_REG_FLD(ftrs_reg[plane], FLD_MASK(16, 9) | FLD_MASK(0, 9),
++	MOD_REG_FLD(ftrs_reg[plane], FLD_MASK(16, 12) | FLD_MASK(0, 12),
+ 			(high << 16) | low);
+ }
  
- 		/*
-diff -puN drivers/mmc/core/sd.c~mmc_spi-fail-gracefully-if-host-or-card-do-not-support-the-switch-command drivers/mmc/core/sd.c
---- a/drivers/mmc/core/sd.c~mmc_spi-fail-gracefully-if-host-or-card-do-not-support-the-switch-command
-+++ a/drivers/mmc/core/sd.c
-@@ -210,11 +210,11 @@ static int mmc_read_switch(struct mmc_ca
+@@ -1397,7 +1397,7 @@ static int omap_dispc_init(struct omapfb
+ 	}
  
- 	err = mmc_sd_switch(card, 0, 0, 1, status);
- 	if (err) {
--		/*
--		 * We all hosts that cannot perform the command
--		 * to fail more gracefully
--		 */
--		if (err != -EINVAL)
-+		/* If the host or the card can't do the switch,
-+		 * fail more gracefully. */
-+		if ((err != -EINVAL)
-+		 && (err != -ENOSYS)
-+		 && (err != -EFAULT))
- 			goto out;
+ 	/* Enable smart idle and autoidle */
+-	l = dispc_read_reg(DISPC_CONTROL);
++	l = dispc_read_reg(DISPC_SYSCONFIG);
+ 	l &= ~((3 << 12) | (3 << 3));
+ 	l |= (2 << 12) | (2 << 3) | (1 << 0);
+ 	dispc_write_reg(DISPC_SYSCONFIG, l);
+@@ -1409,7 +1409,7 @@ static int omap_dispc_init(struct omapfb
+ 	dispc_write_reg(DISPC_CONFIG, l);
  
- 		printk(KERN_WARNING "%s: problem reading switch "
+ 	l = dispc_read_reg(DISPC_IRQSTATUS);
+-	dispc_write_reg(l, DISPC_IRQSTATUS);
++	dispc_write_reg(DISPC_IRQSTATUS, l);
+ 
+ 	/* Enable those that we handle always */
+ 	omap_dispc_enable_irqs(DISPC_IRQ_FRAMEMASK);
 _
 
-Patches currently in -mm which might be from wolfgang.mues@auerswald.de are
+Patches currently in -mm which might be from imre.deak@nokia.com are
 
 origin.patch
 
