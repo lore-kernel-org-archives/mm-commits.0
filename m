@@ -1,256 +1,272 @@
 From: akpm@linux-foundation.org
-Subject: [merged] omapfb-dispc-allow-multiple-external-irq-handlers.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 13:00:46 -0700
-Message-ID: <200909232000.n8NK0krH013817@imap1.linux-foundation.org>
+Subject: [merged] omapfb-add-support-for-the-gumstix-overo-lcd.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 13:00:25 -0700
+Message-ID: <200909232000.n8NK0PGt013096@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52992 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46915 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751286AbZIWUKH (ORCPT
+	by vger.kernel.org with ESMTP id S1751935AbZIWUKN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 16:10:07 -0400
+	Wed, 23 Sep 2009 16:10:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: daniel.stone@nokia.com, imre.deak@nokia.com, krzysztof.h1@wp.pl, tony@atomide.com, mm-commits@vger.kernel.org
+To: steve@sakoman.com, imre.deak@nokia.com, krzysztof.h1@wp.pl, tony@atomide.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     omapfb: dispc: allow multiple external IRQ handlers
+     omapfb: add support for the Gumstix Overo LCD
 has been removed from the -mm tree.  Its filename was
-     omapfb-dispc-allow-multiple-external-irq-handlers.patch
+     omapfb-add-support-for-the-gumstix-overo-lcd.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: omapfb: dispc: allow multiple external IRQ handlers
-From: Daniel Stone <daniel.stone@nokia.com>
+Subject: omapfb: add support for the Gumstix Overo LCD
+From: Steve Sakoman <steve@sakoman.com>
 
-Previously, the only external (to dispc.c) IRQ handler was RFBI's frame
-done handler.  dispc's IRQ framework was very dumb: you could only have
-one handler, and the semantics of {request,free}_irq were odd, to say the
-least.
-
-The new framework allows multiple consumers to register arbitrary IRQ
-masks.
-
-Signed-off-by: Daniel Stone <daniel.stone@nokia.com>
+Signed-off-by: Steve Sakoman <steve@sakoman.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Imre Deak <imre.deak@nokia.com>
 Acked-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/omap/dispc.c |   95 +++++++++++++++++++++--------------
- drivers/video/omap/dispc.h |    7 +-
- drivers/video/omap/rfbi.c  |    7 +-
- 3 files changed, 67 insertions(+), 42 deletions(-)
+ drivers/video/omap/Kconfig     |   21 +++
+ drivers/video/omap/Makefile    |    1 
+ drivers/video/omap/lcd_overo.c |  179 +++++++++++++++++++++++++++++++
+ 3 files changed, 201 insertions(+)
 
-diff -puN drivers/video/omap/dispc.c~omapfb-dispc-allow-multiple-external-irq-handlers drivers/video/omap/dispc.c
---- a/drivers/video/omap/dispc.c~omapfb-dispc-allow-multiple-external-irq-handlers
-+++ a/drivers/video/omap/dispc.c
-@@ -155,6 +155,8 @@ struct resmap {
- 	unsigned long	*map;
- };
+diff -puN drivers/video/omap/Kconfig~omapfb-add-support-for-the-gumstix-overo-lcd drivers/video/omap/Kconfig
+--- a/drivers/video/omap/Kconfig~omapfb-add-support-for-the-gumstix-overo-lcd
++++ a/drivers/video/omap/Kconfig
+@@ -7,6 +7,27 @@ config FB_OMAP
+ 	help
+           Frame buffer driver for OMAP based boards.
  
-+#define MAX_IRQ_HANDLERS            4
++choice
++	depends on FB_OMAP && MACH_OVERO
++	prompt "Screen resolution"
++	default FB_OMAP_079M3R
++	help
++	  Selected desired screen resolution
 +
- static struct {
- 	void __iomem	*base;
- 
-@@ -167,9 +169,11 @@ static struct {
- 
- 	int		ext_mode;
- 
--	unsigned long	enabled_irqs;
--	void		(*irq_callback)(void *);
--	void		*irq_callback_data;
-+	struct {
-+		u32	irq_mask;
-+		void	(*callback)(void *);
-+		void	*data;
-+	} irq_handlers[MAX_IRQ_HANDLERS];
- 	struct completion	frame_done;
- 
- 	int		fir_hinc[OMAPFB_PLANE_NUM];
-@@ -809,56 +813,70 @@ static void set_lcd_timings(void)
- 	panel->pixel_clock = fck / lck_div / pck_div / 1000;
- }
- 
--int omap_dispc_request_irq(void (*callback)(void *data), void *data)
-+static void recalc_irq_mask(void)
- {
--	int r = 0;
-+	int i;
-+	unsigned long irq_mask = DISPC_IRQ_MASK_ERROR;
- 
--	BUG_ON(callback == NULL);
-+	for (i = 0; i < MAX_IRQ_HANDLERS; i++) {
-+		if (!dispc.irq_handlers[i].callback)
-+			continue;
- 
--	if (dispc.irq_callback)
--		r = -EBUSY;
--	else {
--		dispc.irq_callback = callback;
--		dispc.irq_callback_data = data;
-+		irq_mask |= dispc.irq_handlers[i].irq_mask;
- 	}
- 
--	return r;
--}
--EXPORT_SYMBOL(omap_dispc_request_irq);
--
--void omap_dispc_enable_irqs(int irq_mask)
--{
- 	enable_lcd_clocks(1);
--	dispc.enabled_irqs = irq_mask;
--	irq_mask |= DISPC_IRQ_MASK_ERROR;
- 	MOD_REG_FLD(DISPC_IRQENABLE, 0x7fff, irq_mask);
- 	enable_lcd_clocks(0);
- }
--EXPORT_SYMBOL(omap_dispc_enable_irqs);
- 
--void omap_dispc_disable_irqs(int irq_mask)
-+int omap_dispc_request_irq(unsigned long irq_mask, void (*callback)(void *data),
-+			   void *data)
- {
--	enable_lcd_clocks(1);
--	dispc.enabled_irqs &= ~irq_mask;
--	irq_mask &= ~DISPC_IRQ_MASK_ERROR;
--	MOD_REG_FLD(DISPC_IRQENABLE, 0x7fff, irq_mask);
--	enable_lcd_clocks(0);
-+	int i;
++config FB_OMAP_031M3R
++	boolean "640 x 480 @ 60 Hz Reduced blanking"
 +
-+	BUG_ON(callback == NULL);
++config FB_OMAP_048M3R
++	boolean "800 x 600 @ 60 Hz Reduced blanking"
 +
-+	for (i = 0; i < MAX_IRQ_HANDLERS; i++) {
-+		if (dispc.irq_handlers[i].callback)
-+			continue;
++config FB_OMAP_079M3R
++	boolean "1024 x 768 @ 60 Hz Reduced blanking"
 +
-+		dispc.irq_handlers[i].irq_mask = irq_mask;
-+		dispc.irq_handlers[i].callback = callback;
-+		dispc.irq_handlers[i].data = data;
-+		recalc_irq_mask();
++config FB_OMAP_092M9R
++	boolean "1280 x 720 @ 60 Hz Reduced blanking"
 +
-+		return 0;
-+	}
++endchoice
 +
-+	return -EBUSY;
- }
--EXPORT_SYMBOL(omap_dispc_disable_irqs);
-+EXPORT_SYMBOL(omap_dispc_request_irq);
+ config FB_OMAP_LCD_MIPID
+ 	bool "MIPI DBI-C/DCS compatible LCD support"
+ 	depends on FB_OMAP && SPI_MASTER
+diff -puN drivers/video/omap/Makefile~omapfb-add-support-for-the-gumstix-overo-lcd drivers/video/omap/Makefile
+--- a/drivers/video/omap/Makefile~omapfb-add-support-for-the-gumstix-overo-lcd
++++ a/drivers/video/omap/Makefile
+@@ -33,6 +33,7 @@ objs-y$(CONFIG_MACH_OMAP2EVM) += lcd_oma
+ objs-y$(CONFIG_MACH_OMAP3EVM) += lcd_omap3evm.o
+ objs-y$(CONFIG_MACH_OMAP3_BEAGLE) += lcd_omap3beagle.o
+ objs-y$(CONFIG_FB_OMAP_LCD_MIPID) += lcd_mipid.o
++objs-y$(CONFIG_MACH_OVERO) += lcd_overo.o
  
--void omap_dispc_free_irq(void)
-+void omap_dispc_free_irq(unsigned long irq_mask, void (*callback)(void *data),
-+			 void *data)
- {
--	enable_lcd_clocks(1);
--	omap_dispc_disable_irqs(DISPC_IRQ_MASK_ALL);
--	dispc.irq_callback = NULL;
--	dispc.irq_callback_data = NULL;
--	enable_lcd_clocks(0);
-+	int i;
+ omapfb-objs := $(objs-yy)
+ 
+diff -puN /dev/null drivers/video/omap/lcd_overo.c
+--- /dev/null
++++ a/drivers/video/omap/lcd_overo.c
+@@ -0,0 +1,179 @@
++/*
++ * LCD panel support for the Gumstix Overo
++ *
++ * Author: Steve Sakoman <steve@sakoman.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, write to the Free Software Foundation, Inc.,
++ * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
++ *
++ */
 +
-+	for (i = 0; i < MAX_IRQ_HANDLERS; i++) {
-+		if (dispc.irq_handlers[i].callback == callback &&
-+		    dispc.irq_handlers[i].data == data) {
-+			dispc.irq_handlers[i].irq_mask = 0;
-+			dispc.irq_handlers[i].callback = NULL;
-+			dispc.irq_handlers[i].data = NULL;
-+			recalc_irq_mask();
-+			return;
-+		}
-+	}
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/i2c/twl4030.h>
 +
-+	BUG();
- }
- EXPORT_SYMBOL(omap_dispc_free_irq);
- 
- static irqreturn_t omap_dispc_irq_handler(int irq, void *dev)
- {
- 	u32 stat;
-+	int i = 0;
- 
- 	enable_lcd_clocks(1);
- 
-@@ -873,8 +891,12 @@ static irqreturn_t omap_dispc_irq_handle
- 		}
- 	}
- 
--	if ((stat & dispc.enabled_irqs) && dispc.irq_callback)
--		dispc.irq_callback(dispc.irq_callback_data);
-+	for (i = 0; i < MAX_IRQ_HANDLERS; i++) {
-+		if (unlikely(dispc.irq_handlers[i].callback &&
-+			     (stat & dispc.irq_handlers[i].irq_mask)))
-+			dispc.irq_handlers[i].callback(
-+						dispc.irq_handlers[i].data);
-+	}
- 
- 	dispc_write_reg(DISPC_IRQSTATUS, stat);
- 
-@@ -1410,8 +1432,7 @@ static int omap_dispc_init(struct omapfb
- 	l = dispc_read_reg(DISPC_IRQSTATUS);
- 	dispc_write_reg(DISPC_IRQSTATUS, l);
- 
--	/* Enable those that we handle always */
--	omap_dispc_enable_irqs(DISPC_IRQ_FRAMEMASK);
-+	recalc_irq_mask();
- 
- 	if ((r = request_irq(INT_24XX_DSS_IRQ, omap_dispc_irq_handler,
- 			   0, MODULE_NAME, fbdev)) < 0) {
-diff -puN drivers/video/omap/dispc.h~omapfb-dispc-allow-multiple-external-irq-handlers drivers/video/omap/dispc.h
---- a/drivers/video/omap/dispc.h~omapfb-dispc-allow-multiple-external-irq-handlers
-+++ a/drivers/video/omap/dispc.h
-@@ -37,9 +37,10 @@ extern void omap_dispc_set_lcd_size(int 
- extern void omap_dispc_enable_lcd_out(int enable);
- extern void omap_dispc_enable_digit_out(int enable);
- 
--extern int  omap_dispc_request_irq(void (*callback)(void *data), void *data);
--extern void omap_dispc_free_irq(void);
-+extern int omap_dispc_request_irq(unsigned long irq_mask,
-+				   void (*callback)(void *data), void *data);
-+extern void omap_dispc_free_irq(unsigned long irq_mask,
-+				 void (*callback)(void *data), void *data);
- 
- extern const struct lcd_ctrl omap2_int_ctrl;
--
- #endif
-diff -puN drivers/video/omap/rfbi.c~omapfb-dispc-allow-multiple-external-irq-handlers drivers/video/omap/rfbi.c
---- a/drivers/video/omap/rfbi.c~omapfb-dispc-allow-multiple-external-irq-handlers
-+++ a/drivers/video/omap/rfbi.c
-@@ -57,6 +57,7 @@
- 
- #define DISPC_BASE		0x48050400
- #define DISPC_CONTROL		0x0040
-+#define DISPC_IRQ_FRAMEMASK     0x0001
- 
- static struct {
- 	void __iomem	*base;
-@@ -553,7 +554,9 @@ static int rfbi_init(struct omapfb_devic
- 	l = (0x01 << 2);
- 	rfbi_write_reg(RFBI_CONTROL, l);
- 
--	if ((r = omap_dispc_request_irq(rfbi_dma_callback, NULL)) < 0) {
-+	r = omap_dispc_request_irq(DISPC_IRQ_FRAMEMASK, rfbi_dma_callback,
-+				   NULL);
-+	if (r < 0) {
- 		dev_err(fbdev->dev, "can't get DISPC irq\n");
- 		rfbi_enable_clocks(0);
- 		return r;
-@@ -570,7 +573,7 @@ static int rfbi_init(struct omapfb_devic
- 
- static void rfbi_cleanup(void)
- {
--	omap_dispc_free_irq();
-+	omap_dispc_free_irq(DISPC_IRQ_FRAMEMASK, rfbi_dma_callback, NULL);
- 	rfbi_put_clocks();
- 	iounmap(rfbi.base);
- }
++#include <mach/gpio.h>
++#include <mach/mux.h>
++#include <mach/omapfb.h>
++#include <asm/mach-types.h>
++
++#define LCD_ENABLE       144
++
++static int overo_panel_init(struct lcd_panel *panel,
++				struct omapfb_device *fbdev)
++{
++	if ((gpio_request(LCD_ENABLE, "LCD_ENABLE") == 0) &&
++	    (gpio_direction_output(LCD_ENABLE, 1) == 0))
++		gpio_export(LCD_ENABLE, 0);
++	else
++		printk(KERN_ERR "could not obtain gpio for LCD_ENABLE\n");
++
++	return 0;
++}
++
++static void overo_panel_cleanup(struct lcd_panel *panel)
++{
++	gpio_free(LCD_ENABLE);
++}
++
++static int overo_panel_enable(struct lcd_panel *panel)
++{
++	gpio_set_value(LCD_ENABLE, 1);
++	return 0;
++}
++
++static void overo_panel_disable(struct lcd_panel *panel)
++{
++	gpio_set_value(LCD_ENABLE, 0);
++}
++
++static unsigned long overo_panel_get_caps(struct lcd_panel *panel)
++{
++	return 0;
++}
++
++struct lcd_panel overo_panel = {
++	.name		= "overo",
++	.config		= OMAP_LCDC_PANEL_TFT,
++	.bpp		= 16,
++	.data_lines	= 24,
++
++#if defined CONFIG_FB_OMAP_031M3R
++
++	/* 640 x 480 @ 60 Hz  Reduced blanking VESA CVT 0.31M3-R */
++	.x_res		= 640,
++	.y_res		= 480,
++	.hfp		= 48,
++	.hsw		= 32,
++	.hbp		= 80,
++	.vfp		= 3,
++	.vsw		= 4,
++	.vbp		= 7,
++	.pixel_clock	= 23500,
++
++#elif defined CONFIG_FB_OMAP_048M3R
++
++	/* 800 x 600 @ 60 Hz  Reduced blanking VESA CVT 0.48M3-R */
++	.x_res		= 800,
++	.y_res		= 600,
++	.hfp		= 48,
++	.hsw		= 32,
++	.hbp		= 80,
++	.vfp		= 3,
++	.vsw		= 4,
++	.vbp		= 11,
++	.pixel_clock	= 35500,
++
++#elif defined CONFIG_FB_OMAP_079M3R
++
++	/* 1024 x 768 @ 60 Hz  Reduced blanking VESA CVT 0.79M3-R */
++	.x_res		= 1024,
++	.y_res		= 768,
++	.hfp		= 48,
++	.hsw		= 32,
++	.hbp		= 80,
++	.vfp		= 3,
++	.vsw		= 4,
++	.vbp		= 15,
++	.pixel_clock	= 56000,
++
++#elif defined CONFIG_FB_OMAP_092M9R
++
++	/* 1280 x 720 @ 60 Hz  Reduced blanking VESA CVT 0.92M9-R */
++	.x_res		= 1280,
++	.y_res		= 720,
++	.hfp		= 48,
++	.hsw		= 32,
++	.hbp		= 80,
++	.vfp		= 3,
++	.vsw		= 5,
++	.vbp		= 13,
++	.pixel_clock	= 64000,
++
++#else
++
++	/* use 640 x 480 if no config option */
++	/* 640 x 480 @ 60 Hz  Reduced blanking VESA CVT 0.31M3-R */
++	.x_res		= 640,
++	.y_res		= 480,
++	.hfp		= 48,
++	.hsw		= 32,
++	.hbp		= 80,
++	.vfp		= 3,
++	.vsw		= 4,
++	.vbp		= 7,
++	.pixel_clock	= 23500,
++
++#endif
++
++	.init		= overo_panel_init,
++	.cleanup	= overo_panel_cleanup,
++	.enable		= overo_panel_enable,
++	.disable	= overo_panel_disable,
++	.get_caps	= overo_panel_get_caps,
++};
++
++static int overo_panel_probe(struct platform_device *pdev)
++{
++	omapfb_register_panel(&overo_panel);
++	return 0;
++}
++
++static int overo_panel_remove(struct platform_device *pdev)
++{
++	/* omapfb does not have unregister_panel */
++	return 0;
++}
++
++static struct platform_driver overo_panel_driver = {
++	.probe		= overo_panel_probe,
++	.remove		= overo_panel_remove,
++	.driver		= {
++		.name	= "overo_lcd",
++		.owner	= THIS_MODULE,
++	},
++};
++
++static int __init overo_panel_drv_init(void)
++{
++	return platform_driver_register(&overo_panel_driver);
++}
++
++static void __exit overo_panel_drv_exit(void)
++{
++	platform_driver_unregister(&overo_panel_driver);
++}
++
++module_init(overo_panel_drv_init);
++module_exit(overo_panel_drv_exit);
 _
 
-Patches currently in -mm which might be from daniel.stone@nokia.com are
+Patches currently in -mm which might be from steve@sakoman.com are
 
 origin.patch
 
