@@ -1,152 +1,198 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-philips-pcf2123-rtc-spi-driver-updates.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 12:58:49 -0700
-Message-ID: <200909231958.n8NJwnFD009690@imap1.linux-foundation.org>
+Subject: [merged] omapfb-add-support-for-the-apollon-lcd.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 12:59:58 -0700
+Message-ID: <200909231959.n8NJxwIb012105@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37806 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34132 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753823AbZIWUAD (ORCPT
+	by vger.kernel.org with ESMTP id S1753850AbZIWUAd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 16:00:03 -0400
+	Wed, 23 Sep 2009 16:00:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chrisv@cyberswitching.com, a.zummo@towertech.it, chripell@fsfe.org, david-b@pacbell.net, mm-commits@vger.kernel.org
+To: kyungmin.park@samsung.com, imre.deak@nokia.com, krzysztof.h1@wp.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc-philips-pcf2123-rtc-spi-driver-updates
+     omapfb: add support for the Apollon LCD
 has been removed from the -mm tree.  Its filename was
-     rtc-philips-pcf2123-rtc-spi-driver-updates.patch
+     omapfb-add-support-for-the-apollon-lcd.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-philips-pcf2123-rtc-spi-driver-updates
-From: "Chris Verges" <chrisv@cyberswitching.com>
+Subject: omapfb: add support for the Apollon LCD
+From: Kyungmin Park <kyungmin.park@samsung.com>
 
-Signed-off: Chris Verges <chrisv@cyberswitching.com>
-Cc: Christian Pellegrin <chripell@fsfe.org>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Imre Deak <imre.deak@nokia.com>
+Acked-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pcf2123.c |   44 ++++++++++++++++++++++++++----------
- 1 file changed, 32 insertions(+), 12 deletions(-)
+ drivers/video/omap/Makefile      |    2 
+ drivers/video/omap/lcd_apollon.c |  138 +++++++++++++++++++++++++++++
+ 2 files changed, 140 insertions(+)
 
-diff -puN drivers/rtc/rtc-pcf2123.c~rtc-philips-pcf2123-rtc-spi-driver-updates drivers/rtc/rtc-pcf2123.c
---- a/drivers/rtc/rtc-pcf2123.c~rtc-philips-pcf2123-rtc-spi-driver-updates
-+++ a/drivers/rtc/rtc-pcf2123.c
-@@ -42,7 +42,7 @@
- #include <linux/rtc.h>
- #include <linux/spi/spi.h>
+diff -puN drivers/video/omap/Makefile~omapfb-add-support-for-the-apollon-lcd drivers/video/omap/Makefile
+--- a/drivers/video/omap/Makefile~omapfb-add-support-for-the-apollon-lcd
++++ a/drivers/video/omap/Makefile
+@@ -24,5 +24,7 @@ objs-$(CONFIG_ARCH_OMAP16XX)$(CONFIG_MAC
+ objs-$(CONFIG_ARCH_OMAP15XX)$(CONFIG_MACH_OMAP_INNOVATOR) += lcd_inn1510.o
+ objs-y$(CONFIG_MACH_OMAP_OSK) += lcd_osk.o
  
--#define DRV_VERSION "0.5"
-+#define DRV_VERSION "0.6"
- 
- #define PCF2123_REG_CTRL1	(0x00)	/* Control Register 1 */
- #define PCF2123_REG_CTRL2	(0x01)	/* Control Register 2 */
-@@ -61,7 +61,7 @@
- static struct spi_driver pcf2123_driver;
- 
- struct pcf2123_sysfs_reg {
--	struct device_attribute attr; /* must be first */
-+	struct device_attribute attr;
- 	char name[2];
- };
- 
-@@ -84,27 +84,42 @@ static ssize_t pcf2123_show(struct devic
- 			    char *buffer)
- {
- 	struct spi_device *spi = to_spi_device(dev);
--	struct pcf2123_sysfs_reg *r = (struct pcf2123_sysfs_reg *) attr;
-+	struct pcf2123_sysfs_reg *r;
- 	u8 txbuf[1], rxbuf[1];
-+	unsigned long reg;
- 	int ret;
- 
--	txbuf[0] = PCF2123_READ | simple_strtoul(r->name, NULL, 16);
-+	r = container_of(attr, struct pcf2123_sysfs_reg, attr);
++objs-y$(CONFIG_MACH_OMAP_APOLLON) += lcd_apollon.o
 +
-+	if (strict_strtoul(r->name, 16, &reg))
-+		return -EINVAL;
-+
-+	txbuf[0] = PCF2123_READ | reg;
- 	ret = spi_write_then_read(spi, txbuf, 1, rxbuf, 1);
- 	if (ret < 0)
--		return sprintf(buffer, "error: %d", ret);
-+		return -EIO;
- 	pcf2123_delay_trec();
--	return sprintf(buffer, "0x%x", rxbuf[0]);
-+	return sprintf(buffer, "0x%x\n", rxbuf[0]);
- }
+ omapfb-objs := $(objs-yy)
  
- static ssize_t pcf2123_store(struct device *dev, struct device_attribute *attr,
- 			     const char *buffer, size_t count) {
- 	struct spi_device *spi = to_spi_device(dev);
--	struct pcf2123_sysfs_reg *r = (struct pcf2123_sysfs_reg *) attr;
-+	struct pcf2123_sysfs_reg *r;
- 	u8 txbuf[2];
-+	unsigned long reg;
-+	unsigned long val;
+diff -puN /dev/null drivers/video/omap/lcd_apollon.c
+--- /dev/null
++++ a/drivers/video/omap/lcd_apollon.c
+@@ -0,0 +1,138 @@
++/*
++ * LCD panel support for the Samsung OMAP2 Apollon board
++ *
++ * Copyright (C) 2005,2006 Samsung Electronics
++ * Author: Kyungmin Park <kyungmin.park@samsung.com>
++ *
++ * Derived from drivers/video/omap/lcd-h4.c
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, write to the Free Software Foundation, Inc.,
++ * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
++ */
 +
- 	int ret;
- 
--	txbuf[0] = PCF2123_WRITE | simple_strtoul(r->name, NULL, 16);
--	txbuf[1] = simple_strtoul(buffer, NULL, 0);
-+	r = container_of(attr, struct pcf2123_sysfs_reg, attr);
++#include <linux/module.h>
++#include <linux/platform_device.h>
 +
-+	if (strict_strtoul(r->name, 16, &reg)
-+		|| strict_strtoul(buffer, 10, &val))
-+		return -EINVAL;
++#include <mach/gpio.h>
++#include <mach/mux.h>
++#include <mach/omapfb.h>
 +
-+	txbuf[0] = PCF2123_WRITE | reg;
-+	txbuf[1] = val;
- 	ret = spi_write(spi, txbuf, sizeof(txbuf));
- 	if (ret < 0)
- 		return -EIO;
-@@ -220,7 +235,7 @@ static int __devinit pcf2123_probe(struc
- 			txbuf[0], txbuf[1]);
- 	ret = spi_write(spi, txbuf, 2 * sizeof(u8));
- 	if (ret < 0)
--		return ret;
-+		goto kfree_exit;
- 	pcf2123_delay_trec();
- 
- 	/* Stop the counter */
-@@ -230,7 +245,7 @@ static int __devinit pcf2123_probe(struc
- 			txbuf[0], txbuf[1]);
- 	ret = spi_write(spi, txbuf, 2 * sizeof(u8));
- 	if (ret < 0)
--		return ret;
-+		goto kfree_exit;
- 	pcf2123_delay_trec();
- 
- 	/* See if the counter was actually stopped */
-@@ -284,11 +299,16 @@ static int __devinit pcf2123_probe(struc
- 		if (ret) {
- 			dev_err(&spi->dev, "Unable to create sysfs %s\n",
- 				pdata->regs[i].name);
--			pdata->regs[i].name[0] = '\0';
-+			goto sysfs_exit;
- 		}
- 	}
- 
- 	return 0;
++/* #define USE_35INCH_LCD 1 */
 +
-+sysfs_exit:
-+	for (i--; i >= 0; i--)
-+		device_remove_file(&spi->dev, &pdata->regs[i].attr);
++static int apollon_panel_init(struct lcd_panel *panel,
++				struct omapfb_device *fbdev)
++{
++	/* configure LCD PWR_EN */
++	omap_cfg_reg(M21_242X_GPIO11);
++	return 0;
++}
 +
- kfree_exit:
- 	kfree(pdata);
- 	spi->dev.platform_data = NULL;
++static void apollon_panel_cleanup(struct lcd_panel *panel)
++{
++}
++
++static int apollon_panel_enable(struct lcd_panel *panel)
++{
++	return 0;
++}
++
++static void apollon_panel_disable(struct lcd_panel *panel)
++{
++}
++
++static unsigned long apollon_panel_get_caps(struct lcd_panel *panel)
++{
++	return 0;
++}
++
++struct lcd_panel apollon_panel = {
++	.name		= "apollon",
++	.config		= OMAP_LCDC_PANEL_TFT | OMAP_LCDC_INV_VSYNC |
++			  OMAP_LCDC_INV_HSYNC,
++
++	.bpp		= 16,
++	.data_lines	= 18,
++#ifdef USE_35INCH_LCD
++	.x_res		= 240,
++	.y_res		= 320,
++	.hsw		= 2,
++	.hfp		= 3,
++	.hbp		= 9,
++	.vsw		= 4,
++	.vfp		= 3,
++	.vbp		= 5,
++#else
++	.x_res		= 480,
++	.y_res		= 272,
++	.hsw		= 41,
++	.hfp		= 2,
++	.hbp		= 2,
++	.vsw		= 10,
++	.vfp		= 2,
++	.vbp		= 2,
++#endif
++	.pixel_clock	= 6250,
++
++	.init		= apollon_panel_init,
++	.cleanup	= apollon_panel_cleanup,
++	.enable		= apollon_panel_enable,
++	.disable	= apollon_panel_disable,
++	.get_caps	= apollon_panel_get_caps,
++};
++
++static int apollon_panel_probe(struct platform_device *pdev)
++{
++	omapfb_register_panel(&apollon_panel);
++	return 0;
++}
++
++static int apollon_panel_remove(struct platform_device *pdev)
++{
++	return 0;
++}
++
++static int apollon_panel_suspend(struct platform_device *pdev,
++				  pm_message_t mesg)
++{
++	return 0;
++}
++
++static int apollon_panel_resume(struct platform_device *pdev)
++{
++	return 0;
++}
++
++struct platform_driver apollon_panel_driver = {
++	.probe		= apollon_panel_probe,
++	.remove		= apollon_panel_remove,
++	.suspend	= apollon_panel_suspend,
++	.resume		= apollon_panel_resume,
++	.driver		= {
++		.name	= "apollon_lcd",
++		.owner	= THIS_MODULE,
++	},
++};
++
++static int __init apollon_panel_drv_init(void)
++{
++	return platform_driver_register(&apollon_panel_driver);
++}
++
++static void __exit apollon_panel_drv_exit(void)
++{
++	platform_driver_unregister(&apollon_panel_driver);
++}
++
++module_init(apollon_panel_drv_init);
++module_exit(apollon_panel_drv_exit);
 _
 
-Patches currently in -mm which might be from chrisv@cyberswitching.com are
+Patches currently in -mm which might be from kyungmin.park@samsung.com are
 
 origin.patch
 
