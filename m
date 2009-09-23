@@ -1,304 +1,393 @@
 From: akpm@linux-foundation.org
-Subject: [merged] gpio-add-mc33880-driver.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 12:59:36 -0700
-Message-ID: <200909231959.n8NJxaKW011336@imap1.linux-foundation.org>
+Subject: [merged] rtc-u300-coh-901-331-rtc-driver-v3.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 12:58:55 -0700
+Message-ID: <200909231958.n8NJwt54009919@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36620 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39095 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753536AbZIWT7k (ORCPT
+	by vger.kernel.org with ESMTP id S1753600AbZIWT7f (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 15:59:40 -0400
+	Wed, 23 Sep 2009 15:59:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: richard.rojfors.ext@mocean-labs.com, david-b@pacbell.net, mm-commits@vger.kernel.org
+To: linus.ml.walleij@gmail.com, a.zummo@towertech.it, linus.walleij@stericsson.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gpio: add MC33880 driver
+     rtc: U300 COH 901 331 RTC driver v3
 has been removed from the -mm tree.  Its filename was
-     gpio-add-mc33880-driver.patch
+     rtc-u300-coh-901-331-rtc-driver-v3.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio: add MC33880 driver
-=46rom: Richard R=F6jfors <richard.rojfors.ext@mocean-labs.com>
+Subject: rtc: U300 COH 901 331 RTC driver v3
+From: Linus Walleij <linus.ml.walleij@gmail.com>
 
-A GPIO driver for the Freescale MC33880 High/Low side switch
+This adds a driver for the RTC COH 901 331 found in the ST-Ericsson U300
+series mobile platforms to the RTC subsystem.  It integrates to the ARM
+kernel support recently added to RMKs ARM tree and will be enabled in the
+U300 defconfig in due time.
 
-Signed-off-by: Richard R=F6jfors <richard.rojfors.ext@mocean-labs.com>
-Cc: David Brownell <david-b@pacbell.net>
+Signed-off-by: Linus Walleij <linus.walleij@stericsson.com>
+Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/Kconfig        |    7 +
- drivers/gpio/Makefile       |    1=20
- drivers/gpio/mc33880.c      |  196 ++++++++++++++++++++++++++++++++++
- include/linux/spi/mc33880.h |   10 +
- 4 files changed, 214 insertions(+)
+ drivers/rtc/Kconfig         |   12 +
+ drivers/rtc/Makefile        |    1 
+ drivers/rtc/rtc-coh901331.c |  311 ++++++++++++++++++++++++++++++++++
+ 3 files changed, 324 insertions(+)
 
-diff -puN drivers/gpio/Kconfig~gpio-add-mc33880-driver drivers/gpio/Kco=
-nfig
---- a/drivers/gpio/Kconfig~gpio-add-mc33880-driver
-+++ a/drivers/gpio/Kconfig
-@@ -195,4 +195,11 @@ config GPIO_MCP23S08
- 	  SPI driver for Microchip MCP23S08 I/O expander.  This provides
- 	  a GPIO interface supporting inputs and outputs.
-=20
-+config GPIO_MC33880
-+	tristate "Freescale MC33880 high-side/low-side switch"
-+	depends on SPI_MASTER
+diff -puN drivers/rtc/Kconfig~rtc-u300-coh-901-331-rtc-driver-v3 drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-u300-coh-901-331-rtc-driver-v3
++++ a/drivers/rtc/Kconfig
+@@ -798,4 +798,16 @@ config RTC_DRV_PS3
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called rtc-ps3.
+ 
++config RTC_DRV_COH901331
++	tristate "ST-Ericsson COH 901 331 RTC"
++	depends on ARCH_U300
 +	help
-+	  SPI driver for Freescale MC33880 high-side/low-side switch.
-+	  This provides GPIO interface supporting inputs and outputs.
++	  If you say Y here you will get access to ST-Ericsson
++	  COH 901 331 RTC clock found in some ST-Ericsson Mobile
++	  Platforms.
 +
- endif
-diff -puN drivers/gpio/Makefile~gpio-add-mc33880-driver drivers/gpio/Ma=
-kefile
---- a/drivers/gpio/Makefile~gpio-add-mc33880-driver
-+++ a/drivers/gpio/Makefile
-@@ -6,6 +6,7 @@ obj-$(CONFIG_GPIOLIB)		+=3D gpiolib.o
-=20
- obj-$(CONFIG_GPIO_MAX7301)	+=3D max7301.o
- obj-$(CONFIG_GPIO_MAX732X)	+=3D max732x.o
-+obj-$(CONFIG_GPIO_MC33880)	+=3D mc33880.o
- obj-$(CONFIG_GPIO_MCP23S08)	+=3D mcp23s08.o
- obj-$(CONFIG_GPIO_PCA953X)	+=3D pca953x.o
- obj-$(CONFIG_GPIO_PCF857X)	+=3D pcf857x.o
-diff -puN /dev/null drivers/gpio/mc33880.c
++	  This driver can also be built as a module. If so, the module
++	  will be called "rtc-coh901331".
++
++
+ endif # RTC_CLASS
+diff -puN drivers/rtc/Makefile~rtc-u300-coh-901-331-rtc-driver-v3 drivers/rtc/Makefile
+--- a/drivers/rtc/Makefile~rtc-u300-coh-901-331-rtc-driver-v3
++++ a/drivers/rtc/Makefile
+@@ -82,3 +82,4 @@ obj-$(CONFIG_RTC_DRV_WM8350)	+= rtc-wm83
+ obj-$(CONFIG_RTC_DRV_X1205)	+= rtc-x1205.o
+ obj-$(CONFIG_RTC_DRV_PCF50633)	+= rtc-pcf50633.o
+ obj-$(CONFIG_RTC_DRV_PS3)	+= rtc-ps3.o
++obj-$(CONFIG_RTC_DRV_COH901331)	+= rtc-coh901331.o
+diff -puN /dev/null drivers/rtc/rtc-coh901331.c
 --- /dev/null
-+++ a/drivers/gpio/mc33880.c
-@@ -0,0 +1,196 @@
++++ a/drivers/rtc/rtc-coh901331.c
+@@ -0,0 +1,311 @@
 +/*
-+ * mc33880.c MC33880 high-side/low-side switch GPIO driver
-+ * Copyright (c) 2009 Intel Corporation
-+ *
-+ * This program is free software; you can redistribute it and/or modif=
-y
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ * Copyright (C) 2007-2009 ST-Ericsson AB
++ * License terms: GNU General Public License (GPL) version 2
++ * Real Time Clock interface for ST-Ericsson AB COH 901 331 RTC.
++ * Author: Linus Walleij <linus.walleij@stericsson.com>
++ * Based on rtc-pl031.c by Deepak Saxena <dsaxena@plexity.net>
++ * Copyright 2006 (c) MontaVista Software, Inc.
 + */
-+
-+/* Supports:
-+ * Freescale MC33880 high-side/low-side switch
-+ */
-+
 +#include <linux/init.h>
-+#include <linux/mutex.h>
-+#include <linux/spi/spi.h>
-+#include <linux/spi/mc33880.h>
-+#include <linux/gpio.h>
-+
-+#define DRIVER_NAME "mc33880"
-+
-+/*
-+ * Pin configurations, see MAX7301 datasheet page 6
-+ */
-+#define PIN_CONFIG_MASK 0x03
-+#define PIN_CONFIG_IN_PULLUP 0x03
-+#define PIN_CONFIG_IN_WO_PULLUP 0x02
-+#define PIN_CONFIG_OUT 0x01
-+
-+#define PIN_NUMBER 8
-+
++#include <linux/module.h>
++#include <linux/rtc.h>
++#include <linux/clk.h>
++#include <linux/interrupt.h>
++#include <linux/pm.h>
++#include <linux/platform_device.h>
++#include <linux/io.h>
 +
 +/*
-+ * Some registers must be read back to modify.
-+ * To save time we cache them here in memory
++ * Registers in the COH 901 331
 + */
-+struct mc33880 {
-+	struct mutex	lock;	/* protect from simultanous accesses */
-+	u8		port_config;
-+	struct gpio_chip chip;
-+	struct spi_device *spi;
++/* Alarm value 32bit (R/W) */
++#define COH901331_ALARM		0x00U
++/* Used to set current time 32bit (R/W) */
++#define COH901331_SET_TIME	0x04U
++/* Indication if current time is valid 32bit (R/-) */
++#define COH901331_VALID		0x08U
++/* Read the current time 32bit (R/-) */
++#define COH901331_CUR_TIME	0x0cU
++/* Event register for the "alarm" interrupt */
++#define COH901331_IRQ_EVENT	0x10U
++/* Mask register for the "alarm" interrupt */
++#define COH901331_IRQ_MASK	0x14U
++/* Force register for the "alarm" interrupt */
++#define COH901331_IRQ_FORCE	0x18U
++
++/*
++ * Reference to RTC block clock
++ * Notice that the frequent clk_enable()/clk_disable() on this
++ * clock is mainly to be able to turn on/off other clocks in the
++ * hierarchy as needed, the RTC clock is always on anyway.
++ */
++struct coh901331_port {
++	struct rtc_device *rtc;
++	struct clk *clk;
++	u32 phybase;
++	u32 physize;
++	void __iomem *virtbase;
++	int irq;
++#ifdef CONFIG_PM
++	u32 irqmaskstore;
++#endif
 +};
 +
-+static int mc33880_write_config(struct mc33880 *mc)
++static irqreturn_t coh901331_interrupt(int irq, void *data)
 +{
-+	return spi_write(mc->spi, &mc->port_config, sizeof(mc->port_config));
++	struct coh901331_port *rtap = data;
++
++	clk_enable(rtap->clk);
++	/* Ack IRQ */
++	writel(1, rtap->virtbase + COH901331_IRQ_EVENT);
++	clk_disable(rtap->clk);
++	/* Set alarm flag */
++	rtc_update_irq(rtap->rtc, 1, RTC_AF);
++
++	return IRQ_HANDLED;
 +}
 +
-+
-+static int __mc33880_set(struct mc33880 *mc, unsigned offset, int valu=
-e)
++static int coh901331_read_time(struct device *dev, struct rtc_time *tm)
 +{
-+	if (value)
-+		mc->port_config |=3D 1 << offset;
++	struct coh901331_port *rtap = dev_get_drvdata(dev);
++
++	clk_enable(rtap->clk);
++	/* Check if the time is valid */
++	if (readl(rtap->virtbase + COH901331_VALID)) {
++		rtc_time_to_tm(readl(rtap->virtbase + COH901331_CUR_TIME), tm);
++		clk_disable(rtap->clk);
++		return rtc_valid_tm(tm);
++	}
++	clk_disable(rtap->clk);
++	return -EINVAL;
++}
++
++static int coh901331_set_mmss(struct device *dev, unsigned long secs)
++{
++	struct coh901331_port *rtap = dev_get_drvdata(dev);
++
++	clk_enable(rtap->clk);
++	writel(secs, rtap->virtbase + COH901331_SET_TIME);
++	clk_disable(rtap->clk);
++
++	return 0;
++}
++
++static int coh901331_read_alarm(struct device *dev, struct rtc_wkalrm *alarm)
++{
++	struct coh901331_port *rtap = dev_get_drvdata(dev);
++
++	clk_enable(rtap->clk);
++	rtc_time_to_tm(readl(rtap->virtbase + COH901331_ALARM), &alarm->time);
++	alarm->pending = readl(rtap->virtbase + COH901331_IRQ_EVENT) & 1U;
++	alarm->enabled = readl(rtap->virtbase + COH901331_IRQ_MASK) & 1U;
++	clk_disable(rtap->clk);
++
++	return 0;
++}
++
++static int coh901331_set_alarm(struct device *dev, struct rtc_wkalrm *alarm)
++{
++	struct coh901331_port *rtap = dev_get_drvdata(dev);
++	unsigned long time;
++
++	rtc_tm_to_time(&alarm->time, &time);
++	clk_enable(rtap->clk);
++	writel(time, rtap->virtbase + COH901331_ALARM);
++	writel(alarm->enabled, rtap->virtbase + COH901331_IRQ_MASK);
++	clk_disable(rtap->clk);
++
++	return 0;
++}
++
++static int coh901331_alarm_irq_enable(struct device *dev, unsigned int enabled)
++{
++	struct coh901331_port *rtap = dev_get_drvdata(dev);
++
++	clk_enable(rtap->clk);
++	if (enabled)
++		writel(1, rtap->virtbase + COH901331_IRQ_MASK);
 +	else
-+		mc->port_config &=3D ~(1 << offset);
-+
-+	return mc33880_write_config(mc);
++		writel(0, rtap->virtbase + COH901331_IRQ_MASK);
++	clk_disable(rtap->clk);
 +}
 +
++static struct rtc_class_ops coh901331_ops = {
++	.read_time = coh901331_read_time,
++	.set_mmss = coh901331_set_mmss,
++	.read_alarm = coh901331_read_alarm,
++	.set_alarm = coh901331_set_alarm,
++	.alarm_irq_enable = coh901331_alarm_irq_enable,
++};
 +
-+static void mc33880_set(struct gpio_chip *chip, unsigned offset, int v=
-alue)
++static int __exit coh901331_remove(struct platform_device *pdev)
 +{
-+	struct mc33880 *mc =3D container_of(chip, struct mc33880, chip);
++	struct coh901331_port *rtap = dev_get_drvdata(&pdev->dev);
 +
-+	mutex_lock(&mc->lock);
-+
-+	__mc33880_set(mc, offset, value);
-+
-+	mutex_unlock(&mc->lock);
-+}
-+
-+static int __devinit mc33880_probe(struct spi_device *spi)
-+{
-+	struct mc33880 *mc;
-+	struct mc33880_platform_data *pdata;
-+	int ret;
-+
-+	pdata =3D spi->dev.platform_data;
-+	if (!pdata || !pdata->base) {
-+		dev_dbg(&spi->dev, "incorrect or missing platform data\n");
-+		return -EINVAL;
++	if (rtap) {
++		free_irq(rtap->irq, rtap);
++		rtc_device_unregister(rtap->rtc);
++		clk_put(rtap->clk);
++		iounmap(rtap->virtbase);
++		release_mem_region(rtap->phybase, rtap->physize);
++		platform_set_drvdata(pdev, NULL);
++		kfree(rtap);
 +	}
 +
-+	/*
-+	 * bits_per_word cannot be configured in platform data
-+	 */
-+	spi->bits_per_word =3D 8;
++	return 0;
++}
 +
-+	ret =3D spi_setup(spi);
-+	if (ret < 0)
-+		return ret;
 +
-+	mc =3D kzalloc(sizeof(struct mc33880), GFP_KERNEL);
-+	if (!mc)
++static int __init coh901331_probe(struct platform_device *pdev)
++{
++	int ret;
++	struct coh901331_port *rtap;
++	struct resource *res;
++
++	rtap = kzalloc(sizeof(struct coh901331_port), GFP_KERNEL);
++	if (!rtap)
 +		return -ENOMEM;
 +
-+	mutex_init(&mc->lock);
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!res) {
++		ret = -ENOENT;
++		goto out_no_resource;
++	}
++	rtap->phybase = res->start;
++	rtap->physize = resource_size(res);
 +
-+	dev_set_drvdata(&spi->dev, mc);
-+
-+	mc->spi =3D spi;
-+
-+	mc->chip.label =3D DRIVER_NAME,
-+	mc->chip.set =3D mc33880_set;
-+	mc->chip.base =3D pdata->base;
-+	mc->chip.ngpio =3D PIN_NUMBER;
-+	mc->chip.can_sleep =3D 1;
-+	mc->chip.dev =3D &spi->dev;
-+	mc->chip.owner =3D THIS_MODULE;
-+
-+	mc->port_config =3D 0x00;
-+	/* write twice, because during initialisation the first setting
-+	 * is just for testing SPI communication, and the second is the
-+	 * "real" configuration
-+	 */
-+	ret =3D mc33880_write_config(mc);
-+	mc->port_config =3D 0x00;
-+	if (!ret)
-+		ret =3D mc33880_write_config(mc);
-+
-+	if (ret) {
-+		printk(KERN_ERR "Failed writing to " DRIVER_NAME ": %d\n", ret);
-+		goto exit_destroy;
++	if (request_mem_region(rtap->phybase, rtap->physize,
++			       "rtc-coh901331") == NULL) {
++		ret = -EBUSY;
++		goto out_no_memregion;
 +	}
 +
-+	ret =3D gpiochip_add(&mc->chip);
-+	if (ret)
-+		goto exit_destroy;
++	rtap->virtbase = ioremap(rtap->phybase, rtap->physize);
++	if (!rtap->virtbase) {
++		ret = -ENOMEM;
++		goto out_no_remap;
++	}
 +
++	rtap->irq = platform_get_irq(pdev, 0);
++	if (request_irq(rtap->irq, coh901331_interrupt, IRQF_DISABLED,
++			"RTC COH 901 331 Alarm", rtap)) {
++		ret = -EIO;
++		goto out_no_irq;
++	}
++
++	rtap->clk = clk_get(&pdev->dev, NULL);
++	if (IS_ERR(rtap->clk)) {
++		ret = PTR_ERR(rtap->clk);
++		dev_err(&pdev->dev, "could not get clock\n");
++		goto out_no_clk;
++	}
++
++	/* We enable/disable the clock only to assure it works */
++	ret = clk_enable(rtap->clk);
++	if (ret) {
++		dev_err(&pdev->dev, "could not enable clock\n");
++		goto out_no_clk_enable;
++	}
++	clk_disable(rtap->clk);
++
++	rtap->rtc = rtc_device_register("coh901331", &pdev->dev, &coh901331_ops,
++					 THIS_MODULE);
++	if (IS_ERR(rtap->rtc)) {
++		ret = PTR_ERR(rtap->rtc);
++		goto out_no_rtc;
++	}
++
++	platform_set_drvdata(pdev, rtap);
++
++	return 0;
++
++ out_no_rtc:
++ out_no_clk_enable:
++	clk_put(rtap->clk);
++ out_no_clk:
++	free_irq(rtap->irq, rtap);
++ out_no_irq:
++	iounmap(rtap->virtbase);
++ out_no_remap:
++	platform_set_drvdata(pdev, NULL);
++ out_no_memregion:
++	release_mem_region(rtap->phybase, SZ_4K);
++ out_no_resource:
++	kfree(rtap);
 +	return ret;
-+
-+exit_destroy:
-+	dev_set_drvdata(&spi->dev, NULL);
-+	mutex_destroy(&mc->lock);
-+	kfree(mc);
-+	return ret;
 +}
 +
-+static int mc33880_remove(struct spi_device *spi)
++#ifdef CONFIG_PM
++static int coh901331_suspend(struct platform_device *pdev, pm_message_t state)
 +{
-+	struct mc33880 *mc;
-+	int ret;
++	struct coh901331_port *rtap = dev_get_drvdata(&pdev->dev);
 +
-+	mc =3D dev_get_drvdata(&spi->dev);
-+	if (mc =3D=3D NULL)
-+		return -ENODEV;
-+
-+	dev_set_drvdata(&spi->dev, NULL);
-+
-+	ret =3D gpiochip_remove(&mc->chip);
-+	if (!ret) {
-+		mutex_destroy(&mc->lock);
-+		kfree(mc);
-+	} else
-+		dev_err(&spi->dev, "Failed to remove the GPIO controller: %d\n",
-+			ret);
-+
-+	return ret;
++	/*
++	 * If this RTC alarm will be used for waking the system up,
++	 * don't disable it of course. Else we just disable the alarm
++	 * and await suspension.
++	 */
++	if (device_may_wakeup(&pdev->dev)) {
++		enable_irq_wake(rtap->irq);
++	} else {
++		clk_enable(rtap->clk);
++		rtap->irqmaskstore = readl(rtap->virtbase + COH901331_IRQ_MASK);
++		writel(0, rtap->virtbase + COH901331_IRQ_MASK);
++		clk_disable(rtap->clk);
++	}
++	return 0;
 +}
 +
-+static struct spi_driver mc33880_driver =3D {
-+	.driver =3D {
-+		.name		=3D DRIVER_NAME,
-+		.owner		=3D THIS_MODULE,
-+	},
-+	.probe		=3D mc33880_probe,
-+	.remove		=3D __devexit_p(mc33880_remove),
-+};
-+
-+static int __init mc33880_init(void)
++static int coh901331_resume(struct platform_device *pdev)
 +{
-+	return spi_register_driver(&mc33880_driver);
++	struct coh901331_port *rtap = dev_get_drvdata(&pdev->dev);
++
++	if (device_may_wakeup(&pdev->dev))
++		disable_irq_wake(rtap->irq);
++	else
++		clk_enable(rtap->clk);
++		writel(rtap->irqmaskstore, rtap->virtbase + COH901331_IRQ_MASK);
++		clk_disable(rtap->clk);
++	return 0;
 +}
-+/* register after spi postcore initcall and before
-+ * subsys initcalls that may rely on these GPIOs
-+ */
-+subsys_initcall(mc33880_init);
-+
-+static void __exit mc33880_exit(void)
-+{
-+	spi_unregister_driver(&mc33880_driver);
-+}
-+module_exit(mc33880_exit);
-+
-+MODULE_AUTHOR("Mocean Laboratories <info@mocean-labs.com>");
-+MODULE_LICENSE("GPL v2");
-+
-diff -puN /dev/null include/linux/spi/mc33880.h
---- /dev/null
-+++ a/include/linux/spi/mc33880.h
-@@ -0,0 +1,10 @@
-+#ifndef LINUX_SPI_MC33880_H
-+#define LINUX_SPI_MC33880_H
-+
-+struct mc33880_platform_data {
-+	/* number assigned to the first GPIO */
-+	unsigned	base;
-+};
-+
++#else
++#define coh901331_suspend NULL
++#define coh901331_resume NULL
 +#endif
 +
++static void coh901331_shutdown(struct platform_device *pdev)
++{
++	struct coh901331_port *rtap = dev_get_drvdata(&pdev->dev);
++
++	clk_enable(rtap->clk);
++	writel(0, rtap->virtbase + COH901331_IRQ_MASK);
++	clk_disable(rtap->clk);
++}
++
++static struct platform_driver coh901331_driver = {
++	.driver = {
++		.name = "rtc-coh901331",
++		.owner = THIS_MODULE,
++	},
++	.remove = __exit_p(coh901331_remove),
++	.suspend = coh901331_suspend,
++	.resume = coh901331_resume,
++	.shutdown = coh901331_shutdown,
++};
++
++static int __init coh901331_init(void)
++{
++	return platform_driver_probe(&coh901331_driver, coh901331_probe);
++}
++
++static void __exit coh901331_exit(void)
++{
++	platform_driver_unregister(&coh901331_driver);
++}
++
++module_init(coh901331_init);
++module_exit(coh901331_exit);
++
++MODULE_AUTHOR("Linus Walleij <linus.walleij@stericsson.com>");
++MODULE_DESCRIPTION("ST-Ericsson AB COH 901 331 RTC Driver");
++MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from richard.rojfors.ext@mocean=
--labs.com are
+Patches currently in -mm which might be from linus.ml.walleij@gmail.com are
 
 origin.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
