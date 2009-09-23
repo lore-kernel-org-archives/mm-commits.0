@@ -1,101 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlbfs-do-not-call-user_shm_lock-for-map_hugetlb-fix.patch added to -mm tree
-Date: Wed, 23 Sep 2009 13:42:05 -0700
-Message-ID: <200909232042.n8NKg5LD031211@imap1.linux-foundation.org>
+Subject: [merged] frv-arch-frv-kernel-debug-stubc-needs-start_kernelh.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 13:45:52 -0700
+Message-ID: <200909232045.n8NKjqox006314@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48876 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33681 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750992AbZIWUnM (ORCPT
+	by vger.kernel.org with ESMTP id S1750911AbZIWUqg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 16:43:12 -0400
+	Wed, 23 Sep 2009 16:46:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: mel@csn.ul.ie, agl@us.ibm.com, david@gibson.dropbear.id.au, ebmunson@us.ibm.com, hugh.dickins@tiscali.co.uk, lee.schermerhorn@hp.com, nickpiggin@yahoo.com.au, rientjes@google.com
+To: akpm@linux-foundation.org, dhowells@redhat.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hugetlbfs: do not call user_shm_lock() for MAP_HUGETLB fix
-has been added to the -mm tree.  Its filename is
-     hugetlbfs-do-not-call-user_shm_lock-for-map_hugetlb-fix.patch
+     frv: arch/frv/kernel/debug-stub.c needs start_kernel.h
+has been removed from the -mm tree.  Its filename was
+     frv-arch-frv-kernel-debug-stubc-needs-start_kernelh.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlbfs: do not call user_shm_lock() for MAP_HUGETLB fix
-From: From: Mel Gorman <mel@csn.ul.ie>
+Subject: frv: arch/frv/kernel/debug-stub.c needs start_kernel.h
+From: Andrew Morton <akpm@linux-foundation.org>
 
-hugetlbfs-allow-the-creation-of-files-suitable-for-map_private-on-the-vfs-internal-mount.patch
-alters can_do_hugetlb_shm() to check if a file is being created for shared
-memory or mmap().  If this returns false, we then unconditionally call
-user_shm_lock() triggering a warning.  This block should never be entered
-for MAP_HUGETLB.  This patch partially reverts the problem and fixes the
-check.
-
-Signed-off-by: Eric B Munson <ebmunson@us.ibm.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Adam Litke <agl@us.ibm.com>
-Cc: David Gibson <david@gibson.dropbear.id.au>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |   12 +++---------
- 1 file changed, 3 insertions(+), 9 deletions(-)
+ arch/frv/kernel/debug-stub.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/hugetlbfs/inode.c~hugetlbfs-do-not-call-user_shm_lock-for-map_hugetlb-fix fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~hugetlbfs-do-not-call-user_shm_lock-for-map_hugetlb-fix
-+++ a/fs/hugetlbfs/inode.c
-@@ -936,15 +936,9 @@ static struct file_system_type hugetlbfs
+diff -puN arch/frv/kernel/debug-stub.c~frv-arch-frv-kernel-debug-stubc-needs-start_kernelh arch/frv/kernel/debug-stub.c
+--- a/arch/frv/kernel/debug-stub.c~frv-arch-frv-kernel-debug-stubc-needs-start_kernelh
++++ a/arch/frv/kernel/debug-stub.c
+@@ -11,6 +11,7 @@
  
- static struct vfsmount *hugetlbfs_vfsmount;
- 
--static int can_do_hugetlb_shm(int creat_flags)
-+static int can_do_hugetlb_shm(void)
- {
--	if (creat_flags != HUGETLB_SHMFS_INODE)
--		return 0;
--	if (capable(CAP_IPC_LOCK))
--		return 1;
--	if (in_group_p(sysctl_hugetlb_shm_group))
--		return 1;
--	return 0;
-+	return capable(CAP_IPC_LOCK) || in_group_p(sysctl_hugetlb_shm_group);
- }
- 
- struct file *hugetlb_file_setup(const char *name, size_t size, int acctflag,
-@@ -960,7 +954,7 @@ struct file *hugetlb_file_setup(const ch
- 	if (!hugetlbfs_vfsmount)
- 		return ERR_PTR(-ENOENT);
- 
--	if (!can_do_hugetlb_shm(creat_flags)) {
-+	if (creat_flags == HUGETLB_SHMFS_INODE && !can_do_hugetlb_shm()) {
- 		*user = current_user();
- 		if (user_shm_lock(size, *user)) {
- 			WARN_ONCE(1,
+ #include <linux/string.h>
+ #include <linux/kernel.h>
++#include <linux/start_kernel.h>
+ #include <linux/signal.h>
+ #include <linux/sched.h>
+ #include <linux/init.h>
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-hugetlbfs-do-not-call-user_shm_lock-for-map_hugetlb-fix.patch
+frv-arch-frv-kernel-debug-stubc-needs-start_kernelh.patch
 linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+drivers-md-dm-log-userspace-basec-fix-warning.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+3x59x-fix-pci-resource-management.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+include-linux-credh-fix-build.patch
+serial167-fix-read-buffer-overflow.patch
+st-fix-test-of-value-range-in-st_set_options.patch
+drivers-usb-serial-sierrac-fix-config_pm=n-build.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+vfs-optimize-touch_time-too.patch
+fs-improve-remountro-vs-buffercache-coherency.patch
+fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
+percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+drivers-net-wireless-ath-ar9170-phyc-fix-uninitialised-variable.patch
 hugetlb_file_setup-use-c-not-cpp.patch
-mm-warn-once-when-a-page-is-freed-with-pg_mlocked-set.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
+readahead-add-blk_run_backing_dev.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+kernel-smpc-relocate-some-code.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs.patch
+page-types-add-feature-for-walking-process-address-space-checkpatch-fixes.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
+memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
+memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
+memcg-improve-resource-counter-scalability-checkpatch-fixes.patch
+exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
+exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
+elf-clean-up-fill_note_info-fix.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+reiser4-disable.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
