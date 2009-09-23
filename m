@@ -1,66 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mtd-prevent-a-read-from-eraseregions.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 13:05:18 -0700
-Message-ID: <200909232005.n8NK5Il7023123@imap1.linux-foundation.org>
+Subject: [merged] mtd-jffs2-fix-read-buffer-overflow.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 13:05:16 -0700
+Message-ID: <200909232005.n8NK5GoY023052@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59178 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46979 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752343AbZIWUKB (ORCPT
+	by vger.kernel.org with ESMTP id S1752345AbZIWUKC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 16:10:01 -0400
+	Wed, 23 Sep 2009 16:10:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: roel.kluin@gmail.com, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mtd: prevent a read from eraseregions[-1]
+     mtd/jffs2: fix read buffer overflow
 has been removed from the -mm tree.  Its filename was
-     mtd-prevent-a-read-from-eraseregions.patch
+     mtd-jffs2-fix-read-buffer-overflow.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd: prevent a read from eraseregions[-1]
+Subject: mtd/jffs2: fix read buffer overflow
 From: Roel Kluin <roel.kluin@gmail.com>
 
-If the erase region was found in the first iteration we read from
-eraseregions[-1]
+Prevent a read from mtd->eraseregions[-1]
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
 Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/mtdconcat.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/mtd/devices/lart.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/mtd/mtdconcat.c~mtd-prevent-a-read-from-eraseregions drivers/mtd/mtdconcat.c
---- a/drivers/mtd/mtdconcat.c~mtd-prevent-a-read-from-eraseregions
-+++ a/drivers/mtd/mtdconcat.c
-@@ -427,7 +427,7 @@ static int concat_erase(struct mtd_info 
- 		 * to-be-erased area begins. Verify that the starting
- 		 * offset is aligned to this region's erase size:
- 		 */
--		if (instr->addr & (erase_regions[i].erasesize - 1))
-+		if (i < 0 || instr->addr & (erase_regions[i].erasesize - 1))
- 			return -EINVAL;
+diff -puN drivers/mtd/devices/lart.c~mtd-jffs2-fix-read-buffer-overflow drivers/mtd/devices/lart.c
+--- a/drivers/mtd/devices/lart.c~mtd-jffs2-fix-read-buffer-overflow
++++ a/drivers/mtd/devices/lart.c
+@@ -393,7 +393,8 @@ static int flash_erase (struct mtd_info 
+ 	* erase range is aligned with the erase size which is in
+ 	* effect here.
+ 	*/
+-   if (instr->addr & (mtd->eraseregions[i].erasesize - 1)) return (-EINVAL);
++   if (i < 0 || (instr->addr & (mtd->eraseregions[i].erasesize - 1)))
++      return -EINVAL;
  
- 		/*
-@@ -440,8 +440,8 @@ static int concat_erase(struct mtd_info 
- 		/*
- 		 * check if the ending offset is aligned to this region's erase size
- 		 */
--		if ((instr->addr + instr->len) & (erase_regions[i].erasesize -
--						  1))
-+		if (i < 0 || ((instr->addr + instr->len) &
-+					(erase_regions[i].erasesize - 1)))
- 			return -EINVAL;
- 	}
+    /* Remember the erase region we start on */
+    first = i;
+@@ -409,7 +410,8 @@ static int flash_erase (struct mtd_info 
+    i--;
  
+    /* is the end aligned on a block boundary? */
+-   if ((instr->addr + instr->len) & (mtd->eraseregions[i].erasesize - 1)) return (-EINVAL);
++   if (i < 0 || ((instr->addr + instr->len) & (mtd->eraseregions[i].erasesize - 1)))
++      return -EINVAL;
+ 
+    addr = instr->addr;
+    len = instr->len;
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
