@@ -1,139 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: + frv-arch-frv-kernel-debug-stubc-needs-start_kernelh.patch added to -mm tree
-Date: Wed, 23 Sep 2009 09:14:44 -0700
-Message-ID: <200909231614.n8NGEiwh018836@imap1.linux-foundation.org>
+Subject: [merged] smbfs-read-buffer-overflow.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 12:52:03 -0700
+Message-ID: <200909231952.n8NJq3Do028357@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39009 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52911 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752753AbZIWQPQ (ORCPT
+	by vger.kernel.org with ESMTP id S1751345AbZIWTwc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 12:15:16 -0400
+	Wed, 23 Sep 2009 15:52:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dhowells@redhat.com, rusty@rustcorp.com.au
+To: roel.kluin@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     frv: arch/frv/kernel/debug-stub.c needs start_kernel.h
-has been added to the -mm tree.  Its filename is
-     frv-arch-frv-kernel-debug-stubc-needs-start_kernelh.patch
+     smbfs: read buffer overflow
+has been removed from the -mm tree.  Its filename was
+     smbfs-read-buffer-overflow.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: frv: arch/frv/kernel/debug-stub.c needs start_kernel.h
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: smbfs: read buffer overflow
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Cc: David Howells <dhowells@redhat.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+This function uses signed integers for the unix_date and local variables -
+if a negative number is supplied and the leap-year condition is not met,
+month will be 0, leading to a read of day_n[-1]
+
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/kernel/debug-stub.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/smbfs/proc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/frv/kernel/debug-stub.c~frv-arch-frv-kernel-debug-stubc-needs-start_kernelh arch/frv/kernel/debug-stub.c
---- a/arch/frv/kernel/debug-stub.c~frv-arch-frv-kernel-debug-stubc-needs-start_kernelh
-+++ a/arch/frv/kernel/debug-stub.c
-@@ -11,6 +11,7 @@
- 
- #include <linux/string.h>
- #include <linux/kernel.h>
-+#include <linux/start_kernel.h>
- #include <linux/signal.h>
- #include <linux/sched.h>
- #include <linux/init.h>
+diff -puN fs/smbfs/proc.c~smbfs-read-buffer-overflow fs/smbfs/proc.c
+--- a/fs/smbfs/proc.c~smbfs-read-buffer-overflow
++++ a/fs/smbfs/proc.c
+@@ -509,7 +509,7 @@ date_unix2dos(struct smb_sb_info *server
+ 		month = 2;
+ 	} else {
+ 		nl_day = (year & 3) || day <= 59 ? day : day - 1;
+-		for (month = 0; month < 12; month++)
++		for (month = 1; month < 12; month++)
+ 			if (day_n[month] > nl_day)
+ 				break;
+ 	}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 origin.patch
-include-linux-kmemcheckh-fix-a-trillion-warnings.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios.patch
-generic-ipi-make-struct-call_function_data-lockless.patch
-proc-connector-add-event-for-process-becoming-session-leader.patch
-build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it.patch
-mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
-sdio-add-cd-disable-support.patch
-sdio-add-mmc_quirk_lenient_fn0.patch
-at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver.patch
-mmc-core-sdio-suspend-resume-support.patch
-procfs-provide-stack-information-for-threads-v08.patch
-kcore-register-vmemmap-range.patch
-rtc-add-driver-for-mxcs-internal-rtc-module.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4.patch
-drivers-video-add-kmalloc-null-tests.patch
-drivers-video-tmiofbc-fix-uninitialised-return-value.patch
-v3-minixfs-add-missing-directory-type-checking.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-hwmon-driver-for-acpi-40-power-meters.patch
-drivers-md-dm-log-userspace-basec-fix-warning.patch
-drivers-dma-ioat-dma_v3c-fix-warnings.patch
-drivers-dma-ioat-dma_v2c-fix-warnings.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-checkincludespl-add-option-to-remove-duplicates-in-place.patch
-net-fix-config_net=n-build-on-sparc64.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-include-linux-credh-fix-build.patch
+dm-strncpy-does-not-null-terminate-string.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
+msp71xx-request_irq-failure-ignored-in-msp_pcibios_config_access.patch
+hfc_usb-fix-read-buffer-overflow.patch
+cyclades-read-buffer-overflow.patch
 serial167-fix-read-buffer-overflow.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
+zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
 st-fix-test-of-value-range-in-st_set_options.patch
-drivers-usb-serial-sierrac-fix-config_pm=n-build.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-vfs-optimize-touch_time-too.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-drivers-net-wireless-ath-ar9170-phyc-fix-uninitialised-variable.patch
-hugetlb_file_setup-use-c-not-cpp.patch
-readahead-add-blk_run_backing_dev.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
-frv-arch-frv-kernel-debug-stubc-needs-start_kernelh.patch
+drivers-staging-octeon-ethernet-rgmiic-dont-ignore-request_irq-return-code.patch
+frv-duplicate-output_buffer-of-e03.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-kernel-smpc-relocate-some-code.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs.patch
-page-types-add-feature-for-walking-process-address-space-checkpatch-fixes.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
-memcg-improve-resource-counter-scalability-checkpatch-fixes.patch
-exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
-exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
-elf-clean-up-fill_note_info-fix.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-reiser4-disable.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+mwave-fix-read-buffer-overflow.patch
+adfs-remove-redundant-test-on-unsigned.patch
+gru-allocation-may-fail-in-quicktest1.patch
 
