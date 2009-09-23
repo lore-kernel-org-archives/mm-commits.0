@@ -1,65 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mtd-jffs2-fix-read-buffer-overflow.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 13:05:16 -0700
-Message-ID: <200909232005.n8NK5GoY023052@imap1.linux-foundation.org>
+Subject: [merged] stmp3xxx-deallocation-with-negative-index-of-descriptors.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 13:03:59 -0700
+Message-ID: <200909232003.n8NK3xj3020355@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46979 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38714 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752345AbZIWUKC (ORCPT
+	by vger.kernel.org with ESMTP id S1752454AbZIWUKG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 16:10:02 -0400
+	Wed, 23 Sep 2009 16:10:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, dpervushin@embeddedalley.com, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mtd/jffs2: fix read buffer overflow
+     STMP3xxx: deallocation with negative index of descriptors[]
 has been removed from the -mm tree.  Its filename was
-     mtd-jffs2-fix-read-buffer-overflow.patch
+     stmp3xxx-deallocation-with-negative-index-of-descriptors.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd/jffs2: fix read buffer overflow
+Subject: STMP3xxx: deallocation with negative index of descriptors[]
 From: Roel Kluin <roel.kluin@gmail.com>
 
-Prevent a read from mtd->eraseregions[-1]
+The last deallocation is invalid. In the last iteration, i is -1.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Acked-by: dmitry pervushin <dpervushin@embeddedalley.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/devices/lart.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ arch/arm/plat-stmp3xxx/dma.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mtd/devices/lart.c~mtd-jffs2-fix-read-buffer-overflow drivers/mtd/devices/lart.c
---- a/drivers/mtd/devices/lart.c~mtd-jffs2-fix-read-buffer-overflow
-+++ a/drivers/mtd/devices/lart.c
-@@ -393,7 +393,8 @@ static int flash_erase (struct mtd_info 
- 	* erase range is aligned with the erase size which is in
- 	* effect here.
- 	*/
--   if (instr->addr & (mtd->eraseregions[i].erasesize - 1)) return (-EINVAL);
-+   if (i < 0 || (instr->addr & (mtd->eraseregions[i].erasesize - 1)))
-+      return -EINVAL;
- 
-    /* Remember the erase region we start on */
-    first = i;
-@@ -409,7 +410,8 @@ static int flash_erase (struct mtd_info 
-    i--;
- 
-    /* is the end aligned on a block boundary? */
--   if ((instr->addr + instr->len) & (mtd->eraseregions[i].erasesize - 1)) return (-EINVAL);
-+   if (i < 0 || ((instr->addr + instr->len) & (mtd->eraseregions[i].erasesize - 1)))
-+      return -EINVAL;
- 
-    addr = instr->addr;
-    len = instr->len;
+diff -puN arch/arm/plat-stmp3xxx/dma.c~stmp3xxx-deallocation-with-negative-index-of-descriptors arch/arm/plat-stmp3xxx/dma.c
+--- a/arch/arm/plat-stmp3xxx/dma.c~stmp3xxx-deallocation-with-negative-index-of-descriptors
++++ a/arch/arm/plat-stmp3xxx/dma.c
+@@ -264,7 +264,7 @@ int stmp3xxx_dma_make_chain(int ch, stru
+ 					stmp3xxx_dma_free_command(ch,
+ 								  &descriptors
+ 								  [i]);
+-				} while (i-- >= 0);
++				} while (i-- > 0);
+ 			}
+ 			return err;
+ 		}
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
