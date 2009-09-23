@@ -1,57 +1,170 @@
 From: akpm@linux-foundation.org
-Subject: [merged] frv-arch-frv-kernel-debug-stubc-needs-start_kernelh.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 13:45:52 -0700
-Message-ID: <200909232045.n8NKjqox006314@imap1.linux-foundation.org>
+Subject: [obsolete] kernel-smpc-relocate-some-code.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 13:46:41 -0700
+Message-ID: <200909232046.n8NKkfpf007920@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33681 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60249 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750911AbZIWUqg (ORCPT
+	by vger.kernel.org with ESMTP id S1752419AbZIWUrk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 16:46:36 -0400
+	Wed, 23 Sep 2009 16:47:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dhowells@redhat.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jens.axboe@oracle.com, mingo@elte.hu, nickpiggin@yahoo.com.au, peterz@infradead.org, rusty@rustcorp.com.au, xiaoguangrong@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     frv: arch/frv/kernel/debug-stub.c needs start_kernel.h
+     kernel/smp.c: relocate some code
 has been removed from the -mm tree.  Its filename was
-     frv-arch-frv-kernel-debug-stubc-needs-start_kernelh.patch
+     kernel-smpc-relocate-some-code.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: frv: arch/frv/kernel/debug-stub.c needs start_kernel.h
+Subject: kernel/smp.c: relocate some code
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: David Howells <dhowells@redhat.com>
+Move hotplug_cfd() to the end of the file so that we can see what changes
+the next patch (generic-ipi: fix the race between
+generic_smp_call_function_*() and hotplug_cfd()) actually makes to that
+function.
+
+Cc: Xiao Guangrong <xiaoguangrong@cn.fujitsu.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/kernel/debug-stub.c |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/smp.c |  102 ++++++++++++++++++++++++-------------------------
+ 1 file changed, 51 insertions(+), 51 deletions(-)
 
-diff -puN arch/frv/kernel/debug-stub.c~frv-arch-frv-kernel-debug-stubc-needs-start_kernelh arch/frv/kernel/debug-stub.c
---- a/arch/frv/kernel/debug-stub.c~frv-arch-frv-kernel-debug-stubc-needs-start_kernelh
-+++ a/arch/frv/kernel/debug-stub.c
-@@ -11,6 +11,7 @@
+diff -puN kernel/smp.c~kernel-smpc-relocate-some-code kernel/smp.c
+--- a/kernel/smp.c~kernel-smpc-relocate-some-code
++++ a/kernel/smp.c
+@@ -40,57 +40,6 @@ struct call_single_queue {
  
- #include <linux/string.h>
- #include <linux/kernel.h>
-+#include <linux/start_kernel.h>
- #include <linux/signal.h>
- #include <linux/sched.h>
- #include <linux/init.h>
+ static DEFINE_PER_CPU(struct call_function_data, cfd_data);
+ 
+-static int
+-hotplug_cfd(struct notifier_block *nfb, unsigned long action, void *hcpu)
+-{
+-	long cpu = (long)hcpu;
+-	struct call_function_data *cfd = &per_cpu(cfd_data, cpu);
+-
+-	switch (action) {
+-	case CPU_UP_PREPARE:
+-	case CPU_UP_PREPARE_FROZEN:
+-		if (!zalloc_cpumask_var_node(&cfd->cpumask, GFP_KERNEL,
+-				cpu_to_node(cpu)))
+-			return NOTIFY_BAD;
+-		break;
+-
+-#ifdef CONFIG_HOTPLUG_CPU
+-	case CPU_UP_CANCELED:
+-	case CPU_UP_CANCELED_FROZEN:
+-
+-	case CPU_DEAD:
+-	case CPU_DEAD_FROZEN:
+-		free_cpumask_var(cfd->cpumask);
+-		break;
+-#endif
+-	};
+-
+-	return NOTIFY_OK;
+-}
+-
+-static struct notifier_block __cpuinitdata hotplug_cfd_notifier = {
+-	.notifier_call		= hotplug_cfd,
+-};
+-
+-static int __cpuinit init_call_single_data(void)
+-{
+-	void *cpu = (void *)(long)smp_processor_id();
+-	int i;
+-
+-	for_each_possible_cpu(i) {
+-		struct call_single_queue *q = &per_cpu(call_single_queue, i);
+-
+-		spin_lock_init(&q->lock);
+-		INIT_LIST_HEAD(&q->list);
+-	}
+-
+-	hotplug_cfd(&hotplug_cfd_notifier, CPU_UP_PREPARE, cpu);
+-	register_cpu_notifier(&hotplug_cfd_notifier);
+-
+-	return 0;
+-}
+-early_initcall(init_call_single_data);
+-
+ /*
+  * csd_lock/csd_unlock used to serialize access to per-cpu csd resources
+  *
+@@ -489,3 +438,54 @@ void ipi_call_unlock_irq(void)
+ {
+ 	spin_unlock_irq(&call_function.lock);
+ }
++
++static int
++hotplug_cfd(struct notifier_block *nfb, unsigned long action, void *hcpu)
++{
++	long cpu = (long)hcpu;
++	struct call_function_data *cfd = &per_cpu(cfd_data, cpu);
++
++	switch (action) {
++	case CPU_UP_PREPARE:
++	case CPU_UP_PREPARE_FROZEN:
++		if (!zalloc_cpumask_var_node(&cfd->cpumask, GFP_KERNEL,
++				cpu_to_node(cpu)))
++			return NOTIFY_BAD;
++		break;
++
++#ifdef CONFIG_HOTPLUG_CPU
++	case CPU_UP_CANCELED:
++	case CPU_UP_CANCELED_FROZEN:
++
++	case CPU_DEAD:
++	case CPU_DEAD_FROZEN:
++		free_cpumask_var(cfd->cpumask);
++		break;
++#endif
++	};
++
++	return NOTIFY_OK;
++}
++
++static struct notifier_block __cpuinitdata hotplug_cfd_notifier = {
++	.notifier_call		= hotplug_cfd,
++};
++
++static int __cpuinit init_call_single_data(void)
++{
++	void *cpu = (void *)(long)smp_processor_id();
++	int i;
++
++	for_each_possible_cpu(i) {
++		struct call_single_queue *q = &per_cpu(call_single_queue, i);
++
++		spin_lock_init(&q->lock);
++		INIT_LIST_HEAD(&q->list);
++	}
++
++	hotplug_cfd(&hotplug_cfd_notifier, CPU_UP_PREPARE, cpu);
++	register_cpu_notifier(&hotplug_cfd_notifier);
++
++	return 0;
++}
++early_initcall(init_call_single_data);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-frv-arch-frv-kernel-debug-stubc-needs-start_kernelh.patch
 linux-next.patch
 linux-next-git-rejects.patch
 next-remove-localversion.patch
