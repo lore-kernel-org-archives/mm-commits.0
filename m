@@ -1,313 +1,878 @@
 From: akpm@linux-foundation.org
-Subject: [wrecked] mtd-m25p80-convert-to-device-table-matching.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 12:51:28 -0700
-Message-ID: <200909231951.n8NJpSW6027184@imap1.linux-foundation.org>
+Subject: [merged] documentation-fix-warnings-from-wmissing-prototypes-in-hostcflags.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 12:52:38 -0700
+Message-ID: <200909231952.n8NJqcWk029536@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38229 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39918 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751732AbZIWTxP (ORCPT
+	by vger.kernel.org with ESMTP id S1751732AbZIWTxR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 15:53:15 -0400
+	Wed, 23 Sep 2009 15:53:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avorontsov@ru.mvista.com, ben-linux@fluff.org, benh@kernel.crashing.org, dbrownell@users.sourceforge.net, dwmw2@infradead.org, grant.likely@secretlab.ca, khali@linux-fr.org, mm-commit
+To: ladinu.pub@gmail.com, sam@ravnborg.org, tsrk@tsrk.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mtd: m25p80: convert to device table matching
+     Documentation/: fix warnings from -Wmissing-prototypes in HOSTCFLAGS
 has been removed from the -mm tree.  Its filename was
-     mtd-m25p80-convert-to-device-table-matching.patch
+     documentation-fix-warnings-from-wmissing-prototypes-in-hostcflags.patch
 
-This patch was dropped because other changes were merged, which wrecked this patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd: m25p80: convert to device table matching
-From: Anton Vorontsov <avorontsov@ru.mvista.com>
+Subject: Documentation/: fix warnings from -Wmissing-prototypes in HOSTCFLAGS
+From: Ladinu Chandrasinghe <ladinu.pub@gmail.com>
 
-Convert the m25p80 driver so that now it uses .id_table for device
-matching, making it properly detect devices on OpenFirmware platforms
-(prior to this patch the driver misdetected non-JEDEC chips, seeing all
-chips as "m25p80").
+Fix up -Wmissing-prototypes in compileable userspace code, mainly under
+Documentation/.
 
-Also, now jedec_probe() only does jedec probing, nothing else.  If it is
-not able to detect a chip, NULL is returned and the driver fall backs to
-the information specified by the platform (platform_data, or exact ID).
-
-Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
-Cc: David Brownell <dbrownell@users.sourceforge.net>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Ben Dooks <ben-linux@fluff.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Ladinu Chandrasinghe <ladinu.pub@gmail.com>
+Signed-off-by: Trevor Keith <tsrk@tsrk.net>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/devices/m25p80.c |  150 ++++++++++++++++++---------------
- 1 file changed, 82 insertions(+), 68 deletions(-)
+ Documentation/accounting/getdelays.c          |   12 +-
+ Documentation/auxdisplay/cfag12864b-example.c |   22 ++---
+ Documentation/ia64/aliasing-test.c            |    8 -
+ Documentation/pcmcia/crc32hash.c              |    2 
+ Documentation/spi/spidev_test.c               |    4 
+ Documentation/video4linux/v4lgrab.c           |    2 
+ Documentation/vm/page-types.c                 |   52 ++++++------
+ Documentation/vm/slabinfo.c                   |   68 ++++++++--------
+ Documentation/watchdog/src/watchdog-test.c    |    2 
+ firmware/ihex2fw.c                            |    2 
+ scripts/genksyms/genksyms.c                   |    6 -
+ 11 files changed, 90 insertions(+), 90 deletions(-)
 
-diff -puN drivers/mtd/devices/m25p80.c~mtd-m25p80-convert-to-device-table-matching drivers/mtd/devices/m25p80.c
---- a/drivers/mtd/devices/m25p80.c~mtd-m25p80-convert-to-device-table-matching
-+++ a/drivers/mtd/devices/m25p80.c
-@@ -21,6 +21,7 @@
- #include <linux/interrupt.h>
- #include <linux/mutex.h>
- #include <linux/math64.h>
-+#include <linux/mod_devicetable.h>
- 
- #include <linux/mtd/mtd.h>
- #include <linux/mtd/partitions.h>
-@@ -462,8 +463,6 @@ static int m25p80_write(struct mtd_info 
-  */
- 
- struct flash_info {
--	char		*name;
--
- 	/* JEDEC id zero means "no ID" (most older chips); otherwise it has
- 	 * a high byte of zero plus three data bytes: the manufacturer id,
- 	 * then a two byte device id.
-@@ -481,77 +480,86 @@ struct flash_info {
- #define	SECT_4K		0x01		/* OPCODE_BE_4K works uniformly */
- };
- 
-+#define INFO(_jedec_id, _ext_id, _sector_size, _n_sectors, _flags)	\
-+	((kernel_ulong_t)&(struct flash_info) {				\
-+		.jedec_id = (_jedec_id),				\
-+		.ext_id = (_ext_id),					\
-+		.sector_size = (_sector_size),				\
-+		.n_sectors = (_n_sectors),				\
-+		.flags = (_flags),					\
-+	})
- 
- /* NOTE: double check command sets and memory organization when you add
-  * more flash chips.  This current list focusses on newer chips, which
-  * have been converging on command sets which including JEDEC ID.
-  */
--static struct flash_info __devinitdata m25p_data [] = {
--
-+static const struct spi_device_id m25p_ids[] = {
- 	/* Atmel -- some are (confusingly) marketed as "DataFlash" */
--	{ "at25fs010",  0x1f6601, 0, 32 * 1024, 4, SECT_4K, },
--	{ "at25fs040",  0x1f6604, 0, 64 * 1024, 8, SECT_4K, },
-+	{ "at25fs010",  INFO(0x1f6601, 0, 32 * 1024, 4, SECT_4K) },
-+	{ "at25fs040",  INFO(0x1f6604, 0, 64 * 1024, 8, SECT_4K) },
- 
--	{ "at25df041a", 0x1f4401, 0, 64 * 1024, 8, SECT_4K, },
--	{ "at25df641",  0x1f4800, 0, 64 * 1024, 128, SECT_4K, },
-+	{ "at25df041a", INFO(0x1f4401, 0, 64 * 1024, 8, SECT_4K) },
-+	{ "at25df641",  INFO(0x1f4800, 0, 64 * 1024, 128, SECT_4K) },
- 
--	{ "at26f004",   0x1f0400, 0, 64 * 1024, 8, SECT_4K, },
--	{ "at26df081a", 0x1f4501, 0, 64 * 1024, 16, SECT_4K, },
--	{ "at26df161a", 0x1f4601, 0, 64 * 1024, 32, SECT_4K, },
--	{ "at26df321",  0x1f4701, 0, 64 * 1024, 64, SECT_4K, },
-+	{ "at26f004",   INFO(0x1f0400, 0, 64 * 1024, 8, SECT_4K) },
-+	{ "at26df081a", INFO(0x1f4501, 0, 64 * 1024, 16, SECT_4K) },
-+	{ "at26df161a", INFO(0x1f4601, 0, 64 * 1024, 32, SECT_4K) },
-+	{ "at26df321",  INFO(0x1f4701, 0, 64 * 1024, 64, SECT_4K) },
- 
- 	/* Macronix */
--	{ "mx25l3205d", 0xc22016, 0, 64 * 1024, 64, },
--	{ "mx25l6405d", 0xc22017, 0, 64 * 1024, 128, },
--	{ "mx25l12805d", 0xc22018, 0, 64 * 1024, 256, },
--	{ "mx25l12855e", 0xc22618, 0, 64 * 1024, 256, },
-+	{ "mx25l3205d", INFO(0xc22016, 0, 64 * 1024, 64, 0) },
-+	{ "mx25l6405d", INFO(0xc22017, 0, 64 * 1024, 128, 0) },
-+	{ "mx25l12805d", INFO(0xc22018, 0, 64 * 1024, 256, 0) },
-+	{ "mx25l12855e", INFO(0xc22618, 0, 64 * 1024, 256, 0) },
- 
- 	/* Spansion -- single (large) sector size only, at least
- 	 * for the chips listed here (without boot sectors).
- 	 */
--	{ "s25sl004a", 0x010212, 0, 64 * 1024, 8, },
--	{ "s25sl008a", 0x010213, 0, 64 * 1024, 16, },
--	{ "s25sl016a", 0x010214, 0, 64 * 1024, 32, },
--	{ "s25sl032a", 0x010215, 0, 64 * 1024, 64, },
--	{ "s25sl064a", 0x010216, 0, 64 * 1024, 128, },
--        { "s25sl12800", 0x012018, 0x0300, 256 * 1024, 64, },
--	{ "s25sl12801", 0x012018, 0x0301, 64 * 1024, 256, },
-+	{ "s25sl004a",  INFO(0x010212, 0, 64 * 1024, 8, 0) },
-+	{ "s25sl008a",  INFO(0x010213, 0, 64 * 1024, 16, 0) },
-+	{ "s25sl016a",  INFO(0x010214, 0, 64 * 1024, 32, 0) },
-+	{ "s25sl032a",  INFO(0x010215, 0, 64 * 1024, 64, 0) },
-+	{ "s25sl064a",  INFO(0x010216, 0, 64 * 1024, 128, 0) },
-+	{ "s25sl12800", INFO(0x012018, 0x0300, 256 * 1024, 64, 0) },
-+	{ "s25sl12801", INFO(0x012018, 0x0301, 64 * 1024, 256, 0) },
- 
- 	/* SST -- large erase sizes are "overlays", "sectors" are 4K */
--	{ "sst25vf040b", 0xbf258d, 0, 64 * 1024, 8, SECT_4K, },
--	{ "sst25vf080b", 0xbf258e, 0, 64 * 1024, 16, SECT_4K, },
--	{ "sst25vf016b", 0xbf2541, 0, 64 * 1024, 32, SECT_4K, },
--	{ "sst25vf032b", 0xbf254a, 0, 64 * 1024, 64, SECT_4K, },
-+	{ "sst25vf040b", INFO(0xbf258d, 0, 64 * 1024, 8, SECT_4K) },
-+	{ "sst25vf080b", INFO(0xbf258e, 0, 64 * 1024, 16, SECT_4K) },
-+	{ "sst25vf016b", INFO(0xbf2541, 0, 64 * 1024, 32, SECT_4K) },
-+	{ "sst25vf032b", INFO(0xbf254a, 0, 64 * 1024, 64, SECT_4K) },
- 
- 	/* ST Microelectronics -- newer production may have feature updates */
--	{ "m25p05",  0x202010,  0, 32 * 1024, 2, },
--	{ "m25p10",  0x202011,  0, 32 * 1024, 4, },
--	{ "m25p20",  0x202012,  0, 64 * 1024, 4, },
--	{ "m25p40",  0x202013,  0, 64 * 1024, 8, },
--	{ "m25p80",         0,  0, 64 * 1024, 16, },
--	{ "m25p16",  0x202015,  0, 64 * 1024, 32, },
--	{ "m25p32",  0x202016,  0, 64 * 1024, 64, },
--	{ "m25p64",  0x202017,  0, 64 * 1024, 128, },
--	{ "m25p128", 0x202018, 0, 256 * 1024, 64, },
--
--	{ "m45pe10", 0x204011,  0, 64 * 1024, 2, },
--	{ "m45pe80", 0x204014,  0, 64 * 1024, 16, },
--	{ "m45pe16", 0x204015,  0, 64 * 1024, 32, },
-+	{ "m25p05",  INFO(0x202010,  0, 32 * 1024, 2, 0) },
-+	{ "m25p10",  INFO(0x202011,  0, 32 * 1024, 4, 0) },
-+	{ "m25p20",  INFO(0x202012,  0, 64 * 1024, 4, 0) },
-+	{ "m25p40",  INFO(0x202013,  0, 64 * 1024, 8, 0) },
-+	{ "m25p80",  INFO(0x202014,  0, 64 * 1024, 16, 0) },
-+	{ "m25p16",  INFO(0x202015,  0, 64 * 1024, 32, 0) },
-+	{ "m25p32",  INFO(0x202016,  0, 64 * 1024, 64, 0) },
-+	{ "m25p64",  INFO(0x202017,  0, 64 * 1024, 128, 0) },
-+	{ "m25p128", INFO(0x202018, 0, 256 * 1024, 64, 0) },
-+
-+	{ "m45pe10", INFO(0x204011,  0, 64 * 1024, 2, 0) },
-+	{ "m45pe80", INFO(0x204014,  0, 64 * 1024, 16, 0) },
-+	{ "m45pe16", INFO(0x204015,  0, 64 * 1024, 32, 0) },
- 
--	{ "m25pe80", 0x208014,  0, 64 * 1024, 16, },
--	{ "m25pe16", 0x208015,  0, 64 * 1024, 32, SECT_4K, },
-+	{ "m25pe80", INFO(0x208014,  0, 64 * 1024, 16, 0) },
-+	{ "m25pe16", INFO(0x208015,  0, 64 * 1024, 32, SECT_4K) },
- 
- 	/* Winbond -- w25x "blocks" are 64K, "sectors" are 4KiB */
--	{ "w25x10", 0xef3011, 0, 64 * 1024, 2, SECT_4K, },
--	{ "w25x20", 0xef3012, 0, 64 * 1024, 4, SECT_4K, },
--	{ "w25x40", 0xef3013, 0, 64 * 1024, 8, SECT_4K, },
--	{ "w25x80", 0xef3014, 0, 64 * 1024, 16, SECT_4K, },
--	{ "w25x16", 0xef3015, 0, 64 * 1024, 32, SECT_4K, },
--	{ "w25x32", 0xef3016, 0, 64 * 1024, 64, SECT_4K, },
--	{ "w25x64", 0xef3017, 0, 64 * 1024, 128, SECT_4K, },
-+	{ "w25x10", INFO(0xef3011, 0, 64 * 1024, 2, SECT_4K) },
-+	{ "w25x20", INFO(0xef3012, 0, 64 * 1024, 4, SECT_4K) },
-+	{ "w25x40", INFO(0xef3013, 0, 64 * 1024, 8, SECT_4K) },
-+	{ "w25x80", INFO(0xef3014, 0, 64 * 1024, 16, SECT_4K) },
-+	{ "w25x16", INFO(0xef3015, 0, 64 * 1024, 32, SECT_4K) },
-+	{ "w25x32", INFO(0xef3016, 0, 64 * 1024, 64, SECT_4K) },
-+	{ "w25x64", INFO(0xef3017, 0, 64 * 1024, 128, SECT_4K) },
-+	{ },
- };
-+MODULE_DEVICE_TABLE(spi, m25p_ids);
- 
--static struct flash_info *__devinit jedec_probe(struct spi_device *spi)
-+static const struct spi_device_id *__devinit jedec_probe(struct spi_device *spi)
- {
- 	int			tmp;
- 	u8			code = OPCODE_RDID;
-@@ -578,16 +586,14 @@ static struct flash_info *__devinit jede
- 
- 	ext_jedec = id[3] << 8 | id[4];
- 
--	for (tmp = 0, info = m25p_data;
--			tmp < ARRAY_SIZE(m25p_data);
--			tmp++, info++) {
-+	for (tmp = 0; tmp < ARRAY_SIZE(m25p_ids) - 1; tmp++) {
-+		info = (void *)m25p_ids[tmp].driver_data;
- 		if (info->jedec_id == jedec) {
- 			if (info->ext_id != 0 && info->ext_id != ext_jedec)
- 				continue;
--			return info;
-+			return &m25p_ids[tmp];
- 		}
- 	}
--	dev_err(&spi->dev, "unrecognized JEDEC id %06x\n", jedec);
- 	return NULL;
+diff -puN Documentation/accounting/getdelays.c~documentation-fix-warnings-from-wmissing-prototypes-in-hostcflags Documentation/accounting/getdelays.c
+--- a/Documentation/accounting/getdelays.c~documentation-fix-warnings-from-wmissing-prototypes-in-hostcflags
++++ a/Documentation/accounting/getdelays.c
+@@ -116,7 +116,7 @@ error:
  }
  
-@@ -599,6 +605,7 @@ static struct flash_info *__devinit jede
-  */
- static int __devinit m25p_probe(struct spi_device *spi)
+ 
+-int send_cmd(int sd, __u16 nlmsg_type, __u32 nlmsg_pid,
++static int send_cmd(int sd, __u16 nlmsg_type, __u32 nlmsg_pid,
+ 	     __u8 genl_cmd, __u16 nla_type,
+ 	     void *nla_data, int nla_len)
  {
-+	const struct spi_device_id	*id;
- 	struct flash_platform_data	*data;
- 	struct m25p			*flash;
- 	struct flash_info		*info;
-@@ -611,32 +618,38 @@ static int __devinit m25p_probe(struct s
- 	 */
- 	data = spi->dev.platform_data;
- 	if (data && data->type) {
--		for (i = 0, info = m25p_data;
--				i < ARRAY_SIZE(m25p_data);
--				i++, info++) {
--			if (strcmp(data->type, info->name) == 0)
--				break;
-+		for (i = 0; i < ARRAY_SIZE(m25p_ids) - 1; i++) {
-+			id = &m25p_ids[i];
-+			info = (void *)m25p_ids[i].driver_data;
-+			if (strcmp(data->type, id->name))
-+				continue;
-+			break;
- 		}
+@@ -160,7 +160,7 @@ int send_cmd(int sd, __u16 nlmsg_type, _
+  * Probe the controller in genetlink to find the family id
+  * for the TASKSTATS family
+  */
+-int get_family_id(int sd)
++static int get_family_id(int sd)
+ {
+ 	struct {
+ 		struct nlmsghdr n;
+@@ -190,7 +190,7 @@ int get_family_id(int sd)
+ 	return id;
+ }
  
- 		/* unrecognized chip? */
--		if (i == ARRAY_SIZE(m25p_data)) {
-+		if (i == ARRAY_SIZE(m25p_ids) - 1) {
- 			DEBUG(MTD_DEBUG_LEVEL0, "%s: unrecognized id %s\n",
- 					dev_name(&spi->dev), data->type);
- 			info = NULL;
+-void print_delayacct(struct taskstats *t)
++static void print_delayacct(struct taskstats *t)
+ {
+ 	printf("\n\nCPU   %15s%15s%15s%15s\n"
+ 	       "      %15llu%15llu%15llu%15llu\n"
+@@ -216,7 +216,7 @@ void print_delayacct(struct taskstats *t
+ 	       (unsigned long long)t->freepages_delay_total);
+ }
  
- 		/* recognized; is that chip really what's there? */
- 		} else if (info->jedec_id) {
--			struct flash_info	*chip = jedec_probe(spi);
-+			id = jedec_probe(spi);
+-void task_context_switch_counts(struct taskstats *t)
++static void task_context_switch_counts(struct taskstats *t)
+ {
+ 	printf("\n\nTask   %15s%15s\n"
+ 	       "       %15llu%15llu\n",
+@@ -224,7 +224,7 @@ void task_context_switch_counts(struct t
+ 	       (unsigned long long)t->nvcsw, (unsigned long long)t->nivcsw);
+ }
  
--			if (!chip || chip != info) {
-+			if (id != &m25p_ids[i]) {
- 				dev_warn(&spi->dev, "found %s, expected %s\n",
--						chip ? chip->name : "UNKNOWN",
--						info->name);
-+						id ? id->name : "UNKNOWN",
-+						m25p_ids[i].name);
- 				info = NULL;
- 			}
- 		}
--	} else
--		info = jedec_probe(spi);
-+	} else {
-+		id = jedec_probe(spi);
-+		if (!id)
-+			id = spi_get_device_id(spi);
-+
-+		info = (void *)id->driver_data;
-+	}
+-void print_cgroupstats(struct cgroupstats *c)
++static void print_cgroupstats(struct cgroupstats *c)
+ {
+ 	printf("sleeping %llu, blocked %llu, running %llu, stopped %llu, "
+ 		"uninterruptible %llu\n", (unsigned long long)c->nr_sleeping,
+@@ -235,7 +235,7 @@ void print_cgroupstats(struct cgroupstat
+ }
  
- 	if (!info)
- 		return -ENODEV;
-@@ -683,7 +696,7 @@ static int __devinit m25p_probe(struct s
  
- 	flash->mtd.dev.parent = &spi->dev;
+-void print_ioacct(struct taskstats *t)
++static void print_ioacct(struct taskstats *t)
+ {
+ 	printf("%s: read=%llu, write=%llu, cancelled_write=%llu\n",
+ 		t->ac_comm,
+diff -puN Documentation/auxdisplay/cfag12864b-example.c~documentation-fix-warnings-from-wmissing-prototypes-in-hostcflags Documentation/auxdisplay/cfag12864b-example.c
+--- a/Documentation/auxdisplay/cfag12864b-example.c~documentation-fix-warnings-from-wmissing-prototypes-in-hostcflags
++++ a/Documentation/auxdisplay/cfag12864b-example.c
+@@ -62,7 +62,7 @@ unsigned char cfag12864b_buffer[CFAG1286
+  * Unable to open: return = -1
+  * Unable to mmap: return = -2
+  */
+-int cfag12864b_init(char *path)
++static int cfag12864b_init(char *path)
+ {
+ 	cfag12864b_fd = open(path, O_RDWR);
+ 	if (cfag12864b_fd == -1)
+@@ -81,7 +81,7 @@ int cfag12864b_init(char *path)
+ /*
+  * exit a cfag12864b framebuffer device
+  */
+-void cfag12864b_exit(void)
++static void cfag12864b_exit(void)
+ {
+ 	munmap(cfag12864b_mem, CFAG12864B_SIZE);
+ 	close(cfag12864b_fd);
+@@ -90,7 +90,7 @@ void cfag12864b_exit(void)
+ /*
+  * set (x, y) pixel
+  */
+-void cfag12864b_set(unsigned char x, unsigned char y)
++static void cfag12864b_set(unsigned char x, unsigned char y)
+ {
+ 	if (CFAG12864B_CHECK(x, y))
+ 		cfag12864b_buffer[CFAG12864B_ADDRESS(x, y)] |=
+@@ -100,7 +100,7 @@ void cfag12864b_set(unsigned char x, uns
+ /*
+  * unset (x, y) pixel
+  */
+-void cfag12864b_unset(unsigned char x, unsigned char y)
++static void cfag12864b_unset(unsigned char x, unsigned char y)
+ {
+ 	if (CFAG12864B_CHECK(x, y))
+ 		cfag12864b_buffer[CFAG12864B_ADDRESS(x, y)] &=
+@@ -113,7 +113,7 @@ void cfag12864b_unset(unsigned char x, u
+  * Pixel off: return = 0
+  * Pixel on:  return = 1
+  */
+-unsigned char cfag12864b_isset(unsigned char x, unsigned char y)
++static unsigned char cfag12864b_isset(unsigned char x, unsigned char y)
+ {
+ 	if (CFAG12864B_CHECK(x, y))
+ 		if (cfag12864b_buffer[CFAG12864B_ADDRESS(x, y)] &
+@@ -126,7 +126,7 @@ unsigned char cfag12864b_isset(unsigned 
+ /*
+  * not (x, y) pixel
+  */
+-void cfag12864b_not(unsigned char x, unsigned char y)
++static void cfag12864b_not(unsigned char x, unsigned char y)
+ {
+ 	if (cfag12864b_isset(x, y))
+ 		cfag12864b_unset(x, y);
+@@ -137,7 +137,7 @@ void cfag12864b_not(unsigned char x, uns
+ /*
+  * fill (set all pixels)
+  */
+-void cfag12864b_fill(void)
++static void cfag12864b_fill(void)
+ {
+ 	unsigned short i;
  
--	dev_info(&spi->dev, "%s (%lld Kbytes)\n", info->name,
-+	dev_info(&spi->dev, "%s (%lld Kbytes)\n", id->name,
- 			(long long)flash->mtd.size >> 10);
+@@ -148,7 +148,7 @@ void cfag12864b_fill(void)
+ /*
+  * clear (unset all pixels)
+  */
+-void cfag12864b_clear(void)
++static void cfag12864b_clear(void)
+ {
+ 	unsigned short i;
  
- 	DEBUG(MTD_DEBUG_LEVEL2,
-@@ -769,6 +782,7 @@ static struct spi_driver m25p80_driver =
- 		.bus	= &spi_bus_type,
- 		.owner	= THIS_MODULE,
- 	},
-+	.id_table	= m25p_ids,
- 	.probe	= m25p_probe,
- 	.remove	= __devexit_p(m25p_remove),
+@@ -162,7 +162,7 @@ void cfag12864b_clear(void)
+  * Pixel off: src[i] = 0
+  * Pixel on:  src[i] > 0
+  */
+-void cfag12864b_format(unsigned char * matrix)
++static void cfag12864b_format(unsigned char * matrix)
+ {
+ 	unsigned char i, j, n;
  
+@@ -182,7 +182,7 @@ void cfag12864b_format(unsigned char * m
+ /*
+  * blit buffer to lcd
+  */
+-void cfag12864b_blit(void)
++static void cfag12864b_blit(void)
+ {
+ 	memcpy(cfag12864b_mem, cfag12864b_buffer, CFAG12864B_SIZE);
+ }
+@@ -198,7 +198,7 @@ void cfag12864b_blit(void)
+ 
+ #define EXAMPLES	6
+ 
+-void example(unsigned char n)
++static void example(unsigned char n)
+ {
+ 	unsigned short i, j;
+ 	unsigned char matrix[CFAG12864B_WIDTH * CFAG12864B_HEIGHT];
+diff -puN Documentation/ia64/aliasing-test.c~documentation-fix-warnings-from-wmissing-prototypes-in-hostcflags Documentation/ia64/aliasing-test.c
+--- a/Documentation/ia64/aliasing-test.c~documentation-fix-warnings-from-wmissing-prototypes-in-hostcflags
++++ a/Documentation/ia64/aliasing-test.c
+@@ -24,7 +24,7 @@
+ 
+ int sum;
+ 
+-int map_mem(char *path, off_t offset, size_t length, int touch)
++static int map_mem(char *path, off_t offset, size_t length, int touch)
+ {
+ 	int fd, rc;
+ 	void *addr;
+@@ -62,7 +62,7 @@ int map_mem(char *path, off_t offset, si
+ 	return 0;
+ }
+ 
+-int scan_tree(char *path, char *file, off_t offset, size_t length, int touch)
++static int scan_tree(char *path, char *file, off_t offset, size_t length, int touch)
+ {
+ 	struct dirent **namelist;
+ 	char *name, *path2;
+@@ -119,7 +119,7 @@ skip:
+ 
+ char buf[1024];
+ 
+-int read_rom(char *path)
++static int read_rom(char *path)
+ {
+ 	int fd, rc;
+ 	size_t size = 0;
+@@ -146,7 +146,7 @@ int read_rom(char *path)
+ 	return size;
+ }
+ 
+-int scan_rom(char *path, char *file)
++static int scan_rom(char *path, char *file)
+ {
+ 	struct dirent **namelist;
+ 	char *name, *path2;
+diff -puN Documentation/pcmcia/crc32hash.c~documentation-fix-warnings-from-wmissing-prototypes-in-hostcflags Documentation/pcmcia/crc32hash.c
+--- a/Documentation/pcmcia/crc32hash.c~documentation-fix-warnings-from-wmissing-prototypes-in-hostcflags
++++ a/Documentation/pcmcia/crc32hash.c
+@@ -8,7 +8,7 @@ $ ./crc32hash "Dual Speed"
+ #include <ctype.h>
+ #include <stdlib.h>
+ 
+-unsigned int crc32(unsigned char const *p, unsigned int len)
++static unsigned int crc32(unsigned char const *p, unsigned int len)
+ {
+ 	int i;
+ 	unsigned int crc = 0;
+diff -puN Documentation/spi/spidev_test.c~documentation-fix-warnings-from-wmissing-prototypes-in-hostcflags Documentation/spi/spidev_test.c
+--- a/Documentation/spi/spidev_test.c~documentation-fix-warnings-from-wmissing-prototypes-in-hostcflags
++++ a/Documentation/spi/spidev_test.c
+@@ -69,7 +69,7 @@ static void transfer(int fd)
+ 	puts("");
+ }
+ 
+-void print_usage(const char *prog)
++static void print_usage(const char *prog)
+ {
+ 	printf("Usage: %s [-DsbdlHOLC3]\n", prog);
+ 	puts("  -D --device   device to use (default /dev/spidev1.1)\n"
+@@ -85,7 +85,7 @@ void print_usage(const char *prog)
+ 	exit(1);
+ }
+ 
+-void parse_opts(int argc, char *argv[])
++static void parse_opts(int argc, char *argv[])
+ {
+ 	while (1) {
+ 		static const struct option lopts[] = {
+diff -puN Documentation/video4linux/v4lgrab.c~documentation-fix-warnings-from-wmissing-prototypes-in-hostcflags Documentation/video4linux/v4lgrab.c
+--- a/Documentation/video4linux/v4lgrab.c~documentation-fix-warnings-from-wmissing-prototypes-in-hostcflags
++++ a/Documentation/video4linux/v4lgrab.c
+@@ -89,7 +89,7 @@
+ 	}                                                               \
+ }
+ 
+-int get_brightness_adj(unsigned char *image, long size, int *brightness) {
++static int get_brightness_adj(unsigned char *image, long size, int *brightness) {
+   long i, tot = 0;
+   for (i=0;i<size*3;i++)
+     tot += image[i];
+diff -puN Documentation/vm/page-types.c~documentation-fix-warnings-from-wmissing-prototypes-in-hostcflags Documentation/vm/page-types.c
+--- a/Documentation/vm/page-types.c~documentation-fix-warnings-from-wmissing-prototypes-in-hostcflags
++++ a/Documentation/vm/page-types.c
+@@ -158,12 +158,12 @@ static uint64_t 	page_flags[HASH_SIZE];
+ 	type __min2 = (y);			\
+ 	__min1 < __min2 ? __min1 : __min2; })
+ 
+-unsigned long pages2mb(unsigned long pages)
++static unsigned long pages2mb(unsigned long pages)
+ {
+ 	return (pages * page_size) >> 20;
+ }
+ 
+-void fatal(const char *x, ...)
++static void fatal(const char *x, ...)
+ {
+ 	va_list ap;
+ 
+@@ -178,7 +178,7 @@ void fatal(const char *x, ...)
+  * page flag names
+  */
+ 
+-char *page_flag_name(uint64_t flags)
++static char *page_flag_name(uint64_t flags)
+ {
+ 	static char buf[65];
+ 	int present;
+@@ -197,7 +197,7 @@ char *page_flag_name(uint64_t flags)
+ 	return buf;
+ }
+ 
+-char *page_flag_longname(uint64_t flags)
++static char *page_flag_longname(uint64_t flags)
+ {
+ 	static char buf[1024];
+ 	int i, n;
+@@ -221,7 +221,7 @@ char *page_flag_longname(uint64_t flags)
+  * page list and summary
+  */
+ 
+-void show_page_range(unsigned long offset, uint64_t flags)
++static void show_page_range(unsigned long offset, uint64_t flags)
+ {
+ 	static uint64_t      flags0;
+ 	static unsigned long index;
+@@ -241,12 +241,12 @@ void show_page_range(unsigned long offse
+ 	count  = 1;
+ }
+ 
+-void show_page(unsigned long offset, uint64_t flags)
++static void show_page(unsigned long offset, uint64_t flags)
+ {
+ 	printf("%lu\t%s\n", offset, page_flag_name(flags));
+ }
+ 
+-void show_summary(void)
++static void show_summary(void)
+ {
+ 	int i;
+ 
+@@ -272,7 +272,7 @@ void show_summary(void)
+  * page flag filters
+  */
+ 
+-int bit_mask_ok(uint64_t flags)
++static int bit_mask_ok(uint64_t flags)
+ {
+ 	int i;
+ 
+@@ -289,7 +289,7 @@ int bit_mask_ok(uint64_t flags)
+ 	return 1;
+ }
+ 
+-uint64_t expand_overloaded_flags(uint64_t flags)
++static uint64_t expand_overloaded_flags(uint64_t flags)
+ {
+ 	/* SLOB/SLUB overload several page flags */
+ 	if (flags & BIT(SLAB)) {
+@@ -308,7 +308,7 @@ uint64_t expand_overloaded_flags(uint64_
+ 	return flags;
+ }
+ 
+-uint64_t well_known_flags(uint64_t flags)
++static uint64_t well_known_flags(uint64_t flags)
+ {
+ 	/* hide flags intended only for kernel hacker */
+ 	flags &= ~KPF_HACKERS_BITS;
+@@ -325,7 +325,7 @@ uint64_t well_known_flags(uint64_t flags
+  * page frame walker
+  */
+ 
+-int hash_slot(uint64_t flags)
++static int hash_slot(uint64_t flags)
+ {
+ 	int k = HASH_KEY(flags);
+ 	int i;
+@@ -352,7 +352,7 @@ int hash_slot(uint64_t flags)
+ 	exit(EXIT_FAILURE);
+ }
+ 
+-void add_page(unsigned long offset, uint64_t flags)
++static void add_page(unsigned long offset, uint64_t flags)
+ {
+ 	flags = expand_overloaded_flags(flags);
+ 
+@@ -371,7 +371,7 @@ void add_page(unsigned long offset, uint
+ 	total_pages++;
+ }
+ 
+-void walk_pfn(unsigned long index, unsigned long count)
++static void walk_pfn(unsigned long index, unsigned long count)
+ {
+ 	unsigned long batch;
+ 	unsigned long n;
+@@ -404,7 +404,7 @@ void walk_pfn(unsigned long index, unsig
+ 	}
+ }
+ 
+-void walk_addr_ranges(void)
++static void walk_addr_ranges(void)
+ {
+ 	int i;
+ 
+@@ -428,7 +428,7 @@ void walk_addr_ranges(void)
+  * user interface
+  */
+ 
+-const char *page_flag_type(uint64_t flag)
++static const char *page_flag_type(uint64_t flag)
+ {
+ 	if (flag & KPF_HACKERS_BITS)
+ 		return "(r)";
+@@ -437,7 +437,7 @@ const char *page_flag_type(uint64_t flag
+ 	return "   ";
+ }
+ 
+-void usage(void)
++static void usage(void)
+ {
+ 	int i, j;
+ 
+@@ -482,7 +482,7 @@ void usage(void)
+ 		"(r) raw mode bits  (o) overloaded bits\n");
+ }
+ 
+-unsigned long long parse_number(const char *str)
++static unsigned long long parse_number(const char *str)
+ {
+ 	unsigned long long n;
+ 
+@@ -494,16 +494,16 @@ unsigned long long parse_number(const ch
+ 	return n;
+ }
+ 
+-void parse_pid(const char *str)
++static void parse_pid(const char *str)
+ {
+ 	opt_pid = parse_number(str);
+ }
+ 
+-void parse_file(const char *name)
++static void parse_file(const char *name)
+ {
+ }
+ 
+-void add_addr_range(unsigned long offset, unsigned long size)
++static void add_addr_range(unsigned long offset, unsigned long size)
+ {
+ 	if (nr_addr_ranges >= MAX_ADDR_RANGES)
+ 		fatal("too much addr ranges\n");
+@@ -513,7 +513,7 @@ void add_addr_range(unsigned long offset
+ 	nr_addr_ranges++;
+ }
+ 
+-void parse_addr_range(const char *optarg)
++static void parse_addr_range(const char *optarg)
+ {
+ 	unsigned long offset;
+ 	unsigned long size;
+@@ -547,7 +547,7 @@ void parse_addr_range(const char *optarg
+ 	add_addr_range(offset, size);
+ }
+ 
+-void add_bits_filter(uint64_t mask, uint64_t bits)
++static void add_bits_filter(uint64_t mask, uint64_t bits)
+ {
+ 	if (nr_bit_filters >= MAX_BIT_FILTERS)
+ 		fatal("too much bit filters\n");
+@@ -557,7 +557,7 @@ void add_bits_filter(uint64_t mask, uint
+ 	nr_bit_filters++;
+ }
+ 
+-uint64_t parse_flag_name(const char *str, int len)
++static uint64_t parse_flag_name(const char *str, int len)
+ {
+ 	int i;
+ 
+@@ -577,7 +577,7 @@ uint64_t parse_flag_name(const char *str
+ 	return parse_number(str);
+ }
+ 
+-uint64_t parse_flag_names(const char *str, int all)
++static uint64_t parse_flag_names(const char *str, int all)
+ {
+ 	const char *p    = str;
+ 	uint64_t   flags = 0;
+@@ -596,7 +596,7 @@ uint64_t parse_flag_names(const char *st
+ 	return flags;
+ }
+ 
+-void parse_bits_mask(const char *optarg)
++static void parse_bits_mask(const char *optarg)
+ {
+ 	uint64_t mask;
+ 	uint64_t bits;
+@@ -621,7 +621,7 @@ void parse_bits_mask(const char *optarg)
+ }
+ 
+ 
+-struct option opts[] = {
++static struct option opts[] = {
+ 	{ "raw"       , 0, NULL, 'r' },
+ 	{ "pid"       , 1, NULL, 'p' },
+ 	{ "file"      , 1, NULL, 'f' },
+diff -puN Documentation/vm/slabinfo.c~documentation-fix-warnings-from-wmissing-prototypes-in-hostcflags Documentation/vm/slabinfo.c
+--- a/Documentation/vm/slabinfo.c~documentation-fix-warnings-from-wmissing-prototypes-in-hostcflags
++++ a/Documentation/vm/slabinfo.c
+@@ -87,7 +87,7 @@ int page_size;
+ 
+ regex_t pattern;
+ 
+-void fatal(const char *x, ...)
++static void fatal(const char *x, ...)
+ {
+ 	va_list ap;
+ 
+@@ -97,7 +97,7 @@ void fatal(const char *x, ...)
+ 	exit(EXIT_FAILURE);
+ }
+ 
+-void usage(void)
++static void usage(void)
+ {
+ 	printf("slabinfo 5/7/2007. (c) 2007 sgi.\n\n"
+ 		"slabinfo [-ahnpvtsz] [-d debugopts] [slab-regexp]\n"
+@@ -131,7 +131,7 @@ void usage(void)
+ 	);
+ }
+ 
+-unsigned long read_obj(const char *name)
++static unsigned long read_obj(const char *name)
+ {
+ 	FILE *f = fopen(name, "r");
+ 
+@@ -151,7 +151,7 @@ unsigned long read_obj(const char *name)
+ /*
+  * Get the contents of an attribute
+  */
+-unsigned long get_obj(const char *name)
++static unsigned long get_obj(const char *name)
+ {
+ 	if (!read_obj(name))
+ 		return 0;
+@@ -159,7 +159,7 @@ unsigned long get_obj(const char *name)
+ 	return atol(buffer);
+ }
+ 
+-unsigned long get_obj_and_str(const char *name, char **x)
++static unsigned long get_obj_and_str(const char *name, char **x)
+ {
+ 	unsigned long result = 0;
+ 	char *p;
+@@ -178,7 +178,7 @@ unsigned long get_obj_and_str(const char
+ 	return result;
+ }
+ 
+-void set_obj(struct slabinfo *s, const char *name, int n)
++static void set_obj(struct slabinfo *s, const char *name, int n)
+ {
+ 	char x[100];
+ 	FILE *f;
+@@ -192,7 +192,7 @@ void set_obj(struct slabinfo *s, const c
+ 	fclose(f);
+ }
+ 
+-unsigned long read_slab_obj(struct slabinfo *s, const char *name)
++static unsigned long read_slab_obj(struct slabinfo *s, const char *name)
+ {
+ 	char x[100];
+ 	FILE *f;
+@@ -215,7 +215,7 @@ unsigned long read_slab_obj(struct slabi
+ /*
+  * Put a size string together
+  */
+-int store_size(char *buffer, unsigned long value)
++static int store_size(char *buffer, unsigned long value)
+ {
+ 	unsigned long divisor = 1;
+ 	char trailer = 0;
+@@ -247,7 +247,7 @@ int store_size(char *buffer, unsigned lo
+ 	return n;
+ }
+ 
+-void decode_numa_list(int *numa, char *t)
++static void decode_numa_list(int *numa, char *t)
+ {
+ 	int node;
+ 	int nr;
+@@ -272,7 +272,7 @@ void decode_numa_list(int *numa, char *t
+ 	}
+ }
+ 
+-void slab_validate(struct slabinfo *s)
++static void slab_validate(struct slabinfo *s)
+ {
+ 	if (strcmp(s->name, "*") == 0)
+ 		return;
+@@ -280,7 +280,7 @@ void slab_validate(struct slabinfo *s)
+ 	set_obj(s, "validate", 1);
+ }
+ 
+-void slab_shrink(struct slabinfo *s)
++static void slab_shrink(struct slabinfo *s)
+ {
+ 	if (strcmp(s->name, "*") == 0)
+ 		return;
+@@ -290,7 +290,7 @@ void slab_shrink(struct slabinfo *s)
+ 
+ int line = 0;
+ 
+-void first_line(void)
++static void first_line(void)
+ {
+ 	if (show_activity)
+ 		printf("Name                   Objects      Alloc       Free   %%Fast Fallb O\n");
+@@ -302,7 +302,7 @@ void first_line(void)
+ /*
+  * Find the shortest alias of a slab
+  */
+-struct aliasinfo *find_one_alias(struct slabinfo *find)
++static struct aliasinfo *find_one_alias(struct slabinfo *find)
+ {
+ 	struct aliasinfo *a;
+ 	struct aliasinfo *best = NULL;
+@@ -318,18 +318,18 @@ struct aliasinfo *find_one_alias(struct 
+ 	return best;
+ }
+ 
+-unsigned long slab_size(struct slabinfo *s)
++static unsigned long slab_size(struct slabinfo *s)
+ {
+ 	return 	s->slabs * (page_size << s->order);
+ }
+ 
+-unsigned long slab_activity(struct slabinfo *s)
++static unsigned long slab_activity(struct slabinfo *s)
+ {
+ 	return 	s->alloc_fastpath + s->free_fastpath +
+ 		s->alloc_slowpath + s->free_slowpath;
+ }
+ 
+-void slab_numa(struct slabinfo *s, int mode)
++static void slab_numa(struct slabinfo *s, int mode)
+ {
+ 	int node;
+ 
+@@ -374,7 +374,7 @@ void slab_numa(struct slabinfo *s, int m
+ 	line++;
+ }
+ 
+-void show_tracking(struct slabinfo *s)
++static void show_tracking(struct slabinfo *s)
+ {
+ 	printf("\n%s: Kernel object allocation\n", s->name);
+ 	printf("-----------------------------------------------------------------------\n");
+@@ -392,7 +392,7 @@ void show_tracking(struct slabinfo *s)
+ 
+ }
+ 
+-void ops(struct slabinfo *s)
++static void ops(struct slabinfo *s)
+ {
+ 	if (strcmp(s->name, "*") == 0)
+ 		return;
+@@ -405,14 +405,14 @@ void ops(struct slabinfo *s)
+ 		printf("\n%s has no kmem_cache operations\n", s->name);
+ }
+ 
+-const char *onoff(int x)
++static const char *onoff(int x)
+ {
+ 	if (x)
+ 		return "On ";
+ 	return "Off";
+ }
+ 
+-void slab_stats(struct slabinfo *s)
++static void slab_stats(struct slabinfo *s)
+ {
+ 	unsigned long total_alloc;
+ 	unsigned long total_free;
+@@ -477,7 +477,7 @@ void slab_stats(struct slabinfo *s)
+ 			s->deactivate_to_tail, (s->deactivate_to_tail * 100) / total);
+ }
+ 
+-void report(struct slabinfo *s)
++static void report(struct slabinfo *s)
+ {
+ 	if (strcmp(s->name, "*") == 0)
+ 		return;
+@@ -518,7 +518,7 @@ void report(struct slabinfo *s)
+ 	slab_stats(s);
+ }
+ 
+-void slabcache(struct slabinfo *s)
++static void slabcache(struct slabinfo *s)
+ {
+ 	char size_str[20];
+ 	char dist_str[40];
+@@ -593,7 +593,7 @@ void slabcache(struct slabinfo *s)
+ /*
+  * Analyze debug options. Return false if something is amiss.
+  */
+-int debug_opt_scan(char *opt)
++static int debug_opt_scan(char *opt)
+ {
+ 	if (!opt || !opt[0] || strcmp(opt, "-") == 0)
+ 		return 1;
+@@ -642,7 +642,7 @@ int debug_opt_scan(char *opt)
+ 	return 1;
+ }
+ 
+-int slab_empty(struct slabinfo *s)
++static int slab_empty(struct slabinfo *s)
+ {
+ 	if (s->objects > 0)
+ 		return 0;
+@@ -657,7 +657,7 @@ int slab_empty(struct slabinfo *s)
+ 	return 1;
+ }
+ 
+-void slab_debug(struct slabinfo *s)
++static void slab_debug(struct slabinfo *s)
+ {
+ 	if (strcmp(s->name, "*") == 0)
+ 		return;
+@@ -717,7 +717,7 @@ void slab_debug(struct slabinfo *s)
+ 		set_obj(s, "trace", 1);
+ }
+ 
+-void totals(void)
++static void totals(void)
+ {
+ 	struct slabinfo *s;
+ 
+@@ -976,7 +976,7 @@ void totals(void)
+ 			b1,	b2,	b3);
+ }
+ 
+-void sort_slabs(void)
++static void sort_slabs(void)
+ {
+ 	struct slabinfo *s1,*s2;
+ 
+@@ -1005,7 +1005,7 @@ void sort_slabs(void)
+ 	}
+ }
+ 
+-void sort_aliases(void)
++static void sort_aliases(void)
+ {
+ 	struct aliasinfo *a1,*a2;
+ 
+@@ -1030,7 +1030,7 @@ void sort_aliases(void)
+ 	}
+ }
+ 
+-void link_slabs(void)
++static void link_slabs(void)
+ {
+ 	struct aliasinfo *a;
+ 	struct slabinfo *s;
+@@ -1048,7 +1048,7 @@ void link_slabs(void)
+ 	}
+ }
+ 
+-void alias(void)
++static void alias(void)
+ {
+ 	struct aliasinfo *a;
+ 	char *active = NULL;
+@@ -1079,7 +1079,7 @@ void alias(void)
+ }
+ 
+ 
+-void rename_slabs(void)
++static void rename_slabs(void)
+ {
+ 	struct slabinfo *s;
+ 	struct aliasinfo *a;
+@@ -1102,12 +1102,12 @@ void rename_slabs(void)
+ 	}
+ }
+ 
+-int slab_mismatch(char *slab)
++static int slab_mismatch(char *slab)
+ {
+ 	return regexec(&pattern, slab, 0, NULL, 0);
+ }
+ 
+-void read_slab_dir(void)
++static void read_slab_dir(void)
+ {
+ 	DIR *dir;
+ 	struct dirent *de;
+@@ -1209,7 +1209,7 @@ void read_slab_dir(void)
+ 		fatal("Too many aliases\n");
+ }
+ 
+-void output_slabs(void)
++static void output_slabs(void)
+ {
+ 	struct slabinfo *slab;
+ 
+diff -puN Documentation/watchdog/src/watchdog-test.c~documentation-fix-warnings-from-wmissing-prototypes-in-hostcflags Documentation/watchdog/src/watchdog-test.c
+--- a/Documentation/watchdog/src/watchdog-test.c~documentation-fix-warnings-from-wmissing-prototypes-in-hostcflags
++++ a/Documentation/watchdog/src/watchdog-test.c
+@@ -18,7 +18,7 @@ int fd;
+  * the PC Watchdog card to reset its internal timer so it doesn't trigger
+  * a computer reset.
+  */
+-void keep_alive(void)
++static void keep_alive(void)
+ {
+     int dummy;
+ 
+diff -puN firmware/ihex2fw.c~documentation-fix-warnings-from-wmissing-prototypes-in-hostcflags firmware/ihex2fw.c
+--- a/firmware/ihex2fw.c~documentation-fix-warnings-from-wmissing-prototypes-in-hostcflags
++++ a/firmware/ihex2fw.c
+@@ -56,7 +56,7 @@ static int output_records(int outfd);
+ static int sort_records = 0;
+ static int wide_records = 0;
+ 
+-int usage(void)
++static int usage(void)
+ {
+ 	fprintf(stderr, "ihex2fw: Convert ihex files into binary "
+ 		"representation for use by Linux kernel\n");
+diff -puN scripts/genksyms/genksyms.c~documentation-fix-warnings-from-wmissing-prototypes-in-hostcflags scripts/genksyms/genksyms.c
+--- a/scripts/genksyms/genksyms.c~documentation-fix-warnings-from-wmissing-prototypes-in-hostcflags
++++ a/scripts/genksyms/genksyms.c
+@@ -176,7 +176,7 @@ static int is_unknown_symbol(struct symb
+ 			strcmp(defn->string, "{") == 0);
+ }
+ 
+-struct symbol *__add_symbol(const char *name, enum symbol_type type,
++static struct symbol *__add_symbol(const char *name, enum symbol_type type,
+ 			    struct string_list *defn, int is_extern,
+ 			    int is_reference)
+ {
+@@ -265,7 +265,7 @@ struct symbol *add_symbol(const char *na
+ 	return __add_symbol(name, type, defn, is_extern, 0);
+ }
+ 
+-struct symbol *add_reference_symbol(const char *name, enum symbol_type type,
++static struct symbol *add_reference_symbol(const char *name, enum symbol_type type,
+ 				    struct string_list *defn, int is_extern)
+ {
+ 	return __add_symbol(name, type, defn, is_extern, 1);
+@@ -313,7 +313,7 @@ static int equal_list(struct string_list
+ 
+ #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
+ 
+-struct string_list *read_node(FILE *f)
++static struct string_list *read_node(FILE *f)
+ {
+ 	char buffer[256];
+ 	struct string_list node = {
 _
 
-Patches currently in -mm which might be from avorontsov@ru.mvista.com are
+Patches currently in -mm which might be from ladinu.pub@gmail.com are
 
 origin.patch
-linux-next.patch
-mtd-m25p80-convert-to-device-table-matching.patch
-mtd-m25p80-rework-probing-jedec-code.patch
-mtd-m25p80-add-support-for-cat25xxx-serial-eeproms.patch
-rtc-set-wakeup-capability-for-i2c-and-spi-rtc-drivers.patch
 
