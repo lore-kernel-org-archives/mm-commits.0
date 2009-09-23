@@ -1,163 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: [merged] blackfin-convert-to-use-arch_gettimeoffset.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 13:05:29 -0700
-Message-ID: <200909232005.n8NK5TgE023487@imap1.linux-foundation.org>
+Subject: [merged] gconfig-disable-typeahead-find-search-in-treeviews.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 13:04:38 -0700
+Message-ID: <200909232004.n8NK4cJq021711@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55410 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51903 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753709AbZIWUF6 (ORCPT
+	by vger.kernel.org with ESMTP id S1753916AbZIWUGB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 16:05:58 -0400
+	Wed, 23 Sep 2009 16:06:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: johnstul@us.ibm.com, vapier.adi@gmail.com, mm-commits@vger.kernel.org
+To: flameeyes@gmail.com, sam@ravnborg.org, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     blackfin: convert to use arch_gettimeoffset()
+     gconfig: disable "typeahead find" search in treeviews
 has been removed from the -mm tree.  Its filename was
-     blackfin-convert-to-use-arch_gettimeoffset.patch
+     gconfig-disable-typeahead-find-search-in-treeviews.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: blackfin: convert to use arch_gettimeoffset()
-From: john stultz <johnstul@us.ibm.com>
+Subject: gconfig: disable "typeahead find" search in treeviews
+=46rom: Diego Elio 'Flameeyes' Petten=F2 <flameeyes@gmail.com>
 
-Convert blackfin to use GENERIC_TIME via the arch_getoffset()
-infrastructure, reducing the amount of arch specific code we need to
-maintain.
+When typeahead find is enabled, using 'y', 'n' and 'm' to change the st=
+atus
+of the configuration items will also start up the search system, making=
+ you
+jump around the configuration.
 
-I've taken my best swing at converting this, but I'm not 100% confident
-I got it right. My cross-compiler is now out of date (gcc4.2) so I
-wasn't able to  check if it compiled. Any assistance from arch
-maintainers or testers to get this merged would be great.
+Disabling the enable_search property does not mean that search is not
+possible, it only disables the typeahead; to execute a search in the
+treeview, you can just call it up explicitly (i.e.: on most systems tha=
+t
+will be Ctrl-f).
 
-Signed-off-by: John Stultz <johnstul@us.ibm.com>
-Cc: Mike Frysinger <vapier.adi@gmail.com>
+Signed-off-by: Diego Elio 'Flameeyes' Petten=F2  <flameeyes@gmail.com>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/blackfin/Kconfig       |   10 +++--
- arch/blackfin/kernel/time.c |   63 +---------------------------------
- 2 files changed, 8 insertions(+), 65 deletions(-)
+ scripts/kconfig/gconf.glade |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/blackfin/Kconfig~blackfin-convert-to-use-arch_gettimeoffset arch/blackfin/Kconfig
---- a/arch/blackfin/Kconfig~blackfin-convert-to-use-arch_gettimeoffset
-+++ a/arch/blackfin/Kconfig
-@@ -229,7 +229,7 @@ endchoice
- 
- config SMP
- 	depends on BF561
--	select GENERIC_TIME
-+	select GENERIC_CLOCKEVENTS
- 	bool "Symmetric multi-processing support"
- 	---help---
- 	  This enables support for systems with more than one CPU,
-@@ -612,12 +612,10 @@ comment "Kernel Timer/Scheduler"
- source kernel/Kconfig.hz
- 
- config GENERIC_TIME
--	bool "Generic time"
--	default y
-+	def_bool y
- 
- config GENERIC_CLOCKEVENTS
- 	bool "Generic clock events"
--	depends on GENERIC_TIME
- 	default y
- 
- choice
-@@ -652,6 +650,10 @@ config GPTMR0_CLOCKSOURCE
- 	depends on GENERIC_CLOCKEVENTS
- 	depends on !TICKSOURCE_GPTMR0
- 
-+config ARCH_USES_GETTIMEOFFSET
-+	depends on !GENERIC_CLOCKEVENTS
-+	def_bool y
-+
- source kernel/time/Kconfig
- 
- comment "Misc"
-diff -puN arch/blackfin/kernel/time.c~blackfin-convert-to-use-arch_gettimeoffset arch/blackfin/kernel/time.c
---- a/arch/blackfin/kernel/time.c~blackfin-convert-to-use-arch_gettimeoffset
-+++ a/arch/blackfin/kernel/time.c
-@@ -81,11 +81,11 @@ time_sched_init(irqreturn_t(*timer_routi
- #endif
- }
- 
-+#ifdef CONFIG_ARCH_USES_GETTIMEOFFSET
- /*
-  * Should return useconds since last timer tick
-  */
--#ifndef CONFIG_GENERIC_TIME
--static unsigned long gettimeoffset(void)
-+u32 arch_gettimeoffset(void)
- {
- 	unsigned long offset;
- 	unsigned long clocks_per_jiffy;
-@@ -184,65 +184,6 @@ void __init time_init(void)
- 	time_sched_init(timer_interrupt);
- }
- 
--#ifndef CONFIG_GENERIC_TIME
--void do_gettimeofday(struct timeval *tv)
--{
--	unsigned long flags;
--	unsigned long seq;
--	unsigned long usec, sec;
--
--	do {
--		seq = read_seqbegin_irqsave(&xtime_lock, flags);
--		usec = gettimeoffset();
--		sec = xtime.tv_sec;
--		usec += (xtime.tv_nsec / NSEC_PER_USEC);
--	}
--	while (read_seqretry_irqrestore(&xtime_lock, seq, flags));
--
--	while (usec >= USEC_PER_SEC) {
--		usec -= USEC_PER_SEC;
--		sec++;
--	}
--
--	tv->tv_sec = sec;
--	tv->tv_usec = usec;
--}
--EXPORT_SYMBOL(do_gettimeofday);
--
--int do_settimeofday(struct timespec *tv)
--{
--	time_t wtm_sec, sec = tv->tv_sec;
--	long wtm_nsec, nsec = tv->tv_nsec;
--
--	if ((unsigned long)tv->tv_nsec >= NSEC_PER_SEC)
--		return -EINVAL;
--
--	write_seqlock_irq(&xtime_lock);
--	/*
--	 * This is revolting. We need to set the xtime.tv_usec
--	 * correctly. However, the value in this location is
--	 * is value at the last tick.
--	 * Discover what correction gettimeofday
--	 * would have done, and then undo it!
--	 */
--	nsec -= (gettimeoffset() * NSEC_PER_USEC);
--
--	wtm_sec = wall_to_monotonic.tv_sec + (xtime.tv_sec - sec);
--	wtm_nsec = wall_to_monotonic.tv_nsec + (xtime.tv_nsec - nsec);
--
--	set_normalized_timespec(&xtime, sec, nsec);
--	set_normalized_timespec(&wall_to_monotonic, wtm_sec, wtm_nsec);
--
--	ntp_clear();
--
--	write_sequnlock_irq(&xtime_lock);
--	clock_was_set();
--
--	return 0;
--}
--EXPORT_SYMBOL(do_settimeofday);
--#endif /* !CONFIG_GENERIC_TIME */
+diff -puN scripts/kconfig/gconf.glade~gconfig-disable-typeahead-find-se=
+arch-in-treeviews scripts/kconfig/gconf.glade
+--- a/scripts/kconfig/gconf.glade~gconfig-disable-typeahead-find-search=
+-in-treeviews
++++ a/scripts/kconfig/gconf.glade
+@@ -547,7 +547,7 @@
+ 		  <property name=3D"headers_visible">True</property>
+ 		  <property name=3D"rules_hint">False</property>
+ 		  <property name=3D"reorderable">False</property>
+-		  <property name=3D"enable_search">True</property>
++		  <property name=3D"enable_search">False</property>
+ 		  <signal name=3D"cursor_changed" handler=3D"on_treeview2_cursor_cha=
+nged" last_modification_time=3D"Sun, 12 Jan 2003 15:58:22 GMT"/>
+ 		  <signal name=3D"button_press_event" handler=3D"on_treeview1_button=
+_press_event" last_modification_time=3D"Sun, 12 Jan 2003 16:03:52 GMT"/=
+>
+ 		  <signal name=3D"key_press_event" handler=3D"on_treeview2_key_press=
+_event" last_modification_time=3D"Sun, 12 Jan 2003 16:11:44 GMT"/>
+@@ -582,7 +582,7 @@
+ 		      <property name=3D"headers_visible">True</property>
+ 		      <property name=3D"rules_hint">False</property>
+ 		      <property name=3D"reorderable">False</property>
+-		      <property name=3D"enable_search">True</property>
++		      <property name=3D"enable_search">False</property>
+ 		      <signal name=3D"cursor_changed" handler=3D"on_treeview2_cursor=
+_changed" last_modification_time=3D"Sun, 12 Jan 2003 15:57:55 GMT"/>
+ 		      <signal name=3D"button_press_event" handler=3D"on_treeview2_bu=
+tton_press_event" last_modification_time=3D"Sun, 12 Jan 2003 15:57:58 G=
+MT"/>
+ 		      <signal name=3D"key_press_event" handler=3D"on_treeview2_key_p=
+ress_event" last_modification_time=3D"Sun, 12 Jan 2003 15:58:01 GMT"/>
+_
+
+Patches currently in -mm which might be from flameeyes@gmail.com are
+
+linux-next.patch
+
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
