@@ -1,103 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: [folded] memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 15:29:51 -0700
-Message-ID: <200909232229.n8NMTped017956@imap1.linux-foundation.org>
+Subject: [folded] memory-controller-soft-limit-organize-cgroups-v9-fix.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 15:30:26 -0700
+Message-ID: <200909232230.n8NMURFi019092@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43128 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49406 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751453AbZIWW3u (ORCPT
+	by vger.kernel.org with ESMTP id S1751519AbZIWWag (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 18:29:50 -0400
+	Wed, 23 Sep 2009 18:30:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: hugh.dickins@tiscali.co.uk, balbir@linux.vnet.ibm.com, jirislaby@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, lizf@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg-add-comments-explaining-memory-barriers-checkpatch-fixes
+     memory controller: soft limit organize cgroups v9 fix
 has been removed from the -mm tree.  Its filename was
-     memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
+     memory-controller-soft-limit-organize-cgroups-v9-fix.patch
 
-This patch was dropped because it was folded into memcg-add-comments-explaining-memory-barriers.patch
+This patch was dropped because it was folded into memory-controller-soft-limit-organize-cgroups-v9.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-add-comments-explaining-memory-barriers-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memory controller: soft limit organize cgroups v9 fix
+From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
-ERROR: code indent should use tabs where possible
-#22: FILE: mm/memcontrol.c:1138:
-+ ^I * We access a page_cgroup asynchronously without lock_page_cgroup().$
+CONFIG_CGROUP_MEM_RES_CTLR=y CONFIG_PREEMPT=y mmotm fails to boot:
+Kernel panic - not syncing: No init found; after lots of scheduling
+while atomics, starting from when async_thread does sd_probe_async.
 
-ERROR: code indent should use tabs where possible
-#23: FILE: mm/memcontrol.c:1139:
-+ ^I * Especially when a page_cgroup is taken from a page, pc->mem_cgroup$
+mem_cgroup_soft_limit_check() was doing an unbalanced get_cpu(): don't
+get_cpu if we won't need it, and put_cpu if we did get_cpu.
 
-ERROR: code indent should use tabs where possible
-#24: FILE: mm/memcontrol.c:1140:
-+ ^I * is accessed after testing USED bit. To make pc->mem_cgroup visible$
+And fix the silliness of passing it an "over_soft_limit" argument
+that just tells it to return false when false.
 
-ERROR: code indent should use tabs where possible
-#25: FILE: mm/memcontrol.c:1141:
-+ ^I * before USED bit, we need memory barrier here.$
-
-ERROR: code indent should use tabs where possible
-#26: FILE: mm/memcontrol.c:1142:
-+ ^I * See mem_cgroup_add_lru_list(), etc.$
-
-ERROR: code indent should use tabs where possible
-#27: FILE: mm/memcontrol.c:1143:
-+ ^I */$
-
-total: 6 errors, 0 warnings, 13 lines checked
-
-./patches/memcg-add-comments-explaining-memory-barriers.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Tested-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Reviewed-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Reported-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/memcontrol.c |   14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-add-comments-explaining-memory-barriers-checkpatch-fixes mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-add-comments-explaining-memory-barriers-checkpatch-fixes
+diff -puN mm/memcontrol.c~memory-controller-soft-limit-organize-cgroups-v9-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~memory-controller-soft-limit-organize-cgroups-v9-fix
 +++ a/mm/memcontrol.c
-@@ -1135,11 +1135,11 @@ static void __mem_cgroup_commit_charge(s
+@@ -334,23 +334,21 @@ mem_cgroup_remove_exceeded(struct mem_cg
+ 	spin_unlock(&mctz->lock);
+ }
  
- 	pc->mem_cgroup = mem;
- 	/*
-- 	 * We access a page_cgroup asynchronously without lock_page_cgroup().
-- 	 * Especially when a page_cgroup is taken from a page, pc->mem_cgroup
-- 	 * is accessed after testing USED bit. To make pc->mem_cgroup visible
-- 	 * before USED bit, we need memory barrier here.
-- 	 * See mem_cgroup_add_lru_list(), etc.
-+	 * We access a page_cgroup asynchronously without lock_page_cgroup().
-+	 * Especially when a page_cgroup is taken from a page, pc->mem_cgroup
-+	 * is accessed after testing USED bit. To make pc->mem_cgroup visible
-+	 * before USED bit, we need memory barrier here.
-+	 * See mem_cgroup_add_lru_list(), etc.
-  	 */
- 	smp_wmb();
- 	switch (ctype) {
+-static bool mem_cgroup_soft_limit_check(struct mem_cgroup *mem,
+-					bool over_soft_limit)
++static bool mem_cgroup_soft_limit_check(struct mem_cgroup *mem)
+ {
+ 	bool ret = false;
+-	int cpu = get_cpu();
++	int cpu;
+ 	s64 val;
+ 	struct mem_cgroup_stat_cpu *cpustat;
+ 
+-	if (!over_soft_limit)
+-		return ret;
+-
++	cpu = get_cpu();
+ 	cpustat = &mem->stat.cpustat[cpu];
+ 	val = __mem_cgroup_stat_read_local(cpustat, MEM_CGROUP_STAT_EVENTS);
+ 	if (unlikely(val > SOFTLIMIT_EVENTS_THRESH)) {
+ 		__mem_cgroup_stat_reset_safe(cpustat, MEM_CGROUP_STAT_EVENTS);
+ 		ret = true;
+ 	}
++	put_cpu();
+ 	return ret;
+ }
+ 
+@@ -1231,7 +1229,7 @@ static int __mem_cgroup_try_charge(struc
+ 	if (soft_fail_res) {
+ 		mem_over_soft_limit =
+ 			mem_cgroup_from_res_counter(soft_fail_res, res);
+-		if (mem_cgroup_soft_limit_check(mem_over_soft_limit, true))
++		if (mem_cgroup_soft_limit_check(mem_over_soft_limit))
+ 			mem_cgroup_update_tree(mem_over_soft_limit, page);
+ 	}
+ 	return 0;
+@@ -1762,7 +1760,7 @@ __mem_cgroup_uncharge_common(struct page
+ 	mz = page_cgroup_zoneinfo(pc);
+ 	unlock_page_cgroup(pc);
+ 
+-	if (mem_cgroup_soft_limit_check(mem, soft_limit_excess))
++	if (soft_limit_excess && mem_cgroup_soft_limit_check(mem))
+ 		mem_cgroup_update_tree(mem, page);
+ 	/* at swapout, this memcg will be accessed to record to swap */
+ 	if (ctype != MEM_CGROUP_CHARGE_TYPE_SWAPOUT)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
 
 origin.patch
-page-types-add-feature-for-walking-process-address-space.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup.patch
-memcg-add-comments-explaining-memory-barriers.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
-memcg-improve-resource-counter-scalability-checkpatch-fixes.patch
-exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
-exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
-elf-clean-up-fill_note_info-fix.patch
+ksm-change-default-values-to-better-fit-into-mainline-kernel.patch
+hugetlbfs-do-not-call-user_shm_lock-for-map_hugetlb-fix.patch
+memory-controller-soft-limit-organize-cgroups-v9.patch
+memory-controller-soft-limit-organize-cgroups-v9-fix.patch
 
