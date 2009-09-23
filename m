@@ -1,73 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [merged] viafb-fix-ioremap_nocache-error-handling.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 13:01:40 -0700
-Message-ID: <200909232001.n8NK1eWX015600@imap1.linux-foundation.org>
+Subject: [merged] omapfb-fix-coding-style-remove-dead-line.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 13:00:52 -0700
+Message-ID: <200909232000.n8NK0qrd013948@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39973 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49009 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752212AbZIWUKJ (ORCPT
+	by vger.kernel.org with ESMTP id S1752788AbZIWUKN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 16:10:09 -0400
+	Wed, 23 Sep 2009 16:10:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: FlorianSchandinat@gmx.de, JosephChan@via.com.tw, ScottFang@viatech.com.cn, corbet@lwn.net, laforge@gnumonks.org, mm-commits@vger.kernel.org
+To: arunedarath@mistralsolutions.com, imre.deak@nokia.com, krzysztof.h1@wp.pl, linux@arm.linux.org.uk, tony@atomide.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     viafb: fix ioremap_nocache error handling
+     omapfb: fix coding style / remove dead line
 has been removed from the -mm tree.  Its filename was
-     viafb-fix-ioremap_nocache-error-handling.patch
+     omapfb-fix-coding-style-remove-dead-line.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: viafb: fix ioremap_nocache error handling
-From: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Subject: omapfb: fix coding style / remove dead line
+From: arun c <arunedarath@mistralsolutions.com>
 
-Correct the returned error code for remapping the video framebuffer. 
-Introduce error handling for remapping MMIO register address space to
-avoid a NULL pointer dereference.  Disable hardware acceleration if
-remapping MMIO register address space failed as those registers are only
-used for hardware acceleration.
+- use __iomem type attribute where appropriate
+- expand (a ? : b) to (a ? a : b)
+As suggested by Russel King <linux@arm.linux.org.uk>
 
-Signed-off-by: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Cc: Scott Fang <ScottFang@viatech.com.cn>
-Cc: Joseph Chan <JosephChan@via.com.tw>
-Cc: Harald Welte <laforge@gnumonks.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
+- remove a dead line from omapfb_main.c
+
+Signed-off-by: Arun C <arunedarath@mistralsolutions.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Imre Deak <imre.deak@nokia.com>
+Acked-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/via/viafbdev.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ arch/arm/plat-omap/include/mach/omapfb.h |    4 ++--
+ drivers/video/omap/omapfb_main.c         |    5 ++---
+ 2 files changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN drivers/video/via/viafbdev.c~viafb-fix-ioremap_nocache-error-handling drivers/video/via/viafbdev.c
---- a/drivers/video/via/viafbdev.c~viafb-fix-ioremap_nocache-error-handling
-+++ a/drivers/video/via/viafbdev.c
-@@ -2134,12 +2134,16 @@ static int __devinit via_pci_probe(void)
+diff -puN arch/arm/plat-omap/include/mach/omapfb.h~omapfb-fix-coding-style-remove-dead-line arch/arm/plat-omap/include/mach/omapfb.h
+--- a/arch/arm/plat-omap/include/mach/omapfb.h~omapfb-fix-coding-style-remove-dead-line
++++ a/arch/arm/plat-omap/include/mach/omapfb.h
+@@ -276,8 +276,8 @@ typedef int (*omapfb_notifier_callback_t
+ 					  void *fbi);
  
- 	if (!viaparinfo->fbmem_virt) {
- 		printk(KERN_INFO "ioremap failed\n");
--		return -1;
-+		return -ENOMEM;
- 	}
+ struct omapfb_mem_region {
+-	dma_addr_t	paddr;
+-	void		*vaddr;
++	u32		paddr;
++	void __iomem	*vaddr;
+ 	unsigned long	size;
+ 	u8		type;		/* OMAPFB_PLANE_MEM_* */
+ 	unsigned	alloc:1;	/* allocated by the driver */
+diff -puN drivers/video/omap/omapfb_main.c~omapfb-fix-coding-style-remove-dead-line drivers/video/omap/omapfb_main.c
+--- a/drivers/video/omap/omapfb_main.c~omapfb-fix-coding-style-remove-dead-line
++++ a/drivers/video/omap/omapfb_main.c
+@@ -564,7 +564,6 @@ static int set_fb_var(struct fb_info *fb
+ 		var->xoffset = var->xres_virtual - var->xres;
+ 	if (var->yres + var->yoffset > var->yres_virtual)
+ 		var->yoffset = var->yres_virtual - var->yres;
+-	line_size = var->xres * bpp / 8;
  
- 	viafb_get_mmio_info(&viaparinfo->mmio_base, &viaparinfo->mmio_len);
- 	viaparinfo->io_virt = ioremap_nocache(viaparinfo->mmio_base,
- 		viaparinfo->mmio_len);
-+	if (!viaparinfo->io_virt) {
-+		printk(KERN_WARNING "ioremap failed: hardware acceleration disabled\n");
-+		viafb_accel = 0;
-+	}
+ 	if (plane->color_mode == OMAPFB_COLOR_RGB444) {
+ 		var->red.offset	  = 8; var->red.length	 = 4;
+@@ -1723,8 +1722,8 @@ static int omapfb_do_probe(struct platfo
  
- 	viafbinfo->node = 0;
- 	viafbinfo->fbops = &viafb_ops;
+ 	pr_info("omapfb: configured for panel %s\n", fbdev->panel->name);
+ 
+-	def_vxres = def_vxres ? : fbdev->panel->x_res;
+-	def_vyres = def_vyres ? : fbdev->panel->y_res;
++	def_vxres = def_vxres ? def_vxres : fbdev->panel->x_res;
++	def_vyres = def_vyres ? def_vyres : fbdev->panel->y_res;
+ 
+ 	init_state++;
+ 
 _
 
-Patches currently in -mm which might be from FlorianSchandinat@gmx.de are
+Patches currently in -mm which might be from arunedarath@mistralsolutions.com are
 
 origin.patch
 
