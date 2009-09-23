@@ -1,90 +1,204 @@
 From: akpm@linux-foundation.org
-Subject: [merged] proc-kcore-update-statst_size-after-memory-hotplug.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 12:57:18 -0700
-Message-ID: <200909231957.n8NJvI2V006666@imap1.linux-foundation.org>
+Subject: [merged] spi-add-support-for-device-table-matching.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 12:57:53 -0700
+Message-ID: <200909231957.n8NJvrFL007816@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48829 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35335 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753811AbZIWT7x (ORCPT
+	by vger.kernel.org with ESMTP id S1753613AbZIWT7w (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 15:59:53 -0400
+	Wed, 23 Sep 2009 15:59:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
+To: avorontsov@ru.mvista.com, ben-linux@fluff.org, benh@kernel.crashing.org, dbrownell@users.sourceforge.net, dwmw2@infradead.org, grant.likely@secretlab.ca, khali@linux-fr.org, mm-commit
 
 
 The patch titled
-     /proc/kcore: update stat.st_size after memory hotplug
+     spi: add support for device table matching
 has been removed from the -mm tree.  Its filename was
-     proc-kcore-update-statst_size-after-memory-hotplug.patch
+     spi-add-support-for-device-table-matching.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: /proc/kcore: update stat.st_size after memory hotplug
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: spi: add support for device table matching
+From: Anton Vorontsov <avorontsov@ru.mvista.com>
 
-After memory hotplug (or other events in future), kcore size can be
-modified.
+With this patch spi drivers can use standard spi_driver.id_table and
+MODULE_DEVICE_TABLE() mechanisms to bind against the devices.  Just like
+we do with I2C drivers.
 
-To update inode->i_size, we have to know inode/dentry but we can't get it
-from inside /proc directly.  But considerinyg memory hotplug, kcore image
-is updated only when it's opened.  Then, updating inode->i_size at open()
-is enough.
+This is useful when a single driver supports several variants of devices
+but it is not possible to detect them in run-time (like non-JEDEC chips
+probing in drivers/mtd/devices/m25p80.c), and when platform_data usage is
+overkill.
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: WANG Cong <xiyou.wangcong@gmail.com>
+This patch also makes life a lot easier on OpenFirmware platforms, since
+with OF we extensively use proper device IDs in modaliases.
+
+Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Ben Dooks <ben-linux@fluff.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/kcore.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/spi/spi.c               |   23 +++++++++++++++++++++++
+ include/linux/mod_devicetable.h |   10 ++++++++++
+ include/linux/spi/spi.h         |   10 ++++++++--
+ scripts/mod/file2alias.c        |   13 +++++++++++++
+ 4 files changed, 54 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/kcore.c~proc-kcore-update-statst_size-after-memory-hotplug fs/proc/kcore.c
---- a/fs/proc/kcore.c~proc-kcore-update-statst_size-after-memory-hotplug
-+++ a/fs/proc/kcore.c
-@@ -546,6 +546,11 @@ static int open_kcore(struct inode *inod
- 		return -EPERM;
- 	if (kcore_need_update)
- 		kcore_update_ram();
-+	if (i_size_read(inode) != proc_root_kcore->size) {
-+		mutex_lock(&inode->i_mutex);
-+		i_size_write(inode, proc_root_kcore->size);
-+		mutex_unlock(&inode->i_mutex);
+diff -puN drivers/spi/spi.c~spi-add-support-for-device-table-matching drivers/spi/spi.c
+--- a/drivers/spi/spi.c~spi-add-support-for-device-table-matching
++++ a/drivers/spi/spi.c
+@@ -59,9 +59,32 @@ static struct device_attribute spi_dev_a
+  * and the sysfs version makes coldplug work too.
+  */
+ 
++static const struct spi_device_id *spi_match_id(const struct spi_device_id *id,
++						const struct spi_device *sdev)
++{
++	while (id->name[0]) {
++		if (!strcmp(sdev->modalias, id->name))
++			return id;
++		id++;
 +	}
- 	return 0;
++	return NULL;
++}
++
++const struct spi_device_id *spi_get_device_id(const struct spi_device *sdev)
++{
++	const struct spi_driver *sdrv = to_spi_driver(sdev->dev.driver);
++
++	return spi_match_id(sdrv->id_table, sdev);
++}
++EXPORT_SYMBOL_GPL(spi_get_device_id);
++
+ static int spi_match_device(struct device *dev, struct device_driver *drv)
+ {
+ 	const struct spi_device	*spi = to_spi_device(dev);
++	const struct spi_driver	*sdrv = to_spi_driver(drv);
++
++	if (sdrv->id_table)
++		return !!spi_match_id(sdrv->id_table, spi);
+ 
+ 	return strcmp(spi->modalias, drv->name) == 0;
+ }
+diff -puN include/linux/mod_devicetable.h~spi-add-support-for-device-table-matching include/linux/mod_devicetable.h
+--- a/include/linux/mod_devicetable.h~spi-add-support-for-device-table-matching
++++ a/include/linux/mod_devicetable.h
+@@ -399,6 +399,16 @@ struct i2c_device_id {
+ 			__attribute__((aligned(sizeof(kernel_ulong_t))));
+ };
+ 
++/* spi */
++
++#define SPI_NAME_SIZE	32
++
++struct spi_device_id {
++	char name[SPI_NAME_SIZE];
++	kernel_ulong_t driver_data	/* Data private to the driver */
++			__attribute__((aligned(sizeof(kernel_ulong_t))));
++};
++
+ /* dmi */
+ enum dmi_field {
+ 	DMI_NONE,
+diff -puN include/linux/spi/spi.h~spi-add-support-for-device-table-matching include/linux/spi/spi.h
+--- a/include/linux/spi/spi.h~spi-add-support-for-device-table-matching
++++ a/include/linux/spi/spi.h
+@@ -20,6 +20,7 @@
+ #define __LINUX_SPI_H
+ 
+ #include <linux/device.h>
++#include <linux/mod_devicetable.h>
+ 
+ /*
+  * INTERFACES between SPI master-side drivers and SPI infrastructure.
+@@ -86,7 +87,7 @@ struct spi_device {
+ 	int			irq;
+ 	void			*controller_state;
+ 	void			*controller_data;
+-	char			modalias[32];
++	char			modalias[SPI_NAME_SIZE];
+ 
+ 	/*
+ 	 * likely need more hooks for more protocol options affecting how
+@@ -145,6 +146,7 @@ struct spi_message;
+ 
+ /**
+  * struct spi_driver - Host side "protocol" driver
++ * @id_table: List of SPI devices supported by this driver
+  * @probe: Binds this driver to the spi device.  Drivers can verify
+  *	that the device is actually present, and may need to configure
+  *	characteristics (such as bits_per_word) which weren't needed for
+@@ -170,6 +172,7 @@ struct spi_message;
+  * MMC, RTC, filesystem character device nodes, and hardware monitoring.
+  */
+ struct spi_driver {
++	const struct spi_device_id *id_table;
+ 	int			(*probe)(struct spi_device *spi);
+ 	int			(*remove)(struct spi_device *spi);
+ 	void			(*shutdown)(struct spi_device *spi);
+@@ -734,7 +737,7 @@ struct spi_board_info {
+ 	 * controller_data goes to spi_device.controller_data,
+ 	 * irq is copied too
+ 	 */
+-	char		modalias[32];
++	char		modalias[SPI_NAME_SIZE];
+ 	const void	*platform_data;
+ 	void		*controller_data;
+ 	int		irq;
+@@ -802,4 +805,7 @@ spi_unregister_device(struct spi_device 
+ 		device_unregister(&spi->dev);
  }
  
++extern const struct spi_device_id *
++spi_get_device_id(const struct spi_device *sdev);
++
+ #endif /* __LINUX_SPI_H */
+diff -puN scripts/mod/file2alias.c~spi-add-support-for-device-table-matching scripts/mod/file2alias.c
+--- a/scripts/mod/file2alias.c~spi-add-support-for-device-table-matching
++++ a/scripts/mod/file2alias.c
+@@ -657,6 +657,15 @@ static int do_i2c_entry(const char *file
+ 	return 1;
+ }
+ 
++/* Looks like: S */
++static int do_spi_entry(const char *filename, struct spi_device_id *id,
++			char *alias)
++{
++	sprintf(alias, "%s", id->name);
++
++	return 1;
++}
++
+ static const struct dmifield {
+ 	const char *prefix;
+ 	int field;
+@@ -853,6 +862,10 @@ void handle_moddevtable(struct module *m
+ 		do_table(symval, sym->st_size,
+ 			 sizeof(struct i2c_device_id), "i2c",
+ 			 do_i2c_entry, mod);
++	else if (sym_is(symname, "__mod_spi_device_table"))
++		do_table(symval, sym->st_size,
++			 sizeof(struct spi_device_id), "spi",
++			 do_spi_entry, mod);
+ 	else if (sym_is(symname, "__mod_dmi_device_table"))
+ 		do_table(symval, sym->st_size,
+ 			 sizeof(struct dmi_system_id), "dmi",
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from avorontsov@ru.mvista.com are
 
 origin.patch
-cgroups-support-named-cgroups-hierarchies.patch
-cgroups-move-the-cgroup-debug-subsys-into-cgroupc-to-access-internal-state.patch
-cgroups-add-a-back-pointer-from-struct-cg_cgroup_link-to-struct-cgroup.patch
-cgroups-allow-cgroup-hierarchies-to-be-created-with-no-bound-subsystems.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix-2.patch
-memcg-add-comments-explaining-memory-barriers.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
-memory-controller-soft-limit-documentation-v9.patch
-memory-controller-soft-limit-interface-v9.patch
-memory-controller-soft-limit-organize-cgroups-v9.patch
-memory-controller-soft-limit-organize-cgroups-v9-fix.patch
-memory-controller-soft-limit-refactor-reclaim-flags-v9.patch
-memory-controller-soft-limit-reclaim-on-contention-v9.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix-softlimit-css-refcnt-handling.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix-softlimit-css-refcnt-handling-fix.patch
-memcg-improve-resource-counter-scalability.patch
-memcg-improve-resource-counter-scalability-v5.patch
-memcg-show-swap-usage-in-stat-file.patch
-memcg-show-swap-usage-in-stat-file-fix.patch
-do_wait-wakeup-optimization-fix-child_wait_callback-eligible_child-usage.patch
-do_wait-wakeup-optimization-simplify-task_pid_type.patch
+linux-next.patch
+rtc-set-wakeup-capability-for-i2c-and-spi-rtc-drivers.patch
 
