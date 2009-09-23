@@ -1,81 +1,141 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-document-the-sysfs-interface.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 12:59:21 -0700
-Message-ID: <200909231959.n8NJxL27010764@imap1.linux-foundation.org>
+Subject: [merged] hwmon-lm70-convert-to-device-table-matching.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 12:58:02 -0700
+Message-ID: <200909231958.n8NJw2C7008085@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32776 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46651 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753821AbZIWT7v (ORCPT
+	by vger.kernel.org with ESMTP id S1753832AbZIWUAG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 15:59:51 -0400
+	Wed, 23 Sep 2009 16:00:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mjg@redhat.com, a.zummo@towertech.it, broonie@opensource.wolfsonmicro.com, david-b@pacbell.net, mm-commits@vger.kernel.org
+To: avorontsov@ru.mvista.com, ben-linux@fluff.org, benh@kernel.crashing.org, dbrownell@users.sourceforge.net, dwmw2@infradead.org, grant.likely@secretlab.ca, kaiwan@designergraphix.comk
 
 
 The patch titled
-     rtc: document the sysfs interface
+     hwmon: lm70: convert to device table matching
 has been removed from the -mm tree.  Its filename was
-     rtc-document-the-sysfs-interface.patch
+     hwmon-lm70-convert-to-device-table-matching.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: document the sysfs interface
-From: Matthew Garrett <mjg@redhat.com>
+Subject: hwmon: lm70: convert to device table matching
+From: Anton Vorontsov <avorontsov@ru.mvista.com>
 
-The sysfs interface to the RTC class drivers is currently undocumented.
-Add some basic documentation defining the semantics of the fields.
+Make the code a little bit nicer, and shorter.
 
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Acked-by: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
+Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
+Cc: Kaiwan N Billimoria <kaiwan@designergraphix.com>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Ben Dooks <ben-linux@fluff.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/rtc.txt |   22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ drivers/hwmon/lm70.c |   55 ++++++++++++++---------------------------
+ 1 file changed, 19 insertions(+), 36 deletions(-)
 
-diff -puN Documentation/rtc.txt~rtc-document-the-sysfs-interface Documentation/rtc.txt
---- a/Documentation/rtc.txt~rtc-document-the-sysfs-interface
-+++ a/Documentation/rtc.txt
-@@ -135,6 +135,28 @@ a high functionality RTC is integrated i
- the system clock from the discrete RTC, but use the integrated one for all
- other tasks, because of its greater functionality.
+diff -puN drivers/hwmon/lm70.c~hwmon-lm70-convert-to-device-table-matching drivers/hwmon/lm70.c
+--- a/drivers/hwmon/lm70.c~hwmon-lm70-convert-to-device-table-matching
++++ a/drivers/hwmon/lm70.c
+@@ -32,6 +32,7 @@
+ #include <linux/sysfs.h>
+ #include <linux/hwmon.h>
+ #include <linux/mutex.h>
++#include <linux/mod_devicetable.h>
+ #include <linux/spi/spi.h>
  
-+SYSFS INTERFACE
-+---------------
+ 
+@@ -130,11 +131,20 @@ static DEVICE_ATTR(name, S_IRUGO, lm70_s
+ 
+ /*----------------------------------------------------------------------*/
+ 
+-static int __devinit common_probe(struct spi_device *spi, int chip)
++static int __devinit lm70_probe(struct spi_device *spi)
+ {
++	int chip = spi_get_device_id(spi)->driver_data;
+ 	struct lm70 *p_lm70;
+ 	int status;
+ 
++	/* signaling is SPI_MODE_0 for both LM70 and TMP121 */
++	if (spi->mode & (SPI_CPOL | SPI_CPHA))
++		return -EINVAL;
 +
-+The sysfs interface under /sys/class/rtc/rtcN provides access to various
-+rtc attributes without requiring the use of ioctls. All dates and times
-+are in the RTC's timezone, rather than in system time.
++	/* 3-wire link (shared SI/SO) for LM70 */
++	if (chip == LM70_CHIP_LM70 && !(spi->mode & SPI_3WIRE))
++		return -EINVAL;
 +
-+date:  	   	 RTC-provided date
-+max_user_freq:	 The maximum interrupt rate an unprivileged user may request
-+		 from this RTC.
-+name:		 The name of the RTC corresponding to this sysfs directory
-+since_epoch:	 The number of seconds since the epoch according to the RTC
-+time:		 RTC-provided time
-+wakealarm:	 The time at which the clock will generate a system wakeup
-+		 event. This is a one shot wakeup event, so must be reset
-+		 after wake if a daily wakeup is required. Format is either
-+		 seconds since the epoch or, if there's a leading +, seconds
-+		 in the future.
+ 	/* NOTE:  we assume 8-bit words, and convert to 16 bits manually */
+ 
+ 	p_lm70 = kzalloc(sizeof *p_lm70, GFP_KERNEL);
+@@ -170,24 +180,6 @@ out_dev_reg_failed:
+ 	return status;
+ }
+ 
+-static int __devinit lm70_probe(struct spi_device *spi)
+-{
+-	/* signaling is SPI_MODE_0 on a 3-wire link (shared SI/SO) */
+-	if ((spi->mode & (SPI_CPOL | SPI_CPHA)) || !(spi->mode & SPI_3WIRE))
+-		return -EINVAL;
+-
+-	return common_probe(spi, LM70_CHIP_LM70);
+-}
+-
+-static int __devinit tmp121_probe(struct spi_device *spi)
+-{
+-	/* signaling is SPI_MODE_0 with only MISO connected */
+-	if (spi->mode & (SPI_CPOL | SPI_CPHA))
+-		return -EINVAL;
+-
+-	return common_probe(spi, LM70_CHIP_TMP121);
+-}
+-
+ static int __devexit lm70_remove(struct spi_device *spi)
+ {
+ 	struct lm70 *p_lm70 = dev_get_drvdata(&spi->dev);
+@@ -201,41 +193,32 @@ static int __devexit lm70_remove(struct 
+ 	return 0;
+ }
+ 
+-static struct spi_driver tmp121_driver = {
+-	.driver = {
+-		.name	= "tmp121",
+-		.owner	= THIS_MODULE,
+-	},
+-	.probe	= tmp121_probe,
+-	.remove	= __devexit_p(lm70_remove),
 +
-+IOCTL INTERFACE
-+---------------
-+
- The ioctl() calls supported by /dev/rtc are also supported by the RTC class
- framework.  However, because the chips and systems are not standardized,
- some PC/AT functionality might not be provided.  And in the same way, some
-_
-
-Patches currently in -mm which might be from mjg@redhat.com are
-
-origin.patch
-linux-next.patch
-
++static const struct spi_device_id lm70_ids[] = {
++	{ "lm70",   LM70_CHIP_LM70 },
++	{ "tmp121", LM70_CHIP_TMP121 },
++	{ },
+ };
++MODULE_DEVICE_TABLE(spi, lm70_ids);
+ 
+ static struct spi_driver lm70_driver = {
+ 	.driver = {
+ 		.name	= "lm70",
+ 		.owner	= THIS_MODULE,
+ 	},
++	.id_table = lm70_ids,
+ 	.probe	= lm70_probe,
+ 	.remove	= __devexit_p(lm70_remove),
+ };
+ 
+ static int __init init_lm70(void)
+ {
+-	int ret = spi_register_driver(&lm70_driver);
+-	if (ret)
+-		return ret;
+-
+-	ret = spi_register_driver(&tmp121_driver);
+-	if (ret)
+-		spi_unregister_driver(&lm70_driver);
