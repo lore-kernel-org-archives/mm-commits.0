@@ -1,52 +1,47 @@
 From: akpm@linux-foundation.org
-Subject: [folded] exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 15:35:53 -0700
-Message-ID: <200909232235.n8NMZrub029974@imap1.linux-foundation.org>
+Subject: [folded] exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 15:36:10 -0700
+Message-ID: <200909232236.n8NMaB3U030599@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58282 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51581 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751990AbZIWWgD (ORCPT
+	by vger.kernel.org with ESMTP id S1752249AbZIWWgR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 18:36:03 -0400
+	Wed, 23 Sep 2009 18:36:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, nhorman@tuxdriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes
+     exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
+     exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into exec-make-do_coredump-more-resilient-to-recursive-crashes-v9.patch
+This patch was dropped because it was folded into exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes
+Subject: exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: suspect code indent for conditional statements (16, 25)
-#48: FILE: fs/exec.c:1796:
-+		if (core_limit == 0) {
-+			 /*
+ERROR: code indent should use tabs where possible
+#115: FILE: fs/exec.c:1838:
++ ^I^Iif (call_usermodehelper_pipe(helper_argv[0], helper_argv, NULL,$
 
-WARNING: line over 80 characters
-#57: FILE: fs/exec.c:1805:
-+			  * but it runs as root, and can do lots of stupid things
+ERROR: code indent should use tabs where possible
+#120: FILE: fs/exec.c:1842:
++ ^I^I^Igoto fail_dropcount;$
 
-WARNING: line over 80 characters
-#58: FILE: fs/exec.c:1806:
-+			  * Note that we use task_tgid_vnr here to grab the pid of the
+WARNING: externs should be avoided in .c files
+#149: FILE: kernel/sysctl.c:80:
++extern unsigned int core_pipe_limit;
 
-WARNING: line over 80 characters
-#59: FILE: fs/exec.c:1807:
-+			  * process group leader.  That way we get the right pid if a thread
+total: 2 errors, 1 warnings, 120 lines checked
 
-total: 0 errors, 4 warnings, 59 lines checked
-
-./patches/exec-make-do_coredump-more-resilient-to-recursive-crashes-v9.patch has style problems, please review.  If any of these errors
+./patches/exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
@@ -56,51 +51,26 @@ Cc: Neil Horman <nhorman@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |   32 +++++++++++++++++---------------
- 1 file changed, 17 insertions(+), 15 deletions(-)
+ fs/exec.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/exec.c~exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes fs/exec.c
---- a/fs/exec.c~exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes
+diff -puN fs/exec.c~exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes fs/exec.c
+--- a/fs/exec.c~exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes
 +++ a/fs/exec.c
-@@ -1794,21 +1794,23 @@ void do_coredump(long signr, int exit_co
+@@ -1835,11 +1835,11 @@ void do_coredump(long signr, int exit_co
+ 		core_limit = RLIM_INFINITY;
  
-  	if (ispipe) {
- 		if (core_limit == 0) {
--			 /*
--			  * Normally core limits are irrelevant to pipes, since
--			  * we're not writing to the file system, but we use
--			  * core_limit of 0 here as a speacial value. Any
--			  * non-zero limit gets set to RLIM_INFINITY below, but
--			  * a limit of 0 skips the dump.  This is a consistent
--			  * way to catch recursive crashes.  We can still crash
--			  * if the core_pattern binary sets RLIM_CORE =  !0
--			  * but it runs as root, and can do lots of stupid things
--			  * Note that we use task_tgid_vnr here to grab the pid of the
--			  * process group leader.  That way we get the right pid if a thread
--			  * in a multi-threaded core_pattern process dies.
--			  */
--			printk(KERN_WARNING "Process %d(%s) has RLIMIT_CORE set to 0\n",
--			       task_tgid_vnr(current), current->comm);
-+			/*
-+			 * Normally core limits are irrelevant to pipes, since
-+			 * we're not writing to the file system, but we use
-+			 * core_limit of 0 here as a speacial value. Any
-+			 * non-zero limit gets set to RLIM_INFINITY below, but
-+			 * a limit of 0 skips the dump.  This is a consistent
-+			 * way to catch recursive crashes.  We can still crash
-+			 * if the core_pattern binary sets RLIM_CORE =  !0
-+			 * but it runs as root, and can do lots of stupid things
-+			 * Note that we use task_tgid_vnr here to grab the pid
-+			 * of the process group leader.  That way we get the
-+			 * right pid if a thread in a multi-threaded
-+			 * core_pattern process dies.
-+			 */
-+			printk(KERN_WARNING
-+				"Process %d(%s) has RLIMIT_CORE set to 0\n",
-+				task_tgid_vnr(current), current->comm);
- 			printk(KERN_WARNING "Aborting core\n");
- 			goto fail_unlock;
- 		}
+ 		/* SIGPIPE can happen, but it's just never processed */
+- 		if (call_usermodehelper_pipe(helper_argv[0], helper_argv, NULL,
++		if (call_usermodehelper_pipe(helper_argv[0], helper_argv, NULL,
+ 				&file)) {
+  			printk(KERN_INFO "Core dump to %s pipe failed\n",
+ 			       corename);
+- 			goto fail_dropcount;
++			goto fail_dropcount;
+  		}
+  	} else
+  		file = filp_open(corename,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -112,7 +82,7 @@ memcg-add-comments-explaining-memory-barriers.patch
 memory-controller-soft-limit-reclaim-on-contention-v9.patch
 memcg-improve-resource-counter-scalability.patch
 exec-make-do_coredump-more-resilient-to-recursive-crashes-v9.patch
-exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
+exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9.patch
 exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
 elf-clean-up-fill_note_info-fix.patch
 
