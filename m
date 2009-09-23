@@ -1,35 +1,38 @@
 From: akpm@linux-foundation.org
-Subject: [merged] viafb-clean-up-duoview.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 13:01:49 -0700
-Message-ID: <200909232001.n8NK1nBq015937@imap1.linux-foundation.org>
+Subject: [merged] viafb-remove-duplicated-mode-information.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 13:01:46 -0700
+Message-ID: <200909232001.n8NK1kdQ015855@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49746 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54715 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751605AbZIWUKK (ORCPT
+	by vger.kernel.org with ESMTP id S1752669AbZIWUKM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 16:10:10 -0400
+	Wed, 23 Sep 2009 16:10:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: FlorianSchandinat@gmx.de, JosephChan@via.com.tw, ScottFang@viatech.com.cn, corbet@lwn.net, laforge@gnumonks.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     viafb: clean up duoview
+     viafb: remove duplicated mode information
 has been removed from the -mm tree.  Its filename was
-     viafb-clean-up-duoview.patch
+     viafb-remove-duplicated-mode-information.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: viafb: clean up duoview
+Subject: viafb: remove duplicated mode information
 From: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 
-Clean the duoview handling up by replacing the varible with the funtion in
-the only place where it is used.  This is a code cleanup only, no runtime
-change expected.
+Remove the mode information from viafbdev.c and uses the one of viamode.c
+instead.  This is possible because horizontal and vertical address are the
+same as horizontal and vertical resolution.  The reduced blanking modes in
+the table are no problem because they have a higher index than the normal
+modes and therefore always the normal modes are selected just as the old
+behaviour.
 
 Signed-off-by: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 Cc: Scott Fang <ScottFang@viatech.com.cn>
@@ -39,70 +42,102 @@ Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/via/viafbdev.c |   18 ++----------------
- drivers/video/via/viafbdev.h |    1 -
- 2 files changed, 2 insertions(+), 17 deletions(-)
+ drivers/video/via/viafbdev.c |   57 ++++-----------------------------
+ drivers/video/via/viafbdev.h |    6 ---
+ 2 files changed, 9 insertions(+), 54 deletions(-)
 
-diff -puN drivers/video/via/viafbdev.c~viafb-clean-up-duoview drivers/video/via/viafbdev.c
---- a/drivers/video/via/viafbdev.c~viafb-clean-up-duoview
+diff -puN drivers/video/via/viafbdev.c~viafb-remove-duplicated-mode-information drivers/video/via/viafbdev.c
+--- a/drivers/video/via/viafbdev.c~viafb-remove-duplicated-mode-information
 +++ a/drivers/video/via/viafbdev.c
-@@ -1009,7 +1009,8 @@ static int viafb_cursor(struct fb_info *
- 		return -ENODEV;
+@@ -53,51 +53,6 @@ static void retrieve_device_setting(stru
+ static void viafb_set_video_device(u32 video_dev_info);
+ static void viafb_get_video_device(u32 *video_dev_info);
  
- 	/* When duoview and using lcd , use soft cursor */
--	if (viafb_LCD_ON || ((struct viafb_par *)(info->par))->duoview)
-+	if (viafb_LCD_ON || (!viafb_SAMM_ON &&
-+		viafb_LCD2_ON + viafb_DVI_ON + viafb_CRT_ON == 2))
- 		return -ENODEV;
+-/* Mode information */
+-static const struct viafb_modeinfo viafb_modentry[] = {
+-	{480, 640, VIA_RES_480X640},
+-	{640, 480, VIA_RES_640X480},
+-	{800, 480, VIA_RES_800X480},
+-	{800, 600, VIA_RES_800X600},
+-	{1024, 768, VIA_RES_1024X768},
+-	{1152, 864, VIA_RES_1152X864},
+-	{1280, 1024, VIA_RES_1280X1024},
+-	{1600, 1200, VIA_RES_1600X1200},
+-	{1440, 1050, VIA_RES_1440X1050},
+-	{1280, 768, VIA_RES_1280X768,},
+-	{1280, 800, VIA_RES_1280X800},
+-	{1280, 960, VIA_RES_1280X960},
+-	{1920, 1440, VIA_RES_1920X1440},
+-	{848, 480, VIA_RES_848X480},
+-	{1400, 1050, VIA_RES_1400X1050},
+-	{720, 480, VIA_RES_720X480},
+-	{720, 576, VIA_RES_720X576},
+-	{1024, 512, VIA_RES_1024X512},
+-	{1024, 576, VIA_RES_1024X576},
+-	{1024, 600, VIA_RES_1024X600},
+-	{1280, 720, VIA_RES_1280X720},
+-	{1920, 1080, VIA_RES_1920X1080},
+-	{1366, 768, VIA_RES_1368X768},
+-	{1680, 1050, VIA_RES_1680X1050},
+-	{960, 600, VIA_RES_960X600},
+-	{1000, 600, VIA_RES_1000X600},
+-	{1024, 576, VIA_RES_1024X576},
+-	{1024, 600, VIA_RES_1024X600},
+-	{1088, 612, VIA_RES_1088X612},
+-	{1152, 720, VIA_RES_1152X720},
+-	{1200, 720, VIA_RES_1200X720},
+-	{1280, 600, VIA_RES_1280X600},
+-	{1360, 768, VIA_RES_1360X768},
+-	{1440, 900, VIA_RES_1440X900},
+-	{1600, 900, VIA_RES_1600X900},
+-	{1600, 1024, VIA_RES_1600X1024},
+-	{1792, 1344, VIA_RES_1792X1344},
+-	{1856, 1392, VIA_RES_1856X1392},
+-	{1920, 1200, VIA_RES_1920X1200},
+-	{2048, 1536, VIA_RES_2048X1536},
+-	{0, 0, VIA_RES_INVALID}
+-};
+-
+ static struct fb_ops viafb_ops;
  
- 	viafb_show_hw_cursor(info, HW_Cursor_OFF);
-@@ -1379,18 +1380,6 @@ static int get_primary_device(void)
- 	return primary_device;
+ 
+@@ -1239,12 +1194,16 @@ int viafb_get_mode_index(int hres, int v
+ 	u32 i;
+ 	DEBUG_MSG(KERN_INFO "viafb_get_mode_index!\n");
+ 
+-	for (i = 0; viafb_modentry[i].mode_index != VIA_RES_INVALID; i++)
+-		if (viafb_modentry[i].xres == hres &&
+-			viafb_modentry[i].yres == vres)
++	for (i = 0; i < NUM_TOTAL_MODETABLE; i++)
++		if (CLE266Modes[i].mode_array &&
++			CLE266Modes[i].crtc[0].crtc.hor_addr == hres &&
++			CLE266Modes[i].crtc[0].crtc.ver_addr == vres)
+ 			break;
+ 
+-	return viafb_modentry[i].mode_index;
++	if (i == NUM_TOTAL_MODETABLE)
++		return VIA_RES_INVALID;
++
++	return CLE266Modes[i].ModeIndex;
  }
  
--static u8 is_duoview(void)
--{
--	if (0 == viafb_SAMM_ON) {
--		if (viafb_LCD_ON + viafb_LCD2_ON +
--			viafb_DVI_ON + viafb_CRT_ON == 2)
--			return true;
--		return false;
--	} else {
--		return false;
--	}
--}
--
- static void apply_second_mode_setting(struct fb_var_screeninfo
- 	*sec_var)
- {
-@@ -1499,8 +1488,6 @@ static int apply_device_setting(struct v
- 		need_set_mode = 1;
- 	}
- 
--	viaparinfo->duoview = is_duoview();
--
- 	if (!need_set_mode) {
- 		;
- 	} else {
-@@ -1621,7 +1608,6 @@ static void parse_active_dev(void)
- 		viafb_CRT_ON = STATE_ON;
- 		viafb_SAMM_ON = STATE_OFF;
- 	}
--	viaparinfo->duoview = is_duoview();
- }
- 
- static void parse_video_dev(void)
-diff -puN drivers/video/via/viafbdev.h~viafb-clean-up-duoview drivers/video/via/viafbdev.h
---- a/drivers/video/via/viafbdev.h~viafb-clean-up-duoview
+ static void check_available_device_to_enable(int device_id)
+diff -puN drivers/video/via/viafbdev.h~viafb-remove-duplicated-mode-information drivers/video/via/viafbdev.h
+--- a/drivers/video/via/viafbdev.h~viafb-remove-duplicated-mode-information
 +++ a/drivers/video/via/viafbdev.h
-@@ -52,7 +52,6 @@ struct viafb_par {
- 	u32 VQ_end;		/* Virtual Queue End Address */
- 	u32 iga_path;
- 	struct proc_dir_entry *proc_entry;	/*viafb proc entry */
--	u8 duoview;		/*Is working in duoview mode? */
+@@ -70,11 +70,7 @@ struct viafb_par {
+ 	int video_on_lcd;
  
- 	/* I2C stuff */
- 	struct via_i2c_stuff i2c_stuff;
+ };
+-struct viafb_modeinfo {
+-	u32 xres;
+-	u32 yres;
+-	int mode_index;
+-};
++
+ extern unsigned int viafb_second_virtual_yres;
+ extern unsigned int viafb_second_virtual_xres;
+ extern unsigned int viafb_second_offset;
 _
 
 Patches currently in -mm which might be from FlorianSchandinat@gmx.de are
