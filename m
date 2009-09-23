@@ -1,201 +1,262 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fb-do-not-ignore-fb_set_par-errors.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 13:02:57 -0700
-Message-ID: <200909232002.n8NK2vMH018256@imap1.linux-foundation.org>
+Subject: [merged] matroxfb-make-config_fb_matrox_multihead=y-mandatory.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 13:03:01 -0700
+Message-ID: <200909232003.n8NK311q018352@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54308 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43309 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753891AbZIWUDb (ORCPT
+	by vger.kernel.org with ESMTP id S1752011AbZIWUDm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 16:03:31 -0400
+	Wed, 23 Sep 2009 16:03:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: FlorianSchandinat@gmx.de, krzysztof.h1@poczta.fm, mm-commits@vger.kernel.org
+To: khali@linux-fr.org, krzysztof.h1@poczta.fm, vandrove@vc.cvut.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fb: do not ignore fb_set_par errors
+     matroxfb: make CONFIG_FB_MATROX_MULTIHEAD=y mandatory
 has been removed from the -mm tree.  Its filename was
-     fb-do-not-ignore-fb_set_par-errors.patch
+     matroxfb-make-config_fb_matrox_multihead=y-mandatory.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fb: do not ignore fb_set_par errors
-From: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Subject: matroxfb: make CONFIG_FB_MATROX_MULTIHEAD=y mandatory
+From: Jean Delvare <khali@linux-fr.org>
 
-At the moment about half of the framebuffer drivers can return an error
-code in fb_set_par. Until now it would be silently ignored by fbmem.c
-and fbcon.c. This patch fixes fbmem.c to return the error code and
-restore var on error.
+I would like to get rid of option CONFIG_FB_MATROX_MULTIHEAD and just
+always enable it.  There are many reasons for doing this:
 
-But it is not clear in which video mode the device is when fb_set_par
-fails.  It would be good and reasonable if it were in the old state but
-there is no guarantee that this is true for all existing drivers. 
-Additionally print a message if a failing fb_set_par is detected in
-fbmem.c or fbcon.c.
+* CONFIG_FB_MATROX_MULTIHEAD=y is what all x86 distributions do, so it
+  definitely works or we would know by now.
 
-Although most errors should be caught by the previous fb_check_var some
-errors can't as they are dynamic (memory allocations, ...) and can only be
-detected while performing the operations which is forbidden in
-fb_check_var.
+* Building the matroxfb driver with CONFIG_FB_MATROX_MULTIHEAD not set
+  results in the following build warning:
 
-This patch shouldn't have a negative impact on normal operation as all
-drivers return 0 on success.  The impact in case of error depends heavily
-on the driver and caller but it's expected to be better than before.
+drivers/video/matrox/matroxfb_crtc2.c: In function 'matroxfb_dh_open':
+drivers/video/matrox/matroxfb_crtc2.c:265: warning: the address of 'matroxfb_global_mxinfo' will always evaluate as 'true'
+drivers/video/matrox/matroxfb_crtc2.c: In function 'matroxfb_dh_release':
+drivers/video/matrox/matroxfb_crtc2.c:285: warning: the address of 'matroxfb_global_mxinfo' will always evaluate as 'true'
 
-Signed-off-by: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+This is nothing to be worried about, the driver will work fine, but build
+warnings are still annoying.
+
+* The trick to get multihead support without CONFIG_FB_MATROX_MULTIHEAD,
+  which is described in the config help text, no longer works: you can't
+  load the same kernel module more than once.
+
+* I fail to see how CONFIG_FB_MATROX_MULTIHEAD=y would make the code
+  significantly slower, contrary to what the help text says.  A few extra
+  parameters on the stack here and there can't really slow things down in
+  comaprison to the rest of the code, and register access.
+
+* The driver built without CONFIG_FB_MATROX_MULTIHEAD is larger than the
+  driver build with CONFIG_FB_MATROX_MULTIHEAD=y by 8%.
+
+* One less configuration option makes things simpler.  We add options
+  all the time, being able to remove one for once is nice.  It improves
+  testing coverage.  And I don't think the Matrox adapters are still
+  popular enough to warrant overdetailed configuration settings.
+
+* We should be able to unobfuscate the driver code quite a bit after
+  this change (patches follow.)
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Acked-by: Petr Vandrovec <vandrove@vc.cvut.cz>
 Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/console/fbcon.c |   48 ++++++++++++++++++++++++--------
- drivers/video/fbmem.c         |   15 ++++++++--
- 2 files changed, 50 insertions(+), 13 deletions(-)
+ Documentation/fb/matroxfb.txt        |    4 +---
+ drivers/video/Kconfig                |   20 --------------------
+ drivers/video/matrox/matroxfb_base.c |   23 -----------------------
+ drivers/video/matrox/matroxfb_base.h |   20 --------------------
+ drivers/video/matrox/matroxfb_misc.c |    4 ----
+ 5 files changed, 1 insertion(+), 70 deletions(-)
 
-diff -puN drivers/video/console/fbcon.c~fb-do-not-ignore-fb_set_par-errors drivers/video/console/fbcon.c
---- a/drivers/video/console/fbcon.c~fb-do-not-ignore-fb_set_par-errors
-+++ a/drivers/video/console/fbcon.c
-@@ -725,7 +725,7 @@ static int con2fb_release_oldinfo(struct
- 				  int oldidx, int found)
- {
- 	struct fbcon_ops *ops = oldinfo->fbcon_par;
--	int err = 0;
-+	int err = 0, ret;
+diff -puN Documentation/fb/matroxfb.txt~matroxfb-make-config_fb_matrox_multihead=y-mandatory Documentation/fb/matroxfb.txt
+--- a/Documentation/fb/matroxfb.txt~matroxfb-make-config_fb_matrox_multihead=y-mandatory
++++ a/Documentation/fb/matroxfb.txt
+@@ -186,9 +186,7 @@ noinverse - show true colors on screen. 
+ dev:X    - bind driver to device X. Driver numbers device from 0 up to N,
+            where device 0 is first `known' device found, 1 second and so on.
+ 	   lspci lists devices in this order.
+-	   Default is `every' known device for driver with multihead support
+-	   and first working device (usually dev:0) for driver without
+-	   multihead support.
++	   Default is `every' known device.
+ nohwcursor - disables hardware cursor (use software cursor instead).
+ hwcursor - enables hardware cursor. It is default. If you are using
+            non-accelerated mode (`noaccel' or `fbset -accel false'), software
+diff -puN drivers/video/Kconfig~matroxfb-make-config_fb_matrox_multihead=y-mandatory drivers/video/Kconfig
+--- a/drivers/video/Kconfig~matroxfb-make-config_fb_matrox_multihead=y-mandatory
++++ a/drivers/video/Kconfig
+@@ -1275,26 +1275,6 @@ config FB_MATROX_MAVEN
+ 	  painting procedures (the secondary head does not use acceleration
+ 	  engine).
  
- 	if (oldinfo->fbops->fb_release &&
- 	    oldinfo->fbops->fb_release(oldinfo, 0)) {
-@@ -752,8 +752,14 @@ static int con2fb_release_oldinfo(struct
- 		  newinfo in an undefined state. Thus, a call to
- 		  fb_set_par() may be needed for the newinfo.
- 		*/
--		if (newinfo->fbops->fb_set_par)
--			newinfo->fbops->fb_set_par(newinfo);
-+		if (newinfo->fbops->fb_set_par) {
-+			ret = newinfo->fbops->fb_set_par(newinfo);
-+
-+			if (ret)
-+				printk(KERN_ERR "con2fb_release_oldinfo: "
-+					"detected unhandled fb_set_par error, "
-+					"error code %d\n", ret);
-+		}
+-config FB_MATROX_MULTIHEAD
+-	bool "Multihead support"
+-	depends on FB_MATROX
+-	---help---
+-	  Say Y here if you have more than one (supported) Matrox device in
+-	  your computer and you want to use all of them for different monitors
+-	  ("multihead"). If you have only one device, you should say N because
+-	  the driver compiled with Y is larger and a bit slower, especially on
+-	  ia32 (ix86).
+-
+-	  If you said M to "Matrox unified accelerated driver" and N here, you
+-	  will still be able to use several Matrox devices simultaneously:
+-	  insert several instances of the module matroxfb into the kernel
+-	  with insmod, supplying the parameter "dev=N" where N is 0, 1, etc.
+-	  for the different Matrox devices. This method is slightly faster but
+-	  uses 40 KB of kernel memory per Matrox card.
+-
+-	  There is no need for enabling 'Matrox multihead support' if you have
+-	  only one Matrox card in the box.
+-
+ config FB_RADEON
+ 	tristate "ATI Radeon display support"
+ 	depends on FB && PCI
+diff -puN drivers/video/matrox/matroxfb_base.c~matroxfb-make-config_fb_matrox_multihead=y-mandatory drivers/video/matrox/matroxfb_base.c
+--- a/drivers/video/matrox/matroxfb_base.c~matroxfb-make-config_fb_matrox_multihead=y-mandatory
++++ a/drivers/video/matrox/matroxfb_base.c
+@@ -379,9 +379,7 @@ static void matroxfb_remove(WPMINFO int 
+ 	mga_iounmap(ACCESS_FBINFO(video.vbase));
+ 	release_mem_region(ACCESS_FBINFO(video.base), ACCESS_FBINFO(video.len_maximum));
+ 	release_mem_region(ACCESS_FBINFO(mmio.base), 16384);
+-#ifdef CONFIG_FB_MATROX_MULTIHEAD
+ 	kfree(minfo);
+-#endif
+ }
+ 
+ 	/*
+@@ -644,9 +642,7 @@ static int matroxfb_setcolreg(unsigned r
+ 			      unsigned blue, unsigned transp,
+ 			      struct fb_info *fb_info)
+ {
+-#ifdef CONFIG_FB_MATROX_MULTIHEAD
+ 	struct matrox_fb_info* minfo = container_of(fb_info, struct matrox_fb_info, fbcon);
+-#endif
+ 
+ 	DBG(__func__)
+ 
+@@ -2011,9 +2007,6 @@ static int matroxfb_probe(struct pci_dev
+ 	struct matrox_fb_info* minfo;
+ 	int err;
+ 	u_int32_t cmd;
+-#ifndef CONFIG_FB_MATROX_MULTIHEAD
+-	static int registered = 0;
+-#endif
+ 	DBG(__func__)
+ 
+ 	svid = pdev->subsystem_vendor;
+@@ -2037,15 +2030,9 @@ static int matroxfb_probe(struct pci_dev
+ 		return -1;
  	}
  
- 	return err;
-@@ -763,11 +769,18 @@ static void con2fb_init_display(struct v
- 				int unit, int show_logo)
- {
- 	struct fbcon_ops *ops = info->fbcon_par;
-+	int ret;
+-#ifdef CONFIG_FB_MATROX_MULTIHEAD
+ 	minfo = kmalloc(sizeof(*minfo), GFP_KERNEL);
+ 	if (!minfo)
+ 		return -1;
+-#else
+-	if (registered)	/* singlehead driver... */
+-		return -1;
+-	minfo = &matroxfb_global_mxinfo;
+-#endif
+ 	memset(MINFO, 0, sizeof(*MINFO));
  
- 	ops->currcon = fg_console;
+ 	ACCESS_FBINFO(pcidev) = pdev;
+@@ -2090,15 +2077,10 @@ static int matroxfb_probe(struct pci_dev
  
--	if (info->fbops->fb_set_par && !(ops->flags & FBCON_FLAGS_INIT))
--		info->fbops->fb_set_par(info);
-+	if (info->fbops->fb_set_par && !(ops->flags & FBCON_FLAGS_INIT)) {
-+		ret = info->fbops->fb_set_par(info);
-+
-+		if (ret)
-+			printk(KERN_ERR "con2fb_init_display: detected "
-+				"unhandled fb_set_par error, "
-+				"error code %d\n", ret);
-+	}
- 
- 	ops->flags |= FBCON_FLAGS_INIT;
- 	ops->graphics = 0;
-@@ -1006,7 +1019,7 @@ static void fbcon_init(struct vc_data *v
- 	struct vc_data *svc = *default_mode;
- 	struct display *t, *p = &fb_display[vc->vc_num];
- 	int logo = 1, new_rows, new_cols, rows, cols, charcnt = 256;
--	int cap;
-+	int cap, ret;
- 
- 	if (info_idx == -1 || info == NULL)
- 	    return;
-@@ -1092,8 +1105,15 @@ static void fbcon_init(struct vc_data *v
- 	 */
- 	if (CON_IS_VISIBLE(vc) && vc->vc_mode == KD_TEXT) {
- 		if (info->fbops->fb_set_par &&
--		    !(ops->flags & FBCON_FLAGS_INIT))
--			info->fbops->fb_set_par(info);
-+		    !(ops->flags & FBCON_FLAGS_INIT)) {
-+			ret = info->fbops->fb_set_par(info);
-+
-+			if (ret)
-+				printk(KERN_ERR "fbcon_init: detected "
-+					"unhandled fb_set_par error, "
-+					"error code %d\n", ret);
-+		}
-+
- 		ops->flags |= FBCON_FLAGS_INIT;
+ 	err = initMatrox2(PMINFO b);
+ 	if (!err) {
+-#ifndef CONFIG_FB_MATROX_MULTIHEAD
+-		registered = 1;
+-#endif
+ 		matroxfb_register_device(MINFO);
+ 		return 0;
  	}
+-#ifdef CONFIG_FB_MATROX_MULTIHEAD
+ 	kfree(minfo);
+-#endif
+ 	return -1;
+ }
  
-@@ -2119,7 +2139,7 @@ static int fbcon_switch(struct vc_data *
- 	struct fbcon_ops *ops;
- 	struct display *p = &fb_display[vc->vc_num];
- 	struct fb_var_screeninfo var;
--	int i, prev_console, charcnt = 256;
-+	int i, ret, prev_console, charcnt = 256;
+@@ -2510,13 +2492,8 @@ module_param(inv24, int, 0);
+ MODULE_PARM_DESC(inv24, "Inverts clock polarity for 24bpp and loop frequency > 100MHz (default=do not invert polarity)");
+ module_param(inverse, int, 0);
+ MODULE_PARM_DESC(inverse, "Inverse (0 or 1) (default=0)");
+-#ifdef CONFIG_FB_MATROX_MULTIHEAD
+ module_param(dev, int, 0);
+ MODULE_PARM_DESC(dev, "Multihead support, attach to device ID (0..N) (default=all working)");
+-#else
+-module_param(dev, int, 0);
+-MODULE_PARM_DESC(dev, "Multihead support, attach to device ID (0..N) (default=first working)");
+-#endif
+ module_param(vesa, int, 0);
+ MODULE_PARM_DESC(vesa, "Startup videomode (0x000-0x1FF) (default=0x101)");
+ module_param(xres, int, 0);
+diff -puN drivers/video/matrox/matroxfb_base.h~matroxfb-make-config_fb_matrox_multihead=y-mandatory drivers/video/matrox/matroxfb_base.h
+--- a/drivers/video/matrox/matroxfb_base.h~matroxfb-make-config_fb_matrox_multihead=y-mandatory
++++ a/drivers/video/matrox/matroxfb_base.h
+@@ -524,7 +524,6 @@ struct matrox_fb_info {
  
- 	info = registered_fb[con2fb_map[vc->vc_num]];
- 	ops = info->fbcon_par;
-@@ -2174,8 +2194,14 @@ static int fbcon_switch(struct vc_data *
+ #define info2minfo(info) container_of(info, struct matrox_fb_info, fbcon)
  
- 	if (old_info != NULL && (old_info != info ||
- 				 info->flags & FBINFO_MISC_ALWAYS_SETPAR)) {
--		if (info->fbops->fb_set_par)
--			info->fbops->fb_set_par(info);
-+		if (info->fbops->fb_set_par) {
-+			ret = info->fbops->fb_set_par(info);
-+
-+			if (ret)
-+				printk(KERN_ERR "fbcon_switch: detected "
-+					"unhandled fb_set_par error, "
-+					"error code %d\n", ret);
-+		}
+-#ifdef CONFIG_FB_MATROX_MULTIHEAD
+ #define ACCESS_FBINFO2(info, x) (info->x)
+ #define ACCESS_FBINFO(x) ACCESS_FBINFO2(minfo,x)
  
- 		if (old_info != info)
- 			fbcon_del_cursor_timer(old_info);
-diff -puN drivers/video/fbmem.c~fb-do-not-ignore-fb_set_par-errors drivers/video/fbmem.c
---- a/drivers/video/fbmem.c~fb-do-not-ignore-fb_set_par-errors
-+++ a/drivers/video/fbmem.c
-@@ -954,6 +954,7 @@ fb_set_var(struct fb_info *info, struct 
- 			goto done;
+@@ -538,25 +537,6 @@ struct matrox_fb_info {
+ #define PMINFO   PMINFO2 ,
  
- 		if ((var->activate & FB_ACTIVATE_MASK) == FB_ACTIVATE_NOW) {
-+			struct fb_var_screeninfo old_var;
- 			struct fb_videomode mode;
+ #define MINFO_FROM(x)	   struct matrox_fb_info* minfo = x
+-#else
+-
+-extern struct matrox_fb_info matroxfb_global_mxinfo;
+-
+-#define ACCESS_FBINFO(x) (matroxfb_global_mxinfo.x)
+-#define ACCESS_FBINFO2(info, x) (matroxfb_global_mxinfo.x)
+-
+-#define MINFO (&matroxfb_global_mxinfo)
+-
+-#define WPMINFO2 void
+-#define WPMINFO
+-#define CPMINFO2 void
+-#define CPMINFO
+-#define PMINFO2
+-#define PMINFO
+-
+-#define MINFO_FROM(x)
+-
+-#endif
  
- 			if (info->fbops->fb_get_caps) {
-@@ -963,10 +964,20 @@ fb_set_var(struct fb_info *info, struct 
- 					goto done;
- 			}
+ #define MINFO_FROM_INFO(x) MINFO_FROM(info2minfo(x))
  
-+			old_var = info->var;
- 			info->var = *var;
- 
--			if (info->fbops->fb_set_par)
--				info->fbops->fb_set_par(info);
-+			if (info->fbops->fb_set_par) {
-+				ret = info->fbops->fb_set_par(info);
-+
-+				if (ret) {
-+					info->var = old_var;
-+					printk(KERN_WARNING "detected "
-+						"fb_set_par error, "
-+						"error code: %d\n", ret);
-+					goto done;
-+				}
-+			}
- 
- 			fb_pan_display(info, &info->var);
- 			fb_set_cmap(&info->cmap, info);
+diff -puN drivers/video/matrox/matroxfb_misc.c~matroxfb-make-config_fb_matrox_multihead=y-mandatory drivers/video/matrox/matroxfb_misc.c
+--- a/drivers/video/matrox/matroxfb_misc.c~matroxfb-make-config_fb_matrox_multihead=y-mandatory
++++ a/drivers/video/matrox/matroxfb_misc.c
+@@ -784,10 +784,6 @@ EXPORT_SYMBOL(matroxfb_DAC_in);
+ EXPORT_SYMBOL(matroxfb_DAC_out);
+ EXPORT_SYMBOL(matroxfb_var2my);
+ EXPORT_SYMBOL(matroxfb_PLL_calcclock);
+-#ifndef CONFIG_FB_MATROX_MULTIHEAD
+-struct matrox_fb_info matroxfb_global_mxinfo;
+-EXPORT_SYMBOL(matroxfb_global_mxinfo);
+-#endif
+ EXPORT_SYMBOL(matroxfb_vgaHWinit);		/* DAC1064, Ti3026 */
+ EXPORT_SYMBOL(matroxfb_vgaHWrestore);		/* DAC1064, Ti3026 */
+ EXPORT_SYMBOL(matroxfb_read_pins);
 _
 
-Patches currently in -mm which might be from FlorianSchandinat@gmx.de are
+Patches currently in -mm which might be from khali@linux-fr.org are
 
 origin.patch
+linux-next.patch
+hwmon-driver-for-texas-instruments-amc6821-chip.patch
+rtc-set-wakeup-capability-for-i2c-and-spi-rtc-drivers.patch
 
