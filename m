@@ -1,36 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [merged] viafb-clean-up-viamodeh.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 13:01:43 -0700
-Message-ID: <200909232001.n8NK1hjj015716@imap1.linux-foundation.org>
+Subject: [merged] viafb-clean-up-virtual-memory-handling.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 13:01:52 -0700
+Message-ID: <200909232001.n8NK1qTL015996@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53611 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44065 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751993AbZIWUCR (ORCPT
+	by vger.kernel.org with ESMTP id S1753871AbZIWUCZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 16:02:17 -0400
+	Wed, 23 Sep 2009 16:02:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: FlorianSchandinat@gmx.de, JosephChan@via.com.tw, ScottFang@viatech.com.cn, corbet@lwn.net, laforge@gnumonks.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     viafb: clean up viamode.h
+     viafb: clean up virtual memory handling
 has been removed from the -mm tree.  Its filename was
-     viafb-clean-up-viamodeh.patch
+     viafb-clean-up-virtual-memory-handling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: viafb: clean up viamode.h
+Subject: viafb: clean up virtual memory handling
 From: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 
-Remove unneeeded declarations from the header and makes it more
-maintainable by evaluating the array size in the file the array exist in
-and exporting it via variables.  This removes the need to keep the array
-size in the header in sync with the real array size.
+Clean the handling of ioremapped video memory up.  The following changes
+were made:
+
+info->screen_base - viafb_FB_MM
+(VRAM offset calculation) was replaced by
+info->fix.smem_start - viafbinfo->fix.smem_start
+which is essentially the same calculation but done with physical instead
+virtual addresses.
+
+*->fbmem_virt
+was replaced by
+viafbinfo->screen_base
+This is true for viafbinfo and viafbinfo1 as the par pointers are equal.
+
+An early initialization of viafbinfo1->fix.smem* was removed as done later
+in viafb_setup_fixinfo.
+
+This patch highlights that the only usage of the ioremapped video memory
+in the driver is for hardware cursor handling.  Even if it has to hold the
+used virtual screen mapped for old-fashioned read/write calls (vs. 
+mmap'ed) a lot virtual memory could be saved by only ioremapping on
+demand.
+
+Code cleanup, no runtime changes expected.
 
 Signed-off-by: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 Cc: Scott Fang <ScottFang@viatech.com.cn>
@@ -40,180 +60,141 @@ Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/via/viamode.c |   10 ++
- drivers/video/via/viamode.h |  138 +++++-----------------------------
- 2 files changed, 32 insertions(+), 116 deletions(-)
+ drivers/video/via/global.c   |    1 -
+ drivers/video/via/global.h   |    1 -
+ drivers/video/via/viafbdev.c |   27 ++++++++-------------------
+ drivers/video/via/viafbdev.h |    1 -
+ 4 files changed, 8 insertions(+), 22 deletions(-)
 
-diff -puN drivers/video/via/viamode.c~viafb-clean-up-viamodeh drivers/video/via/viamode.c
---- a/drivers/video/via/viamode.c~viafb-clean-up-viamodeh
-+++ a/drivers/video/via/viamode.c
-@@ -1006,3 +1006,13 @@ struct VideoModeTable CEA_HDMI_Modes[] =
- 	{VIA_RES_1280X720, CEAM1280x720, ARRAY_SIZE(CEAM1280x720)},
- 	{VIA_RES_1920X1080, CEAM1920x1080, ARRAY_SIZE(CEAM1920x1080)}
- };
-+
-+int NUM_TOTAL_RES_MAP_REFRESH = ARRAY_SIZE(res_map_refresh_tbl);
-+int NUM_TOTAL_CEA_MODES = ARRAY_SIZE(CEA_HDMI_Modes);
-+int NUM_TOTAL_CN400_ModeXregs = ARRAY_SIZE(CN400_ModeXregs);
-+int NUM_TOTAL_CN700_ModeXregs = ARRAY_SIZE(CN700_ModeXregs);
-+int NUM_TOTAL_KM400_ModeXregs = ARRAY_SIZE(KM400_ModeXregs);
-+int NUM_TOTAL_CX700_ModeXregs = ARRAY_SIZE(CX700_ModeXregs);
-+int NUM_TOTAL_CLE266_ModeXregs = ARRAY_SIZE(CLE266_ModeXregs);
-+int NUM_TOTAL_PATCH_MODE = ARRAY_SIZE(res_patch_table);
-+int NUM_TOTAL_MODETABLE = ARRAY_SIZE(CLE266Modes);
-diff -puN drivers/video/via/viamode.h~viafb-clean-up-viamodeh drivers/video/via/viamode.h
---- a/drivers/video/via/viamode.h~viafb-clean-up-viamodeh
-+++ a/drivers/video/via/viamode.h
-@@ -50,127 +50,33 @@ struct res_map_refresh {
- 	int vmode_refresh;
- };
+diff -puN drivers/video/via/global.c~viafb-clean-up-virtual-memory-handling drivers/video/via/global.c
+--- a/drivers/video/via/global.c~viafb-clean-up-virtual-memory-handling
++++ a/drivers/video/via/global.c
+@@ -46,7 +46,6 @@ int viafb_hotplug_refresh = 60;
+ unsigned int viafb_second_offset;
+ int viafb_second_size;
+ int viafb_primary_dev = None_Device;
+-void __iomem *viafb_FB_MM;
+ unsigned int viafb_second_xres = 640;
+ unsigned int viafb_second_yres = 480;
+ unsigned int viafb_second_virtual_xres;
+diff -puN drivers/video/via/global.h~viafb-clean-up-virtual-memory-handling drivers/video/via/global.h
+--- a/drivers/video/via/global.h~viafb-clean-up-virtual-memory-handling
++++ a/drivers/video/via/global.h
+@@ -77,7 +77,6 @@ extern int viafb_hotplug_Yres;
+ extern int viafb_hotplug_bpp;
+ extern int viafb_hotplug_refresh;
+ extern int viafb_primary_dev;
+-extern void __iomem *viafb_FB_MM;
+ extern struct fb_cursor viacursor;
  
--#define NUM_TOTAL_RES_MAP_REFRESH ARRAY_SIZE(res_map_refresh_tbl)
--#define NUM_TOTAL_CEA_MODES  ARRAY_SIZE(CEA_HDMI_Modes)
--#define NUM_TOTAL_CN400_ModeXregs ARRAY_SIZE(CN400_ModeXregs)
--#define NUM_TOTAL_CN700_ModeXregs ARRAY_SIZE(CN700_ModeXregs)
--#define NUM_TOTAL_KM400_ModeXregs ARRAY_SIZE(KM400_ModeXregs)
--#define NUM_TOTAL_CX700_ModeXregs ARRAY_SIZE(CX700_ModeXregs)
--#define NUM_TOTAL_CLE266_ModeXregs ARRAY_SIZE(CLE266_ModeXregs)
--#define NUM_TOTAL_PATCH_MODE ARRAY_SIZE(res_patch_table)
--#define NUM_TOTAL_MODETABLE ARRAY_SIZE(CLE266Modes)
-+extern int NUM_TOTAL_RES_MAP_REFRESH;
-+extern int NUM_TOTAL_CEA_MODES;
-+extern int NUM_TOTAL_CN400_ModeXregs;
-+extern int NUM_TOTAL_CN700_ModeXregs;
-+extern int NUM_TOTAL_KM400_ModeXregs;
-+extern int NUM_TOTAL_CX700_ModeXregs;
-+extern int NUM_TOTAL_CLE266_ModeXregs;
-+extern int NUM_TOTAL_PATCH_MODE;
-+extern int NUM_TOTAL_MODETABLE;
+ extern unsigned int viafb_second_xres;
+diff -puN drivers/video/via/viafbdev.c~viafb-clean-up-virtual-memory-handling drivers/video/via/viafbdev.c
+--- a/drivers/video/via/viafbdev.c~viafb-clean-up-virtual-memory-handling
++++ a/drivers/video/via/viafbdev.c
+@@ -832,8 +832,7 @@ static void viafb_fillrect(struct fb_inf
+ 	/* Source Base Address */
+ 	writel(0x0, viaparinfo->io_virt + VIA_REG_SRCBASE);
+ 	/* Destination Base Address */
+-	writel(((unsigned long) (info->screen_base) -
+-		   (unsigned long) viafb_FB_MM) >> 3,
++	writel((info->fix.smem_start - viafbinfo->fix.smem_start) >> 3,
+ 		   viaparinfo->io_virt + VIA_REG_DSTBASE);
+ 	/* Pitch */
+ 	pitch = (info->var.xres_virtual + 7) & ~7;
+@@ -887,12 +886,10 @@ static void viafb_copyarea(struct fb_inf
+ 	}
  
- /********************/
- /* Mode Table       */
- /********************/
+ 	/* Source Base Address */
+-	writel(((unsigned long) (info->screen_base) -
+-		   (unsigned long) viafb_FB_MM) >> 3,
++	writel((info->fix.smem_start - viafbinfo->fix.smem_start) >> 3,
+ 		   viaparinfo->io_virt + VIA_REG_SRCBASE);
+ 	/* Destination Base Address */
+-	writel(((unsigned long) (info->screen_base) -
+-		   (unsigned long) viafb_FB_MM) >> 3,
++	writel((info->fix.smem_start - viafbinfo->fix.smem_start) >> 3,
+ 		   viaparinfo->io_virt + VIA_REG_DSTBASE);
+ 	/* Pitch */
+ 	pitch = (info->var.xres_virtual + 7) & ~7;
+@@ -951,8 +948,7 @@ static void viafb_imageblit(struct fb_in
+ 	/* Source Base Address */
+ 	writel(0x0, viaparinfo->io_virt + VIA_REG_SRCBASE);
+ 	/* Destination Base Address */
+-	writel(((unsigned long) (info->screen_base) -
+-		   (unsigned long) viafb_FB_MM) >> 3,
++	writel((info->fix.smem_start - viafbinfo->fix.smem_start) >> 3,
+ 		   viaparinfo->io_virt + VIA_REG_DSTBASE);
+ 	/* Pitch */
+ 	pitch = (info->var.xres_virtual + 7) & ~7;
+@@ -1170,7 +1166,7 @@ static int viafb_cursor(struct fb_info *
+ 			}
+ 		}
  
--/* 480x640 */
--extern struct crt_mode_table CRTM480x640[1];
--/* 640x480*/
--extern struct crt_mode_table CRTM640x480[5];
--/*720x480 (GTF)*/
--extern struct crt_mode_table CRTM720x480[1];
--/*720x576 (GTF)*/
--extern struct crt_mode_table CRTM720x576[1];
--/* 800x480 (CVT) */
--extern struct crt_mode_table CRTM800x480[1];
--/* 800x600*/
--extern struct crt_mode_table CRTM800x600[5];
--/* 848x480 (CVT) */
--extern struct crt_mode_table CRTM848x480[1];
--/*856x480 (GTF) convert to 852x480*/
--extern struct crt_mode_table CRTM852x480[1];
--/*1024x512 (GTF)*/
--extern struct crt_mode_table CRTM1024x512[1];
--/* 1024x600*/
--extern struct crt_mode_table CRTM1024x600[1];
--/* 1024x768*/
--extern struct crt_mode_table CRTM1024x768[4];
--/* 1152x864*/
--extern struct crt_mode_table CRTM1152x864[1];
--/* 1280x720 (HDMI 720P)*/
--extern struct crt_mode_table CRTM1280x720[2];
--/*1280x768 (GTF)*/
--extern struct crt_mode_table CRTM1280x768[2];
--/* 1280x800 (CVT) */
--extern struct crt_mode_table CRTM1280x800[1];
--/*1280x960*/
--extern struct crt_mode_table CRTM1280x960[1];
--/* 1280x1024*/
--extern struct crt_mode_table CRTM1280x1024[3];
--/* 1368x768 (GTF) */
--extern struct crt_mode_table CRTM1368x768[1];
--/*1440x1050 (GTF)*/
--extern struct crt_mode_table CRTM1440x1050[1];
--/* 1600x1200*/
--extern struct crt_mode_table CRTM1600x1200[2];
--/* 1680x1050 (CVT) */
--extern struct crt_mode_table CRTM1680x1050[2];
--/* 1680x1050 (CVT Reduce Blanking) */
--extern struct crt_mode_table CRTM1680x1050_RB[1];
--/* 1920x1080 (CVT)*/
--extern struct crt_mode_table CRTM1920x1080[1];
--/* 1920x1080 (CVT with Reduce Blanking) */
--extern struct crt_mode_table CRTM1920x1080_RB[1];
--/* 1920x1440*/
--extern struct crt_mode_table CRTM1920x1440[2];
--/* 1400x1050 (CVT) */
--extern struct crt_mode_table CRTM1400x1050[2];
--/* 1400x1050 (CVT Reduce Blanking) */
--extern struct crt_mode_table CRTM1400x1050_RB[1];
--/* 960x600 (CVT) */
--extern struct crt_mode_table CRTM960x600[1];
--/* 1000x600 (GTF) */
--extern struct crt_mode_table CRTM1000x600[1];
--/* 1024x576 (GTF) */
--extern struct crt_mode_table CRTM1024x576[1];
--/* 1088x612 (CVT) */
--extern struct crt_mode_table CRTM1088x612[1];
--/* 1152x720 (CVT) */
--extern struct crt_mode_table CRTM1152x720[1];
--/* 1200x720 (GTF) */
--extern struct crt_mode_table CRTM1200x720[1];
--/* 1280x600 (GTF) */
--extern struct crt_mode_table CRTM1280x600[1];
--/* 1360x768 (CVT) */
--extern struct crt_mode_table CRTM1360x768[1];
--/* 1360x768 (CVT Reduce Blanking) */
--extern struct crt_mode_table CRTM1360x768_RB[1];
--/* 1366x768 (GTF) */
--extern struct crt_mode_table CRTM1366x768[2];
--/* 1440x900 (CVT) */
--extern struct crt_mode_table CRTM1440x900[2];
--/* 1440x900 (CVT Reduce Blanking) */
--extern struct crt_mode_table CRTM1440x900_RB[1];
--/* 1600x900 (CVT) */
--extern struct crt_mode_table CRTM1600x900[1];
--/* 1600x900 (CVT Reduce Blanking) */
--extern struct crt_mode_table CRTM1600x900_RB[1];
--/* 1600x1024 (GTF) */
--extern struct crt_mode_table CRTM1600x1024[1];
--/* 1792x1344 (DMT) */
--extern struct crt_mode_table CRTM1792x1344[1];
--/* 1856x1392 (DMT) */
--extern struct crt_mode_table CRTM1856x1392[1];
--/* 1920x1200 (CVT) */
--extern struct crt_mode_table CRTM1920x1200[1];
--/* 1920x1200 (CVT with Reduce Blanking) */
--extern struct crt_mode_table CRTM1920x1200_RB[1];
--/* 2048x1536 (CVT) */
--extern struct crt_mode_table CRTM2048x1536[1];
--extern struct VideoModeTable CLE266Modes[47];
--extern struct crt_mode_table CEAM1280x720[1];
--extern struct crt_mode_table CEAM1920x1080[1];
--extern struct VideoModeTable CEA_HDMI_Modes[2];
-+extern struct VideoModeTable CLE266Modes[];
-+extern struct crt_mode_table CEAM1280x720[];
-+extern struct crt_mode_table CEAM1920x1080[];
-+extern struct VideoModeTable CEA_HDMI_Modes[];
+-		memcpy(((struct viafb_par *)(info->par))->fbmem_virt +
++		memcpy(viafbinfo->screen_base +
+ 		       ((struct viafb_par *)(info->par))->cursor_start,
+ 		       cr_data->bak, CURSOR_SIZE);
+ out:
+@@ -2073,11 +2069,9 @@ static int __devinit via_pci_probe(void)
+ 	viafb_get_fb_info(&viaparinfo->fbmem, &viaparinfo->memsize);
+ 	viaparinfo->fbmem_free = viaparinfo->memsize;
+ 	viaparinfo->fbmem_used = 0;
+-	viaparinfo->fbmem_virt = ioremap_nocache(viaparinfo->fbmem,
++	viafbinfo->screen_base = ioremap_nocache(viaparinfo->fbmem,
+ 		viaparinfo->memsize);
+-	viafbinfo->screen_base = (char *)viaparinfo->fbmem_virt;
+-
+-	if (!viaparinfo->fbmem_virt) {
++	if (!viafbinfo->screen_base) {
+ 		printk(KERN_INFO "ioremap failed\n");
+ 		return -ENOMEM;
+ 	}
+@@ -2110,7 +2104,6 @@ static int __devinit via_pci_probe(void)
+ 			viafb_second_size * 1024 * 1024;
+ 	}
  
--extern struct res_map_refresh res_map_refresh_tbl[61];
--extern struct io_reg CN400_ModeXregs[52];
--extern struct io_reg CN700_ModeXregs[66];
--extern struct io_reg KM400_ModeXregs[55];
--extern struct io_reg CX700_ModeXregs[58];
--extern struct io_reg VX800_ModeXregs[58];
--extern struct io_reg CLE266_ModeXregs[32];
--extern struct io_reg PM1024x768[2];
--extern struct patch_table res_patch_table[1];
-+extern struct res_map_refresh res_map_refresh_tbl[];
-+extern struct io_reg CN400_ModeXregs[];
-+extern struct io_reg CN700_ModeXregs[];
-+extern struct io_reg KM400_ModeXregs[];
-+extern struct io_reg CX700_ModeXregs[];
-+extern struct io_reg VX800_ModeXregs[];
-+extern struct io_reg CLE266_ModeXregs[];
-+extern struct io_reg PM1024x768[];
-+extern struct patch_table res_patch_table[];
- extern struct VPITTable VPIT;
- #endif /* __VIAMODE_H__ */
+-	viafb_FB_MM = viaparinfo->fbmem_virt;
+ 	tmpm = viafb_mode;
+ 	tmpc = strsep(&tmpm, "x");
+ 	strict_strtoul(tmpc, 0, &default_xres);
+@@ -2203,8 +2196,6 @@ static int __devinit via_pci_probe(void)
+ 		viaparinfo1->memsize = viaparinfo->memsize -
+ 			viafb_second_offset;
+ 		viaparinfo->memsize = viafb_second_offset;
+-		viaparinfo1->fbmem_virt = viaparinfo->fbmem_virt +
+-			viafb_second_offset;
+ 		viaparinfo1->fbmem = viaparinfo->fbmem + viafb_second_offset;
+ 
+ 		viaparinfo1->fbmem_used = viaparinfo->fbmem_used;
+@@ -2226,8 +2217,6 @@ static int __devinit via_pci_probe(void)
+ 		memcpy(viafbinfo1, viafbinfo, sizeof(struct fb_info));
+ 		viafbinfo1->screen_base = viafbinfo->screen_base +
+ 			viafb_second_offset;
+-		viafbinfo1->fix.smem_start = viaparinfo1->fbmem;
+-		viafbinfo1->fix.smem_len = viaparinfo1->fbmem_free;
+ 
+ 		default_var.xres = viafb_second_xres;
+ 		default_var.yres = viafb_second_yres;
+@@ -2289,7 +2278,7 @@ static void __devexit via_pci_remove(voi
+ 	unregister_framebuffer(viafbinfo);
+ 	if (viafb_dual_fb)
+ 		unregister_framebuffer(viafbinfo1);
+-	iounmap((void *)viaparinfo->fbmem_virt);
++	iounmap((void *)viafbinfo->screen_base);
+ 	iounmap(viaparinfo->io_virt);
+ 
+ 	viafb_delete_i2c_buss(viaparinfo);
+diff -puN drivers/video/via/viafbdev.h~viafb-clean-up-virtual-memory-handling drivers/video/via/viafbdev.h
+--- a/drivers/video/via/viafbdev.h~viafb-clean-up-virtual-memory-handling
++++ a/drivers/video/via/viafbdev.h
+@@ -38,7 +38,6 @@
+ #define VERSION_MINOR       4
+ 
+ struct viafb_par {
+-	void __iomem *fbmem_virt;	/*framebuffer virtual memory address */
+ 	void __iomem *io_virt;	/*iospace virtual memory address */
+ 	unsigned int fbmem;	/*framebuffer physical memory address */
+ 	unsigned int memsize;	/*size of fbmem */
 _
 
 Patches currently in -mm which might be from FlorianSchandinat@gmx.de are
