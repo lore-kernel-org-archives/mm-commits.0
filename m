@@ -1,77 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sdhci-of-avoid-writing-reserved-bits-into-host-control-register.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 12:55:41 -0700
-Message-ID: <200909231955.n8NJtfkK003301__19211.7709237666$1253735856$gmane$org@imap1.linux-foundation.org>
+Subject: [merged] proc_flush_task-flush-proc-tid-task-pid-when-a-sub-thread-exits.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 12:56:36 -0700
+Message-ID: <200909231956.n8NJuai8005244@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58016 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51282 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753731AbZIWT5M (ORCPT
+	by vger.kernel.org with ESMTP id S1753334AbZIWT5X (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 15:57:12 -0400
+	Wed, 23 Sep 2009 15:57:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avorontsov@ru.mvista.com, ben@fluff.org, david.vrabel@csr.com, galak@kernel.crashing.org, linux-mmc@vger.kernel.org, pierre@ossman.eu, s.hauer@pengutronix.de, mm-commits@vger.kernel.org
+To: oleg@redhat.com, Johnray.Fuller@gs.com, adobriyan@gmail.com, dduval@redhat.com, ebiederm@xmission.com, fhirtz@redhat.com, jleddy@redhat.com, lwoodman@redhat.com, pbatkowski@redhat.com
 
 
 The patch titled
-     sdhci-of: avoid writing reserved bits into host control register
+     proc_flush_task: flush /proc/tid/task/pid when a sub-thread exits
 has been removed from the -mm tree.  Its filename was
-     sdhci-of-avoid-writing-reserved-bits-into-host-control-register.patch
+     proc_flush_task-flush-proc-tid-task-pid-when-a-sub-thread-exits.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sdhci-of: avoid writing reserved bits into host control register
-From: Anton Vorontsov <avorontsov@ru.mvista.com>
+Subject: proc_flush_task: flush /proc/tid/task/pid when a sub-thread exits
+From: Oleg Nesterov <oleg@redhat.com>
 
-SDHCI core tries to write HISPD bit into the host control register, but
-the eSDHC controllers don't have that bit, and that causes all sorts of
-misbehaviour when using 4-bit mode capable SD cards.
+The exiting sub-thread flushes /proc/pid only, but this doesn't buy too
+much: ps and friends mostly use /proc/tid/task/pid.
 
-Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
-Cc: Pierre Ossman <pierre@ossman.eu>
-Cc: Kumar Gala <galak@kernel.crashing.org>
-Cc: David Vrabel <david.vrabel@csr.com>
-Cc: Ben Dooks <ben@fluff.org>
-Cc: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: <linux-mmc@vger.kernel.org>
+Remove "if (thread_group_leader())" checks from proc_flush_task() path,
+this means we always remove /proc/tid/task/pid dentry on exit, and this
+actually matches the comment above proc_flush_task().
+
+The test-case:
+
+	static void* tfunc(void *arg)
+	{
+		char name[256];
+
+		sprintf(name, "/proc/%d/task/%ld/status", getpid(), gettid());
+		close(open(name, O_RDONLY));
+
+		return NULL;
+	}
+
+	int main(void)
+	{
+		pthread_t t;
+
+		for (;;) {
+			if (!pthread_create(&t, NULL, &tfunc, NULL))
+				pthread_join(t, NULL);
+		}
+	}
+
+slabtop shows that pid/proc_inode_cache/etc grow quickly and
+"indefinitely" until the task is killed or shrink_slab() is called, not
+good.  And the main thread needs a lot of time to exit.
+
+The same can happen if something like "ps -efL" runs continuously, while
+some application spawns short-living threads.
+
+Reported-by: "James M. Leddy" <jleddy@redhat.com>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Dominic Duval <dduval@redhat.com>
+Cc: Frank Hirtz <fhirtz@redhat.com>
+Cc: "Fuller, Johnray" <Johnray.Fuller@gs.com>
+Cc: Larry Woodman <lwoodman@redhat.com>
+Cc: Paul Batkowski <pbatkowski@redhat.com>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/sdhci-of.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ fs/proc/base.c |   10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN drivers/mmc/host/sdhci-of.c~sdhci-of-avoid-writing-reserved-bits-into-host-control-register drivers/mmc/host/sdhci-of.c
---- a/drivers/mmc/host/sdhci-of.c~sdhci-of-avoid-writing-reserved-bits-into-host-control-register
-+++ a/drivers/mmc/host/sdhci-of.c
-@@ -48,6 +48,8 @@ struct sdhci_of_host {
- #define ESDHC_CLOCK_HCKEN	0x00000002
- #define ESDHC_CLOCK_IPGEN	0x00000001
+diff -puN fs/proc/base.c~proc_flush_task-flush-proc-tid-task-pid-when-a-sub-thread-exits fs/proc/base.c
+--- a/fs/proc/base.c~proc_flush_task-flush-proc-tid-task-pid-when-a-sub-thread-exits
++++ a/fs/proc/base.c
+@@ -2604,9 +2604,6 @@ static void proc_flush_task_mnt(struct v
+ 		dput(dentry);
+ 	}
  
-+#define ESDHC_HOST_CONTROL_RES	0x05
-+
- static u32 esdhc_readl(struct sdhci_host *host, int reg)
+-	if (tgid == 0)
+-		goto out;
+-
+ 	name.name = buf;
+ 	name.len = snprintf(buf, sizeof(buf), "%d", tgid);
+ 	leader = d_hash_and_lookup(mnt->mnt_root, &name);
+@@ -2663,17 +2660,16 @@ out:
+ void proc_flush_task(struct task_struct *task)
  {
- 	return in_be32(host->ioaddr + reg);
-@@ -109,6 +111,10 @@ static void esdhc_writeb(struct sdhci_ho
- 	int base = reg & ~0x3;
- 	int shift = (reg & 0x3) * 8;
+ 	int i;
+-	struct pid *pid, *tgid = NULL;
++	struct pid *pid, *tgid;
+ 	struct upid *upid;
  
-+	/* Prevent SDHCI core from writing reserved bits (e.g. HISPD). */
-+	if (reg == SDHCI_HOST_CONTROL)
-+		val &= ~ESDHC_HOST_CONTROL_RES;
-+
- 	clrsetbits_be32(host->ioaddr + base , 0xff << shift, val << shift);
- }
+ 	pid = task_pid(task);
+-	if (thread_group_leader(task))
+-		tgid = task_tgid(task);
++	tgid = task_tgid(task);
  
+ 	for (i = 0; i <= pid->level; i++) {
+ 		upid = &pid->numbers[i];
+ 		proc_flush_task_mnt(upid->ns->proc_mnt, upid->nr,
+-			tgid ? tgid->numbers[i].nr : 0);
++					tgid->numbers[i].nr);
+ 	}
+ 
+ 	upid = &pid->numbers[pid->level];
 _
 
-Patches currently in -mm which might be from avorontsov@ru.mvista.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 origin.patch
 linux-next.patch
-rtc-set-wakeup-capability-for-i2c-and-spi-rtc-drivers.patch
+cgroups-revert-cgroups-fix-pid-namespace-bug.patch
+cgroups-add-a-read-only-procs-file-similar-to-tasks-that-shows-only-unique-tgids.patch
+cgroups-ensure-correct-concurrent-opening-reading-of-pidlists-across-pid-namespaces.patch
+cgroups-use-vmalloc-for-large-cgroups-pidlist-allocations.patch
+cgroups-change-css_set-freeing-mechanism-to-be-under-rcu.patch
+cgroups-let-ss-can_attach-and-ss-attach-do-whole-threadgroups-at-a-time.patch
+cgroups-let-ss-can_attach-and-ss-attach-do-whole-threadgroups-at-a-time-fix.patch
+ptrace-__ptrace_detach-do-__wake_up_parent-if-we-reap-the-tracee.patch
+do_wait-wakeup-optimization-shift-security_task_wait-from-eligible_child-to-wait_consider_task.patch
+do_wait-wakeup-optimization-change-__wake_up_parent-to-use-filtered-wakeup.patch
+do_wait-wakeup-optimization-change-__wake_up_parent-to-use-filtered-wakeup-selinux_bprm_committed_creds-use-__wake_up_parent.patch
+do_wait-wakeup-optimization-child_wait_callback-check-__wnothread-case.patch
+do_wait-wakeup-optimization-fix-child_wait_callback-eligible_child-usage.patch
+do_wait-wakeup-optimization-simplify-task_pid_type.patch
+do_wait-optimization-do-not-place-sub-threads-on-task_struct-children-list.patch
+wait_consider_task-kill-parent-argument.patch
+do_wait-fix-sys_waitid-specific-behaviour.patch
+wait_noreap_copyout-check-for-wo_info-=-null.patch
+signals-introduce-do_send_sig_info-helper.patch
+signals-send_sigio-use-do_send_sig_info-to-avoid-check_kill_permission.patch
+fcntl-add-f_etown_ex.patch
+signals-inline-__fatal_signal_pending.patch
+signals-tracehook_notify_jctl-change.patch
+signals-tracehook_notify_jctl-change-do_signal_stop-do-not-call-tracehook_notify_jctl-in-task_stopped-state.patch
+signals-introduce-tracehook_finish_jctl-helper.patch
+utrace-core.patch
+exec-fix-set_binfmt-vs-sys_delete_module-race.patch
+fork-disable-clone_parent-for-init.patch
+pidns-deny-clone_parentclone_newpid-combination.patch
+task_struct-cleanup-move-binfmt-field-to-mm_struct.patch
 
