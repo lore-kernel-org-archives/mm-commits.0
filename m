@@ -1,141 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hwmon-lm70-convert-to-device-table-matching.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 12:58:02 -0700
-Message-ID: <200909231958.n8NJw2C7008085@imap1.linux-foundation.org>
+Subject: [merged] spi-omap2_mcspi-use-bitn.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 12:57:37 -0700
+Message-ID: <200909231957.n8NJvbE4007300@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46651 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44242 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753832AbZIWUAG (ORCPT
+	by vger.kernel.org with ESMTP id S1753834AbZIWUAH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 16:00:06 -0400
+	Wed, 23 Sep 2009 16:00:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avorontsov@ru.mvista.com, ben-linux@fluff.org, benh@kernel.crashing.org, dbrownell@users.sourceforge.net, dwmw2@infradead.org, grant.likely@secretlab.ca, kaiwan@designergraphix.comk
+To: jouni.hogander@nokia.com, dbrownell@users.sourceforge.net, tony@atomide.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hwmon: lm70: convert to device table matching
+     spi: omap2_mcspi use BIT(n)
 has been removed from the -mm tree.  Its filename was
-     hwmon-lm70-convert-to-device-table-matching.patch
+     spi-omap2_mcspi-use-bitn.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hwmon: lm70: convert to device table matching
-From: Anton Vorontsov <avorontsov@ru.mvista.com>
+Subject: spi: omap2_mcspi use BIT(n)
+From: Jouni Hogander <jouni.hogander@nokia.com>
 
-Make the code a little bit nicer, and shorter.
+Convert bit shifted values into BIT format
 
-Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
-Cc: Kaiwan N Billimoria <kaiwan@designergraphix.com>
-Cc: David Brownell <dbrownell@users.sourceforge.net>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Ben Dooks <ben-linux@fluff.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/lm70.c |   55 ++++++++++++++---------------------------
- 1 file changed, 19 insertions(+), 36 deletions(-)
+ drivers/spi/omap2_mcspi.c |   56 ++++++++++++++++++------------------
+ 1 file changed, 28 insertions(+), 28 deletions(-)
 
-diff -puN drivers/hwmon/lm70.c~hwmon-lm70-convert-to-device-table-matching drivers/hwmon/lm70.c
---- a/drivers/hwmon/lm70.c~hwmon-lm70-convert-to-device-table-matching
-+++ a/drivers/hwmon/lm70.c
-@@ -32,6 +32,7 @@
- #include <linux/sysfs.h>
- #include <linux/hwmon.h>
- #include <linux/mutex.h>
-+#include <linux/mod_devicetable.h>
- #include <linux/spi/spi.h>
+diff -puN drivers/spi/omap2_mcspi.c~spi-omap2_mcspi-use-bitn drivers/spi/omap2_mcspi.c
+--- a/drivers/spi/omap2_mcspi.c~spi-omap2_mcspi-use-bitn
++++ a/drivers/spi/omap2_mcspi.c
+@@ -59,40 +59,40 @@
  
+ /* per-register bitmasks: */
  
-@@ -130,11 +131,20 @@ static DEVICE_ATTR(name, S_IRUGO, lm70_s
- 
- /*----------------------------------------------------------------------*/
- 
--static int __devinit common_probe(struct spi_device *spi, int chip)
-+static int __devinit lm70_probe(struct spi_device *spi)
- {
-+	int chip = spi_get_device_id(spi)->driver_data;
- 	struct lm70 *p_lm70;
- 	int status;
- 
-+	/* signaling is SPI_MODE_0 for both LM70 and TMP121 */
-+	if (spi->mode & (SPI_CPOL | SPI_CPHA))
-+		return -EINVAL;
+-#define OMAP2_MCSPI_SYSCONFIG_SMARTIDLE	(2 << 3)
+-#define OMAP2_MCSPI_SYSCONFIG_ENAWAKEUP	(1 << 2)
+-#define OMAP2_MCSPI_SYSCONFIG_AUTOIDLE	(1 << 0)
+-#define OMAP2_MCSPI_SYSCONFIG_SOFTRESET	(1 << 1)
+-
+-#define OMAP2_MCSPI_SYSSTATUS_RESETDONE	(1 << 0)
+-
+-#define OMAP2_MCSPI_MODULCTRL_SINGLE	(1 << 0)
+-#define OMAP2_MCSPI_MODULCTRL_MS	(1 << 2)
+-#define OMAP2_MCSPI_MODULCTRL_STEST	(1 << 3)
++#define OMAP2_MCSPI_SYSCONFIG_SMARTIDLE	BIT(4)
++#define OMAP2_MCSPI_SYSCONFIG_ENAWAKEUP	BIT(2)
++#define OMAP2_MCSPI_SYSCONFIG_AUTOIDLE	BIT(0)
++#define OMAP2_MCSPI_SYSCONFIG_SOFTRESET	BIT(1)
 +
-+	/* 3-wire link (shared SI/SO) for LM70 */
-+	if (chip == LM70_CHIP_LM70 && !(spi->mode & SPI_3WIRE))
-+		return -EINVAL;
++#define OMAP2_MCSPI_SYSSTATUS_RESETDONE	BIT(0)
 +
- 	/* NOTE:  we assume 8-bit words, and convert to 16 bits manually */
++#define OMAP2_MCSPI_MODULCTRL_SINGLE	BIT(0)
++#define OMAP2_MCSPI_MODULCTRL_MS	BIT(2)
++#define OMAP2_MCSPI_MODULCTRL_STEST	BIT(3)
  
- 	p_lm70 = kzalloc(sizeof *p_lm70, GFP_KERNEL);
-@@ -170,24 +180,6 @@ out_dev_reg_failed:
- 	return status;
- }
- 
--static int __devinit lm70_probe(struct spi_device *spi)
--{
--	/* signaling is SPI_MODE_0 on a 3-wire link (shared SI/SO) */
--	if ((spi->mode & (SPI_CPOL | SPI_CPHA)) || !(spi->mode & SPI_3WIRE))
--		return -EINVAL;
+-#define OMAP2_MCSPI_CHCONF_PHA		(1 << 0)
+-#define OMAP2_MCSPI_CHCONF_POL		(1 << 1)
++#define OMAP2_MCSPI_CHCONF_PHA		BIT(0)
++#define OMAP2_MCSPI_CHCONF_POL		BIT(1)
+ #define OMAP2_MCSPI_CHCONF_CLKD_MASK	(0x0f << 2)
+-#define OMAP2_MCSPI_CHCONF_EPOL		(1 << 6)
++#define OMAP2_MCSPI_CHCONF_EPOL		BIT(6)
+ #define OMAP2_MCSPI_CHCONF_WL_MASK	(0x1f << 7)
+-#define OMAP2_MCSPI_CHCONF_TRM_RX_ONLY	(0x01 << 12)
+-#define OMAP2_MCSPI_CHCONF_TRM_TX_ONLY	(0x02 << 12)
++#define OMAP2_MCSPI_CHCONF_TRM_RX_ONLY	BIT(12)
++#define OMAP2_MCSPI_CHCONF_TRM_TX_ONLY	BIT(13)
+ #define OMAP2_MCSPI_CHCONF_TRM_MASK	(0x03 << 12)
+-#define OMAP2_MCSPI_CHCONF_DMAW		(1 << 14)
+-#define OMAP2_MCSPI_CHCONF_DMAR		(1 << 15)
+-#define OMAP2_MCSPI_CHCONF_DPE0		(1 << 16)
+-#define OMAP2_MCSPI_CHCONF_DPE1		(1 << 17)
+-#define OMAP2_MCSPI_CHCONF_IS		(1 << 18)
+-#define OMAP2_MCSPI_CHCONF_TURBO	(1 << 19)
+-#define OMAP2_MCSPI_CHCONF_FORCE	(1 << 20)
 -
--	return common_probe(spi, LM70_CHIP_LM70);
--}
--
--static int __devinit tmp121_probe(struct spi_device *spi)
--{
--	/* signaling is SPI_MODE_0 with only MISO connected */
--	if (spi->mode & (SPI_CPOL | SPI_CPHA))
--		return -EINVAL;
--
--	return common_probe(spi, LM70_CHIP_TMP121);
--}
--
- static int __devexit lm70_remove(struct spi_device *spi)
- {
- 	struct lm70 *p_lm70 = dev_get_drvdata(&spi->dev);
-@@ -201,41 +193,32 @@ static int __devexit lm70_remove(struct 
- 	return 0;
- }
- 
--static struct spi_driver tmp121_driver = {
--	.driver = {
--		.name	= "tmp121",
--		.owner	= THIS_MODULE,
--	},
--	.probe	= tmp121_probe,
--	.remove	= __devexit_p(lm70_remove),
+-#define OMAP2_MCSPI_CHSTAT_RXS		(1 << 0)
+-#define OMAP2_MCSPI_CHSTAT_TXS		(1 << 1)
+-#define OMAP2_MCSPI_CHSTAT_EOT		(1 << 2)
++#define OMAP2_MCSPI_CHCONF_DMAW		BIT(14)
++#define OMAP2_MCSPI_CHCONF_DMAR		BIT(15)
++#define OMAP2_MCSPI_CHCONF_DPE0		BIT(16)
++#define OMAP2_MCSPI_CHCONF_DPE1		BIT(17)
++#define OMAP2_MCSPI_CHCONF_IS		BIT(18)
++#define OMAP2_MCSPI_CHCONF_TURBO	BIT(19)
++#define OMAP2_MCSPI_CHCONF_FORCE	BIT(20)
 +
-+static const struct spi_device_id lm70_ids[] = {
-+	{ "lm70",   LM70_CHIP_LM70 },
-+	{ "tmp121", LM70_CHIP_TMP121 },
-+	{ },
- };
-+MODULE_DEVICE_TABLE(spi, lm70_ids);
++#define OMAP2_MCSPI_CHSTAT_RXS		BIT(0)
++#define OMAP2_MCSPI_CHSTAT_TXS		BIT(1)
++#define OMAP2_MCSPI_CHSTAT_EOT		BIT(2)
  
- static struct spi_driver lm70_driver = {
- 	.driver = {
- 		.name	= "lm70",
- 		.owner	= THIS_MODULE,
- 	},
-+	.id_table = lm70_ids,
- 	.probe	= lm70_probe,
- 	.remove	= __devexit_p(lm70_remove),
- };
+-#define OMAP2_MCSPI_CHCTRL_EN		(1 << 0)
++#define OMAP2_MCSPI_CHCTRL_EN		BIT(0)
  
- static int __init init_lm70(void)
- {
--	int ret = spi_register_driver(&lm70_driver);
--	if (ret)
--		return ret;
--
--	ret = spi_register_driver(&tmp121_driver);
--	if (ret)
--		spi_unregister_driver(&lm70_driver);
+-#define OMAP2_MCSPI_WAKEUPENABLE_WKEN	(1 << 0)
++#define OMAP2_MCSPI_WAKEUPENABLE_WKEN	BIT(0)
+ 
+ /* We have 2 DMA channels per CS, one for RX and one for TX */
+ struct omap2_mcspi_dma {
+_
+
+Patches currently in -mm which might be from jouni.hogander@nokia.com are
+
+origin.patch
+
