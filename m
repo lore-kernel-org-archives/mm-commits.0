@@ -1,96 +1,320 @@
 From: akpm@linux-foundation.org
-Subject: [merged] platinumfb-misplaced-parenthesis.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 13:01:08 -0700
-Message-ID: <200909232001.n8NK18V4014569@imap1.linux-foundation.org>
+Subject: [merged] ep93xx-video-driver-platform-support.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 13:01:21 -0700
+Message-ID: <200909232001.n8NK1L1e014978@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52172 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42804 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753861AbZIWUCA (ORCPT
+	by vger.kernel.org with ESMTP id S1753863AbZIWUCC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 16:02:00 -0400
+	Wed, 23 Sep 2009 16:02:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, benh@kernel.crashing.org, geert@linux-m68k.org, paulus@samba.org, syrjala@sci.fi, mm-commits@vger.kernel.org
+To: ryan@bluewatersys.com, hsweeten@visionengravers.com, krzysztof.h1@poczta.fm, linux@brownhat.org, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     platinumfb: fix misplaced parenthesis
+     ep93xx video driver platform support
 has been removed from the -mm tree.  Its filename was
-     platinumfb-misplaced-parenthesis.patch
+     ep93xx-video-driver-platform-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: platinumfb: fix misplaced parenthesis
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: ep93xx video driver platform support
+From: Ryan Mallon <ryan@bluewatersys.com>
 
-Since `+' has a higher precedence than the trinary operator `?', this
-added `hres * (1 << color_mode)' to the boolean testing videomode and
-depth.
-
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Ville Syrjala <syrjala@sci.fi>
+Signed-off-by: Ryan Mallon <ryan@bluewatersys.com>
+Acked-by: H Hartley Sweeten <hsweeten@visionengravers.com>
+Cc: Daniele Venzano <linux@brownhat.org>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/platinumfb.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ arch/arm/mach-ep93xx/clock.c                    |   88 +++++++++++++-
+ arch/arm/mach-ep93xx/core.c                     |   32 +++++
+ arch/arm/mach-ep93xx/include/mach/ep93xx-regs.h |    6 
+ arch/arm/mach-ep93xx/include/mach/fb.h          |   56 ++++++++
+ arch/arm/mach-ep93xx/include/mach/platform.h    |    2 
+ 5 files changed, 183 insertions(+), 1 deletion(-)
 
-diff -puN drivers/video/platinumfb.c~platinumfb-misplaced-parenthesis drivers/video/platinumfb.c
---- a/drivers/video/platinumfb.c~platinumfb-misplaced-parenthesis
-+++ a/drivers/video/platinumfb.c
-@@ -223,10 +223,14 @@ static int platinumfb_setcolreg(u_int re
+diff -puN arch/arm/mach-ep93xx/clock.c~ep93xx-video-driver-platform-support arch/arm/mach-ep93xx/clock.c
+--- a/arch/arm/mach-ep93xx/clock.c~ep93xx-video-driver-platform-support
++++ a/arch/arm/mach-ep93xx/clock.c
+@@ -37,7 +37,7 @@ struct clk {
+ static unsigned long get_uart_rate(struct clk *clk);
  
- static inline int platinum_vram_reqd(int video_mode, int color_mode)
- {
--	return vmode_attrs[video_mode-1].vres *
--	       (vmode_attrs[video_mode-1].hres * (1<<color_mode) +
--		((video_mode == VMODE_832_624_75) &&
--		 (color_mode > CMODE_8)) ? 0x10 : 0x20) + 0x1000;
-+	int baseval = vmode_attrs[video_mode-1].hres * (1<<color_mode);
+ static int set_keytchclk_rate(struct clk *clk, unsigned long rate);
+-
++static int set_div_rate(struct clk *clk, unsigned long rate);
+ 
+ static struct clk clk_uart1 = {
+ 	.sw_locked	= 1,
+@@ -76,6 +76,13 @@ static struct clk clk_pwm = {
+ 	.rate		= EP93XX_EXT_CLK_RATE,
+ };
+ 
++static struct clk clk_video = {
++	.sw_locked	= 1,
++	.enable_reg     = EP93XX_SYSCON_VIDCLKDIV,
++	.enable_mask    = EP93XX_SYSCON_CLKDIV_ENABLE,
++	.set_rate	= set_div_rate,
++};
 +
-+	if ((video_mode == VMODE_832_624_75) && (color_mode > CMODE_8))
-+		baseval += 0x10;
-+	else
-+		baseval += 0x20;
-+
-+	return vmode_attrs[video_mode-1].vres * baseval + 0x1000;
+ /* DMA Clocks */
+ static struct clk clk_m2p0 = {
+ 	.enable_reg	= EP93XX_SYSCON_PWRCNT,
+@@ -140,6 +147,7 @@ static struct clk_lookup clocks[] = {
+ 	INIT_CK(NULL,			"pll2",		&clk_pll2),
+ 	INIT_CK("ep93xx-ohci",		NULL,		&clk_usb_host),
+ 	INIT_CK("ep93xx-keypad",	NULL,		&clk_keypad),
++	INIT_CK("ep93xx-fb",		NULL,		&clk_video),
+ 	INIT_CK(NULL,			"pwm_clk",	&clk_pwm),
+ 	INIT_CK(NULL,			"m2p0",		&clk_m2p0),
+ 	INIT_CK(NULL,			"m2p1",		&clk_m2p1),
+@@ -236,6 +244,84 @@ static int set_keytchclk_rate(struct clk
+ 	return 0;
  }
  
- #define STORE_D2(a, d) { \
++static unsigned long calc_clk_div(unsigned long rate, int *psel, int *esel,
++				  int *pdiv, int *div)
++{
++	unsigned long max_rate, best_rate = 0,
++		actual_rate = 0, mclk_rate = 0, rate_err = -1;
++	int i, found = 0, __div = 0, __pdiv = 0;
++
++	/* Don't exceed the maximum rate */
++	max_rate = max(max(clk_pll1.rate / 4, clk_pll2.rate / 4),
++		       (unsigned long)EP93XX_EXT_CLK_RATE / 4);
++	rate = min(rate, max_rate);
++
++	/*
++	 * Try the two pll's and the external clock
++	 * Because the valid predividers are 2, 2.5 and 3, we multiply
++	 * all the clocks by 2 to avoid floating point math.
++	 *
++	 * This is based on the algorithm in the ep93xx raster guide:
++	 * http://be-a-maverick.com/en/pubs/appNote/AN269REV1.pdf
++	 *
++	 */
++	for (i = 0; i < 3; i++) {
++		if (i == 0)
++			mclk_rate = EP93XX_EXT_CLK_RATE * 2;
++		else if (i == 1)
++			mclk_rate = clk_pll1.rate * 2;
++		else if (i == 2)
++			mclk_rate = clk_pll2.rate * 2;
++
++		/* Try each predivider value */
++		for (__pdiv = 4; __pdiv <= 6; __pdiv++) {
++			__div = mclk_rate / (rate * __pdiv);
++			if (__div < 2 || __div > 127)
++				continue;
++
++			actual_rate = mclk_rate / (__pdiv * __div);
++
++			if (!found || abs(actual_rate - rate) < rate_err) {
++				*pdiv = __pdiv - 3;
++				*div = __div;
++				*psel = (i == 2);
++				*esel = (i != 0);
++				best_rate = actual_rate;
++				rate_err = abs(actual_rate - rate);
++				found = 1;
++			}
++		}
++	}
++
++	if (!found)
++		return 0;
++
++	return best_rate;
++}
++
++static int set_div_rate(struct clk *clk, unsigned long rate)
++{
++	unsigned long actual_rate;
++	int psel = 0, esel = 0, pdiv = 0, div = 0;
++	u32 val;
++
++	actual_rate = calc_clk_div(rate, &psel, &esel, &pdiv, &div);
++	if (actual_rate == 0)
++		return -EINVAL;
++	clk->rate = actual_rate;
++
++	/* Clear the esel, psel, pdiv and div bits */
++	val = __raw_readl(clk->enable_reg);
++	val &= ~0x7fff;
++
++	/* Set the new esel, psel, pdiv and div bits for the new clock rate */
++	val |= (esel ? EP93XX_SYSCON_CLKDIV_ESEL : 0) |
++		(psel ? EP93XX_SYSCON_CLKDIV_PSEL : 0) |
++		(pdiv << EP93XX_SYSCON_CLKDIV_PDIV_SHIFT) | div;
++	ep93xx_syscon_swlocked_write(val, clk->enable_reg);
++	return 0;
++}
++
+ int clk_set_rate(struct clk *clk, unsigned long rate)
+ {
+ 	if (clk->set_rate)
+diff -puN arch/arm/mach-ep93xx/core.c~ep93xx-video-driver-platform-support arch/arm/mach-ep93xx/core.c
+--- a/arch/arm/mach-ep93xx/core.c~ep93xx-video-driver-platform-support
++++ a/arch/arm/mach-ep93xx/core.c
+@@ -30,6 +30,7 @@
+ #include <linux/i2c-gpio.h>
+ 
+ #include <mach/hardware.h>
++#include <mach/fb.h>
+ 
+ #include <asm/mach/map.h>
+ #include <asm/mach/time.h>
+@@ -682,6 +683,37 @@ void ep93xx_pwm_release_gpio(struct plat
+ EXPORT_SYMBOL(ep93xx_pwm_release_gpio);
+ 
+ 
++/*************************************************************************
++ * EP93xx video peripheral handling
++ *************************************************************************/
++static struct ep93xxfb_mach_info ep93xxfb_data;
++
++static struct resource ep93xx_fb_resource[] = {
++	{
++		.start		= EP93XX_RASTER_PHYS_BASE,
++		.end		= EP93XX_RASTER_PHYS_BASE + 0x800 - 1,
++		.flags		= IORESOURCE_MEM,
++	},
++};
++
++static struct platform_device ep93xx_fb_device = {
++	.name			= "ep93xx-fb",
++	.id			= -1,
++	.dev			= {
++		.platform_data	= &ep93xxfb_data,
++		.coherent_dma_mask	= DMA_BIT_MASK(32),
++		.dma_mask		= &ep93xx_fb_device.dev.coherent_dma_mask,
++	},
++	.num_resources		= ARRAY_SIZE(ep93xx_fb_resource),
++	.resource		= ep93xx_fb_resource,
++};
++
++void __init ep93xx_register_fb(struct ep93xxfb_mach_info *data)
++{
++	ep93xxfb_data = *data;
++	platform_device_register(&ep93xx_fb_device);
++}
++
+ extern void ep93xx_gpio_init(void);
+ 
+ void __init ep93xx_init_devices(void)
+diff -puN arch/arm/mach-ep93xx/include/mach/ep93xx-regs.h~ep93xx-video-driver-platform-support arch/arm/mach-ep93xx/include/mach/ep93xx-regs.h
+--- a/arch/arm/mach-ep93xx/include/mach/ep93xx-regs.h~ep93xx-video-driver-platform-support
++++ a/arch/arm/mach-ep93xx/include/mach/ep93xx-regs.h
+@@ -70,6 +70,7 @@
+ #define EP93XX_USB_PHYS_BASE		(EP93XX_AHB_PHYS_BASE + 0x00020000)
+ #define EP93XX_USB_BASE			EP93XX_AHB_IOMEM(0x00020000)
+ 
++#define EP93XX_RASTER_PHYS_BASE		(EP93XX_AHB_PHYS_BASE + 0x00030000)
+ #define EP93XX_RASTER_BASE		EP93XX_AHB_IOMEM(0x00030000)
+ 
+ #define EP93XX_GRAPHICS_ACCEL_BASE	EP93XX_AHB_IOMEM(0x00040000)
+@@ -207,6 +208,11 @@
+ #define EP93XX_SYSCON_DEVCFG_ADCPD	(1<<2)
+ #define EP93XX_SYSCON_DEVCFG_KEYS	(1<<1)
+ #define EP93XX_SYSCON_DEVCFG_SHENA	(1<<0)
++#define EP93XX_SYSCON_VIDCLKDIV		EP93XX_SYSCON_REG(0x84)
++#define EP93XX_SYSCON_CLKDIV_ENABLE	(1<<15)
++#define EP93XX_SYSCON_CLKDIV_ESEL	(1<<14)
++#define EP93XX_SYSCON_CLKDIV_PSEL	(1<<13)
++#define EP93XX_SYSCON_CLKDIV_PDIV_SHIFT	8
+ #define EP93XX_SYSCON_KEYTCHCLKDIV	EP93XX_SYSCON_REG(0x90)
+ #define EP93XX_SYSCON_KEYTCHCLKDIV_TSEN	(1<<31)
+ #define EP93XX_SYSCON_KEYTCHCLKDIV_ADIV	(1<<16)
+diff -puN /dev/null arch/arm/mach-ep93xx/include/mach/fb.h
+--- /dev/null
++++ a/arch/arm/mach-ep93xx/include/mach/fb.h
+@@ -0,0 +1,56 @@
++/*
++ * arch/arm/mach-ep93xx/include/mach/fb.h
++ */
++
++#ifndef __ASM_ARCH_EP93XXFB_H
++#define __ASM_ARCH_EP93XXFB_H
++
++struct platform_device;
++struct fb_videomode;
++struct fb_info;
++
++#define EP93XXFB_USE_MODEDB		0
++
++/* VideoAttributes flags */
++#define EP93XXFB_STATE_MACHINE_ENABLE	(1 << 0)
++#define EP93XXFB_PIXEL_CLOCK_ENABLE	(1 << 1)
++#define EP93XXFB_VSYNC_ENABLE		(1 << 2)
++#define EP93XXFB_PIXEL_DATA_ENABLE	(1 << 3)
++#define EP93XXFB_COMPOSITE_SYNC		(1 << 4)
++#define EP93XXFB_SYNC_VERT_HIGH		(1 << 5)
++#define EP93XXFB_SYNC_HORIZ_HIGH	(1 << 6)
++#define EP93XXFB_SYNC_BLANK_HIGH	(1 << 7)
++#define EP93XXFB_PCLK_FALLING		(1 << 8)
++#define EP93XXFB_ENABLE_AC		(1 << 9)
++#define EP93XXFB_ENABLE_LCD		(1 << 10)
++#define EP93XXFB_ENABLE_CCIR		(1 << 12)
++#define EP93XXFB_USE_PARALLEL_INTERFACE	(1 << 13)
++#define EP93XXFB_ENABLE_INTERRUPT	(1 << 14)
++#define EP93XXFB_USB_INTERLACE		(1 << 16)
++#define EP93XXFB_USE_EQUALIZATION	(1 << 17)
++#define EP93XXFB_USE_DOUBLE_HORZ	(1 << 18)
++#define EP93XXFB_USE_DOUBLE_VERT	(1 << 19)
++#define EP93XXFB_USE_BLANK_PIXEL	(1 << 20)
++#define EP93XXFB_USE_SDCSN0		(0 << 21)
++#define EP93XXFB_USE_SDCSN1		(1 << 21)
++#define EP93XXFB_USE_SDCSN2		(2 << 21)
++#define EP93XXFB_USE_SDCSN3		(3 << 21)
++
++#define EP93XXFB_ENABLE			(EP93XXFB_STATE_MACHINE_ENABLE	| \
++					 EP93XXFB_PIXEL_CLOCK_ENABLE	| \
++					 EP93XXFB_VSYNC_ENABLE		| \
++					 EP93XXFB_PIXEL_DATA_ENABLE)
++
++struct ep93xxfb_mach_info {
++	unsigned int			num_modes;
++	const struct fb_videomode	*modes;
++	const struct fb_videomode	*default_mode;
++	int				bpp;
++	unsigned int			flags;
++
++	int	(*setup)(struct platform_device *pdev);
++	void	(*teardown)(struct platform_device *pdev);
++	void	(*blank)(int blank_mode, struct fb_info *info);
++};
++
++#endif /* __ASM_ARCH_EP93XXFB_H */
+diff -puN arch/arm/mach-ep93xx/include/mach/platform.h~ep93xx-video-driver-platform-support arch/arm/mach-ep93xx/include/mach/platform.h
+--- a/arch/arm/mach-ep93xx/include/mach/platform.h~ep93xx-video-driver-platform-support
++++ a/arch/arm/mach-ep93xx/include/mach/platform.h
+@@ -6,6 +6,7 @@
+ 
+ struct i2c_board_info;
+ struct platform_device;
++struct ep93xxfb_mach_info;
+ 
+ struct ep93xx_eth_data
+ {
+@@ -33,6 +34,7 @@ static inline void ep93xx_devcfg_clear_b
+ 
+ void ep93xx_register_eth(struct ep93xx_eth_data *data, int copy_addr);
+ void ep93xx_register_i2c(struct i2c_board_info *devices, int num);
++void ep93xx_register_fb(struct ep93xxfb_mach_info *data);
+ void ep93xx_register_pwm(int pwm0, int pwm1);
+ int ep93xx_pwm_acquire_gpio(struct platform_device *pdev);
+ void ep93xx_pwm_release_gpio(struct platform_device *pdev);
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from ryan@bluewatersys.com are
 
 origin.patch
-linux-next.patch
-dm-strncpy-does-not-null-terminate-string.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
-msp71xx-request_irq-failure-ignored-in-msp_pcibios_config_access.patch
-hfc_usb-fix-read-buffer-overflow.patch
-cyclades-read-buffer-overflow.patch
-serial167-fix-read-buffer-overflow.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
-st-fix-test-of-value-range-in-st_set_options.patch
-drivers-staging-octeon-ethernet-rgmiic-dont-ignore-request_irq-return-code.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-mwave-fix-read-buffer-overflow.patch
-adfs-remove-redundant-test-on-unsigned.patch
-gru-allocation-may-fail-in-quicktest1.patch
 
