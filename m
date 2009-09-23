@@ -1,189 +1,379 @@
 From: akpm@linux-foundation.org
-Subject: [merged] gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 12:59:28 -0700
-Message-ID: <200909231959.n8NJxSAR011054@imap1.linux-foundation.org>
+Subject: [merged] gpio-add-intel-moorestown-platform-langwell-chip-gpio-driver.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 12:59:42 -0700
+Message-ID: <200909231959.n8NJxgBu011492@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41027 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40731 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753630AbZIWT7n (ORCPT
+	by vger.kernel.org with ESMTP id S1753643AbZIWT7n (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 23 Sep 2009 15:59:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ext-jani.1.nikula@nokia.com, david-b@pacbell.net, dsilvers@simtec.co.uk, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: alek.du@intel.com, david-b@pacbell.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gpiolib: allow exported GPIO nodes to be named using sysfs links
+     gpio: add Intel Moorestown Platform Langwell chip gpio driver
 has been removed from the -mm tree.  Its filename was
-     gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links.patch
+     gpio-add-intel-moorestown-platform-langwell-chip-gpio-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpiolib: allow exported GPIO nodes to be named using sysfs links
-From: Jani Nikula <ext-jani.1.nikula@nokia.com>
+Subject: gpio: add Intel Moorestown Platform Langwell chip gpio driver
+From: Alek Du <alek.du@intel.com>
 
-Commit 926b663ce8215ba448960e1ff6e58b67a2c3b99b (gpiolib: allow GPIOs to
-be named) already provides naming on the chip level. This patch provides
-more flexibility by allowing multiple names where ever in sysfs on a per
-GPIO basis.
+The Langwell chip is the IO hub for Intel Moorestown platform which has a
+64-pin gpio block device inside.  It is exposed as a dedicated PCI device.
+ We use it to control outside peripheral as well as to do IRQ demuxing. 
+The gpio block uses MSI to send level type interrupt to IOAPIC.
 
-Adapted from David Brownell's comments on a similar concept:
-http://lkml.org/lkml/2009/4/20/203.
-
-[randy.dunlap@oracle.com: fix build for CONFIG_GENERIC_GPIO=n]
-Signed-off-by: Jani Nikula <ext-jani.1.nikula@nokia.com>
-Acked-by: David Brownell <david-b@pacbell.net>
-Cc: Daniel Silverstone <dsilvers@simtec.co.uk>
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Alek Du <alek.du@intel.com>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/gpio.txt     |   10 +++++++
- drivers/gpio/gpiolib.c     |   45 +++++++++++++++++++++++++++++++++++
- include/asm-generic/gpio.h |    8 ++++++
- include/linux/gpio.h       |   11 ++++++++
- 4 files changed, 74 insertions(+)
+ drivers/gpio/Kconfig         |    6 
+ drivers/gpio/Makefile        |    1 
+ drivers/gpio/langwell_gpio.c |  297 +++++++++++++++++++++++++++++++++
+ 3 files changed, 304 insertions(+)
 
-diff -puN Documentation/gpio.txt~gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links Documentation/gpio.txt
---- a/Documentation/gpio.txt~gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links
-+++ a/Documentation/gpio.txt
-@@ -555,6 +555,11 @@ requested using gpio_request():
- 	/* reverse gpio_export() */
- 	void gpio_unexport();
+diff -puN drivers/gpio/Kconfig~gpio-add-intel-moorestown-platform-langwell-chip-gpio-driver drivers/gpio/Kconfig
+--- a/drivers/gpio/Kconfig~gpio-add-intel-moorestown-platform-langwell-chip-gpio-driver
++++ a/drivers/gpio/Kconfig
+@@ -180,6 +180,12 @@ config GPIO_BT8XX
  
-+	/* create a sysfs link to an exported GPIO node */
-+	int gpio_export_link(struct device *dev, const char *name,
-+		unsigned gpio)
-+
-+
- After a kernel driver requests a GPIO, it may only be made available in
- the sysfs interface by gpio_export().  The driver can control whether the
- signal direction may change.  This helps drivers prevent userspace code
-@@ -563,3 +568,8 @@ from accidentally clobbering important s
- This explicit exporting can help with debugging (by making some kinds
- of experiments easier), or can provide an always-there interface that's
- suitable for documenting as part of a board support package.
-+
-+After the GPIO has been exported, gpio_export_link() allows creating
-+symlinks from elsewhere in sysfs to the GPIO sysfs node.  Drivers can
-+use this to provide the interface under their own device in sysfs with
-+a descriptive name.
-diff -puN drivers/gpio/gpiolib.c~gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links drivers/gpio/gpiolib.c
---- a/drivers/gpio/gpiolib.c~gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links
-+++ a/drivers/gpio/gpiolib.c
-@@ -505,6 +505,51 @@ static int match_export(struct device *d
- }
+ 	  If unsure, say N.
  
- /**
-+ * gpio_export_link - create a sysfs link to an exported GPIO node
-+ * @dev: device under which to create symlink
-+ * @name: name of the symlink
-+ * @gpio: gpio to create symlink to, already exported
++config GPIO_LANGWELL
++	bool "Intel Moorestown Platform Langwell GPIO support"
++	depends on PCI
++	help
++	  Say Y here to support Intel Moorestown platform GPIO.
++
+ comment "SPI GPIO expanders:"
+ 
+ config GPIO_MAX7301
+diff -puN drivers/gpio/Makefile~gpio-add-intel-moorestown-platform-langwell-chip-gpio-driver drivers/gpio/Makefile
+--- a/drivers/gpio/Makefile~gpio-add-intel-moorestown-platform-langwell-chip-gpio-driver
++++ a/drivers/gpio/Makefile
+@@ -4,6 +4,7 @@ ccflags-$(CONFIG_DEBUG_GPIO)	+= -DDEBUG
+ 
+ obj-$(CONFIG_GPIOLIB)		+= gpiolib.o
+ 
++obj-$(CONFIG_GPIO_LANGWELL)	+= langwell_gpio.o
+ obj-$(CONFIG_GPIO_MAX7301)	+= max7301.o
+ obj-$(CONFIG_GPIO_MAX732X)	+= max732x.o
+ obj-$(CONFIG_GPIO_MC33880)	+= mc33880.o
+diff -puN /dev/null drivers/gpio/langwell_gpio.c
+--- /dev/null
++++ a/drivers/gpio/langwell_gpio.c
+@@ -0,0 +1,297 @@
++/* langwell_gpio.c Moorestown platform Langwell chip GPIO driver
++ * Copyright (c) 2008 - 2009,  Intel Corporation.
 + *
-+ * Set up a symlink from /sys/.../dev/name to /sys/class/gpio/gpioN
-+ * node. Caller is responsible for unlinking.
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
 + *
-+ * Returns zero on success, else an error.
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 + */
-+int gpio_export_link(struct device *dev, const char *name, unsigned gpio)
-+{
-+	struct gpio_desc	*desc;
-+	int			status = -EINVAL;
 +
-+	if (!gpio_is_valid(gpio))
++/* Supports:
++ * Moorestown platform Langwell chip.
++ */
++
++#include <linux/module.h>
++#include <linux/pci.h>
++#include <linux/kernel.h>
++#include <linux/delay.h>
++#include <linux/stddef.h>
++#include <linux/interrupt.h>
++#include <linux/init.h>
++#include <linux/irq.h>
++#include <linux/io.h>
++#include <linux/gpio.h>
++
++struct lnw_gpio_register {
++	u32	GPLR[2];
++	u32	GPDR[2];
++	u32	GPSR[2];
++	u32	GPCR[2];
++	u32	GRER[2];
++	u32	GFER[2];
++	u32	GEDR[2];
++};
++
++struct lnw_gpio {
++	struct gpio_chip		chip;
++	struct lnw_gpio_register 	*reg_base;
++	spinlock_t			lock;
++	unsigned			irq_base;
++};
++
++static int lnw_gpio_get(struct gpio_chip *chip, unsigned offset)
++{
++	struct lnw_gpio *lnw = container_of(chip, struct lnw_gpio, chip);
++	u8 reg = offset / 32;
++	void __iomem *gplr;
++
++	gplr = (void __iomem *)(&lnw->reg_base->GPLR[reg]);
++	return readl(gplr) & BIT(offset % 32);
++}
++
++static void lnw_gpio_set(struct gpio_chip *chip, unsigned offset, int value)
++{
++	struct lnw_gpio *lnw = container_of(chip, struct lnw_gpio, chip);
++	u8 reg = offset / 32;
++	void __iomem *gpsr, *gpcr;
++
++	if (value) {
++		gpsr = (void __iomem *)(&lnw->reg_base->GPSR[reg]);
++		writel(BIT(offset % 32), gpsr);
++	} else {
++		gpcr = (void __iomem *)(&lnw->reg_base->GPCR[reg]);
++		writel(BIT(offset % 32), gpcr);
++	}
++}
++
++static int lnw_gpio_direction_input(struct gpio_chip *chip, unsigned offset)
++{
++	struct lnw_gpio *lnw = container_of(chip, struct lnw_gpio, chip);
++	u8 reg = offset / 32;
++	u32 value;
++	unsigned long flags;
++	void __iomem *gpdr;
++
++	gpdr = (void __iomem *)(&lnw->reg_base->GPDR[reg]);
++	spin_lock_irqsave(&lnw->lock, flags);
++	value = readl(gpdr);
++	value &= ~BIT(offset % 32);
++	writel(value, gpdr);
++	spin_unlock_irqrestore(&lnw->lock, flags);
++	return 0;
++}
++
++static int lnw_gpio_direction_output(struct gpio_chip *chip,
++			unsigned offset, int value)
++{
++	struct lnw_gpio *lnw = container_of(chip, struct lnw_gpio, chip);
++	u8 reg = offset / 32;
++	unsigned long flags;
++	void __iomem *gpdr;
++
++	lnw_gpio_set(chip, offset, value);
++	gpdr = (void __iomem *)(&lnw->reg_base->GPDR[reg]);
++	spin_lock_irqsave(&lnw->lock, flags);
++	value = readl(gpdr);
++	value |= BIT(offset % 32);;
++	writel(value, gpdr);
++	spin_unlock_irqrestore(&lnw->lock, flags);
++	return 0;
++}
++
++static int lnw_gpio_to_irq(struct gpio_chip *chip, unsigned offset)
++{
++	struct lnw_gpio *lnw = container_of(chip, struct lnw_gpio, chip);
++	return lnw->irq_base + offset;
++}
++
++static int lnw_irq_type(unsigned irq, unsigned type)
++{
++	struct lnw_gpio *lnw = get_irq_chip_data(irq);
++	u32 gpio = irq - lnw->irq_base;
++	u8 reg = gpio / 32;
++	unsigned long flags;
++	u32 value;
++	void __iomem *grer = (void __iomem *)(&lnw->reg_base->GRER[reg]);
++	void __iomem *gfer = (void __iomem *)(&lnw->reg_base->GFER[reg]);
++
++	if (gpio < 0 || gpio > lnw->chip.ngpio)
++		return -EINVAL;
++	spin_lock_irqsave(&lnw->lock, flags);
++	if (type & IRQ_TYPE_EDGE_RISING)
++		value = readl(grer) | BIT(gpio % 32);
++	else
++		value = readl(grer) & (~BIT(gpio % 32));
++	writel(value, grer);
++
++	if (type & IRQ_TYPE_EDGE_FALLING)
++		value = readl(gfer) | BIT(gpio % 32);
++	else
++		value = readl(gfer) & (~BIT(gpio % 32));
++	writel(value, gfer);
++	spin_unlock_irqrestore(&lnw->lock, flags);
++
++	return 0;
++};
++
++static void lnw_irq_unmask(unsigned irq)
++{
++	struct lnw_gpio *lnw = get_irq_chip_data(irq);
++	u32 gpio = irq - lnw->irq_base;
++	u8 reg = gpio / 32;
++	void __iomem *gedr;
++
++	gedr = (void __iomem *)(&lnw->reg_base->GEDR[reg]);
++	writel(BIT(gpio % 32), gedr);
++};
++
++static void lnw_irq_mask(unsigned irq)
++{
++};
++
++static struct irq_chip lnw_irqchip = {
++	.name		= "LNW-GPIO",
++	.mask		= lnw_irq_mask,
++	.unmask		= lnw_irq_unmask,
++	.set_type	= lnw_irq_type,
++};
++
++static struct pci_device_id lnw_gpio_ids[] = {
++	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, 0x080f) },
++	{ 0, }
++};
++MODULE_DEVICE_TABLE(pci, lnw_gpio_ids);
++
++static void lnw_irq_handler(unsigned irq, struct irq_desc *desc)
++{
++	struct lnw_gpio *lnw = (struct lnw_gpio *)get_irq_data(irq);
++	u32 reg, gpio;
++	void __iomem *gedr;
++	u32 gedr_v;
++
++	/* check GPIO controller to check which pin triggered the interrupt */
++	for (reg = 0; reg < lnw->chip.ngpio / 32; reg++) {
++		gedr = (void __iomem *)(&lnw->reg_base->GEDR[reg]);
++		gedr_v = readl(gedr);
++		if (!gedr_v)
++			continue;
++		for (gpio = reg*32; gpio < reg*32+32; gpio++) {
++			gedr_v = readl(gedr);
++			if (gedr_v & BIT(gpio % 32)) {
++				pr_debug("pin %d triggered\n", gpio);
++				generic_handle_irq(lnw->irq_base + gpio);
++			}
++		}
++		/* clear the edge detect status bit */
++		writel(gedr_v, gedr);
++	}
++	desc->chip->eoi(irq);
++}
++
++static int __devinit lnw_gpio_probe(struct pci_dev *pdev,
++			const struct pci_device_id *id)
++{
++	void *base;
++	int i;
++	resource_size_t start, len;
++	struct lnw_gpio *lnw;
++	u32 irq_base;
++	u32 gpio_base;
++	int retval = 0;
++
++	retval = pci_enable_device(pdev);
++	if (retval)
 +		goto done;
 +
-+	mutex_lock(&sysfs_lock);
-+
-+	desc = &gpio_desc[gpio];
-+
-+	if (test_bit(FLAG_EXPORT, &desc->flags)) {
-+		struct device *tdev;
-+
-+		tdev = class_find_device(&gpio_class, NULL, desc, match_export);
-+		if (tdev != NULL) {
-+			status = sysfs_create_link(&dev->kobj, &tdev->kobj,
-+						name);
-+		} else {
-+			status = -ENODEV;
-+		}
++	retval = pci_request_regions(pdev, "langwell_gpio");
++	if (retval) {
++		dev_err(&pdev->dev, "error requesting resources\n");
++		goto err2;
++	}
++	/* get the irq_base from bar1 */
++	start = pci_resource_start(pdev, 1);
++	len = pci_resource_len(pdev, 1);
++	base = ioremap_nocache(start, len);
++	if (!base) {
++		dev_err(&pdev->dev, "error mapping bar1\n");
++		goto err3;
++	}
++	irq_base = *(u32 *)base;
++	gpio_base = *((u32 *)base + 1);
++	/* release the IO mapping, since we already get the info from bar1 */
++	iounmap(base);
++	/* get the register base from bar0 */
++	start = pci_resource_start(pdev, 0);
++	len = pci_resource_len(pdev, 0);
++	base = ioremap_nocache(start, len);
++	if (!base) {
++		dev_err(&pdev->dev, "error mapping bar0\n");
++		retval = -EFAULT;
++		goto err3;
 +	}
 +
-+	mutex_unlock(&sysfs_lock);
++	lnw = kzalloc(sizeof(struct lnw_gpio), GFP_KERNEL);
++	if (!lnw) {
++		dev_err(&pdev->dev, "can't allocate langwell_gpio chip data\n");
++		retval = -ENOMEM;
++		goto err4;
++	}
++	lnw->reg_base = base;
++	lnw->irq_base = irq_base;
++	lnw->chip.label = dev_name(&pdev->dev);
++	lnw->chip.direction_input = lnw_gpio_direction_input;
++	lnw->chip.direction_output = lnw_gpio_direction_output;
++	lnw->chip.get = lnw_gpio_get;
++	lnw->chip.set = lnw_gpio_set;
++	lnw->chip.to_irq = lnw_gpio_to_irq;
++	lnw->chip.base = gpio_base;
++	lnw->chip.ngpio = 64;
++	lnw->chip.can_sleep = 0;
++	pci_set_drvdata(pdev, lnw);
++	retval = gpiochip_add(&lnw->chip);
++	if (retval) {
++		dev_err(&pdev->dev, "langwell gpiochip_add error %d\n", retval);
++		goto err5;
++	}
++	set_irq_data(pdev->irq, lnw);
++	set_irq_chained_handler(pdev->irq, lnw_irq_handler);
++	for (i = 0; i < lnw->chip.ngpio; i++) {
++		set_irq_chip_and_handler_name(i + lnw->irq_base, &lnw_irqchip,
++					handle_simple_irq, "demux");
++		set_irq_chip_data(i + lnw->irq_base, lnw);
++	}
 +
++	spin_lock_init(&lnw->lock);
++	goto done;
++err5:
++	kfree(lnw);
++err4:
++	iounmap(base);
++err3:
++	pci_release_regions(pdev);
++err2:
++	pci_disable_device(pdev);
 +done:
-+	if (status)
-+		pr_debug("%s: gpio%d status %d\n", __func__, gpio, status);
-+
-+	return status;
++	return retval;
 +}
-+EXPORT_SYMBOL_GPL(gpio_export_link);
 +
-+/**
-  * gpio_unexport - reverse effect of gpio_export()
-  * @gpio: gpio to make unavailable
-  *
-diff -puN include/asm-generic/gpio.h~gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links include/asm-generic/gpio.h
---- a/include/asm-generic/gpio.h~gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links
-+++ a/include/asm-generic/gpio.h
-@@ -141,6 +141,8 @@ extern int __gpio_to_irq(unsigned gpio);
-  * but more typically is configured entirely from userspace.
-  */
- extern int gpio_export(unsigned gpio, bool direction_may_change);
-+extern int gpio_export_link(struct device *dev, const char *name,
-+			unsigned gpio);
- extern void gpio_unexport(unsigned gpio);
- 
- #endif	/* CONFIG_GPIO_SYSFS */
-@@ -185,6 +187,12 @@ static inline int gpio_export(unsigned g
- 	return -ENOSYS;
- }
- 
-+static inline int gpio_export_link(struct device *dev, const char *name,
-+				unsigned gpio)
++static struct pci_driver lnw_gpio_driver = {
++	.name		= "langwell_gpio",
++	.id_table	= lnw_gpio_ids,
++	.probe		= lnw_gpio_probe,
++};
++
++static int __init lnw_gpio_init(void)
 +{
-+	return -ENOSYS;
++	return pci_register_driver(&lnw_gpio_driver);
 +}
 +
- static inline void gpio_unexport(unsigned gpio)
- {
- }
-diff -puN include/linux/gpio.h~gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links include/linux/gpio.h
---- a/include/linux/gpio.h~gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links
-+++ a/include/linux/gpio.h
-@@ -12,6 +12,8 @@
- #include <linux/types.h>
- #include <linux/errno.h>
- 
-+struct device;
-+
- /*
-  * Some platforms don't support the GPIO programming interface.
-  *
-@@ -89,6 +91,15 @@ static inline int gpio_export(unsigned g
- 	return -EINVAL;
- }
- 
-+static inline int gpio_export_link(struct device *dev, const char *name,
-+				unsigned gpio)
-+{
-+	/* GPIO can never have been exported */
-+	WARN_ON(1);
-+	return -EINVAL;
-+}
-+
-+
- static inline void gpio_unexport(unsigned gpio)
- {
- 	/* GPIO can never have been exported */
++device_initcall(lnw_gpio_init);
 _
 
-Patches currently in -mm which might be from ext-jani.1.nikula@nokia.com are
+Patches currently in -mm which might be from alek.du@intel.com are
 
 origin.patch
+linux-next.patch
 
