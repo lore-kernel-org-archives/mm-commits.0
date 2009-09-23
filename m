@@ -1,140 +1,172 @@
 From: akpm@linux-foundation.org
-Subject: [folded] build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix.patch removed from -mm tree
-Date: Tue, 22 Sep 2009 16:34:34 -0700
-Message-ID: <200909222334.n8MNYYcf024939@imap1.linux-foundation.org>
+Subject: + input-fix-build-failures-caused-by-kconfig-winbond-wpcd376i-consumer-ir-hardware-driver-kconfig-entry.patch added to -mm tree
+Date: Wed, 23 Sep 2009 00:44:15 -0700
+Message-ID: <200909230744.n8N7iFPV016469@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45229 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33697 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752897AbZIVXfV (ORCPT
+	by vger.kernel.org with ESMTP id S1754305AbZIWHpK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Sep 2009 19:35:21 -0400
+	Wed, 23 Sep 2009 03:45:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, JBeulich@novell.com, andi@firstfloor.org, catalin.marinas@arm.com, davem@davemloft.net, jbeulich@novell.com, jmorris@namei.org, rusty@rustcorp.com.au, sraji
+To: mm-commits@vger.kernel.org
+Cc: mingo@elte.hu, david@hardeman.nu, dtor@mail.ru, jbarnes@virtuousgeek.org
 
 
 The patch titled
-     build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix
-has been removed from the -mm tree.  Its filename was
-     build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix.patch
+     input: fix build failures caused by Kconfig Winbond WPCD376I Consu=
+mer IR hardware driver Kconfig entry
+has been added to the -mm tree.  Its filename is
+     input-fix-build-failures-caused-by-kconfig-winbond-wpcd376i-consum=
+er-ir-hardware-driver-kconfig-entry.patch
 
-This patch was dropped because it was folded into build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
+
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: input: fix build failures caused by Kconfig Winbond WPCD376I C=
+onsumer IR hardware driver Kconfig entry
+=46rom: Ingo Molnar <mingo@elte.hu>
 
-More nonsensical assertions in tpm.c..
+drivers/built-in.o: In function `apanel_remove':
+apanel.c:(.text+0x56e852): undefined reference to `led_classdev_unregis=
+ter'
+drivers/built-in.o: In function `apanel_probe':
+apanel.c:(.text+0x56eae3): undefined reference to `led_classdev_registe=
+r'
+drivers/built-in.o: In function `acpi_fujitsu_hotkey_add':
+fujitsu-laptop.c:(.text+0x5d7647): undefined reference to `led_classdev=
+_register'
+fujitsu-laptop.c:(.text+0x5d76b5): undefined reference to `led_classdev=
+_register'
+drivers/built-in.o: In function `wbcir_probe':
+winbond-cir.c:(.devinit.text+0x5f375): undefined reference to `led_clas=
+sdev_register'
+winbond-cir.c:(.devinit.text+0x5f663): undefined reference to `led_clas=
+sdev_unregister'
+drivers/built-in.o: In function `wbcir_remove':
+winbond-cir.c:(.devexit.text+0x7f23): undefined reference to `led_class=
+dev_unregister'
+drivers/built-in.o: In function `fujitsu_cleanup':
+fujitsu-laptop.c:(.exit.text+0xbe37): undefined reference to `led_class=
+dev_unregister'
+fujitsu-laptop.c:(.exit.text+0xbe53): undefined reference to `led_class=
+dev_unregister'
 
-Cc: Rajiv Andrade <srajiv@linux.vnet.ibm.com>
-Cc: Mimi Zohar <zohar@us.ibm.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: "Jan Beulich" <JBeulich@novell.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Jan Beulich <jbeulich@novell.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+It happens because the new INPUT_WINBOND_CIR driver relies on new-leds
+infrastructure - but does not select it in drivers/input/misc/Kconfig.=20
+But it selects LEDS_CLASS, which confuses a number of other drivers int=
+o
+thinking that all the leds infrastructure is in place.
+
+=46ix this by selecting NEW_LEDS as well, like similar drivers do.
+
+Eventually, this whole leds infrastructure complexity should be
+cleaned up, it's been going on for years.
+
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: David H=E4rdeman <david@hardeman.nu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tpm/tpm.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/input/misc/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/char/tpm/tpm.c~build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix drivers/char/tpm/tpm.c
---- a/drivers/char/tpm/tpm.c~build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix
-+++ a/drivers/char/tpm/tpm.c
-@@ -696,7 +696,7 @@ int __tpm_pcr_read(struct tpm_chip *chip
- 
- 	cmd.header.in = pcrread_header;
- 	cmd.params.pcrread_in.pcr_idx = cpu_to_be32(pcr_idx);
--	BUILD_BUG_ON(cmd.header.in.length > READ_PCR_RESULT_SIZE);
-+	BUG_ON(cmd.header.in.length > READ_PCR_RESULT_SIZE);
- 	rc = transmit_cmd(chip, &cmd, cmd.header.in.length,
- 			  "attempting to read a pcr value");
- 
+diff -puN drivers/input/misc/Kconfig~input-fix-build-failures-caused-by=
+-kconfig-winbond-wpcd376i-consumer-ir-hardware-driver-kconfig-entry dri=
+vers/input/misc/Kconfig
+--- a/drivers/input/misc/Kconfig~input-fix-build-failures-caused-by-kco=
+nfig-winbond-wpcd376i-consumer-ir-hardware-driver-kconfig-entry
++++ a/drivers/input/misc/Kconfig
+@@ -225,6 +225,7 @@ config INPUT_SGI_BTNS
+ config INPUT_WINBOND_CIR
+ 	tristate "Winbond IR remote control"
+ 	depends on X86 && PNP
++	select NEW_LEDS
+ 	select LEDS_CLASS
+ 	select BITREVERSE
+ 	help
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mingo@elte.hu are
 
 origin.patch
-include-linux-kmemcheckh-fix-a-trillion-warnings.patch
+kprobes-use-do_irq-in-lkdtm.patch
 printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios.pa=
+tch
 generic-ipi-make-struct-call_function_data-lockless.patch
-proc-connector-add-event-for-process-becoming-session-leader.patch
-build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it.patch
-build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix.patch
-build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it-fix-fix.patch
-mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
-sdio-add-cd-disable-support.patch
-sdio-add-mmc_quirk_lenient_fn0.patch
-at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver.patch
-mmc-core-sdio-suspend-resume-support.patch
+getrusage-fill-ru_maxrss-value.patch
+kallsyms-fix-segfault-in-prefix_underscores_count.patch
+asm-sections-add-text-data-checking-functions-for-arches-to-override.pa=
+tch
+kallsyms-use-new-arch_is_kernel_text.patch
+lockdep-use-new-arch_is_kernel_data.patch
+blackfin-override-text-data-checking-functions.patch
 procfs-provide-stack-information-for-threads-v08.patch
-kcore-register-vmemmap-range.patch
-rtc-add-driver-for-mxcs-internal-rtc-module.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
-davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4.patch
-drivers-video-add-kmalloc-null-tests.patch
-drivers-video-tmiofbc-fix-uninitialised-return-value.patch
-v3-minixfs-add-missing-directory-type-checking.patch
+input-fix-build-failures-caused-by-kconfig-winbond-wpcd376i-consumer-ir=
+-hardware-driver-kconfig-entry.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-hwmon-driver-for-acpi-40-power-meters.patch
-drivers-md-dm-log-userspace-basec-fix-warning.patch
-drivers-dma-ioat-dma_v3c-fix-warnings.patch
-drivers-dma-ioat-dma_v2c-fix-warnings.patch
+kernel-core-add-smp_call_function_any.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by=
+-using-smp_call_function_any.patch
+genirq-switch-proc-irq-spurious-to-seq_file.patch
 timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-checkincludespl-add-option-to-remove-duplicates-in-place.patch
-net-fix-config_net=n-build-on-sparc64.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-include-linux-credh-fix-build.patch
-serial167-fix-read-buffer-overflow.patch
-st-fix-test-of-value-range-in-st_set_options.patch
-drivers-usb-serial-sierrac-fix-config_pm=n-build.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
 libfs-make-simple_read_from_buffer-conventional.patch
-vfs-optimize-touch_time-too.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
 fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-drivers-net-wireless-ath-ar9170-phyc-fix-uninitialised-variable.patch
-hugetlb_file_setup-use-c-not-cpp.patch
-readahead-add-blk_run_backing_dev.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+x86-_end-symbol-missing-from-symbolmap.patch
+generic-ipi-cleanup-for-generic_smp_call_function_interrupt.patch
 kernel-smpc-relocate-some-code.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs.patch
-page-types-add-feature-for-walking-process-address-space-checkpatch-fixes.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
-memcg-improve-resource-counter-scalability-checkpatch-fixes.patch
-exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
-exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
-elf-clean-up-fill_note_info-fix.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-reiser4-disable.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+time-add-function-to-convert-between-calendar-time-and-broken-down-time=
+-for-universal-use.patch
+fatfs-use-common-time_to_tm-in-fat_time_unix2fat.patch
+cgroups-let-ss-can_attach-and-ss-attach-do-whole-threadgroups-at-a-time=
+=2Epatch
+cgroups-let-ss-can_attach-and-ss-attach-do-whole-threadgroups-at-a-time=
+-fix.patch
+do_wait-wakeup-optimization-shift-security_task_wait-from-eligible_chil=
+d-to-wait_consider_task.patch
+do_wait-wakeup-optimization-change-__wake_up_parent-to-use-filtered-wak=
+eup.patch
+do_wait-wakeup-optimization-change-__wake_up_parent-to-use-filtered-wak=
+eup-selinux_bprm_committed_creds-use-__wake_up_parent.patch
+do_wait-wakeup-optimization-child_wait_callback-check-__wnothread-case.=
+patch
+do_wait-optimization-do-not-place-sub-threads-on-task_struct-children-l=
+ist.patch
+wait_consider_task-kill-parent-argument.patch
+signals-introduce-do_send_sig_info-helper.patch
+signals-send_sigio-use-do_send_sig_info-to-avoid-check_kill_permission.=
+patch
+sysctl-remove-struct-file-argument-of-proc_handler.patch
+linux-futexh-place-kernel-types-behind-__kernel__.patch
+edac-i3200-memory-controller-driver.patch
+include-linux-unaligned-lbe_byteshifth-fix-usage-for-compressed-kernels=
+=2Epatch
+make-frame_pointer-default=3Dy.patch
+mutex-subsystem-synchro-test-module.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
