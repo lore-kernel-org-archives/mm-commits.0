@@ -1,334 +1,251 @@
 From: akpm@linux-foundation.org
-Subject: [merged] spi-mcspi-off-mode-support.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 12:58:33 -0700
-Message-ID: <200909231958.n8NJwX9o009148@imap1.linux-foundation.org>
+Subject: [merged] davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 13:01:14 -0700
+Message-ID: <200909232001.n8NK1E9o014761@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44764 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38473 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753869AbZIWUCJ (ORCPT
+	by vger.kernel.org with ESMTP id S1753866AbZIWUCJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 23 Sep 2009 16:02:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hemanthv@ti.com, Aaro.Koskinen@nokia.com, dbrownell@users.sourceforge.net, khilman@deeprootsystems.com, mm-commits@vger.kernel.org
+To: sudhakar.raj@ti.com, krzysztof.h1@wp.pl, pkiryukhin@ru.mvista.com, schen@mvista.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi: McSPI off-mode support
+     davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4
 has been removed from the -mm tree.  Its filename was
-     spi-mcspi-off-mode-support.patch
+     davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi: McSPI off-mode support
-From: Hemanth V <hemanthv@ti.com>
+Subject: davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4
+From: Sudhakar Rajashekhara <sudhakar.raj@ti.com>
 
-Add context save/restore feature to McSPI driver.
+Since the previous version, return values in ioctl() function have been
+modified.
 
-Signed-off-by: Hemanth V <hemanthv@ti.com>
-Reviewed-by: Aaro Koskinen <Aaro.Koskinen@nokia.com>
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+[akpm@linux-foundation.org: simplify lcd_disable_raster()]
+Signed-off-by: Sudhakar Rajashekhara <sudhakar.raj@ti.com>
+Signed-off-by: Pavel Kiryukhin <pkiryukhin@ru.mvista.com>
+Signed-off-by: Steve Chen <schen@mvista.com>
+Acked-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/omap2_mcspi.c |  136 ++++++++++++++++++++++++++----------
- 1 file changed, 101 insertions(+), 35 deletions(-)
+ drivers/video/da8xx-fb.c |   61 ++++++++++++-------------------------
+ include/video/da8xx-fb.h |    3 -
+ 2 files changed, 21 insertions(+), 43 deletions(-)
 
-diff -puN drivers/spi/omap2_mcspi.c~spi-mcspi-off-mode-support drivers/spi/omap2_mcspi.c
---- a/drivers/spi/omap2_mcspi.c~spi-mcspi-off-mode-support
-+++ a/drivers/spi/omap2_mcspi.c
-@@ -41,6 +41,9 @@
+diff -puN drivers/video/da8xx-fb.c~davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4 drivers/video/da8xx-fb.c
+--- a/drivers/video/da8xx-fb.c~davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4
++++ a/drivers/video/da8xx-fb.c
+@@ -107,7 +107,6 @@ static inline void lcdc_write(unsigned i
+ }
  
- #define OMAP2_MCSPI_MAX_FREQ		48000000
- 
-+/* OMAP2 has 3 SPI controllers, while OMAP3 has 4 */
-+#define OMAP2_MCSPI_MAX_CTRL 		4
-+
- #define OMAP2_MCSPI_REVISION		0x00
- #define OMAP2_MCSPI_SYSCONFIG		0x10
- #define OMAP2_MCSPI_SYSSTATUS		0x14
-@@ -131,8 +134,21 @@ struct omap2_mcspi_cs {
- 	void __iomem		*base;
- 	unsigned long		phys;
- 	int			word_len;
-+	/* Context save and restore shadow register */
-+	u32			chconf0;
-+};
-+
-+/* used for context save and restore, structure members to be updated whenever
-+ * corresponding registers are modified.
-+ */
-+struct omap2_mcspi_regs {
-+	u32 sysconfig;
-+	u32 modulctrl;
-+	u32 wakeupenable;
+ struct da8xx_fb_par {
+-	wait_queue_head_t da8xx_wq;
+ 	resource_size_t p_palette_base;
+ 	unsigned char *v_palette_base;
+ 	struct clk *lcdc_clk;
+@@ -158,6 +157,7 @@ struct da8xx_panel {
+ 	int		vbp;		/* Vertical back porch */
+ 	int		vsw;		/* Vertical Sync Pulse Width */
+ 	int		pxl_clk;	/* Pixel clock */
++	unsigned char	invert_pxl_clk;	/* Invert Pixel clock */
  };
  
-+static struct omap2_mcspi_regs omap2_mcspi_ctx[OMAP2_MCSPI_MAX_CTRL];
-+
- static struct workqueue_struct *omap2_mcspi_wq;
+ static struct da8xx_panel known_lcd_panels[] = {
+@@ -173,6 +173,7 @@ static struct da8xx_panel known_lcd_pane
+ 		.vbp = 2,
+ 		.vsw = 0,
+ 		.pxl_clk = 0x10,
++		.invert_pxl_clk = 1,
+ 	},
+ 	/* Sharp LK043T1DG01 */
+ 	[1] = {
+@@ -186,29 +187,18 @@ static struct da8xx_panel known_lcd_pane
+ 		.vbp = 2,
+ 		.vsw = 10,
+ 		.pxl_clk = 0x12,
++		.invert_pxl_clk = 0,
+ 	},
+ };
  
- #define MOD_REG_BIT(val, mask, set) do { \
-@@ -172,12 +188,27 @@ static inline u32 mcspi_read_cs_reg(cons
- 	return __raw_readl(cs->base + idx);
- }
- 
-+static inline u32 mcspi_cached_chconf0(const struct spi_device *spi)
-+{
-+	struct omap2_mcspi_cs *cs = spi->controller_state;
-+
-+	return cs->chconf0;
-+}
-+
-+static inline void mcspi_write_chconf0(const struct spi_device *spi, u32 val)
-+{
-+	struct omap2_mcspi_cs *cs = spi->controller_state;
-+
-+	cs->chconf0 = val;
-+	mcspi_write_cs_reg(spi, OMAP2_MCSPI_CHCONF0, val);
-+}
-+
- static void omap2_mcspi_set_dma_req(const struct spi_device *spi,
- 		int is_read, int enable)
+ /* Disable the Raster Engine of the LCD Controller */
+-static int lcd_disable_raster(struct da8xx_fb_par *par)
++static void lcd_disable_raster(struct da8xx_fb_par *par)
  {
- 	u32 l, rw;
+-	int ret = 0;
+ 	u32 reg;
  
--	l = mcspi_read_cs_reg(spi, OMAP2_MCSPI_CHCONF0);
-+	l = mcspi_cached_chconf0(spi);
- 
- 	if (is_read) /* 1 is read, 0 write */
- 		rw = OMAP2_MCSPI_CHCONF_DMAR;
-@@ -185,7 +216,7 @@ static void omap2_mcspi_set_dma_req(cons
- 		rw = OMAP2_MCSPI_CHCONF_DMAW;
- 
- 	MOD_REG_BIT(l, rw, enable);
--	mcspi_write_cs_reg(spi, OMAP2_MCSPI_CHCONF0, l);
-+	mcspi_write_chconf0(spi, l);
+ 	reg = lcdc_read(LCD_RASTER_CTRL_REG);
+-	if (reg & LCD_RASTER_ENABLE) {
++	if (reg & LCD_RASTER_ENABLE)
+ 		lcdc_write(reg & ~LCD_RASTER_ENABLE, LCD_RASTER_CTRL_REG);
+-		ret = wait_event_interruptible_timeout(par->da8xx_wq,
+-						!lcdc_read(LCD_STAT_REG) &
+-						LCD_END_OF_FRAME0, WSI_TIMEOUT);
+-	}
+-
+-	if (ret < 0)
+-		return ret;
+-	if (ret == 0)
+-		return -ETIMEDOUT;
+-
+-	return 0;
  }
  
- static void omap2_mcspi_set_enable(const struct spi_device *spi, int enable)
-@@ -200,9 +231,9 @@ static void omap2_mcspi_force_cs(struct 
+ static void lcd_blit(int load_mode, struct da8xx_fb_par *par)
+@@ -256,7 +246,7 @@ static int lcd_cfg_dma(int burst_size)
+ 	default:
+ 		return -EINVAL;
+ 	}
+-	lcdc_write(reg | LCD_END_OF_FRAME_INT_ENA, LCD_DMA_CTRL_REG);
++	lcdc_write(reg, LCD_DMA_CTRL_REG);
+ 
+ 	return 0;
+ }
+@@ -342,11 +332,6 @@ static int lcd_cfg_display(const struct 
+ 	else
+ 		reg &= ~LCD_SYNC_EDGE;
+ 
+-	if (cfg->invert_pxl_clock)
+-		reg |= LCD_INVERT_PIXEL_CLOCK;
+-	else
+-		reg &= ~LCD_INVERT_PIXEL_CLOCK;
+-
+ 	if (cfg->invert_line_clock)
+ 		reg |= LCD_INVERT_LINE_CLOCK;
+ 	else
+@@ -456,19 +441,15 @@ static int fb_setcolreg(unsigned regno, 
+ 	return 0;
+ }
+ 
+-static int lcd_reset(struct da8xx_fb_par *par)
++static void lcd_reset(struct da8xx_fb_par *par)
  {
- 	u32 l;
+-	int ret = 0;
+-
+ 	/* Disable the Raster if previously Enabled */
+ 	if (lcdc_read(LCD_RASTER_CTRL_REG) & LCD_RASTER_ENABLE)
+-		ret = lcd_disable_raster(par);
++		lcd_disable_raster(par);
  
--	l = mcspi_read_cs_reg(spi, OMAP2_MCSPI_CHCONF0);
-+	l = mcspi_cached_chconf0(spi);
- 	MOD_REG_BIT(l, OMAP2_MCSPI_CHCONF_FORCE, cs_active);
--	mcspi_write_cs_reg(spi, OMAP2_MCSPI_CHCONF0, l);
-+	mcspi_write_chconf0(spi, l);
+ 	/* DMA has to be disabled */
+ 	lcdc_write(0, LCD_DMA_CTRL_REG);
+ 	lcdc_write(0, LCD_RASTER_CTRL_REG);
+-
+-	return ret;
  }
  
- static void omap2_mcspi_set_master_mode(struct spi_master *master)
-@@ -217,6 +248,41 @@ static void omap2_mcspi_set_master_mode(
- 	MOD_REG_BIT(l, OMAP2_MCSPI_MODULCTRL_MS, 0);
- 	MOD_REG_BIT(l, OMAP2_MCSPI_MODULCTRL_SINGLE, 1);
- 	mcspi_write_reg(master, OMAP2_MCSPI_MODULCTRL, l);
+ static int lcd_init(struct da8xx_fb_par *par, const struct lcd_ctrl_config *cfg,
+@@ -477,14 +458,19 @@ static int lcd_init(struct da8xx_fb_par 
+ 	u32 bpp;
+ 	int ret = 0;
+ 
+-	ret = lcd_reset(par);
+-	if (ret != 0)
+-		return ret;
++	lcd_reset(par);
+ 
+ 	/* Configure the LCD clock divisor. */
+ 	lcdc_write(LCD_CLK_DIVISOR(panel->pxl_clk) |
+ 			(LCD_RASTER_MODE & 0x1), LCD_CTRL_REG);
+ 
++	if (panel->invert_pxl_clk)
++		lcdc_write((lcdc_read(LCD_RASTER_TIMING_2_REG) |
++			LCD_INVERT_PIXEL_CLOCK), LCD_RASTER_TIMING_2_REG);
++	else
++		lcdc_write((lcdc_read(LCD_RASTER_TIMING_2_REG) &
++			~LCD_INVERT_PIXEL_CLOCK), LCD_RASTER_TIMING_2_REG);
 +
-+	omap2_mcspi_ctx[master->bus_num - 1].modulctrl = l;
-+}
-+
-+static void omap2_mcspi_restore_ctx(struct omap2_mcspi *mcspi)
-+{
-+	struct spi_master *spi_cntrl;
-+	spi_cntrl = mcspi->master;
-+
-+	/* McSPI: context restore */
-+	mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_MODULCTRL,
-+			omap2_mcspi_ctx[spi_cntrl->bus_num - 1].modulctrl);
-+
-+	mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_SYSCONFIG,
-+			omap2_mcspi_ctx[spi_cntrl->bus_num - 1].sysconfig);
-+
-+	mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_WAKEUPENABLE,
-+			omap2_mcspi_ctx[spi_cntrl->bus_num - 1].wakeupenable);
-+}
-+static void omap2_mcspi_disable_clocks(struct omap2_mcspi *mcspi)
-+{
-+	clk_disable(mcspi->ick);
-+	clk_disable(mcspi->fck);
-+}
-+
-+static int omap2_mcspi_enable_clocks(struct omap2_mcspi *mcspi)
-+{
-+	if (clk_enable(mcspi->ick))
-+		return -ENODEV;
-+	if (clk_enable(mcspi->fck))
-+		return -ENODEV;
-+
-+	omap2_mcspi_restore_ctx(mcspi);
-+
+ 	/* Configure the DMA burst size. */
+ 	ret = lcd_cfg_dma(cfg->dma_burst_sz);
+ 	if (ret < 0)
+@@ -528,7 +514,6 @@ static int lcd_init(struct da8xx_fb_par 
+ static irqreturn_t lcdc_irq_handler(int irq, void *arg)
+ {
+ 	u32 stat = lcdc_read(LCD_STAT_REG);
+-	struct da8xx_fb_par *par = arg;
+ 	u32 reg;
+ 
+ 	if ((stat & LCD_SYNC_LOST) && (stat & LCD_FIFO_UNDERFLOW)) {
+@@ -539,7 +524,6 @@ static irqreturn_t lcdc_irq_handler(int 
+ 	} else
+ 		lcdc_write(stat, LCD_STAT_REG);
+ 
+-	wake_up_interruptible(&par->da8xx_wq);
+ 	return IRQ_HANDLED;
+ }
+ 
+@@ -594,13 +578,12 @@ static int fb_check_var(struct fb_var_sc
+ static int __devexit fb_remove(struct platform_device *dev)
+ {
+ 	struct fb_info *info = dev_get_drvdata(&dev->dev);
+-	int ret = 0;
+ 
+ 	if (info) {
+ 		struct da8xx_fb_par *par = info->par;
+ 
+ 		if (lcdc_read(LCD_RASTER_CTRL_REG) & LCD_RASTER_ENABLE)
+-			ret = lcd_disable_raster(par);
++			lcd_disable_raster(par);
+ 		lcdc_write(0, LCD_RASTER_CTRL_REG);
+ 
+ 		/* disable DMA  */
+@@ -619,7 +602,7 @@ static int __devexit fb_remove(struct pl
+ 		release_mem_region(lcdc_regs->start, resource_size(lcdc_regs));
+ 
+ 	}
+-	return ret;
 +	return 0;
  }
  
- static unsigned
-@@ -357,7 +423,7 @@ omap2_mcspi_txrx_pio(struct spi_device *
- 	c = count;
- 	word_len = cs->word_len;
+ static int fb_ioctl(struct fb_info *info, unsigned int cmd,
+@@ -634,11 +617,11 @@ static int fb_ioctl(struct fb_info *info
+ 	case FBIPUT_BRIGHTNESS:
+ 	case FBIGET_COLOR:
+ 	case FBIPUT_COLOR:
+-		return -EINVAL;
++		return -ENOTTY;
+ 	case FBIPUT_HSYNC:
+ 		if (copy_from_user(&sync_arg, (char *)arg,
+ 				sizeof(struct lcd_sync_arg)))
+-			return -EINVAL;
++			return -EFAULT;
+ 		lcd_cfg_horizontal_sync(sync_arg.back_porch,
+ 					sync_arg.pulse_width,
+ 					sync_arg.front_porch);
+@@ -646,7 +629,7 @@ static int fb_ioctl(struct fb_info *info
+ 	case FBIPUT_VSYNC:
+ 		if (copy_from_user(&sync_arg, (char *)arg,
+ 				sizeof(struct lcd_sync_arg)))
+-			return -EINVAL;
++			return -EFAULT;
+ 		lcd_cfg_vertical_sync(sync_arg.back_porch,
+ 					sync_arg.pulse_width,
+ 					sync_arg.front_porch);
+@@ -773,8 +756,6 @@ static int __init fb_probe(struct platfo
  
--	l = mcspi_read_cs_reg(spi, OMAP2_MCSPI_CHCONF0);
-+	l = mcspi_cached_chconf0(spi);
- 	l &= ~OMAP2_MCSPI_CHCONF_TRM_MASK;
+ 	par->lcdc_clk = fb_clk;
  
- 	/* We store the pre-calculated register addresses on stack to speed
-@@ -397,8 +463,7 @@ omap2_mcspi_txrx_pio(struct spi_device *
- 				 * more word i/o: switch to rx+tx
- 				 */
- 				if (c == 0 && tx == NULL)
--					mcspi_write_cs_reg(spi,
--							OMAP2_MCSPI_CHCONF0, l);
-+					mcspi_write_chconf0(spi, l);
- 				*rx++ = __raw_readl(rx_reg);
- #ifdef VERBOSE
- 				dev_dbg(&spi->dev, "read-%d %02x\n",
-@@ -436,8 +501,7 @@ omap2_mcspi_txrx_pio(struct spi_device *
- 				 * more word i/o: switch to rx+tx
- 				 */
- 				if (c == 0 && tx == NULL)
--					mcspi_write_cs_reg(spi,
--							OMAP2_MCSPI_CHCONF0, l);
-+					mcspi_write_chconf0(spi, l);
- 				*rx++ = __raw_readl(rx_reg);
- #ifdef VERBOSE
- 				dev_dbg(&spi->dev, "read-%d %04x\n",
-@@ -475,8 +539,7 @@ omap2_mcspi_txrx_pio(struct spi_device *
- 				 * more word i/o: switch to rx+tx
- 				 */
- 				if (c == 0 && tx == NULL)
--					mcspi_write_cs_reg(spi,
--							OMAP2_MCSPI_CHCONF0, l);
-+					mcspi_write_chconf0(spi, l);
- 				*rx++ = __raw_readl(rx_reg);
- #ifdef VERBOSE
- 				dev_dbg(&spi->dev, "read-%d %04x\n",
-@@ -505,10 +568,12 @@ static int omap2_mcspi_setup_transfer(st
- {
- 	struct omap2_mcspi_cs *cs = spi->controller_state;
- 	struct omap2_mcspi *mcspi;
-+	struct spi_master *spi_cntrl;
- 	u32 l = 0, div = 0;
- 	u8 word_len = spi->bits_per_word;
- 
- 	mcspi = spi_master_get_devdata(spi->master);
-+	spi_cntrl = mcspi->master;
- 
- 	if (t != NULL && t->bits_per_word)
- 		word_len = t->bits_per_word;
-@@ -522,7 +587,7 @@ static int omap2_mcspi_setup_transfer(st
- 	} else
- 		div = 15;
- 
--	l = mcspi_read_cs_reg(spi, OMAP2_MCSPI_CHCONF0);
-+	l = mcspi_cached_chconf0(spi);
- 
- 	/* standard 4-wire master mode:  SCK, MOSI/out, MISO/in, nCS
- 	 * REVISIT: this controller could support SPI_3WIRE mode.
-@@ -554,7 +619,7 @@ static int omap2_mcspi_setup_transfer(st
- 	else
- 		l &= ~OMAP2_MCSPI_CHCONF_PHA;
- 
--	mcspi_write_cs_reg(spi, OMAP2_MCSPI_CHCONF0, l);
-+	mcspi_write_chconf0(spi, l);
- 
- 	dev_dbg(&spi->dev, "setup: speed %d, sample %s edge, clk %s\n",
- 			OMAP2_MCSPI_MAX_FREQ / (1 << div),
-@@ -647,6 +712,7 @@ static int omap2_mcspi_setup(struct spi_
- 			return -ENOMEM;
- 		cs->base = mcspi->base + spi->chip_select * 0x14;
- 		cs->phys = mcspi->phys + spi->chip_select * 0x14;
-+		cs->chconf0 = 0;
- 		spi->controller_state = cs;
- 	}
- 
-@@ -657,11 +723,11 @@ static int omap2_mcspi_setup(struct spi_
- 			return ret;
- 	}
- 
--	clk_enable(mcspi->ick);
--	clk_enable(mcspi->fck);
-+	if (omap2_mcspi_enable_clocks(mcspi))
-+		return -ENODEV;
-+
- 	ret = omap2_mcspi_setup_transfer(spi, NULL);
--	clk_disable(mcspi->fck);
--	clk_disable(mcspi->ick);
-+	omap2_mcspi_disable_clocks(mcspi);
- 
- 	return ret;
- }
-@@ -693,8 +759,8 @@ static void omap2_mcspi_work(struct work
- 	mcspi = container_of(work, struct omap2_mcspi, work);
- 	spin_lock_irq(&mcspi->lock);
- 
--	clk_enable(mcspi->ick);
--	clk_enable(mcspi->fck);
-+	if (omap2_mcspi_enable_clocks(mcspi))
-+		goto out;
- 
- 	/* We only enable one channel at a time -- the one whose message is
- 	 * at the head of the queue -- although this controller would gladly
-@@ -741,13 +807,13 @@ static void omap2_mcspi_work(struct work
- 				cs_active = 1;
- 			}
- 
--			chconf = mcspi_read_cs_reg(spi, OMAP2_MCSPI_CHCONF0);
-+			chconf = mcspi_cached_chconf0(spi);
- 			chconf &= ~OMAP2_MCSPI_CHCONF_TRM_MASK;
- 			if (t->tx_buf == NULL)
- 				chconf |= OMAP2_MCSPI_CHCONF_TRM_RX_ONLY;
- 			else if (t->rx_buf == NULL)
- 				chconf |= OMAP2_MCSPI_CHCONF_TRM_TX_ONLY;
--			mcspi_write_cs_reg(spi, OMAP2_MCSPI_CHCONF0, chconf);
-+			mcspi_write_chconf0(spi, chconf);
- 
- 			if (t->len) {
- 				unsigned	count;
-@@ -796,9 +862,9 @@ static void omap2_mcspi_work(struct work
- 		spin_lock_irq(&mcspi->lock);
- 	}
- 
--	clk_disable(mcspi->fck);
--	clk_disable(mcspi->ick);
-+	omap2_mcspi_disable_clocks(mcspi);
- 
-+out:
- 	spin_unlock_irq(&mcspi->lock);
- }
- 
-@@ -885,8 +951,8 @@ static int __init omap2_mcspi_reset(stru
- 	struct spi_master	*master = mcspi->master;
- 	u32			tmp;
- 
--	clk_enable(mcspi->ick);
--	clk_enable(mcspi->fck);
-+	if (omap2_mcspi_enable_clocks(mcspi))
-+		return -1;
- 
- 	mcspi_write_reg(master, OMAP2_MCSPI_SYSCONFIG,
- 			OMAP2_MCSPI_SYSCONFIG_SOFTRESET);
-@@ -894,18 +960,18 @@ static int __init omap2_mcspi_reset(stru
- 		tmp = mcspi_read_reg(master, OMAP2_MCSPI_SYSSTATUS);
- 	} while (!(tmp & OMAP2_MCSPI_SYSSTATUS_RESETDONE));
- 
--	mcspi_write_reg(master, OMAP2_MCSPI_SYSCONFIG,
--			OMAP2_MCSPI_SYSCONFIG_AUTOIDLE |
--			OMAP2_MCSPI_SYSCONFIG_ENAWAKEUP |
--			OMAP2_MCSPI_SYSCONFIG_SMARTIDLE);
+-	init_waitqueue_head(&par->da8xx_wq);
 -
--	mcspi_write_reg(master, OMAP2_MCSPI_WAKEUPENABLE,
--			OMAP2_MCSPI_WAKEUPENABLE_WKEN);
-+	tmp = OMAP2_MCSPI_SYSCONFIG_AUTOIDLE |
-+		OMAP2_MCSPI_SYSCONFIG_ENAWAKEUP |
-+		OMAP2_MCSPI_SYSCONFIG_SMARTIDLE;
-+	mcspi_write_reg(master, OMAP2_MCSPI_SYSCONFIG, tmp);
-+	omap2_mcspi_ctx[master->bus_num - 1].sysconfig = tmp;
-+
-+	tmp = OMAP2_MCSPI_WAKEUPENABLE_WKEN;
-+	mcspi_write_reg(master, OMAP2_MCSPI_WAKEUPENABLE, tmp);
-+	omap2_mcspi_ctx[master->bus_num - 1].wakeupenable = tmp;
+ 	par->irq = platform_get_irq(device, 0);
+ 	if (par->irq < 0) {
+ 		ret = -ENOENT;
+diff -puN include/video/da8xx-fb.h~davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4 include/video/da8xx-fb.h
+--- a/include/video/da8xx-fb.h~davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4
++++ a/include/video/da8xx-fb.h
+@@ -67,9 +67,6 @@ struct lcd_ctrl_config {
+ 	/* Mono 8-bit Mode: 1=D0-D7 or 0=D0-D3 */
+ 	unsigned char mono_8bit_mode;
  
- 	omap2_mcspi_set_master_mode(master);
+-	/* Invert pixel clock */
+-	unsigned char invert_pxl_clock;
