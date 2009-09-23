@@ -1,159 +1,157 @@
 From: akpm@linux-foundation.org
-Subject: [merged] generic-ipi-make-struct-call_function_data-lockless.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 12:52:31 -0700
-Message-ID: <200909231952.n8NJqVoA029257@imap1.linux-foundation.org>
+Subject: [merged] proc-connector-add-event-for-process-becoming-session-leader.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 12:52:44 -0700
+Message-ID: <200909231952.n8NJqiZi029759@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37195 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37890 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751706AbZIWTxV (ORCPT
+	by vger.kernel.org with ESMTP id S1751766AbZIWTxb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 15:53:21 -0400
+	Wed, 23 Sep 2009 15:53:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xiaoguangrong@cn.fujitsu.com, jens.axboe@oracle.com, mingo@elte.hu, nickpiggin@yahoo.com.au, peterz@infradead.org, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: scott@ubuntu.com, davem@davemloft.net, johnpol@2ka.mipt.ru, matthltc@us.ibm.com, oleg@tv-sign.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     generic-ipi: make struct call_function_data lockless
+     proc connector: add event for process becoming session leader
 has been removed from the -mm tree.  Its filename was
-     generic-ipi-make-struct-call_function_data-lockless.patch
+     proc-connector-add-event-for-process-becoming-session-leader.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: generic-ipi: make struct call_function_data lockless
-From: Xiao Guangrong <xiaoguangrong@cn.fujitsu.com>
+Subject: proc connector: add event for process becoming session leader
+From: Scott James Remnant <scott@ubuntu.com>
 
-This patch can remove spinlock from struct call_function_data, the
-reasons are below:
+The act of a process becoming a session leader is a useful signal to a
+supervising init daemon such as Upstart.
 
-1: add a new interface for cpumask named cpumask_test_and_clear_cpu(),
-   it can atomically test and clear specific cpu, we can use it instead
-   of cpumask_test_cpu() and cpumask_clear_cpu() and no need data->lock
-   to protect those in generic_smp_call_function_interrupt().
+While a daemon will normally do this as part of the process of becoming a
+daemon, it is rare for its children to do so.  When the children do, it is
+nearly always a sign that the child should be considered detached from the
+parent and not supervised along with it.
 
-2: in smp_call_function_many(), after csd_lock() return, the current's
-   cfd_data is deleted from call_function list, so it not have race
-   between other cpus, then cfs_data is only used in
-   smp_call_function_many() that must disable preemption and not from
-   a hardware interrupthandler or from a bottom half handler to call,
-   only the correspond cpu can use it, so it not have race in current
-   cpu, no need cfs_data->lock to protect it.
+The poster-child example is OpenSSH; the per-login children call setsid()
+so that they may control the pty connected to them.  If the primary daemon
+dies or is restarted, we do not want to consider the per-login children
+and want to respawn the primary daemon without killing the children.
 
-3: after 1 and 2, cfs_data->lock is only use to protect cfs_data->refs in
-   generic_smp_call_function_interrupt(), so we can define cfs_data->refs
-   to atomic_t, and no need cfs_data->lock any more.
+This patch adds a new PROC_SID_EVENT and associated structure to the
+proc_event event_data union, it arranges for this to be emitted when the
+special PIDTYPE_SID pid is set.
 
-Signed-off-by: Xiao Guangrong <xiaoguangrong@cn.fujitsu.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Acked-by: Rusty Russell <rusty@rustcorp.com.au>
-[akpm@linux-foundation.org: use atomic_dec_return()]
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Scott James Remnant <scott@ubuntu.com>
+Acked-by: Matt Helsley <matthltc@us.ibm.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Acked-by: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cpumask.h |   12 ++++++++++++
- kernel/smp.c            |   29 ++++++++---------------------
- 2 files changed, 20 insertions(+), 21 deletions(-)
+ drivers/connector/cn_proc.c |   25 +++++++++++++++++++++++++
+ include/linux/cn_proc.h     |   10 ++++++++++
+ kernel/exit.c               |    4 +++-
+ 3 files changed, 38 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/cpumask.h~generic-ipi-make-struct-call_function_data-lockless include/linux/cpumask.h
---- a/include/linux/cpumask.h~generic-ipi-make-struct-call_function_data-lockless
-+++ a/include/linux/cpumask.h
-@@ -715,6 +715,18 @@ static inline int cpumask_test_and_set_c
+diff -puN drivers/connector/cn_proc.c~proc-connector-add-event-for-process-becoming-session-leader drivers/connector/cn_proc.c
+--- a/drivers/connector/cn_proc.c~proc-connector-add-event-for-process-becoming-session-leader
++++ a/drivers/connector/cn_proc.c
+@@ -139,6 +139,31 @@ void proc_id_connector(struct task_struc
+ 	cn_netlink_send(msg, CN_IDX_PROC, GFP_KERNEL);
  }
  
- /**
-+ * cpumask_test_and_clear_cpu - atomically test and clear a cpu in a cpumask
-+ * @cpu: cpu number (< nr_cpu_ids)
-+ * @cpumask: the cpumask pointer
-+ *
-+ * test_and_clear_bit wrapper for cpumasks.
-+ */
-+static inline int cpumask_test_and_clear_cpu(int cpu, struct cpumask *cpumask)
++void proc_sid_connector(struct task_struct *task)
 +{
-+	return test_and_clear_bit(cpumask_check(cpu), cpumask_bits(cpumask));
++	struct cn_msg *msg;
++	struct proc_event *ev;
++	struct timespec ts;
++	__u8 buffer[CN_PROC_MSG_SIZE];
++
++	if (atomic_read(&proc_event_num_listeners) < 1)
++		return;
++
++	msg = (struct cn_msg *)buffer;
++	ev = (struct proc_event *)msg->data;
++	get_seq(&msg->seq, &ev->cpu);
++	ktime_get_ts(&ts); /* get high res monotonic timestamp */
++	put_unaligned(timespec_to_ns(&ts), (__u64 *)&ev->timestamp_ns);
++	ev->what = PROC_EVENT_SID;
++	ev->event_data.sid.process_pid = task->pid;
++	ev->event_data.sid.process_tgid = task->tgid;
++
++	memcpy(&msg->id, &cn_proc_event_id, sizeof(msg->id));
++	msg->ack = 0; /* not used */
++	msg->len = sizeof(*ev);
++	cn_netlink_send(msg, CN_IDX_PROC, GFP_KERNEL);
 +}
 +
-+/**
-  * cpumask_setall - set all cpus (< nr_cpu_ids) in a cpumask
-  * @dstp: the cpumask pointer
-  */
-diff -puN kernel/smp.c~generic-ipi-make-struct-call_function_data-lockless kernel/smp.c
---- a/kernel/smp.c~generic-ipi-make-struct-call_function_data-lockless
-+++ a/kernel/smp.c
-@@ -29,8 +29,7 @@ enum {
+ void proc_exit_connector(struct task_struct *task)
+ {
+ 	struct cn_msg *msg;
+diff -puN include/linux/cn_proc.h~proc-connector-add-event-for-process-becoming-session-leader include/linux/cn_proc.h
+--- a/include/linux/cn_proc.h~proc-connector-add-event-for-process-becoming-session-leader
++++ a/include/linux/cn_proc.h
+@@ -52,6 +52,7 @@ struct proc_event {
+ 		PROC_EVENT_EXEC = 0x00000002,
+ 		PROC_EVENT_UID  = 0x00000004,
+ 		PROC_EVENT_GID  = 0x00000040,
++		PROC_EVENT_SID  = 0x00000080,
+ 		/* "next" should be 0x00000400 */
+ 		/* "last" is the last process event: exit */
+ 		PROC_EVENT_EXIT = 0x80000000
+@@ -89,6 +90,11 @@ struct proc_event {
+ 			} e;
+ 		} id;
  
- struct call_function_data {
- 	struct call_single_data	csd;
--	spinlock_t		lock;
--	unsigned int		refs;
-+	atomic_t		refs;
- 	cpumask_var_t		cpumask;
- };
++		struct sid_proc_event {
++			__kernel_pid_t process_pid;
++			__kernel_pid_t process_tgid;
++		} sid;
++
+ 		struct exit_proc_event {
+ 			__kernel_pid_t process_pid;
+ 			__kernel_pid_t process_tgid;
+@@ -102,6 +108,7 @@ struct proc_event {
+ void proc_fork_connector(struct task_struct *task);
+ void proc_exec_connector(struct task_struct *task);
+ void proc_id_connector(struct task_struct *task, int which_id);
++void proc_sid_connector(struct task_struct *task);
+ void proc_exit_connector(struct task_struct *task);
+ #else
+ static inline void proc_fork_connector(struct task_struct *task)
+@@ -114,6 +121,9 @@ static inline void proc_id_connector(str
+ 				     int which_id)
+ {}
  
-@@ -39,9 +38,7 @@ struct call_single_queue {
- 	spinlock_t		lock;
- };
++static inline void proc_sid_connector(struct task_struct *task)
++{}
++
+ static inline void proc_exit_connector(struct task_struct *task)
+ {}
+ #endif	/* CONFIG_PROC_EVENTS */
+diff -puN kernel/exit.c~proc-connector-add-event-for-process-becoming-session-leader kernel/exit.c
+--- a/kernel/exit.c~proc-connector-add-event-for-process-becoming-session-leader
++++ a/kernel/exit.c
+@@ -359,8 +359,10 @@ void __set_special_pids(struct pid *pid)
+ {
+ 	struct task_struct *curr = current->group_leader;
  
--static DEFINE_PER_CPU(struct call_function_data, cfd_data) = {
--	.lock			= __SPIN_LOCK_UNLOCKED(cfd_data.lock),
--};
-+static DEFINE_PER_CPU(struct call_function_data, cfd_data);
+-	if (task_session(curr) != pid)
++	if (task_session(curr) != pid) {
+ 		change_pid(curr, PIDTYPE_SID, pid);
++		proc_sid_connector(curr);
++	}
  
- static int
- hotplug_cfd(struct notifier_block *nfb, unsigned long action, void *hcpu)
-@@ -196,25 +193,18 @@ void generic_smp_call_function_interrupt
- 	list_for_each_entry_rcu(data, &call_function.queue, csd.list) {
- 		int refs;
- 
--		spin_lock(&data->lock);
--		if (!cpumask_test_cpu(cpu, data->cpumask)) {
--			spin_unlock(&data->lock);
-+		if (!cpumask_test_and_clear_cpu(cpu, data->cpumask))
- 			continue;
--		}
--		cpumask_clear_cpu(cpu, data->cpumask);
--		spin_unlock(&data->lock);
- 
- 		data->csd.func(data->csd.info);
- 
--		spin_lock(&data->lock);
--		WARN_ON(data->refs == 0);
--		refs = --data->refs;
-+		refs = atomic_dec_return(&data->refs);
-+		WARN_ON(refs < 0);
- 		if (!refs) {
- 			spin_lock(&call_function.lock);
- 			list_del_rcu(&data->csd.list);
- 			spin_unlock(&call_function.lock);
- 		}
--		spin_unlock(&data->lock);
- 
- 		if (refs)
- 			continue;
-@@ -419,23 +409,20 @@ void smp_call_function_many(const struct
- 	data = &__get_cpu_var(cfd_data);
- 	csd_lock(&data->csd);
- 
--	spin_lock_irqsave(&data->lock, flags);
- 	data->csd.func = func;
- 	data->csd.info = info;
- 	cpumask_and(data->cpumask, mask, cpu_online_mask);
- 	cpumask_clear_cpu(this_cpu, data->cpumask);
--	data->refs = cpumask_weight(data->cpumask);
-+	atomic_set(&data->refs, cpumask_weight(data->cpumask));
- 
--	spin_lock(&call_function.lock);
-+	spin_lock_irqsave(&call_function.lock, flags);
- 	/*
- 	 * Place entry at the _HEAD_ of the list, so that any cpu still
- 	 * observing the entry in generic_smp_call_function_interrupt()
- 	 * will not miss any other list entries:
- 	 */
- 	list_add_rcu(&data->csd.list, &call_function.queue);
--	spin_unlock(&call_function.lock);
+ 	if (task_pgrp(curr) != pid)
+ 		change_pid(curr, PIDTYPE_PGID, pid);
+_
+
+Patches currently in -mm which might be from scott@ubuntu.com are
+
+origin.patch
+
