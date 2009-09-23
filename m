@@ -1,83 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [merged] markup_oops-use-modinfo-to-avoid-confusion-with-underscored-module-names.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 13:04:32 -0700
-Message-ID: <200909232004.n8NK4Wkn021450@imap1.linux-foundation.org>
+Subject: [merged] kbuild-fail-build-if-recordmcountpl-fails.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 13:04:47 -0700
+Message-ID: <200909232004.n8NK4lF2022006@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57208 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33413 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753949AbZIWUFa (ORCPT
+	by vger.kernel.org with ESMTP id S1753942AbZIWUF3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 16:05:30 -0400
+	Wed, 23 Sep 2009 16:05:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ozan@pardus.org.tr, arjan@infradead.org, sam@ravnborg.org, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
+To: andi@firstfloor.org, ak@linux.intel.com, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     markup_oops: use modinfo to avoid confusion with underscored modul=
-e names
+     kbuild: fail build if recordmcount.pl fails
 has been removed from the -mm tree.  Its filename was
-     markup_oops-use-modinfo-to-avoid-confusion-with-underscored-module=
--names.patch
+     kbuild-fail-build-if-recordmcountpl-fails.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: markup_oops: use modinfo to avoid confusion with underscored m=
-odule names
-=46rom: Ozan =C7aglayan <ozan@pardus.org.tr>
+Subject: kbuild: fail build if recordmcount.pl fails
+From: Andi Kleen <andi@firstfloor.org>
 
-When EIP is at a module having an underscore in its name, the current c=
-ode
-fails to find it because the module filenames has '-' instead of '_'.  =
-Use
-modinfo for a better path finding.
+When this script fails the build should fail too. Otherwise there
+are mysterious build failures later.
 
-Signed-off-by: Ozan =C7aglayan <ozan@pardus.org.tr>
-Acked-by: WANG Cong <xiyou.wangcong@gmail.com>
-Cc: Arjan van de Ven <arjan@infradead.org>
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
 Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/markup_oops.pl |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ scripts/Makefile.build |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/markup_oops.pl~markup_oops-use-modinfo-to-avoid-confu=
-sion-with-underscored-module-names scripts/markup_oops.pl
---- a/scripts/markup_oops.pl~markup_oops-use-modinfo-to-avoid-confusion=
--with-underscored-module-names
-+++ a/scripts/markup_oops.pl
-@@ -184,10 +184,7 @@ if ($target eq "0") {
-=20
- # if it's a module, we need to find the .ko file and calculate a load =
-offset
- if ($module ne "") {
--	my $dir =3D dirname($filename);
--	$dir =3D $dir . "/";
--	my $mod =3D $module . ".ko";
--	my $modulefile =3D `find $dir -name $mod | head -1`;
-+	my $modulefile =3D `modinfo $module | grep '^filename:' | awk '{ prin=
-t \$2 }'`;
- 	chomp($modulefile);
- 	$filename =3D $modulefile;
- 	if ($filename eq "") {
+diff -puN scripts/Makefile.build~kbuild-fail-build-if-recordmcountpl-fails scripts/Makefile.build
+--- a/scripts/Makefile.build~kbuild-fail-build-if-recordmcountpl-fails
++++ a/scripts/Makefile.build
+@@ -206,7 +206,7 @@ cmd_modversions =							\
+ endif
+ 
+ ifdef CONFIG_FTRACE_MCOUNT_RECORD
+-cmd_record_mcount = perl $(srctree)/scripts/recordmcount.pl "$(ARCH)" \
++cmd_record_mcount = set -e ; perl $(srctree)/scripts/recordmcount.pl "$(ARCH)" \
+ 	"$(if $(CONFIG_64BIT),64,32)" \
+ 	"$(OBJDUMP)" "$(OBJCOPY)" "$(CC)" "$(LD)" "$(NM)" "$(RM)" "$(MV)" \
+ 	"$(if $(part-of-module),1,0)" "$(@)";
 _
 
-Patches currently in -mm which might be from ozan@pardus.org.tr are
+Patches currently in -mm which might be from andi@firstfloor.org are
 
+origin.patch
 linux-next.patch
+vfs-optimization-for-touch_atime.patch
+vfs-optimize-touch_time-too.patch
+time-add-function-to-convert-between-calendar-time-and-broken-down-time-for-universal-use.patch
+fatfs-use-common-time_to_tm-in-fat_time_unix2fat.patch
+page-types-add-feature-for-walking-process-address-space.patch
+memcg-improve-resource-counter-scalability.patch
+memcg-improve-resource-counter-scalability-v5.patch
+exec-make-do_coredump-more-resilient-to-recursive-crashes-v9.patch
+exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9.patch
+exec-allow-do_coredump-to-wait-for-user-space-pipe-readers-to-complete-v9.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
