@@ -1,64 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: [merged] video-s3c_fbc-fix-build-with-config_hotplug=n.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 13:03:24 -0700
-Message-ID: <200909232003.n8NK3Ot9019170@imap1.linux-foundation.org>
+Subject: [merged] sisfb-change-sis_ddc_port-type-to-sisioaddress.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 13:03:28 -0700
+Message-ID: <200909232003.n8NK3SWL019313@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45418 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33332 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751369AbZIWUFO (ORCPT
+	by vger.kernel.org with ESMTP id S1753935AbZIWUFB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 16:05:14 -0400
+	Wed, 23 Sep 2009 16:05:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jacmet@sunsite.dk, ben-linux@fluff.org, stable@kernel.org, mm-commits@vger.kernel.org
+To: aaro.koskinen@iki.fi, stable@kernel.org, thomas@winischhofer.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     video: s3c_fb.c: fix build with CONFIG_HOTPLUG=n
+     sisfb: change SiS_DDC_Port type to SISIOADDRESS
 has been removed from the -mm tree.  Its filename was
-     video-s3c_fbc-fix-build-with-config_hotplug=n.patch
+     sisfb-change-sis_ddc_port-type-to-sisioaddress.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: video: s3c_fb.c: fix build with CONFIG_HOTPLUG=n
-From: Peter Korsgaard <jacmet@sunsite.dk>
+Subject: sisfb: change SiS_DDC_Port type to SISIOADDRESS
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
 
-Fixes `s3c_fb_remove' referenced in section `.data' of
-drivers/built-in.o: defined in discarded section `.devexit.text' of
-drivers/built-in.o
+The patch enables the driver to be used on platforms such as ARM where an
+I/O address is a 32-bit memory address.
 
-With CONFIG_HOTPLUG=n, functions marked with __devexit gets removed,
-so make sure we use __devexit_p when referencing pointers to them.
+The patch avoids the following kernel oops:
 
-Signed-off-by: Peter Korsgaard <jacmet@sunsite.dk>
-Acked-by: Ben Dooks <ben-linux@fluff.org>
+debian:~# modprobe sisfb
+[   73.070000] sisfb: Video ROM found
+[   73.080000] sisfb: Video RAM at 0x80000000, mapped to 0xe0a00000, size 1024k
+[   73.090000] sisfb: MMIO at 0x84080000, mapped to 0xe0b80000, size 256k
+[   73.090000] sisfb: Memory heap starting at 800K, size 32K
+[   73.360000] Unable to handle kernel paging request at virtual address 6e000844
+[   73.380000] pgd = df230000
+[   73.380000] [6e000844] *pgd=00000000
+[   73.380000] Internal error: Oops: 8f5 [#1]
+[   73.380000] Modules linked in: sisfb(+) fb cfbcopyarea cfbimgblt cfbfillrect
+[   73.380000] CPU: 0    Not tainted  (2.6.31-iop32x #1)
+[   73.380000] PC is at SiS_SetRegANDOR+0x10/0x38 [sisfb]
+[   73.380000] LR is at SiS_SetSCLKHigh+0x38/0x94 [sisfb]
+[   73.380000] pc : [<bf01dc00>]    lr : [<bf0238f8>]    psr: 60000013
+[   73.380000] sp : df38fd00  ip : 6e000000  fp : 00000002
+[   73.380000] r10: 00000108  r9 : 00000000  r8 : 00000108
+[   73.380000] r7 : df064258  r6 : 00000110  r5 : 6e000844  r4 : 0000010a
+[   73.380000] r3 : 00000001  r2 : 0000000e  r1 : 00000011  r0 : 00000844
+[   73.380000] Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment user
+[   73.380000] Control: 0000397f  Table: bf230000  DAC: 00000015
+[   73.380000] Process modprobe (pid: 1849, stack limit = 0xdf38e270)
+[   73.380000] Stack: (0xdf38fd00 to 0xdf390000)
+[   73.380000] fd00: 0000010a 00000108 df064258 df064258 df064258 00000000 00000000 bf02c4e0
+[   73.380000] fd20: 00000114 bf02c50c 00000013 00000114 0000010a df064258 00000000 bf02c980
+[   73.380000] fd40: 00009c66 00000004 00000001 df064250 a0010000 a6a2a0a0 df064250 00000003
+[   73.380000] fd60: df064250 00000000 df064258 0000fffd 00000000 00000000 00000000 bf033948
+[   73.380000] fd80: 00000000 00000000 00000000 bf019e2c 00000000 df064a70 bf03b470 00010000
+[   73.380000] fda0: 00000000 df064250 00000000 df831c00 00000012 bf039f70 00000000 c00abed8
+[   73.380000] fdc0: 000008a6 000008a4 df0649b0 df064878 df064258 df064000 00000000 00000000
+[   73.380000] fde0: 00000001 00008000 00000001 00030000 df81c930 bf049f88 df831c00 00000000
+[   73.380000] fe00: bf049f58 df3952a0 c0447708 bf049f88 bf049fe0 c0191980 df831c00 c0191b10
+[   73.380000] fe20: df831c58 bf049f58 df831c00 bf04aca8 df3952a0 df831c58 df831c58 bf049f88
+[   73.380000] fe40: c01ba1b4 c01ba0a0 df831c58 df831c8c bf049f88 c01ba1b4 df3952a0 00000000
+[   73.380000] fe60: c03e265c c01ba240 00000000 df38fe78 bf049f88 c01b990c df812938 df81b8d0
+[   73.380000] fe80: df3952a0 df807780 00000000 00000060 bf049f88 c01b9224 bf0429c8 00000000
+[   73.380000] fea0: bf049f58 00000000 bf049f88 00000000 00000000 bf04aea8 00000000 c01ba4e4
+[   73.380000] fec0: e09861a0 bf049f58 00000000 bf049f88 00000000 c0191f20 00000000 00000000
+[   73.380000] fee0: c03f7bac bf04d418 0000fff2 0000fff1 bf04ad08 0002f260 0002f260 e0986038
+[   73.380000] ff00: e0986150 e098568b df143340 e0990280 00000036 c03d8b00 fffffffd 00000000
+[   73.380000] ff20: bf04acfc 00000000 fffffffc 0003cf4b 00018098 c03f7bac 00000000 bf04d000
+[   73.380000] ff40: df38e000 00000000 bedc0984 c00272a4 ffffffff c005bc88 00000000 00000000
+[   73.380000] ff60: 0003cf4b 0003cf4b 00018098 bf04acfc 00000000 c0027fe8 df38e000 00000000
+[   73.380000] ff80: bedc0984 c006882c 00001000 00000003 00000000 00009064 00000000 00008edc
+[   73.380000] ffa0: 00000080 c0027e20 00009064 00000000 4014e000 0003cf4b 00018098 0003cf4b
+[   73.380000] ffc0: 00009064 00000000 00008edc 00000080 00000000 00000000 40025000 bedc0984
+[   73.380000] ffe0: 00000000 bedc08fc 0000b6b0 400e8f34 60000010 4014e000 00000000 00000000
+[   73.380000] [<bf01dc00>] (SiS_SetRegANDOR+0x10/0x38 [sisfb]) from [<df064258>] (0xdf064258)
+[   73.380000] Code: e92d0030 e20110ff e280546e e3a0c46e (e5c51000)
+[   73.680000] ---[ end trace 62a93e01df37a5f2 ]---
+
+Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Thomas Winischhofer <thomas@winischhofer.net>
 Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/s3c-fb.c |    2 +-
+ drivers/video/sis/vstruct.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/s3c-fb.c~video-s3c_fbc-fix-build-with-config_hotplug=n drivers/video/s3c-fb.c
---- a/drivers/video/s3c-fb.c~video-s3c_fbc-fix-build-with-config_hotplug=n
-+++ a/drivers/video/s3c-fb.c
-@@ -1036,7 +1036,7 @@ static int s3c_fb_resume(struct platform
- 
- static struct platform_driver s3c_fb_driver = {
- 	.probe		= s3c_fb_probe,
--	.remove		= s3c_fb_remove,
-+	.remove		= __devexit_p(s3c_fb_remove),
- 	.suspend	= s3c_fb_suspend,
- 	.resume		= s3c_fb_resume,
- 	.driver		= {
+diff -puN drivers/video/sis/vstruct.h~sisfb-change-sis_ddc_port-type-to-sisioaddress drivers/video/sis/vstruct.h
+--- a/drivers/video/sis/vstruct.h~sisfb-change-sis_ddc_port-type-to-sisioaddress
++++ a/drivers/video/sis/vstruct.h
+@@ -342,7 +342,7 @@ struct SiS_Private
+ 	unsigned short			SiS_RY4COE;
+ 	unsigned short			SiS_LCDHDES;
+ 	unsigned short			SiS_LCDVDES;
+-	unsigned short			SiS_DDC_Port;
++	SISIOADDRESS			SiS_DDC_Port;
+ 	unsigned short			SiS_DDC_Index;
+ 	unsigned short			SiS_DDC_Data;
+ 	unsigned short			SiS_DDC_NData;
 _
 
-Patches currently in -mm which might be from jacmet@sunsite.dk are
+Patches currently in -mm which might be from aaro.koskinen@iki.fi are
 
 origin.patch
-linux-next.patch
 
