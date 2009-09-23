@@ -1,35 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: [merged] omap_hsmmc-cleanup-macro-usage.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 12:55:05 -0700
-Message-ID: <200909231955.n8NJt5ZJ002127__32249.4777305566$1253736665$gmane$org@imap1.linux-foundation.org>
+Subject: [merged] omap_hsmmc-protect-the-card-when-the-cover-is-open.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 12:55:16 -0700
+Message-ID: <200909231955.n8NJtGR8002515__35334.7170901999$1253736668$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56952 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42618 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753533AbZIWUKe (ORCPT
+	by vger.kernel.org with ESMTP id S1753332AbZIWUKf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 16:10:34 -0400
+	Wed, 23 Sep 2009 16:10:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ext-denis.2.karpov@nokia.com, adrian.hunter@nokia.com, ian@mnementh.co.uk, jarkko.lavinen@nokia.com, linux-mmc@vger.kernel.org, madhu.cr@ti.com, matt@console-pimps.org, philipl@overt.
+To: adrian.hunter@nokia.com, ext-denis.2.karpov@nokia.com, ian@mnementh.co.uk, jarkko.lavinen@nokia.com, linux-mmc@vger.kernel.org, madhu.cr@ti.com, matt@console-pimps.org, philipl@overt.
 
 
 The patch titled
-     omap_hsmmc: cleanup macro usage
+     omap_hsmmc: protect the card when the cover is open
 has been removed from the -mm tree.  Its filename was
-     omap_hsmmc-cleanup-macro-usage.patch
+     omap_hsmmc-protect-the-card-when-the-cover-is-open.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: omap_hsmmc: cleanup macro usage
-From: Denis Karpov <ext-denis.2.karpov@nokia.com>
+Subject: omap_hsmmc: protect the card when the cover is open
+From: Adrian Hunter <adrian.hunter@nokia.com>
 
-Use macro mmc_slot() in omap_hsmmc.
+Depending on the manufacturer, there is a small possibility that removing
+a card while it is being written to, can render the card permanently
+unusable.  To prevent that, the card is made inaccessible when the cover
+is open.
 
-Signed-off-by: Denis Karpov <ext-denis.2.karpov@nokia.com>
 Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
 Acked-by: Matt Fleming <matt@console-pimps.org>
 Cc: Ian Molton <ian@mnementh.co.uk>
@@ -43,151 +45,129 @@ Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/omap_hsmmc.c |   42 ++++++++++++++------------------
- 1 file changed, 19 insertions(+), 23 deletions(-)
+ drivers/mmc/host/omap_hsmmc.c |   63 ++++++++++++++++++++++++++++++--
+ 1 file changed, 61 insertions(+), 2 deletions(-)
 
-diff -puN drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-cleanup-macro-usage drivers/mmc/host/omap_hsmmc.c
---- a/drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-cleanup-macro-usage
+diff -puN drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-protect-the-card-when-the-cover-is-open drivers/mmc/host/omap_hsmmc.c
+--- a/drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-protect-the-card-when-the-cover-is-open
 +++ a/drivers/mmc/host/omap_hsmmc.c
-@@ -368,9 +368,8 @@ int mmc_omap_cover_is_closed(struct mmc_
- {
- 	int r = 1;
+@@ -167,6 +167,8 @@ struct omap_hsmmc_host {
+ 	int			context_loss;
+ 	int			dpm_state;
+ 	int			vdd;
++	int			protect_card;
++	int			reqs_blocked;
  
--	if (host->pdata->slots[host->slot_id].get_cover_state)
--		r = host->pdata->slots[host->slot_id].get_cover_state(host->dev,
--			host->slot_id);
-+	if (mmc_slot(host).get_cover_state)
-+		r = mmc_slot(host).get_cover_state(host->dev, host->slot_id);
- 	return r;
+ 	struct	omap_mmc_platform_data	*pdata;
+ };
+@@ -351,6 +353,9 @@ static void send_init_stream(struct omap
+ 	int reg = 0;
+ 	unsigned long timeout;
+ 
++	if (host->protect_card)
++		return;
++
+ 	disable_irq(host->irq);
+ 	OMAP_HSMMC_WRITE(host->base, CON,
+ 		OMAP_HSMMC_READ(host->base, CON) | INIT_STREAM);
+@@ -786,6 +791,30 @@ err:
+ 	return ret;
  }
  
-@@ -393,9 +392,8 @@ mmc_omap_show_slot_name(struct device *d
- {
- 	struct mmc_host *mmc = container_of(dev, struct mmc_host, class_dev);
- 	struct mmc_omap_host *host = mmc_priv(mmc);
--	struct omap_mmc_slot_data slot = host->pdata->slots[host->slot_id];
++/* Protect the card while the cover is open */
++static void omap_hsmmc_protect_card(struct omap_hsmmc_host *host)
++{
++	if (!mmc_slot(host).get_cover_state)
++		return;
++
++	host->reqs_blocked = 0;
++	if (mmc_slot(host).get_cover_state(host->dev, host->slot_id)) {
++		if (host->protect_card) {
++			printk(KERN_INFO "%s: cover is closed, "
++					 "card is now accessible\n",
++					 mmc_hostname(host->mmc));
++			host->protect_card = 0;
++		}
++	} else {
++		if (!host->protect_card) {
++			printk(KERN_INFO "%s: cover is open, "
++					 "card is now inaccessible\n",
++					 mmc_hostname(host->mmc));
++			host->protect_card = 1;
++		}
++	}
++}
++
+ /*
+  * Work Item to notify the core about card insertion/removal
+  */
+@@ -803,8 +832,10 @@ static void omap_hsmmc_detect(struct wor
  
--	return sprintf(buf, "%s\n", slot.name);
-+	return sprintf(buf, "%s\n", mmc_slot(host).name);
- }
- 
- static DEVICE_ATTR(slot_name, S_IRUGO, mmc_omap_show_slot_name, NULL);
-@@ -632,7 +630,8 @@ static irqreturn_t mmc_omap_irq(int irq,
- 			(status & CMD_CRC)) {
- 			if (host->cmd) {
- 				if (status & CMD_TIMEOUT) {
--					mmc_omap_reset_controller_fsm(host, SRC);
-+					mmc_omap_reset_controller_fsm(host,
-+								      SRC);
- 					host->cmd->error = -ETIMEDOUT;
- 				} else {
- 					host->cmd->error = -EILSEQ;
-@@ -775,7 +774,7 @@ static void mmc_omap_detect(struct work_
- 
- 	sysfs_notify(&host->mmc->class_dev.kobj, NULL, "cover_switch");
- 
--	if (mmc_slot(host).card_detect)
-+	if (slot->card_detect)
+ 	if (slot->card_detect)
  		carddetect = slot->card_detect(slot->card_detect_irq);
- 	else
+-	else
++	else {
++		omap_hsmmc_protect_card(host);
  		carddetect = -ENOSYS;
-@@ -830,7 +829,7 @@ static void mmc_omap_config_dma_params(s
- 			sg_dma_address(sgl), 0, 0);
- 	} else {
- 		omap_set_dma_src_params(dma_ch, 0, OMAP_DMA_AMODE_CONSTANT,
--					(host->mapbase + OMAP_HSMMC_DATA), 0, 0);
-+			(host->mapbase + OMAP_HSMMC_DATA), 0, 0);
- 		omap_set_dma_dest_params(dma_ch, 0, OMAP_DMA_AMODE_POST_INC,
- 			sg_dma_address(sgl), 0, 0);
- 	}
-@@ -918,7 +917,7 @@ mmc_omap_start_dma_transfer(struct mmc_o
- 	}
++	}
  
- 	ret = omap_request_dma(mmc_omap_get_dma_sync_dev(host, data), "MMC/SD",
--			       mmc_omap_dma_cb,host, &dma_ch);
-+			       mmc_omap_dma_cb, host, &dma_ch);
- 	if (ret != 0) {
- 		dev_err(mmc_dev(host->mmc),
- 			"%s: omap_request_dma() failed with %d\n",
-@@ -1138,21 +1137,19 @@ static void omap_mmc_set_ios(struct mmc_
- static int omap_hsmmc_get_cd(struct mmc_host *mmc)
- {
- 	struct mmc_omap_host *host = mmc_priv(mmc);
--	struct omap_mmc_platform_data *pdata = host->pdata;
+ 	if (carddetect) {
+ 		mmc_detect_change(host->mmc, (HZ * 200) / 1000);
+@@ -1040,8 +1071,32 @@ static void omap_hsmmc_request(struct mm
+ 	 * interrupts, but not if we are already in interrupt context i.e.
+ 	 * retries.
+ 	 */
+-	if (!in_interrupt())
++	if (!in_interrupt()) {
+ 		spin_lock_irqsave(&host->irq_lock, host->flags);
++		/*
++		 * Protect the card from I/O if there is a possibility
++		 * it can be removed.
++		 */
++		if (host->protect_card) {
++			if (host->reqs_blocked < 3) {
++				/*
++				 * Ensure the controller is left in a consistent
++				 * state by resetting the command and data state
++				 * machines.
++				 */
++				omap_hsmmc_reset_controller_fsm(host, SRD);
++				omap_hsmmc_reset_controller_fsm(host, SRC);
++				host->reqs_blocked += 1;
++			}
++			req->cmd->error = -EBADF;
++			if (req->data)
++				req->data->error = -EBADF;
++			spin_unlock_irqrestore(&host->irq_lock, host->flags);
++			mmc_request_done(mmc, req);
++			return;
++		} else if (host->reqs_blocked)
++			host->reqs_blocked = 0;
++	}
+ 	WARN_ON(host->mrq != NULL);
+ 	host->mrq = req;
+ 	err = omap_hsmmc_prepare_data(host, req);
+@@ -1732,6 +1787,8 @@ static int __init omap_hsmmc_probe(struc
  
--	if (!pdata->slots[0].card_detect)
-+	if (!mmc_slot(host).card_detect)
- 		return -ENOSYS;
--	return pdata->slots[0].card_detect(pdata->slots[0].card_detect_irq);
-+	return mmc_slot(host).card_detect(mmc_slot(host).card_detect_irq);
- }
+ 	mmc_host_lazy_disable(host->mmc);
  
- static int omap_hsmmc_get_ro(struct mmc_host *mmc)
- {
- 	struct mmc_omap_host *host = mmc_priv(mmc);
--	struct omap_mmc_platform_data *pdata = host->pdata;
- 
--	if (!pdata->slots[0].get_ro)
-+	if (!mmc_slot(host).get_ro)
- 		return -ENOSYS;
--	return pdata->slots[0].get_ro(host->dev, 0);
-+	return mmc_slot(host).get_ro(host->dev, 0);
- }
- 
- static void omap_hsmmc_init(struct mmc_omap_host *host)
-@@ -1563,7 +1560,7 @@ static int __init omap_mmc_probe(struct 
- 	platform_set_drvdata(pdev, host);
- 	INIT_WORK(&host->mmc_carddetect_work, mmc_omap_detect);
- 
--	if (pdata->slots[host->slot_id].power_saving)
-+	if (mmc_slot(host).power_saving)
- 		mmc->ops	= &mmc_omap_ps_ops;
- 	else
- 		mmc->ops	= &mmc_omap_ops;
-@@ -1633,12 +1630,12 @@ static int __init omap_mmc_probe(struct 
- 	mmc->caps |= MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED |
- 		     MMC_CAP_WAIT_WHILE_BUSY;
- 
--	if (pdata->slots[host->slot_id].wires >= 8)
-+	if (mmc_slot(host).wires >= 8)
- 		mmc->caps |= MMC_CAP_8_BIT_DATA;
--	else if (pdata->slots[host->slot_id].wires >= 4)
-+	else if (mmc_slot(host).wires >= 4)
- 		mmc->caps |= MMC_CAP_4_BIT_DATA;
- 
--	if (pdata->slots[host->slot_id].nonremovable)
-+	if (mmc_slot(host).nonremovable)
- 		mmc->caps |= MMC_CAP_NONREMOVABLE;
- 
- 	omap_hsmmc_init(host);
-@@ -1700,13 +1697,12 @@ static int __init omap_mmc_probe(struct 
- 
++	omap_hsmmc_protect_card(host);
++
  	mmc_add_host(mmc);
  
--	if (host->pdata->slots[host->slot_id].name != NULL) {
-+	if (mmc_slot(host).name != NULL) {
- 		ret = device_create_file(&mmc->class_dev, &dev_attr_slot_name);
- 		if (ret < 0)
- 			goto err_slot_name;
- 	}
--	if (mmc_slot(host).card_detect_irq &&
--	    host->pdata->slots[host->slot_id].get_cover_state) {
-+	if (mmc_slot(host).card_detect_irq && mmc_slot(host).get_cover_state) {
- 		ret = device_create_file(&mmc->class_dev,
- 					&dev_attr_cover_switch);
- 		if (ret < 0)
-@@ -1812,7 +1808,7 @@ static int omap_mmc_suspend(struct platf
+ 	if (mmc_slot(host).name != NULL) {
+@@ -1897,6 +1954,8 @@ static int omap_hsmmc_resume(struct plat
+ 					"Unmask interrupt failed\n");
+ 		}
  
- 
- 			OMAP_HSMMC_WRITE(host->base, HCTL,
--					 OMAP_HSMMC_READ(host->base, HCTL) & ~SDBP);
-+				OMAP_HSMMC_READ(host->base, HCTL) & ~SDBP);
- 			mmc_host_disable(host->mmc);
- 			clk_disable(host->iclk);
- 			clk_disable(host->dbclk);
++		omap_hsmmc_protect_card(host);
++
+ 		/* Notify the core to resume the host */
+ 		ret = mmc_resume_host(host->mmc);
+ 		if (ret == 0)
 _
 
-Patches currently in -mm which might be from ext-denis.2.karpov@nokia.com are
+Patches currently in -mm which might be from adrian.hunter@nokia.com are
 
 origin.patch
 
