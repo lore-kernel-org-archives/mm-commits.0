@@ -1,61 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [folded] edac-i3200-memory-controller-driver-fix-offset-of-reg-in-i3200_edac-module.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 15:37:17 -0700
-Message-ID: <200909232237.n8NMbIAv032733@imap1.linux-foundation.org>
+Subject: [folded] pc-fs-char_devc-remove-useless-loop-fix.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 15:47:16 -0700
+Message-ID: <200909232247.n8NMlHBH020113@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38376 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44930 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752262AbZIWWhQ (ORCPT
+	by vger.kernel.org with ESMTP id S1751189AbZIWWrw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 18:37:16 -0400
+	Wed, 23 Sep 2009 18:47:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: juhlenko@akamai.com, dougthompson@xmission.com, mm-commits@vger.kernel.org
+To: hidave.darkstar@gmail.com, renzo@cs.unibo.it, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     edac: fix offset of reg in i3200_edac module
+     pc-fs-char_devc-remove-useless-loop-fix
 has been removed from the -mm tree.  Its filename was
-     edac-i3200-memory-controller-driver-fix-offset-of-reg-in-i3200_edac-module.patch
+     pc-fs-char_devc-remove-useless-loop-fix.patch
 
-This patch was dropped because it was folded into edac-i3200-memory-controller-driver.patch
+This patch was dropped because it was folded into fs-char_devc-remove-useless-loop.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: edac: fix offset of reg in i3200_edac module
-From: Jason Uhlenkott <juhlenko@akamai.com>
+Subject: pc-fs-char_devc-remove-useless-loop-fix
+From: Dave Young <hidave.darkstar@gmail.com>
 
-Fix an obviously wrong hardware register offset, which was inheirited
-from x38_edac (which was previously fixed).
+Fix build warning about the unused variable in char_dev.c:267
 
-Thanks to Lu Zhihe for spotting this.
+Remove the unused char *s.
 
-Signed-off-by: Jason Uhlenkott <juhlenko@akamai.com>
-Signed-off-by: Doug Thompson <dougthompson@xmission.com>
+Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
+Cc: Renzo Davoli <renzo@cs.unibo.it>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/i3200_edac.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/char_dev.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/edac/i3200_edac.c~edac-i3200-memory-controller-driver-fix-offset-of-reg-in-i3200_edac-module drivers/edac/i3200_edac.c
---- a/drivers/edac/i3200_edac.c~edac-i3200-memory-controller-driver-fix-offset-of-reg-in-i3200_edac-module
-+++ a/drivers/edac/i3200_edac.c
-@@ -29,7 +29,7 @@
- /* Intel 3200 register addresses - device 0 function 0 - DRAM Controller */
+diff -puN fs/char_dev.c~pc-fs-char_devc-remove-useless-loop-fix fs/char_dev.c
+--- a/fs/char_dev.c~pc-fs-char_devc-remove-useless-loop-fix
++++ a/fs/char_dev.c
+@@ -264,7 +264,6 @@ int __register_chrdev(unsigned int major
+ {
+ 	struct char_device_struct *cd;
+ 	struct cdev *cdev;
+-	char *s;
+ 	int err = -ENOMEM;
  
- #define I3200_MCHBAR_LOW	0x48	/* MCH Memory Mapped Register BAR */
--#define I3200_MCHBAR_HIGH	0x4b
-+#define I3200_MCHBAR_HIGH	0x4c
- #define I3200_MCHBAR_MASK	0xfffffc000ULL	/* bits 35:14 */
- #define I3200_MMR_WINDOW_SIZE	16384
- 
+ 	cd = __register_chrdev_region(major, baseminor, count, name);
 _
 
-Patches currently in -mm which might be from juhlenko@akamai.com are
+Patches currently in -mm which might be from hidave.darkstar@gmail.com are
 
-edac-i3200-memory-controller-driver.patch
-edac-i3200-memory-controller-driver-fix-offset-of-reg-in-i3200_edac-module.patch
+origin.patch
+cgroups-let-ss-can_attach-and-ss-attach-do-whole-threadgroups-at-a-time.patch
+fs-char_devc-remove-useless-loop.patch
+pc-fs-char_devc-remove-useless-loop-fix.patch
 
