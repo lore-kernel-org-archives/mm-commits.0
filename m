@@ -1,34 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: [merged] omap_hsmmc-clear-interrupt-status-after-init-sequence.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 12:55:07 -0700
-Message-ID: <200909231955.n8NJt7i5002201@imap1.linux-foundation.org>
+Subject: [merged] omap_hsmmc-cater-for-weird-cmd6-behaviour.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 12:55:09 -0700
+Message-ID: <200909231955.n8NJt9NG002223@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60829 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60568 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753666AbZIWTzz (ORCPT
+	by vger.kernel.org with ESMTP id S1753643AbZIWTzx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 15:55:55 -0400
+	Wed, 23 Sep 2009 15:55:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: adrian.hunter@nokia.com, ext-denis.2.karpov@nokia.com, ian@mnementh.co.uk, jarkko.lavinen@nokia.com, linux-mmc@vger.kernel.org, madhu.cr@ti.com, matt@console-pimps.org, philipl@overt.
 
 
 The patch titled
-     omap_hsmmc: clear interrupt status after init sequence
+     omap_hsmmc: cater for weird CMD6 behaviour
 has been removed from the -mm tree.  Its filename was
-     omap_hsmmc-clear-interrupt-status-after-init-sequence.patch
+     omap_hsmmc-cater-for-weird-cmd6-behaviour.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: omap_hsmmc: clear interrupt status after init sequence
+Subject: omap_hsmmc: cater for weird CMD6 behaviour
 From: Adrian Hunter <adrian.hunter@nokia.com>
 
-Clear the interrupt status after sending the initialization sequence, as
-specified in the TRM.
+Sometimes the controller unexpectedly produces a TC (transfer complete)
+interrupt before the CC (command complete) interrupt for command 6
+(SWITCH).  This is a problem because the CC interrupt can get mixed up
+with the next request.  Add a hack for CMD6.
 
 Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
 Acked-by: Matt Fleming <matt@console-pimps.org>
@@ -43,23 +45,26 @@ Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/omap_hsmmc.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/mmc/host/omap_hsmmc.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-clear-interrupt-status-after-init-sequence drivers/mmc/host/omap_hsmmc.c
---- a/drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-clear-interrupt-status-after-init-sequence
+diff -puN drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-cater-for-weird-cmd6-behaviour drivers/mmc/host/omap_hsmmc.c
+--- a/drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-cater-for-weird-cmd6-behaviour
 +++ a/drivers/mmc/host/omap_hsmmc.c
-@@ -360,6 +360,10 @@ static void send_init_stream(struct mmc_
+@@ -481,6 +481,13 @@ mmc_omap_xfer_done(struct mmc_omap_host 
+ 	if (!data) {
+ 		struct mmc_request *mrq = host->mrq;
  
- 	OMAP_HSMMC_WRITE(host->base, CON,
- 		OMAP_HSMMC_READ(host->base, CON) & ~INIT_STREAM);
++		/* TC before CC from CMD6 - don't know why, but it happens */
++		if (host->cmd && host->cmd->opcode == 6 &&
++		    host->response_busy) {
++			host->response_busy = 0;
++			return;
++		}
 +
-+	OMAP_HSMMC_WRITE(host->base, STAT, STAT_CLEAR);
-+	OMAP_HSMMC_READ(host->base, STAT);
-+
- 	enable_irq(host->irq);
- }
- 
+ 		host->mrq = NULL;
+ 		mmc_request_done(host->mmc, mrq);
+ 		return;
 _
 
 Patches currently in -mm which might be from adrian.hunter@nokia.com are
