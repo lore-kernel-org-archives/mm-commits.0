@@ -1,76 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [folded] page-types-add-feature-for-walking-process-address-space-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 15:27:50 -0700
-Message-ID: <200909232227.n8NMRolT013963@imap1.linux-foundation.org>
+Subject: [folded] cgroups-let-ss-can_attach-and-ss-attach-do-whole-threadgroups-at-a-time-fix.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 15:28:25 -0700
+Message-ID: <200909232228.n8NMSPTB015061@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58990 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60124 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751397AbZIWW1s (ORCPT
+	by vger.kernel.org with ESMTP id S1751014AbZIWW25 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 18:27:48 -0400
+	Wed, 23 Sep 2009 18:28:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, fengguang.wu@intel.com, mm-commits@vger.kernel.org
+To: hidave.darkstar@gmail.com, a.p.zijlstra@chello.nl, bblum@google.com, ebiederm@xmission.com, lizf@cn.fujitsu.com, matthltc@us.ibm.com, menage@google.com, mingo@elte.hu, oleg@redhat.com
 
 
 The patch titled
-     page-types-add-feature-for-walking-process-address-space-checkpatch-fixes
+     cgroups-let-ss-can_attach-and-ss-attach-do-whole-threadgroups-at-a-time-fix
 has been removed from the -mm tree.  Its filename was
-     page-types-add-feature-for-walking-process-address-space-checkpatch-fixes.patch
+     cgroups-let-ss-can_attach-and-ss-attach-do-whole-threadgroups-at-a-time-fix.patch
 
-This patch was dropped because it was folded into page-types-add-feature-for-walking-process-address-space.patch
+This patch was dropped because it was folded into cgroups-let-ss-can_attach-and-ss-attach-do-whole-threadgroups-at-a-time.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page-types-add-feature-for-walking-process-address-space-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: cgroups-let-ss-can_attach-and-ss-attach-do-whole-threadgroups-at-a-time-fix
+From: Dave Young <hidave.darkstar@gmail.com>
 
-ERROR: spaces required around that ':' (ctx:VxW)
-#98: FILE: Documentation/vm/page-types.c:193:
-+	__max1 > __max2 ? __max1: __max2; })
- 	                        ^
+kernel/sched.c:10452: error: expected ';', ',' or ')' before 'bool'
+kernel/sched.c:10536: error: 'cpu_cgroup_attach' undeclared here (not in a function)
 
-total: 1 errors, 0 warnings, 309 lines checked
-
-./patches/page-types-add-feature-for-walking-process-address-space.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Ben Blum <bblum@google.com>
+Cc: Paul Menage <menage@google.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Matt Helsley <matthltc@us.ibm.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/page-types.c |    2 +-
+ kernel/sched.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/vm/page-types.c~page-types-add-feature-for-walking-process-address-space-checkpatch-fixes Documentation/vm/page-types.c
---- a/Documentation/vm/page-types.c~page-types-add-feature-for-walking-process-address-space-checkpatch-fixes
-+++ a/Documentation/vm/page-types.c
-@@ -190,7 +190,7 @@ static uint64_t 	page_flags[HASH_SIZE];
- #define max_t(type, x, y) ({			\
- 	type __max1 = (x);			\
- 	type __max2 = (y);			\
--	__max1 > __max2 ? __max1: __max2; })
-+	__max1 > __max2 ? __max1 : __max2; })
+diff -puN kernel/sched.c~cgroups-let-ss-can_attach-and-ss-attach-do-whole-threadgroups-at-a-time-fix kernel/sched.c
+--- a/kernel/sched.c~cgroups-let-ss-can_attach-and-ss-attach-do-whole-threadgroups-at-a-time-fix
++++ a/kernel/sched.c
+@@ -10446,7 +10446,7 @@ cpu_cgroup_can_attach(struct cgroup_subs
  
- static unsigned long pages2mb(unsigned long pages)
+ static void
+ cpu_cgroup_attach(struct cgroup_subsys *ss, struct cgroup *cgrp,
+-		  struct cgroup *old_cont, struct task_struct *tsk
++		  struct cgroup *old_cont, struct task_struct *tsk,
+ 		  bool threadgroup)
  {
+ 	sched_move_task(tsk);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hidave.darkstar@gmail.com are
 
 origin.patch
-page-types-add-feature-for-walking-process-address-space.patch
-page-types-add-feature-for-walking-process-address-space-checkpatch-fixes.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
-memcg-improve-resource-counter-scalability-checkpatch-fixes.patch
-exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
-exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
-elf-clean-up-fill_note_info-fix.patch
+cgroups-let-ss-can_attach-and-ss-attach-do-whole-threadgroups-at-a-time.patch
+cgroups-let-ss-can_attach-and-ss-attach-do-whole-threadgroups-at-a-time-fix.patch
+pc-fs-char_devc-remove-useless-loop-fix.patch
 
