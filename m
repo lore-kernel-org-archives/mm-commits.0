@@ -1,90 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged] proc-kcore-fix-statst_size.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 12:57:15 -0700
-Message-ID: <200909231957.n8NJvF57006569@imap1.linux-foundation.org>
+Subject: [merged] kcore-more-fixes-for-init.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 12:57:13 -0700
+Message-ID: <200909231957.n8NJvDeD006464@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42451 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59494 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753808AbZIWT5n (ORCPT
+	by vger.kernel.org with ESMTP id S1753779AbZIWT5m (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 15:57:43 -0400
+	Wed, 23 Sep 2009 15:57:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kamezawa.hiroyu@jp.fujitsu.com, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     /proc/kcore: fix stat.st_size
+     kcore: more fixes for init
 has been removed from the -mm tree.  Its filename was
-     proc-kcore-fix-statst_size.patch
+     kcore-more-fixes-for-init.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: /proc/kcore: fix stat.st_size
+Subject: kcore: more fixes for init
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Presently the size of /proc/kcore which can be read by 'ls -l' is 0.  But
-it's not the correct value.
-
-On x86-64, ls -l shows
- ... root root 140737486266368 2009-09-17 10:29 /proc/kcore
-Then, 7FFFFFFE02000. This comes from vmalloc area's size.
-(*) This shows "core" size, not  memory size.
-
-This patch shows the size by updating "size" field in struct
-proc_dir_entry.  Later, lookup routine will create inode and fill
-inode->i_size based on this value.  Then, this has a problem.
-
- - Once inode is cached, inode->i_size will never be updated.
-
-Then, this patch is not memory-hotplug-aware.
-
-To update inode->i_size, we have to know dentry or inode.
-But there is no way to lookup them by inside kernel. Hmmm....
-Next patch will try it.
+proc_kcore_init() doesn't check NULL case.  fix it and remove unnecessary
+comments.
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Acked-by: WANG Cong <xiyou.wangcong@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/kcore.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ fs/proc/kcore.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN fs/proc/kcore.c~proc-kcore-fix-statst_size fs/proc/kcore.c
---- a/fs/proc/kcore.c~proc-kcore-fix-statst_size
+diff -puN fs/proc/kcore.c~kcore-more-fixes-for-init fs/proc/kcore.c
+--- a/fs/proc/kcore.c~kcore-more-fixes-for-init
 +++ a/fs/proc/kcore.c
-@@ -107,6 +107,8 @@ static void free_kclist_ents(struct list
-  */
- static void __kcore_update_ram(struct list_head *list)
+@@ -606,6 +606,10 @@ static int __init proc_kcore_init(void)
  {
-+	int nphdr;
-+	size_t size;
- 	struct kcore_list *tmp, *pos;
- 	LIST_HEAD(garbage);
+ 	proc_root_kcore = proc_create("kcore", S_IRUSR, NULL,
+ 				      &proc_kcore_operations);
++	if (!proc_root_kcore) {
++		printk(KERN_ERR "couldn't create /proc/kcore\n");
++		return 0; /* Always returns 0. */
++	}
+ 	/* Store text area if it's special */
+ 	proc_kcore_text_init();
+ 	/* Store vmalloc area */
+@@ -615,7 +619,6 @@ static int __init proc_kcore_init(void)
+ 	/* Store direct-map area from physical memory map */
+ 	kcore_update_ram();
+ 	hotplug_memory_notifier(kcore_callback, 0);
+-	/* Other special area, area-for-module etc is arch specific. */
  
-@@ -121,6 +123,7 @@ static void __kcore_update_ram(struct li
- 	} else
- 		list_splice(list, &garbage);
- 	kcore_need_update = 0;
-+	proc_root_kcore->size = get_kcore_size(&nphdr, &size);
- 	write_unlock(&kclist_lock);
- 
- 	free_kclist_ents(&garbage);
-@@ -429,7 +432,8 @@ read_kcore(struct file *file, char __use
- 	unsigned long start;
- 
- 	read_lock(&kclist_lock);
--	proc_root_kcore->size = size = get_kcore_size(&nphdr, &elf_buflen);
-+	size = get_kcore_size(&nphdr, &elf_buflen);
-+
- 	if (buflen == 0 || *fpos >= size) {
- 		read_unlock(&kclist_lock);
- 		return 0;
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
