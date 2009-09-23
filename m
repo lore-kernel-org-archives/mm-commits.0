@@ -1,83 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mtd-prevent-a-read-from-regions.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 13:05:20 -0700
-Message-ID: <200909232005.n8NK5KVi023153@imap1.linux-foundation.org>
+Subject: [merged] mtd-nand-add-new-ecc-mode-ecc_hw_oob_first.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 13:05:10 -0700
+Message-ID: <200909232005.n8NK5AGC022816@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48208 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55797 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751535AbZIWUFx (ORCPT
+	by vger.kernel.org with ESMTP id S1753957AbZIWUGH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 16:05:53 -0400
+	Wed, 23 Sep 2009 16:06:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: nsnehaprabha@ti.com, dbrownell@users.sourceforge.net, dwmw2@infradead.org, s-paulraj@ti.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mtd: prevent a read from regions[-1]
+     mtd-nand: add new ECC mode - ECC_HW_OOB_FIRST
 has been removed from the -mm tree.  Its filename was
-     mtd-prevent-a-read-from-regions.patch
+     mtd-nand-add-new-ecc-mode-ecc_hw_oob_first.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd: prevent a read from regions[-1]
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: mtd-nand: add new ECC mode - ECC_HW_OOB_FIRST
+From: Sneha Narnakaje <nsnehaprabha@ti.com>
 
-If the erase region was found in the first iteration we read from
-regions[-1]
+This patch adds the new mode NAND_ECC_HW_OOB_FIRST in the nand code to
+support 4-bit ECC on TI DaVinci devices with large page (up to 2K) NAND
+chips.  This ECC mode is similar to NAND_ECC_HW, with the exception of
+read_page API that first reads the OOB area, reads the data in chunks,
+feeds the ECC from OOB area to the ECC hw engine and perform any
+correction on the data as per the ECC status reported by the engine.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+"ECC_HW_OOB_FIRST" name suggested by Thomas Gleixner
+
+Reviewed-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Sneha Narnakaje <nsnehaprabha@ti.com>
+Signed-off-by: Sandeep Paulraj <s-paulraj@ti.com>
 Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/mtdpart.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/mtd/nand/nand_base.c |   59 +++++++++++++++++++++++++++++++++
+ include/linux/mtd/nand.h     |    1 
+ 2 files changed, 60 insertions(+)
 
-diff -puN drivers/mtd/mtdpart.c~mtd-prevent-a-read-from-regions drivers/mtd/mtdpart.c
---- a/drivers/mtd/mtdpart.c~mtd-prevent-a-read-from-regions
-+++ a/drivers/mtd/mtdpart.c
-@@ -453,7 +453,8 @@ static struct mtd_part *add_one_partitio
- 		for (i = 0; i < max && regions[i].offset <= slave->offset; i++)
- 			;
- 		/* The loop searched for the region _behind_ the first one */
--		i--;
-+		if (i > 0)
-+			i--;
+diff -puN drivers/mtd/nand/nand_base.c~mtd-nand-add-new-ecc-mode-ecc_hw_oob_first drivers/mtd/nand/nand_base.c
+--- a/drivers/mtd/nand/nand_base.c~mtd-nand-add-new-ecc-mode-ecc_hw_oob_first
++++ a/drivers/mtd/nand/nand_base.c
+@@ -979,6 +979,54 @@ static int nand_read_page_hwecc(struct m
+ }
  
- 		/* Pick biggest erasesize */
- 		for (; i < max && regions[i].offset < end; i++) {
+ /**
++ * nand_read_page_hwecc_oob_first - [REPLACABLE] hw ecc, read oob first
++ * @mtd:	mtd info structure
++ * @chip:	nand chip info structure
++ * @buf:	buffer to store read data
++ *
++ * Hardware ECC for large page chips, require OOB to be read first.
++ * For this ECC mode, the write_page method is re-used from ECC_HW.
++ * These methods read/write ECC from the OOB area, unlike the
++ * ECC_HW_SYNDROME support with multiple ECC steps, follows the
++ * "infix ECC" scheme and reads/writes ECC from the data area, by
++ * overwriting the NAND manufacturer bad block markings.
++ */
++static int nand_read_page_hwecc_oob_first(struct mtd_info *mtd,
++	struct nand_chip *chip, uint8_t *buf, int page)
++{
++	int i, eccsize = chip->ecc.size;
++	int eccbytes = chip->ecc.bytes;
++	int eccsteps = chip->ecc.steps;
++	uint8_t *p = buf;
++	uint8_t *ecc_code = chip->buffers->ecccode;
++	uint32_t *eccpos = chip->ecc.layout->eccpos;
++	uint8_t *ecc_calc = chip->buffers->ecccalc;
++
++	/* Read the OOB area first */
++	chip->cmdfunc(mtd, NAND_CMD_READOOB, 0, page);
++	chip->read_buf(mtd, chip->oob_poi, mtd->oobsize);
++	chip->cmdfunc(mtd, NAND_CMD_READ0, 0, page);
++
++	for (i = 0; i < chip->ecc.total; i++)
++		ecc_code[i] = chip->oob_poi[eccpos[i]];
++
++	for (i = 0; eccsteps; eccsteps--, i += eccbytes, p += eccsize) {
++		int stat;
++
++		chip->ecc.hwctl(mtd, NAND_ECC_READ);
++		chip->read_buf(mtd, p, eccsize);
++		chip->ecc.calculate(mtd, p, &ecc_calc[i]);
++
++		stat = chip->ecc.correct(mtd, p, &ecc_code[i], NULL);
++		if (stat < 0)
++			mtd->ecc_stats.failed++;
++		else
++			mtd->ecc_stats.corrected += stat;
++	}
++	return 0;
++}
++
++/**
+  * nand_read_page_syndrome - [REPLACABLE] hardware ecc syndrom based page read
+  * @mtd:	mtd info structure
+  * @chip:	nand chip info structure
+@@ -2673,6 +2721,17 @@ int nand_scan_tail(struct mtd_info *mtd)
+ 	 */
+ 
+ 	switch (chip->ecc.mode) {
++	case NAND_ECC_HW_OOB_FIRST:
++		/* Similar to NAND_ECC_HW, but a separate read_page handle */
++		if (!chip->ecc.calculate || !chip->ecc.correct ||
++		     !chip->ecc.hwctl) {
++			printk(KERN_WARNING "No ECC functions supplied, "
++			       "Hardware ECC not possible\n");
++			BUG();
++		}
++		if (!chip->ecc.read_page)
++			chip->ecc.read_page = nand_read_page_hwecc_oob_first;
++
+ 	case NAND_ECC_HW:
+ 		/* Use standard hwecc read page function ? */
+ 		if (!chip->ecc.read_page)
+diff -puN include/linux/mtd/nand.h~mtd-nand-add-new-ecc-mode-ecc_hw_oob_first include/linux/mtd/nand.h
+--- a/include/linux/mtd/nand.h~mtd-nand-add-new-ecc-mode-ecc_hw_oob_first
++++ a/include/linux/mtd/nand.h
+@@ -121,6 +121,7 @@ typedef enum {
+ 	NAND_ECC_SOFT,
+ 	NAND_ECC_HW,
+ 	NAND_ECC_HW_SYNDROME,
++	NAND_ECC_HW_OOB_FIRST,
+ } nand_ecc_modes_t;
+ 
+ /*
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from nsnehaprabha@ti.com are
 
 origin.patch
-linux-next.patch
-dm-strncpy-does-not-null-terminate-string.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
-msp71xx-request_irq-failure-ignored-in-msp_pcibios_config_access.patch
-hfc_usb-fix-read-buffer-overflow.patch
-cyclades-read-buffer-overflow.patch
-serial167-fix-read-buffer-overflow.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
-st-fix-test-of-value-range-in-st_set_options.patch
-drivers-staging-octeon-ethernet-rgmiic-dont-ignore-request_irq-return-code.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-mwave-fix-read-buffer-overflow.patch
-adfs-remove-redundant-test-on-unsigned.patch
-gru-allocation-may-fail-in-quicktest1.patch
 
