@@ -1,88 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: [merged] omapfb-fix-coding-style-remove-dead-line.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 13:00:52 -0700
-Message-ID: <200909232000.n8NK0qrd013948@imap1.linux-foundation.org>
+Subject: [merged] viafb-remove-temporary-start-address-setting.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 13:01:31 -0700
+Message-ID: <200909232001.n8NK1VJ0015315@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49009 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34678 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752788AbZIWUKN (ORCPT
+	by vger.kernel.org with ESMTP id S1752780AbZIWUKM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 16:10:13 -0400
+	Wed, 23 Sep 2009 16:10:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arunedarath@mistralsolutions.com, imre.deak@nokia.com, krzysztof.h1@wp.pl, linux@arm.linux.org.uk, tony@atomide.com, mm-commits@vger.kernel.org
+To: FlorianSchandinat@gmx.de, JosephChan@via.com.tw, ScottFang@viatech.com.cn, corbet@lwn.net, laforge@gnumonks.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     omapfb: fix coding style / remove dead line
+     viafb: remove temporary start address setting
 has been removed from the -mm tree.  Its filename was
-     omapfb-fix-coding-style-remove-dead-line.patch
+     viafb-remove-temporary-start-address-setting.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: omapfb: fix coding style / remove dead line
-From: arun c <arunedarath@mistralsolutions.com>
+Subject: viafb: remove temporary start address setting
+From: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 
-- use __iomem type attribute where appropriate
-- expand (a ? : b) to (a ? a : b)
-As suggested by Russel King <linux@arm.linux.org.uk>
+Currently the start address is set to an initial value every time
+viafb_setmode is called.
 
-- remove a dead line from omapfb_main.c
+This is not done consistently along graphic cores and not even the whole
+address but often only parts of it.  On top of that it seems useless as
+the real/final address will be set by viafb_set_start_addr a few lines
+later.
 
-Signed-off-by: Arun C <arunedarath@mistralsolutions.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Imre Deak <imre.deak@nokia.com>
-Acked-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Remove this superfluous initalization to shrink register initalization and
+as a start to decouple primary and secondary display.  Code cleanup, no
+notable runtime change expected.
+
+Signed-off-by: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Cc: Scott Fang <ScottFang@viatech.com.cn>
+Cc: Joseph Chan <JosephChan@via.com.tw>
+Cc: Harald Welte <laforge@gnumonks.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/plat-omap/include/mach/omapfb.h |    4 ++--
- drivers/video/omap/omapfb_main.c         |    5 ++---
- 2 files changed, 4 insertions(+), 5 deletions(-)
+ drivers/video/via/viamode.c |   17 -----------------
+ 1 file changed, 17 deletions(-)
 
-diff -puN arch/arm/plat-omap/include/mach/omapfb.h~omapfb-fix-coding-style-remove-dead-line arch/arm/plat-omap/include/mach/omapfb.h
---- a/arch/arm/plat-omap/include/mach/omapfb.h~omapfb-fix-coding-style-remove-dead-line
-+++ a/arch/arm/plat-omap/include/mach/omapfb.h
-@@ -276,8 +276,8 @@ typedef int (*omapfb_notifier_callback_t
- 					  void *fbi);
+diff -puN drivers/video/via/viamode.c~viafb-remove-temporary-start-address-setting drivers/video/via/viamode.c
+--- a/drivers/video/via/viamode.c~viafb-remove-temporary-start-address-setting
++++ a/drivers/video/via/viamode.c
+@@ -100,12 +100,8 @@ struct io_reg CN400_ModeXregs[] = { {VIA
+ {VIACR, CR0F, 0xFF, 0x00},	/* Cursor Localtion Low                */
+ {VIACR, CR32, 0xFF, 0x00},
+ {VIACR, CR33, 0xFF, 0x00},
+-{VIACR, CR34, 0xFF, 0x00},
+ {VIACR, CR35, 0xFF, 0x00},
+ {VIACR, CR36, 0x08, 0x00},
+-{VIACR, CR62, 0xFF, 0x00},	/* Secondary Display Starting Address  */
+-{VIACR, CR63, 0xFF, 0x00},	/* Secondary Display Starting Address  */
+-{VIACR, CR64, 0xFF, 0x00},	/* Secondary Display Starting Address  */
+ {VIACR, CR69, 0xFF, 0x00},
+ {VIACR, CR6A, 0xFF, 0x40},
+ {VIACR, CR6B, 0xFF, 0x00},
+@@ -159,16 +155,12 @@ struct io_reg CN700_ModeXregs[] = { {VIA
+ {VIASR, CR30, 0xFF, 0x04},
+ {VIACR, CR32, 0xFF, 0x00},
+ {VIACR, CR33, 0x7F, 0x00},
+-{VIACR, CR34, 0xFF, 0x00},
+ {VIACR, CR35, 0xFF, 0x00},
+ {VIACR, CR36, 0xFF, 0x31},
+ {VIACR, CR41, 0xFF, 0x80},
+ {VIACR, CR42, 0xFF, 0x00},
+ {VIACR, CR55, 0x80, 0x00},
+ {VIACR, CR5D, 0x80, 0x00},	/*Horizontal Retrace Start bit[11] should be 0*/
+-{VIACR, CR62, 0xFF, 0x00},	/* Secondary Display Starting Address */
+-{VIACR, CR63, 0xFF, 0x00},	/* Secondary Display Starting Address */
+-{VIACR, CR64, 0xFF, 0x00},	/* Secondary Display Starting Address */
+ {VIACR, CR68, 0xFF, 0x67},	/* Default FIFO For IGA2 */
+ {VIACR, CR69, 0xFF, 0x00},
+ {VIACR, CR6A, 0xFD, 0x40},
+@@ -233,9 +225,6 @@ struct io_reg KM400_ModeXregs[] = {
+ 	{VIACR, CR55, 0x80, 0x00},
+ 	{VIACR, CR5D, 0x80, 0x00},
+ 	{VIACR, CR36, 0xFF, 0x01},	/* Power Mangement 3                  */
+-	{VIACR, CR62, 0xFF, 0x00},	/* Secondary Display Starting Address */
+-	{VIACR, CR63, 0xFF, 0x00},	/* Secondary Display Starting Address */
+-	{VIACR, CR64, 0xFF, 0x00},	/* Secondary Display Starting Address */
+ 	{VIACR, CR68, 0xFF, 0x67},	/* Default FIFO For IGA2              */
+ 	{VIACR, CR6A, 0x20, 0x20},	/* Extended FIFO On                   */
+ 	{VIACR, CR7A, 0xFF, 0x01},	/* LCD Scaling Parameter 1            */
+@@ -285,14 +274,9 @@ struct io_reg CX700_ModeXregs[] = { {VIA
+ {VIACR, CR0F, 0xFF, 0x00},	/* Cursor Localtion Low                */
+ {VIACR, CR32, 0xFF, 0x00},
+ {VIACR, CR33, 0xFF, 0x00},
+-{VIACR, CR34, 0xFF, 0x00},
+ {VIACR, CR35, 0xFF, 0x00},
+ {VIACR, CR36, 0x08, 0x00},
+ {VIACR, CR47, 0xC8, 0x00},	/* Clear VCK Plus. */
+-{VIACR, CR62, 0xFF, 0x00},	/* Secondary Display Starting Address  */
+-{VIACR, CR63, 0xFF, 0x00},	/* Secondary Display Starting Address  */
+-{VIACR, CR64, 0xFF, 0x00},	/* Secondary Display Starting Address  */
+-{VIACR, CRA3, 0xFF, 0x00},	/* Secondary Display Starting Address  */
+ {VIACR, CR69, 0xFF, 0x00},
+ {VIACR, CR6A, 0xFF, 0x40},
+ {VIACR, CR6B, 0xFF, 0x00},
+@@ -340,7 +324,6 @@ struct io_reg CLE266_ModeXregs[] = { {VI
+ {VIASR, SR1A, 0xFB, 0x08},
  
- struct omapfb_mem_region {
--	dma_addr_t	paddr;
--	void		*vaddr;
-+	u32		paddr;
-+	void __iomem	*vaddr;
- 	unsigned long	size;
- 	u8		type;		/* OMAPFB_PLANE_MEM_* */
- 	unsigned	alloc:1;	/* allocated by the driver */
-diff -puN drivers/video/omap/omapfb_main.c~omapfb-fix-coding-style-remove-dead-line drivers/video/omap/omapfb_main.c
---- a/drivers/video/omap/omapfb_main.c~omapfb-fix-coding-style-remove-dead-line
-+++ a/drivers/video/omap/omapfb_main.c
-@@ -564,7 +564,6 @@ static int set_fb_var(struct fb_info *fb
- 		var->xoffset = var->xres_virtual - var->xres;
- 	if (var->yres + var->yoffset > var->yres_virtual)
- 		var->yoffset = var->yres_virtual - var->yres;
--	line_size = var->xres * bpp / 8;
- 
- 	if (plane->color_mode == OMAPFB_COLOR_RGB444) {
- 		var->red.offset	  = 8; var->red.length	 = 4;
-@@ -1723,8 +1722,8 @@ static int omapfb_do_probe(struct platfo
- 
- 	pr_info("omapfb: configured for panel %s\n", fbdev->panel->name);
- 
--	def_vxres = def_vxres ? : fbdev->panel->x_res;
--	def_vyres = def_vyres ? : fbdev->panel->y_res;
-+	def_vxres = def_vxres ? def_vxres : fbdev->panel->x_res;
-+	def_vyres = def_vyres ? def_vyres : fbdev->panel->y_res;
- 
- 	init_state++;
- 
+ {VIACR, CR32, 0xFF, 0x00},
+-{VIACR, CR34, 0xFF, 0x00},
+ {VIACR, CR35, 0xFF, 0x00},
+ {VIACR, CR36, 0x08, 0x00},
+ {VIACR, CR6A, 0xFF, 0x80},
 _
 
-Patches currently in -mm which might be from arunedarath@mistralsolutions.com are
+Patches currently in -mm which might be from FlorianSchandinat@gmx.de are
 
 origin.patch
 
