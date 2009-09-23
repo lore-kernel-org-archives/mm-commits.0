@@ -1,69 +1,219 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mmc-in-mmc_power_up-use-previously-selected-ocr-if-available.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 12:53:54 -0700
-Message-ID: <200909231953.n8NJrsuI032095@imap1.linux-foundation.org>
+Subject: [merged] mmc-add-mmc_cap_nonremovable-host-capability.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 12:54:26 -0700
+Message-ID: <200909231954.n8NJsQ1a000721@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60732 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55209 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753094AbZIWTzE (ORCPT
+	by vger.kernel.org with ESMTP id S1752491AbZIWTzI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 15:55:04 -0400
+	Wed, 23 Sep 2009 15:55:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: balajirrao@openmoko.org, andy@openmoko.com, drzeus-mmc@drzeus.cx, ian@mnementh.co.uk, matt@console-pimps.org, philipl@overt.org, roberto.foglietta@gmail.com, mm-commits@vger.kernel.org
+To: adrian.hunter@nokia.com, ext-denis.2.karpov@nokia.com, ian@mnementh.co.uk, jarkko.lavinen@nokia.com, linux-mmc@vger.kernel.org, madhu.cr@ti.com, matt@console-pimps.org, philipl@overt.
 
 
 The patch titled
-     mmc: in mmc_power_up(), use previously selected ocr if available
+     mmc: add MMC_CAP_NONREMOVABLE host capability
 has been removed from the -mm tree.  Its filename was
-     mmc-in-mmc_power_up-use-previously-selected-ocr-if-available.patch
+     mmc-add-mmc_cap_nonremovable-host-capability.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: in mmc_power_up(), use previously selected ocr if available
-From: Balaji Rao <balajirrao@openmoko.org>
+Subject: mmc: add MMC_CAP_NONREMOVABLE host capability
+From: Adrian Hunter <adrian.hunter@nokia.com>
 
-When mmc_power_up is called during unsafe resume, host->ocr should be used
-instead of host->ocr_avail.
+eMMC's are not removable, so unsafe resume is OK always.
 
-Signed-off-by: Balaji Rao <balajirrao@openmoko.org>
-Cc: Andy Green <andy@openmoko.com>
-Cc: Pierre Ossman <drzeus-mmc@drzeus.cx>
-Cc: Matt Fleming <matt@console-pimps.org>
+To permit this a new host capability MMC_CAP_NONREMOVABLE has been added
+and suspend / resume updated accordingly.
+
+Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
+Acked-by: Matt Fleming <matt@console-pimps.org>
 Cc: Ian Molton <ian@mnementh.co.uk>
 Cc: "Roberto A. Foglietta" <roberto.foglietta@gmail.com>
+Cc: Jarkko Lavinen <jarkko.lavinen@nokia.com>
+Cc: Denis Karpov <ext-denis.2.karpov@nokia.com>
+Cc: Pierre Ossman <pierre@ossman.eu>
 Cc: Philip Langdale <philipl@overt.org>
+Cc: "Madhusudhan" <madhu.cr@ti.com>
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/core.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ drivers/mmc/core/mmc.c   |   41 ++++++++++++++++++++++++++++++-------
+ drivers/mmc/core/sd.c    |   41 ++++++++++++++++++++++++++++++-------
+ include/linux/mmc/host.h |    1 
+ 3 files changed, 69 insertions(+), 14 deletions(-)
 
-diff -puN drivers/mmc/core/core.c~mmc-in-mmc_power_up-use-previously-selected-ocr-if-available drivers/mmc/core/core.c
---- a/drivers/mmc/core/core.c~mmc-in-mmc_power_up-use-previously-selected-ocr-if-available
-+++ a/drivers/mmc/core/core.c
-@@ -687,7 +687,13 @@ void mmc_set_timing(struct mmc_host *hos
-  */
- static void mmc_power_up(struct mmc_host *host)
- {
--	int bit = fls(host->ocr_avail) - 1;
-+	int bit;
-+
-+	/* If ocr is set, we use it */
-+	if (host->ocr)
-+		bit = ffs(host->ocr) - 1;
-+	else
-+		bit = fls(host->ocr_avail) - 1;
+diff -puN drivers/mmc/core/mmc.c~mmc-add-mmc_cap_nonremovable-host-capability drivers/mmc/core/mmc.c
+--- a/drivers/mmc/core/mmc.c~mmc-add-mmc_cap_nonremovable-host-capability
++++ a/drivers/mmc/core/mmc.c
+@@ -507,8 +507,6 @@ static void mmc_detect(struct mmc_host *
+ 	}
+ }
  
- 	host->ios.vdd = bit;
- 	if (mmc_host_is_spi(host)) {
+-#ifdef CONFIG_MMC_UNSAFE_RESUME
+-
+ /*
+  * Suspend callback from host.
+  */
+@@ -551,20 +549,49 @@ static void mmc_resume(struct mmc_host *
+ 
+ }
+ 
+-#else
++#ifdef CONFIG_MMC_UNSAFE_RESUME
+ 
+-#define mmc_suspend NULL
+-#define mmc_resume NULL
++static const struct mmc_bus_ops mmc_ops = {
++	.remove = mmc_remove,
++	.detect = mmc_detect,
++	.suspend = mmc_suspend,
++	.resume = mmc_resume,
++};
+ 
+-#endif
++static void mmc_attach_bus_ops(struct mmc_host *host)
++{
++	mmc_attach_bus(host, &mmc_ops);
++}
++
++#else
+ 
+ static const struct mmc_bus_ops mmc_ops = {
+ 	.remove = mmc_remove,
+ 	.detect = mmc_detect,
++	.suspend = NULL,
++	.resume = NULL,
++};
++
++static const struct mmc_bus_ops mmc_ops_unsafe = {
++	.remove = mmc_remove,
++	.detect = mmc_detect,
+ 	.suspend = mmc_suspend,
+ 	.resume = mmc_resume,
+ };
+ 
++static void mmc_attach_bus_ops(struct mmc_host *host)
++{
++	const struct mmc_bus_ops *bus_ops;
++
++	if (host->caps & MMC_CAP_NONREMOVABLE)
++		bus_ops = &mmc_ops_unsafe;
++	else
++		bus_ops = &mmc_ops;
++	mmc_attach_bus(host, bus_ops);
++}
++
++#endif
++
+ /*
+  * Starting point for MMC card init.
+  */
+@@ -575,7 +602,7 @@ int mmc_attach_mmc(struct mmc_host *host
+ 	BUG_ON(!host);
+ 	WARN_ON(!host->claimed);
+ 
+-	mmc_attach_bus(host, &mmc_ops);
++	mmc_attach_bus_ops(host);
+ 
+ 	/*
+ 	 * We need to get OCR a different way for SPI.
+diff -puN drivers/mmc/core/sd.c~mmc-add-mmc_cap_nonremovable-host-capability drivers/mmc/core/sd.c
+--- a/drivers/mmc/core/sd.c~mmc-add-mmc_cap_nonremovable-host-capability
++++ a/drivers/mmc/core/sd.c
+@@ -561,8 +561,6 @@ static void mmc_sd_detect(struct mmc_hos
+ 	}
+ }
+ 
+-#ifdef CONFIG_MMC_UNSAFE_RESUME
+-
+ /*
+  * Suspend callback from host.
+  */
+@@ -605,20 +603,49 @@ static void mmc_sd_resume(struct mmc_hos
+ 
+ }
+ 
+-#else
++#ifdef CONFIG_MMC_UNSAFE_RESUME
+ 
+-#define mmc_sd_suspend NULL
+-#define mmc_sd_resume NULL
++static const struct mmc_bus_ops mmc_sd_ops = {
++	.remove = mmc_sd_remove,
++	.detect = mmc_sd_detect,
++	.suspend = mmc_sd_suspend,
++	.resume = mmc_sd_resume,
++};
+ 
+-#endif
++static void mmc_sd_attach_bus_ops(struct mmc_host *host)
++{
++	mmc_attach_bus(host, &mmc_sd_ops);
++}
++
++#else
+ 
+ static const struct mmc_bus_ops mmc_sd_ops = {
+ 	.remove = mmc_sd_remove,
+ 	.detect = mmc_sd_detect,
++	.suspend = NULL,
++	.resume = NULL,
++};
++
++static const struct mmc_bus_ops mmc_sd_ops_unsafe = {
++	.remove = mmc_sd_remove,
++	.detect = mmc_sd_detect,
+ 	.suspend = mmc_sd_suspend,
+ 	.resume = mmc_sd_resume,
+ };
+ 
++static void mmc_sd_attach_bus_ops(struct mmc_host *host)
++{
++	const struct mmc_bus_ops *bus_ops;
++
++	if (host->caps & MMC_CAP_NONREMOVABLE)
++		bus_ops = &mmc_sd_ops_unsafe;
++	else
++		bus_ops = &mmc_sd_ops;
++	mmc_attach_bus(host, bus_ops);
++}
++
++#endif
++
+ /*
+  * Starting point for SD card init.
+  */
+@@ -629,7 +656,7 @@ int mmc_attach_sd(struct mmc_host *host,
+ 	BUG_ON(!host);
+ 	WARN_ON(!host->claimed);
+ 
+-	mmc_attach_bus(host, &mmc_sd_ops);
++	mmc_sd_attach_bus_ops(host);
+ 
+ 	/*
+ 	 * We need to get OCR a different way for SPI.
+diff -puN include/linux/mmc/host.h~mmc-add-mmc_cap_nonremovable-host-capability include/linux/mmc/host.h
+--- a/include/linux/mmc/host.h~mmc-add-mmc_cap_nonremovable-host-capability
++++ a/include/linux/mmc/host.h
+@@ -148,6 +148,7 @@ struct mmc_host {
+ #define MMC_CAP_NEEDS_POLL	(1 << 5)	/* Needs polling for card-detection */
+ #define MMC_CAP_8_BIT_DATA	(1 << 6)	/* Can the host do 8 bit transfers */
+ #define MMC_CAP_DISABLE		(1 << 7)	/* Can the host be disabled */
++#define MMC_CAP_NONREMOVABLE	(1 << 8)	/* Nonremovable e.g. eMMC */
+ 
+ 	/* host specific block data */
+ 	unsigned int		max_seg_size;	/* see blk_queue_max_segment_size */
 _
 
-Patches currently in -mm which might be from balajirrao@openmoko.org are
+Patches currently in -mm which might be from adrian.hunter@nokia.com are
 
 origin.patch
 
