@@ -1,264 +1,161 @@
 From: akpm@linux-foundation.org
-Subject: [merged] omapfb-add-support-for-the-omap3-beagle-dvi-output.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 13:00:21 -0700
-Message-ID: <200909232000.n8NK0LOR012926@imap1.linux-foundation.org>
+Subject: [merged] omap_hsmmc-ensure-all-clock-enables-and-disables-are-paired.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 12:55:18 -0700
+Message-ID: <200909231955.n8NJtI3H002567__42896.9310051345$1253736668$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49943 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43711 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753819AbZIWUKm (ORCPT
+	by vger.kernel.org with ESMTP id S1753221AbZIWUKc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 16:10:42 -0400
+	Wed, 23 Sep 2009 16:10:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: koen@openembedded.org, dbrownell@users.sourceforge.net, felipe.contreras@gmail.com, imre.deak@nokia.com, jarkko.nikula@gmail.com, krzysztof.h1@wp.pl, steve@sakoman.com, tony@atomide.c
+To: adrian.hunter@nokia.com, ext-denis.2.karpov@nokia.com, ian@mnementh.co.uk, jarkko.lavinen@nokia.com, linux-mmc@vger.kernel.org, madhu.cr@ti.com, matt@console-pimps.org, philipl@overt.
 
 
 The patch titled
-     omapfb: add support for the OMAP3 Beagle DVI output
+     omap_hsmmc: ensure all clock enables and disables are paired
 has been removed from the -mm tree.  Its filename was
-     omapfb-add-support-for-the-omap3-beagle-dvi-output.patch
+     omap_hsmmc-ensure-all-clock-enables-and-disables-are-paired.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: omapfb: add support for the OMAP3 Beagle DVI output
-From: Koen Kooi <koen@openembedded.org>
+Subject: omap_hsmmc: ensure all clock enables and disables are paired
+From: Adrian Hunter <adrian.hunter@nokia.com>
 
-The default resolution is 1024x768@24bit
-
-This version addresses the comments from Felipe Balbi adn Arun Edarath
-
-Fixed-by: Felipe Contreras <felipe.contreras@gmail.com>
-Fixed-by: Steve Sakoman <steve@sakoman.com>
-Fixed-by: Jarkko Nikula <jarkko.nikula@gmail.com>
-Fixed-by: David Brownell <dbrownell@users.sourceforge.net>
-Signed-off-by: Koen Kooi <koen@openembedded.org>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Imre Deak <imre.deak@nokia.com>
-Acked-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+[madhu.cr@ti.com: fix for the db clock failure message]
+Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
+Acked-by: Matt Fleming <matt@console-pimps.org>
+Cc: Ian Molton <ian@mnementh.co.uk>
+Cc: "Roberto A. Foglietta" <roberto.foglietta@gmail.com>
+Cc: Jarkko Lavinen <jarkko.lavinen@nokia.com>
+Cc: Denis Karpov <ext-denis.2.karpov@nokia.com>
+Cc: Pierre Ossman <pierre@ossman.eu>
+Cc: Philip Langdale <philipl@overt.org>
+Cc: "Madhusudhan" <madhu.cr@ti.com>
+Cc: <linux-mmc@vger.kernel.org>
+Signed-off-by: Madhusudhan Chikkature <madhu.cr@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/configs/omap3_beagle_defconfig |   47 +++++++
- drivers/video/omap/Makefile             |    1 
- drivers/video/omap/lcd_omap3beagle.c    |  130 ++++++++++++++++++++++
- 3 files changed, 177 insertions(+), 1 deletion(-)
+ drivers/mmc/host/omap_hsmmc.c |   60 +++++++++++++++++---------------
+ 1 file changed, 33 insertions(+), 27 deletions(-)
 
-diff -puN arch/arm/configs/omap3_beagle_defconfig~omapfb-add-support-for-the-omap3-beagle-dvi-output arch/arm/configs/omap3_beagle_defconfig
---- a/arch/arm/configs/omap3_beagle_defconfig~omapfb-add-support-for-the-omap3-beagle-dvi-output
-+++ a/arch/arm/configs/omap3_beagle_defconfig
-@@ -778,7 +778,33 @@ CONFIG_DAB=y
- #
- # CONFIG_VGASTATE is not set
- # CONFIG_VIDEO_OUTPUT_CONTROL is not set
--# CONFIG_FB is not set
-+CONFIG_FB=y
-+# CONFIG_FIRMWARE_EDID is not set
-+# CONFIG_FB_DDC is not set
-+CONFIG_FB_CFB_FILLRECT=y
-+CONFIG_FB_CFB_COPYAREA=y
-+CONFIG_FB_CFB_IMAGEBLIT=y
-+# CONFIG_FB_CFB_REV_PIXELS_IN_BYTE is not set
-+# CONFIG_FB_SYS_FILLRECT is not set
-+# CONFIG_FB_SYS_COPYAREA is not set
-+# CONFIG_FB_SYS_IMAGEBLIT is not set
-+# CONFIG_FB_FOREIGN_ENDIAN is not set
-+# CONFIG_FB_SYS_FOPS is not set
-+# CONFIG_FB_SVGALIB is not set
-+# CONFIG_FB_MACMODES is not set
-+# CONFIG_FB_BACKLIGHT is not set
-+# CONFIG_FB_MODE_HELPERS is not set
-+# CONFIG_FB_TILEBLITTING is not set
-+
-+#
-+# Frame buffer hardware drivers
-+#
-+# CONFIG_FB_S1D13XXX is not set
-+# CONFIG_FB_VIRTUAL is not set
-+CONFIG_FB_OMAP=y
-+# CONFIG_FB_OMAP_LCDC_EXTERNAL is not set
-+# CONFIG_FB_OMAP_BOOTLOADER_INIT is not set
-+CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE=2
- # CONFIG_BACKLIGHT_LCD_SUPPORT is not set
+diff -puN drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-ensure-all-clock-enables-and-disables-are-paired drivers/mmc/host/omap_hsmmc.c
+--- a/drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-ensure-all-clock-enables-and-disables-are-paired
++++ a/drivers/mmc/host/omap_hsmmc.c
+@@ -162,7 +162,7 @@ struct omap_hsmmc_host {
+ 	int			use_dma, dma_ch;
+ 	int			dma_line_tx, dma_line_rx;
+ 	int			slot_id;
+-	int			dbclk_enabled;
++	int			got_dbclk;
+ 	int			response_busy;
+ 	int			context_loss;
+ 	int			dpm_state;
+@@ -742,22 +742,24 @@ static int omap_hsmmc_switch_opcond(stru
+ 	/* Disable the clocks */
+ 	clk_disable(host->fclk);
+ 	clk_disable(host->iclk);
+-	clk_disable(host->dbclk);
++	if (host->got_dbclk)
++		clk_disable(host->dbclk);
  
- #
-@@ -791,6 +817,25 @@ CONFIG_DAB=y
- #
- # CONFIG_VGA_CONSOLE is not set
- CONFIG_DUMMY_CONSOLE=y
-+CONFIG_FRAMEBUFFER_CONSOLE=y
-+# CONFIG_FRAMEBUFFER_CONSOLE_DETECT_PRIMARY is not set
-+CONFIG_FRAMEBUFFER_CONSOLE_ROTATION=y
-+CONFIG_FONTS=y
-+CONFIG_FONT_8x8=y
-+CONFIG_FONT_8x16=y
-+# CONFIG_FONT_6x11 is not set
-+# CONFIG_FONT_7x14 is not set
-+# CONFIG_FONT_PEARL_8x8 is not set
-+# CONFIG_FONT_ACORN_8x8 is not set
-+# CONFIG_FONT_MINI_4x6 is not set
-+# CONFIG_FONT_SUN8x16 is not set
-+# CONFIG_FONT_SUN12x22 is not set
-+# CONFIG_FONT_10x18 is not set
-+# CONFIG_LOGO is not set
-+
-+#
-+# Sound
-+#
- # CONFIG_SOUND is not set
- # CONFIG_HID_SUPPORT is not set
- CONFIG_USB_SUPPORT=y
-diff -puN drivers/video/omap/Makefile~omapfb-add-support-for-the-omap3-beagle-dvi-output drivers/video/omap/Makefile
---- a/drivers/video/omap/Makefile~omapfb-add-support-for-the-omap3-beagle-dvi-output
-+++ a/drivers/video/omap/Makefile
-@@ -31,6 +31,7 @@ objs-y$(CONFIG_MACH_OMAP_2430SDP) += lcd
- objs-y$(CONFIG_MACH_OMAP_3430SDP) += lcd_2430sdp.o
- objs-y$(CONFIG_MACH_OMAP2EVM) += lcd_omap2evm.o
- objs-y$(CONFIG_MACH_OMAP3EVM) += lcd_omap3evm.o
-+objs-y$(CONFIG_MACH_OMAP3_BEAGLE) += lcd_omap3beagle.o
- objs-y$(CONFIG_FB_OMAP_LCD_MIPID) += lcd_mipid.o
+ 	/* Turn the power off */
+ 	ret = mmc_slot(host).set_power(host->dev, host->slot_id, 0, 0);
+-	if (ret != 0)
+-		goto err;
  
- omapfb-objs := $(objs-yy)
-diff -puN /dev/null drivers/video/omap/lcd_omap3beagle.c
---- /dev/null
-+++ a/drivers/video/omap/lcd_omap3beagle.c
-@@ -0,0 +1,130 @@
-+/*
-+ * LCD panel support for the TI OMAP3 Beagle board
-+ *
-+ * Author: Koen Kooi <koen@openembedded.org>
-+ *
-+ * Derived from drivers/video/omap/lcd-omap3evm.c
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; either version 2 of the License, or (at your
-+ * option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along
-+ * with this program; if not, write to the Free Software Foundation, Inc.,
-+ * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-+ */
+ 	/* Turn the power ON with given VDD 1.8 or 3.0v */
+-	ret = mmc_slot(host).set_power(host->dev, host->slot_id, 1, vdd);
++	if (!ret)
++		ret = mmc_slot(host).set_power(host->dev, host->slot_id, 1,
++					       vdd);
++	clk_enable(host->iclk);
++	clk_enable(host->fclk);
++	if (host->got_dbclk)
++		clk_enable(host->dbclk);
 +
-+#include <linux/module.h>
-+#include <linux/platform_device.h>
-+#include <linux/gpio.h>
-+#include <linux/i2c/twl4030.h>
+ 	if (ret != 0)
+ 		goto err;
+ 
+-	clk_enable(host->fclk);
+-	clk_enable(host->iclk);
+-	clk_enable(host->dbclk);
+-
+ 	OMAP_HSMMC_WRITE(host->base, HCTL,
+ 		OMAP_HSMMC_READ(host->base, HCTL) & SDVSCLR);
+ 	reg_val = OMAP_HSMMC_READ(host->base, HCTL);
+@@ -1695,18 +1697,22 @@ static int __init omap_hsmmc_probe(struc
+ 		goto err1;
+ 	}
+ 
+-	host->dbclk = clk_get(&pdev->dev, "mmchsdb_fck");
+-	/*
+-	 * MMC can still work without debounce clock.
+-	 */
+-	if (IS_ERR(host->dbclk))
+-		dev_warn(mmc_dev(host->mmc), "Failed to get debounce clock\n");
+-	else
+-		if (clk_enable(host->dbclk) != 0)
+-			dev_dbg(mmc_dev(host->mmc), "Enabling debounce"
+-							" clk failed\n");
++	if (cpu_is_omap2430()) {
++		host->dbclk = clk_get(&pdev->dev, "mmchsdb_fck");
++		/*
++		 * MMC can still work without debounce clock.
++		 */
++		if (IS_ERR(host->dbclk))
++			dev_warn(mmc_dev(host->mmc),
++				"Failed to get debounce clock\n");
+ 		else
+-			host->dbclk_enabled = 1;
++			host->got_dbclk = 1;
 +
-+#include <mach/mux.h>
-+#include <mach/omapfb.h>
-+#include <asm/mach-types.h>
-+
-+#define LCD_PANEL_ENABLE_GPIO       170
-+
-+static int omap3beagle_panel_init(struct lcd_panel *panel,
-+				struct omapfb_device *fbdev)
-+{
-+	gpio_request(LCD_PANEL_ENABLE_GPIO, "LCD enable");
-+	return 0;
-+}
-+
-+static void omap3beagle_panel_cleanup(struct lcd_panel *panel)
-+{
-+	gpio_free(LCD_PANEL_ENABLE_GPIO);
-+}
-+
-+static int omap3beagle_panel_enable(struct lcd_panel *panel)
-+{
-+	gpio_set_value(LCD_PANEL_ENABLE_GPIO, 1);
-+	return 0;
-+}
-+
-+static void omap3beagle_panel_disable(struct lcd_panel *panel)
-+{
-+	gpio_set_value(LCD_PANEL_ENABLE_GPIO, 0);
-+}
-+
-+static unsigned long omap3beagle_panel_get_caps(struct lcd_panel *panel)
-+{
-+	return 0;
-+}
-+
-+struct lcd_panel omap3beagle_panel = {
-+	.name		= "omap3beagle",
-+	.config		= OMAP_LCDC_PANEL_TFT,
-+
-+	.bpp		= 16,
-+	.data_lines	= 24,
-+	.x_res		= 1024,
-+	.y_res		= 768,
-+	.hsw		= 3,		/* hsync_len (4) - 1 */
-+	.hfp		= 3,		/* right_margin (4) - 1 */
-+	.hbp		= 39,		/* left_margin (40) - 1 */
-+	.vsw		= 1,		/* vsync_len (2) - 1 */
-+	.vfp		= 2,		/* lower_margin */
-+	.vbp		= 7,		/* upper_margin (8) - 1 */
-+
-+	.pixel_clock	= 64000,
-+
-+	.init		= omap3beagle_panel_init,
-+	.cleanup	= omap3beagle_panel_cleanup,
-+	.enable		= omap3beagle_panel_enable,
-+	.disable	= omap3beagle_panel_disable,
-+	.get_caps	= omap3beagle_panel_get_caps,
-+};
-+
-+static int omap3beagle_panel_probe(struct platform_device *pdev)
-+{
-+	omapfb_register_panel(&omap3beagle_panel);
-+	return 0;
-+}
-+
-+static int omap3beagle_panel_remove(struct platform_device *pdev)
-+{
-+	return 0;
-+}
-+
-+static int omap3beagle_panel_suspend(struct platform_device *pdev,
-+				   pm_message_t mesg)
-+{
-+	return 0;
-+}
-+
-+static int omap3beagle_panel_resume(struct platform_device *pdev)
-+{
-+	return 0;
-+}
-+
-+struct platform_driver omap3beagle_panel_driver = {
-+	.probe		= omap3beagle_panel_probe,
-+	.remove		= omap3beagle_panel_remove,
-+	.suspend	= omap3beagle_panel_suspend,
-+	.resume		= omap3beagle_panel_resume,
-+	.driver		= {
-+		.name	= "omap3beagle_lcd",
-+		.owner	= THIS_MODULE,
-+	},
-+};
-+
-+static int __init omap3beagle_panel_drv_init(void)
-+{
-+	return platform_driver_register(&omap3beagle_panel_driver);
-+}
-+
-+static void __exit omap3beagle_panel_drv_exit(void)
-+{
-+	platform_driver_unregister(&omap3beagle_panel_driver);
-+}
-+
-+module_init(omap3beagle_panel_drv_init);
-+module_exit(omap3beagle_panel_drv_exit);
-_
-
-Patches currently in -mm which might be from koen@openembedded.org are
-
-origin.patch
-
++		if (host->got_dbclk)
++			if (clk_enable(host->dbclk) != 0)
++				dev_dbg(mmc_dev(host->mmc), "Enabling debounce"
++							" clk failed\n");
++	}
+ 
+ 	/* Since we do only SG emulation, we can have as many segs
+ 	 * as we want. */
+@@ -1820,7 +1826,7 @@ err_irq:
+ 	clk_disable(host->iclk);
+ 	clk_put(host->fclk);
+ 	clk_put(host->iclk);
+-	if (host->dbclk_enabled) {
++	if (host->got_dbclk) {
+ 		clk_disable(host->dbclk);
+ 		clk_put(host->dbclk);
+ 	}
+@@ -1854,7 +1860,7 @@ static int omap_hsmmc_remove(struct plat
+ 		clk_disable(host->iclk);
+ 		clk_put(host->fclk);
+ 		clk_put(host->iclk);
+-		if (host->dbclk_enabled) {
++		if (host->got_dbclk) {
+ 			clk_disable(host->dbclk);
+ 			clk_put(host->dbclk);
+ 		}
+@@ -1905,7 +1911,8 @@ static int omap_hsmmc_suspend(struct pla
+ 				OMAP_HSMMC_READ(host->base, HCTL) & ~SDBP);
+ 			mmc_host_disable(host->mmc);
+ 			clk_disable(host->iclk);
+-			clk_disable(host->dbclk);
++			if (host->got_dbclk)
++				clk_disable(host->dbclk);
+ 		} else {
+ 			host->suspended = 0;
+ 			if (host->pdata->resume) {
+@@ -1936,15 +1943,14 @@ static int omap_hsmmc_resume(struct plat
+ 		if (ret)
+ 			goto clk_en_err;
+ 
+-		if (clk_enable(host->dbclk) != 0)
+-			dev_dbg(mmc_dev(host->mmc),
+-					"Enabling debounce clk failed\n");
