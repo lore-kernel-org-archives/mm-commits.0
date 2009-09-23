@@ -1,191 +1,189 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hwmon-adxx-convert-to-device-table-matching.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 12:57:59 -0700
-Message-ID: <200909231957.n8NJvxpx008009@imap1.linux-foundation.org>
+Subject: [merged] gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 12:59:28 -0700
+Message-ID: <200909231959.n8NJxSAR011054@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43483 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41027 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753632AbZIWT7n (ORCPT
+	by vger.kernel.org with ESMTP id S1753630AbZIWT7n (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 23 Sep 2009 15:59:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avorontsov@ru.mvista.com, ben-linux@fluff.org, benh@kernel.crashing.org, dbrownell@users.sourceforge.net, dwmw2@infradead.org, grant.likely@secretlab.ca, khali@linux-fr.org, marc.pign
+To: ext-jani.1.nikula@nokia.com, david-b@pacbell.net, dsilvers@simtec.co.uk, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hwmon: adxx: convert to device table matching
+     gpiolib: allow exported GPIO nodes to be named using sysfs links
 has been removed from the -mm tree.  Its filename was
-     hwmon-adxx-convert-to-device-table-matching.patch
+     gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hwmon: adxx: convert to device table matching
-From: Anton Vorontsov <avorontsov@ru.mvista.com>
+Subject: gpiolib: allow exported GPIO nodes to be named using sysfs links
+From: Jani Nikula <ext-jani.1.nikula@nokia.com>
 
-Make the code a little bit nicer, and shorter.
+Commit 926b663ce8215ba448960e1ff6e58b67a2c3b99b (gpiolib: allow GPIOs to
+be named) already provides naming on the chip level. This patch provides
+more flexibility by allowing multiple names where ever in sysfs on a per
+GPIO basis.
 
-Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
-Cc: Marc Pignat <marc.pignat@hevs.ch>
-Cc: David Brownell <dbrownell@users.sourceforge.net>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Ben Dooks <ben-linux@fluff.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Adapted from David Brownell's comments on a similar concept:
+http://lkml.org/lkml/2009/4/20/203.
+
+[randy.dunlap@oracle.com: fix build for CONFIG_GENERIC_GPIO=n]
+Signed-off-by: Jani Nikula <ext-jani.1.nikula@nokia.com>
+Acked-by: David Brownell <david-b@pacbell.net>
+Cc: Daniel Silverstone <dsilvers@simtec.co.uk>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/adcxx.c |  101 ++++++----------------------------------
- 1 file changed, 16 insertions(+), 85 deletions(-)
+ Documentation/gpio.txt     |   10 +++++++
+ drivers/gpio/gpiolib.c     |   45 +++++++++++++++++++++++++++++++++++
+ include/asm-generic/gpio.h |    8 ++++++
+ include/linux/gpio.h       |   11 ++++++++
+ 4 files changed, 74 insertions(+)
 
-diff -puN drivers/hwmon/adcxx.c~hwmon-adxx-convert-to-device-table-matching drivers/hwmon/adcxx.c
---- a/drivers/hwmon/adcxx.c~hwmon-adxx-convert-to-device-table-matching
-+++ a/drivers/hwmon/adcxx.c
-@@ -43,6 +43,7 @@
- #include <linux/hwmon.h>
- #include <linux/hwmon-sysfs.h>
- #include <linux/mutex.h>
-+#include <linux/mod_devicetable.h>
- #include <linux/spi/spi.h>
+diff -puN Documentation/gpio.txt~gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links Documentation/gpio.txt
+--- a/Documentation/gpio.txt~gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links
++++ a/Documentation/gpio.txt
+@@ -555,6 +555,11 @@ requested using gpio_request():
+ 	/* reverse gpio_export() */
+ 	void gpio_unexport();
  
- #define DRVNAME		"adcxx"
-@@ -157,8 +158,9 @@ static struct sensor_device_attribute ad
- 
- /*----------------------------------------------------------------------*/
- 
--static int __devinit adcxx_probe(struct spi_device *spi, int channels)
-+static int __devinit adcxx_probe(struct spi_device *spi)
- {
-+	int channels = spi_get_device_id(spi)->driver_data;
- 	struct adcxx *adc;
- 	int status;
- 	int i;
-@@ -204,26 +206,6 @@ out_err:
- 	return status;
++	/* create a sysfs link to an exported GPIO node */
++	int gpio_export_link(struct device *dev, const char *name,
++		unsigned gpio)
++
++
+ After a kernel driver requests a GPIO, it may only be made available in
+ the sysfs interface by gpio_export().  The driver can control whether the
+ signal direction may change.  This helps drivers prevent userspace code
+@@ -563,3 +568,8 @@ from accidentally clobbering important s
+ This explicit exporting can help with debugging (by making some kinds
+ of experiments easier), or can provide an always-there interface that's
+ suitable for documenting as part of a board support package.
++
++After the GPIO has been exported, gpio_export_link() allows creating
++symlinks from elsewhere in sysfs to the GPIO sysfs node.  Drivers can
++use this to provide the interface under their own device in sysfs with
++a descriptive name.
+diff -puN drivers/gpio/gpiolib.c~gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links drivers/gpio/gpiolib.c
+--- a/drivers/gpio/gpiolib.c~gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links
++++ a/drivers/gpio/gpiolib.c
+@@ -505,6 +505,51 @@ static int match_export(struct device *d
  }
  
--static int __devinit adcxx1s_probe(struct spi_device *spi)
--{
--	return adcxx_probe(spi, 1);
--}
--
--static int __devinit adcxx2s_probe(struct spi_device *spi)
--{
--	return adcxx_probe(spi, 2);
--}
--
--static int __devinit adcxx4s_probe(struct spi_device *spi)
--{
--	return adcxx_probe(spi, 4);
--}
--
--static int __devinit adcxx8s_probe(struct spi_device *spi)
--{
--	return adcxx_probe(spi, 8);
--}
--
- static int __devexit adcxx_remove(struct spi_device *spi)
- {
- 	struct adcxx *adc = dev_get_drvdata(&spi->dev);
-@@ -241,79 +223,33 @@ static int __devexit adcxx_remove(struct
- 	return 0;
+ /**
++ * gpio_export_link - create a sysfs link to an exported GPIO node
++ * @dev: device under which to create symlink
++ * @name: name of the symlink
++ * @gpio: gpio to create symlink to, already exported
++ *
++ * Set up a symlink from /sys/.../dev/name to /sys/class/gpio/gpioN
++ * node. Caller is responsible for unlinking.
++ *
++ * Returns zero on success, else an error.
++ */
++int gpio_export_link(struct device *dev, const char *name, unsigned gpio)
++{
++	struct gpio_desc	*desc;
++	int			status = -EINVAL;
++
++	if (!gpio_is_valid(gpio))
++		goto done;
++
++	mutex_lock(&sysfs_lock);
++
++	desc = &gpio_desc[gpio];
++
++	if (test_bit(FLAG_EXPORT, &desc->flags)) {
++		struct device *tdev;
++
++		tdev = class_find_device(&gpio_class, NULL, desc, match_export);
++		if (tdev != NULL) {
++			status = sysfs_create_link(&dev->kobj, &tdev->kobj,
++						name);
++		} else {
++			status = -ENODEV;
++		}
++	}
++
++	mutex_unlock(&sysfs_lock);
++
++done:
++	if (status)
++		pr_debug("%s: gpio%d status %d\n", __func__, gpio, status);
++
++	return status;
++}
++EXPORT_SYMBOL_GPL(gpio_export_link);
++
++/**
+  * gpio_unexport - reverse effect of gpio_export()
+  * @gpio: gpio to make unavailable
+  *
+diff -puN include/asm-generic/gpio.h~gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links include/asm-generic/gpio.h
+--- a/include/asm-generic/gpio.h~gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links
++++ a/include/asm-generic/gpio.h
+@@ -141,6 +141,8 @@ extern int __gpio_to_irq(unsigned gpio);
+  * but more typically is configured entirely from userspace.
+  */
+ extern int gpio_export(unsigned gpio, bool direction_may_change);
++extern int gpio_export_link(struct device *dev, const char *name,
++			unsigned gpio);
+ extern void gpio_unexport(unsigned gpio);
+ 
+ #endif	/* CONFIG_GPIO_SYSFS */
+@@ -185,6 +187,12 @@ static inline int gpio_export(unsigned g
+ 	return -ENOSYS;
  }
  
--static struct spi_driver adcxx1s_driver = {
--	.driver = {
--		.name	= "adcxx1s",
--		.owner	= THIS_MODULE,
--	},
--	.probe	= adcxx1s_probe,
--	.remove	= __devexit_p(adcxx_remove),
--};
--
--static struct spi_driver adcxx2s_driver = {
--	.driver = {
--		.name	= "adcxx2s",
--		.owner	= THIS_MODULE,
--	},
--	.probe	= adcxx2s_probe,
--	.remove	= __devexit_p(adcxx_remove),
-+static const struct spi_device_id adcxx_ids[] = {
-+	{ "adcxx1s", 1 },
-+	{ "adcxx2s", 2 },
-+	{ "adcxx4s", 4 },
-+	{ "adcxx8s", 8 },
-+	{ },
- };
-+MODULE_DEVICE_TABLE(spi, adcxx_ids);
- 
--static struct spi_driver adcxx4s_driver = {
-+static struct spi_driver adcxx_driver = {
- 	.driver = {
--		.name	= "adcxx4s",
-+		.name	= "adcxx",
- 		.owner	= THIS_MODULE,
- 	},
--	.probe	= adcxx4s_probe,
--	.remove	= __devexit_p(adcxx_remove),
--};
--
--static struct spi_driver adcxx8s_driver = {
--	.driver = {
--		.name	= "adcxx8s",
--		.owner	= THIS_MODULE,
--	},
--	.probe	= adcxx8s_probe,
-+	.id_table = adcxx_ids,
-+	.probe	= adcxx_probe,
- 	.remove	= __devexit_p(adcxx_remove),
- };
- 
- static int __init init_adcxx(void)
++static inline int gpio_export_link(struct device *dev, const char *name,
++				unsigned gpio)
++{
++	return -ENOSYS;
++}
++
+ static inline void gpio_unexport(unsigned gpio)
  {
--	int status;
--	status = spi_register_driver(&adcxx1s_driver);
--	if (status)
--		goto reg_1_failed;
--
--	status = spi_register_driver(&adcxx2s_driver);
--	if (status)
--		goto reg_2_failed;
--
--	status = spi_register_driver(&adcxx4s_driver);
--	if (status)
--		goto reg_4_failed;
--
--	status = spi_register_driver(&adcxx8s_driver);
--	if (status)
--		goto reg_8_failed;
--
--	return status;
--
--reg_8_failed:
--	spi_unregister_driver(&adcxx4s_driver);
--reg_4_failed:
--	spi_unregister_driver(&adcxx2s_driver);
--reg_2_failed:
--	spi_unregister_driver(&adcxx1s_driver);
--reg_1_failed:
--	return status;
-+	return spi_register_driver(&adcxx_driver);
+ }
+diff -puN include/linux/gpio.h~gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links include/linux/gpio.h
+--- a/include/linux/gpio.h~gpiolib-allow-exported-gpio-nodes-to-be-named-using-sysfs-links
++++ a/include/linux/gpio.h
+@@ -12,6 +12,8 @@
+ #include <linux/types.h>
+ #include <linux/errno.h>
+ 
++struct device;
++
+ /*
+  * Some platforms don't support the GPIO programming interface.
+  *
+@@ -89,6 +91,15 @@ static inline int gpio_export(unsigned g
+ 	return -EINVAL;
  }
  
- static void __exit exit_adcxx(void)
++static inline int gpio_export_link(struct device *dev, const char *name,
++				unsigned gpio)
++{
++	/* GPIO can never have been exported */
++	WARN_ON(1);
++	return -EINVAL;
++}
++
++
+ static inline void gpio_unexport(unsigned gpio)
  {
--	spi_unregister_driver(&adcxx1s_driver);
--	spi_unregister_driver(&adcxx2s_driver);
--	spi_unregister_driver(&adcxx4s_driver);
--	spi_unregister_driver(&adcxx8s_driver);
-+	spi_unregister_driver(&adcxx_driver);
- }
- 
- module_init(init_adcxx);
-@@ -322,8 +258,3 @@ module_exit(exit_adcxx);
- MODULE_AUTHOR("Marc Pignat");
- MODULE_DESCRIPTION("National Semiconductor adcxx8sxxx Linux driver");
- MODULE_LICENSE("GPL");
+ 	/* GPIO can never have been exported */
+_
+
+Patches currently in -mm which might be from ext-jani.1.nikula@nokia.com are
+
+origin.patch
+
