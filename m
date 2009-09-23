@@ -1,202 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-turn-iprune_mutex-into-rwsem.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 12:52:53 -0700
-Message-ID: <200909231952.n8NJqr19030063@imap1.linux-foundation.org>
+Subject: [merged] ntfs-remove-ntfs_file_write.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 12:53:14 -0700
+Message-ID: <200909231953.n8NJrEc3030765@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50453 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39677 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751775AbZIWTxg (ORCPT
+	by vger.kernel.org with ESMTP id S1751791AbZIWTxx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 15:53:36 -0400
+	Wed, 23 Sep 2009 15:53:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, hch@lst.de, jack@ucw.cz, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: hch@lst.de, aia21@cantab.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs: turn iprune_mutex into rwsem
+     ntfs: remove ntfs_file_write
 has been removed from the -mm tree.  Its filename was
-     fs-turn-iprune_mutex-into-rwsem.patch
+     ntfs-remove-ntfs_file_write.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs: turn iprune_mutex into rwsem
-From: Nick Piggin <npiggin@suse.de>
+Subject: ntfs: remove ntfs_file_write
+From: Christoph Hellwig <hch@lst.de>
 
-We have had a report of bad memory allocation latency during DVD-RAM (UDF)
-writing.  This is causing the user's desktop session to become unusable.
+do_sync_write() does the right thing for turning the aio_writev method
+into a normal non-vectored synchronous write, no need to duplicate it in
+ntfs.
 
-Jan tracked the cause of this down to UDF inode reclaim blocking:
-
-gnome-screens D ffff810006d1d598     0 20686      1
- ffff810006d1d508 0000000000000082 ffff810037db6718 0000000000000800
- ffff810006d1d488 ffffffff807e4280 ffffffff807e4280 ffff810006d1a580
- ffff8100bccbc140 ffff810006d1a8c0 0000000006d1d4e8 ffff810006d1a8c0
-Call Trace:
- [<ffffffff804477f3>] io_schedule+0x63/0xa5
- [<ffffffff802c2587>] sync_buffer+0x3b/0x3f
- [<ffffffff80447d2a>] __wait_on_bit+0x47/0x79
- [<ffffffff80447dc6>] out_of_line_wait_on_bit+0x6a/0x77
- [<ffffffff802c24f6>] __wait_on_buffer+0x1f/0x21
- [<ffffffff802c442a>] __bread+0x70/0x86
- [<ffffffff88de9ec7>] :udf:udf_tread+0x38/0x3a
- [<ffffffff88de0fcf>] :udf:udf_update_inode+0x4d/0x68c
- [<ffffffff88de26e1>] :udf:udf_write_inode+0x1d/0x2b
- [<ffffffff802bcf85>] __writeback_single_inode+0x1c0/0x394
- [<ffffffff802bd205>] write_inode_now+0x7d/0xc4
- [<ffffffff88de2e76>] :udf:udf_clear_inode+0x3d/0x53
- [<ffffffff802b39ae>] clear_inode+0xc2/0x11b
- [<ffffffff802b3ab1>] dispose_list+0x5b/0x102
- [<ffffffff802b3d35>] shrink_icache_memory+0x1dd/0x213
- [<ffffffff8027ede3>] shrink_slab+0xe3/0x158
- [<ffffffff8027fbab>] try_to_free_pages+0x177/0x232
- [<ffffffff8027a578>] __alloc_pages+0x1fa/0x392
- [<ffffffff802951fa>] alloc_page_vma+0x176/0x189
- [<ffffffff802822d8>] __do_fault+0x10c/0x417
- [<ffffffff80284232>] handle_mm_fault+0x466/0x940
- [<ffffffff8044b922>] do_page_fault+0x676/0xabf
-
-This blocks with iprune_mutex held, which then blocks other reclaimers:
-
-X             D ffff81009d47c400     0 17285  14831
- ffff8100844f3728 0000000000000086 0000000000000000 ffff81000000e288
- ffff81000000da00 ffffffff807e4280 ffffffff807e4280 ffff81009d47c400
- ffffffff805ff890 ffff81009d47c740 00000000844f3808 ffff81009d47c740
-Call Trace:
- [<ffffffff80447f8c>] __mutex_lock_slowpath+0x72/0xa9
- [<ffffffff80447e1a>] mutex_lock+0x1e/0x22
- [<ffffffff802b3ba1>] shrink_icache_memory+0x49/0x213
- [<ffffffff8027ede3>] shrink_slab+0xe3/0x158
- [<ffffffff8027fbab>] try_to_free_pages+0x177/0x232
- [<ffffffff8027a578>] __alloc_pages+0x1fa/0x392
- [<ffffffff8029507f>] alloc_pages_current+0xd1/0xd6
- [<ffffffff80279ac0>] __get_free_pages+0xe/0x4d
- [<ffffffff802ae1b7>] __pollwait+0x5e/0xdf
- [<ffffffff8860f2b4>] :nvidia:nv_kern_poll+0x2e/0x73
- [<ffffffff802ad949>] do_select+0x308/0x506
- [<ffffffff802adced>] core_sys_select+0x1a6/0x254
- [<ffffffff802ae0b7>] sys_select+0xb5/0x157
-
-Now I think the main problem is having the filesystem block (and do IO) in
-inode reclaim.  The problem is that this doesn't get accounted well and
-penalizes a random allocator with a big latency spike caused by work
-generated from elsewhere.
-
-I think the best idea would be to avoid this.  By design if possible, or
-by deferring the hard work to an asynchronous context.  If the latter,
-then the fs would probably want to throttle creation of new work with
-queue size of the deferred work, but let's not get into those details.
-
-Anyway, the other obvious thing we looked at is the iprune_mutex which is
-causing the cascading blocking.  We could turn this into an rwsem to
-improve concurrency.  It is unreasonable to totally ban all potentially
-slow or blocking operations in inode reclaim, so I think this is a cheap
-way to get a small improvement.
-
-This doesn't solve the whole problem of course.  The process doing inode
-reclaim will still take the latency hit, and concurrent processes may end
-up contending on filesystem locks.  So fs developers should keep these
-problems in mind.
-
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Jan Kara <jack@ucw.cz>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Acked-by: Anton Altaparmakov <aia21@cantab.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/inode.c |   19 ++++++++++++-------
- 1 file changed, 12 insertions(+), 7 deletions(-)
+ fs/ntfs/file.c |   42 +-----------------------------------------
+ 1 file changed, 1 insertion(+), 41 deletions(-)
 
-diff -puN fs/inode.c~fs-turn-iprune_mutex-into-rwsem fs/inode.c
---- a/fs/inode.c~fs-turn-iprune_mutex-into-rwsem
-+++ a/fs/inode.c
-@@ -14,6 +14,7 @@
- #include <linux/module.h>
- #include <linux/backing-dev.h>
- #include <linux/wait.h>
-+#include <linux/rwsem.h>
- #include <linux/hash.h>
- #include <linux/swap.h>
- #include <linux/security.h>
-@@ -87,14 +88,18 @@ static struct hlist_head *inode_hashtabl
- DEFINE_SPINLOCK(inode_lock);
- 
- /*
-- * iprune_mutex provides exclusion between the kswapd or try_to_free_pages
-+ * iprune_sem provides exclusion between the kswapd or try_to_free_pages
-  * icache shrinking path, and the umount path.  Without this exclusion,
-  * by the time prune_icache calls iput for the inode whose pages it has
-  * been invalidating, or by the time it calls clear_inode & destroy_inode
-  * from its final dispose_list, the struct super_block they refer to
-  * (for inode->i_sb->s_op) may already have been freed and reused.
-+ *
-+ * We make this an rwsem because the fastpath is icache shrinking. In
-+ * some cases a filesystem may be doing a significant amount of work in
-+ * its inode reclaim code, so this should improve parallelism.
-  */
--static DEFINE_MUTEX(iprune_mutex);
-+static DECLARE_RWSEM(iprune_sem);
- 
- /*
-  * Statistics gathering..
-@@ -381,7 +386,7 @@ static int invalidate_list(struct list_h
- 		/*
- 		 * We can reschedule here without worrying about the list's
- 		 * consistency because the per-sb list of inodes must not
--		 * change during umount anymore, and because iprune_mutex keeps
-+		 * change during umount anymore, and because iprune_sem keeps
- 		 * shrink_icache_memory() away.
- 		 */
- 		cond_resched_lock(&inode_lock);
-@@ -420,7 +425,7 @@ int invalidate_inodes(struct super_block
- 	int busy;
- 	LIST_HEAD(throw_away);
- 
--	mutex_lock(&iprune_mutex);
-+	down_write(&iprune_sem);
- 	spin_lock(&inode_lock);
- 	inotify_unmount_inodes(&sb->s_inodes);
- 	fsnotify_unmount_inodes(&sb->s_inodes);
-@@ -428,7 +433,7 @@ int invalidate_inodes(struct super_block
- 	spin_unlock(&inode_lock);
- 
- 	dispose_list(&throw_away);
--	mutex_unlock(&iprune_mutex);
-+	up_write(&iprune_sem);
- 
- 	return busy;
- }
-@@ -467,7 +472,7 @@ static void prune_icache(int nr_to_scan)
- 	int nr_scanned;
- 	unsigned long reap = 0;
- 
--	mutex_lock(&iprune_mutex);
-+	down_read(&iprune_sem);
- 	spin_lock(&inode_lock);
- 	for (nr_scanned = 0; nr_scanned < nr_to_scan; nr_scanned++) {
- 		struct inode *inode;
-@@ -509,7 +514,7 @@ static void prune_icache(int nr_to_scan)
- 	spin_unlock(&inode_lock);
- 
- 	dispose_list(&freeable);
--	mutex_unlock(&iprune_mutex);
-+	up_read(&iprune_sem);
+diff -puN fs/ntfs/file.c~ntfs-remove-ntfs_file_write fs/ntfs/file.c
+--- a/fs/ntfs/file.c~ntfs-remove-ntfs_file_write
++++ a/fs/ntfs/file.c
+@@ -2146,46 +2146,6 @@ static ssize_t ntfs_file_aio_write(struc
  }
  
- /*
+ /**
+- * ntfs_file_writev -
+- *
+- * Basically the same as generic_file_writev() except that it ends up calling
+- * ntfs_file_aio_write_nolock() instead of __generic_file_aio_write_nolock().
+- */
+-static ssize_t ntfs_file_writev(struct file *file, const struct iovec *iov,
+-		unsigned long nr_segs, loff_t *ppos)
+-{
+-	struct address_space *mapping = file->f_mapping;
+-	struct inode *inode = mapping->host;
+-	struct kiocb kiocb;
+-	ssize_t ret;
+-
+-	mutex_lock(&inode->i_mutex);
+-	init_sync_kiocb(&kiocb, file);
+-	ret = ntfs_file_aio_write_nolock(&kiocb, iov, nr_segs, ppos);
+-	if (ret == -EIOCBQUEUED)
+-		ret = wait_on_sync_kiocb(&kiocb);
+-	mutex_unlock(&inode->i_mutex);
+-	if (ret > 0) {
+-		int err = generic_write_sync(file, *ppos - ret, ret);
+-		if (err < 0)
+-			ret = err;
+-	}
+-	return ret;
+-}
+-
+-/**
+- * ntfs_file_write - simple wrapper for ntfs_file_writev()
+- */
+-static ssize_t ntfs_file_write(struct file *file, const char __user *buf,
+-		size_t count, loff_t *ppos)
+-{
+-	struct iovec local_iov = { .iov_base = (void __user *)buf,
+-				   .iov_len = count };
+-
+-	return ntfs_file_writev(file, &local_iov, 1, ppos);
+-}
+-
+-/**
+  * ntfs_file_fsync - sync a file to disk
+  * @filp:	file to be synced
+  * @dentry:	dentry describing the file to sync
+@@ -2247,7 +2207,7 @@ const struct file_operations ntfs_file_o
+ 	.read		= do_sync_read,		 /* Read from file. */
+ 	.aio_read	= generic_file_aio_read, /* Async read from file. */
+ #ifdef NTFS_RW
+-	.write		= ntfs_file_write,	 /* Write to file. */
++	.write		= do_sync_write,	 /* Write to file. */
+ 	.aio_write	= ntfs_file_aio_write,	 /* Async write to file. */
+ 	/*.release	= ,*/			 /* Last file is closed.  See
+ 						    fs/ext2/file.c::
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from hch@lst.de are
 
 origin.patch
 linux-next.patch
+avr32-convert-to-asm-generic-hardirqh.patch
+sparc32-convert-to-asm-generic-hardirqh.patch
+vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
+vfs-split-generic_forget_inode-so-that-hugetlbfs-does-not-have-to-copy-it.patch
+vfs-explicitly-cast-s_maxbytes-in-fiemap_check_ranges.patch
+vfs-change-sb-s_maxbytes-to-a-loff_t.patch
+vfs-remove-redundant-position-check-in-do_sendfile.patch
 fs-remove-unneeded-dcache_unhashed-tricks.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
+vfs-seq_file-add-helpers-for-data-filling.patch
 libfs-return-error-code-on-failed-attr-set.patch
 fs-new-truncate-helpers.patch
 fs-use-new-truncate-helpers.patch
@@ -204,12 +120,11 @@ fs-introduce-new-truncate-sequence.patch
 fs-convert-simple-fs-to-new-truncate.patch
 tmpfs-convert-to-use-the-new-truncate-convention.patch
 ext2-convert-to-use-the-new-truncate-convention.patch
-ext2-convert-to-use-the-new-truncate-convention-fix.patch
 fat-convert-to-use-the-new-truncate-convention.patch
 btrfs-convert-to-use-the-new-truncate-convention.patch
 jfs-convert-to-use-the-new-truncate-convention.patch
 udf-convert-to-use-the-new-truncate-convention.patch
 minix-convert-to-use-the-new-truncate-convention.patch
-reiser4.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
+xtensa-convert-to-asm-generic-hardirqh.patch
+fcntl-add-f_etown_ex.patch
 
