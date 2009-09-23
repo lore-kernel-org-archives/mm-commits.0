@@ -1,149 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: [merged] omap_hsmmc-ensure-workqueues-are-empty-before-suspend.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 12:54:49 -0700
-Message-ID: <200909231954.n8NJsn5p001470__20455.4559699774$1253736602$gmane$org@imap1.linux-foundation.org>
+Subject: [merged] drivers-video-tmiofbc-fix-uninitialised-return-value.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 13:03:22 -0700
+Message-ID: <200909232003.n8NK3M3X019051@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56413 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33708 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752214AbZIWUJA (ORCPT
+	by vger.kernel.org with ESMTP id S1751533AbZIWUJz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 16:09:00 -0400
+	Wed, 23 Sep 2009 16:09:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adrian.hunter@nokia.com, ext-denis.2.karpov@nokia.com, ian@mnementh.co.uk, jarkko.lavinen@nokia.com, linux-mmc@vger.kernel.org, madhu.cr@ti.com, matt@console-pimps.org, philipl@overt.
+To: akpm@linux-foundation.org, dbaryshkov@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     omap_hsmmc: ensure workqueues are empty before suspend
+     drivers/video/tmiofb.c: fix uninitialised return value
 has been removed from the -mm tree.  Its filename was
-     omap_hsmmc-ensure-workqueues-are-empty-before-suspend.patch
+     drivers-video-tmiofbc-fix-uninitialised-return-value.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: omap_hsmmc: ensure workqueues are empty before suspend
-From: Adrian Hunter <adrian.hunter@nokia.com>
+Subject: drivers/video/tmiofb.c: fix uninitialised return value
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
-Acked-by: Matt Fleming <matt@console-pimps.org>
-Cc: Ian Molton <ian@mnementh.co.uk>
-Cc: "Roberto A. Foglietta" <roberto.foglietta@gmail.com>
-Cc: Jarkko Lavinen <jarkko.lavinen@nokia.com>
-Cc: Denis Karpov <ext-denis.2.karpov@nokia.com>
-Cc: Pierre Ossman <pierre@ossman.eu>
-Cc: Philip Langdale <philipl@overt.org>
-Cc: "Madhusudhan" <madhu.cr@ti.com>
-Cc: <linux-mmc@vger.kernel.org>
+drivers/video/tmiofb.c: In function 'tmiofb_resume':
+drivers/video/tmiofb.c:977: warning: 'retval' may be used uninitialized in this function
+
+Acked-by: Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/omap_hsmmc.c |   50 +++++++++++++++++++++-----------
- 1 file changed, 34 insertions(+), 16 deletions(-)
+ drivers/video/tmiofb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-ensure-workqueues-are-empty-before-suspend drivers/mmc/host/omap_hsmmc.c
---- a/drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-ensure-workqueues-are-empty-before-suspend
-+++ a/drivers/mmc/host/omap_hsmmc.c
-@@ -151,7 +151,6 @@ struct mmc_omap_host {
- 	u32			bytesleft;
- 	int			suspended;
- 	int			irq;
--	int			carddetect;
- 	int			use_dma, dma_ch;
- 	int			dma_line_tx, dma_line_rx;
- 	int			slot_id;
-@@ -761,14 +760,19 @@ static void mmc_omap_detect(struct work_
- 	struct mmc_omap_host *host = container_of(work, struct mmc_omap_host,
- 						mmc_carddetect_work);
- 	struct omap_mmc_slot_data *slot = &mmc_slot(host);
-+	int carddetect;
-+
-+	if (host->suspended)
-+		return;
-+
-+	sysfs_notify(&host->mmc->class_dev.kobj, NULL, "cover_switch");
- 
- 	if (mmc_slot(host).card_detect)
--		host->carddetect = slot->card_detect(slot->card_detect_irq);
-+		carddetect = slot->card_detect(slot->card_detect_irq);
- 	else
--		host->carddetect = -ENOSYS;
-+		carddetect = -ENOSYS;
- 
--	sysfs_notify(&host->mmc->class_dev.kobj, NULL, "cover_switch");
--	if (host->carddetect) {
-+	if (carddetect) {
- 		mmc_detect_change(host->mmc, (HZ * 200) / 1000);
- 	} else {
- 		mmc_host_enable(host->mmc);
-@@ -785,6 +789,8 @@ static irqreturn_t omap_mmc_cd_handler(i
+diff -puN drivers/video/tmiofb.c~drivers-video-tmiofbc-fix-uninitialised-return-value drivers/video/tmiofb.c
+--- a/drivers/video/tmiofb.c~drivers-video-tmiofbc-fix-uninitialised-return-value
++++ a/drivers/video/tmiofb.c
+@@ -974,7 +974,7 @@ static int tmiofb_resume(struct platform
  {
- 	struct mmc_omap_host *host = (struct mmc_omap_host *)dev_id;
+ 	struct fb_info *info = platform_get_drvdata(dev);
+ 	struct mfd_cell *cell = dev->dev.platform_data;
+-	int retval;
++	int retval = 0;
  
-+	if (host->suspended)
-+		return IRQ_HANDLED;
- 	schedule_work(&host->mmc_carddetect_work);
+ 	acquire_console_sem();
  
- 	return IRQ_HANDLED;
-@@ -1524,30 +1530,42 @@ static int omap_mmc_suspend(struct platf
- 		return 0;
- 
- 	if (host) {
-+		host->suspended = 1;
-+		if (host->pdata->suspend) {
-+			ret = host->pdata->suspend(&pdev->dev,
-+							host->slot_id);
-+			if (ret) {
-+				dev_dbg(mmc_dev(host->mmc),
-+					"Unable to handle MMC board"
-+					" level suspend\n");
-+				host->suspended = 0;
-+				return ret;
-+			}
-+		}
-+		cancel_work_sync(&host->mmc_carddetect_work);
- 		mmc_host_enable(host->mmc);
- 		ret = mmc_suspend_host(host->mmc, state);
- 		if (ret == 0) {
--			host->suspended = 1;
--
- 			OMAP_HSMMC_WRITE(host->base, ISE, 0);
- 			OMAP_HSMMC_WRITE(host->base, IE, 0);
- 
--			if (host->pdata->suspend) {
--				ret = host->pdata->suspend(&pdev->dev,
--								host->slot_id);
--				if (ret)
--					dev_dbg(mmc_dev(host->mmc),
--						"Unable to handle MMC board"
--						" level suspend\n");
--			}
- 
- 			OMAP_HSMMC_WRITE(host->base, HCTL,
- 					 OMAP_HSMMC_READ(host->base, HCTL) & ~SDBP);
- 			mmc_host_disable(host->mmc);
- 			clk_disable(host->iclk);
- 			clk_disable(host->dbclk);
--		} else
-+		} else {
-+			host->suspended = 0;
-+			if (host->pdata->resume) {
-+				ret = host->pdata->resume(&pdev->dev,
-+							  host->slot_id);
-+				if (ret)
-+					dev_dbg(mmc_dev(host->mmc),
-+						"Unmask interrupt failed\n");
-+			}
- 			mmc_host_disable(host->mmc);
-+		}
- 
- 	}
- 	return ret;
 _
 
-Patches currently in -mm which might be from adrian.hunter@nokia.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+drivers-md-dm-log-userspace-basec-fix-warning.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+3x59x-fix-pci-resource-management.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+include-linux-credh-fix-build.patch
+serial167-fix-read-buffer-overflow.patch
+st-fix-test-of-value-range-in-st_set_options.patch
+drivers-usb-serial-sierrac-fix-config_pm=n-build.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+vfs-optimize-touch_time-too.patch
+fs-improve-remountro-vs-buffercache-coherency.patch
+fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
+percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+drivers-net-wireless-ath-ar9170-phyc-fix-uninitialised-variable.patch
+hugetlb_file_setup-use-c-not-cpp.patch
+readahead-add-blk_run_backing_dev.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
+frv-arch-frv-kernel-debug-stubc-needs-start_kernelh.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+kernel-smpc-relocate-some-code.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs.patch
+page-types-add-feature-for-walking-process-address-space-checkpatch-fixes.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
+memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
+memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
+memcg-improve-resource-counter-scalability-checkpatch-fixes.patch
+exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
+exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
+elf-clean-up-fill_note_info-fix.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+reiser4-disable.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
