@@ -1,131 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kcore-use-usual-list-for-kclist.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 12:56:53 -0700
-Message-ID: <200909231956.n8NJurJs005793@imap1.linux-foundation.org>
+Subject: [merged] proc-kcore-fix-statst_size.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 12:57:15 -0700
+Message-ID: <200909231957.n8NJvF57006569@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44582 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42451 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753767AbZIWT5d (ORCPT
+	by vger.kernel.org with ESMTP id S1753808AbZIWT5n (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 15:57:33 -0400
+	Wed, 23 Sep 2009 15:57:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, benh@kernel.crashing.org, ralf@linux-mips.org, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kcore: use usual list for kclist
+     /proc/kcore: fix stat.st_size
 has been removed from the -mm tree.  Its filename was
-     kcore-use-usual-list-for-kclist.patch
+     proc-kcore-fix-statst_size.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kcore: use usual list for kclist
+Subject: /proc/kcore: fix stat.st_size
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-This patchset is for /proc/kcore.  With this,
+Presently the size of /proc/kcore which can be read by 'ls -l' is 0.  But
+it's not the correct value.
 
- - many per-arch hooks are removed.
+On x86-64, ls -l shows
+ ... root root 140737486266368 2009-09-17 10:29 /proc/kcore
+Then, 7FFFFFFE02000. This comes from vmalloc area's size.
+(*) This shows "core" size, not  memory size.
 
- - /proc/kcore will know really valid physical memory area.
+This patch shows the size by updating "size" field in struct
+proc_dir_entry.  Later, lookup routine will create inode and fill
+inode->i_size based on this value.  Then, this has a problem.
 
- - /proc/kcore will be aware of memory hotplug.
+ - Once inode is cached, inode->i_size will never be updated.
 
- - /proc/kcore will be architecture independent i.e.
-   if an arch supports CONFIG_MMU, it can use /proc/kcore.
-   (if the arch uses usual memory layout.)
+Then, this patch is not memory-hotplug-aware.
 
-This patch:
-
-/proc/kcore uses its own list handling codes. It's better to use
-generic list codes.
-
-No changes in logic. just clean up.
+To update inode->i_size, we have to know dentry or inode.
+But there is no way to lookup them by inside kernel. Hmmm....
+Next patch will try it.
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: WANG Cong <xiyou.wangcong@gmail.com>
+Acked-by: WANG Cong <xiyou.wangcong@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/kcore.c         |   12 ++++++------
- include/linux/proc_fs.h |    2 +-
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ fs/proc/kcore.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN fs/proc/kcore.c~kcore-use-usual-list-for-kclist fs/proc/kcore.c
---- a/fs/proc/kcore.c~kcore-use-usual-list-for-kclist
+diff -puN fs/proc/kcore.c~proc-kcore-fix-statst_size fs/proc/kcore.c
+--- a/fs/proc/kcore.c~proc-kcore-fix-statst_size
 +++ a/fs/proc/kcore.c
-@@ -20,6 +20,7 @@
- #include <linux/init.h>
- #include <asm/uaccess.h>
- #include <asm/io.h>
-+#include <linux/list.h>
+@@ -107,6 +107,8 @@ static void free_kclist_ents(struct list
+  */
+ static void __kcore_update_ram(struct list_head *list)
+ {
++	int nphdr;
++	size_t size;
+ 	struct kcore_list *tmp, *pos;
+ 	LIST_HEAD(garbage);
  
- #define CORE_STR "CORE"
- 
-@@ -57,7 +58,7 @@ struct memelfnote
- 	void *data;
- };
- 
--static struct kcore_list *kclist;
-+static LIST_HEAD(kclist_head);
- static DEFINE_RWLOCK(kclist_lock);
- 
- void
-@@ -67,8 +68,7 @@ kclist_add(struct kcore_list *new, void 
- 	new->size = size;
- 
- 	write_lock(&kclist_lock);
--	new->next = kclist;
--	kclist = new;
-+	list_add_tail(&new->list, &kclist_head);
+@@ -121,6 +123,7 @@ static void __kcore_update_ram(struct li
+ 	} else
+ 		list_splice(list, &garbage);
+ 	kcore_need_update = 0;
++	proc_root_kcore->size = get_kcore_size(&nphdr, &size);
  	write_unlock(&kclist_lock);
- }
  
-@@ -80,7 +80,7 @@ static size_t get_kcore_size(int *nphdr,
- 	*nphdr = 1; /* PT_NOTE */
- 	size = 0;
+ 	free_kclist_ents(&garbage);
+@@ -429,7 +432,8 @@ read_kcore(struct file *file, char __use
+ 	unsigned long start;
  
--	for (m=kclist; m; m=m->next) {
-+	list_for_each_entry(m, &kclist_head, list) {
- 		try = kc_vaddr_to_offset((size_t)m->addr + m->size);
- 		if (try > size)
- 			size = try;
-@@ -192,7 +192,7 @@ static void elf_kcore_store_hdr(char *bu
- 	nhdr->p_align	= 0;
- 
- 	/* setup ELF PT_LOAD program header for every area */
--	for (m=kclist; m; m=m->next) {
-+	list_for_each_entry(m, &kclist_head, list) {
- 		phdr = (struct elf_phdr *) bufp;
- 		bufp += sizeof(struct elf_phdr);
- 		offset += sizeof(struct elf_phdr);
-@@ -317,7 +317,7 @@ read_kcore(struct file *file, char __use
- 		struct kcore_list *m;
- 
- 		read_lock(&kclist_lock);
--		for (m=kclist; m; m=m->next) {
-+		list_for_each_entry(m, &kclist_head, list) {
- 			if (start >= m->addr && start < (m->addr+m->size))
- 				break;
- 		}
-diff -puN include/linux/proc_fs.h~kcore-use-usual-list-for-kclist include/linux/proc_fs.h
---- a/include/linux/proc_fs.h~kcore-use-usual-list-for-kclist
-+++ a/include/linux/proc_fs.h
-@@ -79,7 +79,7 @@ struct proc_dir_entry {
- };
- 
- struct kcore_list {
--	struct kcore_list *next;
-+	struct list_head list;
- 	unsigned long addr;
- 	size_t size;
- };
+ 	read_lock(&kclist_lock);
+-	proc_root_kcore->size = size = get_kcore_size(&nphdr, &elf_buflen);
++	size = get_kcore_size(&nphdr, &elf_buflen);
++
+ 	if (buflen == 0 || *fpos >= size) {
+ 		read_unlock(&kclist_lock);
+ 		return 0;
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
