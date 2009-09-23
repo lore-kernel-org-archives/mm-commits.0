@@ -1,172 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: + input-fix-build-failures-caused-by-kconfig-winbond-wpcd376i-consumer-ir-hardware-driver-kconfig-entry.patch added to -mm tree
-Date: Wed, 23 Sep 2009 00:44:15 -0700
-Message-ID: <200909230744.n8N7iFPV016469@imap1.linux-foundation.org>
+Subject: [to-be-updated] frv-convert-to-asm-generic-hardirqh.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 02:06:31 -0700
+Message-ID: <200909230906.n8N96VYJ016316@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33697 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57693 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754305AbZIWHpK (ORCPT
+	by vger.kernel.org with ESMTP id S1752306AbZIWJHI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 03:45:10 -0400
+	Wed, 23 Sep 2009 05:07:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: mingo@elte.hu, david@hardeman.nu, dtor@mail.ru, jbarnes@virtuousgeek.org
+To: hch@lst.de, dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     input: fix build failures caused by Kconfig Winbond WPCD376I Consu=
-mer IR hardware driver Kconfig entry
-has been added to the -mm tree.  Its filename is
-     input-fix-build-failures-caused-by-kconfig-winbond-wpcd376i-consum=
-er-ir-hardware-driver-kconfig-entry.patch
+     frv: convert to asm-generic/hardirq.h
+has been removed from the -mm tree.  Its filename was
+     frv-convert-to-asm-generic-hardirqh.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because an updated version will be merged
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
-
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: input: fix build failures caused by Kconfig Winbond WPCD376I C=
-onsumer IR hardware driver Kconfig entry
-=46rom: Ingo Molnar <mingo@elte.hu>
+Subject: frv: convert to asm-generic/hardirq.h
+From: Christoph Hellwig <hch@lst.de>
 
-drivers/built-in.o: In function `apanel_remove':
-apanel.c:(.text+0x56e852): undefined reference to `led_classdev_unregis=
-ter'
-drivers/built-in.o: In function `apanel_probe':
-apanel.c:(.text+0x56eae3): undefined reference to `led_classdev_registe=
-r'
-drivers/built-in.o: In function `acpi_fujitsu_hotkey_add':
-fujitsu-laptop.c:(.text+0x5d7647): undefined reference to `led_classdev=
-_register'
-fujitsu-laptop.c:(.text+0x5d76b5): undefined reference to `led_classdev=
-_register'
-drivers/built-in.o: In function `wbcir_probe':
-winbond-cir.c:(.devinit.text+0x5f375): undefined reference to `led_clas=
-sdev_register'
-winbond-cir.c:(.devinit.text+0x5f663): undefined reference to `led_clas=
-sdev_unregister'
-drivers/built-in.o: In function `wbcir_remove':
-winbond-cir.c:(.devexit.text+0x7f23): undefined reference to `led_class=
-dev_unregister'
-drivers/built-in.o: In function `fujitsu_cleanup':
-fujitsu-laptop.c:(.exit.text+0xbe37): undefined reference to `led_class=
-dev_unregister'
-fujitsu-laptop.c:(.exit.text+0xbe53): undefined reference to `led_class=
-dev_unregister'
+And also remove the unused idle_timestamp field in irq_cpustat.
 
-It happens because the new INPUT_WINBOND_CIR driver relies on new-leds
-infrastructure - but does not select it in drivers/input/misc/Kconfig.=20
-But it selects LEDS_CLASS, which confuses a number of other drivers int=
-o
-thinking that all the leds infrastructure is in place.
-
-=46ix this by selecting NEW_LEDS as well, like similar drivers do.
-
-Eventually, this whole leds infrastructure complexity should be
-cleaned up, it's been going on for years.
-
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: David H=E4rdeman <david@hardeman.nu>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/misc/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ arch/frv/include/asm/hardirq.h |   17 +++--------------
+ arch/frv/kernel/process.c      |    2 --
+ 2 files changed, 3 insertions(+), 16 deletions(-)
 
-diff -puN drivers/input/misc/Kconfig~input-fix-build-failures-caused-by=
--kconfig-winbond-wpcd376i-consumer-ir-hardware-driver-kconfig-entry dri=
-vers/input/misc/Kconfig
---- a/drivers/input/misc/Kconfig~input-fix-build-failures-caused-by-kco=
-nfig-winbond-wpcd376i-consumer-ir-hardware-driver-kconfig-entry
-+++ a/drivers/input/misc/Kconfig
-@@ -225,6 +225,7 @@ config INPUT_SGI_BTNS
- config INPUT_WINBOND_CIR
- 	tristate "Winbond IR remote control"
- 	depends on X86 && PNP
-+	select NEW_LEDS
- 	select LEDS_CLASS
- 	select BITREVERSE
- 	help
+diff -puN arch/frv/include/asm/hardirq.h~frv-convert-to-asm-generic-hardirqh arch/frv/include/asm/hardirq.h
+--- a/arch/frv/include/asm/hardirq.h~frv-convert-to-asm-generic-hardirqh
++++ a/arch/frv/include/asm/hardirq.h
+@@ -12,24 +12,13 @@
+ #ifndef __ASM_HARDIRQ_H
+ #define __ASM_HARDIRQ_H
+ 
+-#include <linux/threads.h>
+-#include <linux/irq.h>
+-
+-typedef struct {
+-	unsigned int __softirq_pending;
+-	unsigned long idle_timestamp;
+-} ____cacheline_aligned irq_cpustat_t;
+-
+-#include <linux/irq_cpustat.h>	/* Standard mappings for irq_cpustat_t above */
+-
+-#ifdef CONFIG_SMP
+-#error SMP not available on FR-V
+-#endif /* CONFIG_SMP */
+-
+ extern atomic_t irq_err_count;
+ static inline void ack_bad_irq(int irq)
+ {
+ 	atomic_inc(&irq_err_count);
+ }
++#define ack_bad_irq ack_bad_irq
++
++#include <asm-generic/hardirq.h>
+ 
+ #endif
+diff -puN arch/frv/kernel/process.c~frv-convert-to-asm-generic-hardirqh arch/frv/kernel/process.c
+--- a/arch/frv/kernel/process.c~frv-convert-to-asm-generic-hardirqh
++++ a/arch/frv/kernel/process.c
+@@ -88,8 +88,6 @@ void cpu_idle(void)
+ 	/* endless idle loop with no priority at all */
+ 	while (1) {
+ 		while (!need_resched()) {
+-			irq_stat[cpu].idle_timestamp = jiffies;
+-
+ 			check_pgt_cache();
+ 
+ 			if (!frv_dma_inprogress && idle)
 _
 
-Patches currently in -mm which might be from mingo@elte.hu are
+Patches currently in -mm which might be from hch@lst.de are
 
 origin.patch
-kprobes-use-do_irq-in-lkdtm.patch
-printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec.patch
-printk-add-printk_delay-to-make-messages-readable-for-some-scenarios.pa=
-tch
-generic-ipi-make-struct-call_function_data-lockless.patch
-getrusage-fill-ru_maxrss-value.patch
-kallsyms-fix-segfault-in-prefix_underscores_count.patch
-asm-sections-add-text-data-checking-functions-for-arches-to-override.pa=
-tch
-kallsyms-use-new-arch_is_kernel_text.patch
-lockdep-use-new-arch_is_kernel_data.patch
-blackfin-override-text-data-checking-functions.patch
-procfs-provide-stack-information-for-threads-v08.patch
-input-fix-build-failures-caused-by-kconfig-winbond-wpcd376i-consumer-ir=
--hardware-driver-kconfig-entry.patch
+fs-turn-iprune_mutex-into-rwsem.patch
+ntfs-remove-ntfs_file_write.patch
+qnx4-remove-write-support.patch
 linux-next.patch
-kernel-core-add-smp_call_function_any.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by=
--using-smp_call_function_any.patch
-genirq-switch-proc-irq-spurious-to-seq_file.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
-x86-_end-symbol-missing-from-symbolmap.patch
-generic-ipi-cleanup-for-generic_smp_call_function_interrupt.patch
-kernel-smpc-relocate-some-code.patch
-time-add-function-to-convert-between-calendar-time-and-broken-down-time=
--for-universal-use.patch
-fatfs-use-common-time_to_tm-in-fat_time_unix2fat.patch
-cgroups-let-ss-can_attach-and-ss-attach-do-whole-threadgroups-at-a-time=
-=2Epatch
-cgroups-let-ss-can_attach-and-ss-attach-do-whole-threadgroups-at-a-time=
--fix.patch
-do_wait-wakeup-optimization-shift-security_task_wait-from-eligible_chil=
-d-to-wait_consider_task.patch
-do_wait-wakeup-optimization-change-__wake_up_parent-to-use-filtered-wak=
-eup.patch
-do_wait-wakeup-optimization-change-__wake_up_parent-to-use-filtered-wak=
-eup-selinux_bprm_committed_creds-use-__wake_up_parent.patch
-do_wait-wakeup-optimization-child_wait_callback-check-__wnothread-case.=
-patch
-do_wait-optimization-do-not-place-sub-threads-on-task_struct-children-l=
-ist.patch
-wait_consider_task-kill-parent-argument.patch
-signals-introduce-do_send_sig_info-helper.patch
-signals-send_sigio-use-do_send_sig_info-to-avoid-check_kill_permission.=
-patch
-sysctl-remove-struct-file-argument-of-proc_handler.patch
-linux-futexh-place-kernel-types-behind-__kernel__.patch
-edac-i3200-memory-controller-driver.patch
-include-linux-unaligned-lbe_byteshifth-fix-usage-for-compressed-kernels=
-=2Epatch
-make-frame_pointer-default=3Dy.patch
-mutex-subsystem-synchro-test-module.patch
+avr32-convert-to-asm-generic-hardirqh.patch
+sparc32-convert-to-asm-generic-hardirqh.patch
+vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
+vfs-split-generic_forget_inode-so-that-hugetlbfs-does-not-have-to-copy-it.patch
+vfs-explicitly-cast-s_maxbytes-in-fiemap_check_ranges.patch
+vfs-change-sb-s_maxbytes-to-a-loff_t.patch
+vfs-remove-redundant-position-check-in-do_sendfile.patch
+fs-remove-unneeded-dcache_unhashed-tricks.patch
+vfs-seq_file-add-helpers-for-data-filling.patch
+libfs-return-error-code-on-failed-attr-set.patch
+fs-new-truncate-helpers.patch
+fs-use-new-truncate-helpers.patch
+fs-introduce-new-truncate-sequence.patch
+fs-convert-simple-fs-to-new-truncate.patch
+tmpfs-convert-to-use-the-new-truncate-convention.patch
+ext2-convert-to-use-the-new-truncate-convention.patch
+fat-convert-to-use-the-new-truncate-convention.patch
+btrfs-convert-to-use-the-new-truncate-convention.patch
+jfs-convert-to-use-the-new-truncate-convention.patch
+udf-convert-to-use-the-new-truncate-convention.patch
+minix-convert-to-use-the-new-truncate-convention.patch
+xtensa-convert-to-asm-generic-hardirqh.patch
+frv-convert-to-asm-generic-hardirqh.patch
+fcntl-add-f_etown_ex.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
