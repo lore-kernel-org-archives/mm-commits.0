@@ -1,92 +1,256 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cciss-fix-schedule_timeout-parameters.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 13:05:44 -0700
-Message-ID: <200909232005.n8NK5iKf023994@imap1.linux-foundation.org>
+Subject: [merged] omapfb-dispc-allow-multiple-external-irq-handlers.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 13:00:46 -0700
+Message-ID: <200909232000.n8NK0krH013817@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55600 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52992 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752346AbZIWUKJ (ORCPT
+	by vger.kernel.org with ESMTP id S1751286AbZIWUKH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 16:10:09 -0400
+	Wed, 23 Sep 2009 16:10:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, Steve.Cameron@hp.com, jens.axboe@oracle.com, marcin.slusarz@gmail.com, mike.miller@hp.com, mm-commits@vger.kernel.org
+To: daniel.stone@nokia.com, imre.deak@nokia.com, krzysztof.h1@wp.pl, tony@atomide.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cciss: fix schedule_timeout() parameters
+     omapfb: dispc: allow multiple external IRQ handlers
 has been removed from the -mm tree.  Its filename was
-     cciss-fix-schedule_timeout-parameters.patch
+     omapfb-dispc-allow-multiple-external-irq-handlers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cciss: fix schedule_timeout() parameters
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: omapfb: dispc: allow multiple external IRQ handlers
+From: Daniel Stone <daniel.stone@nokia.com>
 
-Change schedule_timeout() parameter to not be specific to HZ=1000.
+Previously, the only external (to dispc.c) IRQ handler was RFBI's frame
+done handler.  dispc's IRQ framework was very dumb: you could only have
+one handler, and the semantics of {request,free}_irq were odd, to say the
+least.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Acked-by: Mike Miller <mike.miller@hp.com>
-Cc: Marcin Slusarz <marcin.slusarz@gmail.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: "Cameron, Steve" <Steve.Cameron@hp.com>
+The new framework allows multiple consumers to register arbitrary IRQ
+masks.
+
+Signed-off-by: Daniel Stone <daniel.stone@nokia.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Imre Deak <imre.deak@nokia.com>
+Acked-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/video/omap/dispc.c |   95 +++++++++++++++++++++--------------
+ drivers/video/omap/dispc.h |    7 +-
+ drivers/video/omap/rfbi.c  |    7 +-
+ 3 files changed, 67 insertions(+), 42 deletions(-)
 
-diff -puN drivers/block/cciss.c~cciss-fix-schedule_timeout-parameters drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-fix-schedule_timeout-parameters
-+++ a/drivers/block/cciss.c
-@@ -36,6 +36,7 @@
- #include <linux/proc_fs.h>
- #include <linux/seq_file.h>
- #include <linux/init.h>
-+#include <linux/jiffies.h>
- #include <linux/hdreg.h>
- #include <linux/spinlock.h>
- #include <linux/compat.h>
-@@ -3489,7 +3490,7 @@ static int __devinit cciss_pci_init(ctlr
- 		if (scratchpad == CCISS_FIRMWARE_READY)
- 			break;
- 		set_current_state(TASK_INTERRUPTIBLE);
--		schedule_timeout(HZ / 10);	/* wait 100ms */
-+		schedule_timeout(msecs_to_jiffies(100));	/* wait 100ms */
- 	}
- 	if (scratchpad != CCISS_FIRMWARE_READY) {
- 		printk(KERN_WARNING "cciss: Board not ready.  Timed out.\n");
-@@ -3615,7 +3616,7 @@ static int __devinit cciss_pci_init(ctlr
- 			break;
- 		/* delay and try again */
- 		set_current_state(TASK_INTERRUPTIBLE);
--		schedule_timeout(10);
-+		schedule_timeout(msecs_to_jiffies(1));
+diff -puN drivers/video/omap/dispc.c~omapfb-dispc-allow-multiple-external-irq-handlers drivers/video/omap/dispc.c
+--- a/drivers/video/omap/dispc.c~omapfb-dispc-allow-multiple-external-irq-handlers
++++ a/drivers/video/omap/dispc.c
+@@ -155,6 +155,8 @@ struct resmap {
+ 	unsigned long	*map;
+ };
+ 
++#define MAX_IRQ_HANDLERS            4
++
+ static struct {
+ 	void __iomem	*base;
+ 
+@@ -167,9 +169,11 @@ static struct {
+ 
+ 	int		ext_mode;
+ 
+-	unsigned long	enabled_irqs;
+-	void		(*irq_callback)(void *);
+-	void		*irq_callback_data;
++	struct {
++		u32	irq_mask;
++		void	(*callback)(void *);
++		void	*data;
++	} irq_handlers[MAX_IRQ_HANDLERS];
+ 	struct completion	frame_done;
+ 
+ 	int		fir_hinc[OMAPFB_PLANE_NUM];
+@@ -809,56 +813,70 @@ static void set_lcd_timings(void)
+ 	panel->pixel_clock = fck / lck_div / pck_div / 1000;
+ }
+ 
+-int omap_dispc_request_irq(void (*callback)(void *data), void *data)
++static void recalc_irq_mask(void)
+ {
+-	int r = 0;
++	int i;
++	unsigned long irq_mask = DISPC_IRQ_MASK_ERROR;
+ 
+-	BUG_ON(callback == NULL);
++	for (i = 0; i < MAX_IRQ_HANDLERS; i++) {
++		if (!dispc.irq_handlers[i].callback)
++			continue;
+ 
+-	if (dispc.irq_callback)
+-		r = -EBUSY;
+-	else {
+-		dispc.irq_callback = callback;
+-		dispc.irq_callback_data = data;
++		irq_mask |= dispc.irq_handlers[i].irq_mask;
  	}
  
- #ifdef CCISS_DEBUG
+-	return r;
+-}
+-EXPORT_SYMBOL(omap_dispc_request_irq);
+-
+-void omap_dispc_enable_irqs(int irq_mask)
+-{
+ 	enable_lcd_clocks(1);
+-	dispc.enabled_irqs = irq_mask;
+-	irq_mask |= DISPC_IRQ_MASK_ERROR;
+ 	MOD_REG_FLD(DISPC_IRQENABLE, 0x7fff, irq_mask);
+ 	enable_lcd_clocks(0);
+ }
+-EXPORT_SYMBOL(omap_dispc_enable_irqs);
+ 
+-void omap_dispc_disable_irqs(int irq_mask)
++int omap_dispc_request_irq(unsigned long irq_mask, void (*callback)(void *data),
++			   void *data)
+ {
+-	enable_lcd_clocks(1);
+-	dispc.enabled_irqs &= ~irq_mask;
+-	irq_mask &= ~DISPC_IRQ_MASK_ERROR;
+-	MOD_REG_FLD(DISPC_IRQENABLE, 0x7fff, irq_mask);
+-	enable_lcd_clocks(0);
++	int i;
++
++	BUG_ON(callback == NULL);
++
++	for (i = 0; i < MAX_IRQ_HANDLERS; i++) {
++		if (dispc.irq_handlers[i].callback)
++			continue;
++
++		dispc.irq_handlers[i].irq_mask = irq_mask;
++		dispc.irq_handlers[i].callback = callback;
++		dispc.irq_handlers[i].data = data;
++		recalc_irq_mask();
++
++		return 0;
++	}
++
++	return -EBUSY;
+ }
+-EXPORT_SYMBOL(omap_dispc_disable_irqs);
++EXPORT_SYMBOL(omap_dispc_request_irq);
+ 
+-void omap_dispc_free_irq(void)
++void omap_dispc_free_irq(unsigned long irq_mask, void (*callback)(void *data),
++			 void *data)
+ {
+-	enable_lcd_clocks(1);
+-	omap_dispc_disable_irqs(DISPC_IRQ_MASK_ALL);
+-	dispc.irq_callback = NULL;
+-	dispc.irq_callback_data = NULL;
+-	enable_lcd_clocks(0);
++	int i;
++
++	for (i = 0; i < MAX_IRQ_HANDLERS; i++) {
++		if (dispc.irq_handlers[i].callback == callback &&
++		    dispc.irq_handlers[i].data == data) {
++			dispc.irq_handlers[i].irq_mask = 0;
++			dispc.irq_handlers[i].callback = NULL;
++			dispc.irq_handlers[i].data = NULL;
++			recalc_irq_mask();
++			return;
++		}
++	}
++
++	BUG();
+ }
+ EXPORT_SYMBOL(omap_dispc_free_irq);
+ 
+ static irqreturn_t omap_dispc_irq_handler(int irq, void *dev)
+ {
+ 	u32 stat;
++	int i = 0;
+ 
+ 	enable_lcd_clocks(1);
+ 
+@@ -873,8 +891,12 @@ static irqreturn_t omap_dispc_irq_handle
+ 		}
+ 	}
+ 
+-	if ((stat & dispc.enabled_irqs) && dispc.irq_callback)
+-		dispc.irq_callback(dispc.irq_callback_data);
++	for (i = 0; i < MAX_IRQ_HANDLERS; i++) {
++		if (unlikely(dispc.irq_handlers[i].callback &&
++			     (stat & dispc.irq_handlers[i].irq_mask)))
++			dispc.irq_handlers[i].callback(
++						dispc.irq_handlers[i].data);
++	}
+ 
+ 	dispc_write_reg(DISPC_IRQSTATUS, stat);
+ 
+@@ -1410,8 +1432,7 @@ static int omap_dispc_init(struct omapfb
+ 	l = dispc_read_reg(DISPC_IRQSTATUS);
+ 	dispc_write_reg(DISPC_IRQSTATUS, l);
+ 
+-	/* Enable those that we handle always */
+-	omap_dispc_enable_irqs(DISPC_IRQ_FRAMEMASK);
++	recalc_irq_mask();
+ 
+ 	if ((r = request_irq(INT_24XX_DSS_IRQ, omap_dispc_irq_handler,
+ 			   0, MODULE_NAME, fbdev)) < 0) {
+diff -puN drivers/video/omap/dispc.h~omapfb-dispc-allow-multiple-external-irq-handlers drivers/video/omap/dispc.h
+--- a/drivers/video/omap/dispc.h~omapfb-dispc-allow-multiple-external-irq-handlers
++++ a/drivers/video/omap/dispc.h
+@@ -37,9 +37,10 @@ extern void omap_dispc_set_lcd_size(int 
+ extern void omap_dispc_enable_lcd_out(int enable);
+ extern void omap_dispc_enable_digit_out(int enable);
+ 
+-extern int  omap_dispc_request_irq(void (*callback)(void *data), void *data);
+-extern void omap_dispc_free_irq(void);
++extern int omap_dispc_request_irq(unsigned long irq_mask,
++				   void (*callback)(void *data), void *data);
++extern void omap_dispc_free_irq(unsigned long irq_mask,
++				 void (*callback)(void *data), void *data);
+ 
+ extern const struct lcd_ctrl omap2_int_ctrl;
+-
+ #endif
+diff -puN drivers/video/omap/rfbi.c~omapfb-dispc-allow-multiple-external-irq-handlers drivers/video/omap/rfbi.c
+--- a/drivers/video/omap/rfbi.c~omapfb-dispc-allow-multiple-external-irq-handlers
++++ a/drivers/video/omap/rfbi.c
+@@ -57,6 +57,7 @@
+ 
+ #define DISPC_BASE		0x48050400
+ #define DISPC_CONTROL		0x0040
++#define DISPC_IRQ_FRAMEMASK     0x0001
+ 
+ static struct {
+ 	void __iomem	*base;
+@@ -553,7 +554,9 @@ static int rfbi_init(struct omapfb_devic
+ 	l = (0x01 << 2);
+ 	rfbi_write_reg(RFBI_CONTROL, l);
+ 
+-	if ((r = omap_dispc_request_irq(rfbi_dma_callback, NULL)) < 0) {
++	r = omap_dispc_request_irq(DISPC_IRQ_FRAMEMASK, rfbi_dma_callback,
++				   NULL);
++	if (r < 0) {
+ 		dev_err(fbdev->dev, "can't get DISPC irq\n");
+ 		rfbi_enable_clocks(0);
+ 		return r;
+@@ -570,7 +573,7 @@ static int rfbi_init(struct omapfb_devic
+ 
+ static void rfbi_cleanup(void)
+ {
+-	omap_dispc_free_irq();
++	omap_dispc_free_irq(DISPC_IRQ_FRAMEMASK, rfbi_dma_callback, NULL);
+ 	rfbi_put_clocks();
+ 	iounmap(rfbi.base);
+ }
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from daniel.stone@nokia.com are
 
 origin.patch
-linux-next.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-isdn-fix-netjet-build-errors.patch
-include-linux-credh-fix-build.patch
-scsi-fix-func-names-in-kernel-doc.patch
-scsi_transport_fc-fix-missing-kernel-doc.patch
-wl12xx-fix-kconfig-link-errors.patch
-readahead-add-blk_run_backing_dev.patch
-pcmcia-fix-controller-printk-warnings.patch
-doc-filesystems-remove-smount-program.patch
-doc-filesystems-more-mount-cleanups.patch
-documentation-update-stale-definition-of-file-nr-in-fstxt.patch
-includecheck-fix-documentation-cfag12864b-examplec.patch
-docs-fix-various-documentation-paths-in-header-files.patch
-reiser4-export-remove_from_page_cache-fix.patch
 
