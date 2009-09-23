@@ -1,69 +1,141 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sdhci-increase-timeout-for-internal-clock-stabilization.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 12:56:30 -0700
-Message-ID: <200909231956.n8NJuUvo005000__20801.5113872991$1253735844$gmane$org@imap1.linux-foundation.org>
+Subject: [merged] sdhci-of-fix-high-speed-cards-recognition.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 12:55:44 -0700
+Message-ID: <200909231955.n8NJti6G003449@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56300 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43418 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753680AbZIWT5C (ORCPT
+	by vger.kernel.org with ESMTP id S1753716AbZIWT5G (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 15:57:02 -0400
+	Wed, 23 Sep 2009 15:57:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cjb@laptop.org, HaraldWelte@viatech.com, linux-mmc@vger.kernel.org, pierre@ossman.eu, mm-commits@vger.kernel.org
+To: avorontsov@ru.mvista.com, ben@fluff.org, david.vrabel@csr.com, galak@kernel.crashing.org, linux-mmc@vger.kernel.org, pierre@ossman.eu, s.hauer@pengutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sdhci: increase timeout for internal clock stabilization.
+     sdhci-of: fix high-speed cards recognition
 has been removed from the -mm tree.  Its filename was
-     sdhci-increase-timeout-for-internal-clock-stabilization.patch
+     sdhci-of-fix-high-speed-cards-recognition.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sdhci: increase timeout for internal clock stabilization.
-From: Chris Ball <cjb@laptop.org>
+Subject: sdhci-of: fix high-speed cards recognition
+From: Anton Vorontsov <avorontsov@ru.mvista.com>
 
-On an OLPC XO-1.5 development board with Via VX855 chipset, the sdhci
-controller can take up to 12ms to stabilize its clock, but the current
-timeout at which we give up on the controller is 10ms.
+eSDHC fails to recognize some SDHS cards, throwing timeout errors:
 
-The patch increases the timeout delay rather than using a device-specific
-quirk -- since we exit the loop when the clock comes up, increasing the
-timeout value will only make us mdelay() longer in the errant case of a
-device with a clock that is not stabilizing, which it seems worth waiting
-a little longer for in general.
+  mmc0: error -110 whilst initialising SD card
 
-Signed-off-by: Chris Ball <cjb@laptop.org>
-Cc: Harald Welte <HaraldWelte@viatech.com>
-Acked-by: Pierre Ossman <pierre@ossman.eu>
+That's because we calculate timeout value in a wrong way: on eSDHC hosts
+the timeout clock is derivied from the SD clock, which is set dynamically.
+
+As David Vrabel suggested, deriving timeout clock from SD clock is a
+common scheme, so let's implement DATA_TIMEOUT_USES_SDCLK quirk and use it
+for eSDHC hosts.
+
+Also, from now on we don't need esdhc_get_timeout_clock() callback, so
+remove it.
+
+Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
+Cc: Pierre Ossman <pierre@ossman.eu>
+Cc: Kumar Gala <galak@kernel.crashing.org>
+Cc: David Vrabel <david.vrabel@csr.com>
+Cc: Ben Dooks <ben@fluff.org>
+Cc: Sascha Hauer <s.hauer@pengutronix.de>
 Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/sdhci.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/mmc/host/sdhci-of.c |    9 +--------
+ drivers/mmc/host/sdhci.c    |    9 +++++++--
+ drivers/mmc/host/sdhci.h    |    2 ++
+ 3 files changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN drivers/mmc/host/sdhci.c~sdhci-increase-timeout-for-internal-clock-stabilization drivers/mmc/host/sdhci.c
---- a/drivers/mmc/host/sdhci.c~sdhci-increase-timeout-for-internal-clock-stabilization
-+++ a/drivers/mmc/host/sdhci.c
-@@ -994,8 +994,8 @@ static void sdhci_set_clock(struct sdhci
- 	clk |= SDHCI_CLOCK_INT_EN;
- 	sdhci_writew(host, clk, SDHCI_CLOCK_CONTROL);
+diff -puN drivers/mmc/host/sdhci-of.c~sdhci-of-fix-high-speed-cards-recognition drivers/mmc/host/sdhci-of.c
+--- a/drivers/mmc/host/sdhci-of.c~sdhci-of-fix-high-speed-cards-recognition
++++ a/drivers/mmc/host/sdhci-of.c
+@@ -172,19 +172,13 @@ static unsigned int esdhc_get_min_clock(
+ 	return of_host->clock / 256 / 16;
+ }
  
--	/* Wait max 10 ms */
--	timeout = 10;
-+	/* Wait max 20 ms */
-+	timeout = 20;
- 	while (!((clk = sdhci_readw(host, SDHCI_CLOCK_CONTROL))
- 		& SDHCI_CLOCK_INT_STABLE)) {
- 		if (timeout == 0) {
+-static unsigned int esdhc_get_timeout_clock(struct sdhci_host *host)
+-{
+-	struct sdhci_of_host *of_host = sdhci_priv(host);
+-
+-	return of_host->clock / 1000;
+-}
+-
+ static struct sdhci_of_data sdhci_esdhc = {
+ 	.quirks = SDHCI_QUIRK_FORCE_BLK_SZ_2048 |
+ 		  SDHCI_QUIRK_BROKEN_CARD_DETECTION |
+ 		  SDHCI_QUIRK_INVERTED_WRITE_PROTECT |
+ 		  SDHCI_QUIRK_NO_BUSY_IRQ |
+ 		  SDHCI_QUIRK_NONSTANDARD_CLOCK |
++		  SDHCI_QUIRK_DATA_TIMEOUT_USES_SDCLK |
+ 		  SDHCI_QUIRK_PIO_NEEDS_DELAY |
+ 		  SDHCI_QUIRK_RESTORE_IRQS_AFTER_RESET |
+ 		  SDHCI_QUIRK_NO_CARD_NO_RESET,
+@@ -199,7 +193,6 @@ static struct sdhci_of_data sdhci_esdhc 
+ 		.enable_dma = esdhc_enable_dma,
+ 		.get_max_clock = esdhc_get_max_clock,
+ 		.get_min_clock = esdhc_get_min_clock,
+-		.get_timeout_clock = esdhc_get_timeout_clock,
+ 	},
+ };
+ 
+diff -puN drivers/mmc/host/sdhci.c~sdhci-of-fix-high-speed-cards-recognition drivers/mmc/host/sdhci.c
+--- a/drivers/mmc/host/sdhci.c~sdhci-of-fix-high-speed-cards-recognition
++++ a/drivers/mmc/host/sdhci.c
+@@ -591,6 +591,9 @@ static u8 sdhci_calc_timeout(struct sdhc
+ 	target_timeout = data->timeout_ns / 1000 +
+ 		data->timeout_clks / host->clock;
+ 
++	if (host->quirks & SDHCI_QUIRK_DATA_TIMEOUT_USES_SDCLK)
++		host->timeout_clk = host->clock / 1000;
++
+ 	/*
+ 	 * Figure out needed cycles.
+ 	 * We do this in steps in order to fit inside a 32 bit int.
+@@ -1757,13 +1760,15 @@ int sdhci_add_host(struct sdhci_host *ho
+ 	host->timeout_clk =
+ 		(caps & SDHCI_TIMEOUT_CLK_MASK) >> SDHCI_TIMEOUT_CLK_SHIFT;
+ 	if (host->timeout_clk == 0) {
+-		if (!host->ops->get_timeout_clock) {
++		if (host->ops->get_timeout_clock) {
++			host->timeout_clk = host->ops->get_timeout_clock(host);
++		} else if (!(host->quirks &
++				SDHCI_QUIRK_DATA_TIMEOUT_USES_SDCLK)) {
+ 			printk(KERN_ERR
+ 			       "%s: Hardware doesn't specify timeout clock "
+ 			       "frequency.\n", mmc_hostname(mmc));
+ 			return -ENODEV;
+ 		}
+-		host->timeout_clk = host->ops->get_timeout_clock(host);
+ 	}
+ 	if (caps & SDHCI_TIMEOUT_CLK_UNIT)
+ 		host->timeout_clk *= 1000;
+diff -puN drivers/mmc/host/sdhci.h~sdhci-of-fix-high-speed-cards-recognition drivers/mmc/host/sdhci.h
+--- a/drivers/mmc/host/sdhci.h~sdhci-of-fix-high-speed-cards-recognition
++++ a/drivers/mmc/host/sdhci.h
+@@ -232,6 +232,8 @@ struct sdhci_host {
+ #define SDHCI_QUIRK_FORCE_1_BIT_DATA			(1<<22)
+ /* Controller needs 10ms delay between applying power and clock */
+ #define SDHCI_QUIRK_DELAY_AFTER_POWER			(1<<23)
++/* Controller uses SDCLK instead of TMCLK for data timeouts */
++#define SDHCI_QUIRK_DATA_TIMEOUT_USES_SDCLK		(1<<24)
+ 
+ 	int			irq;		/* Device IRQ */
+ 	void __iomem *		ioaddr;		/* Mapped address */
 _
 
-Patches currently in -mm which might be from cjb@laptop.org are
+Patches currently in -mm which might be from avorontsov@ru.mvista.com are
 
 origin.patch
+linux-next.patch
+rtc-set-wakeup-capability-for-i2c-and-spi-rtc-drivers.patch
 
