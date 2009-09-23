@@ -1,120 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [merged] spi-mcspi-saves-chconfx-too.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 12:58:36 -0700
-Message-ID: <200909231958.n8NJwakO009292@imap1.linux-foundation.org>
+Subject: [merged] drivers-rtc-correct-error-handling-code.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 12:59:12 -0700
+Message-ID: <200909231959.n8NJxC2I010458@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33051 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56147 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753534AbZIWT7V (ORCPT
+	by vger.kernel.org with ESMTP id S1753808AbZIWT71 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 15:59:21 -0400
+	Wed, 23 Sep 2009 15:59:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tero.kristo@nokia.com, dbrownell@users.sourceforge.net, khilman@deeprootsystems.com, mm-commits@vger.kernel.org
+To: julia@diku.dk, david-b@pacbell.net, w.sang@pengutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi: McSPI saves CHCONFx too
+     drivers/rtc: correct error-handling code
 has been removed from the -mm tree.  Its filename was
-     spi-mcspi-saves-chconfx-too.patch
+     drivers-rtc-correct-error-handling-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi: McSPI saves CHCONFx too
-From: Tero Kristo <tero.kristo@nokia.com>
+Subject: drivers/rtc: correct error-handling code
+From: Julia Lawall <julia@diku.dk>
 
-Previous restore was lazy and only restored CHxCONF when it was needed by
-a specific chip select.  This could cause occasional errors on an SPI bus
-where multiple chip selects are in use.
+This code is not executed before ds1307->rtc has been successfully
+initialized to the result of calling rtc_device_register.  Thus the test
+that ds1307->rtc is not NULL is always true.
 
-Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+A simplified version of the semantic match that finds this problem is as
+follows: (http://coccinelle.lip6.fr/)
+
+// <smpl>
+@match exists@
+expression x, E;
+statement S1, S2;
+@@
+
+x = rtc_device_register(...)
+... when != x = E
+(
+*  if (x == NULL || ...) S1 else S2
+|
+*  if (x == NULL && ...) S1 else S2
+)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Acked-by: Wolfram Sang <w.sang@pengutronix.de>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/omap2_mcspi.c |   16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ drivers/rtc/rtc-ds1307.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/spi/omap2_mcspi.c~spi-mcspi-saves-chconfx-too drivers/spi/omap2_mcspi.c
---- a/drivers/spi/omap2_mcspi.c~spi-mcspi-saves-chconfx-too
-+++ a/drivers/spi/omap2_mcspi.c
-@@ -134,6 +134,7 @@ struct omap2_mcspi_cs {
- 	void __iomem		*base;
- 	unsigned long		phys;
- 	int			word_len;
-+	struct list_head	node;
- 	/* Context save and restore shadow register */
- 	u32			chconf0;
- };
-@@ -145,6 +146,7 @@ struct omap2_mcspi_regs {
- 	u32 sysconfig;
- 	u32 modulctrl;
- 	u32 wakeupenable;
-+	struct list_head cs;
- };
+diff -puN drivers/rtc/rtc-ds1307.c~drivers-rtc-correct-error-handling-code drivers/rtc/rtc-ds1307.c
+--- a/drivers/rtc/rtc-ds1307.c~drivers-rtc-correct-error-handling-code
++++ a/drivers/rtc/rtc-ds1307.c
+@@ -896,8 +896,7 @@ read_rtc:
+ 	return 0;
  
- static struct omap2_mcspi_regs omap2_mcspi_ctx[OMAP2_MCSPI_MAX_CTRL];
-@@ -255,6 +257,7 @@ static void omap2_mcspi_set_master_mode(
- static void omap2_mcspi_restore_ctx(struct omap2_mcspi *mcspi)
- {
- 	struct spi_master *spi_cntrl;
-+	struct omap2_mcspi_cs *cs;
- 	spi_cntrl = mcspi->master;
- 
- 	/* McSPI: context restore */
-@@ -266,6 +269,10 @@ static void omap2_mcspi_restore_ctx(stru
- 
- 	mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_WAKEUPENABLE,
- 			omap2_mcspi_ctx[spi_cntrl->bus_num - 1].wakeupenable);
-+
-+	list_for_each_entry(cs, &omap2_mcspi_ctx[spi_cntrl->bus_num - 1].cs,
-+			node)
-+		__raw_writel(cs->chconf0, cs->base + OMAP2_MCSPI_CHCONF0);
- }
- static void omap2_mcspi_disable_clocks(struct omap2_mcspi *mcspi)
- {
-@@ -714,6 +721,9 @@ static int omap2_mcspi_setup(struct spi_
- 		cs->phys = mcspi->phys + spi->chip_select * 0x14;
- 		cs->chconf0 = 0;
- 		spi->controller_state = cs;
-+		/* Link this to context save list */
-+		list_add_tail(&cs->node,
-+			&omap2_mcspi_ctx[mcspi->master->bus_num - 1].cs);
- 	}
- 
- 	if (mcspi_dma->dma_rx_channel == -1
-@@ -736,10 +746,15 @@ static void omap2_mcspi_cleanup(struct s
- {
- 	struct omap2_mcspi	*mcspi;
- 	struct omap2_mcspi_dma	*mcspi_dma;
-+	struct omap2_mcspi_cs	*cs;
- 
- 	mcspi = spi_master_get_devdata(spi->master);
- 	mcspi_dma = &mcspi->dma_channels[spi->chip_select];
- 
-+	/* Unlink controller state from context save list */
-+	cs = spi->controller_state;
-+	list_del(&cs->node);
-+
- 	kfree(spi->controller_state);
- 
- 	if (mcspi_dma->dma_rx_channel != -1) {
-@@ -1104,6 +1119,7 @@ static int __init omap2_mcspi_probe(stru
- 
- 	spin_lock_init(&mcspi->lock);
- 	INIT_LIST_HEAD(&mcspi->msg_queue);
-+	INIT_LIST_HEAD(&omap2_mcspi_ctx[master->bus_num - 1].cs);
- 
- 	mcspi->ick = clk_get(&pdev->dev, "ick");
- 	if (IS_ERR(mcspi->ick)) {
+ exit_irq:
+-	if (ds1307->rtc)
+-		rtc_device_unregister(ds1307->rtc);
++	rtc_device_unregister(ds1307->rtc);
+ exit_free:
+ 	kfree(ds1307);
+ 	return err;
 _
 
-Patches currently in -mm which might be from tero.kristo@nokia.com are
+Patches currently in -mm which might be from julia@diku.dk are
 
 origin.patch
+linux-next.patch
+drivers-md-introduce-missing-kfree.patch
+edac-fix-resource-size-calculation.patch
+fs-romfs-correct-error-handling-code.patch
+drivers-vlynq-vlynqc-fix-resource-size-off-by-1-error.patch
 
