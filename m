@@ -1,556 +1,726 @@
 From: akpm@linux-foundation.org
-Subject: [merged] qnx4-remove-write-support.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 12:53:17 -0700
-Message-ID: <200909231953.n8NJrHl6030874@imap1.linux-foundation.org>
+Subject: [merged] omapfb-add-support-for-mipi-dcs-compatible-lcds.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 13:00:01 -0700
+Message-ID: <200909232000.n8NK01ck012232@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49952 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57895 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753858AbZIWUAi (ORCPT
+	by vger.kernel.org with ESMTP id S1753856AbZIWUAn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 16:00:38 -0400
+	Wed, 23 Sep 2009 16:00:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hch@lst.de, al@alarsen.net, npiggin@suse.de, mm-commits@vger.kernel.org
+To: imre.deak@nokia.com, Hiroshi.DOYU@nokia.com, arnaud.patard@rtp-net.org, ext-mike.wege@nokia.com, imre.deak@solidboot.com, juha.yrjola@solidboot.com, krzysztof.h1@wp.pl, soni.trilok@gm
 
 
 The patch titled
-     qnx4: remove write support
+     omapfb: add support for MIPI-DCS compatible LCDs
 has been removed from the -mm tree.  Its filename was
-     qnx4-remove-write-support.patch
+     omapfb-add-support-for-mipi-dcs-compatible-lcds.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: qnx4: remove write support
-From: Christoph Hellwig <hch@lst.de>
+Subject: omapfb: add support for MIPI-DCS compatible LCDs
+From: Imre Deak <imre.deak@nokia.com>
 
-qnx4 wrte support has never been fully implement, is broken since the dawn
-of time and hasn't been actively developed since before git history
-started.
-
-Instead of letting it further bitrot and complicate API transition (like
-the new truncate code) remove it.
-
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Anders Larsen <al@alarsen.net>
-Cc: Nick Piggin <npiggin@suse.de>
+Fixed-by: Mike Wege <ext-mike.wege@nokia.com>
+Fixed-by: Arnaud Patard <arnaud.patard@rtp-net.org>
+Fixed-by: Timo Savola <tsavola@movial.fi>
+Fixed-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Fixed-by: Trilok Soni <soni.trilok@gmail.com>
+Signed-off-by: Imre Deak <imre.deak@solidboot.com>
+Signed-off-by: Juha Yrjola <juha.yrjola@solidboot.com>
+Acked-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/qnx4/Kconfig    |   11 ----
- fs/qnx4/Makefile   |    2 
- fs/qnx4/bitmap.c   |   81 ---------------------------------
- fs/qnx4/dir.c      |    5 --
- fs/qnx4/file.c     |   40 ----------------
- fs/qnx4/inode.c    |   84 ----------------------------------
- fs/qnx4/namei.c    |  105 -------------------------------------------
- fs/qnx4/qnx4.h     |    8 ---
- fs/qnx4/truncate.c |   34 -------------
- 9 files changed, 2 insertions(+), 368 deletions(-)
+ arch/arm/plat-omap/include/mach/lcd_mipid.h |    5 
+ drivers/video/omap/Kconfig                  |    8 
+ drivers/video/omap/Makefile                 |    1 
+ drivers/video/omap/lcd_mipid.c              |  625 ++++++++++++++++++
+ 4 files changed, 639 insertions(+)
 
-diff -puN fs/qnx4/Kconfig~qnx4-remove-write-support fs/qnx4/Kconfig
---- a/fs/qnx4/Kconfig~qnx4-remove-write-support
-+++ a/fs/qnx4/Kconfig
-@@ -6,20 +6,9 @@ config QNX4FS_FS
- 	  QNX 4 and QNX 6 (the latter is also called QNX RTP).
- 	  Further information is available at <http://www.qnx.com/>.
- 	  Say Y if you intend to mount QNX hard disks or floppies.
--	  Unless you say Y to "QNX4FS read-write support" below, you will
--	  only be able to read these file systems.
- 
- 	  To compile this file system support as a module, choose M here: the
- 	  module will be called qnx4.
- 
- 	  If you don't know whether you need it, then you don't need it:
- 	  answer N.
--
--config QNX4FS_RW
--	bool "QNX4FS write support (DANGEROUS)"
--	depends on QNX4FS_FS && EXPERIMENTAL && BROKEN
--	help
--	  Say Y if you want to test write support for QNX4 file systems.
--
--	  It's currently broken, so for now:
--	  answer N.
-diff -puN fs/qnx4/Makefile~qnx4-remove-write-support fs/qnx4/Makefile
---- a/fs/qnx4/Makefile~qnx4-remove-write-support
-+++ a/fs/qnx4/Makefile
-@@ -4,4 +4,4 @@
- 
- obj-$(CONFIG_QNX4FS_FS) += qnx4.o
- 
--qnx4-objs := inode.o dir.o namei.o file.o bitmap.o truncate.o
-+qnx4-objs := inode.o dir.o namei.o bitmap.o
-diff -puN fs/qnx4/bitmap.c~qnx4-remove-write-support fs/qnx4/bitmap.c
---- a/fs/qnx4/bitmap.c~qnx4-remove-write-support
-+++ a/fs/qnx4/bitmap.c
-@@ -78,84 +78,3 @@ unsigned long qnx4_count_free_blocks(str
- 
- 	return total_free;
- }
--
--#ifdef CONFIG_QNX4FS_RW
--
--int qnx4_is_free(struct super_block *sb, long block)
--{
--	int start = le32_to_cpu(qnx4_sb(sb)->BitMap->di_first_xtnt.xtnt_blk) - 1;
--	int size = le32_to_cpu(qnx4_sb(sb)->BitMap->di_size);
--	struct buffer_head *bh;
--	const char *g;
--	int ret = -EIO;
--
--	start += block / (QNX4_BLOCK_SIZE * 8);
--	QNX4DEBUG(("qnx4: is_free requesting block [%lu], bitmap in block [%lu]\n",
--		   (unsigned long) block, (unsigned long) start));
--	(void) size;		/* CHECKME */
--	bh = sb_bread(sb, start);
--	if (bh == NULL) {
--		return -EIO;
--	}
--	g = bh->b_data + (block % QNX4_BLOCK_SIZE);
--	if (((*g) & (1 << (block % 8))) == 0) {
--		QNX4DEBUG(("qnx4: is_free -> block is free\n"));
--		ret = 1;
--	} else {
--		QNX4DEBUG(("qnx4: is_free -> block is busy\n"));
--		ret = 0;
--	}
--	brelse(bh);
--
--	return ret;
--}
--
--int qnx4_set_bitmap(struct super_block *sb, long block, int busy)
--{
--	int start = le32_to_cpu(qnx4_sb(sb)->BitMap->di_first_xtnt.xtnt_blk) - 1;
--	int size = le32_to_cpu(qnx4_sb(sb)->BitMap->di_size);
--	struct buffer_head *bh;
--	char *g;
--
--	start += block / (QNX4_BLOCK_SIZE * 8);
--	QNX4DEBUG(("qnx4: set_bitmap requesting block [%lu], bitmap in block [%lu]\n",
--		   (unsigned long) block, (unsigned long) start));
--	(void) size;		/* CHECKME */
--	bh = sb_bread(sb, start);
--	if (bh == NULL) {
--		return -EIO;
--	}
--	g = bh->b_data + (block % QNX4_BLOCK_SIZE);
--	if (busy == 0) {
--		(*g) &= ~(1 << (block % 8));
--	} else {
--		(*g) |= (1 << (block % 8));
--	}
--	mark_buffer_dirty(bh);
--	brelse(bh);
--
--	return 0;
--}
--
--static void qnx4_clear_inode(struct inode *inode)
--{
--	struct qnx4_inode_entry *qnx4_ino = qnx4_raw_inode(inode);
--	/* What for? */
--	memset(qnx4_ino->di_fname, 0, sizeof qnx4_ino->di_fname);
--	qnx4_ino->di_size = 0;
--	qnx4_ino->di_num_xtnts = 0;
--	qnx4_ino->di_mode = 0;
--	qnx4_ino->di_status = 0;
--}
--
--void qnx4_free_inode(struct inode *inode)
--{
--	if (inode->i_ino < 1) {
--		printk("free_inode: inode 0 or nonexistent inode\n");
--		return;
--	}
--	qnx4_clear_inode(inode);
--	clear_inode(inode);
--}
--
--#endif
-diff -puN fs/qnx4/dir.c~qnx4-remove-write-support fs/qnx4/dir.c
---- a/fs/qnx4/dir.c~qnx4-remove-write-support
-+++ a/fs/qnx4/dir.c
-@@ -85,9 +85,4 @@ const struct file_operations qnx4_dir_op
- const struct inode_operations qnx4_dir_inode_operations =
- {
- 	.lookup		= qnx4_lookup,
--#ifdef CONFIG_QNX4FS_RW
--	.create		= qnx4_create,
--	.unlink		= qnx4_unlink,
--	.rmdir		= qnx4_rmdir,
--#endif
- };
-diff -puN fs/qnx4/file.c~qnx4-remove-write-support /dev/null
---- a/fs/qnx4/file.c
-+++ /dev/null
-@@ -1,40 +0,0 @@
--/*
-- * QNX4 file system, Linux implementation.
-- *
-- * Version : 0.2.1
-- *
-- * Using parts of the xiafs filesystem.
-- *
-- * History :
-- *
-- * 25-05-1998 by Richard Frowijn : first release.
-- * 21-06-1998 by Frank Denis : wrote qnx4_readpage to use generic_file_read.
-- * 27-06-1998 by Frank Denis : file overwriting.
-- */
--
--#include "qnx4.h"
--
--/*
-- * We have mostly NULL's here: the current defaults are ok for
-- * the qnx4 filesystem.
-- */
--const struct file_operations qnx4_file_operations =
--{
--	.llseek		= generic_file_llseek,
--	.read		= do_sync_read,
--	.aio_read	= generic_file_aio_read,
--	.mmap		= generic_file_mmap,
--	.splice_read	= generic_file_splice_read,
--#ifdef CONFIG_QNX4FS_RW
--	.write		= do_sync_write,
--	.aio_write	= generic_file_aio_write,
--	.fsync		= simple_fsync,
--#endif
--};
--
--const struct inode_operations qnx4_file_inode_operations =
--{
--#ifdef CONFIG_QNX4FS_RW
--	.truncate	= qnx4_truncate,
--#endif
--};
-diff -puN fs/qnx4/inode.c~qnx4-remove-write-support fs/qnx4/inode.c
---- a/fs/qnx4/inode.c~qnx4-remove-write-support
-+++ a/fs/qnx4/inode.c
-@@ -28,73 +28,6 @@
- 
- static const struct super_operations qnx4_sops;
- 
--#ifdef CONFIG_QNX4FS_RW
--
--static void qnx4_delete_inode(struct inode *inode)
--{
--	QNX4DEBUG(("qnx4: deleting inode [%lu]\n", (unsigned long) inode->i_ino));
--	truncate_inode_pages(&inode->i_data, 0);
--	inode->i_size = 0;
--	qnx4_truncate(inode);
--	lock_kernel();
--	qnx4_free_inode(inode);
--	unlock_kernel();
--}
--
--static int qnx4_write_inode(struct inode *inode, int do_sync)
--{
--	struct qnx4_inode_entry *raw_inode;
--	int block, ino;
--	struct buffer_head *bh;
--	ino = inode->i_ino;
--
--	QNX4DEBUG(("qnx4: write inode 1.\n"));
--	if (inode->i_nlink == 0) {
--		return 0;
--	}
--	if (!ino) {
--		printk("qnx4: bad inode number on dev %s: %d is out of range\n",
--		       inode->i_sb->s_id, ino);
--		return -EIO;
--	}
--	QNX4DEBUG(("qnx4: write inode 2.\n"));
--	block = ino / QNX4_INODES_PER_BLOCK;
--	lock_kernel();
--	if (!(bh = sb_bread(inode->i_sb, block))) {
--		printk("qnx4: major problem: unable to read inode from dev "
--		       "%s\n", inode->i_sb->s_id);
--		unlock_kernel();
--		return -EIO;
--	}
--	raw_inode = ((struct qnx4_inode_entry *) bh->b_data) +
--	    (ino % QNX4_INODES_PER_BLOCK);
--	raw_inode->di_mode  = cpu_to_le16(inode->i_mode);
--	raw_inode->di_uid   = cpu_to_le16(fs_high2lowuid(inode->i_uid));
--	raw_inode->di_gid   = cpu_to_le16(fs_high2lowgid(inode->i_gid));
--	raw_inode->di_nlink = cpu_to_le16(inode->i_nlink);
--	raw_inode->di_size  = cpu_to_le32(inode->i_size);
--	raw_inode->di_mtime = cpu_to_le32(inode->i_mtime.tv_sec);
--	raw_inode->di_atime = cpu_to_le32(inode->i_atime.tv_sec);
--	raw_inode->di_ctime = cpu_to_le32(inode->i_ctime.tv_sec);
--	raw_inode->di_first_xtnt.xtnt_size = cpu_to_le32(inode->i_blocks);
--	mark_buffer_dirty(bh);
--	if (do_sync) {
--		sync_dirty_buffer(bh);
--		if (buffer_req(bh) && !buffer_uptodate(bh)) {
--			printk("qnx4: IO error syncing inode [%s:%08x]\n",
--					inode->i_sb->s_id, ino);
--			brelse(bh);
--			unlock_kernel();
--			return -EIO;
--		}
--	}
--	brelse(bh);
--	unlock_kernel();
--	return 0;
--}
--
--#endif
--
- static void qnx4_put_super(struct super_block *sb);
- static struct inode *qnx4_alloc_inode(struct super_block *sb);
- static void qnx4_destroy_inode(struct inode *inode);
-@@ -108,10 +41,6 @@ static const struct super_operations qnx
- 	.put_super	= qnx4_put_super,
- 	.statfs		= qnx4_statfs,
- 	.remount_fs	= qnx4_remount,
--#ifdef CONFIG_QNX4FS_RW
--	.write_inode	= qnx4_write_inode,
--	.delete_inode	= qnx4_delete_inode,
--#endif
+diff -puN arch/arm/plat-omap/include/mach/lcd_mipid.h~omapfb-add-support-for-mipi-dcs-compatible-lcds arch/arm/plat-omap/include/mach/lcd_mipid.h
+--- a/arch/arm/plat-omap/include/mach/lcd_mipid.h~omapfb-add-support-for-mipi-dcs-compatible-lcds
++++ a/arch/arm/plat-omap/include/mach/lcd_mipid.h
+@@ -16,7 +16,12 @@ enum mipid_test_result {
+ struct mipid_platform_data {
+ 	int	nreset_gpio;
+ 	int	data_lines;
++
+ 	void	(*shutdown)(struct mipid_platform_data *pdata);
++	void	(*set_bklight_level)(struct mipid_platform_data *pdata,
++				     int level);
++	int	(*get_bklight_level)(struct mipid_platform_data *pdata);
++	int	(*get_bklight_max)(struct mipid_platform_data *pdata);
  };
  
- static int qnx4_remount(struct super_block *sb, int *flags, char *data)
-@@ -120,15 +49,7 @@ static int qnx4_remount(struct super_blo
+ #endif
+diff -puN drivers/video/omap/Kconfig~omapfb-add-support-for-mipi-dcs-compatible-lcds drivers/video/omap/Kconfig
+--- a/drivers/video/omap/Kconfig~omapfb-add-support-for-mipi-dcs-compatible-lcds
++++ a/drivers/video/omap/Kconfig
+@@ -7,6 +7,14 @@ config FB_OMAP
+ 	help
+           Frame buffer driver for OMAP based boards.
  
- 	qs = qnx4_sb(sb);
- 	qs->Version = QNX4_VERSION;
--#ifndef CONFIG_QNX4FS_RW
- 	*flags |= MS_RDONLY;
--#endif
--	if (*flags & MS_RDONLY) {
--		return 0;
--	}
--
--	mark_buffer_dirty(qs->sb_buf);
--
- 	return 0;
- }
++config FB_OMAP_LCD_MIPID
++	bool "MIPI DBI-C/DCS compatible LCD support"
++	depends on FB_OMAP && SPI_MASTER
++	help
++	  Say Y here if you want to have support for LCDs compatible with
++	  the Mobile Industry Processor Interface DBI-C/DCS
++	  specification. (Supported LCDs: Philips LPH8923, Sharp LS041Y3)
++
+ config FB_OMAP_BOOTLOADER_INIT
+ 	bool "Check bootloader initialization"
+ 	depends on FB_OMAP
+diff -puN drivers/video/omap/Makefile~omapfb-add-support-for-mipi-dcs-compatible-lcds drivers/video/omap/Makefile
+--- a/drivers/video/omap/Makefile~omapfb-add-support-for-mipi-dcs-compatible-lcds
++++ a/drivers/video/omap/Makefile
+@@ -25,6 +25,7 @@ objs-$(CONFIG_ARCH_OMAP15XX)$(CONFIG_MAC
+ objs-y$(CONFIG_MACH_OMAP_OSK) += lcd_osk.o
  
-@@ -354,9 +275,7 @@ static int qnx4_fill_super(struct super_
- 	}
- 	s->s_op = &qnx4_sops;
- 	s->s_magic = QNX4_SUPER_MAGIC;
--#ifndef CONFIG_QNX4FS_RW
- 	s->s_flags |= MS_RDONLY;	/* Yup, read-only yet */
--#endif
- 	qnx4_sb(s)->sb_buf = bh;
- 	qnx4_sb(s)->sb = (struct qnx4_super_block *) bh->b_data;
+ objs-y$(CONFIG_MACH_OMAP_APOLLON) += lcd_apollon.o
++objs-y$(CONFIG_FB_OMAP_LCD_MIPID) += lcd_mipid.o
  
-@@ -489,8 +408,7 @@ struct inode *qnx4_iget(struct super_blo
+ omapfb-objs := $(objs-yy)
  
- 	memcpy(qnx4_inode, raw_inode, QNX4_DIR_ENTRY_SIZE);
- 	if (S_ISREG(inode->i_mode)) {
--		inode->i_op = &qnx4_file_inode_operations;
--		inode->i_fop = &qnx4_file_operations;
-+		inode->i_fop = &generic_ro_fops;
- 		inode->i_mapping->a_ops = &qnx4_aops;
- 		qnx4_i(inode)->mmu_private = inode->i_size;
- 	} else if (S_ISDIR(inode->i_mode)) {
-diff -puN fs/qnx4/namei.c~qnx4-remove-write-support fs/qnx4/namei.c
---- a/fs/qnx4/namei.c~qnx4-remove-write-support
-+++ a/fs/qnx4/namei.c
-@@ -134,108 +134,3 @@ out:
- 
- 	return NULL;
- }
--
--#ifdef CONFIG_QNX4FS_RW
--int qnx4_create(struct inode *dir, struct dentry *dentry, int mode,
--		struct nameidata *nd)
--{
--	QNX4DEBUG(("qnx4: qnx4_create\n"));
--	if (dir == NULL) {
--		return -ENOENT;
--	}
--	return -ENOSPC;
--}
--
--int qnx4_rmdir(struct inode *dir, struct dentry *dentry)
--{
--	struct buffer_head *bh;
--	struct qnx4_inode_entry *de;
--	struct inode *inode;
--	int retval;
--	int ino;
--
--	QNX4DEBUG(("qnx4: qnx4_rmdir [%s]\n", dentry->d_name.name));
--	lock_kernel();
--	bh = qnx4_find_entry(dentry->d_name.len, dir, dentry->d_name.name,
--			     &de, &ino);
--	if (bh == NULL) {
--		unlock_kernel();
--		return -ENOENT;
--	}
--	inode = dentry->d_inode;
--	if (inode->i_ino != ino) {
--		retval = -EIO;
--		goto end_rmdir;
--	}
--#if 0
--	if (!empty_dir(inode)) {
--		retval = -ENOTEMPTY;
--		goto end_rmdir;
--	}
--#endif
--	if (inode->i_nlink != 2) {
--		QNX4DEBUG(("empty directory has nlink!=2 (%d)\n", inode->i_nlink));
--	}
--	QNX4DEBUG(("qnx4: deleting directory\n"));
--	de->di_status = 0;
--	memset(de->di_fname, 0, sizeof de->di_fname);
--	de->di_mode = 0;
--	mark_buffer_dirty_inode(bh, dir);
--	clear_nlink(inode);
--	mark_inode_dirty(inode);
--	inode->i_ctime = dir->i_ctime = dir->i_mtime = CURRENT_TIME_SEC;
--	inode_dec_link_count(dir);
--	retval = 0;
--
--      end_rmdir:
--	brelse(bh);
--
--	unlock_kernel();
--	return retval;
--}
--
--int qnx4_unlink(struct inode *dir, struct dentry *dentry)
--{
--	struct buffer_head *bh;
--	struct qnx4_inode_entry *de;
--	struct inode *inode;
--	int retval;
--	int ino;
--
--	QNX4DEBUG(("qnx4: qnx4_unlink [%s]\n", dentry->d_name.name));
--	lock_kernel();
--	bh = qnx4_find_entry(dentry->d_name.len, dir, dentry->d_name.name,
--			     &de, &ino);
--	if (bh == NULL) {
--		unlock_kernel();
--		return -ENOENT;
--	}
--	inode = dentry->d_inode;
--	if (inode->i_ino != ino) {
--		retval = -EIO;
--		goto end_unlink;
--	}
--	retval = -EPERM;
--	if (!inode->i_nlink) {
--		QNX4DEBUG(("Deleting nonexistent file (%s:%lu), %d\n",
--			   inode->i_sb->s_id,
--			   inode->i_ino, inode->i_nlink));
--		inode->i_nlink = 1;
--	}
--	de->di_status = 0;
--	memset(de->di_fname, 0, sizeof de->di_fname);
--	de->di_mode = 0;
--	mark_buffer_dirty_inode(bh, dir);
--	dir->i_ctime = dir->i_mtime = CURRENT_TIME_SEC;
--	mark_inode_dirty(dir);
--	inode->i_ctime = dir->i_ctime;
--	inode_dec_link_count(inode);
--	retval = 0;
--
--end_unlink:
--	unlock_kernel();
--	brelse(bh);
--
--	return retval;
--}
--#endif
-diff -puN fs/qnx4/qnx4.h~qnx4-remove-write-support fs/qnx4/qnx4.h
---- a/fs/qnx4/qnx4.h~qnx4-remove-write-support
-+++ a/fs/qnx4/qnx4.h
-@@ -29,17 +29,9 @@ extern unsigned long qnx4_block_map(stru
- 
- extern struct buffer_head *qnx4_bread(struct inode *, int, int);
- 
--extern const struct inode_operations qnx4_file_inode_operations;
- extern const struct inode_operations qnx4_dir_inode_operations;
--extern const struct file_operations qnx4_file_operations;
- extern const struct file_operations qnx4_dir_operations;
- extern int qnx4_is_free(struct super_block *sb, long block);
--extern int qnx4_set_bitmap(struct super_block *sb, long block, int busy);
--extern int qnx4_create(struct inode *inode, struct dentry *dentry, int mode, struct nameidata *nd);
--extern void qnx4_truncate(struct inode *inode);
--extern void qnx4_free_inode(struct inode *inode);
--extern int qnx4_unlink(struct inode *dir, struct dentry *dentry);
--extern int qnx4_rmdir(struct inode *dir, struct dentry *dentry);
- 
- static inline struct qnx4_sb_info *qnx4_sb(struct super_block *sb)
- {
-diff -puN fs/qnx4/truncate.c~qnx4-remove-write-support /dev/null
---- a/fs/qnx4/truncate.c
-+++ /dev/null
-@@ -1,34 +0,0 @@
--/* 
-- * QNX4 file system, Linux implementation.
-- * 
-- * Version : 0.1
-- * 
-- * Using parts of the xiafs filesystem.
-- * 
-- * History :
-- * 
-- * 30-06-1998 by Frank DENIS : ugly filler.
-- */
--
--#include <linux/smp_lock.h>
--#include "qnx4.h"
--
--#ifdef CONFIG_QNX4FS_RW
--
--void qnx4_truncate(struct inode *inode)
--{
--	if (!(S_ISREG(inode->i_mode) || S_ISDIR(inode->i_mode) ||
--	      S_ISLNK(inode->i_mode))) {
--		return;
--	}
--	lock_kernel();
--	if (!(S_ISDIR(inode->i_mode))) {
--		/* TODO */
--	}
--	QNX4DEBUG(("qnx4: qnx4_truncate called\n"));
--	inode->i_mtime = inode->i_ctime = CURRENT_TIME_SEC;
--	mark_inode_dirty(inode);
--	unlock_kernel();
--}
--
--#endif
+diff -puN /dev/null drivers/video/omap/lcd_mipid.c
+--- /dev/null
++++ a/drivers/video/omap/lcd_mipid.c
+@@ -0,0 +1,625 @@
++/*
++ * LCD driver for MIPI DBI-C / DCS compatible LCDs
++ *
++ * Copyright (C) 2006 Nokia Corporation
++ * Author: Imre Deak <imre.deak@nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, write to the Free Software Foundation, Inc.,
++ * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
++ */
++#include <linux/device.h>
++#include <linux/delay.h>
++#include <linux/workqueue.h>
++#include <linux/spi/spi.h>
++
++#include <mach/omapfb.h>
++#include <mach/lcd_mipid.h>
++
++#define MIPID_MODULE_NAME		"lcd_mipid"
++
++#define MIPID_CMD_READ_DISP_ID		0x04
++#define MIPID_CMD_READ_RED		0x06
++#define MIPID_CMD_READ_GREEN		0x07
++#define MIPID_CMD_READ_BLUE		0x08
++#define MIPID_CMD_READ_DISP_STATUS	0x09
++#define MIPID_CMD_RDDSDR		0x0F
++#define MIPID_CMD_SLEEP_IN		0x10
++#define MIPID_CMD_SLEEP_OUT		0x11
++#define MIPID_CMD_DISP_OFF		0x28
++#define MIPID_CMD_DISP_ON		0x29
++
++#define MIPID_ESD_CHECK_PERIOD		msecs_to_jiffies(5000)
++
++#define to_mipid_device(p)		container_of(p, struct mipid_device, \
++						panel)
++struct mipid_device {
++	int		enabled;
++	int		revision;
++	unsigned int	saved_bklight_level;
++	unsigned long	hw_guard_end;		/* next value of jiffies
++						   when we can issue the
++						   next sleep in/out command */
++	unsigned long	hw_guard_wait;		/* max guard time in jiffies */
++
++	struct omapfb_device	*fbdev;
++	struct spi_device	*spi;
++	struct mutex		mutex;
++	struct lcd_panel	panel;
++
++	struct workqueue_struct	*esd_wq;
++	struct delayed_work	esd_work;
++	void			(*esd_check)(struct mipid_device *m);
++};
++
++static void mipid_transfer(struct mipid_device *md, int cmd, const u8 *wbuf,
++			   int wlen, u8 *rbuf, int rlen)
++{
++	struct spi_message	m;
++	struct spi_transfer	*x, xfer[4];
++	u16			w;
++	int			r;
++
++	BUG_ON(md->spi == NULL);
++
++	spi_message_init(&m);
++
++	memset(xfer, 0, sizeof(xfer));
++	x = &xfer[0];
++
++	cmd &=  0xff;
++	x->tx_buf		= &cmd;
++	x->bits_per_word	= 9;
++	x->len			= 2;
++	spi_message_add_tail(x, &m);
++
++	if (wlen) {
++		x++;
++		x->tx_buf		= wbuf;
++		x->len			= wlen;
++		x->bits_per_word	= 9;
++		spi_message_add_tail(x, &m);
++	}
++
++	if (rlen) {
++		x++;
++		x->rx_buf	= &w;
++		x->len		= 1;
++		spi_message_add_tail(x, &m);
++
++		if (rlen > 1) {
++			/* Arrange for the extra clock before the first
++			 * data bit.
++			 */
++			x->bits_per_word = 9;
++			x->len		 = 2;
++
++			x++;
++			x->rx_buf	 = &rbuf[1];
++			x->len		 = rlen - 1;
++			spi_message_add_tail(x, &m);
++		}
++	}
++
++	r = spi_sync(md->spi, &m);
++	if (r < 0)
++		dev_dbg(&md->spi->dev, "spi_sync %d\n", r);
++
++	if (rlen)
++		rbuf[0] = w & 0xff;
++}
++
++static inline void mipid_cmd(struct mipid_device *md, int cmd)
++{
++	mipid_transfer(md, cmd, NULL, 0, NULL, 0);
++}
++
++static inline void mipid_write(struct mipid_device *md,
++			       int reg, const u8 *buf, int len)
++{
++	mipid_transfer(md, reg, buf, len, NULL, 0);
++}
++
++static inline void mipid_read(struct mipid_device *md,
++			      int reg, u8 *buf, int len)
++{
++	mipid_transfer(md, reg, NULL, 0, buf, len);
++}
++
++static void set_data_lines(struct mipid_device *md, int data_lines)
++{
++	u16 par;
++
++	switch (data_lines) {
++	case 16:
++		par = 0x150;
++		break;
++	case 18:
++		par = 0x160;
++		break;
++	case 24:
++		par = 0x170;
++		break;
++	}
++	mipid_write(md, 0x3a, (u8 *)&par, 2);
++}
++
++static void send_init_string(struct mipid_device *md)
++{
++	u16 initpar[] = { 0x0102, 0x0100, 0x0100 };
++
++	mipid_write(md, 0xc2, (u8 *)initpar, sizeof(initpar));
++	set_data_lines(md, md->panel.data_lines);
++}
++
++static void hw_guard_start(struct mipid_device *md, int guard_msec)
++{
++	md->hw_guard_wait = msecs_to_jiffies(guard_msec);
++	md->hw_guard_end = jiffies + md->hw_guard_wait;
++}
++
++static void hw_guard_wait(struct mipid_device *md)
++{
++	unsigned long wait = md->hw_guard_end - jiffies;
++
++	if ((long)wait > 0 && wait <= md->hw_guard_wait) {
++		set_current_state(TASK_UNINTERRUPTIBLE);
++		schedule_timeout(wait);
++	}
++}
++
++static void set_sleep_mode(struct mipid_device *md, int on)
++{
++	int cmd, sleep_time = 50;
++
++	if (on)
++		cmd = MIPID_CMD_SLEEP_IN;
++	else
++		cmd = MIPID_CMD_SLEEP_OUT;
++	hw_guard_wait(md);
++	mipid_cmd(md, cmd);
++	hw_guard_start(md, 120);
++	/*
++	 * When we enable the panel, it seems we _have_ to sleep
++	 * 120 ms before sending the init string. When disabling the
++	 * panel we'll sleep for the duration of 2 frames, so that the
++	 * controller can still provide the PCLK,HS,VS signals.
++	 */
++	if (!on)
++		sleep_time = 120;
++	msleep(sleep_time);
++}
++
++static void set_display_state(struct mipid_device *md, int enabled)
++{
++	int cmd = enabled ? MIPID_CMD_DISP_ON : MIPID_CMD_DISP_OFF;
++
++	mipid_cmd(md, cmd);
++}
++
++static int mipid_set_bklight_level(struct lcd_panel *panel, unsigned int level)
++{
++	struct mipid_device *md = to_mipid_device(panel);
++	struct mipid_platform_data *pd = md->spi->dev.platform_data;
++
++	if (pd->get_bklight_max == NULL || pd->set_bklight_level == NULL)
++		return -ENODEV;
++	if (level > pd->get_bklight_max(pd))
++		return -EINVAL;
++	if (!md->enabled) {
++		md->saved_bklight_level = level;
++		return 0;
++	}
++	pd->set_bklight_level(pd, level);
++
++	return 0;
++}
++
++static unsigned int mipid_get_bklight_level(struct lcd_panel *panel)
++{
++	struct mipid_device *md = to_mipid_device(panel);
++	struct mipid_platform_data *pd = md->spi->dev.platform_data;
++
++	if (pd->get_bklight_level == NULL)
++		return -ENODEV;
++	return pd->get_bklight_level(pd);
++}
++
++static unsigned int mipid_get_bklight_max(struct lcd_panel *panel)
++{
++	struct mipid_device *md = to_mipid_device(panel);
++	struct mipid_platform_data *pd = md->spi->dev.platform_data;
++
++	if (pd->get_bklight_max == NULL)
++		return -ENODEV;
++
++	return pd->get_bklight_max(pd);
++}
++
++static unsigned long mipid_get_caps(struct lcd_panel *panel)
++{
++	return OMAPFB_CAPS_SET_BACKLIGHT;
++}
++
++static u16 read_first_pixel(struct mipid_device *md)
++{
++	u16 pixel;
++	u8 red, green, blue;
++
++	mutex_lock(&md->mutex);
++	mipid_read(md, MIPID_CMD_READ_RED, &red, 1);
++	mipid_read(md, MIPID_CMD_READ_GREEN, &green, 1);
++	mipid_read(md, MIPID_CMD_READ_BLUE, &blue, 1);
++	mutex_unlock(&md->mutex);
++
++	switch (md->panel.data_lines) {
++	case 16:
++		pixel = ((red >> 1) << 11) | (green << 5) | (blue >> 1);
++		break;
++	case 24:
++		/* 24 bit -> 16 bit */
++		pixel = ((red >> 3) << 11) | ((green >> 2) << 5) |
++			(blue >> 3);
++		break;
++	default:
++		pixel = 0;
++		BUG();
++	}
++
++	return pixel;
++}
++
++static int mipid_run_test(struct lcd_panel *panel, int test_num)
++{
++	struct mipid_device *md = to_mipid_device(panel);
++	static const u16 test_values[4] = {
++		0x0000, 0xffff, 0xaaaa, 0x5555,
++	};
++	int i;
++
++	if (test_num != MIPID_TEST_RGB_LINES)
++		return MIPID_TEST_INVALID;
++
++	for (i = 0; i < ARRAY_SIZE(test_values); i++) {
++		int delay;
++		unsigned long tmo;
++
++		omapfb_write_first_pixel(md->fbdev, test_values[i]);
++		tmo = jiffies + msecs_to_jiffies(100);
++		delay = 25;
++		while (1) {
++			u16 pixel;
++
++			msleep(delay);
++			pixel = read_first_pixel(md);
++			if (pixel == test_values[i])
++				break;
++			if (time_after(jiffies, tmo)) {
++				dev_err(&md->spi->dev,
++					"MIPI LCD RGB I/F test failed: "
++					"expecting %04x, got %04x\n",
++					test_values[i], pixel);
++				return MIPID_TEST_FAILED;
++			}
++			delay = 10;
++		}
++	}
++
++	return 0;
++}
++
++static void ls041y3_esd_recover(struct mipid_device *md)
++{
++	dev_err(&md->spi->dev, "performing LCD ESD recovery\n");
++	set_sleep_mode(md, 1);
++	set_sleep_mode(md, 0);
++}
++
++static void ls041y3_esd_check_mode1(struct mipid_device *md)
++{
++	u8 state1, state2;
++
++	mipid_read(md, MIPID_CMD_RDDSDR, &state1, 1);
++	set_sleep_mode(md, 0);
++	mipid_read(md, MIPID_CMD_RDDSDR, &state2, 1);
++	dev_dbg(&md->spi->dev, "ESD mode 1 state1 %02x state2 %02x\n",
++		state1, state2);
++	/* Each sleep out command will trigger a self diagnostic and flip
++	* Bit6 if the test passes.
++	*/
++	if (!((state1 ^ state2) & (1 << 6)))
++		ls041y3_esd_recover(md);
++}
++
++static void ls041y3_esd_check_mode2(struct mipid_device *md)
++{
++	int i;
++	u8 rbuf[2];
++	static const struct {
++		int	cmd;
++		int	wlen;
++		u16	wbuf[3];
++	} *rd, rd_ctrl[7] = {
++		{ 0xb0, 4, { 0x0101, 0x01fe, } },
++		{ 0xb1, 4, { 0x01de, 0x0121, } },
++		{ 0xc2, 4, { 0x0100, 0x0100, } },
++		{ 0xbd, 2, { 0x0100, } },
++		{ 0xc2, 4, { 0x01fc, 0x0103, } },
++		{ 0xb4, 0, },
++		{ 0x00, 0, },
++	};
++
++	rd = rd_ctrl;
++	for (i = 0; i < 3; i++, rd++)
++		mipid_write(md, rd->cmd, (u8 *)rd->wbuf, rd->wlen);
++
++	udelay(10);
++	mipid_read(md, rd->cmd, rbuf, 2);
++	rd++;
++
++	for (i = 0; i < 3; i++, rd++) {
++		udelay(10);
++		mipid_write(md, rd->cmd, (u8 *)rd->wbuf, rd->wlen);
++	}
++
++	dev_dbg(&md->spi->dev, "ESD mode 2 state %02x\n", rbuf[1]);
++	if (rbuf[1] == 0x00)
++		ls041y3_esd_recover(md);
++}
++
++static void ls041y3_esd_check(struct mipid_device *md)
++{
++	ls041y3_esd_check_mode1(md);
++	if (md->revision >= 0x88)
++		ls041y3_esd_check_mode2(md);
++}
++
++static void mipid_esd_start_check(struct mipid_device *md)
++{
++	if (md->esd_check != NULL)
++		queue_delayed_work(md->esd_wq, &md->esd_work,
++				   MIPID_ESD_CHECK_PERIOD);
++}
++
++static void mipid_esd_stop_check(struct mipid_device *md)
++{
++	if (md->esd_check != NULL)
++		cancel_rearming_delayed_workqueue(md->esd_wq, &md->esd_work);
++}
++
++static void mipid_esd_work(struct work_struct *work)
++{
++	struct mipid_device *md = container_of(work, struct mipid_device,
++					       esd_work.work);
++
++	mutex_lock(&md->mutex);
++	md->esd_check(md);
++	mutex_unlock(&md->mutex);
++	mipid_esd_start_check(md);
++}
++
++static int mipid_enable(struct lcd_panel *panel)
++{
++	struct mipid_device *md = to_mipid_device(panel);
++
++	mutex_lock(&md->mutex);
++
++	if (md->enabled) {
++		mutex_unlock(&md->mutex);
++		return 0;
++	}
++	set_sleep_mode(md, 0);
++	md->enabled = 1;
++	send_init_string(md);
++	set_display_state(md, 1);
++	mipid_set_bklight_level(panel, md->saved_bklight_level);
++	mipid_esd_start_check(md);
++
++	mutex_unlock(&md->mutex);
++	return 0;
++}
++
++static void mipid_disable(struct lcd_panel *panel)
++{
++	struct mipid_device *md = to_mipid_device(panel);
++
++	/*
++	 * A final ESD work might be called before returning,
++	 * so do this without holding the lock.
++	 */
++	mipid_esd_stop_check(md);
++	mutex_lock(&md->mutex);
++
++	if (!md->enabled) {
++		mutex_unlock(&md->mutex);
++		return;
++	}
++	md->saved_bklight_level = mipid_get_bklight_level(panel);
++	mipid_set_bklight_level(panel, 0);
++	set_display_state(md, 0);
++	set_sleep_mode(md, 1);
++	md->enabled = 0;
++
++	mutex_unlock(&md->mutex);
++}
++
++static int panel_enabled(struct mipid_device *md)
++{
++	u32 disp_status;
++	int enabled;
++
++	mipid_read(md, MIPID_CMD_READ_DISP_STATUS, (u8 *)&disp_status, 4);
++	disp_status = __be32_to_cpu(disp_status);
++	enabled = (disp_status & (1 << 17)) && (disp_status & (1 << 10));
++	dev_dbg(&md->spi->dev,
++		"LCD panel %senabled by bootloader (status 0x%04x)\n",
++		enabled ? "" : "not ", disp_status);
++	return enabled;
++}
++
++static int mipid_init(struct lcd_panel *panel,
++			    struct omapfb_device *fbdev)
++{
++	struct mipid_device *md = to_mipid_device(panel);
++
++	md->fbdev = fbdev;
++	md->esd_wq = create_singlethread_workqueue("mipid_esd");
++	if (md->esd_wq == NULL) {
++		dev_err(&md->spi->dev, "can't create ESD workqueue\n");
++		return -ENOMEM;
++	}
++	INIT_DELAYED_WORK(&md->esd_work, mipid_esd_work);
++	mutex_init(&md->mutex);
++
++	md->enabled = panel_enabled(md);
++
++	if (md->enabled)
++		mipid_esd_start_check(md);
++	else
++		md->saved_bklight_level = mipid_get_bklight_level(panel);
++
++	return 0;
++}
++
++static void mipid_cleanup(struct lcd_panel *panel)
++{
++	struct mipid_device *md = to_mipid_device(panel);
++
++	if (md->enabled)
++		mipid_esd_stop_check(md);
++	destroy_workqueue(md->esd_wq);
++}
++
++static struct lcd_panel mipid_panel = {
++	.config		= OMAP_LCDC_PANEL_TFT,
++
++	.bpp		= 16,
++	.x_res		= 800,
++	.y_res		= 480,
++	.pixel_clock	= 21940,
++	.hsw		= 50,
++	.hfp		= 20,
++	.hbp		= 15,
++	.vsw		= 2,
++	.vfp		= 1,
++	.vbp		= 3,
++
++	.init			= mipid_init,
++	.cleanup		= mipid_cleanup,
++	.enable			= mipid_enable,
++	.disable		= mipid_disable,
++	.get_caps		= mipid_get_caps,
++	.set_bklight_level	= mipid_set_bklight_level,
++	.get_bklight_level	= mipid_get_bklight_level,
++	.get_bklight_max	= mipid_get_bklight_max,
++	.run_test		= mipid_run_test,
++};
++
++static int mipid_detect(struct mipid_device *md)
++{
++	struct mipid_platform_data *pdata;
++	u8 display_id[3];
++
++	pdata = md->spi->dev.platform_data;
++	if (pdata == NULL) {
++		dev_err(&md->spi->dev, "missing platform data\n");
++		return -ENOENT;
++	}
++
++	mipid_read(md, MIPID_CMD_READ_DISP_ID, display_id, 3);
++	dev_dbg(&md->spi->dev, "MIPI display ID: %02x%02x%02x\n",
++		display_id[0], display_id[1], display_id[2]);
++
++	switch (display_id[0]) {
++	case 0x45:
++		md->panel.name = "lph8923";
++		break;
++	case 0x83:
++		md->panel.name = "ls041y3";
++		md->esd_check = ls041y3_esd_check;
++		break;
++	default:
++		md->panel.name = "unknown";
++		dev_err(&md->spi->dev, "invalid display ID\n");
++		return -ENODEV;
++	}
++
++	md->revision = display_id[1];
++	md->panel.data_lines = pdata->data_lines;
++	pr_info("omapfb: %s rev %02x LCD detected, %d data lines\n",
++			md->panel.name, md->revision, md->panel.data_lines);
++
++	return 0;
++}
++
++static int mipid_spi_probe(struct spi_device *spi)
++{
++	struct mipid_device *md;
++	int r;
++
++	md = kzalloc(sizeof(*md), GFP_KERNEL);
++	if (md == NULL) {
++		dev_err(&spi->dev, "out of memory\n");
++		return -ENOMEM;
++	}
++
++	spi->mode = SPI_MODE_0;
++	md->spi = spi;
++	dev_set_drvdata(&spi->dev, md);
++	md->panel = mipid_panel;
++
++	r = mipid_detect(md);
++	if (r < 0)
++		return r;
++
++	omapfb_register_panel(&md->panel);
++
++	return 0;
++}
++
++static int mipid_spi_remove(struct spi_device *spi)
++{
++	struct mipid_device *md = dev_get_drvdata(&spi->dev);
++
++	mipid_disable(&md->panel);
++	kfree(md);
++
++	return 0;
++}
++
++static struct spi_driver mipid_spi_driver = {
++	.driver = {
++		.name	= MIPID_MODULE_NAME,
++		.bus	= &spi_bus_type,
++		.owner	= THIS_MODULE,
++	},
++	.probe	= mipid_spi_probe,
++	.remove	= __devexit_p(mipid_spi_remove),
++};
++
++static int mipid_drv_init(void)
++{
++	spi_register_driver(&mipid_spi_driver);
++
++	return 0;
++}
++module_init(mipid_drv_init);
++
++static void mipid_drv_cleanup(void)
++{
++	spi_unregister_driver(&mipid_spi_driver);
++}
++module_exit(mipid_drv_cleanup);
++
++MODULE_DESCRIPTION("MIPI display driver");
++MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from imre.deak@nokia.com are
 
 origin.patch
-linux-next.patch
-avr32-convert-to-asm-generic-hardirqh.patch
-sparc32-convert-to-asm-generic-hardirqh.patch
-vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
-vfs-split-generic_forget_inode-so-that-hugetlbfs-does-not-have-to-copy-it.patch
-vfs-explicitly-cast-s_maxbytes-in-fiemap_check_ranges.patch
-vfs-change-sb-s_maxbytes-to-a-loff_t.patch
-vfs-remove-redundant-position-check-in-do_sendfile.patch
-fs-remove-unneeded-dcache_unhashed-tricks.patch
-vfs-seq_file-add-helpers-for-data-filling.patch
-libfs-return-error-code-on-failed-attr-set.patch
-fs-new-truncate-helpers.patch
-fs-use-new-truncate-helpers.patch
-fs-introduce-new-truncate-sequence.patch
-fs-convert-simple-fs-to-new-truncate.patch
-tmpfs-convert-to-use-the-new-truncate-convention.patch
-ext2-convert-to-use-the-new-truncate-convention.patch
-fat-convert-to-use-the-new-truncate-convention.patch
-btrfs-convert-to-use-the-new-truncate-convention.patch
-jfs-convert-to-use-the-new-truncate-convention.patch
-udf-convert-to-use-the-new-truncate-convention.patch
-minix-convert-to-use-the-new-truncate-convention.patch
-xtensa-convert-to-asm-generic-hardirqh.patch
-fcntl-add-f_etown_ex.patch
 
