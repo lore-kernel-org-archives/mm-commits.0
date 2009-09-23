@@ -1,362 +1,508 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mmc-core-sdio-suspend-resume-support.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 12:56:18 -0700
-Message-ID: <200909231956.n8NJuIdR004613__13452.1440756091$1253735837$gmane$org@imap1.linux-foundation.org>
+Subject: [merged] at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 12:56:06 -0700
+Message-ID: <200909231956.n8NJu6f7004218__32131.9204442718$1253735840$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54675 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59436 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752491AbZIWT4r (ORCPT
+	by vger.kernel.org with ESMTP id S1753680AbZIWT44 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 15:56:47 -0400
+	Wed, 23 Sep 2009 15:56:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nico@fluxnic.net, linux-mmc@vger.kernel.org, nico@marvell.com, mm-commits@vger.kernel.org
+To: rob@emanuele.us, hskinnemoen@atmel.com, linux-mmc@vger.kernel.org, linux@maxim.org.za, nicolas.ferre@atmel.com, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mmc: core SDIO suspend/resume support
+     AT91: atmel-mci: Platform configuration to the the atmel-mci driver
 has been removed from the -mm tree.  Its filename was
-     mmc-core-sdio-suspend-resume-support.patch
+     at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: core SDIO suspend/resume support
-From: Nicolas Pitre <nico@fluxnic.net>
+Subject: AT91: atmel-mci: Platform configuration to the the atmel-mci driver
+From: Rob Emanuele <rob@emanuele.us>
 
-Currently, all SDIO cards are virtually removed upon a suspend, and
-completely reprobed upon a resume.  This adds the suspend and resume
-methods to the SDIO bus driver so to be able to dispatch those events to
-the actual SDIO function drivers for real suspend/resume instead.
+Created a modified version of the at91sam9g20 evaluation kit platform
+(board-sam9g20ek-2slot-mmc.c) and device support to make use of the
+updated atmel-mci driver.
 
-All active functions on a card must have a driver with both a suspend and
-a resume method though.  Failing that, we fall back to the current
-behavior of simply "removing" the card when suspending.
+As the use of two slots modify GPIO pin allocation, we create another
+board file.
 
-When resuming, we make sure the same card is still inserted by comparing
-the vendor and product IDs.  If there is a mismatch, or if there is simply
-no card anymore in the slot, then the previous card is "removed" and the
-new card is detected.  This is further enhanced with the next patch.
+This requires getting the most updated arch/arm/tools/mach-types from
+http://www.arm.linux.org.uk/developer/machines/download.php to have the machine
+type for the at91sam9g20ek-2slot-mmc board.
 
-[akpm@linux-foundation.org: fix warnings]
-Signed-off-by: Nicolas Pitre <nico@marvell.com>
+[nicolas.ferre@atmel.com: printk, slot_count modification in at91sam9260_devices.c file]
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Rob Emanuele <rob@emanuele.us>
+Signed-off-by: Nicolas Ferre <nicolas.ferre@atmel.com>
+Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: Andrew Victor <linux@maxim.org.za>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/sdio.c |  285 ++++++++++++++++++++++++++------------
- 1 file changed, 196 insertions(+), 89 deletions(-)
+ arch/arm/mach-at91/Kconfig                     |    7 
+ arch/arm/mach-at91/Makefile                    |    1 
+ arch/arm/mach-at91/at91sam9260_devices.c       |   96 +++++
+ arch/arm/mach-at91/board-sam9g20ek-2slot-mmc.c |  277 +++++++++++++++
+ arch/arm/mach-at91/include/mach/board.h        |    5 
+ 5 files changed, 386 insertions(+)
 
-diff -puN drivers/mmc/core/sdio.c~mmc-core-sdio-suspend-resume-support drivers/mmc/core/sdio.c
---- a/drivers/mmc/core/sdio.c~mmc-core-sdio-suspend-resume-support
-+++ a/drivers/mmc/core/sdio.c
-@@ -218,6 +218,134 @@ static int sdio_enable_hs(struct mmc_car
- }
+diff -puN arch/arm/mach-at91/Kconfig~at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver arch/arm/mach-at91/Kconfig
+--- a/arch/arm/mach-at91/Kconfig~at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver
++++ a/arch/arm/mach-at91/Kconfig
+@@ -289,6 +289,13 @@ config MACH_NEOCORE926
+ 	help
+ 	  Select this if you are using the Adeneo Neocore 926 board.
  
- /*
-+ * Handle the detection and initialisation of a card.
-+ *
-+ * In the case of a resume, "oldcard" will contain the card
-+ * we're trying to reinitialise.
-+ */
-+static int mmc_sdio_init_card(struct mmc_host *host, u32 ocr,
-+			      struct mmc_card *oldcard)
-+{
-+	struct mmc_card *card;
-+	int err;
++config MACH_AT91SAM9G20EK_2MMC
++	bool "Atmel AT91SAM9G20-EK Evaluation Kit modified for 2 MMC Slots"
++	depends on ARCH_AT91SAM9G20
++	help
++	  Select this if you are using an Atmel AT91SAM9G20-EK Evaluation Kit
++	  Rev A or B modified for 2 MMC Slots.
 +
-+	BUG_ON(!host);
-+	WARN_ON(!host->claimed);
-+
-+	/*
-+	 * Inform the card of the voltage
-+	 */
-+	err = mmc_send_io_op_cond(host, host->ocr, &ocr);
-+	if (err)
-+		goto err;
-+
-+	/*
-+	 * For SPI, enable CRC as appropriate.
-+	 */
-+	if (mmc_host_is_spi(host)) {
-+		err = mmc_spi_set_crc(host, use_spi_crc);
-+		if (err)
-+			goto err;
-+	}
-+
-+	/*
-+	 * Allocate card structure.
-+	 */
-+	card = mmc_alloc_card(host, NULL);
-+	if (IS_ERR(card)) {
-+		err = PTR_ERR(card);
-+		goto err;
-+	}
-+
-+	card->type = MMC_TYPE_SDIO;
-+
-+	/*
-+	 * For native busses:  set card RCA and quit open drain mode.
-+	 */
-+	if (!mmc_host_is_spi(host)) {
-+		err = mmc_send_relative_addr(host, &card->rca);
-+		if (err)
-+			goto remove;
-+
-+		mmc_set_bus_mode(host, MMC_BUSMODE_PUSHPULL);
-+	}
-+
-+	/*
-+	 * Select card, as all following commands rely on that.
-+	 */
-+	if (!mmc_host_is_spi(host)) {
-+		err = mmc_select_card(card);
-+		if (err)
-+			goto remove;
-+	}
-+
-+	/*
-+	 * Read the common registers.
-+	 */
-+	err = sdio_read_cccr(card);
-+	if (err)
-+		goto remove;
-+
-+	/*
-+	 * Read the common CIS tuples.
-+	 */
-+	err = sdio_read_common_cis(card);
-+	if (err)
-+		goto remove;
-+
-+	if (oldcard) {
-+		int same = (card->cis.vendor == oldcard->cis.vendor &&
-+			    card->cis.device == oldcard->cis.device);
-+		mmc_remove_card(card);
-+		if (!same) {
-+			err = -ENOENT;
-+			goto err;
-+		}
-+		card = oldcard;
-+	}
-+
-+	/*
-+	 * Switch to high-speed (if supported).
-+	 */
-+	err = sdio_enable_hs(card);
-+	if (err)
-+		goto remove;
-+
-+	/*
-+	 * Change to the card's maximum speed.
-+	 */
-+	if (mmc_card_highspeed(card)) {
-+		/*
-+		 * The SDIO specification doesn't mention how
-+		 * the CIS transfer speed register relates to
-+		 * high-speed, but it seems that 50 MHz is
-+		 * mandatory.
-+		 */
-+		mmc_set_clock(host, 50000000);
-+	} else {
-+		mmc_set_clock(host, card->cis.max_dtr);
-+	}
-+
-+	/*
-+	 * Switch to wider bus (if supported).
-+	 */
-+	err = sdio_enable_wide(card);
-+	if (err)
-+		goto remove;
-+
-+	if (!oldcard)
-+		host->card = card;
-+	return 0;
-+
-+remove:
-+	if (!oldcard)
-+		mmc_remove_card(card);
-+
-+err:
-+	return err;
-+}
-+
-+/*
-  * Host is being removed. Free up the current card.
-  */
- static void mmc_sdio_remove(struct mmc_host *host)
-@@ -266,10 +394,74 @@ static void mmc_sdio_detect(struct mmc_h
- 	}
- }
+ endif
  
-+/*
-+ * SDIO suspend.  We need to suspend all functions separately.
-+ * Therefore all registered functions must have drivers with suspend
-+ * and resume methods.  Failing that we simply remove the whole card.
-+ */
-+static void mmc_sdio_suspend(struct mmc_host *host)
-+{
-+	int i;
+ # ----------------------------------------------------------
+diff -puN arch/arm/mach-at91/Makefile~at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver arch/arm/mach-at91/Makefile
+--- a/arch/arm/mach-at91/Makefile~at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver
++++ a/arch/arm/mach-at91/Makefile
+@@ -59,6 +59,7 @@ obj-$(CONFIG_MACH_AT91SAM9RLEK)	+= board
+ 
+ # AT91SAM9G20 board-specific support
+ obj-$(CONFIG_MACH_AT91SAM9G20EK) += board-sam9g20ek.o
++obj-$(CONFIG_MACH_AT91SAM9G20EK_2MMC) += board-sam9g20ek-2slot-mmc.o
+ obj-$(CONFIG_MACH_CPU9G20)	+= board-cpu9krea.o
+ 
+ # AT91SAM9G45 board-specific support
+diff -puN arch/arm/mach-at91/at91sam9260_devices.c~at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver arch/arm/mach-at91/at91sam9260_devices.c
+--- a/arch/arm/mach-at91/at91sam9260_devices.c~at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver
++++ a/arch/arm/mach-at91/at91sam9260_devices.c
+@@ -278,6 +278,102 @@ void __init at91_add_device_mmc(short mm
+ void __init at91_add_device_mmc(short mmc_id, struct at91_mmc_data *data) {}
+ #endif
+ 
++/* --------------------------------------------------------------------
++ *  MMC / SD Slot for Atmel MCI Driver
++ * -------------------------------------------------------------------- */
 +
-+	/* make sure all registered functions can suspend/resume */
-+	for (i = 0; i < host->card->sdio_funcs; i++) {
-+		struct sdio_func *func = host->card->sdio_func[i];
-+		if (func && sdio_func_present(func) && func->dev.driver) {
-+			const struct dev_pm_ops *pmops = func->dev.driver->pm;
-+			if (!pmops || !pmops->suspend || !pmops->resume) {
-+				/* just remove the entire card in that case */
-+				mmc_sdio_remove(host);
-+				mmc_claim_host(host);
-+				mmc_detach_bus(host);
-+				mmc_release_host(host);
-+				return;
++#if defined(CONFIG_MMC_ATMELMCI) || defined(CONFIG_MMC_ATMELMCI_MODULE)
++static u64 mmc_dmamask = DMA_BIT_MASK(32);
++static struct mci_platform_data mmc_data;
++
++static struct resource mmc_resources[] = {
++	[0] = {
++		.start	= AT91SAM9260_BASE_MCI,
++		.end	= AT91SAM9260_BASE_MCI + SZ_16K - 1,
++		.flags	= IORESOURCE_MEM,
++	},
++	[1] = {
++		.start	= AT91SAM9260_ID_MCI,
++		.end	= AT91SAM9260_ID_MCI,
++		.flags	= IORESOURCE_IRQ,
++	},
++};
++
++static struct platform_device at91sam9260_mmc_device = {
++	.name		= "atmel_mci",
++	.id		= -1,
++	.dev		= {
++				.dma_mask		= &mmc_dmamask,
++				.coherent_dma_mask	= DMA_BIT_MASK(32),
++				.platform_data		= &mmc_data,
++	},
++	.resource	= mmc_resources,
++	.num_resources	= ARRAY_SIZE(mmc_resources),
++};
++
++void __init at91_add_device_mci(short mmc_id, struct mci_platform_data *data)
++{
++	unsigned int i;
++	unsigned int slot_count = 0;
++
++	if (!data)
++		return;
++
++	for (i = 0; i < ATMEL_MCI_MAX_NR_SLOTS; i++) {
++		if (data->slot[i].bus_width) {
++			/* input/irq */
++			if (data->slot[i].detect_pin) {
++				at91_set_gpio_input(data->slot[i].detect_pin, 1);
++				at91_set_deglitch(data->slot[i].detect_pin, 1);
++			}
++			if (data->slot[i].wp_pin)
++				at91_set_gpio_input(data->slot[i].wp_pin, 1);
++
++			switch (i) {
++			case 0:
++				/* CMD */
++				at91_set_A_periph(AT91_PIN_PA7, 1);
++				/* DAT0, maybe DAT1..DAT3 */
++				at91_set_A_periph(AT91_PIN_PA6, 1);
++				if (data->slot[i].bus_width == 4) {
++					at91_set_A_periph(AT91_PIN_PA9, 1);
++					at91_set_A_periph(AT91_PIN_PA10, 1);
++					at91_set_A_periph(AT91_PIN_PA11, 1);
++				}
++				slot_count++;
++				break;
++			case 1:
++				/* CMD */
++				at91_set_B_periph(AT91_PIN_PA1, 1);
++				/* DAT0, maybe DAT1..DAT3 */
++				at91_set_B_periph(AT91_PIN_PA0, 1);
++				if (data->slot[i].bus_width == 4) {
++					at91_set_B_periph(AT91_PIN_PA5, 1);
++					at91_set_B_periph(AT91_PIN_PA4, 1);
++					at91_set_B_periph(AT91_PIN_PA3, 1);
++				}
++				slot_count++;
++				break;
++			default:
++				printk(KERN_ERR
++					"AT91: SD/MMC slot %d not available\n", i);
++				break;
 +			}
 +		}
 +	}
 +
-+	/* now suspend them */
-+	for (i = 0; i < host->card->sdio_funcs; i++) {
-+		struct sdio_func *func = host->card->sdio_func[i];
-+		if (func && sdio_func_present(func) && func->dev.driver) {
-+			const struct dev_pm_ops *pmops = func->dev.driver->pm;
-+			pmops->suspend(&func->dev);
-+		}
++	if (slot_count) {
++		/* CLK */
++		at91_set_A_periph(AT91_PIN_PA8, 0);
++
++		mmc_data = *data;
++		platform_device_register(&at91sam9260_mmc_device);
 +	}
 +}
++#else
++void __init at91_add_device_mci(short mmc_id, struct mci_platform_data *data) {}
++#endif
 +
-+static void mmc_sdio_resume(struct mmc_host *host)
+ 
+ /* --------------------------------------------------------------------
+  *  NAND / SmartMedia
+diff -puN /dev/null arch/arm/mach-at91/board-sam9g20ek-2slot-mmc.c
+--- /dev/null
++++ a/arch/arm/mach-at91/board-sam9g20ek-2slot-mmc.c
+@@ -0,0 +1,277 @@
++/*
++ *  Copyright (C) 2005 SAN People
++ *  Copyright (C) 2008 Atmel
++ *  Copyright (C) 2009 Rob Emanuele
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ */
++
++#include <linux/types.h>
++#include <linux/init.h>
++#include <linux/mm.h>
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/spi/spi.h>
++#include <linux/spi/at73c213.h>
++#include <linux/clk.h>
++
++#include <mach/hardware.h>
++#include <asm/setup.h>
++#include <asm/mach-types.h>
++#include <asm/irq.h>
++
++#include <asm/mach/arch.h>
++#include <asm/mach/map.h>
++#include <asm/mach/irq.h>
++
++#include <mach/board.h>
++#include <mach/gpio.h>
++#include <mach/at91sam9_smc.h>
++
++#include "sam9_smc.h"
++#include "generic.h"
++
++
++static void __init ek_map_io(void)
 +{
-+	int i, err;
++	/* Initialize processor: 18.432 MHz crystal */
++	at91sam9260_initialize(18432000);
 +
-+	BUG_ON(!host);
-+	BUG_ON(!host->card);
++	/* DGBU on ttyS0. (Rx & Tx only) */
++	at91_register_uart(0, 0, 0);
 +
-+	mmc_claim_host(host);
-+	err = mmc_sdio_init_card(host, host->ocr, host->card);
-+	mmc_release_host(host);
-+	if (err) {
-+		mmc_sdio_remove(host);
-+		mmc_claim_host(host);
-+		mmc_detach_bus(host);
-+		mmc_release_host(host);
-+		return;
-+	}
++	/* USART0 on ttyS1. (Rx, Tx, CTS, RTS, DTR, DSR, DCD, RI) */
++	at91_register_uart(AT91SAM9260_ID_US0, 1, ATMEL_UART_CTS | ATMEL_UART_RTS
++			   | ATMEL_UART_DTR | ATMEL_UART_DSR | ATMEL_UART_DCD
++			   | ATMEL_UART_RI);
 +
-+	/* resume all functions */
-+	for (i = 0; i < host->card->sdio_funcs; i++) {
-+		struct sdio_func *func = host->card->sdio_func[i];
-+		if (func && sdio_func_present(func) && func->dev.driver) {
-+			const struct dev_pm_ops *pmops = func->dev.driver->pm;
-+			pmops->resume(&func->dev);
-+		}
-+	}
++	/* USART1 on ttyS2. (Rx, Tx, RTS, CTS) */
++	at91_register_uart(AT91SAM9260_ID_US1, 2, ATMEL_UART_CTS | ATMEL_UART_RTS);
++
++	/* set serial console to ttyS0 (ie, DBGU) */
++	at91_set_serial_console(0);
 +}
++
++static void __init ek_init_irq(void)
++{
++	at91sam9260_init_interrupts(NULL);
++}
++
++
++/*
++ * USB Host port
++ */
++static struct at91_usbh_data __initdata ek_usbh_data = {
++	.ports		= 2,
++};
++
++/*
++ * USB Device port
++ */
++static struct at91_udc_data __initdata ek_udc_data = {
++	.vbus_pin	= AT91_PIN_PC5,
++	.pullup_pin	= 0,		/* pull-up driven by UDC */
++};
++
++
++/*
++ * SPI devices.
++ */
++static struct spi_board_info ek_spi_devices[] = {
++#if !defined(CONFIG_MMC_ATMELMCI)
++	{	/* DataFlash chip */
++		.modalias	= "mtd_dataflash",
++		.chip_select	= 1,
++		.max_speed_hz	= 15 * 1000 * 1000,
++		.bus_num	= 0,
++	},
++#if defined(CONFIG_MTD_AT91_DATAFLASH_CARD)
++	{	/* DataFlash card */
++		.modalias	= "mtd_dataflash",
++		.chip_select	= 0,
++		.max_speed_hz	= 15 * 1000 * 1000,
++		.bus_num	= 0,
++	},
++#endif
++#endif
++};
++
++
++/*
++ * MACB Ethernet device
++ */
++static struct at91_eth_data __initdata ek_macb_data = {
++	.phy_irq_pin	= AT91_PIN_PC12,
++	.is_rmii	= 1,
++};
++
++
++/*
++ * NAND flash
++ */
++static struct mtd_partition __initdata ek_nand_partition[] = {
++	{
++		.name   = "Bootstrap",
++		.offset = 0,
++		.size   = 4 * SZ_1M,
++	},
++	{
++		.name	= "Partition 1",
++		.offset	= MTDPART_OFS_NXTBLK,
++		.size	= 60 * SZ_1M,
++	},
++	{
++		.name	= "Partition 2",
++		.offset	= MTDPART_OFS_NXTBLK,
++		.size	= MTDPART_SIZ_FULL,
++	},
++};
++
++static struct mtd_partition * __init nand_partitions(int size, int *num_partitions)
++{
++	*num_partitions = ARRAY_SIZE(ek_nand_partition);
++	return ek_nand_partition;
++}
++
++/* det_pin is not connected */
++static struct atmel_nand_data __initdata ek_nand_data = {
++	.ale		= 21,
++	.cle		= 22,
++	.rdy_pin	= AT91_PIN_PC13,
++	.enable_pin	= AT91_PIN_PC14,
++	.partition_info	= nand_partitions,
++#if defined(CONFIG_MTD_NAND_ATMEL_BUSWIDTH_16)
++	.bus_width_16	= 1,
++#else
++	.bus_width_16	= 0,
++#endif
++};
++
++static struct sam9_smc_config __initdata ek_nand_smc_config = {
++	.ncs_read_setup		= 0,
++	.nrd_setup		= 2,
++	.ncs_write_setup	= 0,
++	.nwe_setup		= 2,
++
++	.ncs_read_pulse		= 4,
++	.nrd_pulse		= 4,
++	.ncs_write_pulse	= 4,
++	.nwe_pulse		= 4,
++
++	.read_cycle		= 7,
++	.write_cycle		= 7,
++
++	.mode			= AT91_SMC_READMODE | AT91_SMC_WRITEMODE | AT91_SMC_EXNWMODE_DISABLE,
++	.tdf_cycles		= 3,
++};
++
++static void __init ek_add_device_nand(void)
++{
++	/* setup bus-width (8 or 16) */
++	if (ek_nand_data.bus_width_16)
++		ek_nand_smc_config.mode |= AT91_SMC_DBW_16;
++	else
++		ek_nand_smc_config.mode |= AT91_SMC_DBW_8;
++
++	/* configure chip-select 3 (NAND) */
++	sam9_smc_configure(3, &ek_nand_smc_config);
++
++	at91_add_device_nand(&ek_nand_data);
++}
++
++
++/*
++ * MCI (SD/MMC)
++ * det_pin and wp_pin are not connected
++ */
++#if defined(CONFIG_MMC_ATMELMCI) || defined(CONFIG_MMC_ATMELMCI_MODULE)
++static struct mci_platform_data __initdata ek_mmc_data = {
++	.slot[0] = {
++		.bus_width	= 4,
++		.detect_pin	= -ENODEV,
++		.wp_pin		= -ENODEV,
++	},
++	.slot[1] = {
++		.bus_width	= 4,
++		.detect_pin	= -ENODEV,
++		.wp_pin		= -ENODEV,
++	},
++
++};
++#else
++static struct amci_platform_data __initdata ek_mmc_data = {
++};
++#endif
++
++/*
++ * LEDs
++ */
++static struct gpio_led ek_leds[] = {
++	{	/* "bottom" led, green, userled1 to be defined */
++		.name			= "ds5",
++		.gpio			= AT91_PIN_PB12,
++		.active_low		= 1,
++		.default_trigger	= "none",
++	},
++	{	/* "power" led, yellow */
++		.name			= "ds1",
++		.gpio			= AT91_PIN_PB13,
++		.default_trigger	= "heartbeat",
++	}
++};
++
++static struct i2c_board_info __initdata ek_i2c_devices[] = {
++	{
++		I2C_BOARD_INFO("24c512", 0x50),
++	},
++};
++
++
++static void __init ek_board_init(void)
++{
++	/* Serial */
++	at91_add_device_serial();
++	/* USB Host */
++	at91_add_device_usbh(&ek_usbh_data);
++	/* USB Device */
++	at91_add_device_udc(&ek_udc_data);
++	/* SPI */
++	at91_add_device_spi(ek_spi_devices, ARRAY_SIZE(ek_spi_devices));
++	/* NAND */
++	ek_add_device_nand();
++	/* Ethernet */
++	at91_add_device_eth(&ek_macb_data);
++	/* MMC */
++	at91_add_device_mci(0, &ek_mmc_data);
++	/* I2C */
++	at91_add_device_i2c(ek_i2c_devices, ARRAY_SIZE(ek_i2c_devices));
++	/* LEDs */
++	at91_gpio_leds(ek_leds, ARRAY_SIZE(ek_leds));
++	/* PCK0 provides MCLK to the WM8731 */
++	at91_set_B_periph(AT91_PIN_PC1, 0);
++	/* SSC (for WM8731) */
++	at91_add_device_ssc(AT91SAM9260_ID_SSC, ATMEL_SSC_TX);
++}
++
++MACHINE_START(AT91SAM9G20EK_2MMC, "Atmel AT91SAM9G20-EK 2 MMC Slot Mod")
++	/* Maintainer: Rob Emanuele */
++	.phys_io	= AT91_BASE_SYS,
++	.io_pg_offst	= (AT91_VA_BASE_SYS >> 18) & 0xfffc,
++	.boot_params	= AT91_SDRAM_BASE + 0x100,
++	.timer		= &at91sam926x_timer,
++	.map_io		= ek_map_io,
++	.init_irq	= ek_init_irq,
++	.init_machine	= ek_board_init,
++MACHINE_END
+diff -puN arch/arm/mach-at91/include/mach/board.h~at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver arch/arm/mach-at91/include/mach/board.h
+--- a/arch/arm/mach-at91/include/mach/board.h~at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver
++++ a/arch/arm/mach-at91/include/mach/board.h
+@@ -37,6 +37,7 @@
+ #include <linux/leds.h>
+ #include <linux/spi/spi.h>
+ #include <linux/usb/atmel_usba_udc.h>
++#include <linux/atmel-mci.h>
+ #include <sound/atmel-ac97c.h>
  
- static const struct mmc_bus_ops mmc_sdio_ops = {
- 	.remove = mmc_sdio_remove,
- 	.detect = mmc_sdio_detect,
-+	.suspend = mmc_sdio_suspend,
-+	.resume = mmc_sdio_resume,
+  /* USB Device */
+@@ -64,6 +65,7 @@ struct at91_cf_data {
+ extern void __init at91_add_device_cf(struct at91_cf_data *data);
+ 
+  /* MMC / SD */
++  /* at91_mci platform config */
+ struct at91_mmc_data {
+ 	u8		det_pin;	/* card detect IRQ */
+ 	unsigned	slot_b:1;	/* uses Slot B */
+@@ -73,6 +75,9 @@ struct at91_mmc_data {
  };
+ extern void __init at91_add_device_mmc(short mmc_id, struct at91_mmc_data *data);
  
- 
-@@ -309,103 +501,18 @@ int mmc_attach_sdio(struct mmc_host *hos
- 	}
- 
- 	/*
--	 * Inform the card of the voltage
-+	 * Detect and init the card.
- 	 */
--	err = mmc_send_io_op_cond(host, host->ocr, &ocr);
-+	err = mmc_sdio_init_card(host, host->ocr, NULL);
- 	if (err)
- 		goto err;
--
--	/*
--	 * For SPI, enable CRC as appropriate.
--	 */
--	if (mmc_host_is_spi(host)) {
--		err = mmc_spi_set_crc(host, use_spi_crc);
--		if (err)
--			goto err;
--	}
-+	card = host->card;
- 
- 	/*
- 	 * The number of functions on the card is encoded inside
- 	 * the ocr.
- 	 */
--	funcs = (ocr & 0x70000000) >> 28;
--
--	/*
--	 * Allocate card structure.
--	 */
--	card = mmc_alloc_card(host, NULL);
--	if (IS_ERR(card)) {
--		err = PTR_ERR(card);
--		goto err;
--	}
--
--	card->type = MMC_TYPE_SDIO;
--	card->sdio_funcs = funcs;
--
--	host->card = card;
--
--	/*
--	 * For native busses:  set card RCA and quit open drain mode.
--	 */
--	if (!mmc_host_is_spi(host)) {
--		err = mmc_send_relative_addr(host, &card->rca);
--		if (err)
--			goto remove;
--
--		mmc_set_bus_mode(host, MMC_BUSMODE_PUSHPULL);
--	}
--
--	/*
--	 * Select card, as all following commands rely on that.
--	 */
--	if (!mmc_host_is_spi(host)) {
--		err = mmc_select_card(card);
--		if (err)
--			goto remove;
--	}
--
--	/*
--	 * Read the common registers.
--	 */
--	err = sdio_read_cccr(card);
--	if (err)
--		goto remove;
--
--	/*
--	 * Read the common CIS tuples.
--	 */
--	err = sdio_read_common_cis(card);
--	if (err)
--		goto remove;
--
--	/*
--	 * Switch to high-speed (if supported).
--	 */
--	err = sdio_enable_hs(card);
--	if (err)
--		goto remove;
--
--	/*
--	 * Change to the card's maximum speed.
--	 */
--	if (mmc_card_highspeed(card)) {
--		/*
--		 * The SDIO specification doesn't mention how
--		 * the CIS transfer speed register relates to
--		 * high-speed, but it seems that 50 MHz is
--		 * mandatory.
--		 */
--		mmc_set_clock(host, 50000000);
--	} else {
--		mmc_set_clock(host, card->cis.max_dtr);
--	}
++  /* atmel-mci platform config */
++extern void __init at91_add_device_mci(short mmc_id, struct mci_platform_data *data);
++
+  /* Ethernet (EMAC & MACB) */
+ struct at91_eth_data {
+ 	u32		phy_mask;
+_
+
+Patches currently in -mm which might be from rob@emanuele.us are
+
+origin.patch
+
