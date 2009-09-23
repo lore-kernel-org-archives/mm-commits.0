@@ -1,157 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged] proc-connector-add-event-for-process-becoming-session-leader.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 12:52:44 -0700
-Message-ID: <200909231952.n8NJqiZi029759@imap1.linux-foundation.org>
+Subject: [merged] printk_once-use-bool-for-boolean-flag.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 12:52:48 -0700
+Message-ID: <200909231952.n8NJqmXr029870@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37890 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56192 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751766AbZIWTxb (ORCPT
+	by vger.kernel.org with ESMTP id S1751782AbZIWTxk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 15:53:31 -0400
+	Wed, 23 Sep 2009 15:53:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: scott@ubuntu.com, davem@davemloft.net, johnpol@2ka.mipt.ru, matthltc@us.ibm.com, oleg@tv-sign.ru, mm-commits@vger.kernel.org
+To: rdreier@cisco.com, rolandd@cisco.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     proc connector: add event for process becoming session leader
+     printk_once(): use bool for boolean flag
 has been removed from the -mm tree.  Its filename was
-     proc-connector-add-event-for-process-becoming-session-leader.patch
+     printk_once-use-bool-for-boolean-flag.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc connector: add event for process becoming session leader
-From: Scott James Remnant <scott@ubuntu.com>
+Subject: printk_once(): use bool for boolean flag
+From: Roland Dreier <rdreier@cisco.com>
 
-The act of a process becoming a session leader is a useful signal to a
-supervising init daemon such as Upstart.
+Using the type bool (instead of int) for the __print_once flag in the
+printk_once() macro matches the intent of the code better, and allows the
+compiler to generate smaller code; eg a typical callsite with gcc 4.3.3 on
+i386:
 
-While a daemon will normally do this as part of the process of becoming a
-daemon, it is rare for its children to do so.  When the children do, it is
-nearly always a sign that the child should be considered detached from the
-parent and not supervised along with it.
+add/remove: 0/0 grow/shrink: 0/2 up/down: 0/-6 (-6)
+function                                     old     new   delta
+static.__print_once                            4       1      -3
+get_cpu_vendor                               146     143      -3
 
-The poster-child example is OpenSSH; the per-login children call setsid()
-so that they may control the pty connected to them.  If the primary daemon
-dies or is restarted, we do not want to consider the per-login children
-and want to respawn the primary daemon without killing the children.
+Saving 6 bytes of object size per callsite by slightly improving the
+readability of the source seems like a win to me.
 
-This patch adds a new PROC_SID_EVENT and associated structure to the
-proc_event event_data union, it arranges for this to be emitted when the
-special PIDTYPE_SID pid is set.
-
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Scott James Remnant <scott@ubuntu.com>
-Acked-by: Matt Helsley <matthltc@us.ibm.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-Acked-by: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Roland Dreier <rolandd@cisco.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/connector/cn_proc.c |   25 +++++++++++++++++++++++++
- include/linux/cn_proc.h     |   10 ++++++++++
- kernel/exit.c               |    4 +++-
- 3 files changed, 38 insertions(+), 1 deletion(-)
+ include/linux/kernel.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/connector/cn_proc.c~proc-connector-add-event-for-process-becoming-session-leader drivers/connector/cn_proc.c
---- a/drivers/connector/cn_proc.c~proc-connector-add-event-for-process-becoming-session-leader
-+++ a/drivers/connector/cn_proc.c
-@@ -139,6 +139,31 @@ void proc_id_connector(struct task_struc
- 	cn_netlink_send(msg, CN_IDX_PROC, GFP_KERNEL);
- }
- 
-+void proc_sid_connector(struct task_struct *task)
-+{
-+	struct cn_msg *msg;
-+	struct proc_event *ev;
-+	struct timespec ts;
-+	__u8 buffer[CN_PROC_MSG_SIZE];
-+
-+	if (atomic_read(&proc_event_num_listeners) < 1)
-+		return;
-+
-+	msg = (struct cn_msg *)buffer;
-+	ev = (struct proc_event *)msg->data;
-+	get_seq(&msg->seq, &ev->cpu);
-+	ktime_get_ts(&ts); /* get high res monotonic timestamp */
-+	put_unaligned(timespec_to_ns(&ts), (__u64 *)&ev->timestamp_ns);
-+	ev->what = PROC_EVENT_SID;
-+	ev->event_data.sid.process_pid = task->pid;
-+	ev->event_data.sid.process_tgid = task->tgid;
-+
-+	memcpy(&msg->id, &cn_proc_event_id, sizeof(msg->id));
-+	msg->ack = 0; /* not used */
-+	msg->len = sizeof(*ev);
-+	cn_netlink_send(msg, CN_IDX_PROC, GFP_KERNEL);
-+}
-+
- void proc_exit_connector(struct task_struct *task)
- {
- 	struct cn_msg *msg;
-diff -puN include/linux/cn_proc.h~proc-connector-add-event-for-process-becoming-session-leader include/linux/cn_proc.h
---- a/include/linux/cn_proc.h~proc-connector-add-event-for-process-becoming-session-leader
-+++ a/include/linux/cn_proc.h
-@@ -52,6 +52,7 @@ struct proc_event {
- 		PROC_EVENT_EXEC = 0x00000002,
- 		PROC_EVENT_UID  = 0x00000004,
- 		PROC_EVENT_GID  = 0x00000040,
-+		PROC_EVENT_SID  = 0x00000080,
- 		/* "next" should be 0x00000400 */
- 		/* "last" is the last process event: exit */
- 		PROC_EVENT_EXIT = 0x80000000
-@@ -89,6 +90,11 @@ struct proc_event {
- 			} e;
- 		} id;
- 
-+		struct sid_proc_event {
-+			__kernel_pid_t process_pid;
-+			__kernel_pid_t process_tgid;
-+		} sid;
-+
- 		struct exit_proc_event {
- 			__kernel_pid_t process_pid;
- 			__kernel_pid_t process_tgid;
-@@ -102,6 +108,7 @@ struct proc_event {
- void proc_fork_connector(struct task_struct *task);
- void proc_exec_connector(struct task_struct *task);
- void proc_id_connector(struct task_struct *task, int which_id);
-+void proc_sid_connector(struct task_struct *task);
- void proc_exit_connector(struct task_struct *task);
- #else
- static inline void proc_fork_connector(struct task_struct *task)
-@@ -114,6 +121,9 @@ static inline void proc_id_connector(str
- 				     int which_id)
- {}
- 
-+static inline void proc_sid_connector(struct task_struct *task)
-+{}
-+
- static inline void proc_exit_connector(struct task_struct *task)
- {}
- #endif	/* CONFIG_PROC_EVENTS */
-diff -puN kernel/exit.c~proc-connector-add-event-for-process-becoming-session-leader kernel/exit.c
---- a/kernel/exit.c~proc-connector-add-event-for-process-becoming-session-leader
-+++ a/kernel/exit.c
-@@ -359,8 +359,10 @@ void __set_special_pids(struct pid *pid)
- {
- 	struct task_struct *curr = current->group_leader;
- 
--	if (task_session(curr) != pid)
-+	if (task_session(curr) != pid) {
- 		change_pid(curr, PIDTYPE_SID, pid);
-+		proc_sid_connector(curr);
-+	}
- 
- 	if (task_pgrp(curr) != pid)
- 		change_pid(curr, PIDTYPE_PGID, pid);
+diff -puN include/linux/kernel.h~printk_once-use-bool-for-boolean-flag include/linux/kernel.h
+--- a/include/linux/kernel.h~printk_once-use-bool-for-boolean-flag
++++ a/include/linux/kernel.h
+@@ -252,10 +252,10 @@ extern int printk_delay_msec;
+  * Print a one-time message (analogous to WARN_ONCE() et al):
+  */
+ #define printk_once(x...) ({			\
+-	static int __print_once = 1;		\
++	static bool __print_once = true;	\
+ 						\
+ 	if (__print_once) {			\
+-		__print_once = 0;		\
++		__print_once = false;		\
+ 		printk(x);			\
+ 	}					\
+ })
 _
 
-Patches currently in -mm which might be from scott@ubuntu.com are
+Patches currently in -mm which might be from rdreier@cisco.com are
 
 origin.patch
+linux-next.patch
+ecryptfs-another-lockdep-issue.patch
 
