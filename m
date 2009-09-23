@@ -1,82 +1,163 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mtd-jedec_probe-fix-nec-upd29f064115-detection.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 13:05:23 -0700
-Message-ID: <200909232005.n8NK5NfX023258@imap1.linux-foundation.org>
+Subject: [merged] blackfin-convert-to-use-arch_gettimeoffset.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 13:05:29 -0700
+Message-ID: <200909232005.n8NK5TgE023487@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59408 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55410 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753956AbZIWUGD (ORCPT
+	by vger.kernel.org with ESMTP id S1753709AbZIWUF6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 16:06:03 -0400
+	Wed, 23 Sep 2009 16:05:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ito@mlb.co.jp, David.Woodhouse@intel.com, anemo@mba.ocn.ne.jp, dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: johnstul@us.ibm.com, vapier.adi@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mtd: jedec_probe: fix NEC uPD29F064115 detection
+     blackfin: convert to use arch_gettimeoffset()
 has been removed from the -mm tree.  Its filename was
-     mtd-jedec_probe-fix-nec-upd29f064115-detection.patch
+     blackfin-convert-to-use-arch_gettimeoffset.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd: jedec_probe: fix NEC uPD29F064115 detection
-From: Hiroshi Ito <ito@mlb.co.jp>
+Subject: blackfin: convert to use arch_gettimeoffset()
+From: john stultz <johnstul@us.ibm.com>
 
-linux v2.6.31-rc6 can not detect NEC uPD29F064115.
+Convert blackfin to use GENERIC_TIME via the arch_getoffset()
+infrastructure, reducing the amount of arch specific code we need to
+maintain.
 
-uPD29F064115 is a 16 bit device.
-datasheet:
-  http://www.cn.necel.com/memory/cn/download/M16062EJ2V0DS00.pdf
+I've taken my best swing at converting this, but I'm not 100% confident
+I got it right. My cross-compiler is now out of date (gcc4.2) so I
+wasn't able to  check if it compiled. Any assistance from arch
+maintainers or testers to get this merged would be great.
 
-A problem and fix is described in the following commit, which in the main
-kernel tree, uPD29F064115 needs same fix.
-
-commit ca6f12c67ed19718cf37d0f531af9438de85b70c
-Author: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-Date:   Wed Jul 16 00:09:15 2008 +0900
-
-    [MTD] jedec_probe: Fix SST 16-bit chip detection
-
-    The unlock_addr rework in kernel 2.6.25 breaks 16-bit SST chips.  SST
-    39LF160 and SST 39VF1601 are both 16-bit only chip (do not have BYTE#
-    pin) and new uaddr value is not correct for them.  Add
-    MTD_UADDR_0xAAAA_0x5555 for those chips.  Tested with SST 39VF1601
-    chip.
-
-    Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-    Signed-off-by: David Woodhouse <David.Woodhouse@intel.com>
-
-Signed-off-by: Hiroshi Ito <ito@mlb.co.jp>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Signed-off-by: John Stultz <johnstul@us.ibm.com>
+Cc: Mike Frysinger <vapier.adi@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/chips/jedec_probe.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/blackfin/Kconfig       |   10 +++--
+ arch/blackfin/kernel/time.c |   63 +---------------------------------
+ 2 files changed, 8 insertions(+), 65 deletions(-)
 
-diff -puN drivers/mtd/chips/jedec_probe.c~mtd-jedec_probe-fix-nec-upd29f064115-detection drivers/mtd/chips/jedec_probe.c
---- a/drivers/mtd/chips/jedec_probe.c~mtd-jedec_probe-fix-nec-upd29f064115-detection
-+++ a/drivers/mtd/chips/jedec_probe.c
-@@ -1156,8 +1156,8 @@ static const struct amd_flash_info jedec
- 		.mfr_id		= MANUFACTURER_NEC,
- 		.dev_id		= UPD29F064115,
- 		.name		= "NEC uPD29F064115",
--		.devtypes	= CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
--		.uaddr		= MTD_UADDR_0x0555_0x02AA,	/* ???? */
-+		.devtypes	= CFI_DEVICETYPE_X16,
-+		.uaddr		= MTD_UADDR_0xAAAA_0x5555,
- 		.dev_size	= SIZE_8MiB,
- 		.cmd_set	= P_ID_AMD_STD,
- 		.nr_regions	= 3,
-_
-
-Patches currently in -mm which might be from ito@mlb.co.jp are
-
-origin.patch
-
+diff -puN arch/blackfin/Kconfig~blackfin-convert-to-use-arch_gettimeoffset arch/blackfin/Kconfig
+--- a/arch/blackfin/Kconfig~blackfin-convert-to-use-arch_gettimeoffset
++++ a/arch/blackfin/Kconfig
+@@ -229,7 +229,7 @@ endchoice
+ 
+ config SMP
+ 	depends on BF561
+-	select GENERIC_TIME
++	select GENERIC_CLOCKEVENTS
+ 	bool "Symmetric multi-processing support"
+ 	---help---
+ 	  This enables support for systems with more than one CPU,
+@@ -612,12 +612,10 @@ comment "Kernel Timer/Scheduler"
+ source kernel/Kconfig.hz
+ 
+ config GENERIC_TIME
+-	bool "Generic time"
+-	default y
++	def_bool y
+ 
+ config GENERIC_CLOCKEVENTS
+ 	bool "Generic clock events"
+-	depends on GENERIC_TIME
+ 	default y
+ 
+ choice
+@@ -652,6 +650,10 @@ config GPTMR0_CLOCKSOURCE
+ 	depends on GENERIC_CLOCKEVENTS
+ 	depends on !TICKSOURCE_GPTMR0
+ 
++config ARCH_USES_GETTIMEOFFSET
++	depends on !GENERIC_CLOCKEVENTS
++	def_bool y
++
+ source kernel/time/Kconfig
+ 
+ comment "Misc"
+diff -puN arch/blackfin/kernel/time.c~blackfin-convert-to-use-arch_gettimeoffset arch/blackfin/kernel/time.c
+--- a/arch/blackfin/kernel/time.c~blackfin-convert-to-use-arch_gettimeoffset
++++ a/arch/blackfin/kernel/time.c
+@@ -81,11 +81,11 @@ time_sched_init(irqreturn_t(*timer_routi
+ #endif
+ }
+ 
++#ifdef CONFIG_ARCH_USES_GETTIMEOFFSET
+ /*
+  * Should return useconds since last timer tick
+  */
+-#ifndef CONFIG_GENERIC_TIME
+-static unsigned long gettimeoffset(void)
++u32 arch_gettimeoffset(void)
+ {
+ 	unsigned long offset;
+ 	unsigned long clocks_per_jiffy;
+@@ -184,65 +184,6 @@ void __init time_init(void)
+ 	time_sched_init(timer_interrupt);
+ }
+ 
+-#ifndef CONFIG_GENERIC_TIME
+-void do_gettimeofday(struct timeval *tv)
+-{
+-	unsigned long flags;
+-	unsigned long seq;
+-	unsigned long usec, sec;
+-
+-	do {
+-		seq = read_seqbegin_irqsave(&xtime_lock, flags);
+-		usec = gettimeoffset();
+-		sec = xtime.tv_sec;
+-		usec += (xtime.tv_nsec / NSEC_PER_USEC);
+-	}
+-	while (read_seqretry_irqrestore(&xtime_lock, seq, flags));
+-
+-	while (usec >= USEC_PER_SEC) {
+-		usec -= USEC_PER_SEC;
+-		sec++;
+-	}
+-
+-	tv->tv_sec = sec;
+-	tv->tv_usec = usec;
+-}
+-EXPORT_SYMBOL(do_gettimeofday);
+-
+-int do_settimeofday(struct timespec *tv)
+-{
+-	time_t wtm_sec, sec = tv->tv_sec;
+-	long wtm_nsec, nsec = tv->tv_nsec;
+-
+-	if ((unsigned long)tv->tv_nsec >= NSEC_PER_SEC)
+-		return -EINVAL;
+-
+-	write_seqlock_irq(&xtime_lock);
+-	/*
+-	 * This is revolting. We need to set the xtime.tv_usec
+-	 * correctly. However, the value in this location is
+-	 * is value at the last tick.
+-	 * Discover what correction gettimeofday
+-	 * would have done, and then undo it!
+-	 */
+-	nsec -= (gettimeoffset() * NSEC_PER_USEC);
+-
+-	wtm_sec = wall_to_monotonic.tv_sec + (xtime.tv_sec - sec);
+-	wtm_nsec = wall_to_monotonic.tv_nsec + (xtime.tv_nsec - nsec);
+-
+-	set_normalized_timespec(&xtime, sec, nsec);
+-	set_normalized_timespec(&wall_to_monotonic, wtm_sec, wtm_nsec);
+-
+-	ntp_clear();
+-
+-	write_sequnlock_irq(&xtime_lock);
+-	clock_was_set();
+-
+-	return 0;
+-}
+-EXPORT_SYMBOL(do_settimeofday);
+-#endif /* !CONFIG_GENERIC_TIME */
