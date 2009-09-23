@@ -1,35 +1,39 @@
 From: akpm@linux-foundation.org
-Subject: [merged] omap_hsmmc-set-open-drain-bit-correctly.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 12:54:47 -0700
-Message-ID: <200909231954.n8NJslDL001449@imap1.linux-foundation.org>
+Subject: [merged] omap_hsmmc-keep-track-of-power-mode.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 12:54:43 -0700
+Message-ID: <200909231954.n8NJshNb001306__18489.2655852765$1253735754$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37327 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56874 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753360AbZIWTzh (ORCPT
+	by vger.kernel.org with ESMTP id S1753360AbZIWTzZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 15:55:37 -0400
+	Wed, 23 Sep 2009 15:55:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ext-denis.2.karpov@nokia.com, adrian.hunter@nokia.com, ian@mnementh.co.uk, jarkko.lavinen@nokia.com, linux-mmc@vger.kernel.org, madhu.cr@ti.com, matt@console-pimps.org, philipl@overt.
+To: adrian.hunter@nokia.com, ext-denis.2.karpov@nokia.com, ian@mnementh.co.uk, jarkko.lavinen@nokia.com, linux-mmc@vger.kernel.org, madhu.cr@ti.com, matt@console-pimps.org, philipl@overt.
 
 
 The patch titled
-     omap_hsmmc: set open drain bit correctly
+     omap_hsmmc: keep track of power mode
 has been removed from the -mm tree.  Its filename was
-     omap_hsmmc-set-open-drain-bit-correctly.patch
+     omap_hsmmc-keep-track-of-power-mode.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: omap_hsmmc: set open drain bit correctly
-From: Denis Karpov <ext-denis.2.karpov@nokia.com>
+Subject: omap_hsmmc: keep track of power mode
+From: Adrian Hunter <adrian.hunter@nokia.com>
 
-The code could set the bit to 1 but not reset it to 0.
+This patch is preparation for adding context save and restore support.
 
-Signed-off-by: Denis Karpov <ext-denis.2.karpov@nokia.com>
+Keep track of the current power mode so that the context restore function
+can avoid restoring the context for a card if the power has been switched
+off.  If the power is off, the card must be reinitialized anyway which
+will re-establish the context.
+
 Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
 Acked-by: Matt Fleming <matt@console-pimps.org>
 Cc: Ian Molton <ian@mnementh.co.uk>
@@ -43,29 +47,73 @@ Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/omap_hsmmc.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/mmc/host/omap_hsmmc.c |   27 +++++++++++++++++++--------
+ 1 file changed, 19 insertions(+), 8 deletions(-)
 
-diff -puN drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-set-open-drain-bit-correctly drivers/mmc/host/omap_hsmmc.c
---- a/drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-set-open-drain-bit-correctly
+diff -puN drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-keep-track-of-power-mode drivers/mmc/host/omap_hsmmc.c
+--- a/drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-keep-track-of-power-mode
 +++ a/drivers/mmc/host/omap_hsmmc.c
-@@ -1118,9 +1118,11 @@ static void omap_mmc_set_ios(struct mmc_
- 	if (do_send_init_stream)
+@@ -143,6 +143,7 @@ struct mmc_omap_host {
+ 	unsigned int		dma_len;
+ 	unsigned int		dma_sg_idx;
+ 	unsigned char		bus_mode;
++	unsigned char		power_mode;
+ 	u32			*buffer;
+ 	u32			bytesleft;
+ 	int			suspended;
+@@ -863,16 +864,25 @@ static void omap_mmc_set_ios(struct mmc_
+ 	unsigned long regval;
+ 	unsigned long timeout;
+ 	u32 con;
++	int do_send_init_stream = 0;
+ 
+ 	mmc_host_enable(host->mmc);
+ 
+-	switch (ios->power_mode) {
+-	case MMC_POWER_OFF:
+-		mmc_slot(host).set_power(host->dev, host->slot_id, 0, 0);
+-		break;
+-	case MMC_POWER_UP:
+-		mmc_slot(host).set_power(host->dev, host->slot_id, 1, ios->vdd);
+-		break;
++	if (ios->power_mode != host->power_mode) {
++		switch (ios->power_mode) {
++		case MMC_POWER_OFF:
++			mmc_slot(host).set_power(host->dev, host->slot_id,
++						 0, 0);
++			break;
++		case MMC_POWER_UP:
++			mmc_slot(host).set_power(host->dev, host->slot_id,
++						 1, ios->vdd);
++			break;
++		case MMC_POWER_ON:
++			do_send_init_stream = 1;
++			break;
++		}
++		host->power_mode = ios->power_mode;
+ 	}
+ 
+ 	con = OMAP_HSMMC_READ(host->base, CON);
+@@ -938,7 +948,7 @@ static void omap_mmc_set_ios(struct mmc_
+ 	OMAP_HSMMC_WRITE(host->base, SYSCTL,
+ 		OMAP_HSMMC_READ(host->base, SYSCTL) | CEN);
+ 
+-	if (ios->power_mode == MMC_POWER_ON)
++	if (do_send_init_stream)
  		send_init_stream(host);
  
-+	con = OMAP_HSMMC_READ(host->base, CON);
  	if (ios->bus_mode == MMC_BUSMODE_OPENDRAIN)
--		OMAP_HSMMC_WRITE(host->base, CON,
--				OMAP_HSMMC_READ(host->base, CON) | OD);
-+		OMAP_HSMMC_WRITE(host->base, CON, con | OD);
-+	else
-+		OMAP_HSMMC_WRITE(host->base, CON, con & ~OD);
+@@ -1116,6 +1126,7 @@ static int __init omap_mmc_probe(struct 
+ 	host->slot_id	= 0;
+ 	host->mapbase	= res->start;
+ 	host->base	= ioremap(host->mapbase, SZ_4K);
++	host->power_mode = -1;
  
- 	mmc_host_lazy_disable(host->mmc);
- }
+ 	platform_set_drvdata(pdev, host);
+ 	INIT_WORK(&host->mmc_carddetect_work, mmc_omap_detect);
 _
 
-Patches currently in -mm which might be from ext-denis.2.karpov@nokia.com are
+Patches currently in -mm which might be from adrian.hunter@nokia.com are
 
 origin.patch
 
