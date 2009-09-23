@@ -1,508 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [merged] at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 12:56:06 -0700
-Message-ID: <200909231956.n8NJu6f7004218__32131.9204442718$1253735840$gmane$org@imap1.linux-foundation.org>
+Subject: [merged] sdhci-increase-timeout-for-internal-clock-stabilization.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 12:56:30 -0700
+Message-ID: <200909231956.n8NJuUvo005000__20801.5113872991$1253735844$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59436 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56300 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753680AbZIWT44 (ORCPT
+	by vger.kernel.org with ESMTP id S1753680AbZIWT5C (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 15:56:56 -0400
+	Wed, 23 Sep 2009 15:57:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rob@emanuele.us, hskinnemoen@atmel.com, linux-mmc@vger.kernel.org, linux@maxim.org.za, nicolas.ferre@atmel.com, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: cjb@laptop.org, HaraldWelte@viatech.com, linux-mmc@vger.kernel.org, pierre@ossman.eu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     AT91: atmel-mci: Platform configuration to the the atmel-mci driver
+     sdhci: increase timeout for internal clock stabilization.
 has been removed from the -mm tree.  Its filename was
-     at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver.patch
+     sdhci-increase-timeout-for-internal-clock-stabilization.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: AT91: atmel-mci: Platform configuration to the the atmel-mci driver
-From: Rob Emanuele <rob@emanuele.us>
+Subject: sdhci: increase timeout for internal clock stabilization.
+From: Chris Ball <cjb@laptop.org>
 
-Created a modified version of the at91sam9g20 evaluation kit platform
-(board-sam9g20ek-2slot-mmc.c) and device support to make use of the
-updated atmel-mci driver.
+On an OLPC XO-1.5 development board with Via VX855 chipset, the sdhci
+controller can take up to 12ms to stabilize its clock, but the current
+timeout at which we give up on the controller is 10ms.
 
-As the use of two slots modify GPIO pin allocation, we create another
-board file.
+The patch increases the timeout delay rather than using a device-specific
+quirk -- since we exit the loop when the clock comes up, increasing the
+timeout value will only make us mdelay() longer in the errant case of a
+device with a clock that is not stabilizing, which it seems worth waiting
+a little longer for in general.
 
-This requires getting the most updated arch/arm/tools/mach-types from
-http://www.arm.linux.org.uk/developer/machines/download.php to have the machine
-type for the at91sam9g20ek-2slot-mmc board.
-
-[nicolas.ferre@atmel.com: printk, slot_count modification in at91sam9260_devices.c file]
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Rob Emanuele <rob@emanuele.us>
-Signed-off-by: Nicolas Ferre <nicolas.ferre@atmel.com>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: Andrew Victor <linux@maxim.org.za>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Signed-off-by: Chris Ball <cjb@laptop.org>
+Cc: Harald Welte <HaraldWelte@viatech.com>
+Acked-by: Pierre Ossman <pierre@ossman.eu>
 Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-at91/Kconfig                     |    7 
- arch/arm/mach-at91/Makefile                    |    1 
- arch/arm/mach-at91/at91sam9260_devices.c       |   96 +++++
- arch/arm/mach-at91/board-sam9g20ek-2slot-mmc.c |  277 +++++++++++++++
- arch/arm/mach-at91/include/mach/board.h        |    5 
- 5 files changed, 386 insertions(+)
+ drivers/mmc/host/sdhci.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/arm/mach-at91/Kconfig~at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver arch/arm/mach-at91/Kconfig
---- a/arch/arm/mach-at91/Kconfig~at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver
-+++ a/arch/arm/mach-at91/Kconfig
-@@ -289,6 +289,13 @@ config MACH_NEOCORE926
- 	help
- 	  Select this if you are using the Adeneo Neocore 926 board.
+diff -puN drivers/mmc/host/sdhci.c~sdhci-increase-timeout-for-internal-clock-stabilization drivers/mmc/host/sdhci.c
+--- a/drivers/mmc/host/sdhci.c~sdhci-increase-timeout-for-internal-clock-stabilization
++++ a/drivers/mmc/host/sdhci.c
+@@ -994,8 +994,8 @@ static void sdhci_set_clock(struct sdhci
+ 	clk |= SDHCI_CLOCK_INT_EN;
+ 	sdhci_writew(host, clk, SDHCI_CLOCK_CONTROL);
  
-+config MACH_AT91SAM9G20EK_2MMC
-+	bool "Atmel AT91SAM9G20-EK Evaluation Kit modified for 2 MMC Slots"
-+	depends on ARCH_AT91SAM9G20
-+	help
-+	  Select this if you are using an Atmel AT91SAM9G20-EK Evaluation Kit
-+	  Rev A or B modified for 2 MMC Slots.
-+
- endif
- 
- # ----------------------------------------------------------
-diff -puN arch/arm/mach-at91/Makefile~at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver arch/arm/mach-at91/Makefile
---- a/arch/arm/mach-at91/Makefile~at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver
-+++ a/arch/arm/mach-at91/Makefile
-@@ -59,6 +59,7 @@ obj-$(CONFIG_MACH_AT91SAM9RLEK)	+= board
- 
- # AT91SAM9G20 board-specific support
- obj-$(CONFIG_MACH_AT91SAM9G20EK) += board-sam9g20ek.o
-+obj-$(CONFIG_MACH_AT91SAM9G20EK_2MMC) += board-sam9g20ek-2slot-mmc.o
- obj-$(CONFIG_MACH_CPU9G20)	+= board-cpu9krea.o
- 
- # AT91SAM9G45 board-specific support
-diff -puN arch/arm/mach-at91/at91sam9260_devices.c~at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver arch/arm/mach-at91/at91sam9260_devices.c
---- a/arch/arm/mach-at91/at91sam9260_devices.c~at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver
-+++ a/arch/arm/mach-at91/at91sam9260_devices.c
-@@ -278,6 +278,102 @@ void __init at91_add_device_mmc(short mm
- void __init at91_add_device_mmc(short mmc_id, struct at91_mmc_data *data) {}
- #endif
- 
-+/* --------------------------------------------------------------------
-+ *  MMC / SD Slot for Atmel MCI Driver
-+ * -------------------------------------------------------------------- */
-+
-+#if defined(CONFIG_MMC_ATMELMCI) || defined(CONFIG_MMC_ATMELMCI_MODULE)
-+static u64 mmc_dmamask = DMA_BIT_MASK(32);
-+static struct mci_platform_data mmc_data;
-+
-+static struct resource mmc_resources[] = {
-+	[0] = {
-+		.start	= AT91SAM9260_BASE_MCI,
-+		.end	= AT91SAM9260_BASE_MCI + SZ_16K - 1,
-+		.flags	= IORESOURCE_MEM,
-+	},
-+	[1] = {
-+		.start	= AT91SAM9260_ID_MCI,
-+		.end	= AT91SAM9260_ID_MCI,
-+		.flags	= IORESOURCE_IRQ,
-+	},
-+};
-+
-+static struct platform_device at91sam9260_mmc_device = {
-+	.name		= "atmel_mci",
-+	.id		= -1,
-+	.dev		= {
-+				.dma_mask		= &mmc_dmamask,
-+				.coherent_dma_mask	= DMA_BIT_MASK(32),
-+				.platform_data		= &mmc_data,
-+	},
-+	.resource	= mmc_resources,
-+	.num_resources	= ARRAY_SIZE(mmc_resources),
-+};
-+
-+void __init at91_add_device_mci(short mmc_id, struct mci_platform_data *data)
-+{
-+	unsigned int i;
-+	unsigned int slot_count = 0;
-+
-+	if (!data)
-+		return;
-+
-+	for (i = 0; i < ATMEL_MCI_MAX_NR_SLOTS; i++) {
-+		if (data->slot[i].bus_width) {
-+			/* input/irq */
-+			if (data->slot[i].detect_pin) {
-+				at91_set_gpio_input(data->slot[i].detect_pin, 1);
-+				at91_set_deglitch(data->slot[i].detect_pin, 1);
-+			}
-+			if (data->slot[i].wp_pin)
-+				at91_set_gpio_input(data->slot[i].wp_pin, 1);
-+
-+			switch (i) {
-+			case 0:
-+				/* CMD */
-+				at91_set_A_periph(AT91_PIN_PA7, 1);
-+				/* DAT0, maybe DAT1..DAT3 */
-+				at91_set_A_periph(AT91_PIN_PA6, 1);
-+				if (data->slot[i].bus_width == 4) {
-+					at91_set_A_periph(AT91_PIN_PA9, 1);
-+					at91_set_A_periph(AT91_PIN_PA10, 1);
-+					at91_set_A_periph(AT91_PIN_PA11, 1);
-+				}
-+				slot_count++;
-+				break;
-+			case 1:
-+				/* CMD */
-+				at91_set_B_periph(AT91_PIN_PA1, 1);
-+				/* DAT0, maybe DAT1..DAT3 */
-+				at91_set_B_periph(AT91_PIN_PA0, 1);
-+				if (data->slot[i].bus_width == 4) {
-+					at91_set_B_periph(AT91_PIN_PA5, 1);
-+					at91_set_B_periph(AT91_PIN_PA4, 1);
-+					at91_set_B_periph(AT91_PIN_PA3, 1);
-+				}
-+				slot_count++;
-+				break;
-+			default:
-+				printk(KERN_ERR
-+					"AT91: SD/MMC slot %d not available\n", i);
-+				break;
-+			}
-+		}
-+	}
-+
-+	if (slot_count) {
-+		/* CLK */
-+		at91_set_A_periph(AT91_PIN_PA8, 0);
-+
-+		mmc_data = *data;
-+		platform_device_register(&at91sam9260_mmc_device);
-+	}
-+}
-+#else
-+void __init at91_add_device_mci(short mmc_id, struct mci_platform_data *data) {}
-+#endif
-+
- 
- /* --------------------------------------------------------------------
-  *  NAND / SmartMedia
-diff -puN /dev/null arch/arm/mach-at91/board-sam9g20ek-2slot-mmc.c
---- /dev/null
-+++ a/arch/arm/mach-at91/board-sam9g20ek-2slot-mmc.c
-@@ -0,0 +1,277 @@
-+/*
-+ *  Copyright (C) 2005 SAN People
-+ *  Copyright (C) 2008 Atmel
-+ *  Copyright (C) 2009 Rob Emanuele
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ */
-+
-+#include <linux/types.h>
-+#include <linux/init.h>
-+#include <linux/mm.h>
-+#include <linux/module.h>
-+#include <linux/platform_device.h>
-+#include <linux/spi/spi.h>
-+#include <linux/spi/at73c213.h>
-+#include <linux/clk.h>
-+
-+#include <mach/hardware.h>
-+#include <asm/setup.h>
-+#include <asm/mach-types.h>
-+#include <asm/irq.h>
-+
-+#include <asm/mach/arch.h>
-+#include <asm/mach/map.h>
-+#include <asm/mach/irq.h>
-+
-+#include <mach/board.h>
-+#include <mach/gpio.h>
-+#include <mach/at91sam9_smc.h>
-+
-+#include "sam9_smc.h"
-+#include "generic.h"
-+
-+
-+static void __init ek_map_io(void)
-+{
-+	/* Initialize processor: 18.432 MHz crystal */
-+	at91sam9260_initialize(18432000);
-+
-+	/* DGBU on ttyS0. (Rx & Tx only) */
-+	at91_register_uart(0, 0, 0);
-+
-+	/* USART0 on ttyS1. (Rx, Tx, CTS, RTS, DTR, DSR, DCD, RI) */
-+	at91_register_uart(AT91SAM9260_ID_US0, 1, ATMEL_UART_CTS | ATMEL_UART_RTS
-+			   | ATMEL_UART_DTR | ATMEL_UART_DSR | ATMEL_UART_DCD
-+			   | ATMEL_UART_RI);
-+
-+	/* USART1 on ttyS2. (Rx, Tx, RTS, CTS) */
-+	at91_register_uart(AT91SAM9260_ID_US1, 2, ATMEL_UART_CTS | ATMEL_UART_RTS);
-+
-+	/* set serial console to ttyS0 (ie, DBGU) */
-+	at91_set_serial_console(0);
-+}
-+
-+static void __init ek_init_irq(void)
-+{
-+	at91sam9260_init_interrupts(NULL);
-+}
-+
-+
-+/*
-+ * USB Host port
-+ */
-+static struct at91_usbh_data __initdata ek_usbh_data = {
-+	.ports		= 2,
-+};
-+
-+/*
-+ * USB Device port
-+ */
-+static struct at91_udc_data __initdata ek_udc_data = {
-+	.vbus_pin	= AT91_PIN_PC5,
-+	.pullup_pin	= 0,		/* pull-up driven by UDC */
-+};
-+
-+
-+/*
-+ * SPI devices.
-+ */
-+static struct spi_board_info ek_spi_devices[] = {
-+#if !defined(CONFIG_MMC_ATMELMCI)
-+	{	/* DataFlash chip */
-+		.modalias	= "mtd_dataflash",
-+		.chip_select	= 1,
-+		.max_speed_hz	= 15 * 1000 * 1000,
-+		.bus_num	= 0,
-+	},
-+#if defined(CONFIG_MTD_AT91_DATAFLASH_CARD)
-+	{	/* DataFlash card */
-+		.modalias	= "mtd_dataflash",
-+		.chip_select	= 0,
-+		.max_speed_hz	= 15 * 1000 * 1000,
-+		.bus_num	= 0,
-+	},
-+#endif
-+#endif
-+};
-+
-+
-+/*
-+ * MACB Ethernet device
-+ */
-+static struct at91_eth_data __initdata ek_macb_data = {
-+	.phy_irq_pin	= AT91_PIN_PC12,
-+	.is_rmii	= 1,
-+};
-+
-+
-+/*
-+ * NAND flash
-+ */
-+static struct mtd_partition __initdata ek_nand_partition[] = {
-+	{
-+		.name   = "Bootstrap",
-+		.offset = 0,
-+		.size   = 4 * SZ_1M,
-+	},
-+	{
-+		.name	= "Partition 1",
-+		.offset	= MTDPART_OFS_NXTBLK,
-+		.size	= 60 * SZ_1M,
-+	},
-+	{
-+		.name	= "Partition 2",
-+		.offset	= MTDPART_OFS_NXTBLK,
-+		.size	= MTDPART_SIZ_FULL,
-+	},
-+};
-+
-+static struct mtd_partition * __init nand_partitions(int size, int *num_partitions)
-+{
-+	*num_partitions = ARRAY_SIZE(ek_nand_partition);
-+	return ek_nand_partition;
-+}
-+
-+/* det_pin is not connected */
-+static struct atmel_nand_data __initdata ek_nand_data = {
-+	.ale		= 21,
-+	.cle		= 22,
-+	.rdy_pin	= AT91_PIN_PC13,
-+	.enable_pin	= AT91_PIN_PC14,
-+	.partition_info	= nand_partitions,
-+#if defined(CONFIG_MTD_NAND_ATMEL_BUSWIDTH_16)
-+	.bus_width_16	= 1,
-+#else
-+	.bus_width_16	= 0,
-+#endif
-+};
-+
-+static struct sam9_smc_config __initdata ek_nand_smc_config = {
-+	.ncs_read_setup		= 0,
-+	.nrd_setup		= 2,
-+	.ncs_write_setup	= 0,
-+	.nwe_setup		= 2,
-+
-+	.ncs_read_pulse		= 4,
-+	.nrd_pulse		= 4,
-+	.ncs_write_pulse	= 4,
-+	.nwe_pulse		= 4,
-+
-+	.read_cycle		= 7,
-+	.write_cycle		= 7,
-+
-+	.mode			= AT91_SMC_READMODE | AT91_SMC_WRITEMODE | AT91_SMC_EXNWMODE_DISABLE,
-+	.tdf_cycles		= 3,
-+};
-+
-+static void __init ek_add_device_nand(void)
-+{
-+	/* setup bus-width (8 or 16) */
-+	if (ek_nand_data.bus_width_16)
-+		ek_nand_smc_config.mode |= AT91_SMC_DBW_16;
-+	else
-+		ek_nand_smc_config.mode |= AT91_SMC_DBW_8;
-+
-+	/* configure chip-select 3 (NAND) */
-+	sam9_smc_configure(3, &ek_nand_smc_config);
-+
-+	at91_add_device_nand(&ek_nand_data);
-+}
-+
-+
-+/*
-+ * MCI (SD/MMC)
-+ * det_pin and wp_pin are not connected
-+ */
-+#if defined(CONFIG_MMC_ATMELMCI) || defined(CONFIG_MMC_ATMELMCI_MODULE)
-+static struct mci_platform_data __initdata ek_mmc_data = {
-+	.slot[0] = {
-+		.bus_width	= 4,
-+		.detect_pin	= -ENODEV,
-+		.wp_pin		= -ENODEV,
-+	},
-+	.slot[1] = {
-+		.bus_width	= 4,
-+		.detect_pin	= -ENODEV,
-+		.wp_pin		= -ENODEV,
-+	},
-+
-+};
-+#else
-+static struct amci_platform_data __initdata ek_mmc_data = {
-+};
-+#endif
-+
-+/*
-+ * LEDs
-+ */
-+static struct gpio_led ek_leds[] = {
-+	{	/* "bottom" led, green, userled1 to be defined */
-+		.name			= "ds5",
-+		.gpio			= AT91_PIN_PB12,
-+		.active_low		= 1,
-+		.default_trigger	= "none",
-+	},
-+	{	/* "power" led, yellow */
-+		.name			= "ds1",
-+		.gpio			= AT91_PIN_PB13,
-+		.default_trigger	= "heartbeat",
-+	}
-+};
-+
-+static struct i2c_board_info __initdata ek_i2c_devices[] = {
-+	{
-+		I2C_BOARD_INFO("24c512", 0x50),
-+	},
-+};
-+
-+
-+static void __init ek_board_init(void)
-+{
-+	/* Serial */
-+	at91_add_device_serial();
-+	/* USB Host */
-+	at91_add_device_usbh(&ek_usbh_data);
-+	/* USB Device */
-+	at91_add_device_udc(&ek_udc_data);
-+	/* SPI */
-+	at91_add_device_spi(ek_spi_devices, ARRAY_SIZE(ek_spi_devices));
-+	/* NAND */
-+	ek_add_device_nand();
-+	/* Ethernet */
-+	at91_add_device_eth(&ek_macb_data);
-+	/* MMC */
-+	at91_add_device_mci(0, &ek_mmc_data);
-+	/* I2C */
-+	at91_add_device_i2c(ek_i2c_devices, ARRAY_SIZE(ek_i2c_devices));
-+	/* LEDs */
-+	at91_gpio_leds(ek_leds, ARRAY_SIZE(ek_leds));
-+	/* PCK0 provides MCLK to the WM8731 */
-+	at91_set_B_periph(AT91_PIN_PC1, 0);
-+	/* SSC (for WM8731) */
-+	at91_add_device_ssc(AT91SAM9260_ID_SSC, ATMEL_SSC_TX);
-+}
-+
-+MACHINE_START(AT91SAM9G20EK_2MMC, "Atmel AT91SAM9G20-EK 2 MMC Slot Mod")
-+	/* Maintainer: Rob Emanuele */
-+	.phys_io	= AT91_BASE_SYS,
-+	.io_pg_offst	= (AT91_VA_BASE_SYS >> 18) & 0xfffc,
-+	.boot_params	= AT91_SDRAM_BASE + 0x100,
-+	.timer		= &at91sam926x_timer,
-+	.map_io		= ek_map_io,
-+	.init_irq	= ek_init_irq,
-+	.init_machine	= ek_board_init,
-+MACHINE_END
-diff -puN arch/arm/mach-at91/include/mach/board.h~at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver arch/arm/mach-at91/include/mach/board.h
---- a/arch/arm/mach-at91/include/mach/board.h~at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver
-+++ a/arch/arm/mach-at91/include/mach/board.h
-@@ -37,6 +37,7 @@
- #include <linux/leds.h>
- #include <linux/spi/spi.h>
- #include <linux/usb/atmel_usba_udc.h>
-+#include <linux/atmel-mci.h>
- #include <sound/atmel-ac97c.h>
- 
-  /* USB Device */
-@@ -64,6 +65,7 @@ struct at91_cf_data {
- extern void __init at91_add_device_cf(struct at91_cf_data *data);
- 
-  /* MMC / SD */
-+  /* at91_mci platform config */
- struct at91_mmc_data {
- 	u8		det_pin;	/* card detect IRQ */
- 	unsigned	slot_b:1;	/* uses Slot B */
-@@ -73,6 +75,9 @@ struct at91_mmc_data {
- };
- extern void __init at91_add_device_mmc(short mmc_id, struct at91_mmc_data *data);
- 
-+  /* atmel-mci platform config */
-+extern void __init at91_add_device_mci(short mmc_id, struct mci_platform_data *data);
-+
-  /* Ethernet (EMAC & MACB) */
- struct at91_eth_data {
- 	u32		phy_mask;
+-	/* Wait max 10 ms */
+-	timeout = 10;
++	/* Wait max 20 ms */
++	timeout = 20;
+ 	while (!((clk = sdhci_readw(host, SDHCI_CLOCK_CONTROL))
+ 		& SDHCI_CLOCK_INT_STABLE)) {
+ 		if (timeout == 0) {
 _
 
-Patches currently in -mm which might be from rob@emanuele.us are
+Patches currently in -mm which might be from cjb@laptop.org are
 
 origin.patch
 
