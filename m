@@ -1,76 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [folded] exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 15:36:10 -0700
-Message-ID: <200909232236.n8NMaB3U030599@imap1.linux-foundation.org>
+Subject: [folded] elf-clean-up-fill_note_info-fix.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 15:36:40 -0700
+Message-ID: <200909232236.n8NMaeeG031573@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51581 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56455 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752249AbZIWWgR (ORCPT
+	by vger.kernel.org with ESMTP id S1752066AbZIWWgn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 18:36:17 -0400
+	Wed, 23 Sep 2009 18:36:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, nhorman@tuxdriver.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, amwang@redhat.com, dhowells@redhat.com, roland@redhat.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes
+     elf-clean-up-fill_note_info-fix
 has been removed from the -mm tree.  Its filename was
-     exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
+     elf-clean-up-fill_note_info-fix.patch
 
-This patch was dropped because it was folded into exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9.patch
+This patch was dropped because it was folded into elf-clean-up-fill_note_info.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes
+Subject: elf-clean-up-fill_note_info-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: code indent should use tabs where possible
-#115: FILE: fs/exec.c:1838:
-+ ^I^Iif (call_usermodehelper_pipe(helper_argv[0], helper_argv, NULL,$
+Remove NUM_NOTES
 
-ERROR: code indent should use tabs where possible
-#120: FILE: fs/exec.c:1842:
-+ ^I^I^Igoto fail_dropcount;$
-
-WARNING: externs should be avoided in .c files
-#149: FILE: kernel/sysctl.c:80:
-+extern unsigned int core_pipe_limit;
-
-total: 2 errors, 1 warnings, 120 lines checked
-
-./patches/exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Neil Horman <nhorman@tuxdriver.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Amerigo Wang <amwang@redhat.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: WANG Cong <amwang@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/binfmt_elf.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN fs/exec.c~exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes fs/exec.c
---- a/fs/exec.c~exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes
-+++ a/fs/exec.c
-@@ -1835,11 +1835,11 @@ void do_coredump(long signr, int exit_co
- 		core_limit = RLIM_INFINITY;
+diff -puN fs/binfmt_elf.c~elf-clean-up-fill_note_info-fix fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~elf-clean-up-fill_note_info-fix
++++ a/fs/binfmt_elf.c
+@@ -1719,10 +1719,8 @@ static int elf_note_info_init(struct elf
+ 	memset(info, 0, sizeof(*info));
+ 	INIT_LIST_HEAD(&info->thread_list);
  
- 		/* SIGPIPE can happen, but it's just never processed */
-- 		if (call_usermodehelper_pipe(helper_argv[0], helper_argv, NULL,
-+		if (call_usermodehelper_pipe(helper_argv[0], helper_argv, NULL,
- 				&file)) {
-  			printk(KERN_INFO "Core dump to %s pipe failed\n",
- 			       corename);
-- 			goto fail_dropcount;
-+			goto fail_dropcount;
-  		}
-  	} else
-  		file = filp_open(corename,
+-#define	NUM_NOTES	6
+-	info->notes = kmalloc(NUM_NOTES * sizeof(struct memelfnote),
+-			      GFP_KERNEL);
+-#undef NUM_NOTES
++	/* Allocate space for six ELF notes */
++	info->notes = kmalloc(6 * sizeof(struct memelfnote), GFP_KERNEL);
+ 	if (!info->notes)
+ 		return 0;
+ 	info->psinfo = kmalloc(sizeof(*info->psinfo), GFP_KERNEL);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -83,6 +68,6 @@ memory-controller-soft-limit-reclaim-on-contention-v9.patch
 memcg-improve-resource-counter-scalability.patch
 exec-make-do_coredump-more-resilient-to-recursive-crashes-v9.patch
 exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9.patch
-exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
+elf-clean-up-fill_note_info.patch
 elf-clean-up-fill_note_info-fix.patch
 
