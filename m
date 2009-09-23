@@ -1,321 +1,177 @@
 From: akpm@linux-foundation.org
-Subject: [merged] anonfd-split-interface-into-file-creation-and-install.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 12:53:11 -0700
-Message-ID: <200909231953.n8NJrBeS030614@imap1.linux-foundation.org>
+Subject: [merged] build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 12:53:00 -0700
+Message-ID: <200909231953.n8NJr0eV030259@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45732 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43564 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751785AbZIWTxt (ORCPT
+	by vger.kernel.org with ESMTP id S1751812AbZIWTyB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 15:53:49 -0400
+	Wed, 23 Sep 2009 15:54:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: davidel@xmailserver.org, a.p.zijlstra@chello.nl, ghaskins@novell.com, jmorris@namei.org, rolandd@cisco.com, serue@us.ibm.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: JBeulich@novell.com, andi@firstfloor.org, catalin.marinas@arm.com, davem@davemloft.net, jbeulich@novell.com, jmorris@namei.org, rusty@rustcorp.com.au, srajiv@linux.vnet.ibm.com, zohar@
 
 
 The patch titled
-     anonfd: split interface into file creation and install
+     BUILD_BUG_ON(): fix it and a couple of bogus uses of it
 has been removed from the -mm tree.  Its filename was
-     anonfd-split-interface-into-file-creation-and-install.patch
+     build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: anonfd: split interface into file creation and install
-From: Davide Libenzi <davidel@xmailserver.org>
+Subject: BUILD_BUG_ON(): fix it and a couple of bogus uses of it
+From: "Jan Beulich" <JBeulich@novell.com>
 
-Split the anonfd interface into a bare file pointer creation one, and a
-file pointer creation plus install one.
+gcc permitting variable length arrays makes the current construct used for
+BUILD_BUG_ON() useless, as that doesn't produce any diagnostic if the
+controlling expression isn't really constant.  Instead, this patch makes
+it so that a bit field gets used here.  Consequently, those uses where the
+condition isn't really constant now also need fixing.
 
-There are cases, like the usage of eventfds inside other kernel
-interfaces, where the file pointer created by anonfd needs to be used
-inside the initialization of other structures.
+Note that in the gfp.h, kmemcheck.h, and virtio_config.h cases
+MAYBE_BUILD_BUG_ON() really just serves documentation purposes - even if
+the expression is compile time constant (__builtin_constant_p() yields
+true), the array is still deemed of variable length by gcc, and hence the
+whole expression doesn't have the intended effect.
 
-As it is right now, as soon as anon_inode_getfd() returns, the kenrle can
-race with userspace closing the newly installed file descriptor.
-
-This patch, while keeping the old anon_inode_getfd(), introduces a new
-anon_inode_getfile() (whose services are reused in anon_inode_getfd())
-that allows to split the file creation phase and the fd install one.
-
-Once all the kernel structures are initialized, the code can call the
-proper fd_install().
-
-Gregory manifested the need for something like this inside KVM.
-
-Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+[akpm@linux-foundation.org: make arch/sparc/include/asm/vio.h compile]
+[akpm@linux-foundation.org: more nonsensical assertions in tpm.c..]
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Rajiv Andrade <srajiv@linux.vnet.ibm.com>
+Cc: Mimi Zohar <zohar@us.ibm.com>
 Cc: James Morris <jmorris@namei.org>
-Cc: Serge Hallyn <serue@us.ibm.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Gregory Haskins <ghaskins@novell.com>
-Acked-by: Roland Dreier <rolandd@cisco.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/anon_inodes.c            |   68 +++++++++++++++++++++++++---------
- fs/eventfd.c                |   67 +++++++++++++++++++++++++++------
- include/linux/anon_inodes.h |    3 +
- include/linux/eventfd.h     |    6 +++
- 4 files changed, 114 insertions(+), 30 deletions(-)
+ arch/sparc/include/asm/vio.h  |    2 +-
+ drivers/char/tpm/tpm.c        |    4 ++--
+ drivers/net/niu.c             |    2 +-
+ include/linux/gfp.h           |    2 +-
+ include/linux/kernel.h        |    8 ++++++--
+ include/linux/kmemcheck.h     |    2 +-
+ include/linux/virtio_config.h |    3 +--
+ 7 files changed, 13 insertions(+), 10 deletions(-)
 
-diff -puN fs/anon_inodes.c~anonfd-split-interface-into-file-creation-and-install fs/anon_inodes.c
---- a/fs/anon_inodes.c~anonfd-split-interface-into-file-creation-and-install
-+++ a/fs/anon_inodes.c
-@@ -77,28 +77,24 @@ static const struct address_space_operat
-  *
-  * Creates a new file by hooking it on a single inode. This is useful for files
-  * that do not need to have a full-fledged inode in order to operate correctly.
-- * All the files created with anon_inode_getfd() will share a single inode,
-+ * All the files created with anon_inode_getfile() will share a single inode,
-  * hence saving memory and avoiding code duplication for the file/inode/dentry
-- * setup.  Returns new descriptor or -error.
-+ * setup.  Returns the newly created file* or an error pointer.
-  */
--int anon_inode_getfd(const char *name, const struct file_operations *fops,
--		     void *priv, int flags)
-+struct file *anon_inode_getfile(const char *name,
-+				const struct file_operations *fops,
-+				void *priv, int flags)
+diff -puN arch/sparc/include/asm/vio.h~build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it arch/sparc/include/asm/vio.h
+--- a/arch/sparc/include/asm/vio.h~build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it
++++ a/arch/sparc/include/asm/vio.h
+@@ -258,7 +258,7 @@ static inline void *vio_dring_entry(stru
+ static inline u32 vio_dring_avail(struct vio_dring_state *dr,
+ 				  unsigned int ring_size)
  {
- 	struct qstr this;
- 	struct dentry *dentry;
- 	struct file *file;
--	int error, fd;
-+	int error;
+-	BUILD_BUG_ON(!is_power_of_2(ring_size));
++	MAYBE_BUILD_BUG_ON(!is_power_of_2(ring_size));
  
- 	if (IS_ERR(anon_inode_inode))
--		return -ENODEV;
-+		return ERR_PTR(-ENODEV);
+ 	return (dr->pending -
+ 		((dr->prod - dr->cons) & (ring_size - 1)));
+diff -puN drivers/char/tpm/tpm.c~build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it drivers/char/tpm/tpm.c
+--- a/drivers/char/tpm/tpm.c~build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it
++++ a/drivers/char/tpm/tpm.c
+@@ -696,7 +696,7 @@ int __tpm_pcr_read(struct tpm_chip *chip
  
- 	if (fops->owner && !try_module_get(fops->owner))
--		return -ENOENT;
--
--	error = get_unused_fd_flags(flags);
--	if (error < 0)
--		goto err_module;
--	fd = error;
-+		return ERR_PTR(-ENOENT);
+ 	cmd.header.in = pcrread_header;
+ 	cmd.params.pcrread_in.pcr_idx = cpu_to_be32(pcr_idx);
+-	BUILD_BUG_ON(cmd.header.in.length > READ_PCR_RESULT_SIZE);
++	BUG_ON(cmd.header.in.length > READ_PCR_RESULT_SIZE);
+ 	rc = transmit_cmd(chip, &cmd, cmd.header.in.length,
+ 			  "attempting to read a pcr value");
  
- 	/*
- 	 * Link the inode to a directory entry by creating a unique name
-@@ -110,7 +106,7 @@ int anon_inode_getfd(const char *name, c
- 	this.hash = 0;
- 	dentry = d_alloc(anon_inode_mnt->mnt_sb->s_root, &this);
- 	if (!dentry)
--		goto err_put_unused_fd;
-+		goto err_module;
+@@ -760,7 +760,7 @@ int tpm_pcr_extend(u32 chip_num, int pcr
+ 		return -ENODEV;
  
- 	/*
- 	 * We know the anon_inode inode count is always greater than zero,
-@@ -136,16 +132,54 @@ int anon_inode_getfd(const char *name, c
- 	file->f_version = 0;
- 	file->private_data = priv;
+ 	cmd.header.in = pcrextend_header;
+-	BUILD_BUG_ON(be32_to_cpu(cmd.header.in.length) > EXTEND_PCR_SIZE);
++	BUG_ON(be32_to_cpu(cmd.header.in.length) > EXTEND_PCR_SIZE);
+ 	cmd.params.pcrextend_in.pcr_idx = cpu_to_be32(pcr_idx);
+ 	memcpy(cmd.params.pcrextend_in.hash, hash, TPM_DIGEST_SIZE);
+ 	rc = transmit_cmd(chip, &cmd, cmd.header.in.length,
+diff -puN drivers/net/niu.c~build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it drivers/net/niu.c
+--- a/drivers/net/niu.c~build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it
++++ a/drivers/net/niu.c
+@@ -5615,7 +5615,7 @@ static void niu_init_tx_mac(struct niu *
+ 	/* The XMAC_MIN register only accepts values for TX min which
+ 	 * have the low 3 bits cleared.
+ 	 */
+-	BUILD_BUG_ON(min & 0x7);
++	BUG_ON(min & 0x7);
  
-+	return file;
+ 	if (np->flags & NIU_FLAGS_XMAC)
+ 		niu_init_tx_xmac(np, min, max);
+diff -puN include/linux/gfp.h~build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it include/linux/gfp.h
+--- a/include/linux/gfp.h~build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it
++++ a/include/linux/gfp.h
+@@ -220,7 +220,7 @@ static inline enum zone_type gfp_zone(gf
+ 					 ((1 << ZONES_SHIFT) - 1);
+ 
+ 	if (__builtin_constant_p(bit))
+-		BUILD_BUG_ON((GFP_ZONE_BAD >> bit) & 1);
++		MAYBE_BUILD_BUG_ON((GFP_ZONE_BAD >> bit) & 1);
+ 	else {
+ #ifdef CONFIG_DEBUG_VM
+ 		BUG_ON((GFP_ZONE_BAD >> bit) & 1);
+diff -puN include/linux/kernel.h~build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it include/linux/kernel.h
+--- a/include/linux/kernel.h~build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it
++++ a/include/linux/kernel.h
+@@ -678,13 +678,17 @@ struct sysinfo {
+ };
+ 
+ /* Force a compilation error if condition is true */
+-#define BUILD_BUG_ON(condition) ((void)sizeof(char[1 - 2*!!(condition)]))
++#define BUILD_BUG_ON(condition) ((void)BUILD_BUG_ON_ZERO(condition))
 +
-+err_dput:
-+	dput(dentry);
-+err_module:
-+	module_put(fops->owner);
-+	return ERR_PTR(error);
-+}
-+EXPORT_SYMBOL_GPL(anon_inode_getfile);
-+
-+/**
-+ * anon_inode_getfd - creates a new file instance by hooking it up to an
-+ *                    anonymous inode, and a dentry that describe the "class"
-+ *                    of the file
-+ *
-+ * @name:    [in]    name of the "class" of the new file
-+ * @fops:    [in]    file operations for the new file
-+ * @priv:    [in]    private data for the new file (will be file's private_data)
-+ * @flags:   [in]    flags
-+ *
-+ * Creates a new file by hooking it on a single inode. This is useful for files
-+ * that do not need to have a full-fledged inode in order to operate correctly.
-+ * All the files created with anon_inode_getfd() will share a single inode,
-+ * hence saving memory and avoiding code duplication for the file/inode/dentry
-+ * setup.  Returns new descriptor or an error code.
-+ */
-+int anon_inode_getfd(const char *name, const struct file_operations *fops,
-+		     void *priv, int flags)
-+{
-+	int error, fd;
-+	struct file *file;
-+
-+	error = get_unused_fd_flags(flags);
-+	if (error < 0)
-+		return error;
-+	fd = error;
-+
-+	file = anon_inode_getfile(name, fops, priv, flags);
-+	if (IS_ERR(file)) {
-+		error = PTR_ERR(file);
-+		goto err_put_unused_fd;
-+	}
- 	fd_install(fd, file);
++/* Force a compilation error if condition is constant and true */
++#define MAYBE_BUILD_BUG_ON(cond) ((void)sizeof(char[1 - 2 * !!(cond)]))
  
- 	return fd;
+ /* Force a compilation error if condition is true, but also produce a
+    result (of value 0 and type size_t), so the expression can be used
+    e.g. in a structure initializer (or where-ever else comma expressions
+    aren't permitted). */
+-#define BUILD_BUG_ON_ZERO(e) (sizeof(char[1 - 2 * !!(e)]) - 1)
++#define BUILD_BUG_ON_ZERO(e) (sizeof(struct { int:-!!(e); }))
++#define BUILD_BUG_ON_NULL(e) ((void *)sizeof(struct { int:-!!(e); }))
  
--err_dput:
--	dput(dentry);
- err_put_unused_fd:
- 	put_unused_fd(fd);
--err_module:
--	module_put(fops->owner);
- 	return error;
- }
- EXPORT_SYMBOL_GPL(anon_inode_getfd);
-diff -puN fs/eventfd.c~anonfd-split-interface-into-file-creation-and-install fs/eventfd.c
---- a/fs/eventfd.c~anonfd-split-interface-into-file-creation-and-install
-+++ a/fs/eventfd.c
-@@ -68,11 +68,16 @@ int eventfd_signal(struct eventfd_ctx *c
- }
- EXPORT_SYMBOL_GPL(eventfd_signal);
- 
-+static void eventfd_free_ctx(struct eventfd_ctx *ctx)
-+{
-+	kfree(ctx);
-+}
-+
- static void eventfd_free(struct kref *kref)
+ /* Trap pasters of __FUNCTION__ at compile-time */
+ #define __FUNCTION__ (__func__)
+diff -puN include/linux/kmemcheck.h~build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it include/linux/kmemcheck.h
+--- a/include/linux/kmemcheck.h~build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it
++++ a/include/linux/kmemcheck.h
+@@ -152,7 +152,7 @@ static inline bool kmemcheck_is_obj_init
+ 									\
+ 		_n = (long) &((ptr)->name##_end)			\
+ 			- (long) &((ptr)->name##_begin);		\
+-		BUILD_BUG_ON(_n < 0);					\
++		MAYBE_BUILD_BUG_ON(_n < 0);				\
+ 									\
+ 		kmemcheck_mark_initialized(&((ptr)->name##_begin), _n);	\
+ 	} while (0)
+diff -puN include/linux/virtio_config.h~build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it include/linux/virtio_config.h
+--- a/include/linux/virtio_config.h~build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it
++++ a/include/linux/virtio_config.h
+@@ -109,8 +109,7 @@ static inline bool virtio_has_feature(co
+ 				      unsigned int fbit)
  {
- 	struct eventfd_ctx *ctx = container_of(kref, struct eventfd_ctx, kref);
+ 	/* Did you forget to fix assumptions on max features? */
+-	if (__builtin_constant_p(fbit))
+-		BUILD_BUG_ON(fbit >= 32);
++	MAYBE_BUILD_BUG_ON(fbit >= 32);
  
--	kfree(ctx);
-+	eventfd_free_ctx(ctx);
- }
- 
- /**
-@@ -298,9 +303,23 @@ struct eventfd_ctx *eventfd_ctx_fileget(
- }
- EXPORT_SYMBOL_GPL(eventfd_ctx_fileget);
- 
--SYSCALL_DEFINE2(eventfd2, unsigned int, count, int, flags)
-+/**
-+ * eventfd_file_create - Creates an eventfd file pointer.
-+ * @count: Initial eventfd counter value.
-+ * @flags: Flags for the eventfd file.
-+ *
-+ * This function creates an eventfd file pointer, w/out installing it into
-+ * the fd table. This is useful when the eventfd file is used during the
-+ * initialization of data structures that require extra setup after the eventfd
-+ * creation. So the eventfd creation is split into the file pointer creation
-+ * phase, and the file descriptor installation phase.
-+ * In this way races with userspace closing the newly installed file descriptor
-+ * can be avoided.
-+ * Returns an eventfd file pointer, or a proper error pointer.
-+ */
-+struct file *eventfd_file_create(unsigned int count, int flags)
- {
--	int fd;
-+	struct file *file;
- 	struct eventfd_ctx *ctx;
- 
- 	/* Check the EFD_* constants for consistency.  */
-@@ -308,26 +327,48 @@ SYSCALL_DEFINE2(eventfd2, unsigned int, 
- 	BUILD_BUG_ON(EFD_NONBLOCK != O_NONBLOCK);
- 
- 	if (flags & ~EFD_FLAGS_SET)
--		return -EINVAL;
-+		return ERR_PTR(-EINVAL);
- 
- 	ctx = kmalloc(sizeof(*ctx), GFP_KERNEL);
- 	if (!ctx)
--		return -ENOMEM;
-+		return ERR_PTR(-ENOMEM);
- 
- 	kref_init(&ctx->kref);
- 	init_waitqueue_head(&ctx->wqh);
- 	ctx->count = count;
- 	ctx->flags = flags;
- 
--	/*
--	 * When we call this, the initialization must be complete, since
--	 * anon_inode_getfd() will install the fd.
--	 */
--	fd = anon_inode_getfd("[eventfd]", &eventfd_fops, ctx,
--			      flags & EFD_SHARED_FCNTL_FLAGS);
--	if (fd < 0)
--		kfree(ctx);
-+	file = anon_inode_getfile("[eventfd]", &eventfd_fops, ctx,
-+				  flags & EFD_SHARED_FCNTL_FLAGS);
-+	if (IS_ERR(file))
-+		eventfd_free_ctx(ctx);
-+
-+	return file;
-+}
-+
-+SYSCALL_DEFINE2(eventfd2, unsigned int, count, int, flags)
-+{
-+	int fd, error;
-+	struct file *file;
-+
-+	error = get_unused_fd_flags(flags & EFD_SHARED_FCNTL_FLAGS);
-+	if (error < 0)
-+		return error;
-+	fd = error;
-+
-+	file = eventfd_file_create(count, flags);
-+	if (IS_ERR(file)) {
-+		error = PTR_ERR(file);
-+		goto err_put_unused_fd;
-+	}
-+	fd_install(fd, file);
-+
- 	return fd;
-+
-+err_put_unused_fd:
-+	put_unused_fd(fd);
-+
-+	return error;
- }
- 
- SYSCALL_DEFINE1(eventfd, unsigned int, count)
-diff -puN include/linux/anon_inodes.h~anonfd-split-interface-into-file-creation-and-install include/linux/anon_inodes.h
---- a/include/linux/anon_inodes.h~anonfd-split-interface-into-file-creation-and-install
-+++ a/include/linux/anon_inodes.h
-@@ -8,6 +8,9 @@
- #ifndef _LINUX_ANON_INODES_H
- #define _LINUX_ANON_INODES_H
- 
-+struct file *anon_inode_getfile(const char *name,
-+				const struct file_operations *fops,
-+				void *priv, int flags);
- int anon_inode_getfd(const char *name, const struct file_operations *fops,
- 		     void *priv, int flags);
- 
-diff -puN include/linux/eventfd.h~anonfd-split-interface-into-file-creation-and-install include/linux/eventfd.h
---- a/include/linux/eventfd.h~anonfd-split-interface-into-file-creation-and-install
-+++ a/include/linux/eventfd.h
-@@ -27,6 +27,7 @@
- 
- #ifdef CONFIG_EVENTFD
- 
-+struct file *eventfd_file_create(unsigned int count, int flags);
- struct eventfd_ctx *eventfd_ctx_get(struct eventfd_ctx *ctx);
- void eventfd_ctx_put(struct eventfd_ctx *ctx);
- struct file *eventfd_fget(int fd);
-@@ -40,6 +41,11 @@ int eventfd_signal(struct eventfd_ctx *c
-  * Ugly ugly ugly error layer to support modules that uses eventfd but
-  * pretend to work in !CONFIG_EVENTFD configurations. Namely, AIO.
-  */
-+static inline struct file *eventfd_file_create(unsigned int count, int flags)
-+{
-+	return ERR_PTR(-ENOSYS);
-+}
-+
- static inline struct eventfd_ctx *eventfd_ctx_fdget(int fd)
- {
- 	return ERR_PTR(-ENOSYS);
+ 	if (fbit < VIRTIO_TRANSPORT_F_START)
+ 		virtio_check_driver_offered_feature(vdev, fbit);
 _
 
-Patches currently in -mm which might be from davidel@xmailserver.org are
+Patches currently in -mm which might be from JBeulich@novell.com are
 
 origin.patch
-fs-remove-unneeded-dcache_unhashed-tricks.patch
+linux-next.patch
+kbuild-generate-modulesbuiltin.patch
+kbuild-rebuild-fix-for-makefilemodbuiltin.patch
 
