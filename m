@@ -1,540 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged] getrusage-fill-ru_maxrss-value.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 12:53:34 -0700
-Message-ID: <200909231953.n8NJrYFu031454@imap1.linux-foundation.org>
+Subject: [merged] omap-hsmmc-do-not-enable-buffer-ready-interrupt-if-using-dma.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 12:53:59 -0700
+Message-ID: <200909231953.n8NJrxIs032227@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44980 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40965 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751838AbZIWTyc (ORCPT
+	by vger.kernel.org with ESMTP id S1753318AbZIWTyp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 15:54:32 -0400
+	Wed, 23 Sep 2009 15:54:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jpirko@redhat.com, hugh.dickins@tiscali.co.uk, kosaki.motohiro@jp.fujitsu.com, mingo@elte.hu, oleg@redhat.com, mm-commits@vger.kernel.org
+To: gadiyar@ti.com, drzeus@drzeus.cx, ian@mnementh.co.uk, kishore.kadiyala@ti.com, matt@console-pimps.org, philipl@overt.org, roberto.foglietta@gmail.com, santosh.shilimkar@ti.com, mm-com
 
 
 The patch titled
-     getrusage: fill ru_maxrss value
+     OMAP: HSMMC: do not enable buffer ready interrupt if using DMA
 has been removed from the -mm tree.  Its filename was
-     getrusage-fill-ru_maxrss-value.patch
+     omap-hsmmc-do-not-enable-buffer-ready-interrupt-if-using-dma.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: getrusage: fill ru_maxrss value
-From: Jiri Pirko <jpirko@redhat.com>
+Subject: OMAP: HSMMC: do not enable buffer ready interrupt if using DMA
+From: Anand Gadiyar <gadiyar@ti.com>
 
-Make ->ru_maxrss value in struct rusage filled accordingly to rss hiwater
-mark.  This struct is filled as a parameter to getrusage syscall. 
-->ru_maxrss value is set to KBs which is the way it is done in BSD
-systems.  /usr/bin/time (gnu time) application converts ->ru_maxrss to KBs
-which seems to be incorrect behavior.  Maintainer of this util was
-notified by me with the patch which corrects it and cc'ed.
+This considerably reduces the number of interrupts during a transfer
+and ought to result in some power saving.
 
-To make this happen we extend struct signal_struct by two fields.  The
-first one is ->maxrss which we use to store rss hiwater of the task.  The
-second one is ->cmaxrss which we use to store highest rss hiwater of all
-task childs.  These values are used in k_getrusage() to actually fill
-->ru_maxrss.  k_getrusage() uses current rss hiwater value directly if mm
-struct exists.
-
-Note:
-exec() clear mm->hiwater_rss, but doesn't clear sig->maxrss.
-it is intetionally behavior. *BSD getrusage have exec() inheriting.
-
-test programs
-========================================================
-
-getrusage.c
-===========
- #include <stdio.h>
- #include <stdlib.h>
- #include <string.h>
- #include <sys/types.h>
- #include <sys/time.h>
- #include <sys/resource.h>
- #include <sys/types.h>
- #include <sys/wait.h>
- #include <unistd.h>
- #include <signal.h>
- #include <sys/mman.h>
-
- #include "common.h"
-
- #define err(str) perror(str), exit(1)
-
-int main(int argc, char** argv)
-{
-	int status;
-
-	printf("allocate 100MB\n");
-	consume(100);
-
-	printf("testcase1: fork inherit? \n");
-	printf("  expect: initial.self ~= child.self\n");
-	show_rusage("initial");
-	if (__fork()) {
-		wait(&status);
-	} else {
-		show_rusage("fork child");
-		_exit(0);
-	}
-	printf("\n");
-
-	printf("testcase2: fork inherit? (cont.) \n");
-	printf("  expect: initial.children ~= 100MB, but child.children = 0\n");
-	show_rusage("initial");
-	if (__fork()) {
-		wait(&status);
-	} else {
-		show_rusage("child");
-		_exit(0);
-	}
-	printf("\n");
-
-	printf("testcase3: fork + malloc \n");
-	printf("  expect: child.self ~= initial.self + 50MB\n");
-	show_rusage("initial");
-	if (__fork()) {
-		wait(&status);
-	} else {
-		printf("allocate +50MB\n");
-		consume(50);
-		show_rusage("fork child");
-		_exit(0);
-	}
-	printf("\n");
-
-	printf("testcase4: grandchild maxrss\n");
-	printf("  expect: post_wait.children ~= 300MB\n");
-	show_rusage("initial");
-	if (__fork()) {
-		wait(&status);
-		show_rusage("post_wait");
-	} else {
-		system("./child -n 0 -g 300");
-		_exit(0);
-	}
-	printf("\n");
-
-	printf("testcase5: zombie\n");
-	printf("  expect: pre_wait ~= initial, IOW the zombie process is not accounted.\n");
-	printf("          post_wait ~= 400MB, IOW wait() collect child's max_rss. \n");
-	show_rusage("initial");
-	if (__fork()) {
-		sleep(1); /* children become zombie */
-		show_rusage("pre_wait");
-		wait(&status);
-		show_rusage("post_wait");
-	} else {
-		system("./child -n 400");
-		_exit(0);
-	}
-	printf("\n");
-
-	printf("testcase6: SIG_IGN\n");
-	printf("  expect: initial ~= after_zombie (child's 500MB alloc should be ignored).\n");
-	show_rusage("initial");
-	signal(SIGCHLD, SIG_IGN);
-	if (__fork()) {
-		sleep(1); /* children become zombie */
-		show_rusage("after_zombie");
-	} else {
-		system("./child -n 500");
-		_exit(0);
-	}
-	printf("\n");
-	signal(SIGCHLD, SIG_DFL);
-
-	printf("testcase7: exec (without fork) \n");
-	printf("  expect: initial ~= exec \n");
-	show_rusage("initial");
-	execl("./child", "child", "-v", NULL);
-
-	return 0;
-}
-
-child.c
-=======
- #include <sys/types.h>
- #include <unistd.h>
- #include <sys/types.h>
- #include <sys/wait.h>
- #include <stdio.h>
- #include <stdlib.h>
- #include <string.h>
- #include <sys/types.h>
- #include <sys/time.h>
- #include <sys/resource.h>
-
- #include "common.h"
-
-int main(int argc, char** argv)
-{
-	int status;
-	int c;
-	long consume_size = 0;
-	long grandchild_consume_size = 0;
-	int show = 0;
-
-	while ((c = getopt(argc, argv, "n:g:v")) != -1) {
-		switch (c) {
-		case 'n':
-			consume_size = atol(optarg);
-			break;
-		case 'v':
-			show = 1;
-			break;
-		case 'g':
-
-			grandchild_consume_size = atol(optarg);
-			break;
-		default:
-			break;
-		}
-	}
-
-	if (show)
-		show_rusage("exec");
-
-	if (consume_size) {
-		printf("child alloc %ldMB\n", consume_size);
-		consume(consume_size);
-	}
-
-	if (grandchild_consume_size) {
-		if (fork()) {
-			wait(&status);
-		} else {
-			printf("grandchild alloc %ldMB\n", grandchild_consume_size);
-			consume(grandchild_consume_size);
-
-			exit(0);
-		}
-	}
-
-	return 0;
-}
-
-common.c
-========
- #include <stdio.h>
- #include <stdlib.h>
- #include <string.h>
- #include <sys/types.h>
- #include <sys/time.h>
- #include <sys/resource.h>
- #include <sys/types.h>
- #include <sys/wait.h>
- #include <unistd.h>
- #include <signal.h>
- #include <sys/mman.h>
-
- #include "common.h"
- #define err(str) perror(str), exit(1)
-
-void show_rusage(char *prefix)
-{
-    	int err, err2;
-    	struct rusage rusage_self;
-    	struct rusage rusage_children;
-
-    	printf("%s: ", prefix);
-    	err = getrusage(RUSAGE_SELF, &rusage_self);
-    	if (!err)
-    		printf("self %ld ", rusage_self.ru_maxrss);
-    	err2 = getrusage(RUSAGE_CHILDREN, &rusage_children);
-    	if (!err2)
-    		printf("children %ld ", rusage_children.ru_maxrss);
-
-    	printf("\n");
-}
-
-/* Some buggy OS need this worthless CPU waste. */
-void make_pagefault(void)
-{
-	void *addr;
-	int size = getpagesize();
-	int i;
-
-	for (i=0; i<1000; i++) {
-		addr = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0);
-		if (addr == MAP_FAILED)
-			err("make_pagefault");
-		memset(addr, 0, size);
-		munmap(addr, size);
-	}
-}
-
-void consume(int mega)
-{
-    	size_t sz = mega * 1024 * 1024;
-    	void *ptr;
-
-    	ptr = malloc(sz);
-    	memset(ptr, 0, sz);
-	make_pagefault();
-}
-
-pid_t __fork(void)
-{
-	pid_t pid;
-
-	pid = fork();
-	make_pagefault();
-
-	return pid;
-}
-
-common.h
-========
-void show_rusage(char *prefix);
-void make_pagefault(void);
-void consume(int mega);
-pid_t __fork(void);
-
-FreeBSD result (expected result)
-========================================================
-allocate 100MB
-testcase1: fork inherit?
-  expect: initial.self ~= child.self
-initial: self 103492 children 0
-fork child: self 103540 children 0
-
-testcase2: fork inherit? (cont.)
-  expect: initial.children ~= 100MB, but child.children = 0
-initial: self 103540 children 103540
-child: self 103564 children 0
-
-testcase3: fork + malloc
-  expect: child.self ~= initial.self + 50MB
-initial: self 103564 children 103564
-allocate +50MB
-fork child: self 154860 children 0
-
-testcase4: grandchild maxrss
-  expect: post_wait.children ~= 300MB
-initial: self 103564 children 154860
-grandchild alloc 300MB
-post_wait: self 103564 children 308720
-
-testcase5: zombie
-  expect: pre_wait ~= initial, IOW the zombie process is not accounted.
-          post_wait ~= 400MB, IOW wait() collect child's max_rss.
-initial: self 103564 children 308720
-child alloc 400MB
-pre_wait: self 103564 children 308720
-post_wait: self 103564 children 411312
-
-testcase6: SIG_IGN
-  expect: initial ~= after_zombie (child's 500MB alloc should be ignored).
-initial: self 103564 children 411312
-child alloc 500MB
-after_zombie: self 103624 children 411312
-
-testcase7: exec (without fork)
-  expect: initial ~= exec
-initial: self 103624 children 411312
-exec: self 103624 children 411312
-
-Linux result (actual test result)
-========================================================
-allocate 100MB
-testcase1: fork inherit?
-  expect: initial.self ~= child.self
-initial: self 102848 children 0
-fork child: self 102572 children 0
-
-testcase2: fork inherit? (cont.)
-  expect: initial.children ~= 100MB, but child.children = 0
-initial: self 102876 children 102644
-child: self 102572 children 0
-
-testcase3: fork + malloc
-  expect: child.self ~= initial.self + 50MB
-initial: self 102876 children 102644
-allocate +50MB
-fork child: self 153804 children 0
-
-testcase4: grandchild maxrss
-  expect: post_wait.children ~= 300MB
-initial: self 102876 children 153864
-grandchild alloc 300MB
-post_wait: self 102876 children 307536
-
-testcase5: zombie
-  expect: pre_wait ~= initial, IOW the zombie process is not accounted.
-          post_wait ~= 400MB, IOW wait() collect child's max_rss.
-initial: self 102876 children 307536
-child alloc 400MB
-pre_wait: self 102876 children 307536
-post_wait: self 102876 children 410076
-
-testcase6: SIG_IGN
-  expect: initial ~= after_zombie (child's 500MB alloc should be ignored).
-initial: self 102876 children 410076
-child alloc 500MB
-after_zombie: self 102880 children 410076
-
-testcase7: exec (without fork)
-  expect: initial ~= exec
-initial: self 102880 children 410076
-exec: self 102880 children 410076
-
-Signed-off-by: Jiri Pirko <jpirko@redhat.com>
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Acked-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
+Cc: Pierre Ossman <drzeus@drzeus.cx>
+Cc: Matt Fleming <matt@console-pimps.org>
+Cc: Ian Molton <ian@mnementh.co.uk>
+Cc: "Roberto A. Foglietta" <roberto.foglietta@gmail.com>
+Cc: Philip Langdale <philipl@overt.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c             |    3 +++
- include/linux/sched.h |   10 ++++++++++
- kernel/exit.c         |    6 ++++++
- kernel/fork.c         |    1 +
- kernel/sys.c          |   14 ++++++++++++++
- 5 files changed, 34 insertions(+)
+ drivers/mmc/host/omap_hsmmc.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN fs/exec.c~getrusage-fill-ru_maxrss-value fs/exec.c
---- a/fs/exec.c~getrusage-fill-ru_maxrss-value
-+++ a/fs/exec.c
-@@ -845,6 +845,9 @@ static int de_thread(struct task_struct 
- 	sig->notify_count = 0;
- 
- no_thread_group:
-+	if (current->mm)
-+		setmax_mm_hiwater_rss(&sig->maxrss, current->mm);
+diff -puN drivers/mmc/host/omap_hsmmc.c~omap-hsmmc-do-not-enable-buffer-ready-interrupt-if-using-dma drivers/mmc/host/omap_hsmmc.c
+--- a/drivers/mmc/host/omap_hsmmc.c~omap-hsmmc-do-not-enable-buffer-ready-interrupt-if-using-dma
++++ a/drivers/mmc/host/omap_hsmmc.c
+@@ -70,6 +70,8 @@
+ #define DTO_MASK		0x000F0000
+ #define DTO_SHIFT		16
+ #define INT_EN_MASK		0x307F0033
++#define BWR_ENABLE		(1 << 4)
++#define BRR_ENABLE		(1 << 5)
+ #define INIT_STREAM		(1 << 1)
+ #define DP_SELECT		(1 << 21)
+ #define DDIR			(1 << 4)
+@@ -241,7 +243,12 @@ mmc_omap_start_command(struct mmc_omap_h
+ 	 */
+ 	OMAP_HSMMC_WRITE(host->base, STAT, STAT_CLEAR);
+ 	OMAP_HSMMC_WRITE(host->base, ISE, INT_EN_MASK);
+-	OMAP_HSMMC_WRITE(host->base, IE, INT_EN_MASK);
 +
- 	exit_itimers(sig);
- 	flush_itimer_signals();
++	if (host->use_dma)
++		OMAP_HSMMC_WRITE(host->base, IE,
++				 INT_EN_MASK & ~(BRR_ENABLE | BWR_ENABLE));
++	else
++		OMAP_HSMMC_WRITE(host->base, IE, INT_EN_MASK);
  
-diff -puN include/linux/sched.h~getrusage-fill-ru_maxrss-value include/linux/sched.h
---- a/include/linux/sched.h~getrusage-fill-ru_maxrss-value
-+++ a/include/linux/sched.h
-@@ -426,6 +426,15 @@ static inline unsigned long get_mm_hiwat
- 	return max(mm->hiwater_rss, get_mm_rss(mm));
- }
- 
-+static inline void setmax_mm_hiwater_rss(unsigned long *maxrss,
-+					 struct mm_struct *mm)
-+{
-+	unsigned long hiwater_rss = get_mm_hiwater_rss(mm);
-+
-+	if (*maxrss < hiwater_rss)
-+		*maxrss = hiwater_rss;
-+}
-+
- static inline unsigned long get_mm_hiwater_vm(struct mm_struct *mm)
- {
- 	return max(mm->hiwater_vm, mm->total_vm);
-@@ -612,6 +621,7 @@ struct signal_struct {
- 	unsigned long nvcsw, nivcsw, cnvcsw, cnivcsw;
- 	unsigned long min_flt, maj_flt, cmin_flt, cmaj_flt;
- 	unsigned long inblock, oublock, cinblock, coublock;
-+	unsigned long maxrss, cmaxrss;
- 	struct task_io_accounting ioac;
- 
- 	/*
-diff -puN kernel/exit.c~getrusage-fill-ru_maxrss-value kernel/exit.c
---- a/kernel/exit.c~getrusage-fill-ru_maxrss-value
-+++ a/kernel/exit.c
-@@ -947,6 +947,8 @@ NORET_TYPE void do_exit(long code)
- 	if (group_dead) {
- 		hrtimer_cancel(&tsk->signal->real_timer);
- 		exit_itimers(tsk->signal);
-+		if (tsk->mm)
-+			setmax_mm_hiwater_rss(&tsk->signal->maxrss, tsk->mm);
- 	}
- 	acct_collect(code, group_dead);
- 	if (group_dead)
-@@ -1210,6 +1212,7 @@ static int wait_task_zombie(struct wait_
- 	if (likely(!traced) && likely(!task_detached(p))) {
- 		struct signal_struct *psig;
- 		struct signal_struct *sig;
-+		unsigned long maxrss;
- 
- 		/*
- 		 * The resource counters for the group leader are in its
-@@ -1258,6 +1261,9 @@ static int wait_task_zombie(struct wait_
- 		psig->coublock +=
- 			task_io_get_oublock(p) +
- 			sig->oublock + sig->coublock;
-+		maxrss = max(sig->maxrss, sig->cmaxrss);
-+		if (psig->cmaxrss < maxrss)
-+			psig->cmaxrss = maxrss;
- 		task_io_accounting_add(&psig->ioac, &p->ioac);
- 		task_io_accounting_add(&psig->ioac, &sig->ioac);
- 		spin_unlock_irq(&p->real_parent->sighand->siglock);
-diff -puN kernel/fork.c~getrusage-fill-ru_maxrss-value kernel/fork.c
---- a/kernel/fork.c~getrusage-fill-ru_maxrss-value
-+++ a/kernel/fork.c
-@@ -866,6 +866,7 @@ static int copy_signal(unsigned long clo
- 	sig->nvcsw = sig->nivcsw = sig->cnvcsw = sig->cnivcsw = 0;
- 	sig->min_flt = sig->maj_flt = sig->cmin_flt = sig->cmaj_flt = 0;
- 	sig->inblock = sig->oublock = sig->cinblock = sig->coublock = 0;
-+	sig->maxrss = sig->cmaxrss = 0;
- 	task_io_accounting_init(&sig->ioac);
- 	sig->sum_sched_runtime = 0;
- 	taskstats_tgid_init(sig);
-diff -puN kernel/sys.c~getrusage-fill-ru_maxrss-value kernel/sys.c
---- a/kernel/sys.c~getrusage-fill-ru_maxrss-value
-+++ a/kernel/sys.c
-@@ -1338,6 +1338,7 @@ static void k_getrusage(struct task_stru
- 	unsigned long flags;
- 	cputime_t utime, stime;
- 	struct task_cputime cputime;
-+	unsigned long maxrss = 0;
- 
- 	memset((char *) r, 0, sizeof *r);
- 	utime = stime = cputime_zero;
-@@ -1346,6 +1347,7 @@ static void k_getrusage(struct task_stru
- 		utime = task_utime(current);
- 		stime = task_stime(current);
- 		accumulate_thread_rusage(p, r);
-+		maxrss = p->signal->maxrss;
- 		goto out;
- 	}
- 
-@@ -1363,6 +1365,7 @@ static void k_getrusage(struct task_stru
- 			r->ru_majflt = p->signal->cmaj_flt;
- 			r->ru_inblock = p->signal->cinblock;
- 			r->ru_oublock = p->signal->coublock;
-+			maxrss = p->signal->cmaxrss;
- 
- 			if (who == RUSAGE_CHILDREN)
- 				break;
-@@ -1377,6 +1380,8 @@ static void k_getrusage(struct task_stru
- 			r->ru_majflt += p->signal->maj_flt;
- 			r->ru_inblock += p->signal->inblock;
- 			r->ru_oublock += p->signal->oublock;
-+			if (maxrss < p->signal->maxrss)
-+				maxrss = p->signal->maxrss;
- 			t = p;
- 			do {
- 				accumulate_thread_rusage(t, r);
-@@ -1392,6 +1397,15 @@ static void k_getrusage(struct task_stru
- out:
- 	cputime_to_timeval(utime, &r->ru_utime);
- 	cputime_to_timeval(stime, &r->ru_stime);
-+
-+	if (who != RUSAGE_CHILDREN) {
-+		struct mm_struct *mm = get_task_mm(p);
-+		if (mm) {
-+			setmax_mm_hiwater_rss(&maxrss, mm);
-+			mmput(mm);
-+		}
-+	}
-+	r->ru_maxrss = maxrss * (PAGE_SIZE / 1024); /* convert pages to KBs */
- }
- 
- int getrusage(struct task_struct *p, int who, struct rusage __user *ru)
+ 	host->response_busy = 0;
+ 	if (cmd->flags & MMC_RSP_PRESENT) {
 _
 
-Patches currently in -mm which might be from jpirko@redhat.com are
+Patches currently in -mm which might be from gadiyar@ti.com are
 
 origin.patch
+linux-next.patch
 
