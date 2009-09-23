@@ -1,97 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [merged] gconfig-disable-typeahead-find-search-in-treeviews.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 13:04:38 -0700
-Message-ID: <200909232004.n8NK4cJq021711@imap1.linux-foundation.org>
+Subject: [merged] mtd-prevent-a-read-from-regions.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 13:05:20 -0700
+Message-ID: <200909232005.n8NK5KVi023153@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51903 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48208 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753916AbZIWUGB (ORCPT
+	by vger.kernel.org with ESMTP id S1751535AbZIWUFx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 16:06:01 -0400
+	Wed, 23 Sep 2009 16:05:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: flameeyes@gmail.com, sam@ravnborg.org, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gconfig: disable "typeahead find" search in treeviews
+     mtd: prevent a read from regions[-1]
 has been removed from the -mm tree.  Its filename was
-     gconfig-disable-typeahead-find-search-in-treeviews.patch
+     mtd-prevent-a-read-from-regions.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gconfig: disable "typeahead find" search in treeviews
-=46rom: Diego Elio 'Flameeyes' Petten=F2 <flameeyes@gmail.com>
+Subject: mtd: prevent a read from regions[-1]
+From: Roel Kluin <roel.kluin@gmail.com>
 
-When typeahead find is enabled, using 'y', 'n' and 'm' to change the st=
-atus
-of the configuration items will also start up the search system, making=
- you
-jump around the configuration.
+If the erase region was found in the first iteration we read from
+regions[-1]
 
-Disabling the enable_search property does not mean that search is not
-possible, it only disables the typeahead; to execute a search in the
-treeview, you can just call it up explicitly (i.e.: on most systems tha=
-t
-will be Ctrl-f).
-
-Signed-off-by: Diego Elio 'Flameeyes' Petten=F2  <flameeyes@gmail.com>
-Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kconfig/gconf.glade |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/mtd/mtdpart.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN scripts/kconfig/gconf.glade~gconfig-disable-typeahead-find-se=
-arch-in-treeviews scripts/kconfig/gconf.glade
---- a/scripts/kconfig/gconf.glade~gconfig-disable-typeahead-find-search=
--in-treeviews
-+++ a/scripts/kconfig/gconf.glade
-@@ -547,7 +547,7 @@
- 		  <property name=3D"headers_visible">True</property>
- 		  <property name=3D"rules_hint">False</property>
- 		  <property name=3D"reorderable">False</property>
--		  <property name=3D"enable_search">True</property>
-+		  <property name=3D"enable_search">False</property>
- 		  <signal name=3D"cursor_changed" handler=3D"on_treeview2_cursor_cha=
-nged" last_modification_time=3D"Sun, 12 Jan 2003 15:58:22 GMT"/>
- 		  <signal name=3D"button_press_event" handler=3D"on_treeview1_button=
-_press_event" last_modification_time=3D"Sun, 12 Jan 2003 16:03:52 GMT"/=
->
- 		  <signal name=3D"key_press_event" handler=3D"on_treeview2_key_press=
-_event" last_modification_time=3D"Sun, 12 Jan 2003 16:11:44 GMT"/>
-@@ -582,7 +582,7 @@
- 		      <property name=3D"headers_visible">True</property>
- 		      <property name=3D"rules_hint">False</property>
- 		      <property name=3D"reorderable">False</property>
--		      <property name=3D"enable_search">True</property>
-+		      <property name=3D"enable_search">False</property>
- 		      <signal name=3D"cursor_changed" handler=3D"on_treeview2_cursor=
-_changed" last_modification_time=3D"Sun, 12 Jan 2003 15:57:55 GMT"/>
- 		      <signal name=3D"button_press_event" handler=3D"on_treeview2_bu=
-tton_press_event" last_modification_time=3D"Sun, 12 Jan 2003 15:57:58 G=
-MT"/>
- 		      <signal name=3D"key_press_event" handler=3D"on_treeview2_key_p=
-ress_event" last_modification_time=3D"Sun, 12 Jan 2003 15:58:01 GMT"/>
+diff -puN drivers/mtd/mtdpart.c~mtd-prevent-a-read-from-regions drivers/mtd/mtdpart.c
+--- a/drivers/mtd/mtdpart.c~mtd-prevent-a-read-from-regions
++++ a/drivers/mtd/mtdpart.c
+@@ -453,7 +453,8 @@ static struct mtd_part *add_one_partitio
+ 		for (i = 0; i < max && regions[i].offset <= slave->offset; i++)
+ 			;
+ 		/* The loop searched for the region _behind_ the first one */
+-		i--;
++		if (i > 0)
++			i--;
+ 
+ 		/* Pick biggest erasesize */
+ 		for (; i < max && regions[i].offset < end; i++) {
 _
 
-Patches currently in -mm which might be from flameeyes@gmail.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
+origin.patch
 linux-next.patch
+dm-strncpy-does-not-null-terminate-string.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+mips-decrease-size-of-au1xxx_dbdma_pm_regs.patch
+msp71xx-request_irq-failure-ignored-in-msp_pcibios_config_access.patch
+hfc_usb-fix-read-buffer-overflow.patch
+cyclades-read-buffer-overflow.patch
+serial167-fix-read-buffer-overflow.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
+zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
+st-fix-test-of-value-range-in-st_set_options.patch
+drivers-staging-octeon-ethernet-rgmiic-dont-ignore-request_irq-return-code.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+mwave-fix-read-buffer-overflow.patch
+adfs-remove-redundant-test-on-unsigned.patch
+gru-allocation-may-fail-in-quicktest1.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
