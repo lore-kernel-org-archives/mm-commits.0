@@ -1,222 +1,334 @@
 From: akpm@linux-foundation.org
-Subject: [merged] viafb-split-viafb_set_start_addr-up.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 13:01:37 -0700
-Message-ID: <200909232001.n8NK1b5p015552@imap1.linux-foundation.org>
+Subject: [merged] spi-mcspi-off-mode-support.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 12:58:33 -0700
+Message-ID: <200909231958.n8NJwX9o009148@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42633 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44764 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751914AbZIWUCP (ORCPT
+	by vger.kernel.org with ESMTP id S1753869AbZIWUCJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 16:02:15 -0400
+	Wed, 23 Sep 2009 16:02:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: FlorianSchandinat@gmx.de, JosephChan@via.com.tw, ScottFang@viatech.com.cn, corbet@lwn.net, laforge@gnumonks.org, mm-commits@vger.kernel.org
+To: hemanthv@ti.com, Aaro.Koskinen@nokia.com, dbrownell@users.sourceforge.net, khilman@deeprootsystems.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     viafb: split viafb_set_start_addr up
+     spi: McSPI off-mode support
 has been removed from the -mm tree.  Its filename was
-     viafb-split-viafb_set_start_addr-up.patch
+     spi-mcspi-off-mode-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: viafb: split viafb_set_start_addr up
-From: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Subject: spi: McSPI off-mode support
+From: Hemanth V <hemanthv@ti.com>
 
-Move individual start address setting to viafb_set_primary_address and
-viafb_set_secondary_address and make it more flexible to reuse it for
-panning.  Using central functions makes it easier to follow HW
-manipulations.
+Add context save/restore feature to McSPI driver.
 
-Remove crt locking as it should be only needed for timing manipulation.
-Move iga_path manipulation to via_pci_probe.
-
-Remove memset for screen cleaning as it is currently done only for the
-second screen.  This is not needed for normal operation but has a little
-chance of causing unwanted display artifacts.  This can be fixed later
-more consistent and more efficient (using viafb_fillrect) if needed.
-
-This is a code clenup, no notable runtime changes expected.
-
-Signed-off-by: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Cc: Scott Fang <ScottFang@viatech.com.cn>
-Cc: Joseph Chan <JosephChan@via.com.tw>
-Cc: Harald Welte <laforge@gnumonks.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
+Signed-off-by: Hemanth V <hemanthv@ti.com>
+Reviewed-by: Aaro Koskinen <Aaro.Koskinen@nokia.com>
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/via/hw.c       |   82 +++++++--------------------------
- drivers/video/via/hw.h       |    3 -
- drivers/video/via/viafbdev.c |   15 ++----
- 3 files changed, 27 insertions(+), 73 deletions(-)
+ drivers/spi/omap2_mcspi.c |  136 ++++++++++++++++++++++++++----------
+ 1 file changed, 101 insertions(+), 35 deletions(-)
 
-diff -puN drivers/video/via/hw.c~viafb-split-viafb_set_start_addr-up drivers/video/via/hw.c
---- a/drivers/video/via/hw.c~viafb-split-viafb_set_start_addr-up
-+++ a/drivers/video/via/hw.c
-@@ -629,70 +629,23 @@ void viafb_set_iga_path(void)
- 	}
+diff -puN drivers/spi/omap2_mcspi.c~spi-mcspi-off-mode-support drivers/spi/omap2_mcspi.c
+--- a/drivers/spi/omap2_mcspi.c~spi-mcspi-off-mode-support
++++ a/drivers/spi/omap2_mcspi.c
+@@ -41,6 +41,9 @@
+ 
+ #define OMAP2_MCSPI_MAX_FREQ		48000000
+ 
++/* OMAP2 has 3 SPI controllers, while OMAP3 has 4 */
++#define OMAP2_MCSPI_MAX_CTRL 		4
++
+ #define OMAP2_MCSPI_REVISION		0x00
+ #define OMAP2_MCSPI_SYSCONFIG		0x10
+ #define OMAP2_MCSPI_SYSSTATUS		0x14
+@@ -131,8 +134,21 @@ struct omap2_mcspi_cs {
+ 	void __iomem		*base;
+ 	unsigned long		phys;
+ 	int			word_len;
++	/* Context save and restore shadow register */
++	u32			chconf0;
++};
++
++/* used for context save and restore, structure members to be updated whenever
++ * corresponding registers are modified.
++ */
++struct omap2_mcspi_regs {
++	u32 sysconfig;
++	u32 modulctrl;
++	u32 wakeupenable;
+ };
+ 
++static struct omap2_mcspi_regs omap2_mcspi_ctx[OMAP2_MCSPI_MAX_CTRL];
++
+ static struct workqueue_struct *omap2_mcspi_wq;
+ 
+ #define MOD_REG_BIT(val, mask, set) do { \
+@@ -172,12 +188,27 @@ static inline u32 mcspi_read_cs_reg(cons
+ 	return __raw_readl(cs->base + idx);
  }
  
--void viafb_set_start_addr(void)
-+void viafb_set_primary_address(u32 addr)
- {
--	unsigned long offset = 0, tmp = 0, size = 0;
--	unsigned long length;
--
--	DEBUG_MSG(KERN_INFO "viafb_set_start_addr!\n");
--	viafb_unlock_crt();
--	/* update starting address of IGA1 */
--	viafb_write_reg(CR0C, VIACR, 0x00);	/*initial starting address */
--	viafb_write_reg(CR0D, VIACR, 0x00);
--	viafb_write_reg(CR34, VIACR, 0x00);
--	viafb_write_reg_mask(CR48, VIACR, 0x00, 0x1F);
--
--	if (viafb_dual_fb) {
--		viaparinfo->iga_path = IGA1;
--		viaparinfo1->iga_path = IGA2;
--	}
--
--	if (viafb_SAMM_ON == 1) {
--		if (!viafb_dual_fb) {
--			if (viafb_second_size)
--				size = viafb_second_size * 1024 * 1024;
--			else
--				size = 8 * 1024 * 1024;
--		} else {
--
--			size = viaparinfo1->memsize;
--		}
--		offset = viafb_second_offset;
--		DEBUG_MSG(KERN_INFO
--			  "viafb_second_size=%lx, second start_adddress=%lx\n",
--			  size, offset);
--	}
--	if (viafb_SAMM_ON == 1) {
--		offset = offset >> 3;
--
--		tmp = viafb_read_reg(VIACR, 0x62) & 0x01;
--		tmp |= (offset & 0x7F) << 1;
--		viafb_write_reg(CR62, VIACR, tmp);
--		viafb_write_reg(CR63, VIACR, ((offset & 0x7F80) >> 7));
--		viafb_write_reg(CR64, VIACR, ((offset & 0x7F8000) >> 15));
--		viafb_write_reg(CRA3, VIACR, ((offset & 0x3800000) >> 23));
--	} else {
--		/* update starting address */
--		viafb_write_reg(CR62, VIACR, 0x00);
--		viafb_write_reg(CR63, VIACR, 0x00);
--		viafb_write_reg(CR64, VIACR, 0x00);
--		viafb_write_reg(CRA3, VIACR, 0x00);
--	}
--
--	if (viafb_SAMM_ON == 1) {
--		if (viafb_accel) {
--			if (!viafb_dual_fb)
--				length = size - viaparinfo->fbmem_used;
--			else
--				length = size - viaparinfo1->fbmem_used;
--		} else
--			length = size;
--		offset = (unsigned long)(void *)viafb_FB_MM +
--			viafb_second_offset;
--		memset((void *)offset, 0, length);
--	}
--
--	viafb_lock_crt();
-+	DEBUG_MSG(KERN_DEBUG "viafb_set_primary_address(0x%08X)\n", addr);
-+	viafb_write_reg(CR0D, VIACR, addr & 0xFF);
-+	viafb_write_reg(CR0C, VIACR, (addr >> 8) & 0xFF);
-+	viafb_write_reg(CR34, VIACR, (addr >> 16) & 0xFF);
-+	viafb_write_reg_mask(CR48, VIACR, (addr >> 24) & 0x1F, 0x1F);
++static inline u32 mcspi_cached_chconf0(const struct spi_device *spi)
++{
++	struct omap2_mcspi_cs *cs = spi->controller_state;
++
++	return cs->chconf0;
 +}
 +
-+void viafb_set_secondary_address(u32 addr)
++static inline void mcspi_write_chconf0(const struct spi_device *spi, u32 val)
 +{
-+	DEBUG_MSG(KERN_DEBUG "viafb_set_secondary_address(0x%08X)\n", addr);
-+	/* secondary display supports only quadword aligned memory */
-+	viafb_write_reg_mask(CR62, VIACR, (addr >> 2) & 0xFE, 0xFE);
-+	viafb_write_reg(CR63, VIACR, (addr >> 10) & 0xFF);
-+	viafb_write_reg(CR64, VIACR, (addr >> 18) & 0xFF);
-+	viafb_write_reg_mask(CRA3, VIACR, (addr >> 26) & 0x07, 0x07);
++	struct omap2_mcspi_cs *cs = spi->controller_state;
++
++	cs->chconf0 = val;
++	mcspi_write_cs_reg(spi, OMAP2_MCSPI_CHCONF0, val);
++}
++
+ static void omap2_mcspi_set_dma_req(const struct spi_device *spi,
+ 		int is_read, int enable)
+ {
+ 	u32 l, rw;
+ 
+-	l = mcspi_read_cs_reg(spi, OMAP2_MCSPI_CHCONF0);
++	l = mcspi_cached_chconf0(spi);
+ 
+ 	if (is_read) /* 1 is read, 0 write */
+ 		rw = OMAP2_MCSPI_CHCONF_DMAR;
+@@ -185,7 +216,7 @@ static void omap2_mcspi_set_dma_req(cons
+ 		rw = OMAP2_MCSPI_CHCONF_DMAW;
+ 
+ 	MOD_REG_BIT(l, rw, enable);
+-	mcspi_write_cs_reg(spi, OMAP2_MCSPI_CHCONF0, l);
++	mcspi_write_chconf0(spi, l);
  }
  
- void viafb_set_output_path(int device, int set_iga, int output_interface)
-@@ -2288,7 +2241,8 @@ int viafb_setmode(int vmode_index, int h
- 		outb(VPIT.SR[i - 1], VIASR + 1);
+ static void omap2_mcspi_set_enable(const struct spi_device *spi, int enable)
+@@ -200,9 +231,9 @@ static void omap2_mcspi_force_cs(struct 
+ {
+ 	u32 l;
+ 
+-	l = mcspi_read_cs_reg(spi, OMAP2_MCSPI_CHCONF0);
++	l = mcspi_cached_chconf0(spi);
+ 	MOD_REG_BIT(l, OMAP2_MCSPI_CHCONF_FORCE, cs_active);
+-	mcspi_write_cs_reg(spi, OMAP2_MCSPI_CHCONF0, l);
++	mcspi_write_chconf0(spi, l);
+ }
+ 
+ static void omap2_mcspi_set_master_mode(struct spi_master *master)
+@@ -217,6 +248,41 @@ static void omap2_mcspi_set_master_mode(
+ 	MOD_REG_BIT(l, OMAP2_MCSPI_MODULCTRL_MS, 0);
+ 	MOD_REG_BIT(l, OMAP2_MCSPI_MODULCTRL_SINGLE, 1);
+ 	mcspi_write_reg(master, OMAP2_MCSPI_MODULCTRL, l);
++
++	omap2_mcspi_ctx[master->bus_num - 1].modulctrl = l;
++}
++
++static void omap2_mcspi_restore_ctx(struct omap2_mcspi *mcspi)
++{
++	struct spi_master *spi_cntrl;
++	spi_cntrl = mcspi->master;
++
++	/* McSPI: context restore */
++	mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_MODULCTRL,
++			omap2_mcspi_ctx[spi_cntrl->bus_num - 1].modulctrl);
++
++	mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_SYSCONFIG,
++			omap2_mcspi_ctx[spi_cntrl->bus_num - 1].sysconfig);
++
++	mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_WAKEUPENABLE,
++			omap2_mcspi_ctx[spi_cntrl->bus_num - 1].wakeupenable);
++}
++static void omap2_mcspi_disable_clocks(struct omap2_mcspi *mcspi)
++{
++	clk_disable(mcspi->ick);
++	clk_disable(mcspi->fck);
++}
++
++static int omap2_mcspi_enable_clocks(struct omap2_mcspi *mcspi)
++{
++	if (clk_enable(mcspi->ick))
++		return -ENODEV;
++	if (clk_enable(mcspi->fck))
++		return -ENODEV;
++
++	omap2_mcspi_restore_ctx(mcspi);
++
++	return 0;
+ }
+ 
+ static unsigned
+@@ -357,7 +423,7 @@ omap2_mcspi_txrx_pio(struct spi_device *
+ 	c = count;
+ 	word_len = cs->word_len;
+ 
+-	l = mcspi_read_cs_reg(spi, OMAP2_MCSPI_CHCONF0);
++	l = mcspi_cached_chconf0(spi);
+ 	l &= ~OMAP2_MCSPI_CHCONF_TRM_MASK;
+ 
+ 	/* We store the pre-calculated register addresses on stack to speed
+@@ -397,8 +463,7 @@ omap2_mcspi_txrx_pio(struct spi_device *
+ 				 * more word i/o: switch to rx+tx
+ 				 */
+ 				if (c == 0 && tx == NULL)
+-					mcspi_write_cs_reg(spi,
+-							OMAP2_MCSPI_CHCONF0, l);
++					mcspi_write_chconf0(spi, l);
+ 				*rx++ = __raw_readl(rx_reg);
+ #ifdef VERBOSE
+ 				dev_dbg(&spi->dev, "read-%d %02x\n",
+@@ -436,8 +501,7 @@ omap2_mcspi_txrx_pio(struct spi_device *
+ 				 * more word i/o: switch to rx+tx
+ 				 */
+ 				if (c == 0 && tx == NULL)
+-					mcspi_write_cs_reg(spi,
+-							OMAP2_MCSPI_CHCONF0, l);
++					mcspi_write_chconf0(spi, l);
+ 				*rx++ = __raw_readl(rx_reg);
+ #ifdef VERBOSE
+ 				dev_dbg(&spi->dev, "read-%d %04x\n",
+@@ -475,8 +539,7 @@ omap2_mcspi_txrx_pio(struct spi_device *
+ 				 * more word i/o: switch to rx+tx
+ 				 */
+ 				if (c == 0 && tx == NULL)
+-					mcspi_write_cs_reg(spi,
+-							OMAP2_MCSPI_CHCONF0, l);
++					mcspi_write_chconf0(spi, l);
+ 				*rx++ = __raw_readl(rx_reg);
+ #ifdef VERBOSE
+ 				dev_dbg(&spi->dev, "read-%d %04x\n",
+@@ -505,10 +568,12 @@ static int omap2_mcspi_setup_transfer(st
+ {
+ 	struct omap2_mcspi_cs *cs = spi->controller_state;
+ 	struct omap2_mcspi *mcspi;
++	struct spi_master *spi_cntrl;
+ 	u32 l = 0, div = 0;
+ 	u8 word_len = spi->bits_per_word;
+ 
+ 	mcspi = spi_master_get_devdata(spi->master);
++	spi_cntrl = mcspi->master;
+ 
+ 	if (t != NULL && t->bits_per_word)
+ 		word_len = t->bits_per_word;
+@@ -522,7 +587,7 @@ static int omap2_mcspi_setup_transfer(st
+ 	} else
+ 		div = 15;
+ 
+-	l = mcspi_read_cs_reg(spi, OMAP2_MCSPI_CHCONF0);
++	l = mcspi_cached_chconf0(spi);
+ 
+ 	/* standard 4-wire master mode:  SCK, MOSI/out, MISO/in, nCS
+ 	 * REVISIT: this controller could support SPI_3WIRE mode.
+@@ -554,7 +619,7 @@ static int omap2_mcspi_setup_transfer(st
+ 	else
+ 		l &= ~OMAP2_MCSPI_CHCONF_PHA;
+ 
+-	mcspi_write_cs_reg(spi, OMAP2_MCSPI_CHCONF0, l);
++	mcspi_write_chconf0(spi, l);
+ 
+ 	dev_dbg(&spi->dev, "setup: speed %d, sample %s edge, clk %s\n",
+ 			OMAP2_MCSPI_MAX_FREQ / (1 << div),
+@@ -647,6 +712,7 @@ static int omap2_mcspi_setup(struct spi_
+ 			return -ENOMEM;
+ 		cs->base = mcspi->base + spi->chip_select * 0x14;
+ 		cs->phys = mcspi->phys + spi->chip_select * 0x14;
++		cs->chconf0 = 0;
+ 		spi->controller_state = cs;
  	}
  
--	viafb_set_start_addr();
-+	viafb_set_primary_address(0);
-+	viafb_set_secondary_address(viafb_SAMM_ON ? viafb_second_offset : 0);
- 	viafb_set_iga_path();
+@@ -657,11 +723,11 @@ static int omap2_mcspi_setup(struct spi_
+ 			return ret;
+ 	}
  
- 	/* Write CRTC */
-diff -puN drivers/video/via/hw.h~viafb-split-viafb_set_start_addr-up drivers/video/via/hw.h
---- a/drivers/video/via/hw.h~viafb-split-viafb_set_start_addr-up
-+++ a/drivers/video/via/hw.h
-@@ -927,7 +927,8 @@ void viafb_get_mmio_info(unsigned long *
- 	unsigned long *mmio_len);
+-	clk_enable(mcspi->ick);
+-	clk_enable(mcspi->fck);
++	if (omap2_mcspi_enable_clocks(mcspi))
++		return -ENODEV;
++
+ 	ret = omap2_mcspi_setup_transfer(spi, NULL);
+-	clk_disable(mcspi->fck);
+-	clk_disable(mcspi->ick);
++	omap2_mcspi_disable_clocks(mcspi);
  
- void viafb_set_iga_path(void);
--void viafb_set_start_addr(void);
-+void viafb_set_primary_address(u32 addr);
-+void viafb_set_secondary_address(u32 addr);
- void viafb_get_fb_info(unsigned int *fb_base, unsigned int *fb_len);
+ 	return ret;
+ }
+@@ -693,8 +759,8 @@ static void omap2_mcspi_work(struct work
+ 	mcspi = container_of(work, struct omap2_mcspi, work);
+ 	spin_lock_irq(&mcspi->lock);
  
- #endif /* __HW_H__ */
-diff -puN drivers/video/via/viafbdev.c~viafb-split-viafb_set_start_addr-up drivers/video/via/viafbdev.c
---- a/drivers/video/via/viafbdev.c~viafb-split-viafb_set_start_addr-up
-+++ a/drivers/video/via/viafbdev.c
-@@ -481,12 +481,7 @@ static int viafb_pan_display(struct fb_v
- 	    var->bits_per_pixel / 16;
+-	clk_enable(mcspi->ick);
+-	clk_enable(mcspi->fck);
++	if (omap2_mcspi_enable_clocks(mcspi))
++		goto out;
  
- 	DEBUG_MSG(KERN_INFO "\nviafb_pan_display,offset =%d ", offset);
--
--	viafb_write_reg_mask(0x48, 0x3d4, ((offset >> 24) & 0x3), 0x3);
--	viafb_write_reg_mask(0x34, 0x3d4, ((offset >> 16) & 0xff), 0xff);
--	viafb_write_reg_mask(0x0c, 0x3d4, ((offset >> 8) & 0xff), 0xff);
--	viafb_write_reg_mask(0x0d, 0x3d4, (offset & 0xff), 0xff);
--
-+	viafb_set_primary_address(offset);
- 	return 0;
+ 	/* We only enable one channel at a time -- the one whose message is
+ 	 * at the head of the queue -- although this controller would gladly
+@@ -741,13 +807,13 @@ static void omap2_mcspi_work(struct work
+ 				cs_active = 1;
+ 			}
+ 
+-			chconf = mcspi_read_cs_reg(spi, OMAP2_MCSPI_CHCONF0);
++			chconf = mcspi_cached_chconf0(spi);
+ 			chconf &= ~OMAP2_MCSPI_CHCONF_TRM_MASK;
+ 			if (t->tx_buf == NULL)
+ 				chconf |= OMAP2_MCSPI_CHCONF_TRM_RX_ONLY;
+ 			else if (t->rx_buf == NULL)
+ 				chconf |= OMAP2_MCSPI_CHCONF_TRM_TX_ONLY;
+-			mcspi_write_cs_reg(spi, OMAP2_MCSPI_CHCONF0, chconf);
++			mcspi_write_chconf0(spi, chconf);
+ 
+ 			if (t->len) {
+ 				unsigned	count;
+@@ -796,9 +862,9 @@ static void omap2_mcspi_work(struct work
+ 		spin_lock_irq(&mcspi->lock);
+ 	}
+ 
+-	clk_disable(mcspi->fck);
+-	clk_disable(mcspi->ick);
++	omap2_mcspi_disable_clocks(mcspi);
+ 
++out:
+ 	spin_unlock_irq(&mcspi->lock);
  }
  
-@@ -1353,7 +1348,8 @@ static void viafb_set_device(struct devi
- 		viafb_SAMM_ON = active_dev.samm;
- 	viafb_primary_dev = active_dev.primary_dev;
+@@ -885,8 +951,8 @@ static int __init omap2_mcspi_reset(stru
+ 	struct spi_master	*master = mcspi->master;
+ 	u32			tmp;
  
--	viafb_set_start_addr();
-+	viafb_set_primary_address(0);
-+	viafb_set_secondary_address(viafb_SAMM_ON ? viafb_second_offset : 0);
- 	viafb_set_iga_path();
- }
+-	clk_enable(mcspi->ick);
+-	clk_enable(mcspi->fck);
++	if (omap2_mcspi_enable_clocks(mcspi))
++		return -1;
  
-@@ -1537,7 +1533,8 @@ static int apply_device_setting(struct v
- 			if (viafb_SAMM_ON)
- 				viafb_primary_dev = setting_info.primary_device;
+ 	mcspi_write_reg(master, OMAP2_MCSPI_SYSCONFIG,
+ 			OMAP2_MCSPI_SYSCONFIG_SOFTRESET);
+@@ -894,18 +960,18 @@ static int __init omap2_mcspi_reset(stru
+ 		tmp = mcspi_read_reg(master, OMAP2_MCSPI_SYSSTATUS);
+ 	} while (!(tmp & OMAP2_MCSPI_SYSSTATUS_RESETDONE));
  
--			viafb_set_start_addr();
-+			viafb_set_primary_address(0);
-+			viafb_set_secondary_address(viafb_SAMM_ON ? viafb_second_offset : 0);
- 			viafb_set_iga_path();
- 		}
- 		need_set_mode = 1;
-@@ -2275,6 +2272,8 @@ static int __devinit via_pci_probe(void)
- 				viafb_second_offset;
- 		}
+-	mcspi_write_reg(master, OMAP2_MCSPI_SYSCONFIG,
+-			OMAP2_MCSPI_SYSCONFIG_AUTOIDLE |
+-			OMAP2_MCSPI_SYSCONFIG_ENAWAKEUP |
+-			OMAP2_MCSPI_SYSCONFIG_SMARTIDLE);
+-
+-	mcspi_write_reg(master, OMAP2_MCSPI_WAKEUPENABLE,
+-			OMAP2_MCSPI_WAKEUPENABLE_WKEN);
++	tmp = OMAP2_MCSPI_SYSCONFIG_AUTOIDLE |
++		OMAP2_MCSPI_SYSCONFIG_ENAWAKEUP |
++		OMAP2_MCSPI_SYSCONFIG_SMARTIDLE;
++	mcspi_write_reg(master, OMAP2_MCSPI_SYSCONFIG, tmp);
++	omap2_mcspi_ctx[master->bus_num - 1].sysconfig = tmp;
++
++	tmp = OMAP2_MCSPI_WAKEUPENABLE_WKEN;
++	mcspi_write_reg(master, OMAP2_MCSPI_WAKEUPENABLE, tmp);
++	omap2_mcspi_ctx[master->bus_num - 1].wakeupenable = tmp;
  
-+		viaparinfo->iga_path = IGA1;
-+		viaparinfo1->iga_path = IGA2;
- 		memcpy(viafbinfo1, viafbinfo, sizeof(struct fb_info));
- 		viafbinfo1->screen_base = viafbinfo->screen_base +
- 			viafb_second_offset;
-_
-
-Patches currently in -mm which might be from FlorianSchandinat@gmx.de are
-
-origin.patch
-
+ 	omap2_mcspi_set_master_mode(master);
