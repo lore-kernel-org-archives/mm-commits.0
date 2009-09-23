@@ -1,115 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [merged] include-linux-kmemcheckh-fix-a-trillion-warnings.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 12:52:00 -0700
-Message-ID: <200909231952.n8NJq0bO028238@imap1.linux-foundation.org>
+Subject: [merged] kmod-fix-race-in-usermodehelper-code.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 12:52:22 -0700
+Message-ID: <200909231952.n8NJqMg1028975@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40953 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34238 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751691AbZIWTxE (ORCPT
+	by vger.kernel.org with ESMTP id S1751693AbZIWTxG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 15:53:04 -0400
+	Wed, 23 Sep 2009 15:53:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, johannes@sipsolutions.net, vegard.nossum@gmail.com, mm-commits@vger.kernel.org
+To: nhorman@tuxdriver.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     include/linux/kmemcheck.h: fix a trillion warnings
+     kmod: fix race in usermodehelper code
 has been removed from the -mm tree.  Its filename was
-     include-linux-kmemcheckh-fix-a-trillion-warnings.patch
+     kmod-fix-race-in-usermodehelper-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: include/linux/kmemcheck.h: fix a trillion warnings
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kmod: fix race in usermodehelper code
+From: Neil Horman <nhorman@tuxdriver.com>
 
-of the form
+The user mode helper code has a race in it.  call_usermodehelper_exec()
+takes an allocated subprocess_info structure, which it passes to a
+workqueue, and then passes it to a kernel thread which it creates, after
+which it calls complete to signal to the caller of
+call_usermodehelper_exec() that it can free the subprocess_info struct.
 
-include/net/inet_sock.h:208: warning: ISO C90 forbids mixed declarations and code
+But since we use that structure in the created thread, we can't call
+complete from __call_usermodehelper(), which is where we create the kernel
+thread.  We need to call complete() from within the kernel thread and then
+not use subprocess_info afterward in the case of UMH_WAIT_EXEC.  Tested
+successfully by me.
 
-Cc: Johannes Berg <johannes@sipsolutions.net>
-Cc: Vegard Nossum <vegard.nossum@gmail.com>
+Signed-off-by: Neil Horman <nhorman@tuxdriver.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kmemcheck.h |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ kernel/kmod.c |   13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/kmemcheck.h~include-linux-kmemcheckh-fix-a-trillion-warnings include/linux/kmemcheck.h
---- a/include/linux/kmemcheck.h~include-linux-kmemcheckh-fix-a-trillion-warnings
-+++ a/include/linux/kmemcheck.h
-@@ -145,10 +145,12 @@ static inline bool kmemcheck_is_obj_init
+diff -puN kernel/kmod.c~kmod-fix-race-in-usermodehelper-code kernel/kmod.c
+--- a/kernel/kmod.c~kmod-fix-race-in-usermodehelper-code
++++ a/kernel/kmod.c
+@@ -143,6 +143,7 @@ struct subprocess_info {
+ static int ____call_usermodehelper(void *data)
+ {
+ 	struct subprocess_info *sub_info = data;
++	enum umh_wait wait = sub_info->wait;
+ 	int retval;
  
- #define kmemcheck_annotate_bitfield(ptr, name)				\
- 	do {								\
-+		int _n;							\
-+									\
- 		if (!ptr)						\
- 			break;						\
- 									\
--		int _n = (long) &((ptr)->name##_end)			\
-+		_n = (long) &((ptr)->name##_end)			\
- 			- (long) &((ptr)->name##_begin);		\
- 		BUILD_BUG_ON(_n < 0);					\
- 									\
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-drivers-md-dm-log-userspace-basec-fix-warning.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-include-linux-credh-fix-build.patch
-serial167-fix-read-buffer-overflow.patch
-st-fix-test-of-value-range-in-st_set_options.patch
-drivers-usb-serial-sierrac-fix-config_pm=n-build.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-libfs-make-simple_read_from_buffer-conventional.patch
-vfs-optimize-touch_time-too.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-drivers-net-wireless-ath-ar9170-phyc-fix-uninitialised-variable.patch
-hugetlb_file_setup-use-c-not-cpp.patch
-readahead-add-blk_run_backing_dev.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
-frv-arch-frv-kernel-debug-stubc-needs-start_kernelh.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-kernel-smpc-relocate-some-code.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs.patch
-page-types-add-feature-for-walking-process-address-space-checkpatch-fixes.patch
-memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
-memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
-memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
-memcg-improve-resource-counter-scalability-checkpatch-fixes.patch
-exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
-exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
-elf-clean-up-fill_note_info-fix.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-reiser4-disable.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-
+ 	BUG_ON(atomic_read(&sub_info->cred->usage) != 1);
+@@ -184,10 +185,14 @@ static int ____call_usermodehelper(void 
+ 	 */
+ 	set_user_nice(current, 0);
+ 
++	if (wait == UMH_WAIT_EXEC)
++		complete(sub_info->complete);
++
+ 	retval = kernel_execve(sub_info->path, sub_info->argv, sub_info->envp);
+ 
+ 	/* Exec failed? */
+-	sub_info->retval = retval;
++	if (wait != UMH_WAIT_EXEC)
++		sub_info->retval = retval;
+ 	do_exit(0);
+ }
+ 
+@@ -266,16 +271,14 @@ static void __call_usermodehelper(struct
+ 
+ 	switch (wait) {
+ 	case UMH_NO_WAIT:
++	case UMH_WAIT_EXEC:
+ 		break;
+ 
+ 	case UMH_WAIT_PROC:
+ 		if (pid > 0)
+ 			break;
+ 		sub_info->retval = pid;
+-		/* FALLTHROUGH */
