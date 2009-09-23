@@ -1,143 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mtd-nand-add-new-ecc-mode-ecc_hw_oob_first.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 13:05:10 -0700
-Message-ID: <200909232005.n8NK5AGC022816@imap1.linux-foundation.org>
+Subject: [merged] pxa2xx_spi-register-earlier.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 12:58:10 -0700
+Message-ID: <200909231958.n8NJwAEu008371@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55797 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50764 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753957AbZIWUGH (ORCPT
+	by vger.kernel.org with ESMTP id S1753959AbZIWUGM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 16:06:07 -0400
+	Wed, 23 Sep 2009 16:06:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nsnehaprabha@ti.com, dbrownell@users.sourceforge.net, dwmw2@infradead.org, s-paulraj@ti.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: ospite@studenti.unina.it, broonie@opensource.wolfsonmicro.com, dbrownell@users.sourceforge.net, drwyrm@gmail.com, eric.y.miao@gmail.com, lrg@slimlogic.co.uk, sameo@linux.intel.com, mm
 
 
 The patch titled
-     mtd-nand: add new ECC mode - ECC_HW_OOB_FIRST
+     pxa2xx_spi: register earlier
 has been removed from the -mm tree.  Its filename was
-     mtd-nand-add-new-ecc-mode-ecc_hw_oob_first.patch
+     pxa2xx_spi-register-earlier.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd-nand: add new ECC mode - ECC_HW_OOB_FIRST
-From: Sneha Narnakaje <nsnehaprabha@ti.com>
+Subject: pxa2xx_spi: register earlier
+From: Antonio Ospite <ospite@studenti.unina.it>
 
-This patch adds the new mode NAND_ECC_HW_OOB_FIRST in the nand code to
-support 4-bit ECC on TI DaVinci devices with large page (up to 2K) NAND
-chips.  This ECC mode is similar to NAND_ECC_HW, with the exception of
-read_page API that first reads the OOB area, reads the data in chunks,
-feeds the ECC from OOB area to the ECC hw engine and perform any
-correction on the data as per the ECC status reported by the engine.
+Register pxa2xx_spi earlier so it can be used with cpufreq
 
-"ECC_HW_OOB_FIRST" name suggested by Thomas Gleixner
-
-Reviewed-by: David Brownell <dbrownell@users.sourceforge.net>
-Signed-off-by: Sneha Narnakaje <nsnehaprabha@ti.com>
-Signed-off-by: Sandeep Paulraj <s-paulraj@ti.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Daniel Ribeiro <drwyrm@gmail.com>
+Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Eric Miao <eric.y.miao@gmail.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Daniel Ribeiro <drwyrm@gmail.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
+Cc: Liam Girdwood <lrg@slimlogic.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/nand/nand_base.c |   59 +++++++++++++++++++++++++++++++++
- include/linux/mtd/nand.h     |    1 
- 2 files changed, 60 insertions(+)
+ drivers/spi/pxa2xx_spi.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mtd/nand/nand_base.c~mtd-nand-add-new-ecc-mode-ecc_hw_oob_first drivers/mtd/nand/nand_base.c
---- a/drivers/mtd/nand/nand_base.c~mtd-nand-add-new-ecc-mode-ecc_hw_oob_first
-+++ a/drivers/mtd/nand/nand_base.c
-@@ -979,6 +979,54 @@ static int nand_read_page_hwecc(struct m
+diff -puN drivers/spi/pxa2xx_spi.c~pxa2xx_spi-register-earlier drivers/spi/pxa2xx_spi.c
+--- a/drivers/spi/pxa2xx_spi.c~pxa2xx_spi-register-earlier
++++ a/drivers/spi/pxa2xx_spi.c
+@@ -1729,7 +1729,7 @@ static int __init pxa2xx_spi_init(void)
+ {
+ 	return platform_driver_probe(&driver, pxa2xx_spi_probe);
  }
+-module_init(pxa2xx_spi_init);
++subsys_initcall(pxa2xx_spi_init);
  
- /**
-+ * nand_read_page_hwecc_oob_first - [REPLACABLE] hw ecc, read oob first
-+ * @mtd:	mtd info structure
-+ * @chip:	nand chip info structure
-+ * @buf:	buffer to store read data
-+ *
-+ * Hardware ECC for large page chips, require OOB to be read first.
-+ * For this ECC mode, the write_page method is re-used from ECC_HW.
-+ * These methods read/write ECC from the OOB area, unlike the
-+ * ECC_HW_SYNDROME support with multiple ECC steps, follows the
-+ * "infix ECC" scheme and reads/writes ECC from the data area, by
-+ * overwriting the NAND manufacturer bad block markings.
-+ */
-+static int nand_read_page_hwecc_oob_first(struct mtd_info *mtd,
-+	struct nand_chip *chip, uint8_t *buf, int page)
-+{
-+	int i, eccsize = chip->ecc.size;
-+	int eccbytes = chip->ecc.bytes;
-+	int eccsteps = chip->ecc.steps;
-+	uint8_t *p = buf;
-+	uint8_t *ecc_code = chip->buffers->ecccode;
-+	uint32_t *eccpos = chip->ecc.layout->eccpos;
-+	uint8_t *ecc_calc = chip->buffers->ecccalc;
-+
-+	/* Read the OOB area first */
-+	chip->cmdfunc(mtd, NAND_CMD_READOOB, 0, page);
-+	chip->read_buf(mtd, chip->oob_poi, mtd->oobsize);
-+	chip->cmdfunc(mtd, NAND_CMD_READ0, 0, page);
-+
-+	for (i = 0; i < chip->ecc.total; i++)
-+		ecc_code[i] = chip->oob_poi[eccpos[i]];
-+
-+	for (i = 0; eccsteps; eccsteps--, i += eccbytes, p += eccsize) {
-+		int stat;
-+
-+		chip->ecc.hwctl(mtd, NAND_ECC_READ);
-+		chip->read_buf(mtd, p, eccsize);
-+		chip->ecc.calculate(mtd, p, &ecc_calc[i]);
-+
-+		stat = chip->ecc.correct(mtd, p, &ecc_code[i], NULL);
-+		if (stat < 0)
-+			mtd->ecc_stats.failed++;
-+		else
-+			mtd->ecc_stats.corrected += stat;
-+	}
-+	return 0;
-+}
-+
-+/**
-  * nand_read_page_syndrome - [REPLACABLE] hardware ecc syndrom based page read
-  * @mtd:	mtd info structure
-  * @chip:	nand chip info structure
-@@ -2673,6 +2721,17 @@ int nand_scan_tail(struct mtd_info *mtd)
- 	 */
- 
- 	switch (chip->ecc.mode) {
-+	case NAND_ECC_HW_OOB_FIRST:
-+		/* Similar to NAND_ECC_HW, but a separate read_page handle */
-+		if (!chip->ecc.calculate || !chip->ecc.correct ||
-+		     !chip->ecc.hwctl) {
-+			printk(KERN_WARNING "No ECC functions supplied, "
-+			       "Hardware ECC not possible\n");
-+			BUG();
-+		}
-+		if (!chip->ecc.read_page)
-+			chip->ecc.read_page = nand_read_page_hwecc_oob_first;
-+
- 	case NAND_ECC_HW:
- 		/* Use standard hwecc read page function ? */
- 		if (!chip->ecc.read_page)
-diff -puN include/linux/mtd/nand.h~mtd-nand-add-new-ecc-mode-ecc_hw_oob_first include/linux/mtd/nand.h
---- a/include/linux/mtd/nand.h~mtd-nand-add-new-ecc-mode-ecc_hw_oob_first
-+++ a/include/linux/mtd/nand.h
-@@ -121,6 +121,7 @@ typedef enum {
- 	NAND_ECC_SOFT,
- 	NAND_ECC_HW,
- 	NAND_ECC_HW_SYNDROME,
-+	NAND_ECC_HW_OOB_FIRST,
- } nand_ecc_modes_t;
- 
- /*
+ static void __exit pxa2xx_spi_exit(void)
+ {
 _
 
-Patches currently in -mm which might be from nsnehaprabha@ti.com are
+Patches currently in -mm which might be from ospite@studenti.unina.it are
 
 origin.patch
+linux-next.patch
 
