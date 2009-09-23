@@ -1,124 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: [merged] viafb-remove-temporary-start-address-setting.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 13:01:31 -0700
-Message-ID: <200909232001.n8NK1VJ0015315@imap1.linux-foundation.org>
+Subject: [merged] matroxfb-get-rid-of-config_fb_matrox_32mb.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 13:03:13 -0700
+Message-ID: <200909232003.n8NK3D4j018757@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34678 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33319 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752780AbZIWUKM (ORCPT
+	by vger.kernel.org with ESMTP id S1752770AbZIWUKN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 16:10:12 -0400
+	Wed, 23 Sep 2009 16:10:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: FlorianSchandinat@gmx.de, JosephChan@via.com.tw, ScottFang@viatech.com.cn, corbet@lwn.net, laforge@gnumonks.org, mm-commits@vger.kernel.org
+To: khali@linux-fr.org, krzysztof.h1@poczta.fm, vandrove@vc.cvut.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     viafb: remove temporary start address setting
+     matroxfb: get rid of CONFIG_FB_MATROX_32MB
 has been removed from the -mm tree.  Its filename was
-     viafb-remove-temporary-start-address-setting.patch
+     matroxfb-get-rid-of-config_fb_matrox_32mb.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: viafb: remove temporary start address setting
-From: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Subject: matroxfb: get rid of CONFIG_FB_MATROX_32MB
+From: Jean Delvare <khali@linux-fr.org>
 
-Currently the start address is set to an initial value every time
-viafb_setmode is called.
+CONFIG_FB_MATROX_32MB is always enabled, so there is no point in having
+ifdefs all around.  And it is bad practice to use CONFIG_* as a name for
+something which is not a Kconfig option.
 
-This is not done consistently along graphic cores and not even the whole
-address but often only parts of it.  On top of that it seems useless as
-the real/final address will be set by viafb_set_start_addr a few lines
-later.
-
-Remove this superfluous initalization to shrink register initalization and
-as a start to decouple primary and secondary display.  Code cleanup, no
-notable runtime change expected.
-
-Signed-off-by: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Cc: Scott Fang <ScottFang@viatech.com.cn>
-Cc: Joseph Chan <JosephChan@via.com.tw>
-Cc: Harald Welte <laforge@gnumonks.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Acked-by: Petr Vandrovec <vandrove@vc.cvut.cz>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/via/viamode.c |   17 -----------------
- 1 file changed, 17 deletions(-)
+ drivers/video/matrox/matroxfb_DAC1064.c |    2 --
+ drivers/video/matrox/matroxfb_base.c    |   12 ------------
+ drivers/video/matrox/matroxfb_base.h    |    5 -----
+ 3 files changed, 19 deletions(-)
 
-diff -puN drivers/video/via/viamode.c~viafb-remove-temporary-start-address-setting drivers/video/via/viamode.c
---- a/drivers/video/via/viamode.c~viafb-remove-temporary-start-address-setting
-+++ a/drivers/video/via/viamode.c
-@@ -100,12 +100,8 @@ struct io_reg CN400_ModeXregs[] = { {VIA
- {VIACR, CR0F, 0xFF, 0x00},	/* Cursor Localtion Low                */
- {VIACR, CR32, 0xFF, 0x00},
- {VIACR, CR33, 0xFF, 0x00},
--{VIACR, CR34, 0xFF, 0x00},
- {VIACR, CR35, 0xFF, 0x00},
- {VIACR, CR36, 0x08, 0x00},
--{VIACR, CR62, 0xFF, 0x00},	/* Secondary Display Starting Address  */
--{VIACR, CR63, 0xFF, 0x00},	/* Secondary Display Starting Address  */
--{VIACR, CR64, 0xFF, 0x00},	/* Secondary Display Starting Address  */
- {VIACR, CR69, 0xFF, 0x00},
- {VIACR, CR6A, 0xFF, 0x40},
- {VIACR, CR6B, 0xFF, 0x00},
-@@ -159,16 +155,12 @@ struct io_reg CN700_ModeXregs[] = { {VIA
- {VIASR, CR30, 0xFF, 0x04},
- {VIACR, CR32, 0xFF, 0x00},
- {VIACR, CR33, 0x7F, 0x00},
--{VIACR, CR34, 0xFF, 0x00},
- {VIACR, CR35, 0xFF, 0x00},
- {VIACR, CR36, 0xFF, 0x31},
- {VIACR, CR41, 0xFF, 0x80},
- {VIACR, CR42, 0xFF, 0x00},
- {VIACR, CR55, 0x80, 0x00},
- {VIACR, CR5D, 0x80, 0x00},	/*Horizontal Retrace Start bit[11] should be 0*/
--{VIACR, CR62, 0xFF, 0x00},	/* Secondary Display Starting Address */
--{VIACR, CR63, 0xFF, 0x00},	/* Secondary Display Starting Address */
--{VIACR, CR64, 0xFF, 0x00},	/* Secondary Display Starting Address */
- {VIACR, CR68, 0xFF, 0x67},	/* Default FIFO For IGA2 */
- {VIACR, CR69, 0xFF, 0x00},
- {VIACR, CR6A, 0xFD, 0x40},
-@@ -233,9 +225,6 @@ struct io_reg KM400_ModeXregs[] = {
- 	{VIACR, CR55, 0x80, 0x00},
- 	{VIACR, CR5D, 0x80, 0x00},
- 	{VIACR, CR36, 0xFF, 0x01},	/* Power Mangement 3                  */
--	{VIACR, CR62, 0xFF, 0x00},	/* Secondary Display Starting Address */
--	{VIACR, CR63, 0xFF, 0x00},	/* Secondary Display Starting Address */
--	{VIACR, CR64, 0xFF, 0x00},	/* Secondary Display Starting Address */
- 	{VIACR, CR68, 0xFF, 0x67},	/* Default FIFO For IGA2              */
- 	{VIACR, CR6A, 0x20, 0x20},	/* Extended FIFO On                   */
- 	{VIACR, CR7A, 0xFF, 0x01},	/* LCD Scaling Parameter 1            */
-@@ -285,14 +274,9 @@ struct io_reg CX700_ModeXregs[] = { {VIA
- {VIACR, CR0F, 0xFF, 0x00},	/* Cursor Localtion Low                */
- {VIACR, CR32, 0xFF, 0x00},
- {VIACR, CR33, 0xFF, 0x00},
--{VIACR, CR34, 0xFF, 0x00},
- {VIACR, CR35, 0xFF, 0x00},
- {VIACR, CR36, 0x08, 0x00},
- {VIACR, CR47, 0xC8, 0x00},	/* Clear VCK Plus. */
--{VIACR, CR62, 0xFF, 0x00},	/* Secondary Display Starting Address  */
--{VIACR, CR63, 0xFF, 0x00},	/* Secondary Display Starting Address  */
--{VIACR, CR64, 0xFF, 0x00},	/* Secondary Display Starting Address  */
--{VIACR, CRA3, 0xFF, 0x00},	/* Secondary Display Starting Address  */
- {VIACR, CR69, 0xFF, 0x00},
- {VIACR, CR6A, 0xFF, 0x40},
- {VIACR, CR6B, 0xFF, 0x00},
-@@ -340,7 +324,6 @@ struct io_reg CLE266_ModeXregs[] = { {VI
- {VIASR, SR1A, 0xFB, 0x08},
+diff -puN drivers/video/matrox/matroxfb_DAC1064.c~matroxfb-get-rid-of-config_fb_matrox_32mb drivers/video/matrox/matroxfb_DAC1064.c
+--- a/drivers/video/matrox/matroxfb_DAC1064.c~matroxfb-get-rid-of-config_fb_matrox_32mb
++++ a/drivers/video/matrox/matroxfb_DAC1064.c
+@@ -1080,10 +1080,8 @@ static void MGAG100_restore(struct matro
  
- {VIACR, CR32, 0xFF, 0x00},
--{VIACR, CR34, 0xFF, 0x00},
- {VIACR, CR35, 0xFF, 0x00},
- {VIACR, CR36, 0x08, 0x00},
- {VIACR, CR6A, 0xFF, 0x80},
-_
-
-Patches currently in -mm which might be from FlorianSchandinat@gmx.de are
-
-origin.patch
-
+ 	DAC1064_restore_1(minfo);
+ 	matroxfb_vgaHWrestore(minfo);
+-#ifdef CONFIG_FB_MATROX_32MB
+ 	if (minfo->devflags.support32MB)
+ 		mga_setr(M_EXTVGA_INDEX, 8, hw->CRTCEXT[8]);
+-#endif
+ 	minfo->crtc1.panpos = -1;
+ 	for (i = 0; i < 6; i++)
+ 		mga_setr(M_EXTVGA_INDEX, i, hw->CRTCEXT[i]);
+diff -puN drivers/video/matrox/matroxfb_base.c~matroxfb-get-rid-of-config_fb_matrox_32mb drivers/video/matrox/matroxfb_base.c
+--- a/drivers/video/matrox/matroxfb_base.c~matroxfb-get-rid-of-config_fb_matrox_32mb
++++ a/drivers/video/matrox/matroxfb_base.c
+@@ -310,9 +310,7 @@ static void matrox_pan_var(struct matrox
+ {
+ 	unsigned int pos;
+ 	unsigned short p0, p1, p2;
+-#ifdef CONFIG_FB_MATROX_32MB
+ 	unsigned int p3;
+-#endif
+ 	int vbl;
+ 	unsigned long flags;
+ 
+@@ -330,9 +328,7 @@ static void matrox_pan_var(struct matrox
+ 	p0 = minfo->hw.CRTC[0x0D] = pos & 0xFF;
+ 	p1 = minfo->hw.CRTC[0x0C] = (pos & 0xFF00) >> 8;
+ 	p2 = minfo->hw.CRTCEXT[0] = (minfo->hw.CRTCEXT[0] & 0xB0) | ((pos >> 16) & 0x0F) | ((pos >> 14) & 0x40);
+-#ifdef CONFIG_FB_MATROX_32MB
+ 	p3 = minfo->hw.CRTCEXT[8] = pos >> 21;
+-#endif
+ 
+ 	/* FB_ACTIVATE_VBL and we can acquire interrupts? Honor FB_ACTIVATE_VBL then... */
+ 	vbl = (var->activate & FB_ACTIVATE_VBL) && (matroxfb_enable_irq(minfo, 0) == 0);
+@@ -342,10 +338,8 @@ static void matrox_pan_var(struct matrox
+ 	matroxfb_DAC_lock_irqsave(flags);
+ 	mga_setr(M_CRTC_INDEX, 0x0D, p0);
+ 	mga_setr(M_CRTC_INDEX, 0x0C, p1);
+-#ifdef CONFIG_FB_MATROX_32MB
+ 	if (minfo->devflags.support32MB)
+ 		mga_setr(M_EXTVGA_INDEX, 0x08, p3);
+-#endif
+ 	if (vbl) {
+ 		minfo->crtc1.panpos = p2;
+ 	} else {
+@@ -1360,13 +1354,9 @@ static struct video_board vbMystique		= 
+ #ifdef CONFIG_FB_MATROX_G
+ static struct video_board vbG100		= {0x0800000, 0x0800000, FB_ACCEL_MATROX_MGAG100,	&matrox_G100};
+ static struct video_board vbG200		= {0x1000000, 0x1000000, FB_ACCEL_MATROX_MGAG200,	&matrox_G100};
+-#ifdef CONFIG_FB_MATROX_32MB
+ /* from doc it looks like that accelerator can draw only to low 16MB :-( Direct accesses & displaying are OK for
+    whole 32MB */
+ static struct video_board vbG400		= {0x2000000, 0x1000000, FB_ACCEL_MATROX_MGAG400,	&matrox_G100};
+-#else
+-static struct video_board vbG400		= {0x2000000, 0x1000000, FB_ACCEL_MATROX_MGAG400,	&matrox_G100};
+-#endif
+ #endif
+ 
+ #define DEVF_VIDEO64BIT		0x0001
+@@ -1646,9 +1636,7 @@ static int initMatrox2(struct matrox_fb_
+ 		minfo->devflags.textmode = 1;
+ 		minfo->devflags.text_type_aux = FB_AUX_TEXT_MGA_STEP8;
+ 	}
+-#ifdef CONFIG_FB_MATROX_32MB
+ 	minfo->devflags.support32MB = (b->flags & DEVF_SUPPORT32MB) != 0;
+-#endif
+ 	minfo->devflags.precise_width = !(b->flags & DEVF_ANY_VXRES);
+ 	minfo->devflags.crtc2 = (b->flags & DEVF_CRTC2) != 0;
+ 	minfo->devflags.maven_capable = (b->flags & DEVF_MAVEN_CAPABLE) != 0;
+diff -puN drivers/video/matrox/matroxfb_base.h~matroxfb-get-rid-of-config_fb_matrox_32mb drivers/video/matrox/matroxfb_base.h
+--- a/drivers/video/matrox/matroxfb_base.h~matroxfb-get-rid-of-config_fb_matrox_32mb
++++ a/drivers/video/matrox/matroxfb_base.h
+@@ -54,9 +54,6 @@
+ #include "../macmodes.h"
+ #endif
+ 
+-/* always compile support for 32MB... It cost almost nothing */
+-#define CONFIG_FB_MATROX_32MB
