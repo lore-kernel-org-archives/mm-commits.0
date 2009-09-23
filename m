@@ -1,187 +1,264 @@
 From: akpm@linux-foundation.org
-Subject: [merged] omap_hsmmc-put-mmc-regulator-to-sleep.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 12:54:59 -0700
-Message-ID: <200909231954.n8NJsxWD001810__29341.1018945791$1253736668$gmane$org@imap1.linux-foundation.org>
+Subject: [merged] omapfb-add-support-for-the-omap3-beagle-dvi-output.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 13:00:21 -0700
+Message-ID: <200909232000.n8NK0LOR012926@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47855 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49943 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753514AbZIWUKd (ORCPT
+	by vger.kernel.org with ESMTP id S1753819AbZIWUKm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 16:10:33 -0400
+	Wed, 23 Sep 2009 16:10:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adrian.hunter@nokia.com, ext-denis.2.karpov@nokia.com, ian@mnementh.co.uk, jarkko.lavinen@nokia.com, linux-mmc@vger.kernel.org, madhu.cr@ti.com, matt@console-pimps.org, philipl@overt.
+To: koen@openembedded.org, dbrownell@users.sourceforge.net, felipe.contreras@gmail.com, imre.deak@nokia.com, jarkko.nikula@gmail.com, krzysztof.h1@wp.pl, steve@sakoman.com, tony@atomide.c
 
 
 The patch titled
-     omap_hsmmc: put MMC regulator to sleep
+     omapfb: add support for the OMAP3 Beagle DVI output
 has been removed from the -mm tree.  Its filename was
-     omap_hsmmc-put-mmc-regulator-to-sleep.patch
+     omapfb-add-support-for-the-omap3-beagle-dvi-output.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: omap_hsmmc: put MMC regulator to sleep
-From: Adrian Hunter <adrian.hunter@nokia.com>
+Subject: omapfb: add support for the OMAP3 Beagle DVI output
+From: Koen Kooi <koen@openembedded.org>
 
-When a card is not in use, the voltage regulator can be put to sleep. 
-This is an alternative to powering the card off, when powering off is not
-safe because the card might be replaced without the driver being aware of
-it.
+The default resolution is 1024x768@24bit
 
-That situation happens if:
-	- the card is removable i.e. not eMMC
-	- and there is no card detect
-	- and there is a cover switch but the cover is open
+This version addresses the comments from Felipe Balbi adn Arun Edarath
 
-Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
-Acked-by: Matt Fleming <matt@console-pimps.org>
-Cc: Ian Molton <ian@mnementh.co.uk>
-Cc: "Roberto A. Foglietta" <roberto.foglietta@gmail.com>
-Cc: Jarkko Lavinen <jarkko.lavinen@nokia.com>
-Cc: Denis Karpov <ext-denis.2.karpov@nokia.com>
-Cc: Pierre Ossman <pierre@ossman.eu>
-Cc: Philip Langdale <philipl@overt.org>
-Cc: "Madhusudhan" <madhu.cr@ti.com>
-Cc: <linux-mmc@vger.kernel.org>
+Fixed-by: Felipe Contreras <felipe.contreras@gmail.com>
+Fixed-by: Steve Sakoman <steve@sakoman.com>
+Fixed-by: Jarkko Nikula <jarkko.nikula@gmail.com>
+Fixed-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Koen Kooi <koen@openembedded.org>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Imre Deak <imre.deak@nokia.com>
+Acked-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/omap_hsmmc.c |   59 +++++++++++++++++++++++++++++---
- 1 file changed, 54 insertions(+), 5 deletions(-)
+ arch/arm/configs/omap3_beagle_defconfig |   47 +++++++
+ drivers/video/omap/Makefile             |    1 
+ drivers/video/omap/lcd_omap3beagle.c    |  130 ++++++++++++++++++++++
+ 3 files changed, 177 insertions(+), 1 deletion(-)
 
-diff -puN drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-put-mmc-regulator-to-sleep drivers/mmc/host/omap_hsmmc.c
---- a/drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-put-mmc-regulator-to-sleep
-+++ a/drivers/mmc/host/omap_hsmmc.c
-@@ -162,6 +162,7 @@ struct mmc_omap_host {
- 	int			response_busy;
- 	int			context_loss;
- 	int			dpm_state;
-+	int			vdd;
+diff -puN arch/arm/configs/omap3_beagle_defconfig~omapfb-add-support-for-the-omap3-beagle-dvi-output arch/arm/configs/omap3_beagle_defconfig
+--- a/arch/arm/configs/omap3_beagle_defconfig~omapfb-add-support-for-the-omap3-beagle-dvi-output
++++ a/arch/arm/configs/omap3_beagle_defconfig
+@@ -778,7 +778,33 @@ CONFIG_DAB=y
+ #
+ # CONFIG_VGASTATE is not set
+ # CONFIG_VIDEO_OUTPUT_CONTROL is not set
+-# CONFIG_FB is not set
++CONFIG_FB=y
++# CONFIG_FIRMWARE_EDID is not set
++# CONFIG_FB_DDC is not set
++CONFIG_FB_CFB_FILLRECT=y
++CONFIG_FB_CFB_COPYAREA=y
++CONFIG_FB_CFB_IMAGEBLIT=y
++# CONFIG_FB_CFB_REV_PIXELS_IN_BYTE is not set
++# CONFIG_FB_SYS_FILLRECT is not set
++# CONFIG_FB_SYS_COPYAREA is not set
++# CONFIG_FB_SYS_IMAGEBLIT is not set
++# CONFIG_FB_FOREIGN_ENDIAN is not set
++# CONFIG_FB_SYS_FOPS is not set
++# CONFIG_FB_SVGALIB is not set
++# CONFIG_FB_MACMODES is not set
++# CONFIG_FB_BACKLIGHT is not set
++# CONFIG_FB_MODE_HELPERS is not set
++# CONFIG_FB_TILEBLITTING is not set
++
++#
++# Frame buffer hardware drivers
++#
++# CONFIG_FB_S1D13XXX is not set
++# CONFIG_FB_VIRTUAL is not set
++CONFIG_FB_OMAP=y
++# CONFIG_FB_OMAP_LCDC_EXTERNAL is not set
++# CONFIG_FB_OMAP_BOOTLOADER_INIT is not set
++CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE=2
+ # CONFIG_BACKLIGHT_LCD_SUPPORT is not set
  
- 	struct	omap_mmc_platform_data	*pdata;
- };
-@@ -1038,10 +1039,12 @@ static void omap_mmc_set_ios(struct mmc_
- 		case MMC_POWER_OFF:
- 			mmc_slot(host).set_power(host->dev, host->slot_id,
- 						 0, 0);
-+			host->vdd = 0;
- 			break;
- 		case MMC_POWER_UP:
- 			mmc_slot(host).set_power(host->dev, host->slot_id,
- 						 1, ios->vdd);
-+			host->vdd = ios->vdd;
- 			break;
- 		case MMC_POWER_ON:
- 			do_send_init_stream = 1;
-@@ -1179,19 +1182,20 @@ static void omap_hsmmc_init(struct mmc_o
+ #
+@@ -791,6 +817,25 @@ CONFIG_DAB=y
+ #
+ # CONFIG_VGA_CONSOLE is not set
+ CONFIG_DUMMY_CONSOLE=y
++CONFIG_FRAMEBUFFER_CONSOLE=y
++# CONFIG_FRAMEBUFFER_CONSOLE_DETECT_PRIMARY is not set
++CONFIG_FRAMEBUFFER_CONSOLE_ROTATION=y
++CONFIG_FONTS=y
++CONFIG_FONT_8x8=y
++CONFIG_FONT_8x16=y
++# CONFIG_FONT_6x11 is not set
++# CONFIG_FONT_7x14 is not set
++# CONFIG_FONT_PEARL_8x8 is not set
++# CONFIG_FONT_ACORN_8x8 is not set
++# CONFIG_FONT_MINI_4x6 is not set
++# CONFIG_FONT_SUN8x16 is not set
++# CONFIG_FONT_SUN12x22 is not set
++# CONFIG_FONT_10x18 is not set
++# CONFIG_LOGO is not set
++
++#
++# Sound
++#
+ # CONFIG_SOUND is not set
+ # CONFIG_HID_SUPPORT is not set
+ CONFIG_USB_SUPPORT=y
+diff -puN drivers/video/omap/Makefile~omapfb-add-support-for-the-omap3-beagle-dvi-output drivers/video/omap/Makefile
+--- a/drivers/video/omap/Makefile~omapfb-add-support-for-the-omap3-beagle-dvi-output
++++ a/drivers/video/omap/Makefile
+@@ -31,6 +31,7 @@ objs-y$(CONFIG_MACH_OMAP_2430SDP) += lcd
+ objs-y$(CONFIG_MACH_OMAP_3430SDP) += lcd_2430sdp.o
+ objs-y$(CONFIG_MACH_OMAP2EVM) += lcd_omap2evm.o
+ objs-y$(CONFIG_MACH_OMAP3EVM) += lcd_omap3evm.o
++objs-y$(CONFIG_MACH_OMAP3_BEAGLE) += lcd_omap3beagle.o
+ objs-y$(CONFIG_FB_OMAP_LCD_MIPID) += lcd_mipid.o
  
- /*
-  * Dynamic power saving handling, FSM:
-- *   ENABLED -> DISABLED -> OFF
-+ *   ENABLED -> DISABLED -> OFF / REGSLEEP
-  *     ^___________|          |
-  *     |______________________|
-  *
-  * ENABLED:   mmc host is fully functional
-  * DISABLED:  fclk is off
-  * OFF:       fclk is off,voltage regulator is off
-+ * REGSLEEP:  fclk is off,voltage regulator is asleep
-  *
-  * Transition handlers return the timeout for the next state transition
-  * or negative error.
-  */
- 
--enum {ENABLED = 0, DISABLED, OFF};
-+enum {ENABLED = 0, DISABLED, REGSLEEP, OFF};
- 
- /* Handler for [ENABLED -> DISABLED] transition */
- static int omap_mmc_enabled_to_disabled(struct mmc_omap_host *host)
-@@ -1228,8 +1232,12 @@ static int omap_mmc_disabled_to_off(stru
- 	     mmc_slot(host).get_cover_state(host->dev, host->slot_id))) {
- 		mmc_power_save_host(host->mmc);
- 		new_state = OFF;
--	} else
--		new_state = DISABLED;
-+	} else {
-+		if (mmc_slot(host).set_sleep)
-+			mmc_slot(host).set_sleep(host->dev, host->slot_id,
-+						 1, 0, 0);
-+		new_state = REGSLEEP;
-+	}
- 
- 	OMAP_HSMMC_WRITE(host->base, ISE, 0);
- 	OMAP_HSMMC_WRITE(host->base, IE, 0);
-@@ -1286,6 +1294,44 @@ static int omap_mmc_off_to_enabled(struc
- 	return 0;
- }
- 
-+/* Handler for [REGSLEEP -> ENABLED] transition */
-+static int omap_mmc_regsleep_to_enabled(struct mmc_omap_host *host)
+ omapfb-objs := $(objs-yy)
+diff -puN /dev/null drivers/video/omap/lcd_omap3beagle.c
+--- /dev/null
++++ a/drivers/video/omap/lcd_omap3beagle.c
+@@ -0,0 +1,130 @@
++/*
++ * LCD panel support for the TI OMAP3 Beagle board
++ *
++ * Author: Koen Kooi <koen@openembedded.org>
++ *
++ * Derived from drivers/video/omap/lcd-omap3evm.c
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, write to the Free Software Foundation, Inc.,
++ * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
++ */
++
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/gpio.h>
++#include <linux/i2c/twl4030.h>
++
++#include <mach/mux.h>
++#include <mach/omapfb.h>
++#include <asm/mach-types.h>
++
++#define LCD_PANEL_ENABLE_GPIO       170
++
++static int omap3beagle_panel_init(struct lcd_panel *panel,
++				struct omapfb_device *fbdev)
 +{
-+	unsigned long timeout;
-+
-+	dev_dbg(mmc_dev(host->mmc), "REGSLEEP -> ENABLED\n");
-+
-+	clk_enable(host->fclk);
-+	clk_enable(host->iclk);
-+
-+	if (clk_enable(host->dbclk))
-+		dev_dbg(mmc_dev(host->mmc),
-+			"Enabling debounce clk failed\n");
-+
-+	omap_mmc_restore_ctx(host);
-+
-+	/*
-+	 * We turned off interrupts and bus power.  Interrupts
-+	 * are turned on by 'mmc_omap_start_command()' so we
-+	 * just need to turn on the bus power here.
-+	 */
-+	OMAP_HSMMC_WRITE(host->base, HCTL,
-+			 OMAP_HSMMC_READ(host->base, HCTL) | SDBP);
-+
-+	timeout = jiffies + msecs_to_jiffies(MMC_TIMEOUT_MS);
-+	while ((OMAP_HSMMC_READ(host->base, HCTL) & SDBP) != SDBP &&
-+	       time_before(jiffies, timeout))
-+		;
-+
-+	if (mmc_slot(host).set_sleep)
-+		mmc_slot(host).set_sleep(host->dev, host->slot_id,
-+					 0, host->vdd, 0);
-+
-+	host->dpm_state = ENABLED;
-+
++	gpio_request(LCD_PANEL_ENABLE_GPIO, "LCD enable");
 +	return 0;
 +}
 +
- /*
-  * Bring MMC host to ENABLED from any other PM state.
-  */
-@@ -1296,6 +1342,8 @@ static int omap_mmc_enable(struct mmc_ho
- 	switch (host->dpm_state) {
- 	case DISABLED:
- 		return omap_mmc_disabled_to_enabled(host);
-+	case REGSLEEP:
-+		return omap_mmc_regsleep_to_enabled(host);
- 	case OFF:
- 		return omap_mmc_off_to_enabled(host);
- 	default:
-@@ -1393,7 +1441,8 @@ static int mmc_regs_show(struct seq_file
- 			host->dpm_state, mmc->nesting_cnt,
- 			host->context_loss, context_loss);
- 
--	if (host->suspended || host->dpm_state == OFF) {
-+	if (host->suspended || host->dpm_state == OFF ||
-+	    host->dpm_state == REGSLEEP) {
- 		seq_printf(s, "host suspended, can't read registers\n");
- 		return 0;
- 	}
++static void omap3beagle_panel_cleanup(struct lcd_panel *panel)
++{
++	gpio_free(LCD_PANEL_ENABLE_GPIO);
++}
++
++static int omap3beagle_panel_enable(struct lcd_panel *panel)
++{
++	gpio_set_value(LCD_PANEL_ENABLE_GPIO, 1);
++	return 0;
++}
++
++static void omap3beagle_panel_disable(struct lcd_panel *panel)
++{
++	gpio_set_value(LCD_PANEL_ENABLE_GPIO, 0);
++}
++
++static unsigned long omap3beagle_panel_get_caps(struct lcd_panel *panel)
++{
++	return 0;
++}
++
++struct lcd_panel omap3beagle_panel = {
++	.name		= "omap3beagle",
++	.config		= OMAP_LCDC_PANEL_TFT,
++
++	.bpp		= 16,
++	.data_lines	= 24,
++	.x_res		= 1024,
++	.y_res		= 768,
++	.hsw		= 3,		/* hsync_len (4) - 1 */
++	.hfp		= 3,		/* right_margin (4) - 1 */
++	.hbp		= 39,		/* left_margin (40) - 1 */
++	.vsw		= 1,		/* vsync_len (2) - 1 */
++	.vfp		= 2,		/* lower_margin */
++	.vbp		= 7,		/* upper_margin (8) - 1 */
++
++	.pixel_clock	= 64000,
++
++	.init		= omap3beagle_panel_init,
++	.cleanup	= omap3beagle_panel_cleanup,
++	.enable		= omap3beagle_panel_enable,
++	.disable	= omap3beagle_panel_disable,
++	.get_caps	= omap3beagle_panel_get_caps,
++};
++
++static int omap3beagle_panel_probe(struct platform_device *pdev)
++{
++	omapfb_register_panel(&omap3beagle_panel);
++	return 0;
++}
++
++static int omap3beagle_panel_remove(struct platform_device *pdev)
++{
++	return 0;
++}
++
++static int omap3beagle_panel_suspend(struct platform_device *pdev,
++				   pm_message_t mesg)
++{
++	return 0;
++}
++
++static int omap3beagle_panel_resume(struct platform_device *pdev)
++{
++	return 0;
++}
++
++struct platform_driver omap3beagle_panel_driver = {
++	.probe		= omap3beagle_panel_probe,
++	.remove		= omap3beagle_panel_remove,
++	.suspend	= omap3beagle_panel_suspend,
++	.resume		= omap3beagle_panel_resume,
++	.driver		= {
++		.name	= "omap3beagle_lcd",
++		.owner	= THIS_MODULE,
++	},
++};
++
++static int __init omap3beagle_panel_drv_init(void)
++{
++	return platform_driver_register(&omap3beagle_panel_driver);
++}
++
++static void __exit omap3beagle_panel_drv_exit(void)
++{
++	platform_driver_unregister(&omap3beagle_panel_driver);
++}
++
++module_init(omap3beagle_panel_drv_init);
++module_exit(omap3beagle_panel_drv_exit);
 _
 
-Patches currently in -mm which might be from adrian.hunter@nokia.com are
+Patches currently in -mm which might be from koen@openembedded.org are
 
 origin.patch
 
