@@ -1,125 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: [merged] matroxfb-get-rid-of-config_fb_matrox_32mb.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 13:03:13 -0700
-Message-ID: <200909232003.n8NK3D4j018757@imap1.linux-foundation.org>
+Subject: [merged] viafb-remove-duplicated-cx700-register-init.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 13:01:27 -0700
+Message-ID: <200909232001.n8NK1RTj015218@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33319 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59056 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752770AbZIWUKN (ORCPT
+	by vger.kernel.org with ESMTP id S1752809AbZIWUKN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 23 Sep 2009 16:10:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khali@linux-fr.org, krzysztof.h1@poczta.fm, vandrove@vc.cvut.cz, mm-commits@vger.kernel.org
+To: FlorianSchandinat@gmx.de, JosephChan@via.com.tw, ScottFang@viatech.com.cn, corbet@lwn.net, laforge@gnumonks.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     matroxfb: get rid of CONFIG_FB_MATROX_32MB
+     viafb: remove duplicated CX700 register init
 has been removed from the -mm tree.  Its filename was
-     matroxfb-get-rid-of-config_fb_matrox_32mb.patch
+     viafb-remove-duplicated-cx700-register-init.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: matroxfb: get rid of CONFIG_FB_MATROX_32MB
-From: Jean Delvare <khali@linux-fr.org>
+Subject: viafb: remove duplicated CX700 register init
+From: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 
-CONFIG_FB_MATROX_32MB is always enabled, so there is no point in having
-ifdefs all around.  And it is bad practice to use CONFIG_* as a name for
-something which is not a Kconfig option.
+The current code initializes the register for CX700 chips 2 times due to a
+missing break as discovered by Harald Welte.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Acked-by: Petr Vandrovec <vandrove@vc.cvut.cz>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+As CX700 and VX800 have exactly the same register initialization we can
+use one for both to avoid duplicated code.
+
+As this is a pure code cleanup no measurable runtime effects are expected.
+
+Signed-off-by: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Cc: Scott Fang <ScottFang@viatech.com.cn>
+Cc: Joseph Chan <JosephChan@via.com.tw>
+Cc: Harald Welte <laforge@gnumonks.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/matrox/matroxfb_DAC1064.c |    2 --
- drivers/video/matrox/matroxfb_base.c    |   12 ------------
- drivers/video/matrox/matroxfb_base.h    |    5 -----
- 3 files changed, 19 deletions(-)
+ drivers/video/via/hw.c      |    5 --
+ drivers/video/via/viamode.c |   61 ----------------------------------
+ drivers/video/via/viamode.h |    1 
+ 3 files changed, 1 insertion(+), 66 deletions(-)
 
-diff -puN drivers/video/matrox/matroxfb_DAC1064.c~matroxfb-get-rid-of-config_fb_matrox_32mb drivers/video/matrox/matroxfb_DAC1064.c
---- a/drivers/video/matrox/matroxfb_DAC1064.c~matroxfb-get-rid-of-config_fb_matrox_32mb
-+++ a/drivers/video/matrox/matroxfb_DAC1064.c
-@@ -1080,10 +1080,8 @@ static void MGAG100_restore(struct matro
+diff -puN drivers/video/via/hw.c~viafb-remove-duplicated-cx700-register-init drivers/video/via/hw.c
+--- a/drivers/video/via/hw.c~viafb-remove-duplicated-cx700-register-init
++++ a/drivers/video/via/hw.c
+@@ -2271,11 +2271,8 @@ int viafb_setmode(int vmode_index, int h
+ 		break;
  
- 	DAC1064_restore_1(minfo);
- 	matroxfb_vgaHWrestore(minfo);
--#ifdef CONFIG_FB_MATROX_32MB
- 	if (minfo->devflags.support32MB)
- 		mga_setr(M_EXTVGA_INDEX, 8, hw->CRTCEXT[8]);
--#endif
- 	minfo->crtc1.panpos = -1;
- 	for (i = 0; i < 6; i++)
- 		mga_setr(M_EXTVGA_INDEX, i, hw->CRTCEXT[i]);
-diff -puN drivers/video/matrox/matroxfb_base.c~matroxfb-get-rid-of-config_fb_matrox_32mb drivers/video/matrox/matroxfb_base.c
---- a/drivers/video/matrox/matroxfb_base.c~matroxfb-get-rid-of-config_fb_matrox_32mb
-+++ a/drivers/video/matrox/matroxfb_base.c
-@@ -310,9 +310,7 @@ static void matrox_pan_var(struct matrox
- {
- 	unsigned int pos;
- 	unsigned short p0, p1, p2;
--#ifdef CONFIG_FB_MATROX_32MB
- 	unsigned int p3;
--#endif
- 	int vbl;
- 	unsigned long flags;
- 
-@@ -330,9 +328,7 @@ static void matrox_pan_var(struct matrox
- 	p0 = minfo->hw.CRTC[0x0D] = pos & 0xFF;
- 	p1 = minfo->hw.CRTC[0x0C] = (pos & 0xFF00) >> 8;
- 	p2 = minfo->hw.CRTCEXT[0] = (minfo->hw.CRTCEXT[0] & 0xB0) | ((pos >> 16) & 0x0F) | ((pos >> 14) & 0x40);
--#ifdef CONFIG_FB_MATROX_32MB
- 	p3 = minfo->hw.CRTCEXT[8] = pos >> 21;
--#endif
- 
- 	/* FB_ACTIVATE_VBL and we can acquire interrupts? Honor FB_ACTIVATE_VBL then... */
- 	vbl = (var->activate & FB_ACTIVATE_VBL) && (matroxfb_enable_irq(minfo, 0) == 0);
-@@ -342,10 +338,8 @@ static void matrox_pan_var(struct matrox
- 	matroxfb_DAC_lock_irqsave(flags);
- 	mga_setr(M_CRTC_INDEX, 0x0D, p0);
- 	mga_setr(M_CRTC_INDEX, 0x0C, p1);
--#ifdef CONFIG_FB_MATROX_32MB
- 	if (minfo->devflags.support32MB)
- 		mga_setr(M_EXTVGA_INDEX, 0x08, p3);
--#endif
- 	if (vbl) {
- 		minfo->crtc1.panpos = p2;
- 	} else {
-@@ -1360,13 +1354,9 @@ static struct video_board vbMystique		= 
- #ifdef CONFIG_FB_MATROX_G
- static struct video_board vbG100		= {0x0800000, 0x0800000, FB_ACCEL_MATROX_MGAG100,	&matrox_G100};
- static struct video_board vbG200		= {0x1000000, 0x1000000, FB_ACCEL_MATROX_MGAG200,	&matrox_G100};
--#ifdef CONFIG_FB_MATROX_32MB
- /* from doc it looks like that accelerator can draw only to low 16MB :-( Direct accesses & displaying are OK for
-    whole 32MB */
- static struct video_board vbG400		= {0x2000000, 0x1000000, FB_ACCEL_MATROX_MGAG400,	&matrox_G100};
--#else
--static struct video_board vbG400		= {0x2000000, 0x1000000, FB_ACCEL_MATROX_MGAG400,	&matrox_G100};
--#endif
- #endif
- 
- #define DEVF_VIDEO64BIT		0x0001
-@@ -1646,9 +1636,7 @@ static int initMatrox2(struct matrox_fb_
- 		minfo->devflags.textmode = 1;
- 		minfo->devflags.text_type_aux = FB_AUX_TEXT_MGA_STEP8;
+ 	case UNICHROME_CX700:
+-		viafb_write_regx(CX700_ModeXregs, NUM_TOTAL_CX700_ModeXregs);
+-
+ 	case UNICHROME_VX800:
+-		viafb_write_regx(VX800_ModeXregs, NUM_TOTAL_VX800_ModeXregs);
+-
++		viafb_write_regx(CX700_ModeXregs, NUM_TOTAL_CX700_ModeXregs);
+ 		break;
  	}
--#ifdef CONFIG_FB_MATROX_32MB
- 	minfo->devflags.support32MB = (b->flags & DEVF_SUPPORT32MB) != 0;
--#endif
- 	minfo->devflags.precise_width = !(b->flags & DEVF_ANY_VXRES);
- 	minfo->devflags.crtc2 = (b->flags & DEVF_CRTC2) != 0;
- 	minfo->devflags.maven_capable = (b->flags & DEVF_MAVEN_CAPABLE) != 0;
-diff -puN drivers/video/matrox/matroxfb_base.h~matroxfb-get-rid-of-config_fb_matrox_32mb drivers/video/matrox/matroxfb_base.h
---- a/drivers/video/matrox/matroxfb_base.h~matroxfb-get-rid-of-config_fb_matrox_32mb
-+++ a/drivers/video/matrox/matroxfb_base.h
-@@ -54,9 +54,6 @@
- #include "../macmodes.h"
- #endif
  
--/* always compile support for 32MB... It cost almost nothing */
--#define CONFIG_FB_MATROX_32MB
+diff -puN drivers/video/via/viamode.c~viafb-remove-duplicated-cx700-register-init drivers/video/via/viamode.c
+--- a/drivers/video/via/viamode.c~viafb-remove-duplicated-cx700-register-init
++++ a/drivers/video/via/viamode.c
+@@ -329,67 +329,6 @@ struct io_reg CX700_ModeXregs[] = { {VIA
+ {VIACR, CRD2, 0xFF, 0xFF}	/* TMDS/LVDS control register.         */
+ };
+ 
+-/* For VT3353: Common Setting for Video Mode */
+-struct io_reg VX800_ModeXregs[] = { {VIASR, SR10, 0xFF, 0x01},
+-{VIASR, SR15, 0x02, 0x02},
+-{VIASR, SR16, 0xBF, 0x08},
+-{VIASR, SR17, 0xFF, 0x1F},
+-{VIASR, SR18, 0xFF, 0x4E},
+-{VIASR, SR1A, 0xFB, 0x08},
+-{VIASR, SR1B, 0xFF, 0xF0},
+-{VIASR, SR1E, 0xFF, 0x01},
+-{VIASR, SR2A, 0xFF, 0x00},
+-{VIASR, SR2D, 0xFF, 0xFF},	/* VCK and LCK PLL power on.           */
+-{VIACR, CR0A, 0xFF, 0x1E},	/* Cursor Start                        */
+-{VIACR, CR0B, 0xFF, 0x00},	/* Cursor End                          */
+-{VIACR, CR0E, 0xFF, 0x00},	/* Cursor Location High                */
+-{VIACR, CR0F, 0xFF, 0x00},	/* Cursor Localtion Low                */
+-{VIACR, CR32, 0xFF, 0x00},
+-{VIACR, CR33, 0xFF, 0x00},
+-{VIACR, CR34, 0xFF, 0x00},
+-{VIACR, CR35, 0xFF, 0x00},
+-{VIACR, CR36, 0x08, 0x00},
+-{VIACR, CR47, 0xC8, 0x00},	/* Clear VCK Plus. */
+-{VIACR, CR62, 0xFF, 0x00},	/* Secondary Display Starting Address  */
+-{VIACR, CR63, 0xFF, 0x00},	/* Secondary Display Starting Address  */
+-{VIACR, CR64, 0xFF, 0x00},	/* Secondary Display Starting Address  */
+-{VIACR, CRA3, 0xFF, 0x00},	/* Secondary Display Starting Address  */
+-{VIACR, CR69, 0xFF, 0x00},
+-{VIACR, CR6A, 0xFF, 0x40},
+-{VIACR, CR6B, 0xFF, 0x00},
+-{VIACR, CR6C, 0xFF, 0x00},
+-{VIACR, CR7A, 0xFF, 0x01},	/* LCD Scaling Parameter 1             */
+-{VIACR, CR7B, 0xFF, 0x02},	/* LCD Scaling Parameter 2             */
+-{VIACR, CR7C, 0xFF, 0x03},	/* LCD Scaling Parameter 3             */
+-{VIACR, CR7D, 0xFF, 0x04},	/* LCD Scaling Parameter 4             */
+-{VIACR, CR7E, 0xFF, 0x07},	/* LCD Scaling Parameter 5             */
+-{VIACR, CR7F, 0xFF, 0x0A},	/* LCD Scaling Parameter 6             */
+-{VIACR, CR80, 0xFF, 0x0D},	/* LCD Scaling Parameter 7             */
+-{VIACR, CR81, 0xFF, 0x13},	/* LCD Scaling Parameter 8             */
+-{VIACR, CR82, 0xFF, 0x16},	/* LCD Scaling Parameter 9             */
+-{VIACR, CR83, 0xFF, 0x19},	/* LCD Scaling Parameter 10            */
+-{VIACR, CR84, 0xFF, 0x1C},	/* LCD Scaling Parameter 11            */
+-{VIACR, CR85, 0xFF, 0x1D},	/* LCD Scaling Parameter 12            */
+-{VIACR, CR86, 0xFF, 0x1E},	/* LCD Scaling Parameter 13            */
+-{VIACR, CR87, 0xFF, 0x1F},	/* LCD Scaling Parameter 14            */
+-{VIACR, CR88, 0xFF, 0x40},	/* LCD Panel Type                      */
+-{VIACR, CR89, 0xFF, 0x00},	/* LCD Timing Control 0                */
+-{VIACR, CR8A, 0xFF, 0x88},	/* LCD Timing Control 1                */
+-{VIACR, CRD4, 0xFF, 0x81},	/* Second power sequence control       */
+-{VIACR, CR8B, 0xFF, 0x5D},	/* LCD Power Sequence Control 0        */
+-{VIACR, CR8C, 0xFF, 0x2B},	/* LCD Power Sequence Control 1        */
+-{VIACR, CR8D, 0xFF, 0x6F},	/* LCD Power Sequence Control 2        */
+-{VIACR, CR8E, 0xFF, 0x2B},	/* LCD Power Sequence Control 3        */
+-{VIACR, CR8F, 0xFF, 0x01},	/* LCD Power Sequence Control 4        */
+-{VIACR, CR90, 0xFF, 0x01},	/* LCD Power Sequence Control 5        */
+-{VIACR, CR91, 0xFF, 0x80},	/* 24/12 bit LVDS Data off             */
+-{VIACR, CR96, 0xFF, 0x00},
+-{VIACR, CR97, 0xFF, 0x00},
+-{VIACR, CR99, 0xFF, 0x00},
+-{VIACR, CR9B, 0xFF, 0x00},
+-{VIACR, CRD2, 0xFF, 0xFF}	/* TMDS/LVDS control register.         */
+-};
