@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + frv-use-asm-generic-hardirqh.patch added to -mm tree
-Date: Wed, 23 Sep 2009 02:07:13 -0700
-Message-ID: <200909230907.n8N97DWt017730@imap1.linux-foundation.org>
+Subject: + frv-arch-frv-kernel-debug-stubc-needs-start_kernelh.patch added to -mm tree
+Date: Wed, 23 Sep 2009 09:14:44 -0700
+Message-ID: <200909231614.n8NGEiwh018836@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60147 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39009 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751043AbZIWJHs (ORCPT
+	by vger.kernel.org with ESMTP id S1752753AbZIWQPQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 05:07:48 -0400
+	Wed, 23 Sep 2009 12:15:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hch@lst.de, dhowells@redhat.com
+Cc: akpm@linux-foundation.org, dhowells@redhat.com, rusty@rustcorp.com.au
 
 
 The patch titled
-     frv: use asm/generic-hardirq.h
+     frv: arch/frv/kernel/debug-stub.c needs start_kernel.h
 has been added to the -mm tree.  Its filename is
-     frv-use-asm-generic-hardirqh.patch
+     frv-arch-frv-kernel-debug-stubc-needs-start_kernelh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,101 +34,106 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: frv: use asm/generic-hardirq.h
-From: Christoph Hellwig <hch@lst.de>
+Subject: frv: arch/frv/kernel/debug-stub.c needs start_kernel.h
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Use asm/generic-hardirq.h to build asm/hardirq.h and also remove the unused
-idle_timestamp field in irq_cpustat whilst we're at it.
-
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/include/asm/hardirq.h |   17 ++++-------------
- arch/frv/kernel/process.c      |    4 ----
- 2 files changed, 4 insertions(+), 17 deletions(-)
+ arch/frv/kernel/debug-stub.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/frv/include/asm/hardirq.h~frv-use-asm-generic-hardirqh arch/frv/include/asm/hardirq.h
---- a/arch/frv/include/asm/hardirq.h~frv-use-asm-generic-hardirqh
-+++ a/arch/frv/include/asm/hardirq.h
-@@ -12,24 +12,15 @@
- #ifndef __ASM_HARDIRQ_H
- #define __ASM_HARDIRQ_H
+diff -puN arch/frv/kernel/debug-stub.c~frv-arch-frv-kernel-debug-stubc-needs-start_kernelh arch/frv/kernel/debug-stub.c
+--- a/arch/frv/kernel/debug-stub.c~frv-arch-frv-kernel-debug-stubc-needs-start_kernelh
++++ a/arch/frv/kernel/debug-stub.c
+@@ -11,6 +11,7 @@
  
--#include <linux/threads.h>
--#include <linux/irq.h>
--
--typedef struct {
--	unsigned int __softirq_pending;
--	unsigned long idle_timestamp;
--} ____cacheline_aligned irq_cpustat_t;
--
--#include <linux/irq_cpustat.h>	/* Standard mappings for irq_cpustat_t above */
--
--#ifdef CONFIG_SMP
--#error SMP not available on FR-V
--#endif /* CONFIG_SMP */
-+#include <asm/atomic.h>
- 
- extern atomic_t irq_err_count;
- static inline void ack_bad_irq(int irq)
- {
- 	atomic_inc(&irq_err_count);
- }
-+#define ack_bad_irq ack_bad_irq
-+
-+#include <asm-generic/hardirq.h>
- 
- #endif
-diff -puN arch/frv/kernel/process.c~frv-use-asm-generic-hardirqh arch/frv/kernel/process.c
---- a/arch/frv/kernel/process.c~frv-use-asm-generic-hardirqh
-+++ a/arch/frv/kernel/process.c
-@@ -83,13 +83,9 @@ void (*idle)(void) = core_sleep_idle;
-  */
- void cpu_idle(void)
- {
--	int cpu = smp_processor_id();
--
- 	/* endless idle loop with no priority at all */
- 	while (1) {
- 		while (!need_resched()) {
--			irq_stat[cpu].idle_timestamp = jiffies;
--
- 			check_pgt_cache();
- 
- 			if (!frv_dma_inprogress && idle)
+ #include <linux/string.h>
+ #include <linux/kernel.h>
++#include <linux/start_kernel.h>
+ #include <linux/signal.h>
+ #include <linux/sched.h>
+ #include <linux/init.h>
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-fs-turn-iprune_mutex-into-rwsem.patch
-ntfs-remove-ntfs_file_write.patch
-qnx4-remove-write-support.patch
+include-linux-kmemcheckh-fix-a-trillion-warnings.patch
+printk-boot_delay-rename-printk_delay_msec-to-loops_per_msec.patch
+printk-add-printk_delay-to-make-messages-readable-for-some-scenarios.patch
+generic-ipi-make-struct-call_function_data-lockless.patch
+proc-connector-add-event-for-process-becoming-session-leader.patch
+build_bug_on-fix-it-and-a-couple-of-bogus-uses-of-it.patch
+mmc-register-mmci-omap-hs-using-platform_driver_probe.patch
+sdio-add-cd-disable-support.patch
+sdio-add-mmc_quirk_lenient_fn0.patch
+at91-atmel-mci-platform-configuration-to-the-the-atmel-mci-driver.patch
+mmc-core-sdio-suspend-resume-support.patch
+procfs-provide-stack-information-for-threads-v08.patch
+kcore-register-vmemmap-range.patch
+rtc-add-driver-for-mxcs-internal-rtc-module.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx.patch
+davinci-fb-frame-buffer-driver-for-ti-da8xx-omap-l1xx-v4.patch
+drivers-video-add-kmalloc-null-tests.patch
+drivers-video-tmiofbc-fix-uninitialised-return-value.patch
+v3-minixfs-add-missing-directory-type-checking.patch
 linux-next.patch
-avr32-convert-to-asm-generic-hardirqh.patch
-sparc32-convert-to-asm-generic-hardirqh.patch
-vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
-vfs-split-generic_forget_inode-so-that-hugetlbfs-does-not-have-to-copy-it.patch
-vfs-explicitly-cast-s_maxbytes-in-fiemap_check_ranges.patch
-vfs-change-sb-s_maxbytes-to-a-loff_t.patch
-vfs-remove-redundant-position-check-in-do_sendfile.patch
-fs-remove-unneeded-dcache_unhashed-tricks.patch
-vfs-seq_file-add-helpers-for-data-filling.patch
-libfs-return-error-code-on-failed-attr-set.patch
-fs-new-truncate-helpers.patch
-fs-use-new-truncate-helpers.patch
-fs-introduce-new-truncate-sequence.patch
-fs-convert-simple-fs-to-new-truncate.patch
-tmpfs-convert-to-use-the-new-truncate-convention.patch
-ext2-convert-to-use-the-new-truncate-convention.patch
-fat-convert-to-use-the-new-truncate-convention.patch
-btrfs-convert-to-use-the-new-truncate-convention.patch
-jfs-convert-to-use-the-new-truncate-convention.patch
-udf-convert-to-use-the-new-truncate-convention.patch
-minix-convert-to-use-the-new-truncate-convention.patch
-xtensa-convert-to-asm-generic-hardirqh.patch
-frv-use-asm-generic-hardirqh.patch
-fcntl-add-f_etown_ex.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+hwmon-driver-for-acpi-40-power-meters.patch
+drivers-md-dm-log-userspace-basec-fix-warning.patch
+drivers-dma-ioat-dma_v3c-fix-warnings.patch
+drivers-dma-ioat-dma_v2c-fix-warnings.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+checkincludespl-add-option-to-remove-duplicates-in-place.patch
+net-fix-config_net=n-build-on-sparc64.patch
+3x59x-fix-pci-resource-management.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+include-linux-credh-fix-build.patch
+serial167-fix-read-buffer-overflow.patch
+st-fix-test-of-value-range-in-st_set_options.patch
+drivers-usb-serial-sierrac-fix-config_pm=n-build.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+libfs-make-simple_read_from_buffer-conventional.patch
+vfs-optimize-touch_time-too.patch
+fs-improve-remountro-vs-buffercache-coherency.patch
+fs-fix-overflow-in-sys_mount-for-in-kernel-calls.patch
+percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+drivers-net-wireless-ath-ar9170-phyc-fix-uninitialised-variable.patch
+hugetlb_file_setup-use-c-not-cpp.patch
+readahead-add-blk_run_backing_dev.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
+frv-arch-frv-kernel-debug-stubc-needs-start_kernelh.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+kernel-smpc-relocate-some-code.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs.patch
+page-types-add-feature-for-walking-process-address-space-checkpatch-fixes.patch
+memcg-remove-the-overhead-associated-with-the-root-cgroup-fix.patch
+memcg-add-comments-explaining-memory-barriers-checkpatch-fixes.patch
+memory-controller-soft-limit-reclaim-on-contention-v9-fix.patch
+memcg-improve-resource-counter-scalability-checkpatch-fixes.patch
+exec-make-do_coredump-more-resilient-to-recursive-crashes-v9-checkpatch-fixes.patch
+exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9-checkpatch-fixes.patch
+elf-clean-up-fill_note_info-fix.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+reiser4-disable.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
