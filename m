@@ -1,185 +1,201 @@
 From: akpm@linux-foundation.org
-Subject: [merged] atmel-mci-unified-atmel-mci-drivers-avr32-at91.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 12:56:02 -0700
-Message-ID: <200909231956.n8NJu2k2004035@imap1.linux-foundation.org>
+Subject: [merged] fb-do-not-ignore-fb_set_par-errors.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 13:02:57 -0700
+Message-ID: <200909232002.n8NK2vMH018256@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43465 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54308 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753893AbZIWUDb (ORCPT
+	by vger.kernel.org with ESMTP id S1753891AbZIWUDb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 23 Sep 2009 16:03:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rob@emanuele.us, hskinnemoen@atmel.com, linux-mmc@vger.kernel.org, linux@maxim.org.za, nicolas.ferre@atmel.com, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: FlorianSchandinat@gmx.de, krzysztof.h1@poczta.fm, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atmel-mci: unified Atmel MCI drivers (AVR32 & AT91)
+     fb: do not ignore fb_set_par errors
 has been removed from the -mm tree.  Its filename was
-     atmel-mci-unified-atmel-mci-drivers-avr32-at91.patch
+     fb-do-not-ignore-fb_set_par-errors.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel-mci: unified Atmel MCI drivers (AVR32 & AT91)
-From: Rob Emanuele <rob@emanuele.us>
+Subject: fb: do not ignore fb_set_par errors
+From: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 
-Unification of the atmel-mci driver to support the AT91 processors MCI
-interface.  The atmel-mci driver currently supports the AVR32 and this
-patch adds AT91 support.
+At the moment about half of the framebuffer drivers can return an error
+code in fb_set_par. Until now it would be silently ignored by fbmem.c
+and fbcon.c. This patch fixes fbmem.c to return the error code and
+restore var on error.
 
-Add read/write proof selection switch dependent on chip availability of
-this feature.
+But it is not clear in which video mode the device is when fb_set_par
+fails.  It would be good and reasonable if it were in the old state but
+there is no guarantee that this is true for all existing drivers. 
+Additionally print a message if a failing fb_set_par is detected in
+fbmem.c or fbcon.c.
 
-To use this new driver on a at91 the platform driver for your board needs
-to be updated.
+Although most errors should be caught by the previous fb_check_var some
+errors can't as they are dynamic (memory allocations, ...) and can only be
+detected while performing the operations which is forbidden in
+fb_check_var.
 
-[nicolas.ferre@atmel.com indent, Kconfig comment and one printk modification]
-Signed-off-by: Rob Emanuele <rob@emanuele.us>
-Signed-off-by: Nicolas Ferre <nicolas.ferre@atmel.com>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: Andrew Victor <linux@maxim.org.za>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: <linux-mmc@vger.kernel.org>
+This patch shouldn't have a negative impact on normal operation as all
+drivers return 0 on success.  The impact in case of error depends heavily
+on the driver and caller but it's expected to be better than before.
+
+Signed-off-by: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/Kconfig     |   16 ++++++++++++----
- drivers/mmc/host/atmel-mci.c |   33 ++++++++++++++++++++++++++++++---
- 2 files changed, 42 insertions(+), 7 deletions(-)
+ drivers/video/console/fbcon.c |   48 ++++++++++++++++++++++++--------
+ drivers/video/fbmem.c         |   15 ++++++++--
+ 2 files changed, 50 insertions(+), 13 deletions(-)
 
-diff -puN drivers/mmc/host/Kconfig~atmel-mci-unified-atmel-mci-drivers-avr32-at91 drivers/mmc/host/Kconfig
---- a/drivers/mmc/host/Kconfig~atmel-mci-unified-atmel-mci-drivers-avr32-at91
-+++ a/drivers/mmc/host/Kconfig
-@@ -160,6 +160,12 @@ config MMC_AU1X
+diff -puN drivers/video/console/fbcon.c~fb-do-not-ignore-fb_set_par-errors drivers/video/console/fbcon.c
+--- a/drivers/video/console/fbcon.c~fb-do-not-ignore-fb_set_par-errors
++++ a/drivers/video/console/fbcon.c
+@@ -725,7 +725,7 @@ static int con2fb_release_oldinfo(struct
+ 				  int oldidx, int found)
+ {
+ 	struct fbcon_ops *ops = oldinfo->fbcon_par;
+-	int err = 0;
++	int err = 0, ret;
  
- 	  If unsure, say N.
- 
-+choice
-+	prompt "Atmel SD/MMC Driver"
-+	default MMC_ATMELMCI if AVR32
-+	help
-+	  Choose which driver to use for the Atmel MCI Silicon
+ 	if (oldinfo->fbops->fb_release &&
+ 	    oldinfo->fbops->fb_release(oldinfo, 0)) {
+@@ -752,8 +752,14 @@ static int con2fb_release_oldinfo(struct
+ 		  newinfo in an undefined state. Thus, a call to
+ 		  fb_set_par() may be needed for the newinfo.
+ 		*/
+-		if (newinfo->fbops->fb_set_par)
+-			newinfo->fbops->fb_set_par(newinfo);
++		if (newinfo->fbops->fb_set_par) {
++			ret = newinfo->fbops->fb_set_par(newinfo);
 +
- config MMC_AT91
- 	tristate "AT91 SD/MMC Card Interface support"
- 	depends on ARCH_AT91
-@@ -170,17 +176,19 @@ config MMC_AT91
- 
- config MMC_ATMELMCI
- 	tristate "Atmel Multimedia Card Interface support"
--	depends on AVR32
-+	depends on AVR32 || ARCH_AT91
- 	help
- 	  This selects the Atmel Multimedia Card Interface driver. If
--	  you have an AT32 (AVR32) platform with a Multimedia Card
--	  slot, say Y or M here.
-+	  you have an AT32 (AVR32) or AT91 platform with a Multimedia
-+	  Card slot, say Y or M here.
- 
- 	  If unsure, say N.
- 
-+endchoice
-+
- config MMC_ATMELMCI_DMA
- 	bool "Atmel MCI DMA support (EXPERIMENTAL)"
--	depends on MMC_ATMELMCI && DMA_ENGINE && EXPERIMENTAL
-+	depends on MMC_ATMELMCI && AVR32 && DMA_ENGINE && EXPERIMENTAL
- 	help
- 	  Say Y here to have the Atmel MCI driver use a DMA engine to
- 	  do data transfers and thus increase the throughput and
-diff -puN drivers/mmc/host/atmel-mci.c~atmel-mci-unified-atmel-mci-drivers-avr32-at91 drivers/mmc/host/atmel-mci.c
---- a/drivers/mmc/host/atmel-mci.c~atmel-mci-unified-atmel-mci-drivers-avr32-at91
-+++ a/drivers/mmc/host/atmel-mci.c
-@@ -30,6 +30,7 @@
- #include <asm/io.h>
- #include <asm/unaligned.h>
- 
-+#include <mach/cpu.h>
- #include <mach/board.h>
- 
- #include "atmel-mci-regs.h"
-@@ -210,6 +211,18 @@ struct atmel_mci_slot {
- 	set_bit(event, &host->pending_events)
- 
- /*
-+ * Enable or disable features/registers based on
-+ * whether the processor supports them
-+ */
-+static bool mci_has_rwproof(void)
-+{
-+	if (cpu_is_at91sam9261() || cpu_is_at91rm9200())
-+		return false;
-+	else
-+		return true;
-+}
-+
-+/*
-  * The debugfs stuff below is mostly optimized away when
-  * CONFIG_DEBUG_FS is not set.
-  */
-@@ -276,8 +289,13 @@ static void atmci_show_status_reg(struct
- 		[3]	= "BLKE",
- 		[4]	= "DTIP",
- 		[5]	= "NOTBUSY",
-+		[6]	= "ENDRX",
-+		[7]	= "ENDTX",
- 		[8]	= "SDIOIRQA",
- 		[9]	= "SDIOIRQB",
-+		[12]	= "SDIOWAIT",
-+		[14]	= "RXBUFF",
-+		[15]	= "TXBUFE",
- 		[16]	= "RINDE",
- 		[17]	= "RDIRE",
- 		[18]	= "RCRCE",
-@@ -285,6 +303,11 @@ static void atmci_show_status_reg(struct
- 		[20]	= "RTOE",
- 		[21]	= "DCRCE",
- 		[22]	= "DTOE",
-+		[23]	= "CSTOE",
-+		[24]	= "BLKOVRE",
-+		[25]	= "DMADONE",
-+		[26]	= "FIFOEMPTY",
-+		[27]	= "XFRDONE",
- 		[30]	= "OVRE",
- 		[31]	= "UNRE",
- 	};
-@@ -849,13 +872,15 @@ static void atmci_set_ios(struct mmc_hos
- 			clkdiv = 255;
- 		}
- 
-+		host->mode_reg = MCI_MR_CLKDIV(clkdiv);
-+
- 		/*
- 		 * WRPROOF and RDPROOF prevent overruns/underruns by
- 		 * stopping the clock when the FIFO is full/empty.
- 		 * This state is not expected to last for long.
- 		 */
--		host->mode_reg = MCI_MR_CLKDIV(clkdiv) | MCI_MR_WRPROOF
--					| MCI_MR_RDPROOF;
-+		if (mci_has_rwproof())
-+			host->mode_reg |= (MCI_MR_WRPROOF | MCI_MR_RDPROOF);
- 
- 		if (list_empty(&host->queue))
- 			mci_writel(host, MR, host->mode_reg);
-@@ -1648,8 +1673,10 @@ static int __init atmci_probe(struct pla
- 			nr_slots++;
++			if (ret)
++				printk(KERN_ERR "con2fb_release_oldinfo: "
++					"detected unhandled fb_set_par error, "
++					"error code %d\n", ret);
++		}
  	}
  
--	if (!nr_slots)
-+	if (!nr_slots) {
-+		dev_err(&pdev->dev, "init failed: no slot defined\n");
- 		goto err_init_slot;
+ 	return err;
+@@ -763,11 +769,18 @@ static void con2fb_init_display(struct v
+ 				int unit, int show_logo)
+ {
+ 	struct fbcon_ops *ops = info->fbcon_par;
++	int ret;
+ 
+ 	ops->currcon = fg_console;
+ 
+-	if (info->fbops->fb_set_par && !(ops->flags & FBCON_FLAGS_INIT))
+-		info->fbops->fb_set_par(info);
++	if (info->fbops->fb_set_par && !(ops->flags & FBCON_FLAGS_INIT)) {
++		ret = info->fbops->fb_set_par(info);
++
++		if (ret)
++			printk(KERN_ERR "con2fb_init_display: detected "
++				"unhandled fb_set_par error, "
++				"error code %d\n", ret);
 +	}
  
- 	dev_info(&pdev->dev,
- 			"Atmel MCI controller at 0x%08lx irq %d, %u slots\n",
+ 	ops->flags |= FBCON_FLAGS_INIT;
+ 	ops->graphics = 0;
+@@ -1006,7 +1019,7 @@ static void fbcon_init(struct vc_data *v
+ 	struct vc_data *svc = *default_mode;
+ 	struct display *t, *p = &fb_display[vc->vc_num];
+ 	int logo = 1, new_rows, new_cols, rows, cols, charcnt = 256;
+-	int cap;
++	int cap, ret;
+ 
+ 	if (info_idx == -1 || info == NULL)
+ 	    return;
+@@ -1092,8 +1105,15 @@ static void fbcon_init(struct vc_data *v
+ 	 */
+ 	if (CON_IS_VISIBLE(vc) && vc->vc_mode == KD_TEXT) {
+ 		if (info->fbops->fb_set_par &&
+-		    !(ops->flags & FBCON_FLAGS_INIT))
+-			info->fbops->fb_set_par(info);
++		    !(ops->flags & FBCON_FLAGS_INIT)) {
++			ret = info->fbops->fb_set_par(info);
++
++			if (ret)
++				printk(KERN_ERR "fbcon_init: detected "
++					"unhandled fb_set_par error, "
++					"error code %d\n", ret);
++		}
++
+ 		ops->flags |= FBCON_FLAGS_INIT;
+ 	}
+ 
+@@ -2119,7 +2139,7 @@ static int fbcon_switch(struct vc_data *
+ 	struct fbcon_ops *ops;
+ 	struct display *p = &fb_display[vc->vc_num];
+ 	struct fb_var_screeninfo var;
+-	int i, prev_console, charcnt = 256;
++	int i, ret, prev_console, charcnt = 256;
+ 
+ 	info = registered_fb[con2fb_map[vc->vc_num]];
+ 	ops = info->fbcon_par;
+@@ -2174,8 +2194,14 @@ static int fbcon_switch(struct vc_data *
+ 
+ 	if (old_info != NULL && (old_info != info ||
+ 				 info->flags & FBINFO_MISC_ALWAYS_SETPAR)) {
+-		if (info->fbops->fb_set_par)
+-			info->fbops->fb_set_par(info);
++		if (info->fbops->fb_set_par) {
++			ret = info->fbops->fb_set_par(info);
++
++			if (ret)
++				printk(KERN_ERR "fbcon_switch: detected "
++					"unhandled fb_set_par error, "
++					"error code %d\n", ret);
++		}
+ 
+ 		if (old_info != info)
+ 			fbcon_del_cursor_timer(old_info);
+diff -puN drivers/video/fbmem.c~fb-do-not-ignore-fb_set_par-errors drivers/video/fbmem.c
+--- a/drivers/video/fbmem.c~fb-do-not-ignore-fb_set_par-errors
++++ a/drivers/video/fbmem.c
+@@ -954,6 +954,7 @@ fb_set_var(struct fb_info *info, struct 
+ 			goto done;
+ 
+ 		if ((var->activate & FB_ACTIVATE_MASK) == FB_ACTIVATE_NOW) {
++			struct fb_var_screeninfo old_var;
+ 			struct fb_videomode mode;
+ 
+ 			if (info->fbops->fb_get_caps) {
+@@ -963,10 +964,20 @@ fb_set_var(struct fb_info *info, struct 
+ 					goto done;
+ 			}
+ 
++			old_var = info->var;
+ 			info->var = *var;
+ 
+-			if (info->fbops->fb_set_par)
+-				info->fbops->fb_set_par(info);
++			if (info->fbops->fb_set_par) {
++				ret = info->fbops->fb_set_par(info);
++
++				if (ret) {
++					info->var = old_var;
++					printk(KERN_WARNING "detected "
++						"fb_set_par error, "
++						"error code: %d\n", ret);
++					goto done;
++				}
++			}
+ 
+ 			fb_pan_display(info, &info->var);
+ 			fb_set_cmap(&info->cmap, info);
 _
 
-Patches currently in -mm which might be from rob@emanuele.us are
+Patches currently in -mm which might be from FlorianSchandinat@gmx.de are
 
 origin.patch
 
