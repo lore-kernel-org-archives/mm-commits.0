@@ -1,34 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: [merged] arm-omap-rx51-set-mmc-capabilities-and-power-saving-flag.patch removed from -mm tree
-Date: Wed, 23 Sep 2009 12:55:23 -0700
-Message-ID: <200909231955.n8NJtN34002739@imap1.linux-foundation.org>
+Subject: [merged] omap_hsmmc-fix-null-pointer-dereference.patch removed from -mm tree
+Date: Wed, 23 Sep 2009 12:55:03 -0700
+Message-ID: <200909231955.n8NJt3f6002051__43949.534072499$1253735793$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46597 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42918 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753668AbZIWT4M (ORCPT
+	by vger.kernel.org with ESMTP id S1753622AbZIWTzu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Sep 2009 15:56:12 -0400
+	Wed, 23 Sep 2009 15:55:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adrian.hunter@nokia.com, ext-denis.2.karpov@nokia.com, ian@mnementh.co.uk, jarkko.lavinen@nokia.com, linux-mmc@vger.kernel.org, madhu.cr@ti.com, matt@console-pimps.org, philipl@overt.
+To: jarkko.lavinen@nokia.com, adrian.hunter@nokia.com, ext-denis.2.karpov@nokia.com, ian@mnementh.co.uk, linux-mmc@vger.kernel.org, madhu.cr@ti.com, matt@console-pimps.org, philipl@overt.
 
 
 The patch titled
-     ARM: OMAP: RX51: set MMC capabilities and power-saving flag
+     omap_hsmmc: fix NULL pointer dereference
 has been removed from the -mm tree.  Its filename was
-     arm-omap-rx51-set-mmc-capabilities-and-power-saving-flag.patch
+     omap_hsmmc-fix-null-pointer-dereference.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ARM: OMAP: RX51: set MMC capabilities and power-saving flag
-From: Adrian Hunter <adrian.hunter@nokia.com>
+Subject: omap_hsmmc: fix NULL pointer dereference
+From: Jarkko Lavinen <jarkko.lavinen@nokia.com>
 
-Specify MMC capabilities and set the power-saving flag for RX51.
+Do not call 'mmc_omap_xfer_done()' if the request is already done.
 
+Signed-off-by: Jarkko Lavinen <jarkko.lavinen@nokia.com>
 Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
 Acked-by: Matt Fleming <matt@console-pimps.org>
 Cc: Ian Molton <ian@mnementh.co.uk>
@@ -42,40 +43,24 @@ Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-omap2/board-rx51-peripherals.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/mmc/host/omap_hsmmc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/arm/mach-omap2/board-rx51-peripherals.c~arm-omap-rx51-set-mmc-capabilities-and-power-saving-flag arch/arm/mach-omap2/board-rx51-peripherals.c
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c~arm-omap-rx51-set-mmc-capabilities-and-power-saving-flag
-+++ a/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -19,6 +19,7 @@
- #include <linux/delay.h>
- #include <linux/regulator/machine.h>
- #include <linux/gpio.h>
-+#include <linux/mmc/host.h>
+diff -puN drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-fix-null-pointer-dereference drivers/mmc/host/omap_hsmmc.c
+--- a/drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-fix-null-pointer-dereference
++++ a/drivers/mmc/host/omap_hsmmc.c
+@@ -677,7 +677,7 @@ static irqreturn_t mmc_omap_irq(int irq,
  
- #include <mach/mcspi.h>
- #include <mach/mux.h>
-@@ -102,6 +103,7 @@ static struct twl4030_hsmmc_info mmc[] =
- 		.cover_only	= true,
- 		.gpio_cd	= 160,
- 		.gpio_wp	= -EINVAL,
-+		.power_saving	= true,
- 	},
- 	{
- 		.name		= "internal",
-@@ -109,6 +111,8 @@ static struct twl4030_hsmmc_info mmc[] =
- 		.wires		= 8,
- 		.gpio_cd	= -EINVAL,
- 		.gpio_wp	= -EINVAL,
-+		.nonremovable	= true,
-+		.power_saving	= true,
- 	},
- 	{}	/* Terminator */
- };
+ 	if (end_cmd || ((status & CC) && host->cmd))
+ 		mmc_omap_cmd_done(host, host->cmd);
+-	if (end_trans || (status & TC))
++	if ((end_trans || (status & TC)) && host->mrq)
+ 		mmc_omap_xfer_done(host, data);
+ 
+ 	return IRQ_HANDLED;
 _
 
-Patches currently in -mm which might be from adrian.hunter@nokia.com are
+Patches currently in -mm which might be from jarkko.lavinen@nokia.com are
 
 origin.patch
 
