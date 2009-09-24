@@ -1,38 +1,38 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] minix-convert-to-use-the-new-truncate-convention.patch removed from -mm tree
-Date: Thu, 24 Sep 2009 12:32:37 -0700
-Message-ID: <200909241932.n8OJWbn8027155@imap1.linux-foundation.org>
+Subject: [to-be-updated] fat-convert-to-use-the-new-truncate-convention.patch removed from -mm tree
+Date: Thu, 24 Sep 2009 12:32:25 -0700
+Message-ID: <200909241932.n8OJWP7x026757@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51259 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51134 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754024AbZIXTdg (ORCPT
+	by vger.kernel.org with ESMTP id S1754018AbZIXTdU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Sep 2009 15:33:36 -0400
+	Thu, 24 Sep 2009 15:33:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: npiggin@suse.de, chris.mason@oracle.com, hch@lst.de, hirofumi@mail.parknet.co.jp, hugh.dickins@tiscali.co.uk, jack@suse.cz, miklos@szeredi.hu, sfrench@us.ibm.com, shaggy@linux.vnet.ib
 
 
 The patch titled
-     minix: convert to use the new truncate convention
+     fat: convert to use the new truncate convention
 has been removed from the -mm tree.  Its filename was
-     minix-convert-to-use-the-new-truncate-convention.patch
+     fat-convert-to-use-the-new-truncate-convention.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: minix: convert to use the new truncate convention
+Subject: fat: convert to use the new truncate convention
 From: Nick Piggin <npiggin@suse.de>
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
+Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Dave Kleikamp <shaggy@linux.vnet.ibm.com>
 Cc: Chris Mason <chris.mason@oracle.com>
-Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Cc: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
@@ -41,224 +41,170 @@ Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/minix/file.c         |    3 -
- fs/minix/inode.c        |   82 ++++++++++++++++++++++++++++++++++----
- fs/minix/itree_common.c |    5 --
- fs/minix/itree_v1.c     |    4 -
- fs/minix/itree_v2.c     |    4 -
- fs/minix/minix.h        |    6 +-
- 6 files changed, 85 insertions(+), 19 deletions(-)
+ fs/fat/fat.h   |    2 +-
+ fs/fat/file.c  |   35 +++++++++++++++++++++++++++--------
+ fs/fat/inode.c |   25 ++++++++++++++++++++++---
+ 3 files changed, 50 insertions(+), 12 deletions(-)
 
-diff -puN fs/minix/file.c~minix-convert-to-use-the-new-truncate-convention fs/minix/file.c
---- a/fs/minix/file.c~minix-convert-to-use-the-new-truncate-convention
-+++ a/fs/minix/file.c
-@@ -24,6 +24,7 @@ const struct file_operations minix_file_
- };
- 
- const struct inode_operations minix_file_inode_operations = {
--	.truncate	= minix_truncate,
-+	.new_truncate	= 1,
-+	.setattr	= minix_setattr,
- 	.getattr	= minix_getattr,
- };
-diff -puN fs/minix/inode.c~minix-convert-to-use-the-new-truncate-convention fs/minix/inode.c
---- a/fs/minix/inode.c~minix-convert-to-use-the-new-truncate-convention
-+++ a/fs/minix/inode.c
-@@ -18,15 +18,16 @@
- #include <linux/highuid.h>
- #include <linux/vfs.h>
- 
--static int minix_write_inode(struct inode * inode, int wait);
-+static int minix_write_inode(struct inode *inode, int wait);
- static int minix_statfs(struct dentry *dentry, struct kstatfs *buf);
--static int minix_remount (struct super_block * sb, int * flags, char * data);
-+static int minix_remount(struct super_block *sb, int *flags, char *data);
-+static void minix_truncate_blocks(struct inode *inode, loff_t offset);
- 
- static void minix_delete_inode(struct inode *inode)
- {
- 	truncate_inode_pages(&inode->i_data, 0);
- 	inode->i_size = 0;
--	minix_truncate(inode);
-+	minix_truncate_blocks(inode, 0);
- 	minix_free_inode(inode);
+diff -puN fs/fat/fat.h~fat-convert-to-use-the-new-truncate-convention fs/fat/fat.h
+--- a/fs/fat/fat.h~fat-convert-to-use-the-new-truncate-convention
++++ a/fs/fat/fat.h
+@@ -302,7 +302,7 @@ extern int fat_generic_ioctl(struct inod
+ extern const struct file_operations fat_file_operations;
+ extern const struct inode_operations fat_file_inode_operations;
+ extern int fat_setattr(struct dentry * dentry, struct iattr * attr);
+-extern void fat_truncate(struct inode *inode);
++extern void fat_truncate_blocks(struct inode *inode, loff_t offset);
+ extern int fat_getattr(struct vfsmount *mnt, struct dentry *dentry,
+ 		       struct kstat *stat);
+ extern int fat_file_fsync(struct file *file, struct dentry *dentry,
+diff -puN fs/fat/file.c~fat-convert-to-use-the-new-truncate-convention fs/fat/file.c
+--- a/fs/fat/file.c~fat-convert-to-use-the-new-truncate-convention
++++ a/fs/fat/file.c
+@@ -252,7 +252,7 @@ static int fat_free(struct inode *inode,
+ 	return fat_free_clusters(inode, free_start);
  }
  
-@@ -367,8 +368,33 @@ static int minix_write_begin(struct file
+-void fat_truncate(struct inode *inode)
++void fat_truncate_blocks(struct inode *inode, loff_t offset)
+ {
+ 	struct msdos_sb_info *sbi = MSDOS_SB(inode->i_sb);
+ 	const unsigned int cluster_size = sbi->cluster_size;
+@@ -262,10 +262,10 @@ void fat_truncate(struct inode *inode)
+ 	 * This protects against truncating a file bigger than it was then
+ 	 * trying to write into the hole.
+ 	 */
+-	if (MSDOS_I(inode)->mmu_private > inode->i_size)
+-		MSDOS_I(inode)->mmu_private = inode->i_size;
++	if (MSDOS_I(inode)->mmu_private > offset)
++		MSDOS_I(inode)->mmu_private = offset;
+ 
+-	nr_clusters = (inode->i_size + (cluster_size - 1)) >> sbi->cluster_bits;
++	nr_clusters = (offset + (cluster_size - 1)) >> sbi->cluster_bits;
+ 
+ 	fat_free(inode, nr_clusters);
+ 	fat_flush_inodes(inode->i_sb, inode, NULL);
+@@ -333,6 +333,18 @@ static int fat_allow_set_time(struct msd
+ 	return 0;
+ }
+ 
++static int fat_setsize(struct inode *inode, loff_t offset)
++{
++	int error;
++
++	error = simple_setsize(inode, offset);
++	if (error)
++		return error;
++	fat_truncate_blocks(inode, offset);
++
++	return error;
++}
++
+ #define TIMES_SET_FLAGS	(ATTR_MTIME_SET | ATTR_ATIME_SET | ATTR_TIMES_SET)
+ /* valid file mode bits */
+ #define FAT_VALID_MODE	(S_IFREG | S_IFDIR | S_IRWXUGO)
+@@ -347,7 +359,8 @@ int fat_setattr(struct dentry *dentry, s
+ 	/*
+ 	 * Expand the file. Since inode_setattr() updates ->i_size
+ 	 * before calling the ->truncate(), but FAT needs to fill the
+-	 * hole before it.
++	 * hole before it. XXX: this is no longer true with new truncate
++	 * sequence.
+ 	 */
+ 	if (attr->ia_valid & ATTR_SIZE) {
+ 		if (attr->ia_size > inode->i_size) {
+@@ -396,15 +409,21 @@ int fat_setattr(struct dentry *dentry, s
+ 			attr->ia_valid &= ~ATTR_MODE;
+ 	}
+ 
+-	if (attr->ia_valid)
+-		error = inode_setattr(inode, attr);
++	if (attr->ia_valid & ATTR_SIZE) {
++		error = fat_setsize(inode, attr->ia_size);
++		if (error)
++			goto out;
++	}
++
++	generic_setattr(inode, attr);
++	mark_inode_dirty(inode);
+ out:
+ 	return error;
+ }
+ EXPORT_SYMBOL_GPL(fat_setattr);
+ 
+ const struct inode_operations fat_file_inode_operations = {
+-	.truncate	= fat_truncate,
++	.new_truncate	= 1,
+ 	.setattr	= fat_setattr,
+ 	.getattr	= fat_getattr,
+ };
+diff -puN fs/fat/inode.c~fat-convert-to-use-the-new-truncate-convention fs/fat/inode.c
+--- a/fs/fat/inode.c~fat-convert-to-use-the-new-truncate-convention
++++ a/fs/fat/inode.c
+@@ -146,10 +146,19 @@ static int fat_write_begin(struct file *
  			loff_t pos, unsigned len, unsigned flags,
  			struct page **pagep, void **fsdata)
  {
-+	int ret;
++	int err;
 +
  	*pagep = NULL;
--	return __minix_write_begin(file, mapping, pos, len, flags, pagep, fsdata);
-+	ret = __minix_write_begin(file, mapping, pos, len, flags, pagep,fsdata);
-+	if (ret < 0) {
+-	return cont_write_begin(file, mapping, pos, len, flags, pagep, fsdata,
++	err = cont_write_begin(file, mapping, pos, len, flags, pagep, fsdata,
+ 				fat_get_block,
+ 				&MSDOS_I(mapping->host)->mmu_private);
++	if (err < 0) {
 +		struct inode *inode = mapping->host;
 +		loff_t isize = inode->i_size;
 +		if (pos + len > isize)
-+			minix_truncate_blocks(inode, isize);
++			fat_truncate_blocks(inode, isize);
 +	}
-+	return ret;
-+}
-+
-+static int minix_write_end(struct file *file, struct address_space *mapping,
-+			loff_t pos, unsigned len, unsigned copied,
-+			struct page *page, void *fsdata)
-+{
-+	int ret;
-+
-+	ret = generic_write_end(file, mapping, pos, len, copied, page, fsdata);
-+	if (ret < len) {
-+		struct inode *inode = mapping->host;
++	return err;
+ }
+ 
+ static int fat_write_end(struct file *file, struct address_space *mapping,
+@@ -159,6 +168,11 @@ static int fat_write_end(struct file *fi
+ 	struct inode *inode = mapping->host;
+ 	int err;
+ 	err = generic_write_end(file, mapping, pos, len, copied, pagep, fsdata);
++	if (err < len) {
 +		loff_t isize = inode->i_size;
 +		if (pos + len > isize)
-+			minix_truncate_blocks(inode, isize);
++			fat_truncate_blocks(inode, isize);
 +	}
+ 	if (!(err < 0) && !(MSDOS_I(inode)->i_attrs & ATTR_ARCH)) {
+ 		inode->i_mtime = inode->i_ctime = CURRENT_TIME_SEC;
+ 		MSDOS_I(inode)->i_attrs |= ATTR_ARCH;
+@@ -173,6 +187,7 @@ static ssize_t fat_direct_IO(int rw, str
+ {
+ 	struct file *file = iocb->ki_filp;
+ 	struct inode *inode = file->f_mapping->host;
++	ssize_t ret;
+ 
+ 	if (rw == WRITE) {
+ 		/*
+@@ -193,8 +208,12 @@ static ssize_t fat_direct_IO(int rw, str
+ 	 * FAT need to use the DIO_LOCKING for avoiding the race
+ 	 * condition of fat_get_block() and ->truncate().
+ 	 */
+-	return blockdev_direct_IO(rw, iocb, inode, inode->i_sb->s_bdev, iov,
++	ret = blockdev_direct_IO(rw, iocb, inode, inode->i_sb->s_bdev, iov,
+ 				  offset, nr_segs, fat_get_block, NULL);
++	if (ret < 0 && (rw & WRITE))
++		fat_truncate_blocks(inode, inode->i_size);
++
 +	return ret;
  }
  
- static sector_t minix_bmap(struct address_space *mapping, sector_t block)
-@@ -381,7 +407,7 @@ static const struct address_space_operat
- 	.writepage = minix_writepage,
- 	.sync_page = block_sync_page,
- 	.write_begin = minix_write_begin,
--	.write_end = generic_write_end,
-+	.write_end = minix_write_end,
- 	.bmap = minix_bmap
- };
- 
-@@ -591,14 +617,54 @@ int minix_getattr(struct vfsmount *mnt, 
- /*
-  * The function that is called for file truncation.
-  */
--void minix_truncate(struct inode * inode)
-+static void minix_truncate_blocks(struct inode *inode, loff_t offset)
+ static sector_t _fat_bmap(struct address_space *mapping, sector_t block)
+@@ -429,7 +448,7 @@ static void fat_delete_inode(struct inod
  {
- 	if (!(S_ISREG(inode->i_mode) || S_ISDIR(inode->i_mode) || S_ISLNK(inode->i_mode)))
- 		return;
- 	if (INODE_VERSION(inode) == MINIX_V1)
--		V1_minix_truncate(inode);
-+		V1_minix_truncate_blocks(inode, offset);
- 	else
--		V2_minix_truncate(inode);
-+		V2_minix_truncate_blocks(inode, offset);
-+}
-+
-+static int minix_setsize(struct inode *inode, loff_t newsize)
-+{
-+	loff_t oldsize;
-+	int error;
-+
-+	error = inode_newsize_ok(inode, newsize);
-+	if (error)
-+		return error;
-+
-+	oldsize = inode->i_size;
-+	i_size_write(inode, newsize);
-+	truncate_pagecache(inode, oldsize, newsize);
-+
-+	error = block_truncate_page(inode->i_mapping, newsize, minix_get_block);
-+	if (error)
-+		return error;
-+	minix_truncate_blocks(inode, newsize);
-+
-+	return error;
-+}
-+
-+int minix_setattr(struct dentry *dentry, struct iattr *iattr)
-+{
-+	struct inode *inode = dentry->d_inode;
-+	int error;
-+
-+	error = inode_change_ok(inode, iattr);
-+	if (error)
-+		return error;
-+	if (iattr->ia_valid & ATTR_SIZE) {
-+		error = minix_setsize(inode, iattr->ia_size);
-+		if (error)
-+			return error;
-+	}
-+	generic_setattr(inode, iattr);
-+	mark_inode_dirty(inode);
-+
-+	return error;
+ 	truncate_inode_pages(&inode->i_data, 0);
+ 	inode->i_size = 0;
+-	fat_truncate(inode);
++	fat_truncate_blocks(inode, 0);
+ 	clear_inode(inode);
  }
  
- static int minix_get_sb(struct file_system_type *fs_type,
-diff -puN fs/minix/itree_common.c~minix-convert-to-use-the-new-truncate-convention fs/minix/itree_common.c
---- a/fs/minix/itree_common.c~minix-convert-to-use-the-new-truncate-convention
-+++ a/fs/minix/itree_common.c
-@@ -290,7 +290,7 @@ static void free_branches(struct inode *
- 		free_data(inode, p, q);
- }
- 
--static inline void truncate (struct inode * inode)
-+static inline void truncate_blocks(struct inode *inode, loff_t offset)
- {
- 	struct super_block *sb = inode->i_sb;
- 	block_t *idata = i_data(inode);
-@@ -302,8 +302,7 @@ static inline void truncate (struct inod
- 	int first_whole;
- 	long iblock;
- 
--	iblock = (inode->i_size + sb->s_blocksize -1) >> sb->s_blocksize_bits;
--	block_truncate_page(inode->i_mapping, inode->i_size, get_block);
-+	iblock = (offset + sb->s_blocksize - 1) >> sb->s_blocksize_bits;
- 
- 	n = block_to_path(inode, iblock, offsets);
- 	if (!n)
-diff -puN fs/minix/itree_v1.c~minix-convert-to-use-the-new-truncate-convention fs/minix/itree_v1.c
---- a/fs/minix/itree_v1.c~minix-convert-to-use-the-new-truncate-convention
-+++ a/fs/minix/itree_v1.c
-@@ -55,9 +55,9 @@ int V1_minix_get_block(struct inode * in
- 	return get_block(inode, block, bh_result, create);
- }
- 
--void V1_minix_truncate(struct inode * inode)
-+void V1_minix_truncate_blocks(struct inode *inode, loff_t offset)
- {
--	truncate(inode);
-+	truncate_blocks(inode, offset);
- }
- 
- unsigned V1_minix_blocks(loff_t size, struct super_block *sb)
-diff -puN fs/minix/itree_v2.c~minix-convert-to-use-the-new-truncate-convention fs/minix/itree_v2.c
---- a/fs/minix/itree_v2.c~minix-convert-to-use-the-new-truncate-convention
-+++ a/fs/minix/itree_v2.c
-@@ -61,9 +61,9 @@ int V2_minix_get_block(struct inode * in
- 	return get_block(inode, block, bh_result, create);
- }
- 
--void V2_minix_truncate(struct inode * inode)
-+void V2_minix_truncate_blocks(struct inode *inode, loff_t offset)
- {
--	truncate(inode);
-+	truncate_blocks(inode, offset);
- }
- 
- unsigned V2_minix_blocks(loff_t size, struct super_block *sb)
-diff -puN fs/minix/minix.h~minix-convert-to-use-the-new-truncate-convention fs/minix/minix.h
---- a/fs/minix/minix.h~minix-convert-to-use-the-new-truncate-convention
-+++ a/fs/minix/minix.h
-@@ -52,14 +52,14 @@ extern unsigned long minix_count_free_in
- extern int minix_new_block(struct inode * inode);
- extern void minix_free_block(struct inode *inode, unsigned long block);
- extern unsigned long minix_count_free_blocks(struct minix_sb_info *sbi);
-+extern int minix_setattr(struct dentry *dentry, struct iattr *iattr);
- extern int minix_getattr(struct vfsmount *, struct dentry *, struct kstat *);
- extern int __minix_write_begin(struct file *file, struct address_space *mapping,
- 			loff_t pos, unsigned len, unsigned flags,
- 			struct page **pagep, void **fsdata);
- 
--extern void V1_minix_truncate(struct inode *);
--extern void V2_minix_truncate(struct inode *);
--extern void minix_truncate(struct inode *);
-+extern void V1_minix_truncate_blocks(struct inode *, loff_t);
-+extern void V2_minix_truncate_blocks(struct inode *, loff_t);
- extern void minix_set_inode(struct inode *, dev_t);
- extern int V1_minix_get_block(struct inode *, long, struct buffer_head *, int);
- extern int V2_minix_get_block(struct inode *, long, struct buffer_head *, int);
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
@@ -267,6 +213,10 @@ origin.patch
 linux-next.patch
 fs-remove-unneeded-dcache_unhashed-tricks.patch
 fs-improve-remountro-vs-buffercache-coherency.patch
+fat-convert-to-use-the-new-truncate-convention.patch
+btrfs-convert-to-use-the-new-truncate-convention.patch
+jfs-convert-to-use-the-new-truncate-convention.patch
+udf-convert-to-use-the-new-truncate-convention.patch
 minix-convert-to-use-the-new-truncate-convention.patch
 reiser4.patch
 fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
