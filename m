@@ -1,126 +1,136 @@
 From: akpm@linux-foundation.org
-Subject: [merged] exec-make-do_coredump-more-resilient-to-recursive-crashes-v9.patch removed from -mm tree
-Date: Thu, 24 Sep 2009 12:35:32 -0700
-Message-ID: <200909241935.n8OJZWm6000647@imap1.linux-foundation.org>
+Subject: [merged] do_wait-wakeup-optimization-change-__wake_up_parent-to-use-filtered-wakeup.patch removed from -mm tree
+Date: Thu, 24 Sep 2009 12:35:08 -0700
+Message-ID: <200909241935.n8OJZ8Jo032286@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49952 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58598 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752463AbZIXTgW (ORCPT
+	by vger.kernel.org with ESMTP id S1753613AbZIXTfq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Sep 2009 15:36:22 -0400
+	Thu, 24 Sep 2009 15:35:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nhorman@tuxdriver.com, alan@lxorguk.ukuu.org.uk, andi@firstfloor.org, earl_chew@agilent.com, oleg@tv-sign.ru, mm-commits@vger.kernel.org
+To: oleg@redhat.com, dhowells@redhat.com, jmorris@namei.org, mingo@elte.hu, rnalumasu@gmail.com, roland@redhat.com, valdis.kletnieks@vt.edu, vmayatsk@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     exec: make do_coredump() more resilient to recursive crashes
+     do_wait() wakeup optimization: change __wake_up_parent() to use filtered wakeup
 has been removed from the -mm tree.  Its filename was
-     exec-make-do_coredump-more-resilient-to-recursive-crashes-v9.patch
+     do_wait-wakeup-optimization-change-__wake_up_parent-to-use-filtered-wakeup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: exec: make do_coredump() more resilient to recursive crashes
-From: Neil Horman <nhorman@tuxdriver.com>
+Subject: do_wait() wakeup optimization: change __wake_up_parent() to use filtered wakeup
+From: Oleg Nesterov <oleg@redhat.com>
 
-Change how we detect recursive dumps.
+Ratan Nalumasu reported that in a process with many threads doing
+unnecessary wakeups.  Every waiting thread in the process wakes up to loop
+through the children and see that the only ones it cares about are still
+not ready.
 
-Currently we have a mechanism by which we try to compare pathnames of the
-crashing process to the core_pattern path.  This is broken for a dozen
-reasons, and just doesn't work in any sort of robust way.
+Now that we have struct wait_opts we can change do_wait/__wake_up_parent
+to use filtered wakeups.
 
-I'm replacing it with the use of a 0 RLIMIT_CORE value.  Since helper apps
-set RLIMIT_CORE to zero, we don't write out core files for any process
-with that particular limit set.  It the core_pattern is a pipe, any
-non-zero limit is translated to RLIM_INFINITY.
+We can make child_wait_callback() more clever later, right now it only
+checks eligible_child().
 
-This allows complete dumps to be captured, but prevents infinite recursion
-in the event that the core_pattern process itself crashes.
-
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Neil Horman <nhorman@tuxdriver.com>
-Reported-by: Earl Chew <earl_chew@agilent.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Roland McGrath <roland@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Ratan Nalumasu <rnalumasu@gmail.com>
+Cc: Vitaly Mayatskikh <vmayatsk@redhat.com>
+Acked-by: James Morris <jmorris@namei.org>
+Tested-by: Valdis Kletnieks <valdis.kletnieks@vt.edu>
+Acked-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |   45 +++++++++++++++++++++++----------------------
- 1 file changed, 23 insertions(+), 22 deletions(-)
+ kernel/exit.c            |   25 +++++++++++++++++++++----
+ security/selinux/hooks.c |    2 +-
+ 2 files changed, 22 insertions(+), 5 deletions(-)
 
-diff -puN fs/exec.c~exec-make-do_coredump-more-resilient-to-recursive-crashes-v9 fs/exec.c
---- a/fs/exec.c~exec-make-do_coredump-more-resilient-to-recursive-crashes-v9
-+++ a/fs/exec.c
-@@ -1799,38 +1799,39 @@ void do_coredump(long signr, int exit_co
-  	lock_kernel();
- 	ispipe = format_corename(corename, signr);
- 	unlock_kernel();
--	/*
--	 * Don't bother to check the RLIMIT_CORE value if core_pattern points
--	 * to a pipe.  Since we're not writing directly to the filesystem
--	 * RLIMIT_CORE doesn't really apply, as no actual core file will be
--	 * created unless the pipe reader choses to write out the core file
--	 * at which point file size limits and permissions will be imposed
--	 * as it does with any other process
--	 */
-+
- 	if ((!ispipe) && (core_limit < binfmt->min_coredump))
- 		goto fail_unlock;
+diff -puN kernel/exit.c~do_wait-wakeup-optimization-change-__wake_up_parent-to-use-filtered-wakeup kernel/exit.c
+--- a/kernel/exit.c~do_wait-wakeup-optimization-change-__wake_up_parent-to-use-filtered-wakeup
++++ a/kernel/exit.c
+@@ -1097,6 +1097,7 @@ struct wait_opts {
+ 	int __user		*wo_stat;
+ 	struct rusage __user	*wo_rusage;
  
-  	if (ispipe) {
-+		if (core_limit == 0) {
-+			/*
-+			 * Normally core limits are irrelevant to pipes, since
-+			 * we're not writing to the file system, but we use
-+			 * core_limit of 0 here as a speacial value. Any
-+			 * non-zero limit gets set to RLIM_INFINITY below, but
-+			 * a limit of 0 skips the dump.  This is a consistent
-+			 * way to catch recursive crashes.  We can still crash
-+			 * if the core_pattern binary sets RLIM_CORE =  !0
-+			 * but it runs as root, and can do lots of stupid things
-+			 * Note that we use task_tgid_vnr here to grab the pid
-+			 * of the process group leader.  That way we get the
-+			 * right pid if a thread in a multi-threaded
-+			 * core_pattern process dies.
-+			 */
-+			printk(KERN_WARNING
-+				"Process %d(%s) has RLIMIT_CORE set to 0\n",
-+				task_tgid_vnr(current), current->comm);
-+			printk(KERN_WARNING "Aborting core\n");
-+			goto fail_unlock;
-+		}
-+
- 		helper_argv = argv_split(GFP_KERNEL, corename+1, &helper_argc);
- 		if (!helper_argv) {
- 			printk(KERN_WARNING "%s failed to allocate memory\n",
- 			       __func__);
- 			goto fail_unlock;
- 		}
--		/* Terminate the string before the first option */
--		delimit = strchr(corename, ' ');
--		if (delimit)
--			*delimit = '\0';
--		delimit = strrchr(helper_argv[0], '/');
--		if (delimit)
--			delimit++;
--		else
--			delimit = helper_argv[0];
--		if (!strcmp(delimit, current->comm)) {
--			printk(KERN_NOTICE "Recursive core dump detected, "
--					"aborting\n");
--			goto fail_unlock;
--		}
++	wait_queue_t		child_wait;
+ 	int			notask_error;
+ };
  
- 		core_limit = RLIM_INFINITY;
+@@ -1570,20 +1571,35 @@ static int ptrace_do_wait(struct wait_op
+ 	return 0;
+ }
+ 
++static int child_wait_callback(wait_queue_t *wait, unsigned mode,
++				int sync, void *key)
++{
++	struct wait_opts *wo = container_of(wait, struct wait_opts,
++						child_wait);
++	struct task_struct *p = key;
++
++	if (!eligible_child(wo, p))
++		return 0;
++
++	return default_wake_function(wait, mode, sync, key);
++}
++
+ void __wake_up_parent(struct task_struct *p, struct task_struct *parent)
+ {
+-	wake_up_interruptible_sync(&parent->signal->wait_chldexit);
++	__wake_up_sync_key(&parent->signal->wait_chldexit,
++				TASK_INTERRUPTIBLE, 1, p);
+ }
+ 
+ static long do_wait(struct wait_opts *wo)
+ {
+-	DECLARE_WAITQUEUE(wait, current);
+ 	struct task_struct *tsk;
+ 	int retval;
+ 
+ 	trace_sched_process_wait(wo->wo_pid);
+ 
+-	add_wait_queue(&current->signal->wait_chldexit,&wait);
++	init_waitqueue_func_entry(&wo->child_wait, child_wait_callback);
++	wo->child_wait.private = current;
++	add_wait_queue(&current->signal->wait_chldexit, &wo->child_wait);
+ repeat:
+ 	/*
+ 	 * If there is nothing that can match our critiera just get out.
+@@ -1624,7 +1640,8 @@ notask:
+ 	}
+ end:
+ 	__set_current_state(TASK_RUNNING);
+-	remove_wait_queue(&current->signal->wait_chldexit,&wait);
++	remove_wait_queue(&current->signal->wait_chldexit, &wo->child_wait);
++
+ 	if (wo->wo_info) {
+ 		struct siginfo __user *infop = wo->wo_info;
+ 
+diff -puN security/selinux/hooks.c~do_wait-wakeup-optimization-change-__wake_up_parent-to-use-filtered-wakeup security/selinux/hooks.c
+--- a/security/selinux/hooks.c~do_wait-wakeup-optimization-change-__wake_up_parent-to-use-filtered-wakeup
++++ a/security/selinux/hooks.c
+@@ -2411,7 +2411,7 @@ static void selinux_bprm_committed_creds
+ 	/* Wake up the parent if it is waiting so that it can recheck
+ 	 * wait permission to the new task SID. */
+ 	read_lock(&tasklist_lock);
+-	wake_up_interruptible(&current->real_parent->signal->wait_chldexit);
++	__wake_up_parent(current, current->real_parent);
+ 	read_unlock(&tasklist_lock);
+ }
  
 _
 
-Patches currently in -mm which might be from nhorman@tuxdriver.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 origin.patch
+linux-next.patch
+do_wait-optimization-do-not-place-sub-threads-on-task_struct-children-list.patch
+utrace-core.patch
 
