@@ -1,416 +1,385 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cgroups-allow-cgroup-hierarchies-to-be-created-with-no-bound-subsystems.patch removed from -mm tree
-Date: Thu, 24 Sep 2009 12:34:06 -0700
-Message-ID: <200909241934.n8OJY6nu030165@imap1.linux-foundation.org>
+Subject: [merged] memcg-improve-resource-counter-scalability.patch removed from -mm tree
+Date: Thu, 24 Sep 2009 12:34:55 -0700
+Message-ID: <200909241934.n8OJYtnq031788@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38634 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33834 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754101AbZIXTeh (ORCPT
+	by vger.kernel.org with ESMTP id S1753223AbZIXTfa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Sep 2009 15:34:37 -0400
+	Thu, 24 Sep 2009 15:35:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: menage@google.com, balbir@in.ibm.com, dhaval@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: balbir@linux.vnet.ibm.com, andi@firstfloor.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, nishimura@mxp.nes.nec.co.jp, pr
 
 
 The patch titled
-     cgroups: allow cgroup hierarchies to be created with no bound subsystems
+     memcg: improve resource counter scalability
 has been removed from the -mm tree.  Its filename was
-     cgroups-allow-cgroup-hierarchies-to-be-created-with-no-bound-subsystems.patch
+     memcg-improve-resource-counter-scalability.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: allow cgroup hierarchies to be created with no bound subsystems
-From: Paul Menage <menage@google.com>
+Subject: memcg: improve resource counter scalability
+From: Balbir Singh <balbir@linux.vnet.ibm.com>
 
-This patch removes the restriction that a cgroup hierarchy must have at
-least one bound subsystem.  The mount option "none" is treated as an
-explicit request for no bound subsystems.
+Reduce the resource counter overhead (mostly spinlock) associated with the
+root cgroup.  This is a part of the several patches to reduce mem cgroup
+overhead.  I had posted other approaches earlier (including using percpu
+counters).  Those patches will be a natural addition and will be added
+iteratively on top of these.
 
-A hierarchy with no subsystems can be useful for plain task tracking, and
-is also a step towards the support for multiply-bindable subsystems.
+The patch stops resource counter accounting for the root cgroup.  The data
+for display is derived from the statisitcs we maintain via
+mem_cgroup_charge_statistics (which is more scalable).  What happens today
+is that, we do double accounting, once using res_counter_charge() and once
+using memory_cgroup_charge_statistics().  For the root, since we don't
+implement limits any more, we don't need to track every charge via
+res_counter_charge() and check for limit being exceeded and reclaim.
 
-As part of this change, the hierarchy id is no longer calculated from the
-bitmask of subsystems in the hierarchy (since this is not guaranteed to be
-unique) but is allocated via an ida.  Reference counts on cgroups from
-css_set objects are now taken explicitly one per hierarchy, rather than
-one per subsystem.
+The main mem->res usage_in_bytes can be derived by summing the cache and
+rss usage data from memory statistics (MEM_CGROUP_STAT_RSS and
+MEM_CGROUP_STAT_CACHE).  However, for memsw->res usage_in_bytes, we need
+additional data about swapped out memory.  This patch adds a
+MEM_CGROUP_STAT_SWAPOUT and uses that along with MEM_CGROUP_STAT_RSS and
+MEM_CGROUP_STAT_CACHE to derive the memsw data.  This data is computed
+recursively when hierarchy is enabled.
 
-Example usage:
+The tests results I see on a 24 way show that
 
-mount -t cgroup -o none,name=foo cgroup /mnt/cgroup
+1. The lock contention disappears from /proc/lock_stats
+2. The results of the test are comparable to running with
+   cgroup_disable=memory.
 
-Based on the "no-op"/"none" subsystem concept proposed by
-kamezawa.hiroyu@jp.fujitsu.com
+Here is a sample of my program runs
 
-Signed-off-by: Paul Menage <menage@google.com>
-Reviewed-by: Li Zefan <lizf@cn.fujitsu.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Dhaval Giani <dhaval@linux.vnet.ibm.com>
+Without Patch
+
+ Performance counter stats for '/home/balbir/parallel_pagefault':
+
+ 7192804.124144  task-clock-msecs         #     23.937 CPUs
+         424691  context-switches         #      0.000 M/sec
+            267  CPU-migrations           #      0.000 M/sec
+       28498113  page-faults              #      0.004 M/sec
+  5826093739340  cycles                   #    809.989 M/sec
+   408883496292  instructions             #      0.070 IPC
+     7057079452  cache-references         #      0.981 M/sec
+     3036086243  cache-misses             #      0.422 M/sec
+
+  300.485365680  seconds time elapsed
+
+With cgroup_disable=memory
+
+ Performance counter stats for '/home/balbir/parallel_pagefault':
+
+ 7182183.546587  task-clock-msecs         #     23.915 CPUs
+         425458  context-switches         #      0.000 M/sec
+            203  CPU-migrations           #      0.000 M/sec
+       92545093  page-faults              #      0.013 M/sec
+  6034363609986  cycles                   #    840.185 M/sec
+   437204346785  instructions             #      0.072 IPC
+     6636073192  cache-references         #      0.924 M/sec
+     2358117732  cache-misses             #      0.328 M/sec
+
+  300.320905827  seconds time elapsed
+
+With this patch applied
+
+ Performance counter stats for '/home/balbir/parallel_pagefault':
+
+ 7191619.223977  task-clock-msecs         #     23.955 CPUs
+         422579  context-switches         #      0.000 M/sec
+             88  CPU-migrations           #      0.000 M/sec
+       91946060  page-faults              #      0.013 M/sec
+  5957054385619  cycles                   #    828.333 M/sec
+  1058117350365  instructions             #      0.178 IPC
+     9161776218  cache-references         #      1.274 M/sec
+     1920494280  cache-misses             #      0.267 M/sec
+
+  300.218764862  seconds time elapsed
+
+Data from Prarit (kernel compile with make -j64 on a 64
+CPU/32G machine)
+
+For a single run
+
+Without patch
+
+real 27m8.988s
+user 87m24.916s
+sys 382m6.037s
+
+With patch
+
+real    4m18.607s
+user    84m58.943s
+sys     50m52.682s
+
+With config turned off
+
+real    4m54.972s
+user    90m13.456s
+sys     50m19.711s
+
+NOTE: The data looks counterintuitive due to the increased performance
+with the patch, even over the config being turned off. We probably need
+more runs, but so far all testing has shown that the patches definitely
+help.
+
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Prarit Bhargava <prarit@redhat.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Reviewed-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Paul Menage <menage@google.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |  158 ++++++++++++++++++++++++++++------------------
- 1 file changed, 99 insertions(+), 59 deletions(-)
+ mm/memcontrol.c |  121 ++++++++++++++++++++++++++++++++++++++--------
+ 1 file changed, 100 insertions(+), 21 deletions(-)
 
-diff -puN kernel/cgroup.c~cgroups-allow-cgroup-hierarchies-to-be-created-with-no-bound-subsystems kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-allow-cgroup-hierarchies-to-be-created-with-no-bound-subsystems
-+++ a/kernel/cgroup.c
-@@ -49,6 +49,7 @@
- #include <linux/namei.h>
- #include <linux/smp_lock.h>
- #include <linux/pid_namespace.h>
-+#include <linux/idr.h>
+diff -puN mm/memcontrol.c~memcg-improve-resource-counter-scalability mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-improve-resource-counter-scalability
++++ a/mm/memcontrol.c
+@@ -70,6 +70,7 @@ enum mem_cgroup_stat_index {
+ 	MEM_CGROUP_STAT_PGPGIN_COUNT,	/* # of pages paged in */
+ 	MEM_CGROUP_STAT_PGPGOUT_COUNT,	/* # of pages paged out */
+ 	MEM_CGROUP_STAT_EVENTS,	/* sum of pagein + pageout for internal use */
++	MEM_CGROUP_STAT_SWAPOUT, /* # of pages, swapped out */
  
- #include <asm/atomic.h>
+ 	MEM_CGROUP_STAT_NSTATS,
+ };
+@@ -478,11 +479,24 @@ mem_cgroup_largest_soft_limit_node(struc
+ 	return mz;
+ }
  
-@@ -77,6 +78,9 @@ struct cgroupfs_root {
- 	 */
- 	unsigned long subsys_bits;
- 
-+	/* Unique id for this hierarchy. */
-+	int hierarchy_id;
++static void mem_cgroup_swap_statistics(struct mem_cgroup *mem,
++					 bool charge)
++{
++	int val = (charge) ? 1 : -1;
++	struct mem_cgroup_stat *stat = &mem->stat;
++	struct mem_cgroup_stat_cpu *cpustat;
++	int cpu = get_cpu();
 +
- 	/* The bitmask of subsystems currently attached to this hierarchy */
- 	unsigned long actual_subsys_bits;
- 
-@@ -147,6 +151,10 @@ struct css_id {
- static LIST_HEAD(roots);
- static int root_count;
- 
-+static DEFINE_IDA(hierarchy_ida);
-+static int next_hierarchy_id;
-+static DEFINE_SPINLOCK(hierarchy_id_lock);
++	cpustat = &stat->cpustat[cpu];
++	__mem_cgroup_stat_add_safe(cpustat, MEM_CGROUP_STAT_SWAPOUT, val);
++	put_cpu();
++}
 +
- /* dummytop is a shorthand for the dummy hierarchy's top cgroup */
- #define dummytop (&rootnode.top_cgroup)
- 
-@@ -264,42 +272,10 @@ static struct hlist_head *css_set_hash(s
-  * compiled into their kernel but not actually in use */
- static int use_task_css_set_links __read_mostly;
- 
--/* When we create or destroy a css_set, the operation simply
-- * takes/releases a reference count on all the cgroups referenced
-- * by subsystems in this css_set. This can end up multiple-counting
-- * some cgroups, but that's OK - the ref-count is just a
-- * busy/not-busy indicator; ensuring that we only count each cgroup
-- * once would require taking a global lock to ensure that no
-- * subsystems moved between hierarchies while we were doing so.
-- *
-- * Possible TODO: decide at boot time based on the number of
-- * registered subsystems and the number of CPUs or NUMA nodes whether
-- * it's better for performance to ref-count every subsystem, or to
-- * take a global lock and only add one ref count to each hierarchy.
-- */
--
--/*
-- * unlink a css_set from the list and free it
-- */
--static void unlink_css_set(struct css_set *cg)
-+static void __put_css_set(struct css_set *cg, int taskexit)
+ static void mem_cgroup_charge_statistics(struct mem_cgroup *mem,
+ 					 struct page_cgroup *pc,
+ 					 bool charge)
  {
- 	struct cg_cgroup_link *link;
- 	struct cg_cgroup_link *saved_link;
--
--	hlist_del(&cg->hlist);
--	css_set_count--;
--
--	list_for_each_entry_safe(link, saved_link, &cg->cg_links,
--				 cg_link_list) {
--		list_del(&link->cg_link_list);
--		list_del(&link->cgrp_link_list);
--		kfree(link);
--	}
--}
--
--static void __put_css_set(struct css_set *cg, int taskexit)
--{
--	int i;
- 	/*
- 	 * Ensure that the refcount doesn't hit zero while any readers
- 	 * can see it. Similar to atomic_dec_and_lock(), but for an
-@@ -312,20 +288,27 @@ static void __put_css_set(struct css_set
- 		write_unlock(&css_set_lock);
+-	int val = (charge)? 1 : -1;
++	int val = (charge) ? 1 : -1;
+ 	struct mem_cgroup_stat *stat = &mem->stat;
+ 	struct mem_cgroup_stat_cpu *cpustat;
+ 	int cpu = get_cpu();
+@@ -1285,9 +1299,11 @@ static int __mem_cgroup_try_charge(struc
+ 	VM_BUG_ON(css_is_removed(&mem->css));
+ 
+ 	while (1) {
+-		int ret;
++		int ret = 0;
+ 		unsigned long flags = 0;
+ 
++		if (mem_cgroup_is_root(mem))
++			goto done;
+ 		ret = res_counter_charge(&mem->res, PAGE_SIZE, &fail_res,
+ 						&soft_fail_res);
+ 		if (likely(!ret)) {
+@@ -1347,6 +1363,7 @@ static int __mem_cgroup_try_charge(struc
+ 		if (mem_cgroup_soft_limit_check(mem_over_soft_limit))
+ 			mem_cgroup_update_tree(mem_over_soft_limit, page);
+ 	}
++done:
+ 	return 0;
+ nomem:
+ 	css_put(&mem->css);
+@@ -1419,9 +1436,12 @@ static void __mem_cgroup_commit_charge(s
+ 	lock_page_cgroup(pc);
+ 	if (unlikely(PageCgroupUsed(pc))) {
+ 		unlock_page_cgroup(pc);
+-		res_counter_uncharge(&mem->res, PAGE_SIZE, NULL);
+-		if (do_swap_account)
+-			res_counter_uncharge(&mem->memsw, PAGE_SIZE, NULL);
++		if (!mem_cgroup_is_root(mem)) {
++			res_counter_uncharge(&mem->res, PAGE_SIZE, NULL);
++			if (do_swap_account)
++				res_counter_uncharge(&mem->memsw, PAGE_SIZE,
++							NULL);
++		}
+ 		css_put(&mem->css);
  		return;
  	}
--	unlink_css_set(cg);
--	write_unlock(&css_set_lock);
- 
--	rcu_read_lock();
--	for (i = 0; i < CGROUP_SUBSYS_COUNT; i++) {
--		struct cgroup *cgrp = rcu_dereference(cg->subsys[i]->cgroup);
-+	/* This css_set is dead. unlink it and release cgroup refcounts */
-+	hlist_del(&cg->hlist);
-+	css_set_count--;
-+
-+	list_for_each_entry_safe(link, saved_link, &cg->cg_links,
-+				 cg_link_list) {
-+		struct cgroup *cgrp = link->cgrp;
-+		list_del(&link->cg_link_list);
-+		list_del(&link->cgrp_link_list);
- 		if (atomic_dec_and_test(&cgrp->count) &&
- 		    notify_on_release(cgrp)) {
- 			if (taskexit)
- 				set_bit(CGRP_RELEASABLE, &cgrp->flags);
- 			check_for_release(cgrp);
- 		}
-+
-+		kfree(link);
- 	}
--	rcu_read_unlock();
-+
-+	write_unlock(&css_set_lock);
- 	kfree(cg);
- }
- 
-@@ -519,6 +502,7 @@ static void link_css_set(struct list_hea
- 				cgrp_link_list);
- 	link->cg = cg;
- 	link->cgrp = cgrp;
-+	atomic_inc(&cgrp->count);
- 	list_move(&link->cgrp_link_list, &cgrp->css_sets);
- 	/*
- 	 * Always add links to the tail of the list so that the list
-@@ -539,7 +523,6 @@ static struct css_set *find_css_set(
- {
- 	struct css_set *res;
- 	struct cgroup_subsys_state *template[CGROUP_SUBSYS_COUNT];
--	int i;
- 
- 	struct list_head tmp_cg_links;
- 
-@@ -578,10 +561,6 @@ static struct css_set *find_css_set(
- 
- 	write_lock(&css_set_lock);
- 	/* Add reference counts and links from the new css_set. */
--	for (i = 0; i < CGROUP_SUBSYS_COUNT; i++) {
--		struct cgroup *cgrp = res->subsys[i]->cgroup;
--		atomic_inc(&cgrp->count);
--	}
- 	list_for_each_entry(link, &oldcg->cg_links, cg_link_list) {
- 		struct cgroup *c = link->cgrp;
- 		if (c->root == cgrp->root)
-@@ -972,8 +951,11 @@ struct cgroup_sb_opts {
- 	unsigned long flags;
- 	char *release_agent;
- 	char *name;
-+	/* User explicitly requested empty subsystem */
-+	bool none;
- 
- 	struct cgroupfs_root *new_root;
-+
- };
- 
- /* Convert a hierarchy specifier into a bitmask of subsystems and
-@@ -1002,6 +984,9 @@ static int parse_cgroupfs_options(char *
- 				if (!ss->disabled)
- 					opts->subsys_bits |= 1ul << i;
- 			}
-+		} else if (!strcmp(token, "none")) {
-+			/* Explicitly have no subsystems */
-+			opts->none = true;
- 		} else if (!strcmp(token, "noprefix")) {
- 			set_bit(ROOT_NOPREFIX, &opts->flags);
- 		} else if (!strncmp(token, "release_agent=", 14)) {
-@@ -1051,6 +1036,8 @@ static int parse_cgroupfs_options(char *
- 		}
- 	}
- 
-+	/* Consistency checks */
-+
- 	/*
- 	 * Option noprefix was introduced just for backward compatibility
- 	 * with the old cpuset, so we allow noprefix only if mounting just
-@@ -1060,7 +1047,15 @@ static int parse_cgroupfs_options(char *
- 	    (opts->subsys_bits & mask))
- 		return -EINVAL;
- 
--	/* We can't have an empty hierarchy */
-+
-+	/* Can't specify "none" and some subsystems */
-+	if (opts->subsys_bits && opts->none)
-+		return -EINVAL;
-+
-+	/*
-+	 * We either have to specify by name or by subsystems. (So all
-+	 * empty hierarchies must have a name).
-+	 */
- 	if (!opts->subsys_bits && !opts->name)
- 		return -EINVAL;
- 
-@@ -1141,6 +1136,31 @@ static void init_cgroup_root(struct cgro
- 	init_cgroup_housekeeping(cgrp);
- }
- 
-+static bool init_root_id(struct cgroupfs_root *root)
-+{
-+	int ret = 0;
-+
-+	do {
-+		if (!ida_pre_get(&hierarchy_ida, GFP_KERNEL))
-+			return false;
-+		spin_lock(&hierarchy_id_lock);
-+		/* Try to allocate the next unused ID */
-+		ret = ida_get_new_above(&hierarchy_ida, next_hierarchy_id,
-+					&root->hierarchy_id);
-+		if (ret == -ENOSPC)
-+			/* Try again starting from 0 */
-+			ret = ida_get_new(&hierarchy_ida, &root->hierarchy_id);
-+		if (!ret) {
-+			next_hierarchy_id = root->hierarchy_id + 1;
-+		} else if (ret != -EAGAIN) {
-+			/* Can only get here if the 31-bit IDR is full ... */
-+			BUG_ON(ret);
-+		}
-+		spin_unlock(&hierarchy_id_lock);
-+	} while (ret);
-+	return true;
-+}
-+
- static int cgroup_test_super(struct super_block *sb, void *data)
- {
- 	struct cgroup_sb_opts *opts = data;
-@@ -1150,8 +1170,12 @@ static int cgroup_test_super(struct supe
- 	if (opts->name && strcmp(opts->name, root->name))
- 		return 0;
- 
--	/* If we asked for subsystems then they must match */
--	if (opts->subsys_bits && (opts->subsys_bits != root->subsys_bits))
-+	/*
-+	 * If we asked for subsystems (or explicitly for no
-+	 * subsystems) then they must match
-+	 */
-+	if ((opts->subsys_bits || opts->none)
-+	    && (opts->subsys_bits != root->subsys_bits))
- 		return 0;
- 
- 	return 1;
-@@ -1161,15 +1185,19 @@ static struct cgroupfs_root *cgroup_root
- {
- 	struct cgroupfs_root *root;
- 
--	/* Empty hierarchies aren't supported */
--	if (!opts->subsys_bits)
-+	if (!opts->subsys_bits && !opts->none)
- 		return NULL;
- 
- 	root = kzalloc(sizeof(*root), GFP_KERNEL);
- 	if (!root)
- 		return ERR_PTR(-ENOMEM);
- 
-+	if (!init_root_id(root)) {
-+		kfree(root);
-+		return ERR_PTR(-ENOMEM);
-+	}
- 	init_cgroup_root(root);
-+
- 	root->subsys_bits = opts->subsys_bits;
- 	root->flags = opts->flags;
- 	if (opts->release_agent)
-@@ -1179,6 +1207,18 @@ static struct cgroupfs_root *cgroup_root
- 	return root;
- }
- 
-+static void cgroup_drop_root(struct cgroupfs_root *root)
-+{
-+	if (!root)
-+		return;
-+
-+	BUG_ON(!root->hierarchy_id);
-+	spin_lock(&hierarchy_id_lock);
-+	ida_remove(&hierarchy_ida, root->hierarchy_id);
-+	spin_unlock(&hierarchy_id_lock);
-+	kfree(root);
-+}
-+
- static int cgroup_set_super(struct super_block *sb, void *data)
- {
- 	int ret;
-@@ -1188,7 +1228,7 @@ static int cgroup_set_super(struct super
- 	if (!opts->new_root)
- 		return -EINVAL;
- 
--	BUG_ON(!opts->subsys_bits);
-+	BUG_ON(!opts->subsys_bits && !opts->none);
- 
- 	ret = set_anon_super(sb, NULL);
- 	if (ret)
-@@ -1257,7 +1297,7 @@ static int cgroup_get_sb(struct file_sys
- 	sb = sget(fs_type, cgroup_test_super, cgroup_set_super, &opts);
- 	if (IS_ERR(sb)) {
- 		ret = PTR_ERR(sb);
--		kfree(opts.new_root);
-+		cgroup_drop_root(opts.new_root);
- 		goto out_err;
- 	}
- 
-@@ -1351,7 +1391,7 @@ static int cgroup_get_sb(struct file_sys
- 		 * We re-used an existing hierarchy - the new root (if
- 		 * any) is not needed
- 		 */
--		kfree(opts.new_root);
-+		cgroup_drop_root(opts.new_root);
- 	}
- 
- 	simple_set_mnt(mnt, sb);
-@@ -1410,7 +1450,7 @@ static void cgroup_kill_sb(struct super_
- 	mutex_unlock(&cgroup_mutex);
- 
- 	kill_litter_super(sb);
--	kfree(root);
-+	cgroup_drop_root(root);
- }
- 
- static struct file_system_type cgroup_fs_type = {
-@@ -3109,7 +3149,7 @@ int __init cgroup_init(void)
- 	/* Add init_css_set to the hash table */
- 	hhead = css_set_hash(init_css_set.subsys);
- 	hlist_add_head(&init_css_set.hlist, hhead);
--
-+	BUG_ON(!init_root_id(&rootnode));
- 	err = register_filesystem(&cgroup_fs_type);
- 	if (err < 0)
+@@ -1498,7 +1518,8 @@ static int mem_cgroup_move_account(struc
+ 	if (pc->mem_cgroup != from)
  		goto out;
-@@ -3164,7 +3204,7 @@ static int proc_cgroup_show(struct seq_f
- 		struct cgroup *cgrp;
- 		int count = 0;
  
--		seq_printf(m, "%lu:", root->subsys_bits);
-+		seq_printf(m, "%d:", root->hierarchy_id);
- 		for_each_subsys(root, ss)
- 			seq_printf(m, "%s%s", count++ ? "," : "", ss->name);
- 		if (strlen(root->name))
-@@ -3210,8 +3250,8 @@ static int proc_cgroupstats_show(struct 
- 	mutex_lock(&cgroup_mutex);
- 	for (i = 0; i < CGROUP_SUBSYS_COUNT; i++) {
- 		struct cgroup_subsys *ss = subsys[i];
--		seq_printf(m, "%s\t%lu\t%d\t%d\n",
--			   ss->name, ss->root->subsys_bits,
-+		seq_printf(m, "%s\t%d\t%d\t%d\n",
-+			   ss->name, ss->root->hierarchy_id,
- 			   ss->root->number_of_cgroups, !ss->disabled);
+-	res_counter_uncharge(&from->res, PAGE_SIZE, NULL);
++	if (!mem_cgroup_is_root(from))
++		res_counter_uncharge(&from->res, PAGE_SIZE, NULL);
+ 	mem_cgroup_charge_statistics(from, pc, false);
+ 
+ 	page = pc->page;
+@@ -1517,7 +1538,7 @@ static int mem_cgroup_move_account(struc
+ 						1);
  	}
- 	mutex_unlock(&cgroup_mutex);
-@@ -3929,8 +3969,8 @@ static int current_css_set_cg_links_read
- 			name = c->dentry->d_name.name;
- 		else
- 			name = "?";
--		seq_printf(seq, "Root %lu group %s\n",
--			   c->root->subsys_bits, name);
-+		seq_printf(seq, "Root %d group %s\n",
-+			   c->root->hierarchy_id, name);
+ 
+-	if (do_swap_account)
++	if (do_swap_account && !mem_cgroup_is_root(from))
+ 		res_counter_uncharge(&from->memsw, PAGE_SIZE, NULL);
+ 	css_put(&from->css);
+ 
+@@ -1588,9 +1609,11 @@ uncharge:
+ 	/* drop extra refcnt by try_charge() */
+ 	css_put(&parent->css);
+ 	/* uncharge if move fails */
+-	res_counter_uncharge(&parent->res, PAGE_SIZE, NULL);
+-	if (do_swap_account)
+-		res_counter_uncharge(&parent->memsw, PAGE_SIZE, NULL);
++	if (!mem_cgroup_is_root(parent)) {
++		res_counter_uncharge(&parent->res, PAGE_SIZE, NULL);
++		if (do_swap_account)
++			res_counter_uncharge(&parent->memsw, PAGE_SIZE, NULL);
++	}
+ 	return ret;
+ }
+ 
+@@ -1779,7 +1802,10 @@ __mem_cgroup_commit_charge_swapin(struct
+ 			 * This recorded memcg can be obsolete one. So, avoid
+ 			 * calling css_tryget
+ 			 */
+-			res_counter_uncharge(&memcg->memsw, PAGE_SIZE, NULL);
++			if (!mem_cgroup_is_root(memcg))
++				res_counter_uncharge(&memcg->memsw, PAGE_SIZE,
++							NULL);
++			mem_cgroup_swap_statistics(memcg, false);
+ 			mem_cgroup_put(memcg);
+ 		}
+ 		rcu_read_unlock();
+@@ -1804,9 +1830,11 @@ void mem_cgroup_cancel_charge_swapin(str
+ 		return;
+ 	if (!mem)
+ 		return;
+-	res_counter_uncharge(&mem->res, PAGE_SIZE, NULL);
+-	if (do_swap_account)
+-		res_counter_uncharge(&mem->memsw, PAGE_SIZE, NULL);
++	if (!mem_cgroup_is_root(mem)) {
++		res_counter_uncharge(&mem->res, PAGE_SIZE, NULL);
++		if (do_swap_account)
++			res_counter_uncharge(&mem->memsw, PAGE_SIZE, NULL);
++	}
+ 	css_put(&mem->css);
+ }
+ 
+@@ -1859,9 +1887,14 @@ __mem_cgroup_uncharge_common(struct page
+ 		break;
+ 	}
+ 
+-	res_counter_uncharge(&mem->res, PAGE_SIZE, &soft_limit_excess);
+-	if (do_swap_account && (ctype != MEM_CGROUP_CHARGE_TYPE_SWAPOUT))
+-		res_counter_uncharge(&mem->memsw, PAGE_SIZE, NULL);
++	if (!mem_cgroup_is_root(mem)) {
++		res_counter_uncharge(&mem->res, PAGE_SIZE, &soft_limit_excess);
++		if (do_swap_account &&
++				(ctype != MEM_CGROUP_CHARGE_TYPE_SWAPOUT))
++			res_counter_uncharge(&mem->memsw, PAGE_SIZE, NULL);
++	}
++	if (ctype == MEM_CGROUP_CHARGE_TYPE_SWAPOUT)
++		mem_cgroup_swap_statistics(mem, true);
+ 	mem_cgroup_charge_statistics(mem, pc, false);
+ 
+ 	ClearPageCgroupUsed(pc);
+@@ -1952,7 +1985,9 @@ void mem_cgroup_uncharge_swap(swp_entry_
+ 		 * We uncharge this because swap is freed.
+ 		 * This memcg can be obsolete one. We avoid calling css_tryget
+ 		 */
+-		res_counter_uncharge(&memcg->memsw, PAGE_SIZE, NULL);
++		if (!mem_cgroup_is_root(memcg))
++			res_counter_uncharge(&memcg->memsw, PAGE_SIZE, NULL);
++		mem_cgroup_swap_statistics(memcg, false);
+ 		mem_cgroup_put(memcg);
  	}
  	rcu_read_unlock();
- 	read_unlock(&css_set_lock);
+@@ -2464,20 +2499,64 @@ static int mem_cgroup_hierarchy_write(st
+ 	return retval;
+ }
+ 
++struct mem_cgroup_idx_data {
++	s64 val;
++	enum mem_cgroup_stat_index idx;
++};
++
++static int
++mem_cgroup_get_idx_stat(struct mem_cgroup *mem, void *data)
++{
++	struct mem_cgroup_idx_data *d = data;
++	d->val += mem_cgroup_read_stat(&mem->stat, d->idx);
++	return 0;
++}
++
++static void
++mem_cgroup_get_recursive_idx_stat(struct mem_cgroup *mem,
++				enum mem_cgroup_stat_index idx, s64 *val)
++{
++	struct mem_cgroup_idx_data d;
++	d.idx = idx;
++	d.val = 0;
++	mem_cgroup_walk_tree(mem, &d, mem_cgroup_get_idx_stat);
++	*val = d.val;
++}
++
+ static u64 mem_cgroup_read(struct cgroup *cont, struct cftype *cft)
+ {
+ 	struct mem_cgroup *mem = mem_cgroup_from_cont(cont);
+-	u64 val = 0;
++	u64 idx_val, val;
+ 	int type, name;
+ 
+ 	type = MEMFILE_TYPE(cft->private);
+ 	name = MEMFILE_ATTR(cft->private);
+ 	switch (type) {
+ 	case _MEM:
+-		val = res_counter_read_u64(&mem->res, name);
++		if (name == RES_USAGE && mem_cgroup_is_root(mem)) {
++			mem_cgroup_get_recursive_idx_stat(mem,
++				MEM_CGROUP_STAT_CACHE, &idx_val);
++			val = idx_val;
++			mem_cgroup_get_recursive_idx_stat(mem,
++				MEM_CGROUP_STAT_RSS, &idx_val);
++			val += idx_val;
++			val <<= PAGE_SHIFT;
++		} else
++			val = res_counter_read_u64(&mem->res, name);
+ 		break;
+ 	case _MEMSWAP:
+-		val = res_counter_read_u64(&mem->memsw, name);
++		if (name == RES_USAGE && mem_cgroup_is_root(mem)) {
++			mem_cgroup_get_recursive_idx_stat(mem,
++				MEM_CGROUP_STAT_CACHE, &idx_val);
++			val = idx_val;
++			mem_cgroup_get_recursive_idx_stat(mem,
++				MEM_CGROUP_STAT_RSS, &idx_val);
++			val += idx_val;
++			mem_cgroup_get_recursive_idx_stat(mem,
++				MEM_CGROUP_STAT_SWAPOUT, &idx_val);
++			val <<= PAGE_SHIFT;
++		} else
++			val = res_counter_read_u64(&mem->memsw, name);
+ 		break;
+ 	default:
+ 		BUG();
 _
 
-Patches currently in -mm which might be from menage@google.com are
+Patches currently in -mm which might be from balbir@linux.vnet.ibm.com are
 
 origin.patch
-add-a-refcount-check-in-dput.patch
 
