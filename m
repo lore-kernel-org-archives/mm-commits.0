@@ -1,123 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [merged] elf-clean-up-fill_note_info.patch removed from -mm tree
-Date: Thu, 24 Sep 2009 12:35:57 -0700
-Message-ID: <200909241935.n8OJZvkB001509@imap1.linux-foundation.org>
+Subject: [merged] fdpic-ignore-the-loaders-pt_gnu_stack-when-calculating-the-stack-size.patch removed from -mm tree
+Date: Thu, 24 Sep 2009 12:36:00 -0700
+Message-ID: <200909241936.n8OJa09M001654@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44883 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46522 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753914AbZIXTgY (ORCPT
+	by vger.kernel.org with ESMTP id S1754041AbZIXTga (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Sep 2009 15:36:24 -0400
+	Thu, 24 Sep 2009 15:36:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: amwang@redhat.com, dhowells@redhat.com, roland@redhat.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, lethal@linux-sh.org, pavel@ucw.cz, vapier@gentoo.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     elf: clean up fill_note_info()
+     fdpic: ignore the loader's PT_GNU_STACK when calculating the stack size
 has been removed from the -mm tree.  Its filename was
-     elf-clean-up-fill_note_info.patch
+     fdpic-ignore-the-loaders-pt_gnu_stack-when-calculating-the-stack-size.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: elf: clean up fill_note_info()
-From: Amerigo Wang <amwang@redhat.com>
+Subject: fdpic: ignore the loader's PT_GNU_STACK when calculating the stack size
+From: David Howells <dhowells@redhat.com>
 
-Introduce a helper function elf_note_info_init() to help fill_note_info()
-to do initializations, also fix the potential memory leaks.
+Ignore the loader's PT_GNU_STACK when calculating the stack size, and only
+consider the executable's PT_GNU_STACK, assuming the executable has one.
 
-[akpm@linux-foundation.org: remove NUM_NOTES]
-Signed-off-by: WANG Cong <amwang@redhat.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Roland McGrath <roland@redhat.com>
+Currently the behaviour is to take the largest stack size and use that,
+but that means you can't reduce the stack size in the executable.  The
+loader's stack size should probably only be used when executing the loader
+directly.
+
+WARNING: This patch is slightly dangerous - it may render a system
+inoperable if the loader's stack size is larger than that of important
+executables, and the system relies unknowingly on this increasing the size
+of the stack.
+
+Signed-off-by: David Howells <dhowells@redhat.com>
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Acked-by: Paul Mundt <lethal@linux-sh.org>
+Cc: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |   52 ++++++++++++++++++++++++++--------------------
- 1 file changed, 30 insertions(+), 22 deletions(-)
+ fs/binfmt_elf_fdpic.c |   17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
 
-diff -puN fs/binfmt_elf.c~elf-clean-up-fill_note_info fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~elf-clean-up-fill_note_info
-+++ a/fs/binfmt_elf.c
-@@ -1711,42 +1711,52 @@ struct elf_note_info {
- 	int numnote;
- };
+diff -puN fs/binfmt_elf_fdpic.c~fdpic-ignore-the-loaders-pt_gnu_stack-when-calculating-the-stack-size fs/binfmt_elf_fdpic.c
+--- a/fs/binfmt_elf_fdpic.c~fdpic-ignore-the-loaders-pt_gnu_stack-when-calculating-the-stack-size
++++ a/fs/binfmt_elf_fdpic.c
+@@ -283,20 +283,23 @@ static int load_elf_fdpic_binary(struct 
+ 	}
  
--static int fill_note_info(struct elfhdr *elf, int phdrs,
--			  struct elf_note_info *info,
--			  long signr, struct pt_regs *regs)
-+static int elf_note_info_init(struct elf_note_info *info)
- {
--#define	NUM_NOTES	6
--	struct list_head *t;
+ 	stack_size = exec_params.stack_size;
+-	if (stack_size < interp_params.stack_size)
+-		stack_size = interp_params.stack_size;
 -
--	info->notes = NULL;
--	info->prstatus = NULL;
--	info->psinfo = NULL;
--	info->fpu = NULL;
--#ifdef ELF_CORE_COPY_XFPREGS
--	info->xfpu = NULL;
--#endif
-+	memset(info, 0, sizeof(*info));
- 	INIT_LIST_HEAD(&info->thread_list);
+ 	if (exec_params.flags & ELF_FDPIC_FLAG_EXEC_STACK)
+ 		executable_stack = EXSTACK_ENABLE_X;
+ 	else if (exec_params.flags & ELF_FDPIC_FLAG_NOEXEC_STACK)
+ 		executable_stack = EXSTACK_DISABLE_X;
+-	else if (interp_params.flags & ELF_FDPIC_FLAG_EXEC_STACK)
+-		executable_stack = EXSTACK_ENABLE_X;
+-	else if (interp_params.flags & ELF_FDPIC_FLAG_NOEXEC_STACK)
+-		executable_stack = EXSTACK_DISABLE_X;
+ 	else
+ 		executable_stack = EXSTACK_DEFAULT;
  
--	info->notes = kmalloc(NUM_NOTES * sizeof(struct memelfnote),
--			      GFP_KERNEL);
-+	/* Allocate space for six ELF notes */
-+	info->notes = kmalloc(6 * sizeof(struct memelfnote), GFP_KERNEL);
- 	if (!info->notes)
- 		return 0;
- 	info->psinfo = kmalloc(sizeof(*info->psinfo), GFP_KERNEL);
- 	if (!info->psinfo)
--		return 0;
-+		goto notes_free;
- 	info->prstatus = kmalloc(sizeof(*info->prstatus), GFP_KERNEL);
- 	if (!info->prstatus)
--		return 0;
-+		goto psinfo_free;
- 	info->fpu = kmalloc(sizeof(*info->fpu), GFP_KERNEL);
- 	if (!info->fpu)
--		return 0;
-+		goto prstatus_free;
- #ifdef ELF_CORE_COPY_XFPREGS
- 	info->xfpu = kmalloc(sizeof(*info->xfpu), GFP_KERNEL);
- 	if (!info->xfpu)
--		return 0;
-+		goto fpu_free;
-+#endif
-+	return 1;
-+#ifdef ELF_CORE_COPY_XFPREGS
-+ fpu_free:
-+	kfree(info->fpu);
- #endif
-+ prstatus_free:
-+	kfree(info->prstatus);
-+ psinfo_free:
-+	kfree(info->psinfo);
-+ notes_free:
-+	kfree(info->notes);
-+	return 0;
-+}
++	if (stack_size == 0) {
++		stack_size = interp_params.stack_size;
++		if (interp_params.flags & ELF_FDPIC_FLAG_EXEC_STACK)
++			executable_stack = EXSTACK_ENABLE_X;
++		else if (interp_params.flags & ELF_FDPIC_FLAG_NOEXEC_STACK)
++			executable_stack = EXSTACK_DISABLE_X;
++		else
++			executable_stack = EXSTACK_DEFAULT;
++	}
 +
-+static int fill_note_info(struct elfhdr *elf, int phdrs,
-+			  struct elf_note_info *info,
-+			  long signr, struct pt_regs *regs)
-+{
-+	struct list_head *t;
-+
-+	if (!elf_note_info_init(info))
-+		return 0;
- 
--	info->thread_status_size = 0;
- 	if (signr) {
- 		struct core_thread *ct;
- 		struct elf_thread_status *ets;
-@@ -1806,8 +1816,6 @@ static int fill_note_info(struct elfhdr 
- #endif
- 
- 	return 1;
+ 	retval = -ENOEXEC;
+ 	if (stack_size == 0)
+ 		goto error;
+_
+
+Patches currently in -mm which might be from dhowells@redhat.com are
+
+origin.patch
+procfs-disable-per-task-stack-usage-on-nommu.patch
+hugetlb_file_setup-use-c-not-cpp.patch
+frv-duplicate-output_buffer-of-e03.patch
+mutex-subsystem-synchro-test-module.patch
+
