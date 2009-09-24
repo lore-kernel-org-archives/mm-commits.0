@@ -1,255 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cgroups-move-the-cgroup-debug-subsys-into-cgroupc-to-access-internal-state.patch removed from -mm tree
-Date: Thu, 24 Sep 2009 12:34:00 -0700
-Message-ID: <200909241934.n8OJY0Jx029983@imap1.linux-foundation.org>
+Subject: [merged] do_wait-wakeup-optimization-fix-child_wait_callback-eligible_child-usage.patch removed from -mm tree
+Date: Thu, 24 Sep 2009 12:35:11 -0700
+Message-ID: <200909241935.n8OJZBGU032431@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49134 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39993 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754155AbZIXTe1 (ORCPT
+	by vger.kernel.org with ESMTP id S1752591AbZIXTfa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Sep 2009 15:34:27 -0400
+	Thu, 24 Sep 2009 15:35:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: menage@google.com, balbir@in.ibm.com, dhaval@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: oleg@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cgroups: move the cgroup debug subsys into cgroup.c to access internal state
+     do_wait-wakeup-optimization: fix child_wait_callback()->eligible_child() usage
 has been removed from the -mm tree.  Its filename was
-     cgroups-move-the-cgroup-debug-subsys-into-cgroupc-to-access-internal-state.patch
+     do_wait-wakeup-optimization-fix-child_wait_callback-eligible_child-usage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: move the cgroup debug subsys into cgroup.c to access internal state
-From: Paul Menage <menage@google.com>
+Subject: do_wait-wakeup-optimization: fix child_wait_callback()->eligible_child() usage
+From: Oleg Nesterov <oleg@redhat.com>
 
-While it's architecturally clean to have the cgroup debug subsystem be
-completely independent of the cgroups framework, it limits its usefulness
-for debugging the contents of internal data structures.  Move the debug
-subsystem code into the scope of all the cgroups data structures to make
-more detailed debugging possible.
+child_wait_callback()->eligible_child() is not right, we can miss the
+wakeup if the task was detached before __wake_up_parent() and the caller
+of do_wait() didn't use __WALL.
 
-Signed-off-by: Paul Menage <menage@google.com>
-Reviewed-by: Li Zefan <lizf@cn.fujitsu.com>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Dhaval Giani <dhaval@linux.vnet.ibm.com>
+Move ->wo_pid checks from eligible_child() to the new helper,
+eligible_pid(), and change child_wait_callback() to use it instead of
+eligible_child().
+
+Note: actually I think it would be better to fix the __WCLONE check in
+eligible_child(), it doesn't look exactly right.  But it is not clear what
+is the supposed behaviour, and any change is user-visible.
+
+Reported-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Tested-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/Makefile       |    1 
- kernel/cgroup.c       |   88 +++++++++++++++++++++++++++++++++
- kernel/cgroup_debug.c |  105 ----------------------------------------
- 3 files changed, 88 insertions(+), 106 deletions(-)
+ kernel/exit.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
-diff -puN kernel/Makefile~cgroups-move-the-cgroup-debug-subsys-into-cgroupc-to-access-internal-state kernel/Makefile
---- a/kernel/Makefile~cgroups-move-the-cgroup-debug-subsys-into-cgroupc-to-access-internal-state
-+++ a/kernel/Makefile
-@@ -58,7 +58,6 @@ obj-$(CONFIG_KEXEC) += kexec.o
- obj-$(CONFIG_BACKTRACE_SELF_TEST) += backtracetest.o
- obj-$(CONFIG_COMPAT) += compat.o
- obj-$(CONFIG_CGROUPS) += cgroup.o
--obj-$(CONFIG_CGROUP_DEBUG) += cgroup_debug.o
- obj-$(CONFIG_CGROUP_FREEZER) += cgroup_freezer.o
- obj-$(CONFIG_CPUSETS) += cpuset.o
- obj-$(CONFIG_CGROUP_NS) += ns_cgroup.o
-diff -puN kernel/cgroup.c~cgroups-move-the-cgroup-debug-subsys-into-cgroupc-to-access-internal-state kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-move-the-cgroup-debug-subsys-into-cgroupc-to-access-internal-state
-+++ a/kernel/cgroup.c
-@@ -3781,3 +3781,91 @@ css_get_next(struct cgroup_subsys *ss, i
- 	return ret;
+diff -puN kernel/exit.c~do_wait-wakeup-optimization-fix-child_wait_callback-eligible_child-usage kernel/exit.c
+--- a/kernel/exit.c~do_wait-wakeup-optimization-fix-child_wait_callback-eligible_child-usage
++++ a/kernel/exit.c
+@@ -1111,13 +1111,16 @@ static struct pid *task_pid_type(struct 
+ 	return pid;
  }
  
-+#ifdef CONFIG_CGROUP_DEBUG
-+static struct cgroup_subsys_state *debug_create(struct cgroup_subsys *ss,
-+						   struct cgroup *cont)
-+{
-+	struct cgroup_subsys_state *css = kzalloc(sizeof(*css), GFP_KERNEL);
-+
-+	if (!css)
-+		return ERR_PTR(-ENOMEM);
-+
-+	return css;
+-static int eligible_child(struct wait_opts *wo, struct task_struct *p)
++static inline int eligible_pid(struct wait_opts *wo, struct task_struct *p)
+ {
+-	if (wo->wo_type < PIDTYPE_MAX) {
+-		if (task_pid_type(p, wo->wo_type) != wo->wo_pid)
+-			return 0;
+-	}
++	return	wo->wo_type == PIDTYPE_MAX ||
++		task_pid_type(p, wo->wo_type) == wo->wo_pid;
 +}
-+
-+static void debug_destroy(struct cgroup_subsys *ss, struct cgroup *cont)
+ 
++static int eligible_child(struct wait_opts *wo, struct task_struct *p)
 +{
-+	kfree(cont->subsys[debug_subsys_id]);
-+}
-+
-+static u64 cgroup_refcount_read(struct cgroup *cont, struct cftype *cft)
-+{
-+	return atomic_read(&cont->count);
-+}
-+
-+static u64 debug_taskcount_read(struct cgroup *cont, struct cftype *cft)
-+{
-+	return cgroup_task_count(cont);
-+}
-+
-+static u64 current_css_set_read(struct cgroup *cont, struct cftype *cft)
-+{
-+	return (u64)(unsigned long)current->cgroups;
-+}
-+
-+static u64 current_css_set_refcount_read(struct cgroup *cont,
-+					   struct cftype *cft)
-+{
-+	u64 count;
-+
-+	rcu_read_lock();
-+	count = atomic_read(&current->cgroups->refcount);
-+	rcu_read_unlock();
-+	return count;
-+}
-+
-+static u64 releasable_read(struct cgroup *cgrp, struct cftype *cft)
-+{
-+	return test_bit(CGRP_RELEASABLE, &cgrp->flags);
-+}
-+
-+static struct cftype debug_files[] =  {
-+	{
-+		.name = "cgroup_refcount",
-+		.read_u64 = cgroup_refcount_read,
-+	},
-+	{
-+		.name = "taskcount",
-+		.read_u64 = debug_taskcount_read,
-+	},
-+
-+	{
-+		.name = "current_css_set",
-+		.read_u64 = current_css_set_read,
-+	},
-+
-+	{
-+		.name = "current_css_set_refcount",
-+		.read_u64 = current_css_set_refcount_read,
-+	},
-+
-+	{
-+		.name = "releasable",
-+		.read_u64 = releasable_read,
-+	},
-+};
-+
-+static int debug_populate(struct cgroup_subsys *ss, struct cgroup *cont)
-+{
-+	return cgroup_add_files(cont, ss, debug_files,
-+				ARRAY_SIZE(debug_files));
-+}
-+
-+struct cgroup_subsys debug_subsys = {
-+	.name = "debug",
-+	.create = debug_create,
-+	.destroy = debug_destroy,
-+	.populate = debug_populate,
-+	.subsys_id = debug_subsys_id,
-+};
-+#endif /* CONFIG_CGROUP_DEBUG */
-diff -puN kernel/cgroup_debug.c~cgroups-move-the-cgroup-debug-subsys-into-cgroupc-to-access-internal-state /dev/null
---- a/kernel/cgroup_debug.c
-+++ /dev/null
-@@ -1,105 +0,0 @@
--/*
-- * kernel/cgroup_debug.c - Example cgroup subsystem that
-- * exposes debug info
-- *
-- * Copyright (C) Google Inc, 2007
-- *
-- * Developed by Paul Menage (menage@google.com)
-- *
-- */
--
--#include <linux/cgroup.h>
--#include <linux/fs.h>
--#include <linux/slab.h>
--#include <linux/rcupdate.h>
--
--#include <asm/atomic.h>
--
--static struct cgroup_subsys_state *debug_create(struct cgroup_subsys *ss,
--						   struct cgroup *cont)
--{
--	struct cgroup_subsys_state *css = kzalloc(sizeof(*css), GFP_KERNEL);
--
--	if (!css)
--		return ERR_PTR(-ENOMEM);
--
--	return css;
--}
--
--static void debug_destroy(struct cgroup_subsys *ss, struct cgroup *cont)
--{
--	kfree(cont->subsys[debug_subsys_id]);
--}
--
--static u64 cgroup_refcount_read(struct cgroup *cont, struct cftype *cft)
--{
--	return atomic_read(&cont->count);
--}
--
--static u64 taskcount_read(struct cgroup *cont, struct cftype *cft)
--{
--	u64 count;
--
--	count = cgroup_task_count(cont);
--	return count;
--}
--
--static u64 current_css_set_read(struct cgroup *cont, struct cftype *cft)
--{
--	return (u64)(long)current->cgroups;
--}
--
--static u64 current_css_set_refcount_read(struct cgroup *cont,
--					   struct cftype *cft)
--{
--	u64 count;
--
--	rcu_read_lock();
--	count = atomic_read(&current->cgroups->refcount);
--	rcu_read_unlock();
--	return count;
--}
--
--static u64 releasable_read(struct cgroup *cgrp, struct cftype *cft)
--{
--	return test_bit(CGRP_RELEASABLE, &cgrp->flags);
--}
--
--static struct cftype files[] =  {
--	{
--		.name = "cgroup_refcount",
--		.read_u64 = cgroup_refcount_read,
--	},
--	{
--		.name = "taskcount",
--		.read_u64 = taskcount_read,
--	},
--
--	{
--		.name = "current_css_set",
--		.read_u64 = current_css_set_read,
--	},
--
--	{
--		.name = "current_css_set_refcount",
--		.read_u64 = current_css_set_refcount_read,
--	},
--
--	{
--		.name = "releasable",
--		.read_u64 = releasable_read,
--	},
--};
--
--static int debug_populate(struct cgroup_subsys *ss, struct cgroup *cont)
--{
--	return cgroup_add_files(cont, ss, files, ARRAY_SIZE(files));
--}
++	if (!eligible_pid(wo, p))
++		return 0;
+ 	/* Wait for all children (clone and not) if __WALL is set;
+ 	 * otherwise, wait for clone children *only* if __WCLONE is
+ 	 * set; otherwise, wait for non-clone children *only*.  (Note:
+@@ -1578,7 +1581,7 @@ static int child_wait_callback(wait_queu
+ 						child_wait);
+ 	struct task_struct *p = key;
+ 
+-	if (!eligible_child(wo, p))
++	if (!eligible_pid(wo, p))
+ 		return 0;
+ 
+ 	if ((wo->wo_flags & __WNOTHREAD) && wait->private != p->parent)
+_
+
+Patches currently in -mm which might be from oleg@redhat.com are
+
+origin.patch
+linux-next.patch
+do_wait-optimization-do-not-place-sub-threads-on-task_struct-children-list.patch
+utrace-core.patch
+
