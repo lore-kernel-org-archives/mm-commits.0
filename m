@@ -1,99 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [merged] doc-filesystems-more-mount-cleanups.patch removed from -mm tree
-Date: Thu, 24 Sep 2009 12:33:36 -0700
-Message-ID: <200909241933.n8OJXaBw029150@imap1.linux-foundation.org>
+Subject: [merged] cgroups-make-unlock-sequence-in-cgroup_get_sb-consistent.patch removed from -mm tree
+Date: Thu, 24 Sep 2009 12:33:54 -0700
+Message-ID: <200909241933.n8OJXsC0029709@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52179 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55776 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754164AbZIXTe3 (ORCPT
+	by vger.kernel.org with ESMTP id S1754152AbZIXTe1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Sep 2009 15:34:29 -0400
+	Thu, 24 Sep 2009 15:34:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bergwolf@gmail.com, hch@infradead.org, miklos@szeredi.hu, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: dfeng@redhat.com, balbir@linux.vnet.ibm.com, menage@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     doc/filesystems: more mount cleanups
+     cgroups: make unlock sequence in cgroup_get_sb consistent
 has been removed from the -mm tree.  Its filename was
-     doc-filesystems-more-mount-cleanups.patch
+     cgroups-make-unlock-sequence-in-cgroup_get_sb-consistent.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: doc/filesystems: more mount cleanups
-From: Peng Tao <bergwolf@gmail.com>
+Subject: cgroups: make unlock sequence in cgroup_get_sb consistent
+From: Xiaotian Feng <dfeng@redhat.com>
 
-Documentation/filesystems/sharedsubtree.txt needs updating because the
-mount command in util-linux package is well aware of shared subtree
-features now.  The patch also fixes two typos in sharedsubtree.txt.
+Make the last unlock sequence consistent with previous unlock sequeue.
 
-Signed-off-by: Peng Tao <bergwolf@gmail.com>
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Christoph Hellwig <hch@infradead.org>
+Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Acked-by: Paul Menage <menage@google.com>
+Signed-off-by: Xiaotian Feng <dfeng@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/sharedsubtree.txt |   17 +++++++++++------
- 1 file changed, 11 insertions(+), 6 deletions(-)
+ kernel/cgroup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/filesystems/sharedsubtree.txt~doc-filesystems-more-mount-cleanups Documentation/filesystems/sharedsubtree.txt
---- a/Documentation/filesystems/sharedsubtree.txt~doc-filesystems-more-mount-cleanups
-+++ a/Documentation/filesystems/sharedsubtree.txt
-@@ -4,7 +4,7 @@ Shared Subtrees
- Contents:
- 	1) Overview
- 	2) Features
--	3) smount command
-+	3) Setting mount states
- 	4) Use-case
- 	5) Detailed semantics
- 	6) Quiz
-@@ -135,10 +135,15 @@ replicas continue to be exactly same.
- 	Binding a unbindable mount is a invalid operation.
+diff -puN kernel/cgroup.c~cgroups-make-unlock-sequence-in-cgroup_get_sb-consistent kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-make-unlock-sequence-in-cgroup_get_sb-consistent
++++ a/kernel/cgroup.c
+@@ -1155,8 +1155,8 @@ static int cgroup_get_sb(struct file_sys
+ 		BUG_ON(root->number_of_cgroups != 1);
  
+ 		cgroup_populate_dir(root_cgrp);
+-		mutex_unlock(&inode->i_mutex);
+ 		mutex_unlock(&cgroup_mutex);
++		mutex_unlock(&inode->i_mutex);
+ 	}
  
--3) smount command
-+3) Setting mount states
- 
--	Modern mount(8) command is aware of shared subtree features,
--	so use it instead of the 'smount' command. [source code removed]
-+	The mount command (util-linux package) can be used to set mount
-+	states:
-+
-+	mount --make-shared mountpoint
-+	mount --make-slave mountpoint
-+	mount --make-private mountpoint
-+	mount --make-unbindable mountpoint
- 
- 
- 4) Use cases
-@@ -209,7 +214,7 @@ replicas continue to be exactly same.
- 		mount --rbind / /view/v3
- 		mount --rbind / /view/v4
- 
--		and if /usr has a versioning filesystem mounted, than that
-+		and if /usr has a versioning filesystem mounted, then that
- 		mount appears at /view/v1/usr, /view/v2/usr, /view/v3/usr and
- 		/view/v4/usr too
- 
-@@ -249,7 +254,7 @@ replicas continue to be exactly same.
- 
- 		For example:
- 			mount --make-shared /mnt
--			mount --bin /mnt /tmp
-+			mount --bind /mnt /tmp
- 
- 		The mount at /mnt and that at /tmp are both shared and belong
- 		to the same peer group. Anything mounted or unmounted under
+ 	simple_set_mnt(mnt, sb);
 _
 
-Patches currently in -mm which might be from bergwolf@gmail.com are
+Patches currently in -mm which might be from dfeng@redhat.com are
 
 origin.patch
-linux-next.patch
 
