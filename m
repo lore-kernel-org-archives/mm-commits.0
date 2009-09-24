@@ -1,62 +1,174 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] seq_file-return-a-negative-error-code-when-seq_path_root-fails.patch removed from -mm tree
-Date: Thu, 24 Sep 2009 12:30:49 -0700
-Message-ID: <200909241930.n8OJUnHw023551@imap1.linux-foundation.org>
+Subject: [to-be-updated] fs-convert-simple-fs-to-new-truncate.patch removed from -mm tree
+Date: Thu, 24 Sep 2009 12:32:13 -0700
+Message-ID: <200909241932.n8OJWDwR026332@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38244 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38680 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754214AbZIXTbK (ORCPT
+	by vger.kernel.org with ESMTP id S1754013AbZIXTdU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Sep 2009 15:31:10 -0400
+	Thu, 24 Sep 2009 15:33:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: penguin-kernel@i-love.sakura.ne.jppenguin-kernel@i-love.sakura.ne.jp, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: npiggin@suse.de, chris.mason@oracle.com, hch@lst.de, hirofumi@mail.parknet.co.jp, hugh.dickins@tiscali.co.uk, jack@suse.cz, miklos@szeredi.hu, sfrench@us.ibm.com, shaggy@linux.vnet.ib
 
 
 The patch titled
-     seq_file: return a negative error code when seq_path_root() fails.
+     fs: convert simple fs to new truncate
 has been removed from the -mm tree.  Its filename was
-     seq_file-return-a-negative-error-code-when-seq_path_root-fails.patch
+     fs-convert-simple-fs-to-new-truncate.patch
 
-This patch was dropped because an alternative patch was merged
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: seq_file: return a negative error code when seq_path_root() fails.
-From: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+Subject: fs: convert simple fs to new truncate
+From: Nick Piggin <npiggin@suse.de>
 
-seq_path_root() is returning a return value of successful __d_path()
-instead of returning a negative value when mangle_path() failed.
+Convert simple filesystems: ramfs, configfs, sysfs to new truncate
+sequence.
 
-This is not a bug so far because nobody is using return value of
-seq_path_root().
-
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Dave Kleikamp <shaggy@linux.vnet.ibm.com>
+Cc: Chris Mason <chris.mason@oracle.com>
+Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: Steven French <sfrench@us.ibm.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/seq_file.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/configfs/inode.c   |   11 ++++++++---
+ fs/ramfs/file-mmu.c   |    2 ++
+ fs/ramfs/file-nommu.c |    8 +++++---
+ fs/sysfs/inode.c      |    7 ++-----
+ 4 files changed, 17 insertions(+), 11 deletions(-)
 
-diff -puN fs/seq_file.c~seq_file-return-a-negative-error-code-when-seq_path_root-fails fs/seq_file.c
---- a/fs/seq_file.c~seq_file-return-a-negative-error-code-when-seq_path_root-fails
-+++ a/fs/seq_file.c
-@@ -470,6 +470,7 @@ int seq_path_root(struct seq_file *m, st
- 				m->count = s - m->buf;
- 				return 0;
- 			}
-+			err = -ENAMETOOLONG;
+diff -puN fs/configfs/inode.c~fs-convert-simple-fs-to-new-truncate fs/configfs/inode.c
+--- a/fs/configfs/inode.c~fs-convert-simple-fs-to-new-truncate
++++ a/fs/configfs/inode.c
+@@ -57,6 +57,7 @@ static struct backing_dev_info configfs_
+ };
+ 
+ static const struct inode_operations configfs_inode_operations ={
++	.new_truncate	= 1,
+ 	.setattr	= configfs_setattr,
+ };
+ 
+@@ -77,9 +78,13 @@ int configfs_setattr(struct dentry * den
+ 	if (error)
+ 		return error;
+ 
+-	error = inode_setattr(inode, iattr);
+-	if (error)
+-		return error;
++	if (iattr->ia_valid & ATTR_SIZE) {
++		error = simple_setsize(inode, iattr->ia_size);
++		if (error)
++			return error;
++	}
++
++	generic_setattr(inode, iattr);
+ 
+ 	if (!sd_iattr) {
+ 		/* setting attributes for the first time, allocate now */
+diff -puN fs/ramfs/file-mmu.c~fs-convert-simple-fs-to-new-truncate fs/ramfs/file-mmu.c
+--- a/fs/ramfs/file-mmu.c~fs-convert-simple-fs-to-new-truncate
++++ a/fs/ramfs/file-mmu.c
+@@ -50,5 +50,7 @@ const struct file_operations ramfs_file_
+ };
+ 
+ const struct inode_operations ramfs_file_inode_operations = {
++	.new_truncate	= 1,
++	.setattr	= simple_setattr,
+ 	.getattr	= simple_getattr,
+ };
+diff -puN fs/ramfs/file-nommu.c~fs-convert-simple-fs-to-new-truncate fs/ramfs/file-nommu.c
+--- a/fs/ramfs/file-nommu.c~fs-convert-simple-fs-to-new-truncate
++++ a/fs/ramfs/file-nommu.c
+@@ -48,6 +48,7 @@ const struct file_operations ramfs_file_
+ };
+ 
+ const struct inode_operations ramfs_file_inode_operations = {
++	.new_truncate		= 1,
+ 	.setattr		= ramfs_nommu_setattr,
+ 	.getattr		= simple_getattr,
+ };
+@@ -169,7 +170,7 @@ static int ramfs_nommu_resize(struct ino
+ 			return ret;
+ 	}
+ 
+-	ret = vmtruncate(inode, newsize);
++	ret = simple_setsize(inode, newsize);
+ 
+ 	return ret;
+ }
+@@ -192,7 +193,8 @@ static int ramfs_nommu_setattr(struct de
+ 
+ 	/* pick out size-changing events */
+ 	if (ia->ia_valid & ATTR_SIZE) {
+-		loff_t size = i_size_read(inode);
++		loff_t size = inode->i_size;
++
+ 		if (ia->ia_size != size) {
+ 			ret = ramfs_nommu_resize(inode, ia->ia_size, size);
+ 			if (ret < 0 || ia->ia_valid == ATTR_SIZE)
+@@ -205,7 +207,7 @@ static int ramfs_nommu_setattr(struct de
  		}
  	}
- 	m->count = m->size;
+ 
+-	ret = inode_setattr(inode, ia);
++	generic_setattr(inode, ia);
+  out:
+ 	ia->ia_valid = old_ia_valid;
+ 	return ret;
+diff -puN fs/sysfs/inode.c~fs-convert-simple-fs-to-new-truncate fs/sysfs/inode.c
+--- a/fs/sysfs/inode.c~fs-convert-simple-fs-to-new-truncate
++++ a/fs/sysfs/inode.c
+@@ -37,6 +37,7 @@ static struct backing_dev_info sysfs_bac
+ };
+ 
+ static const struct inode_operations sysfs_inode_operations ={
++	.new_truncate	= 1,
+ 	.setattr	= sysfs_setattr,
+ 	.setxattr	= sysfs_setxattr,
+ };
+@@ -82,11 +83,7 @@ int sysfs_setattr(struct dentry * dentry
+ 	if (error)
+ 		return error;
+ 
+-	iattr->ia_valid &= ~ATTR_SIZE; /* ignore size changes */
+-
+-	error = inode_setattr(inode, iattr);
+-	if (error)
+-		return error;
++	generic_setattr(inode, iattr);
+ 
+ 	if (!sd_attrs) {
+ 		/* setting attributes for the first time, allocate now */
 _
 
-Patches currently in -mm which might be from penguin-kernel@i-love.sakura.ne.jp are
+Patches currently in -mm which might be from npiggin@suse.de are
 
 origin.patch
 linux-next.patch
-seq_file-return-a-negative-error-code-when-seq_path_root-fails.patch
+fs-remove-unneeded-dcache_unhashed-tricks.patch
+fs-improve-remountro-vs-buffercache-coherency.patch
+fs-convert-simple-fs-to-new-truncate.patch
+tmpfs-convert-to-use-the-new-truncate-convention.patch
+ext2-convert-to-use-the-new-truncate-convention.patch
+ext2-convert-to-use-the-new-truncate-convention-fix.patch
+fat-convert-to-use-the-new-truncate-convention.patch
+btrfs-convert-to-use-the-new-truncate-convention.patch
+jfs-convert-to-use-the-new-truncate-convention.patch
+udf-convert-to-use-the-new-truncate-convention.patch
+minix-convert-to-use-the-new-truncate-convention.patch
+reiser4.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
