@@ -1,175 +1,307 @@
 From: akpm@linux-foundation.org
-Subject: [merged] edac-mpc85xx-add-mpc83xx-support.patch removed from -mm tree
-Date: Thu, 24 Sep 2009 12:36:50 -0700
-Message-ID: <200909241936.n8OJaoFI003394@imap1.linux-foundation.org>
+Subject: [merged] fcntl-add-f_etown_ex.patch removed from -mm tree
+Date: Thu, 24 Sep 2009 12:35:51 -0700
+Message-ID: <200909241935.n8OJZpbW001321@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45318 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43849 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754078AbZIXThP (ORCPT
+	by vger.kernel.org with ESMTP id S1753997AbZIXTga (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Sep 2009 15:37:15 -0400
+	Thu, 24 Sep 2009 15:36:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iws@ovro.caltech.edu, dougthompson@xmission.com, galak@gate.crashing.org, mm-commits@vger.kernel.org
+To: a.p.zijlstra@chello.nl, eranian@googlemail.com, hch@lst.de, mtk.manpages@googlemail.com, oleg@redhat.com, roland@redhat.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     edac: mpc85xx add mpc83xx support
+     fcntl: add F_[SG]ETOWN_EX
 has been removed from the -mm tree.  Its filename was
-     edac-mpc85xx-add-mpc83xx-support.patch
+     fcntl-add-f_etown_ex.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: edac: mpc85xx add mpc83xx support
-From: Ira W. Snyder <iws@ovro.caltech.edu>
+Subject: fcntl: add F_[SG]ETOWN_EX
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-Add support for the Freescale MPC83xx memory controller to the existing
-driver for the Freescale MPC85xx memory controller.  The only difference
-between the two processors are in the CS_BNDS register parsing code, which
-has been changed so it will work on both processors.
+In order to direct the SIGIO signal to a particular thread of a
+multi-threaded application we cannot, like suggested by the manpage, put a
+TID into the regular fcntl(F_SETOWN) call.  It will still be send to the
+whole process of which that thread is part.
 
-The L2 cache controller does not exist on the MPC83xx, but the OF
-subsystem will not use the driver if the device is not present in the OF
-device tree.
+Since people do want to properly direct SIGIO we introduce F_SETOWN_EX.
 
-I had to change the nr_pages calculation to make the math work out.  I
-checked it on my board and did the math by hand for a 64GB 85xx using 64K
-pages.  In both cases, nr_pages * PAGE_SIZE comes out to the correct
-value.
+The need to direct SIGIO comes from self-monitoring profiling such as with
+perf-counters.  Perf-counters uses SIGIO to notify that new sample data is
+available.  If the signal is delivered to the same task that generated the
+new sample it can augment that data by inspecting the task's user-space
+state right after it returns from the kernel.  This is esp.  convenient
+for interpreted or virtual machine driven environments.
 
-Signed-off-by: Ira W. Snyder <iws@ovro.caltech.edu>
-Signed-off-by: Doug Thompson <dougthompson@xmission.com>
-Cc: Kumar Gala <galak@gate.crashing.org>
+Both F_SETOWN_EX and F_GETOWN_EX take a pointer to a struct f_owner_ex
+as argument:
+
+struct f_owner_ex {
+	int   type;
+	pid_t pid;
+};
+
+Where type is one of F_OWNER_TID, F_OWNER_PID or F_OWNER_GID.
+
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Reviewed-by: Oleg Nesterov <oleg@redhat.com>
+Tested-by: stephane eranian <eranian@googlemail.com>
+Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/Kconfig        |    6 +++---
- drivers/edac/mpc85xx_edac.c |   28 +++++++++++++++++++---------
- 2 files changed, 22 insertions(+), 12 deletions(-)
+ arch/alpha/include/asm/fcntl.h  |    2 
+ arch/parisc/include/asm/fcntl.h |    2 
+ fs/fcntl.c                      |  108 +++++++++++++++++++++++++++---
+ include/asm-generic/fcntl.h     |   13 +++
+ 4 files changed, 117 insertions(+), 8 deletions(-)
 
-diff -puN drivers/edac/Kconfig~edac-mpc85xx-add-mpc83xx-support drivers/edac/Kconfig
---- a/drivers/edac/Kconfig~edac-mpc85xx-add-mpc83xx-support
-+++ a/drivers/edac/Kconfig
-@@ -176,11 +176,11 @@ config EDAC_I5100
- 	  San Clemente MCH.
+diff -puN arch/alpha/include/asm/fcntl.h~fcntl-add-f_etown_ex arch/alpha/include/asm/fcntl.h
+--- a/arch/alpha/include/asm/fcntl.h~fcntl-add-f_etown_ex
++++ a/arch/alpha/include/asm/fcntl.h
+@@ -26,6 +26,8 @@
+ #define F_GETOWN	6	/*  for sockets. */
+ #define F_SETSIG	10	/*  for sockets. */
+ #define F_GETSIG	11	/*  for sockets. */
++#define F_SETOWN_EX	12
++#define F_GETOWN_EX	13
  
- config EDAC_MPC85XX
--	tristate "Freescale MPC85xx"
--	depends on EDAC_MM_EDAC && FSL_SOC && MPC85xx
-+	tristate "Freescale MPC83xx / MPC85xx"
-+	depends on EDAC_MM_EDAC && FSL_SOC && (PPC_83xx || MPC85xx)
- 	help
- 	  Support for error detection and correction on the Freescale
--	  MPC8560, MPC8540, MPC8548
-+	  MPC8349, MPC8560, MPC8540, MPC8548
+ /* for posix fcntl() and lockf() */
+ #define F_RDLCK		1
+diff -puN arch/parisc/include/asm/fcntl.h~fcntl-add-f_etown_ex arch/parisc/include/asm/fcntl.h
+--- a/arch/parisc/include/asm/fcntl.h~fcntl-add-f_etown_ex
++++ a/arch/parisc/include/asm/fcntl.h
+@@ -28,6 +28,8 @@
+ #define F_SETOWN	12	/*  for sockets. */
+ #define F_SETSIG	13	/*  for sockets. */
+ #define F_GETSIG	14	/*  for sockets. */
++#define F_GETOWN_EX	15
++#define F_SETOWN_EX	16
  
- config EDAC_MV64X60
- 	tristate "Marvell MV64x60"
-diff -puN drivers/edac/mpc85xx_edac.c~edac-mpc85xx-add-mpc83xx-support drivers/edac/mpc85xx_edac.c
---- a/drivers/edac/mpc85xx_edac.c~edac-mpc85xx-add-mpc83xx-support
-+++ a/drivers/edac/mpc85xx_edac.c
-@@ -41,7 +41,9 @@ static u32 orig_pci_err_en;
- #endif
- 
- static u32 orig_l2_err_disable;
-+#ifdef CONFIG_MPC85xx
- static u32 orig_hid1[2];
-+#endif
- 
- /************************ MC SYSFS parts ***********************************/
- 
-@@ -789,19 +791,20 @@ static void __devinit mpc85xx_init_csrow
- 		csrow = &mci->csrows[index];
- 		cs_bnds = in_be32(pdata->mc_vbase + MPC85XX_MC_CS_BNDS_0 +
- 				  (index * MPC85XX_MC_CS_BNDS_OFS));
--		start = (cs_bnds & 0xfff0000) << 4;
--		end = ((cs_bnds & 0xfff) << 20);
--		if (start)
--			start |= 0xfffff;
--		if (end)
--			end |= 0xfffff;
-+
-+		start = (cs_bnds & 0xffff0000) >> 16;
-+		end   = (cs_bnds & 0x0000ffff);
- 
- 		if (start == end)
- 			continue;	/* not populated */
- 
-+		start <<= (24 - PAGE_SHIFT);
-+		end   <<= (24 - PAGE_SHIFT);
-+		end    |= (1 << (24 - PAGE_SHIFT)) - 1;
-+
- 		csrow->first_page = start >> PAGE_SHIFT;
- 		csrow->last_page = end >> PAGE_SHIFT;
--		csrow->nr_pages = csrow->last_page + 1 - csrow->first_page;
-+		csrow->nr_pages = end + 1 - start;
- 		csrow->grain = 8;
- 		csrow->mtype = mtype;
- 		csrow->dtype = DEV_UNKNOWN;
-@@ -985,6 +988,7 @@ static struct of_device_id mpc85xx_mc_er
- 	{ .compatible = "fsl,mpc8560-memory-controller", },
- 	{ .compatible = "fsl,mpc8568-memory-controller", },
- 	{ .compatible = "fsl,mpc8572-memory-controller", },
-+	{ .compatible = "fsl,mpc8349-memory-controller", },
- 	{ .compatible = "fsl,p2020-memory-controller", },
- 	{},
- };
-@@ -1001,13 +1005,13 @@ static struct of_platform_driver mpc85xx
- 		   },
- };
- 
--
-+#ifdef CONFIG_MPC85xx
- static void __init mpc85xx_mc_clear_rfxe(void *data)
- {
- 	orig_hid1[smp_processor_id()] = mfspr(SPRN_HID1);
- 	mtspr(SPRN_HID1, (orig_hid1[smp_processor_id()] & ~0x20000));
+ /* for posix fcntl() and lockf() */
+ #define F_RDLCK		01
+diff -puN fs/fcntl.c~fcntl-add-f_etown_ex fs/fcntl.c
+--- a/fs/fcntl.c~fcntl-add-f_etown_ex
++++ a/fs/fcntl.c
+@@ -263,6 +263,79 @@ pid_t f_getown(struct file *filp)
+ 	return pid;
  }
--
-+#endif
  
- static int __init mpc85xx_mc_init(void)
++static int f_setown_ex(struct file *filp, unsigned long arg)
++{
++	struct f_owner_ex * __user owner_p = (void * __user)arg;
++	struct f_owner_ex owner;
++	struct pid *pid;
++	int type;
++	int ret;
++
++	ret = copy_from_user(&owner, owner_p, sizeof(owner));
++	if (ret)
++		return ret;
++
++	switch (owner.type) {
++	case F_OWNER_TID:
++		type = PIDTYPE_MAX;
++		break;
++
++	case F_OWNER_PID:
++		type = PIDTYPE_PID;
++		break;
++
++	case F_OWNER_GID:
++		type = PIDTYPE_PGID;
++		break;
++
++	default:
++		return -EINVAL;
++	}
++
++	rcu_read_lock();
++	pid = find_vpid(owner.pid);
++	if (owner.pid && !pid)
++		ret = -ESRCH;
++	else
++		ret = __f_setown(filp, pid, type, 1);
++	rcu_read_unlock();
++
++	return ret;
++}
++
++static int f_getown_ex(struct file *filp, unsigned long arg)
++{
++	struct f_owner_ex * __user owner_p = (void * __user)arg;
++	struct f_owner_ex owner;
++	int ret = 0;
++
++	read_lock(&filp->f_owner.lock);
++	owner.pid = pid_vnr(filp->f_owner.pid);
++	switch (filp->f_owner.pid_type) {
++	case PIDTYPE_MAX:
++		owner.type = F_OWNER_TID;
++		break;
++
++	case PIDTYPE_PID:
++		owner.type = F_OWNER_PID;
++		break;
++
++	case PIDTYPE_PGID:
++		owner.type = F_OWNER_GID;
++		break;
++
++	default:
++		WARN_ON(1);
++		ret = -EINVAL;
++		break;
++	}
++	read_unlock(&filp->f_owner.lock);
++
++	if (!ret)
++		ret = copy_to_user(owner_p, &owner, sizeof(owner));
++	return ret;
++}
++
+ static long do_fcntl(int fd, unsigned int cmd, unsigned long arg,
+ 		struct file *filp)
  {
-@@ -1040,26 +1044,32 @@ static int __init mpc85xx_mc_init(void)
- 		printk(KERN_WARNING EDAC_MOD_STR "PCI fails to register\n");
- #endif
+@@ -313,6 +386,12 @@ static long do_fcntl(int fd, unsigned in
+ 	case F_SETOWN:
+ 		err = f_setown(filp, arg, 1);
+ 		break;
++	case F_GETOWN_EX:
++		err = f_getown_ex(filp, arg);
++		break;
++	case F_SETOWN_EX:
++		err = f_setown_ex(filp, arg);
++		break;
+ 	case F_GETSIG:
+ 		err = filp->f_owner.signum;
+ 		break;
+@@ -428,8 +507,7 @@ static inline int sigio_perm(struct task
  
-+#ifdef CONFIG_MPC85xx
+ static void send_sigio_to_task(struct task_struct *p,
+ 			       struct fown_struct *fown,
+-			       int fd,
+-			       int reason)
++			       int fd, int reason, int group)
+ {
  	/*
- 	 * need to clear HID1[RFXE] to disable machine check int
- 	 * so we can catch it
- 	 */
- 	if (edac_op_state == EDAC_OPSTATE_INT)
- 		on_each_cpu(mpc85xx_mc_clear_rfxe, NULL, 0);
-+#endif
- 
- 	return 0;
+ 	 * F_SETSIG can change ->signum lockless in parallel, make
+@@ -461,11 +539,11 @@ static void send_sigio_to_task(struct ta
+ 			else
+ 				si.si_band = band_table[reason - POLL_IN];
+ 			si.si_fd    = fd;
+-			if (!do_send_sig_info(signum, &si, p, true))
++			if (!do_send_sig_info(signum, &si, p, group))
+ 				break;
+ 		/* fall-through: fall back on the old plain SIGIO signal */
+ 		case 0:
+-			do_send_sig_info(SIGIO, SEND_SIG_PRIV, p, true);
++			do_send_sig_info(SIGIO, SEND_SIG_PRIV, p, group);
+ 	}
  }
  
- module_init(mpc85xx_mc_init);
- 
-+#ifdef CONFIG_MPC85xx
- static void __exit mpc85xx_mc_restore_hid1(void *data)
- {
- 	mtspr(SPRN_HID1, orig_hid1[smp_processor_id()]);
+@@ -474,16 +552,23 @@ void send_sigio(struct fown_struct *fown
+ 	struct task_struct *p;
+ 	enum pid_type type;
+ 	struct pid *pid;
++	int group = 1;
+ 	
+ 	read_lock(&fown->lock);
++
+ 	type = fown->pid_type;
++	if (type == PIDTYPE_MAX) {
++		group = 0;
++		type = PIDTYPE_PID;
++	}
++
+ 	pid = fown->pid;
+ 	if (!pid)
+ 		goto out_unlock_fown;
+ 	
+ 	read_lock(&tasklist_lock);
+ 	do_each_pid_task(pid, type, p) {
+-		send_sigio_to_task(p, fown, fd, band);
++		send_sigio_to_task(p, fown, fd, band, group);
+ 	} while_each_pid_task(pid, type, p);
+ 	read_unlock(&tasklist_lock);
+  out_unlock_fown:
+@@ -491,10 +576,10 @@ void send_sigio(struct fown_struct *fown
  }
-+#endif
  
- static void __exit mpc85xx_mc_exit(void)
+ static void send_sigurg_to_task(struct task_struct *p,
+-                                struct fown_struct *fown)
++				struct fown_struct *fown, int group)
  {
-+#ifdef CONFIG_MPC85xx
- 	on_each_cpu(mpc85xx_mc_restore_hid1, NULL, 0);
-+#endif
- #ifdef CONFIG_PCI
- 	of_unregister_platform_driver(&mpc85xx_pci_err_driver);
+ 	if (sigio_perm(p, fown, SIGURG))
+-		group_send_sig_info(SIGURG, SEND_SIG_PRIV, p);
++		do_send_sig_info(SIGURG, SEND_SIG_PRIV, p, group);
+ }
+ 
+ int send_sigurg(struct fown_struct *fown)
+@@ -502,10 +587,17 @@ int send_sigurg(struct fown_struct *fown
+ 	struct task_struct *p;
+ 	enum pid_type type;
+ 	struct pid *pid;
++	int group = 1;
+ 	int ret = 0;
+ 	
+ 	read_lock(&fown->lock);
++
+ 	type = fown->pid_type;
++	if (type == PIDTYPE_MAX) {
++		group = 0;
++		type = PIDTYPE_PID;
++	}
++
+ 	pid = fown->pid;
+ 	if (!pid)
+ 		goto out_unlock_fown;
+@@ -514,7 +606,7 @@ int send_sigurg(struct fown_struct *fown
+ 	
+ 	read_lock(&tasklist_lock);
+ 	do_each_pid_task(pid, type, p) {
+-		send_sigurg_to_task(p, fown);
++		send_sigurg_to_task(p, fown, group);
+ 	} while_each_pid_task(pid, type, p);
+ 	read_unlock(&tasklist_lock);
+  out_unlock_fown:
+diff -puN include/asm-generic/fcntl.h~fcntl-add-f_etown_ex include/asm-generic/fcntl.h
+--- a/include/asm-generic/fcntl.h~fcntl-add-f_etown_ex
++++ a/include/asm-generic/fcntl.h
+@@ -73,6 +73,19 @@
+ #define F_SETSIG	10	/* for sockets. */
+ #define F_GETSIG	11	/* for sockets. */
  #endif
++#ifndef F_SETOWN_EX
++#define F_SETOWN_EX	12
++#define F_GETOWN_EX	13
++#endif
++
++#define F_OWNER_TID	0
++#define F_OWNER_PID	1
++#define F_OWNER_GID	2
++
++struct f_owner_ex {
++	int	type;
++	pid_t	pid;
++};
+ 
+ /* for F_[GET|SET]FL */
+ #define FD_CLOEXEC	1	/* actually anything with low bit set goes */
 _
 
-Patches currently in -mm which might be from iws@ovro.caltech.edu are
+Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
 origin.patch
 linux-next.patch
