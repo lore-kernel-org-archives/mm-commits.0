@@ -1,38 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] fs-convert-simple-fs-to-new-truncate.patch removed from -mm tree
-Date: Thu, 24 Sep 2009 12:32:13 -0700
-Message-ID: <200909241932.n8OJWDwR026332@imap1.linux-foundation.org>
+Subject: [to-be-updated] udf-convert-to-use-the-new-truncate-convention.patch removed from -mm tree
+Date: Thu, 24 Sep 2009 12:32:34 -0700
+Message-ID: <200909241932.n8OJWYHY027023@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38680 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47326 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754013AbZIXTdU (ORCPT
+	by vger.kernel.org with ESMTP id S1754023AbZIXTdg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Sep 2009 15:33:20 -0400
+	Thu, 24 Sep 2009 15:33:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: npiggin@suse.de, chris.mason@oracle.com, hch@lst.de, hirofumi@mail.parknet.co.jp, hugh.dickins@tiscali.co.uk, jack@suse.cz, miklos@szeredi.hu, sfrench@us.ibm.com, shaggy@linux.vnet.ib
 
 
 The patch titled
-     fs: convert simple fs to new truncate
+     udf: convert to use the new truncate convention
 has been removed from the -mm tree.  Its filename was
-     fs-convert-simple-fs-to-new-truncate.patch
+     udf-convert-to-use-the-new-truncate-convention.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs: convert simple fs to new truncate
+Subject: udf: convert to use the new truncate convention
 From: Nick Piggin <npiggin@suse.de>
 
-Convert simple filesystems: ramfs, configfs, sysfs to new truncate
-sequence.
-
 Signed-off-by: Nick Piggin <npiggin@suse.de>
+Acked-by: Jan Kara <jack@suse.cz>
 Cc: Christoph Hellwig <hch@lst.de>
-Cc: Jan Kara <jack@suse.cz>
 Cc: Dave Kleikamp <shaggy@linux.vnet.ibm.com>
 Cc: Chris Mason <chris.mason@oracle.com>
 Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
@@ -44,114 +41,154 @@ Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/configfs/inode.c   |   11 ++++++++---
- fs/ramfs/file-mmu.c   |    2 ++
- fs/ramfs/file-nommu.c |    8 +++++---
- fs/sysfs/inode.c      |    7 ++-----
- 4 files changed, 17 insertions(+), 11 deletions(-)
+ fs/udf/file.c    |    3 +
+ fs/udf/inode.c   |   73 +++++++++++++++++++++++++++++++++++++++++----
+ fs/udf/udfdecl.h |    2 -
+ 3 files changed, 71 insertions(+), 7 deletions(-)
 
-diff -puN fs/configfs/inode.c~fs-convert-simple-fs-to-new-truncate fs/configfs/inode.c
---- a/fs/configfs/inode.c~fs-convert-simple-fs-to-new-truncate
-+++ a/fs/configfs/inode.c
-@@ -57,6 +57,7 @@ static struct backing_dev_info configfs_
+diff -puN fs/udf/file.c~udf-convert-to-use-the-new-truncate-convention fs/udf/file.c
+--- a/fs/udf/file.c~udf-convert-to-use-the-new-truncate-convention
++++ a/fs/udf/file.c
+@@ -217,5 +217,6 @@ const struct file_operations udf_file_op
  };
  
- static const struct inode_operations configfs_inode_operations ={
-+	.new_truncate	= 1,
- 	.setattr	= configfs_setattr,
+ const struct inode_operations udf_file_inode_operations = {
+-	.truncate = udf_truncate,
++	.new_truncate = 1,
++	.setattr = udf_setattr,
+ };
+diff -puN fs/udf/inode.c~udf-convert-to-use-the-new-truncate-convention fs/udf/inode.c
+--- a/fs/udf/inode.c~udf-convert-to-use-the-new-truncate-convention
++++ a/fs/udf/inode.c
+@@ -67,6 +67,7 @@ static void udf_update_extents(struct in
+ 			       struct extent_position *);
+ static int udf_get_block(struct inode *, sector_t, struct buffer_head *, int);
+ 
++static void udf_truncate_blocks(struct inode *inode);
+ 
+ void udf_delete_inode(struct inode *inode)
+ {
+@@ -76,7 +77,7 @@ void udf_delete_inode(struct inode *inod
+ 		goto no_delete;
+ 
+ 	inode->i_size = 0;
+-	udf_truncate(inode);
++	udf_truncate_blocks(inode);
+ 	lock_kernel();
+ 
+ 	udf_update_inode(inode, IS_SYNC(inode));
+@@ -124,9 +125,34 @@ static int udf_write_begin(struct file *
+ 			loff_t pos, unsigned len, unsigned flags,
+ 			struct page **pagep, void **fsdata)
+ {
++	int ret;
++
+ 	*pagep = NULL;
+-	return block_write_begin(file, mapping, pos, len, flags, pagep, fsdata,
++	ret = block_write_begin(file, mapping, pos, len, flags, pagep, fsdata,
+ 				udf_get_block);
++	if (ret < 0) {
++		struct inode *inode = mapping->host;
++		loff_t isize = inode->i_size;
++		if (pos + len > isize)
++			udf_truncate_blocks(inode);
++	}
++	return ret;
++}
++
++static int udf_write_end(struct file *file, struct address_space *mapping,
++			loff_t pos, unsigned len, unsigned copied,
++			struct page *page, void *fsdata)
++{
++	int ret;
++
++	ret = generic_write_end(file, mapping, pos, len, copied, page, fsdata);
++	if (ret < len) {
++		struct inode *inode = mapping->host;
++		loff_t isize = inode->i_size;
++		if (pos + len > isize)
++			udf_truncate_blocks(inode);
++	}
++	return ret;
+ }
+ 
+ static sector_t udf_bmap(struct address_space *mapping, sector_t block)
+@@ -138,8 +164,8 @@ const struct address_space_operations ud
+ 	.readpage	= udf_readpage,
+ 	.writepage	= udf_writepage,
+ 	.sync_page	= block_sync_page,
+-	.write_begin		= udf_write_begin,
+-	.write_end		= generic_write_end,
++	.write_begin	= udf_write_begin,
++	.write_end	= udf_write_end,
+ 	.bmap		= udf_bmap,
  };
  
-@@ -77,9 +78,13 @@ int configfs_setattr(struct dentry * den
- 	if (error)
- 		return error;
+@@ -1012,7 +1038,7 @@ struct buffer_head *udf_bread(struct ino
+ 	return NULL;
+ }
  
--	error = inode_setattr(inode, iattr);
--	if (error)
--		return error;
-+	if (iattr->ia_valid & ATTR_SIZE) {
-+		error = simple_setsize(inode, iattr->ia_size);
+-void udf_truncate(struct inode *inode)
++static void udf_truncate_blocks(struct inode *inode)
+ {
+ 	int offset;
+ 	int err;
+@@ -1058,6 +1084,43 @@ void udf_truncate(struct inode *inode)
+ 	unlock_kernel();
+ }
+ 
++static int udf_setsize(struct inode *inode, loff_t newsize)
++{
++	loff_t oldsize;
++	int error;
++
++	error = inode_newsize_ok(inode, newsize);
++	if (error)
++		return error;
++
++	oldsize = inode->i_size;
++	i_size_write(inode, newsize);
++	truncate_pagecache(inode, oldsize, newsize);
++
++	udf_truncate_blocks(inode);
++
++	return error;
++}
++
++int udf_setattr(struct dentry *dentry, struct iattr *attr)
++{
++	struct inode *inode = dentry->d_inode;
++	int error;
++
++	if (attr->ia_valid & ATTR_SIZE) {
++		error = udf_setsize(inode, attr->ia_size);
 +		if (error)
 +			return error;
 +	}
 +
-+	generic_setattr(inode, iattr);
- 
- 	if (!sd_iattr) {
- 		/* setting attributes for the first time, allocate now */
-diff -puN fs/ramfs/file-mmu.c~fs-convert-simple-fs-to-new-truncate fs/ramfs/file-mmu.c
---- a/fs/ramfs/file-mmu.c~fs-convert-simple-fs-to-new-truncate
-+++ a/fs/ramfs/file-mmu.c
-@@ -50,5 +50,7 @@ const struct file_operations ramfs_file_
- };
- 
- const struct inode_operations ramfs_file_inode_operations = {
-+	.new_truncate	= 1,
-+	.setattr	= simple_setattr,
- 	.getattr	= simple_getattr,
- };
-diff -puN fs/ramfs/file-nommu.c~fs-convert-simple-fs-to-new-truncate fs/ramfs/file-nommu.c
---- a/fs/ramfs/file-nommu.c~fs-convert-simple-fs-to-new-truncate
-+++ a/fs/ramfs/file-nommu.c
-@@ -48,6 +48,7 @@ const struct file_operations ramfs_file_
- };
- 
- const struct inode_operations ramfs_file_inode_operations = {
-+	.new_truncate		= 1,
- 	.setattr		= ramfs_nommu_setattr,
- 	.getattr		= simple_getattr,
- };
-@@ -169,7 +170,7 @@ static int ramfs_nommu_resize(struct ino
- 			return ret;
- 	}
- 
--	ret = vmtruncate(inode, newsize);
-+	ret = simple_setsize(inode, newsize);
- 
- 	return ret;
- }
-@@ -192,7 +193,8 @@ static int ramfs_nommu_setattr(struct de
- 
- 	/* pick out size-changing events */
- 	if (ia->ia_valid & ATTR_SIZE) {
--		loff_t size = i_size_read(inode);
-+		loff_t size = inode->i_size;
++	error = simple_setattr(dentry, attr);
++	if (error)
++		return error;
 +
- 		if (ia->ia_size != size) {
- 			ret = ramfs_nommu_resize(inode, ia->ia_size, size);
- 			if (ret < 0 || ia->ia_valid == ATTR_SIZE)
-@@ -205,7 +207,7 @@ static int ramfs_nommu_setattr(struct de
- 		}
- 	}
- 
--	ret = inode_setattr(inode, ia);
-+	generic_setattr(inode, ia);
-  out:
- 	ia->ia_valid = old_ia_valid;
- 	return ret;
-diff -puN fs/sysfs/inode.c~fs-convert-simple-fs-to-new-truncate fs/sysfs/inode.c
---- a/fs/sysfs/inode.c~fs-convert-simple-fs-to-new-truncate
-+++ a/fs/sysfs/inode.c
-@@ -37,6 +37,7 @@ static struct backing_dev_info sysfs_bac
- };
- 
- static const struct inode_operations sysfs_inode_operations ={
-+	.new_truncate	= 1,
- 	.setattr	= sysfs_setattr,
- 	.setxattr	= sysfs_setxattr,
- };
-@@ -82,11 +83,7 @@ int sysfs_setattr(struct dentry * dentry
- 	if (error)
- 		return error;
- 
--	iattr->ia_valid &= ~ATTR_SIZE; /* ignore size changes */
--
--	error = inode_setattr(inode, iattr);
--	if (error)
--		return error;
-+	generic_setattr(inode, iattr);
- 
- 	if (!sd_attrs) {
- 		/* setting attributes for the first time, allocate now */
++	mark_inode_dirty(inode);
++	return error;
++}
++
+ static void __udf_read_inode(struct inode *inode)
+ {
+ 	struct buffer_head *bh = NULL;
+diff -puN fs/udf/udfdecl.h~udf-convert-to-use-the-new-truncate-convention fs/udf/udfdecl.h
+--- a/fs/udf/udfdecl.h~udf-convert-to-use-the-new-truncate-convention
++++ a/fs/udf/udfdecl.h
+@@ -138,7 +138,7 @@ extern int udf_sync_inode(struct inode *
+ extern void udf_expand_file_adinicb(struct inode *, int, int *);
+ extern struct buffer_head *udf_expand_dir_adinicb(struct inode *, int *, int *);
+ extern struct buffer_head *udf_bread(struct inode *, int, int, int *);
+-extern void udf_truncate(struct inode *);
++extern int udf_setattr(struct dentry *, struct iattr *);
+ extern void udf_read_inode(struct inode *);
+ extern void udf_delete_inode(struct inode *);
+ extern void udf_clear_inode(struct inode *);
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
@@ -160,13 +197,6 @@ origin.patch
 linux-next.patch
 fs-remove-unneeded-dcache_unhashed-tricks.patch
 fs-improve-remountro-vs-buffercache-coherency.patch
-fs-convert-simple-fs-to-new-truncate.patch
-tmpfs-convert-to-use-the-new-truncate-convention.patch
-ext2-convert-to-use-the-new-truncate-convention.patch
-ext2-convert-to-use-the-new-truncate-convention-fix.patch
-fat-convert-to-use-the-new-truncate-convention.patch
-btrfs-convert-to-use-the-new-truncate-convention.patch
-jfs-convert-to-use-the-new-truncate-convention.patch
 udf-convert-to-use-the-new-truncate-convention.patch
 minix-convert-to-use-the-new-truncate-convention.patch
 reiser4.patch
