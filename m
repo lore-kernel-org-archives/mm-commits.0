@@ -1,143 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: [merged] task_struct-cleanup-move-binfmt-field-to-mm_struct.patch removed from -mm tree
-Date: Thu, 24 Sep 2009 12:37:28 -0700
-Message-ID: <200909241937.n8OJbSYr004629@imap1.linux-foundation.org>
+Subject: [merged] vfs-change-sb-s_maxbytes-to-a-loff_t.patch removed from -mm tree
+Date: Thu, 24 Sep 2009 12:38:16 -0700
+Message-ID: <200909241938.n8OJcGWn006312@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45396 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57432 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754099AbZIXTiB (ORCPT
+	by vger.kernel.org with ESMTP id S1754548AbZIXTjA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Sep 2009 15:38:01 -0400
+	Thu, 24 Sep 2009 15:39:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: h-shimamoto@ct.jp.nec.com, oleg@redhat.com, roland@redhat.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: jlayton@redhat.com, hannes@cmpxchg.org, hch@lst.de, msb@google.com, rlove@google.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     task_struct cleanup: move binfmt field to mm_struct
+     vfs: change sb->s_maxbytes to a loff_t
 has been removed from the -mm tree.  Its filename was
-     task_struct-cleanup-move-binfmt-field-to-mm_struct.patch
+     vfs-change-sb-s_maxbytes-to-a-loff_t.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: task_struct cleanup: move binfmt field to mm_struct
-From: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
+Subject: vfs: change sb->s_maxbytes to a loff_t
+From: Jeff Layton <jlayton@redhat.com>
 
-Because the binfmt is not different between threads in the same process,
-it can be moved from task_struct to mm_struct.  And binfmt moudle is
-handled per mm_struct instead of task_struct.
+sb->s_maxbytes is supposed to indicate the maximum size of a file that can
+exist on the filesystem.  It's declared as an unsigned long long.
 
-Signed-off-by: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
-Acked-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Acked-by: Roland McGrath <roland@redhat.com>
+Even if a filesystem has no inherent limit that prevents it from using
+every bit in that unsigned long long, it's still problematic to set it to
+anything larger than MAX_LFS_FILESIZE.  There are places in the kernel
+that cast s_maxbytes to a signed value.  If it's set too large then this
+cast makes it a negative number and generally breaks the comparison.
+
+Change s_maxbytes to be loff_t instead.  That should help eliminate the
+temptation to set it too large by making it a signed value.
+
+Also, add a warning for couple of releases to help catch filesystems that
+set s_maxbytes too large.  Eventually we can either convert this to a
+BUG() or just remove it and in the hope that no one will get it wrong now
+that it's a signed value.
+
+Signed-off-by: Jeff Layton <jlayton@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Robert Love <rlove@google.com>
+Cc: Mandeep Singh Baines <msb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c                |   10 ++++++----
- include/linux/mm_types.h |    2 ++
- include/linux/sched.h    |    1 -
- kernel/exit.c            |    2 --
- kernel/fork.c            |   13 +++++++------
- 5 files changed, 15 insertions(+), 13 deletions(-)
+ fs/super.c         |   10 ++++++++++
+ include/linux/fs.h |    2 +-
+ 2 files changed, 11 insertions(+), 1 deletion(-)
 
-diff -puN fs/exec.c~task_struct-cleanup-move-binfmt-field-to-mm_struct fs/exec.c
---- a/fs/exec.c~task_struct-cleanup-move-binfmt-field-to-mm_struct
-+++ a/fs/exec.c
-@@ -1397,10 +1397,12 @@ out_ret:
+diff -puN fs/super.c~vfs-change-sb-s_maxbytes-to-a-loff_t fs/super.c
+--- a/fs/super.c~vfs-change-sb-s_maxbytes-to-a-loff_t
++++ a/fs/super.c
+@@ -893,6 +893,16 @@ vfs_kern_mount(struct file_system_type *
+  	if (error)
+  		goto out_sb;
  
- void set_binfmt(struct linux_binfmt *new)
- {
--	if (current->binfmt)
--		module_put(current->binfmt->module);
-+	struct mm_struct *mm = current->mm;
++	/*
++	 * filesystems should never set s_maxbytes larger than MAX_LFS_FILESIZE
++	 * but s_maxbytes was an unsigned long long for many releases. Throw
++	 * this warning for a little while to try and catch filesystems that
++	 * violate this rule. This warning should be either removed or
++	 * converted to a BUG() in 2.6.34.
++	 */
++	WARN((mnt->mnt_sb->s_maxbytes < 0), "WARNING: %s set sb->s_maxbytes to "
++		"negative value (%lld)\n", type->name, mnt->mnt_sb->s_maxbytes);
 +
-+	if (mm->binfmt)
-+		module_put(mm->binfmt->module);
- 
--	current->binfmt = new;
-+	mm->binfmt = new;
- 	if (new)
- 		__module_get(new->module);
- }
-@@ -1770,7 +1772,7 @@ void do_coredump(long signr, int exit_co
- 
- 	audit_core_dumps(signr);
- 
--	binfmt = current->binfmt;
-+	binfmt = mm->binfmt;
- 	if (!binfmt || !binfmt->core_dump)
- 		goto fail;
- 
-diff -puN include/linux/mm_types.h~task_struct-cleanup-move-binfmt-field-to-mm_struct include/linux/mm_types.h
---- a/include/linux/mm_types.h~task_struct-cleanup-move-binfmt-field-to-mm_struct
-+++ a/include/linux/mm_types.h
-@@ -240,6 +240,8 @@ struct mm_struct {
- 
- 	unsigned long saved_auxv[AT_VECTOR_SIZE]; /* for /proc/PID/auxv */
- 
-+	struct linux_binfmt *binfmt;
-+
- 	cpumask_t cpu_vm_mask;
- 
- 	/* Architecture-specific MM context */
-diff -puN include/linux/sched.h~task_struct-cleanup-move-binfmt-field-to-mm_struct include/linux/sched.h
---- a/include/linux/sched.h~task_struct-cleanup-move-binfmt-field-to-mm_struct
-+++ a/include/linux/sched.h
-@@ -1271,7 +1271,6 @@ struct task_struct {
- 	struct mm_struct *mm, *active_mm;
- 
- /* task state */
--	struct linux_binfmt *binfmt;
- 	int exit_state;
- 	int exit_code, exit_signal;
- 	int pdeath_signal;  /*  The signal sent when the parent dies  */
-diff -puN kernel/exit.c~task_struct-cleanup-move-binfmt-field-to-mm_struct kernel/exit.c
---- a/kernel/exit.c~task_struct-cleanup-move-binfmt-field-to-mm_struct
-+++ a/kernel/exit.c
-@@ -976,8 +976,6 @@ NORET_TYPE void do_exit(long code)
- 		disassociate_ctty(1);
- 
- 	module_put(task_thread_info(tsk)->exec_domain->module);
--	if (tsk->binfmt)
--		module_put(tsk->binfmt->module);
- 
- 	proc_exit_connector(tsk);
- 
-diff -puN kernel/fork.c~task_struct-cleanup-move-binfmt-field-to-mm_struct kernel/fork.c
---- a/kernel/fork.c~task_struct-cleanup-move-binfmt-field-to-mm_struct
-+++ a/kernel/fork.c
-@@ -518,6 +518,8 @@ void mmput(struct mm_struct *mm)
- 			spin_unlock(&mmlist_lock);
- 		}
- 		put_swap_token(mm);
-+		if (mm->binfmt)
-+			module_put(mm->binfmt->module);
- 		mmdrop(mm);
- 	}
- }
-@@ -643,9 +645,14 @@ struct mm_struct *dup_mm(struct task_str
- 	mm->hiwater_rss = get_mm_rss(mm);
- 	mm->hiwater_vm = mm->total_vm;
- 
-+	if (mm->binfmt && !try_module_get(mm->binfmt->module))
-+		goto free_pt;
-+
- 	return mm;
- 
- free_pt:
-+	/* don't put binfmt in mmput, we haven't got module yet */
-+	mm->binfmt = NULL;
- 	mmput(mm);
- 
- fail_nomem:
-@@ -1037,9 +1044,6 @@ static struct task_struct *copy_process(
- 	if (!try_module_get(task_thread_info(p)->exec_domain->module))
- 		goto bad_fork_cleanup_count;
- 
--	if (p->binfmt && !try_module_get(p->binfmt->module))
--		goto bad_fork_cleanup_put_domain;
+ 	mnt->mnt_mountpoint = mnt->mnt_root;
+ 	mnt->mnt_parent = mnt;
+ 	up_write(&mnt->mnt_sb->s_umount);
+diff -puN include/linux/fs.h~vfs-change-sb-s_maxbytes-to-a-loff_t include/linux/fs.h
+--- a/include/linux/fs.h~vfs-change-sb-s_maxbytes-to-a-loff_t
++++ a/include/linux/fs.h
+@@ -1316,7 +1316,7 @@ struct super_block {
+ 	unsigned long		s_blocksize;
+ 	unsigned char		s_blocksize_bits;
+ 	unsigned char		s_dirt;
+-	unsigned long long	s_maxbytes;	/* Max file size */
++	loff_t			s_maxbytes;	/* Max file size */
+ 	struct file_system_type	*s_type;
+ 	const struct super_operations	*s_op;
+ 	struct dquot_operations	*dq_op;
+_
+
+Patches currently in -mm which might be from jlayton@redhat.com are
+
+origin.patch
+linux-next.patch
+
