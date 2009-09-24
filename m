@@ -1,311 +1,211 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cgroups-revert-cgroups-fix-pid-namespace-bug.patch removed from -mm tree
-Date: Thu, 24 Sep 2009 12:34:09 -0700
-Message-ID: <200909241934.n8OJY9NQ030274@imap1.linux-foundation.org>
+Subject: [merged] memory-controller-soft-limit-interface-v9.patch removed from -mm tree
+Date: Thu, 24 Sep 2009 12:34:39 -0700
+Message-ID: <200909241934.n8OJYdFM031253@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36333 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43977 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754106AbZIXTeq (ORCPT
+	by vger.kernel.org with ESMTP id S1754318AbZIXTfC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Sep 2009 15:34:46 -0400
+	Thu, 24 Sep 2009 15:35:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: menage@google.com, ebiederm@xmission.com, lizf@cn.fujitsu.com, matthltc@us.ibm.com, oleg@redhat.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
+To: balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, lizf@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cgroups: revert "cgroups: fix pid namespace bug"
+     memory controller: soft limit interface
 has been removed from the -mm tree.  Its filename was
-     cgroups-revert-cgroups-fix-pid-namespace-bug.patch
+     memory-controller-soft-limit-interface-v9.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: revert "cgroups: fix pid namespace bug"
-From: Paul Menage <menage@google.com>
+Subject: memory controller: soft limit interface
+From: Balbir Singh <balbir@linux.vnet.ibm.com>
 
-The following series adds a "cgroup.procs" file to each cgroup that
-reports unique tgids rather than pids, and allows all threads in a
-threadgroup to be atomically moved to a new cgroup.
+Add an interface to allow get/set of soft limits.  Soft limits for memory
+plus swap controller (memsw) is currently not supported.  Resource
+counters have been enhanced to support soft limits and new type
+RES_SOFT_LIMIT has been added.  Unlike hard limits, soft limits can be
+directly set and do not need any reclaim or checks before setting them to
+a newer value.
 
-The subsystem "attach" interface is modified to support attaching whole
-threadgroups at a time, which could introduce potential problems if any
-subsystem were to need to access the old cgroup of every thread being
-moved.  The attach interface may need to be revised if this becomes the
-case.
+Kamezawa-San raised a question as to whether soft limit should belong to
+res_counter.  Since all resources understand the basic concepts of hard
+and soft limits, it is justified to add soft limits here.  Soft limits are
+a generic resource usage feature, even file system quotas support soft
+limits.
 
-Also added is functionality for read/write locking all CLONE_THREAD
-fork()ing within a threadgroup, by means of an rwsem that lives in the
-sighand_struct, for per-threadgroup-ness and also for sharing a cacheline
-with the sighand's atomic count.  This scheme should introduce no extra
-overhead in the fork path when there's no contention.
-
-The final patch reveals potential for a race when forking before a
-subsystem's attach function is called - one potential solution in case any
-subsystem has this problem is to hang on to the group's fork mutex through
-the attach() calls, though no subsystem yet demonstrates need for an
-extended critical section.
-
-
-
-This patch:
-
-Revert
-
-commit 096b7fe012d66ed55e98bc8022405ede0cc80e96
-Author:     Li Zefan <lizf@cn.fujitsu.com>
-AuthorDate: Wed Jul 29 15:04:04 2009 -0700
-Commit:     Linus Torvalds <torvalds@linux-foundation.org>
-CommitDate: Wed Jul 29 19:10:35 2009 -0700
-
-    cgroups: fix pid namespace bug
-
-
-This is in preparation for some clashing cgroups changes that subsume the
-original commit's functionaliy.
-
-The original commit fixed a pid namespace bug which Ben Blum fixed
-independently (in the same way, but with different code) as part of a
-series of patches.  I played around with trying to reconcile Ben's patch
-series with Li's patch, but concluded that it was simpler to just revert
-Li's, given that Ben's patch series contained essentially the same fix.
-
-Signed-off-by: Paul Menage <menage@google.com>
+Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Matt Helsley <matthltc@us.ibm.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cgroup.h |   11 ++--
- kernel/cgroup.c        |   95 +++++++++------------------------------
- 2 files changed, 31 insertions(+), 75 deletions(-)
+ include/linux/res_counter.h |   58 ++++++++++++++++++++++++++++++++++
+ kernel/res_counter.c        |    3 +
+ mm/memcontrol.c             |   20 +++++++++++
+ 3 files changed, 81 insertions(+)
 
-diff -puN include/linux/cgroup.h~cgroups-revert-cgroups-fix-pid-namespace-bug include/linux/cgroup.h
---- a/include/linux/cgroup.h~cgroups-revert-cgroups-fix-pid-namespace-bug
-+++ a/include/linux/cgroup.h
-@@ -179,11 +179,14 @@ struct cgroup {
+diff -puN include/linux/res_counter.h~memory-controller-soft-limit-interface-v9 include/linux/res_counter.h
+--- a/include/linux/res_counter.h~memory-controller-soft-limit-interface-v9
++++ a/include/linux/res_counter.h
+@@ -35,6 +35,10 @@ struct res_counter {
  	 */
- 	struct list_head release_list;
+ 	unsigned long long limit;
+ 	/*
++	 * the limit that usage can be exceed
++	 */
++	unsigned long long soft_limit;
++	/*
+ 	 * the number of unsuccessful attempts to consume the resource
+ 	 */
+ 	unsigned long long failcnt;
+@@ -87,6 +91,7 @@ enum {
+ 	RES_MAX_USAGE,
+ 	RES_LIMIT,
+ 	RES_FAILCNT,
++	RES_SOFT_LIMIT,
+ };
  
--	/* pids_mutex protects pids_list and cached pid arrays. */
-+	/* pids_mutex protects the fields below */
- 	struct rw_semaphore pids_mutex;
--
--	/* Linked list of struct cgroup_pids */
--	struct list_head pids_list;
-+	/* Array of process ids in the cgroup */
-+	pid_t *tasks_pids;
-+	/* How many files are using the current tasks_pids array */
-+	int pids_use_count;
-+	/* Length of the current tasks_pids array */
-+	int pids_length;
- 
- 	/* For RCU-protected deletion */
- 	struct rcu_head rcu_head;
-diff -puN kernel/cgroup.c~cgroups-revert-cgroups-fix-pid-namespace-bug kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-revert-cgroups-fix-pid-namespace-bug
-+++ a/kernel/cgroup.c
-@@ -1121,7 +1121,6 @@ static void init_cgroup_housekeeping(str
- 	INIT_LIST_HEAD(&cgrp->children);
- 	INIT_LIST_HEAD(&cgrp->css_sets);
- 	INIT_LIST_HEAD(&cgrp->release_list);
--	INIT_LIST_HEAD(&cgrp->pids_list);
- 	init_rwsem(&cgrp->pids_mutex);
+ /*
+@@ -132,6 +137,36 @@ static inline bool res_counter_limit_che
+ 	return false;
  }
  
-@@ -2431,30 +2430,12 @@ err:
++static inline bool res_counter_soft_limit_check_locked(struct res_counter *cnt)
++{
++	if (cnt->usage < cnt->soft_limit)
++		return true;
++
++	return false;
++}
++
++/**
++ * Get the difference between the usage and the soft limit
++ * @cnt: The counter
++ *
++ * Returns 0 if usage is less than or equal to soft limit
++ * The difference between usage and soft limit, otherwise.
++ */
++static inline unsigned long long
++res_counter_soft_limit_excess(struct res_counter *cnt)
++{
++	unsigned long long excess;
++	unsigned long flags;
++
++	spin_lock_irqsave(&cnt->lock, flags);
++	if (cnt->usage <= cnt->soft_limit)
++		excess = 0;
++	else
++		excess = cnt->usage - cnt->soft_limit;
++	spin_unlock_irqrestore(&cnt->lock, flags);
++	return excess;
++}
++
+ /*
+  * Helper function to detect if the cgroup is within it's limit or
+  * not. It's currently called from cgroup_rss_prepare()
+@@ -147,6 +182,17 @@ static inline bool res_counter_check_und
  	return ret;
  }
  
--/*
-- * Cache pids for all threads in the same pid namespace that are
-- * opening the same "tasks" file.
-- */
--struct cgroup_pids {
--	/* The node in cgrp->pids_list */
--	struct list_head list;
--	/* The cgroup those pids belong to */
--	struct cgroup *cgrp;
--	/* The namepsace those pids belong to */
--	struct pid_namespace *ns;
--	/* Array of process ids in the cgroup */
--	pid_t *tasks_pids;
--	/* How many files are using the this tasks_pids array */
--	int use_count;
--	/* Length of the current tasks_pids array */
--	int length;
--};
--
- static int cmppid(const void *a, const void *b)
- {
- 	return *(pid_t *)a - *(pid_t *)b;
- }
- 
++static inline bool res_counter_check_under_soft_limit(struct res_counter *cnt)
++{
++	bool ret;
++	unsigned long flags;
 +
- /*
-  * seq_file methods for the "tasks" file. The seq_file position is the
-  * next pid to display; the seq_file iterator is a pointer to the pid
-@@ -2469,47 +2450,45 @@ static void *cgroup_tasks_start(struct s
- 	 * after a seek to the start). Use a binary-search to find the
- 	 * next pid to display, if any
- 	 */
--	struct cgroup_pids *cp = s->private;
--	struct cgroup *cgrp = cp->cgrp;
-+	struct cgroup *cgrp = s->private;
- 	int index = 0, pid = *pos;
- 	int *iter;
- 
- 	down_read(&cgrp->pids_mutex);
- 	if (pid) {
--		int end = cp->length;
-+		int end = cgrp->pids_length;
- 
- 		while (index < end) {
- 			int mid = (index + end) / 2;
--			if (cp->tasks_pids[mid] == pid) {
-+			if (cgrp->tasks_pids[mid] == pid) {
- 				index = mid;
- 				break;
--			} else if (cp->tasks_pids[mid] <= pid)
-+			} else if (cgrp->tasks_pids[mid] <= pid)
- 				index = mid + 1;
- 			else
- 				end = mid;
- 		}
- 	}
- 	/* If we're off the end of the array, we're done */
--	if (index >= cp->length)
-+	if (index >= cgrp->pids_length)
- 		return NULL;
- 	/* Update the abstract position to be the actual pid that we found */
--	iter = cp->tasks_pids + index;
-+	iter = cgrp->tasks_pids + index;
- 	*pos = *iter;
- 	return iter;
++	spin_lock_irqsave(&cnt->lock, flags);
++	ret = res_counter_soft_limit_check_locked(cnt);
++	spin_unlock_irqrestore(&cnt->lock, flags);
++	return ret;
++}
++
+ static inline void res_counter_reset_max(struct res_counter *cnt)
+ {
+ 	unsigned long flags;
+@@ -180,4 +226,16 @@ static inline int res_counter_set_limit(
+ 	return ret;
  }
  
- static void cgroup_tasks_stop(struct seq_file *s, void *v)
++static inline int
++res_counter_set_soft_limit(struct res_counter *cnt,
++				unsigned long long soft_limit)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&cnt->lock, flags);
++	cnt->soft_limit = soft_limit;
++	spin_unlock_irqrestore(&cnt->lock, flags);
++	return 0;
++}
++
+ #endif
+diff -puN kernel/res_counter.c~memory-controller-soft-limit-interface-v9 kernel/res_counter.c
+--- a/kernel/res_counter.c~memory-controller-soft-limit-interface-v9
++++ a/kernel/res_counter.c
+@@ -19,6 +19,7 @@ void res_counter_init(struct res_counter
  {
--	struct cgroup_pids *cp = s->private;
--	struct cgroup *cgrp = cp->cgrp;
-+	struct cgroup *cgrp = s->private;
- 	up_read(&cgrp->pids_mutex);
+ 	spin_lock_init(&counter->lock);
+ 	counter->limit = RESOURCE_MAX;
++	counter->soft_limit = RESOURCE_MAX;
+ 	counter->parent = parent;
  }
  
- static void *cgroup_tasks_next(struct seq_file *s, void *v, loff_t *pos)
- {
--	struct cgroup_pids *cp = s->private;
-+	struct cgroup *cgrp = s->private;
- 	int *p = v;
--	int *end = cp->tasks_pids + cp->length;
-+	int *end = cgrp->tasks_pids + cgrp->pids_length;
+@@ -101,6 +102,8 @@ res_counter_member(struct res_counter *c
+ 		return &counter->limit;
+ 	case RES_FAILCNT:
+ 		return &counter->failcnt;
++	case RES_SOFT_LIMIT:
++		return &counter->soft_limit;
+ 	};
  
- 	/*
- 	 * Advance to the next pid in the array. If this goes off the
-@@ -2536,33 +2515,26 @@ static const struct seq_operations cgrou
- 	.show = cgroup_tasks_show,
- };
- 
--static void release_cgroup_pid_array(struct cgroup_pids *cp)
-+static void release_cgroup_pid_array(struct cgroup *cgrp)
- {
--	struct cgroup *cgrp = cp->cgrp;
--
- 	down_write(&cgrp->pids_mutex);
--	BUG_ON(!cp->use_count);
--	if (!--cp->use_count) {
--		list_del(&cp->list);
--		put_pid_ns(cp->ns);
--		kfree(cp->tasks_pids);
--		kfree(cp);
-+	BUG_ON(!cgrp->pids_use_count);
-+	if (!--cgrp->pids_use_count) {
-+		kfree(cgrp->tasks_pids);
-+		cgrp->tasks_pids = NULL;
-+		cgrp->pids_length = 0;
- 	}
- 	up_write(&cgrp->pids_mutex);
- }
- 
- static int cgroup_tasks_release(struct inode *inode, struct file *file)
- {
--	struct seq_file *seq;
--	struct cgroup_pids *cp;
-+	struct cgroup *cgrp = __d_cgrp(file->f_dentry->d_parent);
- 
- 	if (!(file->f_mode & FMODE_READ))
- 		return 0;
- 
--	seq = file->private_data;
--	cp = seq->private;
--
--	release_cgroup_pid_array(cp);
-+	release_cgroup_pid_array(cgrp);
- 	return seq_release(inode, file);
- }
- 
-@@ -2581,8 +2553,6 @@ static struct file_operations cgroup_tas
- static int cgroup_tasks_open(struct inode *unused, struct file *file)
- {
- 	struct cgroup *cgrp = __d_cgrp(file->f_dentry->d_parent);
--	struct pid_namespace *ns = current->nsproxy->pid_ns;
--	struct cgroup_pids *cp;
- 	pid_t *pidarray;
- 	int npids;
- 	int retval;
-@@ -2609,37 +2579,20 @@ static int cgroup_tasks_open(struct inod
- 	 * array if necessary
- 	 */
- 	down_write(&cgrp->pids_mutex);
--
--	list_for_each_entry(cp, &cgrp->pids_list, list) {
--		if (ns == cp->ns)
--			goto found;
--	}
--
--	cp = kzalloc(sizeof(*cp), GFP_KERNEL);
--	if (!cp) {
--		up_write(&cgrp->pids_mutex);
--		kfree(pidarray);
--		return -ENOMEM;
--	}
--	cp->cgrp = cgrp;
--	cp->ns = ns;
--	get_pid_ns(ns);
--	list_add(&cp->list, &cgrp->pids_list);
--found:
--	kfree(cp->tasks_pids);
--	cp->tasks_pids = pidarray;
--	cp->length = npids;
--	cp->use_count++;
-+	kfree(cgrp->tasks_pids);
-+	cgrp->tasks_pids = pidarray;
-+	cgrp->pids_length = npids;
-+	cgrp->pids_use_count++;
- 	up_write(&cgrp->pids_mutex);
- 
- 	file->f_op = &cgroup_tasks_operations;
- 
- 	retval = seq_open(file, &cgroup_tasks_seq_operations);
- 	if (retval) {
--		release_cgroup_pid_array(cp);
-+		release_cgroup_pid_array(cgrp);
- 		return retval;
- 	}
--	((struct seq_file *)file->private_data)->private = cp;
-+	((struct seq_file *)file->private_data)->private = cgrp;
- 	return 0;
- }
- 
+ 	BUG();
+diff -puN mm/memcontrol.c~memory-controller-soft-limit-interface-v9 mm/memcontrol.c
+--- a/mm/memcontrol.c~memory-controller-soft-limit-interface-v9
++++ a/mm/memcontrol.c
+@@ -2123,6 +2123,20 @@ static int mem_cgroup_write(struct cgrou
+ 		else
+ 			ret = mem_cgroup_resize_memsw_limit(memcg, val);
+ 		break;
++	case RES_SOFT_LIMIT:
++		ret = res_counter_memparse_write_strategy(buffer, &val);
++		if (ret)
++			break;
++		/*
++		 * For memsw, soft limits are hard to implement in terms
++		 * of semantics, for now, we support soft limits for
++		 * control without swap
++		 */
++		if (type == _MEM)
++			ret = res_counter_set_soft_limit(&memcg->res, val);
++		else
++			ret = -EINVAL;
++		break;
+ 	default:
+ 		ret = -EINVAL; /* should be BUG() ? */
+ 		break;
+@@ -2376,6 +2390,12 @@ static struct cftype mem_cgroup_files[] 
+ 		.read_u64 = mem_cgroup_read,
+ 	},
+ 	{
++		.name = "soft_limit_in_bytes",
++		.private = MEMFILE_PRIVATE(_MEM, RES_SOFT_LIMIT),
++		.write_string = mem_cgroup_write,
++		.read_u64 = mem_cgroup_read,
++	},
++	{
+ 		.name = "failcnt",
+ 		.private = MEMFILE_PRIVATE(_MEM, RES_FAILCNT),
+ 		.trigger = mem_cgroup_reset,
 _
 
-Patches currently in -mm which might be from menage@google.com are
+Patches currently in -mm which might be from balbir@linux.vnet.ibm.com are
 
 origin.patch
-add-a-refcount-check-in-dput.patch
 
