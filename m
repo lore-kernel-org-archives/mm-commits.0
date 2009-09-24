@@ -1,98 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: [merged] exec-fix-set_binfmt-vs-sys_delete_module-race.patch removed from -mm tree
-Date: Thu, 24 Sep 2009 12:35:42 -0700
-Message-ID: <200909241935.n8OJZgC7000981@imap1.linux-foundation.org>
+Subject: [merged] cgroups-use-vmalloc-for-large-cgroups-pidlist-allocations.patch removed from -mm tree
+Date: Thu, 24 Sep 2009 12:34:18 -0700
+Message-ID: <200909241934.n8OJYIMO030529@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43958 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44998 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753155AbZIXTgD (ORCPT
+	by vger.kernel.org with ESMTP id S1754309AbZIXTey (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Sep 2009 15:36:03 -0400
+	Thu, 24 Sep 2009 15:34:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, h-shimamoto@ct.jp.nec.com, roland@redhat.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: bblum@google.com, ebiederm@xmission.com, lizf@cn.fujitsu.com, matthltc@us.ibm.com, menage@google.com, oleg@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     exec: fix set_binfmt() vs sys_delete_module() race
+     cgroups: use vmalloc for large cgroups pidlist allocations
 has been removed from the -mm tree.  Its filename was
-     exec-fix-set_binfmt-vs-sys_delete_module-race.patch
+     cgroups-use-vmalloc-for-large-cgroups-pidlist-allocations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: exec: fix set_binfmt() vs sys_delete_module() race
-From: Oleg Nesterov <oleg@redhat.com>
+Subject: cgroups: use vmalloc for large cgroups pidlist allocations
+From: Ben Blum <bblum@google.com>
 
-sys_delete_module() can set MODULE_STATE_GOING after
-search_binary_handler() does try_module_get().  In this case
-set_binfmt()->try_module_get() fails but since none of the callers
-check the returned error, the task will run with the wrong old
-->binfmt.
+Separates all pidlist allocation requests to a separate function that
+judges based on the requested size whether or not the array needs to be
+vmalloced or can be gotten via kmalloc, and similar for kfree/vfree.
 
-The proper fix should change all ->load_binary() methods, but we can
-rely on fact that the caller must hold a reference to binfmt->module
-and use __module_get() which never fails.
-
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
-Cc: Roland McGrath <roland@redhat.com>
+Signed-off-by: Ben Blum <bblum@google.com>
+Signed-off-by: Paul Menage <menage@google.com>
+Acked-by: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Matt Helsley <matthltc@us.ibm.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c               |   14 +++++---------
- include/linux/binfmts.h |    2 +-
- 2 files changed, 6 insertions(+), 10 deletions(-)
+ kernel/cgroup.c |   47 +++++++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 42 insertions(+), 5 deletions(-)
 
-diff -puN fs/exec.c~exec-fix-set_binfmt-vs-sys_delete_module-race fs/exec.c
---- a/fs/exec.c~exec-fix-set_binfmt-vs-sys_delete_module-race
-+++ a/fs/exec.c
-@@ -1395,18 +1395,14 @@ out_ret:
- 	return retval;
- }
+diff -puN kernel/cgroup.c~cgroups-use-vmalloc-for-large-cgroups-pidlist-allocations kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-use-vmalloc-for-large-cgroups-pidlist-allocations
++++ a/kernel/cgroup.c
+@@ -50,6 +50,7 @@
+ #include <linux/smp_lock.h>
+ #include <linux/pid_namespace.h>
+ #include <linux/idr.h>
++#include <linux/vmalloc.h> /* TODO: replace with more sophisticated array */
  
--int set_binfmt(struct linux_binfmt *new)
-+void set_binfmt(struct linux_binfmt *new)
- {
--	struct linux_binfmt *old = current->binfmt;
-+	if (current->binfmt)
-+		module_put(current->binfmt->module);
+ #include <asm/atomic.h>
  
--	if (new) {
--		if (!try_module_get(new->module))
--			return -1;
--	}
- 	current->binfmt = new;
--	if (old)
--		module_put(old->module);
--	return 0;
-+	if (new)
-+		__module_get(new->module);
- }
+@@ -2351,6 +2352,42 @@ int cgroup_scan_tasks(struct cgroup_scan
+  */
  
- EXPORT_SYMBOL(set_binfmt);
-diff -puN include/linux/binfmts.h~exec-fix-set_binfmt-vs-sys_delete_module-race include/linux/binfmts.h
---- a/include/linux/binfmts.h~exec-fix-set_binfmt-vs-sys_delete_module-race
-+++ a/include/linux/binfmts.h
-@@ -120,7 +120,7 @@ extern int copy_strings_kernel(int argc,
- extern int prepare_bprm_creds(struct linux_binprm *bprm);
- extern void install_exec_creds(struct linux_binprm *bprm);
- extern void do_coredump(long signr, int exit_code, struct pt_regs *regs);
--extern int set_binfmt(struct linux_binfmt *new);
-+extern void set_binfmt(struct linux_binfmt *new);
- extern void free_bprm(struct linux_binprm *);
- 
- #endif /* __KERNEL__ */
+ /*
++ * The following two functions "fix" the issue where there are more pids
++ * than kmalloc will give memory for; in such cases, we use vmalloc/vfree.
++ * TODO: replace with a kernel-wide solution to this problem
++ */
++#define PIDLIST_TOO_LARGE(c) ((c) * sizeof(pid_t) > (PAGE_SIZE * 2))
++static void *pidlist_allocate(int count)
++{
++	if (PIDLIST_TOO_LARGE(count))
++		return vmalloc(count * sizeof(pid_t));
++	else
++		return kmalloc(count * sizeof(pid_t), GFP_KERNEL);
++}
++static void pidlist_free(void *p)
++{
++	if (is_vmalloc_addr(p))
++		vfree(p);
++	else
++		kfree(p);
++}
++static void *pidlist_resize(void *p, int newcount)
++{
++	void *newlist;
++	/* note: if new alloc fails, old p will still be valid either way */
++	if (is_vmalloc_addr(p)) {
++		newlist = vmalloc(newcount * sizeof(pid_t));
++		if (!newlist)
++			return NULL;
++		memcpy(newlist, p, newcount * sizeof(pid_t));
++		vfree(p);
++	} else {
++		newlist = krealloc(p, newcount * sizeof(pid_t), GFP_KERNEL);
++	}
++	return newlist;
++}
++
++/*
+  * pidlist_uniq - given a kmalloc()ed list, strip out all duplicate entries
+  * If the new stripped list is sufficiently smaller and there's enough memory
+  * to allocate a new buffer, will let go of the unneeded memory. Returns the
+@@ -2389,7 +2426,7 @@ after:
+ 	 * we'll just stay with what we've got.
+ 	 */
+ 	if (PIDLIST_REALLOC_DIFFERENCE(length, dest)) {
+-		newlist = krealloc(list, dest * sizeof(pid_t), GFP_KERNEL);
++		newlist = pidlist_resize(list, dest);
+ 		if (newlist)
+ 			*p = newlist;
+ 	}
+@@ -2470,7 +2507,7 @@ static int pidlist_array_load(struct cgr
+ 	 * show up until sometime later on.
+ 	 */
+ 	length = cgroup_task_count(cgrp);
+-	array = kmalloc(length * sizeof(pid_t), GFP_KERNEL);
++	array = pidlist_allocate(length);
+ 	if (!array)
+ 		return -ENOMEM;
+ 	/* now, populate the array */
+@@ -2494,11 +2531,11 @@ static int pidlist_array_load(struct cgr
+ 		length = pidlist_uniq(&array, length);
+ 	l = cgroup_pidlist_find(cgrp, type);
+ 	if (!l) {
+-		kfree(array);
++		pidlist_free(array);
+ 		return -ENOMEM;
+ 	}
+ 	/* store array, freeing old if necessary - lock already held */
+-	kfree(l->list);
++	pidlist_free(l->list);
+ 	l->list = array;
+ 	l->length = length;
+ 	l->use_count++;
+@@ -2659,7 +2696,7 @@ static void cgroup_release_pid_array(str
+ 		/* we're the last user if refcount is 0; remove and free */
+ 		list_del(&l->links);
+ 		mutex_unlock(&l->owner->pidlist_mutex);
+-		kfree(l->list);
++		pidlist_free(l->list);
+ 		put_pid_ns(l->key.ns);
+ 		up_write(&l->mutex);
+ 		kfree(l);
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from bblum@google.com are
 
 origin.patch
-linux-next.patch
-do_wait-optimization-do-not-place-sub-threads-on-task_struct-children-list.patch
-utrace-core.patch
 
