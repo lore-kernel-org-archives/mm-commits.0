@@ -1,90 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hugetlbfs-do-not-call-user_shm_lock-for-map_hugetlb-fix.patch removed from -mm tree
-Date: Thu, 24 Sep 2009 12:33:26 -0700
-Message-ID: <200909241933.n8OJXQPD028803@imap1.linux-foundation.org>
+Subject: [merged] do_wait-wakeup-optimization-simplify-task_pid_type.patch removed from -mm tree
+Date: Thu, 24 Sep 2009 12:35:17 -0700
+Message-ID: <200909241935.n8OJZHtc032627@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47245 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34276 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754107AbZIXTeU (ORCPT
+	by vger.kernel.org with ESMTP id S1753224AbZIXTfp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Sep 2009 15:34:20 -0400
+	Thu, 24 Sep 2009 15:35:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mel@csn.ul.ie, agl@us.ibm.com, david@gibson.dropbear.id.au, ebmunson@us.ibm.com, hugh.dickins@tiscali.co.uk, lee.schermerhorn@hp.com, nickpiggin@yahoo.com.au, rientjes@google.com, mm-
+To: oleg@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hugetlbfs: do not call user_shm_lock() for MAP_HUGETLB fix
+     do_wait-wakeup-optimization: simplify task_pid_type()
 has been removed from the -mm tree.  Its filename was
-     hugetlbfs-do-not-call-user_shm_lock-for-map_hugetlb-fix.patch
+     do_wait-wakeup-optimization-simplify-task_pid_type.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlbfs: do not call user_shm_lock() for MAP_HUGETLB fix
-From: From: Mel Gorman <mel@csn.ul.ie>
+Subject: do_wait-wakeup-optimization: simplify task_pid_type()
+From: Oleg Nesterov <oleg@redhat.com>
 
-hugetlbfs-allow-the-creation-of-files-suitable-for-map_private-on-the-vfs-internal-mount.patch
-alters can_do_hugetlb_shm() to check if a file is being created for shared
-memory or mmap().  If this returns false, we then unconditionally call
-user_shm_lock() triggering a warning.  This block should never be entered
-for MAP_HUGETLB.  This patch partially reverts the problem and fixes the
-check.
+task_pid_type() is only used by eligible_pid() which has to check wo_type
+!= PIDTYPE_MAX anyway.  Remove this check from task_pid_type() and factor
+out ->pids[type] access, this shrinks .text a bit and simplifies the code.
 
-Signed-off-by: Eric B Munson <ebmunson@us.ibm.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Adam Litke <agl@us.ibm.com>
-Cc: David Gibson <david@gibson.dropbear.id.au>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+The matches the behaviour of other similar helpers, say get_task_pid(). 
+The caller must ensure that pid_type is valid, not the callee.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |   12 +++---------
- 1 file changed, 3 insertions(+), 9 deletions(-)
+ kernel/exit.c |   14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
 
-diff -puN fs/hugetlbfs/inode.c~hugetlbfs-do-not-call-user_shm_lock-for-map_hugetlb-fix fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~hugetlbfs-do-not-call-user_shm_lock-for-map_hugetlb-fix
-+++ a/fs/hugetlbfs/inode.c
-@@ -936,15 +936,9 @@ static struct file_system_type hugetlbfs
+diff -puN kernel/exit.c~do_wait-wakeup-optimization-simplify-task_pid_type kernel/exit.c
+--- a/kernel/exit.c~do_wait-wakeup-optimization-simplify-task_pid_type
++++ a/kernel/exit.c
+@@ -1101,17 +1101,15 @@ struct wait_opts {
+ 	int			notask_error;
+ };
  
- static struct vfsmount *hugetlbfs_vfsmount;
- 
--static int can_do_hugetlb_shm(int creat_flags)
-+static int can_do_hugetlb_shm(void)
+-static struct pid *task_pid_type(struct task_struct *task, enum pid_type type)
++static inline
++struct pid *task_pid_type(struct task_struct *task, enum pid_type type)
  {
--	if (creat_flags != HUGETLB_SHMFS_INODE)
--		return 0;
--	if (capable(CAP_IPC_LOCK))
--		return 1;
--	if (in_group_p(sysctl_hugetlb_shm_group))
--		return 1;
--	return 0;
-+	return capable(CAP_IPC_LOCK) || in_group_p(sysctl_hugetlb_shm_group);
+-	struct pid *pid = NULL;
+-	if (type == PIDTYPE_PID)
+-		pid = task->pids[type].pid;
+-	else if (type < PIDTYPE_MAX)
+-		pid = task->group_leader->pids[type].pid;
+-	return pid;
++	if (type != PIDTYPE_PID)
++		task = task->group_leader;
++	return task->pids[type].pid;
  }
  
- struct file *hugetlb_file_setup(const char *name, size_t size, int acctflag,
-@@ -960,7 +954,7 @@ struct file *hugetlb_file_setup(const ch
- 	if (!hugetlbfs_vfsmount)
- 		return ERR_PTR(-ENOENT);
- 
--	if (!can_do_hugetlb_shm(creat_flags)) {
-+	if (creat_flags == HUGETLB_SHMFS_INODE && !can_do_hugetlb_shm()) {
- 		*user = current_user();
- 		if (user_shm_lock(size, *user)) {
- 			WARN_ONCE(1,
+-static inline int eligible_pid(struct wait_opts *wo, struct task_struct *p)
++static int eligible_pid(struct wait_opts *wo, struct task_struct *p)
+ {
+ 	return	wo->wo_type == PIDTYPE_MAX ||
+ 		task_pid_type(p, wo->wo_type) == wo->wo_pid;
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 origin.patch
-hugetlb_file_setup-use-c-not-cpp.patch
 linux-next.patch
-mm-warn-once-when-a-page-is-freed-with-pg_mlocked-set.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
+do_wait-optimization-do-not-place-sub-threads-on-task_struct-children-list.patch
+utrace-core.patch
 
