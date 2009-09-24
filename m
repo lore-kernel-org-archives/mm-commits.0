@@ -1,211 +1,149 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memory-controller-soft-limit-interface-v9.patch removed from -mm tree
-Date: Thu, 24 Sep 2009 12:34:39 -0700
-Message-ID: <200909241934.n8OJYdFM031253@imap1.linux-foundation.org>
+Subject: [merged] ptrace-__ptrace_detach-do-__wake_up_parent-if-we-reap-the-tracee.patch removed from -mm tree
+Date: Thu, 24 Sep 2009 12:35:02 -0700
+Message-ID: <200909241935.n8OJZ2wc032083@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43977 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33019 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754318AbZIXTfC (ORCPT
+	by vger.kernel.org with ESMTP id S1752450AbZIXTf3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Sep 2009 15:35:02 -0400
+	Thu, 24 Sep 2009 15:35:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, lizf@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: oleg@redhat.com, roland@redhat.com, vmayatsk@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memory controller: soft limit interface
+     ptrace: __ptrace_detach: do __wake_up_parent() if we reap the tracee
 has been removed from the -mm tree.  Its filename was
-     memory-controller-soft-limit-interface-v9.patch
+     ptrace-__ptrace_detach-do-__wake_up_parent-if-we-reap-the-tracee.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memory controller: soft limit interface
-From: Balbir Singh <balbir@linux.vnet.ibm.com>
+Subject: ptrace: __ptrace_detach: do __wake_up_parent() if we reap the tracee
+From: Oleg Nesterov <oleg@redhat.com>
 
-Add an interface to allow get/set of soft limits.  Soft limits for memory
-plus swap controller (memsw) is currently not supported.  Resource
-counters have been enhanced to support soft limits and new type
-RES_SOFT_LIMIT has been added.  Unlike hard limits, soft limits can be
-directly set and do not need any reclaim or checks before setting them to
-a newer value.
+The bug is old, it wasn't cause by recent changes.
 
-Kamezawa-San raised a question as to whether soft limit should belong to
-res_counter.  Since all resources understand the basic concepts of hard
-and soft limits, it is justified to add soft limits here.  Soft limits are
-a generic resource usage feature, even file system quotas support soft
-limits.
+Test case:
 
-Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+	static void *tfunc(void *arg)
+	{
+		int pid = (long)arg;
+
+		assert(ptrace(PTRACE_ATTACH, pid, NULL, NULL) == 0);
+		kill(pid, SIGKILL);
+
+		sleep(1);
+		return NULL;
+	}
+
+	int main(void)
+	{
+		pthread_t th;
+		long pid = fork();
+
+		if (!pid)
+			pause();
+
+		signal(SIGCHLD, SIG_IGN);
+		assert(pthread_create(&th, NULL, tfunc, (void*)pid) == 0);
+
+		int r = waitpid(-1, NULL, __WNOTHREAD);
+		printf("waitpid: %d %m\n", r);
+
+		return 0;
+	}
+
+Before the patch this program hangs, after this patch waitpid() correctly
+fails with errno == -ECHILD.
+
+The problem is, __ptrace_detach() reaps the EXIT_ZOMBIE tracee if its
+->real_parent is our sub-thread and we ignore SIGCHLD.  But in this case
+we should wake up other threads which can sleep in do_wait().
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Vitaly Mayatskikh <vmayatsk@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/res_counter.h |   58 ++++++++++++++++++++++++++++++++++
- kernel/res_counter.c        |    3 +
- mm/memcontrol.c             |   20 +++++++++++
- 3 files changed, 81 insertions(+)
+ include/linux/sched.h |    1 +
+ kernel/exit.c         |    5 +++++
+ kernel/ptrace.c       |   11 +++++++----
+ kernel/signal.c       |    9 ---------
+ 4 files changed, 13 insertions(+), 13 deletions(-)
 
-diff -puN include/linux/res_counter.h~memory-controller-soft-limit-interface-v9 include/linux/res_counter.h
---- a/include/linux/res_counter.h~memory-controller-soft-limit-interface-v9
-+++ a/include/linux/res_counter.h
-@@ -35,6 +35,10 @@ struct res_counter {
- 	 */
- 	unsigned long long limit;
- 	/*
-+	 * the limit that usage can be exceed
-+	 */
-+	unsigned long long soft_limit;
-+	/*
- 	 * the number of unsuccessful attempts to consume the resource
- 	 */
- 	unsigned long long failcnt;
-@@ -87,6 +91,7 @@ enum {
- 	RES_MAX_USAGE,
- 	RES_LIMIT,
- 	RES_FAILCNT,
-+	RES_SOFT_LIMIT,
- };
+diff -puN include/linux/sched.h~ptrace-__ptrace_detach-do-__wake_up_parent-if-we-reap-the-tracee include/linux/sched.h
+--- a/include/linux/sched.h~ptrace-__ptrace_detach-do-__wake_up_parent-if-we-reap-the-tracee
++++ a/include/linux/sched.h
+@@ -2056,6 +2056,7 @@ extern int kill_pgrp(struct pid *pid, in
+ extern int kill_pid(struct pid *pid, int sig, int priv);
+ extern int kill_proc_info(int, struct siginfo *, pid_t);
+ extern int do_notify_parent(struct task_struct *, int);
++extern void __wake_up_parent(struct task_struct *p, struct task_struct *parent);
+ extern void force_sig(int, struct task_struct *);
+ extern void force_sig_specific(int, struct task_struct *);
+ extern int send_sig(int, struct task_struct *, int);
+diff -puN kernel/exit.c~ptrace-__ptrace_detach-do-__wake_up_parent-if-we-reap-the-tracee kernel/exit.c
+--- a/kernel/exit.c~ptrace-__ptrace_detach-do-__wake_up_parent-if-we-reap-the-tracee
++++ a/kernel/exit.c
+@@ -1575,6 +1575,11 @@ static int ptrace_do_wait(struct wait_op
+ 	return 0;
+ }
+ 
++void __wake_up_parent(struct task_struct *p, struct task_struct *parent)
++{
++	wake_up_interruptible_sync(&parent->signal->wait_chldexit);
++}
++
+ static long do_wait(struct wait_opts *wo)
+ {
+ 	DECLARE_WAITQUEUE(wait, current);
+diff -puN kernel/ptrace.c~ptrace-__ptrace_detach-do-__wake_up_parent-if-we-reap-the-tracee kernel/ptrace.c
+--- a/kernel/ptrace.c~ptrace-__ptrace_detach-do-__wake_up_parent-if-we-reap-the-tracee
++++ a/kernel/ptrace.c
+@@ -266,9 +266,10 @@ static int ignoring_children(struct sigh
+  * or self-reaping.  Do notification now if it would have happened earlier.
+  * If it should reap itself, return true.
+  *
+- * If it's our own child, there is no notification to do.
+- * But if our normal children self-reap, then this child
+- * was prevented by ptrace and we must reap it now.
++ * If it's our own child, there is no notification to do. But if our normal
++ * children self-reap, then this child was prevented by ptrace and we must
++ * reap it now, in that case we must also wake up sub-threads sleeping in
++ * do_wait().
+  */
+ static bool __ptrace_detach(struct task_struct *tracer, struct task_struct *p)
+ {
+@@ -278,8 +279,10 @@ static bool __ptrace_detach(struct task_
+ 		if (!task_detached(p) && thread_group_empty(p)) {
+ 			if (!same_thread_group(p->real_parent, tracer))
+ 				do_notify_parent(p, p->exit_signal);
+-			else if (ignoring_children(tracer->sighand))
++			else if (ignoring_children(tracer->sighand)) {
++				__wake_up_parent(p, tracer);
+ 				p->exit_signal = -1;
++			}
+ 		}
+ 		if (task_detached(p)) {
+ 			/* Mark it as in the process of being reaped. */
+diff -puN kernel/signal.c~ptrace-__ptrace_detach-do-__wake_up_parent-if-we-reap-the-tracee kernel/signal.c
+--- a/kernel/signal.c~ptrace-__ptrace_detach-do-__wake_up_parent-if-we-reap-the-tracee
++++ a/kernel/signal.c
+@@ -1383,15 +1383,6 @@ ret:
+ }
  
  /*
-@@ -132,6 +137,36 @@ static inline bool res_counter_limit_che
- 	return false;
- }
- 
-+static inline bool res_counter_soft_limit_check_locked(struct res_counter *cnt)
-+{
-+	if (cnt->usage < cnt->soft_limit)
-+		return true;
-+
-+	return false;
-+}
-+
-+/**
-+ * Get the difference between the usage and the soft limit
-+ * @cnt: The counter
-+ *
-+ * Returns 0 if usage is less than or equal to soft limit
-+ * The difference between usage and soft limit, otherwise.
-+ */
-+static inline unsigned long long
-+res_counter_soft_limit_excess(struct res_counter *cnt)
-+{
-+	unsigned long long excess;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&cnt->lock, flags);
-+	if (cnt->usage <= cnt->soft_limit)
-+		excess = 0;
-+	else
-+		excess = cnt->usage - cnt->soft_limit;
-+	spin_unlock_irqrestore(&cnt->lock, flags);
-+	return excess;
-+}
-+
- /*
-  * Helper function to detect if the cgroup is within it's limit or
-  * not. It's currently called from cgroup_rss_prepare()
-@@ -147,6 +182,17 @@ static inline bool res_counter_check_und
- 	return ret;
- }
- 
-+static inline bool res_counter_check_under_soft_limit(struct res_counter *cnt)
-+{
-+	bool ret;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&cnt->lock, flags);
-+	ret = res_counter_soft_limit_check_locked(cnt);
-+	spin_unlock_irqrestore(&cnt->lock, flags);
-+	return ret;
-+}
-+
- static inline void res_counter_reset_max(struct res_counter *cnt)
- {
- 	unsigned long flags;
-@@ -180,4 +226,16 @@ static inline int res_counter_set_limit(
- 	return ret;
- }
- 
-+static inline int
-+res_counter_set_soft_limit(struct res_counter *cnt,
-+				unsigned long long soft_limit)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&cnt->lock, flags);
-+	cnt->soft_limit = soft_limit;
-+	spin_unlock_irqrestore(&cnt->lock, flags);
-+	return 0;
-+}
-+
- #endif
-diff -puN kernel/res_counter.c~memory-controller-soft-limit-interface-v9 kernel/res_counter.c
---- a/kernel/res_counter.c~memory-controller-soft-limit-interface-v9
-+++ a/kernel/res_counter.c
-@@ -19,6 +19,7 @@ void res_counter_init(struct res_counter
- {
- 	spin_lock_init(&counter->lock);
- 	counter->limit = RESOURCE_MAX;
-+	counter->soft_limit = RESOURCE_MAX;
- 	counter->parent = parent;
- }
- 
-@@ -101,6 +102,8 @@ res_counter_member(struct res_counter *c
- 		return &counter->limit;
- 	case RES_FAILCNT:
- 		return &counter->failcnt;
-+	case RES_SOFT_LIMIT:
-+		return &counter->soft_limit;
- 	};
- 
- 	BUG();
-diff -puN mm/memcontrol.c~memory-controller-soft-limit-interface-v9 mm/memcontrol.c
---- a/mm/memcontrol.c~memory-controller-soft-limit-interface-v9
-+++ a/mm/memcontrol.c
-@@ -2123,6 +2123,20 @@ static int mem_cgroup_write(struct cgrou
- 		else
- 			ret = mem_cgroup_resize_memsw_limit(memcg, val);
- 		break;
-+	case RES_SOFT_LIMIT:
-+		ret = res_counter_memparse_write_strategy(buffer, &val);
-+		if (ret)
-+			break;
-+		/*
-+		 * For memsw, soft limits are hard to implement in terms
-+		 * of semantics, for now, we support soft limits for
-+		 * control without swap
-+		 */
-+		if (type == _MEM)
-+			ret = res_counter_set_soft_limit(&memcg->res, val);
-+		else
-+			ret = -EINVAL;
-+		break;
- 	default:
- 		ret = -EINVAL; /* should be BUG() ? */
- 		break;
-@@ -2376,6 +2390,12 @@ static struct cftype mem_cgroup_files[] 
- 		.read_u64 = mem_cgroup_read,
- 	},
- 	{
-+		.name = "soft_limit_in_bytes",
-+		.private = MEMFILE_PRIVATE(_MEM, RES_SOFT_LIMIT),
-+		.write_string = mem_cgroup_write,
-+		.read_u64 = mem_cgroup_read,
-+	},
-+	{
- 		.name = "failcnt",
- 		.private = MEMFILE_PRIVATE(_MEM, RES_FAILCNT),
- 		.trigger = mem_cgroup_reset,
-_
-
-Patches currently in -mm which might be from balbir@linux.vnet.ibm.com are
-
-origin.patch
-
+- * Wake up any threads in the parent blocked in wait* syscalls.
+- */
+-static inline void __wake_up_parent(struct task_struct *p,
+-				    struct task_struct *parent)
+-{
+-	wake_up_interruptible_sync(&parent->signal->wait_chldexit);
+-}
