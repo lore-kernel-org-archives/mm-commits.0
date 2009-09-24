@@ -1,282 +1,307 @@
 From: akpm@linux-foundation.org
-Subject: [merged] signals-tracehook_notify_jctl-change.patch removed from -mm tree
-Date: Thu, 24 Sep 2009 12:35:29 -0700
-Message-ID: <200909241935.n8OJZTt4000548@imap1.linux-foundation.org>
+Subject: [merged] cgroups-ensure-correct-concurrent-opening-reading-of-pidlists-across-pid-namespaces.patch removed from -mm tree
+Date: Thu, 24 Sep 2009 12:34:15 -0700
+Message-ID: <200909241934.n8OJYFd4030460@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46807 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54801 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753224AbZIXTf6 (ORCPT
+	by vger.kernel.org with ESMTP id S1754508AbZIXTez (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Sep 2009 15:35:58 -0400
+	Thu, 24 Sep 2009 15:34:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roland@redhat.com, oleg@redhat.com, mm-commits@vger.kernel.org
+To: bblum@google.com, ebiederm@xmission.com, lizf@cn.fujitsu.com, matthltc@us.ibm.com, menage@google.com, oleg@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     signals: tracehook_notify_jctl change
+     cgroups: ensure correct concurrent opening/reading of pidlists across pid namespaces
 has been removed from the -mm tree.  Its filename was
-     signals-tracehook_notify_jctl-change.patch
+     cgroups-ensure-correct-concurrent-opening-reading-of-pidlists-across-pid-namespaces.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signals: tracehook_notify_jctl change
-From: Roland McGrath <roland@redhat.com>
+Subject: cgroups: ensure correct concurrent opening/reading of pidlists across pid namespaces
+From: Ben Blum <bblum@google.com>
 
-This changes tracehook_notify_jctl() so it's called with the siglock held,
-and changes its argument and return value definition.  These clean-ups
-make it a better fit for what new tracing hooks need to check.
+Previously there was the problem in which two processes from different pid
+namespaces reading the tasks or procs file could result in one process
+seeing results from the other's namespace.  Rather than one pidlist for
+each file in a cgroup, we now keep a list of pidlists keyed by namespace
+and file type (tasks versus procs) in which entries are placed on demand. 
+Each pidlist has its own lock, and that the pidlists themselves are passed
+around in the seq_file's private pointer means we don't have to touch the
+cgroup or its master list except when creating and destroying entries.
 
-Tracing needs the siglock here, held from the time TASK_STOPPED was set,
-to avoid potential SIGCONT races if it wants to allow any blocking in its
-tracing hooks.
-
-This also folds the finish_stop() function into its caller
-do_signal_stop().  The function is short, called only once and only
-unconditionally.  It aids readability to fold it in.
-
-[oleg@redhat.com: do not call tracehook_notify_jctl() in TASK_STOPPED state]
-[oleg@redhat.com: introduce tracehook_finish_jctl() helper]
-Signed-off-by: Roland McGrath <roland@redhat.com>
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Signed-off-by: Ben Blum <bblum@google.com>
+Signed-off-by: Paul Menage <menage@google.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Matt Helsley <matthltc@us.ibm.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/tracehook.h |   34 +++++++++---
- kernel/signal.c           |   97 +++++++++++++++++-------------------
- 2 files changed, 72 insertions(+), 59 deletions(-)
+ include/linux/cgroup.h |   34 ++++++++++--
+ kernel/cgroup.c        |  107 ++++++++++++++++++++++++++++++++-------
+ 2 files changed, 119 insertions(+), 22 deletions(-)
 
-diff -puN include/linux/tracehook.h~signals-tracehook_notify_jctl-change include/linux/tracehook.h
---- a/include/linux/tracehook.h~signals-tracehook_notify_jctl-change
-+++ a/include/linux/tracehook.h
-@@ -1,7 +1,7 @@
- /*
-  * Tracing hooks
-  *
-- * Copyright (C) 2008 Red Hat, Inc.  All rights reserved.
-+ * Copyright (C) 2008-2009 Red Hat, Inc.  All rights reserved.
-  *
-  * This copyrighted material is made available to anyone wishing to use,
-  * modify, copy, or redistribute it subject to the terms and conditions
-@@ -463,22 +463,38 @@ static inline int tracehook_get_signal(s
+diff -puN include/linux/cgroup.h~cgroups-ensure-correct-concurrent-opening-reading-of-pidlists-across-pid-namespaces include/linux/cgroup.h
+--- a/include/linux/cgroup.h~cgroups-ensure-correct-concurrent-opening-reading-of-pidlists-across-pid-namespaces
++++ a/include/linux/cgroup.h
+@@ -141,15 +141,36 @@ enum {
+ 	CGRP_WAIT_ON_RMDIR,
+ };
  
- /**
-  * tracehook_notify_jctl - report about job control stop/continue
-- * @notify:		nonzero if this is the last thread in the group to stop
-+ * @notify:		zero, %CLD_STOPPED or %CLD_CONTINUED
-  * @why:		%CLD_STOPPED or %CLD_CONTINUED
-  *
-  * This is called when we might call do_notify_parent_cldstop().
-- * It's called when about to stop for job control; we are already in
-- * %TASK_STOPPED state, about to call schedule().  It's also called when
-- * a delayed %CLD_STOPPED or %CLD_CONTINUED report is ready to be made.
-  *
-- * Return nonzero to generate a %SIGCHLD with @why, which is
-- * normal if @notify is nonzero.
-+ * @notify is zero if we would not ordinarily send a %SIGCHLD,
-+ * or is the %CLD_STOPPED or %CLD_CONTINUED .si_code for %SIGCHLD.
-  *
-- * Called with no locks held.
-+ * @why is %CLD_STOPPED when about to stop for job control;
-+ * we are already in %TASK_STOPPED state, about to call schedule().
-+ * It might also be that we have just exited (check %PF_EXITING),
-+ * but need to report that a group-wide stop is complete.
-+ *
-+ * @why is %CLD_CONTINUED when waking up after job control stop and
-+ * ready to make a delayed @notify report.
-+ *
-+ * Return the %CLD_* value for %SIGCHLD, or zero to generate no signal.
-+ *
-+ * Called with the siglock held.
-  */
- static inline int tracehook_notify_jctl(int notify, int why)
- {
--	return notify || (current->ptrace & PT_PTRACED);
-+	return notify ?: (current->ptrace & PT_PTRACED) ? why : 0;
++/* which pidlist file are we talking about? */
++enum cgroup_filetype {
++	CGROUP_FILE_PROCS,
++	CGROUP_FILE_TASKS,
++};
++
++/*
++ * A pidlist is a list of pids that virtually represents the contents of one
++ * of the cgroup files ("procs" or "tasks"). We keep a list of such pidlists,
++ * a pair (one each for procs, tasks) for each pid namespace that's relevant
++ * to the cgroup.
++ */
+ struct cgroup_pidlist {
+-	/* protects the other fields */
+-	struct rw_semaphore mutex;
++	/*
++	 * used to find which pidlist is wanted. doesn't change as long as
++	 * this particular list stays in the list.
++	 */
++	struct { enum cgroup_filetype type; struct pid_namespace *ns; } key;
+ 	/* array of xids */
+ 	pid_t *list;
+ 	/* how many elements the above list has */
+ 	int length;
+ 	/* how many files are using the current array */
+ 	int use_count;
++	/* each of these stored in a list by its cgroup */
++	struct list_head links;
++	/* pointer to the cgroup we belong to, for list removal purposes */
++	struct cgroup *owner;
++	/* protects the other fields */
++	struct rw_semaphore mutex;
+ };
+ 
+ struct cgroup {
+@@ -190,9 +211,12 @@ struct cgroup {
+ 	 */
+ 	struct list_head release_list;
+ 
+-	/* we will have two separate pidlists, one for pids (the tasks file)
+-	 * and one for tgids (the procs file). */
+-	struct cgroup_pidlist tasks, procs;
++	/*
++	 * list of pidlists, up to two for each namespace (one for procs, one
++	 * for tasks); created on demand.
++	 */
++	struct list_head pidlists;
++	struct mutex pidlist_mutex;
+ 
+ 	/* For RCU-protected deletion */
+ 	struct rcu_head rcu_head;
+diff -puN kernel/cgroup.c~cgroups-ensure-correct-concurrent-opening-reading-of-pidlists-across-pid-namespaces kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-ensure-correct-concurrent-opening-reading-of-pidlists-across-pid-namespaces
++++ a/kernel/cgroup.c
+@@ -776,6 +776,12 @@ static void cgroup_diput(struct dentry *
+ 		 */
+ 		deactivate_super(cgrp->root->sb);
+ 
++		/*
++		 * if we're getting rid of the cgroup, refcount should ensure
++		 * that there are no pidlists left.
++		 */
++		BUG_ON(!list_empty(&cgrp->pidlists));
++
+ 		call_rcu(&cgrp->rcu_head, free_cgroup_rcu);
+ 	}
+ 	iput(inode);
+@@ -1121,8 +1127,8 @@ static void init_cgroup_housekeeping(str
+ 	INIT_LIST_HEAD(&cgrp->children);
+ 	INIT_LIST_HEAD(&cgrp->css_sets);
+ 	INIT_LIST_HEAD(&cgrp->release_list);
+-	init_rwsem(&(cgrp->tasks.mutex));
+-	init_rwsem(&(cgrp->procs.mutex));
++	INIT_LIST_HEAD(&cgrp->pidlists);
++	mutex_init(&cgrp->pidlist_mutex);
+ }
+ 
+ static void init_cgroup_root(struct cgroupfs_root *root)
+@@ -2396,9 +2402,59 @@ static int cmppid(const void *a, const v
+ }
+ 
+ /*
++ * find the appropriate pidlist for our purpose (given procs vs tasks)
++ * returns with the lock on that pidlist already held, and takes care
++ * of the use count, or returns NULL with no locks held if we're out of
++ * memory.
++ */
++static struct cgroup_pidlist *cgroup_pidlist_find(struct cgroup *cgrp,
++						  enum cgroup_filetype type)
++{
++	struct cgroup_pidlist *l;
++	/* don't need task_nsproxy() if we're looking at ourself */
++	struct pid_namespace *ns = get_pid_ns(current->nsproxy->pid_ns);
++	/*
++	 * We can't drop the pidlist_mutex before taking the l->mutex in case
++	 * the last ref-holder is trying to remove l from the list at the same
++	 * time. Holding the pidlist_mutex precludes somebody taking whichever
++	 * list we find out from under us - compare release_pid_array().
++	 */
++	mutex_lock(&cgrp->pidlist_mutex);
++	list_for_each_entry(l, &cgrp->pidlists, links) {
++		if (l->key.type == type && l->key.ns == ns) {
++			/* found a matching list - drop the extra refcount */
++			put_pid_ns(ns);
++			/* make sure l doesn't vanish out from under us */
++			down_write(&l->mutex);
++			mutex_unlock(&cgrp->pidlist_mutex);
++			l->use_count++;
++			return l;
++		}
++	}
++	/* entry not found; create a new one */
++	l = kmalloc(sizeof(struct cgroup_pidlist), GFP_KERNEL);
++	if (!l) {
++		mutex_unlock(&cgrp->pidlist_mutex);
++		put_pid_ns(ns);
++		return l;
++	}
++	init_rwsem(&l->mutex);
++	down_write(&l->mutex);
++	l->key.type = type;
++	l->key.ns = ns;
++	l->use_count = 0; /* don't increment here */
++	l->list = NULL;
++	l->owner = cgrp;
++	list_add(&l->links, &cgrp->pidlists);
++	mutex_unlock(&cgrp->pidlist_mutex);
++	return l;
 +}
 +
-+/**
-+ * tracehook_finish_jctl - report about return from job control stop
-+ *
-+ * This is called by do_signal_stop() after wakeup.
-+ */
-+static inline void tracehook_finish_jctl(void)
-+{
- }
- 
- #define DEATH_REAP			-1
-diff -puN kernel/signal.c~signals-tracehook_notify_jctl-change kernel/signal.c
---- a/kernel/signal.c~signals-tracehook_notify_jctl-change
-+++ a/kernel/signal.c
-@@ -705,7 +705,7 @@ static int prepare_signal(int sig, struc
- 
- 		if (why) {
- 			/*
--			 * The first thread which returns from finish_stop()
-+			 * The first thread which returns from do_signal_stop()
- 			 * will take ->siglock, notice SIGNAL_CLD_MASK, and
- 			 * notify its parent. See get_signal_to_deliver().
- 			 */
-@@ -1664,29 +1664,6 @@ void ptrace_notify(int exit_code)
- 	spin_unlock_irq(&current->sighand->siglock);
- }
- 
--static void
--finish_stop(int stop_count)
--{
--	/*
--	 * If there are no other threads in the group, or if there is
--	 * a group stop in progress and we are the last to stop,
--	 * report to the parent.  When ptraced, every thread reports itself.
--	 */
--	if (tracehook_notify_jctl(stop_count == 0, CLD_STOPPED)) {
--		read_lock(&tasklist_lock);
--		do_notify_parent_cldstop(current, CLD_STOPPED);
--		read_unlock(&tasklist_lock);
--	}
--
--	do {
--		schedule();
--	} while (try_to_freeze());
--	/*
--	 * Now we don't run again until continued.
--	 */
--	current->exit_code = 0;
--}
--
- /*
-  * This performs the stopping for SIGSTOP and other stop signals.
-  * We have to stop all threads in the thread group.
-@@ -1696,15 +1673,9 @@ finish_stop(int stop_count)
- static int do_signal_stop(int signr)
++/*
+  * Load a cgroup's pidarray with either procs' tgids or tasks' pids
+  */
+-static int pidlist_array_load(struct cgroup *cgrp, bool procs)
++static int pidlist_array_load(struct cgroup *cgrp, enum cgroup_filetype type,
++			      struct cgroup_pidlist **lp)
  {
- 	struct signal_struct *sig = current->signal;
--	int stop_count;
-+	int notify;
- 
--	if (sig->group_stop_count > 0) {
--		/*
--		 * There is a group stop in progress.  We don't need to
--		 * start another one.
--		 */
--		stop_count = --sig->group_stop_count;
+ 	pid_t *array;
+ 	int length;
+@@ -2423,7 +2479,10 @@ static int pidlist_array_load(struct cgr
+ 		if (unlikely(n == length))
+ 			break;
+ 		/* get tgid or pid for procs or tasks file respectively */
+-		pid = (procs ? task_tgid_vnr(tsk) : task_pid_vnr(tsk));
++		if (type == CGROUP_FILE_PROCS)
++			pid = task_tgid_vnr(tsk);
++		else
++			pid = task_pid_vnr(tsk);
+ 		if (pid > 0) /* make sure to only use valid results */
+ 			array[n++] = pid;
+ 	}
+@@ -2431,19 +2490,20 @@ static int pidlist_array_load(struct cgr
+ 	length = n;
+ 	/* now sort & (if procs) strip out duplicates */
+ 	sort(array, length, sizeof(pid_t), cmppid, NULL);
+-	if (procs) {
++	if (type == CGROUP_FILE_PROCS)
+ 		length = pidlist_uniq(&array, length);
+-		l = &(cgrp->procs);
 -	} else {
-+	if (!sig->group_stop_count) {
- 		struct task_struct *t;
- 
- 		if (!likely(sig->flags & SIGNAL_STOP_DEQUEUED) ||
-@@ -1716,7 +1687,7 @@ static int do_signal_stop(int signr)
- 		 */
- 		sig->group_exit_code = signr;
- 
--		stop_count = 0;
-+		sig->group_stop_count = 1;
- 		for (t = next_thread(current); t != current; t = next_thread(t))
- 			/*
- 			 * Setting state to TASK_STOPPED for a group
-@@ -1725,19 +1696,44 @@ static int do_signal_stop(int signr)
- 			 */
- 			if (!(t->flags & PF_EXITING) &&
- 			    !task_is_stopped_or_traced(t)) {
--				stop_count++;
-+				sig->group_stop_count++;
- 				signal_wake_up(t, 0);
- 			}
--		sig->group_stop_count = stop_count;
+-		l = &(cgrp->tasks);
++	l = cgroup_pidlist_find(cgrp, type);
++	if (!l) {
++		kfree(array);
++		return -ENOMEM;
  	}
-+	/*
-+	 * If there are no other threads in the group, or if there is
-+	 * a group stop in progress and we are the last to stop, report
-+	 * to the parent.  When ptraced, every thread reports itself.
-+	 */
-+	notify = sig->group_stop_count == 1 ? CLD_STOPPED : 0;
-+	notify = tracehook_notify_jctl(notify, CLD_STOPPED);
-+	/*
-+	 * tracehook_notify_jctl() can drop and reacquire siglock, so
-+	 * we keep ->group_stop_count != 0 before the call. If SIGCONT
-+	 * or SIGKILL comes in between ->group_stop_count == 0.
-+	 */
-+	if (sig->group_stop_count) {
-+		if (!--sig->group_stop_count)
-+			sig->flags = SIGNAL_STOP_STOPPED;
-+		current->exit_code = sig->group_exit_code;
-+		__set_current_state(TASK_STOPPED);
-+	}
-+	spin_unlock_irq(&current->sighand->siglock);
- 
--	if (stop_count == 0)
--		sig->flags = SIGNAL_STOP_STOPPED;
--	current->exit_code = sig->group_exit_code;
--	__set_current_state(TASK_STOPPED);
-+	if (notify) {
-+		read_lock(&tasklist_lock);
-+		do_notify_parent_cldstop(current, notify);
-+		read_unlock(&tasklist_lock);
-+	}
-+
-+	/* Now we don't run again until woken by SIGCONT or SIGKILL */
-+	do {
-+		schedule();
-+	} while (try_to_freeze());
-+
-+	tracehook_finish_jctl();
-+	current->exit_code = 0;
- 
--	spin_unlock_irq(&current->sighand->siglock);
--	finish_stop(stop_count);
- 	return 1;
+-	/* store array in cgroup, freeing old if necessary */
+-	down_write(&l->mutex);
++	/* store array, freeing old if necessary - lock already held */
+ 	kfree(l->list);
+ 	l->list = array;
+ 	l->length = length;
+ 	l->use_count++;
+ 	up_write(&l->mutex);
++	*lp = l;
+ 	return 0;
  }
  
-@@ -1806,14 +1802,15 @@ relock:
- 		int why = (signal->flags & SIGNAL_STOP_CONTINUED)
- 				? CLD_CONTINUED : CLD_STOPPED;
- 		signal->flags &= ~SIGNAL_CLD_MASK;
--		spin_unlock_irq(&sighand->siglock);
+@@ -2586,13 +2646,26 @@ static const struct seq_operations cgrou
  
--		if (unlikely(!tracehook_notify_jctl(1, why)))
--			goto relock;
-+		why = tracehook_notify_jctl(why, CLD_CONTINUED);
-+		spin_unlock_irq(&sighand->siglock);
- 
--		read_lock(&tasklist_lock);
--		do_notify_parent_cldstop(current->group_leader, why);
--		read_unlock(&tasklist_lock);
-+		if (why) {
-+			read_lock(&tasklist_lock);
-+			do_notify_parent_cldstop(current->group_leader, why);
-+			read_unlock(&tasklist_lock);
-+		}
- 		goto relock;
+ static void cgroup_release_pid_array(struct cgroup_pidlist *l)
+ {
++	/*
++	 * the case where we're the last user of this particular pidlist will
++	 * have us remove it from the cgroup's list, which entails taking the
++	 * mutex. since in pidlist_find the pidlist->lock depends on cgroup->
++	 * pidlist_mutex, we have to take pidlist_mutex first.
++	 */
++	mutex_lock(&l->owner->pidlist_mutex);
+ 	down_write(&l->mutex);
+ 	BUG_ON(!l->use_count);
+ 	if (!--l->use_count) {
++		/* we're the last user if refcount is 0; remove and free */
++		list_del(&l->links);
++		mutex_unlock(&l->owner->pidlist_mutex);
+ 		kfree(l->list);
+-		l->list = NULL;
+-		l->length = 0;
++		put_pid_ns(l->key.ns);
++		up_write(&l->mutex);
++		kfree(l);
++		return;
  	}
- 
-@@ -1978,14 +1975,14 @@ void exit_signals(struct task_struct *ts
- 	if (unlikely(tsk->signal->group_stop_count) &&
- 			!--tsk->signal->group_stop_count) {
- 		tsk->signal->flags = SIGNAL_STOP_STOPPED;
--		group_stop = 1;
-+		group_stop = tracehook_notify_jctl(CLD_STOPPED, CLD_STOPPED);
- 	}
- out:
- 	spin_unlock_irq(&tsk->sighand->siglock);
- 
--	if (unlikely(group_stop) && tracehook_notify_jctl(1, CLD_STOPPED)) {
-+	if (unlikely(group_stop)) {
- 		read_lock(&tasklist_lock);
--		do_notify_parent_cldstop(tsk, CLD_STOPPED);
-+		do_notify_parent_cldstop(tsk, group_stop);
- 		read_unlock(&tasklist_lock);
- 	}
++	mutex_unlock(&l->owner->pidlist_mutex);
+ 	up_write(&l->mutex);
  }
+ 
+@@ -2623,10 +2696,10 @@ static const struct file_operations cgro
+  * in the cgroup.
+  */
+ /* helper function for the two below it */
+-static int cgroup_pidlist_open(struct file *file, bool procs)
++static int cgroup_pidlist_open(struct file *file, enum cgroup_filetype type)
+ {
+ 	struct cgroup *cgrp = __d_cgrp(file->f_dentry->d_parent);
+-	struct cgroup_pidlist *l = (procs ? &cgrp->procs : &cgrp->tasks);
++	struct cgroup_pidlist *l;
+ 	int retval;
+ 
+ 	/* Nothing to do for write-only files */
+@@ -2634,7 +2707,7 @@ static int cgroup_pidlist_open(struct fi
+ 		return 0;
+ 
+ 	/* have the array populated */
+-	retval = pidlist_array_load(cgrp, procs);
++	retval = pidlist_array_load(cgrp, type, &l);
+ 	if (retval)
+ 		return retval;
+ 	/* configure file information */
+@@ -2650,11 +2723,11 @@ static int cgroup_pidlist_open(struct fi
+ }
+ static int cgroup_tasks_open(struct inode *unused, struct file *file)
+ {
+-	return cgroup_pidlist_open(file, false);
++	return cgroup_pidlist_open(file, CGROUP_FILE_TASKS);
+ }
+ static int cgroup_procs_open(struct inode *unused, struct file *file)
+ {
+-	return cgroup_pidlist_open(file, true);
++	return cgroup_pidlist_open(file, CGROUP_FILE_PROCS);
+ }
+ 
+ static u64 cgroup_read_notify_on_release(struct cgroup *cgrp,
 _
 
-Patches currently in -mm which might be from roland@redhat.com are
+Patches currently in -mm which might be from bblum@google.com are
 
 origin.patch
-kconfig-cross_compile-option.patch
-do_wait-optimization-do-not-place-sub-threads-on-task_struct-children-list.patch
-utrace-core.patch
 
