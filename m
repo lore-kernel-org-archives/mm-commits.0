@@ -1,37 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] ext2-convert-to-use-the-new-truncate-convention.patch removed from -mm tree
-Date: Thu, 24 Sep 2009 12:32:19 -0700
-Message-ID: <200909241932.n8OJWJ3F026541@imap1.linux-foundation.org>
+Subject: [to-be-updated] fs-introduce-new-truncate-sequence.patch removed from -mm tree
+Date: Thu, 24 Sep 2009 12:32:08 -0700
+Message-ID: <200909241932.n8OJW8Jv026185@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51328 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39990 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753942AbZIXTdT (ORCPT
+	by vger.kernel.org with ESMTP id S1753942AbZIXTdZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Sep 2009 15:33:19 -0400
+	Thu, 24 Sep 2009 15:33:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, chris.mason@oracle.com, hch@lst.de, hirofumi@mail.parknet.co.jp, hugh.dickins@tiscali.co.uk, jack@suse.cz, linux-ext4@vger.kernel.org, miklos@szeredi.hu, sfrench@us.i
+To: npiggin@suse.de, chris.mason@oracle.com, hch@lst.de, hirofumi@mail.parknet.co.jp, hugh.dickins@tiscali.co.uk, jack@suse.cz, miklos@szeredi.hu, sfrench@us.ibm.com, shaggy@linux.vnet.ib
 
 
 The patch titled
-     ext2: convert to use the new truncate convention.
+     fs: introduce new truncate sequence
 has been removed from the -mm tree.  Its filename was
-     ext2-convert-to-use-the-new-truncate-convention.patch
+     fs-introduce-new-truncate-sequence.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext2: convert to use the new truncate convention.
+Subject: fs: introduce new truncate sequence
 From: Nick Piggin <npiggin@suse.de>
 
-I also have commented a possible bug in existing ext2 code, marked with
-XXX.
+Introduce a new truncate calling sequence into fs/mm subsystems.  Rather
+than setattr > vmtruncate > truncate, have filesystems call their truncate
+sequence from ->setattr if filesystem specific operations are required. 
+vmtruncate is deprecated, and truncate_pagecache and inode_newsize_ok
+helpers introduced previously should be used.
+
+simple_setattr is introduced for simple in-ram filesystems to implement
+the new truncate sequence.  Eventually all filesystems should be converted
+to implement a setattr, and the default code in notify_change should go
+away.
+
+simple_setsize is also introduced to perform just the ATTR_SIZE portion of
+simple_setattr (ie.  changing i_size and trimming pagecache).
+
+A new attribute is introduced into inode_operations structure;
+.new_truncate is a temporary hack to distinguish filesystems that
+implement the new truncate system.
+
+To implement the new truncate sequence:
+- set .new_truncate = 1
+- filesystem specific manipulations (eg freeing blocks) must be done in
+  the setattr method rather than ->truncate.
+- vmtruncate can not be used by core code to trim blocks past i_size in
+  the event of write failure after allocation, so this must be performed
+  in the fs code.
+- make use of the better opportunity to catch errors with the above 2 changes.
+- inode_setattr should not be used. generic_setattr is a new function
+  to be used to copy simple attributes into the generic inode.
+
+Big problem with the previous calling sequence: the filesystem is not
+called until i_size has already changed.  This means it is not allowed to
+fail the call, and also it does not know what the previous i_size was. 
+Also, generic code calling vmtruncate to truncate allocated blocks in case
+of error had no good way to return a meaningful error (or, for example,
+atomically handle block deallocation).
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: <linux-ext4@vger.kernel.org>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Dave Kleikamp <shaggy@linux.vnet.ibm.com>
@@ -45,211 +77,222 @@ Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/ext2.h  |    1 
- fs/ext2/file.c  |    2 
- fs/ext2/inode.c |  142 +++++++++++++++++++++++++++++++++++++---------
- 3 files changed, 116 insertions(+), 29 deletions(-)
+ Documentation/filesystems/vfs.txt |    7 ++
+ fs/attr.c                         |   51 +++++++++++++----
+ fs/buffer.c                       |   12 +++-
+ fs/direct-io.c                    |    7 +-
+ fs/libfs.c                        |   83 ++++++++++++++++++++++++++++
+ include/linux/fs.h                |    4 +
+ mm/truncate.c                     |   10 +--
+ 7 files changed, 152 insertions(+), 22 deletions(-)
 
-diff -puN fs/ext2/ext2.h~ext2-convert-to-use-the-new-truncate-convention fs/ext2/ext2.h
---- a/fs/ext2/ext2.h~ext2-convert-to-use-the-new-truncate-convention
-+++ a/fs/ext2/ext2.h
-@@ -122,7 +122,6 @@ extern int ext2_write_inode (struct inod
- extern void ext2_delete_inode (struct inode *);
- extern int ext2_sync_inode (struct inode *);
- extern int ext2_get_block(struct inode *, sector_t, struct buffer_head *, int);
--extern void ext2_truncate (struct inode *);
- extern int ext2_setattr (struct dentry *, struct iattr *);
- extern void ext2_set_inode_flags(struct inode *inode);
- extern void ext2_get_inode_flags(struct ext2_inode_info *);
-diff -puN fs/ext2/file.c~ext2-convert-to-use-the-new-truncate-convention fs/ext2/file.c
---- a/fs/ext2/file.c~ext2-convert-to-use-the-new-truncate-convention
-+++ a/fs/ext2/file.c
-@@ -77,13 +77,13 @@ const struct file_operations ext2_xip_fi
- #endif
+diff -puN Documentation/filesystems/vfs.txt~fs-introduce-new-truncate-sequence Documentation/filesystems/vfs.txt
+--- a/Documentation/filesystems/vfs.txt~fs-introduce-new-truncate-sequence
++++ a/Documentation/filesystems/vfs.txt
+@@ -402,11 +402,16 @@ otherwise noted.
+   	started might not be in the page cache at the end of the
+   	walk).
  
- const struct inode_operations ext2_file_inode_operations = {
--	.truncate	= ext2_truncate,
- #ifdef CONFIG_EXT2_FS_XATTR
- 	.setxattr	= generic_setxattr,
- 	.getxattr	= generic_getxattr,
- 	.listxattr	= ext2_listxattr,
- 	.removexattr	= generic_removexattr,
- #endif
-+	.new_truncate	= 1,
- 	.setattr	= ext2_setattr,
- 	.check_acl	= ext2_check_acl,
- 	.fiemap		= ext2_fiemap,
-diff -puN fs/ext2/inode.c~ext2-convert-to-use-the-new-truncate-convention fs/ext2/inode.c
---- a/fs/ext2/inode.c~ext2-convert-to-use-the-new-truncate-convention
-+++ a/fs/ext2/inode.c
-@@ -53,6 +53,8 @@ static inline int ext2_inode_is_fast_sym
- 		inode->i_blocks - ea_blocks == 0);
- }
+-  truncate: called by the VFS to change the size of a file.  The
++  truncate: Deprecated. This will not be called if ->setsize is defined.
++	Called by the VFS to change the size of a file.  The
+  	i_size field of the inode is set to the desired size by the
+  	VFS before this method is called.  This method is called by
+  	the truncate(2) system call and related functionality.
  
-+static void ext2_truncate_blocks(struct inode *inode, loff_t offset);
++	Note: ->truncate and vmtruncate are deprecated. Do not add new
++	instances/calls of these. Filesystems shoud be converted to do their
++	truncate sequence via ->setattr().
 +
- /*
-  * Called at the last iput() if i_nlink is zero.
+   permission: called by the VFS to check for access rights on a POSIX-like
+   	filesystem.
+ 
+diff -puN fs/attr.c~fs-introduce-new-truncate-sequence fs/attr.c
+--- a/fs/attr.c~fs-introduce-new-truncate-sequence
++++ a/fs/attr.c
+@@ -68,14 +68,14 @@ EXPORT_SYMBOL(inode_change_ok);
+  * @offset:	the new size to assign to the inode
+  * @Returns:	0 on success, -ve errno on failure
+  *
++ * inode_newsize_ok must be called with i_mutex held.
++ *
+  * inode_newsize_ok will check filesystem limits and ulimits to check that the
+  * new inode size is within limits. inode_newsize_ok will also send SIGXFSZ
+  * when necessary. Caller must not proceed with inode size change if failure is
+  * returned. @inode must be a file (not directory), with appropriate
+  * permissions to allow truncate (inode_newsize_ok does NOT check these
+  * conditions).
+- *
+- * inode_newsize_ok must be called with i_mutex held.
   */
-@@ -68,7 +70,7 @@ void ext2_delete_inode (struct inode * i
- 
- 	inode->i_size = 0;
- 	if (inode->i_blocks)
--		ext2_truncate (inode);
-+		ext2_truncate_blocks(inode, 0);
- 	ext2_free_inode (inode);
- 
- 	return;
-@@ -761,8 +763,33 @@ ext2_write_begin(struct file *file, stru
- 		loff_t pos, unsigned len, unsigned flags,
- 		struct page **pagep, void **fsdata)
+ int inode_newsize_ok(struct inode *inode, loff_t offset)
  {
-+	int ret;
+@@ -105,17 +105,25 @@ out_big:
+ }
+ EXPORT_SYMBOL(inode_newsize_ok);
+ 
+-int inode_setattr(struct inode * inode, struct iattr * attr)
++/**
++ * generic_setattr - copy simple metadata updates into the generic inode
++ * @inode:	the inode to be updated
++ * @attr:	the new attributes
++ *
++ * generic_setattr must be called with i_mutex held.
++ *
++ * generic_setattr updates the inode's metadata with that specified
++ * in attr. Noticably missing is inode size update, which is more complex
++ * as it requires pagecache updates. See simple_setsize.
++ *
++ * The inode is not marked as dirty after this operation. The rationale is
++ * that for "simple" filesystems, the struct inode is the inode storage.
++ * The caller is free to mark the inode dirty afterwards if needed.
++ */
++void generic_setattr(struct inode *inode, struct iattr *attr)
+ {
+ 	unsigned int ia_valid = attr->ia_valid;
+ 
+-	if (ia_valid & ATTR_SIZE &&
+-	    attr->ia_size != i_size_read(inode)) {
+-		int error = vmtruncate(inode, attr->ia_size);
+-		if (error)
+-			return error;
+-	}
+-
+ 	if (ia_valid & ATTR_UID)
+ 		inode->i_uid = attr->ia_uid;
+ 	if (ia_valid & ATTR_GID)
+@@ -136,6 +144,29 @@ int inode_setattr(struct inode * inode, 
+ 			mode &= ~S_ISGID;
+ 		inode->i_mode = mode;
+ 	}
++}
++EXPORT_SYMBOL(generic_setattr);
 +
++/*
++ * note this function is deprecated, the new truncate sequence should be
++ * used instead -- see eg. simple_setsize, generic_setattr.
++ */
++int inode_setattr(struct inode *inode, struct iattr * attr)
++{
++	unsigned int ia_valid = attr->ia_valid;
++
++	if (ia_valid & ATTR_SIZE &&
++	    attr->ia_size != i_size_read(inode)) {
++		int error;
++
++		BUG_ON(inode->i_op->new_truncate);
++		error = vmtruncate(inode, attr->ia_size);
++		if (error)
++			return error;
++	}
++
++	generic_setattr(inode, attr);
++
+ 	mark_inode_dirty(inode);
+ 
+ 	return 0;
+diff -puN fs/buffer.c~fs-introduce-new-truncate-sequence fs/buffer.c
+--- a/fs/buffer.c~fs-introduce-new-truncate-sequence
++++ a/fs/buffer.c
+@@ -1995,9 +1995,14 @@ int block_write_begin(struct file *file,
+ 			 * prepare_write() may have instantiated a few blocks
+ 			 * outside i_size.  Trim these off again. Don't need
+ 			 * i_size_read because we hold i_mutex.
++			 *
++			 * Filesystems which set i_op->new_truncate must
++			 * handle this themselves. Eventually this will go
++			 * away because everyone will be converted.
+ 			 */
+ 			if (pos + len > inode->i_size)
+-				vmtruncate(inode, inode->i_size);
++				if (!inode->i_op->new_truncate)
++					vmtruncate(inode, inode->i_size);
+ 		}
+ 	}
+ 
+@@ -2374,7 +2379,7 @@ int block_commit_write(struct page *page
+  *
+  * We are not allowed to take the i_mutex here so we have to play games to
+  * protect against truncate races as the page could now be beyond EOF.  Because
+- * vmtruncate() writes the inode size before removing pages, once we have the
++ * truncate writes the inode size before removing pages, once we have the
+  * page lock we can determine safely if the page is beyond EOF. If it is not
+  * beyond EOF, then the page is guaranteed safe against truncation until we
+  * unlock the page.
+@@ -2598,7 +2603,8 @@ out_release:
  	*pagep = NULL;
--	return __ext2_write_begin(file, mapping, pos, len, flags, pagep,fsdata);
-+	ret = __ext2_write_begin(file, mapping, pos, len, flags, pagep, fsdata);
-+	if (ret < 0) {
-+		struct inode *inode = mapping->host;
-+		loff_t isize = inode->i_size;
-+		if (pos + len > isize)
-+			ext2_truncate_blocks(inode, isize);
-+	}
-+	return ret;
-+}
-+
-+static int ext2_write_end(struct file *file, struct address_space *mapping,
-+			loff_t pos, unsigned len, unsigned copied,
-+			struct page *page, void *fsdata)
-+{
-+	int ret;
-+
-+	ret = generic_write_end(file, mapping, pos, len, copied, page, fsdata);
-+	if (ret < len) {
-+		struct inode *inode = mapping->host;
-+		loff_t isize = inode->i_size;
-+		if (pos + len > isize)
-+			ext2_truncate_blocks(inode, isize);
-+	}
-+	return ret;
- }
  
- static int
-@@ -770,13 +797,22 @@ ext2_nobh_write_begin(struct file *file,
- 		loff_t pos, unsigned len, unsigned flags,
- 		struct page **pagep, void **fsdata)
- {
-+	int ret;
-+
+ 	if (pos + len > inode->i_size)
+-		vmtruncate(inode, inode->i_size);
++		if (!inode->i_op->new_truncate)
++			vmtruncate(inode, inode->i_size);
+ 
+ 	return ret;
+ }
+diff -puN fs/direct-io.c~fs-introduce-new-truncate-sequence fs/direct-io.c
+--- a/fs/direct-io.c~fs-introduce-new-truncate-sequence
++++ a/fs/direct-io.c
+@@ -1210,14 +1210,15 @@ __blockdev_direct_IO(int rw, struct kioc
  	/*
- 	 * Dir-in-pagecache still uses ext2_write_begin. Would have to rework
- 	 * directory handling code to pass around offsets rather than struct
- 	 * pages in order to make this work easily.
+ 	 * In case of error extending write may have instantiated a few
+ 	 * blocks outside i_size. Trim these off again for DIO_LOCKING.
+-	 * NOTE: DIO_NO_LOCK/DIO_OWN_LOCK callers have to handle this by
+-	 * it's own meaner.
++	 * NOTE: DIO_NO_LOCK/DIO_OWN_LOCK callers have to handle this in
++	 * their own manner.
  	 */
--	return nobh_write_begin(file, mapping, pos, len, flags, pagep, fsdata,
-+	ret = nobh_write_begin(file, mapping, pos, len, flags, pagep, fsdata,
- 							ext2_get_block);
-+	if (ret < 0) {
-+		struct inode *inode = mapping->host;
-+		loff_t isize = inode->i_size;
-+		if (pos + len > isize)
-+			ext2_truncate_blocks(inode, isize);
-+	}
-+	return ret;
+ 	if (unlikely(retval < 0 && (rw & WRITE))) {
+ 		loff_t isize = i_size_read(inode);
+ 
+ 		if (end > isize && dio_lock_type == DIO_LOCKING)
+-			vmtruncate(inode, isize);
++			if (!inode->i_op->new_truncate)
++				vmtruncate(inode, isize);
+ 	}
+ 
+ 	if (rw == READ && dio_lock_type == DIO_LOCKING)
+diff -puN fs/libfs.c~fs-introduce-new-truncate-sequence fs/libfs.c
+--- a/fs/libfs.c~fs-introduce-new-truncate-sequence
++++ a/fs/libfs.c
+@@ -7,6 +7,7 @@
+ #include <linux/pagemap.h>
+ #include <linux/mount.h>
+ #include <linux/vfs.h>
++#include <linux/quotaops.h>
+ #include <linux/mutex.h>
+ #include <linux/exportfs.h>
+ #include <linux/writeback.h>
+@@ -329,6 +330,88 @@ int simple_rename(struct inode *old_dir,
+ 	return 0;
  }
  
- static int ext2_nobh_writepage(struct page *page,
-@@ -796,9 +832,15 @@ ext2_direct_IO(int rw, struct kiocb *ioc
- {
- 	struct file *file = iocb->ki_filp;
- 	struct inode *inode = file->f_mapping->host;
-+	ssize_t ret;
- 
--	return blockdev_direct_IO(rw, iocb, inode, inode->i_sb->s_bdev, iov,
-+	ret = blockdev_direct_IO(rw, iocb, inode, inode->i_sb->s_bdev, iov,
- 				offset, nr_segs, ext2_get_block, NULL);
-+	if (ret < 0 && (rw & WRITE)) {
-+		loff_t isize = inode->i_size;
-+		ext2_truncate_blocks(inode, isize);
-+	}
-+	return ret;
- }
- 
- static int
-@@ -813,7 +855,7 @@ const struct address_space_operations ex
- 	.writepage		= ext2_writepage,
- 	.sync_page		= block_sync_page,
- 	.write_begin		= ext2_write_begin,
--	.write_end		= generic_write_end,
-+	.write_end		= ext2_write_end,
- 	.bmap			= ext2_bmap,
- 	.direct_IO		= ext2_direct_IO,
- 	.writepages		= ext2_writepages,
-@@ -1022,7 +1064,7 @@ static void ext2_free_branches(struct in
- 		ext2_free_data(inode, p, q);
- }
- 
--void ext2_truncate(struct inode *inode)
-+static void __ext2_truncate_blocks(struct inode *inode, loff_t offset)
- {
- 	__le32 *i_data = EXT2_I(inode)->i_data;
- 	struct ext2_inode_info *ei = EXT2_I(inode);
-@@ -1034,27 +1076,8 @@ void ext2_truncate(struct inode *inode)
- 	int n;
- 	long iblock;
- 	unsigned blocksize;
--
--	if (!(S_ISREG(inode->i_mode) || S_ISDIR(inode->i_mode) ||
--	    S_ISLNK(inode->i_mode)))
--		return;
--	if (ext2_inode_is_fast_symlink(inode))
--		return;
--	if (IS_APPEND(inode) || IS_IMMUTABLE(inode))
--		return;
--
- 	blocksize = inode->i_sb->s_blocksize;
--	iblock = (inode->i_size + blocksize-1)
--					>> EXT2_BLOCK_SIZE_BITS(inode->i_sb);
--
--	if (mapping_is_xip(inode->i_mapping))
--		xip_truncate_page(inode->i_mapping, inode->i_size);
--	else if (test_opt(inode->i_sb, NOBH))
--		nobh_truncate_page(inode->i_mapping,
--				inode->i_size, ext2_get_block);
--	else
--		block_truncate_page(inode->i_mapping,
--				inode->i_size, ext2_get_block);
-+	iblock = (offset + blocksize-1) >> EXT2_BLOCK_SIZE_BITS(inode->i_sb);
- 
- 	n = ext2_block_to_path(inode, iblock, offsets, NULL);
- 	if (n == 0)
-@@ -1122,6 +1145,62 @@ do_indirects:
- 	ext2_discard_reservation(inode);
- 
- 	mutex_unlock(&ei->truncate_mutex);
-+}
-+
-+static void ext2_truncate_blocks(struct inode *inode, loff_t offset)
-+{
-+	/*
-+	 * XXX: it seems like a bug here that we don't allow
-+	 * IS_APPEND inode to have blocks-past-i_size trimmed off.
-+	 * review and fix this.
-+	 *
-+	 * Also would be nice to be able to handle IO errors and such,
-+	 * but that's probably too much to ask.
-+	 */
-+	if (!(S_ISREG(inode->i_mode) || S_ISDIR(inode->i_mode) ||
-+	    S_ISLNK(inode->i_mode)))
-+		return;
-+	if (ext2_inode_is_fast_symlink(inode))
-+		return;
-+	if (IS_APPEND(inode) || IS_IMMUTABLE(inode))
-+		return;
-+	__ext2_truncate_blocks(inode, offset);
-+}
-+
-+int ext2_setsize(struct inode *inode, loff_t newsize)
++/**
++ * simple_setsize - handle core mm and vfs requirements for file size change
++ * @inode: inode
++ * @newsize: new file size
++ *
++ * Returns 0 on success, -error on failure.
++ *
++ * simple_setsize must be called with inode_mutex held.
++ *
++ * simple_setsize will check that the requested new size is OK (see
++ * inode_newsize_ok), and then will perform the necessary i_size update
++ * and pagecache truncation (if necessary). It will be typically be called
++ * from the filesystem's setattr function when ATTR_SIZE is passed in.
++ *
++ * The inode itself must have correct permissions and attributes to allow
++ * i_size to be changed, this function then just checks that the new size
++ * requested is valid.
++ *
++ * In the case of simple in-memory filesystems with inodes stored solely
++ * in the inode cache, and file data in the pagecache, nothing more needs
++ * to be done to satisfy a truncate request. Filesystems with on-disk
++ * blocks for example will need to free them in the case of truncate, in
++ * that case it may be easier not to use simple_setsize (but each of its
++ * components will likely be required at some point to update pagecache
++ * and inode etc).
++ */
++int simple_setsize(struct inode *inode, loff_t newsize)
 +{
 +	loff_t oldsize;
 +	int error;
@@ -258,60 +301,117 @@ diff -puN fs/ext2/inode.c~ext2-convert-to-use-the-new-truncate-convention fs/ext
 +	if (error)
 +		return error;
 +
-+	if (!(S_ISREG(inode->i_mode) || S_ISDIR(inode->i_mode) ||
-+	    S_ISLNK(inode->i_mode)))
-+		return -EINVAL;
-+	if (ext2_inode_is_fast_symlink(inode))
-+		return -EINVAL;
-+	if (IS_APPEND(inode) || IS_IMMUTABLE(inode))
-+		return -EPERM;
-+
-+	if (mapping_is_xip(inode->i_mapping))
-+		error = xip_truncate_page(inode->i_mapping, newsize);
-+	else if (test_opt(inode->i_sb, NOBH))
-+		error = nobh_truncate_page(inode->i_mapping,
-+				newsize, ext2_get_block);
-+	else
-+		error = block_truncate_page(inode->i_mapping,
-+				newsize, ext2_get_block);
-+	if (error)
-+		return error;
-+
 +	oldsize = inode->i_size;
 +	i_size_write(inode, newsize);
 +	truncate_pagecache(inode, oldsize, newsize);
 +
-+	__ext2_truncate_blocks(inode, newsize);
++	return error;
++}
++EXPORT_SYMBOL(simple_setsize);
 +
- 	inode->i_mtime = inode->i_ctime = CURRENT_TIME_SEC;
- 	if (inode_needs_sync(inode)) {
- 		sync_mapping_buffers(inode->i_mapping);
-@@ -1129,6 +1208,8 @@ do_indirects:
- 	} else {
- 		mark_inode_dirty(inode);
- 	}
++/**
++ * simple_setattr - setattr for simple in-memory filesystem
++ * @dentry: dentry
++ * @iattr: iattr structure
++ *
++ * Returns 0 on success, -error on failure.
++ *
++ * simple_setattr implements setattr for an in-memory filesystem which
++ * does not store its own file data or metadata (eg. uses the page cache
++ * and inode cache as its data store).
++ */
++int simple_setattr(struct dentry *dentry, struct iattr *iattr)
++{
++	struct inode *inode = dentry->d_inode;
++	int error;
 +
-+	return 0;
- }
- 
- static struct ext2_inode *ext2_get_inode(struct super_block *sb, ino_t ino,
-@@ -1461,8 +1542,15 @@ int ext2_setattr(struct dentry *dentry, 
- 		if (error)
- 			return error;
- 	}
--	error = inode_setattr(inode, iattr);
-+	if (iattr->ia_valid & ATTR_SIZE) {
-+		error = ext2_setsize(inode, iattr->ia_size);
++	error = inode_change_ok(inode, iattr);
++	if (error)
++		return error;
++
++	if ((iattr->ia_valid & ATTR_UID && iattr->ia_uid != inode->i_uid) ||
++	    (iattr->ia_valid & ATTR_GID && iattr->ia_gid != inode->i_gid)) {
++		error = vfs_dq_transfer(inode, iattr) ? -EDQUOT : 0;
 +		if (error)
 +			return error;
 +	}
-+	generic_setattr(inode, iattr);
- 	if (!error && (iattr->ia_valid & ATTR_MODE))
- 		error = ext2_acl_chmod(inode);
-+	mark_inode_dirty(inode);
 +
- 	return error;
- }
++	if (iattr->ia_valid & ATTR_SIZE) {
++		error = simple_setsize(inode, iattr->ia_size);
++		if (error)
++			return error;
++	}
++
++	generic_setattr(inode, iattr);
++
++	return error;
++}
++EXPORT_SYMBOL(simple_setattr);
++
+ int simple_readpage(struct file *file, struct page *page)
+ {
+ 	clear_highpage(page);
+diff -puN include/linux/fs.h~fs-introduce-new-truncate-sequence include/linux/fs.h
+--- a/include/linux/fs.h~fs-introduce-new-truncate-sequence
++++ a/include/linux/fs.h
+@@ -1521,6 +1521,7 @@ struct inode_operations {
+ 	void * (*follow_link) (struct dentry *, struct nameidata *);
+ 	void (*put_link) (struct dentry *, struct nameidata *, void *);
+ 	void (*truncate) (struct inode *);
++	int new_truncate; /* nasty hack to transition to new truncate code */
+ 	int (*permission) (struct inode *, int);
+ 	int (*check_acl)(struct inode *, int);
+ 	int (*setattr) (struct dentry *, struct iattr *);
+@@ -2346,12 +2347,14 @@ extern int dcache_dir_open(struct inode 
+ extern int dcache_dir_close(struct inode *, struct file *);
+ extern loff_t dcache_dir_lseek(struct file *, loff_t, int);
+ extern int dcache_readdir(struct file *, void *, filldir_t);
++extern int simple_setattr(struct dentry *dentry, struct iattr *attr);
+ extern int simple_getattr(struct vfsmount *, struct dentry *, struct kstat *);
+ extern int simple_statfs(struct dentry *, struct kstatfs *);
+ extern int simple_link(struct dentry *, struct inode *, struct dentry *);
+ extern int simple_unlink(struct inode *, struct dentry *);
+ extern int simple_rmdir(struct inode *, struct dentry *);
+ extern int simple_rename(struct inode *, struct dentry *, struct inode *, struct dentry *);
++extern int simple_setsize(struct inode *inode, loff_t newsize);
+ extern int simple_sync_file(struct file *, struct dentry *, int);
+ extern int simple_empty(struct dentry *);
+ extern int simple_readpage(struct file *file, struct page *page);
+@@ -2389,6 +2392,7 @@ extern int buffer_migrate_page(struct ad
+ extern int inode_change_ok(struct inode *, struct iattr *);
+ extern int inode_newsize_ok(struct inode *, loff_t offset);
+ extern int __must_check inode_setattr(struct inode *, struct iattr *);
++extern void generic_setattr(struct inode *inode, struct iattr *attr);
+ 
+ extern void file_update_time(struct file *file);
+ 
+diff -puN mm/truncate.c~fs-introduce-new-truncate-sequence mm/truncate.c
+--- a/mm/truncate.c~fs-introduce-new-truncate-sequence
++++ a/mm/truncate.c
+@@ -543,18 +543,18 @@ EXPORT_SYMBOL(truncate_pagecache);
+  * NOTE! We have to be ready to update the memory sharing
+  * between the file and the memory map for a potential last
+  * incomplete page.  Ugly, but necessary.
++ *
++ * This function is deprecated and simple_setsize or truncate_pagecache
++ * should be used instead.
+  */
+ int vmtruncate(struct inode *inode, loff_t offset)
+ {
+-	loff_t oldsize;
+ 	int error;
+ 
+-	error = inode_newsize_ok(inode, offset);
++	error = simple_setsize(inode, offset);
+ 	if (error)
+ 		return error;
+-	oldsize = inode->i_size;
+-	i_size_write(inode, offset);
+-	truncate_pagecache(inode, oldsize, offset);
++
+ 	if (inode->i_op->truncate)
+ 		inode->i_op->truncate(inode);
+ 
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
@@ -320,6 +420,9 @@ origin.patch
 linux-next.patch
 fs-remove-unneeded-dcache_unhashed-tricks.patch
 fs-improve-remountro-vs-buffercache-coherency.patch
+fs-introduce-new-truncate-sequence.patch
+fs-convert-simple-fs-to-new-truncate.patch
+tmpfs-convert-to-use-the-new-truncate-convention.patch
 ext2-convert-to-use-the-new-truncate-convention.patch
 ext2-convert-to-use-the-new-truncate-convention-fix.patch
 fat-convert-to-use-the-new-truncate-convention.patch
