@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + nommu-ignore-mmap-address-param-as-it-is-a-hint.patch added to -mm tree
-Date: Thu, 24 Sep 2009 15:15:39 -0700
-Message-ID: <200909242215.n8OMFdFS027317@imap1.linux-foundation.org>
+Subject: + mtd-nand-fix-htmldocs-warnings.patch added to -mm tree
+Date: Thu, 24 Sep 2009 15:16:17 -0700
+Message-ID: <200909242216.n8OMGIqs028590@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48257 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40679 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751749AbZIXWQU (ORCPT
+	by vger.kernel.org with ESMTP id S1752200AbZIXWSE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Sep 2009 18:16:20 -0400
+	Thu, 24 Sep 2009 18:18:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com, gerg@snapgear.com
+Cc: jaswinder@kernel.org, David.Woodhouse@intel.com, jaswinderrajput@gmail.com, nsnehaprabha@ti.com, randy.dunlap@oracle.com, s-paulraj@ti.com, tglx@linutronix.de
 
 
 The patch titled
-     nommu: ignore mmap() address param as it is a hint
+     mtd: nand: fix htmldocs warnings
 has been added to the -mm tree.  Its filename is
-     nommu-ignore-mmap-address-param-as-it-is-a-hint.patch
+     mtd-nand-fix-htmldocs-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,63 +34,88 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nommu: ignore mmap() address param as it is a hint
-From: David Howells <dhowells@redhat.com>
+Subject: mtd: nand: fix htmldocs warnings
+From: Jaswinder Singh Rajput <jaswinder@kernel.org>
 
-Ignore the address parameter given to NOMMU mmap() as it is a hint, rather
-than giving an error if it's non-zero.  MAP_FIXED still gets an error.
+Fixed following htmldocs warnings:
 
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Greg Ungerer <gerg@snapgear.com>
+  DOCPROC Documentation/DocBook/mtdnand.xml
+  Warning(drivers/mtd/nand/nand_base.c:769): No description found for parameter 'page'
+  Warning(drivers/mtd/nand/nand_base.c:785): No description found for parameter 'page'
+  Warning(drivers/mtd/nand/nand_base.c:824): No description found for parameter 'page'
+  Warning(drivers/mtd/nand/nand_base.c:947): No description found for parameter 'page'
+  Warning(drivers/mtd/nand/nand_base.c:996): No description found for parameter 'page'
+  Warning(drivers/mtd/nand/nand_base.c:1040): No description found for parameter 'page'
+
+Signed-off-by: Jaswinder Singh Rajput <jaswinderrajput@gmail.com>
+Cc: David Woodhouse <David.Woodhouse@intel.com>
+Cc: Sneha Narnakaje <nsnehaprabha@ti.com>
+Cc: Sandeep Paulraj <s-paulraj@ti.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nommu.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/mtd/nand/nand_base.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN mm/nommu.c~nommu-ignore-mmap-address-param-as-it-is-a-hint mm/nommu.c
---- a/mm/nommu.c~nommu-ignore-mmap-address-param-as-it-is-a-hint
-+++ a/mm/nommu.c
-@@ -826,7 +826,7 @@ static int validate_mmap_request(struct 
- 	int ret;
- 
- 	/* do the simple checks first */
--	if (flags & MAP_FIXED || addr) {
-+	if (flags & MAP_FIXED) {
- 		printk(KERN_DEBUG
- 		       "%d: Can't do fixed-address/overlay mmap of RAM\n",
- 		       current->pid);
-@@ -1182,9 +1182,6 @@ unsigned long do_mmap_pgoff(struct file 
- 
- 	kenter(",%lx,%lx,%lx,%lx,%lx", addr, len, prot, flags, pgoff);
- 
--	if (!(flags & MAP_FIXED))
--		addr = round_hint_to_min(addr);
--
- 	/* decide whether we should attempt the mapping, and if so what sort of
- 	 * mapping */
- 	ret = validate_mmap_request(file, addr, len, prot, flags, pgoff,
-@@ -1194,6 +1191,9 @@ unsigned long do_mmap_pgoff(struct file 
- 		return ret;
- 	}
- 
-+	/* we ignore the address hint */
-+	addr = 0;
-+
- 	/* we've determined that we can make the mapping, now translate what we
- 	 * now know into VMA flags */
- 	vm_flags = determine_vm_flags(file, prot, flags, capabilities);
+diff -puN drivers/mtd/nand/nand_base.c~mtd-nand-fix-htmldocs-warnings drivers/mtd/nand/nand_base.c
+--- a/drivers/mtd/nand/nand_base.c~mtd-nand-fix-htmldocs-warnings
++++ a/drivers/mtd/nand/nand_base.c
+@@ -761,6 +761,7 @@ static int nand_wait(struct mtd_info *mt
+  * @mtd:	mtd info structure
+  * @chip:	nand chip info structure
+  * @buf:	buffer to store read data
++ * @page:	page number to read
+  *
+  * Not for syndrome calculating ecc controllers, which use a special oob layout
+  */
+@@ -777,6 +778,7 @@ static int nand_read_page_raw(struct mtd
+  * @mtd:	mtd info structure
+  * @chip:	nand chip info structure
+  * @buf:	buffer to store read data
++ * @page:	page number to read
+  *
+  * We need a special oob layout and handling even when OOB isn't used.
+  */
+@@ -818,6 +820,7 @@ static int nand_read_page_raw_syndrome(s
+  * @mtd:	mtd info structure
+  * @chip:	nand chip info structure
+  * @buf:	buffer to store read data
++ * @page:	page number to read
+  */
+ static int nand_read_page_swecc(struct mtd_info *mtd, struct nand_chip *chip,
+ 				uint8_t *buf, int page)
+@@ -939,6 +942,7 @@ static int nand_read_subpage(struct mtd_
+  * @mtd:	mtd info structure
+  * @chip:	nand chip info structure
+  * @buf:	buffer to store read data
++ * @page:	page number to read
+  *
+  * Not for syndrome calculating ecc controllers which need a special oob layout
+  */
+@@ -983,6 +987,7 @@ static int nand_read_page_hwecc(struct m
+  * @mtd:	mtd info structure
+  * @chip:	nand chip info structure
+  * @buf:	buffer to store read data
++ * @page:	page number to read
+  *
+  * Hardware ECC for large page chips, require OOB to be read first.
+  * For this ECC mode, the write_page method is re-used from ECC_HW.
+@@ -1031,6 +1036,7 @@ static int nand_read_page_hwecc_oob_firs
+  * @mtd:	mtd info structure
+  * @chip:	nand chip info structure
+  * @buf:	buffer to store read data
++ * @page:	page number to read
+  *
+  * The hw generator calculates the error syndrome automatically. Therefor
+  * we need a special oob layout and handling.
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from jaswinder@kernel.org are
 
 origin.patch
-procfs-disable-per-task-stack-usage-on-nommu.patch
-hugetlb_file_setup-use-c-not-cpp.patch
-nommu-fix-map_private-mmap-of-objects-where-the-data-can-be-mapped-directly.patch
-frv-flash-mappings-for-the-mb93090-mb00-motherboard.patch
-nommu-fallback-for-is_vmalloc_or_module_addr-should-be-inline.patch
-nommu-ignore-mmap-address-param-as-it-is-a-hint.patch
-frv-duplicate-output_buffer-of-e03.patch
-mutex-subsystem-synchro-test-module.patch
+kernel-core-add-smp_call_function_any.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+mtd-nand-fix-htmldocs-warnings.patch
 
