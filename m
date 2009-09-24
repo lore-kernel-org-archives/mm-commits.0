@@ -1,64 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-add-comments-explaining-memory-barriers.patch removed from -mm tree
-Date: Thu, 24 Sep 2009 12:34:32 -0700
-Message-ID: <200909241934.n8OJYWIQ031013@imap1.linux-foundation.org>
+Subject: [merged] wait_consider_task-kill-parent-argument.patch removed from -mm tree
+Date: Thu, 24 Sep 2009 12:35:20 -0700
+Message-ID: <200909241935.n8OJZKKY032765@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52015 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43185 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754454AbZIXTew (ORCPT
+	by vger.kernel.org with ESMTP id S1753768AbZIXTgA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Sep 2009 15:34:52 -0400
+	Thu, 24 Sep 2009 15:36:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
+To: oleg@redhat.com, mingo@elte.hu, rnalumasu@gmail.com, roland@redhat.com, vmayatsk@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: add comments explaining memory barriers
+     wait_consider_task: kill "parent" argument
 has been removed from the -mm tree.  Its filename was
-     memcg-add-comments-explaining-memory-barriers.patch
+     wait_consider_task-kill-parent-argument.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: add comments explaining memory barriers
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: wait_consider_task: kill "parent" argument
+From: Oleg Nesterov <oleg@redhat.com>
 
-Add comments for the reason of smp_wmb() in mem_cgroup_commit_charge().
+Kill the unused "parent" argument in wait_consider_task(), it was never used.
 
-[akpm@linux-foundation.org: coding-style fixes]
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Ratan Nalumasu <rnalumasu@gmail.com>
+Cc: Vitaly Mayatskikh <vmayatsk@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ kernel/exit.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-add-comments-explaining-memory-barriers mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-add-comments-explaining-memory-barriers
-+++ a/mm/memcontrol.c
-@@ -1134,6 +1134,13 @@ static void __mem_cgroup_commit_charge(s
- 	}
+diff -puN kernel/exit.c~wait_consider_task-kill-parent-argument kernel/exit.c
+--- a/kernel/exit.c~wait_consider_task-kill-parent-argument
++++ a/kernel/exit.c
+@@ -1481,8 +1481,8 @@ static int wait_task_continued(struct wa
+  * then ->notask_error is 0 if @p is an eligible child,
+  * or another error from security_task_wait(), or still -ECHILD.
+  */
+-static int wait_consider_task(struct wait_opts *wo, struct task_struct *parent,
+-				int ptrace, struct task_struct *p)
++static int wait_consider_task(struct wait_opts *wo, int ptrace,
++				struct task_struct *p)
+ {
+ 	int ret = eligible_child(wo, p);
+ 	if (!ret)
+@@ -1550,7 +1550,7 @@ static int do_wait_thread(struct wait_op
+ 		 * Do not consider detached threads.
+ 		 */
+ 		if (!task_detached(p)) {
+-			int ret = wait_consider_task(wo, tsk, 0, p);
++			int ret = wait_consider_task(wo, 0, p);
+ 			if (ret)
+ 				return ret;
+ 		}
+@@ -1564,7 +1564,7 @@ static int ptrace_do_wait(struct wait_op
+ 	struct task_struct *p;
  
- 	pc->mem_cgroup = mem;
-+	/*
-+	 * We access a page_cgroup asynchronously without lock_page_cgroup().
-+	 * Especially when a page_cgroup is taken from a page, pc->mem_cgroup
-+	 * is accessed after testing USED bit. To make pc->mem_cgroup visible
-+	 * before USED bit, we need memory barrier here.
-+	 * See mem_cgroup_add_lru_list(), etc.
-+ 	 */
- 	smp_wmb();
- 	switch (ctype) {
- 	case MEM_CGROUP_CHARGE_TYPE_CACHE:
+ 	list_for_each_entry(p, &tsk->ptraced, ptrace_entry) {
+-		int ret = wait_consider_task(wo, tsk, 1, p);
++		int ret = wait_consider_task(wo, 1, p);
+ 		if (ret)
+ 			return ret;
+ 	}
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 origin.patch
+linux-next.patch
+do_wait-optimization-do-not-place-sub-threads-on-task_struct-children-list.patch
+utrace-core.patch
 
