@@ -1,81 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [merged] do_wait-wakeup-optimization-simplify-task_pid_type.patch removed from -mm tree
-Date: Thu, 24 Sep 2009 12:35:17 -0700
-Message-ID: <200909241935.n8OJZHtc032627@imap1.linux-foundation.org>
+Subject: [merged] memcg-add-comments-explaining-memory-barriers.patch removed from -mm tree
+Date: Thu, 24 Sep 2009 12:34:32 -0700
+Message-ID: <200909241934.n8OJYWIQ031013@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34276 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52015 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753224AbZIXTfp (ORCPT
+	by vger.kernel.org with ESMTP id S1754454AbZIXTew (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Sep 2009 15:35:45 -0400
+	Thu, 24 Sep 2009 15:34:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, roland@redhat.com, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     do_wait-wakeup-optimization: simplify task_pid_type()
+     memcg: add comments explaining memory barriers
 has been removed from the -mm tree.  Its filename was
-     do_wait-wakeup-optimization-simplify-task_pid_type.patch
+     memcg-add-comments-explaining-memory-barriers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: do_wait-wakeup-optimization: simplify task_pid_type()
-From: Oleg Nesterov <oleg@redhat.com>
+Subject: memcg: add comments explaining memory barriers
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-task_pid_type() is only used by eligible_pid() which has to check wo_type
-!= PIDTYPE_MAX anyway.  Remove this check from task_pid_type() and factor
-out ->pids[type] access, this shrinks .text a bit and simplifies the code.
+Add comments for the reason of smp_wmb() in mem_cgroup_commit_charge().
 
-The matches the behaviour of other similar helpers, say get_task_pid(). 
-The caller must ensure that pid_type is valid, not the callee.
-
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+[akpm@linux-foundation.org: coding-style fixes]
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |   14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+ mm/memcontrol.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN kernel/exit.c~do_wait-wakeup-optimization-simplify-task_pid_type kernel/exit.c
---- a/kernel/exit.c~do_wait-wakeup-optimization-simplify-task_pid_type
-+++ a/kernel/exit.c
-@@ -1101,17 +1101,15 @@ struct wait_opts {
- 	int			notask_error;
- };
+diff -puN mm/memcontrol.c~memcg-add-comments-explaining-memory-barriers mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-add-comments-explaining-memory-barriers
++++ a/mm/memcontrol.c
+@@ -1134,6 +1134,13 @@ static void __mem_cgroup_commit_charge(s
+ 	}
  
--static struct pid *task_pid_type(struct task_struct *task, enum pid_type type)
-+static inline
-+struct pid *task_pid_type(struct task_struct *task, enum pid_type type)
- {
--	struct pid *pid = NULL;
--	if (type == PIDTYPE_PID)
--		pid = task->pids[type].pid;
--	else if (type < PIDTYPE_MAX)
--		pid = task->group_leader->pids[type].pid;
--	return pid;
-+	if (type != PIDTYPE_PID)
-+		task = task->group_leader;
-+	return task->pids[type].pid;
- }
- 
--static inline int eligible_pid(struct wait_opts *wo, struct task_struct *p)
-+static int eligible_pid(struct wait_opts *wo, struct task_struct *p)
- {
- 	return	wo->wo_type == PIDTYPE_MAX ||
- 		task_pid_type(p, wo->wo_type) == wo->wo_pid;
+ 	pc->mem_cgroup = mem;
++	/*
++	 * We access a page_cgroup asynchronously without lock_page_cgroup().
++	 * Especially when a page_cgroup is taken from a page, pc->mem_cgroup
++	 * is accessed after testing USED bit. To make pc->mem_cgroup visible
++	 * before USED bit, we need memory barrier here.
++	 * See mem_cgroup_add_lru_list(), etc.
++ 	 */
+ 	smp_wmb();
+ 	switch (ctype) {
+ 	case MEM_CGROUP_CHARGE_TYPE_CACHE:
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
-linux-next.patch
-do_wait-optimization-do-not-place-sub-threads-on-task_struct-children-list.patch
-utrace-core.patch
 
