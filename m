@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + fbdev-bfin-lq035q1-fb-new-blackfin-landscape-lcd-ez-extender-driver.patch added to -mm tree
-Date: Thu, 24 Sep 2009 16:33:05 -0700
-Message-ID: <200909242333.n8ONX5St018722@imap1.linux-foundation.org>
+Subject: + vfs-implement-posix-o_sync-and-o_dsync-semantics-checkpatch-fixes.patch added to -mm tree
+Date: Thu, 24 Sep 2009 16:42:34 -0700
+Message-ID: <200909242342.n8ONgZX0005114@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56956 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43471 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752430AbZIXXeS (ORCPT
+	by vger.kernel.org with ESMTP id S1752744AbZIXXmc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Sep 2009 19:34:18 -0400
+	Thu, 24 Sep 2009 19:42:32 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n8ONgZeK003807
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Thu, 24 Sep 2009 16:42:36 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: michael.hennerich@analog.com, cooloney@kernel.org, vapier@gentoo.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     fbdev: bfin-lq035q1-fb: new Blackfin Landscape LCD EZ-Extender driver
+     vfs-implement-posix-o_sync-and-o_dsync-semantics-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     fbdev-bfin-lq035q1-fb-new-blackfin-landscape-lcd-ez-extender-driver.patch
+     vfs-implement-posix-o_sync-and-o_dsync-semantics-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,956 +38,90 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev: bfin-lq035q1-fb: new Blackfin Landscape LCD EZ-Extender driver
-From: Michael Hennerich <michael.hennerich@analog.com>
+Subject: vfs-implement-posix-o_sync-and-o_dsync-semantics-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Framebuffer driver for the Landscape LCD EZ-Extender (ADZS-BFLLCD-EZEXT)
-http://docs.blackfin.uclinux.org/doku.php?id=hw:cards:landscape_lcd_ez-extender
+WARNING: braces {} are not necessary for single statement blocks
+#269: FILE: arch/x86/mm/pat.c:708:
++	if (file->f_flags & O_DSYNC) {
+ 		flags = _PAGE_CACHE_UC_MINUS;
+ 	}
 
-Signed-off-by: Michael Hennerich <michael.hennerich@analog.com>
-Signed-off-by: Bryan Wu <cooloney@kernel.org>
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+WARNING: line over 80 characters
+#281: FILE: drivers/char/mem.c:47:
++	 * On ia64, we ignore O_DSYNC because we cannot tolerate memory attribute aliases.
+
+total: 0 errors, 2 warnings, 359 lines checked
+
+./patches/vfs-implement-posix-o_sync-and-o_dsync-semantics.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/blackfin/include/asm/bfin-lq035q1.h |   28 
- drivers/video/Kconfig                    |   13 
- drivers/video/Makefile                   |    1 
- drivers/video/bfin-lq035q1-fb.c          |  855 +++++++++++++++++++++
- 4 files changed, 897 insertions(+)
+ arch/x86/mm/pat.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN /dev/null arch/blackfin/include/asm/bfin-lq035q1.h
---- /dev/null
-+++ a/arch/blackfin/include/asm/bfin-lq035q1.h
-@@ -0,0 +1,28 @@
-+/*
-+ * Blackfin LCD Framebuffer driver SHARP LQ035Q1DH02
-+ *
-+ * Copyright 2008-2009 Analog Devices Inc.
-+ * Licensed under the GPL-2 or later.
-+ */
-+
-+#ifndef BFIN_LQ035Q1_H
-+#define BFIN_LQ035Q1_H
-+
-+#define LQ035_RL	(0 << 8)	/* Right -> Left Scan */
-+#define LQ035_LR	(1 << 8)	/* Left -> Right Scan */
-+#define LQ035_TB	(1 << 9)	/* Top -> Botton Scan */
-+#define LQ035_BT	(0 << 9)	/* Botton -> Top Scan */
-+#define LQ035_BGR	(1 << 11)	/* Use BGR format */
-+#define LQ035_RGB	(0 << 11)	/* Use RGB format */
-+#define LQ035_NORM	(1 << 13)	/* Reversal */
-+#define LQ035_REV	(0 << 13)	/* Reversal */
-+
-+struct bfin_lq035q1fb_disp_info {
-+
-+	unsigned	mode;
-+	/* GPIOs */
-+	int		use_bl;
-+	unsigned 	gpio_bl;
-+};
-+
-+#endif /* BFIN_LQ035Q1_H */
-diff -puN drivers/video/Kconfig~fbdev-bfin-lq035q1-fb-new-blackfin-landscape-lcd-ez-extender-driver drivers/video/Kconfig
---- a/drivers/video/Kconfig~fbdev-bfin-lq035q1-fb-new-blackfin-landscape-lcd-ez-extender-driver
-+++ a/drivers/video/Kconfig
-@@ -611,6 +611,19 @@ config FB_BFIN_T350MCQB
- 	 This display is a QVGA 320x240 24-bit RGB display interfaced by an 8-bit wide PPI
- 	 It uses PPI[0..7] PPI_FS1, PPI_FS2 and PPI_CLK.
+diff -puN arch/x86/mm/pat.c~vfs-implement-posix-o_sync-and-o_dsync-semantics-checkpatch-fixes arch/x86/mm/pat.c
+--- a/arch/x86/mm/pat.c~vfs-implement-posix-o_sync-and-o_dsync-semantics-checkpatch-fixes
++++ a/arch/x86/mm/pat.c
+@@ -705,9 +705,8 @@ int phys_mem_access_prot_allowed(struct 
+ 	if (!range_is_allowed(pfn, size))
+ 		return 0;
  
-+config FB_BFIN_LQ035Q1
-+	tristate "SHARP LQ035Q1DH02 TFT LCD"
-+	depends on FB && BLACKFIN
-+	select FB_CFB_FILLRECT
-+	select FB_CFB_COPYAREA
-+	select FB_CFB_IMAGEBLIT
-+	select BFIN_GPTIMERS
-+	select SPI
-+	help
-+	  This is the framebuffer device driver for a SHARP LQ035Q1DH02 TFT display found on
-+	  the Blackfin Landscape LCD EZ-Extender Card.
-+	  This display is a QVGA 320x240 18-bit RGB display interfaced by an 16-bit wide PPI
-+	  It uses PPI[0..15] PPI_FS1, PPI_FS2 and PPI_CLK.
+-	if (file->f_flags & O_DSYNC) {
++	if (file->f_flags & O_DSYNC)
+ 		flags = _PAGE_CACHE_UC_MINUS;
+-	}
  
- config FB_STI
- 	tristate "HP STI frame buffer device support"
-diff -puN drivers/video/Makefile~fbdev-bfin-lq035q1-fb-new-blackfin-landscape-lcd-ez-extender-driver drivers/video/Makefile
---- a/drivers/video/Makefile~fbdev-bfin-lq035q1-fb-new-blackfin-landscape-lcd-ez-extender-driver
-+++ a/drivers/video/Makefile
-@@ -136,6 +136,7 @@ obj-$(CONFIG_FB_EFI)              += efi
- obj-$(CONFIG_FB_VGA16)            += vga16fb.o
- obj-$(CONFIG_FB_OF)               += offb.o
- obj-$(CONFIG_FB_BF54X_LQ043)	  += bf54x-lq043fb.o
-+obj-$(CONFIG_FB_BFIN_LQ035Q1)     += bfin-lq035q1-fb.o
- obj-$(CONFIG_FB_BFIN_T350MCQB)	  += bfin-t350mcqb-fb.o
- obj-$(CONFIG_FB_MX3)		  += mx3fb.o
- obj-$(CONFIG_FB_DA8XX)		  += da8xx-fb.o
-diff -puN /dev/null drivers/video/bfin-lq035q1-fb.c
---- /dev/null
-+++ a/drivers/video/bfin-lq035q1-fb.c
-@@ -0,0 +1,855 @@
-+/*
-+ * Blackfin LCD Framebuffer driver SHARP LQ035Q1DH02
-+ *
-+ * Copyright 2008-2009 Analog Devices Inc.
-+ * Licensed under the GPL-2 or later.
-+ */
-+
-+#define pr_fmt(fmt) DRIVER_NAME ": " fmt
-+
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/errno.h>
-+#include <linux/string.h>
-+#include <linux/fb.h>
-+#include <linux/init.h>
-+#include <linux/types.h>
-+#include <linux/interrupt.h>
-+#include <linux/device.h>
-+#include <linux/backlight.h>
-+#include <linux/lcd.h>
-+#include <linux/dma-mapping.h>
-+#include <linux/platform_device.h>
-+#include <linux/spi/spi.h>
-+#include <linux/dma-mapping.h>
-+
-+#include <asm/blackfin.h>
-+#include <asm/irq.h>
-+#include <asm/dma.h>
-+#include <asm/portmux.h>
-+#include <asm/gptimers.h>
-+
-+#include <asm/bfin-lq035q1.h>
-+
-+#if defined(BF533_FAMILY) || defined(BF538_FAMILY)
-+#define TIMER_HSYNC_id			TIMER1_id
-+#define TIMER_HSYNCbit			TIMER1bit
-+#define TIMER_HSYNC_STATUS_TRUN		TIMER_STATUS_TRUN1
-+#define TIMER_HSYNC_STATUS_TIMIL	TIMER_STATUS_TIMIL1
-+#define TIMER_HSYNC_STATUS_TOVF		TIMER_STATUS_TOVF1
-+
-+#define TIMER_VSYNC_id			TIMER2_id
-+#define TIMER_VSYNCbit			TIMER2bit
-+#define TIMER_VSYNC_STATUS_TRUN		TIMER_STATUS_TRUN2
-+#define TIMER_VSYNC_STATUS_TIMIL	TIMER_STATUS_TIMIL2
-+#define TIMER_VSYNC_STATUS_TOVF		TIMER_STATUS_TOVF2
-+#else
-+#define TIMER_HSYNC_id			TIMER0_id
-+#define TIMER_HSYNCbit			TIMER0bit
-+#define TIMER_HSYNC_STATUS_TRUN		TIMER_STATUS_TRUN0
-+#define TIMER_HSYNC_STATUS_TIMIL	TIMER_STATUS_TIMIL0
-+#define TIMER_HSYNC_STATUS_TOVF		TIMER_STATUS_TOVF0
-+
-+#define TIMER_VSYNC_id			TIMER1_id
-+#define TIMER_VSYNCbit			TIMER1bit
-+#define TIMER_VSYNC_STATUS_TRUN		TIMER_STATUS_TRUN1
-+#define TIMER_VSYNC_STATUS_TIMIL	TIMER_STATUS_TIMIL1
-+#define TIMER_VSYNC_STATUS_TOVF		TIMER_STATUS_TOVF1
-+#endif
-+
-+#define LCD_X_RES		320	/* Horizontal Resolution */
-+#define LCD_Y_RES		240	/* Vertical Resolution */
-+#define	DMA_BUS_SIZE		16
-+
-+#define USE_RGB565_16_BIT_PPI
-+
-+#ifdef USE_RGB565_16_BIT_PPI
-+#define LCD_BPP		16	/* Bit Per Pixel */
-+#define CLOCKS_PER_PIX	1
-+#define CPLD_PIPELINE_DELAY_COR 0	/* NO CPLB */
-+#endif
-+
-+/* Interface 16/18-bit TFT over an 8-bit wide PPI using a small Programmable Logic Device (CPLD)
-+ * http://blackfin.uclinux.org/gf/project/stamp/frs/?action=FrsReleaseBrowse&frs_package_id=165
-+ */
-+
-+#ifdef USE_RGB565_8_BIT_PPI
-+#define LCD_BPP		16	/* Bit Per Pixel */
-+#define CLOCKS_PER_PIX	2
-+#define CPLD_PIPELINE_DELAY_COR 3	/* RGB565 */
-+#endif
-+
-+#ifdef USE_RGB888_8_BIT_PPI
-+#define LCD_BPP		24	/* Bit Per Pixel */
-+#define CLOCKS_PER_PIX	3
-+#define CPLD_PIPELINE_DELAY_COR 5	/* RGB888 */
-+#endif
-+
-+	/*
-+	 * HS and VS timing parameters (all in number of PPI clk ticks)
-+	 */
-+
-+#define U_LINE		4				/* Blanking Lines */
-+
-+#define H_ACTPIX	(LCD_X_RES * CLOCKS_PER_PIX)	/* active horizontal pixel */
-+#define H_PERIOD	(336 * CLOCKS_PER_PIX)		/* HS period */
-+#define H_PULSE		(2 * CLOCKS_PER_PIX)				/* HS pulse width */
-+#define H_START		(7 * CLOCKS_PER_PIX + CPLD_PIPELINE_DELAY_COR)	/* first valid pixel */
-+
-+#define	V_LINES		(LCD_Y_RES + U_LINE)		/* total vertical lines */
-+#define V_PULSE		(2 * CLOCKS_PER_PIX)		/* VS pulse width (1-5 H_PERIODs) */
-+#define V_PERIOD	(H_PERIOD * V_LINES)		/* VS period */
-+
-+#define ACTIVE_VIDEO_MEM_OFFSET		((U_LINE / 2) * LCD_X_RES * (LCD_BPP / 8))
-+
-+#define BFIN_LCD_NBR_PALETTE_ENTRIES	256
-+
-+#define PPI_TX_MODE			0x2
-+#define PPI_XFER_TYPE_11		0xC
-+#define PPI_PORT_CFG_01			0x10
-+#define PPI_POLS_1			0x8000
-+
-+#if (CLOCKS_PER_PIX > 1)
-+#define PPI_PMODE (DLEN_8 | PACK_EN)
-+#else
-+#define PPI_PMODE (DLEN_16)
-+#endif
-+
-+#define LQ035_INDEX			0x74
-+#define LQ035_DATA			0x76
-+
-+#define LQ035_DRIVER_OUTPUT_CTL		0x1
-+#define LQ035_SHUT_CTL			0x11
-+
-+#define LQ035_DRIVER_OUTPUT_MASK	(LQ035_LR | LQ035_TB | LQ035_BGR | LQ035_REV)
-+#define LQ035_DRIVER_OUTPUT_DEFAULT	(0x2AEF & ~LQ035_DRIVER_OUTPUT_MASK)
-+
-+#define LQ035_SHUT			(1 << 0)	/* Shutdown */
-+#define LQ035_ON			(0 << 0)	/* Shutdown */
-+
-+#define DRIVER_NAME "bfin-lq035q1"
-+static char driver_name[] = DRIVER_NAME;
-+
-+struct bfin_lq035q1fb_info {
-+	struct fb_info *fb;
-+	struct device *dev;
-+	struct bfin_lq035q1fb_disp_info *disp_info;
-+	unsigned char *fb_buffer;	/* RGB Buffer */
-+	dma_addr_t dma_handle;
-+	int lq035_mmap;
-+	int lq035_open_cnt;
-+	int irq;
-+	spinlock_t lock;	/* lock */
-+	u32 pseudo_pal[16];
-+};
-+
-+static int nocursor;
-+module_param(nocursor, int, 0644);
-+MODULE_PARM_DESC(nocursor, "cursor enable/disable");
-+
-+
-+static struct {
-+	struct spi_device *spidev;
-+	unsigned short mode;
-+	unsigned short init;
-+} spi_control;
-+
-+static int lq035q1_control(unsigned char reg, unsigned short value)
-+{
-+	int ret;
-+	u8 regs[3] = {LQ035_INDEX, 0, 0};
-+	u8 dat[3] = {LQ035_DATA, 0, 0};
-+
-+	if (spi_control.spidev) {
-+		regs[2] = reg;
-+		dat[1] = value >> 8;
-+		dat[2] = value & 0xFF;
-+
-+		ret = spi_write(spi_control.spidev, regs, ARRAY_SIZE(regs));
-+		ret |= spi_write(spi_control.spidev, dat, ARRAY_SIZE(dat));
-+	} else
-+		return -ENODEV;
-+
-+	return ret;
-+}
-+
-+static int __devinit lq035q1_spidev_probe(struct spi_device *spi)
-+{
-+	int ret;
-+	spi_control.spidev = spi;
-+
-+	ret = lq035q1_control(LQ035_SHUT_CTL, LQ035_ON);
-+	ret |= lq035q1_control(LQ035_DRIVER_OUTPUT_CTL, spi_control.mode);
-+
-+	if (ret)
-+		return ret;
-+
-+	spi_control.init = 1;
-+
-+	return 0;
-+}
-+
-+static int __devexit lq035q1_spidev_remove(struct spi_device *spi)
-+{
-+	return lq035q1_control(LQ035_SHUT_CTL, LQ035_SHUT);
-+}
-+
-+#ifdef CONFIG_PM
-+static int lq035q1_spidev_suspend(struct spi_device *spi, pm_message_t state)
-+{
-+	return lq035q1_control(LQ035_SHUT_CTL, LQ035_SHUT);
-+}
-+
-+static int lq035q1_spidev_resume(struct spi_device *spi)
-+{
-+	int ret = lq035q1_control(LQ035_DRIVER_OUTPUT_CTL, spi_control.mode);
-+
-+	if (ret)
-+		return ret;
-+
-+	return lq035q1_control(LQ035_SHUT_CTL, LQ035_ON);
-+}
-+#else
-+#define lq035q1_spidev_suspend		NULL
-+#define lq035q1_spidev_resume		NULL
-+#endif
-+
-+/* Power down all displays on reboot, poweroff or halt */
-+static void lq035q1_spidev_shutdown(struct spi_device *spi)
-+{
-+	lq035q1_control(LQ035_SHUT_CTL, LQ035_SHUT);
-+}
-+
-+static struct spi_driver spidev_spi_driver = {
-+	.driver = {
-+		.name =		DRIVER_NAME"-spi",
-+		.owner =	THIS_MODULE,
-+	},
-+	.probe =	lq035q1_spidev_probe,
-+	.remove =	__devexit_p(lq035q1_spidev_remove),
-+	.shutdown	= lq035q1_spidev_shutdown,
-+	.suspend	= lq035q1_spidev_suspend,
-+	.resume		= lq035q1_spidev_resume,
-+};
-+
-+static int lq035q1_backlight(struct bfin_lq035q1fb_info *info, unsigned arg)
-+{
-+	if (info->disp_info->use_bl)
-+		gpio_set_value(info->disp_info->gpio_bl, arg);
-+
-+	return 0;
-+}
-+
-+static void bfin_lq035q1_config_ppi(struct bfin_lq035q1fb_info *fbi)
-+{
-+	bfin_write_PPI_DELAY(H_START);
-+	bfin_write_PPI_COUNT(H_ACTPIX - 1);
-+	bfin_write_PPI_FRAME(V_LINES);
-+
-+	bfin_write_PPI_CONTROL(PPI_TX_MODE |	   /* output mode , PORT_DIR */
-+				PPI_XFER_TYPE_11 | /* sync mode XFR_TYPE */
-+				PPI_PORT_CFG_01 |  /* two frame sync PORT_CFG */
-+				PPI_PMODE |	   /* 8/16 bit data length / PACK_EN? */
-+				PPI_POLS_1);	   /* faling edge syncs POLS */
-+}
-+
-+static inline void bfin_lq035q1_disable_ppi(void)
-+{
-+	bfin_write_PPI_CONTROL(bfin_read_PPI_CONTROL() & ~PORT_EN);
-+}
-+
-+static inline void bfin_lq035q1_enable_ppi(void)
-+{
-+	bfin_write_PPI_CONTROL(bfin_read_PPI_CONTROL() | PORT_EN);
-+}
-+
-+static void bfin_lq035q1_start_timers(void)
-+{
-+	enable_gptimers(TIMER_VSYNCbit | TIMER_HSYNCbit);
-+}
-+
-+static void bfin_lq035q1_stop_timers(void)
-+{
-+	disable_gptimers(TIMER_HSYNCbit | TIMER_VSYNCbit);
-+
-+	set_gptimer_status(0, TIMER_HSYNC_STATUS_TRUN | TIMER_VSYNC_STATUS_TRUN |
-+				TIMER_HSYNC_STATUS_TIMIL | TIMER_VSYNC_STATUS_TIMIL |
-+				 TIMER_HSYNC_STATUS_TOVF | TIMER_VSYNC_STATUS_TOVF);
-+
-+}
-+
-+static void bfin_lq035q1_init_timers(void)
-+{
-+
-+	bfin_lq035q1_stop_timers();
-+
-+	set_gptimer_period(TIMER_HSYNC_id, H_PERIOD);
-+	set_gptimer_pwidth(TIMER_HSYNC_id, H_PULSE);
-+	set_gptimer_config(TIMER_HSYNC_id, TIMER_MODE_PWM | TIMER_PERIOD_CNT |
-+				      TIMER_TIN_SEL | TIMER_CLK_SEL|
-+				      TIMER_EMU_RUN);
-+
-+	set_gptimer_period(TIMER_VSYNC_id, V_PERIOD);
-+	set_gptimer_pwidth(TIMER_VSYNC_id, V_PULSE);
-+	set_gptimer_config(TIMER_VSYNC_id, TIMER_MODE_PWM | TIMER_PERIOD_CNT |
-+				      TIMER_TIN_SEL | TIMER_CLK_SEL |
-+				      TIMER_EMU_RUN);
-+
-+}
-+
-+static void bfin_lq035q1_config_dma(struct bfin_lq035q1fb_info *fbi)
-+{
-+
-+	set_dma_config(CH_PPI,
-+		       set_bfin_dma_config(DIR_READ, DMA_FLOW_AUTO,
-+					   INTR_DISABLE, DIMENSION_2D,
-+					   DATA_SIZE_16,
-+					   DMA_NOSYNC_KEEP_DMA_BUF));
-+	set_dma_x_count(CH_PPI, (LCD_X_RES * LCD_BPP) / DMA_BUS_SIZE);
-+	set_dma_x_modify(CH_PPI, DMA_BUS_SIZE / 8);
-+	set_dma_y_count(CH_PPI, V_LINES);
-+
-+	set_dma_y_modify(CH_PPI, DMA_BUS_SIZE / 8);
-+	set_dma_start_addr(CH_PPI, (unsigned long)fbi->fb_buffer);
-+
-+}
-+
-+#if (CLOCKS_PER_PIX == 1)
-+static const u16 ppi0_req_16[] = {P_PPI0_CLK, P_PPI0_FS1, P_PPI0_FS2,
-+			    P_PPI0_D0, P_PPI0_D1, P_PPI0_D2,
-+			    P_PPI0_D3, P_PPI0_D4, P_PPI0_D5,
-+			    P_PPI0_D6, P_PPI0_D7, P_PPI0_D8,
-+			    P_PPI0_D9, P_PPI0_D10, P_PPI0_D11,
-+			    P_PPI0_D12, P_PPI0_D13, P_PPI0_D14,
-+			    P_PPI0_D15, 0};
-+#else
-+static const u16 ppi0_req_16[] = {P_PPI0_CLK, P_PPI0_FS1, P_PPI0_FS2,
-+			    P_PPI0_D0, P_PPI0_D1, P_PPI0_D2,
-+			    P_PPI0_D3, P_PPI0_D4, P_PPI0_D5,
-+			    P_PPI0_D6, P_PPI0_D7, 0};
-+#endif
-+
-+static int bfin_lq035q1_request_ports(int action)
-+{
-+	if (action) {
-+		/* ANOMALY_05000400 - PPI Does Not Start Properly In Specific Mode:
-+		 * Drive PPI_FS3 Low
-+		 */
-+		if (ANOMALY_05000400) {
-+			int ret = gpio_request(P_IDENT(P_PPI0_FS3), "PPI_FS3");
-+			if (ret)
-+				return ret;
-+			gpio_direction_output(P_IDENT(P_PPI0_FS3), 0);
-+		}
-+
-+		if (peripheral_request_list(ppi0_req_16, DRIVER_NAME)) {
-+			pr_err("requesting peripherals failed\n");
-+			return -EFAULT;
-+		}
-+	} else {
-+		peripheral_free_list(ppi0_req_16);
-+		if (ANOMALY_05000400)
-+			gpio_free(P_IDENT(P_PPI0_FS3));
-+	}
-+
-+	return 0;
-+}
-+
-+static int bfin_lq035q1_fb_open(struct fb_info *info, int user)
-+{
-+	struct bfin_lq035q1fb_info *fbi = info->par;
-+
-+	spin_lock(&fbi->lock);
-+	fbi->lq035_open_cnt++;
-+
-+	if (fbi->lq035_open_cnt <= 1) {
-+
-+		bfin_lq035q1_disable_ppi();
-+		SSYNC();
-+
-+		bfin_lq035q1_config_dma(fbi);
-+		bfin_lq035q1_config_ppi(fbi);
-+		bfin_lq035q1_init_timers();
-+
-+		/* start dma */
-+		enable_dma(CH_PPI);
-+		bfin_lq035q1_enable_ppi();
-+		bfin_lq035q1_start_timers();
-+		lq035q1_backlight(fbi, 1);
-+	}
-+
-+	spin_unlock(&fbi->lock);
-+
-+	return 0;
-+}
-+
-+static int bfin_lq035q1_fb_release(struct fb_info *info, int user)
-+{
-+	struct bfin_lq035q1fb_info *fbi = info->par;
-+
-+	spin_lock(&fbi->lock);
-+
-+	fbi->lq035_open_cnt--;
-+	fbi->lq035_mmap = 0;
-+
-+	if (fbi->lq035_open_cnt <= 0) {
-+		lq035q1_backlight(fbi, 0);
-+		bfin_lq035q1_disable_ppi();
-+		SSYNC();
-+		disable_dma(CH_PPI);
-+		bfin_lq035q1_stop_timers();
-+	}
-+
-+	spin_unlock(&fbi->lock);
-+
-+	return 0;
-+}
-+
-+static int bfin_lq035q1_fb_check_var(struct fb_var_screeninfo *var,
-+				   struct fb_info *info)
-+{
-+
-+	switch (var->bits_per_pixel) {
-+#if (LCD_BPP == 24)
-+	case 24:/* TRUECOLOUR, 16m */
-+#else
-+	case 16:/* DIRECTCOLOUR, 64k */
-+#endif
-+		var->red.offset = info->var.red.offset;
-+		var->green.offset = info->var.green.offset;
-+		var->blue.offset = info->var.blue.offset;
-+		var->red.length = info->var.red.length;
-+		var->green.length = info->var.green.length;
-+		var->blue.length = info->var.blue.length;
-+		var->transp.offset = 0;
-+		var->transp.length = 0;
-+		var->transp.msb_right = 0;
-+		var->red.msb_right = 0;
-+		var->green.msb_right = 0;
-+		var->blue.msb_right = 0;
-+		break;
-+	default:
-+		pr_debug("%s: depth not supported: %u BPP\n", __func__,
-+			 var->bits_per_pixel);
-+		return -EINVAL;
-+	}
-+
-+	if (info->var.xres != var->xres || info->var.yres != var->yres ||
-+	    info->var.xres_virtual != var->xres_virtual ||
-+	    info->var.yres_virtual != var->yres_virtual) {
-+		pr_debug("%s: Resolution not supported: X%u x Y%u \n",
-+			 __func__, var->xres, var->yres);
-+		return -EINVAL;
-+	}
-+
-+	/*
-+	 *  Memory limit
-+	 */
-+
-+	if ((info->fix.line_length * var->yres_virtual) > info->fix.smem_len) {
-+		pr_debug("%s: Memory Limit requested yres_virtual = %u\n",
-+			 __func__, var->yres_virtual);
-+		return -ENOMEM;
-+	}
-+
-+
-+	return 0;
-+}
-+
-+static int bfin_lq035q1_fb_mmap(struct fb_info *info, struct vm_area_struct *vma)
-+{
-+	struct bfin_lq035q1fb_info *fbi = info->par;
-+
-+	if (fbi->lq035_mmap)
-+		return -1;
-+
-+	spin_lock(&fbi->lock);
-+	fbi->lq035_mmap = 1;
-+	spin_unlock(&fbi->lock);
-+
-+	vma->vm_start = (unsigned long)(fbi->fb_buffer + ACTIVE_VIDEO_MEM_OFFSET);
-+
-+	vma->vm_end = vma->vm_start + info->fix.smem_len;
-+	/* For those who don't understand how mmap works, go read
-+	 *   Documentation/nommu-mmap.txt.
-+	 * For those that do, you will know that the VM_MAYSHARE flag
-+	 * must be set in the vma->vm_flags structure on noMMU
-+	 *   Other flags can be set, and are documented in
-+	 *   include/linux/mm.h
-+	 */
-+	vma->vm_flags |= VM_MAYSHARE | VM_SHARED;
-+
-+	return 0;
-+}
-+
-+int bfin_lq035q1_fb_cursor(struct fb_info *info, struct fb_cursor *cursor)
-+{
-+	if (nocursor)
-+		return 0;
-+	else
-+		return -EINVAL;	/* just to force soft_cursor() call */
-+}
-+
-+static int bfin_lq035q1_fb_setcolreg(u_int regno, u_int red, u_int green,
-+				   u_int blue, u_int transp,
-+				   struct fb_info *info)
-+{
-+	if (regno >= BFIN_LCD_NBR_PALETTE_ENTRIES)
-+		return -EINVAL;
-+
-+	if (info->var.grayscale) {
-+		/* grayscale = 0.30*R + 0.59*G + 0.11*B */
-+		red = green = blue = (red * 77 + green * 151 + blue * 28) >> 8;
-+	}
-+
-+	if (info->fix.visual == FB_VISUAL_TRUECOLOR) {
-+
-+		u32 value;
-+		/* Place color in the pseudopalette */
-+		if (regno > 16)
-+			return -EINVAL;
-+
-+		red >>= (16 - info->var.red.length);
-+		green >>= (16 - info->var.green.length);
-+		blue >>= (16 - info->var.blue.length);
-+
-+		value = (red << info->var.red.offset) |
-+		    (green << info->var.green.offset) |
-+		    (blue << info->var.blue.offset);
-+		value &= 0xFFFFFF;
-+
-+		((u32 *) (info->pseudo_palette))[regno] = value;
-+
-+	}
-+
-+	return 0;
-+}
-+
-+static struct fb_ops bfin_lq035q1_fb_ops = {
-+	.owner = THIS_MODULE,
-+	.fb_open = bfin_lq035q1_fb_open,
-+	.fb_release = bfin_lq035q1_fb_release,
-+	.fb_check_var = bfin_lq035q1_fb_check_var,
-+	.fb_fillrect = cfb_fillrect,
-+	.fb_copyarea = cfb_copyarea,
-+	.fb_imageblit = cfb_imageblit,
-+	.fb_mmap = bfin_lq035q1_fb_mmap,
-+	.fb_cursor = bfin_lq035q1_fb_cursor,
-+	.fb_setcolreg = bfin_lq035q1_fb_setcolreg,
-+};
-+
-+static irqreturn_t bfin_lq035q1_irq_error(int irq, void *dev_id)
-+{
-+	/*struct bfin_lq035q1fb_info *info = (struct bfin_lq035q1fb_info *)dev_id;*/
-+
-+	u16 status = bfin_read_PPI_STATUS();
-+	bfin_write_PPI_STATUS(-1);
-+
-+	if (status) {
-+		bfin_lq035q1_disable_ppi();
-+		disable_dma(CH_PPI);
-+
-+		/* start dma */
-+		enable_dma(CH_PPI);
-+		bfin_lq035q1_enable_ppi();
-+		bfin_write_PPI_STATUS(-1);
-+	}
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static int __devinit bfin_lq035q1_probe(struct platform_device *pdev)
-+{
-+	struct bfin_lq035q1fb_info *info;
-+	struct fb_info *fbinfo;
-+	int ret;
-+
-+	ret = request_dma(CH_PPI, "CH_PPI");
-+	if (ret < 0) {
-+		pr_err("couldn't request CH_PPI DMA\n");
-+		goto out1;
-+	}
-+
-+	fbinfo =
-+	    framebuffer_alloc(sizeof(struct bfin_lq035q1fb_info), &pdev->dev);
-+	if (!fbinfo) {
-+		ret = -ENOMEM;
-+		goto out2;
-+	}
-+
-+	info = fbinfo->par;
-+	info->fb = fbinfo;
-+	info->dev = &pdev->dev;
-+
-+	info->disp_info = pdev->dev.platform_data;
-+
-+	spi_control.mode = (info->disp_info->mode &
-+		LQ035_DRIVER_OUTPUT_MASK) | LQ035_DRIVER_OUTPUT_DEFAULT;
-+
-+	platform_set_drvdata(pdev, fbinfo);
-+
-+	strcpy(fbinfo->fix.id, driver_name);
-+
-+	fbinfo->fix.type = FB_TYPE_PACKED_PIXELS;
-+	fbinfo->fix.type_aux = 0;
-+	fbinfo->fix.xpanstep = 0;
-+	fbinfo->fix.ypanstep = 0;
-+	fbinfo->fix.ywrapstep = 0;
-+	fbinfo->fix.accel = FB_ACCEL_NONE;
-+	fbinfo->fix.visual = FB_VISUAL_TRUECOLOR;
-+
-+	fbinfo->var.nonstd = 0;
-+	fbinfo->var.activate = FB_ACTIVATE_NOW;
-+	fbinfo->var.height = -1;
-+	fbinfo->var.width = -1;
-+	fbinfo->var.accel_flags = 0;
-+	fbinfo->var.vmode = FB_VMODE_NONINTERLACED;
-+
-+	fbinfo->var.xres = LCD_X_RES;
-+	fbinfo->var.xres_virtual = LCD_X_RES;
-+	fbinfo->var.yres = LCD_Y_RES;
-+	fbinfo->var.yres_virtual = LCD_Y_RES;
-+	fbinfo->var.bits_per_pixel = LCD_BPP;
-+
-+	if (info->disp_info->mode & LQ035_BGR) {
-+#if (LCD_BPP == 24)
-+		fbinfo->var.red.offset = 0;
-+		fbinfo->var.green.offset = 8;
-+		fbinfo->var.blue.offset = 16;
-+#else
-+		fbinfo->var.red.offset = 0;
-+		fbinfo->var.green.offset = 5;
-+		fbinfo->var.blue.offset = 11;
-+#endif
-+	} else {
-+#if (LCD_BPP == 24)
-+		fbinfo->var.red.offset = 16;
-+		fbinfo->var.green.offset = 8;
-+		fbinfo->var.blue.offset = 0;
-+#else
-+		fbinfo->var.red.offset = 11;
-+		fbinfo->var.green.offset = 5;
-+		fbinfo->var.blue.offset = 0;
-+#endif
-+	}
-+
-+	fbinfo->var.transp.offset = 0;
-+
-+#if (LCD_BPP == 24)
-+	fbinfo->var.red.length = 8;
-+	fbinfo->var.green.length = 8;
-+	fbinfo->var.blue.length = 8;
-+#else
-+	fbinfo->var.red.length = 5;
-+	fbinfo->var.green.length = 6;
-+	fbinfo->var.blue.length = 5;
-+#endif
-+
-+	fbinfo->var.transp.length = 0;
-+
-+	fbinfo->fix.smem_len = LCD_X_RES * LCD_Y_RES * LCD_BPP / 8
-+				+ ACTIVE_VIDEO_MEM_OFFSET;
-+
-+	fbinfo->fix.line_length = fbinfo->var.xres_virtual *
-+	    fbinfo->var.bits_per_pixel / 8;
-+
-+
-+	fbinfo->fbops = &bfin_lq035q1_fb_ops;
-+	fbinfo->flags = FBINFO_FLAG_DEFAULT;
-+
-+	info->fb_buffer =
-+	    dma_alloc_coherent(NULL, fbinfo->fix.smem_len, &info->dma_handle,
-+			       GFP_KERNEL);
-+
-+	if (NULL == info->fb_buffer) {
-+		pr_err("couldn't allocate dma buffer\n");
-+		ret = -ENOMEM;
-+		goto out3;
-+	}
-+
-+	fbinfo->screen_base = (void *)info->fb_buffer + ACTIVE_VIDEO_MEM_OFFSET;
-+	fbinfo->fix.smem_start = (int)info->fb_buffer + ACTIVE_VIDEO_MEM_OFFSET;
-+
-+	fbinfo->fbops = &bfin_lq035q1_fb_ops;
-+
-+	fbinfo->pseudo_palette = &info->pseudo_pal;
-+
-+	ret = fb_alloc_cmap(&fbinfo->cmap, BFIN_LCD_NBR_PALETTE_ENTRIES, 0);
-+	if (ret < 0) {
-+		pr_err("failed to allocate colormap (%d entries)\n",
-+		       BFIN_LCD_NBR_PALETTE_ENTRIES);
-+		goto out4;
-+	}
-+
-+	ret = bfin_lq035q1_request_ports(1);
-+	if (ret) {
-+		pr_err("couldn't request gpio port\n");
-+		goto out6;
-+	}
-+
-+	info->irq = platform_get_irq(pdev, 0);
-+	if (info->irq < 0) {
-+		ret = -EINVAL;
-+		goto out7;
-+	}
-+
-+	ret = request_irq(info->irq, bfin_lq035q1_irq_error, IRQF_DISABLED,
-+			"PPI ERROR", info);
-+	if (ret < 0) {
-+		pr_err("unable to request PPI ERROR IRQ\n");
-+		goto out7;
-+	}
-+
-+	ret = spi_register_driver(&spidev_spi_driver);
-+	if (ret < 0) {
-+		pr_err("couldn't register SPI Interface\n");
-+		goto out8;
-+	}
-+
-+	if (info->disp_info->use_bl) {
-+		ret = gpio_request(info->disp_info->gpio_bl, "LQ035 Backlight");
-+
-+		if (ret) {
-+			pr_err("failed to request GPIO %d\n",
-+				info->disp_info->gpio_bl);
-+			goto out9;
-+		}
-+		gpio_direction_output(info->disp_info->gpio_bl, 0);
-+	}
-+
-+	ret = register_framebuffer(fbinfo);
-+	if (ret < 0) {
-+		pr_err("unable to register framebuffer\n");
-+		goto out10;
-+	}
-+
-+	pr_info("%dx%d %d-bit RGB FrameBuffer initialized\n",
-+		LCD_X_RES, LCD_Y_RES, LCD_BPP);
-+
-+	return 0;
-+
-+out10:
-+	if (info->disp_info->use_bl)
-+		gpio_free(info->disp_info->gpio_bl);
-+out9:
-+	spi_unregister_driver(&spidev_spi_driver);
-+out8:
-+	free_irq(info->irq, info);
-+out7:
-+	bfin_lq035q1_request_ports(0);
-+out6:
-+	fb_dealloc_cmap(&fbinfo->cmap);
-+out4:
-+	dma_free_coherent(NULL, fbinfo->fix.smem_len, info->fb_buffer,
-+			  info->dma_handle);
-+out3:
-+	framebuffer_release(fbinfo);
-+out2:
-+	free_dma(CH_PPI);
-+out1:
-+	platform_set_drvdata(pdev, NULL);
-+
-+	return ret;
-+}
-+
-+static int __devexit bfin_lq035q1_remove(struct platform_device *pdev)
-+{
-+	struct fb_info *fbinfo = platform_get_drvdata(pdev);
-+	struct bfin_lq035q1fb_info *info = fbinfo->par;
-+
-+	if (info->disp_info->use_bl)
-+		gpio_free(info->disp_info->gpio_bl);
-+
-+	spi_unregister_driver(&spidev_spi_driver);
-+
-+	unregister_framebuffer(fbinfo);
-+
-+	free_dma(CH_PPI);
-+	free_irq(info->irq, info);
-+
-+	if (info->fb_buffer != NULL)
-+		dma_free_coherent(NULL, fbinfo->fix.smem_len, info->fb_buffer,
-+				  info->dma_handle);
-+
-+	fb_dealloc_cmap(&fbinfo->cmap);
-+
-+	bfin_lq035q1_request_ports(0);
-+
-+	platform_set_drvdata(pdev, NULL);
-+	framebuffer_release(fbinfo);
-+
-+	pr_info("unregistered LCD driver\n");
-+
-+	return 0;
-+}
-+
-+#ifdef CONFIG_PM
-+static int bfin_lq035q1_suspend(struct platform_device *pdev, pm_message_t state)
-+{
-+	struct fb_info *fbinfo = platform_get_drvdata(pdev);
-+	struct bfin_lq035q1fb_info *info = fbinfo->par;
-+
-+	if (info->lq035_open_cnt) {
-+		lq035q1_backlight(info, 0);
-+		bfin_lq035q1_disable_ppi();
-+		SSYNC();
-+		disable_dma(CH_PPI);
-+		bfin_lq035q1_stop_timers();
-+		bfin_write_PPI_STATUS(-1);
-+	}
-+
-+	return 0;
-+}
-+
-+static int bfin_lq035q1_resume(struct platform_device *pdev)
-+{
-+	struct fb_info *fbinfo = platform_get_drvdata(pdev);
-+	struct bfin_lq035q1fb_info *info = fbinfo->par;
-+
-+	if (info->lq035_open_cnt) {
-+		bfin_lq035q1_disable_ppi();
-+		SSYNC();
-+
-+		bfin_lq035q1_config_dma(info);
-+		bfin_lq035q1_config_ppi(info);
-+		bfin_lq035q1_init_timers();
-+
-+		/* start dma */
-+		enable_dma(CH_PPI);
-+		bfin_lq035q1_enable_ppi();
-+		bfin_lq035q1_start_timers();
-+		lq035q1_backlight(info, 1);
-+	}
-+
-+	return 0;
-+}
-+#else
-+#define bfin_lq035q1_suspend	NULL
-+#define bfin_lq035q1_resume	NULL
-+#endif
-+
-+static struct platform_driver bfin_lq035q1_driver = {
-+	.probe = bfin_lq035q1_probe,
-+	.remove = __devexit_p(bfin_lq035q1_remove),
-+	.suspend = bfin_lq035q1_suspend,
-+	.resume = bfin_lq035q1_resume,
-+	.driver = {
-+		.name = DRIVER_NAME,
-+		.owner = THIS_MODULE,
-+	},
-+};
-+
-+static int __init bfin_lq035q1_driver_init(void)
-+{
-+	return platform_driver_register(&bfin_lq035q1_driver);
-+}
-+module_init(bfin_lq035q1_driver_init);
-+
-+static void __exit bfin_lq035q1_driver_cleanup(void)
-+{
-+	platform_driver_unregister(&bfin_lq035q1_driver);
-+}
-+module_exit(bfin_lq035q1_driver_cleanup);
-+
-+MODULE_DESCRIPTION("Blackfin TFT LCD Driver");
-+MODULE_LICENSE("GPL");
+ #ifdef CONFIG_X86_32
+ 	/*
 _
 
-Patches currently in -mm which might be from michael.hennerich@analog.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+procfs-disable-per-task-stack-usage-on-nommu.patch
+hugetlb_file_setup-use-c-not-cpp.patch
 linux-next.patch
-fbdev-bfin-lq035q1-fb-new-blackfin-landscape-lcd-ez-extender-driver.patch
-fbdev-bfin-t350mcqb-fb-handle-all-resources-in-suspend-resume.patch
-fbdev-bfin-t350mcqb-fb-fix-lcd-dimensions.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
+e100c-use-pci_dma_bidirectional-in-e100_rx_indicate.patch
+3x59x-fix-pci-resource-management.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+serial167-fix-read-buffer-overflow.patch
+st-fix-test-of-value-range-in-st_set_options.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+fs-improve-remountro-vs-buffercache-coherency.patch
+vfs-implement-posix-o_sync-and-o_dsync-semantics-checkpatch-fixes.patch
+percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+drivers-net-wireless-ath-ar9170-phyc-fix-uninitialised-variable.patch
+readahead-add-blk_run_backing_dev.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+reiser4-disable.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
