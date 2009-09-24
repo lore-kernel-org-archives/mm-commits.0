@@ -1,27 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-update-tracing-section.patch added to -mm tree
-Date: Thu, 24 Sep 2009 14:42:40 -0700
-Message-ID: <200909242142.n8OLgeMG026462@imap1.linux-foundation.org>
+Subject: + maintainers-update-wolfson-microelectronics.patch added to -mm tree
+Date: Thu, 24 Sep 2009 14:42:59 -0700
+Message-ID: <200909242142.n8OLgxfJ027146@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33828 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45427 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752224AbZIXVnj (ORCPT
+	by vger.kernel.org with ESMTP id S1752330AbZIXVnq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Sep 2009 17:43:39 -0400
+	Thu, 24 Sep 2009 17:43:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, mingo@elte.hu, rostedt@goodmis.org
+Cc: joe@perches.com, broonie@opensource.wolfsonmicro.com
 
 
 The patch titled
-     MAINTAINERS: update TRACING section
+     MAINTAINERS: update WOLFSON MICROELECTRONICS
 has been added to the -mm tree.  Its filename is
-     maintainers-update-tracing-section.patch
+     maintainers-update-wolfson-microelectronics.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,66 +39,35 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
 otm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: update TRACING section
+Subject: MAINTAINERS: update WOLFSON MICROELECTRONICS
 =46rom: Joe Perches <joe@perches.com>
 
-Move to alphabetic position
-Use single line F: entries
+Integrate P:/M: lines
+Remove L: linux-kernel@vger.kernel.org
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   26 ++++++++++++++------------
- 1 file changed, 14 insertions(+), 12 deletions(-)
+ MAINTAINERS |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-update-tracing-section MAINTAINERS
---- a/MAINTAINERS~maintainers-update-tracing-section
+diff -puN MAINTAINERS~maintainers-update-wolfson-microelectronics MAINT=
+AINERS
+--- a/MAINTAINERS~maintainers-update-wolfson-microelectronics
 +++ a/MAINTAINERS
-@@ -2183,18 +2183,6 @@ F:	Documentation/filesystems/caching/
- F:	fs/fscache/
- F:	include/linux/fscache*.h
+@@ -5766,9 +5766,7 @@ F:	drivers/input/touchscreen/*wm97*
+ F:	include/linux/wm97xx.h
 =20
--TRACING
--M:	Steven Rostedt <rostedt@goodmis.org>
--M:	Frederic Weisbecker <fweisbec@gmail.com>
--M:	Ingo Molnar <mingo@redhat.com>
--T:	git git://git.kernel.org/pub/scm/linux/kernel/git/tip/linux-2.6-tip=
-=2Egit tracing/core
--S:	Maintained
--F:	Documentation/trace/ftrace.txt
--F:	arch/*/*/*/ftrace.h
--F:	arch/*/kernel/ftrace.c
--F:	include/*/ftrace.h include/trace/ include/linux/trace*.h
--F:	kernel/trace/
--
- FUJITSU FR-V (FRV) PORT
- M:	David Howells <dhowells@redhat.com>
- S:	Maintained
-@@ -5150,6 +5138,20 @@ L:	tpmdd-devel@lists.sourceforge.net (mo
- S:	Maintained
- F:	drivers/char/tpm/
-=20
-+TRACING
-+M:	Steven Rostedt <rostedt@goodmis.org>
-+M:	Frederic Weisbecker <fweisbec@gmail.com>
-+M:	Ingo Molnar <mingo@redhat.com>
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/tip/linux-2.6-tip=
-=2Egit tracing/core
-+S:	Maintained
-+F:	Documentation/trace/ftrace.txt
-+F:	arch/*/*/*/ftrace.h
-+F:	arch/*/kernel/ftrace.c
-+F:	include/*/ftrace.h
-+F:	include/linux/trace*.h
-+F:	include/trace/
-+F:	kernel/trace/
-+
- TRIVIAL PATCHES
- M:	Jiri Kosina <trivial@kernel.org>
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/jikos/trivial.git
+ WOLFSON MICROELECTRONICS PMIC DRIVERS
+-P:	Mark Brown
+-M:	broonie@opensource.wolfsonmicro.com
+-L:	linux-kernel@vger.kernel.org
++M:	Mark Brown <broonie@opensource.wolfsonmicro.com>
+ T:	git git://opensource.wolfsonmicro.com/linux-2.6-audioplus
+ W:	http://opensource.wolfsonmicro.com/node/8
+ S:	Supported
 _
 
 Patches currently in -mm which might be from joe@perches.com are
