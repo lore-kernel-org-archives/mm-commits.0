@@ -1,104 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged] vfs-optimization-for-touch_atime.patch removed from -mm tree
-Date: Thu, 24 Sep 2009 12:38:07 -0700
-Message-ID: <200909241938.n8OJc7L2005985@imap1.linux-foundation.org>
+Subject: [merged] wl12xx-fix-kconfig-link-errors.patch removed from -mm tree
+Date: Thu, 24 Sep 2009 12:38:40 -0700
+Message-ID: <200909241938.n8OJce55007111@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51848 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45471 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754525AbZIXTid (ORCPT
+	by vger.kernel.org with ESMTP id S1753160AbZIXTjH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Sep 2009 15:38:33 -0400
+	Thu, 24 Sep 2009 15:39:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andi@firstfloor.org, ak@linux.intel.com, haveblue@us.ibm.com, hch@infradead.org, vaurora@redhat.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, linville@tuxdriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vfs: optimization for touch_atime()
+     wl12xx: fix kconfig/link errors
 has been removed from the -mm tree.  Its filename was
-     vfs-optimization-for-touch_atime.patch
+     wl12xx-fix-kconfig-link-errors.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: optimization for touch_atime()
-From: Andi Kleen <andi@firstfloor.org>
+Subject: wl12xx: fix kconfig/link errors
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Some benchmark testing shows touch_atime to be high up in profile logs for
-IO intensive workloads.  Most likely that's due to the lock in
-mnt_want_write().  Unfortunately touch_atime first takes the lock, and
-then does all the other tests that could avoid atime updates (like noatime
-or relatime).
+"boolean" converts a module dependency (MAC80211=m) to YES,
+then the WL12XX driver can be built-in instead of only
+modular, which leads to linker errors:
 
-Do it the other way round -- first try to avoid the update and only then
-if that didn't succeed take the lock.  That works because none of the
-atime avoidance tests rely on locking.
+wl1271_main.c:(.text+0x11177d): undefined reference to `ieee80211_frequency_to_channel'
+wl1271_main.c:(.text+0x111adc): undefined reference to `ieee80211_stop_queues'
+wl1271_main.c:(.text+0x112005): undefined reference to `ieee80211_scan_completed'
+(.text+0x1139c8): undefined reference to `ieee80211_scan_completed'
+(.text+0x113bb0): undefined reference to `ieee80211_tx_status'
+(.text+0x113e53): undefined reference to `ieee80211_stop_queues'
+(.text+0x113e8d): undefined reference to `ieee80211_wake_queues'
+(.text+0x113f3b): undefined reference to `ieee80211_tx_status'
+(.text+0x113f60): undefined reference to `ieee80211_tx_status'
+(.text+0x1140f0): undefined reference to `ieee80211_channel_to_frequency'
+(.text+0x114153): undefined reference to `ieee80211_rx'
+wl1271_main.c:(.devinit.text+0xca08): undefined reference to `ieee80211_alloc_hw'
+wl1271_main.c:(.devinit.text+0xccf5): undefined reference to `ieee80211_register_hw'
+wl1271_main.c:(.devinit.text+0xcd6b): undefined reference to `ieee80211_free_hw'
+wl1271_main.c:(.devexit.text+0x1353): undefined reference to `ieee80211_unregister_hw'
+wl1271_main.c:(.devexit.text+0x13c9): undefined reference to `ieee80211_free_hw'
 
-This also eliminates a goto.
-
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Reviewed-by: Valerie Aurora <vaurora@redhat.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Dave Hansen <haveblue@us.ibm.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/inode.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ drivers/net/wireless/wl12xx/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/inode.c~vfs-optimization-for-touch_atime fs/inode.c
---- a/fs/inode.c~vfs-optimization-for-touch_atime
-+++ a/fs/inode.c
-@@ -1411,31 +1411,31 @@ void touch_atime(struct vfsmount *mnt, s
- 	struct inode *inode = dentry->d_inode;
- 	struct timespec now;
- 
--	if (mnt_want_write(mnt))
--		return;
- 	if (inode->i_flags & S_NOATIME)
--		goto out;
-+		return;
- 	if (IS_NOATIME(inode))
--		goto out;
-+		return;
- 	if ((inode->i_sb->s_flags & MS_NODIRATIME) && S_ISDIR(inode->i_mode))
--		goto out;
-+		return;
- 
- 	if (mnt->mnt_flags & MNT_NOATIME)
--		goto out;
-+		return;
- 	if ((mnt->mnt_flags & MNT_NODIRATIME) && S_ISDIR(inode->i_mode))
--		goto out;
-+		return;
- 
- 	now = current_fs_time(inode->i_sb);
- 
- 	if (!relatime_need_update(mnt, inode, now))
--		goto out;
-+		return;
- 
- 	if (timespec_equal(&inode->i_atime, &now))
--		goto out;
-+		return;
-+
-+	if (mnt_want_write(mnt))
-+		return;
- 
- 	inode->i_atime = now;
- 	mark_inode_dirty_sync(inode);
--out:
- 	mnt_drop_write(mnt);
- }
- EXPORT_SYMBOL(touch_atime);
+diff -puN drivers/net/wireless/wl12xx/Kconfig~wl12xx-fix-kconfig-link-errors drivers/net/wireless/wl12xx/Kconfig
+--- a/drivers/net/wireless/wl12xx/Kconfig~wl12xx-fix-kconfig-link-errors
++++ a/drivers/net/wireless/wl12xx/Kconfig
+@@ -1,5 +1,5 @@
+ menuconfig WL12XX
+-	boolean "TI wl12xx driver support"
++	tristate "TI wl12xx driver support"
+ 	depends on MAC80211 && WLAN_80211 && EXPERIMENTAL
+ 	---help---
+ 	  This will enable TI wl12xx driver support. The drivers make
 _
 
-Patches currently in -mm which might be from andi@firstfloor.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-fatfs-use-common-time_to_tm-in-fat_time_unix2fat.patch
+linux-next.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+isdn-fix-netjet-build-errors.patch
+scsi-fix-func-names-in-kernel-doc.patch
+scsi_transport_fc-fix-missing-kernel-doc.patch
+readahead-add-blk_run_backing_dev.patch
+pcmcia-fix-controller-printk-warnings.patch
+reiser4-export-remove_from_page_cache-fix.patch
 
