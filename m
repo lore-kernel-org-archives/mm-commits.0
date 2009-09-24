@@ -1,438 +1,386 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cgroups-support-named-cgroups-hierarchies.patch removed from -mm tree
-Date: Thu, 24 Sep 2009 12:33:57 -0700
-Message-ID: <200909241933.n8OJXvM2029843@imap1.linux-foundation.org>
+Subject: [merged] doc-filesystems-remove-smount-program.patch removed from -mm tree
+Date: Thu, 24 Sep 2009 12:33:33 -0700
+Message-ID: <200909241933.n8OJXXOZ029024@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56882 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46997 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754172AbZIXTe1 (ORCPT
+	by vger.kernel.org with ESMTP id S1753894AbZIXTeW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Sep 2009 15:34:27 -0400
+	Thu, 24 Sep 2009 15:34:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: menage@google.com, balbir@in.ibm.com, dhaval@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, hch@infradead.org, miklos@szeredi.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cgroups: support named cgroups hierarchies
+     doc/filesystems: remove smount program
 has been removed from the -mm tree.  Its filename was
-     cgroups-support-named-cgroups-hierarchies.patch
+     doc-filesystems-remove-smount-program.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: support named cgroups hierarchies
-From: Paul Menage <menage@google.com>
+Subject: doc/filesystems: remove smount program
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-To simplify referring to cgroup hierarchies in mount statements, and to
-allow disambiguation in the presence of empty hierarchies and
-multiply-bindable subsystems this patch adds support for naming a new
-cgroup hierarchy via the "name=" mount option
+mount(8) handles shared subtrees just fine, so remove the smount program
+from Documentation/filesystems/sharedsubtree.txt.
 
-A pre-existing hierarchy may be specified by either name or by subsystems;
-a hierarchy's name cannot be changed by a remount operation.
+Fix annoying "Lets" -> "Let's".
+Insert space between '#' prompt and "mount" command.
 
-Example usage:
-
-# To create a hierarchy called "foo" containing the "cpu" subsystem
-mount -t cgroup -oname=foo,cpu cgroup /mnt/cgroup1
-
-# To mount the "foo" hierarchy on a second location
-mount -t cgroup -oname=foo cgroup /mnt/cgroup2
-
-Signed-off-by: Paul Menage <menage@google.com>
-Reviewed-by: Li Zefan <lizf@cn.fujitsu.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Dhaval Giani <dhaval@linux.vnet.ibm.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Acked-by: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/cgroups.txt |   20 +++
- kernel/cgroup.c                   |  184 ++++++++++++++++++++--------
- 2 files changed, 156 insertions(+), 48 deletions(-)
+ Documentation/filesystems/sharedsubtree.txt |  209 ++----------------
+ 1 file changed, 34 insertions(+), 175 deletions(-)
 
-diff -puN Documentation/cgroups/cgroups.txt~cgroups-support-named-cgroups-hierarchies Documentation/cgroups/cgroups.txt
---- a/Documentation/cgroups/cgroups.txt~cgroups-support-named-cgroups-hierarchies
-+++ a/Documentation/cgroups/cgroups.txt
-@@ -408,6 +408,26 @@ You can attach the current shell task by
+diff -puN Documentation/filesystems/sharedsubtree.txt~doc-filesystems-remove-smount-program Documentation/filesystems/sharedsubtree.txt
+--- a/Documentation/filesystems/sharedsubtree.txt~doc-filesystems-remove-smount-program
++++ a/Documentation/filesystems/sharedsubtree.txt
+@@ -41,14 +41,14 @@ replicas continue to be exactly same.
  
- # echo 0 > tasks
+ 	Here is an example:
  
-+2.3 Mounting hierarchies by name
-+--------------------------------
-+
-+Passing the name=<x> option when mounting a cgroups hierarchy
-+associates the given name with the hierarchy.  This can be used when
-+mounting a pre-existing hierarchy, in order to refer to it by name
-+rather than by its set of active subsystems.  Each hierarchy is either
-+nameless, or has a unique name.
-+
-+The name should match [\w.-]+
-+
-+When passing a name=<x> option for a new hierarchy, you need to
-+specify subsystems manually; the legacy behaviour of mounting all
-+subsystems when none are explicitly specified is not supported when
-+you give a subsystem a name.
-+
-+The name of the subsystem appears as part of the hierarchy description
-+in /proc/mounts and /proc/<pid>/cgroups.
-+
-+
- 3. Kernel API
- =============
+-	Lets say /mnt has a mount that is shared.
++	Let's say /mnt has a mount that is shared.
+ 	mount --make-shared /mnt
  
-diff -puN kernel/cgroup.c~cgroups-support-named-cgroups-hierarchies kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-support-named-cgroups-hierarchies
-+++ a/kernel/cgroup.c
-@@ -23,6 +23,7 @@
-  */
+-	note: mount command does not yet support the --make-shared flag.
+-	I have included a small C program which does the same by executing
+-	'smount /mnt shared'
++	Note: mount(8) command now supports the --make-shared flag,
++	so the sample 'smount' program is no longer needed and has been
++	removed.
  
- #include <linux/cgroup.h>
-+#include <linux/ctype.h>
- #include <linux/errno.h>
- #include <linux/fs.h>
- #include <linux/kernel.h>
-@@ -60,6 +61,8 @@ static struct cgroup_subsys *subsys[] = 
- #include <linux/cgroup_subsys.h>
- };
+-	#mount --bind /mnt /tmp
++	# mount --bind /mnt /tmp
+ 	The above command replicates the mount at /mnt to the mountpoint /tmp
+ 	and the contents of both the mounts remain identical.
  
-+#define MAX_CGROUP_ROOT_NAMELEN 64
-+
- /*
-  * A cgroupfs_root represents the root of a cgroup hierarchy,
-  * and may be associated with a superblock to form an active
-@@ -94,6 +97,9 @@ struct cgroupfs_root {
+@@ -58,8 +58,8 @@ replicas continue to be exactly same.
+ 	#ls /tmp
+ 	a b c
  
- 	/* The path to use for release notifications. */
- 	char release_agent_path[PATH_MAX];
-+
-+	/* The name for this hierarchy - may be empty */
-+	char name[MAX_CGROUP_ROOT_NAMELEN];
- };
+-	Now lets say we mount a device at /tmp/a
+-	#mount /dev/sd0  /tmp/a
++	Now let's say we mount a device at /tmp/a
++	# mount /dev/sd0  /tmp/a
  
- /*
-@@ -841,6 +847,8 @@ static int cgroup_show_options(struct se
- 		seq_puts(seq, ",noprefix");
- 	if (strlen(root->release_agent_path))
- 		seq_printf(seq, ",release_agent=%s", root->release_agent_path);
-+	if (strlen(root->name))
-+		seq_printf(seq, ",name=%s", root->name);
- 	mutex_unlock(&cgroup_mutex);
- 	return 0;
- }
-@@ -849,6 +857,9 @@ struct cgroup_sb_opts {
- 	unsigned long subsys_bits;
- 	unsigned long flags;
- 	char *release_agent;
-+	char *name;
-+
-+	struct cgroupfs_root *new_root;
- };
+ 	#ls /tmp/a
+ 	t1 t2 t2
+@@ -80,21 +80,20 @@ replicas continue to be exactly same.
  
- /* Convert a hierarchy specifier into a bitmask of subsystems and
-@@ -863,9 +874,7 @@ static int parse_cgroupfs_options(char *
- 	mask = ~(1UL << cpuset_subsys_id);
- #endif
+ 	Here is an example:
  
--	opts->subsys_bits = 0;
--	opts->flags = 0;
--	opts->release_agent = NULL;
-+	memset(opts, 0, sizeof(*opts));
+-	Lets say /mnt has a mount which is shared.
+-	#mount --make-shared /mnt
++	Let's say /mnt has a mount which is shared.
++	# mount --make-shared /mnt
  
- 	while ((token = strsep(&o, ",")) != NULL) {
- 		if (!*token)
-@@ -885,11 +894,33 @@ static int parse_cgroupfs_options(char *
- 			/* Specifying two release agents is forbidden */
- 			if (opts->release_agent)
- 				return -EINVAL;
--			opts->release_agent = kzalloc(PATH_MAX, GFP_KERNEL);
-+			opts->release_agent =
-+				kstrndup(token + 14, PATH_MAX, GFP_KERNEL);
- 			if (!opts->release_agent)
- 				return -ENOMEM;
--			strncpy(opts->release_agent, token + 14, PATH_MAX - 1);
--			opts->release_agent[PATH_MAX - 1] = 0;
-+		} else if (!strncmp(token, "name=", 5)) {
-+			int i;
-+			const char *name = token + 5;
-+			/* Can't specify an empty name */
-+			if (!strlen(name))
-+				return -EINVAL;
-+			/* Must match [\w.-]+ */
-+			for (i = 0; i < strlen(name); i++) {
-+				char c = name[i];
-+				if (isalnum(c))
-+					continue;
-+				if ((c == '.') || (c == '-') || (c == '_'))
-+					continue;
-+				return -EINVAL;
-+			}
-+			/* Specifying two names is forbidden */
-+			if (opts->name)
-+				return -EINVAL;
-+			opts->name = kstrndup(name,
-+					      MAX_CGROUP_ROOT_NAMELEN,
-+					      GFP_KERNEL);
-+			if (!opts->name)
-+				return -ENOMEM;
- 		} else {
- 			struct cgroup_subsys *ss;
- 			int i;
-@@ -916,7 +947,7 @@ static int parse_cgroupfs_options(char *
- 		return -EINVAL;
+-	Lets bind mount /mnt to /tmp
+-	#mount --bind /mnt /tmp
++	Let's bind mount /mnt to /tmp
++	# mount --bind /mnt /tmp
  
- 	/* We can't have an empty hierarchy */
--	if (!opts->subsys_bits)
-+	if (!opts->subsys_bits && !opts->name)
- 		return -EINVAL;
+ 	the new mount at /tmp becomes a shared mount and it is a replica of
+ 	the mount at /mnt.
  
- 	return 0;
-@@ -944,6 +975,12 @@ static int cgroup_remount(struct super_b
- 		goto out_unlock;
- 	}
+-	Now lets make the mount at /tmp; a slave of /mnt
+-	#mount --make-slave /tmp
+-	[or smount /tmp slave]
++	Now let's make the mount at /tmp; a slave of /mnt
++	# mount --make-slave /tmp
  
-+	/* Don't allow name to change at remount */
-+	if (opts.name && strcmp(opts.name, root->name)) {
-+		ret = -EINVAL;
-+		goto out_unlock;
-+	}
-+
- 	ret = rebind_subsystems(root, opts.subsys_bits);
- 	if (ret)
- 		goto out_unlock;
-@@ -955,6 +992,7 @@ static int cgroup_remount(struct super_b
- 		strcpy(root->release_agent_path, opts.release_agent);
-  out_unlock:
- 	kfree(opts.release_agent);
-+	kfree(opts.name);
- 	mutex_unlock(&cgroup_mutex);
- 	mutex_unlock(&cgrp->dentry->d_inode->i_mutex);
- 	unlock_kernel();
-@@ -977,6 +1015,7 @@ static void init_cgroup_housekeeping(str
- 	INIT_LIST_HEAD(&cgrp->pids_list);
- 	init_rwsem(&cgrp->pids_mutex);
- }
-+
- static void init_cgroup_root(struct cgroupfs_root *root)
- {
- 	struct cgroup *cgrp = &root->top_cgroup;
-@@ -990,31 +1029,59 @@ static void init_cgroup_root(struct cgro
+-	lets mount /dev/sd0 on /mnt/a
+-	#mount /dev/sd0 /mnt/a
++	let's mount /dev/sd0 on /mnt/a
++	# mount /dev/sd0 /mnt/a
  
- static int cgroup_test_super(struct super_block *sb, void *data)
- {
--	struct cgroupfs_root *new = data;
-+	struct cgroup_sb_opts *opts = data;
- 	struct cgroupfs_root *root = sb->s_fs_info;
+ 	#ls /mnt/a
+ 	t1 t2 t3
+@@ -104,9 +103,9 @@ replicas continue to be exactly same.
  
--	/* First check subsystems */
--	if (new->subsys_bits != root->subsys_bits)
--	    return 0;
-+	/* If we asked for a name then it must match */
-+	if (opts->name && strcmp(opts->name, root->name))
-+		return 0;
+ 	Note the mount event has propagated to the mount at /tmp
  
--	/* Next check flags */
--	if (new->flags != root->flags)
-+	/* If we asked for subsystems then they must match */
-+	if (opts->subsys_bits && (opts->subsys_bits != root->subsys_bits))
- 		return 0;
+-	However lets see what happens if we mount something on the mount at /tmp
++	However let's see what happens if we mount something on the mount at /tmp
  
- 	return 1;
- }
+-	#mount /dev/sd1 /tmp/b
++	# mount /dev/sd1 /tmp/b
  
-+static struct cgroupfs_root *cgroup_root_from_opts(struct cgroup_sb_opts *opts)
-+{
-+	struct cgroupfs_root *root;
-+
-+	/* Empty hierarchies aren't supported */
-+	if (!opts->subsys_bits)
-+		return NULL;
-+
-+	root = kzalloc(sizeof(*root), GFP_KERNEL);
-+	if (!root)
-+		return ERR_PTR(-ENOMEM);
-+
-+	init_cgroup_root(root);
-+	root->subsys_bits = opts->subsys_bits;
-+	root->flags = opts->flags;
-+	if (opts->release_agent)
-+		strcpy(root->release_agent_path, opts->release_agent);
-+	if (opts->name)
-+		strcpy(root->name, opts->name);
-+	return root;
-+}
-+
- static int cgroup_set_super(struct super_block *sb, void *data)
- {
- 	int ret;
--	struct cgroupfs_root *root = data;
-+	struct cgroup_sb_opts *opts = data;
-+
-+	/* If we don't have a new root, we can't set up a new sb */
-+	if (!opts->new_root)
-+		return -EINVAL;
-+
-+	BUG_ON(!opts->subsys_bits);
+ 	#ls /tmp/b
+ 	s1 s2 s3
+@@ -124,12 +123,11 @@ replicas continue to be exactly same.
  
- 	ret = set_anon_super(sb, NULL);
- 	if (ret)
- 		return ret;
+ 2d) A unbindable mount is a unbindable private mount
  
--	sb->s_fs_info = root;
--	root->sb = sb;
-+	sb->s_fs_info = opts->new_root;
-+	opts->new_root->sb = sb;
+-	lets say we have a mount at /mnt and we make is unbindable
++	let's say we have a mount at /mnt and we make is unbindable
  
- 	sb->s_blocksize = PAGE_CACHE_SIZE;
- 	sb->s_blocksize_bits = PAGE_CACHE_SHIFT;
-@@ -1051,48 +1118,43 @@ static int cgroup_get_sb(struct file_sys
- 			 void *data, struct vfsmount *mnt)
- {
- 	struct cgroup_sb_opts opts;
-+	struct cgroupfs_root *root;
- 	int ret = 0;
- 	struct super_block *sb;
--	struct cgroupfs_root *root;
--	struct list_head tmp_cg_links;
-+	struct cgroupfs_root *new_root;
+-	#mount --make-unbindable /mnt
+-	 [ smount /mnt  unbindable ]
++	# mount --make-unbindable /mnt
  
- 	/* First find the desired set of subsystems */
- 	ret = parse_cgroupfs_options(data, &opts);
--	if (ret) {
--		kfree(opts.release_agent);
--		return ret;
--	}
+-	 Lets try to bind mount this mount somewhere else.
++	 Let's try to bind mount this mount somewhere else.
+ 	 # mount --bind /mnt /tmp
+ 	 mount: wrong fs type, bad option, bad superblock on /mnt,
+ 	        or too many mounted file systems
+@@ -139,147 +137,8 @@ replicas continue to be exactly same.
+ 
+ 3) smount command
+ 
+-	Currently the mount command is not aware of shared subtree features.
+-	Work is in progress to add the support in mount ( util-linux package ).
+-	Till then use the following program.
 -
--	root = kzalloc(sizeof(*root), GFP_KERNEL);
--	if (!root) {
--		kfree(opts.release_agent);
--		return -ENOMEM;
--	}
-+	if (ret)
-+		goto out_err;
- 
--	init_cgroup_root(root);
--	root->subsys_bits = opts.subsys_bits;
--	root->flags = opts.flags;
--	if (opts.release_agent) {
--		strcpy(root->release_agent_path, opts.release_agent);
--		kfree(opts.release_agent);
-+	/*
-+	 * Allocate a new cgroup root. We may not need it if we're
-+	 * reusing an existing hierarchy.
-+	 */
-+	new_root = cgroup_root_from_opts(&opts);
-+	if (IS_ERR(new_root)) {
-+		ret = PTR_ERR(new_root);
-+		goto out_err;
- 	}
-+	opts.new_root = new_root;
- 
--	sb = sget(fs_type, cgroup_test_super, cgroup_set_super, root);
+-	------------------------------------------------------------------------
+-	//
+-	//this code was developed my Miklos Szeredi <miklos@szeredi.hu>
+-	//and modified by Ram Pai <linuxram@us.ibm.com>
+-	// sample usage:
+-	//              smount /tmp shared
+-	//
+-	#include <stdio.h>
+-	#include <stdlib.h>
+-	#include <unistd.h>
+-	#include <string.h>
+-	#include <sys/mount.h>
+-	#include <sys/fsuid.h>
 -
-+	/* Locate an existing or new sb for this hierarchy */
-+	sb = sget(fs_type, cgroup_test_super, cgroup_set_super, &opts);
- 	if (IS_ERR(sb)) {
--		kfree(root);
--		return PTR_ERR(sb);
-+		ret = PTR_ERR(sb);
-+		kfree(opts.new_root);
-+		goto out_err;
- 	}
+-	#ifndef MS_REC
+-	#define MS_REC		0x4000	/* 16384: Recursive loopback */
+-	#endif
+-
+-	#ifndef MS_SHARED
+-	#define MS_SHARED		1<<20	/* Shared */
+-	#endif
+-
+-	#ifndef MS_PRIVATE
+-	#define MS_PRIVATE		1<<18	/* Private */
+-	#endif
+-
+-	#ifndef MS_SLAVE
+-	#define MS_SLAVE		1<<19	/* Slave */
+-	#endif
+-
+-	#ifndef MS_UNBINDABLE
+-	#define MS_UNBINDABLE		1<<17	/* Unbindable */
+-	#endif
+-
+-	int main(int argc, char *argv[])
+-	{
+-		int type;
+-		if(argc != 3) {
+-			fprintf(stderr, "usage: %s dir "
+-			"<rshared|rslave|rprivate|runbindable|shared|slave"
+-			"|private|unbindable>\n" , argv[0]);
+-			return 1;
+-		}
+-
+-		fprintf(stdout, "%s %s %s\n", argv[0], argv[1], argv[2]);
+-
+-		if (strcmp(argv[2],"rshared")==0)
+-			type=(MS_SHARED|MS_REC);
+-		else if (strcmp(argv[2],"rslave")==0)
+-			type=(MS_SLAVE|MS_REC);
+-		else if (strcmp(argv[2],"rprivate")==0)
+-			type=(MS_PRIVATE|MS_REC);
+-		else if (strcmp(argv[2],"runbindable")==0)
+-			type=(MS_UNBINDABLE|MS_REC);
+-		else if (strcmp(argv[2],"shared")==0)
+-			type=MS_SHARED;
+-		else if (strcmp(argv[2],"slave")==0)
+-			type=MS_SLAVE;
+-		else if (strcmp(argv[2],"private")==0)
+-			type=MS_PRIVATE;
+-		else if (strcmp(argv[2],"unbindable")==0)
+-			type=MS_UNBINDABLE;
+-		else {
+-			fprintf(stderr, "invalid operation: %s\n", argv[2]);
+-			return 1;
+-		}
+-		setfsuid(getuid());
+-
+-		if(mount("", argv[1], "dontcare", type, "") == -1) {
+-			perror("mount");
+-			return 1;
+-		}
+-		return 0;
+-	}
+-	-----------------------------------------------------------------------
+-
+-	Copy the above code snippet into smount.c
+-	gcc -o smount smount.c
+-
+-
+-	(i) To mark all the mounts under /mnt as shared execute the following
+-	command:
+-
+-	 	smount /mnt rshared
+-		the corresponding syntax planned for mount command is
+-		mount --make-rshared /mnt
+-
+-	    just to mark a mount /mnt as shared, execute the following
+-	    command:
+-	 	smount /mnt shared
+-		the corresponding syntax planned for mount command is
+-		mount --make-shared /mnt
+-
+-	(ii) To mark all the shared mounts under /mnt as slave execute the
+-	following
+-
+-	     command:
+-		smount /mnt rslave
+-		the corresponding syntax planned for mount command is
+-		mount --make-rslave /mnt
+-
+-	    just to mark a mount /mnt as slave, execute the following
+-	    command:
+-	 	smount /mnt slave
+-		the corresponding syntax planned for mount command is
+-		mount --make-slave /mnt
+-
+-	(iii) To mark all the mounts under /mnt as private execute the
+-	following command:
+-
+-		smount /mnt rprivate
+-		the corresponding syntax planned for mount command is
+-		mount --make-rprivate /mnt
+-
+-	    just to mark a mount /mnt as private, execute the following
+-	    command:
+-	 	smount /mnt private
+-		the corresponding syntax planned for mount command is
+-		mount --make-private /mnt
+-
+-	      NOTE: by default all the mounts are created as private. But if
+-	      you want to change some shared/slave/unbindable  mount as
+-	      private at a later point in time, this command can help.
+-
+-	(iv) To mark all the mounts under /mnt as unbindable execute the
+-	following
+-
+-	     command:
+-		smount /mnt runbindable
+-		the corresponding syntax planned for mount command is
+-		mount --make-runbindable /mnt
+-
+-	    just to mark a mount /mnt as unbindable, execute the following
+-	    command:
+-	 	smount /mnt unbindable
+-		the corresponding syntax planned for mount command is
+-		mount --make-unbindable /mnt
++	Modern mount(8) command is aware of shared subtree features,
++	so use it instead of the 'smount' command. [source code removed]
  
--	if (sb->s_fs_info != root) {
--		/* Reusing an existing superblock */
--		BUG_ON(sb->s_root == NULL);
--		kfree(root);
--		root = NULL;
--	} else {
--		/* New superblock */
-+	root = sb->s_fs_info;
-+	BUG_ON(!root);
-+	if (root == opts.new_root) {
-+		/* We used the new root structure, so this is a new hierarchy */
-+		struct list_head tmp_cg_links;
- 		struct cgroup *root_cgrp = &root->top_cgroup;
- 		struct inode *inode;
-+		struct cgroupfs_root *existing_root;
- 		int i;
  
- 		BUG_ON(sb->s_root != NULL);
-@@ -1105,6 +1167,18 @@ static int cgroup_get_sb(struct file_sys
- 		mutex_lock(&inode->i_mutex);
- 		mutex_lock(&cgroup_mutex);
+ 4) Use cases
+@@ -558,7 +417,7 @@ replicas continue to be exactly same.
+ 	then the subtree under the unbindable mount is pruned in the new
+ 	location.
  
-+		if (strlen(root->name)) {
-+			/* Check for name clashes with existing mounts */
-+			for_each_active_root(existing_root) {
-+				if (!strcmp(existing_root->name, root->name)) {
-+					ret = -EBUSY;
-+					mutex_unlock(&cgroup_mutex);
-+					mutex_unlock(&inode->i_mutex);
-+					goto drop_new_super;
-+				}
-+			}
-+		}
-+
- 		/*
- 		 * We're accessing css_set_count without locking
- 		 * css_set_lock here, but that's OK - it can only be
-@@ -1123,7 +1197,8 @@ static int cgroup_get_sb(struct file_sys
- 		if (ret == -EBUSY) {
- 			mutex_unlock(&cgroup_mutex);
- 			mutex_unlock(&inode->i_mutex);
--			goto free_cg_links;
-+			free_cg_links(&tmp_cg_links);
-+			goto drop_new_super;
- 		}
+-	eg: lets say we have the following mount tree.
++	eg: let's say we have the following mount tree.
  
- 		/* EBUSY should be the only error here */
-@@ -1157,15 +1232,25 @@ static int cgroup_get_sb(struct file_sys
- 		cgroup_populate_dir(root_cgrp);
- 		mutex_unlock(&cgroup_mutex);
- 		mutex_unlock(&inode->i_mutex);
-+	} else {
-+		/*
-+		 * We re-used an existing hierarchy - the new root (if
-+		 * any) is not needed
-+		 */
-+		kfree(opts.new_root);
- 	}
+ 		A
+ 	      /   \
+@@ -566,7 +425,7 @@ replicas continue to be exactly same.
+ 	     / \ / \
+ 	     D E F G
  
- 	simple_set_mnt(mnt, sb);
-+	kfree(opts.release_agent);
-+	kfree(opts.name);
- 	return 0;
+-	     Lets say all the mount except the mount C in the tree are
++	     Let's say all the mount except the mount C in the tree are
+ 	     of a type other than unbindable.
  
-- free_cg_links:
--	free_cg_links(&tmp_cg_links);
-  drop_new_super:
- 	deactivate_locked_super(sb);
-+ out_err:
-+	kfree(opts.release_agent);
-+	kfree(opts.name);
-+
- 	return ret;
- }
+ 	     If this tree is rbound to say Z
+@@ -683,13 +542,13 @@ replicas continue to be exactly same.
+ 	'b' on mounts that receive propagation from mount 'B' and does not have
+ 	sub-mounts within them are unmounted.
  
-@@ -2992,6 +3077,9 @@ static int proc_cgroup_show(struct seq_f
- 		seq_printf(m, "%lu:", root->subsys_bits);
- 		for_each_subsys(root, ss)
- 			seq_printf(m, "%s%s", count++ ? "," : "", ss->name);
-+		if (strlen(root->name))
-+			seq_printf(m, "%sname=%s", count ? "," : "",
-+				   root->name);
- 		seq_putc(m, ':');
- 		get_first_subsys(&root->top_cgroup, NULL, &subsys_id);
- 		cgrp = task_cgroup(tsk, subsys_id);
+-	Example: Lets say 'B1', 'B2', 'B3' are shared mounts that propagate to
++	Example: Let's say 'B1', 'B2', 'B3' are shared mounts that propagate to
+ 	each other.
+ 
+-	lets say 'A1', 'A2', 'A3' are first mounted at dentry 'b' on mount
++	let's say 'A1', 'A2', 'A3' are first mounted at dentry 'b' on mount
+ 	'B1', 'B2' and 'B3' respectively.
+ 
+-	lets say 'C1', 'C2', 'C3' are next mounted at the same dentry 'b' on
++	let's say 'C1', 'C2', 'C3' are next mounted at the same dentry 'b' on
+ 	mount 'B1', 'B2' and 'B3' respectively.
+ 
+ 	if 'C1' is unmounted, all the mounts that are most-recently-mounted on
+@@ -710,7 +569,7 @@ replicas continue to be exactly same.
+ 	A cloned namespace contains all the mounts as that of the parent
+ 	namespace.
+ 
+-	Lets say 'A' and 'B' are the corresponding mounts in the parent and the
++	Let's say 'A' and 'B' are the corresponding mounts in the parent and the
+ 	child namespace.
+ 
+ 	If 'A' is shared, then 'B' is also shared and 'A' and 'B' propagate to
+@@ -759,11 +618,11 @@ replicas continue to be exactly same.
+ 		mount --make-slave /mnt
+ 
+ 		At this point we have the first mount at /tmp and
+-		its root dentry is 1. Lets call this mount 'A'
++		its root dentry is 1. Let's call this mount 'A'
+ 		And then we have a second mount at /tmp1 with root
+-		dentry 2. Lets call this mount 'B'
++		dentry 2. Let's call this mount 'B'
+ 		Next we have a third mount at /mnt with root dentry
+-		mnt. Lets call this mount 'C'
++		mnt. Let's call this mount 'C'
+ 
+ 		'B' is the slave of 'A' and 'C' is a slave of 'B'
+ 		A -> B -> C
+@@ -794,7 +653,7 @@ replicas continue to be exactly same.
+ 
+ 	Q3 Why is unbindable mount needed?
+ 
+-		Lets say we want to replicate the mount tree at multiple
++		Let's say we want to replicate the mount tree at multiple
+ 		locations within the same subtree.
+ 
+ 		if one rbind mounts a tree within the same subtree 'n' times
+@@ -803,7 +662,7 @@ replicas continue to be exactly same.
+ 		mounts. Here is a example.
+ 
+ 		step 1:
+-		   lets say the root tree has just two directories with
++		   let's say the root tree has just two directories with
+ 		   one vfsmount.
+ 				    root
+ 				   /    \
+@@ -875,7 +734,7 @@ replicas continue to be exactly same.
+ 		Unclonable mounts come in handy here.
+ 
+ 		step 1:
+-		   lets say the root tree has just two directories with
++		   let's say the root tree has just two directories with
+ 		   one vfsmount.
+ 				    root
+ 				   /    \
 _
 
-Patches currently in -mm which might be from menage@google.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-add-a-refcount-check-in-dput.patch
+linux-next.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+isdn-fix-netjet-build-errors.patch
+scsi-fix-func-names-in-kernel-doc.patch
+scsi_transport_fc-fix-missing-kernel-doc.patch
+readahead-add-blk_run_backing_dev.patch
+pcmcia-fix-controller-printk-warnings.patch
+reiser4-export-remove_from_page_cache-fix.patch
 
