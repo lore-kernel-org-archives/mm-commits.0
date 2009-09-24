@@ -1,27 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-fix-up-peripheral-spelling.patch added to -mm tree
-Date: Thu, 24 Sep 2009 14:42:57 -0700
-Message-ID: <200909242142.n8OLgvb7027106@imap1.linux-foundation.org>
+Subject: + maintainers-simple-firmware-interface-update-email-style.patch added to -mm tree
+Date: Thu, 24 Sep 2009 14:42:53 -0700
+Message-ID: <200909242142.n8OLgrHR026945@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36872 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60452 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752495AbZIXVuc (ORCPT
+	by vger.kernel.org with ESMTP id S1750803AbZIXVxI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Sep 2009 17:50:32 -0400
+	Thu, 24 Sep 2009 17:53:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, leoli@freescale.com
+Cc: joe@perches.com, lenb@kernel.org
 
 
 The patch titled
-     MAINTAINERS: fix up PERIPHERAL spelling
+     MAINTAINERS: SIMPLE FIRMWARE INTERFACE: update email style
 has been added to the -mm tree.  Its filename is
-     maintainers-fix-up-peripheral-spelling.patch
+     maintainers-simple-firmware-interface-update-email-style.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,30 +39,33 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
 otm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: fix up PERIPHERAL spelling
+Subject: MAINTAINERS: SIMPLE FIRMWARE INTERFACE: update email style
 =46rom: Joe Perches <joe@perches.com>
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Li Yang <leoli@freescale.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-fix-up-peripheral-spelling MAINTAINER=
-S
---- a/MAINTAINERS~maintainers-fix-up-peripheral-spelling
+diff -puN MAINTAINERS~maintainers-simple-firmware-interface-update-emai=
+l-style MAINTAINERS
+--- a/MAINTAINERS~maintainers-simple-firmware-interface-update-email-st=
+yle
 +++ a/MAINTAINERS
-@@ -2132,7 +2132,7 @@ S:	Supported
- F:	arch/powerpc/sysdev/qe_lib/
- F:	arch/powerpc/include/asm/*qe.h
+@@ -4688,8 +4688,7 @@ F:	drivers/usb/gadget/lh7a40*
+ F:	drivers/usb/host/ohci-lh7a40*
 =20
--FREESCALE USB PERIPHERIAL DRIVERS
-+FREESCALE USB PERIPHERAL DRIVERS
- M:	Li Yang <leoli@freescale.com>
- L:	linux-usb@vger.kernel.org
- L:	linuxppc-dev@ozlabs.org
+ SIMPLE FIRMWARE INTERFACE (SFI)
+-P:	Len Brown
+-M:	lenb@kernel.org
++M:	Len Brown <lenb@kernel.org>
+ L:	sfi-devel@simplefirmware.org
+ W:	http://simplefirmware.org/
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-sfi-2.=
+6.git
 _
 
 Patches currently in -mm which might be from joe@perches.com are
