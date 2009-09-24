@@ -1,149 +1,144 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ptrace-__ptrace_detach-do-__wake_up_parent-if-we-reap-the-tracee.patch removed from -mm tree
-Date: Thu, 24 Sep 2009 12:35:02 -0700
-Message-ID: <200909241935.n8OJZ2wc032083@imap1.linux-foundation.org>
+Subject: [merged] do_wait-fix-sys_waitid-specific-behaviour.patch removed from -mm tree
+Date: Thu, 24 Sep 2009 12:35:23 -0700
+Message-ID: <200909241935.n8OJZN2K000346@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33019 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36002 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752450AbZIXTf3 (ORCPT
+	by vger.kernel.org with ESMTP id S1753224AbZIXTf4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Sep 2009 15:35:29 -0400
+	Thu, 24 Sep 2009 15:35:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, roland@redhat.com, vmayatsk@redhat.com, mm-commits@vger.kernel.org
+To: v.mayatskih@gmail.com, oleg@redhat.com, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ptrace: __ptrace_detach: do __wake_up_parent() if we reap the tracee
+     do_wait: fix sys_waitid()-specific behaviour
 has been removed from the -mm tree.  Its filename was
-     ptrace-__ptrace_detach-do-__wake_up_parent-if-we-reap-the-tracee.patch
+     do_wait-fix-sys_waitid-specific-behaviour.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace: __ptrace_detach: do __wake_up_parent() if we reap the tracee
-From: Oleg Nesterov <oleg@redhat.com>
+Subject: do_wait: fix sys_waitid()-specific behaviour
+From: Vitaly Mayatskikh <v.mayatskih@gmail.com>
 
-The bug is old, it wasn't cause by recent changes.
+do_wait() checks ->wo_info to figure out who is the caller.  If it's not
+NULL the caller should be sys_waitid(), in that case do_wait() fixes up
+the retval or zeros ->wo_info, depending on retval from underlying
+function.
 
-Test case:
+This is bug: user can pass ->wo_info == NULL and sys_waitid() will return
+incorrect value.
 
-	static void *tfunc(void *arg)
-	{
-		int pid = (long)arg;
+man 2 waitid says:
 
-		assert(ptrace(PTRACE_ATTACH, pid, NULL, NULL) == 0);
-		kill(pid, SIGKILL);
+	waitid(): returns 0 on success
 
-		sleep(1);
-		return NULL;
-	}
+Test-case:
 
 	int main(void)
 	{
-		pthread_t th;
-		long pid = fork();
-
-		if (!pid)
-			pause();
-
-		signal(SIGCHLD, SIG_IGN);
-		assert(pthread_create(&th, NULL, tfunc, (void*)pid) == 0);
-
-		int r = waitpid(-1, NULL, __WNOTHREAD);
-		printf("waitpid: %d %m\n", r);
+		if (fork())
+			assert(waitid(P_ALL, 0, NULL, WEXITED) == 0);
 
 		return 0;
 	}
 
-Before the patch this program hangs, after this patch waitpid() correctly
-fails with errno == -ECHILD.
+Result:
 
-The problem is, __ptrace_detach() reaps the EXIT_ZOMBIE tracee if its
-->real_parent is our sub-thread and we ignore SIGCHLD.  But in this case
-we should wake up other threads which can sleep in do_wait().
+	Assertion `waitid(P_ALL, 0, ((void *)0), 4) == 0' failed.
 
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Move that code to sys_waitid().
+
+User-visible change: sys_waitid() will return 0 on success, either
+infop is set or not.
+
+Note, there's another bug in wait_noreap_copyout() which affects
+return value of sys_waitid(). It will be fixed in next patch.
+
+Signed-off-by: Vitaly Mayatskikh <v.mayatskih@gmail.com>
+Reviewed-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Roland McGrath <roland@redhat.com>
-Cc: Vitaly Mayatskikh <vmayatsk@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    1 +
- kernel/exit.c         |    5 +++++
- kernel/ptrace.c       |   11 +++++++----
- kernel/signal.c       |    9 ---------
- 4 files changed, 13 insertions(+), 13 deletions(-)
+ kernel/exit.c |   49 ++++++++++++++++++++++--------------------------
+ 1 file changed, 23 insertions(+), 26 deletions(-)
 
-diff -puN include/linux/sched.h~ptrace-__ptrace_detach-do-__wake_up_parent-if-we-reap-the-tracee include/linux/sched.h
---- a/include/linux/sched.h~ptrace-__ptrace_detach-do-__wake_up_parent-if-we-reap-the-tracee
-+++ a/include/linux/sched.h
-@@ -2056,6 +2056,7 @@ extern int kill_pgrp(struct pid *pid, in
- extern int kill_pid(struct pid *pid, int sig, int priv);
- extern int kill_proc_info(int, struct siginfo *, pid_t);
- extern int do_notify_parent(struct task_struct *, int);
-+extern void __wake_up_parent(struct task_struct *p, struct task_struct *parent);
- extern void force_sig(int, struct task_struct *);
- extern void force_sig_specific(int, struct task_struct *);
- extern int send_sig(int, struct task_struct *, int);
-diff -puN kernel/exit.c~ptrace-__ptrace_detach-do-__wake_up_parent-if-we-reap-the-tracee kernel/exit.c
---- a/kernel/exit.c~ptrace-__ptrace_detach-do-__wake_up_parent-if-we-reap-the-tracee
+diff -puN kernel/exit.c~do_wait-fix-sys_waitid-specific-behaviour kernel/exit.c
+--- a/kernel/exit.c~do_wait-fix-sys_waitid-specific-behaviour
 +++ a/kernel/exit.c
-@@ -1575,6 +1575,11 @@ static int ptrace_do_wait(struct wait_op
- 	return 0;
+@@ -1645,32 +1645,6 @@ notask:
+ end:
+ 	__set_current_state(TASK_RUNNING);
+ 	remove_wait_queue(&current->signal->wait_chldexit, &wo->child_wait);
+-
+-	if (wo->wo_info) {
+-		struct siginfo __user *infop = wo->wo_info;
+-
+-		if (retval > 0)
+-			retval = 0;
+-		else {
+-			/*
+-			 * For a WNOHANG return, clear out all the fields
+-			 * we would set so the user can easily tell the
+-			 * difference.
+-			 */
+-			if (!retval)
+-				retval = put_user(0, &infop->si_signo);
+-			if (!retval)
+-				retval = put_user(0, &infop->si_errno);
+-			if (!retval)
+-				retval = put_user(0, &infop->si_code);
+-			if (!retval)
+-				retval = put_user(0, &infop->si_pid);
+-			if (!retval)
+-				retval = put_user(0, &infop->si_uid);
+-			if (!retval)
+-				retval = put_user(0, &infop->si_status);
+-		}
+-	}
+ 	return retval;
  }
  
-+void __wake_up_parent(struct task_struct *p, struct task_struct *parent)
-+{
-+	wake_up_interruptible_sync(&parent->signal->wait_chldexit);
-+}
+@@ -1715,6 +1689,29 @@ SYSCALL_DEFINE5(waitid, int, which, pid_
+ 	wo.wo_stat	= NULL;
+ 	wo.wo_rusage	= ru;
+ 	ret = do_wait(&wo);
 +
- static long do_wait(struct wait_opts *wo)
- {
- 	DECLARE_WAITQUEUE(wait, current);
-diff -puN kernel/ptrace.c~ptrace-__ptrace_detach-do-__wake_up_parent-if-we-reap-the-tracee kernel/ptrace.c
---- a/kernel/ptrace.c~ptrace-__ptrace_detach-do-__wake_up_parent-if-we-reap-the-tracee
-+++ a/kernel/ptrace.c
-@@ -266,9 +266,10 @@ static int ignoring_children(struct sigh
-  * or self-reaping.  Do notification now if it would have happened earlier.
-  * If it should reap itself, return true.
-  *
-- * If it's our own child, there is no notification to do.
-- * But if our normal children self-reap, then this child
-- * was prevented by ptrace and we must reap it now.
-+ * If it's our own child, there is no notification to do. But if our normal
-+ * children self-reap, then this child was prevented by ptrace and we must
-+ * reap it now, in that case we must also wake up sub-threads sleeping in
-+ * do_wait().
-  */
- static bool __ptrace_detach(struct task_struct *tracer, struct task_struct *p)
- {
-@@ -278,8 +279,10 @@ static bool __ptrace_detach(struct task_
- 		if (!task_detached(p) && thread_group_empty(p)) {
- 			if (!same_thread_group(p->real_parent, tracer))
- 				do_notify_parent(p, p->exit_signal);
--			else if (ignoring_children(tracer->sighand))
-+			else if (ignoring_children(tracer->sighand)) {
-+				__wake_up_parent(p, tracer);
- 				p->exit_signal = -1;
-+			}
- 		}
- 		if (task_detached(p)) {
- 			/* Mark it as in the process of being reaped. */
-diff -puN kernel/signal.c~ptrace-__ptrace_detach-do-__wake_up_parent-if-we-reap-the-tracee kernel/signal.c
---- a/kernel/signal.c~ptrace-__ptrace_detach-do-__wake_up_parent-if-we-reap-the-tracee
-+++ a/kernel/signal.c
-@@ -1383,15 +1383,6 @@ ret:
- }
++	if (ret > 0) {
++		ret = 0;
++	} else if (infop) {
++		/*
++		 * For a WNOHANG return, clear out all the fields
++		 * we would set so the user can easily tell the
++		 * difference.
++		 */
++		if (!ret)
++			ret = put_user(0, &infop->si_signo);
++		if (!ret)
++			ret = put_user(0, &infop->si_errno);
++		if (!ret)
++			ret = put_user(0, &infop->si_code);
++		if (!ret)
++			ret = put_user(0, &infop->si_pid);
++		if (!ret)
++			ret = put_user(0, &infop->si_uid);
++		if (!ret)
++			ret = put_user(0, &infop->si_status);
++	}
++
+ 	put_pid(pid);
  
- /*
-- * Wake up any threads in the parent blocked in wait* syscalls.
-- */
--static inline void __wake_up_parent(struct task_struct *p,
--				    struct task_struct *parent)
--{
--	wake_up_interruptible_sync(&parent->signal->wait_chldexit);
--}
+ 	/* avoid REGPARM breakage on x86: */
+_
+
+Patches currently in -mm which might be from v.mayatskih@gmail.com are
+
+origin.patch
+
