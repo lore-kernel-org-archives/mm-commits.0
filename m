@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + asus_atk0110-add-support-for-asus-p7p55d.patch added to -mm tree
-Date: Thu, 24 Sep 2009 15:49:06 -0700
-Message-ID: <200909242249.n8OMn6e5028834@imap1.linux-foundation.org>
+Subject: + scsi_libc-avoid-calling-scsi_device_put-from-under-host_lock.patch added to -mm tree
+Date: Thu, 24 Sep 2009 15:56:12 -0700
+Message-ID: <200909242256.n8OMuCA6010509@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39250 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50454 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751993AbZIXWtc (ORCPT
+	by vger.kernel.org with ESMTP id S1751378AbZIXW50 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Sep 2009 18:49:32 -0400
+	Thu, 24 Sep 2009 18:57:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kronos.it@gmail.com, hancockrwd@gmail.com, hdegoede@redhat.com, khali@linux-fr.org
+Cc: strakh@ispras.ru, James.Bottomley@HansenPartnership.com, jens.axboe@oracle.com
 
 
 The patch titled
-     asus_atk0110: add support for Asus P7P55D
+     scsi_lib.c: avoid calling scsi_device_put() from under ->host_lock
 has been added to the -mm tree.  Its filename is
-     asus_atk0110-add-support-for-asus-p7p55d.patch
+     scsi_libc-avoid-calling-scsi_device_put-from-under-host_lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,101 +34,61 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: asus_atk0110: add support for Asus P7P55D
-From: Luca Tettamanti <kronos.it@gmail.com>
+Subject: scsi_lib.c: avoid calling scsi_device_put() from under ->host_lock
+From: Alexander Strakh <strakh@ispras.ru>
 
-With P7P55D (and newer) boards Asus extended the output buffer (ASBF)
-making the driver unable to read the data from the sensors.  Change the
-driver to use dynamic buffers (allocated by ACPI core); the return value
-is cached, so the number of memory allocations is very low.
+Driver scsi_lib.c might sleep in atomic context, because it calls
+scsi_device_put under spin_lock_irqsave.
 
-Signed-off-by: Luca Tettamanti <kronos.it@gmail.com>
-Tested-by: Robert Hancock <hancockrwd@gmail.com>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Hans de Goede <hdegoede@redhat.com>
+drivers/scsi/scsi_lib.c:356:
+	spin_lock_irqsave(shost->host_lock, flags);
+	scsi_device_put(sdev);
+Path to might_sleep macro from scsi_device_put:
+1. scsi_device_put calls put_device at ./drivers/scsi/scsi.c:1111
+2. put_device calls kobject_put at ./drivers/base/core.c:1038
+3. kobject_put calls kref_put at ./lib/kobject.c
+4. kref_put may call callback function kobject_release at ./lib/kref.c if
+refcount becomes zero, which might_sleep because it calls user event. Details:
+	4.1 kobject_cleanup calls kobject_uevent at ./lib/kobject.c:555
+	4.2 kobject_uevent calls kobject_uevent_env at  ./lib/kobject_uevent.c:282
+	4.3 kobject_uevent_env calls call_usermodehelper_exec at
+./include/linux/kmod.h:83
+	4.4 call_usermodehelper_exec calls wait_for_completion at
+./kernel/kmod.c:481
+	4.5 wait_for_completion calls wait_for_common at ./kernel/sched.c:5710
+	4.5 wait_for_common calls might_sleep at ./kernels/sched.c:5692
+
+Found by Linux Driver Verification project.
+
+Delete wrong sleeping function calls.
+
+Signed-off-by: Alexander Strakh <strakh@ispras.ru>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/asus_atk0110.c |   50 ++++++++++++++++++++-------------
- 1 file changed, 31 insertions(+), 19 deletions(-)
+ drivers/scsi/scsi_lib.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/hwmon/asus_atk0110.c~asus_atk0110-add-support-for-asus-p7p55d drivers/hwmon/asus_atk0110.c
---- a/drivers/hwmon/asus_atk0110.c~asus_atk0110-add-support-for-asus-p7p55d
-+++ a/drivers/hwmon/asus_atk0110.c
-@@ -129,9 +129,15 @@ struct atk_sensor_data {
- 	char const *acpi_name;
- };
+diff -puN drivers/scsi/scsi_lib.c~scsi_libc-avoid-calling-scsi_device_put-from-under-host_lock drivers/scsi/scsi_lib.c
+--- a/drivers/scsi/scsi_lib.c~scsi_libc-avoid-calling-scsi_device_put-from-under-host_lock
++++ a/drivers/scsi/scsi_lib.c
+@@ -353,9 +353,9 @@ static void scsi_single_lun_run(struct s
  
--struct atk_acpi_buffer_u64 {
--	union acpi_object buf;
--	u64 value;
-+/* Return buffer format:
-+ * [0-3] "value" is valid flag
-+ * [4-7] value
-+ * [8- ] unknown stuff on newer mobos
-+ */
-+struct atk_acpi_ret_buffer {
-+	u32 flags;
-+	u32 value;
-+	u8 data[];
- };
- 
- static int atk_add(struct acpi_device *device);
-@@ -446,8 +452,10 @@ static int atk_read_value_new(struct atk
- 	struct acpi_object_list params;
- 	struct acpi_buffer ret;
- 	union acpi_object id;
--	struct atk_acpi_buffer_u64 tmp;
-+	union acpi_object *obj;
-+	struct atk_acpi_ret_buffer *buf;
- 	acpi_status status;
-+	int err = 0;
- 
- 	id.type = ACPI_TYPE_INTEGER;
- 	id.integer.value = sensor->id;
-@@ -455,11 +463,7 @@ static int atk_read_value_new(struct atk
- 	params.count = 1;
- 	params.pointer = &id;
- 
--	tmp.buf.type = ACPI_TYPE_BUFFER;
--	tmp.buf.buffer.pointer = (u8 *)&tmp.value;
--	tmp.buf.buffer.length = sizeof(u64);
--	ret.length = sizeof(tmp);
--	ret.pointer = &tmp;
-+	ret.length = ACPI_ALLOCATE_BUFFER;
- 
- 	status = acpi_evaluate_object_typed(data->read_handle, NULL, &params,
- 			&ret, ACPI_TYPE_BUFFER);
-@@ -468,23 +472,31 @@ static int atk_read_value_new(struct atk
- 				acpi_format_exception(status));
- 		return -EIO;
+ 		spin_unlock_irqrestore(shost->host_lock, flags);
+ 		blk_run_queue(sdev->request_queue);
+-		spin_lock_irqsave(shost->host_lock, flags);
+ 	
+ 		scsi_device_put(sdev);
++		spin_lock_irqsave(shost->host_lock, flags);
  	}
-+	obj = ret.pointer;
- 
--	/* Return buffer format:
--	 * [0-3] "value" is valid flag
--	 * [4-7] value
--	 */
--	if (!(tmp.value & 0xffffffff)) {
-+	/* Sanity check */
-+	if (obj->buffer.length < 8) {
-+		dev_warn(dev, "Unexpected ASBF length: %u\n",
-+				obj->buffer.length);
-+		err = -EIO;
-+		goto out;
-+	}
-+	buf = (struct atk_acpi_ret_buffer *)obj->buffer.pointer;
-+
-+	if (!buf->flags) {
- 		/* The reading is not valid, possible causes:
- 		 * - sensor failure
- 		 * - enumeration was FUBAR (and we didn't notice)
- 		 */
--		dev_info(dev, "Failure: %#llx\n", tmp.value);
--		return -EIO;
-+		dev_warn(dev, "Failure: %#x\n", buf->flags);
-+		err = -EIO;
-+		goto out;
- 	}
- 
--	*value = (tmp.value & 0xffffffff00000000ULL) >> 32;
+  out:
+ 	spin_unlock_irqrestore(shost->host_lock, flags);
+_
+
+Patches currently in -mm which might be from strakh@ispras.ru are
+
+origin.patch
+scsi_libc-avoid-calling-scsi_device_put-from-under-host_lock.patch
+
