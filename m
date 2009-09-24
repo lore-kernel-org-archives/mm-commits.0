@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cgroups-update-documentation-of-cgroups-tasks-and-procs-files.patch added to -mm tree
-Date: Thu, 24 Sep 2009 15:31:38 -0700
-Message-ID: <200909242231.n8OMVcDD026648@imap1.linux-foundation.org>
+Subject: + asus_atk0110-add-support-for-asus-p7p55d.patch added to -mm tree
+Date: Thu, 24 Sep 2009 15:49:06 -0700
+Message-ID: <200909242249.n8OMn6e5028834@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39959 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39250 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751377AbZIXWbm (ORCPT
+	by vger.kernel.org with ESMTP id S1751993AbZIXWtc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Sep 2009 18:31:42 -0400
+	Thu, 24 Sep 2009 18:49:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: menage@google.com, lizf@cn.fujitsu.com
+Cc: kronos.it@gmail.com, hancockrwd@gmail.com, hdegoede@redhat.com, khali@linux-fr.org
 
 
 The patch titled
-     cgroups: update documentation of cgroups tasks and procs files
+     asus_atk0110: add support for Asus P7P55D
 has been added to the -mm tree.  Its filename is
-     cgroups-update-documentation-of-cgroups-tasks-and-procs-files.patch
+     asus_atk0110-add-support-for-asus-p7p55d.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,65 +34,101 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: update documentation of cgroups tasks and procs files
-From: Paul Menage <menage@google.com>
+Subject: asus_atk0110: add support for Asus P7P55D
+From: Luca Tettamanti <kronos.it@gmail.com>
 
-Update documentation of cgroups tasks and procs files
+With P7P55D (and newer) boards Asus extended the output buffer (ASBF)
+making the driver unable to read the data from the sensors.  Change the
+driver to use dynamic buffers (allocated by ACPI core); the return value
+is cached, so the number of memory allocations is very low.
 
-Document the cgroup.procs file.
-
-Clarify the semantics of the cgroup.procs and tasks files.  Although the
-current cgroup.procs interface returns a sorted and uniqified list of
-pids, potential future performance enhancements could result in those
-properties being removed - explicitly document this aspect of the API.
-
-There are no existing users of cgroup.procs, so compatibility isn't an
-issue.  There are users of the "tasks" file, but none that would appear to
-break in the event of the sorted property being broken.  The standard
-"libcpuset" explicitly sorts the results of reading from the tasks file,
-and "libcg" and other users don't appear to care about ordering.
-
-Signed-off-by: Paul Menage <menage@google.com>
-Reviewed-by: Li Zefan <lizf@cn.fujitsu.com>
+Signed-off-by: Luca Tettamanti <kronos.it@gmail.com>
+Tested-by: Robert Hancock <hancockrwd@gmail.com>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Hans de Goede <hdegoede@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/cgroups.txt |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ drivers/hwmon/asus_atk0110.c |   50 ++++++++++++++++++++-------------
+ 1 file changed, 31 insertions(+), 19 deletions(-)
 
-diff -puN Documentation/cgroups/cgroups.txt~cgroups-update-documentation-of-cgroups-tasks-and-procs-files Documentation/cgroups/cgroups.txt
---- a/Documentation/cgroups/cgroups.txt~cgroups-update-documentation-of-cgroups-tasks-and-procs-files
-+++ a/Documentation/cgroups/cgroups.txt
-@@ -227,7 +227,14 @@ as the path relative to the root of the 
- Each cgroup is represented by a directory in the cgroup file system
- containing the following files describing that cgroup:
+diff -puN drivers/hwmon/asus_atk0110.c~asus_atk0110-add-support-for-asus-p7p55d drivers/hwmon/asus_atk0110.c
+--- a/drivers/hwmon/asus_atk0110.c~asus_atk0110-add-support-for-asus-p7p55d
++++ a/drivers/hwmon/asus_atk0110.c
+@@ -129,9 +129,15 @@ struct atk_sensor_data {
+ 	char const *acpi_name;
+ };
  
-- - tasks: list of tasks (by pid) attached to that cgroup
-+ - tasks: list of tasks (by pid) attached to that cgroup.  This list
-+   is not guaranteed to be sorted.  Writing a thread id into this file
-+   moves the thread into this cgroup.
-+ - cgroup.procs: list of tgids in the cgroup.  This list is not
-+   guaranteed to be sorted or free of duplicate tgids, and userspace
-+   should sort/uniquify the list if this property is required.
-+   Writing a tgid into this file moves all threads with that tgid into
-+   this cgroup.
-  - notify_on_release flag: run the release agent on exit?
-  - release_agent: the path to use for release notifications (this file
-    exists in the top cgroup only)
-@@ -374,7 +381,7 @@ Now you want to do something with this c
+-struct atk_acpi_buffer_u64 {
+-	union acpi_object buf;
+-	u64 value;
++/* Return buffer format:
++ * [0-3] "value" is valid flag
++ * [4-7] value
++ * [8- ] unknown stuff on newer mobos
++ */
++struct atk_acpi_ret_buffer {
++	u32 flags;
++	u32 value;
++	u8 data[];
+ };
  
- In this directory you can find several files:
- # ls
--notify_on_release tasks
-+cgroup.procs notify_on_release tasks
- (plus whatever files added by the attached subsystems)
+ static int atk_add(struct acpi_device *device);
+@@ -446,8 +452,10 @@ static int atk_read_value_new(struct atk
+ 	struct acpi_object_list params;
+ 	struct acpi_buffer ret;
+ 	union acpi_object id;
+-	struct atk_acpi_buffer_u64 tmp;
++	union acpi_object *obj;
++	struct atk_acpi_ret_buffer *buf;
+ 	acpi_status status;
++	int err = 0;
  
- Now attach your shell to this cgroup:
-_
-
-Patches currently in -mm which might be from menage@google.com are
-
-origin.patch
-cgroups-update-documentation-of-cgroups-tasks-and-procs-files.patch
-add-a-refcount-check-in-dput.patch
-
+ 	id.type = ACPI_TYPE_INTEGER;
+ 	id.integer.value = sensor->id;
+@@ -455,11 +463,7 @@ static int atk_read_value_new(struct atk
+ 	params.count = 1;
+ 	params.pointer = &id;
+ 
+-	tmp.buf.type = ACPI_TYPE_BUFFER;
+-	tmp.buf.buffer.pointer = (u8 *)&tmp.value;
+-	tmp.buf.buffer.length = sizeof(u64);
+-	ret.length = sizeof(tmp);
+-	ret.pointer = &tmp;
++	ret.length = ACPI_ALLOCATE_BUFFER;
+ 
+ 	status = acpi_evaluate_object_typed(data->read_handle, NULL, &params,
+ 			&ret, ACPI_TYPE_BUFFER);
+@@ -468,23 +472,31 @@ static int atk_read_value_new(struct atk
+ 				acpi_format_exception(status));
+ 		return -EIO;
+ 	}
++	obj = ret.pointer;
+ 
+-	/* Return buffer format:
+-	 * [0-3] "value" is valid flag
+-	 * [4-7] value
+-	 */
+-	if (!(tmp.value & 0xffffffff)) {
++	/* Sanity check */
++	if (obj->buffer.length < 8) {
++		dev_warn(dev, "Unexpected ASBF length: %u\n",
++				obj->buffer.length);
++		err = -EIO;
++		goto out;
++	}
++	buf = (struct atk_acpi_ret_buffer *)obj->buffer.pointer;
++
++	if (!buf->flags) {
+ 		/* The reading is not valid, possible causes:
+ 		 * - sensor failure
+ 		 * - enumeration was FUBAR (and we didn't notice)
+ 		 */
+-		dev_info(dev, "Failure: %#llx\n", tmp.value);
+-		return -EIO;
++		dev_warn(dev, "Failure: %#x\n", buf->flags);
++		err = -EIO;
++		goto out;
+ 	}
+ 
+-	*value = (tmp.value & 0xffffffff00000000ULL) >> 32;
