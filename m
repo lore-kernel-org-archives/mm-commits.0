@@ -1,201 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: [merged] exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9.patch removed from -mm tree
-Date: Thu, 24 Sep 2009 12:35:36 -0700
-Message-ID: <200909241935.n8OJZao9000817@imap1.linux-foundation.org>
+Subject: [merged] doc-filesystems-more-mount-cleanups.patch removed from -mm tree
+Date: Thu, 24 Sep 2009 12:33:36 -0700
+Message-ID: <200909241933.n8OJXaBw029150@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60612 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52179 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753589AbZIXTgO (ORCPT
+	by vger.kernel.org with ESMTP id S1754164AbZIXTe3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Sep 2009 15:36:14 -0400
+	Thu, 24 Sep 2009 15:34:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nhorman@tuxdriver.com, alan@lxorguk.ukuu.org.uk, andi@firstfloor.org, earl_chew@agilent.com, oleg@tv-sign.ru, mm-commits@vger.kernel.org
+To: bergwolf@gmail.com, hch@infradead.org, miklos@szeredi.hu, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     exec: let do_coredump() limit the number of concurrent dumps to pipes
+     doc/filesystems: more mount cleanups
 has been removed from the -mm tree.  Its filename was
-     exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9.patch
+     doc-filesystems-more-mount-cleanups.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: exec: let do_coredump() limit the number of concurrent dumps to pipes
-From: Neil Horman <nhorman@tuxdriver.com>
+Subject: doc/filesystems: more mount cleanups
+From: Peng Tao <bergwolf@gmail.com>
 
-Introduce core pipe limiting sysctl.
+Documentation/filesystems/sharedsubtree.txt needs updating because the
+mount command in util-linux package is well aware of shared subtree
+features now.  The patch also fixes two typos in sharedsubtree.txt.
 
-Since we can dump cores to pipe, rather than directly to the filesystem,
-we create a condition in which a user can create a very high load on the
-system simply by running bad applications.
-
-If the pipe reader specified in core_pattern is poorly written, we can
-have lots of ourstandig resources and processes in the system.
-
-This sysctl introduces an ability to limit that resource consumption. 
-core_pipe_limit defines how many in-flight dumps may be run in parallel,
-dumps beyond this value are skipped and a note is made in the kernel log. 
-A special value of 0 in core_pipe_limit denotes unlimited core dumps may
-be handled (this is the default value).
-
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Neil Horman <nhorman@tuxdriver.com>
-Reported-by: Earl Chew <earl_chew@agilent.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Peng Tao <bergwolf@gmail.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/kernel.txt |   22 ++++++++++++++++++++++
- fs/exec.c                       |   23 ++++++++++++++++++-----
- kernel/sysctl.c                 |    9 +++++++++
- 3 files changed, 49 insertions(+), 5 deletions(-)
+ Documentation/filesystems/sharedsubtree.txt |   17 +++++++++++------
+ 1 file changed, 11 insertions(+), 6 deletions(-)
 
-diff -puN Documentation/sysctl/kernel.txt~exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9 Documentation/sysctl/kernel.txt
---- a/Documentation/sysctl/kernel.txt~exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9
-+++ a/Documentation/sysctl/kernel.txt
-@@ -22,6 +22,7 @@ show up in /proc/sys/kernel:
- - callhome		     [ S390 only ]
- - auto_msgmni
- - core_pattern
-+- core_pipe_limit
- - core_uses_pid
- - ctrl-alt-del
- - dentry-state
-@@ -135,6 +136,27 @@ core_pattern is used to specify a core d
+diff -puN Documentation/filesystems/sharedsubtree.txt~doc-filesystems-more-mount-cleanups Documentation/filesystems/sharedsubtree.txt
+--- a/Documentation/filesystems/sharedsubtree.txt~doc-filesystems-more-mount-cleanups
++++ a/Documentation/filesystems/sharedsubtree.txt
+@@ -4,7 +4,7 @@ Shared Subtrees
+ Contents:
+ 	1) Overview
+ 	2) Features
+-	3) smount command
++	3) Setting mount states
+ 	4) Use-case
+ 	5) Detailed semantics
+ 	6) Quiz
+@@ -135,10 +135,15 @@ replicas continue to be exactly same.
+ 	Binding a unbindable mount is a invalid operation.
  
- ==============================================================
  
-+core_pipe_limit:
+-3) smount command
++3) Setting mount states
+ 
+-	Modern mount(8) command is aware of shared subtree features,
+-	so use it instead of the 'smount' command. [source code removed]
++	The mount command (util-linux package) can be used to set mount
++	states:
 +
-+This sysctl is only applicable when core_pattern is configured to pipe core
-+files to user space helper a (when the first character of core_pattern is a '|',
-+see above).  When collecting cores via a pipe to an application, it is
-+occasionally usefull for the collecting application to gather data about the
-+crashing process from its /proc/pid directory.  In order to do this safely, the
-+kernel must wait for the collecting process to exit, so as not to remove the
-+crashing processes proc files prematurely.  This in turn creates the possibility
-+that a misbehaving userspace collecting process can block the reaping of a
-+crashed process simply by never exiting.  This sysctl defends against that.  It
-+defines how many concurrent crashing processes may be piped to user space
-+applications in parallel.  If this value is exceeded, then those crashing
-+processes above that value are noted via the kernel log and their cores are
-+skipped.  0 is a special value, indicating that unlimited processes may be
-+captured in parallel, but that no waiting will take place (i.e. the collecting
-+process is not guaranteed access to /proc/<crahing pid>/).  This value defaults
-+to 0.
-+
-+==============================================================
-+
- core_uses_pid:
++	mount --make-shared mountpoint
++	mount --make-slave mountpoint
++	mount --make-private mountpoint
++	mount --make-unbindable mountpoint
  
- The default coredump filename is "core".  By setting
-diff -puN fs/exec.c~exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9 fs/exec.c
---- a/fs/exec.c~exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9
-+++ a/fs/exec.c
-@@ -63,6 +63,7 @@
  
- int core_uses_pid;
- char core_pattern[CORENAME_MAX_SIZE] = "core";
-+unsigned int core_pipe_limit;
- int suid_dumpable = 0;
+ 4) Use cases
+@@ -209,7 +214,7 @@ replicas continue to be exactly same.
+ 		mount --rbind / /view/v3
+ 		mount --rbind / /view/v4
  
- /* The maximal length of core_pattern is also specified in sysctl.c */
-@@ -1744,7 +1745,8 @@ void do_coredump(long signr, int exit_co
- 	unsigned long core_limit = current->signal->rlim[RLIMIT_CORE].rlim_cur;
- 	char **helper_argv = NULL;
- 	int helper_argc = 0;
--	char *delimit;
-+	int dump_count = 0;
-+	static atomic_t core_dump_count = ATOMIC_INIT(0);
+-		and if /usr has a versioning filesystem mounted, than that
++		and if /usr has a versioning filesystem mounted, then that
+ 		mount appears at /view/v1/usr, /view/v2/usr, /view/v3/usr and
+ 		/view/v4/usr too
  
- 	audit_core_dumps(signr);
+@@ -249,7 +254,7 @@ replicas continue to be exactly same.
  
-@@ -1826,28 +1828,36 @@ void do_coredump(long signr, int exit_co
- 			goto fail_unlock;
- 		}
+ 		For example:
+ 			mount --make-shared /mnt
+-			mount --bin /mnt /tmp
++			mount --bind /mnt /tmp
  
-+		dump_count = atomic_inc_return(&core_dump_count);
-+		if (core_pipe_limit && (core_pipe_limit < dump_count)) {
-+			printk(KERN_WARNING "Pid %d(%s) over core_pipe_limit\n",
-+			       task_tgid_vnr(current), current->comm);
-+			printk(KERN_WARNING "Skipping core dump\n");
-+			goto fail_dropcount;
-+		}
-+
- 		helper_argv = argv_split(GFP_KERNEL, corename+1, &helper_argc);
- 		if (!helper_argv) {
- 			printk(KERN_WARNING "%s failed to allocate memory\n",
- 			       __func__);
--			goto fail_unlock;
-+			goto fail_dropcount;
- 		}
- 
- 		core_limit = RLIM_INFINITY;
- 
- 		/* SIGPIPE can happen, but it's just never processed */
-- 		if (call_usermodehelper_pipe(corename+1, helper_argv, NULL,
-+		if (call_usermodehelper_pipe(helper_argv[0], helper_argv, NULL,
- 				&file)) {
-  			printk(KERN_INFO "Core dump to %s pipe failed\n",
- 			       corename);
-- 			goto fail_unlock;
-+			goto fail_dropcount;
-  		}
-  	} else
-  		file = filp_open(corename,
- 				 O_CREAT | 2 | O_NOFOLLOW | O_LARGEFILE | flag,
- 				 0600);
- 	if (IS_ERR(file))
--		goto fail_unlock;
-+		goto fail_dropcount;
- 	inode = file->f_path.dentry->d_inode;
- 	if (inode->i_nlink > 1)
- 		goto close_fail;	/* multiple links - don't dump */
-@@ -1877,6 +1887,9 @@ void do_coredump(long signr, int exit_co
- 		current->signal->group_exit_code |= 0x80;
- close_fail:
- 	filp_close(file, NULL);
-+fail_dropcount:
-+	if (dump_count)
-+		atomic_dec(&core_dump_count);
- fail_unlock:
- 	if (helper_argv)
- 		argv_free(helper_argv);
-diff -puN kernel/sysctl.c~exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9 kernel/sysctl.c
---- a/kernel/sysctl.c~exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9
-+++ a/kernel/sysctl.c
-@@ -77,6 +77,7 @@ extern int max_threads;
- extern int core_uses_pid;
- extern int suid_dumpable;
- extern char core_pattern[];
-+extern unsigned int core_pipe_limit;
- extern int pid_max;
- extern int min_free_kbytes;
- extern int pid_max_min, pid_max_max;
-@@ -424,6 +425,14 @@ static struct ctl_table kern_table[] = {
- 		.proc_handler	= &proc_dostring,
- 		.strategy	= &sysctl_string,
- 	},
-+	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "core_pipe_limit",
-+		.data		= &core_pipe_limit,
-+		.maxlen		= sizeof(unsigned int),
-+		.mode		= 0644,
-+		.proc_handler	= &proc_dointvec,
-+	},
- #ifdef CONFIG_PROC_SYSCTL
- 	{
- 		.procname	= "tainted",
+ 		The mount at /mnt and that at /tmp are both shared and belong
+ 		to the same peer group. Anything mounted or unmounted under
 _
 
-Patches currently in -mm which might be from nhorman@tuxdriver.com are
+Patches currently in -mm which might be from bergwolf@gmail.com are
 
 origin.patch
+linux-next.patch
 
