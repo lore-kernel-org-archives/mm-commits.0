@@ -1,185 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] tmpfs-convert-to-use-the-new-truncate-convention.patch removed from -mm tree
-Date: Thu, 24 Sep 2009 12:32:16 -0700
-Message-ID: <200909241932.n8OJWGXT026462@imap1.linux-foundation.org>
+Subject: [merged] input-fix-build-failures-caused-by-kconfig-winbond-wpcd376i-consumer-ir-hardware-driver-kconfig-entry.patch removed from -mm tree
+Date: Thu, 24 Sep 2009 12:33:19 -0700
+Message-ID: <200909241933.n8OJXJSZ028605@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51898 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60729 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753968AbZIXTdU (ORCPT
+	by vger.kernel.org with ESMTP id S1753950AbZIXTd5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Sep 2009 15:33:20 -0400
+	Thu, 24 Sep 2009 15:33:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, chris.mason@oracle.com, hch@lst.de, hirofumi@mail.parknet.co.jp, hugh.dickins@tiscali.co.uk, jack@suse.cz, miklos@szeredi.hu, sfrench@us.ibm.com, shaggy@linux.vnet.ib
+To: mingo@elte.hu, david@hardeman.nu, dtor@mail.ru, jbarnes@virtuousgeek.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tmpfs: convert to use the new truncate convention
+     input: fix build failures caused by Kconfig Winbond WPCD376I Consu=
+mer IR hardware driver Kconfig entry
 has been removed from the -mm tree.  Its filename was
-     tmpfs-convert-to-use-the-new-truncate-convention.patch
+     input-fix-build-failures-caused-by-kconfig-winbond-wpcd376i-consum=
+er-ir-hardware-driver-kconfig-entry.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: tmpfs: convert to use the new truncate convention
-From: Nick Piggin <npiggin@suse.de>
+Subject: input: fix build failures caused by Kconfig Winbond WPCD376I C=
+onsumer IR hardware driver Kconfig entry
+=46rom: Ingo Molnar <mingo@elte.hu>
 
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Christoph Hellwig <hch@lst.de>
-Acked-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Dave Kleikamp <shaggy@linux.vnet.ibm.com>
-Cc: Chris Mason <chris.mason@oracle.com>
-Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Cc: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: Steven French <sfrench@us.ibm.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+drivers/built-in.o: In function `apanel_remove':
+apanel.c:(.text+0x56e852): undefined reference to `led_classdev_unregis=
+ter'
+drivers/built-in.o: In function `apanel_probe':
+apanel.c:(.text+0x56eae3): undefined reference to `led_classdev_registe=
+r'
+drivers/built-in.o: In function `acpi_fujitsu_hotkey_add':
+fujitsu-laptop.c:(.text+0x5d7647): undefined reference to `led_classdev=
+_register'
+fujitsu-laptop.c:(.text+0x5d76b5): undefined reference to `led_classdev=
+_register'
+drivers/built-in.o: In function `wbcir_probe':
+winbond-cir.c:(.devinit.text+0x5f375): undefined reference to `led_clas=
+sdev_register'
+winbond-cir.c:(.devinit.text+0x5f663): undefined reference to `led_clas=
+sdev_unregister'
+drivers/built-in.o: In function `wbcir_remove':
+winbond-cir.c:(.devexit.text+0x7f23): undefined reference to `led_class=
+dev_unregister'
+drivers/built-in.o: In function `fujitsu_cleanup':
+fujitsu-laptop.c:(.exit.text+0xbe37): undefined reference to `led_class=
+dev_unregister'
+fujitsu-laptop.c:(.exit.text+0xbe53): undefined reference to `led_class=
+dev_unregister'
+
+It happens because the new INPUT_WINBOND_CIR driver relies on new-leds
+infrastructure - but does not select it in drivers/input/misc/Kconfig.=20
+But it selects LEDS_CLASS, which confuses a number of other drivers int=
+o
+thinking that all the leds infrastructure is in place.
+
+=46ix this by selecting NEW_LEDS as well, like similar drivers do.
+
+Eventually, this whole leds infrastructure complexity should be
+cleaned up, it's been going on for years.
+
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: David H=E4rdeman <david@hardeman.nu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   44 +++++++++++++++++++++++---------------------
- 1 file changed, 23 insertions(+), 21 deletions(-)
+ drivers/input/misc/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/shmem.c~tmpfs-convert-to-use-the-new-truncate-convention mm/shmem.c
---- a/mm/shmem.c~tmpfs-convert-to-use-the-new-truncate-convention
-+++ a/mm/shmem.c
-@@ -730,10 +730,11 @@ done2:
- 	if (inode->i_mapping->nrpages && (info->flags & SHMEM_PAGEIN)) {
- 		/*
- 		 * Call truncate_inode_pages again: racing shmem_unuse_inode
--		 * may have swizzled a page in from swap since vmtruncate or
--		 * generic_delete_inode did it, before we lowered next_index.
--		 * Also, though shmem_getpage checks i_size before adding to
--		 * cache, no recheck after: so fix the narrow window there too.
-+		 * may have swizzled a page in from swap since
-+		 * truncate_pagecache or generic_delete_inode did it, before we
-+		 * lowered next_index.  Also, though shmem_getpage checks
-+		 * i_size before adding to cache, no recheck after: so fix the
-+		 * narrow window there too.
- 		 *
- 		 * Recalling truncate_inode_pages_range and unmap_mapping_range
- 		 * every time for punch_hole (which never got a chance to clear
-@@ -763,19 +764,16 @@ done2:
- 	}
- }
- 
--static void shmem_truncate(struct inode *inode)
--{
--	shmem_truncate_range(inode, inode->i_size, (loff_t)-1);
--}
--
- static int shmem_notify_change(struct dentry *dentry, struct iattr *attr)
- {
- 	struct inode *inode = dentry->d_inode;
--	struct page *page = NULL;
- 	int error;
- 
- 	if (S_ISREG(inode->i_mode) && (attr->ia_valid & ATTR_SIZE)) {
--		if (attr->ia_size < inode->i_size) {
-+		loff_t newsize = attr->ia_size;
-+		struct page *page = NULL;
-+
-+		if (newsize < inode->i_size) {
- 			/*
- 			 * If truncating down to a partial page, then
- 			 * if that page is already allocated, hold it
-@@ -783,9 +781,9 @@ static int shmem_notify_change(struct de
- 			 * truncate_partial_page cannnot miss it were
- 			 * it assigned to swap.
- 			 */
--			if (attr->ia_size & (PAGE_CACHE_SIZE-1)) {
-+			if (newsize & (PAGE_CACHE_SIZE-1)) {
- 				(void) shmem_getpage(inode,
--					attr->ia_size>>PAGE_CACHE_SHIFT,
-+					newsize >> PAGE_CACHE_SHIFT,
- 						&page, SGP_READ, NULL);
- 				if (page)
- 					unlock_page(page);
-@@ -797,24 +795,29 @@ static int shmem_notify_change(struct de
- 			 * if it's being fully truncated to zero-length: the
- 			 * nrpages check is efficient enough in that case.
- 			 */
--			if (attr->ia_size) {
-+			if (newsize) {
- 				struct shmem_inode_info *info = SHMEM_I(inode);
- 				spin_lock(&info->lock);
- 				info->flags &= ~SHMEM_PAGEIN;
- 				spin_unlock(&info->lock);
- 			}
- 		}
-+
-+		error = simple_setsize(inode, newsize);
-+		if (page)
-+			page_cache_release(page);
-+		if (error)
-+			return error;
-+		shmem_truncate_range(inode, newsize, (loff_t)-1);
- 	}
- 
- 	error = inode_change_ok(inode, attr);
- 	if (!error)
--		error = inode_setattr(inode, attr);
-+		generic_setattr(inode, attr);
- #ifdef CONFIG_TMPFS_POSIX_ACL
- 	if (!error && (attr->ia_valid & ATTR_MODE))
- 		error = generic_acl_chmod(inode, &shmem_acl_ops);
- #endif
--	if (page)
--		page_cache_release(page);
- 	return error;
- }
- 
-@@ -822,11 +825,11 @@ static void shmem_delete_inode(struct in
- {
- 	struct shmem_inode_info *info = SHMEM_I(inode);
- 
--	if (inode->i_op->truncate == shmem_truncate) {
-+	if (inode->i_mapping->a_ops == &shmem_aops) {
- 		truncate_inode_pages(inode->i_mapping, 0);
- 		shmem_unacct_size(info->flags, inode->i_size);
- 		inode->i_size = 0;
--		shmem_truncate(inode);
-+		shmem_truncate_range(inode, 0, (loff_t)-1);
- 		if (!list_empty(&info->swaplist)) {
- 			mutex_lock(&shmem_swaplist_mutex);
- 			list_del_init(&info->swaplist);
-@@ -2018,7 +2021,6 @@ static const struct inode_operations shm
- };
- 
- static const struct inode_operations shmem_symlink_inode_operations = {
--	.truncate	= shmem_truncate,
- 	.readlink	= generic_readlink,
- 	.follow_link	= shmem_follow_link,
- 	.put_link	= shmem_put_link,
-@@ -2438,7 +2440,7 @@ static const struct file_operations shme
- };
- 
- static const struct inode_operations shmem_inode_operations = {
--	.truncate	= shmem_truncate,
-+	.new_truncate	= 1,
- 	.setattr	= shmem_notify_change,
- 	.truncate_range	= shmem_truncate_range,
- #ifdef CONFIG_TMPFS_POSIX_ACL
+diff -puN drivers/input/misc/Kconfig~input-fix-build-failures-caused-by=
+-kconfig-winbond-wpcd376i-consumer-ir-hardware-driver-kconfig-entry dri=
+vers/input/misc/Kconfig
+--- a/drivers/input/misc/Kconfig~input-fix-build-failures-caused-by-kco=
+nfig-winbond-wpcd376i-consumer-ir-hardware-driver-kconfig-entry
++++ a/drivers/input/misc/Kconfig
+@@ -225,6 +225,7 @@ config INPUT_SGI_BTNS
+ config INPUT_WINBOND_CIR
+ 	tristate "Winbond IR remote control"
+ 	depends on X86 && PNP
++	select NEW_LEDS
+ 	select LEDS_CLASS
+ 	select BITREVERSE
+ 	help
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from mingo@elte.hu are
 
 origin.patch
 linux-next.patch
-fs-remove-unneeded-dcache_unhashed-tricks.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-tmpfs-convert-to-use-the-new-truncate-convention.patch
-ext2-convert-to-use-the-new-truncate-convention.patch
-ext2-convert-to-use-the-new-truncate-convention-fix.patch
-fat-convert-to-use-the-new-truncate-convention.patch
-btrfs-convert-to-use-the-new-truncate-convention.patch
-jfs-convert-to-use-the-new-truncate-convention.patch
-udf-convert-to-use-the-new-truncate-convention.patch
-minix-convert-to-use-the-new-truncate-convention.patch
-reiser4.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
+kernel-core-add-smp_call_function_any.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by=
+-using-smp_call_function_any.patch
+genirq-switch-proc-irq-spurious-to-seq_file.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+x86-_end-symbol-missing-from-symbolmap.patch
+generic-ipi-cleanup-for-generic_smp_call_function_interrupt.patch
+fatfs-use-common-time_to_tm-in-fat_time_unix2fat.patch
+do_wait-optimization-do-not-place-sub-threads-on-task_struct-children-l=
+ist.patch
+make-frame_pointer-default=3Dy.patch
+mutex-subsystem-synchro-test-module.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
