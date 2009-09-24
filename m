@@ -1,78 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch removed from -mm tree
-Date: Thu, 24 Sep 2009 14:34:30 -0700
-Message-ID: <200909242134.n8OLYUU2010204@imap1.linux-foundation.org>
+Subject: [nacked] scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch removed from -mm tree
+Date: Thu, 24 Sep 2009 14:34:32 -0700
+Message-ID: <200909242134.n8OLYX6q010286@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53159 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42524 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751697AbZIXVe4 (ORCPT
+	by vger.kernel.org with ESMTP id S1751838AbZIXVfD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Sep 2009 17:34:56 -0400
+	Thu, 24 Sep 2009 17:35:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, James.Bottomley@HansenPartnership.com, bharrosh@panasas.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scsi: use the common hex_asc array rather than a private one
+     scsi: annotate gdth_rdcap_data, gdth_rdcap16_data endianness
 has been removed from the -mm tree.  Its filename was
-     scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+     scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
 
 This patch was dropped because it was nacked
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi: use the common hex_asc array rather than a private one
+Subject: scsi: annotate gdth_rdcap_data, gdth_rdcap16_data endianness
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Also use the hi/lo helpers.
+It would be easy to get rid of the typedefs too, but I kept this
+minimal.
+
+Noticed by sparse:
+drivers/scsi/gdth.c:2395:31: warning: incorrect type in assignment (different base types)
+drivers/scsi/gdth.c:2395:31:    expected unsigned int [unsigned] [assigned] [usertype] last_block_no
+drivers/scsi/gdth.c:2395:31:    got restricted __be32 [usertype] <noident>
+drivers/scsi/gdth.c:2396:27: warning: incorrect type in assignment (different base types)
+drivers/scsi/gdth.c:2396:27:    expected unsigned int [unsigned] [assigned] [usertype] block_length
+drivers/scsi/gdth.c:2396:27:    got restricted __be32 [usertype] <noident>
+drivers/scsi/gdth.c:2406:33: warning: incorrect type in assignment (different base types)
+drivers/scsi/gdth.c:2406:33:    expected unsigned long long [unsigned] [usertype] last_block_no
+drivers/scsi/gdth.c:2406:33:    got restricted __be64 [usertype] <noident>
+drivers/scsi/gdth.c:2407:33: warning: incorrect type in assignment (different base types)
+drivers/scsi/gdth.c:2407:33:    expected unsigned int [unsigned] [usertype] block_length
+drivers/scsi/gdth.c:2407:33:    got restricted __be32 [usertype] <noident>
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Boaz Harrosh <bharrosh@panasas.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/ibmmca.c    |    3 +--
- drivers/scsi/ultrastor.c |    4 ++--
- 2 files changed, 3 insertions(+), 4 deletions(-)
+ drivers/scsi/gdth.c |    2 +-
+ drivers/scsi/gdth.h |    8 ++++----
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/scsi/ibmmca.c~scsi-use-the-common-hex_asc-array-rather-than-a-private-one drivers/scsi/ibmmca.c
---- a/drivers/scsi/ibmmca.c~scsi-use-the-common-hex_asc-array-rather-than-a-private-one
-+++ a/drivers/scsi/ibmmca.c
-@@ -1002,12 +1002,11 @@ static char *ti_p(int dev)
- /* interpreter for logical device numbers (ldn) */
- static char *ti_l(int val)
- {
--	const char hex[16] = "0123456789abcdef";
- 	static char answer[2];
+diff -puN drivers/scsi/gdth.c~scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness drivers/scsi/gdth.c
+--- a/drivers/scsi/gdth.c~scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness
++++ a/drivers/scsi/gdth.c
+@@ -2391,7 +2391,7 @@ static int gdth_internal_cache_cmd(gdth_
+       case READ_CAPACITY:
+         TRACE2(("Read capacity hdrive %d\n",t));
+         if (ha->hdr[t].size > (ulong64)0xffffffff)
+-            rdc.last_block_no = 0xffffffff;
++            rdc.last_block_no = cpu_to_be32(0xffffffff);
+         else
+             rdc.last_block_no = cpu_to_be32(ha->hdr[t].size-1);
+         rdc.block_length  = cpu_to_be32(SECTOR_SIZE);
+diff -puN drivers/scsi/gdth.h~scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness drivers/scsi/gdth.h
+--- a/drivers/scsi/gdth.h~scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness
++++ a/drivers/scsi/gdth.h
+@@ -968,14 +968,14 @@ typedef struct {
  
- 	answer[1] = (char) (0x0);
- 	if (val <= MAX_LOG_DEV)
--		answer[0] = hex[val];
-+		answer[0] = hex_asc[val];
- 	else
- 		answer[0] = '-';
- 	return (char *) &answer;
-diff -puN drivers/scsi/ultrastor.c~scsi-use-the-common-hex_asc-array-rather-than-a-private-one drivers/scsi/ultrastor.c
---- a/drivers/scsi/ultrastor.c~scsi-use-the-common-hex_asc-array-rather-than-a-private-one
-+++ a/drivers/scsi/ultrastor.c
-@@ -876,8 +876,8 @@ static int ultrastor_abort(struct scsi_c
- 	for (i = 0; i < 16; i++)
- 	  {
- 	    unsigned char p = inb(port0 + i);
--	    out[28 + i * 3] = "0123456789abcdef"[p >> 4];
--	    out[29 + i * 3] = "0123456789abcdef"[p & 15];
-+	    out[28 + i * 3] = hex_asc_hi(p);
-+	    out[29 + i * 3] = hex_asc_lo(p);
- 	    out[30 + i * 3] = ' ';
- 	  }
- 	out[28 + i * 3] = '\n';
+ /* READ_CAPACITY data format */
+ typedef struct {
+-    ulong32     last_block_no;
+-    ulong32     block_length;
++	__be32 last_block_no;
++	__be32 block_length;
+ } PACKED gdth_rdcap_data;
+ 
+ /* READ_CAPACITY (16) data format */
+ typedef struct {
+-    ulong64     last_block_no;
+-    ulong32     block_length;
++	__be64 last_block_no;
++	__be32 block_length;
+ } PACKED gdth_rdcap16_data;
+ 
+ /* REQUEST_SENSE data format */
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
 scsi-gdthc-use-unaligned-access-helpers.patch
 scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
 
