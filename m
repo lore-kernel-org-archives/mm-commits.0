@@ -1,386 +1,255 @@
 From: akpm@linux-foundation.org
-Subject: [merged] doc-filesystems-remove-smount-program.patch removed from -mm tree
-Date: Thu, 24 Sep 2009 12:33:33 -0700
-Message-ID: <200909241933.n8OJXXOZ029024@imap1.linux-foundation.org>
+Subject: [merged] cgroups-move-the-cgroup-debug-subsys-into-cgroupc-to-access-internal-state.patch removed from -mm tree
+Date: Thu, 24 Sep 2009 12:34:00 -0700
+Message-ID: <200909241934.n8OJY0Jx029983@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46997 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49134 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753894AbZIXTeW (ORCPT
+	by vger.kernel.org with ESMTP id S1754155AbZIXTe1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Sep 2009 15:34:22 -0400
+	Thu, 24 Sep 2009 15:34:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, hch@infradead.org, miklos@szeredi.hu, mm-commits@vger.kernel.org
+To: menage@google.com, balbir@in.ibm.com, dhaval@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     doc/filesystems: remove smount program
+     cgroups: move the cgroup debug subsys into cgroup.c to access internal state
 has been removed from the -mm tree.  Its filename was
-     doc-filesystems-remove-smount-program.patch
+     cgroups-move-the-cgroup-debug-subsys-into-cgroupc-to-access-internal-state.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: doc/filesystems: remove smount program
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: cgroups: move the cgroup debug subsys into cgroup.c to access internal state
+From: Paul Menage <menage@google.com>
 
-mount(8) handles shared subtrees just fine, so remove the smount program
-from Documentation/filesystems/sharedsubtree.txt.
+While it's architecturally clean to have the cgroup debug subsystem be
+completely independent of the cgroups framework, it limits its usefulness
+for debugging the contents of internal data structures.  Move the debug
+subsystem code into the scope of all the cgroups data structures to make
+more detailed debugging possible.
 
-Fix annoying "Lets" -> "Let's".
-Insert space between '#' prompt and "mount" command.
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Acked-by: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Christoph Hellwig <hch@infradead.org>
+Signed-off-by: Paul Menage <menage@google.com>
+Reviewed-by: Li Zefan <lizf@cn.fujitsu.com>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Dhaval Giani <dhaval@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/sharedsubtree.txt |  209 ++----------------
- 1 file changed, 34 insertions(+), 175 deletions(-)
+ kernel/Makefile       |    1 
+ kernel/cgroup.c       |   88 +++++++++++++++++++++++++++++++++
+ kernel/cgroup_debug.c |  105 ----------------------------------------
+ 3 files changed, 88 insertions(+), 106 deletions(-)
 
-diff -puN Documentation/filesystems/sharedsubtree.txt~doc-filesystems-remove-smount-program Documentation/filesystems/sharedsubtree.txt
---- a/Documentation/filesystems/sharedsubtree.txt~doc-filesystems-remove-smount-program
-+++ a/Documentation/filesystems/sharedsubtree.txt
-@@ -41,14 +41,14 @@ replicas continue to be exactly same.
+diff -puN kernel/Makefile~cgroups-move-the-cgroup-debug-subsys-into-cgroupc-to-access-internal-state kernel/Makefile
+--- a/kernel/Makefile~cgroups-move-the-cgroup-debug-subsys-into-cgroupc-to-access-internal-state
++++ a/kernel/Makefile
+@@ -58,7 +58,6 @@ obj-$(CONFIG_KEXEC) += kexec.o
+ obj-$(CONFIG_BACKTRACE_SELF_TEST) += backtracetest.o
+ obj-$(CONFIG_COMPAT) += compat.o
+ obj-$(CONFIG_CGROUPS) += cgroup.o
+-obj-$(CONFIG_CGROUP_DEBUG) += cgroup_debug.o
+ obj-$(CONFIG_CGROUP_FREEZER) += cgroup_freezer.o
+ obj-$(CONFIG_CPUSETS) += cpuset.o
+ obj-$(CONFIG_CGROUP_NS) += ns_cgroup.o
+diff -puN kernel/cgroup.c~cgroups-move-the-cgroup-debug-subsys-into-cgroupc-to-access-internal-state kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-move-the-cgroup-debug-subsys-into-cgroupc-to-access-internal-state
++++ a/kernel/cgroup.c
+@@ -3781,3 +3781,91 @@ css_get_next(struct cgroup_subsys *ss, i
+ 	return ret;
+ }
  
- 	Here is an example:
- 
--	Lets say /mnt has a mount that is shared.
-+	Let's say /mnt has a mount that is shared.
- 	mount --make-shared /mnt
- 
--	note: mount command does not yet support the --make-shared flag.
--	I have included a small C program which does the same by executing
--	'smount /mnt shared'
-+	Note: mount(8) command now supports the --make-shared flag,
-+	so the sample 'smount' program is no longer needed and has been
-+	removed.
- 
--	#mount --bind /mnt /tmp
-+	# mount --bind /mnt /tmp
- 	The above command replicates the mount at /mnt to the mountpoint /tmp
- 	and the contents of both the mounts remain identical.
- 
-@@ -58,8 +58,8 @@ replicas continue to be exactly same.
- 	#ls /tmp
- 	a b c
- 
--	Now lets say we mount a device at /tmp/a
--	#mount /dev/sd0  /tmp/a
-+	Now let's say we mount a device at /tmp/a
-+	# mount /dev/sd0  /tmp/a
- 
- 	#ls /tmp/a
- 	t1 t2 t2
-@@ -80,21 +80,20 @@ replicas continue to be exactly same.
- 
- 	Here is an example:
- 
--	Lets say /mnt has a mount which is shared.
--	#mount --make-shared /mnt
-+	Let's say /mnt has a mount which is shared.
-+	# mount --make-shared /mnt
- 
--	Lets bind mount /mnt to /tmp
--	#mount --bind /mnt /tmp
-+	Let's bind mount /mnt to /tmp
-+	# mount --bind /mnt /tmp
- 
- 	the new mount at /tmp becomes a shared mount and it is a replica of
- 	the mount at /mnt.
- 
--	Now lets make the mount at /tmp; a slave of /mnt
--	#mount --make-slave /tmp
--	[or smount /tmp slave]
-+	Now let's make the mount at /tmp; a slave of /mnt
-+	# mount --make-slave /tmp
- 
--	lets mount /dev/sd0 on /mnt/a
--	#mount /dev/sd0 /mnt/a
-+	let's mount /dev/sd0 on /mnt/a
-+	# mount /dev/sd0 /mnt/a
- 
- 	#ls /mnt/a
- 	t1 t2 t3
-@@ -104,9 +103,9 @@ replicas continue to be exactly same.
- 
- 	Note the mount event has propagated to the mount at /tmp
- 
--	However lets see what happens if we mount something on the mount at /tmp
-+	However let's see what happens if we mount something on the mount at /tmp
- 
--	#mount /dev/sd1 /tmp/b
-+	# mount /dev/sd1 /tmp/b
- 
- 	#ls /tmp/b
- 	s1 s2 s3
-@@ -124,12 +123,11 @@ replicas continue to be exactly same.
- 
- 2d) A unbindable mount is a unbindable private mount
- 
--	lets say we have a mount at /mnt and we make is unbindable
-+	let's say we have a mount at /mnt and we make is unbindable
- 
--	#mount --make-unbindable /mnt
--	 [ smount /mnt  unbindable ]
-+	# mount --make-unbindable /mnt
- 
--	 Lets try to bind mount this mount somewhere else.
-+	 Let's try to bind mount this mount somewhere else.
- 	 # mount --bind /mnt /tmp
- 	 mount: wrong fs type, bad option, bad superblock on /mnt,
- 	        or too many mounted file systems
-@@ -139,147 +137,8 @@ replicas continue to be exactly same.
- 
- 3) smount command
- 
--	Currently the mount command is not aware of shared subtree features.
--	Work is in progress to add the support in mount ( util-linux package ).
--	Till then use the following program.
++#ifdef CONFIG_CGROUP_DEBUG
++static struct cgroup_subsys_state *debug_create(struct cgroup_subsys *ss,
++						   struct cgroup *cont)
++{
++	struct cgroup_subsys_state *css = kzalloc(sizeof(*css), GFP_KERNEL);
++
++	if (!css)
++		return ERR_PTR(-ENOMEM);
++
++	return css;
++}
++
++static void debug_destroy(struct cgroup_subsys *ss, struct cgroup *cont)
++{
++	kfree(cont->subsys[debug_subsys_id]);
++}
++
++static u64 cgroup_refcount_read(struct cgroup *cont, struct cftype *cft)
++{
++	return atomic_read(&cont->count);
++}
++
++static u64 debug_taskcount_read(struct cgroup *cont, struct cftype *cft)
++{
++	return cgroup_task_count(cont);
++}
++
++static u64 current_css_set_read(struct cgroup *cont, struct cftype *cft)
++{
++	return (u64)(unsigned long)current->cgroups;
++}
++
++static u64 current_css_set_refcount_read(struct cgroup *cont,
++					   struct cftype *cft)
++{
++	u64 count;
++
++	rcu_read_lock();
++	count = atomic_read(&current->cgroups->refcount);
++	rcu_read_unlock();
++	return count;
++}
++
++static u64 releasable_read(struct cgroup *cgrp, struct cftype *cft)
++{
++	return test_bit(CGRP_RELEASABLE, &cgrp->flags);
++}
++
++static struct cftype debug_files[] =  {
++	{
++		.name = "cgroup_refcount",
++		.read_u64 = cgroup_refcount_read,
++	},
++	{
++		.name = "taskcount",
++		.read_u64 = debug_taskcount_read,
++	},
++
++	{
++		.name = "current_css_set",
++		.read_u64 = current_css_set_read,
++	},
++
++	{
++		.name = "current_css_set_refcount",
++		.read_u64 = current_css_set_refcount_read,
++	},
++
++	{
++		.name = "releasable",
++		.read_u64 = releasable_read,
++	},
++};
++
++static int debug_populate(struct cgroup_subsys *ss, struct cgroup *cont)
++{
++	return cgroup_add_files(cont, ss, debug_files,
++				ARRAY_SIZE(debug_files));
++}
++
++struct cgroup_subsys debug_subsys = {
++	.name = "debug",
++	.create = debug_create,
++	.destroy = debug_destroy,
++	.populate = debug_populate,
++	.subsys_id = debug_subsys_id,
++};
++#endif /* CONFIG_CGROUP_DEBUG */
+diff -puN kernel/cgroup_debug.c~cgroups-move-the-cgroup-debug-subsys-into-cgroupc-to-access-internal-state /dev/null
+--- a/kernel/cgroup_debug.c
++++ /dev/null
+@@ -1,105 +0,0 @@
+-/*
+- * kernel/cgroup_debug.c - Example cgroup subsystem that
+- * exposes debug info
+- *
+- * Copyright (C) Google Inc, 2007
+- *
+- * Developed by Paul Menage (menage@google.com)
+- *
+- */
 -
--	------------------------------------------------------------------------
--	//
--	//this code was developed my Miklos Szeredi <miklos@szeredi.hu>
--	//and modified by Ram Pai <linuxram@us.ibm.com>
--	// sample usage:
--	//              smount /tmp shared
--	//
--	#include <stdio.h>
--	#include <stdlib.h>
--	#include <unistd.h>
--	#include <string.h>
--	#include <sys/mount.h>
--	#include <sys/fsuid.h>
+-#include <linux/cgroup.h>
+-#include <linux/fs.h>
+-#include <linux/slab.h>
+-#include <linux/rcupdate.h>
 -
--	#ifndef MS_REC
--	#define MS_REC		0x4000	/* 16384: Recursive loopback */
--	#endif
+-#include <asm/atomic.h>
 -
--	#ifndef MS_SHARED
--	#define MS_SHARED		1<<20	/* Shared */
--	#endif
+-static struct cgroup_subsys_state *debug_create(struct cgroup_subsys *ss,
+-						   struct cgroup *cont)
+-{
+-	struct cgroup_subsys_state *css = kzalloc(sizeof(*css), GFP_KERNEL);
 -
--	#ifndef MS_PRIVATE
--	#define MS_PRIVATE		1<<18	/* Private */
--	#endif
+-	if (!css)
+-		return ERR_PTR(-ENOMEM);
 -
--	#ifndef MS_SLAVE
--	#define MS_SLAVE		1<<19	/* Slave */
--	#endif
+-	return css;
+-}
 -
--	#ifndef MS_UNBINDABLE
--	#define MS_UNBINDABLE		1<<17	/* Unbindable */
--	#endif
+-static void debug_destroy(struct cgroup_subsys *ss, struct cgroup *cont)
+-{
+-	kfree(cont->subsys[debug_subsys_id]);
+-}
 -
--	int main(int argc, char *argv[])
+-static u64 cgroup_refcount_read(struct cgroup *cont, struct cftype *cft)
+-{
+-	return atomic_read(&cont->count);
+-}
+-
+-static u64 taskcount_read(struct cgroup *cont, struct cftype *cft)
+-{
+-	u64 count;
+-
+-	count = cgroup_task_count(cont);
+-	return count;
+-}
+-
+-static u64 current_css_set_read(struct cgroup *cont, struct cftype *cft)
+-{
+-	return (u64)(long)current->cgroups;
+-}
+-
+-static u64 current_css_set_refcount_read(struct cgroup *cont,
+-					   struct cftype *cft)
+-{
+-	u64 count;
+-
+-	rcu_read_lock();
+-	count = atomic_read(&current->cgroups->refcount);
+-	rcu_read_unlock();
+-	return count;
+-}
+-
+-static u64 releasable_read(struct cgroup *cgrp, struct cftype *cft)
+-{
+-	return test_bit(CGRP_RELEASABLE, &cgrp->flags);
+-}
+-
+-static struct cftype files[] =  {
 -	{
--		int type;
--		if(argc != 3) {
--			fprintf(stderr, "usage: %s dir "
--			"<rshared|rslave|rprivate|runbindable|shared|slave"
--			"|private|unbindable>\n" , argv[0]);
--			return 1;
--		}
+-		.name = "cgroup_refcount",
+-		.read_u64 = cgroup_refcount_read,
+-	},
+-	{
+-		.name = "taskcount",
+-		.read_u64 = taskcount_read,
+-	},
 -
--		fprintf(stdout, "%s %s %s\n", argv[0], argv[1], argv[2]);
+-	{
+-		.name = "current_css_set",
+-		.read_u64 = current_css_set_read,
+-	},
 -
--		if (strcmp(argv[2],"rshared")==0)
--			type=(MS_SHARED|MS_REC);
--		else if (strcmp(argv[2],"rslave")==0)
--			type=(MS_SLAVE|MS_REC);
--		else if (strcmp(argv[2],"rprivate")==0)
--			type=(MS_PRIVATE|MS_REC);
--		else if (strcmp(argv[2],"runbindable")==0)
--			type=(MS_UNBINDABLE|MS_REC);
--		else if (strcmp(argv[2],"shared")==0)
--			type=MS_SHARED;
--		else if (strcmp(argv[2],"slave")==0)
--			type=MS_SLAVE;
--		else if (strcmp(argv[2],"private")==0)
--			type=MS_PRIVATE;
--		else if (strcmp(argv[2],"unbindable")==0)
--			type=MS_UNBINDABLE;
--		else {
--			fprintf(stderr, "invalid operation: %s\n", argv[2]);
--			return 1;
--		}
--		setfsuid(getuid());
+-	{
+-		.name = "current_css_set_refcount",
+-		.read_u64 = current_css_set_refcount_read,
+-	},
 -
--		if(mount("", argv[1], "dontcare", type, "") == -1) {
--			perror("mount");
--			return 1;
--		}
--		return 0;
--	}
--	-----------------------------------------------------------------------
+-	{
+-		.name = "releasable",
+-		.read_u64 = releasable_read,
+-	},
+-};
 -
--	Copy the above code snippet into smount.c
--	gcc -o smount smount.c
--
--
--	(i) To mark all the mounts under /mnt as shared execute the following
--	command:
--
--	 	smount /mnt rshared
--		the corresponding syntax planned for mount command is
--		mount --make-rshared /mnt
--
--	    just to mark a mount /mnt as shared, execute the following
--	    command:
--	 	smount /mnt shared
--		the corresponding syntax planned for mount command is
--		mount --make-shared /mnt
--
--	(ii) To mark all the shared mounts under /mnt as slave execute the
--	following
--
--	     command:
--		smount /mnt rslave
--		the corresponding syntax planned for mount command is
--		mount --make-rslave /mnt
--
--	    just to mark a mount /mnt as slave, execute the following
--	    command:
--	 	smount /mnt slave
--		the corresponding syntax planned for mount command is
--		mount --make-slave /mnt
--
--	(iii) To mark all the mounts under /mnt as private execute the
--	following command:
--
--		smount /mnt rprivate
--		the corresponding syntax planned for mount command is
--		mount --make-rprivate /mnt
--
--	    just to mark a mount /mnt as private, execute the following
--	    command:
--	 	smount /mnt private
--		the corresponding syntax planned for mount command is
--		mount --make-private /mnt
--
--	      NOTE: by default all the mounts are created as private. But if
--	      you want to change some shared/slave/unbindable  mount as
--	      private at a later point in time, this command can help.
--
--	(iv) To mark all the mounts under /mnt as unbindable execute the
--	following
--
--	     command:
--		smount /mnt runbindable
--		the corresponding syntax planned for mount command is
--		mount --make-runbindable /mnt
--
--	    just to mark a mount /mnt as unbindable, execute the following
--	    command:
--	 	smount /mnt unbindable
--		the corresponding syntax planned for mount command is
--		mount --make-unbindable /mnt
-+	Modern mount(8) command is aware of shared subtree features,
-+	so use it instead of the 'smount' command. [source code removed]
- 
- 
- 4) Use cases
-@@ -558,7 +417,7 @@ replicas continue to be exactly same.
- 	then the subtree under the unbindable mount is pruned in the new
- 	location.
- 
--	eg: lets say we have the following mount tree.
-+	eg: let's say we have the following mount tree.
- 
- 		A
- 	      /   \
-@@ -566,7 +425,7 @@ replicas continue to be exactly same.
- 	     / \ / \
- 	     D E F G
- 
--	     Lets say all the mount except the mount C in the tree are
-+	     Let's say all the mount except the mount C in the tree are
- 	     of a type other than unbindable.
- 
- 	     If this tree is rbound to say Z
-@@ -683,13 +542,13 @@ replicas continue to be exactly same.
- 	'b' on mounts that receive propagation from mount 'B' and does not have
- 	sub-mounts within them are unmounted.
- 
--	Example: Lets say 'B1', 'B2', 'B3' are shared mounts that propagate to
-+	Example: Let's say 'B1', 'B2', 'B3' are shared mounts that propagate to
- 	each other.
- 
--	lets say 'A1', 'A2', 'A3' are first mounted at dentry 'b' on mount
-+	let's say 'A1', 'A2', 'A3' are first mounted at dentry 'b' on mount
- 	'B1', 'B2' and 'B3' respectively.
- 
--	lets say 'C1', 'C2', 'C3' are next mounted at the same dentry 'b' on
-+	let's say 'C1', 'C2', 'C3' are next mounted at the same dentry 'b' on
- 	mount 'B1', 'B2' and 'B3' respectively.
- 
- 	if 'C1' is unmounted, all the mounts that are most-recently-mounted on
-@@ -710,7 +569,7 @@ replicas continue to be exactly same.
- 	A cloned namespace contains all the mounts as that of the parent
- 	namespace.
- 
--	Lets say 'A' and 'B' are the corresponding mounts in the parent and the
-+	Let's say 'A' and 'B' are the corresponding mounts in the parent and the
- 	child namespace.
- 
- 	If 'A' is shared, then 'B' is also shared and 'A' and 'B' propagate to
-@@ -759,11 +618,11 @@ replicas continue to be exactly same.
- 		mount --make-slave /mnt
- 
- 		At this point we have the first mount at /tmp and
--		its root dentry is 1. Lets call this mount 'A'
-+		its root dentry is 1. Let's call this mount 'A'
- 		And then we have a second mount at /tmp1 with root
--		dentry 2. Lets call this mount 'B'
-+		dentry 2. Let's call this mount 'B'
- 		Next we have a third mount at /mnt with root dentry
--		mnt. Lets call this mount 'C'
-+		mnt. Let's call this mount 'C'
- 
- 		'B' is the slave of 'A' and 'C' is a slave of 'B'
- 		A -> B -> C
-@@ -794,7 +653,7 @@ replicas continue to be exactly same.
- 
- 	Q3 Why is unbindable mount needed?
- 
--		Lets say we want to replicate the mount tree at multiple
-+		Let's say we want to replicate the mount tree at multiple
- 		locations within the same subtree.
- 
- 		if one rbind mounts a tree within the same subtree 'n' times
-@@ -803,7 +662,7 @@ replicas continue to be exactly same.
- 		mounts. Here is a example.
- 
- 		step 1:
--		   lets say the root tree has just two directories with
-+		   let's say the root tree has just two directories with
- 		   one vfsmount.
- 				    root
- 				   /    \
-@@ -875,7 +734,7 @@ replicas continue to be exactly same.
- 		Unclonable mounts come in handy here.
- 
- 		step 1:
--		   lets say the root tree has just two directories with
-+		   let's say the root tree has just two directories with
- 		   one vfsmount.
- 				    root
- 				   /    \
-_
-
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
-
-origin.patch
-linux-next.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-isdn-fix-netjet-build-errors.patch
-scsi-fix-func-names-in-kernel-doc.patch
-scsi_transport_fc-fix-missing-kernel-doc.patch
-readahead-add-blk_run_backing_dev.patch
-pcmcia-fix-controller-printk-warnings.patch
-reiser4-export-remove_from_page_cache-fix.patch
-
+-static int debug_populate(struct cgroup_subsys *ss, struct cgroup *cont)
+-{
+-	return cgroup_add_files(cont, ss, files, ARRAY_SIZE(files));
+-}
