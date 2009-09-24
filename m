@@ -1,123 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [merged] edac-core-remove-completion-wait-for-complete-with-rcu_barrier.patch removed from -mm tree
-Date: Thu, 24 Sep 2009 12:36:59 -0700
-Message-ID: <200909241936.n8OJax1j003620@imap1.linux-foundation.org>
+Subject: [merged] fork-disable-clone_parent-for-init.patch removed from -mm tree
+Date: Thu, 24 Sep 2009 12:36:38 -0700
+Message-ID: <200909241936.n8OJacn9002905@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45322 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60877 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754522AbZIXThQ (ORCPT
+	by vger.kernel.org with ESMTP id S1754078AbZIXThN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Sep 2009 15:37:16 -0400
+	Thu, 24 Sep 2009 15:37:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hawk@comx.dk, dougthompson@xmission.com, mm-commits@vger.kernel.org
+To: sukadev@linux.vnet.ibm.com, ebiederm@xmission.com, oleg@redhat.com, orenl@cs.columbia.edu, roland@redhat.com, serue@us.ibm.com, sukadev@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     edac: core: remove completion-wait for complete with rcu_barrier
+     fork(): disable CLONE_PARENT for init
 has been removed from the -mm tree.  Its filename was
-     edac-core-remove-completion-wait-for-complete-with-rcu_barrier.patch
+     fork-disable-clone_parent-for-init.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: edac: core: remove completion-wait for complete with rcu_barrier
-From: Jesper Dangaard Brouer <hawk@comx.dk>
+Subject: fork(): disable CLONE_PARENT for init
+From: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
 
-Module edac_core.ko uses call_rcu() callbacks in edac_device.c, edac_mc.c
-and edac_pci.c.
+When global or container-init processes use CLONE_PARENT, they create a
+multi-rooted process tree.  Besides siblings of global init remain as
+zombies on exit since they are not reaped by their parent (swapper).  So
+prevent global and container-inits from creating siblings.
 
-They all use a wait_for_completion() scheme, but this scheme it not 100%
-safe on multiple CPUs.  See the _rcu_barrier() implementation which
-explains why extra precausion is needed.
-
-The patch adds a comment about rcu_barrier() and as a precausion calls
-rcu_barrier().  A maintainer needs to look at removing the
-wait_for_completion code.
-
-[dougthompson@xmission.com: remove the wait_for_completion code]
-Signed-off-by Jesper Dangaard Brouer <hawk@comx.dk>
-Signed-off-by: Doug Thompson <dougthompson@xmission.com>
+Signed-off-by: Sukadev Bhattiprolu <sukadev@us.ibm.com>
+Acked-by: Eric W. Biederman <ebiederm@xmission.com>
+Acked-by: Roland McGrath <roland@redhat.com>
+Cc: Oren Laadan <orenl@cs.columbia.edu>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Serge Hallyn <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/edac_device.c |    5 +----
- drivers/edac/edac_mc.c     |    4 +---
- drivers/edac/edac_pci.c    |    4 +---
- 3 files changed, 3 insertions(+), 10 deletions(-)
+ kernel/fork.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN drivers/edac/edac_device.c~edac-core-remove-completion-wait-for-complete-with-rcu_barrier drivers/edac/edac_device.c
---- a/drivers/edac/edac_device.c~edac-core-remove-completion-wait-for-complete-with-rcu_barrier
-+++ a/drivers/edac/edac_device.c
-@@ -356,7 +356,6 @@ static void complete_edac_device_list_de
+diff -puN kernel/fork.c~fork-disable-clone_parent-for-init kernel/fork.c
+--- a/kernel/fork.c~fork-disable-clone_parent-for-init
++++ a/kernel/fork.c
+@@ -979,6 +979,16 @@ static struct task_struct *copy_process(
+ 	if ((clone_flags & CLONE_SIGHAND) && !(clone_flags & CLONE_VM))
+ 		return ERR_PTR(-EINVAL);
  
- 	edac_dev = container_of(head, struct edac_device_ctl_info, rcu);
- 	INIT_LIST_HEAD(&edac_dev->link);
--	complete(&edac_dev->removal_complete);
- }
- 
- /*
-@@ -369,10 +368,8 @@ static void del_edac_device_from_global_
- 						*edac_device)
- {
- 	list_del_rcu(&edac_device->link);
--
--	init_completion(&edac_device->removal_complete);
- 	call_rcu(&edac_device->rcu, complete_edac_device_list_del);
--	wait_for_completion(&edac_device->removal_complete);
-+	rcu_barrier();
- }
- 
- /*
-diff -puN drivers/edac/edac_mc.c~edac-core-remove-completion-wait-for-complete-with-rcu_barrier drivers/edac/edac_mc.c
---- a/drivers/edac/edac_mc.c~edac-core-remove-completion-wait-for-complete-with-rcu_barrier
-+++ a/drivers/edac/edac_mc.c
-@@ -418,16 +418,14 @@ static void complete_mc_list_del(struct 
- 
- 	mci = container_of(head, struct mem_ctl_info, rcu);
- 	INIT_LIST_HEAD(&mci->link);
--	complete(&mci->complete);
- }
- 
- static void del_mc_from_global_list(struct mem_ctl_info *mci)
- {
- 	atomic_dec(&edac_handlers);
- 	list_del_rcu(&mci->link);
--	init_completion(&mci->complete);
- 	call_rcu(&mci->rcu, complete_mc_list_del);
--	wait_for_completion(&mci->complete);
-+	rcu_barrier();
- }
- 
- /**
-diff -puN drivers/edac/edac_pci.c~edac-core-remove-completion-wait-for-complete-with-rcu_barrier drivers/edac/edac_pci.c
---- a/drivers/edac/edac_pci.c~edac-core-remove-completion-wait-for-complete-with-rcu_barrier
-+++ a/drivers/edac/edac_pci.c
-@@ -174,7 +174,6 @@ static void complete_edac_pci_list_del(s
- 
- 	pci = container_of(head, struct edac_pci_ctl_info, rcu);
- 	INIT_LIST_HEAD(&pci->link);
--	complete(&pci->complete);
- }
- 
- /*
-@@ -185,9 +184,8 @@ static void complete_edac_pci_list_del(s
- static void del_edac_pci_from_global_list(struct edac_pci_ctl_info *pci)
- {
- 	list_del_rcu(&pci->link);
--	init_completion(&pci->complete);
- 	call_rcu(&pci->rcu, complete_edac_pci_list_del);
--	wait_for_completion(&pci->complete);
-+	rcu_barrier();
- }
- 
- #if 0
++	/*
++	 * Siblings of global init remain as zombies on exit since they are
++	 * not reaped by their parent (swapper). To solve this and to avoid
++	 * multi-rooted process trees, prevent global and container-inits
++	 * from creating siblings.
++	 */
++	if ((clone_flags & CLONE_PARENT) &&
++				current->signal->flags & SIGNAL_UNKILLABLE)
++		return ERR_PTR(-EINVAL);
++
+ 	retval = security_task_create(clone_flags);
+ 	if (retval)
+ 		goto fork_out;
 _
 
-Patches currently in -mm which might be from hawk@comx.dk are
+Patches currently in -mm which might be from sukadev@linux.vnet.ibm.com are
 
 origin.patch
 
