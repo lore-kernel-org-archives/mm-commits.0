@@ -1,96 +1,201 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fdpic-ignore-the-loaders-pt_gnu_stack-when-calculating-the-stack-size.patch removed from -mm tree
-Date: Thu, 24 Sep 2009 12:36:00 -0700
-Message-ID: <200909241936.n8OJa09M001654@imap1.linux-foundation.org>
+Subject: [merged] exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9.patch removed from -mm tree
+Date: Thu, 24 Sep 2009 12:35:36 -0700
+Message-ID: <200909241935.n8OJZao9000817@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46522 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60612 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754041AbZIXTga (ORCPT
+	by vger.kernel.org with ESMTP id S1753589AbZIXTgO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Sep 2009 15:36:30 -0400
+	Thu, 24 Sep 2009 15:36:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, lethal@linux-sh.org, pavel@ucw.cz, vapier@gentoo.org, mm-commits@vger.kernel.org
+To: nhorman@tuxdriver.com, alan@lxorguk.ukuu.org.uk, andi@firstfloor.org, earl_chew@agilent.com, oleg@tv-sign.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fdpic: ignore the loader's PT_GNU_STACK when calculating the stack size
+     exec: let do_coredump() limit the number of concurrent dumps to pipes
 has been removed from the -mm tree.  Its filename was
-     fdpic-ignore-the-loaders-pt_gnu_stack-when-calculating-the-stack-size.patch
+     exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fdpic: ignore the loader's PT_GNU_STACK when calculating the stack size
-From: David Howells <dhowells@redhat.com>
+Subject: exec: let do_coredump() limit the number of concurrent dumps to pipes
+From: Neil Horman <nhorman@tuxdriver.com>
 
-Ignore the loader's PT_GNU_STACK when calculating the stack size, and only
-consider the executable's PT_GNU_STACK, assuming the executable has one.
+Introduce core pipe limiting sysctl.
 
-Currently the behaviour is to take the largest stack size and use that,
-but that means you can't reduce the stack size in the executable.  The
-loader's stack size should probably only be used when executing the loader
-directly.
+Since we can dump cores to pipe, rather than directly to the filesystem,
+we create a condition in which a user can create a very high load on the
+system simply by running bad applications.
 
-WARNING: This patch is slightly dangerous - it may render a system
-inoperable if the loader's stack size is larger than that of important
-executables, and the system relies unknowingly on this increasing the size
-of the stack.
+If the pipe reader specified in core_pattern is poorly written, we can
+have lots of ourstandig resources and processes in the system.
 
-Signed-off-by: David Howells <dhowells@redhat.com>
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Acked-by: Paul Mundt <lethal@linux-sh.org>
-Cc: Pavel Machek <pavel@ucw.cz>
+This sysctl introduces an ability to limit that resource consumption. 
+core_pipe_limit defines how many in-flight dumps may be run in parallel,
+dumps beyond this value are skipped and a note is made in the kernel log. 
+A special value of 0 in core_pipe_limit denotes unlimited core dumps may
+be handled (this is the default value).
+
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Neil Horman <nhorman@tuxdriver.com>
+Reported-by: Earl Chew <earl_chew@agilent.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf_fdpic.c |   17 ++++++++++-------
- 1 file changed, 10 insertions(+), 7 deletions(-)
+ Documentation/sysctl/kernel.txt |   22 ++++++++++++++++++++++
+ fs/exec.c                       |   23 ++++++++++++++++++-----
+ kernel/sysctl.c                 |    9 +++++++++
+ 3 files changed, 49 insertions(+), 5 deletions(-)
 
-diff -puN fs/binfmt_elf_fdpic.c~fdpic-ignore-the-loaders-pt_gnu_stack-when-calculating-the-stack-size fs/binfmt_elf_fdpic.c
---- a/fs/binfmt_elf_fdpic.c~fdpic-ignore-the-loaders-pt_gnu_stack-when-calculating-the-stack-size
-+++ a/fs/binfmt_elf_fdpic.c
-@@ -283,20 +283,23 @@ static int load_elf_fdpic_binary(struct 
- 	}
+diff -puN Documentation/sysctl/kernel.txt~exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9 Documentation/sysctl/kernel.txt
+--- a/Documentation/sysctl/kernel.txt~exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9
++++ a/Documentation/sysctl/kernel.txt
+@@ -22,6 +22,7 @@ show up in /proc/sys/kernel:
+ - callhome		     [ S390 only ]
+ - auto_msgmni
+ - core_pattern
++- core_pipe_limit
+ - core_uses_pid
+ - ctrl-alt-del
+ - dentry-state
+@@ -135,6 +136,27 @@ core_pattern is used to specify a core d
  
- 	stack_size = exec_params.stack_size;
--	if (stack_size < interp_params.stack_size)
--		stack_size = interp_params.stack_size;
--
- 	if (exec_params.flags & ELF_FDPIC_FLAG_EXEC_STACK)
- 		executable_stack = EXSTACK_ENABLE_X;
- 	else if (exec_params.flags & ELF_FDPIC_FLAG_NOEXEC_STACK)
- 		executable_stack = EXSTACK_DISABLE_X;
--	else if (interp_params.flags & ELF_FDPIC_FLAG_EXEC_STACK)
--		executable_stack = EXSTACK_ENABLE_X;
--	else if (interp_params.flags & ELF_FDPIC_FLAG_NOEXEC_STACK)
--		executable_stack = EXSTACK_DISABLE_X;
- 	else
- 		executable_stack = EXSTACK_DEFAULT;
+ ==============================================================
  
-+	if (stack_size == 0) {
-+		stack_size = interp_params.stack_size;
-+		if (interp_params.flags & ELF_FDPIC_FLAG_EXEC_STACK)
-+			executable_stack = EXSTACK_ENABLE_X;
-+		else if (interp_params.flags & ELF_FDPIC_FLAG_NOEXEC_STACK)
-+			executable_stack = EXSTACK_DISABLE_X;
-+		else
-+			executable_stack = EXSTACK_DEFAULT;
-+	}
++core_pipe_limit:
 +
- 	retval = -ENOEXEC;
- 	if (stack_size == 0)
- 		goto error;
++This sysctl is only applicable when core_pattern is configured to pipe core
++files to user space helper a (when the first character of core_pattern is a '|',
++see above).  When collecting cores via a pipe to an application, it is
++occasionally usefull for the collecting application to gather data about the
++crashing process from its /proc/pid directory.  In order to do this safely, the
++kernel must wait for the collecting process to exit, so as not to remove the
++crashing processes proc files prematurely.  This in turn creates the possibility
++that a misbehaving userspace collecting process can block the reaping of a
++crashed process simply by never exiting.  This sysctl defends against that.  It
++defines how many concurrent crashing processes may be piped to user space
++applications in parallel.  If this value is exceeded, then those crashing
++processes above that value are noted via the kernel log and their cores are
++skipped.  0 is a special value, indicating that unlimited processes may be
++captured in parallel, but that no waiting will take place (i.e. the collecting
++process is not guaranteed access to /proc/<crahing pid>/).  This value defaults
++to 0.
++
++==============================================================
++
+ core_uses_pid:
+ 
+ The default coredump filename is "core".  By setting
+diff -puN fs/exec.c~exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9 fs/exec.c
+--- a/fs/exec.c~exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9
++++ a/fs/exec.c
+@@ -63,6 +63,7 @@
+ 
+ int core_uses_pid;
+ char core_pattern[CORENAME_MAX_SIZE] = "core";
++unsigned int core_pipe_limit;
+ int suid_dumpable = 0;
+ 
+ /* The maximal length of core_pattern is also specified in sysctl.c */
+@@ -1744,7 +1745,8 @@ void do_coredump(long signr, int exit_co
+ 	unsigned long core_limit = current->signal->rlim[RLIMIT_CORE].rlim_cur;
+ 	char **helper_argv = NULL;
+ 	int helper_argc = 0;
+-	char *delimit;
++	int dump_count = 0;
++	static atomic_t core_dump_count = ATOMIC_INIT(0);
+ 
+ 	audit_core_dumps(signr);
+ 
+@@ -1826,28 +1828,36 @@ void do_coredump(long signr, int exit_co
+ 			goto fail_unlock;
+ 		}
+ 
++		dump_count = atomic_inc_return(&core_dump_count);
++		if (core_pipe_limit && (core_pipe_limit < dump_count)) {
++			printk(KERN_WARNING "Pid %d(%s) over core_pipe_limit\n",
++			       task_tgid_vnr(current), current->comm);
++			printk(KERN_WARNING "Skipping core dump\n");
++			goto fail_dropcount;
++		}
++
+ 		helper_argv = argv_split(GFP_KERNEL, corename+1, &helper_argc);
+ 		if (!helper_argv) {
+ 			printk(KERN_WARNING "%s failed to allocate memory\n",
+ 			       __func__);
+-			goto fail_unlock;
++			goto fail_dropcount;
+ 		}
+ 
+ 		core_limit = RLIM_INFINITY;
+ 
+ 		/* SIGPIPE can happen, but it's just never processed */
+- 		if (call_usermodehelper_pipe(corename+1, helper_argv, NULL,
++		if (call_usermodehelper_pipe(helper_argv[0], helper_argv, NULL,
+ 				&file)) {
+  			printk(KERN_INFO "Core dump to %s pipe failed\n",
+ 			       corename);
+- 			goto fail_unlock;
++			goto fail_dropcount;
+  		}
+  	} else
+  		file = filp_open(corename,
+ 				 O_CREAT | 2 | O_NOFOLLOW | O_LARGEFILE | flag,
+ 				 0600);
+ 	if (IS_ERR(file))
+-		goto fail_unlock;
++		goto fail_dropcount;
+ 	inode = file->f_path.dentry->d_inode;
+ 	if (inode->i_nlink > 1)
+ 		goto close_fail;	/* multiple links - don't dump */
+@@ -1877,6 +1887,9 @@ void do_coredump(long signr, int exit_co
+ 		current->signal->group_exit_code |= 0x80;
+ close_fail:
+ 	filp_close(file, NULL);
++fail_dropcount:
++	if (dump_count)
++		atomic_dec(&core_dump_count);
+ fail_unlock:
+ 	if (helper_argv)
+ 		argv_free(helper_argv);
+diff -puN kernel/sysctl.c~exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9 kernel/sysctl.c
+--- a/kernel/sysctl.c~exec-let-do_coredump-limit-the-number-of-concurrent-dumps-to-pipes-v9
++++ a/kernel/sysctl.c
+@@ -77,6 +77,7 @@ extern int max_threads;
+ extern int core_uses_pid;
+ extern int suid_dumpable;
+ extern char core_pattern[];
++extern unsigned int core_pipe_limit;
+ extern int pid_max;
+ extern int min_free_kbytes;
+ extern int pid_max_min, pid_max_max;
+@@ -424,6 +425,14 @@ static struct ctl_table kern_table[] = {
+ 		.proc_handler	= &proc_dostring,
+ 		.strategy	= &sysctl_string,
+ 	},
++	{
++		.ctl_name	= CTL_UNNUMBERED,
++		.procname	= "core_pipe_limit",
++		.data		= &core_pipe_limit,
++		.maxlen		= sizeof(unsigned int),
++		.mode		= 0644,
++		.proc_handler	= &proc_dointvec,
++	},
+ #ifdef CONFIG_PROC_SYSCTL
+ 	{
+ 		.procname	= "tainted",
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from nhorman@tuxdriver.com are
 
 origin.patch
-procfs-disable-per-task-stack-usage-on-nommu.patch
-hugetlb_file_setup-use-c-not-cpp.patch
-frv-duplicate-output_buffer-of-e03.patch
-mutex-subsystem-synchro-test-module.patch
 
