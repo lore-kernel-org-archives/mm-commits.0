@@ -1,91 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hugetlb_file_setup-use-c-not-cpp.patch removed from -mm tree
-Date: Fri, 25 Sep 2009 12:53:25 -0700
-Message-ID: <200909251953.n8PJrP4S002889@imap1.linux-foundation.org>
+Subject: [merged] procfs-disable-per-task-stack-usage-on-nommu.patch removed from -mm tree
+Date: Fri, 25 Sep 2009 12:53:20 -0700
+Message-ID: <200909251953.n8PJrKMC002793@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40138 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33484 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752114AbZIYTyG (ORCPT
+	by vger.kernel.org with ESMTP id S1752161AbZIYTyN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Sep 2009 15:54:06 -0400
+	Fri, 25 Sep 2009 15:54:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, agl@us.ibm.com, apw@canonical.com, dhowells@redhat.com, ebmunson@us.ibm.com, eric.whitney@hp.com, lee.schermerhorn@hp.com, mel@csn.ul.ie, nacc@us.ibm.comr
+To: akpm@linux-foundation.org, dhowells@redhat.com, geert@linux-m68k.org, gerg@snapgear.com, lethal@linux-sh.org, monstr@monstr.eu, stefani@seibold.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hugetlb_file_setup(): use C, not cpp
+     procfs: disable per-task stack usage on NOMMU
 has been removed from the -mm tree.  Its filename was
-     hugetlb_file_setup-use-c-not-cpp.patch
+     procfs-disable-per-task-stack-usage-on-nommu.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb_file_setup(): use C, not cpp
+Subject: procfs: disable per-task stack usage on NOMMU
 From: Andrew Morton <akpm@linux-foundation.org>
 
-why macros are always wrong:
+It needs walk_page_range().
 
-mm/mmap.c: In function 'do_mmap_pgoff':
-mm/mmap.c:953: warning: unused variable 'user'
-
-also, move a couple of struct forward-decls outside `#ifdef
-CONFIG_HUGETLB_PAGE' - it's pointless and frequently harmful to make these
-conditional (eg, this patch needed `struct user_struct').
-
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Nishanth Aravamudan <nacc@us.ibm.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Adam Litke <agl@us.ibm.com>
-Cc: Andy Whitcroft <apw@canonical.com>
-Cc: Eric Whitney <eric.whitney@hp.com>
-Cc: Eric B Munson <ebmunson@us.ibm.com>
+Reported-by: Michal Simek <monstr@monstr.eu>
+Tested-by: Michal Simek <monstr@monstr.eu>
+Cc: Stefani Seibold <stefani@seibold.net>
 Cc: David Howells <dhowells@redhat.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Greg Ungerer <gerg@snapgear.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ fs/proc/array.c |    7 +++++++
+ mm/Makefile     |    4 ++--
+ 2 files changed, 9 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/hugetlb.h~hugetlb_file_setup-use-c-not-cpp include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~hugetlb_file_setup-use-c-not-cpp
-+++ a/include/linux/hugetlb.h
-@@ -3,15 +3,15 @@
+diff -puN fs/proc/array.c~procfs-disable-per-task-stack-usage-on-nommu fs/proc/array.c
+--- a/fs/proc/array.c~procfs-disable-per-task-stack-usage-on-nommu
++++ a/fs/proc/array.c
+@@ -322,6 +322,8 @@ static inline void task_context_switch_c
+ 			p->nivcsw);
+ }
  
- #include <linux/fs.h>
- 
-+struct ctl_table;
-+struct user_struct;
++#ifdef CONFIG_MMU
 +
- #ifdef CONFIG_HUGETLB_PAGE
- 
- #include <linux/mempolicy.h>
- #include <linux/shm.h>
- #include <asm/tlbflush.h>
- 
--struct ctl_table;
--struct user_struct;
--
- int PageHuge(struct page *page);
- 
- static inline int is_vm_hugetlb_page(struct vm_area_struct *vma)
-@@ -187,7 +187,11 @@ static inline void set_file_hugepages(st
- 
- #define is_file_hugepages(file)			0
- #define set_file_hugepages(file)		BUG()
--#define hugetlb_file_setup(name,size,acct,user,creat)	ERR_PTR(-ENOSYS)
-+static inline struct file *hugetlb_file_setup(const char *name, size_t size,
-+		int acctflag, struct user_struct **user, int creat_flags)
+ struct stack_stats {
+ 	struct vm_area_struct *vma;
+ 	unsigned long	startpage;
+@@ -402,6 +404,11 @@ static inline void task_show_stack_usage
+ 		mmput(mm);
+ 	}
+ }
++#else
++static void task_show_stack_usage(struct seq_file *m, struct task_struct *task)
 +{
-+	return ERR_PTR(-ENOSYS);
 +}
++#endif		/* CONFIG_MMU */
  
- #endif /* !CONFIG_HUGETLBFS */
+ int proc_pid_status(struct seq_file *m, struct pid_namespace *ns,
+ 			struct pid *pid, struct task_struct *task)
+diff -puN mm/Makefile~procfs-disable-per-task-stack-usage-on-nommu mm/Makefile
+--- a/mm/Makefile~procfs-disable-per-task-stack-usage-on-nommu
++++ a/mm/Makefile
+@@ -5,14 +5,14 @@
+ mmu-y			:= nommu.o
+ mmu-$(CONFIG_MMU)	:= fremap.o highmem.o madvise.o memory.o mincore.o \
+ 			   mlock.o mmap.o mprotect.o mremap.o msync.o rmap.o \
+-			   vmalloc.o
++			   vmalloc.o pagewalk.o
  
+ obj-y			:= bootmem.o filemap.o mempool.o oom_kill.o fadvise.o \
+ 			   maccess.o page_alloc.o page-writeback.o \
+ 			   readahead.o swap.o truncate.o vmscan.o shmem.o \
+ 			   prio_tree.o util.o mmzone.o vmstat.o backing-dev.o \
+ 			   page_isolation.o mm_init.o mmu_context.o \
+-			   pagewalk.o $(mmu-y)
++			   $(mmu-y)
+ obj-y += init-mm.o
+ 
+ obj-$(CONFIG_BOUNCE)	+= bounce.o
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
