@@ -1,124 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] asus_atk0110-add-support-for-asus-p7p55d.patch removed from -mm tree
-Date: Fri, 25 Sep 2009 11:17:10 -0700
-Message-ID: <200909251817.n8PIHApN006663@imap1.linux-foundation.org>
+Subject: [merged] scsi_transport_fc-fix-missing-kernel-doc.patch removed from -mm tree
+Date: Fri, 25 Sep 2009 12:53:33 -0700
+Message-ID: <200909251953.n8PJrXrG003218@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53020 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45494 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751166AbZIYSRc (ORCPT
+	by vger.kernel.org with ESMTP id S1751816AbZIYTxe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Sep 2009 14:17:32 -0400
+	Fri, 25 Sep 2009 15:53:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kronos.it@gmail.com, hancockrwd@gmail.com, hdegoede@redhat.com, khali@linux-fr.org, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     asus_atk0110: add support for Asus P7P55D
+     scsi_transport_fc: fix missing kernel-doc
 has been removed from the -mm tree.  Its filename was
-     asus_atk0110-add-support-for-asus-p7p55d.patch
+     scsi_transport_fc-fix-missing-kernel-doc.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: asus_atk0110: add support for Asus P7P55D
-From: Luca Tettamanti <kronos.it@gmail.com>
+Subject: scsi_transport_fc: fix missing kernel-doc
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-With P7P55D (and newer) boards Asus extended the output buffer (ASBF)
-making the driver unable to read the data from the sensors.  Change the
-driver to use dynamic buffers (allocated by ACPI core); the return value
-is cached, so the number of memory allocations is very low.
+Add missing kernel-doc notation in scsi_transport_fc.c:
 
-Signed-off-by: Luca Tettamanti <kronos.it@gmail.com>
-Tested-by: Robert Hancock <hancockrwd@gmail.com>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Hans de Goede <hdegoede@redhat.com>
+Warning(drivers/scsi/scsi_transport_fc.c:3593): No description found for parameter 'q'
+Warning(drivers/scsi/scsi_transport_fc.c:3700): No description found for parameter 'q'
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/asus_atk0110.c |   50 ++++++++++++++++++++-------------
- 1 file changed, 31 insertions(+), 19 deletions(-)
+ drivers/scsi/scsi_transport_fc.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/hwmon/asus_atk0110.c~asus_atk0110-add-support-for-asus-p7p55d drivers/hwmon/asus_atk0110.c
---- a/drivers/hwmon/asus_atk0110.c~asus_atk0110-add-support-for-asus-p7p55d
-+++ a/drivers/hwmon/asus_atk0110.c
-@@ -129,9 +129,15 @@ struct atk_sensor_data {
- 	char const *acpi_name;
- };
+diff -puN drivers/scsi/scsi_transport_fc.c~scsi_transport_fc-fix-missing-kernel-doc drivers/scsi/scsi_transport_fc.c
+--- a/drivers/scsi/scsi_transport_fc.c~scsi_transport_fc-fix-missing-kernel-doc
++++ a/drivers/scsi/scsi_transport_fc.c
+@@ -3586,6 +3586,7 @@ enum fc_dispatch_result {
  
--struct atk_acpi_buffer_u64 {
--	union acpi_object buf;
--	u64 value;
-+/* Return buffer format:
-+ * [0-3] "value" is valid flag
-+ * [4-7] value
-+ * [8- ] unknown stuff on newer mobos
-+ */
-+struct atk_acpi_ret_buffer {
-+	u32 flags;
-+	u32 value;
-+	u8 data[];
- };
+ /**
+  * fc_bsg_host_dispatch - process fc host bsg requests and dispatch to LLDD
++ * @q:		fc host request queue
+  * @shost:	scsi host rport attached to
+  * @job:	bsg job to be processed
+  */
+@@ -3693,6 +3694,7 @@ fc_bsg_goose_queue(struct fc_rport *rpor
  
- static int atk_add(struct acpi_device *device);
-@@ -446,8 +452,10 @@ static int atk_read_value_new(struct atk
- 	struct acpi_object_list params;
- 	struct acpi_buffer ret;
- 	union acpi_object id;
--	struct atk_acpi_buffer_u64 tmp;
-+	union acpi_object *obj;
-+	struct atk_acpi_ret_buffer *buf;
- 	acpi_status status;
-+	int err = 0;
- 
- 	id.type = ACPI_TYPE_INTEGER;
- 	id.integer.value = sensor->id;
-@@ -455,11 +463,7 @@ static int atk_read_value_new(struct atk
- 	params.count = 1;
- 	params.pointer = &id;
- 
--	tmp.buf.type = ACPI_TYPE_BUFFER;
--	tmp.buf.buffer.pointer = (u8 *)&tmp.value;
--	tmp.buf.buffer.length = sizeof(u64);
--	ret.length = sizeof(tmp);
--	ret.pointer = &tmp;
-+	ret.length = ACPI_ALLOCATE_BUFFER;
- 
- 	status = acpi_evaluate_object_typed(data->read_handle, NULL, &params,
- 			&ret, ACPI_TYPE_BUFFER);
-@@ -468,23 +472,31 @@ static int atk_read_value_new(struct atk
- 				acpi_format_exception(status));
- 		return -EIO;
- 	}
-+	obj = ret.pointer;
- 
--	/* Return buffer format:
--	 * [0-3] "value" is valid flag
--	 * [4-7] value
--	 */
--	if (!(tmp.value & 0xffffffff)) {
-+	/* Sanity check */
-+	if (obj->buffer.length < 8) {
-+		dev_warn(dev, "Unexpected ASBF length: %u\n",
-+				obj->buffer.length);
-+		err = -EIO;
-+		goto out;
-+	}
-+	buf = (struct atk_acpi_ret_buffer *)obj->buffer.pointer;
-+
-+	if (!buf->flags) {
- 		/* The reading is not valid, possible causes:
- 		 * - sensor failure
- 		 * - enumeration was FUBAR (and we didn't notice)
- 		 */
--		dev_info(dev, "Failure: %#llx\n", tmp.value);
--		return -EIO;
-+		dev_warn(dev, "Failure: %#x\n", buf->flags);
-+		err = -EIO;
-+		goto out;
- 	}
- 
--	*value = (tmp.value & 0xffffffff00000000ULL) >> 32;
+ /**
+  * fc_bsg_rport_dispatch - process rport bsg requests and dispatch to LLDD
++ * @q:		rport request queue
+  * @shost:	scsi host rport attached to
+  * @rport:	rport request destined to
+  * @job:	bsg job to be processed
+_
+
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
+
+origin.patch
+linux-next.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+isdn-fix-netjet-build-errors.patch
+scsi-fix-func-names-in-kernel-doc.patch
+readahead-add-blk_run_backing_dev.patch
+pcmcia-fix-controller-printk-warnings.patch
+reiser4-export-remove_from_page_cache-fix.patch
+
