@@ -1,106 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] e100c-use-pci_dma_bidirectional-in-e100_rx_indicate.patch removed from -mm tree
-Date: Thu, 24 Sep 2009 17:07:05 -0700
-Message-ID: <200909250007.n8P07AD4021470@imap1.linux-foundation.org>
+Subject: + module-fix-up-config_kallsyms=n-build.patch added to -mm tree
+Date: Thu, 24 Sep 2009 21:06:53 -0700
+Message-ID: <200909250406.n8P46rPt009069@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35258 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54421 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752345AbZIYAHM (ORCPT
+	by vger.kernel.org with ESMTP id S1750907AbZIYEHa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Sep 2009 20:07:12 -0400
+	Fri, 25 Sep 2009 00:07:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bruce.w.allan@intel.com, davem@davemloft.net, jeffrey.t.kirsher@intel.com, jesse.brandeburg@intel.com, john.ronciak@intel.com, peter.p.waskiewicz.jr@intel.c
+To: mm-commits@vger.kernel.org
+Cc: lethal@linux-sh.org, jbeulich@novell.com, rusty@rustcorp.com.au
 
 
 The patch titled
-     e100.c: use PCI_DMA_BIDIRECTIONAL in e100_rx_indicate()
-has been removed from the -mm tree.  Its filename was
-     e100c-use-pci_dma_bidirectional-in-e100_rx_indicate.patch
+     module: fix up CONFIG_KALLSYMS=n build.
+has been added to the -mm tree.  Its filename is
+     module-fix-up-config_kallsyms=n-build.patch
 
-This patch was dropped because it was nacked
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: e100.c: use PCI_DMA_BIDIRECTIONAL in e100_rx_indicate()
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: module: fix up CONFIG_KALLSYMS=n build.
+From: Paul Mundt <lethal@linux-sh.org>
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=14169
+Starting from commit 4a4962263f07d14660849ec134ee42b63e95ea9a "reduce
+symbol table for loaded modules (v2)", the kernel/module.c build is broken
+with CONFIG_KALLSYMS disabled.
 
-WARNING: at lib/dma-debug.c:917 check_sync+0x23c/0x413() (Not tainted)
-Hardware name: 266295U
-e100 0000:02:08.0: DMA-API: device driver syncs DMA memory with different
-direction [device address=0x0000000025975202] [size=1534 bytes] [mapped with
-DMA_BIDIRECTIONAL] [synced with DMA_FROM_DEVICE]
+  CC      kernel/module.o
+kernel/module.c:1995: warning: type defaults to 'int' in declaration of 'Elf_Hdr'
+kernel/module.c:1995: error: expected ';', ',' or ')' before '*' token
+kernel/module.c: In function 'load_module':
+kernel/module.c:2203: error: 'strmap' undeclared (first use in this function)
+kernel/module.c:2203: error: (Each undeclared identifier is reported only once
+kernel/module.c:2203: error: for each function it appears in.)
+kernel/module.c:2239: error: 'symoffs' undeclared (first use in this function)
+kernel/module.c:2239: error: implicit declaration of function 'layout_symtab'
+kernel/module.c:2240: error: 'stroffs' undeclared (first use in this function)
+make[1]: *** [kernel/module.o] Error 1
+make: *** [kernel/module.o] Error 2
 
-Reported-by: Robert de Rooy <robert.de.rooy@gmail.com>
-Cc: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
-Cc: Jesse Brandeburg <jesse.brandeburg@intel.com>
-Cc: Bruce Allan <bruce.w.allan@intel.com>
-Cc: PJ Waskiewicz <peter.p.waskiewicz.jr@intel.com>
-Cc: John Ronciak <john.ronciak@intel.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+There are three different issues:
+
+    - layout_symtab() takes a const Elf_Ehdr
+
+    - layout_symtab() needs to return a value
+
+    - symoffs/stroffs/strmap are referenced by the load_module() code
+      despite being ifdefed out, which seems unnecessary given the noop
+      behaviour of layout_symtab()/add_kallsyms() in the case of
+      CONFIG_KALLSYMS=n.
+
+Signed-off-by: Paul Mundt <lethal@linux-sh.org>
+Cc: Jan Beulich <jbeulich@novell.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/e100.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/module.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/net/e100.c~e100c-use-pci_dma_bidirectional-in-e100_rx_indicate drivers/net/e100.c
---- a/drivers/net/e100.c~e100c-use-pci_dma_bidirectional-in-e100_rx_indicate
-+++ a/drivers/net/e100.c
-@@ -1900,7 +1900,7 @@ static int e100_rx_indicate(struct nic *
- 				nic->ru_running = RU_SUSPENDED;
- 		pci_dma_sync_single_for_device(nic->pdev, rx->dma_addr,
- 					       sizeof(struct rfd),
--					       PCI_DMA_FROMDEVICE);
-+					       PCI_DMA_BIDIRECTIONAL);
- 		return -ENODATA;
- 	}
+diff -puN kernel/module.c~module-fix-up-config_kallsyms=n-build kernel/module.c
+--- a/kernel/module.c~module-fix-up-config_kallsyms=n-build
++++ a/kernel/module.c
+@@ -1992,12 +1992,14 @@ static inline unsigned long layout_symta
+ 					  Elf_Shdr *sechdrs,
+ 					  unsigned int symindex,
+ 					  unsigned int strindex,
+-					  const Elf_Hdr *hdr,
++					  const Elf_Ehdr *hdr,
+ 					  const char *secstrings,
+ 					  unsigned long *pstroffs,
+ 					  unsigned long *strmap)
+ {
++	return 0;
+ }
++
+ static inline void add_kallsyms(struct module *mod,
+ 				Elf_Shdr *sechdrs,
+ 				unsigned int shnum,
+@@ -2081,9 +2083,8 @@ static noinline struct module *load_modu
+ 	struct module *mod;
+ 	long err = 0;
+ 	void *percpu = NULL, *ptr = NULL; /* Stops spurious gcc warning */
+-#ifdef CONFIG_KALLSYMS
+ 	unsigned long symoffs, stroffs, *strmap;
+-#endif
++
+ 	mm_segment_t old_fs;
  
+ 	DEBUGP("load_module: umod=%p, len=%lu, uargs=%p\n",
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from lethal@linux-sh.org are
 
 origin.patch
 procfs-disable-per-task-stack-usage-on-nommu.patch
-hugetlb_file_setup-use-c-not-cpp.patch
+nommu-fix-map_private-mmap-of-objects-where-the-data-can-be-mapped-directly.patch
+module-fix-up-config_kallsyms=n-build.patch
+mtd-maps-gpio-addr-flash-fix-up-the-generic_gpio=n-build.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-e100c-use-pci_dma_bidirectional-in-e100_rx_indicate.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-serial167-fix-read-buffer-overflow.patch
-st-fix-test-of-value-range-in-st_set_options.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-vfs-implement-posix-o_sync-and-o_dsync-semantics-checkpatch-fixes.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-drivers-net-wireless-ath-ar9170-phyc-fix-uninitialised-variable.patch
-readahead-add-blk_run_backing_dev.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-reiser4-disable.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+mmc-make-the-configuration-memory-resource-optional.patch
+tmio_mmc-optionally-support-using-platform-clock.patch
+sh-switch-migo-r-to-use-the-tmio-mmc-driver-instead-of-spi.patch
 
