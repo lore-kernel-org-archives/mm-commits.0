@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + s3cmci-use-resource_size-instead-of-local-macro.patch added to -mm tree
-Date: Tue, 29 Sep 2009 15:57:03 -0700
-Message-ID: <200909292257.n8TMv3DU025450__11298.383100848$1254265043$gmane$org@imap1.linux-foundation.org>
+Subject: + s3cmci-change-to-use-dev_pm_ops.patch added to -mm tree
+Date: Tue, 29 Sep 2009 15:57:09 -0700
+Message-ID: <200909292257.n8TMv9x2025643__24633.5200303749$1254265045$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54264 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35004 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750919AbZI2W5E (ORCPT
+	by vger.kernel.org with ESMTP id S1752039AbZI2W5J (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Sep 2009 18:57:04 -0400
+	Tue, 29 Sep 2009 18:57:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: ben@simtec.co.uk, linux-mmc@vger.kernel.org
 
 
 The patch titled
-     s3cmci: use resource_size() instead of local macro
+     s3cmci: change to use dev_pm_ops
 has been added to the -mm tree.  Its filename is
-     s3cmci-use-resource_size-instead-of-local-macro.patch
+     s3cmci-change-to-use-dev_pm_ops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,68 +34,76 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: s3cmci: use resource_size() instead of local macro
+Subject: s3cmci: change to use dev_pm_ops
 From: Ben Dooks <ben@simtec.co.uk>
 
-Replace the local definition RESSIZE() with the standard resource_size()
-call for getting the size of a struct resource.
+Move to using dev_pm_ops for suspend and resume.
 
 Signed-off-by: Ben Dooks <ben@simtec.co.uk>
 Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/s3cmci.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ drivers/mmc/host/s3cmci.c |   29 ++++++++++++++++++-----------
+ 1 file changed, 18 insertions(+), 11 deletions(-)
 
-diff -puN drivers/mmc/host/s3cmci.c~s3cmci-use-resource_size-instead-of-local-macro drivers/mmc/host/s3cmci.c
---- a/drivers/mmc/host/s3cmci.c~s3cmci-use-resource_size-instead-of-local-macro
+diff -puN drivers/mmc/host/s3cmci.c~s3cmci-change-to-use-dev_pm_ops drivers/mmc/host/s3cmci.c
+--- a/drivers/mmc/host/s3cmci.c~s3cmci-change-to-use-dev_pm_ops
 +++ a/drivers/mmc/host/s3cmci.c
-@@ -58,8 +58,6 @@ static const int dbgmap_debug = dbg_err 
- 		dev_dbg(&host->pdev->dev, args);  \
- 	} while (0)
+@@ -1546,35 +1546,42 @@ MODULE_DEVICE_TABLE(platform, s3cmci_dri
  
--#define RESSIZE(ressource) (((ressource)->end - (ressource)->start)+1)
--
- static struct s3c2410_dma_client s3cmci_dma_client = {
- 	.name		= "s3c-mci",
+ #ifdef CONFIG_PM
+ 
+-static int s3cmci_suspend(struct platform_device *dev, pm_message_t state)
++static int s3cmci_suspend(struct device *dev)
+ {
+-	struct mmc_host *mmc = platform_get_drvdata(dev);
++	struct mmc_host *mmc = platform_get_drvdata(to_platform_device(dev));
++	struct pm_message event = { PM_EVENT_SUSPEND };
+ 
+-	return  mmc_suspend_host(mmc, state);
++	return mmc_suspend_host(mmc, event);
+ }
+ 
+-static int s3cmci_resume(struct platform_device *dev)
++static int s3cmci_resume(struct device *dev)
+ {
+-	struct mmc_host *mmc = platform_get_drvdata(dev);
++	struct mmc_host *mmc = platform_get_drvdata(to_platform_device(dev));
+ 
+ 	return mmc_resume_host(mmc);
+ }
+ 
++static struct dev_pm_ops s3cmci_pm = {
++	.suspend	= s3cmci_suspend,
++	.resume		= s3cmci_resume,
++};
++
++#define s3cmci_pm_ops &s3cmci_pm
+ #else /* CONFIG_PM */
+-#define s3cmci_suspend NULL
+-#define s3cmci_resume NULL
++#define s3cmci_pm_ops NULL
+ #endif /* CONFIG_PM */
+ 
+ 
+ static struct platform_driver s3cmci_driver = {
+-	.driver.name	= "s3c-sdi",
+-	.driver.owner	= THIS_MODULE,
++	.driver	= {
++		.name	= "s3c-sdi",
++		.owner	= THIS_MODULE,
++		.pm	= s3cmci_pm_ops,
++	},
+ 	.id_table	= s3cmci_driver_ids,
+ 	.probe		= s3cmci_probe,
+ 	.remove		= __devexit_p(s3cmci_remove),
+ 	.shutdown	= s3cmci_shutdown,
+-	.suspend	= s3cmci_suspend,
+-	.resume		= s3cmci_resume,
  };
-@@ -1298,7 +1296,7 @@ static int __devinit s3cmci_probe(struct
- 	}
  
- 	host->mem = request_mem_region(host->mem->start,
--				       RESSIZE(host->mem), pdev->name);
-+				       resource_size(host->mem), pdev->name);
- 
- 	if (!host->mem) {
- 		dev_err(&pdev->dev, "failed to request io memory region.\n");
-@@ -1306,7 +1304,7 @@ static int __devinit s3cmci_probe(struct
- 		goto probe_free_host;
- 	}
- 
--	host->base = ioremap(host->mem->start, RESSIZE(host->mem));
-+	host->base = ioremap(host->mem->start, resource_size(host->mem));
- 	if (!host->base) {
- 		dev_err(&pdev->dev, "failed to ioremap() io memory region.\n");
- 		ret = -EINVAL;
-@@ -1433,7 +1431,7 @@ static int __devinit s3cmci_probe(struct
- 	iounmap(host->base);
- 
-  probe_free_mem_region:
--	release_mem_region(host->mem->start, RESSIZE(host->mem));
-+	release_mem_region(host->mem->start, resource_size(host->mem));
- 
-  probe_free_host:
- 	mmc_free_host(mmc);
-@@ -1469,7 +1467,7 @@ static int __devexit s3cmci_remove(struc
- 	free_irq(host->irq, host);
- 
- 	iounmap(host->base);
--	release_mem_region(host->mem->start, RESSIZE(host->mem));
-+	release_mem_region(host->mem->start, resource_size(host->mem));
- 
- 	mmc_free_host(mmc);
- 	return 0;
+ static int __init s3cmci_init(void)
 _
 
 Patches currently in -mm which might be from ben@simtec.co.uk are
