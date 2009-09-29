@@ -1,76 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] sdio-add-mmc_cap_vdd_165_195-host-capability.patch removed from -mm tree
-Date: Tue, 29 Sep 2009 12:03:58 -0700
-Message-ID: <200909291903.n8TJ3woW011062__40189.6519972526$1254251054$gmane$org@imap1.linux-foundation.org>
+Subject: + ar9170-fix-bug-in-iq-auto-calibration-value-calculation.patch added to -mm tree
+Date: Tue, 29 Sep 2009 12:13:43 -0700
+Message-ID: <200909291913.n8TJDhB0030689@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34809 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57716 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753462AbZI2TD4 (ORCPT
+	by vger.kernel.org with ESMTP id S1752068AbZI2TO1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Sep 2009 15:03:56 -0400
+	Tue, 29 Sep 2009 15:14:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ohad@wizery.com, linux-mmc@vger.kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: chunkeey@googlemail.com, akpm@linux-foundation.org, davem@davemloft.net, jal2@gmx.de, linville@tuxdriver.com
 
 
 The patch titled
-     sdio: add MMC_CAP_VDD_165_195 host capability
-has been removed from the -mm tree.  Its filename was
-     sdio-add-mmc_cap_vdd_165_195-host-capability.patch
+     ar9170: fix bug in iq-auto calibration value calculation
+has been added to the -mm tree.  Its filename is
+     ar9170-fix-bug-in-iq-auto-calibration-value-calculation.patch
 
-This patch was dropped because it was nacked
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sdio: add MMC_CAP_VDD_165_195 host capability
-From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: ar9170: fix bug in iq-auto calibration value calculation
+From: Christian Lamparter <chunkeey@googlemail.com>
 
-To allow the usage of MMC_VDD_165_195, host capability MMC_CAP_VDD_165_195
-is introduced.  This is necessary because MMC_VDD_165_195 is currently
-reserved/undefined.
+This patch fixes a embarrassing bug which was introduced by: "[PATCH]
+ar9170: implement frequency calibration for one-stage/openfw"
 
-Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: <linux-mmc@vger.kernel.org>
+The phy_data variable initialization has to done outside the for-loop
+scope.  This is because the for-loop uses u32 phy_data variable more like
+a 4-byte field.  But in each run only a single byte is calculated. 
+Therefore phy_data content needs to stay the same for at least 3 more
+iterations, before the complete set can be uploaded.
+
+Reported-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Christian Lamparter <chunkeey@googlemail.com>
+Cc: Joerg Albert <jal2@gmx.de>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/sdio.c  |    7 +++++++
- include/linux/mmc/host.h |    1 +
- 2 files changed, 8 insertions(+)
+ drivers/net/wireless/ath/ar9170/phy.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN drivers/mmc/core/sdio.c~sdio-add-mmc_cap_vdd_165_195-host-capability drivers/mmc/core/sdio.c
---- a/drivers/mmc/core/sdio.c~sdio-add-mmc_cap_vdd_165_195-host-capability
-+++ a/drivers/mmc/core/sdio.c
-@@ -494,6 +494,13 @@ int mmc_attach_sdio(struct mmc_host *hos
- 		ocr &= ~0x7F;
- 	}
+diff -puN drivers/net/wireless/ath/ar9170/phy.c~ar9170-fix-bug-in-iq-auto-calibration-value-calculation drivers/net/wireless/ath/ar9170/phy.c
+--- a/drivers/net/wireless/ath/ar9170/phy.c~ar9170-fix-bug-in-iq-auto-calibration-value-calculation
++++ a/drivers/net/wireless/ath/ar9170/phy.c
+@@ -1141,7 +1141,8 @@ static int ar9170_set_freq_cal_data(stru
+ 	u8 vpds[2][AR5416_PD_GAIN_ICEPTS];
+ 	u8 pwrs[2][AR5416_PD_GAIN_ICEPTS];
+ 	int chain, idx, i;
+-	u8 f;
++	u32 phy_data = 0;
++	u8 f, tmp;
  
-+	if ((ocr & MMC_VDD_165_195) && !(host->caps & MMC_CAP_VDD_165_195)) {
-+		printk(KERN_WARNING "%s: SDIO card claims to support the "
-+			"incompletely defined 'low voltage range'. This "
-+			"will be ignored.\n", mmc_hostname(host));
-+		ocr &= ~MMC_VDD_165_195;
-+	}
-+
- 	host->ocr = mmc_select_voltage(host, ocr);
+ 	switch (channel->band) {
+ 	case IEEE80211_BAND_2GHZ:
+@@ -1208,9 +1209,6 @@ static int ar9170_set_freq_cal_data(stru
+ 		}
  
- 	/*
-diff -puN include/linux/mmc/host.h~sdio-add-mmc_cap_vdd_165_195-host-capability include/linux/mmc/host.h
---- a/include/linux/mmc/host.h~sdio-add-mmc_cap_vdd_165_195-host-capability
-+++ a/include/linux/mmc/host.h
-@@ -150,6 +150,7 @@ struct mmc_host {
- #define MMC_CAP_DISABLE		(1 << 7)	/* Can the host be disabled */
- #define MMC_CAP_NONREMOVABLE	(1 << 8)	/* Nonremovable e.g. eMMC */
- #define MMC_CAP_WAIT_WHILE_BUSY	(1 << 9)	/* Waits while card is busy */
-+#define MMC_CAP_VDD_165_195	(1 << 10)	/* Accepts MMC_VDD_165_195 */
- 
- 	/* host specific block data */
- 	unsigned int		max_seg_size;	/* see blk_queue_max_segment_size */
-_
-
-Patches currently in -mm which might be from ohad@wizery.com are
-
-sdio-add-mmc_cap_vdd_165_195-host-capability.patch
-
+ 		for (i = 0; i < 76; i++) {
+-			u32 phy_data;
+-			u8 tmp;
