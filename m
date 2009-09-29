@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + page-types-introduce-kpageflags_flags.patch added to -mm tree
-Date: Tue, 29 Sep 2009 14:46:20 -0700
-Message-ID: <200909292146.n8TLkKNJ013164@imap1.linux-foundation.org>
+Subject: + pagemap-document-kpf_ksm-and-show-it-in-page-types.patch added to -mm tree
+Date: Tue, 29 Sep 2009 14:46:09 -0700
+Message-ID: <200909292146.n8TLk97D012797@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35501 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53710 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753027AbZI2VqV (ORCPT
+	by vger.kernel.org with ESMTP id S1753116AbZI2VqX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Sep 2009 17:46:21 -0400
+	Tue, 29 Sep 2009 17:46:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fengguang.wu@intel.com, andi@firstfloor.org
+Cc: fengguang.wu@intel.com, chrisw@redhat.com, hugh.dickins@tiscali.co.uk, ieidus@redhat.com
 
 
 The patch titled
-     page-types: introduce kpageflags_flags()
+     pagemap: document KPF_KSM and show it in page-types
 has been added to the -mm tree.  Its filename is
-     page-types-introduce-kpageflags_flags.patch
+     pagemap-document-kpf_ksm-and-show-it-in-page-types.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page-types: introduce kpageflags_flags()
+Subject: pagemap: document KPF_KSM and show it in page-types
 From: Wu Fengguang <fengguang.wu@intel.com>
 
+It indicates to the system admin that processes mapping such pages may be
+eating less physical memory than the reported numbers by legacy tools.
+
 Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: Izik Eidus <ieidus@redhat.com>
+Acked-by: Chris Wright <chrisw@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/page-types.c |   15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ Documentation/vm/page-types.c |    2 ++
+ Documentation/vm/pagemap.txt  |    4 ++++
+ 2 files changed, 6 insertions(+)
 
-diff -puN Documentation/vm/page-types.c~page-types-introduce-kpageflags_flags Documentation/vm/page-types.c
---- a/Documentation/vm/page-types.c~page-types-introduce-kpageflags_flags
+diff -puN Documentation/vm/page-types.c~pagemap-document-kpf_ksm-and-show-it-in-page-types Documentation/vm/page-types.c
+--- a/Documentation/vm/page-types.c~pagemap-document-kpf_ksm-and-show-it-in-page-types
 +++ a/Documentation/vm/page-types.c
-@@ -436,6 +436,16 @@ static uint64_t well_known_flags(uint64_
- 	return flags;
- }
+@@ -71,6 +71,7 @@
+ #define KPF_UNEVICTABLE		18
+ #define KPF_HWPOISON		19
+ #define KPF_NOPAGE		20
++#define KPF_KSM			21
  
-+static uint64_t kpageflags_flags(uint64_t flags)
-+{
-+	flags = expand_overloaded_flags(flags);
-+
-+	if (!opt_raw)
-+		flags = well_known_flags(flags);
-+
-+	return flags;
-+}
-+
- /*
-  * page frame walker
-  */
-@@ -470,10 +480,7 @@ static int hash_slot(uint64_t flags)
- static void add_page(unsigned long voffset,
- 		     unsigned long offset, uint64_t flags)
- {
--	flags = expand_overloaded_flags(flags);
--
--	if (!opt_raw)
--		flags = well_known_flags(flags);
-+	flags = kpageflags_flags(flags);
+ /* [32-] kernel hacking assistances */
+ #define KPF_RESERVED		32
+@@ -119,6 +120,7 @@ static char *page_flag_names[] = {
+ 	[KPF_UNEVICTABLE]	= "u:unevictable",
+ 	[KPF_HWPOISON]		= "X:hwpoison",
+ 	[KPF_NOPAGE]		= "n:nopage",
++	[KPF_KSM]		= "x:ksm",
  
- 	if (!bit_mask_ok(flags))
- 		return;
+ 	[KPF_RESERVED]		= "r:reserved",
+ 	[KPF_MLOCKED]		= "m:mlocked",
+diff -puN Documentation/vm/pagemap.txt~pagemap-document-kpf_ksm-and-show-it-in-page-types Documentation/vm/pagemap.txt
+--- a/Documentation/vm/pagemap.txt~pagemap-document-kpf_ksm-and-show-it-in-page-types
++++ a/Documentation/vm/pagemap.txt
+@@ -59,6 +59,7 @@ There are three components to pagemap:
+     18. UNEVICTABLE
+     19. HWPOISON
+     20. NOPAGE
++    21. KSM
+ 
+ Short descriptions to the page flags:
+ 
+@@ -93,6 +94,9 @@ Short descriptions to the page flags:
+ 20. NOPAGE
+     no page frame exists at the requested address
+ 
++21. KSM
++    identical memory pages dynamically shared between one or more processes
++
+     [IO related page flags]
+  1. ERROR     IO error occurred
+  3. UPTODATE  page has up-to-date data
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
