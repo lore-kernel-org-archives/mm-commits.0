@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + page-types-make-voffset-local-variables.patch added to -mm tree
-Date: Tue, 29 Sep 2009 14:46:18 -0700
-Message-ID: <200909292146.n8TLkIxS013109@imap1.linux-foundation.org>
+Subject: + page-types-make-standalone-pagemap-kpageflags-read-routines.patch added to -mm tree
+Date: Tue, 29 Sep 2009 14:46:16 -0700
+Message-ID: <200909292146.n8TLkG3H013013@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52997 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39360 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752617AbZI2VqT (ORCPT
+	by vger.kernel.org with ESMTP id S1752067AbZI2VqR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Sep 2009 17:46:19 -0400
+	Tue, 29 Sep 2009 17:46:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: fengguang.wu@intel.com, andi@firstfloor.org
 
 
 The patch titled
-     page-types: make voffset local variables
+     page-types: make standalone pagemap/kpageflags read routines
 has been added to the -mm tree.  Its filename is
-     page-types-make-voffset-local-variables.patch
+     page-types-make-standalone-pagemap-kpageflags-read-routines.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,153 +34,228 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page-types: make voffset local variables
+Subject: page-types: make standalone pagemap/kpageflags read routines
 From: Wu Fengguang <fengguang.wu@intel.com>
+
+Refactor the code to be more modular and easier to reuse.
 
 Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
 Cc: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/page-types.c |   39 +++++++++++++++++---------------
- 1 file changed, 21 insertions(+), 18 deletions(-)
+ Documentation/vm/page-types.c |  156 ++++++++++++++++++--------------
+ 1 file changed, 90 insertions(+), 66 deletions(-)
 
-diff -puN Documentation/vm/page-types.c~page-types-make-voffset-local-variables Documentation/vm/page-types.c
---- a/Documentation/vm/page-types.c~page-types-make-voffset-local-variables
+diff -puN Documentation/vm/page-types.c~page-types-make-standalone-pagemap-kpageflags-read-routines Documentation/vm/page-types.c
+--- a/Documentation/vm/page-types.c~page-types-make-standalone-pagemap-kpageflags-read-routines
 +++ a/Documentation/vm/page-types.c
-@@ -159,7 +159,6 @@ static unsigned long	opt_size[MAX_ADDR_R
- static int		nr_vmas;
- static unsigned long	pg_start[MAX_VMAS];
+@@ -161,8 +161,6 @@ static unsigned long	pg_start[MAX_VMAS];
  static unsigned long	pg_end[MAX_VMAS];
--static unsigned long	voffset;
+ static unsigned long	voffset;
  
+-static int		pagemap_fd;
+-
  #define MAX_BIT_FILTERS	64
  static int		nr_bit_filters;
-@@ -328,7 +327,8 @@ static char *page_flag_longname(uint64_t
-  * page list and summary
-  */
+ static uint64_t		opt_mask[MAX_BIT_FILTERS];
+@@ -170,7 +168,7 @@ static uint64_t		opt_bits[MAX_BIT_FILTER
  
--static void show_page_range(unsigned long offset, uint64_t flags)
-+static void show_page_range(unsigned long voffset,
-+			    unsigned long offset, uint64_t flags)
- {
- 	static uint64_t      flags0;
- 	static unsigned long voff;
-@@ -354,7 +354,8 @@ static void show_page_range(unsigned lon
- 	count  = 1;
+ static int		page_size;
+ 
+-#define PAGES_BATCH	(64 << 10)	/* 64k pages */
++static int		pagemap_fd;
+ static int		kpageflags_fd;
+ 
+ #define HASH_SHIFT	13
+@@ -226,6 +224,62 @@ int checked_open(const char *pathname, i
+ 	return fd;
  }
  
--static void show_page(unsigned long offset, uint64_t flags)
-+static void show_page(unsigned long voffset,
-+		      unsigned long offset, uint64_t flags)
- {
- 	if (opt_pid)
- 		printf("%lx\t", voffset);
-@@ -435,7 +436,6 @@ static uint64_t well_known_flags(uint64_
- 	return flags;
- }
++/*
++ * pagemap/kpageflags routines
++ */
++
++static unsigned long do_u64_read(int fd, char *name,
++				 uint64_t *buf,
++				 unsigned long index,
++				 unsigned long count)
++{
++	long bytes;
++
++	if (index > ULONG_MAX / 8)
++		fatal("index overflow: %lu\n", index);
++
++	if (lseek(fd, index * 8, SEEK_SET) < 0) {
++		perror(name);
++		exit(EXIT_FAILURE);
++	}
++
++	bytes = read(fd, buf, count * 8);
++	if (bytes < 0) {
++		perror(name);
++		exit(EXIT_FAILURE);
++	}
++	if (bytes % 8)
++		fatal("partial read: %lu bytes\n", bytes);
++
++	return bytes / 8;
++}
++
++static unsigned long kpageflags_read(uint64_t *buf,
++				     unsigned long index,
++				     unsigned long pages)
++{
++	return do_u64_read(kpageflags_fd, PROC_KPAGEFLAGS, buf, index, pages);
++}
++
++static unsigned long pagemap_read(uint64_t *buf,
++				  unsigned long index,
++				  unsigned long pages)
++{
++	return do_u64_read(pagemap_fd, "/proc/pid/pagemap", buf, index, pages);
++}
++
++static unsigned long pagemap_pfn(uint64_t val)
++{
++	unsigned long pfn;
++
++	if (val & PM_PRESENT)
++		pfn = PM_PFRAME(val);
++	else
++		pfn = 0;
++
++	return pfn;
++}
++
  
--
  /*
-  * page frame walker
-  */
-@@ -467,7 +467,8 @@ static int hash_slot(uint64_t flags)
- 	exit(EXIT_FAILURE);
- }
- 
--static void add_page(unsigned long offset, uint64_t flags)
-+static void add_page(unsigned long voffset,
-+		     unsigned long offset, uint64_t flags)
- {
- 	flags = expand_overloaded_flags(flags);
- 
-@@ -478,16 +479,18 @@ static void add_page(unsigned long offse
- 		return;
- 
- 	if (opt_list == 1)
--		show_page_range(offset, flags);
-+		show_page_range(voffset, offset, flags);
- 	else if (opt_list == 2)
--		show_page(offset, flags);
-+		show_page(voffset, offset, flags);
- 
- 	nr_pages[hash_slot(flags)]++;
+  * page flag names
+@@ -432,79 +486,53 @@ static void add_page(unsigned long offse
  	total_pages++;
  }
  
- #define KPAGEFLAGS_BATCH	(64 << 10)	/* 64k pages */
--static void walk_pfn(unsigned long index, unsigned long count)
-+static void walk_pfn(unsigned long voffset,
-+		     unsigned long index,
-+		     unsigned long count)
++#define KPAGEFLAGS_BATCH	(64 << 10)	/* 64k pages */
+ static void walk_pfn(unsigned long index, unsigned long count)
  {
- 	uint64_t buf[KPAGEFLAGS_BATCH];
++	uint64_t buf[KPAGEFLAGS_BATCH];
  	unsigned long batch;
-@@ -501,7 +504,7 @@ static void walk_pfn(unsigned long index
- 			break;
+-	unsigned long n;
++	unsigned long pages;
+ 	unsigned long i;
  
- 		for (i = 0; i < pages; i++)
--			add_page(index + i, buf[i]);
-+			add_page(voffset + i, index + i, buf[i]);
+-	if (index > ULONG_MAX / KPF_BYTES)
+-		fatal("index overflow: %lu\n", index);
+-
+-	lseek(kpageflags_fd, index * KPF_BYTES, SEEK_SET);
+-
+ 	while (count) {
+-		uint64_t kpageflags_buf[KPF_BYTES * PAGES_BATCH];
+-
+-		batch = min_t(unsigned long, count, PAGES_BATCH);
+-		n = read(kpageflags_fd, kpageflags_buf, batch * KPF_BYTES);
+-		if (n == 0)
+-			break;
+-		if (n < 0) {
+-			perror(PROC_KPAGEFLAGS);
+-			exit(EXIT_FAILURE);
+-		}
+-
+-		if (n % KPF_BYTES != 0)
+-			fatal("partial read: %lu bytes\n", n);
+-		n = n / KPF_BYTES;
++		batch = min_t(unsigned long, count, KPAGEFLAGS_BATCH);
++		pages = kpageflags_read(buf, index, batch);
++		if (pages == 0)
++			break;
  
- 		index += pages;
- 		count -= pages;
-@@ -525,9 +528,8 @@ static void walk_vma(unsigned long index
+-		for (i = 0; i < n; i++)
+-			add_page(index + i, kpageflags_buf[i]);
++		for (i = 0; i < pages; i++)
++			add_page(index + i, buf[i]);
  
- 		for (i = 0; i < pages; i++) {
- 			pfn = pagemap_pfn(buf[i]);
--			voffset = index + i;
- 			if (pfn)
--				walk_pfn(pfn, 1);
-+				walk_pfn(index + i, pfn, 1);
- 		}
- 
- 		index += pages;
-@@ -537,8 +539,9 @@ static void walk_vma(unsigned long index
- 
- static void walk_task(unsigned long index, unsigned long count)
- {
--	int i = 0;
- 	const unsigned long end = index + count;
-+	unsigned long start;
-+	int i = 0;
- 
- 	while (index < end) {
- 
-@@ -548,11 +551,11 @@ static void walk_task(unsigned long inde
- 		if (pg_start[i] >= end)
- 			return;
- 
--		voffset = max_t(unsigned long, pg_start[i], index);
--		index   = min_t(unsigned long, pg_end[i], end);
-+		start = max_t(unsigned long, pg_start[i], index);
-+		index = min_t(unsigned long, pg_end[i], end);
- 
--		assert(voffset < index);
--		walk_vma(voffset, index - voffset);
-+		assert(start < index);
-+		walk_vma(start, index - start);
+-		index += batch;
+-		count -= batch;
++		index += pages;
++		count -= pages;
  	}
  }
  
-@@ -577,7 +580,7 @@ static void walk_addr_ranges(void)
+-
+-#define PAGEMAP_BATCH	4096
+-static unsigned long task_pfn(unsigned long pgoff)
++#define PAGEMAP_BATCH	(64 << 10)
++static void walk_vma(unsigned long index, unsigned long count)
+ {
+-	static uint64_t buf[PAGEMAP_BATCH];
+-	static unsigned long start;
+-	static long count;
+-	uint64_t pfn;
++	uint64_t buf[PAGEMAP_BATCH];
++	unsigned long batch;
++	unsigned long pages;
++	unsigned long pfn;
++	unsigned long i;
  
- 	for (i = 0; i < nr_addr_ranges; i++)
- 		if (!opt_pid)
--			walk_pfn(opt_offset[i], opt_size[i]);
-+			walk_pfn(0, opt_offset[i], opt_size[i]);
- 		else
- 			walk_task(opt_offset[i], opt_size[i]);
+-	if (pgoff < start || pgoff >= start + count) {
+-		if (lseek64(pagemap_fd,
+-			    (uint64_t)pgoff * PM_ENTRY_BYTES,
+-			    SEEK_SET) < 0) {
+-			perror("pagemap seek");
+-			exit(EXIT_FAILURE);
+-		}
+-		count = read(pagemap_fd, buf, sizeof(buf));
+-		if (count == 0)
+-			return 0;
+-		if (count < 0) {
+-			perror("pagemap read");
+-			exit(EXIT_FAILURE);
+-		}
+-		if (count % PM_ENTRY_BYTES) {
+-			fatal("pagemap read not aligned.\n");
+-			exit(EXIT_FAILURE);
+-		}
+-		count /= PM_ENTRY_BYTES;
+-		start = pgoff;
+-	}
++	while (count) {
++		batch = min_t(unsigned long, count, PAGEMAP_BATCH);
++		pages = pagemap_read(buf, index, batch);
++		if (pages == 0)
++			break;
  
-@@ -879,7 +882,7 @@ int main(int argc, char *argv[])
- 	walk_addr_ranges();
+-	pfn = buf[pgoff - start];
+-	if (pfn & PM_PRESENT)
+-		pfn = PM_PFRAME(pfn);
+-	else
+-		pfn = 0;
++		for (i = 0; i < pages; i++) {
++			pfn = pagemap_pfn(buf[i]);
++			voffset = index + i;
++			if (pfn)
++				walk_pfn(pfn, 1);
++		}
  
- 	if (opt_list == 1)
--		show_page_range(0, 0);  /* drain the buffer */
-+		show_page_range(0, 0, 0);  /* drain the buffer */
+-	return pfn;
++		index += pages;
++		count -= pages;
++	}
+ }
  
- 	if (opt_no_summary)
- 		return 0;
+ static void walk_task(unsigned long index, unsigned long count)
+@@ -524,11 +552,7 @@ static void walk_task(unsigned long inde
+ 		index   = min_t(unsigned long, pg_end[i], end);
+ 
+ 		assert(voffset < index);
+-		for (; voffset < index; voffset++) {
+-			unsigned long pfn = task_pfn(voffset);
+-			if (pfn)
+-				walk_pfn(pfn, 1);
+-		}
++		walk_vma(voffset, index - voffset);
+ 	}
+ }
+ 
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
