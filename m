@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + errh-add-helper-function-to-simplify-pointer-error-checking.patch added to -mm tree
-Date: Tue, 29 Sep 2009 12:15:42 -0700
-Message-ID: <200909291915.n8TJFgp2002233@imap1.linux-foundation.org>
+Subject: + swapfile-avoid-null-pointer-dereference-in-swapon-when-s_bdev-is-null.patch added to -mm tree
+Date: Tue, 29 Sep 2009 12:16:39 -0700
+Message-ID: <200909291916.n8TJGdYE004178@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37957 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58190 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752901AbZI2TPm (ORCPT
+	by vger.kernel.org with ESMTP id S1753295AbZI2TQ7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Sep 2009 15:15:42 -0400
+	Tue, 29 Sep 2009 15:16:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ext-phil.2.carmody@nokia.com
+Cc: sjayaraman@suse.de, hugh.dickins@tiscali.co.uk, jens.axboe@oracle.com
 
 
 The patch titled
-     err.h: add helper function to simplify pointer error checking
+     swapfile: avoid NULL pointer dereference in swapon when s_bdev is NULL
 has been added to the -mm tree.  Its filename is
-     errh-add-helper-function-to-simplify-pointer-error-checking.patch
+     swapfile-avoid-null-pointer-dereference-in-swapon-when-s_bdev-is-null.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: err.h: add helper function to simplify pointer error checking
-From: Phil Carmody <ext-phil.2.carmody@nokia.com>
+Subject: swapfile: avoid NULL pointer dereference in swapon when s_bdev is NULL
+From: Suresh Jayaraman <sjayaraman@suse.de>
 
-There are quite a few instances in the kernel of checks of pointers both
-against NULL and against the errno range, handling both cases identically.
-This additional helper function would simplify such code.
+While testing Swap over NFS patchset, I noticed an oops that was triggered
+during swapon.  Investigating further, the NULL pointer deference is due
+to the SSD device check/optimization in the swapon code that assumes
+s_bdev could never be NULL.
 
-Signed-off-by: Phil Carmody <ext-phil.2.carmody@nokia.com>
+inode->i_sb->s_bdev could be NULL in a few cases.  For e.g.  one such case
+is loopback NFS mount, there could be others as well.  Fix this by
+ensuring s_bdev is not NULL before we try to deference s_bdev.
+
+Signed-off-by: Suresh Jayaraman <sjayaraman@suse.de>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/err.h |    5 +++++
- 1 file changed, 5 insertions(+)
+ mm/swapfile.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/err.h~errh-add-helper-function-to-simplify-pointer-error-checking include/linux/err.h
---- a/include/linux/err.h~errh-add-helper-function-to-simplify-pointer-error-checking
-+++ a/include/linux/err.h
-@@ -34,6 +34,11 @@ static inline long IS_ERR(const void *pt
- 	return IS_ERR_VALUE((unsigned long)ptr);
- }
+diff -puN mm/swapfile.c~swapfile-avoid-null-pointer-dereference-in-swapon-when-s_bdev-is-null mm/swapfile.c
+--- a/mm/swapfile.c~swapfile-avoid-null-pointer-dereference-in-swapon-when-s_bdev-is-null
++++ a/mm/swapfile.c
+@@ -1974,12 +1974,14 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 		goto bad_swap;
+ 	}
  
-+static inline long IS_ERR_OR_NULL(const void *ptr)
-+{
-+	return (ptr == NULL) || IS_ERR_VALUE((unsigned long)ptr);
-+}
-+
- /**
-  * ERR_CAST - Explicitly cast an error-valued pointer to another pointer type
-  * @ptr: The pointer to cast.
+-	if (blk_queue_nonrot(bdev_get_queue(p->bdev))) {
+-		p->flags |= SWP_SOLIDSTATE;
+-		p->cluster_next = 1 + (random32() % p->highest_bit);
++	if (p->bdev) {
++		if (blk_queue_nonrot(bdev_get_queue(p->bdev))) {
++			p->flags |= SWP_SOLIDSTATE;
++			p->cluster_next = 1 + (random32() % p->highest_bit);
++		}
++		if (discard_swap(p) == 0)
++			p->flags |= SWP_DISCARDABLE;
+ 	}
+-	if (discard_swap(p) == 0)
+-		p->flags |= SWP_DISCARDABLE;
+ 
+ 	mutex_lock(&swapon_mutex);
+ 	spin_lock(&swap_lock);
 _
 
-Patches currently in -mm which might be from ext-phil.2.carmody@nokia.com are
+Patches currently in -mm which might be from sjayaraman@suse.de are
 
-errh-add-helper-function-to-simplify-pointer-error-checking.patch
+swapfile-avoid-null-pointer-dereference-in-swapon-when-s_bdev-is-null.patch
 
