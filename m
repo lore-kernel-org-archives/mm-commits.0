@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + qla2xxx-fix-null-ptr-dereference-in-fail-path-in-queue-create-code.patch added to -mm tree
-Date: Tue, 29 Sep 2009 13:47:27 -0700
-Message-ID: <200909292047.n8TKlRvR024507@imap1.linux-foundation.org>
+Subject: + dma-debug-allow-dma_bidirectional-mappings-to-be-synced-with-dma_from_device-and.patch added to -mm tree
+Date: Tue, 29 Sep 2009 13:51:18 -0700
+Message-ID: <200909292051.n8TKpIVl032248@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58541 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49135 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752350AbZI2Ur1 (ORCPT
+	by vger.kernel.org with ESMTP id S1752068AbZI2UvW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Sep 2009 16:47:27 -0400
+	Tue, 29 Sep 2009 16:51:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: anirban.chakraborty@qlogic.com, James.Bottomley@HansenPartnership.com, andrew.vasquez@qlogic.com, jirislaby@gmail.com
+Cc: khc@pm.waw.pl, davem@davemloft.net, joerg.roedel@amd.com
 
 
 The patch titled
-     qla2xxx: fix Null ptr dereference in fail path in queue create code
+     dma-debug: allow DMA_BIDIRECTIONAL mappings to be synced with DMA_FROM_DEVICE and
 has been added to the -mm tree.  Its filename is
-     qla2xxx-fix-null-ptr-dereference-in-fail-path-in-queue-create-code.patch
+     dma-debug-allow-dma_bidirectional-mappings-to-be-synced-with-dma_from_device-and.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: qla2xxx: fix Null ptr dereference in fail path in queue create code
-From: Anirban Chakraborty <anirban.chakraborty@qlogic.com>
+Subject: dma-debug: allow DMA_BIDIRECTIONAL mappings to be synced with DMA_FROM_DEVICE and
+From: Krzysztof Halasa <khc@pm.waw.pl>
 
-Current code jumps to fail path in queue create functions and there it
-invokes the queue free call with a (NULL) pointer to the queue which could
-not be allocated.  Fix it by returning ENOMEM directly without invoking
-the queue free call.
+There is no need to perform full BIDIR sync (copying the buffers in case
+of swiotlb and similar schemes) if we know that the owner (CPU or device)
+hasn't altered the data.
 
-Signed-off-by Jiri Slaby <jirislaby@gmail.com>
-Signed-off-by: Anirban Chakraborty <anirban.chakraborty@qlogic.com>
-Cc: Andrew Vasquez <andrew.vasquez@qlogic.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Addresses the false-positive reported at
+http://bugzilla.kernel.org/show_bug.cgi?id=14169
+
+Signed-off-by: Krzysztof Halasa <khc@pm.waw.pl>
+Cc: David Miller <davem@davemloft.net>
+Cc: Joerg Roedel <joerg.roedel@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/qla2xxx/qla_mid.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/dma-debug.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN drivers/scsi/qla2xxx/qla_mid.c~qla2xxx-fix-null-ptr-dereference-in-fail-path-in-queue-create-code drivers/scsi/qla2xxx/qla_mid.c
---- a/drivers/scsi/qla2xxx/qla_mid.c~qla2xxx-fix-null-ptr-dereference-in-fail-path-in-queue-create-code
-+++ a/drivers/scsi/qla2xxx/qla_mid.c
-@@ -568,7 +568,7 @@ qla25xx_create_req_que(struct qla_hw_dat
- 	if (req == NULL) {
- 		qla_printk(KERN_WARNING, ha, "could not allocate memory"
- 			"for request que\n");
--		goto que_failed;
-+		return 0;
+diff -puN lib/dma-debug.c~dma-debug-allow-dma_bidirectional-mappings-to-be-synced-with-dma_from_device-and lib/dma-debug.c
+--- a/lib/dma-debug.c~dma-debug-allow-dma_bidirectional-mappings-to-be-synced-with-dma_from_device-and
++++ a/lib/dma-debug.c
+@@ -907,6 +907,9 @@ static void check_sync(struct device *de
+ 				ref->size);
  	}
  
- 	req->length = REQUEST_ENTRY_CNT_24XX;
-@@ -659,7 +659,7 @@ qla25xx_create_rsp_que(struct qla_hw_dat
- 	if (rsp == NULL) {
- 		qla_printk(KERN_WARNING, ha, "could not allocate memory for"
- 				" response que\n");
--		goto que_failed;
-+		return 0;
++	if (entry->direction == DMA_BIDIRECTIONAL)
++		goto out;
++
+ 	if (ref->direction != entry->direction) {
+ 		err_printk(dev, entry, "DMA-API: device driver syncs "
+ 				"DMA memory with different direction "
+@@ -917,9 +920,6 @@ static void check_sync(struct device *de
+ 				dir2name[ref->direction]);
  	}
  
- 	rsp->length = RESPONSE_ENTRY_CNT_MQ;
-_
-
-Patches currently in -mm which might be from anirban.chakraborty@qlogic.com are
-
-qla2xxx-fix-null-ptr-dereference-in-fail-path-in-queue-create-code.patch
-
+-	if (entry->direction == DMA_BIDIRECTIONAL)
+-		goto out;
+-
+ 	if (to_cpu && !(entry->direction == DMA_FROM_DEVICE) &&
+ 		      !(ref->direction == DMA_TO_DEVICE))
+ 		err_printk(dev, entry, "DMA-API: device driver syncs "
+@@ -942,7 +942,6 @@ static void check_sync(struct device *de
+ 
+ out:
+ 	put_hash_bucket(bucket, &flags);
