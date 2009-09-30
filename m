@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + qla2xxx-fix-null-ptr-dereference-in-fail-path-in-queue-create-code-update.patch added to -mm tree
-Date: Wed, 30 Sep 2009 16:29:23 -0700
-Message-ID: <200909302329.n8UNTNuj028094@imap1.linux-foundation.org>
+Subject: + afs-remove-cacheh.patch added to -mm tree
+Date: Wed, 30 Sep 2009 16:39:42 -0700
+Message-ID: <200909302339.n8UNdgv5016401@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34622 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34500 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754758AbZI3X3Y (ORCPT
+	by vger.kernel.org with ESMTP id S1754990AbZI3XkA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Sep 2009 19:29:24 -0400
+	Wed, 30 Sep 2009 19:40:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: anirban.chakraborty@qlogic.com, James.Bottomley@HansenPartnership.com, andrew.vasquez@qlogic.com, jirislaby@gmail.com
+Cc: hch@lst.de, dhowells@redhat.com
 
 
 The patch titled
-     qla2xxx: fix NULL ptr deref bug in fail path during queue create
+     afs: remove cache.h
 has been added to the -mm tree.  Its filename is
-     qla2xxx-fix-null-ptr-dereference-in-fail-path-in-queue-create-code-update.patch
+     afs-remove-cacheh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,65 +34,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: qla2xxx: fix NULL ptr deref bug in fail path during queue create
-From: Anirban Chakraborty <anirban.chakraborty@qlogic.com>
+Subject: afs: remove cache.h
+From: Christoph Hellwig <hch@lst.de>
 
-Current code attempts to clean up resources when queue create fails and there it
-invokes queue free call with a (NULL) pointer to the queue which could not be
-allocated in the first place. Fix it by returning directly without invoking the
-queue free call as no resources has been allocated at that point of time.
+It's just a wrapper for <linux/fscache.h>, so remove it.
 
-Reported-by: Jiri Slaby <jirislaby@gmail.com>
-Signed-off-by: Anirban Chakraborty <anirban.chakraborty@qlogic.com>
-Cc: Andrew Vasquez <andrew.vasquez@qlogic.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/qla2xxx/qla_mid.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ fs/afs/cache.h    |   12 ------------
+ fs/afs/internal.h |    2 +-
+ 2 files changed, 1 insertion(+), 13 deletions(-)
 
-diff -puN drivers/scsi/qla2xxx/qla_mid.c~qla2xxx-fix-null-ptr-dereference-in-fail-path-in-queue-create-code-update drivers/scsi/qla2xxx/qla_mid.c
---- a/drivers/scsi/qla2xxx/qla_mid.c~qla2xxx-fix-null-ptr-dereference-in-fail-path-in-queue-create-code-update
-+++ a/drivers/scsi/qla2xxx/qla_mid.c
-@@ -568,7 +568,7 @@ qla25xx_create_req_que(struct qla_hw_dat
- 	if (req == NULL) {
- 		qla_printk(KERN_WARNING, ha, "could not allocate memory"
- 			"for request que\n");
--		return 0;
-+		goto failed;
- 	}
+diff -puN fs/afs/cache.h~afs-remove-cacheh /dev/null
+--- a/fs/afs/cache.h
++++ /dev/null
+@@ -1,12 +0,0 @@
+-/* AFS local cache management interface
+- *
+- * Copyright (C) 2008 Red Hat, Inc. All Rights Reserved.
+- * Written by David Howells (dhowells@redhat.com)
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License
+- * as published by the Free Software Foundation; either version
+- * 2 of the License, or (at your option) any later version.
+- */
+-
+-#include <linux/fscache.h>
+diff -puN fs/afs/internal.h~afs-remove-cacheh fs/afs/internal.h
+--- a/fs/afs/internal.h~afs-remove-cacheh
++++ a/fs/afs/internal.h
+@@ -18,10 +18,10 @@
+ #include <linux/key.h>
+ #include <linux/workqueue.h>
+ #include <linux/sched.h>
++#include <linux/fscache.h>
  
- 	req->length = REQUEST_ENTRY_CNT_24XX;
-@@ -632,6 +632,7 @@ qla25xx_create_req_que(struct qla_hw_dat
+ #include "afs.h"
+ #include "afs_vl.h"
+-#include "cache.h"
  
- que_failed:
- 	qla25xx_free_req_que(base_vha, req);
-+failed:
- 	return 0;
- }
- 
-@@ -659,7 +660,7 @@ qla25xx_create_rsp_que(struct qla_hw_dat
- 	if (rsp == NULL) {
- 		qla_printk(KERN_WARNING, ha, "could not allocate memory for"
- 				" response que\n");
--		return 0;
-+		goto failed;
- 	}
- 
- 	rsp->length = RESPONSE_ENTRY_CNT_MQ;
-@@ -728,6 +729,7 @@ qla25xx_create_rsp_que(struct qla_hw_dat
- 
- que_failed:
- 	qla25xx_free_rsp_que(base_vha, rsp);
-+failed:
- 	return 0;
- }
+ #define AFS_CELL_MAX_ADDRS 15
  
 _
 
-Patches currently in -mm which might be from anirban.chakraborty@qlogic.com are
+Patches currently in -mm which might be from hch@lst.de are
 
-qla2xxx-fix-null-ptr-dereference-in-fail-path-in-queue-create-code.patch
-qla2xxx-fix-null-ptr-dereference-in-fail-path-in-queue-create-code-update.patch
+revert-m68k-convert-to-asm-generic-hardirqh.patch
+sparc32-convert-to-asm-generic-hardirqh.patch
+linux-next.patch
+avr32-convert-to-asm-generic-hardirqh.patch
+vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
+fs-remove-unneeded-dcache_unhashed-tricks.patch
+vfs-implement-posix-o_sync-and-o_dsync-semantics.patch
+xtensa-convert-to-asm-generic-hardirqh.patch
+afs-remove-cacheh.patch
+elf-kill-use_elf_core_dump.patch
 
