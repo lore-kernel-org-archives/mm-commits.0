@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-kill-overly-verbose-throttling-states-log-messages.patch added to -mm tree
-Date: Wed, 30 Sep 2009 13:58:03 -0700
-Message-ID: <200909302058.n8UKw3sC015668@imap1.linux-foundation.org>
+Subject: + sscanf-fix-%s%n.patch added to -mm tree
+Date: Wed, 30 Sep 2009 14:00:48 -0700
+Message-ID: <200909302100.n8UL0m6j021226@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53638 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58646 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754169AbZI3U7H (ORCPT
+	by vger.kernel.org with ESMTP id S1753906AbZI3VA7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Sep 2009 16:59:07 -0400
+	Wed, 30 Sep 2009 17:00:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rdreier@cisco.com, bjorn.helgaas@hp.com, lenb@kernel.org, rolandd@cisco.com
+Cc: andy753421@gmail.com, xiyou.wangcong@gmail.com
 
 
 The patch titled
-     acpi: kill overly verbose "throttling states" log messages
+     sscanf(): fix %*s%n
 has been added to the -mm tree.  Its filename is
-     acpi-kill-overly-verbose-throttling-states-log-messages.patch
+     sscanf-fix-%s%n.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi: kill overly verbose "throttling states" log messages
-From: Roland Dreier <rdreier@cisco.com>
+Subject: sscanf(): fix %*s%n
+From: Andy Spencer <andy753421@gmail.com>
 
-I was recently lucky enough to get a 64-CPU system.  The processors
-actually have T-states, so my kernel log ends up with 64 lines like:
+When using %*s, sscanf should honor conversion specifiers immediately
+following the %*s.  For example, the following code should find the
+position of the end of the string "hello".
 
-    ACPI: Processor [CPU0] (supports xx throttling states)
+  int end;
+  char buf[] = "hello    world";
+  sscanf(buf, "%*s%n", &end);
+  printf("%d\n", end);
 
-This is pretty useless clutter because
+Ideally, sscanf would advance the fmt and str pointers the same as it
+would without the *, but the code for that is rather complicated and is
+not included in the patch.
 
- - this info is already available after boot from
-   /proc/acpi/processor/CPUnn/throttling
-
- - there's also an ACPI_DEBUG_PRINT() in processor_throttling.c that
-   gives the same info on boot for anyone who *really* cares.
-
-So just delete the code that prints the throttling states in
-processor_core.c.
-
-Signed-off-by: Roland Dreier <rolandd@cisco.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Signed-off-by: Andy Spencer <andy753421@gmail.com>
+Acked-by: WANG Cong <xiyou.wangcong@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_core.c |    7 -------
- 1 file changed, 7 deletions(-)
+ lib/vsprintf.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/acpi/processor_core.c~acpi-kill-overly-verbose-throttling-states-log-messages drivers/acpi/processor_core.c
---- a/drivers/acpi/processor_core.c~acpi-kill-overly-verbose-throttling-states-log-messages
-+++ a/drivers/acpi/processor_core.c
-@@ -863,13 +863,6 @@ static int acpi_processor_add(struct acp
- 		goto err_remove_sysfs;
- 	}
- 
--	if (pr->flags.throttling) {
--		printk(KERN_INFO PREFIX "%s [%s] (supports",
--		       acpi_device_name(device), acpi_device_bid(device));
--		printk(" %d throttling states", pr->throttling.state_count);
--		printk(")\n");
--	}
+diff -puN lib/vsprintf.c~sscanf-fix-%s%n lib/vsprintf.c
+--- a/lib/vsprintf.c~sscanf-fix-%s%n
++++ a/lib/vsprintf.c
+@@ -1771,7 +1771,7 @@ int vsscanf(const char * buf, const char
+ 		 * advance both strings to next white space
+ 		 */
+ 		if (*fmt == '*') {
+-			while (!isspace(*fmt) && *fmt)
++			while (!isspace(*fmt) && *fmt != '%' && *fmt)
+ 				fmt++;
+ 			while (!isspace(*str) && *str)
+ 				str++;
+_
+
+Patches currently in -mm which might be from andy753421@gmail.com are
+
+sscanf-fix-%s%n.patch
+
