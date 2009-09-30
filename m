@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-make-real_lookup-do-dentry-revalidation-with-i_mutex-held.patch added to -mm tree
-Date: Wed, 30 Sep 2009 13:40:37 -0700
-Message-ID: <200909302040.n8UKeb5L012979@imap1.linux-foundation.org>
+Subject: + vfs-clean-up-real_lookup.patch added to -mm tree
+Date: Wed, 30 Sep 2009 13:40:39 -0700
+Message-ID: <200909302040.n8UKeeja013159@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47158 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51220 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754081AbZI3Ulb (ORCPT
+	by vger.kernel.org with ESMTP id S1752989AbZI3UlW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Sep 2009 16:41:31 -0400
+	Wed, 30 Sep 2009 16:41:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: sage@newdream.net, adilger@sun.com, hch@infradead.org, raven@themaw.net, vir
 
 
 The patch titled
-     vfs: make real_lookup do dentry revalidation with i_mutex held
+     vfs: clean up real_lookup()
 has been added to the -mm tree.  Its filename is
-     vfs-make-real_lookup-do-dentry-revalidation-with-i_mutex-held.patch
+     vfs-clean-up-real_lookup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: make real_lookup do dentry revalidation with i_mutex held
+Subject: vfs: clean up real_lookup()
 From: Sage Weil <sage@newdream.net>
 
-real_lookup() is called by do_lookup() if dentry revalidation fails.  If
-the cache is re-populated while waiting for i_mutex, it may find that a
-d_lookup() subsequently succeeds (see the "Uhhuh!  Nasty case" comment).
-
-Previously, real_lookup() would drop i_mutex and do_revalidate() again. 
-If revalidate failed _again_, however, it would give up with -ENOENT.  The
-problem here that network file systems may be invalidating dentries via
-server callbacks, e.g.  due to concurrent access from another client, and
--ENOENT is frequently the wrong answer.
-
-This problem has been seen with both Lustre and Ceph.  It seems possible
-to hit this case with NFS as well if the cache lifetime is very short.
-
-Instead, we should do_revalidate() while i_mutex is still held.  If
-revalidation fails, we can move on to a ->lookup() and ensure a correct
-result without worrying about any subsequent races.
-
-Note that do_revalidate() is called with i_mutex held elsewhere.  For
-example, do_filp_open(), lookup_create(), do_unlinkat(), do_rmdir(), and
-possibly others all take the directory i_mutex, and then
-
--> lookup_hash
-        -> __lookup_hash
-                -> cached_lookup
-                        -> do_revalidate
-
-so this does not introduce any new locking rules for d_revalidate
-implementations.
-
-Yes, the goto is ugly.  A cleanup patch follows.
+Get rid of the goto by flipping the if (!result) over.  Make the comments
+a bit more descriptive.  Fix a few kernel style problems.  No functional
+changes.
 
 Cc: Ian Kent <raven@themaw.net>
 Cc: Christoph Hellwig <hch@infradead.org>
@@ -77,35 +50,105 @@ Signed-off-by: Sage Weil <sage@newdream.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ fs/namei.c |   65 ++++++++++++++++++++++++++-------------------------
+ 1 file changed, 34 insertions(+), 31 deletions(-)
 
-diff -puN fs/namei.c~vfs-make-real_lookup-do-dentry-revalidation-with-i_mutex-held fs/namei.c
---- a/fs/namei.c~vfs-make-real_lookup-do-dentry-revalidation-with-i_mutex-held
+diff -puN fs/namei.c~vfs-clean-up-real_lookup fs/namei.c
+--- a/fs/namei.c~vfs-clean-up-real_lookup
 +++ a/fs/namei.c
-@@ -497,6 +497,7 @@ static struct dentry * real_lookup(struc
- 	if (!result) {
- 		struct dentry *dentry;
+@@ -469,19 +469,20 @@ ok:
+  * This is called when everything else fails, and we actually have
+  * to go to the low-level filesystem to find out what we should do..
+  *
+- * We get the directory semaphore, and after getting that we also
++ * We get the directory mutex, and after getting that we also
+  * make sure that nobody added the entry to the dcache in the meantime..
+  * SMP-safe
+  */
+-static struct dentry * real_lookup(struct dentry * parent, struct qstr * name, struct nameidata *nd)
++static struct dentry *real_lookup(struct dentry *parent, struct qstr *name,
++				  struct nameidata *nd)
+ {
+-	struct dentry * result;
++	struct dentry *result, *dentry;
+ 	struct inode *dir = parent->d_inode;
  
-+do_the_lookup:
- 		/* Don't create child dentry for a dead directory. */
- 		result = ERR_PTR(-ENOENT);
- 		if (IS_DEADDIR(dir))
-@@ -520,12 +521,12 @@ out_unlock:
- 	 * Uhhuh! Nasty case: the cache was re-populated while
- 	 * we waited on the semaphore. Need to revalidate.
+ 	mutex_lock(&dir->i_mutex);
+ 	/*
+ 	 * First re-do the cached lookup just in case it was created
+-	 * while we waited for the directory semaphore..
++	 * while we waited for the directory mutex.
+ 	 *
+ 	 * FIXME! This could use version numbering or similar to
+ 	 * avoid unnecessary cache lookups.
+@@ -494,38 +495,40 @@ static struct dentry * real_lookup(struc
+ 	 * so doing d_lookup() (with seqlock), instead of lockfree __d_lookup
  	 */
--	mutex_unlock(&dir->i_mutex);
- 	if (result->d_op && result->d_op->d_revalidate) {
- 		result = do_revalidate(result, nd);
- 		if (!result)
--			result = ERR_PTR(-ENOENT);
-+			goto do_the_lookup;
+ 	result = d_lookup(parent, name);
+-	if (!result) {
+-		struct dentry *dentry;
+-
+-do_the_lookup:
+-		/* Don't create child dentry for a dead directory. */
+-		result = ERR_PTR(-ENOENT);
+-		if (IS_DEADDIR(dir))
+-			goto out_unlock;
+-
+-		dentry = d_alloc(parent, name);
+-		result = ERR_PTR(-ENOMEM);
+-		if (dentry) {
+-			result = dir->i_op->lookup(dir, dentry, nd);
++	if (result) {
++		/*
++		 * The cache was re-populated while we waited on the
++		 * mutex.  We need to revalidate, this time while
++		 * holding i_mutex (to avoid another race).
++		 */
++		if (result->d_op && result->d_op->d_revalidate) {
++			result = do_revalidate(result, nd);
+ 			if (result)
+-				dput(dentry);
+-			else
+-				result = dentry;
++				goto out_unlock;
++			/*
++			 * The dentry was left behind invalid.  Just
++			 * do the lookup.
++			 */
++		} else {
++			goto out_unlock;
+ 		}
+-out_unlock:
+-		mutex_unlock(&dir->i_mutex);
+-		return result;
  	}
-+	mutex_unlock(&dir->i_mutex);
+ 
+-	/*
+-	 * Uhhuh! Nasty case: the cache was re-populated while
+-	 * we waited on the semaphore. Need to revalidate.
+-	 */
+-	if (result->d_op && result->d_op->d_revalidate) {
+-		result = do_revalidate(result, nd);
+-		if (!result)
+-			goto do_the_lookup;
++	/* Don't create child dentry for a dead directory. */
++	result = ERR_PTR(-ENOENT);
++	if (IS_DEADDIR(dir))
++		goto out_unlock;
++
++	dentry = d_alloc(parent, name);
++	result = ERR_PTR(-ENOMEM);
++	if (dentry) {
++		result = dir->i_op->lookup(dir, dentry, nd);
++		if (result)
++			dput(dentry);
++		else
++			result = dentry;
+ 	}
++out_unlock:
+ 	mutex_unlock(&dir->i_mutex);
  	return result;
  }
- 
 _
 
 Patches currently in -mm which might be from sage@newdream.net are
