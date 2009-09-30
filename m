@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + connector-fix-regression-introduced-by-sid-connector.patch added to -mm tree
-Date: Tue, 29 Sep 2009 23:59:14 -0700
-Message-ID: <200909300659.n8U6xEaG018499@imap1.linux-foundation.org>
+Subject: + rtc-cmos-convert-rtc_aie-rtc_uie-to-rtc-irq-api.patch added to -mm tree
+Date: Wed, 30 Sep 2009 11:59:45 -0700
+Message-ID: <200909301859.n8UIxjDt004797@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37519 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46113 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752926AbZI3G7o (ORCPT
+	by vger.kernel.org with ESMTP id S1752012AbZI3TAC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Sep 2009 02:59:44 -0400
+	Wed, 30 Sep 2009 15:00:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: borntraeger@de.ibm.com, davem@davemloft.net, matthltc@us.ibm.com, oleg@redhat.com, scott@ubuntu.com, zbr@ioremap.net
+Cc: herton@mandriva.com.br, a.zummo@towertech.it, david-b@pacbell.net
 
 
 The patch titled
-     connector: fix regression introduced by sid connector
+     rtc-cmos: convert RTC_AIE/RTC_UIE to rtc irq API
 has been added to the -mm tree.  Its filename is
-     connector-fix-regression-introduced-by-sid-connector.patch
+     rtc-cmos-convert-rtc_aie-rtc_uie-to-rtc-irq-api.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,84 +34,128 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: connector: fix regression introduced by sid connector
-From: Christian Borntraeger <borntraeger@de.ibm.com>
+Subject: rtc-cmos: convert RTC_AIE/RTC_UIE to rtc irq API
+From: Herton Ronaldo Krzesinski <herton@mandriva.com.br>
 
-Since commit 02b51df1b07b4e9ca823c89284e704cadb323cd1 (proc connector: add
-event for process becoming session leader) we have the following warning:
+Drop ioctl function that handles RTC_AIE/RTC_UIE, and use instead the
+rtc subsystem API (alarm_irq_enable/update_irq_enable callbacks).
 
-Badness at kernel/softirq.c:143
-[...]
-Krnl PSW : 0404c00180000000 00000000001481d4 (local_bh_enable+0xb0/0xe0)
-[...]
-Call Trace:
-([<000000013fe04100>] 0x13fe04100)
- [<000000000048a946>] sk_filter+0x9a/0xd0
- [<000000000049d938>] netlink_broadcast+0x2c0/0x53c
- [<00000000003ba9ae>] cn_netlink_send+0x272/0x2b0
- [<00000000003baef0>] proc_sid_connector+0xc4/0xd4
- [<0000000000142604>] __set_special_pids+0x58/0x90
- [<0000000000159938>] sys_setsid+0xb4/0xd8
- [<00000000001187fe>] sysc_noemu+0x10/0x16
- [<00000041616cb266>] 0x41616cb266
-
-The warning is
---->    WARN_ON_ONCE(in_irq() || irqs_disabled());
-
-The network code must not be called with disabled interrupts but
-sys_setsid holds the tasklist_lock with spinlock_irq while calling the
-connector.
-
-After a discussion we agreed that we can move proc_sid_connector from
-__set_special_pids to sys_setsid.  We also agreed that it is sufficient to
-change the check from task_session(curr) != pid into err > 0, since if we
-don't change the session, this means we were already the leader and return
--EPERM.
-
-Signed-off-by: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Scott James Remnant <scott@ubuntu.com>
-Cc: Matt Helsley <matthltc@us.ibm.com>
-Cc: David S. Miller <davem@davemloft.net>
-Acked-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Evgeniy Polyakov <zbr@ioremap.net>
+Signed-off-by: Herton Ronaldo Krzesinski <herton@mandriva.com.br>
+Cc: Herton Ronaldo Krzesinski <herton@mandriva.com.br>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    4 +---
- kernel/sys.c  |    2 ++
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/rtc/rtc-cmos.c |   75 ++++++++++++++++++---------------------
+ 1 file changed, 35 insertions(+), 40 deletions(-)
 
-diff -puN kernel/exit.c~connector-fix-regression-introduced-by-sid-connector kernel/exit.c
---- a/kernel/exit.c~connector-fix-regression-introduced-by-sid-connector
-+++ a/kernel/exit.c
-@@ -359,10 +359,8 @@ void __set_special_pids(struct pid *pid)
- {
- 	struct task_struct *curr = current->group_leader;
- 
--	if (task_session(curr) != pid) {
-+	if (task_session(curr) != pid)
- 		change_pid(curr, PIDTYPE_SID, pid);
--		proc_sid_connector(curr);
--	}
- 
- 	if (task_pgrp(curr) != pid)
- 		change_pid(curr, PIDTYPE_PGID, pid);
-diff -puN kernel/sys.c~connector-fix-regression-introduced-by-sid-connector kernel/sys.c
---- a/kernel/sys.c~connector-fix-regression-introduced-by-sid-connector
-+++ a/kernel/sys.c
-@@ -1110,6 +1110,8 @@ SYSCALL_DEFINE0(setsid)
- 	err = session;
- out:
- 	write_unlock_irq(&tasklist_lock);
-+	if (err > 0)
-+		proc_sid_connector(sid);
- 	return err;
+diff -puN drivers/rtc/rtc-cmos.c~rtc-cmos-convert-rtc_aie-rtc_uie-to-rtc-irq-api drivers/rtc/rtc-cmos.c
+--- a/drivers/rtc/rtc-cmos.c~rtc-cmos-convert-rtc_aie-rtc_uie-to-rtc-irq-api
++++ a/drivers/rtc/rtc-cmos.c
+@@ -420,49 +420,43 @@ static int cmos_irq_set_state(struct dev
+ 	return 0;
  }
  
+-#if defined(CONFIG_RTC_INTF_DEV) || defined(CONFIG_RTC_INTF_DEV_MODULE)
+-
+-static int
+-cmos_rtc_ioctl(struct device *dev, unsigned int cmd, unsigned long arg)
++static int cmos_alarm_irq_enable(struct device *dev, unsigned int enabled)
+ {
+ 	struct cmos_rtc	*cmos = dev_get_drvdata(dev);
+ 	unsigned long	flags;
+ 
+-	switch (cmd) {
+-	case RTC_AIE_OFF:
+-	case RTC_AIE_ON:
+-	case RTC_UIE_OFF:
+-	case RTC_UIE_ON:
+-		if (!is_valid_irq(cmos->irq))
+-			return -EINVAL;
+-		break;
+-	/* PIE ON/OFF is handled by cmos_irq_set_state() */
+-	default:
+-		return -ENOIOCTLCMD;
+-	}
++	if (!is_valid_irq(cmos->irq))
++		return -EINVAL;
+ 
+ 	spin_lock_irqsave(&rtc_lock, flags);
+-	switch (cmd) {
+-	case RTC_AIE_OFF:	/* alarm off */
+-		cmos_irq_disable(cmos, RTC_AIE);
+-		break;
+-	case RTC_AIE_ON:	/* alarm on */
++
++	if (enabled)
+ 		cmos_irq_enable(cmos, RTC_AIE);
+-		break;
+-	case RTC_UIE_OFF:	/* update off */
+-		cmos_irq_disable(cmos, RTC_UIE);
+-		break;
+-	case RTC_UIE_ON:	/* update on */
+-		cmos_irq_enable(cmos, RTC_UIE);
+-		break;
+-	}
++	else
++		cmos_irq_disable(cmos, RTC_AIE);
++
+ 	spin_unlock_irqrestore(&rtc_lock, flags);
+ 	return 0;
+ }
+ 
+-#else
+-#define	cmos_rtc_ioctl	NULL
+-#endif
++static int cmos_update_irq_enable(struct device *dev, unsigned int enabled)
++{
++	struct cmos_rtc	*cmos = dev_get_drvdata(dev);
++	unsigned long	flags;
++
++	if (!is_valid_irq(cmos->irq))
++		return -EINVAL;
++
++	spin_lock_irqsave(&rtc_lock, flags);
++
++	if (enabled)
++		cmos_irq_enable(cmos, RTC_UIE);
++	else
++		cmos_irq_disable(cmos, RTC_UIE);
++
++	spin_unlock_irqrestore(&rtc_lock, flags);
++	return 0;
++}
+ 
+ #if defined(CONFIG_RTC_INTF_PROC) || defined(CONFIG_RTC_INTF_PROC_MODULE)
+ 
+@@ -503,14 +497,15 @@ static int cmos_procfs(struct device *de
+ #endif
+ 
+ static const struct rtc_class_ops cmos_rtc_ops = {
+-	.ioctl		= cmos_rtc_ioctl,
+-	.read_time	= cmos_read_time,
+-	.set_time	= cmos_set_time,
+-	.read_alarm	= cmos_read_alarm,
+-	.set_alarm	= cmos_set_alarm,
+-	.proc		= cmos_procfs,
+-	.irq_set_freq	= cmos_irq_set_freq,
+-	.irq_set_state	= cmos_irq_set_state,
++	.read_time		= cmos_read_time,
++	.set_time		= cmos_set_time,
++	.read_alarm		= cmos_read_alarm,
++	.set_alarm		= cmos_set_alarm,
++	.proc			= cmos_procfs,
++	.irq_set_freq		= cmos_irq_set_freq,
++	.irq_set_state		= cmos_irq_set_state,
++	.alarm_irq_enable	= cmos_alarm_irq_enable,
++	.update_irq_enable	= cmos_update_irq_enable,
+ };
+ 
+ /*----------------------------------------------------------------*/
 _
 
-Patches currently in -mm which might be from borntraeger@de.ibm.com are
+Patches currently in -mm which might be from herton@mandriva.com.br are
 
-connector-fix-regression-introduced-by-sid-connector.patch
-linux-next.patch
+rtc-cmos-convert-rtc_aie-rtc_uie-to-rtc-irq-api.patch
 
