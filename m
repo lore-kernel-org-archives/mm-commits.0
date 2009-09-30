@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sscanf-fix-%s%n.patch added to -mm tree
-Date: Wed, 30 Sep 2009 14:00:48 -0700
-Message-ID: <200909302100.n8UL0m6j021226@imap1.linux-foundation.org>
+Subject: + input-serio_libps2-depends-on-serio_i8042.patch added to -mm tree
+Date: Wed, 30 Sep 2009 14:38:14 -0700
+Message-ID: <200909302138.n8ULcEOe031664@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58646 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47424 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753906AbZI3VA7 (ORCPT
+	by vger.kernel.org with ESMTP id S1752361AbZI3Vix (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Sep 2009 17:00:59 -0400
+	Wed, 30 Sep 2009 17:38:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: andy753421@gmail.com, xiyou.wangcong@gmail.com
+Cc: randy.dunlap@oracle.com, dtor@mail.ru
 
 
 The patch titled
-     sscanf(): fix %*s%n
+     input: serio_libps2 depends on serio_i8042
 has been added to the -mm tree.  Its filename is
-     sscanf-fix-%s%n.patch
+     input-serio_libps2-depends-on-serio_i8042.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,45 +34,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sscanf(): fix %*s%n
-From: Andy Spencer <andy753421@gmail.com>
+Subject: input: serio_libps2 depends on serio_i8042
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-When using %*s, sscanf should honor conversion specifiers immediately
-following the %*s.  For example, the following code should find the
-position of the end of the string "hello".
+SERIO_LIBPS2 code uses SERIO_I8042 code, so the former needs to depend on
+the latter.
 
-  int end;
-  char buf[] = "hello    world";
-  sscanf(buf, "%*s%n", &end);
-  printf("%d\n", end);
+(.text+0x1f33ca): undefined reference to `i8042_check_port_owner'
+(.text+0x1f33de): undefined reference to `i8042_unlock_chip'
+(.text+0x1f3435): undefined reference to `i8042_check_port_owner'
+(.text+0x1f3449): undefined reference to `i8042_lock_chip
 
-Ideally, sscanf would advance the fmt and str pointers the same as it
-would without the *, but the code for that is rather complicated and is
-not included in the patch.
-
-Signed-off-by: Andy Spencer <andy753421@gmail.com>
-Acked-by: WANG Cong <xiyou.wangcong@gmail.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/vsprintf.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/input/serio/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN lib/vsprintf.c~sscanf-fix-%s%n lib/vsprintf.c
---- a/lib/vsprintf.c~sscanf-fix-%s%n
-+++ a/lib/vsprintf.c
-@@ -1771,7 +1771,7 @@ int vsscanf(const char * buf, const char
- 		 * advance both strings to next white space
- 		 */
- 		if (*fmt == '*') {
--			while (!isspace(*fmt) && *fmt)
-+			while (!isspace(*fmt) && *fmt != '%' && *fmt)
- 				fmt++;
- 			while (!isspace(*str) && *str)
- 				str++;
+diff -puN drivers/input/serio/Kconfig~input-serio_libps2-depends-on-serio_i8042 drivers/input/serio/Kconfig
+--- a/drivers/input/serio/Kconfig~input-serio_libps2-depends-on-serio_i8042
++++ a/drivers/input/serio/Kconfig
+@@ -168,6 +168,7 @@ config SERIO_MACEPS2
+ 
+ config SERIO_LIBPS2
+ 	tristate "PS/2 driver library" if EMBEDDED
++	depends on SERIO_I8042
+ 	help
+ 	  Say Y here if you are using a driver for device connected
+ 	  to a PS/2 port, such as PS/2 mouse or standard AT keyboard.
 _
 
-Patches currently in -mm which might be from andy753421@gmail.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-sscanf-fix-%s%n.patch
+linux-next.patch
+input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
+input-serio_libps2-depends-on-serio_i8042.patch
+isdn-fix-netjet-build-errors.patch
+scsi-fix-func-names-in-kernel-doc.patch
+docs-update-patch-size-in-submittingpatches.patch
+readahead-add-blk_run_backing_dev.patch
+pcmcia-fix-controller-printk-warnings.patch
+reiser4-export-remove_from_page_cache-fix.patch
 
