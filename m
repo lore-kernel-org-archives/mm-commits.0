@@ -1,27 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-arm-palm-file-patterns.patch added to -mm tree
-Date: Wed, 30 Sep 2009 15:46:22 -0700
-Message-ID: <200909302246.n8UMkM1i006588@imap1.linux-foundation.org>
+Subject: + atmel_spi-fix-dma-addr-calculation-for-len-buffer_size.patch added to -mm tree
+Date: Wed, 30 Sep 2009 15:52:24 -0700
+Message-ID: <200909302252.n8UMqO83018732@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48601 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54688 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753022AbZI3Wql (ORCPT
+	by vger.kernel.org with ESMTP id S1752293AbZI3Wxd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Sep 2009 18:46:41 -0400
+	Wed, 30 Sep 2009 18:53:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, marek.vasut@gmail.com, sleep_walker@suse.cz
+Cc: bn@niasdigital.com, dbrownell@users.sourceforge.net, hskinnemoen@atmel.com
 
 
 The patch titled
-     MAINTAINERS: ARM/Palm file patterns
+     atmel_spi: fix dma addr calculation for len > BUFFER_SIZE
 has been added to the -mm tree.  Its filename is
-     maintainers-arm-palm-file-patterns.patch
+     atmel_spi-fix-dma-addr-calculation-for-len-buffer_size.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -29,92 +26,65 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: ARM/Palm file patterns
-=46rom: Joe Perches <joe@perches.com>
+Subject: atmel_spi: fix dma addr calculation for len > BUFFER_SIZE
+From: Ben Nizette <bn@niasdigital.com>
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Marek Vasut <marek.vasut@gmail.com>
-Acked-by: Tomas Cech <sleep_walker@suse.cz>
+If len > BUFFER_LEN and !xfer->rx_buf we end up calculating the tx buffer
+address as
+
+*tx_dma = xfer->tx_dma + xfer->len - BUFFER_SIZE;
+
+which is constant; i.e.  we just send the last BUFFER_SIZE data over again
+until we've reached the right number of bytes.
+
+This patch gets around this by using the /requested/ length when
+calculating addresses.
+
+Note there's no way len != *plen when we calculate the rx buffer address
+but conceptually we should be using *plen and I don't want someone to come
+through later, see the calculations for rx and tx are different and "clean
+up" back to what we had.
+
+Signed-off-by: Ben Nizette <bn@niasdigital.com>
+Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   17 +++++++++++++++--
- 1 file changed, 15 insertions(+), 2 deletions(-)
+ drivers/spi/atmel_spi.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-arm-palm-file-patterns MAINTAINERS
---- a/MAINTAINERS~maintainers-arm-palm-file-patterns
-+++ a/MAINTAINERS
-@@ -741,23 +741,36 @@ M:	Dirk Opfer <dirk@opfer-online.de>
- S:	Maintained
-=20
- ARM/PALMTX,PALMT5,PALMLD,PALMTE2,PALMTC SUPPORT
--P:	Marek Vasut
--M:	marek.vasut@gmail.com
-+M:	Marek Vasut <marek.vasut@gmail.com>
- L:	linux-arm-kernel@lists.infradead.org
- W:	http://hackndev.com
- S:	Maintained
-+F:	arch/arm/mach-pxa/include/mach/palmtx.h
-+F:	arch/arm/mach-pxa/palmtx.c
-+F:	arch/arm/mach-pxa/include/mach/palmt5.h
-+F:	arch/arm/mach-pxa/palmt5.c
-+F:	arch/arm/mach-pxa/include/mach/palmld.h
-+F:	arch/arm/mach-pxa/palmld.c
-+F:	arch/arm/mach-pxa/include/mach/palmte2.h
-+F:	arch/arm/mach-pxa/palmte2.c
-+F:	arch/arm/mach-pxa/include/mach/palmtc.h
-+F:	arch/arm/mach-pxa/palmtc.c
-=20
- ARM/PALM TREO 680 SUPPORT
- M:	Tomas Cech <sleep_walker@suse.cz>
- L:	linux-arm-kernel@lists.infradead.org
- W:	http://hackndev.com
- S:	Maintained
-+F:	arch/arm/mach-pxa/include/mach/treo680.h
-+F:	arch/arm/mach-pxa/treo680.c
-=20
- ARM/PALMZ72 SUPPORT
- M:	Sergey Lapin <slapin@ossfans.org>
- L:	linux-arm-kernel@lists.infradead.org
- W:	http://hackndev.com
- S:	Maintained
-+F:	arch/arm/mach-pxa/include/mach/palmz72.h
-+F:	arch/arm/mach-pxa/palmz72.c
-=20
- ARM/PLEB SUPPORT
- M:	Peter Chubb <pleb@gelato.unsw.edu.au>
+diff -puN drivers/spi/atmel_spi.c~atmel_spi-fix-dma-addr-calculation-for-len-buffer_size drivers/spi/atmel_spi.c
+--- a/drivers/spi/atmel_spi.c~atmel_spi-fix-dma-addr-calculation-for-len-buffer_size
++++ a/drivers/spi/atmel_spi.c
+@@ -189,14 +189,14 @@ static void atmel_spi_next_xfer_data(str
+ 
+ 	/* use scratch buffer only when rx or tx data is unspecified */
+ 	if (xfer->rx_buf)
+-		*rx_dma = xfer->rx_dma + xfer->len - len;
++		*rx_dma = xfer->rx_dma + xfer->len - *plen;
+ 	else {
+ 		*rx_dma = as->buffer_dma;
+ 		if (len > BUFFER_SIZE)
+ 			len = BUFFER_SIZE;
+ 	}
+ 	if (xfer->tx_buf)
+-		*tx_dma = xfer->tx_dma + xfer->len - len;
++		*tx_dma = xfer->tx_dma + xfer->len - *plen;
+ 	else {
+ 		*tx_dma = as->buffer_dma;
+ 		if (len > BUFFER_SIZE)
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from bn@niasdigital.com are
 
-maintainers-arm-palm-file-patterns.patch
-linux-next.patch
-maintainers-update-generic-uio-for-pci-devices.patch
-maintainers-update-tracing-section.patch
-maintainers-update-omap-tony-lindgren-email-name.patch
-maintainers-change-atm-mailing-list-to-moderated.patch
-maintainers-use-tab-not-spaces-after-field-types.patch
-maintainers-update-kernel-janitors-after-mismerge.patch
-maintainers-update-score-architecture-name-style-and-add-file-pattern.p=
-atch
-maintainers-simple-firmware-interface-update-email-style.patch
-maintainers-winbond-cir-integrate-p-m-lines-fixup-david-h=E4rdemans-nam=
-e.patch
-maintainers-fix-up-peripheral-spelling.patch
-maintainers-update-wolfson-microelectronics.patch
+atmel_spi-fix-dma-addr-calculation-for-len-buffer_size.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
