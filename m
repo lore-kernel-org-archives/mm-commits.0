@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + jsm-irq-handlers-doesnt-need-to-have-irq_disabled-enabled.patch added to -mm tree
-Date: Wed, 30 Sep 2009 13:56:54 -0700
-Message-ID: <200909302056.n8UKusDk013378@imap1.linux-foundation.org>
+Subject: + acpi-kill-overly-verbose-throttling-states-log-messages.patch added to -mm tree
+Date: Wed, 30 Sep 2009 13:58:03 -0700
+Message-ID: <200909302058.n8UKw3sC015668@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52502 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53638 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754087AbZI3U5F (ORCPT
+	by vger.kernel.org with ESMTP id S1754169AbZI3U7H (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Sep 2009 16:57:05 -0400
+	Wed, 30 Sep 2009 16:59:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: leitao@linux.vnet.ibm.com, greg@kroah.com, scottk@digi.com
+Cc: rdreier@cisco.com, bjorn.helgaas@hp.com, lenb@kernel.org, rolandd@cisco.com
 
 
 The patch titled
-     jsm: IRQ handlers doesn't need to have IRQ_DISABLED enabled
+     acpi: kill overly verbose "throttling states" log messages
 has been added to the -mm tree.  Its filename is
-     jsm-irq-handlers-doesnt-need-to-have-irq_disabled-enabled.patch
+     acpi-kill-overly-verbose-throttling-states-log-messages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: jsm: IRQ handlers doesn't need to have IRQ_DISABLED enabled
-From: Breno Leitao <leitao@linux.vnet.ibm.com>
+Subject: acpi: kill overly verbose "throttling states" log messages
+From: Roland Dreier <rdreier@cisco.com>
 
-Currently jsm is showing the following message when loaded:
+I was recently lucky enough to get a 64-CPU system.  The processors
+actually have T-states, so my kernel log ends up with 64 lines like:
 
-IRQ 432/JSM: IRQF_DISABLED is not guaranteed on shared IRQs
+    ACPI: Processor [CPU0] (supports xx throttling states)
 
-It's because the request_irq() is called using IRQF_DISABLED and
-IRQF_SHARED.  Actually there is no need to use IRQF_DISABLED in this
-driver.
+This is pretty useless clutter because
 
-Signed-off-by: Breno Leitao <leitao@linux.vnet.ibm.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Scott Kilau <scottk@digi.com>
+ - this info is already available after boot from
+   /proc/acpi/processor/CPUnn/throttling
+
+ - there's also an ACPI_DEBUG_PRINT() in processor_throttling.c that
+   gives the same info on boot for anyone who *really* cares.
+
+So just delete the code that prints the throttling states in
+processor_core.c.
+
+Signed-off-by: Roland Dreier <rolandd@cisco.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/jsm/jsm_driver.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/processor_core.c |    7 -------
+ 1 file changed, 7 deletions(-)
 
-diff -puN drivers/serial/jsm/jsm_driver.c~jsm-irq-handlers-doesnt-need-to-have-irq_disabled-enabled drivers/serial/jsm/jsm_driver.c
---- a/drivers/serial/jsm/jsm_driver.c~jsm-irq-handlers-doesnt-need-to-have-irq_disabled-enabled
-+++ a/drivers/serial/jsm/jsm_driver.c
-@@ -123,7 +123,7 @@ static int __devinit jsm_probe_one(struc
+diff -puN drivers/acpi/processor_core.c~acpi-kill-overly-verbose-throttling-states-log-messages drivers/acpi/processor_core.c
+--- a/drivers/acpi/processor_core.c~acpi-kill-overly-verbose-throttling-states-log-messages
++++ a/drivers/acpi/processor_core.c
+@@ -863,13 +863,6 @@ static int acpi_processor_add(struct acp
+ 		goto err_remove_sysfs;
  	}
  
- 	rc = request_irq(brd->irq, brd->bd_ops->intr,
--			IRQF_DISABLED|IRQF_SHARED, "JSM", brd);
-+			IRQF_SHARED, "JSM", brd);
- 	if (rc) {
- 		printk(KERN_WARNING "Failed to hook IRQ %d\n",brd->irq);
- 		goto out_iounmap;
-_
-
-Patches currently in -mm which might be from leitao@linux.vnet.ibm.com are
-
-jsm-irq-handlers-doesnt-need-to-have-irq_disabled-enabled.patch
-jsm-rewriting-a-bad-log-message.patch
-icom-converting-space-to-tabs.patch
-
+-	if (pr->flags.throttling) {
+-		printk(KERN_INFO PREFIX "%s [%s] (supports",
+-		       acpi_device_name(device), acpi_device_bid(device));
+-		printk(" %d throttling states", pr->throttling.state_count);
+-		printk(")\n");
+-	}
