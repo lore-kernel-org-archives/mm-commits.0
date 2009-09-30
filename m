@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + posix-cpu-timers-initialize-new_itimer-itcpufiring.patch added to -mm tree
-Date: Wed, 30 Sep 2009 13:23:34 -0700
-Message-ID: <200909302023.n8UKNYxE011143@imap1.linux-foundation.org>
+Subject: + vfs-make-real_lookup-do-dentry-revalidation-with-i_mutex-held.patch added to -mm tree
+Date: Wed, 30 Sep 2009 13:40:37 -0700
+Message-ID: <200909302040.n8UKeb5L012979@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44301 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47158 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751899AbZI3UYw (ORCPT
+	by vger.kernel.org with ESMTP id S1754081AbZI3Ulb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Sep 2009 16:24:52 -0400
+	Wed, 30 Sep 2009 16:41:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sgruszka@redhat.com, a.p.zijlstra@chello.nl, mingo@elte.hu, oleg@redhat.com, tglx@linutronix.de
+Cc: sage@newdream.net, adilger@sun.com, hch@infradead.org, raven@themaw.net, viro@zeniv.linux.org.uk, yehuda@newdream.net
 
 
 The patch titled
-     posix-cpu-timers: initialize new_itimer->it.cpu.firing
+     vfs: make real_lookup do dentry revalidation with i_mutex held
 has been added to the -mm tree.  Its filename is
-     posix-cpu-timers-initialize-new_itimer-itcpufiring.patch
+     vfs-make-real_lookup-do-dentry-revalidation-with-i_mutex-held.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,83 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: posix-cpu-timers: initialize new_itimer->it.cpu.firing
-From: Stanislaw Gruszka <sgruszka@redhat.com>
+Subject: vfs: make real_lookup do dentry revalidation with i_mutex held
+From: Sage Weil <sage@newdream.net>
 
-In case when posix_cpu_timer_create() is called from sys_timer_create()
-it.cpu.firing field of struct k_itimer is uninitialized.
+real_lookup() is called by do_lookup() if dentry revalidation fails.  If
+the cache is re-populated while waiting for i_mutex, it may find that a
+d_lookup() subsequently succeeds (see the "Uhhuh!  Nasty case" comment).
 
-Signed-off-by: Stanislaw Gruszka <sgruszka@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Previously, real_lookup() would drop i_mutex and do_revalidate() again. 
+If revalidate failed _again_, however, it would give up with -ENOENT.  The
+problem here that network file systems may be invalidating dentries via
+server callbacks, e.g.  due to concurrent access from another client, and
+-ENOENT is frequently the wrong answer.
+
+This problem has been seen with both Lustre and Ceph.  It seems possible
+to hit this case with NFS as well if the cache lifetime is very short.
+
+Instead, we should do_revalidate() while i_mutex is still held.  If
+revalidation fails, we can move on to a ->lookup() and ensure a correct
+result without worrying about any subsequent races.
+
+Note that do_revalidate() is called with i_mutex held elsewhere.  For
+example, do_filp_open(), lookup_create(), do_unlinkat(), do_rmdir(), and
+possibly others all take the directory i_mutex, and then
+
+-> lookup_hash
+        -> __lookup_hash
+                -> cached_lookup
+                        -> do_revalidate
+
+so this does not introduce any new locking rules for d_revalidate
+implementations.
+
+Yes, the goto is ugly.  A cleanup patch follows.
+
+Cc: Ian Kent <raven@themaw.net>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Andreas Dilger <adilger@sun.com>
+Signed-off-by: Yehuda Sadeh <yehuda@newdream.net>
+Signed-off-by: Sage Weil <sage@newdream.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/posix-cpu-timers.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/namei.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN kernel/posix-cpu-timers.c~posix-cpu-timers-initialize-new_itimer-itcpufiring kernel/posix-cpu-timers.c
---- a/kernel/posix-cpu-timers.c~posix-cpu-timers-initialize-new_itimer-itcpufiring
-+++ a/kernel/posix-cpu-timers.c
-@@ -398,6 +398,7 @@ int posix_cpu_timer_create(struct k_itim
- 	INIT_LIST_HEAD(&new_timer->it.cpu.entry);
- 	new_timer->it.cpu.incr.sched = 0;
- 	new_timer->it.cpu.expires.sched = 0;
-+	new_timer->it.cpu.firing = 0;
+diff -puN fs/namei.c~vfs-make-real_lookup-do-dentry-revalidation-with-i_mutex-held fs/namei.c
+--- a/fs/namei.c~vfs-make-real_lookup-do-dentry-revalidation-with-i_mutex-held
++++ a/fs/namei.c
+@@ -497,6 +497,7 @@ static struct dentry * real_lookup(struc
+ 	if (!result) {
+ 		struct dentry *dentry;
  
- 	read_lock(&tasklist_lock);
- 	if (CPUCLOCK_PERTHREAD(new_timer->it_clock)) {
++do_the_lookup:
+ 		/* Don't create child dentry for a dead directory. */
+ 		result = ERR_PTR(-ENOENT);
+ 		if (IS_DEADDIR(dir))
+@@ -520,12 +521,12 @@ out_unlock:
+ 	 * Uhhuh! Nasty case: the cache was re-populated while
+ 	 * we waited on the semaphore. Need to revalidate.
+ 	 */
+-	mutex_unlock(&dir->i_mutex);
+ 	if (result->d_op && result->d_op->d_revalidate) {
+ 		result = do_revalidate(result, nd);
+ 		if (!result)
+-			result = ERR_PTR(-ENOENT);
++			goto do_the_lookup;
+ 	}
++	mutex_unlock(&dir->i_mutex);
+ 	return result;
+ }
+ 
 _
 
-Patches currently in -mm which might be from sgruszka@redhat.com are
+Patches currently in -mm which might be from sage@newdream.net are
 
-itimers-fix-racy-writes-to-cpu_itimer-fields.patch
-posix-cpu-timers-initialize-new_itimer-itcpufiring.patch
+vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
+vfs-make-real_lookup-do-dentry-revalidation-with-i_mutex-held.patch
+vfs-clean-up-real_lookup.patch
 
