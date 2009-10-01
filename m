@@ -1,75 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [merged] isdn-fix-netjet-build-errors.patch removed from -mm tree
-Date: Thu, 01 Oct 2009 11:44:43 -0700
-Message-ID: <200910011844.n91IihIZ013488@imap1.linux-foundation.org>
+Subject: [merged] msp71xx-request_irq-failure-ignored-in-msp_pcibios_config_access.patch removed from -mm tree
+Date: Thu, 01 Oct 2009 11:44:40 -0700
+Message-ID: <200910011844.n91Iiedk013403@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40094 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33456 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755716AbZJASou (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Oct 2009 14:44:50 -0400
+	by vger.kernel.org with ESMTP id S1755840AbZJASo4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Oct 2009 14:44:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, isdn@linux-pingi.de, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, ithamar.adema@team-embedded.nl, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     isdn: fix netjet build errors
+     MSP71xx: request_irq() failure ignored in msp_pcibios_config_access()
 has been removed from the -mm tree.  Its filename was
-     isdn-fix-netjet-build-errors.patch
+     msp71xx-request_irq-failure-ignored-in-msp_pcibios_config_access.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: isdn: fix netjet build errors
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: MSP71xx: request_irq() failure ignored in msp_pcibios_config_access()
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Fix netjet driver link errors when ISDN_I4L is not enabled:
+Produce an error if request_irq() fails.
 
-drivers/built-in.o: In function `mode_tiger':
-netjet.c:(.text+0x325dc8): undefined reference to `isdnhdlc_rcv_init'
-netjet.c:(.text+0x325dd5): undefined reference to `isdnhdlc_out_init'
-drivers/built-in.o: In function `fill_dma':
-netjet.c:(.text+0x325fb6): undefined reference to `isdnhdlc_encode'
-drivers/built-in.o: In function `read_dma':
-netjet.c:(.text+0x32631a): undefined reference to `isdnhdlc_decode'
-drivers/built-in.o: In function `nj_irq':
-netjet.c:(.text+0x326e01): undefined reference to `isdnhdlc_encode'
-
-or move isdnhdlc.c to some other sub-dir..
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Karsten Keil <isdn@linux-pingi.de>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: "Ithamar R. Adema" <ithamar.adema@team-embedded.nl>
+Cc: Ralf Baechle <ralf@linux-mips.org
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/hardware/mISDN/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ arch/mips/pci/ops-pmcmsp.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/isdn/hardware/mISDN/Kconfig~isdn-fix-netjet-build-errors drivers/isdn/hardware/mISDN/Kconfig
---- a/drivers/isdn/hardware/mISDN/Kconfig~isdn-fix-netjet-build-errors
-+++ a/drivers/isdn/hardware/mISDN/Kconfig
-@@ -78,6 +78,7 @@ config MISDN_NETJET
- 	depends on PCI
- 	select MISDN_IPAC
- 	select ISDN_HDLC
-+	select ISDN_I4L # so that make will recurse into sub-dir.
- 	help
- 	  Enable support for Traverse Technologies NETJet PCI cards.
+diff -puN arch/mips/pci/ops-pmcmsp.c~msp71xx-request_irq-failure-ignored-in-msp_pcibios_config_access arch/mips/pci/ops-pmcmsp.c
+--- a/arch/mips/pci/ops-pmcmsp.c~msp71xx-request_irq-failure-ignored-in-msp_pcibios_config_access
++++ a/arch/mips/pci/ops-pmcmsp.c
+@@ -385,6 +385,7 @@ int msp_pcibios_config_access(unsigned c
+ 	unsigned long intr;
+ 	unsigned long value;
+ 	static char pciirqflag;
++	int ret;
+ #if defined(CONFIG_PMC_MSP7120_GW) || defined(CONFIG_PMC_MSP7120_EVAL)
+ 	unsigned int	vpe_status;
+ #endif
+@@ -402,11 +403,13 @@ int msp_pcibios_config_access(unsigned c
+ 	 * allocation assigns an interrupt handler to the interrupt.
+ 	 */
+ 	if (pciirqflag == 0) {
+-		request_irq(MSP_INT_PCI,/* Hardcoded internal MSP7120 wiring */
++		ret = request_irq(MSP_INT_PCI,/* Hardcoded internal MSP7120 wiring */
+ 				bpci_interrupt,
+ 				IRQF_SHARED | IRQF_DISABLED,
+ 				"PMC MSP PCI Host",
+ 				preg);
++		if (ret != 0)
++			return ret;
+ 		pciirqflag = ~0;
+ 	}
  
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 origin.patch
 linux-next.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-serio_libps2-depends-on-serio_i8042.patch
-scsi-fix-func-names-in-kernel-doc.patch
-docs-update-patch-size-in-submittingpatches.patch
-readahead-add-blk_run_backing_dev.patch
-pcmcia-fix-controller-printk-warnings.patch
-reiser4-export-remove_from_page_cache-fix.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+hfc_usb-fix-read-buffer-overflow.patch
+bcm63xx_enet-timeout-off-by-one-in-do_mdio_op.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
+zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
+st-fix-test-of-value-range-in-st_set_options.patch
+drivers-staging-octeon-ethernet-rgmiic-dont-ignore-request_irq-return-code.patch
+cyclades-read-buffer-overflow.patch
+serial167-fix-read-buffer-overflow.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+random-kmalloc-failure-ignored-in-init_std_data.patch
 
