@@ -1,91 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [merged] msp71xx-request_irq-failure-ignored-in-msp_pcibios_config_access.patch removed from -mm tree
-Date: Thu, 01 Oct 2009 11:44:40 -0700
-Message-ID: <200910011844.n91Iiedk013403@imap1.linux-foundation.org>
+Subject: [merged] swapfile-avoid-null-pointer-dereference-in-swapon-when-s_bdev-is-null.patch removed from -mm tree
+Date: Thu, 01 Oct 2009 11:44:46 -0700
+Message-ID: <200910011844.n91IikB4013663@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33456 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33972 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755840AbZJASo4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Oct 2009 14:44:56 -0400
+	by vger.kernel.org with ESMTP id S1755843AbZJASo7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Oct 2009 14:44:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, ithamar.adema@team-embedded.nl, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: sjayaraman@suse.de, hugh.dickins@tiscali.co.uk, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MSP71xx: request_irq() failure ignored in msp_pcibios_config_access()
+     swapfile: avoid NULL pointer dereference in swapon when s_bdev is NULL
 has been removed from the -mm tree.  Its filename was
-     msp71xx-request_irq-failure-ignored-in-msp_pcibios_config_access.patch
+     swapfile-avoid-null-pointer-dereference-in-swapon-when-s_bdev-is-null.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MSP71xx: request_irq() failure ignored in msp_pcibios_config_access()
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: swapfile: avoid NULL pointer dereference in swapon when s_bdev is NULL
+From: Suresh Jayaraman <sjayaraman@suse.de>
 
-Produce an error if request_irq() fails.
+While testing Swap over NFS patchset, I noticed an oops that was triggered
+during swapon.  Investigating further, the NULL pointer deference is due
+to the SSD device check/optimization in the swapon code that assumes
+s_bdev could never be NULL.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: "Ithamar R. Adema" <ithamar.adema@team-embedded.nl>
-Cc: Ralf Baechle <ralf@linux-mips.org
+inode->i_sb->s_bdev could be NULL in a few cases.  For e.g.  one such case
+is loopback NFS mount, there could be others as well.  Fix this by
+ensuring s_bdev is not NULL before we try to deference s_bdev.
+
+Signed-off-by: Suresh Jayaraman <sjayaraman@suse.de>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/pci/ops-pmcmsp.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/swapfile.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-diff -puN arch/mips/pci/ops-pmcmsp.c~msp71xx-request_irq-failure-ignored-in-msp_pcibios_config_access arch/mips/pci/ops-pmcmsp.c
---- a/arch/mips/pci/ops-pmcmsp.c~msp71xx-request_irq-failure-ignored-in-msp_pcibios_config_access
-+++ a/arch/mips/pci/ops-pmcmsp.c
-@@ -385,6 +385,7 @@ int msp_pcibios_config_access(unsigned c
- 	unsigned long intr;
- 	unsigned long value;
- 	static char pciirqflag;
-+	int ret;
- #if defined(CONFIG_PMC_MSP7120_GW) || defined(CONFIG_PMC_MSP7120_EVAL)
- 	unsigned int	vpe_status;
- #endif
-@@ -402,11 +403,13 @@ int msp_pcibios_config_access(unsigned c
- 	 * allocation assigns an interrupt handler to the interrupt.
- 	 */
- 	if (pciirqflag == 0) {
--		request_irq(MSP_INT_PCI,/* Hardcoded internal MSP7120 wiring */
-+		ret = request_irq(MSP_INT_PCI,/* Hardcoded internal MSP7120 wiring */
- 				bpci_interrupt,
- 				IRQF_SHARED | IRQF_DISABLED,
- 				"PMC MSP PCI Host",
- 				preg);
-+		if (ret != 0)
-+			return ret;
- 		pciirqflag = ~0;
+diff -puN mm/swapfile.c~swapfile-avoid-null-pointer-dereference-in-swapon-when-s_bdev-is-null mm/swapfile.c
+--- a/mm/swapfile.c~swapfile-avoid-null-pointer-dereference-in-swapon-when-s_bdev-is-null
++++ a/mm/swapfile.c
+@@ -1974,12 +1974,14 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 		goto bad_swap;
  	}
  
+-	if (blk_queue_nonrot(bdev_get_queue(p->bdev))) {
+-		p->flags |= SWP_SOLIDSTATE;
+-		p->cluster_next = 1 + (random32() % p->highest_bit);
++	if (p->bdev) {
++		if (blk_queue_nonrot(bdev_get_queue(p->bdev))) {
++			p->flags |= SWP_SOLIDSTATE;
++			p->cluster_next = 1 + (random32() % p->highest_bit);
++		}
++		if (discard_swap(p) == 0)
++			p->flags |= SWP_DISCARDABLE;
+ 	}
+-	if (discard_swap(p) == 0)
+-		p->flags |= SWP_DISCARDABLE;
+ 
+ 	mutex_lock(&swapon_mutex);
+ 	spin_lock(&swap_lock);
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from sjayaraman@suse.de are
 
-origin.patch
 linux-next.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-hfc_usb-fix-read-buffer-overflow.patch
-bcm63xx_enet-timeout-off-by-one-in-do_mdio_op.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
-st-fix-test-of-value-range-in-st_set_options.patch
-drivers-staging-octeon-ethernet-rgmiic-dont-ignore-request_irq-return-code.patch
-cyclades-read-buffer-overflow.patch
-serial167-fix-read-buffer-overflow.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-random-kmalloc-failure-ignored-in-init_std_data.patch
 
