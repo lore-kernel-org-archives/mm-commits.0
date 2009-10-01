@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch added to -mm tree
-Date: Thu, 01 Oct 2009 14:02:18 -0700
-Message-ID: <200910012124.n91LOtrm011097@imap1.linux-foundation.org>
+Subject: + net-ipv4-tcpc-fix-min-type-mismatch-warning.patch added to -mm tree
+Date: Thu, 01 Oct 2009 14:04:13 -0700
+Message-ID: <200910012126.n91LQo2v014952@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47977 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43878 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752616AbZJAVY4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Oct 2009 17:24:56 -0400
+	by vger.kernel.org with ESMTP id S1752616AbZJAV0r (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Oct 2009 17:26:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, airlied@linux.ie, eric@anholt.net, jbarnes@virtuousgeek.org
+Cc: akpm@linux-foundation.org, davem@davemloft.net
 
 
 The patch titled
-     drivers/gpu/drm/i915/i915_dma.c: fix unused var
+     net/ipv4/tcp.c: fix min() type mismatch warning
 has been added to the -mm tree.  Its filename is
-     drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
+     net-ipv4-tcpc-fix-min-type-mismatch-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,37 +33,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/gpu/drm/i915/i915_dma.c: fix unused var
+Subject: net/ipv4/tcp.c: fix min() type mismatch warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/gpu/drm/i915/i915_dma.c: In function 'i915_driver_load':
-drivers/gpu/drm/i915/i915_dma.c:1114: warning: 'll_base' may be used uninitialized in this function
+net/ipv4/tcp.c: In function 'do_tcp_setsockopt':
+net/ipv4/tcp.c:2050: warning: comparison of distinct pointer types lacks a cast
 
-Partly this is because gcc isn't smart enough.  But `ll_base' does get used
-uninitialised in the DRM_DEBUG() call.
-
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Eric Anholt <eric@anholt.net>
-Cc: Dave Airlie <airlied@linux.ie>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/i915_dma.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ net/ipv4/tcp.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/gpu/drm/i915/i915_dma.c~drivers-gpu-drm-i915-i915_dmac-fix-unused-var drivers/gpu/drm/i915/i915_dma.c
---- a/drivers/gpu/drm/i915/i915_dma.c~drivers-gpu-drm-i915-i915_dmac-fix-unused-var
-+++ a/drivers/gpu/drm/i915/i915_dma.c
-@@ -1111,7 +1111,8 @@ static void i915_setup_compression(struc
- {
- 	struct drm_i915_private *dev_priv = dev->dev_private;
- 	struct drm_mm_node *compressed_fb, *compressed_llb;
--	unsigned long cfb_base, ll_base;
-+	unsigned long cfb_base;
-+	unsigned long ll_base = 0;
+diff -puN net/ipv4/tcp.c~net-ipv4-tcpc-fix-min-type-mismatch-warning net/ipv4/tcp.c
+--- a/net/ipv4/tcp.c~net-ipv4-tcpc-fix-min-type-mismatch-warning
++++ a/net/ipv4/tcp.c
+@@ -2047,7 +2047,7 @@ static int do_tcp_setsockopt(struct sock
+ 			return -EINVAL;
  
- 	/* Leave 1M for line length buffer & misc. */
- 	compressed_fb = drm_mm_search_free(&dev_priv->vram, size, 4096, 0);
+ 		val = strncpy_from_user(name, optval,
+-					min(TCP_CA_NAME_MAX-1, optlen));
++					min_t(long, TCP_CA_NAME_MAX-1, optlen));
+ 		if (val < 0)
+ 			return -EFAULT;
+ 		name[val] = 0;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -88,6 +82,7 @@ raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
 fs-improve-remountro-vs-buffercache-coherency.patch
 percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
 drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
+net-ipv4-tcpc-fix-min-type-mismatch-warning.patch
 vfs-implement-posix-o_sync-and-o_dsync-semantics-checkpatch-fixes.patch
 readahead-add-blk_run_backing_dev.patch
 dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
