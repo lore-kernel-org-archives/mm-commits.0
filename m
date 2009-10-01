@@ -1,65 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [merged] tpm-fix-pcrread.patch removed from -mm tree
-Date: Thu, 01 Oct 2009 11:44:49 -0700
-Message-ID: <200910011844.n91IinhQ013741@imap1.linux-foundation.org>
+Subject: [merged] fix-drm_fb_helper-warning-when-config_magic_sysrq.patch removed from -mm tree
+Date: Thu, 01 Oct 2009 11:44:35 -0700
+Message-ID: <200910011844.n91IiZZO013278@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50638 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33855 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932090AbZJASpP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Oct 2009 14:45:15 -0400
+	by vger.kernel.org with ESMTP id S932088AbZJASpN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Oct 2009 14:45:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: srajiv@linux.vnet.ibm.com, debora@linux.vnet.ibm.com, jgunthorpe@obsidianresearch.com, jmorris@namei.org, m.selhorst@sirrix.com, mm-commits@vger.kernel.org
+To: mikpe@it.uu.se, airlied@linux.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tpm: fix pcrread
+     drm: fix drm_fb_helper warning when !CONFIG_MAGIC_SYSRQ
 has been removed from the -mm tree.  Its filename was
-     tpm-fix-pcrread.patch
+     fix-drm_fb_helper-warning-when-config_magic_sysrq.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tpm: fix pcrread
-From: Rajiv Andrade <srajiv@linux.vnet.ibm.com>
+Subject: drm: fix drm_fb_helper warning when !CONFIG_MAGIC_SYSRQ
+From: Mikael Pettersson <mikpe@it.uu.se>
 
-The previously sent patch:
+Compiling DRM throws the following warning if MAGIC_SYSRQ is disabled:
 
-http://marc.info/?l=tpmdd-devel&m=125208945007834&w=2
+drivers/gpu/drm/drm_fb_helper.c:101: warning: 'sysrq_drm_fb_helper_restore_op' defined but not used
 
-Had its first hunk cropped when merged, submitting only this first hunk
-again.
+Fix: place sysrq_drm_fb_helper_restore_op and associated
+definitions inside #ifdef CONFIG_MAGIC_SYSRQ.
 
-Signed-off-by: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: Debora Velarde <debora@linux.vnet.ibm.com>
-Cc: Marcel Selhorst <m.selhorst@sirrix.com>
-Cc: James Morris <jmorris@namei.org>
-Signed-off-by: Rajiv Andrade <srajiv@linux.vnet.ibm.com>
+Signed-off-by: Mikael Pettersson <mikpe@it.uu.se>
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tpm/tpm.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/gpu/drm/drm_fb_helper.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/char/tpm/tpm.c~tpm-fix-pcrread drivers/char/tpm/tpm.c
---- a/drivers/char/tpm/tpm.c~tpm-fix-pcrread
-+++ a/drivers/char/tpm/tpm.c
-@@ -696,8 +696,7 @@ int __tpm_pcr_read(struct tpm_chip *chip
+diff -puN drivers/gpu/drm/drm_fb_helper.c~fix-drm_fb_helper-warning-when-config_magic_sysrq drivers/gpu/drm/drm_fb_helper.c
+--- a/drivers/gpu/drm/drm_fb_helper.c~fix-drm_fb_helper-warning-when-config_magic_sysrq
++++ a/drivers/gpu/drm/drm_fb_helper.c
+@@ -280,6 +280,7 @@ void drm_fb_helper_restore(void)
+ }
+ EXPORT_SYMBOL(drm_fb_helper_restore);
  
- 	cmd.header.in = pcrread_header;
- 	cmd.params.pcrread_in.pcr_idx = cpu_to_be32(pcr_idx);
--	BUG_ON(cmd.header.in.length > READ_PCR_RESULT_SIZE);
--	rc = transmit_cmd(chip, &cmd, cmd.header.in.length,
-+	rc = transmit_cmd(chip, &cmd, READ_PCR_RESULT_SIZE,
- 			  "attempting to read a pcr value");
++#ifdef CONFIG_MAGIC_SYSRQ
+ static void drm_fb_helper_restore_work_fn(struct work_struct *ignored)
+ {
+ 	drm_fb_helper_restore();
+@@ -296,6 +297,7 @@ static struct sysrq_key_op sysrq_drm_fb_
+ 	.help_msg = "force-fb(V)",
+ 	.action_msg = "Restore framebuffer console",
+ };
++#endif
  
- 	if (rc == 0)
+ static void drm_fb_helper_on(struct fb_info *info)
+ {
 _
 
-Patches currently in -mm which might be from srajiv@linux.vnet.ibm.com are
+Patches currently in -mm which might be from mikpe@it.uu.se are
 
-linux-next.patch
+origin.patch
 
