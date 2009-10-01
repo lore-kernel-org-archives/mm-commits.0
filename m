@@ -1,68 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fix-drm_fb_helper-warning-when-config_magic_sysrq.patch removed from -mm tree
-Date: Thu, 01 Oct 2009 11:44:35 -0700
-Message-ID: <200910011844.n91IiZZO013278@imap1.linux-foundation.org>
+Subject: + jsm-remove-ch_old_baud-field.patch added to -mm tree
+Date: Thu, 01 Oct 2009 13:54:19 -0700
+Message-ID: <200910012054.n91KsJnQ014432@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33855 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35081 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932088AbZJASpN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Oct 2009 14:45:13 -0400
+	by vger.kernel.org with ESMTP id S1751921AbZJAUy4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Oct 2009 16:54:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mikpe@it.uu.se, airlied@linux.ie, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: leitao@linux.vnet.ibm.com, alan@lxorguk.ukuu.org.uk, greg@kroah.com, scottk@digi.com
 
 
 The patch titled
-     drm: fix drm_fb_helper warning when !CONFIG_MAGIC_SYSRQ
-has been removed from the -mm tree.  Its filename was
-     fix-drm_fb_helper-warning-when-config_magic_sysrq.patch
+     jsm: remove ch_old_baud field
+has been added to the -mm tree.  Its filename is
+     jsm-remove-ch_old_baud-field.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drm: fix drm_fb_helper warning when !CONFIG_MAGIC_SYSRQ
-From: Mikael Pettersson <mikpe@it.uu.se>
+Subject: jsm: remove ch_old_baud field
+From: Breno Leitao <leitao@linux.vnet.ibm.com>
 
-Compiling DRM throws the following warning if MAGIC_SYSRQ is disabled:
+Currently the field jsm_channel->ch_old_baud is not used, just assigned in
+a lot of places but never used.  This patches removes this field.
 
-drivers/gpu/drm/drm_fb_helper.c:101: warning: 'sysrq_drm_fb_helper_restore_op' defined but not used
-
-Fix: place sysrq_drm_fb_helper_restore_op and associated
-definitions inside #ifdef CONFIG_MAGIC_SYSRQ.
-
-Signed-off-by: Mikael Pettersson <mikpe@it.uu.se>
-Cc: Dave Airlie <airlied@linux.ie>
+Signed-off-by: Breno Leitao <leitao@linux.vnet.ibm.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Scott Kilau <scottk@digi.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/drm_fb_helper.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/serial/jsm/jsm.h     |    2 --
+ drivers/serial/jsm/jsm_neo.c |    2 --
+ drivers/serial/jsm/jsm_tty.c |    2 --
+ 3 files changed, 6 deletions(-)
 
-diff -puN drivers/gpu/drm/drm_fb_helper.c~fix-drm_fb_helper-warning-when-config_magic_sysrq drivers/gpu/drm/drm_fb_helper.c
---- a/drivers/gpu/drm/drm_fb_helper.c~fix-drm_fb_helper-warning-when-config_magic_sysrq
-+++ a/drivers/gpu/drm/drm_fb_helper.c
-@@ -280,6 +280,7 @@ void drm_fb_helper_restore(void)
- }
- EXPORT_SYMBOL(drm_fb_helper_restore);
+diff -puN drivers/serial/jsm/jsm.h~jsm-remove-ch_old_baud-field drivers/serial/jsm/jsm.h
+--- a/drivers/serial/jsm/jsm.h~jsm-remove-ch_old_baud-field
++++ a/drivers/serial/jsm/jsm.h
+@@ -215,8 +215,6 @@ struct jsm_channel {
+ 	u8		ch_stopc;	/* Stop character		*/
+ 	u8		ch_startc;	/* Start character		*/
  
-+#ifdef CONFIG_MAGIC_SYSRQ
- static void drm_fb_helper_restore_work_fn(struct work_struct *ignored)
- {
- 	drm_fb_helper_restore();
-@@ -296,6 +297,7 @@ static struct sysrq_key_op sysrq_drm_fb_
- 	.help_msg = "force-fb(V)",
- 	.action_msg = "Restore framebuffer console",
- };
-+#endif
+-	u32		ch_old_baud;	/* Cache of the current baud */
+-
+ 	u32		ch_wopen;	/* Waiting for open process cnt */
  
- static void drm_fb_helper_on(struct fb_info *info)
- {
-_
-
-Patches currently in -mm which might be from mikpe@it.uu.se are
-
-origin.patch
-
+ 	u8		ch_mostat;	/* FEP output modem status	*/
+diff -puN drivers/serial/jsm/jsm_neo.c~jsm-remove-ch_old_baud-field drivers/serial/jsm/jsm_neo.c
+--- a/drivers/serial/jsm/jsm_neo.c~jsm-remove-ch_old_baud-field
++++ a/drivers/serial/jsm/jsm_neo.c
+@@ -954,7 +954,6 @@ static void neo_param(struct jsm_channel
+ 		ch->ch_flags |= (CH_BAUD0);
+ 		ch->ch_mostat &= ~(UART_MCR_RTS | UART_MCR_DTR);
+ 		neo_assert_modem_signals(ch);
+-		ch->ch_old_baud = 0;
+ 		return;
+ 
+ 	} else {
+@@ -1041,7 +1040,6 @@ static void neo_param(struct jsm_channel
+ 	quot = ch->ch_bd->bd_dividend / baud;
+ 
+ 	if (quot != 0) {
+-		ch->ch_old_baud = baud;
+ 		writeb(UART_LCR_DLAB, &ch->ch_neo_uart->lcr);
+ 		writeb((quot & 0xff), &ch->ch_neo_uart->txrx);
+ 		writeb((quot >> 8), &ch->ch_neo_uart->ier);
+diff -puN drivers/serial/jsm/jsm_tty.c~jsm-remove-ch_old_baud-field drivers/serial/jsm/jsm_tty.c
+--- a/drivers/serial/jsm/jsm_tty.c~jsm-remove-ch_old_baud-field
++++ a/drivers/serial/jsm/jsm_tty.c
+@@ -296,8 +296,6 @@ static void jsm_tty_close(struct uart_po
+ 		bd->bd_ops->assert_modem_signals(channel);
+ 	}
+ 
+-	channel->ch_old_baud = 0;
