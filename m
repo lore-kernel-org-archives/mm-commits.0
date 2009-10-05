@@ -1,173 +1,211 @@
 From: akpm@linux-foundation.org
-Subject: [merged] icom-converting-space-to-tabs.patch removed from -mm tree
-Date: Mon, 05 Oct 2009 11:39:17 -0700
-Message-ID: <200910051839.n95IdHuS018736@imap1.linux-foundation.org>
+Subject: [merged] s3cmci-dma-fixes.patch removed from -mm tree
+Date: Mon, 05 Oct 2009 11:39:06 -0700
+Message-ID: <200910051839.n95Id6es018377__4405.09707336805$1254768077$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51958 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54294 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754731AbZJESkI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Oct 2009 14:40:08 -0400
+	by vger.kernel.org with ESMTP id S1754659AbZJESjt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Oct 2009 14:39:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: leitao@linux.vnet.ibm.com, Scott.Kilau@digi.com, jirislaby@gmail.com, mm-commits@vger.kernel.org
+To: ben@simtec.co.uk, linux-mmc@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     icom: convert space to tabs
+     s3cmci: DMA fixes
 has been removed from the -mm tree.  Its filename was
-     icom-converting-space-to-tabs.patch
+     s3cmci-dma-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: icom: convert space to tabs
-From: Breno Leitao <leitao@linux.vnet.ibm.com>
+Subject: s3cmci: DMA fixes
+From: Ben Dooks <ben@simtec.co.uk>
 
-Convert spaces to tabs and remove wrong spaces
+Fixes for the DMA transfer mode of the driver to try and improve the state
+of the code:
 
-Signed-off-by: Breno Leitao <leitao@linux.vnet.ibm.com>
-Cc: Scott Kilau <Scott.Kilau@digi.com>
-Cc: Jiri Slaby <jirislaby@gmail.com>
+- Ensure that dma_complete is set during the end of the command phase
+  so that transfers do not stall awaiting the completion
+
+- Update the DMA debugging to provide a bit more useful information
+  such as how many DMA descriptors where not processed and print the
+  DMA addresses in hexadecimal.
+
+- Fix the DMA channel request code to actually request DMA for the
+  S3CMCI block instead of whatever '0' signified.
+
+- Add fallback to PIO if we cannot get the DMA channel, as many of the
+  devices with this block only have a limited number of DMA channels.
+
+- Only try and claim and free the DMA channel if we are trying to use it.
+
+This improves the driver DMA code to the point where it can now identify a
+card and read the partition table.  However the DMA can still stall when
+trying to move data between the host and memory.
+
+Signed-off-by: Ben Dooks <ben@simtec.co.uk>
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/icom.c |   54 +++++++++++++++++++---------------------
- 1 file changed, 26 insertions(+), 28 deletions(-)
+ drivers/mmc/host/s3cmci.c |   62 +++++++++++++++++++++++++++---------
+ drivers/mmc/host/s3cmci.h |    3 -
+ 2 files changed, 47 insertions(+), 18 deletions(-)
 
-diff -puN drivers/serial/icom.c~icom-converting-space-to-tabs drivers/serial/icom.c
---- a/drivers/serial/icom.c~icom-converting-space-to-tabs
-+++ a/drivers/serial/icom.c
-@@ -307,7 +307,7 @@ static void stop_processor(struct icom_p
- 	if (port < 4) {
- 		temp = readl(stop_proc[port].global_control_reg);
- 		temp =
--	    		(temp & ~start_proc[port].processor_id) | stop_proc[port].processor_id;
-+			(temp & ~start_proc[port].processor_id) | stop_proc[port].processor_id;
- 		writel(temp, stop_proc[port].global_control_reg);
- 
- 		/* write flush */
-@@ -336,7 +336,7 @@ static void start_processor(struct icom_
- 	if (port < 4) {
- 		temp = readl(start_proc[port].global_control_reg);
- 		temp =
--	    		(temp & ~stop_proc[port].processor_id) | start_proc[port].processor_id;
-+			(temp & ~stop_proc[port].processor_id) | start_proc[port].processor_id;
- 		writel(temp, start_proc[port].global_control_reg);
- 
- 		/* write flush */
-@@ -509,8 +509,8 @@ static void load_code(struct icom_port *
- 		dev_err(&icom_port->adapter->pci_dev->dev,"Port not opertional\n");
- 	}
- 
--      if (new_page != NULL)
--	      pci_free_consistent(dev, 4096, new_page, temp_pci);
-+	if (new_page != NULL)
-+		pci_free_consistent(dev, 4096, new_page, temp_pci);
+diff -puN drivers/mmc/host/s3cmci.c~s3cmci-dma-fixes drivers/mmc/host/s3cmci.c
+--- a/drivers/mmc/host/s3cmci.c~s3cmci-dma-fixes
++++ a/drivers/mmc/host/s3cmci.c
+@@ -183,6 +183,21 @@ static inline bool s3cmci_host_usedma(st
+ #endif
  }
  
- static int startup(struct icom_port *icom_port)
-@@ -1493,15 +1493,15 @@ static int __devinit icom_probe(struct p
- 				const struct pci_device_id *ent)
++/**
++ * s3cmci_host_canpio - return true if host has pio code available
++ *
++ * Return true if the driver has been compiled with the PIO support code
++ * available.
++ */
++static inline bool s3cmci_host_canpio(void)
++{
++#ifdef CONFIG_MMC_S3C_PIO
++	return true;
++#else
++	return false;
++#endif
++}
++
+ static inline u32 enable_imask(struct s3cmci_host *host, u32 imask)
  {
- 	int index;
--        unsigned int command_reg;
--        int retval;
--        struct icom_adapter *icom_adapter;
--        struct icom_port *icom_port;
-+	unsigned int command_reg;
-+	int retval;
-+	struct icom_adapter *icom_adapter;
-+	struct icom_port *icom_port;
+ 	u32 newmask;
+@@ -786,6 +801,7 @@ static void s3cmci_dma_done_callback(str
+ 	dbg(host, dbg_dma, "DMA FINISHED Size:%i DSTA:%08x DCNT:%08x\n",
+ 		size, mci_dsta, mci_dcnt);
  
--        retval = pci_enable_device(dev);
--        if (retval) {
-+	retval = pci_enable_device(dev);
-+	if (retval) {
- 		dev_err(&dev->dev, "Device enable FAILED\n");
--                return retval;
-+		return retval;
- 	}
++	host->dma_complete = 1;
+ 	host->complete_what = COMPLETION_FINALIZE;
  
- 	if ( (retval = pci_request_regions(dev, "icom"))) {
-@@ -1510,23 +1510,23 @@ static int __devinit icom_probe(struct p
- 		 return retval;
- 	 }
- 
--        pci_set_master(dev);
-+	pci_set_master(dev);
- 
--        if ( (retval = pci_read_config_dword(dev, PCI_COMMAND, &command_reg))) {
-+	if ( (retval = pci_read_config_dword(dev, PCI_COMMAND, &command_reg))) {
- 		dev_err(&dev->dev, "PCI Config read FAILED\n");
--                return retval;
--        }
-+		return retval;
-+	}
- 
- 	pci_write_config_dword(dev, PCI_COMMAND,
- 		command_reg | PCI_COMMAND_MEMORY | PCI_COMMAND_MASTER
-  		| PCI_COMMAND_PARITY | PCI_COMMAND_SERR);
- 
--        if (ent->driver_data == ADAPTER_V1) {
-+	if (ent->driver_data == ADAPTER_V1) {
- 		pci_write_config_dword(dev, 0x44, 0x8300830A);
--	 } else {
-+	} else {
- 		pci_write_config_dword(dev, 0x44, 0x42004200);
- 		pci_write_config_dword(dev, 0x48, 0x42004200);
--         }
-+	}
- 
- 
- 	retval = icom_alloc_adapter(&icom_adapter);
-@@ -1536,10 +1536,10 @@ static int __devinit icom_probe(struct p
- 		 goto probe_exit0;
- 	}
- 
--	 icom_adapter->base_addr_pci = pci_resource_start(dev, 0);
--	 icom_adapter->pci_dev = dev;
--	 icom_adapter->version = ent->driver_data;
--	 icom_adapter->subsystem_id = ent->subdevice;
-+	icom_adapter->base_addr_pci = pci_resource_start(dev, 0);
-+	icom_adapter->pci_dev = dev;
-+	icom_adapter->version = ent->driver_data;
-+	icom_adapter->subsystem_id = ent->subdevice;
- 
- 
- 	retval = icom_init_ports(icom_adapter);
-@@ -1548,7 +1548,7 @@ static int __devinit icom_probe(struct p
- 		goto probe_exit1;
- 	}
- 
--	 icom_adapter->base_addr = pci_ioremap_bar(dev, 0);
-+	icom_adapter->base_addr = pci_ioremap_bar(dev, 0);
- 
- 	if (!icom_adapter->base_addr)
- 		goto probe_exit1;
-@@ -1562,7 +1562,7 @@ static int __devinit icom_probe(struct p
- 
- 	retval = icom_load_ports(icom_adapter);
- 
--        for (index = 0; index < icom_adapter->numb_ports; index++) {
-+	for (index = 0; index < icom_adapter->numb_ports; index++) {
- 		icom_port = &icom_adapter->port_info[index];
- 
- 		if (icom_port->status == ICOM_PORT_ACTIVE) {
-@@ -1579,7 +1579,7 @@ static int __devinit icom_probe(struct p
- 				icom_port->status = ICOM_PORT_OFF;
- 				dev_err(&dev->dev, "Device add failed\n");
- 			 } else
--			        dev_info(&dev->dev, "Device added\n");
-+				dev_info(&dev->dev, "Device added\n");
+ out:
+@@ -816,7 +832,8 @@ static void finalize_request(struct s3cm
+ 	if (cmd->data && (cmd->error == 0) &&
+ 	    (cmd->data->error == 0)) {
+ 		if (s3cmci_host_usedma(host) && (!host->dma_complete)) {
+-			dbg(host, dbg_dma, "DMA Missing!\n");
++			dbg(host, dbg_dma, "DMA Missing (%d)!\n",
++			    host->dma_complete);
+ 			return;
  		}
  	}
+@@ -1065,7 +1082,7 @@ static int s3cmci_prepare_pio(struct s3c
+ static int s3cmci_prepare_dma(struct s3cmci_host *host, struct mmc_data *data)
+ {
+ 	int dma_len, i;
+-	int rw = (data->flags & MMC_DATA_WRITE) ? 1 : 0;
++	int rw = data->flags & MMC_DATA_WRITE;
  
-@@ -1595,9 +1595,7 @@ probe_exit0:
- 	pci_release_regions(dev);
- 	pci_disable_device(dev);
+ 	BUG_ON((data->flags & BOTH_DIR) == BOTH_DIR);
  
--        return retval;
+@@ -1073,7 +1090,7 @@ static int s3cmci_prepare_dma(struct s3c
+ 	s3c2410_dma_ctrl(host->dma, S3C2410_DMAOP_FLUSH);
+ 
+ 	dma_len = dma_map_sg(mmc_dev(host->mmc), data->sg, data->sg_len,
+-			     (rw) ? DMA_TO_DEVICE : DMA_FROM_DEVICE);
++			     rw ? DMA_TO_DEVICE : DMA_FROM_DEVICE);
+ 
+ 	if (dma_len == 0)
+ 		return -ENOMEM;
+@@ -1084,11 +1101,11 @@ static int s3cmci_prepare_dma(struct s3c
+ 	for (i = 0; i < dma_len; i++) {
+ 		int res;
+ 
+-		dbg(host, dbg_dma, "enqueue %i:%u@%u\n", i,
+-			sg_dma_address(&data->sg[i]),
+-			sg_dma_len(&data->sg[i]));
++		dbg(host, dbg_dma, "enqueue %i: %08x@%u\n", i,
++		    sg_dma_address(&data->sg[i]),
++		    sg_dma_len(&data->sg[i]));
+ 
+-		res = s3c2410_dma_enqueue(host->dma, (void *) host,
++		res = s3c2410_dma_enqueue(host->dma, host,
+ 					  sg_dma_address(&data->sg[i]),
+ 					  sg_dma_len(&data->sg[i]));
+ 
+@@ -1581,8 +1598,6 @@ static int __devinit s3cmci_probe(struct
+ 	host->complete_what 	= COMPLETION_NONE;
+ 	host->pio_active 	= XFER_NONE;
+ 
+-	host->dma		= S3CMCI_DMA;
 -
+ #ifdef CONFIG_MMC_S3C_PIODMA
+ 	host->dodma		= host->pdata->dma;
+ #endif
+@@ -1665,10 +1680,21 @@ static int __devinit s3cmci_probe(struct
+ 		gpio_direction_input(host->pdata->gpio_wprotect);
+ 	}
+ 
+-	if (s3c2410_dma_request(S3CMCI_DMA, &s3cmci_dma_client, NULL) < 0) {
+-		dev_err(&pdev->dev, "unable to get DMA channel.\n");
+-		ret = -EBUSY;
+-		goto probe_free_gpio_wp;
++	/* depending on the dma state, get a dma channel to use. */
++
++	if (s3cmci_host_usedma(host)) {
++		host->dma = s3c2410_dma_request(DMACH_SDI, &s3cmci_dma_client,
++						host);
++		if (host->dma < 0) {
++			dev_err(&pdev->dev, "cannot get DMA channel.\n");
++			if (!s3cmci_host_canpio()) {
++				ret = -EBUSY;
++				goto probe_free_gpio_wp;
++			} else {
++				dev_warn(&pdev->dev, "falling back to PIO.\n");
++				host->dodma = 0;
++			}
++		}
+ 	}
+ 
+ 	host->clk = clk_get(&pdev->dev, "sdi");
+@@ -1676,7 +1702,7 @@ static int __devinit s3cmci_probe(struct
+ 		dev_err(&pdev->dev, "failed to find clock source.\n");
+ 		ret = PTR_ERR(host->clk);
+ 		host->clk = NULL;
+-		goto probe_free_host;
++		goto probe_free_dma;
+ 	}
+ 
+ 	ret = clk_enable(host->clk);
+@@ -1738,6 +1764,10 @@ static int __devinit s3cmci_probe(struct
+  clk_free:
+ 	clk_put(host->clk);
+ 
++ probe_free_dma:
++	if (s3cmci_host_usedma(host))
++		s3c2410_dma_free(host->dma, &s3cmci_dma_client);
++
+  probe_free_gpio_wp:
+ 	if (host->pdata->gpio_wprotect)
+ 		gpio_free(host->pdata->gpio_wprotect);
+@@ -1796,7 +1826,9 @@ static int __devexit s3cmci_remove(struc
+ 	clk_put(host->clk);
+ 
+ 	tasklet_disable(&host->pio_tasklet);
+-	s3c2410_dma_free(S3CMCI_DMA, &s3cmci_dma_client);
++
++	if (s3cmci_host_usedma(host))
++		s3c2410_dma_free(host->dma, &s3cmci_dma_client);
+ 
+ 	free_irq(host->irq, host);
+ 
+diff -puN drivers/mmc/host/s3cmci.h~s3cmci-dma-fixes drivers/mmc/host/s3cmci.h
+--- a/drivers/mmc/host/s3cmci.h~s3cmci-dma-fixes
++++ a/drivers/mmc/host/s3cmci.h
+@@ -8,9 +8,6 @@
+  * published by the Free Software Foundation.
+  */
+ 
+-/* FIXME: DMA Resource management ?! */
+-#define S3CMCI_DMA 0
