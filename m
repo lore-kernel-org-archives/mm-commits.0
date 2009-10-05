@@ -1,91 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [merged] net-ipv4-tcpc-fix-min-type-mismatch-warning.patch removed from -mm tree
-Date: Mon, 05 Oct 2009 11:40:04 -0700
-Message-ID: <200910051840.n95Ie4BM020492@imap1.linux-foundation.org>
+Subject: [merged] spi-imx-initialize-complete-config-struct.patch removed from -mm tree
+Date: Mon, 05 Oct 2009 11:39:49 -0700
+Message-ID: <200910051839.n95IdnrQ019868@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57549 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53117 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754503AbZJESkm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Oct 2009 14:40:42 -0400
+	by vger.kernel.org with ESMTP id S1754606AbZJESku (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Oct 2009 14:40:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davem@davemloft.net, mm-commits@vger.kernel.org
+To: u.kleine-koenig@pengutronix.de, dbrownell@users.sourceforge.net, g.liakhovetski@gmx.de, s.hauer@pengutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     net/ipv4/tcp.c: fix min() type mismatch warning
+     spi-imx: initialize complete config struct
 has been removed from the -mm tree.  Its filename was
-     net-ipv4-tcpc-fix-min-type-mismatch-warning.patch
+     spi-imx-initialize-complete-config-struct.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: net/ipv4/tcp.c: fix min() type mismatch warning
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: spi-imx: initialize complete config struct
+=46rom: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
 
-net/ipv4/tcp.c: In function 'do_tcp_setsockopt':
-net/ipv4/tcp.c:2050: warning: comparison of distinct pointer types lacks a cast
+Otherwise the config function uses random data from the stack.  This
+didn't stick out because config is called once more in the chipselect
+function with correct parameters.
 
-Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+Acked-by: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/ipv4/tcp.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/spi/spi_imx.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN net/ipv4/tcp.c~net-ipv4-tcpc-fix-min-type-mismatch-warning net/ipv4/tcp.c
---- a/net/ipv4/tcp.c~net-ipv4-tcpc-fix-min-type-mismatch-warning
-+++ a/net/ipv4/tcp.c
-@@ -2047,7 +2047,7 @@ static int do_tcp_setsockopt(struct sock
- 			return -EINVAL;
- 
- 		val = strncpy_from_user(name, optval,
--					min(TCP_CA_NAME_MAX-1, optlen));
-+					min_t(long, TCP_CA_NAME_MAX-1, optlen));
- 		if (val < 0)
- 			return -EFAULT;
- 		name[val] = 0;
+diff -puN drivers/spi/spi_imx.c~spi-imx-initialize-complete-config-stru=
+ct drivers/spi/spi_imx.c
+--- a/drivers/spi/spi_imx.c~spi-imx-initialize-complete-config-struct
++++ a/drivers/spi/spi_imx.c
+@@ -442,6 +442,7 @@ static int spi_imx_setupxfer(struct spi_
+ 	config.bpw =3D t ? t->bits_per_word : spi->bits_per_word;
+ 	config.speed_hz  =3D t ? t->speed_hz : spi->max_speed_hz;
+ 	config.mode =3D spi->mode;
++	config.cs =3D spi_imx->chipselect[spi->chip_select];
+=20
+ 	if (!config.speed_hz)
+ 		config.speed_hz =3D spi->max_speed_hz;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from u.kleine-koenig@pengutroni=
+x.de are
 
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices-fix.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-st-fix-test-of-value-range-in-st_set_options.patch
-sparc32-convert-to-asm-generic-hardirqh.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
-vfs-implement-posix-o_sync-and-o_dsync-semantics-checkpatch-fixes.patch
-readahead-add-blk_run_backing_dev.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-reiser4-disable.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
