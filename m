@@ -1,152 +1,397 @@
 From: akpm@linux-foundation.org
-Subject: [merged] s3cmci-add-better-support-for-no-card-detect-or-write-protect-available.patch removed from -mm tree
-Date: Mon, 05 Oct 2009 11:39:11 -0700
-Message-ID: <200910051839.n95IdBrj018602__36455.1870887682$1254768054$gmane$org@imap1.linux-foundation.org>
+Subject: [merged] memcg-some-modification-to-softlimit-under-hierarchical-memory-reclaim.patch removed from -mm tree
+Date: Mon, 05 Oct 2009 11:38:37 -0700
+Message-ID: <200910051838.n95IccEI017330@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58173 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48056 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754679AbZJESju (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Oct 2009 14:39:50 -0400
+	by vger.kernel.org with ESMTP id S1754718AbZJESkC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Oct 2009 14:40:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ben@simtec.co.uk, linux-mmc@vger.kernel.org, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, lizf@cn.fujitsu.com, menage@google.com, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     s3cmci: add better support for no card detect or write protect available
+     memcg: some modification to softlimit under hierarchical memory reclaim.
 has been removed from the -mm tree.  Its filename was
-     s3cmci-add-better-support-for-no-card-detect-or-write-protect-available.patch
+     memcg-some-modification-to-softlimit-under-hierarchical-memory-reclaim.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: s3cmci: add better support for no card detect or write protect available
-From: Ben Dooks <ben@simtec.co.uk>
+Subject: memcg: some modification to softlimit under hierarchical memory reclaim.
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Add better support for omitting either the card detect or the write
-protect GPIOs if the board does not support it.  Add the fields
-no_wprotect and no_detect to the platform data which when set indicate the
-absence of the respective GPIOs.
+This patch clean up/fixes for memcg's uncharge soft limit path.
 
-Note, this also fixes a minor bug where it tries to free IRQ0 if there is
-no detect gpio available.
+Problems:
+  Now, res_counter_charge()/uncharge() handles softlimit information at
+  charge/uncharge and softlimit-check is done when event counter per memcg
+  goes over limit. Now, event counter per memcg is updated only when
+  memory usage is over soft limit. Here, considering hierarchical memcg
+  management, ancesotors should be taken care of.
 
-Signed-off-by: Ben Dooks <ben@simtec.co.uk>
-Cc: <linux-mmc@vger.kernel.org>
+  Now, ancerstors(hierarchy) are handled in charge() but not in uncharge().
+  This is not good.
+
+  Prolems:
+  1. memcg's event counter incremented only when softlimit hits. That's bad.
+     It makes event counter hard to be reused for other purpose.
+
+  2. At uncharge, only the lowest level rescounter is handled. This is bug.
+     Because ancesotor's event counter is not incremented, children should
+     take care of them.
+
+  3. res_counter_uncharge()'s 3rd argument is NULL in most case.
+     ops under res_counter->lock should be small. No "if" sentense is better.
+
+Fixes:
+  * Removed soft_limit_xx poitner and checks in charge and uncharge.
+    Do-check-only-when-necessary scheme works enough well without them.
+
+  * make event-counter of memcg incremented at every charge/uncharge.
+    (per-cpu area will be accessed soon anyway)
+
+  * All ancestors are checked at soft-limit-check. This is necessary because
+    ancesotor's event counter may never be modified. Then, they should be
+    checked at the same time.
+
+Reviewed-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Paul Menage <menage@google.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/plat-s3c24xx/include/plat/mci.h |    2 
- drivers/mmc/host/s3cmci.c                |   44 +++++++++++----------
- 2 files changed, 26 insertions(+), 20 deletions(-)
+ include/linux/res_counter.h |    6 -
+ kernel/res_counter.c        |   18 -----
+ mm/memcontrol.c             |  115 +++++++++++++++-------------------
+ 3 files changed, 55 insertions(+), 84 deletions(-)
 
-diff -puN arch/arm/plat-s3c24xx/include/plat/mci.h~s3cmci-add-better-support-for-no-card-detect-or-write-protect-available arch/arm/plat-s3c24xx/include/plat/mci.h
---- a/arch/arm/plat-s3c24xx/include/plat/mci.h~s3cmci-add-better-support-for-no-card-detect-or-write-protect-available
-+++ a/arch/arm/plat-s3c24xx/include/plat/mci.h
-@@ -2,6 +2,8 @@
- #define _ARCH_MCI_H
+diff -puN include/linux/res_counter.h~memcg-some-modification-to-softlimit-under-hierarchical-memory-reclaim include/linux/res_counter.h
+--- a/include/linux/res_counter.h~memcg-some-modification-to-softlimit-under-hierarchical-memory-reclaim
++++ a/include/linux/res_counter.h
+@@ -114,8 +114,7 @@ void res_counter_init(struct res_counter
+ int __must_check res_counter_charge_locked(struct res_counter *counter,
+ 		unsigned long val);
+ int __must_check res_counter_charge(struct res_counter *counter,
+-		unsigned long val, struct res_counter **limit_fail_at,
+-		struct res_counter **soft_limit_at);
++		unsigned long val, struct res_counter **limit_fail_at);
  
- struct s3c24xx_mci_pdata {
-+	unsigned int	no_wprotect : 1;
-+	unsigned int	no_detect : 1;
- 	unsigned int	wprotect_invert : 1;
- 	unsigned int	detect_invert : 1;   /* set => detect active high. */
- 	unsigned int	use_dma : 1;
-diff -puN drivers/mmc/host/s3cmci.c~s3cmci-add-better-support-for-no-card-detect-or-write-protect-available drivers/mmc/host/s3cmci.c
---- a/drivers/mmc/host/s3cmci.c~s3cmci-add-better-support-for-no-card-detect-or-write-protect-available
-+++ a/drivers/mmc/host/s3cmci.c
-@@ -1299,7 +1299,7 @@ static int s3cmci_get_ro(struct mmc_host
- 	struct s3c24xx_mci_pdata *pdata = host->pdata;
+ /*
+  * uncharge - tell that some portion of the resource is released
+@@ -128,8 +127,7 @@ int __must_check res_counter_charge(stru
+  */
+ 
+ void res_counter_uncharge_locked(struct res_counter *counter, unsigned long val);
+-void res_counter_uncharge(struct res_counter *counter, unsigned long val,
+-				bool *was_soft_limit_excess);
++void res_counter_uncharge(struct res_counter *counter, unsigned long val);
+ 
+ static inline bool res_counter_limit_check_locked(struct res_counter *cnt)
+ {
+diff -puN kernel/res_counter.c~memcg-some-modification-to-softlimit-under-hierarchical-memory-reclaim kernel/res_counter.c
+--- a/kernel/res_counter.c~memcg-some-modification-to-softlimit-under-hierarchical-memory-reclaim
++++ a/kernel/res_counter.c
+@@ -37,27 +37,17 @@ int res_counter_charge_locked(struct res
+ }
+ 
+ int res_counter_charge(struct res_counter *counter, unsigned long val,
+-			struct res_counter **limit_fail_at,
+-			struct res_counter **soft_limit_fail_at)
++			struct res_counter **limit_fail_at)
+ {
  	int ret;
+ 	unsigned long flags;
+ 	struct res_counter *c, *u;
  
--	if (pdata->gpio_wprotect == 0)
-+	if (pdata->no_wprotect)
- 		return 0;
+ 	*limit_fail_at = NULL;
+-	if (soft_limit_fail_at)
+-		*soft_limit_fail_at = NULL;
+ 	local_irq_save(flags);
+ 	for (c = counter; c != NULL; c = c->parent) {
+ 		spin_lock(&c->lock);
+ 		ret = res_counter_charge_locked(c, val);
+-		/*
+-		 * With soft limits, we return the highest ancestor
+-		 * that exceeds its soft limit
+-		 */
+-		if (soft_limit_fail_at &&
+-			!res_counter_soft_limit_check_locked(c))
+-			*soft_limit_fail_at = c;
+ 		spin_unlock(&c->lock);
+ 		if (ret < 0) {
+ 			*limit_fail_at = c;
+@@ -85,8 +75,7 @@ void res_counter_uncharge_locked(struct 
+ 	counter->usage -= val;
+ }
  
- 	ret = s3c2410_gpio_getpin(pdata->gpio_wprotect);
-@@ -1647,30 +1647,34 @@ static int __devinit s3cmci_probe(struct
- 	disable_irq(host->irq);
- 	host->irq_state = false;
+-void res_counter_uncharge(struct res_counter *counter, unsigned long val,
+-				bool *was_soft_limit_excess)
++void res_counter_uncharge(struct res_counter *counter, unsigned long val)
+ {
+ 	unsigned long flags;
+ 	struct res_counter *c;
+@@ -94,9 +83,6 @@ void res_counter_uncharge(struct res_cou
+ 	local_irq_save(flags);
+ 	for (c = counter; c != NULL; c = c->parent) {
+ 		spin_lock(&c->lock);
+-		if (was_soft_limit_excess)
+-			*was_soft_limit_excess =
+-				!res_counter_soft_limit_check_locked(c);
+ 		res_counter_uncharge_locked(c, val);
+ 		spin_unlock(&c->lock);
+ 	}
+diff -puN mm/memcontrol.c~memcg-some-modification-to-softlimit-under-hierarchical-memory-reclaim mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-some-modification-to-softlimit-under-hierarchical-memory-reclaim
++++ a/mm/memcontrol.c
+@@ -353,16 +353,6 @@ __mem_cgroup_remove_exceeded(struct mem_
+ }
  
--	if (host->pdata->gpio_detect) {
-+	if (!host->pdata->no_detect) {
- 		ret = gpio_request(host->pdata->gpio_detect, "s3cmci detect");
- 		if (ret) {
- 			dev_err(&pdev->dev, "failed to get detect gpio\n");
- 			goto probe_free_irq;
- 		}
+ static void
+-mem_cgroup_insert_exceeded(struct mem_cgroup *mem,
+-				struct mem_cgroup_per_zone *mz,
+-				struct mem_cgroup_tree_per_zone *mctz)
+-{
+-	spin_lock(&mctz->lock);
+-	__mem_cgroup_insert_exceeded(mem, mz, mctz);
+-	spin_unlock(&mctz->lock);
+-}
+-
+-static void
+ mem_cgroup_remove_exceeded(struct mem_cgroup *mem,
+ 				struct mem_cgroup_per_zone *mz,
+ 				struct mem_cgroup_tree_per_zone *mctz)
+@@ -392,34 +382,40 @@ static bool mem_cgroup_soft_limit_check(
+ 
+ static void mem_cgroup_update_tree(struct mem_cgroup *mem, struct page *page)
+ {
+-	unsigned long long prev_usage_in_excess, new_usage_in_excess;
+-	bool updated_tree = false;
++	unsigned long long new_usage_in_excess;
+ 	struct mem_cgroup_per_zone *mz;
+ 	struct mem_cgroup_tree_per_zone *mctz;
+-
+-	mz = mem_cgroup_zoneinfo(mem, page_to_nid(page), page_zonenum(page));
++	int nid = page_to_nid(page);
++	int zid = page_zonenum(page);
+ 	mctz = soft_limit_tree_from_page(page);
+ 
+ 	/*
+-	 * We do updates in lazy mode, mem's are removed
+-	 * lazily from the per-zone, per-node rb tree
++	 * Necessary to update all ancestors when hierarchy is used.
++	 * because their event counter is not touched.
+ 	 */
+-	prev_usage_in_excess = mz->usage_in_excess;
+-
+-	new_usage_in_excess = res_counter_soft_limit_excess(&mem->res);
+-	if (prev_usage_in_excess) {
+-		mem_cgroup_remove_exceeded(mem, mz, mctz);
+-		updated_tree = true;
 -	}
+-	if (!new_usage_in_excess)
+-		goto done;
+-	mem_cgroup_insert_exceeded(mem, mz, mctz);
+-
+-done:
+-	if (updated_tree) {
+-		spin_lock(&mctz->lock);
+-		mz->usage_in_excess = new_usage_in_excess;
+-		spin_unlock(&mctz->lock);
++	for (; mem; mem = parent_mem_cgroup(mem)) {
++		mz = mem_cgroup_zoneinfo(mem, nid, zid);
++		new_usage_in_excess =
++			res_counter_soft_limit_excess(&mem->res);
++		/*
++		 * We have to update the tree if mz is on RB-tree or
++		 * mem is over its softlimit.
++		 */
++		if (new_usage_in_excess || mz->on_tree) {
++			spin_lock(&mctz->lock);
++			/* if on-tree, remove it */
++			if (mz->on_tree)
++				__mem_cgroup_remove_exceeded(mem, mz, mctz);
++			/*
++			 * if over soft limit, insert again. mz->usage_in_excess
++			 * will be updated properly.
++			 */
++			if (new_usage_in_excess)
++				__mem_cgroup_insert_exceeded(mem, mz, mctz);
++			else
++				mz->usage_in_excess = 0;
++			spin_unlock(&mctz->lock);
++		}
+ 	}
+ }
  
--	host->irq_cd = s3c2410_gpio_getirq(host->pdata->gpio_detect);
-+		host->irq_cd = s3c2410_gpio_getirq(host->pdata->gpio_detect);
+@@ -1271,9 +1267,9 @@ static int __mem_cgroup_try_charge(struc
+ 			gfp_t gfp_mask, struct mem_cgroup **memcg,
+ 			bool oom, struct page *page)
+ {
+-	struct mem_cgroup *mem, *mem_over_limit, *mem_over_soft_limit;
++	struct mem_cgroup *mem, *mem_over_limit;
+ 	int nr_retries = MEM_CGROUP_RECLAIM_RETRIES;
+-	struct res_counter *fail_res, *soft_fail_res = NULL;
++	struct res_counter *fail_res;
  
--	if (host->irq_cd >= 0) {
--		if (request_irq(host->irq_cd, s3cmci_irq_cd,
--				IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING,
--				DRIVER_NAME, host)) {
--			dev_err(&pdev->dev, "can't get card detect irq.\n");
--			ret = -ENOENT;
--			goto probe_free_gpio_cd;
-+		if (host->irq_cd >= 0) {
-+			if (request_irq(host->irq_cd, s3cmci_irq_cd,
-+					IRQF_TRIGGER_RISING |
-+					IRQF_TRIGGER_FALLING,
-+					DRIVER_NAME, host)) {
-+				dev_err(&pdev->dev,
-+					"can't get card detect irq.\n");
-+				ret = -ENOENT;
-+				goto probe_free_gpio_cd;
-+			}
-+		} else {
-+			dev_warn(&pdev->dev,
-+				 "host detect has no irq available\n");
-+			gpio_direction_input(host->pdata->gpio_detect);
+ 	if (unlikely(test_thread_flag(TIF_MEMDIE))) {
+ 		/* Don't account this! */
+@@ -1305,17 +1301,16 @@ static int __mem_cgroup_try_charge(struc
+ 
+ 		if (mem_cgroup_is_root(mem))
+ 			goto done;
+-		ret = res_counter_charge(&mem->res, PAGE_SIZE, &fail_res,
+-						&soft_fail_res);
++		ret = res_counter_charge(&mem->res, PAGE_SIZE, &fail_res);
+ 		if (likely(!ret)) {
+ 			if (!do_swap_account)
+ 				break;
+ 			ret = res_counter_charge(&mem->memsw, PAGE_SIZE,
+-							&fail_res, NULL);
++							&fail_res);
+ 			if (likely(!ret))
+ 				break;
+ 			/* mem+swap counter fails */
+-			res_counter_uncharge(&mem->res, PAGE_SIZE, NULL);
++			res_counter_uncharge(&mem->res, PAGE_SIZE);
+ 			flags |= MEM_CGROUP_RECLAIM_NOSWAP;
+ 			mem_over_limit = mem_cgroup_from_res_counter(fail_res,
+ 									memsw);
+@@ -1354,16 +1349,11 @@ static int __mem_cgroup_try_charge(struc
  		}
--	} else {
--		dev_warn(&pdev->dev, "host detect has no irq available\n");
--		gpio_direction_input(host->pdata->gpio_detect);
+ 	}
+ 	/*
+-	 * Insert just the ancestor, we should trickle down to the correct
+-	 * cgroup for reclaim, since the other nodes will be below their
+-	 * soft limit
+-	 */
+-	if (soft_fail_res) {
+-		mem_over_soft_limit =
+-			mem_cgroup_from_res_counter(soft_fail_res, res);
+-		if (mem_cgroup_soft_limit_check(mem_over_soft_limit))
+-			mem_cgroup_update_tree(mem_over_soft_limit, page);
 -	}
-+	} else
-+		host->irq_cd = -1;
++	 * Insert ancestor (and ancestor's ancestors), to softlimit RB-tree.
++	 * if they exceeds softlimit.
++	 */
++	if (mem_cgroup_soft_limit_check(mem))
++		mem_cgroup_update_tree(mem, page);
+ done:
+ 	return 0;
+ nomem:
+@@ -1438,10 +1428,9 @@ static void __mem_cgroup_commit_charge(s
+ 	if (unlikely(PageCgroupUsed(pc))) {
+ 		unlock_page_cgroup(pc);
+ 		if (!mem_cgroup_is_root(mem)) {
+-			res_counter_uncharge(&mem->res, PAGE_SIZE, NULL);
++			res_counter_uncharge(&mem->res, PAGE_SIZE);
+ 			if (do_swap_account)
+-				res_counter_uncharge(&mem->memsw, PAGE_SIZE,
+-							NULL);
++				res_counter_uncharge(&mem->memsw, PAGE_SIZE);
+ 		}
+ 		css_put(&mem->css);
+ 		return;
+@@ -1520,7 +1509,7 @@ static int mem_cgroup_move_account(struc
+ 		goto out;
  
--	if (host->pdata->gpio_wprotect) {
-+	if (!host->pdata->no_wprotect) {
- 		ret = gpio_request(host->pdata->gpio_wprotect, "s3cmci wp");
- 		if (ret) {
- 			dev_err(&pdev->dev, "failed to get writeprotect\n");
-@@ -1774,11 +1778,11 @@ static int __devinit s3cmci_probe(struct
- 		s3c2410_dma_free(host->dma, &s3cmci_dma_client);
+ 	if (!mem_cgroup_is_root(from))
+-		res_counter_uncharge(&from->res, PAGE_SIZE, NULL);
++		res_counter_uncharge(&from->res, PAGE_SIZE);
+ 	mem_cgroup_charge_statistics(from, pc, false);
  
-  probe_free_gpio_wp:
--	if (host->pdata->gpio_wprotect)
-+	if (!host->pdata->no_wprotect)
- 		gpio_free(host->pdata->gpio_wprotect);
+ 	page = pc->page;
+@@ -1540,7 +1529,7 @@ static int mem_cgroup_move_account(struc
+ 	}
  
-  probe_free_gpio_cd:
--	if (host->pdata->gpio_detect)
-+	if (!host->pdata->no_detect)
- 		gpio_free(host->pdata->gpio_detect);
+ 	if (do_swap_account && !mem_cgroup_is_root(from))
+-		res_counter_uncharge(&from->memsw, PAGE_SIZE, NULL);
++		res_counter_uncharge(&from->memsw, PAGE_SIZE);
+ 	css_put(&from->css);
  
-  probe_free_irq_cd:
-@@ -1837,10 +1841,10 @@ static int __devexit s3cmci_remove(struc
+ 	css_get(&to->css);
+@@ -1611,9 +1600,9 @@ uncharge:
+ 	css_put(&parent->css);
+ 	/* uncharge if move fails */
+ 	if (!mem_cgroup_is_root(parent)) {
+-		res_counter_uncharge(&parent->res, PAGE_SIZE, NULL);
++		res_counter_uncharge(&parent->res, PAGE_SIZE);
+ 		if (do_swap_account)
+-			res_counter_uncharge(&parent->memsw, PAGE_SIZE, NULL);
++			res_counter_uncharge(&parent->memsw, PAGE_SIZE);
+ 	}
+ 	return ret;
+ }
+@@ -1804,8 +1793,7 @@ __mem_cgroup_commit_charge_swapin(struct
+ 			 * calling css_tryget
+ 			 */
+ 			if (!mem_cgroup_is_root(memcg))
+-				res_counter_uncharge(&memcg->memsw, PAGE_SIZE,
+-							NULL);
++				res_counter_uncharge(&memcg->memsw, PAGE_SIZE);
+ 			mem_cgroup_swap_statistics(memcg, false);
+ 			mem_cgroup_put(memcg);
+ 		}
+@@ -1832,9 +1820,9 @@ void mem_cgroup_cancel_charge_swapin(str
+ 	if (!mem)
+ 		return;
+ 	if (!mem_cgroup_is_root(mem)) {
+-		res_counter_uncharge(&mem->res, PAGE_SIZE, NULL);
++		res_counter_uncharge(&mem->res, PAGE_SIZE);
+ 		if (do_swap_account)
+-			res_counter_uncharge(&mem->memsw, PAGE_SIZE, NULL);
++			res_counter_uncharge(&mem->memsw, PAGE_SIZE);
+ 	}
+ 	css_put(&mem->css);
+ }
+@@ -1849,7 +1837,6 @@ __mem_cgroup_uncharge_common(struct page
+ 	struct page_cgroup *pc;
+ 	struct mem_cgroup *mem = NULL;
+ 	struct mem_cgroup_per_zone *mz;
+-	bool soft_limit_excess = false;
  
- 	free_irq(host->irq, host);
+ 	if (mem_cgroup_disabled())
+ 		return NULL;
+@@ -1889,10 +1876,10 @@ __mem_cgroup_uncharge_common(struct page
+ 	}
  
--	if (pd->gpio_wprotect)
-+	if (!pd->no_wprotect)
- 		gpio_free(pd->gpio_wprotect);
+ 	if (!mem_cgroup_is_root(mem)) {
+-		res_counter_uncharge(&mem->res, PAGE_SIZE, &soft_limit_excess);
++		res_counter_uncharge(&mem->res, PAGE_SIZE);
+ 		if (do_swap_account &&
+ 				(ctype != MEM_CGROUP_CHARGE_TYPE_SWAPOUT))
+-			res_counter_uncharge(&mem->memsw, PAGE_SIZE, NULL);
++			res_counter_uncharge(&mem->memsw, PAGE_SIZE);
+ 	}
+ 	if (ctype == MEM_CGROUP_CHARGE_TYPE_SWAPOUT)
+ 		mem_cgroup_swap_statistics(mem, true);
+@@ -1909,7 +1896,7 @@ __mem_cgroup_uncharge_common(struct page
+ 	mz = page_cgroup_zoneinfo(pc);
+ 	unlock_page_cgroup(pc);
  
--	if (pd->gpio_detect)
-+	if (!pd->no_detect)
- 		gpio_free(pd->gpio_detect);
- 
- 	for (i = S3C2410_GPE(5); i <= S3C2410_GPE(10); i++)
+-	if (soft_limit_excess && mem_cgroup_soft_limit_check(mem))
++	if (mem_cgroup_soft_limit_check(mem))
+ 		mem_cgroup_update_tree(mem, page);
+ 	/* at swapout, this memcg will be accessed to record to swap */
+ 	if (ctype != MEM_CGROUP_CHARGE_TYPE_SWAPOUT)
+@@ -1987,7 +1974,7 @@ void mem_cgroup_uncharge_swap(swp_entry_
+ 		 * This memcg can be obsolete one. We avoid calling css_tryget
+ 		 */
+ 		if (!mem_cgroup_is_root(memcg))
+-			res_counter_uncharge(&memcg->memsw, PAGE_SIZE, NULL);
++			res_counter_uncharge(&memcg->memsw, PAGE_SIZE);
+ 		mem_cgroup_swap_statistics(memcg, false);
+ 		mem_cgroup_put(memcg);
+ 	}
 _
 
-Patches currently in -mm which might be from ben@simtec.co.uk are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
-gpiolib-add-names-file-in-gpio-chip-sysfs.patch
 
