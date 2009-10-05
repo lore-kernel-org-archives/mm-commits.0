@@ -1,72 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [merged] bcm63xx_enet-timeout-off-by-one-in-do_mdio_op.patch removed from -mm tree
-Date: Mon, 05 Oct 2009 11:39:58 -0700
-Message-ID: <200910051839.n95Idw4G020163@imap1.linux-foundation.org>
+Subject: [merged] spi-imx-no-need-to-assert-bits_per_word-being-initialized.patch removed from -mm tree
+Date: Mon, 05 Oct 2009 11:39:46 -0700
+Message-ID: <200910051839.n95Idk6x019780@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60574 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32782 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754351AbZJESkj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Oct 2009 14:40:39 -0400
+	by vger.kernel.org with ESMTP id S1754593AbZJESkt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Oct 2009 14:40:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, mbizon@freebox.fr, mm-commits@vger.kernel.org
+To: u.kleine-koenig@pengutronix.de, dbrownell@users.sourceforge.net, g.liakhovetski@gmx.de, s.hauer@pengutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bcm63xx_enet: timeout off by one in do_mdio_op()
+     spi-imx: no need to assert bits_per_word being initialized
 has been removed from the -mm tree.  Its filename was
-     bcm63xx_enet-timeout-off-by-one-in-do_mdio_op.patch
+     spi-imx-no-need-to-assert-bits_per_word-being-initialized.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: bcm63xx_enet: timeout off by one in do_mdio_op()
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: spi-imx: no need to assert bits_per_word being initialized
+=46rom: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
 
-`while (limit-- >= 0)' reaches -2 after the loop upon timeout.
+spi_imx_setup() is only called by spi_setup().  The latter does the
+initialization already.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Maxime Bizon <mbizon@freebox.fr>
+Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+Acked-by: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/bcm63xx_enet.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/spi/spi_imx.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN drivers/net/bcm63xx_enet.c~bcm63xx_enet-timeout-off-by-one-in-do_mdio_op drivers/net/bcm63xx_enet.c
---- a/drivers/net/bcm63xx_enet.c~bcm63xx_enet-timeout-off-by-one-in-do_mdio_op
-+++ a/drivers/net/bcm63xx_enet.c
-@@ -90,7 +90,7 @@ static int do_mdio_op(struct bcm_enet_pr
- 		if (enet_readl(priv, ENET_IR_REG) & ENET_IR_MII)
- 			break;
- 		udelay(1);
--	} while (limit-- >= 0);
-+	} while (limit-- > 0);
- 
- 	return (limit < 0) ? 1 : 0;
- }
-_
-
-Patches currently in -mm which might be from roel.kluin@gmail.com are
-
-linux-next.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-hfc_usb-fix-read-buffer-overflow.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
-st-fix-test-of-value-range-in-st_set_options.patch
-drivers-staging-octeon-ethernet-rgmiic-dont-ignore-request_irq-return-code.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-random-kmalloc-failure-ignored-in-init_std_data.patch
-
+diff -puN drivers/spi/spi_imx.c~spi-imx-no-need-to-assert-bits_per_word=
+-being-initialized drivers/spi/spi_imx.c
+--- a/drivers/spi/spi_imx.c~spi-imx-no-need-to-assert-bits_per_word-bei=
+ng-initialized
++++ a/drivers/spi/spi_imx.c
+@@ -481,9 +481,6 @@ static int spi_imx_setup(struct spi_devi
+ 	struct spi_imx_data *spi_imx =3D spi_master_get_devdata(spi->master);
+ 	int gpio =3D spi_imx->chipselect[spi->chip_select];
+=20
+-	if (!spi->bits_per_word)
+-		spi->bits_per_word =3D 8;
