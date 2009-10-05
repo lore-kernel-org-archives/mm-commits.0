@@ -1,82 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [merged] serial-add-parameter-to-force-skipping-the-test-for-the-txen-bug.patch removed from -mm tree
-Date: Mon, 05 Oct 2009 11:39:26 -0700
-Message-ID: <200910051839.n95IdQTg019082@imap1.linux-foundation.org>
+Subject: [merged] s3cmci-make-sdio-irq-hardware-irq-support-build-time-configurable.patch removed from -mm tree
+Date: Mon, 05 Oct 2009 11:39:09 -0700
+Message-ID: <200910051839.n95Id9gN018475__22963.2912124091$1254768068$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46551 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51038 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754737AbZJESkU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Oct 2009 14:40:20 -0400
+	by vger.kernel.org with ESMTP id S1754660AbZJESjt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Oct 2009 14:39:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cebbert@redhat.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
+To: ben@simtec.co.uk, linux-mmc@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     serial: add parameter to force skipping the test for the TXEN bug
+     s3cmci: make SDIO IRQ hardware IRQ support build-time configurable
 has been removed from the -mm tree.  Its filename was
-     serial-add-parameter-to-force-skipping-the-test-for-the-txen-bug.patch
+     s3cmci-make-sdio-irq-hardware-irq-support-build-time-configurable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial: add parameter to force skipping the test for the TXEN bug
-From: Chuck Ebbert <cebbert@redhat.com>
+Subject: s3cmci: make SDIO IRQ hardware IRQ support build-time configurable
+From: Ben Dooks <ben@simtec.co.uk>
 
-Allow users to force skipping the TXEN test at init time. Applies
-to all serial ports. Intended for debugging only.
+We have found a couple of boards where the SDIO IRQ hardware support has
+failed to work properly, and thus we should make it configurable whether
+or not to be included in the driver.
 
-There is a blacklist for devices where we need to skip the test but the
-list is not complete.  This lets users force skipping the test so we can
-determine if they need to be added to the list.
-
-Some HP machines with weird serial consoles have this problem and there
-may be more.
-
-Signed-off-by: Chuck Ebbert <cebbert@redhat.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Ben Dooks <ben@simtec.co.uk>
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ drivers/mmc/host/Kconfig  |    7 +++++++
+ drivers/mmc/host/s3cmci.c |    9 +++++++--
+ 2 files changed, 14 insertions(+), 2 deletions(-)
 
-diff -puN drivers/serial/8250.c~serial-add-parameter-to-force-skipping-the-test-for-the-txen-bug drivers/serial/8250.c
---- a/drivers/serial/8250.c~serial-add-parameter-to-force-skipping-the-test-for-the-txen-bug
-+++ a/drivers/serial/8250.c
-@@ -64,6 +64,8 @@ static int serial_index(struct uart_port
- 	return (serial8250_reg.minor - 64) + port->line;
- }
+diff -puN drivers/mmc/host/Kconfig~s3cmci-make-sdio-irq-hardware-irq-support-build-time-configurable drivers/mmc/host/Kconfig
+--- a/drivers/mmc/host/Kconfig~s3cmci-make-sdio-irq-hardware-irq-support-build-time-configurable
++++ a/drivers/mmc/host/Kconfig
+@@ -276,6 +276,13 @@ config MMC_S3C
  
-+static unsigned int skip_txen_test; /* force skip of txen test at init time */
+ 	  If unsure, say N.
+ 
++config MMC_S3C_HW_SDIO_IRQ
++       bool "Hardware support for SDIO IRQ"
++       depends on MMC_S3C
++       help
++         Enable the hardware support for SDIO interrupts instead of using
++	 the generic polling code.
 +
- /*
-  * Debugging.
-  */
-@@ -2108,7 +2110,7 @@ static int serial8250_startup(struct uar
- 	   is variable. So, let's just don't test if we receive
- 	   TX irq. This way, we'll never enable UART_BUG_TXEN.
- 	 */
--	if (up->port.flags & UPF_NO_TXEN_TEST)
-+	if (skip_txen_test || up->port.flags & UPF_NO_TXEN_TEST)
- 		goto dont_test_tx_en;
+ choice
+ 	prompt "Samsung S3C SD/MMC transfer code"
+ 	depends on MMC_S3C
+diff -puN drivers/mmc/host/s3cmci.c~s3cmci-make-sdio-irq-hardware-irq-support-build-time-configurable drivers/mmc/host/s3cmci.c
+--- a/drivers/mmc/host/s3cmci.c~s3cmci-make-sdio-irq-hardware-irq-support-build-time-configurable
++++ a/drivers/mmc/host/s3cmci.c
+@@ -1715,7 +1715,11 @@ static int __devinit s3cmci_probe(struct
  
- 	/*
-@@ -3248,6 +3250,9 @@ MODULE_PARM_DESC(share_irqs, "Share IRQs
- module_param(nr_uarts, uint, 0644);
- MODULE_PARM_DESC(nr_uarts, "Maximum number of UARTs supported. (1-" __MODULE_STRING(CONFIG_SERIAL_8250_NR_UARTS) ")");
+ 	mmc->ops 	= &s3cmci_ops;
+ 	mmc->ocr_avail	= MMC_VDD_32_33 | MMC_VDD_33_34;
++#ifdef CONFIG_MMC_S3C_HW_SDIO_IRQ
+ 	mmc->caps	= MMC_CAP_4_BIT_DATA | MMC_CAP_SDIO_IRQ;
++#else
++	mmc->caps	= MMC_CAP_4_BIT_DATA;
++#endif
+ 	mmc->f_min 	= host->clk_rate / (host->clk_div * 256);
+ 	mmc->f_max 	= host->clk_rate / host->clk_div;
  
-+module_param(skip_txen_test, uint, 0644);
-+MODULE_PARM_DESC(skip_txen_test, "Skip checking for the TXEN bug at init time");
-+
- #ifdef CONFIG_SERIAL_8250_RSA
- module_param_array(probe_rsa, ulong, &probe_rsa_count, 0444);
- MODULE_PARM_DESC(probe_rsa, "Probe I/O ports for RSA");
+@@ -1750,8 +1754,9 @@ static int __devinit s3cmci_probe(struct
+ 	s3cmci_debugfs_attach(host);
+ 
+ 	platform_set_drvdata(pdev, mmc);
+-	dev_info(&pdev->dev, "%s - using %s\n", mmc_hostname(mmc),
+-		 s3cmci_host_usedma(host) ? "dma" : "pio");
++	dev_info(&pdev->dev, "%s - using %s, %s SDIO IRQ\n", mmc_hostname(mmc),
++		 s3cmci_host_usedma(host) ? "dma" : "pio",
++		 mmc->caps & MMC_CAP_SDIO_IRQ ? "hw" : "sw");
+ 
+ 	return 0;
+ 
 _
 
-Patches currently in -mm which might be from cebbert@redhat.com are
+Patches currently in -mm which might be from ben@simtec.co.uk are
 
+gpiolib-add-names-file-in-gpio-chip-sysfs.patch
 
