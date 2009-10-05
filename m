@@ -1,72 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged] uartlite-allow-building-for-timberdale-mfd.patch removed from -mm tree
-Date: Mon, 05 Oct 2009 11:38:28 -0700
-Message-ID: <200910051838.n95IcShY016995@imap1.linux-foundation.org>
+Subject: [merged] serial-add-parameter-to-force-skipping-the-test-for-the-txen-bug.patch removed from -mm tree
+Date: Mon, 05 Oct 2009 11:39:26 -0700
+Message-ID: <200910051839.n95IdQTg019082@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45610 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46551 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754647AbZJESjq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Oct 2009 14:39:46 -0400
+	by vger.kernel.org with ESMTP id S1754737AbZJESkU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Oct 2009 14:40:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: richard.rojfors@mocean-labs.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
+To: cebbert@redhat.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uartlite: allow building for timberdale MFD
+     serial: add parameter to force skipping the test for the TXEN bug
 has been removed from the -mm tree.  Its filename was
-     uartlite-allow-building-for-timberdale-mfd.patch
+     serial-add-parameter-to-force-skipping-the-test-for-the-txen-bug.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uartlite: allow building for timberdale MFD
-=46rom: Richard R=F6jfors <richard.rojfors@mocean-labs.com>
+Subject: serial: add parameter to force skipping the test for the TXEN bug
+From: Chuck Ebbert <cebbert@redhat.com>
 
-Some configurations of the Timberdale FPGA has the uartlite
-included.
+Allow users to force skipping the TXEN test at init time. Applies
+to all serial ports. Intended for debugging only.
 
-Signed-off-by: Richard R=F6jfors <richard.rojfors@mocean-labs.com>
+There is a blacklist for devices where we need to skip the test but the
+list is not complete.  This lets users force skipping the test so we can
+determine if they need to be added to the list.
+
+Some HP machines with weird serial consoles have this problem and there
+may be more.
+
+Signed-off-by: Chuck Ebbert <cebbert@redhat.com>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/serial/8250.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN drivers/serial/Kconfig~uartlite-allow-building-for-timberdale=
--mfd drivers/serial/Kconfig
---- a/drivers/serial/Kconfig~uartlite-allow-building-for-timberdale-mfd
-+++ a/drivers/serial/Kconfig
-@@ -862,7 +862,7 @@ config SERIAL_IMX_CONSOLE
-=20
- config SERIAL_UARTLITE
- 	tristate "Xilinx uartlite serial port support"
--	depends on PPC32 || MICROBLAZE
-+	depends on PPC32 || MICROBLAZE || MFD_TIMBERDALE
- 	select SERIAL_CORE
- 	help
- 	  Say Y here if you want to use the Xilinx uartlite serial controller=
-=2E
+diff -puN drivers/serial/8250.c~serial-add-parameter-to-force-skipping-the-test-for-the-txen-bug drivers/serial/8250.c
+--- a/drivers/serial/8250.c~serial-add-parameter-to-force-skipping-the-test-for-the-txen-bug
++++ a/drivers/serial/8250.c
+@@ -64,6 +64,8 @@ static int serial_index(struct uart_port
+ 	return (serial8250_reg.minor - 64) + port->line;
+ }
+ 
++static unsigned int skip_txen_test; /* force skip of txen test at init time */
++
+ /*
+  * Debugging.
+  */
+@@ -2108,7 +2110,7 @@ static int serial8250_startup(struct uar
+ 	   is variable. So, let's just don't test if we receive
+ 	   TX irq. This way, we'll never enable UART_BUG_TXEN.
+ 	 */
+-	if (up->port.flags & UPF_NO_TXEN_TEST)
++	if (skip_txen_test || up->port.flags & UPF_NO_TXEN_TEST)
+ 		goto dont_test_tx_en;
+ 
+ 	/*
+@@ -3248,6 +3250,9 @@ MODULE_PARM_DESC(share_irqs, "Share IRQs
+ module_param(nr_uarts, uint, 0644);
+ MODULE_PARM_DESC(nr_uarts, "Maximum number of UARTs supported. (1-" __MODULE_STRING(CONFIG_SERIAL_8250_NR_UARTS) ")");
+ 
++module_param(skip_txen_test, uint, 0644);
++MODULE_PARM_DESC(skip_txen_test, "Skip checking for the TXEN bug at init time");
++
+ #ifdef CONFIG_SERIAL_8250_RSA
+ module_param_array(probe_rsa, ulong, &probe_rsa_count, 0444);
+ MODULE_PARM_DESC(probe_rsa, "Probe I/O ports for RSA");
 _
 
-Patches currently in -mm which might be from richard.rojfors@mocean-lab=
-s.com are
+Patches currently in -mm which might be from cebbert@redhat.com are
 
-radio-add-support-for-tef6862-tuner.patch
-xilinx_spi-split-into-generic-of-and-platform-driver-add-support-for-ds=
-570.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
