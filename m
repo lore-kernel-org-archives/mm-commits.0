@@ -1,81 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [merged] revert-m68k-convert-to-asm-generic-hardirqh.patch removed from -mm tree
-Date: Mon, 05 Oct 2009 11:38:05 -0700
-Message-ID: <200910051838.n95Ic5Si016259@imap1.linux-foundation.org>
+Subject: [merged] drivers-input-inputc-fix-config_pm=n-warning.patch removed from -mm tree
+Date: Mon, 05 Oct 2009 11:37:58 -0700
+Message-ID: <200910051837.n95IbwKr015928@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42222 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46410 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754620AbZJESjg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Oct 2009 14:39:36 -0400
+	by vger.kernel.org with ESMTP id S1754465AbZJESjJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Oct 2009 14:39:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, geert@linux-m68k.org, hch@lst.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dtor@mail.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert "m68k: convert to asm-generic/hardirq.h"
+     drivers/input/input.c: fix CONFIG_PM=n warning
 has been removed from the -mm tree.  Its filename was
-     revert-m68k-convert-to-asm-generic-hardirqh.patch
+     drivers-input-inputc-fix-config_pm=n-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert "m68k: convert to asm-generic/hardirq.h"
+Subject: drivers/input/input.c: fix CONFIG_PM=n warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Revert 45d80eea87c9f8292d2d33173d6866c0ec57238a ("m68k: convert to
-asm-generic/hardirq.h") - it fails to compile due to an inclusion tangle:
+drivers/input/input.c:1277: warning: 'input_dev_reset' defined but not used
 
-In file included from include/linux/irq.h:12,
-                 from include/asm-generic/hardirq.h:6,
-                 from /usr/src/devel/arch/m68k/include/asm/hardirq_mm.h:6,
-                 from /usr/src/devel/arch/m68k/include/asm/hardirq.h:4,
-                 from include/linux/hardirq.h:10,
-                 from /usr/src/devel/arch/m68k/include/asm/system_mm.h:69,
-                 from /usr/src/devel/arch/m68k/include/asm/system.h:4,
-                 from include/linux/list.h:7,
-                 from include/linux/preempt.h:11,
-                 from include/linux/spinlock.h:50,
-                 from include/linux/seqlock.h:29,
-                 from include/linux/time.h:8,
-                 from include/linux/timex.h:56,
-                 from include/linux/sched.h:56,
-                 from arch/m68k/kernel/asm-offsets.c:14:
-include/linux/smp.h:17: error: field 'list' has incomplete type
-
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Acked-by: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/include/asm/hardirq_mm.h |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ drivers/input/input.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/m68k/include/asm/hardirq_mm.h~revert-m68k-convert-to-asm-generic-hardirqh arch/m68k/include/asm/hardirq_mm.h
---- a/arch/m68k/include/asm/hardirq_mm.h~revert-m68k-convert-to-asm-generic-hardirqh
-+++ a/arch/m68k/include/asm/hardirq_mm.h
-@@ -1,8 +1,16 @@
- #ifndef __M68K_HARDIRQ_H
- #define __M68K_HARDIRQ_H
+diff -puN drivers/input/input.c~drivers-input-inputc-fix-config_pm=n-warning drivers/input/input.c
+--- a/drivers/input/input.c~drivers-input-inputc-fix-config_pm=n-warning
++++ a/drivers/input/input.c
+@@ -1273,6 +1273,7 @@ static int input_dev_uevent(struct devic
+ 		}						\
+ 	} while (0)
  
--#define HARDIRQ_BITS	8
-+#include <linux/threads.h>
-+#include <linux/cache.h>
-+
-+/* entry.S is sensitive to the offsets of these fields */
-+typedef struct {
-+	unsigned int __softirq_pending;
-+} ____cacheline_aligned irq_cpustat_t;
++#ifdef CONFIG_PM
+ static void input_dev_reset(struct input_dev *dev, bool activate)
+ {
+ 	if (!dev->event)
+@@ -1287,7 +1288,6 @@ static void input_dev_reset(struct input
+ 	}
+ }
  
--#include <asm-generic/hardirq.h>
-+#include <linux/irq_cpustat.h>	/* Standard mappings for irq_cpustat_t above */
-+
-+#define HARDIRQ_BITS	8
- 
- #endif
+-#ifdef CONFIG_PM
+ static int input_dev_suspend(struct device *dev)
+ {
+ 	struct input_dev *input_dev = to_input_dev(dev);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
