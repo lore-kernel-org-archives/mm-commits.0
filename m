@@ -1,160 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sdio-pass-whitelisted-cis-funce-tuples-to-sdio-drivers.patch removed from -mm tree
-Date: Mon, 05 Oct 2009 11:38:23 -0700
-Message-ID: <200910051838.n95IcNbB016898__21283.3789796152$1254768071$gmane$org@imap1.linux-foundation.org>
+Subject: [merged] memcg-fix-refcnt-goes-to-minus.patch removed from -mm tree
+Date: Mon, 05 Oct 2009 11:38:31 -0700
+Message-ID: <200910051838.n95IcVtb017223@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49199 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36834 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754663AbZJESjt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Oct 2009 14:39:49 -0400
+	by vger.kernel.org with ESMTP id S1754665AbZJESju (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Oct 2009 14:39:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: albert_herranz@yahoo.es, linux-mmc@vger.kernel.org, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, lizf@cn.fujitsu.com, menage@google.com, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sdio: pass whitelisted cis funce tuples to sdio drivers
+     memcg: fix refcnt going negative
 has been removed from the -mm tree.  Its filename was
-     sdio-pass-whitelisted-cis-funce-tuples-to-sdio-drivers.patch
+     memcg-fix-refcnt-goes-to-minus.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sdio: pass whitelisted cis funce tuples to sdio drivers
-From: Albert Herranz <albert_herranz@yahoo.es>
+Subject: memcg: fix refcnt going negative
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Some manufacturers provide vendor information in non-vendor specific CIS
-tuples.  For example, Broadcom uses an Extended Function tuple to provide
-the MAC address on some of their network cards, as in the case of the
-Nintendo Wii WLAN daughter card.
+__mem_cgroup_largest_soft_limit_node() returns a mem_cgroup_per_zone "mz"
+with incremnted mz->mem->css's refcnt.  Then, the caller of this function
+has to call css_put(mz->mem->css).
 
-This patch allows passing whitelisted FUNCE tuples unknown to the SDIO
-core to a matching SDIO driver instead of rejecting them and failing.
+But, mz can be !NULL even if "not found" i.e.  without css_get().  By
+this, css->refcnt will go down to minus.
 
-Signed-off-by: Albert Herranz <albert_herranz@yahoo.es>
-Cc: <linux-mmc@vger.kernel.org>
+This may cause various things...one of results will be
+initite-loop in css_tryget()  as this.
+
+INFO: RCU detected CPU 0 stall (t=10000 jiffies)
+sending NMI to all CPUs:
+NMI backtrace for cpu 0
+CPU 0:
+<snip>
+
+ <<EOE>>  <IRQ>  [<ffffffff810884bd>] trace_hardirqs_off+0xd/0x10
+  [<ffffffff8102a940>] flat_send_IPI_mask+0x90/0xb0
+  [<ffffffff8102a9c9>] flat_send_IPI_all+0x69/0x70
+  [<ffffffff81027372>] arch_trigger_all_cpu_backtrace+0x62/0xa0
+  [<ffffffff810bff8e>] __rcu_pending+0x7e/0x370
+  [<ffffffff810c02c7>] rcu_check_callbacks+0x47/0x130
+  [<ffffffff81063a26>] update_process_times+0x46/0x70
+  [<ffffffff81085930>] tick_sched_timer+0x60/0x160
+  [<ffffffff810858d0>] ? tick_sched_timer+0x0/0x160
+  [<ffffffff8107a03a>] __run_hrtimer+0xba/0x150
+  [<ffffffff8107a325>] hrtimer_interrupt+0xd5/0x1b0
+  [<ffffffff81426dfe>] ? trace_hardirqs_off_thunk+0x3a/0x3c
+  [<ffffffff8142cacd>] smp_apic_timer_interrupt+0x6d/0x9b
+  [<ffffffff8100cb33>] apic_timer_interrupt+0x13/0x20
+  <EOI>  [<ffffffff811317b6>] ? mem_cgroup_walk_tree+0x156/0x180
+  [<ffffffff811316d3>] ? mem_cgroup_walk_tree+0x73/0x180
+  [<ffffffff81131692>] ? mem_cgroup_walk_tree+0x32/0x180
+  [<ffffffff81131a00>] ? mem_cgroup_get_local_stat+0x0/0x110
+  [<ffffffff81131d5b>] ? mem_control_stat_show+0x14b/0x330
+  [<ffffffff810a57fd>] ? cgroup_seqfile_show+0x3d/0x60
+
+Above shows CPU0 caught in css_tryget()'s inifinite loop because
+of bad refcnt.
+
+This is a fix to set mz=NULL at the top of retry path.
+
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Paul Menage <menage@google.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/sdio_cis.c |   65 +++++++++++++++++++++++++---------
- 1 file changed, 49 insertions(+), 16 deletions(-)
+ mm/memcontrol.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/mmc/core/sdio_cis.c~sdio-pass-whitelisted-cis-funce-tuples-to-sdio-drivers drivers/mmc/core/sdio_cis.c
---- a/drivers/mmc/core/sdio_cis.c~sdio-pass-whitelisted-cis-funce-tuples-to-sdio-drivers
-+++ a/drivers/mmc/core/sdio_cis.c
-@@ -98,6 +98,22 @@ static const unsigned char speed_val[16]
- static const unsigned int speed_unit[8] =
- 	{ 10000, 100000, 1000000, 10000000, 0, 0, 0, 0 };
- 
-+/* FUNCE tuples with these types get passed to SDIO drivers */
-+static const unsigned char funce_type_whitelist[] = {
-+	4 /* CISTPL_FUNCE_LAN_NODE_ID used in Broadcom cards */
-+};
-+
-+static int cistpl_funce_whitelisted(unsigned char type)
-+{
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(funce_type_whitelist); i++) {
-+		if (funce_type_whitelist[i] == type)
-+			return 1;
-+	}
-+	return 0;
-+}
-+
- static int cistpl_funce_common(struct mmc_card *card,
- 			       const unsigned char *buf, unsigned size)
+diff -puN mm/memcontrol.c~memcg-fix-refcnt-goes-to-minus mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-refcnt-goes-to-minus
++++ a/mm/memcontrol.c
+@@ -447,9 +447,10 @@ static struct mem_cgroup_per_zone *
+ __mem_cgroup_largest_soft_limit_node(struct mem_cgroup_tree_per_zone *mctz)
  {
-@@ -120,6 +136,10 @@ static int cistpl_funce_func(struct sdio
- 	unsigned vsn;
- 	unsigned min_size;
+ 	struct rb_node *rightmost = NULL;
+-	struct mem_cgroup_per_zone *mz = NULL;
++	struct mem_cgroup_per_zone *mz;
  
-+	/* let SDIO drivers take care of whitelisted FUNCE tuples */
-+	if (cistpl_funce_whitelisted(buf[0]))
-+		return -EILSEQ;
-+
- 	vsn = func->card->cccr.sdio_vsn;
- 	min_size = (vsn == SDIO_SDIO_REV_1_00) ? 28 : 42;
- 
-@@ -154,13 +174,12 @@ static int cistpl_funce(struct mmc_card 
- 	else
- 		ret = cistpl_funce_common(card, buf, size);
- 
--	if (ret) {
-+	if (ret && ret != -EILSEQ) {
- 		printk(KERN_ERR "%s: bad CISTPL_FUNCE size %u "
- 		       "type %u\n", mmc_hostname(card->host), size, buf[0]);
--		return ret;
- 	}
- 
--	return 0;
-+	return ret;
- }
- 
- typedef int (tpl_parse_t)(struct mmc_card *, struct sdio_func *,
-@@ -253,21 +272,12 @@ static int sdio_read_cis(struct mmc_card
- 		for (i = 0; i < ARRAY_SIZE(cis_tpl_list); i++)
- 			if (cis_tpl_list[i].code == tpl_code)
- 				break;
--		if (i >= ARRAY_SIZE(cis_tpl_list)) {
--			/* this tuple is unknown to the core */
--			this->next = NULL;
--			this->code = tpl_code;
--			this->size = tpl_link;
--			*prev = this;
--			prev = &this->next;
--			printk(KERN_DEBUG
--			       "%s: queuing CIS tuple 0x%02x length %u\n",
--			       mmc_hostname(card->host), tpl_code, tpl_link);
--		} else {
-+		if (i < ARRAY_SIZE(cis_tpl_list)) {
- 			const struct cis_tpl *tpl = cis_tpl_list + i;
- 			if (tpl_link < tpl->min_size) {
- 				printk(KERN_ERR
--				       "%s: bad CIS tuple 0x%02x (length = %u, expected >= %u)\n",
-+				       "%s: bad CIS tuple 0x%02x"
-+				       " (length = %u, expected >= %u)\n",
- 				       mmc_hostname(card->host),
- 				       tpl_code, tpl_link, tpl->min_size);
- 				ret = -EINVAL;
-@@ -275,7 +285,30 @@ static int sdio_read_cis(struct mmc_card
- 				ret = tpl->parse(card, func,
- 						 this->data, tpl_link);
- 			}
--			kfree(this);
-+			/*
-+			 * We don't need the tuple anymore if it was
-+			 * successfully parsed by the SDIO core or if it is
-+			 * not going to be parsed by SDIO drivers.
-+			 */
-+			if (!ret || ret != -EILSEQ)
-+				kfree(this);
-+		} else {
-+			/* unknown tuple */
-+			ret = -EILSEQ;
-+		}
-+
-+		if (ret == -EILSEQ) {
-+			/* this tuple is unknown to the core or whitelisted */
-+			this->next = NULL;
-+			this->code = tpl_code;
-+			this->size = tpl_link;
-+			*prev = this;
-+			prev = &this->next;
-+			printk(KERN_DEBUG
-+			       "%s: queuing CIS tuple 0x%02x length %u\n",
-+			       mmc_hostname(card->host), tpl_code, tpl_link);
-+			/* keep on analyzing tuples */
-+			ret = 0;
- 		}
- 
- 		ptr += tpl_link;
+ retry:
++	mz = NULL;
+ 	rightmost = rb_last(&mctz->rb_root);
+ 	if (!rightmost)
+ 		goto done;		/* Nothing to reclaim from */
 _
 
-Patches currently in -mm which might be from albert_herranz@yahoo.es are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
-sdio-recognize-io-card-without-powercycle.patch
 
