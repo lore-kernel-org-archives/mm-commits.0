@@ -1,97 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-input-inputc-fix-config_pm=n-warning.patch removed from -mm tree
-Date: Mon, 05 Oct 2009 11:37:58 -0700
-Message-ID: <200910051837.n95IbwKr015928@imap1.linux-foundation.org>
+Subject: [merged] s3cmci-use-resource_size-instead-of-local-macro.patch removed from -mm tree
+Date: Mon, 05 Oct 2009 11:38:44 -0700
+Message-ID: <200910051838.n95Icift017602@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46410 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34589 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754465AbZJESjJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Oct 2009 14:39:09 -0400
+	by vger.kernel.org with ESMTP id S1754587AbZJESj3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Oct 2009 14:39:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dtor@mail.ru, mm-commits@vger.kernel.org
+To: ben@simtec.co.uk, linux-mmc@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/input/input.c: fix CONFIG_PM=n warning
+     s3cmci: use resource_size() instead of local macro
 has been removed from the -mm tree.  Its filename was
-     drivers-input-inputc-fix-config_pm=n-warning.patch
+     s3cmci-use-resource_size-instead-of-local-macro.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/input/input.c: fix CONFIG_PM=n warning
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: s3cmci: use resource_size() instead of local macro
+From: Ben Dooks <ben@simtec.co.uk>
 
-drivers/input/input.c:1277: warning: 'input_dev_reset' defined but not used
+Replace the local definition RESSIZE() with the standard resource_size()
+call for getting the size of a struct resource.
 
-Acked-by: Dmitry Torokhov <dtor@mail.ru>
+Signed-off-by: Ben Dooks <ben@simtec.co.uk>
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/input.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/mmc/host/s3cmci.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN drivers/input/input.c~drivers-input-inputc-fix-config_pm=n-warning drivers/input/input.c
---- a/drivers/input/input.c~drivers-input-inputc-fix-config_pm=n-warning
-+++ a/drivers/input/input.c
-@@ -1273,6 +1273,7 @@ static int input_dev_uevent(struct devic
- 		}						\
+diff -puN drivers/mmc/host/s3cmci.c~s3cmci-use-resource_size-instead-of-local-macro drivers/mmc/host/s3cmci.c
+--- a/drivers/mmc/host/s3cmci.c~s3cmci-use-resource_size-instead-of-local-macro
++++ a/drivers/mmc/host/s3cmci.c
+@@ -58,8 +58,6 @@ static const int dbgmap_debug = dbg_err 
+ 		dev_dbg(&host->pdev->dev, args);  \
  	} while (0)
  
-+#ifdef CONFIG_PM
- static void input_dev_reset(struct input_dev *dev, bool activate)
- {
- 	if (!dev->event)
-@@ -1287,7 +1288,6 @@ static void input_dev_reset(struct input
+-#define RESSIZE(ressource) (((ressource)->end - (ressource)->start)+1)
+-
+ static struct s3c2410_dma_client s3cmci_dma_client = {
+ 	.name		= "s3c-mci",
+ };
+@@ -1298,7 +1296,7 @@ static int __devinit s3cmci_probe(struct
  	}
- }
  
--#ifdef CONFIG_PM
- static int input_dev_suspend(struct device *dev)
- {
- 	struct input_dev *input_dev = to_input_dev(dev);
+ 	host->mem = request_mem_region(host->mem->start,
+-				       RESSIZE(host->mem), pdev->name);
++				       resource_size(host->mem), pdev->name);
+ 
+ 	if (!host->mem) {
+ 		dev_err(&pdev->dev, "failed to request io memory region.\n");
+@@ -1306,7 +1304,7 @@ static int __devinit s3cmci_probe(struct
+ 		goto probe_free_host;
+ 	}
+ 
+-	host->base = ioremap(host->mem->start, RESSIZE(host->mem));
++	host->base = ioremap(host->mem->start, resource_size(host->mem));
+ 	if (!host->base) {
+ 		dev_err(&pdev->dev, "failed to ioremap() io memory region.\n");
+ 		ret = -EINVAL;
+@@ -1433,7 +1431,7 @@ static int __devinit s3cmci_probe(struct
+ 	iounmap(host->base);
+ 
+  probe_free_mem_region:
+-	release_mem_region(host->mem->start, RESSIZE(host->mem));
++	release_mem_region(host->mem->start, resource_size(host->mem));
+ 
+  probe_free_host:
+ 	mmc_free_host(mmc);
+@@ -1469,7 +1467,7 @@ static int __devexit s3cmci_remove(struc
+ 	free_irq(host->irq, host);
+ 
+ 	iounmap(host->base);
+-	release_mem_region(host->mem->start, RESSIZE(host->mem));
++	release_mem_region(host->mem->start, resource_size(host->mem));
+ 
+ 	mmc_free_host(mmc);
+ 	return 0;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ben@simtec.co.uk are
 
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices-fix.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-input-drivers-input-xpadc-improve-xbox-360-wireless-support-and-add-sysfs-interface.patch
-input-documentation-input-xpadtxt-update-for-new-driver-functionality.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-st-fix-test-of-value-range-in-st_set_options.patch
-sparc32-convert-to-asm-generic-hardirqh.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
-vfs-implement-posix-o_sync-and-o_dsync-semantics-checkpatch-fixes.patch
-readahead-add-blk_run_backing_dev.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
 gpiolib-add-names-file-in-gpio-chip-sysfs.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-reiser4-disable.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
 
