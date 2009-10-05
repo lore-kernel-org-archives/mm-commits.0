@@ -1,101 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: [merged] s3cmci-change-to-use-dev_pm_ops.patch removed from -mm tree
-Date: Mon, 05 Oct 2009 11:38:53 -0700
-Message-ID: <200910051838.n95IcrrK017948@imap1.linux-foundation.org>
+Subject: [merged] memcg-reduce-check-for-softlimit-excess.patch removed from -mm tree
+Date: Mon, 05 Oct 2009 11:38:41 -0700
+Message-ID: <200910051838.n95Icf4R017542@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35593 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50276 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754615AbZJESjd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Oct 2009 14:39:33 -0400
+	by vger.kernel.org with ESMTP id S1754586AbZJESje (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Oct 2009 14:39:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ben@simtec.co.uk, linux-mmc@vger.kernel.org, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, lizf@cn.fujitsu.com, menage@google.com, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     s3cmci: change to use dev_pm_ops
+     memcg: reduce check for softlimit excess
 has been removed from the -mm tree.  Its filename was
-     s3cmci-change-to-use-dev_pm_ops.patch
+     memcg-reduce-check-for-softlimit-excess.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: s3cmci: change to use dev_pm_ops
-From: Ben Dooks <ben@simtec.co.uk>
+Subject: memcg: reduce check for softlimit excess
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Move to using dev_pm_ops for suspend and resume.
+In charge/uncharge/reclaim path, usage_in_excess is calculated repeatedly
+and it takes res_counter's spin_lock every time.
 
-Signed-off-by: Ben Dooks <ben@simtec.co.uk>
-Cc: <linux-mmc@vger.kernel.org>
+This patch removes unnecessary calls for res_count_soft_limit_excess.
+
+Reviewed-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Paul Menage <menage@google.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/s3cmci.c |   29 ++++++++++++++++++-----------
- 1 file changed, 18 insertions(+), 11 deletions(-)
+ mm/memcontrol.c |   31 +++++++++++++++----------------
+ 1 file changed, 15 insertions(+), 16 deletions(-)
 
-diff -puN drivers/mmc/host/s3cmci.c~s3cmci-change-to-use-dev_pm_ops drivers/mmc/host/s3cmci.c
---- a/drivers/mmc/host/s3cmci.c~s3cmci-change-to-use-dev_pm_ops
-+++ a/drivers/mmc/host/s3cmci.c
-@@ -1546,35 +1546,42 @@ MODULE_DEVICE_TABLE(platform, s3cmci_dri
- 
- #ifdef CONFIG_PM
- 
--static int s3cmci_suspend(struct platform_device *dev, pm_message_t state)
-+static int s3cmci_suspend(struct device *dev)
+diff -puN mm/memcontrol.c~memcg-reduce-check-for-softlimit-excess mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-reduce-check-for-softlimit-excess
++++ a/mm/memcontrol.c
+@@ -313,7 +313,8 @@ soft_limit_tree_from_page(struct page *p
+ static void
+ __mem_cgroup_insert_exceeded(struct mem_cgroup *mem,
+ 				struct mem_cgroup_per_zone *mz,
+-				struct mem_cgroup_tree_per_zone *mctz)
++				struct mem_cgroup_tree_per_zone *mctz,
++				unsigned long long new_usage_in_excess)
  {
--	struct mmc_host *mmc = platform_get_drvdata(dev);
-+	struct mmc_host *mmc = platform_get_drvdata(to_platform_device(dev));
-+	struct pm_message event = { PM_EVENT_SUSPEND };
+ 	struct rb_node **p = &mctz->rb_root.rb_node;
+ 	struct rb_node *parent = NULL;
+@@ -322,7 +323,9 @@ __mem_cgroup_insert_exceeded(struct mem_
+ 	if (mz->on_tree)
+ 		return;
  
--	return  mmc_suspend_host(mmc, state);
-+	return mmc_suspend_host(mmc, event);
- }
+-	mz->usage_in_excess = res_counter_soft_limit_excess(&mem->res);
++	mz->usage_in_excess = new_usage_in_excess;
++	if (!mz->usage_in_excess)
++		return;
+ 	while (*p) {
+ 		parent = *p;
+ 		mz_node = rb_entry(parent, struct mem_cgroup_per_zone,
+@@ -382,7 +385,7 @@ static bool mem_cgroup_soft_limit_check(
  
--static int s3cmci_resume(struct platform_device *dev)
-+static int s3cmci_resume(struct device *dev)
+ static void mem_cgroup_update_tree(struct mem_cgroup *mem, struct page *page)
  {
--	struct mmc_host *mmc = platform_get_drvdata(dev);
-+	struct mmc_host *mmc = platform_get_drvdata(to_platform_device(dev));
+-	unsigned long long new_usage_in_excess;
++	unsigned long long excess;
+ 	struct mem_cgroup_per_zone *mz;
+ 	struct mem_cgroup_tree_per_zone *mctz;
+ 	int nid = page_to_nid(page);
+@@ -395,25 +398,21 @@ static void mem_cgroup_update_tree(struc
+ 	 */
+ 	for (; mem; mem = parent_mem_cgroup(mem)) {
+ 		mz = mem_cgroup_zoneinfo(mem, nid, zid);
+-		new_usage_in_excess =
+-			res_counter_soft_limit_excess(&mem->res);
++		excess = res_counter_soft_limit_excess(&mem->res);
+ 		/*
+ 		 * We have to update the tree if mz is on RB-tree or
+ 		 * mem is over its softlimit.
+ 		 */
+-		if (new_usage_in_excess || mz->on_tree) {
++		if (excess || mz->on_tree) {
+ 			spin_lock(&mctz->lock);
+ 			/* if on-tree, remove it */
+ 			if (mz->on_tree)
+ 				__mem_cgroup_remove_exceeded(mem, mz, mctz);
+ 			/*
+-			 * if over soft limit, insert again. mz->usage_in_excess
+-			 * will be updated properly.
++			 * Insert again. mz->usage_in_excess will be updated.
++			 * If excess is 0, no tree ops.
+ 			 */
+-			if (new_usage_in_excess)
+-				__mem_cgroup_insert_exceeded(mem, mz, mctz);
+-			else
+-				mz->usage_in_excess = 0;
++			__mem_cgroup_insert_exceeded(mem, mz, mctz, excess);
+ 			spin_unlock(&mctz->lock);
+ 		}
+ 	}
+@@ -2221,6 +2220,7 @@ unsigned long mem_cgroup_soft_limit_recl
+ 	unsigned long reclaimed;
+ 	int loop = 0;
+ 	struct mem_cgroup_tree_per_zone *mctz;
++	unsigned long long excess;
  
- 	return mmc_resume_host(mmc);
- }
- 
-+static struct dev_pm_ops s3cmci_pm = {
-+	.suspend	= s3cmci_suspend,
-+	.resume		= s3cmci_resume,
-+};
-+
-+#define s3cmci_pm_ops &s3cmci_pm
- #else /* CONFIG_PM */
--#define s3cmci_suspend NULL
--#define s3cmci_resume NULL
-+#define s3cmci_pm_ops NULL
- #endif /* CONFIG_PM */
- 
- 
- static struct platform_driver s3cmci_driver = {
--	.driver.name	= "s3c-sdi",
--	.driver.owner	= THIS_MODULE,
-+	.driver	= {
-+		.name	= "s3c-sdi",
-+		.owner	= THIS_MODULE,
-+		.pm	= s3cmci_pm_ops,
-+	},
- 	.id_table	= s3cmci_driver_ids,
- 	.probe		= s3cmci_probe,
- 	.remove		= __devexit_p(s3cmci_remove),
- 	.shutdown	= s3cmci_shutdown,
--	.suspend	= s3cmci_suspend,
--	.resume		= s3cmci_resume,
- };
- 
- static int __init s3cmci_init(void)
+ 	if (order > 0)
+ 		return 0;
+@@ -2272,9 +2272,8 @@ unsigned long mem_cgroup_soft_limit_recl
+ 					break;
+ 			} while (1);
+ 		}
+-		mz->usage_in_excess =
+-			res_counter_soft_limit_excess(&mz->mem->res);
+ 		__mem_cgroup_remove_exceeded(mz->mem, mz, mctz);
++		excess = res_counter_soft_limit_excess(&mz->mem->res);
+ 		/*
+ 		 * One school of thought says that we should not add
+ 		 * back the node to the tree if reclaim returns 0.
+@@ -2283,8 +2282,8 @@ unsigned long mem_cgroup_soft_limit_recl
+ 		 * memory to reclaim from. Consider this as a longer
+ 		 * term TODO.
+ 		 */
+-		if (mz->usage_in_excess)
+-			__mem_cgroup_insert_exceeded(mz->mem, mz, mctz);
++		/* If excess == 0, no tree ops */
++		__mem_cgroup_insert_exceeded(mz->mem, mz, mctz, excess);
+ 		spin_unlock(&mctz->lock);
+ 		css_put(&mz->mem->css);
+ 		loop++;
 _
 
-Patches currently in -mm which might be from ben@simtec.co.uk are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
-gpiolib-add-names-file-in-gpio-chip-sysfs.patch
 
