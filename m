@@ -1,197 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [merged] serial_txx9-use-container_of-instead-of-direct-cast.patch removed from -mm tree
-Date: Mon, 05 Oct 2009 11:39:14 -0700
-Message-ID: <200910051839.n95IdEc0018665@imap1.linux-foundation.org>
+Subject: [merged] afs-remove-cacheh.patch removed from -mm tree
+Date: Mon, 05 Oct 2009 11:39:32 -0700
+Message-ID: <200910051839.n95IdWvc019350@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57837 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59833 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754735AbZJESkP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Oct 2009 14:40:15 -0400
+	by vger.kernel.org with ESMTP id S1754319AbZJESk1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Oct 2009 14:40:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anemo@mba.ocn.ne.jp, alan@lxorguk.ukuu.org.uk, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: hch@lst.de, dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     serial_txx9: use container_of() instead of direct cast
+     afs: remove cache.h
 has been removed from the -mm tree.  Its filename was
-     serial_txx9-use-container_of-instead-of-direct-cast.patch
+     afs-remove-cacheh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial_txx9: use container_of() instead of direct cast
-From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Subject: afs: remove cache.h
+From: Christoph Hellwig <hch@lst.de>
 
-Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+It's just a wrapper for <linux/fscache.h>, so remove it.
+
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/serial_txx9.c |   39 ++++++++++++++++++---------------
- 1 file changed, 22 insertions(+), 17 deletions(-)
+ fs/afs/cache.h    |   12 ------------
+ fs/afs/internal.h |    2 +-
+ 2 files changed, 1 insertion(+), 13 deletions(-)
 
-diff -puN drivers/serial/serial_txx9.c~serial_txx9-use-container_of-instead-of-direct-cast drivers/serial/serial_txx9.c
---- a/drivers/serial/serial_txx9.c~serial_txx9-use-container_of-instead-of-direct-cast
-+++ a/drivers/serial/serial_txx9.c
-@@ -221,21 +221,26 @@ sio_quot_set(struct uart_txx9_port *up, 
- 		sio_out(up, TXX9_SIBGR, 0xff | TXX9_SIBGR_BCLK_T6);
- }
+diff -puN fs/afs/cache.h~afs-remove-cacheh /dev/null
+--- a/fs/afs/cache.h
++++ /dev/null
+@@ -1,12 +0,0 @@
+-/* AFS local cache management interface
+- *
+- * Copyright (C) 2008 Red Hat, Inc. All Rights Reserved.
+- * Written by David Howells (dhowells@redhat.com)
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License
+- * as published by the Free Software Foundation; either version
+- * 2 of the License, or (at your option) any later version.
+- */
+-
+-#include <linux/fscache.h>
+diff -puN fs/afs/internal.h~afs-remove-cacheh fs/afs/internal.h
+--- a/fs/afs/internal.h~afs-remove-cacheh
++++ a/fs/afs/internal.h
+@@ -18,10 +18,10 @@
+ #include <linux/key.h>
+ #include <linux/workqueue.h>
+ #include <linux/sched.h>
++#include <linux/fscache.h>
  
-+static struct uart_txx9_port *to_uart_txx9_port(struct uart_port *port)
-+{
-+	return container_of(port, struct uart_txx9_port, port);
-+}
-+
- static void serial_txx9_stop_tx(struct uart_port *port)
- {
--	struct uart_txx9_port *up = (struct uart_txx9_port *)port;
-+	struct uart_txx9_port *up = to_uart_txx9_port(port);
- 	sio_mask(up, TXX9_SIDICR, TXX9_SIDICR_TIE);
- }
+ #include "afs.h"
+ #include "afs_vl.h"
+-#include "cache.h"
  
- static void serial_txx9_start_tx(struct uart_port *port)
- {
--	struct uart_txx9_port *up = (struct uart_txx9_port *)port;
-+	struct uart_txx9_port *up = to_uart_txx9_port(port);
- 	sio_set(up, TXX9_SIDICR, TXX9_SIDICR_TIE);
- }
+ #define AFS_CELL_MAX_ADDRS 15
  
- static void serial_txx9_stop_rx(struct uart_port *port)
- {
--	struct uart_txx9_port *up = (struct uart_txx9_port *)port;
-+	struct uart_txx9_port *up = to_uart_txx9_port(port);
- 	up->port.read_status_mask &= ~TXX9_SIDISR_RDIS;
- }
- 
-@@ -246,7 +251,7 @@ static void serial_txx9_enable_ms(struct
- 
- static void serial_txx9_initialize(struct uart_port *port)
- {
--	struct uart_txx9_port *up = (struct uart_txx9_port *)port;
-+	struct uart_txx9_port *up = to_uart_txx9_port(port);
- 	unsigned int tmout = 10000;
- 
- 	sio_out(up, TXX9_SIFCR, TXX9_SIFCR_SWRST);
-@@ -414,7 +419,7 @@ static irqreturn_t serial_txx9_interrupt
- 
- static unsigned int serial_txx9_tx_empty(struct uart_port *port)
- {
--	struct uart_txx9_port *up = (struct uart_txx9_port *)port;
-+	struct uart_txx9_port *up = to_uart_txx9_port(port);
- 	unsigned long flags;
- 	unsigned int ret;
- 
-@@ -427,7 +432,7 @@ static unsigned int serial_txx9_tx_empty
- 
- static unsigned int serial_txx9_get_mctrl(struct uart_port *port)
- {
--	struct uart_txx9_port *up = (struct uart_txx9_port *)port;
-+	struct uart_txx9_port *up = to_uart_txx9_port(port);
- 	unsigned int ret;
- 
- 	/* no modem control lines */
-@@ -440,7 +445,7 @@ static unsigned int serial_txx9_get_mctr
- 
- static void serial_txx9_set_mctrl(struct uart_port *port, unsigned int mctrl)
- {
--	struct uart_txx9_port *up = (struct uart_txx9_port *)port;
-+	struct uart_txx9_port *up = to_uart_txx9_port(port);
- 
- 	if (mctrl & TIOCM_RTS)
- 		sio_mask(up, TXX9_SIFLCR, TXX9_SIFLCR_RTSSC);
-@@ -450,7 +455,7 @@ static void serial_txx9_set_mctrl(struct
- 
- static void serial_txx9_break_ctl(struct uart_port *port, int break_state)
- {
--	struct uart_txx9_port *up = (struct uart_txx9_port *)port;
-+	struct uart_txx9_port *up = to_uart_txx9_port(port);
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&up->port.lock, flags);
-@@ -494,7 +499,7 @@ static int serial_txx9_get_poll_char(str
- {
- 	unsigned int ier;
- 	unsigned char c;
--	struct uart_txx9_port *up = (struct uart_txx9_port *)port;
-+	struct uart_txx9_port *up = to_uart_txx9_port(port);
- 
- 	/*
- 	 *	First save the IER then disable the interrupts
-@@ -520,7 +525,7 @@ static int serial_txx9_get_poll_char(str
- static void serial_txx9_put_poll_char(struct uart_port *port, unsigned char c)
- {
- 	unsigned int ier;
--	struct uart_txx9_port *up = (struct uart_txx9_port *)port;
-+	struct uart_txx9_port *up = to_uart_txx9_port(port);
- 
- 	/*
- 	 *	First save the IER then disable the interrupts
-@@ -551,7 +556,7 @@ static void serial_txx9_put_poll_char(st
- 
- static int serial_txx9_startup(struct uart_port *port)
- {
--	struct uart_txx9_port *up = (struct uart_txx9_port *)port;
-+	struct uart_txx9_port *up = to_uart_txx9_port(port);
- 	unsigned long flags;
- 	int retval;
- 
-@@ -596,7 +601,7 @@ static int serial_txx9_startup(struct ua
- 
- static void serial_txx9_shutdown(struct uart_port *port)
- {
--	struct uart_txx9_port *up = (struct uart_txx9_port *)port;
-+	struct uart_txx9_port *up = to_uart_txx9_port(port);
- 	unsigned long flags;
- 
- 	/*
-@@ -636,7 +641,7 @@ static void
- serial_txx9_set_termios(struct uart_port *port, struct ktermios *termios,
- 		       struct ktermios *old)
- {
--	struct uart_txx9_port *up = (struct uart_txx9_port *)port;
-+	struct uart_txx9_port *up = to_uart_txx9_port(port);
- 	unsigned int cval, fcr = 0;
- 	unsigned long flags;
- 	unsigned int baud, quot;
-@@ -814,19 +819,19 @@ static void serial_txx9_release_resource
- 
- static void serial_txx9_release_port(struct uart_port *port)
- {
--	struct uart_txx9_port *up = (struct uart_txx9_port *)port;
-+	struct uart_txx9_port *up = to_uart_txx9_port(port);
- 	serial_txx9_release_resource(up);
- }
- 
- static int serial_txx9_request_port(struct uart_port *port)
- {
--	struct uart_txx9_port *up = (struct uart_txx9_port *)port;
-+	struct uart_txx9_port *up = to_uart_txx9_port(port);
- 	return serial_txx9_request_resource(up);
- }
- 
- static void serial_txx9_config_port(struct uart_port *port, int uflags)
- {
--	struct uart_txx9_port *up = (struct uart_txx9_port *)port;
-+	struct uart_txx9_port *up = to_uart_txx9_port(port);
- 	int ret;
- 
- 	/*
-@@ -897,7 +902,7 @@ static void __init serial_txx9_register_
- 
- static void serial_txx9_console_putchar(struct uart_port *port, int ch)
- {
--	struct uart_txx9_port *up = (struct uart_txx9_port *)port;
-+	struct uart_txx9_port *up = to_uart_txx9_port(port);
- 
- 	wait_for_xmitr(up);
- 	sio_out(up, TXX9_SITFIFO, ch);
 _
 
-Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
+Patches currently in -mm which might be from hch@lst.de are
 
+linux-next.patch
+avr32-convert-to-asm-generic-hardirqh.patch
+sparc32-convert-to-asm-generic-hardirqh.patch
+vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
+fs-remove-unneeded-dcache_unhashed-tricks.patch
+xtensa-convert-to-asm-generic-hardirqh.patch
+vfs-implement-posix-o_sync-and-o_dsync-semantics.patch
+elf-kill-use_elf_core_dump.patch
 
