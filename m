@@ -1,23 +1,26 @@
 From: akpm@linux-foundation.org
-Subject: + mmc-sdio-dont-require-cistpl_vers_1-to-contain-4-strings.patch added to -mm tree
-Date: Tue, 06 Oct 2009 14:43:10 -0700
-Message-ID: <200910062143.n96LhAn7020840@imap1.linux-foundation.org>
+Subject: + lis3lv02d-i2c-support.patch added to -mm tree
+Date: Tue, 06 Oct 2009 14:35:12 -0700
+Message-ID: <200910062135.n96LZCNo004466@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53686 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37895 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933339AbZJFVoa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Oct 2009 17:44:30 -0400
+	by vger.kernel.org with ESMTP id S933256AbZJFViK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Oct 2009 17:38:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david.vrabel@csr.com, jic23@cam.ac.uk, linux-mmc@vger.kernel.org, roel.kluin@gmail.com
+Cc: samu.p.onkalo@nokia.com, eric.piel@tremplin-utc.net, khali@linux-fr.org, pavel@ucw.cz
 
 
 The patch titled
-     mmc: sdio: don't require CISTPL_VERS_1 to contain 4 strings
+     lis3lv02d: I2C support
 has been added to the -mm tree.  Its filename is
-     mmc-sdio-dont-require-cistpl_vers_1-to-contain-4-strings.patch
+     lis3lv02d-i2c-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -25,44 +28,280 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: mmc: sdio: don't require CISTPL_VERS_1 to contain 4 strings
-From: David Vrabel <david.vrabel@csr.com>
+Subject: lis3lv02d: I2C support
+=46rom: Samu Onkalo <samu.p.onkalo@nokia.com>
 
-The PC Card 8.0 specification (vol.  4, section 3.2.10) says the
-TPLLV1_INFO field of the CISTPL_VERS_1 tuple must contain 4 strings.  Some
-cards don't have all 4 so just parse as many as we can.
+I2C bus support for lis3lv02d and variant accelerometer chips
 
-Signed-off-by: David Vrabel <david.vrabel@csr.com>
-Tested-by: Jonathan Cameron <jic23@cam.ac.uk>
-Cc: Roel Kluin <roel.kluin@gmail.com>
-Cc: <linux-mmc@vger.kernel.org>
+Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
+Acked-by: =C9ric Piel <eric.piel@tremplin-utc.net>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/sdio_cis.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/hwmon/Kconfig         |   17 ++
+ drivers/hwmon/Makefile        |    1=20
+ drivers/hwmon/lis3lv02d_i2c.c |  184 ++++++++++++++++++++++++++++++++
+ 3 files changed, 202 insertions(+)
 
-diff -puN drivers/mmc/core/sdio_cis.c~mmc-sdio-dont-require-cistpl_vers_1-to-contain-4-strings drivers/mmc/core/sdio_cis.c
---- a/drivers/mmc/core/sdio_cis.c~mmc-sdio-dont-require-cistpl_vers_1-to-contain-4-strings
-+++ a/drivers/mmc/core/sdio_cis.c
-@@ -29,6 +29,8 @@ static int cistpl_vers_1(struct mmc_card
- 	unsigned i, nr_strings;
- 	char **buffer, *string;
- 
-+	/* Find all null-terminated (including zero length) strings in
-+	   the TPLLV1_INFO field. Trailing garbage is ignored. */
- 	buf += 2;
- 	size -= 2;
- 
-@@ -39,9 +41,7 @@ static int cistpl_vers_1(struct mmc_card
- 		if (buf[i] == 0)
- 			nr_strings++;
- 	}
+diff -puN drivers/hwmon/Kconfig~lis3lv02d-i2c-support drivers/hwmon/Kco=
+nfig
+--- a/drivers/hwmon/Kconfig~lis3lv02d-i2c-support
++++ a/drivers/hwmon/Kconfig
+@@ -993,6 +993,23 @@ config SENSORS_LIS3_SPI
+ 	  will be called lis3lv02d and a specific module for the SPI transpor=
+t
+ 	  is called lis3lv02d_spi.
+=20
++config SENSORS_LIS3_I2C
++	tristate "STMicroeletronics LIS3LV02Dx three-axis digital acceleromet=
+er (I2C)"
++	depends on I2C && INPUT
++	select INPUT_POLLDEV
++	default n
++	help
++	  This driver provides support for the LIS3LV02Dx accelerometer conne=
+cted
++	  via I2C. The accelerometer data is readable via
++	  /sys/devices/platform/lis3lv02d.
++
++	  This driver also provides an absolute input class device, allowing
++	  the device to act as a pinball machine-esque joystick.
++
++	  This driver can also be built as modules.  If so, the core module
++	  will be called lis3lv02d and a specific module for the I2C transpor=
+t
++	  is called lis3lv02d_i2c.
++
+ config SENSORS_APPLESMC
+ 	tristate "Apple SMC (Motion sensor, light sensor, keyboard backlight)=
+"
+ 	depends on INPUT && X86
+diff -puN drivers/hwmon/Makefile~lis3lv02d-i2c-support drivers/hwmon/Ma=
+kefile
+--- a/drivers/hwmon/Makefile~lis3lv02d-i2c-support
++++ a/drivers/hwmon/Makefile
+@@ -55,6 +55,7 @@ obj-$(CONFIG_SENSORS_IT87)	+=3D it87.o
+ obj-$(CONFIG_SENSORS_K8TEMP)	+=3D k8temp.o
+ obj-$(CONFIG_SENSORS_LIS3LV02D) +=3D lis3lv02d.o hp_accel.o
+ obj-$(CONFIG_SENSORS_LIS3_SPI)	+=3D lis3lv02d.o lis3lv02d_spi.o
++obj-$(CONFIG_SENSORS_LIS3_I2C)	+=3D lis3lv02d.o lis3lv02d_i2c.o
+ obj-$(CONFIG_SENSORS_LM63)	+=3D lm63.o
+ obj-$(CONFIG_SENSORS_LM70)	+=3D lm70.o
+ obj-$(CONFIG_SENSORS_LM75)	+=3D lm75.o
+diff -puN /dev/null drivers/hwmon/lis3lv02d_i2c.c
+--- /dev/null
++++ a/drivers/hwmon/lis3lv02d_i2c.c
+@@ -0,0 +1,184 @@
++/*
++ * drivers/hwmon/lis3lv02d_i2c.c
++ *
++ * Implements I2C interface for lis3lv02d (STMicroelectronics) acceler=
+ometer.
++ * Driver is based on corresponding SPI driver written by Daniel Mack
++ * (lis3lv02d_spi.c (C) 2009 Daniel Mack <daniel@caiaq.de> ).
++ *
++ * Copyright (C) 2009 Nokia Corporation and/or its subsidiary(-ies).
++ *
++ * Contact: Samu Onkalo <samu.p.onkalo@nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ */
++
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/err.h>
++#include <linux/i2c.h>
++#include "lis3lv02d.h"
++
++#define DRV_NAME 	"lis3lv02d_i2c"
++
++static inline s32 lis3_i2c_write(struct lis3lv02d *lis3, int reg, u8 v=
+alue)
++{
++	struct i2c_client *c =3D lis3->bus_priv;
++	return i2c_smbus_write_byte_data(c, reg, value);
++}
++
++static inline s32 lis3_i2c_read(struct lis3lv02d *lis3, int reg, u8 *v=
+)
++{
++	struct i2c_client *c =3D lis3->bus_priv;
++	*v =3D i2c_smbus_read_byte_data(c, reg);
++	return 0;
++}
++
++static int lis3_i2c_init(struct lis3lv02d *lis3)
++{
++	u8 reg;
++	int ret;
++
++	/* power up the device */
++	ret =3D lis3->read(lis3, CTRL_REG1, &reg);
++	if (ret < 0)
++		return ret;
++
++	reg |=3D CTRL1_PD0;
++	return lis3->write(lis3, CTRL_REG1, reg);
++}
++
++/* Default axis mapping but it can be overwritten by platform data */
++static struct axis_conversion lis3lv02d_axis_map =3D { LIS3_DEV_X,
++						     LIS3_DEV_Y,
++						     LIS3_DEV_Z };
++
++static int __devinit lis3lv02d_i2c_probe(struct i2c_client *client,
++					const struct i2c_device_id *id)
++{
++	int ret =3D 0;
++	struct lis3lv02d_platform_data *pdata =3D client->dev.platform_data;
++
++	if (pdata) {
++		if (pdata->axis_x)
++			lis3lv02d_axis_map.x =3D pdata->axis_x;
++
++		if (pdata->axis_y)
++			lis3lv02d_axis_map.y =3D pdata->axis_y;
++
++		if (pdata->axis_z)
++			lis3lv02d_axis_map.z =3D pdata->axis_z;
++
++		if (pdata->setup_resources)
++			ret =3D pdata->setup_resources();
++
++		if (ret)
++			goto fail;
++	}
++
++	lis3_dev.pdata	  =3D pdata;
++	lis3_dev.bus_priv =3D client;
++	lis3_dev.init	  =3D lis3_i2c_init;
++	lis3_dev.read	  =3D lis3_i2c_read;
++	lis3_dev.write	  =3D lis3_i2c_write;
++	lis3_dev.irq	  =3D client->irq;
++	lis3_dev.ac	  =3D lis3lv02d_axis_map;
++
++	i2c_set_clientdata(client, &lis3_dev);
++	ret =3D lis3lv02d_init_device(&lis3_dev);
++fail:
++	return ret;
++}
++
++static int __devexit lis3lv02d_i2c_remove(struct i2c_client *client)
++{
++	struct lis3lv02d *lis3 =3D i2c_get_clientdata(client);
++	struct lis3lv02d_platform_data *pdata =3D client->dev.platform_data;
++
++	if (pdata && pdata->release_resources)
++		pdata->release_resources();
++
++	lis3lv02d_joystick_disable();
++	lis3lv02d_poweroff(lis3);
++
++	return lis3lv02d_remove_fs(&lis3_dev);
++}
++
++#ifdef CONFIG_PM
++static int lis3lv02d_i2c_suspend(struct i2c_client *client, pm_message=
+_t mesg)
++{
++	struct lis3lv02d *lis3 =3D i2c_get_clientdata(client);
++
++	if (!lis3->pdata->wakeup_flags)
++		lis3lv02d_poweroff(lis3);
++	return 0;
++}
++
++static int lis3lv02d_i2c_resume(struct i2c_client *client)
++{
++	struct lis3lv02d *lis3 =3D i2c_get_clientdata(client);
++
++	if (!lis3->pdata->wakeup_flags)
++		lis3lv02d_poweron(lis3);
++	return 0;
++}
++
++static void lis3lv02d_i2c_shutdown(struct i2c_client *client)
++{
++	lis3lv02d_i2c_suspend(client, PMSG_SUSPEND);
++}
++#else
++#define lis3lv02d_i2c_suspend	NULL
++#define lis3lv02d_i2c_resume	NULL
++#define lis3lv02d_i2c_shutdown	NULL
++#endif
++
++static const struct i2c_device_id lis3lv02d_id[] =3D {
++	{"lis3lv02d", 0 },
++	{}
++};
++
++MODULE_DEVICE_TABLE(i2c, lis3lv02d_id);
++
++static struct i2c_driver lis3lv02d_i2c_driver =3D {
++	.driver	 =3D {
++		.name   =3D DRV_NAME,
++		.owner  =3D THIS_MODULE,
++	},
++	.suspend =3D lis3lv02d_i2c_suspend,
++	.shutdown =3D lis3lv02d_i2c_shutdown,
++	.resume =3D lis3lv02d_i2c_resume,
++	.probe	=3D lis3lv02d_i2c_probe,
++	.remove	=3D __devexit_p(lis3lv02d_i2c_remove),
++	.id_table =3D lis3lv02d_id,
++};
++
++static int __init lis3lv02d_init(void)
++{
++	return i2c_add_driver(&lis3lv02d_i2c_driver);
++}
++
++static void __exit lis3lv02d_exit(void)
++{
++	i2c_del_driver(&lis3lv02d_i2c_driver);
++}
++
++MODULE_AUTHOR("Nokia Corporation");
++MODULE_DESCRIPTION("lis3lv02d I2C interface");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("i2c:" DRV_NAME);
++
++module_init(lis3lv02d_init);
++module_exit(lis3lv02d_exit);
+_
+
+Patches currently in -mm which might be from samu.p.onkalo@nokia.com ar=
+e
+
+lis3lv02d-axis-remap-and-resource-setup-release.patch
+lis3lv02d-i2c-support.patch
+
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
