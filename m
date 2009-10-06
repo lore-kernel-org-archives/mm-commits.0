@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + autofs4-renamer-unhashed-to-active-in-autofs4_lookup.patch added to -mm tree
-Date: Tue, 06 Oct 2009 13:50:31 -0700
-Message-ID: <200910062050.n96KoVZu009707@imap1.linux-foundation.org>
+Subject: + autofs4-use-helper-functions-for-expiring-list.patch added to -mm tree
+Date: Tue, 06 Oct 2009 13:50:25 -0700
+Message-ID: <200910062050.n96KoPAB009451@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48015 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44971 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933304AbZJFUvh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Oct 2009 16:51:37 -0400
+	by vger.kernel.org with ESMTP id S933338AbZJFUvd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Oct 2009 16:51:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: raven@themaw.net, adilger@sun.com, hch@infradead.org, sage@newdream.net, vir
 
 
 The patch titled
-     autofs4: renamer unhashed to active in autofs4_lookup()
+     autofs4: use helper functions for expiring list
 has been added to the -mm tree.  Its filename is
-     autofs4-renamer-unhashed-to-active-in-autofs4_lookup.patch
+     autofs4-use-helper-functions-for-expiring-list.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,11 +33,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: autofs4: renamer unhashed to active in autofs4_lookup()
+Subject: autofs4: use helper functions for expiring list
 From: Ian Kent <raven@themaw.net>
 
-Rename the variable unhashed to active in autofs4_lookup() to better
-reflect its usage.
+Define some simple helper functions for adding and deleting entries on the
+expiring dentry list.
 
 Signed-off-by: Ian Kent <raven@themaw.net>
 Cc: Sage Weil <sage@newdream.net>
@@ -48,64 +48,84 @@ Cc: Yehuda Saheh <yehuda@newdream.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/root.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ fs/autofs4/autofs_i.h |   26 ++++++++++++++++++++++++++
+ fs/autofs4/root.c     |   15 +++------------
+ 2 files changed, 29 insertions(+), 12 deletions(-)
 
-diff -puN fs/autofs4/root.c~autofs4-renamer-unhashed-to-active-in-autofs4_lookup fs/autofs4/root.c
---- a/fs/autofs4/root.c~autofs4-renamer-unhashed-to-active-in-autofs4_lookup
-+++ a/fs/autofs4/root.c
-@@ -514,7 +514,7 @@ static struct dentry *autofs4_lookup(str
- {
- 	struct autofs_sb_info *sbi;
- 	struct autofs_info *ino;
--	struct dentry *expiring, *unhashed;
-+	struct dentry *expiring, *active;
- 	int oz_mode;
- 
- 	DPRINTK("name = %.*s",
-@@ -530,9 +530,9 @@ static struct dentry *autofs4_lookup(str
- 	DPRINTK("pid = %u, pgrp = %u, catatonic = %d, oz_mode = %d",
- 		 current->pid, task_pgrp_nr(current), sbi->catatonic, oz_mode);
- 
--	unhashed = autofs4_lookup_active(sbi, dentry->d_parent, &dentry->d_name);
--	if (unhashed) {
--		dentry = unhashed;
-+	active = autofs4_lookup_active(sbi, dentry->d_parent, &dentry->d_name);
-+	if (active) {
-+		dentry = active;
- 		ino = autofs4_dentry_ino(dentry);
- 	} else {
- 		/*
-@@ -600,8 +600,8 @@ static struct dentry *autofs4_lookup(str
- 			if (sigismember (sigset, SIGKILL) ||
- 			    sigismember (sigset, SIGQUIT) ||
- 			    sigismember (sigset, SIGINT)) {
--			    if (unhashed)
--				dput(unhashed);
-+			    if (active)
-+				dput(active);
- 			    return ERR_PTR(-ERESTARTNOINTR);
- 			}
- 		}
-@@ -633,14 +633,14 @@ static struct dentry *autofs4_lookup(str
- 		else
- 			dentry = ERR_PTR(-ENOENT);
- 
--		if (unhashed)
--			dput(unhashed);
-+		if (active)
-+			dput(active);
- 
- 		return dentry;
- 	}
- 
--	if (unhashed)
--		return unhashed;
-+	if (active)
-+		return active;
- 
- 	return NULL;
+diff -puN fs/autofs4/autofs_i.h~autofs4-use-helper-functions-for-expiring-list fs/autofs4/autofs_i.h
+--- a/fs/autofs4/autofs_i.h~autofs4-use-helper-functions-for-expiring-list
++++ a/fs/autofs4/autofs_i.h
+@@ -266,5 +266,31 @@ out:
+ 	return ret;
  }
+ 
++static inline void autofs4_add_expiring(struct dentry *dentry)
++{
++	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
++	struct autofs_info *ino = autofs4_dentry_ino(dentry);
++	if (ino) {
++		spin_lock(&sbi->lookup_lock);
++		if (list_empty(&ino->expiring))
++			list_add(&ino->expiring, &sbi->expiring_list);
++		spin_unlock(&sbi->lookup_lock);
++	}
++	return;
++}
++
++static inline void autofs4_del_expiring(struct dentry *dentry)
++{
++	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
++	struct autofs_info *ino = autofs4_dentry_ino(dentry);
++	if (ino) {
++		spin_lock(&sbi->lookup_lock);
++		if (!list_empty(&ino->expiring))
++			list_del_init(&ino->expiring);
++		spin_unlock(&sbi->lookup_lock);
++	}
++	return;
++}
++
+ void autofs4_dentry_release(struct dentry *);
+ extern void autofs4_kill_sb(struct super_block *);
+diff -puN fs/autofs4/root.c~autofs4-use-helper-functions-for-expiring-list fs/autofs4/root.c
+--- a/fs/autofs4/root.c~autofs4-use-helper-functions-for-expiring-list
++++ a/fs/autofs4/root.c
+@@ -563,10 +563,7 @@ static struct dentry *autofs4_lookup(str
+ 			 */
+ 			ino = autofs4_dentry_ino(expiring);
+ 			autofs4_expire_wait(expiring);
+-			spin_lock(&sbi->lookup_lock);
+-			if (!list_empty(&ino->expiring))
+-				list_del_init(&ino->expiring);
+-			spin_unlock(&sbi->lookup_lock);
++			autofs4_del_expiring(expiring);
+ 			dput(expiring);
+ 		}
+ 
+@@ -732,10 +729,7 @@ static int autofs4_dir_unlink(struct ino
+ 	dir->i_mtime = CURRENT_TIME;
+ 
+ 	spin_lock(&dcache_lock);
+-	spin_lock(&sbi->lookup_lock);
+-	if (list_empty(&ino->expiring))
+-		list_add(&ino->expiring, &sbi->expiring_list);
+-	spin_unlock(&sbi->lookup_lock);
++	autofs4_add_expiring(dentry);
+ 	spin_lock(&dentry->d_lock);
+ 	__d_drop(dentry);
+ 	spin_unlock(&dentry->d_lock);
+@@ -761,10 +755,7 @@ static int autofs4_dir_rmdir(struct inod
+ 		spin_unlock(&dcache_lock);
+ 		return -ENOTEMPTY;
+ 	}
+-	spin_lock(&sbi->lookup_lock);
+-	if (list_empty(&ino->expiring))
+-		list_add(&ino->expiring, &sbi->expiring_list);
+-	spin_unlock(&sbi->lookup_lock);
++	autofs4_add_expiring(dentry);
+ 	spin_lock(&dentry->d_lock);
+ 	__d_drop(dentry);
+ 	spin_unlock(&dentry->d_lock);
 _
 
 Patches currently in -mm which might be from raven@themaw.net are
