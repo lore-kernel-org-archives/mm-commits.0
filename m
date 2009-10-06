@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + autofs4-rename-dentry-to-expiring-in-autofs4_lookup_expiring.patch added to -mm tree
-Date: Tue, 06 Oct 2009 13:50:39 -0700
-Message-ID: <200910062050.n96Kodol010027@imap1.linux-foundation.org>
+Subject: + x86-fix-kernel-panic-on-i386-machine-when-booting-with-profile=2.patch added to -mm tree
+Date: Tue, 06 Oct 2009 14:09:19 -0700
+Message-ID: <200910062109.n96L9Jcg015955@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36033 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42432 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757423AbZJFVA2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Oct 2009 17:00:28 -0400
+	by vger.kernel.org with ESMTP id S932816AbZJFVKl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Oct 2009 17:10:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: raven@themaw.net, adilger@sun.com, hch@infradead.org, sage@newdream.net, viro@ZenIV.linux.org.uk, yehuda@newdream.net
+Cc: alex.shi@intel.com, hpa@zytor.com, mingo@elte.hu, rjw@sisk.pl, tglx@linutronix.de, tim.c.chen@intel.com
 
 
 The patch titled
-     autofs4: rename dentry to expiring in autofs4_lookup_expiring()
+     x86: fix kernel panic on i386 machine when booting with profile=2
 has been added to the -mm tree.  Its filename is
-     autofs4-rename-dentry-to-expiring-in-autofs4_lookup_expiring.patch
+     x86-fix-kernel-panic-on-i386-machine-when-booting-with-profile=2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,93 +33,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: autofs4: rename dentry to expiring in autofs4_lookup_expiring()
-From: Ian Kent <raven@themaw.net>
+Subject: x86: fix kernel panic on i386 machine when booting with profile=2
+From: "Shi, Alex" <alex.shi@intel.com>
 
-In autofs4_lookup_expiring() a declaration within the list traversal loop
-uses a declaration that has the same name as the function parameter.
+Latest kernel has a kernel panic in booting on i386 machine when profile=2
+setting in cmdline.  It is due to 'sp' being incorrect in profile_pc().
 
-Signed-off-by: Ian Kent <raven@themaw.net>
-Cc: Sage Weil <sage@newdream.net>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Andreas Dilger <adilger@sun.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Yehuda Saheh <yehuda@newdream.net>
+BUG: unable to handle kernel NULL pointer dereference at 00000246
+IP: [<c01288b6>] profile_pc+0x2a/0x48
+*pde = 00000000
+Oops: 0000 [#1] SMP
+
+Signed-off-by: Alex Shi <alex.shi@intel.com>
+Cc: "Chen, Tim C" <tim.c.chen@intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/root.c |   24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+ arch/x86/kernel/time.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN fs/autofs4/root.c~autofs4-rename-dentry-to-expiring-in-autofs4_lookup_expiring fs/autofs4/root.c
---- a/fs/autofs4/root.c~autofs4-rename-dentry-to-expiring-in-autofs4_lookup_expiring
-+++ a/fs/autofs4/root.c
-@@ -474,23 +474,23 @@ static struct dentry *autofs4_lookup_exp
- 	head = &sbi->expiring_list;
- 	list_for_each(p, head) {
- 		struct autofs_info *ino;
--		struct dentry *dentry;
-+		struct dentry *expiring;
- 		struct qstr *qstr;
- 
- 		ino = list_entry(p, struct autofs_info, expiring);
--		dentry = ino->dentry;
-+		expiring = ino->dentry;
- 
--		spin_lock(&dentry->d_lock);
-+		spin_lock(&expiring->d_lock);
- 
- 		/* Bad luck, we've already been dentry_iput */
--		if (!dentry->d_inode)
-+		if (!expiring->d_inode)
- 			goto next;
- 
--		qstr = &dentry->d_name;
-+		qstr = &expiring->d_name;
- 
--		if (dentry->d_name.hash != hash)
-+		if (expiring->d_name.hash != hash)
- 			goto next;
--		if (dentry->d_parent != parent)
-+		if (expiring->d_parent != parent)
- 			goto next;
- 
- 		if (qstr->len != len)
-@@ -498,15 +498,15 @@ static struct dentry *autofs4_lookup_exp
- 		if (memcmp(qstr->name, str, len))
- 			goto next;
- 
--		if (d_unhashed(dentry)) {
--			dget(dentry);
--			spin_unlock(&dentry->d_lock);
-+		if (d_unhashed(expiring)) {
-+			dget(expiring);
-+			spin_unlock(&expiring->d_lock);
- 			spin_unlock(&sbi->lookup_lock);
- 			spin_unlock(&dcache_lock);
--			return dentry;
-+			return expiring;
- 		}
- next:
--		spin_unlock(&dentry->d_lock);
-+		spin_unlock(&expiring->d_lock);
- 	}
- 	spin_unlock(&sbi->lookup_lock);
- 	spin_unlock(&dcache_lock);
+diff -puN arch/x86/kernel/time.c~x86-fix-kernel-panic-on-i386-machine-when-booting-with-profile=2 arch/x86/kernel/time.c
+--- a/arch/x86/kernel/time.c~x86-fix-kernel-panic-on-i386-machine-when-booting-with-profile=2
++++ a/arch/x86/kernel/time.c
+@@ -38,7 +38,12 @@ unsigned long profile_pc(struct pt_regs 
+ #ifdef CONFIG_FRAME_POINTER
+ 		return *(unsigned long *)(regs->bp + sizeof(long));
+ #else
++#ifdef CONFIG_X86_32
++		unsigned long *sp = (unsigned long *)&regs->sp;
++#else
+ 		unsigned long *sp = (unsigned long *)regs->sp;
++
++#endif
+ 		/*
+ 		 * Return address is either directly at stack pointer
+ 		 * or above a saved flags. Eflags has bits 22-31 zero,
 _
 
-Patches currently in -mm which might be from raven@themaw.net are
+Patches currently in -mm which might be from alex.shi@intel.com are
 
-vfs-make-real_lookup-do-dentry-revalidation-with-i_mutex-held.patch
-vfs-clean-up-real_lookup.patch
-autofs4-use-helper-functions-for-active-list-handling.patch
-autofs4-use-helper-functions-for-expiring-list.patch
-autofs4-use-helper-function-for-need-mount-check.patch
-autofs4-use-autofs_info-for-pending-flag.patch
-autofs4-renamer-unhashed-to-active-in-autofs4_lookup.patch
-autofs4-cleanup-active-and-expire-lookup.patch
-autofs4-eliminate-d_unhashed-in-path-walk-checks.patch
-autofs4-rename-dentry-to-active-in-autofs4_lookup_active.patch
-autofs4-rename-dentry-to-expiring-in-autofs4_lookup_expiring.patch
-autofs4-always-use-lookup-for-lookup.patch
+x86-fix-kernel-panic-on-i386-machine-when-booting-with-profile=2.patch
 
