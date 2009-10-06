@@ -1,26 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + lis3lv02d_spi-module-unload-didnt-remove-sysfs-entry.patch added to -mm tree
-Date: Tue, 06 Oct 2009 14:45:50 -0700
-Message-ID: <200910062145.n96Ljoof026390@imap1.linux-foundation.org>
+Subject: + posix-cpu-timers-optimize-and-document-timer_create-callback.patch added to -mm tree
+Date: Tue, 06 Oct 2009 15:04:05 -0700
+Message-ID: <200910062204.n96M45LH031488@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46468 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52490 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933241AbZJFVql (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Oct 2009 17:46:41 -0400
+	by vger.kernel.org with ESMTP id S933444AbZJFWFu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Oct 2009 18:05:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: samu.p.onkalo@nokia.com, daniel@caiaq.de, eric.piel@tremplin-utc.net
+Cc: sgruszka@redhat.com, a.p.zijlstra@chello.nl, mingo@elte.hu, oleg@redhat.com, tglx@linutronix.de
 
 
 The patch titled
-     lis3lv02d_spi: module unload didn't remove sysfs entry
+     posix-cpu-timers: optimize and document timer_create callback
 has been added to the -mm tree.  Its filename is
-     lis3lv02d_spi-module-unload-didnt-remove-sysfs-entry.patch
+     posix-cpu-timers-optimize-and-document-timer_create-callback.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -28,56 +25,58 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lis3lv02d_spi: module unload didn't remove sysfs entry
-=46rom: Samu Onkalo <samu.p.onkalo@nokia.com>
+Subject: posix-cpu-timers: optimize and document timer_create callback
+From: Stanislaw Gruszka <sgruszka@redhat.com>
 
-In module unload, lis3lv02d core driver sysfs clean up was not called.
+We have already new_timer initialized to all-zeros hence in function
+initializations are not needed. Document function expectation about
+new_timer argument as well.
 
-Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
-Acked-by: Daniel Mack <daniel@caiaq.de>
-Cc: =C9ric Piel <eric.piel@tremplin-utc.net>
+Signed-off-by: Stanislaw Gruszka <sgruszka@redhat.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/lis3lv02d_spi.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ kernel/posix-cpu-timers.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/hwmon/lis3lv02d_spi.c~lis3lv02d_spi-module-unload-did=
-nt-remove-sysfs-entry drivers/hwmon/lis3lv02d_spi.c
---- a/drivers/hwmon/lis3lv02d_spi.c~lis3lv02d_spi-module-unload-didnt-r=
-emove-sysfs-entry
-+++ a/drivers/hwmon/lis3lv02d_spi.c
-@@ -83,7 +83,8 @@ static int __devexit lis302dl_spi_remove
- 	struct lis3lv02d *lis3 =3D spi_get_drvdata(spi);
- 	lis3lv02d_joystick_disable();
- 	lis3lv02d_poweroff(lis3);
--	return 0;
-+
-+	return lis3lv02d_remove_fs(&lis3_dev);
- }
-=20
- #ifdef CONFIG_PM
+diff -puN kernel/posix-cpu-timers.c~posix-cpu-timers-optimize-and-document-timer_create-callback kernel/posix-cpu-timers.c
+--- a/kernel/posix-cpu-timers.c~posix-cpu-timers-optimize-and-document-timer_create-callback
++++ a/kernel/posix-cpu-timers.c
+@@ -384,7 +384,8 @@ int posix_cpu_clock_get(const clockid_t 
+ 
+ /*
+  * Validate the clockid_t for a new CPU-clock timer, and initialize the timer.
+- * This is called from sys_timer_create with the new timer already locked.
++ * This is called from sys_timer_create() and do_cpu_nanosleep() with the
++ * new timer already all-zeros initialized.
+  */
+ int posix_cpu_timer_create(struct k_itimer *new_timer)
+ {
+@@ -396,8 +397,6 @@ int posix_cpu_timer_create(struct k_itim
+ 		return -EINVAL;
+ 
+ 	INIT_LIST_HEAD(&new_timer->it.cpu.entry);
+-	new_timer->it.cpu.incr.sched = 0;
+-	new_timer->it.cpu.expires.sched = 0;
+ 
+ 	read_lock(&tasklist_lock);
+ 	if (CPUCLOCK_PERTHREAD(new_timer->it_clock)) {
 _
 
-Patches currently in -mm which might be from samu.p.onkalo@nokia.com ar=
-e
+Patches currently in -mm which might be from sgruszka@redhat.com are
 
-lis3lv02d_spi-module-unload-didnt-remove-sysfs-entry.patch
-lis3lv02d-axis-remap-and-resource-setup-release.patch
-lis3lv02d-i2c-support.patch
+itimers-fix-racy-writes-to-cpu_itimer-fields.patch
+posix-cpu-timers-optimize-and-document-timer_create-callback.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
