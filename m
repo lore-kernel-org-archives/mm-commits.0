@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cpuidle-always-return-with-interrupts-enabled.patch added to -mm tree
-Date: Tue, 06 Oct 2009 13:35:08 -0700
-Message-ID: <200910062035.n96KZ8aJ010418@imap1.linux-foundation.org>
+Subject: + drm-make-sure-page-protections-are-updated-after-changing-vm_flags.patch added to -mm tree
+Date: Tue, 06 Oct 2009 13:39:44 -0700
+Message-ID: <200910062039.n96KdiaL019767@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38955 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36442 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757692AbZJFUgb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Oct 2009 16:36:31 -0400
+	by vger.kernel.org with ESMTP id S933044AbZJFUlR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Oct 2009 16:41:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: khilman@deeprootsystems.com, arjan@linux.intel.com, hemanthv@ti.com, len.brown@intel.com, mingo@elte.hu, rjw@sisk.pl, venkatesh.pallipadi@intel.com
+Cc: jeremy@goop.org, JBeulich@novell.com, airlied@linux.ie, jeremy.fitzhardinge@citrix.com
 
 
 The patch titled
-     cpuidle: always return with interrupts enabled
+     drm: make sure page protections are updated after changing vm_flags
 has been added to the -mm tree.  Its filename is
-     cpuidle-always-return-with-interrupts-enabled.patch
+     drm-make-sure-page-protections-are-updated-after-changing-vm_flags.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,46 +33,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpuidle: always return with interrupts enabled
-From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: drm: make sure page protections are updated after changing vm_flags
+From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-In the case where cpuidle_idle_call() returns before changing state due to
-a need_resched(), it was returning with IRQs disabled.
+Some architectures compute ->vm_page_prot depending on ->vm_flags, so we
+need to update the protections after adjusting the flags.
 
-This patch ensures IRQs are (re)enabled before returning.
-
-Reported-by: Hemanth V <hemanthv@ti.com>
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Len Brown <len.brown@intel.com>
-Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Reported-by: Jan Beulich <JBeulich@novell.com>
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpuidle/cpuidle.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/gpu/drm/drm_gem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/cpuidle/cpuidle.c~cpuidle-always-return-with-interrupts-enabled drivers/cpuidle/cpuidle.c
---- a/drivers/cpuidle/cpuidle.c~cpuidle-always-return-with-interrupts-enabled
-+++ a/drivers/cpuidle/cpuidle.c
-@@ -76,8 +76,11 @@ static void cpuidle_idle_call(void)
- #endif
- 	/* ask the governor for the next state */
- 	next_state = cpuidle_curr_governor->select(dev);
--	if (need_resched())
-+	if (need_resched()) {
-+		local_irq_enable();
- 		return;
-+	}
-+
- 	target_state = &dev->states[next_state];
+diff -puN drivers/gpu/drm/drm_gem.c~drm-make-sure-page-protections-are-updated-after-changing-vm_flags drivers/gpu/drm/drm_gem.c
+--- a/drivers/gpu/drm/drm_gem.c~drm-make-sure-page-protections-are-updated-after-changing-vm_flags
++++ a/drivers/gpu/drm/drm_gem.c
+@@ -552,7 +552,7 @@ int drm_gem_mmap(struct file *filp, stru
+ 	vma->vm_flags |= VM_RESERVED | VM_IO | VM_PFNMAP | VM_DONTEXPAND;
+ 	vma->vm_ops = obj->dev->driver->gem_vm_ops;
+ 	vma->vm_private_data = map->handle;
+-	vma->vm_page_prot = pgprot_writecombine(vma->vm_page_prot);
++	vma->vm_page_prot =  pgprot_writecombine(vm_get_page_prot(vma->vm_flags));
  
- 	/* enter the state and update stats */
+ 	/* Take a ref for this mapping of the object, so that the fault
+ 	 * handler can dereference the mmap offset's pointer to the object.
 _
 
-Patches currently in -mm which might be from khilman@deeprootsystems.com are
+Patches currently in -mm which might be from jeremy@goop.org are
 
-cpuidle-always-return-with-interrupts-enabled.patch
+drm-make-sure-page-protections-are-updated-after-changing-vm_flags.patch
 
