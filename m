@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + strstrip-mark-as-as-must_check.patch added to -mm tree
-Date: Thu, 08 Oct 2009 16:02:36 -0700
-Message-ID: <200910082302.n98N2aac011466@imap1.linux-foundation.org>
+Subject: + acpi-annote-acpi_processor_add-with-__cpuinit.patch added to -mm tree
+Date: Thu, 08 Oct 2009 15:56:25 -0700
+Message-ID: <200910082256.n98MuPCe031023@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41868 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51056 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757772AbZJHXEO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Oct 2009 19:04:14 -0400
+	by vger.kernel.org with ESMTP id S932481AbZJHW6Z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Oct 2009 18:58:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com
+Cc: rakib.mullick@gmail.com, lenb@kernel.org
 
 
 The patch titled
-     strstrip(): mark as as must_check
+     acpi: Annote acpi_processor_add with __cpuinit
 has been added to the -mm tree.  Its filename is
-     strstrip-mark-as-as-must_check.patch
+     acpi-annote-acpi_processor_add-with-__cpuinit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,44 +33,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: strstrip(): mark as as must_check
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: acpi: Annote acpi_processor_add with __cpuinit
+From: Rakib Mullick <rakib.mullick@gmail.com>
 
-strstrip() can return a modified value of its input argument, when
-removing elading whitesapce.  So it is surely bug for this function's
-return value to be ignored.  The caller is probably going to use the
-incorrect original pointer.
+Annote acpi_processor_add with cpuinit since it calls a cpuinit function
+acpi_processor_power_init and fixes a section mismatch warning.
 
-So mark it __must_check to prevent this frm happening (as it has before).
+ We were warned by the following warning:
 
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+ LD      drivers/acpi/processor.o
+WARNING: drivers/acpi/processor.o(.text+0x1829): Section mismatch in
+reference from the function acpi_processor_add() to the function
+.cpuinit.text:acpi_processor_power_init()
+The function acpi_processor_add() references
+the function __cpuinit acpi_processor_power_init().
+This is often because acpi_processor_add lacks a __cpuinit
+annotation or the annotation of acpi_processor_power_init is wrong.
+
+Signed-off-by: Rakib Mullick <rakib.mullick@gmail.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN include/linux/string.h~strstrip-mark-as-as-must_check include/linux/string.h
---- a/include/linux/string.h~strstrip-mark-as-as-must_check
-+++ a/include/linux/string.h
-@@ -62,7 +62,7 @@ extern char * strnchr(const char *, size
- #ifndef __HAVE_ARCH_STRRCHR
- extern char * strrchr(const char *,int);
- #endif
--extern char * strstrip(char *);
-+extern char * __must_check strstrip(char *);
- #ifndef __HAVE_ARCH_STRSTR
- extern char * strstr(const char *,const char *);
- #endif
+diff -puN drivers/acpi/processor_core.c~acpi-annote-acpi_processor_add-with-__cpuinit drivers/acpi/processor_core.c
+--- a/drivers/acpi/processor_core.c~acpi-annote-acpi_processor_add-with-__cpuinit
++++ a/drivers/acpi/processor_core.c
+@@ -770,7 +770,7 @@ static struct notifier_block acpi_cpu_no
+ 	    .notifier_call = acpi_cpu_soft_notify,
+ };
+ 
+-static int acpi_processor_add(struct acpi_device *device)
++static int __cpuinit acpi_processor_add(struct acpi_device *device)
+ {
+ 	struct acpi_processor *pr = NULL;
+ 	int result = 0;
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from rakib.mullick@gmail.com are
 
 linux-next.patch
-congestion_wait-dont-use-write.patch
-oom-dump-stack-and-vm-state-when-oom-killer-panics.patch
-readahead-add-blk_run_backing_dev.patch
-mm-vsmcan-check-shrink_active_list-sc-isolate_pages-return-value.patch
-strstrip-mark-as-as-must_check.patch
-fix-strstrip-abuse-in-elv_iosched_store.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
-cgroup-fix-strstrip-abuse.patch
+acpi-annote-acpi_processor_add-with-__cpuinit.patch
 
