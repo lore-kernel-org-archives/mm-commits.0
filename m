@@ -1,26 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + isicomc-use-pr_fmt-and-pr_level.patch added to -mm tree
-Date: Thu, 08 Oct 2009 14:27:51 -0700
-Message-ID: <200910082127.n98LRpIv010813@imap1.linux-foundation.org>
+Subject: + oom-dump-stack-and-vm-state-when-oom-killer-panics.patch added to -mm tree
+Date: Thu, 08 Oct 2009 14:35:33 -0700
+Message-ID: <200910082135.n98LZXIW026658@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60497 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46673 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932144AbZJHV2b (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Oct 2009 17:28:31 -0400
+	by vger.kernel.org with ESMTP id S932703AbZJHVgU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Oct 2009 17:36:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, jirislaby@gmail.com
+Cc: rientjes@google.com, kosaki.motohiro@jp.fujitsu.com
 
 
 The patch titled
-     isicom.c: use pr_fmt and pr_<level>
+     oom: dump stack and VM state when oom killer panics
 has been added to the -mm tree.  Its filename is
-     isicomc-use-pr_fmt-and-pr_level.patch
+     oom-dump-stack-and-vm-state-when-oom-killer-panics.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -28,205 +25,122 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: isicom.c: use pr_fmt and pr_<level>
-=46rom: Joe Perches <joe@perches.com>
+Subject: oom: dump stack and VM state when oom killer panics
+From: David Rientjes <rientjes@google.com>
 
-Add #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-Convert printks to pr_<level>
-Convert some embedded function names to %s...__func__
-Remove a period after exclamation points.
-Remove #define pr_dbg which could be used by future kernel.h includes
+The oom killer header, including information such as the allocation order
+and gfp mask, current's cpuset and memory controller, call trace, and VM
+state information is currently only shown when the oom killer has selected
+a task to kill.
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Jiri Slaby <jirislaby@gmail.com>
+This information is omitted, however, when the oom killer panics either
+because of panic_on_oom sysctl settings or when no killable task was
+found.  It is still relevant to know crucial pieces of information such as
+the allocation order and VM state when diagnosing such issues, especially
+at boot.
+
+This patch displays the oom killer header whenever it panics so that bug
+reports can include pertinent information to debug the issue, if possible.
+
+Signed-off-by: David Rientjes <rientjes@google.com>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/char/isicom.c~isicomc-use-pr_fmt-and-pr_level drivers=
-/char/isicom.c
---- a/drivers/char/isicom.c~isicomc-use-pr_fmt-and-pr_level
-+++ a/drivers/char/isicom.c
-@@ -113,6 +113,8 @@
-  *		64-bit verification
-  */
-=20
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
- #include <linux/module.h>
- #include <linux/firmware.h>
- #include <linux/kernel.h>
-@@ -140,7 +142,6 @@
- #define InterruptTheCard(base) outw(0, (base) + 0xc)
- #define ClearInterrupt(base) inw((base) + 0x0a)
-=20
--#define pr_dbg(str...) pr_debug("ISICOM: " str)
- #ifdef DEBUG
- #define isicom_paranoia_check(a, b, c) __isicom_paranoia_check((a), (b=
-), (c))
- #else
-@@ -249,8 +250,7 @@ static int lock_card(struct isi_board *c
- 		spin_unlock_irqrestore(&card->card_lock, card->flags);
- 		msleep(10);
- 	}
--	printk(KERN_WARNING "ISICOM: Failed to lock Card (0x%lx)\n",
--		card->base);
-+	pr_warning("Failed to lock Card (0x%lx)\n", card->base);
-=20
- 	return 0;	/* Failed to acquire the card! */
+diff -puN mm/oom_kill.c~oom-dump-stack-and-vm-state-when-oom-killer-panics mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-dump-stack-and-vm-state-when-oom-killer-panics
++++ a/mm/oom_kill.c
+@@ -337,6 +337,21 @@ static void dump_tasks(const struct mem_
+ 	} while_each_thread(g, p);
  }
-@@ -379,13 +379,13 @@ static inline int __isicom_paranoia_chec
- 	char *name, const char *routine)
+ 
++static void dump_header(gfp_t gfp_mask, int order, struct mem_cgroup *mem)
++{
++	pr_warning("%s invoked oom-killer: gfp_mask=0x%x, order=%d, "
++		"oom_adj=%d\n",
++		current->comm, gfp_mask, order, current->signal->oom_adj);
++	task_lock(current);
++	cpuset_print_task_mems_allowed(current);
++	task_unlock(current);
++	dump_stack();
++	mem_cgroup_print_oom_info(mem, current);
++	show_mem();
++	if (sysctl_oom_dump_tasks)
++		dump_tasks(mem);
++}
++
+ /*
+  * Send SIGKILL to the selected  process irrespective of  CAP_SYS_RAW_IO
+  * flag though it's unlikely that  we select a process with CAP_SYS_RAW_IO
+@@ -395,20 +410,8 @@ static int oom_kill_process(struct task_
  {
- 	if (!port) {
--		printk(KERN_WARNING "ISICOM: Warning: bad isicom magic for "
--			"dev %s in %s.\n", name, routine);
-+		pr_warning("Warning: bad isicom magic for dev %s in %s.\n",
-+			   name, routine);
- 		return 1;
+ 	struct task_struct *c;
+ 
+-	if (printk_ratelimit()) {
+-		printk(KERN_WARNING "%s invoked oom-killer: "
+-			"gfp_mask=0x%x, order=%d, oom_adj=%d\n",
+-			current->comm, gfp_mask, order,
+-			current->signal->oom_adj);
+-		task_lock(current);
+-		cpuset_print_task_mems_allowed(current);
+-		task_unlock(current);
+-		dump_stack();
+-		mem_cgroup_print_oom_info(mem, current);
+-		show_mem();
+-		if (sysctl_oom_dump_tasks)
+-			dump_tasks(mem);
+-	}
++	if (printk_ratelimit())
++		dump_header(gfp_mask, order, mem);
+ 
+ 	/*
+ 	 * If the task is already exiting, don't alarm the sysadmin or kill
+@@ -544,6 +547,7 @@ retry:
+ 	/* Found nothing?!?! Either we hang forever, or we panic. */
+ 	if (!p) {
+ 		read_unlock(&tasklist_lock);
++		dump_header(gfp_mask, order, NULL);
+ 		panic("Out of memory and no killable processes...\n");
  	}
- 	if (port->magic !=3D ISICOM_MAGIC) {
--		printk(KERN_WARNING "ISICOM: Warning: NULL isicom port for "
--			"dev %s in %s.\n", name, routine);
-+		pr_warning("Warning: NULL isicom port for dev %s in %s.\n",
-+			   name, routine);
- 		return 1;
- 	}
-=20
-@@ -450,8 +450,8 @@ static void isicom_tx(unsigned long _dat
- 		if (!(inw(base + 0x02) & (1 << port->channel)))
- 			continue;
-=20
--		pr_dbg("txing %d bytes, port%d.\n", txcount,
--			port->channel + 1);
-+		pr_debug("txing %d bytes, port%d.\n",
-+			 txcount, port->channel + 1);
- 		outw((port->channel << isi_card[card].shift_count) | txcount,
- 			base);
- 		residue =3D NO;
-@@ -547,8 +547,8 @@ static irqreturn_t isicom_interrupt(int=20
- 	byte_count =3D header & 0xff;
-=20
- 	if (channel + 1 > card->port_count) {
--		printk(KERN_WARNING "ISICOM: isicom_interrupt(0x%lx): "
--			"%d(channel) > port_count.\n", base, channel+1);
-+		pr_warning("%s(0x%lx): %d(channel) > port_count.\n",
-+			   __func__, base, channel+1);
- 		outw(0x0000, base+0x04); /* enable interrupts */
- 		spin_unlock(&card->card_lock);
- 		return IRQ_HANDLED;
-@@ -582,14 +582,15 @@ static irqreturn_t isicom_interrupt(int=20
- 				if (port->status & ISI_DCD) {
- 					if (!(header & ISI_DCD)) {
- 					/* Carrier has been lost  */
--						pr_dbg("interrupt: DCD->low.\n"
--							);
-+						pr_debug("%s: DCD->low.\n",
-+							 __func__);
- 						port->status &=3D ~ISI_DCD;
- 						tty_hangup(tty);
- 					}
- 				} else if (header & ISI_DCD) {
- 				/* Carrier has been detected */
--					pr_dbg("interrupt: DCD->high.\n");
-+					pr_debug("%s: DCD->high.\n",
-+						__func__);
- 					port->status |=3D ISI_DCD;
- 					wake_up_interruptible(&port->port.open_wait);
- 				}
-@@ -641,17 +642,19 @@ static irqreturn_t isicom_interrupt(int=20
- 			break;
-=20
- 		case 2:	/* Statistics		 */
--			pr_dbg("isicom_interrupt: stats!!!.\n");
-+			pr_debug("%s: stats!!!\n", __func__);
- 			break;
-=20
- 		default:
--			pr_dbg("Intr: Unknown code in status packet.\n");
-+			pr_debug("%s: Unknown code in status packet.\n",
-+				 __func__);
- 			break;
- 		}
- 	} else {				/* Data   Packet */
-=20
- 		count =3D tty_prepare_flip_string(tty, &rp, byte_count & ~1);
--		pr_dbg("Intr: Can rx %d of %d bytes.\n", count, byte_count);
-+		pr_debug("%s: Can rx %d of %d bytes.\n",
-+			 __func__, count, byte_count);
- 		word_count =3D count >> 1;
- 		insw(base, rp, word_count);
- 		byte_count -=3D (word_count << 1);
-@@ -661,8 +664,8 @@ static irqreturn_t isicom_interrupt(int=20
- 			byte_count -=3D 2;
- 		}
- 		if (byte_count > 0) {
--			pr_dbg("Intr(0x%lx:%d): Flip buffer overflow! dropping "
--				"bytes...\n", base, channel + 1);
-+			pr_debug("%s(0x%lx:%d): Flip buffer overflow! dropping bytes...\n",
-+				 __func__, base, channel + 1);
- 		/* drain out unread xtra data */
- 		while (byte_count > 0) {
- 				inw(base);
-@@ -939,8 +942,8 @@ static void isicom_shutdown_port(struct=20
- 		set_bit(TTY_IO_ERROR, &tty->flags);
-=20
- 	if (--card->count < 0) {
--		pr_dbg("isicom_shutdown_port: bad board(0x%lx) count %d.\n",
--			card->base, card->count);
-+		pr_debug("%s: bad board(0x%lx) count %d.\n",
-+			 __func__, card->base, card->count);
- 		card->count =3D 0;
- 	}
-=20
-@@ -1746,13 +1749,13 @@ static int __init isicom_init(void)
-=20
- 	retval =3D tty_register_driver(isicom_normal);
- 	if (retval) {
--		pr_dbg("Couldn't register the dialin driver\n");
-+		pr_debug("Couldn't register the dialin driver\n");
- 		goto err_puttty;
- 	}
-=20
- 	retval =3D pci_register_driver(&isicom_driver);
- 	if (retval < 0) {
--		printk(KERN_ERR "ISICOM: Unable to register pci driver.\n");
-+		pr_err("Unable to register pci driver.\n");
- 		goto err_unrtty;
- 	}
-=20
+ 
+@@ -609,8 +613,10 @@ void out_of_memory(struct zonelist *zone
+ 		/* Got some memory back in the last second. */
+ 		return;
+ 
+-	if (sysctl_panic_on_oom == 2)
++	if (sysctl_panic_on_oom == 2) {
++		dump_header(gfp_mask, order, NULL);
+ 		panic("out of memory. Compulsory panic_on_oom is selected.\n");
++	}
+ 
+ 	/*
+ 	 * Check if there were limitations on the allocation (only relevant for
+@@ -626,8 +632,10 @@ void out_of_memory(struct zonelist *zone
+ 		break;
+ 
+ 	case CONSTRAINT_NONE:
+-		if (sysctl_panic_on_oom)
++		if (sysctl_panic_on_oom) {
++			dump_header(gfp_mask, order, NULL);
+ 			panic("out of memory. panic_on_oom is selected\n");
++		}
+ 		/* Fall-through */
+ 	case CONSTRAINT_CPUSET:
+ 		__out_of_memory(gfp_mask, order);
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
 linux-next.patch
-maintainers-update-generic-uio-for-pci-devices.patch
-maintainers-update-tracing-section.patch
-maintainers-update-omap-tony-lindgren-email-name.patch
-maintainers-change-atm-mailing-list-to-moderated.patch
-maintainers-use-tab-not-spaces-after-field-types.patch
-maintainers-update-kernel-janitors-after-mismerge.patch
-maintainers-update-score-architecture-name-style-and-add-file-pattern.p=
-atch
-maintainers-simple-firmware-interface-update-email-style.patch
-maintainers-winbond-cir-integrate-p-m-lines-fixup-david-h=E4rdemans-nam=
-e.patch
-maintainers-fix-up-peripheral-spelling.patch
-maintainers-update-wolfson-microelectronics.patch
-isicomc-use-pr_fmt-and-pr_level.patch
+oom-dump-stack-and-vm-state-when-oom-killer-panics.patch
+do_wait-optimization-do-not-place-sub-threads-on-task_struct-children-list.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
