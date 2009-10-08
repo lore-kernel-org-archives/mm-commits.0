@@ -1,915 +1,1375 @@
 From: akpm@linux-foundation.org
-Subject: [folded] hwmon-driver-for-texas-instruments-amc6821-chip-update.patch removed from -mm tree
-Date: Wed, 07 Oct 2009 16:29:21 -0700
-Message-ID: <200910072329.n97NTLOk023287@imap1.linux-foundation.org>
+Subject: + davinci-mmc-mmc-sd-controller-driver-for-davinci-family.patch added to -mm tree
+Date: Thu, 08 Oct 2009 14:22:59 -0700
+Message-ID: <200910082122.n98LMxAL000768__41200.2432662577$1255037210$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58283 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41725 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753842AbZJGXat (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Oct 2009 19:30:49 -0400
+	by vger.kernel.org with ESMTP id S933510AbZJHVY0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Oct 2009 17:24:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tomaz.mertelj@guest.arnes.si, khali@linux-fr.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: vipin.bhandari@ti.com, dbrownell@users.sourceforge.net, linux-mmc@vger.kernel.org, purushotam@ti.com
 
 
 The patch titled
-     hwmon-driver-for-texas-instruments-amc6821-chip-update
-has been removed from the -mm tree.  Its filename was
-     hwmon-driver-for-texas-instruments-amc6821-chip-update.patch
+     DaVinci: MMC: MMC/SD controller driver for DaVinci family
+has been added to the -mm tree.  Its filename is
+     davinci-mmc-mmc-sd-controller-driver-for-davinci-family.patch
 
-This patch was dropped because it was folded into hwmon-driver-for-texas-instruments-amc6821-chip.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hwmon-driver-for-texas-instruments-amc6821-chip-update
-From: Tomaz Mertelj <tomaz.mertelj@guest.arnes.si>
+Subject: DaVinci: MMC: MMC/SD controller driver for DaVinci family
+From: Vipin Bhandari <vipin.bhandari@ti.com>
 
-I got rid of macro generated callbacks to reduce memory footprint.
-simple_strtol was replaced by strict_strtol.
-Fixed some errors in documentation.
+Add support for MMC/SD controller driver for all DaVinci family SoC.  This
+patch supports davinci family SoC's DM6446, DM355, DM365 and
+DA830/OMAPL137.
 
-Signed-off-by: Tomaz Mertelj <tomaz.mertelj@guest.arnes.si>
-Cc: Jean Delvare <khali@linux-fr.org>
+The patch has been tested on DM355 EVM.
+
+The MMCSD controller specifications for DM355 can be found at
+http://focus.ti.com/general/docs/litabsmultiplefilelist.tsp?literatureNumber=spruee2c
+
+Signed-off-by: Vipin Bhandari <vipin.bhandari@ti.com>
+Signed-off-by: Purshotam Kumar <purushotam@ti.com>
+Acked-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/hwmon/amc6821 |   12 
- drivers/hwmon/amc6821.c     |  653 ++++++++++++++++++----------------
- 2 files changed, 365 insertions(+), 300 deletions(-)
 
-diff -puN Documentation/hwmon/amc6821~hwmon-driver-for-texas-instruments-amc6821-chip-update Documentation/hwmon/amc6821
---- a/Documentation/hwmon/amc6821~hwmon-driver-for-texas-instruments-amc6821-chip-update
-+++ a/Documentation/hwmon/amc6821
-@@ -46,12 +46,12 @@ fan1_div		rw	Fan divisor can be either 2
- pwm1			rw	pwm1
- pwm1_enable		rw	regulator mode, 1=open loop, 2=fan controlled
- 				by remote temperature, 3=fan controlled by
--				combination of on-chip temperature and
-+				combination of the on-chip temperature and
- 				remote-sensor temperature,
- pwm1_auto_channels_temp ro	1 if pwm_enable==2, 3 if pwm_enable==3
- pwm1_auto_point1_pwm	ro	Hardwired to 0, shared for both
- 				temperature channels.
--pwm1_auto_point2_pwm	rw	This value, shared for both temperature
-+pwm1_auto_point2_pwm	rw	This value is shared for both temperature
- 				channels.
- pwm1_auto_point3_pwm	rw	Hardwired to 255, shared for both
- 				temperature channels.
-@@ -61,9 +61,9 @@ temp1_auto_point1_temp	ro	Hardwired to t
- temp1_auto_point2_temp	rw	The low-temperature limit of the proportional
- 				range. Below this temperature
- 				pwm1 = pwm1_auto_point2_pwm. It can go from
--				0 degree C and 124 degree C in steps of
-+				0 degree C to 124 degree C in steps of
- 				4 degree C. Read it out after writing to get
--				actual value.
-+				the actual value.
- temp1_auto_point3_temp	rw	Above this temperature fan runs at maximum
- 				speed. It can go from temp1_auto_point2_temp.
- 				It can only have certain discrete values
-@@ -72,13 +72,13 @@ temp1_auto_point3_temp	rw	Above this tem
- 				writing to get the actual value.
+diff -puN drivers/mmc/host/Kconfig~davinci-mmc-mmc-sd-controller-driver-for-davinci-family drivers/mmc/host/Kconfig
+--- a/drivers/mmc/host/Kconfig~davinci-mmc-mmc-sd-controller-driver-for-davinci-family
++++ a/drivers/mmc/host/Kconfig
+@@ -251,6 +251,14 @@ config MMC_MVSDIO
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called mvsdio.
  
- temp2_auto_point1_temp	rw	Must be between 0 degree C and 63 degree C and
--				it defines passive cooling temperature.
-+				it defines the passive cooling temperature.
- 				Below this temperature the fan stops in
- 				the closed loop mode.
- temp2_auto_point2_temp	rw	The low-temperature limit of the proportional
- 				range. Below this temperature
- 				pwm1 = pwm1_auto_point2_pwm. It can go from
--				0 degree C and 124 degree C in steps
-+				0 degree C to 124 degree C in steps
- 				of 4 degree C.
- 
- temp2_auto_point3_temp	rw	Above this temperature fan runs at maximum
-diff -puN drivers/hwmon/amc6821.c~hwmon-driver-for-texas-instruments-amc6821-chip-update drivers/hwmon/amc6821.c
---- a/drivers/hwmon/amc6821.c~hwmon-driver-for-texas-instruments-amc6821-chip-update
-+++ a/drivers/hwmon/amc6821.c
-@@ -123,6 +123,31 @@ I2C_CLIENT_INSMOD_1(amc6821);
- #define AMC6821_STAT2_L_THERM 0x40
- #define AMC6821_STAT2_THERM_IN 0x80
- 
-+enum {IDX_TEMP1_INPUT = 0, IDX_TEMP1_MIN, IDX_TEMP1_MAX,
-+	IDX_TEMP1_CRIT, IDX_TEMP2_INPUT, IDX_TEMP2_MIN,
-+	IDX_TEMP2_MAX, IDX_TEMP2_CRIT,
-+	TEMP_IDX_LEN, };
++config MMC_DAVINCI
++        tristate "TI DAVINCI Multimedia Card Interface support"
++        depends on ARCH_DAVINCI
++        help
++          This selects the TI DAVINCI Multimedia card Interface.
++          If you have an DAVINCI board with a Multimedia Card slot,
++          say Y or M here.  If unsure, say N.
 +
-+static const u8 temp_reg[] = {AMC6821_REG_LTEMP_HI,
-+			AMC6821_REG_LTEMP_LIMIT_MIN,
-+			AMC6821_REG_LTEMP_LIMIT_MAX,
-+			AMC6821_REG_LTEMP_CRIT,
-+			AMC6821_REG_RTEMP_HI,
-+			AMC6821_REG_RTEMP_LIMIT_MIN,
-+			AMC6821_REG_RTEMP_LIMIT_MAX,
-+			AMC6821_REG_RTEMP_CRIT, };
+ config MMC_SPI
+ 	tristate "MMC/SD/SDIO over SPI"
+ 	depends on SPI_MASTER && !HIGHMEM && HAS_DMA
+diff -puN drivers/mmc/host/Makefile~davinci-mmc-mmc-sd-controller-driver-for-davinci-family drivers/mmc/host/Makefile
+--- a/drivers/mmc/host/Makefile~davinci-mmc-mmc-sd-controller-driver-for-davinci-family
++++ a/drivers/mmc/host/Makefile
+@@ -25,6 +25,7 @@ obj-$(CONFIG_MMC_ATMELMCI)	+= atmel-mci.
+ obj-$(CONFIG_MMC_TIFM_SD)	+= tifm_sd.o
+ obj-$(CONFIG_MMC_MSM7X00A)	+= msm_sdcc.o
+ obj-$(CONFIG_MMC_MVSDIO)	+= mvsdio.o
++obj-$(CONFIG_MMC_DAVINCI)       += davinci_mmc.o
+ obj-$(CONFIG_MMC_SPI)		+= mmc_spi.o
+ ifeq ($(CONFIG_OF),y)
+ obj-$(CONFIG_MMC_SPI)		+= of_mmc_spi.o
+diff -puN /dev/null drivers/mmc/host/davinci_mmc.c
+--- /dev/null
++++ a/drivers/mmc/host/davinci_mmc.c
+@@ -0,0 +1,1281 @@
++/*
++ * davinci_mmc.c - TI DaVinci MMC/SD/SDIO driver
++ *
++ * Copyright (C) 2006 Texas Instruments.
++ *       Original author: Purushotam Kumar
++ * Copyright (C) 2009 David Brownell
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
 +
-+enum {IDX_FAN1_INPUT = 0, IDX_FAN1_MIN, IDX_FAN1_MAX,
-+	FAN1_IDX_LEN, };
++#include <linux/module.h>
++#include <linux/ioport.h>
++#include <linux/platform_device.h>
++#include <linux/clk.h>
++#include <linux/err.h>
++#include <linux/mmc/host.h>
++#include <linux/io.h>
++#include <linux/irq.h>
++#include <linux/delay.h>
++#include <linux/dma-mapping.h>
++#include <linux/mmc/mmc.h>
 +
-+static const u8 fan_reg_low[] = {AMC6821_REG_TDATA_LOW,
-+			AMC6821_REG_TACH_LLIMITL,
-+			AMC6821_REG_TACH_HLIMITL, };
++#include <mach/mmc.h>
++#include <mach/edma.h>
++
++/*
++ * Register Definitions
++ */
++#define DAVINCI_MMCCTL       0x00 /* Control Register                  */
++#define DAVINCI_MMCCLK       0x04 /* Memory Clock Control Register     */
++#define DAVINCI_MMCST0       0x08 /* Status Register 0                 */
++#define DAVINCI_MMCST1       0x0C /* Status Register 1                 */
++#define DAVINCI_MMCIM        0x10 /* Interrupt Mask Register           */
++#define DAVINCI_MMCTOR       0x14 /* Response Time-Out Register        */
++#define DAVINCI_MMCTOD       0x18 /* Data Read Time-Out Register       */
++#define DAVINCI_MMCBLEN      0x1C /* Block Length Register             */
++#define DAVINCI_MMCNBLK      0x20 /* Number of Blocks Register         */
++#define DAVINCI_MMCNBLC      0x24 /* Number of Blocks Counter Register */
++#define DAVINCI_MMCDRR       0x28 /* Data Receive Register             */
++#define DAVINCI_MMCDXR       0x2C /* Data Transmit Register            */
++#define DAVINCI_MMCCMD       0x30 /* Command Register                  */
++#define DAVINCI_MMCARGHL     0x34 /* Argument Register                 */
++#define DAVINCI_MMCRSP01     0x38 /* Response Register 0 and 1         */
++#define DAVINCI_MMCRSP23     0x3C /* Response Register 0 and 1         */
++#define DAVINCI_MMCRSP45     0x40 /* Response Register 0 and 1         */
++#define DAVINCI_MMCRSP67     0x44 /* Response Register 0 and 1         */
++#define DAVINCI_MMCDRSP      0x48 /* Data Response Register            */
++#define DAVINCI_MMCETOK      0x4C
++#define DAVINCI_MMCCIDX      0x50 /* Command Index Register            */
++#define DAVINCI_MMCCKC       0x54
++#define DAVINCI_MMCTORC      0x58
++#define DAVINCI_MMCTODC      0x5C
++#define DAVINCI_MMCBLNC      0x60
++#define DAVINCI_SDIOCTL      0x64
++#define DAVINCI_SDIOST0      0x68
++#define DAVINCI_SDIOEN       0x6C
++#define DAVINCI_SDIOST       0x70
++#define DAVINCI_MMCFIFOCTL   0x74 /* FIFO Control Register             */
++
++/* DAVINCI_MMCCTL definitions */
++#define MMCCTL_DATRST         (1 << 0)
++#define MMCCTL_CMDRST         (1 << 1)
++#define MMCCTL_WIDTH_4_BIT    (1 << 2)
++#define MMCCTL_DATEG_DISABLED (0 << 6)
++#define MMCCTL_DATEG_RISING   (1 << 6)
++#define MMCCTL_DATEG_FALLING  (2 << 6)
++#define MMCCTL_DATEG_BOTH     (3 << 6)
++#define MMCCTL_PERMDR_LE      (0 << 9)
++#define MMCCTL_PERMDR_BE      (1 << 9)
++#define MMCCTL_PERMDX_LE      (0 << 10)
++#define MMCCTL_PERMDX_BE      (1 << 10)
++
++/* DAVINCI_MMCCLK definitions */
++#define MMCCLK_CLKEN          (1 << 8)
++#define MMCCLK_CLKRT_MASK     (0xFF << 0)
++
++/* IRQ bit definitions, for DAVINCI_MMCST0 and DAVINCI_MMCIM */
++#define MMCST0_DATDNE         BIT(0)	/* data done */
++#define MMCST0_BSYDNE         BIT(1)	/* busy done */
++#define MMCST0_RSPDNE         BIT(2)	/* command done */
++#define MMCST0_TOUTRD         BIT(3)	/* data read timeout */
++#define MMCST0_TOUTRS         BIT(4)	/* command response timeout */
++#define MMCST0_CRCWR          BIT(5)	/* data write CRC error */
++#define MMCST0_CRCRD          BIT(6)	/* data read CRC error */
++#define MMCST0_CRCRS          BIT(7)	/* command response CRC error */
++#define MMCST0_DXRDY          BIT(9)	/* data transmit ready (fifo empty) */
++#define MMCST0_DRRDY          BIT(10)	/* data receive ready (data in fifo)*/
++#define MMCST0_DATED          BIT(11)	/* DAT3 edge detect */
++#define MMCST0_TRNDNE         BIT(12)	/* transfer done */
++
++/* DAVINCI_MMCST1 definitions */
++#define MMCST1_BUSY           (1 << 0)
++
++/* DAVINCI_MMCCMD definitions */
++#define MMCCMD_CMD_MASK       (0x3F << 0)
++#define MMCCMD_PPLEN          (1 << 7)
++#define MMCCMD_BSYEXP         (1 << 8)
++#define MMCCMD_RSPFMT_MASK    (3 << 9)
++#define MMCCMD_RSPFMT_NONE    (0 << 9)
++#define MMCCMD_RSPFMT_R1456   (1 << 9)
++#define MMCCMD_RSPFMT_R2      (2 << 9)
++#define MMCCMD_RSPFMT_R3      (3 << 9)
++#define MMCCMD_DTRW           (1 << 11)
++#define MMCCMD_STRMTP         (1 << 12)
++#define MMCCMD_WDATX          (1 << 13)
++#define MMCCMD_INITCK         (1 << 14)
++#define MMCCMD_DCLR           (1 << 15)
++#define MMCCMD_DMATRIG        (1 << 16)
++
++/* DAVINCI_MMCFIFOCTL definitions */
++#define MMCFIFOCTL_FIFORST    (1 << 0)
++#define MMCFIFOCTL_FIFODIR_WR (1 << 1)
++#define MMCFIFOCTL_FIFODIR_RD (0 << 1)
++#define MMCFIFOCTL_FIFOLEV    (1 << 2) /* 0 = 128 bits, 1 = 256 bits */
++#define MMCFIFOCTL_ACCWD_4    (0 << 3) /* access width of 4 bytes    */
++#define MMCFIFOCTL_ACCWD_3    (1 << 3) /* access width of 3 bytes    */
++#define MMCFIFOCTL_ACCWD_2    (2 << 3) /* access width of 2 bytes    */
++#define MMCFIFOCTL_ACCWD_1    (3 << 3) /* access width of 1 byte     */
 +
 +
-+static const u8 fan_reg_hi[] = {AMC6821_REG_TDATA_HI,
-+			AMC6821_REG_TACH_LLIMITH,
-+			AMC6821_REG_TACH_HLIMITH, };
- 
- static int amc6821_probe(
- 		struct i2c_client *client,
-@@ -170,19 +195,9 @@ struct amc6821_data {
- 	unsigned long last_updated; /* in jiffies */
- 
- 	/* register values */
--	int temp1_input;
--	int temp1_min;
--	int temp1_max;
--	int temp1_crit;
--
--	int temp2_input;
--	int temp2_min;
--	int temp2_max;
--	int temp2_crit;
--
--	u16 fan1_input;
--	u16 fan1_min;
--	u16 fan1_max;
-+	int temp[TEMP_IDX_LEN];
++/* MMCSD Init clock in Hz in opendrain mode */
++#define MMCSD_INIT_CLOCK		200000
 +
-+	u16 fan[FAN1_IDX_LEN];
- 	u8 fan1_div;
- 
- 	u8 pwm1;
-@@ -197,72 +212,87 @@ struct amc6821_data {
- };
- 
- 
--#define get_temp_para(name) \
--static ssize_t get_##name(\
--		struct device *dev,\
--		struct device_attribute *devattr,\
--		char *buf)\
--{\
--	struct amc6821_data *data = amc6821_update_device(dev);\
--	return sprintf(buf, "%d\n", data->name * 1000);\
--}
--
--get_temp_para(temp1_input);
--get_temp_para(temp1_min);
--get_temp_para(temp1_max);
--get_temp_para(temp2_input);
--get_temp_para(temp2_min);
--get_temp_para(temp2_max);
--get_temp_para(temp1_crit);
--get_temp_para(temp2_crit);
--
--#define set_temp_para(name, reg)\
--static ssize_t set_##name(\
--		struct device *dev,\
--		struct device_attribute *attr,\
--		const char *buf,\
--		size_t count)\
--{ \
--	struct i2c_client *client = to_i2c_client(dev); \
--	struct amc6821_data *data = i2c_get_clientdata(client); \
--	int val = simple_strtol(buf, NULL, 10); \
--	\
--	mutex_lock(&data->update_lock); \
--	data->name = SENSORS_LIMIT(val / 1000, -128, 127); \
--	if (i2c_smbus_write_byte_data(client, reg, data->name)) {\
--		dev_err(&client->dev, "Register write error, aborting.\n");\
--		count = -EIO;\
--	} \
--	mutex_unlock(&data->update_lock); \
--	return count; \
--}
--
--set_temp_para(temp1_min, AMC6821_REG_LTEMP_LIMIT_MIN);
--set_temp_para(temp1_max, AMC6821_REG_LTEMP_LIMIT_MAX);
--set_temp_para(temp2_min, AMC6821_REG_RTEMP_LIMIT_MIN);
--set_temp_para(temp2_max, AMC6821_REG_RTEMP_LIMIT_MAX);
--set_temp_para(temp1_crit, AMC6821_REG_LTEMP_CRIT);
--set_temp_para(temp2_crit, AMC6821_REG_RTEMP_CRIT);
--
--#define get_temp_alarm(name, reg, mask)\
--static ssize_t get_##name(\
--	struct device *dev, \
--	struct device_attribute *devattr,\
--	char *buf)\
--{\
--	struct amc6821_data *data = amc6821_update_device(dev);\
--	if (data->reg &  mask)\
--		return sprintf(buf, "1");\
--	else	\
--		return sprintf(buf, "0");\
--} \
--
--get_temp_alarm(temp1_min_alarm, stat1,	AMC6821_STAT1_LTL)
--get_temp_alarm(temp1_max_alarm, stat1, AMC6821_STAT1_LTH)
--get_temp_alarm(temp2_min_alarm, stat1, AMC6821_STAT1_RTL)
--get_temp_alarm(temp2_max_alarm, stat1, AMC6821_STAT1_RTH)
--get_temp_alarm(temp1_crit_alarm, stat2, AMC6821_STAT2_LTC)
--get_temp_alarm(temp2_crit_alarm, stat2, AMC6821_STAT2_RTC)
-+static ssize_t get_temp(
-+		struct device *dev,
-+		struct device_attribute *devattr,
-+		char *buf)
++/*
++ * One scatterlist dma "segment" is at most MAX_CCNT rw_threshold units,
++ * and we handle up to NR_SG segments.  MMC_BLOCK_BOUNCE kicks in only
++ * for drivers with max_hw_segs == 1, making the segments bigger (64KB)
++ * than the page or two that's otherwise typical.  NR_SG == 16 gives at
++ * least the same throughput boost, using EDMA transfer linkage instead
++ * of spending CPU time copying pages.
++ */
++#define MAX_CCNT	((1 << 16) - 1)
++
++#define NR_SG		16
++
++static unsigned rw_threshold = 32;
++module_param(rw_threshold, uint, S_IRUGO);
++MODULE_PARM_DESC(rw_threshold,
++		"Read/Write threshold. Default = 32");
++
++static unsigned __initdata use_dma = 1;
++module_param(use_dma, uint, 0);
++MODULE_PARM_DESC(use_dma, "Whether to use DMA or not. Default = 1");
++
++struct mmc_davinci_host {
++	struct mmc_command *cmd;
++	struct mmc_data *data;
++	struct mmc_host *mmc;
++	struct clk *clk;
++	unsigned int mmc_input_clk;
++	void __iomem *base;
++	struct resource *mem_res;
++	int irq;
++	unsigned char bus_mode;
++
++#define DAVINCI_MMC_DATADIR_NONE	0
++#define DAVINCI_MMC_DATADIR_READ	1
++#define DAVINCI_MMC_DATADIR_WRITE	2
++	unsigned char data_dir;
++
++	/* buffer is used during PIO of one scatterlist segment, and
++	 * is updated along with buffer_bytes_left.  bytes_left applies
++	 * to all N blocks of the PIO transfer.
++	 */
++	u8 *buffer;
++	u32 buffer_bytes_left;
++	u32 bytes_left;
++
++	u8 rxdma, txdma;
++	bool use_dma;
++	bool do_dma;
++
++	/* Scatterlist DMA uses one or more parameter RAM entries:
++	 * the main one (associated with rxdma or txdma) plus zero or
++	 * more links.  The entries for a given transfer differ only
++	 * by memory buffer (address, length) and link field.
++	 */
++	struct edmacc_param	tx_template;
++	struct edmacc_param	rx_template;
++	unsigned		n_link;
++	u8			links[NR_SG - 1];
++
++	/* For PIO we walk scatterlists one segment at a time. */
++	unsigned int		sg_len;
++	struct scatterlist *sg;
++
++	/* Version of the MMC/SD controller */
++	u8 version;
++	/* for ns in one cycle calculation */
++	unsigned ns_in_one_cycle;
++};
++
++
++/* PIO only */
++static void mmc_davinci_sg_to_buf(struct mmc_davinci_host *host)
 +{
-+	struct amc6821_data *data = amc6821_update_device(dev);
-+	int ix = to_sensor_dev_attr(devattr)->index;
-+
-+	return sprintf(buf, "%d\n", data->temp[ix] * 1000);
++	host->buffer_bytes_left = sg_dma_len(host->sg);
++	host->buffer = sg_virt(host->sg);
++	if (host->buffer_bytes_left > host->bytes_left)
++		host->buffer_bytes_left = host->bytes_left;
 +}
 +
-+
-+
-+static ssize_t set_temp(
-+		struct device *dev,
-+		struct device_attribute *attr,
-+		const char *buf,
-+		size_t count)
++static void davinci_fifo_data_trans(struct mmc_davinci_host *host,
++					unsigned int n)
 +{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct amc6821_data *data = i2c_get_clientdata(client);
-+	int ix = to_sensor_dev_attr(attr)->index;
-+	long val;
++	u8 *p;
++	unsigned int i;
 +
-+	int ret = strict_strtol(buf, 10, &val);
-+	if (ret)
-+		return ret;
-+	val = SENSORS_LIMIT(val / 1000, -128, 127);
-+
-+	mutex_lock(&data->update_lock);
-+	data->temp[ix] = val;
-+	if (i2c_smbus_write_byte_data(client, temp_reg[ix], data->temp[ix])) {
-+		dev_err(&client->dev, "Register write error, aborting.\n");
-+		count = -EIO;
++	if (host->buffer_bytes_left == 0) {
++		host->sg = sg_next(host->data->sg);
++		mmc_davinci_sg_to_buf(host);
 +	}
-+	mutex_unlock(&data->update_lock);
-+	return count;
++
++	p = host->buffer;
++	if (n > host->buffer_bytes_left)
++		n = host->buffer_bytes_left;
++	host->buffer_bytes_left -= n;
++	host->bytes_left -= n;
++
++	/* NOTE:  we never transfer more than rw_threshold bytes
++	 * to/from the fifo here; there's no I/O overlap.
++	 * This also assumes that access width( i.e. ACCWD) is 4 bytes
++	 */
++	if (host->data_dir == DAVINCI_MMC_DATADIR_WRITE) {
++		for (i = 0; i < (n >> 2); i++) {
++			writel(*((u32 *)p), host->base + DAVINCI_MMCDXR);
++			p = p + 4;
++		}
++		if (n & 3) {
++			iowrite8_rep(host->base + DAVINCI_MMCDXR, p, (n & 3));
++			p = p + (n & 3);
++		}
++	} else {
++		for (i = 0; i < (n >> 2); i++) {
++			*((u32 *)p) = readl(host->base + DAVINCI_MMCDRR);
++			p  = p + 4;
++		}
++		if (n & 3) {
++			ioread8_rep(host->base + DAVINCI_MMCDRR, p, (n & 3));
++			p = p + (n & 3);
++		}
++	}
++	host->buffer = p;
 +}
 +
-+
-+
-+
-+static ssize_t get_temp_alarm(
-+	struct device *dev,
-+	struct device_attribute *devattr,
-+	char *buf)
++static void mmc_davinci_start_command(struct mmc_davinci_host *host,
++		struct mmc_command *cmd)
 +{
-+	struct amc6821_data *data = amc6821_update_device(dev);
-+	int ix = to_sensor_dev_attr(devattr)->index;
-+	u8 flag;
++	u32 cmd_reg = 0;
++	u32 im_val;
 +
-+	switch (ix) {
-+	case IDX_TEMP1_MIN:
-+		flag = data->stat1 & AMC6821_STAT1_LTL;
-+		break;
-+	case IDX_TEMP1_MAX:
-+		flag = data->stat1 & AMC6821_STAT1_LTH;
-+		break;
-+	case IDX_TEMP1_CRIT:
-+		flag = data->stat2 & AMC6821_STAT2_LTC;
-+		break;
-+	case IDX_TEMP2_MIN:
-+		flag = data->stat1 & AMC6821_STAT1_RTL;
-+		break;
-+	case IDX_TEMP2_MAX:
-+		flag = data->stat1 & AMC6821_STAT1_RTH;
-+		break;
-+	case IDX_TEMP2_CRIT:
-+		flag = data->stat2 & AMC6821_STAT2_RTC;
-+		break;
-+	default:
-+		dev_dbg(dev, "Unknown attr->index (%d).\n", ix);
-+		return -EINVAL;
-+	}
-+	if (flag)
-+		return sprintf(buf, "1");
-+	else
-+		return sprintf(buf, "0");
-+}
-+
-+
- 
- 
- static ssize_t get_temp2_fault(
-@@ -294,7 +324,10 @@ static ssize_t set_pwm1(
- {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct amc6821_data *data = i2c_get_clientdata(client);
--	int val = simple_strtol(buf, NULL, 10);
-+	long val;
-+	int ret = strict_strtol(buf, 10, &val);
-+	if (ret)
-+		return ret;
- 
- 	mutex_lock(&data->update_lock);
- 	data->pwm1 = SENSORS_LIMIT(val , 0, 255);
-@@ -320,9 +353,12 @@ static ssize_t set_pwm1_enable(
- {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct amc6821_data *data = i2c_get_clientdata(client);
--	int val = simple_strtol(buf, NULL, 10);
-+	long val;
-+	int config = strict_strtol(buf, 10, &val);
-+	if (config)
-+		return config;
- 
--	int config = i2c_smbus_read_byte_data(client, AMC6821_REG_CONF1);
-+	config = i2c_smbus_read_byte_data(client, AMC6821_REG_CONF1);
- 	if (config < 0) {
- 			dev_err(&client->dev,
- 			"Error reading configuration register, aborting.\n");
-@@ -366,101 +402,147 @@ static ssize_t get_pwm1_auto_channels_te
- }
- 
- 
--#define get_auto_point(name)\
--static ssize_t get_##name(\
--		struct device *dev,\
--		struct device_attribute *devattr,\
--		char *buf)\
--{\
--	int nr = to_sensor_dev_attr(devattr)->index;\
--	struct amc6821_data *data = amc6821_update_device(dev);\
--	return sprintf(buf, "%d\n", data->name[nr] * 1000);\
-+static ssize_t get_temp_auto_point_temp(
-+		struct device *dev,
-+		struct device_attribute *devattr,
-+		char *buf)
-+{
-+	int ix = to_sensor_dev_attr_2(devattr)->index;
-+	int nr = to_sensor_dev_attr_2(devattr)->nr;
-+	struct amc6821_data *data = amc6821_update_device(dev);
-+	switch (nr) {
-+	case 1:
-+		return sprintf(buf, "%d\n",
-+			data->temp1_auto_point_temp[ix] * 1000);
-+		break;
-+	case 2:
-+		return sprintf(buf, "%d\n",
-+			data->temp2_auto_point_temp[ix] * 1000);
-+		break;
-+	default:
-+		dev_dbg(dev, "Unknown attr->nr (%d).\n", nr);
-+		return -EINVAL;
-+	}
- }
- 
--get_auto_point(temp1_auto_point_temp);
--get_auto_point(temp2_auto_point_temp);
- 
- static ssize_t get_pwm1_auto_point_pwm(
- 		struct device *dev,
- 		struct device_attribute *devattr,
- 		char *buf)
- {
--	int nr = to_sensor_dev_attr(devattr)->index;
-+	int ix = to_sensor_dev_attr(devattr)->index;
- 	struct amc6821_data *data = amc6821_update_device(dev);
--	return sprintf(buf, "%d\n", data->pwm1_auto_point_pwm[nr]);
-+	return sprintf(buf, "%d\n", data->pwm1_auto_point_pwm[ix]);
- }
- 
- 
--#define set_temp_auto_point_temp(name, reg)\
--static ssize_t set_##name(\
--		struct device *dev,\
--		struct device_attribute *attr,\
--		const char *buf,\
--		size_t count)\
--{ \
--	struct i2c_client *client = to_i2c_client(dev); \
--	struct amc6821_data *data = amc6821_update_device(dev);\
--	int nr = to_sensor_dev_attr(attr)->index;\
--	int val = simple_strtol(buf, NULL, 10); \
--	u8 tmp;\
--	int dt;\
--	int dpwm;\
--	\
--	mutex_lock(&data->update_lock); \
--	switch (nr) {\
--	case 0:\
--		data->name[0] = SENSORS_LIMIT(val / 1000, 0,\
--				data->temp1_auto_point_temp[1]);\
--		data->name[0] = SENSORS_LIMIT(data->name[0], 0,\
--				data->temp2_auto_point_temp[1]);\
--		data->name[0] = SENSORS_LIMIT(data->name[0], 0, 63); \
--		data->valid = 0;\
--		if (i2c_smbus_write_byte_data(\
--					client,\
--					AMC6821_REG_PSV_TEMP,\
--					data->name[0])) {\
--				dev_err(&client->dev,\
--					"Register write error, aborting.\n");\
--				count = -EIO;\
--		} \
--		goto EXIT;\
--		break;\
--	case 1:\
--		data->name[1] = SENSORS_LIMIT(\
--					val / 1000,\
--					(data->name[0] & 0x7C) + 4,\
--					124);\
--		data->name[1] &= 0x7C;\
--		data->name[2] = SENSORS_LIMIT(\
--					data->name[2], data->name[1] + 1,\
--					255);\
--		break;\
--	case 2:\
--		data->name[2] = SENSORS_LIMIT(\
--					val / 1000,\
--					data->name[1]+1,\
--					255); \
--		break;\
--	} \
--	dt = data->name[2]-data->name[1];\
--	dpwm = data->pwm1_auto_point_pwm[2] - data->pwm1_auto_point_pwm[1];\
--	for (tmp = 4; tmp > 0; tmp--) {\
--		if (dt * (0x20 >> tmp) >= dpwm)\
--			break;\
--	} \
--	tmp |= (data->name[1] & 0x7C) << 1;\
--	if (i2c_smbus_write_byte_data(client, reg, tmp)) {\
--		dev_err(&client->dev, "Register write error, aborting.\n");\
--		count = -EIO;\
--	} \
--	data->valid = 0;\
--EXIT:\
--	mutex_unlock(&data->update_lock); \
--	return count; \
-+static inline ssize_t set_slope_register(struct i2c_client *client,
-+		u8 reg,
-+		u8 dpwm,
-+		u8 *ptemp)
-+{
-+	int dt;
-+	u8 tmp;
-+
-+	dt = ptemp[2]-ptemp[1];
-+	for (tmp = 4; tmp > 0; tmp--) {
-+		if (dt * (0x20 >> tmp) >= dpwm)
++	dev_dbg(mmc_dev(host->mmc), "CMD%d, arg 0x%08x%s\n",
++		cmd->opcode, cmd->arg,
++		({ char *s;
++		switch (mmc_resp_type(cmd)) {
++		case MMC_RSP_R1:
++			s = ", R1/R5/R6/R7 response";
 +			break;
-+	}
-+	tmp |= (ptemp[1] & 0x7C) << 1;
-+	if (i2c_smbus_write_byte_data(client,
-+			reg, tmp)) {
-+		dev_err(&client->dev, "Register write error, aborting.\n");
-+		return -EIO;
-+	}
-+	return 0;
- }
- 
--set_temp_auto_point_temp(temp1_auto_point_temp, AMC6821_REG_LTEMP_FAN_CTRL);
--set_temp_auto_point_temp(temp2_auto_point_temp, AMC6821_REG_RTEMP_FAN_CTRL);
++		case MMC_RSP_R1B:
++			s = ", R1b response";
++			break;
++		case MMC_RSP_R2:
++			s = ", R2 response";
++			break;
++		case MMC_RSP_R3:
++			s = ", R3/R4 response";
++			break;
++		default:
++			s = ", (R? response)";
++			break;
++		}; s; }));
++	host->cmd = cmd;
 +
-+
-+static ssize_t set_temp_auto_point_temp(
-+		struct device *dev,
-+		struct device_attribute *attr,
-+		const char *buf,
-+		size_t count)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct amc6821_data *data = amc6821_update_device(dev);
-+	int ix = to_sensor_dev_attr_2(attr)->index;
-+	int nr = to_sensor_dev_attr_2(attr)->nr;
-+	u8 *ptemp;
-+	u8 reg;
-+	int dpwm;
-+	long val;
-+	int ret = strict_strtol(buf, 10, &val);
-+	if (ret)
-+		return ret;
-+
-+	switch (nr) {
-+	case 1:
-+		ptemp = data->temp1_auto_point_temp;
-+		reg = AMC6821_REG_LTEMP_FAN_CTRL;
++	switch (mmc_resp_type(cmd)) {
++	case MMC_RSP_R1B:
++		/* There's some spec confusion about when R1B is
++		 * allowed, but if the card doesn't issue a BUSY
++		 * then it's harmless for us to allow it.
++		 */
++		cmd_reg |= MMCCMD_BSYEXP;
++		/* FALLTHROUGH */
++	case MMC_RSP_R1:		/* 48 bits, CRC */
++		cmd_reg |= MMCCMD_RSPFMT_R1456;
 +		break;
-+	case 2:
-+		ptemp = data->temp2_auto_point_temp;
-+		reg = AMC6821_REG_RTEMP_FAN_CTRL;
++	case MMC_RSP_R2:		/* 136 bits, CRC */
++		cmd_reg |= MMCCMD_RSPFMT_R2;
++		break;
++	case MMC_RSP_R3:		/* 48 bits, no CRC */
++		cmd_reg |= MMCCMD_RSPFMT_R3;
 +		break;
 +	default:
-+		dev_dbg(dev, "Unknown attr->nr (%d).\n", nr);
-+		return -EINVAL;
++		cmd_reg |= MMCCMD_RSPFMT_NONE;
++		dev_dbg(mmc_dev(host->mmc), "unknown resp_type %04x\n",
++			mmc_resp_type(cmd));
++		break;
 +	}
 +
-+	data->valid = 0;
-+	mutex_lock(&data->update_lock);
-+	switch (ix) {
-+	case 0:
-+		ptemp[0] = SENSORS_LIMIT(val / 1000, 0,
-+				data->temp1_auto_point_temp[1]);
-+		ptemp[0] = SENSORS_LIMIT(ptemp[0], 0,
-+				data->temp2_auto_point_temp[1]);
-+		ptemp[0] = SENSORS_LIMIT(ptemp[0], 0, 63);
-+		if (i2c_smbus_write_byte_data(
-+					client,
-+					AMC6821_REG_PSV_TEMP,
-+					ptemp[0])) {
-+				dev_err(&client->dev,
-+					"Register write error, aborting.\n");
-+				count = -EIO;
-+		}
-+		goto EXIT;
-+		break;
-+	case 1:
-+		ptemp[1] = SENSORS_LIMIT(
-+					val / 1000,
-+					(ptemp[0] & 0x7C) + 4,
-+					124);
-+		ptemp[1] &= 0x7C;
-+		ptemp[2] = SENSORS_LIMIT(
-+					ptemp[2], ptemp[1] + 1,
-+					255);
-+		break;
-+	case 2:
-+		ptemp[2] = SENSORS_LIMIT(
-+					val / 1000,
-+					ptemp[1]+1,
-+					255);
-+		break;
-+	default:
-+		dev_dbg(dev, "Unknown attr->index (%d).\n", ix);
-+		count = -EINVAL;
-+		goto EXIT;
-+	}
-+	dpwm = data->pwm1_auto_point_pwm[2] - data->pwm1_auto_point_pwm[1];
-+	if (set_slope_register(client, reg, dpwm, ptemp))
-+		count = -EIO;
++	/* Set command index */
++	cmd_reg |= cmd->opcode;
 +
-+EXIT:
-+	mutex_unlock(&data->update_lock);
-+	return count;
++	/* Enable EDMA transfer triggers */
++	if (host->do_dma)
++		cmd_reg |= MMCCMD_DMATRIG;
++
++	if (host->version == MMC_CTLR_VERSION_2 && host->data != NULL &&
++			host->data_dir == DAVINCI_MMC_DATADIR_READ)
++		cmd_reg |= MMCCMD_DMATRIG;
++
++	/* Setting whether command involves data transfer or not */
++	if (cmd->data)
++		cmd_reg |= MMCCMD_WDATX;
++
++	/* Setting whether stream or block transfer */
++	if (cmd->flags & MMC_DATA_STREAM)
++		cmd_reg |= MMCCMD_STRMTP;
++
++	/* Setting whether data read or write */
++	if (host->data_dir == DAVINCI_MMC_DATADIR_WRITE)
++		cmd_reg |= MMCCMD_DTRW;
++
++	if (host->bus_mode == MMC_BUSMODE_PUSHPULL)
++		cmd_reg |= MMCCMD_PPLEN;
++
++	/* set Command timeout */
++	writel(0x1FFF, host->base + DAVINCI_MMCTOR);
++
++	/* Enable interrupt (calculate here, defer until FIFO is stuffed). */
++	im_val =  MMCST0_RSPDNE | MMCST0_CRCRS | MMCST0_TOUTRS;
++	if (host->data_dir == DAVINCI_MMC_DATADIR_WRITE) {
++		im_val |= MMCST0_DATDNE | MMCST0_CRCWR;
++
++		if (!host->do_dma)
++			im_val |= MMCST0_DXRDY;
++	} else if (host->data_dir == DAVINCI_MMC_DATADIR_READ) {
++		im_val |= MMCST0_DATDNE | MMCST0_CRCRD | MMCST0_TOUTRD;
++
++		if (!host->do_dma)
++			im_val |= MMCST0_DRRDY;
++	}
++
++	/*
++	 * Before non-DMA WRITE commands the controller needs priming:
++	 * FIFO should be populated with 32 bytes i.e. whatever is the FIFO size
++	 */
++	if (!host->do_dma && (host->data_dir == DAVINCI_MMC_DATADIR_WRITE))
++		davinci_fifo_data_trans(host, rw_threshold);
++
++	writel(cmd->arg, host->base + DAVINCI_MMCARGHL);
++	writel(cmd_reg,  host->base + DAVINCI_MMCCMD);
++	writel(im_val, host->base + DAVINCI_MMCIM);
 +}
 +
++/*----------------------------------------------------------------------*/
 +
- 
- static ssize_t set_pwm1_auto_point_pwm(
- 		struct device *dev,
-@@ -470,10 +552,11 @@ static ssize_t set_pwm1_auto_point_pwm(
- {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct amc6821_data *data = i2c_get_clientdata(client);
--	int val = simple_strtol(buf, NULL, 10);
--	u8 tmp;
--	int dt;
- 	int dpwm;
-+	long val;
-+	int ret = strict_strtol(buf, 10, &val);
-+	if (ret)
-+		return ret;
- 
- 	mutex_lock(&data->update_lock);
- 	data->pwm1_auto_point_pwm[1] = SENSORS_LIMIT(val, 0, 254);
-@@ -481,52 +564,39 @@ static ssize_t set_pwm1_auto_point_pwm(
- 			data->pwm1_auto_point_pwm[1])) {
- 		dev_err(&client->dev, "Register write error, aborting.\n");
- 		count = -EIO;
-+		goto EXIT;
- 	}
--
- 	dpwm = data->pwm1_auto_point_pwm[2] - data->pwm1_auto_point_pwm[1];
--	dt = data->temp1_auto_point_temp[2]-data->temp1_auto_point_temp[1];
--	for (tmp = 4; tmp > 0; tmp--) {
--		if (dt * (0x20 >> tmp) >= dpwm)
--			break;
--	}
--	tmp |= (data->temp1_auto_point_temp[1] & 0x7C) << 1;
--	if (i2c_smbus_write_byte_data(client,
--			AMC6821_REG_LTEMP_FAN_CTRL, tmp)) {
--		dev_err(&client->dev, "Register write error, aborting.\n");
-+	if (set_slope_register(client, AMC6821_REG_LTEMP_FAN_CTRL, dpwm,
-+			data->temp1_auto_point_temp)) {
- 		count = -EIO;
-+		goto EXIT;
- 	}
--
--	dt = data->temp2_auto_point_temp[2]-data->temp2_auto_point_temp[1];
--	for (tmp = 4; tmp > 0; tmp--) {
--		if (dt * (0x20 >> tmp) >= dpwm)
--			break;
--	}
--	tmp |= (data->temp2_auto_point_temp[1] & 0x7C) << 1;
--	if (i2c_smbus_write_byte_data(client,
--			AMC6821_REG_RTEMP_FAN_CTRL, tmp)) {
--		dev_err(&client->dev, "Register write error, aborting.\n");
-+	if (set_slope_register(client, AMC6821_REG_RTEMP_FAN_CTRL, dpwm,
-+			data->temp2_auto_point_temp)) {
- 		count = -EIO;
-+		goto EXIT;
- 	}
++/* DMA infrastructure */
 +
-+EXIT:
- 	data->valid = 0;
- 	mutex_unlock(&data->update_lock);
- 	return count;
- }
- 
--
--#define get_fan_para(name) static ssize_t get_##name(\
--		struct device *dev,\
--		struct device_attribute *devattr,\
--		char *buf)\
--{ \
--	struct amc6821_data *data = amc6821_update_device(dev); \
--	if (0 == data->name)\
--		return sprintf(buf, "0");\
--	return sprintf(buf, "%d\n", (int)(6000000 / data->name)); \
-+static ssize_t get_fan(
-+		struct device *dev,
-+		struct device_attribute *devattr,
-+		char *buf)
++static void davinci_abort_dma(struct mmc_davinci_host *host)
 +{
-+	struct amc6821_data *data = amc6821_update_device(dev);
-+	int ix = to_sensor_dev_attr(devattr)->index;
-+	if (0 == data->fan[ix])
-+		return sprintf(buf, "0");
-+	return sprintf(buf, "%d\n", (int)(6000000 / data->fan[ix]));
- }
- 
--get_fan_para(fan1_input);
--get_fan_para(fan1_min);
--get_fan_para(fan1_max);
++	int sync_dev;
 +
- 
- static ssize_t get_fan1_fault(
- 		struct device *dev,
-@@ -541,34 +611,39 @@ static ssize_t get_fan1_fault(
- }
- 
- 
--#define set_fan_para(name, reg) \
--static ssize_t set_##name(\
--		struct device *dev,\
--		struct device_attribute *attr,\
--		const char *buf, size_t count)\
--{ \
--	struct i2c_client *client = to_i2c_client(dev); \
--	struct amc6821_data *data = i2c_get_clientdata(client); \
--	int val = simple_strtol(buf, NULL, 10); \
--	val = 1 > val ? 0xFFFF : 6000000/val; \
--\
--	mutex_lock(&data->update_lock); \
--	data->name = (u16) SENSORS_LIMIT(val, 1, 0xFFFF); \
--	if (i2c_smbus_write_byte_data(client, reg, data->name & 0xFF)) { \
--		dev_err(&client->dev, "Register write error, aborting.\n");\
--		count = -EIO;\
--	} \
--	if (i2c_smbus_write_byte_data(client, reg+1, data->name >> 8)) { \
--		dev_err(&client->dev, "Register write error, aborting.\n");\
--		count = -EIO;\
--	} \
--	mutex_unlock(&data->update_lock); \
--	return count; \
--}
- 
-+static ssize_t set_fan(
-+		struct device *dev,
-+		struct device_attribute *attr,
-+		const char *buf, size_t count)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct amc6821_data *data = i2c_get_clientdata(client);
-+	long val;
-+	int ix = to_sensor_dev_attr(attr)->index;
-+	int ret = strict_strtol(buf, 10, &val);
-+	if (ret)
-+		return ret;
-+	val = 1 > val ? 0xFFFF : 6000000/val;
++	if (host->data_dir == DAVINCI_MMC_DATADIR_READ)
++		sync_dev = host->rxdma;
++	else
++		sync_dev = host->txdma;
 +
-+	mutex_lock(&data->update_lock);
-+	data->fan[ix] = (u16) SENSORS_LIMIT(val, 1, 0xFFFF);
-+	if (i2c_smbus_write_byte_data(client, fan_reg_low[ix],
-+			data->fan[ix] & 0xFF)) {
-+		dev_err(&client->dev, "Register write error, aborting.\n");
-+		count = -EIO;
-+		goto EXIT;
-+	}
-+	if (i2c_smbus_write_byte_data(client,
-+			fan_reg_hi[ix], data->fan[ix] >> 8)) {
-+		dev_err(&client->dev, "Register write error, aborting.\n");
-+		count = -EIO;
-+	}
-+EXIT:
-+	mutex_unlock(&data->update_lock);
-+	return count;
++	edma_stop(sync_dev);
++	edma_clean_channel(sync_dev);
 +}
- 
--set_fan_para(fan1_min, AMC6821_REG_TACH_LLIMITL);
--set_fan_para(fan1_max, AMC6821_REG_TACH_HLIMITL);
- 
- 
- static ssize_t get_fan1_div(
-@@ -587,9 +662,12 @@ static ssize_t set_fan1_div(
- {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct amc6821_data *data = i2c_get_clientdata(client);
--	int val = simple_strtol(buf, NULL, 10);
--	int config = i2c_smbus_read_byte_data(client, AMC6821_REG_CONF4);
-+	long val;
-+	int config = strict_strtol(buf, 10, &val);
-+	if (config)
-+		return config;
- 
-+	config = i2c_smbus_read_byte_data(client, AMC6821_REG_CONF4);
- 	if (config < 0) {
- 		dev_err(&client->dev,
- 			"Error reading configuration register, aborting.\n");
-@@ -607,53 +685,56 @@ static ssize_t set_fan1_div(
- 		break;
- 	default:
- 		mutex_unlock(&data->update_lock);
--		return -EINVAL;
-+		count = -EINVAL;
-+		goto EXIT;
- 	}
- 	if (i2c_smbus_write_byte_data(client, AMC6821_REG_CONF4, config)) {
- 		dev_err(&client->dev,
- 			"Configuration register write error, aborting.\n");
- 		count = -EIO;
- 	}
-+EXIT:
- 	mutex_unlock(&data->update_lock);
- 	return count;
- }
- 
- 
- 
--static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, get_temp1_input, NULL, 0);
--static SENSOR_DEVICE_ATTR(temp1_min, S_IRUGO | S_IWUSR, get_temp1_min,
--	set_temp1_min, 0);
--static SENSOR_DEVICE_ATTR(temp1_max, S_IRUGO | S_IWUSR, get_temp1_max,
--	set_temp1_max, 0);
--static SENSOR_DEVICE_ATTR(temp1_crit, S_IRUGO | S_IWUSR, get_temp1_crit,
--	set_temp1_crit, 0);
-+static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO,
-+	get_temp, NULL, IDX_TEMP1_INPUT);
-+static SENSOR_DEVICE_ATTR(temp1_min, S_IRUGO | S_IWUSR, get_temp,
-+	set_temp, IDX_TEMP1_MIN);
-+static SENSOR_DEVICE_ATTR(temp1_max, S_IRUGO | S_IWUSR, get_temp,
-+	set_temp, IDX_TEMP1_MAX);
-+static SENSOR_DEVICE_ATTR(temp1_crit, S_IRUGO | S_IWUSR, get_temp,
-+	set_temp, IDX_TEMP1_CRIT);
- static SENSOR_DEVICE_ATTR(temp1_min_alarm, S_IRUGO,
--	get_temp1_min_alarm, NULL, 0);
-+	get_temp_alarm, NULL, IDX_TEMP1_MIN);
- static SENSOR_DEVICE_ATTR(temp1_max_alarm, S_IRUGO,
--	get_temp1_max_alarm, NULL, 0);
-+	get_temp_alarm, NULL, IDX_TEMP1_MAX);
- static SENSOR_DEVICE_ATTR(temp1_crit_alarm, S_IRUGO,
--	get_temp1_crit_alarm, NULL, 0);
-+	get_temp_alarm, NULL, IDX_TEMP1_CRIT);
- static SENSOR_DEVICE_ATTR(temp2_input, S_IRUGO | S_IWUSR,
--	get_temp2_input, NULL, 0);
--static SENSOR_DEVICE_ATTR(temp2_min, S_IRUGO | S_IWUSR, get_temp2_min,
--	set_temp2_min, 0);
--static SENSOR_DEVICE_ATTR(temp2_max, S_IRUGO | S_IWUSR, get_temp2_max,
--	set_temp2_max, 0);
--static SENSOR_DEVICE_ATTR(temp2_crit, S_IRUGO | S_IWUSR, get_temp2_crit,
--	set_temp2_crit, 0);
-+	get_temp, NULL, IDX_TEMP2_INPUT);
-+static SENSOR_DEVICE_ATTR(temp2_min, S_IRUGO | S_IWUSR, get_temp,
-+	set_temp, IDX_TEMP2_MIN);
-+static SENSOR_DEVICE_ATTR(temp2_max, S_IRUGO | S_IWUSR, get_temp,
-+	set_temp, IDX_TEMP2_MAX);
-+static SENSOR_DEVICE_ATTR(temp2_crit, S_IRUGO | S_IWUSR, get_temp,
-+	set_temp, IDX_TEMP2_CRIT);
- static SENSOR_DEVICE_ATTR(temp2_fault, S_IRUGO,
- 	get_temp2_fault, NULL, 0);
- static SENSOR_DEVICE_ATTR(temp2_min_alarm, S_IRUGO,
--	get_temp2_min_alarm, NULL, 0);
-+	get_temp_alarm, NULL, IDX_TEMP2_MIN);
- static SENSOR_DEVICE_ATTR(temp2_max_alarm, S_IRUGO,
--	get_temp2_max_alarm, NULL, 0);
-+	get_temp_alarm, NULL, IDX_TEMP2_MAX);
- static SENSOR_DEVICE_ATTR(temp2_crit_alarm, S_IRUGO,
--	get_temp2_crit_alarm, NULL, 0);
--static SENSOR_DEVICE_ATTR(fan1_input, S_IRUGO, get_fan1_input, NULL, 0);
-+	get_temp_alarm, NULL, IDX_TEMP2_CRIT);
-+static SENSOR_DEVICE_ATTR(fan1_input, S_IRUGO, get_fan, NULL, IDX_FAN1_INPUT);
- static SENSOR_DEVICE_ATTR(fan1_min, S_IRUGO | S_IWUSR,
--	get_fan1_min, set_fan1_min, 0);
-+	get_fan, set_fan, IDX_FAN1_MIN);
- static SENSOR_DEVICE_ATTR(fan1_max, S_IRUGO | S_IWUSR,
--	get_fan1_max, set_fan1_max, 0);
-+	get_fan, set_fan, IDX_FAN1_MAX);
- static SENSOR_DEVICE_ATTR(fan1_fault, S_IRUGO, get_fan1_fault, NULL, 0);
- static SENSOR_DEVICE_ATTR(fan1_div, S_IRUGO | S_IWUSR,
- 	get_fan1_div, set_fan1_div, 0);
-@@ -669,19 +750,19 @@ static SENSOR_DEVICE_ATTR(pwm1_auto_poin
- 	get_pwm1_auto_point_pwm, NULL, 2);
- static SENSOR_DEVICE_ATTR(pwm1_auto_channels_temp, S_IRUGO,
- 	get_pwm1_auto_channels_temp, NULL, 0);
--static SENSOR_DEVICE_ATTR(temp1_auto_point1_temp, S_IRUGO,
--	get_temp1_auto_point_temp, NULL, 0);
--static SENSOR_DEVICE_ATTR(temp1_auto_point2_temp, S_IWUSR | S_IRUGO,
--	get_temp1_auto_point_temp, set_temp1_auto_point_temp, 1);
--static SENSOR_DEVICE_ATTR(temp1_auto_point3_temp, S_IWUSR | S_IRUGO,
--	get_temp1_auto_point_temp, set_temp1_auto_point_temp, 2);
--
--static SENSOR_DEVICE_ATTR(temp2_auto_point1_temp, S_IWUSR | S_IRUGO,
--	get_temp2_auto_point_temp, set_temp2_auto_point_temp, 0);
--static SENSOR_DEVICE_ATTR(temp2_auto_point2_temp, S_IWUSR | S_IRUGO,
--	get_temp2_auto_point_temp, set_temp2_auto_point_temp, 1);
--static SENSOR_DEVICE_ATTR(temp2_auto_point3_temp, S_IWUSR | S_IRUGO,
--	get_temp2_auto_point_temp, set_temp2_auto_point_temp, 2);
-+static SENSOR_DEVICE_ATTR_2(temp1_auto_point1_temp, S_IRUGO,
-+	get_temp_auto_point_temp, NULL, 1, 0);
-+static SENSOR_DEVICE_ATTR_2(temp1_auto_point2_temp, S_IWUSR | S_IRUGO,
-+	get_temp_auto_point_temp, set_temp_auto_point_temp, 1, 1);
-+static SENSOR_DEVICE_ATTR_2(temp1_auto_point3_temp, S_IWUSR | S_IRUGO,
-+	get_temp_auto_point_temp, set_temp_auto_point_temp, 1, 2);
 +
-+static SENSOR_DEVICE_ATTR_2(temp2_auto_point1_temp, S_IWUSR | S_IRUGO,
-+	get_temp_auto_point_temp, set_temp_auto_point_temp, 2, 0);
-+static SENSOR_DEVICE_ATTR_2(temp2_auto_point2_temp, S_IWUSR | S_IRUGO,
-+	get_temp_auto_point_temp, set_temp_auto_point_temp, 2, 1);
-+static SENSOR_DEVICE_ATTR_2(temp2_auto_point3_temp, S_IWUSR | S_IRUGO,
-+	get_temp_auto_point_temp, set_temp_auto_point_temp, 2, 2);
- 
- 
- 
-@@ -736,7 +817,7 @@ static int amc6821_detect(
- 	struct i2c_adapter *adapter = client->adapter;
- 	int address = client->addr;
- 
--	dev_dbg(&adapter->dev, "amc6821_detect called, kind = %d\n", kind);
-+	dev_dbg(&adapter->dev, "amc6821_detect called, kind = %d.\n", kind);
- 
- 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
- 		dev_dbg(&adapter->dev,
-@@ -904,28 +985,16 @@ static struct amc6821_data *amc6821_upda
- 	struct amc6821_data *data = i2c_get_clientdata(client);
- 	int timeout = HZ;
- 	u8 reg;
++static void
++mmc_davinci_xfer_done(struct mmc_davinci_host *host, struct mmc_data *data);
++
++static void mmc_davinci_dma_cb(unsigned channel, u16 ch_status, void *data)
++{
++	if (DMA_COMPLETE != ch_status) {
++		struct mmc_davinci_host *host = data;
++
++		/* Currently means:  DMA Event Missed, or "null" transfer
++		 * request was seen.  In the future, TC errors (like bad
++		 * addresses) might be presented too.
++		 */
++		dev_warn(mmc_dev(host->mmc), "DMA %s error\n",
++			(host->data->flags & MMC_DATA_WRITE)
++				? "write" : "read");
++		host->data->error = -EIO;
++		mmc_davinci_xfer_done(host, host->data);
++	}
++}
++
++/* Set up tx or rx template, to be modified and updated later */
++static void __init mmc_davinci_dma_setup(struct mmc_davinci_host *host,
++		bool tx, struct edmacc_param *template)
++{
++	unsigned	sync_dev;
++	const u16	acnt = 4;
++	const u16	bcnt = rw_threshold >> 2;
++	const u16	ccnt = 0;
++	u32		src_port = 0;
++	u32		dst_port = 0;
++	s16		src_bidx, dst_bidx;
++	s16		src_cidx, dst_cidx;
++
++	/*
++	 * A-B Sync transfer:  each DMA request is for one "frame" of
++	 * rw_threshold bytes, broken into "acnt"-size chunks repeated
++	 * "bcnt" times.  Each segment needs "ccnt" such frames; since
++	 * we tell the block layer our mmc->max_seg_size limit, we can
++	 * trust (later) that it's within bounds.
++	 *
++	 * The FIFOs are read/written in 4-byte chunks (acnt == 4) and
++	 * EDMA will optimize memory operations to use larger bursts.
++	 */
++	if (tx) {
++		sync_dev = host->txdma;
++
++		/* src_prt, ccnt, and link to be set up later */
++		src_bidx = acnt;
++		src_cidx = acnt * bcnt;
++
++		dst_port = host->mem_res->start + DAVINCI_MMCDXR;
++		dst_bidx = 0;
++		dst_cidx = 0;
++	} else {
++		sync_dev = host->rxdma;
++
++		src_port = host->mem_res->start + DAVINCI_MMCDRR;
++		src_bidx = 0;
++		src_cidx = 0;
++
++		/* dst_prt, ccnt, and link to be set up later */
++		dst_bidx = acnt;
++		dst_cidx = acnt * bcnt;
++	}
++
++	/*
++	 * We can't use FIFO mode for the FIFOs because MMC FIFO addresses
++	 * are not 256-bit (32-byte) aligned.  So we use INCR, and the W8BIT
++	 * parameter is ignored.
++	 */
++	edma_set_src(sync_dev, src_port, INCR, W8BIT);
++	edma_set_dest(sync_dev, dst_port, INCR, W8BIT);
++
++	edma_set_src_index(sync_dev, src_bidx, src_cidx);
++	edma_set_dest_index(sync_dev, dst_bidx, dst_cidx);
++
++	edma_set_transfer_params(sync_dev, acnt, bcnt, ccnt, 8, ABSYNC);
++
++	edma_read_slot(sync_dev, template);
++
++	/* don't bother with irqs or chaining */
++	template->opt |= EDMA_CHAN_SLOT(sync_dev) << 12;
++}
++
++static void mmc_davinci_send_dma_request(struct mmc_davinci_host *host,
++		struct mmc_data *data)
++{
++	struct edmacc_param	*template;
++	int			channel, slot;
++	unsigned		link;
++	struct scatterlist	*sg;
++	unsigned		sg_len;
++	unsigned		bytes_left = host->bytes_left;
++	const unsigned		shift = ffs(rw_threshold) - 1;;
++
++	if (host->data_dir == DAVINCI_MMC_DATADIR_WRITE) {
++		template = &host->tx_template;
++		channel = host->txdma;
++	} else {
++		template = &host->rx_template;
++		channel = host->rxdma;
++	}
++
++	/* We know sg_len and ccnt will never be out of range because
++	 * we told the mmc layer which in turn tells the block layer
++	 * to ensure that it only hands us one scatterlist segment
++	 * per EDMA PARAM entry.  Update the PARAM
++	 * entries needed for each segment of this scatterlist.
++	 */
++	for (slot = channel, link = 0, sg = data->sg, sg_len = host->sg_len;
++			sg_len-- != 0 && bytes_left;
++			sg = sg_next(sg), slot = host->links[link++]) {
++		u32		buf = sg_dma_address(sg);
++		unsigned	count = sg_dma_len(sg);
++
++		template->link_bcntrld = sg_len
++				? (EDMA_CHAN_SLOT(host->links[link]) << 5)
++				: 0xffff;
++
++		if (count > bytes_left)
++			count = bytes_left;
++		bytes_left -= count;
++
++		if (host->data_dir == DAVINCI_MMC_DATADIR_WRITE)
++			template->src = buf;
++		else
++			template->dst = buf;
++		template->ccnt = count >> shift;
++
++		edma_write_slot(slot, template);
++	}
++
++	if (host->version == MMC_CTLR_VERSION_2)
++		edma_clear_event(channel);
++
++	edma_start(channel);
++}
++
++static int mmc_davinci_start_dma_transfer(struct mmc_davinci_host *host,
++		struct mmc_data *data)
++{
 +	int i;
- 
- 	mutex_lock(&data->update_lock);
- 
- 	if (time_after(jiffies, data->last_updated + timeout) ||
- 			!data->valid) {
--		data->temp1_input = i2c_smbus_read_byte_data(client,
--			AMC6821_REG_LTEMP_HI);
--		data->temp1_min = i2c_smbus_read_byte_data(client,
--			AMC6821_REG_LTEMP_LIMIT_MIN);
--		data->temp1_max = i2c_smbus_read_byte_data(client,
--			AMC6821_REG_LTEMP_LIMIT_MAX);
--		data->temp1_crit = i2c_smbus_read_byte_data(client,
--			AMC6821_REG_LTEMP_CRIT);
--
--		data->temp2_input = i2c_smbus_read_byte_data(client,
--			AMC6821_REG_RTEMP_HI);
--		data->temp2_min = i2c_smbus_read_byte_data(client,
--			AMC6821_REG_RTEMP_LIMIT_MIN);
--		data->temp2_max = i2c_smbus_read_byte_data(client,
--			AMC6821_REG_RTEMP_LIMIT_MAX);
--		data->temp2_crit = i2c_smbus_read_byte_data(client,
--			AMC6821_REG_RTEMP_CRIT);
++	int mask = rw_threshold - 1;
 +
-+		for (i = 0; i < TEMP_IDX_LEN; i++)
-+			data->temp[i] = i2c_smbus_read_byte_data(client,
-+				temp_reg[i]);
- 
- 		data->stat1 = i2c_smbus_read_byte_data(client,
- 			AMC6821_REG_STAT1);
-@@ -934,18 +1003,14 @@ static struct amc6821_data *amc6821_upda
- 
- 		data->pwm1 = i2c_smbus_read_byte_data(client,
- 			AMC6821_REG_DCY);
--		data->fan1_input = i2c_smbus_read_byte_data(client,
--			AMC6821_REG_TDATA_LOW);
--		data->fan1_input += i2c_smbus_read_byte_data(client,
--			AMC6821_REG_TDATA_HI) << 8;
--		data->fan1_min = i2c_smbus_read_byte_data(client,
--			AMC6821_REG_TACH_LLIMITL);
--		data->fan1_min += i2c_smbus_read_byte_data(client,
--			AMC6821_REG_TACH_LLIMITL+1) << 8;
--		data->fan1_max = i2c_smbus_read_byte_data(client,
--			AMC6821_REG_TACH_HLIMITL);
--		data->fan1_max += i2c_smbus_read_byte_data(client,
--			AMC6821_REG_TACH_HLIMITL+1) << 8;
-+		for (i = 0; i < FAN1_IDX_LEN; i++) {
-+			data->fan[i] = i2c_smbus_read_byte_data(
-+					client,
-+					fan_reg_low[i]);
-+			data->fan[i] += i2c_smbus_read_byte_data(
-+					client,
-+					fan_reg_hi[i]) << 8;
++	host->sg_len = dma_map_sg(mmc_dev(host->mmc), data->sg, data->sg_len,
++				((data->flags & MMC_DATA_WRITE)
++				? DMA_TO_DEVICE
++				: DMA_FROM_DEVICE));
++
++	/* no individual DMA segment should need a partial FIFO */
++	for (i = 0; i < host->sg_len; i++) {
++		if (sg_dma_len(data->sg + i) & mask) {
++			dma_unmap_sg(mmc_dev(host->mmc),
++					data->sg, data->sg_len,
++					(data->flags & MMC_DATA_WRITE)
++					? DMA_TO_DEVICE
++					: DMA_FROM_DEVICE);
++			return -1;
 +		}
- 		data->fan1_div = i2c_smbus_read_byte_data(client,
- 			AMC6821_REG_CONF4);
- 		data->fan1_div = data->fan1_div & AMC6821_CONF4_PSPR ? 4 : 2;
++	}
++
++	host->do_dma = 1;
++	mmc_davinci_send_dma_request(host, data);
++
++	return 0;
++}
++
++static void __init_or_module
++davinci_release_dma_channels(struct mmc_davinci_host *host)
++{
++	unsigned	i;
++
++	if (!host->use_dma)
++		return;
++
++	for (i = 0; i < host->n_link; i++)
++		edma_free_slot(host->links[i]);
++
++	edma_free_channel(host->txdma);
++	edma_free_channel(host->rxdma);
++}
++
++static int __init davinci_acquire_dma_channels(struct mmc_davinci_host *host)
++{
++	int r, i;
++
++	/* Acquire master DMA write channel */
++	r = edma_alloc_channel(host->txdma, mmc_davinci_dma_cb, host,
++			EVENTQ_DEFAULT);
++	if (r < 0) {
++		dev_warn(mmc_dev(host->mmc), "alloc %s channel err %d\n",
++				"tx", r);
++		return r;
++	}
++	mmc_davinci_dma_setup(host, true, &host->tx_template);
++
++	/* Acquire master DMA read channel */
++	r = edma_alloc_channel(host->rxdma, mmc_davinci_dma_cb, host,
++			EVENTQ_DEFAULT);
++	if (r < 0) {
++		dev_warn(mmc_dev(host->mmc), "alloc %s channel err %d\n",
++				"rx", r);
++		goto free_master_write;
++	}
++	mmc_davinci_dma_setup(host, false, &host->rx_template);
++
++	/* Allocate parameter RAM slots, which will later be bound to a
++	 * channel as needed to handle a scatterlist.
++	 */
++	for (i = 0; i < ARRAY_SIZE(host->links); i++) {
++		r = edma_alloc_slot(EDMA_CTLR(host->txdma), EDMA_SLOT_ANY);
++		if (r < 0) {
++			dev_dbg(mmc_dev(host->mmc), "dma PaRAM alloc --> %d\n",
++				r);
++			break;
++		}
++		host->links[i] = r;
++	}
++	host->n_link = i;
++
++	return 0;
++
++free_master_write:
++	edma_free_channel(host->txdma);
++
++	return r;
++}
++
++/*----------------------------------------------------------------------*/
++
++static void
++mmc_davinci_prepare_data(struct mmc_davinci_host *host, struct mmc_request *req)
++{
++	int fifo_lev = (rw_threshold == 32) ? MMCFIFOCTL_FIFOLEV : 0;
++	int timeout;
++	struct mmc_data *data = req->data;
++
++	if (host->version == MMC_CTLR_VERSION_2)
++		fifo_lev = (rw_threshold == 64) ? MMCFIFOCTL_FIFOLEV : 0;
++
++	host->data = data;
++	if (data == NULL) {
++		host->data_dir = DAVINCI_MMC_DATADIR_NONE;
++		writel(0, host->base + DAVINCI_MMCBLEN);
++		writel(0, host->base + DAVINCI_MMCNBLK);
++		return;
++	}
++
++	dev_dbg(mmc_dev(host->mmc), "%s %s, %d blocks of %d bytes\n",
++		(data->flags & MMC_DATA_STREAM) ? "stream" : "block",
++		(data->flags & MMC_DATA_WRITE) ? "write" : "read",
++		data->blocks, data->blksz);
++	dev_dbg(mmc_dev(host->mmc), "  DTO %d cycles + %d ns\n",
++		data->timeout_clks, data->timeout_ns);
++	timeout = data->timeout_clks +
++		(data->timeout_ns / host->ns_in_one_cycle);
++	if (timeout > 0xffff)
++		timeout = 0xffff;
++
++	writel(timeout, host->base + DAVINCI_MMCTOD);
++	writel(data->blocks, host->base + DAVINCI_MMCNBLK);
++	writel(data->blksz, host->base + DAVINCI_MMCBLEN);
++
++	/* Configure the FIFO */
++	switch (data->flags & MMC_DATA_WRITE) {
++	case MMC_DATA_WRITE:
++		host->data_dir = DAVINCI_MMC_DATADIR_WRITE;
++		writel(fifo_lev | MMCFIFOCTL_FIFODIR_WR | MMCFIFOCTL_FIFORST,
++			host->base + DAVINCI_MMCFIFOCTL);
++		writel(fifo_lev | MMCFIFOCTL_FIFODIR_WR,
++			host->base + DAVINCI_MMCFIFOCTL);
++		break;
++
++	default:
++		host->data_dir = DAVINCI_MMC_DATADIR_READ;
++		writel(fifo_lev | MMCFIFOCTL_FIFODIR_RD | MMCFIFOCTL_FIFORST,
++			host->base + DAVINCI_MMCFIFOCTL);
++		writel(fifo_lev | MMCFIFOCTL_FIFODIR_RD,
++			host->base + DAVINCI_MMCFIFOCTL);
++		break;
++	}
++
++	host->buffer = NULL;
++	host->bytes_left = data->blocks * data->blksz;
++
++	/* For now we try to use DMA whenever we won't need partial FIFO
++	 * reads or writes, either for the whole transfer (as tested here)
++	 * or for any individual scatterlist segment (tested when we call
++	 * start_dma_transfer).
++	 *
++	 * While we *could* change that, unusual block sizes are rarely
++	 * used.  The occasional fallback to PIO should't hurt.
++	 */
++	if (host->use_dma && (host->bytes_left & (rw_threshold - 1)) == 0
++			&& mmc_davinci_start_dma_transfer(host, data) == 0) {
++		/* zero this to ensure we take no PIO paths */
++		host->bytes_left = 0;
++	} else {
++		/* Revert to CPU Copy */
++		host->sg_len = data->sg_len;
++		host->sg = host->data->sg;
++		mmc_davinci_sg_to_buf(host);
++	}
++}
++
++static void mmc_davinci_request(struct mmc_host *mmc, struct mmc_request *req)
++{
++	struct mmc_davinci_host *host = mmc_priv(mmc);
++	unsigned long timeout = jiffies + msecs_to_jiffies(900);
++	u32 mmcst1 = 0;
++
++	/* Card may still be sending BUSY after a previous operation,
++	 * typically some kind of write.  If so, we can't proceed yet.
++	 */
++	while (time_before(jiffies, timeout)) {
++		mmcst1  = readl(host->base + DAVINCI_MMCST1);
++		if (!(mmcst1 & MMCST1_BUSY))
++			break;
++		cpu_relax();
++	}
++	if (mmcst1 & MMCST1_BUSY) {
++		dev_err(mmc_dev(host->mmc), "still BUSY? bad ... \n");
++		req->cmd->error = -ETIMEDOUT;
++		mmc_request_done(mmc, req);
++		return;
++	}
++
++	host->do_dma = 0;
++	mmc_davinci_prepare_data(host, req);
++	mmc_davinci_start_command(host, req->cmd);
++}
++
++static unsigned int calculate_freq_for_card(struct mmc_davinci_host *host,
++	unsigned int mmc_req_freq)
++{
++	unsigned int mmc_freq = 0, mmc_pclk = 0, mmc_push_pull_divisor = 0;
++
++	mmc_pclk = host->mmc_input_clk;
++	if (mmc_req_freq && mmc_pclk > (2 * mmc_req_freq))
++		mmc_push_pull_divisor = ((unsigned int)mmc_pclk
++				/ (2 * mmc_req_freq)) - 1;
++	else
++		mmc_push_pull_divisor = 0;
++
++	mmc_freq = (unsigned int)mmc_pclk
++		/ (2 * (mmc_push_pull_divisor + 1));
++
++	if (mmc_freq > mmc_req_freq)
++		mmc_push_pull_divisor = mmc_push_pull_divisor + 1;
++	/* Convert ns to clock cycles */
++	if (mmc_req_freq <= 400000)
++		host->ns_in_one_cycle = (1000000) / (((mmc_pclk
++				/ (2 * (mmc_push_pull_divisor + 1)))/1000));
++	else
++		host->ns_in_one_cycle = (1000000) / (((mmc_pclk
++				/ (2 * (mmc_push_pull_divisor + 1)))/1000000));
++
++	return mmc_push_pull_divisor;
++}
++
++static void mmc_davinci_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
++{
++	unsigned int open_drain_freq = 0, mmc_pclk = 0;
++	unsigned int mmc_push_pull_freq = 0;
++	struct mmc_davinci_host *host = mmc_priv(mmc);
++
++	mmc_pclk = host->mmc_input_clk;
++	dev_dbg(mmc_dev(host->mmc),
++		"clock %dHz busmode %d powermode %d Vdd %04x\n",
++		ios->clock, ios->bus_mode, ios->power_mode,
++		ios->vdd);
++	if (ios->bus_width == MMC_BUS_WIDTH_4) {
++		dev_dbg(mmc_dev(host->mmc), "Enabling 4 bit mode\n");
++		writel(readl(host->base + DAVINCI_MMCCTL) | MMCCTL_WIDTH_4_BIT,
++			host->base + DAVINCI_MMCCTL);
++	} else {
++		dev_dbg(mmc_dev(host->mmc), "Disabling 4 bit mode\n");
++		writel(readl(host->base + DAVINCI_MMCCTL) & ~MMCCTL_WIDTH_4_BIT,
++			host->base + DAVINCI_MMCCTL);
++	}
++
++	if (ios->bus_mode == MMC_BUSMODE_OPENDRAIN) {
++		u32 temp;
++
++		/* Ignoring the init clock value passed for fixing the inter
++		 * operability with different cards.
++		 */
++		open_drain_freq = ((unsigned int)mmc_pclk
++				/ (2 * MMCSD_INIT_CLOCK)) - 1;
++
++		if (open_drain_freq > 0xFF)
++			open_drain_freq = 0xFF;
++
++		temp = readl(host->base + DAVINCI_MMCCLK) & ~MMCCLK_CLKRT_MASK;
++		temp |= open_drain_freq;
++		writel(temp, host->base + DAVINCI_MMCCLK);
++
++		/* Convert ns to clock cycles */
++		host->ns_in_one_cycle = (1000000) / (MMCSD_INIT_CLOCK/1000);
++	} else {
++		u32 temp;
++		mmc_push_pull_freq = calculate_freq_for_card(host, ios->clock);
++
++		if (mmc_push_pull_freq > 0xFF)
++			mmc_push_pull_freq = 0xFF;
++
++		temp = readl(host->base + DAVINCI_MMCCLK) & ~MMCCLK_CLKEN;
++		writel(temp, host->base + DAVINCI_MMCCLK);
++
++		udelay(10);
++
++		temp = readl(host->base + DAVINCI_MMCCLK) & ~MMCCLK_CLKRT_MASK;
++		temp |= mmc_push_pull_freq;
++		writel(temp, host->base + DAVINCI_MMCCLK);
++
++		writel(temp | MMCCLK_CLKEN, host->base + DAVINCI_MMCCLK);
++
++		udelay(10);
++	}
++
++	host->bus_mode = ios->bus_mode;
++	if (ios->power_mode == MMC_POWER_UP) {
++		unsigned long timeout = jiffies + msecs_to_jiffies(50);
++		bool lose = true;
++
++		/* Send clock cycles, poll completion */
++		writel(0, host->base + DAVINCI_MMCARGHL);
++		writel(MMCCMD_INITCK, host->base + DAVINCI_MMCCMD);
++		while (time_before(jiffies, timeout)) {
++			u32 tmp = readl(host->base + DAVINCI_MMCST0);
++
++			if (tmp & MMCST0_RSPDNE) {
++				lose = false;
++				break;
++			}
++			cpu_relax();
++		}
++		if (lose)
++			dev_warn(mmc_dev(host->mmc), "powerup timeout\n");
++	}
++
++	/* FIXME on power OFF, reset things ... */
++}
++
++static void
++mmc_davinci_xfer_done(struct mmc_davinci_host *host, struct mmc_data *data)
++{
++	host->data = NULL;
++
++	if (host->do_dma) {
++		davinci_abort_dma(host);
++
++		dma_unmap_sg(mmc_dev(host->mmc), data->sg, data->sg_len,
++			     (data->flags & MMC_DATA_WRITE)
++			     ? DMA_TO_DEVICE
++			     : DMA_FROM_DEVICE);
++		host->do_dma = false;
++	}
++	host->data_dir = DAVINCI_MMC_DATADIR_NONE;
++
++	if (!data->stop || (host->cmd && host->cmd->error)) {
++		mmc_request_done(host->mmc, data->mrq);
++		writel(0, host->base + DAVINCI_MMCIM);
++	} else
++		mmc_davinci_start_command(host, data->stop);
++}
++
++static void mmc_davinci_cmd_done(struct mmc_davinci_host *host,
++				 struct mmc_command *cmd)
++{
++	host->cmd = NULL;
++
++	if (cmd->flags & MMC_RSP_PRESENT) {
++		if (cmd->flags & MMC_RSP_136) {
++			/* response type 2 */
++			cmd->resp[3] = readl(host->base + DAVINCI_MMCRSP01);
++			cmd->resp[2] = readl(host->base + DAVINCI_MMCRSP23);
++			cmd->resp[1] = readl(host->base + DAVINCI_MMCRSP45);
++			cmd->resp[0] = readl(host->base + DAVINCI_MMCRSP67);
++		} else {
++			/* response types 1, 1b, 3, 4, 5, 6 */
++			cmd->resp[0] = readl(host->base + DAVINCI_MMCRSP67);
++		}
++	}
++
++	if (host->data == NULL || cmd->error) {
++		if (cmd->error == -ETIMEDOUT)
++			cmd->mrq->cmd->retries = 0;
++		mmc_request_done(host->mmc, cmd->mrq);
++		writel(0, host->base + DAVINCI_MMCIM);
++	}
++}
++
++static void
++davinci_abort_data(struct mmc_davinci_host *host, struct mmc_data *data)
++{
++	u32 temp;
++
++	/* reset command and data state machines */
++	temp = readl(host->base + DAVINCI_MMCCTL);
++	writel(temp | MMCCTL_CMDRST | MMCCTL_DATRST,
++		host->base + DAVINCI_MMCCTL);
++
++	temp &= ~(MMCCTL_CMDRST | MMCCTL_DATRST);
++	udelay(10);
++	writel(temp, host->base + DAVINCI_MMCCTL);
++}
++
++static irqreturn_t mmc_davinci_irq(int irq, void *dev_id)
++{
++	struct mmc_davinci_host *host = (struct mmc_davinci_host *)dev_id;
++	unsigned int status, qstatus;
++	int end_command = 0;
++	int end_transfer = 0;
++	struct mmc_data *data = host->data;
++
++	if (host->cmd == NULL && host->data == NULL) {
++		status = readl(host->base + DAVINCI_MMCST0);
++		dev_dbg(mmc_dev(host->mmc),
++			"Spurious interrupt 0x%04x\n", status);
++		/* Disable the interrupt from mmcsd */
++		writel(0, host->base + DAVINCI_MMCIM);
++		return IRQ_NONE;
++	}
++
++	status = readl(host->base + DAVINCI_MMCST0);
++	qstatus = status;
++
++	/* handle FIFO first when using PIO for data.
++	 * bytes_left will decrease to zero as I/O progress and status will
++	 * read zero over iteration because this controller status
++	 * register(MMCST0) reports any status only once and it is cleared
++	 * by read. So, it is not unbouned loop even in the case of
++	 * non-dma.
++	 */
++	while (host->bytes_left && (status & (MMCST0_DXRDY | MMCST0_DRRDY))) {
++		davinci_fifo_data_trans(host, rw_threshold);
++		status = readl(host->base + DAVINCI_MMCST0);
++		if (!status)
++			break;
++		qstatus |= status;
++	}
++
++	if (qstatus & MMCST0_DATDNE) {
++		/* All blocks sent/received, and CRC checks passed */
++		if (data != NULL) {
++			if ((host->do_dma == 0) && (host->bytes_left > 0)) {
++				/* if datasize < rw_threshold
++				 * no RX ints are generated
++				 */
++				davinci_fifo_data_trans(host, host->bytes_left);
++			}
++			end_transfer = 1;
++			data->bytes_xfered = data->blocks * data->blksz;
++		} else {
++			dev_err(mmc_dev(host->mmc),
++					"DATDNE with no host->data\n");
++		}
++	}
++
++	if (qstatus & MMCST0_TOUTRD) {
++		/* Read data timeout */
++		data->error = -ETIMEDOUT;
++		end_transfer = 1;
++
++		dev_dbg(mmc_dev(host->mmc),
++			"read data timeout, status %x\n",
++			qstatus);
++
++		davinci_abort_data(host, data);
++	}
++
++	if (qstatus & (MMCST0_CRCWR | MMCST0_CRCRD)) {
++		/* Data CRC error */
++		data->error = -EILSEQ;
++		end_transfer = 1;
++
++		/* NOTE:  this controller uses CRCWR to report both CRC
++		 * errors and timeouts (on writes).  MMCDRSP values are
++		 * only weakly documented, but 0x9f was clearly a timeout
++		 * case and the two three-bit patterns in various SD specs
++		 * (101, 010) aren't part of it ...
++		 */
++		if (qstatus & MMCST0_CRCWR) {
++			u32 temp = readb(host->base + DAVINCI_MMCDRSP);
++
++			if (temp == 0x9f)
++				data->error = -ETIMEDOUT;
++		}
++		dev_dbg(mmc_dev(host->mmc), "data %s %s error\n",
++			(qstatus & MMCST0_CRCWR) ? "write" : "read",
++			(data->error == -ETIMEDOUT) ? "timeout" : "CRC");
++
++		davinci_abort_data(host, data);
++	}
++
++	if (qstatus & MMCST0_TOUTRS) {
++		/* Command timeout */
++		if (host->cmd) {
++			dev_dbg(mmc_dev(host->mmc),
++				"CMD%d timeout, status %x\n",
++				host->cmd->opcode, qstatus);
++			host->cmd->error = -ETIMEDOUT;
++			if (data) {
++				end_transfer = 1;
++				davinci_abort_data(host, data);
++			} else
++				end_command = 1;
++		}
++	}
++
++	if (qstatus & MMCST0_CRCRS) {
++		/* Command CRC error */
++		dev_dbg(mmc_dev(host->mmc), "Command CRC error\n");
++		if (host->cmd) {
++			host->cmd->error = -EILSEQ;
++			end_command = 1;
++		}
++	}
++
++	if (qstatus & MMCST0_RSPDNE) {
++		/* End of command phase */
++		end_command = (int) host->cmd;
++	}
++
++	if (end_command)
++		mmc_davinci_cmd_done(host, host->cmd);
++	if (end_transfer)
++		mmc_davinci_xfer_done(host, data);
++	return IRQ_HANDLED;
++}
++
++static int mmc_davinci_get_cd(struct mmc_host *mmc)
++{
++	struct platform_device *pdev = to_platform_device(mmc->parent);
++	struct davinci_mmc_config *config = pdev->dev.platform_data;
++
++	if (!config || !config->get_cd)
++		return -ENOSYS;
++	return config->get_cd(pdev->id);
++}
++
++static int mmc_davinci_get_ro(struct mmc_host *mmc)
++{
++	struct platform_device *pdev = to_platform_device(mmc->parent);
++	struct davinci_mmc_config *config = pdev->dev.platform_data;
++
++	if (!config || !config->get_ro)
++		return -ENOSYS;
++	return config->get_ro(pdev->id);
++}
++
++static struct mmc_host_ops mmc_davinci_ops = {
++	.request	= mmc_davinci_request,
++	.set_ios	= mmc_davinci_set_ios,
++	.get_cd		= mmc_davinci_get_cd,
++	.get_ro		= mmc_davinci_get_ro,
++};
++
++/*----------------------------------------------------------------------*/
++
++static void __init init_mmcsd_host(struct mmc_davinci_host *host)
++{
++	/* DAT line portion is diabled and in reset state */
++	writel(readl(host->base + DAVINCI_MMCCTL) | MMCCTL_DATRST,
++		host->base + DAVINCI_MMCCTL);
++
++	/* CMD line portion is diabled and in reset state */
++	writel(readl(host->base + DAVINCI_MMCCTL) | MMCCTL_CMDRST,
++		host->base + DAVINCI_MMCCTL);
++
++	udelay(10);
++
++	writel(0, host->base + DAVINCI_MMCCLK);
++	writel(MMCCLK_CLKEN, host->base + DAVINCI_MMCCLK);
++
++	writel(0x1FFF, host->base + DAVINCI_MMCTOR);
++	writel(0xFFFF, host->base + DAVINCI_MMCTOD);
++
++	writel(readl(host->base + DAVINCI_MMCCTL) & ~MMCCTL_DATRST,
++		host->base + DAVINCI_MMCCTL);
++	writel(readl(host->base + DAVINCI_MMCCTL) & ~MMCCTL_CMDRST,
++		host->base + DAVINCI_MMCCTL);
++
++	udelay(10);
++}
++
++static int __init davinci_mmcsd_probe(struct platform_device *pdev)
++{
++	struct davinci_mmc_config *pdata = pdev->dev.platform_data;
++	struct mmc_davinci_host *host = NULL;
++	struct mmc_host *mmc = NULL;
++	struct resource *r, *mem = NULL;
++	int ret = 0, irq = 0;
++	size_t mem_size;
++
++	/* REVISIT:  when we're fully converted, fail if pdata is NULL */
++
++	ret = -ENODEV;
++	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	irq = platform_get_irq(pdev, 0);
++	if (!r || irq == NO_IRQ)
++		goto out;
++
++	ret = -EBUSY;
++	mem_size = resource_size(r);
++	mem = request_mem_region(r->start, mem_size, pdev->name);
++	if (!mem)
++		goto out;
++
++	ret = -ENOMEM;
++	mmc = mmc_alloc_host(sizeof(struct mmc_davinci_host), &pdev->dev);
++	if (!mmc)
++		goto out;
++
++	host = mmc_priv(mmc);
++	host->mmc = mmc;	/* Important */
++
++	r = platform_get_resource(pdev, IORESOURCE_DMA, 0);
++	if (!r)
++		goto out;
++	host->rxdma = r->start;
++
++	r = platform_get_resource(pdev, IORESOURCE_DMA, 1);
++	if (!r)
++		goto out;
++	host->txdma = r->start;
++
++	host->mem_res = mem;
++	host->base = ioremap(mem->start, mem_size);
++	if (!host->base)
++		goto out;
++
++	ret = -ENXIO;
++	host->clk = clk_get(&pdev->dev, "MMCSDCLK");
++	if (IS_ERR(host->clk)) {
++		ret = PTR_ERR(host->clk);
++		goto out;
++	}
++	clk_enable(host->clk);
++	host->mmc_input_clk = clk_get_rate(host->clk);
++
++	init_mmcsd_host(host);
++
++	host->use_dma = use_dma;
++	host->irq = irq;
++
++	if (host->use_dma && davinci_acquire_dma_channels(host) != 0)
++		host->use_dma = 0;
++
++	/* REVISIT:  someday, support IRQ-driven card detection.  */
++	mmc->caps |= MMC_CAP_NEEDS_POLL;
++
++	if (!pdata || pdata->wires == 4 || pdata->wires == 0)
++		mmc->caps |= MMC_CAP_4_BIT_DATA;
++
++	host->version = pdata->version;
++
++	mmc->ops = &mmc_davinci_ops;
++	mmc->f_min = 312500;
++	mmc->f_max = 25000000;
++	if (pdata && pdata->max_freq)
++		mmc->f_max = pdata->max_freq;
++	if (pdata && pdata->caps)
++		mmc->caps |= pdata->caps;
++	mmc->ocr_avail = MMC_VDD_32_33 | MMC_VDD_33_34;
++
++	/* With no iommu coalescing pages, each phys_seg is a hw_seg.
++	 * Each hw_seg uses one EDMA parameter RAM slot, always one
++	 * channel and then usually some linked slots.
++	 */
++	mmc->max_hw_segs	= 1 + host->n_link;
++	mmc->max_phys_segs	= mmc->max_hw_segs;
++
++	/* EDMA limit per hw segment (one or two MBytes) */
++	mmc->max_seg_size	= MAX_CCNT * rw_threshold;
++
++	/* MMC/SD controller limits for multiblock requests */
++	mmc->max_blk_size	= 4095;  /* BLEN is 12 bits */
++	mmc->max_blk_count	= 65535; /* NBLK is 16 bits */
++	mmc->max_req_size	= mmc->max_blk_size * mmc->max_blk_count;
++
++	dev_dbg(mmc_dev(host->mmc), "max_phys_segs=%d\n", mmc->max_phys_segs);
++	dev_dbg(mmc_dev(host->mmc), "max_hw_segs=%d\n", mmc->max_hw_segs);
++	dev_dbg(mmc_dev(host->mmc), "max_blk_size=%d\n", mmc->max_blk_size);
++	dev_dbg(mmc_dev(host->mmc), "max_req_size=%d\n", mmc->max_req_size);
++	dev_dbg(mmc_dev(host->mmc), "max_seg_size=%d\n", mmc->max_seg_size);
++
++	platform_set_drvdata(pdev, host);
++
++	ret = mmc_add_host(mmc);
++	if (ret < 0)
++		goto out;
++
++	ret = request_irq(irq, mmc_davinci_irq, 0, mmc_hostname(mmc), host);
++	if (ret)
++		goto out;
++
++	rename_region(mem, mmc_hostname(mmc));
++
++	dev_info(mmc_dev(host->mmc), "Using %s, %d-bit mode\n",
++		host->use_dma ? "DMA" : "PIO",
++		(mmc->caps & MMC_CAP_4_BIT_DATA) ? 4 : 1);
++
++	return 0;
++
++out:
++	if (host) {
++		davinci_release_dma_channels(host);
++
++		if (host->clk) {
++			clk_disable(host->clk);
++			clk_put(host->clk);
++		}
++
++		if (host->base)
++			iounmap(host->base);
++	}
++
++	if (mmc)
++		mmc_free_host(mmc);
++
++	if (mem)
++		release_resource(mem);
++
++	dev_dbg(&pdev->dev, "probe err %d\n", ret);
++
++	return ret;
++}
++
++static int __exit davinci_mmcsd_remove(struct platform_device *pdev)
++{
++	struct mmc_davinci_host *host = platform_get_drvdata(pdev);
++
++	platform_set_drvdata(pdev, NULL);
++	if (host) {
++		mmc_remove_host(host->mmc);
++		free_irq(host->irq, host);
++
++		davinci_release_dma_channels(host);
++
++		clk_disable(host->clk);
++		clk_put(host->clk);
++
++		iounmap(host->base);
++
++		release_resource(host->mem_res);
++
++		mmc_free_host(host->mmc);
++	}
++
++	return 0;
++}
++
++#ifdef CONFIG_PM
++static int davinci_mmcsd_suspend(struct platform_device *pdev, pm_message_t msg)
++{
++	struct mmc_davinci_host *host = platform_get_drvdata(pdev);
++
++	return mmc_suspend_host(host->mmc, msg);
++}
++
++static int davinci_mmcsd_resume(struct platform_device *pdev)
++{
++	struct mmc_davinci_host *host = platform_get_drvdata(pdev);
++
++	return mmc_resume_host(host->mmc);
++}
++#else
++#define davinci_mmcsd_suspend	NULL
++#define davinci_mmcsd_resume	NULL
++#endif
++
++static struct platform_driver davinci_mmcsd_driver = {
++	.driver		= {
++		.name	= "davinci_mmc",
++		.owner	= THIS_MODULE,
++	},
++	.remove		= __exit_p(davinci_mmcsd_remove),
++	.suspend	= davinci_mmcsd_suspend,
++	.resume		= davinci_mmcsd_resume,
++};
++
++static int __init davinci_mmcsd_init(void)
++{
++	return platform_driver_probe(&davinci_mmcsd_driver,
++				     davinci_mmcsd_probe);
++}
++module_init(davinci_mmcsd_init);
++
++static void __exit davinci_mmcsd_exit(void)
++{
++	platform_driver_unregister(&davinci_mmcsd_driver);
++}
++module_exit(davinci_mmcsd_exit);
++
++MODULE_AUTHOR("Texas Instruments India");
++MODULE_LICENSE("GPL");
++MODULE_DESCRIPTION("MMC/SD driver for Davinci MMC controller");
++
 _
 
-Patches currently in -mm which might be from tomaz.mertelj@guest.arnes.si are
+Patches currently in -mm which might be from vipin.bhandari@ti.com are
 
-hwmon-driver-for-texas-instruments-amc6821-chip.patch
-hwmon-driver-for-texas-instruments-amc6821-chip-update.patch
+davinci-mmc-mmc-sd-controller-driver-for-davinci-family.patch
 
