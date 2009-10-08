@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + eeepc_laptop-properly-annote-eeepc_enable_camera.patch added to -mm tree
-Date: Thu, 08 Oct 2009 15:57:25 -0700
-Message-ID: <200910082257.n98MvPpH000619@imap1.linux-foundation.org>
+Subject: + strstrip-mark-as-as-must_check.patch added to -mm tree
+Date: Thu, 08 Oct 2009 16:02:36 -0700
+Message-ID: <200910082302.n98N2aac011466@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47887 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41868 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932753AbZJHW7W (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Oct 2009 18:59:22 -0400
+	by vger.kernel.org with ESMTP id S1757772AbZJHXEO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Oct 2009 19:04:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rakib.mullick@gmail.com, corentincj@iksaif.net, lenb@kernel.org
+Cc: kosaki.motohiro@jp.fujitsu.com
 
 
 The patch titled
-     eeepc_laptop: properly annote eeepc_enable_camera()
+     strstrip(): mark as as must_check
 has been added to the -mm tree.  Its filename is
-     eeepc_laptop-properly-annote-eeepc_enable_camera.patch
+     strstrip-mark-as-as-must_check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,58 +33,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: eeepc_laptop: properly annote eeepc_enable_camera()
-From: Rakib Mullick <rakib.mullick@gmail.com>
+Subject: strstrip(): mark as as must_check
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Currently the annotation for function eeepc_enable_camera() is __init, and
-refers to a function eeepc_hotk_add() which is non-init.  Use __devinit
-for both functions which is more appropriate and fixes a section mismatch
-warning.
+strstrip() can return a modified value of its input argument, when
+removing elading whitesapce.  So it is surely bug for this function's
+return value to be ignored.  The caller is probably going to use the
+incorrect original pointer.
 
-We were warned by the following warning:
+So mark it __must_check to prevent this frm happening (as it has before).
 
-  LD      drivers/platform/x86/built-in.o
-WARNING: drivers/platform/x86/built-in.o(.text+0x12e1): Section
-mismatch in reference from the function eeepc_hotk_add() to the
-function .init.text:eeepc_enable_camera()
-The function eeepc_hotk_add() references
-the function __init eeepc_enable_camera().
-This is often because eeepc_hotk_add lacks a __init
-annotation or the annotation of eeepc_enable_camera is wrong.
-
-Signed-off-by: Rakib Mullick <rakib.mullick@gmail.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Corentin Chary <corentincj@iksaif.net>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/platform/x86/eeepc-laptop.c~eeepc_laptop-properly-annote-eeepc_enable_camera drivers/platform/x86/eeepc-laptop.c
---- a/drivers/platform/x86/eeepc-laptop.c~eeepc_laptop-properly-annote-eeepc_enable_camera
-+++ a/drivers/platform/x86/eeepc-laptop.c
-@@ -350,7 +350,7 @@ static const struct rfkill_ops eeepc_rfk
- 	.set_block = eeepc_rfkill_set,
- };
- 
--static void __init eeepc_enable_camera(void)
-+static void __devinit eeepc_enable_camera(void)
- {
- 	/*
- 	 * If the following call to set_acpi() fails, it's because there's no
-@@ -1189,7 +1189,7 @@ static int eeepc_input_init(struct devic
- 	return 0;
- }
- 
--static int eeepc_hotk_add(struct acpi_device *device)
-+static int __devinit eeepc_hotk_add(struct acpi_device *device)
- {
- 	struct device *dev;
- 	int result;
+diff -puN include/linux/string.h~strstrip-mark-as-as-must_check include/linux/string.h
+--- a/include/linux/string.h~strstrip-mark-as-as-must_check
++++ a/include/linux/string.h
+@@ -62,7 +62,7 @@ extern char * strnchr(const char *, size
+ #ifndef __HAVE_ARCH_STRRCHR
+ extern char * strrchr(const char *,int);
+ #endif
+-extern char * strstrip(char *);
++extern char * __must_check strstrip(char *);
+ #ifndef __HAVE_ARCH_STRSTR
+ extern char * strstr(const char *,const char *);
+ #endif
 _
 
-Patches currently in -mm which might be from rakib.mullick@gmail.com are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 linux-next.patch
-acpi-annote-acpi_processor_add-with-__cpuinit.patch
-eeepc_laptop-properly-annote-eeepc_enable_camera.patch
+congestion_wait-dont-use-write.patch
+oom-dump-stack-and-vm-state-when-oom-killer-panics.patch
+readahead-add-blk_run_backing_dev.patch
+mm-vsmcan-check-shrink_active_list-sc-isolate_pages-return-value.patch
+strstrip-mark-as-as-must_check.patch
+fix-strstrip-abuse-in-elv_iosched_store.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
+cgroup-fix-strstrip-abuse.patch
 
