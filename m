@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-add-notifier-in-pageblock-isolation-for-balloon-drivers.patch added to -mm tree
-Date: Thu, 08 Oct 2009 16:35:02 -0700
-Message-ID: <200910082335.n98NZ2O8013756@imap1.linux-foundation.org>
+Subject: + memcg-coalesce-uncharge-at-unmap-and-truncation.patch added to -mm tree
+Date: Fri, 09 Oct 2009 00:14:41 -0700
+Message-ID: <200910090714.n997EfuW025732@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56132 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48465 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760123AbZJHXgW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Oct 2009 19:36:22 -0400
+	by vger.kernel.org with ESMTP id S933172AbZJIHPe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Oct 2009 03:15:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rcj@linux.vnet.ibm.com, benh@kernel.crashing.org, brking@linux.vnet.ibm.com, geralds@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, mingo@elte.hu, paulus@samba.org, pbadari@us.ibm.com, schwidefsky@de.ibm.com
+Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, h-shimamoto@ct.jp.nec.com, nishimura@mxp.nes.nec.co.jp
 
 
 The patch titled
-     mm: add notifier in pageblock isolation for balloon drivers
+     memcg: coalesce uncharge at unmap and truncation
 has been added to the -mm tree.  Its filename is
-     mm-add-notifier-in-pageblock-isolation-for-balloon-drivers.patch
+     memcg-coalesce-uncharge-at-unmap-and-truncation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,201 +33,277 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: add notifier in pageblock isolation for balloon drivers
-From: Robert Jennings <rcj@linux.vnet.ibm.com>
+Subject: memcg: coalesce uncharge at unmap and truncation
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Memory balloon drivers can allocate a large amount of memory which is not
-movable but could be freed to accomodate memory hotplug remove.
+In massive parallel enviroment, res_counter can be a performance
+bottleneck.  One strong techinque to reduce lock contention is reducing
+calls by coalescing some amount of calls into one.
 
-Prior to calling the memory hotplug notifier chain the memory in the
-pageblock is isolated.  If the migrate type is not MIGRATE_MOVABLE the
-isolation will not proceed, causing the memory removal for that page range
-to fail.
+Considering charge/uncharge chatacteristic,
+	- charge is done one by one via demand-paging.
+	- uncharge is done by
+		- in chunk at munmap, truncate, exit, execve...
+		- one by one via vmscan/paging.
 
-Rather than failing pageblock isolation if the the migrateteype is not
-MIGRATE_MOVABLE, this patch checks if all of the pages in the pageblock
-are owned by a registered balloon driver (or other entity) using a
-notifier chain.  If all of the non-movable pages are owned by a balloon,
-they can be freed later through the memory notifier chain and the range
-can still be isolated in set_migratetype_isolate().
+It seems we have a chance in uncharge at unmap/truncation.
 
-Signed-off-by: Robert Jennings <rcj@linux.vnet.ibm.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Badari Pulavarty <pbadari@us.ibm.com>
-Cc: Brian King <brking@linux.vnet.ibm.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Gerald Schaefer <geralds@linux.vnet.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+This patch is a for coalescing uncharge. For avoiding scattering memcg's
+structure to functions under /mm, this patch adds memcg batch uncharge
+information to the task.
+
+The degree of coalescing depends on callers
+  - at invalidate/trucate... pagevec size
+  - at unmap ....ZAP_BLOCK_SIZE
+(memory itself will be freed in this degree.)
+Then, we'll not coalescing too much.
+
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Balbir Singh <balbir@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/base/memory.c~mm-add-notifier-in-pageblock-isolation-for-balloon-drivers drivers/base/memory.c
---- a/drivers/base/memory.c~mm-add-notifier-in-pageblock-isolation-for-balloon-drivers
-+++ a/drivers/base/memory.c
-@@ -63,6 +63,20 @@ void unregister_memory_notifier(struct n
- }
- EXPORT_SYMBOL(unregister_memory_notifier);
- 
-+static BLOCKING_NOTIFIER_HEAD(memory_isolate_chain);
+diff -puN include/linux/memcontrol.h~memcg-coalesce-uncharge-at-unmap-and-truncation include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-coalesce-uncharge-at-unmap-and-truncation
++++ a/include/linux/memcontrol.h
+@@ -54,6 +54,11 @@ extern void mem_cgroup_rotate_lru_list(s
+ extern void mem_cgroup_del_lru(struct page *page);
+ extern void mem_cgroup_move_lists(struct page *page,
+ 				  enum lru_list from, enum lru_list to);
 +
-+int register_memory_isolate_notifier(struct notifier_block *nb)
-+{
-+	return blocking_notifier_chain_register(&memory_isolate_chain, nb);
-+}
-+EXPORT_SYMBOL(register_memory_isolate_notifier);
++/* For coalescing uncharge for reducing memcg' overhead*/
++extern void mem_cgroup_uncharge_start(void);
++extern void mem_cgroup_uncharge_end(void);
 +
-+void unregister_memory_isolate_notifier(struct notifier_block *nb)
-+{
-+	blocking_notifier_chain_unregister(&memory_isolate_chain, nb);
-+}
-+EXPORT_SYMBOL(unregister_memory_isolate_notifier);
-+
- /*
-  * register_memory - Setup a sysfs device for a memory block
-  */
-@@ -157,6 +171,11 @@ int memory_notify(unsigned long val, voi
- 	return blocking_notifier_call_chain(&memory_chain, val, v);
+ extern void mem_cgroup_uncharge_page(struct page *page);
+ extern void mem_cgroup_uncharge_cache_page(struct page *page);
+ extern int mem_cgroup_shmem_charge_fallback(struct page *page,
+@@ -151,6 +156,14 @@ static inline void mem_cgroup_cancel_cha
+ {
  }
  
-+int memory_isolate_notify(unsigned long val, void *v)
++static inline void mem_cgroup_uncharge_start(void)
 +{
-+	return blocking_notifier_call_chain(&memory_isolate_chain, val, v);
 +}
 +
- /*
-  * MEMORY_HOTPLUG depends on SPARSEMEM in mm/Kconfig, so it is
-  * OK to have direct references to sparsemem variables in here.
-diff -puN include/linux/memory.h~mm-add-notifier-in-pageblock-isolation-for-balloon-drivers include/linux/memory.h
---- a/include/linux/memory.h~mm-add-notifier-in-pageblock-isolation-for-balloon-drivers
-+++ a/include/linux/memory.h
-@@ -50,6 +50,18 @@ struct memory_notify {
- 	int status_change_nid;
++static inline void mem_cgroup_uncharge_end(void)
++{
++}
++
+ static inline void mem_cgroup_uncharge_page(struct page *page)
+ {
+ }
+diff -puN include/linux/sched.h~memcg-coalesce-uncharge-at-unmap-and-truncation include/linux/sched.h
+--- a/include/linux/sched.h~memcg-coalesce-uncharge-at-unmap-and-truncation
++++ a/include/linux/sched.h
+@@ -1543,6 +1543,13 @@ struct task_struct {
+ 	unsigned long trace_recursion;
+ #endif /* CONFIG_TRACING */
+ 	unsigned long stack_start;
++#ifdef CONFIG_CGROUP_MEM_RES_CTLR /* memcg uses this to do batch job */
++	struct memcg_batch_info {
++		int do_batch;
++		struct mem_cgroup *memcg;
++		long pages, memsw;
++	} memcg_batch;
++#endif
  };
  
-+/*
-+ * During pageblock isolation, count the number of pages in the
-+ * range [start_pfn, start_pfn + nr_pages)
-+ */
-+#define MEM_ISOLATE_COUNT	(1<<0)
-+
-+struct memory_isolate_notify {
-+	unsigned long start_pfn;
-+	unsigned int nr_pages;
-+	unsigned int pages_found;
-+};
-+
- struct notifier_block;
- struct mem_section;
- 
-@@ -76,14 +88,28 @@ static inline int memory_notify(unsigned
- {
- 	return 0;
+ /* Future-safe accessor for struct task_struct's cpus_allowed. */
+diff -puN mm/memcontrol.c~memcg-coalesce-uncharge-at-unmap-and-truncation mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-coalesce-uncharge-at-unmap-and-truncation
++++ a/mm/memcontrol.c
+@@ -1826,6 +1826,49 @@ void mem_cgroup_cancel_charge_swapin(str
+ 	css_put(&mem->css);
  }
-+static inline int register_memory_isolate_notifier(struct notifier_block *nb)
-+{
-+	return 0;
-+}
-+static inline void unregister_memory_isolate_notifier(struct notifier_block *nb)
-+{
-+}
-+static inline int memory_isolate_notify(unsigned long val, void *v)
-+{
-+	return 0;
-+}
- #else
- extern int register_memory_notifier(struct notifier_block *nb);
- extern void unregister_memory_notifier(struct notifier_block *nb);
-+extern int register_memory_isolate_notifier(struct notifier_block *nb);
-+extern void unregister_memory_isolate_notifier(struct notifier_block *nb);
- extern int register_new_memory(int, struct mem_section *);
- extern int unregister_memory_section(struct mem_section *);
- extern int memory_dev_init(void);
- extern int remove_memory_block(unsigned long, struct mem_section *, int);
- extern int memory_notify(unsigned long val, void *v);
-+extern int memory_isolate_notify(unsigned long val, void *v);
- extern struct memory_block *find_memory_block(struct mem_section *);
- #define CONFIG_MEM_BLOCK_SIZE	(PAGES_PER_SECTION<<PAGE_SHIFT)
- enum mem_add_context { BOOT, HOTPLUG };
-diff -puN mm/page_alloc.c~mm-add-notifier-in-pageblock-isolation-for-balloon-drivers mm/page_alloc.c
---- a/mm/page_alloc.c~mm-add-notifier-in-pageblock-isolation-for-balloon-drivers
-+++ a/mm/page_alloc.c
-@@ -48,6 +48,7 @@
- #include <linux/page_cgroup.h>
- #include <linux/debugobjects.h>
- #include <linux/kmemleak.h>
-+#include <linux/memory.h>
- #include <trace/events/kmem.h>
  
- #include <asm/tlbflush.h>
-@@ -5003,23 +5004,53 @@ void set_pageblock_flags_group(struct pa
- int set_migratetype_isolate(struct page *page)
- {
- 	struct zone *zone;
--	unsigned long flags;
-+	unsigned long flags, pfn, iter;
-+	unsigned long immobile = 0;
-+	struct memory_isolate_notify arg;
-+	int notifier_ret;
- 	int ret = -EBUSY;
- 	int zone_idx;
++static void
++__do_uncharge(struct mem_cgroup *mem, const enum charge_type ctype)
++{
++	struct memcg_batch_info *batch = NULL;
++	bool uncharge_memsw = true;
++	/* If swapout, usage of swap doesn't decrease */
++	if (!do_swap_account || ctype == MEM_CGROUP_CHARGE_TYPE_SWAPOUT)
++		uncharge_memsw = false;
++	/*
++	 * do_batch > 0 when unmapping pages or inode invalidate/truncate.
++	 * In those cases, all pages freed continously can be expected to be in
++	 * the same cgroup and we have chance to coalesce uncharges.
++	 * And, we do uncharge one by one if this is killed by OOM.
++	 */
++	if (!current->memcg_batch.do_batch || test_thread_flag(TIF_MEMDIE))
++		goto direct_uncharge;
++
++	batch = &current->memcg_batch;
++	/*
++	 * In usual, we do css_get() when we remember memcg pointer.
++	 * But in this case, we keep res->usage until end of a series of
++	 * uncharges. Then, it's ok to ignore memcg's refcnt.
++	 */
++	if (!batch->memcg)
++		batch->memcg = mem;
++	/*
++	 * In typical case, batch->memcg == mem. This means we can
++	 * merge a series of uncharges to an uncharge of res_counter.
++	 * If not, we uncharge res_counter ony by one.
++	 */
++	if (batch->memcg != mem)
++		goto direct_uncharge;
++	/* remember freed charge and uncharge it later */
++	batch->pages += PAGE_SIZE;
++	if (uncharge_memsw)
++		batch->memsw += PAGE_SIZE;
++	return;
++direct_uncharge:
++	res_counter_uncharge(&mem->res, PAGE_SIZE);
++	if (uncharge_memsw)
++		res_counter_uncharge(&mem->memsw, PAGE_SIZE);
++	return;
++}
  
- 	zone = page_zone(page);
- 	zone_idx = zone_idx(zone);
+ /*
+  * uncharge if !page_mapped(page)
+@@ -1874,12 +1917,8 @@ __mem_cgroup_uncharge_common(struct page
+ 		break;
+ 	}
+ 
+-	if (!mem_cgroup_is_root(mem)) {
+-		res_counter_uncharge(&mem->res, PAGE_SIZE);
+-		if (do_swap_account &&
+-				(ctype != MEM_CGROUP_CHARGE_TYPE_SWAPOUT))
+-			res_counter_uncharge(&mem->memsw, PAGE_SIZE);
+-	}
++	if (!mem_cgroup_is_root(mem))
++		__do_uncharge(mem, ctype);
+ 	if (ctype == MEM_CGROUP_CHARGE_TYPE_SWAPOUT)
+ 		mem_cgroup_swap_statistics(mem, true);
+ 	mem_cgroup_charge_statistics(mem, pc, false);
+@@ -1925,6 +1964,46 @@ void mem_cgroup_uncharge_cache_page(stru
+ 	__mem_cgroup_uncharge_common(page, MEM_CGROUP_CHARGE_TYPE_CACHE);
+ }
+ 
++/*
++ * batch_start/batch_end is called in unmap_page_range/invlidate/trucate.
++ * In that cases, pages are freed continuously and we can expect pages
++ * are in the same memcg. All these calls itself limits the number of
++ * pages freed at once, then uncharge_start/end() is called properly.
++ */
 +
- 	spin_lock_irqsave(&zone->lock, flags);
-+	if (get_pageblock_migratetype(page) == MIGRATE_MOVABLE ||
-+	    zone_idx == ZONE_MOVABLE) {
-+		ret = 0;
-+		goto out;
++void mem_cgroup_uncharge_start(void)
++{
++	if (!current->memcg_batch.do_batch) {
++		current->memcg_batch.memcg = NULL;
++		current->memcg_batch.pages = 0;
++		current->memcg_batch.memsw = 0;
 +	}
++	current->memcg_batch.do_batch++;
++}
 +
-+	pfn = page_to_pfn(page);
-+	arg.start_pfn = pfn;
-+	arg.nr_pages = pageblock_nr_pages;
-+	arg.pages_found = 0;
++void mem_cgroup_uncharge_end(void)
++{
++	struct mem_cgroup *mem;
 +
- 	/*
--	 * In future, more migrate types will be able to be isolation target.
-+	 * The pageblock can be isolated even if the migrate type is
-+	 * not *_MOVABLE.  The memory isolation notifier chain counts
-+	 * the number of pages in this pageblock that can be freed later
-+	 * through the memory notifier chain.  If all of the pages are
-+	 * accounted for, isolation can continue.
- 	 */
--	if (get_pageblock_migratetype(page) != MIGRATE_MOVABLE &&
--	    zone_idx != ZONE_MOVABLE)
-+	notifier_ret = memory_isolate_notify(MEM_ISOLATE_COUNT, &arg);
-+	notifier_ret = notifier_to_errno(notifier_ret);
-+       	if (notifier_ret || !arg.pages_found)
- 		goto out;
--	set_pageblock_migratetype(page, MIGRATE_ISOLATE);
--	move_freepages_block(zone, page, MIGRATE_ISOLATE);
--	ret = 0;
++	if (!current->memcg_batch.do_batch)
++		return;
 +
-+	for (iter = pfn; iter < (pfn + pageblock_nr_pages); iter++)
-+		if (page_count(pfn_to_page(iter)))
-+			immobile++;
++	current->memcg_batch.do_batch--;
++	if (current->memcg_batch.do_batch) /* Nested ? */
++		return;
 +
-+	if (arg.pages_found == immobile)
-+		ret = 0;
++	mem = current->memcg_batch.memcg;
++	if (!mem)
++		return;
++	/* This "mem" is valid bacause we hide charges behind us. */
++	if (current->memcg_batch.pages)
++		res_counter_uncharge(&mem->res, current->memcg_batch.pages);
++	if (current->memcg_batch.memsw)
++		res_counter_uncharge(&mem->memsw, current->memcg_batch.memsw);
++	/* Not necessary. but forget this pointer */
++	current->memcg_batch.memcg = NULL;
++}
 +
- out:
-+	if (!ret) {
-+		set_pageblock_migratetype(page, MIGRATE_ISOLATE);
-+		move_freepages_block(zone, page, MIGRATE_ISOLATE);
-+	}
-+
- 	spin_unlock_irqrestore(&zone->lock, flags);
- 	if (!ret)
- 		drain_all_pages();
+ #ifdef CONFIG_SWAP
+ /*
+  * called after __delete_from_swap_cache() and drop "page" account.
+diff -puN mm/memory.c~memcg-coalesce-uncharge-at-unmap-and-truncation mm/memory.c
+--- a/mm/memory.c~memcg-coalesce-uncharge-at-unmap-and-truncation
++++ a/mm/memory.c
+@@ -940,6 +940,7 @@ static unsigned long unmap_page_range(st
+ 		details = NULL;
+ 
+ 	BUG_ON(addr >= end);
++	mem_cgroup_uncharge_start();
+ 	tlb_start_vma(tlb, vma);
+ 	pgd = pgd_offset(vma->vm_mm, addr);
+ 	do {
+@@ -952,6 +953,7 @@ static unsigned long unmap_page_range(st
+ 						zap_work, details);
+ 	} while (pgd++, addr = next, (addr != end && *zap_work > 0));
+ 	tlb_end_vma(tlb, vma);
++	mem_cgroup_uncharge_end();
+ 
+ 	return addr;
+ }
+diff -puN mm/truncate.c~memcg-coalesce-uncharge-at-unmap-and-truncation mm/truncate.c
+--- a/mm/truncate.c~memcg-coalesce-uncharge-at-unmap-and-truncation
++++ a/mm/truncate.c
+@@ -272,6 +272,7 @@ void truncate_inode_pages_range(struct a
+ 			pagevec_release(&pvec);
+ 			break;
+ 		}
++		mem_cgroup_uncharge_start();
+ 		for (i = 0; i < pagevec_count(&pvec); i++) {
+ 			struct page *page = pvec.pages[i];
+ 
+@@ -286,6 +287,7 @@ void truncate_inode_pages_range(struct a
+ 			unlock_page(page);
+ 		}
+ 		pagevec_release(&pvec);
++		mem_cgroup_uncharge_end();
+ 	}
+ }
+ EXPORT_SYMBOL(truncate_inode_pages_range);
+@@ -327,6 +329,7 @@ unsigned long invalidate_mapping_pages(s
+ 	pagevec_init(&pvec, 0);
+ 	while (next <= end &&
+ 			pagevec_lookup(&pvec, mapping, next, PAGEVEC_SIZE)) {
++		mem_cgroup_uncharge_start();
+ 		for (i = 0; i < pagevec_count(&pvec); i++) {
+ 			struct page *page = pvec.pages[i];
+ 			pgoff_t index;
+@@ -354,6 +357,7 @@ unsigned long invalidate_mapping_pages(s
+ 				break;
+ 		}
+ 		pagevec_release(&pvec);
++		mem_cgroup_uncharge_end();
+ 		cond_resched();
+ 	}
+ 	return ret;
+@@ -428,6 +432,7 @@ int invalidate_inode_pages2_range(struct
+ 	while (next <= end && !wrapped &&
+ 		pagevec_lookup(&pvec, mapping, next,
+ 			min(end - next, (pgoff_t)PAGEVEC_SIZE - 1) + 1)) {
++		mem_cgroup_uncharge_start();
+ 		for (i = 0; i < pagevec_count(&pvec); i++) {
+ 			struct page *page = pvec.pages[i];
+ 			pgoff_t page_index;
+@@ -477,6 +482,7 @@ int invalidate_inode_pages2_range(struct
+ 			unlock_page(page);
+ 		}
+ 		pagevec_release(&pvec);
++		mem_cgroup_uncharge_end();
+ 		cond_resched();
+ 	}
+ 	return ret;
 _
 
-Patches currently in -mm which might be from rcj@linux.vnet.ibm.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 mm-add-notifier-in-pageblock-isolation-for-balloon-drivers.patch
 powerpc-make-the-cmm-memory-hotplug-aware.patch
+memcg-coalesce-uncharge-at-unmap-and-truncation.patch
+memcg-coalesce-charges-per-cpu.patch
 
