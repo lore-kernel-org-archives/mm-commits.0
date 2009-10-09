@@ -1,105 +1,299 @@
 From: akpm@linux-foundation.org
-Subject: + include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch added to -mm tree
-Date: Fri, 09 Oct 2009 00:01:39 -0700
-Message-ID: <200910090724.n997OQl6013538@imap1.linux-foundation.org>
+Subject: [to-be-updated] memcg-coalesce-uncharge-at-unmap-and-truncation.patch removed from -mm tree
+Date: Fri, 09 Oct 2009 00:01:22 -0700
+Message-ID: <200910090724.n997OAFV012956@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59158 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42749 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757609AbZJIHZM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Oct 2009 03:25:12 -0400
+	by vger.kernel.org with ESMTP id S1752503AbZJIHY6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Oct 2009 03:24:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, arjan@linux.intel.com, mingo@elte.hu
+To: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, h-shimamoto@ct.jp.nec.com, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     include/linux/compiler-gcc4.h: gcc-4.0.2 doesn't understand __builtin_object_size
-has been added to the -mm tree.  Its filename is
-     include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
+     memcg: coalesce uncharge at unmap and truncation
+has been removed from the -mm tree.  Its filename was
+     memcg-coalesce-uncharge-at-unmap-and-truncation.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: include/linux/compiler-gcc4.h: gcc-4.0.2 doesn't understand __builtin_object_size
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memcg: coalesce uncharge at unmap and truncation
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Maybe 4.1.0 doesn't too, but this fixed it for me.
+In massive parallel enviroment, res_counter can be a performance
+bottleneck.  One strong techinque to reduce lock contention is reducing
+calls by coalescing some amount of calls into one.
 
-Cc: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Considering charge/uncharge chatacteristic,
+	- charge is done one by one via demand-paging.
+	- uncharge is done by
+		- in chunk at munmap, truncate, exit, execve...
+		- one by one via vmscan/paging.
+
+It seems we have a chance in uncharge at unmap/truncation.
+
+This patch is a for coalescing uncharge. For avoiding scattering memcg's
+structure to functions under /mm, this patch adds memcg batch uncharge
+information to the task.
+
+The degree of coalescing depends on callers
+  - at invalidate/trucate... pagevec size
+  - at unmap ....ZAP_BLOCK_SIZE
+(memory itself will be freed in this degree.)
+Then, we'll not coalescing too much.
+
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Balbir Singh <balbir@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler-gcc4.h |    2 ++
- 1 file changed, 2 insertions(+)
 
-diff -puN include/linux/compiler-gcc4.h~include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size include/linux/compiler-gcc4.h
---- a/include/linux/compiler-gcc4.h~include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size
-+++ a/include/linux/compiler-gcc4.h
-@@ -38,7 +38,9 @@
+diff -puN include/linux/memcontrol.h~memcg-coalesce-uncharge-at-unmap-and-truncation include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-coalesce-uncharge-at-unmap-and-truncation
++++ a/include/linux/memcontrol.h
+@@ -54,6 +54,11 @@ extern void mem_cgroup_rotate_lru_list(s
+ extern void mem_cgroup_del_lru(struct page *page);
+ extern void mem_cgroup_move_lists(struct page *page,
+ 				  enum lru_list from, enum lru_list to);
++
++/* For coalescing uncharge for reducing memcg' overhead*/
++extern void mem_cgroup_uncharge_start(void);
++extern void mem_cgroup_uncharge_end(void);
++
+ extern void mem_cgroup_uncharge_page(struct page *page);
+ extern void mem_cgroup_uncharge_cache_page(struct page *page);
+ extern int mem_cgroup_shmem_charge_fallback(struct page *page,
+@@ -151,6 +156,14 @@ static inline void mem_cgroup_cancel_cha
+ {
+ }
  
- #endif
- 
-+#if __GNUC_MINOR__ > 0
- #define __compiletime_object_size(obj) __builtin_object_size(obj, 0)
++static inline void mem_cgroup_uncharge_start(void)
++{
++}
++
++static inline void mem_cgroup_uncharge_end(void)
++{
++}
++
+ static inline void mem_cgroup_uncharge_page(struct page *page)
+ {
+ }
+diff -puN include/linux/sched.h~memcg-coalesce-uncharge-at-unmap-and-truncation include/linux/sched.h
+--- a/include/linux/sched.h~memcg-coalesce-uncharge-at-unmap-and-truncation
++++ a/include/linux/sched.h
+@@ -1543,6 +1543,13 @@ struct task_struct {
+ 	unsigned long trace_recursion;
+ #endif /* CONFIG_TRACING */
+ 	unsigned long stack_start;
++#ifdef CONFIG_CGROUP_MEM_RES_CTLR /* memcg uses this to do batch job */
++	struct memcg_batch_info {
++		int do_batch;
++		struct mem_cgroup *memcg;
++		long pages, memsw;
++	} memcg_batch;
 +#endif
- #if __GNUC_MINOR__ >= 4
- #define __compiletime_warning(message) __attribute__((warning(message)))
- #endif
+ };
+ 
+ /* Future-safe accessor for struct task_struct's cpus_allowed. */
+diff -puN mm/memcontrol.c~memcg-coalesce-uncharge-at-unmap-and-truncation mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-coalesce-uncharge-at-unmap-and-truncation
++++ a/mm/memcontrol.c
+@@ -1826,6 +1826,49 @@ void mem_cgroup_cancel_charge_swapin(str
+ 	css_put(&mem->css);
+ }
+ 
++static void
++__do_uncharge(struct mem_cgroup *mem, const enum charge_type ctype)
++{
++	struct memcg_batch_info *batch = NULL;
++	bool uncharge_memsw = true;
++	/* If swapout, usage of swap doesn't decrease */
++	if (!do_swap_account || ctype == MEM_CGROUP_CHARGE_TYPE_SWAPOUT)
++		uncharge_memsw = false;
++	/*
++	 * do_batch > 0 when unmapping pages or inode invalidate/truncate.
++	 * In those cases, all pages freed continously can be expected to be in
++	 * the same cgroup and we have chance to coalesce uncharges.
++	 * And, we do uncharge one by one if this is killed by OOM.
++	 */
++	if (!current->memcg_batch.do_batch || test_thread_flag(TIF_MEMDIE))
++		goto direct_uncharge;
++
++	batch = &current->memcg_batch;
++	/*
++	 * In usual, we do css_get() when we remember memcg pointer.
++	 * But in this case, we keep res->usage until end of a series of
++	 * uncharges. Then, it's ok to ignore memcg's refcnt.
++	 */
++	if (!batch->memcg)
++		batch->memcg = mem;
++	/*
++	 * In typical case, batch->memcg == mem. This means we can
++	 * merge a series of uncharges to an uncharge of res_counter.
++	 * If not, we uncharge res_counter ony by one.
++	 */
++	if (batch->memcg != mem)
++		goto direct_uncharge;
++	/* remember freed charge and uncharge it later */
++	batch->pages += PAGE_SIZE;
++	if (uncharge_memsw)
++		batch->memsw += PAGE_SIZE;
++	return;
++direct_uncharge:
++	res_counter_uncharge(&mem->res, PAGE_SIZE);
++	if (uncharge_memsw)
++		res_counter_uncharge(&mem->memsw, PAGE_SIZE);
++	return;
++}
+ 
+ /*
+  * uncharge if !page_mapped(page)
+@@ -1874,12 +1917,8 @@ __mem_cgroup_uncharge_common(struct page
+ 		break;
+ 	}
+ 
+-	if (!mem_cgroup_is_root(mem)) {
+-		res_counter_uncharge(&mem->res, PAGE_SIZE);
+-		if (do_swap_account &&
+-				(ctype != MEM_CGROUP_CHARGE_TYPE_SWAPOUT))
+-			res_counter_uncharge(&mem->memsw, PAGE_SIZE);
+-	}
++	if (!mem_cgroup_is_root(mem))
++		__do_uncharge(mem, ctype);
+ 	if (ctype == MEM_CGROUP_CHARGE_TYPE_SWAPOUT)
+ 		mem_cgroup_swap_statistics(mem, true);
+ 	mem_cgroup_charge_statistics(mem, pc, false);
+@@ -1925,6 +1964,46 @@ void mem_cgroup_uncharge_cache_page(stru
+ 	__mem_cgroup_uncharge_common(page, MEM_CGROUP_CHARGE_TYPE_CACHE);
+ }
+ 
++/*
++ * batch_start/batch_end is called in unmap_page_range/invlidate/trucate.
++ * In that cases, pages are freed continuously and we can expect pages
++ * are in the same memcg. All these calls itself limits the number of
++ * pages freed at once, then uncharge_start/end() is called properly.
++ */
++
++void mem_cgroup_uncharge_start(void)
++{
++	if (!current->memcg_batch.do_batch) {
++		current->memcg_batch.memcg = NULL;
++		current->memcg_batch.pages = 0;
++		current->memcg_batch.memsw = 0;
++	}
++	current->memcg_batch.do_batch++;
++}
++
++void mem_cgroup_uncharge_end(void)
++{
++	struct mem_cgroup *mem;
++
++	if (!current->memcg_batch.do_batch)
++		return;
++
++	current->memcg_batch.do_batch--;
++	if (current->memcg_batch.do_batch) /* Nested ? */
++		return;
++
++	mem = current->memcg_batch.memcg;
++	if (!mem)
++		return;
++	/* This "mem" is valid bacause we hide charges behind us. */
++	if (current->memcg_batch.pages)
++		res_counter_uncharge(&mem->res, current->memcg_batch.pages);
++	if (current->memcg_batch.memsw)
++		res_counter_uncharge(&mem->memsw, current->memcg_batch.memsw);
++	/* Not necessary. but forget this pointer */
++	current->memcg_batch.memcg = NULL;
++}
++
+ #ifdef CONFIG_SWAP
+ /*
+  * called after __delete_from_swap_cache() and drop "page" account.
+diff -puN mm/memory.c~memcg-coalesce-uncharge-at-unmap-and-truncation mm/memory.c
+--- a/mm/memory.c~memcg-coalesce-uncharge-at-unmap-and-truncation
++++ a/mm/memory.c
+@@ -940,6 +940,7 @@ static unsigned long unmap_page_range(st
+ 		details = NULL;
+ 
+ 	BUG_ON(addr >= end);
++	mem_cgroup_uncharge_start();
+ 	tlb_start_vma(tlb, vma);
+ 	pgd = pgd_offset(vma->vm_mm, addr);
+ 	do {
+@@ -952,6 +953,7 @@ static unsigned long unmap_page_range(st
+ 						zap_work, details);
+ 	} while (pgd++, addr = next, (addr != end && *zap_work > 0));
+ 	tlb_end_vma(tlb, vma);
++	mem_cgroup_uncharge_end();
+ 
+ 	return addr;
+ }
+diff -puN mm/truncate.c~memcg-coalesce-uncharge-at-unmap-and-truncation mm/truncate.c
+--- a/mm/truncate.c~memcg-coalesce-uncharge-at-unmap-and-truncation
++++ a/mm/truncate.c
+@@ -272,6 +272,7 @@ void truncate_inode_pages_range(struct a
+ 			pagevec_release(&pvec);
+ 			break;
+ 		}
++		mem_cgroup_uncharge_start();
+ 		for (i = 0; i < pagevec_count(&pvec); i++) {
+ 			struct page *page = pvec.pages[i];
+ 
+@@ -286,6 +287,7 @@ void truncate_inode_pages_range(struct a
+ 			unlock_page(page);
+ 		}
+ 		pagevec_release(&pvec);
++		mem_cgroup_uncharge_end();
+ 	}
+ }
+ EXPORT_SYMBOL(truncate_inode_pages_range);
+@@ -327,6 +329,7 @@ unsigned long invalidate_mapping_pages(s
+ 	pagevec_init(&pvec, 0);
+ 	while (next <= end &&
+ 			pagevec_lookup(&pvec, mapping, next, PAGEVEC_SIZE)) {
++		mem_cgroup_uncharge_start();
+ 		for (i = 0; i < pagevec_count(&pvec); i++) {
+ 			struct page *page = pvec.pages[i];
+ 			pgoff_t index;
+@@ -354,6 +357,7 @@ unsigned long invalidate_mapping_pages(s
+ 				break;
+ 		}
+ 		pagevec_release(&pvec);
++		mem_cgroup_uncharge_end();
+ 		cond_resched();
+ 	}
+ 	return ret;
+@@ -428,6 +432,7 @@ int invalidate_inode_pages2_range(struct
+ 	while (next <= end && !wrapped &&
+ 		pagevec_lookup(&pvec, mapping, next,
+ 			min(end - next, (pgoff_t)PAGEVEC_SIZE - 1) + 1)) {
++		mem_cgroup_uncharge_start();
+ 		for (i = 0; i < pagevec_count(&pvec); i++) {
+ 			struct page *page = pvec.pages[i];
+ 			pgoff_t page_index;
+@@ -477,6 +482,7 @@ int invalidate_inode_pages2_range(struct
+ 			unlock_page(page);
+ 		}
+ 		pagevec_release(&pvec);
++		mem_cgroup_uncharge_end();
+ 		cond_resched();
+ 	}
+ 	return ret;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
-origin.patch
-mmc-sdio-dont-require-cistpl_vers_1-to-contain-4-strings.patch
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices-fix.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-include-trace-events-lockdeph-fix-do_div-warning.patch
-st-fix-test-of-value-range-in-st_set_options.patch
-scsi-add-hpsa-driver-for-hp-smart-array-controllers-fix.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
-vfs-implement-posix-o_sync-and-o_dsync-semantics-checkpatch-fixes.patch
-munmap-dont-check-sysctl_max_mapcount-fix.patch
-readahead-add-blk_run_backing_dev.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-reiser4-disable.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+mm-add-notifier-in-pageblock-isolation-for-balloon-drivers.patch
+powerpc-make-the-cmm-memory-hotplug-aware.patch
+memcg-coalesce-uncharge-at-unmap-and-truncation.patch
+memcg-coalesce-charges-per-cpu.patch
 
