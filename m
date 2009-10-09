@@ -1,59 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [merged] page-types-introduce-kpageflags_flags.patch removed from -mm tree
-Date: Fri, 09 Oct 2009 15:05:14 -0700
-Message-ID: <200910092205.n99M5E9N021014@imap1.linux-foundation.org>
+Subject: [merged] fs-includecheck-fix-proc-kcorec.patch removed from -mm tree
+Date: Fri, 09 Oct 2009 15:04:53 -0700
+Message-ID: <200910092204.n99M4rk1020257@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37910 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57486 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934667AbZJIWFz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Oct 2009 18:05:55 -0400
+	by vger.kernel.org with ESMTP id S934700AbZJIWGf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Oct 2009 18:06:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@intel.com, andi@firstfloor.org, mm-commits@vger.kernel.org
+To: jaswinder@kernel.org, jaswinderrajput@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     page-types: introduce kpageflags_flags()
+     fs: includecheck fix: proc, kcore.c
 has been removed from the -mm tree.  Its filename was
-     page-types-introduce-kpageflags_flags.patch
+     fs-includecheck-fix-proc-kcorec.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page-types: introduce kpageflags_flags()
-From: Wu Fengguang <fengguang.wu@intel.com>
+Subject: fs: includecheck fix: proc, kcore.c
+From: Jaswinder Singh Rajput <jaswinder@kernel.org>
 
-Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Andi Kleen <andi@firstfloor.org>
+fix the following 'make includecheck' warning:
+
+  fs/proc/kcore.c: linux/mm.h is included more than once.
+
+Signed-off-by: Jaswinder Singh Rajput <jaswinderrajput@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN Documentation/vm/page-types.c~page-types-introduce-kpageflags_flags Documentation/vm/page-types.c
---- a/Documentation/vm/page-types.c~page-types-introduce-kpageflags_flags
-+++ a/Documentation/vm/page-types.c
-@@ -436,6 +436,16 @@ static uint64_t well_known_flags(uint64_
- 	return flags;
- }
+diff -puN fs/proc/kcore.c~fs-includecheck-fix-proc-kcorec fs/proc/kcore.c
+--- a/fs/proc/kcore.c~fs-includecheck-fix-proc-kcorec
++++ a/fs/proc/kcore.c
+@@ -23,7 +23,6 @@
+ #include <asm/io.h>
+ #include <linux/list.h>
+ #include <linux/ioport.h>
+-#include <linux/mm.h>
+ #include <linux/memory.h>
+ #include <asm/sections.h>
  
-+static uint64_t kpageflags_flags(uint64_t flags)
-+{
-+	flags = expand_overloaded_flags(flags);
-+
-+	if (!opt_raw)
-+		flags = well_known_flags(flags);
-+
-+	return flags;
-+}
-+
- /*
-  * page frame walker
-  */
-@@ -470,10 +480,7 @@ static int hash_slot(uint64_t flags)
- static void add_page(unsigned long voffset,
- 		     unsigned long offset, uint64_t flags)
- {
--	flags = expand_overloaded_flags(flags);
+_
+
+Patches currently in -mm which might be from jaswinder@kernel.org are
+
+origin.patch
+linux-next.patch
+kernel-core-add-smp_call_function_any.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+xtensa-includecheck-fix-vectorss.patch
+sched-fix-htmldocs-schedc.patch
+
