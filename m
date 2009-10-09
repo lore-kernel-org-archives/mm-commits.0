@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ia64-use-bitmap_find_next_zero_area.patch added to -mm tree
-Date: Fri, 09 Oct 2009 16:44:02 -0700
-Message-ID: <200910092344.n99Ni29E030984@imap1.linux-foundation.org>
+Subject: + bitmap-introduce-bitmap_set-bitmap_clear-bitmap_find_next_zero_area.patch added to -mm tree
+Date: Fri, 09 Oct 2009 16:43:50 -0700
+Message-ID: <200910092343.n99NhoAo030590@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40141 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53886 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933741AbZJIXpL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Oct 2009 19:45:11 -0400
+	by vger.kernel.org with ESMTP id S934621AbZJIXpk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Oct 2009 19:45:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, fenghua.yu@intel.com, tony.luck@intel.com
+Cc: akinobu.mita@gmail.com, LW@KARO-electronics.de, benh@kernel.crashing.org, davem@davemloft.net, fenghua.yu@intel.com, fujita.tomonori@lab.ntt.co.jp, gregkh@suse.de, hpa@zytor.com, joerg.roedel@amd.com, mingo@redhat.com, paulus@samba.org, rolandd@cisco.com, tglx@linutronix.de, tony.luck@intel.com, yevgenyp@mellanox.co.il
 
 
 The patch titled
-     ia64: use bitmap_find_next_zero_area()
+     bitmap: introduce bitmap_set(), bitmap_clear(), bitmap_find_next_zero_area()
 has been added to the -mm tree.  Its filename is
-     ia64-use-bitmap_find_next_zero_area.patch
+     bitmap-introduce-bitmap_set-bitmap_clear-bitmap_find_next_zero_area.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,63 +33,127 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ia64: use bitmap_find_next_zero_area()
+Subject: bitmap: introduce bitmap_set(), bitmap_clear(), bitmap_find_next_zero_area()
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
+This introduces new bitmap functions:
+
+bitmap_set: Set specified bit area
+bitmap_clear: Clear specified bit area
+bitmap_find_next_zero_area: Find free bit area
+
+These are stolen from iommu helper.
+
+I changed the return value of bitmap_find_next_zero_area if there is
+no zero area.
+
+find_next_zero_area in iommu helper: returns -1
+bitmap_find_next_zero_area: return >= bitmap size
+
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Lothar Wassmann <LW@KARO-electronics.de>
+Cc: Roland Dreier <rolandd@cisco.com>
+Cc: Yevgeny Petrilin <yevgenyp@mellanox.co.il>
 Cc: Tony Luck <tony.luck@intel.com>
 Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Joerg Roedel <joerg.roedel@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN arch/ia64/sn/pci/tioca_provider.c~ia64-use-bitmap_find_next_zero_area arch/ia64/sn/pci/tioca_provider.c
---- a/arch/ia64/sn/pci/tioca_provider.c~ia64-use-bitmap_find_next_zero_area
-+++ a/arch/ia64/sn/pci/tioca_provider.c
-@@ -9,6 +9,7 @@
- #include <linux/types.h>
- #include <linux/interrupt.h>
- #include <linux/pci.h>
-+#include <linux/bitmap.h>
- #include <asm/sn/sn_sal.h>
- #include <asm/sn/addrs.h>
- #include <asm/sn/io.h>
-@@ -369,7 +370,7 @@ tioca_dma_d48(struct pci_dev *pdev, u64 
- static dma_addr_t
- tioca_dma_mapped(struct pci_dev *pdev, unsigned long paddr, size_t req_size)
- {
--	int i, ps, ps_shift, entry, entries, mapsize, last_entry;
-+	int ps, ps_shift, entry, entries, mapsize;
- 	u64 xio_addr, end_xio_addr;
- 	struct tioca_common *tioca_common;
- 	struct tioca_kernel *tioca_kern;
-@@ -410,23 +411,13 @@ tioca_dma_mapped(struct pci_dev *pdev, u
- 	map = tioca_kern->ca_pcigart_pagemap;
- 	mapsize = tioca_kern->ca_pcigart_entries;
+diff -puN include/linux/bitmap.h~bitmap-introduce-bitmap_set-bitmap_clear-bitmap_find_next_zero_area include/linux/bitmap.h
+--- a/include/linux/bitmap.h~bitmap-introduce-bitmap_set-bitmap_clear-bitmap_find_next_zero_area
++++ a/include/linux/bitmap.h
+@@ -42,6 +42,9 @@
+  * bitmap_empty(src, nbits)			Are all bits zero in *src?
+  * bitmap_full(src, nbits)			Are all bits set in *src?
+  * bitmap_weight(src, nbits)			Hamming Weight: number set bits
++ * bitmap_set(dst, pos, nbits)			Set specified bit area
++ * bitmap_clear(dst, pos, nbits)		Clear specified bit area
++ * bitmap_find_next_zero_area(buf, len, pos, n, mask)	Find bit free area
+  * bitmap_shift_right(dst, src, n, nbits)	*dst = *src >> n
+  * bitmap_shift_left(dst, src, n, nbits)	*dst = *src << n
+  * bitmap_remap(dst, src, old, new, nbits)	*dst = map(old, new)(src)
+@@ -108,6 +111,14 @@ extern int __bitmap_subset(const unsigne
+ 			const unsigned long *bitmap2, int bits);
+ extern int __bitmap_weight(const unsigned long *bitmap, int bits);
  
--	entry = find_first_zero_bit(map, mapsize);
--	while (entry < mapsize) {
--		last_entry = find_next_bit(map, mapsize, entry);
--
--		if (last_entry - entry >= entries)
--			break;
--
--		entry = find_next_zero_bit(map, mapsize, last_entry);
--	}
--
--	if (entry > mapsize) {
-+	entry = bitmap_find_next_zero_area(map, mapsize, 0, entries, 0);
-+	if (entry >= mapsize) {
- 		kfree(ca_dmamap);
- 		goto map_return;
- 	}
++extern void bitmap_set(unsigned long *map, int i, int len);
++extern void bitmap_clear(unsigned long *map, int start, int nr);
++extern unsigned long bitmap_find_next_zero_area(unsigned long *map,
++					 unsigned long size,
++					 unsigned long start,
++					 unsigned int nr,
++					 unsigned long align_mask);
++
+ extern int bitmap_scnprintf(char *buf, unsigned int len,
+ 			const unsigned long *src, int nbits);
+ extern int __bitmap_parse(const char *buf, unsigned int buflen, int is_user,
+diff -puN lib/bitmap.c~bitmap-introduce-bitmap_set-bitmap_clear-bitmap_find_next_zero_area lib/bitmap.c
+--- a/lib/bitmap.c~bitmap-introduce-bitmap_set-bitmap_clear-bitmap_find_next_zero_area
++++ a/lib/bitmap.c
+@@ -271,6 +271,53 @@ int __bitmap_weight(const unsigned long 
+ }
+ EXPORT_SYMBOL(__bitmap_weight);
  
--	for (i = 0; i < entries; i++)
--		set_bit(entry + i, map);
-+	bitmap_set(map, entry, entries);
- 
- 	bus_addr = tioca_kern->ca_pciap_base + (entry * ps);
- 
++void bitmap_set(unsigned long *map, int i, int len)
++{
++	int end = i + len;
++
++	while (i < end) {
++		__set_bit(i, map);
++		i++;
++	}
++}
++EXPORT_SYMBOL(bitmap_set);
++
++void bitmap_clear(unsigned long *map, int start, int nr)
++{
++	int end = start + nr;
++
++	while (start < end) {
++		__clear_bit(start, map);
++		start++;
++	}
++}
++EXPORT_SYMBOL(bitmap_clear);
++
++unsigned long bitmap_find_next_zero_area(unsigned long *map,
++					 unsigned long size,
++					 unsigned long start,
++					 unsigned int nr,
++					 unsigned long align_mask)
++{
++	unsigned long index, end, i;
++again:
++	index = find_next_zero_bit(map, size, start);
++
++	/* Align allocation */
++	index = (index + align_mask) & ~align_mask;
++
++	end = index + nr;
++	if (end >= size)
++		return end;
++	i = find_next_bit(map, end, index);
++	if (i < end) {
++		start = i + 1;
++		goto again;
++	}
++	return index;
++}
++EXPORT_SYMBOL(bitmap_find_next_zero_area);
++
+ /*
+  * Bitmap printing & parsing functions: first version by Bill Irwin,
+  * second version by Paul Jackson, third by Joe Korty.
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
