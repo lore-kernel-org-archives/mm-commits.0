@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-coalesce-uncharge-at-unmap-and-truncation.patch added to -mm tree
-Date: Fri, 09 Oct 2009 00:14:41 -0700
-Message-ID: <200910090714.n997EfuW025732@imap1.linux-foundation.org>
+Subject: + memcg-coalesce-charges-per-cpu.patch added to -mm tree
+Date: Fri, 09 Oct 2009 00:14:44 -0700
+Message-ID: <200910090714.n997Ej3F025910@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48465 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56152 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933172AbZJIHPe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Oct 2009 03:15:34 -0400
+	by vger.kernel.org with ESMTP id S933200AbZJIHPg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Oct 2009 03:15:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, h-shimamoto@ct.jp.nec.com
 
 
 The patch titled
-     memcg: coalesce uncharge at unmap and truncation
+     memcg: coalesce charges per cpu
 has been added to the -mm tree.  Its filename is
-     memcg-coalesce-uncharge-at-unmap-and-truncation.patch
+     memcg-coalesce-charges-per-cpu.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,30 +33,23 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: coalesce uncharge at unmap and truncation
+Subject: memcg: coalesce charges per cpu
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-In massive parallel enviroment, res_counter can be a performance
-bottleneck.  One strong techinque to reduce lock contention is reducing
-calls by coalescing some amount of calls into one.
+Coalesce access to res_counter at charging by percpu caching.  At charge,
+memcg charges 64pages and remember it in percpu cache.  Because it's
+cache, drain/flush is done if necessary.
 
-Considering charge/uncharge chatacteristic,
-	- charge is done one by one via demand-paging.
-	- uncharge is done by
-		- in chunk at munmap, truncate, exit, execve...
-		- one by one via vmscan/paging.
+This version uses public percpu area.
+ 2 benefits of using public percpu area.
+ 1. Sum of stocked charge in the system is limited to # of cpus
+    not to the number of memcg. This shows better synchonization.
+ 2. drain code for flush/cpuhotplug is very easy (and quick)
 
-It seems we have a chance in uncharge at unmap/truncation.
-
-This patch is a for coalescing uncharge. For avoiding scattering memcg's
-structure to functions under /mm, this patch adds memcg batch uncharge
-information to the task.
-
-The degree of coalescing depends on callers
-  - at invalidate/trucate... pagevec size
-  - at unmap ....ZAP_BLOCK_SIZE
-(memory itself will be freed in this degree.)
-Then, we'll not coalescing too much.
+The most important point of this patch is that we never touch res_counter
+in fast path.  The res_counter is system-wide shared counter which is
+modified very frequently.  We shouldn't touch it as far as we can for
+avoiding false sharing.
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
@@ -66,238 +59,216 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN include/linux/memcontrol.h~memcg-coalesce-uncharge-at-unmap-and-truncation include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-coalesce-uncharge-at-unmap-and-truncation
-+++ a/include/linux/memcontrol.h
-@@ -54,6 +54,11 @@ extern void mem_cgroup_rotate_lru_list(s
- extern void mem_cgroup_del_lru(struct page *page);
- extern void mem_cgroup_move_lists(struct page *page,
- 				  enum lru_list from, enum lru_list to);
-+
-+/* For coalescing uncharge for reducing memcg' overhead*/
-+extern void mem_cgroup_uncharge_start(void);
-+extern void mem_cgroup_uncharge_end(void);
-+
- extern void mem_cgroup_uncharge_page(struct page *page);
- extern void mem_cgroup_uncharge_cache_page(struct page *page);
- extern int mem_cgroup_shmem_charge_fallback(struct page *page,
-@@ -151,6 +156,14 @@ static inline void mem_cgroup_cancel_cha
- {
- }
- 
-+static inline void mem_cgroup_uncharge_start(void)
-+{
-+}
-+
-+static inline void mem_cgroup_uncharge_end(void)
-+{
-+}
-+
- static inline void mem_cgroup_uncharge_page(struct page *page)
- {
- }
-diff -puN include/linux/sched.h~memcg-coalesce-uncharge-at-unmap-and-truncation include/linux/sched.h
---- a/include/linux/sched.h~memcg-coalesce-uncharge-at-unmap-and-truncation
-+++ a/include/linux/sched.h
-@@ -1543,6 +1543,13 @@ struct task_struct {
- 	unsigned long trace_recursion;
- #endif /* CONFIG_TRACING */
- 	unsigned long stack_start;
-+#ifdef CONFIG_CGROUP_MEM_RES_CTLR /* memcg uses this to do batch job */
-+	struct memcg_batch_info {
-+		int do_batch;
-+		struct mem_cgroup *memcg;
-+		long pages, memsw;
-+	} memcg_batch;
-+#endif
- };
- 
- /* Future-safe accessor for struct task_struct's cpus_allowed. */
-diff -puN mm/memcontrol.c~memcg-coalesce-uncharge-at-unmap-and-truncation mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-coalesce-uncharge-at-unmap-and-truncation
+diff -puN mm/memcontrol.c~memcg-coalesce-charges-per-cpu mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-coalesce-charges-per-cpu
 +++ a/mm/memcontrol.c
-@@ -1826,6 +1826,49 @@ void mem_cgroup_cancel_charge_swapin(str
- 	css_put(&mem->css);
+@@ -38,6 +38,7 @@
+ #include <linux/vmalloc.h>
+ #include <linux/mm_inline.h>
+ #include <linux/page_cgroup.h>
++#include <linux/cpu.h>
+ #include "internal.h"
+ 
+ #include <asm/uaccess.h>
+@@ -275,6 +276,7 @@ enum charge_type {
+ static void mem_cgroup_get(struct mem_cgroup *mem);
+ static void mem_cgroup_put(struct mem_cgroup *mem);
+ static struct mem_cgroup *parent_mem_cgroup(struct mem_cgroup *mem);
++static void drain_all_stock_async(void);
+ 
+ static struct mem_cgroup_per_zone *
+ mem_cgroup_zoneinfo(struct mem_cgroup *mem, int nid, int zid)
+@@ -1137,6 +1139,8 @@ static int mem_cgroup_hierarchical_recla
+ 		victim = mem_cgroup_select_victim(root_mem);
+ 		if (victim == root_mem) {
+ 			loop++;
++			if (loop >= 1)
++				drain_all_stock_async();
+ 			if (loop >= 2) {
+ 				/*
+ 				 * If we have not been able to reclaim
+@@ -1258,6 +1262,103 @@ done:
+ 	unlock_page_cgroup(pc);
  }
  
-+static void
-+__do_uncharge(struct mem_cgroup *mem, const enum charge_type ctype)
-+{
-+	struct memcg_batch_info *batch = NULL;
-+	bool uncharge_memsw = true;
-+	/* If swapout, usage of swap doesn't decrease */
-+	if (!do_swap_account || ctype == MEM_CGROUP_CHARGE_TYPE_SWAPOUT)
-+		uncharge_memsw = false;
-+	/*
-+	 * do_batch > 0 when unmapping pages or inode invalidate/truncate.
-+	 * In those cases, all pages freed continously can be expected to be in
-+	 * the same cgroup and we have chance to coalesce uncharges.
-+	 * And, we do uncharge one by one if this is killed by OOM.
-+	 */
-+	if (!current->memcg_batch.do_batch || test_thread_flag(TIF_MEMDIE))
-+		goto direct_uncharge;
++/* size of first charge trial. "32" comes from vmscan.c's magic value */
++#define CHARGE_SIZE	(32 * PAGE_SIZE)
++struct memcg_stock_pcp {
++	struct mem_cgroup *cached;
++	int charge;
++	struct work_struct work;
++};
++static DEFINE_PER_CPU(struct memcg_stock_pcp, memcg_stock);
++static DEFINE_MUTEX(memcg_drain_mutex);
 +
-+	batch = &current->memcg_batch;
-+	/*
-+	 * In usual, we do css_get() when we remember memcg pointer.
-+	 * But in this case, we keep res->usage until end of a series of
-+	 * uncharges. Then, it's ok to ignore memcg's refcnt.
-+	 */
-+	if (!batch->memcg)
-+		batch->memcg = mem;
-+	/*
-+	 * In typical case, batch->memcg == mem. This means we can
-+	 * merge a series of uncharges to an uncharge of res_counter.
-+	 * If not, we uncharge res_counter ony by one.
-+	 */
-+	if (batch->memcg != mem)
-+		goto direct_uncharge;
-+	/* remember freed charge and uncharge it later */
-+	batch->pages += PAGE_SIZE;
-+	if (uncharge_memsw)
-+		batch->memsw += PAGE_SIZE;
-+	return;
-+direct_uncharge:
-+	res_counter_uncharge(&mem->res, PAGE_SIZE);
-+	if (uncharge_memsw)
-+		res_counter_uncharge(&mem->memsw, PAGE_SIZE);
-+	return;
++static bool consume_stock(struct mem_cgroup *mem)
++{
++	struct memcg_stock_pcp *stock;
++	bool ret = true;
++
++	stock = &get_cpu_var(memcg_stock);
++	if (mem == stock->cached && stock->charge)
++		stock->charge -= PAGE_SIZE;
++	else
++		ret = false;
++	put_cpu_var(memcg_stock);
++	return ret;
 +}
- 
- /*
-  * uncharge if !page_mapped(page)
-@@ -1874,12 +1917,8 @@ __mem_cgroup_uncharge_common(struct page
- 		break;
- 	}
- 
--	if (!mem_cgroup_is_root(mem)) {
--		res_counter_uncharge(&mem->res, PAGE_SIZE);
--		if (do_swap_account &&
--				(ctype != MEM_CGROUP_CHARGE_TYPE_SWAPOUT))
--			res_counter_uncharge(&mem->memsw, PAGE_SIZE);
--	}
-+	if (!mem_cgroup_is_root(mem))
-+		__do_uncharge(mem, ctype);
- 	if (ctype == MEM_CGROUP_CHARGE_TYPE_SWAPOUT)
- 		mem_cgroup_swap_statistics(mem, true);
- 	mem_cgroup_charge_statistics(mem, pc, false);
-@@ -1925,6 +1964,46 @@ void mem_cgroup_uncharge_cache_page(stru
- 	__mem_cgroup_uncharge_common(page, MEM_CGROUP_CHARGE_TYPE_CACHE);
- }
- 
-+/*
-+ * batch_start/batch_end is called in unmap_page_range/invlidate/trucate.
-+ * In that cases, pages are freed continuously and we can expect pages
-+ * are in the same memcg. All these calls itself limits the number of
-+ * pages freed at once, then uncharge_start/end() is called properly.
-+ */
 +
-+void mem_cgroup_uncharge_start(void)
++static void drain_stock(struct memcg_stock_pcp *stock)
 +{
-+	if (!current->memcg_batch.do_batch) {
-+		current->memcg_batch.memcg = NULL;
-+		current->memcg_batch.pages = 0;
-+		current->memcg_batch.memsw = 0;
++	struct mem_cgroup *old = stock->cached;
++
++	if (stock->charge) {
++		res_counter_uncharge(&old->res, stock->charge);
++		if (do_swap_account)
++			res_counter_uncharge(&old->memsw, stock->charge);
 +	}
-+	current->memcg_batch.do_batch++;
++	stock->cached = NULL;
++	stock->charge = 0;
 +}
 +
-+void mem_cgroup_uncharge_end(void)
++static void drain_local_stock(struct work_struct *dummy)
 +{
-+	struct mem_cgroup *mem;
-+
-+	if (!current->memcg_batch.do_batch)
-+		return;
-+
-+	current->memcg_batch.do_batch--;
-+	if (current->memcg_batch.do_batch) /* Nested ? */
-+		return;
-+
-+	mem = current->memcg_batch.memcg;
-+	if (!mem)
-+		return;
-+	/* This "mem" is valid bacause we hide charges behind us. */
-+	if (current->memcg_batch.pages)
-+		res_counter_uncharge(&mem->res, current->memcg_batch.pages);
-+	if (current->memcg_batch.memsw)
-+		res_counter_uncharge(&mem->memsw, current->memcg_batch.memsw);
-+	/* Not necessary. but forget this pointer */
-+	current->memcg_batch.memcg = NULL;
++	struct memcg_stock_pcp *stock = &get_cpu_var(memcg_stock);
++	drain_stock(stock);
++	put_cpu_var(memcg_stock);
 +}
 +
- #ifdef CONFIG_SWAP
++static void refill_stock(struct mem_cgroup *mem, int val)
++{
++	struct memcg_stock_pcp *stock = &get_cpu_var(memcg_stock);
++
++	if (stock->cached != mem) {
++		drain_stock(stock);
++		stock->cached = mem;
++	}
++	stock->charge += val;
++	put_cpu_var(memcg_stock);
++}
++
++static void drain_all_stock_async(void)
++{
++	int cpu;
++	/* Contention means someone tries to flush. */
++	if (!mutex_trylock(&memcg_drain_mutex))
++		return;
++	for_each_online_cpu(cpu) {
++		struct memcg_stock_pcp *stock = &per_cpu(memcg_stock, cpu);
++		if (work_pending(&stock->work))
++			continue;
++		INIT_WORK(&stock->work, drain_local_stock);
++		schedule_work_on(cpu, &stock->work);
++	}
++	mutex_unlock(&memcg_drain_mutex);
++	/* We don't wait for flush_work */
++}
++
++static void drain_all_stock_sync(void)
++{
++	/* called when force_empty is called */
++	mutex_lock(&memcg_drain_mutex);
++	schedule_on_each_cpu(drain_local_stock);
++	mutex_unlock(&memcg_drain_mutex);
++}
++
++static int __cpuinit memcg_stock_cpu_callback(struct notifier_block *nb,
++					unsigned long action,
++					void *hcpu)
++{
++#ifdef CONFIG_HOTPLUG_CPU
++	int cpu = (unsigned long)hcpu;
++	struct memcg_stock_pcp *stock;
++
++	if (action != CPU_DEAD)
++		return NOTIFY_OK;
++	stock = &per_cpu(memcg_stock, cpu);
++	drain_stock(stock);
++#endif
++	return NOTIFY_OK;
++}
++
  /*
-  * called after __delete_from_swap_cache() and drop "page" account.
-diff -puN mm/memory.c~memcg-coalesce-uncharge-at-unmap-and-truncation mm/memory.c
---- a/mm/memory.c~memcg-coalesce-uncharge-at-unmap-and-truncation
-+++ a/mm/memory.c
-@@ -940,6 +940,7 @@ static unsigned long unmap_page_range(st
- 		details = NULL;
+  * Unlike exported interface, "oom" parameter is added. if oom==true,
+  * oom-killer can be invoked.
+@@ -1269,6 +1370,7 @@ static int __mem_cgroup_try_charge(struc
+ 	struct mem_cgroup *mem, *mem_over_limit;
+ 	int nr_retries = MEM_CGROUP_RECLAIM_RETRIES;
+ 	struct res_counter *fail_res;
++	int csize = CHARGE_SIZE;
  
- 	BUG_ON(addr >= end);
-+	mem_cgroup_uncharge_start();
- 	tlb_start_vma(tlb, vma);
- 	pgd = pgd_offset(vma->vm_mm, addr);
- 	do {
-@@ -952,6 +953,7 @@ static unsigned long unmap_page_range(st
- 						zap_work, details);
- 	} while (pgd++, addr = next, (addr != end && *zap_work > 0));
- 	tlb_end_vma(tlb, vma);
-+	mem_cgroup_uncharge_end();
+ 	if (unlikely(test_thread_flag(TIF_MEMDIE))) {
+ 		/* Don't account this! */
+@@ -1293,23 +1395,25 @@ static int __mem_cgroup_try_charge(struc
+ 		return 0;
  
- 	return addr;
- }
-diff -puN mm/truncate.c~memcg-coalesce-uncharge-at-unmap-and-truncation mm/truncate.c
---- a/mm/truncate.c~memcg-coalesce-uncharge-at-unmap-and-truncation
-+++ a/mm/truncate.c
-@@ -272,6 +272,7 @@ void truncate_inode_pages_range(struct a
- 			pagevec_release(&pvec);
- 			break;
- 		}
-+		mem_cgroup_uncharge_start();
- 		for (i = 0; i < pagevec_count(&pvec); i++) {
- 			struct page *page = pvec.pages[i];
+ 	VM_BUG_ON(css_is_removed(&mem->css));
++	if (mem_cgroup_is_root(mem))
++		goto done;
  
-@@ -286,6 +287,7 @@ void truncate_inode_pages_range(struct a
- 			unlock_page(page);
- 		}
- 		pagevec_release(&pvec);
-+		mem_cgroup_uncharge_end();
- 	}
- }
- EXPORT_SYMBOL(truncate_inode_pages_range);
-@@ -327,6 +329,7 @@ unsigned long invalidate_mapping_pages(s
- 	pagevec_init(&pvec, 0);
- 	while (next <= end &&
- 			pagevec_lookup(&pvec, mapping, next, PAGEVEC_SIZE)) {
-+		mem_cgroup_uncharge_start();
- 		for (i = 0; i < pagevec_count(&pvec); i++) {
- 			struct page *page = pvec.pages[i];
- 			pgoff_t index;
-@@ -354,6 +357,7 @@ unsigned long invalidate_mapping_pages(s
+ 	while (1) {
+ 		int ret = 0;
+ 		unsigned long flags = 0;
+ 
+-		if (mem_cgroup_is_root(mem))
+-			goto done;
+-		ret = res_counter_charge(&mem->res, PAGE_SIZE, &fail_res);
++		if (consume_stock(mem))
++			goto charged;
++
++		ret = res_counter_charge(&mem->res, csize, &fail_res);
+ 		if (likely(!ret)) {
+ 			if (!do_swap_account)
  				break;
+-			ret = res_counter_charge(&mem->memsw, PAGE_SIZE,
+-							&fail_res);
++			ret = res_counter_charge(&mem->memsw, csize, &fail_res);
+ 			if (likely(!ret))
+ 				break;
+ 			/* mem+swap counter fails */
+-			res_counter_uncharge(&mem->res, PAGE_SIZE);
++			res_counter_uncharge(&mem->res, csize);
+ 			flags |= MEM_CGROUP_RECLAIM_NOSWAP;
+ 			mem_over_limit = mem_cgroup_from_res_counter(fail_res,
+ 									memsw);
+@@ -1318,6 +1422,11 @@ static int __mem_cgroup_try_charge(struc
+ 			mem_over_limit = mem_cgroup_from_res_counter(fail_res,
+ 									res);
+ 
++		/* reduce request size and retry */
++		if (csize > PAGE_SIZE) {
++			csize = PAGE_SIZE;
++			continue;
++		}
+ 		if (!(gfp_mask & __GFP_WAIT))
+ 			goto nomem;
+ 
+@@ -1347,6 +1456,9 @@ static int __mem_cgroup_try_charge(struc
+ 			goto nomem;
  		}
- 		pagevec_release(&pvec);
-+		mem_cgroup_uncharge_end();
- 		cond_resched();
  	}
- 	return ret;
-@@ -428,6 +432,7 @@ int invalidate_inode_pages2_range(struct
- 	while (next <= end && !wrapped &&
- 		pagevec_lookup(&pvec, mapping, next,
- 			min(end - next, (pgoff_t)PAGEVEC_SIZE - 1) + 1)) {
-+		mem_cgroup_uncharge_start();
- 		for (i = 0; i < pagevec_count(&pvec); i++) {
- 			struct page *page = pvec.pages[i];
- 			pgoff_t page_index;
-@@ -477,6 +482,7 @@ int invalidate_inode_pages2_range(struct
- 			unlock_page(page);
- 		}
- 		pagevec_release(&pvec);
-+		mem_cgroup_uncharge_end();
- 		cond_resched();
- 	}
- 	return ret;
++	if (csize > PAGE_SIZE)
++		refill_stock(mem, csize - PAGE_SIZE);
++charged:
+ 	/*
+ 	 * Insert ancestor (and ancestor's ancestors), to softlimit RB-tree.
+ 	 * if they exceeds softlimit.
+@@ -2463,6 +2575,7 @@ move_account:
+ 			goto out;
+ 		/* This is for making all *used* pages to be on LRU. */
+ 		lru_add_drain_all();
++		drain_all_stock_sync();
+ 		ret = 0;
+ 		for_each_node_state(node, N_HIGH_MEMORY) {
+ 			for (zid = 0; !ret && zid < MAX_NR_ZONES; zid++) {
+@@ -3181,6 +3294,7 @@ mem_cgroup_create(struct cgroup_subsys *
+ 		root_mem_cgroup = mem;
+ 		if (mem_cgroup_soft_limit_tree_init())
+ 			goto free_out;
++		hotcpu_notifier(memcg_stock_cpu_callback, 0);
+ 
+ 	} else {
+ 		parent = mem_cgroup_from_cont(cont->parent);
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
