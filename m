@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + iommu-helper-use-bitmap-library.patch added to -mm tree
-Date: Fri, 09 Oct 2009 16:43:52 -0700
-Message-ID: <200910092343.n99Nhqdp030659@imap1.linux-foundation.org>
+Subject: + memcg-coalesce-uncharge-during-unmap-truncate.patch added to -mm tree
+Date: Fri, 09 Oct 2009 16:51:19 -0700
+Message-ID: <200910092351.n99NpJCP013571@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57194 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33901 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934616AbZJIXp2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Oct 2009 19:45:28 -0400
+	by vger.kernel.org with ESMTP id S934556AbZJIXwf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Oct 2009 19:52:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, benh@kernel.crashing.org, davem@davemloft.net, fujita.tomonori@lab.ntt.co.jp, hpa@zytor.com, joerg.roedel@amd.com, mingo@redhat.com, paulus@samba.org, tglx@linutronix.de
+Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, nishimura@mxp.nes.nec.co.jp
 
 
 The patch titled
-     iommu-helper: use bitmap library
+     memcg: coalesce uncharge during unmap/truncate
 has been added to the -mm tree.  Its filename is
-     iommu-helper-use-bitmap-library.patch
+     memcg-coalesce-uncharge-during-unmap-truncate.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,238 +33,337 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: iommu-helper: use bitmap library
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: memcg: coalesce uncharge during unmap/truncate
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Use bitmap library and kill some unused iommu helper functions.
+In massive parallel enviroment, res_counter can be a performance
+bottleneck.  One strong techinque to reduce lock contention is reducing
+calls by coalescing some amount of calls into one.
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Joerg Roedel <joerg.roedel@amd.com>
+Considering charge/uncharge chatacteristic,
+	- charge is done one by one via demand-paging.
+	- uncharge is done by
+		- in chunk at munmap, truncate, exit, execve...
+		- one by one via vmscan/paging.
+
+It seems we have a chance to coalesce uncharges for improving scalability
+at unmap/truncation.
+
+This patch is a for coalescing uncharge.  For avoiding scattering memcg's
+structure to functions under /mm, this patch adds memcg batch uncharge
+information to the task.  A reason for per-task batching is for making use
+of caller's context information.  We do batched uncharge (deleyed
+uncharge) when truncation/unmap occurs but do direct uncharge when
+uncharge is called by memory reclaim (vmscan.c).
+
+The degree of coalescing depends on callers
+  - at invalidate/trucate... pagevec size
+  - at unmap ....ZAP_BLOCK_SIZE
+(memory itself will be freed in this degree.)
+Then, we'll not coalescing too much.
+
+On x86-64 8cpu server, I tested overheads of memcg at page fault by
+running a program which does map/fault/unmap in a loop. Running
+a task per a cpu by taskset and see sum of the number of page faults
+in 60secs.
+
+[without memcg config]
+  40156968  page-faults              #      0.085 M/sec   ( +-   0.046% )
+  27.67 cache-miss/faults
+[root cgroup]
+  36659599  page-faults              #      0.077 M/sec   ( +-   0.247% )
+  31.58 miss/faults
+[in a child cgroup]
+  18444157  page-faults              #      0.039 M/sec   ( +-   0.133% )
+  69.96 miss/faults
+[child with this patch]
+  27133719  page-faults              #      0.057 M/sec   ( +-   0.155% )
+  47.16 miss/faults
+
+We can see some amounts of improvement.
+(root cgroup doesn't affected by this patch)
+Another patch for "charge" will follow this and above will be improved more.
+
+Changelog(since 2009/10/02):
+ - renamed filed of memcg_batch (as pages to bytes, memsw to memsw_bytes)
+ - some clean up and commentary/description updates.
+ - added initialize code to copy_process(). (possible bug fix)
+
+Changelog(old):
+ - fixed !CONFIG_MEM_CGROUP case.
+ - rebased onto the latest mmotm + softlimit fix patches.
+ - unified patch for callers
+ - added commetns.
+ - make ->do_batch as bool.
+ - removed css_get() at el. We don't need it.
+
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN arch/powerpc/kernel/iommu.c~iommu-helper-use-bitmap-library arch/powerpc/kernel/iommu.c
---- a/arch/powerpc/kernel/iommu.c~iommu-helper-use-bitmap-library
-+++ a/arch/powerpc/kernel/iommu.c
-@@ -30,7 +30,7 @@
- #include <linux/spinlock.h>
- #include <linux/string.h>
- #include <linux/dma-mapping.h>
--#include <linux/bitops.h>
-+#include <linux/bitmap.h>
- #include <linux/iommu-helper.h>
- #include <linux/crash_dump.h>
- #include <asm/io.h>
-@@ -251,7 +251,7 @@ static void __iommu_free(struct iommu_ta
- 	}
- 
- 	ppc_md.tce_free(tbl, entry, npages);
--	iommu_area_free(tbl->it_map, free_entry, npages);
-+	bitmap_clear(tbl->it_map, free_entry, npages);
- }
- 
- static void iommu_free(struct iommu_table *tbl, dma_addr_t dma_addr,
-diff -puN arch/sparc/kernel/iommu.c~iommu-helper-use-bitmap-library arch/sparc/kernel/iommu.c
---- a/arch/sparc/kernel/iommu.c~iommu-helper-use-bitmap-library
-+++ a/arch/sparc/kernel/iommu.c
-@@ -11,6 +11,7 @@
- #include <linux/dma-mapping.h>
- #include <linux/errno.h>
- #include <linux/iommu-helper.h>
-+#include <linux/bitmap.h>
- 
- #ifdef CONFIG_PCI
- #include <linux/pci.h>
-@@ -169,7 +170,7 @@ void iommu_range_free(struct iommu *iomm
- 
- 	entry = (dma_addr - iommu->page_table_map_base) >> IO_PAGE_SHIFT;
- 
--	iommu_area_free(arena->map, entry, npages);
-+	bitmap_clear(arena->map, entry, npages);
- }
- 
- int iommu_table_init(struct iommu *iommu, int tsbsize,
-diff -puN arch/x86/kernel/amd_iommu.c~iommu-helper-use-bitmap-library arch/x86/kernel/amd_iommu.c
---- a/arch/x86/kernel/amd_iommu.c~iommu-helper-use-bitmap-library
-+++ a/arch/x86/kernel/amd_iommu.c
-@@ -19,7 +19,7 @@
- 
- #include <linux/pci.h>
- #include <linux/gfp.h>
--#include <linux/bitops.h>
-+#include <linux/bitmap.h>
- #include <linux/debugfs.h>
- #include <linux/scatterlist.h>
- #include <linux/dma-mapping.h>
-@@ -959,7 +959,7 @@ static void dma_ops_free_addresses(struc
- 
- 	address = (address % APERTURE_RANGE_SIZE) >> PAGE_SHIFT;
- 
--	iommu_area_free(range->bitmap, address, pages);
-+	bitmap_clear(range->bitmap, address, pages);
- 
- }
- 
-diff -puN arch/x86/kernel/pci-calgary_64.c~iommu-helper-use-bitmap-library arch/x86/kernel/pci-calgary_64.c
---- a/arch/x86/kernel/pci-calgary_64.c~iommu-helper-use-bitmap-library
-+++ a/arch/x86/kernel/pci-calgary_64.c
-@@ -31,7 +31,7 @@
- #include <linux/string.h>
- #include <linux/crash_dump.h>
- #include <linux/dma-mapping.h>
--#include <linux/bitops.h>
-+#include <linux/bitmap.h>
- #include <linux/pci_ids.h>
- #include <linux/pci.h>
- #include <linux/delay.h>
-@@ -211,7 +211,7 @@ static void iommu_range_reserve(struct i
- 
- 	spin_lock_irqsave(&tbl->it_lock, flags);
- 
--	iommu_area_reserve(tbl->it_map, index, npages);
-+	bitmap_set(tbl->it_map, index, npages);
- 
- 	spin_unlock_irqrestore(&tbl->it_lock, flags);
- }
-@@ -305,7 +305,7 @@ static void iommu_free(struct iommu_tabl
- 
- 	spin_lock_irqsave(&tbl->it_lock, flags);
- 
--	iommu_area_free(tbl->it_map, entry, npages);
-+	bitmap_clear(tbl->it_map, entry, npages);
- 
- 	spin_unlock_irqrestore(&tbl->it_lock, flags);
- }
-diff -puN arch/x86/kernel/pci-gart_64.c~iommu-helper-use-bitmap-library arch/x86/kernel/pci-gart_64.c
---- a/arch/x86/kernel/pci-gart_64.c~iommu-helper-use-bitmap-library
-+++ a/arch/x86/kernel/pci-gart_64.c
-@@ -22,7 +22,7 @@
- #include <linux/module.h>
- #include <linux/topology.h>
- #include <linux/interrupt.h>
--#include <linux/bitops.h>
-+#include <linux/bitmap.h>
- #include <linux/kdebug.h>
- #include <linux/scatterlist.h>
- #include <linux/iommu-helper.h>
-@@ -122,7 +122,7 @@ static void free_iommu(unsigned long off
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&iommu_bitmap_lock, flags);
--	iommu_area_free(iommu_gart_bitmap, offset, size);
-+	bitmap_clear(iommu_gart_bitmap, offset, size);
- 	if (offset >= next_bit)
- 		next_bit = offset + size;
- 	spin_unlock_irqrestore(&iommu_bitmap_lock, flags);
-@@ -781,7 +781,7 @@ void __init gart_iommu_init(void)
- 	 * Out of IOMMU space handling.
- 	 * Reserve some invalid pages at the beginning of the GART.
- 	 */
--	iommu_area_reserve(iommu_gart_bitmap, 0, EMERGENCY_PAGES);
-+	bitmap_set(iommu_gart_bitmap, 0, EMERGENCY_PAGES);
- 
- 	agp_memory_reserved = iommu_size;
- 	printk(KERN_INFO
-diff -puN include/linux/iommu-helper.h~iommu-helper-use-bitmap-library include/linux/iommu-helper.h
---- a/include/linux/iommu-helper.h~iommu-helper-use-bitmap-library
-+++ a/include/linux/iommu-helper.h
-@@ -14,14 +14,11 @@ static inline unsigned long iommu_device
- extern int iommu_is_span_boundary(unsigned int index, unsigned int nr,
- 				  unsigned long shift,
- 				  unsigned long boundary_size);
--extern void iommu_area_reserve(unsigned long *map, unsigned long i, int len);
- extern unsigned long iommu_area_alloc(unsigned long *map, unsigned long size,
- 				      unsigned long start, unsigned int nr,
- 				      unsigned long shift,
- 				      unsigned long boundary_size,
- 				      unsigned long align_mask);
--extern void iommu_area_free(unsigned long *map, unsigned long start,
--			    unsigned int nr);
- 
- extern unsigned long iommu_num_pages(unsigned long addr, unsigned long len,
- 				     unsigned long io_page_size);
-diff -puN lib/iommu-helper.c~iommu-helper-use-bitmap-library lib/iommu-helper.c
---- a/lib/iommu-helper.c~iommu-helper-use-bitmap-library
-+++ a/lib/iommu-helper.c
-@@ -3,40 +3,7 @@
-  */
- 
- #include <linux/module.h>
--#include <linux/bitops.h>
--
--static unsigned long find_next_zero_area(unsigned long *map,
--					 unsigned long size,
--					 unsigned long start,
--					 unsigned int nr,
--					 unsigned long align_mask)
--{
--	unsigned long index, end, i;
--again:
--	index = find_next_zero_bit(map, size, start);
--
--	/* Align allocation */
--	index = (index + align_mask) & ~align_mask;
--
--	end = index + nr;
--	if (end >= size)
--		return -1;
--	i = find_next_bit(map, end, index);
--	if (i < end) {
--		start = i + 1;
--		goto again;
--	}
--	return index;
--}
--
--void iommu_area_reserve(unsigned long *map, unsigned long i, int len)
--{
--	unsigned long end = i + len;
--	while (i < end) {
--		__set_bit(i, map);
--		i++;
--	}
--}
-+#include <linux/bitmap.h>
- 
- int iommu_is_span_boundary(unsigned int index, unsigned int nr,
- 			   unsigned long shift,
-@@ -55,30 +22,20 @@ unsigned long iommu_area_alloc(unsigned 
+diff -puN include/linux/memcontrol.h~memcg-coalesce-uncharge-during-unmap-truncate include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-coalesce-uncharge-during-unmap-truncate
++++ a/include/linux/memcontrol.h
+@@ -54,6 +54,11 @@ extern void mem_cgroup_rotate_lru_list(s
+ extern void mem_cgroup_del_lru(struct page *page);
+ extern void mem_cgroup_move_lists(struct page *page,
+ 				  enum lru_list from, enum lru_list to);
++
++/* For coalescing uncharge for reducing memcg' overhead*/
++extern void mem_cgroup_uncharge_start(void);
++extern void mem_cgroup_uncharge_end(void);
++
+ extern void mem_cgroup_uncharge_page(struct page *page);
+ extern void mem_cgroup_uncharge_cache_page(struct page *page);
+ extern int mem_cgroup_shmem_charge_fallback(struct page *page,
+@@ -151,6 +156,14 @@ static inline void mem_cgroup_cancel_cha
  {
- 	unsigned long index;
- again:
--	index = find_next_zero_area(map, size, start, nr, align_mask);
--	if (index != -1) {
-+	index = bitmap_find_next_zero_area(map, size, start, nr, align_mask);
-+	if (index < size) {
- 		if (iommu_is_span_boundary(index, nr, shift, boundary_size)) {
- 			/* we could do more effectively */
- 			start = index + 1;
- 			goto again;
- 		}
--		iommu_area_reserve(map, index, nr);
-+		bitmap_set(map, index, nr);
-+		return index;
- 	}
--	return index;
-+	return -1;
  }
- EXPORT_SYMBOL(iommu_area_alloc);
  
--void iommu_area_free(unsigned long *map, unsigned long start, unsigned int nr)
--{
--	unsigned long end = start + nr;
--
--	while (start < end) {
--		__clear_bit(start, map);
--		start++;
++static inline void mem_cgroup_uncharge_start(void)
++{
++}
++
++static inline void mem_cgroup_uncharge_end(void)
++{
++}
++
+ static inline void mem_cgroup_uncharge_page(struct page *page)
+ {
+ }
+diff -puN include/linux/sched.h~memcg-coalesce-uncharge-during-unmap-truncate include/linux/sched.h
+--- a/include/linux/sched.h~memcg-coalesce-uncharge-during-unmap-truncate
++++ a/include/linux/sched.h
+@@ -1543,6 +1543,14 @@ struct task_struct {
+ 	unsigned long trace_recursion;
+ #endif /* CONFIG_TRACING */
+ 	unsigned long stack_start;
++#ifdef CONFIG_CGROUP_MEM_RES_CTLR /* memcg uses this to do batch job */
++	struct memcg_batch_info {
++		int do_batch;	/* incremented when batch uncharge started */
++		struct mem_cgroup *memcg; /* target memcg of uncharge */
++		unsigned long bytes; 		/* uncharged usage */
++		unsigned long memsw_bytes; /* uncharged mem+swap usage */
++	} memcg_batch;
++#endif
+ };
+ 
+ /* Future-safe accessor for struct task_struct's cpus_allowed. */
+diff -puN kernel/fork.c~memcg-coalesce-uncharge-during-unmap-truncate kernel/fork.c
+--- a/kernel/fork.c~memcg-coalesce-uncharge-during-unmap-truncate
++++ a/kernel/fork.c
+@@ -1120,6 +1120,10 @@ static struct task_struct *copy_process(
+ #ifdef CONFIG_DEBUG_MUTEXES
+ 	p->blocked_on = NULL; /* not blocked yet */
+ #endif
++#ifdef CONFIG_CGROUP_MEM_RES_CTLR
++	p->memcg_batch.do_batch = 0;
++	p->memcg_batch.memcg = NULL;
++#endif
+ 
+ 	p->bts = NULL;
+ 
+diff -puN mm/memcontrol.c~memcg-coalesce-uncharge-during-unmap-truncate mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-coalesce-uncharge-during-unmap-truncate
++++ a/mm/memcontrol.c
+@@ -1826,6 +1826,50 @@ void mem_cgroup_cancel_charge_swapin(str
+ 	css_put(&mem->css);
+ }
+ 
++static void
++__do_uncharge(struct mem_cgroup *mem, const enum charge_type ctype)
++{
++	struct memcg_batch_info *batch = NULL;
++	bool uncharge_memsw = true;
++	/* If swapout, usage of swap doesn't decrease */
++	if (!do_swap_account || ctype == MEM_CGROUP_CHARGE_TYPE_SWAPOUT)
++		uncharge_memsw = false;
++	/*
++	 * do_batch > 0 when unmapping pages or inode invalidate/truncate.
++	 * In those cases, all pages freed continously can be expected to be in
++	 * the same cgroup and we have chance to coalesce uncharges.
++	 * But we do uncharge one by one if this is killed by OOM(TIF_MEMDIE)
++	 * because we want to do uncharge as soon as possible.
++	 */
++	if (!current->memcg_batch.do_batch || test_thread_flag(TIF_MEMDIE))
++		goto direct_uncharge;
++
++	batch = &current->memcg_batch;
++	/*
++	 * In usual, we do css_get() when we remember memcg pointer.
++	 * But in this case, we keep res->usage until end of a series of
++	 * uncharges. Then, it's ok to ignore memcg's refcnt.
++	 */
++	if (!batch->memcg)
++		batch->memcg = mem;
++	/*
++	 * In typical case, batch->memcg == mem. This means we can
++	 * merge a series of uncharges to an uncharge of res_counter.
++	 * If not, we uncharge res_counter ony by one.
++	 */
++	if (batch->memcg != mem)
++		goto direct_uncharge;
++	/* remember freed charge and uncharge it later */
++	batch->bytes += PAGE_SIZE;
++	if (uncharge_memsw)
++		batch->memsw_bytes += PAGE_SIZE;
++	return;
++direct_uncharge:
++	res_counter_uncharge(&mem->res, PAGE_SIZE);
++	if (uncharge_memsw)
++		res_counter_uncharge(&mem->memsw, PAGE_SIZE);
++	return;
++}
+ 
+ /*
+  * uncharge if !page_mapped(page)
+@@ -1874,12 +1918,8 @@ __mem_cgroup_uncharge_common(struct page
+ 		break;
+ 	}
+ 
+-	if (!mem_cgroup_is_root(mem)) {
+-		res_counter_uncharge(&mem->res, PAGE_SIZE);
+-		if (do_swap_account &&
+-				(ctype != MEM_CGROUP_CHARGE_TYPE_SWAPOUT))
+-			res_counter_uncharge(&mem->memsw, PAGE_SIZE);
 -	}
--}
--EXPORT_SYMBOL(iommu_area_free);
++	if (!mem_cgroup_is_root(mem))
++		__do_uncharge(mem, ctype);
+ 	if (ctype == MEM_CGROUP_CHARGE_TYPE_SWAPOUT)
+ 		mem_cgroup_swap_statistics(mem, true);
+ 	mem_cgroup_charge_statistics(mem, pc, false);
+@@ -1925,6 +1965,50 @@ void mem_cgroup_uncharge_cache_page(stru
+ 	__mem_cgroup_uncharge_common(page, MEM_CGROUP_CHARGE_TYPE_CACHE);
+ }
+ 
++/*
++ * Batch_start/batch_end is called in unmap_page_range/invlidate/trucate.
++ * In that cases, pages are freed continuously and we can expect pages
++ * are in the same memcg. All these calls itself limits the number of
++ * pages freed at once, then uncharge_start/end() is called properly.
++ * This may be called prural(2) times in a context,
++ */
++
++void mem_cgroup_uncharge_start(void)
++{
++	current->memcg_batch.do_batch++;
++	/* We can do nest. */
++	if (current->memcg_batch.do_batch == 1) {
++		current->memcg_batch.memcg = NULL;
++		current->memcg_batch.bytes = 0;
++		current->memcg_batch.memsw_bytes = 0;
++	}
++}
++
++void mem_cgroup_uncharge_end(void)
++{
++	struct memcg_batch_info *batch = &current->memcg_batch;
++
++	if (!batch->do_batch)
++		return;
++
++	batch->do_batch--;
++	if (batch->do_batch) /* If stacked, do nothing. */
++		return;
++
++	if (!batch->memcg)
++		return;
++	/*
++	 * This "batch->memcg" is valid without any css_get/put etc...
++	 * bacause we hide charges behind us.
++	 */
++	if (batch->bytes)
++		res_counter_uncharge(&batch->memcg->res, batch->bytes);
++	if (batch->memsw_bytes)
++		res_counter_uncharge(&batch->memcg->memsw, batch->memsw_bytes);
++	/* forget this pointer (for sanity check) */
++	batch->memcg = NULL;
++}
++
+ #ifdef CONFIG_SWAP
+ /*
+  * called after __delete_from_swap_cache() and drop "page" account.
+diff -puN mm/memory.c~memcg-coalesce-uncharge-during-unmap-truncate mm/memory.c
+--- a/mm/memory.c~memcg-coalesce-uncharge-during-unmap-truncate
++++ a/mm/memory.c
+@@ -940,6 +940,7 @@ static unsigned long unmap_page_range(st
+ 		details = NULL;
+ 
+ 	BUG_ON(addr >= end);
++	mem_cgroup_uncharge_start();
+ 	tlb_start_vma(tlb, vma);
+ 	pgd = pgd_offset(vma->vm_mm, addr);
+ 	do {
+@@ -952,6 +953,7 @@ static unsigned long unmap_page_range(st
+ 						zap_work, details);
+ 	} while (pgd++, addr = next, (addr != end && *zap_work > 0));
+ 	tlb_end_vma(tlb, vma);
++	mem_cgroup_uncharge_end();
+ 
+ 	return addr;
+ }
+diff -puN mm/truncate.c~memcg-coalesce-uncharge-during-unmap-truncate mm/truncate.c
+--- a/mm/truncate.c~memcg-coalesce-uncharge-during-unmap-truncate
++++ a/mm/truncate.c
+@@ -272,6 +272,7 @@ void truncate_inode_pages_range(struct a
+ 			pagevec_release(&pvec);
+ 			break;
+ 		}
++		mem_cgroup_uncharge_start();
+ 		for (i = 0; i < pagevec_count(&pvec); i++) {
+ 			struct page *page = pvec.pages[i];
+ 
+@@ -286,6 +287,7 @@ void truncate_inode_pages_range(struct a
+ 			unlock_page(page);
+ 		}
+ 		pagevec_release(&pvec);
++		mem_cgroup_uncharge_end();
+ 	}
+ }
+ EXPORT_SYMBOL(truncate_inode_pages_range);
+@@ -327,6 +329,7 @@ unsigned long invalidate_mapping_pages(s
+ 	pagevec_init(&pvec, 0);
+ 	while (next <= end &&
+ 			pagevec_lookup(&pvec, mapping, next, PAGEVEC_SIZE)) {
++		mem_cgroup_uncharge_start();
+ 		for (i = 0; i < pagevec_count(&pvec); i++) {
+ 			struct page *page = pvec.pages[i];
+ 			pgoff_t index;
+@@ -354,6 +357,7 @@ unsigned long invalidate_mapping_pages(s
+ 				break;
+ 		}
+ 		pagevec_release(&pvec);
++		mem_cgroup_uncharge_end();
+ 		cond_resched();
+ 	}
+ 	return ret;
+@@ -428,6 +432,7 @@ int invalidate_inode_pages2_range(struct
+ 	while (next <= end && !wrapped &&
+ 		pagevec_lookup(&pvec, mapping, next,
+ 			min(end - next, (pgoff_t)PAGEVEC_SIZE - 1) + 1)) {
++		mem_cgroup_uncharge_start();
+ 		for (i = 0; i < pagevec_count(&pvec); i++) {
+ 			struct page *page = pvec.pages[i];
+ 			pgoff_t page_index;
+@@ -477,6 +482,7 @@ int invalidate_inode_pages2_range(struct
+ 			unlock_page(page);
+ 		}
+ 		pagevec_release(&pvec);
++		mem_cgroup_uncharge_end();
+ 		cond_resched();
+ 	}
+ 	return ret;
+_
+
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+
+linux-next.patch
+mm-add-notifier-in-pageblock-isolation-for-balloon-drivers.patch
+powerpc-make-the-cmm-memory-hotplug-aware.patch
+memcg-coalesce-uncharge-during-unmap-truncate.patch
+memcg-coalesce-charging-via-percpu-storage.patch
+memcg-coalesce-charging-via-percpu-storage-fix.patch
+
