@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
 Subject: + omap_hsmmc-add-missing-probe-handler-hook.patch added to -mm tree
-Date: Fri, 09 Oct 2009 15:19:08 -0700
-Message-ID: <200910092219.n99MJ8xI017301@imap1.linux-foundation.org>
+Date: Fri, 09 Oct 2009 15:47:49 -0700
+Message-ID: <200910092247.n99Mloq0011732@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41810 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49118 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934512AbZJIWT4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Oct 2009 18:19:56 -0400
+	by vger.kernel.org with ESMTP id S934518AbZJIWsm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Oct 2009 18:48:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tony@atomide.com, ext-denis.2.karpov@nokia.com, ext-roger.quadros@nokia.com, felipe.contreras@gmail.com, gregkh@suse.de, jkosina@suse.cz, madhu.cr@ti.com
+Cc: ext-roger.quadros@nokia.com, ext-denis.2.karpov@nokia.com, felipe.contreras@gmail.com, gregkh@suse.de, jkosina@suse.cz, madhu.cr@ti.com, tony@atomide.com
 
 
 The patch titled
@@ -34,7 +34,7 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 Subject: omap_hsmmc: add missing probe handler hook
-From: Tony Lindgren <tony@atomide.com>
+From: Roger Quadros <ext-roger.quadros@nokia.com>
 
 The missing probe handler hook will never probe the driver. Add it back.
 Fixes broken MMC on OMAP.
@@ -68,9 +68,7 @@ diff -puN drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-add-missing-probe-handler-hoo
  static void __exit omap_hsmmc_cleanup(void)
 _
 
-Patches currently in -mm which might be from tony@atomide.com are
+Patches currently in -mm which might be from ext-roger.quadros@nokia.com are
 
-origin.patch
 omap_hsmmc-add-missing-probe-handler-hook.patch
-maintainers-update-omap-tony-lindgren-email-name.patch
 
