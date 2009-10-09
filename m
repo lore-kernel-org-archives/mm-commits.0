@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + omap_hsmmc-add-missing-probe-handler-hook.patch added to -mm tree
-Date: Fri, 09 Oct 2009 15:47:49 -0700
-Message-ID: <200910092247.n99Mloq0011732@imap1.linux-foundation.org>
+Subject: + scsi-add-hpsa-driver-for-hp-smart-array-controllers-fix-hpsa_allow_any-test-for-vendor-id.patch added to -mm tree
+Date: Fri, 09 Oct 2009 16:09:47 -0700
+Message-ID: <200910092309.n99N9lWI024728@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49118 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51840 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934518AbZJIWsm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Oct 2009 18:48:42 -0400
+	by vger.kernel.org with ESMTP id S1755525AbZJIXKi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Oct 2009 19:10:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ext-roger.quadros@nokia.com, ext-denis.2.karpov@nokia.com, felipe.contreras@gmail.com, gregkh@suse.de, jkosina@suse.cz, madhu.cr@ti.com, tony@atomide.com
+Cc: scameron@beardog.cce.hp.com, James.Bottomley@HansenPartnership.com, jens.axboe@oracle.com, mikem@beardog.cce.hp.com
 
 
 The patch titled
-     omap_hsmmc: add missing probe handler hook
+     hpsa: fix hpsa_allow_any test for vendor ID
 has been added to the -mm tree.  Its filename is
-     omap_hsmmc-add-missing-probe-handler-hook.patch
+     scsi-add-hpsa-driver-for-hp-smart-array-controllers-fix-hpsa_allow_any-test-for-vendor-id.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,42 +33,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: omap_hsmmc: add missing probe handler hook
-From: Roger Quadros <ext-roger.quadros@nokia.com>
+Subject: hpsa: fix hpsa_allow_any test for vendor ID
+From: "Stephen M. Cameron" <scameron@beardog.cce.hp.com>
 
-The missing probe handler hook will never probe the driver. Add it back.
-Fixes broken MMC on OMAP.
+Fix hpsa_allow_any test for vendor ID.
 
-We use platform_driver_probe() API since omap_hsmmc is not a hot-pluggable
-device.
-
-Signed-off-by: Roger Quadros <ext-roger.quadros@nokia.com>
-Tested-by: Felipe Contreras <felipe.contreras@gmail.com>
-Tested-by: Tony Lindgren <tony@atomide.com>
-Cc: Jiri Kosina <jkosina@suse.cz>
-Cc: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: Denis Karpov <ext-denis.2.karpov@nokia.com>
-Cc: Madhusudhan Chikkature <madhu.cr@ti.com>
-Cc: Greg KH <gregkh@suse.de>
+Signed-off-by: Stephen M. Cameron <scameron@beardog.cce.hp.com>
+Cc: Mike Miller <mikem@beardog.cce.hp.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-add-missing-probe-handler-hook drivers/mmc/host/omap_hsmmc.c
---- a/drivers/mmc/host/omap_hsmmc.c~omap_hsmmc-add-missing-probe-handler-hook
-+++ a/drivers/mmc/host/omap_hsmmc.c
-@@ -2013,7 +2013,7 @@ static struct platform_driver omap_hsmmc
- static int __init omap_hsmmc_init(void)
- {
- 	/* Register the MMC driver */
--	return platform_driver_register(&omap_hsmmc_driver);
-+	return platform_driver_probe(&omap_hsmmc_driver, omap_hsmmc_probe);
- }
+diff -puN drivers/scsi/hpsa.c~scsi-add-hpsa-driver-for-hp-smart-array-controllers-fix-hpsa_allow_any-test-for-vendor-id drivers/scsi/hpsa.c
+--- a/drivers/scsi/hpsa.c~scsi-add-hpsa-driver-for-hp-smart-array-controllers-fix-hpsa_allow_any-test-for-vendor-id
++++ a/drivers/scsi/hpsa.c
+@@ -3080,7 +3080,7 @@ static int hpsa_pci_init(struct ctlr_inf
  
- static void __exit omap_hsmmc_cleanup(void)
+ 	if (prod_index == ARRAY_SIZE(products)) {
+ 		prod_index--;
+-		if (subsystem_vendor_id == !PCI_VENDOR_ID_HP ||
++		if (subsystem_vendor_id != PCI_VENDOR_ID_HP ||
+ 				!hpsa_allow_any) {
+ 			dev_warn(&pdev->dev, "unrecognized board ID:"
+ 				" 0x%08lx, ignoring.\n",
 _
 
-Patches currently in -mm which might be from ext-roger.quadros@nokia.com are
+Patches currently in -mm which might be from scameron@beardog.cce.hp.com are
 
-omap_hsmmc-add-missing-probe-handler-hook.patch
+scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
+scsi-add-hpsa-driver-for-hp-smart-array-controllers-fix-hpsa_allow_any-test-for-vendor-id.patch
+scsi-add-hpsa-driver-for-hp-smart-array-controllers-fix.patch
 
