@@ -1,23 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-coalesce-uncharge-during-unmap-truncate.patch added to -mm tree
-Date: Fri, 09 Oct 2009 16:51:19 -0700
-Message-ID: <200910092351.n99NpJCP013571@imap1.linux-foundation.org>
+Subject: + drivers-misc-add-driver-for-texas-instruments-dac7512.patch added to -mm tree
+Date: Fri, 09 Oct 2009 21:53:04 -0700
+Message-ID: <200910100453.n9A4r4Qm019691@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33901 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58376 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934556AbZJIXwf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Oct 2009 19:52:35 -0400
+	by vger.kernel.org with ESMTP id S1750984AbZJJEy3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Sat, 10 Oct 2009 00:54:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, nishimura@mxp.nes.nec.co.jp
+Cc: daniel@caiaq.de, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     memcg: coalesce uncharge during unmap/truncate
+     drivers/misc: add driver for Texas Instruments DAC7512
 has been added to the -mm tree.  Its filename is
-     memcg-coalesce-uncharge-during-unmap-truncate.patch
+     drivers-misc-add-driver-for-texas-instruments-dac7512.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,337 +34,160 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: coalesce uncharge during unmap/truncate
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: drivers/misc: add driver for Texas Instruments DAC7512
+From: Daniel Mack <daniel@caiaq.de>
 
-In massive parallel enviroment, res_counter can be a performance
-bottleneck.  One strong techinque to reduce lock contention is reducing
-calls by coalescing some amount of calls into one.
-
-Considering charge/uncharge chatacteristic,
-	- charge is done one by one via demand-paging.
-	- uncharge is done by
-		- in chunk at munmap, truncate, exit, execve...
-		- one by one via vmscan/paging.
-
-It seems we have a chance to coalesce uncharges for improving scalability
-at unmap/truncation.
-
-This patch is a for coalescing uncharge.  For avoiding scattering memcg's
-structure to functions under /mm, this patch adds memcg batch uncharge
-information to the task.  A reason for per-task batching is for making use
-of caller's context information.  We do batched uncharge (deleyed
-uncharge) when truncation/unmap occurs but do direct uncharge when
-uncharge is called by memory reclaim (vmscan.c).
-
-The degree of coalescing depends on callers
-  - at invalidate/trucate... pagevec size
-  - at unmap ....ZAP_BLOCK_SIZE
-(memory itself will be freed in this degree.)
-Then, we'll not coalescing too much.
-
-On x86-64 8cpu server, I tested overheads of memcg at page fault by
-running a program which does map/fault/unmap in a loop. Running
-a task per a cpu by taskset and see sum of the number of page faults
-in 60secs.
-
-[without memcg config]
-  40156968  page-faults              #      0.085 M/sec   ( +-   0.046% )
-  27.67 cache-miss/faults
-[root cgroup]
-  36659599  page-faults              #      0.077 M/sec   ( +-   0.247% )
-  31.58 miss/faults
-[in a child cgroup]
-  18444157  page-faults              #      0.039 M/sec   ( +-   0.133% )
-  69.96 miss/faults
-[child with this patch]
-  27133719  page-faults              #      0.057 M/sec   ( +-   0.155% )
-  47.16 miss/faults
-
-We can see some amounts of improvement.
-(root cgroup doesn't affected by this patch)
-Another patch for "charge" will follow this and above will be improved more.
-
-Changelog(since 2009/10/02):
- - renamed filed of memcg_batch (as pages to bytes, memsw to memsw_bytes)
- - some clean up and commentary/description updates.
- - added initialize code to copy_process(). (possible bug fix)
-
-Changelog(old):
- - fixed !CONFIG_MEM_CGROUP case.
- - rebased onto the latest mmotm + softlimit fix patches.
- - unified patch for callers
- - added commetns.
- - make ->do_batch as bool.
- - removed css_get() at el. We don't need it.
-
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Signed-off-by: Daniel Mack <daniel@caiaq.de>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ drivers/misc/Kconfig      |   10 +++
+ drivers/misc/Makefile     |    1 
+ drivers/misc/ti_dac7512.c |  102 ++++++++++++++++++++++++++++++++++++
+ 3 files changed, 113 insertions(+)
 
-diff -puN include/linux/memcontrol.h~memcg-coalesce-uncharge-during-unmap-truncate include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-coalesce-uncharge-during-unmap-truncate
-+++ a/include/linux/memcontrol.h
-@@ -54,6 +54,11 @@ extern void mem_cgroup_rotate_lru_list(s
- extern void mem_cgroup_del_lru(struct page *page);
- extern void mem_cgroup_move_lists(struct page *page,
- 				  enum lru_list from, enum lru_list to);
+diff -puN drivers/misc/Kconfig~drivers-misc-add-driver-for-texas-instruments-dac7512 drivers/misc/Kconfig
+--- a/drivers/misc/Kconfig~drivers-misc-add-driver-for-texas-instruments-dac7512
++++ a/drivers/misc/Kconfig
+@@ -301,6 +301,16 @@ config DS1682
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called ds1682.
+ 
++config TI_DAC7512
++	tristate "Texas Instruments DAC7512"
++	depends on SPI && SYSFS
++	help
++	  If you say yes here you get support for the Texas Instruments
++	  DAC7512 16-bit digital-to-analog converter.
 +
-+/* For coalescing uncharge for reducing memcg' overhead*/
-+extern void mem_cgroup_uncharge_start(void);
-+extern void mem_cgroup_uncharge_end(void);
++	  This driver can also be built as a module. If so, the module
++	  will be calles ti_dac7512.
 +
- extern void mem_cgroup_uncharge_page(struct page *page);
- extern void mem_cgroup_uncharge_cache_page(struct page *page);
- extern int mem_cgroup_shmem_charge_fallback(struct page *page,
-@@ -151,6 +156,14 @@ static inline void mem_cgroup_cancel_cha
- {
- }
- 
-+static inline void mem_cgroup_uncharge_start(void)
-+{
-+}
-+
-+static inline void mem_cgroup_uncharge_end(void)
-+{
-+}
-+
- static inline void mem_cgroup_uncharge_page(struct page *page)
- {
- }
-diff -puN include/linux/sched.h~memcg-coalesce-uncharge-during-unmap-truncate include/linux/sched.h
---- a/include/linux/sched.h~memcg-coalesce-uncharge-during-unmap-truncate
-+++ a/include/linux/sched.h
-@@ -1543,6 +1543,14 @@ struct task_struct {
- 	unsigned long trace_recursion;
- #endif /* CONFIG_TRACING */
- 	unsigned long stack_start;
-+#ifdef CONFIG_CGROUP_MEM_RES_CTLR /* memcg uses this to do batch job */
-+	struct memcg_batch_info {
-+		int do_batch;	/* incremented when batch uncharge started */
-+		struct mem_cgroup *memcg; /* target memcg of uncharge */
-+		unsigned long bytes; 		/* uncharged usage */
-+		unsigned long memsw_bytes; /* uncharged mem+swap usage */
-+	} memcg_batch;
-+#endif
- };
- 
- /* Future-safe accessor for struct task_struct's cpus_allowed. */
-diff -puN kernel/fork.c~memcg-coalesce-uncharge-during-unmap-truncate kernel/fork.c
---- a/kernel/fork.c~memcg-coalesce-uncharge-during-unmap-truncate
-+++ a/kernel/fork.c
-@@ -1120,6 +1120,10 @@ static struct task_struct *copy_process(
- #ifdef CONFIG_DEBUG_MUTEXES
- 	p->blocked_on = NULL; /* not blocked yet */
- #endif
-+#ifdef CONFIG_CGROUP_MEM_RES_CTLR
-+	p->memcg_batch.do_batch = 0;
-+	p->memcg_batch.memcg = NULL;
-+#endif
- 
- 	p->bts = NULL;
- 
-diff -puN mm/memcontrol.c~memcg-coalesce-uncharge-during-unmap-truncate mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-coalesce-uncharge-during-unmap-truncate
-+++ a/mm/memcontrol.c
-@@ -1826,6 +1826,50 @@ void mem_cgroup_cancel_charge_swapin(str
- 	css_put(&mem->css);
- }
- 
-+static void
-+__do_uncharge(struct mem_cgroup *mem, const enum charge_type ctype)
-+{
-+	struct memcg_batch_info *batch = NULL;
-+	bool uncharge_memsw = true;
-+	/* If swapout, usage of swap doesn't decrease */
-+	if (!do_swap_account || ctype == MEM_CGROUP_CHARGE_TYPE_SWAPOUT)
-+		uncharge_memsw = false;
-+	/*
-+	 * do_batch > 0 when unmapping pages or inode invalidate/truncate.
-+	 * In those cases, all pages freed continously can be expected to be in
-+	 * the same cgroup and we have chance to coalesce uncharges.
-+	 * But we do uncharge one by one if this is killed by OOM(TIF_MEMDIE)
-+	 * because we want to do uncharge as soon as possible.
-+	 */
-+	if (!current->memcg_batch.do_batch || test_thread_flag(TIF_MEMDIE))
-+		goto direct_uncharge;
-+
-+	batch = &current->memcg_batch;
-+	/*
-+	 * In usual, we do css_get() when we remember memcg pointer.
-+	 * But in this case, we keep res->usage until end of a series of
-+	 * uncharges. Then, it's ok to ignore memcg's refcnt.
-+	 */
-+	if (!batch->memcg)
-+		batch->memcg = mem;
-+	/*
-+	 * In typical case, batch->memcg == mem. This means we can
-+	 * merge a series of uncharges to an uncharge of res_counter.
-+	 * If not, we uncharge res_counter ony by one.
-+	 */
-+	if (batch->memcg != mem)
-+		goto direct_uncharge;
-+	/* remember freed charge and uncharge it later */
-+	batch->bytes += PAGE_SIZE;
-+	if (uncharge_memsw)
-+		batch->memsw_bytes += PAGE_SIZE;
-+	return;
-+direct_uncharge:
-+	res_counter_uncharge(&mem->res, PAGE_SIZE);
-+	if (uncharge_memsw)
-+		res_counter_uncharge(&mem->memsw, PAGE_SIZE);
-+	return;
-+}
- 
- /*
-  * uncharge if !page_mapped(page)
-@@ -1874,12 +1918,8 @@ __mem_cgroup_uncharge_common(struct page
- 		break;
- 	}
- 
--	if (!mem_cgroup_is_root(mem)) {
--		res_counter_uncharge(&mem->res, PAGE_SIZE);
--		if (do_swap_account &&
--				(ctype != MEM_CGROUP_CHARGE_TYPE_SWAPOUT))
--			res_counter_uncharge(&mem->memsw, PAGE_SIZE);
--	}
-+	if (!mem_cgroup_is_root(mem))
-+		__do_uncharge(mem, ctype);
- 	if (ctype == MEM_CGROUP_CHARGE_TYPE_SWAPOUT)
- 		mem_cgroup_swap_statistics(mem, true);
- 	mem_cgroup_charge_statistics(mem, pc, false);
-@@ -1925,6 +1965,50 @@ void mem_cgroup_uncharge_cache_page(stru
- 	__mem_cgroup_uncharge_common(page, MEM_CGROUP_CHARGE_TYPE_CACHE);
- }
- 
+ source "drivers/misc/c2port/Kconfig"
+ source "drivers/misc/eeprom/Kconfig"
+ source "drivers/misc/cb710/Kconfig"
+diff -puN drivers/misc/Makefile~drivers-misc-add-driver-for-texas-instruments-dac7512 drivers/misc/Makefile
+--- a/drivers/misc/Makefile~drivers-misc-add-driver-for-texas-instruments-dac7512
++++ a/drivers/misc/Makefile
+@@ -22,6 +22,7 @@ obj-$(CONFIG_HP_ILO)		+= hpilo.o
+ obj-$(CONFIG_ISL29003)		+= isl29003.o
+ obj-$(CONFIG_EP93XX_PWM)	+= ep93xx_pwm.o
+ obj-$(CONFIG_DS1682)		+= ds1682.o
++obj-$(CONFIG_TI_DAC7512)	+= ti_dac7512.o
+ obj-$(CONFIG_C2PORT)		+= c2port/
+ obj-$(CONFIG_HWLAT_DETECTOR)	+= hwlat_detector.o
+ obj-y				+= eeprom/
+diff -puN /dev/null drivers/misc/ti_dac7512.c
+--- /dev/null
++++ a/drivers/misc/ti_dac7512.c
+@@ -0,0 +1,102 @@
 +/*
-+ * Batch_start/batch_end is called in unmap_page_range/invlidate/trucate.
-+ * In that cases, pages are freed continuously and we can expect pages
-+ * are in the same memcg. All these calls itself limits the number of
-+ * pages freed at once, then uncharge_start/end() is called properly.
-+ * This may be called prural(2) times in a context,
++ *  dac7512.c - Linux kernel module for
++ * 	Texas Instruments DAC7512
++ *
++ *  Copyright (c) 2009 Daniel Mack <daniel@caiaq.de>
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or
++ *  (at your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 + */
 +
-+void mem_cgroup_uncharge_start(void)
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/spi/spi.h>
++
++#define DAC7512_DRV_NAME	"dac7512"
++#define DRIVER_VERSION		"1.0"
++
++static ssize_t dac7512_store_val(struct device *dev,
++				 struct device_attribute *attr,
++				 const char *buf, size_t count)
 +{
-+	current->memcg_batch.do_batch++;
-+	/* We can do nest. */
-+	if (current->memcg_batch.do_batch == 1) {
-+		current->memcg_batch.memcg = NULL;
-+		current->memcg_batch.bytes = 0;
-+		current->memcg_batch.memsw_bytes = 0;
-+	}
++	struct spi_device *spi = to_spi_device(dev);
++	unsigned char tmp[2];
++	unsigned long val;
++
++	if (strict_strtoul(buf, 10, &val) < 0)
++		return -EINVAL;
++
++	tmp[0] = val >> 8;
++	tmp[1] = val & 0xff;
++	spi_write(spi, tmp, sizeof(tmp));
++	return count;
 +}
 +
-+void mem_cgroup_uncharge_end(void)
++static DEVICE_ATTR(value, S_IWUSR | S_IRUGO,
++		   NULL, dac7512_store_val);
++
++static struct attribute *dac7512_attributes[] = {
++	&dev_attr_value.attr,
++	NULL
++};
++
++static const struct attribute_group dac7512_attr_group = {
++	.attrs = dac7512_attributes,
++};
++
++static int __devinit dac7512_probe(struct spi_device *spi)
 +{
-+	struct memcg_batch_info *batch = &current->memcg_batch;
++	int ret;
 +
-+	if (!batch->do_batch)
-+		return;
++	spi->bits_per_word = 8;
++	spi->mode = SPI_MODE_0;
++	ret = spi_setup(spi);
++	if (ret < 0)
++		return ret;
 +
-+	batch->do_batch--;
-+	if (batch->do_batch) /* If stacked, do nothing. */
-+		return;
-+
-+	if (!batch->memcg)
-+		return;
-+	/*
-+	 * This "batch->memcg" is valid without any css_get/put etc...
-+	 * bacause we hide charges behind us.
-+	 */
-+	if (batch->bytes)
-+		res_counter_uncharge(&batch->memcg->res, batch->bytes);
-+	if (batch->memsw_bytes)
-+		res_counter_uncharge(&batch->memcg->memsw, batch->memsw_bytes);
-+	/* forget this pointer (for sanity check) */
-+	batch->memcg = NULL;
++	return sysfs_create_group(&spi->dev.kobj, &dac7512_attr_group);
 +}
 +
- #ifdef CONFIG_SWAP
- /*
-  * called after __delete_from_swap_cache() and drop "page" account.
-diff -puN mm/memory.c~memcg-coalesce-uncharge-during-unmap-truncate mm/memory.c
---- a/mm/memory.c~memcg-coalesce-uncharge-during-unmap-truncate
-+++ a/mm/memory.c
-@@ -940,6 +940,7 @@ static unsigned long unmap_page_range(st
- 		details = NULL;
- 
- 	BUG_ON(addr >= end);
-+	mem_cgroup_uncharge_start();
- 	tlb_start_vma(tlb, vma);
- 	pgd = pgd_offset(vma->vm_mm, addr);
- 	do {
-@@ -952,6 +953,7 @@ static unsigned long unmap_page_range(st
- 						zap_work, details);
- 	} while (pgd++, addr = next, (addr != end && *zap_work > 0));
- 	tlb_end_vma(tlb, vma);
-+	mem_cgroup_uncharge_end();
- 
- 	return addr;
- }
-diff -puN mm/truncate.c~memcg-coalesce-uncharge-during-unmap-truncate mm/truncate.c
---- a/mm/truncate.c~memcg-coalesce-uncharge-during-unmap-truncate
-+++ a/mm/truncate.c
-@@ -272,6 +272,7 @@ void truncate_inode_pages_range(struct a
- 			pagevec_release(&pvec);
- 			break;
- 		}
-+		mem_cgroup_uncharge_start();
- 		for (i = 0; i < pagevec_count(&pvec); i++) {
- 			struct page *page = pvec.pages[i];
- 
-@@ -286,6 +287,7 @@ void truncate_inode_pages_range(struct a
- 			unlock_page(page);
- 		}
- 		pagevec_release(&pvec);
-+		mem_cgroup_uncharge_end();
- 	}
- }
- EXPORT_SYMBOL(truncate_inode_pages_range);
-@@ -327,6 +329,7 @@ unsigned long invalidate_mapping_pages(s
- 	pagevec_init(&pvec, 0);
- 	while (next <= end &&
- 			pagevec_lookup(&pvec, mapping, next, PAGEVEC_SIZE)) {
-+		mem_cgroup_uncharge_start();
- 		for (i = 0; i < pagevec_count(&pvec); i++) {
- 			struct page *page = pvec.pages[i];
- 			pgoff_t index;
-@@ -354,6 +357,7 @@ unsigned long invalidate_mapping_pages(s
- 				break;
- 		}
- 		pagevec_release(&pvec);
-+		mem_cgroup_uncharge_end();
- 		cond_resched();
- 	}
- 	return ret;
-@@ -428,6 +432,7 @@ int invalidate_inode_pages2_range(struct
- 	while (next <= end && !wrapped &&
- 		pagevec_lookup(&pvec, mapping, next,
- 			min(end - next, (pgoff_t)PAGEVEC_SIZE - 1) + 1)) {
-+		mem_cgroup_uncharge_start();
- 		for (i = 0; i < pagevec_count(&pvec); i++) {
- 			struct page *page = pvec.pages[i];
- 			pgoff_t page_index;
-@@ -477,6 +482,7 @@ int invalidate_inode_pages2_range(struct
- 			unlock_page(page);
- 		}
- 		pagevec_release(&pvec);
-+		mem_cgroup_uncharge_end();
- 		cond_resched();
- 	}
- 	return ret;
++static int __devexit dac7512_remove(struct spi_device *spi)
++{
++	sysfs_remove_group(&spi->dev.kobj, &dac7512_attr_group);
++	return 0;
++}
++
++static struct spi_driver dac7512_driver = {
++	.driver = {
++		.name	= DAC7512_DRV_NAME,
++		.owner	= THIS_MODULE,
++	},
++	.probe	= dac7512_probe,
++	.remove	= __devexit_p(dac7512_remove),
++};
++
++static int __init dac7512_init(void)
++{
++	return spi_register_driver(&dac7512_driver);
++}
++
++static void __exit dac7512_exit(void)
++{
++	spi_unregister_driver(&dac7512_driver);
++}
++
++MODULE_AUTHOR("Daniel Mack <daniel@caiaq.de>");
++MODULE_DESCRIPTION("DAC7512 16-bit DAC");
++MODULE_LICENSE("GPL v2");
++MODULE_VERSION(DRIVER_VERSION);
++
++module_init(dac7512_init);
++module_exit(dac7512_exit);
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from daniel@caiaq.de are
 
-linux-next.patch
-mm-add-notifier-in-pageblock-isolation-for-balloon-drivers.patch
-powerpc-make-the-cmm-memory-hotplug-aware.patch
-memcg-coalesce-uncharge-during-unmap-truncate.patch
-memcg-coalesce-charging-via-percpu-storage.patch
-memcg-coalesce-charging-via-percpu-storage-fix.patch
+origin.patch
+drivers-misc-add-driver-for-texas-instruments-dac7512.patch
 
