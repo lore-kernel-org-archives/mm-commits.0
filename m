@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + blkdev-flush-disk-cache-on-fsync.patch added to -mm tree
-Date: Sun, 11 Oct 2009 00:39:35 -0700
-Message-ID: <200910110739.n9B7dZuR026019@imap1.linux-foundation.org>
+Subject: + hfsplus-refuse-to-mount-volumes-larger-than-2tb.patch added to -mm tree
+Date: Sun, 11 Oct 2009 00:52:18 -0700
+Message-ID: <200910110752.n9B7qIPF019767@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35010 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46756 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751382AbZJKHlH (ORCPT
+	by vger.kernel.org with ESMTP id S1751460AbZJKHyh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Oct 2009 03:41:07 -0400
+	Sun, 11 Oct 2009 03:54:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hch@lst.de, jack@suse.cz, jens.axboe@oracle.com
+Cc: ben@decadent.org.uk, snakebyte@gmx.de, stable@kernel.org, zippel@linux-m68k.org
 
 
 The patch titled
-     blkdev: flush disk cache on ->fsync
+     hfsplus: refuse to mount volumes larger than 2TB
 has been added to the -mm tree.  Its filename is
-     blkdev-flush-disk-cache-on-fsync.patch
+     hfsplus-refuse-to-mount-volumes-larger-than-2tb.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,64 +34,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: blkdev: flush disk cache on ->fsync
-From: Christoph Hellwig <hch@lst.de>
+Subject: hfsplus: refuse to mount volumes larger than 2TB
+From: Ben Hutchings <ben@decadent.org.uk>
 
-Currently there is no barrier support in the block device code.  That
-means we cannot guarantee any sort of data integrity when using the block
-device node with dis kwrite caches enabled.  Using the raw block device
-node is a typical use case for virtualization (and I assume databases,
-too).  This patch changes block_fsync to issue a cache flush and thus make
-fsync on block device nodes actually useful.
+As found in <http://bugs.debian.org/550010>, hfsplus is using type u32
+rather than sector_t for some sector number calculations.
 
-Note that in mainline we would also need to add such code to the
-->aio_write method for O_SYNC handling, but assuming that Jan's patch
-series for the O_SYNC rewrite goes in it will also call into ->fsync for
-2.6.32.
+In particular, hfsplus_get_block() does:
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+        u32 ablock, dblock, mask;
+...
+        map_bh(bh_result, sb, (dblock << HFSPLUS_SB(sb).fs_shift) + HFSPLUS_SB(sb).blockoffset + (iblock & mask));
+
+I am not confident that I can find and fix all cases where a sector number
+may be truncated.  For now, avoid data loss by refusing to mount HFS+
+volumes with more than 2^32 sectors (2TB).
+
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+Cc: Eric Sesterhenn <snakebyte@gmx.de>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/block_dev.c |   12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ fs/hfsplus/wrapper.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN fs/block_dev.c~blkdev-flush-disk-cache-on-fsync fs/block_dev.c
---- a/fs/block_dev.c~blkdev-flush-disk-cache-on-fsync
-+++ a/fs/block_dev.c
-@@ -405,7 +405,17 @@ static loff_t block_llseek(struct file *
-  
- static int block_fsync(struct file *filp, struct dentry *dentry, int datasync)
- {
--	return sync_blockdev(I_BDEV(filp->f_mapping->host));
-+	struct block_device *bdev = I_BDEV(filp->f_mapping->host);
-+	int error;
-+
-+	error = sync_blockdev(bdev);
-+	if (error)
-+		return error;
-+
-+	error = blkdev_issue_flush(bdev, NULL);
-+	if (error == -EOPNOTSUPP)
-+		error = 0;
-+	return error;
- }
+diff -puN fs/hfsplus/wrapper.c~hfsplus-refuse-to-mount-volumes-larger-than-2tb fs/hfsplus/wrapper.c
+--- a/fs/hfsplus/wrapper.c~hfsplus-refuse-to-mount-volumes-larger-than-2tb
++++ a/fs/hfsplus/wrapper.c
+@@ -99,6 +99,10 @@ int hfsplus_read_wrapper(struct super_bl
  
- /*
+ 	if (hfsplus_get_last_session(sb, &part_start, &part_size))
+ 		return -EINVAL;
++	if (part_start + part_size > 0x100000000) {
++		pr_err("hfs: volumes larger than 2TB are not supported yet\n");
++		return -EINVAL;
++	}
+ 	while (1) {
+ 		bh = sb_bread512(sb, part_start + HFSPLUS_VOLHEAD_SECTOR, vhdr);
+ 		if (!bh)
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from ben@decadent.org.uk are
 
 origin.patch
-linux-next.patch
-avr32-convert-to-asm-generic-hardirqh.patch
-vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
-fs-remove-unneeded-dcache_unhashed-tricks.patch
-xtensa-convert-to-asm-generic-hardirqh.patch
-vfs-implement-posix-o_sync-and-o_dsync-semantics.patch
-qnx4fs-remove-remains-of-the-defunct-write-support.patch
-blkdev-flush-disk-cache-on-fsync.patch
-elf-kill-use_elf_core_dump.patch
+hfsplus-refuse-to-mount-volumes-larger-than-2tb.patch
+hfsplus-refuse-to-mount-volumes-larger-than-2tb-fix.patch
 
