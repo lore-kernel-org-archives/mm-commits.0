@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hfsplus-refuse-to-mount-volumes-larger-than-2tb-fix.patch added to -mm tree
-Date: Sun, 11 Oct 2009 00:52:20 -0700
-Message-ID: <200910110752.n9B7qKF8019794@imap1.linux-foundation.org>
+Subject: + revert-mm-oom-analysis-add-buffer-cache-information-to-show_free_areas.patch added to -mm tree
+Date: Sun, 11 Oct 2009 01:09:15 -0700
+Message-ID: <200910110809.n9B89FAk022380@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42326 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49738 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751471AbZJKHyh (ORCPT
+	by vger.kernel.org with ESMTP id S1752135AbZJKIKT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Oct 2009 03:54:37 -0400
+	Sun, 11 Oct 2009 04:10:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ben@decadent.org.uk, snakebyte@gmx.de, stable@kernel.org, zippel@linux-m68k.org
+Cc: akpm@linux-foundation.org, adobriyan@gmail.com, fengguang.wu@intel.com, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com, rientjes@google.com, torvalds@linux-foundation.org
 
 
 The patch titled
-     hfsplus-refuse-to-mount-volumes-larger-than-2tb-fix
+     revert "mm: oom analysis: add buffer cache information to show_free_areas()"
 has been added to the -mm tree.  Its filename is
-     hfsplus-refuse-to-mount-volumes-larger-than-2tb-fix.patch
+     revert-mm-oom-analysis-add-buffer-cache-information-to-show_free_areas.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hfsplus-refuse-to-mount-volumes-larger-than-2tb-fix
+Subject: revert "mm: oom analysis: add buffer cache information to show_free_areas()"
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fix 32 and 64-bit issues
+Revert
 
-Cc: <stable@kernel.org>
-Cc: Ben Hutchings <ben@decadent.org.uk>
-Cc: Eric Sesterhenn <snakebyte@gmx.de>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+    commit 71de1ccbe1fb40203edd3beb473f8580d917d2ca
+    Author:     KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+    AuthorDate: Mon Sep 21 17:01:31 2009 -0700
+    Commit:     Linus Torvalds <torvalds@linux-foundation.org>
+    CommitDate: Tue Sep 22 07:17:27 2009 -0700
+
+        mm: oom analysis: add buffer cache information to show_free_areas()
+    
+
+show_free_areas() is called during page allocation failures, and page
+allocation failures can occur in any calling context.
+
+But nr_blockdev_pages() takes VFS locks which should not be taken from
+hard IRQ context (at least).  The result is lockdep warnings (and
+deadlockability) during page allocation failures.
+
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/wrapper.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/hfsplus/wrapper.c~hfsplus-refuse-to-mount-volumes-larger-than-2tb-fix fs/hfsplus/wrapper.c
---- a/fs/hfsplus/wrapper.c~hfsplus-refuse-to-mount-volumes-larger-than-2tb-fix
-+++ a/fs/hfsplus/wrapper.c
-@@ -99,7 +99,7 @@ int hfsplus_read_wrapper(struct super_bl
- 
- 	if (hfsplus_get_last_session(sb, &part_start, &part_size))
- 		return -EINVAL;
--	if (part_start + part_size > 0x100000000) {
-+	if ((u64)part_start + part_size > 0x100000000ULL) {
- 		pr_err("hfs: volumes larger than 2TB are not supported yet\n");
- 		return -EINVAL;
- 	}
+diff -puN mm/page_alloc.c~revert-mm-oom-analysis-add-buffer-cache-information-to-show_free_areas mm/page_alloc.c
+--- a/mm/page_alloc.c~revert-mm-oom-analysis-add-buffer-cache-information-to-show_free_areas
++++ a/mm/page_alloc.c
+@@ -2183,7 +2183,7 @@ void show_free_areas(void)
+ 	printk("active_anon:%lu inactive_anon:%lu isolated_anon:%lu\n"
+ 		" active_file:%lu inactive_file:%lu isolated_file:%lu\n"
+ 		" unevictable:%lu"
+-		" dirty:%lu writeback:%lu unstable:%lu buffer:%lu\n"
++		" dirty:%lu writeback:%lu unstable:%lu\n"
+ 		" free:%lu slab_reclaimable:%lu slab_unreclaimable:%lu\n"
+ 		" mapped:%lu shmem:%lu pagetables:%lu bounce:%lu\n",
+ 		global_page_state(NR_ACTIVE_ANON),
+@@ -2196,7 +2196,6 @@ void show_free_areas(void)
+ 		global_page_state(NR_FILE_DIRTY),
+ 		global_page_state(NR_WRITEBACK),
+ 		global_page_state(NR_UNSTABLE_NFS),
+-		nr_blockdev_pages(),
+ 		global_page_state(NR_FREE_PAGES),
+ 		global_page_state(NR_SLAB_RECLAIMABLE),
+ 		global_page_state(NR_SLAB_UNRECLAIMABLE),
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -83,6 +108,7 @@ raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
 fs-improve-remountro-vs-buffercache-coherency.patch
 percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
 hfsplus-refuse-to-mount-volumes-larger-than-2tb-fix.patch
+revert-mm-oom-analysis-add-buffer-cache-information-to-show_free_areas.patch
 drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
 vfs-implement-posix-o_sync-and-o_dsync-semantics-checkpatch-fixes.patch
 munmap-dont-check-sysctl_max_mapcount-fix.patch
