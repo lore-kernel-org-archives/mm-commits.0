@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + input-bcm5974-report-abs_mt-events.patch added to -mm tree
-Date: Mon, 12 Oct 2009 15:43:49 -0700
-Message-ID: <200910122243.n9CMhnPO007495@imap1.linux-foundation.org>
+Subject: + input-bcm5974-retract-efi-broken-suspend_resume.patch added to -mm tree
+Date: Mon, 12 Oct 2009 15:45:32 -0700
+Message-ID: <200910122245.n9CMjWFX011181@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46245 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45497 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754222AbZJLWpJ (ORCPT
+	by vger.kernel.org with ESMTP id S1758555AbZJLWqO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Oct 2009 18:45:09 -0400
+	Mon, 12 Oct 2009 18:46:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: rydberg@euromail.se, dtor@mail.ru
 
 
 The patch titled
-     input: bcm5974: report ABS_MT events
+     input: bcm5974: retract efi-broken suspend_resume
 has been added to the -mm tree.  Its filename is
-     input-bcm5974-report-abs_mt-events.patch
+     input-bcm5974-retract-efi-broken-suspend_resume.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,21 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: input: bcm5974: report ABS_MT events
+Subject: input: bcm5974: retract efi-broken suspend_resume
 From: "Henrik Rydberg" <rydberg@euromail.se>
 
-Make bcm5974 report raw multi-touch (MT) data in the form of ABS_MT
-events.  The module parameter (nomt) may be used to turn off the effect of
-this patch.
+With the recent system-wide improvements on suspend/resume and EFI booting
+the suspend_resume method of the bcm5974 has broken.  When waking up from
+the S3 state on the MacBookAir, the trackpad is found in a yet unknown
+state, unable to switch to the proper multitouch mode.  The result is a
+frozen touchpad, and a flood of errors of the kind
+
+bcm5974: bad trackpad package, length: 8.
+
+This patch retracts the reset_resume method altogether, falling back on
+the generic unbind/rebind functionality of the usb layer until further
+investigations can be made as how to reset the device when booting from
+efi.
 
 Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
 Cc: Dmitry Torokhov <dtor@mail.ru>
@@ -47,97 +56,17 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/input/mouse/bcm5974.c~input-bcm5974-report-abs_mt-events drivers/input/mouse/bcm5974.c
---- a/drivers/input/mouse/bcm5974.c~input-bcm5974-report-abs_mt-events
+diff -puN drivers/input/mouse/bcm5974.c~input-bcm5974-retract-efi-broken-suspend_resume drivers/input/mouse/bcm5974.c
+--- a/drivers/input/mouse/bcm5974.c~input-bcm5974-retract-efi-broken-suspend_resume
 +++ a/drivers/input/mouse/bcm5974.c
-@@ -96,6 +96,10 @@ static int debug = 1;
- module_param(debug, int, 0644);
- MODULE_PARM_DESC(debug, "Activate debugging output");
- 
-+static int nomt;
-+module_param(nomt, int, 0644);
-+MODULE_PARM_DESC(nomt, "Disable multitouch (MT) events");
-+
- /* button data structure */
- struct bt_data {
- 	u8 unknown1;		/* constant */
-@@ -139,6 +143,7 @@ struct tp_finger {
- /* trackpad finger data size, empirically at least ten fingers */
- #define SIZEOF_FINGER		sizeof(struct tp_finger)
- #define SIZEOF_ALL_FINGERS	(16 * SIZEOF_FINGER)
-+#define MAX_FINGER_ORIENTATION	16384
- 
- /* device-specific parameters */
- struct bcm5974_param {
-@@ -284,6 +289,28 @@ static void setup_events_to_report(struc
- 	input_set_abs_params(input_dev, ABS_Y,
- 				0, cfg->y.dim, cfg->y.fuzz, 0);
- 
-+	if (!nomt) {
-+		/* finger touch area */
-+		input_set_abs_params(input_dev, ABS_MT_TOUCH_MAJOR,
-+				     cfg->w.devmin, cfg->w.devmax, 0, 0);
-+		input_set_abs_params(input_dev, ABS_MT_TOUCH_MINOR,
-+				     cfg->w.devmin, cfg->w.devmax, 0, 0);
-+		/* finger approach area */
-+		input_set_abs_params(input_dev, ABS_MT_WIDTH_MAJOR,
-+				     cfg->w.devmin, cfg->w.devmax, 0, 0);
-+		input_set_abs_params(input_dev, ABS_MT_WIDTH_MINOR,
-+				     cfg->w.devmin, cfg->w.devmax, 0, 0);
-+		/* finger orientation */
-+		input_set_abs_params(input_dev, ABS_MT_ORIENTATION,
-+				     -MAX_FINGER_ORIENTATION,
-+				     MAX_FINGER_ORIENTATION, 0, 0);
-+		/* finger position */
-+		input_set_abs_params(input_dev, ABS_MT_POSITION_X,
-+				     cfg->x.devmin, cfg->x.devmax, 0, 0);
-+		input_set_abs_params(input_dev, ABS_MT_POSITION_Y,
-+				     cfg->y.devmin, cfg->y.devmax, 0, 0);
-+	}
-+
- 	__set_bit(EV_KEY, input_dev->evbit);
- 	__set_bit(BTN_TOUCH, input_dev->keybit);
- 	__set_bit(BTN_TOOL_FINGER, input_dev->keybit);
-@@ -316,7 +343,7 @@ static int report_tp_state(struct bcm597
- 	const struct bcm5974_config *c = &dev->cfg;
- 	const struct tp_finger *f;
- 	struct input_dev *input = dev->input;
--	int raw_p, raw_w, raw_x, raw_y, raw_n;
-+	int raw_p, raw_w, raw_x, raw_y, raw_n, i;
- 	int ptest, origin, ibt = 0, nmin = 0, nmax = 0;
- 	int abs_p = 0, abs_w = 0, abs_x = 0, abs_y = 0;
- 
-@@ -329,6 +356,30 @@ static int report_tp_state(struct bcm597
- 
- 	/* always track the first finger; when detached, start over */
- 	if (raw_n) {
-+
-+		/* report raw trackpad data */
-+		if (!nomt) {
-+			for (i = 0; i < raw_n; i++) {
-+				int y = c->y.devmin + c->y.devmax;
-+				input_report_abs(input, ABS_MT_TOUCH_MAJOR,
-+						 raw2int(f[i].force_major));
-+				input_report_abs(input, ABS_MT_TOUCH_MINOR,
-+						 raw2int(f[i].force_minor));
-+				input_report_abs(input, ABS_MT_WIDTH_MAJOR,
-+						 raw2int(f[i].size_major));
-+				input_report_abs(input, ABS_MT_WIDTH_MINOR,
-+						 raw2int(f[i].size_minor));
-+				input_report_abs(input, ABS_MT_ORIENTATION,
-+						 MAX_FINGER_ORIENTATION -
-+						 raw2int(f[i].orientation));
-+				input_report_abs(input, ABS_MT_POSITION_X,
-+						 raw2int(f[i].abs_x));
-+				input_report_abs(input, ABS_MT_POSITION_Y,
-+						 y - raw2int(f[i].abs_y));
-+				input_mt_sync(input);
-+			}
-+		}
-+
- 		raw_p = raw2int(f->force_major);
- 		raw_w = raw2int(f->size_major);
- 		raw_x = raw2int(f->abs_x);
+@@ -812,7 +812,6 @@ static struct usb_driver bcm5974_driver 
+ 	.disconnect		= bcm5974_disconnect,
+ 	.suspend		= bcm5974_suspend,
+ 	.resume			= bcm5974_resume,
+-	.reset_resume		= bcm5974_resume,
+ 	.id_table		= bcm5974_table,
+ 	.supports_autosuspend	= 1,
+ };
 _
 
 Patches currently in -mm which might be from rydberg@euromail.se are
