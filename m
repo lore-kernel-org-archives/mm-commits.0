@@ -1,33 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] munmap-dont-check-sysctl_max_mapcount-fix.patch removed from -mm tree
-Date: Mon, 12 Oct 2009 15:36:04 -0700
-Message-ID: <200910122236.n9CMa4q3023868@imap1.linux-foundation.org>
+Subject: + mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch added to -mm tree
+Date: Mon, 12 Oct 2009 15:38:24 -0700
+Message-ID: <200910122238.n9CMcPFT028711@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35056 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44981 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933512AbZJLWhb (ORCPT
+	by vger.kernel.org with ESMTP id S933206AbZJLWjf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Oct 2009 18:37:31 -0400
+	Mon, 12 Oct 2009 18:39:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hugh.dickins@tiscali.co.uk, kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, hugh.dickins@tiscali.co.uk, kosaki.motohiro@jp.fujitsu.com
 
 
 The patch titled
-     munmap-dont-check-sysctl_max_mapcount-fix
-has been removed from the -mm tree.  Its filename was
-     munmap-dont-check-sysctl_max_mapcount-fix.patch
+     mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes
+has been added to the -mm tree.  Its filename is
+     mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: munmap-dont-check-sysctl_max_mapcount-fix
+Subject: mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-comment the code.
+ERROR: "foo * bar" should be "foo *bar"
+#116: FILE: mm/mmap.c:1835:
++static int __split_vma(struct mm_struct * mm, struct vm_area_struct * vma,
+
+ERROR: "foo * bar" should be "foo *bar"
+#138: FILE: mm/mmap.c:1888:
++int split_vma(struct mm_struct * mm, struct vm_area_struct * vma,
+
+total: 2 errors, 0 warnings, 67 lines checked
+
+./patches/mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
 
 Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
@@ -35,31 +59,18 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN mm/mmap.c~munmap-dont-check-sysctl_max_mapcount-fix mm/mmap.c
---- a/mm/mmap.c~munmap-dont-check-sysctl_max_mapcount-fix
+diff -puN mm/mmap.c~mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes mm/mmap.c
+--- a/mm/mmap.c~mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes
 +++ a/mm/mmap.c
-@@ -1829,8 +1829,8 @@ detach_vmas_to_be_unmapped(struct mm_str
- }
- 
- /*
-- * Split a vma into two pieces at address 'addr', a new vma is allocated
-- * either for the first part or the tail.
-+ * __split_vma() bypasses sysctl_max_map_count checking.  We use this on the
-+ * munmap path where it doesn't make sense to fail.
+@@ -1885,7 +1885,7 @@ static int __split_vma(struct mm_struct 
+  * Split a vma into two pieces at address 'addr', a new vma is allocated
+  * either for the first part or the tail.
   */
- static int __split_vma(struct mm_struct * mm, struct vm_area_struct * vma,
- 	      unsigned long addr, int new_below)
-@@ -1881,6 +1881,10 @@ static int __split_vma(struct mm_struct 
- 	return 0;
- }
- 
-+/*
-+ * Split a vma into two pieces at address 'addr', a new vma is allocated
-+ * either for the first part or the tail.
-+ */
- int split_vma(struct mm_struct * mm, struct vm_area_struct * vma,
+-int split_vma(struct mm_struct * mm, struct vm_area_struct * vma,
++int split_vma(struct mm_struct *mm, struct vm_area_struct *vma,
  	      unsigned long addr, int new_below)
  {
+ 	if (mm->map_count >= sysctl_max_map_count)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -83,8 +94,8 @@ hfsplus-refuse-to-mount-volumes-larger-than-2tb-fix.patch
 revert-mm-oom-analysis-add-buffer-cache-information-to-show_free_areas.patch
 drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
 vfs-implement-posix-o_sync-and-o_dsync-semantics-checkpatch-fixes.patch
-munmap-dont-check-sysctl_max_mapcount-fix.patch
 readahead-add-blk_run_backing_dev.patch
+mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
 dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
 dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
