@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-ds1553-fix-races-around-device-registration.patch added to -mm tree
-Date: Mon, 12 Oct 2009 16:01:24 -0700
-Message-ID: <200910122301.n9CN1PFt011797@imap1.linux-foundation.org>
+Subject: + rtc-tx4939-fix-races-around-device-registration.patch added to -mm tree
+Date: Mon, 12 Oct 2009 16:01:20 -0700
+Message-ID: <200910122301.n9CN1Kgn011698@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48292 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54950 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932559AbZJLXCj (ORCPT
+	by vger.kernel.org with ESMTP id S1756060AbZJLXCb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Oct 2009 19:02:39 -0400
+	Mon, 12 Oct 2009 19:02:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: anemo@mba.ocn.ne.jp, a.zummo@towertech.it, david-b@pacbell.net
 
 
 The patch titled
-     rtc-ds1553: fix races around device registration
+     rtc-tx4939: fix races around device registration
 has been added to the -mm tree.  Its filename is
-     rtc-ds1553-fix-races-around-device-registration.patch
+     rtc-tx4939-fix-races-around-device-registration.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-ds1553: fix races around device registration
+Subject: rtc-tx4939: fix races around device registration
 From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 
-* Call dev_set_drvdata before rtc device creation
 * Use its own spinlock instead of rtc->irq_lock
 * Check pdata->rtc before calling rtc_update_irq
-* Use {alarm,update}_irq_enable and remove ioctl routine
-* Use devres APIs and simplify error/remove path
+* Disable interrupt after rtc_device_unregister
 
 Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 Acked-by: Alessandro Zummo <a.zummo@towertech.it>
@@ -50,245 +48,184 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/rtc/rtc-ds1553.c~rtc-ds1553-fix-races-around-device-registration drivers/rtc/rtc-ds1553.c
---- a/drivers/rtc/rtc-ds1553.c~rtc-ds1553-fix-races-around-device-registration
-+++ a/drivers/rtc/rtc-ds1553.c
-@@ -18,7 +18,7 @@
- #include <linux/platform_device.h>
- #include <linux/io.h>
- 
--#define DRV_VERSION "0.2"
-+#define DRV_VERSION "0.3"
- 
- #define RTC_REG_SIZE		0x2000
- #define RTC_OFFSET		0x1ff0
-@@ -61,7 +61,6 @@
- struct rtc_plat_data {
+diff -puN drivers/rtc/rtc-tx4939.c~rtc-tx4939-fix-races-around-device-registration drivers/rtc/rtc-tx4939.c
+--- a/drivers/rtc/rtc-tx4939.c~rtc-tx4939-fix-races-around-device-registration
++++ a/drivers/rtc/rtc-tx4939.c
+@@ -17,6 +17,7 @@
+ struct tx4939rtc_plat_data {
  	struct rtc_device *rtc;
- 	void __iomem *ioaddr;
--	resource_size_t baseaddr;
- 	unsigned long last_jiffies;
- 	int irq;
- 	unsigned int irqen;
-@@ -69,6 +68,7 @@ struct rtc_plat_data {
- 	int alrm_min;
- 	int alrm_hour;
- 	int alrm_mday;
+ 	struct tx4939_rtc_reg __iomem *rtcreg;
 +	spinlock_t lock;
  };
  
- static int ds1553_rtc_set_time(struct device *dev, struct rtc_time *tm)
-@@ -139,7 +139,7 @@ static void ds1553_rtc_update_alarm(stru
- 	void __iomem *ioaddr = pdata->ioaddr;
- 	unsigned long flags;
- 
--	spin_lock_irqsave(&pdata->rtc->irq_lock, flags);
-+	spin_lock_irqsave(&pdata->lock, flags);
- 	writeb(pdata->alrm_mday < 0 || (pdata->irqen & RTC_UF) ?
- 	       0x80 : bin2bcd(pdata->alrm_mday),
- 	       ioaddr + RTC_DATE_ALARM);
-@@ -154,7 +154,7 @@ static void ds1553_rtc_update_alarm(stru
- 	       ioaddr + RTC_SECONDS_ALARM);
- 	writeb(pdata->irqen ? RTC_INTS_AE : 0, ioaddr + RTC_INTERRUPTS);
- 	readb(ioaddr + RTC_FLAGS);	/* clear interrupts */
--	spin_unlock_irqrestore(&pdata->rtc->irq_lock, flags);
-+	spin_unlock_irqrestore(&pdata->lock, flags);
- }
- 
- static int ds1553_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
-@@ -194,56 +194,61 @@ static irqreturn_t ds1553_rtc_interrupt(
- 	struct platform_device *pdev = dev_id;
- 	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
- 	void __iomem *ioaddr = pdata->ioaddr;
--	unsigned long events = RTC_IRQF;
-+	unsigned long events = 0;
- 
-+	spin_lock(&pdata->lock);
- 	/* read and clear interrupt */
--	if (!(readb(ioaddr + RTC_FLAGS) & RTC_FLAGS_AF))
--		return IRQ_NONE;
--	if (readb(ioaddr + RTC_SECONDS_ALARM) & 0x80)
--		events |= RTC_UF;
--	else
--		events |= RTC_AF;
--	rtc_update_irq(pdata->rtc, 1, events);
--	return IRQ_HANDLED;
-+	if (readb(ioaddr + RTC_FLAGS) & RTC_FLAGS_AF) {
-+		events = RTC_IRQF;
-+		if (readb(ioaddr + RTC_SECONDS_ALARM) & 0x80)
-+			events |= RTC_UF;
-+		else
-+			events |= RTC_AF;
-+		if (likely(pdata->rtc))
-+			rtc_update_irq(pdata->rtc, 1, events);
-+	}
-+	spin_unlock(&pdata->lock);
-+	return events ? IRQ_HANDLED : IRQ_NONE;
- }
- 
--static int ds1553_rtc_ioctl(struct device *dev, unsigned int cmd,
--			    unsigned long arg)
-+static int ds1553_rtc_alarm_irq_enable(struct device *dev, unsigned int enabled)
- {
- 	struct platform_device *pdev = to_platform_device(dev);
- 	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
- 
- 	if (pdata->irq <= 0)
--		return -ENOIOCTLCMD; /* fall back into rtc-dev's emulation */
--	switch (cmd) {
--	case RTC_AIE_OFF:
--		pdata->irqen &= ~RTC_AF;
--		ds1553_rtc_update_alarm(pdata);
--		break;
--	case RTC_AIE_ON:
-+		return -EINVAL;
-+	if (enabled)
- 		pdata->irqen |= RTC_AF;
--		ds1553_rtc_update_alarm(pdata);
--		break;
--	case RTC_UIE_OFF:
--		pdata->irqen &= ~RTC_UF;
--		ds1553_rtc_update_alarm(pdata);
--		break;
--	case RTC_UIE_ON:
-+	else
-+		pdata->irqen &= ~RTC_AF;
-+	ds1553_rtc_update_alarm(pdata);
-+	return 0;
-+}
-+
-+static int ds1553_rtc_update_irq_enable(struct device *dev,
-+	unsigned int enabled)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
-+
-+	if (pdata->irq <= 0)
-+		return -EINVAL;
-+	if (enabled)
- 		pdata->irqen |= RTC_UF;
--		ds1553_rtc_update_alarm(pdata);
--		break;
--	default:
--		return -ENOIOCTLCMD;
--	}
-+	else
-+		pdata->irqen &= ~RTC_UF;
-+	ds1553_rtc_update_alarm(pdata);
- 	return 0;
- }
- 
- static const struct rtc_class_ops ds1553_rtc_ops = {
--	.read_time	= ds1553_rtc_read_time,
--	.set_time	= ds1553_rtc_set_time,
--	.read_alarm	= ds1553_rtc_read_alarm,
--	.set_alarm	= ds1553_rtc_set_alarm,
--	.ioctl		= ds1553_rtc_ioctl,
-+	.read_time		= ds1553_rtc_read_time,
-+	.set_time		= ds1553_rtc_set_time,
-+	.read_alarm		= ds1553_rtc_read_alarm,
-+	.set_alarm		= ds1553_rtc_set_alarm,
-+	.alarm_irq_enable	= ds1553_rtc_alarm_irq_enable,
-+	.update_irq_enable	= ds1553_rtc_update_irq_enable,
- };
- 
- static ssize_t ds1553_nvram_read(struct kobject *kobj,
-@@ -291,26 +296,23 @@ static int __devinit ds1553_rtc_probe(st
- 	struct rtc_device *rtc;
- 	struct resource *res;
- 	unsigned int cen, sec;
--	struct rtc_plat_data *pdata = NULL;
--	void __iomem *ioaddr = NULL;
-+	struct rtc_plat_data *pdata;
-+	void __iomem *ioaddr;
- 	int ret = 0;
- 
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (!res)
- 		return -ENODEV;
--	pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
-+	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
- 	if (!pdata)
- 		return -ENOMEM;
--	if (!request_mem_region(res->start, RTC_REG_SIZE, pdev->name)) {
--		ret = -EBUSY;
--		goto out;
--	}
--	pdata->baseaddr = res->start;
--	ioaddr = ioremap(pdata->baseaddr, RTC_REG_SIZE);
--	if (!ioaddr) {
--		ret = -ENOMEM;
--		goto out;
--	}
-+	if (!devm_request_mem_region(&pdev->dev, res->start, RTC_REG_SIZE,
-+			pdev->name))
-+		return -EBUSY;
-+
-+	ioaddr = devm_ioremap(&pdev->dev, res->start, RTC_REG_SIZE);
-+	if (!ioaddr)
-+		return -ENOMEM;
- 	pdata->ioaddr = ioaddr;
- 	pdata->irq = platform_get_irq(pdev, 0);
- 
-@@ -326,9 +328,13 @@ static int __devinit ds1553_rtc_probe(st
- 	if (readb(ioaddr + RTC_FLAGS) & RTC_FLAGS_BLF)
- 		dev_warn(&pdev->dev, "voltage-low detected.\n");
- 
-+	spin_lock_init(&pdata->lock);
-+	pdata->last_jiffies = jiffies;
-+	platform_set_drvdata(pdev, pdata);
- 	if (pdata->irq > 0) {
- 		writeb(0, ioaddr + RTC_INTERRUPTS);
--		if (request_irq(pdata->irq, ds1553_rtc_interrupt,
-+		if (devm_request_irq(&pdev->dev, pdata->irq,
-+				ds1553_rtc_interrupt,
- 				IRQF_DISABLED, pdev->name, pdev) < 0) {
- 			dev_warn(&pdev->dev, "interrupt not available.\n");
- 			pdata->irq = 0;
-@@ -337,27 +343,13 @@ static int __devinit ds1553_rtc_probe(st
- 
- 	rtc = rtc_device_register(pdev->name, &pdev->dev,
- 				  &ds1553_rtc_ops, THIS_MODULE);
--	if (IS_ERR(rtc)) {
--		ret = PTR_ERR(rtc);
--		goto out;
--	}
-+	if (IS_ERR(rtc))
-+		return PTR_ERR(rtc);
- 	pdata->rtc = rtc;
--	pdata->last_jiffies = jiffies;
--	platform_set_drvdata(pdev, pdata);
-+
- 	ret = sysfs_create_bin_file(&pdev->dev.kobj, &ds1553_nvram_attr);
- 	if (ret)
--		goto out;
--	return 0;
-- out:
--	if (pdata->rtc)
--		rtc_device_unregister(pdata->rtc);
--	if (pdata->irq > 0)
--		free_irq(pdata->irq, pdev);
--	if (ioaddr)
--		iounmap(ioaddr);
--	if (pdata->baseaddr)
--		release_mem_region(pdata->baseaddr, RTC_REG_SIZE);
--	kfree(pdata);
-+		rtc_device_unregister(rtc);
+ static struct tx4939rtc_plat_data *get_tx4939rtc_plat_data(struct device *dev)
+@@ -52,14 +53,14 @@ static int tx4939_rtc_set_mmss(struct de
+ 	buf[3] = secs >> 8;
+ 	buf[4] = secs >> 16;
+ 	buf[5] = secs >> 24;
+-	spin_lock_irq(&pdata->rtc->irq_lock);
++	spin_lock_irq(&pdata->lock);
+ 	__raw_writel(0, &rtcreg->adr);
+ 	for (i = 0; i < 6; i++)
+ 		__raw_writel(buf[i], &rtcreg->dat);
+ 	ret = tx4939_rtc_cmd(rtcreg,
+ 			     TX4939_RTCCTL_COMMAND_SETTIME |
+ 			     (__raw_readl(&rtcreg->ctl) & TX4939_RTCCTL_ALME));
+-	spin_unlock_irq(&pdata->rtc->irq_lock);
++	spin_unlock_irq(&pdata->lock);
  	return ret;
  }
  
-@@ -367,13 +359,8 @@ static int __devexit ds1553_rtc_remove(s
+@@ -71,18 +72,18 @@ static int tx4939_rtc_read_time(struct d
+ 	unsigned long sec;
+ 	unsigned char buf[6];
  
- 	sysfs_remove_bin_file(&pdev->dev.kobj, &ds1553_nvram_attr);
- 	rtc_device_unregister(pdata->rtc);
--	if (pdata->irq > 0) {
-+	if (pdata->irq > 0)
- 		writeb(0, pdata->ioaddr + RTC_INTERRUPTS);
--		free_irq(pdata->irq, pdev);
--	}
--	iounmap(pdata->ioaddr);
--	release_mem_region(pdata->baseaddr, RTC_REG_SIZE);
--	kfree(pdata);
+-	spin_lock_irq(&pdata->rtc->irq_lock);
++	spin_lock_irq(&pdata->lock);
+ 	ret = tx4939_rtc_cmd(rtcreg,
+ 			     TX4939_RTCCTL_COMMAND_GETTIME |
+ 			     (__raw_readl(&rtcreg->ctl) & TX4939_RTCCTL_ALME));
+ 	if (ret) {
+-		spin_unlock_irq(&pdata->rtc->irq_lock);
++		spin_unlock_irq(&pdata->lock);
+ 		return ret;
+ 	}
+ 	__raw_writel(2, &rtcreg->adr);
+ 	for (i = 2; i < 6; i++)
+ 		buf[i] = __raw_readl(&rtcreg->dat);
+-	spin_unlock_irq(&pdata->rtc->irq_lock);
++	spin_unlock_irq(&pdata->lock);
+ 	sec = (buf[5] << 24) | (buf[4] << 16) | (buf[3] << 8) | buf[2];
+ 	rtc_time_to_tm(sec, tm);
+ 	return rtc_valid_tm(tm);
+@@ -110,13 +111,13 @@ static int tx4939_rtc_set_alarm(struct d
+ 	buf[3] = sec >> 8;
+ 	buf[4] = sec >> 16;
+ 	buf[5] = sec >> 24;
+-	spin_lock_irq(&pdata->rtc->irq_lock);
++	spin_lock_irq(&pdata->lock);
+ 	__raw_writel(0, &rtcreg->adr);
+ 	for (i = 0; i < 6; i++)
+ 		__raw_writel(buf[i], &rtcreg->dat);
+ 	ret = tx4939_rtc_cmd(rtcreg, TX4939_RTCCTL_COMMAND_SETALARM |
+ 			     (alrm->enabled ? TX4939_RTCCTL_ALME : 0));
+-	spin_unlock_irq(&pdata->rtc->irq_lock);
++	spin_unlock_irq(&pdata->lock);
+ 	return ret;
+ }
+ 
+@@ -129,12 +130,12 @@ static int tx4939_rtc_read_alarm(struct 
+ 	unsigned char buf[6];
+ 	u32 ctl;
+ 
+-	spin_lock_irq(&pdata->rtc->irq_lock);
++	spin_lock_irq(&pdata->lock);
+ 	ret = tx4939_rtc_cmd(rtcreg,
+ 			     TX4939_RTCCTL_COMMAND_GETALARM |
+ 			     (__raw_readl(&rtcreg->ctl) & TX4939_RTCCTL_ALME));
+ 	if (ret) {
+-		spin_unlock_irq(&pdata->rtc->irq_lock);
++		spin_unlock_irq(&pdata->lock);
+ 		return ret;
+ 	}
+ 	__raw_writel(2, &rtcreg->adr);
+@@ -143,7 +144,7 @@ static int tx4939_rtc_read_alarm(struct 
+ 	ctl = __raw_readl(&rtcreg->ctl);
+ 	alrm->enabled = (ctl & TX4939_RTCCTL_ALME) ? 1 : 0;
+ 	alrm->pending = (ctl & TX4939_RTCCTL_ALMD) ? 1 : 0;
+-	spin_unlock_irq(&pdata->rtc->irq_lock);
++	spin_unlock_irq(&pdata->lock);
+ 	sec = (buf[5] << 24) | (buf[4] << 16) | (buf[3] << 8) | buf[2];
+ 	rtc_time_to_tm(sec, &alrm->time);
+ 	return rtc_valid_tm(&alrm->time);
+@@ -153,11 +154,11 @@ static int tx4939_rtc_alarm_irq_enable(s
+ {
+ 	struct tx4939rtc_plat_data *pdata = get_tx4939rtc_plat_data(dev);
+ 
+-	spin_lock_irq(&pdata->rtc->irq_lock);
++	spin_lock_irq(&pdata->lock);
+ 	tx4939_rtc_cmd(pdata->rtcreg,
+ 		       TX4939_RTCCTL_COMMAND_NOP |
+ 		       (enabled ? TX4939_RTCCTL_ALME : 0));
+-	spin_unlock_irq(&pdata->rtc->irq_lock);
++	spin_unlock_irq(&pdata->lock);
+ 	return 0;
+ }
+ 
+@@ -167,13 +168,14 @@ static irqreturn_t tx4939_rtc_interrupt(
+ 	struct tx4939_rtc_reg __iomem *rtcreg = pdata->rtcreg;
+ 	unsigned long events = RTC_IRQF;
+ 
+-	spin_lock(&pdata->rtc->irq_lock);
++	spin_lock(&pdata->lock);
+ 	if (__raw_readl(&rtcreg->ctl) & TX4939_RTCCTL_ALMD) {
+ 		events |= RTC_AF;
+ 		tx4939_rtc_cmd(rtcreg, TX4939_RTCCTL_COMMAND_NOP);
+ 	}
+-	spin_unlock(&pdata->rtc->irq_lock);
+-	rtc_update_irq(pdata->rtc, 1, events);
++	spin_unlock(&pdata->lock);
++	if (likely(pdata->rtc))
++		rtc_update_irq(pdata->rtc, 1, events);
+ 	return IRQ_HANDLED;
+ }
+ 
+@@ -194,13 +196,13 @@ static ssize_t tx4939_rtc_nvram_read(str
+ 	struct tx4939_rtc_reg __iomem *rtcreg = pdata->rtcreg;
+ 	ssize_t count;
+ 
+-	spin_lock_irq(&pdata->rtc->irq_lock);
++	spin_lock_irq(&pdata->lock);
+ 	for (count = 0; size > 0 && pos < TX4939_RTC_REG_RAMSIZE;
+ 	     count++, size--) {
+ 		__raw_writel(pos++, &rtcreg->adr);
+ 		*buf++ = __raw_readl(&rtcreg->dat);
+ 	}
+-	spin_unlock_irq(&pdata->rtc->irq_lock);
++	spin_unlock_irq(&pdata->lock);
+ 	return count;
+ }
+ 
+@@ -213,13 +215,13 @@ static ssize_t tx4939_rtc_nvram_write(st
+ 	struct tx4939_rtc_reg __iomem *rtcreg = pdata->rtcreg;
+ 	ssize_t count;
+ 
+-	spin_lock_irq(&pdata->rtc->irq_lock);
++	spin_lock_irq(&pdata->lock);
+ 	for (count = 0; size > 0 && pos < TX4939_RTC_REG_RAMSIZE;
+ 	     count++, size--) {
+ 		__raw_writel(pos++, &rtcreg->adr);
+ 		__raw_writel(*buf++, &rtcreg->dat);
+ 	}
+-	spin_unlock_irq(&pdata->rtc->irq_lock);
++	spin_unlock_irq(&pdata->lock);
+ 	return count;
+ }
+ 
+@@ -259,6 +261,7 @@ static int __init tx4939_rtc_probe(struc
+ 	if (!pdata->rtcreg)
+ 		return -EBUSY;
+ 
++	spin_lock_init(&pdata->lock);
+ 	tx4939_rtc_cmd(pdata->rtcreg, TX4939_RTCCTL_COMMAND_NOP);
+ 	if (devm_request_irq(&pdev->dev, irq, tx4939_rtc_interrupt,
+ 			     IRQF_DISABLED, pdev->name, &pdev->dev) < 0)
+@@ -277,14 +280,12 @@ static int __init tx4939_rtc_probe(struc
+ static int __exit tx4939_rtc_remove(struct platform_device *pdev)
+ {
+ 	struct tx4939rtc_plat_data *pdata = platform_get_drvdata(pdev);
+-	struct rtc_device *rtc = pdata->rtc;
+ 
+-	spin_lock_irq(&rtc->irq_lock);
+-	tx4939_rtc_cmd(pdata->rtcreg, TX4939_RTCCTL_COMMAND_NOP);
+-	spin_unlock_irq(&rtc->irq_lock);
+ 	sysfs_remove_bin_file(&pdev->dev.kobj, &tx4939_rtc_nvram_attr);
+-	rtc_device_unregister(rtc);
+-	platform_set_drvdata(pdev, NULL);
++	rtc_device_unregister(pdata->rtc);
++	spin_lock_irq(&pdata->lock);
++	tx4939_rtc_cmd(pdata->rtcreg, TX4939_RTCCTL_COMMAND_NOP);
++	spin_unlock_irq(&pdata->lock);
  	return 0;
  }
  
