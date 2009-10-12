@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap.patch added to -mm tree
-Date: Mon, 12 Oct 2009 15:37:52 -0700
-Message-ID: <200910122237.n9CMbqeQ027513@imap1.linux-foundation.org>
+Subject: + input-bcm5974-report-abs_mt-events.patch added to -mm tree
+Date: Mon, 12 Oct 2009 15:43:49 -0700
+Message-ID: <200910122243.n9CMhnPO007495@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34056 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46245 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933054AbZJLWjH (ORCPT
+	by vger.kernel.org with ESMTP id S1754222AbZJLWpJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Oct 2009 18:39:07 -0400
+	Mon, 12 Oct 2009 18:45:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, hugh.dickins@tiscali.co.uk
+Cc: rydberg@euromail.se, dtor@mail.ru
 
 
 The patch titled
-     mmap: don't return ENOMEM when mapcount is temporarily exceeded in munmap()
+     input: bcm5974: report ABS_MT events
 has been added to the -mm tree.  Its filename is
-     mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap.patch
+     input-bcm5974-report-abs_mt-events.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,196 +34,114 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmap: don't return ENOMEM when mapcount is temporarily exceeded in munmap()
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: input: bcm5974: report ABS_MT events
+From: "Henrik Rydberg" <rydberg@euromail.se>
 
-On ia64, the following test program exit abnormally, because glibc thread
-library called abort().
+Make bcm5974 report raw multi-touch (MT) data in the form of ABS_MT
+events.  The module parameter (nomt) may be used to turn off the effect of
+this patch.
 
- ========================================================
- (gdb) bt
- #0  0xa000000000010620 in __kernel_syscall_via_break ()
- #1  0x20000000003208e0 in raise () from /lib/libc.so.6.1
- #2  0x2000000000324090 in abort () from /lib/libc.so.6.1
- #3  0x200000000027c3e0 in __deallocate_stack () from /lib/libpthread.so.0
- #4  0x200000000027f7c0 in start_thread () from /lib/libpthread.so.0
- #5  0x200000000047ef60 in __clone2 () from /lib/libc.so.6.1
- ========================================================
-
-The fact is, glibc call munmap() when thread exitng time for freeing
-stack, and it assume munlock() never fail.  However, munmap() often make
-vma splitting and it with many mapcount make -ENOMEM.
-
-Oh well, that's crazy, because stack unmapping never increase mapcount. 
-The maxcount exceeding is only temporary.  internal temporary exceeding
-shouldn't make ENOMEM.
-
-This patch does it.
-
- test_max_mapcount.c
- ==================================================================
-  #include<stdio.h>
-  #include<stdlib.h>
-  #include<string.h>
-  #include<pthread.h>
-  #include<errno.h>
-  #include<unistd.h>
-
-  #define THREAD_NUM 30000
-  #define MAL_SIZE (8*1024*1024)
-
- void *wait_thread(void *args)
- {
- 	void *addr;
-
- 	addr = malloc(MAL_SIZE);
- 	sleep(10);
-
- 	return NULL;
- }
-
- void *wait_thread2(void *args)
- {
- 	sleep(60);
-
- 	return NULL;
- }
-
- int main(int argc, char *argv[])
- {
- 	int i;
- 	pthread_t thread[THREAD_NUM], th;
- 	int ret, count = 0;
- 	pthread_attr_t attr;
-
- 	ret = pthread_attr_init(&attr);
- 	if(ret) {
- 		perror("pthread_attr_init");
- 	}
-
- 	ret = pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
- 	if(ret) {
- 		perror("pthread_attr_setdetachstate");
- 	}
-
- 	for (i = 0; i < THREAD_NUM; i++) {
- 		ret = pthread_create(&th, &attr, wait_thread, NULL);
- 		if(ret) {
- 			fprintf(stderr, "[%d] ", count);
- 			perror("pthread_create");
- 		} else {
- 			printf("[%d] create OK.\n", count);
- 		}
- 		count++;
-
- 		ret = pthread_create(&thread[i], &attr, wait_thread2, NULL);
- 		if(ret) {
- 			fprintf(stderr, "[%d] ", count);
- 			perror("pthread_create");
- 		} else {
- 			printf("[%d] create OK.\n", count);
- 		}
- 		count++;
- 	}
-
- 	sleep(3600);
- 	return 0;
- }
- ==================================================================
-
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN mm/mmap.c~mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap mm/mmap.c
---- a/mm/mmap.c~mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap
-+++ a/mm/mmap.c
-@@ -1829,10 +1829,10 @@ detach_vmas_to_be_unmapped(struct mm_str
- }
+diff -puN drivers/input/mouse/bcm5974.c~input-bcm5974-report-abs_mt-events drivers/input/mouse/bcm5974.c
+--- a/drivers/input/mouse/bcm5974.c~input-bcm5974-report-abs_mt-events
++++ a/drivers/input/mouse/bcm5974.c
+@@ -96,6 +96,10 @@ static int debug = 1;
+ module_param(debug, int, 0644);
+ MODULE_PARM_DESC(debug, "Activate debugging output");
  
- /*
-- * Split a vma into two pieces at address 'addr', a new vma is allocated
-- * either for the first part or the tail.
-+ * __split_vma() bypasses sysctl_max_map_count checking.  We use this on the
-+ * munmap path where it doesn't make sense to fail.
-  */
--int split_vma(struct mm_struct * mm, struct vm_area_struct * vma,
-+static int __split_vma(struct mm_struct * mm, struct vm_area_struct * vma,
- 	      unsigned long addr, int new_below)
- {
- 	struct mempolicy *pol;
-@@ -1842,9 +1842,6 @@ int split_vma(struct mm_struct * mm, str
- 					~(huge_page_mask(hstate_vma(vma)))))
- 		return -EINVAL;
++static int nomt;
++module_param(nomt, int, 0644);
++MODULE_PARM_DESC(nomt, "Disable multitouch (MT) events");
++
+ /* button data structure */
+ struct bt_data {
+ 	u8 unknown1;		/* constant */
+@@ -139,6 +143,7 @@ struct tp_finger {
+ /* trackpad finger data size, empirically at least ten fingers */
+ #define SIZEOF_FINGER		sizeof(struct tp_finger)
+ #define SIZEOF_ALL_FINGERS	(16 * SIZEOF_FINGER)
++#define MAX_FINGER_ORIENTATION	16384
  
--	if (mm->map_count >= sysctl_max_map_count)
--		return -ENOMEM;
--
- 	new = kmem_cache_alloc(vm_area_cachep, GFP_KERNEL);
- 	if (!new)
- 		return -ENOMEM;
-@@ -1884,6 +1881,19 @@ int split_vma(struct mm_struct * mm, str
- 	return 0;
- }
+ /* device-specific parameters */
+ struct bcm5974_param {
+@@ -284,6 +289,28 @@ static void setup_events_to_report(struc
+ 	input_set_abs_params(input_dev, ABS_Y,
+ 				0, cfg->y.dim, cfg->y.fuzz, 0);
  
-+/*
-+ * Split a vma into two pieces at address 'addr', a new vma is allocated
-+ * either for the first part or the tail.
-+ */
-+int split_vma(struct mm_struct * mm, struct vm_area_struct * vma,
-+	      unsigned long addr, int new_below)
-+{
-+	if (mm->map_count >= sysctl_max_map_count)
-+		return -ENOMEM;
++	if (!nomt) {
++		/* finger touch area */
++		input_set_abs_params(input_dev, ABS_MT_TOUCH_MAJOR,
++				     cfg->w.devmin, cfg->w.devmax, 0, 0);
++		input_set_abs_params(input_dev, ABS_MT_TOUCH_MINOR,
++				     cfg->w.devmin, cfg->w.devmax, 0, 0);
++		/* finger approach area */
++		input_set_abs_params(input_dev, ABS_MT_WIDTH_MAJOR,
++				     cfg->w.devmin, cfg->w.devmax, 0, 0);
++		input_set_abs_params(input_dev, ABS_MT_WIDTH_MINOR,
++				     cfg->w.devmin, cfg->w.devmax, 0, 0);
++		/* finger orientation */
++		input_set_abs_params(input_dev, ABS_MT_ORIENTATION,
++				     -MAX_FINGER_ORIENTATION,
++				     MAX_FINGER_ORIENTATION, 0, 0);
++		/* finger position */
++		input_set_abs_params(input_dev, ABS_MT_POSITION_X,
++				     cfg->x.devmin, cfg->x.devmax, 0, 0);
++		input_set_abs_params(input_dev, ABS_MT_POSITION_Y,
++				     cfg->y.devmin, cfg->y.devmax, 0, 0);
++	}
 +
-+	return __split_vma(mm, vma, addr, new_below);
-+}
+ 	__set_bit(EV_KEY, input_dev->evbit);
+ 	__set_bit(BTN_TOUCH, input_dev->keybit);
+ 	__set_bit(BTN_TOOL_FINGER, input_dev->keybit);
+@@ -316,7 +343,7 @@ static int report_tp_state(struct bcm597
+ 	const struct bcm5974_config *c = &dev->cfg;
+ 	const struct tp_finger *f;
+ 	struct input_dev *input = dev->input;
+-	int raw_p, raw_w, raw_x, raw_y, raw_n;
++	int raw_p, raw_w, raw_x, raw_y, raw_n, i;
+ 	int ptest, origin, ibt = 0, nmin = 0, nmax = 0;
+ 	int abs_p = 0, abs_w = 0, abs_x = 0, abs_y = 0;
+ 
+@@ -329,6 +356,30 @@ static int report_tp_state(struct bcm597
+ 
+ 	/* always track the first finger; when detached, start over */
+ 	if (raw_n) {
 +
- /* Munmap is split into 2 main parts -- this part which finds
-  * what needs doing, and the areas themselves, which do the
-  * work.  This now handles partial unmappings.
-@@ -1919,7 +1929,17 @@ int do_munmap(struct mm_struct *mm, unsi
- 	 * places tmp vma above, and higher split_vma places tmp vma below.
- 	 */
- 	if (start > vma->vm_start) {
--		int error = split_vma(mm, vma, start, 0);
-+		int error;
++		/* report raw trackpad data */
++		if (!nomt) {
++			for (i = 0; i < raw_n; i++) {
++				int y = c->y.devmin + c->y.devmax;
++				input_report_abs(input, ABS_MT_TOUCH_MAJOR,
++						 raw2int(f[i].force_major));
++				input_report_abs(input, ABS_MT_TOUCH_MINOR,
++						 raw2int(f[i].force_minor));
++				input_report_abs(input, ABS_MT_WIDTH_MAJOR,
++						 raw2int(f[i].size_major));
++				input_report_abs(input, ABS_MT_WIDTH_MINOR,
++						 raw2int(f[i].size_minor));
++				input_report_abs(input, ABS_MT_ORIENTATION,
++						 MAX_FINGER_ORIENTATION -
++						 raw2int(f[i].orientation));
++				input_report_abs(input, ABS_MT_POSITION_X,
++						 raw2int(f[i].abs_x));
++				input_report_abs(input, ABS_MT_POSITION_Y,
++						 y - raw2int(f[i].abs_y));
++				input_mt_sync(input);
++			}
++		}
 +
-+		/*
-+		 * Make sure that map_count on return from munmap() will
-+		 * not exceed its limit; but let map_count go just above
-+		 * its limit temporarily, to help free resources as expected.
-+		 */
-+		if (end < vma->vm_end && mm->map_count >= sysctl_max_map_count)
-+			return -ENOMEM;
-+
-+		error = __split_vma(mm, vma, start, 0);
- 		if (error)
- 			return error;
- 		prev = vma;
-@@ -1928,7 +1948,7 @@ int do_munmap(struct mm_struct *mm, unsi
- 	/* Does it split the last one? */
- 	last = find_vma(mm, end);
- 	if (last && end > last->vm_start) {
--		int error = split_vma(mm, last, end, 1);
-+		int error = __split_vma(mm, last, end, 1);
- 		if (error)
- 			return error;
- 	}
+ 		raw_p = raw2int(f->force_major);
+ 		raw_w = raw2int(f->size_major);
+ 		raw_x = raw2int(f->abs_x);
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from rydberg@euromail.se are
 
-linux-next.patch
-congestion_wait-dont-use-write.patch
-cgroup-fix-strstrip-misuse.patch
-strstrip-mark-as-as-must_check.patch
-revert-mm-oom-analysis-add-buffer-cache-information-to-show_free_areas.patch
-oom-dump-stack-and-vm-state-when-oom-killer-panics.patch
-readahead-add-blk_run_backing_dev.patch
-mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap.patch
-mm-vsmcan-check-shrink_active_list-sc-isolate_pages-return-value.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
+input-bcm5974-report-abs_mt-events.patch
+input-bcm5974-retract-efi-broken-suspend_resume.patch
 
