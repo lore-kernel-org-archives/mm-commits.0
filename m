@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-ds1511-fix-races-around-device-registration.patch added to -mm tree
-Date: Mon, 12 Oct 2009 14:54:17 -0700
-Message-ID: <200910122154.n9CLsIbY001794@imap1.linux-foundation.org>
+Subject: + rtc-stk17ta8-fix-races-around-device-registration.patch added to -mm tree
+Date: Mon, 12 Oct 2009 14:54:22 -0700
+Message-ID: <200910122154.n9CLsNwo002067@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55204 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51292 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933346AbZJLV4C (ORCPT
+	by vger.kernel.org with ESMTP id S932617AbZJLVze (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Oct 2009 17:56:02 -0400
+	Mon, 12 Oct 2009 17:55:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: anemo@mba.ocn.ne.jp, a.zummo@towertech.it, andy.sharp@lsi.com, david-b@pacbell.net, thomas.hommel@gefanuc.com
+Cc: anemo@mba.ocn.ne.jp
 
 
 The patch titled
-     rtc-ds1511: fix races around device registration
+     rtc-stk17ta8: fix races around device registration
 has been added to the -mm tree.  Its filename is
-     rtc-ds1511-fix-races-around-device-registration.patch
+     rtc-stk17ta8-fix-races-around-device-registration.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-ds1511: fix races around device registration
+Subject: rtc-stk17ta8: fix races around device registration
 From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 
 - Call dev_set_drvdata before rtc device creation.
@@ -49,220 +49,182 @@ From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 
 - Check pdata->rtc before calling rtc_update_irq.
 
-- Use {alarm,update}_irq_enable and remove ioctl routine.
+- Use alarm_irq_enable and remove ioctl routine.
 
 - Use devres APIs and simplify error/remove path.
 
 These fixes are ported from ds1553 driver and just compile-tested only.
 
 Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-Cc: Andrew Sharp <andy.sharp@lsi.com>
-Cc: Thomas Hommel <thomas.hommel@gefanuc.com>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/rtc/rtc-ds1511.c~rtc-ds1511-fix-races-around-device-registration drivers/rtc/rtc-ds1511.c
---- a/drivers/rtc/rtc-ds1511.c~rtc-ds1511-fix-races-around-device-registration
-+++ a/drivers/rtc/rtc-ds1511.c
-@@ -87,7 +87,6 @@ enum ds1511reg {
+diff -puN drivers/rtc/rtc-stk17ta8.c~rtc-stk17ta8-fix-races-around-device-registration drivers/rtc/rtc-stk17ta8.c
+--- a/drivers/rtc/rtc-stk17ta8.c~rtc-stk17ta8-fix-races-around-device-registration
++++ a/drivers/rtc/rtc-stk17ta8.c
+@@ -62,7 +62,6 @@
  struct rtc_plat_data {
  	struct rtc_device *rtc;
- 	void __iomem *ioaddr;		/* virtual base address */
--	unsigned long baseaddr;		/* physical base address */
- 	int size;				/* amount of memory mapped */
+ 	void __iomem *ioaddr;
+-	unsigned long baseaddr;
+ 	unsigned long last_jiffies;
  	int irq;
  	unsigned int irqen;
-@@ -95,6 +94,7 @@ struct rtc_plat_data {
+@@ -70,6 +69,7 @@ struct rtc_plat_data {
  	int alrm_min;
  	int alrm_hour;
  	int alrm_mday;
 +	spinlock_t lock;
  };
  
- static DEFINE_SPINLOCK(ds1511_lock);
-@@ -302,7 +302,7 @@ ds1511_rtc_update_alarm(struct rtc_plat_
- {
- 	unsigned long flags;
+ static int stk17ta8_rtc_set_time(struct device *dev, struct rtc_time *tm)
+@@ -142,7 +142,7 @@ static void stk17ta8_rtc_update_alarm(st
+ 	unsigned long irqflags;
+ 	u8 flags;
  
--	spin_lock_irqsave(&pdata->rtc->irq_lock, flags);
-+	spin_lock_irqsave(&pdata->lock, flags);
- 	rtc_write(pdata->alrm_mday < 0 || (pdata->irqen & RTC_UF) ?
- 	       0x80 : bin2bcd(pdata->alrm_mday) & 0x3f,
- 	       RTC_ALARM_DATE);
-@@ -317,7 +317,7 @@ ds1511_rtc_update_alarm(struct rtc_plat_
- 	       RTC_ALARM_SEC);
- 	rtc_write(rtc_read(RTC_CMD) | (pdata->irqen ? RTC_TIE : 0), RTC_CMD);
- 	rtc_read(RTC_CMD1);	/* clear interrupts */
--	spin_unlock_irqrestore(&pdata->rtc->irq_lock, flags);
-+	spin_unlock_irqrestore(&pdata->lock, flags);
+-	spin_lock_irqsave(&pdata->rtc->irq_lock, irqflags);
++	spin_lock_irqsave(&pdata->lock, irqflags);
+ 
+ 	flags = readb(ioaddr + RTC_FLAGS);
+ 	writeb(flags | RTC_WRITE, ioaddr + RTC_FLAGS);
+@@ -162,7 +162,7 @@ static void stk17ta8_rtc_update_alarm(st
+ 	writeb(pdata->irqen ? RTC_INTS_AIE : 0, ioaddr + RTC_INTERRUPTS);
+ 	readb(ioaddr + RTC_FLAGS);	/* clear interrupts */
+ 	writeb(flags & ~RTC_WRITE, ioaddr + RTC_FLAGS);
+-	spin_unlock_irqrestore(&pdata->rtc->irq_lock, irqflags);
++	spin_unlock_irqrestore(&pdata->lock, irqflags);
  }
  
-  static int
-@@ -362,61 +362,63 @@ ds1511_interrupt(int irq, void *dev_id)
- {
+ static int stk17ta8_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
+@@ -202,48 +202,45 @@ static irqreturn_t stk17ta8_rtc_interrup
  	struct platform_device *pdev = dev_id;
  	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
+ 	void __iomem *ioaddr = pdata->ioaddr;
 -	unsigned long events = RTC_IRQF;
 +	unsigned long events = 0;
  
 +	spin_lock(&pdata->lock);
- 	/*
- 	 * read and clear interrupt
- 	 */
--	if (!(rtc_read(RTC_CMD1) & DS1511_IRQF)) {
+ 	/* read and clear interrupt */
+-	if (!(readb(ioaddr + RTC_FLAGS) & RTC_FLAGS_AF))
 -		return IRQ_NONE;
-+	if (rtc_read(RTC_CMD1) & DS1511_IRQF) {
+-	if (readb(ioaddr + RTC_SECONDS_ALARM) & 0x80)
+-		events |= RTC_UF;
+-	else
+-		events |= RTC_AF;
+-	rtc_update_irq(pdata->rtc, 1, events);
+-	return IRQ_HANDLED;
++	if (readb(ioaddr + RTC_FLAGS) & RTC_FLAGS_AF) {
 +		events = RTC_IRQF;
-+		if (rtc_read(RTC_ALARM_SEC) & 0x80)
++		if (readb(ioaddr + RTC_SECONDS_ALARM) & 0x80)
 +			events |= RTC_UF;
 +		else
 +			events |= RTC_AF;
 +		if (likely(pdata->rtc))
 +			rtc_update_irq(pdata->rtc, 1, events);
- 	}
--	if (rtc_read(RTC_ALARM_SEC) & 0x80) {
--		events |= RTC_UF;
--	} else {
--		events |= RTC_AF;
--	}
--	rtc_update_irq(pdata->rtc, 1, events);
--	return IRQ_HANDLED;
++	}
 +	spin_unlock(&pdata->lock);
 +	return events ? IRQ_HANDLED : IRQ_NONE;
  }
  
-- static int
--ds1511_rtc_ioctl(struct device *dev, unsigned int cmd, unsigned long arg)
-+static int ds1511_rtc_alarm_irq_enable(struct device *dev, unsigned int enabled)
+-static int stk17ta8_rtc_ioctl(struct device *dev, unsigned int cmd,
+-			    unsigned long arg)
++static int stk17ta8_rtc_alarm_irq_enable(struct device *dev,
++	unsigned int enabled)
  {
  	struct platform_device *pdev = to_platform_device(dev);
  	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
  
--	if (pdata->irq <= 0) {
+ 	if (pdata->irq <= 0)
 -		return -ENOIOCTLCMD; /* fall back into rtc-dev's emulation */
--	}
 -	switch (cmd) {
 -	case RTC_AIE_OFF:
 -		pdata->irqen &= ~RTC_AF;
--		ds1511_rtc_update_alarm(pdata);
+-		stk17ta8_rtc_update_alarm(pdata);
 -		break;
 -	case RTC_AIE_ON:
-+	if (pdata->irq <= 0)
 +		return -EINVAL;
 +	if (enabled)
  		pdata->irqen |= RTC_AF;
--		ds1511_rtc_update_alarm(pdata);
--		break;
--	case RTC_UIE_OFF:
--		pdata->irqen &= ~RTC_UF;
--		ds1511_rtc_update_alarm(pdata);
--		break;
--	case RTC_UIE_ON:
-+	else
-+		pdata->irqen &= ~RTC_AF;
-+	ds1511_rtc_update_alarm(pdata);
-+	return 0;
-+}
-+
-+static int ds1511_rtc_update_irq_enable(struct device *dev,
-+	unsigned int enabled)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
-+
-+	if (pdata->irq <= 0)
-+		return -EINVAL;
-+	if (enabled)
- 		pdata->irqen |= RTC_UF;
--		ds1511_rtc_update_alarm(pdata);
+-		stk17ta8_rtc_update_alarm(pdata);
 -		break;
 -	default:
 -		return -ENOIOCTLCMD;
 -	}
 +	else
-+		pdata->irqen &= ~RTC_UF;
-+	ds1511_rtc_update_alarm(pdata);
++		pdata->irqen &= ~RTC_AF;
++	stk17ta8_rtc_update_alarm(pdata);
  	return 0;
  }
  
- static const struct rtc_class_ops ds1511_rtc_ops = {
--	.read_time	= ds1511_rtc_read_time,
--	.set_time	= ds1511_rtc_set_time,
--	.read_alarm	= ds1511_rtc_read_alarm,
--	.set_alarm	= ds1511_rtc_set_alarm,
--	.ioctl		= ds1511_rtc_ioctl,
-+	.read_time		= ds1511_rtc_read_time,
-+	.set_time		= ds1511_rtc_set_time,
-+	.read_alarm		= ds1511_rtc_read_alarm,
-+	.set_alarm		= ds1511_rtc_set_alarm,
-+	.alarm_irq_enable	= ds1511_rtc_alarm_irq_enable,
-+	.update_irq_enable	= ds1511_rtc_update_irq_enable,
+ static const struct rtc_class_ops stk17ta8_rtc_ops = {
+-	.read_time	= stk17ta8_rtc_read_time,
+-	.set_time	= stk17ta8_rtc_set_time,
+-	.read_alarm	= stk17ta8_rtc_read_alarm,
+-	.set_alarm	= stk17ta8_rtc_set_alarm,
+-	.ioctl		= stk17ta8_rtc_ioctl,
++	.read_time		= stk17ta8_rtc_read_time,
++	.set_time		= stk17ta8_rtc_set_time,
++	.read_alarm		= stk17ta8_rtc_read_alarm,
++	.set_alarm		= stk17ta8_rtc_set_alarm,
++	.alarm_irq_enable	= stk17ta8_rtc_alarm_irq_enable,
  };
  
-  static ssize_t
-@@ -492,29 +494,23 @@ ds1511_rtc_probe(struct platform_device 
- {
- 	struct rtc_device *rtc;
- 	struct resource *res;
--	struct rtc_plat_data *pdata = NULL;
-+	struct rtc_plat_data *pdata;
+ static ssize_t stk17ta8_nvram_read(struct kobject *kobj,
+@@ -293,26 +290,22 @@ static int __devinit stk17ta8_rtc_probe(
+ 	unsigned int cal;
+ 	unsigned int flags;
+ 	struct rtc_plat_data *pdata;
+-	void __iomem *ioaddr = NULL;
++	void __iomem *ioaddr;
  	int ret = 0;
  
  	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (!res) {
+ 	if (!res)
  		return -ENODEV;
- 	}
+ 
 -	pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
--	if (!pdata) {
 +	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
-+	if (!pdata)
+ 	if (!pdata)
  		return -ENOMEM;
--	}
- 	pdata->size = res->end - res->start + 1;
--	if (!request_mem_region(res->start, pdata->size, pdev->name)) {
+-	if (!request_mem_region(res->start, RTC_REG_SIZE, pdev->name)) {
 -		ret = -EBUSY;
 -		goto out;
 -	}
 -	pdata->baseaddr = res->start;
--	pdata->size = pdata->size;
--	ds1511_base = ioremap(pdata->baseaddr, pdata->size);
--	if (!ds1511_base) {
+-	ioaddr = ioremap(pdata->baseaddr, RTC_REG_SIZE);
+-	if (!ioaddr) {
 -		ret = -ENOMEM;
 -		goto out;
 -	}
-+	if (!devm_request_mem_region(&pdev->dev, res->start, pdata->size,
++	if (!devm_request_mem_region(&pdev->dev, res->start, RTC_REG_SIZE,
 +			pdev->name))
 +		return -EBUSY;
-+	ds1511_base = devm_ioremap(&pdev->dev, res->start, pdata->size);
-+	if (!ds1511_base)
++	ioaddr = devm_ioremap(&pdev->dev, res->start, RTC_REG_SIZE);
++	if (!ioaddr)
 +		return -ENOMEM;
- 	pdata->ioaddr = ds1511_base;
+ 	pdata->ioaddr = ioaddr;
  	pdata->irq = platform_get_irq(pdev, 0);
  
-@@ -540,13 +536,15 @@ ds1511_rtc_probe(struct platform_device 
+@@ -328,9 +321,13 @@ static int __devinit stk17ta8_rtc_probe(
+ 	if (readb(ioaddr + RTC_FLAGS) & RTC_FLAGS_PF)
  		dev_warn(&pdev->dev, "voltage-low detected.\n");
- 	}
  
 +	spin_lock_init(&pdata->lock);
++	pdata->last_jiffies = jiffies;
 +	platform_set_drvdata(pdev, pdata);
- 	/*
- 	 * if the platform has an interrupt in mind for this device,
- 	 * then by all means, set it
- 	 */
  	if (pdata->irq > 0) {
- 		rtc_read(RTC_CMD1);
--		if (request_irq(pdata->irq, ds1511_interrupt,
-+		if (devm_request_irq(&pdev->dev, pdata->irq, ds1511_interrupt,
- 			IRQF_DISABLED | IRQF_SHARED, pdev->name, pdev) < 0) {
- 
+ 		writeb(0, ioaddr + RTC_INTERRUPTS);
+-		if (request_irq(pdata->irq, stk17ta8_rtc_interrupt,
++		if (devm_request_irq(&pdev->dev, pdata->irq,
++				stk17ta8_rtc_interrupt,
+ 				IRQF_DISABLED | IRQF_SHARED,
+ 				pdev->name, pdev) < 0) {
  			dev_warn(&pdev->dev, "interrupt not available.\n");
-@@ -556,33 +554,13 @@ ds1511_rtc_probe(struct platform_device 
+@@ -340,27 +337,12 @@ static int __devinit stk17ta8_rtc_probe(
  
- 	rtc = rtc_device_register(pdev->name, &pdev->dev, &ds1511_rtc_ops,
- 		THIS_MODULE);
+ 	rtc = rtc_device_register(pdev->name, &pdev->dev,
+ 				  &stk17ta8_rtc_ops, THIS_MODULE);
 -	if (IS_ERR(rtc)) {
 -		ret = PTR_ERR(rtc);
 -		goto out;
@@ -270,49 +232,37 @@ diff -puN drivers/rtc/rtc-ds1511.c~rtc-ds1511-fix-races-around-device-registrati
 +	if (IS_ERR(rtc))
 +		return PTR_ERR(rtc);
  	pdata->rtc = rtc;
+-	pdata->last_jiffies = jiffies;
 -	platform_set_drvdata(pdev, pdata);
-+
- 	ret = sysfs_create_bin_file(&pdev->dev.kobj, &ds1511_nvram_attr);
--	if (ret) {
+ 	ret = sysfs_create_bin_file(&pdev->dev.kobj, &stk17ta8_nvram_attr);
+ 	if (ret)
 -		goto out;
--	}
 -	return 0;
 - out:
--	if (pdata->rtc) {
-+	if (ret)
- 		rtc_device_unregister(pdata->rtc);
--	}
--	if (pdata->irq > 0) {
+-	if (pdata->rtc)
+-		rtc_device_unregister(pdata->rtc);
+-	if (pdata->irq > 0)
 -		free_irq(pdata->irq, pdev);
--	}
--	if (ds1511_base) {
--		iounmap(ds1511_base);
--		ds1511_base = NULL;
--	}
--	if (pdata->baseaddr) {
--		release_mem_region(pdata->baseaddr, pdata->size);
--	}
--
+-	if (ioaddr)
+-		iounmap(ioaddr);
+-	if (pdata->baseaddr)
+-		release_mem_region(pdata->baseaddr, RTC_REG_SIZE);
 -	kfree(pdata);
++		rtc_device_unregister(rtc);
  	return ret;
  }
  
-@@ -593,19 +571,13 @@ ds1511_rtc_remove(struct platform_device
+@@ -370,13 +352,8 @@ static int __devexit stk17ta8_rtc_remove
  
- 	sysfs_remove_bin_file(&pdev->dev.kobj, &ds1511_nvram_attr);
+ 	sysfs_remove_bin_file(&pdev->dev.kobj, &stk17ta8_nvram_attr);
  	rtc_device_unregister(pdata->rtc);
--	pdata->rtc = NULL;
- 	if (pdata->irq > 0) {
- 		/*
- 		 * disable the alarm interrupt
- 		 */
- 		rtc_write(rtc_read(RTC_CMD) & ~RTC_TIE, RTC_CMD);
- 		rtc_read(RTC_CMD1);
+-	if (pdata->irq > 0) {
++	if (pdata->irq > 0)
+ 		writeb(0, pdata->ioaddr + RTC_INTERRUPTS);
 -		free_irq(pdata->irq, pdev);
- 	}
+-	}
 -	iounmap(pdata->ioaddr);
--	ds1511_base = NULL;
--	release_mem_region(pdata->baseaddr, pdata->size);
+-	release_mem_region(pdata->baseaddr, RTC_REG_SIZE);
 -	kfree(pdata);
  	return 0;
  }
