@@ -1,86 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: + page-types-unsigned-cannot-be-less-than-0-in-add_page.patch added to -mm tree
-Date: Mon, 12 Oct 2009 15:35:12 -0700
-Message-ID: <200910122235.n9CMZC9B022052@imap1.linux-foundation.org>
+Subject: [to-be-updated] munmap-dont-check-sysctl_max_mapcount-fix.patch removed from -mm tree
+Date: Mon, 12 Oct 2009 15:36:04 -0700
+Message-ID: <200910122236.n9CMa4q3023868@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37553 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35056 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933219AbZJLWgp (ORCPT
+	by vger.kernel.org with ESMTP id S933512AbZJLWhb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Oct 2009 18:36:45 -0400
+	Mon, 12 Oct 2009 18:37:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, fengguang.wu@intel.com, randy.dunlap@oracle.com
+To: akpm@linux-foundation.org, hugh.dickins@tiscali.co.uk, kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     page-types: unsigned cannot be less than 0 in add_page()
-has been added to the -mm tree.  Its filename is
-     page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
+     munmap-dont-check-sysctl_max_mapcount-fix
+has been removed from the -mm tree.  Its filename was
+     munmap-dont-check-sysctl_max_mapcount-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page-types: unsigned cannot be less than 0 in add_page()
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: munmap-dont-check-sysctl_max_mapcount-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-If not signed, testing of the read() return value in this function
-will not work.
+comment the code.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN Documentation/vm/page-types.c~page-types-unsigned-cannot-be-less-than-0-in-add_page Documentation/vm/page-types.c
---- a/Documentation/vm/page-types.c~page-types-unsigned-cannot-be-less-than-0-in-add_page
-+++ a/Documentation/vm/page-types.c
-@@ -560,7 +560,7 @@ static void walk_pfn(unsigned long voffs
- {
- 	uint64_t buf[KPAGEFLAGS_BATCH];
- 	unsigned long batch;
--	unsigned long pages;
-+	long pages;
- 	unsigned long i;
+diff -puN mm/mmap.c~munmap-dont-check-sysctl_max_mapcount-fix mm/mmap.c
+--- a/mm/mmap.c~munmap-dont-check-sysctl_max_mapcount-fix
++++ a/mm/mmap.c
+@@ -1829,8 +1829,8 @@ detach_vmas_to_be_unmapped(struct mm_str
+ }
  
- 	while (count) {
+ /*
+- * Split a vma into two pieces at address 'addr', a new vma is allocated
+- * either for the first part or the tail.
++ * __split_vma() bypasses sysctl_max_map_count checking.  We use this on the
++ * munmap path where it doesn't make sense to fail.
+  */
+ static int __split_vma(struct mm_struct * mm, struct vm_area_struct * vma,
+ 	      unsigned long addr, int new_below)
+@@ -1881,6 +1881,10 @@ static int __split_vma(struct mm_struct 
+ 	return 0;
+ }
+ 
++/*
++ * Split a vma into two pieces at address 'addr', a new vma is allocated
++ * either for the first part or the tail.
++ */
+ int split_vma(struct mm_struct * mm, struct vm_area_struct * vma,
+ 	      unsigned long addr, int new_below)
+ {
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-hfc_usb-fix-read-buffer-overflow.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices-fix.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+3x59x-fix-pci-resource-management.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+include-trace-events-lockdeph-fix-do_div-warning.patch
 st-fix-test-of-value-range-in-st_set_options.patch
-drivers-staging-octeon-ethernet-rgmiic-dont-ignore-request_irq-return-code.patch
-page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
-frv-duplicate-output_buffer-of-e03.patch
+scsi-add-hpsa-driver-for-hp-smart-array-controllers-fix.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+fs-improve-remountro-vs-buffercache-coherency.patch
+percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+hfsplus-refuse-to-mount-volumes-larger-than-2tb-fix.patch
+revert-mm-oom-analysis-add-buffer-cache-information-to-show_free_areas.patch
+drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
+vfs-implement-posix-o_sync-and-o_dsync-semantics-checkpatch-fixes.patch
+munmap-dont-check-sysctl_max_mapcount-fix.patch
+readahead-add-blk_run_backing_dev.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-cryptocop-fix-assertion-in-create_output_descriptors.patch
-gpio-fix-test-on-unsigned-in-lnw_irq_type.patch
+errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs.patch
+memcg-coalesce-charging-via-percpu-storage-fix.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+reiser4-disable.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
