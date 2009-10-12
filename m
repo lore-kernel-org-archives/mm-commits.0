@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pcmcia-fix-controller-printk-format-warnings.patch added to -mm tree
-Date: Mon, 12 Oct 2009 15:32:17 -0700
-Message-ID: <200910122232.n9CMWH2v016004@imap1.linux-foundation.org>
+Subject: + page-types-unsigned-cannot-be-less-than-0-in-add_page.patch added to -mm tree
+Date: Mon, 12 Oct 2009 15:35:12 -0700
+Message-ID: <200910122235.n9CMZC9B022052@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37145 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37553 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933084AbZJLWda (ORCPT
+	by vger.kernel.org with ESMTP id S933219AbZJLWgp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Oct 2009 18:33:30 -0400
+	Mon, 12 Oct 2009 18:36:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, greg@kroah.com, w.sang@pengutronix.de
+Cc: roel.kluin@gmail.com, fengguang.wu@intel.com, randy.dunlap@oracle.com
 
 
 The patch titled
-     pcmcia: fix controller printk format warnings
+     page-types: unsigned cannot be less than 0 in add_page()
 has been added to the -mm tree.  Its filename is
-     pcmcia-fix-controller-printk-format-warnings.patch
+     page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,62 +34,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pcmcia: fix controller printk format warnings
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: page-types: unsigned cannot be less than 0 in add_page()
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Fix new pcmcia printk format warnings:
-[This has now moved from linux-next to mainline.
-Originally sent 2009-SEP-17.]
+If not signed, testing of the read() return value in this function
+will not work.
 
-drivers/pcmcia/i82365.c:1055: warning: format '%#x' expects type 'unsigned int', but argument 6 has type 'phys_addr_t'
-drivers/pcmcia/i82365.c:1055: warning: format '%#x' expects type 'unsigned int', but argument 7 has type 'phys_addr_t'
-drivers/pcmcia/tcic.c:734: warning: format '%#x' expects type 'unsigned int', but argument 6 has type 'phys_addr_t'
-drivers/pcmcia/tcic.c:734: warning: format '%#x' expects type 'unsigned int', but argument 7 has type 'phys_addr_t'
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Wolfram Sang <w.sang@pengutronix.de>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/pcmcia/i82365.c~pcmcia-fix-controller-printk-format-warnings drivers/pcmcia/i82365.c
---- a/drivers/pcmcia/i82365.c~pcmcia-fix-controller-printk-format-warnings
-+++ a/drivers/pcmcia/i82365.c
-@@ -1053,8 +1053,8 @@ static int i365_set_io_map(u_short sock,
-     u_char map, ioctl;
-     
-     debug(1, "SetIOMap(%d, %d, %#2.2x, %d ns, "
--	  "%#x-%#x)\n", sock, io->map, io->flags,
--	  io->speed, io->start, io->stop);
-+	  "%#llx-%#llx)\n", sock, io->map, io->flags, io->speed,
-+	  (unsigned long long)io->start, (unsigned long long)io->stop);
-     map = io->map;
-     if ((map > 1) || (io->start > 0xffff) || (io->stop > 0xffff) ||
- 	(io->stop < io->start)) return -EINVAL;
-diff -puN drivers/pcmcia/tcic.c~pcmcia-fix-controller-printk-format-warnings drivers/pcmcia/tcic.c
---- a/drivers/pcmcia/tcic.c~pcmcia-fix-controller-printk-format-warnings
-+++ a/drivers/pcmcia/tcic.c
-@@ -732,8 +732,8 @@ static int tcic_set_io_map(struct pcmcia
-     u_short base, len, ioctl;
-     
-     debug(1, "SetIOMap(%d, %d, %#2.2x, %d ns, "
--	  "%#x-%#x)\n", psock, io->map, io->flags,
--	  io->speed, io->start, io->stop);
-+	  "%#llx-%#llx)\n", psock, io->map, io->flags, io->speed,
-+	  (unsigned long long)io->start, (unsigned long long)io->stop);
-     if ((io->map > 1) || (io->start > 0xffff) || (io->stop > 0xffff) ||
- 	(io->stop < io->start)) return -EINVAL;
-     tcic_setw(TCIC_ADDR+2, TCIC_ADR2_INDREG | (psock << TCIC_SS_SHFT));
+diff -puN Documentation/vm/page-types.c~page-types-unsigned-cannot-be-less-than-0-in-add_page Documentation/vm/page-types.c
+--- a/Documentation/vm/page-types.c~page-types-unsigned-cannot-be-less-than-0-in-add_page
++++ a/Documentation/vm/page-types.c
+@@ -560,7 +560,7 @@ static void walk_pfn(unsigned long voffs
+ {
+ 	uint64_t buf[KPAGEFLAGS_BATCH];
+ 	unsigned long batch;
+-	unsigned long pages;
++	long pages;
+ 	unsigned long i;
+ 
+ 	while (count) {
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
-cpufreq-add-cpufreq_get-stub-for-config_cpu_freq=n.patch
 linux-next.patch
-scsi-fix-func-names-in-kernel-doc.patch
-pcmcia-fix-controller-printk-format-warnings.patch
-readahead-add-blk_run_backing_dev.patch
-pcmcia-fix-controller-printk-warnings.patch
-reiser4-export-remove_from_page_cache-fix.patch
+fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+hfc_usb-fix-read-buffer-overflow.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
+zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
+st-fix-test-of-value-range-in-st_set_options.patch
+drivers-staging-octeon-ethernet-rgmiic-dont-ignore-request_irq-return-code.patch
+page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+cryptocop-fix-assertion-in-create_output_descriptors.patch
+gpio-fix-test-on-unsigned-in-lnw_irq_type.patch
 
