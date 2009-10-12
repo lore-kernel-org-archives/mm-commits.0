@@ -1,96 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: + revert-mm-oom-analysis-add-buffer-cache-information-to-show_free_areas.patch added to -mm tree
-Date: Sun, 11 Oct 2009 01:09:15 -0700
-Message-ID: <200910110809.n9B89FAk022380@imap1.linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Mon, 12 Oct 2009 14:03:37 -0700
+Message-ID: <200910122103.n9CL3bJj026587@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49738 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58051 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752135AbZJKIKT (ORCPT
+	by vger.kernel.org with ESMTP id S1758152AbZJLVEq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Oct 2009 04:10:19 -0400
+	Mon, 12 Oct 2009 17:04:46 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n9CL3d1K026305
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 12 Oct 2009 14:03:40 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, adobriyan@gmail.com, fengguang.wu@intel.com, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com, rientjes@google.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert "mm: oom analysis: add buffer cache information to show_free_areas()"
-has been added to the -mm tree.  Its filename is
-     revert-mm-oom-analysis-add-buffer-cache-information-to-show_free_areas.patch
+     linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert "mm: oom analysis: add buffer cache information to show_free_areas()"
+Subject: linux-next-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Revert
-
-    commit 71de1ccbe1fb40203edd3beb473f8580d917d2ca
-    Author:     KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-    AuthorDate: Mon Sep 21 17:01:31 2009 -0700
-    Commit:     Linus Torvalds <torvalds@linux-foundation.org>
-    CommitDate: Tue Sep 22 07:17:27 2009 -0700
-
-        mm: oom analysis: add buffer cache information to show_free_areas()
-    
-
-show_free_areas() is called during page allocation failures, and page
-allocation failures can occur in any calling context.
-
-But nr_blockdev_pages() takes VFS locks which should not be taken from
-hard IRQ context (at least).  The result is lockdep warnings (and
-deadlockability) during page allocation failures.
-
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/ata/ahci.c  |   52 ------------------------------------------
+ fs/ecryptfs/Kconfig |    4 ---
+ 2 files changed, 56 deletions(-)
 
-diff -puN mm/page_alloc.c~revert-mm-oom-analysis-add-buffer-cache-information-to-show_free_areas mm/page_alloc.c
---- a/mm/page_alloc.c~revert-mm-oom-analysis-add-buffer-cache-information-to-show_free_areas
-+++ a/mm/page_alloc.c
-@@ -2183,7 +2183,7 @@ void show_free_areas(void)
- 	printk("active_anon:%lu inactive_anon:%lu isolated_anon:%lu\n"
- 		" active_file:%lu inactive_file:%lu isolated_file:%lu\n"
- 		" unevictable:%lu"
--		" dirty:%lu writeback:%lu unstable:%lu buffer:%lu\n"
-+		" dirty:%lu writeback:%lu unstable:%lu\n"
- 		" free:%lu slab_reclaimable:%lu slab_unreclaimable:%lu\n"
- 		" mapped:%lu shmem:%lu pagetables:%lu bounce:%lu\n",
- 		global_page_state(NR_ACTIVE_ANON),
-@@ -2196,7 +2196,6 @@ void show_free_areas(void)
- 		global_page_state(NR_FILE_DIRTY),
- 		global_page_state(NR_WRITEBACK),
- 		global_page_state(NR_UNSTABLE_NFS),
--		nr_blockdev_pages(),
- 		global_page_state(NR_FREE_PAGES),
- 		global_page_state(NR_SLAB_RECLAIMABLE),
- 		global_page_state(NR_SLAB_UNRECLAIMABLE),
+diff -puN drivers/ata/ahci.c~linux-next-git-rejects drivers/ata/ahci.c
+--- a/drivers/ata/ahci.c~linux-next-git-rejects
++++ a/drivers/ata/ahci.c
+@@ -2884,58 +2884,6 @@ static bool ahci_broken_online(struct pc
+ 	return pdev->bus->number == (val >> 8) && pdev->devfn == (val & 0xff);
+ }
+ 
+-<<<<<<< HEAD:drivers/ata/ahci.c
+-#ifdef CONFIG_ATA_ACPI
+-static void ahci_gtf_filter_workaround(struct ata_host *host)
+-{
+-	static const struct dmi_system_id sysids[] = {
+-		/*
+-		 * Aspire 3810T issues a bunch of SATA enable commands
+-		 * via _GTF including an invalid one and one which is
+-		 * rejected by the device.  Among the successful ones
+-		 * is FPDMA non-zero offset enable which when enabled
+-		 * only on the drive side leads to NCQ command
+-		 * failures.  Filter it out.
+-		 */
+-		{
+-			.ident = "Aspire 3810T",
+-			.matches = {
+-				DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
+-				DMI_MATCH(DMI_PRODUCT_NAME, "Aspire 3810T"),
+-			},
+-			.driver_data = (void *)ATA_ACPI_FILTER_FPDMA_OFFSET,
+-		},
+-		{ }
+-	};
+-	const struct dmi_system_id *dmi = dmi_first_match(sysids);
+-	unsigned int filter;
+-	int i;
+-
+-	if (!dmi)
+-		return;
+-
+-	filter = (unsigned long)dmi->driver_data;
+-	dev_printk(KERN_INFO, host->dev,
+-		   "applying extra ACPI _GTF filter 0x%x for %s\n",
+-		   filter, dmi->ident);
+-
+-	for (i = 0; i < host->n_ports; i++) {
+-		struct ata_port *ap = host->ports[i];
+-		struct ata_link *link;
+-		struct ata_device *dev;
+-
+-		ata_for_each_link(link, ap, EDGE)
+-			ata_for_each_dev(dev, link, ALL)
+-				dev->gtf_filter |= filter;
+-	}
+-}
+-#else
+-static inline void ahci_gtf_filter_workaround(struct ata_host *host)
+-{}
+-#endif
+-
+-=======
+->>>>>>> FETCH_HEAD:drivers/ata/ahci.c
+ static int ahci_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
+ {
+ 	static int printed_version;
+diff -puN fs/ecryptfs/Kconfig~linux-next-git-rejects fs/ecryptfs/Kconfig
+--- a/fs/ecryptfs/Kconfig~linux-next-git-rejects
++++ a/fs/ecryptfs/Kconfig
+@@ -1,10 +1,6 @@
+ config ECRYPT_FS
+ 	tristate "eCrypt filesystem layer support (EXPERIMENTAL)"
+-<<<<<<< HEAD:fs/ecryptfs/Kconfig
+-	depends on EXPERIMENTAL && KEYS && CRYPTO
+-=======
+ 	depends on EXPERIMENTAL && KEYS && NET && CRYPTO
+->>>>>>> FETCH_HEAD:fs/ecryptfs/Kconfig
+ 	select CRYPTO_ECB
+ 	select CRYPTO_CBC
+ 	select CRYPTO_MD5
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-origin.patch
 linux-next.patch
 linux-next-git-rejects.patch
 next-remove-localversion.patch
