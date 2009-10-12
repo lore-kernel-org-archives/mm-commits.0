@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + page-types-constify-read-only-arrays.patch added to -mm tree
-Date: Mon, 12 Oct 2009 14:41:17 -0700
-Message-ID: <200910122141.n9CLfI5k007381@imap1.linux-foundation.org>
+Subject: + page-types-trivial-typo-fixes.patch added to -mm tree
+Date: Mon, 12 Oct 2009 14:49:40 -0700
+Message-ID: <200910122149.n9CLnemw024823@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34483 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37971 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755547AbZJLVma (ORCPT
+	by vger.kernel.org with ESMTP id S933333AbZJLVvD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Oct 2009 17:42:30 -0400
+	Mon, 12 Oct 2009 17:51:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: tt.rantala@gmail.com, fengguang.wu@intel.com, rdunlap@xenotime.net
 
 
 The patch titled
-     page-types: constify read only arrays
+     page-types: trivial typo fixes
 has been added to the -mm tree.  Its filename is
-     page-types-constify-read-only-arrays.patch
+     page-types-trivial-typo-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page-types: constify read only arrays
+Subject: page-types: trivial typo fixes
 From: Tommi Rantala <tt.rantala@gmail.com>
 
 Signed-off-by: Tommi Rantala <tt.rantala@gmail.com>
@@ -44,36 +44,27 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN Documentation/vm/page-types.c~page-types-constify-read-only-arrays Documentation/vm/page-types.c
---- a/Documentation/vm/page-types.c~page-types-constify-read-only-arrays
+diff -puN Documentation/vm/page-types.c~page-types-trivial-typo-fixes Documentation/vm/page-types.c
+--- a/Documentation/vm/page-types.c~page-types-trivial-typo-fixes
 +++ a/Documentation/vm/page-types.c
-@@ -100,7 +100,7 @@
- #define BIT(name)		(1ULL << KPF_##name)
- #define BITS_COMPOUND		(BIT(COMPOUND_HEAD) | BIT(COMPOUND_TAIL))
- 
--static char *page_flag_names[] = {
-+static const char *page_flag_names[] = {
- 	[KPF_LOCKED]		= "L:locked",
- 	[KPF_ERROR]		= "E:error",
- 	[KPF_REFERENCED]	= "R:referenced",
-@@ -173,7 +173,7 @@ static int		kpageflags_fd;
- static int		opt_hwpoison;
- static int		opt_unpoison;
- 
--static char		*hwpoison_debug_fs = "/debug/hwpoison";
-+static const char	hwpoison_debug_fs[] = "/debug/hwpoison";
- static int		hwpoison_inject_fd;
- static int		hwpoison_forget_fd;
- 
-@@ -885,7 +885,7 @@ static void parse_bits_mask(const char *
- }
- 
- 
--static struct option opts[] = {
-+static const struct option opts[] = {
- 	{ "raw"       , 0, NULL, 'r' },
- 	{ "pid"       , 1, NULL, 'p' },
- 	{ "file"      , 1, NULL, 'f' },
+@@ -301,7 +301,7 @@ static char *page_flag_name(uint64_t fla
+ 		present = (flags >> i) & 1;
+ 		if (!page_flag_names[i]) {
+ 			if (present)
+-				fatal("unkown flag bit %d\n", i);
++				fatal("unknown flag bit %d\n", i);
+ 			continue;
+ 		}
+ 		buf[j++] = present ? page_flag_names[i][0] : '_';
+@@ -682,7 +682,7 @@ static void usage(void)
+ #endif
+ "            -l|--list                 Show page details in ranges\n"
+ "            -L|--list-each            Show page details one by one\n"
+-"            -N|--no-summary           Don't show summay info\n"
++"            -N|--no-summary           Don't show summary info\n"
+ "            -X|--hwpoison             hwpoison pages\n"
+ "            -x|--unpoison             unpoison pages\n"
+ "            -h|--help                 Show this usage message\n"
 _
 
 Patches currently in -mm which might be from tt.rantala@gmail.com are
