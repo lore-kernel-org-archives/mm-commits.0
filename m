@@ -1,118 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: + mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch added to -mm tree
-Date: Mon, 12 Oct 2009 15:38:24 -0700
-Message-ID: <200910122238.n9CMcPFT028711@imap1.linux-foundation.org>
+Subject: [obsolete] pcmcia-fix-controller-printk-warnings.patch removed from -mm tree
+Date: Mon, 12 Oct 2009 15:41:59 -0700
+Message-ID: <200910122241.n9CMfxp9003683@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44981 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36909 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933206AbZJLWjf (ORCPT
+	by vger.kernel.org with ESMTP id S1758362AbZJLWnW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Oct 2009 18:39:35 -0400
+	Mon, 12 Oct 2009 18:43:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hugh.dickins@tiscali.co.uk, kosaki.motohiro@jp.fujitsu.com
+To: randy.dunlap@oracle.com, greg@kroah.com, w.sang@pengutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes
-has been added to the -mm tree.  Its filename is
-     mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
+     pcmcia: fix controller printk warnings
+has been removed from the -mm tree.  Its filename was
+     pcmcia-fix-controller-printk-warnings.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: pcmcia: fix controller printk warnings
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-ERROR: "foo * bar" should be "foo *bar"
-#116: FILE: mm/mmap.c:1835:
-+static int __split_vma(struct mm_struct * mm, struct vm_area_struct * vma,
+Fix new pcmcia printk format warnings:
 
-ERROR: "foo * bar" should be "foo *bar"
-#138: FILE: mm/mmap.c:1888:
-+int split_vma(struct mm_struct * mm, struct vm_area_struct * vma,
+drivers/pcmcia/i82365.c:1055: warning: format '%#x' expects type 'unsigned int', but argument 6 has type 'phys_addr_t'
+drivers/pcmcia/i82365.c:1055: warning: format '%#x' expects type 'unsigned int', but argument 7 has type 'phys_addr_t'
+drivers/pcmcia/tcic.c:734: warning: format '%#x' expects type 'unsigned int', but argument 6 has type 'phys_addr_t'
+drivers/pcmcia/tcic.c:734: warning: format '%#x' expects type 'unsigned int', but argument 7 has type 'phys_addr_t'
 
-total: 2 errors, 0 warnings, 67 lines checked
-
-./patches/mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Wolfram Sang <w.sang@pengutronix.de>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ drivers/pcmcia/i82365.c |    4 ++--
+ drivers/pcmcia/tcic.c   |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/mmap.c~mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes mm/mmap.c
---- a/mm/mmap.c~mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes
-+++ a/mm/mmap.c
-@@ -1885,7 +1885,7 @@ static int __split_vma(struct mm_struct 
-  * Split a vma into two pieces at address 'addr', a new vma is allocated
-  * either for the first part or the tail.
-  */
--int split_vma(struct mm_struct * mm, struct vm_area_struct * vma,
-+int split_vma(struct mm_struct *mm, struct vm_area_struct *vma,
- 	      unsigned long addr, int new_below)
- {
- 	if (mm->map_count >= sysctl_max_map_count)
+diff -puN drivers/pcmcia/i82365.c~pcmcia-fix-controller-printk-warnings drivers/pcmcia/i82365.c
+--- a/drivers/pcmcia/i82365.c~pcmcia-fix-controller-printk-warnings
++++ a/drivers/pcmcia/i82365.c
+@@ -1053,8 +1053,8 @@ static int i365_set_io_map(u_short sock,
+     u_char map, ioctl;
+     
+     debug(1, "SetIOMap(%d, %d, %#2.2x, %d ns, "
+-	  "%#x-%#x)\n", sock, io->map, io->flags,
+-	  io->speed, io->start, io->stop);
++	  "%#llx-%#llx)\n", sock, io->map, io->flags, io->speed,
++	  (unsigned long long)io->start, (unsigned long long)io->stop);
+     map = io->map;
+     if ((map > 1) || (io->start > 0xffff) || (io->stop > 0xffff) ||
+ 	(io->stop < io->start)) return -EINVAL;
+diff -puN drivers/pcmcia/tcic.c~pcmcia-fix-controller-printk-warnings drivers/pcmcia/tcic.c
+--- a/drivers/pcmcia/tcic.c~pcmcia-fix-controller-printk-warnings
++++ a/drivers/pcmcia/tcic.c
+@@ -732,8 +732,8 @@ static int tcic_set_io_map(struct pcmcia
+     u_short base, len, ioctl;
+     
+     debug(1, "SetIOMap(%d, %d, %#2.2x, %d ns, "
+-	  "%#x-%#x)\n", psock, io->map, io->flags,
+-	  io->speed, io->start, io->stop);
++	  "%#llx-%#llx)\n", psock, io->map, io->flags, io->speed,
++	  (unsigned long long)io->start, (unsigned long long)io->stop);
+     if ((io->map > 1) || (io->start > 0xffff) || (io->stop > 0xffff) ||
+ 	(io->stop < io->start)) return -EINVAL;
+     tcic_setw(TCIC_ADDR+2, TCIC_ADR2_INDREG | (psock << TCIC_SS_SHFT));
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
+cpufreq-add-cpufreq_get-stub-for-config_cpu_freq=n.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices-fix.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-include-trace-events-lockdeph-fix-do_div-warning.patch
-st-fix-test-of-value-range-in-st_set_options.patch
-scsi-add-hpsa-driver-for-hp-smart-array-controllers-fix.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-hfsplus-refuse-to-mount-volumes-larger-than-2tb-fix.patch
-revert-mm-oom-analysis-add-buffer-cache-information-to-show_free_areas.patch
-drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
-vfs-implement-posix-o_sync-and-o_dsync-semantics-checkpatch-fixes.patch
+scsi-fix-func-names-in-kernel-doc.patch
+pcmcia-fix-controller-printk-format-warnings.patch
 readahead-add-blk_run_backing_dev.patch
-mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs.patch
-memcg-coalesce-charging-via-percpu-storage-fix.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
+pcmcia-fix-controller-printk-warnings.patch
 reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-reiser4-disable.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
 
