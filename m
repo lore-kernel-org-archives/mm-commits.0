@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-stk17ta8-fix-races-around-device-registration.patch added to -mm tree
-Date: Mon, 12 Oct 2009 14:54:22 -0700
-Message-ID: <200910122154.n9CLsNwo002067@imap1.linux-foundation.org>
+Subject: + cciss-add-cciss_allow_hpsa-module-parameter.patch added to -mm tree
+Date: Mon, 12 Oct 2009 15:08:07 -0700
+Message-ID: <200910122208.n9CM87qC030503@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51292 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56597 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932617AbZJLVze (ORCPT
+	by vger.kernel.org with ESMTP id S933467AbZJLWJn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Oct 2009 17:55:34 -0400
+	Mon, 12 Oct 2009 18:09:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: anemo@mba.ocn.ne.jp
+Cc: scameron@beardog.cce.hp.com, jens.axboe@oracle.com, mike.miller@hp.com
 
 
 The patch titled
-     rtc-stk17ta8: fix races around device registration
+     cciss: add cciss_allow_hpsa module parameter
 has been added to the -mm tree.  Its filename is
-     rtc-stk17ta8-fix-races-around-device-registration.patch
+     cciss-add-cciss_allow_hpsa-module-parameter.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,243 +34,167 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-stk17ta8: fix races around device registration
-From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Subject: cciss: add cciss_allow_hpsa module parameter
+From: "Stephen M. Cameron" <scameron@beardog.cce.hp.com>
 
-- Call dev_set_drvdata before rtc device creation.
+Add cciss_allow_hpsa module parameter.  This parameter causes the cciss
+driver to ignore any Smart Array devices known to be supported by the hpsa
+driver.
 
-- Use its own spinlock instead of rtc->irq_lock.  Because pdata->rtc
-  must be initialized to use the irq_lock (pdata->rtc->irq_lock).  There
-  is a small window which rtc methods can be called before pdata->rtc is
-  initialized.
-
-  And there is no need use the irq_lock to protect hardware registers. 
-  The driver's own spinlock shoule be enough.
-
-- Check pdata->rtc before calling rtc_update_irq.
-
-- Use alarm_irq_enable and remove ioctl routine.
-
-- Use devres APIs and simplify error/remove path.
-
-These fixes are ported from ds1553 driver and just compile-tested only.
-
-Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Signed-off-by: Stephen M. Cameron <scameron@beardog.cce.hp.com>
+Cc: Mike Miller <mike.miller@hp.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/rtc/rtc-stk17ta8.c~rtc-stk17ta8-fix-races-around-device-registration drivers/rtc/rtc-stk17ta8.c
---- a/drivers/rtc/rtc-stk17ta8.c~rtc-stk17ta8-fix-races-around-device-registration
-+++ a/drivers/rtc/rtc-stk17ta8.c
-@@ -62,7 +62,6 @@
- struct rtc_plat_data {
- 	struct rtc_device *rtc;
- 	void __iomem *ioaddr;
--	unsigned long baseaddr;
- 	unsigned long last_jiffies;
- 	int irq;
- 	unsigned int irqen;
-@@ -70,6 +69,7 @@ struct rtc_plat_data {
- 	int alrm_min;
- 	int alrm_hour;
- 	int alrm_mday;
-+	spinlock_t lock;
+diff -puN drivers/block/cciss.c~cciss-add-cciss_allow_hpsa-module-parameter drivers/block/cciss.c
+--- a/drivers/block/cciss.c~cciss-add-cciss_allow_hpsa-module-parameter
++++ a/drivers/block/cciss.c
+@@ -68,6 +68,12 @@ MODULE_SUPPORTED_DEVICE("HP SA5i SA5i+ S
+ MODULE_VERSION("3.6.20");
+ MODULE_LICENSE("GPL");
+ 
++static int cciss_allow_hpsa;
++module_param(cciss_allow_hpsa, int, S_IRUGO|S_IWUSR);
++MODULE_PARM_DESC(cciss_allow_hpsa,
++	"Prevent cciss driver from accessing hardware known to be "
++	" supported by the hpsa driver");
++
+ #include "cciss_cmd.h"
+ #include "cciss.h"
+ #include <linux/cciss_ioctl.h>
+@@ -101,8 +107,6 @@ static const struct pci_device_id cciss_
+ 	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSE,     0x103C, 0x3249},
+ 	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSE,     0x103C, 0x324A},
+ 	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSE,     0x103C, 0x324B},
+-	{PCI_VENDOR_ID_HP,     PCI_ANY_ID,	PCI_ANY_ID, PCI_ANY_ID,
+-		PCI_CLASS_STORAGE_RAID << 8, 0xffff << 8, 0},
+ 	{0,}
  };
  
- static int stk17ta8_rtc_set_time(struct device *dev, struct rtc_time *tm)
-@@ -142,7 +142,7 @@ static void stk17ta8_rtc_update_alarm(st
- 	unsigned long irqflags;
- 	u8 flags;
+@@ -123,8 +127,6 @@ static struct board_type products[] = {
+ 	{0x409D0E11, "Smart Array 6400 EM", &SA5_access},
+ 	{0x40910E11, "Smart Array 6i", &SA5_access},
+ 	{0x3225103C, "Smart Array P600", &SA5_access},
+-	{0x3223103C, "Smart Array P800", &SA5_access},
+-	{0x3234103C, "Smart Array P400", &SA5_access},
+ 	{0x3235103C, "Smart Array P400i", &SA5_access},
+ 	{0x3211103C, "Smart Array E200i", &SA5_access},
+ 	{0x3212103C, "Smart Array E200", &SA5_access},
+@@ -132,6 +134,10 @@ static struct board_type products[] = {
+ 	{0x3214103C, "Smart Array E200i", &SA5_access},
+ 	{0x3215103C, "Smart Array E200i", &SA5_access},
+ 	{0x3237103C, "Smart Array E500", &SA5_access},
++/* controllers below this line are also supported by the hpsa driver. */
++#define HPSA_BOUNDARY 0x3223103C
++	{0x3223103C, "Smart Array P800", &SA5_access},
++	{0x3234103C, "Smart Array P400", &SA5_access},
+ 	{0x323D103C, "Smart Array P700m", &SA5_access},
+ 	{0x3241103C, "Smart Array P212", &SA5_access},
+ 	{0x3243103C, "Smart Array P410", &SA5_access},
+@@ -140,7 +146,6 @@ static struct board_type products[] = {
+ 	{0x3249103C, "Smart Array P812", &SA5_access},
+ 	{0x324A103C, "Smart Array P712m", &SA5_access},
+ 	{0x324B103C, "Smart Array P711m", &SA5_access},
+-	{0xFFFF103C, "Unknown Smart Array", &SA5_access},
+ };
  
--	spin_lock_irqsave(&pdata->rtc->irq_lock, irqflags);
-+	spin_lock_irqsave(&pdata->lock, irqflags);
- 
- 	flags = readb(ioaddr + RTC_FLAGS);
- 	writeb(flags | RTC_WRITE, ioaddr + RTC_FLAGS);
-@@ -162,7 +162,7 @@ static void stk17ta8_rtc_update_alarm(st
- 	writeb(pdata->irqen ? RTC_INTS_AIE : 0, ioaddr + RTC_INTERRUPTS);
- 	readb(ioaddr + RTC_FLAGS);	/* clear interrupts */
- 	writeb(flags & ~RTC_WRITE, ioaddr + RTC_FLAGS);
--	spin_unlock_irqrestore(&pdata->rtc->irq_lock, irqflags);
-+	spin_unlock_irqrestore(&pdata->lock, irqflags);
- }
- 
- static int stk17ta8_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
-@@ -202,48 +202,45 @@ static irqreturn_t stk17ta8_rtc_interrup
- 	struct platform_device *pdev = dev_id;
- 	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
- 	void __iomem *ioaddr = pdata->ioaddr;
--	unsigned long events = RTC_IRQF;
-+	unsigned long events = 0;
- 
-+	spin_lock(&pdata->lock);
- 	/* read and clear interrupt */
--	if (!(readb(ioaddr + RTC_FLAGS) & RTC_FLAGS_AF))
--		return IRQ_NONE;
--	if (readb(ioaddr + RTC_SECONDS_ALARM) & 0x80)
--		events |= RTC_UF;
--	else
--		events |= RTC_AF;
--	rtc_update_irq(pdata->rtc, 1, events);
--	return IRQ_HANDLED;
-+	if (readb(ioaddr + RTC_FLAGS) & RTC_FLAGS_AF) {
-+		events = RTC_IRQF;
-+		if (readb(ioaddr + RTC_SECONDS_ALARM) & 0x80)
-+			events |= RTC_UF;
-+		else
-+			events |= RTC_AF;
-+		if (likely(pdata->rtc))
-+			rtc_update_irq(pdata->rtc, 1, events);
+ /* How long to wait (in milliseconds) for board to go into simple mode */
+@@ -3754,7 +3759,27 @@ static int __devinit cciss_pci_init(ctlr
+ 	__u64 cfg_offset;
+ 	__u32 cfg_base_addr;
+ 	__u64 cfg_base_addr_index;
+-	int i, err;
++	int i, prod_index, err;
++
++	subsystem_vendor_id = pdev->subsystem_vendor;
++	subsystem_device_id = pdev->subsystem_device;
++	board_id = (((__u32) (subsystem_device_id << 16) & 0xffff0000) |
++		    subsystem_vendor_id);
++
++	for (i = 0; i < ARRAY_SIZE(products); i++) {
++		/* Stand aside for hpsa driver on request */
++		if (cciss_allow_hpsa && products[i].board_id == HPSA_BOUNDARY)
++			return -ENODEV;
++		if (board_id == products[i].board_id)
++			break;
 +	}
-+	spin_unlock(&pdata->lock);
-+	return events ? IRQ_HANDLED : IRQ_NONE;
- }
++	prod_index = i;
++	if (prod_index == ARRAY_SIZE(products)) {
++		dev_warn(&pdev->dev,
++			"unrecognized board ID: 0x%08lx, ignoring.\n",
++			(unsigned long) board_id);
++		return -ENODEV;
++	}
  
--static int stk17ta8_rtc_ioctl(struct device *dev, unsigned int cmd,
--			    unsigned long arg)
-+static int stk17ta8_rtc_alarm_irq_enable(struct device *dev,
-+	unsigned int enabled)
- {
- 	struct platform_device *pdev = to_platform_device(dev);
- 	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
+ 	/* check to see if controller has been disabled */
+ 	/* BEFORE trying to enable it */
+@@ -3778,11 +3803,6 @@ static int __devinit cciss_pci_init(ctlr
+ 		return err;
+ 	}
  
- 	if (pdata->irq <= 0)
--		return -ENOIOCTLCMD; /* fall back into rtc-dev's emulation */
--	switch (cmd) {
--	case RTC_AIE_OFF:
--		pdata->irqen &= ~RTC_AF;
--		stk17ta8_rtc_update_alarm(pdata);
--		break;
--	case RTC_AIE_ON:
-+		return -EINVAL;
-+	if (enabled)
- 		pdata->irqen |= RTC_AF;
--		stk17ta8_rtc_update_alarm(pdata);
--		break;
--	default:
--		return -ENOIOCTLCMD;
+-	subsystem_vendor_id = pdev->subsystem_vendor;
+-	subsystem_device_id = pdev->subsystem_device;
+-	board_id = (((__u32) (subsystem_device_id << 16) & 0xffff0000) |
+-		    subsystem_vendor_id);
+-
+ #ifdef CCISS_DEBUG
+ 	printk("command = %x\n", command);
+ 	printk("irq = %x\n", pdev->irq);
+@@ -3868,14 +3888,9 @@ static int __devinit cciss_pci_init(ctlr
+ 	 * leave a little room for ioctl calls.
+ 	 */
+ 	c->max_commands = readl(&(c->cfgtable->CmdsOutMax));
+-	for (i = 0; i < ARRAY_SIZE(products); i++) {
+-		if (board_id == products[i].board_id) {
+-			c->product_name = products[i].product_name;
+-			c->access = *(products[i].access);
+-			c->nr_cmds = c->max_commands - 4;
+-			break;
+-		}
 -	}
-+	else
-+		pdata->irqen &= ~RTC_AF;
-+	stk17ta8_rtc_update_alarm(pdata);
- 	return 0;
- }
- 
- static const struct rtc_class_ops stk17ta8_rtc_ops = {
--	.read_time	= stk17ta8_rtc_read_time,
--	.set_time	= stk17ta8_rtc_set_time,
--	.read_alarm	= stk17ta8_rtc_read_alarm,
--	.set_alarm	= stk17ta8_rtc_set_alarm,
--	.ioctl		= stk17ta8_rtc_ioctl,
-+	.read_time		= stk17ta8_rtc_read_time,
-+	.set_time		= stk17ta8_rtc_set_time,
-+	.read_alarm		= stk17ta8_rtc_read_alarm,
-+	.set_alarm		= stk17ta8_rtc_set_alarm,
-+	.alarm_irq_enable	= stk17ta8_rtc_alarm_irq_enable,
- };
- 
- static ssize_t stk17ta8_nvram_read(struct kobject *kobj,
-@@ -293,26 +290,22 @@ static int __devinit stk17ta8_rtc_probe(
- 	unsigned int cal;
- 	unsigned int flags;
- 	struct rtc_plat_data *pdata;
--	void __iomem *ioaddr = NULL;
-+	void __iomem *ioaddr;
- 	int ret = 0;
- 
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (!res)
- 		return -ENODEV;
- 
--	pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
-+	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
- 	if (!pdata)
- 		return -ENOMEM;
--	if (!request_mem_region(res->start, RTC_REG_SIZE, pdev->name)) {
--		ret = -EBUSY;
--		goto out;
++	c->product_name = products[prod_index].product_name;
++	c->access = *(products[prod_index].access);
++	c->nr_cmds = c->max_commands - 4;
+ 	if ((readb(&c->cfgtable->Signature[0]) != 'C') ||
+ 	    (readb(&c->cfgtable->Signature[1]) != 'I') ||
+ 	    (readb(&c->cfgtable->Signature[2]) != 'S') ||
+@@ -3884,27 +3899,6 @@ static int __devinit cciss_pci_init(ctlr
+ 		err = -ENODEV;
+ 		goto err_out_free_res;
+ 	}
+-	/* We didn't find the controller in our list. We know the
+-	 * signature is valid. If it's an HP device let's try to
+-	 * bind to the device and fire it up. Otherwise we bail.
+-	 */
+-	if (i == ARRAY_SIZE(products)) {
+-		if (subsystem_vendor_id == PCI_VENDOR_ID_HP) {
+-			c->product_name = products[i-1].product_name;
+-			c->access = *(products[i-1].access);
+-			c->nr_cmds = c->max_commands - 4;
+-			printk(KERN_WARNING "cciss: This is an unknown "
+-				"Smart Array controller.\n"
+-				"cciss: Please update to the latest driver "
+-				"available from www.hp.com.\n");
+-		} else {
+-			printk(KERN_WARNING "cciss: Sorry, I don't know how"
+-				" to access the Smart Array controller %08lx\n"
+-					, (unsigned long)board_id);
+-			err = -ENODEV;
+-			goto err_out_free_res;
+-		}
 -	}
--	pdata->baseaddr = res->start;
--	ioaddr = ioremap(pdata->baseaddr, RTC_REG_SIZE);
--	if (!ioaddr) {
--		ret = -ENOMEM;
--		goto out;
--	}
-+	if (!devm_request_mem_region(&pdev->dev, res->start, RTC_REG_SIZE,
-+			pdev->name))
-+		return -EBUSY;
-+	ioaddr = devm_ioremap(&pdev->dev, res->start, RTC_REG_SIZE);
-+	if (!ioaddr)
-+		return -ENOMEM;
- 	pdata->ioaddr = ioaddr;
- 	pdata->irq = platform_get_irq(pdev, 0);
- 
-@@ -328,9 +321,13 @@ static int __devinit stk17ta8_rtc_probe(
- 	if (readb(ioaddr + RTC_FLAGS) & RTC_FLAGS_PF)
- 		dev_warn(&pdev->dev, "voltage-low detected.\n");
- 
-+	spin_lock_init(&pdata->lock);
-+	pdata->last_jiffies = jiffies;
-+	platform_set_drvdata(pdev, pdata);
- 	if (pdata->irq > 0) {
- 		writeb(0, ioaddr + RTC_INTERRUPTS);
--		if (request_irq(pdata->irq, stk17ta8_rtc_interrupt,
-+		if (devm_request_irq(&pdev->dev, pdata->irq,
-+				stk17ta8_rtc_interrupt,
- 				IRQF_DISABLED | IRQF_SHARED,
- 				pdev->name, pdev) < 0) {
- 			dev_warn(&pdev->dev, "interrupt not available.\n");
-@@ -340,27 +337,12 @@ static int __devinit stk17ta8_rtc_probe(
- 
- 	rtc = rtc_device_register(pdev->name, &pdev->dev,
- 				  &stk17ta8_rtc_ops, THIS_MODULE);
--	if (IS_ERR(rtc)) {
--		ret = PTR_ERR(rtc);
--		goto out;
--	}
-+	if (IS_ERR(rtc))
-+		return PTR_ERR(rtc);
- 	pdata->rtc = rtc;
--	pdata->last_jiffies = jiffies;
--	platform_set_drvdata(pdev, pdata);
- 	ret = sysfs_create_bin_file(&pdev->dev.kobj, &stk17ta8_nvram_attr);
- 	if (ret)
--		goto out;
--	return 0;
-- out:
--	if (pdata->rtc)
--		rtc_device_unregister(pdata->rtc);
--	if (pdata->irq > 0)
--		free_irq(pdata->irq, pdev);
--	if (ioaddr)
--		iounmap(ioaddr);
--	if (pdata->baseaddr)
--		release_mem_region(pdata->baseaddr, RTC_REG_SIZE);
--	kfree(pdata);
-+		rtc_device_unregister(rtc);
- 	return ret;
- }
- 
-@@ -370,13 +352,8 @@ static int __devexit stk17ta8_rtc_remove
- 
- 	sysfs_remove_bin_file(&pdev->dev.kobj, &stk17ta8_nvram_attr);
- 	rtc_device_unregister(pdata->rtc);
--	if (pdata->irq > 0) {
-+	if (pdata->irq > 0)
- 		writeb(0, pdata->ioaddr + RTC_INTERRUPTS);
--		free_irq(pdata->irq, pdev);
--	}
--	iounmap(pdata->ioaddr);
--	release_mem_region(pdata->baseaddr, RTC_REG_SIZE);
--	kfree(pdata);
- 	return 0;
- }
- 
+ #ifdef CONFIG_X86
+ 	{
+ 		/* Need to enable prefetch in the SCSI core for 6400 in x86 */
 _
 
-Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
+Patches currently in -mm which might be from scameron@beardog.cce.hp.com are
 
-rtc-ds1511-fix-races-around-device-registration.patch
-rtc-stk17ta8-fix-races-around-device-registration.patch
+scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
+scsi-add-hpsa-driver-for-hp-smart-array-controllers-fix-hpsa_allow_any-test-for-vendor-id.patch
+scsi-add-hpsa-driver-for-hp-smart-array-controllers-fix.patch
+cciss-fix-multiple-calls-to-pci_release_regions.patch
+cciss-add-cciss_allow_hpsa-module-parameter.patch
 
