@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-tx4939-fix-races-around-device-registration.patch added to -mm tree
-Date: Mon, 12 Oct 2009 16:01:20 -0700
-Message-ID: <200910122301.n9CN1Kgn011698@imap1.linux-foundation.org>
+Subject: + sn-unsigned-cannot-be-less-than-0-in-sn_hwperf_ioctl.patch added to -mm tree
+Date: Mon, 12 Oct 2009 16:12:10 -0700
+Message-ID: <200910122312.n9CNCA1I001861@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54950 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58601 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756060AbZJLXCb (ORCPT
+	by vger.kernel.org with ESMTP id S1757149AbZJLXMv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Oct 2009 19:02:31 -0400
+	Mon, 12 Oct 2009 19:12:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: anemo@mba.ocn.ne.jp, a.zummo@towertech.it, david-b@pacbell.net
+Cc: roel.kluin@gmail.com, jes@sgi.com, tony.luck@intel.com
 
 
 The patch titled
-     rtc-tx4939: fix races around device registration
+     sn: unsigned cannot be less than 0 in sn_hwperf_ioctl()
 has been added to the -mm tree.  Its filename is
-     rtc-tx4939-fix-races-around-device-registration.patch
+     sn-unsigned-cannot-be-less-than-0-in-sn_hwperf_ioctl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,208 +34,66 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-tx4939: fix races around device registration
-From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Subject: sn: unsigned cannot be less than 0 in sn_hwperf_ioctl()
+From: Roel Kluin <roel.kluin@gmail.com>
 
-* Use its own spinlock instead of rtc->irq_lock
-* Check pdata->rtc before calling rtc_update_irq
-* Disable interrupt after rtc_device_unregister
+struct sn_hwperf_ioctl_args member arg (u64) cannot be less than 0.
 
-Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-Acked-by: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Jes Sorensen <jes@sgi.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/rtc/rtc-tx4939.c~rtc-tx4939-fix-races-around-device-registration drivers/rtc/rtc-tx4939.c
---- a/drivers/rtc/rtc-tx4939.c~rtc-tx4939-fix-races-around-device-registration
-+++ a/drivers/rtc/rtc-tx4939.c
-@@ -17,6 +17,7 @@
- struct tx4939rtc_plat_data {
- 	struct rtc_device *rtc;
- 	struct tx4939_rtc_reg __iomem *rtcreg;
-+	spinlock_t lock;
- };
+diff -puN arch/ia64/sn/kernel/sn2/sn_hwperf.c~sn-unsigned-cannot-be-less-than-0-in-sn_hwperf_ioctl arch/ia64/sn/kernel/sn2/sn_hwperf.c
+--- a/arch/ia64/sn/kernel/sn2/sn_hwperf.c~sn-unsigned-cannot-be-less-than-0-in-sn_hwperf_ioctl
++++ a/arch/ia64/sn/kernel/sn2/sn_hwperf.c
+@@ -786,17 +786,18 @@ sn_hwperf_ioctl(struct inode *in, struct
+ 		break;
  
- static struct tx4939rtc_plat_data *get_tx4939rtc_plat_data(struct device *dev)
-@@ -52,14 +53,14 @@ static int tx4939_rtc_set_mmss(struct de
- 	buf[3] = secs >> 8;
- 	buf[4] = secs >> 16;
- 	buf[5] = secs >> 24;
--	spin_lock_irq(&pdata->rtc->irq_lock);
-+	spin_lock_irq(&pdata->lock);
- 	__raw_writel(0, &rtcreg->adr);
- 	for (i = 0; i < 6; i++)
- 		__raw_writel(buf[i], &rtcreg->dat);
- 	ret = tx4939_rtc_cmd(rtcreg,
- 			     TX4939_RTCCTL_COMMAND_SETTIME |
- 			     (__raw_readl(&rtcreg->ctl) & TX4939_RTCCTL_ALME));
--	spin_unlock_irq(&pdata->rtc->irq_lock);
-+	spin_unlock_irq(&pdata->lock);
- 	return ret;
- }
- 
-@@ -71,18 +72,18 @@ static int tx4939_rtc_read_time(struct d
- 	unsigned long sec;
- 	unsigned char buf[6];
- 
--	spin_lock_irq(&pdata->rtc->irq_lock);
-+	spin_lock_irq(&pdata->lock);
- 	ret = tx4939_rtc_cmd(rtcreg,
- 			     TX4939_RTCCTL_COMMAND_GETTIME |
- 			     (__raw_readl(&rtcreg->ctl) & TX4939_RTCCTL_ALME));
- 	if (ret) {
--		spin_unlock_irq(&pdata->rtc->irq_lock);
-+		spin_unlock_irq(&pdata->lock);
- 		return ret;
- 	}
- 	__raw_writel(2, &rtcreg->adr);
- 	for (i = 2; i < 6; i++)
- 		buf[i] = __raw_readl(&rtcreg->dat);
--	spin_unlock_irq(&pdata->rtc->irq_lock);
-+	spin_unlock_irq(&pdata->lock);
- 	sec = (buf[5] << 24) | (buf[4] << 16) | (buf[3] << 8) | buf[2];
- 	rtc_time_to_tm(sec, tm);
- 	return rtc_valid_tm(tm);
-@@ -110,13 +111,13 @@ static int tx4939_rtc_set_alarm(struct d
- 	buf[3] = sec >> 8;
- 	buf[4] = sec >> 16;
- 	buf[5] = sec >> 24;
--	spin_lock_irq(&pdata->rtc->irq_lock);
-+	spin_lock_irq(&pdata->lock);
- 	__raw_writel(0, &rtcreg->adr);
- 	for (i = 0; i < 6; i++)
- 		__raw_writel(buf[i], &rtcreg->dat);
- 	ret = tx4939_rtc_cmd(rtcreg, TX4939_RTCCTL_COMMAND_SETALARM |
- 			     (alrm->enabled ? TX4939_RTCCTL_ALME : 0));
--	spin_unlock_irq(&pdata->rtc->irq_lock);
-+	spin_unlock_irq(&pdata->lock);
- 	return ret;
- }
- 
-@@ -129,12 +130,12 @@ static int tx4939_rtc_read_alarm(struct 
- 	unsigned char buf[6];
- 	u32 ctl;
- 
--	spin_lock_irq(&pdata->rtc->irq_lock);
-+	spin_lock_irq(&pdata->lock);
- 	ret = tx4939_rtc_cmd(rtcreg,
- 			     TX4939_RTCCTL_COMMAND_GETALARM |
- 			     (__raw_readl(&rtcreg->ctl) & TX4939_RTCCTL_ALME));
- 	if (ret) {
--		spin_unlock_irq(&pdata->rtc->irq_lock);
-+		spin_unlock_irq(&pdata->lock);
- 		return ret;
- 	}
- 	__raw_writel(2, &rtcreg->adr);
-@@ -143,7 +144,7 @@ static int tx4939_rtc_read_alarm(struct 
- 	ctl = __raw_readl(&rtcreg->ctl);
- 	alrm->enabled = (ctl & TX4939_RTCCTL_ALME) ? 1 : 0;
- 	alrm->pending = (ctl & TX4939_RTCCTL_ALMD) ? 1 : 0;
--	spin_unlock_irq(&pdata->rtc->irq_lock);
-+	spin_unlock_irq(&pdata->lock);
- 	sec = (buf[5] << 24) | (buf[4] << 16) | (buf[3] << 8) | buf[2];
- 	rtc_time_to_tm(sec, &alrm->time);
- 	return rtc_valid_tm(&alrm->time);
-@@ -153,11 +154,11 @@ static int tx4939_rtc_alarm_irq_enable(s
- {
- 	struct tx4939rtc_plat_data *pdata = get_tx4939rtc_plat_data(dev);
- 
--	spin_lock_irq(&pdata->rtc->irq_lock);
-+	spin_lock_irq(&pdata->lock);
- 	tx4939_rtc_cmd(pdata->rtcreg,
- 		       TX4939_RTCCTL_COMMAND_NOP |
- 		       (enabled ? TX4939_RTCCTL_ALME : 0));
--	spin_unlock_irq(&pdata->rtc->irq_lock);
-+	spin_unlock_irq(&pdata->lock);
- 	return 0;
- }
- 
-@@ -167,13 +168,14 @@ static irqreturn_t tx4939_rtc_interrupt(
- 	struct tx4939_rtc_reg __iomem *rtcreg = pdata->rtcreg;
- 	unsigned long events = RTC_IRQF;
- 
--	spin_lock(&pdata->rtc->irq_lock);
-+	spin_lock(&pdata->lock);
- 	if (__raw_readl(&rtcreg->ctl) & TX4939_RTCCTL_ALMD) {
- 		events |= RTC_AF;
- 		tx4939_rtc_cmd(rtcreg, TX4939_RTCCTL_COMMAND_NOP);
- 	}
--	spin_unlock(&pdata->rtc->irq_lock);
--	rtc_update_irq(pdata->rtc, 1, events);
-+	spin_unlock(&pdata->lock);
-+	if (likely(pdata->rtc))
-+		rtc_update_irq(pdata->rtc, 1, events);
- 	return IRQ_HANDLED;
- }
- 
-@@ -194,13 +196,13 @@ static ssize_t tx4939_rtc_nvram_read(str
- 	struct tx4939_rtc_reg __iomem *rtcreg = pdata->rtcreg;
- 	ssize_t count;
- 
--	spin_lock_irq(&pdata->rtc->irq_lock);
-+	spin_lock_irq(&pdata->lock);
- 	for (count = 0; size > 0 && pos < TX4939_RTC_REG_RAMSIZE;
- 	     count++, size--) {
- 		__raw_writel(pos++, &rtcreg->adr);
- 		*buf++ = __raw_readl(&rtcreg->dat);
- 	}
--	spin_unlock_irq(&pdata->rtc->irq_lock);
-+	spin_unlock_irq(&pdata->lock);
- 	return count;
- }
- 
-@@ -213,13 +215,13 @@ static ssize_t tx4939_rtc_nvram_write(st
- 	struct tx4939_rtc_reg __iomem *rtcreg = pdata->rtcreg;
- 	ssize_t count;
- 
--	spin_lock_irq(&pdata->rtc->irq_lock);
-+	spin_lock_irq(&pdata->lock);
- 	for (count = 0; size > 0 && pos < TX4939_RTC_REG_RAMSIZE;
- 	     count++, size--) {
- 		__raw_writel(pos++, &rtcreg->adr);
- 		__raw_writel(*buf++, &rtcreg->dat);
- 	}
--	spin_unlock_irq(&pdata->rtc->irq_lock);
-+	spin_unlock_irq(&pdata->lock);
- 	return count;
- }
- 
-@@ -259,6 +261,7 @@ static int __init tx4939_rtc_probe(struc
- 	if (!pdata->rtcreg)
- 		return -EBUSY;
- 
-+	spin_lock_init(&pdata->lock);
- 	tx4939_rtc_cmd(pdata->rtcreg, TX4939_RTCCTL_COMMAND_NOP);
- 	if (devm_request_irq(&pdev->dev, irq, tx4939_rtc_interrupt,
- 			     IRQF_DISABLED, pdev->name, &pdev->dev) < 0)
-@@ -277,14 +280,12 @@ static int __init tx4939_rtc_probe(struc
- static int __exit tx4939_rtc_remove(struct platform_device *pdev)
- {
- 	struct tx4939rtc_plat_data *pdata = platform_get_drvdata(pdev);
--	struct rtc_device *rtc = pdata->rtc;
- 
--	spin_lock_irq(&rtc->irq_lock);
--	tx4939_rtc_cmd(pdata->rtcreg, TX4939_RTCCTL_COMMAND_NOP);
--	spin_unlock_irq(&rtc->irq_lock);
- 	sysfs_remove_bin_file(&pdev->dev.kobj, &tx4939_rtc_nvram_attr);
--	rtc_device_unregister(rtc);
--	platform_set_drvdata(pdev, NULL);
-+	rtc_device_unregister(pdata->rtc);
-+	spin_lock_irq(&pdata->lock);
-+	tx4939_rtc_cmd(pdata->rtcreg, TX4939_RTCCTL_COMMAND_NOP);
-+	spin_unlock_irq(&pdata->lock);
- 	return 0;
- }
- 
+ 	case SN_HWPERF_GET_OBJ_NODE:
+-		if (a.sz != sizeof(u64) || a.arg < 0) {
++		i = a.arg;
++		if (a.sz != sizeof(u64) || i < 0) {
+ 			r = -EINVAL;
+ 			goto error;
+ 		}
+ 		if ((r = sn_hwperf_enum_objects(&nobj, &objs)) == 0) {
+-			if (a.arg >= nobj) {
++			if (i >= nobj) {
+ 				r = -EINVAL;
+ 				vfree(objs);
+ 				goto error;
+ 			}
+-			if (objs[(i = a.arg)].id != a.arg) {
++			if (objs[i].id != a.arg) {
+ 				for (i = 0; i < nobj; i++) {
+ 					if (objs[i].id == a.arg)
+ 						break;
 _
 
-Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
-rtc-ds1511-fix-races-around-device-registration.patch
-rtc-stk17ta8-fix-races-around-device-registration.patch
-rtc-tx4939-fix-races-around-device-registration.patch
-rtc-ds1553-fix-races-around-device-registration.patch
-rtc-ds1742-fix-races-around-device-registration.patch
+linux-next.patch
+fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+sn-unsigned-cannot-be-less-than-0-in-sn_hwperf_ioctl.patch
+hfc_usb-fix-read-buffer-overflow.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
+zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
+st-fix-test-of-value-range-in-st_set_options.patch
+drivers-staging-octeon-ethernet-rgmiic-dont-ignore-request_irq-return-code.patch
+page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+cryptocop-fix-assertion-in-create_output_descriptors.patch
+gpio-fix-test-on-unsigned-in-lnw_irq_type.patch
 
