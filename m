@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch added to -mm tree
-Date: Mon, 12 Oct 2009 15:13:25 -0700
-Message-ID: <200910122213.n9CMDP1o009090@imap1.linux-foundation.org>
+Subject: + cryptocop-fix-assertion-in-create_output_descriptors.patch added to -mm tree
+Date: Mon, 12 Oct 2009 15:12:41 -0700
+Message-ID: <200910122212.n9CMCfcf007535@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57780 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52724 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757103AbZJLWP1 (ORCPT
+	by vger.kernel.org with ESMTP id S933447AbZJLWNm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Oct 2009 18:15:27 -0400
+	Mon, 12 Oct 2009 18:13:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, jwoithe@physics.adelaide.edu.au, lenb@kernel.org
+Cc: roel.kluin@gmail.com, jesper.nilsson@axis.com, starvik@axis.com
 
 
 The patch titled
-     fujitsu-laptop: fix tests of acpi_evaluate_integer() return
+     cryptocop: fix assertion in create_output_descriptors()
 has been added to the -mm tree.  Its filename is
-     fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch
+     cryptocop-fix-assertion-in-create_output_descriptors.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,45 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fujitsu-laptop: fix tests of acpi_evaluate_integer() return
+Subject: cryptocop: fix assertion in create_output_descriptors()
 From: Roel Kluin <roel.kluin@gmail.com>
 
-The wrong test was used acpi_status status is unsigned.
+size_t desc_len cannot be less than 0, test before the subtraction.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Acked-by: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
-Cc: Len Brown <lenb@kernel.org>
+Cc: Mikael Starvik <starvik@axis.com>
+Cc: Jesper Nilsson <jesper.nilsson@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/platform/x86/fujitsu-laptop.c~fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return drivers/platform/x86/fujitsu-laptop.c
---- a/drivers/platform/x86/fujitsu-laptop.c~fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return
-+++ a/drivers/platform/x86/fujitsu-laptop.c
-@@ -376,7 +376,7 @@ static int get_lcd_level(void)
+diff -puN arch/cris/arch-v32/drivers/cryptocop.c~cryptocop-fix-assertion-in-create_output_descriptors arch/cris/arch-v32/drivers/cryptocop.c
+--- a/arch/cris/arch-v32/drivers/cryptocop.c~cryptocop-fix-assertion-in-create_output_descriptors
++++ a/arch/cris/arch-v32/drivers/cryptocop.c
+@@ -628,9 +628,9 @@ static int create_output_descriptors(str
+ 		cdesc->dma_descr->buf = (char*)virt_to_phys(operation->tfrm_op.indata[*iniov_ix].iov_base + *iniov_offset);
+ 		cdesc->dma_descr->after = cdesc->dma_descr->buf + dlength;
  
- 	status =
- 	    acpi_evaluate_integer(fujitsu->acpi_handle, "GBLL", NULL, &state);
--	if (status < 0)
-+	if (ACPI_FAILURE(status))
- 		return status;
- 
- 	fujitsu->brightness_level = state & 0x0fffffff;
-@@ -398,7 +398,7 @@ static int get_max_brightness(void)
- 
- 	status =
- 	    acpi_evaluate_integer(fujitsu->acpi_handle, "RBLL", NULL, &state);
--	if (status < 0)
-+	if (ACPI_FAILURE(status))
- 		return status;
- 
- 	fujitsu->max_brightness = state;
++		assert(desc_len >= dlength);
+ 		desc_len -= dlength;
+ 		*iniov_offset += dlength;
+-		assert(desc_len >= 0);
+ 		if (*iniov_offset >= operation->tfrm_op.indata[*iniov_ix].iov_len) {
+ 			*iniov_offset = 0;
+ 			++(*iniov_ix);
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 linux-next.patch
-fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch
 powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
 hfc_usb-fix-read-buffer-overflow.patch
 drivers-scsi-fnic-fnic_scsic-clean-up.patch
