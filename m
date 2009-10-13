@@ -1,27 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + fs-xfs-xfs_log_recoverc-use-%pu-to-print-uuids.patch added to -mm tree
-Date: Tue, 13 Oct 2009 14:50:14 -0700
-Message-ID: <200910132150.n9DLoEVZ026454@imap1.linux-foundation.org>
+Subject: + drivers-firmware-dmi_scanc-use-%pub-to-print-uuids.patch added to -mm tree
+Date: Tue, 13 Oct 2009 14:50:04 -0700
+Message-ID: <200910132150.n9DLo4jQ026090@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54577 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60552 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934302AbZJMVvC (ORCPT
+	by vger.kernel.org with ESMTP id S1760736AbZJMVvv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Oct 2009 17:51:02 -0400
+	Tue, 13 Oct 2009 17:51:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, aelder@sgi.com, hch@lst.de
+Cc: joe@perches.com, jgarzik@redhat.com, tj@kernel.org
 
 
 The patch titled
-     fs/xfs/xfs_log_recover.c: use %pU to print UUIDs
+     drivers/firmware/dmi_scan.c: use %pUB to print UUIDs
 has been added to the -mm tree.  Its filename is
-     fs-xfs-xfs_log_recoverc-use-%pu-to-print-uuids.patch
+     drivers-firmware-dmi_scanc-use-%pub-to-print-uuids.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,42 +39,34 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
 otm/
 
 ------------------------------------------------------
-Subject: fs/xfs/xfs_log_recover.c: use %pU to print UUIDs
+Subject: drivers/firmware/dmi_scan.c: use %pUB to print UUIDs
 =46rom: Joe Perches <joe@perches.com>
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Alex Elder <aelder@sgi.com>
-Cc: Christoph Hellwig <hch@lst.de>
+Cc: Jeff Garzik <jgarzik@redhat.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN fs/xfs/xfs_log_recover.c~fs-xfs-xfs_log_recoverc-use-%pu-to-p=
-rint-uuids fs/xfs/xfs_log_recover.c
---- a/fs/xfs/xfs_log_recover.c~fs-xfs-xfs_log_recoverc-use-%pu-to-print=
--uuids
-+++ a/fs/xfs/xfs_log_recover.c
-@@ -225,16 +225,10 @@ xlog_header_check_dump(
- 	xfs_mount_t		*mp,
- 	xlog_rec_header_t	*head)
- {
--	int			b;
--
--	cmn_err(CE_DEBUG, "%s:  SB : uuid =3D ", __func__);
--	for (b =3D 0; b < 16; b++)
--		cmn_err(CE_DEBUG, "%02x", ((__uint8_t *)&mp->m_sb.sb_uuid)[b]);
--	cmn_err(CE_DEBUG, ", fmt =3D %d\n", XLOG_FMT);
--	cmn_err(CE_DEBUG, "    log : uuid =3D ");
--	for (b =3D 0; b < 16; b++)
--		cmn_err(CE_DEBUG, "%02x", ((__uint8_t *)&head->h_fs_uuid)[b]);
--	cmn_err(CE_DEBUG, ", fmt =3D %d\n", be32_to_cpu(head->h_fmt));
-+	cmn_err(CE_DEBUG, "%s:  SB : uuid =3D %pU, fmt =3D %d\n",
-+		__func__, &mp->m_sb.sb_uuid, XLOG_FMT);
-+	cmn_err(CE_DEBUG, "    log : uuid =3D %pU, fmt =3D %d\n",
-+		&head->h_fs_uuid, be32_to_cpu(head->h_fmt));
+diff -puN drivers/firmware/dmi_scan.c~drivers-firmware-dmi_scanc-use-%p=
+ub-to-print-uuids drivers/firmware/dmi_scan.c
+--- a/drivers/firmware/dmi_scan.c~drivers-firmware-dmi_scanc-use-%pub-t=
+o-print-uuids
++++ a/drivers/firmware/dmi_scan.c
+@@ -169,10 +169,7 @@ static void __init dmi_save_uuid(const s
+ 	if (!s)
+ 		return;
+=20
+-	sprintf(s,
+-		"%02X%02X%02X%02X-%02X%02X-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02=
+X",
+-		d[0], d[1], d[2], d[3], d[4], d[5], d[6], d[7],
+-		d[8], d[9], d[10], d[11], d[12], d[13], d[14], d[15]);
++	sprintf(s, "%pUB", d);
+=20
+         dmi_ident[slot] =3D s;
  }
- #else
- #define xlog_header_check_dump(mp, head)
 _
 
 Patches currently in -mm which might be from joe@perches.com are
