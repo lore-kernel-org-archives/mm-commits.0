@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + loop-fix-null-dereference-if-mount-fails.patch added to -mm tree
-Date: Tue, 13 Oct 2009 10:39:37 -0700
-Message-ID: <200910131739.n9DHdbcX023792@imap1.linux-foundation.org>
+Subject: + vmscan-limit-vm_exec-protection-to-file-pages.patch added to -mm tree
+Date: Tue, 13 Oct 2009 10:38:12 -0700
+Message-ID: <200910131738.n9DHcCrp020947@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41645 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50709 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753413AbZJMRkV (ORCPT
+	by vger.kernel.org with ESMTP id S1760754AbZJMRjI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Oct 2009 13:40:21 -0400
+	Tue, 13 Oct 2009 13:39:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com, jens.axboe@oracle.com, viro@zeniv.linux.org.uk
+Cc: fengguang.wu@intel.com, borntraeger@de.ibm.com, hugh.dickins@tiscali.co.uk, riel@redhat.com
 
 
 The patch titled
-     loop: fix NULL dereference if mount fails
+     vmscan: limit VM_EXEC protection to file pages
 has been added to the -mm tree.  Its filename is
-     loop-fix-null-dereference-if-mount-fails.patch
+     vmscan-limit-vm_exec-protection-to-file-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,100 +34,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: loop: fix NULL dereference if mount fails
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: vmscan: limit VM_EXEC protection to file pages
+From: Wu Fengguang <fengguang.wu@intel.com>
 
-Commit bb21488482bd36eae6b30b014d93619063773fd4 ("[PATCH] switch loop")
-started to pass NULL bdev to ioctl hook.
+It is possible to have !Anon but SwapBacked pages, and some apps could
+create huge number of such pages with MAP_SHARED|MAP_ANONYMOUS.  These
+pages go into the ANON lru list, and hence shall not be protected: we only
+care mapped executable files.  Failing to do so may trigger OOM.
 
-Steps to reproduce:
-
-	[boot with loop.max_part=1]
-	[mount -o loop something so mount fails]
-
-BUG: unable to handle kernel NULL pointer dereference at 00000000000000b8
-IP: [<ffffffff811486ee>] blkdev_ioctl+0x2e/0xa30
-PGD 0
-Oops: 0000 [#1] PREEMPT SMP DEBUG_PAGEALLOC
-last sysfs file: /sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/device:35/ACPI0003:00/power_supply/ACAD/online
-CPU 0
-Modules linked in: zfs nvidia(P) [last unloaded: zfs]
-Pid: 15177, comm: mount Tainted: P           2.6.32-rc4-zfs #2 Satellite X200
-RIP: 0010:[<ffffffff811486ee>]  [<ffffffff811486ee>] blkdev_ioctl+0x2e/0xa30
-RSP: 0018:ffff88003b3d5bb8  EFLAGS: 00010286
-RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
-RDX: 000000000000125f RSI: 0000000000000000 RDI: 0000000000000000
-RBP: ffff88003b3d5ce8 R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000000 R12: 00007ffffffff000
-R13: 0000000000000000 R14: ffff880071cef280 R15: 00000000000200da
-FS:  00007fd77cfe7740(0000) GS:ffff880001600000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-CR2: 00000000000000b8 CR3: 0000000001001000 CR4: 00000000000026f0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-Process mount (pid: 15177, threadinfo ffff88003b3d4000, task ffff88007572f920)
-Stack:
- ffff88003b3d5c38 ffffffff812f95f5 ffff88007eeb6600 0000000000000000
-<0> 0000000000000000 ffff88003b3d5c18 ffffffff811547d9 ffff88001bf11ef0
-<0> 7fffffffffffffff ffff88001bf11ee8 ffff88001bf11ef0 0000000000000000
-Call Trace:
- [<ffffffff812f95f5>] ? schedule_timeout+0x1f5/0x250
- [<ffffffff811547d9>] ? rb_insert_color+0x109/0x140
- [<ffffffff812fb754>] ? _spin_unlock_irq+0x14/0x40
- [<ffffffff812f84c6>] ? wait_for_common+0x66/0x170
- [<ffffffff8105a280>] ? default_wake_function+0x0/0x10
- [<ffffffff810f8258>] ioctl_by_bdev+0x38/0x50
- [<ffffffff811d2481>] loop_clr_fd+0x1e1/0x210
- [<ffffffff811d2522>] lo_release+0x72/0x80
- [<ffffffff810f934c>] __blkdev_put+0x1ac/0x1d0
- [<ffffffff810f937b>] blkdev_put+0xb/0x10
- [<ffffffff810f93b9>] blkdev_close+0x39/0x60
- [<ffffffff810ccef3>] __fput+0xd3/0x230
- [<ffffffff810cd06d>] fput+0x1d/0x30
- [<ffffffff810c9680>] filp_close+0x50/0x80
- [<ffffffff81061f11>] put_files_struct+0x81/0x100
- [<ffffffff81061fde>] exit_files+0x4e/0x60
- [<ffffffff81063ec5>] do_exit+0x6b5/0x730
- [<ffffffff8107b279>] ? up_read+0x9/0x10
- [<ffffffff8104c86e>] ? do_page_fault+0x18e/0x2a0
- [<ffffffff81063f81>] do_group_exit+0x41/0xc0
- [<ffffffff81064012>] sys_exit_group+0x12/0x20
- [<ffffffff81030deb>] system_call_fastpath+0x16/0x1b
-Code: f8 48 89 e5 48 81 ec 30 01 00 00 48 89 5d d8 4c 89 6d e8 4c 89 65 e0 4c 89 75 f0 4c 89 7d f8 48 89 bd e8 fe ff ff 49 89 cd 89 f3 <49> 8b 88 b8 00 00 00 81 fa 68 12 00 00 0f 84 57 05 00 00 0f 86
-RIP  [<ffffffff811486ee>] blkdev_ioctl+0x2e/0xa30
- RSP <ffff88003b3d5bb8>
-CR2: 00000000000000b8
----[ end trace c0b4d3c3118d1427 ]---
-Fixing recursive fault but reboot is needed!
-
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Tested-by: Christian Borntraeger <borntraeger@de.ibm.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/block/loop.c~loop-fix-null-dereference-if-mount-fails drivers/block/loop.c
---- a/drivers/block/loop.c~loop-fix-null-dereference-if-mount-fails
-+++ a/drivers/block/loop.c
-@@ -949,7 +949,7 @@ static int loop_clr_fd(struct loop_devic
- 	lo->lo_state = Lo_unbound;
- 	/* This is safe: open() is still holding a reference. */
- 	module_put(THIS_MODULE);
--	if (max_part > 0)
-+	if (max_part > 0 && bdev)
- 		ioctl_by_bdev(bdev, BLKRRPART, 0);
- 	mutex_unlock(&lo->lo_ctl_mutex);
- 	/*
+diff -puN mm/vmscan.c~vmscan-limit-vm_exec-protection-to-file-pages mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-limit-vm_exec-protection-to-file-pages
++++ a/mm/vmscan.c
+@@ -1356,7 +1356,7 @@ static void shrink_active_list(unsigned 
+ 			 * IO, plus JVM can create lots of anon VM_EXEC pages,
+ 			 * so we ignore them here.
+ 			 */
+-			if ((vm_flags & VM_EXEC) && !PageAnon(page)) {
++			if ((vm_flags & VM_EXEC) && page_is_file_cache(page)) {
+ 				list_add(&page->lru, &l_active);
+ 				continue;
+ 			}
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from fengguang.wu@intel.com are
 
-rtc-fix-compile-failure-in-drivers-char-rtcc.patch
 linux-next.patch
-genirq-switch-proc-irq-spurious-to-seq_file.patch
 revert-mm-oom-analysis-add-buffer-cache-information-to-show_free_areas.patch
-loop-fix-null-dereference-if-mount-fails.patch
-reiserfs-remove-proc-fs-reiserfs-version.patch
-reiserfs-dont-compile-procfso-at-all-if-no-support.patch
+vmscan-limit-vm_exec-protection-to-file-pages.patch
+readahead-add-blk_run_backing_dev.patch
+page-types-constify-read-only-arrays.patch
+page-types-trivial-typo-fixes.patch
+page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
+mm-vsmcan-check-shrink_active_list-sc-isolate_pages-return-value.patch
+dev-mem-remove-redundant-test-on-len.patch
+dev-mem-introduce-size_inside_page.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
+dev-mem-make-size_inside_page-logic-straight.patch
+dev-mem-remove-the-written-variable-in-write_kmem.patch
+dev-mem-remove-the-written-variable-in-write_kmem-fix.patch
+dev-mem-remove-redundant-parameter-from-do_write_kmem.patch
 
