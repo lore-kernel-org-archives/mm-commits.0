@@ -1,388 +1,301 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-make-the-cmm-memory-hotplug-aware.patch added to -mm tree
-Date: Mon, 12 Oct 2009 16:25:01 -0700
-Message-ID: <200910122325.n9CNP1iD028569@imap1.linux-foundation.org>
+Subject: [to-be-updated] spi-dma-support-for-designware-core-on-moorestown-platform.patch removed from -mm tree
+Date: Mon, 12 Oct 2009 19:13:34 -0700
+Message-ID: <200910130213.n9D2DYmu020042@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49460 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35458 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757575AbZJLX0W (ORCPT
+	by vger.kernel.org with ESMTP id S1757436AbZJMCOR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Oct 2009 19:26:22 -0400
+	Mon, 12 Oct 2009 22:14:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: rcj@linux.vnet.ibm.com, benh@kernel.crashing.org, brking@linux.vnet.ibm.com, geralds@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, mingo@elte.hu, paulus@samba.org, schwidefsky@de.ibm.com
+To: feng.tang@intel.com, david-b@pacbell.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     powerpc: make the CMM memory hotplug aware
-has been added to the -mm tree.  Its filename is
-     powerpc-make-the-cmm-memory-hotplug-aware.patch
+     spi: DMA support for Designware core on Moorestown platform
+has been removed from the -mm tree.  Its filename was
+     spi-dma-support-for-designware-core-on-moorestown-platform.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc: make the CMM memory hotplug aware
-From: Robert Jennings <rcj@linux.vnet.ibm.com>
+Subject: spi: DMA support for Designware core on Moorestown platform
+From: Feng Tang <feng.tang@intel.com>
 
-The Collaborative Memory Manager (CMM) module allocates individual pages
-over time that are not migratable.  On a long running system this can
-severely impact the ability to find enough pages to support a hotplug
-memory remove operation.
+Designware core can work with multiple DMA controllers for DMA operation,
+and this patch supports it to cowork with the Designware DMA controller
+used on Intel Moorestown platform
 
-This patch adds a memory isolation notifier and a memory hotplug notifier.
-The memory isolation notifier will return the number of pages found in
-the range specified.  This is used to determine if all of the used pages
-in a pageblock are owned by the balloon (or other entities in the notifier
-chain).  The hotplug notifier will free pages in the range which is to be
-removed.  The priority of this hotplug notifier is low so that it will be
-called near last, this helps avoids removing loaned pages in operations
-that fail due to other handlers.
-
-CMM activity will be halted when hotplug remove operations are active and
-resume activity after a delay period to allow the hypervisor time to
-adjust.
-
-Signed-off-by: Robert Jennings <rcj@linux.vnet.ibm.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Brian King <brking@linux.vnet.ibm.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Gerald Schaefer <geralds@linux.vnet.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Feng Tang <feng.tang@intel.com>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN arch/powerpc/platforms/pseries/cmm.c~powerpc-make-the-cmm-memory-hotplug-aware arch/powerpc/platforms/pseries/cmm.c
---- a/arch/powerpc/platforms/pseries/cmm.c~powerpc-make-the-cmm-memory-hotplug-aware
-+++ a/arch/powerpc/platforms/pseries/cmm.c
-@@ -38,19 +38,28 @@
- #include <asm/mmu.h>
- #include <asm/pgalloc.h>
- #include <asm/uaccess.h>
-+#include <linux/memory.h>
+diff -puN drivers/spi/Kconfig~spi-dma-support-for-designware-core-on-moorestown-platform drivers/spi/Kconfig
+--- a/drivers/spi/Kconfig~spi-dma-support-for-designware-core-on-moorestown-platform
++++ a/drivers/spi/Kconfig
+@@ -265,6 +265,10 @@ config SPI_DESIGNWARE
+ 	help
+ 	  general driver for SPI controller core from DesignWare
  
- #include "plpar_wrappers.h"
- 
- #define CMM_DRIVER_VERSION	"1.0.0"
- #define CMM_DEFAULT_DELAY	1
-+#define CMM_HOTPLUG_DELAY	5
- #define CMM_DEBUG			0
- #define CMM_DISABLE		0
- #define CMM_OOM_KB		1024
- #define CMM_MIN_MEM_MB		256
- #define KB2PAGES(_p)		((_p)>>(PAGE_SHIFT-10))
- #define PAGES2KB(_p)		((_p)<<(PAGE_SHIFT-10))
-+/*
-+ * The priority level tries to ensure that this notifier is called as
-+ * late as possible to reduce thrashing in the shared memory pool.
-+ */
-+#define CMM_MEM_HOTPLUG_PRI	1
-+#define CMM_MEM_ISOLATE_PRI	15
- 
- static unsigned int delay = CMM_DEFAULT_DELAY;
-+static unsigned int hotplug_delay = CMM_HOTPLUG_DELAY;
- static unsigned int oom_kb = CMM_OOM_KB;
- static unsigned int cmm_debug = CMM_DEBUG;
- static unsigned int cmm_disabled = CMM_DISABLE;
-@@ -65,6 +74,10 @@ MODULE_VERSION(CMM_DRIVER_VERSION);
- module_param_named(delay, delay, uint, S_IRUGO | S_IWUSR);
- MODULE_PARM_DESC(delay, "Delay (in seconds) between polls to query hypervisor paging requests. "
- 		 "[Default=" __stringify(CMM_DEFAULT_DELAY) "]");
-+module_param_named(hotplug_delay, hotplug_delay, uint, S_IRUGO | S_IWUSR);
-+MODULE_PARM_DESC(delay, "Delay (in seconds) after memory hotplug remove "
-+		 "before loaning resumes. "
-+		 "[Default=" __stringify(CMM_HOTPLUG_DELAY) "]");
- module_param_named(oom_kb, oom_kb, uint, S_IRUGO | S_IWUSR);
- MODULE_PARM_DESC(oom_kb, "Amount of memory in kb to free on OOM. "
- 		 "[Default=" __stringify(CMM_OOM_KB) "]");
-@@ -92,6 +105,9 @@ static unsigned long oom_freed_pages;
- static struct cmm_page_array *cmm_page_list;
- static DEFINE_SPINLOCK(cmm_lock);
- 
-+static DEFINE_MUTEX(hotplug_mutex);
-+static int hotplug_occurred; /* protected by the hotplug mutex */
++config SPI_DW_MRST_DMA
++	bool "DMA support for DW SPI controller on Intel Moorestown platform"
++	depends on SPI_DESGINWARE && MRST_DMA
 +
- static struct task_struct *cmm_thread_ptr;
+ config SPI_DW_PCI
+ 	tristate "PCI interface driver for DW SPI core"
+ 	depends on SPI_DESIGNWARE && PCI
+diff -puN drivers/spi/dw_spi.c~spi-dma-support-for-designware-core-on-moorestown-platform drivers/spi/dw_spi.c
+--- a/drivers/spi/dw_spi.c~spi-dma-support-for-designware-core-on-moorestown-platform
++++ a/drivers/spi/dw_spi.c
+@@ -29,6 +29,10 @@
+ #include <linux/debugfs.h>
+ #endif
  
- /**
-@@ -110,6 +126,17 @@ static long cmm_alloc_pages(long nr)
- 	cmm_dbg("Begin request for %ld pages\n", nr);
- 
- 	while (nr) {
-+		/* Exit if a hotplug operation is in progress or occurred */
-+		if (mutex_trylock(&hotplug_mutex)) {
-+			if (hotplug_occurred) {
-+				mutex_unlock(&hotplug_mutex);
-+				break;
-+			}
-+			mutex_unlock(&hotplug_mutex);
-+		} else {
-+			break;
-+		}
++#ifdef CONFIG_SPI_MRST_DMA
++#include <linux/lnw_dma.h>
++#endif
 +
- 		addr = __get_free_page(GFP_NOIO | __GFP_NOWARN |
- 				       __GFP_NORETRY | __GFP_NOMEMALLOC);
- 		if (!addr)
-@@ -119,8 +146,10 @@ static long cmm_alloc_pages(long nr)
- 		if (!pa || pa->index >= CMM_NR_PAGES) {
- 			/* Need a new page for the page list. */
- 			spin_unlock(&cmm_lock);
--			npa = (struct cmm_page_array *)__get_free_page(GFP_NOIO | __GFP_NOWARN |
--								       __GFP_NORETRY | __GFP_NOMEMALLOC);
-+			npa = (struct cmm_page_array *)__get_free_page(
-+					GFP_NOIO | __GFP_NOWARN |
-+					__GFP_NORETRY | __GFP_NOMEMALLOC |
-+					__GFP_MOVABLE);
- 			if (!npa) {
- 				pr_info("%s: Can not allocate new page list\n", __func__);
- 				free_page(addr);
-@@ -273,9 +302,28 @@ static int cmm_thread(void *dummy)
- 	while (1) {
- 		timeleft = msleep_interruptible(delay * 1000);
- 
--		if (kthread_should_stop() || timeleft) {
--			loaned_pages_target = loaned_pages;
-+		if (kthread_should_stop() || timeleft)
- 			break;
-+
-+		if (mutex_trylock(&hotplug_mutex)) {
-+			if (hotplug_occurred) {
-+				hotplug_occurred = 0;
-+				mutex_unlock(&hotplug_mutex);
-+				cmm_dbg("Hotplug operation has occurred, "
-+						"loaning activity suspended "
-+						"for %d seconds.\n",
-+						hotplug_delay);
-+				timeleft = msleep_interruptible(hotplug_delay *
-+						1000);
-+				if (kthread_should_stop() || timeleft)
-+					break;
-+				continue;
-+			}
-+			mutex_unlock(&hotplug_mutex);
-+		} else {
-+			cmm_dbg("Hotplug operation in progress, activity "
-+					"suspended\n");
-+			continue;
- 		}
- 
- 		cmm_get_mpp();
-@@ -405,6 +453,159 @@ static struct notifier_block cmm_reboot_
+ #define START_STATE	((void *)0)
+ #define RUNNING_STATE	((void *)1)
+ #define DONE_STATE	((void *)2)
+@@ -62,6 +66,166 @@ struct chip_data {
+ 	void (*cs_control)(u32 command);
  };
  
- /**
-+ * cmm_count_pages - Count the number of pages loaned in a particular range.
-+ *
-+ * @arg: memory_isolate_notify structure with address range and count
-+ *
-+ * Return value:
-+ *      0 on success
-+ **/
-+static unsigned long cmm_count_pages(void *arg)
++#ifdef CONFIG_SPI_MRST_DMA
++static void dw_spi_dma_init(struct dw_spi *dws)
 +{
-+	struct memory_isolate_notify *marg = arg;
-+	struct cmm_page_array *pa;
-+	unsigned long start = (unsigned long)pfn_to_kaddr(marg->start_pfn);
-+	unsigned long end = start + (marg->nr_pages << PAGE_SHIFT);
-+	unsigned long idx;
++	struct lnw_dma_slave *rxs, *txs;
++	dma_cap_mask_t mask;
 +
-+	spin_lock(&cmm_lock);
-+	pa = cmm_page_list;
-+	while (pa) {
-+		for (idx = 0; idx < pa->index; idx++)
-+			if (pa->page[idx] >= start && pa->page[idx] < end)
-+				marg->pages_found++;
-+		pa = pa->next;
-+	}
-+	spin_unlock(&cmm_lock);
-+	return 0;
++	dws->txchan = NULL;
++	dws->rxchan = NULL;
++
++	/* 1. Init rx channel */
++	rxs = &dws->dmas_rx;
++
++	rxs->dirn = DMA_FROM_DEVICE;
++	rxs->hs_mode = LNW_DMA_HW_HS;
++	rxs->cfg_mode = LNW_DMA_PER_TO_MEM;
++	rxs->src_width = LNW_DMA_WIDTH_16BIT;
++	rxs->dst_width = LNW_DMA_WIDTH_32BIT;
++	rxs->src_msize = LNW_DMA_MSIZE_16;
++	rxs->dst_msize = LNW_DMA_MSIZE_16;
++
++	dma_cap_zero(mask);
++	dma_cap_set(DMA_MEMCPY, mask);
++	dma_cap_set(DMA_SLAVE, mask);
++
++	dws->rxchan = dma_request_channel(mask, NULL, NULL);
++	if (!dws->rxchan)
++		goto err_exit;
++	dws->rxchan->private = rxs;
++
++	/* 2. Init tx channel */
++	txs = &dws->dmas_tx;
++
++	txs->dirn = DMA_TO_DEVICE;
++	txs->hs_mode = LNW_DMA_HW_HS;
++	txs->cfg_mode = LNW_DMA_MEM_TO_PER;
++	txs->src_width = LNW_DMA_WIDTH_32BIT;
++	txs->dst_width = LNW_DMA_WIDTH_16BIT;
++	txs->src_msize = LNW_DMA_MSIZE_16;
++	txs->dst_msize = LNW_DMA_MSIZE_16;
++
++	dma_cap_set(DMA_SLAVE, mask);
++	dma_cap_set(DMA_MEMCPY, mask);
++
++	dws->txchan = dma_request_channel(mask, NULL, NULL);
++	if (!dws->txchan)
++		goto free_rxchan;
++	dws->txchan->private = txs;
++
++	/* Set the dma done bit to 1 */
++	dws->dma_inited = 1;
++	dws->txdma_done = 1;
++	dws->rxdma_done = 1;
++
++	dws->tx_param = ((u64)(unsigned long)dws << 32)
++				| (unsigned long)(&dws->txdma_done);
++	dws->rx_param = ((u64)(unsigned long)dws << 32)
++				| (unsigned long)(&dws->rxdma_done);
++	return;
++
++free_rxchan:
++	dma_release_channel(dws->rxchan);
++err_exit:
++	return;
 +}
 +
-+/**
-+ * cmm_memory_isolate_cb - Handle memory isolation notifier calls
-+ * @self:	notifier block struct
-+ * @action:	action to take
-+ * @arg:	struct memory_isolate_notify data for handler
-+ *
-+ * Return value:
-+ *	NOTIFY_OK or notifier error based on subfunction return value
-+ **/
-+static int cmm_memory_isolate_cb(struct notifier_block *self,
-+				 unsigned long action, void *arg)
++static void dw_spi_dma_exit(struct dw_spi *dws)
 +{
-+	int ret = 0;
-+
-+	if (action == MEM_ISOLATE_COUNT)
-+		ret = cmm_count_pages(arg);
-+
-+	if (ret)
-+		ret = notifier_from_errno(ret);
-+	else
-+		ret = NOTIFY_OK;
-+
-+	return ret;
++	dma_release_channel(dws->txchan);
++	dma_release_channel(dws->rxchan);
 +}
 +
-+static struct notifier_block cmm_mem_isolate_nb = {
-+	.notifier_call = cmm_memory_isolate_cb,
-+	.priority = CMM_MEM_ISOLATE_PRI
-+};
++static void transfer_complete(struct dw_spi *dws);
 +
-+/**
-+ * cmm_mem_going_offline - Unloan pages where memory is to be removed
-+ * @arg: memory_notify structure with page range to be offlined
-+ *
-+ * Return value:
-+ *	0 on success
-+ **/
-+static int cmm_mem_going_offline(void *arg)
++static void dw_spi_dma_done(void *arg)
 +{
-+	struct memory_notify *marg = arg;
-+	unsigned long start_page = (unsigned long)pfn_to_kaddr(marg->start_pfn);
-+	unsigned long end_page = start_page + (marg->nr_pages << PAGE_SHIFT);
-+	struct cmm_page_array *pa_curr, *pa_last;
-+	unsigned long idx;
-+	unsigned long freed = 0;
++	u64 *param = arg;
++	struct dw_spi *dws;
++	int *done;
 +
-+	cmm_dbg("Memory going offline, searching 0x%lx (%ld pages).\n",
-+			start_page, marg->nr_pages);
-+	spin_lock(&cmm_lock);
++	dws = (struct dw_spi *)(unsigned long)(*param >> 32);
++	done = (int *)(unsigned long)(*param & 0xffffffff);
 +
-+	pa_last = pa_curr = cmm_page_list;
-+	while (pa_curr) {
-+		for (idx = (pa_curr->index - 1); (idx + 1) > 0; idx--) {
-+			if ((pa_curr->page[idx] < start_page) ||
-+			    (pa_curr->page[idx] >= end_page))
-+				continue;
++	*done = 1;
++	/* wait till both tx/rx channels are done */
++	if (!dws->txdma_done || !dws->rxdma_done)
++		return;
 +
-+			plpar_page_set_active(__pa(pa_curr->page[idx]));
-+			free_page(pa_curr->page[idx]);
-+			freed++;
-+			loaned_pages--;
-+			totalram_pages++;
-+			pa_curr->page[idx] = pa_last->page[--pa_last->index];
-+			if (pa_last->index == 0) {
-+				if (pa_curr == pa_last)
-+					pa_curr = pa_last->next;
-+				pa_last = pa_last->next;
-+				free_page((unsigned long)cmm_page_list);
-+				cmm_page_list = pa_last;
-+				continue;
-+			}
-+		}
-+		pa_curr = pa_curr->next;
-+	}
-+	spin_unlock(&cmm_lock);
-+	cmm_dbg("Released %ld pages in the search range.\n", freed);
-+
-+	return 0;
++	transfer_complete(dws);
 +}
 +
-+/**
-+ * cmm_memory_cb - Handle memory hotplug notifier calls
-+ * @self:	notifier block struct
-+ * @action:	action to take
-+ * @arg:	struct memory_notify data for handler
-+ *
-+ * Return value:
-+ *	NOTIFY_OK or notifier error based on subfunction return value
-+ *
-+ **/
-+static int cmm_memory_cb(struct notifier_block *self,
-+			unsigned long action, void *arg)
++static void dma_transfer(struct dw_spi *dws, int cs_change)
 +{
-+	int ret = 0;
++	struct dma_async_tx_descriptor *txdesc = NULL, *rxdesc = NULL;
++	struct dma_chan *txchan, *rxchan;
++	enum dma_ctrl_flags flag;
++	u16 dma_ctrl = 0;
 +
-+	switch (action) {
-+	case MEM_GOING_OFFLINE:
-+		mutex_lock(&hotplug_mutex);
-+		hotplug_occurred = 1;
-+		ret = cmm_mem_going_offline(arg);
-+		break;
-+	case MEM_OFFLINE:
-+	case MEM_CANCEL_OFFLINE:
-+		mutex_unlock(&hotplug_mutex);
-+		cmm_dbg("Memory offline operation complete.\n");
-+		break;
-+	case MEM_GOING_ONLINE:
-+	case MEM_ONLINE:
-+	case MEM_CANCEL_ONLINE:
-+		break;
++	/* 1. setup DMA related registers */
++	if (cs_change) {
++		spi_enable_chip(dws, 0);
++		dw_writew(dws, dmardlr, 0xf);
++		dw_writew(dws, dmatdlr, 0x10);
++		if (dws->tx_dma)
++			dma_ctrl |= 0x2;
++		if (dws->rx_dma)
++			dma_ctrl |= 0x1;
++		dw_writew(dws, dmacr, dma_ctrl);
++		spi_enable_chip(dws, 1);
 +	}
 +
-+	if (ret)
-+		ret = notifier_from_errno(ret);
-+	else
-+		ret = NOTIFY_OK;
++	if (dws->tx_dma)
++		dws->txdma_done = 0;
++	if (dws->rx_dma)
++		dws->rxdma_done = 0;
 +
-+	return ret;
++	/* 2. start the TX dma transfer */
++	txchan = dws->txchan;
++	rxchan = dws->rxchan;
++
++	flag = DMA_PREP_INTERRUPT | DMA_CTRL_ACK;
++	if (dws->tx_dma) {
++		txdesc = txchan->device->device_prep_dma_memcpy(txchan,
++				dws->dma_addr, dws->tx_dma,
++				dws->len, flag);
++		txdesc->callback = dw_spi_dma_done;
++		txdesc->callback_param = &dws->tx_param;
++	}
++
++	/* 3. start the RX dma transfer */
++	if (dws->rx_dma) {
++		rxdesc = rxchan->device->device_prep_dma_memcpy(rxchan,
++				dws->rx_dma, dws->dma_addr,
++				dws->len, flag);
++		rxdesc->callback = dw_spi_dma_done;
++		rxdesc->callback_param = &dws->rx_param;
++	}
++
++	/* rx must be started before tx due to spi instinct */
++	if (rxdesc)
++		rxdesc->tx_submit(rxdesc);
++	if (txdesc)
++		txdesc->tx_submit(txdesc);
++}
++#else
++static inline void dw_spi_dma_init(struct dw_spi *dws)
++{
++	return;
 +}
 +
-+static struct notifier_block cmm_mem_nb = {
-+	.notifier_call = cmm_memory_cb,
-+	.priority = CMM_MEM_HOTPLUG_PRI
-+};
++static inline void dw_spi_dma_exit(struct dw_spi *dws)
++{
++	return;
++}
 +
-+/**
-  * cmm_init - Module initialization
-  *
-  * Return value:
-@@ -426,18 +627,24 @@ static int cmm_init(void)
- 	if ((rc = cmm_sysfs_register(&cmm_sysdev)))
- 		goto out_reboot_notifier;
- 
-+	if (register_memory_notifier(&cmm_mem_nb) ||
-+	    register_memory_isolate_notifier(&cmm_mem_isolate_nb))
-+		goto out_unregister_notifier;
++static void dma_transfer(struct dw_spi *dws, int cs_change)
++{
++	return;
++}
++#endif /* CONFIG_SPI_MRST_DMA */
 +
- 	if (cmm_disabled)
- 		return rc;
- 
- 	cmm_thread_ptr = kthread_run(cmm_thread, NULL, "cmmthread");
- 	if (IS_ERR(cmm_thread_ptr)) {
- 		rc = PTR_ERR(cmm_thread_ptr);
--		goto out_unregister_sysfs;
-+		goto out_unregister_notifier;
- 	}
- 
- 	return rc;
- 
--out_unregister_sysfs:
-+out_unregister_notifier:
-+	unregister_memory_notifier(&cmm_mem_nb);
-+	unregister_memory_isolate_notifier(&cmm_mem_isolate_nb);
- 	cmm_unregister_sysfs(&cmm_sysdev);
- out_reboot_notifier:
- 	unregister_reboot_notifier(&cmm_reboot_nb);
-@@ -458,6 +665,8 @@ static void cmm_exit(void)
- 		kthread_stop(cmm_thread_ptr);
- 	unregister_oom_notifier(&cmm_oom_nb);
- 	unregister_reboot_notifier(&cmm_reboot_nb);
-+	unregister_memory_notifier(&cmm_mem_nb);
-+	unregister_memory_isolate_notifier(&cmm_mem_isolate_nb);
- 	cmm_free_pages(loaned_pages);
- 	cmm_unregister_sysfs(&cmm_sysdev);
+ #ifdef CONFIG_DEBUG_FS
+ static int spi_show_regs_open(struct inode *inode, struct file *file)
+ {
+@@ -413,10 +577,6 @@ static void poll_transfer(struct dw_spi 
+ 	transfer_complete(dws);
  }
+ 
+-static void dma_transfer(struct dw_spi *dws, int cs_change)
+-{
+-}
+-
+ static void pump_transfers(unsigned long data)
+ {
+ 	struct dw_spi *dws = (struct dw_spi *)data;
+@@ -853,6 +1013,7 @@ int __devinit dw_spi_add_host(struct dw_
+ 	master->transfer = dw_spi_transfer;
+ 
+ 	dws->dma_inited = 0;
++	dw_spi_dma_init(dws);
+ 
+ 	/* Basic HW init */
+ 	spi_hw_init(dws);
+@@ -881,6 +1042,7 @@ int __devinit dw_spi_add_host(struct dw_
+ 
+ err_queue_alloc:
+ 	destroy_queue(dws);
++	dw_spi_dma_exit(dws);
+ err_diable_hw:
+ 	spi_enable_chip(dws, 0);
+ 	free_irq(dws->irq, dws);
+@@ -904,6 +1066,7 @@ void __devexit dw_spi_remove_host(struct
+ 		dev_err(&dws->master->dev, "dw_spi_remove: workqueue will not "
+ 			"complete, message memory not freed\n");
+ 
++	dw_spi_dma_exit(dws);
+ 	spi_enable_chip(dws, 0);
+ 	/* Disable clk */
+ 	spi_set_clk(dws, 0);
+diff -puN include/linux/spi/dw_spi.h~spi-dma-support-for-designware-core-on-moorestown-platform include/linux/spi/dw_spi.h
+--- a/include/linux/spi/dw_spi.h~spi-dma-support-for-designware-core-on-moorestown-platform
++++ a/include/linux/spi/dw_spi.h
+@@ -1,6 +1,7 @@
+ #ifndef DW_SPI_HEADER_H
+ #define DW_SPI_HEADER_H
+ #include <linux/io.h>
++#include <linux/lnw_dma.h>
+ 
+ /* Bit fields in CTRLR0 */
+ #define SPI_DFS_OFFSET			0
+@@ -141,6 +142,11 @@ struct dw_spi {
+ 	struct device		*dma_dev;
+ 	dma_addr_t		dma_addr;
+ 
++#ifdef CONFIG_SPI_MRST_DMA
++	struct lnw_dma_slave	dmas_tx;
++	struct lnw_dma_slave	dmas_rx;
++#endif
++
+ 	/* Bus interface info */
+ 	void			*priv;
+ #ifdef CONFIG_DEBUG_FS
 _
 
-Patches currently in -mm which might be from rcj@linux.vnet.ibm.com are
+Patches currently in -mm which might be from feng.tang@intel.com are
 
-mm-add-notifier-in-pageblock-isolation-for-balloon-drivers.patch
-powerpc-make-the-cmm-memory-hotplug-aware.patch
+hrtimers-remove-the-timer_stats_active-check-when-setting-the-start-info.patch
+spi-controller-driver-for-designware-spi-core.patch
+spi-add-pci-interface-driver-for-designware-spi-core.patch
+spi-dma-support-for-designware-core-on-moorestown-platform.patch
 
