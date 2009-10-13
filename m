@@ -1,27 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + efih-use-%pul-to-print-uuids.patch added to -mm tree
-Date: Tue, 13 Oct 2009 14:50:27 -0700
-Message-ID: <200910132150.n9DLoRuN027003@imap1.linux-foundation.org>
+Subject: + fs-ubifs-use-%pub-to-print-uuids.patch added to -mm tree
+Date: Tue, 13 Oct 2009 14:50:12 -0700
+Message-ID: <200910132150.n9DLoC7p026413@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35156 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37106 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934346AbZJMVwE (ORCPT
+	by vger.kernel.org with ESMTP id S934313AbZJMVvC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Oct 2009 17:52:04 -0400
+	Tue, 13 Oct 2009 17:51:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, jgarzik@redhat.com, tj@kernel.org
+Cc: joe@perches.com, adrian.hunter@nokia.com, dedekind@infradead.org
 
 
 The patch titled
-     efi.h: use %pUl to print UUIDs
+     fs/ubifs: use %pUB to print UUIDs
 has been added to the -mm tree.  Its filename is
-     efih-use-%pul-to-print-uuids.patch
+     fs-ubifs-use-%pub-to-print-uuids.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,46 +39,54 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
 otm/
 
 ------------------------------------------------------
-Subject: efi.h: use %pUl to print UUIDs
+Subject: fs/ubifs: use %pUB to print UUIDs
 =46rom: Joe Perches <joe@perches.com>
 
-Shrinks vmlinux
-
-without:
-$ size vmlinux
-   text    data     bss     dec     hex filename
-6975863  679652 1359668 9015183  898f8f vmlinux
-
-with:
-$ size vmlinux
-   text    data     bss     dec     hex filename
-6975639 679652 1359668 9014959 898eaf vmlinux
-
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Jeff Garzik <jgarzik@redhat.com>
-Cc: Tejun Heo <tj@kernel.org>
+Cc: Artem Bityutskiy <dedekind@infradead.org>
+Cc: Adrian Hunter <adrian.hunter@nokia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN include/linux/efi.h~efih-use-%pul-to-print-uuids include/linu=
-x/efi.h
---- a/include/linux/efi.h~efih-use-%pul-to-print-uuids
-+++ a/include/linux/efi.h
-@@ -280,11 +280,7 @@ efi_guidcmp (efi_guid_t left, efi_guid_t
- static inline char *
- efi_guid_unparse(efi_guid_t *guid, char *out)
- {
--	sprintf(out, "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02=
-x%02x%02x%02x",
--		guid->b[3], guid->b[2], guid->b[1], guid->b[0],
--		guid->b[5], guid->b[4], guid->b[7], guid->b[6],
--		guid->b[8], guid->b[9], guid->b[10], guid->b[11],
--		guid->b[12], guid->b[13], guid->b[14], guid->b[15]);
-+	sprintf(out, "%pUl", guid->b);
-         return out;
- }
-=20
+diff -puN fs/ubifs/debug.c~fs-ubifs-use-%pub-to-print-uuids fs/ubifs/de=
+bug.c
+--- a/fs/ubifs/debug.c~fs-ubifs-use-%pub-to-print-uuids
++++ a/fs/ubifs/debug.c
+@@ -350,13 +350,8 @@ void dbg_dump_node(const struct ubifs_in
+ 		       le32_to_cpu(sup->fmt_version));
+ 		printk(KERN_DEBUG "\ttime_gran      %u\n",
+ 		       le32_to_cpu(sup->time_gran));
+-		printk(KERN_DEBUG "\tUUID           %02X%02X%02X%02X-%02X%02X"
+-		       "-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X\n",
+-		       sup->uuid[0], sup->uuid[1], sup->uuid[2], sup->uuid[3],
+-		       sup->uuid[4], sup->uuid[5], sup->uuid[6], sup->uuid[7],
+-		       sup->uuid[8], sup->uuid[9], sup->uuid[10], sup->uuid[11],
+-		       sup->uuid[12], sup->uuid[13], sup->uuid[14],
+-		       sup->uuid[15]);
++		printk(KERN_DEBUG "\tUUID           %pUB\n",
++		       sup->uuid);
+ 		break;
+ 	}
+ 	case UBIFS_MST_NODE:
+diff -puN fs/ubifs/super.c~fs-ubifs-use-%pub-to-print-uuids fs/ubifs/su=
+per.c
+--- a/fs/ubifs/super.c~fs-ubifs-use-%pub-to-print-uuids
++++ a/fs/ubifs/super.c
+@@ -1393,12 +1393,7 @@ static int mount_ubifs(struct ubifs_info
+ 		c->leb_size, c->leb_size >> 10);
+ 	dbg_msg("data journal heads:  %d",
+ 		c->jhead_cnt - NONDATA_JHEADS_CNT);
+-	dbg_msg("UUID:                %02X%02X%02X%02X-%02X%02X"
+-	       "-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X",
+-	       c->uuid[0], c->uuid[1], c->uuid[2], c->uuid[3],
+-	       c->uuid[4], c->uuid[5], c->uuid[6], c->uuid[7],
+-	       c->uuid[8], c->uuid[9], c->uuid[10], c->uuid[11],
+-	       c->uuid[12], c->uuid[13], c->uuid[14], c->uuid[15]);
++	dbg_msg("UUID:                %pUB", c->uuid);
+ 	dbg_msg("big_lpt              %d", c->big_lpt);
+ 	dbg_msg("log LEBs:            %d (%d - %d)",
+ 		c->log_lebs, UBIFS_LOG_LNUM, c->log_last);
 _
 
 Patches currently in -mm which might be from joe@perches.com are
