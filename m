@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch added to -mm tree
-Date: Tue, 13 Oct 2009 10:56:46 -0700
-Message-ID: <200910131756.n9DHuksB027039@imap1.linux-foundation.org>
+Subject: + gpio-add-gpio_lookup-fix.patch added to -mm tree
+Date: Tue, 13 Oct 2009 11:05:21 -0700
+Message-ID: <200910131805.n9DI5Ljl012490@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60273 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47379 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760321AbZJMR6O (ORCPT
+	by vger.kernel.org with ESMTP id S1760835AbZJMSGl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Oct 2009 13:58:14 -0400
+	Tue, 13 Oct 2009 14:06:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: daniel@caiaq.de, akpm@linux-foundation.org, dbrownell@users.sourceforge.net, hartleys@visionengravers.com
+Cc: akpm@linux-foundation.org, bn@niasdigital.com, corbet@lwn.net, david-b@pacbell.net
 
 
 The patch titled
-     drivers-misc-add-driver-for-texas-instruments-dac7512-update
+     gpio-add-gpio_lookup-fix
 has been added to the -mm tree.  Its filename is
-     drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
+     gpio-add-gpio_lookup-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,83 +34,78 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers-misc-add-driver-for-texas-instruments-dac7512-update
-From: Daniel Mack <daniel@caiaq.de>
+Subject: gpio-add-gpio_lookup-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-On Mon, Oct 12, 2009 at 12:31:46PM -0400, H Hartley Sweeten wrote:
-> On Wednesday, October 07, 2009 1:01 PM, Daniel Mack wrote:
-> > This is actually too trivial to publish, but to export the function of
-> > that chip to the userspace, a module like this is needed.
-> >
-> > Signed-off-by: Daniel Mack <daniel@caiaq.de>
-> > Cc: Andrew Morton <akpm@linux-foundation.org>
-> > Cc: David Brownell <dbrownell@users.sourceforge.net>
-> > Cc: spi-devel-general@lists.sourceforge.net
-> > ---
->
-> [snip]
->
-> > +static ssize_t dac7512_store_val(struct device *dev,
-> > +				 struct device_attribute *attr,
-> > +				 const char *buf, size_t count)
-> > +{
-> > +	struct spi_device *spi = to_spi_device(dev);
-> > +	unsigned char tmp[2];
-> > +	unsigned long val;
-> > +
-> > +	if (strict_strtoul(buf, 10, &val) < 0)
-> > +		return -EINVAL;
-> > +
-> > +	tmp[0] = val >> 8;
-> > +	tmp[1] = val & 0xff;
-> > +	spi_write(spi, tmp, sizeof(tmp));
-> > +	return count;
-> > +}
-> > +
-> > +static DEVICE_ATTR(value, S_IWUSR | S_IRUGO,
-> > +		   NULL, dac7512_store_val);
->
-> You have declared the "value" device attribute with mode S_IWUSR | S_IRUGO
-> but have not provided a show callback.
+remove apprarent debug code.
 
-Sorry, forget my last mail, I got you wrong. You're of course right,
-S_IRUGO shouldn't be set for write-only attributes. Updates patch below.
-
-Thanks,
-Daniel
-
-From ab18a967e55d2bb1d39559333bca81a01c2838f0 Mon Sep 17 00:00:00 2001
-Date: Thu, 8 Oct 2009 03:55:46 +0800
-Subject: [PATCH] drivers/misc: add driver for Texas Instruments DAC7512
-
-This is actually too trivial to publish, but to export the function of
-that chip to the userspace, a module like this is needed.
-
-Signed-off-by: Daniel Mack <daniel@caiaq.de>
-Cc: David Brownell <dbrownell@users.sourceforge.net>
-Cc: "H Hartley Sweeten" <hartleys@visionengravers.com>
+Cc: Ben Nizette <bn@niasdigital.com>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/misc/Makefile~drivers-misc-add-driver-for-texas-instruments-dac7512-update drivers/misc/Makefile
-diff -puN drivers/misc/ti_dac7512.c~drivers-misc-add-driver-for-texas-instruments-dac7512-update drivers/misc/ti_dac7512.c
---- a/drivers/misc/ti_dac7512.c~drivers-misc-add-driver-for-texas-instruments-dac7512-update
-+++ a/drivers/misc/ti_dac7512.c
-@@ -43,8 +43,7 @@ static ssize_t dac7512_store_val(struct 
- 	return count;
+diff -puN drivers/gpio/gpiolib.c~gpio-add-gpio_lookup-fix drivers/gpio/gpiolib.c
+--- a/drivers/gpio/gpiolib.c~gpio-add-gpio_lookup-fix
++++ a/drivers/gpio/gpiolib.c
+@@ -1118,10 +1118,8 @@ int gpio_lookup(const char *name)
+ 
+ 		if (chip == NULL || chip->names == NULL)
+ 			continue;
+-		if (!strcmp(name, chip->names[i - chip->base])) {
+-			printk(KERN_NOTICE "grbn found %d\n", i);
++		if (!strcmp(name, chip->names[i - chip->base]))
+ 			return i;
+-		}
+ 	}
+ 	return -EINVAL;
  }
- 
--static DEVICE_ATTR(value, S_IWUSR | S_IRUGO,
--		   NULL, dac7512_store_val);
-+static DEVICE_ATTR(value, S_IWUSR, NULL, dac7512_store_val);
- 
- static struct attribute *dac7512_attributes[] = {
- 	&dev_attr_value.attr,
 _
 
-Patches currently in -mm which might be from daniel@caiaq.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-drivers-misc-add-driver-for-texas-instruments-dac7512.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices-fix.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+3x59x-fix-pci-resource-management.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+include-trace-events-lockdeph-fix-do_div-warning.patch
+st-fix-test-of-value-range-in-st_set_options.patch
+scsi-add-hpsa-driver-for-hp-smart-array-controllers-fix.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+fs-improve-remountro-vs-buffercache-coherency.patch
+percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+hfsplus-refuse-to-mount-volumes-larger-than-2tb-fix.patch
+revert-mm-oom-analysis-add-buffer-cache-information-to-show_free_areas.patch
+drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
+vfs-implement-posix-o_sync-and-o_dsync-semantics-checkpatch-fixes.patch
+readahead-add-blk_run_backing_dev.patch
+mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
+errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
+gpio-add-gpio_lookup-checkpatch-fixes.patch
+gpio-add-gpio_lookup-fix.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs.patch
+memcg-coalesce-charging-via-percpu-storage-fix.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+reiser4-disable.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
