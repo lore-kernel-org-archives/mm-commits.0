@@ -1,27 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + randomc-use-%pu-to-print-uuids.patch added to -mm tree
-Date: Tue, 13 Oct 2009 14:50:02 -0700
-Message-ID: <200910132150.n9DLo2KY026049@imap1.linux-foundation.org>
+Subject: + fs-gfs2-sysc-use-%pub-to-print-uuids.patch added to -mm tree
+Date: Tue, 13 Oct 2009 14:50:10 -0700
+Message-ID: <200910132150.n9DLoA2S026356@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50411 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51093 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753383AbZJMVuu (ORCPT
+	by vger.kernel.org with ESMTP id S933907AbZJMVvB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Oct 2009 17:50:50 -0400
+	Tue, 13 Oct 2009 17:51:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, mpm@selenic.com
+Cc: joe@perches.com, swhiteho@redhat.com
 
 
 The patch titled
-     random.c: use %pU to print UUIDs
+     fs/gfs2/sys.c: use %pUB to print UUIDs
 has been added to the -mm tree.  Its filename is
-     randomc-use-%pu-to-print-uuids.patch
+     fs-gfs2-sysc-use-%pub-to-print-uuids.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,42 +39,48 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
 otm/
 
 ------------------------------------------------------
-Subject: random.c: use %pU to print UUIDs
+Subject: fs/gfs2/sys.c: use %pUB to print UUIDs
 =46rom: Joe Perches <joe@perches.com>
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Matt Mackall <mpm@selenic.com>
+Cc: Steven Whitehouse <swhiteho@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/char/random.c~randomc-use-%pu-to-print-uuids drivers/=
-char/random.c
---- a/drivers/char/random.c~randomc-use-%pu-to-print-uuids
-+++ a/drivers/char/random.c
-@@ -1245,12 +1245,8 @@ static int proc_do_uuid(ctl_table *table
- 	if (uuid[8] =3D=3D 0)
- 		generate_random_uuid(uuid);
+diff -puN fs/gfs2/sys.c~fs-gfs2-sysc-use-%pub-to-print-uuids fs/gfs2/sy=
+s.c
+--- a/fs/gfs2/sys.c~fs-gfs2-sysc-use-%pub-to-print-uuids
++++ a/fs/gfs2/sys.c
+@@ -85,11 +85,7 @@ static ssize_t uuid_show(struct gfs2_sbd
+ 	buf[0] =3D '\0';
+ 	if (!gfs2_uuid_valid(uuid))
+ 		return 0;
+-	return snprintf(buf, PAGE_SIZE, "%02X%02X%02X%02X-%02X%02X-"
+-			"%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X\n",
+-			uuid[0], uuid[1], uuid[2], uuid[3], uuid[4], uuid[5],
+-			uuid[6], uuid[7], uuid[8], uuid[9], uuid[10], uuid[11],
+-			uuid[12], uuid[13], uuid[14], uuid[15]);
++	return snprintf(buf, PAGE_SIZE, "%pUB\n", uuid);
+ }
 =20
--	sprintf(buf, "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-"
--		"%02x%02x%02x%02x%02x%02x",
--		uuid[0],  uuid[1],  uuid[2],  uuid[3],
--		uuid[4],  uuid[5],  uuid[6],  uuid[7],
--		uuid[8],  uuid[9],  uuid[10], uuid[11],
--		uuid[12], uuid[13], uuid[14], uuid[15]);
-+	sprintf(buf, "%pU", uuid);
-+
- 	fake_table.data =3D buf;
- 	fake_table.maxlen =3D sizeof(buf);
-=20
-@@ -1350,7 +1346,7 @@ ctl_table random_table[] =3D {
-=20
- /********************************************************************
-  *
-- * Random funtions for networking
-+ * Random functions for networking
-  *
-  ********************************************************************/
+ static ssize_t freeze_show(struct gfs2_sbd *sdp, char *buf)
+@@ -575,14 +571,8 @@ static int gfs2_uevent(struct kset *kset
+ 	add_uevent_var(env, "LOCKPROTO=3D%s", sdp->sd_proto_name);
+ 	if (!sdp->sd_args.ar_spectator)
+ 		add_uevent_var(env, "JOURNALID=3D%u", sdp->sd_lockstruct.ls_jid);
+-	if (gfs2_uuid_valid(uuid)) {
+-		add_uevent_var(env, "UUID=3D%02X%02X%02X%02X-%02X%02X-%02X%02X-"
+-			       "%02X%02X-%02X%02X%02X%02X%02X%02X",
+-			       uuid[0], uuid[1], uuid[2], uuid[3], uuid[4],
+-			       uuid[5], uuid[6], uuid[7], uuid[8], uuid[9],
+-			       uuid[10], uuid[11], uuid[12], uuid[13],
+-			       uuid[14], uuid[15]);
+-	}
++	if (gfs2_uuid_valid(uuid))
++		add_uevent_var(env, "UUID=3D%pUB", uuid);
+ 	return 0;
+ }
 =20
 _
 
