@@ -1,24 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + speedstep-ich-use-correct-cpu-in-speedstep_get.patch added to -mm tree
-Date: Tue, 13 Oct 2009 14:33:50 -0700
-Message-ID: <200910132133.n9DLXo1p024402@imap1.linux-foundation.org>
+Subject: + drivers-md-mdc-use-%pu-to-print-uuids.patch added to -mm tree
+Date: Tue, 13 Oct 2009 14:50:06 -0700
+Message-ID: <200910132150.n9DLo60d026255@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42735 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40597 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761198AbZJMVfc (ORCPT
+	by vger.kernel.org with ESMTP id S1757520AbZJMVuv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Oct 2009 17:35:32 -0400
+	Tue, 13 Oct 2009 17:50:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dave.mueller@gmx.ch, davej@redhat.com, e.a.b.piel@tudelft.nl, linux@brodo.de, rjw@sisk.pl, rusty@rustcorp.com.au
+Cc: joe@perches.com, neilb@suse.de
 
 
 The patch titled
-     speedstep-ich: use correct CPU in speedstep_get()
+     drivers/md/md.c: use %pU to print UUIDs
 has been added to the -mm tree.  Its filename is
-     speedstep-ich-use-correct-cpu-in-speedstep_get.patch
+     drivers-md-mdc-use-%pu-to-print-uuids.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -26,52 +29,109 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: speedstep-ich: use correct CPU in speedstep_get()
-From: Dave Mueller <dave.mueller@gmx.ch>
+Subject: drivers/md/md.c: use %pU to print UUIDs
+=46rom: Joe Perches <joe@perches.com>
 
-It looks like commit 394122ab144dae4b276d74644a2f11c44a60ac5c ("cpumask:
-avoid playing with cpus_allowed in speedstep-ich.c") broke the
-speedstep-ich driver.
-
-The problem seems to be that speedstep-lib.c:speedstep_get_frequency() is
-called with a wrong value as "processor" parameter by the code below,
-resulting in a return value of 0.  The "processor" parameter should be the
-value returned by "speedstep_detect_processor()"
-
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=14340
-
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Dominik Brodowski <linux@brodo.de>
-Cc: Dave Jones <davej@redhat.com>
-Cc: Eric Pielbug <e.a.b.piel@tudelft.nl>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN arch/x86/kernel/cpu/cpufreq/speedstep-ich.c~speedstep-ich-use-correct-cpu-in-speedstep_get arch/x86/kernel/cpu/cpufreq/speedstep-ich.c
---- a/arch/x86/kernel/cpu/cpufreq/speedstep-ich.c~speedstep-ich-use-correct-cpu-in-speedstep_get
-+++ a/arch/x86/kernel/cpu/cpufreq/speedstep-ich.c
-@@ -246,7 +246,7 @@ static void get_freq_data(void *_data)
- 
- static unsigned int speedstep_get(unsigned int cpu)
- {
--	struct get_freq_data data = { .processor = cpu };
-+	struct get_freq_data data = { .processor = speedstep_processor };
- 
- 	/* You're supposed to ensure CPU is online. */
- 	if (smp_call_function_single(cpu, get_freq_data, &data, 1) != 0)
+diff -puN drivers/md/md.c~drivers-md-mdc-use-%pu-to-print-uuids drivers=
+/md/md.c
+--- a/drivers/md/md.c~drivers-md-mdc-use-%pu-to-print-uuids
++++ a/drivers/md/md.c
+@@ -1813,15 +1813,11 @@ static void print_sb_1(struct mdp_superb
+=20
+ 	uuid =3D sb->set_uuid;
+ 	printk(KERN_INFO
+-	       "md:  SB: (V:%u) (F:0x%08x) Array-ID:<%02x%02x%02x%02x"
+-	       ":%02x%02x:%02x%02x:%02x%02x:%02x%02x%02x%02x%02x%02x>\n"
++	       "md:  SB: (V:%u) (F:0x%08x) Array-ID:<%pU>\n"
+ 	       "md:    Name: \"%s\" CT:%llu\n",
+ 		le32_to_cpu(sb->major_version),
+ 		le32_to_cpu(sb->feature_map),
+-		uuid[0], uuid[1], uuid[2], uuid[3],
+-		uuid[4], uuid[5], uuid[6], uuid[7],
+-		uuid[8], uuid[9], uuid[10], uuid[11],
+-		uuid[12], uuid[13], uuid[14], uuid[15],
++		uuid,
+ 		sb->set_name,
+ 		(unsigned long long)le64_to_cpu(sb->ctime)
+ 		       & MD_SUPERBLOCK_1_TIME_SEC_MASK);
+@@ -1830,8 +1826,7 @@ static void print_sb_1(struct mdp_superb
+ 	printk(KERN_INFO
+ 	       "md:       L%u SZ%llu RD:%u LO:%u CS:%u DO:%llu DS:%llu SO:%ll=
+u"
+ 			" RO:%llu\n"
+-	       "md:     Dev:%08x UUID: %02x%02x%02x%02x:%02x%02x:%02x%02x:%02=
+x%02x"
+-	                ":%02x%02x%02x%02x%02x%02x\n"
++	       "md:     Dev:%08x UUID: %pU\n"
+ 	       "md:       (F:0x%08x) UT:%llu Events:%llu ResyncOffset:%llu CS=
+UM:0x%08x\n"
+ 	       "md:         (MaxDev:%u) \n",
+ 		le32_to_cpu(sb->level),
+@@ -1844,10 +1839,7 @@ static void print_sb_1(struct mdp_superb
+ 		(unsigned long long)le64_to_cpu(sb->super_offset),
+ 		(unsigned long long)le64_to_cpu(sb->recovery_offset),
+ 		le32_to_cpu(sb->dev_number),
+-		uuid[0], uuid[1], uuid[2], uuid[3],
+-		uuid[4], uuid[5], uuid[6], uuid[7],
+-		uuid[8], uuid[9], uuid[10], uuid[11],
+-		uuid[12], uuid[13], uuid[14], uuid[15],
++		uuid,
+ 		sb->devflags,
+ 		(unsigned long long)le64_to_cpu(sb->utime) & MD_SUPERBLOCK_1_TIME_SE=
+C_MASK,
+ 		(unsigned long long)le64_to_cpu(sb->events),
 _
 
-Patches currently in -mm which might be from dave.mueller@gmx.ch are
+Patches currently in -mm which might be from joe@perches.com are
 
-speedstep-ich-use-correct-cpu-in-speedstep_get.patch
+linux-next.patch
+maintainers-update-generic-uio-for-pci-devices.patch
+maintainers-update-tracing-section.patch
+maintainers-update-omap-tony-lindgren-email-name.patch
+maintainers-change-atm-mailing-list-to-moderated.patch
+maintainers-use-tab-not-spaces-after-field-types.patch
+maintainers-update-kernel-janitors-after-mismerge.patch
+maintainers-update-score-architecture-name-style-and-add-file-pattern.p=
+atch
+maintainers-simple-firmware-interface-update-email-style.patch
+maintainers-winbond-cir-integrate-p-m-lines-fixup-david-h=E4rdemans-nam=
+e.patch
+maintainers-fix-up-peripheral-spelling.patch
+maintainers-update-wolfson-microelectronics.patch
+scripts-get_maintainerpl-add-patch-file-search-for-keywords.patch
+maintainers-document-new-k-entry-type.patch
+maintainers-add-open-firmware-flattened-device-tree-entry.patch
+dynamic_debugh-kernelh-remove-kbuild_modname-from-dynamic_pr_debug.patc=
+h
+lib-vsprintfc-add-%pu-to-print-uuid-guids.patch
+randomc-use-%pu-to-print-uuids.patch
+drivers-firmware-dmi_scanc-use-%pub-to-print-uuids.patch
+drivers-md-mdc-use-%pu-to-print-uuids.patch
+drivers-media-video-uvc-use-%pul-to-print-uuids.patch
+fs-gfs2-sysc-use-%pub-to-print-uuids.patch
+fs-ubifs-use-%pub-to-print-uuids.patch
+fs-xfs-xfs_log_recoverc-use-%pu-to-print-uuids.patch
+efih-use-%pul-to-print-uuids.patch
+isicomc-use-pr_fmt-and-pr_level.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
