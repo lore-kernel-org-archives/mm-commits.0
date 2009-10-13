@@ -1,27 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + fs-gfs2-sysc-use-%pub-to-print-uuids.patch added to -mm tree
-Date: Tue, 13 Oct 2009 14:50:10 -0700
-Message-ID: <200910132150.n9DLoA2S026356@imap1.linux-foundation.org>
+Subject: + efih-use-%pul-to-print-uuids.patch added to -mm tree
+Date: Tue, 13 Oct 2009 14:50:27 -0700
+Message-ID: <200910132150.n9DLoRuN027003@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51093 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35156 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933907AbZJMVvB (ORCPT
+	by vger.kernel.org with ESMTP id S934346AbZJMVwE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Oct 2009 17:51:01 -0400
+	Tue, 13 Oct 2009 17:52:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, swhiteho@redhat.com
+Cc: joe@perches.com, jgarzik@redhat.com, tj@kernel.org
 
 
 The patch titled
-     fs/gfs2/sys.c: use %pUB to print UUIDs
+     efi.h: use %pUl to print UUIDs
 has been added to the -mm tree.  Its filename is
-     fs-gfs2-sysc-use-%pub-to-print-uuids.patch
+     efih-use-%pul-to-print-uuids.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,47 +39,44 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
 otm/
 
 ------------------------------------------------------
-Subject: fs/gfs2/sys.c: use %pUB to print UUIDs
+Subject: efi.h: use %pUl to print UUIDs
 =46rom: Joe Perches <joe@perches.com>
 
+Shrinks vmlinux
+
+without:
+$ size vmlinux
+   text    data     bss     dec     hex filename
+6975863  679652 1359668 9015183  898f8f vmlinux
+
+with:
+$ size vmlinux
+   text    data     bss     dec     hex filename
+6975639 679652 1359668 9014959 898eaf vmlinux
+
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Steven Whitehouse <swhiteho@redhat.com>
+Cc: Jeff Garzik <jgarzik@redhat.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN fs/gfs2/sys.c~fs-gfs2-sysc-use-%pub-to-print-uuids fs/gfs2/sy=
-s.c
---- a/fs/gfs2/sys.c~fs-gfs2-sysc-use-%pub-to-print-uuids
-+++ a/fs/gfs2/sys.c
-@@ -85,11 +85,7 @@ static ssize_t uuid_show(struct gfs2_sbd
- 	buf[0] =3D '\0';
- 	if (!gfs2_uuid_valid(uuid))
- 		return 0;
--	return snprintf(buf, PAGE_SIZE, "%02X%02X%02X%02X-%02X%02X-"
--			"%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X\n",
--			uuid[0], uuid[1], uuid[2], uuid[3], uuid[4], uuid[5],
--			uuid[6], uuid[7], uuid[8], uuid[9], uuid[10], uuid[11],
--			uuid[12], uuid[13], uuid[14], uuid[15]);
-+	return snprintf(buf, PAGE_SIZE, "%pUB\n", uuid);
- }
-=20
- static ssize_t freeze_show(struct gfs2_sbd *sdp, char *buf)
-@@ -575,14 +571,8 @@ static int gfs2_uevent(struct kset *kset
- 	add_uevent_var(env, "LOCKPROTO=3D%s", sdp->sd_proto_name);
- 	if (!sdp->sd_args.ar_spectator)
- 		add_uevent_var(env, "JOURNALID=3D%u", sdp->sd_lockstruct.ls_jid);
--	if (gfs2_uuid_valid(uuid)) {
--		add_uevent_var(env, "UUID=3D%02X%02X%02X%02X-%02X%02X-%02X%02X-"
--			       "%02X%02X-%02X%02X%02X%02X%02X%02X",
--			       uuid[0], uuid[1], uuid[2], uuid[3], uuid[4],
--			       uuid[5], uuid[6], uuid[7], uuid[8], uuid[9],
--			       uuid[10], uuid[11], uuid[12], uuid[13],
--			       uuid[14], uuid[15]);
--	}
-+	if (gfs2_uuid_valid(uuid))
-+		add_uevent_var(env, "UUID=3D%pUB", uuid);
- 	return 0;
+diff -puN include/linux/efi.h~efih-use-%pul-to-print-uuids include/linu=
+x/efi.h
+--- a/include/linux/efi.h~efih-use-%pul-to-print-uuids
++++ a/include/linux/efi.h
+@@ -280,11 +280,7 @@ efi_guidcmp (efi_guid_t left, efi_guid_t
+ static inline char *
+ efi_guid_unparse(efi_guid_t *guid, char *out)
+ {
+-	sprintf(out, "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02=
+x%02x%02x%02x",
+-		guid->b[3], guid->b[2], guid->b[1], guid->b[0],
+-		guid->b[5], guid->b[4], guid->b[7], guid->b[6],
+-		guid->b[8], guid->b[9], guid->b[10], guid->b[11],
+-		guid->b[12], guid->b[13], guid->b[14], guid->b[15]);
++	sprintf(out, "%pUl", guid->b);
+         return out;
  }
 =20
 _
