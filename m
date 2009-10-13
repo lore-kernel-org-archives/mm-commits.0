@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions-fix.patch added to -mm tree
-Date: Tue, 13 Oct 2009 12:32:41 -0700
-Message-ID: <200910131932.n9DJWfbJ031756@imap1.linux-foundation.org>
+Subject: + hugetlb-rework-hstate_next_node_-functions.patch added to -mm tree
+Date: Tue, 13 Oct 2009 12:32:35 -0700
+Message-ID: <200910131932.n9DJWZ3h031623@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47401 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57124 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934185AbZJMTe1 (ORCPT
+	by vger.kernel.org with ESMTP id S934165AbZJMTeY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Oct 2009 15:34:27 -0400
+	Tue, 13 Oct 2009 15:34:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, agl@us.ibm.com, andi@firstfloor.org, apw@canonical.com, cl@linux-foundation.org, eric.whitney@hp.com, kamezawa.hiroyu@jp.fujitsu.com, lee.schermerhorn@hp.com, mel@csn.ul.ie, nacc@us.ibm.com, randy.dunlap@oracle.com
+Cc: lee.schermerhorn@hp.com, agl@us.ibm.com, andi@firstfloor.org, apw@canonical.com, cl@linux-foundation.org, eric.whitney@hp.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, nacc@us.ibm.com, randy.dunlap@oracle.com, rientjes@google.com
 
 
 The patch titled
-     hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions-fix
+     hugetlb: rework hstate_next_node_* functions
 has been added to the -mm tree.  Its filename is
-     hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions-fix.patch
+     hugetlb-rework-hstate_next_node_-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,23 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions-fix
-From: David Rientjes <rientjes@google.com>
+Subject: hugetlb: rework hstate_next_node_* functions
+From: Lee Schermerhorn <lee.schermerhorn@hp.com>
 
-On Thu, 8 Oct 2009, Lee Schermerhorn wrote:
+Modify the hstate_next_node* functions to allow them to be called to
+obtain the "start_nid".  Then, whereas prior to this patch we
+unconditionally called hstate_next_node_to_{alloc|free}(), whether or not
+we successfully allocated/freed a huge page on the node, now we only call
+these functions on failure to alloc/free to advance to next allowed node.
 
-> @@ -1144,14 +1156,15 @@ static void __init report_hugepages(void
->  }
->
->  #ifdef CONFIG_HIGHMEM
-> -static void try_to_free_low(struct hstate *h, unsigned long count)
-> +static void try_to_free_low(struct hstate *h, unsigned long count,
-> +						nodemask_t *nodes_allowed)
->  {
->  	int i;
->
->  	if (h->order >= MAX_ORDER)
->  		return;
->
-> -	for (i = 0; i < MAX_NUMNODES; ++i) {
-> +	for_each_node_mask(node, nodes_allowed_) {
->  		struct page *page, *next;
->  		struct list_head *freel = &h->hugepage_freelists[i];
->  		list_for_each_entry_safe(page, next, freel, lru) {
+Factor out the next_node_allowed() function to handle wrap at end of
+node_online_map.  In this version, the allowed nodes include all of the
+online nodes.
 
-That's not looking good for i386, Andrew please fold the following into
-this patch when it's merged into -mm:
-
-[rientjes@google.com: fix HIGHMEM compile error]
-
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Andi Kleen <andi@firstfloor.org>
+Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Reviewed-by: Mel Gorman <mel@csn.ul.ie>
+Acked-by: David Rientjes <rientjes@google.com>
+Reviewed-by: Andi Kleen <andi@firstfloor.org>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Cc: Nishanth Aravamudan <nacc@us.ibm.com>
@@ -79,25 +63,171 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN mm/hugetlb.c~hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions-fix mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions-fix
+diff -puN mm/hugetlb.c~hugetlb-rework-hstate_next_node_-functions mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-rework-hstate_next_node_-functions
 +++ a/mm/hugetlb.c
-@@ -1164,7 +1164,7 @@ static void try_to_free_low(struct hstat
- 	if (h->order >= MAX_ORDER)
- 		return;
+@@ -622,6 +622,20 @@ static struct page *alloc_fresh_huge_pag
+ }
  
--	for_each_node_mask(node, nodes_allowed_) {
-+	for_each_node_mask(i, *nodes_allowed) {
- 		struct page *page, *next;
- 		struct list_head *freel = &h->hugepage_freelists[i];
- 		list_for_each_entry_safe(page, next, freel, lru) {
+ /*
++ * common helper function for hstate_next_node_to_{alloc|free}.
++ * return next node in node_online_map, wrapping at end.
++ */
++static int next_node_allowed(int nid)
++{
++	nid = next_node(nid, node_online_map);
++	if (nid == MAX_NUMNODES)
++		nid = first_node(node_online_map);
++	VM_BUG_ON(nid >= MAX_NUMNODES);
++
++	return nid;
++}
++
++/*
+  * Use a helper variable to find the next node and then
+  * copy it back to next_nid_to_alloc afterwards:
+  * otherwise there's a window in which a racer might
+@@ -634,12 +648,12 @@ static struct page *alloc_fresh_huge_pag
+  */
+ static int hstate_next_node_to_alloc(struct hstate *h)
+ {
+-	int next_nid;
+-	next_nid = next_node(h->next_nid_to_alloc, node_online_map);
+-	if (next_nid == MAX_NUMNODES)
+-		next_nid = first_node(node_online_map);
++	int nid, next_nid;
++
++	nid = h->next_nid_to_alloc;
++	next_nid = next_node_allowed(nid);
+ 	h->next_nid_to_alloc = next_nid;
+-	return next_nid;
++	return nid;
+ }
+ 
+ static int alloc_fresh_huge_page(struct hstate *h)
+@@ -649,15 +663,17 @@ static int alloc_fresh_huge_page(struct 
+ 	int next_nid;
+ 	int ret = 0;
+ 
+-	start_nid = h->next_nid_to_alloc;
++	start_nid = hstate_next_node_to_alloc(h);
+ 	next_nid = start_nid;
+ 
+ 	do {
+ 		page = alloc_fresh_huge_page_node(h, next_nid);
+-		if (page)
++		if (page) {
+ 			ret = 1;
++			break;
++		}
+ 		next_nid = hstate_next_node_to_alloc(h);
+-	} while (!page && next_nid != start_nid);
++	} while (next_nid != start_nid);
+ 
+ 	if (ret)
+ 		count_vm_event(HTLB_BUDDY_PGALLOC);
+@@ -668,17 +684,19 @@ static int alloc_fresh_huge_page(struct 
+ }
+ 
+ /*
+- * helper for free_pool_huge_page() - find next node
+- * from which to free a huge page
++ * helper for free_pool_huge_page() - return the next node
++ * from which to free a huge page.  Advance the next node id
++ * whether or not we find a free huge page to free so that the
++ * next attempt to free addresses the next node.
+  */
+ static int hstate_next_node_to_free(struct hstate *h)
+ {
+-	int next_nid;
+-	next_nid = next_node(h->next_nid_to_free, node_online_map);
+-	if (next_nid == MAX_NUMNODES)
+-		next_nid = first_node(node_online_map);
++	int nid, next_nid;
++
++	nid = h->next_nid_to_free;
++	next_nid = next_node_allowed(nid);
+ 	h->next_nid_to_free = next_nid;
+-	return next_nid;
++	return nid;
+ }
+ 
+ /*
+@@ -693,7 +711,7 @@ static int free_pool_huge_page(struct hs
+ 	int next_nid;
+ 	int ret = 0;
+ 
+-	start_nid = h->next_nid_to_free;
++	start_nid = hstate_next_node_to_free(h);
+ 	next_nid = start_nid;
+ 
+ 	do {
+@@ -715,9 +733,10 @@ static int free_pool_huge_page(struct hs
+ 			}
+ 			update_and_free_page(h, page);
+ 			ret = 1;
++			break;
+ 		}
+ 		next_nid = hstate_next_node_to_free(h);
+-	} while (!ret && next_nid != start_nid);
++	} while (next_nid != start_nid);
+ 
+ 	return ret;
+ }
+@@ -1028,10 +1047,9 @@ int __weak alloc_bootmem_huge_page(struc
+ 		void *addr;
+ 
+ 		addr = __alloc_bootmem_node_nopanic(
+-				NODE_DATA(h->next_nid_to_alloc),
++				NODE_DATA(hstate_next_node_to_alloc(h)),
+ 				huge_page_size(h), huge_page_size(h), 0);
+ 
+-		hstate_next_node_to_alloc(h);
+ 		if (addr) {
+ 			/*
+ 			 * Use the beginning of the huge page to store the
+@@ -1167,29 +1185,31 @@ static int adjust_pool_surplus(struct hs
+ 	VM_BUG_ON(delta != -1 && delta != 1);
+ 
+ 	if (delta < 0)
+-		start_nid = h->next_nid_to_alloc;
++		start_nid = hstate_next_node_to_alloc(h);
+ 	else
+-		start_nid = h->next_nid_to_free;
++		start_nid = hstate_next_node_to_free(h);
+ 	next_nid = start_nid;
+ 
+ 	do {
+ 		int nid = next_nid;
+ 		if (delta < 0)  {
+-			next_nid = hstate_next_node_to_alloc(h);
+ 			/*
+ 			 * To shrink on this node, there must be a surplus page
+ 			 */
+-			if (!h->surplus_huge_pages_node[nid])
++			if (!h->surplus_huge_pages_node[nid]) {
++				next_nid = hstate_next_node_to_alloc(h);
+ 				continue;
++			}
+ 		}
+ 		if (delta > 0) {
+-			next_nid = hstate_next_node_to_free(h);
+ 			/*
+ 			 * Surplus cannot exceed the total number of pages
+ 			 */
+ 			if (h->surplus_huge_pages_node[nid] >=
+-						h->nr_huge_pages_node[nid])
++						h->nr_huge_pages_node[nid]) {
++				next_nid = hstate_next_node_to_free(h);
+ 				continue;
++			}
+ 		}
+ 
+ 		h->surplus_huge_pages += delta;
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from lee.schermerhorn@hp.com are
 
-linux-next.patch
-revert-mm-oom-analysis-add-buffer-cache-information-to-show_free_areas.patch
-oom-dump-stack-and-vm-state-when-oom-killer-panics.patch
 nodemask-make-nodemask_alloc-more-general.patch
 hugetlb-rework-hstate_next_node_-functions.patch
 hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions.patch
@@ -112,5 +242,4 @@ mm-clear-node-in-n_high_memory-and-stop-kswapd-when-all-memory-is-offlined.patch
 hugetlb-handle-memory-hot-plug-events.patch
 hugetlb-offload-per-node-attribute-registrations.patch
 mm-add-gfp-flags-for-nodemask_alloc-slab-allocations.patch
-do_wait-optimization-do-not-place-sub-threads-on-task_struct-children-list.patch
 
