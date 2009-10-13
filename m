@@ -1,33 +1,43 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] gpio-add-gpio_lookup-fix.patch removed from -mm tree
-Date: Tue, 13 Oct 2009 16:20:20 -0700
-Message-ID: <200910132320.n9DNKK87020818@imap1.linux-foundation.org>
+Subject: [withdrawn] gpio-add-gpio_lookup-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 13 Oct 2009 16:20:17 -0700
+Message-ID: <200910132320.n9DNKHVM020715@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47812 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34388 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761601AbZJMXVQ (ORCPT
+	by vger.kernel.org with ESMTP id S1761585AbZJMXVL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Oct 2009 19:21:16 -0400
+	Tue, 13 Oct 2009 19:21:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, bn@niasdigital.com, corbet@lwn.net, david-b@pacbell.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gpio-add-gpio_lookup-fix
+     gpio-add-gpio_lookup-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     gpio-add-gpio_lookup-fix.patch
+     gpio-add-gpio_lookup-checkpatch-fixes.patch
 
 This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio-add-gpio_lookup-fix
+Subject: gpio-add-gpio_lookup-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-remove apprarent debug code.
+WARNING: space prohibited between function name and open parenthesis '('
+#58: FILE: drivers/gpio/gpiolib.c:1121:
++		if (!strcmp (name, chip->names[i - chip->base])) {
+
+total: 0 errors, 1 warnings, 63 lines checked
+
+./patches/gpio-add-gpio_lookup.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
 
 Cc: Ben Nizette <bn@niasdigital.com>
 Cc: David Brownell <david-b@pacbell.net>
@@ -36,21 +46,26 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/gpio/gpiolib.c~gpio-add-gpio_lookup-fix drivers/gpio/gpiolib.c
---- a/drivers/gpio/gpiolib.c~gpio-add-gpio_lookup-fix
+diff -puN drivers/gpio/gpiolib.c~gpio-add-gpio_lookup-checkpatch-fixes drivers/gpio/gpiolib.c
+--- a/drivers/gpio/gpiolib.c~gpio-add-gpio_lookup-checkpatch-fixes
 +++ a/drivers/gpio/gpiolib.c
-@@ -1118,10 +1118,8 @@ int gpio_lookup(const char *name)
+@@ -1118,7 +1118,7 @@ int gpio_lookup(const char *name)
  
  		if (chip == NULL || chip->names == NULL)
  			continue;
--		if (!strcmp(name, chip->names[i - chip->base])) {
--			printk(KERN_NOTICE "grbn found %d\n", i);
-+		if (!strcmp(name, chip->names[i - chip->base]))
+-		if (!strcmp (name, chip->names[i - chip->base])) {
++		if (!strcmp(name, chip->names[i - chip->base])) {
+ 			printk(KERN_NOTICE "grbn found %d\n", i);
  			return i;
--		}
- 	}
- 	return -EINVAL;
+ 		}
+@@ -1127,7 +1127,6 @@ int gpio_lookup(const char *name)
  }
+ EXPORT_SYMBOL_GPL(gpio_lookup);
+ 
+-
+ /**
+  * gpiochip_is_requested - return string iff signal was requested
+  * @chip: controller managing the signal
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -82,6 +97,7 @@ frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
 drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
 errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
+gpio-add-gpio_lookup-checkpatch-fixes.patch
 gpio-add-gpio_lookup-fix.patch
 gpiolib-add-names-file-in-gpio-chip-sysfs.patch
 memcg-coalesce-charging-via-percpu-storage-fix.patch
