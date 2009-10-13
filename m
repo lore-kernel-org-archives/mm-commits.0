@@ -1,270 +1,369 @@
 From: akpm@linux-foundation.org
-Subject: [wrecked] rtc-stk17ta8-fix-races-around-device-registration.patch removed from -mm tree
-Date: Tue, 13 Oct 2009 14:19:13 -0700
-Message-ID: <200910132119.n9DLJDCm026149@imap1.linux-foundation.org>
+Subject: + rtc-fix-driver-data-issues-in-several-rtc-drivers.patch added to -mm tree
+Date: Tue, 13 Oct 2009 14:18:22 -0700
+Message-ID: <200910132118.n9DLINvm024361@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47648 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45686 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934195AbZJMVTy (ORCPT
+	by vger.kernel.org with ESMTP id S1752081AbZJMV0L (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Oct 2009 17:19:54 -0400
+	Tue, 13 Oct 2009 17:26:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anemo@mba.ocn.ne.jp, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: alessandro.zummo@towertech.it, a.zummo@towertech.it, ab@mycable.de, andy.sharp@onstor.com, anemo@mba.ocn.ne.jp, davem@davemloft.net, hcegtvedt@atmel.com, lethal@linux-sh.org, rongkai.zhan@windriver.com, thomas.hommel@gefanuc.com, tsbogend@alpha.franken.de
 
 
 The patch titled
-     rtc-stk17ta8: fix races around device registration
-has been removed from the -mm tree.  Its filename was
-     rtc-stk17ta8-fix-races-around-device-registration.patch
+     rtc: fix driver data issues in several rtc drivers
+has been added to the -mm tree.  Its filename is
+     rtc-fix-driver-data-issues-in-several-rtc-drivers.patch
 
-This patch was dropped because other changes were merged, which wrecked this patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-stk17ta8: fix races around device registration
-From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Subject: rtc: fix driver data issues in several rtc drivers
+From: Alessandro Zummo <alessandro.zummo@towertech.it>
 
-- Call dev_set_drvdata before rtc device creation.
+Herton Ronaldo Krzesinski recently raised up, and fixed, an issue with the
+rtc_cmos driver, which was referring to an inconsistent driver data.
 
-- Use its own spinlock instead of rtc->irq_lock.  Because pdata->rtc
-  must be initialized to use the irq_lock (pdata->rtc->irq_lock).  There
-  is a small window which rtc methods can be called before pdata->rtc is
-  initialized.
+This patch ensures that driver data registration happens before
+rtc_device_register().
 
-  And there is no need use the irq_lock to protect hardware registers. 
-  The driver's own spinlock shoule be enough.
-
-- Check pdata->rtc before calling rtc_update_irq.
-
-- Use alarm_irq_enable and remove ioctl routine.
-
-- Use devres APIs and simplify error/remove path.
-
-These fixes are ported from ds1553 driver and just compile-tested only.
-
-Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
+Acked-by: Thomas Hommel <thomas.hommel@gefanuc.com>
+Acked-by: Hans-Christian Egtvedt <hcegtvedt@atmel.com>
+Acked-by: Paul Mundt <lethal@linux-sh.org>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Andrew Sharp <andy.sharp@onstor.com>
+Cc: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Cc: Alexander Bigga <ab@mycable.de>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Mark Zhan <rongkai.zhan@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/rtc/rtc-stk17ta8.c~rtc-stk17ta8-fix-races-around-device-registration drivers/rtc/rtc-stk17ta8.c
---- a/drivers/rtc/rtc-stk17ta8.c~rtc-stk17ta8-fix-races-around-device-registration
-+++ a/drivers/rtc/rtc-stk17ta8.c
-@@ -62,7 +62,6 @@
- struct rtc_plat_data {
- 	struct rtc_device *rtc;
- 	void __iomem *ioaddr;
--	unsigned long baseaddr;
- 	unsigned long last_jiffies;
- 	int irq;
- 	unsigned int irqen;
-@@ -70,6 +69,7 @@ struct rtc_plat_data {
- 	int alrm_min;
- 	int alrm_hour;
- 	int alrm_mday;
-+	spinlock_t lock;
- };
+diff -puN drivers/rtc/rtc-at32ap700x.c~rtc-fix-driver-data-issues-in-several-rtc-drivers drivers/rtc/rtc-at32ap700x.c
+--- a/drivers/rtc/rtc-at32ap700x.c~rtc-fix-driver-data-issues-in-several-rtc-drivers
++++ a/drivers/rtc/rtc-at32ap700x.c
+@@ -256,6 +256,8 @@ static int __init at32_rtc_probe(struct 
+ 		goto out_iounmap;
+ 	}
  
- static int stk17ta8_rtc_set_time(struct device *dev, struct rtc_time *tm)
-@@ -142,7 +142,7 @@ static void stk17ta8_rtc_update_alarm(st
- 	unsigned long irqflags;
- 	u8 flags;
++	platform_set_drvdata(pdev, rtc);
++
+ 	rtc->rtc = rtc_device_register(pdev->name, &pdev->dev,
+ 				&at32_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(rtc->rtc)) {
+@@ -264,7 +266,6 @@ static int __init at32_rtc_probe(struct 
+ 		goto out_free_irq;
+ 	}
  
--	spin_lock_irqsave(&pdata->rtc->irq_lock, irqflags);
-+	spin_lock_irqsave(&pdata->lock, irqflags);
+-	platform_set_drvdata(pdev, rtc);
+ 	device_init_wakeup(&pdev->dev, 1);
  
- 	flags = readb(ioaddr + RTC_FLAGS);
- 	writeb(flags | RTC_WRITE, ioaddr + RTC_FLAGS);
-@@ -162,7 +162,7 @@ static void stk17ta8_rtc_update_alarm(st
- 	writeb(pdata->irqen ? RTC_INTS_AIE : 0, ioaddr + RTC_INTERRUPTS);
- 	readb(ioaddr + RTC_FLAGS);	/* clear interrupts */
- 	writeb(flags & ~RTC_WRITE, ioaddr + RTC_FLAGS);
--	spin_unlock_irqrestore(&pdata->rtc->irq_lock, irqflags);
-+	spin_unlock_irqrestore(&pdata->lock, irqflags);
- }
- 
- static int stk17ta8_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
-@@ -202,48 +202,45 @@ static irqreturn_t stk17ta8_rtc_interrup
- 	struct platform_device *pdev = dev_id;
- 	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
- 	void __iomem *ioaddr = pdata->ioaddr;
--	unsigned long events = RTC_IRQF;
-+	unsigned long events = 0;
- 
-+	spin_lock(&pdata->lock);
- 	/* read and clear interrupt */
--	if (!(readb(ioaddr + RTC_FLAGS) & RTC_FLAGS_AF))
--		return IRQ_NONE;
--	if (readb(ioaddr + RTC_SECONDS_ALARM) & 0x80)
--		events |= RTC_UF;
--	else
--		events |= RTC_AF;
--	rtc_update_irq(pdata->rtc, 1, events);
--	return IRQ_HANDLED;
-+	if (readb(ioaddr + RTC_FLAGS) & RTC_FLAGS_AF) {
-+		events = RTC_IRQF;
-+		if (readb(ioaddr + RTC_SECONDS_ALARM) & 0x80)
-+			events |= RTC_UF;
-+		else
-+			events |= RTC_AF;
-+		if (likely(pdata->rtc))
-+			rtc_update_irq(pdata->rtc, 1, events);
-+	}
-+	spin_unlock(&pdata->lock);
-+	return events ? IRQ_HANDLED : IRQ_NONE;
- }
- 
--static int stk17ta8_rtc_ioctl(struct device *dev, unsigned int cmd,
--			    unsigned long arg)
-+static int stk17ta8_rtc_alarm_irq_enable(struct device *dev,
-+	unsigned int enabled)
- {
- 	struct platform_device *pdev = to_platform_device(dev);
- 	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
- 
- 	if (pdata->irq <= 0)
--		return -ENOIOCTLCMD; /* fall back into rtc-dev's emulation */
--	switch (cmd) {
--	case RTC_AIE_OFF:
--		pdata->irqen &= ~RTC_AF;
--		stk17ta8_rtc_update_alarm(pdata);
--		break;
--	case RTC_AIE_ON:
-+		return -EINVAL;
-+	if (enabled)
- 		pdata->irqen |= RTC_AF;
--		stk17ta8_rtc_update_alarm(pdata);
--		break;
--	default:
--		return -ENOIOCTLCMD;
--	}
-+	else
-+		pdata->irqen &= ~RTC_AF;
-+	stk17ta8_rtc_update_alarm(pdata);
+ 	dev_info(&pdev->dev, "Atmel RTC for AT32AP700x at %08lx irq %ld\n",
+@@ -273,6 +274,7 @@ static int __init at32_rtc_probe(struct 
  	return 0;
- }
  
- static const struct rtc_class_ops stk17ta8_rtc_ops = {
--	.read_time	= stk17ta8_rtc_read_time,
--	.set_time	= stk17ta8_rtc_set_time,
--	.read_alarm	= stk17ta8_rtc_read_alarm,
--	.set_alarm	= stk17ta8_rtc_set_alarm,
--	.ioctl		= stk17ta8_rtc_ioctl,
-+	.read_time		= stk17ta8_rtc_read_time,
-+	.set_time		= stk17ta8_rtc_set_time,
-+	.read_alarm		= stk17ta8_rtc_read_alarm,
-+	.set_alarm		= stk17ta8_rtc_set_alarm,
-+	.alarm_irq_enable	= stk17ta8_rtc_alarm_irq_enable,
- };
+ out_free_irq:
++	platform_set_drvdata(pdev, NULL);
+ 	free_irq(irq, rtc);
+ out_iounmap:
+ 	iounmap(rtc->regs);
+diff -puN drivers/rtc/rtc-bq4802.c~rtc-fix-driver-data-issues-in-several-rtc-drivers drivers/rtc/rtc-bq4802.c
+--- a/drivers/rtc/rtc-bq4802.c~rtc-fix-driver-data-issues-in-several-rtc-drivers
++++ a/drivers/rtc/rtc-bq4802.c
+@@ -169,6 +169,8 @@ static int __devinit bq4802_probe(struct
+ 		goto out_free;
+ 	}
  
- static ssize_t stk17ta8_nvram_read(struct kobject *kobj,
-@@ -293,26 +290,22 @@ static int __devinit stk17ta8_rtc_probe(
++	platform_set_drvdata(pdev, p);
++
+ 	p->rtc = rtc_device_register("bq4802", &pdev->dev,
+ 				     &bq4802_ops, THIS_MODULE);
+ 	if (IS_ERR(p->rtc)) {
+@@ -176,7 +178,6 @@ static int __devinit bq4802_probe(struct
+ 		goto out_iounmap;
+ 	}
+ 
+-	platform_set_drvdata(pdev, p);
+ 	err = 0;
+ out:
+ 	return err;
+diff -puN drivers/rtc/rtc-ds1302.c~rtc-fix-driver-data-issues-in-several-rtc-drivers drivers/rtc/rtc-ds1302.c
+--- a/drivers/rtc/rtc-ds1302.c~rtc-fix-driver-data-issues-in-several-rtc-drivers
++++ a/drivers/rtc/rtc-ds1302.c
+@@ -143,7 +143,6 @@ static int ds1302_rtc_ioctl(struct devic
+ #ifdef RTC_SET_CHARGE
+ 	case RTC_SET_CHARGE:
+ 	{
+-		struct ds1302_rtc *rtc = dev_get_drvdata(dev);
+ 		int tcs_val;
+ 
+ 		if (copy_from_user(&tcs_val, (int __user *)arg, sizeof(int)))
+diff -puN drivers/rtc/rtc-ds1305.c~rtc-fix-driver-data-issues-in-several-rtc-drivers drivers/rtc/rtc-ds1305.c
+--- a/drivers/rtc/rtc-ds1305.c~rtc-fix-driver-data-issues-in-several-rtc-drivers
++++ a/drivers/rtc/rtc-ds1305.c
+@@ -617,7 +617,6 @@ static struct bin_attribute nvram = {
+ static int __devinit ds1305_probe(struct spi_device *spi)
+ {
+ 	struct ds1305			*ds1305;
+-	struct rtc_device		*rtc;
+ 	int				status;
+ 	u8				addr, value;
+ 	struct ds1305_platform_data	*pdata = spi->dev.platform_data;
+@@ -756,14 +755,13 @@ static int __devinit ds1305_probe(struct
+ 		dev_dbg(&spi->dev, "AM/PM\n");
+ 
+ 	/* register RTC ... from here on, ds1305->ctrl needs locking */
+-	rtc = rtc_device_register("ds1305", &spi->dev,
++	ds1305->rtc = rtc_device_register("ds1305", &spi->dev,
+ 			&ds1305_ops, THIS_MODULE);
+-	if (IS_ERR(rtc)) {
+-		status = PTR_ERR(rtc);
++	if (IS_ERR(ds1305->rtc)) {
++		status = PTR_ERR(ds1305->rtc);
+ 		dev_dbg(&spi->dev, "register rtc --> %d\n", status);
+ 		goto fail0;
+ 	}
+-	ds1305->rtc = rtc;
+ 
+ 	/* Maybe set up alarm IRQ; be ready to handle it triggering right
+ 	 * away.  NOTE that we don't share this.  The signal is active low,
+@@ -774,7 +772,7 @@ static int __devinit ds1305_probe(struct
+ 	if (spi->irq) {
+ 		INIT_WORK(&ds1305->work, ds1305_work);
+ 		status = request_irq(spi->irq, ds1305_irq,
+-				0, dev_name(&rtc->dev), ds1305);
++				0, dev_name(&ds1305->rtc->dev), ds1305);
+ 		if (status < 0) {
+ 			dev_dbg(&spi->dev, "request_irq %d --> %d\n",
+ 					spi->irq, status);
+@@ -794,7 +792,7 @@ static int __devinit ds1305_probe(struct
+ fail2:
+ 	free_irq(spi->irq, ds1305);
+ fail1:
+-	rtc_device_unregister(rtc);
++	rtc_device_unregister(ds1305->rtc);
+ fail0:
+ 	kfree(ds1305);
+ 	return status;
+@@ -802,7 +800,7 @@ fail0:
+ 
+ static int __devexit ds1305_remove(struct spi_device *spi)
+ {
+-	struct ds1305	*ds1305 = spi_get_drvdata(spi);
++	struct ds1305 *ds1305 = spi_get_drvdata(spi);
+ 
+ 	sysfs_remove_bin_file(&spi->dev.kobj, &nvram);
+ 
+diff -puN drivers/rtc/rtc-m48t35.c~rtc-fix-driver-data-issues-in-several-rtc-drivers drivers/rtc/rtc-m48t35.c
+--- a/drivers/rtc/rtc-m48t35.c~rtc-fix-driver-data-issues-in-several-rtc-drivers
++++ a/drivers/rtc/rtc-m48t35.c
+@@ -142,7 +142,6 @@ static const struct rtc_class_ops m48t35
+ 
+ static int __devinit m48t35_probe(struct platform_device *pdev)
+ {
+-	struct rtc_device *rtc;
+ 	struct resource *res;
+ 	struct m48t35_priv *priv;
+ 	int ret = 0;
+@@ -171,20 +170,21 @@ static int __devinit m48t35_probe(struct
+ 		ret = -ENOMEM;
+ 		goto out;
+ 	}
++
+ 	spin_lock_init(&priv->lock);
+-	rtc = rtc_device_register("m48t35", &pdev->dev,
++
++	platform_set_drvdata(pdev, priv);
++
++	priv->rtc = rtc_device_register("m48t35", &pdev->dev,
+ 				  &m48t35_ops, THIS_MODULE);
+-	if (IS_ERR(rtc)) {
+-		ret = PTR_ERR(rtc);
++	if (IS_ERR(priv->rtc)) {
++		ret = PTR_ERR(priv->rtc);
+ 		goto out;
+ 	}
+-	priv->rtc = rtc;
+-	platform_set_drvdata(pdev, priv);
++
+ 	return 0;
+ 
+ out:
+-	if (priv->rtc)
+-		rtc_device_unregister(priv->rtc);
+ 	if (priv->reg)
+ 		iounmap(priv->reg);
+ 	if (priv->baseaddr)
+diff -puN drivers/rtc/rtc-m48t59.c~rtc-fix-driver-data-issues-in-several-rtc-drivers drivers/rtc/rtc-m48t59.c
+--- a/drivers/rtc/rtc-m48t59.c~rtc-fix-driver-data-issues-in-several-rtc-drivers
++++ a/drivers/rtc/rtc-m48t59.c
+@@ -481,6 +481,9 @@ static int __devinit m48t59_rtc_probe(st
+ 		goto out;
+ 	}
+ 
++	spin_lock_init(&m48t59->lock);
++	platform_set_drvdata(pdev, m48t59);
++
+ 	m48t59->rtc = rtc_device_register(name, &pdev->dev, ops, THIS_MODULE);
+ 	if (IS_ERR(m48t59->rtc)) {
+ 		ret = PTR_ERR(m48t59->rtc);
+@@ -490,16 +493,14 @@ static int __devinit m48t59_rtc_probe(st
+ 	m48t59_nvram_attr.size = pdata->offset;
+ 
+ 	ret = sysfs_create_bin_file(&pdev->dev.kobj, &m48t59_nvram_attr);
+-	if (ret)
++	if (ret) {
++		rtc_device_unregister(m48t59->rtc);
+ 		goto out;
++	}
+ 
+-	spin_lock_init(&m48t59->lock);
+-	platform_set_drvdata(pdev, m48t59);
+ 	return 0;
+ 
+ out:
+-	if (!IS_ERR(m48t59->rtc))
+-		rtc_device_unregister(m48t59->rtc);
+ 	if (m48t59->irq != NO_IRQ)
+ 		free_irq(m48t59->irq, &pdev->dev);
+ 	if (m48t59->ioaddr)
+diff -puN drivers/rtc/rtc-pcf8563.c~rtc-fix-driver-data-issues-in-several-rtc-drivers drivers/rtc/rtc-pcf8563.c
+--- a/drivers/rtc/rtc-pcf8563.c~rtc-fix-driver-data-issues-in-several-rtc-drivers
++++ a/drivers/rtc/rtc-pcf8563.c
+@@ -212,6 +212,8 @@ static int pcf8563_probe(struct i2c_clie
+ 
+ 	dev_info(&client->dev, "chip found, driver version " DRV_VERSION "\n");
+ 
++	i2c_set_clientdata(client, pcf8563);
++
+ 	pcf8563->rtc = rtc_device_register(pcf8563_driver.driver.name,
+ 				&client->dev, &pcf8563_rtc_ops, THIS_MODULE);
+ 
+@@ -220,8 +222,6 @@ static int pcf8563_probe(struct i2c_clie
+ 		goto exit_kfree;
+ 	}
+ 
+-	i2c_set_clientdata(client, pcf8563);
+-
+ 	return 0;
+ 
+ exit_kfree:
+diff -puN drivers/rtc/rtc-pcf8583.c~rtc-fix-driver-data-issues-in-several-rtc-drivers drivers/rtc/rtc-pcf8583.c
+--- a/drivers/rtc/rtc-pcf8583.c~rtc-fix-driver-data-issues-in-several-rtc-drivers
++++ a/drivers/rtc/rtc-pcf8583.c
+@@ -277,6 +277,8 @@ static int pcf8583_probe(struct i2c_clie
+ 	if (!pcf8583)
+ 		return -ENOMEM;
+ 
++	i2c_set_clientdata(client, pcf8583);
++
+ 	pcf8583->rtc = rtc_device_register(pcf8583_driver.driver.name,
+ 			&client->dev, &pcf8583_rtc_ops, THIS_MODULE);
+ 
+@@ -285,7 +287,6 @@ static int pcf8583_probe(struct i2c_clie
+ 		goto exit_kfree;
+ 	}
+ 
+-	i2c_set_clientdata(client, pcf8583);
+ 	return 0;
+ 
+ exit_kfree:
+diff -puN drivers/rtc/rtc-stk17ta8.c~rtc-fix-driver-data-issues-in-several-rtc-drivers drivers/rtc/rtc-stk17ta8.c
+--- a/drivers/rtc/rtc-stk17ta8.c~rtc-fix-driver-data-issues-in-several-rtc-drivers
++++ a/drivers/rtc/rtc-stk17ta8.c
+@@ -288,7 +288,6 @@ static struct bin_attribute stk17ta8_nvr
+ 
+ static int __devinit stk17ta8_rtc_probe(struct platform_device *pdev)
+ {
+-	struct rtc_device *rtc;
+ 	struct resource *res;
  	unsigned int cal;
  	unsigned int flags;
- 	struct rtc_plat_data *pdata;
--	void __iomem *ioaddr = NULL;
-+	void __iomem *ioaddr;
- 	int ret = 0;
+@@ -338,22 +337,23 @@ static int __devinit stk17ta8_rtc_probe(
+ 		}
+ 	}
  
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (!res)
- 		return -ENODEV;
- 
--	pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
-+	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
- 	if (!pdata)
- 		return -ENOMEM;
--	if (!request_mem_region(res->start, RTC_REG_SIZE, pdev->name)) {
--		ret = -EBUSY;
--		goto out;
--	}
--	pdata->baseaddr = res->start;
--	ioaddr = ioremap(pdata->baseaddr, RTC_REG_SIZE);
--	if (!ioaddr) {
--		ret = -ENOMEM;
--		goto out;
--	}
-+	if (!devm_request_mem_region(&pdev->dev, res->start, RTC_REG_SIZE,
-+			pdev->name))
-+		return -EBUSY;
-+	ioaddr = devm_ioremap(&pdev->dev, res->start, RTC_REG_SIZE);
-+	if (!ioaddr)
-+		return -ENOMEM;
- 	pdata->ioaddr = ioaddr;
- 	pdata->irq = platform_get_irq(pdev, 0);
- 
-@@ -328,9 +321,13 @@ static int __devinit stk17ta8_rtc_probe(
- 	if (readb(ioaddr + RTC_FLAGS) & RTC_FLAGS_PF)
- 		dev_warn(&pdev->dev, "voltage-low detected.\n");
- 
-+	spin_lock_init(&pdata->lock);
+-	rtc = rtc_device_register(pdev->name, &pdev->dev,
 +	pdata->last_jiffies = jiffies;
 +	platform_set_drvdata(pdev, pdata);
- 	if (pdata->irq > 0) {
- 		writeb(0, ioaddr + RTC_INTERRUPTS);
--		if (request_irq(pdata->irq, stk17ta8_rtc_interrupt,
-+		if (devm_request_irq(&pdev->dev, pdata->irq,
-+				stk17ta8_rtc_interrupt,
- 				IRQF_DISABLED | IRQF_SHARED,
- 				pdev->name, pdev) < 0) {
- 			dev_warn(&pdev->dev, "interrupt not available.\n");
-@@ -340,27 +337,12 @@ static int __devinit stk17ta8_rtc_probe(
- 
- 	rtc = rtc_device_register(pdev->name, &pdev->dev,
++
++	pdata->rtc = rtc_device_register(pdev->name, &pdev->dev,
  				  &stk17ta8_rtc_ops, THIS_MODULE);
 -	if (IS_ERR(rtc)) {
 -		ret = PTR_ERR(rtc);
--		goto out;
--	}
-+	if (IS_ERR(rtc))
-+		return PTR_ERR(rtc);
- 	pdata->rtc = rtc;
++	if (IS_ERR(pdata->rtc)) {
++		ret = PTR_ERR(pdata->rtc);
+ 		goto out;
+ 	}
+-	pdata->rtc = rtc;
 -	pdata->last_jiffies = jiffies;
 -	platform_set_drvdata(pdev, pdata);
++
  	ret = sysfs_create_bin_file(&pdev->dev.kobj, &stk17ta8_nvram_attr);
- 	if (ret)
--		goto out;
--	return 0;
-- out:
+-	if (ret)
++	if (ret) {
++		rtc_device_unregister(pdata->rtc);
+ 		goto out;
++	}
+ 	return 0;
+  out:
 -	if (pdata->rtc)
 -		rtc_device_unregister(pdata->rtc);
--	if (pdata->irq > 0)
--		free_irq(pdata->irq, pdev);
--	if (ioaddr)
--		iounmap(ioaddr);
--	if (pdata->baseaddr)
--		release_mem_region(pdata->baseaddr, RTC_REG_SIZE);
--	kfree(pdata);
-+		rtc_device_unregister(rtc);
- 	return ret;
- }
+ 	if (pdata->irq > 0)
+ 		free_irq(pdata->irq, pdev);
+ 	if (ioaddr)
+diff -puN drivers/rtc/rtc-v3020.c~rtc-fix-driver-data-issues-in-several-rtc-drivers drivers/rtc/rtc-v3020.c
+--- a/drivers/rtc/rtc-v3020.c~rtc-fix-driver-data-issues-in-several-rtc-drivers
++++ a/drivers/rtc/rtc-v3020.c
+@@ -304,7 +304,6 @@ static int rtc_probe(struct platform_dev
+ {
+ 	struct v3020_platform_data *pdata = pdev->dev.platform_data;
+ 	struct v3020 *chip;
+-	struct rtc_device *rtc;
+ 	int retval = -EBUSY;
+ 	int i;
+ 	int temp;
+@@ -353,13 +352,12 @@ static int rtc_probe(struct platform_dev
  
-@@ -370,13 +352,8 @@ static int __devexit stk17ta8_rtc_remove
+ 	platform_set_drvdata(pdev, chip);
  
- 	sysfs_remove_bin_file(&pdev->dev.kobj, &stk17ta8_nvram_attr);
- 	rtc_device_unregister(pdata->rtc);
--	if (pdata->irq > 0) {
-+	if (pdata->irq > 0)
- 		writeb(0, pdata->ioaddr + RTC_INTERRUPTS);
--		free_irq(pdata->irq, pdev);
--	}
--	iounmap(pdata->ioaddr);
--	release_mem_region(pdata->baseaddr, RTC_REG_SIZE);
--	kfree(pdata);
+-	rtc = rtc_device_register("v3020",
++	chip->rtc = rtc_device_register("v3020",
+ 				&pdev->dev, &v3020_rtc_ops, THIS_MODULE);
+-	if (IS_ERR(rtc)) {
+-		retval = PTR_ERR(rtc);
++	if (IS_ERR(chip->rtc)) {
++		retval = PTR_ERR(chip->rtc);
+ 		goto err_io;
+ 	}
+-	chip->rtc = rtc;
+ 
  	return 0;
- }
  
 _
 
-Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
+Patches currently in -mm which might be from alessandro.zummo@towertech.it are
 
+linux-next.patch
+cs5535-gpio-request-function-mask-names-added.patch
 rtc-fix-driver-data-issues-in-several-rtc-drivers.patch
-rtc-ds1511-fix-races-around-device-registration.patch
-rtc-stk17ta8-fix-races-around-device-registration.patch
-rtc-tx4939-fix-races-around-device-registration.patch
-rtc-ds1553-fix-races-around-device-registration.patch
-rtc-ds1742-fix-races-around-device-registration.patch
 
