@@ -1,27 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + fs-ubifs-use-%pub-to-print-uuids.patch added to -mm tree
-Date: Tue, 13 Oct 2009 14:50:12 -0700
-Message-ID: <200910132150.n9DLoC7p026413@imap1.linux-foundation.org>
+Subject: + lib-vsprintfc-add-%pu-to-print-uuid-guids.patch added to -mm tree
+Date: Tue, 13 Oct 2009 14:49:58 -0700
+Message-ID: <200910132149.n9DLnwi2025934@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37106 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57301 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934313AbZJMVvC (ORCPT
+	by vger.kernel.org with ESMTP id S1750883AbZJMVwd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Oct 2009 17:51:02 -0400
+	Tue, 13 Oct 2009 17:52:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, adrian.hunter@nokia.com, dedekind@infradead.org
+Cc: joe@perches.com, adrian.hunter@nokia.com, aelder@sgi.com, dedekind@infradead.org, hch@lst.de, jgarzik@redhat.com, mchehab@infradead.org, mpm@selenic.com, neilb@suse.de, swhiteho@redhat.com, tj@kernel.org
 
 
 The patch titled
-     fs/ubifs: use %pUB to print UUIDs
+     lib/vsprintf.c: add %pU to print UUID/GUIDs
 has been added to the -mm tree.  Its filename is
-     fs-ubifs-use-%pub-to-print-uuids.patch
+     lib-vsprintfc-add-%pu-to-print-uuid-guids.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,54 +39,136 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
 otm/
 
 ------------------------------------------------------
-Subject: fs/ubifs: use %pUB to print UUIDs
+Subject: lib/vsprintf.c: add %pU to print UUID/GUIDs
 =46rom: Joe Perches <joe@perches.com>
 
+UUID/GUIDs are somewhat common in kernel source.
+
+Standardize the printed style of UUID/GUIDs by using
+another extension to %p.
+
+%pUb:   01020304-0506-0708-090a-0b0c0d0e0f10
+%pUB:   01020304-0506-0708-090A-0B0C0D0E0F10 (upper case)
+%pUl:   04030201-0605-0807-090a-0b0c0d0e0f10
+%pUL:   04030201-0605-0807-090A-0B0C0D0E0F10 (upper case)
+
+%pU defaults to %pUb
+
 Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Jeff Garzik <jgarzik@redhat.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Alex Elder <aelder@sgi.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Cc: Artem Bityutskiy <dedekind@infradead.org>
 Cc: Adrian Hunter <adrian.hunter@nokia.com>
+Cc: Steven Whitehouse <swhiteho@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN fs/ubifs/debug.c~fs-ubifs-use-%pub-to-print-uuids fs/ubifs/de=
-bug.c
---- a/fs/ubifs/debug.c~fs-ubifs-use-%pub-to-print-uuids
-+++ a/fs/ubifs/debug.c
-@@ -350,13 +350,8 @@ void dbg_dump_node(const struct ubifs_in
- 		       le32_to_cpu(sup->fmt_version));
- 		printk(KERN_DEBUG "\ttime_gran      %u\n",
- 		       le32_to_cpu(sup->time_gran));
--		printk(KERN_DEBUG "\tUUID           %02X%02X%02X%02X-%02X%02X"
--		       "-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X\n",
--		       sup->uuid[0], sup->uuid[1], sup->uuid[2], sup->uuid[3],
--		       sup->uuid[4], sup->uuid[5], sup->uuid[6], sup->uuid[7],
--		       sup->uuid[8], sup->uuid[9], sup->uuid[10], sup->uuid[11],
--		       sup->uuid[12], sup->uuid[13], sup->uuid[14],
--		       sup->uuid[15]);
-+		printk(KERN_DEBUG "\tUUID           %pUB\n",
-+		       sup->uuid);
+diff -puN lib/vsprintf.c~lib-vsprintfc-add-%pu-to-print-uuid-guids lib/=
+vsprintf.c
+--- a/lib/vsprintf.c~lib-vsprintfc-add-%pu-to-print-uuid-guids
++++ a/lib/vsprintf.c
+@@ -790,6 +790,52 @@ static char *ip4_addr_string(char *buf,=20
+ 	return string(buf, end, ip4_addr, spec);
+ }
+=20
++static char *uuid_string(char *buf, char *end, const u8 *addr,
++			 struct printf_spec spec, const char *fmt)
++{
++	char uuid[sizeof("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")];
++	char *p =3D uuid;
++	int i;
++	static const u8 be[16] =3D {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
++	static const u8 le[16] =3D {3,2,1,0,5,4,7,6,8,9,10,11,12,13,14,15};
++	const u8 *index =3D be;
++	bool uc =3D false;
++
++	switch (*(++fmt)) {
++	case 'L':
++		uc =3D true;		/* fall-through */
++	case 'l':
++		index =3D le;
++		break;
++	case 'B':
++		uc =3D true;
++		break;
++	}
++
++	for (i =3D 0; i < 16; i++) {
++		p =3D pack_hex_byte(p, addr[index[i]]);
++		switch (i) {
++		case 3:
++		case 5:
++		case 7:
++		case 9:
++			*p++ =3D '-';
++			break;
++		}
++	}
++
++	*p =3D 0;
++
++	if (uc) {
++		p =3D uuid;
++		do {
++			*p =3D toupper(*p);
++		} while (*(++p));
++	}
++
++	return string(buf, end, uuid, spec);
++}
++
+ /*
+  * Show a '%p' thing.  A kernel extension is that the '%p' is followed
+  * by an extra set of alphanumeric characters that are extended format
+@@ -814,6 +860,18 @@ static char *ip4_addr_string(char *buf,=20
+  *       IPv4 uses dot-separated decimal with leading 0's (010.123.045=
+=2E006)
+  * - 'I6c' for IPv6 addresses printed as specified by
+  *       http://www.ietf.org/id/draft-kawamura-ipv6-text-representatio=
+n-03.txt
++ * - 'U' For a 16 byte UUID/GUID, it prints the UUID/GUID in the form
++ *       "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
++ *       Options for %pU are:
++ *         b big endian lower case hex (default)
++ *         B big endian UPPER case hex
++ *         l little endian lower case hex
++ *         L little endian UPPER case hex
++ *           big endian output byte order is:
++ *             [0][1][2][3]-[4][5]-[6][7]-[8][9]-[10][11][12][13][14][=
+15]
++ *           little endian output byte order is:
++ *             [3][2][1][0]-[5][4]-[7][6]-[8][9]-[10][11][12][13][14][=
+15]
++ *
+  * Note: The difference between 'S' and 'F' is that on ia64 and ppc64
+  * function pointers are really function descriptors, which contain a
+  * pointer to the real address.
+@@ -828,9 +886,9 @@ static char *pointer(const char *fmt, ch
+ 	case 'F':
+ 	case 'f':
+ 		ptr =3D dereference_function_descriptor(ptr);
+-	case 's':
+ 		/* Fallthrough */
+ 	case 'S':
++	case 's':
+ 		return symbol_string(buf, end, ptr, spec, *fmt);
+ 	case 'R':
+ 		return resource_string(buf, end, ptr, spec);
+@@ -853,6 +911,8 @@ static char *pointer(const char *fmt, ch
+ 			return ip4_addr_string(buf, end, ptr, spec, fmt);
+ 		}
  		break;
++	case 'U':
++		return uuid_string(buf, end, ptr, spec, fmt);
  	}
- 	case UBIFS_MST_NODE:
-diff -puN fs/ubifs/super.c~fs-ubifs-use-%pub-to-print-uuids fs/ubifs/su=
-per.c
---- a/fs/ubifs/super.c~fs-ubifs-use-%pub-to-print-uuids
-+++ a/fs/ubifs/super.c
-@@ -1393,12 +1393,7 @@ static int mount_ubifs(struct ubifs_info
- 		c->leb_size, c->leb_size >> 10);
- 	dbg_msg("data journal heads:  %d",
- 		c->jhead_cnt - NONDATA_JHEADS_CNT);
--	dbg_msg("UUID:                %02X%02X%02X%02X-%02X%02X"
--	       "-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X",
--	       c->uuid[0], c->uuid[1], c->uuid[2], c->uuid[3],
--	       c->uuid[4], c->uuid[5], c->uuid[6], c->uuid[7],
--	       c->uuid[8], c->uuid[9], c->uuid[10], c->uuid[11],
--	       c->uuid[12], c->uuid[13], c->uuid[14], c->uuid[15]);
-+	dbg_msg("UUID:                %pUB", c->uuid);
- 	dbg_msg("big_lpt              %d", c->big_lpt);
- 	dbg_msg("log LEBs:            %d (%d - %d)",
- 		c->log_lebs, UBIFS_LOG_LNUM, c->log_last);
+ 	spec.flags |=3D SMALL;
+ 	if (spec.field_width =3D=3D -1) {
 _
 
 Patches currently in -mm which might be from joe@perches.com are
