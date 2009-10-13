@@ -1,103 +1,141 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] rwsem-fix-rwsem_is_locked-bug.patch removed from -mm tree
-Date: Tue, 13 Oct 2009 13:26:49 -0700
-Message-ID: <200910132026.n9DKQnKY014440@imap1.linux-foundation.org>
+Subject: + hpsa-fix-use-of-unallocated-memory-for-msa2xxx-enclosure-device-data.patch added to -mm tree
+Date: Tue, 13 Oct 2009 13:54:15 -0700
+Message-ID: <200910132054.n9DKsFEc006590@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52382 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60888 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752151AbZJMU3P (ORCPT
+	by vger.kernel.org with ESMTP id S934175AbZJMUzE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Oct 2009 16:29:15 -0400
+	Tue, 13 Oct 2009 16:55:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: amwang@redhat.com, behlendorf1@llnl.gov, bwoodard@llnl.gov, dhowells@redhat.com, mingo@elte.hu, stable@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: scameron@beardog.cce.hp.com, James.Bottomley@HansenPartnership.com, jens.axboe@oracle.com, mikem@beardog.cce.hp.com
 
 
 The patch titled
-     rwsem: fix rwsem_is_locked() bug
-has been removed from the -mm tree.  Its filename was
-     rwsem-fix-rwsem_is_locked-bug.patch
+     hpsa: fix use of unallocated memory for MSA2xxx enclosure device data
+has been added to the -mm tree.  Its filename is
+     hpsa-fix-use-of-unallocated-memory-for-msa2xxx-enclosure-device-data.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rwsem: fix rwsem_is_locked() bug
-From: Amerigo Wang <amwang@redhat.com>
+Subject: hpsa: fix use of unallocated memory for MSA2xxx enclosure device data
+From: "Stephen M. Cameron" <scameron@beardog.cce.hp.com>
 
-rwsem_is_locked() tests ->activity without locks, so we should always keep
-->activity consistent.  However, the code in __rwsem_do_wake() breaks this
-rule, it updates ->activity after _all_ readers waken up, this may give
-some reader a wrong ->activity value, thus cause rwsem_is_locked() behaves
-wrong.
+Fix use of unallocated memory for MSA2xxx enclosure device data.  If you
+happened to have fewer physical devices reported by CCISS_REPORT_LUNS than
+the total number of MSA2012 enclosures (unlikely), the data for some
+enclosure(s) would get stored into, or cause other device data to be
+stored into unallocated territory.
 
-Brian has a kernel module to reproduce this, I can include it if any of
-you need.  Of course, with Brian's approval.
-
-With this patch applied, I can't trigger that bug any more.
-
-
-akpm sez:
-
-- we have one or more processes sleeping in down_read(), waiting for
-  access.
-
-- we wake one or more processes up without altering ->activity
-
-- they start to run and they do rwsem_is_locked().  This incorrectly
-  returns "false", because the waker process is still crunching away in
-  __rwsem_do_wake().
-
-- the waker now alters ->activity, but it was too late.
-
-The patch fixes this by updating ->activity prior to waking the sleeping
-processes.  So when they run, they'll see a non-zero value of ->activity.
-
-
-Reported-by: Brian Behlendorf <behlendorf1@llnl.gov>
-Cc: Ben Woodard <bwoodard@llnl.gov>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Signed-off-by: WANG Cong <amwang@redhat.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Stephen M. Cameron <scameron@beardog.cce.hp.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Mike Miller <mikem@beardog.cce.hp.com>
+Cc: Stephen M. Cameron <scameron@beardog.cce.hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/rwsem-spinlock.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN lib/rwsem-spinlock.c~rwsem-fix-rwsem_is_locked-bug lib/rwsem-spinlock.c
---- a/lib/rwsem-spinlock.c~rwsem-fix-rwsem_is_locked-bug
-+++ a/lib/rwsem-spinlock.c
-@@ -49,7 +49,6 @@ __rwsem_do_wake(struct rw_semaphore *sem
+diff -puN drivers/scsi/hpsa.c~hpsa-fix-use-of-unallocated-memory-for-msa2xxx-enclosure-device-data drivers/scsi/hpsa.c
+--- a/drivers/scsi/hpsa.c~hpsa-fix-use-of-unallocated-memory-for-msa2xxx-enclosure-device-data
++++ a/drivers/scsi/hpsa.c
+@@ -1314,7 +1314,8 @@ static void figure_bus_target_lun(struct
+ static int add_msa2xxx_enclosure_device(struct ctlr_info *h,
+ 	struct hpsa_scsi_dev_t *tmpdevice,
+ 	struct hpsa_scsi_dev_t *this_device, __u8 *lunaddrbytes,
+-	int bus, int target, int lun, unsigned long lunzerobits[])
++	int bus, int target, int lun, unsigned long lunzerobits[],
++	int *nmsa2xxx_enclosures)
  {
- 	struct rwsem_waiter *waiter;
- 	struct task_struct *tsk;
--	int woken;
+ 	unsigned char scsi3addr[8];
  
- 	waiter = list_entry(sem->wait_list.next, struct rwsem_waiter, list);
+@@ -1333,10 +1334,19 @@ static int add_msa2xxx_enclosure_device(
+ 	if (is_hba_lunid(scsi3addr))
+ 		return 0; /* Don't add the RAID controller here. */
  
-@@ -78,24 +77,21 @@ __rwsem_do_wake(struct rw_semaphore *sem
++#define MAX_MSA2XXX_ENCLOSURES 32
++	if (*nmsa2xxx_enclosures >= MAX_MSA2XXX_ENCLOSURES) {
++		dev_warn(&h->pdev->dev, "Maximum number of MSA2XXX "
++			"enclosures exceeded.  Check your hardware "
++			"configuration.");
++		return 0;
++	}
++
+ 	memset(scsi3addr, 0, 8);
+ 	scsi3addr[3] = target;
+ 	if (hpsa_update_device_info(h, scsi3addr, this_device))
+ 		return 0;
++	(*nmsa2xxx_enclosures)++;
+ 	hpsa_set_bus_target_lun(this_device, bus, target, 0);
+ 	set_bit(target, lunzerobits);
+ 	return 1;
+@@ -1416,7 +1426,7 @@ static void hpsa_update_scsi_devices(str
+ 	struct hpsa_scsi_dev_t **currentsd, *this_device, *tmpdevice;
+ 	int ncurrent = 0;
+ 	int reportlunsize = sizeof(*physdev_list) + HPSA_MAX_PHYS_LUN * 8;
+-	int i;
++	int i, nmsa2xxx_enclosures, ndevs_to_allocate;
+ 	int bus, target, lun;
+ 	DECLARE_BITMAP(lunzerobits, HPSA_MAX_TARGETS_PER_CTLR);
  
- 	/* grant an infinite number of read locks to the front of the queue */
-  dont_wake_writers:
--	woken = 0;
- 	while (waiter->flags & RWSEM_WAITING_FOR_READ) {
- 		struct list_head *next = waiter->list.next;
+@@ -1438,8 +1448,14 @@ static void hpsa_update_scsi_devices(str
+ 			logdev_list, &nlogicals))
+ 		goto out;
  
-+		sem->activity++;
- 		list_del(&waiter->list);
- 		tsk = waiter->task;
- 		smp_mb();
- 		waiter->task = NULL;
- 		wake_up_process(tsk);
- 		put_task_struct(tsk);
--		woken++;
- 		if (list_empty(&sem->wait_list))
- 			break;
- 		waiter = list_entry(next, struct rwsem_waiter, list);
++	/* We might see up to 32 MSA2xxx enclosures, actually 8 of them
++	 * but each of them 4 times through different paths.  The plus 1
++	 * is for the RAID controller.
++	 */
++	ndevs_to_allocate = nphysicals + nlogicals + MAX_MSA2XXX_ENCLOSURES + 1;
++
+ 	/* Allocate the per device structures */
+-	for (i = 0; i < nphysicals + nlogicals + 1; i++) {
++	for (i = 0; i < ndevs_to_allocate; i++) {
+ 		currentsd[i] = kzalloc(sizeof(*currentsd[i]), GFP_KERNEL);
+ 		if (!currentsd[i]) {
+ 			dev_warn(&h->pdev->dev, "out of memory at %s:%d\n",
+@@ -1450,6 +1466,7 @@ static void hpsa_update_scsi_devices(str
  	}
  
--	sem->activity += woken;
+ 	/* adjust our table of devices */
++	nmsa2xxx_enclosures = 0;
+ 	for (i = 0; i < nphysicals + nlogicals + 1; i++) {
+ 		__u8 *lunaddrbytes;
+ 
+@@ -1482,7 +1499,8 @@ static void hpsa_update_scsi_devices(str
+ 		 * there is no lun 0.
+ 		 */
+ 		if (add_msa2xxx_enclosure_device(h, tmpdevice, this_device,
+-			lunaddrbytes, bus, target, lun, lunzerobits)) {
++				lunaddrbytes, bus, target, lun, lunzerobits,
++				&nmsa2xxx_enclosures)) {
+ 			ncurrent++;
+ 			this_device = currentsd[ncurrent];
+ 		}
+_
+
+Patches currently in -mm which might be from scameron@beardog.cce.hp.com are
+
+scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
+scsi-add-hpsa-driver-for-hp-smart-array-controllers-fix-hpsa_allow_any-test-for-vendor-id.patch
+scsi-add-hpsa-driver-for-hp-smart-array-controllers-fix.patch
+hpsa-fix-use-of-unallocated-memory-for-msa2xxx-enclosure-device-data.patch
+cciss-fix-multiple-calls-to-pci_release_regions.patch
+cciss-add-cciss_allow_hpsa-module-parameter.patch
+
