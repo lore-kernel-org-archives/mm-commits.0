@@ -1,28 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + serial-atmel_serial-fix-another-fallout-of-the-change-to-build_bug_on.patch added to -mm tree
-Date: Tue, 13 Oct 2009 10:13:44 -0700
-Message-ID: <200910131713.n9DHDiCx002468@imap1.linux-foundation.org>
+Subject: + mmc-at91_mci-dont-include-asm-mach-mmch.patch added to -mm tree
+Date: Tue, 13 Oct 2009 10:11:54 -0700
+Message-ID: <200910131711.n9DHBsHG031135@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38055 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47534 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753031AbZJMRTK (ORCPT
+	by vger.kernel.org with ESMTP id S1760051AbZJMRZd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Oct 2009 13:19:10 -0400
+	Tue, 13 Oct 2009 13:25:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: u.kleine-koenig@pengutronix.de, alan@linux.intel.com, hskinnemoen@atmel.com, jbeulich@novell.com
+Cc: u.kleine-koenig@pengutronix.de, bgat@billgatliff.com, linus.walleij@stericsson.com, linux-mmc@vger.kernel.org, nicolas.ferre@atmel.com, rmk+kernel@arm.linux.org.uk
 
 
 The patch titled
-     serial/atmel_serial: fix fallout from the change to BUILD_BUG_ON
+     mmc: at91_mci: don't include asm/mach/mmc.h
 has been added to the -mm tree.  Its filename is
-     serial-atmel_serial-fix-another-fallout-of-the-change-to-build_bug=
-_on.patch
+     mmc-at91_mci-dont-include-asm-mach-mmch.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,40 +39,39 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
 otm/
 
 ------------------------------------------------------
-Subject: serial/atmel_serial: fix fallout from the change to BUILD_BUG_=
-ON
+Subject: mmc: at91_mci: don't include asm/mach/mmc.h
 =46rom: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
 
-Commit 8c87df457cb5 ("BUILD_BUG_ON(): fix it and a couple of bogus uses=
- of
-it") fixed BUILD_BUG_ON with the result that some expressions (e.g.  "n=
-ot
-really constant" ones) result in a build failure.
+This fixes a compile error introduced in
 
-Some of these were fixed in 8c87df457cb5, but not serial/atmel_serial.
+	6ef297f (ARM: 5720/1: Move MMCI header to amba include dir)
+
+That commit moved arch/arm/include/asm/mach/mmc.h to
+include/linux/amba/mmci.h.  Just removing the include was enough.
 
 Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
-Cc: Jan Beulich <jbeulich@novell.com>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: Alan Cox <alan@linux.intel.com>
+Acked-by: Linus Walleij <linus.walleij@stericsson.com>
+Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
+Acked-by: Bill Gatliff <bgat@billgatliff.com>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/serial/atmel_serial.c~serial-atmel_serial-fix-another=
--fallout-of-the-change-to-build_bug_on drivers/serial/atmel_serial.c
---- a/drivers/serial/atmel_serial.c~serial-atmel_serial-fix-another-fal=
-lout-of-the-change-to-build_bug_on
-+++ a/drivers/serial/atmel_serial.c
-@@ -1531,7 +1531,7 @@ static int __devinit atmel_serial_probe(
- 	void *data;
- 	int ret;
+diff -puN drivers/mmc/host/at91_mci.c~mmc-at91_mci-dont-include-asm-mac=
+h-mmch drivers/mmc/host/at91_mci.c
+--- a/drivers/mmc/host/at91_mci.c~mmc-at91_mci-dont-include-asm-mach-mm=
+ch
++++ a/drivers/mmc/host/at91_mci.c
+@@ -72,7 +72,6 @@
+ #include <asm/irq.h>
+ #include <asm/gpio.h>
 =20
--	BUILD_BUG_ON(!is_power_of_2(ATMEL_SERIAL_RINGSIZE));
-+	MAYBE_BUILD_BUG_ON(!is_power_of_2(ATMEL_SERIAL_RINGSIZE));
-=20
- 	port =3D &atmel_ports[pdev->id];
- 	port->backup_imr =3D 0;
+-#include <asm/mach/mmc.h>
+ #include <mach/board.h>
+ #include <mach/cpu.h>
+ #include <mach/at91_mci.h>
 _
 
 Patches currently in -mm which might be from u.kleine-koenig@pengutroni=
@@ -81,8 +79,6 @@ x.de are
 
 linux-next.patch
 mmc-at91_mci-dont-include-asm-mach-mmch.patch
-serial-atmel_serial-fix-another-fallout-of-the-change-to-build_bug_on.p=
-atch
 
 --
 To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
