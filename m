@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + lib-iommu-helperc-fix-off-by-one-error-in-find_next_zero_area.patch added to -mm tree
-Date: Tue, 13 Oct 2009 10:00:09 -0700
-Message-ID: <200910131700.n9DH09HF006783@imap1.linux-foundation.org>
+Subject: + fcntl-rename-f_owner_gid-to-f_owner_pgrp.patch added to -mm tree
+Date: Tue, 13 Oct 2009 10:04:33 -0700
+Message-ID: <200910131704.n9DH4XN2015811@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47029 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55801 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752931AbZJMRBY (ORCPT
+	by vger.kernel.org with ESMTP id S1760570AbZJMRGE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Oct 2009 13:01:24 -0400
+	Tue, 13 Oct 2009 13:06:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, joerg.roedel@amd.com
+Cc: a.p.zijlstra@chello.nl, mingo@elte.hu, mtk.manpages@gmail.com
 
 
 The patch titled
-     lib/iommu-helper.c: fix off-by-one error in find_next_zero_area()
+     fcntl: rename F_OWNER_GID to F_OWNER_PGRP
 has been added to the -mm tree.  Its filename is
-     lib-iommu-helperc-fix-off-by-one-error-in-find_next_zero_area.patch
+     fcntl-rename-f_owner_gid-to-f_owner_pgrp.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,67 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib/iommu-helper.c: fix off-by-one error in find_next_zero_area()
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: fcntl: rename F_OWNER_GID to F_OWNER_PGRP
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-My user space testing exposed off-by-one error find_next_zero_area in
-iommu-helper.  Some zero area cannot be found by this bug.
+This is for consistency with various ioctl() operations that include the
+suffix "PGRP" in their names, and also for consistency with PRIO_PGRP,
+used with setpriority() and getpriority().  Also, using PGRP instead of
+GID avoids confusion with the common abbreviation of "group ID".
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Joerg Roedel <joerg.roedel@amd.com>
+I'm fine with anything that makes it more consistent, and if PGRP is what
+is the predominant abbreviation then I see no need to further confuse
+matters by adding a third one.
+
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Acked-by: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN lib/iommu-helper.c~lib-iommu-helperc-fix-off-by-one-error-in-find_next_zero_area lib/iommu-helper.c
---- a/lib/iommu-helper.c~lib-iommu-helperc-fix-off-by-one-error-in-find_next_zero_area
-+++ a/lib/iommu-helper.c
-@@ -19,7 +19,7 @@ again:
- 	index = (index + align_mask) & ~align_mask;
+diff -puN fs/fcntl.c~fcntl-rename-f_owner_gid-to-f_owner_pgrp fs/fcntl.c
+--- a/fs/fcntl.c~fcntl-rename-f_owner_gid-to-f_owner_pgrp
++++ a/fs/fcntl.c
+@@ -284,7 +284,7 @@ static int f_setown_ex(struct file *filp
+ 		type = PIDTYPE_PID;
+ 		break;
  
- 	end = index + nr;
--	if (end >= size)
-+	if (end > size)
- 		return -1;
- 	for (i = index; i < end; i++) {
- 		if (test_bit(i, map)) {
+-	case F_OWNER_GID:
++	case F_OWNER_PGRP:
+ 		type = PIDTYPE_PGID;
+ 		break;
+ 
+@@ -321,7 +321,7 @@ static int f_getown_ex(struct file *filp
+ 		break;
+ 
+ 	case PIDTYPE_PGID:
+-		owner.type = F_OWNER_GID;
++		owner.type = F_OWNER_PGRP;
+ 		break;
+ 
+ 	default:
+diff -puN include/asm-generic/fcntl.h~fcntl-rename-f_owner_gid-to-f_owner_pgrp include/asm-generic/fcntl.h
+--- a/include/asm-generic/fcntl.h~fcntl-rename-f_owner_gid-to-f_owner_pgrp
++++ a/include/asm-generic/fcntl.h
+@@ -89,7 +89,7 @@
+ 
+ #define F_OWNER_TID	0
+ #define F_OWNER_PID	1
+-#define F_OWNER_GID	2
++#define F_OWNER_PGRP	2
+ 
+ struct f_owner_ex {
+ 	int	type;
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
-lib-iommu-helperc-fix-off-by-one-error-in-find_next_zero_area.patch
-iommu-helper-simplify-find_next_zero_area.patch
-bitmap-introduce-bitmap_set-bitmap_clear-bitmap_find_next_zero_area.patch
-iommu-helper-use-bitmap-library.patch
-isp1362-hcd-use-bitmap_find_next_zero_area.patch
-mlx4-use-bitmap_find_next_zero_area.patch
-sparc-use-bitmap_find_next_zero_area.patch
-ia64-use-bitmap_find_next_zero_area.patch
-genalloc-use-bitmap_find_next_zero_area.patch
+linux-next.patch
+include-trace-events-lockdeph-fix-do_div-warning.patch
+alpha-fix-f_setown_ex-and-f_getlk64-conflict.patch
+fcntl-rename-f_owner_gid-to-f_owner_pgrp.patch
+hrtimers-remove-the-timer_stats_active-check-when-setting-the-start-info.patch
+itimers-fix-racy-writes-to-cpu_itimer-fields.patch
+posix-cpu-timers-optimize-and-document-timer_create-callback.patch
 
