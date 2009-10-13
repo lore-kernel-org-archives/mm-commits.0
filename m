@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mutex-subsystem-synchro-test-module-add-missing-header-file.patch added to -mm tree
-Date: Mon, 12 Oct 2009 19:32:27 -0700
-Message-ID: <200910130232.n9D2WRvr026737@imap1.linux-foundation.org>
+Subject: + hwpoison-fix-oops-on-ksm-pages.patch added to -mm tree
+Date: Tue, 13 Oct 2009 09:44:03 -0700
+Message-ID: <200910131644.n9DGi4VG005715@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52950 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33526 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756138AbZJMCdr (ORCPT
+	by vger.kernel.org with ESMTP id S1753609AbZJMQsc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Oct 2009 22:33:47 -0400
+	Tue, 13 Oct 2009 12:48:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, dhowells@redhat.com
+Cc: hugh.dickins@tiscali.co.uk, andi@firstfloor.org
 
 
 The patch titled
-     synchro-test: add missing header file
+     hwpoison: fix oops on ksm pages
 has been added to the -mm tree.  Its filename is
-     mutex-subsystem-synchro-test-module-add-missing-header-file.patch
+     hwpoison-fix-oops-on-ksm-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,56 +34,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: synchro-test: add missing header file
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: hwpoison: fix oops on ksm pages
+From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
-Fix build errors, add <sched.h> header file:
+Memory failure on a KSM page currently oopses on its NULL anon_vma in
+page_lock_anon_vma(): that may not be much worse than the consequence of
+ignoring it, but it is better to be consistent with how ZERO_PAGE and
+hugetlb pages and other awkward cases are treated.  Just skip it.
 
-kernel/synchro-test.c: In function 'sched':
-kernel/synchro-test.c:220: error: implicit declaration of function 'schedule'
-kernel/synchro-test.c: In function 'mutexer':
-kernel/synchro-test.c:227: error: implicit declaration of function 'daemonize'
-kernel/synchro-test.c:228: error: implicit declaration of function 'set_user_nice'
-kernel/synchro-test.c:241: error: dereferencing pointer to incomplete type
-kernel/synchro-test.c: In function 'semaphorer':
-kernel/synchro-test.c:263: error: dereferencing pointer to incomplete type
-kernel/synchro-test.c: In function 'reader':
-kernel/synchro-test.c:287: error: dereferencing pointer to incomplete type
-kernel/synchro-test.c: In function 'writer':
-kernel/synchro-test.c:311: error: dereferencing pointer to incomplete type
-kernel/synchro-test.c: In function 'downgrader':
-kernel/synchro-test.c:340: error: dereferencing pointer to incomplete type
+We could fix it for 2.6.32 at the KSM end, by putting a dummy anon_vma
+pointer in there; but that would get harder next time, when KSM will put a
+pointer to something else there (and I'm not currently planning to do any
+work to open that up to memory_failure).  So I would prefer this simple
+PageKsm test, until the other exceptions are handled.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Acked-by: David Howells <dhowells@redhat.com>
+Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/synchro-test.c |    1 +
- 1 file changed, 1 insertion(+)
 
-diff -puN kernel/synchro-test.c~mutex-subsystem-synchro-test-module-add-missing-header-file kernel/synchro-test.c
---- a/kernel/synchro-test.c~mutex-subsystem-synchro-test-module-add-missing-header-file
-+++ a/kernel/synchro-test.c
-@@ -21,6 +21,7 @@
- #include <linux/module.h>
- #include <linux/poll.h>
- #include <linux/moduleparam.h>
-+#include <linux/sched.h>
- #include <linux/stat.h>
- #include <linux/init.h>
- #include <asm/atomic.h>
+diff -puN mm/memory-failure.c~hwpoison-fix-oops-on-ksm-pages mm/memory-failure.c
+--- a/mm/memory-failure.c~hwpoison-fix-oops-on-ksm-pages
++++ a/mm/memory-failure.c
+@@ -35,6 +35,7 @@
+ #include <linux/mm.h>
+ #include <linux/page-flags.h>
+ #include <linux/sched.h>
++#include <linux/ksm.h>
+ #include <linux/rmap.h>
+ #include <linux/pagemap.h>
+ #include <linux/swap.h>
+@@ -661,7 +662,7 @@ static void hwpoison_user_mappings(struc
+ 	int i;
+ 	int kill = 1;
+ 
+-	if (PageReserved(p) || PageCompound(p) || PageSlab(p))
++	if (PageReserved(p) || PageCompound(p) || PageSlab(p) || PageKsm(p))
+ 		return;
+ 
+ 	if (!PageLRU(p))
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
 
-cpufreq-add-cpufreq_get-stub-for-config_cpu_freq=n.patch
-linux-next.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices-depends-on-acpi.patch
-scsi-fix-func-names-in-kernel-doc.patch
-pcmcia-fix-controller-printk-format-warnings.patch
-readahead-add-blk_run_backing_dev.patch
-page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
-reiser4-export-remove_from_page_cache-fix.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
+hwpoison-fix-oops-on-ksm-pages.patch
+hwpoison-fix-proc-meminfo-alignment.patch
+mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap.patch
+mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
+elf-kill-use_elf_core_dump.patch
+prio_tree-debugging-patch.patch
 
