@@ -1,88 +1,270 @@
 From: akpm@linux-foundation.org
-Subject: + konicawcc-possible-buffer-overflow-while-use-strncat.patch added to -mm tree
-Date: Tue, 13 Oct 2009 14:22:48 -0700
-Message-ID: <200910132122.n9DLMm5C001222@imap1.linux-foundation.org>
+Subject: [wrecked] rtc-stk17ta8-fix-races-around-device-registration.patch removed from -mm tree
+Date: Tue, 13 Oct 2009 14:19:13 -0700
+Message-ID: <200910132119.n9DLJDCm026149@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59631 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47648 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751788AbZJMVYP (ORCPT
+	by vger.kernel.org with ESMTP id S934195AbZJMVTy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Oct 2009 17:24:15 -0400
+	Tue, 13 Oct 2009 17:19:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: strakh@ispras.ru, mchehab@infradead.org
+To: anemo@mba.ocn.ne.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     konicawc.c: possible buffer overflow while use strncat
-has been added to the -mm tree.  Its filename is
-     konicawcc-possible-buffer-overflow-while-use-strncat.patch
+     rtc-stk17ta8: fix races around device registration
+has been removed from the -mm tree.  Its filename was
+     rtc-stk17ta8-fix-races-around-device-registration.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because other changes were merged, which wrecked this patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: konicawc.c: possible buffer overflow while use strncat
-From: Alexander Strakh <strakh@ispras.ru>
+Subject: rtc-stk17ta8: fix races around device registration
+From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 
-	In driver ./drivers/media/video/usbvideo/konicawc.c in line 227:
+- Call dev_set_drvdata before rtc device creation.
 
-227         usb_make_path(dev, cam->input_physname, sizeof(cam->input_physname));
+- Use its own spinlock instead of rtc->irq_lock.  Because pdata->rtc
+  must be initialized to use the irq_lock (pdata->rtc->irq_lock).  There
+  is a small window which rtc methods can be called before pdata->rtc is
+  initialized.
 
-After this line we use strncat:
+  And there is no need use the irq_lock to protect hardware registers. 
+  The driver's own spinlock shoule be enough.
 
-228         strncat(cam->input_physname, "/input0", sizeof(cam->input_physname));
+- Check pdata->rtc before calling rtc_update_irq.
 
-where sizeof(cam->input_physname) returns length of cam->input_phisname
-without length for null-symbol.  But this parameter must be - "maximum
-numbers of bytes to copy", i.e.:
-sizeof(cam->input_physname)-strlen(cam->input_physname)-1.
+- Use alarm_irq_enable and remove ioctl routine.
 
-In this case, after call to usb_make_path the similar drivers use strlcat.
+- Use devres APIs and simplify error/remove path.
 
-Like in drivers/hid/usbhid/hid-core.c:
-1152         usb_make_path(dev, hid->phys, sizeof(hid->phys));
-1153         strlcat(hid->phys, "/input", sizeof(hid->phys));
+These fixes are ported from ds1553 driver and just compile-tested only.
 
-Found by Linux Driver Verification Project.
-
-Use strlcat instead of strncat.
-
-Signed-off-by: Alexander Strakh <strakh@ispras.ru>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/media/video/usbvideo/konicawc.c~konicawcc-possible-buffer-overflow-while-use-strncat drivers/media/video/usbvideo/konicawc.c
---- a/drivers/media/video/usbvideo/konicawc.c~konicawcc-possible-buffer-overflow-while-use-strncat
-+++ a/drivers/media/video/usbvideo/konicawc.c
-@@ -225,7 +225,7 @@ static void konicawc_register_input(stru
- 	int error;
+diff -puN drivers/rtc/rtc-stk17ta8.c~rtc-stk17ta8-fix-races-around-device-registration drivers/rtc/rtc-stk17ta8.c
+--- a/drivers/rtc/rtc-stk17ta8.c~rtc-stk17ta8-fix-races-around-device-registration
++++ a/drivers/rtc/rtc-stk17ta8.c
+@@ -62,7 +62,6 @@
+ struct rtc_plat_data {
+ 	struct rtc_device *rtc;
+ 	void __iomem *ioaddr;
+-	unsigned long baseaddr;
+ 	unsigned long last_jiffies;
+ 	int irq;
+ 	unsigned int irqen;
+@@ -70,6 +69,7 @@ struct rtc_plat_data {
+ 	int alrm_min;
+ 	int alrm_hour;
+ 	int alrm_mday;
++	spinlock_t lock;
+ };
  
- 	usb_make_path(dev, cam->input_physname, sizeof(cam->input_physname));
--	strncat(cam->input_physname, "/input0", sizeof(cam->input_physname));
-+	strlcat(cam->input_physname, "/input0", sizeof(cam->input_physname));
+ static int stk17ta8_rtc_set_time(struct device *dev, struct rtc_time *tm)
+@@ -142,7 +142,7 @@ static void stk17ta8_rtc_update_alarm(st
+ 	unsigned long irqflags;
+ 	u8 flags;
  
- 	cam->input = input_dev = input_allocate_device();
- 	if (!input_dev) {
+-	spin_lock_irqsave(&pdata->rtc->irq_lock, irqflags);
++	spin_lock_irqsave(&pdata->lock, irqflags);
+ 
+ 	flags = readb(ioaddr + RTC_FLAGS);
+ 	writeb(flags | RTC_WRITE, ioaddr + RTC_FLAGS);
+@@ -162,7 +162,7 @@ static void stk17ta8_rtc_update_alarm(st
+ 	writeb(pdata->irqen ? RTC_INTS_AIE : 0, ioaddr + RTC_INTERRUPTS);
+ 	readb(ioaddr + RTC_FLAGS);	/* clear interrupts */
+ 	writeb(flags & ~RTC_WRITE, ioaddr + RTC_FLAGS);
+-	spin_unlock_irqrestore(&pdata->rtc->irq_lock, irqflags);
++	spin_unlock_irqrestore(&pdata->lock, irqflags);
+ }
+ 
+ static int stk17ta8_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
+@@ -202,48 +202,45 @@ static irqreturn_t stk17ta8_rtc_interrup
+ 	struct platform_device *pdev = dev_id;
+ 	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
+ 	void __iomem *ioaddr = pdata->ioaddr;
+-	unsigned long events = RTC_IRQF;
++	unsigned long events = 0;
+ 
++	spin_lock(&pdata->lock);
+ 	/* read and clear interrupt */
+-	if (!(readb(ioaddr + RTC_FLAGS) & RTC_FLAGS_AF))
+-		return IRQ_NONE;
+-	if (readb(ioaddr + RTC_SECONDS_ALARM) & 0x80)
+-		events |= RTC_UF;
+-	else
+-		events |= RTC_AF;
+-	rtc_update_irq(pdata->rtc, 1, events);
+-	return IRQ_HANDLED;
++	if (readb(ioaddr + RTC_FLAGS) & RTC_FLAGS_AF) {
++		events = RTC_IRQF;
++		if (readb(ioaddr + RTC_SECONDS_ALARM) & 0x80)
++			events |= RTC_UF;
++		else
++			events |= RTC_AF;
++		if (likely(pdata->rtc))
++			rtc_update_irq(pdata->rtc, 1, events);
++	}
++	spin_unlock(&pdata->lock);
++	return events ? IRQ_HANDLED : IRQ_NONE;
+ }
+ 
+-static int stk17ta8_rtc_ioctl(struct device *dev, unsigned int cmd,
+-			    unsigned long arg)
++static int stk17ta8_rtc_alarm_irq_enable(struct device *dev,
++	unsigned int enabled)
+ {
+ 	struct platform_device *pdev = to_platform_device(dev);
+ 	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
+ 
+ 	if (pdata->irq <= 0)
+-		return -ENOIOCTLCMD; /* fall back into rtc-dev's emulation */
+-	switch (cmd) {
+-	case RTC_AIE_OFF:
+-		pdata->irqen &= ~RTC_AF;
+-		stk17ta8_rtc_update_alarm(pdata);
+-		break;
+-	case RTC_AIE_ON:
++		return -EINVAL;
++	if (enabled)
+ 		pdata->irqen |= RTC_AF;
+-		stk17ta8_rtc_update_alarm(pdata);
+-		break;
+-	default:
+-		return -ENOIOCTLCMD;
+-	}
++	else
++		pdata->irqen &= ~RTC_AF;
++	stk17ta8_rtc_update_alarm(pdata);
+ 	return 0;
+ }
+ 
+ static const struct rtc_class_ops stk17ta8_rtc_ops = {
+-	.read_time	= stk17ta8_rtc_read_time,
+-	.set_time	= stk17ta8_rtc_set_time,
+-	.read_alarm	= stk17ta8_rtc_read_alarm,
+-	.set_alarm	= stk17ta8_rtc_set_alarm,
+-	.ioctl		= stk17ta8_rtc_ioctl,
++	.read_time		= stk17ta8_rtc_read_time,
++	.set_time		= stk17ta8_rtc_set_time,
++	.read_alarm		= stk17ta8_rtc_read_alarm,
++	.set_alarm		= stk17ta8_rtc_set_alarm,
++	.alarm_irq_enable	= stk17ta8_rtc_alarm_irq_enable,
+ };
+ 
+ static ssize_t stk17ta8_nvram_read(struct kobject *kobj,
+@@ -293,26 +290,22 @@ static int __devinit stk17ta8_rtc_probe(
+ 	unsigned int cal;
+ 	unsigned int flags;
+ 	struct rtc_plat_data *pdata;
+-	void __iomem *ioaddr = NULL;
++	void __iomem *ioaddr;
+ 	int ret = 0;
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (!res)
+ 		return -ENODEV;
+ 
+-	pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
++	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
+ 	if (!pdata)
+ 		return -ENOMEM;
+-	if (!request_mem_region(res->start, RTC_REG_SIZE, pdev->name)) {
+-		ret = -EBUSY;
+-		goto out;
+-	}
+-	pdata->baseaddr = res->start;
+-	ioaddr = ioremap(pdata->baseaddr, RTC_REG_SIZE);
+-	if (!ioaddr) {
+-		ret = -ENOMEM;
+-		goto out;
+-	}
++	if (!devm_request_mem_region(&pdev->dev, res->start, RTC_REG_SIZE,
++			pdev->name))
++		return -EBUSY;
++	ioaddr = devm_ioremap(&pdev->dev, res->start, RTC_REG_SIZE);
++	if (!ioaddr)
++		return -ENOMEM;
+ 	pdata->ioaddr = ioaddr;
+ 	pdata->irq = platform_get_irq(pdev, 0);
+ 
+@@ -328,9 +321,13 @@ static int __devinit stk17ta8_rtc_probe(
+ 	if (readb(ioaddr + RTC_FLAGS) & RTC_FLAGS_PF)
+ 		dev_warn(&pdev->dev, "voltage-low detected.\n");
+ 
++	spin_lock_init(&pdata->lock);
++	pdata->last_jiffies = jiffies;
++	platform_set_drvdata(pdev, pdata);
+ 	if (pdata->irq > 0) {
+ 		writeb(0, ioaddr + RTC_INTERRUPTS);
+-		if (request_irq(pdata->irq, stk17ta8_rtc_interrupt,
++		if (devm_request_irq(&pdev->dev, pdata->irq,
++				stk17ta8_rtc_interrupt,
+ 				IRQF_DISABLED | IRQF_SHARED,
+ 				pdev->name, pdev) < 0) {
+ 			dev_warn(&pdev->dev, "interrupt not available.\n");
+@@ -340,27 +337,12 @@ static int __devinit stk17ta8_rtc_probe(
+ 
+ 	rtc = rtc_device_register(pdev->name, &pdev->dev,
+ 				  &stk17ta8_rtc_ops, THIS_MODULE);
+-	if (IS_ERR(rtc)) {
+-		ret = PTR_ERR(rtc);
+-		goto out;
+-	}
++	if (IS_ERR(rtc))
++		return PTR_ERR(rtc);
+ 	pdata->rtc = rtc;
+-	pdata->last_jiffies = jiffies;
+-	platform_set_drvdata(pdev, pdata);
+ 	ret = sysfs_create_bin_file(&pdev->dev.kobj, &stk17ta8_nvram_attr);
+ 	if (ret)
+-		goto out;
+-	return 0;
+- out:
+-	if (pdata->rtc)
+-		rtc_device_unregister(pdata->rtc);
+-	if (pdata->irq > 0)
+-		free_irq(pdata->irq, pdev);
+-	if (ioaddr)
+-		iounmap(ioaddr);
+-	if (pdata->baseaddr)
+-		release_mem_region(pdata->baseaddr, RTC_REG_SIZE);
+-	kfree(pdata);
++		rtc_device_unregister(rtc);
+ 	return ret;
+ }
+ 
+@@ -370,13 +352,8 @@ static int __devexit stk17ta8_rtc_remove
+ 
+ 	sysfs_remove_bin_file(&pdev->dev.kobj, &stk17ta8_nvram_attr);
+ 	rtc_device_unregister(pdata->rtc);
+-	if (pdata->irq > 0) {
++	if (pdata->irq > 0)
+ 		writeb(0, pdata->ioaddr + RTC_INTERRUPTS);
+-		free_irq(pdata->irq, pdev);
+-	}
+-	iounmap(pdata->ioaddr);
+-	release_mem_region(pdata->baseaddr, RTC_REG_SIZE);
+-	kfree(pdata);
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from strakh@ispras.ru are
+Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
 
-linux-next.patch
-konicawcc-possible-buffer-overflow-while-use-strncat.patch
-scsi_libc-avoid-calling-scsi_device_put-from-under-host_lock.patch
+rtc-fix-driver-data-issues-in-several-rtc-drivers.patch
+rtc-ds1511-fix-races-around-device-registration.patch
+rtc-stk17ta8-fix-races-around-device-registration.patch
+rtc-tx4939-fix-races-around-device-registration.patch
+rtc-ds1553-fix-races-around-device-registration.patch
+rtc-ds1742-fix-races-around-device-registration.patch
 
