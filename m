@@ -1,27 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-firmware-dmi_scanc-use-%pub-to-print-uuids.patch added to -mm tree
-Date: Tue, 13 Oct 2009 14:50:04 -0700
-Message-ID: <200910132150.n9DLo4jQ026090@imap1.linux-foundation.org>
+Subject: + randomc-use-%pu-to-print-uuids.patch added to -mm tree
+Date: Tue, 13 Oct 2009 14:50:02 -0700
+Message-ID: <200910132150.n9DLo2KY026049@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60552 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50411 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760736AbZJMVvv (ORCPT
+	by vger.kernel.org with ESMTP id S1753383AbZJMVuu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Oct 2009 17:51:51 -0400
+	Tue, 13 Oct 2009 17:50:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, jgarzik@redhat.com, tj@kernel.org
+Cc: joe@perches.com, mpm@selenic.com
 
 
 The patch titled
-     drivers/firmware/dmi_scan.c: use %pUB to print UUIDs
+     random.c: use %pU to print UUIDs
 has been added to the -mm tree.  Its filename is
-     drivers-firmware-dmi_scanc-use-%pub-to-print-uuids.patch
+     randomc-use-%pu-to-print-uuids.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,34 +39,43 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
 otm/
 
 ------------------------------------------------------
-Subject: drivers/firmware/dmi_scan.c: use %pUB to print UUIDs
+Subject: random.c: use %pU to print UUIDs
 =46rom: Joe Perches <joe@perches.com>
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Jeff Garzik <jgarzik@redhat.com>
-Cc: Tejun Heo <tj@kernel.org>
+Acked-by: Matt Mackall <mpm@selenic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/firmware/dmi_scan.c~drivers-firmware-dmi_scanc-use-%p=
-ub-to-print-uuids drivers/firmware/dmi_scan.c
---- a/drivers/firmware/dmi_scan.c~drivers-firmware-dmi_scanc-use-%pub-t=
-o-print-uuids
-+++ a/drivers/firmware/dmi_scan.c
-@@ -169,10 +169,7 @@ static void __init dmi_save_uuid(const s
- 	if (!s)
- 		return;
+diff -puN drivers/char/random.c~randomc-use-%pu-to-print-uuids drivers/=
+char/random.c
+--- a/drivers/char/random.c~randomc-use-%pu-to-print-uuids
++++ a/drivers/char/random.c
+@@ -1245,12 +1245,8 @@ static int proc_do_uuid(ctl_table *table
+ 	if (uuid[8] =3D=3D 0)
+ 		generate_random_uuid(uuid);
 =20
--	sprintf(s,
--		"%02X%02X%02X%02X-%02X%02X-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02=
-X",
--		d[0], d[1], d[2], d[3], d[4], d[5], d[6], d[7],
--		d[8], d[9], d[10], d[11], d[12], d[13], d[14], d[15]);
-+	sprintf(s, "%pUB", d);
+-	sprintf(buf, "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-"
+-		"%02x%02x%02x%02x%02x%02x",
+-		uuid[0],  uuid[1],  uuid[2],  uuid[3],
+-		uuid[4],  uuid[5],  uuid[6],  uuid[7],
+-		uuid[8],  uuid[9],  uuid[10], uuid[11],
+-		uuid[12], uuid[13], uuid[14], uuid[15]);
++	sprintf(buf, "%pU", uuid);
++
+ 	fake_table.data =3D buf;
+ 	fake_table.maxlen =3D sizeof(buf);
 =20
-         dmi_ident[slot] =3D s;
- }
+@@ -1350,7 +1346,7 @@ ctl_table random_table[] =3D {
+=20
+ /********************************************************************
+  *
+- * Random funtions for networking
++ * Random functions for networking
+  *
+  ********************************************************************/
+=20
 _
 
 Patches currently in -mm which might be from joe@perches.com are
