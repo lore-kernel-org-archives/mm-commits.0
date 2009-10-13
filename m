@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + quickcam_messengerc-possible-buffer-overflow-while-use-strncat.patch added to -mm tree
-Date: Tue, 13 Oct 2009 14:25:54 -0700
-Message-ID: <200910132125.n9DLPsXJ007795@imap1.linux-foundation.org>
+Subject: + vmalloc-adjust-gfp-mask-passed-on-nested-vmalloc-invocation.patch added to -mm tree
+Date: Tue, 13 Oct 2009 14:28:52 -0700
+Message-ID: <200910132128.n9DLSqjp013895@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51125 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34544 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751796AbZJMV1q (ORCPT
+	by vger.kernel.org with ESMTP id S1753063AbZJMVaV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Oct 2009 17:27:46 -0400
+	Tue, 13 Oct 2009 17:30:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: strakh@ispras.ru, mchehab@infradead.org
+Cc: JBeulich@novell.com, hugh.dickins@tiscali.co.uk, jbeulich@novell.com, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     quickcam_messenger.c: possible buffer overflow while use strncat
+     vmalloc(): adjust gfp mask passed on nested vmalloc() invocation
 has been added to the -mm tree.  Its filename is
-     quickcam_messengerc-possible-buffer-overflow-while-use-strncat.patch
+     vmalloc-adjust-gfp-mask-passed-on-nested-vmalloc-invocation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,56 +34,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: quickcam_messenger.c: possible buffer overflow while use strncat
-From: Alexander Strakh <strakh@ispras.ru>
+Subject: vmalloc(): adjust gfp mask passed on nested vmalloc() invocation
+From: "Jan Beulich" <JBeulich@novell.com>
 
-In driver ./drivers/media/video/usbvideo/quickcam_messenger.c in line 91:
+- avoid wasting more precious resources (DMA or DMA32 pools), when
+  being called through vmalloc_32{,_user}()
+- explicitly allow using high memory here even if the outer allocation
+  request doesn't allow it
 
-  91         usb_make_path(dev, cam->input_physname, sizeof(cam->input_physname));
-
-After this line we use strncat:
-
-  92         strncat(cam->input_physname, "/input0", sizeof(cam->input_physname));
-
-where sizeof(cam->input_physname) returns length of cam->input_phisname
-without length for null-symbol.  But this parameter must be - "maximum
-numbers of bytes to copy", i.e.:
-sizeof(cam->input_physname)-strlen(cam->input_physname)-1.
-
-In this case, after call to usb_make_path the similar drivers use strlcat.
-
-Like in: drivers/hid/usbhid/hid-core.c:
-1152         usb_make_path(dev, hid->phys, sizeof(hid->phys));
-1153         strlcat(hid->phys, "/input", sizeof(hid->phys));
-
-Found by Linux Driver Verification Project.
-
-Use strlcat instead of strncat.
-
-Signed-off-by: Alexander Strakh <strakh@ispras.ru>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Acked-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/media/video/usbvideo/quickcam_messenger.c~quickcam_messengerc-possible-buffer-overflow-while-use-strncat drivers/media/video/usbvideo/quickcam_messenger.c
---- a/drivers/media/video/usbvideo/quickcam_messenger.c~quickcam_messengerc-possible-buffer-overflow-while-use-strncat
-+++ a/drivers/media/video/usbvideo/quickcam_messenger.c
-@@ -89,7 +89,7 @@ static void qcm_register_input(struct qc
- 	int error;
+diff -puN mm/vmalloc.c~vmalloc-adjust-gfp-mask-passed-on-nested-vmalloc-invocation mm/vmalloc.c
+--- a/mm/vmalloc.c~vmalloc-adjust-gfp-mask-passed-on-nested-vmalloc-invocation
++++ a/mm/vmalloc.c
+@@ -1411,6 +1411,7 @@ static void *__vmalloc_area_node(struct 
+ {
+ 	struct page **pages;
+ 	unsigned int nr_pages, array_size, i;
++	gfp_t nested_gfp = (gfp_mask & GFP_RECLAIM_MASK) | __GFP_ZERO;
  
- 	usb_make_path(dev, cam->input_physname, sizeof(cam->input_physname));
--	strncat(cam->input_physname, "/input0", sizeof(cam->input_physname));
-+	strlcat(cam->input_physname, "/input0", sizeof(cam->input_physname));
- 
- 	cam->input = input_dev = input_allocate_device();
- 	if (!input_dev) {
+ 	nr_pages = (area->size - PAGE_SIZE) >> PAGE_SHIFT;
+ 	array_size = (nr_pages * sizeof(struct page *));
+@@ -1418,13 +1419,11 @@ static void *__vmalloc_area_node(struct 
+ 	area->nr_pages = nr_pages;
+ 	/* Please note that the recursion is strictly bounded. */
+ 	if (array_size > PAGE_SIZE) {
+-		pages = __vmalloc_node(array_size, 1, gfp_mask | __GFP_ZERO,
++		pages = __vmalloc_node(array_size, 1, nested_gfp|__GFP_HIGHMEM,
+ 				PAGE_KERNEL, node, caller);
+ 		area->flags |= VM_VPAGES;
+ 	} else {
+-		pages = kmalloc_node(array_size,
+-				(gfp_mask & GFP_RECLAIM_MASK) | __GFP_ZERO,
+-				node);
++		pages = kmalloc_node(array_size, nested_gfp, node);
+ 	}
+ 	area->pages = pages;
+ 	area->caller = caller;
 _
 
-Patches currently in -mm which might be from strakh@ispras.ru are
+Patches currently in -mm which might be from JBeulich@novell.com are
 
 linux-next.patch
-konicawcc-possible-buffer-overflow-while-use-strncat.patch
-quickcam_messengerc-possible-buffer-overflow-while-use-strncat.patch
-scsi_libc-avoid-calling-scsi_device_put-from-under-host_lock.patch
+kbuild-generate-modulesbuiltin.patch
+kbuild-rebuild-fix-for-makefilemodbuiltin.patch
+drm-make-sure-page-protections-are-updated-after-changing-vm_flags.patch
+vmalloc-adjust-gfp-mask-passed-on-nested-vmalloc-invocation.patch
 
