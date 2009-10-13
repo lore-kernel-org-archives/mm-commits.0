@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hwpoison-fix-proc-meminfo-alignment.patch added to -mm tree
-Date: Tue, 13 Oct 2009 09:44:07 -0700
-Message-ID: <200910131644.n9DGi8CJ005952@imap1.linux-foundation.org>
+Subject: + lib-iommu-helperc-fix-off-by-one-error-in-find_next_zero_area.patch added to -mm tree
+Date: Tue, 13 Oct 2009 10:00:09 -0700
+Message-ID: <200910131700.n9DH09HF006783@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33526 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47029 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752748AbZJMQsQ (ORCPT
+	by vger.kernel.org with ESMTP id S1752931AbZJMRBY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Oct 2009 12:48:16 -0400
+	Tue, 13 Oct 2009 13:01:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hugh.dickins@tiscali.co.uk, andi@firstfloor.org
+Cc: akinobu.mita@gmail.com, joerg.roedel@amd.com
 
 
 The patch titled
-     hwpoison: fix/proc/meminfo alignment
+     lib/iommu-helper.c: fix off-by-one error in find_next_zero_area()
 has been added to the -mm tree.  Its filename is
-     hwpoison-fix-proc-meminfo-alignment.patch
+     lib-iommu-helperc-fix-off-by-one-error-in-find_next_zero_area.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hwpoison: fix/proc/meminfo alignment
-From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Subject: lib/iommu-helper.c: fix off-by-one error in find_next_zero_area()
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Given such a long name, the kB count in /proc/meminfo's HardwareCorrupted
-line is being shown too far right (it does align with x86_64's VmallocChunk
-above, but I hope nobody will ever have that much corrupted!).  Align it.
+My user space testing exposed off-by-one error find_next_zero_area in
+iommu-helper.  Some zero area cannot be found by this bug.
 
-Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Cc: Andi Kleen <andi@firstfloor.org>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Joerg Roedel <joerg.roedel@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN fs/proc/meminfo.c~hwpoison-fix-proc-meminfo-alignment fs/proc/meminfo.c
---- a/fs/proc/meminfo.c~hwpoison-fix-proc-meminfo-alignment
-+++ a/fs/proc/meminfo.c
-@@ -99,7 +99,7 @@ static int meminfo_proc_show(struct seq_
- 		"VmallocUsed:    %8lu kB\n"
- 		"VmallocChunk:   %8lu kB\n"
- #ifdef CONFIG_MEMORY_FAILURE
--		"HardwareCorrupted: %8lu kB\n"
-+		"HardwareCorrupted: %5lu kB\n"
- #endif
- 		,
- 		K(i.totalram),
+diff -puN lib/iommu-helper.c~lib-iommu-helperc-fix-off-by-one-error-in-find_next_zero_area lib/iommu-helper.c
+--- a/lib/iommu-helper.c~lib-iommu-helperc-fix-off-by-one-error-in-find_next_zero_area
++++ a/lib/iommu-helper.c
+@@ -19,7 +19,7 @@ again:
+ 	index = (index + align_mask) & ~align_mask;
+ 
+ 	end = index + nr;
+-	if (end >= size)
++	if (end > size)
+ 		return -1;
+ 	for (i = index; i < end; i++) {
+ 		if (test_bit(i, map)) {
 _
 
-Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
-hwpoison-fix-oops-on-ksm-pages.patch
-hwpoison-fix-proc-meminfo-alignment.patch
-mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap.patch
-mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
-elf-kill-use_elf_core_dump.patch
-prio_tree-debugging-patch.patch
+lib-iommu-helperc-fix-off-by-one-error-in-find_next_zero_area.patch
+iommu-helper-simplify-find_next_zero_area.patch
+bitmap-introduce-bitmap_set-bitmap_clear-bitmap_find_next_zero_area.patch
+iommu-helper-use-bitmap-library.patch
+isp1362-hcd-use-bitmap_find_next_zero_area.patch
+mlx4-use-bitmap_find_next_zero_area.patch
+sparc-use-bitmap_find_next_zero_area.patch
+ia64-use-bitmap_find_next_zero_area.patch
+genalloc-use-bitmap_find_next_zero_area.patch
 
