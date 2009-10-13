@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vmalloc-adjust-gfp-mask-passed-on-nested-vmalloc-invocation.patch added to -mm tree
-Date: Tue, 13 Oct 2009 14:28:52 -0700
-Message-ID: <200910132128.n9DLSqjp013895@imap1.linux-foundation.org>
+Subject: + speedstep-ich-use-correct-cpu-in-speedstep_get.patch added to -mm tree
+Date: Tue, 13 Oct 2009 14:33:50 -0700
+Message-ID: <200910132133.n9DLXo1p024402@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34544 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42735 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753063AbZJMVaV (ORCPT
+	by vger.kernel.org with ESMTP id S1761198AbZJMVfc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Oct 2009 17:30:21 -0400
+	Tue, 13 Oct 2009 17:35:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: JBeulich@novell.com, hugh.dickins@tiscali.co.uk, jbeulich@novell.com, nickpiggin@yahoo.com.au
+Cc: dave.mueller@gmx.ch, davej@redhat.com, e.a.b.piel@tudelft.nl, linux@brodo.de, rjw@sisk.pl, rusty@rustcorp.com.au
 
 
 The patch titled
-     vmalloc(): adjust gfp mask passed on nested vmalloc() invocation
+     speedstep-ich: use correct CPU in speedstep_get()
 has been added to the -mm tree.  Its filename is
-     vmalloc-adjust-gfp-mask-passed-on-nested-vmalloc-invocation.patch
+     speedstep-ich-use-correct-cpu-in-speedstep_get.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,55 +34,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmalloc(): adjust gfp mask passed on nested vmalloc() invocation
-From: "Jan Beulich" <JBeulich@novell.com>
+Subject: speedstep-ich: use correct CPU in speedstep_get()
+From: Dave Mueller <dave.mueller@gmx.ch>
 
-- avoid wasting more precious resources (DMA or DMA32 pools), when
-  being called through vmalloc_32{,_user}()
-- explicitly allow using high memory here even if the outer allocation
-  request doesn't allow it
+It looks like commit 394122ab144dae4b276d74644a2f11c44a60ac5c ("cpumask:
+avoid playing with cpus_allowed in speedstep-ich.c") broke the
+speedstep-ich driver.
 
-Signed-off-by: Jan Beulich <jbeulich@novell.com>
-Acked-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+The problem seems to be that speedstep-lib.c:speedstep_get_frequency() is
+called with a wrong value as "processor" parameter by the code below,
+resulting in a return value of 0.  The "processor" parameter should be the
+value returned by "speedstep_detect_processor()"
+
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=14340
+
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Dominik Brodowski <linux@brodo.de>
+Cc: Dave Jones <davej@redhat.com>
+Cc: Eric Pielbug <e.a.b.piel@tudelft.nl>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN mm/vmalloc.c~vmalloc-adjust-gfp-mask-passed-on-nested-vmalloc-invocation mm/vmalloc.c
---- a/mm/vmalloc.c~vmalloc-adjust-gfp-mask-passed-on-nested-vmalloc-invocation
-+++ a/mm/vmalloc.c
-@@ -1411,6 +1411,7 @@ static void *__vmalloc_area_node(struct 
- {
- 	struct page **pages;
- 	unsigned int nr_pages, array_size, i;
-+	gfp_t nested_gfp = (gfp_mask & GFP_RECLAIM_MASK) | __GFP_ZERO;
+diff -puN arch/x86/kernel/cpu/cpufreq/speedstep-ich.c~speedstep-ich-use-correct-cpu-in-speedstep_get arch/x86/kernel/cpu/cpufreq/speedstep-ich.c
+--- a/arch/x86/kernel/cpu/cpufreq/speedstep-ich.c~speedstep-ich-use-correct-cpu-in-speedstep_get
++++ a/arch/x86/kernel/cpu/cpufreq/speedstep-ich.c
+@@ -246,7 +246,7 @@ static void get_freq_data(void *_data)
  
- 	nr_pages = (area->size - PAGE_SIZE) >> PAGE_SHIFT;
- 	array_size = (nr_pages * sizeof(struct page *));
-@@ -1418,13 +1419,11 @@ static void *__vmalloc_area_node(struct 
- 	area->nr_pages = nr_pages;
- 	/* Please note that the recursion is strictly bounded. */
- 	if (array_size > PAGE_SIZE) {
--		pages = __vmalloc_node(array_size, 1, gfp_mask | __GFP_ZERO,
-+		pages = __vmalloc_node(array_size, 1, nested_gfp|__GFP_HIGHMEM,
- 				PAGE_KERNEL, node, caller);
- 		area->flags |= VM_VPAGES;
- 	} else {
--		pages = kmalloc_node(array_size,
--				(gfp_mask & GFP_RECLAIM_MASK) | __GFP_ZERO,
--				node);
-+		pages = kmalloc_node(array_size, nested_gfp, node);
- 	}
- 	area->pages = pages;
- 	area->caller = caller;
+ static unsigned int speedstep_get(unsigned int cpu)
+ {
+-	struct get_freq_data data = { .processor = cpu };
++	struct get_freq_data data = { .processor = speedstep_processor };
+ 
+ 	/* You're supposed to ensure CPU is online. */
+ 	if (smp_call_function_single(cpu, get_freq_data, &data, 1) != 0)
 _
 
-Patches currently in -mm which might be from JBeulich@novell.com are
+Patches currently in -mm which might be from dave.mueller@gmx.ch are
 
-linux-next.patch
-kbuild-generate-modulesbuiltin.patch
-kbuild-rebuild-fix-for-makefilemodbuiltin.patch
-drm-make-sure-page-protections-are-updated-after-changing-vm_flags.patch
-vmalloc-adjust-gfp-mask-passed-on-nested-vmalloc-invocation.patch
+speedstep-ich-use-correct-cpu-in-speedstep_get.patch
 
