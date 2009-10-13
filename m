@@ -1,84 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: + capabilities-simplify-bound-checks-for-copy_from_user.patch added to -mm tree
-Date: Tue, 13 Oct 2009 13:16:50 -0700
-Message-ID: <200910132016.n9DKGooY026028@imap1.linux-foundation.org>
+Subject: [to-be-updated] rwsem-fix-rwsem_is_locked-bug.patch removed from -mm tree
+Date: Tue, 13 Oct 2009 13:26:49 -0700
+Message-ID: <200910132026.n9DKQnKY014440@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50224 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52382 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934046AbZJMUSZ (ORCPT
+	by vger.kernel.org with ESMTP id S1752151AbZJMU3P (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Oct 2009 16:18:25 -0400
+	Tue, 13 Oct 2009 16:29:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: arjan@infradead.org, arjan@linux.intel.com, jmorris@namei.org
+To: amwang@redhat.com, behlendorf1@llnl.gov, bwoodard@llnl.gov, dhowells@redhat.com, mingo@elte.hu, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     capabilities: simplify bound checks for copy_from_user()
-has been added to the -mm tree.  Its filename is
-     capabilities-simplify-bound-checks-for-copy_from_user.patch
+     rwsem: fix rwsem_is_locked() bug
+has been removed from the -mm tree.  Its filename was
+     rwsem-fix-rwsem_is_locked-bug.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: capabilities: simplify bound checks for copy_from_user()
-From: Arjan van de Ven <arjan@infradead.org>
+Subject: rwsem: fix rwsem_is_locked() bug
+From: Amerigo Wang <amwang@redhat.com>
 
-The capabilities syscall has a copy_from_user() call where gcc currently
-cannot prove to itself that the copy is always within bounds.
+rwsem_is_locked() tests ->activity without locks, so we should always keep
+->activity consistent.  However, the code in __rwsem_do_wake() breaks this
+rule, it updates ->activity after _all_ readers waken up, this may give
+some reader a wrong ->activity value, thus cause rwsem_is_locked() behaves
+wrong.
 
-This patch adds a very explicity bound check to prove to gcc that this
-copy_from_user cannot overflow its destination buffer.
+Brian has a kernel module to reproduce this, I can include it if any of
+you need.  Of course, with Brian's approval.
 
-Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
-Acked-by: James Morris <jmorris@namei.org>
+With this patch applied, I can't trigger that bug any more.
+
+
+akpm sez:
+
+- we have one or more processes sleeping in down_read(), waiting for
+  access.
+
+- we wake one or more processes up without altering ->activity
+
+- they start to run and they do rwsem_is_locked().  This incorrectly
+  returns "false", because the waker process is still crunching away in
+  __rwsem_do_wake().
+
+- the waker now alters ->activity, but it was too late.
+
+The patch fixes this by updating ->activity prior to waking the sleeping
+processes.  So when they run, they'll see a non-zero value of ->activity.
+
+
+Reported-by: Brian Behlendorf <behlendorf1@llnl.gov>
+Cc: Ben Woodard <bwoodard@llnl.gov>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: WANG Cong <amwang@redhat.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ lib/rwsem-spinlock.c |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN kernel/capability.c~capabilities-simplify-bound-checks-for-copy_from_user kernel/capability.c
---- a/kernel/capability.c~capabilities-simplify-bound-checks-for-copy_from_user
-+++ a/kernel/capability.c
-@@ -238,7 +238,7 @@ SYSCALL_DEFINE2(capget, cap_user_header_
- SYSCALL_DEFINE2(capset, cap_user_header_t, header, const cap_user_data_t, data)
+diff -puN lib/rwsem-spinlock.c~rwsem-fix-rwsem_is_locked-bug lib/rwsem-spinlock.c
+--- a/lib/rwsem-spinlock.c~rwsem-fix-rwsem_is_locked-bug
++++ a/lib/rwsem-spinlock.c
+@@ -49,7 +49,6 @@ __rwsem_do_wake(struct rw_semaphore *sem
  {
- 	struct __user_cap_data_struct kdata[_KERNEL_CAPABILITY_U32S];
--	unsigned i, tocopy;
-+	unsigned i, tocopy, copybytes;
- 	kernel_cap_t inheritable, permitted, effective;
- 	struct cred *new;
- 	int ret;
-@@ -255,8 +255,11 @@ SYSCALL_DEFINE2(capset, cap_user_header_
- 	if (pid != 0 && pid != task_pid_vnr(current))
- 		return -EPERM;
+ 	struct rwsem_waiter *waiter;
+ 	struct task_struct *tsk;
+-	int woken;
  
--	if (copy_from_user(&kdata, data,
--			   tocopy * sizeof(struct __user_cap_data_struct)))
-+	copybytes = tocopy * sizeof(struct __user_cap_data_struct);
-+	if (copybytes > sizeof(kdata))
-+		return -EFAULT;
-+
-+	if (copy_from_user(&kdata, data, copybytes))
- 		return -EFAULT;
+ 	waiter = list_entry(sem->wait_list.next, struct rwsem_waiter, list);
  
- 	for (i = 0; i < tocopy; i++) {
-_
-
-Patches currently in -mm which might be from arjan@infradead.org are
-
-linux-next.patch
-capabilities-simplify-bound-checks-for-copy_from_user.patch
-
+@@ -78,24 +77,21 @@ __rwsem_do_wake(struct rw_semaphore *sem
+ 
+ 	/* grant an infinite number of read locks to the front of the queue */
+  dont_wake_writers:
+-	woken = 0;
+ 	while (waiter->flags & RWSEM_WAITING_FOR_READ) {
+ 		struct list_head *next = waiter->list.next;
+ 
++		sem->activity++;
+ 		list_del(&waiter->list);
+ 		tsk = waiter->task;
+ 		smp_mb();
+ 		waiter->task = NULL;
+ 		wake_up_process(tsk);
+ 		put_task_struct(tsk);
+-		woken++;
+ 		if (list_empty(&sem->wait_list))
+ 			break;
+ 		waiter = list_entry(next, struct rwsem_waiter, list);
+ 	}
+ 
+-	sem->activity += woken;
