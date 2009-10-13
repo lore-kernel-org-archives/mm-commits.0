@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + gpio-add-gpio_lookup-fix.patch added to -mm tree
-Date: Tue, 13 Oct 2009 11:05:21 -0700
-Message-ID: <200910131805.n9DI5Ljl012490@imap1.linux-foundation.org>
+Subject: + gpio-add-gpio_lookup-checkpatch-fixes.patch added to -mm tree
+Date: Tue, 13 Oct 2009 11:05:19 -0700
+Message-ID: <200910131805.n9DI5JAa012470@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47379 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43479 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760835AbZJMSGl (ORCPT
+	by vger.kernel.org with ESMTP id S1760835AbZJMSGo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Oct 2009 14:06:41 -0400
+	Tue, 13 Oct 2009 14:06:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, bn@niasdigital.com, corbet@lwn.net, david-b@pacbe
 
 
 The patch titled
-     gpio-add-gpio_lookup-fix
+     gpio-add-gpio_lookup-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     gpio-add-gpio_lookup-fix.patch
+     gpio-add-gpio_lookup-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,20 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio-add-gpio_lookup-fix
+Subject: gpio-add-gpio_lookup-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-remove apprarent debug code.
+WARNING: space prohibited between function name and open parenthesis '('
+#58: FILE: drivers/gpio/gpiolib.c:1121:
++		if (!strcmp (name, chip->names[i - chip->base])) {
+
+total: 0 errors, 1 warnings, 63 lines checked
+
+./patches/gpio-add-gpio_lookup.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
 
 Cc: Ben Nizette <bn@niasdigital.com>
 Cc: David Brownell <david-b@pacbell.net>
@@ -46,21 +56,26 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/gpio/gpiolib.c~gpio-add-gpio_lookup-fix drivers/gpio/gpiolib.c
---- a/drivers/gpio/gpiolib.c~gpio-add-gpio_lookup-fix
+diff -puN drivers/gpio/gpiolib.c~gpio-add-gpio_lookup-checkpatch-fixes drivers/gpio/gpiolib.c
+--- a/drivers/gpio/gpiolib.c~gpio-add-gpio_lookup-checkpatch-fixes
 +++ a/drivers/gpio/gpiolib.c
-@@ -1118,10 +1118,8 @@ int gpio_lookup(const char *name)
+@@ -1118,7 +1118,7 @@ int gpio_lookup(const char *name)
  
  		if (chip == NULL || chip->names == NULL)
  			continue;
--		if (!strcmp(name, chip->names[i - chip->base])) {
--			printk(KERN_NOTICE "grbn found %d\n", i);
-+		if (!strcmp(name, chip->names[i - chip->base]))
+-		if (!strcmp (name, chip->names[i - chip->base])) {
++		if (!strcmp(name, chip->names[i - chip->base])) {
+ 			printk(KERN_NOTICE "grbn found %d\n", i);
  			return i;
--		}
- 	}
- 	return -EINVAL;
+ 		}
+@@ -1127,7 +1127,6 @@ int gpio_lookup(const char *name)
  }
+ EXPORT_SYMBOL_GPL(gpio_lookup);
+ 
+-
+ /**
+  * gpiochip_is_requested - return string iff signal was requested
+  * @chip: controller managing the signal
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
