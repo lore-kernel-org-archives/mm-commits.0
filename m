@@ -1,130 +1,404 @@
 From: akpm@linux-foundation.org
-Subject: + spi-controller-driver-for-designware-spi-core-fix.patch added to -mm tree
-Date: Tue, 13 Oct 2009 20:50:11 -0700
-Message-ID: <200910140413.n9E4D6ex018045@imap1.linux-foundation.org>
+Subject: mmotm 2009-10-13-21-13 uploaded
+Date: Tue, 13 Oct 2009 21:13:20 -0700
+Message-ID: <200910140436.n9E4aF9G001644__28237.3994160027$1255495208$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45029 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42089 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750843AbZJNENr (ORCPT
+	by vger.kernel.org with ESMTP id S1751260AbZJNEgy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Oct 2009 00:13:47 -0400
+	Wed, 14 Oct 2009 00:36:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, david-b@pacbell.net, feng.tang@intel.com
+To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
 
+The mm-of-the-moment snapshot 2009-10-13-21-13 has been uploaded to
 
-The patch titled
-     spi-controller-driver-for-designware-spi-core-fix
-has been added to the -mm tree.  Its filename is
-     spi-controller-driver-for-designware-spi-core-fix.patch
+   http://userweb.kernel.org/~akpm/mmotm/
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+and will soon be available at
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+   git://git.zen-sources.org/zen/mmotm.git
 
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+It contains the following patches against 2.6.32-rc4:
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
-
-------------------------------------------------------
-Subject: spi-controller-driver-for-designware-spi-core-fix
-From: Andrew Morton <akpm@linux-foundation.org>
-
-ERROR: "dw_spi_resume_host" [drivers/spi/dw_spi_pci.ko] undefined!
-ERROR: "dw_spi_suspend_host" [drivers/spi/dw_spi_pci.ko] undefined!
-ERROR: "dw_spi_add_host" [drivers/spi/dw_spi_pci.ko] undefined!
-
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Feng Tang <feng.tang@intel.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- drivers/spi/dw_spi.c |    3 +++
- linux/spi/dw_spi.h   |    0 
- 2 files changed, 3 insertions(+)
-
-diff -puN drivers/spi/Kconfig~spi-controller-driver-for-designware-spi-core-fix drivers/spi/Kconfig
-diff -puN drivers/spi/Makefile~spi-controller-driver-for-designware-spi-core-fix drivers/spi/Makefile
-diff -puN drivers/spi/dw_spi.c~spi-controller-driver-for-designware-spi-core-fix drivers/spi/dw_spi.c
---- a/drivers/spi/dw_spi.c~spi-controller-driver-for-designware-spi-core-fix
-+++ a/drivers/spi/dw_spi.c
-@@ -889,6 +889,7 @@ err_free_master:
- exit:
- 	return ret;
- }
-+EXPORT_SYMBOL(dw_spi_add_host);
- 
- void __devexit dw_spi_remove_host(struct dw_spi *dws)
- {
-@@ -924,6 +925,7 @@ int dw_spi_suspend_host(struct dw_spi *d
- 	spi_set_clk(dws, 0);
- 	return ret;
- }
-+EXPORT_SYMBOL(dw_spi_suspend_host);
- 
- int dw_spi_resume_host(struct dw_spi *dws)
- {
-@@ -935,6 +937,7 @@ int dw_spi_resume_host(struct dw_spi *dw
- 		dev_err(&dws->master->dev, "fail to start queue (%d)\n", ret);
- 	return ret;
- }
-+EXPORT_SYMBOL(dw_spi_resume_host);
- 
- MODULE_AUTHOR("Feng Tang <feng.tang@intel.com>");
- MODULE_DESCRIPTION("Driver for DesignWare SPI controller core");
-diff -puN include/linux/spi/dw_spi.h~spi-controller-driver-for-designware-spi-core-fix include/linux/spi/dw_spi.h
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
+origin.patch
+cpufreq-add-cpufreq_get-stub-for-config_cpu_freq=3Dn.patch
+hwpoison-fix-oops-on-ksm-pages.patch
+hwpoison-fix-proc-meminfo-alignment.patch
 linux-next.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
-include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object=
+_size.patch
+kernel-core-add-smp_call_function_any.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by=
+-using-smp_call_function_any.patch
+dell_laptop-when-the-hardware-switch-is-disabled-dont-actually-allow-ch=
+anging-the-softblock-status.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
 cmpc_acpi-add-support-for-classmate-pc-acpi-devices-fix.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices-depends-on-acpi.pat=
+ch
+acpi-annote-acpi_processor_add-with-__cpuinit.patch
+eeepc_laptop-properly-annote-eeepc_enable_camera.patch
+fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch
+eeepc-laptopc-dont-enable-camera-at-startup-if-its-already-on.patch
+acpi-reintroduce-acpi_device_ops-shutdown-method.patch
+cs5535-gpio-add-amd-cs5535-cs5536-gpio-driver-support.patch
+cs5535-gpio-request-function-mask-names-added.patch
+alsa-cs5535audio-free-olpc-quirks-from-reliance-on-mgeode_lx-cpu-optimi=
+zation.patch
+agp-correct-missing-cleanup-on-error-in-agp_add_bridge.patch
+omap-fix-unlikelyx-y.patch
+avr32-convert-to-asm-generic-hardirqh.patch
+powernow-k8-fix-test-in-get_transition_latency.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+hpilo-add-locking-comment.patch
+drm-via-add-pci-id-for-via-vx800-chipset.patch
+radio-add-support-for-tef6862-tuner.patch
+konicawcc-possible-buffer-overflow-while-use-strncat.patch
+quickcam_messengerc-possible-buffer-overflow-while-use-strncat.patch
+i2c-mpc-do-not-generate-stop-after-read.patch
+genirq-switch-proc-irq-spurious-to-seq_file.patch
 timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+ia64-use-printk_once.patch
+sn-unsigned-cannot-be-less-than-0-in-sn_hwperf_ioctl.patch
+wistron_btnsc-add-dmi-entry-for-medion-wim2030-laptop.patch
+input-bcm5974-retract-efi-broken-suspend_resume.patch
+input-bcm5974-report-abs_mt-events.patch
+kbuild-generate-modulesbuiltin.patch
+kbuild-rebuild-fix-for-makefilemodbuiltin.patch
+kconfig-cross_compile-option.patch
+mtdpart-memory-accessor-interface-for-mtd-layer.patch
+isdn-hisax-fix-lock-imbalance.patch
+hfc_usb-fix-read-buffer-overflow.patch
+misdn-fix-reversed-if-in-st_own_ctrl.patch
+isdn-eicon-use-offsetof.patch
+isdn-eicon-return-on-error.patch
+hisax-fix-test-in-waitforxfw.patch
+sb1250-mac-duplicate-setting-of-bit-v_mac_rx_pl_thrsh4-in-sbmac_channel=
+_start.patch
+net-hamradio-fix-test-in-receive.patch
 3x59x-fix-pci-resource-management.patch
 bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+sunrpc-use-formatting-of-module-name-in-sunrpc.patch
+serial-fit-blackfin-uart-over-sport-driver-into-common-uart-infrastruct=
+ure.patch
+pci-populate-subsystem-vendor-and-device-ids-for-pci-bridges.patch
+drivers-md-introduce-missing-kfree.patch
 include-trace-events-lockdeph-fix-do_div-warning.patch
+scsi-add-__init-__exit-macros-to-ibmvstgtc.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+scsi-fix-func-names-in-kernel-doc.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.pat=
+ch
+zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
 st-fix-test-of-value-range-in-st_set_options.patch
+drivers-scsi-libsas-use-sam_good.patch
+ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
+scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
+scsi-add-hpsa-driver-for-hp-smart-array-controllers-fix-hpsa_allow_any-=
+test-for-vendor-id.patch
 scsi-add-hpsa-driver-for-hp-smart-array-controllers-fix.patch
+hpsa-fix-use-of-unallocated-memory-for-msa2xxx-enclosure-device-data.pa=
+tch
+drivers-block-dac960c-use-dac960_v2_controller.patch
+cciss-fix-multiple-calls-to-pci_release_regions.patch
+cciss-add-cciss_allow_hpsa-module-parameter.patch
+synaptics-touchscreen-for-htc-dream-check-that-smbus-is-available.patch
+drivers-staging-octeon-ethernet-rgmiic-dont-ignore-request_irq-return-c=
+ode.patch
+vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
 raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+vfs-improve-comment-describing-fget_light.patch
+ecryptfs-another-lockdep-issue.patch
+fs-remove-unneeded-dcache_unhashed-tricks.patch
 fs-improve-remountro-vs-buffercache-coherency.patch
+vfs-make-real_lookup-do-dentry-revalidation-with-i_mutex-held.patch
+vfs-clean-up-real_lookup.patch
+xtensa-use-generic-sys_pipe.patch
+xtensa-convert-to-asm-generic-hardirqh.patch
+xtensa-includecheck-fix-vectorss.patch
 percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+mm.patch
+connector-fix-regression-introduced-by-sid-connector.patch
+congestion_wait-dont-use-write.patch
+cgroup-fix-strstrip-misuse.patch
+strstrip-mark-as-as-must_check.patch
+omap_hsmmc-add-missing-probe-handler-hook.patch
+maintainers-update-generic-uio-for-pci-devices.patch
+maintainers-update-tracing-section.patch
+maintainers-update-omap-tony-lindgren-email-name.patch
+maintainers-change-atm-mailing-list-to-moderated.patch
+maintainers-use-tab-not-spaces-after-field-types.patch
+maintainers-update-kernel-janitors-after-mismerge.patch
+maintainers-update-score-architecture-name-style-and-add-file-pattern.p=
+atch
+maintainers-simple-firmware-interface-update-email-style.patch
+maintainers-winbond-cir-integrate-p-m-lines-fixup-david-h=E4rdemans-nam=
+e.patch
+maintainers-fix-up-peripheral-spelling.patch
+maintainers-update-wolfson-microelectronics.patch
+scripts-get_maintainerpl-add-patch-file-search-for-keywords.patch
+maintainers-document-new-k-entry-type.patch
+maintainers-add-open-firmware-flattened-device-tree-entry.patch
+hfsplus-refuse-to-mount-volumes-larger-than-2tb.patch
 hfsplus-refuse-to-mount-volumes-larger-than-2tb-fix.patch
-revert-mm-oom-analysis-add-buffer-cache-information-to-show_free_areas.patch
+revert-mm-oom-analysis-add-buffer-cache-information-to-show_free_areas.=
+patch
+pcmcia-fix-controller-printk-format-warnings.patch
+lib-iommu-helperc-fix-off-by-one-error-in-find_next_zero_area.patch
+mmc-at91_mci-dont-include-asm-mach-mmch.patch
+vmscan-limit-vm_exec-protection-to-file-pages.patch
+loop-fix-null-dereference-if-mount-fails.patch
+hfs-fix-oops-on-mount-with-corrupted-btree-extent-records.patch
+mbind-fix-leak-of-never-putback-pages.patch
+do_mbind-fix-memory-leak.patch
+mm-order-evictable-rescue-in-lru-putback.patch
+atmel_serial-fix-bad-build_bug_on-usage.patch
+serial-add-addi-data-gmbh-pci-express-communication-cards-in-8250_pcic-=
+and-pci_idsh.patch
+8250_pci-add-ibm-saturn-serial-card.patch
+rtc-disable-hpet-emulation-on-suspend.patch
+alpha-fix-f_setown_ex-and-f_getlk64-conflict.patch
+fcntl-rename-f_owner_gid-to-f_owner_pgrp.patch
+cpuidle-always-return-with-interrupts-enabled.patch
+spitz-add-gpio-button-support.patch
+pata_sc1200-fix-crash-on-boot.patch
+speedstep-ich-use-correct-cpu-in-speedstep_get.patch
+dma-debug-allow-dma_bidirectional-mappings-to-be-synced-with-dma_from_d=
+evice-and.patch
 drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
+drm-make-sure-page-protections-are-updated-after-changing-vm_flags.patc=
+h
+x86-_end-symbol-missing-from-symbolmap.patch
+sched-fix-htmldocs-schedc.patch
+scsi_libc-avoid-calling-scsi_device_put-from-under-host_lock.patch
+hrtimers-remove-the-timer_stats_active-check-when-setting-the-start-inf=
+o.patch
+itimers-fix-racy-writes-to-cpu_itimer-fields.patch
+posix-cpu-timers-optimize-and-document-timer_create-callback.patch
+amd5536udc-fixed-shared-interrupt-bug-and-warning-oops.patch
+watchdog-fix-rio-watchdog-probe-function.patch
+x86-fix-kernel-panic-on-i386-machine-when-booting-with-profile=3D2.patc=
+h
+vfs-implement-posix-o_sync-and-o_dsync-semantics.patch
 vfs-implement-posix-o_sync-and-o_dsync-semantics-checkpatch-fixes.patch
+oom-dump-stack-and-vm-state-when-oom-killer-panics.patch
 readahead-add-blk_run_backing_dev.patch
-mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
+mm-warn-once-when-a-page-is-freed-with-pg_mlocked-set.patch
+page-types-constify-read-only-arrays.patch
+page-types-trivial-typo-fixes.patch
+page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
+mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap=
+=2Epatch
+mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap=
+-checkpatch-fixes.patch
+mm-add-notifier-in-pageblock-isolation-for-balloon-drivers.patch
+powerpc-make-the-cmm-memory-hotplug-aware.patch
+mm-vsmcan-check-shrink_active_list-sc-isolate_pages-return-value.patch
+dev-mem-remove-redundant-test-on-len.patch
+dev-mem-introduce-size_inside_page.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls.patch
 dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
 dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
+dev-mem-make-size_inside_page-logic-straight.patch
+dev-mem-remove-the-written-variable-in-write_kmem.patch
+dev-mem-remove-the-written-variable-in-write_kmem-fix.patch
+dev-mem-remove-redundant-parameter-from-do_write_kmem.patch
+mm-move-inc_zone_page_statenr_isolated-to-just-isolated-place.patch
+nodemask-make-nodemask_alloc-more-general.patch
+hugetlb-rework-hstate_next_node_-functions.patch
+hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-fun=
+ctions.patch
+hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-fun=
+ctions-fix.patch
+hugetlb-factor-init_nodemask_of_node.patch
+hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy.patch
+hugetlb-add-generic-definition-of-numa_no_node.patch
+hugetlb-add-per-node-hstate-attributes.patch
+hugetlb-update-hugetlb-documentation-for-numa-controls.patch
+hugetlb-use-only-nodes-with-memory-for-huge-pages.patch
+mm-clear-node-in-n_high_memory-and-stop-kswapd-when-all-memory-is-offli=
+ned.patch
+hugetlb-handle-memory-hot-plug-events.patch
+hugetlb-offload-per-node-attribute-registrations.patch
+mm-add-gfp-flags-for-nodemask_alloc-slab-allocations.patch
+vmalloc-adjust-gfp-mask-passed-on-nested-vmalloc-invocation.patch
+mm-fix-sparsemem-configuration.patch
+capabilities-simplify-bound-checks-for-copy_from_user.patch
+frv-duplicate-output_buffer-of-e03.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+cris-convert-to-use-arch_gettimeoffset.patch
+cryptocop-fix-assertion-in-create_output_descriptors.patch
+floppy-add-an-extra-bound-check-on-ioctl-arguments.patch
 floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
+timecompare-fix-half-y2k38-problem-in-timecompare_update-while-calculat=
+ing-offset.patch
+warn_once-use-bool-for-boolean-flag.patch
+dynamic_debugh-kernelh-remove-kbuild_modname-from-dynamic_pr_debug.patc=
+h
+ad525x_dpot-new-driver-for-ad525x-digital-potentiometers.patch
+qnx4fs-remove-remains-of-the-defunct-write-support.patch
+blkdev-flush-disk-cache-on-fsync.patch
+generic-ipi-cleanup-for-generic_smp_call_function_interrupt.patch
+drivers-misc-add-driver-for-texas-instruments-dac7512.patch
 drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
+init-mainc-fix-symbol-shadows-noise.patch
+kernelh-remove-initialization-of-bool-in-printk_once.patch
+rwsem-spinlock-remove-useless-function-exports.patch
+errh-add-helper-function-to-simplify-pointer-error-checking.patch
 errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
+vt-introduce-and-use-vt_kmsg_redirect-function.patch
+always-print-panic-message-on-current-console.patch
+iommu-helper-simplify-find_next_zero_area.patch
+bitmap-introduce-bitmap_set-bitmap_clear-bitmap_find_next_zero_area.pat=
+ch
+iommu-helper-use-bitmap-library.patch
+isp1362-hcd-use-bitmap_find_next_zero_area.patch
+mlx4-use-bitmap_find_next_zero_area.patch
+sparc-use-bitmap_find_next_zero_area.patch
+ia64-use-bitmap_find_next_zero_area.patch
+genalloc-use-bitmap_find_next_zero_area.patch
+lib-vsprintfc-add-%pu-to-print-uuid-guids.patch
+fs-xfs-xfs_log_recoverc-use-%pu-to-print-uuids.patch
+randomc-use-%pu-to-print-uuids.patch
+drivers-firmware-dmi_scanc-use-%pub-to-print-uuids.patch
+drivers-md-mdc-use-%pu-to-print-uuids.patch
+fs-gfs2-sysc-use-%pub-to-print-uuids.patch
+fs-ubifs-use-%pub-to-print-uuids.patch
+efih-use-%pul-to-print-uuids.patch
+drivers-media-video-uvc-use-%pul-to-print-uuids.patch
+firmware-only-allow-edd-on-x86.patch
+atmel-mci-change-use-of-dma-slave-interface.patch
+mmc-atmel-mci-new-mci2-module-support-in-atmel-mci-driver.patch
+davinci-mmc-mmc-sd-controller-driver-for-davinci-family.patch
+mxcmmc-fix-error-path-in-mxcmci_probe.patch
+sdio-recognize-io-card-without-powercycle.patch
+hwmon-driver-for-texas-instruments-amc6821-chip.patch
+lis3lv02d-axis-remap-and-resource-setup-release.patch
+lis3lv02d-i2c-support.patch
+xilinx_spi-split-into-generic-of-and-platform-driver-add-support-for-ds=
+570.patch
+atmel_spi-fix-dma-addr-calculation-for-len-buffer_size.patch
+spi-controller-driver-for-designware-spi-core.patch
+spi-add-pci-interface-driver-for-designware-spi-core.patch
 spi-controller-driver-for-designware-spi-core-fix.patch
+autofs4-use-helper-functions-for-active-list-handling.patch
+autofs4-use-helper-functions-for-expiring-list.patch
+autofs4-use-helper-function-for-need-mount-check.patch
+autofs4-use-autofs_info-for-pending-flag.patch
+autofs4-renamer-unhashed-to-active-in-autofs4_lookup.patch
+autofs4-cleanup-active-and-expire-lookup.patch
+autofs4-eliminate-d_unhashed-in-path-walk-checks.patch
+autofs4-rename-dentry-to-active-in-autofs4_lookup_active.patch
+autofs4-rename-dentry-to-expiring-in-autofs4_lookup_expiring.patch
+autofs4-always-use-lookup-for-lookup.patch
+rtc-fix-driver-data-issues-in-several-rtc-drivers.patch
+rtc-cmos-convert-rtc_aie-rtc_uie-to-rtc-irq-api.patch
+rtc-ds1511-fix-races-around-device-registration.patch
+rtc-tx4939-fix-races-around-device-registration.patch
+rtc-ds1553-fix-races-around-device-registration.patch
+rtc-ds1742-fix-races-around-device-registration.patch
+rtc-set-wakeup-capability-for-i2c-and-spi-rtc-drivers.patch
+gpio-fix-test-on-unsigned-in-lnw_irq_type.patch
+gpio-add-gpio-driver-for-the-timberdale-fpga.patch
 gpiolib-add-names-file-in-gpio-chip-sysfs.patch
+fbdev-bfin-lq035q1-fb-new-blackfin-landscape-lcd-ez-extender-driver.pat=
+ch
+fbdev-bfin-lq035q1-fb-new-blackfin-landscape-lcd-ez-extender-driver-v4.=
+patch
+fbdev-bfin-t350mcqb-fb-handle-all-resources-in-suspend-resume.patch
+fbdev-bfin-t350mcqb-fb-fix-lcd-dimensions.patch
+fbdev-tv_paln-bit-set-twice-in-sisfb_detect_vb_connect.patch
+intelfb-fix-setting-of-active-pipe-with-lvds-displays.patch
+hfsplus-identify-journal-info-block-in-volume-header.patch
+hfsplus-fix-journal-detection.patch
+reiserfs-remove-proc-fs-reiserfs-version.patch
+reiserfs-dont-compile-procfso-at-all-if-no-support.patch
+reiserfs-truncate-blocks-not-used-by-a-write-v2.patch
+fatfs-use-common-time_to_tm-in-fat_time_unix2fat.patch
+memcg-coalesce-uncharge-during-unmap-truncate.patch
+memcg-coalesce-charging-via-percpu-storage.patch
 memcg-coalesce-charging-via-percpu-storage-fix.patch
+do_wait-optimization-do-not-place-sub-threads-on-task_struct-children-l=
+ist.patch
+utrace-core.patch
+ipc-ns-fix-memory-leak-idr.patch
+ipc-semc-sem-optimise-undo-list-search.patch
+ipc-semc-sem-use-list-operations.patch
+ipc-semc-sem-preempt-improve.patch
+ipc-semc-optimize-if-semops-fail.patch
+ipc-semc-add-a-per-semaphore-pending-list.patch
+ipc-semc-optimize-single-semop-operations.patch
+ipc-semc-optimize-single-sops-when-semval-is-zero.patch
+drivers-char-ipmi-use-kcs_idle_state.patch
+elf-kill-use_elf_core_dump.patch
+cyclades-allow-overriding-isa-defaults-also-when-the-driver-is-built-in=
+=2Epatch
+char-mxser-remove-unnecessary-tty-test.patch
+isicomc-use-pr_fmt-and-pr_level.patch
+edac-i5100-clean-controller-to-channel-terms.patch
+edac-i5100-add-scrubbing.patch
+edac-i5100-add-6-ranks-per-channel.patch
+irq-fix-test-in-__exit-parport_mfc3_exit.patch
+sound-core-pcm_timerc-use-lib-gcdc.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc.patch
 net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+vfs-take-2add-set_page_dirty_notag.patch
+reiser4-vfs-add-super_operationssync_inodes-2.patch
+reiser4-export-remove_from_page_cache.patch
 reiser4-export-remove_from_page_cache-fix.patch
+reiser4-export-find_get_pages.patch
 reiser4.patch
+reiser4-adjust-to-the-new-aops.patch
+reiser4-adjust-to-the-new-aops-fixup.patch
+reiser4-remove-simple_prepare_write-usage.patch
 reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
+reiser4-handling-error-returned-by-d_obtain_alias-fixup.patch
+reiser4-update-names-of-quota-methods.patch
+reiser4-use-set_page_dirty_notag.patch
+fs-reiser4-add-parenths-around-x-y.patch
 fs-reiser4-contextc-current_is_pdflush-got-removed.patch
 reiser4-fix.patch
+reiser4-rename-psched-to-dispatch.patch
+reiser4-drop-journal-info.patch
+reiser4-fix-compile-warnings.patch
+reiser4-reduce-frame-size-of-reiser4_init_super_data.patch
+reiser4-reduce-frame-size-of-reiser4_init_super_data-fixup.patch
 reiser4-disable.patch
+make-sure-nobodys-leaking-resources.patch
+journal_add_journal_head-debug.patch
+releasing-resources-with-children.patch
+make-frame_pointer-default=3Dy.patch
+mutex-subsystem-synchro-test-module.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
+keep-track-of-network-interface-renaming.patch
+workaround-for-a-pci-restoring-bug.patch
+prio_tree-debugging-patch.patch
+single_open-seq_release-leak-diagnostics.patch
+add-a-refcount-check-in-dput.patch
 getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 notify_change-callers-must-hold-i_mutex.patch
-
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
