@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + powernow-k8-fix-test-in-get_transition_latency.patch added to -mm tree
-Date: Tue, 13 Oct 2009 18:48:18 -0700
-Message-ID: <200910140148.n9E1mIgN007348@imap1.linux-foundation.org>
+Subject: + pata_sc1200-fix-crash-on-boot.patch added to -mm tree
+Date: Tue, 13 Oct 2009 18:56:43 -0700
+Message-ID: <200910140156.n9E1uhW2024923@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46686 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58608 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754104AbZJNBtd (ORCPT
+	by vger.kernel.org with ESMTP id S1754086AbZJNB6o (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Oct 2009 21:49:33 -0400
+	Tue, 13 Oct 2009 21:58:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, davej@redhat.com, tglx@linutronix.de
+Cc: alan@linux.intel.com, alex@ozo.com, jeff@garzik.org, stable@kernel.org, tj@kernel.org
 
 
 The patch titled
-     powernow-k8: fix test in get_transition_latency()
+     pata_sc1200: fix crash on boot
 has been added to the -mm tree.  Its filename is
-     powernow-k8-fix-test-in-get_transition_latency.patch
+     pata_sc1200-fix-crash-on-boot.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,60 +34,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powernow-k8: fix test in get_transition_latency()
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: pata_sc1200: fix crash on boot
+From: Alan Cox <alan@linux.intel.com>
 
-Not makes it a bool before the comparison.
+The SC1200 needs a NULL terminator or it may cause a crash on boot.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Dave Jones <davej@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Also correct a bogus comment as the driver had serializing added so can
+run dual port.
+
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=14227
+
+Reported-by: Alexandros C. Couloumbis <alex@ozo.com>
+Signed-off-by: Alan Cox <alan@linux.intel.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/cpufreq/powernow-k8.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/ata/pata_sc1200.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/cpufreq/powernow-k8.c~powernow-k8-fix-test-in-get_transition_latency arch/x86/kernel/cpu/cpufreq/powernow-k8.c
---- a/arch/x86/kernel/cpu/cpufreq/powernow-k8.c~powernow-k8-fix-test-in-get_transition_latency
-+++ a/arch/x86/kernel/cpu/cpufreq/powernow-k8.c
-@@ -1022,7 +1022,7 @@ static int get_transition_latency(struct
- 		 * set it to 1 to avoid problems in the future.
- 		 * For all others it's a BIOS bug.
- 		 */
--		if (!boot_cpu_data.x86 == 0x11)
-+		if (boot_cpu_data.x86 != 0x11)
- 			printk(KERN_ERR FW_WARN PFX "Invalid zero transition "
- 				"latency\n");
- 		max_latency = 1;
+diff -puN drivers/ata/pata_sc1200.c~pata_sc1200-fix-crash-on-boot drivers/ata/pata_sc1200.c
+--- a/drivers/ata/pata_sc1200.c~pata_sc1200-fix-crash-on-boot
++++ a/drivers/ata/pata_sc1200.c
+@@ -235,8 +235,7 @@ static int sc1200_init_one(struct pci_de
+ 		.udma_mask = ATA_UDMA2,
+ 		.port_ops = &sc1200_port_ops
+ 	};
+-	/* Can't enable port 2 yet, see top comments */
+-	const struct ata_port_info *ppi[] = { &info, };
++	const struct ata_port_info *ppi[] = { &info, NULL };
+ 
+ 	return ata_pci_sff_init_one(dev, ppi, &sc1200_sht, NULL);
+ }
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from alan@linux.intel.com are
 
 linux-next.patch
-fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch
-powernow-k8-fix-test-in-get_transition_latency.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-sn-unsigned-cannot-be-less-than-0-in-sn_hwperf_ioctl.patch
-hfc_usb-fix-read-buffer-overflow.patch
-sb1250-mac-duplicate-setting-of-bit-v_mac_rx_pl_thrsh4-in-sbmac_channel_start.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
-st-fix-test-of-value-range-in-st_set_options.patch
-ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
-drivers-staging-octeon-ethernet-rgmiic-dont-ignore-request_irq-return-code.patch
-page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-cryptocop-fix-assertion-in-create_output_descriptors.patch
-gpio-fix-test-on-unsigned-in-lnw_irq_type.patch
-fbdev-tv_paln-bit-set-twice-in-sisfb_detect_vb_connect.patch
-irq-fix-test-in-__exit-parport_mfc3_exit.patch
+atmel_serial-fix-bad-build_bug_on-usage.patch
+pata_sc1200-fix-crash-on-boot.patch
 
