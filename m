@@ -1,27 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mxcmmc-fix-error-path-in-mxcmci_probe.patch added to -mm tree
-Date: Tue, 13 Oct 2009 19:45:03 -0700
-Message-ID: <200910140245.n9E2j3jX028722__19268.8122312122$1255488437$gmane$org@imap1.linux-foundation.org>
+Subject: + mm-fix-sparsemem-configuration.patch added to -mm tree
+Date: Tue, 13 Oct 2009 19:49:59 -0700
+Message-ID: <200910140249.n9E2nxOg006623@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35933 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43889 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754041AbZJNCqF (ORCPT
+	by vger.kernel.org with ESMTP id S1761586AbZJNCul (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Oct 2009 22:46:05 -0400
+	Tue, 13 Oct 2009 22:50:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: u.kleine-koenig@pengutronix.de, drzeus@drzeus.cx, linux-mmc@vger.kernel.org, mfuzzey@gmail.com, pierre@ossman.eu, s.hauer@pengutronix.de
+Cc: rmk+lkml@arm.linux.org.uk, rmk+kernel@arm.linux.org.uk
 
 
 The patch titled
-     mxcmmc: fix error path in mxcmci_probe
+     mm: fix sparsemem configuration
 has been added to the -mm tree.  Its filename is
-     mxcmmc-fix-error-path-in-mxcmci_probe.patch
+     mm-fix-sparsemem-configuration.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -29,83 +26,46 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mxcmmc: fix error path in mxcmci_probe
-=46rom: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+Subject: mm: fix sparsemem configuration
+From: Russell King <rmk+lkml@arm.linux.org.uk>
 
-After a failing allocation of mmc or a failed ioremap in mxcmci_probe h=
-ost was
-used uninitialized.
+Currently, sparsemem is only available if EXPERIMENTAL is enabled. 
+However, it hasn't ever been marked experimental.
 
-Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
-Acked-by: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: Pierre Ossman <pierre@ossman.eu>
-Cc: Martin Fuzzey <mfuzzey@gmail.com>
-Cc: Pierre Ossman <drzeus@drzeus.cx>
-Cc: <linux-mmc@vger.kernel.org>
+It's been about four years since sparsemem was merged, and we have
+platforms which depend on it; allow architectures to decide whether
+sparsemem should be the default memory model.
+
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/mxcmmc.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mmc/host/mxcmmc.c~mxcmmc-fix-error-path-in-mxcmci_pro=
-be drivers/mmc/host/mxcmmc.c
---- a/drivers/mmc/host/mxcmmc.c~mxcmmc-fix-error-path-in-mxcmci_probe
-+++ a/drivers/mmc/host/mxcmmc.c
-@@ -679,17 +679,17 @@ static int mxcmci_probe(struct platform_
- {
- 	struct mmc_host *mmc;
- 	struct mxcmci_host *host =3D NULL;
--	struct resource *r;
-+	struct resource *iores, *r;
- 	int ret =3D 0, irq;
-=20
- 	printk(KERN_INFO "i.MX SDHC driver\n");
-=20
--	r =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	iores =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	irq =3D platform_get_irq(pdev, 0);
--	if (!r || irq < 0)
-+	if (!iores || irq < 0)
- 		return -EINVAL;
-=20
--	r =3D request_mem_region(r->start, resource_size(r), pdev->name);
-+	r =3D request_mem_region(iores->start, resource_size(iores), pdev->na=
-me);
- 	if (!r)
- 		return -EBUSY;
-=20
-@@ -809,7 +809,7 @@ out_iounmap:
- out_free:
- 	mmc_free_host(mmc);
- out_release_mem:
--	release_mem_region(host->res->start, resource_size(host->res));
-+	release_mem_region(iores->start, resource_size(iores));
- 	return ret;
- }
-=20
+diff -puN mm/Kconfig~mm-fix-sparsemem-configuration mm/Kconfig
+--- a/mm/Kconfig~mm-fix-sparsemem-configuration
++++ a/mm/Kconfig
+@@ -67,7 +67,7 @@ config DISCONTIGMEM
+ 
+ config SPARSEMEM
+ 	def_bool y
+-	depends on SPARSEMEM_MANUAL
++	depends on (!SELECT_MEMORY_MODEL && ARCH_SPARSEMEM_ENABLE) || SPARSEMEM_MANUAL
+ 
+ config FLATMEM
+ 	def_bool y
 _
 
-Patches currently in -mm which might be from u.kleine-koenig@pengutroni=
-x.de are
+Patches currently in -mm which might be from rmk+lkml@arm.linux.org.uk are
 
-linux-next.patch
-mmc-at91_mci-dont-include-asm-mach-mmch.patch
-atmel_serial-fix-bad-build_bug_on-usage.patch
-mxcmmc-fix-error-path-in-mxcmci_probe.patch
+mm-fix-sparsemem-configuration.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
