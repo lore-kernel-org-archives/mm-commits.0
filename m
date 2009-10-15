@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + spi-add-pci-interface-driver-for-designware-spi-core-fix.patch added to -mm tree
-Date: Thu, 15 Oct 2009 13:43:22 -0700
-Message-ID: <200910152043.n9FKhMlX016222@imap1.linux-foundation.org>
+Subject: + 8250-serial-transmitter-fully-empty-test.patch added to -mm tree
+Date: Thu, 15 Oct 2009 14:24:00 -0700
+Message-ID: <200910152124.n9FLO0Rt003852@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41078 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37748 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758578AbZJOUoE (ORCPT
+	by vger.kernel.org with ESMTP id S933339AbZJOVYx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Oct 2009 16:44:04 -0400
+	Thu, 15 Oct 2009 17:24:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, feng.tang@intel.com
+Cc: dick@softplc.com, alan@lxorguk.ukuu.org.uk, rmk@arm.linux.org.uk
 
 
 The patch titled
-     spi: fix dw_spi_pci build when CONFIG_PM=n
+     8250: fix serial transmitter fully empty test
 has been added to the -mm tree.  Its filename is
-     spi-add-pci-interface-driver-for-designware-spi-core-fix.patch
+     8250-serial-transmitter-fully-empty-test.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,63 +34,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi: fix dw_spi_pci build when CONFIG_PM=n
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: 8250: fix serial transmitter fully empty test
+From: Dick Hollenbeck <dick@softplc.com>
 
-Fix names of the suspend and resume macros so that build succeeds
-when CONFIG_PM=n:
+When controlling an industrial radio modem it can be necessary to
+manipulate the handshake lines in order to control the radio modem's
+transmitter, from userspace.
 
-drivers/spi/dw_spi_pci.c:150: error: 'spi_suspend' undeclared here (not in a function)
-drivers/spi/dw_spi_pci.c:151: error: 'spi_resume' undeclared here (not in a function)
+The transmitter should not be turned off before all characters have been
+transmitted.  serial8250_tx_empty() was reporting that all characters were
+transmitted before they actually were.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Acked-by: Feng Tang <feng.tang@intel.com>
+Signed-off-by: Dick Hollenbeck <dick@softplc.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/spi/dw_spi_pci.c~spi-add-pci-interface-driver-for-designware-spi-core-fix drivers/spi/dw_spi_pci.c
---- a/drivers/spi/dw_spi_pci.c~spi-add-pci-interface-driver-for-designware-spi-core-fix
-+++ a/drivers/spi/dw_spi_pci.c
-@@ -132,8 +132,8 @@ static int spi_resume(struct pci_dev *pd
- 	return dw_spi_resume_host(&dwpci->dws);
- }
- #else
--#define mrst_spi_suspend	NULL
--#define mrst_spi_resume		NULL
-+#define spi_suspend	NULL
-+#define spi_resume	NULL
- #endif
+diff -puN drivers/serial/8250.c~8250-serial-transmitter-fully-empty-test drivers/serial/8250.c
+--- a/drivers/serial/8250.c~8250-serial-transmitter-fully-empty-test
++++ a/drivers/serial/8250.c
+@@ -83,6 +83,9 @@ static unsigned int skip_txen_test; /* f
  
- static const struct pci_device_id pci_ids[] __devinitdata = {
-_
-
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
-
-origin.patch
-cpufreq-add-cpufreq_get-stub-for-config_cpu_freq=n.patch
-linux-next.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices-depends-on-acpi.patch
-scsi-fix-func-names-in-kernel-doc.patch
-pcmcia-fix-controller-printk-format-warnings.patch
-ia64-sn-fix-percpu-warnings.patch
-readahead-add-blk_run_backing_dev.patch
-page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
-nodemask-make-nodemask_alloc-more-general.patch
-hugetlb-rework-hstate_next_node_-functions.patch
-hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions.patch
-hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions-fix.patch
-hugetlb-factor-init_nodemask_of_node.patch
-hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy.patch
-hugetlb-add-generic-definition-of-numa_no_node.patch
-hugetlb-add-per-node-hstate-attributes.patch
-hugetlb-update-hugetlb-documentation-for-numa-controls.patch
-hugetlb-use-only-nodes-with-memory-for-huge-pages.patch
-mm-clear-node-in-n_high_memory-and-stop-kswapd-when-all-memory-is-offlined.patch
-hugetlb-handle-memory-hot-plug-events.patch
-hugetlb-offload-per-node-attribute-registrations.patch
-mm-add-gfp-flags-for-nodemask_alloc-slab-allocations.patch
-spi-add-pci-interface-driver-for-designware-spi-core-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
-
+ #define PASS_LIMIT	256
+ 
++#define BOTH_EMPTY 	(UART_LSR_TEMT | UART_LSR_THRE)
++
++
+ /*
+  * We default to IRQ0 for the "no irq" hack.   Some
+  * machine types want others as well - they're free
+@@ -1794,7 +1797,7 @@ static unsigned int serial8250_tx_empty(
+ 	up->lsr_saved_flags |= lsr & LSR_SAVE_FLAGS;
+ 	spin_unlock_irqrestore(&up->port.lock, flags);
+ 
+-	return lsr & UART_LSR_TEMT ? TIOCSER_TEMT : 0;
++	return (lsr & BOTH_EMPTY) == BOTH_EMPTY ? TIOCSER_TEMT : 0;
+ }
+ 
+ static unsigned int serial8250_get_mctrl(struct uart_port *port)
+@@ -1852,8 +1855,6 @@ static void serial8250_break_ctl(struct 
+ 	spin_unlock_irqrestore(&up->port.lock, flags);
+ }
+ 
+-#define BOTH_EMPTY (UART_LSR_TEMT | UART_LSR_THRE)
