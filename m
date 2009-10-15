@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + keys-get_instantiation_keyring-should-inc-the-keyring-refcount-in-all-cases.patch added to -mm tree
-Date: Thu, 15 Oct 2009 12:28:31 -0700
-Message-ID: <200910151928.n9FJSVh2021223@imap1.linux-foundation.org>
+Subject: + kallsyms-remove-deprecated-print_fn_descriptor_symbol.patch added to -mm tree
+Date: Thu, 15 Oct 2009 12:32:09 -0700
+Message-ID: <200910151932.n9FJW9Dw029083@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57140 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36378 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935325AbZJOT3b (ORCPT
+	by vger.kernel.org with ESMTP id S933351AbZJOTd3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Oct 2009 15:29:31 -0400
+	Thu, 15 Oct 2009 15:33:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com, az@bond.edu.au, jmorris@namei.org
+Cc: amwang@redhat.com, bjorn.helgaas@hp.com
 
 
 The patch titled
-     keys: get_instantiation_keyring() should inc the keyring refcount in all cases
+     kallsyms: remove deprecated print_fn_descriptor_symbol()
 has been added to the -mm tree.  Its filename is
-     keys-get_instantiation_keyring-should-inc-the-keyring-refcount-in-all-cases.patch
+     kallsyms-remove-deprecated-print_fn_descriptor_symbol.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,80 +34,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: keys: get_instantiation_keyring() should inc the keyring refcount in all cases
-From: David Howells <dhowells@redhat.com>
+Subject: kallsyms: remove deprecated print_fn_descriptor_symbol()
+From: Amerigo Wang <amwang@redhat.com>
 
-The destination keyring specified to request_key() and co.  is made
-available to the process that instantiates the key (the slave process
-started by /sbin/request-key typically).  This is passed in the
-request_key_auth struct as the dest_keyring member.
+According to feature-removal-schedule.txt, it is the time to remove
+print_fn_descriptor_symbol().
 
-keyctl_instantiate_key and keyctl_negate_key() call
-get_instantiation_keyring() to get the keyring to attach the newly
-constructed key to at the end of instantiation.  This may be given a
-specific keyring into which a link will be made later, or it may be asked
-to find the keyring passed to request_key().  In the former case, it
-returns a keyring with the refcount incremented by lookup_user_key(); in
-the latter case, it returns the keyring from the request_key_auth struct -
-and does _not_ increment the refcount.
+And a quick grep shows that it no longer has any callers.
 
-The latter case will eventually result in an oops when the keyring
-prematurely runs out of references and gets destroyed.  The effect may
-take some time to show up as the key is destroyed lazily.
-
-To fix this, the keyring returned by get_instantiation_keyring() must
-always have its refcount incremented, no matter where it comes from.
-
-This can be tested by setting /etc/request-key.conf to:
-
-#OP	TYPE	DESCRIPTION	CALLOUT INFO	PROGRAM ARG1 ARG2 ARG3 ...
-#======	=======	===============	===============	===============================
-create  *	test:*		*		|/bin/false %u %g %d %{user:_display}
-negate	*	*		*		/bin/keyctl negate %k 10 @u
-
-and then doing:
-
-	keyctl add user _display aaaaaaaa @u
-        while keyctl request2 user test:x test:x @u &&
-        keyctl list @u;
-        do
-                keyctl request2 user test:x test:x @u;
-                sleep 31;
-                keyctl list @u;
-        done
-
-which will oops eventually.  Changing the negate line to have @u rather
-than %S at the end is important as that forces the latter case by passing
-a special keyring ID rather than an actual keyring ID.
-
-Reported-by: Alexander Zangerl <az@bond.edu.au>
-Signed-off-by: David Howells <dhowells@redhat.com>
-Tested-by: Alexander Zangerl <az@bond.edu.au>
-Cc: James Morris <jmorris@namei.org>
+Signed-off-by: WANG Cong <amwang@redhat.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN security/keys/keyctl.c~keys-get_instantiation_keyring-should-inc-the-keyring-refcount-in-all-cases security/keys/keyctl.c
---- a/security/keys/keyctl.c~keys-get_instantiation_keyring-should-inc-the-keyring-refcount-in-all-cases
-+++ a/security/keys/keyctl.c
-@@ -873,7 +873,7 @@ static long get_instantiation_keyring(ke
- 	/* otherwise specify the destination keyring recorded in the
- 	 * authorisation key (any KEY_SPEC_*_KEYRING) */
- 	if (ringid >= KEY_SPEC_REQUESTOR_KEYRING) {
--		*_dest_keyring = rka->dest_keyring;
-+		*_dest_keyring = key_get(rka->dest_keyring);
- 		return 0;
- 	}
+diff -puN Documentation/feature-removal-schedule.txt~kallsyms-remove-deprecated-print_fn_descriptor_symbol Documentation/feature-removal-schedule.txt
+--- a/Documentation/feature-removal-schedule.txt~kallsyms-remove-deprecated-print_fn_descriptor_symbol
++++ a/Documentation/feature-removal-schedule.txt
+@@ -283,15 +283,6 @@ Who:	Glauber Costa <gcosta@redhat.com>
  
-_
-
-Patches currently in -mm which might be from dhowells@redhat.com are
-
-linux-next.patch
-keys-get_instantiation_keyring-should-inc-the-keyring-refcount-in-all-cases.patch
-frv-duplicate-output_buffer-of-e03.patch
-rwsem-spinlock-remove-useless-function-exports.patch
-mutex-subsystem-synchro-test-module.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
-
+ ---------------------------
+ 
+-What: print_fn_descriptor_symbol()
+-When: October 2009
+-Why:  The %pF vsprintf format provides the same functionality in a
+-      simpler way.  print_fn_descriptor_symbol() is deprecated but
+-      still present to give out-of-tree modules time to change.
+-Who:  Bjorn Helgaas <bjorn.helgaas@hp.com>
+-
+----------------------------
+-
+ What:	/sys/o2cb symlink
+ When:	January 2010
+ Why:	/sys/fs/o2cb is the proper location for this information - /sys/o2cb
+diff -puN include/linux/kallsyms.h~kallsyms-remove-deprecated-print_fn_descriptor_symbol include/linux/kallsyms.h
+--- a/include/linux/kallsyms.h~kallsyms-remove-deprecated-print_fn_descriptor_symbol
++++ a/include/linux/kallsyms.h
+@@ -107,18 +107,6 @@ static inline void print_symbol(const ch
+ 		       __builtin_extract_return_addr((void *)addr));
+ }
+ 
+-/*
+- * Pretty-print a function pointer.  This function is deprecated.
+- * Please use the "%pF" vsprintf format instead.
+- */
+-static inline void __deprecated print_fn_descriptor_symbol(const char *fmt, void *addr)
+-{
+-#if defined(CONFIG_IA64) || defined(CONFIG_PPC64)
+-	addr = *(void **)addr;
+-#endif
+-	print_symbol(fmt, (unsigned long)addr);
+-}
