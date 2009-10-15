@@ -1,35 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + 8250-serial-transmitter-fully-empty-test.patch added to -mm tree
-Date: Thu, 15 Oct 2009 14:24:00 -0700
-Message-ID: <200910152124.n9FLO0Rt003852@imap1.linux-foundation.org>
+Subject: [nacked] 8250-serial-transmitter-fully-empty-test.patch removed from -mm tree
+Date: Thu, 15 Oct 2009 15:25:13 -0700
+Message-ID: <200910152225.n9FMPDZk002173@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37748 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34072 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933339AbZJOVYx (ORCPT
+	by vger.kernel.org with ESMTP id S1763076AbZJOW0d (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Oct 2009 17:24:53 -0400
+	Thu, 15 Oct 2009 18:26:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: dick@softplc.com, alan@lxorguk.ukuu.org.uk, rmk@arm.linux.org.uk
+To: dick@softplc.com, alan@lxorguk.ukuu.org.uk, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
      8250: fix serial transmitter fully empty test
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      8250-serial-transmitter-fully-empty-test.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was nacked
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
