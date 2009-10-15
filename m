@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ia64-sn-fix-percpu-warnings.patch added to -mm tree
-Date: Thu, 15 Oct 2009 13:36:10 -0700
-Message-ID: <200910152036.n9FKaAd2001175@imap1.linux-foundation.org>
+Subject: + spi-add-pci-interface-driver-for-designware-spi-core-fix.patch added to -mm tree
+Date: Thu, 15 Oct 2009 13:43:22 -0700
+Message-ID: <200910152043.n9FKhMlX016222@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60961 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41078 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935438AbZJOUhz (ORCPT
+	by vger.kernel.org with ESMTP id S1758578AbZJOUoE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Oct 2009 16:37:55 -0400
+	Thu, 15 Oct 2009 16:44:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, jes@sgi.com, tj@kernel.org, tony.luck@intel.com
+Cc: randy.dunlap@oracle.com, feng.tang@intel.com
 
 
 The patch titled
-     ia64/sn: fix percpu warnings
+     spi: fix dw_spi_pci build when CONFIG_PM=n
 has been added to the -mm tree.  Its filename is
-     ia64-sn-fix-percpu-warnings.patch
+     spi-add-pci-interface-driver-for-designware-spi-core-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ia64/sn: fix percpu warnings
+Subject: spi: fix dw_spi_pci build when CONFIG_PM=n
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix percpu types warning in ia64/sn:
+Fix names of the suspend and resume macros so that build succeeds
+when CONFIG_PM=n:
 
-arch/ia64/sn/kernel/setup.c:74: error: conflicting types for '__pcpu_scope___sn_cnodeid_to_nasid'
-arch/ia64/include/asm/sn/arch.h:74: error: previous declaration of '__pcpu_scope___sn_cnodeid_to_nasid' was here
+drivers/spi/dw_spi_pci.c:150: error: 'spi_suspend' undeclared here (not in a function)
+drivers/spi/dw_spi_pci.c:151: error: 'spi_resume' undeclared here (not in a function)
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Jes Sorensen <jes@sgi.com>
-Acked-by: Tejun Heo <tj@kernel.org>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+Acked-by: Feng Tang <feng.tang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN arch/ia64/include/asm/sn/arch.h~ia64-sn-fix-percpu-warnings arch/ia64/include/asm/sn/arch.h
---- a/arch/ia64/include/asm/sn/arch.h~ia64-sn-fix-percpu-warnings
-+++ a/arch/ia64/include/asm/sn/arch.h
-@@ -71,7 +71,7 @@ DECLARE_PER_CPU(struct sn_hub_info_s, __
-  * Compact node ID to nasid mappings kept in the per-cpu data areas of each
-  * cpu.
-  */
--DECLARE_PER_CPU(short, __sn_cnodeid_to_nasid[MAX_COMPACT_NODES]);
-+DECLARE_PER_CPU(short [MAX_COMPACT_NODES], __sn_cnodeid_to_nasid);
- #define sn_cnodeid_to_nasid	(&__get_cpu_var(__sn_cnodeid_to_nasid[0]))
+diff -puN drivers/spi/dw_spi_pci.c~spi-add-pci-interface-driver-for-designware-spi-core-fix drivers/spi/dw_spi_pci.c
+--- a/drivers/spi/dw_spi_pci.c~spi-add-pci-interface-driver-for-designware-spi-core-fix
++++ a/drivers/spi/dw_spi_pci.c
+@@ -132,8 +132,8 @@ static int spi_resume(struct pci_dev *pd
+ 	return dw_spi_resume_host(&dwpci->dws);
+ }
+ #else
+-#define mrst_spi_suspend	NULL
+-#define mrst_spi_resume		NULL
++#define spi_suspend	NULL
++#define spi_resume	NULL
+ #endif
  
- 
+ static const struct pci_device_id pci_ids[] __devinitdata = {
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
@@ -89,6 +90,7 @@ mm-clear-node-in-n_high_memory-and-stop-kswapd-when-all-memory-is-offlined.patch
 hugetlb-handle-memory-hot-plug-events.patch
 hugetlb-offload-per-node-attribute-registrations.patch
 mm-add-gfp-flags-for-nodemask_alloc-slab-allocations.patch
+spi-add-pci-interface-driver-for-designware-spi-core-fix.patch
 reiser4-export-remove_from_page_cache-fix.patch
 mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
