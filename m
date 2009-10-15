@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + swap_info-include-first_swap_extent.patch added to -mm tree
-Date: Thu, 15 Oct 2009 12:45:41 -0700
-Message-ID: <200910151945.n9FJjfp0025059@imap1.linux-foundation.org>
+Subject: + swap_info-note-swap_map_shmem.patch added to -mm tree
+Date: Thu, 15 Oct 2009 12:46:00 -0700
+Message-ID: <200910151946.n9FJk0x3025722@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44275 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42804 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935357AbZJOTq7 (ORCPT
+	by vger.kernel.org with ESMTP id S935361AbZJOTrC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Oct 2009 15:46:59 -0400
+	Thu, 15 Oct 2009 15:47:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: hugh.dickins@tiscali.co.uk, kamezawa.hiroyu@jp.fujitsu.com, riel@redhat.com
 
 
 The patch titled
-     swap_info: include first_swap_extent
+     swap_info: note SWAP_MAP_SHMEM
 has been added to the -mm tree.  Its filename is
-     swap_info-include-first_swap_extent.patch
+     swap_info-note-swap_map_shmem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,191 +34,185 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: swap_info: include first_swap_extent
+Subject: swap_info: note SWAP_MAP_SHMEM
 From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
-Make better use of the space by folding first swap_extent into its
-swap_info_struct, instead of just the list_head: swap partitions need
-only that one, and for others it's used as a circular list anyway.
+While we're fiddling with the swap_map values, let's assign a particular
+value to shmem/tmpfs swap pages: their swap counts are never incremented,
+and it helps swapoff's try_to_unuse() a little if it can immediately
+distinguish those pages from process pages.
+
+Since we've no use for SWAP_MAP_BAD | COUNT_CONTINUED,
+we might as well use that 0xbf value for SWAP_MAP_SHMEM.
 
 Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN include/linux/swap.h~swap_info-include-first_swap_extent include/linux/swap.h
---- a/include/linux/swap.h~swap_info-include-first_swap_extent
+diff -puN include/linux/swap.h~swap_info-note-swap_map_shmem include/linux/swap.h
+--- a/include/linux/swap.h~swap_info-note-swap_map_shmem
 +++ a/include/linux/swap.h
-@@ -165,7 +165,7 @@ struct swap_info_struct {
- 	signed char	next;		/* next type on the swap list */
- 	struct file *swap_file;
- 	struct block_device *bdev;
--	struct list_head extent_list;
-+	struct swap_extent first_swap_extent;
- 	struct swap_extent *curr_swap_extent;
- 	unsigned short *swap_map;
- 	unsigned int lowest_bit;
-diff -puN mm/swapfile.c~swap_info-include-first_swap_extent mm/swapfile.c
---- a/mm/swapfile.c~swap_info-include-first_swap_extent
-+++ a/mm/swapfile.c
-@@ -145,23 +145,28 @@ void swap_unplug_io_fn(struct backing_de
- static int discard_swap(struct swap_info_struct *si)
- {
- 	struct swap_extent *se;
-+	sector_t start_block;
-+	sector_t nr_blocks;
- 	int err = 0;
+@@ -157,6 +157,7 @@ enum {
+ #define SWAP_HAS_CACHE	0x40	/* Flag page is cached, in first swap_map */
+ #define SWAP_CONT_MAX	0x7f	/* Max count, in each swap_map continuation */
+ #define COUNT_CONTINUED	0x80	/* See swap_map continuation for full count */
++#define SWAP_MAP_SHMEM	0xbf	/* Owned by shmem/tmpfs, in first swap_map */
  
--	list_for_each_entry(se, &si->extent_list, list) {
--		sector_t start_block = se->start_block << (PAGE_SHIFT - 9);
--		sector_t nr_blocks = (sector_t)se->nr_pages << (PAGE_SHIFT - 9);
--
--		if (se->start_page == 0) {
--			/* Do not discard the swap header page! */
--			start_block += 1 << (PAGE_SHIFT - 9);
--			nr_blocks -= 1 << (PAGE_SHIFT - 9);
--			if (!nr_blocks)
--				continue;
--		}
-+	/* Do not discard the swap header page! */
-+	se = &si->first_swap_extent;
-+	start_block = (se->start_block + 1) << (PAGE_SHIFT - 9);
-+	nr_blocks = ((sector_t)se->nr_pages - 1) << (PAGE_SHIFT - 9);
-+	if (nr_blocks) {
-+		err = blkdev_issue_discard(si->bdev, start_block,
-+				nr_blocks, GFP_KERNEL, DISCARD_FL_BARRIER);
-+		if (err)
-+			return err;
-+		cond_resched();
-+	}
+ /*
+  * The in-memory structure used to track swap areas.
+@@ -316,6 +317,7 @@ extern swp_entry_t get_swap_page(void);
+ extern swp_entry_t get_swap_page_of_type(int);
+ extern int valid_swaphandles(swp_entry_t, unsigned long *);
+ extern int add_swap_count_continuation(swp_entry_t, gfp_t);
++extern void swap_shmem_alloc(swp_entry_t);
+ extern int swap_duplicate(swp_entry_t);
+ extern int swapcache_prepare(swp_entry_t);
+ extern void swap_free(swp_entry_t);
+@@ -394,6 +396,10 @@ static inline int add_swap_count_continu
+ 	return 0;
+ }
+ 
++static inline void swap_shmem_alloc(swp_entry_t swp)
++{
++}
 +
-+	list_for_each_entry(se, &si->first_swap_extent.list, list) {
-+		start_block = se->start_block << (PAGE_SHIFT - 9);
-+		nr_blocks = (sector_t)se->nr_pages << (PAGE_SHIFT - 9);
- 
- 		err = blkdev_issue_discard(si->bdev, start_block,
--						nr_blocks, GFP_KERNEL,
--						DISCARD_FL_BARRIER);
-+				nr_blocks, GFP_KERNEL, DISCARD_FL_BARRIER);
- 		if (err)
- 			break;
- 
-@@ -200,14 +205,11 @@ static void discard_swap_cluster(struct 
- 			start_block <<= PAGE_SHIFT - 9;
- 			nr_blocks <<= PAGE_SHIFT - 9;
- 			if (blkdev_issue_discard(si->bdev, start_block,
--							nr_blocks, GFP_NOIO,
--							DISCARD_FL_BARRIER))
-+				    nr_blocks, GFP_NOIO, DISCARD_FL_BARRIER))
- 				break;
- 		}
- 
- 		lh = se->list.next;
--		if (lh == &si->extent_list)
--			lh = lh->next;
- 		se = list_entry(lh, struct swap_extent, list);
- 	}
- }
-@@ -761,10 +763,8 @@ int swap_type_of(dev_t device, sector_t 
- 			return type;
- 		}
- 		if (bdev == sis->bdev) {
--			struct swap_extent *se;
-+			struct swap_extent *se = &sis->first_swap_extent;
- 
--			se = list_entry(sis->extent_list.next,
--					struct swap_extent, list);
- 			if (se->start_block == offset) {
- 				if (bdev_p)
- 					*bdev_p = bdgrab(sis->bdev);
-@@ -1311,8 +1311,6 @@ sector_t map_swap_page(swp_entry_t entry
- 			return se->start_block + (offset - se->start_page);
- 		}
- 		lh = se->list.next;
--		if (lh == &sis->extent_list)
--			lh = lh->next;
- 		se = list_entry(lh, struct swap_extent, list);
- 		sis->curr_swap_extent = se;
- 		BUG_ON(se == start_se);		/* It *must* be present */
-@@ -1341,10 +1339,10 @@ sector_t swapdev_block(int type, pgoff_t
-  */
- static void destroy_swap_extents(struct swap_info_struct *sis)
+ static inline int swap_duplicate(swp_entry_t swp)
  {
--	while (!list_empty(&sis->extent_list)) {
-+	while (!list_empty(&sis->first_swap_extent.list)) {
- 		struct swap_extent *se;
- 
--		se = list_entry(sis->extent_list.next,
-+		se = list_entry(sis->first_swap_extent.list.next,
- 				struct swap_extent, list);
- 		list_del(&se->list);
- 		kfree(se);
-@@ -1365,8 +1363,16 @@ add_swap_extent(struct swap_info_struct 
- 	struct swap_extent *new_se;
- 	struct list_head *lh;
- 
--	lh = sis->extent_list.prev;	/* The highest page extent */
--	if (lh != &sis->extent_list) {
-+	if (start_page == 0) {
-+		se = &sis->first_swap_extent;
-+		sis->curr_swap_extent = se;
-+		INIT_LIST_HEAD(&se->list);
-+		se->start_page = 0;
-+		se->nr_pages = nr_pages;
-+		se->start_block = start_block;
-+		return 1;
-+	} else {
-+		lh = sis->first_swap_extent.list.prev;	/* Highest extent */
- 		se = list_entry(lh, struct swap_extent, list);
- 		BUG_ON(se->start_page + se->nr_pages != start_page);
- 		if (se->start_block + se->nr_pages == start_block) {
-@@ -1386,7 +1392,7 @@ add_swap_extent(struct swap_info_struct 
- 	new_se->nr_pages = nr_pages;
- 	new_se->start_block = start_block;
- 
--	list_add_tail(&new_se->list, &sis->extent_list);
-+	list_add_tail(&new_se->list, &sis->first_swap_extent.list);
- 	return 1;
- }
- 
-@@ -1438,7 +1444,7 @@ static int setup_swap_extents(struct swa
- 	if (S_ISBLK(inode->i_mode)) {
- 		ret = add_swap_extent(sis, 0, sis->max, 0);
- 		*span = sis->pages;
--		goto done;
-+		goto out;
+ 	return 0;
+diff -puN mm/shmem.c~swap_info-note-swap_map_shmem mm/shmem.c
+--- a/mm/shmem.c~swap_info-note-swap_map_shmem
++++ a/mm/shmem.c
+@@ -1017,7 +1017,14 @@ int shmem_unuse(swp_entry_t entry, struc
+ 			goto out;
  	}
- 
- 	blkbits = inode->i_blkbits;
-@@ -1509,15 +1515,12 @@ reprobe:
- 	sis->max = page_no;
- 	sis->pages = page_no - 1;
- 	sis->highest_bit = page_no - 1;
--done:
--	sis->curr_swap_extent = list_entry(sis->extent_list.prev,
--					struct swap_extent, list);
--	goto out;
+ 	mutex_unlock(&shmem_swaplist_mutex);
+-out:	return found;	/* 0 or 1 or -ENOMEM */
++	/*
++	 * Can some race bring us here?  We've been holding page lock,
++	 * so I think not; but would rather try again later than BUG()
++	 */
++	unlock_page(page);
++	page_cache_release(page);
 +out:
-+	return ret;
- bad_bmap:
- 	printk(KERN_ERR "swapon: swapfile has holes\n");
- 	ret = -EINVAL;
--out:
--	return ret;
-+	goto out;
++	return (found < 0) ? found : 0;
  }
  
- SYSCALL_DEFINE1(swapoff, const char __user *, specialfile)
-@@ -1816,7 +1819,6 @@ SYSCALL_DEFINE2(swapon, const char __use
- 		kfree(p);
- 		goto out;
- 	}
--	INIT_LIST_HEAD(&p->extent_list);
- 	if (type >= nr_swapfiles) {
- 		p->type = type;
- 		swap_info[type] = p;
+ /*
+@@ -1080,7 +1087,7 @@ static int shmem_writepage(struct page *
+ 		else
+ 			inode = NULL;
+ 		spin_unlock(&info->lock);
+-		swap_duplicate(swap);
++		swap_shmem_alloc(swap);
+ 		BUG_ON(page_mapped(page));
+ 		page_cache_release(page);	/* pagecache ref */
+ 		swap_writepage(page, wbc);
+diff -puN mm/swapfile.c~swap_info-note-swap_map_shmem mm/swapfile.c
+--- a/mm/swapfile.c~swap_info-note-swap_map_shmem
++++ a/mm/swapfile.c
+@@ -548,6 +548,12 @@ static unsigned char swap_entry_free(str
+ 	if (usage == SWAP_HAS_CACHE) {
+ 		VM_BUG_ON(!has_cache);
+ 		has_cache = 0;
++	} else if (count == SWAP_MAP_SHMEM) {
++		/*
++		 * Or we could insist on shmem.c using a special
++		 * swap_shmem_free() and free_shmem_swap_and_cache()...
++		 */
++		count = 0;
+ 	} else if ((count & ~COUNT_CONTINUED) <= SWAP_MAP_MAX) {
+ 		if (count == COUNT_CONTINUED) {
+ 			if (swap_count_continued(p, offset, count))
+@@ -1031,7 +1037,6 @@ static int try_to_unuse(unsigned int typ
+ 	swp_entry_t entry;
+ 	unsigned int i = 0;
+ 	int retval = 0;
+-	int shmem;
+ 
+ 	/*
+ 	 * When searching mms for an entry, a good strategy is to
+@@ -1107,17 +1112,18 @@ static int try_to_unuse(unsigned int typ
+ 
+ 		/*
+ 		 * Remove all references to entry.
+-		 * Whenever we reach init_mm, there's no address space
+-		 * to search, but use it as a reminder to search shmem.
+ 		 */
+-		shmem = 0;
+ 		swcount = *swap_map;
+-		if (swap_count(swcount)) {
+-			if (start_mm == &init_mm)
+-				shmem = shmem_unuse(entry, page);
+-			else
+-				retval = unuse_mm(start_mm, entry, page);
++		if (swap_count(swcount) == SWAP_MAP_SHMEM) {
++			retval = shmem_unuse(entry, page);
++			/* page has already been unlocked and released */
++			if (retval < 0)
++				break;
++			continue;
+ 		}
++		if (swap_count(swcount) && start_mm != &init_mm)
++			retval = unuse_mm(start_mm, entry, page);
++
+ 		if (swap_count(*swap_map)) {
+ 			int set_start_mm = (*swap_map >= swcount);
+ 			struct list_head *p = &start_mm->mmlist;
+@@ -1128,7 +1134,7 @@ static int try_to_unuse(unsigned int typ
+ 			atomic_inc(&new_start_mm->mm_users);
+ 			atomic_inc(&prev_mm->mm_users);
+ 			spin_lock(&mmlist_lock);
+-			while (swap_count(*swap_map) && !retval && !shmem &&
++			while (swap_count(*swap_map) && !retval &&
+ 					(p = p->next) != &start_mm->mmlist) {
+ 				mm = list_entry(p, struct mm_struct, mmlist);
+ 				if (!atomic_inc_not_zero(&mm->mm_users))
+@@ -1142,10 +1148,9 @@ static int try_to_unuse(unsigned int typ
+ 				swcount = *swap_map;
+ 				if (!swap_count(swcount)) /* any usage ? */
+ 					;
+-				else if (mm == &init_mm) {
++				else if (mm == &init_mm)
+ 					set_start_mm = 1;
+-					shmem = shmem_unuse(entry, page);
+-				} else
++				else
+ 					retval = unuse_mm(mm, entry, page);
+ 
+ 				if (set_start_mm &&
+@@ -1162,13 +1167,6 @@ static int try_to_unuse(unsigned int typ
+ 			mmput(start_mm);
+ 			start_mm = new_start_mm;
+ 		}
+-		if (shmem) {
+-			/* page has already been unlocked and released */
+-			if (shmem > 0)
+-				continue;
+-			retval = shmem;
+-			break;
+-		}
+ 		if (retval) {
+ 			unlock_page(page);
+ 			page_cache_release(page);
+@@ -2128,6 +2126,15 @@ bad_file:
+ }
+ 
+ /*
++ * Help swapoff by noting that swap entry belongs to shmem/tmpfs
++ * (in which case its reference count is never incremented).
++ */
++void swap_shmem_alloc(swp_entry_t entry)
++{
++	__swap_duplicate(entry, SWAP_MAP_SHMEM);
++}
++
++/*
+  * increase reference count of swap entry by 1.
+  */
+ int swap_duplicate(swp_entry_t entry)
 _
 
 Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
