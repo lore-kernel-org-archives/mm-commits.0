@@ -1,85 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [merged] net-hamradio-fix-test-in-receive.patch removed from -mm tree
-Date: Thu, 15 Oct 2009 11:43:34 -0700
-Message-ID: <200910151843.n9FIhYPa023383@imap1.linux-foundation.org>
+Subject: [merged] watchdog-fix-rio-watchdog-probe-function.patch removed from -mm tree
+Date: Thu, 15 Oct 2009 11:43:52 -0700
+Message-ID: <200910151843.n9FIhqaT024085@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40142 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42032 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935257AbZJOSok (ORCPT
+	by vger.kernel.org with ESMTP id S935250AbZJOSor (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Oct 2009 14:44:40 -0400
+	Thu, 15 Oct 2009 14:44:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, davem@davemloft.net, t.sailer@alumni.ethz.ch, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, davem@davemloft.net, wim@iguana.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     net/hamradio: fix test in receive()
+     watchdog: fix rio watchdog probe function
 has been removed from the -mm tree.  Its filename was
-     net-hamradio-fix-test-in-receive.patch
+     watchdog-fix-rio-watchdog-probe-function.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: net/hamradio: fix test in receive()
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: watchdog: fix rio watchdog probe function
+From: Thomas Gleixner <tglx@linutronix.de>
 
-The negation makes it a bool before the comparison and hence it will never
-evaluate to true.
+After sucessfully registering the misc device the driver iounmaps the
+hardware registers and kfree's the device data structure.  Ouch !
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Thomas Sailer <t.sailer@alumni.ethz.ch>
+This was introduced with commit e42311d75 (riowatchdog: Convert to
+pure OF driver) and went unnoticed for more than a year :)
+
+Return success instead of dropping into the error cleanup code path.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Cc: David S. Miller <davem@davemloft.net>
+Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/hamradio/baycom_epp.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/net/hamradio/baycom_epp.c~net-hamradio-fix-test-in-receive drivers/net/hamradio/baycom_epp.c
---- a/drivers/net/hamradio/baycom_epp.c~net-hamradio-fix-test-in-receive
-+++ a/drivers/net/hamradio/baycom_epp.c
-@@ -597,7 +597,8 @@ static int receive(struct net_device *de
- 						state = 0;
+diff -puN drivers/watchdog/riowd.c~watchdog-fix-rio-watchdog-probe-function drivers/watchdog/riowd.c
+--- a/drivers/watchdog/riowd.c~watchdog-fix-rio-watchdog-probe-function
++++ a/drivers/watchdog/riowd.c
+@@ -206,7 +206,7 @@ static int __devinit riowd_probe(struct 
  
- 					/* not flag received */
--					else if (!(bitstream & (0x1fe << j)) != (0x0fc << j)) {
-+					else if ((bitstream & (0x1fe << j)) !=
-+							(0x0fc << j)) {
- 						if (state)
- 							do_rxpacket(dev);
- 						bc->hdlcrx.bufcnt = 0;
+ 	dev_set_drvdata(&op->dev, p);
+ 	riowd_device = p;
+-	err = 0;
++	return 0;
+ 
+ out_iounmap:
+ 	of_iounmap(&op->resource[0], p->regs, 2);
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
+origin.patch
 linux-next.patch
-fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch
-omap-fix-unlikelyx-y.patch
+kernel-core-add-smp_call_function_any.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
 powernow-k8-fix-test-in-get_transition_latency.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-hfc_usb-fix-read-buffer-overflow.patch
-hisax-fix-test-in-waitforxfw.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
-st-fix-test-of-value-range-in-st_set_options.patch
-ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
-drivers-staging-octeon-ethernet-rgmiic-dont-ignore-request_irq-return-code.patch
-page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-cryptocop-fix-assertion-in-create_output_descriptors.patch
-gpio-fix-test-on-unsigned-in-lnw_irq_type.patch
-fbdev-tv_paln-bit-set-twice-in-sisfb_detect_vb_connect.patch
-irq-fix-test-in-__exit-parport_mfc3_exit.patch
+genirq-switch-proc-irq-spurious-to-seq_file.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+rtc-disable-hpet-emulation-on-suspend.patch
+hrtimers-remove-the-timer_stats_active-check-when-setting-the-start-info.patch
+itimers-fix-racy-writes-to-cpu_itimer-fields.patch
+posix-cpu-timers-optimize-and-document-timer_create-callback.patch
+vfs-implement-posix-o_sync-and-o_dsync-semantics.patch
+timecompare-fix-half-y2k38-problem-in-timecompare_update-while-calculating-offset.patch
+bitmap-introduce-bitmap_set-bitmap_clear-bitmap_find_next_zero_area.patch
+iommu-helper-use-bitmap-library.patch
+fatfs-use-common-time_to_tm-in-fat_time_unix2fat.patch
 
