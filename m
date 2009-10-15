@@ -1,130 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] spitz-add-gpio-button-support.patch removed from -mm tree
-Date: Thu, 15 Oct 2009 15:44:53 -0700
-Message-ID: <200910152244.n9FMirru010946@imap1.linux-foundation.org>
+Subject: + dma-mapping-fix-off-by-one-error-in-dma_capable.patch added to -mm tree
+Date: Thu, 15 Oct 2009 15:48:55 -0700
+Message-ID: <200910152248.n9FMmuGb019310@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58787 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42509 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763197AbZJOWpv (ORCPT
+	by vger.kernel.org with ESMTP id S1763240AbZJOWu3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Oct 2009 18:45:51 -0400
+	Thu, 15 Oct 2009 18:50:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pavel@ucw.cz, broonie@opensource.wolfsonmicro.com, dbaryshkov@gmail.com, eric.y.miao@gmail.com, linux@arm.linux.org.uk, metan@ucw.cz, rjw@sisk.pl, utx@penguin.cz, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: JBeulich@novell.com, beckyb@kernel.crashing.org, benh@kernel.crashing.org, fujita.tomonori@lab.ntt.co.jp, hpa@zytor.com, jbeulich@novell.com, mingo@elte.hu, tglx@linutronix.de, tony.luck@intel.com
 
 
 The patch titled
-     spitz: add gpio button support
-has been removed from the -mm tree.  Its filename was
-     spitz-add-gpio-button-support.patch
+     dma-mapping: fix off-by-one error in dma_capable()
+has been added to the -mm tree.  Its filename is
+     dma-mapping-fix-off-by-one-error-in-dma_capable.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spitz: add gpio button support
-From: Pavel Machek <pavel@ucw.cz>
+Subject: dma-mapping: fix off-by-one error in dma_capable()
+From: "Jan Beulich" <JBeulich@novell.com>
 
-Spitz switched to generic matrix-gpio keyboard driver in 2.6.32-rc0, but
-that means that support for power button and lid switches was lost.  This
-restores it, using button-gpio code.
+dma_mask is, when interpreted as address, the last valid byte, and hence
+comparison msut also be done using the last valid of the buffer in
+question.
 
-Signed-off-by: Pavel Machek <pavel@ucw.cz>
-Cc: Eric Miao <eric.y.miao@gmail.com>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Eric Miao <eric.y.miao@gmail.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Stanislav Brabec <utx@penguin.cz>
-Cc: Cyril Hrubis <metan@ucw.cz>
+Also fix the open-coded instances in lib/swiotlb.c.
+
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Becky Bruce <beckyb@kernel.crashing.org>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN arch/arm/mach-pxa/spitz.c~spitz-add-gpio-button-support arch/arm/mach-pxa/spitz.c
---- a/arch/arm/mach-pxa/spitz.c~spitz-add-gpio-button-support
-+++ a/arch/arm/mach-pxa/spitz.c
-@@ -15,6 +15,7 @@
- #include <linux/kernel.h>
- #include <linux/platform_device.h>
- #include <linux/delay.h>
-+#include <linux/gpio_keys.h>
- #include <linux/gpio.h>
- #include <linux/leds.h>
- #include <linux/mtd/physmap.h>
-@@ -375,6 +376,51 @@ static struct platform_device spitzkbd_d
- };
+diff -puN arch/ia64/include/asm/dma-mapping.h~dma-mapping-fix-off-by-one-error-in-dma_capable arch/ia64/include/asm/dma-mapping.h
+--- a/arch/ia64/include/asm/dma-mapping.h~dma-mapping-fix-off-by-one-error-in-dma_capable
++++ a/arch/ia64/include/asm/dma-mapping.h
+@@ -73,7 +73,7 @@ static inline bool dma_capable(struct de
+ 	if (!dev->dma_mask)
+ 		return 0;
  
+-	return addr + size <= *dev->dma_mask;
++	return addr + size - 1 <= *dev->dma_mask;
+ }
  
-+static struct gpio_keys_button spitz_gpio_keys[] = {
-+	{
-+		.type	= EV_KEY,
-+		.code	= KEY_SUSPEND,
-+		.gpio	= SPITZ_GPIO_ON_KEY,
-+		.desc	= "Power button",
-+		.wakeup	= 1,
-+	},
-+	/* Two buttons detecting the LID state */
-+	{
-+		.type	= EV_SW,
-+		.code	= 0,
-+		.gpio	= SPITZ_GPIO_SWA,
-+		.desc	= "Lid SWA",
-+	},
-+	{
-+		.type	= EV_SW,
-+		.code	= 1,
-+		.gpio	= SPITZ_GPIO_SWB,
-+		.desc	= "Lid SWB",
-+	},
-+	/* This is for remote control support. Zaurus supports wired
-+	   remote on headphones. */
-+	{
-+		.type	= EV_SW,
-+		.code	= 2,
-+		.gpio	= SPITZ_GPIO_AK_INT,
-+		.desc	= "Wired remote (AK_INT)",
-+	},
-+};
-+
-+static struct gpio_keys_platform_data spitz_gpio_keys_platform_data = {
-+	.buttons	= spitz_gpio_keys,
-+	.nbuttons	= ARRAY_SIZE(spitz_gpio_keys),
-+};
-+
-+static struct platform_device spitz_gpio_keys_device = {
-+	.name	= "gpio-keys",
-+	.id	= -1,
-+	.dev	= {
-+		.platform_data	= &spitz_gpio_keys_platform_data,
-+	},
-+};
-+
-+
- /*
-  * Spitz LEDs
-  */
-@@ -689,6 +735,7 @@ static struct platform_device sharpsl_ro
- static struct platform_device *devices[] __initdata = {
- 	&spitzscoop_device,
- 	&spitzkbd_device,
-+	&spitz_gpio_keys_device,
- 	&spitzled_device,
- 	&sharpsl_nand_device,
- 	&sharpsl_rom_device,
+ static inline dma_addr_t phys_to_dma(struct device *dev, phys_addr_t paddr)
+diff -puN arch/powerpc/include/asm/dma-mapping.h~dma-mapping-fix-off-by-one-error-in-dma_capable arch/powerpc/include/asm/dma-mapping.h
+--- a/arch/powerpc/include/asm/dma-mapping.h~dma-mapping-fix-off-by-one-error-in-dma_capable
++++ a/arch/powerpc/include/asm/dma-mapping.h
+@@ -197,7 +197,7 @@ static inline bool dma_capable(struct de
+ 	if (!dev->dma_mask)
+ 		return 0;
+ 
+-	return addr + size <= *dev->dma_mask;
++	return addr + size - 1 <= *dev->dma_mask;
+ }
+ 
+ static inline dma_addr_t phys_to_dma(struct device *dev, phys_addr_t paddr)
+diff -puN arch/x86/include/asm/dma-mapping.h~dma-mapping-fix-off-by-one-error-in-dma_capable arch/x86/include/asm/dma-mapping.h
+--- a/arch/x86/include/asm/dma-mapping.h~dma-mapping-fix-off-by-one-error-in-dma_capable
++++ a/arch/x86/include/asm/dma-mapping.h
+@@ -60,7 +60,7 @@ static inline bool dma_capable(struct de
+ 	if (!dev->dma_mask)
+ 		return 0;
+ 
+-	return addr + size <= *dev->dma_mask;
++	return addr + size - 1 <= *dev->dma_mask;
+ }
+ 
+ static inline dma_addr_t phys_to_dma(struct device *dev, phys_addr_t paddr)
+diff -puN lib/swiotlb.c~dma-mapping-fix-off-by-one-error-in-dma_capable lib/swiotlb.c
+--- a/lib/swiotlb.c~dma-mapping-fix-off-by-one-error-in-dma_capable
++++ a/lib/swiotlb.c
+@@ -517,7 +517,7 @@ swiotlb_alloc_coherent(struct device *hw
+ 		dma_mask = hwdev->coherent_dma_mask;
+ 
+ 	ret = (void *)__get_free_pages(flags, order);
+-	if (ret && swiotlb_virt_to_bus(hwdev, ret) + size > dma_mask) {
++	if (ret && swiotlb_virt_to_bus(hwdev, ret) + size - 1 > dma_mask) {
+ 		/*
+ 		 * The allocated memory isn't reachable by the device.
+ 		 */
+@@ -539,7 +539,7 @@ swiotlb_alloc_coherent(struct device *hw
+ 	dev_addr = swiotlb_virt_to_bus(hwdev, ret);
+ 
+ 	/* Confirm address can be DMA'd by device */
+-	if (dev_addr + size > dma_mask) {
++	if (dev_addr + size - 1 > dma_mask) {
+ 		printk("hwdev DMA mask = 0x%016Lx, dev_addr = 0x%016Lx\n",
+ 		       (unsigned long long)dma_mask,
+ 		       (unsigned long long)dev_addr);
 _
 
-Patches currently in -mm which might be from pavel@ucw.cz are
+Patches currently in -mm which might be from JBeulich@novell.com are
 
 origin.patch
 linux-next.patch
-synaptics-touchscreen-for-htc-dream-check-that-smbus-is-available.patch
-hwmon-enhance-the-sysfs-api-for-power-meters.patch
-spitz-add-gpio-button-support.patch
-lis3lv02d-axis-remap-and-resource-setup-release.patch
-lis3lv02d-i2c-support.patch
-fatfs-use-common-time_to_tm-in-fat_time_unix2fat.patch
+kbuild-generate-modulesbuiltin.patch
+kbuild-rebuild-fix-for-makefilemodbuiltin.patch
+drm-make-sure-page-protections-are-updated-after-changing-vm_flags.patch
+vmalloc-adjust-gfp-mask-passed-on-nested-vmalloc-invocation.patch
+dma-mapping-fix-off-by-one-error-in-dma_capable.patch
 
