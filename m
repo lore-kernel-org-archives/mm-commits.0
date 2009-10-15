@@ -1,93 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ia64-use-printk_once.patch removed from -mm tree
-Date: Thu, 15 Oct 2009 11:43:20 -0700
-Message-ID: <200910151843.n9FIhKtO022984@imap1.linux-foundation.org>
+Subject: [merged] sched-fix-htmldocs-schedc.patch removed from -mm tree
+Date: Thu, 15 Oct 2009 11:43:48 -0700
+Message-ID: <200910151843.n9FIhmBh024010@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47352 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48771 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935096AbZJOSoB (ORCPT
+	by vger.kernel.org with ESMTP id S935318AbZJOSph (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Oct 2009 14:44:01 -0400
+	Thu, 15 Oct 2009 14:45:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: marcin.slusarz@gmail.com, fenghua.yu@intel.com, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: jaswinder@kernel.org, jaswinderrajput@gmail.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ia64: use printk_once
+     sched: fix htmldocs sched.c
 has been removed from the -mm tree.  Its filename was
-     ia64-use-printk_once.patch
+     sched-fix-htmldocs-schedc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ia64: use printk_once
-From: Marcin Slusarz <marcin.slusarz@gmail.com>
+Subject: sched: fix htmldocs sched.c
+From: Jaswinder Singh Rajput <jaswinder@kernel.org>
 
-Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
+fix the following htmldocs warnings:
+
+  Warning(kernel/sched.c:685): No description found for parameter 'cpu'
+  Warning(kernel/sched.c:3676): No description found for parameter 'sd'
+
+Signed-off-by: Jaswinder Singh Rajput <jaswinderrajput@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/unaligned.c    |    6 ++----
- arch/ia64/sn/kernel/io_common.c |    8 ++------
- 2 files changed, 4 insertions(+), 10 deletions(-)
+ kernel/sched.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/ia64/kernel/unaligned.c~ia64-use-printk_once arch/ia64/kernel/unaligned.c
---- a/arch/ia64/kernel/unaligned.c~ia64-use-printk_once
-+++ a/arch/ia64/kernel/unaligned.c
-@@ -60,7 +60,6 @@ dump (const char *str, void *vp, size_t 
-  */
- int no_unaligned_warning;
- int unaligned_dump_stack;
--static int noprint_warning;
+diff -puN kernel/sched.c~sched-fix-htmldocs-schedc kernel/sched.c
+--- a/kernel/sched.c~sched-fix-htmldocs-schedc
++++ a/kernel/sched.c
+@@ -676,6 +676,7 @@ inline void update_rq_clock(struct rq *r
  
- /*
-  * For M-unit:
-@@ -1357,9 +1356,8 @@ ia64_handle_unaligned (unsigned long ifa
- 			/* watch for command names containing %s */
- 			printk(KERN_WARNING "%s", buf);
- 		} else {
--			if (no_unaligned_warning && !noprint_warning) {
--				noprint_warning = 1;
--				printk(KERN_WARNING "%s(%d) encountered an "
-+			if (no_unaligned_warning) {
-+				printk_once(KERN_WARNING "%s(%d) encountered an "
- 				       "unaligned exception which required\n"
- 				       "kernel assistance, which degrades "
- 				       "the performance of the application.\n"
-diff -puN arch/ia64/sn/kernel/io_common.c~ia64-use-printk_once arch/ia64/sn/kernel/io_common.c
---- a/arch/ia64/sn/kernel/io_common.c~ia64-use-printk_once
-+++ a/arch/ia64/sn/kernel/io_common.c
-@@ -119,7 +119,6 @@ sn_pcidev_info_get(struct pci_dev *dev)
-  * Additionally note that the struct sn_flush_device_war also has to be
-  * removed from arch/ia64/sn/include/xtalk/hubdev.h
-  */
--static u8 war_implemented = 0;
+ /**
+  * runqueue_is_locked
++ * @cpu: the processor in question.
+  *
+  * Returns true if the current cpu runqueue is locked.
+  * This interface allows printk to be called with the runqueue lock
+@@ -3658,6 +3659,7 @@ static void update_group_power(struct sc
  
- static s64 sn_device_fixup_war(u64 nasid, u64 widget, int device,
- 			       struct sn_flush_device_common *common)
-@@ -128,11 +127,8 @@ static s64 sn_device_fixup_war(u64 nasid
- 	struct sn_flush_device_war *dev_entry;
- 	struct ia64_sal_retval isrv = {0,0,0,0};
- 
--	if (!war_implemented) {
--		printk(KERN_WARNING "PROM version < 4.50 -- implementing old "
--		       "PROM flush WAR\n");
--		war_implemented = 1;
--	}
-+	printk_once(KERN_WARNING
-+		"PROM version < 4.50 -- implementing old PROM flush WAR\n");
- 
- 	war_list = kzalloc(DEV_PER_WIDGET * sizeof(*war_list), GFP_KERNEL);
- 	BUG_ON(!war_list);
+ /**
+  * update_sg_lb_stats - Update sched_group's statistics for load balancing.
++ * @sd: The sched_domain whose statistics are to be updated.
+  * @group: sched_group whose statistics are to be updated.
+  * @this_cpu: Cpu for which load balance is currently performed.
+  * @idle: Idle status of this_cpu
 _
 
-Patches currently in -mm which might be from marcin.slusarz@gmail.com are
+Patches currently in -mm which might be from jaswinder@kernel.org are
 
 linux-next.patch
+kernel-core-add-smp_call_function_any.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+xtensa-includecheck-fix-vectorss.patch
 
