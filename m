@@ -1,78 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cciss-fix-multiple-calls-to-pci_release_regions.patch removed from -mm tree
-Date: Thu, 15 Oct 2009 11:43:40 -0700
-Message-ID: <200910151843.n9FIhenC023689@imap1.linux-foundation.org>
+Subject: [merged] sn-unsigned-cannot-be-less-than-0-in-sn_hwperf_ioctl.patch removed from -mm tree
+Date: Thu, 15 Oct 2009 11:43:25 -0700
+Message-ID: <200910151843.n9FIhPmF023099@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35432 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55192 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758262AbZJOSoe (ORCPT
+	by vger.kernel.org with ESMTP id S935248AbZJOSoJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Oct 2009 14:44:34 -0400
+	Thu, 15 Oct 2009 14:44:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: scameron@beardog.cce.hp.com, jens.axboe@oracle.com, mike.miller@hp.com, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, jes@sgi.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cciss: fix multiple calls to pci_release_regions
+     sn: unsigned cannot be less than 0 in sn_hwperf_ioctl()
 has been removed from the -mm tree.  Its filename was
-     cciss-fix-multiple-calls-to-pci_release_regions.patch
+     sn-unsigned-cannot-be-less-than-0-in-sn_hwperf_ioctl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cciss: fix multiple calls to pci_release_regions
-From: "Stephen M. Cameron" <scameron@beardog.cce.hp.com>
+Subject: sn: unsigned cannot be less than 0 in sn_hwperf_ioctl()
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Fix multiple calls to pci_release_regions.  If cciss_pci_init fails, it
-already does any necessary call to pci_release_regions, so this does not
-need to be done again in cciss_init_one in that case.
+struct sn_hwperf_ioctl_args member arg (u64) cannot be less than 0.
 
-Signed-off-by: Stephen M. Cameron <scameron@beardog.cce.hp.com>
-Cc: Mike Miller <mike.miller@hp.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Jes Sorensen <jes@sgi.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/block/cciss.c~cciss-fix-multiple-calls-to-pci_release_regions drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-fix-multiple-calls-to-pci_release_regions
-+++ a/drivers/block/cciss.c
-@@ -4254,7 +4254,7 @@ static int __devinit cciss_init_one(stru
- 	mutex_init(&hba[i]->busy_shutting_down);
+diff -puN arch/ia64/sn/kernel/sn2/sn_hwperf.c~sn-unsigned-cannot-be-less-than-0-in-sn_hwperf_ioctl arch/ia64/sn/kernel/sn2/sn_hwperf.c
+--- a/arch/ia64/sn/kernel/sn2/sn_hwperf.c~sn-unsigned-cannot-be-less-than-0-in-sn_hwperf_ioctl
++++ a/arch/ia64/sn/kernel/sn2/sn_hwperf.c
+@@ -786,17 +786,18 @@ sn_hwperf_ioctl(struct inode *in, struct
+ 		break;
  
- 	if (cciss_pci_init(hba[i], pdev) != 0)
--		goto clean0;
-+		goto clean_no_release_regions;
- 
- 	sprintf(hba[i]->devname, "cciss%d", i);
- 	hba[i]->ctlr = i;
-@@ -4391,13 +4391,14 @@ clean2:
- clean1:
- 	cciss_destroy_hba_sysfs_entry(hba[i]);
- clean0:
-+	pci_release_regions(pdev);
-+clean_no_release_regions:
- 	hba[i]->busy_initializing = 0;
- 
- 	/*
- 	 * Deliberately omit pci_disable_device(): it does something nasty to
- 	 * Smart Array controllers that pci_enable_device does not undo
- 	 */
--	pci_release_regions(pdev);
- 	pci_set_drvdata(pdev, NULL);
- 	free_hba(i);
- 	return -1;
+ 	case SN_HWPERF_GET_OBJ_NODE:
+-		if (a.sz != sizeof(u64) || a.arg < 0) {
++		i = a.arg;
++		if (a.sz != sizeof(u64) || i < 0) {
+ 			r = -EINVAL;
+ 			goto error;
+ 		}
+ 		if ((r = sn_hwperf_enum_objects(&nobj, &objs)) == 0) {
+-			if (a.arg >= nobj) {
++			if (i >= nobj) {
+ 				r = -EINVAL;
+ 				vfree(objs);
+ 				goto error;
+ 			}
+-			if (objs[(i = a.arg)].id != a.arg) {
++			if (objs[i].id != a.arg) {
+ 				for (i = 0; i < nobj; i++) {
+ 					if (objs[i].id == a.arg)
+ 						break;
 _
 
-Patches currently in -mm which might be from scameron@beardog.cce.hp.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
-origin.patch
-scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
-scsi-add-hpsa-driver-for-hp-smart-array-controllers-fix-hpsa_allow_any-test-for-vendor-id.patch
-scsi-add-hpsa-driver-for-hp-smart-array-controllers-fix.patch
-hpsa-fix-use-of-unallocated-memory-for-msa2xxx-enclosure-device-data.patch
+linux-next.patch
+fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch
+omap-fix-unlikelyx-y.patch
+powernow-k8-fix-test-in-get_transition_latency.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+hfc_usb-fix-read-buffer-overflow.patch
+hisax-fix-test-in-waitforxfw.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
+zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
+st-fix-test-of-value-range-in-st_set_options.patch
+ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
+drivers-staging-octeon-ethernet-rgmiic-dont-ignore-request_irq-return-code.patch
+page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+cryptocop-fix-assertion-in-create_output_descriptors.patch
+gpio-fix-test-on-unsigned-in-lnw_irq_type.patch
+fbdev-tv_paln-bit-set-twice-in-sisfb_detect_vb_connect.patch
+irq-fix-test-in-__exit-parport_mfc3_exit.patch
 
