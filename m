@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + nommu-ignore-the-address-parameter-in-the-file_mmap-security-check.patch added to -mm tree
-Date: Thu, 15 Oct 2009 16:36:13 -0700
-Message-ID: <200910152336.n9FNaDFR021459@imap1.linux-foundation.org>
+Subject: + rwsem-fix-rwsem_is_locked-bugs.patch added to -mm tree
+Date: Thu, 15 Oct 2009 16:44:48 -0700
+Message-ID: <200910152344.n9FNimxR007026@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45157 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33625 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754438AbZJOXhI (ORCPT
+	by vger.kernel.org with ESMTP id S1763328AbZJOXpl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Oct 2009 19:37:08 -0400
+	Thu, 15 Oct 2009 19:45:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com, graf.yang@analog.com, jmorris@namei.org
+Cc: amwang@redhat.com, behlendorf1@llnl.gov, bwoodard@llnl.gov, dhowells@redhat.com
 
 
 The patch titled
-     nommu: ignore the address parameter in the file_mmap() security check
+     rwsem: fix rwsem_is_locked() bugs
 has been added to the -mm tree.  Its filename is
-     nommu-ignore-the-address-parameter-in-the-file_mmap-security-check.patch
+     rwsem-fix-rwsem_is_locked-bugs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,90 +34,87 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nommu: ignore the address parameter in the file_mmap() security check
-From: David Howells <dhowells@redhat.com>
+Subject: rwsem: fix rwsem_is_locked() bugs
+From: Amerigo Wang <amwang@redhat.com>
 
-Ignore the address parameter in the various file_mmap() security checks
-when CONFIG_MMU=n as the address hint is ignored under those
-circumstances, and in any case the minimum mapping address check is
-pointless in NOMMU mode.
+rwsem_is_locked() tests ->activity without locks, so we should always keep
+->activity consistent.  However, the code in __rwsem_do_wake() breaks this
+rule, it updates ->activity after _all_ readers waken up, this may give
+some reader a wrong ->activity value, thus cause rwsem_is_locked() behaves
+wrong.
 
-Signed-off-by: David Howells <dhowells@redhat.com>
-Reported-by: Graff Yang <graf.yang@analog.com>
-Cc: James Morris <jmorris@namei.org>
+Quote from Andrew:
+
+"
+- we have one or more processes sleeping in down_read(), waiting for access.
+
+- we wake one or more processes up without altering ->activity
+
+- they start to run and they do rwsem_is_locked().  This incorrectly
+  returns "false", because the waker process is still crunching away in
+  __rwsem_do_wake().
+
+- the waker now alters ->activity, but it was too late.
+"
+
+So we need get a spinlock to protect this.  And rwsem_is_locked() should
+not block, thus we use spin_trylock_irqsave().
+
+Reported-by: Brian Behlendorf <behlendorf1@llnl.gov>
+Cc: Ben Woodard <bwoodard@llnl.gov>
+Cc: David Howells <dhowells@redhat.com>
+Signed-off-by: WANG Cong <amwang@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN include/linux/security.h~nommu-ignore-the-address-parameter-in-the-file_mmap-security-check include/linux/security.h
---- a/include/linux/security.h~nommu-ignore-the-address-parameter-in-the-file_mmap-security-check
-+++ a/include/linux/security.h
-@@ -609,6 +609,7 @@ static inline void security_free_mnt_opt
-  *	@reqprot contains the protection requested by the application.
-  *	@prot contains the protection that will be applied by the kernel.
-  *	@flags contains the operational flags.
-+ *	@addr contains the mapping address, and should be ignored in NOMMU mode.
-  *	Return 0 if permission is granted.
-  * @file_mprotect:
-  *	Check permissions before changing memory access permissions.
-diff -puN mm/nommu.c~nommu-ignore-the-address-parameter-in-the-file_mmap-security-check mm/nommu.c
---- a/mm/nommu.c~nommu-ignore-the-address-parameter-in-the-file_mmap-security-check
-+++ a/mm/nommu.c
-@@ -974,7 +974,7 @@ static int validate_mmap_request(struct 
- 	}
+diff -puN include/linux/rwsem-spinlock.h~rwsem-fix-rwsem_is_locked-bugs include/linux/rwsem-spinlock.h
+--- a/include/linux/rwsem-spinlock.h~rwsem-fix-rwsem_is_locked-bugs
++++ a/include/linux/rwsem-spinlock.h
+@@ -68,11 +68,9 @@ extern int __down_write_trylock(struct r
+ extern void __up_read(struct rw_semaphore *sem);
+ extern void __up_write(struct rw_semaphore *sem);
+ extern void __downgrade_write(struct rw_semaphore *sem);
++extern int __rwsem_is_locked(struct rw_semaphore *sem);
  
- 	/* allow the security API to have its say */
--	ret = security_file_mmap(file, reqprot, prot, flags, addr, 0);
-+	ret = security_file_mmap(file, reqprot, prot, flags, 0, 0);
- 	if (ret < 0)
- 		return ret;
+-static inline int rwsem_is_locked(struct rw_semaphore *sem)
+-{
+-	return (sem->activity != 0);
+-}
++#define rwsem_is_locked(sem) __rwsem_is_locked(sem)
  
-diff -puN security/commoncap.c~nommu-ignore-the-address-parameter-in-the-file_mmap-security-check security/commoncap.c
---- a/security/commoncap.c~nommu-ignore-the-address-parameter-in-the-file_mmap-security-check
-+++ a/security/commoncap.c
-@@ -1005,6 +1005,7 @@ int cap_file_mmap(struct file *file, uns
- {
- 	int ret = 0;
+ #endif /* __KERNEL__ */
+ #endif /* _LINUX_RWSEM_SPINLOCK_H */
+diff -puN lib/rwsem-spinlock.c~rwsem-fix-rwsem_is_locked-bugs lib/rwsem-spinlock.c
+--- a/lib/rwsem-spinlock.c~rwsem-fix-rwsem_is_locked-bugs
++++ a/lib/rwsem-spinlock.c
+@@ -17,6 +17,19 @@ struct rwsem_waiter {
+ #define RWSEM_WAITING_FOR_WRITE	0x00000002
+ };
  
-+#ifdef CONFIG_MMU
- 	if (addr < dac_mmap_min_addr) {
- 		ret = cap_capable(current, current_cred(), CAP_SYS_RAWIO,
- 				  SECURITY_CAP_AUDIT);
-@@ -1012,5 +1013,6 @@ int cap_file_mmap(struct file *file, uns
- 		if (ret == 0)
- 			current->flags |= PF_SUPERPRIV;
- 	}
-+#endif
- 	return ret;
- }
-diff -puN security/selinux/hooks.c~nommu-ignore-the-address-parameter-in-the-file_mmap-security-check security/selinux/hooks.c
---- a/security/selinux/hooks.c~nommu-ignore-the-address-parameter-in-the-file_mmap-security-check
-+++ a/security/selinux/hooks.c
-@@ -3045,6 +3045,7 @@ static int selinux_file_mmap(struct file
- 			     unsigned long addr, unsigned long addr_only)
- {
- 	int rc = 0;
-+#ifdef CONFIG_MMU
- 	u32 sid = current_sid();
- 
- 	/*
-@@ -3059,6 +3060,7 @@ static int selinux_file_mmap(struct file
- 		if (rc)
- 			return rc;
- 	}
-+#endif
- 
- 	/* do DAC check on address space usage */
- 	rc = cap_file_mmap(file, reqprot, prot, flags, addr, addr_only);
++int __rwsem_is_locked(struct rw_semaphore *sem)
++{
++	int ret = 1;
++	unsigned long flags;
++
++	if (spin_trylock_irqsave(&sem->wait_lock, flags)) {
++		ret = (sem->activity != 0);
++		spin_unlock_irqrestore(&sem->wait_lock, flags);
++	}
++	return ret;
++}
++EXPORT_SYMBOL(__rwsem_is_locked);
++
+ /*
+  * initialise the semaphore
+  */
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from amwang@redhat.com are
 
 linux-next.patch
-keys-get_instantiation_keyring-should-inc-the-keyring-refcount-in-all-cases.patch
-nommu-ignore-the-address-parameter-in-the-file_mmap-security-check.patch
-frv-duplicate-output_buffer-of-e03.patch
+xtensa-use-generic-sys_pipe.patch
 rwsem-spinlock-remove-useless-function-exports.patch
-mutex-subsystem-synchro-test-module.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
+rwsem-fix-rwsem_is_locked-bugs.patch
+kallsyms-remove-deprecated-print_fn_descriptor_symbol.patch
 
