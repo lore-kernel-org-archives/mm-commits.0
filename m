@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-coalesce-charging-via-percpu-storage-fix-2.patch added to -mm tree
-Date: Thu, 15 Oct 2009 18:03:42 -0700
-Message-ID: <200910160103.n9G13gCp010610@imap1.linux-foundation.org>
+Subject: + sysctl-fix-false-positives-when-proc_sysctl=n.patch added to -mm tree
+Date: Thu, 15 Oct 2009 18:02:41 -0700
+Message-ID: <200910160102.n9G12fZu008481@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49589 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36727 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758863AbZJPBEf (ORCPT
+	by vger.kernel.org with ESMTP id S1755244AbZJPBDs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Oct 2009 21:04:35 -0400
+	Thu, 15 Oct 2009 21:03:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nishimura@mxp.nes.nec.co.jp, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com
+Cc: adobriyan@gmail.com, ebiederm@xmission.com, htmldeveloper@gmail.com, rjw@sisk.pl
 
 
 The patch titled
-     memcg: don't do INIT_WORK() repeatedly against the same work_struct
+     sysctl: fix false positives when PROC_SYSCTL=n
 has been added to the -mm tree.  Its filename is
-     memcg-coalesce-charging-via-percpu-storage-fix-2.patch
+     sysctl-fix-false-positives-when-proc_sysctl=n.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,71 +34,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: don't do INIT_WORK() repeatedly against the same work_struct
-From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Subject: sysctl: fix false positives when PROC_SYSCTL=n
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-Don't do INIT_WORK() repeatedly against the same work_struct.  It can
-actually lead to a BUG.
+Having ->procname but not ->proc_handler is valid when PROC_SYSCTL=n,
+people use such combination to reduce ifdefs with non-standard handlers.
 
-Just do it once in initialization.
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=14408
 
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Balbir Singh <balbir@in.ibm.com>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Reported-by: Peter Teoh <htmldeveloper@gmail.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ kernel/sysctl_check.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~memcg-coalesce-charging-via-percpu-storage-fix-2 mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-coalesce-charging-via-percpu-storage-fix-2
-+++ a/mm/memcontrol.c
-@@ -1349,8 +1349,8 @@ static void drain_all_stock_async(void)
- 	/* This function is for scheduling "drain" in asynchronous way.
- 	 * The result of "drain" is not directly handled by callers. Then,
- 	 * if someone is calling drain, we don't have to call drain more.
--	 * Anyway, work_pending() will catch if there is a race. We just do
--	 * loose check here.
-+	 * Anyway, WORK_STRUCT_PENDING check in queue_work_on() will catch if
-+	 * there is a race. We just do loose check here.
- 	 */
- 	if (atomic_read(&memcg_drain_count))
- 		return;
-@@ -1359,9 +1359,6 @@ static void drain_all_stock_async(void)
- 	get_online_cpus();
- 	for_each_online_cpu(cpu) {
- 		struct memcg_stock_pcp *stock = &per_cpu(memcg_stock, cpu);
--		if (work_pending(&stock->work))
--			continue;
--		INIT_WORK(&stock->work, drain_local_stock);
- 		schedule_work_on(cpu, &stock->work);
- 	}
-  	put_online_cpus();
-@@ -3327,11 +3324,17 @@ mem_cgroup_create(struct cgroup_subsys *
- 
- 	/* root ? */
- 	if (cont->parent == NULL) {
-+		int cpu;
- 		enable_swap_cgroup();
- 		parent = NULL;
- 		root_mem_cgroup = mem;
- 		if (mem_cgroup_soft_limit_tree_init())
- 			goto free_out;
-+		for_each_possible_cpu(cpu) {
-+			struct memcg_stock_pcp *stock =
-+						&per_cpu(memcg_stock, cpu);
-+			INIT_WORK(&stock->work, drain_local_stock);
-+		}
- 		hotcpu_notifier(memcg_stock_cpu_callback, 0);
- 
- 	} else {
+diff -puN kernel/sysctl_check.c~sysctl-fix-false-positives-when-proc_sysctl=n kernel/sysctl_check.c
+--- a/kernel/sysctl_check.c~sysctl-fix-false-positives-when-proc_sysctl=n
++++ a/kernel/sysctl_check.c
+@@ -1521,7 +1521,7 @@ int sysctl_check_table(struct nsproxy *n
+ 			if (!table->ctl_name && table->strategy)
+ 				set_fail(&fail, table, "Strategy without ctl_name");
+ #endif
+-#ifdef CONFIG_PROC_FS
++#ifdef CONFIG_PROC_SYSCTL
+ 			if (table->procname && !table->proc_handler)
+ 				set_fail(&fail, table, "No proc_handler");
+ #endif
 _
 
-Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-memcg-coalesce-uncharge-during-unmap-truncate.patch
-memcg-coalesce-charging-via-percpu-storage.patch
-memcg-coalesce-charging-via-percpu-storage-fix.patch
-memcg-coalesce-charging-via-percpu-storage-fix-2.patch
+origin.patch
+linux-next.patch
+genirq-switch-proc-irq-spurious-to-seq_file.patch
+revert-mm-oom-analysis-add-buffer-cache-information-to-show_free_areas.patch
+loop-fix-null-dereference-if-mount-fails.patch
+sysctl-fix-false-positives-when-proc_sysctl=n.patch
+reiserfs-remove-proc-fs-reiserfs-version.patch
+reiserfs-dont-compile-procfso-at-all-if-no-support.patch
 
