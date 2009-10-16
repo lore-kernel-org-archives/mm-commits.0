@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + edac-i5100-fix-initialization-code.patch added to -mm tree
-Date: Thu, 15 Oct 2009 20:39:42 -0700
-Message-ID: <200910160339.n9G3dgtH015132@imap1.linux-foundation.org>
+Subject: + swap_info-miscellaneous-minor-cleanups.patch added to -mm tree
+Date: Thu, 15 Oct 2009 20:40:18 -0700
+Message-ID: <200910160340.n9G3eJi8016547@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43372 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56133 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752890AbZJPDk3 (ORCPT
+	by vger.kernel.org with ESMTP id S1752724AbZJPDlT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Oct 2009 23:40:29 -0400
+	Thu, 15 Oct 2009 23:41:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kmannth@us.ibm.com, aris@ruivo.org, dougthompson@xmission.com
+Cc: hugh.dickins@tiscali.co.uk, kamezawa.hiroyu@jp.fujitsu.com, riel@redhat.com
 
 
 The patch titled
-     edac: i5100 fix initialization code
+     swap_info: miscellaneous minor cleanups
 has been added to the -mm tree.  Its filename is
-     edac-i5100-fix-initialization-code.patch
+     swap_info-miscellaneous-minor-cleanups.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,63 +34,171 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: edac: i5100 fix initialization code
-From: Keith Mannthey <kmannth@us.ibm.com>
+Subject: swap_info: miscellaneous minor cleanups
+From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
-Allow csrows to properly initialize when the topology only has active
-channels on 2 and 3.  This new check allows proper detection and
-initialization in this topology.  Only checking the first mrt that
-represented channels 0 and 1 is not sufficient.
+Move CONFIG_HIBERNATION's swapdev_block() into the main CONFIG_HIBERNATION
+block, remove extraneous whitespace and return, fix typo in a comment.
 
-I also fixed up the related debug information path.  I can submit as a 2nd
-patch if needed.
-
-Signed-off-by: Keith Mannthey <kmannth@us.ibm.com>
-Acked-by: Aristeu Rozanski <aris@ruivo.org>
-Signed-off-by: Doug Thompson <dougthompson@xmission.com>
+Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/i5000_edac.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ mm/swapfile.c |   51 ++++++++++++++++++++++--------------------------
+ 1 file changed, 24 insertions(+), 27 deletions(-)
 
-diff -puN drivers/edac/i5000_edac.c~edac-i5100-fix-initialization-code drivers/edac/i5000_edac.c
---- a/drivers/edac/i5000_edac.c~edac-i5100-fix-initialization-code
-+++ a/drivers/edac/i5000_edac.c
-@@ -1173,7 +1173,7 @@ static void i5000_get_mc_regs(struct mem
- 			pci_read_config_word(pvt->branch_1, where,
- 					&pvt->b1_mtr[slot_row]);
- 			debugf2("MTR%d where=0x%x B1 value=0x%x\n", slot_row,
--				where, pvt->b0_mtr[slot_row]);
-+				where, pvt->b1_mtr[slot_row]);
- 		} else {
- 			pvt->b1_mtr[slot_row] = 0;
+diff -puN mm/swapfile.c~swap_info-miscellaneous-minor-cleanups mm/swapfile.c
+--- a/mm/swapfile.c~swap_info-miscellaneous-minor-cleanups
++++ a/mm/swapfile.c
+@@ -519,9 +519,9 @@ swp_entry_t get_swap_page_of_type(int ty
+ 	return (swp_entry_t) {0};
+ }
+ 
+-static struct swap_info_struct * swap_info_get(swp_entry_t entry)
++static struct swap_info_struct *swap_info_get(swp_entry_t entry)
+ {
+-	struct swap_info_struct * p;
++	struct swap_info_struct *p;
+ 	unsigned long offset, type;
+ 
+ 	if (!entry.val)
+@@ -599,7 +599,7 @@ static int swap_entry_free(struct swap_i
+  */
+ void swap_free(swp_entry_t entry)
+ {
+-	struct swap_info_struct * p;
++	struct swap_info_struct *p;
+ 
+ 	p = swap_info_get(entry);
+ 	if (p) {
+@@ -629,7 +629,6 @@ void swapcache_free(swp_entry_t entry, s
  		}
-@@ -1232,7 +1232,7 @@ static int i5000_init_csrows(struct mem_
- 	struct csrow_info *p_csrow;
- 	int empty, channel_count;
- 	int max_csrows;
--	int mtr;
-+	int mtr, mtr1;
- 	int csrow_megs;
- 	int channel;
- 	int csrow;
-@@ -1251,9 +1251,10 @@ static int i5000_init_csrows(struct mem_
+ 		spin_unlock(&swap_lock);
+ 	}
+-	return;
+ }
  
- 		/* use branch 0 for the basis */
- 		mtr = pvt->b0_mtr[csrow >> 1];
-+		mtr1 = pvt->b1_mtr[csrow >> 1];
+ /*
+@@ -783,6 +782,21 @@ int swap_type_of(dev_t device, sector_t 
+ }
  
- 		/* if no DIMMS on this row, continue */
--		if (!MTR_DIMMS_PRESENT(mtr))
-+		if (!MTR_DIMMS_PRESENT(mtr) && !MTR_DIMMS_PRESENT(mtr1))
- 			continue;
+ /*
++ * Get the (PAGE_SIZE) block corresponding to given offset on the swapdev
++ * corresponding to given index in swap_info (swap type).
++ */
++sector_t swapdev_block(int type, pgoff_t offset)
++{
++	struct block_device *bdev;
++
++	if ((unsigned int)type >= nr_swapfiles)
++		return 0;
++	if (!(swap_info[type]->flags & SWP_WRITEOK))
++		return 0;
++	return map_swap_page(swp_entry(type, offset), &bdev);
++}
++
++/*
+  * Return either the total number of swap pages of given type, or the number
+  * of free pages of that type (depending on @free)
+  *
+@@ -805,7 +819,7 @@ unsigned int count_swap_pages(int type, 
+ 	spin_unlock(&swap_lock);
+ 	return n;
+ }
+-#endif
++#endif /* CONFIG_HIBERNATION */
  
- 		/* FAKE OUT VALUES, FIXME */
+ /*
+  * No need to decide whether this PTE shares the swap entry with others,
+@@ -1317,23 +1331,6 @@ sector_t map_swap_page(swp_entry_t entry
+ 	}
+ }
+ 
+-#ifdef CONFIG_HIBERNATION
+-/*
+- * Get the (PAGE_SIZE) block corresponding to given offset on the swapdev
+- * corresponding to given index in swap_info (swap type).
+- */
+-sector_t swapdev_block(int type, pgoff_t offset)
+-{
+-	struct block_device *bdev;
+-
+-	if ((unsigned int)type >= nr_swapfiles)
+-		return 0;
+-	if (!(swap_info[type]->flags & SWP_WRITEOK))
+-		return 0;
+-	return map_swap_page(swp_entry(type, offset), &bdev);
+-}
+-#endif /* CONFIG_HIBERNATION */
+-
+ /*
+  * Free all of a swapdev's extent information
+  */
+@@ -1525,12 +1522,12 @@ bad_bmap:
+ 
+ SYSCALL_DEFINE1(swapoff, const char __user *, specialfile)
+ {
+-	struct swap_info_struct * p = NULL;
++	struct swap_info_struct *p = NULL;
+ 	unsigned short *swap_map;
+ 	struct file *swap_file, *victim;
+ 	struct address_space *mapping;
+ 	struct inode *inode;
+-	char * pathname;
++	char *pathname;
+ 	int i, type, prev;
+ 	int err;
+ 
+@@ -1782,7 +1779,7 @@ late_initcall(max_swapfiles_check);
+  */
+ SYSCALL_DEFINE2(swapon, const char __user *, specialfile, int, swap_flags)
+ {
+-	struct swap_info_struct * p;
++	struct swap_info_struct *p;
+ 	char *name = NULL;
+ 	struct block_device *bdev = NULL;
+ 	struct file *swap_file = NULL;
+@@ -2117,7 +2114,7 @@ void si_swapinfo(struct sysinfo *val)
+  */
+ static int __swap_duplicate(swp_entry_t entry, bool cache)
+ {
+-	struct swap_info_struct * p;
++	struct swap_info_struct *p;
+ 	unsigned long offset, type;
+ 	int result = -EINVAL;
+ 	int count;
+@@ -2186,7 +2183,7 @@ void swap_duplicate(swp_entry_t entry)
+ /*
+  * @entry: swap entry for which we allocate swap cache.
+  *
+- * Called when allocating swap cache for exising swap entry,
++ * Called when allocating swap cache for existing swap entry,
+  * This can return error codes. Returns 0 at success.
+  * -EBUSY means there is a swap cache.
+  * Note: return code is different from swap_duplicate().
 _
 
-Patches currently in -mm which might be from kmannth@us.ibm.com are
+Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
 
-linux-next.patch
-edac-i5100-fix-initialization-code.patch
+origin.patch
+hwpoison-fix-oops-on-ksm-pages.patch
+hwpoison-fix-proc-meminfo-alignment.patch
+vmscan-limit-vm_exec-protection-to-file-pages.patch
+mm-order-evictable-rescue-in-lru-putback.patch
+mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap.patch
+mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
+vmalloc-adjust-gfp-mask-passed-on-nested-vmalloc-invocation.patch
+swap_info-private-to-swapfilec.patch
+swap_info-change-to-array-of-pointers.patch
+swap_info-include-first_swap_extent.patch
+swap_info-miscellaneous-minor-cleanups.patch
+swap_info-swap_has_cache-cleanups.patch
+swap_info-swap_map-of-chars-not-shorts.patch
+swap_info-swap-count-continuations.patch
+swap_info-note-swap_map_shmem.patch
+swap_info-reorder-its-fields.patch
+elf-kill-use_elf_core_dump.patch
+prio_tree-debugging-patch.patch
 
