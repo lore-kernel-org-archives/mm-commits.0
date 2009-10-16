@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + bitmap-introduce-bitmap_set-bitmap_clear-bitmap_find_next_zero_area-fix.patch added to -mm tree
-Date: Fri, 16 Oct 2009 15:25:25 -0700
-Message-ID: <200910162225.n9GMPQcx011513@imap1.linux-foundation.org>
+Subject: + hwmon-w83627ehf-updates-checkpatch-fixes.patch added to -mm tree
+Date: Fri, 16 Oct 2009 15:29:13 -0700
+Message-ID: <200910162229.n9GMTD6r019603@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43843 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44016 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750809AbZJPW1M (ORCPT
+	by vger.kernel.org with ESMTP id S1750809AbZJPW3L (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Oct 2009 18:27:12 -0400
+	Fri, 16 Oct 2009 18:29:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, LW@KARO-electronics.de, benh@kernel.crashing.org, davem@davemloft.net, fenghua.yu@intel.com, fujita.tomonori@lab.ntt.co.jp, gregkh@suse.de, hpa@zytor.com, joerg.roedel@amd.com, khubert@gmail.com, mingo@redhat.com, paulus@samba.org, rolandd@cisco.com, tglx@linutronix.de, tony.luck@intel.com, yevgenyp@mellanox.co.il
+Cc: akpm@linux-foundation.org, daniel.blueman@gmail.com
 
 
 The patch titled
-     bitmap-introduce-bitmap_set-bitmap_clear-bitmap_find_next_zero_area fix
+     hwmon-w83627ehf-updates-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     bitmap-introduce-bitmap_set-bitmap_clear-bitmap_find_next_zero_area-fix.patch
+     hwmon-w83627ehf-updates-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,152 +34,100 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bitmap-introduce-bitmap_set-bitmap_clear-bitmap_find_next_zero_area fix
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: hwmon-w83627ehf-updates-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-- Rewrite bitmap_set and bitmap_clear
+ERROR: code indent should use tabs where possible
+#44: FILE: drivers/hwmon/w83627ehf.c:8:
++                        Daniel J Blueman <daniel.blueman@gmail.com>$
 
-  Instead of setting or clearing for each bit.
+WARNING: line over 80 characters
+#88: FILE: drivers/hwmon/w83627ehf.c:306:
++			     4->variable thermal cruise (also called SmartFan III) */
 
-- Fix off-by-one errors in bitmap_find_next_zero_area
+WARNING: line over 80 characters
+#111: FILE: drivers/hwmon/w83627ehf.c:544:
++						W83627EHF_REG_FAN_START_OUTPUT[i]);
 
-  This bug was derived from find_next_zero_area in iommu-helper.
+WARNING: line over 80 characters
+#113: FILE: drivers/hwmon/w83627ehf.c:546:
++						W83627EHF_REG_FAN_STOP_OUTPUT[i]);
 
-- Add kerneldoc for bitmap_find_next_zero_area
+total: 1 errors, 3 warnings, 153 lines checked
 
-This patch is supposed to be folded into
-bitmap-introduce-bitmap_set-bitmap_clear-bitmap_find_next_zero_area.patch
+./patches/hwmon-w83627ehf-updates.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
 
-* -v2
-- Remove an extra test at the "index" value by find_next_bit
+Please run checkpatch prior to sending patches
 
-Index was just returned by find_next_zero_bit, so we know it's zero.
-
-Noticed-by: Kyle Hubert <khubert@gmail.com>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Lothar Wassmann <LW@KARO-electronics.de>
-Cc: Roland Dreier <rolandd@cisco.com>
-Cc: Yevgeny Petrilin <yevgenyp@mellanox.co.il>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: Joerg Roedel <joerg.roedel@amd.com>
+Cc: Daniel J Blueman <daniel.blueman@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN lib/bitmap.c~bitmap-introduce-bitmap_set-bitmap_clear-bitmap_find_next_zero_area-fix lib/bitmap.c
---- a/lib/bitmap.c~bitmap-introduce-bitmap_set-bitmap_clear-bitmap_find_next_zero_area-fix
-+++ a/lib/bitmap.c
-@@ -271,28 +271,62 @@ int __bitmap_weight(const unsigned long 
- }
- EXPORT_SYMBOL(__bitmap_weight);
+diff -puN Documentation/hwmon/w83627ehf~hwmon-w83627ehf-updates-checkpatch-fixes Documentation/hwmon/w83627ehf
+diff -puN drivers/hwmon/w83627ehf.c~hwmon-w83627ehf-updates-checkpatch-fixes drivers/hwmon/w83627ehf.c
+--- a/drivers/hwmon/w83627ehf.c~hwmon-w83627ehf-updates-checkpatch-fixes
++++ a/drivers/hwmon/w83627ehf.c
+@@ -5,7 +5,7 @@
+     Copyright (C) 2006  Yuan Mu (Winbond),
+                         Rudolf Marek <r.marek@assembler.cz>
+                         David Hubbard <david.c.hubbard@gmail.com>
+-                        Daniel J Blueman <daniel.blueman@gmail.com>
++			Daniel J Blueman <daniel.blueman@gmail.com>
  
--void bitmap_set(unsigned long *map, int i, int len)
--{
--	int end = i + len;
-+#define BITMAP_FIRST_WORD_MASK(start) (~0UL << ((start) % BITS_PER_LONG))
- 
--	while (i < end) {
--		__set_bit(i, map);
--		i++;
-+void bitmap_set(unsigned long *map, int start, int nr)
-+{
-+	unsigned long *p = map + BIT_WORD(start);
-+	const int size = start + nr;
-+	int bits_to_set = BITS_PER_LONG - (start % BITS_PER_LONG);
-+	unsigned long mask_to_set = BITMAP_FIRST_WORD_MASK(start);
-+
-+	while (nr - bits_to_set >= 0) {
-+		*p |= mask_to_set;
-+		nr -= bits_to_set;
-+		bits_to_set = BITS_PER_LONG;
-+		mask_to_set = ~0UL;
-+		p++;
-+	}
-+	if (nr) {
-+		mask_to_set &= BITMAP_LAST_WORD_MASK(size);
-+		*p |= mask_to_set;
- 	}
- }
- EXPORT_SYMBOL(bitmap_set);
- 
- void bitmap_clear(unsigned long *map, int start, int nr)
- {
--	int end = start + nr;
--
--	while (start < end) {
--		__clear_bit(start, map);
--		start++;
-+	unsigned long *p = map + BIT_WORD(start);
-+	const int size = start + nr;
-+	int bits_to_clear = BITS_PER_LONG - (start % BITS_PER_LONG);
-+	unsigned long mask_to_clear = BITMAP_FIRST_WORD_MASK(start);
-+
-+	while (nr - bits_to_clear >= 0) {
-+		*p &= ~mask_to_clear;
-+		nr -= bits_to_clear;
-+		bits_to_clear = BITS_PER_LONG;
-+		mask_to_clear = ~0UL;
-+		p++;
-+	}
-+	if (nr) {
-+		mask_to_clear &= BITMAP_LAST_WORD_MASK(size);
-+		*p &= ~mask_to_clear;
- 	}
- }
- EXPORT_SYMBOL(bitmap_clear);
- 
-+/*
-+ * bitmap_find_next_zero_area - find a contiguous aligned zero area
-+ * @map: The address to base the search on
-+ * @size: The bitmap size in bits
-+ * @start: The bitnumber to start searching at
-+ * @nr: The number of zeroed bits we're looking for
-+ * @align_mask: Alignment mask for zero area
-+ *
-+ * The @align_mask should be one less than a power of 2; the effect is that
-+ * the bit offset of all zero areas this function finds is multiples of that
-+ * power of 2. A @align_mask of 0 means no alignment is required.
-+ */
- unsigned long bitmap_find_next_zero_area(unsigned long *map,
- 					 unsigned long size,
- 					 unsigned long start,
-@@ -304,12 +338,12 @@ again:
- 	index = find_next_zero_bit(map, size, start);
- 
- 	/* Align allocation */
--	index = (index + align_mask) & ~align_mask;
-+	index = __ALIGN_MASK(index, align_mask);
- 
- 	end = index + nr;
--	if (end >= size)
-+	if (end > size)
- 		return end;
--	i = find_next_bit(map, end, index);
-+	i = find_next_bit(map, end, index + 1);
- 	if (i < end) {
- 		start = i + 1;
- 		goto again;
+     Shamelessly ripped from the w83627hf driver
+     Copyright (C) 2003  Mark Studebaker
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-lib-iommu-helperc-fix-off-by-one-error-in-find_next_zero_area.patch
-iommu-helper-simplify-find_next_zero_area.patch
-bitmap-introduce-bitmap_set-bitmap_clear-bitmap_find_next_zero_area.patch
-bitmap-introduce-bitmap_set-bitmap_clear-bitmap_find_next_zero_area-fix.patch
-iommu-helper-use-bitmap-library.patch
-isp1362-hcd-use-bitmap_find_next_zero_area.patch
-mlx4-use-bitmap_find_next_zero_area.patch
-sparc-use-bitmap_find_next_zero_area.patch
-ia64-use-bitmap_find_next_zero_area.patch
-genalloc-use-bitmap_find_next_zero_area.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices-fix.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+3x59x-fix-pci-resource-management.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+include-trace-events-lockdeph-fix-do_div-warning.patch
+st-fix-test-of-value-range-in-st_set_options.patch
+scsi-add-hpsa-driver-for-hp-smart-array-controllers-fix.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+fs-improve-remountro-vs-buffercache-coherency.patch
+percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+hfsplus-refuse-to-mount-volumes-larger-than-2tb-fix.patch
+revert-mm-oom-analysis-add-buffer-cache-information-to-show_free_areas.patch
+8250_pci-add-ibm-saturn-serial-card-fix.patch
+checkpatch-fix-false-export_symbol-warning-checkpatch-fixes.patch
+drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
+vfs-implement-posix-o_sync-and-o_dsync-semantics-checkpatch-fixes.patch
+readahead-add-blk_run_backing_dev.patch
+mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
+drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
+rwsem-fix-rwsem_is_locked-bugs-fix.patch
+errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
+hwmon-w83627ehf-updates-checkpatch-fixes.patch
+spi-controller-driver-for-designware-spi-core-fix.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs.patch
+memcg-coalesce-charging-via-percpu-storage-fix.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+reiser4-disable.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
