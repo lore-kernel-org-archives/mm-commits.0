@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-fix-false-errors-due-to-macro-concatenation.patch added to -mm tree
-Date: Fri, 16 Oct 2009 14:06:56 -0700
-Message-ID: <200910162106.n9GL6vlr004792@imap1.linux-foundation.org>
+Subject: + checkpatch-fix-__attribute__-matching.patch added to -mm tree
+Date: Fri, 16 Oct 2009 14:07:02 -0700
+Message-ID: <200910162107.n9GL72v6004960@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45310 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34388 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751687AbZJPVG4 (ORCPT
+	by vger.kernel.org with ESMTP id S1752308AbZJPVHA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Oct 2009 17:06:56 -0400
+	Fri, 16 Oct 2009 17:07:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: apw@canonical.com, dwalker@fifo99.com
 
 
 The patch titled
-     checkpatch: fix false errors due to macro concatenation
+     checkpatch: fix __attribute__ matching
 has been added to the -mm tree.  Its filename is
-     checkpatch-fix-false-errors-due-to-macro-concatenation.patch
+     checkpatch-fix-__attribute__-matching.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,27 +34,29 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: fix false errors due to macro concatenation
+Subject: checkpatch: fix __attribute__ matching
 From: Andy Whitcroft <apw@canonical.com>
 
-The macro concatenation (##) sequence can cause false errors when checking
-macro's.  Checkpatch doesn't currently know about the operator.
+In the following code,
 
-For example this line,
+union thread_union init_thread_union
+	__attribute__((__section__(".data.init_task"))) =
+		{ INIT_THREAD_INFO(init_task) };
 
-+ 	entry = (struct ftrace_raw_##call *)raw_data;                   \
+There is a non-conforming declaration. It should really be like the
+following,
 
-is correct but it produces the following error,
+union thread_union init_thread_union
+	__attribute__((__section__(".data.init_task"))) = {
+		INIT_THREAD_INFO(init_task)
+};
 
-ERROR: need consistent spacing around '*' (ctx:WxB)
-+       entry = (struct ftrace_raw_##call *)raw_data;\
-                                          ^
+However, checkpatch doesn't catch this right now because it doesn't
+correctly evaluate the "__attribute__".
 
-The line above doesn't have any spacing problems, and if you remove the
-macro concatenation sequence checkpatch doesn't give any errors.
-
-Extend identifier handling to include ## concatenation within the
-definition of an identifier.
+It is not at all clear that we care what preceeds an assignment style
+attribute when we find the open brace.  Relax the test so we do not need
+to check the __attribute__.
 
 Reported-by: Daniel Walker <dwalker@fifo99.com>
 Signed-off-by: Andy Whitcroft <apw@canonical.com>
@@ -62,21 +64,20 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN scripts/checkpatch.pl~checkpatch-fix-false-errors-due-to-macro-concatenation scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-fix-false-errors-due-to-macro-concatenation
+diff -puN scripts/checkpatch.pl~checkpatch-fix-__attribute__-matching scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-fix-__attribute__-matching
 +++ a/scripts/checkpatch.pl
-@@ -130,7 +130,10 @@ if ($tree) {
+@@ -1669,8 +1669,8 @@ sub process {
+ 		}
  
- my $emitted_corrupt = 0;
+ # check for initialisation to aggregates open brace on the next line
+-		if ($prevline =~ /$Declare\s*$Ident\s*=\s*$/ &&
+-		    $line =~ /^.\s*{/) {
++		if ($line =~ /^.\s*{/ &&
++		    $prevline =~ /(?:^|[^=])=\s*$/) {
+ 			ERROR("that open brace { should be on the previous line\n" . $hereprev);
+ 		}
  
--our $Ident       = qr{[A-Za-z_][A-Za-z\d_]*};
-+our $Ident	= qr{
-+			[A-Za-z_][A-Za-z\d_]*
-+			(?:\s*\#\#\s*[A-Za-z_][A-Za-z\d_]*)*
-+		}x;
- our $Storage	= qr{extern|static|asmlinkage};
- our $Sparse	= qr{
- 			__user|
 _
 
 Patches currently in -mm which might be from apw@canonical.com are
