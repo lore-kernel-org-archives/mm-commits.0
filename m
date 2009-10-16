@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-fix-false-export_symbol-warning-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 16 Oct 2009 14:07:45 -0700
-Message-ID: <200910162107.n9GL7jbN006544@imap1.linux-foundation.org>
+Subject: + hvc_console-fix-test-on-unsigned-in-hvc_console_print.patch added to -mm tree
+Date: Fri, 16 Oct 2009 14:13:45 -0700
+Message-ID: <200910162113.n9GLDjCS019378@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50574 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49803 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751326AbZJPVH6 (ORCPT
+	by vger.kernel.org with ESMTP id S1751341AbZJPVN4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Oct 2009 17:07:58 -0400
+	Fri, 16 Oct 2009 17:13:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, apw@canonical.com, dwalker@fifo99.com, mingo@elte.hu, paulmck@linux.vnet.ibm.com
+Cc: roel.kluin@gmail.com, benh@kernel.crashing.org, borntraeger@de.ibm.com, brueckner@linux.vnet.ibm.com
 
 
 The patch titled
-     checkpatch-fix-false-export_symbol-warning-checkpatch-fixes
+     hvc_console: fix test on unsigned in hvc_console_print()
 has been added to the -mm tree.  Its filename is
-     checkpatch-fix-false-export_symbol-warning-checkpatch-fixes.patch
+     hvc_console-fix-test-on-unsigned-in-hvc_console_print.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,105 +34,61 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch-fix-false-export_symbol-warning-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: hvc_console: fix test on unsigned in hvc_console_print()
+From: Roel Kluin <roel.kluin@gmail.com>
 
-WARNING: line over 80 characters
-#63: FILE: scripts/checkpatch.pl:1445:
-+			     substr($lines[$realline_next - 1], $off_next) =~ /^\s*$/)) {
+vtermnos[] is unsigned, so this test was wrong.
 
-WARNING: line over 80 characters
-#84: FILE: scripts/checkpatch.pl:1716:
-+		     $lines[$realline_next - 1] =~ /EXPORT_UNUSED_SYMBOL.*\((.*)\)/)) {
-
-WARNING: line over 80 characters
-#95: FILE: scripts/checkpatch.pl:1723:
-+				^.(?:$Storage\s+)?$Type\s*\(\s*\*\s*\Q$name\E\s*\)\s*\(|
-
-ERROR: code indent should use tabs where possible
-#107: FILE: scripts/checkpatch.pl:1734:
-+                    ($line =~ /EXPORT_SYMBOL.*\((.*)\)/ ||$
-
-WARNING: line over 80 characters
-#114: FILE: scripts/checkpatch.pl:1741:
-+			WARN("EXPORT_SYMBOL(foo); should immediately follow its function/variable\n" . $herecurr);
-
-total: 1 errors, 4 warnings, 85 lines checked
-
-./patches/checkpatch-fix-false-export_symbol-warning.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Andy Whitcroft <apw@canonical.com>
-Cc: Daniel Walker <dwalker@fifo99.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN scripts/checkpatch.pl~checkpatch-fix-false-export_symbol-warning-checkpatch-fixes scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-fix-false-export_symbol-warning-checkpatch-fixes
-+++ a/scripts/checkpatch.pl
-@@ -1731,7 +1731,7 @@ sub process {
- 		}
- 		if (!defined $suppress_export{$linenr} &&
- 		    $prevline =~ /^.\s*$/ &&
--                    ($line =~ /EXPORT_SYMBOL.*\((.*)\)/ ||
-+		    ($line =~ /EXPORT_SYMBOL.*\((.*)\)/ ||
- 		     $line =~ /EXPORT_UNUSED_SYMBOL.*\((.*)\)/)) {
- #print "FOO B <$lines[$linenr - 1]>\n";
- 			$suppress_export{$linenr} = 2;
+diff -puN drivers/char/hvc_console.c~hvc_console-fix-test-on-unsigned-in-hvc_console_print drivers/char/hvc_console.c
+--- a/drivers/char/hvc_console.c~hvc_console-fix-test-on-unsigned-in-hvc_console_print
++++ a/drivers/char/hvc_console.c
+@@ -146,7 +146,7 @@ static void hvc_console_print(struct con
+ 		return;
+ 
+ 	/* This console adapter was removed so it is not usable. */
+-	if (vtermnos[index] < 0)
++	if (vtermnos[index] == -1)
+ 		return;
+ 
+ 	while (count > 0 || i > 0) {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices-fix.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-include-trace-events-lockdeph-fix-do_div-warning.patch
+fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch
+omap-fix-unlikelyx-y.patch
+powernow-k8-fix-test-in-get_transition_latency.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+hfc_usb-fix-read-buffer-overflow.patch
+hisax-fix-test-in-waitforxfw.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
+zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
 st-fix-test-of-value-range-in-st_set_options.patch
-scsi-add-hpsa-driver-for-hp-smart-array-controllers-fix.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-hfsplus-refuse-to-mount-volumes-larger-than-2tb-fix.patch
-revert-mm-oom-analysis-add-buffer-cache-information-to-show_free_areas.patch
-8250_pci-add-ibm-saturn-serial-card-fix.patch
-checkpatch-fix-false-export_symbol-warning-checkpatch-fixes.patch
-drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
-vfs-implement-posix-o_sync-and-o_dsync-semantics-checkpatch-fixes.patch
-readahead-add-blk_run_backing_dev.patch
-mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
+ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
+bfa-fix-test-in-bfad_os_fc_host_init.patch
+drivers-staging-octeon-ethernet-rgmiic-dont-ignore-request_irq-return-code.patch
+page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
+frv-duplicate-output_buffer-of-e03.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
-drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
-rwsem-fix-rwsem_is_locked-bugs-fix.patch
-errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
-spi-controller-driver-for-designware-spi-core-fix.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs.patch
-memcg-coalesce-charging-via-percpu-storage-fix.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-reiser4-disable.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+cryptocop-fix-assertion-in-create_output_descriptors.patch
+gpio-fix-test-on-unsigned-in-lnw_irq_type.patch
+fbdev-tv_paln-bit-set-twice-in-sisfb_detect_vb_connect.patch
+hvc_console-fix-test-on-unsigned-in-hvc_console_print.patch
+irq-fix-test-in-__exit-parport_mfc3_exit.patch
 
