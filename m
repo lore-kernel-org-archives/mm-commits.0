@@ -1,68 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pata_sc1200-fix-crash-on-boot.patch removed from -mm tree
-Date: Fri, 16 Oct 2009 13:48:46 -0700
-Message-ID: <200910162048.n9GKmkL8030619@imap1.linux-foundation.org>
+Subject: + mm-vmscan-change-comment-generic_file_write-to-__generic_file_aio_write.patch added to -mm tree
+Date: Fri, 16 Oct 2009 14:05:04 -0700
+Message-ID: <200910162105.n9GL54TE000742@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33691 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50973 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750825AbZJPUuJ (ORCPT
+	by vger.kernel.org with ESMTP id S1751305AbZJPVFz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Oct 2009 16:50:09 -0400
+	Fri, 16 Oct 2009 17:05:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@linux.intel.com, alex@ozo.com, jeff@garzik.org, stable@kernel.org, tj@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: macli@brc.ubc.ca, hch@lst.de
 
 
 The patch titled
-     pata_sc1200: fix crash on boot
-has been removed from the -mm tree.  Its filename was
-     pata_sc1200-fix-crash-on-boot.patch
+     mm/vmscan: change comment generic_file_write to __generic_file_aio_write
+has been added to the -mm tree.  Its filename is
+     mm-vmscan-change-comment-generic_file_write-to-__generic_file_aio_write.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pata_sc1200: fix crash on boot
-From: Alan Cox <alan@linux.intel.com>
+Subject: mm/vmscan: change comment generic_file_write to __generic_file_aio_write
+From: Vincent Li <macli@brc.ubc.ca>
 
-The SC1200 needs a NULL terminator or it may cause a crash on boot.
+Commit 543ade1fc9 ("Streamline generic_file_* interfaces and filemap
+cleanups") removed generic_file_write() in filemap.  Change the comment in
+vmscan pageout() to __generic_file_aio_write().
 
-Also correct a bogus comment as the driver had serializing added so can
-run dual port.
-
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=14227
-
-Reported-by: Alexandros C. Couloumbis <alex@ozo.com>
-Signed-off-by: Alan Cox <alan@linux.intel.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: <stable@kernel.org>		[2.6.30.x, 2.6.31.x]
+Signed-off-by: Vincent Li <macli@brc.ubc.ca>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_sc1200.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/ata/pata_sc1200.c~pata_sc1200-fix-crash-on-boot drivers/ata/pata_sc1200.c
---- a/drivers/ata/pata_sc1200.c~pata_sc1200-fix-crash-on-boot
-+++ a/drivers/ata/pata_sc1200.c
-@@ -235,8 +235,7 @@ static int sc1200_init_one(struct pci_de
- 		.udma_mask = ATA_UDMA2,
- 		.port_ops = &sc1200_port_ops
- 	};
--	/* Can't enable port 2 yet, see top comments */
--	const struct ata_port_info *ppi[] = { &info, };
-+	const struct ata_port_info *ppi[] = { &info, NULL };
- 
- 	return ata_pci_sff_init_one(dev, ppi, &sc1200_sht, NULL);
- }
+diff -puN mm/vmscan.c~mm-vmscan-change-comment-generic_file_write-to-__generic_file_aio_write mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-change-comment-generic_file_write-to-__generic_file_aio_write
++++ a/mm/vmscan.c
+@@ -358,7 +358,7 @@ static pageout_t pageout(struct page *pa
+ 	 * stalls if we need to run get_block().  We could test
+ 	 * PagePrivate for that.
+ 	 *
+-	 * If this process is currently in generic_file_write() against
++	 * If this process is currently in __generic_file_aio_write() against
+ 	 * this page's queue, we can perform writeback even if that
+ 	 * will block.
+ 	 *
 _
 
-Patches currently in -mm which might be from alan@linux.intel.com are
+Patches currently in -mm which might be from macli@brc.ubc.ca are
 
-origin.patch
-linux-next.patch
-atmel_serial-fix-bad-build_bug_on-usage.patch
+mm-vsmcan-check-shrink_active_list-sc-isolate_pages-return-value.patch
+mm-vmscan-change-comment-generic_file_write-to-__generic_file_aio_write.patch
 
