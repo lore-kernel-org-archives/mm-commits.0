@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + gfs2-use-unified-uuid-guid-code.patch added to -mm tree
-Date: Thu, 15 Oct 2009 20:45:56 -0700
-Message-ID: <200910160345.n9G3juDj028370@imap1.linux-foundation.org>
+Subject: + lib-unified-uuid-guid-definition.patch added to -mm tree
+Date: Thu, 15 Oct 2009 20:45:49 -0700
+Message-ID: <200910160345.n9G3jn7l028231@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33171 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48879 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750805AbZJPDqz (ORCPT
+	by vger.kernel.org with ESMTP id S1750819AbZJPDrW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Oct 2009 23:46:55 -0400
+	Thu, 15 Oct 2009 23:47:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ying.huang@intel.com, joe@perches.com, laurent.pinchart@ideasonboard.com, swhiteho@redhat.com
+Cc: ying.huang@intel.com, adrian.hunter@nokia.com, aelder@sgi.com, dedekind@infradead.org, hch@lst.de, joe@perches.com, laurent.pinchart@ideasonboard.com, neilb@suse.de, shaggy@austin.ibm.com, swhiteho@redhat.com
 
 
 The patch titled
-     gfs2: use unified UUID/GUID code
+     lib: unified UUID/GUID definition
 has been added to the -mm tree.  Its filename is
-     gfs2-use-unified-uuid-guid-code.patch
+     lib-unified-uuid-guid-definition.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,112 +34,154 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gfs2: use unified UUID/GUID code
+Subject: lib: unified UUID/GUID definition
 From: Huang Ying <ying.huang@intel.com>
 
-Replace u8[16] UUID definition in gfs2.
+There are many different UUID/GUID definitions in kernel, such as that in
+EFI, many file systems, some drivers, etc.  Every kernel components need
+UUID/GUID has its own definition.  This patch provides a unified
+definition for UUID/GUID.
+
+UUID is defined via typedef.  This makes that UUID appears more like a
+preliminary type, and makes the data type explicit (comparing with
+implicit "u8 uuid[16]").
+
+The binary representation of UUID/GUID can be little-endian (used by EFI,
+etc) or big-endian (defined by RFC4122), so both is defined.
 
 Signed-off-by: Huang Ying <ying.huang@intel.com>
 Cc: Joe Perches <joe@perches.com>
 Cc: Steven Whitehouse <swhiteho@redhat.com>
 Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Artem Bityutskiy <dedekind@infradead.org>
+Cc: Adrian Hunter <adrian.hunter@nokia.com>
+Cc: Alex Elder <aelder@sgi.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Dave Kleikamp <shaggy@austin.ibm.com>
+Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/gfs2/incore.h            |    3 ++-
- fs/gfs2/ops_fstype.c        |    2 +-
- fs/gfs2/sys.c               |   14 ++++----------
- include/linux/gfs2_ondisk.h |    3 ++-
- 4 files changed, 9 insertions(+), 13 deletions(-)
+ include/linux/uuid.h |   59 +++++++++++++++++++++++++++++++++++++++++
+ lib/Makefile         |    2 -
+ lib/uuid.c           |   36 +++++++++++++++++++++++++
+ 3 files changed, 96 insertions(+), 1 deletion(-)
 
-diff -puN fs/gfs2/incore.h~gfs2-use-unified-uuid-guid-code fs/gfs2/incore.h
---- a/fs/gfs2/incore.h~gfs2-use-unified-uuid-guid-code
-+++ a/fs/gfs2/incore.h
-@@ -15,6 +15,7 @@
- #include <linux/slow-work.h>
- #include <linux/dlm.h>
- #include <linux/buffer_head.h>
+diff -puN /dev/null include/linux/uuid.h
+--- /dev/null
++++ a/include/linux/uuid.h
+@@ -0,0 +1,59 @@
++/*
++ * Unified UUID/GUID definition
++ *
++ * Copyright (C) 2009, Intel Corp.
++ *	Huang Ying <ying.huang@intel.com>
++ *
++ * This file is released under the GPLv2.
++ */
++
++#ifndef _LINUX_UUID_H_
++#define _LINUX_UUID_H_
++
++#include <linux/types.h>
++#include <linux/string.h>
++
++typedef struct {
++	__u8 b[16];
++} uuid_le;
++
++typedef struct {
++	__u8 b[16];
++} uuid_be;
++
++#define UUID_LE(a, b, c, d0, d1, d2, d3, d4, d5, d6, d7)		\
++((uuid_le)								\
++{{ (a) & 0xff, ((a) >> 8) & 0xff, ((a) >> 16) & 0xff, ((a) >> 24) & 0xff, \
++   (b) & 0xff, ((b) >> 8) & 0xff,					\
++   (c) & 0xff, ((c) >> 8) & 0xff,					\
++   (d0), (d1), (d2), (d3), (d4), (d5), (d6), (d7) }})
++
++#define UUID_BE(a, b, c, d0, d1, d2, d3, d4, d5, d6, d7)		\
++((uuid_be)								\
++{{ ((a) >> 24) & 0xff, ((a) >> 16) & 0xff, ((a) >> 8) & 0xff, (a) & 0xff, \
++   ((b) >> 8) & 0xff, (b) & 0xff,					\
++   ((c) >> 8) & 0xff, (c) & 0xff,					\
++   (d0), (d1), (d2), (d3), (d4), (d5), (d6), (d7) }})
++
++#define NULL_UUID_LE							\
++	UUID_LE(0x00000000, 0x0000, 0x0000, 0x00, 0x00, 0x00, 0x00,	\
++		0x00, 0x00, 0x00, 0x00)
++
++#define NULL_UUID_BE							\
++	UUID_BE(0x00000000, 0x0000, 0x0000, 0x00, 0x00, 0x00, 0x00,	\
++		0x00, 0x00, 0x00, 0x00)
++
++static inline int uuid_le_cmp(const uuid_le u1, const uuid_le u2)
++{
++	return memcmp(&u1, &u2, sizeof(uuid_le));
++}
++
++static inline int uuid_be_cmp(const uuid_be u1, const uuid_be u2)
++{
++	return memcmp(&u1, &u2, sizeof(uuid_be));
++}
++
++extern void uuid_le_gen(uuid_le *u);
++extern void uuid_be_gen(uuid_be *u);
++
++#endif
+diff -puN lib/Makefile~lib-unified-uuid-guid-definition lib/Makefile
+--- a/lib/Makefile~lib-unified-uuid-guid-definition
++++ a/lib/Makefile
+@@ -21,7 +21,7 @@ lib-y	+= kobject.o kref.o klist.o
+ 
+ obj-y += bcd.o div64.o sort.o parser.o halfmd4.o debug_locks.o random32.o \
+ 	 bust_spinlocks.o hexdump.o kasprintf.o bitmap.o scatterlist.o \
+-	 string_helpers.o gcd.o
++	 string_helpers.o gcd.o uuid.o
+ 
+ ifeq ($(CONFIG_DEBUG_KOBJECT),y)
+ CFLAGS_kobject.o += -DDEBUG
+diff -puN /dev/null lib/uuid.c
+--- /dev/null
++++ a/lib/uuid.c
+@@ -0,0 +1,36 @@
++/*
++ * Unified UUID/GUID definition
++ *
++ * Copyright (C) 2009, Intel Corp.
++ *	Huang Ying <ying.huang@intel.com>
++ *
++ * This file is released under the GPLv2.
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
 +#include <linux/uuid.h>
- 
- #define DIO_WAIT	0x00000010
- #define DIO_METADATA	0x00000020
-@@ -483,7 +484,7 @@ struct gfs2_sb_host {
- 
- 	char sb_lockproto[GFS2_LOCKNAME_LEN];
- 	char sb_locktable[GFS2_LOCKNAME_LEN];
--	u8 sb_uuid[16];
-+	uuid_be sb_uuid;
- };
- 
- /*
-diff -puN fs/gfs2/ops_fstype.c~gfs2-use-unified-uuid-guid-code fs/gfs2/ops_fstype.c
---- a/fs/gfs2/ops_fstype.c~gfs2-use-unified-uuid-guid-code
-+++ a/fs/gfs2/ops_fstype.c
-@@ -234,7 +234,7 @@ static void gfs2_sb_in(struct gfs2_sb_ho
- 
- 	memcpy(sb->sb_lockproto, str->sb_lockproto, GFS2_LOCKNAME_LEN);
- 	memcpy(sb->sb_locktable, str->sb_locktable, GFS2_LOCKNAME_LEN);
--	memcpy(sb->sb_uuid, str->sb_uuid, 16);
-+	sb->sb_uuid = str->sb_uuid;
- }
- 
- /**
-diff -puN fs/gfs2/sys.c~gfs2-use-unified-uuid-guid-code fs/gfs2/sys.c
---- a/fs/gfs2/sys.c~gfs2-use-unified-uuid-guid-code
-+++ a/fs/gfs2/sys.c
-@@ -68,20 +68,14 @@ static ssize_t fsname_show(struct gfs2_s
- 	return snprintf(buf, PAGE_SIZE, "%s\n", sdp->sd_fsname);
- }
- 
--static int gfs2_uuid_valid(const u8 *uuid)
-+static int gfs2_uuid_valid(const uuid_be *uuid)
- {
--	int i;
--
--	for (i = 0; i < 16; i++) {
--		if (uuid[i])
--			return 1;
--	}
--	return 0;
-+	return uuid_be_cmp(*uuid, NULL_UUID_BE);
- }
- 
- static ssize_t uuid_show(struct gfs2_sbd *sdp, char *buf)
- {
--	const u8 *uuid = sdp->sd_sb.sb_uuid;
-+	const uuid_be *uuid = &sdp->sd_sb.sb_uuid;
- 	buf[0] = '\0';
- 	if (!gfs2_uuid_valid(uuid))
- 		return 0;
-@@ -565,7 +559,7 @@ static int gfs2_uevent(struct kset *kset
- 		       struct kobj_uevent_env *env)
- {
- 	struct gfs2_sbd *sdp = container_of(kobj, struct gfs2_sbd, sd_kobj);
--	const u8 *uuid = sdp->sd_sb.sb_uuid;
-+	const uuid_be *uuid = &sdp->sd_sb.sb_uuid;
- 
- 	add_uevent_var(env, "LOCKTABLE=%s", sdp->sd_table_name);
- 	add_uevent_var(env, "LOCKPROTO=%s", sdp->sd_proto_name);
-diff -puN include/linux/gfs2_ondisk.h~gfs2-use-unified-uuid-guid-code include/linux/gfs2_ondisk.h
---- a/include/linux/gfs2_ondisk.h~gfs2-use-unified-uuid-guid-code
-+++ a/include/linux/gfs2_ondisk.h
-@@ -11,6 +11,7 @@
- #define __GFS2_ONDISK_DOT_H__
- 
- #include <linux/types.h>
-+#include <linux/uuid.h>
- 
- #define GFS2_MAGIC		0x01161970
- #define GFS2_BASIC_BLOCK	512
-@@ -124,7 +125,7 @@ struct gfs2_sb {
- 	struct gfs2_inum __pad3; /* Was quota inode in gfs1 */
- 	struct gfs2_inum __pad4; /* Was licence inode in gfs1 */
- #define GFS2_HAS_UUID 1
--	__u8 sb_uuid[16]; /* The UUID, maybe 0 for backwards compat */
-+	uuid_be sb_uuid; /* The UUID, maybe 0 for backwards compat */
- };
- 
- /*
++#include <linux/random.h>
++
++static void __uuid_gen_common(__u8 b[16])
++{
++	get_random_bytes(b, 16);
++	/* reversion 0b10 */
++	b[8] = (b[8] & 0x3F) | 0x80;
++}
++
++void uuid_le_gen(uuid_le *lu)
++{
++	__uuid_gen_common(lu->b);
++	/* version 4 : random generation */
++	lu->b[7] = (lu->b[7] & 0x0F) | 0x40;
++}
++EXPORT_SYMBOL_GPL(uuid_le_gen);
++
++void uuid_be_gen(uuid_be *bu)
++{
++	__uuid_gen_common(bu->b);
++	/* version 4 : random generation */
++	bu->b[6] = (bu->b[6] & 0x0F) | 0x40;
++}
++EXPORT_SYMBOL_GPL(uuid_be_gen);
 _
 
 Patches currently in -mm which might be from ying.huang@intel.com are
