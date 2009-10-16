@@ -1,27 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + lis3-better-support-for-hp-6730x.patch added to -mm tree
-Date: Fri, 16 Oct 2009 14:43:30 -0700
-Message-ID: <200910162143.n9GLhUTP018596@imap1.linux-foundation.org>
+Subject: + lis3-add-support-for-the-hp-hdx-18.patch added to -mm tree
+Date: Fri, 16 Oct 2009 14:43:35 -0700
+Message-ID: <200910162143.n9GLhZR4018749@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45888 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59786 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750951AbZJPVng (ORCPT
+	by vger.kernel.org with ESMTP id S1751715AbZJPVnh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Oct 2009 17:43:36 -0400
+	Fri, 16 Oct 2009 17:43:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: morpheus.ibis@gmail.com, eric.piel@tremplin-utc.net, pavel@ucw.cz
+Cc: penguin.wrangler@gmail.com, eric.piel@tremplin-utc.net, pavel@ucw.cz
 
 
 The patch titled
-     lis3: better support for hp 6730x
+     lis3: add support for the HP HDX 18
 has been added to the -mm tree.  Its filename is
-     lis3-better-support-for-hp-6730x.patch
+     lis3-add-support-for-the-hp-hdx-18.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,42 +39,37 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
 otm/
 
 ------------------------------------------------------
-Subject: lis3: better support for hp 6730x
-=46rom: Pavel Herrmann <morpheus.ibis@gmail.com>
+Subject: lis3: add support for the HP HDX 18
+=46rom: Ian E. Morgan <penguin.wrangler@gmail.com>
 
-I have learned that the 6730b and 6730s have different accelerometer
-orientation, and have modified the driver accordingly (diff attached),
-while dropping the wild guess for AMD based 6735 having the same
-orientation as Intel based 6730 (this is not true for any other related
-series/family, thus is not probable for 673x).
+I have an HP HDX 18 laptop, and noted that the configuration of the
+accelerometer needs to be x_inverted.
 
-Signed-off-by: Pavel Herrmann <morpheus.ibis@gmail.com>
+Signed-off-by: Ian E. Morgan <penguin.wrangler@gmail.com>
 Signed-off-by: =C9ric Piel <eric.piel@tremplin-utc.net>
 Cc: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/hwmon/hp_accel.c~lis3-better-support-for-hp-6730x dri=
-vers/hwmon/hp_accel.c
---- a/drivers/hwmon/hp_accel.c~lis3-better-support-for-hp-6730x
+diff -puN drivers/hwmon/hp_accel.c~lis3-add-support-for-the-hp-hdx-18 d=
+rivers/hwmon/hp_accel.c
+--- a/drivers/hwmon/hp_accel.c~lis3-add-support-for-the-hp-hdx-18
 +++ a/drivers/hwmon/hp_accel.c
-@@ -197,7 +197,8 @@ static struct dmi_system_id lis3lv02d_dm
- 	AXIS_DMI_MATCH("HP2133", "HP 2133", xy_rotated_left),
- 	AXIS_DMI_MATCH("HP2140", "HP 2140", xy_swap_inverted),
- 	AXIS_DMI_MATCH("NC653x", "HP Compaq 653", xy_rotated_left_usd),
--	AXIS_DMI_MATCH("NC673x", "HP Compaq 673", xy_rotated_left_usd),
-+	AXIS_DMI_MATCH("NC6730b", "HP Compaq 6730b", xy_rotated_left_usd),
-+	AXIS_DMI_MATCH("NC6730s", "HP Compaq 6730s", xy_swap),
- 	AXIS_DMI_MATCH("NC651xx", "HP Compaq 651", xy_rotated_right),
- 	AXIS_DMI_MATCH("NC6710x", "HP Compaq 6710", xy_swap_yz_inverted),
- 	AXIS_DMI_MATCH("NC6715x", "HP Compaq 6715", y_inverted),
+@@ -216,6 +216,7 @@ static struct dmi_system_id lis3lv02d_dm
+ 			y_inverted),
+ 	AXIS_DMI_MATCH("DV7", "HP Pavilion dv7", x_inverted),
+ 	AXIS_DMI_MATCH("HP8710", "HP Compaq 8710", y_inverted),
++	AXIS_DMI_MATCH("HDX18", "HP HDX 18", x_inverted),
+ 	{ NULL, }
+ /* Laptop models without axis info (yet):
+  * "NC6910" "HP Compaq 6910"
 _
 
-Patches currently in -mm which might be from morpheus.ibis@gmail.com ar=
-e
+Patches currently in -mm which might be from penguin.wrangler@gmail.com=
+ are
 
-lis3-better-support-for-hp-6730x.patch
+lis3-add-support-for-the-hp-hdx-18.patch
 
 --
 To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
