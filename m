@@ -1,29 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatchpl-allow-80-char-lines-for-logging-functions-not-just-printk.patch added to -mm tree
-Date: Fri, 16 Oct 2009 14:46:38 -0700
-Message-ID: <200910162146.n9GLkciX025355@imap1.linux-foundation.org>
+Subject: + hardware-latency-detector-remove-default-m.patch added to -mm tree
+Date: Fri, 16 Oct 2009 14:50:52 -0700
+Message-ID: <200910162150.n9GLoqjk002022@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43202 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53351 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751070AbZJPVqi (ORCPT
+	by vger.kernel.org with ESMTP id S1751442AbZJPVvb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Oct 2009 17:46:38 -0400
+	Fri, 16 Oct 2009 17:51:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, apw@canonical.com
+Cc: andi@firstfloor.org, ak@linux.intel.com, jcm@jonmasters.org
 
 
 The patch titled
-     checkpatch.pl: allow > 80 char lines for logging functions not jus=
-t printk
+     hardware latency detector: remove "default m"
 has been added to the -mm tree.  Its filename is
-     checkpatchpl-allow-80-char-lines-for-logging-functions-not-just-pr=
-intk.patch
+     hardware-latency-detector-remove-default-m.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -31,99 +26,57 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch.pl: allow > 80 char lines for logging functions not=
- just printk
-=46rom: Joe Perches <joe@perches.com>
+Subject: hardware latency detector: remove "default m"
+From: Andi Kleen <andi@firstfloor.org>
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Andy Whitcroft <apw@canonical.com>
+No reason at all why this should be default anything except n.
+
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Cc: Jon Masters <jcm@jonmasters.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN scripts/checkpatch.pl~checkpatchpl-allow-80-char-lines-for-lo=
-gging-functions-not-just-printk scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatchpl-allow-80-char-lines-for-loggin=
-g-functions-not-just-printk
-+++ a/scripts/checkpatch.pl
-@@ -189,6 +189,14 @@ our $typeTypedefs =3D qr{(?x:
- 	atomic_t
- )};
-=20
-+our $logFunctions =3D qr{(?x:
-+	printk|
-+	pr_(debug|dbg|vdbg|devel|info|warning|err|notice|alert|crit|emerg|con=
-t)|
-+	dev_(printk|dbg|vdbg|info|warn|err|notice|alert|crit|emerg|WARN)|
-+	WARN|
-+	panic
-+)};
-+
- our @typeList =3D (
- 	qr{void},
- 	qr{(?:unsigned\s+)?char},
-@@ -1377,7 +1385,7 @@ sub process {
- #80 column limit
- 		if ($line =3D~ /^\+/ && $prevrawline !~ /\/\*\*/ &&
- 		    $rawline !~ /^.\s*\*\s*\@$Ident\s/ &&
--		    $line !~ /^\+\s*printk\s*\(\s*(?:KERN_\S+\s*)?"[X\t]*"\s*(?:,|\)=
-\s*;)\s*$/ &&
-+		    $line !~ /^\+\s*$logFunctions\s*\(\s*(?:KERN_\S+\s*)?"[X\t]*"\s*=
-(?:,|\)\s*;)\s*$/ &&
- 		    $length > 80)
- 		{
- 			WARN("line over 80 characters\n" . $herecurr);
+diff -puN drivers/misc/Kconfig~hardware-latency-detector-remove-default-m drivers/misc/Kconfig
+--- a/drivers/misc/Kconfig~hardware-latency-detector-remove-default-m
++++ a/drivers/misc/Kconfig
+@@ -80,7 +80,6 @@ config HWLAT_DETECTOR
+ 	tristate "Testing module to detect hardware-induced latencies"
+ 	depends on DEBUG_FS
+ 	depends on RING_BUFFER
+-	default m
+ 	---help---
+ 	  A simple hardware latency detector. Use this module to detect
+ 	  large latencies introduced by the behavior of the underlying
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from andi@firstfloor.org are
 
+hwpoison-fix-oops-on-ksm-pages.patch
+hwpoison-fix-proc-meminfo-alignment.patch
 linux-next.patch
-maintainers-update-generic-uio-for-pci-devices.patch
-maintainers-update-tracing-section.patch
-maintainers-update-omap-tony-lindgren-email-name.patch
-maintainers-change-atm-mailing-list-to-moderated.patch
-maintainers-use-tab-not-spaces-after-field-types.patch
-maintainers-update-kernel-janitors-after-mismerge.patch
-maintainers-update-score-architecture-name-style-and-add-file-pattern.p=
-atch
-maintainers-simple-firmware-interface-update-email-style.patch
-maintainers-winbond-cir-integrate-p-m-lines-fixup-david-h=E4rdemans-nam=
-e.patch
-maintainers-fix-up-peripheral-spelling.patch
-maintainers-update-wolfson-microelectronics.patch
-scripts-get_maintainerpl-add-patch-file-search-for-keywords.patch
-maintainers-document-new-k-entry-type.patch
-maintainers-add-open-firmware-flattened-device-tree-entry.patch
-checkpatchpl-allow-80-char-lines-for-logging-functions-not-just-printk.=
-patch
-dynamic_debugh-kernelh-remove-kbuild_modname-from-dynamic_pr_debug.patc=
-h
-kernelh-remove-initialization-of-bool-in-printk_once.patch
-lib-vsprintfc-add-%pu-to-print-uuid-guids.patch
-fs-xfs-xfs_log_recoverc-use-%pu-to-print-uuids.patch
-randomc-use-%pu-to-print-uuids.patch
-drivers-firmware-dmi_scanc-use-%pub-to-print-uuids.patch
-drivers-md-mdc-use-%pu-to-print-uuids.patch
-fs-gfs2-sysc-use-%pub-to-print-uuids.patch
-fs-ubifs-use-%pub-to-print-uuids.patch
-efih-use-%pul-to-print-uuids.patch
-drivers-media-video-uvc-use-%pul-to-print-uuids.patch
-lib-unified-uuid-guid-definition.patch
-gfs2-use-unified-uuid-guid-code.patch
-isicomc-use-pr_fmt-and-pr_level.patch
+hardware-latency-detector-remove-default-m.patch
+nodemask-make-nodemask_alloc-more-general.patch
+hugetlb-rework-hstate_next_node_-functions.patch
+hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions.patch
+hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions-fix.patch
+hugetlb-factor-init_nodemask_of_node.patch
+hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy.patch
+hugetlb-add-generic-definition-of-numa_no_node.patch
+hugetlb-add-per-node-hstate-attributes.patch
+hugetlb-update-hugetlb-documentation-for-numa-controls.patch
+hugetlb-use-only-nodes-with-memory-for-huge-pages.patch
+mm-clear-node-in-n_high_memory-and-stop-kswapd-when-all-memory-is-offlined.patch
+hugetlb-handle-memory-hot-plug-events.patch
+hugetlb-offload-per-node-attribute-registrations.patch
+mm-add-gfp-flags-for-nodemask_alloc-slab-allocations.patch
+fatfs-use-common-time_to_tm-in-fat_time_unix2fat.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
