@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hvc_console-fix-test-on-unsigned-in-hvc_console_print.patch added to -mm tree
-Date: Fri, 16 Oct 2009 14:13:45 -0700
-Message-ID: <200910162113.n9GLDjCS019378@imap1.linux-foundation.org>
+Subject: + hwmon-fix-check-on-unsigned-in-watchdog_release.patch added to -mm tree
+Date: Fri, 16 Oct 2009 14:26:29 -0700
+Message-ID: <200910162126.n9GLQTA6014451@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49803 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52399 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751341AbZJPVN4 (ORCPT
+	by vger.kernel.org with ESMTP id S1753181AbZJPV1H (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Oct 2009 17:13:56 -0400
+	Fri, 16 Oct 2009 17:27:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, benh@kernel.crashing.org, borntraeger@de.ibm.com, brueckner@linux.vnet.ibm.com
+Cc: roel.kluin@gmail.com, hdegoede@redhat.com, khali@linux-fr.org
 
 
 The patch titled
-     hvc_console: fix test on unsigned in hvc_console_print()
+     hwmon: fix check on unsigned in watchdog_release()
 has been added to the -mm tree.  Its filename is
-     hvc_console-fix-test-on-unsigned-in-hvc_console_print.patch
+     hwmon-fix-check-on-unsigned-in-watchdog_release.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hvc_console: fix test on unsigned in hvc_console_print()
+Subject: hwmon: fix check on unsigned in watchdog_release()
 From: Roel Kluin <roel.kluin@gmail.com>
 
-vtermnos[] is unsigned, so this test was wrong.
+If unsigned the watchdog_trigger() return value will not be checked
+correctly.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Hans de Goede <hdegoede@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/char/hvc_console.c~hvc_console-fix-test-on-unsigned-in-hvc_console_print drivers/char/hvc_console.c
---- a/drivers/char/hvc_console.c~hvc_console-fix-test-on-unsigned-in-hvc_console_print
-+++ a/drivers/char/hvc_console.c
-@@ -146,7 +146,7 @@ static void hvc_console_print(struct con
- 		return;
+diff -puN drivers/hwmon/fschmd.c~hwmon-fix-check-on-unsigned-in-watchdog_release drivers/hwmon/fschmd.c
+--- a/drivers/hwmon/fschmd.c~hwmon-fix-check-on-unsigned-in-watchdog_release
++++ a/drivers/hwmon/fschmd.c
+@@ -819,7 +819,7 @@ static int watchdog_release(struct inode
+ static ssize_t watchdog_write(struct file *filp, const char __user *buf,
+ 	size_t count, loff_t *offset)
+ {
+-	size_t ret;
++	int ret;
+ 	struct fschmd_data *data = filp->private_data;
  
- 	/* This console adapter was removed so it is not usable. */
--	if (vtermnos[index] < 0)
-+	if (vtermnos[index] == -1)
- 		return;
- 
- 	while (count > 0 || i > 0) {
+ 	if (count) {
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -87,6 +87,7 @@ page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
 frv-duplicate-output_buffer-of-e03.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 cryptocop-fix-assertion-in-create_output_descriptors.patch
+hwmon-fix-check-on-unsigned-in-watchdog_release.patch
 gpio-fix-test-on-unsigned-in-lnw_irq_type.patch
 fbdev-tv_paln-bit-set-twice-in-sisfb_detect_vb_connect.patch
 hvc_console-fix-test-on-unsigned-in-hvc_console_print.patch
