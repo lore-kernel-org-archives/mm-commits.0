@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + signals-send_signal-use-si_fromuser-to-detect-from_ancestor_ns.patch added to -mm tree
-Date: Fri, 16 Oct 2009 15:20:14 -0700
-Message-ID: <200910162220.n9GMKFxg000324@imap1.linux-foundation.org>
+Subject: + signals-cosmetic-collect_signal-use-si_user.patch added to -mm tree
+Date: Fri, 16 Oct 2009 15:20:17 -0700
+Message-ID: <200910162220.n9GMKHok000424@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36549 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34942 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750923AbZJPWU2 (ORCPT
+	by vger.kernel.org with ESMTP id S1751294AbZJPWUh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Oct 2009 18:20:28 -0400
+	Fri, 16 Oct 2009 18:20:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, dlezcano@fr.ibm.com, roland@redhat.com, sukadev@us.ibm.com
+Cc: oleg@redhat.com, roland@redhat.com, sukadev@us.ibm.com
 
 
 The patch titled
-     signals: send_signal: use si_fromuser() to detect from_ancestor_ns
+     signals: cosmetic, collect_signal: use SI_USER
 has been added to the -mm tree.  Its filename is
-     signals-send_signal-use-si_fromuser-to-detect-from_ancestor_ns.patch
+     signals-cosmetic-collect_signal-use-si_user.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signals: send_signal: use si_fromuser() to detect from_ancestor_ns
+Subject: signals: cosmetic, collect_signal: use SI_USER
 From: Oleg Nesterov <oleg@redhat.com>
 
-Change send_signal() to use si_fromuser().  From now SEND_SIG_NOINFO
-triggers the "from_ancestor_ns" check.
+Trivial, s/0/SI_USER/ in collect_signal() for grep.
 
-This fixes reparent_thread()->group_send_sig_info(pdeath_signal)
-behaviour, before this patch send_signal() does not detect the
-cross-namespace case when the child of the dying parent belongs to the
-sub-namespace.
+This is a bit confusing, we don't know the source of this signal.
+But we don't care, and "info->si_code = 0" is imho worse.
 
-This patch can affect the behaviour of send_sig(), kill_pgrp() and
-kill_pid() when the caller sends the signal to the sub-namespace with
-"priv == 0" but surprisingly all callers seem to use them correctly,
-including disassociate_ctty(on_exit).
-
-Except: drivers/staging/comedi/drivers/addi-data/*.c incorrectly use
-send_sig(priv => 0).  But his is minor and should be fixed anyway.
-
-Reported-by: Daniel Lezcano <dlezcano@fr.ibm.com>
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Roland McGrath <roland@redhat.com>
-Reviewed-by: Sukadev Bhattiprolu <sukadev@us.ibm.com>
+Cc: Sukadev Bhattiprolu <sukadev@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN kernel/signal.c~signals-send_signal-use-si_fromuser-to-detect-from_ancestor_ns kernel/signal.c
---- a/kernel/signal.c~signals-send_signal-use-si_fromuser-to-detect-from_ancestor_ns
+diff -puN kernel/signal.c~signals-cosmetic-collect_signal-use-si_user kernel/signal.c
+--- a/kernel/signal.c~signals-cosmetic-collect_signal-use-si_user
 +++ a/kernel/signal.c
-@@ -928,9 +928,8 @@ static int send_signal(int sig, struct s
- 	int from_ancestor_ns = 0;
- 
- #ifdef CONFIG_PID_NS
--	if (!is_si_special(info) && SI_FROMUSER(info) &&
--			task_pid_nr_ns(current, task_active_pid_ns(t)) <= 0)
--		from_ancestor_ns = 1;
-+	from_ancestor_ns = si_fromuser(info) &&
-+			   !task_pid_nr_ns(current, task_active_pid_ns(t));
- #endif
- 
- 	return __send_signal(sig, info, t, group, from_ancestor_ns);
+@@ -400,7 +400,7 @@ still_pending:
+ 		 */
+ 		info->si_signo = sig;
+ 		info->si_errno = 0;
+-		info->si_code = 0;
++		info->si_code = SI_USER;
+ 		info->si_pid = 0;
+ 		info->si_uid = 0;
+ 	}
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
