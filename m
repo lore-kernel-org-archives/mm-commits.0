@@ -1,24 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + hwmon-fix-check-on-unsigned-in-watchdog_release.patch added to -mm tree
-Date: Fri, 16 Oct 2009 14:26:29 -0700
-Message-ID: <200910162126.n9GLQTA6014451@imap1.linux-foundation.org>
+Subject: + lis3-better-support-for-hp-6730x.patch added to -mm tree
+Date: Fri, 16 Oct 2009 14:43:30 -0700
+Message-ID: <200910162143.n9GLhUTP018596@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52399 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45888 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753181AbZJPV1H (ORCPT
+	by vger.kernel.org with ESMTP id S1750951AbZJPVng (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Oct 2009 17:27:07 -0400
+	Fri, 16 Oct 2009 17:43:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, hdegoede@redhat.com, khali@linux-fr.org
+Cc: morpheus.ibis@gmail.com, eric.piel@tremplin-utc.net, pavel@ucw.cz
 
 
 The patch titled
-     hwmon: fix check on unsigned in watchdog_release()
+     lis3: better support for hp 6730x
 has been added to the -mm tree.  Its filename is
-     hwmon-fix-check-on-unsigned-in-watchdog_release.patch
+     lis3-better-support-for-hp-6730x.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -26,70 +29,55 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: hwmon: fix check on unsigned in watchdog_release()
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: lis3: better support for hp 6730x
+=46rom: Pavel Herrmann <morpheus.ibis@gmail.com>
 
-If unsigned the watchdog_trigger() return value will not be checked
-correctly.
+I have learned that the 6730b and 6730s have different accelerometer
+orientation, and have modified the driver accordingly (diff attached),
+while dropping the wild guess for AMD based 6735 having the same
+orientation as Intel based 6730 (this is not true for any other related
+series/family, thus is not probable for 673x).
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Hans de Goede <hdegoede@redhat.com>
+Signed-off-by: Pavel Herrmann <morpheus.ibis@gmail.com>
+Signed-off-by: =C9ric Piel <eric.piel@tremplin-utc.net>
+Cc: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/hwmon/fschmd.c~hwmon-fix-check-on-unsigned-in-watchdog_release drivers/hwmon/fschmd.c
---- a/drivers/hwmon/fschmd.c~hwmon-fix-check-on-unsigned-in-watchdog_release
-+++ a/drivers/hwmon/fschmd.c
-@@ -819,7 +819,7 @@ static int watchdog_release(struct inode
- static ssize_t watchdog_write(struct file *filp, const char __user *buf,
- 	size_t count, loff_t *offset)
- {
--	size_t ret;
-+	int ret;
- 	struct fschmd_data *data = filp->private_data;
- 
- 	if (count) {
+diff -puN drivers/hwmon/hp_accel.c~lis3-better-support-for-hp-6730x dri=
+vers/hwmon/hp_accel.c
+--- a/drivers/hwmon/hp_accel.c~lis3-better-support-for-hp-6730x
++++ a/drivers/hwmon/hp_accel.c
+@@ -197,7 +197,8 @@ static struct dmi_system_id lis3lv02d_dm
+ 	AXIS_DMI_MATCH("HP2133", "HP 2133", xy_rotated_left),
+ 	AXIS_DMI_MATCH("HP2140", "HP 2140", xy_swap_inverted),
+ 	AXIS_DMI_MATCH("NC653x", "HP Compaq 653", xy_rotated_left_usd),
+-	AXIS_DMI_MATCH("NC673x", "HP Compaq 673", xy_rotated_left_usd),
++	AXIS_DMI_MATCH("NC6730b", "HP Compaq 6730b", xy_rotated_left_usd),
++	AXIS_DMI_MATCH("NC6730s", "HP Compaq 6730s", xy_swap),
+ 	AXIS_DMI_MATCH("NC651xx", "HP Compaq 651", xy_rotated_right),
+ 	AXIS_DMI_MATCH("NC6710x", "HP Compaq 6710", xy_swap_yz_inverted),
+ 	AXIS_DMI_MATCH("NC6715x", "HP Compaq 6715", y_inverted),
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from morpheus.ibis@gmail.com ar=
+e
 
-linux-next.patch
-fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch
-omap-fix-unlikelyx-y.patch
-powernow-k8-fix-test-in-get_transition_latency.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-hfc_usb-fix-read-buffer-overflow.patch
-hisax-fix-test-in-waitforxfw.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
-st-fix-test-of-value-range-in-st_set_options.patch
-ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
-bfa-fix-test-in-bfad_os_fc_host_init.patch
-drivers-staging-octeon-ethernet-rgmiic-dont-ignore-request_irq-return-code.patch
-page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-cryptocop-fix-assertion-in-create_output_descriptors.patch
-hwmon-fix-check-on-unsigned-in-watchdog_release.patch
-gpio-fix-test-on-unsigned-in-lnw_irq_type.patch
-fbdev-tv_paln-bit-set-twice-in-sisfb_detect_vb_connect.patch
-hvc_console-fix-test-on-unsigned-in-hvc_console_print.patch
-irq-fix-test-in-__exit-parport_mfc3_exit.patch
+lis3-better-support-for-hp-6730x.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
