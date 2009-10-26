@@ -1,95 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: + frv-fix-check-on-unsigned-in-do_signal.patch added to -mm tree
-Date: Mon, 26 Oct 2009 14:24:01 -0700
-Message-ID: <200910262124.n9QLO1ck000890@imap1.linux-foundation.org>
+Subject: [merged] pcmcia-fix-controller-printk-format-warnings.patch removed from -mm tree
+Date: Mon, 26 Oct 2009 15:23:28 -0700
+Message-ID: <200910262223.n9QMNS41010930@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60054 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38023 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753846AbZJZVYk (ORCPT
+	by vger.kernel.org with ESMTP id S1753946AbZJZWYO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Oct 2009 17:24:40 -0400
+	Mon, 26 Oct 2009 18:24:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, dhowells@redhat.com
+To: randy.dunlap@oracle.com, greg@kroah.com, w.sang@pengutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     frv: fix check on unsigned in do_signal()
-has been added to the -mm tree.  Its filename is
-     frv-fix-check-on-unsigned-in-do_signal.patch
+     pcmcia: fix controller printk format warnings
+has been removed from the -mm tree.  Its filename was
+     pcmcia-fix-controller-printk-format-warnings.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: frv: fix check on unsigned in do_signal()
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: pcmcia: fix controller printk format warnings
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-syscallno is unsigned
+Fix new pcmcia printk format warnings:
+[This has now moved from linux-next to mainline.
+Originally sent 2009-SEP-17.]
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Signed-off-by: David Howells <dhowells@redhat.com>
+drivers/pcmcia/i82365.c:1055: warning: format '%#x' expects type 'unsigned int', but argument 6 has type 'phys_addr_t'
+drivers/pcmcia/i82365.c:1055: warning: format '%#x' expects type 'unsigned int', but argument 7 has type 'phys_addr_t'
+drivers/pcmcia/tcic.c:734: warning: format '%#x' expects type 'unsigned int', but argument 6 has type 'phys_addr_t'
+drivers/pcmcia/tcic.c:734: warning: format '%#x' expects type 'unsigned int', but argument 7 has type 'phys_addr_t'
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Wolfram Sang <w.sang@pengutronix.de>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN arch/frv/kernel/signal.c~frv-fix-check-on-unsigned-in-do_signal arch/frv/kernel/signal.c
---- a/arch/frv/kernel/signal.c~frv-fix-check-on-unsigned-in-do_signal
-+++ a/arch/frv/kernel/signal.c
-@@ -527,7 +527,7 @@ static void do_signal(void)
- 
- no_signal:
- 	/* Did we come from a system call? */
--	if (__frame->syscallno >= 0) {
-+	if (__frame->syscallno != -1) {
- 		/* Restart the system call - no handlers present */
- 		switch (__frame->gr8) {
- 		case -ERESTARTNOHAND:
+diff -puN drivers/pcmcia/i82365.c~pcmcia-fix-controller-printk-format-warnings drivers/pcmcia/i82365.c
+--- a/drivers/pcmcia/i82365.c~pcmcia-fix-controller-printk-format-warnings
++++ a/drivers/pcmcia/i82365.c
+@@ -1053,8 +1053,8 @@ static int i365_set_io_map(u_short sock,
+     u_char map, ioctl;
+     
+     debug(1, "SetIOMap(%d, %d, %#2.2x, %d ns, "
+-	  "%#x-%#x)\n", sock, io->map, io->flags,
+-	  io->speed, io->start, io->stop);
++	  "%#llx-%#llx)\n", sock, io->map, io->flags, io->speed,
++	  (unsigned long long)io->start, (unsigned long long)io->stop);
+     map = io->map;
+     if ((map > 1) || (io->start > 0xffff) || (io->stop > 0xffff) ||
+ 	(io->stop < io->start)) return -EINVAL;
+diff -puN drivers/pcmcia/tcic.c~pcmcia-fix-controller-printk-format-warnings drivers/pcmcia/tcic.c
+--- a/drivers/pcmcia/tcic.c~pcmcia-fix-controller-printk-format-warnings
++++ a/drivers/pcmcia/tcic.c
+@@ -732,8 +732,8 @@ static int tcic_set_io_map(struct pcmcia
+     u_short base, len, ioctl;
+     
+     debug(1, "SetIOMap(%d, %d, %#2.2x, %d ns, "
+-	  "%#x-%#x)\n", psock, io->map, io->flags,
+-	  io->speed, io->start, io->stop);
++	  "%#llx-%#llx)\n", psock, io->map, io->flags, io->speed,
++	  (unsigned long long)io->start, (unsigned long long)io->stop);
+     if ((io->map > 1) || (io->start > 0xffff) || (io->stop > 0xffff) ||
+ 	(io->stop < io->start)) return -EINVAL;
+     tcic_setw(TCIC_ADDR+2, TCIC_ADR2_INDREG | (psock << TCIC_SS_SHFT));
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-frv-fix-check-on-unsigned-in-do_signal.patch
+origin.patch
+cpufreq-add-cpufreq_get-stub-for-config_cpu_freq=n.patch
 linux-next.patch
-fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch
-omap-fix-unlikelyx-y.patch
-powernow-k8-fix-test-in-get_transition_latency.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-hfc_usb-fix-read-buffer-overflow.patch
-hisax-fix-test-in-waitforxfw.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
-st-fix-test-of-value-range-in-st_set_options.patch
-ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
-bfa-fix-test-in-bfad_os_fc_host_init.patch
-drivers-staging-octeon-ethernet-rgmiic-dont-ignore-request_irq-return-code.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices-depends-on-acpi.patch
+scsi-fix-func-names-in-kernel-doc.patch
+readahead-add-blk_run_backing_dev.patch
 page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-cryptocop-fix-assertion-in-create_output_descriptors.patch
-hwmon-fix-check-on-unsigned-in-watchdog_release.patch
-gpio-fix-test-on-unsigned-in-lnw_irq_type.patch
-fbdev-tv_paln-bit-set-twice-in-sisfb_detect_vb_connect.patch
-hvc_console-fix-test-on-unsigned-in-hvc_console_print.patch
-irq-fix-test-in-__exit-parport_mfc3_exit.patch
-cachefiles-cleanup-redundant-tests-on-unsigned.patch
+nodemask-make-nodemask_alloc-more-general.patch
+hugetlb-rework-hstate_next_node_-functions.patch
+hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions.patch
+hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions-fix.patch
+hugetlb-factor-init_nodemask_of_node.patch
+hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy.patch
+hugetlb-add-generic-definition-of-numa_no_node.patch
+hugetlb-add-per-node-hstate-attributes.patch
+hugetlb-update-hugetlb-documentation-for-numa-controls.patch
+hugetlb-use-only-nodes-with-memory-for-huge-pages.patch
+mm-clear-node-in-n_high_memory-and-stop-kswapd-when-all-memory-is-offlined.patch
+hugetlb-handle-memory-hot-plug-events.patch
+hugetlb-offload-per-node-attribute-registrations.patch
+mm-add-gfp-flags-for-nodemask_alloc-slab-allocations.patch
+spi-add-pci-interface-driver-for-designware-spi-core-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
