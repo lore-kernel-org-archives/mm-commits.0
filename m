@@ -1,65 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [folded] hfsplus-refuse-to-mount-volumes-larger-than-2tb-fix.patch removed from -mm tree
-Date: Mon, 26 Oct 2009 16:46:26 -0700
-Message-ID: <200910262346.n9QNkQNr010991@imap1.linux-foundation.org>
+Subject: [folded] checkpatch-fix-false-export_symbol-warning-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 26 Oct 2009 16:47:24 -0700
+Message-ID: <200910262347.n9QNlOum013265@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34878 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37852 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754722AbZJZXrv (ORCPT
+	by vger.kernel.org with ESMTP id S1753852AbZJZXsE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Oct 2009 19:47:51 -0400
+	Mon, 26 Oct 2009 19:48:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ben@decadent.org.uk, snakebyte@gmx.de, stable@kernel.org, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, apw@canonical.com, dwalker@fifo99.com, mingo@elte.hu, paulmck@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hfsplus-refuse-to-mount-volumes-larger-than-2tb-fix
+     checkpatch-fix-false-export_symbol-warning-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     hfsplus-refuse-to-mount-volumes-larger-than-2tb-fix.patch
+     checkpatch-fix-false-export_symbol-warning-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into hfsplus-refuse-to-mount-volumes-larger-than-2tb.patch
+This patch was dropped because it was folded into checkpatch-fix-false-export_symbol-warning.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hfsplus-refuse-to-mount-volumes-larger-than-2tb-fix
+Subject: checkpatch-fix-false-export_symbol-warning-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fix 32 and 64-bit issues
+WARNING: line over 80 characters
+#63: FILE: scripts/checkpatch.pl:1445:
++			     substr($lines[$realline_next - 1], $off_next) =~ /^\s*$/)) {
 
-Cc: <stable@kernel.org>
-Cc: Ben Hutchings <ben@decadent.org.uk>
-Cc: Eric Sesterhenn <snakebyte@gmx.de>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+WARNING: line over 80 characters
+#84: FILE: scripts/checkpatch.pl:1716:
++		     $lines[$realline_next - 1] =~ /EXPORT_UNUSED_SYMBOL.*\((.*)\)/)) {
+
+WARNING: line over 80 characters
+#95: FILE: scripts/checkpatch.pl:1723:
++				^.(?:$Storage\s+)?$Type\s*\(\s*\*\s*\Q$name\E\s*\)\s*\(|
+
+ERROR: code indent should use tabs where possible
+#107: FILE: scripts/checkpatch.pl:1734:
++                    ($line =~ /EXPORT_SYMBOL.*\((.*)\)/ ||$
+
+WARNING: line over 80 characters
+#114: FILE: scripts/checkpatch.pl:1741:
++			WARN("EXPORT_SYMBOL(foo); should immediately follow its function/variable\n" . $herecurr);
+
+total: 1 errors, 4 warnings, 85 lines checked
+
+./patches/checkpatch-fix-false-export_symbol-warning.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Andy Whitcroft <apw@canonical.com>
+Cc: Daniel Walker <dwalker@fifo99.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/wrapper.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/hfsplus/wrapper.c~hfsplus-refuse-to-mount-volumes-larger-than-2tb-fix fs/hfsplus/wrapper.c
---- a/fs/hfsplus/wrapper.c~hfsplus-refuse-to-mount-volumes-larger-than-2tb-fix
-+++ a/fs/hfsplus/wrapper.c
-@@ -99,7 +99,7 @@ int hfsplus_read_wrapper(struct super_bl
- 
- 	if (hfsplus_get_last_session(sb, &part_start, &part_size))
- 		return -EINVAL;
--	if (part_start + part_size > 0x100000000) {
-+	if ((u64)part_start + part_size > 0x100000000ULL) {
- 		pr_err("hfs: volumes larger than 2TB are not supported yet\n");
- 		return -EINVAL;
- 	}
+diff -puN scripts/checkpatch.pl~checkpatch-fix-false-export_symbol-warning-checkpatch-fixes scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-fix-false-export_symbol-warning-checkpatch-fixes
++++ a/scripts/checkpatch.pl
+@@ -1731,7 +1731,7 @@ sub process {
+ 		}
+ 		if (!defined $suppress_export{$linenr} &&
+ 		    $prevline =~ /^.\s*$/ &&
+-                    ($line =~ /EXPORT_SYMBOL.*\((.*)\)/ ||
++		    ($line =~ /EXPORT_SYMBOL.*\((.*)\)/ ||
+ 		     $line =~ /EXPORT_UNUSED_SYMBOL.*\((.*)\)/)) {
+ #print "FOO B <$lines[$linenr - 1]>\n";
+ 			$suppress_export{$linenr} = 2;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 hfsplus-refuse-to-mount-volumes-larger-than-2tb.patch
-hfsplus-refuse-to-mount-volumes-larger-than-2tb-fix.patch
 revert-mm-oom-analysis-add-buffer-cache-information-to-show_free_areas.patch
-8250_pci-add-ibm-saturn-serial-card-fix.patch
+8250_pci-add-ibm-saturn-serial-card.patch
+checkpatch-fix-false-export_symbol-warning.patch
 checkpatch-fix-false-export_symbol-warning-checkpatch-fixes.patch
 linux-next.patch
 next-remove-localversion.patch
