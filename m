@@ -1,59 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [folded] 8250_pci-add-ibm-saturn-serial-card-fix.patch removed from -mm tree
-Date: Mon, 26 Oct 2009 16:46:39 -0700
-Message-ID: <200910262346.n9QNkdQw011495@imap1.linux-foundation.org>
+Subject: [folded] hfsplus-refuse-to-mount-volumes-larger-than-2tb-fix.patch removed from -mm tree
+Date: Mon, 26 Oct 2009 16:46:26 -0700
+Message-ID: <200910262346.n9QNkQNr010991@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52466 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34878 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753852AbZJZXrM (ORCPT
+	by vger.kernel.org with ESMTP id S1754722AbZJZXrv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Oct 2009 19:47:12 -0400
+	Mon, 26 Oct 2009 19:47:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, benh@kernel.crashing.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ben@decadent.org.uk, snakebyte@gmx.de, stable@kernel.org, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     8250_pci-add-ibm-saturn-serial-card-fix
+     hfsplus-refuse-to-mount-volumes-larger-than-2tb-fix
 has been removed from the -mm tree.  Its filename was
-     8250_pci-add-ibm-saturn-serial-card-fix.patch
+     hfsplus-refuse-to-mount-volumes-larger-than-2tb-fix.patch
 
-This patch was dropped because it was folded into 8250_pci-add-ibm-saturn-serial-card.patch
+This patch was dropped because it was folded into hfsplus-refuse-to-mount-volumes-larger-than-2tb.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: 8250_pci-add-ibm-saturn-serial-card-fix
+Subject: hfsplus-refuse-to-mount-volumes-larger-than-2tb-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fix pci-ids.h layout
+fix 32 and 64-bit issues
 
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: <stable@kernel.org>
+Cc: Ben Hutchings <ben@decadent.org.uk>
+Cc: Eric Sesterhenn <snakebyte@gmx.de>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ fs/hfsplus/wrapper.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/pci_ids.h~8250_pci-add-ibm-saturn-serial-card-fix include/linux/pci_ids.h
---- a/include/linux/pci_ids.h~8250_pci-add-ibm-saturn-serial-card-fix
-+++ a/include/linux/pci_ids.h
-@@ -484,6 +484,7 @@
- #define PCI_DEVICE_ID_IBM_ICOM_V2_ONE_PORT_RVX_ONE_PORT_MDM	0x0251
- #define PCI_DEVICE_ID_IBM_ICOM_V2_ONE_PORT_RVX_ONE_PORT_MDM_PCIE 0x0361
- #define PCI_DEVICE_ID_IBM_ICOM_FOUR_PORT_MODEL	0x252
-+
- #define PCI_SUBVENDOR_ID_IBM		0x1014
- #define PCI_SUBDEVICE_ID_IBM_SATURN_SERIAL_ONE_PORT	0x03d4
+diff -puN fs/hfsplus/wrapper.c~hfsplus-refuse-to-mount-volumes-larger-than-2tb-fix fs/hfsplus/wrapper.c
+--- a/fs/hfsplus/wrapper.c~hfsplus-refuse-to-mount-volumes-larger-than-2tb-fix
++++ a/fs/hfsplus/wrapper.c
+@@ -99,7 +99,7 @@ int hfsplus_read_wrapper(struct super_bl
  
+ 	if (hfsplus_get_last_session(sb, &part_start, &part_size))
+ 		return -EINVAL;
+-	if (part_start + part_size > 0x100000000) {
++	if ((u64)part_start + part_size > 0x100000000ULL) {
+ 		pr_err("hfs: volumes larger than 2TB are not supported yet\n");
+ 		return -EINVAL;
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 hfsplus-refuse-to-mount-volumes-larger-than-2tb.patch
+hfsplus-refuse-to-mount-volumes-larger-than-2tb-fix.patch
 revert-mm-oom-analysis-add-buffer-cache-information-to-show_free_areas.patch
-8250_pci-add-ibm-saturn-serial-card.patch
 8250_pci-add-ibm-saturn-serial-card-fix.patch
 checkpatch-fix-false-export_symbol-warning-checkpatch-fixes.patch
 linux-next.patch
