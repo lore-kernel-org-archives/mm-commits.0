@@ -1,83 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ia64-sn-fix-percpu-warnings.patch removed from -mm tree
-Date: Mon, 26 Oct 2009 15:23:33 -0700
-Message-ID: <200910262223.n9QMNX4X011099@imap1.linux-foundation.org>
+Subject: [folded] 8250_pci-add-ibm-saturn-serial-card-fix.patch removed from -mm tree
+Date: Mon, 26 Oct 2009 16:46:39 -0700
+Message-ID: <200910262346.n9QNkdQw011495@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49341 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52466 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754058AbZJZWYe (ORCPT
+	by vger.kernel.org with ESMTP id S1753852AbZJZXrM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Oct 2009 18:24:34 -0400
+	Mon, 26 Oct 2009 19:47:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, jes@sgi.com, tj@kernel.org, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, benh@kernel.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ia64/sn: fix percpu warnings
+     8250_pci-add-ibm-saturn-serial-card-fix
 has been removed from the -mm tree.  Its filename was
-     ia64-sn-fix-percpu-warnings.patch
+     8250_pci-add-ibm-saturn-serial-card-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into 8250_pci-add-ibm-saturn-serial-card.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ia64/sn: fix percpu warnings
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: 8250_pci-add-ibm-saturn-serial-card-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix percpu types warning in ia64/sn:
+fix pci-ids.h layout
 
-arch/ia64/sn/kernel/setup.c:74: error: conflicting types for '__pcpu_scope___sn_cnodeid_to_nasid'
-arch/ia64/include/asm/sn/arch.h:74: error: previous declaration of '__pcpu_scope___sn_cnodeid_to_nasid' was here
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Jes Sorensen <jes@sgi.com>
-Acked-by: Tejun Heo <tj@kernel.org>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN arch/ia64/include/asm/sn/arch.h~ia64-sn-fix-percpu-warnings arch/ia64/include/asm/sn/arch.h
---- a/arch/ia64/include/asm/sn/arch.h~ia64-sn-fix-percpu-warnings
-+++ a/arch/ia64/include/asm/sn/arch.h
-@@ -71,7 +71,7 @@ DECLARE_PER_CPU(struct sn_hub_info_s, __
-  * Compact node ID to nasid mappings kept in the per-cpu data areas of each
-  * cpu.
-  */
--DECLARE_PER_CPU(short, __sn_cnodeid_to_nasid[MAX_COMPACT_NODES]);
-+DECLARE_PER_CPU(short [MAX_COMPACT_NODES], __sn_cnodeid_to_nasid);
- #define sn_cnodeid_to_nasid	(&__get_cpu_var(__sn_cnodeid_to_nasid[0]))
- 
+diff -puN include/linux/pci_ids.h~8250_pci-add-ibm-saturn-serial-card-fix include/linux/pci_ids.h
+--- a/include/linux/pci_ids.h~8250_pci-add-ibm-saturn-serial-card-fix
++++ a/include/linux/pci_ids.h
+@@ -484,6 +484,7 @@
+ #define PCI_DEVICE_ID_IBM_ICOM_V2_ONE_PORT_RVX_ONE_PORT_MDM	0x0251
+ #define PCI_DEVICE_ID_IBM_ICOM_V2_ONE_PORT_RVX_ONE_PORT_MDM_PCIE 0x0361
+ #define PCI_DEVICE_ID_IBM_ICOM_FOUR_PORT_MODEL	0x252
++
+ #define PCI_SUBVENDOR_ID_IBM		0x1014
+ #define PCI_SUBDEVICE_ID_IBM_SATURN_SERIAL_ONE_PORT	0x03d4
  
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-cpufreq-add-cpufreq_get-stub-for-config_cpu_freq=n.patch
+hfsplus-refuse-to-mount-volumes-larger-than-2tb.patch
+revert-mm-oom-analysis-add-buffer-cache-information-to-show_free_areas.patch
+8250_pci-add-ibm-saturn-serial-card.patch
+8250_pci-add-ibm-saturn-serial-card-fix.patch
+checkpatch-fix-false-export_symbol-warning-checkpatch-fixes.patch
 linux-next.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices-depends-on-acpi.patch
-scsi-fix-func-names-in-kernel-doc.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices-fix.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+3x59x-fix-pci-resource-management.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+include-trace-events-lockdeph-fix-do_div-warning.patch
+st-fix-test-of-value-range-in-st_set_options.patch
+scsi-add-hpsa-driver-for-hp-smart-array-controllers-fix.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+fs-improve-remountro-vs-buffercache-coherency.patch
+percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
+vfs-implement-posix-o_sync-and-o_dsync-semantics-checkpatch-fixes.patch
 readahead-add-blk_run_backing_dev.patch
-page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
-nodemask-make-nodemask_alloc-more-general.patch
-hugetlb-rework-hstate_next_node_-functions.patch
-hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions.patch
-hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions-fix.patch
-hugetlb-factor-init_nodemask_of_node.patch
-hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy.patch
-hugetlb-add-generic-definition-of-numa_no_node.patch
-hugetlb-add-per-node-hstate-attributes.patch
-hugetlb-update-hugetlb-documentation-for-numa-controls.patch
-hugetlb-use-only-nodes-with-memory-for-huge-pages.patch
-mm-clear-node-in-n_high_memory-and-stop-kswapd-when-all-memory-is-offlined.patch
-hugetlb-handle-memory-hot-plug-events.patch
-hugetlb-offload-per-node-attribute-registrations.patch
-mm-add-gfp-flags-for-nodemask_alloc-slab-allocations.patch
-spi-add-pci-interface-driver-for-designware-spi-core-fix.patch
+mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
+drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
+rwsem-fix-rwsem_is_locked-bugs-fix.patch
+errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
+hwmon-w83627ehf-updates-checkpatch-fixes.patch
+spi-controller-driver-for-designware-spi-core-fix.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs.patch
+memcg-coalesce-charging-via-percpu-storage-fix.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
 reiser4-export-remove_from_page_cache-fix.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+reiser4-disable.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
