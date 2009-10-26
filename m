@@ -1,87 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hwmon-fix-check-on-unsigned-in-watchdog_release.patch removed from -mm tree
-Date: Mon, 26 Oct 2009 15:23:39 -0700
-Message-ID: <200910262223.n9QMNd9d011387@imap1.linux-foundation.org>
+Subject: [merged] ia64-sn-fix-percpu-warnings.patch removed from -mm tree
+Date: Mon, 26 Oct 2009 15:23:33 -0700
+Message-ID: <200910262223.n9QMNX4X011099@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34097 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49341 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753946AbZJZWY3 (ORCPT
+	by vger.kernel.org with ESMTP id S1754058AbZJZWYe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Oct 2009 18:24:29 -0400
+	Mon, 26 Oct 2009 18:24:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, hdegoede@redhat.com, khali@linux-fr.org, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, jes@sgi.com, tj@kernel.org, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hwmon: fix check on unsigned in watchdog_release()
+     ia64/sn: fix percpu warnings
 has been removed from the -mm tree.  Its filename was
-     hwmon-fix-check-on-unsigned-in-watchdog_release.patch
+     ia64-sn-fix-percpu-warnings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hwmon: fix check on unsigned in watchdog_release()
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: ia64/sn: fix percpu warnings
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-If unsigned the watchdog_trigger() return value will not be checked
-correctly.
+Fix percpu types warning in ia64/sn:
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Hans de Goede <hdegoede@redhat.com>
+arch/ia64/sn/kernel/setup.c:74: error: conflicting types for '__pcpu_scope___sn_cnodeid_to_nasid'
+arch/ia64/include/asm/sn/arch.h:74: error: previous declaration of '__pcpu_scope___sn_cnodeid_to_nasid' was here
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Jes Sorensen <jes@sgi.com>
+Acked-by: Tejun Heo <tj@kernel.org>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/hwmon/fschmd.c~hwmon-fix-check-on-unsigned-in-watchdog_release drivers/hwmon/fschmd.c
---- a/drivers/hwmon/fschmd.c~hwmon-fix-check-on-unsigned-in-watchdog_release
-+++ a/drivers/hwmon/fschmd.c
-@@ -819,7 +819,7 @@ static int watchdog_release(struct inode
- static ssize_t watchdog_write(struct file *filp, const char __user *buf,
- 	size_t count, loff_t *offset)
- {
--	size_t ret;
-+	int ret;
- 	struct fschmd_data *data = filp->private_data;
+diff -puN arch/ia64/include/asm/sn/arch.h~ia64-sn-fix-percpu-warnings arch/ia64/include/asm/sn/arch.h
+--- a/arch/ia64/include/asm/sn/arch.h~ia64-sn-fix-percpu-warnings
++++ a/arch/ia64/include/asm/sn/arch.h
+@@ -71,7 +71,7 @@ DECLARE_PER_CPU(struct sn_hub_info_s, __
+  * Compact node ID to nasid mappings kept in the per-cpu data areas of each
+  * cpu.
+  */
+-DECLARE_PER_CPU(short, __sn_cnodeid_to_nasid[MAX_COMPACT_NODES]);
++DECLARE_PER_CPU(short [MAX_COMPACT_NODES], __sn_cnodeid_to_nasid);
+ #define sn_cnodeid_to_nasid	(&__get_cpu_var(__sn_cnodeid_to_nasid[0]))
  
- 	if (count) {
+ 
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-frv-fix-check-on-unsigned-in-do_signal.patch
+cpufreq-add-cpufreq_get-stub-for-config_cpu_freq=n.patch
 linux-next.patch
-fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch
-omap-fix-unlikelyx-y.patch
-powernow-k8-fix-test-in-get_transition_latency.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-hfc_usb-fix-read-buffer-overflow.patch
-hisax-fix-test-in-waitforxfw.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
-st-fix-test-of-value-range-in-st_set_options.patch
-ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
-bfa-fix-test-in-bfad_os_fc_host_init.patch
-drivers-staging-octeon-ethernet-rgmiic-dont-ignore-request_irq-return-code.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices-depends-on-acpi.patch
+scsi-fix-func-names-in-kernel-doc.patch
+readahead-add-blk_run_backing_dev.patch
 page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-cryptocop-fix-assertion-in-create_output_descriptors.patch
-gpio-fix-test-on-unsigned-in-lnw_irq_type.patch
-fbdev-tv_paln-bit-set-twice-in-sisfb_detect_vb_connect.patch
-hvc_console-fix-test-on-unsigned-in-hvc_console_print.patch
-irq-fix-test-in-__exit-parport_mfc3_exit.patch
-cachefiles-cleanup-redundant-tests-on-unsigned.patch
+nodemask-make-nodemask_alloc-more-general.patch
+hugetlb-rework-hstate_next_node_-functions.patch
+hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions.patch
+hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions-fix.patch
+hugetlb-factor-init_nodemask_of_node.patch
+hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy.patch
+hugetlb-add-generic-definition-of-numa_no_node.patch
+hugetlb-add-per-node-hstate-attributes.patch
+hugetlb-update-hugetlb-documentation-for-numa-controls.patch
+hugetlb-use-only-nodes-with-memory-for-huge-pages.patch
+mm-clear-node-in-n_high_memory-and-stop-kswapd-when-all-memory-is-offlined.patch
+hugetlb-handle-memory-hot-plug-events.patch
+hugetlb-offload-per-node-attribute-registrations.patch
+mm-add-gfp-flags-for-nodemask_alloc-slab-allocations.patch
+spi-add-pci-interface-driver-for-designware-spi-core-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
