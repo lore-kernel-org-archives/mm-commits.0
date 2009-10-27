@@ -1,94 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-staging-octeon-ethernet-rgmiic-dont-ignore-request_irq-return-code.patch removed from -mm tree
-Date: Tue, 27 Oct 2009 11:40:48 -0700
-Message-ID: <200910271840.n9RIemSR013329@imap1.linux-foundation.org>
+Subject: + scripts-checkpatchpl-add-warn-on-sizeof.patch added to -mm tree
+Date: Tue, 27 Oct 2009 12:29:00 -0700
+Message-ID: <200910271929.n9RJT0nx029322@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53221 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34028 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755860AbZJ0SlQ (ORCPT
+	by vger.kernel.org with ESMTP id S1756628AbZJ0T3I (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Oct 2009 14:41:16 -0400
+	Tue, 27 Oct 2009 15:29:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, ddaney@caviumnetworks.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: joe@perches.com, apw@shadowen.org
 
 
 The patch titled
-     drivers/staging/octeon/ethernet-rgmii.c: don't ignore request_irq() return code
-has been removed from the -mm tree.  Its filename was
-     drivers-staging-octeon-ethernet-rgmiic-dont-ignore-request_irq-return-code.patch
+     scripts/checkpatch.pl: add WARN on sizeof(&foo)
+has been added to the -mm tree.  Its filename is
+     scripts-checkpatchpl-add-warn-on-sizeof.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
+
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: drivers/staging/octeon/ethernet-rgmii.c: don't ignore request_irq() return code
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: scripts/checkpatch.pl: add WARN on sizeof(&foo)
+=46rom: Joe Perches <joe@perches.com>
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Acked-by: David Daney <ddaney@caviumnetworks.com>
-Cc: Greg KH <greg@kroah.com>
+sizeof(&foo) is frequently an error.  Warn on its use.
+
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/octeon/ethernet-rgmii.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/staging/octeon/ethernet-rgmii.c~drivers-staging-octeon-ethernet-rgmiic-dont-ignore-request_irq-return-code drivers/staging/octeon/ethernet-rgmii.c
---- a/drivers/staging/octeon/ethernet-rgmii.c~drivers-staging-octeon-ethernet-rgmiic-dont-ignore-request_irq-return-code
-+++ a/drivers/staging/octeon/ethernet-rgmii.c
-@@ -308,7 +308,7 @@ int cvm_oct_rgmii_init(struct net_device
- 
- 	/*
- 	 * Due to GMX errata in CN3XXX series chips, it is necessary
--	 * to take the link down immediately whne the PHY changes
-+	 * to take the link down immediately when the PHY changes
- 	 * state. In order to do this we call the poll function every
- 	 * time the RGMII inband status changes.  This may cause
- 	 * problems if the PHY doesn't implement inband status
-@@ -317,6 +317,8 @@ int cvm_oct_rgmii_init(struct net_device
- 	if (number_rgmii_ports == 0) {
- 		r = request_irq(OCTEON_IRQ_RML, cvm_oct_rgmii_rml_interrupt,
- 				IRQF_SHARED, "RGMII", &number_rgmii_ports);
-+		if (r != 0)
-+			return r;
- 	}
- 	number_rgmii_ports++;
- 
+diff -puN scripts/checkpatch.pl~scripts-checkpatchpl-add-warn-on-sizeof=
+ scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~scripts-checkpatchpl-add-warn-on-sizeof
++++ a/scripts/checkpatch.pl
+@@ -2580,6 +2580,11 @@ sub process {
+ 			WARN("plain inline is preferred over $1\n" . $herecurr);
+ 		}
+=20
++# check for sizeof(&)
++		if ($line =3D~ /\bsizeof\s*\(\s*\&/) {
++			WARN("sizeof(& should be avoided\n" . $herecurr);
++		}
++
+ # check for new externs in .c files.
+ 		if ($realfile =3D~ /\.c$/ && defined $stat &&
+ 		    $stat =3D~ /^.\s*(?:extern\s+)?$Type\s+($Ident)(\s*)\(/s)
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
-frv-fix-check-on-unsigned-in-do_signal.patch
+maintainers-update-generic-uio-for-pci-devices.patch
+maintainers-update-tracing-section.patch
+maintainers-update-omap-tony-lindgren-email-name.patch
+maintainers-change-atm-mailing-list-to-moderated.patch
+maintainers-use-tab-not-spaces-after-field-types.patch
+maintainers-update-kernel-janitors-after-mismerge.patch
+maintainers-update-score-architecture-name-style-and-add-file-pattern.p=
+atch
+maintainers-simple-firmware-interface-update-email-style.patch
+maintainers-winbond-cir-integrate-p-m-lines-fixup-david-h=E4rdemans-nam=
+e.patch
+maintainers-fix-up-peripheral-spelling.patch
+maintainers-update-wolfson-microelectronics.patch
+scripts-get_maintainerpl-add-patch-file-search-for-keywords.patch
+maintainers-document-new-k-entry-type.patch
+maintainers-add-open-firmware-flattened-device-tree-entry.patch
 linux-next.patch
-fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch
-omap-fix-unlikelyx-y.patch
-powernow-k8-fix-test-in-get_transition_latency.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-hfc_usb-fix-read-buffer-overflow.patch
-hisax-fix-test-in-waitforxfw.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
-st-fix-test-of-value-range-in-st_set_options.patch
-ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
-bfa-fix-test-in-bfad_os_fc_host_init.patch
-page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-cryptocop-fix-assertion-in-create_output_descriptors.patch
-gpio-fix-test-on-unsigned-in-lnw_irq_type.patch
-fbdev-tv_paln-bit-set-twice-in-sisfb_detect_vb_connect.patch
-hvc_console-fix-test-on-unsigned-in-hvc_console_print.patch
-irq-fix-test-in-__exit-parport_mfc3_exit.patch
-cachefiles-cleanup-redundant-tests-on-unsigned.patch
+checkpatchpl-allow-80-char-lines-for-logging-functions-not-just-printk.=
+patch
+dynamic_debugh-kernelh-remove-kbuild_modname-from-dynamic_pr_debug.patc=
+h
+kernelh-remove-initialization-of-bool-in-printk_once.patch
+lib-vsprintfc-add-%pu-to-print-uuid-guids.patch
+fs-xfs-xfs_log_recoverc-use-%pu-to-print-uuids.patch
+randomc-use-%pu-to-print-uuids.patch
+drivers-firmware-dmi_scanc-use-%pub-to-print-uuids.patch
+drivers-md-mdc-use-%pu-to-print-uuids.patch
+fs-gfs2-sysc-use-%pub-to-print-uuids.patch
+fs-ubifs-use-%pub-to-print-uuids.patch
+efih-use-%pul-to-print-uuids.patch
+drivers-media-video-uvc-use-%pul-to-print-uuids.patch
+lib-unified-uuid-guid-definition.patch
+gfs2-use-unified-uuid-guid-code.patch
+scripts-checkpatchpl-add-warn-on-sizeof.patch
+isicomc-use-pr_fmt-and-pr_level.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
