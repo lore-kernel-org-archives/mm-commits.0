@@ -1,27 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-brocade-bfa-use-single-line-m-and-tabs.patch added to -mm tree
-Date: Tue, 27 Oct 2009 12:32:32 -0700
-Message-ID: <200910271932.n9RJWWNf005167@imap1.linux-foundation.org>
+Subject: + maintainers-vmware-vmxnet3-quote-name-with-comma-and-period-use-tabs.patch added to -mm tree
+Date: Tue, 27 Oct 2009 12:32:36 -0700
+Message-ID: <200910271932.n9RJWaPN005384@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43581 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50022 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756703AbZJ0Tcb (ORCPT
+	by vger.kernel.org with ESMTP id S1756673AbZJ0Tce (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Oct 2009 15:32:31 -0400
+	Tue, 27 Oct 2009 15:32:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, huangj@brocade.com
+Cc: joe@perches.com, sbhatewara@vmware.com
 
 
 The patch titled
-     MAINTAINERS: BROCADE BFA - Use single line M: and tabs
+     MAINTAINERS: VMWARE VMXNET3 - Quote name with comma and period, us=
+e tabs
 has been added to the -mm tree.  Its filename is
-     maintainers-brocade-bfa-use-single-line-m-and-tabs.patch
+     maintainers-vmware-vmxnet3-quote-name-with-comma-and-period-use-ta=
+bs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,38 +41,41 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
 otm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: BROCADE BFA - Use single line M: and tabs
+Subject: MAINTAINERS: VMWARE VMXNET3 - Quote name with comma and period=
+, use tabs
 =46rom: Joe Perches <joe@perches.com>
 
-Integrate P:/M: to single M:
-Use tab for spacing
+Names with periods or commas need to be quoted
+Use tab not spaces
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Jing Huang <huangj@brocade.com>
+Cc: Shreyas Bhatewara <sbhatewara@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN MAINTAINERS~maintainers-brocade-bfa-use-single-line-m-and-tab=
-s MAINTAINERS
---- a/MAINTAINERS~maintainers-brocade-bfa-use-single-line-m-and-tabs
+diff -puN MAINTAINERS~maintainers-vmware-vmxnet3-quote-name-with-comma-=
+and-period-use-tabs MAINTAINERS
+--- a/MAINTAINERS~maintainers-vmware-vmxnet3-quote-name-with-comma-and-=
+period-use-tabs
 +++ a/MAINTAINERS
-@@ -1244,11 +1244,10 @@ S:	Supported
- F:	drivers/net/tg3.*
+@@ -5679,11 +5679,11 @@ F:	drivers/vlynq/vlynq.c
+ F:	include/linux/vlynq.h
 =20
- BROCADE BFA FC SCSI DRIVER
--P:      Jing Huang
--M:      huangj@brocade.com
--L:      linux-scsi@vger.kernel.org
--S:      Supported
--F:      drivers/scsi/bfa/
-+M:	Jing Huang <huangj@brocade.com>
-+L:	linux-scsi@vger.kernel.org
-+S:	Supported
-+F:	drivers/scsi/bfa/
+ VMWARE VMXNET3 ETHERNET DRIVER
+-M:     Shreyas Bhatewara <sbhatewara@vmware.com>
+-M:     VMware, Inc. <pv-drivers@vmware.com>
+-L:     netdev@vger.kernel.org
+-S:     Maintained
+-F:     drivers/net/vmxnet3/
++M:	Shreyas Bhatewara <sbhatewara@vmware.com>
++M:	"VMware, Inc." <pv-drivers@vmware.com>
++L:	netdev@vger.kernel.org
++S:	Maintained
++F:	drivers/net/vmxnet3/
 =20
- BSG (block layer generic sg v4 driver)
- M:	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+ VOLTAGE AND CURRENT REGULATOR FRAMEWORK
+ M:	Liam Girdwood <lrg@slimlogic.co.uk>
 _
 
 Patches currently in -mm which might be from joe@perches.com are
