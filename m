@@ -1,101 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] genalloc-use-bitmap_find_next_zero_area.patch removed from -mm tree
-Date: Tue, 27 Oct 2009 01:20:05 -0700
-Message-ID: <200910270820.n9R8K5L4015219@imap1.linux-foundation.org>
+Subject: [to-be-updated] isp1362-hcd-use-bitmap_find_next_zero_area.patch removed from -mm tree
+Date: Tue, 27 Oct 2009 01:19:41 -0700
+Message-ID: <200910270819.n9R8JfQn014201@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44651 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42524 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932141AbZJ0IUd (ORCPT
+	by vger.kernel.org with ESMTP id S932170AbZJ0IUY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Oct 2009 04:20:33 -0400
+	Tue, 27 Oct 2009 04:20:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, LW@KARO-electronics.de, gregkh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     genalloc: use bitmap_find_next_zero_area()
+     isp1362-hcd: use bitmap_find_next_zero_area()
 has been removed from the -mm tree.  Its filename was
-     genalloc-use-bitmap_find_next_zero_area.patch
+     isp1362-hcd-use-bitmap_find_next_zero_area.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: genalloc: use bitmap_find_next_zero_area()
+Subject: isp1362-hcd: use bitmap_find_next_zero_area()
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Lothar Wassmann <LW@KARO-electronics.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN lib/genalloc.c~genalloc-use-bitmap_find_next_zero_area lib/genalloc.c
---- a/lib/genalloc.c~genalloc-use-bitmap_find_next_zero_area
-+++ a/lib/genalloc.c
-@@ -11,6 +11,7 @@
-  */
- 
- #include <linux/module.h>
+diff -puN drivers/usb/host/isp1362-hcd.c~isp1362-hcd-use-bitmap_find_next_zero_area drivers/usb/host/isp1362-hcd.c
+--- a/drivers/usb/host/isp1362-hcd.c~isp1362-hcd-use-bitmap_find_next_zero_area
++++ a/drivers/usb/host/isp1362-hcd.c
+@@ -80,7 +80,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/pm.h>
+ #include <linux/io.h>
+-#include <linux/bitops.h>
 +#include <linux/bitmap.h>
- #include <linux/genalloc.h>
  
+ #include <asm/irq.h>
+ #include <asm/system.h>
+@@ -190,10 +190,8 @@ static int claim_ptd_buffers(struct isp1
+ 			     struct isp1362_ep *ep, u16 len)
+ {
+ 	int ptd_offset = -EINVAL;
+-	int index;
+ 	int num_ptds = ((len + PTD_HEADER_SIZE - 1) / epq->blk_size) + 1;
+-	int found = -1;
+-	int last = -1;
++	int found;
  
-@@ -114,7 +115,7 @@ unsigned long gen_pool_alloc(struct gen_
- 	struct gen_pool_chunk *chunk;
- 	unsigned long addr, flags;
- 	int order = pool->min_alloc_order;
--	int nbits, bit, start_bit, end_bit;
-+	int nbits, start_bit, end_bit;
+ 	BUG_ON(len > epq->buf_size);
  
- 	if (size == 0)
- 		return 0;
-@@ -129,29 +130,19 @@ unsigned long gen_pool_alloc(struct gen_
- 		end_bit -= nbits + 1;
+@@ -205,20 +203,9 @@ static int claim_ptd_buffers(struct isp1
+ 		    epq->name, len, epq->blk_size, num_ptds, epq->buf_map, epq->skip_map);
+ 	BUG_ON(ep->num_ptds != 0);
  
- 		spin_lock_irqsave(&chunk->lock, flags);
--		bit = -1;
--		while (bit + 1 < end_bit) {
--			bit = find_next_zero_bit(chunk->bits, end_bit, bit + 1);
--			if (bit >= end_bit)
+-	for (index = 0; index <= epq->buf_count - num_ptds; index++) {
+-		if (test_bit(index, &epq->buf_map))
+-			continue;
+-		found = index;
+-		for (last = index + 1; last < index + num_ptds; last++) {
+-			if (test_bit(last, &epq->buf_map)) {
+-				found = -1;
 -				break;
--
--			start_bit = bit;
--			if (nbits > 1) {
--				bit = find_next_bit(chunk->bits, bit + nbits,
--							bit + 1);
--				if (bit - start_bit < nbits)
--					continue;
 -			}
--
--			addr = chunk->start_addr +
--					    ((unsigned long)start_bit << order);
--			while (nbits--)
--				__set_bit(start_bit++, chunk->bits);
-+		start_bit = bitmap_find_next_zero_area(chunk->bits, end_bit, 0,
-+						nbits, 0);
-+		if (start_bit >= end_bit) {
- 			spin_unlock_irqrestore(&chunk->lock, flags);
--			read_unlock(&pool->lock);
--			return addr;
-+			continue;
- 		}
-+
-+		addr = chunk->start_addr + ((unsigned long)start_bit << order);
-+
-+		bitmap_set(chunk->bits, start_bit, nbits);
- 		spin_unlock_irqrestore(&chunk->lock, flags);
-+		read_unlock(&pool->lock);
-+		return addr;
- 	}
- 	read_unlock(&pool->lock);
- 	return 0;
+-		}
+-		if (found >= 0)
+-			break;
+-	}
+-	if (found < 0)
++	found = bitmap_find_next_zero_area(&epq->buf_map, epq->buf_count, 0,
++						num_ptds, 0);
++	if (found >= epq->buf_count)
+ 		return -EOVERFLOW;
+ 
+ 	DBG(1, "%s: Found %d PTDs[%d] for %d/%d byte\n", __func__,
+@@ -230,8 +217,7 @@ static int claim_ptd_buffers(struct isp1
+ 	epq->buf_avail -= num_ptds;
+ 	BUG_ON(epq->buf_avail > epq->buf_count);
+ 	ep->ptd_index = found;
+-	for (index = found; index < last; index++)
+-		__set_bit(index, &epq->buf_map);
++	bitmap_set(&epq->buf_map, found, num_ptds);
+ 	DBG(1, "%s: Done %s PTD[%d] $%04x, avail %d count %d claimed %d %08lx:%08lx\n",
+ 	    __func__, epq->name, ep->ptd_index, ep->ptd_offset,
+ 	    epq->buf_avail, epq->buf_count, num_ptds, epq->buf_map, epq->skip_map);
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 linux-next.patch
+isp1362-hcd-use-bitmap_find_next_zero_area.patch
+mlx4-use-bitmap_find_next_zero_area.patch
+sparc-use-bitmap_find_next_zero_area.patch
+ia64-use-bitmap_find_next_zero_area.patch
 genalloc-use-bitmap_find_next_zero_area.patch
 
