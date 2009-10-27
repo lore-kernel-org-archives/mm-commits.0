@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + page-allocator-always-wake-kswapd-when-restarting-an-allocation-attempt-after-direct-reclaim-failed.patch added to -mm tree
-Date: Tue, 27 Oct 2009 13:19:14 -0700
-Message-ID: <200910272019.n9RKJESt017577@imap1.linux-foundation.org>
+Subject: + page-allocator-do-not-allow-interrupts-to-use-alloc_harder.patch added to -mm tree
+Date: Tue, 27 Oct 2009 13:19:16 -0700
+Message-ID: <200910272019.n9RKJHNB017590@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37274 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51013 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756769AbZJ0UUV (ORCPT
+	by vger.kernel.org with ESMTP id S1756773AbZJ0UUg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Oct 2009 16:20:21 -0400
+	Tue, 27 Oct 2009 16:20:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mel@csn.ul.ie, cl@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, penberg@cs.helsinki.fi, stable@kernel.org
+Cc: mel@csn.ul.ie, kosaki.motohiro@jp.fujitsu.com, penberg@cs.helsinki.fi, riel@redhat.com, rientjes@google.com, stable@kernel.org
 
 
 The patch titled
-     page allocator: always wake kswapd when restarting an allocation attempt after direct reclaim failed
+     page allocator: Do not allow interrupts to use ALLOC_HARDER
 has been added to the -mm tree.  Its filename is
-     page-allocator-always-wake-kswapd-when-restarting-an-allocation-attempt-after-direct-reclaim-failed.patch
+     page-allocator-do-not-allow-interrupts-to-use-alloc_harder.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page allocator: always wake kswapd when restarting an allocation attempt after direct reclaim failed
+Subject: page allocator: Do not allow interrupts to use ALLOC_HARDER
 From: Mel Gorman <mel@csn.ul.ie>
 
-If a direct reclaim makes no forward progress, it considers whether it
-should go OOM or not.  Whether OOM is triggered or not, it may retry the
-allocation afterwards.  In times past, this would always wake kswapd as
-well but currently, kswapd is not woken up after direct reclaim fails. 
-For order-0 allocations, this makes little difference but if there is a
-heavy mix of higher-order allocations that direct reclaim is failing for,
-it might mean that kswapd is not rewoken for higher orders as much as it
-did previously.
+Commit 341ce06f69abfafa31b9468410a13dbd60e2b237 ("page allocator:
+calculate the alloc_flags for allocation only once") altered watermark
+logic slightly by allowing rt_tasks that are handling an interrupt to set
+ALLOC_HARDER.  This patch brings the watermark logic more in line with
+2.6.30.
 
-This patch wakes up kswapd when an allocation is being retried after a
-direct reclaim failure.  It would be expected that kswapd is already
-awake, but this has the effect of telling kswapd to reclaim at the higher
-order as well.
-
+[rientjes@google.com: Spotted the problem]
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Reviewed-by: Christoph Lameter <cl@linux-foundation.org>
 Reviewed-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Reviewed-by: Rik van Riel <riel@redhat.com>
 Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: David Rientjes <rientjes@google.com>
 Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN mm/page_alloc.c~page-allocator-always-wake-kswapd-when-restarting-an-allocation-attempt-after-direct-reclaim-failed mm/page_alloc.c
---- a/mm/page_alloc.c~page-allocator-always-wake-kswapd-when-restarting-an-allocation-attempt-after-direct-reclaim-failed
+diff -puN mm/page_alloc.c~page-allocator-do-not-allow-interrupts-to-use-alloc_harder mm/page_alloc.c
+--- a/mm/page_alloc.c~page-allocator-do-not-allow-interrupts-to-use-alloc_harder
 +++ a/mm/page_alloc.c
-@@ -1817,9 +1817,9 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
- 	if (NUMA_BUILD && (gfp_mask & GFP_THISNODE) == GFP_THISNODE)
- 		goto nopage;
+@@ -1769,7 +1769,7 @@ gfp_to_alloc_flags(gfp_t gfp_mask)
+ 		 * See also cpuset_zone_allowed() comment in kernel/cpuset.c.
+ 		 */
+ 		alloc_flags &= ~ALLOC_CPUSET;
+-	} else if (unlikely(rt_task(p)))
++	} else if (unlikely(rt_task(p)) && !in_interrupt())
+ 		alloc_flags |= ALLOC_HARDER;
  
-+restart:
- 	wake_all_kswapd(order, zonelist, high_zoneidx);
- 
--restart:
- 	/*
- 	 * OK, we're below the kswapd watermark and have kicked background
- 	 * reclaim. Now things get more complex, so set up alloc_flags according
+ 	if (likely(!(gfp_mask & __GFP_NOMEMALLOC))) {
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
