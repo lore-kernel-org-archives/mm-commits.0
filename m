@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + page-allocator-do-not-allow-interrupts-to-use-alloc_harder.patch added to -mm tree
-Date: Tue, 27 Oct 2009 13:19:16 -0700
-Message-ID: <200910272019.n9RKJHNB017590@imap1.linux-foundation.org>
+Subject: + acpi-remove-nid_inval.patch added to -mm tree
+Date: Tue, 27 Oct 2009 15:20:17 -0700
+Message-ID: <200910272220.n9RMKHdE010101@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51013 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37745 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756773AbZJ0UUg (ORCPT
+	by vger.kernel.org with ESMTP id S1753651AbZJ0WUw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Oct 2009 16:20:36 -0400
+	Tue, 27 Oct 2009 18:20:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mel@csn.ul.ie, kosaki.motohiro@jp.fujitsu.com, penberg@cs.helsinki.fi, riel@redhat.com, rientjes@google.com, stable@kernel.org
+Cc: rientjes@google.com, Lee.Schermerhorn@hp.com, gorcunov@openvz.org, lenb@kernel.org
 
 
 The patch titled
-     page allocator: Do not allow interrupts to use ALLOC_HARDER
+     acpi: remove NID_INVAL
 has been added to the -mm tree.  Its filename is
-     page-allocator-do-not-allow-interrupts-to-use-alloc_harder.patch
+     acpi-remove-nid_inval.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,50 +34,92 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page allocator: Do not allow interrupts to use ALLOC_HARDER
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: acpi: remove NID_INVAL
+From: David Rientjes <rientjes@google.com>
 
-Commit 341ce06f69abfafa31b9468410a13dbd60e2b237 ("page allocator:
-calculate the alloc_flags for allocation only once") altered watermark
-logic slightly by allowing rt_tasks that are handling an interrupt to set
-ALLOC_HARDER.  This patch brings the watermark logic more in line with
-2.6.30.
+NUMA_NO_NODE has been exported globally and thus it can replace NID_INVAL
+in the acpi code.
 
-[rientjes@google.com: Spotted the problem]
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Reviewed-by: Pekka Enberg <penberg@cs.helsinki.fi>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: <stable@kernel.org>
+Also removes the unused acpi_unmap_pxm_to_node() function.
+
+Cc: Len Brown <lenb@kernel.org>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN mm/page_alloc.c~page-allocator-do-not-allow-interrupts-to-use-alloc_harder mm/page_alloc.c
---- a/mm/page_alloc.c~page-allocator-do-not-allow-interrupts-to-use-alloc_harder
-+++ a/mm/page_alloc.c
-@@ -1769,7 +1769,7 @@ gfp_to_alloc_flags(gfp_t gfp_mask)
- 		 * See also cpuset_zone_allowed() comment in kernel/cpuset.c.
- 		 */
- 		alloc_flags &= ~ALLOC_CPUSET;
--	} else if (unlikely(rt_task(p)))
-+	} else if (unlikely(rt_task(p)) && !in_interrupt())
- 		alloc_flags |= ALLOC_HARDER;
+diff -puN drivers/acpi/numa.c~acpi-remove-nid_inval drivers/acpi/numa.c
+--- a/drivers/acpi/numa.c~acpi-remove-nid_inval
++++ a/drivers/acpi/numa.c
+@@ -28,6 +28,7 @@
+ #include <linux/types.h>
+ #include <linux/errno.h>
+ #include <linux/acpi.h>
++#include <linux/numa.h>
+ #include <acpi/acpi_bus.h>
  
- 	if (likely(!(gfp_mask & __GFP_NOMEMALLOC))) {
+ #define PREFIX "ACPI: "
+@@ -39,15 +40,15 @@ ACPI_MODULE_NAME("numa");
+ static nodemask_t nodes_found_map = NODE_MASK_NONE;
+ 
+ /* maps to convert between proximity domain and logical node ID */
+-static int pxm_to_node_map[MAX_PXM_DOMAINS]
+-				= { [0 ... MAX_PXM_DOMAINS - 1] = NID_INVAL };
++static int pxm_to_node_map[MAX_PXM_DOMAINS]				
++			= { [0 ... MAX_PXM_DOMAINS - 1] = NUMA_NO_NODE };
+ static int node_to_pxm_map[MAX_NUMNODES]
+-				= { [0 ... MAX_NUMNODES - 1] = PXM_INVAL };
++			= { [0 ... MAX_NUMNODES - 1] = PXM_INVAL };
+ 
+ int pxm_to_node(int pxm)
+ {
+ 	if (pxm < 0)
+-		return NID_INVAL;
++		return NUMA_NO_NODE;
+ 	return pxm_to_node_map[pxm];
+ }
+ 
+@@ -68,9 +69,9 @@ int acpi_map_pxm_to_node(int pxm)
+ {
+ 	int node = pxm_to_node_map[pxm];
+ 
+-	if (node < 0){
++	if (node < 0) {
+ 		if (nodes_weight(nodes_found_map) >= MAX_NUMNODES)
+-			return NID_INVAL;
++			return NUMA_NO_NODE;
+ 		node = first_unset_node(nodes_found_map);
+ 		__acpi_map_pxm_to_node(pxm, node);
+ 		node_set(node, nodes_found_map);
+@@ -79,16 +80,6 @@ int acpi_map_pxm_to_node(int pxm)
+ 	return node;
+ }
+ 
+-#if 0
+-void __cpuinit acpi_unmap_pxm_to_node(int node)
+-{
+-	int pxm = node_to_pxm_map[node];
+-	pxm_to_node_map[pxm] = NID_INVAL;
+-	node_to_pxm_map[node] = PXM_INVAL;
+-	node_clear(node, nodes_found_map);
+-}
+-#endif  /*  0  */
+-
+ static void __init
+ acpi_table_print_srat_entry(struct acpi_subtable_header *header)
+ {
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from rientjes@google.com are
 
-mm-order-evictable-rescue-in-lru-putback.patch
-page-allocator-always-wake-kswapd-when-restarting-an-allocation-attempt-after-direct-reclaim-failed.patch
+connector-fix-regression-introduced-by-sid-connector.patch
+revert-mm-oom-analysis-add-buffer-cache-information-to-show_free_areas.patch
 page-allocator-do-not-allow-interrupts-to-use-alloc_harder.patch
-vmscan-force-kswapd-to-take-notice-faster-when-high-order-watermarks-are-being-hit.patch
 linux-next.patch
-mm-warn-once-when-a-page-is-freed-with-pg_mlocked-set.patch
-mm-add-notifier-in-pageblock-isolation-for-balloon-drivers.patch
-powerpc-make-the-cmm-memory-hotplug-aware.patch
+acpi-remove-nid_inval.patch
+oom-dump-stack-and-vm-state-when-oom-killer-panics.patch
 nodemask-make-nodemask_alloc-more-general.patch
 hugetlb-rework-hstate_next_node_-functions.patch
 hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions.patch
@@ -92,5 +134,5 @@ mm-clear-node-in-n_high_memory-and-stop-kswapd-when-all-memory-is-offlined.patch
 hugetlb-handle-memory-hot-plug-events.patch
 hugetlb-offload-per-node-attribute-registrations.patch
 mm-add-gfp-flags-for-nodemask_alloc-slab-allocations.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
+do_wait-optimization-do-not-place-sub-threads-on-task_struct-children-list.patch
 
