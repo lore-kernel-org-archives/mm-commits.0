@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-force-kswapd-to-take-notice-faster-when-high-order-watermarks-are-being-hit.patch added to -mm tree
-Date: Tue, 27 Oct 2009 13:19:18 -0700
-Message-ID: <200910272019.n9RKJJh5017690@imap1.linux-foundation.org>
+Subject: + page-allocator-always-wake-kswapd-when-restarting-an-allocation-attempt-after-direct-reclaim-failed.patch added to -mm tree
+Date: Tue, 27 Oct 2009 13:19:14 -0700
+Message-ID: <200910272019.n9RKJESt017577@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42012 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37274 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756765AbZJ0UTv (ORCPT
+	by vger.kernel.org with ESMTP id S1756769AbZJ0UUV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Oct 2009 16:19:51 -0400
+	Tue, 27 Oct 2009 16:20:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mel@csn.ul.ie, riel@redhat.com
+Cc: mel@csn.ul.ie, cl@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, penberg@cs.helsinki.fi, stable@kernel.org
 
 
 The patch titled
-     vmscan: force kswapd to take notice faster when high-order watermarks are being hit
+     page allocator: always wake kswapd when restarting an allocation attempt after direct reclaim failed
 has been added to the -mm tree.  Its filename is
-     vmscan-force-kswapd-to-take-notice-faster-when-high-order-watermarks-are-being-hit.patch
+     page-allocator-always-wake-kswapd-when-restarting-an-allocation-attempt-after-direct-reclaim-failed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: force kswapd to take notice faster when high-order watermarks are being hit
+Subject: page allocator: always wake kswapd when restarting an allocation attempt after direct reclaim failed
 From: Mel Gorman <mel@csn.ul.ie>
 
-When a high-order allocation fails, kswapd is kicked so that it reclaims
-at a higher-order to avoid direct reclaimers stall and to help GFP_ATOMIC
-allocations.  Something has changed in recent kernels that affect the
-timing where high-order GFP_ATOMIC allocations are now failing with more
-frequency, particularly under pressure.  This patch forces kswapd to
-notice sooner that high-order allocations are occuring.
+If a direct reclaim makes no forward progress, it considers whether it
+should go OOM or not.  Whether OOM is triggered or not, it may retry the
+allocation afterwards.  In times past, this would always wake kswapd as
+well but currently, kswapd is not woken up after direct reclaim fails. 
+For order-0 allocations, this makes little difference but if there is a
+heavy mix of higher-order allocations that direct reclaim is failing for,
+it might mean that kswapd is not rewoken for higher orders as much as it
+did previously.
+
+This patch wakes up kswapd when an allocation is being retried after a
+direct reclaim failure.  It would be expected that kswapd is already
+awake, but this has the effect of telling kswapd to reclaim at the higher
+order as well.
 
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Reviewed-by: Rik van Riel <riel@redhat.com>
+Reviewed-by: Christoph Lameter <cl@linux-foundation.org>
+Reviewed-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN mm/vmscan.c~vmscan-force-kswapd-to-take-notice-faster-when-high-order-watermarks-are-being-hit mm/vmscan.c
---- a/mm/vmscan.c~vmscan-force-kswapd-to-take-notice-faster-when-high-order-watermarks-are-being-hit
-+++ a/mm/vmscan.c
-@@ -2026,6 +2026,15 @@ loop_again:
- 					priority != DEF_PRIORITY)
- 				continue;
+diff -puN mm/page_alloc.c~page-allocator-always-wake-kswapd-when-restarting-an-allocation-attempt-after-direct-reclaim-failed mm/page_alloc.c
+--- a/mm/page_alloc.c~page-allocator-always-wake-kswapd-when-restarting-an-allocation-attempt-after-direct-reclaim-failed
++++ a/mm/page_alloc.c
+@@ -1817,9 +1817,9 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
+ 	if (NUMA_BUILD && (gfp_mask & GFP_THISNODE) == GFP_THISNODE)
+ 		goto nopage;
  
-+			/*
-+			 * Exit the function now and have kswapd start over
-+			 * if it is known that higher orders are required
-+			 */
-+			if (pgdat->kswapd_max_order > order) {
-+				all_zones_ok = 1;
-+				goto out;
-+			}
-+
- 			if (!zone_watermark_ok(zone, order,
- 					high_wmark_pages(zone), end_zone, 0))
- 				all_zones_ok = 0;
++restart:
+ 	wake_all_kswapd(order, zonelist, high_zoneidx);
+ 
+-restart:
+ 	/*
+ 	 * OK, we're below the kswapd watermark and have kicked background
+ 	 * reclaim. Now things get more complex, so set up alloc_flags according
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
