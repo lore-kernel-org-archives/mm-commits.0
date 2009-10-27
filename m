@@ -1,101 +1,157 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] mlx4-use-bitmap_find_next_zero_area.patch removed from -mm tree
-Date: Tue, 27 Oct 2009 01:19:47 -0700
-Message-ID: <200910270819.n9R8JlW7014509@imap1.linux-foundation.org>
+Subject: [to-be-updated] bitmap-introduce-bitmap_set-bitmap_clear-bitmap_find_next_zero_area.patch removed from -mm tree
+Date: Tue, 27 Oct 2009 01:19:31 -0700
+Message-ID: <200910270819.n9R8JVXp013818@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48889 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49748 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756536AbZJ0IVO (ORCPT
+	by vger.kernel.org with ESMTP id S1756536AbZJ0IVR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Oct 2009 04:21:14 -0400
+	Tue, 27 Oct 2009 04:21:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, rolandd@cisco.com, yevgenyp@mellanox.co.il, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, LW@KARO-electronics.de, benh@kernel.crashing.org, davem@davemloft.net, fenghua.yu@intel.com, fujita.tomonori@lab.ntt.co.jp, gregkh@suse.de, hpa@zytor.com, joer
 
 
 The patch titled
-     mlx4: use bitmap_find_next_zero_area()
+     bitmap: introduce bitmap_set(), bitmap_clear(), bitmap_find_next_zero_area()
 has been removed from the -mm tree.  Its filename was
-     mlx4-use-bitmap_find_next_zero_area.patch
+     bitmap-introduce-bitmap_set-bitmap_clear-bitmap_find_next_zero_area.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mlx4: use bitmap_find_next_zero_area()
+Subject: bitmap: introduce bitmap_set(), bitmap_clear(), bitmap_find_next_zero_area()
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
+This introduces new bitmap functions:
+
+bitmap_set: Set specified bit area
+bitmap_clear: Clear specified bit area
+bitmap_find_next_zero_area: Find free bit area
+
+These are stolen from iommu helper.
+
+I changed the return value of bitmap_find_next_zero_area if there is
+no zero area.
+
+find_next_zero_area in iommu helper: returns -1
+bitmap_find_next_zero_area: return >= bitmap size
+
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Lothar Wassmann <LW@KARO-electronics.de>
 Cc: Roland Dreier <rolandd@cisco.com>
 Cc: Yevgeny Petrilin <yevgenyp@mellanox.co.il>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Joerg Roedel <joerg.roedel@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/net/mlx4/alloc.c~mlx4-use-bitmap_find_next_zero_area drivers/net/mlx4/alloc.c
---- a/drivers/net/mlx4/alloc.c~mlx4-use-bitmap_find_next_zero_area
-+++ a/drivers/net/mlx4/alloc.c
-@@ -72,35 +72,6 @@ void mlx4_bitmap_free(struct mlx4_bitmap
- 	mlx4_bitmap_free_range(bitmap, obj, 1);
+diff -puN include/linux/bitmap.h~bitmap-introduce-bitmap_set-bitmap_clear-bitmap_find_next_zero_area include/linux/bitmap.h
+--- a/include/linux/bitmap.h~bitmap-introduce-bitmap_set-bitmap_clear-bitmap_find_next_zero_area
++++ a/include/linux/bitmap.h
+@@ -42,6 +42,9 @@
+  * bitmap_empty(src, nbits)			Are all bits zero in *src?
+  * bitmap_full(src, nbits)			Are all bits set in *src?
+  * bitmap_weight(src, nbits)			Hamming Weight: number set bits
++ * bitmap_set(dst, pos, nbits)			Set specified bit area
++ * bitmap_clear(dst, pos, nbits)		Clear specified bit area
++ * bitmap_find_next_zero_area(buf, len, pos, n, mask)	Find bit free area
+  * bitmap_shift_right(dst, src, n, nbits)	*dst = *src >> n
+  * bitmap_shift_left(dst, src, n, nbits)	*dst = *src << n
+  * bitmap_remap(dst, src, old, new, nbits)	*dst = map(old, new)(src)
+@@ -108,6 +111,14 @@ extern int __bitmap_subset(const unsigne
+ 			const unsigned long *bitmap2, int bits);
+ extern int __bitmap_weight(const unsigned long *bitmap, int bits);
+ 
++extern void bitmap_set(unsigned long *map, int i, int len);
++extern void bitmap_clear(unsigned long *map, int start, int nr);
++extern unsigned long bitmap_find_next_zero_area(unsigned long *map,
++					 unsigned long size,
++					 unsigned long start,
++					 unsigned int nr,
++					 unsigned long align_mask);
++
+ extern int bitmap_scnprintf(char *buf, unsigned int len,
+ 			const unsigned long *src, int nbits);
+ extern int __bitmap_parse(const char *buf, unsigned int buflen, int is_user,
+diff -puN lib/bitmap.c~bitmap-introduce-bitmap_set-bitmap_clear-bitmap_find_next_zero_area lib/bitmap.c
+--- a/lib/bitmap.c~bitmap-introduce-bitmap_set-bitmap_clear-bitmap_find_next_zero_area
++++ a/lib/bitmap.c
+@@ -271,6 +271,53 @@ int __bitmap_weight(const unsigned long 
  }
+ EXPORT_SYMBOL(__bitmap_weight);
  
--static unsigned long find_aligned_range(unsigned long *bitmap,
--					u32 start, u32 nbits,
--					int len, int align)
--{
--	unsigned long end, i;
--
--again:
--	start = ALIGN(start, align);
--
--	while ((start < nbits) && test_bit(start, bitmap))
--		start += align;
--
--	if (start >= nbits)
--		return -1;
--
--	end = start+len;
--	if (end > nbits)
--		return -1;
--
--	for (i = start + 1; i < end; i++) {
--		if (test_bit(i, bitmap)) {
--			start = i + 1;
--			goto again;
--		}
--	}
--
--	return start;
--}
--
- u32 mlx4_bitmap_alloc_range(struct mlx4_bitmap *bitmap, int cnt, int align)
- {
- 	u32 obj, i;
-@@ -110,13 +81,13 @@ u32 mlx4_bitmap_alloc_range(struct mlx4_
- 
- 	spin_lock(&bitmap->lock);
- 
--	obj = find_aligned_range(bitmap->table, bitmap->last,
--				 bitmap->max, cnt, align);
-+	obj = bitmap_find_next_zero_area(bitmap->table, bitmap->max,
-+				bitmap->last, cnt, align - 1);
- 	if (obj >= bitmap->max) {
- 		bitmap->top = (bitmap->top + bitmap->max + bitmap->reserved_top)
- 				& bitmap->mask;
--		obj = find_aligned_range(bitmap->table, 0, bitmap->max,
--					 cnt, align);
-+		obj = bitmap_find_next_zero_area(bitmap->table, bitmap->max,
-+						0, cnt, align - 1);
- 	}
- 
- 	if (obj < bitmap->max) {
++void bitmap_set(unsigned long *map, int i, int len)
++{
++	int end = i + len;
++
++	while (i < end) {
++		__set_bit(i, map);
++		i++;
++	}
++}
++EXPORT_SYMBOL(bitmap_set);
++
++void bitmap_clear(unsigned long *map, int start, int nr)
++{
++	int end = start + nr;
++
++	while (start < end) {
++		__clear_bit(start, map);
++		start++;
++	}
++}
++EXPORT_SYMBOL(bitmap_clear);
++
++unsigned long bitmap_find_next_zero_area(unsigned long *map,
++					 unsigned long size,
++					 unsigned long start,
++					 unsigned int nr,
++					 unsigned long align_mask)
++{
++	unsigned long index, end, i;
++again:
++	index = find_next_zero_bit(map, size, start);
++
++	/* Align allocation */
++	index = (index + align_mask) & ~align_mask;
++
++	end = index + nr;
++	if (end >= size)
++		return end;
++	i = find_next_bit(map, end, index);
++	if (i < end) {
++		start = i + 1;
++		goto again;
++	}
++	return index;
++}
++EXPORT_SYMBOL(bitmap_find_next_zero_area);
++
+ /*
+  * Bitmap printing & parsing functions: first version by Bill Irwin,
+  * second version by Paul Jackson, third by Joe Korty.
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 linux-next.patch
+bitmap-introduce-bitmap_set-bitmap_clear-bitmap_find_next_zero_area.patch
+isp1362-hcd-use-bitmap_find_next_zero_area.patch
 mlx4-use-bitmap_find_next_zero_area.patch
 sparc-use-bitmap_find_next_zero_area.patch
 ia64-use-bitmap_find_next_zero_area.patch
