@@ -1,27 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-server-engines-10gbps-iscsi-use-single-line-m.patch added to -mm tree
-Date: Tue, 27 Oct 2009 12:32:34 -0700
-Message-ID: <200910271932.n9RJWYE3005271@imap1.linux-foundation.org>
+Subject: + maintainers-asus-acpi-extras-remove-f-arch-x86-kernel-acpi-bootc.patch added to -mm tree
+Date: Tue, 27 Oct 2009 12:32:30 -0700
+Message-ID: <200910271932.n9RJWUA2005162@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59643 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43549 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756713AbZJ0Tcf (ORCPT
+	by vger.kernel.org with ESMTP id S1756652AbZJ0Tc3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Oct 2009 15:32:35 -0400
+	Tue, 27 Oct 2009 15:32:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, jayamohank@serverengines.com
+Cc: joe@perches.com
 
 
 The patch titled
-     MAINTAINERS: SERVER ENGINES 10Gbps iSCSI - Use single line M:
+     MAINTAINERS: ASUS ACPI EXTRAS - remove F:arch/x86/kernel/acpi/boot=
+=2Ec
 has been added to the -mm tree.  Its filename is
-     maintainers-server-engines-10gbps-iscsi-use-single-line-m.patch
+     maintainers-asus-acpi-extras-remove-f-arch-x86-kernel-acpi-bootc.p=
+atch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,41 +41,31 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
 otm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: SERVER ENGINES 10Gbps iSCSI - Use single line M:
+Subject: MAINTAINERS: ASUS ACPI EXTRAS - remove F:arch/x86/kernel/acpi/=
+boot.c
 =46rom: Joe Perches <joe@perches.com>
 
-Integrate P:/M: lines to single M:
-Use tabs not spaces
+Oops.  How did that get there?
+(Don't look, it's my original pattern commit...)
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Jayamohan Kallickal <jayamohank@serverengines.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN MAINTAINERS~maintainers-server-engines-10gbps-iscsi-use-singl=
-e-line-m MAINTAINERS
---- a/MAINTAINERS~maintainers-server-engines-10gbps-iscsi-use-single-li=
-ne-m
+diff -puN MAINTAINERS~maintainers-asus-acpi-extras-remove-f-arch-x86-ke=
+rnel-acpi-bootc MAINTAINERS
+--- a/MAINTAINERS~maintainers-asus-acpi-extras-remove-f-arch-x86-kernel=
+-acpi-bootc
 +++ a/MAINTAINERS
-@@ -4669,12 +4669,11 @@ F:	include/linux/ata.h
- F:	include/linux/libata.h
+@@ -906,7 +906,6 @@ M:	Karol Kozimor <sziwan@users.sourcefor
+ L:	acpi4asus-user@lists.sourceforge.net
+ W:	http://acpi4asus.sf.net
+ S:	Maintained
+-F:	arch/x86/kernel/acpi/boot.c
+ F:	drivers/platform/x86/asus_acpi.c
 =20
- SERVER ENGINES 10Gbps iSCSI - BladeEngine 2 DRIVER
--P:     Jayamohan Kallickal
--M:     jayamohank@serverengines.com
--L:     linux-scsi@vger.kernel.org
--W:     http://www.serverengines.com
--S:     Supported
--F:     drivers/scsi/be2iscsi/
-+M:	Jayamohan Kallickal <jayamohank@serverengines.com>
-+L:	linux-scsi@vger.kernel.org
-+W:	http://www.serverengines.com
-+S:	Supported
-+F:	drivers/scsi/be2iscsi/
-=20
- SERVER ENGINES 10Gbps NIC - BladeEngine 2 DRIVER
- M:	Sathya Perla <sathyap@serverengines.com>
+ ASUS ASB100 HARDWARE MONITOR DRIVER
 _
 
 Patches currently in -mm which might be from joe@perches.com are
