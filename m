@@ -1,103 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] isp1362-hcd-use-bitmap_find_next_zero_area.patch removed from -mm tree
-Date: Tue, 27 Oct 2009 01:19:41 -0700
-Message-ID: <200910270819.n9R8JfQn014201@imap1.linux-foundation.org>
+Subject: [to-be-updated] mlx4-use-bitmap_find_next_zero_area.patch removed from -mm tree
+Date: Tue, 27 Oct 2009 01:19:47 -0700
+Message-ID: <200910270819.n9R8JlW7014509@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42524 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48889 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932170AbZJ0IUY (ORCPT
+	by vger.kernel.org with ESMTP id S1756536AbZJ0IVO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Oct 2009 04:20:24 -0400
+	Tue, 27 Oct 2009 04:21:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, LW@KARO-electronics.de, gregkh@suse.de, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, rolandd@cisco.com, yevgenyp@mellanox.co.il, mm-commits@vger.kernel.org
 
 
 The patch titled
-     isp1362-hcd: use bitmap_find_next_zero_area()
+     mlx4: use bitmap_find_next_zero_area()
 has been removed from the -mm tree.  Its filename was
-     isp1362-hcd-use-bitmap_find_next_zero_area.patch
+     mlx4-use-bitmap_find_next_zero_area.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: isp1362-hcd: use bitmap_find_next_zero_area()
+Subject: mlx4: use bitmap_find_next_zero_area()
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Lothar Wassmann <LW@KARO-electronics.de>
+Cc: Roland Dreier <rolandd@cisco.com>
+Cc: Yevgeny Petrilin <yevgenyp@mellanox.co.il>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/usb/host/isp1362-hcd.c~isp1362-hcd-use-bitmap_find_next_zero_area drivers/usb/host/isp1362-hcd.c
---- a/drivers/usb/host/isp1362-hcd.c~isp1362-hcd-use-bitmap_find_next_zero_area
-+++ a/drivers/usb/host/isp1362-hcd.c
-@@ -80,7 +80,7 @@
- #include <linux/platform_device.h>
- #include <linux/pm.h>
- #include <linux/io.h>
--#include <linux/bitops.h>
-+#include <linux/bitmap.h>
+diff -puN drivers/net/mlx4/alloc.c~mlx4-use-bitmap_find_next_zero_area drivers/net/mlx4/alloc.c
+--- a/drivers/net/mlx4/alloc.c~mlx4-use-bitmap_find_next_zero_area
++++ a/drivers/net/mlx4/alloc.c
+@@ -72,35 +72,6 @@ void mlx4_bitmap_free(struct mlx4_bitmap
+ 	mlx4_bitmap_free_range(bitmap, obj, 1);
+ }
  
- #include <asm/irq.h>
- #include <asm/system.h>
-@@ -190,10 +190,8 @@ static int claim_ptd_buffers(struct isp1
- 			     struct isp1362_ep *ep, u16 len)
- {
- 	int ptd_offset = -EINVAL;
--	int index;
- 	int num_ptds = ((len + PTD_HEADER_SIZE - 1) / epq->blk_size) + 1;
--	int found = -1;
--	int last = -1;
-+	int found;
- 
- 	BUG_ON(len > epq->buf_size);
- 
-@@ -205,20 +203,9 @@ static int claim_ptd_buffers(struct isp1
- 		    epq->name, len, epq->blk_size, num_ptds, epq->buf_map, epq->skip_map);
- 	BUG_ON(ep->num_ptds != 0);
- 
--	for (index = 0; index <= epq->buf_count - num_ptds; index++) {
--		if (test_bit(index, &epq->buf_map))
--			continue;
--		found = index;
--		for (last = index + 1; last < index + num_ptds; last++) {
--			if (test_bit(last, &epq->buf_map)) {
--				found = -1;
--				break;
--			}
+-static unsigned long find_aligned_range(unsigned long *bitmap,
+-					u32 start, u32 nbits,
+-					int len, int align)
+-{
+-	unsigned long end, i;
+-
+-again:
+-	start = ALIGN(start, align);
+-
+-	while ((start < nbits) && test_bit(start, bitmap))
+-		start += align;
+-
+-	if (start >= nbits)
+-		return -1;
+-
+-	end = start+len;
+-	if (end > nbits)
+-		return -1;
+-
+-	for (i = start + 1; i < end; i++) {
+-		if (test_bit(i, bitmap)) {
+-			start = i + 1;
+-			goto again;
 -		}
--		if (found >= 0)
--			break;
 -	}
--	if (found < 0)
-+	found = bitmap_find_next_zero_area(&epq->buf_map, epq->buf_count, 0,
-+						num_ptds, 0);
-+	if (found >= epq->buf_count)
- 		return -EOVERFLOW;
+-
+-	return start;
+-}
+-
+ u32 mlx4_bitmap_alloc_range(struct mlx4_bitmap *bitmap, int cnt, int align)
+ {
+ 	u32 obj, i;
+@@ -110,13 +81,13 @@ u32 mlx4_bitmap_alloc_range(struct mlx4_
  
- 	DBG(1, "%s: Found %d PTDs[%d] for %d/%d byte\n", __func__,
-@@ -230,8 +217,7 @@ static int claim_ptd_buffers(struct isp1
- 	epq->buf_avail -= num_ptds;
- 	BUG_ON(epq->buf_avail > epq->buf_count);
- 	ep->ptd_index = found;
--	for (index = found; index < last; index++)
--		__set_bit(index, &epq->buf_map);
-+	bitmap_set(&epq->buf_map, found, num_ptds);
- 	DBG(1, "%s: Done %s PTD[%d] $%04x, avail %d count %d claimed %d %08lx:%08lx\n",
- 	    __func__, epq->name, ep->ptd_index, ep->ptd_offset,
- 	    epq->buf_avail, epq->buf_count, num_ptds, epq->buf_map, epq->skip_map);
+ 	spin_lock(&bitmap->lock);
+ 
+-	obj = find_aligned_range(bitmap->table, bitmap->last,
+-				 bitmap->max, cnt, align);
++	obj = bitmap_find_next_zero_area(bitmap->table, bitmap->max,
++				bitmap->last, cnt, align - 1);
+ 	if (obj >= bitmap->max) {
+ 		bitmap->top = (bitmap->top + bitmap->max + bitmap->reserved_top)
+ 				& bitmap->mask;
+-		obj = find_aligned_range(bitmap->table, 0, bitmap->max,
+-					 cnt, align);
++		obj = bitmap_find_next_zero_area(bitmap->table, bitmap->max,
++						0, cnt, align - 1);
+ 	}
+ 
+ 	if (obj < bitmap->max) {
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 linux-next.patch
-isp1362-hcd-use-bitmap_find_next_zero_area.patch
 mlx4-use-bitmap_find_next_zero_area.patch
 sparc-use-bitmap_find_next_zero_area.patch
 ia64-use-bitmap_find_next_zero_area.patch
