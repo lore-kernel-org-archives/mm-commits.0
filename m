@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + bitmap-introduce-bitmap_set-bitmap_clear-bitmap_find_next_zero_area.patch added to -mm tree
-Date: Wed, 28 Oct 2009 13:14:23 -0700
-Message-ID: <200910282014.n9SKEN9n012623@imap1.linux-foundation.org>
+Subject: + uml-irq-register-race-condition.patch added to -mm tree
+Date: Wed, 28 Oct 2009 13:24:40 -0700
+Message-ID: <200910282024.n9SKOfhi004400@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33897 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51003 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754897AbZJ1UP2 (ORCPT
+	by vger.kernel.org with ESMTP id S1755399AbZJ1UZr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Oct 2009 16:15:28 -0400
+	Wed, 28 Oct 2009 16:25:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, LW@KARO-electronics.de, benh@kernel.crashing.org, davem@davemloft.net, fenghua.yu@intel.com, fujita.tomonori@lab.ntt.co.jp, gregkh@suse.de, hpa@zytor.com, joerg.roedel@amd.com, mingo@redhat.com, paulus@samba.org, rolandd@cisco.com, tglx@linutronix.de, tony.luck@intel.com, yevgenyp@mellanox.co.il
+Cc: andrew@lunn.ch, adobriyan@gmail.com, jdike@addtoit.com, mingo@elte.hu, tglx@linutronix.de, yinghai@kernel.org
 
 
 The patch titled
-     bitmap: introduce bitmap_set, bitmap_clear, bitmap_find_next_zero_area
+     uml: IRQ register race condition
 has been added to the -mm tree.  Its filename is
-     bitmap-introduce-bitmap_set-bitmap_clear-bitmap_find_next_zero_area.patch
+     uml-irq-register-race-condition.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,180 +34,77 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bitmap: introduce bitmap_set, bitmap_clear, bitmap_find_next_zero_area
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: uml: IRQ register race condition
+From: Andrew Lunn <andrew@lunn.ch>
 
-This introduces new bitmap functions:
+There is a race condition in um_request_irq().  The SIGIO handling is
+first enabled with the call to activate_fd().  The irq handler is then
+registered with request_irq().  What can happen is that directly after
+activate_fd() the SIGIO goes off and the IRQ source is disabled at the low
+level, the pollfd is set to -1.  Since no irq handler has yet been
+registered, the interrupt it left disabled at the low level.  The
+interrupt handler is then registered, but its too late, the interrupt
+source has been disabled at the lower level and is never re-enabled.  To
+fix this race condition i swapped the order.  First request_irq() then
+activate_fd() the interrupt sources.
 
-bitmap_set: Set specified bit area
-bitmap_clear: Clear specified bit area
-bitmap_find_next_zero_area: Find free bit area
+There is a second bug.  In 2.6.31 there was a change to the way __do_IRQ()
+and friends work for chained interrupt sources.  The old way was that all
+chained interrupt handlers were called.  The new way is that the chain is
+walked only until a handler returns IRQ_HANDLED or IRQ_WAKE_THREAD. 
+uml_net_interrupt() would always return IRQ_HANDLED, irrespective of if
+the device really did receive an interrupt or not.  This mean with the new
+code only the first device on a chained interrupt ever got its interrupts
+handled.  The second/third/...  device never got any interrupts processed.
+ I changed uml_net_interrupt() to always return IRQ_NONE so that all
+handlers get called on a chained interrupt.
 
-These are mostly stolen from iommu helper. The differences are:
-
-- Use find_next_bit instead of doing test_bit for each bit
-
-- Rewrite bitmap_set and bitmap_clear
-
-  Instead of setting or clearing for each bit.
-
-- Check the last bit of the limit
-
-  iommu-helper doesn't want to find such area
-
-- The return value if there is no zero area
-
-  find_next_zero_area in iommu helper: returns -1
-  bitmap_find_next_zero_area: return >= bitmap size
-
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
+Signed-off-by: Andrew Lunn <andrew@lunn.ch>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Lothar Wassmann <LW@KARO-electronics.de>
-Cc: Roland Dreier <rolandd@cisco.com>
-Cc: Yevgeny Petrilin <yevgenyp@mellanox.co.il>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: Joerg Roedel <joerg.roedel@amd.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Yinghai Lu <yinghai@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN include/linux/bitmap.h~bitmap-introduce-bitmap_set-bitmap_clear-bitmap_find_next_zero_area include/linux/bitmap.h
---- a/include/linux/bitmap.h~bitmap-introduce-bitmap_set-bitmap_clear-bitmap_find_next_zero_area
-+++ a/include/linux/bitmap.h
-@@ -42,6 +42,9 @@
-  * bitmap_empty(src, nbits)			Are all bits zero in *src?
-  * bitmap_full(src, nbits)			Are all bits set in *src?
-  * bitmap_weight(src, nbits)			Hamming Weight: number set bits
-+ * bitmap_set(dst, pos, nbits)			Set specified bit area
-+ * bitmap_clear(dst, pos, nbits)		Clear specified bit area
-+ * bitmap_find_next_zero_area(buf, len, pos, n, mask)	Find bit free area
-  * bitmap_shift_right(dst, src, n, nbits)	*dst = *src >> n
-  * bitmap_shift_left(dst, src, n, nbits)	*dst = *src << n
-  * bitmap_remap(dst, src, old, new, nbits)	*dst = map(old, new)(src)
-@@ -108,6 +111,14 @@ extern int __bitmap_subset(const unsigne
- 			const unsigned long *bitmap2, int bits);
- extern int __bitmap_weight(const unsigned long *bitmap, int bits);
+diff -puN arch/um/drivers/net_kern.c~uml-irq-register-race-condition arch/um/drivers/net_kern.c
+--- a/arch/um/drivers/net_kern.c~uml-irq-register-race-condition
++++ a/arch/um/drivers/net_kern.c
+@@ -145,7 +145,7 @@ static irqreturn_t uml_net_interrupt(int
  
-+extern void bitmap_set(unsigned long *map, int i, int len);
-+extern void bitmap_clear(unsigned long *map, int start, int nr);
-+extern unsigned long bitmap_find_next_zero_area(unsigned long *map,
-+					 unsigned long size,
-+					 unsigned long start,
-+					 unsigned int nr,
-+					 unsigned long align_mask);
-+
- extern int bitmap_scnprintf(char *buf, unsigned int len,
- 			const unsigned long *src, int nbits);
- extern int __bitmap_parse(const char *buf, unsigned int buflen, int is_user,
-diff -puN lib/bitmap.c~bitmap-introduce-bitmap_set-bitmap_clear-bitmap_find_next_zero_area lib/bitmap.c
---- a/lib/bitmap.c~bitmap-introduce-bitmap_set-bitmap_clear-bitmap_find_next_zero_area
-+++ a/lib/bitmap.c
-@@ -271,6 +271,87 @@ int __bitmap_weight(const unsigned long 
+ out:
+ 	spin_unlock(&lp->lock);
+-	return IRQ_HANDLED;
++	return IRQ_NONE;
  }
- EXPORT_SYMBOL(__bitmap_weight);
  
-+#define BITMAP_FIRST_WORD_MASK(start) (~0UL << ((start) % BITS_PER_LONG))
+ static int uml_net_open(struct net_device *dev)
+diff -puN arch/um/kernel/irq.c~uml-irq-register-race-condition arch/um/kernel/irq.c
+--- a/arch/um/kernel/irq.c~uml-irq-register-race-condition
++++ a/arch/um/kernel/irq.c
+@@ -346,13 +346,12 @@ int um_request_irq(unsigned int irq, int
+ {
+ 	int err;
+ 
+-	if (fd != -1) {
++	err = request_irq(irq, handler, irqflags, devname, dev_id);
 +
-+void bitmap_set(unsigned long *map, int start, int nr)
-+{
-+	unsigned long *p = map + BIT_WORD(start);
-+	const int size = start + nr;
-+	int bits_to_set = BITS_PER_LONG - (start % BITS_PER_LONG);
-+	unsigned long mask_to_set = BITMAP_FIRST_WORD_MASK(start);
-+
-+	while (nr - bits_to_set >= 0) {
-+		*p |= mask_to_set;
-+		nr -= bits_to_set;
-+		bits_to_set = BITS_PER_LONG;
-+		mask_to_set = ~0UL;
-+		p++;
-+	}
-+	if (nr) {
-+		mask_to_set &= BITMAP_LAST_WORD_MASK(size);
-+		*p |= mask_to_set;
-+	}
-+}
-+EXPORT_SYMBOL(bitmap_set);
-+
-+void bitmap_clear(unsigned long *map, int start, int nr)
-+{
-+	unsigned long *p = map + BIT_WORD(start);
-+	const int size = start + nr;
-+	int bits_to_clear = BITS_PER_LONG - (start % BITS_PER_LONG);
-+	unsigned long mask_to_clear = BITMAP_FIRST_WORD_MASK(start);
-+
-+	while (nr - bits_to_clear >= 0) {
-+		*p &= ~mask_to_clear;
-+		nr -= bits_to_clear;
-+		bits_to_clear = BITS_PER_LONG;
-+		mask_to_clear = ~0UL;
-+		p++;
-+	}
-+	if (nr) {
-+		mask_to_clear &= BITMAP_LAST_WORD_MASK(size);
-+		*p &= ~mask_to_clear;
-+	}
-+}
-+EXPORT_SYMBOL(bitmap_clear);
-+
-+/*
-+ * bitmap_find_next_zero_area - find a contiguous aligned zero area
-+ * @map: The address to base the search on
-+ * @size: The bitmap size in bits
-+ * @start: The bitnumber to start searching at
-+ * @nr: The number of zeroed bits we're looking for
-+ * @align_mask: Alignment mask for zero area
-+ *
-+ * The @align_mask should be one less than a power of 2; the effect is that
-+ * the bit offset of all zero areas this function finds is multiples of that
-+ * power of 2. A @align_mask of 0 means no alignment is required.
-+ */
-+unsigned long bitmap_find_next_zero_area(unsigned long *map,
-+					 unsigned long size,
-+					 unsigned long start,
-+					 unsigned int nr,
-+					 unsigned long align_mask)
-+{
-+	unsigned long index, end, i;
-+again:
-+	index = find_next_zero_bit(map, size, start);
-+
-+	/* Align allocation */
-+	index = __ALIGN_MASK(index, align_mask);
-+
-+	end = index + nr;
-+	if (end > size)
-+		return end;
-+	i = find_next_bit(map, end, index);
-+	if (i < end) {
-+		start = i + 1;
-+		goto again;
-+	}
-+	return index;
-+}
-+EXPORT_SYMBOL(bitmap_find_next_zero_area);
-+
- /*
-  * Bitmap printing & parsing functions: first version by Bill Irwin,
-  * second version by Paul Jackson, third by Joe Korty.
++	if (!err && (fd != -1))
+ 		err = activate_fd(irq, fd, type, dev_id);
+-		if (err)
+-			return err;
+-	}
+ 
+-	return request_irq(irq, handler, irqflags, devname, dev_id);
++	return err;
+ }
+ 
+ EXPORT_SYMBOL(um_request_irq);
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from andrew@lunn.ch are
 
-linux-next.patch
-bitmap-introduce-bitmap_set-bitmap_clear-bitmap_find_next_zero_area.patch
-iommu-helper-use-bitmap-library.patch
-isp1362-hcd-use-bitmap_find_next_zero_area.patch
-mlx4-use-bitmap_find_next_zero_area.patch
-sparc-use-bitmap_find_next_zero_area.patch
-ia64-use-bitmap_find_next_zero_area.patch
-genalloc-use-bitmap_find_next_zero_area.patch
+uml-irq-register-race-condition.patch
 
