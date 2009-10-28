@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + thermal-only-set-passive_delay-for-forced_passive-cooling.patch added to -mm tree
-Date: Wed, 28 Oct 2009 15:36:12 -0700
-Message-ID: <200910282236.n9SMaCwC021515@imap1.linux-foundation.org>
+Subject: + checkpatch-trivial-fix-for-trailing-statements-check.patch added to -mm tree
+Date: Wed, 28 Oct 2009 15:44:28 -0700
+Message-ID: <200910282244.n9SMiS0r008414@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40276 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53590 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754081AbZJ1WhF (ORCPT
+	by vger.kernel.org with ESMTP id S1752083AbZJ1Woa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Oct 2009 18:37:05 -0400
+	Wed, 28 Oct 2009 18:44:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: elendil@planet.nl, lenb@kernel.org, mjg@redhat.com, rui.zhang@intel.com
+Cc: seto.hidetoshi@jp.fujitsu.com, apw@canonical.com
 
 
 The patch titled
-     thermal: Only set passive_delay for forced_passive cooling
+     checkpatch: trivial fix for trailing statements check
 has been added to the -mm tree.  Its filename is
-     thermal-only-set-passive_delay-for-forced_passive-cooling.patch
+     checkpatch-trivial-fix-for-trailing-statements-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,74 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thermal: Only set passive_delay for forced_passive cooling
-From: Frans Pop <elendil@planet.nl>
+Subject: checkpatch: trivial fix for trailing statements check
+From: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
 
-Setting polling_delay is useless as passive_delay has priority, so the
-value shown in proc isn't the actual polling delay.  It also gives the
-impression to the user that he can change the polling interval through
-proc, while in fact he can't.
+In case if the statement and the conditional are in one line, the line
+appears in the report doubly.
 
-Also, unset passive_delay when the forced passive trip point is unbound to
-allow polling to be disabled.
+And items of this check have no blank line before the next item.
 
-Signed-off-by: Frans Pop <elendil@planet.nl>
-Acked-by: Matthew Garrett <mjg@redhat.com>
-Cc: Zhang Rui <rui.zhang@intel.com>
-Cc: Len Brown <lenb@kernel.org>
+This patch fixes these trivial problems, to improve readability of the
+report.
+
+[sample.c]
+  > if (cond1
+  >        && cond2
+  >        && cond3) func_foo();
+  >
+  > if (cond4) func_bar();
+
+Before:
+  > ERROR: trailing statements should be on next line
+  > #1: FILE: sample.c:1:
+  > +if (cond1
+  > [...]
+  > +       && cond3) func_foo();
+  > ERROR: trailing statements should be on next line
+  > #5: FILE: sample.c:5:
+  > +if (cond4) func_bar();
+  > +if (cond4) func_bar();
+  > total: 2 errors, 0 warnings, 5 lines checked
+
+After:
+  > ERROR: trailing statements should be on next line
+  > #1: FILE: sample.c:1:
+  > +if (cond1
+  > [...]
+  > +       && cond3) func_foo();
+  >
+  > ERROR: trailing statements should be on next line
+  > #5: FILE: sample.c:5:
+  > +if (cond4) func_bar();
+  >
+  > total: 2 errors, 0 warnings, 5 lines checked
+
+Signed-off-by: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
+Cc: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/thermal/thermal_sys.c~thermal-only-set-passive_delay-for-forced_passive-cooling drivers/thermal/thermal_sys.c
---- a/drivers/thermal/thermal_sys.c~thermal-only-set-passive_delay-for-forced_passive-cooling
-+++ a/drivers/thermal/thermal_sys.c
-@@ -241,6 +241,8 @@ passive_store(struct device *dev, struct
- 								 cdev);
- 		}
- 		mutex_unlock(&thermal_list_lock);
-+		if (!tz->passive_delay)
-+			tz->passive_delay = 1000;
- 	} else if (!state && tz->forced_passive) {
- 		mutex_lock(&thermal_list_lock);
- 		list_for_each_entry(cdev, &thermal_cdev_list, node) {
-@@ -251,17 +253,12 @@ passive_store(struct device *dev, struct
- 								   cdev);
- 		}
- 		mutex_unlock(&thermal_list_lock);
-+		tz->passive_delay = 0;
- 	}
+diff -puN scripts/checkpatch.pl~checkpatch-trivial-fix-for-trailing-statements-check scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-trivial-fix-for-trailing-statements-check
++++ a/scripts/checkpatch.pl
+@@ -2182,8 +2182,10 @@ sub process {
+ 				# Find out how long the conditional actually is.
+ 				my @newlines = ($c =~ /\n/gs);
+ 				my $cond_lines = 1 + $#newlines;
++				my $stat_real = '';
  
- 	tz->tc1 = 1;
- 	tz->tc2 = 1;
- 
--	if (!tz->passive_delay)
--		tz->passive_delay = 1000;
--
--	if (!tz->polling_delay)
--		tz->polling_delay = 10000;
+-				my $stat_real = raw_line($linenr, $cond_lines);
++				$stat_real = raw_line($linenr, $cond_lines)
++							. "\n" if ($cond_lines);
+ 				if (defined($stat_real) && $cond_lines > 1) {
+ 					$stat_real = "[...]\n$stat_real";
+ 				}
+_
+
+Patches currently in -mm which might be from seto.hidetoshi@jp.fujitsu.com are
+
+linux-next.patch
+checkpatch-trivial-fix-for-trailing-statements-check.patch
+
