@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + thermal-disable-polling-if-passive_delay-and-polling_delay-are-both-unset.patch added to -mm tree
-Date: Wed, 28 Oct 2009 15:36:14 -0700
-Message-ID: <200910282236.n9SMaEa6021559@imap1.linux-foundation.org>
+Subject: + thermal-only-set-passive_delay-for-forced_passive-cooling.patch added to -mm tree
+Date: Wed, 28 Oct 2009 15:36:12 -0700
+Message-ID: <200910282236.n9SMaCwC021515@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60372 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40276 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753920AbZJ1WhF (ORCPT
+	by vger.kernel.org with ESMTP id S1754081AbZJ1WhF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 28 Oct 2009 18:37:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: elendil@planet.nl, lenb@kernel.org, mjg@redhat.com, rui.zhang@intel.com
 
 
 The patch titled
-     thermal: disable polling if passive_delay and polling_delay are both unset
+     thermal: Only set passive_delay for forced_passive cooling
 has been added to the -mm tree.  Its filename is
-     thermal-disable-polling-if-passive_delay-and-polling_delay-are-both-unset.patch
+     thermal-only-set-passive_delay-for-forced_passive-cooling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,16 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thermal: disable polling if passive_delay and polling_delay are both unset
+Subject: thermal: Only set passive_delay for forced_passive cooling
 From: Frans Pop <elendil@planet.nl>
 
-Otherwise polling will continue for the thermal zone even when it is no
-longer needed, for example because forced passive cooling was disabled.
+Setting polling_delay is useless as passive_delay has priority, so the
+value shown in proc isn't the actual polling delay.  It also gives the
+impression to the user that he can change the polling interval through
+proc, while in fact he can't.
+
+Also, unset passive_delay when the forced passive trip point is unbound to
+allow polling to be disabled.
 
 Signed-off-by: Frans Pop <elendil@planet.nl>
 Acked-by: Matthew Garrett <mjg@redhat.com>
@@ -48,27 +53,30 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/thermal/thermal_sys.c~thermal-disable-polling-if-passive_delay-and-polling_delay-are-both-unset drivers/thermal/thermal_sys.c
---- a/drivers/thermal/thermal_sys.c~thermal-disable-polling-if-passive_delay-and-polling_delay-are-both-unset
+diff -puN drivers/thermal/thermal_sys.c~thermal-only-set-passive_delay-for-forced_passive-cooling drivers/thermal/thermal_sys.c
+--- a/drivers/thermal/thermal_sys.c~thermal-only-set-passive_delay-for-forced_passive-cooling
 +++ a/drivers/thermal/thermal_sys.c
-@@ -1019,6 +1019,8 @@ void thermal_zone_device_update(struct t
- 		thermal_zone_device_set_polling(tz, tz->passive_delay);
- 	else if (tz->polling_delay)
- 		thermal_zone_device_set_polling(tz, tz->polling_delay);
-+	else
-+		thermal_zone_device_set_polling(tz, 0);
- 	mutex_unlock(&tz->lock);
- }
- EXPORT_SYMBOL(thermal_zone_device_update);
-_
-
-Patches currently in -mm which might be from elendil@planet.nl are
-
-linux-next.patch
-thermal-sysfs-apitxt-reformat-for-improved-readability.patch
-thermal-sysfs-apitxt-document-passive-attribute-for-thermal-zones.patch
-acpi-thermal-display-forced-passive-trip-points-in-proc.patch
-thermal-add-sanity-check-for-the-passive-attribute.patch
-thermal-only-set-passive_delay-for-forced_passive-cooling.patch
-thermal-disable-polling-if-passive_delay-and-polling_delay-are-both-unset.patch
-
+@@ -241,6 +241,8 @@ passive_store(struct device *dev, struct
+ 								 cdev);
+ 		}
+ 		mutex_unlock(&thermal_list_lock);
++		if (!tz->passive_delay)
++			tz->passive_delay = 1000;
+ 	} else if (!state && tz->forced_passive) {
+ 		mutex_lock(&thermal_list_lock);
+ 		list_for_each_entry(cdev, &thermal_cdev_list, node) {
+@@ -251,17 +253,12 @@ passive_store(struct device *dev, struct
+ 								   cdev);
+ 		}
+ 		mutex_unlock(&thermal_list_lock);
++		tz->passive_delay = 0;
+ 	}
+ 
+ 	tz->tc1 = 1;
+ 	tz->tc2 = 1;
+ 
+-	if (!tz->passive_delay)
+-		tz->passive_delay = 1000;
+-
+-	if (!tz->polling_delay)
+-		tz->polling_delay = 10000;
