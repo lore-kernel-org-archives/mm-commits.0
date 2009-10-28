@@ -1,74 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-remove-nid_inval-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 27 Oct 2009 15:20:43 -0700
-Message-ID: <200910272220.n9RMKh9w011172@imap1.linux-foundation.org>
+Subject: [merged] vfs-implement-posix-o_sync-and-o_dsync-semantics-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 28 Oct 2009 12:01:51 -0700
+Message-ID: <200910281901.n9SJ1pNk004421@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37939 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55719 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753709AbZJ0WVJ (ORCPT
+	by vger.kernel.org with ESMTP id S1752327AbZJ1TBs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Oct 2009 18:21:09 -0400
+	Wed, 28 Oct 2009 15:01:48 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id n9SJ1pJA026961
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 28 Oct 2009 12:01:53 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, Lee.Schermerhorn@hp.com, gorcunov@openvz.org, lenb@kernel.org, rientjes@google.com
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     acpi-remove-nid_inval-checkpatch-fixes
-has been added to the -mm tree.  Its filename is
-     acpi-remove-nid_inval-checkpatch-fixes.patch
+     vfs-implement-posix-o_sync-and-o_dsync-semantics-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     vfs-implement-posix-o_sync-and-o_dsync-semantics-checkpatch-fixes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi-remove-nid_inval-checkpatch-fixes
+Subject: vfs-implement-posix-o_sync-and-o_dsync-semantics-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: trailing whitespace
-#33: FILE: drivers/acpi/numa.c:43:
-+static int pxm_to_node_map[MAX_PXM_DOMAINS]^I^I^I^I$
+WARNING: braces {} are not necessary for single statement blocks
+#269: FILE: arch/x86/mm/pat.c:708:
++	if (file->f_flags & O_DSYNC) {
+ 		flags = _PAGE_CACHE_UC_MINUS;
+ 	}
 
-total: 1 errors, 0 warnings, 53 lines checked
+WARNING: line over 80 characters
+#281: FILE: drivers/char/mem.c:47:
++	 * On ia64, we ignore O_DSYNC because we cannot tolerate memory attribute aliases.
 
-./patches/acpi-remove-nid_inval.patch has style problems, please review.  If any of these errors
+total: 0 errors, 2 warnings, 359 lines checked
+
+./patches/vfs-implement-posix-o_sync-and-o_dsync-semantics.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
-Cc: Len Brown <lenb@kernel.org>
+
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ arch/x86/mm/pat.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/acpi/numa.c~acpi-remove-nid_inval-checkpatch-fixes drivers/acpi/numa.c
---- a/drivers/acpi/numa.c~acpi-remove-nid_inval-checkpatch-fixes
-+++ a/drivers/acpi/numa.c
-@@ -40,7 +40,7 @@ ACPI_MODULE_NAME("numa");
- static nodemask_t nodes_found_map = NODE_MASK_NONE;
+diff -puN arch/x86/mm/pat.c~vfs-implement-posix-o_sync-and-o_dsync-semantics-checkpatch-fixes arch/x86/mm/pat.c
+--- a/arch/x86/mm/pat.c~vfs-implement-posix-o_sync-and-o_dsync-semantics-checkpatch-fixes
++++ a/arch/x86/mm/pat.c
+@@ -705,9 +705,8 @@ int phys_mem_access_prot_allowed(struct 
+ 	if (!range_is_allowed(pfn, size))
+ 		return 0;
  
- /* maps to convert between proximity domain and logical node ID */
--static int pxm_to_node_map[MAX_PXM_DOMAINS]				
-+static int pxm_to_node_map[MAX_PXM_DOMAINS]
- 			= { [0 ... MAX_PXM_DOMAINS - 1] = NUMA_NO_NODE };
- static int node_to_pxm_map[MAX_NUMNODES]
- 			= { [0 ... MAX_NUMNODES - 1] = PXM_INVAL };
+-	if (file->f_flags & O_DSYNC) {
++	if (file->f_flags & O_DSYNC)
+ 		flags = _PAGE_CACHE_UC_MINUS;
+-	}
+ 
+ #ifdef CONFIG_X86_32
+ 	/*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -95,7 +97,6 @@ raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
 fs-improve-remountro-vs-buffercache-coherency.patch
 percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
 drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
-vfs-implement-posix-o_sync-and-o_dsync-semantics-checkpatch-fixes.patch
 readahead-add-blk_run_backing_dev.patch
 mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
 dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
