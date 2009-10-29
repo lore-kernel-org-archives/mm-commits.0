@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-fix-wrong-pointer-initialization-at-page-migration-when-memcg-is-disabled.patch added to -mm tree
-Date: Wed, 28 Oct 2009 22:38:15 -0700
-Message-ID: <200910290538.n9T5cFH6004916@imap1.linux-foundation.org>
+Subject: + oom_kill-use-rss-value-instead-of-vm-size-for-badness.patch added to -mm tree
+Date: Wed, 28 Oct 2009 22:40:56 -0700
+Message-ID: <200910290540.n9T5euV8011236@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41043 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44327 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753364AbZJ2Fiy (ORCPT
+	by vger.kernel.org with ESMTP id S1752248AbZJ2FlV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Oct 2009 01:38:54 -0400
+	Thu, 29 Oct 2009 01:41:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, Lee.Schermerhorn@hp.com, balbir@in.ibm.com, nishimura@mxp.nes.nec.co.jp, stable@kernel.org
+Cc: kamezawa.hiroyu@jp.fujitsu.com, aarcange@redhat.com, hugh.dickins@tiscali.co.uk, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, rientjes@google.com
 
 
 The patch titled
-     memcg: fix wrong pointer initialization at page migration when memcg is disabled.
+     oom_kill: use rss value instead of vm size for badness
 has been added to the -mm tree.  Its filename is
-     memcg-fix-wrong-pointer-initialization-at-page-migration-when-memcg-is-disabled.patch
+     oom_kill-use-rss-value-instead-of-vm-size-for-badness.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,92 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: fix wrong pointer initialization at page migration when memcg is disabled.
+Subject: oom_kill: use rss value instead of vm size for badness
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Lee Schermerhorn reported that he saw bad pointer dereference in
-mem_cgroup_end_migration() when he disabled memcg by boot option.
+It's reported that OOM-Killer kills Gnone/KDE first.  And yes, we can
+reproduce it easily.
 
-memcg's page migration logic works as
+Now, oom-killer uses mm->total_vm as its base value.  But in recent
+applications, there are a big gap between VM size and RSS size.  Because
 
-	mem_cgroup_prepare_migration(page, &ptr);
-	do page migration
-	mem_cgroup_end_migration(page, ptr);
+  - Applications attaches much dynamic libraries. (Gnome, KDE, etc...)
+  - Applications may alloc big VM area but use small part of them.
+    (Java, and multi-threaded applications has this tendency because
+     of default-size of stack.)
 
-Now, ptr is not initialized in prepare_migration when memcg is disabled
-by boot option. This causes panic in end_migration. This patch fixes it.
+I think using mm->total_vm as score for oom-kill is not good.  By the same
+reason, overcommit memory can't work as expected.  (In other words, if we
+depends on total_vm, using overcommit more positive is a good choice.)
 
-Reported-by: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
+This patch uses mm->anon_rss/file_rss as base value for calculating badness.
+
+Following is changes to OOM score(badness) on an environment with 1.6G memory
+plus memory-eater(500M & 1G).
+
+Top 10 of badness score. (The highest one is the first candidate to be killed)
+Before
+badness program
+91228	gnome-settings-
+94210	clock-applet
+103202	mixer_applet2
+106563	tomboy
+112947	gnome-terminal
+128944	mmap              <----------- 500M malloc
+129332	nautilus
+215476	bash              <----------- parent of 2 mallocs.
+256944	mmap              <----------- 1G malloc
+423586	gnome-session
+
+After
+badness
+1911	mixer_applet2
+1955	clock-applet
+1986	xinit
+1989	gnome-session
+2293	nautilus
+2955	gnome-terminal
+4113	tomboy
+104163	mmap             <----------- 500M malloc.
+168577	bash             <----------- parent of 2 mallocs
+232375	mmap             <----------- 1G malloc
+
+seems good for me.  Maybe we can tweak this patch more, but this one will
+be a good one as a start point.
+
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Reviewed-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: <stable@kernel.org>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/oom_kill.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/migrate.c~memcg-fix-wrong-pointer-initialization-at-page-migration-when-memcg-is-disabled mm/migrate.c
---- a/mm/migrate.c~memcg-fix-wrong-pointer-initialization-at-page-migration-when-memcg-is-disabled
-+++ a/mm/migrate.c
-@@ -602,7 +602,7 @@ static int unmap_and_move(new_page_t get
- 	struct page *newpage = get_new_page(page, private, &result);
- 	int rcu_locked = 0;
- 	int charge = 0;
--	struct mem_cgroup *mem;
-+	struct mem_cgroup *mem = NULL;
+diff -puN mm/oom_kill.c~oom_kill-use-rss-value-instead-of-vm-size-for-badness mm/oom_kill.c
+--- a/mm/oom_kill.c~oom_kill-use-rss-value-instead-of-vm-size-for-badness
++++ a/mm/oom_kill.c
+@@ -93,7 +93,7 @@ unsigned long badness(struct task_struct
+ 	/*
+ 	 * The memory size of the process is the basis for the badness.
+ 	 */
+-	points = mm->total_vm;
++	points = get_mm_rss(mm);
  
- 	if (!newpage)
- 		return -ENOMEM;
+ 	/*
+ 	 * After this unlock we can no longer dereference local variable `mm'
+@@ -117,7 +117,7 @@ unsigned long badness(struct task_struct
+ 	list_for_each_entry(child, &p->children, sibling) {
+ 		task_lock(child);
+ 		if (child->mm != mm && child->mm)
+-			points += child->mm->total_vm/2 + 1;
++			points += get_mm_rss(child->mm)/2 + 1;
+ 		task_unlock(child);
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
@@ -104,6 +152,7 @@ swap_info-swap_map-of-chars-not-shorts.patch
 swap_info-swap-count-continuations.patch
 swap_info-note-swap_map_shmem.patch
 swap_info-reorder-its-fields.patch
+oom_kill-use-rss-value-instead-of-vm-size-for-badness.patch
 memcg-coalesce-uncharge-during-unmap-truncate.patch
 memcg-coalesce-charging-via-percpu-storage.patch
 memcg-coalesce-charging-via-percpu-storage-fix.patch
