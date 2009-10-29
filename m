@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
 Subject: + memcg-fix-wrong-pointer-initialization-at-page-migration-when-memcg-is-disabled.patch added to -mm tree
-Date: Wed, 28 Oct 2009 22:37:24 -0700
-Message-ID: <200910290537.n9T5bOxA002961@imap1.linux-foundation.org>
+Date: Wed, 28 Oct 2009 22:38:15 -0700
+Message-ID: <200910290538.n9T5cFH6004916@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33673 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41043 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753336AbZJ2Fhf (ORCPT
+	by vger.kernel.org with ESMTP id S1753364AbZJ2Fiy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Oct 2009 01:37:35 -0400
+	Thu, 29 Oct 2009 01:38:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, Lee.Schermerhorn@hp.com, balbir@in.ibm.com, nishimura@mxp.nes.nec.co.jp
+Cc: kamezawa.hiroyu@jp.fujitsu.com, Lee.Schermerhorn@hp.com, balbir@in.ibm.com, nishimura@mxp.nes.nec.co.jp, stable@kernel.org
 
 
 The patch titled
@@ -53,25 +53,25 @@ Reported-by: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Reviewed-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/migrate.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~memcg-fix-wrong-pointer-initialization-at-page-migration-when-memcg-is-disabled mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-wrong-pointer-initialization-at-page-migration-when-memcg-is-disabled
-+++ a/mm/memcontrol.c
-@@ -1990,7 +1990,8 @@ int mem_cgroup_prepare_migration(struct 
- 	struct page_cgroup *pc;
- 	struct mem_cgroup *mem = NULL;
- 	int ret = 0;
--
-+	/* this pointer will be checked at end_migration */
-+	*ptr = NULL;
- 	if (mem_cgroup_disabled())
- 		return 0;
+diff -puN mm/migrate.c~memcg-fix-wrong-pointer-initialization-at-page-migration-when-memcg-is-disabled mm/migrate.c
+--- a/mm/migrate.c~memcg-fix-wrong-pointer-initialization-at-page-migration-when-memcg-is-disabled
++++ a/mm/migrate.c
+@@ -602,7 +602,7 @@ static int unmap_and_move(new_page_t get
+ 	struct page *newpage = get_new_page(page, private, &result);
+ 	int rcu_locked = 0;
+ 	int charge = 0;
+-	struct mem_cgroup *mem;
++	struct mem_cgroup *mem = NULL;
  
+ 	if (!newpage)
+ 		return -ENOMEM;
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
