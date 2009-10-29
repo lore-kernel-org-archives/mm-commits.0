@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + xfs-free-temporary-cursor-in-xfs_dialloc.patch added to -mm tree
-Date: Wed, 28 Oct 2009 16:29:51 -0700
-Message-ID: <200910282329.n9SNTpCu017552@imap1.linux-foundation.org>
+Subject: + memcg-fix-wrong-pointer-initialization-at-page-migration-when-memcg-is-disabled.patch added to -mm tree
+Date: Wed, 28 Oct 2009 22:37:24 -0700
+Message-ID: <200910290537.n9T5bOxA002961@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44735 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33673 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755068AbZJ1XaA (ORCPT
+	by vger.kernel.org with ESMTP id S1753336AbZJ2Fhf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Oct 2009 19:30:00 -0400
+	Thu, 29 Oct 2009 01:37:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sandeen@sandeen.net, aelder@sgi.com, felixb@sgi.com, hch@lst.de
+Cc: kamezawa.hiroyu@jp.fujitsu.com, Lee.Schermerhorn@hp.com, balbir@in.ibm.com, nishimura@mxp.nes.nec.co.jp
 
 
 The patch titled
-     xfs: free temporary cursor in xfs_dialloc()
+     memcg: fix wrong pointer initialization at page migration when memcg is disabled.
 has been added to the -mm tree.  Its filename is
-     xfs-free-temporary-cursor-in-xfs_dialloc.patch
+     memcg-fix-wrong-pointer-initialization-at-page-migration-when-memcg-is-disabled.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,57 +34,79 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xfs: free temporary cursor in xfs_dialloc()
-From: Eric Sandeen <sandeen@sandeen.net>
+Subject: memcg: fix wrong pointer initialization at page migration when memcg is disabled.
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Commit bd169565993b39b9b4b102cdac8b13e0a259ce2f ("xfs: speed up free inode
-search") seems to have a slight regression where this code path:
+Lee Schermerhorn reported that he saw bad pointer dereference in
+mem_cgroup_end_migration() when he disabled memcg by boot option.
 
-   if (!--searchdistance) {
-       /*
-        * Not in range - save last search
-        * location and allocate a new inode
-        */
-       ...
-       goto newino;
-   }
+memcg's page migration logic works as
 
-doesn't free the temporary cursor (tcur) that got dup'd in this
-function.
+	mem_cgroup_prepare_migration(page, &ptr);
+	do page migration
+	mem_cgroup_end_migration(page, ptr);
 
-This leaks an item in the xfs_btree_cur zone, and it's caught on module
-unload:
+Now, ptr is not initialized in prepare_migration when memcg is disabled
+by boot option. This causes panic in end_migration. This patch fixes it.
 
-===========================================================
-BUG xfs_btree_cur: Objects remaining on kmem_cache_close()
------------------------------------------------------------
-
-It seems like maybe a single free at the end of the function might be
-cleaner, but for now put a del_cursor right in this code block similar
-to the handling in the rest of the function.
-
-Signed-off-by: Eric Sandeen <sandeen@sandeen.net>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Cc: Alex Elder <aelder@sgi.com>
-Cc: Felix Blyakher <felixb@sgi.com>
+Reported-by: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Reviewed-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ mm/memcontrol.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/xfs/xfs_ialloc.c~xfs-free-temporary-cursor-in-xfs_dialloc fs/xfs/xfs_ialloc.c
---- a/fs/xfs/xfs_ialloc.c~xfs-free-temporary-cursor-in-xfs_dialloc
-+++ a/fs/xfs/xfs_ialloc.c
-@@ -880,6 +880,7 @@ nextag:
- 				 * Not in range - save last search
- 				 * location and allocate a new inode
- 				 */
-+				xfs_btree_del_cursor(tcur, XFS_BTREE_NOERROR);
- 				pag->pagl_leftrec = trec.ir_startino;
- 				pag->pagl_rightrec = rec.ir_startino;
- 				pag->pagl_pagino = pagino;
+diff -puN mm/memcontrol.c~memcg-fix-wrong-pointer-initialization-at-page-migration-when-memcg-is-disabled mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-wrong-pointer-initialization-at-page-migration-when-memcg-is-disabled
++++ a/mm/memcontrol.c
+@@ -1990,7 +1990,8 @@ int mem_cgroup_prepare_migration(struct 
+ 	struct page_cgroup *pc;
+ 	struct mem_cgroup *mem = NULL;
+ 	int ret = 0;
+-
++	/* this pointer will be checked at end_migration */
++	*ptr = NULL;
+ 	if (mem_cgroup_disabled())
+ 		return 0;
+ 
 _
 
-Patches currently in -mm which might be from sandeen@sandeen.net are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
-xfs-free-temporary-cursor-in-xfs_dialloc.patch
+mm-dont-call-pte_unmap-against-an-improper-pte.patch
+mm-add-notifier-in-pageblock-isolation-for-balloon-drivers.patch
+powerpc-make-the-cmm-memory-hotplug-aware.patch
+memcg-fix-wrong-pointer-initialization-at-page-migration-when-memcg-is-disabled.patch
+mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap.patch
+nodemask-make-nodemask_alloc-more-general.patch
+hugetlb-rework-hstate_next_node_-functions.patch
+hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions.patch
+hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions-fix.patch
+hugetlb-factor-init_nodemask_of_node.patch
+hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy.patch
+hugetlb-add-generic-definition-of-numa_no_node.patch
+hugetlb-add-per-node-hstate-attributes.patch
+hugetlb-update-hugetlb-documentation-for-numa-controls.patch
+hugetlb-use-only-nodes-with-memory-for-huge-pages.patch
+mm-clear-node-in-n_high_memory-and-stop-kswapd-when-all-memory-is-offlined.patch
+hugetlb-handle-memory-hot-plug-events.patch
+hugetlb-offload-per-node-attribute-registrations.patch
+mm-add-gfp-flags-for-nodemask_alloc-slab-allocations.patch
+swap_info-private-to-swapfilec.patch
+swap_info-change-to-array-of-pointers.patch
+swap_info-include-first_swap_extent.patch
+swap_info-miscellaneous-minor-cleanups.patch
+swap_info-swap_has_cache-cleanups.patch
+swap_info-swap_map-of-chars-not-shorts.patch
+swap_info-swap-count-continuations.patch
+swap_info-note-swap_map_shmem.patch
+swap_info-reorder-its-fields.patch
+memcg-coalesce-uncharge-during-unmap-truncate.patch
+memcg-coalesce-charging-via-percpu-storage.patch
+memcg-coalesce-charging-via-percpu-storage-fix.patch
+memcg-coalesce-charging-via-percpu-storage-fix-2.patch
+memcg-make-memcgs-file-mapped-consistent-with-global-vm.patch
 
