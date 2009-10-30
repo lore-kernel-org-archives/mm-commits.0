@@ -1,61 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-add-open-firmware-flattened-device-tree-entry.patch removed from -mm tree
-Date: Fri, 30 Oct 2009 13:49:57 -0700
-Message-ID: <200910302049.n9UKnvrN009446@imap1.linux-foundation.org>
+Subject: [merged] maintainers-rt2x00-list-is-moderated.patch removed from -mm tree
+Date: Fri, 30 Oct 2009 13:50:01 -0700
+Message-ID: <200910302050.n9UKo1oq009540@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38679 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51985 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757507AbZJ3UuZ (ORCPT
+	by vger.kernel.org with ESMTP id S1757508AbZJ3Uub (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Oct 2009 16:50:25 -0400
+	Fri, 30 Oct 2009 16:50:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: grant.likely@secretlab.ca, joe@perches.com, mm-commits@vger.kernel.org
+To: bzolnier@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MAINTAINERS: add Open Firmware / Flattened Device Tree entry
+     MAINTAINERS: rt2x00 list is moderated
 has been removed from the -mm tree.  Its filename was
-     maintainers-add-open-firmware-flattened-device-tree-entry.patch
+     maintainers-rt2x00-list-is-moderated.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: add Open Firmware / Flattened Device Tree entry
-From: Grant Likely <grant.likely@secretlab.ca>
+Subject: MAINTAINERS: rt2x00 list is moderated
+From: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 
-Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
-Cc: Joe Perches <joe@perches.com>
+Signed-off-by: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN MAINTAINERS~maintainers-add-open-firmware-flattened-device-tree-entry MAINTAINERS
---- a/MAINTAINERS~maintainers-add-open-firmware-flattened-device-tree-entry
+diff -puN MAINTAINERS~maintainers-rt2x00-list-is-moderated MAINTAINERS
+--- a/MAINTAINERS~maintainers-rt2x00-list-is-moderated
 +++ a/MAINTAINERS
-@@ -3885,6 +3885,15 @@ S:	Maintained
- F:	Documentation/i2c/busses/i2c-ocores
- F:	drivers/i2c/busses/i2c-ocores.c
- 
-+OPEN FIRMWARE AND FLATTENED DEVICE TREE
-+M:	Grant Likely <grant.likely@secretlab.ca>
-+L:	devicetree-discuss@lists.ozlabs.org
-+W:	http://fdt.secretlab.ca
-+S:	Maintained
-+F:	drivers/of
-+F:	include/linux/of*.h
-+K:	of_get_property
-+
- OPROFILE
- M:	Robert Richter <robert.richter@amd.com>
- L:	oprofile-list@lists.sf.net
+@@ -4329,7 +4329,7 @@ F:	drivers/video/aty/aty128fb.c
+ RALINK RT2X00 WIRELESS LAN DRIVER
+ P:	rt2x00 project
+ L:	linux-wireless@vger.kernel.org
+-L:	users@rt2x00.serialmonkey.com
++L:	users@rt2x00.serialmonkey.com (moderated for non-subscribers)
+ W:	http://rt2x00.serialmonkey.com/
+ S:	Maintained
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/ivd/rt2x00.git
 _
 
-Patches currently in -mm which might be from grant.likely@secretlab.ca are
+Patches currently in -mm which might be from bzolnier@gmail.com are
 
 origin.patch
 linux-next.patch
+cyclades-allow-overriding-isa-defaults-also-when-the-driver-is-built-in.patch
 
