@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ptrace-cleanup-ptrace_init_task-ptrace_link-path.patch added to -mm tree
-Date: Fri, 30 Oct 2009 15:51:12 -0700
-Message-ID: <200910302251.n9UMpCiq002109@imap1.linux-foundation.org>
+Subject: + signals-check-group_stop_count-after-tracehook_get_signal.patch added to -mm tree
+Date: Fri, 30 Oct 2009 15:51:50 -0700
+Message-ID: <200910302251.n9UMpobZ003614@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47899 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50005 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933024AbZJ3Wvu (ORCPT
+	by vger.kernel.org with ESMTP id S932983AbZJ3Ww2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Oct 2009 18:51:50 -0400
+	Fri, 30 Oct 2009 18:52:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: oleg@redhat.com, roland@redhat.com
 
 
 The patch titled
-     ptrace: cleanup ptrace_init_task()->ptrace_link() path
+     signals: check ->group_stop_count after tracehook_get_signal()
 has been added to the -mm tree.  Its filename is
-     ptrace-cleanup-ptrace_init_task-ptrace_link-path.patch
+     signals-check-group_stop_count-after-tracehook_get_signal.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,16 +34,14 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace: cleanup ptrace_init_task()->ptrace_link() path
+Subject: signals: check ->group_stop_count after tracehook_get_signal()
 From: Oleg Nesterov <oleg@redhat.com>
 
-No functional changes.
+Move the call to do_signal_stop() down, after tracehook call.  This makes
+->group_stop_count condition visible to tracers before do_signal_stop()
+will participate in this group-stop.
 
-ptrace_init_task() looks confusing, as if we always auto-attach when "bool
-ptrace" argument is true, while in fact we attach only if current is
-traced.
-
-Make the code more explicit and kill now unused ptrace_link().
+Currently the patch has no effect, tracehook_get_signal() always returns 0.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Acked-by: Roland McGrath <roland@redhat.com>
@@ -51,34 +49,31 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN include/linux/ptrace.h~ptrace-cleanup-ptrace_init_task-ptrace_link-path include/linux/ptrace.h
---- a/include/linux/ptrace.h~ptrace-cleanup-ptrace_init_task-ptrace_link-path
-+++ a/include/linux/ptrace.h
-@@ -105,12 +105,7 @@ static inline int ptrace_reparented(stru
- {
- 	return child->real_parent != child->parent;
- }
--static inline void ptrace_link(struct task_struct *child,
--			       struct task_struct *new_parent)
--{
--	if (unlikely(child->ptrace))
--		__ptrace_link(child, new_parent);
--}
+diff -puN kernel/signal.c~signals-check-group_stop_count-after-tracehook_get_signal kernel/signal.c
+--- a/kernel/signal.c~signals-check-group_stop_count-after-tracehook_get_signal
++++ a/kernel/signal.c
+@@ -1810,11 +1810,6 @@ relock:
+ 
+ 	for (;;) {
+ 		struct k_sigaction *ka;
+-
+-		if (unlikely(signal->group_stop_count > 0) &&
+-		    do_signal_stop(0))
+-			goto relock;
+-
+ 		/*
+ 		 * Tracing can induce an artifical signal and choose sigaction.
+ 		 * The return value in @signr determines the default action,
+@@ -1826,6 +1821,10 @@ relock:
+ 		if (unlikely(signr != 0))
+ 			ka = return_ka;
+ 		else {
++			if (unlikely(signal->group_stop_count > 0) &&
++			    do_signal_stop(0))
++				goto relock;
 +
- static inline void ptrace_unlink(struct task_struct *child)
- {
- 	if (unlikely(child->ptrace))
-@@ -169,9 +164,9 @@ static inline void ptrace_init_task(stru
- 	INIT_LIST_HEAD(&child->ptraced);
- 	child->parent = child->real_parent;
- 	child->ptrace = 0;
--	if (unlikely(ptrace)) {
-+	if (unlikely(ptrace) && (current->ptrace & PT_PTRACED)) {
- 		child->ptrace = current->ptrace;
--		ptrace_link(child, current->parent);
-+		__ptrace_link(child, current->parent);
- 	}
- }
+ 			signr = dequeue_signal(current, &current->blocked,
+ 					       info);
  
 _
 
@@ -94,6 +89,6 @@ signals-send_sig_noinfo-should-be-considered-as-si_fromuser.patch
 signals-send_signal-use-si_fromuser-to-detect-from_ancestor_ns.patch
 signals-cosmetic-collect_signal-use-si_user.patch
 signals-kill-force_sig_specific.patch
-utrace-core.patch
 signals-check-group_stop_count-after-tracehook_get_signal.patch
+utrace-core.patch
 
