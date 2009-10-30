@@ -1,50 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-change-atm-mailing-list-to-moderated.patch removed from -mm tree
-Date: Fri, 30 Oct 2009 13:49:06 -0700
-Message-ID: <200910302049.n9UKn6vi007475@imap1.linux-foundation.org>
+Subject: [merged] maintainers-fix-up-peripheral-spelling.patch removed from -mm tree
+Date: Fri, 30 Oct 2009 13:49:35 -0700
+Message-ID: <200910302049.n9UKnZSo008641@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55057 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46239 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757500AbZJ3Utv (ORCPT
+	by vger.kernel.org with ESMTP id S1757501AbZJ3UuE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Oct 2009 16:49:51 -0400
+	Fri, 30 Oct 2009 16:50:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, chas@cmf.nrl.navy.mil, mm-commits@vger.kernel.org
+To: joe@perches.com, leoli@freescale.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MAINTAINERS: change ATM mailing list to moderated
+     MAINTAINERS: fix up PERIPHERAL spelling
 has been removed from the -mm tree.  Its filename was
-     maintainers-change-atm-mailing-list-to-moderated.patch
+     maintainers-fix-up-peripheral-spelling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: change ATM mailing list to moderated
+Subject: MAINTAINERS: fix up PERIPHERAL spelling
 From: Joe Perches <joe@perches.com>
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Chas Williams <chas@cmf.nrl.navy.mil>
+Cc: Li Yang <leoli@freescale.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN MAINTAINERS~maintainers-change-atm-mailing-list-to-moderated MAINTAINERS
---- a/MAINTAINERS~maintainers-change-atm-mailing-list-to-moderated
+diff -puN MAINTAINERS~maintainers-fix-up-peripheral-spelling MAINTAINERS
+--- a/MAINTAINERS~maintainers-fix-up-peripheral-spelling
 +++ a/MAINTAINERS
-@@ -992,7 +992,7 @@ F:	drivers/net/atlx/
+@@ -2151,7 +2151,7 @@ S:	Supported
+ F:	arch/powerpc/sysdev/qe_lib/
+ F:	arch/powerpc/include/asm/*qe.h
  
- ATM
- M:	Chas Williams <chas@cmf.nrl.navy.mil>
--L:	linux-atm-general@lists.sourceforge.net (subscribers-only)
-+L:	linux-atm-general@lists.sourceforge.net (moderated for non-subscribers)
- L:	netdev@vger.kernel.org
- W:	http://linux-atm.sourceforge.net
- S:	Maintained
+-FREESCALE USB PERIPHERIAL DRIVERS
++FREESCALE USB PERIPHERAL DRIVERS
+ M:	Li Yang <leoli@freescale.com>
+ L:	linux-usb@vger.kernel.org
+ L:	linuxppc-dev@ozlabs.org
 _
 
 Patches currently in -mm which might be from joe@perches.com are
