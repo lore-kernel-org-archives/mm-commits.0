@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + aio-dont-zero-out-the-pages-array-inside-struct-dio.patch added to -mm tree
-Date: Fri, 30 Oct 2009 14:18:24 -0700
-Message-ID: <200910302118.n9ULIOnY011329@imap1.linux-foundation.org>
+Subject: + aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch added to -mm tree
+Date: Fri, 30 Oct 2009 14:18:26 -0700
+Message-ID: <200910302118.n9ULIQOt011499@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49555 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47217 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932890AbZJ3VSg (ORCPT
+	by vger.kernel.org with ESMTP id S932892AbZJ3VSg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 30 Oct 2009 17:18:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jmoyer@redhat.com, zach.brown@oracle.com
+Cc: akpm@linux-foundation.org, jmoyer@redhat.com, zach.brown@oracle.com
 
 
 The patch titled
-     aio: don't zero out the pages array inside struct dio
+     aio-dont-zero-out-the-pages-array-inside-struct-dio-fix
 has been added to the -mm tree.  Its filename is
-     aio-dont-zero-out-the-pages-array-inside-struct-dio.patch
+     aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,123 +34,78 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: aio: don't zero out the pages array inside struct dio
-From: Jeff Moyer <jmoyer@redhat.com>
+Subject: aio-dont-zero-out-the-pages-array-inside-struct-dio-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Intel reported a performance regression caused by the following commit:
-
-commit 848c4dd5153c7a0de55470ce99a8e13a63b4703f
-Author: Zach Brown <zach.brown@oracle.com>
-Date:   Mon Aug 20 17:12:01 2007 -0700
-
-    dio: zero struct dio with kzalloc instead of manually
-
-    This patch uses kzalloc to zero all of struct dio rather than
-    manually trying to track which fields we rely on being zero.  It
-    passed aio+dio stress testing and some bug regression testing on
-    ext3.
-
-    This patch was introduced by Linus in the conversation that lead up
-    to Badari's minimal fix to manually zero .map_bh.b_state in commit:
-
-      6a648fa72161d1f6468dabd96c5d3c0db04f598a
-
-    It makes the code a bit smaller.  Maybe a couple fewer cachelines to
-    load, if we're lucky:
-
-       text    data     bss     dec     hex filename
-    3285925  568506 1304616 5159047  4eb887 vmlinux
-    3285797  568506 1304616 5158919  4eb807 vmlinux.patched
-
-    I was unable to measure a stable difference in the number of cpu
-    cycles spent in blockdev_direct_IO() when pushing aio+dio 256K reads
-    at ~340MB/s.
-
-    So the resulting intent of the patch isn't a performance gain but to
-    avoid exposing ourselves to the risk of finding another field like
-    .map_bh.b_state where we rely on zeroing but don't enforce it in the
-    code.
-
-Zach surmised that zeroing out the page array was what caused most of
-the problem, and suggested the approach taken in the attached patch for
-resolving the issue.  Intel re-tested with this patch and saw a 0.6%
-performance gain (the original regression was 0.5%).
-
-Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
-Acked-by: Zach Brown <zach.brown@oracle.com>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Zach Brown <zach.brown@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN fs/direct-io.c~aio-dont-zero-out-the-pages-array-inside-struct-dio fs/direct-io.c
---- a/fs/direct-io.c~aio-dont-zero-out-the-pages-array-inside-struct-dio
+diff -puN fs/direct-io.c~aio-dont-zero-out-the-pages-array-inside-struct-dio-fix fs/direct-io.c
+--- a/fs/direct-io.c~aio-dont-zero-out-the-pages-array-inside-struct-dio-fix
 +++ a/fs/direct-io.c
-@@ -104,6 +104,18 @@ struct dio {
- 	unsigned cur_page_len;		/* Nr of bytes at cur_page_offset */
- 	sector_t cur_page_block;	/* Where it starts */
- 
-+	/* BIO completion state */
-+	spinlock_t bio_lock;		/* protects BIO fields below */
-+	unsigned long refcount;		/* direct_io_worker() and bios */
-+	struct bio *bio_list;		/* singly linked via bi_private */
-+	struct task_struct *waiter;	/* waiting task (NULL if none) */
-+
-+	/* AIO related stuff */
-+	struct kiocb *iocb;		/* kiocb */
-+	int is_async;			/* is IO async ? */
-+	int io_error;			/* IO error in completion path */
-+	ssize_t result;                 /* IO result */
-+
- 	/*
- 	 * Page fetching state. These variables belong to dio_refill_pages().
- 	 */
-@@ -115,22 +127,10 @@ struct dio {
- 	 * Page queue.  These variables belong to dio_refill_pages() and
- 	 * dio_get_page().
- 	 */
--	struct page *pages[DIO_PAGES];	/* page buffer */
+@@ -130,6 +130,12 @@ struct dio {
  	unsigned head;			/* next page to process */
  	unsigned tail;			/* last valid page + 1 */
  	int page_errors;		/* errno from get_user_pages() */
--
--	/* BIO completion state */
--	spinlock_t bio_lock;		/* protects BIO fields below */
--	unsigned long refcount;		/* direct_io_worker() and bios */
--	struct bio *bio_list;		/* singly linked via bi_private */
--	struct task_struct *waiter;	/* waiting task (NULL if none) */
--
--	/* AIO related stuff */
--	struct kiocb *iocb;		/* kiocb */
--	int is_async;			/* is IO async ? */
--	int io_error;			/* IO error in completion path */
--	ssize_t result;                 /* IO result */
-+	struct page *pages[DIO_PAGES];	/* page buffer */
++
++	/*
++	 * pages[] (and any fields placed after it) are not zeroed out at
++	 * allocation time.  Don't add new fields after pages[] unless you
++	 * wish that they not be zeroed.
++	 */
+ 	struct page *pages[DIO_PAGES];	/* page buffer */
  };
  
- /*
-@@ -1151,10 +1151,16 @@ __blockdev_direct_IO(int rw, struct kioc
- 		}
- 	}
- 
--	dio = kzalloc(sizeof(*dio), GFP_KERNEL);
-+	dio = kmalloc(sizeof(*dio), GFP_KERNEL);
- 	retval = -ENOMEM;
- 	if (!dio)
- 		goto out;
-+	/*
-+	 * Believe it or not, zeroing out the page array caused a .5%
-+	 * performance regression in a database benchmark.  So, we take
-+	 * care to only zero out what's needed.
-+	 */
-+	memset(dio, 0, offsetof(struct dio, pages));
- 
- 	/*
- 	 * For block device access DIO_NO_LOCKING is used,
 _
 
-Patches currently in -mm which might be from jmoyer@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
-aio-dont-zero-out-the-pages-array-inside-struct-dio.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices-fix.patch
+acpi-remove-nid_inval-checkpatch-fixes.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+3x59x-fix-pci-resource-management.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+include-trace-events-lockdeph-fix-do_div-warning.patch
+st-fix-test-of-value-range-in-st_set_options.patch
+scsi-add-hpsa-driver-for-hp-smart-array-controllers-fix.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+fs-improve-remountro-vs-buffercache-coherency.patch
+percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
+readahead-add-blk_run_backing_dev.patch
+mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
+drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
+rwsem-fix-rwsem_is_locked-bugs-fix.patch
+errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
+hwmon-w83627ehf-updates-checkpatch-fixes.patch
+spi-controller-driver-for-designware-spi-core-fix.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs.patch
+memcg-coalesce-charging-via-percpu-storage-fix.patch
 aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+reiser4-disable.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
