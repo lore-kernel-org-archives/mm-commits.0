@@ -1,35 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-mtd-maps-gpio-addr-flashc-needs-config_generic_gpio.patch added to -mm tree
-Date: Fri, 30 Oct 2009 15:13:23 -0700
-Message-ID: <200910302236.n9UMaf93000549@imap1.linux-foundation.org>
+Subject: [alternative-merged] drivers-mtd-maps-gpio-addr-flashc-needs-config_generic_gpio.patch removed from -mm tree
+Date: Fri, 30 Oct 2009 15:48:26 -0700
+Message-ID: <200910302248.n9UMmQuv028240@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59255 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55326 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932949AbZJ3WhU (ORCPT
+	by vger.kernel.org with ESMTP id S932962AbZJ3Ws4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Oct 2009 18:37:20 -0400
+	Fri, 30 Oct 2009 18:48:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, cooloney@kernel.org, dwmw2@infradead.org, vapier@gentoo.org
+To: akpm@linux-foundation.org, cooloney@kernel.org, dwmw2@infradead.org, vapier@gentoo.org, mm-commits@vger.kernel.org
 
 
 The patch titled
      drivers/mtd/maps/gpio-addr-flash.c needs CONFIG_GENERIC_GPIO
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      drivers-mtd-maps-gpio-addr-flashc-needs-config_generic_gpio.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an alternative patch was merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
