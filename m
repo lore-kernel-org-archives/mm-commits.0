@@ -1,85 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cgroup-fix-strstrip-misuse.patch removed from -mm tree
-Date: Fri, 30 Oct 2009 13:48:35 -0700
-Message-ID: <200910302048.n9UKmZZS006296@imap1.linux-foundation.org>
+Subject: [merged] strstrip-mark-as-as-must_check.patch removed from -mm tree
+Date: Fri, 30 Oct 2009 13:48:41 -0700
+Message-ID: <200910302048.n9UKmfC3006422@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39744 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47419 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757468AbZJ3UtL (ORCPT
+	by vger.kernel.org with ESMTP id S1757462AbZJ3UtJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Oct 2009 16:49:11 -0400
+	Fri, 30 Oct 2009 16:49:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, mm-commits@vger.kernel.org
+To: kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cgroup: fix strstrip() misuse
+     strstrip(): mark as as must_check
 has been removed from the -mm tree.  Its filename was
-     cgroup-fix-strstrip-misuse.patch
+     strstrip-mark-as-as-must_check.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroup: fix strstrip() misuse
+Subject: strstrip(): mark as as must_check
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-cgroup_write_X64() and cgroup_write_string() ignore the return value of
-strstrip().  it makes small inconsistent behavior.
+strstrip() can return a modified value of its input argument, when
+removing elading whitesapce.  So it is surely bug for this function's
+return value to be ignored.  The caller is probably going to use the
+incorrect original pointer.
 
-example:
-=========================
- # cd /mnt/cgroup/hoge
- # cat memory.swappiness
- 60
- # echo "59 " > memory.swappiness
- # cat memory.swappiness
- 59
- # echo " 58" > memory.swappiness
- bash: echo: write error: Invalid argument
+So mark it __must_check to prevent this frm happening (as it has before).
 
-This patch fixes it.
-
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Acked-by: Paul Menage <menage@google.com>
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN kernel/cgroup.c~cgroup-fix-strstrip-misuse kernel/cgroup.c
---- a/kernel/cgroup.c~cgroup-fix-strstrip-misuse
-+++ a/kernel/cgroup.c
-@@ -1710,14 +1710,13 @@ static ssize_t cgroup_write_X64(struct c
- 		return -EFAULT;
- 
- 	buffer[nbytes] = 0;     /* nul-terminate */
--	strstrip(buffer);
- 	if (cft->write_u64) {
--		u64 val = simple_strtoull(buffer, &end, 0);
-+		u64 val = simple_strtoull(strstrip(buffer), &end, 0);
- 		if (*end)
- 			return -EINVAL;
- 		retval = cft->write_u64(cgrp, cft, val);
- 	} else {
--		s64 val = simple_strtoll(buffer, &end, 0);
-+		s64 val = simple_strtoll(strstrip(buffer), &end, 0);
- 		if (*end)
- 			return -EINVAL;
- 		retval = cft->write_s64(cgrp, cft, val);
-@@ -1753,8 +1752,7 @@ static ssize_t cgroup_write_string(struc
- 	}
- 
- 	buffer[nbytes] = 0;     /* nul-terminate */
--	strstrip(buffer);
--	retval = cft->write_string(cgrp, cft, buffer);
-+	retval = cft->write_string(cgrp, cft, strstrip(buffer));
- 	if (!retval)
- 		retval = nbytes;
- out:
+diff -puN include/linux/string.h~strstrip-mark-as-as-must_check include/linux/string.h
+--- a/include/linux/string.h~strstrip-mark-as-as-must_check
++++ a/include/linux/string.h
+@@ -62,7 +62,7 @@ extern char * strnchr(const char *, size
+ #ifndef __HAVE_ARCH_STRRCHR
+ extern char * strrchr(const char *,int);
+ #endif
+-extern char * strstrip(char *);
++extern char * __must_check strstrip(char *);
+ #ifndef __HAVE_ARCH_STRSTR
+ extern char * strstr(const char *,const char *);
+ #endif
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
