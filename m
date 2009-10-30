@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + nommu-dont-pass-null-pointers-to-fput-in-do_mmap_pgoff.patch added to -mm tree
-Date: Fri, 30 Oct 2009 14:22:31 -0700
-Message-ID: <200910302122.n9ULMVeC021066@imap1.linux-foundation.org>
+Subject: + alpha-move-thread_size-definition-outside-ifndef-assembly.patch added to -mm tree
+Date: Fri, 30 Oct 2009 15:13:32 -0700
+Message-ID: <200910302236.n9UMao6j000865@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54189 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41043 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932898AbZJ3VXo (ORCPT
+	by vger.kernel.org with ESMTP id S932140AbZJ3WhB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Oct 2009 17:23:44 -0400
+	Fri, 30 Oct 2009 18:37:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com, rgetz@blackfin.uclinux.org, stable@kernel.org
+Cc: akpm@linux-foundation.org, geofft@ksplice.com, ink@jurassic.park.msu.ru, rth@twiddle.net, sam@ravnborg.org, tabbott@ksplice.com, torvalds@linux-foundation.org
 
 
 The patch titled
-     nommu: don't pass NULL pointers to fput() in do_mmap_pgoff()
+     alpha: move THREAD_SIZE definition outside #ifndef ASSEMBLY
 has been added to the -mm tree.  Its filename is
-     nommu-dont-pass-null-pointers-to-fput-in-do_mmap_pgoff.patch
+     alpha-move-thread_size-definition-outside-ifndef-assembly.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,59 +34,110 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nommu: don't pass NULL pointers to fput() in do_mmap_pgoff()
-From: David Howells <dhowells@redhat.com>
+Subject: alpha: move THREAD_SIZE definition outside #ifndef ASSEMBLY
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Don't pass NULL pointers to fput() in the error handling paths of the
-NOMMU do_mmap_pgoff() as it can't handle it.
+arch/alpha/kernel/vmlinux.lds.S uses it:
 
-The following can be used as a test program:
+arch/alpha/kernel/vmlinux.lds:241: undefined symbol `THREAD_SIZE' referenced in expression
 
-	int main() { static long long a[1024 * 1024 * 20] = { 0 }; return a;}
+Seems to have been caused by
 
-Without the patch, the code oopses in atomic_long_dec_and_test() as called
-by fput() after the kernel complains that it can't allocate that big a
-chunk of memory.  With the patch, the kernel just complains about the
-allocation size and then the program segfaults during execve() as execve()
-can't complete the allocation of all the new ELF program segments.
+commit 9d93f00580243cc059510d9d6ac4d2f5e97e5b83
+Author:     Geoffrey Thomas <geofft@ksplice.com>
+AuthorDate: Thu Sep 24 10:36:26 2009 -0400
+Commit:     Linus Torvalds <torvalds@linux-foundation.org>
+CommitDate: Thu Sep 24 17:16:22 2009 -0700
 
-Reported-by: Robin Getz <rgetz@blackfin.uclinux.org>
-Signed-off-by: David Howells <dhowells@redhat.com>
-Acked-by: Robin Getz <rgetz@blackfin.uclinux.org>
-Cc: <stable@kernel.org>
+    alpha: Clean up linker script using new linker script macros.
+    
+    Note that .data.page_aligned and .data.cacheline_aligned are now after
+    _data; it was probably a bug that they were before it.
+    
+    Also, some explicit ALIGN(8)'s between various initcall sections were
+    removed; this should be harmless as the implicit alignment of
+    initcall_t was already 8.
+    
+
+
+Cc: Geoffrey Thomas <geofft@ksplice.com>
+Cc: Tim Abbott <tabbott@ksplice.com>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Richard Henderson <rth@twiddle.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ arch/alpha/include/asm/thread_info.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/nommu.c~nommu-dont-pass-null-pointers-to-fput-in-do_mmap_pgoff mm/nommu.c
---- a/mm/nommu.c~nommu-dont-pass-null-pointers-to-fput-in-do_mmap_pgoff
-+++ a/mm/nommu.c
-@@ -1362,9 +1362,11 @@ share:
- error_just_free:
- 	up_write(&nommu_region_sem);
- error:
--	fput(region->vm_file);
-+	if (region->vm_file)
-+		fput(region->vm_file);
- 	kmem_cache_free(vm_region_jar, region);
--	fput(vma->vm_file);
-+	if (vma->vm_file)
-+		fput(vma->vm_file);
- 	if (vma->vm_flags & VM_EXECUTABLE)
- 		removed_exe_file_vma(vma->vm_mm);
- 	kmem_cache_free(vm_area_cachep, vma);
+diff -puN arch/alpha/include/asm/thread_info.h~alpha-move-thread_size-definition-outside-ifndef-assembly arch/alpha/include/asm/thread_info.h
+--- a/arch/alpha/include/asm/thread_info.h~alpha-move-thread_size-definition-outside-ifndef-assembly
++++ a/arch/alpha/include/asm/thread_info.h
+@@ -50,12 +50,12 @@ struct thread_info {
+ register struct thread_info *__current_thread_info __asm__("$8");
+ #define current_thread_info()  __current_thread_info
+ 
++#endif /* __ASSEMBLY__ */
++
+ /* Thread information allocation.  */
+ #define THREAD_SIZE_ORDER 1
+ #define THREAD_SIZE (2*PAGE_SIZE)
+ 
+-#endif /* __ASSEMBLY__ */
+-
+ #define PREEMPT_ACTIVE		0x40000000
+ 
+ /*
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+alpha-move-thread_size-definition-outside-ifndef-assembly.patch
 linux-next.patch
-nommu-dont-pass-null-pointers-to-fput-in-do_mmap_pgoff.patch
-nommu-ignore-the-address-parameter-in-the-file_mmap-security-check.patch
-frv-duplicate-output_buffer-of-e03.patch
-rwsem-spinlock-remove-useless-function-exports.patch
-rwsem-fix-rwsem_is_locked-bugs.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices-fix.patch
+acpi-remove-nid_inval-checkpatch-fixes.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+drivers-mtd-maps-gpio-addr-flashc-needs-config_generic_gpio.patch
+3x59x-fix-pci-resource-management.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+include-trace-events-lockdeph-fix-do_div-warning.patch
+st-fix-test-of-value-range-in-st_set_options.patch
+scsi-add-hpsa-driver-for-hp-smart-array-controllers-fix.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+fs-improve-remountro-vs-buffercache-coherency.patch
+percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
+readahead-add-blk_run_backing_dev.patch
+mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
+drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
 rwsem-fix-rwsem_is_locked-bugs-fix.patch
-mutex-subsystem-synchro-test-module.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
+errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
+hwmon-w83627ehf-updates-checkpatch-fixes.patch
+spi-controller-driver-for-designware-spi-core-fix.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs.patch
+memcg-coalesce-charging-via-percpu-storage-fix.patch
+aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+reiser4-disable.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
