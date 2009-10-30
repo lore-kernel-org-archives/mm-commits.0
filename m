@@ -1,76 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: [merged] atmel_serial-fix-bad-build_bug_on-usage.patch removed from -mm tree
-Date: Fri, 30 Oct 2009 13:50:57 -0700
-Message-ID: <200910302050.n9UKoveT011808@imap1.linux-foundation.org>
+Subject: [merged] hwmon-enhance-the-sysfs-api-for-power-meters.patch removed from -mm tree
+Date: Fri, 30 Oct 2009 13:51:20 -0700
+Message-ID: <200910302051.n9UKpKoC012659@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35093 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57932 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757526AbZJ3Uvn (ORCPT
+	by vger.kernel.org with ESMTP id S932347AbZJ3UwE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Oct 2009 16:51:43 -0400
+	Fri, 30 Oct 2009 16:52:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: haavard.skinnemoen@atmel.com, alan@linux.intel.com, claudio@evidence.eu.com, hskinnemoen@atmel.com, jbeulich@novell.com, nicolas.ferre@atmel.com, u.kleine-koenig@pengutronix.de, mm-co
+To: djwong@us.ibm.com, len.brown@intel.com, pavel@ucw.cz, rui.zhang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atmel_serial: fix bad BUILD_BUG_ON() usage
+     hwmon: enhance the sysfs API for power meters
 has been removed from the -mm tree.  Its filename was
-     atmel_serial-fix-bad-build_bug_on-usage.patch
+     hwmon-enhance-the-sysfs-api-for-power-meters.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_serial: fix bad BUILD_BUG_ON() usage
-=46rom: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
+Subject: hwmon: enhance the sysfs API for power meters
+From: "Darrick J. Wong" <djwong@us.ibm.com>
 
-is_power_of_2() appears not to be constant enough for BUILD_BUG_ON()
-after the latest rework, so replace it with an open-coded test.
+Augment the documentation of the hwmon sysfs API to accomodate ACPI power
+meters and the current desired behavior of power capping hardware drivers.
 
-Signed-off-by: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
-Cc: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
-Cc: Jan Beulich <jbeulich@novell.com>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: Alan Cox <alan@linux.intel.com>
-Cc: Nicolas Ferre <nicolas.ferre@atmel.com>
-Cc: Claudio Scordino <claudio@evidence.eu.com>
+Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Len Brown <len.brown@intel.com>                              
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/serial/atmel_serial.c~atmel_serial-fix-bad-build_bug_=
-on-usage drivers/serial/atmel_serial.c
---- a/drivers/serial/atmel_serial.c~atmel_serial-fix-bad-build_bug_on-u=
-sage
-+++ a/drivers/serial/atmel_serial.c
-@@ -1531,7 +1531,7 @@ static int __devinit atmel_serial_probe(
- 	void *data;
- 	int ret;
-=20
--	BUILD_BUG_ON(!is_power_of_2(ATMEL_SERIAL_RINGSIZE));
-+	BUILD_BUG_ON(ATMEL_SERIAL_RINGSIZE & (ATMEL_SERIAL_RINGSIZE - 1));
-=20
- 	port =3D &atmel_ports[pdev->id];
- 	port->backup_imr =3D 0;
+diff -puN Documentation/hwmon/sysfs-interface~hwmon-enhance-the-sysfs-api-for-power-meters Documentation/hwmon/sysfs-interface
+--- a/Documentation/hwmon/sysfs-interface~hwmon-enhance-the-sysfs-api-for-power-meters
++++ a/Documentation/hwmon/sysfs-interface
+@@ -353,10 +353,20 @@ power[1-*]_average		Average power use
+ 				Unit: microWatt
+ 				RO
+ 
+-power[1-*]_average_interval	Power use averaging interval
++power[1-*]_average_interval	Power use averaging interval.  A poll
++				notification is sent to this file if the
++				hardware changes the averaging interval.
+ 				Unit: milliseconds
+ 				RW
+ 
++power[1-*]_average_interval_max	Maximum power use averaging interval
++				Unit: milliseconds
++				RO
++
++power[1-*]_average_interval_min	Minimum power use averaging interval
++				Unit: milliseconds
++				RO
++
+ power[1-*]_average_highest	Historical average maximum power use
+ 				Unit: microWatt
+ 				RO
+@@ -365,6 +375,18 @@ power[1-*]_average_lowest	Historical ave
+ 				Unit: microWatt
+ 				RO
+ 
++power[1-*]_average_max		A poll notification is sent to
++				power[1-*]_average when power use
++				rises above this value.
++				Unit: microWatt
++				RW
++
++power[1-*]_average_min		A poll notification is sent to
++				power[1-*]_average when power use
++				sinks below this value.
++				Unit: microWatt
++				RW
++
+ power[1-*]_input		Instantaneous power use
+ 				Unit: microWatt
+ 				RO
+@@ -381,6 +403,39 @@ power[1-*]_reset_history	Reset input_hig
+ 				average_highest and average_lowest.
+ 				WO
+ 
++power[1-*]_accuracy		Accuracy of the power meter.
++				Unit: Percent
++				RO
++
++power[1-*]_alarm		1 if the system is drawing more power than the
++				cap allows; 0 otherwise.  A poll notification is
++				sent to this file when the power use exceeds the
++				cap.  This file only appears if the cap is known
++				to be enforced by hardware.
++				RO
++
++power[1-*]_cap			If power use rises above this limit, the
++				system should take action to reduce power use.
++				A poll notification is sent to this file if the
++				cap is changed by the hardware.  The *_cap
++				files only appear if the cap is known to be
++				enforced by hardware.
++				Unit: microWatt
++				RW
++
++power[1-*]_cap_hyst		Margin of hysteresis built around capping and
++				notification.
++				Unit: microWatt
++				RW
++
++power[1-*]_cap_max		Maximum cap that can be set.
++				Unit: microWatt
++				RO
++
++power[1-*]_cap_min		Minimum cap that can be set.
++				Unit: microWatt
++				RO
++
+ **********
+ * Energy *
+ **********
 _
 
-Patches currently in -mm which might be from haavard.skinnemoen@atmel.c=
-om are
+Patches currently in -mm which might be from djwong@us.ibm.com are
 
 origin.patch
 linux-next.patch
-mmc-atmel-mci-new-mci2-module-support-in-atmel-mci-driver.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
