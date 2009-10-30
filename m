@@ -1,53 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-update-kernel-janitors-after-mismerge.patch removed from -mm tree
-Date: Fri, 30 Oct 2009 13:49:14 -0700
-Message-ID: <200910302049.n9UKnEXN007778@imap1.linux-foundation.org>
+Subject: [merged] maintainers-change-atm-mailing-list-to-moderated.patch removed from -mm tree
+Date: Fri, 30 Oct 2009 13:49:06 -0700
+Message-ID: <200910302049.n9UKn6vi007475@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43185 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55057 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757499AbZJ3Utk (ORCPT
+	by vger.kernel.org with ESMTP id S1757500AbZJ3Utv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Oct 2009 16:49:40 -0400
+	Fri, 30 Oct 2009 16:49:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: joe@perches.com, chas@cmf.nrl.navy.mil, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MAINTAINERS: update Kernel Janitors after mismerge
+     MAINTAINERS: change ATM mailing list to moderated
 has been removed from the -mm tree.  Its filename was
-     maintainers-update-kernel-janitors-after-mismerge.patch
+     maintainers-change-atm-mailing-list-to-moderated.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: update Kernel Janitors after mismerge
+Subject: MAINTAINERS: change ATM mailing list to moderated
 From: Joe Perches <joe@perches.com>
 
-Fix the mismerge of the W: URL and the S: status fields.
-
 Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Chas Williams <chas@cmf.nrl.navy.mil>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN MAINTAINERS~maintainers-update-kernel-janitors-after-mismerge MAINTAINERS
---- a/MAINTAINERS~maintainers-update-kernel-janitors-after-mismerge
+diff -puN MAINTAINERS~maintainers-change-atm-mailing-list-to-moderated MAINTAINERS
+--- a/MAINTAINERS~maintainers-change-atm-mailing-list-to-moderated
 +++ a/MAINTAINERS
-@@ -2991,8 +2991,8 @@ F:	scripts/Makefile.*
+@@ -992,7 +992,7 @@ F:	drivers/net/atlx/
  
- KERNEL JANITORS
- L:	kernel-janitors@vger.kernel.org
--W:	http://www.kerneljanitors.org/
--S:	Maintained
-+W:	http://janitor.kernelnewbies.org/
-+S:	Odd Fixes
- 
- KERNEL NFSD, SUNRPC, AND LOCKD SERVERS
- M:	"J. Bruce Fields" <bfields@fieldses.org>
+ ATM
+ M:	Chas Williams <chas@cmf.nrl.navy.mil>
+-L:	linux-atm-general@lists.sourceforge.net (subscribers-only)
++L:	linux-atm-general@lists.sourceforge.net (moderated for non-subscribers)
+ L:	netdev@vger.kernel.org
+ W:	http://linux-atm.sourceforge.net
+ S:	Maintained
 _
 
 Patches currently in -mm which might be from joe@perches.com are
