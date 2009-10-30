@@ -1,123 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] cachefiles-cleanup-redundant-tests-on-unsigned.patch removed from -mm tree
-Date: Thu, 29 Oct 2009 08:37:42 -0700
-Message-ID: <200910291537.n9TFbgj0017032@imap1.linux-foundation.org>
+Subject: [wrecked] synaptics-touchscreen-for-htc-dream-check-that-smbus-is-available.patch removed from -mm tree
+Date: Fri, 30 Oct 2009 13:47:13 -0700
+Message-ID: <200910302047.n9UKlE9w002979@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49408 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41794 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754905AbZJ2Phy (ORCPT
+	by vger.kernel.org with ESMTP id S1757377AbZJ3Ur7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Oct 2009 11:37:54 -0400
+	Fri, 30 Oct 2009 16:47:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: pavel@ucw.cz, arve@android.com, dtor@mail.ru, greg@kroah.com, soni.trilok@gmail.com, swetland@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     CacheFiles: Cleanup redundant tests on unsigned
+     Synaptics touchscreen for HTC Dream: check that smbus is available
 has been removed from the -mm tree.  Its filename was
-     cachefiles-cleanup-redundant-tests-on-unsigned.patch
+     synaptics-touchscreen-for-htc-dream-check-that-smbus-is-available.patch
 
-This patch was dropped because it was nacked
+This patch was dropped because other changes were merged, which wrecked this patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: CacheFiles: Cleanup redundant tests on unsigned
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: Synaptics touchscreen for HTC Dream: check that smbus is available
+From: Pavel Machek <pavel@ucw.cz>
 
-The variables are unsigned so the test `>= 0' is always true, the `< 0'
-test always fails.  The other part of the test catches wrapped values.
-
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Signed-off-by: David Howells <dhowells@redhat.com>
+Check that SMBUS APIs are available in touchscreen driver.
+    
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
+Cc: Trilok Soni <soni.trilok@gmail.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: <arve@android.com>
+Cc: Brian Swetland <swetland@google.com>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ drivers/staging/dream/synaptics_i2c_rmi.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN fs/cachefiles/bind.c~cachefiles-cleanup-redundant-tests-on-unsigned fs/cachefiles/bind.c
---- a/fs/cachefiles/bind.c~cachefiles-cleanup-redundant-tests-on-unsigned
-+++ a/fs/cachefiles/bind.c
-@@ -39,13 +39,11 @@ int cachefiles_daemon_bind(struct cachef
- 	       args);
+diff -puN drivers/staging/dream/synaptics_i2c_rmi.c~synaptics-touchscreen-for-htc-dream-check-that-smbus-is-available drivers/staging/dream/synaptics_i2c_rmi.c
+--- a/drivers/staging/dream/synaptics_i2c_rmi.c~synaptics-touchscreen-for-htc-dream-check-that-smbus-is-available
++++ a/drivers/staging/dream/synaptics_i2c_rmi.c
+@@ -379,6 +379,12 @@ static int __devinit synaptics_ts_probe(
+ 		goto err_check_functionality_failed;
+ 	}
  
- 	/* start by checking things over */
--	ASSERT(cache->fstop_percent >= 0 &&
--	       cache->fstop_percent < cache->fcull_percent &&
-+	ASSERT(cache->fstop_percent < cache->fcull_percent &&
- 	       cache->fcull_percent < cache->frun_percent &&
- 	       cache->frun_percent  < 100);
- 
--	ASSERT(cache->bstop_percent >= 0 &&
--	       cache->bstop_percent < cache->bcull_percent &&
-+	ASSERT(cache->bstop_percent < cache->bcull_percent &&
- 	       cache->bcull_percent < cache->brun_percent &&
- 	       cache->brun_percent  < 100);
- 
-diff -puN fs/cachefiles/daemon.c~cachefiles-cleanup-redundant-tests-on-unsigned fs/cachefiles/daemon.c
---- a/fs/cachefiles/daemon.c~cachefiles-cleanup-redundant-tests-on-unsigned
-+++ a/fs/cachefiles/daemon.c
-@@ -220,7 +220,7 @@ static ssize_t cachefiles_daemon_write(s
- 	if (test_bit(CACHEFILES_DEAD, &cache->flags))
- 		return -EIO;
- 
--	if (datalen < 0 || datalen > PAGE_SIZE - 1)
-+	if (datalen > PAGE_SIZE - 1)
- 		return -EOPNOTSUPP;
- 
- 	/* drag the command string into the kernel so we can parse it */
-@@ -385,7 +385,7 @@ static int cachefiles_daemon_fstop(struc
- 	if (args[0] != '%' || args[1] != '\0')
- 		return -EINVAL;
- 
--	if (fstop < 0 || fstop >= cache->fcull_percent)
-+	if (fstop >= cache->fcull_percent)
- 		return cachefiles_daemon_range_error(cache, args);
- 
- 	cache->fstop_percent = fstop;
-@@ -457,7 +457,7 @@ static int cachefiles_daemon_bstop(struc
- 	if (args[0] != '%' || args[1] != '\0')
- 		return -EINVAL;
- 
--	if (bstop < 0 || bstop >= cache->bcull_percent)
-+	if (bstop >= cache->bcull_percent)
- 		return cachefiles_daemon_range_error(cache, args);
- 
- 	cache->bstop_percent = bstop;
++	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_WORD_DATA)) {
++		pr_err("synaptics_ts_probe: need I2C_FUNC_SMBUS_WORD_DATA\n");
++		ret = -ENODEV;
++		goto err_check_functionality_failed;
++	}
++
+ 	ts = kzalloc(sizeof(*ts), GFP_KERNEL);
+ 	if (ts == NULL) {
+ 		ret = -ENOMEM;
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from pavel@ucw.cz are
 
 origin.patch
-frv-fix-check-on-unsigned-in-do_signal.patch
-get_maintainer-fix-usage-comment.patch
 linux-next.patch
-fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch
-omap-fix-unlikelyx-y.patch
-powernow-k8-fix-test-in-get_transition_latency.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-hfc_usb-fix-read-buffer-overflow.patch
-hisax-fix-test-in-waitforxfw.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
-st-fix-test-of-value-range-in-st_set_options.patch
-ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
-bfa-fix-test-in-bfad_os_fc_host_init.patch
-page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-cryptocop-fix-assertion-in-create_output_descriptors.patch
-gpio-fix-test-on-unsigned-in-lnw_irq_type.patch
-fbdev-tv_paln-bit-set-twice-in-sisfb_detect_vb_connect.patch
-hvc_console-fix-test-on-unsigned-in-hvc_console_print.patch
-irq-fix-test-in-__exit-parport_mfc3_exit.patch
-cachefiles-cleanup-redundant-tests-on-unsigned.patch
+synaptics-touchscreen-for-htc-dream-check-that-smbus-is-available.patch
+scripts-get_maintainerpl-add-roles-and-rolestats.patch
+scripts-get_maintainerpl-fix-non-with-git-blame-and-cleanups.patch
+lis3lv02d-axis-remap-and-resource-setup-release.patch
+lis3lv02d-i2c-support.patch
+fatfs-use-common-time_to_tm-in-fat_time_unix2fat.patch
 
