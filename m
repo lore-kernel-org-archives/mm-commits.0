@@ -1,72 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-fix-false-errors-due-to-macro-concatenation.patch removed from -mm tree
-Date: Fri, 30 Oct 2009 13:52:22 -0700
-Message-ID: <200910302052.n9UKqMqq015117@imap1.linux-foundation.org>
+Subject: [merged] checkpatch-version-030.patch removed from -mm tree
+Date: Fri, 30 Oct 2009 13:52:38 -0700
+Message-ID: <200910302052.n9UKqcTa015818@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60627 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42051 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932652AbZJ3Uww (ORCPT
+	by vger.kernel.org with ESMTP id S932660AbZJ3UxE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Oct 2009 16:52:52 -0400
+	Fri, 30 Oct 2009 16:53:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: apw@canonical.com, dwalker@fifo99.com, mm-commits@vger.kernel.org
+To: apw@canonical.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     checkpatch: fix false errors due to macro concatenation
+     checkpatch: version 0.30
 has been removed from the -mm tree.  Its filename was
-     checkpatch-fix-false-errors-due-to-macro-concatenation.patch
+     checkpatch-version-030.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: fix false errors due to macro concatenation
+Subject: checkpatch: version 0.30
 From: Andy Whitcroft <apw@canonical.com>
 
-The macro concatenation (##) sequence can cause false errors when checking
-macro's.  Checkpatch doesn't currently know about the operator.
-
-For example this line,
-
-+ 	entry = (struct ftrace_raw_##call *)raw_data;                   \
-
-is correct but it produces the following error,
-
-ERROR: need consistent spacing around '*' (ctx:WxB)
-+       entry = (struct ftrace_raw_##call *)raw_data;\
-                                          ^
-
-The line above doesn't have any spacing problems, and if you remove the
-macro concatenation sequence checkpatch doesn't give any errors.
-
-Extend identifier handling to include ## concatenation within the
-definition of an identifier.
-
-Reported-by: Daniel Walker <dwalker@fifo99.com>
 Signed-off-by: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN scripts/checkpatch.pl~checkpatch-fix-false-errors-due-to-macro-concatenation scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-fix-false-errors-due-to-macro-concatenation
+diff -puN scripts/checkpatch.pl~checkpatch-version-030 scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-version-030
 +++ a/scripts/checkpatch.pl
-@@ -130,7 +130,10 @@ if ($tree) {
+@@ -10,7 +10,7 @@ use strict;
+ my $P = $0;
+ $P =~ s@.*/@@g;
  
- my $emitted_corrupt = 0;
+-my $V = '0.29';
++my $V = '0.30';
  
--our $Ident       = qr{[A-Za-z_][A-Za-z\d_]*};
-+our $Ident	= qr{
-+			[A-Za-z_][A-Za-z\d_]*
-+			(?:\s*\#\#\s*[A-Za-z_][A-Za-z\d_]*)*
-+		}x;
- our $Storage	= qr{extern|static|asmlinkage};
- our $Sparse	= qr{
- 			__user|
+ use Getopt::Long qw(:config no_auto_abbrev);
+ 
 _
 
 Patches currently in -mm which might be from apw@canonical.com are
