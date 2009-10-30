@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + alpha-move-thread_size-definition-outside-ifndef-assembly.patch added to -mm tree
-Date: Fri, 30 Oct 2009 15:13:32 -0700
-Message-ID: <200910302236.n9UMao6j000865@imap1.linux-foundation.org>
+Subject: + drivers-mtd-maps-gpio-addr-flashc-needs-config_generic_gpio.patch added to -mm tree
+Date: Fri, 30 Oct 2009 15:13:23 -0700
+Message-ID: <200910302236.n9UMaf93000549@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41043 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59255 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932140AbZJ3WhB (ORCPT
+	by vger.kernel.org with ESMTP id S932949AbZJ3WhU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Oct 2009 18:37:01 -0400
+	Fri, 30 Oct 2009 18:37:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, geofft@ksplice.com, ink@jurassic.park.msu.ru, rth@twiddle.net, sam@ravnborg.org, tabbott@ksplice.com, torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org, cooloney@kernel.org, dwmw2@infradead.org, vapier@gentoo.org
 
 
 The patch titled
-     alpha: move THREAD_SIZE definition outside #ifndef ASSEMBLY
+     drivers/mtd/maps/gpio-addr-flash.c needs CONFIG_GENERIC_GPIO
 has been added to the -mm tree.  Its filename is
-     alpha-move-thread_size-definition-outside-ifndef-assembly.patch
+     drivers-mtd-maps-gpio-addr-flashc-needs-config_generic_gpio.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,61 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alpha: move THREAD_SIZE definition outside #ifndef ASSEMBLY
+Subject: drivers/mtd/maps/gpio-addr-flash.c needs CONFIG_GENERIC_GPIO
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/alpha/kernel/vmlinux.lds.S uses it:
+alpha allmodconfig:
 
-arch/alpha/kernel/vmlinux.lds:241: undefined symbol `THREAD_SIZE' referenced in expression
+drivers/mtd/maps/gpio-addr-flash.c:26:22: error: asm/gpio.h: No such file or directory
+drivers/mtd/maps/gpio-addr-flash.c: In function 'gf_set_gpios':
+drivers/mtd/maps/gpio-addr-flash.c:71: error: implicit declaration of function 'gpio_set_value'
+drivers/mtd/maps/gpio-addr-flash.c: In function 'gpio_flash_probe':
+drivers/mtd/maps/gpio-addr-flash.c:232: error: implicit declaration of function 'gpio_request'
+drivers/mtd/maps/gpio-addr-flash.c:236: error: implicit declaration of function 'gpio_free'
+drivers/mtd/maps/gpio-addr-flash.c:240: error: implicit declaration of function 'gpio_direction_output'
 
-Seems to have been caused by
+Might be wrong, dunno.
 
-commit 9d93f00580243cc059510d9d6ac4d2f5e97e5b83
-Author:     Geoffrey Thomas <geofft@ksplice.com>
-AuthorDate: Thu Sep 24 10:36:26 2009 -0400
-Commit:     Linus Torvalds <torvalds@linux-foundation.org>
-CommitDate: Thu Sep 24 17:16:22 2009 -0700
-
-    alpha: Clean up linker script using new linker script macros.
-    
-    Note that .data.page_aligned and .data.cacheline_aligned are now after
-    _data; it was probably a bug that they were before it.
-    
-    Also, some explicit ALIGN(8)'s between various initcall sections were
-    removed; this should be harmless as the implicit alignment of
-    initcall_t was already 8.
-    
-
-
-Cc: Geoffrey Thomas <geofft@ksplice.com>
-Cc: Tim Abbott <tabbott@ksplice.com>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Richard Henderson <rth@twiddle.net>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Mike Frysinger <vapier@gentoo.org>
+Cc: Bryan Wu <cooloney@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/thread_info.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/mtd/maps/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/alpha/include/asm/thread_info.h~alpha-move-thread_size-definition-outside-ifndef-assembly arch/alpha/include/asm/thread_info.h
---- a/arch/alpha/include/asm/thread_info.h~alpha-move-thread_size-definition-outside-ifndef-assembly
-+++ a/arch/alpha/include/asm/thread_info.h
-@@ -50,12 +50,12 @@ struct thread_info {
- register struct thread_info *__current_thread_info __asm__("$8");
- #define current_thread_info()  __current_thread_info
+diff -puN drivers/mtd/maps/Kconfig~drivers-mtd-maps-gpio-addr-flashc-needs-config_generic_gpio drivers/mtd/maps/Kconfig
+--- a/drivers/mtd/maps/Kconfig~drivers-mtd-maps-gpio-addr-flashc-needs-config_generic_gpio
++++ a/drivers/mtd/maps/Kconfig
+@@ -486,7 +486,7 @@ config MTD_BFIN_ASYNC
  
-+#endif /* __ASSEMBLY__ */
-+
- /* Thread information allocation.  */
- #define THREAD_SIZE_ORDER 1
- #define THREAD_SIZE (2*PAGE_SIZE)
- 
--#endif /* __ASSEMBLY__ */
--
- #define PREEMPT_ACTIVE		0x40000000
- 
- /*
+ config MTD_GPIO_ADDR
+ 	tristate "GPIO-assisted Flash Chip Support"
+-	depends on MTD_COMPLEX_MAPPINGS
++	depends on MTD_COMPLEX_MAPPINGS && GENERIC_GPIO
+ 	select MTD_PARTITIONS
+ 	help
+ 	  Map driver which allows flashes to be partially physically addressed
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
