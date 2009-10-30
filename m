@@ -1,124 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: [merged] loop-fix-null-dereference-if-mount-fails.patch removed from -mm tree
-Date: Fri, 30 Oct 2009 13:50:25 -0700
-Message-ID: <200910302050.n9UKoQUv010627@imap1.linux-foundation.org>
+Subject: [merged] revert-mm-oom-analysis-add-buffer-cache-information-to-show_free_areas.patch removed from -mm tree
+Date: Fri, 30 Oct 2009 13:50:12 -0700
+Message-ID: <200910302050.n9UKoC9R010010@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42266 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37223 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757509AbZJ3Uu7 (ORCPT
+	by vger.kernel.org with ESMTP id S1757515AbZJ3UvB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Oct 2009 16:50:59 -0400
+	Fri, 30 Oct 2009 16:51:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, jens.axboe@oracle.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, adobriyan@gmail.com, fengguang.wu@intel.com, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com, rientjes@google.com, torvalds@linux-foundation.org, mm-commits
 
 
 The patch titled
-     loop: fix NULL dereference if mount fails
+     revert "mm: oom analysis: add buffer cache information to show_free_areas()"
 has been removed from the -mm tree.  Its filename was
-     loop-fix-null-dereference-if-mount-fails.patch
+     revert-mm-oom-analysis-add-buffer-cache-information-to-show_free_areas.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: loop: fix NULL dereference if mount fails
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: revert "mm: oom analysis: add buffer cache information to show_free_areas()"
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Commit bb21488482bd36eae6b30b014d93619063773fd4 ("[PATCH] switch loop")
-started to pass NULL bdev to ioctl hook.
+Revert
 
-Steps to reproduce:
+    commit 71de1ccbe1fb40203edd3beb473f8580d917d2ca
+    Author:     KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+    AuthorDate: Mon Sep 21 17:01:31 2009 -0700
+    Commit:     Linus Torvalds <torvalds@linux-foundation.org>
+    CommitDate: Tue Sep 22 07:17:27 2009 -0700
 
-	[boot with loop.max_part=1]
-	[mount -o loop something so mount fails]
+        mm: oom analysis: add buffer cache information to show_free_areas()
+    
 
-BUG: unable to handle kernel NULL pointer dereference at 00000000000000b8
-IP: [<ffffffff811486ee>] blkdev_ioctl+0x2e/0xa30
-PGD 0
-Oops: 0000 [#1] PREEMPT SMP DEBUG_PAGEALLOC
-last sysfs file: /sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/device:35/ACPI0003:00/power_supply/ACAD/online
-CPU 0
-Modules linked in: zfs nvidia(P) [last unloaded: zfs]
-Pid: 15177, comm: mount Tainted: P           2.6.32-rc4-zfs #2 Satellite X200
-RIP: 0010:[<ffffffff811486ee>]  [<ffffffff811486ee>] blkdev_ioctl+0x2e/0xa30
-RSP: 0018:ffff88003b3d5bb8  EFLAGS: 00010286
-RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
-RDX: 000000000000125f RSI: 0000000000000000 RDI: 0000000000000000
-RBP: ffff88003b3d5ce8 R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000000 R12: 00007ffffffff000
-R13: 0000000000000000 R14: ffff880071cef280 R15: 00000000000200da
-FS:  00007fd77cfe7740(0000) GS:ffff880001600000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-CR2: 00000000000000b8 CR3: 0000000001001000 CR4: 00000000000026f0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-Process mount (pid: 15177, threadinfo ffff88003b3d4000, task ffff88007572f920)
-Stack:
- ffff88003b3d5c38 ffffffff812f95f5 ffff88007eeb6600 0000000000000000
-<0> 0000000000000000 ffff88003b3d5c18 ffffffff811547d9 ffff88001bf11ef0
-<0> 7fffffffffffffff ffff88001bf11ee8 ffff88001bf11ef0 0000000000000000
-Call Trace:
- [<ffffffff812f95f5>] ? schedule_timeout+0x1f5/0x250
- [<ffffffff811547d9>] ? rb_insert_color+0x109/0x140
- [<ffffffff812fb754>] ? _spin_unlock_irq+0x14/0x40
- [<ffffffff812f84c6>] ? wait_for_common+0x66/0x170
- [<ffffffff8105a280>] ? default_wake_function+0x0/0x10
- [<ffffffff810f8258>] ioctl_by_bdev+0x38/0x50
- [<ffffffff811d2481>] loop_clr_fd+0x1e1/0x210
- [<ffffffff811d2522>] lo_release+0x72/0x80
- [<ffffffff810f934c>] __blkdev_put+0x1ac/0x1d0
- [<ffffffff810f937b>] blkdev_put+0xb/0x10
- [<ffffffff810f93b9>] blkdev_close+0x39/0x60
- [<ffffffff810ccef3>] __fput+0xd3/0x230
- [<ffffffff810cd06d>] fput+0x1d/0x30
- [<ffffffff810c9680>] filp_close+0x50/0x80
- [<ffffffff81061f11>] put_files_struct+0x81/0x100
- [<ffffffff81061fde>] exit_files+0x4e/0x60
- [<ffffffff81063ec5>] do_exit+0x6b5/0x730
- [<ffffffff8107b279>] ? up_read+0x9/0x10
- [<ffffffff8104c86e>] ? do_page_fault+0x18e/0x2a0
- [<ffffffff81063f81>] do_group_exit+0x41/0xc0
- [<ffffffff81064012>] sys_exit_group+0x12/0x20
- [<ffffffff81030deb>] system_call_fastpath+0x16/0x1b
-Code: f8 48 89 e5 48 81 ec 30 01 00 00 48 89 5d d8 4c 89 6d e8 4c 89 65 e0 4c 89 75 f0 4c 89 7d f8 48 89 bd e8 fe ff ff 49 89 cd 89 f3 <49> 8b 88 b8 00 00 00 81 fa 68 12 00 00 0f 84 57 05 00 00 0f 86
-RIP  [<ffffffff811486ee>] blkdev_ioctl+0x2e/0xa30
- RSP <ffff88003b3d5bb8>
-CR2: 00000000000000b8
----[ end trace c0b4d3c3118d1427 ]---
-Fixing recursive fault but reboot is needed!
+show_free_areas() is called during page allocation failures, and page
+allocation failures can occur in any calling context.
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+But nr_blockdev_pages() takes VFS locks which should not be taken from
+hard IRQ context (at least).  The result is lockdep warnings (and
+deadlockability) during page allocation failures.
+
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/block/loop.c~loop-fix-null-dereference-if-mount-fails drivers/block/loop.c
---- a/drivers/block/loop.c~loop-fix-null-dereference-if-mount-fails
-+++ a/drivers/block/loop.c
-@@ -949,7 +949,7 @@ static int loop_clr_fd(struct loop_devic
- 	lo->lo_state = Lo_unbound;
- 	/* This is safe: open() is still holding a reference. */
- 	module_put(THIS_MODULE);
--	if (max_part > 0)
-+	if (max_part > 0 && bdev)
- 		ioctl_by_bdev(bdev, BLKRRPART, 0);
- 	mutex_unlock(&lo->lo_ctl_mutex);
- 	/*
+diff -puN mm/page_alloc.c~revert-mm-oom-analysis-add-buffer-cache-information-to-show_free_areas mm/page_alloc.c
+--- a/mm/page_alloc.c~revert-mm-oom-analysis-add-buffer-cache-information-to-show_free_areas
++++ a/mm/page_alloc.c
+@@ -2183,7 +2183,7 @@ void show_free_areas(void)
+ 	printk("active_anon:%lu inactive_anon:%lu isolated_anon:%lu\n"
+ 		" active_file:%lu inactive_file:%lu isolated_file:%lu\n"
+ 		" unevictable:%lu"
+-		" dirty:%lu writeback:%lu unstable:%lu buffer:%lu\n"
++		" dirty:%lu writeback:%lu unstable:%lu\n"
+ 		" free:%lu slab_reclaimable:%lu slab_unreclaimable:%lu\n"
+ 		" mapped:%lu shmem:%lu pagetables:%lu bounce:%lu\n",
+ 		global_page_state(NR_ACTIVE_ANON),
+@@ -2196,7 +2196,6 @@ void show_free_areas(void)
+ 		global_page_state(NR_FILE_DIRTY),
+ 		global_page_state(NR_WRITEBACK),
+ 		global_page_state(NR_UNSTABLE_NFS),
+-		nr_blockdev_pages(),
+ 		global_page_state(NR_FREE_PAGES),
+ 		global_page_state(NR_SLAB_RECLAIMABLE),
+ 		global_page_state(NR_SLAB_UNRECLAIMABLE),
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-genirq-switch-proc-irq-spurious-to-seq_file.patch
-proc-fix-stack_start-in-compat-mode.patch
-uml-irq-register-race-condition.patch
-const-constify-remaining-pipe_buf_operations.patch
-reiserfs-remove-proc-fs-reiserfs-version.patch
-reiserfs-dont-compile-procfso-at-all-if-no-support.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices-fix.patch
+acpi-remove-nid_inval-checkpatch-fixes.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+3x59x-fix-pci-resource-management.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+include-trace-events-lockdeph-fix-do_div-warning.patch
+st-fix-test-of-value-range-in-st_set_options.patch
+scsi-add-hpsa-driver-for-hp-smart-array-controllers-fix.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+fs-improve-remountro-vs-buffercache-coherency.patch
+percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
+readahead-add-blk_run_backing_dev.patch
+mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
+drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
+rwsem-fix-rwsem_is_locked-bugs-fix.patch
+errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
+hwmon-w83627ehf-updates-checkpatch-fixes.patch
+spi-controller-driver-for-designware-spi-core-fix.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs.patch
+memcg-coalesce-charging-via-percpu-storage-fix.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+reiser4-disable.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
