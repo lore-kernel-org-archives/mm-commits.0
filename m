@@ -1,85 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-update-tracing-section.patch removed from -mm tree
-Date: Fri, 30 Oct 2009 13:48:58 -0700
-Message-ID: <200910302048.n9UKmwv2007084@imap1.linux-foundation.org>
+Subject: [merged] maintainers-use-tab-not-spaces-after-field-types.patch removed from -mm tree
+Date: Fri, 30 Oct 2009 13:49:11 -0700
+Message-ID: <200910302049.n9UKnBej007557@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46997 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59189 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757492AbZJ3Ute (ORCPT
+	by vger.kernel.org with ESMTP id S1757497AbZJ3Uti (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Oct 2009 16:49:34 -0400
+	Fri, 30 Oct 2009 16:49:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mingo@elte.hu, rostedt@goodmis.org, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MAINTAINERS: update TRACING section
+     MAINTAINERS: use tab not spaces after field types
 has been removed from the -mm tree.  Its filename was
-     maintainers-update-tracing-section.patch
+     maintainers-use-tab-not-spaces-after-field-types.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: update TRACING section
+Subject: MAINTAINERS: use tab not spaces after field types
 From: Joe Perches <joe@perches.com>
 
-Move to alphabetic position
-Use single line F: entries
-
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN MAINTAINERS~maintainers-update-tracing-section MAINTAINERS
---- a/MAINTAINERS~maintainers-update-tracing-section
+diff -puN MAINTAINERS~maintainers-use-tab-not-spaces-after-field-types MAINTAINERS
+--- a/MAINTAINERS~maintainers-use-tab-not-spaces-after-field-types
 +++ a/MAINTAINERS
-@@ -2202,18 +2202,6 @@ F:	Documentation/filesystems/caching/
- F:	fs/fscache/
- F:	include/linux/fscache*.h
+@@ -4599,20 +4599,20 @@ S:	Maintained
+ F:	drivers/mmc/host/sdricoh_cs.c
  
--TRACING
--M:	Steven Rostedt <rostedt@goodmis.org>
--M:	Frederic Weisbecker <fweisbec@gmail.com>
--M:	Ingo Molnar <mingo@redhat.com>
--T:	git git://git.kernel.org/pub/scm/linux/kernel/git/tip/linux-2.6-tip.git tracing/core
--S:	Maintained
--F:	Documentation/trace/ftrace.txt
--F:	arch/*/*/*/ftrace.h
--F:	arch/*/kernel/ftrace.c
--F:	include/*/ftrace.h include/trace/ include/linux/trace*.h
--F:	kernel/trace/
--
- FUJITSU FR-V (FRV) PORT
- M:	David Howells <dhowells@redhat.com>
- S:	Maintained
-@@ -5176,6 +5164,20 @@ L:	tpmdd-devel@lists.sourceforge.net (mo
- S:	Maintained
- F:	drivers/char/tpm/
+ SECURE DIGITAL HOST CONTROLLER INTERFACE (SDHCI) DRIVER
+-S:     Orphan
+-L:     linux-mmc@vger.kernel.org
+-F:     drivers/mmc/host/sdhci.*
++S:	Orphan
++L:	linux-mmc@vger.kernel.org
++F:	drivers/mmc/host/sdhci.*
  
-+TRACING
-+M:	Steven Rostedt <rostedt@goodmis.org>
-+M:	Frederic Weisbecker <fweisbec@gmail.com>
-+M:	Ingo Molnar <mingo@redhat.com>
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/tip/linux-2.6-tip.git tracing/core
-+S:	Maintained
-+F:	Documentation/trace/ftrace.txt
-+F:	arch/*/*/*/ftrace.h
-+F:	arch/*/kernel/ftrace.c
-+F:	include/*/ftrace.h
-+F:	include/linux/trace*.h
-+F:	include/trace/
-+F:	kernel/trace/
-+
- TRIVIAL PATCHES
- M:	Jiri Kosina <trivial@kernel.org>
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/jikos/trivial.git
+ SECURE DIGITAL HOST CONTROLLER INTERFACE, OPEN FIRMWARE BINDINGS (SDHCI-OF)
+ M:	Anton Vorontsov <avorontsov@ru.mvista.com>
+ L:	linuxppc-dev@ozlabs.org
+-L:     linux-mmc@vger.kernel.org
++L:	linux-mmc@vger.kernel.org
+ S:	Maintained
+-F:     drivers/mmc/host/sdhci-of.*
++F:	drivers/mmc/host/sdhci-of.*
+ 
+ SECURE DIGITAL HOST CONTROLLER INTERFACE (SDHCI) SAMSUNG DRIVER
+ M:	Ben Dooks <ben-linux@fluff.org>
+-L:     linux-mmc@vger.kernel.org
++L:	linux-mmc@vger.kernel.org
+ S:	Maintained
+ F:	drivers/mmc/host/sdhci-s3c.c
+ 
 _
 
 Patches currently in -mm which might be from joe@perches.com are
