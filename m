@@ -1,89 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [merged] do_mbind-fix-memory-leak.patch removed from -mm tree
-Date: Fri, 30 Oct 2009 13:50:44 -0700
-Message-ID: <200910302050.n9UKoiJ8011315@imap1.linux-foundation.org>
+Subject: [merged] hfsplus-refuse-to-mount-volumes-larger-than-2tb.patch removed from -mm tree
+Date: Fri, 30 Oct 2009 13:50:06 -0700
+Message-ID: <200910302050.n9UKo61c009839@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49922 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33760 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757523AbZJ3Uvj (ORCPT
+	by vger.kernel.org with ESMTP id S1757525AbZJ3Uvn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Oct 2009 16:51:39 -0400
+	Fri, 30 Oct 2009 16:51:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, cl@linux-foundation.org, stable@kernel.org, mm-commits@vger.kernel.org
+To: ben@decadent.org.uk, snakebyte@gmx.de, stable@kernel.org, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     do_mbind(): fix memory leak
+     hfsplus: refuse to mount volumes larger than 2TB
 has been removed from the -mm tree.  Its filename was
-     do_mbind-fix-memory-leak.patch
+     hfsplus-refuse-to-mount-volumes-larger-than-2tb.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: do_mbind(): fix memory leak
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: hfsplus: refuse to mount volumes larger than 2TB
+From: Ben Hutchings <ben@decadent.org.uk>
 
-If migrate_prep is failed, new variable is leaked.  This patch fixes it.
+As found in <http://bugs.debian.org/550010>, hfsplus is using type u32
+rather than sector_t for some sector number calculations.
 
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Acked-by: Christoph Lameter <cl@linux-foundation.org>
+In particular, hfsplus_get_block() does:
+
+        u32 ablock, dblock, mask;
+...
+        map_bh(bh_result, sb, (dblock << HFSPLUS_SB(sb).fs_shift) + HFSPLUS_SB(sb).blockoffset + (iblock & mask));
+
+I am not confident that I can find and fix all cases where a sector number
+may be truncated.  For now, avoid data loss by refusing to mount HFS+
+volumes with more than 2^32 sectors (2TB).
+
+[akpm@linux-foundation.org: fix 32 and 64-bit issues]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+Cc: Eric Sesterhenn <snakebyte@gmx.de>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN mm/mempolicy.c~do_mbind-fix-memory-leak mm/mempolicy.c
---- a/mm/mempolicy.c~do_mbind-fix-memory-leak
-+++ a/mm/mempolicy.c
-@@ -1024,7 +1024,7 @@ static long do_mbind(unsigned long start
+diff -puN fs/hfsplus/wrapper.c~hfsplus-refuse-to-mount-volumes-larger-than-2tb fs/hfsplus/wrapper.c
+--- a/fs/hfsplus/wrapper.c~hfsplus-refuse-to-mount-volumes-larger-than-2tb
++++ a/fs/hfsplus/wrapper.c
+@@ -99,6 +99,10 @@ int hfsplus_read_wrapper(struct super_bl
  
- 		err = migrate_prep();
- 		if (err)
--			return err;
-+			goto mpol_out;
- 	}
- 	{
- 		NODEMASK_SCRATCH(scratch);
-@@ -1039,10 +1039,9 @@ static long do_mbind(unsigned long start
- 			err = -ENOMEM;
- 		NODEMASK_SCRATCH_FREE(scratch);
- 	}
--	if (err) {
--		mpol_put(new);
--		return err;
--	}
-+	if (err)
-+		goto mpol_out;
-+
- 	vma = check_range(mm, start, end, nmask,
- 			  flags | MPOL_MF_INVERT, &pagelist);
- 
-@@ -1062,6 +1061,7 @@ static long do_mbind(unsigned long start
- 		putback_lru_pages(&pagelist);
- 
- 	up_write(&mm->mmap_sem);
-+ mpol_out:
- 	mpol_put(new);
- 	return err;
- }
+ 	if (hfsplus_get_last_session(sb, &part_start, &part_size))
+ 		return -EINVAL;
++	if ((u64)part_start + part_size > 0x100000000ULL) {
++		pr_err("hfs: volumes larger than 2TB are not supported yet\n");
++		return -EINVAL;
++	}
+ 	while (1) {
+ 		bh = sb_bread512(sb, part_start + HFSPLUS_VOLHEAD_SECTOR, vhdr);
+ 		if (!bh)
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from ben@decadent.org.uk are
 
 origin.patch
-page-allocator-always-wake-kswapd-when-restarting-an-allocation-attempt-after-direct-reclaim-failed.patch
-page-allocator-do-not-allow-interrupts-to-use-alloc_harder.patch
 linux-next.patch
-oom-dump-stack-and-vm-state-when-oom-killer-panics.patch
-readahead-add-blk_run_backing_dev.patch
-mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap.patch
-mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
-mm-vsmcan-check-shrink_active_list-sc-isolate_pages-return-value.patch
-mm-move-inc_zone_page_statenr_isolated-to-just-isolated-place.patch
-oom_kill-use-rss-value-instead-of-vm-size-for-badness.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
+scripts-get_maintainerpl-add-roles-and-rolestats.patch
+scripts-get_maintainerpl-fix-non-with-git-blame-and-cleanups.patch
 
