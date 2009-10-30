@@ -1,58 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [merged] edac-i5400-fix-missing-config_pci-define.patch removed from -mm tree
-Date: Fri, 30 Oct 2009 13:51:42 -0700
-Message-ID: <200910302051.n9UKpgoJ013537@imap1.linux-foundation.org>
+Subject: [merged] edac-i5100-fix-initialization-code.patch removed from -mm tree
+Date: Fri, 30 Oct 2009 13:51:47 -0700
+Message-ID: <200910302051.n9UKplaM013774@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34069 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46186 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932576AbZJ3UwQ (ORCPT
+	by vger.kernel.org with ESMTP id S932607AbZJ3UwY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Oct 2009 16:52:16 -0400
+	Fri, 30 Oct 2009 16:52:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iws@ovro.caltech.edu, dougthompson@xmission.com, mm-commits@vger.kernel.org
+To: kmannth@us.ibm.com, aris@ruivo.org, dougthompson@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     edac: i5400 fix missing CONFIG_PCI define
+     edac: i5100 fix initialization code
 has been removed from the -mm tree.  Its filename was
-     edac-i5400-fix-missing-config_pci-define.patch
+     edac-i5100-fix-initialization-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: edac: i5400 fix missing CONFIG_PCI define
-From: Ira W. Snyder <iws@ovro.caltech.edu>
+Subject: edac: i5100 fix initialization code
+From: Keith Mannthey <kmannth@us.ibm.com>
 
-When building without CONFIG_PCI the edac_pci_idx variable is unused,
-causing a build-time warning.  Wrap the variable in #ifdef CONFIG_PCI,
-just like the rest of the PCI support.
+Allow csrows to properly initialize when the topology only has active
+channels on 2 and 3.  This new check allows proper detection and
+initialization in this topology.  Only checking the first mrt that
+represented channels 0 and 1 is not sufficient.
 
-Signed-off-by: Ira W. Snyder <iws@ovro.caltech.edu>
+I also fixed up the related debug information path.  I can submit as a 2nd
+patch if needed.
+
+Signed-off-by: Keith Mannthey <kmannth@us.ibm.com>
+Acked-by: Aristeu Rozanski <aris@ruivo.org>
 Signed-off-by: Doug Thompson <dougthompson@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/edac/mpc85xx_edac.c~edac-i5400-fix-missing-config_pci-define drivers/edac/mpc85xx_edac.c
---- a/drivers/edac/mpc85xx_edac.c~edac-i5400-fix-missing-config_pci-define
-+++ a/drivers/edac/mpc85xx_edac.c
-@@ -26,7 +26,9 @@
- #include "mpc85xx_edac.h"
+diff -puN drivers/edac/i5000_edac.c~edac-i5100-fix-initialization-code drivers/edac/i5000_edac.c
+--- a/drivers/edac/i5000_edac.c~edac-i5100-fix-initialization-code
++++ a/drivers/edac/i5000_edac.c
+@@ -1173,7 +1173,7 @@ static void i5000_get_mc_regs(struct mem
+ 			pci_read_config_word(pvt->branch_1, where,
+ 					&pvt->b1_mtr[slot_row]);
+ 			debugf2("MTR%d where=0x%x B1 value=0x%x\n", slot_row,
+-				where, pvt->b0_mtr[slot_row]);
++				where, pvt->b1_mtr[slot_row]);
+ 		} else {
+ 			pvt->b1_mtr[slot_row] = 0;
+ 		}
+@@ -1232,7 +1232,7 @@ static int i5000_init_csrows(struct mem_
+ 	struct csrow_info *p_csrow;
+ 	int empty, channel_count;
+ 	int max_csrows;
+-	int mtr;
++	int mtr, mtr1;
+ 	int csrow_megs;
+ 	int channel;
+ 	int csrow;
+@@ -1251,9 +1251,10 @@ static int i5000_init_csrows(struct mem_
  
- static int edac_dev_idx;
-+#ifdef CONFIG_PCI
- static int edac_pci_idx;
-+#endif
- static int edac_mc_idx;
+ 		/* use branch 0 for the basis */
+ 		mtr = pvt->b0_mtr[csrow >> 1];
++		mtr1 = pvt->b1_mtr[csrow >> 1];
  
- static u32 orig_ddr_err_disable;
+ 		/* if no DIMMS on this row, continue */
+-		if (!MTR_DIMMS_PRESENT(mtr))
++		if (!MTR_DIMMS_PRESENT(mtr) && !MTR_DIMMS_PRESENT(mtr1))
+ 			continue;
+ 
+ 		/* FAKE OUT VALUES, FIXME */
 _
 
-Patches currently in -mm which might be from iws@ovro.caltech.edu are
+Patches currently in -mm which might be from kmannth@us.ibm.com are
 
 origin.patch
+linux-next.patch
 
