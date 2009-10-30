@@ -1,84 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: [merged] edac-i5100-fix-initialization-code.patch removed from -mm tree
-Date: Fri, 30 Oct 2009 13:51:47 -0700
-Message-ID: <200910302051.n9UKplaM013774@imap1.linux-foundation.org>
+Subject: [merged] checkpatch-possible-types-prevent-illegal-modifiers-being-added.patch removed from -mm tree
+Date: Fri, 30 Oct 2009 13:52:09 -0700
+Message-ID: <200910302052.n9UKq9Le014592@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46186 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43711 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932607AbZJ3UwY (ORCPT
+	by vger.kernel.org with ESMTP id S932621AbZJ3Uwe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Oct 2009 16:52:24 -0400
+	Fri, 30 Oct 2009 16:52:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kmannth@us.ibm.com, aris@ruivo.org, dougthompson@xmission.com, mm-commits@vger.kernel.org
+To: apw@canonical.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     edac: i5100 fix initialization code
+     checkpatch: possible types -- prevent illegal modifiers being added
 has been removed from the -mm tree.  Its filename was
-     edac-i5100-fix-initialization-code.patch
+     checkpatch-possible-types-prevent-illegal-modifiers-being-added.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: edac: i5100 fix initialization code
-From: Keith Mannthey <kmannth@us.ibm.com>
+Subject: checkpatch: possible types -- prevent illegal modifiers being added
+From: Andy Whitcroft <apw@canonical.com>
 
-Allow csrows to properly initialize when the topology only has active
-channels on 2 and 3.  This new check allows proper detection and
-initialization in this topology.  Only checking the first mrt that
-represented channels 0 and 1 is not sufficient.
+Prevent known non types being detected as modifiers.  Ensure we do not
+look at any type which starts with a keyword.
 
-I also fixed up the related debug information path.  I can submit as a 2nd
-patch if needed.
-
-Signed-off-by: Keith Mannthey <kmannth@us.ibm.com>
-Acked-by: Aristeu Rozanski <aris@ruivo.org>
-Signed-off-by: Doug Thompson <dougthompson@xmission.com>
+Signed-off-by: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/edac/i5000_edac.c~edac-i5100-fix-initialization-code drivers/edac/i5000_edac.c
---- a/drivers/edac/i5000_edac.c~edac-i5100-fix-initialization-code
-+++ a/drivers/edac/i5000_edac.c
-@@ -1173,7 +1173,7 @@ static void i5000_get_mc_regs(struct mem
- 			pci_read_config_word(pvt->branch_1, where,
- 					&pvt->b1_mtr[slot_row]);
- 			debugf2("MTR%d where=0x%x B1 value=0x%x\n", slot_row,
--				where, pvt->b0_mtr[slot_row]);
-+				where, pvt->b1_mtr[slot_row]);
+diff -puN scripts/checkpatch.pl~checkpatch-possible-types-prevent-illegal-modifiers-being-added scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-possible-types-prevent-illegal-modifiers-being-added
++++ a/scripts/checkpatch.pl
+@@ -997,23 +997,25 @@ sub annotate_values {
+ 
+ sub possible {
+ 	my ($possible, $line) = @_;
+-
+-	print "CHECK<$possible> ($line)\n" if ($dbg_possible > 2);
+-	if ($possible !~ /(?:
++	my $notPermitted = qr{(?:
+ 		^(?:
+ 			$Modifier|
+ 			$Storage|
+ 			$Type|
+-			DEFINE_\S+|
++			DEFINE_\S+
++		)$|
++		^(?:
+ 			goto|
+ 			return|
+ 			case|
+ 			else|
+ 			asm|__asm__|
+ 			do
+-		)$|
++		)(?:\s|$)|
+ 		^(?:typedef|struct|enum)\b
+-	    )/x) {
++	    )}x;
++	warn "CHECK<$possible> ($line)\n" if ($dbg_possible > 2);
++	if ($possible !~ $notPermitted) {
+ 		# Check for modifiers.
+ 		$possible =~ s/\s*$Storage\s*//g;
+ 		$possible =~ s/\s*$Sparse\s*//g;
+@@ -1022,8 +1024,10 @@ sub possible {
+ 		} elsif ($possible =~ /\s/) {
+ 			$possible =~ s/\s*$Type\s*//g;
+ 			for my $modifier (split(' ', $possible)) {
+-				warn "MODIFIER: $modifier ($possible) ($line)\n" if ($dbg_possible);
+-				push(@modifierList, $modifier);
++				if ($modifier !~ $notPermitted) {
++					warn "MODIFIER: $modifier ($possible) ($line)\n" if ($dbg_possible);
++					push(@modifierList, $modifier);
++				}
+ 			}
+ 
  		} else {
- 			pvt->b1_mtr[slot_row] = 0;
- 		}
-@@ -1232,7 +1232,7 @@ static int i5000_init_csrows(struct mem_
- 	struct csrow_info *p_csrow;
- 	int empty, channel_count;
- 	int max_csrows;
--	int mtr;
-+	int mtr, mtr1;
- 	int csrow_megs;
- 	int channel;
- 	int csrow;
-@@ -1251,9 +1251,10 @@ static int i5000_init_csrows(struct mem_
- 
- 		/* use branch 0 for the basis */
- 		mtr = pvt->b0_mtr[csrow >> 1];
-+		mtr1 = pvt->b1_mtr[csrow >> 1];
- 
- 		/* if no DIMMS on this row, continue */
--		if (!MTR_DIMMS_PRESENT(mtr))
-+		if (!MTR_DIMMS_PRESENT(mtr) && !MTR_DIMMS_PRESENT(mtr1))
- 			continue;
- 
- 		/* FAKE OUT VALUES, FIXME */
 _
 
-Patches currently in -mm which might be from kmannth@us.ibm.com are
+Patches currently in -mm which might be from apw@canonical.com are
 
 origin.patch
-linux-next.patch
+nodemask-make-nodemask_alloc-more-general.patch
+hugetlb-rework-hstate_next_node_-functions.patch
+hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions.patch
+hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions-fix.patch
+hugetlb-factor-init_nodemask_of_node.patch
+hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy.patch
+hugetlb-add-generic-definition-of-numa_no_node.patch
+hugetlb-add-per-node-hstate-attributes.patch
+hugetlb-update-hugetlb-documentation-for-numa-controls.patch
+hugetlb-use-only-nodes-with-memory-for-huge-pages.patch
+mm-clear-node-in-n_high_memory-and-stop-kswapd-when-all-memory-is-offlined.patch
+hugetlb-handle-memory-hot-plug-events.patch
+hugetlb-offload-per-node-attribute-registrations.patch
+mm-add-gfp-flags-for-nodemask_alloc-slab-allocations.patch
+checkpatch-trivial-fix-for-trailing-statements-check.patch
+checkpatchpl-allow-80-char-lines-for-logging-functions-not-just-printk.patch
 
