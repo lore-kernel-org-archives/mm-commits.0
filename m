@@ -1,70 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [merged] block-fix-use-after-free-bug-in-__blkdev_get.patch removed from -mm tree
-Date: Fri, 30 Oct 2009 13:53:34 -0700
-Message-ID: <200910302053.n9UKrYAw018065@imap1.linux-foundation.org>
+Subject: + kprobes-sanitize-struct-kretprobe_instance-allocations.patch added to -mm tree
+Date: Fri, 30 Oct 2009 14:13:37 -0700
+Message-ID: <200910302113.n9ULDb6L032606@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49738 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52591 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932857AbZJ3Uyp (ORCPT
+	by vger.kernel.org with ESMTP id S932867AbZJ3VOl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Oct 2009 16:54:45 -0400
+	Fri, 30 Oct 2009 17:14:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: neilb@suse.de, jens.axboe@oracle.com, stable@kernel.org, tj@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: ananth@in.ibm.com, fweisbec@gmail.com, jkenisto@us.ibm.com, mhiramat@redhat.com, mingo@elte.hu
 
 
 The patch titled
-     block: fix use after free bug in __blkdev_get
-has been removed from the -mm tree.  Its filename was
-     block-fix-use-after-free-bug-in-__blkdev_get.patch
+     kprobes: sanitize struct kretprobe_instance allocations
+has been added to the -mm tree.  Its filename is
+     kprobes-sanitize-struct-kretprobe_instance-allocations.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: block: fix use after free bug in __blkdev_get
-From: Neil Brown <neilb@suse.de>
+Subject: kprobes: sanitize struct kretprobe_instance allocations
+From: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
 
-commit 0762b8bde9729f10f8e6249809660ff2ec3ad735 ("block: always set
-bdev->bd_part") (from 14 months ago) introduced a use-after-free bug which
-has just recently started manifesting in my md testing.  I tried git
-bisect to find out what caused the bug to start manifesting, and it could
-have been the recent change to blk_unregister_queue (48c0d4d4c04) but the
-results were inconclusive.
+For as long as kretprobes have existed, we've allocated NR_CPUS instances
+of kretprobe_instance structures.  With the default value of
+CONFIG_NR_CPUS increasing on certain architectures, we are potentially
+wasting kernel memory.
 
-This patch certainly fixes my symptoms and looks correct as the two calls
-are now in the same order as elsewhere in that function.
+See http://sourceware.org/bugzilla/show_bug.cgi?id=10839#c3 for more
+details.
 
-Signed-off-by: NeilBrown <neilb@suse.de>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: <stable@kernel.org>
+Use a saner num_possible_cpus() instead of NR_CPUS for allocation.
+
+Signed-off-by: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
+Cc: Masami Hiramatsu <mhiramat@redhat.com>
+Cc: Jim Keniston <jkenisto@us.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Frederic Weisbecker <fweisbec@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN fs/block_dev.c~block-fix-use-after-free-bug-in-__blkdev_get fs/block_dev.c
---- a/fs/block_dev.c~block-fix-use-after-free-bug-in-__blkdev_get
-+++ a/fs/block_dev.c
-@@ -1258,8 +1258,8 @@ static int __blkdev_get(struct block_dev
- 			bd_set_size(bdev, (loff_t)bdev->bd_part->nr_sects << 9);
- 		}
- 	} else {
--		put_disk(disk);
- 		module_put(disk->fops->owner);
-+		put_disk(disk);
- 		disk = NULL;
- 		if (bdev->bd_contains == bdev) {
- 			if (bdev->bd_disk->fops->open) {
+diff -puN kernel/kprobes.c~kprobes-sanitize-struct-kretprobe_instance-allocations kernel/kprobes.c
+--- a/kernel/kprobes.c~kprobes-sanitize-struct-kretprobe_instance-allocations
++++ a/kernel/kprobes.c
+@@ -1035,9 +1035,9 @@ int __kprobes register_kretprobe(struct 
+ 	/* Pre-allocate memory for max kretprobe instances */
+ 	if (rp->maxactive <= 0) {
+ #ifdef CONFIG_PREEMPT
+-		rp->maxactive = max(10, 2 * NR_CPUS);
++		rp->maxactive = max(10, 2 * num_possible_cpus());
+ #else
+-		rp->maxactive = NR_CPUS;
++		rp->maxactive = num_possible_cpus();
+ #endif
+ 	}
+ 	spin_lock_init(&rp->lock);
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from ananth@in.ibm.com are
 
-origin.patch
 linux-next.patch
-lib-vsprintfc-add-%pu-to-print-uuid-guids.patch
-drivers-md-mdc-use-%pu-to-print-uuids.patch
-lib-unified-uuid-guid-definition.patch
+kprobes-sanitize-struct-kretprobe_instance-allocations.patch
 
