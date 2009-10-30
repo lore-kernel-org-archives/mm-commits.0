@@ -1,62 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-correctly-stop-scanning-at-the-bottom-of-a-hunk.patch removed from -mm tree
-Date: Fri, 30 Oct 2009 13:52:13 -0700
-Message-ID: <200910302052.n9UKqDSY014814@imap1.linux-foundation.org>
+Subject: [merged] checkpatch-update-copyright-dates.patch removed from -mm tree
+Date: Fri, 30 Oct 2009 13:52:18 -0700
+Message-ID: <200910302052.n9UKqJP5014957@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41617 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36821 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932627AbZJ3Uwn (ORCPT
+	by vger.kernel.org with ESMTP id S932641AbZJ3Uwp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Oct 2009 16:52:43 -0400
+	Fri, 30 Oct 2009 16:52:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: apw@canonical.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     checkpatch: correctly stop scanning at the bottom of a hunk
+     checkpatch: update copyright dates
 has been removed from the -mm tree.  Its filename was
-     checkpatch-correctly-stop-scanning-at-the-bottom-of-a-hunk.patch
+     checkpatch-update-copyright-dates.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: correctly stop scanning at the bottom of a hunk
+Subject: checkpatch: update copyright dates
 From: Andy Whitcroft <apw@canonical.com>
-
-We are allowing context scanning checks to apply against the first line of
-context outside at the end of the hunk.  This can lead to false matches to
-patch names leading to various perl warnings.  Correctly stop at the
-bottom of the hunk.
 
 Signed-off-by: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN scripts/checkpatch.pl~checkpatch-correctly-stop-scanning-at-the-bottom-of-a-hunk scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-correctly-stop-scanning-at-the-bottom-of-a-hunk
+diff -puN scripts/checkpatch.pl~checkpatch-update-copyright-dates scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-update-copyright-dates
 +++ a/scripts/checkpatch.pl
-@@ -1234,7 +1234,6 @@ sub process {
- 		$linenr++;
+@@ -2,7 +2,7 @@
+ # (c) 2001, Dave Jones. <davej@redhat.com> (the file handling bit)
+ # (c) 2005, Joel Schopp <jschopp@austin.ibm.com> (the ugly bit)
+ # (c) 2007,2008, Andy Whitcroft <apw@uk.ibm.com> (new conditions, test suite)
+-# (c) 2008, Andy Whitcroft <apw@canonical.com>
++# (c) 2008,2009, Andy Whitcroft <apw@canonical.com>
+ # Licensed under the terms of the GNU GPL License version 2
  
- 		my $rawline = $rawlines[$linenr - 1];
--		my $hunk_line = ($realcnt != 0);
- 
- #extract the line range in the file after the patch is applied
- 		if ($line=~/^\@\@ -\d+(?:,\d+)? \+(\d+)(,(\d+))? \@\@/) {
-@@ -1274,6 +1273,8 @@ sub process {
- 			$realcnt--;
- 		}
- 
-+		my $hunk_line = ($realcnt != 0);
-+
- #make up the handle for any error we report on this line
- 		$prefix = "$filename:$realline: " if ($emacs && $file);
- 		$prefix = "$filename:$linenr: " if ($emacs && !$file);
+ use strict;
 _
 
 Patches currently in -mm which might be from apw@canonical.com are
