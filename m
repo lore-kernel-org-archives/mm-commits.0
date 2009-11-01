@@ -1,24 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + serial-copy-uart-properties-of-upf_fixed_type-ports-provisioned-using-early_serial_setup.patch added to -mm tree
-Date: Fri, 30 Oct 2009 16:13:35 -0700
-Message-ID: <200910302313.n9UNDabK022388@imap1.linux-foundation.org>
+Subject: + crypto-nfg.patch added to -mm tree
+Date: Sun, 01 Nov 2009 08:37:46 -0800
+Message-ID: <200911011637.nA1GbkSB032238@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40957 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44299 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932929AbZJ3XN4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Oct 2009 19:13:56 -0400
+	by vger.kernel.org with ESMTP id S1752868AbZKAQiv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 1 Nov 2009 11:38:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shmulik@jungo.com, alan@lxorguk.ukuu.org.uk
+Cc: akpm@linux-foundation.org, herbert@gondor.apana.org.au, ying.huang@intel.com
 
 
 The patch titled
-     serial: copy UART properties of UPF_FIXED_TYPE ports provisioned using early_serial_setup
+     crypto nfg
 has been added to the -mm tree.  Its filename is
-     serial-copy-uart-properties-of-upf_fixed_type-ports-provisioned-using-early_serial_setup.patch
+     crypto-nfg.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,70 +33,85 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial: copy UART properties of UPF_FIXED_TYPE ports provisioned using early_serial_setup
-From: Shmulik Ladkani <shmulik@jungo.com>
+Subject: crypto nfg
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Augment the UPF_FIXED_TYPE logic, which currently applies to UART ports
-provisioned using platform_device_register.
+arch/x86/crypto/ghash-clmulni-intel_asm.S: Assembler messages:
+arch/x86/crypto/ghash-clmulni-intel_asm.S:103: Error: no such instruction: `pshufb %xmm5,%xmm0'
+arch/x86/crypto/ghash-clmulni-intel_asm.S:105: Error: no such instruction: `pshufb %xmm5,%xmm0'
+arch/x86/crypto/ghash-clmulni-intel_asm.S:119: Error: no such instruction: `pshufb %xmm5,%xmm0'
+arch/x86/crypto/ghash-clmulni-intel_asm.S:123: Error: no such instruction: `pshufb %xmm5,%xmm6'
+arch/x86/crypto/ghash-clmulni-intel_asm.S:130: Error: no such instruction: `pshufb %xmm5,%xmm0'
+arch/x86/crypto/ghash-clmulni-intel_asm.S:143: Error: no such instruction: `pshufb %xmm5,%xmm0'
 
-The suggested patch applies same logic into 'serial8250_register_ports',
-making UART ports provisioned using early_serial_setup inherit their
-properties from the uart_config entry.
-
-Signed-off-by: Shmulik Ladkani <shmulik@jungo.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Huang Ying <ying.huang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ crypto/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/serial/8250.c~serial-copy-uart-properties-of-upf_fixed_type-ports-provisioned-using-early_serial_setup drivers/serial/8250.c
---- a/drivers/serial/8250.c~serial-copy-uart-properties-of-upf_fixed_type-ports-provisioned-using-early_serial_setup
-+++ a/drivers/serial/8250.c
-@@ -2690,6 +2690,15 @@ static void __init serial8250_isa_init_p
- 	}
- }
- 
-+static void
-+serial8250_init_fixed_type_port(struct uart_8250_port *up, unsigned int type)
-+{
-+	up->port.type = type;
-+	up->port.fifosize = uart_config[type].fifo_size;
-+	up->capabilities = uart_config[type].flags;
-+	up->tx_loadsz = uart_config[type].tx_loadsz;
-+}
-+
- static void __init
- serial8250_register_ports(struct uart_driver *drv, struct device *dev)
- {
-@@ -2706,6 +2715,10 @@ serial8250_register_ports(struct uart_dr
- 		struct uart_8250_port *up = &serial8250_ports[i];
- 
- 		up->port.dev = dev;
-+
-+		if (up->port.flags & UPF_FIXED_TYPE)
-+			serial8250_init_fixed_type_port(up, up->port.type);
-+
- 		uart_add_one_port(drv, &up->port);
- 	}
- }
-@@ -3118,12 +3131,8 @@ int serial8250_register_port(struct uart
- 		if (port->dev)
- 			uart->port.dev = port->dev;
- 
--		if (port->flags & UPF_FIXED_TYPE) {
--			uart->port.type = port->type;
--			uart->port.fifosize = uart_config[port->type].fifo_size;
--			uart->capabilities = uart_config[port->type].flags;
--			uart->tx_loadsz = uart_config[port->type].tx_loadsz;
--		}
-+		if (port->flags & UPF_FIXED_TYPE)
-+			serial8250_init_fixed_type_port(uart, port->type);
- 
- 		set_io_from_upio(&uart->port);
- 		/* Possibly override default I/O functions.  */
+diff -puN crypto/Kconfig~crypto-nfg crypto/Kconfig
+--- a/crypto/Kconfig~crypto-nfg
++++ a/crypto/Kconfig
+@@ -443,6 +443,7 @@ config CRYPTO_WP512
+ config CRYPTO_GHASH_CLMUL_NI_INTEL
+ 	tristate "GHASH digest algorithm (CLMUL-NI accelerated)"
+ 	depends on (X86 || UML_X86) && 64BIT
++	depends on BROKEN
+ 	select CRYPTO_SHASH
+ 	select CRYPTO_CRYPTD
+ 	help
 _
 
-Patches currently in -mm which might be from shmulik@jungo.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-serial-copy-uart-properties-of-upf_fixed_type-ports-provisioned-using-early_serial_setup.patch
+origin.patch
+alpha-move-thread_size-definition-outside-ifndef-assembly.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
+crypto-nfg.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices-fix.patch
+acpi-remove-nid_inval-checkpatch-fixes.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+3x59x-fix-pci-resource-management.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+include-trace-events-lockdeph-fix-do_div-warning.patch
+st-fix-test-of-value-range-in-st_set_options.patch
+scsi-add-hpsa-driver-for-hp-smart-array-controllers-fix.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+fs-improve-remountro-vs-buffercache-coherency.patch
+percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
+readahead-add-blk_run_backing_dev.patch
+mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
+drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
+rwsem-fix-rwsem_is_locked-bugs-fix.patch
+errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
+hwmon-w83627ehf-updates-checkpatch-fixes.patch
+spi-controller-driver-for-designware-spi-core-fix.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs.patch
+memcg-coalesce-charging-via-percpu-storage-fix.patch
+aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+reiser4-disable.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
