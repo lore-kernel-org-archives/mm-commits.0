@@ -1,117 +1,140 @@
 From: akpm@linux-foundation.org
-Subject: + crypto-nfg.patch added to -mm tree
-Date: Sun, 01 Nov 2009 08:37:46 -0800
-Message-ID: <200911011637.nA1GbkSB032238@imap1.linux-foundation.org>
+Subject: [failures] gfs2-use-unified-uuid-guid-code.patch removed from -mm tree
+Date: Sun, 01 Nov 2009 09:36:08 -0800
+Message-ID: <200911011736.nA1Ha8HJ006706@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44299 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39672 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752868AbZKAQiv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 1 Nov 2009 11:38:51 -0500
+	by vger.kernel.org with ESMTP id S1753091AbZKARgW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 1 Nov 2009 12:36:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, herbert@gondor.apana.org.au, ying.huang@intel.com
+To: ying.huang@intel.com, joe@perches.com, laurent.pinchart@ideasonboard.com, swhiteho@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     crypto nfg
-has been added to the -mm tree.  Its filename is
-     crypto-nfg.patch
+     gfs2: use unified UUID/GUID code
+has been removed from the -mm tree.  Its filename was
+     gfs2-use-unified-uuid-guid-code.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: crypto nfg
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: gfs2: use unified UUID/GUID code
+From: Huang Ying <ying.huang@intel.com>
 
-arch/x86/crypto/ghash-clmulni-intel_asm.S: Assembler messages:
-arch/x86/crypto/ghash-clmulni-intel_asm.S:103: Error: no such instruction: `pshufb %xmm5,%xmm0'
-arch/x86/crypto/ghash-clmulni-intel_asm.S:105: Error: no such instruction: `pshufb %xmm5,%xmm0'
-arch/x86/crypto/ghash-clmulni-intel_asm.S:119: Error: no such instruction: `pshufb %xmm5,%xmm0'
-arch/x86/crypto/ghash-clmulni-intel_asm.S:123: Error: no such instruction: `pshufb %xmm5,%xmm6'
-arch/x86/crypto/ghash-clmulni-intel_asm.S:130: Error: no such instruction: `pshufb %xmm5,%xmm0'
-arch/x86/crypto/ghash-clmulni-intel_asm.S:143: Error: no such instruction: `pshufb %xmm5,%xmm0'
+Replace u8[16] UUID definition in gfs2.
 
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: Huang Ying <ying.huang@intel.com>
+Signed-off-by: Huang Ying <ying.huang@intel.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Steven Whitehouse <swhiteho@redhat.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- crypto/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ fs/gfs2/incore.h            |    3 ++-
+ fs/gfs2/ops_fstype.c        |    2 +-
+ fs/gfs2/sys.c               |   14 ++++----------
+ include/linux/gfs2_ondisk.h |    3 ++-
+ 4 files changed, 9 insertions(+), 13 deletions(-)
 
-diff -puN crypto/Kconfig~crypto-nfg crypto/Kconfig
---- a/crypto/Kconfig~crypto-nfg
-+++ a/crypto/Kconfig
-@@ -443,6 +443,7 @@ config CRYPTO_WP512
- config CRYPTO_GHASH_CLMUL_NI_INTEL
- 	tristate "GHASH digest algorithm (CLMUL-NI accelerated)"
- 	depends on (X86 || UML_X86) && 64BIT
-+	depends on BROKEN
- 	select CRYPTO_SHASH
- 	select CRYPTO_CRYPTD
- 	help
+diff -puN fs/gfs2/incore.h~gfs2-use-unified-uuid-guid-code fs/gfs2/incore.h
+--- a/fs/gfs2/incore.h~gfs2-use-unified-uuid-guid-code
++++ a/fs/gfs2/incore.h
+@@ -15,6 +15,7 @@
+ #include <linux/slow-work.h>
+ #include <linux/dlm.h>
+ #include <linux/buffer_head.h>
++#include <linux/uuid.h>
+ 
+ #define DIO_WAIT	0x00000010
+ #define DIO_METADATA	0x00000020
+@@ -483,7 +484,7 @@ struct gfs2_sb_host {
+ 
+ 	char sb_lockproto[GFS2_LOCKNAME_LEN];
+ 	char sb_locktable[GFS2_LOCKNAME_LEN];
+-	u8 sb_uuid[16];
++	uuid_be sb_uuid;
+ };
+ 
+ /*
+diff -puN fs/gfs2/ops_fstype.c~gfs2-use-unified-uuid-guid-code fs/gfs2/ops_fstype.c
+--- a/fs/gfs2/ops_fstype.c~gfs2-use-unified-uuid-guid-code
++++ a/fs/gfs2/ops_fstype.c
+@@ -234,7 +234,7 @@ static void gfs2_sb_in(struct gfs2_sb_ho
+ 
+ 	memcpy(sb->sb_lockproto, str->sb_lockproto, GFS2_LOCKNAME_LEN);
+ 	memcpy(sb->sb_locktable, str->sb_locktable, GFS2_LOCKNAME_LEN);
+-	memcpy(sb->sb_uuid, str->sb_uuid, 16);
++	sb->sb_uuid = str->sb_uuid;
+ }
+ 
+ /**
+diff -puN fs/gfs2/sys.c~gfs2-use-unified-uuid-guid-code fs/gfs2/sys.c
+--- a/fs/gfs2/sys.c~gfs2-use-unified-uuid-guid-code
++++ a/fs/gfs2/sys.c
+@@ -68,20 +68,14 @@ static ssize_t fsname_show(struct gfs2_s
+ 	return snprintf(buf, PAGE_SIZE, "%s\n", sdp->sd_fsname);
+ }
+ 
+-static int gfs2_uuid_valid(const u8 *uuid)
++static int gfs2_uuid_valid(const uuid_be *uuid)
+ {
+-	int i;
+-
+-	for (i = 0; i < 16; i++) {
+-		if (uuid[i])
+-			return 1;
+-	}
+-	return 0;
++	return uuid_be_cmp(*uuid, NULL_UUID_BE);
+ }
+ 
+ static ssize_t uuid_show(struct gfs2_sbd *sdp, char *buf)
+ {
+-	const u8 *uuid = sdp->sd_sb.sb_uuid;
++	const uuid_be *uuid = &sdp->sd_sb.sb_uuid;
+ 	buf[0] = '\0';
+ 	if (!gfs2_uuid_valid(uuid))
+ 		return 0;
+@@ -565,7 +559,7 @@ static int gfs2_uevent(struct kset *kset
+ 		       struct kobj_uevent_env *env)
+ {
+ 	struct gfs2_sbd *sdp = container_of(kobj, struct gfs2_sbd, sd_kobj);
+-	const u8 *uuid = sdp->sd_sb.sb_uuid;
++	const uuid_be *uuid = &sdp->sd_sb.sb_uuid;
+ 
+ 	add_uevent_var(env, "LOCKTABLE=%s", sdp->sd_table_name);
+ 	add_uevent_var(env, "LOCKPROTO=%s", sdp->sd_proto_name);
+diff -puN include/linux/gfs2_ondisk.h~gfs2-use-unified-uuid-guid-code include/linux/gfs2_ondisk.h
+--- a/include/linux/gfs2_ondisk.h~gfs2-use-unified-uuid-guid-code
++++ a/include/linux/gfs2_ondisk.h
+@@ -11,6 +11,7 @@
+ #define __GFS2_ONDISK_DOT_H__
+ 
+ #include <linux/types.h>
++#include <linux/uuid.h>
+ 
+ #define GFS2_MAGIC		0x01161970
+ #define GFS2_BASIC_BLOCK	512
+@@ -124,7 +125,7 @@ struct gfs2_sb {
+ 	struct gfs2_inum __pad3; /* Was quota inode in gfs1 */
+ 	struct gfs2_inum __pad4; /* Was licence inode in gfs1 */
+ #define GFS2_HAS_UUID 1
+-	__u8 sb_uuid[16]; /* The UUID, maybe 0 for backwards compat */
++	uuid_be sb_uuid; /* The UUID, maybe 0 for backwards compat */
+ };
+ 
+ /*
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
 origin.patch
-alpha-move-thread_size-definition-outside-ifndef-assembly.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
 crypto-nfg.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices-fix.patch
-acpi-remove-nid_inval-checkpatch-fixes.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-include-trace-events-lockdeph-fix-do_div-warning.patch
-st-fix-test-of-value-range-in-st_set_options.patch
-scsi-add-hpsa-driver-for-hp-smart-array-controllers-fix.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
-readahead-add-blk_run_backing_dev.patch
-mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
-drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
-rwsem-fix-rwsem_is_locked-bugs-fix.patch
-errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
-hwmon-w83627ehf-updates-checkpatch-fixes.patch
-spi-controller-driver-for-designware-spi-core-fix.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs.patch
-memcg-coalesce-charging-via-percpu-storage-fix.patch
-aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-reiser4-disable.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+gfs2-use-unified-uuid-guid-code.patch
 
