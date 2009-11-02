@@ -1,101 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: [merged] tpm_tis-tpm_sts_data_expect-workaround.patch removed from -mm tree
-Date: Mon, 02 Nov 2009 12:45:34 -0800
-Message-ID: <200911022045.nA2KjYmn001795@imap1.linux-foundation.org>
+Subject: [merged] crypto-add-pclmulqdq-accelerated-ghash-implementation-fix.patch removed from -mm tree
+Date: Mon, 02 Nov 2009 12:45:30 -0800
+Message-ID: <200911022045.nA2KjUfG001697@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50202 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48782 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932378AbZKBUph (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Nov 2009 15:45:37 -0500
+	by vger.kernel.org with ESMTP id S932357AbZKBUqE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Nov 2009 15:46:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: srajiv@linux.vnet.ibm.com, adi@vmware.com, david.daniel.smith@gmail.com, jmorris@namei.org, seiji.munetoh@gmail.com, shaz.linux@gmail.com, zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: herbert@gondor.apana.org.au, akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tpm_tis: TPM_STS_DATA_EXPECT workaround
+     crypto: Add PCLMULQDQ accelerated GHASH implementation (fix)
 has been removed from the -mm tree.  Its filename was
-     tpm_tis-tpm_sts_data_expect-workaround.patch
+     crypto-add-pclmulqdq-accelerated-ghash-implementation-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tpm_tis: TPM_STS_DATA_EXPECT workaround
-From: Rajiv Andrade <srajiv@linux.vnet.ibm.com>
+Subject: crypto: Add PCLMULQDQ accelerated GHASH implementation (fix)
+From: Herbert Xu <herbert@gondor.apana.org.au>
 
-Some newer Lenovo models are shipped with a TPM that doesn't seem to set
-the TPM_STS_DATA_EXPECT status bit when sending it a burst of data, so the
-code understands it as a failure and doesn't proceed sending the chip the
-intended data.  In this patch we bypass this bit check in case the itpm
-module parameter was set.
+On Sat, Oct 31, 2009 at 05:30:15PM -0700, Andrew Morton wrote:
+>
+> x86_64 allmodconfig, GNU assembler 2.16.1:
+>
+> arch/x86/crypto/ghash-clmulni-intel_asm.S: Assembler messages:
+> arch/x86/crypto/ghash-clmulni-intel_asm.S:103: Error: no such instruction: `pshufb %xmm5,%xmm0'
+> arch/x86/crypto/ghash-clmulni-intel_asm.S:105: Error: no such instruction: `pshufb %xmm5,%xmm0'
+> arch/x86/crypto/ghash-clmulni-intel_asm.S:119: Error: no such instruction: `pshufb %xmm5,%xmm0'
+> arch/x86/crypto/ghash-clmulni-intel_asm.S:123: Error: no such instruction: `pshufb %xmm5,%xmm6'
+> arch/x86/crypto/ghash-clmulni-intel_asm.S:130: Error: no such instruction: `pshufb %xmm5,%xmm0'
+> arch/x86/crypto/ghash-clmulni-intel_asm.S:143: Error: no such instruction: `pshufb %xmm5,%xmm0'
 
-This patch is based on Andy Isaacson's one:
+This patch should fix it.
 
-http://marc.info/?l=linux-kernel&m=124650185023495&w=2
+commit 2d06ef7f42ed8c9969c9aa84e95df5d5c6378327
+Author: Herbert Xu <herbert@gondor.apana.org.au>
+Date:   Sun Nov 1 12:49:44 2009 -0500
 
-It was heavily discussed how should we deal with identifying the chip in
-kernel space, but the required patch to do so was NACK'd:
+    crypto: ghash-intel - Hard-code pshufb
 
-http://marc.info/?l=linux-kernel&m=124650186423711&w=2
+    Old gases don't have a clue what pshufb stands for so we have
+    to hard-code it for now.
 
-This way we let the user choose using this workaround or not based on his
-observations on this code behavior when trying to use the TPM.
+    Reported-by: Andrew Morton <akpm@linux-foundation.org>
+    Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
 
-Fixed a checkpatch issue present on the previous patch, thanks to Daniel Walker.
-
-Signed-off-by: Rajiv Andrade <srajiv@linux.vnet.ibm.com>
-Tested-by: Seiji Munetoh <seiji.munetoh@gmail.com>
-
-David Smith <david.daniel.smith@gmail.com>
-Cc: Seiji Munetoh <seiji.munetoh@gmail.com>
-Cc: Andy Isaacson <adi@vmware.com>
-Cc: Mimi Zohar <zohar@linux.vnet.ibm.com>
-Cc: Shahbaz Khan <shaz.linux@gmail.com>
-Cc: James Morris <jmorris@namei.org>
+index b9e787a..71768d5 100644
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ arch/x86/crypto/ghash-clmulni-intel_asm.S |   18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
 
-diff -puN drivers/char/tpm/tpm_tis.c~tpm_tis-tpm_sts_data_expect-workaround drivers/char/tpm/tpm_tis.c
---- a/drivers/char/tpm/tpm_tis.c~tpm_tis-tpm_sts_data_expect-workaround
-+++ a/drivers/char/tpm/tpm_tis.c
-@@ -257,6 +257,10 @@ out:
- 	return size;
- }
+diff -puN arch/x86/crypto/ghash-clmulni-intel_asm.S~crypto-add-pclmulqdq-accelerated-ghash-implementation-fix arch/x86/crypto/ghash-clmulni-intel_asm.S
+--- a/arch/x86/crypto/ghash-clmulni-intel_asm.S~crypto-add-pclmulqdq-accelerated-ghash-implementation-fix
++++ a/arch/x86/crypto/ghash-clmulni-intel_asm.S
+@@ -100,9 +100,11 @@ ENTRY(clmul_ghash_mul)
+ 	movups (%rdi), DATA
+ 	movups (%rsi), SHASH
+ 	movaps .Lbswap_mask, BSWAP
+-	pshufb BSWAP, DATA
++	# pshufb BSWAP, DATA
++	.byte 0x66, 0x0f, 0x38, 0x00, 0xc5
+ 	call __clmul_gf128mul_ble
+-	pshufb BSWAP, DATA
++	# pshufb BSWAP, DATA
++	.byte 0x66, 0x0f, 0x38, 0x00, 0xc5
+ 	movups DATA, (%rdi)
+ 	ret
  
-+static int itpm;
-+module_param(itpm, bool, 0444);
-+MODULE_PARM_DESC(itpm, "Force iTPM workarounds (found on some Lenovo laptops)");
-+
- /*
-  * If interrupts are used (signaled by an irq set in the vendor structure)
-  * tpm.c can skip polling for the data to be available as the interrupt is
-@@ -293,7 +297,7 @@ static int tpm_tis_send(struct tpm_chip 
- 		wait_for_stat(chip, TPM_STS_VALID, chip->vendor.timeout_c,
- 			      &chip->vendor.int_queue);
- 		status = tpm_tis_status(chip);
--		if ((status & TPM_STS_DATA_EXPECT) == 0) {
-+		if (!itpm && (status & TPM_STS_DATA_EXPECT) == 0) {
- 			rc = -EIO;
- 			goto out_err;
- 		}
-@@ -467,6 +471,10 @@ static int tpm_tis_init(struct device *d
- 		 "1.2 TPM (device-id 0x%X, rev-id %d)\n",
- 		 vendor >> 16, ioread8(chip->vendor.iobase + TPM_RID(0)));
- 
-+	if (itpm)
-+		dev_info(dev, "Intel iTPM workaround enabled\n");
-+
-+
- 	/* Figure out the capabilities */
- 	intfcaps =
- 	    ioread32(chip->vendor.iobase +
+@@ -116,18 +118,21 @@ ENTRY(clmul_ghash_update)
+ 	movaps .Lbswap_mask, BSWAP
+ 	movups (%rdi), DATA
+ 	movups (%rcx), SHASH
+-	pshufb BSWAP, DATA
++	# pshufb BSWAP, DATA
++	.byte 0x66, 0x0f, 0x38, 0x00, 0xc5
+ .align 4
+ .Lupdate_loop:
+ 	movups (%rsi), IN1
+-	pshufb BSWAP, IN1
++	# pshufb BSWAP, IN1
++	.byte 0x66, 0x0f, 0x38, 0x00, 0xf5
+ 	pxor IN1, DATA
+ 	call __clmul_gf128mul_ble
+ 	sub $16, %rdx
+ 	add $16, %rsi
+ 	cmp $16, %rdx
+ 	jge .Lupdate_loop
+-	pshufb BSWAP, DATA
++	# pshufb BSWAP, DATA
++	.byte 0x66, 0x0f, 0x38, 0x00, 0xc5
+ 	movups DATA, (%rdi)
+ .Lupdate_just_ret:
+ 	ret
+@@ -140,7 +145,8 @@ ENTRY(clmul_ghash_update)
+ ENTRY(clmul_ghash_setkey)
+ 	movaps .Lbswap_mask, BSWAP
+ 	movups (%rsi), %xmm0
+-	pshufb BSWAP, %xmm0
++	# pshufb BSWAP, %xmm0
++	.byte 0x66, 0x0f, 0x38, 0x00, 0xc5
+ 	movaps %xmm0, %xmm1
+ 	psllq $1, %xmm0
+ 	psrlq $63, %xmm1
 _
 
-Patches currently in -mm which might be from srajiv@linux.vnet.ibm.com are
+Patches currently in -mm which might be from herbert@gondor.apana.org.au are
 
+origin.patch
 linux-next.patch
 
