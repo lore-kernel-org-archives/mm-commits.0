@@ -1,80 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: [merged] nommu-dont-pass-null-pointers-to-fput-in-do_mmap_pgoff.patch removed from -mm tree
-Date: Mon, 02 Nov 2009 12:45:23 -0800
-Message-ID: <200911022045.nA2KjNYT001325@imap1.linux-foundation.org>
+Subject: + fbdev-drop-custom-atoi-from-drivers-video-modedbc.patch added to -mm tree
+Date: Mon, 02 Nov 2009 13:21:42 -0800
+Message-ID: <200911022121.nA2LLgAv021884@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41093 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47072 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932387AbZKBUqw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Nov 2009 15:46:52 -0500
+	by vger.kernel.org with ESMTP id S1755180AbZKBVVu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Nov 2009 16:21:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, rgetz@blackfin.uclinux.org, stable@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: ext-andriy.shevchenko@nokia.com, krzysztof.h1@poczta.fm
 
 
 The patch titled
-     nommu: don't pass NULL pointers to fput() in do_mmap_pgoff()
-has been removed from the -mm tree.  Its filename was
-     nommu-dont-pass-null-pointers-to-fput-in-do_mmap_pgoff.patch
+     fbdev: drop custom atoi from drivers/video/modedb.c
+has been added to the -mm tree.  Its filename is
+     fbdev-drop-custom-atoi-from-drivers-video-modedbc.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nommu: don't pass NULL pointers to fput() in do_mmap_pgoff()
-From: David Howells <dhowells@redhat.com>
+Subject: fbdev: drop custom atoi from drivers/video/modedb.c
+From: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
 
-Don't pass NULL pointers to fput() in the error handling paths of the
-NOMMU do_mmap_pgoff() as it can't handle it.
+Kernel has simple_strtol() implementation which could be used as atoi().
 
-The following can be used as a test program:
-
-	int main() { static long long a[1024 * 1024 * 20] = { 0 }; return a;}
-
-Without the patch, the code oopses in atomic_long_dec_and_test() as called
-by fput() after the kernel complains that it can't allocate that big a
-chunk of memory.  With the patch, the kernel just complains about the
-allocation size and then the program segfaults during execve() as execve()
-can't complete the allocation of all the new ELF program segments.
-
-Reported-by: Robin Getz <rgetz@blackfin.uclinux.org>
-Signed-off-by: David Howells <dhowells@redhat.com>
-Acked-by: Robin Getz <rgetz@blackfin.uclinux.org>
-Cc: <stable@kernel.org>
+Signed-off-by: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN mm/nommu.c~nommu-dont-pass-null-pointers-to-fput-in-do_mmap_pgoff mm/nommu.c
---- a/mm/nommu.c~nommu-dont-pass-null-pointers-to-fput-in-do_mmap_pgoff
-+++ a/mm/nommu.c
-@@ -1362,9 +1362,11 @@ share:
- error_just_free:
- 	up_write(&nommu_region_sem);
- error:
--	fput(region->vm_file);
-+	if (region->vm_file)
-+		fput(region->vm_file);
- 	kmem_cache_free(vm_region_jar, region);
--	fput(vma->vm_file);
-+	if (vma->vm_file)
-+		fput(vma->vm_file);
- 	if (vma->vm_flags & VM_EXECUTABLE)
- 		removed_exe_file_vma(vma->vm_mm);
- 	kmem_cache_free(vm_area_cachep, vma);
+diff -puN drivers/video/modedb.c~fbdev-drop-custom-atoi-from-drivers-video-modedbc drivers/video/modedb.c
+--- a/drivers/video/modedb.c~fbdev-drop-custom-atoi-from-drivers-video-modedbc
++++ a/drivers/video/modedb.c
+@@ -13,6 +13,7 @@
+ 
+ #include <linux/module.h>
+ #include <linux/fb.h>
++#include <linux/kernel.h>
+ 
+ #undef DEBUG
+ 
+@@ -402,21 +403,6 @@ const struct fb_videomode vesa_modes[] =
+ EXPORT_SYMBOL(vesa_modes);
+ #endif /* CONFIG_FB_MODE_HELPERS */
+ 
+-static int my_atoi(const char *name)
+-{
+-    int val = 0;
+-
+-    for (;; name++) {
+-	switch (*name) {
+-	    case '0' ... '9':
+-		val = 10*val+(*name-'0');
+-		break;
+-	    default:
+-		return val;
+-	}
+-    }
+-}
+-
+ /**
+  *	fb_try_mode - test a video mode
+  *	@var: frame buffer user defined part of display
+@@ -539,7 +525,7 @@ int fb_find_mode(struct fb_var_screeninf
+ 		    namelen = i;
+ 		    if (!refresh_specified && !bpp_specified &&
+ 			!yres_specified) {
+-			refresh = my_atoi(&name[i+1]);
++			refresh = simple_strtol(&name[i+1], NULL, 10);
+ 			refresh_specified = 1;
+ 			if (cvt || rb)
+ 			    cvt = 0;
+@@ -549,7 +535,7 @@ int fb_find_mode(struct fb_var_screeninf
+ 		case '-':
+ 		    namelen = i;
+ 		    if (!bpp_specified && !yres_specified) {
+-			bpp = my_atoi(&name[i+1]);
++			bpp = simple_strtol(&name[i+1], NULL, 10);
+ 			bpp_specified = 1;
+ 			if (cvt || rb)
+ 			    cvt = 0;
+@@ -558,7 +544,7 @@ int fb_find_mode(struct fb_var_screeninf
+ 		    break;
+ 		case 'x':
+ 		    if (!yres_specified) {
+-			yres = my_atoi(&name[i+1]);
++			yres = simple_strtol(&name[i+1], NULL, 10);
+ 			yres_specified = 1;
+ 		    } else
+ 			goto done;
+@@ -586,7 +572,7 @@ int fb_find_mode(struct fb_var_screeninf
+ 	    }
+ 	}
+ 	if (i < 0 && yres_specified) {
+-	    xres = my_atoi(name);
++	    xres = simple_strtol(name, NULL, 10);
+ 	    res_specified = 1;
+ 	}
+ done:
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from ext-andriy.shevchenko@nokia.com are
 
-origin.patch
-linux-next.patch
-nommu-ignore-the-address-parameter-in-the-file_mmap-security-check.patch
-frv-duplicate-output_buffer-of-e03.patch
-rwsem-spinlock-remove-useless-function-exports.patch
-rwsem-fix-rwsem_is_locked-bugs.patch
-rwsem-fix-rwsem_is_locked-bugs-fix.patch
-mutex-subsystem-synchro-test-module.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
+fbdev-drop-custom-atoi-from-drivers-video-modedbc.patch
 
