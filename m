@@ -1,23 +1,26 @@
 From: akpm@linux-foundation.org
-Subject: + fbdev-drop-custom-atoi-from-drivers-video-modedbc.patch added to -mm tree
-Date: Mon, 02 Nov 2009 13:21:42 -0800
-Message-ID: <200911022121.nA2LLgAv021884@imap1.linux-foundation.org>
+Subject: + drivers-input-misc-winbond-circ-needs-leds_triggers.patch added to -mm tree
+Date: Mon, 02 Nov 2009 13:38:32 -0800
+Message-ID: <200911022138.nA2LcWV9029062@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47072 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36164 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755180AbZKBVVu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Nov 2009 16:21:50 -0500
+	by vger.kernel.org with ESMTP id S1756700AbZKBVin (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Nov 2009 16:38:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ext-andriy.shevchenko@nokia.com, krzysztof.h1@poczta.fm
+Cc: david@hardeman.nu, dtor@mail.ru
 
 
 The patch titled
-     fbdev: drop custom atoi from drivers/video/modedb.c
+     drivers/input/misc/winbond-cir.c needs LEDS_TRIGGERS
 has been added to the -mm tree.  Its filename is
-     fbdev-drop-custom-atoi-from-drivers-video-modedbc.patch
+     drivers-input-misc-winbond-circ-needs-leds_triggers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -25,97 +28,52 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: fbdev: drop custom atoi from drivers/video/modedb.c
-From: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
+Subject: drivers/input/misc/winbond-cir.c needs LEDS_TRIGGERS
+=46rom: David H=E4rdeman <david@hardeman.nu>
 
-Kernel has simple_strtol() implementation which could be used as atoi().
+drivers/input/misc/winbond-cir.c depends on LEDS_TRIGGERS
 
-Signed-off-by: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Add an appropriate select to drivers/input/misc/Kconfig
+
+Signed-off-by: David H=E4rdeman <david@hardeman.nu>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/video/modedb.c~fbdev-drop-custom-atoi-from-drivers-video-modedbc drivers/video/modedb.c
---- a/drivers/video/modedb.c~fbdev-drop-custom-atoi-from-drivers-video-modedbc
-+++ a/drivers/video/modedb.c
-@@ -13,6 +13,7 @@
- 
- #include <linux/module.h>
- #include <linux/fb.h>
-+#include <linux/kernel.h>
- 
- #undef DEBUG
- 
-@@ -402,21 +403,6 @@ const struct fb_videomode vesa_modes[] =
- EXPORT_SYMBOL(vesa_modes);
- #endif /* CONFIG_FB_MODE_HELPERS */
- 
--static int my_atoi(const char *name)
--{
--    int val = 0;
--
--    for (;; name++) {
--	switch (*name) {
--	    case '0' ... '9':
--		val = 10*val+(*name-'0');
--		break;
--	    default:
--		return val;
--	}
--    }
--}
--
- /**
-  *	fb_try_mode - test a video mode
-  *	@var: frame buffer user defined part of display
-@@ -539,7 +525,7 @@ int fb_find_mode(struct fb_var_screeninf
- 		    namelen = i;
- 		    if (!refresh_specified && !bpp_specified &&
- 			!yres_specified) {
--			refresh = my_atoi(&name[i+1]);
-+			refresh = simple_strtol(&name[i+1], NULL, 10);
- 			refresh_specified = 1;
- 			if (cvt || rb)
- 			    cvt = 0;
-@@ -549,7 +535,7 @@ int fb_find_mode(struct fb_var_screeninf
- 		case '-':
- 		    namelen = i;
- 		    if (!bpp_specified && !yres_specified) {
--			bpp = my_atoi(&name[i+1]);
-+			bpp = simple_strtol(&name[i+1], NULL, 10);
- 			bpp_specified = 1;
- 			if (cvt || rb)
- 			    cvt = 0;
-@@ -558,7 +544,7 @@ int fb_find_mode(struct fb_var_screeninf
- 		    break;
- 		case 'x':
- 		    if (!yres_specified) {
--			yres = my_atoi(&name[i+1]);
-+			yres = simple_strtol(&name[i+1], NULL, 10);
- 			yres_specified = 1;
- 		    } else
- 			goto done;
-@@ -586,7 +572,7 @@ int fb_find_mode(struct fb_var_screeninf
- 	    }
- 	}
- 	if (i < 0 && yres_specified) {
--	    xres = my_atoi(name);
-+	    xres = simple_strtol(name, NULL, 10);
- 	    res_specified = 1;
- 	}
- done:
+diff -puN drivers/input/misc/Kconfig~drivers-input-misc-winbond-circ-ne=
+eds-leds_triggers drivers/input/misc/Kconfig
+--- a/drivers/input/misc/Kconfig~drivers-input-misc-winbond-circ-needs-=
+leds_triggers
++++ a/drivers/input/misc/Kconfig
+@@ -227,6 +227,7 @@ config INPUT_WINBOND_CIR
+ 	depends on X86 && PNP
+ 	select NEW_LEDS
+ 	select LEDS_CLASS
++	select LEDS_TRIGGERS
+ 	select BITREVERSE
+ 	help
+ 	  Say Y here if you want to use the IR remote functionality found
 _
 
-Patches currently in -mm which might be from ext-andriy.shevchenko@nokia.com are
+Patches currently in -mm which might be from david@hardeman.nu are
 
-fbdev-drop-custom-atoi-from-drivers-video-modedbc.patch
+origin.patch
+acpi-reintroduce-acpi_device_ops-shutdown-method.patch
+drivers-input-misc-winbond-circ-needs-leds_triggers.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
