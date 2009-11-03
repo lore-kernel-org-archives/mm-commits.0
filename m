@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + gpiolib-fix-device_create-result-check.patch added to -mm tree
-Date: Tue, 03 Nov 2009 14:44:48 -0800
-Message-ID: <200911032244.nA3MimLb030327@imap1.linux-foundation.org>
+Subject: + pxa-add-missing-underscores-in-define.patch added to -mm tree
+Date: Tue, 03 Nov 2009 15:25:13 -0800
+Message-ID: <200911032325.nA3NPDlY027827@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52278 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56387 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754602AbZKCWpO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Nov 2009 17:45:14 -0500
+	by vger.kernel.org with ESMTP id S1751165AbZKCXZr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Nov 2009 18:25:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sshtylyov@ru.mvista.com, david-b@pacbell.net
+Cc: roel.kluin@gmail.com, eric.miao@marvell.com, mingwei.wang@marvell.com, rmk@arm.linux.org.uk
 
 
 The patch titled
-     gpiolib: fix device_create() result check
+     pxa: add missing underscores in define
 has been added to the -mm tree.  Its filename is
-     gpiolib-fix-device_create-result-check.patch
+     pxa-add-missing-underscores-in-define.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,64 +33,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpiolib: fix device_create() result check
-From: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Subject: pxa: add missing underscores in define
+From: Roel Kluin <roel.kluin@gmail.com>
 
-In case of failure, device_create() returns not NULL but the error code. 
-The current code checks for non-NULL though which causes kernel oops in
-sysfs_create_group() when device_create() fails.  Check for error using
-IS_ERR() and propagate the error value using PTR_ERR() instead of fixed
--ENODEV code returned now...
+Underscores were missing.
 
-Signed-off-by: Sergei Shtylyov <sshtylyov@ru.mvista.com>
-Cc: David Brownell <david-b@pacbell.net>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Mingwei Wang <mingwei.wang@marvell.com>
+Cc: Eric Miao <eric.miao@marvell.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/gpio/gpiolib.c~gpiolib-fix-device_create-result-check drivers/gpio/gpiolib.c
---- a/drivers/gpio/gpiolib.c~gpiolib-fix-device_create-result-check
-+++ a/drivers/gpio/gpiolib.c
-@@ -661,7 +661,7 @@ int gpio_export(unsigned gpio, bool dire
+diff -puN arch/arm/mach-mmp/include/mach/mfp-pxa910.h~pxa-add-missing-underscores-in-define arch/arm/mach-mmp/include/mach/mfp-pxa910.h
+--- a/arch/arm/mach-mmp/include/mach/mfp-pxa910.h~pxa-add-missing-underscores-in-define
++++ a/arch/arm/mach-mmp/include/mach/mfp-pxa910.h
+@@ -160,7 +160,7 @@
+ #define MMC1_WP_MMC1_WP		MFP_CFG_DRV(MMC1_WP, AF0, MEDIUM)
  
- 		dev = device_create(&gpio_class, desc->chip->dev, MKDEV(0, 0),
- 				desc, ioname ? ioname : "gpio%d", gpio);
--		if (dev) {
-+		if (!IS_ERR(dev)) {
- 			if (direction_may_change)
- 				status = sysfs_create_group(&dev->kobj,
- 						&gpio_attr_group);
-@@ -679,7 +679,7 @@ int gpio_export(unsigned gpio, bool dire
- 			if (status != 0)
- 				device_unregister(dev);
- 		} else
--			status = -ENODEV;
-+			status = PTR_ERR(dev);
- 		if (status == 0)
- 			set_bit(FLAG_EXPORT, &desc->flags);
- 	}
-@@ -800,11 +800,11 @@ static int gpiochip_export(struct gpio_c
- 	mutex_lock(&sysfs_lock);
- 	dev = device_create(&gpio_class, chip->dev, MKDEV(0, 0), chip,
- 				"gpiochip%d", chip->base);
--	if (dev) {
-+	if (!IS_ERR(dev)) {
- 		status = sysfs_create_group(&dev->kobj,
- 				&gpiochip_attr_group);
- 	} else
--		status = -ENODEV;
-+		status = PTR_ERR(dev);
- 	chip->exported = (status == 0);
- 	mutex_unlock(&sysfs_lock);
- 
+ /* PWM */
+-#define GPIO27 PWM3 AF2		MFP_CFG(GPIO27, AF2)
++#define GPIO27_PWM3_AF2		MFP_CFG(GPIO27, AF2)
+ #define GPIO51_PWM2_OUT		MFP_CFG(GPIO51, AF2)
+ #define GPIO117_PWM1_OUT	MFP_CFG(GPIO117, AF2)
+ #define GPIO118_PWM2_OUT	MFP_CFG(GPIO118, AF2)
 _
 
-Patches currently in -mm which might be from sshtylyov@ru.mvista.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
+origin.patch
+get_maintainer-fix-usage-comment.patch
 linux-next.patch
-gpiolib-fix-device_create-result-check.patch
-3x59x-fix-pci-resource-management.patch
-sound-core-pcm_timerc-use-lib-gcdc.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch
+omap-fix-unlikelyx-y.patch
+pxa-add-missing-underscores-in-define.patch
+powernow-k8-fix-test-in-get_transition_latency.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+hfc_usb-fix-read-buffer-overflow.patch
+hisax-fix-test-in-waitforxfw.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
+zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
+st-fix-test-of-value-range-in-st_set_options.patch
+ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
+bfa-fix-test-in-bfad_os_fc_host_init.patch
+page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+cryptocop-fix-assertion-in-create_output_descriptors.patch
+gpio-fix-test-on-unsigned-in-lnw_irq_type.patch
+fbdev-tv_paln-bit-set-twice-in-sisfb_detect_vb_connect.patch
+hvc_console-fix-test-on-unsigned-in-hvc_console_print.patch
+irq-fix-test-in-__exit-parport_mfc3_exit.patch
 
