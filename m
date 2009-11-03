@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + firedtv-fix-regression-tuning-fails-due-to-bogus-error-return.patch added to -mm tree
-Date: Mon, 02 Nov 2009 22:46:47 -0800
-Message-ID: <200911030646.nA36klJW017404@imap1.linux-foundation.org>
+Subject: + drm-kill-some-unused-drm_proc-macros-from-drmph.patch added to -mm tree
+Date: Mon, 02 Nov 2009 22:52:12 -0800
+Message-ID: <200911030652.nA36qClt030069@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50357 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49512 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751010AbZKCGrE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Nov 2009 01:47:04 -0500
+	by vger.kernel.org with ESMTP id S1751154AbZKCGwS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Nov 2009 01:52:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: stefanr@s5r6.in-berlin.de, mchehab@infradead.org, rjw@sisk.pl
+Cc: dilinger@collabora.co.uk, airlied@linux.ie
 
 
 The patch titled
-     firedtv: fix regression: tuning fails due to bogus error return
+     drm: kill some unused DRM_PROC macros from drmP.h
 has been added to the -mm tree.  Its filename is
-     firedtv-fix-regression-tuning-fails-due-to-bogus-error-return.patch
+     drm-kill-some-unused-drm_proc-macros-from-drmph.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,45 +33,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: firedtv: fix regression: tuning fails due to bogus error return
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Subject: drm: kill some unused DRM_PROC macros from drmP.h
+From: Andres Salomon <dilinger@collabora.co.uk>
 
-Since 2.6.32(-rc1), DVB core checks the return value of
-dvb_frontend_ops.set_frontend.  Now it becomes apparent that firedtv
-always returned a bogus value from its set_frontend method.
+i915_gem_proc.c appears to have been the last user of the DRM_PROC_*
+macros, and it has gone away.  The macros should die as well.
 
-Signed-off-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Signed-off-by: Andres Salomon <dilinger@collabora.co.uk>
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/firewire/firedtv-avc.c |    7 +++++--
- drivers/media/dvb/firewire/firedtv-fe.c  |    8 +-------
- 2 files changed, 6 insertions(+), 9 deletions(-)
+ include/drm/drmP.h |   10 ----------
+ 1 file changed, 10 deletions(-)
 
-diff -puN drivers/media/dvb/firewire/firedtv-avc.c~firedtv-fix-regression-tuning-fails-due-to-bogus-error-return drivers/media/dvb/firewire/firedtv-avc.c
---- a/drivers/media/dvb/firewire/firedtv-avc.c~firedtv-fix-regression-tuning-fails-due-to-bogus-error-return
-+++ a/drivers/media/dvb/firewire/firedtv-avc.c
-@@ -573,8 +573,11 @@ int avc_tuner_dsd(struct firedtv *fdtv,
+diff -puN include/drm/drmP.h~drm-kill-some-unused-drm_proc-macros-from-drmph include/drm/drmP.h
+--- a/include/drm/drmP.h~drm-kill-some-unused-drm_proc-macros-from-drmph
++++ a/include/drm/drmP.h
+@@ -245,16 +245,6 @@ extern void drm_ut_debug_printk(unsigned
  
- 	msleep(500);
- #if 0
--	/* FIXME: */
--	/* u8 *status was an out-parameter of avc_tuner_dsd, unused by caller */
-+	/*
-+	 * FIXME:
-+	 * u8 *status was an out-parameter of avc_tuner_dsd, unused by caller
-+	 * Check for AVC_RESPONSE_ACCEPTED here instead?
-+	 */
- 	if (status)
- 		*status = r->operand[2];
  #endif
-diff -puN drivers/media/dvb/firewire/firedtv-fe.c~firedtv-fix-regression-tuning-fails-due-to-bogus-error-return drivers/media/dvb/firewire/firedtv-fe.c
---- a/drivers/media/dvb/firewire/firedtv-fe.c~firedtv-fix-regression-tuning-fails-due-to-bogus-error-return
-+++ a/drivers/media/dvb/firewire/firedtv-fe.c
-@@ -141,18 +141,12 @@ static int fdtv_read_uncorrected_blocks(
- 	return -EOPNOTSUPP;
- }
  
--#define ACCEPTED 0x9
+-#define DRM_PROC_LIMIT (PAGE_SIZE-80)
+-
+-#define DRM_PROC_PRINT(fmt, arg...)					\
+-   len += sprintf(&buf[len], fmt , ##arg);				\
+-   if (len > DRM_PROC_LIMIT) { *eof = 1; return len - offset; }
+-
+-#define DRM_PROC_PRINT_RET(ret, fmt, arg...)				\
+-   len += sprintf(&buf[len], fmt , ##arg);				\
+-   if (len > DRM_PROC_LIMIT) { ret; *eof = 1; return len - offset; }
