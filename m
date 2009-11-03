@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sendfile-check-f_opsplice_write-rather-than-f_opsendpage.patch added to -mm tree
-Date: Mon, 02 Nov 2009 23:48:36 -0800
-Message-ID: <200911030748.nA37maIH032725@imap1.linux-foundation.org>
+Subject: + mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch added to -mm tree
+Date: Mon, 02 Nov 2009 23:58:42 -0800
+Message-ID: <200911030758.nA37wgej024131@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47228 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49982 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756282AbZKCHsi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Nov 2009 02:48:38 -0500
+	by vger.kernel.org with ESMTP id S1755421AbZKCH7U (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Nov 2009 02:59:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xiaosuo@gmail.com, jens.axboe@oracle.com
+Cc: akpm@linux-foundation.org, agust@denx.de, krzysztof.h1@poczta.fm, valentin.sitdikov@siemens.com
 
 
 The patch titled
-     sendfile(): check f_op.splice_write() rather than f_op.sendpage()
+     mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix
 has been added to the -mm tree.  Its filename is
-     sendfile-check-f_opsplice_write-rather-than-f_opsendpage.patch
+     mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,102 +33,139 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sendfile(): check f_op.splice_write() rather than f_op.sendpage()
-From: Changli Gao <xiaosuo@gmail.com>
+Subject: mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-sendfile(2) was reworked with the splice infrastructure, but it still
-checks f_op.sendpage() instead of f_op.splice_write() wrongly.  Although
-if f_op.sendpage() exists, f_op.splice_write() always exists at the same
-time currently, the assumption will be broken in future silently.  This
-patch also brings a side effect: sendfile(2) can work with any output
-file.  Some security checks related to f_op are added too.
+- clean up comments
+- remove do-nothing tests
+- use min()
 
-Signed-off-by: Changli Gao <xiaosuo@gmail.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Anatolij Gustschin <agust@denx.de>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Cc: Valentin Sitdikov <valentin.sitdikov@siemens.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/read_write.c |    2 --
- fs/splice.c     |   24 +++++++++++++++---------
- 2 files changed, 15 insertions(+), 11 deletions(-)
+ drivers/video/mb862xx/mb862xxfb_accel.c |   28 ++++++++++++----------
+ 1 file changed, 16 insertions(+), 12 deletions(-)
 
-diff -puN fs/read_write.c~sendfile-check-f_opsplice_write-rather-than-f_opsendpage fs/read_write.c
---- a/fs/read_write.c~sendfile-check-f_opsplice_write-rather-than-f_opsendpage
-+++ a/fs/read_write.c
-@@ -826,8 +826,6 @@ static ssize_t do_sendfile(int out_fd, i
- 	if (!(out_file->f_mode & FMODE_WRITE))
- 		goto fput_out;
- 	retval = -EINVAL;
--	if (!out_file->f_op || !out_file->f_op->sendpage)
--		goto fput_out;
- 	in_inode = in_file->f_path.dentry->d_inode;
- 	out_inode = out_file->f_path.dentry->d_inode;
- 	retval = rw_verify_area(WRITE, out_file, &out_file->f_pos, count);
-diff -puN fs/splice.c~sendfile-check-f_opsplice_write-rather-than-f_opsendpage fs/splice.c
---- a/fs/splice.c~sendfile-check-f_opsplice_write-rather-than-f_opsendpage
-+++ a/fs/splice.c
-@@ -648,9 +648,11 @@ static int pipe_to_sendpage(struct pipe_
- 	ret = buf->ops->confirm(pipe, buf);
- 	if (!ret) {
- 		more = (sd->flags & SPLICE_F_MORE) || sd->len < sd->total_len;
--
--		ret = file->f_op->sendpage(file, buf->page, buf->offset,
--					   sd->len, &pos, more);
-+		if (file->f_op && file->f_op->sendpage)
-+			ret = file->f_op->sendpage(file, buf->page, buf->offset,
-+						   sd->len, &pos, more);
-+		else
-+			ret = -EINVAL;
+diff -puN drivers/video/mb862xx/mb862xxfb_accel.c~mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix drivers/video/mb862xx/mb862xxfb_accel.c
+--- a/drivers/video/mb862xx/mb862xxfb_accel.c~mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix
++++ a/drivers/video/mb862xx/mb862xxfb_accel.c
+@@ -66,8 +66,10 @@ static void mb86290fb_copyarea(struct fb
+ 	mb862xxfb_write_fifo(6, cmd, info);
+ }
+ 
+-/* Fill in the cmd array /GDC FIFO commands/ to draw a 1bit image.
+- * Make sure cmd has enough room! */
++/*
++ * Fill in the cmd array /GDC FIFO commands/ to draw a 1bit image.
++ * Make sure cmd has enough room!
++ */
+ static void mb86290fb_imageblit1(u32 *cmd, u16 step, u16 dx, u16 dy,
+ 				 u16 width, u16 height, u32 fgcolor,
+ 				 u32 bgcolor, const struct fb_image *image,
+@@ -113,8 +115,10 @@ static void mb86290fb_imageblit1(u32 *cm
  	}
+ }
  
- 	return ret;
-@@ -1068,8 +1070,9 @@ static long do_splice_from(struct pipe_i
- 	if (unlikely(ret < 0))
- 		return ret;
+-/* Fill in the cmd array /GDC FIFO commands/ to draw a 8bit image.
+- * Make sure cmd has enough room! */
++/*
++ * Fill in the cmd array /GDC FIFO commands/ to draw a 8bit image.
++ * Make sure cmd has enough room!
++ */
+ static void mb86290fb_imageblit8(u32 *cmd, u16 step, u16 dx, u16 dy,
+ 				 u16 width, u16 height, u32 fgcolor,
+ 				 u32 bgcolor, const struct fb_image *image,
+@@ -150,8 +154,10 @@ static void mb86290fb_imageblit8(u32 *cm
+ 	}
+ }
  
--	splice_write = out->f_op->splice_write;
--	if (!splice_write)
-+	if (out->f_op && out->f_op->splice_write)
-+		splice_write = out->f_op->splice_write;
-+	else
- 		splice_write = default_file_splice_write;
+-/* Fill in the cmd array /GDC FIFO commands/ to draw a 16bit image.
+- * Make sure cmd has enough room! */
++/*
++ * Fill in the cmd array /GDC FIFO commands/ to draw a 16bit image.
++ * Make sure cmd has enough room!
++ */
+ static void mb86290fb_imageblit16(u32 *cmd, u16 step, u16 dx, u16 dy,
+ 				  u16 width, u16 height, u32 fgcolor,
+ 				  u32 bgcolor, const struct fb_image *image,
+@@ -195,12 +201,10 @@ static void mb86290fb_imageblit(struct f
+ 	mdr = (GDC_ROP_COPY << 9);
+ 	x2 = image->dx + image->width;
+ 	y2 = image->dy + image->height;
+-	dx = image->dx > 0 ? image->dx : 0;
+-	dy = image->dy > 0 ? image->dy : 0;
+ 	vxres = info->var.xres_virtual;
+ 	vyres = info->var.yres_virtual;
+-	x2 = x2 < vxres ? x2 : vxres;
+-	y2 = y2 < vyres ? y2 : vyres;
++	x2 = min(x2, vxres);
++	y2 = min(y2, vyres);
+ 	width = x2 - dx;
+ 	height = y2 - dy;
  
- 	return splice_write(pipe, out, ppos, len, flags);
-@@ -1093,8 +1096,9 @@ static long do_splice_to(struct file *in
- 	if (unlikely(ret < 0))
- 		return ret;
- 
--	splice_read = in->f_op->splice_read;
--	if (!splice_read)
-+	if (in->f_op && in->f_op->splice_read)
-+		splice_read = in->f_op->splice_read;
-+	else
- 		splice_read = default_file_splice_read;
- 
- 	return splice_read(in, ppos, pipe, len, flags);
-@@ -1316,7 +1320,8 @@ static long do_splice(struct file *in, l
- 		if (off_in)
- 			return -ESPIPE;
- 		if (off_out) {
--			if (out->f_op->llseek == no_llseek)
-+			if (!out->f_op || !out->f_op->llseek ||
-+			    out->f_op->llseek == no_llseek)
- 				return -EINVAL;
- 			if (copy_from_user(&offset, off_out, sizeof(loff_t)))
- 				return -EFAULT;
-@@ -1336,7 +1341,8 @@ static long do_splice(struct file *in, l
- 		if (off_out)
- 			return -ESPIPE;
- 		if (off_in) {
--			if (in->f_op->llseek == no_llseek)
-+			if (!in->f_op || !in->f_op->llseek ||
-+			    in->f_op->llseek == no_llseek)
- 				return -EINVAL;
- 			if (copy_from_user(&offset, off_in, sizeof(loff_t)))
- 				return -EFAULT;
+@@ -265,8 +269,8 @@ static void mb86290fb_fillrect(struct fb
+ 	 * hardware clipping by writing to framebuffer directly. */
+ 	x2 = rect->dx + rect->width;
+ 	y2 = rect->dy + rect->height;
+-	x2 = x2 < vxres ? x2 : vxres;
+-	y2 = y2 < vyres ? y2 : vyres;
++	x2 = min(x2, vxres);
++	y2 = min(y2, vyres);
+ 	width = x2 - rect->dx;
+ 	height = y2 - rect->dy;
+ 	if (info->fix.visual == FB_VISUAL_TRUECOLOR ||
 _
 
-Patches currently in -mm which might be from xiaosuo@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-sendfile-check-f_opsplice_write-rather-than-f_opsendpage.patch
+origin.patch
+alpha-move-thread_size-definition-outside-ifndef-assembly.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
+drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices-fix.patch
+acpi-remove-nid_inval-checkpatch-fixes.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+3x59x-fix-pci-resource-management.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+include-trace-events-lockdeph-fix-do_div-warning.patch
+st-fix-test-of-value-range-in-st_set_options.patch
+scsi-add-hpsa-driver-for-hp-smart-array-controllers-fix.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+fs-improve-remountro-vs-buffercache-coherency.patch
+percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+readahead-add-blk_run_backing_dev.patch
+mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
+drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
+rwsem-fix-rwsem_is_locked-bugs-fix.patch
+errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
+hwmon-w83627ehf-updates-checkpatch-fixes.patch
+spi-controller-driver-for-designware-spi-core-fix.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
+memcg-coalesce-charging-via-percpu-storage-fix.patch
+aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+reiser4-disable.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
