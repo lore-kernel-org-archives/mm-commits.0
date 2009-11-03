@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + proc-rename-de_get-to-pde_get-and-inline-it.patch added to -mm tree
-Date: Mon, 02 Nov 2009 18:00:15 -0800
-Message-ID: <200911030200.nA320FRZ027009@imap1.linux-foundation.org>
+Subject: + serial-8250-fixes-for-alchemy-uarts.patch added to -mm tree
+Date: Mon, 02 Nov 2009 18:01:18 -0800
+Message-ID: <200911030201.nA321I3n029589@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60436 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59856 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757000AbZKCCAN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Nov 2009 21:00:13 -0500
+	by vger.kernel.org with ESMTP id S1757623AbZKCCBa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Nov 2009 21:01:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com
+Cc: manuel.lauss@googlemail.com, alan@lxorguk.ukuu.org.uk, manuel.lauss@gmail.com, ralf@linux-mips.org
 
 
 The patch titled
-     proc: rename de_get() to pde_get() and inline it
+     serial 8250: fixes for Alchemy uarts
 has been added to the -mm tree.  Its filename is
-     proc-rename-de_get-to-pde_get-and-inline-it.patch
+     serial-8250-fixes-for-alchemy-uarts.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,206 +33,69 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc: rename de_get() to pde_get() and inline it
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: serial 8250: fixes for Alchemy uarts
+From: Manuel Lauss <manuel.lauss@googlemail.com>
 
-* de_get() is trivial -- make inline, save a few bits of code, drop
-  "refcount is 0" check -- it should be done in some generic refcount
-  code, don't recall it's was helpful
+Limit the amount of address space claimed for Alchemy serial ports to
+0x1000.  On the Au1300, ports are only 0x1000 apart, and the registers
+only extend to 0x110 at most on all supported alchemy models.
 
-* rename GET and PUT functions to pde_get(), pde_put() for cool prefix!
+On the Au1300 the autodetect logic no longer works and this makes it
+necessary to specify the port type through platform data.  Because of this
+the MSR quirk needs to be moved outside the autoconfig() function which
+will no longer be called when UPF_FIXED_TYPE is specified.
 
-* remove obvious and incorrent comments
-
-* in remove_proc_entry() use pde_put(), when I fixed PDE refcounting to
-  be normal one, remove_proc_entry() was supposed to do "-1" and code now
-  reflects that.
-
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Signed-off-by: Manuel Lauss <manuel.lauss@gmail.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN fs/proc/generic.c~proc-rename-de_get-to-pde_get-and-inline-it fs/proc/generic.c
---- a/fs/proc/generic.c~proc-rename-de_get-to-pde_get-and-inline-it
-+++ a/fs/proc/generic.c
-@@ -429,7 +429,7 @@ struct dentry *proc_lookup_de(struct pro
- 			unsigned int ino;
- 
- 			ino = de->low_ino;
--			de_get(de);
-+			pde_get(de);
- 			spin_unlock(&proc_subdir_lock);
- 			error = -EINVAL;
- 			inode = proc_get_inode(dir->i_sb, ino, de);
-@@ -445,7 +445,7 @@ out_unlock:
- 		return NULL;
+diff -puN drivers/serial/8250.c~serial-8250-fixes-for-alchemy-uarts drivers/serial/8250.c
+--- a/drivers/serial/8250.c~serial-8250-fixes-for-alchemy-uarts
++++ a/drivers/serial/8250.c
+@@ -1214,12 +1214,6 @@ static void autoconfig(struct uart_8250_
  	}
- 	if (de)
--		de_put(de);
-+		pde_put(de);
- 	return ERR_PTR(error);
- }
+ #endif
  
-@@ -509,17 +509,17 @@ int proc_readdir_de(struct proc_dir_entr
- 				struct proc_dir_entry *next;
+-#ifdef CONFIG_SERIAL_8250_AU1X00
+-	/* if access method is AU, it is a 16550 with a quirk */
+-	if (up->port.type == PORT_16550A && up->port.iotype == UPIO_AU)
+-		up->bugs |= UART_BUG_NOMSR;
+-#endif
+-
+ 	serial_outp(up, UART_LCR, save_lcr);
  
- 				/* filldir passes info to user space */
--				de_get(de);
-+				pde_get(de);
- 				spin_unlock(&proc_subdir_lock);
- 				if (filldir(dirent, de->name, de->namelen, filp->f_pos,
- 					    de->low_ino, de->mode >> 12) < 0) {
--					de_put(de);
-+					pde_put(de);
- 					goto out;
- 				}
- 				spin_lock(&proc_subdir_lock);
- 				filp->f_pos++;
- 				next = de->next;
--				de_put(de);
-+				pde_put(de);
- 				de = next;
- 			} while (de);
- 			spin_unlock(&proc_subdir_lock);
-@@ -763,7 +763,7 @@ out:
- 	return NULL;
- }
- 
--void free_proc_entry(struct proc_dir_entry *de)
-+static void free_proc_entry(struct proc_dir_entry *de)
+ 	if (up->capabilities != uart_config[up->port.type].flags) {
+@@ -2429,7 +2423,7 @@ serial8250_pm(struct uart_port *port, un
+ static unsigned int serial8250_port_size(struct uart_8250_port *pt)
  {
- 	unsigned int ino = de->low_ino;
+ 	if (pt->port.iotype == UPIO_AU)
+-		return 0x100000;
++		return 0x1000;
+ #ifdef CONFIG_ARCH_OMAP
+ 	if (is_omap_port(pt))
+ 		return 0x16 << pt->port.regshift;
+@@ -2586,6 +2580,13 @@ static void serial8250_config_port(struc
  
-@@ -777,6 +777,12 @@ void free_proc_entry(struct proc_dir_ent
- 	kfree(de);
- }
- 
-+void pde_put(struct proc_dir_entry *pde)
-+{
-+	if (atomic_dec_and_test(&pde->count))
-+		free_proc_entry(pde);
-+}
+ 	if (flags & UART_CONFIG_TYPE)
+ 		autoconfig(up, probeflags);
 +
- /*
-  * Remove a /proc entry and free it if it's not currently in use.
-  */
-@@ -845,6 +851,5 @@ continue_removing:
- 	WARN(de->subdir, KERN_WARNING "%s: removing non-empty directory "
- 			"'%s/%s', leaking at least '%s'\n", __func__,
- 			de->parent->name, de->name, de->subdir->name);
--	if (atomic_dec_and_test(&de->count))
--		free_proc_entry(de);
-+	pde_put(de);
- }
-diff -puN fs/proc/inode.c~proc-rename-de_get-to-pde_get-and-inline-it fs/proc/inode.c
---- a/fs/proc/inode.c~proc-rename-de_get-to-pde_get-and-inline-it
-+++ a/fs/proc/inode.c
-@@ -24,29 +24,6 @@
++#ifdef CONFIG_SERIAL_8250_AU1X00
++	/* if access method is AU, it is a 16550 with a quirk */
++	if (up->port.type == PORT_16550A && up->port.iotype == UPIO_AU)
++		up->bugs |= UART_BUG_NOMSR;
++#endif
++
+ 	if (up->port.type != PORT_UNKNOWN && flags & UART_CONFIG_IRQ)
+ 		autoconfig_irq(up);
  
- #include "internal.h"
- 
--struct proc_dir_entry *de_get(struct proc_dir_entry *de)
--{
--	atomic_inc(&de->count);
--	return de;
--}
--
--/*
-- * Decrements the use count and checks for deferred deletion.
-- */
--void de_put(struct proc_dir_entry *de)
--{
--	if (!atomic_read(&de->count)) {
--		printk("de_put: entry %s already free!\n", de->name);
--		return;
--	}
--
--	if (atomic_dec_and_test(&de->count))
--		free_proc_entry(de);
--}
--
--/*
-- * Decrement the use count of the proc_dir_entry.
-- */
- static void proc_delete_inode(struct inode *inode)
- {
- 	struct proc_dir_entry *de;
-@@ -59,7 +36,7 @@ static void proc_delete_inode(struct ino
- 	/* Let go of any associated proc directory entry */
- 	de = PROC_I(inode)->pde;
- 	if (de)
--		de_put(de);
-+		pde_put(de);
- 	if (PROC_I(inode)->sysctl)
- 		sysctl_head_put(PROC_I(inode)->sysctl);
- 	clear_inode(inode);
-@@ -480,7 +457,7 @@ struct inode *proc_get_inode(struct supe
- 		}
- 		unlock_new_inode(inode);
- 	} else
--	       de_put(de);
-+	       pde_put(de);
- 	return inode;
- }			
- 
-@@ -495,7 +472,7 @@ int proc_fill_super(struct super_block *
- 	s->s_op = &proc_sops;
- 	s->s_time_gran = 1;
- 	
--	de_get(&proc_root);
-+	pde_get(&proc_root);
- 	root_inode = proc_get_inode(s, PROC_ROOT_INO, &proc_root);
- 	if (!root_inode)
- 		goto out_no_root;
-@@ -509,6 +486,6 @@ int proc_fill_super(struct super_block *
- out_no_root:
- 	printk("proc_read_super: get root inode failed\n");
- 	iput(root_inode);
--	de_put(&proc_root);
-+	pde_put(&proc_root);
- 	return -ENOMEM;
- }
-diff -puN fs/proc/internal.h~proc-rename-de_get-to-pde_get-and-inline-it fs/proc/internal.h
---- a/fs/proc/internal.h~proc-rename-de_get-to-pde_get-and-inline-it
-+++ a/fs/proc/internal.h
-@@ -61,8 +61,6 @@ extern const struct file_operations proc
- extern const struct file_operations proc_net_operations;
- extern const struct inode_operations proc_net_inode_operations;
- 
--void free_proc_entry(struct proc_dir_entry *de);
--
- void proc_init_inodecache(void);
- 
- static inline struct pid *proc_pid(struct inode *inode)
-@@ -101,8 +99,12 @@ unsigned long task_vsize(struct mm_struc
- int task_statm(struct mm_struct *, int *, int *, int *, int *);
- void task_mem(struct seq_file *, struct mm_struct *);
- 
--struct proc_dir_entry *de_get(struct proc_dir_entry *de);
--void de_put(struct proc_dir_entry *de);
-+static inline struct proc_dir_entry *pde_get(struct proc_dir_entry *pde)
-+{
-+	atomic_inc(&pde->count);
-+	return pde;
-+}
-+void pde_put(struct proc_dir_entry *pde);
- 
- extern struct vfsmount *proc_mnt;
- int proc_fill_super(struct super_block *);
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from manuel.lauss@googlemail.com are
 
 origin.patch
-proc-fix-stack_start-in-compat-mode.patch
-uml-irq-register-race-condition.patch
 linux-next.patch
-genirq-switch-proc-irq-spurious-to-seq_file.patch
-const-constify-remaining-dev_pm_ops.patch
-proc-rename-de_get-to-pde_get-and-inline-it.patch
-const-constify-remaining-pipe_buf_operations.patch
-reiserfs-remove-proc-fs-reiserfs-version.patch
-reiserfs-dont-compile-procfso-at-all-if-no-support.patch
-const-struct-quota_format_ops.patch
+serial-8250-fixes-for-alchemy-uarts.patch
 
