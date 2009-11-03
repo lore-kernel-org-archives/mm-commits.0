@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-acpi-move-dereference-after-null-test.patch added to -mm tree
-Date: Mon, 02 Nov 2009 22:24:03 -0800
-Message-ID: <200911030624.nA36O42K029075@imap1.linux-foundation.org>
+Subject: + drivers-video-move-dereference-after-null-test.patch added to -mm tree
+Date: Mon, 02 Nov 2009 22:24:21 -0800
+Message-ID: <200911030624.nA36OMDk029789@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58717 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47798 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755417AbZKCGYk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Nov 2009 01:24:40 -0500
+	by vger.kernel.org with ESMTP id S1751521AbZKCGYr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Nov 2009 01:24:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, lenb@kernel.org
+Cc: julia@diku.dk, daniel@caiaq.de, eric.y.miao@gmail.com, krzysztof.h1@poczta.fm
 
 
 The patch titled
-     drivers/acpi: Move dereference after NULL test
+     drivers/video: Move dereference after NULL test
 has been added to the -mm tree.  Its filename is
-     drivers-acpi-move-dereference-after-null-test.patch
+     drivers-video-move-dereference-after-null-test.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,10 +33,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/acpi: Move dereference after NULL test
+Subject: drivers/video: Move dereference after NULL test
 From: Julia Lawall <julia@diku.dk>
 
-If the NULL test on pr is needed, then the dereference should be after the
+If the NULL test on fbi is needed, then the dereference should be after the
 NULL test.
 
 A simplified version of the semantic match that detects this problem is as
@@ -54,28 +54,52 @@ identifier fld;
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Len Brown <lenb@kernel.org>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Cc: Eric Miao <eric.y.miao@gmail.com>
+Cc: Daniel Mack <daniel@caiaq.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_throttling.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/video/pxafb.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/acpi/processor_throttling.c~drivers-acpi-move-dereference-after-null-test drivers/acpi/processor_throttling.c
---- a/drivers/acpi/processor_throttling.c~drivers-acpi-move-dereference-after-null-test
-+++ a/drivers/acpi/processor_throttling.c
-@@ -1133,15 +1133,15 @@ int acpi_processor_get_throttling_info(s
- 	int result = 0;
- 	struct acpi_processor_throttling *pthrottling;
+diff -puN drivers/video/pxafb.c~drivers-video-move-dereference-after-null-test drivers/video/pxafb.c
+--- a/drivers/video/pxafb.c~drivers-video-move-dereference-after-null-test
++++ a/drivers/video/pxafb.c
+@@ -1208,13 +1208,14 @@ static void setup_smart_timing(struct px
+ static int pxafb_smart_thread(void *arg)
+ {
+ 	struct pxafb_info *fbi = arg;
+-	struct pxafb_mach_info *inf = fbi->dev->platform_data;
++	struct pxafb_mach_info *inf;
  
-+	if (!pr)
-+		return -EINVAL;
-+
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 			  "pblk_address[0x%08x] duty_offset[%d] duty_width[%d]\n",
- 			  pr->throttling.address,
- 			  pr->throttling.duty_offset,
- 			  pr->throttling.duty_width));
+-	if (!fbi || !inf->smart_update) {
++	if (!fbi || !fbi->dev->platform_data->smart_update) {
+ 		pr_err("%s: not properly initialized, thread terminated\n",
+ 				__func__);
+ 		return -EINVAL;
+ 	}
++	inf = fbi->dev->platform_data;
  
--	if (!pr)
--		return -EINVAL;
+ 	pr_debug("%s(): task starting\n", __func__);
+ 
+_
+
+Patches currently in -mm which might be from julia@diku.dk are
+
+origin.patch
+linux-next.patch
+drivers-scsi-libsas-use-sam_good.patch
+drivers-block-dac960c-use-dac960_v2_controller.patch
+drivers-char-ipmi-use-kcs_idle_state.patch
+drivers-message-move-dereference-after-null-test.patch
+drivers-acpi-move-dereference-after-null-test.patch
+drivers-media-video-move-dereference-after-null-test.patch
+drivers-mmc-move-dereference-after-null-test.patch
+drivers-cpuidle-move-dereference-after-null-test.patch
+drivers-video-move-dereference-after-null-test.patch
+drivers-ata-libata-move-dereference-after-null-test.patch
+drivers-scsi-remove-unnecessary-null-test.patch
+arch-arm-plat-omap-drop-an-unnecessary-null-test.patch
+arch-arm-plat-s3c24xx-move-dereference-after-null-test.patch
+
