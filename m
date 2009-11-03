@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + arch-arm-plat-s3c24xx-move-dereference-after-null-test.patch added to -mm tree
-Date: Mon, 02 Nov 2009 22:24:43 -0800
-Message-ID: <200911030624.nA36OhEV030643@imap1.linux-foundation.org>
+Subject: + firedtv-fix-regression-tuning-fails-due-to-bogus-error-return.patch added to -mm tree
+Date: Mon, 02 Nov 2009 22:46:47 -0800
+Message-ID: <200911030646.nA36klJW017404@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36576 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50357 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751426AbZKCGZF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Nov 2009 01:25:05 -0500
+	by vger.kernel.org with ESMTP id S1751010AbZKCGrE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Nov 2009 01:47:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, ben-linux@fluff.org, linux@arm.linux.org.uk
+Cc: stefanr@s5r6.in-berlin.de, mchehab@infradead.org, rjw@sisk.pl
 
 
 The patch titled
-     arch/arm/plat-s3c24xx: Move dereference after NULL test
+     firedtv: fix regression: tuning fails due to bogus error return
 has been added to the -mm tree.  Its filename is
-     arch-arm-plat-s3c24xx-move-dereference-after-null-test.patch
+     firedtv-fix-regression-tuning-fails-due-to-bogus-error-return.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,73 +33,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/arm/plat-s3c24xx: Move dereference after NULL test
-From: Julia Lawall <julia@diku.dk>
+Subject: firedtv: fix regression: tuning fails due to bogus error return
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
 
-If the NULL test on buf is needed, then the dereference should be after the
-NULL test.
+Since 2.6.32(-rc1), DVB core checks the return value of
+dvb_frontend_ops.set_frontend.  Now it becomes apparent that firedtv
+always returned a bogus value from its set_frontend method.
 
-A simplified version of the semantic match that detects this problem is as
-follows (http://coccinelle.lip6.fr/):
-
-// <smpl>
-@match exists@
-expression x, E;
-identifier fld;
-@@
-
-* x->fld
-  ... when != \(x = E\|&x\)
-* x == NULL
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Ben Dooks <ben-linux@fluff.org>
-Cc: Russell King <linux@arm.linux.org.uk>
+Signed-off-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/plat-s3c24xx/dma.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/media/dvb/firewire/firedtv-avc.c |    7 +++++--
+ drivers/media/dvb/firewire/firedtv-fe.c  |    8 +-------
+ 2 files changed, 6 insertions(+), 9 deletions(-)
 
-diff -puN arch/arm/plat-s3c24xx/dma.c~arch-arm-plat-s3c24xx-move-dereference-after-null-test arch/arm/plat-s3c24xx/dma.c
---- a/arch/arm/plat-s3c24xx/dma.c~arch-arm-plat-s3c24xx-move-dereference-after-null-test
-+++ a/arch/arm/plat-s3c24xx/dma.c
-@@ -208,14 +208,14 @@ s3c2410_dma_loadbuffer(struct s3c2410_dm
- {
- 	unsigned long reload;
+diff -puN drivers/media/dvb/firewire/firedtv-avc.c~firedtv-fix-regression-tuning-fails-due-to-bogus-error-return drivers/media/dvb/firewire/firedtv-avc.c
+--- a/drivers/media/dvb/firewire/firedtv-avc.c~firedtv-fix-regression-tuning-fails-due-to-bogus-error-return
++++ a/drivers/media/dvb/firewire/firedtv-avc.c
+@@ -573,8 +573,11 @@ int avc_tuner_dsd(struct firedtv *fdtv,
  
--	pr_debug("s3c2410_chan_loadbuffer: loading buff %p (0x%08lx,0x%06x)\n",
--		 buf, (unsigned long)buf->data, buf->size);
--
- 	if (buf == NULL) {
- 		dmawarn("buffer is NULL\n");
- 		return -EINVAL;
- 	}
+ 	msleep(500);
+ #if 0
+-	/* FIXME: */
+-	/* u8 *status was an out-parameter of avc_tuner_dsd, unused by caller */
++	/*
++	 * FIXME:
++	 * u8 *status was an out-parameter of avc_tuner_dsd, unused by caller
++	 * Check for AVC_RESPONSE_ACCEPTED here instead?
++	 */
+ 	if (status)
+ 		*status = r->operand[2];
+ #endif
+diff -puN drivers/media/dvb/firewire/firedtv-fe.c~firedtv-fix-regression-tuning-fails-due-to-bogus-error-return drivers/media/dvb/firewire/firedtv-fe.c
+--- a/drivers/media/dvb/firewire/firedtv-fe.c~firedtv-fix-regression-tuning-fails-due-to-bogus-error-return
++++ a/drivers/media/dvb/firewire/firedtv-fe.c
+@@ -141,18 +141,12 @@ static int fdtv_read_uncorrected_blocks(
+ 	return -EOPNOTSUPP;
+ }
  
-+	pr_debug("s3c2410_chan_loadbuffer: loading buff %p (0x%08lx,0x%06x)\n",
-+		 buf, (unsigned long)buf->data, buf->size);
-+
- 	/* check the state of the channel before we do anything */
- 
- 	if (chan->load_state == S3C2410_DMALOAD_1LOADED) {
-_
-
-Patches currently in -mm which might be from julia@diku.dk are
-
-origin.patch
-linux-next.patch
-drivers-scsi-libsas-use-sam_good.patch
-drivers-block-dac960c-use-dac960_v2_controller.patch
-drivers-char-ipmi-use-kcs_idle_state.patch
-drivers-message-move-dereference-after-null-test.patch
-drivers-acpi-move-dereference-after-null-test.patch
-drivers-media-video-move-dereference-after-null-test.patch
-drivers-mmc-move-dereference-after-null-test.patch
-drivers-cpuidle-move-dereference-after-null-test.patch
-drivers-video-move-dereference-after-null-test.patch
-drivers-ata-libata-move-dereference-after-null-test.patch
-drivers-scsi-remove-unnecessary-null-test.patch
-arch-arm-plat-omap-drop-an-unnecessary-null-test.patch
-arch-arm-plat-s3c24xx-move-dereference-after-null-test.patch
-
+-#define ACCEPTED 0x9
