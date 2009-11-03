@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-message-move-dereference-after-null-test.patch added to -mm tree
-Date: Mon, 02 Nov 2009 22:23:59 -0800
-Message-ID: <200911030624.nA36O0GU028834@imap1.linux-foundation.org>
+Subject: + drivers-mmc-move-dereference-after-null-test.patch added to -mm tree
+Date: Mon, 02 Nov 2009 22:24:11 -0800
+Message-ID: <200911030624.nA36OC3n029396__45909.0360942811$1257229468$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40216 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49897 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754204AbZKCGYH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Nov 2009 01:24:07 -0500
+	by vger.kernel.org with ESMTP id S1750998AbZKCGYM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Nov 2009 01:24:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, James.Bottomley@suse.de, kashyap.desai@lsi.com
+Cc: julia@diku.dk, linux-mmc@vger.kernel.org
 
 
 The patch titled
-     drivers/message: Move dereference after NULL test
+     drivers/mmc: Move dereference after NULL test
 has been added to the -mm tree.  Its filename is
-     drivers-message-move-dereference-after-null-test.patch
+     drivers-mmc-move-dereference-after-null-test.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,11 +33,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/message: Move dereference after NULL test
+Subject: drivers/mmc: Move dereference after NULL test
 From: Julia Lawall <julia@diku.dk>
 
-If the NULL test on dev->i2o_dev or i2o_dev is needed, then the dereference
-should be after the NULL test.
+If the NULL test on mrq is needed, then the derefernce should be after the
+NULL test.
 
 A simplified version of the semantic match that detects this problem is as
 follows (http://coccinelle.lip6.fr/):
@@ -54,47 +54,50 @@ identifier fld;
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: James Bottomley <James.Bottomley@suse.de>
-Cc: Kashyap Desai <kashyap.desai@lsi.com>
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/message/i2o/i2o_block.c |    3 ++-
- drivers/message/i2o/i2o_scsi.c  |    3 +--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/mmc/host/s3cmci.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/message/i2o/i2o_block.c~drivers-message-move-dereference-after-null-test drivers/message/i2o/i2o_block.c
---- a/drivers/message/i2o/i2o_block.c~drivers-message-move-dereference-after-null-test
-+++ a/drivers/message/i2o/i2o_block.c
-@@ -711,7 +711,7 @@ static int i2o_block_transfer(struct req
+diff -puN drivers/mmc/host/s3cmci.c~drivers-mmc-move-dereference-after-null-test drivers/mmc/host/s3cmci.c
+--- a/drivers/mmc/host/s3cmci.c~drivers-mmc-move-dereference-after-null-test
++++ a/drivers/mmc/host/s3cmci.c
+@@ -820,7 +820,7 @@ fail_request:
+ static void finalize_request(struct s3cmci_host *host)
  {
- 	struct i2o_block_device *dev = req->rq_disk->private_data;
- 	struct i2o_controller *c;
--	u32 tid = dev->i2o_dev->lct_data.tid;
-+	u32 tid;
- 	struct i2o_message *msg;
- 	u32 *mptr;
- 	struct i2o_block_request *ireq = req->special;
-@@ -727,6 +727,7 @@ static int i2o_block_transfer(struct req
- 		goto exit;
- 	}
+ 	struct mmc_request *mrq = host->mrq;
+-	struct mmc_command *cmd = host->cmd_is_stop ? mrq->stop : mrq->cmd;
++	struct mmc_command *cmd;
+ 	int debug_as_failure = 0;
  
-+	tid = dev->i2o_dev->lct_data.tid;
- 	c = dev->i2o_dev->iop;
+ 	if (host->complete_what != COMPLETION_FINALIZE)
+@@ -828,6 +828,7 @@ static void finalize_request(struct s3cm
  
- 	msg = i2o_msg_get(c);
-diff -puN drivers/message/i2o/i2o_scsi.c~drivers-message-move-dereference-after-null-test drivers/message/i2o/i2o_scsi.c
---- a/drivers/message/i2o/i2o_scsi.c~drivers-message-move-dereference-after-null-test
-+++ a/drivers/message/i2o/i2o_scsi.c
-@@ -528,7 +528,6 @@ static int i2o_scsi_queuecommand(struct 
- 	 *      Do the incoming paperwork
- 	 */
- 	i2o_dev = SCpnt->device->hostdata;
--	c = i2o_dev->iop;
+ 	if (!mrq)
+ 		return;
++	cmd = host->cmd_is_stop ? mrq->stop : mrq->cmd;
  
- 	SCpnt->scsi_done = done;
- 
-@@ -538,7 +537,7 @@ static int i2o_scsi_queuecommand(struct 
- 		done(SCpnt);
- 		goto exit;
- 	}
+ 	if (cmd->data && (cmd->error == 0) &&
+ 	    (cmd->data->error == 0)) {
+_
+
+Patches currently in -mm which might be from julia@diku.dk are
+
+origin.patch
+linux-next.patch
+drivers-scsi-libsas-use-sam_good.patch
+drivers-block-dac960c-use-dac960_v2_controller.patch
+drivers-char-ipmi-use-kcs_idle_state.patch
+drivers-message-move-dereference-after-null-test.patch
+drivers-acpi-move-dereference-after-null-test.patch
+drivers-media-video-move-dereference-after-null-test.patch
+drivers-mmc-move-dereference-after-null-test.patch
+drivers-cpuidle-move-dereference-after-null-test.patch
+drivers-video-move-dereference-after-null-test.patch
+drivers-ata-libata-move-dereference-after-null-test.patch
+drivers-scsi-remove-unnecessary-null-test.patch
+arch-arm-plat-omap-drop-an-unnecessary-null-test.patch
+arch-arm-plat-s3c24xx-move-dereference-after-null-test.patch
+
