@@ -1,68 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-input-misc-winbond-circ-needs-leds_triggers.patch removed from -mm tree
-Date: Tue, 03 Nov 2009 11:57:47 -0800
-Message-ID: <200911031957.nA3Jvl3C027041@imap1.linux-foundation.org>
+Subject: [merged] arch-arm-plat-s3c24xx-move-dereference-after-null-test.patch removed from -mm tree
+Date: Tue, 03 Nov 2009 11:57:35 -0800
+Message-ID: <200911031957.nA3JvZS6026591@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37514 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58435 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751006AbZKCT5z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Nov 2009 14:57:55 -0500
+	by vger.kernel.org with ESMTP id S1752176AbZKCT57 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Nov 2009 14:57:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david@hardeman.nu, dtor@mail.ru, mm-commits@vger.kernel.org
+To: julia@diku.dk, ben-linux@fluff.org, linux@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/input/misc/winbond-cir.c needs LEDS_TRIGGERS
+     arch/arm/plat-s3c24xx: Move dereference after NULL test
 has been removed from the -mm tree.  Its filename was
-     drivers-input-misc-winbond-circ-needs-leds_triggers.patch
+     arch-arm-plat-s3c24xx-move-dereference-after-null-test.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/input/misc/winbond-cir.c needs LEDS_TRIGGERS
-=46rom: David H=E4rdeman <david@hardeman.nu>
+Subject: arch/arm/plat-s3c24xx: Move dereference after NULL test
+From: Julia Lawall <julia@diku.dk>
 
-drivers/input/misc/winbond-cir.c depends on LEDS_TRIGGERS
+If the NULL test on buf is needed, then the dereference should be after the
+NULL test.
 
-Add an appropriate select to drivers/input/misc/Kconfig
+A simplified version of the semantic match that detects this problem is as
+follows (http://coccinelle.lip6.fr/):
 
-Signed-off-by: David H=E4rdeman <david@hardeman.nu>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+// <smpl>
+@match exists@
+expression x, E;
+identifier fld;
+@@
+
+* x->fld
+  ... when != \(x = E\|&x\)
+* x == NULL
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Ben Dooks <ben-linux@fluff.org>
+Cc: Russell King <linux@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ arch/arm/plat-s3c24xx/dma.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/input/misc/Kconfig~drivers-input-misc-winbond-circ-ne=
-eds-leds_triggers drivers/input/misc/Kconfig
---- a/drivers/input/misc/Kconfig~drivers-input-misc-winbond-circ-needs-=
-leds_triggers
-+++ a/drivers/input/misc/Kconfig
-@@ -227,6 +227,7 @@ config INPUT_WINBOND_CIR
- 	depends on X86 && PNP
- 	select NEW_LEDS
- 	select LEDS_CLASS
-+	select LEDS_TRIGGERS
- 	select BITREVERSE
- 	help
- 	  Say Y here if you want to use the IR remote functionality found
+diff -puN arch/arm/plat-s3c24xx/dma.c~arch-arm-plat-s3c24xx-move-dereference-after-null-test arch/arm/plat-s3c24xx/dma.c
+--- a/arch/arm/plat-s3c24xx/dma.c~arch-arm-plat-s3c24xx-move-dereference-after-null-test
++++ a/arch/arm/plat-s3c24xx/dma.c
+@@ -208,14 +208,14 @@ s3c2410_dma_loadbuffer(struct s3c2410_dm
+ {
+ 	unsigned long reload;
+ 
+-	pr_debug("s3c2410_chan_loadbuffer: loading buff %p (0x%08lx,0x%06x)\n",
+-		 buf, (unsigned long)buf->data, buf->size);
+-
+ 	if (buf == NULL) {
+ 		dmawarn("buffer is NULL\n");
+ 		return -EINVAL;
+ 	}
+ 
++	pr_debug("s3c2410_chan_loadbuffer: loading buff %p (0x%08lx,0x%06x)\n",
++		 buf, (unsigned long)buf->data, buf->size);
++
+ 	/* check the state of the channel before we do anything */
+ 
+ 	if (chan->load_state == S3C2410_DMALOAD_1LOADED) {
 _
 
-Patches currently in -mm which might be from david@hardeman.nu are
+Patches currently in -mm which might be from julia@diku.dk are
 
 origin.patch
-acpi-reintroduce-acpi_device_ops-shutdown-method.patch
+linux-next.patch
+drivers-acpi-move-dereference-after-null-test.patch
+arch-arm-plat-omap-drop-an-unnecessary-null-test.patch
+drivers-media-video-move-dereference-after-null-test.patch
+drivers-ata-libata-move-dereference-after-null-test.patch
+drivers-scsi-libsas-use-sam_good.patch
+drivers-scsi-remove-unnecessary-null-test.patch
+drivers-message-move-dereference-after-null-test.patch
+drivers-block-dac960c-use-dac960_v2_controller.patch
+drivers-cpuidle-move-dereference-after-null-test.patch
+drivers-mmc-move-dereference-after-null-test.patch
+drivers-video-move-dereference-after-null-test.patch
+drivers-char-ipmi-use-kcs_idle_state.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
