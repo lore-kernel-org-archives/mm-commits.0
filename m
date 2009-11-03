@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + add-palette-register-check.patch added to -mm tree
-Date: Mon, 02 Nov 2009 18:06:09 -0800
-Message-ID: <200911030206.nA3269Nh008506@imap1.linux-foundation.org>
+Subject: + drivers-usb-core-hcdc-quiet-null-pointer-sparse-noise.patch added to -mm tree
+Date: Mon, 02 Nov 2009 22:07:30 -0800
+Message-ID: <200911030607.nA367UO5022724@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37182 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55398 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757000AbZKCCGG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Nov 2009 21:06:06 -0500
+	by vger.kernel.org with ESMTP id S1750998AbZKCGHf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Nov 2009 01:07:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: krzysztof.h1@wp.pl
+Cc: hartleys@visionengravers.com, gregkh@suse.de, hsweeten@visionengravers.com, stern@rowland.harvard.edu
 
 
 The patch titled
-     fbdev: add palette register check to several drivers
+     drivers/usb/core/hcd.c: quiet NULL pointer sparse noise
 has been added to the -mm tree.  Its filename is
-     add-palette-register-check.patch
+     drivers-usb-core-hcdc-quiet-null-pointer-sparse-noise.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,91 +33,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev: add palette register check to several drivers
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: drivers/usb/core/hcd.c: quiet NULL pointer sparse noise
+From: "H Hartley Sweeten" <hartleys@visionengravers.com>
 
-Add check if palette register number is in correct range for few drivers
-which miss it.  The regno value comes indirectly from user space.
+Quiet the following sparse noise:
 
-Two drivers has converted check from BUG_ON() macro to just return an
-error (non-zero value).
+  warning: Using plain integer as NULL pointer
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Signed-off-by: H Hartley Sweeten <hsweeten@visionengravers.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Alan Stern <stern@rowland.harvard.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ drivers/usb/core/hcd.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/atafb.c~add-palette-register-check drivers/video/atafb.c
---- a/drivers/video/atafb.c~add-palette-register-check
-+++ a/drivers/video/atafb.c
-@@ -2242,6 +2242,9 @@ static int ext_setcolreg(unsigned int re
- 	if (!external_vgaiobase)
- 		return 1;
- 
-+	if (regno > 255)
-+		return 1;
-+
- 	switch (external_card_type) {
- 	case IS_VGA:
- 		OUTB(0x3c8, regno);
-diff -puN drivers/video/ep93xx-fb.c~add-palette-register-check drivers/video/ep93xx-fb.c
---- a/drivers/video/ep93xx-fb.c~add-palette-register-check
-+++ a/drivers/video/ep93xx-fb.c
-@@ -358,6 +358,8 @@ static int ep93xxfb_setcolreg(unsigned i
- 
- 	switch (info->fix.visual) {
- 	case FB_VISUAL_PSEUDOCOLOR:
-+		if (regno > 255)
-+			return 1;
- 		rgb = ((red & 0xff00) << 8) | (green & 0xff00) |
- 			((blue & 0xff00) >> 8);
- 
-diff -puN drivers/video/maxinefb.c~add-palette-register-check drivers/video/maxinefb.c
---- a/drivers/video/maxinefb.c~add-palette-register-check
-+++ a/drivers/video/maxinefb.c
-@@ -92,6 +92,9 @@ static int maxinefb_setcolreg(unsigned r
- 	/* value to be written into the palette reg. */
- 	unsigned long hw_colorvalue = 0;
- 
-+	if (regno > 255)
-+		return 1;
-+
- 	red   >>= 8;    /* The cmap fields are 16 bits    */
- 	green >>= 8;    /* wide, but the harware colormap */
- 	blue  >>= 8;    /* registers are only 8 bits wide */
-diff -puN drivers/video/pmag-ba-fb.c~add-palette-register-check drivers/video/pmag-ba-fb.c
---- a/drivers/video/pmag-ba-fb.c~add-palette-register-check
-+++ a/drivers/video/pmag-ba-fb.c
-@@ -98,7 +98,8 @@ static int pmagbafb_setcolreg(unsigned i
+diff -puN drivers/usb/core/hcd.c~drivers-usb-core-hcdc-quiet-null-pointer-sparse-noise drivers/usb/core/hcd.c
+--- a/drivers/usb/core/hcd.c~drivers-usb-core-hcdc-quiet-null-pointer-sparse-noise
++++ a/drivers/usb/core/hcd.c
+@@ -1601,7 +1601,7 @@ int usb_hcd_check_bandwidth(struct usb_d
  {
- 	struct pmagbafb_par *par = info->par;
- 
--	BUG_ON(regno >= info->cmap.len);
-+	if (regno >= info->cmap.len)
-+		return 1;
- 
- 	red   >>= 8;	/* The cmap fields are 16 bits    */
- 	green >>= 8;	/* wide, but the hardware colormap */
-diff -puN drivers/video/pmagb-b-fb.c~add-palette-register-check drivers/video/pmagb-b-fb.c
---- a/drivers/video/pmagb-b-fb.c~add-palette-register-check
-+++ a/drivers/video/pmagb-b-fb.c
-@@ -102,7 +102,8 @@ static int pmagbbfb_setcolreg(unsigned i
- {
- 	struct pmagbbfb_par *par = info->par;
- 
--	BUG_ON(regno >= info->cmap.len);
-+	if (regno >= info->cmap.len)
-+		return 1;
- 
- 	red   >>= 8;	/* The cmap fields are 16 bits    */
- 	green >>= 8;	/* wide, but the hardware colormap */
+ 	int num_intfs, i, j;
+ 	struct usb_interface_cache *intf_cache;
+-	struct usb_host_interface *alt = 0;
++	struct usb_host_interface *alt = NULL;
+ 	int ret = 0;
+ 	struct usb_hcd *hcd;
+ 	struct usb_host_endpoint *ep;
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from hartleys@visionengravers.com are
 
-fb-remove-fb_save_state-and-fb_restore_state-operations.patch
-savagefb-fix-blanking-mode-on-crt-display.patch
+origin.patch
 linux-next.patch
-add-palette-register-check.patch
-intelfb-fix-setting-of-active-pipe-with-lvds-displays.patch
+clockeventsc-fix-symbol-was-not-declared-noise.patch
+drivers-usb-core-hcdc-quiet-null-pointer-sparse-noise.patch
+drivers-misc-add-driver-for-texas-instruments-dac7512.patch
+drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
+init-mainc-fix-symbol-shadows-noise.patch
+kernel-sysc-fix-warning-do-while-statement-is-not-a-compound-statement-noise.patch
 
