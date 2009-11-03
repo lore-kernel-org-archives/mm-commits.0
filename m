@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-media-video-move-dereference-after-null-test.patch added to -mm tree
-Date: Mon, 02 Nov 2009 22:24:08 -0800
-Message-ID: <200911030624.nA36O98G029177@imap1.linux-foundation.org>
+Subject: + drivers-cpuidle-move-dereference-after-null-test.patch added to -mm tree
+Date: Mon, 02 Nov 2009 22:24:16 -0800
+Message-ID: <200911030624.nA36OG6Y029472@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59783 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37656 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754553AbZKCGYO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Nov 2009 01:24:14 -0500
+	by vger.kernel.org with ESMTP id S1754990AbZKCGY1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Nov 2009 01:24:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, mchehab@infradead.org
+Cc: julia@diku.dk, arjan@linux.intel.com, mingo@elte.hu, venkatesh.pallipadi@intel.com
 
 
 The patch titled
-     drivers/media/video: Move dereference after NULL test
+     drivers/cpuidle: Move dereference after NULL test
 has been added to the -mm tree.  Its filename is
-     drivers-media-video-move-dereference-after-null-test.patch
+     drivers-cpuidle-move-dereference-after-null-test.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,20 +33,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/media/video: Move dereference after NULL test
+Subject: drivers/cpuidle: Move dereference after NULL test
 From: Julia Lawall <julia@diku.dk>
 
-In quickcam_messenger.c, if the NULL test on uvd is needed, then the
-dereference should be after the NULL test.
-
-In vpif_display.c, std_info is initialized to the address of a structure
-field.  This seems unlikely to be NULL.  If it could somehow be NULL, then
-the assignment should be moved after the NULL test.  Alternatively, perhaps
-the NULL test is intended to test std_info->stdid rather than std_info?
-
-In saa7134-alsa.c, the function is only called from one place, where the
-chip argument has already been dereferenced.  On the other hand, if it
-should be kept, then card should be initialized after it.
+It does not seem possible that ldev can be NULL, so drop the unnecessary
+test.  If ldev can somehow be NULL, then the initialization of last_idx
+should be moved below the test.
 
 A simplified version of the semantic match that detects this problem is as
 follows (http://coccinelle.lip6.fr/):
@@ -63,74 +55,21 @@ identifier fld;
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/davinci/vpif_display.c        |    2 --
- drivers/media/video/saa7134/saa7134-alsa.c        |    2 --
- drivers/media/video/usbvideo/quickcam_messenger.c |    3 ++-
- 3 files changed, 2 insertions(+), 5 deletions(-)
+ drivers/cpuidle/governors/ladder.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN drivers/media/video/davinci/vpif_display.c~drivers-media-video-move-dereference-after-null-test drivers/media/video/davinci/vpif_display.c
---- a/drivers/media/video/davinci/vpif_display.c~drivers-media-video-move-dereference-after-null-test
-+++ a/drivers/media/video/davinci/vpif_display.c
-@@ -383,8 +383,6 @@ static int vpif_get_std_info(struct chan
- 	int index;
+diff -puN drivers/cpuidle/governors/ladder.c~drivers-cpuidle-move-dereference-after-null-test drivers/cpuidle/governors/ladder.c
+--- a/drivers/cpuidle/governors/ladder.c~drivers-cpuidle-move-dereference-after-null-test
++++ a/drivers/cpuidle/governors/ladder.c
+@@ -69,9 +69,6 @@ static int ladder_select_state(struct cp
+ 	int last_residency, last_idx = ldev->last_state_idx;
+ 	int latency_req = pm_qos_requirement(PM_QOS_CPU_DMA_LATENCY);
  
- 	std_info->stdid = vid_ch->stdid;
--	if (!std_info)
--		return -1;
- 
- 	for (index = 0; index < ARRAY_SIZE(ch_params); index++) {
- 		config = &ch_params[index];
-diff -puN drivers/media/video/saa7134/saa7134-alsa.c~drivers-media-video-move-dereference-after-null-test drivers/media/video/saa7134/saa7134-alsa.c
---- a/drivers/media/video/saa7134/saa7134-alsa.c~drivers-media-video-move-dereference-after-null-test
-+++ a/drivers/media/video/saa7134/saa7134-alsa.c
-@@ -1011,8 +1011,6 @@ static int snd_card_saa7134_new_mixer(sn
- 	unsigned int idx;
- 	int err, addr;
- 
--	if (snd_BUG_ON(!chip))
--		return -EINVAL;
- 	strcpy(card->mixername, "SAA7134 Mixer");
- 
- 	for (idx = 0; idx < ARRAY_SIZE(snd_saa7134_volume_controls); idx++) {
-diff -puN drivers/media/video/usbvideo/quickcam_messenger.c~drivers-media-video-move-dereference-after-null-test drivers/media/video/usbvideo/quickcam_messenger.c
---- a/drivers/media/video/usbvideo/quickcam_messenger.c~drivers-media-video-move-dereference-after-null-test
-+++ a/drivers/media/video/usbvideo/quickcam_messenger.c
-@@ -692,12 +692,13 @@ static int qcm_start_data(struct uvd *uv
- 
- static void qcm_stop_data(struct uvd *uvd)
- {
--	struct qcm *cam = (struct qcm *) uvd->user_data;
-+	struct qcm *cam;
- 	int i, j;
- 	int ret;
- 
- 	if ((uvd == NULL) || (!uvd->streaming) || (uvd->dev == NULL))
- 		return;
-+	cam = (struct qcm *) uvd->user_data;
- 
- 	ret = qcm_camera_off(uvd);
- 	if (ret)
-_
-
-Patches currently in -mm which might be from julia@diku.dk are
-
-origin.patch
-linux-next.patch
-drivers-scsi-libsas-use-sam_good.patch
-drivers-block-dac960c-use-dac960_v2_controller.patch
-drivers-char-ipmi-use-kcs_idle_state.patch
-drivers-message-move-dereference-after-null-test.patch
-drivers-acpi-move-dereference-after-null-test.patch
-drivers-media-video-move-dereference-after-null-test.patch
-drivers-mmc-move-dereference-after-null-test.patch
-drivers-cpuidle-move-dereference-after-null-test.patch
-drivers-video-move-dereference-after-null-test.patch
-drivers-ata-libata-move-dereference-after-null-test.patch
-drivers-scsi-remove-unnecessary-null-test.patch
-arch-arm-plat-omap-drop-an-unnecessary-null-test.patch
-arch-arm-plat-s3c24xx-move-dereference-after-null-test.patch
-
+-	if (unlikely(!ldev))
+-		return 0;
