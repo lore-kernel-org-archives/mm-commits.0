@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + clockeventsc-fix-symbol-was-not-declared-noise.patch added to -mm tree
-Date: Mon, 02 Nov 2009 16:22:20 -0800
-Message-ID: <200911030022.nA30MKAl024444@imap1.linux-foundation.org>
+Subject: + pps-locking-scheme-fix-up-for-pps_getparams.patch added to -mm tree
+Date: Mon, 02 Nov 2009 17:54:46 -0800
+Message-ID: <200911030154.nA31skZF014178@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46181 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38258 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755174AbZKCAWo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Nov 2009 19:22:44 -0500
+	by vger.kernel.org with ESMTP id S1755830AbZKCBzj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Nov 2009 20:55:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hartleys@visionengravers.com, hsweeten@visionengravers.com, mingo@elte.hu, tglx@linutronix.de, yong.zhang0@gmail.com
+Cc: giometti@linux.it, clemens@dwf.com, stable@kernel.org
 
 
 The patch titled
-     clockevents.c: fix symbol was not declared noise
+     pps: locking scheme fix up for PPS_GETPARAMS
 has been added to the -mm tree.  Its filename is
-     clockeventsc-fix-symbol-was-not-declared-noise.patch
+     pps-locking-scheme-fix-up-for-pps_getparams.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,44 +33,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: clockevents.c: fix symbol was not declared noise
-From: "H Hartley Sweeten" <hartleys@visionengravers.com>
+Subject: pps: locking scheme fix up for PPS_GETPARAMS
+From: Rodolfo Giometti <giometti@linux.it>
 
-Include "tick-internal.h" in order to pick up the extern function
-prototype for clockevents_shutdown().  This quiets the following sparse
-build noise:
+-ENOCHANGELOG
 
-  warning: symbol 'clockevents_shutdown' was not declared. Should it be static?
-
-Signed-off-by: H Hartley Sweeten <hsweeten@visionengravers.com>
-Reviewed-by: Yong Zhang <yong.zhang0@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Rodolfo Giometti <giometti@linux.it>
+Tested-by: Reg Clemens <clemens@dwf.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN kernel/time/clockevents.c~clockeventsc-fix-symbol-was-not-declared-noise kernel/time/clockevents.c
---- a/kernel/time/clockevents.c~clockeventsc-fix-symbol-was-not-declared-noise
-+++ a/kernel/time/clockevents.c
-@@ -20,6 +20,8 @@
- #include <linux/sysdev.h>
- #include <linux/tick.h>
+diff -puN drivers/pps/pps.c~pps-locking-scheme-fix-up-for-pps_getparams drivers/pps/pps.c
+--- a/drivers/pps/pps.c~pps-locking-scheme-fix-up-for-pps_getparams
++++ a/drivers/pps/pps.c
+@@ -71,9 +71,14 @@ static long pps_cdev_ioctl(struct file *
+ 	case PPS_GETPARAMS:
+ 		pr_debug("PPS_GETPARAMS: source %d\n", pps->id);
  
-+#include "tick-internal.h"
+-		/* Return current parameters */
+-		err = copy_to_user(uarg, &pps->params,
+-						sizeof(struct pps_kparams));
++		spin_lock_irq(&pps->lock);
 +
- /* The registered clock event devices */
- static LIST_HEAD(clockevent_devices);
- static LIST_HEAD(clockevents_released);
++		/* Get the current parameters */
++		params = pps->params;
++
++		spin_unlock_irq(&pps->lock);
++
++		err = copy_to_user(uarg, &params, sizeof(struct pps_kparams));
+ 		if (err)
+ 			return -EFAULT;
+ 
 _
 
-Patches currently in -mm which might be from hartleys@visionengravers.com are
+Patches currently in -mm which might be from giometti@linux.it are
 
-origin.patch
 linux-next.patch
-clockeventsc-fix-symbol-was-not-declared-noise.patch
-drivers-misc-add-driver-for-texas-instruments-dac7512.patch
-drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
-init-mainc-fix-symbol-shadows-noise.patch
-kernel-sysc-fix-warning-do-while-statement-is-not-a-compound-statement-noise.patch
+pps-locking-scheme-fix-up-for-pps_getparams.patch
 
