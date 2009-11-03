@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-ata-libata-move-dereference-after-null-test.patch added to -mm tree
-Date: Mon, 02 Nov 2009 22:24:27 -0800
-Message-ID: <200911030624.nA36ORl6029864@imap1.linux-foundation.org>
+Subject: + arch-arm-plat-s3c24xx-move-dereference-after-null-test.patch added to -mm tree
+Date: Mon, 02 Nov 2009 22:24:43 -0800
+Message-ID: <200911030624.nA36OhEV030643@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38776 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36576 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751875AbZKCGZC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Nov 2009 01:25:02 -0500
+	by vger.kernel.org with ESMTP id S1751426AbZKCGZF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Nov 2009 01:25:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, jeff@garzik.org, tj@kernel.org
+Cc: julia@diku.dk, ben-linux@fluff.org, linux@arm.linux.org.uk
 
 
 The patch titled
-     drivers/ata/libata: Move dereference after NULL test
+     arch/arm/plat-s3c24xx: Move dereference after NULL test
 has been added to the -mm tree.  Its filename is
-     drivers-ata-libata-move-dereference-after-null-test.patch
+     arch-arm-plat-s3c24xx-move-dereference-after-null-test.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,11 +33,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/ata/libata: Move dereference after NULL test
+Subject: arch/arm/plat-s3c24xx: Move dereference after NULL test
 From: Julia Lawall <julia@diku.dk>
 
-In each case, if the NULL test on qc is needed, then the derefernce
-should be after the NULL test.
+If the NULL test on buf is needed, then the dereference should be after the
+NULL test.
 
 A simplified version of the semantic match that detects this problem is as
 follows (http://coccinelle.lip6.fr/):
@@ -54,46 +54,35 @@ identifier fld;
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Ben Dooks <ben-linux@fluff.org>
+Cc: Russell King <linux@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-core.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ arch/arm/plat-s3c24xx/dma.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/ata/libata-core.c~drivers-ata-libata-move-dereference-after-null-test drivers/ata/libata-core.c
---- a/drivers/ata/libata-core.c~drivers-ata-libata-move-dereference-after-null-test
-+++ a/drivers/ata/libata-core.c
-@@ -4919,10 +4919,11 @@ struct ata_queued_cmd *ata_qc_new_init(s
-  */
- void ata_qc_free(struct ata_queued_cmd *qc)
+diff -puN arch/arm/plat-s3c24xx/dma.c~arch-arm-plat-s3c24xx-move-dereference-after-null-test arch/arm/plat-s3c24xx/dma.c
+--- a/arch/arm/plat-s3c24xx/dma.c~arch-arm-plat-s3c24xx-move-dereference-after-null-test
++++ a/arch/arm/plat-s3c24xx/dma.c
+@@ -208,14 +208,14 @@ s3c2410_dma_loadbuffer(struct s3c2410_dm
  {
--	struct ata_port *ap = qc->ap;
-+	struct ata_port *ap;
- 	unsigned int tag;
+ 	unsigned long reload;
  
- 	WARN_ON_ONCE(qc == NULL); /* ata_qc_from_tag _might_ return NULL */
-+	ap = qc->ap;
+-	pr_debug("s3c2410_chan_loadbuffer: loading buff %p (0x%08lx,0x%06x)\n",
+-		 buf, (unsigned long)buf->data, buf->size);
+-
+ 	if (buf == NULL) {
+ 		dmawarn("buffer is NULL\n");
+ 		return -EINVAL;
+ 	}
  
- 	qc->flags = 0;
- 	tag = qc->tag;
-@@ -4934,11 +4935,13 @@ void ata_qc_free(struct ata_queued_cmd *
++	pr_debug("s3c2410_chan_loadbuffer: loading buff %p (0x%08lx,0x%06x)\n",
++		 buf, (unsigned long)buf->data, buf->size);
++
+ 	/* check the state of the channel before we do anything */
  
- void __ata_qc_complete(struct ata_queued_cmd *qc)
- {
--	struct ata_port *ap = qc->ap;
--	struct ata_link *link = qc->dev->link;
-+	struct ata_port *ap;
-+	struct ata_link *link;
- 
- 	WARN_ON_ONCE(qc == NULL); /* ata_qc_from_tag _might_ return NULL */
- 	WARN_ON_ONCE(!(qc->flags & ATA_QCFLAG_ACTIVE));
-+	ap = qc->ap;
-+	link = qc->dev->link;
- 
- 	if (likely(qc->flags & ATA_QCFLAG_DMAMAP))
- 		ata_sg_clean(qc);
+ 	if (chan->load_state == S3C2410_DMALOAD_1LOADED) {
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
