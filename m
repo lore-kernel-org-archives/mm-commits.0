@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + acpi_power_meter-dont-leak-acpi-error-codes-to-userspace.patch added to -mm tree
-Date: Tue, 03 Nov 2009 15:50:37 -0800
-Message-ID: <200911032350.nA3Nobjh022628@imap1.linux-foundation.org>
+Subject: + mmc-msm_sdccc-remove-references-to-htc_pwrsink.patch added to -mm tree
+Date: Tue, 03 Nov 2009 16:11:17 -0800
+Message-ID: <200911040011.nA40BHb7006600@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58877 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56799 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752895AbZKCXvw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Nov 2009 18:51:52 -0500
+	by vger.kernel.org with ESMTP id S1751104AbZKDALT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Nov 2009 19:11:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: djwong@us.ibm.com, khali@linux-fr.org, lenb@kernel.org
+Cc: pavel@ucw.cz, linux-mmc@vger.kernel.org
 
 
 The patch titled
-     acpi_power_meter: don't leak ACPI error codes to userspace
+     mmc:: msm_sdcc.c: remove references to htc_pwrsink
 has been added to the -mm tree.  Its filename is
-     acpi_power_meter-dont-leak-acpi-error-codes-to-userspace.patch
+     mmc-msm_sdccc-remove-references-to-htc_pwrsink.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,41 +33,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi_power_meter: don't leak ACPI error codes to userspace
-From: "Darrick J. Wong" <djwong@us.ibm.com>
+Subject: mmc:: msm_sdcc.c: remove references to htc_pwrsink
+From: Pavel Machek <pavel@ucw.cz>
 
-If the ACPI methods return an error code, we must return -EINVAL to
-userspace to flag the error.  Right now we pass the (positive) number
-right through, which causes echo to keep writing bogus values.
+htc_pwrsing code never went to mainline, remove references to it.
 
-Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
-Acked-by: Jean Delvare <khali@linux-fr.org>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/acpi/power_meter.c~acpi_power_meter-dont-leak-acpi-error-codes-to-userspace drivers/acpi/power_meter.c
---- a/drivers/acpi/power_meter.c~acpi_power_meter-dont-leak-acpi-error-codes-to-userspace
-+++ a/drivers/acpi/power_meter.c
-@@ -294,7 +294,11 @@ static int set_acpi_trip(struct acpi_pow
- 		return -EINVAL;
+diff -puN drivers/mmc/host/msm_sdcc.c~mmc-msm_sdccc-remove-references-to-htc_pwrsink drivers/mmc/host/msm_sdcc.c
+--- a/drivers/mmc/host/msm_sdcc.c~mmc-msm_sdccc-remove-references-to-htc_pwrsink
++++ a/drivers/mmc/host/msm_sdcc.c
+@@ -41,7 +41,6 @@
+ #include <asm/mach/mmc.h>
+ #include <mach/msm_iomap.h>
+ #include <mach/dma.h>
+-#include <mach/htc_pwrsink.h>
+ 
+ #include "msm_sdcc.h"
+ 
+@@ -775,13 +774,11 @@ msmsdcc_set_ios(struct mmc_host *mmc, st
+ 
+ 	switch (ios->power_mode) {
+ 	case MMC_POWER_OFF:
+-		htc_pwrsink_set(PWRSINK_SDCARD, 0);
+ 		break;
+ 	case MMC_POWER_UP:
+ 		pwr |= MCI_PWR_UP;
+ 		break;
+ 	case MMC_POWER_ON:
+-		htc_pwrsink_set(PWRSINK_SDCARD, 100);
+ 		pwr |= MCI_PWR_ON;
+ 		break;
  	}
- 
--	return data;
-+	/* _PTP returns 0 on success, nonzero otherwise */
-+	if (data)
-+		return -EINVAL;
-+
-+	return 0;
- }
- 
- static ssize_t set_trip(struct device *dev, struct device_attribute *devattr,
 _
 
-Patches currently in -mm which might be from djwong@us.ibm.com are
+Patches currently in -mm which might be from pavel@ucw.cz are
 
 origin.patch
 linux-next.patch
-acpi_power_meter-dont-leak-acpi-error-codes-to-userspace.patch
+spitz-backlight-fix-brightness-limiting.patch
+scripts-get_maintainerpl-add-roles-and-rolestats.patch
+scripts-get_maintainerpl-fix-non-with-git-blame-and-cleanups.patch
+mmc-msm_sdccc-remove-references-to-htc_pwrsink.patch
+lis3lv02d-axis-remap-and-resource-setup-release.patch
+lis3lv02d-i2c-support.patch
+fatfs-use-common-time_to_tm-in-fat_time_unix2fat.patch
 
