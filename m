@@ -1,96 +1,87 @@
-From: akpm@linux-foundation.org
-Subject: + aoe-prevent-cache-aliases.patch added to -mm tree
-Date: Tue, 03 Nov 2009 16:39:23 -0800
-Message-ID: <200911040039.nA40dOck007913@imap1.linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: vga_arb warning [was: mmotm 2009-11-01-10-01 uploaded]
+Date: Tue, 3 Nov 2009 21:48:45 -0800
+Message-ID: <20091103214845.9660895d.akpm@linux-foundation.org>
+References: <200911011807.nA1I7o95016136@imap1.linux-foundation.org>
+	<4AEE01D9.8040902@gmail.com>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35218 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35139 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750889AbZKDAj2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Nov 2009 19:39:28 -0500
+	by vger.kernel.org with ESMTP id S1751004AbZKDFtH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Nov 2009 00:49:07 -0500
+In-Reply-To: <4AEE01D9.8040902@gmail.com>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: phorton@bitbox.co.uk, ecashin@coraid.com, zero@colonel-panic.org
+To: Jiri Slaby <jirislaby@gmail.com>
+Cc: linux-kernel@vger.kernel.org, mm-commits@vger.kernel.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Tiago Vignatti <tiago.vignatti@nokia.com>, Dave Airlie <airlied@redhat.com>, kvm@vger.kernel.org, Greg KH <greg@kroah.com>, Kay Sievers <kay.sievers@vrfy.org>
 
 
-The patch titled
-     aoe: prevent cache aliases
-has been added to the -mm tree.  Its filename is
-     aoe-prevent-cache-aliases.patch
+Please cc me on mmotm bug reports!
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+On Sun, 01 Nov 2009 22:47:05 +0100 Jiri Slaby <jirislaby@gmail.com> wrote:
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+> On 11/01/2009 07:07 PM, akpm@linux-foundation.org wrote:
+> > The mm-of-the-moment snapshot 2009-11-01-10-01 has been uploaded to
+> 
+> Hi, I got the following warning while booting an image in qemu-kvm:
+> 
+> WARNING: at fs/attr.c:158 notify_change+0x2da/0x310()
+> Hardware name:
+> Modules linked in:
+> Pid: 1, comm: swapper Not tainted 2.6.32-rc5-mm1_64 #862
+> Call Trace:
+>  [<ffffffff81038008>] warn_slowpath_common+0x78/0xb0
+>  [<ffffffff8103804f>] warn_slowpath_null+0xf/0x20
+>  [<ffffffff810d32ba>] notify_change+0x2da/0x310
+>  [<ffffffff810c5b88>] ? fsnotify_create+0x48/0x60
+>  [<ffffffff810c6d2b>] ? vfs_mknod+0xbb/0xe0
+>  [<ffffffff812487b6>] devtmpfs_create_node+0x1e6/0x270
+>  [<ffffffff811170d0>] ? sysfs_addrm_finish+0x20/0x280
+>  [<ffffffff811175d6>] ? __sysfs_add_one+0x26/0xf0
+>  [<ffffffff81117b6c>] ? sysfs_do_create_link+0xcc/0x160
+>  [<ffffffff81241cf0>] device_add+0x1e0/0x5b0
+>  [<ffffffff8124adb1>] ? pm_runtime_init+0xa1/0xb0
+>  [<ffffffff81248f05>] ? device_pm_init+0x65/0x70
+>  [<ffffffff812420d9>] device_register+0x19/0x20
+>  [<ffffffff81242290>] device_create_vargs+0xf0/0x120
+>  [<ffffffff812422ec>] device_create+0x2c/0x30
+>  [<ffffffff810c0516>] ? __register_chrdev+0x86/0xf0
+>  [<ffffffff81245599>] ? __class_create+0x69/0xa0
+>  [<ffffffff814326e9>] ? mutex_lock+0x19/0x50
+>  [<ffffffff811d4e23>] misc_register+0x93/0x170
+>  [<ffffffff818994a0>] ? vga_arb_device_init+0x0/0x77
+>  [<ffffffff818994b3>] vga_arb_device_init+0x13/0x77
+>  [<ffffffff818994a0>] ? vga_arb_device_init+0x0/0x77
+>  [<ffffffff810001e7>] do_one_initcall+0x37/0x190
+>  [<ffffffff8187d6ce>] kernel_init+0x172/0x1c8
+>  [<ffffffff81003c7a>] child_rip+0xa/0x20
+>  [<ffffffff8187d55c>] ? kernel_init+0x0/0x1c8
+>  [<ffffffff81003c70>] ? child_rip+0x0/0x20
 
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+There's a -mm-only debug patch:
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+http://userweb.kernel.org/~akpm/mmotm/broken-out/notify_change-callers-must-hold-i_mutex.patch
 
-------------------------------------------------------
-Subject: aoe: prevent cache aliases
-From: Peter Horton <phorton@bitbox.co.uk>
-
-Prevent the AoE block driver from creating cache aliases of page cache
-pages on machines with virtually indexed caches.
-
-Building kernels on an AT91SAM9G20 board without this patch fails with
-segmentation faults after a couple of passes.
-
-Signed-off-by: Peter Horton <zero@colonel-panic.org>
-Cc: "Ed L. Cashin" <ecashin@coraid.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
-
-diff -puN drivers/block/aoe/aoecmd.c~aoe-prevent-cache-aliases drivers/block/aoe/aoecmd.c
---- a/drivers/block/aoe/aoecmd.c~aoe-prevent-cache-aliases
-+++ a/drivers/block/aoe/aoecmd.c
-@@ -735,6 +735,21 @@ diskstats(struct gendisk *disk, struct b
- 	part_stat_unlock();
- }
- 
-+/*
-+ * Ensure we don't create aliases in VI caches
-+ */
-+static inline void
-+killalias(struct bio *bio)
-+{
-+	struct bio_vec *bv;
-+	int i;
-+
-+	if (bio_data_dir(bio) == READ)
-+		__bio_for_each_segment(bv, bio, i, 0) {
-+			flush_dcache_page(bv->bv_page);
-+		}
-+}
-+
- void
- aoecmd_ata_rsp(struct sk_buff *skb)
- {
-@@ -853,8 +868,12 @@ aoecmd_ata_rsp(struct sk_buff *skb)
- 
- 	if (buf && --buf->nframesout == 0 && buf->resid == 0) {
- 		diskstats(d->gd, buf->bio, jiffies - buf->stime, buf->sector);
--		n = (buf->flags & BUFFL_FAIL) ? -EIO : 0;
--		bio_endio(buf->bio, n);
-+		if (buf->flags & BUFFL_FAIL)
-+			bio_endio(buf->bio, -EIO);
-+		else {
-+			killalias(buf->bio);
-+			bio_endio(buf->bio, 0);
-+		}
- 		mempool_free(buf, d->bufpool);
+--- a/fs/attr.c~notify_change-callers-must-hold-i_mutex
++++ a/fs/attr.c
+@@ -155,6 +155,8 @@ int notify_change(struct dentry * dentry
+ 			return -EPERM;
  	}
  
++	WARN_ON_ONCE(!mutex_is_locked(&inode->i_mutex));
++
+ 	now = current_fs_time(inode->i_sb);
+ 
+ 	attr->ia_ctime = now;
 _
 
-Patches currently in -mm which might be from phorton@bitbox.co.uk are
+I forget why it was added.
 
-aoe-prevent-cache-aliases.patch
+
+It looks like it's blaming the open-coded notify_change() call in
+devtmpfs_create_node().
 
