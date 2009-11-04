@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 03 Nov 2009 16:14:00 -0800
-Message-ID: <200911040014.nA40E1Rm013115@imap1.linux-foundation.org>
+Subject: + drivers-video-msm-update-to-new-kernel.patch added to -mm tree
+Date: Tue, 03 Nov 2009 16:17:46 -0800
+Message-ID: <200911040017.nA40Hkvf021979@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39655 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43609 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751746AbZKDAOA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Nov 2009 19:14:00 -0500
+	by vger.kernel.org with ESMTP id S1753239AbZKDARo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Nov 2009 19:17:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, pavel@ucw.cz
+Cc: pavel@ucw.cz
 
 
 The patch titled
-     msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes
+     drivers/video/msm: update to new kernel
 has been added to the -mm tree.  Its filename is
-     msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes.patch
+     drivers-video-msm-update-to-new-kernel.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,111 +33,161 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/video/msm: update to new kernel
+From: Pavel Machek <pavel@ucw.cz>
 
-ERROR: code indent should use tabs where possible
-#28: FILE: arch/arm/mach-msm/include/mach/mmc.h:12:
-+        struct sdio_cis cis;$
+TASK_INTERRUPTIBLE and friends are now only available after including
+<linux/sched.h>, so include it when needed.
 
-ERROR: code indent should use tabs where possible
-#29: FILE: arch/arm/mach-msm/include/mach/mmc.h:13:
-+        struct sdio_cccr cccr;$
+bus_id is no longer available/necessary, so remove that.
 
-ERROR: code indent should use tabs where possible
-#30: FILE: arch/arm/mach-msm/include/mach/mmc.h:14:
-+        struct sdio_embedded_func *funcs;$
+Android pmem driver is not available in mainline, so remove its hooks
+from drivers/video.
 
-ERROR: code indent should use tabs where possible
-#31: FILE: arch/arm/mach-msm/include/mach/mmc.h:15:
-+        int num_funcs;$
-
-WARNING: line over 80 characters
-#39: FILE: arch/arm/mach-msm/include/mach/mmc.h:23:
-+	int (*register_status_notify)(void (*callback)(int card_present, void *dev_id), void *dev_id);
-
-total: 4 errors, 1 warnings, 50 lines checked
-
-./patches/msm_sdccc-add-missing-include-fix-compilation.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN arch/arm/mach-msm/include/mach/mmc.h~msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes arch/arm/mach-msm/include/mach/mmc.h
---- a/arch/arm/mach-msm/include/mach/mmc.h~msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes
-+++ a/arch/arm/mach-msm/include/mach/mmc.h
-@@ -9,10 +9,10 @@
- #include <linux/mmc/sdio_func.h>
+diff -puN drivers/video/msm/mddi.c~drivers-video-msm-update-to-new-kernel drivers/video/msm/mddi.c
+--- a/drivers/video/msm/mddi.c~drivers-video-msm-update-to-new-kernel
++++ a/drivers/video/msm/mddi.c
+@@ -24,6 +24,7 @@
+ #include <linux/spinlock.h>
+ #include <linux/clk.h>
+ #include <linux/io.h>
++#include <linux/sched.h>
+ #include <mach/msm_iomap.h>
+ #include <mach/irqs.h>
+ #include <mach/board.h>
+diff -puN drivers/video/msm/mddi_client_nt35399.c~drivers-video-msm-update-to-new-kernel drivers/video/msm/mddi_client_nt35399.c
+--- a/drivers/video/msm/mddi_client_nt35399.c~drivers-video-msm-update-to-new-kernel
++++ a/drivers/video/msm/mddi_client_nt35399.c
+@@ -19,6 +19,7 @@
+ #include <linux/kernel.h>
+ #include <linux/platform_device.h>
+ #include <linux/interrupt.h>
++#include <linux/sched.h>
+ #include <linux/gpio.h>
+ #include <mach/msm_fb.h>
  
- struct embedded_sdio_data {
--        struct sdio_cis cis;
--        struct sdio_cccr cccr;
--        struct sdio_embedded_func *funcs;
--        int num_funcs;
-+	struct sdio_cis cis;
-+	struct sdio_cccr cccr;
-+	struct sdio_embedded_func *funcs;
-+	int num_funcs;
- };
+diff -puN drivers/video/msm/mddi_client_toshiba.c~drivers-video-msm-update-to-new-kernel drivers/video/msm/mddi_client_toshiba.c
+--- a/drivers/video/msm/mddi_client_toshiba.c~drivers-video-msm-update-to-new-kernel
++++ a/drivers/video/msm/mddi_client_toshiba.c
+@@ -20,6 +20,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/interrupt.h>
+ #include <linux/gpio.h>
++#include <linux/sched.h>
+ #include <mach/msm_fb.h>
  
- struct mmc_platform_data {
+ 
+diff -puN drivers/video/msm/mdp.c~drivers-video-msm-update-to-new-kernel drivers/video/msm/mdp.c
+--- a/drivers/video/msm/mdp.c~drivers-video-msm-update-to-new-kernel
++++ a/drivers/video/msm/mdp.c
+@@ -22,9 +22,6 @@
+ #include <linux/wait.h>
+ #include <linux/clk.h>
+ #include <linux/file.h>
+-#ifdef CONFIG_ANDROID_PMEM
+-#include <linux/android_pmem.h>
+-#endif
+ #include <linux/major.h>
+ 
+ #include <mach/msm_iomap.h>
+@@ -262,11 +259,6 @@ int get_img(struct mdp_img *img, struct 
+ 	struct file *file;
+ 	unsigned long vstart;
+ 
+-#ifdef CONFIG_ANDROID_PMEM
+-	if (!get_pmem_file(img->memory_id, start, &vstart, len, filep))
+-		return 0;
+-#endif
+-
+ 	file = fget_light(img->memory_id, &put_needed);
+ 	if (file == NULL)
+ 		return -1;
+@@ -283,12 +275,6 @@ int get_img(struct mdp_img *img, struct 
+ 
+ void put_img(struct file *src_file, struct file *dst_file)
+ {
+-#ifdef CONFIG_ANDROID_PMEM
+-	if (src_file)
+-		put_pmem_file(src_file);
+-	if (dst_file)
+-		put_pmem_file(dst_file);
+-#endif
+ }
+ 
+ int mdp_blit(struct mdp_device *mdp_dev, struct fb_info *fb,
+@@ -320,9 +306,6 @@ int mdp_blit(struct mdp_device *mdp_dev,
+ 	if (unlikely(get_img(&req->dst, fb, &dst_start, &dst_len, &dst_file))) {
+ 		printk(KERN_ERR "mpd_ppp: could not retrieve dst image from "
+ 				"memory\n");
+-#ifdef CONFIG_ANDROID_PMEM
+-		put_pmem_file(src_file);
+-#endif
+ 		return -EINVAL;
+ 	}
+ 	mutex_lock(&mdp_mutex);
+@@ -499,7 +482,6 @@ int mdp_probe(struct platform_device *pd
+ 	/* register mdp device */
+ 	mdp->mdp_dev.dev.parent = &pdev->dev;
+ 	mdp->mdp_dev.dev.class = mdp_class;
+-	snprintf(mdp->mdp_dev.dev.bus_id, BUS_ID_SIZE, "mdp%d", pdev->id);
+ 
+ 	/* if you can remove the platform device you'd have to implement
+ 	 * this:
+diff -puN drivers/video/msm/mdp_ppp.c~drivers-video-msm-update-to-new-kernel drivers/video/msm/mdp_ppp.c
+--- a/drivers/video/msm/mdp_ppp.c~drivers-video-msm-update-to-new-kernel
++++ a/drivers/video/msm/mdp_ppp.c
+@@ -16,7 +16,6 @@
+ #include <linux/file.h>
+ #include <linux/delay.h>
+ #include <linux/msm_mdp.h>
+-#include <linux/android_pmem.h>
+ #include <mach/msm_fb.h>
+ 
+ #include "mdp_hw.h"
+@@ -579,25 +578,6 @@ static int valid_src_dst(unsigned long s
+ static void flush_imgs(struct mdp_blit_req *req, struct mdp_regs *regs,
+ 		       struct file *src_file, struct file *dst_file)
+ {
+-#ifdef CONFIG_ANDROID_PMEM
+-	uint32_t src0_len, src1_len, dst0_len, dst1_len;
+-
+-	/* flush src images to memory before dma to mdp */
+-	get_len(&req->src, &req->src_rect, regs->src_bpp, &src0_len,
+-		&src1_len);
+-	flush_pmem_file(src_file, req->src.offset, src0_len);
+-	if (IS_PSEUDOPLNR(req->src.format))
+-		flush_pmem_file(src_file, req->src.offset + src0_len,
+-				src1_len);
+-
+-	/* flush dst images */
+-	get_len(&req->dst, &req->dst_rect, regs->dst_bpp, &dst0_len,
+-		&dst1_len);
+-	flush_pmem_file(dst_file, req->dst.offset, dst0_len);
+-	if (IS_PSEUDOPLNR(req->dst.format))
+-		flush_pmem_file(dst_file, req->dst.offset + dst0_len,
+-				dst1_len);
+-#endif
+ }
+ 
+ static void get_chroma_addr(struct mdp_img *img, struct mdp_rect *rect,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from pavel@ucw.cz are
 
 origin.patch
-alpha-move-thread_size-definition-outside-ifndef-assembly.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
-drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices-fix.patch
-acpi-remove-nid_inval-checkpatch-fixes.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-include-trace-events-lockdeph-fix-do_div-warning.patch
-st-fix-test-of-value-range-in-st_set_options.patch
-scsi-add-hpsa-driver-for-hp-smart-array-controllers-fix.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-readahead-add-blk_run_backing_dev.patch
-mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
-drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
-rwsem-fix-rwsem_is_locked-bugs-fix.patch
-errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
+drivers-video-msm-update-to-new-kernel.patch
+spitz-backlight-fix-brightness-limiting.patch
+scripts-get_maintainerpl-add-roles-and-rolestats.patch
+scripts-get_maintainerpl-fix-non-with-git-blame-and-cleanups.patch
+msm_sdccc-add-missing-include-fix-compilation.patch
 msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes.patch
-hwmon-w83627ehf-updates-checkpatch-fixes.patch
-spi-controller-driver-for-designware-spi-core-fix.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
-ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
-memcg-coalesce-charging-via-percpu-storage-fix.patch
-aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-reiser4-disable.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+lis3lv02d-axis-remap-and-resource-setup-release.patch
+lis3lv02d-i2c-support.patch
+fatfs-use-common-time_to_tm-in-fat_time_unix2fat.patch
 
