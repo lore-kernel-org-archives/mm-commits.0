@@ -1,82 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [merged] bfa-fix-test-in-bfad_os_fc_host_init.patch removed from -mm tree
-Date: Mon, 09 Nov 2009 11:55:36 -0800
-Message-ID: <200911091955.nA9JtaFe024326@imap1.linux-foundation.org>
+Subject: [merged] serial-8250-fixes-for-alchemy-uarts.patch removed from -mm tree
+Date: Mon, 09 Nov 2009 11:55:30 -0800
+Message-ID: <200911091955.nA9JtU80024072@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56702 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52814 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753355AbZKITzg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2009 14:55:36 -0500
+	by vger.kernel.org with ESMTP id S1753839AbZKITzm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2009 14:55:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, James.Bottomley@HansenPartnership.com, huangj@Brocade.COM, mm-commits@vger.kernel.org
+To: manuel.lauss@googlemail.com, alan@lxorguk.ukuu.org.uk, manuel.lauss@gmail.com, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bfa: fix test in bfad_os_fc_host_init()
+     serial 8250: fixes for Alchemy uarts
 has been removed from the -mm tree.  Its filename was
-     bfa-fix-test-in-bfad_os_fc_host_init.patch
+     serial-8250-fixes-for-alchemy-uarts.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bfa: fix test in bfad_os_fc_host_init()
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: serial 8250: fixes for Alchemy uarts
+From: Manuel Lauss <manuel.lauss@googlemail.com>
 
-BFA_PORT_ROLE_FCP_IPFC is 0x04 so this always evaluates to true
+Limit the amount of address space claimed for Alchemy serial ports to
+0x1000.  On the Au1300, ports are only 0x1000 apart, and the registers
+only extend to 0x110 at most on all supported alchemy models.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Jing Huang <huangj@Brocade.COM>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+On the Au1300 the autodetect logic no longer works and this makes it
+necessary to specify the port type through platform data.  Because of this
+the MSR quirk needs to be moved outside the autoconfig() function which
+will no longer be called when UPF_FIXED_TYPE is specified.
+
+Signed-off-by: Manuel Lauss <manuel.lauss@gmail.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/scsi/bfa/bfad_im.c~bfa-fix-test-in-bfad_os_fc_host_init drivers/scsi/bfa/bfad_im.c
---- a/drivers/scsi/bfa/bfad_im.c~bfa-fix-test-in-bfad_os_fc_host_init
-+++ a/drivers/scsi/bfa/bfad_im.c
-@@ -948,7 +948,7 @@ bfad_os_fc_host_init(struct bfad_im_port
- 	if (bfad_supported_fc4s & (BFA_PORT_ROLE_FCP_IM | BFA_PORT_ROLE_FCP_TM))
- 		/* For FCP type 0x08 */
- 		fc_host_supported_fc4s(host)[2] = 1;
--	if (bfad_supported_fc4s | BFA_PORT_ROLE_FCP_IPFC)
-+	if (bfad_supported_fc4s & BFA_PORT_ROLE_FCP_IPFC)
- 		/* For LLC/SNAP type 0x05 */
- 		fc_host_supported_fc4s(host)[3] = 0x20;
- 	/* For fibre channel services type 0x20 */
+diff -puN drivers/serial/8250.c~serial-8250-fixes-for-alchemy-uarts drivers/serial/8250.c
+--- a/drivers/serial/8250.c~serial-8250-fixes-for-alchemy-uarts
++++ a/drivers/serial/8250.c
+@@ -1214,12 +1214,6 @@ static void autoconfig(struct uart_8250_
+ 	}
+ #endif
+ 
+-#ifdef CONFIG_SERIAL_8250_AU1X00
+-	/* if access method is AU, it is a 16550 with a quirk */
+-	if (up->port.type == PORT_16550A && up->port.iotype == UPIO_AU)
+-		up->bugs |= UART_BUG_NOMSR;
+-#endif
+-
+ 	serial_outp(up, UART_LCR, save_lcr);
+ 
+ 	if (up->capabilities != uart_config[up->port.type].flags) {
+@@ -2429,7 +2423,7 @@ serial8250_pm(struct uart_port *port, un
+ static unsigned int serial8250_port_size(struct uart_8250_port *pt)
+ {
+ 	if (pt->port.iotype == UPIO_AU)
+-		return 0x100000;
++		return 0x1000;
+ #ifdef CONFIG_ARCH_OMAP
+ 	if (is_omap_port(pt))
+ 		return 0x16 << pt->port.regshift;
+@@ -2586,6 +2580,13 @@ static void serial8250_config_port(struc
+ 
+ 	if (flags & UART_CONFIG_TYPE)
+ 		autoconfig(up, probeflags);
++
++#ifdef CONFIG_SERIAL_8250_AU1X00
++	/* if access method is AU, it is a 16550 with a quirk */
++	if (up->port.type == PORT_16550A && up->port.iotype == UPIO_AU)
++		up->bugs |= UART_BUG_NOMSR;
++#endif
++
+ 	if (up->port.type != PORT_UNKNOWN && flags & UART_CONFIG_IRQ)
+ 		autoconfig_irq(up);
+ 
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from manuel.lauss@googlemail.com are
 
-origin.patch
-get_maintainer-fix-usage-comment.patch
 linux-next.patch
-fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch
-omap-fix-unlikelyx-y.patch
-pxa-add-missing-underscores-in-define.patch
-powernow-k8-fix-test-in-get_transition_latency.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
-st-fix-test-of-value-range-in-st_set_options.patch
-ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
-scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
-page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-cryptocop-fix-assertion-in-create_output_descriptors.patch
-gpio-fix-test-on-unsigned-in-lnw_irq_type.patch
-fbdev-tv_paln-bit-set-twice-in-sisfb_detect_vb_connect.patch
-hvc_console-fix-test-on-unsigned-in-hvc_console_print.patch
-irq-fix-test-in-__exit-parport_mfc3_exit.patch
 
