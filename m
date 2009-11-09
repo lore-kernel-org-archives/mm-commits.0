@@ -1,89 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: [merged] serial-8250-fixes-for-alchemy-uarts.patch removed from -mm tree
-Date: Mon, 09 Nov 2009 11:55:30 -0800
-Message-ID: <200911091955.nA9JtU80024072@imap1.linux-foundation.org>
+Subject: [merged] const-struct-quota_format_ops.patch removed from -mm tree
+Date: Mon, 09 Nov 2009 11:55:54 -0800
+Message-ID: <200911091955.nA9JtsE4024993@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52814 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39129 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753839AbZKITzm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2009 14:55:42 -0500
+	by vger.kernel.org with ESMTP id S1753855AbZKITzw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2009 14:55:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: manuel.lauss@googlemail.com, alan@lxorguk.ukuu.org.uk, manuel.lauss@gmail.com, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, jack@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     serial 8250: fixes for Alchemy uarts
+     const: struct quota_format_ops
 has been removed from the -mm tree.  Its filename was
-     serial-8250-fixes-for-alchemy-uarts.patch
+     const-struct-quota_format_ops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial 8250: fixes for Alchemy uarts
-From: Manuel Lauss <manuel.lauss@googlemail.com>
+Subject: const: struct quota_format_ops
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-Limit the amount of address space claimed for Alchemy serial ports to
-0x1000.  On the Au1300, ports are only 0x1000 apart, and the registers
-only extend to 0x110 at most on all supported alchemy models.
-
-On the Au1300 the autodetect logic no longer works and this makes it
-necessary to specify the port type through platform data.  Because of this
-the MSR quirk needs to be moved outside the autoconfig() function which
-will no longer be called when UPF_FIXED_TYPE is specified.
-
-Signed-off-by: Manuel Lauss <manuel.lauss@gmail.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Jan Kara <jack@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/serial/8250.c~serial-8250-fixes-for-alchemy-uarts drivers/serial/8250.c
---- a/drivers/serial/8250.c~serial-8250-fixes-for-alchemy-uarts
-+++ a/drivers/serial/8250.c
-@@ -1214,12 +1214,6 @@ static void autoconfig(struct uart_8250_
- 	}
- #endif
+diff -puN fs/ocfs2/quota_local.c~const-struct-quota_format_ops fs/ocfs2/quota_local.c
+--- a/fs/ocfs2/quota_local.c~const-struct-quota_format_ops
++++ a/fs/ocfs2/quota_local.c
+@@ -1325,7 +1325,7 @@ out:
+ 	return status;
+ }
  
--#ifdef CONFIG_SERIAL_8250_AU1X00
--	/* if access method is AU, it is a 16550 with a quirk */
--	if (up->port.type == PORT_16550A && up->port.iotype == UPIO_AU)
--		up->bugs |= UART_BUG_NOMSR;
--#endif
--
- 	serial_outp(up, UART_LCR, save_lcr);
+-static struct quota_format_ops ocfs2_format_ops = {
++static const struct quota_format_ops ocfs2_format_ops = {
+ 	.check_quota_file	= ocfs2_local_check_quota_file,
+ 	.read_file_info		= ocfs2_local_read_info,
+ 	.write_file_info	= ocfs2_global_write_info,
+diff -puN fs/quota/quota_v1.c~const-struct-quota_format_ops fs/quota/quota_v1.c
+--- a/fs/quota/quota_v1.c~const-struct-quota_format_ops
++++ a/fs/quota/quota_v1.c
+@@ -204,7 +204,7 @@ out:
+ 	return ret;
+ }
  
- 	if (up->capabilities != uart_config[up->port.type].flags) {
-@@ -2429,7 +2423,7 @@ serial8250_pm(struct uart_port *port, un
- static unsigned int serial8250_port_size(struct uart_8250_port *pt)
- {
- 	if (pt->port.iotype == UPIO_AU)
--		return 0x100000;
-+		return 0x1000;
- #ifdef CONFIG_ARCH_OMAP
- 	if (is_omap_port(pt))
- 		return 0x16 << pt->port.regshift;
-@@ -2586,6 +2580,13 @@ static void serial8250_config_port(struc
+-static struct quota_format_ops v1_format_ops = {
++static const struct quota_format_ops v1_format_ops = {
+ 	.check_quota_file	= v1_check_quota_file,
+ 	.read_file_info		= v1_read_file_info,
+ 	.write_file_info	= v1_write_file_info,
+diff -puN fs/quota/quota_v2.c~const-struct-quota_format_ops fs/quota/quota_v2.c
+--- a/fs/quota/quota_v2.c~const-struct-quota_format_ops
++++ a/fs/quota/quota_v2.c
+@@ -207,7 +207,7 @@ static int v2_free_file_info(struct supe
+ 	return 0;
+ }
  
- 	if (flags & UART_CONFIG_TYPE)
- 		autoconfig(up, probeflags);
-+
-+#ifdef CONFIG_SERIAL_8250_AU1X00
-+	/* if access method is AU, it is a 16550 with a quirk */
-+	if (up->port.type == PORT_16550A && up->port.iotype == UPIO_AU)
-+		up->bugs |= UART_BUG_NOMSR;
-+#endif
-+
- 	if (up->port.type != PORT_UNKNOWN && flags & UART_CONFIG_IRQ)
- 		autoconfig_irq(up);
+-static struct quota_format_ops v2_format_ops = {
++static const struct quota_format_ops v2_format_ops = {
+ 	.check_quota_file	= v2_check_quota_file,
+ 	.read_file_info		= v2_read_file_info,
+ 	.write_file_info	= v2_write_file_info,
+diff -puN include/linux/quota.h~const-struct-quota_format_ops include/linux/quota.h
+--- a/include/linux/quota.h~const-struct-quota_format_ops
++++ a/include/linux/quota.h
+@@ -334,7 +334,7 @@ struct quotactl_ops {
  
+ struct quota_format_type {
+ 	int qf_fmt_id;	/* Quota format id */
+-	struct quota_format_ops *qf_ops;	/* Operations of format */
++	const struct quota_format_ops *qf_ops;	/* Operations of format */
+ 	struct module *qf_owner;		/* Module implementing quota format */
+ 	struct quota_format_type *qf_next;
+ };
+@@ -394,7 +394,7 @@ struct quota_info {
+ 	struct rw_semaphore dqptr_sem;		/* serialize ops using quota_info struct, pointers from inode to dquots */
+ 	struct inode *files[MAXQUOTAS];		/* inodes of quotafiles */
+ 	struct mem_dqinfo info[MAXQUOTAS];	/* Information for each quota type */
+-	struct quota_format_ops *ops[MAXQUOTAS];	/* Operations for each type */
++	const struct quota_format_ops *ops[MAXQUOTAS];	/* Operations for each type */
+ };
+ 
+ int register_quota_format(struct quota_format_type *fmt);
 _
 
-Patches currently in -mm which might be from manuel.lauss@googlemail.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
+origin.patch
+uml-irq-register-race-condition.patch
 linux-next.patch
+genirq-switch-proc-irq-spurious-to-seq_file.patch
+const-constify-remaining-dev_pm_ops.patch
+proc-rename-de_get-to-pde_get-and-inline-it.patch
+const-constify-remaining-pipe_buf_operations.patch
+reiserfs-remove-proc-fs-reiserfs-version.patch
+reiserfs-dont-compile-procfso-at-all-if-no-support.patch
 
