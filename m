@@ -1,87 +1,152 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: vga_arb warning [was: mmotm 2009-11-01-10-01 uploaded]
-Date: Tue, 3 Nov 2009 21:48:45 -0800
-Message-ID: <20091103214845.9660895d.akpm@linux-foundation.org>
-References: <200911011807.nA1I7o95016136@imap1.linux-foundation.org>
-	<4AEE01D9.8040902@gmail.com>
+From: akpm@linux-foundation.org
+Subject: + mm-make-totalhigh_pages-unsigned-long.patch added to -mm tree
+Date: Sun, 08 Nov 2009 16:01:51 -0800
+Message-ID: <200911090001.nA901pUD031601@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35139 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37087 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751004AbZKDFtH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Nov 2009 00:49:07 -0500
-In-Reply-To: <4AEE01D9.8040902@gmail.com>
+	by vger.kernel.org with ESMTP id S1752301AbZKIADZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Nov 2009 19:03:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Jiri Slaby <jirislaby@gmail.com>
-Cc: linux-kernel@vger.kernel.org, mm-commits@vger.kernel.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Tiago Vignatti <tiago.vignatti@nokia.com>, Dave Airlie <airlied@redhat.com>, kvm@vger.kernel.org, Greg KH <greg@kroah.com>, Kay Sievers <kay.sievers@vrfy.org>
+To: mm-commits@vger.kernel.org
+Cc: andreas.fenkart@streamunlimited.com, dhowells@redhat.com, hpa@zytor.com, lennox.wu@gmail.com, liqin.chen@sunplusct.com, mingo@elte.hu, ralf@linux-mips.org, rmk+kernel@arm.linux.org.uk, tglx@linutronix.de
 
 
-Please cc me on mmotm bug reports!
+The patch titled
+     mm: make totalhigh_pages unsigned long
+has been added to the -mm tree.  Its filename is
+     mm-make-totalhigh_pages-unsigned-long.patch
 
-On Sun, 01 Nov 2009 22:47:05 +0100 Jiri Slaby <jirislaby@gmail.com> wrote:
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-> On 11/01/2009 07:07 PM, akpm@linux-foundation.org wrote:
-> > The mm-of-the-moment snapshot 2009-11-01-10-01 has been uploaded to
-> 
-> Hi, I got the following warning while booting an image in qemu-kvm:
-> 
-> WARNING: at fs/attr.c:158 notify_change+0x2da/0x310()
-> Hardware name:
-> Modules linked in:
-> Pid: 1, comm: swapper Not tainted 2.6.32-rc5-mm1_64 #862
-> Call Trace:
->  [<ffffffff81038008>] warn_slowpath_common+0x78/0xb0
->  [<ffffffff8103804f>] warn_slowpath_null+0xf/0x20
->  [<ffffffff810d32ba>] notify_change+0x2da/0x310
->  [<ffffffff810c5b88>] ? fsnotify_create+0x48/0x60
->  [<ffffffff810c6d2b>] ? vfs_mknod+0xbb/0xe0
->  [<ffffffff812487b6>] devtmpfs_create_node+0x1e6/0x270
->  [<ffffffff811170d0>] ? sysfs_addrm_finish+0x20/0x280
->  [<ffffffff811175d6>] ? __sysfs_add_one+0x26/0xf0
->  [<ffffffff81117b6c>] ? sysfs_do_create_link+0xcc/0x160
->  [<ffffffff81241cf0>] device_add+0x1e0/0x5b0
->  [<ffffffff8124adb1>] ? pm_runtime_init+0xa1/0xb0
->  [<ffffffff81248f05>] ? device_pm_init+0x65/0x70
->  [<ffffffff812420d9>] device_register+0x19/0x20
->  [<ffffffff81242290>] device_create_vargs+0xf0/0x120
->  [<ffffffff812422ec>] device_create+0x2c/0x30
->  [<ffffffff810c0516>] ? __register_chrdev+0x86/0xf0
->  [<ffffffff81245599>] ? __class_create+0x69/0xa0
->  [<ffffffff814326e9>] ? mutex_lock+0x19/0x50
->  [<ffffffff811d4e23>] misc_register+0x93/0x170
->  [<ffffffff818994a0>] ? vga_arb_device_init+0x0/0x77
->  [<ffffffff818994b3>] vga_arb_device_init+0x13/0x77
->  [<ffffffff818994a0>] ? vga_arb_device_init+0x0/0x77
->  [<ffffffff810001e7>] do_one_initcall+0x37/0x190
->  [<ffffffff8187d6ce>] kernel_init+0x172/0x1c8
->  [<ffffffff81003c7a>] child_rip+0xa/0x20
->  [<ffffffff8187d55c>] ? kernel_init+0x0/0x1c8
->  [<ffffffff81003c70>] ? child_rip+0x0/0x20
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-There's a -mm-only debug patch:
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
-http://userweb.kernel.org/~akpm/mmotm/broken-out/notify_change-callers-must-hold-i_mutex.patch
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
---- a/fs/attr.c~notify_change-callers-must-hold-i_mutex
-+++ a/fs/attr.c
-@@ -155,6 +155,8 @@ int notify_change(struct dentry * dentry
- 			return -EPERM;
- 	}
+------------------------------------------------------
+Subject: mm: make totalhigh_pages unsigned long
+From: Andreas Fenkart <andreas.fenkart@streamunlimited.com>
+
+Makes it consistent with the extern declaration, used when CONFIG_HIGHMEM
+is set Removes redundant casts in printout messages
+
+Signed-off-by: Andreas Fenkart <andreas.fenkart@streamunlimited.com>
+Acked-by: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Chen Liqin <liqin.chen@sunplusct.com>
+Cc: Lennox Wu <lennox.wu@gmail.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ arch/arm/mm/init.c               |    2 +-
+ arch/mips/mm/init.c              |    2 +-
+ arch/mips/sgi-ip27/ip27-memory.c |    2 +-
+ arch/mn10300/mm/init.c           |    3 +--
+ arch/score/mm/init.c             |    2 +-
+ arch/x86/mm/init_32.c            |    3 +--
+ include/linux/highmem.h          |    2 +-
+ 7 files changed, 7 insertions(+), 9 deletions(-)
+
+diff -puN arch/arm/mm/init.c~mm-make-totalhigh_pages-unsigned-long arch/arm/mm/init.c
+--- a/arch/arm/mm/init.c~mm-make-totalhigh_pages-unsigned-long
++++ a/arch/arm/mm/init.c
+@@ -616,7 +616,7 @@ void __init mem_init(void)
+ 		"%dK data, %dK init, %luK highmem)\n",
+ 		nr_free_pages() << (PAGE_SHIFT-10), codesize >> 10,
+ 		datasize >> 10, initsize >> 10,
+-		(unsigned long) (totalhigh_pages << (PAGE_SHIFT-10)));
++		totalhigh_pages << (PAGE_SHIFT-10));
  
-+	WARN_ON_ONCE(!mutex_is_locked(&inode->i_mutex));
-+
- 	now = current_fs_time(inode->i_sb);
+ 	if (PAGE_SIZE >= 16384 && num_physpages <= 128) {
+ 		extern int sysctl_overcommit_memory;
+diff -puN arch/mips/mm/init.c~mm-make-totalhigh_pages-unsigned-long arch/mips/mm/init.c
+--- a/arch/mips/mm/init.c~mm-make-totalhigh_pages-unsigned-long
++++ a/arch/mips/mm/init.c
+@@ -424,7 +424,7 @@ void __init mem_init(void)
+ 	       reservedpages << (PAGE_SHIFT-10),
+ 	       datasize >> 10,
+ 	       initsize >> 10,
+-	       (unsigned long) (totalhigh_pages << (PAGE_SHIFT-10)));
++	       totalhigh_pages << (PAGE_SHIFT-10));
+ }
+ #endif /* !CONFIG_NEED_MULTIPLE_NODES */
  
- 	attr->ia_ctime = now;
+diff -puN arch/mips/sgi-ip27/ip27-memory.c~mm-make-totalhigh_pages-unsigned-long arch/mips/sgi-ip27/ip27-memory.c
+--- a/arch/mips/sgi-ip27/ip27-memory.c~mm-make-totalhigh_pages-unsigned-long
++++ a/arch/mips/sgi-ip27/ip27-memory.c
+@@ -505,5 +505,5 @@ void __init mem_init(void)
+ 	       (num_physpages - tmp) << (PAGE_SHIFT-10),
+ 	       datasize >> 10,
+ 	       initsize >> 10,
+-	       (unsigned long) (totalhigh_pages << (PAGE_SHIFT-10)));
++	       totalhigh_pages << (PAGE_SHIFT-10));
+ }
+diff -puN arch/mn10300/mm/init.c~mm-make-totalhigh_pages-unsigned-long arch/mn10300/mm/init.c
+--- a/arch/mn10300/mm/init.c~mm-make-totalhigh_pages-unsigned-long
++++ a/arch/mn10300/mm/init.c
+@@ -118,8 +118,7 @@ void __init mem_init(void)
+ 	       reservedpages << (PAGE_SHIFT - 10),
+ 	       datasize >> 10,
+ 	       initsize >> 10,
+-	       (unsigned long) (totalhigh_pages << (PAGE_SHIFT - 10))
+-	       );
++	       totalhigh_pages << (PAGE_SHIFT - 10));
+ }
+ 
+ /*
+diff -puN arch/score/mm/init.c~mm-make-totalhigh_pages-unsigned-long arch/score/mm/init.c
+--- a/arch/score/mm/init.c~mm-make-totalhigh_pages-unsigned-long
++++ a/arch/score/mm/init.c
+@@ -111,7 +111,7 @@ void __init mem_init(void)
+ 			ram << (PAGE_SHIFT-10), codesize >> 10,
+ 			reservedpages << (PAGE_SHIFT-10), datasize >> 10,
+ 			initsize >> 10,
+-			(unsigned long) (totalhigh_pages << (PAGE_SHIFT-10)));
++			totalhigh_pages << (PAGE_SHIFT-10));
+ }
+ #endif /* !CONFIG_NEED_MULTIPLE_NODES */
+ 
+diff -puN arch/x86/mm/init_32.c~mm-make-totalhigh_pages-unsigned-long arch/x86/mm/init_32.c
+--- a/arch/x86/mm/init_32.c~mm-make-totalhigh_pages-unsigned-long
++++ a/arch/x86/mm/init_32.c
+@@ -892,8 +892,7 @@ void __init mem_init(void)
+ 		reservedpages << (PAGE_SHIFT-10),
+ 		datasize >> 10,
+ 		initsize >> 10,
+-		(unsigned long) (totalhigh_pages << (PAGE_SHIFT-10))
+-	       );
++		totalhigh_pages << (PAGE_SHIFT-10));
+ 
+ 	printk(KERN_INFO "virtual kernel memory layout:\n"
+ 		"    fixmap  : 0x%08lx - 0x%08lx   (%4ld kB)\n"
+diff -puN include/linux/highmem.h~mm-make-totalhigh_pages-unsigned-long include/linux/highmem.h
+--- a/include/linux/highmem.h~mm-make-totalhigh_pages-unsigned-long
++++ a/include/linux/highmem.h
+@@ -46,7 +46,7 @@ void kmap_flush_unused(void);
+ 
+ static inline unsigned int nr_free_highpages(void) { return 0; }
+ 
+-#define totalhigh_pages 0
++#define totalhigh_pages 0UL
+ 
+ #ifndef ARCH_HAS_KMAP
+ static inline void *kmap(struct page *page)
 _
 
-I forget why it was added.
+Patches currently in -mm which might be from andreas.fenkart@streamunlimited.com are
 
-
-It looks like it's blaming the open-coded notify_change() call in
-devtmpfs_create_node().
+mm-make-totalhigh_pages-unsigned-long.patch
 
