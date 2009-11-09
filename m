@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch added to -mm tree
-Date: Mon, 09 Nov 2009 13:51:22 -0800
-Message-ID: <200911092151.nA9LpMTS005693@imap1.linux-foundation.org>
+Subject: + kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch added to -mm tree
+Date: Mon, 09 Nov 2009 13:52:35 -0800
+Message-ID: <200911092152.nA9LqZT0008517@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39049 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38597 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754755AbZKIVvg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2009 16:51:36 -0500
+	by vger.kernel.org with ESMTP id S1751682AbZKIVwn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2009 16:52:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, h-shimamoto@ct.jp.nec.com
 
 
 The patch titled
-     kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes
+     kernelh-add-printk_ratelimited-and-pr_level_rl-rename
 has been added to the -mm tree.  Its filename is
-     kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
+     kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,44 +33,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes
+Subject: kernelh-add-printk_ratelimited-and-pr_level_rl-rename
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: code indent should use tabs where possible
-#42: FILE: include/linux/kernel.h:427:
-+        printk_ratelimited(KERN_EMERG pr_fmt(fmt), ##__VA_ARGS__)$
-
-ERROR: code indent should use tabs where possible
-#44: FILE: include/linux/kernel.h:429:
-+        printk_ratelimited(KERN_ALERT pr_fmt(fmt), ##__VA_ARGS__)$
-
-ERROR: code indent should use tabs where possible
-#46: FILE: include/linux/kernel.h:431:
-+        printk_ratelimited(KERN_CRIT pr_fmt(fmt), ##__VA_ARGS__)$
-
-ERROR: code indent should use tabs where possible
-#48: FILE: include/linux/kernel.h:433:
-+        printk_ratelimited(KERN_ERR pr_fmt(fmt), ##__VA_ARGS__)$
-
-ERROR: code indent should use tabs where possible
-#50: FILE: include/linux/kernel.h:435:
-+        printk_ratelimited(KERN_WARNING pr_fmt(fmt), ##__VA_ARGS__)$
-
-ERROR: code indent should use tabs where possible
-#52: FILE: include/linux/kernel.h:437:
-+        printk_ratelimited(KERN_NOTICE pr_fmt(fmt), ##__VA_ARGS__)$
-
-ERROR: code indent should use tabs where possible
-#54: FILE: include/linux/kernel.h:439:
-+        printk_ratelimited(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)$
-
-total: 7 errors, 0 warnings, 50 lines checked
-
-./patches/kernelh-add-printk_ratelimited-and-pr_level_rl.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
+s/_rl/_ratelimited/g
 
 Cc: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
 Cc: Ingo Molnar <mingo@elte.hu>
@@ -81,36 +47,47 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN include/linux/kernel.h~kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes include/linux/kernel.h
---- a/include/linux/kernel.h~kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes
+diff -puN include/linux/kernel.h~kernelh-add-printk_ratelimited-and-pr_level_rl-rename include/linux/kernel.h
+--- a/include/linux/kernel.h~kernelh-add-printk_ratelimited-and-pr_level_rl-rename
 +++ a/include/linux/kernel.h
-@@ -424,19 +424,19 @@ static inline char *pack_hex_byte(char *
+@@ -423,27 +423,27 @@ static inline char *pack_hex_byte(char *
+ #define printk_ratelimited printk
  #endif
  
- #define pr_emerg_rl(fmt, ...) \
--        printk_ratelimited(KERN_EMERG pr_fmt(fmt), ##__VA_ARGS__)
-+	printk_ratelimited(KERN_EMERG pr_fmt(fmt), ##__VA_ARGS__)
- #define pr_alert_rl(fmt, ...) \
--        printk_ratelimited(KERN_ALERT pr_fmt(fmt), ##__VA_ARGS__)
-+	printk_ratelimited(KERN_ALERT pr_fmt(fmt), ##__VA_ARGS__)
- #define pr_crit_rl(fmt, ...) \
--        printk_ratelimited(KERN_CRIT pr_fmt(fmt), ##__VA_ARGS__)
-+	printk_ratelimited(KERN_CRIT pr_fmt(fmt), ##__VA_ARGS__)
- #define pr_err_rl(fmt, ...) \
--        printk_ratelimited(KERN_ERR pr_fmt(fmt), ##__VA_ARGS__)
-+	printk_ratelimited(KERN_ERR pr_fmt(fmt), ##__VA_ARGS__)
- #define pr_warning_rl(fmt, ...) \
--        printk_ratelimited(KERN_WARNING pr_fmt(fmt), ##__VA_ARGS__)
-+	printk_ratelimited(KERN_WARNING pr_fmt(fmt), ##__VA_ARGS__)
- #define pr_notice_rl(fmt, ...) \
--        printk_ratelimited(KERN_NOTICE pr_fmt(fmt), ##__VA_ARGS__)
-+	printk_ratelimited(KERN_NOTICE pr_fmt(fmt), ##__VA_ARGS__)
- #define pr_info_rl(fmt, ...) \
--        printk_ratelimited(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
-+	printk_ratelimited(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
- /* no pr_cont_rl, don't do that... */
+-#define pr_emerg_rl(fmt, ...) \
++#define pr_emerg_ratelimited(fmt, ...) \
+ 	printk_ratelimited(KERN_EMERG pr_fmt(fmt), ##__VA_ARGS__)
+-#define pr_alert_rl(fmt, ...) \
++#define pr_alert_ratelimited(fmt, ...) \
+ 	printk_ratelimited(KERN_ALERT pr_fmt(fmt), ##__VA_ARGS__)
+-#define pr_crit_rl(fmt, ...) \
++#define pr_crit_ratelimited(fmt, ...) \
+ 	printk_ratelimited(KERN_CRIT pr_fmt(fmt), ##__VA_ARGS__)
+-#define pr_err_rl(fmt, ...) \
++#define pr_err_ratelimited(fmt, ...) \
+ 	printk_ratelimited(KERN_ERR pr_fmt(fmt), ##__VA_ARGS__)
+-#define pr_warning_rl(fmt, ...) \
++#define pr_warning_ratelimited(fmt, ...) \
+ 	printk_ratelimited(KERN_WARNING pr_fmt(fmt), ##__VA_ARGS__)
+-#define pr_notice_rl(fmt, ...) \
++#define pr_notice_ratelimited(fmt, ...) \
+ 	printk_ratelimited(KERN_NOTICE pr_fmt(fmt), ##__VA_ARGS__)
+-#define pr_info_rl(fmt, ...) \
++#define pr_info_ratelimited(fmt, ...) \
+ 	printk_ratelimited(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
+-/* no pr_cont_rl, don't do that... */
++/* no pr_cont_ratelimited, don't do that... */
  /* If you are writing a driver, please use dev_dbg instead */
  #if defined(DEBUG)
+-#define pr_debug_rl(fmt, ...) \
++#define pr_debug_ratelimited(fmt, ...) \
+ 	printk_ratelimited(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
+ #else
+-#define pr_debug_rl(fmt, ...) \
++#define pr_debug_ratelimited(fmt, ...) \
+ 	({ if (0) printk_ratelimited(KERN_DEBUG pr_fmt(fmt), \
+ 				     ##__VA_ARGS__); 0; })
+ #endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -144,6 +121,7 @@ floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
 drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
 rwsem-fix-rwsem_is_locked-bugs-fix.patch
 kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
 errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
 msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes.patch
 hwmon-w83627ehf-updates-checkpatch-fixes.patch
