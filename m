@@ -1,124 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sendfile-check-f_opsplice_write-rather-than-f_opsendpage.patch removed from -mm tree
-Date: Mon, 09 Nov 2009 11:55:42 -0800
-Message-ID: <200911091955.nA9JtgWs024531@imap1.linux-foundation.org>
+Subject: [merged] resources-when-allocate_resource-fails-leave-resource-untouched.patch removed from -mm tree
+Date: Mon, 09 Nov 2009 11:55:56 -0800
+Message-ID: <200911091955.nA9Jtu91025131@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52512 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55130 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753939AbZKITzp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2009 14:55:45 -0500
+	by vger.kernel.org with ESMTP id S1753946AbZKITzy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2009 14:55:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xiaosuo@gmail.com, jens.axboe@oracle.com, mm-commits@vger.kernel.org
+To: bjorn.helgaas@hp.com, jbarnes@virtuousgeek.org, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sendfile(): check f_op.splice_write() rather than f_op.sendpage()
+     resources: when allocate_resource() fails, leave resource untouched
 has been removed from the -mm tree.  Its filename was
-     sendfile-check-f_opsplice_write-rather-than-f_opsendpage.patch
+     resources-when-allocate_resource-fails-leave-resource-untouched.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sendfile(): check f_op.splice_write() rather than f_op.sendpage()
-From: Changli Gao <xiaosuo@gmail.com>
+Subject: resources: when allocate_resource() fails, leave resource untouched
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-sendfile(2) was reworked with the splice infrastructure, but it still
-checks f_op.sendpage() instead of f_op.splice_write() wrongly.  Although
-if f_op.sendpage() exists, f_op.splice_write() always exists at the same
-time currently, the assumption will be broken in future silently.  This
-patch also brings a side effect: sendfile(2) can work with any output
-file.  Some security checks related to f_op are added too.
+When "allocate_resource(root, new, size, ...)" fails, we currently clobber
+"new".  This is inconvenient for the caller, who might care about the
+original contents of the resource.
 
-Signed-off-by: Changli Gao <xiaosuo@gmail.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+For example, when pci_bus_alloc_resource() fails, the "can't allocate mem
+resource %pR" message from pci_assign_resources() currently contains junk
+for the resource start/end.
+
+This patch delays the "new" update until we're about to return success.
+
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Acked-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/read_write.c |    2 --
- fs/splice.c     |   24 +++++++++++++++---------
- 2 files changed, 15 insertions(+), 11 deletions(-)
+ kernel/resource.c |   26 ++++++++++++++------------
+ 1 file changed, 14 insertions(+), 12 deletions(-)
 
-diff -puN fs/read_write.c~sendfile-check-f_opsplice_write-rather-than-f_opsendpage fs/read_write.c
---- a/fs/read_write.c~sendfile-check-f_opsplice_write-rather-than-f_opsendpage
-+++ a/fs/read_write.c
-@@ -826,8 +826,6 @@ static ssize_t do_sendfile(int out_fd, i
- 	if (!(out_file->f_mode & FMODE_WRITE))
- 		goto fput_out;
- 	retval = -EINVAL;
--	if (!out_file->f_op || !out_file->f_op->sendpage)
--		goto fput_out;
- 	in_inode = in_file->f_path.dentry->d_inode;
- 	out_inode = out_file->f_path.dentry->d_inode;
- 	retval = rw_verify_area(WRITE, out_file, &out_file->f_pos, count);
-diff -puN fs/splice.c~sendfile-check-f_opsplice_write-rather-than-f_opsendpage fs/splice.c
---- a/fs/splice.c~sendfile-check-f_opsplice_write-rather-than-f_opsendpage
-+++ a/fs/splice.c
-@@ -648,9 +648,11 @@ static int pipe_to_sendpage(struct pipe_
- 	ret = buf->ops->confirm(pipe, buf);
- 	if (!ret) {
- 		more = (sd->flags & SPLICE_F_MORE) || sd->len < sd->total_len;
--
--		ret = file->f_op->sendpage(file, buf->page, buf->offset,
--					   sd->len, &pos, more);
-+		if (file->f_op && file->f_op->sendpage)
-+			ret = file->f_op->sendpage(file, buf->page, buf->offset,
-+						   sd->len, &pos, more);
-+		else
-+			ret = -EINVAL;
+diff -puN kernel/resource.c~resources-when-allocate_resource-fails-leave-resource-untouched kernel/resource.c
+--- a/kernel/resource.c~resources-when-allocate_resource-fails-leave-resource-untouched
++++ a/kernel/resource.c
+@@ -308,35 +308,37 @@ static int find_resource(struct resource
+ 			 void *alignf_data)
+ {
+ 	struct resource *this = root->child;
++	resource_size_t start, end;
+ 
+-	new->start = root->start;
++	start = root->start;
+ 	/*
+ 	 * Skip past an allocated resource that starts at 0, since the assignment
+ 	 * of this->start - 1 to new->end below would cause an underflow.
+ 	 */
+ 	if (this && this->start == 0) {
+-		new->start = this->end + 1;
++		start = this->end + 1;
+ 		this = this->sibling;
  	}
- 
- 	return ret;
-@@ -1068,8 +1070,9 @@ static long do_splice_from(struct pipe_i
- 	if (unlikely(ret < 0))
- 		return ret;
- 
--	splice_write = out->f_op->splice_write;
--	if (!splice_write)
-+	if (out->f_op && out->f_op->splice_write)
-+		splice_write = out->f_op->splice_write;
-+	else
- 		splice_write = default_file_splice_write;
- 
- 	return splice_write(pipe, out, ppos, len, flags);
-@@ -1093,8 +1096,9 @@ static long do_splice_to(struct file *in
- 	if (unlikely(ret < 0))
- 		return ret;
- 
--	splice_read = in->f_op->splice_read;
--	if (!splice_read)
-+	if (in->f_op && in->f_op->splice_read)
-+		splice_read = in->f_op->splice_read;
-+	else
- 		splice_read = default_file_splice_read;
- 
- 	return splice_read(in, ppos, pipe, len, flags);
-@@ -1316,7 +1320,8 @@ static long do_splice(struct file *in, l
- 		if (off_in)
- 			return -ESPIPE;
- 		if (off_out) {
--			if (out->f_op->llseek == no_llseek)
-+			if (!out->f_op || !out->f_op->llseek ||
-+			    out->f_op->llseek == no_llseek)
- 				return -EINVAL;
- 			if (copy_from_user(&offset, off_out, sizeof(loff_t)))
- 				return -EFAULT;
-@@ -1336,7 +1341,8 @@ static long do_splice(struct file *in, l
- 		if (off_out)
- 			return -ESPIPE;
- 		if (off_in) {
--			if (in->f_op->llseek == no_llseek)
-+			if (!in->f_op || !in->f_op->llseek ||
-+			    in->f_op->llseek == no_llseek)
- 				return -EINVAL;
- 			if (copy_from_user(&offset, off_in, sizeof(loff_t)))
- 				return -EFAULT;
+ 	for(;;) {
+ 		if (this)
+-			new->end = this->start - 1;
++			end = this->start - 1;
+ 		else
+-			new->end = root->end;
+-		if (new->start < min)
+-			new->start = min;
+-		if (new->end > max)
+-			new->end = max;
+-		new->start = ALIGN(new->start, align);
++			end = root->end;
++		if (start < min)
++			start = min;
++		if (end > max)
++			end = max;
++		start = ALIGN(start, align);
+ 		if (alignf)
+ 			alignf(alignf_data, new, size, align);
+-		if (new->start < new->end && new->end - new->start >= size - 1) {
+-			new->end = new->start + size - 1;
++		if (start < end && end - start >= size - 1) {
++			new->start = start;
++			new->end = start + size - 1;
+ 			return 0;
+ 		}
+ 		if (!this)
+ 			break;
+-		new->start = this->end + 1;
++		start = this->end + 1;
+ 		this = this->sibling;
+ 	}
+ 	return -EBUSY;
 _
 
-Patches currently in -mm which might be from xiaosuo@gmail.com are
+Patches currently in -mm which might be from bjorn.helgaas@hp.com are
 
 linux-next.patch
+acpi-reintroduce-acpi_device_ops-shutdown-method.patch
+kallsyms-remove-deprecated-print_fn_descriptor_symbol.patch
 
