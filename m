@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch added to -mm tree
-Date: Mon, 09 Nov 2009 13:52:35 -0800
-Message-ID: <200911092152.nA9LqZT0008517@imap1.linux-foundation.org>
+Subject: + make-debug_bugverbose-default-to-y.patch added to -mm tree
+Date: Mon, 09 Nov 2009 14:22:50 -0800
+Message-ID: <200911092222.nA9MMoIw015241@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38597 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47431 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751682AbZKIVwn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2009 16:52:43 -0500
+	by vger.kernel.org with ESMTP id S1754064AbZKIWXD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2009 17:23:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, h-shimamoto@ct.jp.nec.com, joe@perches.com, mingo@elte.hu, nooiwa@miraclelinux.com
+Cc: adobriyan@gmail.com, mingo@elte.hu, sam@ravnborg.org
 
 
 The patch titled
-     kernelh-add-printk_ratelimited-and-pr_level_rl-rename
+     Make DEBUG_BUGVERBOSE default to y
 has been added to the -mm tree.  Its filename is
-     kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
+     make-debug_bugverbose-default-to-y.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,116 +33,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernelh-add-printk_ratelimited-and-pr_level_rl-rename
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Make DEBUG_BUGVERBOSE default to y
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-s/_rl/_ratelimited/g
+It's easy to lose useful DEBUG_BUGVERBOSE by switching EMBEDDED left and right.
 
-Cc: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Joe Perches <joe@perches.com>
-Cc: Naohiro Ooiwa <nooiwa@miraclelinux.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN include/linux/kernel.h~kernelh-add-printk_ratelimited-and-pr_level_rl-rename include/linux/kernel.h
---- a/include/linux/kernel.h~kernelh-add-printk_ratelimited-and-pr_level_rl-rename
-+++ a/include/linux/kernel.h
-@@ -423,27 +423,27 @@ static inline char *pack_hex_byte(char *
- #define printk_ratelimited printk
- #endif
- 
--#define pr_emerg_rl(fmt, ...) \
-+#define pr_emerg_ratelimited(fmt, ...) \
- 	printk_ratelimited(KERN_EMERG pr_fmt(fmt), ##__VA_ARGS__)
--#define pr_alert_rl(fmt, ...) \
-+#define pr_alert_ratelimited(fmt, ...) \
- 	printk_ratelimited(KERN_ALERT pr_fmt(fmt), ##__VA_ARGS__)
--#define pr_crit_rl(fmt, ...) \
-+#define pr_crit_ratelimited(fmt, ...) \
- 	printk_ratelimited(KERN_CRIT pr_fmt(fmt), ##__VA_ARGS__)
--#define pr_err_rl(fmt, ...) \
-+#define pr_err_ratelimited(fmt, ...) \
- 	printk_ratelimited(KERN_ERR pr_fmt(fmt), ##__VA_ARGS__)
--#define pr_warning_rl(fmt, ...) \
-+#define pr_warning_ratelimited(fmt, ...) \
- 	printk_ratelimited(KERN_WARNING pr_fmt(fmt), ##__VA_ARGS__)
--#define pr_notice_rl(fmt, ...) \
-+#define pr_notice_ratelimited(fmt, ...) \
- 	printk_ratelimited(KERN_NOTICE pr_fmt(fmt), ##__VA_ARGS__)
--#define pr_info_rl(fmt, ...) \
-+#define pr_info_ratelimited(fmt, ...) \
- 	printk_ratelimited(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
--/* no pr_cont_rl, don't do that... */
-+/* no pr_cont_ratelimited, don't do that... */
- /* If you are writing a driver, please use dev_dbg instead */
- #if defined(DEBUG)
--#define pr_debug_rl(fmt, ...) \
-+#define pr_debug_ratelimited(fmt, ...) \
- 	printk_ratelimited(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
- #else
--#define pr_debug_rl(fmt, ...) \
-+#define pr_debug_ratelimited(fmt, ...) \
- 	({ if (0) printk_ratelimited(KERN_DEBUG pr_fmt(fmt), \
- 				     ##__VA_ARGS__); 0; })
- #endif
+diff -puN lib/Kconfig.debug~make-debug_bugverbose-default-to-y lib/Kconfig.debug
+--- a/lib/Kconfig.debug~make-debug_bugverbose-default-to-y
++++ a/lib/Kconfig.debug
+@@ -588,7 +588,7 @@ config DEBUG_BUGVERBOSE
+ 	depends on BUG
+ 	depends on ARM || AVR32 || M32R || M68K || SPARC32 || SPARC64 || \
+ 		   FRV || SUPERH || GENERIC_BUG || BLACKFIN || MN10300
+-	default !EMBEDDED
++	default y
+ 	help
+ 	  Say Y here to make BUG() panics output the file name and line number
+ 	  of the BUG call as well as the EIP and oops trace.  This aids
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
 origin.patch
-alpha-move-thread_size-definition-outside-ifndef-assembly.patch
+uml-irq-register-race-condition.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
-drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices-fix.patch
-acpi-remove-nid_inval-checkpatch-fixes.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-include-trace-events-lockdeph-fix-do_div-warning.patch
-st-fix-test-of-value-range-in-st_set_options.patch
-scsi-add-hpsa-driver-for-hp-smart-array-controllers-fix.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-readahead-add-blk_run_backing_dev.patch
-mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
-drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
-rwsem-fix-rwsem_is_locked-bugs-fix.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
-errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
-msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes.patch
-hwmon-w83627ehf-updates-checkpatch-fixes.patch
-spi-controller-driver-for-designware-spi-core-fix.patch
-spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
-ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
-memcg-coalesce-charging-via-percpu-storage-fix.patch
-aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-reiser4-disable.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+genirq-switch-proc-irq-spurious-to-seq_file.patch
+const-constify-remaining-dev_pm_ops.patch
+make-debug_bugverbose-default-to-y.patch
+proc-rename-de_get-to-pde_get-and-inline-it.patch
+const-constify-remaining-pipe_buf_operations.patch
+ufs-pass-qstr-instead-of-dentry-where-necessary-for-nfs.patch
+ufs-nfs-support.patch
+reiserfs-remove-proc-fs-reiserfs-version.patch
+reiserfs-dont-compile-procfso-at-all-if-no-support.patch
 
