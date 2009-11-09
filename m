@@ -1,87 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pci-populate-subsystem-vendor-and-device-ids-for-pci-bridges.patch removed from -mm tree
-Date: Mon, 09 Nov 2009 11:55:33 -0800
-Message-ID: <200911091955.nA9JtXfm024155@imap1.linux-foundation.org>
+Subject: [merged] drivers-acpi-move-dereference-after-null-test.patch removed from -mm tree
+Date: Mon, 09 Nov 2009 11:54:58 -0800
+Message-ID: <200911091954.nA9Jsw7A022845@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34940 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53861 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752863AbZKITzb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2009 14:55:31 -0500
+	by vger.kernel.org with ESMTP id S1753934AbZKITzV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2009 14:55:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gabe.black@ni.com, jbarnes@virtuousgeek.org, mike.hoogendyk@ni.com, shawn.bohrer@ni.com, mm-commits@vger.kernel.org
+To: julia@diku.dk, lenb@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pci: populate subsystem vendor and device IDs for PCI-Bridges
+     drivers/acpi: Move dereference after NULL test
 has been removed from the -mm tree.  Its filename was
-     pci-populate-subsystem-vendor-and-device-ids-for-pci-bridges.patch
+     drivers-acpi-move-dereference-after-null-test.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci: populate subsystem vendor and device IDs for PCI-Bridges
-From: Gabe Black <gabe.black@ni.com>
+Subject: drivers/acpi: Move dereference after NULL test
+From: Julia Lawall <julia@diku.dk>
 
-Populate the subsystem vendor and subsytem device IDs for PCI-PCI bridges
-that implement the PCI Subsystem Vendor ID capability.  Previously bridges
-left subsystem vendor IDs unpopulated.
+If the NULL test on pr is needed, then the dereference should be after the
+NULL test.
 
-Signed-off-by: Gabe Black <gabe.black@ni.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: <shawn.bohrer@ni.com>
-Cc: <mike.hoogendyk@ni.com>
+A simplified version of the semantic match that detects this problem is as
+follows (http://coccinelle.lip6.fr/):
+
+// <smpl>
+@match exists@
+expression x, E;
+identifier fld;
+@@
+
+* x->fld
+  ... when != \(x = E\|&x\)
+* x == NULL
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/probe.c      |    6 ++++++
- include/linux/pci_regs.h |    5 +++++
- 2 files changed, 11 insertions(+)
+ drivers/acpi/processor_throttling.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/pci/probe.c~pci-populate-subsystem-vendor-and-device-ids-for-pci-bridges drivers/pci/probe.c
---- a/drivers/pci/probe.c~pci-populate-subsystem-vendor-and-device-ids-for-pci-bridges
-+++ a/drivers/pci/probe.c
-@@ -731,6 +731,7 @@ int pci_setup_device(struct pci_dev *dev
- 	u32 class;
- 	u8 hdr_type;
- 	struct pci_slot *slot;
-+	int pos = 0;
+diff -puN drivers/acpi/processor_throttling.c~drivers-acpi-move-dereference-after-null-test drivers/acpi/processor_throttling.c
+--- a/drivers/acpi/processor_throttling.c~drivers-acpi-move-dereference-after-null-test
++++ a/drivers/acpi/processor_throttling.c
+@@ -1133,15 +1133,15 @@ int acpi_processor_get_throttling_info(s
+ 	int result = 0;
+ 	struct acpi_processor_throttling *pthrottling;
  
- 	if (pci_read_config_byte(dev, PCI_HEADER_TYPE, &hdr_type))
- 		return -EIO;
-@@ -822,6 +823,11 @@ int pci_setup_device(struct pci_dev *dev
- 		dev->transparent = ((dev->class & 0xff) == 1);
- 		pci_read_bases(dev, 2, PCI_ROM_ADDRESS1);
- 		set_pcie_hotplug_bridge(dev);
-+		pos = pci_find_capability(dev, PCI_CAP_ID_SSVID);
-+		if (pos) {
-+			pci_read_config_word(dev, pos + PCI_SSVID_VENDOR_ID, &dev->subsystem_vendor);
-+			pci_read_config_word(dev, pos + PCI_SSVID_DEVICE_ID, &dev->subsystem_device);
-+		}
- 		break;
- 
- 	case PCI_HEADER_TYPE_CARDBUS:		    /* CardBus bridge header */
-diff -puN include/linux/pci_regs.h~pci-populate-subsystem-vendor-and-device-ids-for-pci-bridges include/linux/pci_regs.h
---- a/include/linux/pci_regs.h~pci-populate-subsystem-vendor-and-device-ids-for-pci-bridges
-+++ a/include/linux/pci_regs.h
-@@ -365,6 +365,11 @@
- #define  PCI_X_STATUS_266MHZ	0x40000000	/* 266 MHz capable */
- #define  PCI_X_STATUS_533MHZ	0x80000000	/* 533 MHz capable */
- 
-+/* PCI Bridge Subsystem ID registers */
++	if (!pr)
++		return -EINVAL;
 +
-+#define PCI_SSVID_VENDOR_ID     4	/* PCI-Bridge subsystem vendor id register */
-+#define PCI_SSVID_DEVICE_ID     6	/* PCI-Bridge subsystem device id register */
-+
- /* PCI Express capability registers */
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 			  "pblk_address[0x%08x] duty_offset[%d] duty_width[%d]\n",
+ 			  pr->throttling.address,
+ 			  pr->throttling.duty_offset,
+ 			  pr->throttling.duty_width));
  
- #define PCI_EXP_FLAGS		2	/* Capabilities register */
-_
-
-Patches currently in -mm which might be from gabe.black@ni.com are
-
-linux-next.patch
-
+-	if (!pr)
+-		return -EINVAL;
