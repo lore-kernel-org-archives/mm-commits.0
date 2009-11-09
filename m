@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + make-debug_bugverbose-default-to-y.patch added to -mm tree
-Date: Mon, 09 Nov 2009 14:22:50 -0800
-Message-ID: <200911092222.nA9MMoIw015241@imap1.linux-foundation.org>
+Subject: + mmci-omap-free-irq-resource.patch added to -mm tree
+Date: Mon, 09 Nov 2009 14:28:10 -0800
+Message-ID: <200911092228.nA9MSA1m027766@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47431 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40965 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754064AbZKIWXD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2009 17:23:03 -0500
+	by vger.kernel.org with ESMTP id S1751185AbZKIW2O (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2009 17:28:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com, mingo@elte.hu, sam@ravnborg.org
+Cc: ladis@linux-mips.org, linux-mmc@vger.kernel.org, tony@atomide.com
 
 
 The patch titled
-     Make DEBUG_BUGVERBOSE default to y
+     mmci-omap: free irq resource
 has been added to the -mm tree.  Its filename is
-     make-debug_bugverbose-default-to-y.patch
+     mmci-omap-free-irq-resource.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,44 +33,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Make DEBUG_BUGVERBOSE default to y
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: mmci-omap: free irq resource
+From: Ladislav Michl <ladis@linux-mips.org>
 
-It's easy to lose useful DEBUG_BUGVERBOSE by switching EMBEDDED left and right.
+Free IRQ on remove.
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
+Acked-by: Tony Lindgren <tony@atomide.com>
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN lib/Kconfig.debug~make-debug_bugverbose-default-to-y lib/Kconfig.debug
---- a/lib/Kconfig.debug~make-debug_bugverbose-default-to-y
-+++ a/lib/Kconfig.debug
-@@ -588,7 +588,7 @@ config DEBUG_BUGVERBOSE
- 	depends on BUG
- 	depends on ARM || AVR32 || M32R || M68K || SPARC32 || SPARC64 || \
- 		   FRV || SUPERH || GENERIC_BUG || BLACKFIN || MN10300
--	default !EMBEDDED
-+	default y
- 	help
- 	  Say Y here to make BUG() panics output the file name and line number
- 	  of the BUG call as well as the EIP and oops trace.  This aids
+diff -puN drivers/mmc/host/omap.c~mmci-omap-free-irq-resource drivers/mmc/host/omap.c
+--- a/drivers/mmc/host/omap.c~mmci-omap-free-irq-resource
++++ a/drivers/mmc/host/omap.c
+@@ -1529,6 +1529,7 @@ static int mmc_omap_remove(struct platfo
+ 		host->pdata->cleanup(&pdev->dev);
+ 
+ 	mmc_omap_fclk_enable(host, 0);
++	free_irq(host->irq, host);
+ 	clk_put(host->fclk);
+ 	clk_disable(host->iclk);
+ 	clk_put(host->iclk);
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from ladis@linux-mips.org are
 
-origin.patch
-uml-irq-register-race-condition.patch
+mmci-omap-free-irq-resource.patch
 linux-next.patch
-genirq-switch-proc-irq-spurious-to-seq_file.patch
-const-constify-remaining-dev_pm_ops.patch
-make-debug_bugverbose-default-to-y.patch
-proc-rename-de_get-to-pde_get-and-inline-it.patch
-const-constify-remaining-pipe_buf_operations.patch
-ufs-pass-qstr-instead-of-dentry-where-necessary-for-nfs.patch
-ufs-nfs-support.patch
-reiserfs-remove-proc-fs-reiserfs-version.patch
-reiserfs-dont-compile-procfso-at-all-if-no-support.patch
 
