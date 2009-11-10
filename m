@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-serial-remove-baud_table_size-macro.patch added to -mm tree
-Date: Tue, 10 Nov 2009 15:49:59 -0800
-Message-ID: <200911102349.nAANnxQi019287@imap1.linux-foundation.org>
+Subject: + page-types-whitespace-alignment.patch added to -mm tree
+Date: Tue, 10 Nov 2009 15:54:30 -0800
+Message-ID: <200911102354.nAANsUAD029841@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34242 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60130 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754373AbZKJXuE (ORCPT
+	by vger.kernel.org with ESMTP id S1757186AbZKJXy2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Nov 2009 18:50:04 -0500
+	Tue, 10 Nov 2009 18:54:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tfransosi@gmail.com, alan@lxorguk.ukuu.org.uk
+Cc: achiang@hp.com, fengguang.wu@intel.com
 
 
 The patch titled
-     drivers/serial/68328serial.c: remove BAUD_TABLE_SIZE macro
+     page-types: whitespace alignment
 has been added to the -mm tree.  Its filename is
-     drivers-serial-remove-baud_table_size-macro.patch
+     page-types-whitespace-alignment.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,62 +34,85 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/serial/68328serial.c: remove BAUD_TABLE_SIZE macro
-From: Thiago Farina <tfransosi@gmail.com>
+Subject: page-types: whitespace alignment
+From: Alex Chiang <achiang@hp.com>
 
-This macro is a duplicate of ARRAY_SIZE defined in kernel api, so just use
-that instead.
+Align the output when page-type -h is invoked.
 
-Signed-off-by: Thiago Farina <tfransosi@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Alex Chiang <achiang@hp.com>
+Acked-by: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/serial/68328serial.c~drivers-serial-remove-baud_table_size-macro drivers/serial/68328serial.c
---- a/drivers/serial/68328serial.c~drivers-serial-remove-baud_table_size-macro
-+++ a/drivers/serial/68328serial.c
-@@ -153,8 +153,6 @@ static int baud_table[] = {
- 	0, 50, 75, 110, 134, 150, 200, 300, 600, 1200, 1800, 2400, 4800,
- 	9600, 19200, 38400, 57600, 115200, 0 };
+diff -puN Documentation/vm/page-types.c~page-types-whitespace-alignment Documentation/vm/page-types.c
+--- a/Documentation/vm/page-types.c~page-types-whitespace-alignment
++++ a/Documentation/vm/page-types.c
+@@ -673,35 +673,35 @@ static void usage(void)
  
--#define BAUD_TABLE_SIZE (sizeof(baud_table)/sizeof(baud_table[0]))
--
- /* Sets or clears DTR/RTS on the requested line */
- static inline void m68k_rtsdtr(struct m68k_serial *ss, int set)
- {
-@@ -1406,15 +1404,15 @@ static void m68328_set_baud(void)
- 	USTCNT = ustcnt & ~USTCNT_TXEN;
+ 	printf(
+ "page-types [options]\n"
+-"            -r|--raw                  Raw mode, for kernel developers\n"
++"            -r|--raw                   Raw mode, for kernel developers\n"
+ "            -d|--describe flags        Describe flags\n"
+-"            -a|--addr    addr-spec    Walk a range of pages\n"
+-"            -b|--bits    bits-spec    Walk pages with specified bits\n"
+-"            -p|--pid     pid          Walk process address space\n"
++"            -a|--addr    addr-spec     Walk a range of pages\n"
++"            -b|--bits    bits-spec     Walk pages with specified bits\n"
++"            -p|--pid     pid           Walk process address space\n"
+ #if 0 /* planned features */
+-"            -f|--file    filename     Walk file address space\n"
++"            -f|--file    filename      Walk file address space\n"
+ #endif
+-"            -l|--list                 Show page details in ranges\n"
+-"            -L|--list-each            Show page details one by one\n"
+-"            -N|--no-summary           Don't show summary info\n"
+-"            -X|--hwpoison             hwpoison pages\n"
+-"            -x|--unpoison             unpoison pages\n"
+-"            -h|--help                 Show this usage message\n"
++"            -l|--list                  Show page details in ranges\n"
++"            -L|--list-each             Show page details one by one\n"
++"            -N|--no-summary            Don't show summary info\n"
++"            -X|--hwpoison              hwpoison pages\n"
++"            -x|--unpoison              unpoison pages\n"
++"            -h|--help                  Show this usage message\n"
+ "flags:\n"
+-"            0x10                      bitfield format, e.g.\n"
+-"            anon                      bit-name, e.g.\n"
+-"            0x10,anon                 comma-separated list, e.g.\n"
++"            0x10                       bitfield format, e.g.\n"
++"            anon                       bit-name, e.g.\n"
++"            0x10,anon                  comma-separated list, e.g.\n"
+ "addr-spec:\n"
+-"            N                         one page at offset N (unit: pages)\n"
+-"            N+M                       pages range from N to N+M-1\n"
+-"            N,M                       pages range from N to M-1\n"
+-"            N,                        pages range from N to end\n"
+-"            ,M                        pages range from 0 to M-1\n"
++"            N                          one page at offset N (unit: pages)\n"
++"            N+M                        pages range from N to N+M-1\n"
++"            N,M                        pages range from N to M-1\n"
++"            N,                         pages range from N to end\n"
++"            ,M                         pages range from 0 to M-1\n"
+ "bits-spec:\n"
+-"            bit1,bit2                 (flags & (bit1|bit2)) != 0\n"
+-"            bit1,bit2=bit1            (flags & (bit1|bit2)) == bit1\n"
+-"            bit1,~bit2                (flags & (bit1|bit2)) == bit1\n"
+-"            =bit1,bit2                flags == (bit1|bit2)\n"
++"            bit1,bit2                  (flags & (bit1|bit2)) != 0\n"
++"            bit1,bit2=bit1             (flags & (bit1|bit2)) == bit1\n"
++"            bit1,~bit2                 (flags & (bit1|bit2)) == bit1\n"
++"            =bit1,bit2                 flags == (bit1|bit2)\n"
+ "bit-names:\n"
+ 	);
  
- again:
--	for (i = 0; i < sizeof(baud_table) / sizeof(baud_table[0]); i++)
-+	for (i = 0; i < ARRAY_SIZE(baud_table); i++)
- 		if (baud_table[i] == m68328_console_baud)
- 			break;
--	if (i >= sizeof(baud_table) / sizeof(baud_table[0])) {
-+	if (i >= ARRAY_SIZE(baud_table)) {
- 		m68328_console_baud = 9600;
- 		goto again;
- 	}
- 
--	UBAUD = PUT_FIELD(UBAUD_DIVIDE,    hw_baud_table[i].divisor) | 
-+	UBAUD = PUT_FIELD(UBAUD_DIVIDE,    hw_baud_table[i].divisor) |
- 		PUT_FIELD(UBAUD_PRESCALER, hw_baud_table[i].prescale);
- 	ustcnt &= ~(USTCNT_PARITYEN | USTCNT_ODD_EVEN | USTCNT_STOP | USTCNT_8_7);
- 	ustcnt |= USTCNT_8_7;
-@@ -1435,7 +1433,7 @@ int m68328_console_setup(struct console 
- 	if (arg)
- 		n = simple_strtoul(arg,NULL,0);
- 
--	for (i = 0; i < BAUD_TABLE_SIZE; i++)
-+	for (i = 0; i < ARRAY_SIZE(baud_table); i++)
- 		if (baud_table[i] == n)
- 			break;
- 	if (i < BAUD_TABLE_SIZE) {
 _
 
-Patches currently in -mm which might be from tfransosi@gmail.com are
+Patches currently in -mm which might be from achiang@hp.com are
 
 linux-next.patch
-drivers-serial-remove-baud_table_size-macro.patch
+page-types-learn-to-describe-flags-directly-from-command-line.patch
+page-types-whitespace-alignment.patch
+page-types-exit-early-when-invoked-with-d-describe.patch
 
