@@ -1,235 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] prctl-add-pr_set_proctitle_area-option.patch removed from -mm tree
-Date: Tue, 10 Nov 2009 10:44:23 -0800
-Message-ID: <200911101844.nAAIiOXN010743__27719.2770540298$1257878702$gmane$org@imap1.linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Tue, 10 Nov 2009 11:23:15 -0800
+Message-ID: <200911101923.nAAJNFYi005231@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56178 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60883 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754054AbZKJSon (ORCPT
+	by vger.kernel.org with ESMTP id S1757591AbZKJTXO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Nov 2009 13:44:43 -0500
+	Tue, 10 Nov 2009 14:23:14 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id nAAJNIsY024139
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 10 Nov 2009 11:23:19 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tss@iki.fi, bdonlan@gmail.com, drepper@redhat.com, kosaki.motohiro@jp.fujitsu.com, linux-api@vger.kernel.org, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     prctl(): add PR_SET_PROCTITLE_AREA option
+     linux-next-git-rejects
 has been removed from the -mm tree.  Its filename was
-     prctl-add-pr_set_proctitle_area-option.patch
+     linux-next-git-rejects.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: prctl(): add PR_SET_PROCTITLE_AREA option
-From: Timo Sirainen <tss@iki.fi>
+Subject: linux-next-git-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Currently glibc2 doesn't have setproctitle(3), so several userland daemons
-attempt to emulate it by doing some brutal stack modifications.  This
-works most of the time, but it has problems.  For example:
-
- % ps -ef |grep avahi-daemon
- avahi     1679     1  0 09:20 ?        00:00:00 avahi-daemon: running [kosadesk.local]
-
- # cat /proc/1679/cmdline
- avahi-daemon: running [kosadesk.local]
-
-This looks good, but the process has also overwritten its environment
-area and made the environ file useless:
-
- # cat /proc/1679/environ
- adesk.local]
-
-Another problem is that the process title length is limited by the size of
-the environment.  Security conscious people try to avoid potential
-information leaks by clearing most of the environment before running a
-daemon:
-
- # env - MINIMUM_NEEDED_VAR=foo /path/to/daemon
-
-The resulting environment size may be too small to fit the wanted process
-titles.
-
-This patch makes it possible for userspace to implement setproctitle()
-cleanly.  It adds a new PR_SET_PROCTITLE_AREA option for prctl(), which
-updates task's mm_struct->arg_start and arg_end to the given area.
-
- test_setproctitle.c
- ================================================
- #include <string.h>
- #include <stdlib.h>
- #include <unistd.h>
- #include <stdio.h>
- #include <sys/prctl.h>
-
- #define ERR(str) (perror(str), exit(1))
-
- void settitle(char* title){
-         int err;
-
-         err = prctl(34, title, strlen(title)+1);
-         if (err < 0)
-                 ERR("prctl ");
- }
-
- void main(void){
-         long i;
-         char buf[1024];
-
-         for (i = 0; i < 10000000000LL; i++){
-                 sprintf(buf, "loooooooooooooooooooooooong string %d",i);
-                 settitle(buf);
-         }
- }
- ==================================================
-
-Cc: Bryan Donlan <bdonlan@gmail.com>
-Cc: Ulrich Drepper <drepper@redhat.com>
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Signed-off-by: Timo Sirainen <tss@iki.fi>
-Reviewed-by: WANG Cong <xiyou.wangcong@gmail.com>
-Cc: <linux-api@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ include/linux/i2c.h |    8 --------
+ 1 file changed, 8 deletions(-)
 
-diff -puN fs/proc/base.c~prctl-add-pr_set_proctitle_area-option fs/proc/base.c
---- a/fs/proc/base.c~prctl-add-pr_set_proctitle_area-option
-+++ a/fs/proc/base.c
-@@ -257,32 +257,45 @@ static int proc_pid_cmdline(struct task_
- 	int res = 0;
- 	unsigned int len;
- 	struct mm_struct *mm = get_task_mm(task);
-+
- 	if (!mm)
- 		goto out;
-+
-+	/* The process was not constructed yet? */
- 	if (!mm->arg_end)
- 		goto out_mm;	/* Shh! No looking before we're done */
+diff -puN include/linux/i2c.h~linux-next-git-rejects include/linux/i2c.h
+--- a/include/linux/i2c.h~linux-next-git-rejects
++++ a/include/linux/i2c.h
+@@ -366,11 +366,7 @@ static inline void i2c_set_adapdata(stru
+  */
+ static inline void i2c_lock_adapter(struct i2c_adapter *adapter)
+ {
+-<<<<<<< HEAD:include/linux/i2c.h
+-	mutex_lock(&adapter->bus_lock);
+-=======
+ 	rt_mutex_lock(&adapter->bus_lock);
+->>>>>>> FETCH_HEAD:include/linux/i2c.h
+ }
  
-- 	len = mm->arg_end - mm->arg_start;
-- 
-+	mutex_lock(&mm->arg_lock);
-+	len = mm->arg_end - mm->arg_start;
- 	if (len > PAGE_SIZE)
- 		len = PAGE_SIZE;
-- 
-+
- 	res = access_process_vm(task, mm->arg_start, buffer, len, 0);
-+	if (mm->arg_end != mm->env_start)
-+		/* prctl(PR_SET_PROCTITLE_AREA) used */
-+		goto out_unlock;
+ /**
+@@ -379,11 +375,7 @@ static inline void i2c_lock_adapter(stru
+  */
+ static inline void i2c_unlock_adapter(struct i2c_adapter *adapter)
+ {
+-<<<<<<< HEAD:include/linux/i2c.h
+-	mutex_unlock(&adapter->bus_lock);
+-=======
+ 	rt_mutex_unlock(&adapter->bus_lock);
+->>>>>>> FETCH_HEAD:include/linux/i2c.h
+ }
  
--	// If the nul at the end of args has been overwritten, then
--	// assume application is using setproctitle(3).
-+	/*
-+	 * If the nul at the end of args has been overwritten, then assume
-+	 * application is using sendmail's SPT_REUSEARGV style argv override.
-+	 */
- 	if (res > 0 && buffer[res-1] != '\0' && len < PAGE_SIZE) {
- 		len = strnlen(buffer, res);
--		if (len < res) {
--		    res = len;
--		} else {
-+		if (len < res)
-+			res = len;
-+		else {
- 			len = mm->env_end - mm->env_start;
- 			if (len > PAGE_SIZE - res)
- 				len = PAGE_SIZE - res;
--			res += access_process_vm(task, mm->env_start, buffer+res, len, 0);
-+			res += access_process_vm(task, mm->env_start,
-+						 buffer+res, len, 0);
- 			res = strnlen(buffer, res);
- 		}
- 	}
-+
-+out_unlock:
-+	mutex_unlock(&mm->arg_lock);
-+
- out_mm:
- 	mmput(mm);
- out:
-diff -puN include/linux/mm_types.h~prctl-add-pr_set_proctitle_area-option include/linux/mm_types.h
---- a/include/linux/mm_types.h~prctl-add-pr_set_proctitle_area-option
-+++ a/include/linux/mm_types.h
-@@ -12,6 +12,7 @@
- #include <linux/completion.h>
- #include <linux/cpumask.h>
- #include <linux/page-debug-flags.h>
-+#include <linux/mutex.h>
- #include <asm/page.h>
- #include <asm/mmu.h>
- 
-@@ -236,6 +237,7 @@ struct mm_struct {
- 	unsigned long stack_vm, reserved_vm, def_flags, nr_ptes;
- 	unsigned long start_code, end_code, start_data, end_data;
- 	unsigned long start_brk, brk, start_stack;
-+	struct mutex arg_lock;
- 	unsigned long arg_start, arg_end, env_start, env_end;
- 
- 	unsigned long saved_auxv[AT_VECTOR_SIZE]; /* for /proc/PID/auxv */
-diff -puN include/linux/prctl.h~prctl-add-pr_set_proctitle_area-option include/linux/prctl.h
---- a/include/linux/prctl.h~prctl-add-pr_set_proctitle_area-option
-+++ a/include/linux/prctl.h
-@@ -102,4 +102,7 @@
- 
- #define PR_MCE_KILL_GET 34
- 
-+/* Set process title memory area for setproctitle() */
-+#define PR_SET_PROCTITLE_AREA 34
-+
- #endif /* _LINUX_PRCTL_H */
-diff -puN kernel/fork.c~prctl-add-pr_set_proctitle_area-option kernel/fork.c
---- a/kernel/fork.c~prctl-add-pr_set_proctitle_area-option
-+++ a/kernel/fork.c
-@@ -459,6 +459,7 @@ static struct mm_struct * mm_init(struct
- 	mm->cached_hole_size = ~0UL;
- 	mm_init_aio(mm);
- 	mm_init_owner(mm, p);
-+	mutex_init(&mm->arg_lock);
- 
- 	if (likely(!mm_alloc_pgd(mm))) {
- 		mm->def_flags = 0;
-diff -puN kernel/sys.c~prctl-add-pr_set_proctitle_area-option kernel/sys.c
---- a/kernel/sys.c~prctl-add-pr_set_proctitle_area-option
-+++ a/kernel/sys.c
-@@ -1424,6 +1424,28 @@ static void k_getrusage(struct task_stru
- 			} while (t != p);
- 			break;
- 
-+		case PR_SET_PROCTITLE_AREA: {
-+			struct mm_struct *mm = current->mm;
-+			unsigned long addr = arg2;
-+			unsigned long len = arg3;
-+			unsigned long end = arg2 + arg3;
-+
-+			if (len > PAGE_SIZE)
-+				return -EINVAL;
-+
-+			if (addr >= end)
-+				return -EINVAL;
-+
-+			if (!access_ok(VERIFY_READ, addr, len))
-+				return -EFAULT;
-+
-+			mutex_lock(&mm->arg_lock);
-+			mm->arg_start = addr;
-+			mm->arg_end = end;
-+			mutex_unlock(&mm->arg_lock);
-+
-+			return 0;
-+		}
- 		default:
- 			BUG();
- 	}
+ /*flags for the client struct: */
 _
 
-Patches currently in -mm which might be from tss@iki.fi are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-prctl-add-pr_set_proctitle_area-option.patch
+origin.patch
+alpha-move-thread_size-definition-outside-ifndef-assembly.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
+drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices-fix.patch
+acpi-remove-nid_inval-checkpatch-fixes.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+3x59x-fix-pci-resource-management.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+include-trace-events-lockdeph-fix-do_div-warning.patch
+st-fix-test-of-value-range-in-st_set_options.patch
+scsi-add-hpsa-driver-for-hp-smart-array-controllers-fix.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+fs-improve-remountro-vs-buffercache-coherency.patch
+percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+readahead-add-blk_run_backing_dev.patch
+mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
+drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
+rwsem-fix-rwsem_is_locked-bugs-fix.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
+errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
+msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes.patch
+hwmon-w83627ehf-updates-checkpatch-fixes.patch
+spi-controller-driver-for-designware-spi-core-fix.patch
+spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
+ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
+memcg-coalesce-charging-via-percpu-storage-fix.patch
+aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+reiser4-disable.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
