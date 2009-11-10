@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + drm-replace-drm_copy-macro-w-a-function.patch added to -mm tree
-Date: Tue, 10 Nov 2009 12:32:44 -0800
-Message-ID: <200911102032.nAAKWicv007066@imap1.linux-foundation.org>
+Subject: + drm-check-return-values-in-drm_version.patch added to -mm tree
+Date: Tue, 10 Nov 2009 12:32:48 -0800
+Message-ID: <200911102032.nAAKWmh7007197@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40473 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50265 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758082AbZKJUcu (ORCPT
+	by vger.kernel.org with ESMTP id S1758081AbZKJUcu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 10 Nov 2009 15:32:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: dilinger@collabora.co.uk, airlied@linux.ie
 
 
 The patch titled
-     drm: replace DRM_COPY macro w/ a function
+     drm: check return values in drm_version
 has been added to the -mm tree.  Its filename is
-     drm-replace-drm_copy-macro-w-a-function.patch
+     drm-check-return-values-in-drm_version.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drm: replace DRM_COPY macro w/ a function
+Subject: drm: check return values in drm_version
 From: Andres Salomon <dilinger@collabora.co.uk>
 
-Don't inline it; the compiler can figure it out.  Comments added that are
-based upon my interpretation of the code.  Hopefully they're correct. :)
+In drm_version, actually check the results from function calls so that
+we're not potentially passing garbage back to userspace.
 
 Signed-off-by: Andres Salomon <dilinger@collabora.co.uk>
 Cc: Dave Airlie <airlied@linux.ie>
@@ -46,61 +46,35 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/gpu/drm/drm_drv.c~drm-replace-drm_copy-macro-w-a-function drivers/gpu/drm/drm_drv.c
---- a/drivers/gpu/drm/drm_drv.c~drm-replace-drm_copy-macro-w-a-function
+diff -puN drivers/gpu/drm/drm_drv.c~drm-check-return-values-in-drm_version drivers/gpu/drm/drm_drv.c
+--- a/drivers/gpu/drm/drm_drv.c~drm-check-return-values-in-drm_version
 +++ a/drivers/gpu/drm/drm_drv.c
-@@ -368,14 +368,25 @@ module_exit(drm_core_exit);
- /**
-  * Copy and IOCTL return string to user space
-  */
--#define DRM_COPY(name, value)                                         \
--	len = strlen(value);                                          \
--	if (len > name##_len) len = name##_len;                       \
--	name##_len = strlen(value);                                   \
--	if (len && name) {                                            \
--		if (copy_to_user(name, value, len))                   \
--			return -EFAULT;                               \
--	}
-+static int drm_copy_field(char *buf, size_t *buf_len, const char *value)
-+{
-+	int len;
-+
-+	/* don't overflow userbuf */
-+	len = strlen(value);
-+	if (len > *buf_len)
-+		len = *buf_len;
-+
-+	/* let userspace know exact length of driver value (which could be
-+	 * larger than the userspace-supplied buffer) */
-+	*buf_len = strlen(value);
-+
-+	/* finally, try filling in the userbuf */
-+	if (len && buf)
-+		if (copy_to_user(buf, value, len))
-+			return -EFAULT;
-+	return 0;
-+}
- 
- /**
-  * Get version information
-@@ -392,14 +403,13 @@ static int drm_version(struct drm_device
+@@ -403,15 +403,21 @@ static int drm_version(struct drm_device
  		       struct drm_file *file_priv)
  {
  	struct drm_version *version = data;
--	int len;
++	int err;
  
  	version->version_major = dev->driver->major;
  	version->version_minor = dev->driver->minor;
  	version->version_patchlevel = dev->driver->patchlevel;
--	DRM_COPY(version->name, dev->driver->name);
--	DRM_COPY(version->date, dev->driver->date);
--	DRM_COPY(version->desc, dev->driver->desc);
-+	drm_copy_field(version->name, &version->name_len, dev->driver->name);
-+	drm_copy_field(version->date, &version->date_len, dev->driver->date);
-+	drm_copy_field(version->desc, &version->desc_len, dev->driver->desc);
+-	drm_copy_field(version->name, &version->name_len, dev->driver->name);
+-	drm_copy_field(version->date, &version->date_len, dev->driver->date);
+-	drm_copy_field(version->desc, &version->desc_len, dev->driver->desc);
++	err = drm_copy_field(version->name, &version->name_len,
++			dev->driver->name);
++	if (!err)
++		err = drm_copy_field(version->date, &version->date_len,
++				dev->driver->date);
++	if (!err)
++		err = drm_copy_field(version->desc, &version->desc_len,
++				dev->driver->desc);
  
- 	return 0;
+-	return 0;
++	return err;
  }
+ 
+ /**
 _
 
 Patches currently in -mm which might be from dilinger@collabora.co.uk are
