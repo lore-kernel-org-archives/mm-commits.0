@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-pcf50633-manage-rtc-alarm-pending-flag.patch added to -mm tree
-Date: Tue, 10 Nov 2009 14:52:38 -0800
-Message-ID: <200911102252.nAAMqc55013849@imap1.linux-foundation.org>
+Subject: + mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch added to -mm tree
+Date: Tue, 10 Nov 2009 15:11:50 -0800
+Message-ID: <200911102311.nAANBort026790@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52948 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40356 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751214AbZKJWw7 (ORCPT
+	by vger.kernel.org with ESMTP id S1758529AbZKJXMM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Nov 2009 17:52:59 -0500
+	Tue, 10 Nov 2009 18:12:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: werner@openmoko.org, a.zummo@towertech.it, balajirrao@openmoko.org, fercerpav@gmail.com, p_gortmaker@yahoo.com
+Cc: akpm@linux-foundation.org, agust@denx.de, krzysztof.h1@poczta.fm, valentin.sitdikov@siemens.com, virtuoso@slind.org
 
 
 The patch titled
-     rtc: pcf50633: manage RTC alarm "pending" flag
+     mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2
 has been added to the -mm tree.  Its filename is
-     rtc-pcf50633-manage-rtc-alarm-pending-flag.patch
+     mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,64 +34,87 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: pcf50633: manage RTC alarm "pending" flag
-From: Werner Almesberger <werner@openmoko.org>
+Subject: mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Add setting and clearing of the "pending" flag of the RTC alarm.  The
-semantics follow the UEFI specification 2.2 available at
-http://www.uefi.org/specs/, i.e., the "pending" flag is cleared by
-disabling the alarm, but not by any other condition (such as the passing
-of time, a successful wakeup, or setting of a new alarm.)
-
-Signed-off-by: Werner Almesberger <werner@openmoko.org>
-Signed-off-by: Paul Fertser <fercerpav@gmail.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Paul Gortmaker <p_gortmaker@yahoo.com>
-Cc: Balaji Rao <balajirrao@openmoko.org>
+Cc: Alexander Shishkin <virtuoso@slind.org>
+Cc: Anatolij Gustschin <agust@denx.de>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Cc: Valentin Sitdikov <valentin.sitdikov@siemens.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/rtc/rtc-pcf50633.c~rtc-pcf50633-manage-rtc-alarm-pending-flag drivers/rtc/rtc-pcf50633.c
---- a/drivers/rtc/rtc-pcf50633.c~rtc-pcf50633-manage-rtc-alarm-pending-flag
-+++ a/drivers/rtc/rtc-pcf50633.c
-@@ -58,6 +58,7 @@ struct pcf50633_time {
- struct pcf50633_rtc {
- 	int alarm_enabled;
- 	int second_enabled;
-+	int alarm_pending;
- 
- 	struct pcf50633 *pcf;
- 	struct rtc_device *rtc_dev;
-@@ -209,6 +210,7 @@ static int pcf50633_rtc_read_alarm(struc
- 	rtc = dev_get_drvdata(dev);
- 
- 	alrm->enabled = rtc->alarm_enabled;
-+	alrm->pending = rtc->alarm_pending;
- 
- 	ret = pcf50633_read_block(rtc->pcf, PCF50633_REG_RTCSCA,
- 				PCF50633_TI_EXTENT, &pcf_tm.time[0]);
-@@ -244,6 +246,8 @@ static int pcf50633_rtc_set_alarm(struct
- 	/* Returns 0 on success */
- 	ret = pcf50633_write_block(rtc->pcf, PCF50633_REG_RTCSCA,
- 				PCF50633_TI_EXTENT, &pcf_tm.time[0]);
-+	if (!alrm->enabled)
-+		rtc->alarm_pending = 0;
- 
- 	if (!alarm_masked || alrm->enabled)
- 		pcf50633_irq_unmask(rtc->pcf, PCF50633_IRQ_ALARM);
-@@ -268,6 +272,7 @@ static void pcf50633_rtc_irq(int irq, vo
- 	switch (irq) {
- 	case PCF50633_IRQ_ALARM:
- 		rtc_update_irq(rtc->rtc_dev, 1, RTC_AF | RTC_IRQF);
-+		rtc->alarm_pending = 1;
- 		break;
- 	case PCF50633_IRQ_SECOND:
- 		rtc_update_irq(rtc->rtc_dev, 1, RTC_UF | RTC_IRQF);
+diff -puN drivers/video/mb862xx/mb862xxfb_accel.c~mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2 drivers/video/mb862xx/mb862xxfb_accel.c
+--- a/drivers/video/mb862xx/mb862xxfb_accel.c~mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2
++++ a/drivers/video/mb862xx/mb862xxfb_accel.c
+@@ -3,8 +3,8 @@
+  *
+  * Fujitsu Carmine/Coral-P(A)/Lime framebuffer driver acceleration support
+  *
+- * (C) 2007 Alexandr Shishkin <alexandr.shishkin@siemens.com>
+- * (C) 2009 Valentin Sitdikov <valentin.sitdikovt@siemens.com>
++ * (C) 2007 Alexander Shishkin <virtuoso@slind.org>
++ * (C) 2009 Valentin Sitdikov <valentin.sitdikov@siemens.com>
+  * (C) 2009 Siemens AG
+  *
+  * This program is free software; you can redistribute it and/or modify
 _
 
-Patches currently in -mm which might be from werner@openmoko.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-rtc-pcf50633-consider-alrm-enable-in-pcf50633_rtc_set_alarm.patch
-rtc-pcf50633-manage-rtc-alarm-pending-flag.patch
+origin.patch
+alpha-move-thread_size-definition-outside-ifndef-assembly.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
+drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices-fix.patch
+acpi-remove-nid_inval-checkpatch-fixes.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+3x59x-fix-pci-resource-management.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+include-trace-events-lockdeph-fix-do_div-warning.patch
+st-fix-test-of-value-range-in-st_set_options.patch
+scsi-add-hpsa-driver-for-hp-smart-array-controllers-fix.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+fs-improve-remountro-vs-buffercache-coherency.patch
+percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+readahead-add-blk_run_backing_dev.patch
+mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
+drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
+rwsem-fix-rwsem_is_locked-bugs-fix.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
+errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
+msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes.patch
+hwmon-w83627ehf-updates-checkpatch-fixes.patch
+spi-controller-driver-for-designware-spi-core-fix.patch
+spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
+ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
+memcg-coalesce-charging-via-percpu-storage-fix.patch
+aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
+direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+reiser4-disable.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
