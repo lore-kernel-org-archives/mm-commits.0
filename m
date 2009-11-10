@@ -1,34 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + prctl-add-pr_set_proctitle_area-option.patch added to -mm tree
-Date: Mon, 09 Nov 2009 16:50:45 -0800
-Message-ID: <200911100050.nAA0ojCk007497__30237.0657249869$1257814278$gmane$org@imap1.linux-foundation.org>
+Subject: [to-be-updated] prctl-add-pr_set_proctitle_area-option.patch removed from -mm tree
+Date: Tue, 10 Nov 2009 10:44:23 -0800
+Message-ID: <200911101844.nAAIiOXN010743__27719.2770540298$1257878702$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46534 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56178 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751016AbZKJAvA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2009 19:51:00 -0500
+	by vger.kernel.org with ESMTP id S1754054AbZKJSon (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Tue, 10 Nov 2009 13:44:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: tss@iki.fi, bdonlan@gmail.com, drepper@redhat.com, kosaki.motohiro@jp.fujitsu.com, linux-api@vger.kernel.org, xiyou.wangcong@gmail.com
+To: tss@iki.fi, bdonlan@gmail.com, drepper@redhat.com, kosaki.motohiro@jp.fujitsu.com, linux-api@vger.kernel.org, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      prctl(): add PR_SET_PROCTITLE_AREA option
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      prctl-add-pr_set_proctitle_area-option.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
