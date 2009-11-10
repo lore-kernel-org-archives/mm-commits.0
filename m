@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + lib-introduce-strim.patch added to -mm tree
-Date: Tue, 10 Nov 2009 12:31:09 -0800
-Message-ID: <200911102031.nAAKV9IK003241@imap1.linux-foundation.org>
+Subject: + drm-replace-drm_copy-macro-w-a-function.patch added to -mm tree
+Date: Tue, 10 Nov 2009 12:32:44 -0800
+Message-ID: <200911102032.nAAKWicv007066@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46834 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40473 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758065AbZKJUbU (ORCPT
+	by vger.kernel.org with ESMTP id S1758082AbZKJUcu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Nov 2009 15:31:20 -0500
+	Tue, 10 Nov 2009 15:32:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, James.Bottomley@HansenPartnership.com, alan@lxorguk.ukuu.org.uk
+Cc: dilinger@collabora.co.uk, airlied@linux.ie
 
 
 The patch titled
-     Subject: Re: [PATCH] strstrip incorrectly marked __must_check
+     drm: replace DRM_COPY macro w/ a function
 has been added to the -mm tree.  Its filename is
-     lib-introduce-strim.patch
+     drm-replace-drm_copy-macro-w-a-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,110 +34,83 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Subject: Re: [PATCH] strstrip incorrectly marked __must_check
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: drm: replace DRM_COPY macro w/ a function
+From: Andres Salomon <dilinger@collabora.co.uk>
 
-Recently, We marked strstrip() as must_check.  because it was frequently
-misused and it should be checked.  However, we found one exception. 
-scsi/ipr.c intentionally ignore return value of strstrip.  Because it
-wishes to keep the whitespace at the beginning.
+Don't inline it; the compiler can figure it out.  Comments added that are
+based upon my interpretation of the code.  Hopefully they're correct. :)
 
-Thus we need to keep with and without checked whitespace trim function. 
-This patch adds a new strim() and changes ipr.c to use it.
-
-Suggested-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Signed-off-by: Andres Salomon <dilinger@collabora.co.uk>
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/scsi/ipr.c~lib-introduce-strim drivers/scsi/ipr.c
---- a/drivers/scsi/ipr.c~lib-introduce-strim
-+++ a/drivers/scsi/ipr.c
-@@ -1333,7 +1333,7 @@ static void ipr_log_enhanced_dual_ioa_er
- 
- 	error = &hostrcb->hcam.u.error.u.type_17_error;
- 	error->failure_reason[sizeof(error->failure_reason) - 1] = '\0';
--	strstrip(error->failure_reason);
-+	strim(error->failure_reason);
- 
- 	ipr_hcam_err(hostrcb, "%s [PRC: %08X]\n", error->failure_reason,
- 		     be32_to_cpu(hostrcb->hcam.u.error.prc));
-@@ -1359,7 +1359,7 @@ static void ipr_log_dual_ioa_error(struc
- 
- 	error = &hostrcb->hcam.u.error.u.type_07_error;
- 	error->failure_reason[sizeof(error->failure_reason) - 1] = '\0';
--	strstrip(error->failure_reason);
-+	strim(error->failure_reason);
- 
- 	ipr_hcam_err(hostrcb, "%s [PRC: %08X]\n", error->failure_reason,
- 		     be32_to_cpu(hostrcb->hcam.u.error.prc));
-diff -puN include/linux/string.h~lib-introduce-strim include/linux/string.h
---- a/include/linux/string.h~lib-introduce-strim
-+++ a/include/linux/string.h
-@@ -62,7 +62,14 @@ extern char * strnchr(const char *, size
- #ifndef __HAVE_ARCH_STRRCHR
- extern char * strrchr(const char *,int);
- #endif
--extern char * __must_check strstrip(char *);
-+
-+extern char * strim(char *);
-+
-+static inline __must_check char* strstrip(char *str)
-+{
-+	return strim(str);
-+}
-+
- #ifndef __HAVE_ARCH_STRSTR
- extern char * strstr(const char *,const char *);
- #endif
-diff -puN lib/string.c~lib-introduce-strim lib/string.c
---- a/lib/string.c~lib-introduce-strim
-+++ a/lib/string.c
-@@ -330,14 +330,14 @@ EXPORT_SYMBOL(strnchr);
- #endif
- 
+diff -puN drivers/gpu/drm/drm_drv.c~drm-replace-drm_copy-macro-w-a-function drivers/gpu/drm/drm_drv.c
+--- a/drivers/gpu/drm/drm_drv.c~drm-replace-drm_copy-macro-w-a-function
++++ a/drivers/gpu/drm/drm_drv.c
+@@ -368,14 +368,25 @@ module_exit(drm_core_exit);
  /**
-- * strstrip - Removes leading and trailing whitespace from @s.
-+ * strim - Removes leading and trailing whitespace from @s.
-  * @s: The string to be stripped.
-  *
-  * Note that the first trailing whitespace is replaced with a %NUL-terminator
-  * in the given string @s. Returns a pointer to the first non-whitespace
-  * character in @s.
+  * Copy and IOCTL return string to user space
   */
--char *strstrip(char *s)
-+char *strim(char *s)
- {
- 	size_t size;
- 	char *end;
-@@ -357,7 +357,7 @@ char *strstrip(char *s)
+-#define DRM_COPY(name, value)                                         \
+-	len = strlen(value);                                          \
+-	if (len > name##_len) len = name##_len;                       \
+-	name##_len = strlen(value);                                   \
+-	if (len && name) {                                            \
+-		if (copy_to_user(name, value, len))                   \
+-			return -EFAULT;                               \
+-	}
++static int drm_copy_field(char *buf, size_t *buf_len, const char *value)
++{
++	int len;
++
++	/* don't overflow userbuf */
++	len = strlen(value);
++	if (len > *buf_len)
++		len = *buf_len;
++
++	/* let userspace know exact length of driver value (which could be
++	 * larger than the userspace-supplied buffer) */
++	*buf_len = strlen(value);
++
++	/* finally, try filling in the userbuf */
++	if (len && buf)
++		if (copy_to_user(buf, value, len))
++			return -EFAULT;
++	return 0;
++}
  
- 	return s;
- }
--EXPORT_SYMBOL(strstrip);
-+EXPORT_SYMBOL(strim);
- 
- #ifndef __HAVE_ARCH_STRLEN
  /**
+  * Get version information
+@@ -392,14 +403,13 @@ static int drm_version(struct drm_device
+ 		       struct drm_file *file_priv)
+ {
+ 	struct drm_version *version = data;
+-	int len;
+ 
+ 	version->version_major = dev->driver->major;
+ 	version->version_minor = dev->driver->minor;
+ 	version->version_patchlevel = dev->driver->patchlevel;
+-	DRM_COPY(version->name, dev->driver->name);
+-	DRM_COPY(version->date, dev->driver->date);
+-	DRM_COPY(version->desc, dev->driver->desc);
++	drm_copy_field(version->name, &version->name_len, dev->driver->name);
++	drm_copy_field(version->date, &version->date_len, dev->driver->date);
++	drm_copy_field(version->desc, &version->desc_len, dev->driver->desc);
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from dilinger@collabora.co.uk are
 
-origin.patch
-page-allocator-always-wake-kswapd-when-restarting-an-allocation-attempt-after-direct-reclaim-failed.patch
-page-allocator-do-not-allow-interrupts-to-use-alloc_harder.patch
 linux-next.patch
-oom-dump-stack-and-vm-state-when-oom-killer-panics.patch
-readahead-add-blk_run_backing_dev.patch
-mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap.patch
-mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
-mm-vsmcan-check-shrink_active_list-sc-isolate_pages-return-value.patch
-mm-move-inc_zone_page_statenr_isolated-to-just-isolated-place.patch
-rmap-simplify-try_to_unmap_file.patch
-oom_kill-use-rss-value-instead-of-vm-size-for-badness.patch
-prctl-add-pr_set_proctitle_area-option.patch
-lib-introduce-strim.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
+cs5535-gpio-add-amd-cs5535-cs5536-gpio-driver-support.patch
+cs5535-gpio-request-function-mask-names-added.patch
+alsa-cs5535audio-free-olpc-quirks-from-reliance-on-mgeode_lx-cpu-optimization.patch
+drm-kill-some-unused-drm_proc-macros-from-drmph.patch
+drm-kill-more-unused-drm-macros.patch
+drm-replace-drm_copy-macro-w-a-function.patch
+drm-check-return-values-in-drm_version.patch
 
