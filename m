@@ -1,141 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] lcd-add-brightness-feature-to-lcd-class.patch removed from -mm tree
-Date: Mon, 09 Nov 2009 16:11:17 -0800
-Message-ID: <200911100011.nAA0BHDE011602@imap1.linux-foundation.org>
+Subject: + scsi-fix-another-crash-at-disconnect-of-usb-strorage.patch added to -mm tree
+Date: Mon, 09 Nov 2009 16:32:00 -0800
+Message-ID: <200911100032.nAA0W0ih028039@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35181 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60432 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755074AbZKJAMC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2009 19:12:02 -0500
+	by vger.kernel.org with ESMTP id S1750944AbZKJAcV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2009 19:32:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: daeinki@gmail.com, inki.dae@samsung.com, kmpark@infradead.org, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: kuznet@ms2.inr.ac.ru, James.Bottomley@HansenPartnership.com, den@openvz.org
 
 
 The patch titled
-     lcd: add brightness feature to lcd class
-has been removed from the -mm tree.  Its filename was
-     lcd-add-brightness-feature-to-lcd-class.patch
+     scsi: fix another crash at disconnect of usb strorage
+has been added to the -mm tree.  Its filename is
+     scsi-fix-another-crash-at-disconnect-of-usb-strorage.patch
 
-This patch was dropped because it was nacked
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lcd: add brightness feature to lcd class
-From: InKi Dae <daeinki@gmail.com>
+Subject: scsi: fix another crash at disconnect of usb strorage
+From: Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>
 
-Add a brightness feature to the lcd class, drivers/video/backlight/lcd.c
+Asynchronous scan (scsi_add_lun()) sets state to SDEV_RUNNING, but the
+device is not registered in sysfs.  Before async scan it was OK, because
+before releasing scan_mutex old code called either scsi_sysfs_add_sdev()
+or scsi_destroy_sdev() and, therefore, completed the work or discarded it.
 
-In the past, most of the lcd panels for embedded system was TFT-LCD Panel
-needing backlight device.  But now AMOLED LCD Panel appeared so we should
-consider brightness control for AMOLED Panel.
+With async scan the invariant is broken and scsi crashes in
+__scsi_remove_device() when trying to unregister not registered devices.
 
-For the time being, I used backlight fake driver for brightness control of
-AMOLED LCD Panel.  But this way is not good, so I propose to add
-brightness feature to lcd class.
+The fix could be introducing new state(s), which is equivalent to
+SDEV_RUNNING, except for one thing, we know that scsi_sysfs_add_sdev() has
+not been called yet.  Or a separate flag, because the state can be
+SDEV_BLOCK or even something else.
 
-Signed-off-by: InKi Dae <inki.dae@samsung.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Kyungmin Park <kmpark@infradead.org>
+Simpler way is just to check that the device is regstered in sysfs before
+unregistering.  Another operations in __scsi_remove_device() seem to be
+idempotent or even required, because scsi_add_lun() makes some part of
+work duplicated in scsi_sysfs_add_sdev().
+
+Signed-off-by: Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Signed-off-by: Denis V. Lunev <den@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/video/backlight/lcd.c~lcd-add-brightness-feature-to-lcd-class drivers/video/backlight/lcd.c
---- a/drivers/video/backlight/lcd.c~lcd-add-brightness-feature-to-lcd-class
-+++ a/drivers/video/backlight/lcd.c
-@@ -164,6 +164,53 @@ static ssize_t lcd_show_max_contrast(str
- 	return sprintf(buf, "%d\n", ld->props.max_contrast);
- }
+diff -puN drivers/scsi/scsi_sysfs.c~scsi-fix-another-crash-at-disconnect-of-usb-strorage drivers/scsi/scsi_sysfs.c
+--- a/drivers/scsi/scsi_sysfs.c~scsi-fix-another-crash-at-disconnect-of-usb-strorage
++++ a/drivers/scsi/scsi_sysfs.c
+@@ -965,9 +965,17 @@ void __scsi_remove_device(struct scsi_de
+ 		return;
  
-+static ssize_t lcd_show_brightness(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	int rc = -ENXIO;
-+	struct lcd_device *ld = to_lcd_device(dev);
-+
-+	mutex_lock(&ld->ops_lock);
-+	if (ld->ops && ld->ops->get_brightness)
-+		rc = sprintf(buf, "%d\n", ld->ops->get_brightness(ld));
-+	mutex_unlock(&ld->ops_lock);
-+
-+	return rc;
-+}
-+
-+static ssize_t lcd_store_brightness(struct device *dev,
-+		struct device_attribute *attr, const char *buf, size_t count)
-+{
-+	int rc = -ENXIO;
-+	char *endp;
-+	struct lcd_device *ld = to_lcd_device(dev);
-+	int brightness = simple_strtoul(buf, &endp, 0);
-+	size_t size = endp - buf;
-+
-+	if (*endp && isspace(*endp))
-+		size++;
-+	if (size != count)
-+		return -EINVAL;
-+
-+	mutex_lock(&ld->ops_lock);
-+	if (ld->ops && ld->ops->set_brightness) {
-+		pr_debug("lcd: set brightness to %d\n", brightness);
-+		ld->ops->set_brightness(ld, brightness);
-+		rc = count;
-+	}
-+	mutex_unlock(&ld->ops_lock);
-+
-+	return rc;
-+}
-+
-+static ssize_t lcd_show_max_brightness(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct lcd_device *ld = to_lcd_device(dev);
-+
-+	return sprintf(buf, "%d\n", ld->props.max_brightness);
-+}
-+
- static struct class *lcd_class;
- 
- static void lcd_device_release(struct device *dev)
-@@ -176,6 +223,8 @@ static struct device_attribute lcd_devic
- 	__ATTR(lcd_power, 0644, lcd_show_power, lcd_store_power),
- 	__ATTR(contrast, 0644, lcd_show_contrast, lcd_store_contrast),
- 	__ATTR(max_contrast, 0444, lcd_show_max_contrast, NULL),
-+	__ATTR(brightness, 0644, lcd_show_brightness, lcd_store_brightness),
-+	__ATTR(max_brightness, 0444, lcd_show_max_brightness, NULL),
- 	__ATTR_NULL,
- };
- 
-diff -puN include/linux/lcd.h~lcd-add-brightness-feature-to-lcd-class include/linux/lcd.h
---- a/include/linux/lcd.h~lcd-add-brightness-feature-to-lcd-class
-+++ a/include/linux/lcd.h
-@@ -34,6 +34,9 @@ struct fb_info;
- struct lcd_properties {
- 	/* The maximum value for contrast (read-only) */
- 	int max_contrast;
-+
-+	/* The maximum value for brightness (read-only) */
-+	int max_brightness;
- };
- 
- struct lcd_ops {
-@@ -46,6 +49,10 @@ struct lcd_ops {
- 	int (*get_contrast)(struct lcd_device *);
- 	/* Set LCD panel contrast */
-         int (*set_contrast)(struct lcd_device *, int contrast);
-+	/* Get the current brighness setting (only AMOLED lcd panel) */
-+	int (*get_brightness)(struct lcd_device *);
-+	/* Set LCD panel brightness (only AMOLED lcd panel) */
-+	int (*set_brightness)(struct lcd_device *, int brightness);
- 	/* Set LCD panel mode (resolutions ...) */
- 	int (*set_mode)(struct lcd_device *, struct fb_videomode *);
- 	/* Check if given framebuffer device is the one LCD is bound to;
+ 	bsg_unregister_queue(sdev->request_queue);
+-	device_unregister(&sdev->sdev_dev);
++	/* Asynchronous scan violates invariant that SDEV_RUNNING
++	 * implies that device is registered in sysfs.
++	 * We could introduce new state flag or extend set of state,
++	 * but just plain checking that device is registered already
++	 * before trying to unregister it is enough.
++	 */
++	if (sdev->sdev_dev.kobj.parent)
++		device_unregister(&sdev->sdev_dev);
+ 	transport_remove_device(dev);
+-	device_del(dev);
++	if (dev->kobj.parent)
++		device_del(dev);
+ 	scsi_device_set_state(sdev, SDEV_DEL);
+ 	if (sdev->host->hostt->slave_destroy)
+ 		sdev->host->hostt->slave_destroy(sdev);
 _
 
-Patches currently in -mm which might be from daeinki@gmail.com are
+Patches currently in -mm which might be from kuznet@ms2.inr.ac.ru are
 
-lcd-add-brightness-feature-to-lcd-class.patch
+scsi-fix-crash-when-disconnecting-usb-storage.patch
+scsi-fix-another-crash-at-disconnect-of-usb-strorage.patch
 
