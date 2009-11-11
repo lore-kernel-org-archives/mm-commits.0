@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pps-events-reporting-fix-up.patch added to -mm tree
-Date: Tue, 10 Nov 2009 15:59:36 -0800
-Message-ID: <200911102359.nAANxaBR010095@imap1.linux-foundation.org>
+Subject: + ptrace-copy_process-should-disable-stepping.patch added to -mm tree
+Date: Tue, 10 Nov 2009 16:04:47 -0800
+Message-ID: <200911110004.nAB04mFS023424@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57995 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52244 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758702AbZKKAAR (ORCPT
+	by vger.kernel.org with ESMTP id S1758704AbZKKAEp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Nov 2009 19:00:17 -0500
+	Tue, 10 Nov 2009 19:04:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: giometti@linux.it, billb958@door.net, clemens@dwf.com, stable@kernel.org
+Cc: oleg@redhat.com, roland@redhat.com
 
 
 The patch titled
-     pps: events reporting fix up
+     ptrace: copy_process() should disable stepping
 has been added to the -mm tree.  Its filename is
-     pps-events-reporting-fix-up.patch
+     ptrace-copy_process-should-disable-stepping.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,86 +34,90 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pps: events reporting fix up
-From: Rodolfo Giometti <giometti@linux.it>
+Subject: ptrace: copy_process() should disable stepping
+From: Oleg Nesterov <oleg@redhat.com>
 
-PPS events must be recorded according to PPS's mode settings.
+If the tracee calls fork() after PTRACE_SINGLESTEP, the forked child
+starts with TIF_SINGLESTEP/X86_EFLAGS_TF bits copied from ptraced parent. 
+This is not right, especially when the new child is not auto-attaced: in
+this case it is killed by SIGTRAP.
 
-If a process asks for (i.e.) capture-assert events only, when the PPS
-client calls the pps_event() function to save the current PPS event, we
-should verify the event type and then discard unwanted ones.
+Change copy_process() to call user_disable_single_step(). Tested on x86.
 
-Also, without this patch userland processes waiting for a specific PPS
-event (assert or clear but not both) may be awakened at wrong time.
+Test-case:
 
-Signed-off-by: Rodolfo Giometti <giometti@linux.it>
-Tested-by: William S. Brasher <billb958@door.net>
-Tested-by: Reg Clemens <clemens@dwf.com>
-Cc: <stable@kernel.org>
+	#include <stdio.h>
+	#include <unistd.h>
+	#include <signal.h>
+	#include <sys/ptrace.h>
+	#include <sys/wait.h>
+	#include <assert.h>
+
+	int main(void)
+	{
+		int pid, status;
+
+		if (!(pid = fork())) {
+			assert(ptrace(PTRACE_TRACEME) == 0);
+			kill(getpid(), SIGSTOP);
+
+			if (!fork()) {
+				/* kernel bug: this child will be killed by SIGTRAP */
+				printf("Hello world\n");
+				return 43;
+			}
+
+			wait(&status);
+			return WEXITSTATUS(status);
+		}
+
+		for (;;) {
+			assert(pid == wait(&status));
+			if (WIFEXITED(status))
+				break;
+			assert(ptrace(PTRACE_SINGLESTEP, pid, 0,0) == 0);
+		}
+
+		assert(WEXITSTATUS(status) == 43);
+		return 0;
+	}
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/pps/kapi.c~pps-events-reporting-fix-up drivers/pps/kapi.c
---- a/drivers/pps/kapi.c~pps-events-reporting-fix-up
-+++ a/drivers/pps/kapi.c
-@@ -271,6 +271,7 @@ void pps_event(int source, struct pps_kt
- {
- 	struct pps_device *pps;
- 	unsigned long flags;
-+	int captured = 0;
+diff -puN kernel/fork.c~ptrace-copy_process-should-disable-stepping kernel/fork.c
+--- a/kernel/fork.c~ptrace-copy_process-should-disable-stepping
++++ a/kernel/fork.c
+@@ -1203,9 +1203,10 @@ static struct task_struct *copy_process(
+ 		p->sas_ss_sp = p->sas_ss_size = 0;
  
- 	if ((event & (PPS_CAPTUREASSERT | PPS_CAPTURECLEAR)) == 0) {
- 		printk(KERN_ERR "pps: unknown event (%x) for source %d\n",
-@@ -293,7 +294,8 @@ void pps_event(int source, struct pps_kt
- 
- 	/* Check the event */
- 	pps->current_mode = pps->params.mode;
--	if (event & PPS_CAPTUREASSERT) {
-+	if ((event & PPS_CAPTUREASSERT) &
-+			(pps->params.mode & PPS_CAPTUREASSERT)) {
- 		/* We have to add an offset? */
- 		if (pps->params.mode & PPS_OFFSETASSERT)
- 			pps_add_offset(ts, &pps->params.assert_off_tu);
-@@ -303,8 +305,11 @@ void pps_event(int source, struct pps_kt
- 		pps->assert_sequence++;
- 		pr_debug("capture assert seq #%u for source %d\n",
- 			pps->assert_sequence, source);
-+
-+		captured = ~0;
- 	}
--	if (event & PPS_CAPTURECLEAR) {
-+	if ((event & PPS_CAPTURECLEAR) &
-+			(pps->params.mode & PPS_CAPTURECLEAR)) {
- 		/* We have to add an offset? */
- 		if (pps->params.mode & PPS_OFFSETCLEAR)
- 			pps_add_offset(ts, &pps->params.clear_off_tu);
-@@ -314,12 +319,17 @@ void pps_event(int source, struct pps_kt
- 		pps->clear_sequence++;
- 		pr_debug("capture clear seq #%u for source %d\n",
- 			pps->clear_sequence, source);
-+
-+		captured = ~0;
- 	}
- 
--	pps->go = ~0;
--	wake_up_interruptible(&pps->queue);
-+	/* Wake up iif captured somthing */
-+	if (captured) {
-+		pps->go = ~0;
-+		wake_up_interruptible(&pps->queue);
- 
--	kill_fasync(&pps->async_queue, SIGIO, POLL_IN);
-+		kill_fasync(&pps->async_queue, SIGIO, POLL_IN);
-+	}
- 
- 	spin_unlock_irqrestore(&pps->lock, flags);
- 
+ 	/*
+-	 * Syscall tracing should be turned off in the child regardless
+-	 * of CLONE_PTRACE.
++	 * Syscall tracing and stepping should be turned off in the
++	 * child regardless of CLONE_PTRACE.
+ 	 */
++	user_disable_single_step(p);
+ 	clear_tsk_thread_flag(p, TIF_SYSCALL_TRACE);
+ #ifdef TIF_SYSCALL_EMU
+ 	clear_tsk_thread_flag(p, TIF_SYSCALL_EMU);
 _
 
-Patches currently in -mm which might be from giometti@linux.it are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 linux-next.patch
-pps-locking-scheme-fix-up-for-pps_getparams.patch
-pps-events-reporting-fix-up.patch
+itimers-fix-racy-writes-to-cpu_itimer-fields.patch
+posix-cpu-timers-optimize-and-document-timer_create-callback.patch
+ptrace-cleanup-ptrace_init_task-ptrace_link-path.patch
+ptrace-copy_process-should-disable-stepping.patch
+signals-send_sig_noinfo-should-be-considered-as-si_fromuser.patch
+signals-send_signal-use-si_fromuser-to-detect-from_ancestor_ns.patch
+signals-cosmetic-collect_signal-use-si_user.patch
+signals-kill-force_sig_specific.patch
+signals-check-group_stop_count-after-tracehook_get_signal.patch
+utrace-core.patch
+do_wait-optimization-do-not-place-sub-threads-on-task_struct-children-list.patch
 
