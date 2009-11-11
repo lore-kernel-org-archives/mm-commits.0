@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + acerhdf-added-new-bios-versions.patch added to -mm tree
-Date: Wed, 11 Nov 2009 15:28:20 -0800
-Message-ID: <200911112328.nABNSK8B028100@imap1.linux-foundation.org>
+Subject: + drivers-char-miscc-use-bitmap-bitops-functions-for-dynamic-minor-number-allocation.patch added to -mm tree
+Date: Wed, 11 Nov 2009 15:34:02 -0800
+Message-ID: <200911112334.nABNY20Q009031@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49924 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45476 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759600AbZKKX2v (ORCPT
+	by vger.kernel.org with ESMTP id S1759589AbZKKXeG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Nov 2009 18:28:51 -0500
+	Wed, 11 Nov 2009 18:34:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: peter@piie.net, andi@lisas.de, lenb@kernel.org, petkovbb@gmail.com
+Cc: cascardo@holoscopio.com, alan@lxorguk.ukuu.org.uk, hpa@zytor.com
 
 
 The patch titled
-     acerhdf: add new BIOS versions
+     drivers/char/misc.c: use bitmap/bitops functions for dynamic minor number allocation
 has been added to the -mm tree.  Its filename is
-     acerhdf-added-new-bios-versions.patch
+     drivers-char-miscc-use-bitmap-bitops-functions-for-dynamic-minor-number-allocation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,130 +34,101 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acerhdf: add new BIOS versions
-From: Peter Feuerer <peter@piie.net>
+Subject: drivers/char/misc.c: use bitmap/bitops functions for dynamic minor number allocation
+From: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
 
-Added new BIOS versions for following netbooks: Acer 1410, Gateway LT31,
-Packard Bell DOA150.  As the Gateway LT31 machines have different register
-values for setting and checking the off-state, the "cmd_off" variable has
-been splitted up to "cmd_off" and "chk_off".
+Use DECLARE_BITMAP(), find_first_zero_bit(), set_bit() and clear_bit()
+instead of rewriting code to do it with the minor number dynamic
+allocation bitmap.
 
-Signed-off-by: Peter Feuerer <peter@piie.net>
-Cc: Borislav Petkov <petkovbb@gmail.com>
-Cc: Andreas Mohr <andi@lisas.de>
-Cc: Len Brown <lenb@kernel.org>
+We need to invert the bit position to keep the code behaviour of using the
+last minor numbers first, since we don't have a find_last_zero_bit.
+
+Signed-off-by: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/acerhdf.c |   63 ++++++++++++++++++-------------
- 1 file changed, 37 insertions(+), 26 deletions(-)
+ drivers/char/misc.c |   22 +++++++++-------------
+ 1 file changed, 9 insertions(+), 13 deletions(-)
 
-diff -puN drivers/platform/x86/acerhdf.c~acerhdf-added-new-bios-versions drivers/platform/x86/acerhdf.c
---- a/drivers/platform/x86/acerhdf.c~acerhdf-added-new-bios-versions
-+++ a/drivers/platform/x86/acerhdf.c
-@@ -52,7 +52,7 @@
+diff -puN drivers/char/misc.c~drivers-char-miscc-use-bitmap-bitops-functions-for-dynamic-minor-number-allocation drivers/char/misc.c
+--- a/drivers/char/misc.c~drivers-char-miscc-use-bitmap-bitops-functions-for-dynamic-minor-number-allocation
++++ a/drivers/char/misc.c
+@@ -61,7 +61,7 @@ static DEFINE_MUTEX(misc_mtx);
+  * Assigned numbers, used for dynamic minors
   */
- #undef START_IN_KERNEL_MODE
+ #define DYNAMIC_MINORS 64 /* like dynamic majors */
+-static unsigned char misc_minors[DYNAMIC_MINORS / 8];
++static DECLARE_BITMAP(misc_minors, DYNAMIC_MINORS);
  
--#define DRV_VER "0.5.18"
-+#define DRV_VER "0.5.20"
+ #ifdef CONFIG_PROC_FS
+ static void *misc_seq_start(struct seq_file *seq, loff_t *pos)
+@@ -199,27 +199,23 @@ int misc_register(struct miscdevice * mi
+ 	}
  
- /*
-  * According to the Atom N270 datasheet,
-@@ -112,12 +112,14 @@ module_param_string(force_product, force
- MODULE_PARM_DESC(force_product, "Force BIOS product and omit BIOS check");
+ 	if (misc->minor == MISC_DYNAMIC_MINOR) {
+-		int i = DYNAMIC_MINORS;
+-		while (--i >= 0)
+-			if ( (misc_minors[i>>3] & (1 << (i&7))) == 0)
+-				break;
+-		if (i<0) {
++		int i = find_first_zero_bit(misc_minors, DYNAMIC_MINORS);
++		if (i >= DYNAMIC_MINORS) {
+ 			mutex_unlock(&misc_mtx);
+ 			return -EBUSY;
+ 		}
+-		misc->minor = i;
++		misc->minor = DYNAMIC_MINORS - i - 1;
++		set_bit(i, misc_minors);
+ 	}
  
- /*
-- * cmd_off: to switch the fan completely off / to check if the fan is off
-+ * cmd_off: to switch the fan completely off
-+ * chk_off: to check if the fan is off
-  *	cmd_auto: to set the BIOS in control of the fan. The BIOS regulates then
-  *		the fan speed depending on the temperature
-  */
- struct fancmd {
- 	u8 cmd_off;
-+	u8 chk_off;
- 	u8 cmd_auto;
- };
+-	if (misc->minor < DYNAMIC_MINORS)
+-		misc_minors[misc->minor >> 3] |= 1 << (misc->minor & 7);
+ 	dev = MKDEV(MISC_MAJOR, misc->minor);
  
-@@ -134,32 +136,41 @@ struct bios_settings_t {
- /* Register addresses and values for different BIOS versions */
- static const struct bios_settings_t bios_tbl[] = {
- 	/* AOA110 */
--	{"Acer", "AOA110", "v0.3109", 0x55, 0x58, {0x1f, 0x00} },
--	{"Acer", "AOA110", "v0.3114", 0x55, 0x58, {0x1f, 0x00} },
--	{"Acer", "AOA110", "v0.3301", 0x55, 0x58, {0xaf, 0x00} },
--	{"Acer", "AOA110", "v0.3304", 0x55, 0x58, {0xaf, 0x00} },
--	{"Acer", "AOA110", "v0.3305", 0x55, 0x58, {0xaf, 0x00} },
--	{"Acer", "AOA110", "v0.3307", 0x55, 0x58, {0xaf, 0x00} },
--	{"Acer", "AOA110", "v0.3308", 0x55, 0x58, {0x21, 0x00} },
--	{"Acer", "AOA110", "v0.3309", 0x55, 0x58, {0x21, 0x00} },
--	{"Acer", "AOA110", "v0.3310", 0x55, 0x58, {0x21, 0x00} },
-+	{"Acer", "AOA110", "v0.3109", 0x55, 0x58, {0x1f, 0x1f, 0x00} },
-+	{"Acer", "AOA110", "v0.3114", 0x55, 0x58, {0x1f, 0x1f, 0x00} },
-+	{"Acer", "AOA110", "v0.3301", 0x55, 0x58, {0xaf, 0xaf, 0x00} },
-+	{"Acer", "AOA110", "v0.3304", 0x55, 0x58, {0xaf, 0xaf, 0x00} },
-+	{"Acer", "AOA110", "v0.3305", 0x55, 0x58, {0xaf, 0xaf, 0x00} },
-+	{"Acer", "AOA110", "v0.3307", 0x55, 0x58, {0xaf, 0xaf, 0x00} },
-+	{"Acer", "AOA110", "v0.3308", 0x55, 0x58, {0x21, 0x21, 0x00} },
-+	{"Acer", "AOA110", "v0.3309", 0x55, 0x58, {0x21, 0x21, 0x00} },
-+	{"Acer", "AOA110", "v0.3310", 0x55, 0x58, {0x21, 0x21, 0x00} },
- 	/* AOA150 */
--	{"Acer", "AOA150", "v0.3114", 0x55, 0x58, {0x20, 0x00} },
--	{"Acer", "AOA150", "v0.3301", 0x55, 0x58, {0x20, 0x00} },
--	{"Acer", "AOA150", "v0.3304", 0x55, 0x58, {0x20, 0x00} },
--	{"Acer", "AOA150", "v0.3305", 0x55, 0x58, {0x20, 0x00} },
--	{"Acer", "AOA150", "v0.3307", 0x55, 0x58, {0x20, 0x00} },
--	{"Acer", "AOA150", "v0.3308", 0x55, 0x58, {0x20, 0x00} },
--	{"Acer", "AOA150", "v0.3309", 0x55, 0x58, {0x20, 0x00} },
--	{"Acer", "AOA150", "v0.3310", 0x55, 0x58, {0x20, 0x00} },
-+	{"Acer", "AOA150", "v0.3114", 0x55, 0x58, {0x20, 0x20, 0x00} },
-+	{"Acer", "AOA150", "v0.3301", 0x55, 0x58, {0x20, 0x20, 0x00} },
-+	{"Acer", "AOA150", "v0.3304", 0x55, 0x58, {0x20, 0x20, 0x00} },
-+	{"Acer", "AOA150", "v0.3305", 0x55, 0x58, {0x20, 0x20, 0x00} },
-+	{"Acer", "AOA150", "v0.3307", 0x55, 0x58, {0x20, 0x20, 0x00} },
-+	{"Acer", "AOA150", "v0.3308", 0x55, 0x58, {0x20, 0x20, 0x00} },
-+	{"Acer", "AOA150", "v0.3309", 0x55, 0x58, {0x20, 0x20, 0x00} },
-+	{"Acer", "AOA150", "v0.3310", 0x55, 0x58, {0x20, 0x20, 0x00} },
-+	/* Acer 1410 */
-+	{"Acer", "Aspire 1410", "v0.3120", 0x55, 0x58, {0x9e, 0x9e, 0x00} },
- 	/* special BIOS / other */
--	{"Gateway", "AOA110", "v0.3103", 0x55, 0x58, {0x21, 0x00} },
--	{"Gateway", "AOA150", "v0.3103", 0x55, 0x58, {0x20, 0x00} },
--	{"Packard Bell", "DOA150", "v0.3104", 0x55, 0x58, {0x21, 0x00} },
--	{"Packard Bell", "AOA110", "v0.3105", 0x55, 0x58, {0x21, 0x00} },
--	{"Packard Bell", "AOA150", "v0.3105", 0x55, 0x58, {0x20, 0x00} },
-+	{"Gateway", "AOA110", "v0.3103", 0x55, 0x58, {0x21, 0x21, 0x00} },
-+	{"Gateway", "AOA150", "v0.3103", 0x55, 0x58, {0x20, 0x20, 0x00} },
-+	{"Gateway         ", "LT31            ", "v1.3103 ", 0x55, 0x58,
-+		{0x10, 0x0f, 0x00} },
-+	{"Gateway         ", "LT31            ", "v1.3201 ", 0x55, 0x58,
-+		{0x10, 0x0f, 0x00} },
-+	{"Gateway         ", "LT31            ", "v1.3302 ", 0x55, 0x58,
-+		{0x10, 0x0f, 0x00} },
-+	{"Packard Bell", "DOA150", "v0.3104", 0x55, 0x58, {0x21, 0x21, 0x00} },
-+	{"Packard Bell", "DOA150", "v0.3105", 0x55, 0x58, {0x20, 0x20, 0x00} },
-+	{"Packard Bell", "AOA110", "v0.3105", 0x55, 0x58, {0x21, 0x21, 0x00} },
-+	{"Packard Bell", "AOA150", "v0.3105", 0x55, 0x58, {0x20, 0x20, 0x00} },
- 	/* pewpew-terminator */
--	{"", "", "", 0, 0, {0, 0} }
-+	{"", "", "", 0, 0, {0, 0, 0} }
- };
+ 	misc->this_device = device_create(misc_class, misc->parent, dev,
+ 					  misc, "%s", misc->name);
+ 	if (IS_ERR(misc->this_device)) {
+-		int i = misc->minor;
++		int i = DYNAMIC_MINORS - misc->minor - 1;
+ 		if (i < DYNAMIC_MINORS && i >= 0)
+-			misc_minors[i>>3] &= ~(1 << (i & 7));
++			clear_bit(i, misc_minors);
+ 		err = PTR_ERR(misc->this_device);
+ 		goto out;
+ 	}
+@@ -246,7 +242,7 @@ int misc_register(struct miscdevice * mi
  
- static const struct bios_settings_t *bios_cfg __read_mostly;
-@@ -183,7 +194,7 @@ static int acerhdf_get_fanstate(int *sta
- 	if (ec_read(bios_cfg->fanreg, &fan))
+ int misc_deregister(struct miscdevice *misc)
+ {
+-	int i = misc->minor;
++	int i = DYNAMIC_MINORS - misc->minor - 1;
+ 
+ 	if (list_empty(&misc->list))
  		return -EINVAL;
- 
--	if (fan != bios_cfg->cmd.cmd_off)
-+	if (fan != bios_cfg->cmd.chk_off)
- 		*state = ACERHDF_FAN_AUTO;
- 	else
- 		*state = ACERHDF_FAN_OFF;
+@@ -255,7 +251,7 @@ int misc_deregister(struct miscdevice *m
+ 	list_del(&misc->list);
+ 	device_destroy(misc_class, MKDEV(MISC_MAJOR, misc->minor));
+ 	if (i < DYNAMIC_MINORS && i >= 0)
+-		misc_minors[i>>3] &= ~(1 << (i & 7));
++		clear_bit(i, misc_minors);
+ 	mutex_unlock(&misc_mtx);
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from peter@piie.net are
+Patches currently in -mm which might be from cascardo@holoscopio.com are
 
-acerhdf-return-temperature-in-milidegree-instead-of-degree.patch
-acerhdf-added-new-bios-versions.patch
+linux-next.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices-fix.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices-depends-on-acpi.patch
+misc-remove-mac-pmu-function-declaration-from-misc-device-class.patch
+drivers-char-miscc-clear-allocation-bit-in-minor-bitmap-when-device-register-fails.patch
+drivers-char-miscc-use-bitmap-bitops-functions-for-dynamic-minor-number-allocation.patch
+drivers-char-miscc-use-a-proper-range-for-minor-number-dynamic-allocation.patch
+spidev-use-declare_bitmap-instead-of-declaring-the-array.patch
+spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
 
