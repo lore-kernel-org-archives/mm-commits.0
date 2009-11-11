@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch added to -mm tree
-Date: Tue, 10 Nov 2009 16:26:50 -0800
-Message-ID: <200911110026.nAB0Qos0012140@imap1.linux-foundation.org>
+Subject: + maintainers-correct-9p-file-system-git-entry.patch added to -mm tree
+Date: Tue, 10 Nov 2009 16:32:20 -0800
+Message-ID: <200911110032.nAB0WKbn025113@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51415 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39796 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751849AbZKKA0v (ORCPT
+	by vger.kernel.org with ESMTP id S1752136AbZKKAcX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Nov 2009 19:26:51 -0500
+	Tue, 10 Nov 2009 19:32:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, kosaki.motohiro@jp.fujitsu.com
+Cc: joe@perches.com, lucho@ionkov.net
 
 
 The patch titled
-     oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix
+     MAINTAINERS: correct 9P FILE SYSTEM git entry
 has been added to the -mm tree.  Its filename is
-     oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
+     maintainers-correct-9p-file-system-git-entry.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,129 +34,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix
-From: David Rientjes <rientjes@google.com>
+Subject: MAINTAINERS: correct 9P FILE SYSTEM git entry
+From: Joe Perches <joe@perches.com>
 
-fix race, add pid & comm to message
-
-On Tue, 10 Nov 2009, akpm@linux-foundation.org wrote:
-
-> diff -puN mm/oom_kill.c~oom-kill-show-virtual-size-and-rss-information-of-the-killed-process mm/oom_kill.c
-> --- a/mm/oom_kill.c~oom-kill-show-virtual-size-and-rss-information-of-the-killed-process
-> +++ a/mm/oom_kill.c
-> @@ -352,6 +352,8 @@ static void dump_header(gfp_t gfp_mask,
->  		dump_tasks(mem);
->  }
->
-> +#define K(x) ((x) << (PAGE_SHIFT-10))
-> +
->  /*
->   * Send SIGKILL to the selected  process irrespective of  CAP_SYS_RAW_IO
->   * flag though it's unlikely that  we select a process with CAP_SYS_RAW_IO
-> @@ -371,9 +373,16 @@ static void __oom_kill_task(struct task_
->  		return;
->  	}
->
-> -	if (verbose)
-> -		printk(KERN_ERR "Killed process %d (%s)\n",
-> -				task_pid_nr(p), p->comm);
-> +	if (verbose) {
-> +		task_lock(p);
-> +		printk(KERN_ERR "Killed process %d (%s) "
-> +		       "vsz:%lukB, anon-rss:%lukB, file-rss:%lukB\n",
-> +		       task_pid_nr(p), p->comm,
-> +		       K(p->mm->total_vm),
-> +		       K(get_mm_counter(p->mm, anon_rss)),
-> +		       K(get_mm_counter(p->mm, file_rss)));
-> +		task_unlock(p);
-> +	}
->
->  	/*
->  	 * We give our sacrificial lamb high priority and access to
-
-There's a race there which can dereference a NULL p->mm.
-
-p->mm is protected by task_lock(), but there's no check added here that
-ensures p->mm is still valid.  The previous check for !p->mm in
-__oom_kill_task() is not protected by task_lock(), so there's a race:
-
-	select_bad_process()
-	oom_kill_process(p)
-					do_exit()
-					exit_signals(p) /* PF_EXITING */
-	oom_kill_task(p)
-	__oom_kill_task(p)
-					exit_mm(p)
-					task_lock(p)
-					p->mm = NULL
-					task_unlock(p)
-	printk() of p->mm->total_vm
-
-Please merge this as a fix.
-
-Signed-off-by: David Rientjes <rientjes@google.com>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Latchesar Ionkov <lucho@ionkov.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN mm/oom_kill.c~oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix mm/oom_kill.c
---- a/mm/oom_kill.c~oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix
-+++ a/mm/oom_kill.c
-@@ -367,22 +367,23 @@ static void __oom_kill_task(struct task_
- 		return;
- 	}
- 
-+	task_lock(p);
- 	if (!p->mm) {
- 		WARN_ON(1);
--		printk(KERN_WARNING "tried to kill an mm-less task!\n");
-+		printk(KERN_WARNING "tried to kill an mm-less task %d (%s)!\n",
-+			task_pid_nr(p), p->comm);
-+		task_unlock(p);
- 		return;
- 	}
- 
--	if (verbose) {
--		task_lock(p);
-+	if (verbose)
- 		printk(KERN_ERR "Killed process %d (%s) "
- 		       "vsz:%lukB, anon-rss:%lukB, file-rss:%lukB\n",
- 		       task_pid_nr(p), p->comm,
- 		       K(p->mm->total_vm),
- 		       K(get_mm_counter(p->mm, anon_rss)),
- 		       K(get_mm_counter(p->mm, file_rss)));
--		task_unlock(p);
--	}
-+	task_unlock(p);
- 
- 	/*
- 	 * We give our sacrificial lamb high priority and access to
+diff -puN MAINTAINERS~maintainers-correct-9p-file-system-git-entry MAINTAINERS
+--- a/MAINTAINERS~maintainers-correct-9p-file-system-git-entry
++++ a/MAINTAINERS
+@@ -182,7 +182,7 @@ M:	Ron Minnich <rminnich@sandia.gov>
+ M:	Latchesar Ionkov <lucho@ionkov.net>
+ L:	v9fs-developer@lists.sourceforge.net
+ W:	http://swik.net/v9fs
+-T:	git git://git.kernel.org/pub/scm/linux/kernel/ericvh/v9fs.git
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/ericvh/v9fs.git
+ S:	Maintained
+ F:	Documentation/filesystems/9p.txt
+ F:	fs/9p/
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-page-allocator-do-not-allow-interrupts-to-use-alloc_harder.patch
+origin.patch
+maintainers-asus-acpi-extras-remove-f-arch-x86-kernel-acpi-bootc.patch
+maintainers-brocade-bfa-use-single-line-m-and-tabs.patch
+maintainers-server-engines-10gbps-iscsi-use-single-line-m.patch
+maintainers-vmware-vmxnet3-quote-name-with-comma-and-period-use-tabs.patch
+get_maintainer-fix-usage-comment.patch
+maintainers-correct-9p-file-system-git-entry.patch
+maintainers-correct-netfilter-git-entry-format.patch
+maintainers-correct-security-subsystem-git-entry.patch
 linux-next.patch
-acpi-remove-nid_inval.patch
-acpi-remove-nid_inval-checkpatch-fixes.patch
-oom-dump-stack-and-vm-state-when-oom-killer-panics.patch
-nodemask-make-nodemask_alloc-more-general.patch
-hugetlb-rework-hstate_next_node_-functions.patch
-hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions.patch
-hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions-fix.patch
-hugetlb-factor-init_nodemask_of_node.patch
-hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy.patch
-hugetlb-add-generic-definition-of-numa_no_node.patch
-hugetlb-add-per-node-hstate-attributes.patch
-hugetlb-update-hugetlb-documentation-for-numa-controls.patch
-hugetlb-use-only-nodes-with-memory-for-huge-pages.patch
-mm-clear-node-in-n_high_memory-and-stop-kswapd-when-all-memory-is-offlined.patch
-hugetlb-handle-memory-hot-plug-events.patch
-hugetlb-offload-per-node-attribute-registrations.patch
-mm-add-gfp-flags-for-nodemask_alloc-slab-allocations.patch
-oom_kill-use-rss-value-instead-of-vm-size-for-badness.patch
-oom-kill-show-virtual-size-and-rss-information-of-the-killed-process.patch
-oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
-do_wait-optimization-do-not-place-sub-threads-on-task_struct-children-list.patch
+dynamic_debugh-kernelh-remove-kbuild_modname-from-dynamic_pr_debug.patch
+kernelh-remove-initialization-of-bool-in-printk_once.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
+scripts-get_maintainerpl-add-roles-and-rolestats.patch
+scripts-get_maintainerpl-fix-non-with-git-blame-and-cleanups.patch
+scripts-get_maintainerpl-support-multiple-vcss-add-mercurial.patch
+lib-vsprintfc-add-%pu-to-print-uuid-guids.patch
+fs-xfs-xfs_log_recoverc-use-%pu-to-print-uuids.patch
+randomc-use-%pu-to-print-uuids.patch
+drivers-firmware-dmi_scanc-use-%pub-to-print-uuids.patch
+drivers-md-mdc-use-%pu-to-print-uuids.patch
+fs-gfs2-sysc-use-%pub-to-print-uuids.patch
+fs-ubifs-use-%pub-to-print-uuids.patch
+efih-use-%pul-to-print-uuids.patch
+scripts-checkpatchpl-add-warn-on-sizeof.patch
+checkpatchpl-allow-80-char-lines-for-logging-functions-not-just-printk.patch
+isicomc-use-pr_fmt-and-pr_level.patch
 
