@@ -1,17 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + acerhdf-return-temperature-in-milidegree-instead-of-degree.patch added to -mm tree
-Date: Wed, 11 Nov 2009 15:27:55 -0800
-Message-ID: <200911112327.nABNRt3S026985@imap1.linux-foundation.org>
+Subject: + acerhdf-added-new-bios-versions.patch added to -mm tree
+Date: Wed, 11 Nov 2009 15:28:20 -0800
+Message-ID: <200911112328.nABNSK8B028100@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46410 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49924 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759611AbZKKX23 (ORCPT
+	by vger.kernel.org with ESMTP id S1759600AbZKKX2v (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Nov 2009 18:28:29 -0500
+	Wed, 11 Nov 2009 18:28:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -19,9 +16,9 @@ Cc: peter@piie.net, andi@lisas.de, lenb@kernel.org, petkovbb@gmail.com
 
 
 The patch titled
-     acerhdf: return temperature in milidegree instead of degree
+     acerhdf: add new BIOS versions
 has been added to the -mm tree.  Its filename is
-     acerhdf-return-temperature-in-milidegree-instead-of-degree.patch
+     acerhdf-added-new-bios-versions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -29,88 +26,134 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acerhdf: return temperature in milidegree instead of degree
-=46rom: Peter Feuerer <peter@piie.net>
+Subject: acerhdf: add new BIOS versions
+From: Peter Feuerer <peter@piie.net>
 
-Return temperature in milidegree instead of degree, as sysfs-api requir=
-es
-the temperature in milidegree.
+Added new BIOS versions for following netbooks: Acer 1410, Gateway LT31,
+Packard Bell DOA150.  As the Gateway LT31 machines have different register
+values for setting and checking the off-state, the "cmd_off" variable has
+been splitted up to "cmd_off" and "chk_off".
 
 Signed-off-by: Peter Feuerer <peter@piie.net>
-Tested-by: Borislav Petkov <petkovbb@gmail.com>
+Cc: Borislav Petkov <petkovbb@gmail.com>
 Cc: Andreas Mohr <andi@lisas.de>
 Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/acerhdf.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/platform/x86/acerhdf.c |   63 ++++++++++++++++++-------------
+ 1 file changed, 37 insertions(+), 26 deletions(-)
 
-diff -puN drivers/platform/x86/acerhdf.c~acerhdf-return-temperature-in-=
-milidegree-instead-of-degree drivers/platform/x86/acerhdf.c
---- a/drivers/platform/x86/acerhdf.c~acerhdf-return-temperature-in-mili=
-degree-instead-of-degree
+diff -puN drivers/platform/x86/acerhdf.c~acerhdf-added-new-bios-versions drivers/platform/x86/acerhdf.c
+--- a/drivers/platform/x86/acerhdf.c~acerhdf-added-new-bios-versions
 +++ a/drivers/platform/x86/acerhdf.c
 @@ -52,7 +52,7 @@
   */
  #undef START_IN_KERNEL_MODE
-=20
--#define DRV_VER "0.5.17"
-+#define DRV_VER "0.5.18"
-=20
+ 
+-#define DRV_VER "0.5.18"
++#define DRV_VER "0.5.20"
+ 
  /*
   * According to the Atom N270 datasheet,
-@@ -61,7 +61,7 @@
-  * measured by the on-die thermal monitor are within 0 <=3D Tj <=3D 90=
-=2E So,
-  * assume 89=C2=B0C is critical temperature.
-  */
--#define ACERHDF_TEMP_CRIT 89
-+#define ACERHDF_TEMP_CRIT 89000
- #define ACERHDF_FAN_OFF 0
- #define ACERHDF_FAN_AUTO 1
-=20
-@@ -69,7 +69,7 @@
-  * No matter what value the user puts into the fanon variable, turn on=
- the fan
-  * at 80 degree Celsius to prevent hardware damage
-  */
--#define ACERHDF_MAX_FANON 80
-+#define ACERHDF_MAX_FANON 80000
-=20
+@@ -112,12 +112,14 @@ module_param_string(force_product, force
+ MODULE_PARM_DESC(force_product, "Force BIOS product and omit BIOS check");
+ 
  /*
-  * Maximum interval between two temperature checks is 15 seconds, as t=
-he die
-@@ -85,8 +85,8 @@ static int kernelmode;
- #endif
-=20
- static unsigned int interval =3D 10;
--static unsigned int fanon =3D 63;
--static unsigned int fanoff =3D 58;
-+static unsigned int fanon =3D 63000;
-+static unsigned int fanoff =3D 58000;
- static unsigned int verbose;
- static unsigned int fanstate =3D ACERHDF_FAN_AUTO;
- static char force_bios[16];
-@@ -171,7 +171,7 @@ static int acerhdf_get_temp(int *temp)
- 	if (ec_read(bios_cfg->tempreg, &read_temp))
+- * cmd_off: to switch the fan completely off / to check if the fan is off
++ * cmd_off: to switch the fan completely off
++ * chk_off: to check if the fan is off
+  *	cmd_auto: to set the BIOS in control of the fan. The BIOS regulates then
+  *		the fan speed depending on the temperature
+  */
+ struct fancmd {
+ 	u8 cmd_off;
++	u8 chk_off;
+ 	u8 cmd_auto;
+ };
+ 
+@@ -134,32 +136,41 @@ struct bios_settings_t {
+ /* Register addresses and values for different BIOS versions */
+ static const struct bios_settings_t bios_tbl[] = {
+ 	/* AOA110 */
+-	{"Acer", "AOA110", "v0.3109", 0x55, 0x58, {0x1f, 0x00} },
+-	{"Acer", "AOA110", "v0.3114", 0x55, 0x58, {0x1f, 0x00} },
+-	{"Acer", "AOA110", "v0.3301", 0x55, 0x58, {0xaf, 0x00} },
+-	{"Acer", "AOA110", "v0.3304", 0x55, 0x58, {0xaf, 0x00} },
+-	{"Acer", "AOA110", "v0.3305", 0x55, 0x58, {0xaf, 0x00} },
+-	{"Acer", "AOA110", "v0.3307", 0x55, 0x58, {0xaf, 0x00} },
+-	{"Acer", "AOA110", "v0.3308", 0x55, 0x58, {0x21, 0x00} },
+-	{"Acer", "AOA110", "v0.3309", 0x55, 0x58, {0x21, 0x00} },
+-	{"Acer", "AOA110", "v0.3310", 0x55, 0x58, {0x21, 0x00} },
++	{"Acer", "AOA110", "v0.3109", 0x55, 0x58, {0x1f, 0x1f, 0x00} },
++	{"Acer", "AOA110", "v0.3114", 0x55, 0x58, {0x1f, 0x1f, 0x00} },
++	{"Acer", "AOA110", "v0.3301", 0x55, 0x58, {0xaf, 0xaf, 0x00} },
++	{"Acer", "AOA110", "v0.3304", 0x55, 0x58, {0xaf, 0xaf, 0x00} },
++	{"Acer", "AOA110", "v0.3305", 0x55, 0x58, {0xaf, 0xaf, 0x00} },
++	{"Acer", "AOA110", "v0.3307", 0x55, 0x58, {0xaf, 0xaf, 0x00} },
++	{"Acer", "AOA110", "v0.3308", 0x55, 0x58, {0x21, 0x21, 0x00} },
++	{"Acer", "AOA110", "v0.3309", 0x55, 0x58, {0x21, 0x21, 0x00} },
++	{"Acer", "AOA110", "v0.3310", 0x55, 0x58, {0x21, 0x21, 0x00} },
+ 	/* AOA150 */
+-	{"Acer", "AOA150", "v0.3114", 0x55, 0x58, {0x20, 0x00} },
+-	{"Acer", "AOA150", "v0.3301", 0x55, 0x58, {0x20, 0x00} },
+-	{"Acer", "AOA150", "v0.3304", 0x55, 0x58, {0x20, 0x00} },
+-	{"Acer", "AOA150", "v0.3305", 0x55, 0x58, {0x20, 0x00} },
+-	{"Acer", "AOA150", "v0.3307", 0x55, 0x58, {0x20, 0x00} },
+-	{"Acer", "AOA150", "v0.3308", 0x55, 0x58, {0x20, 0x00} },
+-	{"Acer", "AOA150", "v0.3309", 0x55, 0x58, {0x20, 0x00} },
+-	{"Acer", "AOA150", "v0.3310", 0x55, 0x58, {0x20, 0x00} },
++	{"Acer", "AOA150", "v0.3114", 0x55, 0x58, {0x20, 0x20, 0x00} },
++	{"Acer", "AOA150", "v0.3301", 0x55, 0x58, {0x20, 0x20, 0x00} },
++	{"Acer", "AOA150", "v0.3304", 0x55, 0x58, {0x20, 0x20, 0x00} },
++	{"Acer", "AOA150", "v0.3305", 0x55, 0x58, {0x20, 0x20, 0x00} },
++	{"Acer", "AOA150", "v0.3307", 0x55, 0x58, {0x20, 0x20, 0x00} },
++	{"Acer", "AOA150", "v0.3308", 0x55, 0x58, {0x20, 0x20, 0x00} },
++	{"Acer", "AOA150", "v0.3309", 0x55, 0x58, {0x20, 0x20, 0x00} },
++	{"Acer", "AOA150", "v0.3310", 0x55, 0x58, {0x20, 0x20, 0x00} },
++	/* Acer 1410 */
++	{"Acer", "Aspire 1410", "v0.3120", 0x55, 0x58, {0x9e, 0x9e, 0x00} },
+ 	/* special BIOS / other */
+-	{"Gateway", "AOA110", "v0.3103", 0x55, 0x58, {0x21, 0x00} },
+-	{"Gateway", "AOA150", "v0.3103", 0x55, 0x58, {0x20, 0x00} },
+-	{"Packard Bell", "DOA150", "v0.3104", 0x55, 0x58, {0x21, 0x00} },
+-	{"Packard Bell", "AOA110", "v0.3105", 0x55, 0x58, {0x21, 0x00} },
+-	{"Packard Bell", "AOA150", "v0.3105", 0x55, 0x58, {0x20, 0x00} },
++	{"Gateway", "AOA110", "v0.3103", 0x55, 0x58, {0x21, 0x21, 0x00} },
++	{"Gateway", "AOA150", "v0.3103", 0x55, 0x58, {0x20, 0x20, 0x00} },
++	{"Gateway         ", "LT31            ", "v1.3103 ", 0x55, 0x58,
++		{0x10, 0x0f, 0x00} },
++	{"Gateway         ", "LT31            ", "v1.3201 ", 0x55, 0x58,
++		{0x10, 0x0f, 0x00} },
++	{"Gateway         ", "LT31            ", "v1.3302 ", 0x55, 0x58,
++		{0x10, 0x0f, 0x00} },
++	{"Packard Bell", "DOA150", "v0.3104", 0x55, 0x58, {0x21, 0x21, 0x00} },
++	{"Packard Bell", "DOA150", "v0.3105", 0x55, 0x58, {0x20, 0x20, 0x00} },
++	{"Packard Bell", "AOA110", "v0.3105", 0x55, 0x58, {0x21, 0x21, 0x00} },
++	{"Packard Bell", "AOA150", "v0.3105", 0x55, 0x58, {0x20, 0x20, 0x00} },
+ 	/* pewpew-terminator */
+-	{"", "", "", 0, 0, {0, 0} }
++	{"", "", "", 0, 0, {0, 0, 0} }
+ };
+ 
+ static const struct bios_settings_t *bios_cfg __read_mostly;
+@@ -183,7 +194,7 @@ static int acerhdf_get_fanstate(int *sta
+ 	if (ec_read(bios_cfg->fanreg, &fan))
  		return -EINVAL;
-=20
--	*temp =3D read_temp;
-+	*temp =3D read_temp * 1000;
-=20
- 	return 0;
- }
+ 
+-	if (fan != bios_cfg->cmd.cmd_off)
++	if (fan != bios_cfg->cmd.chk_off)
+ 		*state = ACERHDF_FAN_AUTO;
+ 	else
+ 		*state = ACERHDF_FAN_OFF;
 _
 
 Patches currently in -mm which might be from peter@piie.net are
@@ -118,8 +161,3 @@ Patches currently in -mm which might be from peter@piie.net are
 acerhdf-return-temperature-in-milidegree-instead-of-degree.patch
 acerhdf-added-new-bios-versions.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
