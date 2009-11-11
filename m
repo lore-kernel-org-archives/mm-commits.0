@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-correct-netfilter-git-entry-format.patch added to -mm tree
-Date: Tue, 10 Nov 2009 16:32:22 -0800
-Message-ID: <200911110032.nAB0WML3025116@imap1.linux-foundation.org>
+Subject: + cs5535-define-lxfb-gxfb-msrs-in-linux-cs5535h.patch added to -mm tree
+Date: Tue, 10 Nov 2009 16:41:08 -0800
+Message-ID: <200911110041.nAB0f8mP013723@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55254 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59653 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752076AbZKKAcW (ORCPT
+	by vger.kernel.org with ESMTP id S1753681AbZKKAl2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Nov 2009 19:32:22 -0500
+	Tue, 10 Nov 2009 19:41:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, kaber@trash.net
+Cc: dilinger@collabora.co.uk, cjb@laptop.org, johnstul@us.ibm.com, jordan@cosmicpenguin.net, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     MAINTAINERS: correct NETFILTER git entry format
+     cs5535: define lxfb/gxfb MSRs in linux/cs5535.h
 has been added to the -mm tree.  Its filename is
-     maintainers-correct-netfilter-git-entry-format.patch
+     cs5535-define-lxfb-gxfb-msrs-in-linux-cs5535h.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,58 +34,181 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: correct NETFILTER git entry format
-From: Joe Perches <joe@perches.com>
+Subject: cs5535: define lxfb/gxfb MSRs in linux/cs5535.h
+From: Andres Salomon <dilinger@collabora.co.uk>
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Patrick McHardy <kaber@trash.net>
+..and include them in the lxfb/gxfb drivers rather than asm/geode.h (where
+possible).
+
+Signed-off-by: Andres Salomon <dilinger@collabora.co.uk>
+Cc: Jordan Crouse <jordan@cosmicpenguin.net>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Chris Ball <cjb@laptop.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN MAINTAINERS~maintainers-correct-netfilter-git-entry-format MAINTAINERS
---- a/MAINTAINERS~maintainers-correct-netfilter-git-entry-format
-+++ a/MAINTAINERS
-@@ -3616,7 +3616,7 @@ L:	netfilter@vger.kernel.org
- L:	coreteam@netfilter.org
- W:	http://www.netfilter.org/
- W:	http://www.iptables.org/
--T:	git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-2.6.git
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-2.6.git
- S:	Supported
- F:	include/linux/netfilter*
- F:	include/linux/netfilter/
+diff -puN arch/x86/include/asm/geode.h~cs5535-define-lxfb-gxfb-msrs-in-linux-cs5535h arch/x86/include/asm/geode.h
+--- a/arch/x86/include/asm/geode.h~cs5535-define-lxfb-gxfb-msrs-in-linux-cs5535h
++++ a/arch/x86/include/asm/geode.h
+@@ -31,25 +31,12 @@ extern int geode_get_dev_base(unsigned i
+ 
+ /* MSRS */
+ 
+-#define MSR_GLIU_P2D_RO0	0x10000029
+-
+-#define MSR_LX_GLD_MSR_CONFIG	0x48002001
+-#define MSR_LX_MSR_PADSEL	0x48002011	/* NOT 0x48000011; the data
+-						 * sheet has the wrong value */
+-#define MSR_GLCP_SYS_RSTPLL	0x4C000014
+-#define MSR_GLCP_DOTPLL		0x4C000015
+-
+ #define MSR_LBAR_SMB		0x5140000B
+ #define MSR_LBAR_GPIO		0x5140000C
+ #define MSR_LBAR_MFGPT		0x5140000D
+ #define MSR_LBAR_ACPI		0x5140000E
+ #define MSR_LBAR_PMS		0x5140000F
+ 
+-#define MSR_LX_SPARE_MSR	0x80000011	/* DC-specific */
+-
+-#define MSR_GX_GLD_MSR_CONFIG	0xC0002001
+-#define MSR_GX_MSR_PADSEL	0xC0002011
+-
+ /* Resource Sizes */
+ 
+ #define LBAR_GPIO_SIZE		0xFF
+diff -puN drivers/video/geode/display_gx.c~cs5535-define-lxfb-gxfb-msrs-in-linux-cs5535h drivers/video/geode/display_gx.c
+--- a/drivers/video/geode/display_gx.c~cs5535-define-lxfb-gxfb-msrs-in-linux-cs5535h
++++ a/drivers/video/geode/display_gx.c
+@@ -17,7 +17,7 @@
+ #include <asm/io.h>
+ #include <asm/div64.h>
+ #include <asm/delay.h>
+-#include <asm/geode.h>
++#include <linux/cs5535.h>
+ 
+ #include "gxfb.h"
+ 
+diff -puN drivers/video/geode/gxfb.h~cs5535-define-lxfb-gxfb-msrs-in-linux-cs5535h drivers/video/geode/gxfb.h
+--- a/drivers/video/geode/gxfb.h~cs5535-define-lxfb-gxfb-msrs-in-linux-cs5535h
++++ a/drivers/video/geode/gxfb.h
+@@ -340,7 +340,7 @@ static inline void write_fp(struct gxfb_
+ }
+ 
+ 
+-/* MSRs are defined in asm/geode.h; their bitfields are here */
++/* MSRs are defined in linux/cs5535.h; their bitfields are here */
+ 
+ #define MSR_GLCP_SYS_RSTPLL_DOTPOSTDIV3	(1 << 3)
+ #define MSR_GLCP_SYS_RSTPLL_DOTPREMULT2	(1 << 2)
+diff -puN drivers/video/geode/gxfb_core.c~cs5535-define-lxfb-gxfb-msrs-in-linux-cs5535h drivers/video/geode/gxfb_core.c
+--- a/drivers/video/geode/gxfb_core.c~cs5535-define-lxfb-gxfb-msrs-in-linux-cs5535h
++++ a/drivers/video/geode/gxfb_core.c
+@@ -32,7 +32,7 @@
+ #include <linux/suspend.h>
+ #include <linux/init.h>
+ #include <linux/pci.h>
+-#include <asm/geode.h>
++#include <linux/cs5535.h>
+ 
+ #include "gxfb.h"
+ 
+diff -puN drivers/video/geode/lxfb.h~cs5535-define-lxfb-gxfb-msrs-in-linux-cs5535h drivers/video/geode/lxfb.h
+--- a/drivers/video/geode/lxfb.h~cs5535-define-lxfb-gxfb-msrs-in-linux-cs5535h
++++ a/drivers/video/geode/lxfb.h
+@@ -409,7 +409,7 @@ static inline void write_fp(struct lxfb_
+ }
+ 
+ 
+-/* MSRs are defined in asm/geode.h; their bitfields are here */
++/* MSRs are defined in linux/cs5535.h; their bitfields are here */
+ 
+ #define MSR_GLCP_DOTPLL_LOCK		(1 << 25)	/* r/o */
+ #define MSR_GLCP_DOTPLL_HALFPIX		(1 << 24)
+diff -puN drivers/video/geode/lxfb_ops.c~cs5535-define-lxfb-gxfb-msrs-in-linux-cs5535h drivers/video/geode/lxfb_ops.c
+--- a/drivers/video/geode/lxfb_ops.c~cs5535-define-lxfb-gxfb-msrs-in-linux-cs5535h
++++ a/drivers/video/geode/lxfb_ops.c
+@@ -13,7 +13,7 @@
+ #include <linux/fb.h>
+ #include <linux/uaccess.h>
+ #include <linux/delay.h>
+-#include <asm/geode.h>
++#include <linux/cs5535.h>
+ 
+ #include "lxfb.h"
+ 
+diff -puN drivers/video/geode/suspend_gx.c~cs5535-define-lxfb-gxfb-msrs-in-linux-cs5535h drivers/video/geode/suspend_gx.c
+--- a/drivers/video/geode/suspend_gx.c~cs5535-define-lxfb-gxfb-msrs-in-linux-cs5535h
++++ a/drivers/video/geode/suspend_gx.c
+@@ -10,7 +10,7 @@
+ #include <linux/fb.h>
+ #include <asm/io.h>
+ #include <asm/msr.h>
+-#include <asm/geode.h>
++#include <linux/cs5535.h>
+ #include <asm/delay.h>
+ 
+ #include "gxfb.h"
+diff -puN drivers/video/geode/video_gx.c~cs5535-define-lxfb-gxfb-msrs-in-linux-cs5535h drivers/video/geode/video_gx.c
+--- a/drivers/video/geode/video_gx.c~cs5535-define-lxfb-gxfb-msrs-in-linux-cs5535h
++++ a/drivers/video/geode/video_gx.c
+@@ -16,7 +16,7 @@
+ #include <asm/io.h>
+ #include <asm/delay.h>
+ #include <asm/msr.h>
+-#include <asm/geode.h>
++#include <linux/cs5535.h>
+ 
+ #include "gxfb.h"
+ 
+diff -puN include/linux/cs5535.h~cs5535-define-lxfb-gxfb-msrs-in-linux-cs5535h include/linux/cs5535.h
+--- a/include/linux/cs5535.h~cs5535-define-lxfb-gxfb-msrs-in-linux-cs5535h
++++ a/include/linux/cs5535.h
+@@ -12,6 +12,14 @@
+ #define _CS5535_H
+ 
+ /* MSRs */
++#define MSR_GLIU_P2D_RO0	0x10000029
++
++#define MSR_LX_GLD_MSR_CONFIG	0x48002001
++#define MSR_LX_MSR_PADSEL	0x48002011	/* NOT 0x48000011; the data
++						 * sheet has the wrong value */
++#define MSR_GLCP_SYS_RSTPLL	0x4C000014
++#define MSR_GLCP_DOTPLL		0x4C000015
++
+ #define MSR_LBAR_SMB		0x5140000B
+ #define MSR_LBAR_GPIO		0x5140000C
+ #define MSR_LBAR_MFGPT		0x5140000D
+@@ -30,6 +38,11 @@
+ #define MSR_MFGPT_NR		0x51400029
+ #define MSR_MFGPT_SETUP		0x5140002B
+ 
++#define MSR_LX_SPARE_MSR	0x80000011	/* DC-specific */
++
++#define MSR_GX_GLD_MSR_CONFIG	0xC0002001
++#define MSR_GX_MSR_PADSEL	0xC0002011
++
+ /* resource sizes */
+ #define LBAR_GPIO_SIZE		0xFF
+ #define LBAR_MFGPT_SIZE		0x40
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from dilinger@collabora.co.uk are
 
-origin.patch
-maintainers-asus-acpi-extras-remove-f-arch-x86-kernel-acpi-bootc.patch
-maintainers-brocade-bfa-use-single-line-m-and-tabs.patch
-maintainers-server-engines-10gbps-iscsi-use-single-line-m.patch
-maintainers-vmware-vmxnet3-quote-name-with-comma-and-period-use-tabs.patch
-get_maintainer-fix-usage-comment.patch
-maintainers-correct-9p-file-system-git-entry.patch
-maintainers-correct-netfilter-git-entry-format.patch
-maintainers-correct-security-subsystem-git-entry.patch
 linux-next.patch
-dynamic_debugh-kernelh-remove-kbuild_modname-from-dynamic_pr_debug.patch
-kernelh-remove-initialization-of-bool-in-printk_once.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
-scripts-get_maintainerpl-add-roles-and-rolestats.patch
-scripts-get_maintainerpl-fix-non-with-git-blame-and-cleanups.patch
-scripts-get_maintainerpl-support-multiple-vcss-add-mercurial.patch
-lib-vsprintfc-add-%pu-to-print-uuid-guids.patch
-fs-xfs-xfs_log_recoverc-use-%pu-to-print-uuids.patch
-randomc-use-%pu-to-print-uuids.patch
-drivers-firmware-dmi_scanc-use-%pub-to-print-uuids.patch
-drivers-md-mdc-use-%pu-to-print-uuids.patch
-fs-gfs2-sysc-use-%pub-to-print-uuids.patch
-fs-ubifs-use-%pub-to-print-uuids.patch
-efih-use-%pul-to-print-uuids.patch
-scripts-checkpatchpl-add-warn-on-sizeof.patch
-checkpatchpl-allow-80-char-lines-for-logging-functions-not-just-printk.patch
-isicomc-use-pr_fmt-and-pr_level.patch
+drm-kill-some-unused-drm_proc-macros-from-drmph.patch
+drm-kill-more-unused-drm-macros.patch
+drm-replace-drm_copy-macro-w-a-function.patch
+drm-check-return-values-in-drm_version.patch
+cs5535-gpio-add-amd-cs5535-cs5536-gpio-driver-support.patch
+cs5535-gpio-request-function-mask-names-added.patch
+alsa-cs5535audio-free-olpc-quirks-from-reliance-on-mgeode_lx-cpu-optimization.patch
+cs5535-add-a-generic-mfgpt-driver.patch
+cs5535-add-a-generic-clock-event-mfgpt-driver.patch
+cs5535-move-the-divil-msr-definition-into-linux-cs5535h.patch
+cs5535-move-vsa2-checks-into-linux-cs5535h.patch
+cs5535-define-lxfb-gxfb-msrs-in-linux-cs5535h.patch
+cs5535-drop-the-geode-specific-mfgpt-gpio-code.patch
 
