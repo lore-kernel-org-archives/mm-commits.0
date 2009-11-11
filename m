@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-correct-9p-file-system-git-entry.patch added to -mm tree
-Date: Tue, 10 Nov 2009 16:32:20 -0800
-Message-ID: <200911110032.nAB0WKbn025113@imap1.linux-foundation.org>
+Subject: + maintainers-correct-security-subsystem-git-entry.patch added to -mm tree
+Date: Tue, 10 Nov 2009 16:32:24 -0800
+Message-ID: <200911110032.nAB0WOGm025161@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39796 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60004 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752136AbZKKAcX (ORCPT
+	by vger.kernel.org with ESMTP id S1752685AbZKKAcX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 10 Nov 2009 19:32:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, lucho@ionkov.net
+Cc: joe@perches.com, jmorris@namei.org
 
 
 The patch titled
-     MAINTAINERS: correct 9P FILE SYSTEM git entry
+     MAINTAINERS: correct SECURITY SUBSYSTEM git entry
 has been added to the -mm tree.  Its filename is
-     maintainers-correct-9p-file-system-git-entry.patch
+     maintainers-correct-security-subsystem-git-entry.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,27 +34,29 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: correct 9P FILE SYSTEM git entry
+Subject: MAINTAINERS: correct SECURITY SUBSYSTEM git entry
 From: Joe Perches <joe@perches.com>
 
+Use git.kernel.org not www.kernel.org
+
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Latchesar Ionkov <lucho@ionkov.net>
+Cc: James Morris <jmorris@namei.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN MAINTAINERS~maintainers-correct-9p-file-system-git-entry MAINTAINERS
---- a/MAINTAINERS~maintainers-correct-9p-file-system-git-entry
+diff -puN MAINTAINERS~maintainers-correct-security-subsystem-git-entry MAINTAINERS
+--- a/MAINTAINERS~maintainers-correct-security-subsystem-git-entry
 +++ a/MAINTAINERS
-@@ -182,7 +182,7 @@ M:	Ron Minnich <rminnich@sandia.gov>
- M:	Latchesar Ionkov <lucho@ionkov.net>
- L:	v9fs-developer@lists.sourceforge.net
- W:	http://swik.net/v9fs
--T:	git git://git.kernel.org/pub/scm/linux/kernel/ericvh/v9fs.git
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/ericvh/v9fs.git
- S:	Maintained
- F:	Documentation/filesystems/9p.txt
- F:	fs/9p/
+@@ -4635,7 +4635,7 @@ F:	drivers/mmc/host/sdhci-s3c.c
+ SECURITY SUBSYSTEM
+ M:	James Morris <jmorris@namei.org>
+ L:	linux-security-module@vger.kernel.org (suggested Cc:)
+-T:	git git://www.kernel.org/pub/scm/linux/kernel/git/jmorris/security-testing-2.6.git
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/jmorris/security-testing-2.6.git
+ W:	http://security.wiki.kernel.org/
+ S:	Supported
+ F:	security/
 _
 
 Patches currently in -mm which might be from joe@perches.com are
