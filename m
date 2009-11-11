@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-char-miscc-use-a-proper-range-for-minor-number-dynamic-allocation.patch added to -mm tree
-Date: Wed, 11 Nov 2009 15:34:06 -0800
-Message-ID: <200911112334.nABNY63N009100@imap1.linux-foundation.org>
+Subject: + serial_cs-oxsemi-quirk-breaks-resume.patch added to -mm tree
+Date: Wed, 11 Nov 2009 15:38:02 -0800
+Message-ID: <200911112338.nABNc24P018504@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58281 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60722 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759626AbZKKXeJ (ORCPT
+	by vger.kernel.org with ESMTP id S1759671AbZKKXiI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Nov 2009 18:34:09 -0500
+	Wed, 11 Nov 2009 18:38:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cascardo@holoscopio.com, alan@lxorguk.ukuu.org.uk, hpa@zytor.com
+Cc: pavel@ucw.cz, alan@lxorguk.ukuu.org.uk
 
 
 The patch titled
-     drivers/char/miscc.: use a proper range for minor number dynamic allocation
+     serial_cs: oxsemi quirk breaks resume
 has been added to the -mm tree.  Its filename is
-     drivers-char-miscc-use-a-proper-range-for-minor-number-dynamic-allocation.patch
+     serial_cs-oxsemi-quirk-breaks-resume.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,83 +34,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/char/miscc.: use a proper range for minor number dynamic allocation
-From: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
+Subject: serial_cs: oxsemi quirk breaks resume
+From: Pavel Machek <pavel@ucw.cz>
 
-The current dynamic allocation of minor number for misc devices has some
-drawbacks.
+Quirk is applied on all cards with given manfid (is it that correct?). 
+Unfortunately, that quirk breaks resume on zaurus with billionton
+bluetooth card inserted: c950ctrl is 0 and outb() faults.
 
-First of all, the range for dynamic numbers include some statically
-allocated numbers.  It goes from 63 to 0, and we have numbers in the range
-from 1 to 15 already allocated.  Although, it gives priority to the higher
-and not allocated numbers, we may end up in a situation where we must
-reject registering a driver which got a static number because a driver got
-its number with dynamic allocation.  Considering fs/dlm/user.c allocates
-as many misc devices as lockspaces are created, and that we have more than
-50 users around, it's not unreasonable to reach that situation.
+I believe it is simply not a multiport card.  (info->multi == 1).  ... 
+...  confirmed by printks.
 
-The proposed solution uses the not yet reserved range from 64 to 127.  If
-more devices are needed, we may push 64 to 16.
-
-Signed-off-by: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/misc.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ drivers/serial/serial_cs.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/misc.c~drivers-char-miscc-use-a-proper-range-for-minor-number-dynamic-allocation drivers/char/misc.c
---- a/drivers/char/misc.c~drivers-char-miscc-use-a-proper-range-for-minor-number-dynamic-allocation
-+++ a/drivers/char/misc.c
-@@ -60,6 +60,7 @@ static DEFINE_MUTEX(misc_mtx);
- /*
-  * Assigned numbers, used for dynamic minors
-  */
-+#define DYNAMIC_MINOR_BASE 64
- #define DYNAMIC_MINORS 64 /* like dynamic majors */
- static DECLARE_BITMAP(misc_minors, DYNAMIC_MINORS);
- 
-@@ -204,7 +205,7 @@ int misc_register(struct miscdevice * mi
- 			mutex_unlock(&misc_mtx);
- 			return -EBUSY;
- 		}
--		misc->minor = DYNAMIC_MINORS - i - 1;
-+		misc->minor = DYNAMIC_MINOR_BASE + i;
- 		set_bit(i, misc_minors);
- 	}
- 
-@@ -213,7 +214,7 @@ int misc_register(struct miscdevice * mi
- 	misc->this_device = device_create(misc_class, misc->parent, dev,
- 					  misc, "%s", misc->name);
- 	if (IS_ERR(misc->this_device)) {
--		int i = DYNAMIC_MINORS - misc->minor - 1;
-+		int i = misc->minor - DYNAMIC_MINOR_BASE;
- 		if (i < DYNAMIC_MINORS && i >= 0)
- 			clear_bit(i, misc_minors);
- 		err = PTR_ERR(misc->this_device);
-@@ -242,7 +243,7 @@ int misc_register(struct miscdevice * mi
- 
- int misc_deregister(struct miscdevice *misc)
+diff -puN drivers/serial/serial_cs.c~serial_cs-oxsemi-quirk-breaks-resume drivers/serial/serial_cs.c
+--- a/drivers/serial/serial_cs.c~serial_cs-oxsemi-quirk-breaks-resume
++++ a/drivers/serial/serial_cs.c
+@@ -146,7 +146,8 @@ static void quirk_wakeup_oxsemi(struct p
  {
--	int i = DYNAMIC_MINORS - misc->minor - 1;
-+	int i = misc->minor - DYNAMIC_MINOR_BASE;
+ 	struct serial_info *info = link->priv;
  
- 	if (list_empty(&misc->list))
- 		return -EINVAL;
+-	outb(12, info->c950ctrl + 1);
++	if (info->c950ctrl)
++		outb(12, info->c950ctrl + 1);
+ }
+ 
+ /* request_region? oxsemi branch does no request_region too... */
 _
 
-Patches currently in -mm which might be from cascardo@holoscopio.com are
+Patches currently in -mm which might be from pavel@ucw.cz are
 
+drivers-video-msm-update-to-new-kernel.patch
 linux-next.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices-fix.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices-depends-on-acpi.patch
-misc-remove-mac-pmu-function-declaration-from-misc-device-class.patch
-drivers-char-miscc-clear-allocation-bit-in-minor-bitmap-when-device-register-fails.patch
-drivers-char-miscc-use-bitmap-bitops-functions-for-dynamic-minor-number-allocation.patch
-drivers-char-miscc-use-a-proper-range-for-minor-number-dynamic-allocation.patch
-spidev-use-declare_bitmap-instead-of-declaring-the-array.patch
-spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
+serial_cs-oxsemi-quirk-breaks-resume.patch
+scripts-get_maintainerpl-add-roles-and-rolestats.patch
+scripts-get_maintainerpl-fix-non-with-git-blame-and-cleanups.patch
+msm_sdccc-add-missing-include-fix-compilation.patch
+msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes.patch
+lis3lv02d-axis-remap-and-resource-setup-release.patch
+lis3lv02d-i2c-support.patch
+fatfs-use-common-time_to_tm-in-fat_time_unix2fat.patch
 
