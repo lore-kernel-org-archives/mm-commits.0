@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mtd-maps-fix-accidental-removal-in-makefile.patch added to -mm tree
-Date: Tue, 10 Nov 2009 16:24:23 -0800
-Message-ID: <200911110024.nAB0ONvh006247@imap1.linux-foundation.org>
+Subject: + oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch added to -mm tree
+Date: Tue, 10 Nov 2009 16:26:50 -0800
+Message-ID: <200911110026.nAB0Qos0012140@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57902 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51415 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751560AbZKKAZR (ORCPT
+	by vger.kernel.org with ESMTP id S1751849AbZKKA0v (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Nov 2009 19:25:17 -0500
+	Tue, 10 Nov 2009 19:26:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: anemo@mba.ocn.ne.jp, cooloney@kernel.org, dwmw2@infradead.org, rjw@sisk.pl, vapier@gentoo.org
+Cc: rientjes@google.com, kosaki.motohiro@jp.fujitsu.com
 
 
 The patch titled
-     mtd/maps: fix accidental removal in Makefile
+     oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix
 has been added to the -mm tree.  Its filename is
-     mtd-maps-fix-accidental-removal-in-makefile.patch
+     oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,129 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd/maps: fix accidental removal in Makefile
-From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Subject: oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix
+From: David Rientjes <rientjes@google.com>
 
-The commit d79c326 ("gpio-addr-flash: new driver for GPIO assisted
-flash addressing") removed two lines from the Makefile by accident.
-Though I'm not sure how this accident happened, this patch reverts the
-removal.
+fix race, add pid & comm to message
 
-This patch fixes a regression from 2.6.31
+On Tue, 10 Nov 2009, akpm@linux-foundation.org wrote:
 
-Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Mike Frysinger <vapier@gentoo.org>
-Cc: Bryan Wu <cooloney@kernel.org>
+> diff -puN mm/oom_kill.c~oom-kill-show-virtual-size-and-rss-information-of-the-killed-process mm/oom_kill.c
+> --- a/mm/oom_kill.c~oom-kill-show-virtual-size-and-rss-information-of-the-killed-process
+> +++ a/mm/oom_kill.c
+> @@ -352,6 +352,8 @@ static void dump_header(gfp_t gfp_mask,
+>  		dump_tasks(mem);
+>  }
+>
+> +#define K(x) ((x) << (PAGE_SHIFT-10))
+> +
+>  /*
+>   * Send SIGKILL to the selected  process irrespective of  CAP_SYS_RAW_IO
+>   * flag though it's unlikely that  we select a process with CAP_SYS_RAW_IO
+> @@ -371,9 +373,16 @@ static void __oom_kill_task(struct task_
+>  		return;
+>  	}
+>
+> -	if (verbose)
+> -		printk(KERN_ERR "Killed process %d (%s)\n",
+> -				task_pid_nr(p), p->comm);
+> +	if (verbose) {
+> +		task_lock(p);
+> +		printk(KERN_ERR "Killed process %d (%s) "
+> +		       "vsz:%lukB, anon-rss:%lukB, file-rss:%lukB\n",
+> +		       task_pid_nr(p), p->comm,
+> +		       K(p->mm->total_vm),
+> +		       K(get_mm_counter(p->mm, anon_rss)),
+> +		       K(get_mm_counter(p->mm, file_rss)));
+> +		task_unlock(p);
+> +	}
+>
+>  	/*
+>  	 * We give our sacrificial lamb high priority and access to
+
+There's a race there which can dereference a NULL p->mm.
+
+p->mm is protected by task_lock(), but there's no check added here that
+ensures p->mm is still valid.  The previous check for !p->mm in
+__oom_kill_task() is not protected by task_lock(), so there's a race:
+
+	select_bad_process()
+	oom_kill_process(p)
+					do_exit()
+					exit_signals(p) /* PF_EXITING */
+	oom_kill_task(p)
+	__oom_kill_task(p)
+					exit_mm(p)
+					task_lock(p)
+					p->mm = NULL
+					task_unlock(p)
+	printk() of p->mm->total_vm
+
+Please merge this as a fix.
+
+Signed-off-by: David Rientjes <rientjes@google.com>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/mtd/maps/Makefile~mtd-maps-fix-accidental-removal-in-makefile drivers/mtd/maps/Makefile
---- a/drivers/mtd/maps/Makefile~mtd-maps-fix-accidental-removal-in-makefile
-+++ a/drivers/mtd/maps/Makefile
-@@ -56,4 +56,6 @@ obj-$(CONFIG_MTD_PLATRAM)	+= plat-ram.o
- obj-$(CONFIG_MTD_OMAP_NOR)	+= omap_nor.o
- obj-$(CONFIG_MTD_INTEL_VR_NOR)	+= intel_vr_nor.o
- obj-$(CONFIG_MTD_BFIN_ASYNC)	+= bfin-async-flash.o
-+obj-$(CONFIG_MTD_RBTX4939)	+= rbtx4939-flash.o
-+obj-$(CONFIG_MTD_VMU)		+= vmu-flash.o
- obj-$(CONFIG_MTD_GPIO_ADDR)	+= gpio-addr-flash.o
+diff -puN mm/oom_kill.c~oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix
++++ a/mm/oom_kill.c
+@@ -367,22 +367,23 @@ static void __oom_kill_task(struct task_
+ 		return;
+ 	}
+ 
++	task_lock(p);
+ 	if (!p->mm) {
+ 		WARN_ON(1);
+-		printk(KERN_WARNING "tried to kill an mm-less task!\n");
++		printk(KERN_WARNING "tried to kill an mm-less task %d (%s)!\n",
++			task_pid_nr(p), p->comm);
++		task_unlock(p);
+ 		return;
+ 	}
+ 
+-	if (verbose) {
+-		task_lock(p);
++	if (verbose)
+ 		printk(KERN_ERR "Killed process %d (%s) "
+ 		       "vsz:%lukB, anon-rss:%lukB, file-rss:%lukB\n",
+ 		       task_pid_nr(p), p->comm,
+ 		       K(p->mm->total_vm),
+ 		       K(get_mm_counter(p->mm, anon_rss)),
+ 		       K(get_mm_counter(p->mm, file_rss)));
+-		task_unlock(p);
+-	}
++	task_unlock(p);
+ 
+ 	/*
+ 	 * We give our sacrificial lamb high priority and access to
 _
 
-Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
+Patches currently in -mm which might be from rientjes@google.com are
 
+page-allocator-do-not-allow-interrupts-to-use-alloc_harder.patch
 linux-next.patch
-mtd-maps-fix-accidental-removal-in-makefile.patch
-rtc-fix-driver-data-issues-in-several-rtc-drivers.patch
-rtc-ds1511-fix-races-around-device-registration.patch
-rtc-tx4939-fix-races-around-device-registration.patch
-rtc-ds1553-fix-races-around-device-registration.patch
-rtc-ds1742-fix-races-around-device-registration.patch
-rtc-stk17ta8-fix-races-around-device-registration.patch
-rtc-do-not-use-container_of-macro-as-an-argument-for-to_platform_device.patch
+acpi-remove-nid_inval.patch
+acpi-remove-nid_inval-checkpatch-fixes.patch
+oom-dump-stack-and-vm-state-when-oom-killer-panics.patch
+nodemask-make-nodemask_alloc-more-general.patch
+hugetlb-rework-hstate_next_node_-functions.patch
+hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions.patch
+hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions-fix.patch
+hugetlb-factor-init_nodemask_of_node.patch
+hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy.patch
+hugetlb-add-generic-definition-of-numa_no_node.patch
+hugetlb-add-per-node-hstate-attributes.patch
+hugetlb-update-hugetlb-documentation-for-numa-controls.patch
+hugetlb-use-only-nodes-with-memory-for-huge-pages.patch
+mm-clear-node-in-n_high_memory-and-stop-kswapd-when-all-memory-is-offlined.patch
+hugetlb-handle-memory-hot-plug-events.patch
+hugetlb-offload-per-node-attribute-registrations.patch
+mm-add-gfp-flags-for-nodemask_alloc-slab-allocations.patch
+oom_kill-use-rss-value-instead-of-vm-size-for-badness.patch
+oom-kill-show-virtual-size-and-rss-information-of-the-killed-process.patch
+oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
+do_wait-optimization-do-not-place-sub-threads-on-task_struct-children-list.patch
 
