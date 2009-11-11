@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-correct-security-subsystem-git-entry.patch added to -mm tree
-Date: Tue, 10 Nov 2009 16:32:24 -0800
-Message-ID: <200911110032.nAB0WOGm025161@imap1.linux-foundation.org>
+Subject: + maintainers-correct-netfilter-git-entry-format.patch added to -mm tree
+Date: Tue, 10 Nov 2009 16:32:22 -0800
+Message-ID: <200911110032.nAB0WML3025116@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60004 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55254 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752685AbZKKAcX (ORCPT
+	by vger.kernel.org with ESMTP id S1752076AbZKKAcW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Nov 2009 19:32:23 -0500
+	Tue, 10 Nov 2009 19:32:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, jmorris@namei.org
+Cc: joe@perches.com, kaber@trash.net
 
 
 The patch titled
-     MAINTAINERS: correct SECURITY SUBSYSTEM git entry
+     MAINTAINERS: correct NETFILTER git entry format
 has been added to the -mm tree.  Its filename is
-     maintainers-correct-security-subsystem-git-entry.patch
+     maintainers-correct-netfilter-git-entry-format.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,29 +34,27 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: correct SECURITY SUBSYSTEM git entry
+Subject: MAINTAINERS: correct NETFILTER git entry format
 From: Joe Perches <joe@perches.com>
 
-Use git.kernel.org not www.kernel.org
-
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: James Morris <jmorris@namei.org>
+Cc: Patrick McHardy <kaber@trash.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN MAINTAINERS~maintainers-correct-security-subsystem-git-entry MAINTAINERS
---- a/MAINTAINERS~maintainers-correct-security-subsystem-git-entry
+diff -puN MAINTAINERS~maintainers-correct-netfilter-git-entry-format MAINTAINERS
+--- a/MAINTAINERS~maintainers-correct-netfilter-git-entry-format
 +++ a/MAINTAINERS
-@@ -4635,7 +4635,7 @@ F:	drivers/mmc/host/sdhci-s3c.c
- SECURITY SUBSYSTEM
- M:	James Morris <jmorris@namei.org>
- L:	linux-security-module@vger.kernel.org (suggested Cc:)
--T:	git git://www.kernel.org/pub/scm/linux/kernel/git/jmorris/security-testing-2.6.git
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/jmorris/security-testing-2.6.git
- W:	http://security.wiki.kernel.org/
+@@ -3616,7 +3616,7 @@ L:	netfilter@vger.kernel.org
+ L:	coreteam@netfilter.org
+ W:	http://www.netfilter.org/
+ W:	http://www.iptables.org/
+-T:	git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-2.6.git
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-2.6.git
  S:	Supported
- F:	security/
+ F:	include/linux/netfilter*
+ F:	include/linux/netfilter/
 _
 
 Patches currently in -mm which might be from joe@perches.com are
