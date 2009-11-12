@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + oom-kill-fix-numa-consraint-check-with-nodemask-v42.patch added to -mm tree
-Date: Thu, 12 Nov 2009 13:52:40 -0800
-Message-ID: <200911122152.nACLqeN6024583@imap1.linux-foundation.org>
+Subject: + oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes.patch added to -mm tree
+Date: Thu, 12 Nov 2009 13:54:55 -0800
+Message-ID: <200911122154.nACLstav029908@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56998 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37315 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754312AbZKLVwn (ORCPT
+	by vger.kernel.org with ESMTP id S1754370AbZKLVy6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Nov 2009 16:52:43 -0500
+	Thu, 12 Nov 2009 16:54:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hioryu@jp.fujitsu.com, cl@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp, rientjes@google.com
+Cc: akpm@linux-foundation.org, cl@linux-foundation.org, kamezawa.hioryu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp, rientjes@google.com
 
 
 The patch titled
-     oom-kill: fix NUMA constraint check with nodemask
+     oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     oom-kill-fix-numa-consraint-check-with-nodemask-v42.patch
+     oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,193 +34,199 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom-kill: fix NUMA constraint check with nodemask
-From: KAMEZAWA Hiroyuki <kamezawa.hioryu@jp.fujitsu.com>
+Subject: oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix node-oriented allocation handling in oom-kill.c I myself think of this
-as a bugfix not as an ehnancement.
+ERROR: code indent should use tabs where possible
+#99: FILE: mm/oom_kill.c:209:
++ ^I * to kill current.We have to random task kill in this case.$
 
-In these days, things are changed as
-  - alloc_pages() eats nodemask as its arguments, __alloc_pages_nodemask().
-  - mempolicy don't maintain its own private zonelists.
-  (And cpuset doesn't use nodemask for __alloc_pages_nodemask())
+ERROR: code indent should use tabs where possible
+#100: FILE: mm/oom_kill.c:210:
++ ^I * Hopefully, CONSTRAINT_THISNODE...but no way to handle it, now.$
 
-So, current oom-killer's check function is wrong.
+ERROR: code indent should use tabs where possible
+#101: FILE: mm/oom_kill.c:211:
++ ^I */$
 
-This patch does
-  - check nodemask, if nodemask && nodemask doesn't cover all
-    node_states[N_HIGH_MEMORY], this is CONSTRAINT_MEMORY_POLICY.
-  - Scan all zonelist under nodemask, if it hits cpuset's wall
-    this faiulre is from cpuset.
-And
-  - modifies the caller of out_of_memory not to call oom if __GFP_THISNODE.
-    This doesn't change "current" behavior. If callers use __GFP_THISNODE
-    it should handle "page allocation failure" by itself.
+ERROR: code indent should use tabs where possible
+#107: FILE: mm/oom_kill.c:216:
++ ^I * The nodemask here is a nodemask passed to alloc_pages(). Now,$
 
-  - handle __GFP_NOFAIL+__GFP_THISNODE path.
-    This is something like a FIXME but this gfpmask is not used now.
+ERROR: code indent should use tabs where possible
+#108: FILE: mm/oom_kill.c:217:
++ ^I * cpuset doesn't use this nodemask for its hardwall/softwall/hierarchy$
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hioryu@jp.fujitsu.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+ERROR: code indent should use tabs where possible
+#109: FILE: mm/oom_kill.c:218:
++ ^I * feature. mempolicy is an only user of nodemask here.$
+
+ERROR: code indent should use tabs where possible
+#111: FILE: mm/oom_kill.c:220:
++ ^I */$
+
+ERROR: code indent should use tabs where possible
+#169: FILE: mm/page_alloc.c:1672:
++^I ^I* GFP_THISNODE contains __GFP_NORETRY and we never hit this.$
+
+ERROR: code indent should use tabs where possible
+#170: FILE: mm/page_alloc.c:1673:
++^I ^I* Sanity check for bare calls of __GFP_THISNODE, not real OOM.$
+
+ERROR: code indent should use tabs where possible
+#171: FILE: mm/page_alloc.c:1674:
++^I ^I* The caller should handle page allocation failure by itself if$
+
+ERROR: code indent should use tabs where possible
+#172: FILE: mm/page_alloc.c:1675:
++^I ^I* it specifies __GFP_THISNODE.$
+
+ERROR: code indent should use tabs where possible
+#173: FILE: mm/page_alloc.c:1676:
++^I ^I* Note: Hugepage uses it but will hit PAGE_ALLOC_COSTLY_ORDER.$
+
+ERROR: code indent should use tabs where possible
+#174: FILE: mm/page_alloc.c:1677:
++^I ^I*/$
+
+total: 13 errors, 0 warnings, 125 lines checked
+
+./patches/oom-kill-fix-numa-consraint-check-with-nodemask-v42.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
 Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: David Rientjes <rientjes@google.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hioryu@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/sysrq.c |    2 -
- include/linux/oom.h  |    4 ++-
- mm/oom_kill.c        |   46 +++++++++++++++++++++++++++++------------
- mm/page_alloc.c      |   20 +++++++++++++----
- 4 files changed, 52 insertions(+), 20 deletions(-)
+ mm/oom_kill.c   |   14 +++++++-------
+ mm/page_alloc.c |   14 +++++++-------
+ 2 files changed, 14 insertions(+), 14 deletions(-)
 
-diff -puN drivers/char/sysrq.c~oom-kill-fix-numa-consraint-check-with-nodemask-v42 drivers/char/sysrq.c
---- a/drivers/char/sysrq.c~oom-kill-fix-numa-consraint-check-with-nodemask-v42
-+++ a/drivers/char/sysrq.c
-@@ -339,7 +339,7 @@ static struct sysrq_key_op sysrq_term_op
- 
- static void moom_callback(struct work_struct *ignored)
- {
--	out_of_memory(node_zonelist(0, GFP_KERNEL), GFP_KERNEL, 0);
-+	out_of_memory(node_zonelist(0, GFP_KERNEL), GFP_KERNEL, 0, NULL);
- }
- 
- static DECLARE_WORK(moom_work, moom_callback);
-diff -puN include/linux/oom.h~oom-kill-fix-numa-consraint-check-with-nodemask-v42 include/linux/oom.h
---- a/include/linux/oom.h~oom-kill-fix-numa-consraint-check-with-nodemask-v42
-+++ a/include/linux/oom.h
-@@ -10,6 +10,7 @@
- #ifdef __KERNEL__
- 
- #include <linux/types.h>
-+#include <linux/nodemask.h>
- 
- struct zonelist;
- struct notifier_block;
-@@ -26,7 +27,8 @@ enum oom_constraint {
- extern int try_set_zone_oom(struct zonelist *zonelist, gfp_t gfp_flags);
- extern void clear_zonelist_oom(struct zonelist *zonelist, gfp_t gfp_flags);
- 
--extern void out_of_memory(struct zonelist *zonelist, gfp_t gfp_mask, int order);
-+extern void out_of_memory(struct zonelist *zonelist, gfp_t gfp_mask,
-+		int order, nodemask_t *mask);
- extern int register_oom_notifier(struct notifier_block *nb);
- extern int unregister_oom_notifier(struct notifier_block *nb);
- 
-diff -puN mm/oom_kill.c~oom-kill-fix-numa-consraint-check-with-nodemask-v42 mm/oom_kill.c
---- a/mm/oom_kill.c~oom-kill-fix-numa-consraint-check-with-nodemask-v42
+diff -puN mm/oom_kill.c~oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes
 +++ a/mm/oom_kill.c
-@@ -196,27 +196,46 @@ unsigned long badness(struct task_struct
- /*
-  * Determine the type of allocation constraint.
-  */
--static inline enum oom_constraint constrained_alloc(struct zonelist *zonelist,
--						    gfp_t gfp_mask)
--{
- #ifdef CONFIG_NUMA
-+static enum oom_constraint constrained_alloc(struct zonelist *zonelist,
-+				    gfp_t gfp_mask, nodemask_t *nodemask)
-+{
- 	struct zone *zone;
- 	struct zoneref *z;
- 	enum zone_type high_zoneidx = gfp_zone(gfp_mask);
--	nodemask_t nodes = node_states[N_HIGH_MEMORY];
+@@ -206,18 +206,18 @@ static enum oom_constraint constrained_a
  
--	for_each_zone_zonelist(zone, z, zonelist, high_zoneidx)
--		if (cpuset_zone_allowed_softwall(zone, gfp_mask))
--			node_clear(zone_to_nid(zone), nodes);
--		else
--			return CONSTRAINT_CPUSET;
-+	/*
-+	 * Reach here only when __GFP_NOFAIL is used. So, we should avoid
-+ 	 * to kill current.We have to random task kill in this case.
-+ 	 * Hopefully, CONSTRAINT_THISNODE...but no way to handle it, now.
-+ 	 */
-+	if (gfp_mask & __GFP_THISNODE)
-+		return CONSTRAINT_NONE;
+ 	/*
+ 	 * Reach here only when __GFP_NOFAIL is used. So, we should avoid
+- 	 * to kill current.We have to random task kill in this case.
+- 	 * Hopefully, CONSTRAINT_THISNODE...but no way to handle it, now.
+- 	 */
++	 * to kill current.We have to random task kill in this case.
++	 * Hopefully, CONSTRAINT_THISNODE...but no way to handle it, now.
++	 */
+ 	if (gfp_mask & __GFP_THISNODE)
+ 		return CONSTRAINT_NONE;
  
--	if (!nodes_empty(nodes))
-+	/*
-+ 	 * The nodemask here is a nodemask passed to alloc_pages(). Now,
-+ 	 * cpuset doesn't use this nodemask for its hardwall/softwall/hierarchy
-+ 	 * feature. mempolicy is an only user of nodemask here.
-+	 * check mempolicy's nodemask contains all N_HIGH_MEMORY
-+ 	 */
-+	if (nodemask && !nodes_subset(node_states[N_HIGH_MEMORY], *nodemask))
+ 	/*
+- 	 * The nodemask here is a nodemask passed to alloc_pages(). Now,
+- 	 * cpuset doesn't use this nodemask for its hardwall/softwall/hierarchy
+- 	 * feature. mempolicy is an only user of nodemask here.
++	 * The nodemask here is a nodemask passed to alloc_pages(). Now,
++	 * cpuset doesn't use this nodemask for its hardwall/softwall/hierarchy
++	 * feature. mempolicy is an only user of nodemask here.
+ 	 * check mempolicy's nodemask contains all N_HIGH_MEMORY
+- 	 */
++	 */
+ 	if (nodemask && !nodes_subset(node_states[N_HIGH_MEMORY], *nodemask))
  		return CONSTRAINT_MEMORY_POLICY;
--#endif
  
-+	/* Check this allocation failure is caused by cpuset's wall function */
-+	for_each_zone_zonelist_nodemask(zone, z, zonelist,
-+			high_zoneidx, nodemask)
-+		if (!cpuset_zone_allowed_softwall(zone, gfp_mask))
-+			return CONSTRAINT_CPUSET;
-+
-+	return CONSTRAINT_NONE;
-+}
-+#else
-+static enum oom_constraint constrained_alloc(struct zonelist *zonelist,
-+				gfp_t gfp_mask, nodemask_t *nodemask)
-+{
- 	return CONSTRAINT_NONE;
- }
-+#endif
- 
- /*
-  * Simple selection loop. We chose the process with the highest
-@@ -613,7 +632,8 @@ rest_and_return:
-  * OR try to be smart about which process to kill. Note that we
-  * don't have to be perfect here, we just have to be good.
-  */
--void out_of_memory(struct zonelist *zonelist, gfp_t gfp_mask, int order)
-+void out_of_memory(struct zonelist *zonelist, gfp_t gfp_mask,
-+		int order, nodemask_t *nodemask)
- {
- 	unsigned long freed = 0;
- 	enum oom_constraint constraint;
-@@ -632,7 +652,7 @@ void out_of_memory(struct zonelist *zone
- 	 * Check if there were limitations on the allocation (only relevant for
- 	 * NUMA) that may require different handling.
- 	 */
--	constraint = constrained_alloc(zonelist, gfp_mask);
-+	constraint = constrained_alloc(zonelist, gfp_mask, nodemask);
- 	read_lock(&tasklist_lock);
- 
- 	switch (constraint) {
-diff -puN mm/page_alloc.c~oom-kill-fix-numa-consraint-check-with-nodemask-v42 mm/page_alloc.c
---- a/mm/page_alloc.c~oom-kill-fix-numa-consraint-check-with-nodemask-v42
+diff -puN mm/page_alloc.c~oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes mm/page_alloc.c
+--- a/mm/page_alloc.c~oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes
 +++ a/mm/page_alloc.c
-@@ -1664,12 +1664,22 @@ __alloc_pages_may_oom(gfp_t gfp_mask, un
- 	if (page)
- 		goto out;
+@@ -1669,12 +1669,12 @@ __alloc_pages_may_oom(gfp_t gfp_mask, un
+ 		if (order > PAGE_ALLOC_COSTLY_ORDER)
+ 			goto out;
+ 		/*
+-	 	* GFP_THISNODE contains __GFP_NORETRY and we never hit this.
+-	 	* Sanity check for bare calls of __GFP_THISNODE, not real OOM.
+-	 	* The caller should handle page allocation failure by itself if
+-	 	* it specifies __GFP_THISNODE.
+-	 	* Note: Hugepage uses it but will hit PAGE_ALLOC_COSTLY_ORDER.
+-	 	*/
++		 * GFP_THISNODE contains __GFP_NORETRY and we never hit this.
++		 * Sanity check for bare calls of __GFP_THISNODE, not real OOM.
++		 * The caller should handle page allocation failure by itself if
++		 * it specifies __GFP_THISNODE.
++		 * Note: Hugepage uses it but will hit PAGE_ALLOC_COSTLY_ORDER.
++		 */
+ 		if (gfp_mask & __GFP_THISNODE)
+ 			goto out;
+ 	}
+@@ -3143,7 +3143,7 @@ static int __cpuinit process_zones(int c
  
--	/* The OOM killer will not help higher order allocs */
--	if (order > PAGE_ALLOC_COSTLY_ORDER && !(gfp_mask & __GFP_NOFAIL))
--		goto out;
--
-+	if (!(gfp_mask & __GFP_NOFAIL)) {
-+		/* The OOM killer will not help higher order allocs */
-+		if (order > PAGE_ALLOC_COSTLY_ORDER)
-+			goto out;
-+		/*
-+	 	* GFP_THISNODE contains __GFP_NORETRY and we never hit this.
-+	 	* Sanity check for bare calls of __GFP_THISNODE, not real OOM.
-+	 	* The caller should handle page allocation failure by itself if
-+	 	* it specifies __GFP_THISNODE.
-+	 	* Note: Hugepage uses it but will hit PAGE_ALLOC_COSTLY_ORDER.
-+	 	*/
-+		if (gfp_mask & __GFP_THISNODE)
-+			goto out;
-+	}
- 	/* Exhausted what can be done so it's blamo time */
--	out_of_memory(zonelist, gfp_mask, order);
-+	out_of_memory(zonelist, gfp_mask, order, nodemask);
+ 		if (percpu_pagelist_fraction)
+ 			setup_pagelist_highmark(zone_pcp(zone, cpu),
+-			 	(zone->present_pages / percpu_pagelist_fraction));
++			    (zone->present_pages / percpu_pagelist_fraction));
+ 	}
  
- out:
- 	clear_zonelist_oom(zonelist, gfp_mask);
+ 	return 0;
 _
 
-Patches currently in -mm which might be from kamezawa.hioryu@jp.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-oom-kill-fix-numa-consraint-check-with-nodemask-v42.patch
+origin.patch
+alpha-move-thread_size-definition-outside-ifndef-assembly.patch
+linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
+drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices-fix.patch
+acpi-remove-nid_inval-checkpatch-fixes.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+3x59x-fix-pci-resource-management.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+include-trace-events-lockdeph-fix-do_div-warning.patch
+st-fix-test-of-value-range-in-st_set_options.patch
+scsi-add-hpsa-driver-for-hp-smart-array-controllers-fix.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+fs-improve-remountro-vs-buffercache-coherency.patch
+percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+readahead-add-blk_run_backing_dev.patch
+mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
+oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
+oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
+drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
+rwsem-fix-rwsem_is_locked-bugs-fix.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
+errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
+msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes.patch
+hwmon-w83627ehf-updates-checkpatch-fixes.patch
+spi-controller-driver-for-designware-spi-core-fix.patch
+spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
+ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
+memcg-coalesce-charging-via-percpu-storage-fix.patch
+aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
+direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+reiser4-disable.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
