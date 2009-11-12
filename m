@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ptrace-x86-implement-user_single_step_siginfo.patch added to -mm tree
-Date: Thu, 12 Nov 2009 15:17:45 -0800
-Message-ID: <200911122317.nACNHjje030905@imap1.linux-foundation.org>
+Subject: + ocfs2-error-return-should-be-negative.patch added to -mm tree
+Date: Thu, 12 Nov 2009 15:38:53 -0800
+Message-ID: <200911122338.nACNcrmx015989@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41407 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38899 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755159AbZKLXSs (ORCPT
+	by vger.kernel.org with ESMTP id S1755084AbZKLXj1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Nov 2009 18:18:48 -0500
+	Thu, 12 Nov 2009 18:39:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, hpa@zytor.com, linux-arch@vger.kernel.org, mingo@elte.hu, roland@redhat.com, tglx@linutronix.de
+Cc: roel.kluin@gmail.com, Joel.Becker@oracle.com, mfasheh@suse.com
 
 
 The patch titled
-     ptrace: x86: implement user_single_step_siginfo()
+     ocfs2: error return should be negative
 has been added to the -mm tree.  Its filename is
-     ptrace-x86-implement-user_single_step_siginfo.patch
+     ocfs2-error-return-should-be-negative.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,108 +34,64 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace: x86: implement user_single_step_siginfo()
-From: Oleg Nesterov <oleg@redhat.com>
+Subject: ocfs2: error return should be negative
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Suggested by Roland.
+Return a negative error value instead of a positive
 
-Implement user_single_step_siginfo() for x86.  Extract this code from
-send_sigtrap().
-
-Since x86 calls tracehook_report_syscall_exit(step => 0) the new helper is
-not used yet.
-
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Roland McGrath <roland@redhat.com>
-Cc: <linux-arch@vger.kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <Joel.Becker@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/ptrace.h |    2 ++
- arch/x86/kernel/ptrace.c      |   30 +++++++++++++++++++++---------
- 2 files changed, 23 insertions(+), 9 deletions(-)
+ fs/ocfs2/dlm/dlmrecovery.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/include/asm/ptrace.h~ptrace-x86-implement-user_single_step_siginfo arch/x86/include/asm/ptrace.h
---- a/arch/x86/include/asm/ptrace.h~ptrace-x86-implement-user_single_step_siginfo
-+++ a/arch/x86/include/asm/ptrace.h
-@@ -292,6 +292,8 @@ extern void user_enable_block_step(struc
- #define arch_has_block_step()	(boot_cpu_data.x86 >= 6)
- #endif
+diff -puN fs/ocfs2/dlm/dlmrecovery.c~ocfs2-error-return-should-be-negative fs/ocfs2/dlm/dlmrecovery.c
+--- a/fs/ocfs2/dlm/dlmrecovery.c~ocfs2-error-return-should-be-negative
++++ a/fs/ocfs2/dlm/dlmrecovery.c
+@@ -2639,7 +2639,7 @@ int dlm_begin_reco_handler(struct o2net_
+ 		     dlm->name, br->node_idx, br->dead_node,
+ 		     dlm->reco.dead_node, dlm->reco.new_master);
+ 		spin_unlock(&dlm->spinlock);
+-		return EAGAIN;
++		return -EAGAIN;
+ 	}
+ 	spin_unlock(&dlm->spinlock);
  
-+#define ARCH_HAS_USER_SINGLE_STEP_INFO
-+
- struct user_desc;
- extern int do_get_thread_area(struct task_struct *p, int idx,
- 			      struct user_desc __user *info);
-diff -puN arch/x86/kernel/ptrace.c~ptrace-x86-implement-user_single_step_siginfo arch/x86/kernel/ptrace.c
---- a/arch/x86/kernel/ptrace.c~ptrace-x86-implement-user_single_step_siginfo
-+++ a/arch/x86/kernel/ptrace.c
-@@ -1549,21 +1549,33 @@ const struct user_regset_view *task_user
- #endif
- }
- 
--void send_sigtrap(struct task_struct *tsk, struct pt_regs *regs,
--					 int error_code, int si_code)
-+static void fill_sigtrap_info(struct task_struct *tsk,
-+				struct pt_regs *regs,
-+				int error_code, int si_code,
-+				struct siginfo *info)
- {
--	struct siginfo info;
--
- 	tsk->thread.trap_no = 1;
- 	tsk->thread.error_code = error_code;
- 
--	memset(&info, 0, sizeof(info));
--	info.si_signo = SIGTRAP;
--	info.si_code = si_code;
-+	memset(info, 0, sizeof(*info));
-+	info->si_signo = SIGTRAP;
-+	info->si_code = si_code;
-+	info->si_addr = user_mode_vm(regs) ? (void __user *)regs->ip : NULL;
-+}
-+
-+void user_single_step_siginfo(struct task_struct *tsk,
-+				struct pt_regs *regs,
-+				struct siginfo *info)
-+{
-+	fill_sigtrap_info(tsk, regs, 0, TRAP_BRKPT, info);
-+}
- 
--	/* User-mode ip? */
--	info.si_addr = user_mode_vm(regs) ? (void __user *) regs->ip : NULL;
-+void send_sigtrap(struct task_struct *tsk, struct pt_regs *regs,
-+					 int error_code, int si_code)
-+{
-+	struct siginfo info;
- 
-+	fill_sigtrap_info(tsk, regs, error_code, si_code, &info);
- 	/* Send us the fake SIGTRAP */
- 	force_sig_info(SIGTRAP, &info, tsk);
- }
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 origin.patch
+get_maintainer-fix-usage-comment.patch
 linux-next.patch
-itimers-fix-racy-writes-to-cpu_itimer-fields.patch
-posix-cpu-timers-optimize-and-document-timer_create-callback.patch
-ptrace-cleanup-ptrace_init_task-ptrace_link-path.patch
-ptrace-copy_process-should-disable-stepping.patch
-ptrace-introduce-user_single_step_siginfo-helper.patch
-ptrace-powerpc-implement-user_single_step_siginfo.patch
-ptrace-change-tracehook_report_syscall_exit-to-handle-stepping.patch
-ptrace-x86-implement-user_single_step_siginfo.patch
-ptrace-x86-change-syscall_trace_leave-to-rely-on-tracehook-when-stepping.patch
-signals-send_sig_noinfo-should-be-considered-as-si_fromuser.patch
-signals-send_signal-use-si_fromuser-to-detect-from_ancestor_ns.patch
-signals-cosmetic-collect_signal-use-si_user.patch
-signals-kill-force_sig_specific.patch
-signals-check-group_stop_count-after-tracehook_get_signal.patch
-utrace-core.patch
-do_wait-optimization-do-not-place-sub-threads-on-task_struct-children-list.patch
+fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch
+omap-fix-unlikelyx-y.patch
+omap-cs-should-be-positive-in-gpmc_cs_free.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+sms-cards-make-id-unsigned-in-sms_get_board.patch
+mtd-error-return-eio-instead-of-eio.patch
+ocfs2-error-return-should-be-negative.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
+zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
+st-fix-test-of-value-range-in-st_set_options.patch
+ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
+scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
+page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+cryptocop-fix-assertion-in-create_output_descriptors.patch
+gpio-fix-test-on-unsigned-in-lnw_irq_type.patch
+fbdev-tv_paln-bit-set-twice-in-sisfb_detect_vb_connect.patch
+hvc_console-fix-test-on-unsigned-in-hvc_console_print.patch
+irq-fix-test-in-__exit-parport_mfc3_exit.patch
 
