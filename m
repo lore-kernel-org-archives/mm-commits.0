@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + mm-sigbus-instead-of-abusing-oom.patch added to -mm tree
-Date: Thu, 12 Nov 2009 12:55:28 -0800
-Message-ID: <200911122055.nACKtSGb019307@imap1.linux-foundation.org>
+Subject: + mm-stop-ptlock-enlarging-struct-page.patch added to -mm tree
+Date: Thu, 12 Nov 2009 12:55:25 -0800
+Message-ID: <200911122055.nACKtPma019241@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59039 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48584 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754513AbZKLU4E (ORCPT
+	by vger.kernel.org with ESMTP id S1754394AbZKLU4E (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 12 Nov 2009 15:56:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: hugh.dickins@tiscali.co.uk, Lee.Schermerhorn@hp.com, aarcange@redhat.com, an
 
 
 The patch titled
-     mm: sigbus instead of abusing oom
+     mm: stop ptlock enlarging struct page
 has been added to the -mm tree.  Its filename is
-     mm-sigbus-instead-of-abusing-oom.patch
+     mm-stop-ptlock-enlarging-struct-page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,63 +34,70 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: sigbus instead of abusing oom
+Subject: mm: stop ptlock enlarging struct page
 From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
-When do_nonlinear_fault() realizes that the page table must have been
-corrupted for it to have been called, it does print_bad_pte() and returns
-...  VM_FAULT_OOM, which is hard to understand.
+CONFIG_DEBUG_SPINLOCK adds 12 or 16 bytes to a 32- or 64-bit spinlock_t,
+and CONFIG_DEBUG_LOCK_ALLOC adds another 12 or 24 bytes to it: lockdep
+enables both of those, and CONFIG_LOCK_STAT adds 8 or 16 bytes to that.
 
-It made some sense when I did it for 2.6.15, when do_page_fault() just
-killed the current process; but nowadays it lets the OOM killer decide who
-to kill - so page table corruption in one process would be liable to kill
-another.
+When 2.6.15 placed the split page table lock inside struct page (usually
+sized 32 or 56 bytes), only CONFIG_DEBUG_SPINLOCK was a possibility, and
+we ignored the enlargement (but fitted in CONFIG_GENERIC_LOCKBREAK's 4 by
+letting the spinlock_t occupy both page->private and page->mapping).
 
-Change it to return VM_FAULT_SIGBUS instead: that doesn't guarantee that
-the process will be killed, but is good enough for such a rare
-abnormality, accompanied as it is by the "BUG: Bad page map" message.
+Should these debugging options be allowed to double the size of a struct
+page, when only one minority use of the page (as a page table) needs to
+fit a spinlock in there?  Perhaps not.
 
-And recent HWPOISON work has copied that code into do_swap_page(), when it
-finds an impossible swap entry: fix that to VM_FAULT_SIGBUS too.
+Take the easy way out: switch off SPLIT_PTLOCK_CPUS when DEBUG_SPINLOCK or
+DEBUG_LOCK_ALLOC is in force.  I've sometimes tried to be cleverer,
+kmallocing a cacheline for the spinlock when it doesn't fit, but given up
+each time.  Falling back to mm->page_table_lock (as we do when ptlock is
+not split) lets lockdep check out the strictest path anyway.
+
+And now that some arches allow 8192 cpus, use 999999 for infinity.
+
+(What has this got to do with KSM swapping?  It doesn't care about the
+size of struct page, but may care about random junk in page->mapping - to
+be explained separately later.)
 
 Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Cc: Izik Eidus <ieidus@redhat.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Nick Piggin <npiggin@suse.de>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Rik van Riel <riel@redhat.com>
 Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
 Cc: Andi Kleen <andi@firstfloor.org>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Reviewed-by: Wu Fengguang <fengguang.wu@intel.com>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/Kconfig |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN mm/memory.c~mm-sigbus-instead-of-abusing-oom mm/memory.c
---- a/mm/memory.c~mm-sigbus-instead-of-abusing-oom
-+++ a/mm/memory.c
-@@ -2527,7 +2527,7 @@ static int do_swap_page(struct mm_struct
- 			ret = VM_FAULT_HWPOISON;
- 		} else {
- 			print_bad_pte(vma, address, orig_pte, NULL);
--			ret = VM_FAULT_OOM;
-+			ret = VM_FAULT_SIGBUS;
- 		}
- 		goto out;
- 	}
-@@ -2923,7 +2923,7 @@ static int do_nonlinear_fault(struct mm_
- 		 * Page table corrupted: show pte and kill process.
- 		 */
- 		print_bad_pte(vma, address, orig_pte, NULL);
--		return VM_FAULT_OOM;
-+		return VM_FAULT_SIGBUS;
- 	}
+diff -puN mm/Kconfig~mm-stop-ptlock-enlarging-struct-page mm/Kconfig
+--- a/mm/Kconfig~mm-stop-ptlock-enlarging-struct-page
++++ a/mm/Kconfig
+@@ -161,11 +161,13 @@ config PAGEFLAGS_EXTENDED
+ # Default to 4 for wider testing, though 8 might be more appropriate.
+ # ARM's adjust_pte (unused if VIPT) depends on mm-wide page_table_lock.
+ # PA-RISC 7xxx's spinlock_t would enlarge struct page from 32 to 44 bytes.
++# DEBUG_SPINLOCK and DEBUG_LOCK_ALLOC spinlock_t also enlarge struct page.
+ #
+ config SPLIT_PTLOCK_CPUS
+ 	int
+-	default "4096" if ARM && !CPU_CACHE_VIPT
+-	default "4096" if PARISC && !PA20
++	default "999999" if ARM && !CPU_CACHE_VIPT
++	default "999999" if PARISC && !PA20
++	default "999999" if DEBUG_SPINLOCK || DEBUG_LOCK_ALLOC
+ 	default "4"
  
- 	pgoff = pte_to_pgoff(orig_pte);
+ #
 _
 
 Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
