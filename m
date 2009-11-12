@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + spi-error-status-should-be-negative.patch added to -mm tree
-Date: Thu, 12 Nov 2009 15:41:45 -0800
-Message-ID: <200911122341.nACNfjTJ022861@imap1.linux-foundation.org>
+Subject: + drivers-video-da8xx-fbc-fix-error-return.patch added to -mm tree
+Date: Thu, 12 Nov 2009 15:42:39 -0800
+Message-ID: <200911122342.nACNgdGX024995@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33842 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49052 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755164AbZKLXmS (ORCPT
+	by vger.kernel.org with ESMTP id S1755164AbZKLXm4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Nov 2009 18:42:18 -0500
+	Thu, 12 Nov 2009 18:42:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, dbrownell@users.sourceforge.net, dpervushin@embeddedalley.com
+Cc: roel.kluin@gmail.com, sudhakar.raj@ti.com
 
 
 The patch titled
-     spi: error status should be negative
+     drivers/video/da8xx-fb.c: fix error return
 has been added to the -mm tree.  Its filename is
-     spi-error-status-should-be-negative.patch
+     drivers-video-da8xx-fbc-fix-error-return.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi: error status should be negative
+Subject: drivers/video/da8xx-fb.c: fix error return
 From: Roel Kluin <roel.kluin@gmail.com>
 
-Return a negative error value instead of a positive
+The return should be negative on errors
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: David Brownell <dbrownell@users.sourceforge.net>
-Cc: dmitry pervushin <dpervushin@embeddedalley.com>
+Cc: Sudhakar Rajashekhara <sudhakar.raj@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_stmp.c |    2 +-
+ drivers/video/da8xx-fb.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/spi/spi_stmp.c~spi-error-status-should-be-negative drivers/spi/spi_stmp.c
---- a/drivers/spi/spi_stmp.c~spi-error-status-should-be-negative
-+++ a/drivers/spi/spi_stmp.c
-@@ -242,7 +242,7 @@ static int stmp_spi_txrx_dma(struct stmp
- 	wait_for_completion(&ss->done);
+diff -puN drivers/video/da8xx-fb.c~drivers-video-da8xx-fbc-fix-error-return drivers/video/da8xx-fb.c
+--- a/drivers/video/da8xx-fb.c~drivers-video-da8xx-fbc-fix-error-return
++++ a/drivers/video/da8xx-fb.c
+@@ -746,7 +746,7 @@ static int __init fb_probe(struct platfo
  
- 	if (!busy_wait(readl(ss->regs + HW_SSP_CTRL0) & BM_SSP_CTRL0_RUN))
--		status = ETIMEDOUT;
-+		status = -ETIMEDOUT;
- 
- 	if (!dma_buf)
- 		dma_unmap_single(ss->master_dev, spi_buf_dma, len, dir);
+ 	if (i == ARRAY_SIZE(known_lcd_panels)) {
+ 		dev_err(&device->dev, "GLCD: No valid panel found\n");
+-		ret = ENODEV;
++		ret = -ENODEV;
+ 		goto err_clk_disable;
+ 	} else
+ 		dev_info(&device->dev, "GLCD: Found %s panel\n",
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -67,6 +66,7 @@ Patches currently in -mm which might be from roel.kluin@gmail.com are
 origin.patch
 get_maintainer-fix-usage-comment.patch
 spi-error-status-should-be-negative.patch
+drivers-video-da8xx-fbc-fix-error-return.patch
 linux-next.patch
 fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch
 omap-fix-unlikelyx-y.patch
