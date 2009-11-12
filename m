@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + add-lzo-compression-support-for-initramfs-and-old-style-initrd.patch added to -mm tree
-Date: Thu, 12 Nov 2009 14:34:15 -0800
-Message-ID: <200911122234.nACMYFL7025397@imap1.linux-foundation.org>
+Subject: + resource-constify-arg-to-resource_size-and-resource_type.patch added to -mm tree
+Date: Thu, 12 Nov 2009 14:37:59 -0800
+Message-ID: <200911122237.nACMbxjZ001693@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54311 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59129 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754590AbZKLWen (ORCPT
+	by vger.kernel.org with ESMTP id S1754707AbZKLWiH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Nov 2009 17:34:43 -0500
+	Thu, 12 Nov 2009 17:38:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: albin.tonnerre@free-electrons.com, hpa@zytor.com, mingo@elte.hu, ralf@linux-mips.org, rmk@arm.linux.org.uk, tglx@linutronix.de, wuzhangjin@gmail.com
+Cc: khali@linux-fr.org, greg@kroah.com, xiyou.wangcong@gmail.com
 
 
 The patch titled
-     Add LZO compression support for initramfs and old-style initrd
+     resource: constify arg to resource_size() and resource_type()
 has been added to the -mm tree.  Its filename is
-     add-lzo-compression-support-for-initramfs-and-old-style-initrd.patch
+     resource-constify-arg-to-resource_size-and-resource_type.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,146 +34,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Add LZO compression support for initramfs and old-style initrd
-From: Albin Tonnerre <albin.tonnerre@free-electrons.com>
+Subject: resource: constify arg to resource_size() and resource_type()
+From: Jean Delvare <khali@linux-fr.org>
 
-Signed-off-by: Albin Tonnerre <albin.tonnerre@free-electrons.com>
-Tested-by: Wu Zhangjin <wuzhangjin@gmail.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+resource_size() doesn't change the resource it operates on, so the res
+parameter can be marked const.  Same for resource_type().
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Reviewed-by: WANG Cong <xiyou.wangcong@gmail.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig      |    4 ++++
- lib/Makefile     |    1 +
- lib/decompress.c |    5 +++++
- usr/Kconfig      |   26 +++++++++++++++++++++-----
- 4 files changed, 31 insertions(+), 5 deletions(-)
+ include/linux/ioport.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN lib/Kconfig~add-lzo-compression-support-for-initramfs-and-old-style-initrd lib/Kconfig
---- a/lib/Kconfig~add-lzo-compression-support-for-initramfs-and-old-style-initrd
-+++ a/lib/Kconfig
-@@ -117,6 +117,10 @@ config DECOMPRESS_BZIP2
- config DECOMPRESS_LZMA
- 	tristate
- 
-+config DECOMPRESS_LZO
-+	select LZO_DECOMPRESS
-+	tristate
-+
- #
- # Generic allocator support is selected if needed
- #
-diff -puN lib/Makefile~add-lzo-compression-support-for-initramfs-and-old-style-initrd lib/Makefile
---- a/lib/Makefile~add-lzo-compression-support-for-initramfs-and-old-style-initrd
-+++ a/lib/Makefile
-@@ -69,6 +69,7 @@ obj-$(CONFIG_LZO_DECOMPRESS) += lzo/
- lib-$(CONFIG_DECOMPRESS_GZIP) += decompress_inflate.o
- lib-$(CONFIG_DECOMPRESS_BZIP2) += decompress_bunzip2.o
- lib-$(CONFIG_DECOMPRESS_LZMA) += decompress_unlzma.o
-+lib-$(CONFIG_DECOMPRESS_LZO) += decompress_unlzo.o
- 
- obj-$(CONFIG_TEXTSEARCH) += textsearch.o
- obj-$(CONFIG_TEXTSEARCH_KMP) += ts_kmp.o
-diff -puN lib/decompress.c~add-lzo-compression-support-for-initramfs-and-old-style-initrd lib/decompress.c
---- a/lib/decompress.c~add-lzo-compression-support-for-initramfs-and-old-style-initrd
-+++ a/lib/decompress.c
-@@ -9,6 +9,7 @@
- #include <linux/decompress/bunzip2.h>
- #include <linux/decompress/unlzma.h>
- #include <linux/decompress/inflate.h>
-+#include <linux/decompress/unlzo.h>
- 
- #include <linux/types.h>
- #include <linux/string.h>
-@@ -22,6 +23,9 @@
- #ifndef CONFIG_DECOMPRESS_LZMA
- # define unlzma NULL
- #endif
-+#ifndef CONFIG_DECOMPRESS_LZO
-+# define unlzo NULL
-+#endif
- 
- static const struct compress_format {
- 	unsigned char magic[2];
-@@ -32,6 +36,7 @@ static const struct compress_format {
- 	{ {037, 0236}, "gzip", gunzip },
- 	{ {0x42, 0x5a}, "bzip2", bunzip2 },
- 	{ {0x5d, 0x00}, "lzma", unlzma },
-+	{ {0x89, 0x4c}, "lzo", unlzo },
- 	{ {0, 0}, NULL, NULL }
- };
- 
-diff -puN usr/Kconfig~add-lzo-compression-support-for-initramfs-and-old-style-initrd usr/Kconfig
---- a/usr/Kconfig~add-lzo-compression-support-for-initramfs-and-old-style-initrd
-+++ a/usr/Kconfig
-@@ -72,6 +72,15 @@ config RD_LZMA
- 	  Support loading of a LZMA encoded initial ramdisk or cpio buffer
- 	  If unsure, say N.
- 
-+config RD_LZO
-+	bool "Support initial ramdisks compressed using LZO" if EMBEDDED
-+	default !EMBEDDED
-+	depends on BLK_DEV_INITRD
-+	select DECOMPRESS_LZO
-+	help
-+	  Support loading of a LZO encoded initial ramdisk or cpio buffer
-+	  If unsure, say N.
-+
- choice
- 	prompt "Built-in initramfs compression mode" if INITRAMFS_SOURCE!=""
- 	help
-@@ -108,16 +117,15 @@ config INITRAMFS_COMPRESSION_GZIP
- 	bool "Gzip"
- 	depends on RD_GZIP
- 	help
--	  The old and tried gzip compression. Its compression ratio is
--	  the poorest among the 3 choices; however its speed (both
--	  compression and decompression) is the fastest.
-+	  The old and tried gzip compression. It provides a good balance
-+	  between compression ratio and decompression speed.
- 
- config INITRAMFS_COMPRESSION_BZIP2
- 	bool "Bzip2"
- 	depends on RD_BZIP2
- 	help
- 	  Its compression ratio and speed is intermediate.
--	  Decompression speed is slowest among the three.  The initramfs
-+	  Decompression speed is slowest among the four.  The initramfs
- 	  size is about 10% smaller with bzip2, in comparison to gzip.
- 	  Bzip2 uses a large amount of memory. For modern kernels you
- 	  will need at least 8MB RAM or more for booting.
-@@ -128,7 +136,15 @@ config INITRAMFS_COMPRESSION_LZMA
- 	help
- 	  The most recent compression algorithm.
- 	  Its ratio is best, decompression speed is between the other
--	  two. Compression is slowest.	The initramfs size is about 33%
-+	  three. Compression is slowest. The initramfs size is about 33%
- 	  smaller with LZMA in comparison to gzip.
- 
-+config INITRAMFS_COMPRESSION_LZO
-+	bool "LZO"
-+	depends on RD_LZO
-+	help
-+	  Its compression ratio is the poorest among the four. The kernel
-+	  size is about about 10% bigger than gzip; however its speed
-+	  (both compression and decompression) is the fastest.
-+
- endchoice
+diff -puN include/linux/ioport.h~resource-constify-arg-to-resource_size-and-resource_type include/linux/ioport.h
+--- a/include/linux/ioport.h~resource-constify-arg-to-resource_size-and-resource_type
++++ a/include/linux/ioport.h
+@@ -126,11 +126,11 @@ extern int allocate_resource(struct reso
+ int adjust_resource(struct resource *res, resource_size_t start,
+ 		    resource_size_t size);
+ resource_size_t resource_alignment(struct resource *res);
+-static inline resource_size_t resource_size(struct resource *res)
++static inline resource_size_t resource_size(const struct resource *res)
+ {
+ 	return res->end - res->start + 1;
+ }
+-static inline unsigned long resource_type(struct resource *res)
++static inline unsigned long resource_type(const struct resource *res)
+ {
+ 	return res->flags & IORESOURCE_TYPE_BITS;
+ }
 _
 
-Patches currently in -mm which might be from albin.tonnerre@free-electrons.com are
+Patches currently in -mm which might be from khali@linux-fr.org are
 
+origin.patch
 linux-next.patch
-atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
-atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops-fix.patch
-lib-add-support-for-lzo-compressed-kernels.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.patch
-arm-add-support-for-lzo-compressed-kernels.patch
-x86-add-support-for-lzo-compressed-kernels.patch
-add-lzo-compression-support-for-initramfs-and-old-style-initrd.patch
+ad525x_dpot-new-driver-for-ad525x-digital-potentiometers.patch
+hwmon-driver-for-texas-instruments-amc6821-chip.patch
+lis3lv02d-axis-remap-and-resource-setup-release.patch
+lis3lv02d-i2c-support.patch
+hwmon-w83627ehf-updates.patch
+rtc-set-wakeup-capability-for-i2c-and-spi-rtc-drivers.patch
+resource-constify-arg-to-resource_size-and-resource_type.patch
 
