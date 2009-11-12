@@ -1,55 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: [merged] powernow-k8-fix-test-in-get_transition_latency.patch removed from -mm tree
-Date: Thu, 12 Nov 2009 12:13:35 -0800
-Message-ID: <200911122013.nACKDZhK017724@imap1.linux-foundation.org>
+Subject: [merged] pxa-add-missing-underscores-in-define.patch removed from -mm tree
+Date: Thu, 12 Nov 2009 12:13:32 -0800
+Message-ID: <200911122013.nACKDW42017645@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39883 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44634 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753838AbZKLUNm (ORCPT
+	by vger.kernel.org with ESMTP id S1754044AbZKLUNn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Nov 2009 15:13:42 -0500
+	Thu, 12 Nov 2009 15:13:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, davej@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, eric.miao@marvell.com, mingwei.wang@marvell.com, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     powernow-k8: fix test in get_transition_latency()
+     pxa: add missing underscores in define
 has been removed from the -mm tree.  Its filename was
-     powernow-k8-fix-test-in-get_transition_latency.patch
+     pxa-add-missing-underscores-in-define.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powernow-k8: fix test in get_transition_latency()
+Subject: pxa: add missing underscores in define
 From: Roel Kluin <roel.kluin@gmail.com>
 
-Not makes it a bool before the comparison.
+Underscores were missing.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Dave Jones <davej@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Mingwei Wang <mingwei.wang@marvell.com>
+Cc: Eric Miao <eric.miao@marvell.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/cpufreq/powernow-k8.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/cpu/cpufreq/powernow-k8.c~powernow-k8-fix-test-in-get_transition_latency arch/x86/kernel/cpu/cpufreq/powernow-k8.c
---- a/arch/x86/kernel/cpu/cpufreq/powernow-k8.c~powernow-k8-fix-test-in-get_transition_latency
-+++ a/arch/x86/kernel/cpu/cpufreq/powernow-k8.c
-@@ -1022,7 +1022,7 @@ static int get_transition_latency(struct
- 		 * set it to 1 to avoid problems in the future.
- 		 * For all others it's a BIOS bug.
- 		 */
--		if (!boot_cpu_data.x86 == 0x11)
-+		if (boot_cpu_data.x86 != 0x11)
- 			printk(KERN_ERR FW_WARN PFX "Invalid zero transition "
- 				"latency\n");
- 		max_latency = 1;
+diff -puN arch/arm/mach-mmp/include/mach/mfp-pxa910.h~pxa-add-missing-underscores-in-define arch/arm/mach-mmp/include/mach/mfp-pxa910.h
+--- a/arch/arm/mach-mmp/include/mach/mfp-pxa910.h~pxa-add-missing-underscores-in-define
++++ a/arch/arm/mach-mmp/include/mach/mfp-pxa910.h
+@@ -160,7 +160,7 @@
+ #define MMC1_WP_MMC1_WP		MFP_CFG_DRV(MMC1_WP, AF0, MEDIUM)
+ 
+ /* PWM */
+-#define GPIO27 PWM3 AF2		MFP_CFG(GPIO27, AF2)
++#define GPIO27_PWM3_AF2		MFP_CFG(GPIO27, AF2)
+ #define GPIO51_PWM2_OUT		MFP_CFG(GPIO51, AF2)
+ #define GPIO117_PWM1_OUT	MFP_CFG(GPIO117, AF2)
+ #define GPIO118_PWM2_OUT	MFP_CFG(GPIO118, AF2)
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
