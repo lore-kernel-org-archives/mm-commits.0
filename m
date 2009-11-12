@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + hpsa-factor-out-some-pci_unmap-code.patch added to -mm tree
-Date: Thu, 12 Nov 2009 14:53:38 -0800
-Message-ID: <200911122253.nACMrcDV006254@imap1.linux-foundation.org>
+Subject: + hpsa-flush-cache-with-interrupts-still-enabled.patch added to -mm tree
+Date: Thu, 12 Nov 2009 14:53:50 -0800
+Message-ID: <200911122253.nACMroel006743@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48711 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38988 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754736AbZKLWyQ (ORCPT
+	by vger.kernel.org with ESMTP id S1754791AbZKLWyY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Nov 2009 17:54:16 -0500
+	Thu, 12 Nov 2009 17:54:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: scameron@beardog.cce.hp.com, James.Bottomley@HansenPartnership.com, jens.axb
 
 
 The patch titled
-     hpsa: Factor out some pci_unmap code
+     hpsa: Flush cache with interrupts still enabled.
 has been added to the -mm tree.  Its filename is
-     hpsa-factor-out-some-pci_unmap-code.patch
+     hpsa-flush-cache-with-interrupts-still-enabled.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,13 +34,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hpsa: Factor out some pci_unmap code
+Subject: hpsa: Flush cache with interrupts still enabled.
 From: "Stephen M. Cameron" <scameron@beardog.cce.hp.com>
 
-hpsa: Factor out some pci_unmap code.  There are a few places
-where the same, or nearly the same code is used to pci_unmap
-data buffers of driver initiated commands.  Factor these out
-into a separate function.
+hpsa: Flush cache with interrupts still enabled.  It's not
+necessary to disable interrupts prior to flushing the cache
+on driver unload.  Also, don't dma from the stack.
 
 Signed-off-by: Stephen M. Cameron <scameron@beardog.cce.hp.com>
 Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
@@ -49,109 +48,67 @@ Cc: Mike Miller <mikem@beardog.cce.hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/hpsa.c |   45 +++++++++++++-----------------------------
- 1 file changed, 14 insertions(+), 31 deletions(-)
+ drivers/scsi/hpsa.c |   39 ++++++++++++++++++++++++++++++---------
+ 1 file changed, 30 insertions(+), 9 deletions(-)
 
-diff -puN drivers/scsi/hpsa.c~hpsa-factor-out-some-pci_unmap-code drivers/scsi/hpsa.c
---- a/drivers/scsi/hpsa.c~hpsa-factor-out-some-pci_unmap-code
+diff -puN drivers/scsi/hpsa.c~hpsa-flush-cache-with-interrupts-still-enabled drivers/scsi/hpsa.c
+--- a/drivers/scsi/hpsa.c~hpsa-flush-cache-with-interrupts-still-enabled
 +++ a/drivers/scsi/hpsa.c
-@@ -928,17 +928,18 @@ static int hpsa_scsi_detect(struct ctlr_
+@@ -3581,24 +3581,45 @@ clean1:
  	return -1;
  }
  
--static void hpsa_unmap_one(struct pci_dev *pdev,
--		struct CommandList *cp,
--		size_t buflen,
--		int data_direction)
-+static void hpsa_pci_unmap(struct pci_dev *pdev,
-+	struct CommandList *c, int sg_used, int data_direction)
- {
-+	int i;
- 	union u64bit addr64;
- 
--	addr64.val32.lower = cp->SG[0].Addr.lower;
--	addr64.val32.upper = cp->SG[0].Addr.upper;
--	pci_unmap_single(pdev, (dma_addr_t) addr64.val,
--		buflen, data_direction);
-+	for (i = 0; i < sg_used; i++) {
-+		addr64.val32.lower = c->SG[i].Addr.lower;
-+		addr64.val32.upper = c->SG[i].Addr.upper;
-+		pci_unmap_single(pdev, (dma_addr_t) addr64.val, c->SG[i].Len,
-+			data_direction);
++static void hpsa_flush_cache(struct ctlr_info *h)
++{
++	char *flush_buf;
++	struct CommandList *c;
++	int rc;
++
++	flush_buf = kzalloc(4, GFP_KERNEL);
++	if (!flush_buf)
++		return;
++
++	c = cmd_special_alloc(h);
++	if (!c) {
++		dev_warn(&h->pdev->dev, "cmd_special_alloc returned NULL!\n");
++		goto out_of_memory;
 +	}
- }
++	rc = fill_cmd(c, HPSA_CACHE_FLUSH, h, flush_buf, 4, 0,
++		RAID_CTLR_LUNID, TYPE_CMD);
++	if (rc == 0) {
++		hpsa_scsi_do_simple_cmd_with_retry(h, c, PCI_DMA_TODEVICE);
++		if (c->err_info->CommandStatus != 0)
++			dev_warn(&h->pdev->dev,
++				"error flushing cache on controller\n");
++	}
++	cmd_special_free(h, c);
++out_of_memory:
++	kfree(flush_buf);
++}
++
+ static void hpsa_shutdown(struct pci_dev *pdev)
+ {
+ 	struct ctlr_info *h;
+-	char flush_buf[4];
+-	int return_code;
  
- static void hpsa_map_one(struct pci_dev *pdev,
-@@ -1055,7 +1056,7 @@ static int hpsa_scsi_do_inquiry(struct c
- 		TYPE_CMD);
- 	if (rc == 0) {
- 		hpsa_scsi_do_simple_cmd_core(h, c);
--		hpsa_unmap_one(h->pdev, c, bufsize, PCI_DMA_FROMDEVICE);
-+		hpsa_pci_unmap(h->pdev, c, 1, PCI_DMA_FROMDEVICE);
- 
- 		ei = c->err_info;
- 		if (ei->CommandStatus != 0 &&
-@@ -1162,7 +1163,7 @@ static int hpsa_scsi_do_report_luns(stru
- 	if (extended_response)
- 		c->Request.CDB[1] = extended_response;
- 	hpsa_scsi_do_simple_cmd_core(h, c);
--	hpsa_unmap_one(h->pdev, c, bufsize, PCI_DMA_FROMDEVICE);
-+	hpsa_pci_unmap(h->pdev, c, 1, PCI_DMA_FROMDEVICE);
- 	ei = c->err_info;
- 	if (ei->CommandStatus != 0 &&
- 	    ei->CommandStatus != CMD_DATA_UNDERRUN) {
-@@ -2144,12 +2145,7 @@ static int hpsa_passthru_ioctl(struct ct
- 		c->SG[0].Ext = 0; /* we are not chaining*/
- 	}
- 	hpsa_scsi_do_simple_cmd_core(h, c);
--
--	/* unlock the buffers from DMA */
--	temp64.val32.lower = c->SG[0].Addr.lower;
--	temp64.val32.upper = c->SG[0].Addr.upper;
--	pci_unmap_single(h->pdev, (dma_addr_t) temp64.val, iocommand.buf_size,
--			 PCI_DMA_BIDIRECTIONAL);
-+	hpsa_pci_unmap(h->pdev, c, 1, PCI_DMA_BIDIRECTIONAL);
- 
- 	/* Copy the error information out */
- 	memcpy(&iocommand.error_info, c->err_info,
-@@ -2277,14 +2273,7 @@ static int hpsa_big_passthru_ioctl(struc
- 		}
- 	}
- 	hpsa_scsi_do_simple_cmd_core(h, c);
--	/* unlock the buffers from DMA */
--	for (i = 0; i < sg_used; i++) {
--		temp64.val32.lower = c->SG[i].Addr.lower;
--		temp64.val32.upper = c->SG[i].Addr.upper;
--		pci_unmap_single(h->pdev,
--			(dma_addr_t) temp64.val, buff_size[i],
--			PCI_DMA_BIDIRECTIONAL);
+ 	h = pci_get_drvdata(pdev);
+ 	/* Turn board interrupts off  and send the flush cache command
+ 	 * sendcmd will turn off interrupt, and send the flush...
+ 	 * To write all data in the battery backed cache to disks
+ 	 */
+-	memset(flush_buf, 0, 4);
+-	return_code = sendcmd(HPSA_CACHE_FLUSH, h, flush_buf, 4, 0,
+-				RAID_CTLR_LUNID, TYPE_CMD);
+-	if (return_code != IO_OK) {
+-		dev_warn(&pdev->dev, "error flushing cache on controller %d\n",
+-		       h->ctlr);
 -	}
-+	hpsa_pci_unmap(h->pdev, c, sg_used, PCI_DMA_BIDIRECTIONAL);
- 	/* Copy the error information out */
- 	memcpy(&ioc->error_info, c->err_info, sizeof(ioc->error_info));
- 	if (copy_to_user(argp, ioc, sizeof(*ioc))) {
-@@ -2501,7 +2490,6 @@ static int sendcmd_core(struct ctlr_info
- 	int i;
- 	unsigned long complete;
- 	int status = IO_ERROR;
--	union u64bit buff_dma_handle;
- 
- resend_cmd1:
- 	/*
-@@ -2596,12 +2584,7 @@ resend_cmd1:
- 	} while (1);
- 
- cleanup1:
--
--	/* unlock the data buffer from DMA */
--	buff_dma_handle.val32.lower = c->SG[0].Addr.lower;
--	buff_dma_handle.val32.upper = c->SG[0].Addr.upper;
--	pci_unmap_single(h->pdev, (dma_addr_t) buff_dma_handle.val,
--			 c->SG[0].Len, PCI_DMA_BIDIRECTIONAL);
-+	hpsa_pci_unmap(h->pdev, c, 1, PCI_DMA_BIDIRECTIONAL);
- 	return status;
- }
- 
++	hpsa_flush_cache(h);
++	h->access.set_intr_mask(h, HPSA_INTR_OFF);
+ 	free_irq(h->intr[2], h);
+ #ifdef CONFIG_PCI_MSI
+ 	if (h->msix_vector)
 _
 
 Patches currently in -mm which might be from scameron@beardog.cce.hp.com are
