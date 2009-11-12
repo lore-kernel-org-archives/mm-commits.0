@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cciss-make-device-attrs-static.patch added to -mm tree
-Date: Thu, 12 Nov 2009 15:44:35 -0800
-Message-ID: <200911122344.nACNiZDC029554@imap1.linux-foundation.org>
+Subject: + hpsa-make-device-attrs-static.patch added to -mm tree
+Date: Thu, 12 Nov 2009 15:46:39 -0800
+Message-ID: <200911122346.nACNkdkJ002012@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37262 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58218 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755241AbZKLXpB (ORCPT
+	by vger.kernel.org with ESMTP id S1755649AbZKLXrF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Nov 2009 18:45:01 -0500
+	Thu, 12 Nov 2009 18:47:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: achiang@hp.com, jens.axboe@oracle.com, mike.miller@hp.com, scameron@beardog.cce.hp.com
+Cc: achiang@hp.com, James.Bottomley@HansenPartnership.com, jens.axboe@oracle.com, mikem@beardog.cce.hp.com, scameron@beardog.cce.hp.com
 
 
 The patch titled
-     cciss: make device attrs static
+     hpsa: make device attrs static
 has been added to the -mm tree.  Its filename is
-     cciss-make-device-attrs-static.patch
+     hpsa-make-device-attrs-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cciss: make device attrs static
+Subject: hpsa: make device attrs static
 From: Alex Chiang <achiang@hp.com>
 
 No need to export those device attributes.
 
-In fact, without this patch, we can trip over a build error if cciss
+In fact, without this patch, we can trip over a build error if hpsa
 is a built-in and another driver also declares and exports attributes
 with the same name.
 
@@ -48,97 +48,42 @@ You'll see errors like:
 	drivers/scsi/built-in.o: multiple definition of `dev_attr_lunid'
 	drivers/block/built-in.o: first defined here
 
-Cc: Stephen M. Cameron <scameron@beardog.cce.hp.com>
 Signed-off-by: Alex Chiang <achiang@hp.com>
-Cc: <mike.miller@hp.com>
+Cc: Stephen M. Cameron <scameron@beardog.cce.hp.com>
+Cc: Mike Miller <mikem@beardog.cce.hp.com>
 Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ drivers/scsi/hpsa.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/block/cciss.c~cciss-make-device-attrs-static drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-make-device-attrs-static
-+++ a/drivers/block/cciss.c
-@@ -482,7 +482,7 @@ static ssize_t host_store_rescan(struct 
+diff -puN drivers/scsi/hpsa.c~hpsa-make-device-attrs-static drivers/scsi/hpsa.c
+--- a/drivers/scsi/hpsa.c~hpsa-make-device-attrs-static
++++ a/drivers/scsi/hpsa.c
+@@ -151,10 +151,10 @@ static int check_for_unit_attention(stru
+ static void check_ioctl_unit_attention(struct ctlr_info *h,
+ 	struct CommandList *c);
  
- 	return count;
- }
+-DEVICE_ATTR(raid_level, S_IRUGO, raid_level_show, NULL);
+-DEVICE_ATTR(lunid, S_IRUGO, lunid_show, NULL);
+-DEVICE_ATTR(unique_id, S_IRUGO, unique_id_show, NULL);
 -DEVICE_ATTR(rescan, S_IWUSR, NULL, host_store_rescan);
++static DEVICE_ATTR(raid_level, S_IRUGO, raid_level_show, NULL);
++static DEVICE_ATTR(lunid, S_IRUGO, lunid_show, NULL);
++static DEVICE_ATTR(unique_id, S_IRUGO, unique_id_show, NULL);
 +static DEVICE_ATTR(rescan, S_IWUSR, NULL, host_store_rescan);
  
- static ssize_t dev_show_unique_id(struct device *dev,
- 				 struct device_attribute *attr,
-@@ -512,7 +512,7 @@ static ssize_t dev_show_unique_id(struct
- 				sn[8], sn[9], sn[10], sn[11],
- 				sn[12], sn[13], sn[14], sn[15]);
- }
--DEVICE_ATTR(unique_id, S_IRUGO, dev_show_unique_id, NULL);
-+static DEVICE_ATTR(unique_id, S_IRUGO, dev_show_unique_id, NULL);
- 
- static ssize_t dev_show_vendor(struct device *dev,
- 			       struct device_attribute *attr,
-@@ -536,7 +536,7 @@ static ssize_t dev_show_vendor(struct de
- 	else
- 		return snprintf(buf, sizeof(vendor) + 1, "%s\n", drv->vendor);
- }
--DEVICE_ATTR(vendor, S_IRUGO, dev_show_vendor, NULL);
-+static DEVICE_ATTR(vendor, S_IRUGO, dev_show_vendor, NULL);
- 
- static ssize_t dev_show_model(struct device *dev,
- 			      struct device_attribute *attr,
-@@ -560,7 +560,7 @@ static ssize_t dev_show_model(struct dev
- 	else
- 		return snprintf(buf, sizeof(model) + 1, "%s\n", drv->model);
- }
--DEVICE_ATTR(model, S_IRUGO, dev_show_model, NULL);
-+static DEVICE_ATTR(model, S_IRUGO, dev_show_model, NULL);
- 
- static ssize_t dev_show_rev(struct device *dev,
- 			    struct device_attribute *attr,
-@@ -584,7 +584,7 @@ static ssize_t dev_show_rev(struct devic
- 	else
- 		return snprintf(buf, sizeof(rev) + 1, "%s\n", drv->rev);
- }
--DEVICE_ATTR(rev, S_IRUGO, dev_show_rev, NULL);
-+static DEVICE_ATTR(rev, S_IRUGO, dev_show_rev, NULL);
- 
- static ssize_t cciss_show_lunid(struct device *dev,
- 				struct device_attribute *attr, char *buf)
-@@ -609,7 +609,7 @@ static ssize_t cciss_show_lunid(struct d
- 		lunid[0], lunid[1], lunid[2], lunid[3],
- 		lunid[4], lunid[5], lunid[6], lunid[7]);
- }
--DEVICE_ATTR(lunid, S_IRUGO, cciss_show_lunid, NULL);
-+static DEVICE_ATTR(lunid, S_IRUGO, cciss_show_lunid, NULL);
- 
- static ssize_t cciss_show_raid_level(struct device *dev,
- 				     struct device_attribute *attr, char *buf)
-@@ -632,7 +632,7 @@ static ssize_t cciss_show_raid_level(str
- 	return snprintf(buf, strlen(raid_label[raid]) + 7, "RAID %s\n",
- 			raid_label[raid]);
- }
--DEVICE_ATTR(raid_level, S_IRUGO, cciss_show_raid_level, NULL);
-+static DEVICE_ATTR(raid_level, S_IRUGO, cciss_show_raid_level, NULL);
- 
- static ssize_t cciss_show_usage_count(struct device *dev,
- 				      struct device_attribute *attr, char *buf)
-@@ -651,7 +651,7 @@ static ssize_t cciss_show_usage_count(st
- 	spin_unlock_irqrestore(CCISS_LOCK(h->ctlr), flags);
- 	return snprintf(buf, 20, "%d\n", count);
- }
--DEVICE_ATTR(usage_count, S_IRUGO, cciss_show_usage_count, NULL);
-+static DEVICE_ATTR(usage_count, S_IRUGO, cciss_show_usage_count, NULL);
- 
- static struct attribute *cciss_host_attrs[] = {
- 	&dev_attr_rescan.attr,
+ static struct device_attribute *hpsa_sdev_attrs[] = {
+ 	&dev_attr_raid_level,
 _
 
 Patches currently in -mm which might be from achiang@hp.com are
 
 origin.patch
 linux-next.patch
+hpsa-make-device-attrs-static.patch
 cciss-make-device-attrs-static.patch
 page-types-learn-to-describe-flags-directly-from-command-line.patch
 page-types-whitespace-alignment.patch
