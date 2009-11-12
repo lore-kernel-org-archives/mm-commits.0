@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mm-refactor-unregister_cpu_under_node.patch added to -mm tree
-Date: Thu, 12 Nov 2009 13:18:13 -0800
-Message-ID: <200911122118.nACLIDCa008268@imap1.linux-foundation.org>
+Subject: + mm-refactor-register_cpu_under_node.patch added to -mm tree
+Date: Thu, 12 Nov 2009 13:18:11 -0800
+Message-ID: <200911122118.nACLIBDE008137@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54813 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58601 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754415AbZKLVSi (ORCPT
+	by vger.kernel.org with ESMTP id S1754527AbZKLVSl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Nov 2009 16:18:38 -0500
+	Thu, 12 Nov 2009 16:18:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: achiang@hp.com, garyhade@us.ibm.com, greg@kroah.com, kosaki.motohiro@jp.fuji
 
 
 The patch titled
-     mm: refactor unregister_cpu_under_node()
+     mm: refactor register_cpu_under_node()
 has been added to the -mm tree.  Its filename is
-     mm-refactor-unregister_cpu_under_node.patch
+     mm-refactor-register_cpu_under_node.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: refactor unregister_cpu_under_node()
+Subject: mm: refactor register_cpu_under_node()
 From: Alex Chiang <achiang@hp.com>
 
 By returning early if the node is not online, we can unindent the
-interesting code by two levels.
+interesting code by one level.
 
 No functional change.
 
@@ -54,24 +54,27 @@ Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c |   18 ++++++++++++------
- 1 file changed, 12 insertions(+), 6 deletions(-)
+ drivers/base/node.c |   20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
 
-diff -puN drivers/base/node.c~mm-refactor-unregister_cpu_under_node drivers/base/node.c
---- a/drivers/base/node.c~mm-refactor-unregister_cpu_under_node
+diff -puN drivers/base/node.c~mm-refactor-register_cpu_under_node drivers/base/node.c
+--- a/drivers/base/node.c~mm-refactor-register_cpu_under_node
 +++ a/drivers/base/node.c
-@@ -287,12 +287,18 @@ int register_cpu_under_node(unsigned int
- 
- int unregister_cpu_under_node(unsigned int cpu, unsigned int nid)
+@@ -271,16 +271,18 @@ struct node node_devices[MAX_NUMNODES];
+  */
+ int register_cpu_under_node(unsigned int cpu, unsigned int nid)
  {
 -	if (node_online(nid)) {
 -		struct sys_device *obj = get_cpu_sysdev(cpu);
--		if (obj)
--			sysfs_remove_link(&node_devices[nid].sysdev.kobj,
+-		if (!obj)
+-			return 0;
+-		return sysfs_create_link(&node_devices[nid].sysdev.kobj,
+-					 &obj->kobj,
 -					 kobject_name(&obj->kobj));
--	}
+-	 }
 +	struct sys_device *obj;
-+
+ 
+-	return 0;
 +	if (!node_online(nid))
 +		return 0;
 +
@@ -79,12 +82,12 @@ diff -puN drivers/base/node.c~mm-refactor-unregister_cpu_under_node drivers/base
 +	if (!obj)
 +		return 0;
 +
-+	sysfs_remove_link(&node_devices[nid].sysdev.kobj,
-+			  kobject_name(&obj->kobj));
-+
- 	return 0;
++	return sysfs_create_link(&node_devices[nid].sysdev.kobj,
++				&obj->kobj,
++				kobject_name(&obj->kobj));
  }
  
+ int unregister_cpu_under_node(unsigned int cpu, unsigned int nid)
 _
 
 Patches currently in -mm which might be from achiang@hp.com are
