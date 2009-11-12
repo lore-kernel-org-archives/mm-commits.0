@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-have-kswapd-sleep-for-a-short-interval-and-double-check-it-should-be-asleep.patch added to -mm tree
-Date: Thu, 12 Nov 2009 12:34:54 -0800
-Message-ID: <200911122034.nACKYsZq003182@imap1.linux-foundation.org>
+Subject: + moxa-remove-ifdef-module-completely.patch added to -mm tree
+Date: Thu, 12 Nov 2009 12:42:30 -0800
+Message-ID: <200911122042.nACKgUof021142@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37902 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55978 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753702AbZKLUfw (ORCPT
+	by vger.kernel.org with ESMTP id S1754114AbZKLUm4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Nov 2009 15:35:52 -0500
+	Thu, 12 Nov 2009 15:42:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mel@csn.ul.ie, cl@linux-foundation.org, elendil@planet.nl, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com
+Cc: rakib.mullick@gmail.com, jirislaby@gmail.com
 
 
 The patch titled
-     vmscan: have kswapd sleep for a short interval and double check it should be asleep
+     moxa: remove #ifdef MODULE completely.
 has been added to the -mm tree.  Its filename is
-     vmscan-have-kswapd-sleep-for-a-short-interval-and-double-check-it-should-be-asleep.patch
+     moxa-remove-ifdef-module-completely.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,149 +34,91 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: have kswapd sleep for a short interval and double check it should be asleep
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: moxa: remove #ifdef MODULE completely.
+From: Rakib Mullick <rakib.mullick@gmail.com>
 
-After kswapd balances all zones in a pgdat, it goes to sleep.  In the
-event of no IO congestion, kswapd can go to sleep very shortly after the
-high watermark was reached.  If there are a constant stream of allocations
-from parallel processes, it can mean that kswapd went to sleep too quickly
-and the high watermark is not being maintained for sufficient length time.
+We can pass "module parameters" on the kernel command line even when
+!MODULE.  So, #ifdef MODULE becomes obsolete.  Also move the declaration
+moxa_board_conf at the start of the function, since we were hit by the
+following warning.
 
-This patch makes kswapd go to sleep as a two-stage process.  It first
-tries to sleep for HZ/10.  If it is woken up by another process or the
-high watermark is no longer met, it's considered a premature sleep and
-kswapd continues work.  Otherwise it goes fully to sleep.
+drivers/char/moxa.c: In function `moxa_init':
+drivers/char/moxa.c:1040: warning: ISO C90 forbids mixed declarations and code
 
-This adds more counters to distinguish between fast and slow breaches of
-watermarks.  A "fast" premature sleep is one where the low watermark was
-hit in a very short time after kswapd going to sleep.  A "slow" premature
-sleep indicates that the high watermark was breached after a very short
-interval.
-
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Cc: Frans Pop <elendil@planet.nl>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
+Signed-off-by: Rakib Mullick<rakib.mullick@gmail.com>
+Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmstat.h |    1 
- mm/vmscan.c            |   44 +++++++++++++++++++++++++++++++++++++--
- mm/vmstat.c            |    2 +
- 3 files changed, 45 insertions(+), 2 deletions(-)
+ drivers/char/moxa.c |   17 ++++++-----------
+ 1 file changed, 6 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/vmstat.h~vmscan-have-kswapd-sleep-for-a-short-interval-and-double-check-it-should-be-asleep include/linux/vmstat.h
---- a/include/linux/vmstat.h~vmscan-have-kswapd-sleep-for-a-short-interval-and-double-check-it-should-be-asleep
-+++ a/include/linux/vmstat.h
-@@ -40,6 +40,7 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- 		PGSCAN_ZONE_RECLAIM_FAILED,
- #endif
- 		PGINODESTEAL, SLABS_SCANNED, KSWAPD_STEAL, KSWAPD_INODESTEAL,
-+		KSWAPD_PREMATURE_FAST, KSWAPD_PREMATURE_SLOW,
- 		PAGEOUTRUN, ALLOCSTALL, PGROTATED,
- #ifdef CONFIG_HUGETLB_PAGE
- 		HTLB_BUDDY_PGALLOC, HTLB_BUDDY_PGALLOC_FAIL,
-diff -puN mm/vmscan.c~vmscan-have-kswapd-sleep-for-a-short-interval-and-double-check-it-should-be-asleep mm/vmscan.c
---- a/mm/vmscan.c~vmscan-have-kswapd-sleep-for-a-short-interval-and-double-check-it-should-be-asleep
-+++ a/mm/vmscan.c
-@@ -1908,6 +1908,24 @@ unsigned long try_to_free_mem_cgroup_pag
- }
- #endif
+diff -puN drivers/char/moxa.c~moxa-remove-ifdef-module-completely drivers/char/moxa.c
+--- a/drivers/char/moxa.c~moxa-remove-ifdef-module-completely
++++ a/drivers/char/moxa.c
+@@ -165,24 +165,22 @@ static struct mon_str moxaLog;
+ static unsigned int moxaFuncTout = HZ / 2;
+ static unsigned int moxaLowWaterChk;
+ static DEFINE_MUTEX(moxa_openlock);
+-/* Variables for insmod */
+-#ifdef MODULE
++
+ static unsigned long baseaddr[MAX_BOARDS];
+ static unsigned int type[MAX_BOARDS];
+ static unsigned int numports[MAX_BOARDS];
+-#endif
  
-+/* is kswapd sleeping prematurely? */
-+static int sleeping_prematurely(int order, long remaining)
-+{
-+	struct zone *zone;
+ MODULE_AUTHOR("William Chen");
+ MODULE_DESCRIPTION("MOXA Intellio Family Multiport Board Device Driver");
+ MODULE_LICENSE("GPL");
+-#ifdef MODULE
 +
-+	/* If a direct reclaimer woke kswapd within HZ/10, it's premature */
-+	if (remaining)
-+		return 1;
+ module_param_array(type, uint, NULL, 0);
+ MODULE_PARM_DESC(type, "card type: C218=2, C320=4");
+ module_param_array(baseaddr, ulong, NULL, 0);
+ MODULE_PARM_DESC(baseaddr, "base address");
+ module_param_array(numports, uint, NULL, 0);
+ MODULE_PARM_DESC(numports, "numports (ignored for C218)");
+-#endif
 +
-+	/* If after HZ/10, a zone is below the high mark, it's premature */
-+	for_each_populated_zone(zone)
-+		if (!zone_watermark_ok(zone, order, high_wmark_pages(zone),
-+								0, 0))
-+			return 1;
-+
-+	return 0;
-+}
-+
+ module_param(ttymajor, int, 0);
+ 
  /*
-  * For kswapd, balance_pgdat() will work across all this node's zones until
-  * they are all at high_wmark_pages(zone).
-@@ -2189,8 +2207,30 @@ static int kswapd(void *p)
- 			 */
- 			order = new_order;
- 		} else {
--			if (!freezing(current) && !kthread_should_stop())
--				schedule();
-+			if (!freezing(current) && !kthread_should_stop()) {
-+				long remaining = 0;
-+
-+				/* Try to sleep for a short interval */
-+				if (!sleeping_prematurely(order, remaining)) {
-+					remaining = schedule_timeout(HZ/10);
-+					finish_wait(&pgdat->kswapd_wait, &wait);
-+					prepare_to_wait(&pgdat->kswapd_wait, &wait, TASK_INTERRUPTIBLE);
-+				}
-+
-+				/*
-+				 * After a short sleep, check if it was a
-+				 * premature sleep. If not, then go fully
-+				 * to sleep until explicitly woken up
-+				 */
-+				if (!sleeping_prematurely(order, remaining))
-+					schedule();
-+				else {
-+					if (remaining)
-+						count_vm_event(KSWAPD_PREMATURE_FAST);
-+					else
-+						count_vm_event(KSWAPD_PREMATURE_SLOW);
-+				}
-+			}
+@@ -1011,6 +1009,8 @@ static int __init moxa_init(void)
+ {
+ 	unsigned int isabrds = 0;
+ 	int retval = 0;
++	struct moxa_board_conf *brd = moxa_boards;
++	unsigned int i;
  
- 			order = pgdat->kswapd_max_order;
+ 	printk(KERN_INFO "MOXA Intellio family driver version %s\n",
+ 			MOXA_VERSION);
+@@ -1038,10 +1038,7 @@ static int __init moxa_init(void)
+ 	}
+ 
+ 	/* Find the boards defined from module args. */
+-#ifdef MODULE
+-	{
+-	struct moxa_board_conf *brd = moxa_boards;
+-	unsigned int i;
++
+ 	for (i = 0; i < MAX_BOARDS; i++) {
+ 		if (!baseaddr[i])
+ 			break;
+@@ -1074,8 +1071,6 @@ static int __init moxa_init(void)
+ 			isabrds++;
  		}
-diff -puN mm/vmstat.c~vmscan-have-kswapd-sleep-for-a-short-interval-and-double-check-it-should-be-asleep mm/vmstat.c
---- a/mm/vmstat.c~vmscan-have-kswapd-sleep-for-a-short-interval-and-double-check-it-should-be-asleep
-+++ a/mm/vmstat.c
-@@ -683,6 +683,8 @@ static const char * const vmstat_text[] 
- 	"slabs_scanned",
- 	"kswapd_steal",
- 	"kswapd_inodesteal",
-+	"kswapd_slept_prematurely_fast",
-+	"kswapd_slept_prematurely_slow",
- 	"pageoutrun",
- 	"allocstall",
+ 	}
+-	}
+-#endif
  
+ #ifdef CONFIG_PCI
+ 	retval = pci_register_driver(&moxa_pci_driver);
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from rakib.mullick@gmail.com are
 
-page-allocator-always-wake-kswapd-when-restarting-an-allocation-attempt-after-direct-reclaim-failed.patch
-page-allocator-do-not-allow-interrupts-to-use-alloc_harder.patch
+origin.patch
 linux-next.patch
-mm-add-notifier-in-pageblock-isolation-for-balloon-drivers.patch
-powerpc-make-the-cmm-memory-hotplug-aware.patch
-mm-warn-once-when-a-page-is-freed-with-pg_mlocked-set.patch
-nodemask-make-nodemask_alloc-more-general.patch
-hugetlb-rework-hstate_next_node_-functions.patch
-hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions.patch
-hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions-fix.patch
-hugetlb-factor-init_nodemask_of_node.patch
-hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy.patch
-hugetlb-add-generic-definition-of-numa_no_node.patch
-hugetlb-add-per-node-hstate-attributes.patch
-hugetlb-update-hugetlb-documentation-for-numa-controls.patch
-hugetlb-use-only-nodes-with-memory-for-huge-pages.patch
-mm-clear-node-in-n_high_memory-and-stop-kswapd-when-all-memory-is-offlined.patch
-hugetlb-handle-memory-hot-plug-events.patch
-hugetlb-offload-per-node-attribute-registrations.patch
-mm-add-gfp-flags-for-nodemask_alloc-slab-allocations.patch
-page-allocator-wait-on-both-sync-and-async-congestion-after-direct-reclaim.patch
-vmscan-have-kswapd-sleep-for-a-short-interval-and-double-check-it-should-be-asleep.patch
-vmscan-take-order-into-consideration-when-deciding-if-kswapd-is-in-trouble.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
+moxa-remove-ifdef-module-completely.patch
 
