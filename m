@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ptrace-x86-change-syscall_trace_leave-to-rely-on-tracehook-when-stepping.patch added to -mm tree
-Date: Thu, 12 Nov 2009 15:17:47 -0800
-Message-ID: <200911122317.nACNHm57030961@imap1.linux-foundation.org>
+Subject: + ptrace-x86-implement-user_single_step_siginfo.patch added to -mm tree
+Date: Thu, 12 Nov 2009 15:17:45 -0800
+Message-ID: <200911122317.nACNHjje030905@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48935 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41407 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754904AbZKLXSj (ORCPT
+	by vger.kernel.org with ESMTP id S1755159AbZKLXSs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Nov 2009 18:18:39 -0500
+	Thu, 12 Nov 2009 18:18:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: oleg@redhat.com, hpa@zytor.com, linux-arch@vger.kernel.org, mingo@elte.hu, r
 
 
 The patch titled
-     ptrace: x86: change syscall_trace_leave() to rely on tracehook when stepping
+     ptrace: x86: implement user_single_step_siginfo()
 has been added to the -mm tree.  Its filename is
-     ptrace-x86-change-syscall_trace_leave-to-rely-on-tracehook-when-stepping.patch
+     ptrace-x86-implement-user_single_step_siginfo.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,19 +34,16 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace: x86: change syscall_trace_leave() to rely on tracehook when stepping
+Subject: ptrace: x86: implement user_single_step_siginfo()
 From: Oleg Nesterov <oleg@redhat.com>
 
 Suggested by Roland.
 
-Unlike powepc, x86 always calls tracehook_report_syscall_exit(step) with
-step = 0, and sends the trap by hand.
+Implement user_single_step_siginfo() for x86.  Extract this code from
+send_sigtrap().
 
-This results in unnecessary SIGTRAP when PTRACE_SINGLESTEP follows the
-syscall-exit stop.
-
-Change syscall_trace_leave() to pass the correct "step" argument to
-tracehook and remove the send_sigtrap() logic.
+Since x86 calls tracehook_report_syscall_exit(step => 0) the new helper is
+not used yet.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Acked-by: Roland McGrath <roland@redhat.com>
@@ -57,48 +54,67 @@ Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/ptrace.c |   21 +++++++--------------
- 1 file changed, 7 insertions(+), 14 deletions(-)
+ arch/x86/include/asm/ptrace.h |    2 ++
+ arch/x86/kernel/ptrace.c      |   30 +++++++++++++++++++++---------
+ 2 files changed, 23 insertions(+), 9 deletions(-)
 
-diff -puN arch/x86/kernel/ptrace.c~ptrace-x86-change-syscall_trace_leave-to-rely-on-tracehook-when-stepping arch/x86/kernel/ptrace.c
---- a/arch/x86/kernel/ptrace.c~ptrace-x86-change-syscall_trace_leave-to-rely-on-tracehook-when-stepping
-+++ a/arch/x86/kernel/ptrace.c
-@@ -1640,29 +1640,22 @@ asmregparm long syscall_trace_enter(stru
+diff -puN arch/x86/include/asm/ptrace.h~ptrace-x86-implement-user_single_step_siginfo arch/x86/include/asm/ptrace.h
+--- a/arch/x86/include/asm/ptrace.h~ptrace-x86-implement-user_single_step_siginfo
++++ a/arch/x86/include/asm/ptrace.h
+@@ -292,6 +292,8 @@ extern void user_enable_block_step(struc
+ #define arch_has_block_step()	(boot_cpu_data.x86 >= 6)
+ #endif
  
- asmregparm void syscall_trace_leave(struct pt_regs *regs)
- {
-+	bool step;
++#define ARCH_HAS_USER_SINGLE_STEP_INFO
 +
- 	if (unlikely(current->audit_context))
- 		audit_syscall_exit(AUDITSC_RESULT(regs->ax), regs->ax);
+ struct user_desc;
+ extern int do_get_thread_area(struct task_struct *p, int idx,
+ 			      struct user_desc __user *info);
+diff -puN arch/x86/kernel/ptrace.c~ptrace-x86-implement-user_single_step_siginfo arch/x86/kernel/ptrace.c
+--- a/arch/x86/kernel/ptrace.c~ptrace-x86-implement-user_single_step_siginfo
++++ a/arch/x86/kernel/ptrace.c
+@@ -1549,21 +1549,33 @@ const struct user_regset_view *task_user
+ #endif
+ }
  
- 	if (unlikely(test_thread_flag(TIF_SYSCALL_TRACEPOINT)))
- 		trace_sys_exit(regs, regs->ax);
+-void send_sigtrap(struct task_struct *tsk, struct pt_regs *regs,
+-					 int error_code, int si_code)
++static void fill_sigtrap_info(struct task_struct *tsk,
++				struct pt_regs *regs,
++				int error_code, int si_code,
++				struct siginfo *info)
+ {
+-	struct siginfo info;
+-
+ 	tsk->thread.trap_no = 1;
+ 	tsk->thread.error_code = error_code;
  
--	if (test_thread_flag(TIF_SYSCALL_TRACE))
--		tracehook_report_syscall_exit(regs, 0);
--
- 	/*
- 	 * If TIF_SYSCALL_EMU is set, we only get here because of
- 	 * TIF_SINGLESTEP (i.e. this is PTRACE_SYSEMU_SINGLESTEP).
- 	 * We already reported this syscall instruction in
--	 * syscall_trace_enter(), so don't do any more now.
--	 */
--	if (unlikely(test_thread_flag(TIF_SYSCALL_EMU)))
--		return;
--
--	/*
--	 * If we are single-stepping, synthesize a trap to follow the
--	 * system call instruction.
-+	 * syscall_trace_enter().
- 	 */
--	if (test_thread_flag(TIF_SINGLESTEP) &&
--	    tracehook_consider_fatal_signal(current, SIGTRAP))
--		send_sigtrap(current, regs, 0, TRAP_BRKPT);
-+	step = unlikely(test_thread_flag(TIF_SINGLESTEP)) &&
-+			!test_thread_flag(TIF_SYSCALL_EMU);
-+	if (step || test_thread_flag(TIF_SYSCALL_TRACE))
-+		tracehook_report_syscall_exit(regs, step);
+-	memset(&info, 0, sizeof(info));
+-	info.si_signo = SIGTRAP;
+-	info.si_code = si_code;
++	memset(info, 0, sizeof(*info));
++	info->si_signo = SIGTRAP;
++	info->si_code = si_code;
++	info->si_addr = user_mode_vm(regs) ? (void __user *)regs->ip : NULL;
++}
++
++void user_single_step_siginfo(struct task_struct *tsk,
++				struct pt_regs *regs,
++				struct siginfo *info)
++{
++	fill_sigtrap_info(tsk, regs, 0, TRAP_BRKPT, info);
++}
+ 
+-	/* User-mode ip? */
+-	info.si_addr = user_mode_vm(regs) ? (void __user *) regs->ip : NULL;
++void send_sigtrap(struct task_struct *tsk, struct pt_regs *regs,
++					 int error_code, int si_code)
++{
++	struct siginfo info;
+ 
++	fill_sigtrap_info(tsk, regs, error_code, si_code, &info);
+ 	/* Send us the fake SIGTRAP */
+ 	force_sig_info(SIGTRAP, &info, tsk);
  }
 _
 
