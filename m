@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + net-netfilter-xt_osfc-xt_osf_remove_callback-should-return-negative-on-errors.patch added to -mm tree
-Date: Thu, 12 Nov 2009 15:43:33 -0800
-Message-ID: <200911122343.nACNhXDS027110@imap1.linux-foundation.org>
+Subject: + cciss-make-device-attrs-static.patch added to -mm tree
+Date: Thu, 12 Nov 2009 15:44:35 -0800
+Message-ID: <200911122344.nACNiZDC029554@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39560 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37262 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754790AbZKLXnw (ORCPT
+	by vger.kernel.org with ESMTP id S1755241AbZKLXpB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Nov 2009 18:43:52 -0500
+	Thu, 12 Nov 2009 18:45:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, kaber@trash.net
+Cc: achiang@hp.com, jens.axboe@oracle.com, mike.miller@hp.com, scameron@beardog.cce.hp.com
 
 
 The patch titled
-     net/netfilter/xt_osf.c: xt_osf_remove_callback() should return negative on errors
+     cciss: make device attrs static
 has been added to the -mm tree.  Its filename is
-     net-netfilter-xt_osfc-xt_osf_remove_callback-should-return-negative-on-errors.patch
+     cciss-make-device-attrs-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,66 +34,118 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: net/netfilter/xt_osf.c: xt_osf_remove_callback() should return negative on errors
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: cciss: make device attrs static
+From: Alex Chiang <achiang@hp.com>
 
-Return a negative error value
+No need to export those device attributes.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Patrick McHardy <kaber@trash.net>
+In fact, without this patch, we can trip over a build error if cciss
+is a built-in and another driver also declares and exports attributes
+with the same name.
+
+You'll see errors like:
+
+	drivers/scsi/built-in.o: multiple definition of `dev_attr_lunid'
+	drivers/block/built-in.o: first defined here
+
+Cc: Stephen M. Cameron <scameron@beardog.cce.hp.com>
+Signed-off-by: Alex Chiang <achiang@hp.com>
+Cc: <mike.miller@hp.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/netfilter/xt_osf.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/block/cciss.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN net/netfilter/xt_osf.c~net-netfilter-xt_osfc-xt_osf_remove_callback-should-return-negative-on-errors net/netfilter/xt_osf.c
---- a/net/netfilter/xt_osf.c~net-netfilter-xt_osfc-xt_osf_remove_callback-should-return-negative-on-errors
-+++ a/net/netfilter/xt_osf.c
-@@ -118,7 +118,7 @@ static int xt_osf_remove_callback(struct
- {
- 	struct xt_osf_user_finger *f;
- 	struct xt_osf_finger *sf;
--	int err = ENOENT;
-+	int err = -ENOENT;
+diff -puN drivers/block/cciss.c~cciss-make-device-attrs-static drivers/block/cciss.c
+--- a/drivers/block/cciss.c~cciss-make-device-attrs-static
++++ a/drivers/block/cciss.c
+@@ -482,7 +482,7 @@ static ssize_t host_store_rescan(struct 
  
- 	if (!osf_attrs[OSF_ATTR_FINGER])
- 		return -EINVAL;
+ 	return count;
+ }
+-DEVICE_ATTR(rescan, S_IWUSR, NULL, host_store_rescan);
++static DEVICE_ATTR(rescan, S_IWUSR, NULL, host_store_rescan);
+ 
+ static ssize_t dev_show_unique_id(struct device *dev,
+ 				 struct device_attribute *attr,
+@@ -512,7 +512,7 @@ static ssize_t dev_show_unique_id(struct
+ 				sn[8], sn[9], sn[10], sn[11],
+ 				sn[12], sn[13], sn[14], sn[15]);
+ }
+-DEVICE_ATTR(unique_id, S_IRUGO, dev_show_unique_id, NULL);
++static DEVICE_ATTR(unique_id, S_IRUGO, dev_show_unique_id, NULL);
+ 
+ static ssize_t dev_show_vendor(struct device *dev,
+ 			       struct device_attribute *attr,
+@@ -536,7 +536,7 @@ static ssize_t dev_show_vendor(struct de
+ 	else
+ 		return snprintf(buf, sizeof(vendor) + 1, "%s\n", drv->vendor);
+ }
+-DEVICE_ATTR(vendor, S_IRUGO, dev_show_vendor, NULL);
++static DEVICE_ATTR(vendor, S_IRUGO, dev_show_vendor, NULL);
+ 
+ static ssize_t dev_show_model(struct device *dev,
+ 			      struct device_attribute *attr,
+@@ -560,7 +560,7 @@ static ssize_t dev_show_model(struct dev
+ 	else
+ 		return snprintf(buf, sizeof(model) + 1, "%s\n", drv->model);
+ }
+-DEVICE_ATTR(model, S_IRUGO, dev_show_model, NULL);
++static DEVICE_ATTR(model, S_IRUGO, dev_show_model, NULL);
+ 
+ static ssize_t dev_show_rev(struct device *dev,
+ 			    struct device_attribute *attr,
+@@ -584,7 +584,7 @@ static ssize_t dev_show_rev(struct devic
+ 	else
+ 		return snprintf(buf, sizeof(rev) + 1, "%s\n", drv->rev);
+ }
+-DEVICE_ATTR(rev, S_IRUGO, dev_show_rev, NULL);
++static DEVICE_ATTR(rev, S_IRUGO, dev_show_rev, NULL);
+ 
+ static ssize_t cciss_show_lunid(struct device *dev,
+ 				struct device_attribute *attr, char *buf)
+@@ -609,7 +609,7 @@ static ssize_t cciss_show_lunid(struct d
+ 		lunid[0], lunid[1], lunid[2], lunid[3],
+ 		lunid[4], lunid[5], lunid[6], lunid[7]);
+ }
+-DEVICE_ATTR(lunid, S_IRUGO, cciss_show_lunid, NULL);
++static DEVICE_ATTR(lunid, S_IRUGO, cciss_show_lunid, NULL);
+ 
+ static ssize_t cciss_show_raid_level(struct device *dev,
+ 				     struct device_attribute *attr, char *buf)
+@@ -632,7 +632,7 @@ static ssize_t cciss_show_raid_level(str
+ 	return snprintf(buf, strlen(raid_label[raid]) + 7, "RAID %s\n",
+ 			raid_label[raid]);
+ }
+-DEVICE_ATTR(raid_level, S_IRUGO, cciss_show_raid_level, NULL);
++static DEVICE_ATTR(raid_level, S_IRUGO, cciss_show_raid_level, NULL);
+ 
+ static ssize_t cciss_show_usage_count(struct device *dev,
+ 				      struct device_attribute *attr, char *buf)
+@@ -651,7 +651,7 @@ static ssize_t cciss_show_usage_count(st
+ 	spin_unlock_irqrestore(CCISS_LOCK(h->ctlr), flags);
+ 	return snprintf(buf, 20, "%d\n", count);
+ }
+-DEVICE_ATTR(usage_count, S_IRUGO, cciss_show_usage_count, NULL);
++static DEVICE_ATTR(usage_count, S_IRUGO, cciss_show_usage_count, NULL);
+ 
+ static struct attribute *cciss_host_attrs[] = {
+ 	&dev_attr_rescan.attr,
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from achiang@hp.com are
 
 origin.patch
-get_maintainer-fix-usage-comment.patch
-spi-error-status-should-be-negative.patch
-drivers-video-da8xx-fbc-fix-error-return.patch
 linux-next.patch
-fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch
-omap-fix-unlikelyx-y.patch
-omap-cs-should-be-positive-in-gpmc_cs_free.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-sms-cards-make-id-unsigned-in-sms_get_board.patch
-mtd-error-return-eio-instead-of-eio.patch
-net-netfilter-xt_osfc-xt_osf_remove_callback-should-return-negative-on-errors.patch
-ocfs2-error-return-should-be-negative.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
-st-fix-test-of-value-range-in-st_set_options.patch
-ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
-scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
-page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-cryptocop-fix-assertion-in-create_output_descriptors.patch
-gpio-fix-test-on-unsigned-in-lnw_irq_type.patch
-fbdev-tv_paln-bit-set-twice-in-sisfb_detect_vb_connect.patch
-hvc_console-fix-test-on-unsigned-in-hvc_console_print.patch
-irq-fix-test-in-__exit-parport_mfc3_exit.patch
+cciss-make-device-attrs-static.patch
+page-types-learn-to-describe-flags-directly-from-command-line.patch
+page-types-whitespace-alignment.patch
+page-types-exit-early-when-invoked-with-d-describe.patch
+mm-add-numa-node-symlink-for-memory-section-in-sysfs.patch
+mm-refactor-register_cpu_under_node.patch
+mm-refactor-unregister_cpu_under_node.patch
+mm-add-numa-node-symlink-for-cpu-devices-in-sysfs.patch
+documentation-abi-sys-devices-system-cpu-cpu-node.patch
 
