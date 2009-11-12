@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-take-order-into-consideration-when-deciding-if-kswapd-is-in-trouble.patch added to -mm tree
-Date: Thu, 12 Nov 2009 12:34:57 -0800
-Message-ID: <200911122034.nACKYv97003262@imap1.linux-foundation.org>
+Subject: + vmscan-have-kswapd-sleep-for-a-short-interval-and-double-check-it-should-be-asleep.patch added to -mm tree
+Date: Thu, 12 Nov 2009 12:34:54 -0800
+Message-ID: <200911122034.nACKYsZq003182@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49805 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37902 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753913AbZKLUfy (ORCPT
+	by vger.kernel.org with ESMTP id S1753702AbZKLUfw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Nov 2009 15:35:54 -0500
+	Thu, 12 Nov 2009 15:35:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mel@csn.ul.ie, cl@linux-foundation.org, elendil@planet.nl, kosaki.motohiro@j
 
 
 The patch titled
-     vmscan: take order into consideration when deciding if kswapd is in trouble
+     vmscan: have kswapd sleep for a short interval and double check it should be asleep
 has been added to the -mm tree.  Its filename is
-     vmscan-take-order-into-consideration-when-deciding-if-kswapd-is-in-trouble.patch
+     vmscan-have-kswapd-sleep-for-a-short-interval-and-double-check-it-should-be-asleep.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,20 +34,25 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: take order into consideration when deciding if kswapd is in trouble
+Subject: vmscan: have kswapd sleep for a short interval and double check it should be asleep
 From: Mel Gorman <mel@csn.ul.ie>
 
-If reclaim fails to make sufficient progress, the priority is raised. 
-Once the priority is higher, kswapd starts waiting on congestion. 
-However, on systems with large numbers of high-order atomics due to crappy
-network cards, it's important that kswapd keep working in parallel to save
-their sorry ass.
+After kswapd balances all zones in a pgdat, it goes to sleep.  In the
+event of no IO congestion, kswapd can go to sleep very shortly after the
+high watermark was reached.  If there are a constant stream of allocations
+from parallel processes, it can mean that kswapd went to sleep too quickly
+and the high watermark is not being maintained for sufficient length time.
 
-This patch takes into account the order kswapd is reclaiming at before
-waiting on congestion.  The higher the order, the longer it is before
-kswapd considers itself to be in trouble.  The impact is that kswapd works
-harder in parallel rather than depending on direct reclaimers or atomic
-allocations to fail.
+This patch makes kswapd go to sleep as a two-stage process.  It first
+tries to sleep for HZ/10.  If it is woken up by another process or the
+high watermark is no longer met, it's considered a premature sleep and
+kswapd continues work.  Otherwise it goes fully to sleep.
+
+This adds more counters to distinguish between fast and slow breaches of
+watermarks.  A "fast" premature sleep is one where the low watermark was
+hit in a very short time after kswapd going to sleep.  A "slow" premature
+sleep indicates that the high watermark was breached after a very short
+interval.
 
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
 Cc: Frans Pop <elendil@planet.nl>
@@ -57,47 +62,95 @@ Cc: Christoph Lameter <cl@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ include/linux/vmstat.h |    1 
+ mm/vmscan.c            |   44 +++++++++++++++++++++++++++++++++++++--
+ mm/vmstat.c            |    2 +
+ 3 files changed, 45 insertions(+), 2 deletions(-)
 
-diff -puN mm/vmscan.c~vmscan-take-order-into-consideration-when-deciding-if-kswapd-is-in-trouble mm/vmscan.c
---- a/mm/vmscan.c~vmscan-take-order-into-consideration-when-deciding-if-kswapd-is-in-trouble
+diff -puN include/linux/vmstat.h~vmscan-have-kswapd-sleep-for-a-short-interval-and-double-check-it-should-be-asleep include/linux/vmstat.h
+--- a/include/linux/vmstat.h~vmscan-have-kswapd-sleep-for-a-short-interval-and-double-check-it-should-be-asleep
++++ a/include/linux/vmstat.h
+@@ -40,6 +40,7 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
+ 		PGSCAN_ZONE_RECLAIM_FAILED,
+ #endif
+ 		PGINODESTEAL, SLABS_SCANNED, KSWAPD_STEAL, KSWAPD_INODESTEAL,
++		KSWAPD_PREMATURE_FAST, KSWAPD_PREMATURE_SLOW,
+ 		PAGEOUTRUN, ALLOCSTALL, PGROTATED,
+ #ifdef CONFIG_HUGETLB_PAGE
+ 		HTLB_BUDDY_PGALLOC, HTLB_BUDDY_PGALLOC_FAIL,
+diff -puN mm/vmscan.c~vmscan-have-kswapd-sleep-for-a-short-interval-and-double-check-it-should-be-asleep mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-have-kswapd-sleep-for-a-short-interval-and-double-check-it-should-be-asleep
 +++ a/mm/vmscan.c
-@@ -1950,7 +1950,7 @@ static int sleeping_prematurely(int orde
- static unsigned long balance_pgdat(pg_data_t *pgdat, int order)
- {
- 	int all_zones_ok;
--	int priority;
-+	int priority, congestion_priority;
- 	int i;
- 	unsigned long total_scanned;
- 	struct reclaim_state *reclaim_state = current->reclaim_state;
-@@ -1971,6 +1971,16 @@ static unsigned long balance_pgdat(pg_da
- 	 */
- 	int temp_priority[MAX_NR_ZONES];
+@@ -1908,6 +1908,24 @@ unsigned long try_to_free_mem_cgroup_pag
+ }
+ #endif
  
-+	/*
-+	 * When priority reaches congestion_priority, kswapd will sleep
-+	 * for a short time while congestion clears. The higher the
-+	 * order being reclaimed, the less likely kswapd will go to
-+	 * sleep as high-order allocations are harder to reclaim and
-+	 * stall direct reclaimers longer
-+	 */
-+	congestion_priority = DEF_PRIORITY - 2;
-+	congestion_priority -= min(congestion_priority, sc.order);
++/* is kswapd sleeping prematurely? */
++static int sleeping_prematurely(int order, long remaining)
++{
++	struct zone *zone;
 +
- loop_again:
- 	total_scanned = 0;
- 	sc.nr_reclaimed = 0;
-@@ -2096,7 +2106,7 @@ loop_again:
- 		 * OK, kswapd is getting into trouble.  Take a nap, then take
- 		 * another pass across the zones.
- 		 */
--		if (total_scanned && priority < DEF_PRIORITY - 2)
-+		if (total_scanned && priority < congestion_priority)
- 			congestion_wait(BLK_RW_ASYNC, HZ/10);
++	/* If a direct reclaimer woke kswapd within HZ/10, it's premature */
++	if (remaining)
++		return 1;
++
++	/* If after HZ/10, a zone is below the high mark, it's premature */
++	for_each_populated_zone(zone)
++		if (!zone_watermark_ok(zone, order, high_wmark_pages(zone),
++								0, 0))
++			return 1;
++
++	return 0;
++}
++
+ /*
+  * For kswapd, balance_pgdat() will work across all this node's zones until
+  * they are all at high_wmark_pages(zone).
+@@ -2189,8 +2207,30 @@ static int kswapd(void *p)
+ 			 */
+ 			order = new_order;
+ 		} else {
+-			if (!freezing(current) && !kthread_should_stop())
+-				schedule();
++			if (!freezing(current) && !kthread_should_stop()) {
++				long remaining = 0;
++
++				/* Try to sleep for a short interval */
++				if (!sleeping_prematurely(order, remaining)) {
++					remaining = schedule_timeout(HZ/10);
++					finish_wait(&pgdat->kswapd_wait, &wait);
++					prepare_to_wait(&pgdat->kswapd_wait, &wait, TASK_INTERRUPTIBLE);
++				}
++
++				/*
++				 * After a short sleep, check if it was a
++				 * premature sleep. If not, then go fully
++				 * to sleep until explicitly woken up
++				 */
++				if (!sleeping_prematurely(order, remaining))
++					schedule();
++				else {
++					if (remaining)
++						count_vm_event(KSWAPD_PREMATURE_FAST);
++					else
++						count_vm_event(KSWAPD_PREMATURE_SLOW);
++				}
++			}
  
- 		/*
+ 			order = pgdat->kswapd_max_order;
+ 		}
+diff -puN mm/vmstat.c~vmscan-have-kswapd-sleep-for-a-short-interval-and-double-check-it-should-be-asleep mm/vmstat.c
+--- a/mm/vmstat.c~vmscan-have-kswapd-sleep-for-a-short-interval-and-double-check-it-should-be-asleep
++++ a/mm/vmstat.c
+@@ -683,6 +683,8 @@ static const char * const vmstat_text[] 
+ 	"slabs_scanned",
+ 	"kswapd_steal",
+ 	"kswapd_inodesteal",
++	"kswapd_slept_prematurely_fast",
++	"kswapd_slept_prematurely_slow",
+ 	"pageoutrun",
+ 	"allocstall",
+ 
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
