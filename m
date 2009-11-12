@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sms-cards-make-id-unsigned-in-sms_get_board.patch added to -mm tree
-Date: Thu, 12 Nov 2009 15:13:23 -0800
-Message-ID: <200911122313.nACNDNBh020525@imap1.linux-foundation.org>
+Subject: + mtd-error-return-eio-instead-of-eio.patch added to -mm tree
+Date: Thu, 12 Nov 2009 15:13:59 -0800
+Message-ID: <200911122313.nACNDxXv021941@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56321 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56012 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754922AbZKLXN1 (ORCPT
+	by vger.kernel.org with ESMTP id S1755035AbZKLXOB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Nov 2009 18:13:27 -0500
+	Thu, 12 Nov 2009 18:14:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, mchehab@infradead.org, mkrufky@kernellabs.com
+Cc: roel.kluin@gmail.com, dwmw2@infradead.org
 
 
 The patch titled
-     sms-cards: make id unsigned in sms_get_board()
+     mtd: error return -EIO instead of EIO
 has been added to the -mm tree.  Its filename is
-     sms-cards-make-id-unsigned-in-sms_get_board.patch
+     mtd-error-return-eio-instead-of-eio.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,45 +34,65 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sms-cards: make id unsigned in sms_get_board()
+Subject: mtd: error return -EIO instead of EIO
 From: Roel Kluin <roel.kluin@gmail.com>
 
-Make id signed so we can't get an invalid pointer when we pass a negative
-id.
+Return a negative error value instead of a positive
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Michael Krufky <mkrufky@kernellabs.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/siano/sms-cards.c |    2 +-
- drivers/media/dvb/siano/sms-cards.h |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/mtd/maps/physmap.c    |    2 +-
+ drivers/mtd/maps/vmu-flash.c  |    2 +-
+ drivers/mtd/nand/atmel_nand.c |    4 ++--
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/media/dvb/siano/sms-cards.c~sms-cards-make-id-unsigned-in-sms_get_board drivers/media/dvb/siano/sms-cards.c
---- a/drivers/media/dvb/siano/sms-cards.c~sms-cards-make-id-unsigned-in-sms_get_board
-+++ a/drivers/media/dvb/siano/sms-cards.c
-@@ -97,7 +97,7 @@ static struct sms_board sms_boards[] = {
- 	},
- };
+diff -puN drivers/mtd/maps/physmap.c~mtd-error-return-eio-instead-of-eio drivers/mtd/maps/physmap.c
+--- a/drivers/mtd/maps/physmap.c~mtd-error-return-eio-instead-of-eio
++++ a/drivers/mtd/maps/physmap.c
+@@ -129,7 +129,7 @@ static int physmap_flash_probe(struct pl
+ 						 info->map[i].size);
+ 		if (info->map[i].virt == NULL) {
+ 			dev_err(&dev->dev, "Failed to ioremap flash region\n");
+-			err = EIO;
++			err = -EIO;
+ 			goto err_out;
+ 		}
  
--struct sms_board *sms_get_board(int id)
-+struct sms_board *sms_get_board(unsigned id)
- {
- 	BUG_ON(id >= ARRAY_SIZE(sms_boards));
+diff -puN drivers/mtd/maps/vmu-flash.c~mtd-error-return-eio-instead-of-eio drivers/mtd/maps/vmu-flash.c
+--- a/drivers/mtd/maps/vmu-flash.c~mtd-error-return-eio-instead-of-eio
++++ a/drivers/mtd/maps/vmu-flash.c
+@@ -621,7 +621,7 @@ static int __devinit vmu_connect(struct 
  
-diff -puN drivers/media/dvb/siano/sms-cards.h~sms-cards-make-id-unsigned-in-sms_get_board drivers/media/dvb/siano/sms-cards.h
---- a/drivers/media/dvb/siano/sms-cards.h~sms-cards-make-id-unsigned-in-sms_get_board
-+++ a/drivers/media/dvb/siano/sms-cards.h
-@@ -81,7 +81,7 @@ struct sms_board {
- 	int led_power, led_hi, led_lo, lna_ctrl, rf_switch;
- };
+ 	card = kmalloc(sizeof(struct memcard), GFP_KERNEL);
+ 	if (!card) {
+-		error = ENOMEM;
++		error = -ENOMEM;
+ 		goto fail_nomem;
+ 	}
  
--struct sms_board *sms_get_board(int id);
-+struct sms_board *sms_get_board(unsigned id);
+diff -puN drivers/mtd/nand/atmel_nand.c~mtd-error-return-eio-instead-of-eio drivers/mtd/nand/atmel_nand.c
+--- a/drivers/mtd/nand/atmel_nand.c~mtd-error-return-eio-instead-of-eio
++++ a/drivers/mtd/nand/atmel_nand.c
+@@ -463,7 +463,7 @@ static int __init atmel_nand_probe(struc
+ 	if (host->board->det_pin) {
+ 		if (gpio_get_value(host->board->det_pin)) {
+ 			printk(KERN_INFO "No SmartMedia card inserted.\n");
+-			res = ENXIO;
++			res = -ENXIO;
+ 			goto err_no_card;
+ 		}
+ 	}
+@@ -534,7 +534,7 @@ static int __init atmel_nand_probe(struc
  
- extern struct smscore_device_t *coredev;
+ 	if ((!partitions) || (num_partitions == 0)) {
+ 		printk(KERN_ERR "atmel_nand: No partitions defined, or unsupported device.\n");
+-		res = ENXIO;
++		res = -ENXIO;
+ 		goto err_no_partitions;
+ 	}
  
 _
 
@@ -86,6 +106,7 @@ omap-fix-unlikelyx-y.patch
 omap-cs-should-be-positive-in-gpmc_cs_free.patch
 powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
 sms-cards-make-id-unsigned-in-sms_get_board.patch
+mtd-error-return-eio-instead-of-eio.patch
 drivers-scsi-fnic-fnic_scsic-clean-up.patch
 ibmmca-buffer-overflow.patch
 scsi-eata-fix-buffer-overflow.patch
