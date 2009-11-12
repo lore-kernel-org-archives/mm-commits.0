@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + hpsa-allow-device-rescan-to-be-triggered-via-sysfs.patch added to -mm tree
-Date: Thu, 12 Nov 2009 14:53:42 -0800
-Message-ID: <200911122253.nACMrgsL006466@imap1.linux-foundation.org>
+Subject: + hpsa-make-hpsa_sdev_attrs-static.patch added to -mm tree
+Date: Thu, 12 Nov 2009 14:53:44 -0800
+Message-ID: <200911122253.nACMri7C006495@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55650 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34816 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754786AbZKLWyS (ORCPT
+	by vger.kernel.org with ESMTP id S1754591AbZKLW4D (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Nov 2009 17:54:18 -0500
+	Thu, 12 Nov 2009 17:56:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: scameron@beardog.cce.hp.com, James.Bottomley@HansenPartnership.com, jens.axb
 
 
 The patch titled
-     hpsa:  Allow device rescan to be triggered via sysfs.
+     hpsa: Make hpsa_sdev_attrs static
 has been added to the -mm tree.  Its filename is
-     hpsa-allow-device-rescan-to-be-triggered-via-sysfs.patch
+     hpsa-make-hpsa_sdev_attrs-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hpsa:  Allow device rescan to be triggered via sysfs.
+Subject: hpsa: Make hpsa_sdev_attrs static
 From: "Stephen M. Cameron" <scameron@beardog.cce.hp.com>
 
-Allow device rescan to be triggered via sysfs.
+hpsa: Make hpsa_sdev_attrs static
 
 Signed-off-by: Stephen M. Cameron <scameron@beardog.cce.hp.com>
 Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
@@ -46,68 +46,21 @@ Cc: Mike Miller <mikem@beardog.cce.hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/hpsa.c |   24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+ drivers/scsi/hpsa.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/hpsa.c~hpsa-allow-device-rescan-to-be-triggered-via-sysfs drivers/scsi/hpsa.c
---- a/drivers/scsi/hpsa.c~hpsa-allow-device-rescan-to-be-triggered-via-sysfs
+diff -puN drivers/scsi/hpsa.c~hpsa-make-hpsa_sdev_attrs-static drivers/scsi/hpsa.c
+--- a/drivers/scsi/hpsa.c~hpsa-make-hpsa_sdev_attrs-static
 +++ a/drivers/scsi/hpsa.c
-@@ -147,10 +147,13 @@ static ssize_t lunid_show(struct device 
- static ssize_t unique_id_show(struct device *dev,
- 	struct device_attribute *attr, char *buf);
- static void hpsa_update_scsi_devices(struct ctlr_info *h, int hostno);
-+static ssize_t host_store_rescan(struct device *dev,
-+	 struct device_attribute *attr, const char *buf, size_t count);
- 
- DEVICE_ATTR(raid_level, S_IRUGO, raid_level_show, NULL);
- DEVICE_ATTR(lunid, S_IRUGO, lunid_show, NULL);
+@@ -155,7 +155,7 @@ DEVICE_ATTR(lunid, S_IRUGO, lunid_show, 
  DEVICE_ATTR(unique_id, S_IRUGO, unique_id_show, NULL);
-+DEVICE_ATTR(rescan, S_IWUSR, NULL, host_store_rescan);
+ DEVICE_ATTR(rescan, S_IWUSR, NULL, host_store_rescan);
  
- struct device_attribute *hpsa_sdev_attrs[] = {
+-struct device_attribute *hpsa_sdev_attrs[] = {
++static struct device_attribute *hpsa_sdev_attrs[] = {
  	&dev_attr_raid_level,
-@@ -159,6 +162,11 @@ struct device_attribute *hpsa_sdev_attrs
- 	NULL,
- };
- 
-+static struct device_attribute *hpsa_shost_attrs[] = {
-+	&dev_attr_rescan,
-+	NULL,
-+};
-+
- static struct scsi_host_template hpsa_driver_template = {
- 	.module			= THIS_MODULE,
- 	.name			= "hpsa",
-@@ -177,6 +185,7 @@ static struct scsi_host_template hpsa_dr
- 	.compat_ioctl		= hpsa_compat_ioctl,
- #endif
- 	.sdev_attrs = hpsa_sdev_attrs,
-+	.shost_attrs = hpsa_shost_attrs,
- };
- 
- static inline struct ctlr_info *sdev_to_hba(struct scsi_device *sdev)
-@@ -308,6 +317,21 @@ static int scan_thread(__attribute__((un
- 	return 0;
- }
- 
-+static ssize_t host_store_rescan(struct device *dev,
-+				 struct device_attribute *attr,
-+				 const char *buf, size_t count)
-+{
-+	struct ctlr_info *h;
-+	struct Scsi_Host *shost = class_to_shost(dev);
-+	unsigned long *priv = shost_priv(shost);
-+	h = (struct ctlr_info *) *priv;
-+	if (add_to_scan_list(h)) {
-+		wake_up_process(hpsa_scan_thread);
-+		wait_for_completion_interruptible(&h->scan_wait);
-+	}
-+	return count;
-+}
-+
- /* Enqueuing and dequeuing functions for cmdlists. */
- static inline void addQ(struct hlist_head *list, struct CommandList *c)
- {
+ 	&dev_attr_lunid,
+ 	&dev_attr_unique_id,
 _
 
 Patches currently in -mm which might be from scameron@beardog.cce.hp.com are
