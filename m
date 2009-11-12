@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ptrace-change-tracehook_report_syscall_exit-to-handle-stepping.patch added to -mm tree
-Date: Thu, 12 Nov 2009 15:17:43 -0800
-Message-ID: <200911122317.nACNHh9Z030785@imap1.linux-foundation.org>
+Subject: + ptrace-x86-change-syscall_trace_leave-to-rely-on-tracehook-when-stepping.patch added to -mm tree
+Date: Thu, 12 Nov 2009 15:17:47 -0800
+Message-ID: <200911122317.nACNHm57030961@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37911 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48935 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754709AbZKLXSd (ORCPT
+	by vger.kernel.org with ESMTP id S1754904AbZKLXSj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Nov 2009 18:18:33 -0500
+	Thu, 12 Nov 2009 18:18:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: oleg@redhat.com, hpa@zytor.com, linux-arch@vger.kernel.org, mingo@elte.hu, r
 
 
 The patch titled
-     ptrace: change tracehook_report_syscall_exit() to handle stepping
+     ptrace: x86: change syscall_trace_leave() to rely on tracehook when stepping
 has been added to the -mm tree.  Its filename is
-     ptrace-change-tracehook_report_syscall_exit-to-handle-stepping.patch
+     ptrace-x86-change-syscall_trace_leave-to-rely-on-tracehook-when-stepping.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,62 +34,19 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace: change tracehook_report_syscall_exit() to handle stepping
+Subject: ptrace: x86: change syscall_trace_leave() to rely on tracehook when stepping
 From: Oleg Nesterov <oleg@redhat.com>
 
 Suggested by Roland.
 
-Change tracehook_report_syscall_exit() to look at step flag and send the
-trap signal if needed.
+Unlike powepc, x86 always calls tracehook_report_syscall_exit(step) with
+step = 0, and sends the trap by hand.
 
-This change affects ia64, microblaze, parisc, powerpc, sh.  They pass
-nonzero "step" argument to tracehook but since it was ignored the tracee
-reports via ptrace_notify(), this is not right and not consistent.
+This results in unnecessary SIGTRAP when PTRACE_SINGLESTEP follows the
+syscall-exit stop.
 
-	- PTRACE_SETSIGINFO doesn't work
-
-	- if the tracer resumes the tracee with signr != 0 the new signal
-	  is generated rather than delivering it
-
-	- If PT_TRACESYSGOOD is set the tracee reports the wrong exit_code
-
-I don't have a powerpc machine, but I think this test-case should see the
-difference:
-
-	#include <unistd.h>
-	#include <sys/ptrace.h>
-	#include <sys/wait.h>
-	#include <assert.h>
-	#include <stdio.h>
-
-	int main(void)
-	{
-		int pid, status;
-
-		if (!(pid = fork())) {
-			assert(ptrace(PTRACE_TRACEME) == 0);
-			kill(getpid(), SIGSTOP);
-
-			getppid();
-
-			return 0;
-		}
-
-		assert(pid == wait(&status));
-		assert(ptrace(PTRACE_SETOPTIONS, pid, 0, PTRACE_O_TRACESYSGOOD) == 0);
-
-		assert(ptrace(PTRACE_SYSCALL, pid, 0,0) == 0);
-		assert(pid == wait(&status));
-
-		assert(ptrace(PTRACE_SINGLESTEP, pid, 0,0) == 0);
-		assert(pid == wait(&status));
-
-		if (status == 0x57F)
-			return 0;
-
-		printf("kernel bug: status=%X shouldn't have 0x80\n", status);
-		return 1;
-	}
+Change syscall_trace_leave() to pass the correct "step" argument to
+tracehook and remove the send_sigtrap() logic.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Acked-by: Roland McGrath <roland@redhat.com>
@@ -100,26 +57,49 @@ Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/tracehook.h |    7 +++++++
- 1 file changed, 7 insertions(+)
+ arch/x86/kernel/ptrace.c |   21 +++++++--------------
+ 1 file changed, 7 insertions(+), 14 deletions(-)
 
-diff -puN include/linux/tracehook.h~ptrace-change-tracehook_report_syscall_exit-to-handle-stepping include/linux/tracehook.h
---- a/include/linux/tracehook.h~ptrace-change-tracehook_report_syscall_exit-to-handle-stepping
-+++ a/include/linux/tracehook.h
-@@ -134,6 +134,13 @@ static inline __must_check int tracehook
-  */
- static inline void tracehook_report_syscall_exit(struct pt_regs *regs, int step)
- {
-+	if (step) {
-+		siginfo_t info;
-+		user_single_step_siginfo(current, regs, &info);
-+		force_sig_info(SIGTRAP, &info, current);
-+		return;
-+	}
-+
- 	ptrace_report_syscall(regs);
- }
+diff -puN arch/x86/kernel/ptrace.c~ptrace-x86-change-syscall_trace_leave-to-rely-on-tracehook-when-stepping arch/x86/kernel/ptrace.c
+--- a/arch/x86/kernel/ptrace.c~ptrace-x86-change-syscall_trace_leave-to-rely-on-tracehook-when-stepping
++++ a/arch/x86/kernel/ptrace.c
+@@ -1640,29 +1640,22 @@ asmregparm long syscall_trace_enter(stru
  
+ asmregparm void syscall_trace_leave(struct pt_regs *regs)
+ {
++	bool step;
++
+ 	if (unlikely(current->audit_context))
+ 		audit_syscall_exit(AUDITSC_RESULT(regs->ax), regs->ax);
+ 
+ 	if (unlikely(test_thread_flag(TIF_SYSCALL_TRACEPOINT)))
+ 		trace_sys_exit(regs, regs->ax);
+ 
+-	if (test_thread_flag(TIF_SYSCALL_TRACE))
+-		tracehook_report_syscall_exit(regs, 0);
+-
+ 	/*
+ 	 * If TIF_SYSCALL_EMU is set, we only get here because of
+ 	 * TIF_SINGLESTEP (i.e. this is PTRACE_SYSEMU_SINGLESTEP).
+ 	 * We already reported this syscall instruction in
+-	 * syscall_trace_enter(), so don't do any more now.
+-	 */
+-	if (unlikely(test_thread_flag(TIF_SYSCALL_EMU)))
+-		return;
+-
+-	/*
+-	 * If we are single-stepping, synthesize a trap to follow the
+-	 * system call instruction.
++	 * syscall_trace_enter().
+ 	 */
+-	if (test_thread_flag(TIF_SINGLESTEP) &&
+-	    tracehook_consider_fatal_signal(current, SIGTRAP))
+-		send_sigtrap(current, regs, 0, TRAP_BRKPT);
++	step = unlikely(test_thread_flag(TIF_SINGLESTEP)) &&
++			!test_thread_flag(TIF_SYSCALL_EMU);
++	if (step || test_thread_flag(TIF_SYSCALL_TRACE))
++		tracehook_report_syscall_exit(regs, step);
+ }
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
