@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mm-define-page_mapping_flags.patch added to -mm tree
-Date: Thu, 12 Nov 2009 12:55:13 -0800
-Message-ID: <200911122055.nACKtDkS018728@imap1.linux-foundation.org>
+Subject: + mm-config_mmu-for-pg_mlocked.patch added to -mm tree
+Date: Thu, 12 Nov 2009 12:55:19 -0800
+Message-ID: <200911122055.nACKtJ1m018932@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57634 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44892 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754366AbZKLUzu (ORCPT
+	by vger.kernel.org with ESMTP id S1754178AbZKLUzs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Nov 2009 15:55:50 -0500
+	Thu, 12 Nov 2009 15:55:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: hugh.dickins@tiscali.co.uk, Lee.Schermerhorn@hp.com, aarcange@redhat.com, an
 
 
 The patch titled
-     mm: define PAGE_MAPPING_FLAGS
+     mm: CONFIG_MMU for PG_mlocked
 has been added to the -mm tree.  Its filename is
-     mm-define-page_mapping_flags.patch
+     mm-config_mmu-for-pg_mlocked.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,29 +34,22 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: define PAGE_MAPPING_FLAGS
+Subject: mm: CONFIG_MMU for PG_mlocked
 From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
-At present we define PageAnon(page) by the low PAGE_MAPPING_ANON bit set
-in page->mapping, with the higher bits a pointer to the anon_vma; and have
-defined PageKsm(page) as that with NULL anon_vma.
+Remove three degrees of obfuscation, left over from when we had
+CONFIG_UNEVICTABLE_LRU.  MLOCK_PAGES is CONFIG_HAVE_MLOCKED_PAGE_BIT is
+CONFIG_HAVE_MLOCK is CONFIG_MMU.  rmap.o (and memory-failure.o) are only
+built when CONFIG_MMU, so don't need such conditions at all.
 
-But KSM swapping will need to store a pointer there: so in preparation for
-that, now define PAGE_MAPPING_FLAGS as the low two bits, including
-PAGE_MAPPING_KSM (always set along with PAGE_MAPPING_ANON, until some
-other use for the bit emerges).
-
-Declare page_rmapping(page) to return the pointer part of page->mapping,
-and page_anon_vma(page) to return the anon_vma pointer when that's what it
-is.  Use these in a few appropriate places: notably, unuse_vma() has been
-testing page->mapping, but is better to be testing page_anon_vma() (cases
-may be added in which flag bits are set without any pointer).
+Somehow, I feel no compulsion to remove the CONFIG_HAVE_MLOCK* lines from
+169 defconfigs: leave those to evolve in due course.
 
 Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Cc: Izik Eidus <ieidus@redhat.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Nick Piggin <npiggin@suse.de>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Rik van Riel <riel@redhat.com>
 Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
 Cc: Andi Kleen <andi@firstfloor.org>
@@ -66,162 +59,220 @@ Cc: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ksm.h  |    5 +++--
- include/linux/mm.h   |   17 ++++++++++++++++-
- include/linux/rmap.h |    8 ++++++++
- mm/migrate.c         |   11 ++++-------
- mm/rmap.c            |    7 +++----
- mm/swapfile.c        |    2 +-
- 6 files changed, 35 insertions(+), 15 deletions(-)
+ include/linux/page-flags.h |    8 +++-----
+ mm/Kconfig                 |    8 --------
+ mm/internal.h              |   26 ++++++++++++--------------
+ mm/memory-failure.c        |    2 --
+ mm/page_alloc.c            |    4 ----
+ mm/rmap.c                  |   17 +++++------------
+ 6 files changed, 20 insertions(+), 45 deletions(-)
 
-diff -puN include/linux/ksm.h~mm-define-page_mapping_flags include/linux/ksm.h
---- a/include/linux/ksm.h~mm-define-page_mapping_flags
-+++ a/include/linux/ksm.h
-@@ -38,7 +38,8 @@ static inline void ksm_exit(struct mm_st
-  */
- static inline int PageKsm(struct page *page)
- {
--	return ((unsigned long)page->mapping == PAGE_MAPPING_ANON);
-+	return ((unsigned long)page->mapping & PAGE_MAPPING_FLAGS) ==
-+				(PAGE_MAPPING_ANON | PAGE_MAPPING_KSM);
+diff -puN include/linux/page-flags.h~mm-config_mmu-for-pg_mlocked include/linux/page-flags.h
+--- a/include/linux/page-flags.h~mm-config_mmu-for-pg_mlocked
++++ a/include/linux/page-flags.h
+@@ -99,7 +99,7 @@ enum pageflags {
+ 	PG_buddy,		/* Page is free, on buddy lists */
+ 	PG_swapbacked,		/* Page is backed by RAM/swap */
+ 	PG_unevictable,		/* Page is "unevictable"  */
+-#ifdef CONFIG_HAVE_MLOCKED_PAGE_BIT
++#ifdef CONFIG_MMU
+ 	PG_mlocked,		/* Page is vma mlocked */
+ #endif
+ #ifdef CONFIG_ARCH_USES_PG_UNCACHED
+@@ -259,12 +259,10 @@ PAGEFLAG_FALSE(SwapCache)
+ PAGEFLAG(Unevictable, unevictable) __CLEARPAGEFLAG(Unevictable, unevictable)
+ 	TESTCLEARFLAG(Unevictable, unevictable)
+ 
+-#ifdef CONFIG_HAVE_MLOCKED_PAGE_BIT
+-#define MLOCK_PAGES 1
++#ifdef CONFIG_MMU
+ PAGEFLAG(Mlocked, mlocked) __CLEARPAGEFLAG(Mlocked, mlocked)
+ 	TESTSCFLAG(Mlocked, mlocked) __TESTCLEARFLAG(Mlocked, mlocked)
+ #else
+-#define MLOCK_PAGES 0
+ PAGEFLAG_FALSE(Mlocked) SETPAGEFLAG_NOOP(Mlocked)
+ 	TESTCLEARFLAG_FALSE(Mlocked) __TESTCLEARFLAG_FALSE(Mlocked)
+ #endif
+@@ -393,7 +391,7 @@ static inline void __ClearPageTail(struc
+ 
+ #endif /* !PAGEFLAGS_EXTENDED */
+ 
+-#ifdef CONFIG_HAVE_MLOCKED_PAGE_BIT
++#ifdef CONFIG_MMU
+ #define __PG_MLOCKED		(1 << PG_mlocked)
+ #else
+ #define __PG_MLOCKED		0
+diff -puN mm/Kconfig~mm-config_mmu-for-pg_mlocked mm/Kconfig
+--- a/mm/Kconfig~mm-config_mmu-for-pg_mlocked
++++ a/mm/Kconfig
+@@ -203,14 +203,6 @@ config VIRT_TO_BUS
+ 	def_bool y
+ 	depends on !ARCH_NO_VIRT_TO_BUS
+ 
+-config HAVE_MLOCK
+-	bool
+-	default y if MMU=y
+-
+-config HAVE_MLOCKED_PAGE_BIT
+-	bool
+-	default y if HAVE_MLOCK=y
+-
+ config MMU_NOTIFIER
+ 	bool
+ 
+diff -puN mm/internal.h~mm-config_mmu-for-pg_mlocked mm/internal.h
+--- a/mm/internal.h~mm-config_mmu-for-pg_mlocked
++++ a/mm/internal.h
+@@ -63,17 +63,6 @@ static inline unsigned long page_order(s
+ 	return page_private(page);
  }
  
+-#ifdef CONFIG_HAVE_MLOCK
+-extern long mlock_vma_pages_range(struct vm_area_struct *vma,
+-			unsigned long start, unsigned long end);
+-extern void munlock_vma_pages_range(struct vm_area_struct *vma,
+-			unsigned long start, unsigned long end);
+-static inline void munlock_vma_pages_all(struct vm_area_struct *vma)
+-{
+-	munlock_vma_pages_range(vma, vma->vm_start, vma->vm_end);
+-}
+-#endif
+-
  /*
-@@ -47,7 +48,7 @@ static inline int PageKsm(struct page *p
- static inline void page_add_ksm_rmap(struct page *page)
- {
- 	if (atomic_inc_and_test(&page->_mapcount)) {
--		page->mapping = (void *) PAGE_MAPPING_ANON;
-+		page->mapping = (void *) (PAGE_MAPPING_ANON | PAGE_MAPPING_KSM);
- 		__inc_zone_page_state(page, NR_ANON_PAGES);
+  * unevictable_migrate_page() called only from migrate_page_copy() to
+  * migrate unevictable flag to new page.
+@@ -86,7 +75,16 @@ static inline void unevictable_migrate_p
+ 		SetPageUnevictable(new);
+ }
+ 
+-#ifdef CONFIG_HAVE_MLOCKED_PAGE_BIT
++#ifdef CONFIG_MMU
++extern long mlock_vma_pages_range(struct vm_area_struct *vma,
++			unsigned long start, unsigned long end);
++extern void munlock_vma_pages_range(struct vm_area_struct *vma,
++			unsigned long start, unsigned long end);
++static inline void munlock_vma_pages_all(struct vm_area_struct *vma)
++{
++	munlock_vma_pages_range(vma, vma->vm_start, vma->vm_end);
++}
++
+ /*
+  * Called only in fault path via page_evictable() for a new page
+  * to determine if it's being mapped into a LOCKED vma.
+@@ -144,7 +142,7 @@ static inline void mlock_migrate_page(st
  	}
  }
-diff -puN include/linux/mm.h~mm-define-page_mapping_flags include/linux/mm.h
---- a/include/linux/mm.h~mm-define-page_mapping_flags
-+++ a/include/linux/mm.h
-@@ -620,13 +620,22 @@ void page_address_init(void);
- /*
-  * On an anonymous page mapped into a user virtual memory area,
-  * page->mapping points to its anon_vma, not to a struct address_space;
-- * with the PAGE_MAPPING_ANON bit set to distinguish it.
-+ * with the PAGE_MAPPING_ANON bit set to distinguish it.  See rmap.h.
-+ *
-+ * On an anonymous page in a VM_MERGEABLE area, if CONFIG_KSM is enabled,
-+ * the PAGE_MAPPING_KSM bit may be set along with the PAGE_MAPPING_ANON bit;
-+ * and then page->mapping points, not to an anon_vma, but to a private
-+ * structure which KSM associates with that merged page.  See ksm.h.
-+ *
-+ * PAGE_MAPPING_KSM without PAGE_MAPPING_ANON is currently never used.
-  *
-  * Please note that, confusingly, "page_mapping" refers to the inode
-  * address_space which maps the page from disk; whereas "page_mapped"
-  * refers to user virtual address space into which the page is mapped.
-  */
- #define PAGE_MAPPING_ANON	1
-+#define PAGE_MAPPING_KSM	2
-+#define PAGE_MAPPING_FLAGS	(PAGE_MAPPING_ANON | PAGE_MAPPING_KSM)
  
- extern struct address_space swapper_space;
- static inline struct address_space *page_mapping(struct page *page)
-@@ -644,6 +653,12 @@ static inline struct address_space *page
- 	return mapping;
+-#else /* CONFIG_HAVE_MLOCKED_PAGE_BIT */
++#else /* !CONFIG_MMU */
+ static inline int is_mlocked_vma(struct vm_area_struct *v, struct page *p)
+ {
+ 	return 0;
+@@ -153,7 +151,7 @@ static inline void clear_page_mlock(stru
+ static inline void mlock_vma_page(struct page *page) { }
+ static inline void mlock_migrate_page(struct page *new, struct page *old) { }
+ 
+-#endif /* CONFIG_HAVE_MLOCKED_PAGE_BIT */
++#endif /* !CONFIG_MMU */
+ 
+ /*
+  * Return the mem_map entry representing the 'offset' subpage within
+diff -puN mm/memory-failure.c~mm-config_mmu-for-pg_mlocked mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-config_mmu-for-pg_mlocked
++++ a/mm/memory-failure.c
+@@ -582,10 +582,8 @@ static struct page_state {
+ 	{ unevict|dirty, unevict|dirty,	"unevictable LRU", me_pagecache_dirty},
+ 	{ unevict,	unevict,	"unevictable LRU", me_pagecache_clean},
+ 
+-#ifdef CONFIG_HAVE_MLOCKED_PAGE_BIT
+ 	{ mlock|dirty,	mlock|dirty,	"mlocked LRU",	me_pagecache_dirty },
+ 	{ mlock,	mlock,		"mlocked LRU",	me_pagecache_clean },
+-#endif
+ 
+ 	{ lru|dirty,	lru|dirty,	"LRU",		me_pagecache_dirty },
+ 	{ lru|dirty,	lru,		"clean LRU",	me_pagecache_clean },
+diff -puN mm/page_alloc.c~mm-config_mmu-for-pg_mlocked mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-config_mmu-for-pg_mlocked
++++ a/mm/page_alloc.c
+@@ -487,7 +487,6 @@ static inline void __free_one_page(struc
+ 	zone->free_area[order].nr_free++;
  }
  
-+/* Neutral page->mapping pointer to address_space or anon_vma or other */
-+static inline void *page_rmapping(struct page *page)
-+{
-+	return (void *)((unsigned long)page->mapping & ~PAGE_MAPPING_FLAGS);
-+}
-+
- static inline int PageAnon(struct page *page)
- {
- 	return ((unsigned long)page->mapping & PAGE_MAPPING_ANON) != 0;
-diff -puN include/linux/rmap.h~mm-define-page_mapping_flags include/linux/rmap.h
---- a/include/linux/rmap.h~mm-define-page_mapping_flags
-+++ a/include/linux/rmap.h
-@@ -39,6 +39,14 @@ struct anon_vma {
+-#ifdef CONFIG_HAVE_MLOCKED_PAGE_BIT
+ /*
+  * free_page_mlock() -- clean up attempts to free and mlocked() page.
+  * Page should not be on lru, so no need to fix that up.
+@@ -503,9 +502,6 @@ static inline void free_page_mlock(struc
+ 	__dec_zone_page_state(page, NR_MLOCK);
+ 	__count_vm_event(UNEVICTABLE_MLOCKFREED);
+ }
+-#else
+-static void free_page_mlock(struct page *page) { }
+-#endif
  
- #ifdef CONFIG_MMU
+ static inline int free_pages_check(struct page *page)
+ {
+diff -puN mm/rmap.c~mm-config_mmu-for-pg_mlocked mm/rmap.c
+--- a/mm/rmap.c~mm-config_mmu-for-pg_mlocked
++++ a/mm/rmap.c
+@@ -788,7 +788,7 @@ static int try_to_unmap_one(struct page 
+ 			ret = SWAP_MLOCK;
+ 			goto out_unmap;
+ 		}
+-		if (MLOCK_PAGES && TTU_ACTION(flags) == TTU_MUNLOCK)
++		if (TTU_ACTION(flags) == TTU_MUNLOCK)
+ 			goto out_unmap;
+ 	}
+ 	if (!(flags & TTU_IGNORE_ACCESS)) {
+@@ -861,7 +861,7 @@ static int try_to_unmap_one(struct page 
+ out_unmap:
+ 	pte_unmap_unlock(pte, ptl);
  
-+static inline struct anon_vma *page_anon_vma(struct page *page)
-+{
-+	if (((unsigned long)page->mapping & PAGE_MAPPING_FLAGS) !=
-+					    PAGE_MAPPING_ANON)
-+		return NULL;
-+	return page_rmapping(page);
-+}
-+
- static inline void anon_vma_lock(struct vm_area_struct *vma)
- {
- 	struct anon_vma *anon_vma = vma->anon_vma;
-diff -puN mm/migrate.c~mm-define-page_mapping_flags mm/migrate.c
---- a/mm/migrate.c~mm-define-page_mapping_flags
-+++ a/mm/migrate.c
-@@ -172,17 +172,14 @@ static void remove_anon_migration_ptes(s
- {
- 	struct anon_vma *anon_vma;
- 	struct vm_area_struct *vma;
--	unsigned long mapping;
--
--	mapping = (unsigned long)new->mapping;
--
--	if (!mapping || (mapping & PAGE_MAPPING_ANON) == 0)
--		return;
+-	if (MLOCK_PAGES && ret == SWAP_MLOCK) {
++	if (ret == SWAP_MLOCK) {
+ 		ret = SWAP_AGAIN;
+ 		if (down_read_trylock(&vma->vm_mm->mmap_sem)) {
+ 			if (vma->vm_flags & VM_LOCKED) {
+@@ -938,11 +938,10 @@ static int try_to_unmap_cluster(unsigned
+ 		return ret;
  
  	/*
- 	 * We hold the mmap_sem lock. So no need to call page_lock_anon_vma.
+-	 * MLOCK_PAGES => feature is configured.
+-	 * if we can acquire the mmap_sem for read, and vma is VM_LOCKED,
++	 * If we can acquire the mmap_sem for read, and vma is VM_LOCKED,
+ 	 * keep the sem while scanning the cluster for mlocking pages.
  	 */
--	anon_vma = (struct anon_vma *) (mapping - PAGE_MAPPING_ANON);
-+	anon_vma = page_anon_vma(new);
-+	if (!anon_vma)
-+		return;
-+
- 	spin_lock(&anon_vma->lock);
- 
- 	list_for_each_entry(vma, &anon_vma->head, anon_vma_node)
-diff -puN mm/rmap.c~mm-define-page_mapping_flags mm/rmap.c
---- a/mm/rmap.c~mm-define-page_mapping_flags
-+++ a/mm/rmap.c
-@@ -203,7 +203,7 @@ struct anon_vma *page_lock_anon_vma(stru
- 
- 	rcu_read_lock();
- 	anon_mapping = (unsigned long) page->mapping;
--	if (!(anon_mapping & PAGE_MAPPING_ANON))
-+	if ((anon_mapping & PAGE_MAPPING_FLAGS) != PAGE_MAPPING_ANON)
+-	if (MLOCK_PAGES && down_read_trylock(&vma->vm_mm->mmap_sem)) {
++	if (down_read_trylock(&vma->vm_mm->mmap_sem)) {
+ 		locked_vma = (vma->vm_flags & VM_LOCKED);
+ 		if (!locked_vma)
+ 			up_read(&vma->vm_mm->mmap_sem); /* don't need it */
+@@ -1066,14 +1065,11 @@ static int try_to_unmap_file(struct page
  		goto out;
- 	if (!page_mapped(page))
+ 
+ 	/* We don't bother to try to find the munlocked page in nonlinears */
+-	if (MLOCK_PAGES && TTU_ACTION(flags) == TTU_MUNLOCK)
++	if (TTU_ACTION(flags) == TTU_MUNLOCK)
  		goto out;
-@@ -248,8 +248,7 @@ vma_address(struct page *page, struct vm
- unsigned long page_address_in_vma(struct page *page, struct vm_area_struct *vma)
- {
- 	if (PageAnon(page)) {
--		if ((void *)vma->anon_vma !=
--		    (void *)page->mapping - PAGE_MAPPING_ANON)
-+		if (vma->anon_vma != page_anon_vma(page))
- 			return -EFAULT;
- 	} else if (page->mapping && !(vma->vm_flags & VM_NONLINEAR)) {
- 		if (!vma->vm_file ||
-@@ -513,7 +512,7 @@ int page_referenced(struct page *page,
- 		referenced++;
  
- 	*vm_flags = 0;
--	if (page_mapped(page) && page->mapping) {
-+	if (page_mapped(page) && page_rmapping(page)) {
- 		if (PageAnon(page))
- 			referenced += page_referenced_anon(page, mem_cont,
- 								vm_flags);
-diff -puN mm/swapfile.c~mm-define-page_mapping_flags mm/swapfile.c
---- a/mm/swapfile.c~mm-define-page_mapping_flags
-+++ a/mm/swapfile.c
-@@ -937,7 +937,7 @@ static int unuse_vma(struct vm_area_stru
- 	unsigned long addr, end, next;
- 	int ret;
- 
--	if (page->mapping) {
-+	if (page_anon_vma(page)) {
- 		addr = page_address_in_vma(page, vma);
- 		if (addr == -EFAULT)
- 			return 0;
+ 	list_for_each_entry(vma, &mapping->i_mmap_nonlinear,
+ 						shared.vm_set.list) {
+-		if (!MLOCK_PAGES && !(flags & TTU_IGNORE_MLOCK) &&
+-			(vma->vm_flags & VM_LOCKED))
+-			continue;
+ 		cursor = (unsigned long) vma->vm_private_data;
+ 		if (cursor > max_nl_cursor)
+ 			max_nl_cursor = cursor;
+@@ -1106,9 +1102,6 @@ static int try_to_unmap_file(struct page
+ 	do {
+ 		list_for_each_entry(vma, &mapping->i_mmap_nonlinear,
+ 						shared.vm_set.list) {
+-			if (!MLOCK_PAGES && !(flags & TTU_IGNORE_MLOCK) &&
+-			    (vma->vm_flags & VM_LOCKED))
+-				continue;
+ 			cursor = (unsigned long) vma->vm_private_data;
+ 			while ( cursor < max_nl_cursor &&
+ 				cursor < vma->vm_end - vma->vm_start) {
 _
 
 Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
