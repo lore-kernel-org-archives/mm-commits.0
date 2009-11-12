@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + hpsa-use-shost_priv-instead-of-accessing-host-hostdata-directly.patch added to -mm tree
-Date: Thu, 12 Nov 2009 14:53:34 -0800
-Message-ID: <200911122253.nACMrYMR006082@imap1.linux-foundation.org>
+Subject: + add-thread-to-allow-controllers-to-register-for-rescan-for-new-devices.patch added to -mm tree
+Date: Thu, 12 Nov 2009 14:53:40 -0800
+Message-ID: <200911122253.nACMrefK006339@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44761 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33741 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754693AbZKLWyM (ORCPT
+	by vger.kernel.org with ESMTP id S1754736AbZKLWyS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Nov 2009 17:54:12 -0500
+	Thu, 12 Nov 2009 17:54:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: scameron@beardog.cce.hp.com, James.Bottomley@HansenPartnership.com, jens.axb
 
 
 The patch titled
-     hpsa: Use shost_priv instead of accessing host->hostdata[0] directly.
+     Add thread to allow controllers to register for rescan for new devices
 has been added to the -mm tree.  Its filename is
-     hpsa-use-shost_priv-instead-of-accessing-host-hostdata-directly.patch
+     add-thread-to-allow-controllers-to-register-for-rescan-for-new-devices.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hpsa: Use shost_priv instead of accessing host->hostdata[0] directly.
+Subject: Add thread to allow controllers to register for rescan for new devices
 From: "Stephen M. Cameron" <scameron@beardog.cce.hp.com>
 
-Use shost_priv instead of accessing host->hostdata[0] directly.
+Add thread to allow controllers to register for rescan for new devices
+(borrowed code from cciss.)
 
 Signed-off-by: Stephen M. Cameron <scameron@beardog.cce.hp.com>
 Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
@@ -46,88 +47,245 @@ Cc: Mike Miller <mikem@beardog.cce.hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/hpsa.c |   20 +++++++++++++-------
- 1 file changed, 13 insertions(+), 7 deletions(-)
+ drivers/scsi/hpsa.c |  147 +++++++++++++++++++++++++++++++++++++++++-
+ drivers/scsi/hpsa.h |    5 +
+ 2 files changed, 150 insertions(+), 2 deletions(-)
 
-diff -puN drivers/scsi/hpsa.c~hpsa-use-shost_priv-instead-of-accessing-host-hostdata-directly drivers/scsi/hpsa.c
---- a/drivers/scsi/hpsa.c~hpsa-use-shost_priv-instead-of-accessing-host-hostdata-directly
+diff -puN drivers/scsi/hpsa.c~add-thread-to-allow-controllers-to-register-for-rescan-for-new-devices drivers/scsi/hpsa.c
+--- a/drivers/scsi/hpsa.c~add-thread-to-allow-controllers-to-register-for-rescan-for-new-devices
 +++ a/drivers/scsi/hpsa.c
-@@ -177,6 +177,12 @@ static struct scsi_host_template hpsa_dr
- 	.sdev_attrs = hpsa_sdev_attrs,
- };
+@@ -47,6 +47,7 @@
+ #include <linux/string.h>
+ #include <linux/bitmap.h>
+ #include <asm/atomic.h>
++#include <linux/kthread.h>
+ #include "hpsa_cmd.h"
+ #include "hpsa.h"
  
-+static inline struct ctlr_info *sdev_to_hba(struct scsi_device *sdev)
+@@ -145,6 +146,7 @@ static ssize_t lunid_show(struct device 
+ 	struct device_attribute *attr, char *buf);
+ static ssize_t unique_id_show(struct device *dev,
+ 	struct device_attribute *attr, char *buf);
++static void hpsa_update_scsi_devices(struct ctlr_info *h, int hostno);
+ 
+ DEVICE_ATTR(raid_level, S_IRUGO, raid_level_show, NULL);
+ DEVICE_ATTR(lunid, S_IRUGO, lunid_show, NULL);
+@@ -183,6 +185,129 @@ static inline struct ctlr_info *sdev_to_
+ 	return (struct ctlr_info *) *priv;
+ }
+ 
++static struct task_struct *hpsa_scan_thread;
++static DEFINE_MUTEX(scan_mutex);
++static LIST_HEAD(scan_q);
++static int scan_thread(void *data);
++
++/**
++ * add_to_scan_list() - add controller to rescan queue
++ * @h:		      Pointer to the controller.
++ *
++ * Adds the controller to the rescan queue if not already on the queue.
++ *
++ * returns 1 if added to the queue, 0 if skipped (could be on the
++ * queue already, or the controller could be initializing or shutting
++ * down).
++ **/
++static int add_to_scan_list(struct ctlr_info *h)
 +{
-+	unsigned long *priv = shost_priv(sdev->host);
-+	return (struct ctlr_info *) *priv;
++	struct ctlr_info *test_h;
++	int found = 0;
++	int ret = 0;
++
++	if (h->busy_initializing)
++		return 0;
++
++	if (!mutex_trylock(&h->busy_shutting_down))
++		return 0;
++
++	mutex_lock(&scan_mutex);
++	list_for_each_entry(test_h, &scan_q, scan_list) {
++		if (test_h == h) {
++			found = 1;
++			break;
++		}
++	}
++	if (!found && !h->busy_scanning) {
++		INIT_COMPLETION(h->scan_wait);
++		list_add_tail(&h->scan_list, &scan_q);
++		ret = 1;
++	}
++	mutex_unlock(&scan_mutex);
++	mutex_unlock(&h->busy_shutting_down);
++
++	return ret;
++}
++
++/**
++ * remove_from_scan_list() - remove controller from rescan queue
++ * @h:			   Pointer to the controller.
++ *
++ * Removes the controller from the rescan queue if present. Blocks if
++ * the controller is currently conducting a rescan.  The controller
++ * can be in one of three states:
++ * 1. Doesn't need a scan
++ * 2. On the scan list, but not scanning yet (we remove it)
++ * 3. Busy scanning (and not on the list). In this case we want to wait for
++ *    the scan to complete to make sure the scanning thread for this
++ *    controller is completely idle.
++ **/
++static void remove_from_scan_list(struct ctlr_info *h)
++{
++	struct ctlr_info *test_h, *tmp_h;
++
++	mutex_lock(&scan_mutex);
++	list_for_each_entry_safe(test_h, tmp_h, &scan_q, scan_list) {
++		if (test_h == h) { /* state 2. */
++			list_del(&h->scan_list);
++			complete_all(&h->scan_wait);
++			mutex_unlock(&scan_mutex);
++			return;
++		}
++	}
++	if (h->busy_scanning) { /* state 3. */
++		mutex_unlock(&scan_mutex);
++		wait_for_completion(&h->scan_wait);
++	} else { /* state 1, nothing to do. */
++		mutex_unlock(&scan_mutex);
++	}
++}
++
++/* scan_thread() - kernel thread used to rescan controllers
++ * @data:	 Ignored.
++ *
++ * A kernel thread used scan for drive topology changes on
++ * controllers. The thread processes only one controller at a time
++ * using a queue.  Controllers are added to the queue using
++ * add_to_scan_list() and removed from the queue either after done
++ * processing or using remove_from_scan_list().
++ *
++ * returns 0.
++ **/
++static int scan_thread(__attribute__((unused)) void *data)
++{
++	struct ctlr_info *h;
++	int host_no;
++
++	while (1) {
++		set_current_state(TASK_INTERRUPTIBLE);
++		schedule();
++		if (kthread_should_stop())
++			break;
++
++		while (1) {
++			mutex_lock(&scan_mutex);
++			if (list_empty(&scan_q)) {
++				mutex_unlock(&scan_mutex);
++				break;
++			}
++			h = list_entry(scan_q.next, struct ctlr_info,
++					scan_list);
++			list_del(&h->scan_list);
++			h->busy_scanning = 1;
++			mutex_unlock(&scan_mutex);
++			host_no = h->scsi_host ?  h->scsi_host->host_no : -1;
++			hpsa_update_scsi_devices(h, host_no);
++			complete_all(&h->scan_wait);
++			mutex_lock(&scan_mutex);
++			h->busy_scanning = 0;
++			mutex_unlock(&scan_mutex);
++		}
++	}
++	return 0;
 +}
 +
  /* Enqueuing and dequeuing functions for cmdlists. */
  static inline void addQ(struct hlist_head *list, struct CommandList *c)
  {
-@@ -227,7 +233,7 @@ static ssize_t raid_level_show(struct de
- 	unsigned long flags;
+@@ -3269,8 +3394,11 @@ static int __devinit hpsa_init_one(struc
+ 	if (!h)
+ 		return -1;
  
- 	sdev = to_scsi_device(dev);
--	h = (struct ctlr_info *) sdev->host->hostdata[0];
-+	h = sdev_to_hba(sdev);
- 	spin_lock_irqsave(&h->lock, flags);
- 	hdev = sdev->hostdata;
- 	if (!hdev) {
-@@ -260,7 +266,7 @@ static ssize_t lunid_show(struct device 
- 	unsigned char lunid[8];
++	h->busy_initializing = 1;
+ 	INIT_HLIST_HEAD(&h->cmpQ);
+ 	INIT_HLIST_HEAD(&h->reqQ);
++	mutex_init(&h->busy_shutting_down);
++	init_completion(&h->scan_wait);
+ 	if (hpsa_pci_init(h, pdev) != 0)
+ 		goto clean1;
  
- 	sdev = to_scsi_device(dev);
--	h = (struct ctlr_info *) sdev->host->hostdata[0];
-+	h = sdev_to_hba(sdev);
- 	spin_lock_irqsave(&h->lock, flags);
- 	hdev = sdev->hostdata;
- 	if (!hdev) {
-@@ -284,7 +290,7 @@ static ssize_t unique_id_show(struct dev
- 	unsigned char sn[16];
+@@ -3330,7 +3458,7 @@ static int __devinit hpsa_init_one(struc
+ 	h->access.set_intr_mask(h, HPSA_INTR_ON);
  
- 	sdev = to_scsi_device(dev);
--	h = (struct ctlr_info *) sdev->host->hostdata[0];
-+	h = sdev_to_hba(sdev);
- 	spin_lock_irqsave(&h->lock, flags);
- 	hdev = sdev->hostdata;
- 	if (!hdev) {
-@@ -677,7 +683,7 @@ static int hpsa_slave_alloc(struct scsi_
- 	unsigned long flags;
- 	struct ctlr_info *h;
+ 	hpsa_register_scsi(h);	/* hook ourselves into SCSI subsystem */
+-
++	h->busy_initializing = 0;
+ 	return 1;
  
--	h = (struct ctlr_info *) sdev->host->hostdata[0];
-+	h = sdev_to_hba(sdev);
- 	spin_lock_irqsave(&h->devlock, flags);
- 	sd = lookup_hpsa_scsi_dev(h, sdev_channel(sdev),
- 		sdev_id(sdev), sdev->lun);
-@@ -1615,7 +1621,7 @@ static int hpsa_scsi_queue_command(struc
- 	unsigned long flags;
+ clean4:
+@@ -3347,6 +3475,7 @@ clean4:
+ 	free_irq(h->intr[SIMPLE_MODE_INT], h);
+ clean2:
+ clean1:
++	h->busy_initializing = 0;
+ 	kfree(h);
+ 	return -1;
+ }
+@@ -3387,6 +3516,8 @@ static void __devexit hpsa_remove_one(st
+ 		return;
+ 	}
+ 	h = pci_get_drvdata(pdev);
++	mutex_lock(&h->busy_shutting_down);
++	remove_from_scan_list(h);
+ 	hpsa_unregister_scsi(h);	/* unhook from SCSI subsystem */
+ 	hpsa_shutdown(pdev);
+ 	iounmap(h->vaddr);
+@@ -3403,6 +3534,7 @@ static void __devexit hpsa_remove_one(st
+ 	 */
+ 	pci_release_regions(pdev);
+ 	pci_set_drvdata(pdev, NULL);
++	mutex_unlock(&h->busy_shutting_down);
+ 	kfree(h);
+ }
  
- 	/* Get the ptr to our adapter structure out of cmd->host. */
--	h = (struct ctlr_info *) cmd->device->host->hostdata[0];
-+	h = sdev_to_hba(cmd->device);
- 	dev = cmd->device->hostdata;
- 	if (!dev) {
- 		cmd->result = DID_NO_CONNECT << 16;
-@@ -1795,7 +1801,7 @@ static int hpsa_eh_device_reset_handler(
- 	struct hpsa_scsi_dev_t *dev;
+@@ -3433,12 +3565,23 @@ static struct pci_driver hpsa_pci_driver
+  */
+ static int __init hpsa_init(void)
+ {
+-	return pci_register_driver(&hpsa_pci_driver);
++	int err;
++	/* Start the scan thread */
++	hpsa_scan_thread = kthread_run(scan_thread, NULL, "hpsa_scan");
++	if (IS_ERR(hpsa_scan_thread)) {
++		err = PTR_ERR(hpsa_scan_thread);
++		return -ENODEV;
++	}
++	err = pci_register_driver(&hpsa_pci_driver);
++	if (err)
++		kthread_stop(hpsa_scan_thread);
++	return err;
+ }
  
- 	/* find the controller to which the command to be aborted was sent */
--	h = (struct ctlr_info *) scsicmd->device->host->hostdata[0];
-+	h = sdev_to_hba(scsicmd->device);
- 	if (h == NULL) /* paranoia */
- 		return FAILED;
- 	dev_warn(&h->pdev->dev, "resetting drive\n");
-@@ -2325,7 +2331,7 @@ static int hpsa_ioctl(struct scsi_device
- 	struct ctlr_info *h;
- 	void __user *argp = (void __user *)arg;
+ static void __exit hpsa_cleanup(void)
+ {
+ 	pci_unregister_driver(&hpsa_pci_driver);
++	kthread_stop(hpsa_scan_thread);
+ }
  
--	h = (struct ctlr_info *) dev->host->hostdata[0];
-+	h = sdev_to_hba(dev);
+ module_init(hpsa_init);
+diff -puN drivers/scsi/hpsa.h~add-thread-to-allow-controllers-to-register-for-rescan-for-new-devices drivers/scsi/hpsa.h
+--- a/drivers/scsi/hpsa.h~add-thread-to-allow-controllers-to-register-for-rescan-for-new-devices
++++ a/drivers/scsi/hpsa.h
+@@ -91,6 +91,11 @@ struct ctlr_info {
+ 	unsigned long  		*cmd_pool_bits;
+ 	int			nr_allocs;
+ 	int			nr_frees;
++	int			busy_initializing;
++	int			busy_scanning;
++	struct mutex		busy_shutting_down;
++	struct list_head	scan_list;
++	struct completion	scan_wait;
  
- 	switch (cmd) {
- 	case CCISS_DEREGDISK:
+ 	struct Scsi_Host *scsi_host;
+ 	spinlock_t devlock; /* to protect hba[ctlr]->dev[];  */
 _
 
 Patches currently in -mm which might be from scameron@beardog.cce.hp.com are
