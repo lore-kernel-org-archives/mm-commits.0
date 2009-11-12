@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-video-da8xx-fbc-fix-error-return.patch added to -mm tree
-Date: Thu, 12 Nov 2009 15:42:39 -0800
-Message-ID: <200911122342.nACNgdGX024995@imap1.linux-foundation.org>
+Subject: + net-netfilter-xt_osfc-xt_osf_remove_callback-should-return-negative-on-errors.patch added to -mm tree
+Date: Thu, 12 Nov 2009 15:43:33 -0800
+Message-ID: <200911122343.nACNhXDS027110@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49052 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39560 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755164AbZKLXm4 (ORCPT
+	by vger.kernel.org with ESMTP id S1754790AbZKLXnw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Nov 2009 18:42:56 -0500
+	Thu, 12 Nov 2009 18:43:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, sudhakar.raj@ti.com
+Cc: roel.kluin@gmail.com, kaber@trash.net
 
 
 The patch titled
-     drivers/video/da8xx-fb.c: fix error return
+     net/netfilter/xt_osf.c: xt_osf_remove_callback() should return negative on errors
 has been added to the -mm tree.  Its filename is
-     drivers-video-da8xx-fbc-fix-error-return.patch
+     net-netfilter-xt_osfc-xt_osf_remove_callback-should-return-negative-on-errors.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/video/da8xx-fb.c: fix error return
+Subject: net/netfilter/xt_osf.c: xt_osf_remove_callback() should return negative on errors
 From: Roel Kluin <roel.kluin@gmail.com>
 
-The return should be negative on errors
+Return a negative error value
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Sudhakar Rajashekhara <sudhakar.raj@ti.com>
+Cc: Patrick McHardy <kaber@trash.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/da8xx-fb.c |    2 +-
+ net/netfilter/xt_osf.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/da8xx-fb.c~drivers-video-da8xx-fbc-fix-error-return drivers/video/da8xx-fb.c
---- a/drivers/video/da8xx-fb.c~drivers-video-da8xx-fbc-fix-error-return
-+++ a/drivers/video/da8xx-fb.c
-@@ -746,7 +746,7 @@ static int __init fb_probe(struct platfo
+diff -puN net/netfilter/xt_osf.c~net-netfilter-xt_osfc-xt_osf_remove_callback-should-return-negative-on-errors net/netfilter/xt_osf.c
+--- a/net/netfilter/xt_osf.c~net-netfilter-xt_osfc-xt_osf_remove_callback-should-return-negative-on-errors
++++ a/net/netfilter/xt_osf.c
+@@ -118,7 +118,7 @@ static int xt_osf_remove_callback(struct
+ {
+ 	struct xt_osf_user_finger *f;
+ 	struct xt_osf_finger *sf;
+-	int err = ENOENT;
++	int err = -ENOENT;
  
- 	if (i == ARRAY_SIZE(known_lcd_panels)) {
- 		dev_err(&device->dev, "GLCD: No valid panel found\n");
--		ret = ENODEV;
-+		ret = -ENODEV;
- 		goto err_clk_disable;
- 	} else
- 		dev_info(&device->dev, "GLCD: Found %s panel\n",
+ 	if (!osf_attrs[OSF_ATTR_FINGER])
+ 		return -EINVAL;
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -74,6 +74,7 @@ omap-cs-should-be-positive-in-gpmc_cs_free.patch
 powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
 sms-cards-make-id-unsigned-in-sms_get_board.patch
 mtd-error-return-eio-instead-of-eio.patch
+net-netfilter-xt_osfc-xt_osf_remove_callback-should-return-negative-on-errors.patch
 ocfs2-error-return-should-be-negative.patch
 drivers-scsi-fnic-fnic_scsic-clean-up.patch
 ibmmca-buffer-overflow.patch
