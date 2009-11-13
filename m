@@ -1,155 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: + aio-remove-unused-field.patch added to -mm tree
-Date: Fri, 13 Nov 2009 14:35:10 -0800
-Message-ID: <200911132235.nADMZADS019744@imap1.linux-foundation.org>
+Subject: [to-be-updated] zlib-optimize-inffast-when-copying-direct-from-output.patch removed from -mm tree
+Date: Fri, 13 Nov 2009 14:45:40 -0800
+Message-ID: <200911132245.nADMjetn012107@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56963 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45583 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932128AbZKMWfM (ORCPT
+	by vger.kernel.org with ESMTP id S932176AbZKMWqL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Nov 2009 17:35:12 -0500
+	Fri, 13 Nov 2009 17:46:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: shaohua.li@intel.com, bcrl@kvack.org, jmoyer@redhat.com, zach.brown@oracle.com
+To: Joakim.Tjernlund@transmode.se, alain@knaff.lu, dwmw2@infradead.org, hpa@zytor.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     aio: remove unused field
-has been added to the -mm tree.  Its filename is
-     aio-remove-unused-field.patch
+     zlib: optimize inffast when copying direct from output
+has been removed from the -mm tree.  Its filename was
+     zlib-optimize-inffast-when-copying-direct-from-output.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: aio: remove unused field
-From: Shaohua Li <shaohua.li@intel.com>
+Subject: zlib: optimize inffast when copying direct from output
+From: Joakim Tjernlund <Joakim.Tjernlund@transmode.se>
 
-Don't know the reason, but it appears ki_wait field of iocb never gets used.
+JFFS2 uses lesser compression ratio and inflate always ends up in "copy
+direct from output" case.
 
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Benjamin LaHaise <bcrl@kvack.org>
-Cc: Zach Brown <zach.brown@oracle.com>
+This patch tries to optimize the copy procedure for arch's that have
+CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS defined.  On my MPC8321 this is
+about 14% faster on my JFFS2 root FS than the original.
+
+Signed-off-by: Joakim Tjernlund <Joakim.Tjernlund@transmode.se>
+Cc: Alain Knaff <alain@knaff.lu>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c            |   40 ++--------------------------------------
- include/linux/aio.h |    4 ----
- 2 files changed, 2 insertions(+), 42 deletions(-)
 
-diff -puN fs/aio.c~aio-remove-unused-field fs/aio.c
---- a/fs/aio.c~aio-remove-unused-field
-+++ a/fs/aio.c
-@@ -711,10 +711,8 @@ static ssize_t aio_run_iocb(struct kiocb
- 	 */
- 	ret = retry(iocb);
- 
--	if (ret != -EIOCBRETRY && ret != -EIOCBQUEUED) {
--		BUG_ON(!list_empty(&iocb->ki_wait.task_list));
-+	if (ret != -EIOCBRETRY && ret != -EIOCBQUEUED)
- 		aio_complete(iocb, ret, 0);
--	}
- out:
- 	spin_lock_irq(&ctx->ctx_lock);
- 
-@@ -866,13 +864,6 @@ static void try_queue_kicked_iocb(struct
- 	unsigned long flags;
- 	int run = 0;
- 
--	/* We're supposed to be the only path putting the iocb back on the run
--	 * list.  If we find that the iocb is *back* on a wait queue already
--	 * than retry has happened before we could queue the iocb.  This also
--	 * means that the retry could have completed and freed our iocb, no
--	 * good. */
--	BUG_ON((!list_empty(&iocb->ki_wait.task_list)));
--
- 	spin_lock_irqsave(&ctx->ctx_lock, flags);
- 	/* set this inside the lock so that we can't race with aio_run_iocb()
- 	 * testing it and putting the iocb on the run list under the lock */
-@@ -886,7 +877,7 @@ static void try_queue_kicked_iocb(struct
- /*
-  * kick_iocb:
-  *      Called typically from a wait queue callback context
-- *      (aio_wake_function) to trigger a retry of the iocb.
-+ *      to trigger a retry of the iocb.
-  *      The retry is usually executed by aio workqueue
-  *      threads (See aio_kick_handler).
-  */
-@@ -1520,31 +1511,6 @@ static ssize_t aio_setup_iocb(struct kio
- 	return 0;
- }
- 
--/*
-- * aio_wake_function:
-- * 	wait queue callback function for aio notification,
-- * 	Simply triggers a retry of the operation via kick_iocb.
-- *
-- * 	This callback is specified in the wait queue entry in
-- *	a kiocb.
-- *
-- * Note:
-- * This routine is executed with the wait queue lock held.
-- * Since kick_iocb acquires iocb->ctx->ctx_lock, it nests
-- * the ioctx lock inside the wait queue lock. This is safe
-- * because this callback isn't used for wait queues which
-- * are nested inside ioctx lock (i.e. ctx->wait)
-- */
--static int aio_wake_function(wait_queue_t *wait, unsigned mode,
--			     int sync, void *key)
--{
--	struct kiocb *iocb = container_of(wait, struct kiocb, ki_wait);
--
--	list_del_init(&wait->task_list);
--	kick_iocb(iocb);
--	return 1;
--}
--
- static void aio_batch_add(struct address_space *mapping,
- 			  struct hlist_head *batch_hash)
- {
-@@ -1642,8 +1608,6 @@ static int io_submit_one(struct kioctx *
- 	req->ki_buf = (char __user *)(unsigned long)iocb->aio_buf;
- 	req->ki_left = req->ki_nbytes = iocb->aio_nbytes;
- 	req->ki_opcode = iocb->aio_lio_opcode;
--	init_waitqueue_func_entry(&req->ki_wait, aio_wake_function);
--	INIT_LIST_HEAD(&req->ki_wait.task_list);
- 
- 	ret = aio_setup_iocb(req);
- 
-diff -puN include/linux/aio.h~aio-remove-unused-field include/linux/aio.h
---- a/include/linux/aio.h~aio-remove-unused-field
-+++ a/include/linux/aio.h
-@@ -102,7 +102,6 @@ struct kiocb {
- 	} ki_obj;
- 
- 	__u64			ki_user_data;	/* user's data for completion */
--	wait_queue_t		ki_wait;
- 	loff_t			ki_pos;
- 
- 	void			*private;
-@@ -140,7 +139,6 @@ struct kiocb {
- 		(x)->ki_dtor = NULL;			\
- 		(x)->ki_obj.tsk = tsk;			\
- 		(x)->ki_user_data = 0;                  \
--		init_wait((&(x)->ki_wait));             \
- 	} while (0)
- 
- #define AIO_RING_MAGIC			0xa10a10a1
-@@ -223,8 +221,6 @@ struct mm_struct;
- static inline void exit_aio(struct mm_struct *mm) { }
- #endif /* CONFIG_AIO */
- 
--#define io_wait_to_kiocb(wait) container_of(wait, struct kiocb, ki_wait)
+diff -puN lib/zlib_inflate/inffast.c~zlib-optimize-inffast-when-copying-direct-from-output lib/zlib_inflate/inffast.c
+--- a/lib/zlib_inflate/inffast.c~zlib-optimize-inffast-when-copying-direct-from-output
++++ a/lib/zlib_inflate/inffast.c
+@@ -240,6 +240,40 @@ void inflate_fast(z_streamp strm, unsign
+                 }
+                 else {
+                     from = out - dist;          /* copy direct from output */
++#ifdef CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS
++                    /* minimum length is three */
++		    if (dist > 2 ) {
++			unsigned short *sout = (unsigned short *)(out - OFF);
++			unsigned short *sfrom = (unsigned short *)(from - OFF);
++			unsigned long loops = len >> 1;
++
++			do
++			    PUP(sout) = PUP(sfrom);
++			while (--loops);
++			out = (unsigned char *)sout + OFF;
++			from = (unsigned char *)sfrom + OFF;
++			if (len & 1)
++			    PUP(out) = PUP(from);
++		    } else if (dist == 2) {
++			unsigned short *sout = (unsigned short *)(out - OFF);
++			unsigned short pat16;
++			unsigned long loops = len >> 1;
++
++			pat16 = *(sout-2+2*OFF);
++			do
++			    PUP(sout) = pat16;
++			while (--loops);
++			out = (unsigned char *)sout + OFF;
++			if (len & 1)
++			    PUP(out) = PUP(from);
++		    } else {
++			unsigned char pat8 = *(out - 1 + OFF);
++
++			do {
++			    PUP(out) = pat8;
++			} while (--len);
++		    }
++#else
+                     do {                        /* minimum length is three */
+                         PUP(out) = PUP(from);
+                         PUP(out) = PUP(from);
+@@ -251,6 +285,7 @@ void inflate_fast(z_streamp strm, unsign
+                         if (len > 1)
+                             PUP(out) = PUP(from);
+                     }
++#endif
+                 }
+             }
+             else if ((op & 64) == 0) {          /* 2nd level distance code */
+_
+
+Patches currently in -mm which might be from Joakim.Tjernlund@transmode.se are
+
+crc32-minor-optimizations-and-cleanup.patch
+crc32-minor-optimizations-and-cleanup-checkpatch-fixes.patch
+zlib-optimize-inffast-when-copying-direct-from-output.patch
+zlib-optimize-inffast-even-more.patch
+
