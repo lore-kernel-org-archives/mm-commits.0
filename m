@@ -1,61 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-vmware-vmxnet3-quote-name-with-comma-and-period-use-tabs.patch removed from -mm tree
-Date: Fri, 13 Nov 2009 11:25:54 -0800
-Message-ID: <200911131925.nADJPsGi026846@imap1.linux-foundation.org>
+Subject: [merged] maintainers-server-engines-10gbps-iscsi-use-single-line-m.patch removed from -mm tree
+Date: Fri, 13 Nov 2009 11:25:51 -0800
+Message-ID: <200911131925.nADJPpJa026743@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59275 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52852 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756944AbZKMTZu (ORCPT
+	by vger.kernel.org with ESMTP id S1757124AbZKMTZw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Nov 2009 14:25:50 -0500
+	Fri, 13 Nov 2009 14:25:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, sbhatewara@vmware.com, mm-commits@vger.kernel.org
+To: joe@perches.com, jayamohank@serverengines.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MAINTAINERS: VMWARE VMXNET3 - Quote name with comma and period, use tabs
+     MAINTAINERS: SERVER ENGINES 10Gbps iSCSI - Use single line M:
 has been removed from the -mm tree.  Its filename was
-     maintainers-vmware-vmxnet3-quote-name-with-comma-and-period-use-tabs.patch
+     maintainers-server-engines-10gbps-iscsi-use-single-line-m.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: VMWARE VMXNET3 - Quote name with comma and period, use tabs
+Subject: MAINTAINERS: SERVER ENGINES 10Gbps iSCSI - Use single line M:
 From: Joe Perches <joe@perches.com>
 
-Names with periods or commas need to be quoted
-Use tab not spaces
+Integrate P:/M: lines to single M:
+Use tabs not spaces
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Shreyas Bhatewara <sbhatewara@vmware.com>
+Cc: Jayamohan Kallickal <jayamohank@serverengines.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN MAINTAINERS~maintainers-vmware-vmxnet3-quote-name-with-comma-and-period-use-tabs MAINTAINERS
---- a/MAINTAINERS~maintainers-vmware-vmxnet3-quote-name-with-comma-and-period-use-tabs
+diff -puN MAINTAINERS~maintainers-server-engines-10gbps-iscsi-use-single-line-m MAINTAINERS
+--- a/MAINTAINERS~maintainers-server-engines-10gbps-iscsi-use-single-line-m
 +++ a/MAINTAINERS
-@@ -5681,11 +5681,11 @@ F:	drivers/vlynq/vlynq.c
- F:	include/linux/vlynq.h
+@@ -4671,12 +4671,11 @@ F:	include/linux/ata.h
+ F:	include/linux/libata.h
  
- VMWARE VMXNET3 ETHERNET DRIVER
--M:     Shreyas Bhatewara <sbhatewara@vmware.com>
--M:     VMware, Inc. <pv-drivers@vmware.com>
--L:     netdev@vger.kernel.org
--S:     Maintained
--F:     drivers/net/vmxnet3/
-+M:	Shreyas Bhatewara <sbhatewara@vmware.com>
-+M:	"VMware, Inc." <pv-drivers@vmware.com>
-+L:	netdev@vger.kernel.org
-+S:	Maintained
-+F:	drivers/net/vmxnet3/
+ SERVER ENGINES 10Gbps iSCSI - BladeEngine 2 DRIVER
+-P:     Jayamohan Kallickal
+-M:     jayamohank@serverengines.com
+-L:     linux-scsi@vger.kernel.org
+-W:     http://www.serverengines.com
+-S:     Supported
+-F:     drivers/scsi/be2iscsi/
++M:	Jayamohan Kallickal <jayamohank@serverengines.com>
++L:	linux-scsi@vger.kernel.org
++W:	http://www.serverengines.com
++S:	Supported
++F:	drivers/scsi/be2iscsi/
  
- VOLTAGE AND CURRENT REGULATOR FRAMEWORK
- M:	Liam Girdwood <lrg@slimlogic.co.uk>
+ SERVER ENGINES 10Gbps NIC - BladeEngine 2 DRIVER
+ M:	Sathya Perla <sathyap@serverengines.com>
 _
 
 Patches currently in -mm which might be from joe@perches.com are
