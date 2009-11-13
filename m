@@ -1,118 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: + workqueue-fix-race-condition-in-schedule_on_each_cpu.patch added to -mm tree
-Date: Fri, 13 Nov 2009 15:37:23 -0800
-Message-ID: <200911132337.nADNbN1d004595@imap1.linux-foundation.org>
+Subject: [withdrawn] vmscan-take-order-into-consideration-when-deciding-if-kswapd-is-in-trouble.patch removed from -mm tree
+Date: Fri, 13 Nov 2009 15:38:59 -0800
+Message-ID: <200911132339.nADNcxVx008366@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34634 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37531 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932549AbZKMXhu (ORCPT
+	by vger.kernel.org with ESMTP id S932559AbZKMXjY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Nov 2009 18:37:50 -0500
+	Fri, 13 Nov 2009 18:39:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, ak@linux.intel.com, mingo@redhat.com, oleg@redhat.com
+To: mel@csn.ul.ie, cl@linux-foundation.org, elendil@planet.nl, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     workqueue: fix race condition in schedule_on_each_cpu()
-has been added to the -mm tree.  Its filename is
-     workqueue-fix-race-condition-in-schedule_on_each_cpu.patch
+     vmscan: take order into consideration when deciding if kswapd is in trouble
+has been removed from the -mm tree.  Its filename was
+     vmscan-take-order-into-consideration-when-deciding-if-kswapd-is-in-trouble.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: workqueue: fix race condition in schedule_on_each_cpu()
-From: Tejun Heo <tj@kernel.org>
+Subject: vmscan: take order into consideration when deciding if kswapd is in trouble
+From: Mel Gorman <mel@csn.ul.ie>
 
-Commit 65a64464349883891e21e74af16c05d6e1eeb4e9 ("HWPOISON: Allow
-schedule_on_each_cpu() from keventd") which allows schedule_on_each_cpu()
-to be called from keventd added a race condition.  schedule_on_each_cpu()
-may race with cpu hotplug and end up executing the function twice on a
-cpu.
+If reclaim fails to make sufficient progress, the priority is raised. 
+Once the priority is higher, kswapd starts waiting on congestion. 
+However, on systems with large numbers of high-order atomics due to crappy
+network cards, it's important that kswapd keep working in parallel to save
+their sorry ass.
 
-Fix it by moving direct execution into the section protected with
-get/put_online_cpus().  While at it, update code such that direct
-execution is done after works have been scheduled for all other cpus and
-drop unnecessary cpu != orig test from flush loop.
+This patch takes into account the order kswapd is reclaiming at before
+waiting on congestion.  The higher the order, the longer it is before
+kswapd considers itself to be in trouble.  The impact is that kswapd works
+harder in parallel rather than depending on direct reclaimers or atomic
+allocations to fail.
 
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Andi Kleen <ak@linux.intel.com>
-Acked-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Ingo Molnar <mingo@redhat.com>
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Cc: Frans Pop <elendil@planet.nl>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/workqueue.c |   28 +++++++++++++---------------
- 1 file changed, 13 insertions(+), 15 deletions(-)
+ mm/vmscan.c |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-diff -puN kernel/workqueue.c~workqueue-fix-race-condition-in-schedule_on_each_cpu kernel/workqueue.c
---- a/kernel/workqueue.c~workqueue-fix-race-condition-in-schedule_on_each_cpu
-+++ a/kernel/workqueue.c
-@@ -692,31 +692,29 @@ int schedule_on_each_cpu(work_func_t fun
- 	if (!works)
- 		return -ENOMEM;
- 
-+	get_online_cpus();
-+
- 	/*
--	 * when running in keventd don't schedule a work item on itself.
--	 * Can just call directly because the work queue is already bound.
--	 * This also is faster.
--	 * Make this a generic parameter for other workqueues?
-+	 * When running in keventd don't schedule a work item on
-+	 * itself.  Can just call directly because the work queue is
-+	 * already bound.  This also is faster.
+diff -puN mm/vmscan.c~vmscan-take-order-into-consideration-when-deciding-if-kswapd-is-in-trouble mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-take-order-into-consideration-when-deciding-if-kswapd-is-in-trouble
++++ a/mm/vmscan.c
+@@ -1950,7 +1950,7 @@ static int sleeping_prematurely(int orde
+ static unsigned long balance_pgdat(pg_data_t *pgdat, int order)
+ {
+ 	int all_zones_ok;
+-	int priority;
++	int priority, congestion_priority;
+ 	int i;
+ 	unsigned long total_scanned;
+ 	struct reclaim_state *reclaim_state = current->reclaim_state;
+@@ -1971,6 +1971,16 @@ static unsigned long balance_pgdat(pg_da
  	 */
--	if (current_is_keventd()) {
-+	if (current_is_keventd())
- 		orig = raw_smp_processor_id();
--		INIT_WORK(per_cpu_ptr(works, orig), func);
--		func(per_cpu_ptr(works, orig));
--	}
+ 	int temp_priority[MAX_NR_ZONES];
  
--	get_online_cpus();
- 	for_each_online_cpu(cpu) {
- 		struct work_struct *work = per_cpu_ptr(works, cpu);
++	/*
++	 * When priority reaches congestion_priority, kswapd will sleep
++	 * for a short time while congestion clears. The higher the
++	 * order being reclaimed, the less likely kswapd will go to
++	 * sleep as high-order allocations are harder to reclaim and
++	 * stall direct reclaimers longer
++	 */
++	congestion_priority = DEF_PRIORITY - 2;
++	congestion_priority -= min(congestion_priority, sc.order);
++
+ loop_again:
+ 	total_scanned = 0;
+ 	sc.nr_reclaimed = 0;
+@@ -2096,7 +2106,7 @@ loop_again:
+ 		 * OK, kswapd is getting into trouble.  Take a nap, then take
+ 		 * another pass across the zones.
+ 		 */
+-		if (total_scanned && priority < DEF_PRIORITY - 2)
++		if (total_scanned && priority < congestion_priority)
+ 			congestion_wait(BLK_RW_ASYNC, HZ/10);
  
--		if (cpu == orig)
--			continue;
- 		INIT_WORK(work, func);
--		schedule_work_on(cpu, work);
--	}
--	for_each_online_cpu(cpu) {
- 		if (cpu != orig)
--			flush_work(per_cpu_ptr(works, cpu));
-+			schedule_work_on(cpu, work);
- 	}
-+	if (orig >= 0)
-+		func(per_cpu_ptr(works, orig));
-+
-+	for_each_online_cpu(cpu)
-+		flush_work(per_cpu_ptr(works, cpu));
-+
- 	put_online_cpus();
- 	free_percpu(works);
- 	return 0;
+ 		/*
 _
 
-Patches currently in -mm which might be from tj@kernel.org are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
-workqueue-fix-race-condition-in-schedule_on_each_cpu.patch
+mm-memory_hotplug-fix-section-mismatch.patch
 linux-next.patch
-lib-vsprintfc-add-%pu-to-print-uuid-guids.patch
-drivers-firmware-dmi_scanc-use-%pub-to-print-uuids.patch
-efih-use-%pul-to-print-uuids.patch
+mm-add-notifier-in-pageblock-isolation-for-balloon-drivers.patch
+powerpc-make-the-cmm-memory-hotplug-aware.patch
+mm-warn-once-when-a-page-is-freed-with-pg_mlocked-set.patch
+nodemask-make-nodemask_alloc-more-general.patch
+hugetlb-rework-hstate_next_node_-functions.patch
+hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions.patch
+hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions-fix.patch
+hugetlb-factor-init_nodemask_of_node.patch
+hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy.patch
+hugetlb-add-generic-definition-of-numa_no_node.patch
+hugetlb-add-per-node-hstate-attributes.patch
+hugetlb-update-hugetlb-documentation-for-numa-controls.patch
+hugetlb-use-only-nodes-with-memory-for-huge-pages.patch
+mm-clear-node-in-n_high_memory-and-stop-kswapd-when-all-memory-is-offlined.patch
+hugetlb-handle-memory-hot-plug-events.patch
+hugetlb-offload-per-node-attribute-registrations.patch
+mm-add-gfp-flags-for-nodemask_alloc-slab-allocations.patch
+page-allocator-wait-on-both-sync-and-async-congestion-after-direct-reclaim.patch
+vmscan-have-kswapd-sleep-for-a-short-interval-and-double-check-it-should-be-asleep.patch
+vmscan-take-order-into-consideration-when-deciding-if-kswapd-is-in-trouble.patch
+vmscan-separate-scswap_cluster_max-and-scnr_max_reclaim.patch
+vmscan-kill-hibernation-specific-reclaim-logic-and-unify-it.patch
+vmscan-zone_reclaim-dont-use-insane-swap_cluster_max.patch
+vmscan-kill-scswap_cluster_max.patch
+vmscan-make-consistent-of-reclaim-bale-out-between-do_try_to_free_page-and-shrink_zone.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
 
