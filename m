@@ -1,61 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: [merged] savagefb-fix-blanking-mode-on-crt-display.patch removed from -mm tree
-Date: Fri, 13 Nov 2009 11:26:16 -0800
-Message-ID: <200911131926.nADJQGNZ027747@imap1.linux-foundation.org>
+Subject: [merged] alpha-fix-f_setown_ex-and-f_getlk64-conflict.patch removed from -mm tree
+Date: Fri, 13 Nov 2009 11:26:23 -0800
+Message-ID: <200911131926.nADJQNxx028013@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60713 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47905 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932102AbZKMT0M (ORCPT
+	by vger.kernel.org with ESMTP id S932169AbZKMT0i (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Nov 2009 14:26:12 -0500
+	Fri, 13 Nov 2009 14:26:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: krzysztof.h1@wp.pl, mm-commits@vger.kernel.org
+To: a.p.zijlstra@chello.nl, drepper@redhat.com, ink@jurassic.park.msu.ru, joseph@codesourcery.com, rth@twiddle.net, schwab@redhat.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     savagefb: fix blanking mode on CRT display
+     alpha: fix F_SETOWN_EX and F_GETLK64 conflict
 has been removed from the -mm tree.  Its filename was
-     savagefb-fix-blanking-mode-on-crt-display.patch
+     alpha-fix-f_setown_ex-and-f_getlk64-conflict.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: savagefb: fix blanking mode on CRT display
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: alpha: fix F_SETOWN_EX and F_GETLK64 conflict
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-Fix wrong bit mask for blanking register.  Due to the error a CRT monitor
-blanks off due to wrong frequency (out of range) instead of PM signal
-(vertical and horizontal frequencies cut off).
+Fix a bug in
 
-Just compare the mask with bits set in the switch(blank) clause below the
-changed line.
+    commit ba0a6c9f6fceed11c6a99e8326f0477fe383e6b5
+    Author:     Peter Zijlstra <a.p.zijlstra@chello.nl>
+    AuthorDate: Wed Sep 23 15:57:03 2009 -0700
+    Commit:     Linus Torvalds <torvalds@linux-foundation.org>
+    CommitDate: Thu Sep 24 07:21:01 2009 -0700
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+        fcntl: add F_[SG]ETOWN_EX
+
+In asm-generic/fcntl.h, F_SETOWN_EX and F_GETLK64 both have value 12, and
+F_GETOWN_EX and F_SETLK64 both have value 13.
+
+Reported-by: "Joseph S. Myers" <joseph@codesourcery.com>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Andreas Schwab <schwab@redhat.com>
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Acked-by: Ulrich Drepper <drepper@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/video/savage/savagefb_driver.c~savagefb-fix-blanking-mode-on-crt-display drivers/video/savage/savagefb_driver.c
---- a/drivers/video/savage/savagefb_driver.c~savagefb-fix-blanking-mode-on-crt-display
-+++ a/drivers/video/savage/savagefb_driver.c
-@@ -1565,7 +1565,7 @@ static int savagefb_blank(int blank, str
- 		vga_out8(0x3c5, sr8, par);
- 		vga_out8(0x3c4, 0x0d, par);
- 		srd = vga_in8(0x3c5, par);
--		srd &= 0x03;
-+		srd &= 0x50;
+diff -puN arch/alpha/include/asm/fcntl.h~alpha-fix-f_setown_ex-and-f_getlk64-conflict arch/alpha/include/asm/fcntl.h
+--- a/arch/alpha/include/asm/fcntl.h~alpha-fix-f_setown_ex-and-f_getlk64-conflict
++++ a/arch/alpha/include/asm/fcntl.h
+@@ -26,8 +26,8 @@
+ #define F_GETOWN	6	/*  for sockets. */
+ #define F_SETSIG	10	/*  for sockets. */
+ #define F_GETSIG	11	/*  for sockets. */
+-#define F_SETOWN_EX	12
+-#define F_GETOWN_EX	13
++#define F_SETOWN_EX	15
++#define F_GETOWN_EX	16
  
- 		switch (blank) {
- 		case FB_BLANK_UNBLANK:
-_
-
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
-
-linux-next.patch
-add-palette-register-check.patch
-intelfb-fix-setting-of-active-pipe-with-lvds-displays.patch
-
+ /* for posix fcntl() and lockf() */
+ #define F_RDLCK		1
+diff -puN include/asm-generic/fcntl.h~alpha-fix-f_setown_ex-and-f_getlk64-conflict include/asm-generic/fcntl.h
+--- a/include/asm-generic/fcntl.h~alpha-fix-f_setown_ex-and-f_getlk64-conflict
++++ a/include/asm-generic/fcntl.h
+@@ -73,9 +73,18 @@
+ #define F_SETSIG	10	/* for sockets. */
+ #define F_GETSIG	11	/* for sockets. */
+ #endif
++
++#ifndef CONFIG_64BIT
++#ifndef F_GETLK64
++#define F_GETLK64	12	/*  using 'struct flock64' */
++#define F_SETLK64	13
++#define F_SETLKW64	14
++#endif
++#endif
++
+ #ifndef F_SETOWN_EX
+-#define F_SETOWN_EX	12
+-#define F_GETOWN_EX	13
++#define F_SETOWN_EX	15
++#define F_GETOWN_EX	16
+ #endif
+ 
+ #define F_OWNER_TID	0
+@@ -139,12 +148,6 @@ struct flock {
+ 
+ #ifndef CONFIG_64BIT
+ 
+-#ifndef F_GETLK64
+-#define F_GETLK64	12	/*  using 'struct flock64' */
+-#define F_SETLK64	13
+-#define F_SETLKW64	14
+-#endif
