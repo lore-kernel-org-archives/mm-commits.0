@@ -1,96 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: + hpsa-make-device-attrs-static.patch added to -mm tree
-Date: Thu, 12 Nov 2009 15:46:39 -0800
-Message-ID: <200911122346.nACNkdkJ002012@imap1.linux-foundation.org>
+Subject: [nacked] ocfs2-error-return-should-be-negative.patch removed from -mm tree
+Date: Thu, 12 Nov 2009 16:34:38 -0800
+Message-ID: <200911130034.nAD0YcNp017931@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58218 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48433 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755649AbZKLXrF (ORCPT
+	by vger.kernel.org with ESMTP id S1754291AbZKMAep (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Nov 2009 18:47:05 -0500
+	Thu, 12 Nov 2009 19:34:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: achiang@hp.com, James.Bottomley@HansenPartnership.com, jens.axboe@oracle.com, mikem@beardog.cce.hp.com, scameron@beardog.cce.hp.com
+To: roel.kluin@gmail.com, Joel.Becker@oracle.com, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hpsa: make device attrs static
-has been added to the -mm tree.  Its filename is
-     hpsa-make-device-attrs-static.patch
+     ocfs2: error return should be negative
+has been removed from the -mm tree.  Its filename was
+     ocfs2-error-return-should-be-negative.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was nacked
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hpsa: make device attrs static
-From: Alex Chiang <achiang@hp.com>
+Subject: ocfs2: error return should be negative
+From: Roel Kluin <roel.kluin@gmail.com>
 
-No need to export those device attributes.
+Return a negative error value instead of a positive
 
-In fact, without this patch, we can trip over a build error if hpsa
-is a built-in and another driver also declares and exports attributes
-with the same name.
-
-You'll see errors like:
-
-	drivers/scsi/built-in.o: multiple definition of `dev_attr_lunid'
-	drivers/block/built-in.o: first defined here
-
-Signed-off-by: Alex Chiang <achiang@hp.com>
-Cc: Stephen M. Cameron <scameron@beardog.cce.hp.com>
-Cc: Mike Miller <mikem@beardog.cce.hp.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <Joel.Becker@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/hpsa.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ fs/ocfs2/dlm/dlmrecovery.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/hpsa.c~hpsa-make-device-attrs-static drivers/scsi/hpsa.c
---- a/drivers/scsi/hpsa.c~hpsa-make-device-attrs-static
-+++ a/drivers/scsi/hpsa.c
-@@ -151,10 +151,10 @@ static int check_for_unit_attention(stru
- static void check_ioctl_unit_attention(struct ctlr_info *h,
- 	struct CommandList *c);
+diff -puN fs/ocfs2/dlm/dlmrecovery.c~ocfs2-error-return-should-be-negative fs/ocfs2/dlm/dlmrecovery.c
+--- a/fs/ocfs2/dlm/dlmrecovery.c~ocfs2-error-return-should-be-negative
++++ a/fs/ocfs2/dlm/dlmrecovery.c
+@@ -2639,7 +2639,7 @@ int dlm_begin_reco_handler(struct o2net_
+ 		     dlm->name, br->node_idx, br->dead_node,
+ 		     dlm->reco.dead_node, dlm->reco.new_master);
+ 		spin_unlock(&dlm->spinlock);
+-		return EAGAIN;
++		return -EAGAIN;
+ 	}
+ 	spin_unlock(&dlm->spinlock);
  
--DEVICE_ATTR(raid_level, S_IRUGO, raid_level_show, NULL);
--DEVICE_ATTR(lunid, S_IRUGO, lunid_show, NULL);
--DEVICE_ATTR(unique_id, S_IRUGO, unique_id_show, NULL);
--DEVICE_ATTR(rescan, S_IWUSR, NULL, host_store_rescan);
-+static DEVICE_ATTR(raid_level, S_IRUGO, raid_level_show, NULL);
-+static DEVICE_ATTR(lunid, S_IRUGO, lunid_show, NULL);
-+static DEVICE_ATTR(unique_id, S_IRUGO, unique_id_show, NULL);
-+static DEVICE_ATTR(rescan, S_IWUSR, NULL, host_store_rescan);
- 
- static struct device_attribute *hpsa_sdev_attrs[] = {
- 	&dev_attr_raid_level,
 _
 
-Patches currently in -mm which might be from achiang@hp.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 origin.patch
+get_maintainer-fix-usage-comment.patch
+spi-error-status-should-be-negative.patch
+drivers-video-da8xx-fbc-fix-error-return.patch
 linux-next.patch
-hpsa-make-device-attrs-static.patch
-cciss-make-device-attrs-static.patch
-page-types-learn-to-describe-flags-directly-from-command-line.patch
-page-types-whitespace-alignment.patch
-page-types-exit-early-when-invoked-with-d-describe.patch
-mm-add-numa-node-symlink-for-memory-section-in-sysfs.patch
-mm-refactor-register_cpu_under_node.patch
-mm-refactor-unregister_cpu_under_node.patch
-mm-add-numa-node-symlink-for-cpu-devices-in-sysfs.patch
-documentation-abi-sys-devices-system-cpu-cpu-node.patch
+fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch
+omap-fix-unlikelyx-y.patch
+omap-cs-should-be-positive-in-gpmc_cs_free.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+sms-cards-make-id-unsigned-in-sms_get_board.patch
+mtd-error-return-eio-instead-of-eio.patch
+net-netfilter-xt_osfc-xt_osf_remove_callback-should-return-negative-on-errors.patch
+ocfs2-error-return-should-be-negative.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
+zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
+st-fix-test-of-value-range-in-st_set_options.patch
+ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
+scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
+page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+cryptocop-fix-assertion-in-create_output_descriptors.patch
+gpio-fix-test-on-unsigned-in-lnw_irq_type.patch
+fbdev-tv_paln-bit-set-twice-in-sisfb_detect_vb_connect.patch
+hvc_console-fix-test-on-unsigned-in-hvc_console_print.patch
+irq-fix-test-in-__exit-parport_mfc3_exit.patch
 
