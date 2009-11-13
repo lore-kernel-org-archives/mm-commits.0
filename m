@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-kmemcheck-add-file-patterns-use-m-for-pekkas-name-and-address.patch added to -mm tree
-Date: Fri, 13 Nov 2009 14:53:02 -0800
-Message-ID: <200911132253.nADMr2LV029499@imap1.linux-foundation.org>
+Subject: + maintainers-rfkill-fix-pattern-entry-missing-colon.patch added to -mm tree
+Date: Fri, 13 Nov 2009 15:15:29 -0800
+Message-ID: <200911132315.nADNFThv017649@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35892 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55104 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932332AbZKMWxy (ORCPT
+	by vger.kernel.org with ESMTP id S932352AbZKMXQP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Nov 2009 17:53:54 -0500
+	Fri, 13 Nov 2009 18:16:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, mingo@elte.hu, penberg@cs.helsinki.fi, vegardno@ifi.uio.no
+Cc: joe@perches.com, johannes@sipsolutions.net, marcel@holtmann.org
 
 
 The patch titled
-     MAINTAINERS: KMEMCHECK: add file patterns, use M: for Pekka's name and address
+     MAINTAINERS: RFKILL: fix pattern entry missing colon
 has been added to the -mm tree.  Its filename is
-     maintainers-kmemcheck-add-file-patterns-use-m-for-pekkas-name-and-address.patch
+     maintainers-rfkill-fix-pattern-entry-missing-colon.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: KMEMCHECK: add file patterns, use M: for Pekka's name and address
+Subject: MAINTAINERS: RFKILL: fix pattern entry missing colon
 From: Joe Perches <joe@perches.com>
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Vegard Nossum <vegardno@ifi.uio.no>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Johannes Berg <johannes@sipsolutions.net>
+Acked-by: Marcel Holtmann <marcel@holtmann.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-kmemcheck-add-file-patterns-use-m-for-pekkas-name-and-address MAINTAINERS
---- a/MAINTAINERS~maintainers-kmemcheck-add-file-patterns-use-m-for-pekkas-name-and-address
+diff -puN MAINTAINERS~maintainers-rfkill-fix-pattern-entry-missing-colon MAINTAINERS
+--- a/MAINTAINERS~maintainers-rfkill-fix-pattern-entry-missing-colon
 +++ a/MAINTAINERS
-@@ -3140,9 +3140,13 @@ F:	kernel/kgdb.c
- 
- KMEMCHECK
- M:	Vegard Nossum <vegardno@ifi.uio.no>
--P	Pekka Enberg
--M:	penberg@cs.helsinki.fi
-+M:	Pekka Enberg <penberg@cs.helsinki.fi>
+@@ -4419,7 +4419,7 @@ RFKILL
+ M:	Johannes Berg <johannes@sipsolutions.net>
+ L:	linux-wireless@vger.kernel.org
  S:	Maintained
-+F:	Documentation/kmemcheck.txt
-+F:	arch/x86/include/asm/kmemcheck.h
-+F:	arch/x86/mm/kmemcheck/
-+F:	include/linux/kmemcheck.h
-+F:	mm/kmemcheck.c
+-F	Documentation/rfkill.txt
++F:	Documentation/rfkill.txt
+ F:	net/rfkill/
  
- KMEMLEAK
- M:	Catalin Marinas <catalin.marinas@arm.com>
+ RISCOM8 DRIVER
 _
 
 Patches currently in -mm which might be from joe@perches.com are
 
 maintainers-kmemcheck-add-file-patterns-use-m-for-pekkas-name-and-address.patch
+maintainers-rfkill-fix-pattern-entry-missing-colon.patch
 linux-next.patch
 dynamic_debugh-kernelh-remove-kbuild_modname-from-dynamic_pr_debug.patch
 kernelh-remove-initialization-of-bool-in-printk_once.patch
