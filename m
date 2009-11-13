@@ -1,90 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] ocfs2-error-return-should-be-negative.patch removed from -mm tree
-Date: Thu, 12 Nov 2009 16:34:38 -0800
-Message-ID: <200911130034.nAD0YcNp017931@imap1.linux-foundation.org>
+Subject: [merged] maintainers-asus-acpi-extras-remove-f-arch-x86-kernel-acpi-bootc.patch removed from -mm tree
+Date: Fri, 13 Nov 2009 11:25:45 -0800
+Message-ID: <200911131925.nADJPjYs026541@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48433 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54322 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754291AbZKMAep (ORCPT
+	by vger.kernel.org with ESMTP id S1757004AbZKMTZn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Nov 2009 19:34:45 -0500
+	Fri, 13 Nov 2009 14:25:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, Joel.Becker@oracle.com, mfasheh@suse.com, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ocfs2: error return should be negative
+     MAINTAINERS: ASUS ACPI EXTRAS - remove F:arch/x86/kernel/acpi/boot.c
 has been removed from the -mm tree.  Its filename was
-     ocfs2-error-return-should-be-negative.patch
+     maintainers-asus-acpi-extras-remove-f-arch-x86-kernel-acpi-bootc.patch
 
-This patch was dropped because it was nacked
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ocfs2: error return should be negative
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: MAINTAINERS: ASUS ACPI EXTRAS - remove F:arch/x86/kernel/acpi/boot.c
+From: Joe Perches <joe@perches.com>
 
-Return a negative error value instead of a positive
+Oops.  How did that get there?
+(Don't look, it's my original pattern commit...)
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <Joel.Becker@oracle.com>
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmrecovery.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/dlm/dlmrecovery.c~ocfs2-error-return-should-be-negative fs/ocfs2/dlm/dlmrecovery.c
---- a/fs/ocfs2/dlm/dlmrecovery.c~ocfs2-error-return-should-be-negative
-+++ a/fs/ocfs2/dlm/dlmrecovery.c
-@@ -2639,7 +2639,7 @@ int dlm_begin_reco_handler(struct o2net_
- 		     dlm->name, br->node_idx, br->dead_node,
- 		     dlm->reco.dead_node, dlm->reco.new_master);
- 		spin_unlock(&dlm->spinlock);
--		return EAGAIN;
-+		return -EAGAIN;
- 	}
- 	spin_unlock(&dlm->spinlock);
+diff -puN MAINTAINERS~maintainers-asus-acpi-extras-remove-f-arch-x86-kernel-acpi-bootc MAINTAINERS
+--- a/MAINTAINERS~maintainers-asus-acpi-extras-remove-f-arch-x86-kernel-acpi-bootc
++++ a/MAINTAINERS
+@@ -906,7 +906,6 @@ M:	Karol Kozimor <sziwan@users.sourcefor
+ L:	acpi4asus-user@lists.sourceforge.net
+ W:	http://acpi4asus.sf.net
+ S:	Maintained
+-F:	arch/x86/kernel/acpi/boot.c
+ F:	drivers/platform/x86/asus_acpi.c
  
+ ASUS ASB100 HARDWARE MONITOR DRIVER
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-origin.patch
-get_maintainer-fix-usage-comment.patch
-spi-error-status-should-be-negative.patch
-drivers-video-da8xx-fbc-fix-error-return.patch
 linux-next.patch
-fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch
-omap-fix-unlikelyx-y.patch
-omap-cs-should-be-positive-in-gpmc_cs_free.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-sms-cards-make-id-unsigned-in-sms_get_board.patch
-mtd-error-return-eio-instead-of-eio.patch
-net-netfilter-xt_osfc-xt_osf_remove_callback-should-return-negative-on-errors.patch
-ocfs2-error-return-should-be-negative.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
-st-fix-test-of-value-range-in-st_set_options.patch
-ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
-scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
-page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-cryptocop-fix-assertion-in-create_output_descriptors.patch
-gpio-fix-test-on-unsigned-in-lnw_irq_type.patch
-fbdev-tv_paln-bit-set-twice-in-sisfb_detect_vb_connect.patch
-hvc_console-fix-test-on-unsigned-in-hvc_console_print.patch
-irq-fix-test-in-__exit-parport_mfc3_exit.patch
+dynamic_debugh-kernelh-remove-kbuild_modname-from-dynamic_pr_debug.patch
+kernelh-remove-initialization-of-bool-in-printk_once.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
+scripts-get_maintainerpl-add-roles-and-rolestats.patch
+scripts-get_maintainerpl-fix-non-with-git-blame-and-cleanups.patch
+scripts-get_maintainerpl-support-multiple-vcss-add-mercurial.patch
+lib-vsprintfc-add-%pu-to-print-uuid-guids.patch
+fs-xfs-xfs_log_recoverc-use-%pu-to-print-uuids.patch
+randomc-use-%pu-to-print-uuids.patch
+drivers-firmware-dmi_scanc-use-%pub-to-print-uuids.patch
+drivers-md-mdc-use-%pu-to-print-uuids.patch
+fs-gfs2-sysc-use-%pub-to-print-uuids.patch
+fs-ubifs-use-%pub-to-print-uuids.patch
+efih-use-%pul-to-print-uuids.patch
+scripts-checkpatchpl-add-warn-on-sizeof.patch
+checkpatchpl-allow-80-char-lines-for-logging-functions-not-just-printk.patch
+isicomc-use-pr_fmt-and-pr_level.patch
 
