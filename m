@@ -1,107 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pps-events-reporting-fix-up.patch removed from -mm tree
-Date: Fri, 13 Nov 2009 11:27:29 -0800
-Message-ID: <200911131927.nADJRTOe030766@imap1.linux-foundation.org>
+Subject: [merged] __generic_block_fiemap-fix-for-files-bigger-than-4gb.patch removed from -mm tree
+Date: Fri, 13 Nov 2009 11:27:32 -0800
+Message-ID: <200911131927.nADJRWqk030881@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59908 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47470 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757188AbZKMT2E (ORCPT
+	by vger.kernel.org with ESMTP id S1757216AbZKMT2I (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Nov 2009 14:28:04 -0500
+	Fri, 13 Nov 2009 14:28:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: giometti@linux.it, billb958@door.net, clemens@dwf.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: mh@glandium.org, jbacik@redhat.com, mfasheh@suse.com, sandeen@sgi.com, swhiteho@redhat.com, tytso@mit.edu, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pps: events reporting fix up
+     __generic_block_fiemap(): fix for files bigger than 4GB
 has been removed from the -mm tree.  Its filename was
-     pps-events-reporting-fix-up.patch
+     __generic_block_fiemap-fix-for-files-bigger-than-4gb.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pps: events reporting fix up
-From: Rodolfo Giometti <giometti@linux.it>
+Subject: __generic_block_fiemap(): fix for files bigger than 4GB
+From: Mike Hommey <mh@glandium.org>
 
-PPS events must be recorded according to PPS's mode settings.
+Because of an integer overflow on start_blk, various kind of wrong results
+would be returned by the generic_block_fiemap() handler, such as no
+extents when there is a 4GB+ hole at the beginning of the file, or wrong
+fe_logical when an extent starts after the first 4GB.
 
-If a process asks for (i.e.) capture-assert events only, when the PPS
-client calls the pps_event() function to save the current PPS event, we
-should verify the event type and then discard unwanted ones.
-
-Also, without this patch userland processes waiting for a specific PPS
-event (assert or clear but not both) may be awakened at wrong time.
-
-Signed-off-by: Rodolfo Giometti <giometti@linux.it>
-Tested-by: William S. Brasher <billb958@door.net>
-Tested-by: Reg Clemens <clemens@dwf.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Mike Hommey <mh@glandium.org>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Steven Whitehouse <swhiteho@redhat.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: Eric Sandeen <sandeen@sgi.com>
+Cc: Josef Bacik <jbacik@redhat.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/pps/kapi.c~pps-events-reporting-fix-up drivers/pps/kapi.c
---- a/drivers/pps/kapi.c~pps-events-reporting-fix-up
-+++ a/drivers/pps/kapi.c
-@@ -271,6 +271,7 @@ void pps_event(int source, struct pps_kt
+diff -puN fs/ioctl.c~__generic_block_fiemap-fix-for-files-bigger-than-4gb fs/ioctl.c
+--- a/fs/ioctl.c~__generic_block_fiemap-fix-for-files-bigger-than-4gb
++++ a/fs/ioctl.c
+@@ -254,7 +254,7 @@ int __generic_block_fiemap(struct inode 
+ 			   u64 len, get_block_t *get_block)
  {
- 	struct pps_device *pps;
- 	unsigned long flags;
-+	int captured = 0;
- 
- 	if ((event & (PPS_CAPTUREASSERT | PPS_CAPTURECLEAR)) == 0) {
- 		printk(KERN_ERR "pps: unknown event (%x) for source %d\n",
-@@ -293,7 +294,8 @@ void pps_event(int source, struct pps_kt
- 
- 	/* Check the event */
- 	pps->current_mode = pps->params.mode;
--	if (event & PPS_CAPTUREASSERT) {
-+	if ((event & PPS_CAPTUREASSERT) &
-+			(pps->params.mode & PPS_CAPTUREASSERT)) {
- 		/* We have to add an offset? */
- 		if (pps->params.mode & PPS_OFFSETASSERT)
- 			pps_add_offset(ts, &pps->params.assert_off_tu);
-@@ -303,8 +305,11 @@ void pps_event(int source, struct pps_kt
- 		pps->assert_sequence++;
- 		pr_debug("capture assert seq #%u for source %d\n",
- 			pps->assert_sequence, source);
-+
-+		captured = ~0;
- 	}
--	if (event & PPS_CAPTURECLEAR) {
-+	if ((event & PPS_CAPTURECLEAR) &
-+			(pps->params.mode & PPS_CAPTURECLEAR)) {
- 		/* We have to add an offset? */
- 		if (pps->params.mode & PPS_OFFSETCLEAR)
- 			pps_add_offset(ts, &pps->params.clear_off_tu);
-@@ -314,12 +319,17 @@ void pps_event(int source, struct pps_kt
- 		pps->clear_sequence++;
- 		pr_debug("capture clear seq #%u for source %d\n",
- 			pps->clear_sequence, source);
-+
-+		captured = ~0;
- 	}
- 
--	pps->go = ~0;
--	wake_up_interruptible(&pps->queue);
-+	/* Wake up iif captured somthing */
-+	if (captured) {
-+		pps->go = ~0;
-+		wake_up_interruptible(&pps->queue);
- 
--	kill_fasync(&pps->async_queue, SIGIO, POLL_IN);
-+		kill_fasync(&pps->async_queue, SIGIO, POLL_IN);
-+	}
- 
- 	spin_unlock_irqrestore(&pps->lock, flags);
- 
+ 	struct buffer_head tmp;
+-	unsigned int start_blk;
++	unsigned long long start_blk;
+ 	long long length = 0, map_len = 0;
+ 	u64 logical = 0, phys = 0, size = 0;
+ 	u32 flags = FIEMAP_EXTENT_MERGED;
 _
 
-Patches currently in -mm which might be from giometti@linux.it are
+Patches currently in -mm which might be from mh@glandium.org are
 
-linux-next.patch
 
