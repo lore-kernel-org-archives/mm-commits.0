@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + qnx4-use-hweight8.patch added to -mm tree
-Date: Fri, 13 Nov 2009 15:31:06 -0800
-Message-ID: <200911132331.nADNV621022149@imap1.linux-foundation.org>
+Subject: + hpfs-use-hweight32.patch added to -mm tree
+Date: Fri, 13 Nov 2009 15:32:59 -0800
+Message-ID: <200911132332.nADNWxbq026649@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51147 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33487 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932414AbZKMXbH (ORCPT
+	by vger.kernel.org with ESMTP id S932506AbZKMXc4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Nov 2009 18:31:07 -0500
+	Fri, 13 Nov 2009 18:32:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, al@alarsen.net, viro@zeniv.linux.org.uk
+Cc: akinobu.mita@gmail.com, mikulas@artax.karlin.mff.cuni.cz, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     qnx4: use hweight8
+     hpfs: use hweight32
 has been added to the -mm tree.  Its filename is
-     qnx4-use-hweight8.patch
+     hpfs-use-hweight32.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +34,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: qnx4: use hweight8
+Subject: hpfs: use hweight32
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Use hweight8 instead of counting for each bit
+Use hweight32 instead of counting for each bit
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Acked-by: Anders Larsen <al@alarsen.net>
+Cc: Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/qnx4/bitmap.c |   17 +----------------
- 1 file changed, 1 insertion(+), 16 deletions(-)
+ fs/hpfs/super.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN fs/qnx4/bitmap.c~qnx4-use-hweight8 fs/qnx4/bitmap.c
---- a/fs/qnx4/bitmap.c~qnx4-use-hweight8
-+++ a/fs/qnx4/bitmap.c
-@@ -28,22 +28,7 @@ static void count_bits(register const ch
- 	}
- 	do {
- 		b = *bmPart++;
--		if ((b & 1) == 0)
--			tot++;
--		if ((b & 2) == 0)
--			tot++;
--		if ((b & 4) == 0)
--			tot++;
--		if ((b & 8) == 0)
--			tot++;
--		if ((b & 16) == 0)
--			tot++;
--		if ((b & 32) == 0)
--			tot++;
--		if ((b & 64) == 0)
--			tot++;
--		if ((b & 128) == 0)
--			tot++;
-+		tot += 8 - hweight8(b);
- 		size--;
- 	} while (size != 0);
- 	*tf = tot;
+diff -puN fs/hpfs/super.c~hpfs-use-hweight32 fs/hpfs/super.c
+--- a/fs/hpfs/super.c~hpfs-use-hweight32
++++ a/fs/hpfs/super.c
+@@ -119,11 +119,8 @@ unsigned hpfs_count_one_bitmap(struct su
+ 	unsigned i, count;
+ 	if (!(bits = hpfs_map_4sectors(s, secno, &qbh, 4))) return 0;
+ 	count = 0;
+-	for (i = 0; i < 2048 / sizeof(unsigned); i++) {
+-		unsigned b; 
+-		if (!bits[i]) continue;
+-		for (b = bits[i]; b; b>>=1) count += b & 1;
+-	}
++	for (i = 0; i < 2048 / sizeof(unsigned); i++)
++		count += hweight32(bits[i]);
+ 	hpfs_brelse4(&qbh);
+ 	return count;
+ }
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 linux-next.patch
+hpfs-use-hweight32.patch
 qnx4-use-hweight8.patch
 bitmap-introduce-bitmap_set-bitmap_clear-bitmap_find_next_zero_area.patch
 iommu-helper-use-bitmap-library.patch
