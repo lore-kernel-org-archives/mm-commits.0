@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hpfs-use-hweight32.patch added to -mm tree
-Date: Fri, 13 Nov 2009 15:32:59 -0800
-Message-ID: <200911132332.nADNWxbq026649@imap1.linux-foundation.org>
+Subject: + workqueue-fix-race-condition-in-schedule_on_each_cpu.patch added to -mm tree
+Date: Fri, 13 Nov 2009 15:37:23 -0800
+Message-ID: <200911132337.nADNbN1d004595@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33487 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34634 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932506AbZKMXc4 (ORCPT
+	by vger.kernel.org with ESMTP id S932549AbZKMXhu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Nov 2009 18:32:56 -0500
+	Fri, 13 Nov 2009 18:37:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, mikulas@artax.karlin.mff.cuni.cz, viro@zeniv.linux.org.uk
+Cc: tj@kernel.org, ak@linux.intel.com, mingo@redhat.com, oleg@redhat.com
 
 
 The patch titled
-     hpfs: use hweight32
+     workqueue: fix race condition in schedule_on_each_cpu()
 has been added to the -mm tree.  Its filename is
-     hpfs-use-hweight32.patch
+     workqueue-fix-race-condition-in-schedule_on_each_cpu.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,85 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hpfs: use hweight32
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: workqueue: fix race condition in schedule_on_each_cpu()
+From: Tejun Heo <tj@kernel.org>
 
-Use hweight32 instead of counting for each bit
+Commit 65a64464349883891e21e74af16c05d6e1eeb4e9 ("HWPOISON: Allow
+schedule_on_each_cpu() from keventd") which allows schedule_on_each_cpu()
+to be called from keventd added a race condition.  schedule_on_each_cpu()
+may race with cpu hotplug and end up executing the function twice on a
+cpu.
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Fix it by moving direct execution into the section protected with
+get/put_online_cpus().  While at it, update code such that direct
+execution is done after works have been scheduled for all other cpus and
+drop unnecessary cpu != orig test from flush loop.
+
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Cc: Andi Kleen <ak@linux.intel.com>
+Acked-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Ingo Molnar <mingo@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hpfs/super.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ kernel/workqueue.c |   28 +++++++++++++---------------
+ 1 file changed, 13 insertions(+), 15 deletions(-)
 
-diff -puN fs/hpfs/super.c~hpfs-use-hweight32 fs/hpfs/super.c
---- a/fs/hpfs/super.c~hpfs-use-hweight32
-+++ a/fs/hpfs/super.c
-@@ -119,11 +119,8 @@ unsigned hpfs_count_one_bitmap(struct su
- 	unsigned i, count;
- 	if (!(bits = hpfs_map_4sectors(s, secno, &qbh, 4))) return 0;
- 	count = 0;
--	for (i = 0; i < 2048 / sizeof(unsigned); i++) {
--		unsigned b; 
--		if (!bits[i]) continue;
--		for (b = bits[i]; b; b>>=1) count += b & 1;
+diff -puN kernel/workqueue.c~workqueue-fix-race-condition-in-schedule_on_each_cpu kernel/workqueue.c
+--- a/kernel/workqueue.c~workqueue-fix-race-condition-in-schedule_on_each_cpu
++++ a/kernel/workqueue.c
+@@ -692,31 +692,29 @@ int schedule_on_each_cpu(work_func_t fun
+ 	if (!works)
+ 		return -ENOMEM;
+ 
++	get_online_cpus();
++
+ 	/*
+-	 * when running in keventd don't schedule a work item on itself.
+-	 * Can just call directly because the work queue is already bound.
+-	 * This also is faster.
+-	 * Make this a generic parameter for other workqueues?
++	 * When running in keventd don't schedule a work item on
++	 * itself.  Can just call directly because the work queue is
++	 * already bound.  This also is faster.
+ 	 */
+-	if (current_is_keventd()) {
++	if (current_is_keventd())
+ 		orig = raw_smp_processor_id();
+-		INIT_WORK(per_cpu_ptr(works, orig), func);
+-		func(per_cpu_ptr(works, orig));
 -	}
-+	for (i = 0; i < 2048 / sizeof(unsigned); i++)
-+		count += hweight32(bits[i]);
- 	hpfs_brelse4(&qbh);
- 	return count;
- }
+ 
+-	get_online_cpus();
+ 	for_each_online_cpu(cpu) {
+ 		struct work_struct *work = per_cpu_ptr(works, cpu);
+ 
+-		if (cpu == orig)
+-			continue;
+ 		INIT_WORK(work, func);
+-		schedule_work_on(cpu, work);
+-	}
+-	for_each_online_cpu(cpu) {
+ 		if (cpu != orig)
+-			flush_work(per_cpu_ptr(works, cpu));
++			schedule_work_on(cpu, work);
+ 	}
++	if (orig >= 0)
++		func(per_cpu_ptr(works, orig));
++
++	for_each_online_cpu(cpu)
++		flush_work(per_cpu_ptr(works, cpu));
++
+ 	put_online_cpus();
+ 	free_percpu(works);
+ 	return 0;
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from tj@kernel.org are
 
+workqueue-fix-race-condition-in-schedule_on_each_cpu.patch
 linux-next.patch
-hpfs-use-hweight32.patch
-qnx4-use-hweight8.patch
-bitmap-introduce-bitmap_set-bitmap_clear-bitmap_find_next_zero_area.patch
-iommu-helper-use-bitmap-library.patch
-isp1362-hcd-use-bitmap_find_next_zero_area.patch
-mlx4-use-bitmap_find_next_zero_area.patch
-sparc-use-bitmap_find_next_zero_area.patch
-ia64-use-bitmap_find_next_zero_area.patch
-genalloc-use-bitmap_find_next_zero_area.patch
+lib-vsprintfc-add-%pu-to-print-uuid-guids.patch
+drivers-firmware-dmi_scanc-use-%pub-to-print-uuids.patch
+efih-use-%pul-to-print-uuids.patch
 
