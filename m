@@ -1,99 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [merged] alpha-fix-f_setown_ex-and-f_getlk64-conflict.patch removed from -mm tree
-Date: Fri, 13 Nov 2009 11:26:23 -0800
-Message-ID: <200911131926.nADJQNxx028013@imap1.linux-foundation.org>
+Subject: [merged] atmel_lcdfb-new-alternate-pixel-clock-formula.patch removed from -mm tree
+Date: Fri, 13 Nov 2009 11:26:40 -0800
+Message-ID: <200911131926.nADJQeLP028784@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47905 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49308 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932169AbZKMT0i (ORCPT
+	by vger.kernel.org with ESMTP id S932128AbZKMT0l (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Nov 2009 14:26:38 -0500
+	Fri, 13 Nov 2009 14:26:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: a.p.zijlstra@chello.nl, drepper@redhat.com, ink@jurassic.park.msu.ru, joseph@codesourcery.com, rth@twiddle.net, schwab@redhat.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
+To: nicolas.ferre@atmel.com, hskinnemoen@atmel.com, krzysztof.h1@wp.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     alpha: fix F_SETOWN_EX and F_GETLK64 conflict
+     atmel_lcdfb: new alternate pixel clock formula
 has been removed from the -mm tree.  Its filename was
-     alpha-fix-f_setown_ex-and-f_getlk64-conflict.patch
+     atmel_lcdfb-new-alternate-pixel-clock-formula.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alpha: fix F_SETOWN_EX and F_GETLK64 conflict
-From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Subject: atmel_lcdfb: new alternate pixel clock formula
+From: Nicolas Ferre <nicolas.ferre@atmel.com>
 
-Fix a bug in
+at91sam9g45 non ES lots have an alternate pixel clock calculation formula.
+Introduce this one with condition on the cpu_is_xxxxx() macros.
 
-    commit ba0a6c9f6fceed11c6a99e8326f0477fe383e6b5
-    Author:     Peter Zijlstra <a.p.zijlstra@chello.nl>
-    AuthorDate: Wed Sep 23 15:57:03 2009 -0700
-    Commit:     Linus Torvalds <torvalds@linux-foundation.org>
-    CommitDate: Thu Sep 24 07:21:01 2009 -0700
+Newer 9g45 SOC will not have good pixel clock calculation without this
+fix.
 
-        fcntl: add F_[SG]ETOWN_EX
-
-In asm-generic/fcntl.h, F_SETOWN_EX and F_GETLK64 both have value 12, and
-F_GETOWN_EX and F_SETLK64 both have value 13.
-
-Reported-by: "Joseph S. Myers" <joseph@codesourcery.com>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Andreas Schwab <schwab@redhat.com>
-Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Acked-by: Ulrich Drepper <drepper@redhat.com>
+Signed-off-by: Nicolas Ferre <nicolas.ferre@atmel.com>
+Cc: Krzysztof Helt <krzysztof.h1@wp.pl>
+Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN arch/alpha/include/asm/fcntl.h~alpha-fix-f_setown_ex-and-f_getlk64-conflict arch/alpha/include/asm/fcntl.h
---- a/arch/alpha/include/asm/fcntl.h~alpha-fix-f_setown_ex-and-f_getlk64-conflict
-+++ a/arch/alpha/include/asm/fcntl.h
-@@ -26,8 +26,8 @@
- #define F_GETOWN	6	/*  for sockets. */
- #define F_SETSIG	10	/*  for sockets. */
- #define F_GETSIG	11	/*  for sockets. */
--#define F_SETOWN_EX	12
--#define F_GETOWN_EX	13
-+#define F_SETOWN_EX	15
-+#define F_GETOWN_EX	16
+diff -puN drivers/video/atmel_lcdfb.c~atmel_lcdfb-new-alternate-pixel-clock-formula drivers/video/atmel_lcdfb.c
+--- a/drivers/video/atmel_lcdfb.c~atmel_lcdfb-new-alternate-pixel-clock-formula
++++ a/drivers/video/atmel_lcdfb.c
+@@ -484,6 +484,7 @@ static int atmel_lcdfb_set_par(struct fb
+ 	unsigned long value;
+ 	unsigned long clk_value_khz;
+ 	unsigned long bits_per_line;
++	unsigned long pix_factor = 2;
  
- /* for posix fcntl() and lockf() */
- #define F_RDLCK		1
-diff -puN include/asm-generic/fcntl.h~alpha-fix-f_setown_ex-and-f_getlk64-conflict include/asm-generic/fcntl.h
---- a/include/asm-generic/fcntl.h~alpha-fix-f_setown_ex-and-f_getlk64-conflict
-+++ a/include/asm-generic/fcntl.h
-@@ -73,9 +73,18 @@
- #define F_SETSIG	10	/* for sockets. */
- #define F_GETSIG	11	/* for sockets. */
- #endif
+ 	might_sleep();
+ 
+@@ -516,20 +517,24 @@ static int atmel_lcdfb_set_par(struct fb
+ 	/* Now, the LCDC core... */
+ 
+ 	/* Set pixel clock */
++	if (cpu_is_at91sam9g45() && !cpu_is_at91sam9g45es())
++		pix_factor = 1;
 +
-+#ifndef CONFIG_64BIT
-+#ifndef F_GETLK64
-+#define F_GETLK64	12	/*  using 'struct flock64' */
-+#define F_SETLK64	13
-+#define F_SETLKW64	14
-+#endif
-+#endif
-+
- #ifndef F_SETOWN_EX
--#define F_SETOWN_EX	12
--#define F_GETOWN_EX	13
-+#define F_SETOWN_EX	15
-+#define F_GETOWN_EX	16
- #endif
+ 	clk_value_khz = clk_get_rate(sinfo->lcdc_clk) / 1000;
  
- #define F_OWNER_TID	0
-@@ -139,12 +148,6 @@ struct flock {
+ 	value = DIV_ROUND_UP(clk_value_khz, PICOS2KHZ(info->var.pixclock));
  
- #ifndef CONFIG_64BIT
- 
--#ifndef F_GETLK64
--#define F_GETLK64	12	/*  using 'struct flock64' */
--#define F_SETLK64	13
--#define F_SETLKW64	14
--#endif
+-	if (value < 2) {
++	if (value < pix_factor) {
+ 		dev_notice(info->device, "Bypassing pixel clock divider\n");
+ 		lcdc_writel(sinfo, ATMEL_LCDC_LCDCON1, ATMEL_LCDC_BYPASS);
+ 	} else {
+-		value = (value / 2) - 1;
++		value = (value / pix_factor) - 1;
+ 		dev_dbg(info->device, "  * programming CLKVAL = 0x%08lx\n",
+ 				value);
+ 		lcdc_writel(sinfo, ATMEL_LCDC_LCDCON1,
+ 				value << ATMEL_LCDC_CLKVAL_OFFSET);
+-		info->var.pixclock = KHZ2PICOS(clk_value_khz / (2 * (value + 1)));
++		info->var.pixclock =
++			KHZ2PICOS(clk_value_khz / (pix_factor * (value + 1)));
+ 		dev_dbg(info->device, "  updated pixclk:     %lu KHz\n",
+ 					PICOS2KHZ(info->var.pixclock));
+ 	}
+_
+
+Patches currently in -mm which might be from nicolas.ferre@atmel.com are
+
+linux-next.patch
+atmel-mci-change-use-of-dma-slave-interface.patch
+mmc-atmel-mci-new-mci2-module-support-in-atmel-mci-driver.patch
+
