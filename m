@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memory_hotplug-fix-section-mismatch.patch added to -mm tree
-Date: Fri, 13 Nov 2009 15:25:29 -0800
-Message-ID: <200911132325.nADNPTm7008806@imap1.linux-foundation.org>
+Subject: + qnx4-use-hweight8.patch added to -mm tree
+Date: Fri, 13 Nov 2009 15:31:06 -0800
+Message-ID: <200911132331.nADNV621022149@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60284 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51147 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932430AbZKMXZw (ORCPT
+	by vger.kernel.org with ESMTP id S932414AbZKMXbH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Nov 2009 18:25:52 -0500
+	Fri, 13 Nov 2009 18:31:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: seto.hidetoshi@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, y-goto@jp.fujitsu.com
+Cc: akinobu.mita@gmail.com, al@alarsen.net, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     mm/memory_hotplug: fix section mismatch
+     qnx4: use hweight8
 has been added to the -mm tree.  Its filename is
-     mm-memory_hotplug-fix-section-mismatch.patch
+     qnx4-use-hweight8.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/memory_hotplug: fix section mismatch
-From: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
+Subject: qnx4: use hweight8
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-With CONFIG_MEMORY_HOTPLUG I got following warning:
+Use hweight8 instead of counting for each bit
 
-WARNING: vmlinux.o(.text+0x1276b0): Section mismatch in reference from
-the function hotadd_new_pgdat() to the function
-.meminit.text:free_area_init_node()
-The function hotadd_new_pgdat() references
-the function __meminit free_area_init_node().
-This is often because hotadd_new_pgdat lacks a __meminit
-annotation or the annotation of free_area_init_node is wrong.
-
-Use __ref to fix this.
-
-Signed-off-by: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Acked-by: Anders Larsen <al@alarsen.net>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/qnx4/bitmap.c |   17 +----------------
+ 1 file changed, 1 insertion(+), 16 deletions(-)
 
-diff -puN mm/memory_hotplug.c~mm-memory_hotplug-fix-section-mismatch mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory_hotplug-fix-section-mismatch
-+++ a/mm/memory_hotplug.c
-@@ -448,7 +448,8 @@ int online_pages(unsigned long pfn, unsi
- }
- #endif /* CONFIG_MEMORY_HOTPLUG_SPARSE */
- 
--static pg_data_t *hotadd_new_pgdat(int nid, u64 start)
-+/* we are OK calling __meminit stuff here - we have CONFIG_MEMORY_HOTPLUG */
-+static pg_data_t __ref *hotadd_new_pgdat(int nid, u64 start)
- {
- 	struct pglist_data *pgdat;
- 	unsigned long zones_size[MAX_NR_ZONES] = {0};
+diff -puN fs/qnx4/bitmap.c~qnx4-use-hweight8 fs/qnx4/bitmap.c
+--- a/fs/qnx4/bitmap.c~qnx4-use-hweight8
++++ a/fs/qnx4/bitmap.c
+@@ -28,22 +28,7 @@ static void count_bits(register const ch
+ 	}
+ 	do {
+ 		b = *bmPart++;
+-		if ((b & 1) == 0)
+-			tot++;
+-		if ((b & 2) == 0)
+-			tot++;
+-		if ((b & 4) == 0)
+-			tot++;
+-		if ((b & 8) == 0)
+-			tot++;
+-		if ((b & 16) == 0)
+-			tot++;
+-		if ((b & 32) == 0)
+-			tot++;
+-		if ((b & 64) == 0)
+-			tot++;
+-		if ((b & 128) == 0)
+-			tot++;
++		tot += 8 - hweight8(b);
+ 		size--;
+ 	} while (size != 0);
+ 	*tf = tot;
 _
 
-Patches currently in -mm which might be from seto.hidetoshi@jp.fujitsu.com are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
-mm-memory_hotplug-fix-section-mismatch.patch
 linux-next.patch
-checkpatch-trivial-fix-for-trailing-statements-check.patch
+qnx4-use-hweight8.patch
+bitmap-introduce-bitmap_set-bitmap_clear-bitmap_find_next_zero_area.patch
+iommu-helper-use-bitmap-library.patch
+isp1362-hcd-use-bitmap_find_next_zero_area.patch
+mlx4-use-bitmap_find_next_zero_area.patch
+sparc-use-bitmap_find_next_zero_area.patch
+ia64-use-bitmap_find_next_zero_area.patch
+genalloc-use-bitmap_find_next_zero_area.patch
 
