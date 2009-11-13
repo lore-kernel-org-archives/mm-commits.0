@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ksm-remove-redundancies-when-merging-page.patch added to -mm tree
-Date: Fri, 13 Nov 2009 15:21:42 -0800
-Message-ID: <200911132321.nADNLh2q032402@imap1.linux-foundation.org>
+Subject: + ksm-singly-linked-rmap_list.patch added to -mm tree
+Date: Fri, 13 Nov 2009 15:21:47 -0800
+Message-ID: <200911132321.nADNLlr7032605@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51579 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33144 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932303AbZKMXVl (ORCPT
+	by vger.kernel.org with ESMTP id S932407AbZKMXVr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Nov 2009 18:21:41 -0500
+	Fri, 13 Nov 2009 18:21:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: hugh.dickins@tiscali.co.uk, aarcange@redhat.com, ieidus@redhat.com
 
 
 The patch titled
-     ksm: remove redundancies when merging page
+     ksm: singly-linked rmap_list
 has been added to the -mm tree.  Its filename is
-     ksm-remove-redundancies-when-merging-page.patch
+     ksm-singly-linked-rmap_list.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,20 +34,19 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ksm: remove redundancies when merging page
+Subject: ksm: singly-linked rmap_list
 From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
-There is no need for replace_page() to calculate a write-protected prot
-vm_page_prot must already be write-protected for an anonymous page (see
-mm/memory.c do_anonymous_page() for similar reliance on vm_page_prot).
+Free up a pointer in struct rmap_item, by making the mm_slot's rmap_list a
+singly-linked list: we always traverse that list sequentially, and we
+don't even lose any prefetches (but should consider adding a few later). 
+Name it rmap_list throughout.
 
-There is no need for try_to_merge_one_page() to get_page and put_page on
-newpage and oldpage: in every case we already hold a reference to each of
-them.
-
-But some instinct makes me move try_to_merge_one_page()'s unlock_page of
-oldpage down after replace_page(): that doesn't increase contention on the
-ksm page, and makes thinking about the transition easier.
+Do we need to free up that pointer?  Not immediately, and in the end, we
+could continue to avoid it with a union; but having done the conversion,
+let's keep it this way, since there's no downside, and maybe we'll want
+more in future (struct rmap_item is a cache-friendly 32 bytes on 32-bit
+and 64 bytes on 64-bit, so we shall want to avoid expanding it).
 
 Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Cc: Izik Eidus <ieidus@redhat.com>
@@ -55,86 +54,186 @@ Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |   26 ++++++--------------------
- 1 file changed, 6 insertions(+), 20 deletions(-)
+ mm/ksm.c |   56 ++++++++++++++++++++++++-----------------------------
+ 1 file changed, 26 insertions(+), 30 deletions(-)
 
-diff -puN mm/ksm.c~ksm-remove-redundancies-when-merging-page mm/ksm.c
---- a/mm/ksm.c~ksm-remove-redundancies-when-merging-page
+diff -puN mm/ksm.c~ksm-singly-linked-rmap_list mm/ksm.c
+--- a/mm/ksm.c~ksm-singly-linked-rmap_list
 +++ a/mm/ksm.c
-@@ -647,7 +647,7 @@ static int write_protect_page(struct vm_
- 		 * Check that no O_DIRECT or similar I/O is in progress on the
- 		 * page
- 		 */
--		if ((page_mapcount(page) + 2 + swapped) != page_count(page)) {
-+		if (page_mapcount(page) + 1 + swapped != page_count(page)) {
- 			set_pte_at_notify(mm, addr, ptep, entry);
- 			goto out_unlock;
- 		}
-@@ -682,11 +682,8 @@ static int replace_page(struct vm_area_s
- 	pte_t *ptep;
- 	spinlock_t *ptl;
- 	unsigned long addr;
--	pgprot_t prot;
- 	int err = -EFAULT;
+@@ -79,13 +79,13 @@
+  * struct mm_slot - ksm information per mm that is being scanned
+  * @link: link to the mm_slots hash list
+  * @mm_list: link into the mm_slots list, rooted in ksm_mm_head
+- * @rmap_list: head for this mm_slot's list of rmap_items
++ * @rmap_list: head for this mm_slot's singly-linked list of rmap_items
+  * @mm: the mm that this information is valid for
+  */
+ struct mm_slot {
+ 	struct hlist_node link;
+ 	struct list_head mm_list;
+-	struct list_head rmap_list;
++	struct rmap_item *rmap_list;
+ 	struct mm_struct *mm;
+ };
  
--	prot = vm_get_page_prot(vma->vm_flags & ~VM_WRITE);
--
- 	addr = page_address_in_vma(oldpage, vma);
- 	if (addr == -EFAULT)
- 		goto out;
-@@ -714,7 +711,7 @@ static int replace_page(struct vm_area_s
+@@ -93,7 +93,7 @@ struct mm_slot {
+  * struct ksm_scan - cursor for scanning
+  * @mm_slot: the current mm_slot we are scanning
+  * @address: the next address inside that to be scanned
+- * @rmap_item: the current rmap that we are scanning inside the rmap_list
++ * @rmap_list: link to the next rmap to be scanned in the rmap_list
+  * @seqnr: count of completed full scans (needed when removing unstable node)
+  *
+  * There is only the one ksm_scan instance of this cursor structure.
+@@ -101,13 +101,14 @@ struct mm_slot {
+ struct ksm_scan {
+ 	struct mm_slot *mm_slot;
+ 	unsigned long address;
+-	struct rmap_item *rmap_item;
++	struct rmap_item **rmap_list;
+ 	unsigned long seqnr;
+ };
  
- 	flush_cache_page(vma, addr, pte_pfn(*ptep));
- 	ptep_clear_flush(vma, addr, ptep);
--	set_pte_at_notify(mm, addr, ptep, mk_pte(newpage, prot));
-+	set_pte_at_notify(mm, addr, ptep, mk_pte(newpage, vma->vm_page_prot));
- 
- 	page_remove_rmap(oldpage);
- 	put_page(oldpage);
-@@ -746,13 +743,9 @@ static int try_to_merge_one_page(struct 
- 
- 	if (!(vma->vm_flags & VM_MERGEABLE))
- 		goto out;
--
- 	if (!PageAnon(oldpage))
- 		goto out;
- 
--	get_page(newpage);
--	get_page(oldpage);
--
- 	/*
- 	 * We need the page lock to read a stable PageSwapCache in
- 	 * write_protect_page().  We use trylock_page() instead of
-@@ -761,25 +754,18 @@ static int try_to_merge_one_page(struct 
- 	 * then come back to this page when it is unlocked.
- 	 */
- 	if (!trylock_page(oldpage))
--		goto out_putpage;
-+		goto out;
- 	/*
- 	 * If this anonymous page is mapped only here, its pte may need
- 	 * to be write-protected.  If it's mapped elsewhere, all of its
- 	 * ptes are necessarily already write-protected.  But in either
- 	 * case, we need to lock and check page_count is not raised.
- 	 */
--	if (write_protect_page(vma, oldpage, &orig_pte)) {
--		unlock_page(oldpage);
--		goto out_putpage;
--	}
--	unlock_page(oldpage);
--
--	if (pages_identical(oldpage, newpage))
-+	if (write_protect_page(vma, oldpage, &orig_pte) == 0 &&
-+	    pages_identical(oldpage, newpage))
- 		err = replace_page(vma, oldpage, newpage, orig_pte);
- 
--out_putpage:
--	put_page(oldpage);
--	put_page(newpage);
-+	unlock_page(oldpage);
- out:
- 	return err;
+ /**
+  * struct rmap_item - reverse mapping item for virtual addresses
+- * @link: link into mm_slot's rmap_list (rmap_list is per mm)
++ * @rmap_list: next rmap_item in mm_slot's singly-linked rmap_list
++ * @filler: unused space we're making available in this patch
+  * @mm: the memory structure this rmap_item is pointing into
+  * @address: the virtual address this rmap_item tracks (+ flags in low bits)
+  * @oldchecksum: previous checksum of the page at that virtual address
+@@ -116,7 +117,8 @@ struct ksm_scan {
+  * @prev: previous rmap_item hanging off the same node of the stable tree
+  */
+ struct rmap_item {
+-	struct list_head link;
++	struct rmap_item *rmap_list;
++	unsigned long filler;
+ 	struct mm_struct *mm;
+ 	unsigned long address;		/* + low bits used for flags below */
+ 	union {
+@@ -275,7 +277,6 @@ static void insert_to_mm_slots_hash(stru
+ 	bucket = &mm_slots_hash[((unsigned long)mm / sizeof(struct mm_struct))
+ 				% MM_SLOTS_HASH_HEADS];
+ 	mm_slot->mm = mm;
+-	INIT_LIST_HEAD(&mm_slot->rmap_list);
+ 	hlist_add_head(&mm_slot->link, bucket);
  }
+ 
+@@ -479,15 +480,12 @@ static void remove_rmap_item_from_tree(s
+ }
+ 
+ static void remove_trailing_rmap_items(struct mm_slot *mm_slot,
+-				       struct list_head *cur)
++				       struct rmap_item **rmap_list)
+ {
+-	struct rmap_item *rmap_item;
+-
+-	while (cur != &mm_slot->rmap_list) {
+-		rmap_item = list_entry(cur, struct rmap_item, link);
+-		cur = cur->next;
++	while (*rmap_list) {
++		struct rmap_item *rmap_item = *rmap_list;
++		*rmap_list = rmap_item->rmap_list;
+ 		remove_rmap_item_from_tree(rmap_item);
+-		list_del(&rmap_item->link);
+ 		free_rmap_item(rmap_item);
+ 	}
+ }
+@@ -553,7 +551,7 @@ static int unmerge_and_remove_all_rmap_i
+ 				goto error;
+ 		}
+ 
+-		remove_trailing_rmap_items(mm_slot, mm_slot->rmap_list.next);
++		remove_trailing_rmap_items(mm_slot, &mm_slot->rmap_list);
+ 
+ 		spin_lock(&ksm_mmlist_lock);
+ 		ksm_scan.mm_slot = list_entry(mm_slot->mm_list.next,
+@@ -1141,20 +1139,19 @@ static void cmp_and_merge_page(struct pa
+ }
+ 
+ static struct rmap_item *get_next_rmap_item(struct mm_slot *mm_slot,
+-					    struct list_head *cur,
++					    struct rmap_item **rmap_list,
+ 					    unsigned long addr)
+ {
+ 	struct rmap_item *rmap_item;
+ 
+-	while (cur != &mm_slot->rmap_list) {
+-		rmap_item = list_entry(cur, struct rmap_item, link);
++	while (*rmap_list) {
++		rmap_item = *rmap_list;
+ 		if ((rmap_item->address & PAGE_MASK) == addr)
+ 			return rmap_item;
+ 		if (rmap_item->address > addr)
+ 			break;
+-		cur = cur->next;
++		*rmap_list = rmap_item->rmap_list;
+ 		remove_rmap_item_from_tree(rmap_item);
+-		list_del(&rmap_item->link);
+ 		free_rmap_item(rmap_item);
+ 	}
+ 
+@@ -1163,7 +1160,8 @@ static struct rmap_item *get_next_rmap_i
+ 		/* It has already been zeroed */
+ 		rmap_item->mm = mm_slot->mm;
+ 		rmap_item->address = addr;
+-		list_add_tail(&rmap_item->link, cur);
++		rmap_item->rmap_list = *rmap_list;
++		*rmap_list = rmap_item;
+ 	}
+ 	return rmap_item;
+ }
+@@ -1188,8 +1186,7 @@ static struct rmap_item *scan_get_next_r
+ 		spin_unlock(&ksm_mmlist_lock);
+ next_mm:
+ 		ksm_scan.address = 0;
+-		ksm_scan.rmap_item = list_entry(&slot->rmap_list,
+-						struct rmap_item, link);
++		ksm_scan.rmap_list = &slot->rmap_list;
+ 	}
+ 
+ 	mm = slot->mm;
+@@ -1215,10 +1212,10 @@ next_mm:
+ 				flush_anon_page(vma, *page, ksm_scan.address);
+ 				flush_dcache_page(*page);
+ 				rmap_item = get_next_rmap_item(slot,
+-					ksm_scan.rmap_item->link.next,
+-					ksm_scan.address);
++					ksm_scan.rmap_list, ksm_scan.address);
+ 				if (rmap_item) {
+-					ksm_scan.rmap_item = rmap_item;
++					ksm_scan.rmap_list =
++							&rmap_item->rmap_list;
+ 					ksm_scan.address += PAGE_SIZE;
+ 				} else
+ 					put_page(*page);
+@@ -1234,14 +1231,13 @@ next_mm:
+ 
+ 	if (ksm_test_exit(mm)) {
+ 		ksm_scan.address = 0;
+-		ksm_scan.rmap_item = list_entry(&slot->rmap_list,
+-						struct rmap_item, link);
++		ksm_scan.rmap_list = &slot->rmap_list;
+ 	}
+ 	/*
+ 	 * Nuke all the rmap_items that are above this current rmap:
+ 	 * because there were no VM_MERGEABLE vmas with such addresses.
+ 	 */
+-	remove_trailing_rmap_items(slot, ksm_scan.rmap_item->link.next);
++	remove_trailing_rmap_items(slot, ksm_scan.rmap_list);
+ 
+ 	spin_lock(&ksm_mmlist_lock);
+ 	ksm_scan.mm_slot = list_entry(slot->mm_list.next,
+@@ -1423,7 +1419,7 @@ void __ksm_exit(struct mm_struct *mm)
+ 	spin_lock(&ksm_mmlist_lock);
+ 	mm_slot = get_mm_slot(mm);
+ 	if (mm_slot && ksm_scan.mm_slot != mm_slot) {
+-		if (list_empty(&mm_slot->rmap_list)) {
++		if (!mm_slot->rmap_list) {
+ 			hlist_del(&mm_slot->link);
+ 			list_del(&mm_slot->mm_list);
+ 			easy_to_free = 1;
 _
 
 Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
