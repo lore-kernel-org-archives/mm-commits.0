@@ -1,84 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-server-engines-10gbps-iscsi-use-single-line-m.patch removed from -mm tree
-Date: Fri, 13 Nov 2009 11:25:51 -0800
-Message-ID: <200911131925.nADJPpJa026743@imap1.linux-foundation.org>
+Subject: [merged] maintainers-openipmi-list-is-moderated.patch removed from -mm tree
+Date: Fri, 13 Nov 2009 11:26:00 -0800
+Message-ID: <200911131926.nADJQ081027096@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52852 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35418 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757124AbZKMTZw (ORCPT
+	by vger.kernel.org with ESMTP id S1757160AbZKMT0C (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Nov 2009 14:25:52 -0500
+	Fri, 13 Nov 2009 14:26:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, jayamohank@serverengines.com, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, minyard@acm.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MAINTAINERS: SERVER ENGINES 10Gbps iSCSI - Use single line M:
+     MAINTAINERS: openipmi list is moderated
 has been removed from the -mm tree.  Its filename was
-     maintainers-server-engines-10gbps-iscsi-use-single-line-m.patch
+     maintainers-openipmi-list-is-moderated.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: SERVER ENGINES 10Gbps iSCSI - Use single line M:
-From: Joe Perches <joe@perches.com>
+Subject: MAINTAINERS: openipmi list is moderated
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Integrate P:/M: lines to single M:
-Use tabs not spaces
+openipmi list is moderated.
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Jayamohan Kallickal <jayamohank@serverengines.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Acked-by: Corey Minyard <minyard@acm.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN MAINTAINERS~maintainers-server-engines-10gbps-iscsi-use-single-line-m MAINTAINERS
---- a/MAINTAINERS~maintainers-server-engines-10gbps-iscsi-use-single-line-m
+diff -puN MAINTAINERS~maintainers-openipmi-list-is-moderated MAINTAINERS
+--- a/MAINTAINERS~maintainers-openipmi-list-is-moderated
 +++ a/MAINTAINERS
-@@ -4671,12 +4671,11 @@ F:	include/linux/ata.h
- F:	include/linux/libata.h
+@@ -2823,7 +2823,7 @@ F:	drivers/infiniband/hw/ipath/
  
- SERVER ENGINES 10Gbps iSCSI - BladeEngine 2 DRIVER
--P:     Jayamohan Kallickal
--M:     jayamohank@serverengines.com
--L:     linux-scsi@vger.kernel.org
--W:     http://www.serverengines.com
--S:     Supported
--F:     drivers/scsi/be2iscsi/
-+M:	Jayamohan Kallickal <jayamohank@serverengines.com>
-+L:	linux-scsi@vger.kernel.org
-+W:	http://www.serverengines.com
-+S:	Supported
-+F:	drivers/scsi/be2iscsi/
- 
- SERVER ENGINES 10Gbps NIC - BladeEngine 2 DRIVER
- M:	Sathya Perla <sathyap@serverengines.com>
+ IPMI SUBSYSTEM
+ M:	Corey Minyard <minyard@acm.org>
+-L:	openipmi-developer@lists.sourceforge.net
++L:	openipmi-developer@lists.sourceforge.net (moderated for non-subscribers)
+ W:	http://openipmi.sourceforge.net/
+ S:	Supported
+ F:	Documentation/IPMI.txt
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 linux-next.patch
-dynamic_debugh-kernelh-remove-kbuild_modname-from-dynamic_pr_debug.patch
-kernelh-remove-initialization-of-bool-in-printk_once.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
-scripts-get_maintainerpl-add-roles-and-rolestats.patch
-scripts-get_maintainerpl-fix-non-with-git-blame-and-cleanups.patch
-scripts-get_maintainerpl-support-multiple-vcss-add-mercurial.patch
-lib-vsprintfc-add-%pu-to-print-uuid-guids.patch
-fs-xfs-xfs_log_recoverc-use-%pu-to-print-uuids.patch
-randomc-use-%pu-to-print-uuids.patch
-drivers-firmware-dmi_scanc-use-%pub-to-print-uuids.patch
-drivers-md-mdc-use-%pu-to-print-uuids.patch
-fs-gfs2-sysc-use-%pub-to-print-uuids.patch
-fs-ubifs-use-%pub-to-print-uuids.patch
-efih-use-%pul-to-print-uuids.patch
-scripts-checkpatchpl-add-warn-on-sizeof.patch
-checkpatchpl-allow-80-char-lines-for-logging-functions-not-just-printk.patch
-isicomc-use-pr_fmt-and-pr_level.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices-depends-on-acpi.patch
+scsi-fix-func-names-in-kernel-doc.patch
+readahead-add-blk_run_backing_dev.patch
+page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
+nodemask-make-nodemask_alloc-more-general.patch
+hugetlb-rework-hstate_next_node_-functions.patch
+hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions.patch
+hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions-fix.patch
+hugetlb-factor-init_nodemask_of_node.patch
+hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy.patch
+hugetlb-add-generic-definition-of-numa_no_node.patch
+hugetlb-add-per-node-hstate-attributes.patch
+hugetlb-update-hugetlb-documentation-for-numa-controls.patch
+hugetlb-use-only-nodes-with-memory-for-huge-pages.patch
+mm-clear-node-in-n_high_memory-and-stop-kswapd-when-all-memory-is-offlined.patch
+hugetlb-handle-memory-hot-plug-events.patch
+hugetlb-offload-per-node-attribute-registrations.patch
+hugetlb-offload-per-node-attribute-registrations-fix.patch
+mm-add-gfp-flags-for-nodemask_alloc-slab-allocations.patch
+mm-add-numa-node-symlink-for-memory-section-in-sysfs.patch
+mm-refactor-register_cpu_under_node.patch
+mm-refactor-unregister_cpu_under_node.patch
+mm-add-numa-node-symlink-for-cpu-devices-in-sysfs.patch
+documentation-abi-sys-devices-system-cpu-cpu-node.patch
+spi-add-pci-interface-driver-for-designware-spi-core-fix.patch
+docs-large-update-to-ioctl-numbertxt.patch
+doc-submitchecklist-add-ioctls-remove-osdl-reference.patch
+reiser4-export-remove_from_page_cache-fix.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
