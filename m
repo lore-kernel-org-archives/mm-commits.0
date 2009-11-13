@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + lxfb-add-copyright-license-info.patch added to -mm tree
-Date: Fri, 13 Nov 2009 12:03:37 -0800
-Message-ID: <200911132003.nADK3bu1019118@imap1.linux-foundation.org>
+Subject: + arm-add-support-for-lzo-compressed-kernels-fix.patch added to -mm tree
+Date: Fri, 13 Nov 2009 12:09:24 -0800
+Message-ID: <200911132009.nADK9ONV000337@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44507 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53175 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932271AbZKMUDo (ORCPT
+	by vger.kernel.org with ESMTP id S1756929AbZKMUJv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Nov 2009 15:03:44 -0500
+	Fri, 13 Nov 2009 15:09:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dilinger@collabora.co.uk, jordan@cosmicpenguin.net
+Cc: albin.tonnerre@free-electrons.com, hpa@zytor.com, mingo@elte.hu, ralf@linux-mips.org, rmk@arm.linux.org.uk, tbm@cyrius.com, tglx@linutronix.de, wuzhangjin@gmail.com
 
 
 The patch titled
-     lxfb: add copyright/license info
+     arm-add-support-for-lzo-compressed-kernels-fix
 has been added to the -mm tree.  Its filename is
-     lxfb-add-copyright-license-info.patch
+     arm-add-support-for-lzo-compressed-kernels-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,53 +34,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lxfb: add copyright/license info
-From: Andres Salomon <dilinger@collabora.co.uk>
+Subject: arm-add-support-for-lzo-compressed-kernels-fix
+From: Albin Tonnerre <albin.tonnerre@free-electrons.com>
 
-The GRUB folks requested copyright/license info for lxfb.h, so here it is.
+Updated patch to fix the out-of-tree build issue, thanks to Martin Michlmayr
+and Russell King
 
-Signed-off-by: Andres Salomon <dilinger@collabora.co.uk>
-Cc: Jordan Crouse <jordan@cosmicpenguin.net>
+Signed-off-by: Albin Tonnerre <albin.tonnerre@free-electrons.com>
+Cc: Wu Zhangjin <wuzhangjin@gmail.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Martin Michlmayr <tbm@cyrius.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/geode/lxfb.h |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ arch/arm/boot/compressed/Makefile |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/video/geode/lxfb.h~lxfb-add-copyright-license-info drivers/video/geode/lxfb.h
---- a/drivers/video/geode/lxfb.h~lxfb-add-copyright-license-info
-+++ a/drivers/video/geode/lxfb.h
-@@ -1,3 +1,13 @@
-+/* Geode LX framebuffer driver
-+ *
-+ * Copyright (C) 2006-2007, Advanced Micro Devices,Inc.
-+ * Copyright (c) 2008  Andres Salomon <dilinger@debian.org>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; either version 2 of the License, or (at your
-+ * option) any later version.
-+ */
- #ifndef _LXFB_H_
- #define _LXFB_H_
+diff -puN arch/arm/boot/compressed/Makefile~arm-add-support-for-lzo-compressed-kernels-fix arch/arm/boot/compressed/Makefile
+--- a/arch/arm/boot/compressed/Makefile~arm-add-support-for-lzo-compressed-kernels-fix
++++ a/arch/arm/boot/compressed/Makefile
+@@ -101,7 +101,10 @@ LDFLAGS_vmlinux += -X
+ LDFLAGS_vmlinux += -T
  
+ # For __aeabi_uidivmod
+-lib1funcs = $(srctree)/arch/$(SRCARCH)/lib/lib1funcs.o
++lib1funcs = $(obj)/lib1funcs.o
++
++$(obj)/lib1funcs.S: $(srctree)/arch/$(SRCARCH)/lib/lib1funcs.S FORCE
++	$(call cmd,shipped)
+ 
+ # Don't allow any static data in misc.o, which
+ # would otherwise mess up our GOT table
 _
 
-Patches currently in -mm which might be from dilinger@collabora.co.uk are
+Patches currently in -mm which might be from albin.tonnerre@free-electrons.com are
 
 linux-next.patch
-drm-kill-some-unused-drm_proc-macros-from-drmph.patch
-drm-kill-more-unused-drm-macros.patch
-drm-replace-drm_copy-macro-w-a-function.patch
-drm-check-return-values-in-drm_version.patch
-cs5535-gpio-add-amd-cs5535-cs5536-gpio-driver-support.patch
-cs5535-gpio-request-function-mask-names-added.patch
-alsa-cs5535audio-free-olpc-quirks-from-reliance-on-mgeode_lx-cpu-optimization.patch
-cs5535-add-a-generic-mfgpt-driver.patch
-cs5535-add-a-generic-clock-event-mfgpt-driver.patch
-cs5535-move-the-divil-msr-definition-into-linux-cs5535h.patch
-cs5535-move-vsa2-checks-into-linux-cs5535h.patch
-cs5535-define-lxfb-gxfb-msrs-in-linux-cs5535h.patch
-cs5535-drop-the-geode-specific-mfgpt-gpio-code.patch
-lxfb-add-copyright-license-info.patch
+atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
+atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops-fix.patch
+lib-add-support-for-lzo-compressed-kernels.patch
+lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes.patch
+lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.patch
+arm-add-support-for-lzo-compressed-kernels.patch
+arm-add-support-for-lzo-compressed-kernels-fix.patch
+x86-add-support-for-lzo-compressed-kernels.patch
+add-lzo-compression-support-for-initramfs-and-old-style-initrd.patch
 
