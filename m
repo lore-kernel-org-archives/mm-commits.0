@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + parport_pcc-use-correct-length-in-strncmp.patch added to -mm tree
-Date: Fri, 13 Nov 2009 14:27:33 -0800
-Message-ID: <200911132227.nADMRXuJ001764@imap1.linux-foundation.org>
+Subject: + aio-remove-unused-field.patch added to -mm tree
+Date: Fri, 13 Nov 2009 14:35:10 -0800
+Message-ID: <200911132235.nADMZADS019744@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57079 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56963 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756542AbZKMW1a (ORCPT
+	by vger.kernel.org with ESMTP id S932128AbZKMWfM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Nov 2009 17:27:30 -0500
+	Fri, 13 Nov 2009 17:35:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, alan@linux.intel.com
+Cc: shaohua.li@intel.com, bcrl@kvack.org, jmoyer@redhat.com, zach.brown@oracle.com
 
 
 The patch titled
-     parport_pc.c: use correct length in strncmp
+     aio: remove unused field
 has been added to the -mm tree.  Its filename is
-     parport_pcc-use-correct-length-in-strncmp.patch
+     aio-remove-unused-field.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +34,122 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: parport_pc.c: use correct length in strncmp
-From: Joe Perches <joe@perches.com>
+Subject: aio: remove unused field
+From: Shaohua Li <shaohua.li@intel.com>
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Alan Cox <alan@linux.intel.com>
+Don't know the reason, but it appears ki_wait field of iocb never gets used.
+
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Benjamin LaHaise <bcrl@kvack.org>
+Cc: Zach Brown <zach.brown@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/parport/parport_pc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/aio.c            |   40 ++--------------------------------------
+ include/linux/aio.h |    4 ----
+ 2 files changed, 2 insertions(+), 42 deletions(-)
 
-diff -puN drivers/parport/parport_pc.c~parport_pcc-use-correct-length-in-strncmp drivers/parport/parport_pc.c
---- a/drivers/parport/parport_pc.c~parport_pcc-use-correct-length-in-strncmp
-+++ a/drivers/parport/parport_pc.c
-@@ -3403,7 +3403,7 @@ static int __init parport_parse_param(co
- 		*val = automatic;
- 	else if (!strncmp(s, "none", 4))
- 		*val = none;
--	else if (nofifo && !strncmp(s, "nofifo", 4))
-+	else if (nofifo && !strncmp(s, "nofifo", 6))
- 		*val = nofifo;
- 	else {
- 		char *ep;
-_
-
-Patches currently in -mm which might be from joe@perches.com are
-
-linux-next.patch
-dynamic_debugh-kernelh-remove-kbuild_modname-from-dynamic_pr_debug.patch
-kernelh-remove-initialization-of-bool-in-printk_once.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
-scripts-get_maintainerpl-add-roles-and-rolestats.patch
-scripts-get_maintainerpl-fix-non-with-git-blame-and-cleanups.patch
-scripts-get_maintainerpl-support-multiple-vcss-add-mercurial.patch
-lib-vsprintfc-add-%pu-to-print-uuid-guids.patch
-fs-xfs-xfs_log_recoverc-use-%pu-to-print-uuids.patch
-randomc-use-%pu-to-print-uuids.patch
-drivers-firmware-dmi_scanc-use-%pub-to-print-uuids.patch
-drivers-md-mdc-use-%pu-to-print-uuids.patch
-fs-gfs2-sysc-use-%pub-to-print-uuids.patch
-fs-ubifs-use-%pub-to-print-uuids.patch
-efih-use-%pul-to-print-uuids.patch
-scripts-checkpatchpl-add-warn-on-sizeof.patch
-checkpatchpl-allow-80-char-lines-for-logging-functions-not-just-printk.patch
-isicomc-use-pr_fmt-and-pr_level.patch
-parport_pcc-use-correct-length-in-strncmp.patch
-
+diff -puN fs/aio.c~aio-remove-unused-field fs/aio.c
+--- a/fs/aio.c~aio-remove-unused-field
++++ a/fs/aio.c
+@@ -711,10 +711,8 @@ static ssize_t aio_run_iocb(struct kiocb
+ 	 */
+ 	ret = retry(iocb);
+ 
+-	if (ret != -EIOCBRETRY && ret != -EIOCBQUEUED) {
+-		BUG_ON(!list_empty(&iocb->ki_wait.task_list));
++	if (ret != -EIOCBRETRY && ret != -EIOCBQUEUED)
+ 		aio_complete(iocb, ret, 0);
+-	}
+ out:
+ 	spin_lock_irq(&ctx->ctx_lock);
+ 
+@@ -866,13 +864,6 @@ static void try_queue_kicked_iocb(struct
+ 	unsigned long flags;
+ 	int run = 0;
+ 
+-	/* We're supposed to be the only path putting the iocb back on the run
+-	 * list.  If we find that the iocb is *back* on a wait queue already
+-	 * than retry has happened before we could queue the iocb.  This also
+-	 * means that the retry could have completed and freed our iocb, no
+-	 * good. */
+-	BUG_ON((!list_empty(&iocb->ki_wait.task_list)));
+-
+ 	spin_lock_irqsave(&ctx->ctx_lock, flags);
+ 	/* set this inside the lock so that we can't race with aio_run_iocb()
+ 	 * testing it and putting the iocb on the run list under the lock */
+@@ -886,7 +877,7 @@ static void try_queue_kicked_iocb(struct
+ /*
+  * kick_iocb:
+  *      Called typically from a wait queue callback context
+- *      (aio_wake_function) to trigger a retry of the iocb.
++ *      to trigger a retry of the iocb.
+  *      The retry is usually executed by aio workqueue
+  *      threads (See aio_kick_handler).
+  */
+@@ -1520,31 +1511,6 @@ static ssize_t aio_setup_iocb(struct kio
+ 	return 0;
+ }
+ 
+-/*
+- * aio_wake_function:
+- * 	wait queue callback function for aio notification,
+- * 	Simply triggers a retry of the operation via kick_iocb.
+- *
+- * 	This callback is specified in the wait queue entry in
+- *	a kiocb.
+- *
+- * Note:
+- * This routine is executed with the wait queue lock held.
+- * Since kick_iocb acquires iocb->ctx->ctx_lock, it nests
+- * the ioctx lock inside the wait queue lock. This is safe
+- * because this callback isn't used for wait queues which
+- * are nested inside ioctx lock (i.e. ctx->wait)
+- */
+-static int aio_wake_function(wait_queue_t *wait, unsigned mode,
+-			     int sync, void *key)
+-{
+-	struct kiocb *iocb = container_of(wait, struct kiocb, ki_wait);
+-
+-	list_del_init(&wait->task_list);
+-	kick_iocb(iocb);
+-	return 1;
+-}
+-
+ static void aio_batch_add(struct address_space *mapping,
+ 			  struct hlist_head *batch_hash)
+ {
+@@ -1642,8 +1608,6 @@ static int io_submit_one(struct kioctx *
+ 	req->ki_buf = (char __user *)(unsigned long)iocb->aio_buf;
+ 	req->ki_left = req->ki_nbytes = iocb->aio_nbytes;
+ 	req->ki_opcode = iocb->aio_lio_opcode;
+-	init_waitqueue_func_entry(&req->ki_wait, aio_wake_function);
+-	INIT_LIST_HEAD(&req->ki_wait.task_list);
+ 
+ 	ret = aio_setup_iocb(req);
+ 
+diff -puN include/linux/aio.h~aio-remove-unused-field include/linux/aio.h
+--- a/include/linux/aio.h~aio-remove-unused-field
++++ a/include/linux/aio.h
+@@ -102,7 +102,6 @@ struct kiocb {
+ 	} ki_obj;
+ 
+ 	__u64			ki_user_data;	/* user's data for completion */
+-	wait_queue_t		ki_wait;
+ 	loff_t			ki_pos;
+ 
+ 	void			*private;
+@@ -140,7 +139,6 @@ struct kiocb {
+ 		(x)->ki_dtor = NULL;			\
+ 		(x)->ki_obj.tsk = tsk;			\
+ 		(x)->ki_user_data = 0;                  \
+-		init_wait((&(x)->ki_wait));             \
+ 	} while (0)
+ 
+ #define AIO_RING_MAGIC			0xa10a10a1
+@@ -223,8 +221,6 @@ struct mm_struct;
+ static inline void exit_aio(struct mm_struct *mm) { }
+ #endif /* CONFIG_AIO */
+ 
+-#define io_wait_to_kiocb(wait) container_of(wait, struct kiocb, ki_wait)
