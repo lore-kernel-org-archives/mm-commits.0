@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ksm-stable_node-point-to-page-and-back.patch added to -mm tree
-Date: Fri, 13 Nov 2009 15:21:53 -0800
-Message-ID: <200911132321.nADNLr5B000335@imap1.linux-foundation.org>
+Subject: + mm-memory_hotplug-fix-section-mismatch.patch added to -mm tree
+Date: Fri, 13 Nov 2009 15:25:29 -0800
+Message-ID: <200911132325.nADNPTm7008806@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43765 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60284 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932430AbZKMXVv (ORCPT
+	by vger.kernel.org with ESMTP id S932430AbZKMXZw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Nov 2009 18:21:51 -0500
+	Fri, 13 Nov 2009 18:25:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hugh.dickins@tiscali.co.uk, aarcange@redhat.com, ieidus@redhat.com
+Cc: seto.hidetoshi@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, y-goto@jp.fujitsu.com
 
 
 The patch titled
-     ksm: stable_node point to page and back
+     mm/memory_hotplug: fix section mismatch
 has been added to the -mm tree.  Its filename is
-     ksm-stable_node-point-to-page-and-back.patch
+     mm-memory_hotplug-fix-section-mismatch.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,306 +34,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ksm: stable_node point to page and back
-From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Subject: mm/memory_hotplug: fix section mismatch
+From: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
 
-Add a pointer to the ksm page into struct stable_node, holding a reference
-to the page while the node exists.  Put a pointer to the stable_node into
-the ksm page's ->mapping.
+With CONFIG_MEMORY_HOTPLUG I got following warning:
 
-Then we don't need get_ksm_page() while traversing the stable tree: the
-page to compare against is sure to be present and correct, even if it's no
-longer visible through any of its existing rmap_items.
+WARNING: vmlinux.o(.text+0x1276b0): Section mismatch in reference from
+the function hotadd_new_pgdat() to the function
+.meminit.text:free_area_init_node()
+The function hotadd_new_pgdat() references
+the function __meminit free_area_init_node().
+This is often because hotadd_new_pgdat lacks a __meminit
+annotation or the annotation of free_area_init_node is wrong.
 
-And we can handle the forked ksm page case more efficiently: no need to
-memcmp our way through the tree to find its match.
+Use __ref to fix this.
 
-Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Cc: Izik Eidus <ieidus@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Signed-off-by: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ksm.h |   24 +++++++---
- mm/ksm.c            |   99 ++++++++++++++----------------------------
- 2 files changed, 51 insertions(+), 72 deletions(-)
+ mm/memory_hotplug.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/ksm.h~ksm-stable_node-point-to-page-and-back include/linux/ksm.h
---- a/include/linux/ksm.h~ksm-stable_node-point-to-page-and-back
-+++ a/include/linux/ksm.h
-@@ -12,6 +12,8 @@
- #include <linux/sched.h>
- #include <linux/vmstat.h>
+diff -puN mm/memory_hotplug.c~mm-memory_hotplug-fix-section-mismatch mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-fix-section-mismatch
++++ a/mm/memory_hotplug.c
+@@ -448,7 +448,8 @@ int online_pages(unsigned long pfn, unsi
+ }
+ #endif /* CONFIG_MEMORY_HOTPLUG_SPARSE */
  
-+struct stable_node;
-+
- #ifdef CONFIG_KSM
- int ksm_madvise(struct vm_area_struct *vma, unsigned long start,
- 		unsigned long end, int advice, unsigned long *vm_flags);
-@@ -34,7 +36,8 @@ static inline void ksm_exit(struct mm_st
- /*
-  * A KSM page is one of those write-protected "shared pages" or "merged pages"
-  * which KSM maps into multiple mms, wherever identical anonymous page content
-- * is found in VM_MERGEABLE vmas.  It's a PageAnon page, with NULL anon_vma.
-+ * is found in VM_MERGEABLE vmas.  It's a PageAnon page, pointing not to any
-+ * anon_vma, but to that page's node of the stable tree.
-  */
- static inline int PageKsm(struct page *page)
+-static pg_data_t *hotadd_new_pgdat(int nid, u64 start)
++/* we are OK calling __meminit stuff here - we have CONFIG_MEMORY_HOTPLUG */
++static pg_data_t __ref *hotadd_new_pgdat(int nid, u64 start)
  {
-@@ -42,15 +45,22 @@ static inline int PageKsm(struct page *p
- 				(PAGE_MAPPING_ANON | PAGE_MAPPING_KSM);
- }
- 
--/*
-- * But we have to avoid the checking which page_add_anon_rmap() performs.
-- */
-+static inline struct stable_node *page_stable_node(struct page *page)
-+{
-+	return PageKsm(page) ? page_rmapping(page) : NULL;
-+}
-+
-+static inline void set_page_stable_node(struct page *page,
-+					struct stable_node *stable_node)
-+{
-+	page->mapping = (void *)stable_node +
-+				(PAGE_MAPPING_ANON | PAGE_MAPPING_KSM);
-+}
-+
- static inline void page_add_ksm_rmap(struct page *page)
- {
--	if (atomic_inc_and_test(&page->_mapcount)) {
--		page->mapping = (void *) (PAGE_MAPPING_ANON | PAGE_MAPPING_KSM);
-+	if (atomic_inc_and_test(&page->_mapcount))
- 		__inc_zone_page_state(page, NR_ANON_PAGES);
--	}
- }
- #else  /* !CONFIG_KSM */
- 
-diff -puN mm/ksm.c~ksm-stable_node-point-to-page-and-back mm/ksm.c
---- a/mm/ksm.c~ksm-stable_node-point-to-page-and-back
-+++ a/mm/ksm.c
-@@ -107,10 +107,12 @@ struct ksm_scan {
- 
- /**
-  * struct stable_node - node of the stable rbtree
-+ * @page: pointer to struct page of the ksm page
-  * @node: rb node of this ksm page in the stable tree
-  * @hlist: hlist head of rmap_items using this ksm page
-  */
- struct stable_node {
-+	struct page *page;
- 	struct rb_node node;
- 	struct hlist_head hlist;
- };
-@@ -435,23 +437,6 @@ out:		page = NULL;
- }
- 
- /*
-- * get_ksm_page: checks if the page at the virtual address in rmap_item
-- * is still PageKsm, in which case we can trust the content of the page,
-- * and it returns the gotten page; but NULL if the page has been zapped.
-- */
--static struct page *get_ksm_page(struct rmap_item *rmap_item)
--{
--	struct page *page;
--
--	page = get_mergeable_page(rmap_item);
--	if (page && !PageKsm(page)) {
--		put_page(page);
--		page = NULL;
--	}
--	return page;
--}
--
--/*
-  * Removing rmap_item from stable or unstable tree.
-  * This function will clean the information from the stable/unstable tree.
-  */
-@@ -465,6 +450,9 @@ static void remove_rmap_item_from_tree(s
- 		if (stable_node->hlist.first)
- 			ksm_pages_sharing--;
- 		else {
-+			set_page_stable_node(stable_node->page, NULL);
-+			put_page(stable_node->page);
-+
- 			rb_erase(&stable_node->node, &root_stable_tree);
- 			free_stable_node(stable_node);
- 			ksm_pages_shared--;
-@@ -740,8 +728,7 @@ out:
-  * try_to_merge_one_page - take two pages and merge them into one
-  * @vma: the vma that holds the pte pointing to page
-  * @page: the PageAnon page that we want to replace with kpage
-- * @kpage: the PageKsm page (or newly allocated page which page_add_ksm_rmap
-- *         will make PageKsm) that we want to map instead of page
-+ * @kpage: the PageKsm page that we want to map instead of page
-  *
-  * This function returns 0 if the pages were merged, -EFAULT otherwise.
-  */
-@@ -793,6 +780,9 @@ static int try_to_merge_with_ksm_page(st
- 	struct vm_area_struct *vma;
- 	int err = -EFAULT;
- 
-+	if (page == kpage)			/* ksm page forked */
-+		return 0;
-+
- 	down_read(&mm->mmap_sem);
- 	if (ksm_test_exit(mm))
- 		goto out;
-@@ -846,6 +836,9 @@ static struct page *try_to_merge_two_pag
- 		goto up;
- 
- 	copy_user_highpage(kpage, page, rmap_item->address, vma);
-+
-+	set_page_stable_node(kpage, NULL);	/* mark it PageKsm */
-+
- 	err = try_to_merge_one_page(vma, page, kpage);
- up:
- 	up_read(&mm->mmap_sem);
-@@ -876,41 +869,31 @@ up:
-  * This function returns the stable tree node of identical content if found,
-  * NULL otherwise.
-  */
--static struct stable_node *stable_tree_search(struct page *page,
--					      struct page **tree_pagep)
-+static struct stable_node *stable_tree_search(struct page *page)
- {
- 	struct rb_node *node = root_stable_tree.rb_node;
- 	struct stable_node *stable_node;
- 
-+	stable_node = page_stable_node(page);
-+	if (stable_node) {			/* ksm page forked */
-+		get_page(page);
-+		return stable_node;
-+	}
-+
- 	while (node) {
--		struct hlist_node *hlist, *hnext;
--		struct rmap_item *tree_rmap_item;
--		struct page *tree_page;
- 		int ret;
- 
-+		cond_resched();
- 		stable_node = rb_entry(node, struct stable_node, node);
--		hlist_for_each_entry_safe(tree_rmap_item, hlist, hnext,
--					&stable_node->hlist, hlist) {
--			BUG_ON(!in_stable_tree(tree_rmap_item));
--			cond_resched();
--			tree_page = get_ksm_page(tree_rmap_item);
--			if (tree_page)
--				break;
--			remove_rmap_item_from_tree(tree_rmap_item);
--		}
--		if (!hlist)
--			return NULL;
- 
--		ret = memcmp_pages(page, tree_page);
-+		ret = memcmp_pages(page, stable_node->page);
- 
--		if (ret < 0) {
--			put_page(tree_page);
-+		if (ret < 0)
- 			node = node->rb_left;
--		} else if (ret > 0) {
--			put_page(tree_page);
-+		else if (ret > 0)
- 			node = node->rb_right;
--		} else {
--			*tree_pagep = tree_page;
-+		else {
-+			get_page(stable_node->page);
- 			return stable_node;
- 		}
- 	}
-@@ -932,26 +915,12 @@ static struct stable_node *stable_tree_i
- 	struct stable_node *stable_node;
- 
- 	while (*new) {
--		struct hlist_node *hlist, *hnext;
--		struct rmap_item *tree_rmap_item;
--		struct page *tree_page;
- 		int ret;
- 
-+		cond_resched();
- 		stable_node = rb_entry(*new, struct stable_node, node);
--		hlist_for_each_entry_safe(tree_rmap_item, hlist, hnext,
--					&stable_node->hlist, hlist) {
--			BUG_ON(!in_stable_tree(tree_rmap_item));
--			cond_resched();
--			tree_page = get_ksm_page(tree_rmap_item);
--			if (tree_page)
--				break;
--			remove_rmap_item_from_tree(tree_rmap_item);
--		}
--		if (!hlist)
--			return NULL;
- 
--		ret = memcmp_pages(kpage, tree_page);
--		put_page(tree_page);
-+		ret = memcmp_pages(kpage, stable_node->page);
- 
- 		parent = *new;
- 		if (ret < 0)
-@@ -977,6 +946,10 @@ static struct stable_node *stable_tree_i
- 
- 	INIT_HLIST_HEAD(&stable_node->hlist);
- 
-+	get_page(kpage);
-+	stable_node->page = kpage;
-+	set_page_stable_node(kpage, stable_node);
-+
- 	return stable_node;
- }
- 
-@@ -1085,14 +1058,10 @@ static void cmp_and_merge_page(struct pa
- 	remove_rmap_item_from_tree(rmap_item);
- 
- 	/* We first start with searching the page inside the stable tree */
--	stable_node = stable_tree_search(page, &tree_page);
-+	stable_node = stable_tree_search(page);
- 	if (stable_node) {
--		kpage = tree_page;
--		if (page == kpage)			/* forked */
--			err = 0;
--		else
--			err = try_to_merge_with_ksm_page(rmap_item,
--							 page, kpage);
-+		kpage = stable_node->page;
-+		err = try_to_merge_with_ksm_page(rmap_item, page, kpage);
- 		if (!err) {
- 			/*
- 			 * The page was successfully merged:
+ 	struct pglist_data *pgdat;
+ 	unsigned long zones_size[MAX_NR_ZONES] = {0};
 _
 
-Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
+Patches currently in -mm which might be from seto.hidetoshi@jp.fujitsu.com are
 
-mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap.patch
-mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
-vmalloc-adjust-gfp-mask-passed-on-nested-vmalloc-invocation.patch
-swap_info-private-to-swapfilec.patch
-swap_info-change-to-array-of-pointers.patch
-swap_info-include-first_swap_extent.patch
-swap_info-include-first_swap_extent-fix.patch
-swap_info-include-first_swap_extent-fix-fix.patch
-swap_info-miscellaneous-minor-cleanups.patch
-swap_info-swap_has_cache-cleanups.patch
-swap_info-swap_map-of-chars-not-shorts.patch
-swap_info-swap-count-continuations.patch
-swap_info-note-swap_map_shmem.patch
-swap_info-reorder-its-fields.patch
-rmap-fix-the-comment-for-try_to_unmap_anon.patch
-oom_kill-use-rss-value-instead-of-vm-size-for-badness.patch
-mm-define-page_mapping_flags.patch
-mm-mlocking-in-try_to_unmap_one.patch
-mm-config_mmu-for-pg_mlocked.patch
-mm-pass-address-down-to-rmap-ones.patch
-mm-stop-ptlock-enlarging-struct-page.patch
-mm-sigbus-instead-of-abusing-oom.patch
-ksm-three-remove_rmap_item_from_tree-cleanups.patch
-ksm-remove-redundancies-when-merging-page.patch
-ksm-cleanup-some-function-arguments.patch
-ksm-singly-linked-rmap_list.patch
-ksm-separate-stable_node.patch
-ksm-stable_node-point-to-page-and-back.patch
-elf-kill-use_elf_core_dump.patch
-prio_tree-debugging-patch.patch
+mm-memory_hotplug-fix-section-mismatch.patch
+linux-next.patch
+checkpatch-trivial-fix-for-trailing-statements-check.patch
 
