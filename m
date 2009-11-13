@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + misdn-fix-error-return-in-hfcmulti_init.patch added to -mm tree
-Date: Fri, 13 Nov 2009 14:51:46 -0800
-Message-ID: <200911132251.nADMpk8l026524@imap1.linux-foundation.org>
+Subject: + maintainers-kmemcheck-add-file-patterns-use-m-for-pekkas-name-and-address.patch added to -mm tree
+Date: Fri, 13 Nov 2009 14:53:02 -0800
+Message-ID: <200911132253.nADMr2LV029499@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38504 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35892 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932224AbZKMWwQ (ORCPT
+	by vger.kernel.org with ESMTP id S932332AbZKMWxy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Nov 2009 17:52:16 -0500
+	Fri, 13 Nov 2009 17:53:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, davem@davemloft.net, keil@b1-systems.de
+Cc: joe@perches.com, mingo@elte.hu, penberg@cs.helsinki.fi, vegardno@ifi.uio.no
 
 
 The patch titled
-     mISDN: fix error return in HFCmulti_init()
+     MAINTAINERS: KMEMCHECK: add file patterns, use M: for Pekka's name and address
 has been added to the -mm tree.  Its filename is
-     misdn-fix-error-return-in-hfcmulti_init.patch
+     maintainers-kmemcheck-add-file-patterns-use-m-for-pekkas-name-and-address.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,66 +34,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mISDN: fix error return in HFCmulti_init()
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: MAINTAINERS: KMEMCHECK: add file patterns, use M: for Pekka's name and address
+From: Joe Perches <joe@perches.com>
 
-The returned error should stay negative
-
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Acked-by: Karsten Keil <keil@b1-systems.de>
-Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Vegard Nossum <vegardno@ifi.uio.no>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/hardware/mISDN/hfcmulti.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN drivers/isdn/hardware/mISDN/hfcmulti.c~misdn-fix-error-return-in-hfcmulti_init drivers/isdn/hardware/mISDN/hfcmulti.c
---- a/drivers/isdn/hardware/mISDN/hfcmulti.c~misdn-fix-error-return-in-hfcmulti_init
-+++ a/drivers/isdn/hardware/mISDN/hfcmulti.c
-@@ -5481,7 +5481,7 @@ HFCmulti_init(void)
- 		if (err) {
- 			printk(KERN_ERR "error registering embedded driver: "
- 				"%x\n", err);
--			return -err;
-+			return err;
- 		}
- 		HFC_cnt++;
- 		printk(KERN_INFO "%d devices registered\n", HFC_cnt);
+diff -puN MAINTAINERS~maintainers-kmemcheck-add-file-patterns-use-m-for-pekkas-name-and-address MAINTAINERS
+--- a/MAINTAINERS~maintainers-kmemcheck-add-file-patterns-use-m-for-pekkas-name-and-address
++++ a/MAINTAINERS
+@@ -3140,9 +3140,13 @@ F:	kernel/kgdb.c
+ 
+ KMEMCHECK
+ M:	Vegard Nossum <vegardno@ifi.uio.no>
+-P	Pekka Enberg
+-M:	penberg@cs.helsinki.fi
++M:	Pekka Enberg <penberg@cs.helsinki.fi>
+ S:	Maintained
++F:	Documentation/kmemcheck.txt
++F:	arch/x86/include/asm/kmemcheck.h
++F:	arch/x86/mm/kmemcheck/
++F:	include/linux/kmemcheck.h
++F:	mm/kmemcheck.c
+ 
+ KMEMLEAK
+ M:	Catalin Marinas <catalin.marinas@arm.com>
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-spi-error-status-should-be-negative.patch
-drivers-video-da8xx-fbc-fix-error-return.patch
+maintainers-kmemcheck-add-file-patterns-use-m-for-pekkas-name-and-address.patch
 linux-next.patch
-fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch
-omap-fix-unlikelyx-y.patch
-omap-cs-should-be-positive-in-gpmc_cs_free.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-sms-cards-make-id-unsigned-in-sms_get_board.patch
-mtd-error-return-eio-instead-of-eio.patch
-net-netfilter-xt_osfc-xt_osf_remove_callback-should-return-negative-on-errors.patch
-misdn-fix-error-return-in-hfcmulti_init.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
-st-fix-test-of-value-range-in-st_set_options.patch
-ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
-scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
-page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-cryptocop-fix-assertion-in-create_output_descriptors.patch
-gpio-fix-test-on-unsigned-in-lnw_irq_type.patch
-fbdev-tv_paln-bit-set-twice-in-sisfb_detect_vb_connect.patch
-hvc_console-fix-test-on-unsigned-in-hvc_console_print.patch
-irq-fix-test-in-__exit-parport_mfc3_exit.patch
-zlib-optimize-inffast-when-copying-direct-from-output.patch
+dynamic_debugh-kernelh-remove-kbuild_modname-from-dynamic_pr_debug.patch
+kernelh-remove-initialization-of-bool-in-printk_once.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
+scripts-get_maintainerpl-add-roles-and-rolestats.patch
+scripts-get_maintainerpl-fix-non-with-git-blame-and-cleanups.patch
+scripts-get_maintainerpl-support-multiple-vcss-add-mercurial.patch
+lib-vsprintfc-add-%pu-to-print-uuid-guids.patch
+fs-xfs-xfs_log_recoverc-use-%pu-to-print-uuids.patch
+randomc-use-%pu-to-print-uuids.patch
+drivers-firmware-dmi_scanc-use-%pub-to-print-uuids.patch
+drivers-md-mdc-use-%pu-to-print-uuids.patch
+fs-gfs2-sysc-use-%pub-to-print-uuids.patch
+fs-ubifs-use-%pub-to-print-uuids.patch
+efih-use-%pul-to-print-uuids.patch
+scripts-checkpatchpl-add-warn-on-sizeof.patch
+checkpatchpl-allow-80-char-lines-for-logging-functions-not-just-printk.patch
+isicomc-use-pr_fmt-and-pr_level.patch
+parport_pcc-use-correct-length-in-strncmp.patch
 
