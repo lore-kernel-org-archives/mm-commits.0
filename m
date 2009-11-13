@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 13 Nov 2009 14:48:39 -0800
-Message-ID: <200911132248.nADMmdeQ019147@imap1.linux-foundation.org>
+Subject: + misdn-fix-error-return-in-hfcmulti_init.patch added to -mm tree
+Date: Fri, 13 Nov 2009 14:51:46 -0800
+Message-ID: <200911132251.nADMpk8l026524@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39970 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38504 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932182AbZKMWtM (ORCPT
+	by vger.kernel.org with ESMTP id S932224AbZKMWwQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Nov 2009 17:49:12 -0500
+	Fri, 13 Nov 2009 17:52:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, Joakim.Tjernlund@transmode.se
+Cc: roel.kluin@gmail.com, davem@davemloft.net, keil@b1-systems.de
 
 
 The patch titled
-     zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes
+     mISDN: fix error return in HFCmulti_init()
 has been added to the -mm tree.  Its filename is
-     zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes.patch
+     misdn-fix-error-return-in-hfcmulti_init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,139 +34,66 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mISDN: fix error return in HFCmulti_init()
+From: Roel Kluin <roel.kluin@gmail.com>
 
-ERROR: code indent should use tabs where possible
-#90: FILE: lib/zlib_inflate/inffast.c:250:
-+                    /* minimum length is three */$
+The returned error should stay negative
 
-ERROR: space prohibited before that close parenthesis ')'
-#97: FILE: lib/zlib_inflate/inffast.c:257:
-+		    if (dist > 2 ) {
-
-WARNING: suspect code indent for conditional statements (24, 28)
-#111: FILE: lib/zlib_inflate/inffast.c:271:
-+			if (dist == 1)
-[...]
-+			    pat16 = (pat16 & 0xff) | ((pat16 & 0xff ) << 8);
-
-ERROR: space prohibited before that close parenthesis ')'
-#113: FILE: lib/zlib_inflate/inffast.c:273:
-+			    pat16 = (pat16 & 0xff) | ((pat16 & 0xff ) << 8);
-
-ERROR: space prohibited before that close parenthesis ')'
-#115: FILE: lib/zlib_inflate/inffast.c:275:
-+			    pat16 = (pat16 & 0xff00) | ((pat16 & 0xff00 ) >> 8);
-
-total: 4 errors, 1 warnings, 93 lines checked
-
-./patches/zlib-optimize-inffast-when-copying-direct-from-output.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Joakim Tjernlund <Joakim.Tjernlund@transmode.se>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Acked-by: Karsten Keil <keil@b1-systems.de>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/zlib_inflate/inffast.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/isdn/hardware/mISDN/hfcmulti.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/zlib_inflate/inffast.c~zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes lib/zlib_inflate/inffast.c
---- a/lib/zlib_inflate/inffast.c~zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes
-+++ a/lib/zlib_inflate/inffast.c
-@@ -247,14 +247,14 @@ void inflate_fast(z_streamp strm, unsign
- 		    unsigned long loops;
- 
-                     from = out - dist;          /* copy direct from output */
--                    /* minimum length is three */
-+		    /* minimum length is three */
- 		    /* Align out addr */
- 		    if (!((long)(out - 1 + OFF) & 1)) {
- 			PUP(out) = PUP(from);
- 			len--;
- 		    }
- 		    sout = (unsigned short *)(out - OFF);
--		    if (dist > 2 ) {
-+		    if (dist > 2) {
- 			unsigned short *sfrom;
- 
- 			sfrom = (unsigned short *)(from - OFF);
-@@ -270,9 +270,9 @@ void inflate_fast(z_streamp strm, unsign
- 			pat16 = *(sout-2+2*OFF);
- 			if (dist == 1)
- #if defined(__BIG_ENDIAN)
--			    pat16 = (pat16 & 0xff) | ((pat16 & 0xff ) << 8);
-+			    pat16 = (pat16 & 0xff) | ((pat16 & 0xff) << 8);
- #elif defined(__LITTLE_ENDIAN)
--			    pat16 = (pat16 & 0xff00) | ((pat16 & 0xff00 ) >> 8);
-+			    pat16 = (pat16 & 0xff00) | ((pat16 & 0xff00) >> 8);
- #else
- #error __BIG_ENDIAN nor __LITTLE_ENDIAN is defined
- #endif
+diff -puN drivers/isdn/hardware/mISDN/hfcmulti.c~misdn-fix-error-return-in-hfcmulti_init drivers/isdn/hardware/mISDN/hfcmulti.c
+--- a/drivers/isdn/hardware/mISDN/hfcmulti.c~misdn-fix-error-return-in-hfcmulti_init
++++ a/drivers/isdn/hardware/mISDN/hfcmulti.c
+@@ -5481,7 +5481,7 @@ HFCmulti_init(void)
+ 		if (err) {
+ 			printk(KERN_ERR "error registering embedded driver: "
+ 				"%x\n", err);
+-			return -err;
++			return err;
+ 		}
+ 		HFC_cnt++;
+ 		printk(KERN_INFO "%d devices registered\n", HFC_cnt);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
+spi-error-status-should-be-negative.patch
+drivers-video-da8xx-fbc-fix-error-return.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
-drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices-fix.patch
-acpi-remove-nid_inval-checkpatch-fixes.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops-fix.patch
-include-trace-events-lockdeph-fix-do_div-warning.patch
+fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch
+omap-fix-unlikelyx-y.patch
+omap-cs-should-be-positive-in-gpmc_cs_free.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+sms-cards-make-id-unsigned-in-sms_get_board.patch
+mtd-error-return-eio-instead-of-eio.patch
+net-netfilter-xt_osfc-xt_osf_remove_callback-should-return-negative-on-errors.patch
+misdn-fix-error-return-in-hfcmulti_init.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
+zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
 st-fix-test-of-value-range-in-st_set_options.patch
-scsi-add-hpsa-driver-for-hp-smart-array-controllers-fix.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-readahead-add-blk_run_backing_dev.patch
-mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
-oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
-oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes.patch
+ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
+scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
+page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
+frv-duplicate-output_buffer-of-e03.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
-drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
-rwsem-fix-rwsem_is_locked-bugs-fix.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
-errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
-msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes.patch
-crc32-minor-optimizations-and-cleanup-checkpatch-fixes.patch
-hwmon-w83627ehf-updates-checkpatch-fixes.patch
-spi-controller-driver-for-designware-spi-core-fix.patch
-spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
-ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
-memcg-coalesce-charging-via-percpu-storage-fix.patch
-aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
-direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
-zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-reiser4-disable.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+cryptocop-fix-assertion-in-create_output_descriptors.patch
+gpio-fix-test-on-unsigned-in-lnw_irq_type.patch
+fbdev-tv_paln-bit-set-twice-in-sisfb_detect_vb_connect.patch
+hvc_console-fix-test-on-unsigned-in-hvc_console_print.patch
+irq-fix-test-in-__exit-parport_mfc3_exit.patch
+zlib-optimize-inffast-when-copying-direct-from-output.patch
 
