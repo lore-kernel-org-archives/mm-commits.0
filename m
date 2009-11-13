@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-rfkill-fix-pattern-entry-missing-colon.patch added to -mm tree
-Date: Fri, 13 Nov 2009 15:15:29 -0800
-Message-ID: <200911132315.nADNFThv017649@imap1.linux-foundation.org>
+Subject: + ksm-three-remove_rmap_item_from_tree-cleanups.patch added to -mm tree
+Date: Fri, 13 Nov 2009 15:21:39 -0800
+Message-ID: <200911132321.nADNLeWj032274@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55104 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58811 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932352AbZKMXQP (ORCPT
+	by vger.kernel.org with ESMTP id S932245AbZKMXVl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Nov 2009 18:16:15 -0500
+	Fri, 13 Nov 2009 18:21:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, johannes@sipsolutions.net, marcel@holtmann.org
+Cc: hugh.dickins@tiscali.co.uk, aarcange@redhat.com, ieidus@redhat.com
 
 
 The patch titled
-     MAINTAINERS: RFKILL: fix pattern entry missing colon
+     ksm: three remove_rmap_item_from_tree cleanups
 has been added to the -mm tree.  Its filename is
-     maintainers-rfkill-fix-pattern-entry-missing-colon.patch
+     ksm-three-remove_rmap_item_from_tree-cleanups.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,55 +34,122 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: RFKILL: fix pattern entry missing colon
-From: Joe Perches <joe@perches.com>
+Subject: ksm: three remove_rmap_item_from_tree cleanups
+From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Johannes Berg <johannes@sipsolutions.net>
-Acked-by: Marcel Holtmann <marcel@holtmann.org>
+1. remove_rmap_item_from_tree() is called as a precaution from
+   various places: don't dirty the rmap_item cacheline unnecessarily,
+   just mask the flags out of the address when they have been set.
+
+2. First get_next_rmap_item() removes an unstable rmap_item from its tree,
+   then shortly afterwards cmp_and_merge_page() removes a stable rmap_item
+   from its tree: it's easier just to do both at once (but definitely keep
+   the BUG_ON(age > 1) which guards against a future omission).
+
+3. When cmp_and_merge_page() moves an rmap_item from unstable to stable
+   tree, it does its own rb_erase() and accounting: that's better
+   expressed by remove_rmap_item_from_tree().
+
+Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: Izik Eidus <ieidus@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/ksm.c |   17 ++++++-----------
+ 1 file changed, 6 insertions(+), 11 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-rfkill-fix-pattern-entry-missing-colon MAINTAINERS
---- a/MAINTAINERS~maintainers-rfkill-fix-pattern-entry-missing-colon
-+++ a/MAINTAINERS
-@@ -4419,7 +4419,7 @@ RFKILL
- M:	Johannes Berg <johannes@sipsolutions.net>
- L:	linux-wireless@vger.kernel.org
- S:	Maintained
--F	Documentation/rfkill.txt
-+F:	Documentation/rfkill.txt
- F:	net/rfkill/
+diff -puN mm/ksm.c~ksm-three-remove_rmap_item_from_tree-cleanups mm/ksm.c
+--- a/mm/ksm.c~ksm-three-remove_rmap_item_from_tree-cleanups
++++ a/mm/ksm.c
+@@ -453,6 +453,7 @@ static void remove_rmap_item_from_tree(s
+ 		}
  
- RISCOM8 DRIVER
+ 		rmap_item->next = NULL;
++		rmap_item->address &= PAGE_MASK;
+ 
+ 	} else if (rmap_item->address & NODE_FLAG) {
+ 		unsigned char age;
+@@ -467,11 +468,11 @@ static void remove_rmap_item_from_tree(s
+ 		BUG_ON(age > 1);
+ 		if (!age)
+ 			rb_erase(&rmap_item->node, &root_unstable_tree);
++
+ 		ksm_pages_unshared--;
++		rmap_item->address &= PAGE_MASK;
+ 	}
+ 
+-	rmap_item->address &= PAGE_MASK;
+-
+ 	cond_resched();		/* we're called from many long loops */
+ }
+ 
+@@ -1086,8 +1087,7 @@ static void cmp_and_merge_page(struct pa
+ 	unsigned int checksum;
+ 	int err;
+ 
+-	if (in_stable_tree(rmap_item))
+-		remove_rmap_item_from_tree(rmap_item);
++	remove_rmap_item_from_tree(rmap_item);
+ 
+ 	/* We first start with searching the page inside the stable tree */
+ 	tree_rmap_item = stable_tree_search(page, page2, rmap_item);
+@@ -1143,9 +1143,7 @@ static void cmp_and_merge_page(struct pa
+ 		 * tree, and insert it instead as new node in the stable tree.
+ 		 */
+ 		if (!err) {
+-			rb_erase(&tree_rmap_item->node, &root_unstable_tree);
+-			tree_rmap_item->address &= ~NODE_FLAG;
+-			ksm_pages_unshared--;
++			remove_rmap_item_from_tree(tree_rmap_item);
+ 
+ 			/*
+ 			 * If we fail to insert the page into the stable tree,
+@@ -1174,11 +1172,8 @@ static struct rmap_item *get_next_rmap_i
+ 
+ 	while (cur != &mm_slot->rmap_list) {
+ 		rmap_item = list_entry(cur, struct rmap_item, link);
+-		if ((rmap_item->address & PAGE_MASK) == addr) {
+-			if (!in_stable_tree(rmap_item))
+-				remove_rmap_item_from_tree(rmap_item);
++		if ((rmap_item->address & PAGE_MASK) == addr)
+ 			return rmap_item;
+-		}
+ 		if (rmap_item->address > addr)
+ 			break;
+ 		cur = cur->next;
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
 
-maintainers-kmemcheck-add-file-patterns-use-m-for-pekkas-name-and-address.patch
-maintainers-rfkill-fix-pattern-entry-missing-colon.patch
-linux-next.patch
-dynamic_debugh-kernelh-remove-kbuild_modname-from-dynamic_pr_debug.patch
-kernelh-remove-initialization-of-bool-in-printk_once.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
-scripts-get_maintainerpl-add-roles-and-rolestats.patch
-scripts-get_maintainerpl-fix-non-with-git-blame-and-cleanups.patch
-scripts-get_maintainerpl-support-multiple-vcss-add-mercurial.patch
-lib-vsprintfc-add-%pu-to-print-uuid-guids.patch
-fs-xfs-xfs_log_recoverc-use-%pu-to-print-uuids.patch
-randomc-use-%pu-to-print-uuids.patch
-drivers-firmware-dmi_scanc-use-%pub-to-print-uuids.patch
-drivers-md-mdc-use-%pu-to-print-uuids.patch
-fs-gfs2-sysc-use-%pub-to-print-uuids.patch
-fs-ubifs-use-%pub-to-print-uuids.patch
-efih-use-%pul-to-print-uuids.patch
-scripts-checkpatchpl-add-warn-on-sizeof.patch
-checkpatchpl-allow-80-char-lines-for-logging-functions-not-just-printk.patch
-isicomc-use-pr_fmt-and-pr_level.patch
-parport_pcc-use-correct-length-in-strncmp.patch
+mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap.patch
+mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
+vmalloc-adjust-gfp-mask-passed-on-nested-vmalloc-invocation.patch
+swap_info-private-to-swapfilec.patch
+swap_info-change-to-array-of-pointers.patch
+swap_info-include-first_swap_extent.patch
+swap_info-include-first_swap_extent-fix.patch
+swap_info-include-first_swap_extent-fix-fix.patch
+swap_info-miscellaneous-minor-cleanups.patch
+swap_info-swap_has_cache-cleanups.patch
+swap_info-swap_map-of-chars-not-shorts.patch
+swap_info-swap-count-continuations.patch
+swap_info-note-swap_map_shmem.patch
+swap_info-reorder-its-fields.patch
+rmap-fix-the-comment-for-try_to_unmap_anon.patch
+oom_kill-use-rss-value-instead-of-vm-size-for-badness.patch
+mm-define-page_mapping_flags.patch
+mm-mlocking-in-try_to_unmap_one.patch
+mm-config_mmu-for-pg_mlocked.patch
+mm-pass-address-down-to-rmap-ones.patch
+mm-stop-ptlock-enlarging-struct-page.patch
+mm-sigbus-instead-of-abusing-oom.patch
+ksm-three-remove_rmap_item_from_tree-cleanups.patch
+ksm-remove-redundancies-when-merging-page.patch
+ksm-cleanup-some-function-arguments.patch
+ksm-singly-linked-rmap_list.patch
+ksm-separate-stable_node.patch
+ksm-stable_node-point-to-page-and-back.patch
+elf-kill-use_elf_core_dump.patch
+prio_tree-debugging-patch.patch
 
