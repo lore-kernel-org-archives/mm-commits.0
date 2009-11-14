@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + procfs-fix-proc-pid-stat-stack-pointer-for-kernel-threads.patch added to -mm tree
-Date: Fri, 13 Nov 2009 16:11:34 -0800
-Message-ID: <200911140011.nAE0BYlh020357@imap1.linux-foundation.org>
+Subject: + 8250-add-serial-transmitter-fully-empty-test.patch added to -mm tree
+Date: Fri, 13 Nov 2009 16:14:14 -0800
+Message-ID: <200911140014.nAE0EEea026652@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54358 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48334 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757604AbZKNAMZ (ORCPT
+	by vger.kernel.org with ESMTP id S1757252AbZKNAOW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Nov 2009 19:12:25 -0500
+	Fri, 13 Nov 2009 19:14:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: stefani@seibold.net, mingo@elte.hu
+Cc: dick@softplc.com, alan@linux.intel.com, k.schoenmakers@sigmae.nl
 
 
 The patch titled
-     procfs: fix /proc/<pid>/stat stack pointer for kernel threads
+     8250: add serial transmitter fully empty test
 has been added to the -mm tree.  Its filename is
-     procfs-fix-proc-pid-stat-stack-pointer-for-kernel-threads.patch
+     8250-add-serial-transmitter-fully-empty-test.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,77 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: procfs: fix /proc/<pid>/stat stack pointer for kernel threads
-From: Stefani Seibold <stefani@seibold.net>
+Subject: 8250: add serial transmitter fully empty test
+From: Dick Hollenbeck <dick@softplc.com>
 
-Fix a small issue for the stack pointer in /proc/<pid>/stat.  In case of a
-kernel thread the value of the printed stack pointer should be 0.
+When controlling an industrial radio modem it can be necessary to
+manipulate the handshake lines in order to control the radio modem's
+transmitter, from userspace.
 
-Signed-off-by: Stefani Seibold <stefani@seibold.net>
-Cc: Ingo Molnar <mingo@elte.hu>
+The transmitter should not be turned off before all characters have been
+transmitted.  serial8250_tx_empty() was reporting that all characters were
+transmitted before they actually were.
+
+===
+
+Discovered in parallel with more testing and analysis by Kees Schoenmakers
+as follows:
+
+I ran into an NetMos 9835 serial pci board which behaves a little
+different than the standard.  This type of expansion board is very common.
+
+"Standard" 8250 compatible devices clear the 'UART_LST_TEMT" bit together
+with the "UART_LSR_THRE" bit when writing data to the device.
+
+The NetMos device does it slightly different
+
+I believe that the TEMT bit is coupled to the shift register.  The problem
+is that after writing data to the device and very quickly after that one
+does call serial8250_tx_empty, it returns the wrong information.
+
+My patch makes the test more robust (and solves the problem) and it does
+not affect the already correct devices.
+
+
+Alan:
+
+  We may yet need to quirk this but now we know which chips we have a
+  way to do that should we find this breaks some other 8250 clone with
+  dodgy THRE.
+
+Signed-off-by: Dick Hollenbeck <dick@softplc.com>
+Signed-off-by: Alan Cox <alan@linux.intel.com>
+Cc: Kees Schoenmakers <k.schoenmakers@sigmae.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/serial/8250.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN fs/proc/array.c~procfs-fix-proc-pid-stat-stack-pointer-for-kernel-threads fs/proc/array.c
---- a/fs/proc/array.c~procfs-fix-proc-pid-stat-stack-pointer-for-kernel-threads
-+++ a/fs/proc/array.c
-@@ -582,7 +582,7 @@ static int do_task_stat(struct seq_file 
- 		rsslim,
- 		mm ? mm->start_code : 0,
- 		mm ? mm->end_code : 0,
--		(permitted) ? task->stack_start : 0,
-+		(permitted && mm) ? task->stack_start : 0,
- 		esp,
- 		eip,
- 		/* The signal information here is obsolete.
-_
-
-Patches currently in -mm which might be from stefani@seibold.net are
-
-procfs-fix-proc-pid-stat-stack-pointer-for-kernel-threads.patch
-
+diff -puN drivers/serial/8250.c~8250-add-serial-transmitter-fully-empty-test drivers/serial/8250.c
+--- a/drivers/serial/8250.c~8250-add-serial-transmitter-fully-empty-test
++++ a/drivers/serial/8250.c
+@@ -83,6 +83,9 @@ static unsigned int skip_txen_test; /* f
+ 
+ #define PASS_LIMIT	256
+ 
++#define BOTH_EMPTY 	(UART_LSR_TEMT | UART_LSR_THRE)
++
++
+ /*
+  * We default to IRQ0 for the "no irq" hack.   Some
+  * machine types want others as well - they're free
+@@ -1788,7 +1791,7 @@ static unsigned int serial8250_tx_empty(
+ 	up->lsr_saved_flags |= lsr & LSR_SAVE_FLAGS;
+ 	spin_unlock_irqrestore(&up->port.lock, flags);
+ 
+-	return lsr & UART_LSR_TEMT ? TIOCSER_TEMT : 0;
++	return (lsr & BOTH_EMPTY) == BOTH_EMPTY ? TIOCSER_TEMT : 0;
+ }
+ 
+ static unsigned int serial8250_get_mctrl(struct uart_port *port)
+@@ -1846,8 +1849,6 @@ static void serial8250_break_ctl(struct 
+ 	spin_unlock_irqrestore(&up->port.lock, flags);
+ }
+ 
+-#define BOTH_EMPTY (UART_LSR_TEMT | UART_LSR_THRE)
