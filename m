@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-acpi-acpi_padc-squish-warning.patch added to -mm tree
-Date: Fri, 13 Nov 2009 19:55:39 -0800
-Message-ID: <200911140355.nAE3tdPt031356@imap1.linux-foundation.org>
+Subject: + drivers-char-agp-amd64-agpc-squish-warning.patch added to -mm tree
+Date: Fri, 13 Nov 2009 19:56:14 -0800
+Message-ID: <200911140356.nAE3uEVW032758@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51604 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33916 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757591AbZKND4C (ORCPT
+	by vger.kernel.org with ESMTP id S1757377AbZKND4M (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Nov 2009 22:56:02 -0500
+	Fri, 13 Nov 2009 22:56:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, lenb@kernel.org, shaohua.li@intel.com
+Cc: akpm@linux-foundation.org, airlied@linux.ie
 
 
 The patch titled
-     drivers/acpi/acpi_pad.c: squish warning
+     drivers/char/agp/amd64-agp.c: squish warning
 has been added to the -mm tree.  Its filename is
-     drivers-acpi-acpi_padc-squish-warning.patch
+     drivers-char-agp-amd64-agpc-squish-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/acpi/acpi_pad.c: squish warning
+Subject: drivers/char/agp/amd64-agp.c: squish warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/acpi/acpi_pad.c: In function 'power_saving_thread':
-drivers/acpi/acpi_pad.c:103: warning: 'preferred_cpu' may be used uninitialized in this function
+drivers/char/agp/amd64-agp.c:768: warning: 'agp_amd64_cleanup' defined but not used
 
-Cc: Shaohua Li <shaohua.li@intel.com>
-Cc: Len Brown <lenb@kernel.org>
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/acpi_pad.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/char/agp/amd64-agp.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/acpi/acpi_pad.c~a drivers/acpi/acpi_pad.c
---- a/drivers/acpi/acpi_pad.c~a
-+++ a/drivers/acpi/acpi_pad.c
-@@ -100,7 +100,8 @@ static void round_robin_cpu(unsigned int
- 	struct cpumask *pad_busy_cpus = to_cpumask(pad_busy_cpus_bits);
- 	cpumask_var_t tmp;
- 	int cpu;
--	unsigned long min_weight = -1, preferred_cpu;
-+	unsigned long min_weight = -1;
-+	unsigned long uninitialized_var(preferred_cpu);
+diff -puN drivers/char/agp/amd64-agp.c~a drivers/char/agp/amd64-agp.c
+--- a/drivers/char/agp/amd64-agp.c~a
++++ a/drivers/char/agp/amd64-agp.c
+@@ -764,12 +764,14 @@ int __init agp_amd64_init(void)
+ 	return err;
+ }
  
- 	if (!alloc_cpumask_var(&tmp, GFP_KERNEL))
- 		return;
++#ifndef CONFIG_GART_IOMMU
+ static void __exit agp_amd64_cleanup(void)
+ {
+ 	if (aperture_resource)
+ 		release_resource(aperture_resource);
+ 	pci_unregister_driver(&agp_amd64_pci_driver);
+ }
++#endif
+ 
+ /* On AMD64 the PCI driver needs to initialize this driver early
+    for the IOMMU, so it has to be called via a backdoor. */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
