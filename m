@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-leds-leds-ss4200c-fix-return-statement.patch added to -mm tree
-Date: Fri, 13 Nov 2009 19:56:37 -0800
-Message-ID: <200911140356.nAE3ubZV001271@imap1.linux-foundation.org>
+Subject: + drivers-atm-solos-pcic-fix-warning-bug-clean-up-code.patch added to -mm tree
+Date: Fri, 13 Nov 2009 19:56:06 -0800
+Message-ID: <200911140356.nAE3u6pl032447@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46537 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50533 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757595AbZKND4n (ORCPT
+	by vger.kernel.org with ESMTP id S1757592AbZKND4n (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 13 Nov 2009 22:56:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dave@sr71.net, rpurdie@rpsys.net
+Cc: akpm@linux-foundation.org, David.Woodhouse@intel.com, chas@cmf.nrl.navy.mil, davem@davemloft.net, nathan@traverse.com.au
 
 
 The patch titled
-     drivers/leds/leds-ss4200.c: fix return statement
+     drivers/atm/solos-pci.c: fix warning/bug, clean up code
 has been added to the -mm tree.  Its filename is
-     drivers-leds-leds-ss4200c-fix-return-statement.patch
+     drivers-atm-solos-pcic-fix-warning-bug-clean-up-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,76 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/leds/leds-ss4200.c: fix return statement
+Subject: drivers/atm/solos-pci.c: fix warning/bug, clean up code
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/leds/leds-ss4200.c: In function 'ich7_lpc_probe':
-drivers/leds/leds-ss4200.c:353: warning: 'return' with no value, in function returning non-void
+drivers/atm/solos-pci.c: In function 'flash_upgrade':
+drivers/atm/solos-pci.c:528: warning: 'fw_name' may be used uninitialized in this function
 
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Dave Hansen <dave@sr71.net>
+Cc: Chas Williams <chas@cmf.nrl.navy.mil>
+Cc: David Woodhouse <David.Woodhouse@intel.com>
+Cc: Nathan Williams <nathan@traverse.com.au>
+Cc: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-ss4200.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/atm/solos-pci.c |   29 ++++++++++++++++-------------
+ 1 file changed, 16 insertions(+), 13 deletions(-)
 
-diff -puN drivers/leds/leds-ss4200.c~a drivers/leds/leds-ss4200.c
---- a/drivers/leds/leds-ss4200.c~a
-+++ a/drivers/leds/leds-ss4200.c
-@@ -350,7 +350,7 @@ static int __devinit ich7_lpc_probe(stru
- 	status = pci_enable_device(dev);
- 	if (status) {
- 		dev_err(&dev->dev, "pci_enable_device failed\n");
--		return;
-+		return -EIO;
+diff -puN drivers/atm/solos-pci.c~a drivers/atm/solos-pci.c
+--- a/drivers/atm/solos-pci.c~a
++++ a/drivers/atm/solos-pci.c
+@@ -531,34 +531,37 @@ static int flash_upgrade(struct solos_ca
+ 	int numblocks = 0;
+ 	int offset;
+ 
+-	if (chip == 0) {
++	switch (chip) {
++	case 0:
+ 		fw_name = "solos-FPGA.bin";
+ 		blocksize = FPGA_BLOCK;
+-	} 
+-	
+-	if (chip == 1) {
++		break;
++	case 1:
+ 		fw_name = "solos-Firmware.bin";
+ 		blocksize = SOLOS_BLOCK;
+-	}
+-	
+-	if (chip == 2){
++		break;
++	case 2:
+ 		if (card->fpga_version > LEGACY_BUFFERS){
+ 			fw_name = "solos-db-FPGA.bin";
+ 			blocksize = FPGA_BLOCK;
+ 		} else {
+-			dev_info(&card->dev->dev, "FPGA version doesn't support daughter board upgrades\n");
++			dev_info(&card->dev->dev, "FPGA version doesn't support"
++					" daughter board upgrades\n");
+ 			return -EPERM;
+ 		}
+-	}
+-	
+-	if (chip == 3){
++		break;
++	case 3:
+ 		if (card->fpga_version > LEGACY_BUFFERS){
+ 			fw_name = "solos-Firmware.bin";
+ 			blocksize = SOLOS_BLOCK;
+ 		} else {
+-		dev_info(&card->dev->dev, "FPGA version doesn't support daughter board upgrades\n");
+-		return -EPERM;
++			dev_info(&card->dev->dev, "FPGA version doesn't support"
++					" daughter board upgrades\n");
++			return -EPERM;
+ 		}
++		break;
++	default:
++		return -ENODEV;
  	}
  
- 	nas_gpio_pci_dev = dev;
+ 	if (request_firmware(&fw, fw_name, &card->dev->dev))
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
