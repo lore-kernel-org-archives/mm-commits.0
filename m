@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sound-pci-hda-patch_viac-work-around-gcc-402-ice.patch added to -mm tree
-Date: Fri, 13 Nov 2009 16:47:10 -0800
-Message-ID: <200911140110.nAE1Amor030453@imap1.linux-foundation.org>
+Subject: + drm-kill-more-unused-drm-macros-fix.patch added to -mm tree
+Date: Fri, 13 Nov 2009 16:59:22 -0800
+Message-ID: <200911140123.nAE1MxSP026932@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40724 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49873 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752914AbZKNBLS (ORCPT
+	by vger.kernel.org with ESMTP id S1753048AbZKNBXD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Nov 2009 20:11:18 -0500
+	Fri, 13 Nov 2009 20:23:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, tiwai@suse.de
+Cc: akpm@linux-foundation.org, airlied@linux.ie, dilinger@collabora.co.uk
 
 
 The patch titled
-     sound/pci/hda/patch_via.c: work around gcc-4.0.2 ICE
+     drm-kill-more-unused-drm-macros-fix
 has been added to the -mm tree.  Its filename is
-     sound-pci-hda-patch_viac-work-around-gcc-402-ice.patch
+     drm-kill-more-unused-drm-macros-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sound/pci/hda/patch_via.c: work around gcc-4.0.2 ICE
+Subject: drm-kill-more-unused-drm-macros-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-sound/pci/hda/patch_via.c: In function 'via_hp_bind_automute':
-sound/pci/hda/patch_via.c:2074: internal compiler error: in do_SUBST, at combine.c:462
-Please submit a full bug report,
-with preprocessed source if appropriate.
-See <URL:http://gcc.gnu.org/bugs.html> for instructions.
+eh?  This is still used a lot.
 
-Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Andres Salomon <dilinger@collabora.co.uk>
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/pci/hda/patch_via.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/drm/drmP.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN sound/pci/hda/patch_via.c~sound-pci-hda-patch_viac-work-around-gcc-402-ice sound/pci/hda/patch_via.c
---- a/sound/pci/hda/patch_via.c~sound-pci-hda-patch_viac-work-around-gcc-402-ice
-+++ a/sound/pci/hda/patch_via.c
-@@ -2043,7 +2043,7 @@ static void via_speaker_automute(struct 
- /* mute line-out and internal speaker if HP is plugged */
- static void via_hp_bind_automute(struct hda_codec *codec)
- {
--	unsigned int hp_present, present = 0;
-+	unsigned long hp_present, present = 0;
- 	struct via_spec *spec = codec->spec;
- 	int i;
+diff -puN include/drm/drmP.h~drm-kill-more-unused-drm-macros-fix include/drm/drmP.h
+--- a/include/drm/drmP.h~drm-kill-more-unused-drm-macros-fix
++++ a/include/drm/drmP.h
+@@ -251,6 +251,8 @@ extern void drm_ut_debug_printk(unsigned
+ /** \name Internal types and structures */
+ /*@{*/
+ 
++#define DRM_ARRAY_SIZE(x) ARRAY_SIZE(x)
++
+ #define DRM_LEFTCOUNT(x) (((x)->rp + (x)->count - (x)->wp) % ((x)->count + 1))
+ #define DRM_BUFCOUNT(x) ((x)->count - DRM_LEFTCOUNT(x))
  
 _
 
@@ -75,6 +72,7 @@ drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
 arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
 cmpc_acpi-add-support-for-classmate-pc-acpi-devices-fix.patch
 acpi-remove-nid_inval-checkpatch-fixes.patch
+drm-kill-more-unused-drm-macros-fix.patch
 timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
 3x59x-fix-pci-resource-management.patch
 bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
