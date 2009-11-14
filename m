@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + recordmcount-stfu.patch added to -mm tree
-Date: Fri, 13 Nov 2009 19:56:55 -0800
-Message-ID: <200911140356.nAE3utfU001939@imap1.linux-foundation.org>
+Subject: + mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3.patch added to -mm tree
+Date: Fri, 13 Nov 2009 19:56:45 -0800
+Message-ID: <200911140356.nAE3ujdP001579@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41399 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47544 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757644AbZKND4z (ORCPT
+	by vger.kernel.org with ESMTP id S1757737AbZKND5G (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Nov 2009 22:56:55 -0500
+	Fri, 13 Nov 2009 22:57:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, lihong.hi@gmail.com, rostedt@goodmis.org
+Cc: akpm@linux-foundation.org, agust@denx.de, krzysztof.h1@poczta.fm, valentin.sitdikov@siemens.com, virtuoso@slind.org
 
 
 The patch titled
-     recordmcount-stfu
+     mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3
 has been added to the -mm tree.  Its filename is
-     recordmcount-stfu.patch
+     mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,29 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: recordmcount-stfu
+Subject: mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3
 From: Andrew Morton <akpm@linux-foundation.org>
 
-oy, people are trying to get work done here.
+ERROR: "mb862xxfb_init_accel" [drivers/video/mb862xx/mb862xxfb.ko] undefined!
 
-Cc: Li Hong <lihong.hi@gmail.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Alexander Shishkin <virtuoso@slind.org>
+Cc: Anatolij Gustschin <agust@denx.de>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Cc: Valentin Sitdikov <valentin.sitdikov@siemens.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/recordmcount.pl |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/video/mb862xx/mb862xxfb_accel.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN scripts/recordmcount.pl~recordmcount-stfu scripts/recordmcount.pl
---- a/scripts/recordmcount.pl~recordmcount-stfu
-+++ a/scripts/recordmcount.pl
-@@ -180,9 +180,9 @@ sub check_objcopy
-     close (IN);
- 
-     if (!$can_use_local) {
--	print STDERR "WARNING: could not find objcopy version or version " .
--	    "is less than 2.17.\n" .
--	    "\tLocal function references is disabled.\n";
-+#	print STDERR "WARNING: could not find objcopy version or version " .
-+#	    "is less than 2.17.\n" .
-+#	    "\tLocal function references is disabled.\n";
-     }
+diff -puN drivers/video/mb862xx/mb862xxfb_accel.c~mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3 drivers/video/mb862xx/mb862xxfb_accel.c
+--- a/drivers/video/mb862xx/mb862xxfb_accel.c~mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3
++++ a/drivers/video/mb862xx/mb862xxfb_accel.c
+@@ -328,3 +328,4 @@ void mb862xxfb_init_accel(struct fb_info
+ 	    FBINFO_HWACCEL_IMAGEBLIT;
+ 	info->fix.accel = 0xff;	/*FIXME: add right define */
  }
- 
++EXPORT_SYMBOL(mb862xxfb_init_accel);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
