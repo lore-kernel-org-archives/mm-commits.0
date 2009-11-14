@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-allow-memory-hotplug-and-hibernation-in-the-same-kernel-fix.patch added to -mm tree
-Date: Fri, 13 Nov 2009 16:29:30 -0800
-Message-ID: <200911140029.nAE0TUE7030201@imap1.linux-foundation.org>
+Subject: + sound-pci-hda-patch_viac-work-around-gcc-402-ice.patch added to -mm tree
+Date: Fri, 13 Nov 2009 16:47:10 -0800
+Message-ID: <200911140110.nAE1Amor030453@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48913 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40724 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932313AbZKNA3j (ORCPT
+	by vger.kernel.org with ESMTP id S1752914AbZKNBLS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Nov 2009 19:29:39 -0500
+	Fri, 13 Nov 2009 20:11:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: andi@firstfloor.org, ak@linux.intel.com, gerald.schaefer@de.ibm.com, kosaki.motohiro@jp.fujitsu.com, rjw@sisk.pl, y-goto@jp.fujitsu.com
+Cc: akpm@linux-foundation.org, tiwai@suse.de
 
 
 The patch titled
-     mm-allow-memory-hotplug-and-hibernation-in-the-same-kernel-fix
+     sound/pci/hda/patch_via.c: work around gcc-4.0.2 ICE
 has been added to the -mm tree.  Its filename is
-     mm-allow-memory-hotplug-and-hibernation-in-the-same-kernel-fix.patch
+     sound-pci-hda-patch_viac-work-around-gcc-402-ice.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,128 +34,97 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-allow-memory-hotplug-and-hibernation-in-the-same-kernel-fix
-From: Andi Kleen <andi@firstfloor.org>
+Subject: sound/pci/hda/patch_via.c: work around gcc-4.0.2 ICE
+From: Andrew Morton <akpm@linux-foundation.org>
 
-v2: Rename lock_hibernation to lock_system_sleep
+sound/pci/hda/patch_via.c: In function 'via_hp_bind_automute':
+sound/pci/hda/patch_via.c:2074: internal compiler error: in do_SUBST, at combine.c:462
+Please submit a full bug report,
+with preprocessed source if appropriate.
+See <URL:http://gcc.gnu.org/bugs.html> for instructions.
 
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/suspend.h |    8 ++++----
- mm/memory_hotplug.c     |   10 +++++-----
- 2 files changed, 9 insertions(+), 9 deletions(-)
+ sound/pci/hda/patch_via.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/suspend.h~mm-allow-memory-hotplug-and-hibernation-in-the-same-kernel-fix include/linux/suspend.h
---- a/include/linux/suspend.h~mm-allow-memory-hotplug-and-hibernation-in-the-same-kernel-fix
-+++ a/include/linux/suspend.h
-@@ -311,19 +311,19 @@ static inline void register_nosave_regio
+diff -puN sound/pci/hda/patch_via.c~sound-pci-hda-patch_viac-work-around-gcc-402-ice sound/pci/hda/patch_via.c
+--- a/sound/pci/hda/patch_via.c~sound-pci-hda-patch_viac-work-around-gcc-402-ice
++++ a/sound/pci/hda/patch_via.c
+@@ -2043,7 +2043,7 @@ static void via_speaker_automute(struct 
+ /* mute line-out and internal speaker if HP is plugged */
+ static void via_hp_bind_automute(struct hda_codec *codec)
  {
- }
- 
--static inline void lock_hibernation(void) {}
--static inline void unlock_hibernation(void) {}
-+static inline void lock_system_sleep(void) {}
-+static inline void unlock_system_sleep(void) {}
- 
- #else
- 
- /* Let some subsystems like memory hotadd exclude hibernation */
- 
--static inline void lock_hibernation(void)
-+static inline void lock_system_sleep(void)
- {
- 	mutex_lock(&pm_mutex);
- }
- 
--static inline void unlock_hibernation(void)
-+static inline void unlock_system_sleep(void)
- {
- 	mutex_unlock(&pm_mutex);
- }
-diff -puN mm/memory_hotplug.c~mm-allow-memory-hotplug-and-hibernation-in-the-same-kernel-fix mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-allow-memory-hotplug-and-hibernation-in-the-same-kernel-fix
-+++ a/mm/memory_hotplug.c
-@@ -486,7 +486,7 @@ int __ref add_memory(int nid, u64 start,
- 	struct resource *res;
- 	int ret;
- 
--	lock_hibernation();
-+	lock_system_sleep();
- 
- 	res = register_memory_resource(start, size);
- 	ret = -EEXIST;
-@@ -530,7 +530,7 @@ error:
- 		release_memory_resource(res);
- 
- out:
--	unlock_hibernation();
-+	unlock_system_sleep();
- 	return ret;
- }
- EXPORT_SYMBOL_GPL(add_memory);
-@@ -767,7 +767,7 @@ int offline_pages(unsigned long start_pf
- 	if (!test_pages_in_a_zone(start_pfn, end_pfn))
- 		return -EINVAL;
- 
--	lock_hibernation();
-+	lock_system_sleep();
- 
- 	zone = page_zone(pfn_to_page(start_pfn));
- 	node = zone_to_nid(zone);
-@@ -854,7 +854,7 @@ repeat:
- 	writeback_set_ratelimit();
- 
- 	memory_notify(MEM_OFFLINE, &arg);
--	unlock_hibernation();
-+	unlock_system_sleep();
- 	return 0;
- 
- failed_removal:
-@@ -865,7 +865,7 @@ failed_removal:
- 	undo_isolate_page_range(start_pfn, end_pfn);
- 
- out:
--	unlock_hibernation();
-+	unlock_system_sleep();
- 	return ret;
- }
+-	unsigned int hp_present, present = 0;
++	unsigned long hp_present, present = 0;
+ 	struct via_spec *spec = codec->spec;
+ 	int i;
  
 _
 
-Patches currently in -mm which might be from andi@firstfloor.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-allow-memory-hotplug-and-hibernation-in-the-same-kernel.patch
-mm-allow-memory-hotplug-and-hibernation-in-the-same-kernel-fix.patch
 linux-next.patch
-hardware-latency-detector-remove-default-m.patch
-page-types-learn-to-describe-flags-directly-from-command-line.patch
-page-types-exit-early-when-invoked-with-d-describe.patch
-nodemask-make-nodemask_alloc-more-general.patch
-hugetlb-rework-hstate_next_node_-functions.patch
-hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions.patch
-hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions-fix.patch
-hugetlb-factor-init_nodemask_of_node.patch
-hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy.patch
-hugetlb-add-generic-definition-of-numa_no_node.patch
-hugetlb-add-per-node-hstate-attributes.patch
-hugetlb-update-hugetlb-documentation-for-numa-controls.patch
-hugetlb-use-only-nodes-with-memory-for-huge-pages.patch
-mm-clear-node-in-n_high_memory-and-stop-kswapd-when-all-memory-is-offlined.patch
-hugetlb-handle-memory-hot-plug-events.patch
-hugetlb-offload-per-node-attribute-registrations.patch
-mm-add-gfp-flags-for-nodemask_alloc-slab-allocations.patch
-mm-define-page_mapping_flags.patch
-mm-mlocking-in-try_to_unmap_one.patch
-mm-config_mmu-for-pg_mlocked.patch
-mm-pass-address-down-to-rmap-ones.patch
-mm-stop-ptlock-enlarging-struct-page.patch
-mm-sigbus-instead-of-abusing-oom.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
+sound-pci-hda-patch_viac-work-around-gcc-402-ice.patch
+drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices-fix.patch
+acpi-remove-nid_inval-checkpatch-fixes.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+3x59x-fix-pci-resource-management.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops-fix.patch
+include-trace-events-lockdeph-fix-do_div-warning.patch
+st-fix-test-of-value-range-in-st_set_options.patch
+scsi-add-hpsa-driver-for-hp-smart-array-controllers-fix.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+fs-improve-remountro-vs-buffercache-coherency.patch
+percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+readahead-add-blk_run_backing_dev.patch
+mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
+oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
+oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes.patch
 mm-memory_hotplug-make-offline_pages-static.patch
-fatfs-use-common-time_to_tm-in-fat_time_unix2fat.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
+drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
+rwsem-fix-rwsem_is_locked-bugs-fix.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
+errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
+msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes.patch
+crc32-minor-optimizations-and-cleanup-checkpatch-fixes.patch
+hwmon-w83627ehf-updates-checkpatch-fixes.patch
+spi-controller-driver-for-designware-spi-core-fix.patch
+spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
+ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
+memcg-coalesce-charging-via-percpu-storage-fix.patch
+aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
+direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
+zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes.patch
+lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes.patch
+lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+reiser4-disable.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
