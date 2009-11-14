@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-atm-solos-pcic-fix-warning-bug-clean-up-code.patch added to -mm tree
-Date: Fri, 13 Nov 2009 19:56:06 -0800
-Message-ID: <200911140356.nAE3u6pl032447@imap1.linux-foundation.org>
+Subject: + drivers-hwmon-f75375sc-fix-warning-and-probable-bug.patch added to -mm tree
+Date: Fri, 13 Nov 2009 19:56:28 -0800
+Message-ID: <200911140356.nAE3uTrc000917@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50533 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60584 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757592AbZKND4n (ORCPT
+	by vger.kernel.org with ESMTP id S1757717AbZKND44 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Nov 2009 22:56:43 -0500
+	Fri, 13 Nov 2009 22:56:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, David.Woodhouse@intel.com, chas@cmf.nrl.navy.mil, davem@davemloft.net, nathan@traverse.com.au
+Cc: akpm@linux-foundation.org, corentin.labbe@geomatys.fr, khali@linux-fr.org, riku.voipio@iki.fi
 
 
 The patch titled
-     drivers/atm/solos-pci.c: fix warning/bug, clean up code
+     drivers/hwmon/f75375s.c: fix warning, and probable bug
 has been added to the -mm tree.  Its filename is
-     drivers-atm-solos-pcic-fix-warning-bug-clean-up-code.patch
+     drivers-hwmon-f75375sc-fix-warning-and-probable-bug.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,76 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/atm/solos-pci.c: fix warning/bug, clean up code
+Subject: drivers/hwmon/f75375s.c: fix warning, and probable bug
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/atm/solos-pci.c: In function 'flash_upgrade':
-drivers/atm/solos-pci.c:528: warning: 'fw_name' may be used uninitialized in this function
+drivers/hwmon/f75375s.c: In function 'f75375_detect':
+drivers/hwmon/f75375s.c:689: warning: comparison is always false due to limited range of data type
+drivers/hwmon/f75375s.c:689: warning: comparison is always false due to limited range of data type
+drivers/hwmon/f75375s.c:691: warning: comparison is always false due to limited range of data type
+drivers/hwmon/f75375s.c:691: warning: comparison is always false due to limited range of data type
 
-Cc: Chas Williams <chas@cmf.nrl.navy.mil>
-Cc: David Woodhouse <David.Woodhouse@intel.com>
-Cc: Nathan Williams <nathan@traverse.com.au>
-Cc: David S. Miller <davem@davemloft.net>
+Cc: Riku Voipio <riku.voipio@iki.fi>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Corentin Labbe <corentin.labbe@geomatys.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/atm/solos-pci.c |   29 ++++++++++++++++-------------
- 1 file changed, 16 insertions(+), 13 deletions(-)
+ drivers/hwmon/f75375s.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/atm/solos-pci.c~a drivers/atm/solos-pci.c
---- a/drivers/atm/solos-pci.c~a
-+++ a/drivers/atm/solos-pci.c
-@@ -531,34 +531,37 @@ static int flash_upgrade(struct solos_ca
- 	int numblocks = 0;
- 	int offset;
+diff -puN drivers/hwmon/f75375s.c~a drivers/hwmon/f75375s.c
+--- a/drivers/hwmon/f75375s.c~a
++++ a/drivers/hwmon/f75375s.c
+@@ -681,7 +681,7 @@ static int f75375_detect(struct i2c_clie
+ 			 struct i2c_board_info *info)
+ {
+ 	struct i2c_adapter *adapter = client->adapter;
+-	u8 vendid, chipid, version;
++	u16 vendid, chipid, version;
+ 	const char *name;
  
--	if (chip == 0) {
-+	switch (chip) {
-+	case 0:
- 		fw_name = "solos-FPGA.bin";
- 		blocksize = FPGA_BLOCK;
--	} 
--	
--	if (chip == 1) {
-+		break;
-+	case 1:
- 		fw_name = "solos-Firmware.bin";
- 		blocksize = SOLOS_BLOCK;
--	}
--	
--	if (chip == 2){
-+		break;
-+	case 2:
- 		if (card->fpga_version > LEGACY_BUFFERS){
- 			fw_name = "solos-db-FPGA.bin";
- 			blocksize = FPGA_BLOCK;
- 		} else {
--			dev_info(&card->dev->dev, "FPGA version doesn't support daughter board upgrades\n");
-+			dev_info(&card->dev->dev, "FPGA version doesn't support"
-+					" daughter board upgrades\n");
- 			return -EPERM;
- 		}
--	}
--	
--	if (chip == 3){
-+		break;
-+	case 3:
- 		if (card->fpga_version > LEGACY_BUFFERS){
- 			fw_name = "solos-Firmware.bin";
- 			blocksize = SOLOS_BLOCK;
- 		} else {
--		dev_info(&card->dev->dev, "FPGA version doesn't support daughter board upgrades\n");
--		return -EPERM;
-+			dev_info(&card->dev->dev, "FPGA version doesn't support"
-+					" daughter board upgrades\n");
-+			return -EPERM;
- 		}
-+		break;
-+	default:
-+		return -ENODEV;
- 	}
- 
- 	if (request_firmware(&fw, fw_name, &card->dev->dev))
+ 	vendid = f75375_read16(client, F75375_REG_VENDOR);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
