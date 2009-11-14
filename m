@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drm-kill-more-unused-drm-macros-fix.patch added to -mm tree
-Date: Fri, 13 Nov 2009 16:59:22 -0800
-Message-ID: <200911140123.nAE1MxSP026932@imap1.linux-foundation.org>
+Subject: + drivers-acpi-acpi_padc-squish-warning.patch added to -mm tree
+Date: Fri, 13 Nov 2009 19:55:30 -0800
+Message-ID: <200911140355.nAE3tVfm031022@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49873 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38852 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753048AbZKNBXD (ORCPT
+	by vger.kernel.org with ESMTP id S1757377AbZKNDzy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Nov 2009 20:23:03 -0500
+	Fri, 13 Nov 2009 22:55:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, airlied@linux.ie, dilinger@collabora.co.uk
+Cc: akpm@linux-foundation.org, lenb@kernel.org, shaohua.li@intel.com
 
 
 The patch titled
-     drm-kill-more-unused-drm-macros-fix
+     drivers/acpi/acpi_pad.c: squish warning
 has been added to the -mm tree.  Its filename is
-     drm-kill-more-unused-drm-macros-fix.patch
+     drivers-acpi-acpi_padc-squish-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drm-kill-more-unused-drm-macros-fix
+Subject: drivers/acpi/acpi_pad.c: squish warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-eh?  This is still used a lot.
+drivers/acpi/acpi_pad.c: In function 'power_saving_thread':
+drivers/acpi/acpi_pad.c:103: warning: 'preferred_cpu' may be used uninitialized in this function
 
-Cc: Andres Salomon <dilinger@collabora.co.uk>
-Cc: Dave Airlie <airlied@linux.ie>
+Cc: Shaohua Li <shaohua.li@intel.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/drm/drmP.h |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/acpi/acpi_pad.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/drm/drmP.h~drm-kill-more-unused-drm-macros-fix include/drm/drmP.h
---- a/include/drm/drmP.h~drm-kill-more-unused-drm-macros-fix
-+++ a/include/drm/drmP.h
-@@ -251,6 +251,8 @@ extern void drm_ut_debug_printk(unsigned
- /** \name Internal types and structures */
- /*@{*/
+diff -puN drivers/acpi/acpi_pad.c~a drivers/acpi/acpi_pad.c
+--- a/drivers/acpi/acpi_pad.c~a
++++ a/drivers/acpi/acpi_pad.c
+@@ -100,7 +100,8 @@ static void round_robin_cpu(unsigned int
+ 	struct cpumask *pad_busy_cpus = to_cpumask(pad_busy_cpus_bits);
+ 	cpumask_var_t tmp;
+ 	int cpu;
+-	unsigned long min_weight = -1, preferred_cpu;
++	unsigned long min_weight = -1;
++	unsigned long uninitialized_var(preferred_cpu);
  
-+#define DRM_ARRAY_SIZE(x) ARRAY_SIZE(x)
-+
- #define DRM_LEFTCOUNT(x) (((x)->rp + (x)->count - (x)->wp) % ((x)->count + 1))
- #define DRM_BUFCOUNT(x) ((x)->count - DRM_LEFTCOUNT(x))
- 
+ 	if (!alloc_cpumask_var(&tmp, GFP_KERNEL))
+ 		return;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -66,14 +68,21 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 linux-next.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
+recordmcount-stfu.patch
 include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
 sound-pci-hda-patch_viac-work-around-gcc-402-ice.patch
+drivers-char-cycladesc-fix-used-uninitialised-bug.patch
 drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
 arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
 cmpc_acpi-add-support-for-classmate-pc-acpi-devices-fix.patch
 acpi-remove-nid_inval-checkpatch-fixes.patch
+drivers-acpi-acpi_padc-squish-warning.patch
+drivers-char-agp-amd64-agpc-squish-warning.patch
 drm-kill-more-unused-drm-macros-fix.patch
+drivers-hwmon-f75375sc-fix-warning-and-probable-bug.patch
 timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+drivers-leds-leds-ss4200c-fix-return-statement.patch
+drivers-atm-solos-pcic-fix-warning-bug-clean-up-code.patch
 3x59x-fix-pci-resource-management.patch
 bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
 atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops-fix.patch
@@ -105,6 +114,7 @@ spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
 gpiolib-add-names-file-in-gpio-chip-sysfs.patch
 mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
 mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3.patch
 ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
 memcg-coalesce-charging-via-percpu-storage-fix.patch
 aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
