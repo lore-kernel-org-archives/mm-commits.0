@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-hwmon-f75375sc-fix-warning-and-probable-bug.patch added to -mm tree
-Date: Fri, 13 Nov 2009 19:56:28 -0800
-Message-ID: <200911140356.nAE3uTrc000917@imap1.linux-foundation.org>
+Subject: + recordmcount-stfu.patch added to -mm tree
+Date: Fri, 13 Nov 2009 19:56:55 -0800
+Message-ID: <200911140356.nAE3utfU001939@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60584 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41399 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757717AbZKND44 (ORCPT
+	by vger.kernel.org with ESMTP id S1757644AbZKND4z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Nov 2009 22:56:56 -0500
+	Fri, 13 Nov 2009 22:56:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, corentin.labbe@geomatys.fr, khali@linux-fr.org, riku.voipio@iki.fi
+Cc: akpm@linux-foundation.org, lihong.hi@gmail.com, rostedt@goodmis.org
 
 
 The patch titled
-     drivers/hwmon/f75375s.c: fix warning, and probable bug
+     recordmcount-stfu
 has been added to the -mm tree.  Its filename is
-     drivers-hwmon-f75375sc-fix-warning-and-probable-bug.patch
+     recordmcount-stfu.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/hwmon/f75375s.c: fix warning, and probable bug
+Subject: recordmcount-stfu
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/hwmon/f75375s.c: In function 'f75375_detect':
-drivers/hwmon/f75375s.c:689: warning: comparison is always false due to limited range of data type
-drivers/hwmon/f75375s.c:689: warning: comparison is always false due to limited range of data type
-drivers/hwmon/f75375s.c:691: warning: comparison is always false due to limited range of data type
-drivers/hwmon/f75375s.c:691: warning: comparison is always false due to limited range of data type
+oy, people are trying to get work done here.
 
-Cc: Riku Voipio <riku.voipio@iki.fi>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Corentin Labbe <corentin.labbe@geomatys.fr>
+Cc: Li Hong <lihong.hi@gmail.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/f75375s.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/recordmcount.pl |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/hwmon/f75375s.c~a drivers/hwmon/f75375s.c
---- a/drivers/hwmon/f75375s.c~a
-+++ a/drivers/hwmon/f75375s.c
-@@ -681,7 +681,7 @@ static int f75375_detect(struct i2c_clie
- 			 struct i2c_board_info *info)
- {
- 	struct i2c_adapter *adapter = client->adapter;
--	u8 vendid, chipid, version;
-+	u16 vendid, chipid, version;
- 	const char *name;
+diff -puN scripts/recordmcount.pl~recordmcount-stfu scripts/recordmcount.pl
+--- a/scripts/recordmcount.pl~recordmcount-stfu
++++ a/scripts/recordmcount.pl
+@@ -180,9 +180,9 @@ sub check_objcopy
+     close (IN);
  
- 	vendid = f75375_read16(client, F75375_REG_VENDOR);
+     if (!$can_use_local) {
+-	print STDERR "WARNING: could not find objcopy version or version " .
+-	    "is less than 2.17.\n" .
+-	    "\tLocal function references is disabled.\n";
++#	print STDERR "WARNING: could not find objcopy version or version " .
++#	    "is less than 2.17.\n" .
++#	    "\tLocal function references is disabled.\n";
+     }
+ }
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
