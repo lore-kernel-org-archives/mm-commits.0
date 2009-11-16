@@ -1,35 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + revert-x86-mark-the-thermal-init-functions-__init.patch added to -mm tree
-Date: Sat, 14 Nov 2009 08:15:56 -0800
-Message-ID: <200911141615.nAEGFueX031303@imap1.linux-foundation.org>
+Subject: [alternative-merged] revert-x86-mark-the-thermal-init-functions-__init.patch removed from -mm tree
+Date: Mon, 16 Nov 2009 11:02:00 -0800
+Message-ID: <200911161902.nAGJ210R009683@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56257 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47567 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751624AbZKNQQD (ORCPT
+	by vger.kernel.org with ESMTP id S1750995AbZKPTCI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 14 Nov 2009 11:16:03 -0500
+	Mon, 16 Nov 2009 14:02:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jirislaby@gmail.com, mingo@elte.hu, yong.y.wang@intel.com, yong.y.wang@linux.intel.com
+To: akpm@linux-foundation.org, jirislaby@gmail.com, mingo@elte.hu, yong.y.wang@intel.com, yong.y.wang@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      revert "x86: Mark the thermal init functions __init"
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      revert-x86-mark-the-thermal-init-functions-__init.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an alternative patch was merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -90,7 +80,6 @@ next-remove-localversion.patch
 i-need-old-gcc.patch
 recordmcount-stfu.patch
 include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
-sound-pci-hda-patch_viac-work-around-gcc-402-ice.patch
 revert-x86-mark-the-thermal-init-functions-__init.patch
 drivers-char-cycladesc-fix-used-uninitialised-bug.patch
 drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
