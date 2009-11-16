@@ -1,24 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + mtd-nand-fix-multi-chip-suspend-problem.patch added to -mm tree
-Date: Mon, 16 Nov 2009 12:54:46 -0800
-Message-ID: <200911162054.nAGKskF1017941@imap1.linux-foundation.org>
+Subject: + lis3-fix-show-rate-for-8-bits-chips.patch added to -mm tree
+Date: Mon, 16 Nov 2009 13:25:32 -0800
+Message-ID: <200911162125.nAGLPWPP026392@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50976 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43918 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752613AbZKPUyn (ORCPT
+	by vger.kernel.org with ESMTP id S1752665AbZKPV0E (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Nov 2009 15:54:43 -0500
+	Mon, 16 Nov 2009 16:26:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: leoli@freescale.com, b24347@freescale.com
+Cc: eric.piel@tremplin-utc.net, christoph.plattner@gmx.at, kalhan.trisal@intel.com, pavel@ucw.cz, samu.p.onkalo@nokia.com
 
 
 The patch titled
-     mtd/nand: fix multi-chip suspend problem
+     lis3: fix show rate for 8 bits chips
 has been added to the -mm tree.  Its filename is
-     mtd-nand-fix-multi-chip-suspend-problem.patch
+     lis3-fix-show-rate-for-8-bits-chips.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -26,60 +29,120 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: mtd/nand: fix multi-chip suspend problem
-From: Li Yang <leoli@freescale.com>
+Subject: lis3: fix show rate for 8 bits chips
+=46rom: =C9ric Piel <eric.piel@tremplin-utc.net>
 
-Symptom:
-device_suspend(): mtd_cls_suspend+0x0/0x58 returns -11
-PM: Device mtd14 failed to suspend: error -11
-PM: Some devices failed to suspend
+Originally the driver was only targeted to 12bits sensors.  When suppor=
+t
+for 8bits sensors was added, some slight difference in the registers we=
+re
+overlooked.  This should fix it, both for initialization, and for
+displaying the rate.
 
-This patch enables other chips to be suspended if the active chip of
-the controller has been suspended.
-
-Signed-off-by: Jin Qing <b24347@freescale.com>
-Signed-off-by: Li Yang <leoli@freescale.com>
+Reported-by: Kalhan Trisal <kalhan.trisal@intel.com>
+Reported-by: Christoph Plattner <christoph.plattner@gmx.at>
+Tested-by: Christoph Plattner <christoph.plattner@gmx.at>
+Tested-by: Samu Onkalo <samu.p.onkalo@nokia.com>
+Signed-off-by: =C9ric Piel <eric.piel@tremplin-utc.net>
+Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
+Cc: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/nand/nand_base.c |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ drivers/hwmon/lis3lv02d.c |   24 ++++++++++++++++--------
+ drivers/hwmon/lis3lv02d.h |    1 +
+ 2 files changed, 17 insertions(+), 8 deletions(-)
 
-diff -puN drivers/mtd/nand/nand_base.c~mtd-nand-fix-multi-chip-suspend-problem drivers/mtd/nand/nand_base.c
---- a/drivers/mtd/nand/nand_base.c~mtd-nand-fix-multi-chip-suspend-problem
-+++ a/drivers/mtd/nand/nand_base.c
-@@ -697,10 +697,16 @@ nand_get_device(struct nand_chip *chip, 
- 		spin_unlock(lock);
- 		return 0;
- 	}
--	if (new_state == FL_PM_SUSPENDED) {
--		spin_unlock(lock);
--		return (chip->state == FL_PM_SUSPENDED) ? 0 : -EAGAIN;
--	}
-+	if (new_state == FL_PM_SUSPENDED)
-+		if (chip->controller->active->state == FL_PM_SUSPENDED) {
-+			chip->state = FL_PM_SUSPENDED;
-+			spin_unlock(lock);
-+			return 0;
-+		} else {
-+			spin_unlock(lock);
-+			return -EAGAIN;
-+		}
+diff -puN drivers/hwmon/lis3lv02d.c~lis3-fix-show-rate-for-8-bits-chips=
+ drivers/hwmon/lis3lv02d.c
+--- a/drivers/hwmon/lis3lv02d.c~lis3-fix-show-rate-for-8-bits-chips
++++ a/drivers/hwmon/lis3lv02d.c
+@@ -127,12 +127,14 @@ void lis3lv02d_poweron(struct lis3lv02d=20
+=20
+ 	/*
+ 	 * Common configuration
+-	 * BDU: LSB and MSB values are not updated until both have been read.
+-	 *      So the value read will always be correct.
++	 * BDU: (12 bits sensors only) LSB and MSB values are not updated unt=
+il
++	 *      both have been read. So the value read will always be correct=
+=2E
+ 	 */
+-	lis3->read(lis3, CTRL_REG2, &reg);
+-	reg |=3D CTRL2_BDU;
+-	lis3->write(lis3, CTRL_REG2, reg);
++	if (lis3->whoami =3D=3D  WAI_12B) {
++		lis3->read(lis3, CTRL_REG2, &reg);
++		reg |=3D CTRL2_BDU;
++		lis3->write(lis3, CTRL_REG2, reg);
++	}
+ }
+ EXPORT_SYMBOL_GPL(lis3lv02d_poweron);
+=20
+@@ -361,7 +363,8 @@ static ssize_t lis3lv02d_calibrate_store
+ }
+=20
+ /* conversion btw sampling rate and the register values */
+-static int lis3lv02dl_df_val[4] =3D {40, 160, 640, 2560};
++static int lis3_12_rates[4] =3D {40, 160, 640, 2560};
++static int lis3_8_rates[2] =3D {100, 400};
+ static ssize_t lis3lv02d_rate_show(struct device *dev,
+ 			struct device_attribute *attr, char *buf)
+ {
+@@ -369,8 +372,13 @@ static ssize_t lis3lv02d_rate_show(struc
+ 	int val;
+=20
+ 	lis3_dev.read(&lis3_dev, CTRL_REG1, &ctrl);
+-	val =3D (ctrl & (CTRL1_DF0 | CTRL1_DF1)) >> 4;
+-	return sprintf(buf, "%d\n", lis3lv02dl_df_val[val]);
 +
- 	set_current_state(TASK_UNINTERRUPTIBLE);
- 	add_wait_queue(wq, &wait);
- 	spin_unlock(lock);
++	if (lis3_dev.whoami =3D=3D WAI_12B)
++		val =3D lis3_12_rates[(ctrl & (CTRL1_DF0 | CTRL1_DF1)) >> 4];
++	else
++		val =3D lis3_8_rates[(ctrl & CTRL1_DR) >> 7];
++
++	return sprintf(buf, "%d\n", val);
+ }
+=20
+ static DEVICE_ATTR(position, S_IRUGO, lis3lv02d_position_show, NULL);
+diff -puN drivers/hwmon/lis3lv02d.h~lis3-fix-show-rate-for-8-bits-chips=
+ drivers/hwmon/lis3lv02d.h
+--- a/drivers/hwmon/lis3lv02d.h~lis3-fix-show-rate-for-8-bits-chips
++++ a/drivers/hwmon/lis3lv02d.h
+@@ -103,6 +103,7 @@ enum lis3lv02d_ctrl1 {
+ 	CTRL1_DF1	=3D 0x20,
+ 	CTRL1_PD0	=3D 0x40,
+ 	CTRL1_PD1	=3D 0x80,
++	CTRL1_DR	=3D 0x80, /* Data rate on 8 bits */
+ };
+ enum lis3lv02d_ctrl2 {
+ 	CTRL2_DAS	=3D 0x01,
 _
 
-Patches currently in -mm which might be from leoli@freescale.com are
+Patches currently in -mm which might be from eric.piel@tremplin-utc.net=
+ are
 
-mtd-nand-fix-multi-chip-suspend-problem.patch
+linux-next.patch
+lis3lv02d-axis-remap-and-resource-setup-release.patch
+lis3lv02d-i2c-support.patch
+lis3lv02d-send-sync-event.patch
+lis3lv02d-correct-memory-leak-in-module-unload.patch
+lis3-update-documentation-and-comments.patch
+lis3-fix-show-rate-for-8-bits-chips.patch
+lis3lv02d-proper-power-on-sequence.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
