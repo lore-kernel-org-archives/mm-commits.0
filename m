@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: [folded] hpsa-use-shost_priv-instead-of-accessing-host-hostdata-directly.patch removed from -mm tree
-Date: Mon, 16 Nov 2009 13:28:15 -0800
-Message-ID: <200911162128.nAGLSFrf000506@imap1.linux-foundation.org>
+Subject: [folded] hpsa-allocate-the-correct-amount-of-extra-space-for-the-scsi-host.patch removed from -mm tree
+Date: Mon, 16 Nov 2009 13:28:12 -0800
+Message-ID: <200911162128.nAGLSCZb000325@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51932 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42824 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753934AbZKPV2V (ORCPT
+	by vger.kernel.org with ESMTP id S1753927AbZKPV2T (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Nov 2009 16:28:21 -0500
+	Mon, 16 Nov 2009 16:28:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: scameron@beardog.cce.hp.com, James.Bottomley@HansenPartnership.com, jens.axboe@oracle.com, mikem@beardog.cce.hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hpsa: Use shost_priv instead of accessing host->hostdata[0] directly.
+     hpsa: Allocate the correct amount of extra space for the scsi host
 has been removed from the -mm tree.  Its filename was
-     hpsa-use-shost_priv-instead-of-accessing-host-hostdata-directly.patch
+     hpsa-allocate-the-correct-amount-of-extra-space-for-the-scsi-host.patch
 
 This patch was dropped because it was folded into scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hpsa: Use shost_priv instead of accessing host->hostdata[0] directly.
+Subject: hpsa: Allocate the correct amount of extra space for the scsi host
 From: "Stephen M. Cameron" <scameron@beardog.cce.hp.com>
 
-Use shost_priv instead of accessing host->hostdata[0] directly.
+hpsa: Allocate the correct amount of extra space for the scsi host
 
 Signed-off-by: Stephen M. Cameron <scameron@beardog.cce.hp.com>
 Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
@@ -36,94 +36,28 @@ Cc: Mike Miller <mikem@beardog.cce.hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/hpsa.c |   20 +++++++++++++-------
- 1 file changed, 13 insertions(+), 7 deletions(-)
+ drivers/scsi/hpsa.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/hpsa.c~hpsa-use-shost_priv-instead-of-accessing-host-hostdata-directly drivers/scsi/hpsa.c
---- a/drivers/scsi/hpsa.c~hpsa-use-shost_priv-instead-of-accessing-host-hostdata-directly
+diff -puN drivers/scsi/hpsa.c~hpsa-allocate-the-correct-amount-of-extra-space-for-the-scsi-host drivers/scsi/hpsa.c
+--- a/drivers/scsi/hpsa.c~hpsa-allocate-the-correct-amount-of-extra-space-for-the-scsi-host
 +++ a/drivers/scsi/hpsa.c
-@@ -177,6 +177,12 @@ static struct scsi_host_template hpsa_dr
- 	.sdev_attrs = hpsa_sdev_attrs,
- };
+@@ -890,7 +890,7 @@ static int hpsa_scsi_detect(struct ctlr_
+ 	struct Scsi_Host *sh;
+ 	int error;
  
-+static inline struct ctlr_info *sdev_to_hba(struct scsi_device *sdev)
-+{
-+	unsigned long *priv = shost_priv(sdev->host);
-+	return (struct ctlr_info *) *priv;
-+}
-+
- /* Enqueuing and dequeuing functions for cmdlists. */
- static inline void addQ(struct hlist_head *list, struct CommandList *c)
- {
-@@ -227,7 +233,7 @@ static ssize_t raid_level_show(struct de
- 	unsigned long flags;
+-	sh = scsi_host_alloc(&hpsa_driver_template, sizeof(*h));
++	sh = scsi_host_alloc(&hpsa_driver_template, sizeof(h));
+ 	if (sh == NULL)
+ 		goto fail;
  
- 	sdev = to_scsi_device(dev);
--	h = (struct ctlr_info *) sdev->host->hostdata[0];
-+	h = sdev_to_hba(sdev);
- 	spin_lock_irqsave(&h->lock, flags);
- 	hdev = sdev->hostdata;
- 	if (!hdev) {
-@@ -260,7 +266,7 @@ static ssize_t lunid_show(struct device 
- 	unsigned char lunid[8];
- 
- 	sdev = to_scsi_device(dev);
--	h = (struct ctlr_info *) sdev->host->hostdata[0];
-+	h = sdev_to_hba(sdev);
- 	spin_lock_irqsave(&h->lock, flags);
- 	hdev = sdev->hostdata;
- 	if (!hdev) {
-@@ -284,7 +290,7 @@ static ssize_t unique_id_show(struct dev
- 	unsigned char sn[16];
- 
- 	sdev = to_scsi_device(dev);
--	h = (struct ctlr_info *) sdev->host->hostdata[0];
-+	h = sdev_to_hba(sdev);
- 	spin_lock_irqsave(&h->lock, flags);
- 	hdev = sdev->hostdata;
- 	if (!hdev) {
-@@ -677,7 +683,7 @@ static int hpsa_slave_alloc(struct scsi_
- 	unsigned long flags;
- 	struct ctlr_info *h;
- 
--	h = (struct ctlr_info *) sdev->host->hostdata[0];
-+	h = sdev_to_hba(sdev);
- 	spin_lock_irqsave(&h->devlock, flags);
- 	sd = lookup_hpsa_scsi_dev(h, sdev_channel(sdev),
- 		sdev_id(sdev), sdev->lun);
-@@ -1615,7 +1621,7 @@ static int hpsa_scsi_queue_command(struc
- 	unsigned long flags;
- 
- 	/* Get the ptr to our adapter structure out of cmd->host. */
--	h = (struct ctlr_info *) cmd->device->host->hostdata[0];
-+	h = sdev_to_hba(cmd->device);
- 	dev = cmd->device->hostdata;
- 	if (!dev) {
- 		cmd->result = DID_NO_CONNECT << 16;
-@@ -1795,7 +1801,7 @@ static int hpsa_eh_device_reset_handler(
- 	struct hpsa_scsi_dev_t *dev;
- 
- 	/* find the controller to which the command to be aborted was sent */
--	h = (struct ctlr_info *) scsicmd->device->host->hostdata[0];
-+	h = sdev_to_hba(scsicmd->device);
- 	if (h == NULL) /* paranoia */
- 		return FAILED;
- 	dev_warn(&h->pdev->dev, "resetting drive\n");
-@@ -2325,7 +2331,7 @@ static int hpsa_ioctl(struct scsi_device
- 	struct ctlr_info *h;
- 	void __user *argp = (void __user *)arg;
- 
--	h = (struct ctlr_info *) dev->host->hostdata[0];
-+	h = sdev_to_hba(dev);
- 
- 	switch (cmd) {
- 	case CCISS_DEREGDISK:
 _
 
 Patches currently in -mm which might be from scameron@beardog.cce.hp.com are
 
 linux-next.patch
 scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
+hpsa-allocate-the-correct-amount-of-extra-space-for-the-scsi-host.patch
 hpsa-use-shost_priv-instead-of-accessing-host-hostdata-directly.patch
 hpsa-factor-out-command-submission-sequence.patch
 hpsa-factor-out-some-pci_unmap-code.patch
