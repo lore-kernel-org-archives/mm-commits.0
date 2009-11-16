@@ -1,36 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: [folded] hpsa-factor-out-some-pci_unmap-code.patch removed from -mm tree
-Date: Mon, 16 Nov 2009 13:28:21 -0800
-Message-ID: <200911162128.nAGLSLMB000685@imap1.linux-foundation.org>
+Subject: [folded] add-thread-to-allow-controllers-to-register-for-rescan-for-new-devices.patch removed from -mm tree
+Date: Mon, 16 Nov 2009 13:28:24 -0800
+Message-ID: <200911162128.nAGLSOke000859@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33227 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44917 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753994AbZKPV22 (ORCPT
+	by vger.kernel.org with ESMTP id S1754026AbZKPV2a (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Nov 2009 16:28:28 -0500
+	Mon, 16 Nov 2009 16:28:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: scameron@beardog.cce.hp.com, James.Bottomley@HansenPartnership.com, jens.axboe@oracle.com, mikem@beardog.cce.hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hpsa: Factor out some pci_unmap code
+     Add thread to allow controllers to register for rescan for new devices
 has been removed from the -mm tree.  Its filename was
-     hpsa-factor-out-some-pci_unmap-code.patch
+     add-thread-to-allow-controllers-to-register-for-rescan-for-new-devices.patch
 
 This patch was dropped because it was folded into scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hpsa: Factor out some pci_unmap code
+Subject: Add thread to allow controllers to register for rescan for new devices
 From: "Stephen M. Cameron" <scameron@beardog.cce.hp.com>
 
-hpsa: Factor out some pci_unmap code.  There are a few places
-where the same, or nearly the same code is used to pci_unmap
-data buffers of driver initiated commands.  Factor these out
-into a separate function.
+Add thread to allow controllers to register for rescan for new devices
+(borrowed code from cciss.)
 
 Signed-off-by: Stephen M. Cameron <scameron@beardog.cce.hp.com>
 Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
@@ -39,116 +37,251 @@ Cc: Mike Miller <mikem@beardog.cce.hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/hpsa.c |   45 +++++++++++++-----------------------------
- 1 file changed, 14 insertions(+), 31 deletions(-)
+ drivers/scsi/hpsa.c |  147 +++++++++++++++++++++++++++++++++++++++++-
+ drivers/scsi/hpsa.h |    5 +
+ 2 files changed, 150 insertions(+), 2 deletions(-)
 
-diff -puN drivers/scsi/hpsa.c~hpsa-factor-out-some-pci_unmap-code drivers/scsi/hpsa.c
---- a/drivers/scsi/hpsa.c~hpsa-factor-out-some-pci_unmap-code
+diff -puN drivers/scsi/hpsa.c~add-thread-to-allow-controllers-to-register-for-rescan-for-new-devices drivers/scsi/hpsa.c
+--- a/drivers/scsi/hpsa.c~add-thread-to-allow-controllers-to-register-for-rescan-for-new-devices
 +++ a/drivers/scsi/hpsa.c
-@@ -928,17 +928,18 @@ static int hpsa_scsi_detect(struct ctlr_
+@@ -47,6 +47,7 @@
+ #include <linux/string.h>
+ #include <linux/bitmap.h>
+ #include <asm/atomic.h>
++#include <linux/kthread.h>
+ #include "hpsa_cmd.h"
+ #include "hpsa.h"
+ 
+@@ -145,6 +146,7 @@ static ssize_t lunid_show(struct device 
+ 	struct device_attribute *attr, char *buf);
+ static ssize_t unique_id_show(struct device *dev,
+ 	struct device_attribute *attr, char *buf);
++static void hpsa_update_scsi_devices(struct ctlr_info *h, int hostno);
+ 
+ DEVICE_ATTR(raid_level, S_IRUGO, raid_level_show, NULL);
+ DEVICE_ATTR(lunid, S_IRUGO, lunid_show, NULL);
+@@ -183,6 +185,129 @@ static inline struct ctlr_info *sdev_to_
+ 	return (struct ctlr_info *) *priv;
+ }
+ 
++static struct task_struct *hpsa_scan_thread;
++static DEFINE_MUTEX(scan_mutex);
++static LIST_HEAD(scan_q);
++static int scan_thread(void *data);
++
++/**
++ * add_to_scan_list() - add controller to rescan queue
++ * @h:		      Pointer to the controller.
++ *
++ * Adds the controller to the rescan queue if not already on the queue.
++ *
++ * returns 1 if added to the queue, 0 if skipped (could be on the
++ * queue already, or the controller could be initializing or shutting
++ * down).
++ **/
++static int add_to_scan_list(struct ctlr_info *h)
++{
++	struct ctlr_info *test_h;
++	int found = 0;
++	int ret = 0;
++
++	if (h->busy_initializing)
++		return 0;
++
++	if (!mutex_trylock(&h->busy_shutting_down))
++		return 0;
++
++	mutex_lock(&scan_mutex);
++	list_for_each_entry(test_h, &scan_q, scan_list) {
++		if (test_h == h) {
++			found = 1;
++			break;
++		}
++	}
++	if (!found && !h->busy_scanning) {
++		INIT_COMPLETION(h->scan_wait);
++		list_add_tail(&h->scan_list, &scan_q);
++		ret = 1;
++	}
++	mutex_unlock(&scan_mutex);
++	mutex_unlock(&h->busy_shutting_down);
++
++	return ret;
++}
++
++/**
++ * remove_from_scan_list() - remove controller from rescan queue
++ * @h:			   Pointer to the controller.
++ *
++ * Removes the controller from the rescan queue if present. Blocks if
++ * the controller is currently conducting a rescan.  The controller
++ * can be in one of three states:
++ * 1. Doesn't need a scan
++ * 2. On the scan list, but not scanning yet (we remove it)
++ * 3. Busy scanning (and not on the list). In this case we want to wait for
++ *    the scan to complete to make sure the scanning thread for this
++ *    controller is completely idle.
++ **/
++static void remove_from_scan_list(struct ctlr_info *h)
++{
++	struct ctlr_info *test_h, *tmp_h;
++
++	mutex_lock(&scan_mutex);
++	list_for_each_entry_safe(test_h, tmp_h, &scan_q, scan_list) {
++		if (test_h == h) { /* state 2. */
++			list_del(&h->scan_list);
++			complete_all(&h->scan_wait);
++			mutex_unlock(&scan_mutex);
++			return;
++		}
++	}
++	if (h->busy_scanning) { /* state 3. */
++		mutex_unlock(&scan_mutex);
++		wait_for_completion(&h->scan_wait);
++	} else { /* state 1, nothing to do. */
++		mutex_unlock(&scan_mutex);
++	}
++}
++
++/* scan_thread() - kernel thread used to rescan controllers
++ * @data:	 Ignored.
++ *
++ * A kernel thread used scan for drive topology changes on
++ * controllers. The thread processes only one controller at a time
++ * using a queue.  Controllers are added to the queue using
++ * add_to_scan_list() and removed from the queue either after done
++ * processing or using remove_from_scan_list().
++ *
++ * returns 0.
++ **/
++static int scan_thread(__attribute__((unused)) void *data)
++{
++	struct ctlr_info *h;
++	int host_no;
++
++	while (1) {
++		set_current_state(TASK_INTERRUPTIBLE);
++		schedule();
++		if (kthread_should_stop())
++			break;
++
++		while (1) {
++			mutex_lock(&scan_mutex);
++			if (list_empty(&scan_q)) {
++				mutex_unlock(&scan_mutex);
++				break;
++			}
++			h = list_entry(scan_q.next, struct ctlr_info,
++					scan_list);
++			list_del(&h->scan_list);
++			h->busy_scanning = 1;
++			mutex_unlock(&scan_mutex);
++			host_no = h->scsi_host ?  h->scsi_host->host_no : -1;
++			hpsa_update_scsi_devices(h, host_no);
++			complete_all(&h->scan_wait);
++			mutex_lock(&scan_mutex);
++			h->busy_scanning = 0;
++			mutex_unlock(&scan_mutex);
++		}
++	}
++	return 0;
++}
++
+ /* Enqueuing and dequeuing functions for cmdlists. */
+ static inline void addQ(struct hlist_head *list, struct CommandList *c)
+ {
+@@ -3269,8 +3394,11 @@ static int __devinit hpsa_init_one(struc
+ 	if (!h)
+ 		return -1;
+ 
++	h->busy_initializing = 1;
+ 	INIT_HLIST_HEAD(&h->cmpQ);
+ 	INIT_HLIST_HEAD(&h->reqQ);
++	mutex_init(&h->busy_shutting_down);
++	init_completion(&h->scan_wait);
+ 	if (hpsa_pci_init(h, pdev) != 0)
+ 		goto clean1;
+ 
+@@ -3330,7 +3458,7 @@ static int __devinit hpsa_init_one(struc
+ 	h->access.set_intr_mask(h, HPSA_INTR_ON);
+ 
+ 	hpsa_register_scsi(h);	/* hook ourselves into SCSI subsystem */
+-
++	h->busy_initializing = 0;
+ 	return 1;
+ 
+ clean4:
+@@ -3347,6 +3475,7 @@ clean4:
+ 	free_irq(h->intr[SIMPLE_MODE_INT], h);
+ clean2:
+ clean1:
++	h->busy_initializing = 0;
+ 	kfree(h);
  	return -1;
  }
+@@ -3387,6 +3516,8 @@ static void __devexit hpsa_remove_one(st
+ 		return;
+ 	}
+ 	h = pci_get_drvdata(pdev);
++	mutex_lock(&h->busy_shutting_down);
++	remove_from_scan_list(h);
+ 	hpsa_unregister_scsi(h);	/* unhook from SCSI subsystem */
+ 	hpsa_shutdown(pdev);
+ 	iounmap(h->vaddr);
+@@ -3403,6 +3534,7 @@ static void __devexit hpsa_remove_one(st
+ 	 */
+ 	pci_release_regions(pdev);
+ 	pci_set_drvdata(pdev, NULL);
++	mutex_unlock(&h->busy_shutting_down);
+ 	kfree(h);
+ }
  
--static void hpsa_unmap_one(struct pci_dev *pdev,
--		struct CommandList *cp,
--		size_t buflen,
--		int data_direction)
-+static void hpsa_pci_unmap(struct pci_dev *pdev,
-+	struct CommandList *c, int sg_used, int data_direction)
+@@ -3433,12 +3565,23 @@ static struct pci_driver hpsa_pci_driver
+  */
+ static int __init hpsa_init(void)
  {
-+	int i;
- 	union u64bit addr64;
- 
--	addr64.val32.lower = cp->SG[0].Addr.lower;
--	addr64.val32.upper = cp->SG[0].Addr.upper;
--	pci_unmap_single(pdev, (dma_addr_t) addr64.val,
--		buflen, data_direction);
-+	for (i = 0; i < sg_used; i++) {
-+		addr64.val32.lower = c->SG[i].Addr.lower;
-+		addr64.val32.upper = c->SG[i].Addr.upper;
-+		pci_unmap_single(pdev, (dma_addr_t) addr64.val, c->SG[i].Len,
-+			data_direction);
+-	return pci_register_driver(&hpsa_pci_driver);
++	int err;
++	/* Start the scan thread */
++	hpsa_scan_thread = kthread_run(scan_thread, NULL, "hpsa_scan");
++	if (IS_ERR(hpsa_scan_thread)) {
++		err = PTR_ERR(hpsa_scan_thread);
++		return -ENODEV;
 +	}
++	err = pci_register_driver(&hpsa_pci_driver);
++	if (err)
++		kthread_stop(hpsa_scan_thread);
++	return err;
  }
  
- static void hpsa_map_one(struct pci_dev *pdev,
-@@ -1055,7 +1056,7 @@ static int hpsa_scsi_do_inquiry(struct c
- 		TYPE_CMD);
- 	if (rc == 0) {
- 		hpsa_scsi_do_simple_cmd_core(h, c);
--		hpsa_unmap_one(h->pdev, c, bufsize, PCI_DMA_FROMDEVICE);
-+		hpsa_pci_unmap(h->pdev, c, 1, PCI_DMA_FROMDEVICE);
- 
- 		ei = c->err_info;
- 		if (ei->CommandStatus != 0 &&
-@@ -1162,7 +1163,7 @@ static int hpsa_scsi_do_report_luns(stru
- 	if (extended_response)
- 		c->Request.CDB[1] = extended_response;
- 	hpsa_scsi_do_simple_cmd_core(h, c);
--	hpsa_unmap_one(h->pdev, c, bufsize, PCI_DMA_FROMDEVICE);
-+	hpsa_pci_unmap(h->pdev, c, 1, PCI_DMA_FROMDEVICE);
- 	ei = c->err_info;
- 	if (ei->CommandStatus != 0 &&
- 	    ei->CommandStatus != CMD_DATA_UNDERRUN) {
-@@ -2144,12 +2145,7 @@ static int hpsa_passthru_ioctl(struct ct
- 		c->SG[0].Ext = 0; /* we are not chaining*/
- 	}
- 	hpsa_scsi_do_simple_cmd_core(h, c);
--
--	/* unlock the buffers from DMA */
--	temp64.val32.lower = c->SG[0].Addr.lower;
--	temp64.val32.upper = c->SG[0].Addr.upper;
--	pci_unmap_single(h->pdev, (dma_addr_t) temp64.val, iocommand.buf_size,
--			 PCI_DMA_BIDIRECTIONAL);
-+	hpsa_pci_unmap(h->pdev, c, 1, PCI_DMA_BIDIRECTIONAL);
- 
- 	/* Copy the error information out */
- 	memcpy(&iocommand.error_info, c->err_info,
-@@ -2277,14 +2273,7 @@ static int hpsa_big_passthru_ioctl(struc
- 		}
- 	}
- 	hpsa_scsi_do_simple_cmd_core(h, c);
--	/* unlock the buffers from DMA */
--	for (i = 0; i < sg_used; i++) {
--		temp64.val32.lower = c->SG[i].Addr.lower;
--		temp64.val32.upper = c->SG[i].Addr.upper;
--		pci_unmap_single(h->pdev,
--			(dma_addr_t) temp64.val, buff_size[i],
--			PCI_DMA_BIDIRECTIONAL);
--	}
-+	hpsa_pci_unmap(h->pdev, c, sg_used, PCI_DMA_BIDIRECTIONAL);
- 	/* Copy the error information out */
- 	memcpy(&ioc->error_info, c->err_info, sizeof(ioc->error_info));
- 	if (copy_to_user(argp, ioc, sizeof(*ioc))) {
-@@ -2501,7 +2490,6 @@ static int sendcmd_core(struct ctlr_info
- 	int i;
- 	unsigned long complete;
- 	int status = IO_ERROR;
--	union u64bit buff_dma_handle;
- 
- resend_cmd1:
- 	/*
-@@ -2596,12 +2584,7 @@ resend_cmd1:
- 	} while (1);
- 
- cleanup1:
--
--	/* unlock the data buffer from DMA */
--	buff_dma_handle.val32.lower = c->SG[0].Addr.lower;
--	buff_dma_handle.val32.upper = c->SG[0].Addr.upper;
--	pci_unmap_single(h->pdev, (dma_addr_t) buff_dma_handle.val,
--			 c->SG[0].Len, PCI_DMA_BIDIRECTIONAL);
-+	hpsa_pci_unmap(h->pdev, c, 1, PCI_DMA_BIDIRECTIONAL);
- 	return status;
+ static void __exit hpsa_cleanup(void)
+ {
+ 	pci_unregister_driver(&hpsa_pci_driver);
++	kthread_stop(hpsa_scan_thread);
  }
  
+ module_init(hpsa_init);
+diff -puN drivers/scsi/hpsa.h~add-thread-to-allow-controllers-to-register-for-rescan-for-new-devices drivers/scsi/hpsa.h
+--- a/drivers/scsi/hpsa.h~add-thread-to-allow-controllers-to-register-for-rescan-for-new-devices
++++ a/drivers/scsi/hpsa.h
+@@ -91,6 +91,11 @@ struct ctlr_info {
+ 	unsigned long  		*cmd_pool_bits;
+ 	int			nr_allocs;
+ 	int			nr_frees;
++	int			busy_initializing;
++	int			busy_scanning;
++	struct mutex		busy_shutting_down;
++	struct list_head	scan_list;
++	struct completion	scan_wait;
+ 
+ 	struct Scsi_Host *scsi_host;
+ 	spinlock_t devlock; /* to protect hba[ctlr]->dev[];  */
 _
 
 Patches currently in -mm which might be from scameron@beardog.cce.hp.com are
 
 linux-next.patch
 scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
-hpsa-factor-out-some-pci_unmap-code.patch
 add-thread-to-allow-controllers-to-register-for-rescan-for-new-devices.patch
 hpsa-allow-device-rescan-to-be-triggered-via-sysfs.patch
 hpsa-make-hpsa_sdev_attrs-static.patch
