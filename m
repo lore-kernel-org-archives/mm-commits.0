@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cpufreq-document-units-for-transition-latency.patch added to -mm tree
-Date: Mon, 16 Nov 2009 12:49:03 -0800
-Message-ID: <200911162049.nAGKn361004448@imap1.linux-foundation.org>
+Subject: + mtd-nand-fix-multi-chip-suspend-problem.patch added to -mm tree
+Date: Mon, 16 Nov 2009 12:54:46 -0800
+Message-ID: <200911162054.nAGKskF1017941@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49345 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50976 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752633AbZKPUtN (ORCPT
+	by vger.kernel.org with ESMTP id S1752613AbZKPUyn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Nov 2009 15:49:13 -0500
+	Mon, 16 Nov 2009 15:54:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: broonie@opensource.wolfsonmicro.com, davej@codemonkey.org.uk
+Cc: leoli@freescale.com, b24347@freescale.com
 
 
 The patch titled
-     cpufreq: document units for transition latency
+     mtd/nand: fix multi-chip suspend problem
 has been added to the -mm tree.  Its filename is
-     cpufreq-document-units-for-transition-latency.patch
+     mtd-nand-fix-multi-chip-suspend-problem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpufreq: document units for transition latency
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: mtd/nand: fix multi-chip suspend problem
+From: Li Yang <leoli@freescale.com>
 
-They're documented in the header but not in Documentation.
+Symptom:
+device_suspend(): mtd_cls_suspend+0x0/0x58 returns -11
+PM: Device mtd14 failed to suspend: error -11
+PM: Some devices failed to suspend
 
-Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Dave Jones <davej@codemonkey.org.uk>
+This patch enables other chips to be suspended if the active chip of
+the controller has been suspended.
+
+Signed-off-by: Jin Qing <b24347@freescale.com>
+Signed-off-by: Li Yang <leoli@freescale.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cpu-freq/cpu-drivers.txt |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/mtd/nand/nand_base.c |   14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
-diff -puN Documentation/cpu-freq/cpu-drivers.txt~cpufreq-document-units-for-transition-latency Documentation/cpu-freq/cpu-drivers.txt
---- a/Documentation/cpu-freq/cpu-drivers.txt~cpufreq-document-units-for-transition-latency
-+++ a/Documentation/cpu-freq/cpu-drivers.txt
-@@ -92,9 +92,9 @@ policy->cpuinfo.max_freq -	the minimum a
- 				(in kHz) which is supported by 
- 				this CPU
- policy->cpuinfo.transition_latency   the time it takes on this CPU to
--				switch between two frequencies (if
--				appropriate, else specify
--				CPUFREQ_ETERNAL)
-+				switch between two frequencies in
-+				nanoseconds (if appropriate, else
-+				specify CPUFREQ_ETERNAL)
- 
- policy->cur			The current operating frequency of
- 				this CPU (if appropriate)
+diff -puN drivers/mtd/nand/nand_base.c~mtd-nand-fix-multi-chip-suspend-problem drivers/mtd/nand/nand_base.c
+--- a/drivers/mtd/nand/nand_base.c~mtd-nand-fix-multi-chip-suspend-problem
++++ a/drivers/mtd/nand/nand_base.c
+@@ -697,10 +697,16 @@ nand_get_device(struct nand_chip *chip, 
+ 		spin_unlock(lock);
+ 		return 0;
+ 	}
+-	if (new_state == FL_PM_SUSPENDED) {
+-		spin_unlock(lock);
+-		return (chip->state == FL_PM_SUSPENDED) ? 0 : -EAGAIN;
+-	}
++	if (new_state == FL_PM_SUSPENDED)
++		if (chip->controller->active->state == FL_PM_SUSPENDED) {
++			chip->state = FL_PM_SUSPENDED;
++			spin_unlock(lock);
++			return 0;
++		} else {
++			spin_unlock(lock);
++			return -EAGAIN;
++		}
++
+ 	set_current_state(TASK_UNINTERRUPTIBLE);
+ 	add_wait_queue(wq, &wait);
+ 	spin_unlock(lock);
 _
 
-Patches currently in -mm which might be from broonie@opensource.wolfsonmicro.com are
+Patches currently in -mm which might be from leoli@freescale.com are
 
-linux-next.patch
-cpufreq-document-units-for-transition-latency.patch
-dev-mem-remove-redundant-test-on-len.patch
-dev-mem-introduce-size_inside_page.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
-dev-mem-make-size_inside_page-logic-straight.patch
-dev-mem-remove-the-written-variable-in-write_kmem.patch
-dev-mem-remove-redundant-parameter-from-do_write_kmem.patch
+mtd-nand-fix-multi-chip-suspend-problem.patch
 
