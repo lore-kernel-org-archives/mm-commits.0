@@ -1,75 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: [folded] scsi-add-hpsa-driver-for-hp-smart-array-controllers-fix-hpsa_allow_any-test-for-vendor-id.patch removed from -mm tree
-Date: Mon, 16 Nov 2009 13:28:02 -0800
-Message-ID: <200911162128.nAGLS2Tf032372@imap1.linux-foundation.org>
+Subject: [folded] scsi-add-hpsa-driver-for-hp-smart-array-controllers-fix.patch removed from -mm tree
+Date: Mon, 16 Nov 2009 13:28:07 -0800
+Message-ID: <200911162128.nAGLS7Ed032681@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35362 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57654 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753215AbZKPV2J (ORCPT
+	by vger.kernel.org with ESMTP id S1753592AbZKPV2N (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Nov 2009 16:28:09 -0500
+	Mon, 16 Nov 2009 16:28:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: scameron@beardog.cce.hp.com, James.Bottomley@HansenPartnership.com, jens.axboe@oracle.com, mikem@beardog.cce.hp.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, jens.axboe@oracle.com, mikem@beardog.cce.hp.com, scameron@beardog.cce.hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hpsa: fix hpsa_allow_any test for vendor ID
+     scsi-add-hpsa-driver-for-hp-smart-array-controllers-fix
 has been removed from the -mm tree.  Its filename was
-     scsi-add-hpsa-driver-for-hp-smart-array-controllers-fix-hpsa_allow_any-test-for-vendor-id.patch
+     scsi-add-hpsa-driver-for-hp-smart-array-controllers-fix.patch
 
 This patch was dropped because it was folded into scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hpsa: fix hpsa_allow_any test for vendor ID
-From: "Stephen M. Cameron" <scameron@beardog.cce.hp.com>
+Subject: scsi-add-hpsa-driver-for-hp-smart-array-controllers-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix hpsa_allow_any test for vendor ID.
+avoid helpful cleanup patches.
 
-Signed-off-by: Stephen M. Cameron <scameron@beardog.cce.hp.com>
-Cc: Mike Miller <mikem@beardog.cce.hp.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: "Stephen M. Cameron" <scameron@beardog.cce.hp.com>
 Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Mike Miller <mikem@beardog.cce.hp.com>
+Cc: Stephen M. Cameron <scameron@beardog.cce.hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/scsi/hpsa.c~scsi-add-hpsa-driver-for-hp-smart-array-controllers-fix-hpsa_allow_any-test-for-vendor-id drivers/scsi/hpsa.c
---- a/drivers/scsi/hpsa.c~scsi-add-hpsa-driver-for-hp-smart-array-controllers-fix-hpsa_allow_any-test-for-vendor-id
+diff -puN drivers/scsi/hpsa.c~scsi-add-hpsa-driver-for-hp-smart-array-controllers-fix drivers/scsi/hpsa.c
+--- a/drivers/scsi/hpsa.c~scsi-add-hpsa-driver-for-hp-smart-array-controllers-fix
 +++ a/drivers/scsi/hpsa.c
-@@ -3080,7 +3080,7 @@ static int hpsa_pci_init(struct ctlr_inf
+@@ -214,7 +214,7 @@ static inline int is_logical_dev_addr_mo
+ static const char *raid_label[] = { "0", "4", "1(1+0)", "5", "5+1", "ADG",
+ 	"UNKNOWN"
+ };
+-#define RAID_UNKNOWN (sizeof(raid_label) / sizeof(raid_label[0]) - 1)
++#define RAID_UNKNOWN (ARRAY_SIZE(raid_label) - 1)
  
- 	if (prod_index == ARRAY_SIZE(products)) {
- 		prod_index--;
--		if (subsystem_vendor_id == !PCI_VENDOR_ID_HP ||
-+		if (subsystem_vendor_id != PCI_VENDOR_ID_HP ||
- 				!hpsa_allow_any) {
- 			dev_warn(&pdev->dev, "unrecognized board ID:"
- 				" 0x%08lx, ignoring.\n",
+ static ssize_t raid_level_show(struct device *dev,
+ 	     struct device_attribute *attr, char *buf)
 _
 
-Patches currently in -mm which might be from scameron@beardog.cce.hp.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+recordmcount-stfu.patch
+include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
+drivers-char-cycladesc-fix-used-uninitialised-bug.patch
+drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices-fix.patch
+acpi-remove-nid_inval-checkpatch-fixes.patch
+drivers-acpi-acpi_padc-squish-warning.patch
+drivers-char-agp-amd64-agpc-squish-warning.patch
+drm-kill-more-unused-drm-macros-fix.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+drivers-leds-leds-ss4200c-fix-return-statement.patch
+drivers-atm-solos-pcic-fix-warning-bug-clean-up-code.patch
+3x59x-fix-pci-resource-management.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops-fix.patch
+st-fix-test-of-value-range-in-st_set_options.patch
 scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
-scsi-add-hpsa-driver-for-hp-smart-array-controllers-fix-hpsa_allow_any-test-for-vendor-id.patch
 scsi-add-hpsa-driver-for-hp-smart-array-controllers-fix.patch
-hpsa-fix-use-of-unallocated-memory-for-msa2xxx-enclosure-device-data.patch
-hpsa-allocate-the-correct-amount-of-extra-space-for-the-scsi-host.patch
-hpsa-use-shost_priv-instead-of-accessing-host-hostdata-directly.patch
-hpsa-factor-out-command-submission-sequence.patch
-hpsa-factor-out-some-pci_unmap-code.patch
-add-thread-to-allow-controllers-to-register-for-rescan-for-new-devices.patch
-hpsa-allow-device-rescan-to-be-triggered-via-sysfs.patch
-hpsa-make-hpsa_sdev_attrs-static.patch
-hpsa-decode-unit-attention-condition-and-retry-commands.patch
-hpsa-retry-driver-initiated-commands-on-unit-attention.patch
-hpsa-flush-cache-with-interrupts-still-enabled.patch
-hpsa-remove-sendcmd-in-no-case-are-we-required-to-poll-for-completions.patch
-hpsa-make-fill_cmd-return-void.patch
-hpsa-fix-typo-that-causes-scsi-status-to-be-lost.patch
-hpsa-make-device-attrs-static.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+fs-improve-remountro-vs-buffercache-coherency.patch
+percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+readahead-add-blk_run_backing_dev.patch
+mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
+oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
+oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes.patch
+mm-memory_hotplug-make-offline_pages-static.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
+drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
+rwsem-fix-rwsem_is_locked-bugs-fix.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
+errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
+msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes.patch
+crc32-minor-optimizations-and-cleanup-checkpatch-fixes.patch
+hwmon-w83627ehf-updates-checkpatch-fixes.patch
+spi-controller-driver-for-designware-spi-core-fix.patch
+spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3.patch
+ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
+memcg-coalesce-charging-via-percpu-storage-fix.patch
+aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
+direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
+zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes.patch
+lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes.patch
+lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+reiser4-disable.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
