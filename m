@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + thinkpad-acpi-fix-detection-of-old-thinkpads.patch added to -mm tree
-Date: Mon, 16 Nov 2009 14:52:29 -0800
-Message-ID: <200911162252.nAGMqTUL006005@imap1.linux-foundation.org>
+Subject: + fcntl-use-consistent-values-for-f_etown_ex.patch added to -mm tree
+Date: Mon, 16 Nov 2009 14:55:52 -0800
+Message-ID: <200911162255.nAGMtqiS014124@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33400 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60940 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754608AbZKPWxE (ORCPT
+	by vger.kernel.org with ESMTP id S1754899AbZKPW51 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Nov 2009 17:53:04 -0500
+	Mon, 16 Nov 2009 17:57:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hmh@hmh.eng.br, bjorn.helgaas@hp.com, kimoto@lightlink.com, lenb@kernel.org, rjw@sisk.pl
+Cc: sfr@canb.auug.org.au, a.p.zijlstra@chello.nl, drepper@gmail.com, eranian@googlemail.com, hch@infradead.org, joseph@codesourcery.com, mingo@elte.hu, mtk.manpages@googlemail.com, onestero@redhat.com, roland@redhat.com, viro@ZenIV.linux.org.uk
 
 
 The patch titled
-     thinkpad-acpi: fix detection of old ThinkPads
+     fcntl: Use consistent values for F_[GS]ETOWN_EX
 has been added to the -mm tree.  Its filename is
-     thinkpad-acpi-fix-detection-of-old-thinkpads.patch
+     fcntl-use-consistent-values-for-f_etown_ex.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,100 +34,80 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thinkpad-acpi: fix detection of old ThinkPads
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: fcntl: Use consistent values for F_[GS]ETOWN_EX
+From: Stephen Rothwell <sfr@canb.auug.org.au>
 
-There is a problem in the quirk tables used by tpacpi_is_fw_known() and
-tpacpi_check_outdated_fw(), which causes outdated BIOSes that are lacking
-the EC firmware ID DMI field to never match.
+These values were only introduced during this release cycle, so it is
+still early enough to get them right.
 
-This breaks module loading on, e.g.  a T23 with outdated BIOS, and the
-module will refuse to load unless the "force_load=1" parameter is given.
+alpha uses the same values that are in asm-generic/fcntl.h, so just remove
+them.
 
-Fix the quirk tables so that they can also match the outdated BIOSes,
-which in turn will both fix the module loading, and also warn the user
-that he is using outdated firmware and should upgrade.
+parisc uses the values interchanged for no apparent reason, so remove them
+to give us consistency across all architectures.
 
-This fixes a serious regression, introduced by commit
-e675abafcc0df38125e6e94a9ba91c92fe774f52, "thinkpad-acpi: be more strict
-when detecting a ThinkPad".
-
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=14597
-
-Reported-by: Paul Kimoto <kimoto@lightlink.com>
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Tested-by: Paul Kimoto <kimoto@lightlink.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: "Joseph S. Myers" <joseph@codesourcery.com>
+Cc: Oleg Nesterov <onestero@redhat.com>
+Cc: Stephane Eranian <eranian@googlemail.com>
+Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Ulrich Drepper <drepper@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/thinkpad_acpi.c |   24 ++++++++++++++++++------
- 1 file changed, 18 insertions(+), 6 deletions(-)
+ arch/alpha/include/asm/fcntl.h  |    2 --
+ arch/parisc/include/asm/fcntl.h |    2 --
+ include/asm-generic/fcntl.h     |    2 --
+ 3 files changed, 6 deletions(-)
 
-diff -puN drivers/platform/x86/thinkpad_acpi.c~thinkpad-acpi-fix-detection-of-old-thinkpads drivers/platform/x86/thinkpad_acpi.c
---- a/drivers/platform/x86/thinkpad_acpi.c~thinkpad-acpi-fix-detection-of-old-thinkpads
-+++ a/drivers/platform/x86/thinkpad_acpi.c
-@@ -1680,36 +1680,48 @@ static void tpacpi_remove_driver_attribu
- 			  | (__bv1) << 8 | (__bv2) }
+diff -puN arch/alpha/include/asm/fcntl.h~fcntl-use-consistent-values-for-f_etown_ex arch/alpha/include/asm/fcntl.h
+--- a/arch/alpha/include/asm/fcntl.h~fcntl-use-consistent-values-for-f_etown_ex
++++ a/arch/alpha/include/asm/fcntl.h
+@@ -26,8 +26,6 @@
+ #define F_GETOWN	6	/*  for sockets. */
+ #define F_SETSIG	10	/*  for sockets. */
+ #define F_GETSIG	11	/*  for sockets. */
+-#define F_SETOWN_EX	15
+-#define F_GETOWN_EX	16
  
- #define TPV_Q_X(__v, __bid1, __bid2, __bv1, __bv2,	\
--		__eid1, __eid2, __ev1, __ev2)		\
-+		__eid, __ev1, __ev2)			\
- 	{ .vendor	= (__v),			\
- 	  .bios		= TPID(__bid1, __bid2),		\
--	  .ec		= TPID(__eid1, __eid2),		\
-+	  .ec		= __eid,			\
- 	  .quirks	= (__ev1) << 24 | (__ev2) << 16 \
- 			  | (__bv1) << 8 | (__bv2) }
+ /* for posix fcntl() and lockf() */
+ #define F_RDLCK		1
+diff -puN arch/parisc/include/asm/fcntl.h~fcntl-use-consistent-values-for-f_etown_ex arch/parisc/include/asm/fcntl.h
+--- a/arch/parisc/include/asm/fcntl.h~fcntl-use-consistent-values-for-f_etown_ex
++++ a/arch/parisc/include/asm/fcntl.h
+@@ -28,8 +28,6 @@
+ #define F_SETOWN	12	/*  for sockets. */
+ #define F_SETSIG	13	/*  for sockets. */
+ #define F_GETSIG	14	/*  for sockets. */
+-#define F_GETOWN_EX	15
+-#define F_SETOWN_EX	16
  
- #define TPV_QI0(__id1, __id2, __bv1, __bv2) \
- 	TPV_Q(PCI_VENDOR_ID_IBM, __id1, __id2, __bv1, __bv2)
+ /* for posix fcntl() and lockf() */
+ #define F_RDLCK		01
+diff -puN include/asm-generic/fcntl.h~fcntl-use-consistent-values-for-f_etown_ex include/asm-generic/fcntl.h
+--- a/include/asm-generic/fcntl.h~fcntl-use-consistent-values-for-f_etown_ex
++++ a/include/asm-generic/fcntl.h
+@@ -82,10 +82,8 @@
+ #endif
+ #endif
  
-+/* Outdated IBM BIOSes often lack the EC id string */
- #define TPV_QI1(__id1, __id2, __bv1, __bv2, __ev1, __ev2) \
- 	TPV_Q_X(PCI_VENDOR_ID_IBM, __id1, __id2, 	\
--		__bv1, __bv2, __id1, __id2, __ev1, __ev2)
-+		__bv1, __bv2, TPID(__id1, __id2),	\
-+		__ev1, __ev2),				\
-+	TPV_Q_X(PCI_VENDOR_ID_IBM, __id1, __id2, 	\
-+		__bv1, __bv2, TPACPI_MATCH_UNKNOWN,	\
-+		__ev1, __ev2)
+-#ifndef F_SETOWN_EX
+ #define F_SETOWN_EX	15
+ #define F_GETOWN_EX	16
+-#endif
  
-+/* Outdated IBM BIOSes often lack the EC id string */
- #define TPV_QI2(__bid1, __bid2, __bv1, __bv2,		\
- 		__eid1, __eid2, __ev1, __ev2) 		\
- 	TPV_Q_X(PCI_VENDOR_ID_IBM, __bid1, __bid2, 	\
--		__bv1, __bv2, __eid1, __eid2, __ev1, __ev2)
-+		__bv1, __bv2, TPID(__eid1, __eid2),	\
-+		__ev1, __ev2),				\
-+	TPV_Q_X(PCI_VENDOR_ID_IBM, __bid1, __bid2, 	\
-+		__bv1, __bv2, TPACPI_MATCH_UNKNOWN,	\
-+		__ev1, __ev2)
- 
- #define TPV_QL0(__id1, __id2, __bv1, __bv2) \
- 	TPV_Q(PCI_VENDOR_ID_LENOVO, __id1, __id2, __bv1, __bv2)
- 
- #define TPV_QL1(__id1, __id2, __bv1, __bv2, __ev1, __ev2) \
- 	TPV_Q_X(PCI_VENDOR_ID_LENOVO, __id1, __id2, 	\
--		__bv1, __bv2, __id1, __id2, __ev1, __ev2)
-+		__bv1, __bv2, TPID(__id1, __id2),	\
-+		__ev1, __ev2)
- 
- #define TPV_QL2(__bid1, __bid2, __bv1, __bv2,		\
- 		__eid1, __eid2, __ev1, __ev2) 		\
- 	TPV_Q_X(PCI_VENDOR_ID_LENOVO, __bid1, __bid2, 	\
--		__bv1, __bv2, __eid1, __eid2, __ev1, __ev2)
-+		__bv1, __bv2, TPID(__eid1, __eid2),	\
-+		__ev1, __ev2)
- 
- static const struct tpacpi_quirk tpacpi_bios_version_qtable[] __initconst = {
- 	/*  Numeric models ------------------ */
+ #define F_OWNER_TID	0
+ #define F_OWNER_PID	1
 _
 
-Patches currently in -mm which might be from hmh@hmh.eng.br are
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
 
+fcntl-use-consistent-values-for-f_etown_ex.patch
 linux-next.patch
-thinkpad-acpi-fix-detection-of-old-thinkpads.patch
+scsi-add-__init-__exit-macros-to-ibmvstgtc.patch
 
