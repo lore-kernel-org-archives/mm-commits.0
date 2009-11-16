@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dvb-make-struct-videobuf_queue_ops-constant.patch added to -mm tree
-Date: Mon, 16 Nov 2009 14:59:22 -0800
-Message-ID: <200911162259.nAGMxM97022451@imap1.linux-foundation.org>
+Subject: + drivers-gpio-pca953xc-add-interrupt-handling-capability.patch added to -mm tree
+Date: Mon, 16 Nov 2009 15:47:40 -0800
+Message-ID: <200911162347.nAGNlelr008388@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43443 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46432 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754672AbZKPW7o (ORCPT
+	by vger.kernel.org with ESMTP id S1754564AbZKPXr4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Nov 2009 17:59:44 -0500
+	Mon, 16 Nov 2009 18:47:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: corbet@lwn.net, mchehab@infradead.org
+Cc: maz@misterjones.org, david-b@pacbell.net, eric.y.miao@gmail.com
 
 
 The patch titled
-     dvb: make struct videobuf_queue_ops constant
+     drivers/gpio/pca953x.c: add interrupt handling capability
 has been added to the -mm tree.  Its filename is
-     dvb-make-struct-videobuf_queue_ops-constant.patch
+     drivers-gpio-pca953xc-add-interrupt-handling-capability.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,136 +34,215 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dvb: make struct videobuf_queue_ops constant
-From: Jonathan Corbet <corbet@lwn.net>
+Subject: drivers/gpio/pca953x.c: add interrupt handling capability
+From: Marc Zyngier <maz@misterjones.org>
 
-The videobuf_queue_ops function vector is not declared constant, but
-there's no need for the videobuf layer to ever change it.  Make it const
-so that videobuf users can make their operations const without warnings.
+Most of the GPIO expanders controlled by the pca953x driver are able to
+report changes on the input pins through an *INT pin.
 
-Signed-off-by: Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+This patch implements a very basic way for the platform code to be alerted
+when some input changes (both edge detection).  It can be seen as a poor
+man irq_chip.
+
+Alternatively, this could be turned into a full-fledged irq_chip, though
+I'm not sure it is worth the complexity.
+
+The driver has been tested on an Arcom Zeus.
+
+Signed-off-by: Marc Zyngier <maz@misterjones.org>
+Cc: Eric Miao <eric.y.miao@gmail.com>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/videobuf-core.c       |    2 +-
- drivers/media/video/videobuf-dma-contig.c |    2 +-
- drivers/media/video/videobuf-dma-sg.c     |    2 +-
- drivers/media/video/videobuf-vmalloc.c    |    2 +-
- include/media/videobuf-core.h             |    4 ++--
- include/media/videobuf-dma-contig.h       |    2 +-
- include/media/videobuf-dma-sg.h           |    2 +-
- include/media/videobuf-vmalloc.h          |    2 +-
- 8 files changed, 9 insertions(+), 9 deletions(-)
+ drivers/gpio/pca953x.c      |   96 +++++++++++++++++++++++++++++-----
+ include/linux/i2c/pca953x.h |    7 ++
+ 2 files changed, 89 insertions(+), 14 deletions(-)
 
-diff -puN drivers/media/video/videobuf-core.c~dvb-make-struct-videobuf_queue_ops-constant drivers/media/video/videobuf-core.c
---- a/drivers/media/video/videobuf-core.c~dvb-make-struct-videobuf_queue_ops-constant
-+++ a/drivers/media/video/videobuf-core.c
-@@ -110,7 +110,7 @@ EXPORT_SYMBOL_GPL(videobuf_queue_to_vmal
+diff -puN drivers/gpio/pca953x.c~drivers-gpio-pca953xc-add-interrupt-handling-capability drivers/gpio/pca953x.c
+--- a/drivers/gpio/pca953x.c~drivers-gpio-pca953xc-add-interrupt-handling-capability
++++ a/drivers/gpio/pca953x.c
+@@ -14,6 +14,7 @@
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/gpio.h>
++#include <linux/interrupt.h>
+ #include <linux/i2c.h>
+ #include <linux/i2c/pca953x.h>
+ #ifdef CONFIG_OF_GPIO
+@@ -26,23 +27,27 @@
+ #define PCA953X_INVERT         2
+ #define PCA953X_DIRECTION      3
  
++#define PCA953X_GPIOS	       0x00FF
++#define PCA953X_INT	       0x0100
++
+ static const struct i2c_device_id pca953x_id[] = {
+-	{ "pca9534", 8, },
+-	{ "pca9535", 16, },
++	{ "pca9534", 8  | PCA953X_INT, },
++	{ "pca9535", 16 | PCA953X_INT, },
+ 	{ "pca9536", 4, },
+-	{ "pca9537", 4, },
+-	{ "pca9538", 8, },
+-	{ "pca9539", 16, },
+-	{ "pca9554", 8, },
+-	{ "pca9555", 16, },
++	{ "pca9537", 4  | PCA953X_INT, },
++	{ "pca9538", 8  | PCA953X_INT, },
++	{ "pca9539", 16 | PCA953X_INT, },
++	{ "pca9554", 8  | PCA953X_INT, },
++	{ "pca9555", 16 | PCA953X_INT, },
+ 	{ "pca9556", 8, },
+ 	{ "pca9557", 8, },
  
- void videobuf_queue_core_init(struct videobuf_queue *q,
--			 struct videobuf_queue_ops *ops,
-+			 const struct videobuf_queue_ops *ops,
- 			 struct device *dev,
- 			 spinlock_t *irqlock,
- 			 enum v4l2_buf_type type,
-diff -puN drivers/media/video/videobuf-dma-contig.c~dvb-make-struct-videobuf_queue_ops-constant drivers/media/video/videobuf-dma-contig.c
---- a/drivers/media/video/videobuf-dma-contig.c~dvb-make-struct-videobuf_queue_ops-constant
-+++ a/drivers/media/video/videobuf-dma-contig.c
-@@ -428,7 +428,7 @@ static struct videobuf_qtype_ops qops = 
+ 	{ "max7310", 8, },
+-	{ "max7315", 8, },
+-	{ "pca6107", 8, },
+-	{ "tca6408", 8, },
+-	{ "tca6416", 16, },
++	{ "max7313", 16 | PCA953X_INT, },
++	{ "max7315", 8  | PCA953X_INT, },
++	{ "pca6107", 8  | PCA953X_INT, },
++	{ "tca6408", 8  | PCA953X_INT, },
++	{ "tca6416", 16 | PCA953X_INT, },
+ 	/* NYET:  { "tca6424", 24, }, */
+ 	{ }
  };
+@@ -53,6 +58,11 @@ struct pca953x_chip {
+ 	uint16_t reg_output;
+ 	uint16_t reg_direction;
  
- void videobuf_queue_dma_contig_init(struct videobuf_queue *q,
--				    struct videobuf_queue_ops *ops,
-+				    const struct videobuf_queue_ops *ops,
- 				    struct device *dev,
- 				    spinlock_t *irqlock,
- 				    enum v4l2_buf_type type,
-diff -puN drivers/media/video/videobuf-dma-sg.c~dvb-make-struct-videobuf_queue_ops-constant drivers/media/video/videobuf-dma-sg.c
---- a/drivers/media/video/videobuf-dma-sg.c~dvb-make-struct-videobuf_queue_ops-constant
-+++ a/drivers/media/video/videobuf-dma-sg.c
-@@ -702,7 +702,7 @@ void *videobuf_sg_alloc(size_t size)
++	uint16_t int_mask;
++	uint16_t int_prev_input;
++	void (*interrupt)(uint16_t, uint16_t, void *);
++	void *context;
++
+ 	struct i2c_client *client;
+ 	struct pca953x_platform_data *dyn_pdata;
+ 	struct gpio_chip gpio_chip;
+@@ -202,6 +212,34 @@ static void pca953x_setup_gpio(struct pc
+ 	gc->names = chip->names;
  }
  
- void videobuf_queue_sg_init(struct videobuf_queue* q,
--			 struct videobuf_queue_ops *ops,
-+			 const struct videobuf_queue_ops *ops,
- 			 struct device *dev,
- 			 spinlock_t *irqlock,
- 			 enum v4l2_buf_type type,
-diff -puN drivers/media/video/videobuf-vmalloc.c~dvb-make-struct-videobuf_queue_ops-constant drivers/media/video/videobuf-vmalloc.c
---- a/drivers/media/video/videobuf-vmalloc.c~dvb-make-struct-videobuf_queue_ops-constant
-+++ a/drivers/media/video/videobuf-vmalloc.c
-@@ -391,7 +391,7 @@ static struct videobuf_qtype_ops qops = 
++static irqreturn_t pca953x_irq_quick_handler(int irq, void *devid)
++{
++	/* Always happy to serve... */
++	return IRQ_WAKE_THREAD;
++}
++
++static irqreturn_t pca953x_irq_handler(int irq, void *devid)
++{
++	struct pca953x_chip *chip = devid;
++	uint16_t reg_val;
++	uint16_t mask;
++	int ret;
++
++	ret = pca953x_read_reg(chip, PCA953X_INPUT, &reg_val);
++	if (ret)
++		return IRQ_HANDLED;
++
++	reg_val &= (chip->int_mask & chip->reg_direction);
++	mask = reg_val ^ chip->int_prev_input;
++
++	if (mask) {
++		chip->int_prev_input = reg_val;
++		chip->interrupt(reg_val, mask, chip->context);
++	}
++
++	return IRQ_HANDLED;
++}
++
+ /*
+  * Handlers for alternative sources of platform_data
+  */
+@@ -286,7 +324,7 @@ static int __devinit pca953x_probe(struc
+ 	/* initialize cached registers from their original values.
+ 	 * we can't share this chip with another i2c master.
+ 	 */
+-	pca953x_setup_gpio(chip, id->driver_data);
++	pca953x_setup_gpio(chip, id->driver_data & PCA953X_GPIOS);
+ 
+ 	ret = pca953x_read_reg(chip, PCA953X_OUTPUT, &chip->reg_output);
+ 	if (ret)
+@@ -301,10 +339,39 @@ static int __devinit pca953x_probe(struc
+ 	if (ret)
+ 		goto out_failed;
+ 
++	if (pdata->interrupt && (id->driver_data & PCA953X_INT)) {
++		ret = pca953x_read_reg(chip, PCA953X_INPUT,
++				       &chip->int_prev_input);
++		if (ret)
++			goto out_failed;
++
++		chip->interrupt = pdata->interrupt;
++		chip->int_mask = pdata->mask;
++
++		/*
++		 * There is no way to know which GPIO line generated the
++		 * interrupt.  We have to rely on the previous read for
++		 * this purpose.
++		 */
++		chip->int_prev_input &= chip->int_mask & chip->reg_direction;
++
++		ret = request_threaded_irq(client->irq,
++					   pca953x_irq_quick_handler,
++					   pca953x_irq_handler, 0,
++					   dev_name(&client->dev), chip);
++		if (ret) {
++			dev_err(&client->dev, "failed to request irq %d\n",
++				client->irq);
++			goto out_failed;
++		}
++	}
+ 
+ 	ret = gpiochip_add(&chip->gpio_chip);
+-	if (ret)
++	if (ret) {
++		if (pdata->interrupt)
++			free_irq(client->irq, chip);
+ 		goto out_failed;
++	}
+ 
+ 	if (pdata->setup) {
+ 		ret = pdata->setup(client, chip->gpio_chip.base,
+@@ -345,6 +412,9 @@ static int pca953x_remove(struct i2c_cli
+ 		return ret;
+ 	}
+ 
++	if (chip->interrupt)
++		free_irq(client->irq, chip);
++
+ 	kfree(chip->dyn_pdata);
+ 	kfree(chip);
+ 	return 0;
+diff -puN include/linux/i2c/pca953x.h~drivers-gpio-pca953xc-add-interrupt-handling-capability include/linux/i2c/pca953x.h
+--- a/include/linux/i2c/pca953x.h~drivers-gpio-pca953xc-add-interrupt-handling-capability
++++ a/include/linux/i2c/pca953x.h
+@@ -7,7 +7,10 @@ struct pca953x_platform_data {
+ 	/* initial polarity inversion setting */
+ 	uint16_t	invert;
+ 
+-	void		*context;	/* param to setup/teardown */
++	/* input bitmask to trigger the interrupt callback */
++	uint16_t	mask;
++
++	void		*context;	/* param to setup/teardown/interrupt */
+ 
+ 	int		(*setup)(struct i2c_client *client,
+ 				unsigned gpio, unsigned ngpio,
+@@ -15,5 +18,7 @@ struct pca953x_platform_data {
+ 	int		(*teardown)(struct i2c_client *client,
+ 				unsigned gpio, unsigned ngpio,
+ 				void *context);
++	void		(*interrupt)(uint16_t val, uint16_t mask,
++				void *context);
+ 	char		**names;
  };
- 
- void videobuf_queue_vmalloc_init(struct videobuf_queue* q,
--			 struct videobuf_queue_ops *ops,
-+			 const struct videobuf_queue_ops *ops,
- 			 void *dev,
- 			 spinlock_t *irqlock,
- 			 enum v4l2_buf_type type,
-diff -puN include/media/videobuf-core.h~dvb-make-struct-videobuf_queue_ops-constant include/media/videobuf-core.h
---- a/include/media/videobuf-core.h~dvb-make-struct-videobuf_queue_ops-constant
-+++ a/include/media/videobuf-core.h
-@@ -166,7 +166,7 @@ struct videobuf_queue {
- 	enum v4l2_field            field;
- 	enum v4l2_field            last;   /* for field=V4L2_FIELD_ALTERNATE */
- 	struct videobuf_buffer     *bufs[VIDEO_MAX_FRAME];
--	struct videobuf_queue_ops  *ops;
-+	const struct videobuf_queue_ops  *ops;
- 	struct videobuf_qtype_ops  *int_ops;
- 
- 	unsigned int               streaming:1;
-@@ -195,7 +195,7 @@ void *videobuf_queue_to_vmalloc (struct 
- 				 struct videobuf_buffer *buf);
- 
- void videobuf_queue_core_init(struct videobuf_queue *q,
--			 struct videobuf_queue_ops *ops,
-+			 const struct videobuf_queue_ops *ops,
- 			 struct device *dev,
- 			 spinlock_t *irqlock,
- 			 enum v4l2_buf_type type,
-diff -puN include/media/videobuf-dma-contig.h~dvb-make-struct-videobuf_queue_ops-constant include/media/videobuf-dma-contig.h
---- a/include/media/videobuf-dma-contig.h~dvb-make-struct-videobuf_queue_ops-constant
-+++ a/include/media/videobuf-dma-contig.h
-@@ -17,7 +17,7 @@
- #include <media/videobuf-core.h>
- 
- void videobuf_queue_dma_contig_init(struct videobuf_queue *q,
--				    struct videobuf_queue_ops *ops,
-+				    const struct videobuf_queue_ops *ops,
- 				    struct device *dev,
- 				    spinlock_t *irqlock,
- 				    enum v4l2_buf_type type,
-diff -puN include/media/videobuf-dma-sg.h~dvb-make-struct-videobuf_queue_ops-constant include/media/videobuf-dma-sg.h
---- a/include/media/videobuf-dma-sg.h~dvb-make-struct-videobuf_queue_ops-constant
-+++ a/include/media/videobuf-dma-sg.h
-@@ -103,7 +103,7 @@ struct videobuf_dmabuf *videobuf_to_dma 
- void *videobuf_sg_alloc(size_t size);
- 
- void videobuf_queue_sg_init(struct videobuf_queue* q,
--			 struct videobuf_queue_ops *ops,
-+			 const struct videobuf_queue_ops *ops,
- 			 struct device *dev,
- 			 spinlock_t *irqlock,
- 			 enum v4l2_buf_type type,
-diff -puN include/media/videobuf-vmalloc.h~dvb-make-struct-videobuf_queue_ops-constant include/media/videobuf-vmalloc.h
---- a/include/media/videobuf-vmalloc.h~dvb-make-struct-videobuf_queue_ops-constant
-+++ a/include/media/videobuf-vmalloc.h
-@@ -30,7 +30,7 @@ struct videobuf_vmalloc_memory
- };
- 
- void videobuf_queue_vmalloc_init(struct videobuf_queue* q,
--			 struct videobuf_queue_ops *ops,
-+			 const struct videobuf_queue_ops *ops,
- 			 void *dev,
- 			 spinlock_t *irqlock,
- 			 enum v4l2_buf_type type,
 _
 
-Patches currently in -mm which might be from corbet@lwn.net are
+Patches currently in -mm which might be from maz@misterjones.org are
 
-dvb-make-struct-videobuf_queue_ops-constant.patch
+linux-next.patch
+drivers-gpio-pca953xc-add-interrupt-handling-capability.patch
 
