@@ -1,76 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] revert-x86-mark-the-thermal-init-functions-__init.patch removed from -mm tree
-Date: Mon, 16 Nov 2009 11:02:00 -0800
-Message-ID: <200911161902.nAGJ210R009683@imap1.linux-foundation.org>
+Subject: [alternative-merged] drivers-hwmon-f75375sc-fix-warning-and-probable-bug.patch removed from -mm tree
+Date: Mon, 16 Nov 2009 11:02:28 -0800
+Message-ID: <200911161902.nAGJ2Sm5010698@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47567 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44825 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750995AbZKPTCI (ORCPT
+	by vger.kernel.org with ESMTP id S1751869AbZKPTCv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Nov 2009 14:02:08 -0500
+	Mon, 16 Nov 2009 14:02:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jirislaby@gmail.com, mingo@elte.hu, yong.y.wang@intel.com, yong.y.wang@linux.intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, corentin.labbe@geomatys.fr, khali@linux-fr.org, riku.voipio@iki.fi, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert "x86: Mark the thermal init functions __init"
+     drivers/hwmon/f75375s.c: fix warning, and probable bug
 has been removed from the -mm tree.  Its filename was
-     revert-x86-mark-the-thermal-init-functions-__init.patch
+     drivers-hwmon-f75375sc-fix-warning-and-probable-bug.patch
 
 This patch was dropped because an alternative patch was merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert "x86: Mark the thermal init functions __init"
+Subject: drivers/hwmon/f75375s.c: fix warning, and probable bug
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Revert
+drivers/hwmon/f75375s.c: In function 'f75375_detect':
+drivers/hwmon/f75375s.c:689: warning: comparison is always false due to limited range of data type
+drivers/hwmon/f75375s.c:689: warning: comparison is always false due to limited range of data type
+drivers/hwmon/f75375s.c:691: warning: comparison is always false due to limited range of data type
+drivers/hwmon/f75375s.c:691: warning: comparison is always false due to limited range of data type
 
-: commit ce6b5d768c79b9d5dd6345c033bae781d5ca9b8e
-: Author:     Yong Wang <yong.y.wang@linux.intel.com>
-: AuthorDate: Wed Nov 11 15:51:25 2009 +0800
-: Commit:     Ingo Molnar <mingo@elte.hu>
-: CommitDate: Wed Nov 11 12:33:32 2009 +0100
-: 
-:     x86: Mark the thermal init functions __init
-
-because intel_init_thermal() is called from mce_intel_feature_init() at
-resume time, and we'd like its text to still be in memory when that
-happens.
-
-Reported-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Yong Wang <yong.y.wang@intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Riku Voipio <riku.voipio@iki.fi>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Corentin Labbe <corentin.labbe@geomatys.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/mcheck/therm_throt.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/hwmon/f75375s.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/cpu/mcheck/therm_throt.c~revert-x86-mark-the-thermal-init-functions-__init arch/x86/kernel/cpu/mcheck/therm_throt.c
---- a/arch/x86/kernel/cpu/mcheck/therm_throt.c~revert-x86-mark-the-thermal-init-functions-__init
-+++ a/arch/x86/kernel/cpu/mcheck/therm_throt.c
-@@ -256,7 +256,7 @@ asmlinkage void smp_thermal_interrupt(st
- 	ack_APIC_irq();
- }
- 
--void __init mcheck_intel_therm_init(void)
-+void mcheck_intel_therm_init(void)
+diff -puN drivers/hwmon/f75375s.c~a drivers/hwmon/f75375s.c
+--- a/drivers/hwmon/f75375s.c~a
++++ a/drivers/hwmon/f75375s.c
+@@ -681,7 +681,7 @@ static int f75375_detect(struct i2c_clie
+ 			 struct i2c_board_info *info)
  {
- 	/*
- 	 * This function is only called on boot CPU. Save the init thermal
-@@ -268,7 +268,7 @@ void __init mcheck_intel_therm_init(void
- 		lvtthmr_init = apic_read(APIC_LVTTHMR);
- }
+ 	struct i2c_adapter *adapter = client->adapter;
+-	u8 vendid, chipid, version;
++	u16 vendid, chipid, version;
+ 	const char *name;
  
--void __init intel_init_thermal(struct cpuinfo_x86 *c)
-+void intel_init_thermal(struct cpuinfo_x86 *c)
- {
- 	unsigned int cpu = smp_processor_id();
- 	int tm2 = 0;
+ 	vendid = f75375_read16(client, F75375_REG_VENDOR);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -80,7 +63,6 @@ next-remove-localversion.patch
 i-need-old-gcc.patch
 recordmcount-stfu.patch
 include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
-revert-x86-mark-the-thermal-init-functions-__init.patch
 drivers-char-cycladesc-fix-used-uninitialised-bug.patch
 drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
 arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
