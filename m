@@ -1,59 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] drivers-hwmon-f75375sc-fix-warning-and-probable-bug.patch removed from -mm tree
-Date: Mon, 16 Nov 2009 11:02:28 -0800
-Message-ID: <200911161902.nAGJ2Sm5010698@imap1.linux-foundation.org>
+Subject: [obsolete] include-trace-events-lockdeph-fix-do_div-warning.patch removed from -mm tree
+Date: Mon, 16 Nov 2009 11:03:05 -0800
+Message-ID: <200911161903.nAGJ359V012221@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44825 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55569 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751869AbZKPTCv (ORCPT
+	by vger.kernel.org with ESMTP id S1752731AbZKPTDW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Nov 2009 14:02:51 -0500
+	Mon, 16 Nov 2009 14:03:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, corentin.labbe@geomatys.fr, khali@linux-fr.org, riku.voipio@iki.fi, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, mingo@elte.hu, rostedt@goodmis.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/hwmon/f75375s.c: fix warning, and probable bug
+     include/trace/events/lockdep.h: fix do_div() warning
 has been removed from the -mm tree.  Its filename was
-     drivers-hwmon-f75375sc-fix-warning-and-probable-bug.patch
+     include-trace-events-lockdeph-fix-do_div-warning.patch
 
-This patch was dropped because an alternative patch was merged
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/hwmon/f75375s.c: fix warning, and probable bug
+Subject: include/trace/events/lockdep.h: fix do_div() warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/hwmon/f75375s.c: In function 'f75375_detect':
-drivers/hwmon/f75375s.c:689: warning: comparison is always false due to limited range of data type
-drivers/hwmon/f75375s.c:689: warning: comparison is always false due to limited range of data type
-drivers/hwmon/f75375s.c:691: warning: comparison is always false due to limited range of data type
-drivers/hwmon/f75375s.c:691: warning: comparison is always false due to limited range of data type
+do_div() takes a u64.  The mips build warns:
 
-Cc: Riku Voipio <riku.voipio@iki.fi>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Corentin Labbe <corentin.labbe@geomatys.fr>
+In file included from include/trace/ftrace.h:635,
+                 from include/trace/define_trace.h:61,
+                 from include/trace/events/lockdep.h:96,
+                 from kernel/lockdep.c:52:
+include/trace/events/lockdep.h: In function `ftrace_raw_event_lock_acquired':
+include/trace/events/lockdep.h:71: warning: comparison of distinct pointer types lacks a cast
+
+from the check in include/asm-generic/div64.h:do_div().
+
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/f75375s.c |    2 +-
+ include/trace/events/lockdep.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/hwmon/f75375s.c~a drivers/hwmon/f75375s.c
---- a/drivers/hwmon/f75375s.c~a
-+++ a/drivers/hwmon/f75375s.c
-@@ -681,7 +681,7 @@ static int f75375_detect(struct i2c_clie
- 			 struct i2c_board_info *info)
- {
- 	struct i2c_adapter *adapter = client->adapter;
--	u8 vendid, chipid, version;
-+	u16 vendid, chipid, version;
- 	const char *name;
+diff -puN include/trace/events/lockdep.h~include-trace-events-lockdeph-fix-do_div-warning include/trace/events/lockdep.h
+--- a/include/trace/events/lockdep.h~include-trace-events-lockdeph-fix-do_div-warning
++++ a/include/trace/events/lockdep.h
+@@ -69,7 +69,7 @@ TRACE_EVENT(lock_contended,
+ );
  
- 	vendid = f75375_read16(client, F75375_REG_VENDOR);
+ TRACE_EVENT(lock_acquired,
+-	TP_PROTO(struct lockdep_map *lock, unsigned long ip, s64 waittime),
++	TP_PROTO(struct lockdep_map *lock, unsigned long ip, u64 waittime),
+ 
+ 	TP_ARGS(lock, ip, waittime),
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -71,7 +76,6 @@ acpi-remove-nid_inval-checkpatch-fixes.patch
 drivers-acpi-acpi_padc-squish-warning.patch
 drivers-char-agp-amd64-agpc-squish-warning.patch
 drm-kill-more-unused-drm-macros-fix.patch
-drivers-hwmon-f75375sc-fix-warning-and-probable-bug.patch
 timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
 drivers-leds-leds-ss4200c-fix-return-statement.patch
 drivers-atm-solos-pcic-fix-warning-bug-clean-up-code.patch
