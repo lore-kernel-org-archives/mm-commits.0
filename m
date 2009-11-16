@@ -1,33 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: [folded] hpsa-allocate-the-correct-amount-of-extra-space-for-the-scsi-host.patch removed from -mm tree
-Date: Mon, 16 Nov 2009 13:28:12 -0800
-Message-ID: <200911162128.nAGLSCZb000325@imap1.linux-foundation.org>
+Subject: [folded] hpsa-factor-out-command-submission-sequence.patch removed from -mm tree
+Date: Mon, 16 Nov 2009 13:28:18 -0800
+Message-ID: <200911162128.nAGLSIY6000616@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42824 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34117 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753927AbZKPV2T (ORCPT
+	by vger.kernel.org with ESMTP id S1753993AbZKPV2Y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Nov 2009 16:28:19 -0500
+	Mon, 16 Nov 2009 16:28:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: scameron@beardog.cce.hp.com, James.Bottomley@HansenPartnership.com, jens.axboe@oracle.com, mikem@beardog.cce.hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hpsa: Allocate the correct amount of extra space for the scsi host
+     hpsa: Factor out command submission sequence
 has been removed from the -mm tree.  Its filename was
-     hpsa-allocate-the-correct-amount-of-extra-space-for-the-scsi-host.patch
+     hpsa-factor-out-command-submission-sequence.patch
 
 This patch was dropped because it was folded into scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hpsa: Allocate the correct amount of extra space for the scsi host
+Subject: hpsa: Factor out command submission sequence
 From: "Stephen M. Cameron" <scameron@beardog.cce.hp.com>
 
-hpsa: Allocate the correct amount of extra space for the scsi host
+hpsa: Factor out command submission sequence.  There
+are a few places where the same sequence of statements
+occurs to submit and wait for the completion of a command.
+Factor these out into a separate function.
 
 Signed-off-by: Stephen M. Cameron <scameron@beardog.cce.hp.com>
 Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
@@ -36,29 +39,56 @@ Cc: Mike Miller <mikem@beardog.cce.hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/hpsa.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/scsi/hpsa.c |   10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
 
-diff -puN drivers/scsi/hpsa.c~hpsa-allocate-the-correct-amount-of-extra-space-for-the-scsi-host drivers/scsi/hpsa.c
---- a/drivers/scsi/hpsa.c~hpsa-allocate-the-correct-amount-of-extra-space-for-the-scsi-host
+diff -puN drivers/scsi/hpsa.c~hpsa-factor-out-command-submission-sequence drivers/scsi/hpsa.c
+--- a/drivers/scsi/hpsa.c~hpsa-factor-out-command-submission-sequence
 +++ a/drivers/scsi/hpsa.c
-@@ -890,7 +890,7 @@ static int hpsa_scsi_detect(struct ctlr_
- 	struct Scsi_Host *sh;
- 	int error;
+@@ -2086,7 +2086,6 @@ static int hpsa_passthru_ioctl(struct ct
+ 	struct CommandList *c;
+ 	char *buff = NULL;
+ 	union u64bit temp64;
+-	DECLARE_COMPLETION_ONSTACK(wait);
  
--	sh = scsi_host_alloc(&hpsa_driver_template, sizeof(*h));
-+	sh = scsi_host_alloc(&hpsa_driver_template, sizeof(h));
- 	if (sh == NULL)
- 		goto fail;
+ 	if (!argp)
+ 		return -EINVAL;
+@@ -2144,9 +2143,7 @@ static int hpsa_passthru_ioctl(struct ct
+ 		c->SG[0].Len = iocommand.buf_size;
+ 		c->SG[0].Ext = 0; /* we are not chaining*/
+ 	}
+-	c->waiting = &wait;
+-	enqueue_cmd_and_start_io(h, c);
+-	wait_for_completion(&wait);
++	hpsa_scsi_do_simple_cmd_core(h, c);
  
+ 	/* unlock the buffers from DMA */
+ 	temp64.val32.lower = c->SG[0].Addr.lower;
+@@ -2186,7 +2183,6 @@ static int hpsa_big_passthru_ioctl(struc
+ 	BYTE sg_used = 0;
+ 	int status = 0;
+ 	int i;
+-	DECLARE_COMPLETION_ONSTACK(wait);
+ 	__u32 left;
+ 	__u32 sz;
+ 	BYTE __user *data_ptr;
+@@ -2280,9 +2276,7 @@ static int hpsa_big_passthru_ioctl(struc
+ 			c->SG[i].Ext = 0;
+ 		}
+ 	}
+-	c->waiting = &wait;
+-	enqueue_cmd_and_start_io(h, c);
+-	wait_for_completion(&wait);
++	hpsa_scsi_do_simple_cmd_core(h, c);
+ 	/* unlock the buffers from DMA */
+ 	for (i = 0; i < sg_used; i++) {
+ 		temp64.val32.lower = c->SG[i].Addr.lower;
 _
 
 Patches currently in -mm which might be from scameron@beardog.cce.hp.com are
 
 linux-next.patch
 scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
-hpsa-allocate-the-correct-amount-of-extra-space-for-the-scsi-host.patch
-hpsa-use-shost_priv-instead-of-accessing-host-hostdata-directly.patch
 hpsa-factor-out-command-submission-sequence.patch
 hpsa-factor-out-some-pci_unmap-code.patch
 add-thread-to-allow-controllers-to-register-for-rescan-for-new-devices.patch
