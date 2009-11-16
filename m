@@ -1,254 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [folded] hpsa-make-fill_cmd-return-void.patch removed from -mm tree
-Date: Mon, 16 Nov 2009 13:28:45 -0800
-Message-ID: <200911162128.nAGLSj3K001732@imap1.linux-foundation.org>
+Subject: + microblaze-fix-pfn_valid-for-nommu.patch added to -mm tree
+Date: Mon, 16 Nov 2009 14:15:46 -0800
+Message-ID: <200911162215.nAGMFk8G016049@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45306 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48525 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754191AbZKPV2w (ORCPT
+	by vger.kernel.org with ESMTP id S1754240AbZKPWRO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Nov 2009 16:28:52 -0500
+	Mon, 16 Nov 2009 17:17:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: scameron@beardog.cce.hp.com, James.Bottomley@HansenPartnership.com, jens.axboe@oracle.com, mikem@beardog.cce.hp.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: steve@digidescorp.com, dhowells@redhat.com, gerg@snapgear.com, monstr@monstr.eu
 
 
 The patch titled
-     hpsa:  Make fill_cmd() return void
-has been removed from the -mm tree.  Its filename was
-     hpsa-make-fill_cmd-return-void.patch
+     microblaze: fix pfn_valid() for noMMU
+has been added to the -mm tree.  Its filename is
+     microblaze-fix-pfn_valid-for-nommu.patch
 
-This patch was dropped because it was folded into scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hpsa:  Make fill_cmd() return void
-From: "Stephen M. Cameron" <scameron@beardog.cce.hp.com>
+Subject: microblaze: fix pfn_valid() for noMMU
+From: Steven J. Magnani <steve@digidescorp.com>
 
-hpsa:  Make fill_cmd() return void, and BUG() if it is asked to
-fill out an unknown command or command type, as that should simply
-not happen as all the commands and command types are fixed, and
-known ahead of time.
+Configuring DEBUG_SLAB causes a noMMU kernel to die during initialization
+with an invalid virtual address panic in kfree_debugcheck().
+The panic is due to an improper definition of pfn_valid().
 
-Signed-off-by: Stephen M. Cameron <scameron@beardog.cce.hp.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Mike Miller <mikem@beardog.cce.hp.com>
+Signed-off-by: Steven J. Magnani <steve@digidescorp.com>
+Cc: Michal Simek <monstr@monstr.eu>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Greg Ungerer <gerg@snapgear.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/hpsa.c |   73 ++++++++++++++----------------------------
- 1 file changed, 25 insertions(+), 48 deletions(-)
+ arch/microblaze/include/asm/page.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/scsi/hpsa.c~hpsa-make-fill_cmd-return-void drivers/scsi/hpsa.c
---- a/drivers/scsi/hpsa.c~hpsa-make-fill_cmd-return-void
-+++ a/drivers/scsi/hpsa.c
-@@ -126,7 +126,7 @@ static void cmd_free(struct ctlr_info *h
- static void cmd_special_free(struct ctlr_info *h, struct CommandList *c);
- static struct CommandList *cmd_alloc(struct ctlr_info *h);
- static struct CommandList *cmd_special_alloc(struct ctlr_info *h);
--static int fill_cmd(struct CommandList *c, __u8 cmd, struct ctlr_info *h,
-+static void fill_cmd(struct CommandList *c, __u8 cmd, struct ctlr_info *h,
- 	void *buff, size_t size, __u8 page_code, unsigned char *scsi3addr,
- 	int cmd_type);
+diff -puN arch/microblaze/include/asm/page.h~microblaze-fix-pfn_valid-for-nommu arch/microblaze/include/asm/page.h
+--- a/arch/microblaze/include/asm/page.h~microblaze-fix-pfn_valid-for-nommu
++++ a/arch/microblaze/include/asm/page.h
+@@ -164,7 +164,8 @@ extern int page_is_ram(unsigned long pfn
+ #  endif /* CONFIG_MMU */
  
-@@ -1258,7 +1258,7 @@ static int hpsa_scsi_do_inquiry(struct c
- 			unsigned char page, unsigned char *buf,
- 			unsigned char bufsize)
- {
--	int rc;
-+	int rc = IO_OK;
- 	struct CommandList *c;
- 	struct ErrorInfo *ei;
- 
-@@ -1269,16 +1269,12 @@ static int hpsa_scsi_do_inquiry(struct c
- 		return -1;
- 	}
- 
--	rc = fill_cmd(c, HPSA_INQUIRY, h, buf, bufsize, page, scsi3addr,
--		TYPE_CMD);
--	if (rc == 0) {
--		hpsa_scsi_do_simple_cmd_with_retry(h, c, PCI_DMA_FROMDEVICE);
--		ei = c->err_info;
--		if (ei->CommandStatus != 0 &&
--		    ei->CommandStatus != CMD_DATA_UNDERRUN) {
--			hpsa_scsi_interpret_error(c);
--			rc = -1;
--		}
-+	fill_cmd(c, HPSA_INQUIRY, h, buf, bufsize, page, scsi3addr, TYPE_CMD);
-+	hpsa_scsi_do_simple_cmd_with_retry(h, c, PCI_DMA_FROMDEVICE);
-+	ei = c->err_info;
-+	if (ei->CommandStatus != 0 && ei->CommandStatus != CMD_DATA_UNDERRUN) {
-+		hpsa_scsi_interpret_error(c);
-+		rc = -1;
- 	}
- 	cmd_special_free(h, c);
- 	return rc;
-@@ -1286,7 +1282,7 @@ static int hpsa_scsi_do_inquiry(struct c
- 
- static int hpsa_send_reset(struct ctlr_info *h, unsigned char *scsi3addr)
- {
--	int rc;
-+	int rc = IO_OK;
- 	struct CommandList *c;
- 	struct ErrorInfo *ei;
- 
-@@ -1297,11 +1293,7 @@ static int hpsa_send_reset(struct ctlr_i
- 		return -1;
- 	}
- 
--	rc = fill_cmd(c, HPSA_DEVICE_RESET_MSG, h, NULL, 0, 0, scsi3addr,
--		TYPE_MSG);
--	if (rc != 0)
--		goto out;
--
-+	fill_cmd(c, HPSA_DEVICE_RESET_MSG, h, NULL, 0, 0, scsi3addr, TYPE_MSG);
- 	hpsa_scsi_do_simple_cmd_core(h, c);
- 	/* no unmap needed here because no data xfer. */
- 
-@@ -1310,7 +1302,6 @@ static int hpsa_send_reset(struct ctlr_i
- 		hpsa_scsi_interpret_error(c);
- 		rc = -1;
- 	}
--out:
- 	cmd_special_free(h, c);
- 	return rc;
- }
-@@ -1357,7 +1348,7 @@ static int hpsa_scsi_do_report_luns(stru
- 		struct ReportLUNdata *buf, int bufsize,
- 		int extended_response)
- {
--	int rc;
-+	int rc = IO_OK;
- 	struct CommandList *c;
- 	unsigned char scsi3addr[8];
- 	struct ErrorInfo *ei;
-@@ -1370,11 +1361,8 @@ static int hpsa_scsi_do_report_luns(stru
- 
- 	memset(&scsi3addr[0], 0, 8); /* address the controller */
- 
--	rc = fill_cmd(c, logical ? HPSA_REPORT_LOG : HPSA_REPORT_PHYS, h,
-+	fill_cmd(c, logical ? HPSA_REPORT_LOG : HPSA_REPORT_PHYS, h,
- 		buf, bufsize, 0, scsi3addr, TYPE_CMD);
--	if (rc != 0)
--		goto out;
--
- 	if (extended_response)
- 		c->Request.CDB[1] = extended_response;
- 	hpsa_scsi_do_simple_cmd_with_retry(h, c, PCI_DMA_FROMDEVICE);
-@@ -1384,7 +1372,6 @@ static int hpsa_scsi_do_report_luns(stru
- 		hpsa_scsi_interpret_error(c);
- 		rc = -1;
- 	}
--out:
- 	cmd_special_free(h, c);
- 	return rc;
- }
-@@ -1944,7 +1931,7 @@ static int hpsa_register_scsi(struct ctl
- static int wait_for_device_to_become_ready(struct ctlr_info *h,
- 	unsigned char lunaddr[])
- {
--	int rc;
-+	int rc = 0;
- 	int count = 0;
- 	int waittime = HZ;
- 	struct CommandList *c;
-@@ -1971,15 +1958,7 @@ static int wait_for_device_to_become_rea
- 			waittime = waittime * 2;
- 
- 		/* Send the Test Unit Ready */
--		rc = fill_cmd(c, TEST_UNIT_READY, h, NULL, 0, 0,
--			lunaddr, TYPE_CMD);
--		if (rc != 0) {
--			/* We don't expect to get in here */
--			dev_warn(&h->pdev->dev, "fill_cmd failed at %s:%d\n",
--				__FILE__, __LINE__);
--			break;
--		}
--
-+		fill_cmd(c, TEST_UNIT_READY, h, NULL, 0, 0, lunaddr, TYPE_CMD);
- 		hpsa_scsi_do_simple_cmd_core(h, c);
- 		/* no unmap needed here because no data xfer. */
- 
-@@ -2558,7 +2537,7 @@ static int hpsa_ioctl(struct scsi_device
- 	}
- }
- 
--static int fill_cmd(struct CommandList *c, __u8 cmd, struct ctlr_info *h,
-+static void fill_cmd(struct CommandList *c, __u8 cmd, struct ctlr_info *h,
- 	void *buff, size_t size, __u8 page_code, unsigned char *scsi3addr,
- 	int cmd_type)
- {
-@@ -2631,7 +2610,8 @@ static int fill_cmd(struct CommandList *
- 			break;
- 		default:
- 			dev_warn(&h->pdev->dev, "unknown command 0x%c\n", cmd);
--			return IO_ERROR;
-+			BUG();
-+			return;
- 		}
- 	} else if (cmd_type == TYPE_MSG) {
- 		switch (cmd) {
-@@ -2655,11 +2635,11 @@ static int fill_cmd(struct CommandList *
- 		default:
- 			dev_warn(&h->pdev->dev, "unknown message type %d\n",
- 				cmd);
--			return IO_ERROR;
-+			BUG();
- 		}
- 	} else {
- 		dev_warn(&h->pdev->dev, "unknown command type %d\n", cmd_type);
--		return IO_ERROR;
-+		BUG();
- 	}
- 
- 	switch (c->Request.Type.Direction) {
-@@ -2678,7 +2658,7 @@ static int fill_cmd(struct CommandList *
- 
- 	hpsa_map_one(h->pdev, c, buff, size, pci_dir);
- 
--	return IO_OK;
-+	return;
- }
- 
- /*
-@@ -3429,7 +3409,6 @@ static void hpsa_flush_cache(struct ctlr
- {
- 	char *flush_buf;
- 	struct CommandList *c;
--	int rc;
- 
- 	flush_buf = kzalloc(4, GFP_KERNEL);
- 	if (!flush_buf)
-@@ -3440,14 +3419,12 @@ static void hpsa_flush_cache(struct ctlr
- 		dev_warn(&h->pdev->dev, "cmd_special_alloc returned NULL!\n");
- 		goto out_of_memory;
- 	}
--	rc = fill_cmd(c, HPSA_CACHE_FLUSH, h, flush_buf, 4, 0,
-+	fill_cmd(c, HPSA_CACHE_FLUSH, h, flush_buf, 4, 0,
- 		RAID_CTLR_LUNID, TYPE_CMD);
--	if (rc == 0) {
--		hpsa_scsi_do_simple_cmd_with_retry(h, c, PCI_DMA_TODEVICE);
--		if (c->err_info->CommandStatus != 0)
--			dev_warn(&h->pdev->dev,
--				"error flushing cache on controller\n");
--	}
-+	hpsa_scsi_do_simple_cmd_with_retry(h, c, PCI_DMA_TODEVICE);
-+	if (c->err_info->CommandStatus != 0)
-+		dev_warn(&h->pdev->dev,
-+			"error flushing cache on controller\n");
- 	cmd_special_free(h, c);
- out_of_memory:
- 	kfree(flush_buf);
+ #  ifndef CONFIG_MMU
+-#  define pfn_valid(pfn)	((pfn) >= min_low_pfn && (pfn) <= max_mapnr)
++#  define pfn_valid(pfn)	(((pfn) >= min_low_pfn) && \
++				((pfn) <= (min_low_pfn + max_mapnr)))
+ #  define ARCH_PFN_OFFSET	(PAGE_OFFSET >> PAGE_SHIFT)
+ #  else /* CONFIG_MMU */
+ #  define ARCH_PFN_OFFSET	(memory_start >> PAGE_SHIFT)
 _
 
-Patches currently in -mm which might be from scameron@beardog.cce.hp.com are
+Patches currently in -mm which might be from steve@digidescorp.com are
 
-linux-next.patch
-scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
-hpsa-make-fill_cmd-return-void.patch
-hpsa-fix-typo-that-causes-scsi-status-to-be-lost.patch
-hpsa-make-device-attrs-static.patch
+microblaze-fix-pfn_valid-for-nommu.patch
 
