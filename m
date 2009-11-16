@@ -1,63 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] include-trace-events-lockdeph-fix-do_div-warning.patch removed from -mm tree
-Date: Mon, 16 Nov 2009 11:03:05 -0800
-Message-ID: <200911161903.nAGJ359V012221@imap1.linux-foundation.org>
+Subject: [merged] sound-pci-hda-patch_viac-work-around-gcc-402-ice.patch removed from -mm tree
+Date: Mon, 16 Nov 2009 11:04:22 -0800
+Message-ID: <200911161904.nAGJ4MG8015316@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55569 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37931 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752731AbZKPTDW (ORCPT
+	by vger.kernel.org with ESMTP id S1750995AbZKPTEV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Nov 2009 14:03:22 -0500
+	Mon, 16 Nov 2009 14:04:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, mingo@elte.hu, rostedt@goodmis.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, tiwai@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     include/trace/events/lockdep.h: fix do_div() warning
+     sound/pci/hda/patch_via.c: work around gcc-4.0.2 ICE
 has been removed from the -mm tree.  Its filename was
-     include-trace-events-lockdeph-fix-do_div-warning.patch
+     sound-pci-hda-patch_viac-work-around-gcc-402-ice.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: include/trace/events/lockdep.h: fix do_div() warning
+Subject: sound/pci/hda/patch_via.c: work around gcc-4.0.2 ICE
 From: Andrew Morton <akpm@linux-foundation.org>
 
-do_div() takes a u64.  The mips build warns:
+sound/pci/hda/patch_via.c: In function 'via_hp_bind_automute':
+sound/pci/hda/patch_via.c:2074: internal compiler error: in do_SUBST, at combine.c:462
+Please submit a full bug report,
+with preprocessed source if appropriate.
+See <URL:http://gcc.gnu.org/bugs.html> for instructions.
 
-In file included from include/trace/ftrace.h:635,
-                 from include/trace/define_trace.h:61,
-                 from include/trace/events/lockdep.h:96,
-                 from kernel/lockdep.c:52:
-include/trace/events/lockdep.h: In function `ftrace_raw_event_lock_acquired':
-include/trace/events/lockdep.h:71: warning: comparison of distinct pointer types lacks a cast
-
-from the check in include/asm-generic/div64.h:do_div().
-
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/lockdep.h |    2 +-
+ sound/pci/hda/patch_via.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/trace/events/lockdep.h~include-trace-events-lockdeph-fix-do_div-warning include/trace/events/lockdep.h
---- a/include/trace/events/lockdep.h~include-trace-events-lockdeph-fix-do_div-warning
-+++ a/include/trace/events/lockdep.h
-@@ -69,7 +69,7 @@ TRACE_EVENT(lock_contended,
- );
- 
- TRACE_EVENT(lock_acquired,
--	TP_PROTO(struct lockdep_map *lock, unsigned long ip, s64 waittime),
-+	TP_PROTO(struct lockdep_map *lock, unsigned long ip, u64 waittime),
- 
- 	TP_ARGS(lock, ip, waittime),
+diff -puN sound/pci/hda/patch_via.c~sound-pci-hda-patch_viac-work-around-gcc-402-ice sound/pci/hda/patch_via.c
+--- a/sound/pci/hda/patch_via.c~sound-pci-hda-patch_viac-work-around-gcc-402-ice
++++ a/sound/pci/hda/patch_via.c
+@@ -2043,7 +2043,7 @@ static void via_speaker_automute(struct 
+ /* mute line-out and internal speaker if HP is plugged */
+ static void via_hp_bind_automute(struct hda_codec *codec)
+ {
+-	unsigned int hp_present, present = 0;
++	unsigned long hp_present, present = 0;
+ 	struct via_spec *spec = codec->spec;
+ 	int i;
  
 _
 
@@ -82,7 +75,6 @@ drivers-atm-solos-pcic-fix-warning-bug-clean-up-code.patch
 3x59x-fix-pci-resource-management.patch
 bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
 atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops-fix.patch
-include-trace-events-lockdeph-fix-do_div-warning.patch
 st-fix-test-of-value-range-in-st_set_options.patch
 scsi-add-hpsa-driver-for-hp-smart-array-controllers-fix.patch
 raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
