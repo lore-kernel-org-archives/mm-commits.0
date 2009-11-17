@@ -1,106 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [wrecked] fcntl-use-consistent-values-for-f_etown_ex.patch removed from -mm tree
-Date: Tue, 17 Nov 2009 13:09:55 -0800
-Message-ID: <200911172109.nAHL9txZ000971@imap1.linux-foundation.org>
+Subject: [merged] misdn-fix-error-return-in-hfcmulti_init.patch removed from -mm tree
+Date: Tue, 17 Nov 2009 13:13:27 -0800
+Message-ID: <200911172113.nAHLDRwh009388@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44245 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54465 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752663AbZKQVKf (ORCPT
+	by vger.kernel.org with ESMTP id S1752675AbZKQVN1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Nov 2009 16:10:35 -0500
+	Tue, 17 Nov 2009 16:13:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sfr@canb.auug.org.au, a.p.zijlstra@chello.nl, drepper@gmail.com, eranian@googlemail.com, hch@infradead.org, joseph@codesourcery.com, mingo@elte.hu, mtk.manpages@googlemail.com, onester
+To: roel.kluin@gmail.com, davem@davemloft.net, keil@b1-systems.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fcntl: Use consistent values for F_[GS]ETOWN_EX
+     mISDN: fix error return in HFCmulti_init()
 has been removed from the -mm tree.  Its filename was
-     fcntl-use-consistent-values-for-f_etown_ex.patch
+     misdn-fix-error-return-in-hfcmulti_init.patch
 
-This patch was dropped because other changes were merged, which wrecked this patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fcntl: Use consistent values for F_[GS]ETOWN_EX
-From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: mISDN: fix error return in HFCmulti_init()
+From: Roel Kluin <roel.kluin@gmail.com>
 
-These values were only introduced during this release cycle, so it is
-still early enough to get them right.
+The returned error should stay negative
 
-alpha uses the same values that are in asm-generic/fcntl.h, so just remove
-them.
-
-parisc uses the values interchanged for no apparent reason, so remove them
-to give us consistency across all architectures.
-
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: "Joseph S. Myers" <joseph@codesourcery.com>
-Cc: Oleg Nesterov <onestero@redhat.com>
-Cc: Stephane Eranian <eranian@googlemail.com>
-Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Ulrich Drepper <drepper@gmail.com>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Acked-by: Karsten Keil <keil@b1-systems.de>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/fcntl.h  |    2 --
- arch/parisc/include/asm/fcntl.h |    2 --
- include/asm-generic/fcntl.h     |    2 --
- 3 files changed, 6 deletions(-)
+ drivers/isdn/hardware/mISDN/hfcmulti.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/alpha/include/asm/fcntl.h~fcntl-use-consistent-values-for-f_etown_ex arch/alpha/include/asm/fcntl.h
---- a/arch/alpha/include/asm/fcntl.h~fcntl-use-consistent-values-for-f_etown_ex
-+++ a/arch/alpha/include/asm/fcntl.h
-@@ -26,8 +26,6 @@
- #define F_GETOWN	6	/*  for sockets. */
- #define F_SETSIG	10	/*  for sockets. */
- #define F_GETSIG	11	/*  for sockets. */
--#define F_SETOWN_EX	15
--#define F_GETOWN_EX	16
- 
- /* for posix fcntl() and lockf() */
- #define F_RDLCK		1
-diff -puN arch/parisc/include/asm/fcntl.h~fcntl-use-consistent-values-for-f_etown_ex arch/parisc/include/asm/fcntl.h
---- a/arch/parisc/include/asm/fcntl.h~fcntl-use-consistent-values-for-f_etown_ex
-+++ a/arch/parisc/include/asm/fcntl.h
-@@ -28,8 +28,6 @@
- #define F_SETOWN	12	/*  for sockets. */
- #define F_SETSIG	13	/*  for sockets. */
- #define F_GETSIG	14	/*  for sockets. */
--#define F_GETOWN_EX	15
--#define F_SETOWN_EX	16
- 
- /* for posix fcntl() and lockf() */
- #define F_RDLCK		01
-diff -puN include/asm-generic/fcntl.h~fcntl-use-consistent-values-for-f_etown_ex include/asm-generic/fcntl.h
---- a/include/asm-generic/fcntl.h~fcntl-use-consistent-values-for-f_etown_ex
-+++ a/include/asm-generic/fcntl.h
-@@ -82,10 +82,8 @@
- #endif
- #endif
- 
--#ifndef F_SETOWN_EX
- #define F_SETOWN_EX	15
- #define F_GETOWN_EX	16
--#endif
- 
- #define F_OWNER_TID	0
- #define F_OWNER_PID	1
+diff -puN drivers/isdn/hardware/mISDN/hfcmulti.c~misdn-fix-error-return-in-hfcmulti_init drivers/isdn/hardware/mISDN/hfcmulti.c
+--- a/drivers/isdn/hardware/mISDN/hfcmulti.c~misdn-fix-error-return-in-hfcmulti_init
++++ a/drivers/isdn/hardware/mISDN/hfcmulti.c
+@@ -5481,7 +5481,7 @@ HFCmulti_init(void)
+ 		if (err) {
+ 			printk(KERN_ERR "error registering embedded driver: "
+ 				"%x\n", err);
+-			return -err;
++			return err;
+ 		}
+ 		HFC_cnt++;
+ 		printk(KERN_INFO "%d devices registered\n", HFC_cnt);
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 origin.patch
-fcntl-use-consistent-values-for-f_etown_ex.patch
+spi-error-status-should-be-negative.patch
+drivers-video-da8xx-fbc-fix-error-return.patch
 linux-next.patch
-x86-cpufreq-dont-use-acpi_processor_get_bios_limit-when-not-available.patch
-scsi-add-__init-__exit-macros-to-ibmvstgtc.patch
-m68k-dont-export-static-inline-functions.patch
+fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch
+omap-fix-unlikelyx-y.patch
+omap-cs-should-be-positive-in-gpmc_cs_free.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+sms-cards-make-id-unsigned-in-sms_get_board.patch
+mtd-error-return-eio-instead-of-eio.patch
+net-netfilter-xt_osfc-xt_osf_remove_callback-should-return-negative-on-errors.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
+zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
+st-fix-test-of-value-range-in-st_set_options.patch
+ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
+scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
+page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+cryptocop-fix-assertion-in-create_output_descriptors.patch
+gpio-fix-test-on-unsigned-in-lnw_irq_type.patch
+fbdev-tv_paln-bit-set-twice-in-sisfb_detect_vb_connect.patch
+hvc_console-fix-test-on-unsigned-in-hvc_console_print.patch
+irq-fix-test-in-__exit-parport_mfc3_exit.patch
+zlib-optimize-inffast-when-copying-direct-from-output.patch
 
