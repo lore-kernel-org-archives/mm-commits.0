@@ -1,85 +1,135 @@
 From: akpm@linux-foundation.org
-Subject: [folded] hpsa-make-device-attrs-static.patch removed from -mm tree
-Date: Tue, 17 Nov 2009 14:52:26 -0800
-Message-ID: <200911172252.nAHMqQgh017786@imap1.linux-foundation.org>
+Subject: [folded] atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops-fix.patch removed from -mm tree
+Date: Tue, 17 Nov 2009 14:47:09 -0800
+Message-ID: <200911172247.nAHMl9HS005264@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37934 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36967 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756604AbZKQWww (ORCPT
+	by vger.kernel.org with ESMTP id S1756737AbZKQW6N (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Nov 2009 17:52:52 -0500
+	Tue, 17 Nov 2009 17:58:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: achiang@hp.com, James.Bottomley@HansenPartnership.com, jens.axboe@oracle.com, mikem@beardog.cce.hp.com, scameron@beardog.cce.hp.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, albin.tonnerre@free-electrons.com, haavard.skinnemoen@atmel.com, linux@maxim.org.za, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hpsa: make device attrs static
+     atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops-fix
 has been removed from the -mm tree.  Its filename was
-     hpsa-make-device-attrs-static.patch
+     atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops-fix.patch
 
-This patch was dropped because it was folded into scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
+This patch was dropped because it was folded into atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hpsa: make device attrs static
-From: Alex Chiang <achiang@hp.com>
+Subject: atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-No need to export those device attributes.
+s/barrier/cpu_relax/
 
-In fact, without this patch, we can trip over a build error if hpsa
-is a built-in and another driver also declares and exports attributes
-with the same name.
-
-You'll see errors like:
-
-	drivers/scsi/built-in.o: multiple definition of `dev_attr_lunid'
-	drivers/block/built-in.o: first defined here
-
-Signed-off-by: Alex Chiang <achiang@hp.com>
-Cc: Stephen M. Cameron <scameron@beardog.cce.hp.com>
-Cc: Mike Miller <mikem@beardog.cce.hp.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Albin Tonnerre <albin.tonnerre@free-electrons.com>
+Cc: Andrew Victor <linux@maxim.org.za>
+Cc: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/hpsa.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/serial/atmel_serial.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/scsi/hpsa.c~hpsa-make-device-attrs-static drivers/scsi/hpsa.c
---- a/drivers/scsi/hpsa.c~hpsa-make-device-attrs-static
-+++ a/drivers/scsi/hpsa.c
-@@ -151,10 +151,10 @@ static int check_for_unit_attention(stru
- static void check_ioctl_unit_attention(struct ctlr_info *h,
- 	struct CommandList *c);
+diff -puN drivers/serial/atmel_serial.c~atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops-fix drivers/serial/atmel_serial.c
+--- a/drivers/serial/atmel_serial.c~atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops-fix
++++ a/drivers/serial/atmel_serial.c
+@@ -1217,7 +1217,7 @@ static int atmel_verify_port(struct uart
+ static int atmel_poll_get_char(struct uart_port *port)
+ {
+ 	while (!(UART_GET_CSR(port) & ATMEL_US_RXRDY))
+-		barrier();
++		cpu_relax();
  
--DEVICE_ATTR(raid_level, S_IRUGO, raid_level_show, NULL);
--DEVICE_ATTR(lunid, S_IRUGO, lunid_show, NULL);
--DEVICE_ATTR(unique_id, S_IRUGO, unique_id_show, NULL);
--DEVICE_ATTR(rescan, S_IWUSR, NULL, host_store_rescan);
-+static DEVICE_ATTR(raid_level, S_IRUGO, raid_level_show, NULL);
-+static DEVICE_ATTR(lunid, S_IRUGO, lunid_show, NULL);
-+static DEVICE_ATTR(unique_id, S_IRUGO, unique_id_show, NULL);
-+static DEVICE_ATTR(rescan, S_IWUSR, NULL, host_store_rescan);
+ 	return UART_GET_CHAR(port);
+ }
+@@ -1225,7 +1225,7 @@ static int atmel_poll_get_char(struct ua
+ static void atmel_poll_put_char(struct uart_port *port, unsigned char ch)
+ {
+ 	while (!(UART_GET_CSR(port) & ATMEL_US_TXRDY))
+-		barrier();
++		cpu_relax();
  
- static struct device_attribute *hpsa_sdev_attrs[] = {
- 	&dev_attr_raid_level,
+ 	UART_PUT_CHAR(port, ch);
+ }
 _
 
-Patches currently in -mm which might be from achiang@hp.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+recordmcount-stfu.patch
+include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
+drivers-char-cycladesc-fix-used-uninitialised-bug.patch
+drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
+acpi-remove-nid_inval.patch
+drivers-acpi-acpi_padc-squish-warning.patch
+drivers-char-agp-amd64-agpc-squish-warning.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+drivers-leds-leds-ss4200c-fix-return-statement.patch
+drivers-atm-solos-pcic-fix-warning-bug-clean-up-code.patch
+3x59x-fix-pci-resource-management.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
+atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops-fix.patch
+st-fix-test-of-value-range-in-st_set_options.patch
 scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
-hpsa-make-device-attrs-static.patch
-page-types-learn-to-describe-flags-directly-from-command-line.patch
-page-types-whitespace-alignment.patch
-page-types-exit-early-when-invoked-with-d-describe.patch
-mm-add-numa-node-symlink-for-memory-section-in-sysfs.patch
-mm-refactor-register_cpu_under_node.patch
-mm-refactor-unregister_cpu_under_node.patch
-mm-add-numa-node-symlink-for-cpu-devices-in-sysfs.patch
-documentation-abi-sys-devices-system-cpu-cpu-node.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+fs-improve-remountro-vs-buffercache-coherency.patch
+percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+readahead-add-blk_run_backing_dev.patch
+mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
+oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
+oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes.patch
+mm-memory_hotplug-make-offline_pages-static.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
+drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
+rwsem-fix-rwsem_is_locked-bugs-fix.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
+errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
+msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes.patch
+crc32-minor-optimizations-and-cleanup-checkpatch-fixes.patch
+hwmon-w83627ehf-updates-checkpatch-fixes.patch
+spi-controller-driver-for-designware-spi-core-fix.patch
+spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3.patch
+ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
+memcg-coalesce-charging-via-percpu-storage-fix.patch
+aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
+direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
+zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes.patch
+lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes.patch
+lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+reiser4-disable.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
