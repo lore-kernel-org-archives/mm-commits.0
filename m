@@ -1,96 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] thermal-add-sanity-check-for-the-passive-attribute.patch removed from -mm tree
-Date: Tue, 17 Nov 2009 14:48:02 -0800
-Message-ID: <200911172248.nAHMm3AE007264@imap1.linux-foundation.org>
+Subject: [folded] hpsa-make-device-attrs-static.patch removed from -mm tree
+Date: Tue, 17 Nov 2009 14:52:26 -0800
+Message-ID: <200911172252.nAHMqQgh017786@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51364 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37934 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756558AbZKQWuB (ORCPT
+	by vger.kernel.org with ESMTP id S1756604AbZKQWww (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Nov 2009 17:50:01 -0500
+	Tue, 17 Nov 2009 17:52:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: elendil@planet.nl, lenb@kernel.org, mjg@redhat.com, rui.zhang@intel.com, mm-commits@vger.kernel.org
+To: achiang@hp.com, James.Bottomley@HansenPartnership.com, jens.axboe@oracle.com, mikem@beardog.cce.hp.com, scameron@beardog.cce.hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     thermal: add sanity check for the passive attribute
+     hpsa: make device attrs static
 has been removed from the -mm tree.  Its filename was
-     thermal-add-sanity-check-for-the-passive-attribute.patch
+     hpsa-make-device-attrs-static.patch
 
-This patch was dropped because it was nacked
+This patch was dropped because it was folded into scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thermal: add sanity check for the passive attribute
-From: Frans Pop <elendil@planet.nl>
+Subject: hpsa: make device attrs static
+From: Alex Chiang <achiang@hp.com>
 
-Values below 1000 milli-celsius don't make sense and can cause the system
-to go into a thermal heart attack: the actual temperature will always be
-lower and thus the system will be throttled down to its lowest setting.
+No need to export those device attributes.
 
-An additional problem is that values below 1000 will show as 0 in
-/proc/acpi/thermal/TZx/trip_points:passive.
+In fact, without this patch, we can trip over a build error if hpsa
+is a built-in and another driver also declares and exports attributes
+with the same name.
 
-cat passive
-0
-echo -n 90 >passive
-bash: echo: write error: Invalid argument
-echo -n 90000 >passive
-cat passive
-90000
+You'll see errors like:
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=13918
+	drivers/scsi/built-in.o: multiple definition of `dev_attr_lunid'
+	drivers/block/built-in.o: first defined here
 
-Signed-off-by: Frans Pop <elendil@planet.nl>
-Cc: Matthew Garrett <mjg@redhat.com>
-Cc: Zhang Rui <rui.zhang@intel.com>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Alex Chiang <achiang@hp.com>
+Cc: Stephen M. Cameron <scameron@beardog.cce.hp.com>
+Cc: Mike Miller <mikem@beardog.cce.hp.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/thermal/sysfs-api.txt |    1 +
- drivers/thermal/thermal_sys.c       |    6 ++++++
- 2 files changed, 7 insertions(+)
+ drivers/scsi/hpsa.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN Documentation/thermal/sysfs-api.txt~thermal-add-sanity-check-for-the-passive-attribute Documentation/thermal/sysfs-api.txt
---- a/Documentation/thermal/sysfs-api.txt~thermal-add-sanity-check-for-the-passive-attribute
-+++ a/Documentation/thermal/sysfs-api.txt
-@@ -206,6 +206,7 @@ passive
- 	passive trip point for the zone. Activation is done by polling with
- 	an interval of 1 second.
- 	Unit: millidegrees Celsius
-+	Valid values: 0 (disabled) or greater than 1000
- 	RW, Optional
+diff -puN drivers/scsi/hpsa.c~hpsa-make-device-attrs-static drivers/scsi/hpsa.c
+--- a/drivers/scsi/hpsa.c~hpsa-make-device-attrs-static
++++ a/drivers/scsi/hpsa.c
+@@ -151,10 +151,10 @@ static int check_for_unit_attention(stru
+ static void check_ioctl_unit_attention(struct ctlr_info *h,
+ 	struct CommandList *c);
  
- *****************************
-diff -puN drivers/thermal/thermal_sys.c~thermal-add-sanity-check-for-the-passive-attribute drivers/thermal/thermal_sys.c
---- a/drivers/thermal/thermal_sys.c~thermal-add-sanity-check-for-the-passive-attribute
-+++ a/drivers/thermal/thermal_sys.c
-@@ -225,6 +225,12 @@ passive_store(struct device *dev, struct
- 	if (!sscanf(buf, "%d\n", &state))
- 		return -EINVAL;
+-DEVICE_ATTR(raid_level, S_IRUGO, raid_level_show, NULL);
+-DEVICE_ATTR(lunid, S_IRUGO, lunid_show, NULL);
+-DEVICE_ATTR(unique_id, S_IRUGO, unique_id_show, NULL);
+-DEVICE_ATTR(rescan, S_IWUSR, NULL, host_store_rescan);
++static DEVICE_ATTR(raid_level, S_IRUGO, raid_level_show, NULL);
++static DEVICE_ATTR(lunid, S_IRUGO, lunid_show, NULL);
++static DEVICE_ATTR(unique_id, S_IRUGO, unique_id_show, NULL);
++static DEVICE_ATTR(rescan, S_IWUSR, NULL, host_store_rescan);
  
-+	/* sanity check: values below 1000 millicelcius don't make sense
-+	 * and can cause the system to go into a thermal heart attack
-+	 */
-+	if (state && state < 1000)
-+		return -EINVAL;
-+
- 	if (state && !tz->forced_passive) {
- 		mutex_lock(&thermal_list_lock);
- 		list_for_each_entry(cdev, &thermal_cdev_list, node) {
+ static struct device_attribute *hpsa_sdev_attrs[] = {
+ 	&dev_attr_raid_level,
 _
 
-Patches currently in -mm which might be from elendil@planet.nl are
+Patches currently in -mm which might be from achiang@hp.com are
 
 linux-next.patch
-acpi-thermal-display-forced-passive-trip-points-in-proc.patch
-thermal-add-sanity-check-for-the-passive-attribute.patch
-thermal-only-set-passive_delay-for-forced_passive-cooling.patch
-thermal-disable-polling-if-passive_delay-and-polling_delay-are-both-unset.patch
-page-allocator-wait-on-both-sync-and-async-congestion-after-direct-reclaim.patch
-vmscan-have-kswapd-sleep-for-a-short-interval-and-double-check-it-should-be-asleep.patch
+scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
+hpsa-make-device-attrs-static.patch
+page-types-learn-to-describe-flags-directly-from-command-line.patch
+page-types-whitespace-alignment.patch
+page-types-exit-early-when-invoked-with-d-describe.patch
+mm-add-numa-node-symlink-for-memory-section-in-sysfs.patch
+mm-refactor-register_cpu_under_node.patch
+mm-refactor-unregister_cpu_under_node.patch
+mm-add-numa-node-symlink-for-cpu-devices-in-sysfs.patch
+documentation-abi-sys-devices-system-cpu-cpu-node.patch
 
