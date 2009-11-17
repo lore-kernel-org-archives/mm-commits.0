@@ -1,241 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [folded] cmpc_acpi-add-support-for-classmate-pc-acpi-devices-fix.patch removed from -mm tree
-Date: Tue, 17 Nov 2009 14:19:39 -0800
-Message-ID: <200911172219.nAHMJdkg004338@imap1.linux-foundation.org>
+Subject: [folded] acpi-remove-nid_inval-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 17 Nov 2009 14:20:03 -0800
+Message-ID: <200911172220.nAHMK4QC005368@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43456 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38733 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756200AbZKQWUr (ORCPT
+	by vger.kernel.org with ESMTP id S1756209AbZKQWVO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Nov 2009 17:20:47 -0500
+	Tue, 17 Nov 2009 17:21:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cascardo@holoscopio.com, lenb@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, Lee.Schermerhorn@hp.com, gorcunov@openvz.org, lenb@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cmpc_acpi-add-support-for-classmate-pc-acpi-devices-fix
+     acpi-remove-nid_inval-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     cmpc_acpi-add-support-for-classmate-pc-acpi-devices-fix.patch
+     acpi-remove-nid_inval-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
+This patch was dropped because it was folded into acpi-remove-nid_inval.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cmpc_acpi-add-support-for-classmate-pc-acpi-devices-fix
+Subject: acpi-remove-nid_inval-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-readability tweaks
+ERROR: trailing whitespace
+#33: FILE: drivers/acpi/numa.c:43:
++static int pxm_to_node_map[MAX_PXM_DOMAINS]^I^I^I^I$
 
+total: 1 errors, 0 warnings, 53 lines checked
+
+./patches/acpi-remove-nid_inval.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
 Cc: Len Brown <lenb@kernel.org>
-Cc: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/cmpc_acpi.c |   31 ++++++++++++++++++++++++-----
- 1 file changed, 26 insertions(+), 5 deletions(-)
 
-diff -puN drivers/platform/x86/cmpc_acpi.c~cmpc_acpi-add-support-for-classmate-pc-acpi-devices-fix drivers/platform/x86/cmpc_acpi.c
---- a/drivers/platform/x86/cmpc_acpi.c~cmpc_acpi-add-support-for-classmate-pc-acpi-devices-fix
-+++ a/drivers/platform/x86/cmpc_acpi.c
-@@ -40,6 +40,7 @@ static int cmpc_add_acpi_notify_device(s
- 	struct input_dev *inputdev;
- 	acpi_status status;
- 	int error;
-+
- 	inputdev = input_allocate_device();
- 	if (!inputdev) {
- 		error = -ENOMEM;
-@@ -72,6 +73,7 @@ static int cmpc_remove_acpi_notify_devic
- {
- 	struct input_dev *inputdev;
- 	acpi_status status;
-+
- 	status = acpi_remove_notify_handler(acpi->handle, ACPI_DEVICE_NOTIFY,
- 					    handler);
- 	inputdev = dev_get_drvdata(&acpi->dev);
-@@ -80,16 +82,15 @@ static int cmpc_remove_acpi_notify_devic
- 	return 0;
- }
+diff -puN drivers/acpi/numa.c~acpi-remove-nid_inval-checkpatch-fixes drivers/acpi/numa.c
+--- a/drivers/acpi/numa.c~acpi-remove-nid_inval-checkpatch-fixes
++++ a/drivers/acpi/numa.c
+@@ -40,7 +40,7 @@ ACPI_MODULE_NAME("numa");
+ static nodemask_t nodes_found_map = NODE_MASK_NONE;
  
--
- /*
-  * Accelerometer code.
-  */
--
- static acpi_status cmpc_start_accel(acpi_handle handle)
- {
- 	union acpi_object param[2];
- 	struct acpi_object_list input;
- 	acpi_status status;
-+
- 	param[0].type = ACPI_TYPE_INTEGER;
- 	param[0].integer.value = 0x3;
- 	param[1].type = ACPI_TYPE_INTEGER;
-@@ -104,6 +105,7 @@ static acpi_status cmpc_stop_accel(acpi_
- 	union acpi_object param[2];
- 	struct acpi_object_list input;
- 	acpi_status status;
-+
- 	param[0].type = ACPI_TYPE_INTEGER;
- 	param[0].integer.value = 0x4;
- 	param[1].type = ACPI_TYPE_INTEGER;
-@@ -117,6 +119,7 @@ static acpi_status cmpc_accel_set_sense(
- {
- 	union acpi_object param[2];
- 	struct acpi_object_list input;
-+
- 	param[0].type = ACPI_TYPE_INTEGER;
- 	param[0].integer.value = 0x02;
- 	param[1].type = ACPI_TYPE_INTEGER;
-@@ -136,6 +139,7 @@ static acpi_status cmpc_get_accel(acpi_h
- 	struct acpi_buffer output = { ACPI_ALLOCATE_BUFFER, 0 };
- 	unsigned char *locs;
- 	acpi_status status;
-+
- 	param[0].type = ACPI_TYPE_INTEGER;
- 	param[0].integer.value = 0x01;
- 	param[1].type = ACPI_TYPE_INTEGER;
-@@ -156,12 +160,14 @@ static acpi_status cmpc_get_accel(acpi_h
- 
- static void cmpc_accel_handler(acpi_handle handle, u32 event, void *ctx)
- {
--	struct input_dev *inputdev = ctx;
--	acpi_status status;
--	unsigned char x, y, z;
- 	if (event == 0x81) {
-+		unsigned char x, y, z;
-+		acpi_status status;
-+
- 		status = cmpc_get_accel(handle, &x, &y, &z);
- 		if (ACPI_SUCCESS(status)) {
-+			struct input_dev *inputdev = ctx;
-+
- 			input_report_abs(inputdev, ABS_X, x);
- 			input_report_abs(inputdev, ABS_Y, y);
- 			input_report_abs(inputdev, ABS_Z, z);
-@@ -176,6 +182,7 @@ static ssize_t cmpc_accel_sense_store(st
- {
- 	struct acpi_device *acpi;
- 	int sense;
-+
- 	acpi = to_acpi_device(dev);
- 	if (sscanf(buf, "%d", &sense) <= 0)
- 		return -EINVAL;
-@@ -191,6 +198,7 @@ struct device_attribute cmpc_accel_sense
- static int cmpc_accel_open(struct input_dev *input)
- {
- 	struct acpi_device *acpi;
-+
- 	acpi = to_acpi_device(input->dev.parent);
- 	if (ACPI_SUCCESS(cmpc_start_accel(acpi->handle)))
- 		return 0;
-@@ -200,6 +208,7 @@ static int cmpc_accel_open(struct input_
- static void cmpc_accel_close(struct input_dev *input)
- {
- 	struct acpi_device *acpi;
-+
- 	acpi = to_acpi_device(input->dev.parent);
- 	cmpc_stop_accel(acpi->handle);
- }
-@@ -217,6 +226,7 @@ static void cmpc_accel_idev_init(struct 
- static int cmpc_accel_add(struct acpi_device *acpi)
- {
- 	int error;
-+
- 	error = device_create_file(&acpi->dev, &cmpc_accel_sense_attr);
- 	if (error)
- 		return error;
-@@ -260,6 +270,7 @@ static acpi_status cmpc_get_tablet(acpi_
- 	struct acpi_object_list input;
- 	unsigned long long output;
- 	acpi_status status;
-+
- 	param.type = ACPI_TYPE_INTEGER;
- 	param.integer.value = 0x01;
- 	input.count = 1;
-@@ -274,6 +285,7 @@ static void cmpc_tablet_handler(acpi_han
- {
- 	unsigned long long val = 0;
- 	struct input_dev *inputdev = ctx;
-+
- 	if (event == 0x81) {
- 		if (ACPI_SUCCESS(cmpc_get_tablet(handle, &val)))
- 			input_report_switch(inputdev, SW_TABLET_MODE, !val);
-@@ -328,6 +340,7 @@ static acpi_status cmpc_get_brightness(a
- 	struct acpi_object_list input;
- 	unsigned long long output;
- 	acpi_status status;
-+
- 	param.type = ACPI_TYPE_INTEGER;
- 	param.integer.value = 0xC0;
- 	input.count = 1;
-@@ -345,6 +358,7 @@ static acpi_status cmpc_set_brightness(a
- 	struct acpi_object_list input;
- 	acpi_status status;
- 	unsigned long long output;
-+
- 	param[0].type = ACPI_TYPE_INTEGER;
- 	param[0].integer.value = 0xC0;
- 	param[1].type = ACPI_TYPE_INTEGER;
-@@ -360,6 +374,7 @@ static int cmpc_bl_get_brightness(struct
- 	acpi_status status;
- 	acpi_handle handle;
- 	unsigned long long brightness;
-+
- 	handle = bl_get_data(bd);
- 	status = cmpc_get_brightness(handle, &brightness);
- 	if (ACPI_SUCCESS(status))
-@@ -372,6 +387,7 @@ static int cmpc_bl_update_status(struct 
- {
- 	acpi_status status;
- 	acpi_handle handle;
-+
- 	handle = bl_get_data(bd);
- 	status = cmpc_set_brightness(handle, bd->props.brightness);
- 	if (ACPI_SUCCESS(status))
-@@ -388,6 +404,7 @@ static struct backlight_ops cmpc_bl_ops 
- static int cmpc_bl_add(struct acpi_device *acpi)
- {
- 	struct backlight_device *bd;
-+
- 	bd = backlight_device_register("cmpc_bl", &acpi->dev,
- 				       acpi->handle, &cmpc_bl_ops);
- 	bd->props.max_brightness = 7;
-@@ -398,6 +415,7 @@ static int cmpc_bl_add(struct acpi_devic
- static int cmpc_bl_remove(struct acpi_device *acpi, int type)
- {
- 	struct backlight_device *bd;
-+
- 	bd = dev_get_drvdata(&acpi->dev);
- 	backlight_device_unregister(bd);
- 	return 0;
-@@ -439,6 +457,7 @@ static void cmpc_keys_handler(acpi_handl
- {
- 	struct input_dev *inputdev;
- 	int code = KEY_MAX;
-+
- 	if ((event & 0x0F) < ARRAY_SIZE(cmpc_keys_codes))
- 		code = cmpc_keys_codes[event & 0x0F];
- 	inputdev = ctx;
-@@ -448,6 +467,7 @@ static void cmpc_keys_handler(acpi_handl
- static void cmpc_keys_idev_init(struct input_dev *inputdev)
- {
- 	int i;
-+
- 	set_bit(EV_KEY, inputdev->evbit);
- 	for (i = 0; cmpc_keys_codes[i] != KEY_MAX; i++)
- 		set_bit(cmpc_keys_codes[i], inputdev->keybit);
-@@ -491,6 +511,7 @@ static bool cmpc_keys_driver_registered;
- static int cmpc_init(void)
- {
- 	int result;
-+
- 	result = acpi_bus_register_driver(&cmpc_keys_acpi_driver);
- 	cmpc_keys_driver_registered = !!result;
- 	result = acpi_bus_register_driver(&cmpc_bl_acpi_driver);
+ /* maps to convert between proximity domain and logical node ID */
+-static int pxm_to_node_map[MAX_PXM_DOMAINS]				
++static int pxm_to_node_map[MAX_PXM_DOMAINS]
+ 			= { [0 ... MAX_PXM_DOMAINS - 1] = NUMA_NO_NODE };
+ static int node_to_pxm_map[MAX_NUMNODES]
+ 			= { [0 ... MAX_NUMNODES - 1] = PXM_INVAL };
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -250,7 +73,7 @@ drivers-char-cycladesc-fix-used-uninitialised-bug.patch
 drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
 arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
 cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices-fix.patch
+acpi-remove-nid_inval.patch
 acpi-remove-nid_inval-checkpatch-fixes.patch
 drivers-acpi-acpi_padc-squish-warning.patch
 drivers-char-agp-amd64-agpc-squish-warning.patch
