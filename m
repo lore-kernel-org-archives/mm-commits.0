@@ -1,135 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [folded] acpi-remove-nid_inval-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 17 Nov 2009 14:20:03 -0800
-Message-ID: <200911172220.nAHMK4QC005368@imap1.linux-foundation.org>
+Subject: [folded] cmpc_acpi-add-support-for-classmate-pc-acpi-devices-depends-on-acpi.patch removed from -mm tree
+Date: Tue, 17 Nov 2009 14:26:05 -0800
+Message-ID: <200911172226.nAHMQ5h3019710@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38733 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34413 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756209AbZKQWVO (ORCPT
+	by vger.kernel.org with ESMTP id S1756389AbZKQW1Q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Nov 2009 17:21:14 -0500
+	Tue, 17 Nov 2009 17:27:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, Lee.Schermerhorn@hp.com, gorcunov@openvz.org, lenb@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, cascardo@holoscopio.com, lenb@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     acpi-remove-nid_inval-checkpatch-fixes
+     cmpc_acpi: depends on ACPI
 has been removed from the -mm tree.  Its filename was
-     acpi-remove-nid_inval-checkpatch-fixes.patch
+     cmpc_acpi-add-support-for-classmate-pc-acpi-devices-depends-on-acpi.patch
 
-This patch was dropped because it was folded into acpi-remove-nid_inval.patch
+This patch was dropped because it was folded into cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi-remove-nid_inval-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: cmpc_acpi: depends on ACPI
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-ERROR: trailing whitespace
-#33: FILE: drivers/acpi/numa.c:43:
-+static int pxm_to_node_map[MAX_PXM_DOMAINS]^I^I^I^I$
+Fix about 100 build errors/warnings when ACPI is not enabled.  E.g.:
 
-total: 1 errors, 0 warnings, 53 lines checked
+drivers/platform/x86/cmpc_acpi.c:50: error: dereferencing pointer to incomplete type
+drivers/platform/x86/cmpc_acpi.c:55: error: dereferencing pointer to incomplete type
+drivers/platform/x86/cmpc_acpi.c:56: error: dereferencing pointer to incomplete type
+drivers/platform/x86/cmpc_acpi.c:72: warning: 'struct acpi_device' declared inside parameter list
+drivers/platform/x86/cmpc_acpi.c:77: error: dereferencing pointer to incomplete type
+drivers/platform/x86/cmpc_acpi.c:79: error: dereferencing pointer to incomplete type
 
-./patches/acpi-remove-nid_inval.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Cc: Len Brown <lenb@kernel.org>
+Acked-by: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/acpi/numa.c~acpi-remove-nid_inval-checkpatch-fixes drivers/acpi/numa.c
---- a/drivers/acpi/numa.c~acpi-remove-nid_inval-checkpatch-fixes
-+++ a/drivers/acpi/numa.c
-@@ -40,7 +40,7 @@ ACPI_MODULE_NAME("numa");
- static nodemask_t nodes_found_map = NODE_MASK_NONE;
+diff -puN drivers/platform/x86/Kconfig~cmpc_acpi-add-support-for-classmate-pc-acpi-devices-depends-on-acpi drivers/platform/x86/Kconfig
+--- a/drivers/platform/x86/Kconfig~cmpc_acpi-add-support-for-classmate-pc-acpi-devices-depends-on-acpi
++++ a/drivers/platform/x86/Kconfig
+@@ -438,7 +438,7 @@ config ACPI_TOSHIBA
  
- /* maps to convert between proximity domain and logical node ID */
--static int pxm_to_node_map[MAX_PXM_DOMAINS]				
-+static int pxm_to_node_map[MAX_PXM_DOMAINS]
- 			= { [0 ... MAX_PXM_DOMAINS - 1] = NUMA_NO_NODE };
- static int node_to_pxm_map[MAX_NUMNODES]
- 			= { [0 ... MAX_NUMNODES - 1] = PXM_INVAL };
+ config ACPI_CMPC
+ 	tristate "CMPC Laptop Extras"
+-	depends on X86
++	depends on X86 && ACPI
+ 	select INPUT
+ 	select BACKLIGHT_CLASS_DEVICE
+ 	default n
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-origin.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-recordmcount-stfu.patch
-include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
-drivers-char-cycladesc-fix-used-uninitialised-bug.patch
-drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
 cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
-acpi-remove-nid_inval.patch
-acpi-remove-nid_inval-checkpatch-fixes.patch
-drivers-acpi-acpi_padc-squish-warning.patch
-drivers-char-agp-amd64-agpc-squish-warning.patch
-drm-kill-more-unused-drm-macros-fix.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-drivers-leds-leds-ss4200c-fix-return-statement.patch
-drivers-atm-solos-pcic-fix-warning-bug-clean-up-code.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops-fix.patch
-st-fix-test-of-value-range-in-st_set_options.patch
-scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices-depends-on-acpi.patch
+x86-cpufreq-dont-use-acpi_processor_get_bios_limit-when-not-available.patch
+scsi-fix-func-names-in-kernel-doc.patch
 readahead-add-blk_run_backing_dev.patch
-mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
-oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
-oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes.patch
-mm-memory_hotplug-make-offline_pages-static.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
-drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
-rwsem-fix-rwsem_is_locked-bugs-fix.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
-errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
-msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes.patch
-crc32-minor-optimizations-and-cleanup-checkpatch-fixes.patch
-hwmon-w83627ehf-updates-checkpatch-fixes.patch
-spi-controller-driver-for-designware-spi-core-fix.patch
-spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3.patch
-ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
-memcg-coalesce-charging-via-percpu-storage-fix.patch
-aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
-direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
-zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
+nodemask-make-nodemask_alloc-more-general.patch
+hugetlb-rework-hstate_next_node_-functions.patch
+hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions.patch
+hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions-fix.patch
+hugetlb-factor-init_nodemask_of_node.patch
+hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy.patch
+hugetlb-add-generic-definition-of-numa_no_node.patch
+hugetlb-add-per-node-hstate-attributes.patch
+hugetlb-update-hugetlb-documentation-for-numa-controls.patch
+hugetlb-use-only-nodes-with-memory-for-huge-pages.patch
+mm-clear-node-in-n_high_memory-and-stop-kswapd-when-all-memory-is-offlined.patch
+hugetlb-handle-memory-hot-plug-events.patch
+hugetlb-offload-per-node-attribute-registrations.patch
+hugetlb-offload-per-node-attribute-registrations-fix.patch
+mm-add-gfp-flags-for-nodemask_alloc-slab-allocations.patch
+mm-add-numa-node-symlink-for-memory-section-in-sysfs.patch
+mm-refactor-register_cpu_under_node.patch
+mm-refactor-unregister_cpu_under_node.patch
+mm-add-numa-node-symlink-for-cpu-devices-in-sysfs.patch
+documentation-abi-sys-devices-system-cpu-cpu-node.patch
+spi-add-pci-interface-driver-for-designware-spi-core-fix.patch
+docs-large-update-to-ioctl-numbertxt.patch
+doc-submitchecklist-add-ioctls-remove-osdl-reference.patch
 reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-reiser4-disable.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
