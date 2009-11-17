@@ -1,125 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [folded] drm-kill-more-unused-drm-macros-fix.patch removed from -mm tree
-Date: Tue, 17 Nov 2009 14:40:44 -0800
-Message-ID: <200911172240.nAHMeiB4022297@imap1.linux-foundation.org>
+Subject: [nacked] thermal-add-sanity-check-for-the-passive-attribute.patch removed from -mm tree
+Date: Tue, 17 Nov 2009 14:48:02 -0800
+Message-ID: <200911172248.nAHMm3AE007264@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41856 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51364 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756496AbZKQWlO (ORCPT
+	by vger.kernel.org with ESMTP id S1756558AbZKQWuB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Nov 2009 17:41:14 -0500
+	Tue, 17 Nov 2009 17:50:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, airlied@linux.ie, dilinger@collabora.co.uk, mm-commits@vger.kernel.org
+To: elendil@planet.nl, lenb@kernel.org, mjg@redhat.com, rui.zhang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drm-kill-more-unused-drm-macros-fix
+     thermal: add sanity check for the passive attribute
 has been removed from the -mm tree.  Its filename was
-     drm-kill-more-unused-drm-macros-fix.patch
+     thermal-add-sanity-check-for-the-passive-attribute.patch
 
-This patch was dropped because it was folded into drm-kill-more-unused-drm-macros.patch
+This patch was dropped because it was nacked
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drm-kill-more-unused-drm-macros-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: thermal: add sanity check for the passive attribute
+From: Frans Pop <elendil@planet.nl>
 
-eh?  This is still used a lot.
+Values below 1000 milli-celsius don't make sense and can cause the system
+to go into a thermal heart attack: the actual temperature will always be
+lower and thus the system will be throttled down to its lowest setting.
 
-Cc: Andres Salomon <dilinger@collabora.co.uk>
-Cc: Dave Airlie <airlied@linux.ie>
+An additional problem is that values below 1000 will show as 0 in
+/proc/acpi/thermal/TZx/trip_points:passive.
+
+cat passive
+0
+echo -n 90 >passive
+bash: echo: write error: Invalid argument
+echo -n 90000 >passive
+cat passive
+90000
+
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=13918
+
+Signed-off-by: Frans Pop <elendil@planet.nl>
+Cc: Matthew Garrett <mjg@redhat.com>
+Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/drm/drmP.h |    2 ++
- 1 file changed, 2 insertions(+)
+ Documentation/thermal/sysfs-api.txt |    1 +
+ drivers/thermal/thermal_sys.c       |    6 ++++++
+ 2 files changed, 7 insertions(+)
 
-diff -puN include/drm/drmP.h~drm-kill-more-unused-drm-macros-fix include/drm/drmP.h
---- a/include/drm/drmP.h~drm-kill-more-unused-drm-macros-fix
-+++ a/include/drm/drmP.h
-@@ -251,6 +251,8 @@ extern void drm_ut_debug_printk(unsigned
- /** \name Internal types and structures */
- /*@{*/
+diff -puN Documentation/thermal/sysfs-api.txt~thermal-add-sanity-check-for-the-passive-attribute Documentation/thermal/sysfs-api.txt
+--- a/Documentation/thermal/sysfs-api.txt~thermal-add-sanity-check-for-the-passive-attribute
++++ a/Documentation/thermal/sysfs-api.txt
+@@ -206,6 +206,7 @@ passive
+ 	passive trip point for the zone. Activation is done by polling with
+ 	an interval of 1 second.
+ 	Unit: millidegrees Celsius
++	Valid values: 0 (disabled) or greater than 1000
+ 	RW, Optional
  
-+#define DRM_ARRAY_SIZE(x) ARRAY_SIZE(x)
+ *****************************
+diff -puN drivers/thermal/thermal_sys.c~thermal-add-sanity-check-for-the-passive-attribute drivers/thermal/thermal_sys.c
+--- a/drivers/thermal/thermal_sys.c~thermal-add-sanity-check-for-the-passive-attribute
++++ a/drivers/thermal/thermal_sys.c
+@@ -225,6 +225,12 @@ passive_store(struct device *dev, struct
+ 	if (!sscanf(buf, "%d\n", &state))
+ 		return -EINVAL;
+ 
++	/* sanity check: values below 1000 millicelcius don't make sense
++	 * and can cause the system to go into a thermal heart attack
++	 */
++	if (state && state < 1000)
++		return -EINVAL;
 +
- #define DRM_LEFTCOUNT(x) (((x)->rp + (x)->count - (x)->wp) % ((x)->count + 1))
- #define DRM_BUFCOUNT(x) ((x)->count - DRM_LEFTCOUNT(x))
- 
+ 	if (state && !tz->forced_passive) {
+ 		mutex_lock(&thermal_list_lock);
+ 		list_for_each_entry(cdev, &thermal_cdev_list, node) {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from elendil@planet.nl are
 
-origin.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-recordmcount-stfu.patch
-include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
-drivers-char-cycladesc-fix-used-uninitialised-bug.patch
-drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
-acpi-remove-nid_inval.patch
-drivers-acpi-acpi_padc-squish-warning.patch
-drivers-char-agp-amd64-agpc-squish-warning.patch
-drm-kill-more-unused-drm-macros.patch
-drm-kill-more-unused-drm-macros-fix.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-drivers-leds-leds-ss4200c-fix-return-statement.patch
-drivers-atm-solos-pcic-fix-warning-bug-clean-up-code.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops-fix.patch
-st-fix-test-of-value-range-in-st_set_options.patch
-scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-readahead-add-blk_run_backing_dev.patch
-mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
-oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
-oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes.patch
-mm-memory_hotplug-make-offline_pages-static.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
-drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
-rwsem-fix-rwsem_is_locked-bugs-fix.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
-errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
-msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes.patch
-crc32-minor-optimizations-and-cleanup-checkpatch-fixes.patch
-hwmon-w83627ehf-updates-checkpatch-fixes.patch
-spi-controller-driver-for-designware-spi-core-fix.patch
-spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3.patch
-ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
-memcg-coalesce-charging-via-percpu-storage-fix.patch
-aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
-direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
-zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-reiser4-disable.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+acpi-thermal-display-forced-passive-trip-points-in-proc.patch
+thermal-add-sanity-check-for-the-passive-attribute.patch
+thermal-only-set-passive_delay-for-forced_passive-cooling.patch
+thermal-disable-polling-if-passive_delay-and-polling_delay-are-both-unset.patch
+page-allocator-wait-on-both-sync-and-async-congestion-after-direct-reclaim.patch
+vmscan-have-kswapd-sleep-for-a-short-interval-and-double-check-it-should-be-asleep.patch
 
