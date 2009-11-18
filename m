@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-media-dvb-dvb-core-dvb_frontendc-needs-semaphoreh.patch added to -mm tree
-Date: Wed, 18 Nov 2009 12:06:16 -0800
-Message-ID: <200911182006.nAIK6GpN007527@imap1.linux-foundation.org>
+Subject: + partitions-use-sector-size-for-efi-gpt-fix.patch added to -mm tree
+Date: Wed, 18 Nov 2009 12:09:45 -0800
+Message-ID: <200911182009.nAIK9jDM015899@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33426 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41781 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932148AbZKRUGy (ORCPT
+	by vger.kernel.org with ESMTP id S1758281AbZKRUKb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Nov 2009 15:06:54 -0500
+	Wed, 18 Nov 2009 15:10:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mchehab@infradead.org, tstrelar@gmail.com
+Cc: kzak@redhat.com, jens.axboe@oracle.com, randy.dunlap@oracle.com
 
 
 The patch titled
-     drivers/media/dvb/dvb-core/dvb_frontend.c: needs semaphore.h
+     partitions-use-sector-size-for-efi-gpt-fix
 has been added to the -mm tree.  Its filename is
-     drivers-media-dvb-dvb-core-dvb_frontendc-needs-semaphoreh.patch
+     partitions-use-sector-size-for-efi-gpt-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,103 +34,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/media/dvb/dvb-core/dvb_frontend.c: needs semaphore.h
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: partitions-use-sector-size-for-efi-gpt-fix
+From: Karel Zak <kzak@redhat.com>
 
-v4l/dvb_frontend.c: In function 'dvb_frontend_stop':
-v4l/dvb_frontend.c:707: error: implicit declaration of function 'init_MUTEX'
+On Sun, Nov 15, 2009 at 10:46:31AM -0800, Randy Dunlap wrote:
+> on i386 builds:
+>
+> fs/built-in.o: In function `last_lba':
+> efi.c:(.text+0x9d9fe): undefined reference to `__divdi3'
+>
+>
+> -       return (bdev->bd_inode->i_size >> 9) - 1ULL;
+> +       return (bdev->bd_inode->i_size / bdev_logical_block_size(bdev)) - 1ULL;
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=14609
+ Ah.. I guess that div_u64() is more portable.
 
-Reported-by: <tstrelar@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/dvb-core/dvb_frontend.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/partitions/efi.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/media/dvb/dvb-core/dvb_frontend.c~drivers-media-dvb-dvb-core-dvb_frontendc-needs-semaphoreh drivers/media/dvb/dvb-core/dvb_frontend.c
---- a/drivers/media/dvb/dvb-core/dvb_frontend.c~drivers-media-dvb-dvb-core-dvb_frontendc-needs-semaphoreh
-+++ a/drivers/media/dvb/dvb-core/dvb_frontend.c
-@@ -31,6 +31,7 @@
- #include <linux/wait.h>
- #include <linux/slab.h>
- #include <linux/poll.h>
-+#include <linux/semaphore.h>
- #include <linux/module.h>
- #include <linux/list.h>
- #include <linux/freezer.h>
+diff -puN fs/partitions/efi.c~partitions-use-sector-size-for-efi-gpt-fix fs/partitions/efi.c
+--- a/fs/partitions/efi.c~partitions-use-sector-size-for-efi-gpt-fix
++++ a/fs/partitions/efi.c
+@@ -94,6 +94,7 @@
+  *
+  ************************************************************/
+ #include <linux/crc32.h>
++#include <linux/math64.h>
+ #include "check.h"
+ #include "efi.h"
+ 
+@@ -143,7 +144,8 @@ last_lba(struct block_device *bdev)
+ {
+ 	if (!bdev || !bdev->bd_inode)
+ 		return 0;
+-	return (bdev->bd_inode->i_size / bdev_logical_block_size(bdev)) - 1ULL;
++	return div_u64(bdev->bd_inode->i_size,
++		       bdev_logical_block_size(bdev)) - 1ULL;
+ }
+ 
+ static inline int
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kzak@redhat.com are
 
-origin.patch
-drivers-media-dvb-dvb-core-dvb_frontendc-needs-semaphoreh.patch
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-recordmcount-stfu.patch
-include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
-drivers-char-cycladesc-fix-used-uninitialised-bug.patch
-drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
-acpi-remove-nid_inval.patch
-drivers-acpi-acpi_padc-squish-warning.patch
-drivers-char-agp-amd64-agpc-squish-warning.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-drivers-leds-leds-ss4200c-fix-return-statement.patch
-drivers-atm-solos-pcic-fix-warning-bug-clean-up-code.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
-st-fix-test-of-value-range-in-st_set_options.patch
-scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-readahead-add-blk_run_backing_dev.patch
-mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
-oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
-oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes.patch
-mm-memory_hotplug-make-offline_pages-static.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
-drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
-rwsem-fix-rwsem_is_locked-bugs-fix.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
-errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
-msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes.patch
-crc32-minor-optimizations-and-cleanup-checkpatch-fixes.patch
-hwmon-w83627ehf-updates-checkpatch-fixes.patch
-spi-controller-driver-for-designware-spi-core-fix.patch
-spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3.patch
-ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
-memcg-coalesce-charging-via-percpu-storage-fix.patch
-aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
-direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
-zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-reiser4-disable.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+partitions-use-sector-size-for-efi-gpt.patch
+partitions-use-sector-size-for-efi-gpt-fix.patch
+partitions-read-whole-sector-with-efi-gpt-header.patch
 
