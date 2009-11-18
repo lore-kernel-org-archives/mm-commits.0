@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + procfs-use-proper-units-for-nommu-statm-fix.patch added to -mm tree
-Date: Wed, 18 Nov 2009 13:39:37 -0800
-Message-ID: <200911182139.nAILdbCv005383@imap1.linux-foundation.org>
+Subject: + procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup.patch added to -mm tree
+Date: Wed, 18 Nov 2009 13:56:01 -0800
+Message-ID: <200911182156.nAILu1Dw012371@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43800 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45108 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932103AbZKRVkg (ORCPT
+	by vger.kernel.org with ESMTP id S1753685AbZKRVz6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Nov 2009 16:40:36 -0500
+	Wed, 18 Nov 2009 16:55:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: steve@digidescorp.com, dhowells@redhat.com, gerg@snapgear.com, xiyou.wangcong@gmail.com
+Cc: akpm@linux-foundation.org, johnstul@us.ibm.com
 
 
 The patch titled
-     procfs-use-proper-units-for-nommu-statm-fix
+     procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup
 has been added to the -mm tree.  Its filename is
-     procfs-use-proper-units-for-nommu-statm-fix.patch
+     procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,131 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: procfs-use-proper-units-for-nommu-statm-fix
-From: Steven J. Magnani <steve@digidescorp.com>
+Subject: procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Reworked to guarantee page alignment of terms used in data size calculation
-and to reduce time spent with mmap_sem held.
+convert into kernel code ;)
 
-Signed-off-by: Steven J. Magnani <steve@digidescorp.com>
-Cc: Greg Ungerer <gerg@snapgear.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: WANG Cong <xiyou.wangcong@gmail.com>
+Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_nommu.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ fs/proc/base.c |   10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
 
-diff -puN fs/proc/task_nommu.c~procfs-use-proper-units-for-nommu-statm-fix fs/proc/task_nommu.c
---- a/fs/proc/task_nommu.c~procfs-use-proper-units-for-nommu-statm-fix
-+++ a/fs/proc/task_nommu.c
-@@ -110,12 +110,13 @@ int task_statm(struct mm_struct *mm, int
- 		}
- 	}
+diff -puN fs/proc/base.c~procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup fs/proc/base.c
+--- a/fs/proc/base.c~procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup
++++ a/fs/proc/base.c
+@@ -1335,11 +1335,8 @@ static const struct file_operations proc
  
--	size >>= PAGE_SHIFT;
- 	*text = (PAGE_ALIGN(mm->end_code) - (mm->start_code & PAGE_MASK))
- 		>> PAGE_SHIFT;
--	*data = (mm->start_stack - mm->start_data) >> PAGE_SHIFT;
--	size += *text + *data;
-+	*data = (PAGE_ALIGN(mm->start_stack) - (mm->start_data & PAGE_MASK))
-+		>> PAGE_SHIFT;
- 	up_read(&mm->mmap_sem);
-+	size >>= PAGE_SHIFT;
-+	size += *text + *data;
- 	*resident = size;
- 	return size;
+ #endif
+ 
+-
+-
+-static ssize_t
+-comm_write(struct file *file, const char __user *buf,
+-	    size_t count, loff_t *offset)
++static ssize_t comm_write(struct file *file, const char __user *buf,
++				size_t count, loff_t *offset)
+ {
+ 	struct inode *inode = file->f_path.dentry->d_inode;
+ 	struct task_struct *p;
+@@ -1365,7 +1362,6 @@ comm_write(struct file *file, const char
+ 	return count;
  }
+ 
+-
+ static int comm_show(struct seq_file *m, void *v)
+ {
+ 	struct inode *inode = m->private;
+@@ -1397,7 +1393,6 @@ static int comm_open(struct inode *inode
+ 	return ret;
+ }
+ 
+-
+ static const struct file_operations proc_pid_set_comm_operations = {
+ 	.open		= comm_open,
+ 	.read		= seq_read,
+@@ -1406,7 +1401,6 @@ static const struct file_operations proc
+ 	.release	= single_release,
+ };
+ 
+-
+ /*
+  * We added or removed a vma mapping the executable. The vmas are only mapped
+  * during exec and are not mapped with the mmap system call.
 _
 
-Patches currently in -mm which might be from steve@digidescorp.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+drivers-media-dvb-dvb-core-dvb_frontendc-needs-semaphoreh.patch
 linux-next.patch
-procfs-use-proper-units-for-nommu-statm.patch
-procfs-use-proper-units-for-nommu-statm-fix.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+recordmcount-stfu.patch
+include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
+drivers-char-cycladesc-fix-used-uninitialised-bug.patch
+drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
+acpi-remove-nid_inval.patch
+drivers-acpi-acpi_padc-squish-warning.patch
+drivers-char-agp-amd64-agpc-squish-warning.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+drivers-leds-leds-ss4200c-fix-return-statement.patch
+drivers-atm-solos-pcic-fix-warning-bug-clean-up-code.patch
+3x59x-fix-pci-resource-management.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
+st-fix-test-of-value-range-in-st_set_options.patch
+scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+fs-improve-remountro-vs-buffercache-coherency.patch
+percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+readahead-add-blk_run_backing_dev.patch
+mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
+oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
+oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes.patch
+mm-mlocking-in-try_to_unmap_one-fix-fix.patch
+mm-memory_hotplug-make-offline_pages-static.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup.patch
+floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
+drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
+rwsem-fix-rwsem_is_locked-bugs-fix.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
+errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
+msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes.patch
+crc32-minor-optimizations-and-cleanup-checkpatch-fixes.patch
+hwmon-w83627ehf-updates-checkpatch-fixes.patch
+spi-controller-driver-for-designware-spi-core-fix.patch
+spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3.patch
+ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
+memcg-coalesce-charging-via-percpu-storage-fix.patch
+aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
+direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
+zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes.patch
+lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes.patch
+lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+reiser4-disable.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
