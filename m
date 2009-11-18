@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ipath-use-bitmap_weight.patch added to -mm tree
-Date: Wed, 18 Nov 2009 12:29:16 -0800
-Message-ID: <200911182029.nAIKTGnN030524@imap1.linux-foundation.org>
+Subject: + procfs-use-proper-units-for-nommu-statm-fix.patch added to -mm tree
+Date: Wed, 18 Nov 2009 13:39:37 -0800
+Message-ID: <200911182139.nAILdbCv005383@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38881 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43800 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752902AbZKRU3O (ORCPT
+	by vger.kernel.org with ESMTP id S932103AbZKRVkg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Nov 2009 15:29:14 -0500
+	Wed, 18 Nov 2009 16:40:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, hal.rosenstock@gmail.com, infinipath@qlogic.com, rolandd@cisco.com, sean.hefty@intel.com
+Cc: steve@digidescorp.com, dhowells@redhat.com, gerg@snapgear.com, xiyou.wangcong@gmail.com
 
 
 The patch titled
-     ipath: use bitmap_weight()
+     procfs-use-proper-units-for-nommu-statm-fix
 has been added to the -mm tree.  Its filename is
-     ipath-use-bitmap_weight.patch
+     procfs-use-proper-units-for-nommu-statm-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,71 +34,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ipath: use bitmap_weight()
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: procfs-use-proper-units-for-nommu-statm-fix
+From: Steven J. Magnani <steve@digidescorp.com>
 
-Use bitmap_weight() instead of finding all set bits in bitmap.
+Reworked to guarantee page alignment of terms used in data size calculation
+and to reduce time spent with mmap_sem held.
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Ralph Campbell <infinipath@qlogic.com>
-Cc: Roland Dreier <rolandd@cisco.com>
-Cc: Sean Hefty <sean.hefty@intel.com>
-Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
+Signed-off-by: Steven J. Magnani <steve@digidescorp.com>
+Cc: Greg Ungerer <gerg@snapgear.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: WANG Cong <xiyou.wangcong@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/hw/ipath/ipath_driver.c |   10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
+ fs/proc/task_nommu.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/infiniband/hw/ipath/ipath_driver.c~ipath-use-bitmap_weight drivers/infiniband/hw/ipath/ipath_driver.c
---- a/drivers/infiniband/hw/ipath/ipath_driver.c~ipath-use-bitmap_weight
-+++ a/drivers/infiniband/hw/ipath/ipath_driver.c
-@@ -39,6 +39,7 @@
- #include <linux/delay.h>
- #include <linux/netdevice.h>
- #include <linux/vmalloc.h>
-+#include <linux/bitmap.h>
- 
- #include "ipath_kernel.h"
- #include "ipath_verbs.h"
-@@ -1697,7 +1698,7 @@ void ipath_chg_pioavailkernel(struct ipa
- 			      unsigned len, int avail)
- {
- 	unsigned long flags;
--	unsigned end, cnt = 0, next;
-+	unsigned end, cnt = 0;
- 
- 	/* There are two bits per send buffer (busy and generation) */
- 	start *= 2;
-@@ -1748,12 +1749,7 @@ void ipath_chg_pioavailkernel(struct ipa
- 
- 	if (dd->ipath_pioupd_thresh) {
- 		end = 2 * (dd->ipath_piobcnt2k + dd->ipath_piobcnt4k);
--		next = find_first_bit(dd->ipath_pioavailkernel, end);
--		while (next < end) {
--			cnt++;
--			next = find_next_bit(dd->ipath_pioavailkernel, end,
--					next + 1);
--		}
-+		cnt = bitmap_weight(dd->ipath_pioavailkernel, end);
+diff -puN fs/proc/task_nommu.c~procfs-use-proper-units-for-nommu-statm-fix fs/proc/task_nommu.c
+--- a/fs/proc/task_nommu.c~procfs-use-proper-units-for-nommu-statm-fix
++++ a/fs/proc/task_nommu.c
+@@ -110,12 +110,13 @@ int task_statm(struct mm_struct *mm, int
+ 		}
  	}
- 	spin_unlock_irqrestore(&ipath_pioavail_lock, flags);
  
+-	size >>= PAGE_SHIFT;
+ 	*text = (PAGE_ALIGN(mm->end_code) - (mm->start_code & PAGE_MASK))
+ 		>> PAGE_SHIFT;
+-	*data = (mm->start_stack - mm->start_data) >> PAGE_SHIFT;
+-	size += *text + *data;
++	*data = (PAGE_ALIGN(mm->start_stack) - (mm->start_data & PAGE_MASK))
++		>> PAGE_SHIFT;
+ 	up_read(&mm->mmap_sem);
++	size >>= PAGE_SHIFT;
++	size += *text + *data;
+ 	*resident = size;
+ 	return size;
+ }
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from steve@digidescorp.com are
 
 linux-next.patch
-ipath-use-bitmap_weight.patch
-ntfs-use-bitmap_weight.patch
-hpfs-use-hweight32.patch
-hpfs-use-bitmap_weight.patch
-qnx4-use-hweight8.patch
-bitmap-introduce-bitmap_set-bitmap_clear-bitmap_find_next_zero_area.patch
-iommu-helper-use-bitmap-library.patch
-isp1362-hcd-use-bitmap_find_next_zero_area.patch
-mlx4-use-bitmap_find_next_zero_area.patch
-sparc-use-bitmap_find_next_zero_area.patch
-ia64-use-bitmap_find_next_zero_area.patch
-genalloc-use-bitmap_find_next_zero_area.patch
+procfs-use-proper-units-for-nommu-statm.patch
+procfs-use-proper-units-for-nommu-statm-fix.patch
 
