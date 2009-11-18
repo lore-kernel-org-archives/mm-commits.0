@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-mark-cifs-mailing-list-as-moderated-for-non-subscribers.patch added to -mm tree
-Date: Wed, 18 Nov 2009 14:43:10 -0800
-Message-ID: <200911182243.nAIMhAEh028749@imap1.linux-foundation.org>
+Subject: + mm-simplify-try_to_unmap_one.patch added to -mm tree
+Date: Wed, 18 Nov 2009 15:18:11 -0800
+Message-ID: <200911182318.nAINIBBp015783@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34429 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35830 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753242AbZKRWnL (ORCPT
+	by vger.kernel.org with ESMTP id S1757376AbZKRXSK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Nov 2009 17:43:11 -0500
+	Wed, 18 Nov 2009 18:18:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, sfrench@samba.org
+Cc: kosaki.motohiro@jp.fujitsu.com, hugh.dickins@tiscali.co.uk
 
 
 The patch titled
-     MAINTAINERS: mark cifs mailing list as "moderated for non-subscribers"
+     mm: simplify try_to_unmap_one()
 has been added to the -mm tree.  Its filename is
-     maintainers-mark-cifs-mailing-list-as-moderated-for-non-subscribers.patch
+     mm-simplify-try_to_unmap_one.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,50 +34,74 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: mark cifs mailing list as "moderated for non-subscribers"
+Subject: mm: simplify try_to_unmap_one()
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-If non-subscribers post bug report to CIFS mailing list, they will get
-following messages.
+SWAP_MLOCK mean "We marked the page as PG_MLOCK, please move it to
+unevictable-lru". So, following code is easy confusable.
 
-	Your mail to 'linux-cifs-client' with the subject
+        if (vma->vm_flags & VM_LOCKED) {
+                ret = SWAP_MLOCK;
+                goto out_unmap;
+        }
 
-	    [PATCH x/x] cifs: xxxxxxxxxxxxx
+Plus, if the VMA doesn't have VM_LOCKED, We don't need to check
+the needed of calling mlock_vma_page().
 
-	Is being held until the list moderator can review it for approval.
-
-	The reason it is being held:
-
-	    Post by non-member to a members-only list
-
-	Either the message will get posted to the list, or you will receive
-	notification of the moderator's decision.  If you would like to cancel
-	this posting, please visit the following URL:
-
-members-only list should be written as so in MAINTAINERS file.
-
+Acked-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Steve French <sfrench@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/rmap.c |   26 +++++++++++++-------------
+ 1 file changed, 13 insertions(+), 13 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-mark-cifs-mailing-list-as-moderated-for-non-subscribers MAINTAINERS
---- a/MAINTAINERS~maintainers-mark-cifs-mailing-list-as-moderated-for-non-subscribers
-+++ a/MAINTAINERS
-@@ -1445,8 +1445,8 @@ F:	include/linux/coda*.h
+diff -puN mm/rmap.c~mm-simplify-try_to_unmap_one mm/rmap.c
+--- a/mm/rmap.c~mm-simplify-try_to_unmap_one
++++ a/mm/rmap.c
+@@ -779,10 +779,9 @@ static int try_to_unmap_one(struct page 
+ 	 * skipped over this mm) then we should reactivate it.
+ 	 */
+ 	if (!(flags & TTU_IGNORE_MLOCK)) {
+-		if (vma->vm_flags & VM_LOCKED) {
+-			ret = SWAP_MLOCK;
+-			goto out_unmap;
+-		}
++		if (vma->vm_flags & VM_LOCKED)
++			goto out_mlock;
++
+ 		if (TTU_ACTION(flags) == TTU_MUNLOCK)
+ 			goto out_unmap;
+ 	}
+@@ -855,18 +854,19 @@ static int try_to_unmap_one(struct page 
  
- COMMON INTERNET FILE SYSTEM (CIFS)
- M:	Steve French <sfrench@samba.org>
--L:	linux-cifs-client@lists.samba.org
--L:	samba-technical@lists.samba.org
-+L:	linux-cifs-client@lists.samba.org (moderated for non-subscribers)
-+L:	samba-technical@lists.samba.org (moderated for non-subscribers)
- W:	http://linux-cifs.samba.org/
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/sfrench/cifs-2.6.git
- S:	Supported
+ out_unmap:
+ 	pte_unmap_unlock(pte, ptl);
++out:
++	return ret;
+ 
+-	if (ret == SWAP_MLOCK) {
+-		ret = SWAP_AGAIN;
+-		if (down_read_trylock(&vma->vm_mm->mmap_sem)) {
+-			if (vma->vm_flags & VM_LOCKED) {
+-				mlock_vma_page(page);
+-				ret = SWAP_MLOCK;
+-			}
+-			up_read(&vma->vm_mm->mmap_sem);
++out_mlock:
++	pte_unmap_unlock(pte, ptl);
++
++	if (down_read_trylock(&vma->vm_mm->mmap_sem)) {
++		if (vma->vm_flags & VM_LOCKED) {
++			mlock_vma_page(page);
++			ret = SWAP_MLOCK;
+ 		}
++		up_read(&vma->vm_mm->mmap_sem);
+ 	}
+-out:
+ 	return ret;
+ }
+ 
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
@@ -118,6 +142,7 @@ vmscan-zone_reclaim-dont-use-insane-swap_cluster_max.patch
 vmscan-kill-scswap_cluster_max.patch
 vmscan-make-consistent-of-reclaim-bale-out-between-do_try_to_free_page-and-shrink_zone.patch
 mm-memory_hotplug-make-offline_pages-static.patch
+mm-simplify-try_to_unmap_one.patch
 procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm.patch
 maintainers-mark-cifs-mailing-list-as-moderated-for-non-subscribers.patch
 lib-introduce-strim.patch
