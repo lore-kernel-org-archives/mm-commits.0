@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + partitions-use-sector-size-for-efi-gpt-fix.patch added to -mm tree
-Date: Wed, 18 Nov 2009 12:09:45 -0800
-Message-ID: <200911182009.nAIK9jDM015899@imap1.linux-foundation.org>
+Subject: + mm-mlocking-in-try_to_unmap_one-fix.patch added to -mm tree
+Date: Wed, 18 Nov 2009 12:22:04 -0800
+Message-ID: <200911182022.nAIKM4OG013172@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41781 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34014 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758281AbZKRUKb (ORCPT
+	by vger.kernel.org with ESMTP id S932199AbZKRUWk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Nov 2009 15:10:31 -0500
+	Wed, 18 Nov 2009 15:22:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kzak@redhat.com, jens.axboe@oracle.com, randy.dunlap@oracle.com
+Cc: kosaki.motohiro@jp.fujitsu.com, Lee.Schermerhorn@hp.com, aarcange@redhat.com, andi@firstfloor.org, fengguang.wu@intel.com, hugh.dickins@tiscali.co.uk, ieidus@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com, npiggin@suse.de, riel@redhat.com
 
 
 The patch titled
-     partitions-use-sector-size-for-efi-gpt-fix
+     comment adding to mlocking in try_to_unmap_one
 has been added to the -mm tree.  Its filename is
-     partitions-use-sector-size-for-efi-gpt-fix.patch
+     mm-mlocking-in-try_to_unmap_one-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,55 +34,85 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: partitions-use-sector-size-for-efi-gpt-fix
-From: Karel Zak <kzak@redhat.com>
+Subject: comment adding to mlocking in try_to_unmap_one
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-On Sun, Nov 15, 2009 at 10:46:31AM -0800, Randy Dunlap wrote:
-> on i386 builds:
->
-> fs/built-in.o: In function `last_lba':
-> efi.c:(.text+0x9d9fe): undefined reference to `__divdi3'
->
->
-> -       return (bdev->bd_inode->i_size >> 9) - 1ULL;
-> +       return (bdev->bd_inode->i_size / bdev_logical_block_size(bdev)) - 1ULL;
+Current code doesn't tell us why we don't bother to nonlinear kindly.
+This patch added small adding explanation.
 
- Ah.. I guess that div_u64() is more portable.
-
-Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Acked-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: Izik Eidus <ieidus@redhat.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/partitions/efi.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/rmap.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN fs/partitions/efi.c~partitions-use-sector-size-for-efi-gpt-fix fs/partitions/efi.c
---- a/fs/partitions/efi.c~partitions-use-sector-size-for-efi-gpt-fix
-+++ a/fs/partitions/efi.c
-@@ -94,6 +94,7 @@
-  *
-  ************************************************************/
- #include <linux/crc32.h>
-+#include <linux/math64.h>
- #include "check.h"
- #include "efi.h"
+diff -puN mm/mlock.c~mm-mlocking-in-try_to_unmap_one-fix mm/mlock.c
+diff -puN mm/rmap.c~mm-mlocking-in-try_to_unmap_one-fix mm/rmap.c
+--- a/mm/rmap.c~mm-mlocking-in-try_to_unmap_one-fix
++++ a/mm/rmap.c
+@@ -1065,7 +1065,11 @@ static int try_to_unmap_file(struct page
+ 	if (list_empty(&mapping->i_mmap_nonlinear))
+ 		goto out;
  
-@@ -143,7 +144,8 @@ last_lba(struct block_device *bdev)
- {
- 	if (!bdev || !bdev->bd_inode)
- 		return 0;
--	return (bdev->bd_inode->i_size / bdev_logical_block_size(bdev)) - 1ULL;
-+	return div_u64(bdev->bd_inode->i_size,
-+		       bdev_logical_block_size(bdev)) - 1ULL;
- }
+-	/* We don't bother to try to find the munlocked page in nonlinears */
++	/*
++	 * We don't bother to try to find the munlocked page in nonlinears.
++	 * It's costly. Instead, later, page reclaim logic may call
++	 * try_to_unmap(TTU_MUNLOCK) and recover PG_mlocked lazily.
++	 */
+ 	if (MLOCK_PAGES && TTU_ACTION(flags) == TTU_MUNLOCK)
+ 		goto out;
  
- static inline int
 _
 
-Patches currently in -mm which might be from kzak@redhat.com are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
-partitions-use-sector-size-for-efi-gpt.patch
-partitions-use-sector-size-for-efi-gpt-fix.patch
-partitions-read-whole-sector-with-efi-gpt-header.patch
+mm-allow-memory-hotplug-and-hibernation-in-the-same-kernel.patch
+linux-next.patch
+oom-dump-stack-and-vm-state-when-oom-killer-panics.patch
+readahead-add-blk_run_backing_dev.patch
+mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap.patch
+mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
+mm-vsmcan-check-shrink_active_list-sc-isolate_pages-return-value.patch
+mm-move-inc_zone_page_statenr_isolated-to-just-isolated-place.patch
+rmap-simplify-try_to_unmap_file.patch
+oom_kill-use-rss-value-instead-of-vm-size-for-badness.patch
+oom-kill-show-virtual-size-and-rss-information-of-the-killed-process.patch
+oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
+oom-kill-fix-numa-consraint-check-with-nodemask-v42.patch
+oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes.patch
+page-allocator-wait-on-both-sync-and-async-congestion-after-direct-reclaim.patch
+vmscan-have-kswapd-sleep-for-a-short-interval-and-double-check-it-should-be-asleep.patch
+vmscan-stop-kswapd-waiting-on-congestion-when-the-min-watermark-is-not-being-met-v2.patch
+mm-define-page_mapping_flags.patch
+mm-mlocking-in-try_to_unmap_one.patch
+mm-config_mmu-for-pg_mlocked.patch
+mm-pass-address-down-to-rmap-ones.patch
+mm-stop-ptlock-enlarging-struct-page.patch
+mm-sigbus-instead-of-abusing-oom.patch
+mm-add-numa-node-symlink-for-memory-section-in-sysfs.patch
+mm-refactor-register_cpu_under_node.patch
+mm-refactor-unregister_cpu_under_node.patch
+mm-add-numa-node-symlink-for-cpu-devices-in-sysfs.patch
+documentation-abi-sys-devices-system-cpu-cpu-node.patch
+vmscan-separate-scswap_cluster_max-and-scnr_max_reclaim.patch
+vmscan-kill-hibernation-specific-reclaim-logic-and-unify-it.patch
+vmscan-zone_reclaim-dont-use-insane-swap_cluster_max.patch
+vmscan-kill-scswap_cluster_max.patch
+vmscan-make-consistent-of-reclaim-bale-out-between-do_try_to_free_page-and-shrink_zone.patch
+mm-memory_hotplug-make-offline_pages-static.patch
+lib-introduce-strim.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
+mm-mlocking-in-try_to_unmap_one-fix.patch
 
