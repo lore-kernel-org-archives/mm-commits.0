@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hpfs-use-bitmap_weight.patch added to -mm tree
-Date: Wed, 18 Nov 2009 12:27:45 -0800
-Message-ID: <200911182027.nAIKRjrh026849@imap1.linux-foundation.org>
+Subject: + ntfs-use-bitmap_weight.patch added to -mm tree
+Date: Wed, 18 Nov 2009 12:28:40 -0800
+Message-ID: <200911182028.nAIKSeA5029092@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60571 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46008 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932287AbZKRU1q (ORCPT
+	by vger.kernel.org with ESMTP id S932312AbZKRU2k (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Nov 2009 15:27:46 -0500
+	Wed, 18 Nov 2009 15:28:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, mikulas@artax.karlin.mff.cuni.cz, viro@zeniv.linux.org.uk
+Cc: akinobu.mita@gmail.com, aia21@cantab.net
 
 
 The patch titled
-     hpfs: use bitmap_weight()
+     ntfs: use bitmap_weight
 has been added to the -mm tree.  Its filename is
-     hpfs-use-bitmap_weight.patch
+     ntfs-use-bitmap_weight.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,56 +34,115 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hpfs: use bitmap_weight()
+Subject: ntfs: use bitmap_weight
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Use bitmap_weight instead of doing hweight32 for each 32bit in bitmap.
+Use bitmap_weight() instead of doing hweight32() for each u32 element in
+the page.
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Anton Altaparmakov <aia21@cantab.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hpfs/super.c |   14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ fs/ntfs/super.c |   25 +++++++++++++------------
+ 1 file changed, 13 insertions(+), 12 deletions(-)
 
-diff -puN fs/hpfs/super.c~hpfs-use-bitmap_weight fs/hpfs/super.c
---- a/fs/hpfs/super.c~hpfs-use-bitmap_weight
-+++ a/fs/hpfs/super.c
-@@ -14,6 +14,7 @@
- #include <linux/magic.h>
- #include <linux/sched.h>
+diff -puN fs/ntfs/super.c~ntfs-use-bitmap_weight fs/ntfs/super.c
+--- a/fs/ntfs/super.c~ntfs-use-bitmap_weight
++++ a/fs/ntfs/super.c
+@@ -31,6 +31,7 @@
+ #include <linux/vfs.h>
+ #include <linux/moduleparam.h>
  #include <linux/smp_lock.h>
 +#include <linux/bitmap.h>
  
- /* Mark the filesystem dirty, so that chkdsk checks it when os/2 booted */
- 
-@@ -115,12 +116,13 @@ static void hpfs_put_super(struct super_
- unsigned hpfs_count_one_bitmap(struct super_block *s, secno secno)
+ #include "sysctl.h"
+ #include "logfile.h"
+@@ -2457,7 +2458,6 @@ static void ntfs_put_super(struct super_
+ static s64 get_nr_free_clusters(ntfs_volume *vol)
  {
- 	struct quad_buffer_head qbh;
--	unsigned *bits;
--	unsigned i, count;
--	if (!(bits = hpfs_map_4sectors(s, secno, &qbh, 4))) return 0;
--	count = 0;
--	for (i = 0; i < 2048 / sizeof(unsigned); i++)
--		count += hweight32(bits[i]);
-+	unsigned long *bits;
-+	unsigned count;
+ 	s64 nr_free = vol->nr_clusters;
+-	u32 *kaddr;
+ 	struct address_space *mapping = vol->lcnbmp_ino->i_mapping;
+ 	struct page *page;
+ 	pgoff_t index, max_index;
+@@ -2476,7 +2476,8 @@ static s64 get_nr_free_clusters(ntfs_vol
+ 	ntfs_debug("Reading $Bitmap, max_index = 0x%lx, max_size = 0x%lx.",
+ 			max_index, PAGE_CACHE_SIZE / 4);
+ 	for (index = 0; index < max_index; index++) {
+-		unsigned int i;
++		unsigned long *kaddr;
 +
-+	bits = hpfs_map_4sectors(s, secno, &qbh, 4);
-+	if (!bits)
-+		return 0;
-+	count = bitmap_weight(bits, 2048 * BITS_PER_BYTE);
- 	hpfs_brelse4(&qbh);
- 	return count;
- }
+ 		/*
+ 		 * Read the page from page cache, getting it from backing store
+ 		 * if necessary, and increment the use count.
+@@ -2489,16 +2490,16 @@ static s64 get_nr_free_clusters(ntfs_vol
+ 			nr_free -= PAGE_CACHE_SIZE * 8;
+ 			continue;
+ 		}
+-		kaddr = (u32*)kmap_atomic(page, KM_USER0);
++		kaddr = kmap_atomic(page, KM_USER0);
+ 		/*
+-		 * For each 4 bytes, subtract the number of set bits. If this
++		 * Subtract the number of set bits. If this
+ 		 * is the last page and it is partial we don't really care as
+ 		 * it just means we do a little extra work but it won't affect
+ 		 * the result as all out of range bytes are set to zero by
+ 		 * ntfs_readpage().
+ 		 */
+-	  	for (i = 0; i < PAGE_CACHE_SIZE / 4; i++)
+-			nr_free -= (s64)hweight32(kaddr[i]);
++		nr_free -= bitmap_weight(kaddr,
++					PAGE_CACHE_SIZE * BITS_PER_BYTE);
+ 		kunmap_atomic(kaddr, KM_USER0);
+ 		page_cache_release(page);
+ 	}
+@@ -2537,7 +2538,6 @@ static s64 get_nr_free_clusters(ntfs_vol
+ static unsigned long __get_nr_free_mft_records(ntfs_volume *vol,
+ 		s64 nr_free, const pgoff_t max_index)
+ {
+-	u32 *kaddr;
+ 	struct address_space *mapping = vol->mftbmp_ino->i_mapping;
+ 	struct page *page;
+ 	pgoff_t index;
+@@ -2547,7 +2547,8 @@ static unsigned long __get_nr_free_mft_r
+ 	ntfs_debug("Reading $MFT/$BITMAP, max_index = 0x%lx, max_size = "
+ 			"0x%lx.", max_index, PAGE_CACHE_SIZE / 4);
+ 	for (index = 0; index < max_index; index++) {
+-		unsigned int i;
++		unsigned long *kaddr;
++
+ 		/*
+ 		 * Read the page from page cache, getting it from backing store
+ 		 * if necessary, and increment the use count.
+@@ -2560,16 +2561,16 @@ static unsigned long __get_nr_free_mft_r
+ 			nr_free -= PAGE_CACHE_SIZE * 8;
+ 			continue;
+ 		}
+-		kaddr = (u32*)kmap_atomic(page, KM_USER0);
++		kaddr = kmap_atomic(page, KM_USER0);
+ 		/*
+-		 * For each 4 bytes, subtract the number of set bits. If this
++		 * Subtract the number of set bits. If this
+ 		 * is the last page and it is partial we don't really care as
+ 		 * it just means we do a little extra work but it won't affect
+ 		 * the result as all out of range bytes are set to zero by
+ 		 * ntfs_readpage().
+ 		 */
+-	  	for (i = 0; i < PAGE_CACHE_SIZE / 4; i++)
+-			nr_free -= (s64)hweight32(kaddr[i]);
++		nr_free -= bitmap_weight(kaddr,
++					PAGE_CACHE_SIZE * BITS_PER_BYTE);
+ 		kunmap_atomic(kaddr, KM_USER0);
+ 		page_cache_release(page);
+ 	}
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 linux-next.patch
+ntfs-use-bitmap_weight.patch
 hpfs-use-hweight32.patch
 hpfs-use-bitmap_weight.patch
 qnx4-use-hweight8.patch
