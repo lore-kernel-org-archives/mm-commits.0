@@ -1,64 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged] wistron_btnsc-add-dmi-entry-for-medion-wim2030-laptop.patch removed from -mm tree
-Date: Tue, 17 Nov 2009 17:52:37 -0800
-Message-ID: <200911180152.nAI1qbnI025862@imap1.linux-foundation.org>
+Subject: + checkpatch-fix-false-positive-on-__initconst.patch added to -mm tree
+Date: Wed, 18 Nov 2009 11:57:20 -0800
+Message-ID: <200911181957.nAIJvKE9018480@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45466 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48669 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753650AbZKRBwn (ORCPT
+	by vger.kernel.org with ESMTP id S1758476AbZKRT6D (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Nov 2009 20:52:43 -0500
+	Wed, 18 Nov 2009 14:58:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dr.nop@gmx.net, dtor@mail.ru, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: w.sang@pengutronix.de, apw@shadowen.org
 
 
 The patch titled
-     wistron_btns.c: add DMI entry for Medion WIM2030 laptop
-has been removed from the -mm tree.  Its filename was
-     wistron_btnsc-add-dmi-entry-for-medion-wim2030-laptop.patch
+     checkpatch: fix false positive on __initconst
+has been added to the -mm tree.  Its filename is
+     checkpatch-fix-false-positive-on-__initconst.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: wistron_btns.c: add DMI entry for Medion WIM2030 laptop
-From: Sebastian Frei <dr.nop@gmx.net>
+Subject: checkpatch: fix false positive on __initconst
+From: Wolfram Sang <w.sang@pengutronix.de>
 
-This patch adds a DMI entry for the Medion WIM2030 laptop.
+checkpatch falsely complained about '__initconst' because it thought the
+'const' needed a space before.  Fix this by changing the list of
+attributes:
 
-Signed-off-by: Sebastian Frei <dr.nop@gmx.net>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+- add '__initconst'
+- force plain 'init' to contain a word-boundary at the end
+
+Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
+Cc: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/misc/wistron_btns.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ scripts/checkpatch.pl |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/input/misc/wistron_btns.c~wistron_btnsc-add-dmi-entry-for-medion-wim2030-laptop drivers/input/misc/wistron_btns.c
---- a/drivers/input/misc/wistron_btns.c~wistron_btnsc-add-dmi-entry-for-medion-wim2030-laptop
-+++ a/drivers/input/misc/wistron_btns.c
-@@ -683,6 +683,15 @@ static struct dmi_system_id dmi_ids[] __
- 	},
- 	{
- 		.callback = dmi_matched,
-+		.ident = "Medion MD 42200",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Medion"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "WIM 2030"),
-+		},
-+		.driver_data = keymap_fs_amilo_pro_v2000
-+	},
-+	{
-+		.callback = dmi_matched,
- 		.ident = "Fujitsu N3510",
- 		.matches = {
- 			DMI_MATCH(DMI_SYS_VENDOR, "FUJITSU"),
+diff -puN scripts/checkpatch.pl~checkpatch-fix-false-positive-on-__initconst scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-fix-false-positive-on-__initconst
++++ a/scripts/checkpatch.pl
+@@ -145,11 +145,14 @@ our $Sparse	= qr{
+ 			__kprobes|
+ 			__ref
+ 		}x;
++
++# Notes to $Attribute:
++# We need \b after 'init' otherwise 'initconst' will cause a false positive in a check
+ our $Attribute	= qr{
+ 			const|
+ 			__read_mostly|
+ 			__kprobes|
+-			__(?:mem|cpu|dev|)(?:initdata|init)|
++			__(?:mem|cpu|dev|)(?:initdata|initconst|init\b)|
+ 			____cacheline_aligned|
+ 			____cacheline_aligned_in_smp|
+ 			____cacheline_internodealigned_in_smp|
 _
 
-Patches currently in -mm which might be from dr.nop@gmx.net are
+Patches currently in -mm which might be from w.sang@pengutronix.de are
 
-wistron_btnsc-add-dmi-entry-for-medion-wim2030-laptop.patch
+linux-next.patch
+scripts-get_maintainerpl-fix-non-with-git-blame-and-cleanups.patch
+checkpatch-fix-false-positive-on-__initconst.patch
 
