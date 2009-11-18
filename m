@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup.patch added to -mm tree
-Date: Wed, 18 Nov 2009 13:56:01 -0800
-Message-ID: <200911182156.nAILu1Dw012371@imap1.linux-foundation.org>
+Subject: + acpi-get_bios_limit-static-inline-when-cpu_freq=n.patch added to -mm tree
+Date: Wed, 18 Nov 2009 14:00:47 -0800
+Message-ID: <200911182200.nAIM0lRF023894@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45108 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57347 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753685AbZKRVz6 (ORCPT
+	by vger.kernel.org with ESMTP id S1750772AbZKRWBc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Nov 2009 16:55:58 -0500
+	Wed, 18 Nov 2009 17:01:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, johnstul@us.ibm.com
+Cc: randy.dunlap@oracle.com, lenb@kernel.org
 
 
 The patch titled
-     procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup
+     acpi: get_bios_limit static inline when CPU_FREQ=n
 has been added to the -mm tree.  Its filename is
-     procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup.patch
+     acpi-get_bios_limit-static-inline-when-cpu_freq=n.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,131 +34,70 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: acpi: get_bios_limit static inline when CPU_FREQ=n
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-convert into kernel code ;)
+For CONFIG_CPU_FREQ=n, make acpi_processor_get_bios_limit() static inline
+so that multiple source files that use this header file do not create
+multiple definitions of the function.
 
-Cc: john stultz <johnstul@us.ibm.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |   10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+ include/acpi/processor.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/proc/base.c~procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup fs/proc/base.c
---- a/fs/proc/base.c~procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup
-+++ a/fs/proc/base.c
-@@ -1335,11 +1335,8 @@ static const struct file_operations proc
- 
- #endif
- 
--
--
--static ssize_t
--comm_write(struct file *file, const char __user *buf,
--	    size_t count, loff_t *offset)
-+static ssize_t comm_write(struct file *file, const char __user *buf,
-+				size_t count, loff_t *offset)
- {
- 	struct inode *inode = file->f_path.dentry->d_inode;
- 	struct task_struct *p;
-@@ -1365,7 +1362,6 @@ comm_write(struct file *file, const char
- 	return count;
+diff -puN include/acpi/processor.h~acpi-get_bios_limit-static-inline-when-cpu_freq=n include/acpi/processor.h
+--- a/include/acpi/processor.h~acpi-get_bios_limit-static-inline-when-cpu_freq=n
++++ a/include/acpi/processor.h
+@@ -318,7 +318,7 @@ static inline int acpi_processor_ppc_has
+ 	}
+ 	return 0;
  }
- 
--
- static int comm_show(struct seq_file *m, void *v)
+-int acpi_processor_get_bios_limit(int cpu, unsigned int *limit)
++static inline int acpi_processor_get_bios_limit(int cpu, unsigned int *limit)
  {
- 	struct inode *inode = m->private;
-@@ -1397,7 +1393,6 @@ static int comm_open(struct inode *inode
- 	return ret;
+ 	return -ENODEV;
  }
- 
--
- static const struct file_operations proc_pid_set_comm_operations = {
- 	.open		= comm_open,
- 	.read		= seq_read,
-@@ -1406,7 +1401,6 @@ static const struct file_operations proc
- 	.release	= single_release,
- };
- 
--
- /*
-  * We added or removed a vma mapping the executable. The vmas are only mapped
-  * during exec and are not mapped with the mmap system call.
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-origin.patch
-drivers-media-dvb-dvb-core-dvb_frontendc-needs-semaphoreh.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-recordmcount-stfu.patch
-include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
-drivers-char-cycladesc-fix-used-uninitialised-bug.patch
-drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+hso-fix-debug-routines.patch
+hso-fix-soft-lockup.patch
 cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
-acpi-remove-nid_inval.patch
-drivers-acpi-acpi_padc-squish-warning.patch
-drivers-char-agp-amd64-agpc-squish-warning.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-drivers-leds-leds-ss4200c-fix-return-statement.patch
-drivers-atm-solos-pcic-fix-warning-bug-clean-up-code.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
-st-fix-test-of-value-range-in-st_set_options.patch
-scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+acpi-get_bios_limit-static-inline-when-cpu_freq=n.patch
+x86-cpufreq-dont-use-acpi_processor_get_bios_limit-when-not-available.patch
+scsi-fix-func-names-in-kernel-doc.patch
 readahead-add-blk_run_backing_dev.patch
-mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
-oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
-oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes.patch
-mm-mlocking-in-try_to_unmap_one-fix-fix.patch
-mm-memory_hotplug-make-offline_pages-static.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup.patch
-floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
-drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
-rwsem-fix-rwsem_is_locked-bugs-fix.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
-errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
-msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes.patch
-crc32-minor-optimizations-and-cleanup-checkpatch-fixes.patch
-hwmon-w83627ehf-updates-checkpatch-fixes.patch
-spi-controller-driver-for-designware-spi-core-fix.patch
-spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3.patch
-ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
-memcg-coalesce-charging-via-percpu-storage-fix.patch
-aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
-direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
-zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
+nodemask-make-nodemask_alloc-more-general.patch
+hugetlb-rework-hstate_next_node_-functions.patch
+hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions.patch
+hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions-fix.patch
+hugetlb-factor-init_nodemask_of_node.patch
+hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy.patch
+hugetlb-add-generic-definition-of-numa_no_node.patch
+hugetlb-add-per-node-hstate-attributes.patch
+hugetlb-update-hugetlb-documentation-for-numa-controls.patch
+hugetlb-use-only-nodes-with-memory-for-huge-pages.patch
+mm-clear-node-in-n_high_memory-and-stop-kswapd-when-all-memory-is-offlined.patch
+hugetlb-handle-memory-hot-plug-events.patch
+hugetlb-offload-per-node-attribute-registrations.patch
+hugetlb-offload-per-node-attribute-registrations-fix.patch
+mm-add-gfp-flags-for-nodemask_alloc-slab-allocations.patch
+mm-add-numa-node-symlink-for-memory-section-in-sysfs.patch
+mm-refactor-register_cpu_under_node.patch
+mm-refactor-unregister_cpu_under_node.patch
+mm-add-numa-node-symlink-for-cpu-devices-in-sysfs.patch
+documentation-abi-sys-devices-system-cpu-cpu-node.patch
+spi-add-pci-interface-driver-for-designware-spi-core-fix.patch
+docs-large-update-to-ioctl-numbertxt.patch
+doc-submitchecklist-add-ioctls-remove-osdl-reference.patch
+partitions-use-sector-size-for-efi-gpt-fix.patch
 reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-reiser4-disable.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
