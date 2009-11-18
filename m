@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-mlocking-in-try_to_unmap_one-fix.patch added to -mm tree
-Date: Wed, 18 Nov 2009 12:22:04 -0800
-Message-ID: <200911182022.nAIKM4OG013172@imap1.linux-foundation.org>
+Subject: + mm-mlocking-in-try_to_unmap_one-fix-fix.patch added to -mm tree
+Date: Wed, 18 Nov 2009 12:22:46 -0800
+Message-ID: <200911182022.nAIKMkTa014843@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34014 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34994 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932199AbZKRUWk (ORCPT
+	by vger.kernel.org with ESMTP id S932230AbZKRUXR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Nov 2009 15:22:40 -0500
+	Wed, 18 Nov 2009 15:23:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, Lee.Schermerhorn@hp.com, aarcange@redhat.com, andi@firstfloor.org, fengguang.wu@intel.com, hugh.dickins@tiscali.co.uk, ieidus@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com, npiggin@suse.de, riel@redhat.com
+Cc: akpm@linux-foundation.org, Lee.Schermerhorn@hp.com, aarcange@redhat.com, andi@firstfloor.org, fengguang.wu@intel.com, hugh.dickins@tiscali.co.uk, ieidus@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, minchan.kim@gmail.com, npiggin@suse.de, riel@redhat.com
 
 
 The patch titled
-     comment adding to mlocking in try_to_unmap_one
+     mm-mlocking-in-try_to_unmap_one-fix-fix
 has been added to the -mm tree.  Its filename is
-     mm-mlocking-in-try_to_unmap_one-fix.patch
+     mm-mlocking-in-try_to_unmap_one-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,18 +34,15 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: comment adding to mlocking in try_to_unmap_one
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: mm-mlocking-in-try_to_unmap_one-fix-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Current code doesn't tell us why we don't bother to nonlinear kindly.
-This patch added small adding explanation.
-
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Andi Kleen <andi@firstfloor.org>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Acked-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Cc: Izik Eidus <ieidus@redhat.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
 Cc: Minchan Kim <minchan.kim@gmail.com>
 Cc: Nick Piggin <npiggin@suse.de>
@@ -54,65 +51,92 @@ Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ mm/rmap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/mlock.c~mm-mlocking-in-try_to_unmap_one-fix mm/mlock.c
-diff -puN mm/rmap.c~mm-mlocking-in-try_to_unmap_one-fix mm/rmap.c
---- a/mm/rmap.c~mm-mlocking-in-try_to_unmap_one-fix
+diff -puN mm/rmap.c~mm-mlocking-in-try_to_unmap_one-fix-fix mm/rmap.c
+--- a/mm/rmap.c~mm-mlocking-in-try_to_unmap_one-fix-fix
 +++ a/mm/rmap.c
-@@ -1065,7 +1065,11 @@ static int try_to_unmap_file(struct page
- 	if (list_empty(&mapping->i_mmap_nonlinear))
+@@ -1070,7 +1070,7 @@ static int try_to_unmap_file(struct page
+ 	 * It's costly. Instead, later, page reclaim logic may call
+ 	 * try_to_unmap(TTU_MUNLOCK) and recover PG_mlocked lazily.
+ 	 */
+-	if (MLOCK_PAGES && TTU_ACTION(flags) == TTU_MUNLOCK)
++	if (TTU_ACTION(flags) == TTU_MUNLOCK)
  		goto out;
  
--	/* We don't bother to try to find the munlocked page in nonlinears */
-+	/*
-+	 * We don't bother to try to find the munlocked page in nonlinears.
-+	 * It's costly. Instead, later, page reclaim logic may call
-+	 * try_to_unmap(TTU_MUNLOCK) and recover PG_mlocked lazily.
-+	 */
- 	if (MLOCK_PAGES && TTU_ACTION(flags) == TTU_MUNLOCK)
- 		goto out;
- 
+ 	list_for_each_entry(vma, &mapping->i_mmap_nonlinear,
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-allow-memory-hotplug-and-hibernation-in-the-same-kernel.patch
+origin.patch
+drivers-media-dvb-dvb-core-dvb_frontendc-needs-semaphoreh.patch
 linux-next.patch
-oom-dump-stack-and-vm-state-when-oom-killer-panics.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+recordmcount-stfu.patch
+include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
+drivers-char-cycladesc-fix-used-uninitialised-bug.patch
+drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
+acpi-remove-nid_inval.patch
+drivers-acpi-acpi_padc-squish-warning.patch
+drivers-char-agp-amd64-agpc-squish-warning.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+drivers-leds-leds-ss4200c-fix-return-statement.patch
+drivers-atm-solos-pcic-fix-warning-bug-clean-up-code.patch
+3x59x-fix-pci-resource-management.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
+st-fix-test-of-value-range-in-st_set_options.patch
+scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+fs-improve-remountro-vs-buffercache-coherency.patch
+percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
 readahead-add-blk_run_backing_dev.patch
-mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap.patch
 mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
-mm-vsmcan-check-shrink_active_list-sc-isolate_pages-return-value.patch
-mm-move-inc_zone_page_statenr_isolated-to-just-isolated-place.patch
-rmap-simplify-try_to_unmap_file.patch
-oom_kill-use-rss-value-instead-of-vm-size-for-badness.patch
-oom-kill-show-virtual-size-and-rss-information-of-the-killed-process.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
 oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
-oom-kill-fix-numa-consraint-check-with-nodemask-v42.patch
 oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes.patch
-page-allocator-wait-on-both-sync-and-async-congestion-after-direct-reclaim.patch
-vmscan-have-kswapd-sleep-for-a-short-interval-and-double-check-it-should-be-asleep.patch
-vmscan-stop-kswapd-waiting-on-congestion-when-the-min-watermark-is-not-being-met-v2.patch
-mm-define-page_mapping_flags.patch
-mm-mlocking-in-try_to_unmap_one.patch
-mm-config_mmu-for-pg_mlocked.patch
-mm-pass-address-down-to-rmap-ones.patch
-mm-stop-ptlock-enlarging-struct-page.patch
-mm-sigbus-instead-of-abusing-oom.patch
-mm-add-numa-node-symlink-for-memory-section-in-sysfs.patch
-mm-refactor-register_cpu_under_node.patch
-mm-refactor-unregister_cpu_under_node.patch
-mm-add-numa-node-symlink-for-cpu-devices-in-sysfs.patch
-documentation-abi-sys-devices-system-cpu-cpu-node.patch
-vmscan-separate-scswap_cluster_max-and-scnr_max_reclaim.patch
-vmscan-kill-hibernation-specific-reclaim-logic-and-unify-it.patch
-vmscan-zone_reclaim-dont-use-insane-swap_cluster_max.patch
-vmscan-kill-scswap_cluster_max.patch
-vmscan-make-consistent-of-reclaim-bale-out-between-do_try_to_free_page-and-shrink_zone.patch
+mm-mlocking-in-try_to_unmap_one-fix-fix.patch
 mm-memory_hotplug-make-offline_pages-static.patch
-lib-introduce-strim.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
-mm-mlocking-in-try_to_unmap_one-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
+drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
+rwsem-fix-rwsem_is_locked-bugs-fix.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
+errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
+msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes.patch
+crc32-minor-optimizations-and-cleanup-checkpatch-fixes.patch
+hwmon-w83627ehf-updates-checkpatch-fixes.patch
+spi-controller-driver-for-designware-spi-core-fix.patch
+spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3.patch
+ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
+memcg-coalesce-charging-via-percpu-storage-fix.patch
+aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
+direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
+zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes.patch
+lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes.patch
+lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+reiser4-disable.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
