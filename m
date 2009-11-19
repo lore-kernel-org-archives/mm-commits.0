@@ -1,96 +1,200 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] x86-cpufreq-dont-use-acpi_processor_get_bios_limit-when-not-available.patch removed from -mm tree
-Date: Thu, 19 Nov 2009 13:21:49 -0800
-Message-ID: <200911192121.nAJLLncv023591@imap1.linux-foundation.org>
+Subject: + procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm.patch added to -mm tree
+Date: Thu, 19 Nov 2009 13:24:16 -0800
+Message-ID: <200911192124.nAJLOGoY029430@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54431 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38182 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754770AbZKSVWn (ORCPT
+	by vger.kernel.org with ESMTP id S1756097AbZKSVZF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Nov 2009 16:22:43 -0500
+	Thu, 19 Nov 2009 16:25:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, davej@codemonkey.org.uk, davej@redhat.com, hpa@zytor.com, mingo@redhat.com, sfr@canb.auug.org.au, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: johnstul@us.ibm.com, Sean_Foley@ca.ibm.com, andi@firstfloor.org, arjan@infradead.org, dvhltc@us.ibm.com, fultonm@ca.ibm.com, kosaki.motohiro@jp.fujitsu.com
 
 
 The patch titled
-     x86/cpufreq: don't use acpi_processor_get_bios_limit when not available
-has been removed from the -mm tree.  Its filename was
-     x86-cpufreq-dont-use-acpi_processor_get_bios_limit-when-not-available.patch
+     procfs: allow threads to rename siblings via /proc/pid/tasks/tid/comm
+has been added to the -mm tree.  Its filename is
+     procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86/cpufreq: don't use acpi_processor_get_bios_limit when not available
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: procfs: allow threads to rename siblings via /proc/pid/tasks/tid/comm
+From: john stultz <johnstul@us.ibm.com>
 
-Only reference this function when the kconfig makes it available.
+Setting a thread's comm to be something unique is a very useful ability
+and is helpful for debugging complicated threaded applications.  However
+currently the only way to set a thread name is for the thread to name
+itself via the PR_SET_NAME prctl.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Dave Jones <davej@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Dave Jones <davej@codemonkey.org.uk>
+However, there may be situations where it would be advantageous for a
+thread dispatcher to be naming the threads its managing, rather then
+having the threads self-describe themselves.  This sort of behavior is
+available on other systems via the pthread_setname_np() interface.
+
+This patch exports a task's comm via proc/pid/comm and
+proc/pid/task/tid/comm interfaces, and allows thread siblings to write to
+these values.
+
+Signed-off-by: John Stultz <johnstul@us.ibm.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Arjan van de Ven <arjan@infradead.org>
+Cc: Mike Fulton <fultonm@ca.ibm.com>
+Cc: Sean Foley <Sean_Foley@ca.ibm.com>
+Cc: Darren Hart <dvhltc@us.ibm.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/cpufreq/powernow-k7.c |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/exec.c      |    9 +++++
+ fs/proc/base.c |   74 +++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 83 insertions(+)
 
-diff -puN arch/x86/kernel/cpu/cpufreq/powernow-k7.c~x86-cpufreq-dont-use-acpi_processor_get_bios_limit-when-not-available arch/x86/kernel/cpu/cpufreq/powernow-k7.c
---- a/arch/x86/kernel/cpu/cpufreq/powernow-k7.c~x86-cpufreq-dont-use-acpi_processor_get_bios_limit-when-not-available
-+++ a/arch/x86/kernel/cpu/cpufreq/powernow-k7.c
-@@ -717,7 +717,9 @@ static struct cpufreq_driver powernow_dr
- 	.verify		= powernow_verify,
- 	.target		= powernow_target,
- 	.get		= powernow_get,
-+#ifdef CONFIG_X86_POWERNOW_K7_ACPI
- 	.bios_limit	= acpi_processor_get_bios_limit,
-+#endif
- 	.init		= powernow_cpu_init,
- 	.exit		= powernow_cpu_exit,
- 	.name		= "powernow-k7",
+diff -puN fs/exec.c~procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm fs/exec.c
+--- a/fs/exec.c~procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm
++++ a/fs/exec.c
+@@ -924,6 +924,15 @@ char *get_task_comm(char *buf, struct ta
+ void set_task_comm(struct task_struct *tsk, char *buf)
+ {
+ 	task_lock(tsk);
++
++	/*
++	 * Threads may access current->comm without holding
++	 * the task lock, so write the string carefully.
++	 * Readers without a lock may see incomplete new
++	 * names but are safe from non-terminating string reads.
++	 */
++	memset(tsk->comm, 0, TASK_COMM_LEN);
++	wmb();
+ 	strlcpy(tsk->comm, buf, sizeof(tsk->comm));
+ 	task_unlock(tsk);
+ 	perf_event_comm(tsk);
+diff -puN fs/proc/base.c~procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm fs/proc/base.c
+--- a/fs/proc/base.c~procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm
++++ a/fs/proc/base.c
+@@ -1265,6 +1265,78 @@ static const struct file_operations proc
+ 
+ #endif
+ 
++
++
++static ssize_t
++comm_write(struct file *file, const char __user *buf,
++	    size_t count, loff_t *offset)
++{
++	struct inode *inode = file->f_path.dentry->d_inode;
++	struct task_struct *p;
++	char buffer[TASK_COMM_LEN];
++
++	memset(buffer, 0, sizeof(buffer));
++	if (count > sizeof(buffer) - 1)
++		count = sizeof(buffer) - 1;
++	if (copy_from_user(buffer, buf, count))
++		return -EFAULT;
++
++	p = get_proc_task(inode);
++	if (!p)
++		return -ESRCH;
++
++	if (same_thread_group(current, p))
++		set_task_comm(p, buffer);
++	else
++		count = -EINVAL;
++
++	put_task_struct(p);
++
++	return count;
++}
++
++
++static int comm_show(struct seq_file *m, void *v)
++{
++	struct inode *inode = m->private;
++	struct task_struct *p;
++
++	p = get_proc_task(inode);
++	if (!p)
++		return -ESRCH;
++
++	task_lock(p);
++	seq_printf(m, "%s\n", p->comm);
++	task_unlock(p);
++
++	put_task_struct(p);
++
++	return 0;
++}
++
++static int comm_open(struct inode *inode, struct file *filp)
++{
++	int ret;
++
++	ret = single_open(filp, comm_show, NULL);
++	if (!ret) {
++		struct seq_file *m = filp->private_data;
++
++		m->private = inode;
++	}
++	return ret;
++}
++
++
++static const struct file_operations proc_pid_set_comm_operations = {
++	.open		= comm_open,
++	.read		= seq_read,
++	.write		= comm_write,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++};
++
++
+ /*
+  * We added or removed a vma mapping the executable. The vmas are only mapped
+  * during exec and are not mapped with the mmap system call.
+@@ -2504,6 +2576,7 @@ static const struct pid_entry tgid_base_
+ #ifdef CONFIG_SCHED_DEBUG
+ 	REG("sched",      S_IRUGO|S_IWUSR, proc_pid_sched_operations),
+ #endif
++	REG("comm",      S_IRUGO|S_IWUSR, proc_pid_set_comm_operations),
+ #ifdef CONFIG_HAVE_ARCH_TRACEHOOK
+ 	INF("syscall",    S_IRUSR, proc_pid_syscall),
+ #endif
+@@ -2838,6 +2911,7 @@ static const struct pid_entry tid_base_s
+ #ifdef CONFIG_SCHED_DEBUG
+ 	REG("sched",     S_IRUGO|S_IWUSR, proc_pid_sched_operations),
+ #endif
++	REG("comm",      S_IRUGO|S_IWUSR, proc_pid_set_comm_operations),
+ #ifdef CONFIG_HAVE_ARCH_TRACEHOOK
+ 	INF("syscall",   S_IRUSR, proc_pid_syscall),
+ #endif
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from johnstul@us.ibm.com are
 
 linux-next.patch
-hso-fix-debug-routines.patch
-hso-fix-soft-lockup.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
-x86-cpufreq-dont-use-acpi_processor_get_bios_limit-when-not-available.patch
-scsi-fix-func-names-in-kernel-doc.patch
-readahead-add-blk_run_backing_dev.patch
-page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
-nodemask-make-nodemask_alloc-more-general.patch
-hugetlb-rework-hstate_next_node_-functions.patch
-hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions.patch
-hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions-fix.patch
-hugetlb-factor-init_nodemask_of_node.patch
-hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy.patch
-hugetlb-add-generic-definition-of-numa_no_node.patch
-hugetlb-add-per-node-hstate-attributes.patch
-hugetlb-update-hugetlb-documentation-for-numa-controls.patch
-hugetlb-use-only-nodes-with-memory-for-huge-pages.patch
-mm-clear-node-in-n_high_memory-and-stop-kswapd-when-all-memory-is-offlined.patch
-hugetlb-handle-memory-hot-plug-events.patch
-hugetlb-offload-per-node-attribute-registrations.patch
-hugetlb-offload-per-node-attribute-registrations-fix.patch
-mm-add-gfp-flags-for-nodemask_alloc-slab-allocations.patch
-mm-add-numa-node-symlink-for-memory-section-in-sysfs.patch
-mm-refactor-register_cpu_under_node.patch
-mm-refactor-unregister_cpu_under_node.patch
-mm-add-numa-node-symlink-for-cpu-devices-in-sysfs.patch
-documentation-abi-sys-devices-system-cpu-cpu-node.patch
-spi-add-pci-interface-driver-for-designware-spi-core-fix.patch
-docs-large-update-to-ioctl-numbertxt.patch
-doc-submitchecklist-add-ioctls-remove-osdl-reference.patch
-partitions-use-sector-size-for-efi-gpt-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
+procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm.patch
+procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup.patch
+cris-convert-to-use-arch_gettimeoffset.patch
+timecompare-fix-half-y2k38-problem-in-timecompare_update-while-calculating-offset.patch
+cs5535-add-a-generic-mfgpt-driver.patch
+cs5535-add-a-generic-clock-event-mfgpt-driver.patch
+cs5535-move-the-divil-msr-definition-into-linux-cs5535h.patch
+cs5535-move-vsa2-checks-into-linux-cs5535h.patch
+cs5535-define-lxfb-gxfb-msrs-in-linux-cs5535h.patch
+cs5535-drop-the-geode-specific-mfgpt-gpio-code.patch
 
