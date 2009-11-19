@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-optimize-hweight32.patch added to -mm tree
-Date: Thu, 19 Nov 2009 14:59:01 -0800
-Message-ID: <200911192259.nAJMx1D2030785@imap1.linux-foundation.org>
+Subject: + mm-simplify-try_to_unmap_one-fix.patch added to -mm tree
+Date: Thu, 19 Nov 2009 15:08:06 -0800
+Message-ID: <200911192308.nAJN86nf020141@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49965 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48180 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757509AbZKSW65 (ORCPT
+	by vger.kernel.org with ESMTP id S1756398AbZKSXII (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Nov 2009 17:58:57 -0500
+	Thu, 19 Nov 2009 18:08:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com
+Cc: kosaki.motohiro@jp.fujitsu.com, hugh.dickins@tiscali.co.uk
 
 
 The patch titled
-     x86: optimize hweight32()
+     mm-simplify-try_to_unmap_one-fix
 has been added to the -mm tree.  Its filename is
-     x86-optimize-hweight32.patch
+     mm-simplify-try_to_unmap_one-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,73 +34,78 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: optimize hweight32()
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: mm-simplify-try_to_unmap_one-fix
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Optimize hweight32 by using the same technique in hweight64.  The proof of
-this technique can be found in the commit log for
-f9b4192923fa6e38331e88214b1fe5fc21583fcc ("bitops: hweight() speedup").
-
-The userspace benchmark on x86_32 showed 20% speedup with bitmap_weight()
-which uses hweight32 to count bits for each unsigned long on 32bit
-architectures.
-
-int main(void)
-{
-	#define SZ (1024 * 1024 * 512)
-
-	static DECLARE_BITMAP(bitmap, SZ) = {
-	        [0 ... 100] = 1,
-	};
-
-	return bitmap_weight(bitmap, SZ);
-}
-
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/hweight.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ mm/rmap.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN lib/hweight.c~x86-optimize-hweight32 lib/hweight.c
---- a/lib/hweight.c~x86-optimize-hweight32
-+++ a/lib/hweight.c
-@@ -11,11 +11,18 @@
+diff -puN mm/rmap.c~mm-simplify-try_to_unmap_one-fix mm/rmap.c
+--- a/mm/rmap.c~mm-simplify-try_to_unmap_one-fix
++++ a/mm/rmap.c
+@@ -860,6 +860,14 @@ out:
+ out_mlock:
+ 	pte_unmap_unlock(pte, ptl);
  
- unsigned int hweight32(unsigned int w)
- {
-+#ifdef ARCH_HAS_FAST_MULTIPLIER
-+	w -= (w >> 1) & 0x55555555;
-+	w =  (w & 0x33333333) + ((w >> 2) & 0x33333333);
-+	w =  (w + (w >> 4)) & 0x0f0f0f0f;
-+	return (w * 0x01010101) >> 24;
-+#else
- 	unsigned int res = w - ((w >> 1) & 0x55555555);
- 	res = (res & 0x33333333) + ((res >> 2) & 0x33333333);
- 	res = (res + (res >> 4)) & 0x0F0F0F0F;
- 	res = res + (res >> 8);
- 	return (res + (res >> 16)) & 0x000000FF;
-+#endif
- }
- EXPORT_SYMBOL(hweight32);
- 
++
++	/*
++	 * We need mmap_sem locking, Otherwise VM_LOCKED check makes
++	 * unstable result and race. Plus, We can't wait here because
++	 * we now hold anon_vma->lock or mapping->i_mmap_lock.
++	 * If trylock failed, The page remain evictable lru and
++	 * retry to more unevictable lru by later vmscan.
++	 */
+ 	if (down_read_trylock(&vma->vm_mm->mmap_sem)) {
+ 		if (vma->vm_flags & VM_LOCKED) {
+ 			mlock_vma_page(page);
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
+origin.patch
 linux-next.patch
-x86-optimize-hweight32.patch
-ipath-use-bitmap_weight.patch
-ntfs-use-bitmap_weight.patch
-hpfs-use-hweight32.patch
-hpfs-use-bitmap_weight.patch
-qnx4-use-hweight8.patch
-bitmap-introduce-bitmap_set-bitmap_clear-bitmap_find_next_zero_area.patch
-iommu-helper-use-bitmap-library.patch
-isp1362-hcd-use-bitmap_find_next_zero_area.patch
-mlx4-use-bitmap_find_next_zero_area.patch
-sparc-use-bitmap_find_next_zero_area.patch
-ia64-use-bitmap_find_next_zero_area.patch
-genalloc-use-bitmap_find_next_zero_area.patch
+oom-dump-stack-and-vm-state-when-oom-killer-panics.patch
+readahead-add-blk_run_backing_dev.patch
+mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap.patch
+mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
+mm-vsmcan-check-shrink_active_list-sc-isolate_pages-return-value.patch
+mm-move-inc_zone_page_statenr_isolated-to-just-isolated-place.patch
+rmap-simplify-try_to_unmap_file.patch
+oom_kill-use-rss-value-instead-of-vm-size-for-badness.patch
+oom-kill-show-virtual-size-and-rss-information-of-the-killed-process.patch
+oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
+oom-kill-fix-numa-consraint-check-with-nodemask-v42.patch
+oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes.patch
+page-allocator-wait-on-both-sync-and-async-congestion-after-direct-reclaim.patch
+vmscan-have-kswapd-sleep-for-a-short-interval-and-double-check-it-should-be-asleep.patch
+vmscan-stop-kswapd-waiting-on-congestion-when-the-min-watermark-is-not-being-met-v2.patch
+mm-define-page_mapping_flags.patch
+mm-mlocking-in-try_to_unmap_one.patch
+mm-mlocking-in-try_to_unmap_one-fix.patch
+mm-mlocking-in-try_to_unmap_one-fix-fix.patch
+mm-config_mmu-for-pg_mlocked.patch
+mm-pass-address-down-to-rmap-ones.patch
+mm-stop-ptlock-enlarging-struct-page.patch
+mm-sigbus-instead-of-abusing-oom.patch
+mm-add-numa-node-symlink-for-memory-section-in-sysfs.patch
+mm-refactor-register_cpu_under_node.patch
+mm-refactor-unregister_cpu_under_node.patch
+mm-add-numa-node-symlink-for-cpu-devices-in-sysfs.patch
+documentation-abi-sys-devices-system-cpu-cpu-node.patch
+vmscan-separate-scswap_cluster_max-and-scnr_max_reclaim.patch
+vmscan-kill-hibernation-specific-reclaim-logic-and-unify-it.patch
+vmscan-zone_reclaim-dont-use-insane-swap_cluster_max.patch
+vmscan-kill-scswap_cluster_max.patch
+vmscan-make-consistent-of-reclaim-bale-out-between-do_try_to_free_page-and-shrink_zone.patch
+mm-memory_hotplug-make-offline_pages-static.patch
+mm-simplify-try_to_unmap_one.patch
+mm-simplify-try_to_unmap_one-fix.patch
+procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm.patch
+maintainers-mark-cifs-mailing-list-as-moderated-for-non-subscribers.patch
+lib-introduce-strim.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
