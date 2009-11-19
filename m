@@ -1,150 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: + mm-simplify-try_to_unmap_one.patch added to -mm tree
-Date: Wed, 18 Nov 2009 15:18:11 -0800
-Message-ID: <200911182318.nAINIBBp015783@imap1.linux-foundation.org>
+Subject: [obsolete] acpi-get_bios_limit-static-inline-when-cpu_freq=n.patch removed from -mm tree
+Date: Thu, 19 Nov 2009 13:20:32 -0800
+Message-ID: <200911192120.nAJLKWrE020472@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35830 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49079 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757376AbZKRXSK (ORCPT
+	by vger.kernel.org with ESMTP id S1753010AbZKSVVa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Nov 2009 18:18:10 -0500
+	Thu, 19 Nov 2009 16:21:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, hugh.dickins@tiscali.co.uk
+To: randy.dunlap@oracle.com, lenb@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: simplify try_to_unmap_one()
-has been added to the -mm tree.  Its filename is
-     mm-simplify-try_to_unmap_one.patch
+     acpi: get_bios_limit static inline when CPU_FREQ=n
+has been removed from the -mm tree.  Its filename was
+     acpi-get_bios_limit-static-inline-when-cpu_freq=n.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: simplify try_to_unmap_one()
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: acpi: get_bios_limit static inline when CPU_FREQ=n
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-SWAP_MLOCK mean "We marked the page as PG_MLOCK, please move it to
-unevictable-lru". So, following code is easy confusable.
+For CONFIG_CPU_FREQ=n, make acpi_processor_get_bios_limit() static inline
+so that multiple source files that use this header file do not create
+multiple definitions of the function.
 
-        if (vma->vm_flags & VM_LOCKED) {
-                ret = SWAP_MLOCK;
-                goto out_unmap;
-        }
-
-Plus, if the VMA doesn't have VM_LOCKED, We don't need to check
-the needed of calling mlock_vma_page().
-
-Acked-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |   26 +++++++++++++-------------
- 1 file changed, 13 insertions(+), 13 deletions(-)
+ include/acpi/processor.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/rmap.c~mm-simplify-try_to_unmap_one mm/rmap.c
---- a/mm/rmap.c~mm-simplify-try_to_unmap_one
-+++ a/mm/rmap.c
-@@ -779,10 +779,9 @@ static int try_to_unmap_one(struct page 
- 	 * skipped over this mm) then we should reactivate it.
- 	 */
- 	if (!(flags & TTU_IGNORE_MLOCK)) {
--		if (vma->vm_flags & VM_LOCKED) {
--			ret = SWAP_MLOCK;
--			goto out_unmap;
--		}
-+		if (vma->vm_flags & VM_LOCKED)
-+			goto out_mlock;
-+
- 		if (TTU_ACTION(flags) == TTU_MUNLOCK)
- 			goto out_unmap;
+diff -puN include/acpi/processor.h~acpi-get_bios_limit-static-inline-when-cpu_freq=n include/acpi/processor.h
+--- a/include/acpi/processor.h~acpi-get_bios_limit-static-inline-when-cpu_freq=n
++++ a/include/acpi/processor.h
+@@ -318,7 +318,7 @@ static inline int acpi_processor_ppc_has
  	}
-@@ -855,18 +854,19 @@ static int try_to_unmap_one(struct page 
- 
- out_unmap:
- 	pte_unmap_unlock(pte, ptl);
-+out:
-+	return ret;
- 
--	if (ret == SWAP_MLOCK) {
--		ret = SWAP_AGAIN;
--		if (down_read_trylock(&vma->vm_mm->mmap_sem)) {
--			if (vma->vm_flags & VM_LOCKED) {
--				mlock_vma_page(page);
--				ret = SWAP_MLOCK;
--			}
--			up_read(&vma->vm_mm->mmap_sem);
-+out_mlock:
-+	pte_unmap_unlock(pte, ptl);
-+
-+	if (down_read_trylock(&vma->vm_mm->mmap_sem)) {
-+		if (vma->vm_flags & VM_LOCKED) {
-+			mlock_vma_page(page);
-+			ret = SWAP_MLOCK;
- 		}
-+		up_read(&vma->vm_mm->mmap_sem);
- 	}
--out:
- 	return ret;
+ 	return 0;
  }
- 
+-int acpi_processor_get_bios_limit(int cpu, unsigned int *limit)
++static inline int acpi_processor_get_bios_limit(int cpu, unsigned int *limit)
+ {
+ 	return -ENODEV;
+ }
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-mm-allow-memory-hotplug-and-hibernation-in-the-same-kernel.patch
 linux-next.patch
-oom-dump-stack-and-vm-state-when-oom-killer-panics.patch
+hso-fix-debug-routines.patch
+hso-fix-soft-lockup.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
+acpi-get_bios_limit-static-inline-when-cpu_freq=n.patch
+x86-cpufreq-dont-use-acpi_processor_get_bios_limit-when-not-available.patch
+scsi-fix-func-names-in-kernel-doc.patch
 readahead-add-blk_run_backing_dev.patch
-mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap.patch
-mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
-mm-vsmcan-check-shrink_active_list-sc-isolate_pages-return-value.patch
-mm-move-inc_zone_page_statenr_isolated-to-just-isolated-place.patch
-rmap-simplify-try_to_unmap_file.patch
-oom_kill-use-rss-value-instead-of-vm-size-for-badness.patch
-oom-kill-show-virtual-size-and-rss-information-of-the-killed-process.patch
-oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
-oom-kill-fix-numa-consraint-check-with-nodemask-v42.patch
-oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes.patch
-page-allocator-wait-on-both-sync-and-async-congestion-after-direct-reclaim.patch
-vmscan-have-kswapd-sleep-for-a-short-interval-and-double-check-it-should-be-asleep.patch
-vmscan-stop-kswapd-waiting-on-congestion-when-the-min-watermark-is-not-being-met-v2.patch
-mm-define-page_mapping_flags.patch
-mm-mlocking-in-try_to_unmap_one.patch
-mm-mlocking-in-try_to_unmap_one-fix.patch
-mm-mlocking-in-try_to_unmap_one-fix-fix.patch
-mm-config_mmu-for-pg_mlocked.patch
-mm-pass-address-down-to-rmap-ones.patch
-mm-stop-ptlock-enlarging-struct-page.patch
-mm-sigbus-instead-of-abusing-oom.patch
+page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
+nodemask-make-nodemask_alloc-more-general.patch
+hugetlb-rework-hstate_next_node_-functions.patch
+hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions.patch
+hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions-fix.patch
+hugetlb-factor-init_nodemask_of_node.patch
+hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy.patch
+hugetlb-add-generic-definition-of-numa_no_node.patch
+hugetlb-add-per-node-hstate-attributes.patch
+hugetlb-update-hugetlb-documentation-for-numa-controls.patch
+hugetlb-use-only-nodes-with-memory-for-huge-pages.patch
+mm-clear-node-in-n_high_memory-and-stop-kswapd-when-all-memory-is-offlined.patch
+hugetlb-handle-memory-hot-plug-events.patch
+hugetlb-offload-per-node-attribute-registrations.patch
+hugetlb-offload-per-node-attribute-registrations-fix.patch
+mm-add-gfp-flags-for-nodemask_alloc-slab-allocations.patch
 mm-add-numa-node-symlink-for-memory-section-in-sysfs.patch
 mm-refactor-register_cpu_under_node.patch
 mm-refactor-unregister_cpu_under_node.patch
 mm-add-numa-node-symlink-for-cpu-devices-in-sysfs.patch
 documentation-abi-sys-devices-system-cpu-cpu-node.patch
-vmscan-separate-scswap_cluster_max-and-scnr_max_reclaim.patch
-vmscan-kill-hibernation-specific-reclaim-logic-and-unify-it.patch
-vmscan-zone_reclaim-dont-use-insane-swap_cluster_max.patch
-vmscan-kill-scswap_cluster_max.patch
-vmscan-make-consistent-of-reclaim-bale-out-between-do_try_to_free_page-and-shrink_zone.patch
-mm-memory_hotplug-make-offline_pages-static.patch
-mm-simplify-try_to_unmap_one.patch
-procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm.patch
-maintainers-mark-cifs-mailing-list-as-moderated-for-non-subscribers.patch
-lib-introduce-strim.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
+spi-add-pci-interface-driver-for-designware-spi-core-fix.patch
+docs-large-update-to-ioctl-numbertxt.patch
+doc-submitchecklist-add-ioctls-remove-osdl-reference.patch
+partitions-use-sector-size-for-efi-gpt-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
