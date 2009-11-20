@@ -1,30 +1,40 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] hugetlb-prevent-deadlock-in-__unmap_hugepage_range-when-alloc_huge_page-fails.patch removed from -mm tree
-Date: Fri, 20 Nov 2009 13:24:41 -0800
-Message-ID: <200911202124.nAKLOfqC026935@imap1.linux-foundation.org>
+Subject: + hugetlb-prevent-deadlock-in-__unmap_hugepage_range-when-alloc_huge_page-fails-2.patch added to -mm tree
+Date: Fri, 20 Nov 2009 13:26:05 -0800
+Message-ID: <200911202126.nAKLQ5gq030268@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40241 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41756 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754324AbZKTVZa (ORCPT
+	by vger.kernel.org with ESMTP id S1753392AbZKTV1N (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Nov 2009 16:25:30 -0500
+	Fri, 20 Nov 2009 16:27:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lwoodman@redhat.com, agl@us.ibm.com, apw@shadowen.org, lee.schermerhorn@hp.com, lwooman@redhat.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: lwoodman@redhat.com, agl@us.ibm.com, apw@shadowen.org, david@gibson.dropbear.id.au, hugh.dickins@tiscali.co.uk, lee.schermerhorn@hp.com, lwooman@redhat.com, mel@csn.ul.ie
 
 
 The patch titled
-     hugetlb: prevent deadlock in __unmap_hugepage_range() when alloc_huge_page() fails.
-has been removed from the -mm tree.  Its filename was
-     hugetlb-prevent-deadlock-in-__unmap_hugepage_range-when-alloc_huge_page-fails.patch
+     hugetlb: prevent deadlock in __unmap_hugepage_range() when alloc_huge_page() fails
+has been added to the -mm tree.  Its filename is
+     hugetlb-prevent-deadlock-in-__unmap_hugepage_range-when-alloc_huge_page-fails-2.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb: prevent deadlock in __unmap_hugepage_range() when alloc_huge_page() fails.
+Subject: hugetlb: prevent deadlock in __unmap_hugepage_range() when alloc_huge_page() fails
 From: Larry Woodman <lwoodman@redhat.com>
 
 hugetlb_fault() takes the mm->page_table_lock spinlock then calls
@@ -67,41 +77,74 @@ unmap_hugepage_range() which tries to acquire the mm->page_table_lock.
 
 This can be fixed by dropping the mm->page_table_lock around the call to
 unmap_ref_private() if alloc_huge_page() fails, its dropped right below in
-the normal path anyway.
+the normal path anyway.  However, earlier in the that function, it's also
+possible to call into the page allocator with the same spinlock held.
 
+What this patch does is drop the spinlock before the page allocator is
+potentially entered.  The check for page allocation failure can be made
+without the page_table_lock as well as the copy of the huge page.  Even if
+the PTE changed while the spinlock was held, the consequence is that a
+huge page is copied unnecessarily.  This resolves both the double taking
+of the lock and sleeping with the spinlock held.
+
+[mel@csn.ul.ie: Cover also the case where process can sleep with spinlock]
 Signed-off-by: Larry Woodman <lwooman@redhat.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Adam Litke <agl@us.ibm.com>
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Acked-by: Adam Litke <agl@us.ibm.com>
 Cc: Andy Whitcroft <apw@shadowen.org>
 Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: David Gibson <david@gibson.dropbear.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/hugetlb.c |   13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
 
-diff -puN mm/hugetlb.c~hugetlb-prevent-deadlock-in-__unmap_hugepage_range-when-alloc_huge_page-fails mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-prevent-deadlock-in-__unmap_hugepage_range-when-alloc_huge_page-fails
+diff -puN mm/hugetlb.c~hugetlb-prevent-deadlock-in-__unmap_hugepage_range-when-alloc_huge_page-fails-2 mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-prevent-deadlock-in-__unmap_hugepage_range-when-alloc_huge_page-fails-2
 +++ a/mm/hugetlb.c
-@@ -2307,12 +2307,15 @@ retry_avoidcopy:
- 		 */
- 		if (outside_reserve) {
- 			BUG_ON(huge_pte_none(pte));
-+			spin_unlock(&mm->page_table_lock);
+@@ -2293,6 +2293,9 @@ retry_avoidcopy:
+ 		outside_reserve = 1;
+ 
+ 	page_cache_get(old_page);
++
++	/* Drop page_table_lock as buddy allocator may be called */
++	spin_unlock(&mm->page_table_lock);
+ 	new_page = alloc_huge_page(vma, address, outside_reserve);
+ 
+ 	if (IS_ERR(new_page)) {
+@@ -2310,19 +2313,25 @@ retry_avoidcopy:
  			if (unmap_ref_private(mm, vma, old_page, address)) {
-+				spin_lock(&mm->page_table_lock);
  				BUG_ON(page_count(old_page) != 1);
  				BUG_ON(huge_pte_none(pte));
++				spin_lock(&mm->page_table_lock);
  				goto retry_avoidcopy;
  			}
  			WARN_ON_ONCE(1);
-+			spin_lock(&mm->page_table_lock);
  		}
  
++		/* Caller expects lock to be held */
++		spin_lock(&mm->page_table_lock);
  		return -PTR_ERR(new_page);
+ 	}
+ 
+-	spin_unlock(&mm->page_table_lock);
+ 	copy_huge_page(new_page, old_page, address, vma);
+ 	__SetPageUptodate(new_page);
+-	spin_lock(&mm->page_table_lock);
+ 
++	/*
++	 * Retake the page_table_lock to check for racing updates
++	 * before the page tables are altered
++	 */
++	spin_lock(&mm->page_table_lock);
+ 	ptep = huge_pte_offset(mm, address & huge_page_mask(h));
+ 	if (likely(pte_same(huge_ptep_get(ptep), pte))) {
+ 		/* Break COW */
 _
 
 Patches currently in -mm which might be from lwoodman@redhat.com are
 
-hugetlb-prevent-deadlock-in-__unmap_hugepage_range-when-alloc_huge_page-fails.patch
+hugetlb-prevent-deadlock-in-__unmap_hugepage_range-when-alloc_huge_page-fails-2.patch
 
