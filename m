@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + gpio-show-irq-settings-even-if-gpio-direction-is-output.patch added to -mm tree
-Date: Fri, 20 Nov 2009 13:06:53 -0800
-Message-ID: <200911202106.nAKL6rOe016457@imap1.linux-foundation.org>
+Subject: + posix-cpu-timers-reset-expire-cache-when-no-timer-is-running.patch added to -mm tree
+Date: Fri, 20 Nov 2009 13:15:39 -0800
+Message-ID: <200911202115.nAKLFdor005119@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58153 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49076 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754099AbZKTVHP (ORCPT
+	by vger.kernel.org with ESMTP id S1754234AbZKTVRO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Nov 2009 16:07:15 -0500
+	Fri, 20 Nov 2009 16:17:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: giometti@linux.it, david-b@pacbell.net, hskinnemoen@atmel.com, janakiram.sistla@gmail.com, raffaele.recalcati@bticino.it
+Cc: sgruszka@redhat.com, mingo@elte.hu, oleg@redhat.com, peterz@infradead.org, seto.hidetoshi@jp.fujitsu.com, spencer@bluehost.com, tglx@linutronix.de
 
 
 The patch titled
-     gpio: show IRQ settings even if GPIO direction is "output"
+     From: Stanislaw Gruszka <sgruszka@redhat.com>
 has been added to the -mm tree.  Its filename is
-     gpio-show-irq-settings-even-if-gpio-direction-is-output.patch
+     posix-cpu-timers-reset-expire-cache-when-no-timer-is-running.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,130 +34,72 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio: show IRQ settings even if GPIO direction is "output"
-From: Rodolfo Giometti <giometti@linux.it>
+Subject: From: Stanislaw Gruszka <sgruszka@redhat.com>
 
-Some architectures (as PXA 27x for example) may define GPIO IRQ lines as
-outputs since internal circuitry supports such configuration.
 
-This patch simply detects if a GPIO is a IRQ line or not just looking for
-IRQ line number, "desc" and "desc->action" fields.
+When process delete cpu timer or timer expires we do not clear
+expiration cache sig->cputimer_expires. This create situation when in
+fastpath_timer_check() we _on_ cputimer (together with loop on all
+threads) just to turn in off in check_process_timers(). We not
+necessary go to slowpath and not necessary loop on all threads in
+fastpath - and this is repeated on every tick.
 
-Signed-off-by: Rodolfo Giometti <giometti@linux.it>
-Cc: <raffaele.recalcati@bticino.it>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: Janakiram Sistla <janakiram.sistla@gmail.com>
+To fix we zero sig->cputimer_expires in stop_process_timers().
+
+Signed-off-by: Stanislaw Gruszka <sgruszka@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
+Cc: Spencer Candland <spencer@bluehost.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/gpiolib.c |   82 +++++++++++++++++++--------------------
- 1 file changed, 41 insertions(+), 41 deletions(-)
+ kernel/posix-cpu-timers.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN drivers/gpio/gpiolib.c~gpio-show-irq-settings-even-if-gpio-direction-is-output drivers/gpio/gpiolib.c
---- a/drivers/gpio/gpiolib.c~gpio-show-irq-settings-even-if-gpio-direction-is-output
-+++ a/drivers/gpio/gpiolib.c
-@@ -1518,6 +1518,8 @@ static void gpiolib_dbg_show(struct seq_
- 	unsigned		gpio = chip->base;
- 	struct gpio_desc	*gdesc = &gpio_desc[gpio];
- 	int			is_out;
-+	int			irq;
-+	struct irq_desc		*desc;
+diff -puN kernel/posix-cpu-timers.c~posix-cpu-timers-reset-expire-cache-when-no-timer-is-running kernel/posix-cpu-timers.c
+--- a/kernel/posix-cpu-timers.c~posix-cpu-timers-reset-expire-cache-when-no-timer-is-running
++++ a/kernel/posix-cpu-timers.c
+@@ -1060,9 +1060,9 @@ static void check_thread_timers(struct t
+ 	}
+ }
  
- 	for (i = 0; i < chip->ngpio; i++, gpio++, gdesc++) {
- 		if (!test_bit(FLAG_REQUESTED, &gdesc->flags))
-@@ -1531,48 +1533,46 @@ static void gpiolib_dbg_show(struct seq_
- 				? (chip->get(chip, i) ? "hi" : "lo")
- 				: "?  ");
+-static void stop_process_timers(struct task_struct *tsk)
++static void stop_process_timers(struct signal_struct *sig)
+ {
+-	struct thread_group_cputimer *cputimer = &tsk->signal->cputimer;
++	struct thread_group_cputimer *cputimer = &sig->cputimer;
+ 	unsigned long flags;
  
--		if (!is_out) {
--			int		irq = gpio_to_irq(gpio);
--			struct irq_desc	*desc = irq_to_desc(irq);
--
--			/* This races with request_irq(), set_irq_type(),
--			 * and set_irq_wake() ... but those are "rare".
--			 *
--			 * More significantly, trigger type flags aren't
--			 * currently maintained by genirq.
--			 */
--			if (irq >= 0 && desc->action) {
--				char *trigger;
--
--				switch (desc->status & IRQ_TYPE_SENSE_MASK) {
--				case IRQ_TYPE_NONE:
--					trigger = "(default)";
--					break;
--				case IRQ_TYPE_EDGE_FALLING:
--					trigger = "edge-falling";
--					break;
--				case IRQ_TYPE_EDGE_RISING:
--					trigger = "edge-rising";
--					break;
--				case IRQ_TYPE_EDGE_BOTH:
--					trigger = "edge-both";
--					break;
--				case IRQ_TYPE_LEVEL_HIGH:
--					trigger = "level-high";
--					break;
--				case IRQ_TYPE_LEVEL_LOW:
--					trigger = "level-low";
--					break;
--				default:
--					trigger = "?trigger?";
--					break;
--				}
--
--				seq_printf(s, " irq-%d %s%s",
--					irq, trigger,
--					(desc->status & IRQ_WAKEUP)
--						? " wakeup" : "");
-+		irq = gpio_to_irq(gpio);
-+		desc = irq_to_desc(irq);
+ 	if (!cputimer->running)
+@@ -1071,6 +1071,10 @@ static void stop_process_timers(struct t
+ 	spin_lock_irqsave(&cputimer->lock, flags);
+ 	cputimer->running = 0;
+ 	spin_unlock_irqrestore(&cputimer->lock, flags);
 +
-+		/* This races with request_irq(), set_irq_type(),
-+		 * and set_irq_wake() ... but those are "rare".
-+		 *
-+		 * More significantly, trigger type flags aren't
-+		 * currently maintained by genirq.
-+		 */
-+		if (irq >= 0 && desc && desc->action) {
-+			char *trigger;
-+
-+			switch (desc->status & IRQ_TYPE_SENSE_MASK) {
-+			case IRQ_TYPE_NONE:
-+				trigger = "(default)";
-+				break;
-+			case IRQ_TYPE_EDGE_FALLING:
-+				trigger = "edge-falling";
-+				break;
-+			case IRQ_TYPE_EDGE_RISING:
-+				trigger = "edge-rising";
-+				break;
-+			case IRQ_TYPE_EDGE_BOTH:
-+				trigger = "edge-both";
-+				break;
-+			case IRQ_TYPE_LEVEL_HIGH:
-+				trigger = "level-high";
-+				break;
-+			case IRQ_TYPE_LEVEL_LOW:
-+				trigger = "level-low";
-+				break;
-+			default:
-+				trigger = "?trigger?";
-+				break;
- 			}
-+
-+			seq_printf(s, " irq-%d %s%s",
-+				irq, trigger,
-+				(desc->status & IRQ_WAKEUP)
-+					? " wakeup" : "");
- 		}
++	sig->cputime_expires.prof_exp = cputime_zero;
++	sig->cputime_expires.virt_exp = cputime_zero;
++	sig->cputime_expires.sched_exp = 0;
+ }
  
- 		seq_printf(s, "\n");
+ static u32 onecputick;
+@@ -1131,7 +1135,7 @@ static void check_process_timers(struct 
+ 	    list_empty(&timers[CPUCLOCK_VIRT]) &&
+ 	    cputime_eq(sig->it[CPUCLOCK_VIRT].expires, cputime_zero) &&
+ 	    list_empty(&timers[CPUCLOCK_SCHED])) {
+-		stop_process_timers(tsk);
++		stop_process_timers(sig);
+ 		return;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from giometti@linux.it are
+Patches currently in -mm which might be from sgruszka@redhat.com are
 
 linux-next.patch
-gpio-show-irq-settings-even-if-gpio-direction-is-output.patch
+itimers-fix-racy-writes-to-cpu_itimer-fields.patch
+posix-cpu-timers-optimize-and-document-timer_create-callback.patch
+posix-cpu-timers-reset-expire-cache-when-no-timer-is-running.patch
 
