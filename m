@@ -1,147 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] drivers-char-cycladesc-fix-used-uninitialised-bug.patch removed from -mm tree
-Date: Fri, 20 Nov 2009 15:50:13 -0800
-Message-ID: <200911202350.nAKNoDiq021164@imap1.linux-foundation.org>
+Subject: + usb-fix-bitfield-istl_flip-1-make-it-unsigned.patch added to -mm tree
+Date: Fri, 20 Nov 2009 15:55:14 -0800
+Message-ID: <200911202355.nAKNtEEM000765@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49281 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50209 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752476AbZKTXuN (ORCPT
+	by vger.kernel.org with ESMTP id S1752851AbZKTXzL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Nov 2009 18:50:13 -0500
+	Fri, 20 Nov 2009 18:55:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@linux.intel.com, gregkh@suse.de, jirislaby@gmail.com, jslaby@novell.com, linux@linux.site, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: roel.kluin@gmail.com, greg@kroah.com, vapier@gentoo.org
 
 
 The patch titled
-     drivers/char/cyclades.c: fix used-uninitialised bug
-has been removed from the -mm tree.  Its filename was
-     drivers-char-cycladesc-fix-used-uninitialised-bug.patch
+     usb: fix bitfield istl_flip:1, make it unsigned
+has been added to the -mm tree.  Its filename is
+     usb-fix-bitfield-istl_flip-1-make-it-unsigned.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/char/cyclades.c: fix used-uninitialised bug
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: usb: fix bitfield istl_flip:1, make it unsigned
+From: Roel Kluin <roel.kluin@gmail.com>
 
-drivers/char/cyclades.c: In function 'cyy_interrupt':
-drivers/char/cyclades.c:581: warning: 'info' may be used uninitialized in this function
+istl_flip is a signed bitfield of one bit so it can be -1 or 0.  However
+in drivers/usb/host/isp1362-hcd.c:1103:
 
-a bug introduced by
+finish_iso_transfers(isp1362_hcd,
+	&isp1362_hcd->istl_queue[isp1362_hcd->istl_flip]);
 
-: commit 3aeea5b92210083c7cffd4f08a0bb141d3f2d574
-: Author:     Jiri Slaby <jirislaby@gmail.com>
-: AuthorDate: Sat Sep 19 13:13:16 2009 -0700
-: Commit:     Live-CD User <linux@linux.site>
-: CommitDate: Sat Sep 19 13:13:16 2009 -0700
-:
-:    cyclades: introduce cyy_readb/writeb
+So if isp1362_hcd->istl_flip is set, the 2nd argument becomes
+&isp1362_hcd->istl_queue[-1], which is invalid.
 
-The fix is not really optimal but I think it'll work.
-
-Cc: Jiri Slaby <jirislaby@gmail.com>
-Cc: Alan Cox <alan@linux.intel.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Acked-by: Mike Frysinger <vapier@gentoo.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/cyclades.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/usb/host/isp1362.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/cyclades.c~a drivers/char/cyclades.c
---- a/drivers/char/cyclades.c~a
-+++ a/drivers/char/cyclades.c
-@@ -597,6 +597,7 @@ static void cyy_chip_tx(struct cyclades_
- 	channel = save_xir & CyIRChannel;
- 	save_car = readb(base_addr + (CyCAR << index));
- 	cy_writeb(base_addr + (CyCAR << index), save_xir);
-+	info = &cinfo->ports[channel + chip * 4];
+diff -puN drivers/usb/host/isp1362.h~usb-fix-bitfield-istl_flip-1-make-it-unsigned drivers/usb/host/isp1362.h
+--- a/drivers/usb/host/isp1362.h~usb-fix-bitfield-istl_flip-1-make-it-unsigned
++++ a/drivers/usb/host/isp1362.h
+@@ -534,8 +534,8 @@ struct isp1362_hcd {
  
- 	/* validate the port# (as configured and open) */
- 	if (channel + chip * 4 >= cinfo->nports) {
-@@ -604,7 +605,6 @@ static void cyy_chip_tx(struct cyclades_
- 			  readb(base_addr + (CySRER << index)) & ~CyTxRdy);
- 		goto end;
- 	}
--	info = &cinfo->ports[channel + chip * 4];
- 	tty = tty_port_tty_get(&info->port);
- 	if (tty == NULL) {
- 		cyy_writeb(info, CySRER, cyy_readb(info, CySRER) & ~CyTxRdy);
+ 	/* periodic schedule: isochronous */
+ 	struct list_head	isoc;
+-	int			istl_flip:1;
+-	int			irq_active:1;
++	unsigned int		istl_flip:1;
++	unsigned int		irq_active:1;
+ 
+ 	/* Schedules for the current frame */
+ 	struct isp1362_ep_queue atl_queue;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
-drivers-media-dvb-dvb-core-dvb_frontendc-needs-semaphoreh.patch
-drivers-char-cycladesc-fix-used-uninitialised-bug.patch
-char-cyclades-fix-compiler-warning.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-recordmcount-stfu.patch
-include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
-drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-acpi-remove-nid_inval.patch
-drivers-acpi-acpi_padc-squish-warning.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices-checkpatch-fixes.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-kbuild-generate-modulesbuiltin-fix-2-checkpatch-fixes.patch
-drivers-leds-leds-ss4200c-fix-return-statement.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
+fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+sms-cards-make-id-unsigned-in-sms_get_board.patch
+mtd-error-return-eio-instead-of-eio.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
+zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
 st-fix-test-of-value-range-in-st_set_options.patch
-scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-readahead-add-blk_run_backing_dev.patch
-mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
-oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
-oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes.patch
-mm-mlocking-in-try_to_unmap_one-fix-fix.patch
-mm-memory_hotplug-make-offline_pages-static.patch
+ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
+scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
+usb-fix-bitfield-istl_flip-1-make-it-unsigned.patch
+page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
+frv-duplicate-output_buffer-of-e03.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup.patch
-floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
-drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
-rwsem-fix-rwsem_is_locked-bugs-fix.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
-errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
-msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes.patch
-crc32-minor-optimizations-and-cleanup-checkpatch-fixes.patch
-hwmon-w83627ehf-updates-checkpatch-fixes.patch
-spi-controller-driver-for-designware-spi-core-fix.patch
-spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3.patch
-ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
-memcg-coalesce-charging-via-percpu-storage-fix.patch
-aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
-direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
-zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-reiser4-disable.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+cryptocop-fix-assertion-in-create_output_descriptors.patch
+gpio-fix-test-on-unsigned-in-lnw_irq_type.patch
+fbdev-tv_paln-bit-set-twice-in-sisfb_detect_vb_connect.patch
+hvc_console-fix-test-on-unsigned-in-hvc_console_print.patch
+irq-fix-test-in-__exit-parport_mfc3_exit.patch
+zlib-optimize-inffast-when-copying-direct-from-output.patch
 
