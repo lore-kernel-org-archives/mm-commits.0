@@ -1,89 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [merged] agp-correct-missing-cleanup-on-error-in-agp_add_bridge.patch removed from -mm tree
-Date: Fri, 20 Nov 2009 11:30:30 -0800
-Message-ID: <200911201930.nAKJUUBk010824@imap1.linux-foundation.org>
+Subject: [merged] omap-fix-unlikelyx-y.patch removed from -mm tree
+Date: Fri, 20 Nov 2009 11:30:36 -0800
+Message-ID: <200911201930.nAKJUaON011021@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53639 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38302 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754918AbZKTTcy (ORCPT
+	by vger.kernel.org with ESMTP id S1752033AbZKTTc7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Nov 2009 14:32:54 -0500
+	Fri, 20 Nov 2009 14:32:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kjwinchester@gmail.com, airlied@linux.ie, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, rmk@arm.linux.org.uk, tony@atomide.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     agp: correct missing cleanup on error in agp_add_bridge
+     omap: fix unlikely(x) < y
 has been removed from the -mm tree.  Its filename was
-     agp-correct-missing-cleanup-on-error-in-agp_add_bridge.patch
+     omap-fix-unlikelyx-y.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: agp: correct missing cleanup on error in agp_add_bridge
-From: Kevin Winchester <kjwinchester@gmail.com>
+Subject: omap: fix unlikely(x) < y
+From: Roel Kluin <roel.kluin@gmail.com>
 
-While investigating a kmemleak detected leak, I encountered the
-agp_add_bridge function.  It appears to be responsible for freeing
-the agp_bridge_data in the case of a failure, but it is only doing
-so for some errors.
+The closing parenthesis was not in the right location.
 
-Fix it to always free the bridge data if a failure condition is
-encountered.
-
-Signed-off-by: Kevin Winchester <kjwinchester@gmail.com>
-Cc: Dave Airlie <airlied@linux.ie>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/agp/backend.c |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ arch/arm/plat-omap/gpio.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/agp/backend.c~agp-correct-missing-cleanup-on-error-in-agp_add_bridge drivers/char/agp/backend.c
---- a/drivers/char/agp/backend.c~agp-correct-missing-cleanup-on-error-in-agp_add_bridge
-+++ a/drivers/char/agp/backend.c
-@@ -285,18 +285,22 @@ int agp_add_bridge(struct agp_bridge_dat
+diff -puN arch/arm/plat-omap/gpio.c~omap-fix-unlikelyx-y arch/arm/plat-omap/gpio.c
+--- a/arch/arm/plat-omap/gpio.c~omap-fix-unlikelyx-y
++++ a/arch/arm/plat-omap/gpio.c
+@@ -391,7 +391,7 @@ static inline int gpio_valid(int gpio)
+ 
+ static int check_gpio(int gpio)
  {
- 	int error;
- 
--	if (agp_off)
--		return -ENODEV;
-+	if (agp_off) {
-+		error = -ENODEV;
-+		goto err_put_bridge;
-+	}
- 
- 	if (!bridge->dev) {
- 		printk (KERN_DEBUG PFX "Erk, registering with no pci_dev!\n");
--		return -EINVAL;
-+		error = -EINVAL;
-+		goto err_put_bridge;
- 	}
- 
- 	/* Grab reference on the chipset driver. */
- 	if (!try_module_get(bridge->driver->owner)) {
- 		dev_info(&bridge->dev->dev, "can't lock chipset driver\n");
--		return -EINVAL;
-+		error = -EINVAL;
-+		goto err_put_bridge;
- 	}
- 
- 	error = agp_backend_initialize(bridge);
-@@ -326,6 +330,7 @@ frontend_err:
- 	agp_backend_cleanup(bridge);
- err_out:
- 	module_put(bridge->driver->owner);
-+err_put_bridge:
- 	agp_put_bridge(bridge);
- 	return error;
- }
+-	if (unlikely(gpio_valid(gpio)) < 0) {
++	if (unlikely(gpio_valid(gpio) < 0)) {
+ 		printk(KERN_ERR "omap-gpio: invalid GPIO %d\n", gpio);
+ 		dump_stack();
+ 		return -1;
 _
 
-Patches currently in -mm which might be from kjwinchester@gmail.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 linux-next.patch
+fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+sms-cards-make-id-unsigned-in-sms_get_board.patch
+mtd-error-return-eio-instead-of-eio.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
+zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
+st-fix-test-of-value-range-in-st_set_options.patch
+ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
+scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
+page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+cryptocop-fix-assertion-in-create_output_descriptors.patch
+gpio-fix-test-on-unsigned-in-lnw_irq_type.patch
+fbdev-tv_paln-bit-set-twice-in-sisfb_detect_vb_connect.patch
+hvc_console-fix-test-on-unsigned-in-hvc_console_print.patch
+irq-fix-test-in-__exit-parport_mfc3_exit.patch
+zlib-optimize-inffast-when-copying-direct-from-output.patch
 
