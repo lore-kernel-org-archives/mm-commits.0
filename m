@@ -1,169 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-atm-solos-pcic-fix-warning-bug-clean-up-code.patch removed from -mm tree
-Date: Fri, 20 Nov 2009 11:30:57 -0800
-Message-ID: <200911201930.nAKJUveH011892@imap1.linux-foundation.org>
+Subject: [merged] agp-correct-missing-cleanup-on-error-in-agp_add_bridge.patch removed from -mm tree
+Date: Fri, 20 Nov 2009 11:30:30 -0800
+Message-ID: <200911201930.nAKJUUBk010824@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55796 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53639 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754190AbZKTTcD (ORCPT
+	by vger.kernel.org with ESMTP id S1754918AbZKTTcy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Nov 2009 14:32:03 -0500
+	Fri, 20 Nov 2009 14:32:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, David.Woodhouse@intel.com, chas@cmf.nrl.navy.mil, davem@davemloft.net, nathan@traverse.com.au, mm-commits@vger.kernel.org
+To: kjwinchester@gmail.com, airlied@linux.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/atm/solos-pci.c: fix warning/bug, clean up code
+     agp: correct missing cleanup on error in agp_add_bridge
 has been removed from the -mm tree.  Its filename was
-     drivers-atm-solos-pcic-fix-warning-bug-clean-up-code.patch
+     agp-correct-missing-cleanup-on-error-in-agp_add_bridge.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/atm/solos-pci.c: fix warning/bug, clean up code
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: agp: correct missing cleanup on error in agp_add_bridge
+From: Kevin Winchester <kjwinchester@gmail.com>
 
-drivers/atm/solos-pci.c: In function 'flash_upgrade':
-drivers/atm/solos-pci.c:528: warning: 'fw_name' may be used uninitialized in this function
+While investigating a kmemleak detected leak, I encountered the
+agp_add_bridge function.  It appears to be responsible for freeing
+the agp_bridge_data in the case of a failure, but it is only doing
+so for some errors.
 
-Cc: Chas Williams <chas@cmf.nrl.navy.mil>
-Cc: David Woodhouse <David.Woodhouse@intel.com>
-Cc: Nathan Williams <nathan@traverse.com.au>
-Cc: David S. Miller <davem@davemloft.net>
+Fix it to always free the bridge data if a failure condition is
+encountered.
+
+Signed-off-by: Kevin Winchester <kjwinchester@gmail.com>
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/atm/solos-pci.c |   29 ++++++++++++++++-------------
- 1 file changed, 16 insertions(+), 13 deletions(-)
+ drivers/char/agp/backend.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-diff -puN drivers/atm/solos-pci.c~drivers-atm-solos-pcic-fix-warning-bug-clean-up-code drivers/atm/solos-pci.c
---- a/drivers/atm/solos-pci.c~drivers-atm-solos-pcic-fix-warning-bug-clean-up-code
-+++ a/drivers/atm/solos-pci.c
-@@ -531,34 +531,37 @@ static int flash_upgrade(struct solos_ca
- 	int numblocks = 0;
- 	int offset;
+diff -puN drivers/char/agp/backend.c~agp-correct-missing-cleanup-on-error-in-agp_add_bridge drivers/char/agp/backend.c
+--- a/drivers/char/agp/backend.c~agp-correct-missing-cleanup-on-error-in-agp_add_bridge
++++ a/drivers/char/agp/backend.c
+@@ -285,18 +285,22 @@ int agp_add_bridge(struct agp_bridge_dat
+ {
+ 	int error;
  
--	if (chip == 0) {
-+	switch (chip) {
-+	case 0:
- 		fw_name = "solos-FPGA.bin";
- 		blocksize = FPGA_BLOCK;
--	} 
--	
--	if (chip == 1) {
-+		break;
-+	case 1:
- 		fw_name = "solos-Firmware.bin";
- 		blocksize = SOLOS_BLOCK;
--	}
--	
--	if (chip == 2){
-+		break;
-+	case 2:
- 		if (card->fpga_version > LEGACY_BUFFERS){
- 			fw_name = "solos-db-FPGA.bin";
- 			blocksize = FPGA_BLOCK;
- 		} else {
--			dev_info(&card->dev->dev, "FPGA version doesn't support daughter board upgrades\n");
-+			dev_info(&card->dev->dev, "FPGA version doesn't support"
-+					" daughter board upgrades\n");
- 			return -EPERM;
- 		}
--	}
--	
--	if (chip == 3){
-+		break;
-+	case 3:
- 		if (card->fpga_version > LEGACY_BUFFERS){
- 			fw_name = "solos-Firmware.bin";
- 			blocksize = SOLOS_BLOCK;
- 		} else {
--		dev_info(&card->dev->dev, "FPGA version doesn't support daughter board upgrades\n");
--		return -EPERM;
-+			dev_info(&card->dev->dev, "FPGA version doesn't support"
-+					" daughter board upgrades\n");
-+			return -EPERM;
- 		}
-+		break;
-+	default:
-+		return -ENODEV;
+-	if (agp_off)
+-		return -ENODEV;
++	if (agp_off) {
++		error = -ENODEV;
++		goto err_put_bridge;
++	}
+ 
+ 	if (!bridge->dev) {
+ 		printk (KERN_DEBUG PFX "Erk, registering with no pci_dev!\n");
+-		return -EINVAL;
++		error = -EINVAL;
++		goto err_put_bridge;
  	}
  
- 	if (request_firmware(&fw, fw_name, &card->dev->dev))
+ 	/* Grab reference on the chipset driver. */
+ 	if (!try_module_get(bridge->driver->owner)) {
+ 		dev_info(&bridge->dev->dev, "can't lock chipset driver\n");
+-		return -EINVAL;
++		error = -EINVAL;
++		goto err_put_bridge;
+ 	}
+ 
+ 	error = agp_backend_initialize(bridge);
+@@ -326,6 +330,7 @@ frontend_err:
+ 	agp_backend_cleanup(bridge);
+ err_out:
+ 	module_put(bridge->driver->owner);
++err_put_bridge:
+ 	agp_put_bridge(bridge);
+ 	return error;
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kjwinchester@gmail.com are
 
-drivers-media-dvb-dvb-core-dvb_frontendc-needs-semaphoreh.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-recordmcount-stfu.patch
-include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
-drivers-char-cycladesc-fix-used-uninitialised-bug.patch
-drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-acpi-remove-nid_inval.patch
-drivers-acpi-acpi_padc-squish-warning.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices-checkpatch-fixes.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-drivers-leds-leds-ss4200c-fix-return-statement.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
-st-fix-test-of-value-range-in-st_set_options.patch
-scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-readahead-add-blk_run_backing_dev.patch
-mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
-oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
-oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes.patch
-mm-mlocking-in-try_to_unmap_one-fix-fix.patch
-mm-memory_hotplug-make-offline_pages-static.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup.patch
-floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
-drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
-rwsem-fix-rwsem_is_locked-bugs-fix.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
-errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
-msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes.patch
-crc32-minor-optimizations-and-cleanup-checkpatch-fixes.patch
-hwmon-w83627ehf-updates-checkpatch-fixes.patch
-spi-controller-driver-for-designware-spi-core-fix.patch
-spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3.patch
-ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
-memcg-coalesce-charging-via-percpu-storage-fix.patch
-aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
-direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
-zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-reiser4-disable.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
 
