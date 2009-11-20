@@ -1,55 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: [merged] omap-fix-unlikelyx-y.patch removed from -mm tree
-Date: Fri, 20 Nov 2009 11:30:36 -0800
-Message-ID: <200911201930.nAKJUaON011021@imap1.linux-foundation.org>
+Subject: [merged] net-netfilter-xt_osfc-xt_osf_remove_callback-should-return-negative-on-errors.patch removed from -mm tree
+Date: Fri, 20 Nov 2009 11:31:03 -0800
+Message-ID: <200911201931.nAKJV3ju012153@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38302 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36748 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752033AbZKTTc7 (ORCPT
+	by vger.kernel.org with ESMTP id S1754968AbZKTTc7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 20 Nov 2009 14:32:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, rmk@arm.linux.org.uk, tony@atomide.com, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, kaber@trash.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     omap: fix unlikely(x) < y
+     net/netfilter/xt_osf.c: xt_osf_remove_callback() should return negative on errors
 has been removed from the -mm tree.  Its filename was
-     omap-fix-unlikelyx-y.patch
+     net-netfilter-xt_osfc-xt_osf_remove_callback-should-return-negative-on-errors.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: omap: fix unlikely(x) < y
+Subject: net/netfilter/xt_osf.c: xt_osf_remove_callback() should return negative on errors
 From: Roel Kluin <roel.kluin@gmail.com>
 
-The closing parenthesis was not in the right location.
+Return a negative error value
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Patrick McHardy <kaber@trash.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/plat-omap/gpio.c |    2 +-
+ net/netfilter/xt_osf.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/arm/plat-omap/gpio.c~omap-fix-unlikelyx-y arch/arm/plat-omap/gpio.c
---- a/arch/arm/plat-omap/gpio.c~omap-fix-unlikelyx-y
-+++ a/arch/arm/plat-omap/gpio.c
-@@ -391,7 +391,7 @@ static inline int gpio_valid(int gpio)
- 
- static int check_gpio(int gpio)
+diff -puN net/netfilter/xt_osf.c~net-netfilter-xt_osfc-xt_osf_remove_callback-should-return-negative-on-errors net/netfilter/xt_osf.c
+--- a/net/netfilter/xt_osf.c~net-netfilter-xt_osfc-xt_osf_remove_callback-should-return-negative-on-errors
++++ a/net/netfilter/xt_osf.c
+@@ -118,7 +118,7 @@ static int xt_osf_remove_callback(struct
  {
--	if (unlikely(gpio_valid(gpio)) < 0) {
-+	if (unlikely(gpio_valid(gpio) < 0)) {
- 		printk(KERN_ERR "omap-gpio: invalid GPIO %d\n", gpio);
- 		dump_stack();
- 		return -1;
+ 	struct xt_osf_user_finger *f;
+ 	struct xt_osf_finger *sf;
+-	int err = ENOENT;
++	int err = -ENOENT;
+ 
+ 	if (!osf_attrs[OSF_ATTR_FINGER])
+ 		return -EINVAL;
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
