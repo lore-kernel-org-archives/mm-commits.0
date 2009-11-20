@@ -1,234 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-allow-memory-hotplug-and-hibernation-in-the-same-kernel.patch removed from -mm tree
-Date: Fri, 20 Nov 2009 11:30:18 -0800
-Message-ID: <200911201930.nAKJUI89010341@imap1.linux-foundation.org>
+Subject: [merged] drivers-char-agp-amd64-agpc-squish-warning.patch removed from -mm tree
+Date: Fri, 20 Nov 2009 11:30:33 -0800
+Message-ID: <200911201930.nAKJUX9e010935@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35211 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52483 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752456AbZKTTa7 (ORCPT
+	by vger.kernel.org with ESMTP id S1753045AbZKTTa7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 20 Nov 2009 14:30:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andi@firstfloor.org, ak@linux.intel.com, gerald.schaefer@de.ibm.com, kosaki.motohiro@jp.fujitsu.com, rjw@sisk.pl, y-goto@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, airlied@linux.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: allow memory hotplug and hibernation in the same kernel
+     drivers/char/agp/amd64-agp.c: squish warning
 has been removed from the -mm tree.  Its filename was
-     mm-allow-memory-hotplug-and-hibernation-in-the-same-kernel.patch
+     drivers-char-agp-amd64-agpc-squish-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: allow memory hotplug and hibernation in the same kernel
-From: Andi Kleen <andi@firstfloor.org>
+Subject: drivers/char/agp/amd64-agp.c: squish warning
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Allow memory hotplug and hibernation in the same kernel
+drivers/char/agp/amd64-agp.c:768: warning: 'agp_amd64_cleanup' defined but not used
 
-Memory hotplug and hibernation were exclusive in Kconfig.  This is
-obviously a problem for distribution kernels who want to support both in
-the same image.
-
-After some discussions with Rafael and others the only problem is with
-parallel memory hotadd or removal while a hibernation operation is in
-process.  It was also working for s390 before.
-
-This patch removes the Kconfig level exclusion, and simply makes the
-memory add / remove functions grab the pm_mutex to exclude against
-hibernation.
-
-Fixes a regression - old kernels didn't exclude memory hotadd and
-hibernation.
-
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
-Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/suspend.h |   21 +++++++++++++++++++--
- mm/Kconfig              |    5 +----
- mm/memory_hotplug.c     |   21 +++++++++++++++++----
- 3 files changed, 37 insertions(+), 10 deletions(-)
+ drivers/char/agp/amd64-agp.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN include/linux/suspend.h~mm-allow-memory-hotplug-and-hibernation-in-the-same-kernel include/linux/suspend.h
---- a/include/linux/suspend.h~mm-allow-memory-hotplug-and-hibernation-in-the-same-kernel
-+++ a/include/linux/suspend.h
-@@ -301,6 +301,8 @@ static inline int unregister_pm_notifier
- #define pm_notifier(fn, pri)	do { (void)(fn); } while (0)
- #endif /* !CONFIG_PM_SLEEP */
- 
-+extern struct mutex pm_mutex;
-+
- #ifndef CONFIG_HIBERNATION
- static inline void register_nosave_region(unsigned long b, unsigned long e)
- {
-@@ -308,8 +310,23 @@ static inline void register_nosave_regio
- static inline void register_nosave_region_late(unsigned long b, unsigned long e)
- {
+diff -puN drivers/char/agp/amd64-agp.c~drivers-char-agp-amd64-agpc-squish-warning drivers/char/agp/amd64-agp.c
+--- a/drivers/char/agp/amd64-agp.c~drivers-char-agp-amd64-agpc-squish-warning
++++ a/drivers/char/agp/amd64-agp.c
+@@ -764,12 +764,14 @@ int __init agp_amd64_init(void)
+ 	return err;
  }
--#endif
  
--extern struct mutex pm_mutex;
-+static inline void lock_system_sleep(void) {}
-+static inline void unlock_system_sleep(void) {}
-+
-+#else
-+
-+/* Let some subsystems like memory hotadd exclude hibernation */
-+
-+static inline void lock_system_sleep(void)
-+{
-+	mutex_lock(&pm_mutex);
-+}
-+
-+static inline void unlock_system_sleep(void)
-+{
-+	mutex_unlock(&pm_mutex);
-+}
++#ifndef CONFIG_GART_IOMMU
+ static void __exit agp_amd64_cleanup(void)
+ {
+ 	if (aperture_resource)
+ 		release_resource(aperture_resource);
+ 	pci_unregister_driver(&agp_amd64_pci_driver);
+ }
 +#endif
  
- #endif /* _LINUX_SUSPEND_H */
-diff -puN mm/Kconfig~mm-allow-memory-hotplug-and-hibernation-in-the-same-kernel mm/Kconfig
---- a/mm/Kconfig~mm-allow-memory-hotplug-and-hibernation-in-the-same-kernel
-+++ a/mm/Kconfig
-@@ -128,12 +128,9 @@ config SPARSEMEM_VMEMMAP
- config MEMORY_HOTPLUG
- 	bool "Allow for memory hot-add"
- 	depends on SPARSEMEM || X86_64_ACPI_NUMA
--	depends on HOTPLUG && !(HIBERNATION && !S390) && ARCH_ENABLE_MEMORY_HOTPLUG
-+	depends on HOTPLUG && ARCH_ENABLE_MEMORY_HOTPLUG
- 	depends on (IA64 || X86 || PPC_BOOK3S_64 || SUPERH || S390)
- 
--comment "Memory hotplug is currently incompatible with Software Suspend"
--	depends on SPARSEMEM && HOTPLUG && HIBERNATION && !S390
--
- config MEMORY_HOTPLUG_SPARSE
- 	def_bool y
- 	depends on SPARSEMEM && MEMORY_HOTPLUG
-diff -puN mm/memory_hotplug.c~mm-allow-memory-hotplug-and-hibernation-in-the-same-kernel mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-allow-memory-hotplug-and-hibernation-in-the-same-kernel
-+++ a/mm/memory_hotplug.c
-@@ -26,6 +26,7 @@
- #include <linux/migrate.h>
- #include <linux/page-isolation.h>
- #include <linux/pfn.h>
-+#include <linux/suspend.h>
- 
- #include <asm/tlbflush.h>
- 
-@@ -485,14 +486,18 @@ int __ref add_memory(int nid, u64 start,
- 	struct resource *res;
- 	int ret;
- 
-+	lock_system_sleep();
-+
- 	res = register_memory_resource(start, size);
-+	ret = -EEXIST;
- 	if (!res)
--		return -EEXIST;
-+		goto out;
- 
- 	if (!node_online(nid)) {
- 		pgdat = hotadd_new_pgdat(nid, start);
-+		ret = -ENOMEM;
- 		if (!pgdat)
--			return -ENOMEM;
-+			goto out;
- 		new_pgdat = 1;
- 	}
- 
-@@ -515,7 +520,8 @@ int __ref add_memory(int nid, u64 start,
- 		BUG_ON(ret);
- 	}
- 
--	return ret;
-+	goto out;
-+
- error:
- 	/* rollback pgdat allocation and others */
- 	if (new_pgdat)
-@@ -523,6 +529,8 @@ error:
- 	if (res)
- 		release_memory_resource(res);
- 
-+out:
-+	unlock_system_sleep();
- 	return ret;
- }
- EXPORT_SYMBOL_GPL(add_memory);
-@@ -759,6 +767,8 @@ int offline_pages(unsigned long start_pf
- 	if (!test_pages_in_a_zone(start_pfn, end_pfn))
- 		return -EINVAL;
- 
-+	lock_system_sleep();
-+
- 	zone = page_zone(pfn_to_page(start_pfn));
- 	node = zone_to_nid(zone);
- 	nr_pages = end_pfn - start_pfn;
-@@ -766,7 +776,7 @@ int offline_pages(unsigned long start_pf
- 	/* set above range as isolated */
- 	ret = start_isolate_page_range(start_pfn, end_pfn);
- 	if (ret)
--		return ret;
-+		goto out;
- 
- 	arg.start_pfn = start_pfn;
- 	arg.nr_pages = nr_pages;
-@@ -844,6 +854,7 @@ repeat:
- 	writeback_set_ratelimit();
- 
- 	memory_notify(MEM_OFFLINE, &arg);
-+	unlock_system_sleep();
- 	return 0;
- 
- failed_removal:
-@@ -853,6 +864,8 @@ failed_removal:
- 	/* pushback to free area */
- 	undo_isolate_page_range(start_pfn, end_pfn);
- 
-+out:
-+	unlock_system_sleep();
- 	return ret;
- }
- 
+ /* On AMD64 the PCI driver needs to initialize this driver early
+    for the IOMMU, so it has to be called via a backdoor. */
 _
 
-Patches currently in -mm which might be from andi@firstfloor.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+drivers-media-dvb-dvb-core-dvb_frontendc-needs-semaphoreh.patch
 linux-next.patch
-hardware-latency-detector-remove-default-m.patch
-page-types-learn-to-describe-flags-directly-from-command-line.patch
-page-types-exit-early-when-invoked-with-d-describe.patch
-nodemask-make-nodemask_alloc-more-general.patch
-hugetlb-rework-hstate_next_node_-functions.patch
-hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions.patch
-hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions-fix.patch
-hugetlb-factor-init_nodemask_of_node.patch
-hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy.patch
-hugetlb-add-generic-definition-of-numa_no_node.patch
-hugetlb-add-per-node-hstate-attributes.patch
-hugetlb-update-hugetlb-documentation-for-numa-controls.patch
-hugetlb-use-only-nodes-with-memory-for-huge-pages.patch
-mm-clear-node-in-n_high_memory-and-stop-kswapd-when-all-memory-is-offlined.patch
-hugetlb-handle-memory-hot-plug-events.patch
-hugetlb-offload-per-node-attribute-registrations.patch
-mm-add-gfp-flags-for-nodemask_alloc-slab-allocations.patch
-mm-define-page_mapping_flags.patch
-mm-mlocking-in-try_to_unmap_one.patch
-mm-mlocking-in-try_to_unmap_one-fix.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+recordmcount-stfu.patch
+include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
+drivers-char-cycladesc-fix-used-uninitialised-bug.patch
+drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+acpi-remove-nid_inval.patch
+drivers-acpi-acpi_padc-squish-warning.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices-checkpatch-fixes.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+drivers-leds-leds-ss4200c-fix-return-statement.patch
+3x59x-fix-pci-resource-management.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
+st-fix-test-of-value-range-in-st_set_options.patch
+scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+fs-improve-remountro-vs-buffercache-coherency.patch
+percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+readahead-add-blk_run_backing_dev.patch
+mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
+oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
+oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes.patch
 mm-mlocking-in-try_to_unmap_one-fix-fix.patch
-mm-config_mmu-for-pg_mlocked.patch
-mm-pass-address-down-to-rmap-ones.patch
-mm-stop-ptlock-enlarging-struct-page.patch
-mm-sigbus-instead-of-abusing-oom.patch
 mm-memory_hotplug-make-offline_pages-static.patch
-procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm.patch
-fatfs-use-common-time_to_tm-in-fat_time_unix2fat.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup.patch
+floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
+drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
+rwsem-fix-rwsem_is_locked-bugs-fix.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
+errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
+msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes.patch
+crc32-minor-optimizations-and-cleanup-checkpatch-fixes.patch
+hwmon-w83627ehf-updates-checkpatch-fixes.patch
+spi-controller-driver-for-designware-spi-core-fix.patch
+spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3.patch
+ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
+memcg-coalesce-charging-via-percpu-storage-fix.patch
+aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
+direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
+zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes.patch
+lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes.patch
+lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+reiser4-disable.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
