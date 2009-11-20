@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cciss-change-cmd_sg_listsg_chain_dma-type-to-dma_addr_t.patch added to -mm tree
-Date: Fri, 20 Nov 2009 14:19:31 -0800
-Message-ID: <200911202219.nAKMJVhI029661@imap1.linux-foundation.org>
+Subject: + fs-anon_inodes-implement-dname.patch added to -mm tree
+Date: Fri, 20 Nov 2009 14:28:35 -0800
+Message-ID: <200911202228.nAKMSZDT018977@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37114 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41733 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753704AbZKTWTi (ORCPT
+	by vger.kernel.org with ESMTP id S1753818AbZKTW3U (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Nov 2009 17:19:38 -0500
+	Fri, 20 Nov 2009 17:29:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: achiang@hp.com, brace@beardog.cce.hp.com, jens.axboe@oracle.com, scameron@beardog.cce.hp.com
+Cc: npiggin@suse.de, davem@davemloft.net, davidel@xmailserver.org, hch@lst.de, jens.axboe@oracle.com, mszeredi@suse.cz, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     cciss: change Cmd_sg_list.sg_chain_dma type to dma_addr_t
+     fs: anon_inodes implement dname
 has been added to the -mm tree.  Its filename is
-     cciss-change-cmd_sg_listsg_chain_dma-type-to-dma_addr_t.patch
+     fs-anon_inodes-implement-dname.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,83 +34,76 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cciss: change Cmd_sg_list.sg_chain_dma type to dma_addr_t
-From: Alex Chiang <achiang@hp.com>
+Subject: fs: anon_inodes implement dname
+From: Nick Piggin <npiggin@suse.de>
 
-Fix regression in this linux-next patch:
+Add a d_dname method for anon_inodes filesystem, the same way pipefs and
+sockfs pseudo filesystems.  This allows us to remove the DCACHE_UNHASHED
+hack from anon_inodes.c (see next patch).
 
-: commit 5c07a311a80adb0138fc08e8279c60255d88d0b8
-: Author: Don Brace <brace@beardog.cce.hp.com>
-: Date:   Thu Nov 12 12:50:01 2009 -0600
-: 
-:     cciss: Add enhanced scatter-gather support.
-
-
-It broke the ia64 build because of this hunk:
-
-	--- a/drivers/block/cciss.h
-	+++ b/drivers/block/cciss.h
-	+struct Cmd_sg_list {
-	+       SGDescriptor_struct     *sgchain;
-	+       dma64_addr_t            sg_chain_dma;
-	+       int                     chain_block_size;
-	+};
-
-The issue is that dma64_addr_t isn't #define'd on ia64.
-
-The way that we're using Cmd_sg_list.sg_chain_dma is to hold an address
-returned from pci_map_single().
-
-	+               temp64.val = pci_map_single(h->pdev,
-	+                                 h->cmd_sg_list[c->cmdindex]->sgchain,
-	+                                 len, dir);
-	+
-	+               h->cmd_sg_list[c->cmdindex]->sg_chain_dma = temp64.val;
-
-pci_map_single() returns a dma_addr_t too.
-
-This code will still work even on a 32-bit x86 build, where dma_addr_t is
-defined to be a u32 because it will simply be promoted to the __u64 that
-temp64.val is defined as.
-
-Thus, declaring Cmd_sg_list.sg_chain_dma as dma_addr_t is safe.
-
-Signed-off-by: Alex Chiang <achiang@hp.com>
-Cc: Don Brace <brace@beardog.cce.hp.com>
-Cc: Stephen M. Cameron <scameron@beardog.cce.hp.com>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Cc: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Davide Libenzi <davidel@xmailserver.org>
+Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/anon_inodes.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN drivers/block/cciss.h~cciss-change-cmd_sg_listsg_chain_dma-type-to-dma_addr_t drivers/block/cciss.h
---- a/drivers/block/cciss.h~cciss-change-cmd_sg_listsg_chain_dma-type-to-dma_addr_t
-+++ a/drivers/block/cciss.h
-@@ -57,7 +57,7 @@ typedef struct _drive_info_struct
+diff -puN fs/anon_inodes.c~fs-anon_inodes-implement-dname fs/anon_inodes.c
+--- a/fs/anon_inodes.c~fs-anon_inodes-implement-dname
++++ a/fs/anon_inodes.c
+@@ -45,6 +45,15 @@ static int anon_inodefs_delete_dentry(st
+ 	return 1;
+ }
  
- struct Cmd_sg_list {
- 	SGDescriptor_struct	*sgchain;
--	dma64_addr_t		sg_chain_dma;
-+	dma_addr_t		sg_chain_dma;
- 	int			chain_block_size;
++/*
++ * anon_inodefs_dname() is called from d_path().
++ */
++static char *anon_inodefs_dname(struct dentry *dentry, char *buffer, int buflen)
++{
++	return dynamic_dname(dentry, buffer, buflen, "anon_inode:%s",
++				dentry->d_name.name, dentry->d_inode->i_ino);
++}
++
+ static struct file_system_type anon_inode_fs_type = {
+ 	.name		= "anon_inodefs",
+ 	.get_sb		= anon_inodefs_get_sb,
+@@ -52,6 +61,7 @@ static struct file_system_type anon_inod
+ };
+ static const struct dentry_operations anon_inodefs_dentry_operations = {
+ 	.d_delete	= anon_inodefs_delete_dentry,
++	.d_dname	= anon_inodefs_dname,
  };
  
+ /*
 _
 
-Patches currently in -mm which might be from achiang@hp.com are
+Patches currently in -mm which might be from npiggin@suse.de are
 
 linux-next.patch
-scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
-cciss-change-cmd_sg_listsg_chain_dma-type-to-dma_addr_t.patch
-page-types-learn-to-describe-flags-directly-from-command-line.patch
-page-types-whitespace-alignment.patch
-page-types-exit-early-when-invoked-with-d-describe.patch
-mm-add-numa-node-symlink-for-memory-section-in-sysfs.patch
-mm-refactor-register_cpu_under_node.patch
-mm-refactor-unregister_cpu_under_node.patch
-mm-add-numa-node-symlink-for-cpu-devices-in-sysfs.patch
-documentation-abi-sys-devices-system-cpu-cpu-node.patch
-mm-slab-allocate-memory-section-nodemask-for-large-systems.patch
+fs-anon_inodes-implement-dname.patch
+fs-remove-unneeded-dcache_unhashed-tricks.patch
+fs-improve-remountro-vs-buffercache-coherency.patch
+mm-define-page_mapping_flags.patch
+mm-mlocking-in-try_to_unmap_one.patch
+mm-mlocking-in-try_to_unmap_one-fix.patch
+mm-mlocking-in-try_to_unmap_one-fix-fix.patch
+mm-config_mmu-for-pg_mlocked.patch
+mm-pass-address-down-to-rmap-ones.patch
+mm-stop-ptlock-enlarging-struct-page.patch
+mm-sigbus-instead-of-abusing-oom.patch
+ipc-semc-sem-optimise-undo-list-search.patch
+ipc-semc-sem-use-list-operations.patch
+ipc-semc-sem-preempt-improve.patch
+ipc-semc-optimize-if-semops-fail.patch
+ipc-semc-add-a-per-semaphore-pending-list.patch
+ipc-semc-optimize-single-semop-operations.patch
+ipc-semc-optimize-single-sops-when-semval-is-zero.patch
+reiser4.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
