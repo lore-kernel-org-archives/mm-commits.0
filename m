@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kbuild-generate-modulesbuiltin-fix-2-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 20 Nov 2009 15:27:31 -0800
-Message-ID: <200911202327.nAKNRWCm031392@imap1.linux-foundation.org>
+Subject: + davinci-fb-fix-frame-buffer-driver-issues.patch added to -mm tree
+Date: Fri, 20 Nov 2009 15:32:35 -0800
+Message-ID: <200911202332.nAKNWZqu011107@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56430 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58559 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753313AbZKTX1a (ORCPT
+	by vger.kernel.org with ESMTP id S1753054AbZKTXcs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Nov 2009 18:27:30 -0500
+	Fri, 20 Nov 2009 18:32:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mmarek@suse.cz
+Cc: sudhakar.raj@ti.com, krzysztof.h1@wp.pl, pkiryukhin@ru.mvista.com, schen@mvista.com
 
 
 The patch titled
-     kbuild-generate-modulesbuiltin-fix-2-checkpatch-fixes
+     davinci: fb: fix frame buffer driver issues
 has been added to the -mm tree.  Its filename is
-     kbuild-generate-modulesbuiltin-fix-2-checkpatch-fixes.patch
+     davinci-fb-fix-frame-buffer-driver-issues.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,117 +34,92 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kbuild-generate-modulesbuiltin-fix-2-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: davinci: fb: fix frame buffer driver issues
+From: Sudhakar Rajashekhara <sudhakar.raj@ti.com>
 
-ERROR: code indent should use tabs where possible
-#220: FILE: scripts/kconfig/confdata.c:718:
-+^I                  "# Automatically generated - do not edit\n"$
+Following issues have been addressed on DA8XX/OMAP-L1XX:
 
-ERROR: code indent should use tabs where possible
-#221: FILE: scripts/kconfig/confdata.c:719:
-+^I                  "\n");$
+a. Screen misalignment during booting when frame buffer console is
+   enabled.
 
-total: 2 errors, 0 warnings, 253 lines checked
+b. Driver was configured always in PSEUDOCOLOR mode.  This patch
+   dynamically configures the driver either in PSEUDOCOLOUR or TRUECOLOR
+   mode depending on bpp.
 
-./patches/kbuild-generate-modulesbuiltin-fix-2.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
+c. The RED and BLUE offsets were interchanged resulting in wrong
+   bootup logo colour.
 
-Please run checkpatch prior to sending patches
+This patch has been tested on DA830/OMAP-L137 and DA850/OMAP-L138 EVMs.
 
-Cc: Michal Marek <mmarek@suse.cz>
+Signed-off-by: Sudhakar Rajashekhara <sudhakar.raj@ti.com>
+Cc: Steve Chen <schen@mvista.com>
+Cc: Pavel Kiryukhin <pkiryukhin@ru.mvista.com>
+Cc: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kconfig/confdata.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/da8xx-fb.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN scripts/kconfig/confdata.c~kbuild-generate-modulesbuiltin-fix-2-checkpatch-fixes scripts/kconfig/confdata.c
---- a/scripts/kconfig/confdata.c~kbuild-generate-modulesbuiltin-fix-2-checkpatch-fixes
-+++ a/scripts/kconfig/confdata.c
-@@ -715,8 +715,8 @@ int conf_write_autoconf(void)
- 		     "#\n",
- 		     sym_get_string_value(sym), ctime(&now));
- 	fprintf(tristate, "#\n"
--	                  "# Automatically generated - do not edit\n"
--	                  "\n");
-+			  "# Automatically generated - do not edit\n"
-+			  "\n");
- 	fprintf(out_h, "/*\n"
- 		       " * Automatically generated C config: don't edit\n"
- 		       " * Linux kernel version: %s\n"
+diff -puN drivers/video/da8xx-fb.c~davinci-fb-fix-frame-buffer-driver-issues drivers/video/da8xx-fb.c
+--- a/drivers/video/da8xx-fb.c~davinci-fb-fix-frame-buffer-driver-issues
++++ a/drivers/video/da8xx-fb.c
+@@ -554,11 +554,11 @@ static int fb_check_var(struct fb_var_sc
+ 		var->transp.length = 0;
+ 		break;
+ 	case 16:		/* RGB 565 */
+-		var->red.offset = 0;
++		var->red.offset = 11;
+ 		var->red.length = 5;
+ 		var->green.offset = 5;
+ 		var->green.length = 6;
+-		var->blue.offset = 11;
++		var->blue.offset = 0;
+ 		var->blue.length = 5;
+ 		var->transp.offset = 0;
+ 		var->transp.length = 0;
+@@ -591,7 +591,7 @@ static int __devexit fb_remove(struct pl
+ 		unregister_framebuffer(info);
+ 		fb_dealloc_cmap(&info->cmap);
+ 		dma_free_coherent(NULL, par->databuf_sz + PAGE_SIZE,
+-					info->screen_base,
++					info->screen_base - PAGE_SIZE,
+ 					info->fix.smem_start);
+ 		free_irq(par->irq, par);
+ 		clk_disable(par->lcdc_clk);
+@@ -749,6 +749,7 @@ static int __init fb_probe(struct platfo
+ 				(PAGE_SIZE - par->palette_sz);
+ 
+ 	/* the rest of the frame buffer is pixel data */
++	da8xx_fb_info->screen_base = par->v_palette_base + par->palette_sz;
+ 	da8xx_fb_fix.smem_start = par->p_palette_base + par->palette_sz;
+ 	da8xx_fb_fix.smem_len = par->databuf_sz - par->palette_sz;
+ 	da8xx_fb_fix.line_length = (lcdc_info->width * lcd_cfg->bpp) / 8;
+@@ -787,6 +788,8 @@ static int __init fb_probe(struct platfo
+ 	da8xx_fb_info->var = da8xx_fb_var;
+ 	da8xx_fb_info->fbops = &da8xx_fb_ops;
+ 	da8xx_fb_info->pseudo_palette = par->pseudo_palette;
++	da8xx_fb_info->fix.visual = (da8xx_fb_info->var.bits_per_pixel <= 8) ?
++				FB_VISUAL_PSEUDOCOLOR : FB_VISUAL_TRUECOLOR;
+ 
+ 	ret = fb_alloc_cmap(&da8xx_fb_info->cmap, PALETTE_SIZE, 0);
+ 	if (ret)
+@@ -825,7 +828,7 @@ err_free_irq:
+ 
+ err_release_fb_mem:
+ 	dma_free_coherent(NULL, par->databuf_sz + PAGE_SIZE,
+-				da8xx_fb_info->screen_base,
++				da8xx_fb_info->screen_base - PAGE_SIZE,
+ 				da8xx_fb_info->fix.smem_start);
+ 
+ err_release_fb:
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from sudhakar.raj@ti.com are
 
-drivers-media-dvb-dvb-core-dvb_frontendc-needs-semaphoreh.patch
+davinci-fb-fix-frame-buffer-driver-issues.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-recordmcount-stfu.patch
-include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
-drivers-char-cycladesc-fix-used-uninitialised-bug.patch
-drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-acpi-remove-nid_inval.patch
-drivers-acpi-acpi_padc-squish-warning.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices-checkpatch-fixes.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-kbuild-generate-modulesbuiltin-fix-2-checkpatch-fixes.patch
-drivers-leds-leds-ss4200c-fix-return-statement.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
-st-fix-test-of-value-range-in-st_set_options.patch
-scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-readahead-add-blk_run_backing_dev.patch
-mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
-oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
-oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes.patch
-mm-mlocking-in-try_to_unmap_one-fix-fix.patch
-mm-memory_hotplug-make-offline_pages-static.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup.patch
-floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
-drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
-rwsem-fix-rwsem_is_locked-bugs-fix.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
-errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
-msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes.patch
-crc32-minor-optimizations-and-cleanup-checkpatch-fixes.patch
-hwmon-w83627ehf-updates-checkpatch-fixes.patch
-spi-controller-driver-for-designware-spi-core-fix.patch
-spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3.patch
-ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
-memcg-coalesce-charging-via-percpu-storage-fix.patch
-aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
-direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
-zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-reiser4-disable.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+mtd-nand-davinci-correct-4-bit-error-correction.patch
+mtdpart-memory-accessor-interface-for-mtd-layer.patch
+davinci-mmc-modify-data-types-of-edma-related-variables.patch
 
