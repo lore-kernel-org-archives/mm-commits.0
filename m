@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-prevent-deadlock-in-__unmap_hugepage_range-when-alloc_huge_page-fails-2.patch added to -mm tree
-Date: Fri, 20 Nov 2009 13:26:05 -0800
-Message-ID: <200911202126.nAKLQ5gq030268@imap1.linux-foundation.org>
+Subject: + binfmt-introduce-coredump-parameter-structure.patch added to -mm tree
+Date: Fri, 20 Nov 2009 14:12:14 -0800
+Message-ID: <200911202212.nAKMCF2v012068@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41756 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48987 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753392AbZKTV1N (ORCPT
+	by vger.kernel.org with ESMTP id S1753166AbZKTWMp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Nov 2009 16:27:13 -0500
+	Fri, 20 Nov 2009 17:12:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lwoodman@redhat.com, agl@us.ibm.com, apw@shadowen.org, david@gibson.dropbear.id.au, hugh.dickins@tiscali.co.uk, lee.schermerhorn@hp.com, lwooman@redhat.com, mel@csn.ul.ie
+Cc: mhiramat@redhat.com, dhowells@redhat.com, hidehiro.kawai.ez@hitachi.com, lethal@linux-sh.org, mingo@elte.hu, oleg@redhat.com, roland@redhat.com, vapier@gentoo.org
 
 
 The patch titled
-     hugetlb: prevent deadlock in __unmap_hugepage_range() when alloc_huge_page() fails
+     binfmt: introduce coredump parameter structure
 has been added to the -mm tree.  Its filename is
-     hugetlb-prevent-deadlock-in-__unmap_hugepage_range-when-alloc_huge_page-fails-2.patch
+     binfmt-introduce-coredump-parameter-structure.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,117 +34,492 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb: prevent deadlock in __unmap_hugepage_range() when alloc_huge_page() fails
-From: Larry Woodman <lwoodman@redhat.com>
+Subject: binfmt: introduce coredump parameter structure
+From: Masami Hiramatsu <mhiramat@redhat.com>
 
-hugetlb_fault() takes the mm->page_table_lock spinlock then calls
-hugetlb_cow().  If the alloc_huge_page() in hugetlb_cow() fails due to an
-insufficient huge page pool it calls unmap_ref_private() with the
-mm->page_table_lock held.  unmap_ref_private() then calls
-unmap_hugepage_range() which tries to acquire the mm->page_table_lock.
+These patches are for fixing coredump mm->flags consistency issue.
 
-[<ffffffff810928c3>] print_circular_bug_tail+0x80/0x9f
- [<ffffffff8109280b>] ? check_noncircular+0xb0/0xe8
- [<ffffffff810935e0>] __lock_acquire+0x956/0xc0e
- [<ffffffff81093986>] lock_acquire+0xee/0x12e
- [<ffffffff8111a7a6>] ? unmap_hugepage_range+0x3e/0x84
- [<ffffffff8111a7a6>] ? unmap_hugepage_range+0x3e/0x84
- [<ffffffff814c348d>] _spin_lock+0x40/0x89
- [<ffffffff8111a7a6>] ? unmap_hugepage_range+0x3e/0x84
- [<ffffffff8111afee>] ? alloc_huge_page+0x218/0x318
- [<ffffffff8111a7a6>] unmap_hugepage_range+0x3e/0x84
- [<ffffffff8111b2d0>] hugetlb_cow+0x1e2/0x3f4
- [<ffffffff8111b935>] ? hugetlb_fault+0x453/0x4f6
- [<ffffffff8111b962>] hugetlb_fault+0x480/0x4f6
- [<ffffffff8111baee>] follow_hugetlb_page+0x116/0x2d9
- [<ffffffff814c31a7>] ? _spin_unlock_irq+0x3a/0x5c
- [<ffffffff81107b4d>] __get_user_pages+0x2a3/0x427
- [<ffffffff81107d0f>] get_user_pages+0x3e/0x54
- [<ffffffff81040b8b>] get_user_pages_fast+0x170/0x1b5
- [<ffffffff81160352>] dio_get_page+0x64/0x14a
- [<ffffffff8116112a>] __blockdev_direct_IO+0x4b7/0xb31
- [<ffffffff8115ef91>] blkdev_direct_IO+0x58/0x6e
- [<ffffffff8115e0a4>] ? blkdev_get_blocks+0x0/0xb8
- [<ffffffff810ed2c5>] generic_file_aio_read+0xdd/0x528
- [<ffffffff81219da3>] ? avc_has_perm+0x66/0x8c
- [<ffffffff81132842>] do_sync_read+0xf5/0x146
- [<ffffffff8107da00>] ? autoremove_wake_function+0x0/0x5a
- [<ffffffff81211857>] ? security_file_permission+0x24/0x3a
- [<ffffffff81132fd8>] vfs_read+0xb5/0x126
- [<ffffffff81133f6b>] ? fget_light+0x5e/0xf8
- [<ffffffff81133131>] sys_read+0x54/0x8c
- [<ffffffff81011e42>] system_call_fastpath+0x16/0x1b
+---
+1787         if (mm->core_state || !get_dumpable(mm)) {  <- (1)
+1788                 up_write(&mm->mmap_sem);
+1789                 put_cred(cred);
+1790                 goto fail;
+1791         }
+1792
+[...]
+1798         if (get_dumpable(mm) == 2) {    /* Setuid core dump mode */ <-(2)
+1799                 flag = O_EXCL;          /* Stop rewrite attacks */
+1800                 cred->fsuid = 0;        /* Dump root private */
+1801         }
+---
 
-This can be fixed by dropping the mm->page_table_lock around the call to
-unmap_ref_private() if alloc_huge_page() fails, its dropped right below in
-the normal path anyway.  However, earlier in the that function, it's also
-possible to call into the page allocator with the same spinlock held.
+Since dumpable bits are not protected by lock, there is a chance to change
+these bits between (1) and (2).
 
-What this patch does is drop the spinlock before the page allocator is
-potentially entered.  The check for page allocation failure can be made
-without the page_table_lock as well as the copy of the huge page.  Even if
-the PTE changed while the spinlock was held, the consequence is that a
-huge page is copied unnecessarily.  This resolves both the double taking
-of the lock and sleeping with the spinlock held.
+To solve this issue, this patch copies mm->flags to
+coredump_params.mm_flags at the beginning of do_coredump() and uses it
+instead of get_dumpable() while dumping core.  This series also introduce
+coredump parameter structure for simplify bimfmt->core_dump interface.
 
-[mel@csn.ul.ie: Cover also the case where process can sleep with spinlock]
-Signed-off-by: Larry Woodman <lwooman@redhat.com>
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Acked-by: Adam Litke <agl@us.ibm.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Cc: David Gibson <david@gibson.dropbear.id.au>
+
+
+This patch:
+
+Introduce coredump parameter data structure (struct coredump_params) for
+simplifying binfmt->core_dump() arguments.  This also cleanup DUMP_WRITE()
+in elf_core_dump() by style issue.
+
+Signed-off-by: Masami Hiramatsu <mhiramat@redhat.com>
+Suggested-by: Ingo Molnar <mingo@elte.hu>
+Cc: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Mike Frysinger <vapier@gentoo.org>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
+ fs/binfmt_aout.c        |   13 +++++++------
+ fs/binfmt_elf.c         |   38 ++++++++++++++++++++++----------------
+ fs/binfmt_elf_fdpic.c   |   28 ++++++++++++++--------------
+ fs/binfmt_flat.c        |    6 +++---
+ fs/binfmt_som.c         |    2 +-
+ fs/exec.c               |   38 +++++++++++++++++++++-----------------
+ include/linux/binfmts.h |   10 +++++++++-
+ 7 files changed, 77 insertions(+), 58 deletions(-)
 
-diff -puN mm/hugetlb.c~hugetlb-prevent-deadlock-in-__unmap_hugepage_range-when-alloc_huge_page-fails-2 mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-prevent-deadlock-in-__unmap_hugepage_range-when-alloc_huge_page-fails-2
-+++ a/mm/hugetlb.c
-@@ -2293,6 +2293,9 @@ retry_avoidcopy:
- 		outside_reserve = 1;
+diff -puN fs/binfmt_aout.c~binfmt-introduce-coredump-parameter-structure fs/binfmt_aout.c
+--- a/fs/binfmt_aout.c~binfmt-introduce-coredump-parameter-structure
++++ a/fs/binfmt_aout.c
+@@ -32,7 +32,7 @@
  
- 	page_cache_get(old_page);
+ static int load_aout_binary(struct linux_binprm *, struct pt_regs * regs);
+ static int load_aout_library(struct file*);
+-static int aout_core_dump(long signr, struct pt_regs *regs, struct file *file, unsigned long limit);
++static int aout_core_dump(struct coredump_params *cprm);
+ 
+ static struct linux_binfmt aout_format = {
+ 	.module		= THIS_MODULE,
+@@ -89,8 +89,9 @@ if (file->f_op->llseek) { \
+  * dumping of the process results in another error..
+  */
+ 
+-static int aout_core_dump(long signr, struct pt_regs *regs, struct file *file, unsigned long limit)
++static int aout_core_dump(struct coredump_params *cprm)
+ {
++	struct file *file = cprm->file;
+ 	mm_segment_t fs;
+ 	int has_dumped = 0;
+ 	unsigned long dump_start, dump_size;
+@@ -108,16 +109,16 @@ static int aout_core_dump(long signr, st
+ 	current->flags |= PF_DUMPCORE;
+        	strncpy(dump.u_comm, current->comm, sizeof(dump.u_comm));
+ 	dump.u_ar0 = offsetof(struct user, regs);
+-	dump.signal = signr;
+-	aout_dump_thread(regs, &dump);
++	dump.signal = cprm->signr;
++	aout_dump_thread(cprm->regs, &dump);
+ 
+ /* If the size of the dump file exceeds the rlimit, then see what would happen
+    if we wrote the stack, but not the data area.  */
+-	if ((dump.u_dsize + dump.u_ssize+1) * PAGE_SIZE > limit)
++	if ((dump.u_dsize + dump.u_ssize+1) * PAGE_SIZE > cprm->limit)
+ 		dump.u_dsize = 0;
+ 
+ /* Make sure we have enough room to write the stack and data areas. */
+-	if ((dump.u_ssize + 1) * PAGE_SIZE > limit)
++	if ((dump.u_ssize + 1) * PAGE_SIZE > cprm->limit)
+ 		dump.u_ssize = 0;
+ 
+ /* make sure we actually have a data and stack area to dump */
+diff -puN fs/binfmt_elf.c~binfmt-introduce-coredump-parameter-structure fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~binfmt-introduce-coredump-parameter-structure
++++ a/fs/binfmt_elf.c
+@@ -45,7 +45,7 @@ static unsigned long elf_map(struct file
+  * don't even try.
+  */
+ #if defined(USE_ELF_CORE_DUMP) && defined(CONFIG_ELF_CORE)
+-static int elf_core_dump(long signr, struct pt_regs *regs, struct file *file, unsigned long limit);
++static int elf_core_dump(struct coredump_params *cprm);
+ #else
+ #define elf_core_dump	NULL
+ #endif
+@@ -1277,10 +1277,6 @@ static int writenote(struct memelfnote *
+ }
+ #undef DUMP_WRITE
+ 
+-#define DUMP_WRITE(addr, nr)	\
+-	if ((size += (nr)) > limit || !dump_write(file, (addr), (nr))) \
+-		goto end_coredump;
+-
+ static void fill_elf_header(struct elfhdr *elf, int segs,
+ 			    u16 machine, u32 flags, u8 osabi)
+ {
+@@ -1906,7 +1902,7 @@ static struct vm_area_struct *next_vma(s
+  * and then they are actually written out.  If we run out of core limit
+  * we just truncate.
+  */
+-static int elf_core_dump(long signr, struct pt_regs *regs, struct file *file, unsigned long limit)
++static int elf_core_dump(struct coredump_params *cprm)
+ {
+ 	int has_dumped = 0;
+ 	mm_segment_t fs;
+@@ -1952,7 +1948,7 @@ static int elf_core_dump(long signr, str
+ 	 * notes.  This also sets up the file header.
+ 	 */
+ 	if (!fill_note_info(elf, segs + 1, /* including notes section */
+-			    &info, signr, regs))
++			    &info, cprm->signr, cprm->regs))
+ 		goto cleanup;
+ 
+ 	has_dumped = 1;
+@@ -1961,7 +1957,10 @@ static int elf_core_dump(long signr, str
+ 	fs = get_fs();
+ 	set_fs(KERNEL_DS);
+ 
+-	DUMP_WRITE(elf, sizeof(*elf));
++	size += sizeof(*elf);
++	if (size > cprm->limit || !dump_write(cprm->file, elf, sizeof(*elf)))
++		goto end_coredump;
 +
-+	/* Drop page_table_lock as buddy allocator may be called */
-+	spin_unlock(&mm->page_table_lock);
- 	new_page = alloc_huge_page(vma, address, outside_reserve);
+ 	offset += sizeof(*elf);				/* Elf header */
+ 	offset += (segs + 1) * sizeof(struct elf_phdr); /* Program headers */
+ 	foffset = offset;
+@@ -1975,7 +1974,10 @@ static int elf_core_dump(long signr, str
  
- 	if (IS_ERR(new_page)) {
-@@ -2310,19 +2313,25 @@ retry_avoidcopy:
- 			if (unmap_ref_private(mm, vma, old_page, address)) {
- 				BUG_ON(page_count(old_page) != 1);
- 				BUG_ON(huge_pte_none(pte));
-+				spin_lock(&mm->page_table_lock);
- 				goto retry_avoidcopy;
- 			}
- 			WARN_ON_ONCE(1);
- 		}
- 
-+		/* Caller expects lock to be held */
-+		spin_lock(&mm->page_table_lock);
- 		return -PTR_ERR(new_page);
+ 		fill_elf_note_phdr(&phdr, sz, offset);
+ 		offset += sz;
+-		DUMP_WRITE(&phdr, sizeof(phdr));
++		size += sizeof(phdr);
++		if (size > cprm->limit ||
++		    !dump_write(cprm->file, &phdr, sizeof(phdr)))
++			goto end_coredump;
  	}
  
--	spin_unlock(&mm->page_table_lock);
- 	copy_huge_page(new_page, old_page, address, vma);
- 	__SetPageUptodate(new_page);
--	spin_lock(&mm->page_table_lock);
+ 	dataoff = offset = roundup(offset, ELF_EXEC_PAGESIZE);
+@@ -2006,7 +2008,10 @@ static int elf_core_dump(long signr, str
+ 			phdr.p_flags |= PF_X;
+ 		phdr.p_align = ELF_EXEC_PAGESIZE;
  
-+	/*
-+	 * Retake the page_table_lock to check for racing updates
-+	 * before the page tables are altered
-+	 */
-+	spin_lock(&mm->page_table_lock);
- 	ptep = huge_pte_offset(mm, address & huge_page_mask(h));
- 	if (likely(pte_same(huge_ptep_get(ptep), pte))) {
- 		/* Break COW */
+-		DUMP_WRITE(&phdr, sizeof(phdr));
++		size += sizeof(phdr);
++		if (size > cprm->limit ||
++		    !dump_write(cprm->file, &phdr, sizeof(phdr)))
++			goto end_coredump;
+ 	}
+ 
+ #ifdef ELF_CORE_WRITE_EXTRA_PHDRS
+@@ -2014,14 +2019,14 @@ static int elf_core_dump(long signr, str
+ #endif
+ 
+  	/* write out the notes section */
+-	if (!write_note_info(&info, file, &foffset))
++	if (!write_note_info(&info, cprm->file, &foffset))
+ 		goto end_coredump;
+ 
+-	if (elf_coredump_extra_notes_write(file, &foffset))
++	if (elf_coredump_extra_notes_write(cprm->file, &foffset))
+ 		goto end_coredump;
+ 
+ 	/* Align to page */
+-	if (!dump_seek(file, dataoff - foffset))
++	if (!dump_seek(cprm->file, dataoff - foffset))
+ 		goto end_coredump;
+ 
+ 	for (vma = first_vma(current, gate_vma); vma != NULL;
+@@ -2038,12 +2043,13 @@ static int elf_core_dump(long signr, str
+ 			page = get_dump_page(addr);
+ 			if (page) {
+ 				void *kaddr = kmap(page);
+-				stop = ((size += PAGE_SIZE) > limit) ||
+-					!dump_write(file, kaddr, PAGE_SIZE);
++				stop = ((size += PAGE_SIZE) > cprm->limit) ||
++					!dump_write(cprm->file, kaddr,
++						    PAGE_SIZE);
+ 				kunmap(page);
+ 				page_cache_release(page);
+ 			} else
+-				stop = !dump_seek(file, PAGE_SIZE);
++				stop = !dump_seek(cprm->file, PAGE_SIZE);
+ 			if (stop)
+ 				goto end_coredump;
+ 		}
+diff -puN fs/binfmt_elf_fdpic.c~binfmt-introduce-coredump-parameter-structure fs/binfmt_elf_fdpic.c
+--- a/fs/binfmt_elf_fdpic.c~binfmt-introduce-coredump-parameter-structure
++++ a/fs/binfmt_elf_fdpic.c
+@@ -76,7 +76,7 @@ static int elf_fdpic_map_file_by_direct_
+ 					     struct file *, struct mm_struct *);
+ 
+ #if defined(USE_ELF_CORE_DUMP) && defined(CONFIG_ELF_CORE)
+-static int elf_fdpic_core_dump(long, struct pt_regs *, struct file *, unsigned long limit);
++static int elf_fdpic_core_dump(struct coredump_params *cprm);
+ #endif
+ 
+ static struct linux_binfmt elf_fdpic_format = {
+@@ -1582,8 +1582,7 @@ static int elf_fdpic_dump_segments(struc
+  * and then they are actually written out.  If we run out of core limit
+  * we just truncate.
+  */
+-static int elf_fdpic_core_dump(long signr, struct pt_regs *regs,
+-			       struct file *file, unsigned long limit)
++static int elf_fdpic_core_dump(struct coredump_params *cprm)
+ {
+ #define	NUM_NOTES	6
+ 	int has_dumped = 0;
+@@ -1642,7 +1641,7 @@ static int elf_fdpic_core_dump(long sign
+ 		goto cleanup;
+ #endif
+ 
+-	if (signr) {
++	if (cprm->signr) {
+ 		struct core_thread *ct;
+ 		struct elf_thread_status *tmp;
+ 
+@@ -1661,14 +1660,14 @@ static int elf_fdpic_core_dump(long sign
+ 			int sz;
+ 
+ 			tmp = list_entry(t, struct elf_thread_status, list);
+-			sz = elf_dump_thread_status(signr, tmp);
++			sz = elf_dump_thread_status(cprm->signr, tmp);
+ 			thread_status_size += sz;
+ 		}
+ 	}
+ 
+ 	/* now collect the dump for the current */
+-	fill_prstatus(prstatus, current, signr);
+-	elf_core_copy_regs(&prstatus->pr_reg, regs);
++	fill_prstatus(prstatus, current, cprm->signr);
++	elf_core_copy_regs(&prstatus->pr_reg, cprm->regs);
+ 
+ 	segs = current->mm->map_count;
+ #ifdef ELF_CORE_EXTRA_PHDRS
+@@ -1703,7 +1702,7 @@ static int elf_fdpic_core_dump(long sign
+ 
+   	/* Try to dump the FPU. */
+ 	if ((prstatus->pr_fpvalid =
+-	     elf_core_copy_task_fpregs(current, regs, fpu)))
++	     elf_core_copy_task_fpregs(current, cprm->regs, fpu)))
+ 		fill_note(notes + numnote++,
+ 			  "CORE", NT_PRFPREG, sizeof(*fpu), fpu);
+ #ifdef ELF_CORE_COPY_XFPREGS
+@@ -1774,7 +1773,7 @@ static int elf_fdpic_core_dump(long sign
+ 
+  	/* write out the notes section */
+ 	for (i = 0; i < numnote; i++)
+-		if (!writenote(notes + i, file))
++		if (!writenote(notes + i, cprm->file))
+ 			goto end_coredump;
+ 
+ 	/* write out the thread status notes section */
+@@ -1783,25 +1782,26 @@ static int elf_fdpic_core_dump(long sign
+ 				list_entry(t, struct elf_thread_status, list);
+ 
+ 		for (i = 0; i < tmp->num_notes; i++)
+-			if (!writenote(&tmp->notes[i], file))
++			if (!writenote(&tmp->notes[i], cprm->file))
+ 				goto end_coredump;
+ 	}
+ 
+-	if (!dump_seek(file, dataoff))
++	if (!dump_seek(cprm->file, dataoff))
+ 		goto end_coredump;
+ 
+-	if (elf_fdpic_dump_segments(file, &size, &limit, mm_flags) < 0)
++	if (elf_fdpic_dump_segments(cprm->file, &size, &cprm->limit,
++				    mm_flags) < 0)
+ 		goto end_coredump;
+ 
+ #ifdef ELF_CORE_WRITE_EXTRA_DATA
+ 	ELF_CORE_WRITE_EXTRA_DATA;
+ #endif
+ 
+-	if (file->f_pos != offset) {
++	if (cprm->file->f_pos != offset) {
+ 		/* Sanity check */
+ 		printk(KERN_WARNING
+ 		       "elf_core_dump: file->f_pos (%lld) != offset (%lld)\n",
+-		       file->f_pos, offset);
++		       cprm->file->f_pos, offset);
+ 	}
+ 
+ end_coredump:
+diff -puN fs/binfmt_flat.c~binfmt-introduce-coredump-parameter-structure fs/binfmt_flat.c
+--- a/fs/binfmt_flat.c~binfmt-introduce-coredump-parameter-structure
++++ a/fs/binfmt_flat.c
+@@ -87,7 +87,7 @@ static int load_flat_shared_library(int 
+ #endif
+ 
+ static int load_flat_binary(struct linux_binprm *, struct pt_regs * regs);
+-static int flat_core_dump(long signr, struct pt_regs *regs, struct file *file, unsigned long limit);
++static int flat_core_dump(struct coredump_params *cprm);
+ 
+ static struct linux_binfmt flat_format = {
+ 	.module		= THIS_MODULE,
+@@ -102,10 +102,10 @@ static struct linux_binfmt flat_format =
+  * Currently only a stub-function.
+  */
+ 
+-static int flat_core_dump(long signr, struct pt_regs *regs, struct file *file, unsigned long limit)
++static int flat_core_dump(struct coredump_params *cprm)
+ {
+ 	printk("Process %s:%d received signr %d and should have core dumped\n",
+-			current->comm, current->pid, (int) signr);
++			current->comm, current->pid, (int) cprm->signr);
+ 	return(1);
+ }
+ 
+diff -puN fs/binfmt_som.c~binfmt-introduce-coredump-parameter-structure fs/binfmt_som.c
+--- a/fs/binfmt_som.c~binfmt-introduce-coredump-parameter-structure
++++ a/fs/binfmt_som.c
+@@ -43,7 +43,7 @@ static int load_som_library(struct file 
+  * don't even try.
+  */
+ #if 0
+-static int som_core_dump(long signr, struct pt_regs *regs, unsigned long limit);
++static int som_core_dump(struct coredump_params *cprm);
+ #else
+ #define som_core_dump	NULL
+ #endif
+diff -puN fs/exec.c~binfmt-introduce-coredump-parameter-structure fs/exec.c
+--- a/fs/exec.c~binfmt-introduce-coredump-parameter-structure
++++ a/fs/exec.c
+@@ -1761,17 +1761,20 @@ void do_coredump(long signr, int exit_co
+ 	struct mm_struct *mm = current->mm;
+ 	struct linux_binfmt * binfmt;
+ 	struct inode * inode;
+-	struct file * file;
+ 	const struct cred *old_cred;
+ 	struct cred *cred;
+ 	int retval = 0;
+ 	int flag = 0;
+ 	int ispipe = 0;
+-	unsigned long core_limit = current->signal->rlim[RLIMIT_CORE].rlim_cur;
+ 	char **helper_argv = NULL;
+ 	int helper_argc = 0;
+ 	int dump_count = 0;
+ 	static atomic_t core_dump_count = ATOMIC_INIT(0);
++	struct coredump_params cprm = {
++		.signr = signr,
++		.regs = regs,
++		.limit = current->signal->rlim[RLIMIT_CORE].rlim_cur,
++	};
+ 
+ 	audit_core_dumps(signr);
+ 
+@@ -1827,15 +1830,15 @@ void do_coredump(long signr, int exit_co
+ 	ispipe = format_corename(corename, signr);
+ 	unlock_kernel();
+ 
+-	if ((!ispipe) && (core_limit < binfmt->min_coredump))
++	if ((!ispipe) && (cprm.limit < binfmt->min_coredump))
+ 		goto fail_unlock;
+ 
+  	if (ispipe) {
+-		if (core_limit == 0) {
++		if (cprm.limit == 0) {
+ 			/*
+ 			 * Normally core limits are irrelevant to pipes, since
+ 			 * we're not writing to the file system, but we use
+-			 * core_limit of 0 here as a speacial value. Any
++			 * cprm.limit of 0 here as a speacial value. Any
+ 			 * non-zero limit gets set to RLIM_INFINITY below, but
+ 			 * a limit of 0 skips the dump.  This is a consistent
+ 			 * way to catch recursive crashes.  We can still crash
+@@ -1868,25 +1871,25 @@ void do_coredump(long signr, int exit_co
+ 			goto fail_dropcount;
+ 		}
+ 
+-		core_limit = RLIM_INFINITY;
++		cprm.limit = RLIM_INFINITY;
+ 
+ 		/* SIGPIPE can happen, but it's just never processed */
+ 		if (call_usermodehelper_pipe(helper_argv[0], helper_argv, NULL,
+-				&file)) {
++				&cprm.file)) {
+  			printk(KERN_INFO "Core dump to %s pipe failed\n",
+ 			       corename);
+ 			goto fail_dropcount;
+  		}
+  	} else
+- 		file = filp_open(corename,
++		cprm.file = filp_open(corename,
+ 				 O_CREAT | 2 | O_NOFOLLOW | O_LARGEFILE | flag,
+ 				 0600);
+-	if (IS_ERR(file))
++	if (IS_ERR(cprm.file))
+ 		goto fail_dropcount;
+-	inode = file->f_path.dentry->d_inode;
++	inode = cprm.file->f_path.dentry->d_inode;
+ 	if (inode->i_nlink > 1)
+ 		goto close_fail;	/* multiple links - don't dump */
+-	if (!ispipe && d_unhashed(file->f_path.dentry))
++	if (!ispipe && d_unhashed(cprm.file->f_path.dentry))
+ 		goto close_fail;
+ 
+ 	/* AK: actually i see no reason to not allow this for named pipes etc.,
+@@ -1899,21 +1902,22 @@ void do_coredump(long signr, int exit_co
+ 	 */
+ 	if (inode->i_uid != current_fsuid())
+ 		goto close_fail;
+-	if (!file->f_op)
++	if (!cprm.file->f_op)
+ 		goto close_fail;
+-	if (!file->f_op->write)
++	if (!cprm.file->f_op->write)
+ 		goto close_fail;
+-	if (!ispipe && do_truncate(file->f_path.dentry, 0, 0, file) != 0)
++	if (!ispipe &&
++	    do_truncate(cprm.file->f_path.dentry, 0, 0, cprm.file) != 0)
+ 		goto close_fail;
+ 
+-	retval = binfmt->core_dump(signr, regs, file, core_limit);
++	retval = binfmt->core_dump(&cprm);
+ 
+ 	if (retval)
+ 		current->signal->group_exit_code |= 0x80;
+ close_fail:
+ 	if (ispipe && core_pipe_limit)
+-		wait_for_dump_helpers(file);
+-	filp_close(file, NULL);
++		wait_for_dump_helpers(cprm.file);
++	filp_close(cprm.file, NULL);
+ fail_dropcount:
+ 	if (dump_count)
+ 		atomic_dec(&core_dump_count);
+diff -puN include/linux/binfmts.h~binfmt-introduce-coredump-parameter-structure include/linux/binfmts.h
+--- a/include/linux/binfmts.h~binfmt-introduce-coredump-parameter-structure
++++ a/include/linux/binfmts.h
+@@ -68,6 +68,14 @@ struct linux_binprm{
+ 
+ #define BINPRM_MAX_RECURSION 4
+ 
++/* Function parameter for binfmt->coredump */
++struct coredump_params {
++	long signr;
++	struct pt_regs *regs;
++	struct file *file;
++	unsigned long limit;
++};
++
+ /*
+  * This structure defines the functions that are used to load the binary formats that
+  * linux accepts.
+@@ -77,7 +85,7 @@ struct linux_binfmt {
+ 	struct module *module;
+ 	int (*load_binary)(struct linux_binprm *, struct  pt_regs * regs);
+ 	int (*load_shlib)(struct file *);
+-	int (*core_dump)(long signr, struct pt_regs *regs, struct file *file, unsigned long limit);
++	int (*core_dump)(struct coredump_params *cprm);
+ 	unsigned long min_coredump;	/* minimal dump size */
+ 	int hasvdso;
+ };
 _
 
-Patches currently in -mm which might be from lwoodman@redhat.com are
+Patches currently in -mm which might be from mhiramat@redhat.com are
 
-hugetlb-prevent-deadlock-in-__unmap_hugepage_range-when-alloc_huge_page-fails-2.patch
+linux-next.patch
+binfmt-introduce-coredump-parameter-structure.patch
+binfmt-pass-mm-flags-as-a-coredump-parameter-for-consistency.patch
 
