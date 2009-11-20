@@ -1,84 +1,169 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-kmemcheck-add-file-patterns-use-m-for-pekkas-name-and-address.patch removed from -mm tree
-Date: Fri, 20 Nov 2009 11:30:06 -0800
-Message-ID: <200911201930.nAKJU6T3009778@imap1.linux-foundation.org>
+Subject: [merged] drivers-atm-solos-pcic-fix-warning-bug-clean-up-code.patch removed from -mm tree
+Date: Fri, 20 Nov 2009 11:30:57 -0800
+Message-ID: <200911201930.nAKJUveH011892@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43788 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55796 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752456AbZKTTb5 (ORCPT
+	by vger.kernel.org with ESMTP id S1754190AbZKTTcD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Nov 2009 14:31:57 -0500
+	Fri, 20 Nov 2009 14:32:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mingo@elte.hu, penberg@cs.helsinki.fi, vegardno@ifi.uio.no, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, David.Woodhouse@intel.com, chas@cmf.nrl.navy.mil, davem@davemloft.net, nathan@traverse.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MAINTAINERS: KMEMCHECK: add file patterns, use M: for Pekka's name and address
+     drivers/atm/solos-pci.c: fix warning/bug, clean up code
 has been removed from the -mm tree.  Its filename was
-     maintainers-kmemcheck-add-file-patterns-use-m-for-pekkas-name-and-address.patch
+     drivers-atm-solos-pcic-fix-warning-bug-clean-up-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: KMEMCHECK: add file patterns, use M: for Pekka's name and address
-From: Joe Perches <joe@perches.com>
+Subject: drivers/atm/solos-pci.c: fix warning/bug, clean up code
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Vegard Nossum <vegardno@ifi.uio.no>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: Ingo Molnar <mingo@elte.hu>
+drivers/atm/solos-pci.c: In function 'flash_upgrade':
+drivers/atm/solos-pci.c:528: warning: 'fw_name' may be used uninitialized in this function
+
+Cc: Chas Williams <chas@cmf.nrl.navy.mil>
+Cc: David Woodhouse <David.Woodhouse@intel.com>
+Cc: Nathan Williams <nathan@traverse.com.au>
+Cc: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ drivers/atm/solos-pci.c |   29 ++++++++++++++++-------------
+ 1 file changed, 16 insertions(+), 13 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-kmemcheck-add-file-patterns-use-m-for-pekkas-name-and-address MAINTAINERS
---- a/MAINTAINERS~maintainers-kmemcheck-add-file-patterns-use-m-for-pekkas-name-and-address
-+++ a/MAINTAINERS
-@@ -3084,9 +3084,13 @@ F:	kernel/kgdb.c
+diff -puN drivers/atm/solos-pci.c~drivers-atm-solos-pcic-fix-warning-bug-clean-up-code drivers/atm/solos-pci.c
+--- a/drivers/atm/solos-pci.c~drivers-atm-solos-pcic-fix-warning-bug-clean-up-code
++++ a/drivers/atm/solos-pci.c
+@@ -531,34 +531,37 @@ static int flash_upgrade(struct solos_ca
+ 	int numblocks = 0;
+ 	int offset;
  
- KMEMCHECK
- M:	Vegard Nossum <vegardno@ifi.uio.no>
--P	Pekka Enberg
--M:	penberg@cs.helsinki.fi
-+M:	Pekka Enberg <penberg@cs.helsinki.fi>
- S:	Maintained
-+F:	Documentation/kmemcheck.txt
-+F:	arch/x86/include/asm/kmemcheck.h
-+F:	arch/x86/mm/kmemcheck/
-+F:	include/linux/kmemcheck.h
-+F:	mm/kmemcheck.c
+-	if (chip == 0) {
++	switch (chip) {
++	case 0:
+ 		fw_name = "solos-FPGA.bin";
+ 		blocksize = FPGA_BLOCK;
+-	} 
+-	
+-	if (chip == 1) {
++		break;
++	case 1:
+ 		fw_name = "solos-Firmware.bin";
+ 		blocksize = SOLOS_BLOCK;
+-	}
+-	
+-	if (chip == 2){
++		break;
++	case 2:
+ 		if (card->fpga_version > LEGACY_BUFFERS){
+ 			fw_name = "solos-db-FPGA.bin";
+ 			blocksize = FPGA_BLOCK;
+ 		} else {
+-			dev_info(&card->dev->dev, "FPGA version doesn't support daughter board upgrades\n");
++			dev_info(&card->dev->dev, "FPGA version doesn't support"
++					" daughter board upgrades\n");
+ 			return -EPERM;
+ 		}
+-	}
+-	
+-	if (chip == 3){
++		break;
++	case 3:
+ 		if (card->fpga_version > LEGACY_BUFFERS){
+ 			fw_name = "solos-Firmware.bin";
+ 			blocksize = SOLOS_BLOCK;
+ 		} else {
+-		dev_info(&card->dev->dev, "FPGA version doesn't support daughter board upgrades\n");
+-		return -EPERM;
++			dev_info(&card->dev->dev, "FPGA version doesn't support"
++					" daughter board upgrades\n");
++			return -EPERM;
+ 		}
++		break;
++	default:
++		return -ENODEV;
+ 	}
  
- KMEMLEAK
- M:	Catalin Marinas <catalin.marinas@arm.com>
+ 	if (request_firmware(&fw, fw_name, &card->dev->dev))
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+drivers-media-dvb-dvb-core-dvb_frontendc-needs-semaphoreh.patch
 linux-next.patch
-dynamic_debugh-kernelh-remove-kbuild_modname-from-dynamic_pr_debug.patch
-kernelh-remove-initialization-of-bool-in-printk_once.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+recordmcount-stfu.patch
+include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
+drivers-char-cycladesc-fix-used-uninitialised-bug.patch
+drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+acpi-remove-nid_inval.patch
+drivers-acpi-acpi_padc-squish-warning.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices-checkpatch-fixes.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+drivers-leds-leds-ss4200c-fix-return-statement.patch
+3x59x-fix-pci-resource-management.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
+st-fix-test-of-value-range-in-st_set_options.patch
+scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+fs-improve-remountro-vs-buffercache-coherency.patch
+percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+readahead-add-blk_run_backing_dev.patch
+mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
+oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
+oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes.patch
+mm-mlocking-in-try_to_unmap_one-fix-fix.patch
+mm-memory_hotplug-make-offline_pages-static.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup.patch
+floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
+drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
+rwsem-fix-rwsem_is_locked-bugs-fix.patch
 kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
 kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
-scripts-get_maintainerpl-add-roles-and-rolestats.patch
-scripts-get_maintainerpl-fix-non-with-git-blame-and-cleanups.patch
-scripts-get_maintainerpl-support-multiple-vcss-add-mercurial.patch
-lib-vsprintfc-add-%pu-to-print-uuid-guids.patch
-fs-xfs-xfs_log_recoverc-use-%pu-to-print-uuids.patch
-randomc-use-%pu-to-print-uuids.patch
-drivers-firmware-dmi_scanc-use-%pub-to-print-uuids.patch
-drivers-md-mdc-use-%pu-to-print-uuids.patch
-fs-gfs2-sysc-use-%pub-to-print-uuids.patch
-fs-ubifs-use-%pub-to-print-uuids.patch
-efih-use-%pul-to-print-uuids.patch
-scripts-checkpatchpl-add-warn-on-sizeof.patch
-checkpatchpl-allow-80-char-lines-for-logging-functions-not-just-printk.patch
-isicomc-use-pr_fmt-and-pr_level.patch
-parport_pcc-use-correct-length-in-strncmp.patch
+errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
+msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes.patch
+crc32-minor-optimizations-and-cleanup-checkpatch-fixes.patch
+hwmon-w83627ehf-updates-checkpatch-fixes.patch
+spi-controller-driver-for-designware-spi-core-fix.patch
+spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3.patch
+ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
+memcg-coalesce-charging-via-percpu-storage-fix.patch
+aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
+direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
+zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes.patch
+lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes.patch
+lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+reiser4-disable.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
