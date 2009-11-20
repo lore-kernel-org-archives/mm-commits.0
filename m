@@ -1,107 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged] workqueue-fix-race-condition-in-schedule_on_each_cpu.patch removed from -mm tree
-Date: Fri, 20 Nov 2009 11:30:15 -0800
-Message-ID: <200911201930.nAKJUFWS010169@imap1.linux-foundation.org>
+Subject: [merged] m68k-dont-export-static-inline-functions.patch removed from -mm tree
+Date: Fri, 20 Nov 2009 11:31:00 -0800
+Message-ID: <200911201931.nAKJV0w3012037@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34988 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53656 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752736AbZKTTbh (ORCPT
+	by vger.kernel.org with ESMTP id S1751986AbZKTTbv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Nov 2009 14:31:37 -0500
+	Fri, 20 Nov 2009 14:31:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, ak@linux.intel.com, mingo@redhat.com, oleg@redhat.com, mm-commits@vger.kernel.org
+To: sfr@canb.auug.org.au, geert@linux-m68k.org, jochen@scram.de, rusty@rustcorp.com.au, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     workqueue: fix race condition in schedule_on_each_cpu()
+     m68k: don't export static inline functions
 has been removed from the -mm tree.  Its filename was
-     workqueue-fix-race-condition-in-schedule_on_each_cpu.patch
+     m68k-dont-export-static-inline-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: workqueue: fix race condition in schedule_on_each_cpu()
-From: Tejun Heo <tj@kernel.org>
+Subject: m68k: don't export static inline functions
+From: Stephen Rothwell <sfr@canb.auug.org.au>
 
-Commit 65a64464349883891e21e74af16c05d6e1eeb4e9 ("HWPOISON: Allow
-schedule_on_each_cpu() from keventd") which allows schedule_on_each_cpu()
-to be called from keventd added a race condition.  schedule_on_each_cpu()
-may race with cpu hotplug and end up executing the function twice on a
-cpu.
+These now cause errors due to changes present in linux-next:
 
-Fix it by moving direct execution into the section protected with
-get/put_online_cpus().  While at it, update code such that direct
-execution is done after works have been scheduled for all other cpus and
-drop unnecessary cpu != orig test from flush loop.
+(__ksymtab_sorted+0x1258): undefined reference to `dio_dev_driver'
+(__ksymtab_sorted+0x4d48): undefined reference to `zorro_dev_driver'
 
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Andi Kleen <ak@linux.intel.com>
-Acked-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Ingo Molnar <mingo@redhat.com>
+Neither of these functions is used anywhere in the kernel anyway.
+
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Jochen Friedrich <jochen@scram.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/workqueue.c |   28 +++++++++++++---------------
- 1 file changed, 13 insertions(+), 15 deletions(-)
+ drivers/dio/dio-driver.c     |    1 -
+ drivers/zorro/zorro-driver.c |    1 -
+ 2 files changed, 2 deletions(-)
 
-diff -puN kernel/workqueue.c~workqueue-fix-race-condition-in-schedule_on_each_cpu kernel/workqueue.c
---- a/kernel/workqueue.c~workqueue-fix-race-condition-in-schedule_on_each_cpu
-+++ a/kernel/workqueue.c
-@@ -692,31 +692,29 @@ int schedule_on_each_cpu(work_func_t fun
- 	if (!works)
- 		return -ENOMEM;
- 
-+	get_online_cpus();
-+
- 	/*
--	 * when running in keventd don't schedule a work item on itself.
--	 * Can just call directly because the work queue is already bound.
--	 * This also is faster.
--	 * Make this a generic parameter for other workqueues?
-+	 * When running in keventd don't schedule a work item on
-+	 * itself.  Can just call directly because the work queue is
-+	 * already bound.  This also is faster.
- 	 */
--	if (current_is_keventd()) {
-+	if (current_is_keventd())
- 		orig = raw_smp_processor_id();
--		INIT_WORK(per_cpu_ptr(works, orig), func);
--		func(per_cpu_ptr(works, orig));
--	}
- 
--	get_online_cpus();
- 	for_each_online_cpu(cpu) {
- 		struct work_struct *work = per_cpu_ptr(works, cpu);
- 
--		if (cpu == orig)
--			continue;
- 		INIT_WORK(work, func);
--		schedule_work_on(cpu, work);
--	}
--	for_each_online_cpu(cpu) {
- 		if (cpu != orig)
--			flush_work(per_cpu_ptr(works, cpu));
-+			schedule_work_on(cpu, work);
- 	}
-+	if (orig >= 0)
-+		func(per_cpu_ptr(works, orig));
-+
-+	for_each_online_cpu(cpu)
-+		flush_work(per_cpu_ptr(works, cpu));
-+
- 	put_online_cpus();
- 	free_percpu(works);
- 	return 0;
+diff -puN drivers/dio/dio-driver.c~m68k-dont-export-static-inline-functions drivers/dio/dio-driver.c
+--- a/drivers/dio/dio-driver.c~m68k-dont-export-static-inline-functions
++++ a/drivers/dio/dio-driver.c
+@@ -140,5 +140,4 @@ postcore_initcall(dio_driver_init);
+ EXPORT_SYMBOL(dio_match_device);
+ EXPORT_SYMBOL(dio_register_driver);
+ EXPORT_SYMBOL(dio_unregister_driver);
+-EXPORT_SYMBOL(dio_dev_driver);
+ EXPORT_SYMBOL(dio_bus_type);
+diff -puN drivers/zorro/zorro-driver.c~m68k-dont-export-static-inline-functions drivers/zorro/zorro-driver.c
+--- a/drivers/zorro/zorro-driver.c~m68k-dont-export-static-inline-functions
++++ a/drivers/zorro/zorro-driver.c
+@@ -156,5 +156,4 @@ postcore_initcall(zorro_driver_init);
+ EXPORT_SYMBOL(zorro_match_device);
+ EXPORT_SYMBOL(zorro_register_driver);
+ EXPORT_SYMBOL(zorro_unregister_driver);
+-EXPORT_SYMBOL(zorro_dev_driver);
+ EXPORT_SYMBOL(zorro_bus_type);
 _
 
-Patches currently in -mm which might be from tj@kernel.org are
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
 
 linux-next.patch
-lib-vsprintfc-add-%pu-to-print-uuid-guids.patch
-drivers-firmware-dmi_scanc-use-%pub-to-print-uuids.patch
-efih-use-%pul-to-print-uuids.patch
+scsi-add-__init-__exit-macros-to-ibmvstgtc.patch
 
