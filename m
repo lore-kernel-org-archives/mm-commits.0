@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + binfmt-pass-mm-flags-as-a-coredump-parameter-for-consistency.patch added to -mm tree
-Date: Fri, 20 Nov 2009 14:12:18 -0800
-Message-ID: <200911202212.nAKMCJ6K012236@imap1.linux-foundation.org>
+Subject: + mm-slab-allocate-memory-section-nodemask-for-large-systems.patch added to -mm tree
+Date: Fri, 20 Nov 2009 14:15:17 -0800
+Message-ID: <200911202215.nAKMFHiS019405@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51535 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41737 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753002AbZKTWMp (ORCPT
+	by vger.kernel.org with ESMTP id S1752973AbZKTWPf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Nov 2009 17:12:45 -0500
+	Fri, 20 Nov 2009 17:15:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mhiramat@redhat.com, dhowells@redhat.com, hidehiro.kawai.ez@hitachi.com, lethal@linux-sh.org, mingo@elte.hu, oleg@redhat.com, roland@redhat.com, vapier@gentoo.org
+Cc: rientjes@google.com, achiang@hp.com, garyhade@us.ibm.com, gregkh@suse.de, pbadari@us.ibm.com
 
 
 The patch titled
-     binfmt: pass mm->flags as a coredump parameter for consistency
+     mm: slab-allocate memory section nodemask for large systems
 has been added to the -mm tree.  Its filename is
-     binfmt-pass-mm-flags-as-a-coredump-parameter-for-consistency.patch
+     mm-slab-allocate-memory-section-nodemask-for-large-systems.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,212 +34,99 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: binfmt: pass mm->flags as a coredump parameter for consistency
-From: Masami Hiramatsu <mhiramat@redhat.com>
+Subject: mm: slab-allocate memory section nodemask for large systems
+From: David Rientjes <rientjes@google.com>
 
-Pass mm->flags as a coredump parameter for consistency.
+Nodemasks should not be allocated on the stack for large systems (when it
+is larger than 256 bytes) since there is a threat of overflow.
 
- ---
-1787         if (mm->core_state || !get_dumpable(mm)) {  <- (1)
-1788                 up_write(&mm->mmap_sem);
-1789                 put_cred(cred);
-1790                 goto fail;
-1791         }
-1792
-[...]
-1798         if (get_dumpable(mm) == 2) {    /* Setuid core dump mode */ <-(2)
-1799                 flag = O_EXCL;          /* Stop rewrite attacks */
-1800                 cred->fsuid = 0;        /* Dump root private */
-1801         }
- ---
+This patch causes the unregister_mem_sect_under_nodes() nodemask to be
+allocated on the stack for smaller systems and be allocated by slab for
+larger systems.
 
-Since dumpable bits are not protected by lock, there is a chance to change
-these bits between (1) and (2).  A race condition can be caused by prctl
-from another thread.
+GFP_KERNEL is used since remove_memory_block() can block.
 
-To solve this issue, this patch copies mm->flags to
-coredump_params.mm_flags at the beginning of do_coredump() and uses it
-instead of get_dumpable() while dumping core.
-
-This copy is also passed to binfmt->core_dump, since elf*_core_dump() uses
-dump_filter bits in mm->flags.
-
-Signed-off-by: Masami Hiramatsu <mhiramat@redhat.com>
-Cc: Roland McGrath <roland@redhat.com>
-Reviewed-by: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Mike Frysinger <vapier@gentoo.org>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Gary Hade <garyhade@us.ibm.com>
+Cc: Badari Pulavarty <pbadari@us.ibm.com>
+Cc: Alex Chiang <achiang@hp.com>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c         |   12 ++----------
- fs/binfmt_elf_fdpic.c   |   12 ++----------
- fs/exec.c               |   20 ++++++++++++++++----
- include/linux/binfmts.h |    1 +
- 4 files changed, 21 insertions(+), 24 deletions(-)
+ drivers/base/node.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-diff -puN fs/binfmt_elf.c~binfmt-pass-mm-flags-as-a-coredump-parameter-for-consistency fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~binfmt-pass-mm-flags-as-a-coredump-parameter-for-consistency
-+++ a/fs/binfmt_elf.c
-@@ -1911,7 +1911,6 @@ static int elf_core_dump(struct coredump
- 	struct vm_area_struct *vma, *gate_vma;
- 	struct elfhdr *elf = NULL;
- 	loff_t offset = 0, dataoff, foffset;
--	unsigned long mm_flags;
- 	struct elf_note_info info;
+diff -puN drivers/base/node.c~mm-slab-allocate-memory-section-nodemask-for-large-systems drivers/base/node.c
+--- a/drivers/base/node.c~mm-slab-allocate-memory-section-nodemask-for-large-systems
++++ a/drivers/base/node.c
+@@ -363,12 +363,16 @@ int register_mem_sect_under_node(struct 
+ /* unregister memory section under all nodes that it spans */
+ int unregister_mem_sect_under_nodes(struct memory_block *mem_blk)
+ {
+-	nodemask_t unlinked_nodes;
++	NODEMASK_ALLOC(nodemask_t, unlinked_nodes, GFP_KERNEL);
+ 	unsigned long pfn, sect_start_pfn, sect_end_pfn;
  
- 	/*
-@@ -1982,13 +1981,6 @@ static int elf_core_dump(struct coredump
- 
- 	dataoff = offset = roundup(offset, ELF_EXEC_PAGESIZE);
- 
--	/*
--	 * We must use the same mm->flags while dumping core to avoid
--	 * inconsistency between the program headers and bodies, otherwise an
--	 * unusable core file can be generated.
--	 */
--	mm_flags = current->mm->flags;
--
- 	/* Write program headers for segments dump */
- 	for (vma = first_vma(current, gate_vma); vma != NULL;
- 			vma = next_vma(vma, gate_vma)) {
-@@ -1998,7 +1990,7 @@ static int elf_core_dump(struct coredump
- 		phdr.p_offset = offset;
- 		phdr.p_vaddr = vma->vm_start;
- 		phdr.p_paddr = 0;
--		phdr.p_filesz = vma_dump_size(vma, mm_flags);
-+		phdr.p_filesz = vma_dump_size(vma, cprm->mm_flags);
- 		phdr.p_memsz = vma->vm_end - vma->vm_start;
- 		offset += phdr.p_filesz;
- 		phdr.p_flags = vma->vm_flags & VM_READ ? PF_R : 0;
-@@ -2034,7 +2026,7 @@ static int elf_core_dump(struct coredump
- 		unsigned long addr;
- 		unsigned long end;
- 
--		end = vma->vm_start + vma_dump_size(vma, mm_flags);
-+		end = vma->vm_start + vma_dump_size(vma, cprm->mm_flags);
- 
- 		for (addr = vma->vm_start; addr < end; addr += PAGE_SIZE) {
- 			struct page *page;
-diff -puN fs/binfmt_elf_fdpic.c~binfmt-pass-mm-flags-as-a-coredump-parameter-for-consistency fs/binfmt_elf_fdpic.c
---- a/fs/binfmt_elf_fdpic.c~binfmt-pass-mm-flags-as-a-coredump-parameter-for-consistency
-+++ a/fs/binfmt_elf_fdpic.c
-@@ -1605,7 +1605,6 @@ static int elf_fdpic_core_dump(struct co
- #endif
- 	int thread_status_size = 0;
- 	elf_addr_t *auxv;
--	unsigned long mm_flags;
- 
- 	/*
- 	 * We no longer stop all VM operations.
-@@ -1736,13 +1735,6 @@ static int elf_fdpic_core_dump(struct co
- 	/* Page-align dumped data */
- 	dataoff = offset = roundup(offset, ELF_EXEC_PAGESIZE);
- 
--	/*
--	 * We must use the same mm->flags while dumping core to avoid
--	 * inconsistency between the program headers and bodies, otherwise an
--	 * unusable core file can be generated.
--	 */
--	mm_flags = current->mm->flags;
--
- 	/* write program headers for segments dump */
- 	for (vma = current->mm->mmap; vma; vma = vma->vm_next) {
- 		struct elf_phdr phdr;
-@@ -1754,7 +1746,7 @@ static int elf_fdpic_core_dump(struct co
- 		phdr.p_offset = offset;
- 		phdr.p_vaddr = vma->vm_start;
- 		phdr.p_paddr = 0;
--		phdr.p_filesz = maydump(vma, mm_flags) ? sz : 0;
-+		phdr.p_filesz = maydump(vma, cprm->mm_flags) ? sz : 0;
- 		phdr.p_memsz = sz;
- 		offset += phdr.p_filesz;
- 		phdr.p_flags = vma->vm_flags & VM_READ ? PF_R : 0;
-@@ -1790,7 +1782,7 @@ static int elf_fdpic_core_dump(struct co
- 		goto end_coredump;
- 
- 	if (elf_fdpic_dump_segments(cprm->file, &size, &cprm->limit,
--				    mm_flags) < 0)
-+				    cprm->mm_flags) < 0)
- 		goto end_coredump;
- 
- #ifdef ELF_CORE_WRITE_EXTRA_DATA
-diff -puN fs/exec.c~binfmt-pass-mm-flags-as-a-coredump-parameter-for-consistency fs/exec.c
---- a/fs/exec.c~binfmt-pass-mm-flags-as-a-coredump-parameter-for-consistency
-+++ a/fs/exec.c
-@@ -1723,14 +1723,19 @@ void set_dumpable(struct mm_struct *mm, 
+-	if (!mem_blk)
++	if (!mem_blk) {
++		NODEMASK_FREE(unlinked_nodes);
+ 		return -EFAULT;
+-	nodes_clear(unlinked_nodes);
++	}
++	if (!unlinked_nodes)
++		return -ENOMEM;
++	nodes_clear(*unlinked_nodes);
+ 	sect_start_pfn = section_nr_to_pfn(mem_blk->phys_index);
+ 	sect_end_pfn = sect_start_pfn + PAGES_PER_SECTION - 1;
+ 	for (pfn = sect_start_pfn; pfn <= sect_end_pfn; pfn++) {
+@@ -379,13 +383,14 @@ int unregister_mem_sect_under_nodes(stru
+ 			continue;
+ 		if (!node_online(nid))
+ 			continue;
+-		if (node_test_and_set(nid, unlinked_nodes))
++		if (node_test_and_set(nid, *unlinked_nodes))
+ 			continue;
+ 		sysfs_remove_link(&node_devices[nid].sysdev.kobj,
+ 			 kobject_name(&mem_blk->sysdev.kobj));
+ 		sysfs_remove_link(&mem_blk->sysdev.kobj,
+ 			 kobject_name(&node_devices[nid].sysdev.kobj));
  	}
++	NODEMASK_FREE(unlinked_nodes);
+ 	return 0;
  }
  
--int get_dumpable(struct mm_struct *mm)
-+static int __get_dumpable(unsigned long mm_flags)
- {
- 	int ret;
- 
--	ret = mm->flags & 0x3;
-+	ret = mm_flags & MMF_DUMPABLE_MASK;
- 	return (ret >= 2) ? 2 : ret;
- }
- 
-+int get_dumpable(struct mm_struct *mm)
-+{
-+	return __get_dumpable(mm->flags);
-+}
-+
- static void wait_for_dump_helpers(struct file *file)
- {
- 	struct pipe_inode_info *pipe;
-@@ -1774,6 +1779,12 @@ void do_coredump(long signr, int exit_co
- 		.signr = signr,
- 		.regs = regs,
- 		.limit = current->signal->rlim[RLIMIT_CORE].rlim_cur,
-+		/*
-+		 * We must use the same mm->flags while dumping core to avoid
-+		 * inconsistency of bit flags, since this flag is not protected
-+		 * by any locks.
-+		 */
-+		.mm_flags = mm->flags,
- 	};
- 
- 	audit_core_dumps(signr);
-@@ -1792,7 +1803,7 @@ void do_coredump(long signr, int exit_co
- 	/*
- 	 * If another thread got here first, or we are not dumpable, bail out.
- 	 */
--	if (mm->core_state || !get_dumpable(mm)) {
-+	if (mm->core_state || !__get_dumpable(cprm.mm_flags)) {
- 		up_write(&mm->mmap_sem);
- 		put_cred(cred);
- 		goto fail;
-@@ -1803,7 +1814,8 @@ void do_coredump(long signr, int exit_co
- 	 *	process nor do we know its entire history. We only know it
- 	 *	was tainted so we dump it as root in mode 2.
- 	 */
--	if (get_dumpable(mm) == 2) {	/* Setuid core dump mode */
-+	if (__get_dumpable(cprm.mm_flags) == 2) {
-+		/* Setuid core dump mode */
- 		flag = O_EXCL;		/* Stop rewrite attacks */
- 		cred->fsuid = 0;	/* Dump root private */
- 	}
-diff -puN include/linux/binfmts.h~binfmt-pass-mm-flags-as-a-coredump-parameter-for-consistency include/linux/binfmts.h
---- a/include/linux/binfmts.h~binfmt-pass-mm-flags-as-a-coredump-parameter-for-consistency
-+++ a/include/linux/binfmts.h
-@@ -74,6 +74,7 @@ struct coredump_params {
- 	struct pt_regs *regs;
- 	struct file *file;
- 	unsigned long limit;
-+	unsigned long mm_flags;
- };
- 
- /*
 _
 
-Patches currently in -mm which might be from mhiramat@redhat.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
 linux-next.patch
-binfmt-introduce-coredump-parameter-structure.patch
-binfmt-pass-mm-flags-as-a-coredump-parameter-for-consistency.patch
+acpi-remove-nid_inval.patch
+oom-dump-stack-and-vm-state-when-oom-killer-panics.patch
+nodemask-make-nodemask_alloc-more-general.patch
+hugetlb-rework-hstate_next_node_-functions.patch
+hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions.patch
+hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions-fix.patch
+hugetlb-factor-init_nodemask_of_node.patch
+hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy.patch
+hugetlb-add-generic-definition-of-numa_no_node.patch
+hugetlb-add-per-node-hstate-attributes.patch
+hugetlb-update-hugetlb-documentation-for-numa-controls.patch
+hugetlb-use-only-nodes-with-memory-for-huge-pages.patch
+mm-clear-node-in-n_high_memory-and-stop-kswapd-when-all-memory-is-offlined.patch
+hugetlb-handle-memory-hot-plug-events.patch
+hugetlb-offload-per-node-attribute-registrations.patch
+mm-add-gfp-flags-for-nodemask_alloc-slab-allocations.patch
+oom_kill-use-rss-value-instead-of-vm-size-for-badness.patch
+oom-kill-show-virtual-size-and-rss-information-of-the-killed-process.patch
+oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
+oom-kill-fix-numa-consraint-check-with-nodemask-v42.patch
+oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes.patch
+mm-add-numa-node-symlink-for-memory-section-in-sysfs.patch
+mm-refactor-register_cpu_under_node.patch
+mm-refactor-unregister_cpu_under_node.patch
+mm-add-numa-node-symlink-for-cpu-devices-in-sysfs.patch
+documentation-abi-sys-devices-system-cpu-cpu-node.patch
+mm-slab-allocate-memory-section-nodemask-for-large-systems.patch
+do_wait-optimization-do-not-place-sub-threads-on-task_struct-children-list.patch
 
