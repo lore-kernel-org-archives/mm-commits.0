@@ -1,129 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-char-agp-amd64-agpc-squish-warning.patch removed from -mm tree
-Date: Fri, 20 Nov 2009 11:30:33 -0800
-Message-ID: <200911201930.nAKJUX9e010935@imap1.linux-foundation.org>
+Subject: [merged] fcntl-rename-f_owner_gid-to-f_owner_pgrp.patch removed from -mm tree
+Date: Fri, 20 Nov 2009 11:30:24 -0800
+Message-ID: <200911201930.nAKJUOKL010594@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52483 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59750 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753045AbZKTTa7 (ORCPT
+	by vger.kernel.org with ESMTP id S1753443AbZKTTbB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Nov 2009 14:30:59 -0500
+	Fri, 20 Nov 2009 14:31:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, airlied@linux.ie, mm-commits@vger.kernel.org
+To: a.p.zijlstra@chello.nl, mingo@elte.hu, mtk.manpages@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/char/agp/amd64-agp.c: squish warning
+     fcntl: rename F_OWNER_GID to F_OWNER_PGRP
 has been removed from the -mm tree.  Its filename was
-     drivers-char-agp-amd64-agpc-squish-warning.patch
+     fcntl-rename-f_owner_gid-to-f_owner_pgrp.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/char/agp/amd64-agp.c: squish warning
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fcntl: rename F_OWNER_GID to F_OWNER_PGRP
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-drivers/char/agp/amd64-agp.c:768: warning: 'agp_amd64_cleanup' defined but not used
+This is for consistency with various ioctl() operations that include the
+suffix "PGRP" in their names, and also for consistency with PRIO_PGRP,
+used with setpriority() and getpriority().  Also, using PGRP instead of
+GID avoids confusion with the common abbreviation of "group ID".
 
-Cc: Dave Airlie <airlied@linux.ie>
+I'm fine with anything that makes it more consistent, and if PGRP is what
+is the predominant abbreviation then I see no need to further confuse
+matters by adding a third one.
+
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Acked-by: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/agp/amd64-agp.c |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/fcntl.c                  |    4 ++--
+ include/asm-generic/fcntl.h |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/char/agp/amd64-agp.c~drivers-char-agp-amd64-agpc-squish-warning drivers/char/agp/amd64-agp.c
---- a/drivers/char/agp/amd64-agp.c~drivers-char-agp-amd64-agpc-squish-warning
-+++ a/drivers/char/agp/amd64-agp.c
-@@ -764,12 +764,14 @@ int __init agp_amd64_init(void)
- 	return err;
- }
+diff -puN fs/fcntl.c~fcntl-rename-f_owner_gid-to-f_owner_pgrp fs/fcntl.c
+--- a/fs/fcntl.c~fcntl-rename-f_owner_gid-to-f_owner_pgrp
++++ a/fs/fcntl.c
+@@ -284,7 +284,7 @@ static int f_setown_ex(struct file *filp
+ 		type = PIDTYPE_PID;
+ 		break;
  
-+#ifndef CONFIG_GART_IOMMU
- static void __exit agp_amd64_cleanup(void)
- {
- 	if (aperture_resource)
- 		release_resource(aperture_resource);
- 	pci_unregister_driver(&agp_amd64_pci_driver);
- }
-+#endif
+-	case F_OWNER_GID:
++	case F_OWNER_PGRP:
+ 		type = PIDTYPE_PGID;
+ 		break;
  
- /* On AMD64 the PCI driver needs to initialize this driver early
-    for the IOMMU, so it has to be called via a backdoor. */
+@@ -321,7 +321,7 @@ static int f_getown_ex(struct file *filp
+ 		break;
+ 
+ 	case PIDTYPE_PGID:
+-		owner.type = F_OWNER_GID;
++		owner.type = F_OWNER_PGRP;
+ 		break;
+ 
+ 	default:
+diff -puN include/asm-generic/fcntl.h~fcntl-rename-f_owner_gid-to-f_owner_pgrp include/asm-generic/fcntl.h
+--- a/include/asm-generic/fcntl.h~fcntl-rename-f_owner_gid-to-f_owner_pgrp
++++ a/include/asm-generic/fcntl.h
+@@ -106,7 +106,7 @@
+ 
+ #define F_OWNER_TID	0
+ #define F_OWNER_PID	1
+-#define F_OWNER_GID	2
++#define F_OWNER_PGRP	2
+ 
+ struct f_owner_ex {
+ 	int	type;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
-drivers-media-dvb-dvb-core-dvb_frontendc-needs-semaphoreh.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-recordmcount-stfu.patch
-include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
-drivers-char-cycladesc-fix-used-uninitialised-bug.patch
-drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-acpi-remove-nid_inval.patch
-drivers-acpi-acpi_padc-squish-warning.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices-checkpatch-fixes.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-drivers-leds-leds-ss4200c-fix-return-statement.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
-st-fix-test-of-value-range-in-st_set_options.patch
-scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-readahead-add-blk_run_backing_dev.patch
-mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
-oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
-oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes.patch
-mm-mlocking-in-try_to_unmap_one-fix-fix.patch
-mm-memory_hotplug-make-offline_pages-static.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup.patch
-floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
-drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
-rwsem-fix-rwsem_is_locked-bugs-fix.patch
+hrtimers-remove-the-timer_stats_active-check-when-setting-the-start-info.patch
+itimers-fix-racy-writes-to-cpu_itimer-fields.patch
+posix-cpu-timers-optimize-and-document-timer_create-callback.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl.patch
 kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
 kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
-errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
-msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes.patch
-crc32-minor-optimizations-and-cleanup-checkpatch-fixes.patch
-hwmon-w83627ehf-updates-checkpatch-fixes.patch
-spi-controller-driver-for-designware-spi-core-fix.patch
-spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3.patch
-ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
-memcg-coalesce-charging-via-percpu-storage-fix.patch
-aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
-direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
-zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-reiser4-disable.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
 
