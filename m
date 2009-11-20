@@ -1,84 +1,164 @@
 From: akpm@linux-foundation.org
-Subject: [merged] omap-cs-should-be-positive-in-gpmc_cs_free.patch removed from -mm tree
-Date: Fri, 20 Nov 2009 11:30:42 -0800
-Message-ID: <200911201930.nAKJUgke011276@imap1.linux-foundation.org>
+Subject: [merged] cpufreq-use-an-enum-for-speedstep-processor-identification.patch removed from -mm tree
+Date: Fri, 20 Nov 2009 11:30:45 -0800
+Message-ID: <200911201930.nAKJUjdo011411@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49693 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36011 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752775AbZKTTbT (ORCPT
+	by vger.kernel.org with ESMTP id S1751652AbZKTTbV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Nov 2009 14:31:19 -0500
+	Fri, 20 Nov 2009 14:31:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, rmk@arm.linux.org.uk, tony@atomide.com, mm-commits@vger.kernel.org
+To: rusty@rustcorp.com.au, davej@codemonkey.org.uk, linux@dominikbrodowski.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     OMAP: cs should be positive in gpmc_cs_free()
+     cpufreq: use an enum for speedstep processor identification
 has been removed from the -mm tree.  Its filename was
-     omap-cs-should-be-positive-in-gpmc_cs_free.patch
+     cpufreq-use-an-enum-for-speedstep-processor-identification.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: OMAP: cs should be positive in gpmc_cs_free()
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: cpufreq: use an enum for speedstep processor identification
+From: Rusty Russell <rusty@rustcorp.com.au>
 
-The index `cs' is signed, test whether it is negative before we release
-gpmc_cs_mem[cs].
+The "unsigned int processor" everywhere confused Rusty, leading to
+breakage when he passed in smp_processor_id().
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Acked-by: Dominik Brodowski <linux@dominikbrodowski.net>
+Cc: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-omap2/gpmc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/kernel/cpu/cpufreq/speedstep-ich.c |    2 -
+ arch/x86/kernel/cpu/cpufreq/speedstep-lib.c |    6 ++--
+ arch/x86/kernel/cpu/cpufreq/speedstep-lib.h |   24 +++++++++---------
+ arch/x86/kernel/cpu/cpufreq/speedstep-smi.c |    2 -
+ 4 files changed, 17 insertions(+), 17 deletions(-)
 
-diff -puN arch/arm/mach-omap2/gpmc.c~omap-cs-should-be-positive-in-gpmc_cs_free arch/arm/mach-omap2/gpmc.c
---- a/arch/arm/mach-omap2/gpmc.c~omap-cs-should-be-positive-in-gpmc_cs_free
-+++ a/arch/arm/mach-omap2/gpmc.c
-@@ -405,7 +405,7 @@ EXPORT_SYMBOL(gpmc_cs_request);
- void gpmc_cs_free(int cs)
+diff -puN arch/x86/kernel/cpu/cpufreq/speedstep-ich.c~cpufreq-use-an-enum-for-speedstep-processor-identification arch/x86/kernel/cpu/cpufreq/speedstep-ich.c
+--- a/arch/x86/kernel/cpu/cpufreq/speedstep-ich.c~cpufreq-use-an-enum-for-speedstep-processor-identification
++++ a/arch/x86/kernel/cpu/cpufreq/speedstep-ich.c
+@@ -39,7 +39,7 @@ static struct pci_dev *speedstep_chipset
+ 
+ /* speedstep_processor
+  */
+-static unsigned int speedstep_processor;
++static enum speedstep_processor speedstep_processor;
+ 
+ static u32 pmbase;
+ 
+diff -puN arch/x86/kernel/cpu/cpufreq/speedstep-lib.c~cpufreq-use-an-enum-for-speedstep-processor-identification arch/x86/kernel/cpu/cpufreq/speedstep-lib.c
+--- a/arch/x86/kernel/cpu/cpufreq/speedstep-lib.c~cpufreq-use-an-enum-for-speedstep-processor-identification
++++ a/arch/x86/kernel/cpu/cpufreq/speedstep-lib.c
+@@ -34,7 +34,7 @@ static int relaxed_check;
+  *                   GET PROCESSOR CORE SPEED IN KHZ                 *
+  *********************************************************************/
+ 
+-static unsigned int pentium3_get_frequency(unsigned int processor)
++static unsigned int pentium3_get_frequency(enum speedstep_processor processor)
  {
- 	spin_lock(&gpmc_mem_lock);
--	if (cs >= GPMC_CS_NUM || !gpmc_cs_reserved(cs)) {
-+	if (cs >= GPMC_CS_NUM || cs < 0 || !gpmc_cs_reserved(cs)) {
- 		printk(KERN_ERR "Trying to free non-reserved GPMC CS%d\n", cs);
- 		BUG();
- 		spin_unlock(&gpmc_mem_lock);
+ 	/* See table 14 of p3_ds.pdf and table 22 of 29834003.pdf */
+ 	struct {
+@@ -227,7 +227,7 @@ static unsigned int pentium4_get_frequen
+ 
+ 
+ /* Warning: may get called from smp_call_function_single. */
+-unsigned int speedstep_get_frequency(unsigned int processor)
++unsigned int speedstep_get_frequency(enum speedstep_processor processor)
+ {
+ 	switch (processor) {
+ 	case SPEEDSTEP_CPU_PCORE:
+@@ -380,7 +380,7 @@ EXPORT_SYMBOL_GPL(speedstep_detect_proce
+  *                     DETECT SPEEDSTEP SPEEDS                       *
+  *********************************************************************/
+ 
+-unsigned int speedstep_get_freqs(unsigned int processor,
++unsigned int speedstep_get_freqs(enum speedstep_processor processor,
+ 				  unsigned int *low_speed,
+ 				  unsigned int *high_speed,
+ 				  unsigned int *transition_latency,
+diff -puN arch/x86/kernel/cpu/cpufreq/speedstep-lib.h~cpufreq-use-an-enum-for-speedstep-processor-identification arch/x86/kernel/cpu/cpufreq/speedstep-lib.h
+--- a/arch/x86/kernel/cpu/cpufreq/speedstep-lib.h~cpufreq-use-an-enum-for-speedstep-processor-identification
++++ a/arch/x86/kernel/cpu/cpufreq/speedstep-lib.h
+@@ -11,18 +11,18 @@
+ 
+ 
+ /* processors */
+-
+-#define SPEEDSTEP_CPU_PIII_C_EARLY	0x00000001  /* Coppermine core */
+-#define SPEEDSTEP_CPU_PIII_C		0x00000002  /* Coppermine core */
+-#define SPEEDSTEP_CPU_PIII_T		0x00000003  /* Tualatin core */
+-#define SPEEDSTEP_CPU_P4M		0x00000004  /* P4-M  */
+-
++enum speedstep_processor {
++	SPEEDSTEP_CPU_PIII_C_EARLY = 0x00000001,  /* Coppermine core */
++	SPEEDSTEP_CPU_PIII_C	   = 0x00000002,  /* Coppermine core */
++	SPEEDSTEP_CPU_PIII_T	   = 0x00000003,  /* Tualatin core */
++	SPEEDSTEP_CPU_P4M	   = 0x00000004,  /* P4-M  */
+ /* the following processors are not speedstep-capable and are not auto-detected
+  * in speedstep_detect_processor(). However, their speed can be detected using
+  * the speedstep_get_frequency() call. */
+-#define SPEEDSTEP_CPU_PM		0xFFFFFF03  /* Pentium M  */
+-#define SPEEDSTEP_CPU_P4D		0xFFFFFF04  /* desktop P4  */
+-#define SPEEDSTEP_CPU_PCORE		0xFFFFFF05  /* Core */
++	SPEEDSTEP_CPU_PM	   = 0xFFFFFF03,  /* Pentium M  */
++	SPEEDSTEP_CPU_P4D	   = 0xFFFFFF04,  /* desktop P4  */
++	SPEEDSTEP_CPU_PCORE	   = 0xFFFFFF05,  /* Core */
++};
+ 
+ /* speedstep states -- only two of them */
+ 
+@@ -31,10 +31,10 @@
+ 
+ 
+ /* detect a speedstep-capable processor */
+-extern unsigned int speedstep_detect_processor (void);
++extern enum speedstep_processor speedstep_detect_processor (void);
+ 
+ /* detect the current speed (in khz) of the processor */
+-extern unsigned int speedstep_get_frequency(unsigned int processor);
++extern unsigned int speedstep_get_frequency(enum speedstep_processor processor);
+ 
+ 
+ /* detect the low and high speeds of the processor. The callback
+@@ -42,7 +42,7 @@ extern unsigned int speedstep_get_freque
+  * SPEEDSTEP_LOW; the second argument is zero so that no
+  * cpufreq_notify_transition calls are initiated.
+  */
+-extern unsigned int speedstep_get_freqs(unsigned int processor,
++extern unsigned int speedstep_get_freqs(enum speedstep_processor processor,
+ 	unsigned int *low_speed,
+ 	unsigned int *high_speed,
+ 	unsigned int *transition_latency,
+diff -puN arch/x86/kernel/cpu/cpufreq/speedstep-smi.c~cpufreq-use-an-enum-for-speedstep-processor-identification arch/x86/kernel/cpu/cpufreq/speedstep-smi.c
+--- a/arch/x86/kernel/cpu/cpufreq/speedstep-smi.c~cpufreq-use-an-enum-for-speedstep-processor-identification
++++ a/arch/x86/kernel/cpu/cpufreq/speedstep-smi.c
+@@ -35,7 +35,7 @@ static int smi_cmd;
+ static unsigned int smi_sig;
+ 
+ /* info about the processor */
+-static unsigned int speedstep_processor;
++static enum speedstep_processor speedstep_processor;
+ 
+ /*
+  * There are only two frequency states for each processor. Values
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from rusty@rustcorp.com.au are
 
 linux-next.patch
-fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-sms-cards-make-id-unsigned-in-sms_get_board.patch
-mtd-error-return-eio-instead-of-eio.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
-st-fix-test-of-value-range-in-st_set_options.patch
-ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
-scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
-page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-cryptocop-fix-assertion-in-create_output_descriptors.patch
-gpio-fix-test-on-unsigned-in-lnw_irq_type.patch
-fbdev-tv_paln-bit-set-twice-in-sisfb_detect_vb_connect.patch
-hvc_console-fix-test-on-unsigned-in-hvc_console_print.patch
-irq-fix-test-in-__exit-parport_mfc3_exit.patch
-zlib-optimize-inffast-when-copying-direct-from-output.patch
+kernel-core-add-smp_call_function_any.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+kbuild-clean-up-marker.patch
+kbuild-clear-marker-out-of-modpost.patch
+percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+generic-ipi-cleanup-for-generic_smp_call_function_interrupt.patch
+reiser4.patch
 
