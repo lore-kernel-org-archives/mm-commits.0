@@ -1,57 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [merged] procfs-fix-proc-pid-stat-stack-pointer-for-kernel-threads.patch removed from -mm tree
-Date: Fri, 20 Nov 2009 11:30:21 -0800
-Message-ID: <200911201930.nAKJULu6010443@imap1.linux-foundation.org>
+Subject: [merged] maintainers-kmemcheck-add-file-patterns-use-m-for-pekkas-name-and-address.patch removed from -mm tree
+Date: Fri, 20 Nov 2009 11:30:06 -0800
+Message-ID: <200911201930.nAKJU6T3009778@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43150 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43788 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753048AbZKTTb7 (ORCPT
+	by vger.kernel.org with ESMTP id S1752456AbZKTTb5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Nov 2009 14:31:59 -0500
+	Fri, 20 Nov 2009 14:31:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: stefani@seibold.net, mingo@elte.hu, mm-commits@vger.kernel.org
+To: joe@perches.com, mingo@elte.hu, penberg@cs.helsinki.fi, vegardno@ifi.uio.no, mm-commits@vger.kernel.org
 
 
 The patch titled
-     procfs: fix /proc/<pid>/stat stack pointer for kernel threads
+     MAINTAINERS: KMEMCHECK: add file patterns, use M: for Pekka's name and address
 has been removed from the -mm tree.  Its filename was
-     procfs-fix-proc-pid-stat-stack-pointer-for-kernel-threads.patch
+     maintainers-kmemcheck-add-file-patterns-use-m-for-pekkas-name-and-address.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: procfs: fix /proc/<pid>/stat stack pointer for kernel threads
-From: Stefani Seibold <stefani@seibold.net>
+Subject: MAINTAINERS: KMEMCHECK: add file patterns, use M: for Pekka's name and address
+From: Joe Perches <joe@perches.com>
 
-Fix a small issue for the stack pointer in /proc/<pid>/stat.  In case of a
-kernel thread the value of the printed stack pointer should be 0.
-
-Signed-off-by: Stefani Seibold <stefani@seibold.net>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Vegard Nossum <vegardno@ifi.uio.no>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/array.c~procfs-fix-proc-pid-stat-stack-pointer-for-kernel-threads fs/proc/array.c
---- a/fs/proc/array.c~procfs-fix-proc-pid-stat-stack-pointer-for-kernel-threads
-+++ a/fs/proc/array.c
-@@ -571,7 +571,7 @@ static int do_task_stat(struct seq_file 
- 		rsslim,
- 		mm ? mm->start_code : 0,
- 		mm ? mm->end_code : 0,
--		(permitted) ? task->stack_start : 0,
-+		(permitted && mm) ? task->stack_start : 0,
- 		esp,
- 		eip,
- 		/* The signal information here is obsolete.
+diff -puN MAINTAINERS~maintainers-kmemcheck-add-file-patterns-use-m-for-pekkas-name-and-address MAINTAINERS
+--- a/MAINTAINERS~maintainers-kmemcheck-add-file-patterns-use-m-for-pekkas-name-and-address
++++ a/MAINTAINERS
+@@ -3084,9 +3084,13 @@ F:	kernel/kgdb.c
+ 
+ KMEMCHECK
+ M:	Vegard Nossum <vegardno@ifi.uio.no>
+-P	Pekka Enberg
+-M:	penberg@cs.helsinki.fi
++M:	Pekka Enberg <penberg@cs.helsinki.fi>
+ S:	Maintained
++F:	Documentation/kmemcheck.txt
++F:	arch/x86/include/asm/kmemcheck.h
++F:	arch/x86/mm/kmemcheck/
++F:	include/linux/kmemcheck.h
++F:	mm/kmemcheck.c
+ 
+ KMEMLEAK
+ M:	Catalin Marinas <catalin.marinas@arm.com>
 _
 
-Patches currently in -mm which might be from stefani@seibold.net are
+Patches currently in -mm which might be from joe@perches.com are
 
+linux-next.patch
+dynamic_debugh-kernelh-remove-kbuild_modname-from-dynamic_pr_debug.patch
+kernelh-remove-initialization-of-bool-in-printk_once.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
+scripts-get_maintainerpl-add-roles-and-rolestats.patch
+scripts-get_maintainerpl-fix-non-with-git-blame-and-cleanups.patch
+scripts-get_maintainerpl-support-multiple-vcss-add-mercurial.patch
+lib-vsprintfc-add-%pu-to-print-uuid-guids.patch
+fs-xfs-xfs_log_recoverc-use-%pu-to-print-uuids.patch
+randomc-use-%pu-to-print-uuids.patch
+drivers-firmware-dmi_scanc-use-%pub-to-print-uuids.patch
+drivers-md-mdc-use-%pu-to-print-uuids.patch
+fs-gfs2-sysc-use-%pub-to-print-uuids.patch
+fs-ubifs-use-%pub-to-print-uuids.patch
+efih-use-%pul-to-print-uuids.patch
+scripts-checkpatchpl-add-warn-on-sizeof.patch
+checkpatchpl-allow-80-char-lines-for-logging-functions-not-just-printk.patch
+isicomc-use-pr_fmt-and-pr_level.patch
+parport_pcc-use-correct-length-in-strncmp.patch
 
