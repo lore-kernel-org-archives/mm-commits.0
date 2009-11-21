@@ -1,283 +1,261 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] mmc-atmel-mci-new-mci2-module-support-in-atmel-mci-driver.patch removed from -mm tree
-Date: Fri, 20 Nov 2009 16:09:22 -0800
-Message-ID: <200911210009.nAL09ME2002355__9243.03060533038$1258762210$gmane$org@imap1.linux-foundation.org>
+Subject: + atmel-mci-change-use-of-dma-slave-interface.patch added to -mm tree
+Date: Fri, 20 Nov 2009 16:10:48 -0800
+Message-ID: <200911210010.nAL0An0x005850@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36272 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35618 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753805AbZKUAJw (ORCPT
+	by vger.kernel.org with ESMTP id S1753233AbZKUAKv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Nov 2009 19:09:52 -0500
+	Fri, 20 Nov 2009 19:10:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nicolas.ferre@atmel.com, haavard.skinnemoen@atmel.com, linux-mmc@vger.kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: nicolas.ferre@atmel.com, hskinnemoen@atmel.com, linux-mmc@vger.kernel.org
 
 
 The patch titled
-     mmc: atmel-mci: New MCI2 module support in atmel-mci driver
-has been removed from the -mm tree.  Its filename was
-     mmc-atmel-mci-new-mci2-module-support-in-atmel-mci-driver.patch
+     atmel-mci: change use of dma slave interface
+has been added to the -mm tree.  Its filename is
+     atmel-mci-change-use-of-dma-slave-interface.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: atmel-mci: New MCI2 module support in atmel-mci driver
+Subject: atmel-mci: change use of dma slave interface
 From: Nicolas Ferre <nicolas.ferre@atmel.com>
 
-This new revision of the IP adds some improvements to the MCI already
-present in several Atmel SOC.
+Allow the use of another DMA controller driver in atmel-mci sd/mmc driver.
+ This adds a generic dma_slave pointer to the mci platform structure where
+we can store DMA controller information.  In atmel-mci we use information
+provided by this structure to initialize the driver (with new helper
+functions that are architecture dependant).
 
-Some new registers are added and a particular way of handling DMA
-interaction lead to a new sequence in function call which is backward
-compatible: On MCI2, we must set the DMAEN bit to enable the DMA
-handshaking interface.  This must happen before the data transfer command
-is sent.
-
-A new function is able to differentiate MCI2 code and is based on
-knowledge of processor id (cpu_is_xxx()).
+This also adds at32/avr32 chip modifications to cope with this new access
+method.
 
 Signed-off-by: Nicolas Ferre <nicolas.ferre@atmel.com>
-Signed-off-by: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
+Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
 Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/atmel-mci.c |   85 +++++++++++++++++++++++++++++----
- 1 file changed, 75 insertions(+), 10 deletions(-)
+ arch/arm/mach-at91/include/mach/atmel-mci.h     |   24 ++++++
+ arch/avr32/mach-at32ap/at32ap700x.c             |   18 +++-
+ arch/avr32/mach-at32ap/include/mach/atmel-mci.h |   24 ++++++
+ drivers/mmc/host/atmel-mci.c                    |   56 +++++++++-----
+ include/linux/atmel-mci.h                       |    4 -
+ 5 files changed, 98 insertions(+), 28 deletions(-)
 
-diff -puN drivers/mmc/host/atmel-mci.c~mmc-atmel-mci-new-mci2-module-support-in-atmel-mci-driver drivers/mmc/host/atmel-mci.c
---- a/drivers/mmc/host/atmel-mci.c~mmc-atmel-mci-new-mci2-module-support-in-atmel-mci-driver
-+++ a/drivers/mmc/host/atmel-mci.c
-@@ -92,6 +92,7 @@ struct atmel_mci_dma {
-  * @need_clock_update: Update the clock rate before the next request.
-  * @need_reset: Reset controller before next request.
-  * @mode_reg: Value of the MR register.
-+ * @cfg_reg: Value of the CFG register.
-  * @bus_hz: The rate of @mck in Hz. This forms the basis for MMC bus
-  *	rate and timeout calculations.
-  * @mapbase: Physical address of the MMIO registers.
-@@ -155,6 +156,7 @@ struct atmel_mci {
- 	bool			need_clock_update;
- 	bool			need_reset;
- 	u32			mode_reg;
-+	u32			cfg_reg;
- 	unsigned long		bus_hz;
- 	unsigned long		mapbase;
- 	struct clk		*mck;
-@@ -223,6 +225,19 @@ static bool mci_has_rwproof(void)
- }
- 
- /*
-+ * The new MCI2 module isn't 100% compatible with the old MCI module,
-+ * and it has a few nice features which we want to use...
+diff -puN /dev/null arch/arm/mach-at91/include/mach/atmel-mci.h
+--- /dev/null
++++ a/arch/arm/mach-at91/include/mach/atmel-mci.h
+@@ -0,0 +1,24 @@
++#ifndef __MACH_ATMEL_MCI_H
++#define __MACH_ATMEL_MCI_H
++
++#include <mach/at_hdmac.h>
++
++/**
++ * struct mci_dma_data - DMA data for MCI interface
 + */
-+static inline bool atmci_is_mci2(void)
-+{
-+	if (cpu_is_at91sam9g45())
-+		return true;
++struct mci_dma_data {
++	struct at_dma_slave	sdata;
++};
 +
-+	return false;
-+}
++/* accessor macros */
++#define	slave_data_ptr(s)	(&(s)->sdata)
++#define find_slave_dev(s)	((s)->sdata.dma_dev)
 +
++#define	setup_dma_addr(s, t, r)	do {		\
++	if (s) {				\
++		(s)->sdata.tx_reg = (t);	\
++		(s)->sdata.rx_reg = (r);	\
++	}					\
++} while (0)
 +
-+/*
-  * The debugfs stuff below is mostly optimized away when
-  * CONFIG_DEBUG_FS is not set.
-  */
-@@ -357,12 +372,33 @@ static int atmci_regs_show(struct seq_fi
- 			buf[MCI_BLKR / 4],
- 			buf[MCI_BLKR / 4] & 0xffff,
- 			(buf[MCI_BLKR / 4] >> 16) & 0xffff);
-+	if (atmci_is_mci2())
-+		seq_printf(s, "CSTOR:\t0x%08x\n", buf[MCI_CSTOR / 4]);
- 
- 	/* Don't read RSPR and RDR; it will consume the data there */
- 
- 	atmci_show_status_reg(s, "SR", buf[MCI_SR / 4]);
- 	atmci_show_status_reg(s, "IMR", buf[MCI_IMR / 4]);
- 
-+	if (atmci_is_mci2()) {
-+		u32 val;
++#endif /* __MACH_ATMEL_MCI_H */
+diff -puN arch/avr32/mach-at32ap/at32ap700x.c~atmel-mci-change-use-of-dma-slave-interface arch/avr32/mach-at32ap/at32ap700x.c
+--- a/arch/avr32/mach-at32ap/at32ap700x.c~atmel-mci-change-use-of-dma-slave-interface
++++ a/arch/avr32/mach-at32ap/at32ap700x.c
+@@ -15,6 +15,8 @@
+ #include <linux/gpio.h>
+ #include <linux/spi/spi.h>
+ #include <linux/usb/atmel_usba_udc.h>
 +
-+		val = buf[MCI_DMA / 4];
-+		seq_printf(s, "DMA:\t0x%08x OFFSET=%u CHKSIZE=%u%s\n",
-+				val, val & 3,
-+				((val >> 4) & 3) ?
-+					1 << (((val >> 4) & 3) + 1) : 1,
-+				val & MCI_DMAEN ? " DMAEN" : "");
-+
-+		val = buf[MCI_CFG / 4];
-+		seq_printf(s, "CFG:\t0x%08x%s%s%s%s\n",
-+				val,
-+				val & MCI_CFG_FIFOMODE_1DATA ? " FIFOMODE_ONE_DATA" : "",
-+				val & MCI_CFG_FERRCTRL_COR ? " FERRCTRL_CLEAR_ON_READ" : "",
-+				val & MCI_CFG_HSMODE ? " HSMODE" : "",
-+				val & MCI_CFG_LSYNC ? " LSYNC" : "");
-+	}
-+
- 	kfree(buf);
++#include <mach/atmel-mci.h>
+ #include <linux/atmel-mci.h>
  
- 	return 0;
-@@ -557,6 +593,10 @@ static void atmci_dma_complete(void *arg
- 
- 	dev_vdbg(&host->pdev->dev, "DMA complete\n");
- 
-+	if (atmci_is_mci2())
-+		/* Disable DMA hardware handshaking on MCI */
-+		mci_writel(host, DMA, mci_readl(host, DMA) & ~MCI_DMAEN);
-+
- 	atmci_dma_cleanup(host);
- 
- 	/*
-@@ -592,7 +632,7 @@ static void atmci_dma_complete(void *arg
- }
- 
- static int
--atmci_submit_data_dma(struct atmel_mci *host, struct mmc_data *data)
-+atmci_prepare_data_dma(struct atmel_mci *host, struct mmc_data *data)
+ #include <asm/io.h>
+@@ -1323,7 +1325,7 @@ struct platform_device *__init
+ at32_add_device_mci(unsigned int id, struct mci_platform_data *data)
  {
- 	struct dma_chan			*chan;
- 	struct dma_async_tx_descriptor	*desc;
-@@ -624,6 +664,9 @@ atmci_submit_data_dma(struct atmel_mci *
- 	if (!chan)
- 		return -ENODEV;
+ 	struct platform_device		*pdev;
+-	struct dw_dma_slave		*dws = &data->dma_slave;
++	struct mci_dma_slave		*slave;
+ 	u32				pioa_mask;
+ 	u32				piob_mask;
  
-+	if (atmci_is_mci2())
-+		mci_writel(host, DMA, MCI_DMA_CHKSIZE(3) | MCI_DMAEN);
+@@ -1342,13 +1344,17 @@ at32_add_device_mci(unsigned int id, str
+ 				ARRAY_SIZE(atmel_mci0_resource)))
+ 		goto fail;
+ 
+-	dws->dma_dev = &dw_dmac0_device.dev;
+-	dws->reg_width = DW_DMA_SLAVE_WIDTH_32BIT;
+-	dws->cfg_hi = (DWC_CFGH_SRC_PER(0)
++	slave = kzalloc(sizeof(struct mci_dma_slave), GFP_KERNEL);
 +
- 	if (data->flags & MMC_DATA_READ)
- 		direction = DMA_FROM_DEVICE;
- 	else
-@@ -641,10 +684,6 @@ atmci_submit_data_dma(struct atmel_mci *
- 	host->dma.data_desc = desc;
- 	desc->callback = atmci_dma_complete;
- 	desc->callback_param = host;
--	desc->tx_submit(desc);
++	slave->sdata.dma_dev = &dw_dmac0_device.dev;
++	slave->sdata.reg_width = DW_DMA_SLAVE_WIDTH_32BIT;
++	slave->sdata.cfg_hi = (DWC_CFGH_SRC_PER(0)
+ 				| DWC_CFGH_DST_PER(1));
+-	dws->cfg_lo &= ~(DWC_CFGL_HS_DST_POL
++	slave->sdata.cfg_lo &= ~(DWC_CFGL_HS_DST_POL
+ 				| DWC_CFGL_HS_SRC_POL);
+ 
++	data->dma_slave = slave;
++
+ 	if (platform_device_add_data(pdev, data,
+ 				sizeof(struct mci_platform_data)))
+ 		goto fail;
+@@ -1414,6 +1420,8 @@ at32_add_device_mci(unsigned int id, str
+ 	return pdev;
+ 
+ fail:
++	data->dma_slave = NULL;
++	kfree(slave);
+ 	platform_device_put(pdev);
+ 	return NULL;
+ }
+diff -puN /dev/null arch/avr32/mach-at32ap/include/mach/atmel-mci.h
+--- /dev/null
++++ a/arch/avr32/mach-at32ap/include/mach/atmel-mci.h
+@@ -0,0 +1,24 @@
++#ifndef __MACH_ATMEL_MCI_H
++#define __MACH_ATMEL_MCI_H
++
++#include <linux/dw_dmac.h>
++
++/**
++ * struct mci_dma_data - DMA data for MCI interface
++ */
++struct mci_dma_data {
++	struct dw_dma_slave	sdata;
++};
++
++/* accessor macros */
++#define	slave_data_ptr(s)	(&(s)->sdata)
++#define find_slave_dev(s)	((s)->sdata.dma_dev)
++
++#define	setup_dma_addr(s, t, r)	do {		\
++	if (s) {				\
++		(s)->sdata.tx_reg = (t);	\
++		(s)->sdata.rx_reg = (r);	\
++	}					\
++} while (0)
++
++#endif /* __MACH_ATMEL_MCI_H */
+diff -puN drivers/mmc/host/atmel-mci.c~atmel-mci-change-use-of-dma-slave-interface drivers/mmc/host/atmel-mci.c
+--- a/drivers/mmc/host/atmel-mci.c~atmel-mci-change-use-of-dma-slave-interface
++++ a/drivers/mmc/host/atmel-mci.c
+@@ -25,6 +25,8 @@
+ #include <linux/stat.h>
+ 
+ #include <linux/mmc/host.h>
++
++#include <mach/atmel-mci.h>
+ #include <linux/atmel-mci.h>
+ 
+ #include <asm/io.h>
+@@ -1584,14 +1586,43 @@ static void __exit atmci_cleanup_slot(st
+ #ifdef CONFIG_MMC_ATMELMCI_DMA
+ static bool filter(struct dma_chan *chan, void *slave)
+ {
+-	struct dw_dma_slave *dws = slave;
++	struct mci_dma_data	*sl = slave;
+ 
+-	if (dws->dma_dev == chan->device->dev) {
+-		chan->private = dws;
++	if (sl && find_slave_dev(sl) == chan->device->dev) {
++		chan->private = slave_data_ptr(sl);
+ 		return true;
+-	} else
++	} else {
+ 		return false;
++	}
+ }
++
++static void atmci_configure_dma(struct atmel_mci *host)
++{
++	struct mci_platform_data	*pdata;
++
++	if (host == NULL)
++		return;
++
++	pdata = host->pdev->dev.platform_data;
++
++	if (pdata && find_slave_dev(pdata->dma_slave)) {
++		dma_cap_mask_t mask;
++
++		setup_dma_addr(pdata->dma_slave,
++			       host->mapbase + MCI_TDR,
++			       host->mapbase + MCI_RDR);
++
++		/* Try to grab a DMA channel */
++		dma_cap_zero(mask);
++		dma_cap_set(DMA_SLAVE, mask);
++		host->dma.chan =
++			dma_request_channel(mask, filter, pdata->dma_slave);
++	}
++	if (!host->dma.chan)
++		dev_notice(&host->pdev->dev, "DMA not available, using PIO\n");
++}
++#else
++static void atmci_configure_dma(struct atmel_mci *host) {}
+ #endif
+ 
+ static int __init atmci_probe(struct platform_device *pdev)
+@@ -1645,22 +1676,7 @@ static int __init atmci_probe(struct pla
+ 	if (ret)
+ 		goto err_request_irq;
+ 
+-#ifdef CONFIG_MMC_ATMELMCI_DMA
+-	if (pdata->dma_slave.dma_dev) {
+-		struct dw_dma_slave *dws = &pdata->dma_slave;
+-		dma_cap_mask_t mask;
 -
--	/* Go! */
--	chan->device->device_issue_pending(chan);
+-		dws->tx_reg = regs->start + MCI_TDR;
+-		dws->rx_reg = regs->start + MCI_RDR;
+-
+-		/* Try to grab a DMA channel */
+-		dma_cap_zero(mask);
+-		dma_cap_set(DMA_SLAVE, mask);
+-		host->dma.chan = dma_request_channel(mask, filter, dws);
+-	}
+-	if (!host->dma.chan)
+-		dev_notice(&pdev->dev, "DMA not available, using PIO\n");
+-#endif /* CONFIG_MMC_ATMELMCI_DMA */
++	atmci_configure_dma(host);
  
- 	return 0;
- unmap_exit:
-@@ -652,13 +691,26 @@ unmap_exit:
- 	return -ENOMEM;
- }
+ 	platform_set_drvdata(pdev, host);
  
-+static void atmci_submit_data(struct atmel_mci *host)
-+{
-+	struct dma_chan			*chan = host->data_chan;
-+	struct dma_async_tx_descriptor	*desc = host->dma.data_desc;
-+
-+	if (chan) {
-+		desc->tx_submit(desc);
-+		chan->device->device_issue_pending(chan);
-+	}
-+}
-+
- #else /* CONFIG_MMC_ATMELMCI_DMA */
+diff -puN include/linux/atmel-mci.h~atmel-mci-change-use-of-dma-slave-interface include/linux/atmel-mci.h
+--- a/include/linux/atmel-mci.h~atmel-mci-change-use-of-dma-slave-interface
++++ a/include/linux/atmel-mci.h
+@@ -3,8 +3,6 @@
  
--static int atmci_submit_data_dma(struct atmel_mci *host, struct mmc_data *data)
-+static int atmci_prepare_data_dma(struct atmel_mci *host, struct mmc_data *data)
- {
- 	return -ENOSYS;
- }
+ #define ATMEL_MCI_MAX_NR_SLOTS	2
  
-+static void atmci_submit_data(struct atmel_mci *host) {}
-+
- static void atmci_stop_dma(struct atmel_mci *host)
- {
- 	/* Data transfer was stopped by the interrupt handler */
-@@ -672,7 +724,7 @@ static void atmci_stop_dma(struct atmel_
-  * Returns a mask of interrupt flags to be enabled after the whole
-  * request has been prepared.
-  */
--static u32 atmci_submit_data(struct atmel_mci *host, struct mmc_data *data)
-+static u32 atmci_prepare_data(struct atmel_mci *host, struct mmc_data *data)
- {
- 	u32 iflags;
- 
-@@ -683,7 +735,7 @@ static u32 atmci_submit_data(struct atme
- 	host->data = data;
- 
- 	iflags = ATMCI_DATA_ERROR_FLAGS;
--	if (atmci_submit_data_dma(host, data)) {
-+	if (atmci_prepare_data_dma(host, data)) {
- 		host->data_chan = NULL;
- 
- 		/*
-@@ -729,6 +781,8 @@ static void atmci_start_request(struct a
- 		mci_writel(host, CR, MCI_CR_SWRST);
- 		mci_writel(host, CR, MCI_CR_MCIEN);
- 		mci_writel(host, MR, host->mode_reg);
-+		if (atmci_is_mci2())
-+			mci_writel(host, CFG, host->cfg_reg);
- 		host->need_reset = false;
- 	}
- 	mci_writel(host, SDCR, slot->sdc_reg);
-@@ -744,6 +798,7 @@ static void atmci_start_request(struct a
- 		while (!(mci_readl(host, SR) & MCI_CMDRDY))
- 			cpu_relax();
- 	}
-+	iflags = 0;
- 	data = mrq->data;
- 	if (data) {
- 		atmci_set_timeout(host, slot, data);
-@@ -753,15 +808,17 @@ static void atmci_start_request(struct a
- 				| MCI_BLKLEN(data->blksz));
- 		dev_vdbg(&slot->mmc->class_dev, "BLKR=0x%08x\n",
- 			MCI_BCNT(data->blocks) | MCI_BLKLEN(data->blksz));
-+
-+		iflags |= atmci_prepare_data(host, data);
- 	}
- 
--	iflags = MCI_CMDRDY;
-+	iflags |= MCI_CMDRDY;
- 	cmd = mrq->cmd;
- 	cmdflags = atmci_prepare_command(slot->mmc, cmd);
- 	atmci_start_command(host, cmd, cmdflags);
- 
- 	if (data)
--		iflags |= atmci_submit_data(host, data);
-+		atmci_submit_data(host);
- 
- 	if (mrq->stop) {
- 		host->stop_cmdr = atmci_prepare_command(slot->mmc, mrq->stop);
-@@ -857,6 +914,8 @@ static void atmci_set_ios(struct mmc_hos
- 			clk_enable(host->mck);
- 			mci_writel(host, CR, MCI_CR_SWRST);
- 			mci_writel(host, CR, MCI_CR_MCIEN);
-+			if (atmci_is_mci2())
-+				mci_writel(host, CFG, host->cfg_reg);
- 		}
- 
- 		/*
-@@ -1095,6 +1154,8 @@ static void atmci_detect_change(unsigned
- 				mci_writel(host, CR, MCI_CR_SWRST);
- 				mci_writel(host, CR, MCI_CR_MCIEN);
- 				mci_writel(host, MR, host->mode_reg);
-+				if (atmci_is_mci2())
-+					mci_writel(host, CFG, host->cfg_reg);
- 
- 				host->data = NULL;
- 				host->cmd = NULL;
-@@ -1644,6 +1705,10 @@ static void atmci_configure_dma(struct a
- 	}
- 	if (!host->dma.chan)
- 		dev_notice(&host->pdev->dev, "DMA not available, using PIO\n");
-+	else
-+		dev_info(&host->pdev->dev,
-+					"Using %s for DMA transfers\n",
-+					dma_chan_name(host->dma.chan));
- }
- #else
- static void atmci_configure_dma(struct atmel_mci *host) {}
-_
-
-Patches currently in -mm which might be from nicolas.ferre@atmel.com are
-
-linux-next.patch
-mmc-atmel-mci-new-mci2-module-support-in-atmel-mci-driver.patch
-
+-#include <linux/dw_dmac.h>
