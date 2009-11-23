@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + emi62-fix-crash-when-trying-to-load-emi-62-firmware.patch added to -mm tree
-Date: Mon, 23 Nov 2009 13:57:30 -0800
-Message-ID: <200911232157.nANLvUuw032712@imap1.linux-foundation.org>
+Subject: + kfifo-add-kfifo_skip-kfifo_from_user-and-kfifo_to_user.patch added to -mm tree
+Date: Mon, 23 Nov 2009 14:19:09 -0800
+Message-ID: <200911232219.nANMJ9pX020352@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56613 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40764 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755213AbZKWV6p (ORCPT
+	by vger.kernel.org with ESMTP id S1754782AbZKWWTZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Nov 2009 16:58:45 -0500
+	Mon, 23 Nov 2009 17:19:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clemens@ladisch.de, David.Woodhouse@intel.com, greg@kroah.com, retroeffective@gmail.com, stable@kernel.org
+Cc: stefani@seibold.net, ak@linux.intel.com, arnd@arndb.de, gregkh@suse.de, mchehab@redhat.com
 
 
 The patch titled
-     emi62: fix crash when trying to load EMI 6|2 firmware
+     kfifo: add kfifo_skip, kfifo_from_user and kfifo_to_user
 has been added to the -mm tree.  Its filename is
-     emi62-fix-crash-when-trying-to-load-emi-62-firmware.patch
+     kfifo-add-kfifo_skip-kfifo_from_user-and-kfifo_to_user.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,50 +34,296 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: emi62: fix crash when trying to load EMI 6|2 firmware
-From: Clemens Ladisch <clemens@ladisch.de>
+Subject: kfifo: add kfifo_skip, kfifo_from_user and kfifo_to_user
+From: Stefani Seibold <stefani@seibold.net>
 
-While converting emi62 to use request_firmware(), the driver was also
-changed to use the ihex helper functions.  However, this broke the loading
-of the FPGA firmware because the code tries to access the addr field of
-the EOF record which works with a plain array that has an empty last
-record but not with the ihex helper functions where the end of the data is
-signaled with a NULL record pointer, resulting in:
+ Add kfifo_reset_out() for save lockless discard the fifo output
+ Add kfifo_skip() to skip a number of output bytes
+ Add kfifo_from_user() to copy user space data into the fifo
+ Add kfifo_to_user() to copy fifo data to user space
 
-BUG: unable to handle kernel NULL pointer dereference at (null)
-IP: [<f80d248c>] emi62_load_firmware+0x33c/0x740 [emi62]
-
-This can be fixed by changing the loop condition to test the return value
-of ihex_next_binrec() directly (like in emi26.c).
-
-Signed-off-by: Clemens Ladisch <clemens@ladisch.de>
-Reported-and-tested-by: Der Mickster <retroeffective@gmail.com>
-Acked-by: David Woodhouse <David.Woodhouse@intel.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Stefani Seibold <stefani@seibold.net>
+Acked-by: Greg Kroah-Hartman <gregkh@suse.de>
+Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Acked-by: Andi Kleen <ak@linux.intel.com>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/misc/emi62.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/kfifo.h |   47 +++++++++++++
+ kernel/kfifo.c        |  139 +++++++++++++++++++++++++++++++++++-----
+ 2 files changed, 170 insertions(+), 16 deletions(-)
 
-diff -puN drivers/usb/misc/emi62.c~emi62-fix-crash-when-trying-to-load-emi-62-firmware drivers/usb/misc/emi62.c
---- a/drivers/usb/misc/emi62.c~emi62-fix-crash-when-trying-to-load-emi-62-firmware
-+++ a/drivers/usb/misc/emi62.c
-@@ -167,7 +167,7 @@ static int emi62_load_firmware (struct u
- 			err("%s - error loading firmware: error = %d", __func__, err);
- 			goto wraperr;
- 		}
--	} while (i > 0);
-+	} while (rec);
+diff -puN include/linux/kfifo.h~kfifo-add-kfifo_skip-kfifo_from_user-and-kfifo_to_user include/linux/kfifo.h
+--- a/include/linux/kfifo.h~kfifo-add-kfifo_skip-kfifo_from_user-and-kfifo_to_user
++++ a/include/linux/kfifo.h
+@@ -122,6 +122,16 @@ static inline void kfifo_reset(struct kf
+ }
  
- 	/* Assert reset (stop the CPU in the EMI) */
- 	err = emi62_set_reset(dev,1);
+ /**
++ * kfifo_reset_out - skip FIFO contents
++ * @fifo: the fifo to be emptied.
++ */
++static inline void kfifo_reset_out(struct kfifo *fifo)
++{
++	smp_mb();
++	fifo->out = fifo->in;
++}
++
++/**
+  * kfifo_size - returns the size of the fifo in bytes
+  * @fifo: the fifo to be used.
+  */
+@@ -228,4 +238,41 @@ static inline __must_check unsigned int 
+ 	return ret;
+ }
+ 
++extern void kfifo_skip(struct kfifo *fifo, unsigned int len);
++
++extern __must_check unsigned int kfifo_from_user(struct kfifo *fifo,
++	const void __user *from, unsigned int n);
++
++extern __must_check unsigned int kfifo_to_user(struct kfifo *fifo,
++	void __user *to, unsigned int n);
++
++/**
++ * __kfifo_add_out internal helper function for updating the out offset
++ */
++static inline void __kfifo_add_out(struct kfifo *fifo,
++				unsigned int off)
++{
++	smp_mb();
++	fifo->out += off;
++}
++
++/**
++ * __kfifo_add_in internal helper function for updating the in offset
++ */
++static inline void __kfifo_add_in(struct kfifo *fifo,
++				unsigned int off)
++{
++	smp_wmb();
++	fifo->in += off;
++}
++
++/**
++ * __kfifo_off internal helper function for calculating the index of a
++ * given offeset
++ */
++static inline unsigned int __kfifo_off(struct kfifo *fifo, unsigned int off)
++{
++	return off & (fifo->size - 1);
++}
++
+ #endif
+diff -puN kernel/kfifo.c~kfifo-add-kfifo_skip-kfifo_from_user-and-kfifo_to_user kernel/kfifo.c
+--- a/kernel/kfifo.c~kfifo-add-kfifo_skip-kfifo_from_user-and-kfifo_to_user
++++ a/kernel/kfifo.c
+@@ -26,6 +26,7 @@
+ #include <linux/err.h>
+ #include <linux/kfifo.h>
+ #include <linux/log2.h>
++#include <linux/uaccess.h>
+ 
+ static void _kfifo_init(struct kfifo *fifo, unsigned char *buffer,
+ 		unsigned int size)
+@@ -100,6 +101,21 @@ void kfifo_free(struct kfifo *fifo)
+ EXPORT_SYMBOL(kfifo_free);
+ 
+ /**
++ * kfifo_skip - skip output data
++ * @fifo: the fifo to be used.
++ * @len: number of bytes to skip
++ */
++void kfifo_skip(struct kfifo *fifo, unsigned int len)
++{
++	if (len < kfifo_len(fifo)) {
++		__kfifo_add_out(fifo, len);
++		return;
++	}
++	kfifo_reset_out(fifo);
++}
++EXPORT_SYMBOL(kfifo_skip);
++
++/**
+  * kfifo_in - puts some data into the FIFO
+  * @fifo: the fifo to be used.
+  * @from: the data to be added.
+@@ -115,6 +131,7 @@ EXPORT_SYMBOL(kfifo_free);
+ unsigned int kfifo_in(struct kfifo *fifo,
+ 			const unsigned char *from, unsigned int len)
+ {
++	unsigned int off;
+ 	unsigned int l;
+ 
+ 	len = min(len, fifo->size - fifo->in + fifo->out);
+@@ -126,21 +143,16 @@ unsigned int kfifo_in(struct kfifo *fifo
+ 
+ 	smp_mb();
+ 
++	off = __kfifo_off(fifo, fifo->in);
++
+ 	/* first put the data starting from fifo->in to buffer end */
+-	l = min(len, fifo->size - (fifo->in & (fifo->size - 1)));
+-	memcpy(fifo->buffer + (fifo->in & (fifo->size - 1)), from, l);
++	l = min(len, fifo->size - off);
++	memcpy(fifo->buffer + off, from, l);
+ 
+ 	/* then put the rest (if any) at the beginning of the buffer */
+ 	memcpy(fifo->buffer, from + l, len - l);
+ 
+-	/*
+-	 * Ensure that we add the bytes to the kfifo -before-
+-	 * we update the fifo->in index.
+-	 */
+-
+-	smp_wmb();
+-
+-	fifo->in += len;
++	__kfifo_add_in(fifo, len);
+ 
+ 	return len;
+ }
+@@ -161,6 +173,7 @@ EXPORT_SYMBOL(kfifo_in);
+ unsigned int kfifo_out(struct kfifo *fifo,
+ 			 unsigned char *to, unsigned int len)
+ {
++	unsigned int off;
+ 	unsigned int l;
+ 
+ 	len = min(len, fifo->in - fifo->out);
+@@ -172,22 +185,116 @@ unsigned int kfifo_out(struct kfifo *fif
+ 
+ 	smp_rmb();
+ 
++	off = __kfifo_off(fifo, fifo->out);
++
+ 	/* first get the data from fifo->out until the end of the buffer */
+-	l = min(len, fifo->size - (fifo->out & (fifo->size - 1)));
+-	memcpy(to, fifo->buffer + (fifo->out & (fifo->size - 1)), l);
++	l = min(len, fifo->size - off);
++	memcpy(to, fifo->buffer + off, l);
+ 
+ 	/* then get the rest (if any) from the beginning of the buffer */
+ 	memcpy(to + l, fifo->buffer, len - l);
+ 
++	__kfifo_add_out(fifo, len);
++
++	return len;
++}
++EXPORT_SYMBOL(kfifo_out);
++
++/**
++ * kfifo_from_user - puts some data from user space into the FIFO
++ * @fifo: the fifo to be used.
++ * @from: pointer to the data to be added.
++ * @len: the length of the data to be added.
++ *
++ * This function copies at most @len bytes from the @from into the
++ * FIFO depending and returns the number of copied bytes.
++ *
++ * Note that with only one concurrent reader and one concurrent
++ * writer, you don't need extra locking to use these functions.
++ */
++unsigned int kfifo_from_user(struct kfifo *fifo,
++	const void __user *from, unsigned int len)
++{
++	unsigned int off;
++	unsigned int l;
++	int ret;
++
++	len = min(len, fifo->size - fifo->in + fifo->out);
++
+ 	/*
+-	 * Ensure that we remove the bytes from the kfifo -before-
+-	 * we update the fifo->out index.
++	 * Ensure that we sample the fifo->out index -before- we
++	 * start putting bytes into the kfifo.
+ 	 */
+ 
+ 	smp_mb();
+ 
+-	fifo->out += len;
++	off = __kfifo_off(fifo, fifo->in);
++
++	/* first put the data starting from fifo->in to buffer end */
++	l = min(len, fifo->size - off);
++	ret = copy_from_user(fifo->buffer + off, from, l);
++
++	if (unlikely(ret))
++		return l - ret;
++
++	/* then put the rest (if any) at the beginning of the buffer */
++	ret = copy_from_user(fifo->buffer, from + l, len - l);
++
++	if (unlikely(ret))
++		return len - ret;
++
++	__kfifo_add_in(fifo, len);
+ 
+ 	return len;
+ }
+-EXPORT_SYMBOL(kfifo_out);
++EXPORT_SYMBOL(kfifo_from_user);
++
++/**
++ * kfifo_to_user - gets data from the FIFO and write it to user space
++ * @fifo: the fifo to be used.
++ * @to: where the data must be copied.
++ * @len: the size of the destination buffer.
++ *
++ * This function copies at most @len bytes from the FIFO into the
++ * @to buffer and returns the number of copied bytes.
++ *
++ * Note that with only one concurrent reader and one concurrent
++ * writer, you don't need extra locking to use these functions.
++ */
++unsigned int kfifo_to_user(struct kfifo *fifo,
++	void __user *to, unsigned int len)
++{
++	unsigned int off;
++	unsigned int l;
++	int ret;
++
++	len = min(len, fifo->in - fifo->out);
++
++	/*
++	 * Ensure that we sample the fifo->in index -before- we
++	 * start removing bytes from the kfifo.
++	 */
++
++	smp_rmb();
++
++	off = __kfifo_off(fifo, fifo->out);
++
++	/* first get the data from fifo->out until the end of the buffer */
++	l = min(len, fifo->size - off);
++	ret = copy_to_user(to, fifo->buffer + off, l);
++
++	if (unlikely(ret))
++		return l - ret;
++
++	/* then get the rest (if any) from the beginning of the buffer */
++	ret = copy_to_user(to + l, fifo->buffer, len - l);
++
++	if (unlikely(ret))
++		return len - ret;
++
++	__kfifo_add_out(fifo, len);
++
++	return len;
++}
++EXPORT_SYMBOL(kfifo_to_user);
++
 _
 
-Patches currently in -mm which might be from clemens@ladisch.de are
+Patches currently in -mm which might be from stefani@seibold.net are
 
-linux-next.patch
-emi62-fix-crash-when-trying-to-load-emi-62-firmware.patch
-vt-make-the-default-cursor-shape-configurable.patch
+kfifo-move-struct-kfifo-in-place.patch
+kfifo-move-out-spinlock.patch
+kfifo-cleanup-namespace.patch
+kfifo-rename-kfifo_put-into-kfifo_in-and-kfifo_get-into-kfifo_out.patch
+kfifo-add-define_kfifo-and-friends-add-very-tiny-functions.patch
+kfifo-add-kfifo_skip-kfifo_from_user-and-kfifo_to_user.patch
+kfifo-add-record-handling-functions.patch
 
