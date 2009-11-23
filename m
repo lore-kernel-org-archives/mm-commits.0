@@ -1,180 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] debugfs-fix-create-mutex-racy-fops-and-private-data.patch removed from -mm tree
-Date: Mon, 23 Nov 2009 11:37:50 -0800
-Message-ID: <200911231937.nANJboiI018713@imap1.linux-foundation.org>
+Subject: [merged] drivers-usb-core-hcdc-quiet-null-pointer-sparse-noise.patch removed from -mm tree
+Date: Mon, 23 Nov 2009 11:37:53 -0800
+Message-ID: <200911231937.nANJbrED018875@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57661 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60350 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753758AbZKWThz (ORCPT
+	by vger.kernel.org with ESMTP id S1754333AbZKWThz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 23 Nov 2009 14:37:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mathieu.desnoyers@polymtl.ca, greg@kroah.com, mm-commits@vger.kernel.org
+To: hartleys@visionengravers.com, gregkh@suse.de, hsweeten@visionengravers.com, stern@rowland.harvard.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     debugfs: fix create mutex racy fops and private data
+     drivers/usb/core/hcd.c: quiet NULL pointer sparse noise
 has been removed from the -mm tree.  Its filename was
-     debugfs-fix-create-mutex-racy-fops-and-private-data.patch
+     drivers-usb-core-hcdc-quiet-null-pointer-sparse-noise.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: debugfs: fix create mutex racy fops and private data
-From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Subject: drivers/usb/core/hcd.c: quiet NULL pointer sparse noise
+From: "H Hartley Sweeten" <hartleys@visionengravers.com>
 
-Setting fops and private data outside of the mutex at debugfs file
-creation introduces a race where the files can be opened with the wrong
-file operations and private data.  It is easy to trigger with a process
-waiting on file creation notification.
+Quiet the following sparse noise:
 
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Greg Kroah-Hartman <greg@kroah.com>
+  warning: Using plain integer as NULL pointer
+
+Signed-off-by: H Hartley Sweeten <hsweeten@visionengravers.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Alan Stern <stern@rowland.harvard.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/debugfs/inode.c |   55 +++++++++++++++++++++++++------------------
- 1 file changed, 32 insertions(+), 23 deletions(-)
+ drivers/usb/core/hcd.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/debugfs/inode.c~debugfs-fix-create-mutex-racy-fops-and-private-data fs/debugfs/inode.c
---- a/fs/debugfs/inode.c~debugfs-fix-create-mutex-racy-fops-and-private-data
-+++ a/fs/debugfs/inode.c
-@@ -32,7 +32,9 @@ static struct vfsmount *debugfs_mount;
- static int debugfs_mount_count;
- static bool debugfs_registered;
- 
--static struct inode *debugfs_get_inode(struct super_block *sb, int mode, dev_t dev)
-+static struct inode *debugfs_get_inode(struct super_block *sb, int mode, dev_t dev,
-+				       void *data, const struct file_operations *fops)
-+
+diff -puN drivers/usb/core/hcd.c~drivers-usb-core-hcdc-quiet-null-pointer-sparse-noise drivers/usb/core/hcd.c
+--- a/drivers/usb/core/hcd.c~drivers-usb-core-hcdc-quiet-null-pointer-sparse-noise
++++ a/drivers/usb/core/hcd.c
+@@ -1607,7 +1607,7 @@ int usb_hcd_check_bandwidth(struct usb_d
  {
- 	struct inode *inode = new_inode(sb);
- 
-@@ -44,14 +46,18 @@ static struct inode *debugfs_get_inode(s
- 			init_special_inode(inode, mode, dev);
- 			break;
- 		case S_IFREG:
--			inode->i_fop = &debugfs_file_operations;
-+			inode->i_fop = fops ? fops : &debugfs_file_operations;
-+			inode->i_private = data;
- 			break;
- 		case S_IFLNK:
- 			inode->i_op = &debugfs_link_operations;
-+			inode->i_fop = fops;
-+			inode->i_private = data;
- 			break;
- 		case S_IFDIR:
- 			inode->i_op = &simple_dir_inode_operations;
--			inode->i_fop = &simple_dir_operations;
-+			inode->i_fop = fops ? fops : &simple_dir_operations;
-+			inode->i_private = data;
- 
- 			/* directory inodes start off with i_nlink == 2
- 			 * (for "." entry) */
-@@ -64,7 +70,8 @@ static struct inode *debugfs_get_inode(s
- 
- /* SMP-safe */
- static int debugfs_mknod(struct inode *dir, struct dentry *dentry,
--			 int mode, dev_t dev)
-+			 int mode, dev_t dev, void *data,
-+			 const struct file_operations *fops)
- {
- 	struct inode *inode;
- 	int error = -EPERM;
-@@ -72,7 +79,7 @@ static int debugfs_mknod(struct inode *d
- 	if (dentry->d_inode)
- 		return -EEXIST;
- 
--	inode = debugfs_get_inode(dir->i_sb, mode, dev);
-+	inode = debugfs_get_inode(dir->i_sb, mode, dev, data, fops);
- 	if (inode) {
- 		d_instantiate(dentry, inode);
- 		dget(dentry);
-@@ -81,12 +88,13 @@ static int debugfs_mknod(struct inode *d
- 	return error;
- }
- 
--static int debugfs_mkdir(struct inode *dir, struct dentry *dentry, int mode)
-+static int debugfs_mkdir(struct inode *dir, struct dentry *dentry, int mode,
-+			 void *data, const struct file_operations *fops)
- {
- 	int res;
- 
- 	mode = (mode & (S_IRWXUGO | S_ISVTX)) | S_IFDIR;
--	res = debugfs_mknod(dir, dentry, mode, 0);
-+	res = debugfs_mknod(dir, dentry, mode, 0, data, fops);
- 	if (!res) {
- 		inc_nlink(dir);
- 		fsnotify_mkdir(dir, dentry);
-@@ -94,18 +102,20 @@ static int debugfs_mkdir(struct inode *d
- 	return res;
- }
- 
--static int debugfs_link(struct inode *dir, struct dentry *dentry, int mode)
-+static int debugfs_link(struct inode *dir, struct dentry *dentry, int mode,
-+			void *data, const struct file_operations *fops)
- {
- 	mode = (mode & S_IALLUGO) | S_IFLNK;
--	return debugfs_mknod(dir, dentry, mode, 0);
-+	return debugfs_mknod(dir, dentry, mode, 0, data, fops);
- }
- 
--static int debugfs_create(struct inode *dir, struct dentry *dentry, int mode)
-+static int debugfs_create(struct inode *dir, struct dentry *dentry, int mode,
-+			  void *data, const struct file_operations *fops)
- {
- 	int res;
- 
- 	mode = (mode & S_IALLUGO) | S_IFREG;
--	res = debugfs_mknod(dir, dentry, mode, 0);
-+	res = debugfs_mknod(dir, dentry, mode, 0, data, fops);
- 	if (!res)
- 		fsnotify_create(dir, dentry);
- 	return res;
-@@ -139,7 +149,9 @@ static struct file_system_type debug_fs_
- 
- static int debugfs_create_by_name(const char *name, mode_t mode,
- 				  struct dentry *parent,
--				  struct dentry **dentry)
-+				  struct dentry **dentry,
-+				  void *data,
-+				  const struct file_operations *fops)
- {
- 	int error = 0;
- 
-@@ -164,13 +176,16 @@ static int debugfs_create_by_name(const 
- 	if (!IS_ERR(*dentry)) {
- 		switch (mode & S_IFMT) {
- 		case S_IFDIR:
--			error = debugfs_mkdir(parent->d_inode, *dentry, mode);
-+			error = debugfs_mkdir(parent->d_inode, *dentry, mode,
-+					      data, fops);
- 			break;
- 		case S_IFLNK:
--			error = debugfs_link(parent->d_inode, *dentry, mode);
-+			error = debugfs_link(parent->d_inode, *dentry, mode,
-+					     data, fops);
- 			break;
- 		default:
--			error = debugfs_create(parent->d_inode, *dentry, mode);
-+			error = debugfs_create(parent->d_inode, *dentry, mode,
-+					       data, fops);
- 			break;
- 		}
- 		dput(*dentry);
-@@ -221,19 +236,13 @@ struct dentry *debugfs_create_file(const
- 	if (error)
- 		goto exit;
- 
--	error = debugfs_create_by_name(name, mode, parent, &dentry);
-+	error = debugfs_create_by_name(name, mode, parent, &dentry,
-+				       data, fops);
- 	if (error) {
- 		dentry = NULL;
- 		simple_release_fs(&debugfs_mount, &debugfs_mount_count);
- 		goto exit;
- 	}
+ 	int num_intfs, i, j;
+ 	struct usb_interface_cache *intf_cache;
+-	struct usb_host_interface *alt = 0;
++	struct usb_host_interface *alt = NULL;
+ 	int ret = 0;
+ 	struct usb_hcd *hcd;
+ 	struct usb_host_endpoint *ep;
+_
+
+Patches currently in -mm which might be from hartleys@visionengravers.com are
+
+linux-next.patch
+clockeventsc-fix-symbol-was-not-declared-noise.patch
+security-min_addrc-make-init_mmap_min_addr-static.patch
+drivers-misc-add-driver-for-texas-instruments-dac7512.patch
+drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
+init-mainc-fix-symbol-shadows-noise.patch
+kernel-sysc-fix-warning-do-while-statement-is-not-a-compound-statement-noise.patch
+
