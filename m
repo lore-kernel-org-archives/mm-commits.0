@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-fixup.patch added to -mm tree
-Date: Mon, 23 Nov 2009 15:20:21 -0800
-Message-ID: <200911232320.nANNKLeV006308@imap1.linux-foundation.org>
+Subject: + r8192u_core-test-for-negative-error-in-rtl8192_rx_isr.patch added to -mm tree
+Date: Mon, 23 Nov 2009 15:21:36 -0800
+Message-ID: <200911232321.nANNLa1o009318@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57935 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55730 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757521AbZKWXUQ (ORCPT
+	by vger.kernel.org with ESMTP id S1757299AbZKWXVc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Nov 2009 18:20:16 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id nANNKL42030835
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 23 Nov 2009 15:20:22 -0800
+	Mon, 23 Nov 2009 18:21:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: roel.kluin@gmail.com, greg@kroah.com
 
 
 The patch titled
-     linux-next-fixup
+     r8192U_core: test for negative error in rtl8192_rx_isr()?
 has been added to the -mm tree.  Its filename is
-     linux-next-fixup.patch
+     r8192u_core-test-for-negative-error-in-rtl8192_rx_isr.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,101 +34,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-fixup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: r8192U_core: test for negative error in rtl8192_rx_isr()?
+From: Roel Kluin <roel.kluin@gmail.com>
 
+The error tested for is negative
+
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/thinkpad_acpi.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/staging/rtl8192su/r8192U_core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/platform/x86/thinkpad_acpi.c~linux-next-fixup drivers/platform/x86/thinkpad_acpi.c
---- a/drivers/platform/x86/thinkpad_acpi.c~linux-next-fixup
-+++ a/drivers/platform/x86/thinkpad_acpi.c
-@@ -6337,6 +6337,9 @@ static int brightness_write(char *buf)
- 	 * Doing it this way makes the syscall restartable in case of EINTR
- 	 */
- 	rc = brightness_set(level);
-+	if (!rc && ibm_backlight_device)
-+		backlight_force_update(ibm_backlight_device,
-+					BACKLIGHT_UPDATE_SYSFS);
- 	return (rc == -EINTR) ? -ERESTARTSYS : rc;
+diff -puN drivers/staging/rtl8192su/r8192U_core.c~r8192u_core-test-for-negative-error-in-rtl8192_rx_isr drivers/staging/rtl8192su/r8192U_core.c
+--- a/drivers/staging/rtl8192su/r8192U_core.c~r8192u_core-test-for-negative-error-in-rtl8192_rx_isr
++++ a/drivers/staging/rtl8192su/r8192U_core.c
+@@ -1501,7 +1501,7 @@ static void rtl8192_rx_isr(struct urb *u
+         urb->context = skb;
+         skb_queue_tail(&priv->rx_queue, skb);
+         err = usb_submit_urb(urb, GFP_ATOMIC);
+-	if(err && err != EPERM)
++	if(err && err != -EPERM)
+ 		printk("can not submit rxurb, err is %x,URB status is %x\n",err,urb->status);
  }
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
-drivers-media-dvb-dvb-core-dvb_frontendc-needs-semaphoreh.patch
+thinkpad-acpi-fix-sign-of-erestartsys-return.patch
 linux-next.patch
-linux-next-fixup.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-recordmcount-stfu.patch
-include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
-drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-acpi-remove-nid_inval.patch
-drivers-acpi-acpi_padc-squish-warning.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices-checkpatch-fixes.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-kbuild-generate-modulesbuiltin-fix-2-checkpatch-fixes.patch
-drivers-leds-leds-ss4200c-fix-return-statement.patch
-mtd-nand-fix-multi-chip-suspend-problem-fix.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
+v4l-dvb-mxl5007tc-fix-test-in-copy_reg_bits.patch
+fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+sms-cards-make-id-unsigned-in-sms_get_board.patch
+mtd-error-return-eio-instead-of-eio.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
+zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
 st-fix-test-of-value-range-in-st_set_options.patch
-scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-readahead-add-blk_run_backing_dev.patch
-mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
-oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
-oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes.patch
-mm-mlocking-in-try_to_unmap_one-fix-fix.patch
-mm-memory_hotplug-make-offline_pages-static.patch
+ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
+scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
+r8192u_core-test-for-negative-error-in-rtl8192_rx_isr.patch
+page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
+frv-duplicate-output_buffer-of-e03.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup.patch
-floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
-drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
-rwsem-fix-rwsem_is_locked-bugs-fix.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
-errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
-msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes.patch
-crc32-minor-optimizations-and-cleanup-checkpatch-fixes.patch
-hwmon-w83627ehf-updates-checkpatch-fixes.patch
-spi-controller-driver-for-designware-spi-core-fix.patch
-spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3.patch
-ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
-memcg-coalesce-charging-via-percpu-storage-fix.patch
-char-cyclades-fix-compiler-warning.patch
-aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
-direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
-zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-reiser4-disable.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+cryptocop-fix-assertion-in-create_output_descriptors.patch
+gpio-fix-test-on-unsigned-in-lnw_irq_type.patch
+fbdev-tv_paln-bit-set-twice-in-sisfb_detect_vb_connect.patch
+hvc_console-fix-test-on-unsigned-in-hvc_console_print.patch
+irq-fix-test-in-__exit-parport_mfc3_exit.patch
+zlib-optimize-inffast-when-copying-direct-from-output.patch
 
