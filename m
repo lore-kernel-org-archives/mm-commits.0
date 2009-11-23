@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-usb-host-xhci-memc-introduce-missing-kfree.patch added to -mm tree
-Date: Mon, 23 Nov 2009 15:39:42 -0800
-Message-ID: <200911232339.nANNdhNu020794@imap1.linux-foundation.org>
+Subject: + drivers-edac-introduce-missing-kfree.patch added to -mm tree
+Date: Mon, 23 Nov 2009 15:39:40 -0800
+Message-ID: <200911232339.nANNdfcN020683@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56245 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48527 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932127AbZKWXjj (ORCPT
+	by vger.kernel.org with ESMTP id S932102AbZKWXji (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Nov 2009 18:39:39 -0500
+	Mon, 23 Nov 2009 18:39:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, greg@kroah.com
+Cc: julia@diku.dk, norsk5@yahoo.com
 
 
 The patch titled
-     drivers/usb/host/xhci-mem.c: introduce missing kfree
+     drivers/edac: introduce missing kfree
 has been added to the -mm tree.  Its filename is
-     drivers-usb-host-xhci-memc-introduce-missing-kfree.patch
+     drivers-edac-introduce-missing-kfree.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/usb/host/xhci-mem.c: introduce missing kfree
+Subject: drivers/edac: introduce missing kfree
 From: Julia Lawall <julia@diku.dk>
 
 Error handling code following a kzalloc should free the allocated data.
@@ -80,35 +80,28 @@ print "* file: %s kmalloc %s return %s" % (p1[0].file,p1[0].line,p2[0].line)
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Greg KH <greg@kroah.com>
+Cc: Doug Thompson <norsk5@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/host/xhci-mem.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/edac/i7core_edac.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/usb/host/xhci-mem.c~drivers-usb-host-xhci-memc-introduce-missing-kfree drivers/usb/host/xhci-mem.c
---- a/drivers/usb/host/xhci-mem.c~drivers-usb-host-xhci-memc-introduce-missing-kfree
-+++ a/drivers/usb/host/xhci-mem.c
-@@ -779,14 +779,17 @@ struct xhci_command *xhci_alloc_command(
- 
- 	command->in_ctx =
- 		xhci_alloc_container_ctx(xhci, XHCI_CTX_TYPE_INPUT, mem_flags);
--	if (!command->in_ctx)
-+	if (!command->in_ctx) {
-+		kfree(command);
- 		return NULL;
-+	}
- 
- 	if (allocate_completion) {
- 		command->completion =
- 			kzalloc(sizeof(struct completion), mem_flags);
- 		if (!command->completion) {
- 			xhci_free_container_ctx(xhci, command->in_ctx);
-+			kfree(command);
- 			return NULL;
- 		}
- 		init_completion(command->completion);
+diff -puN drivers/edac/i7core_edac.c~drivers-edac-introduce-missing-kfree drivers/edac/i7core_edac.c
+--- a/drivers/edac/i7core_edac.c~drivers-edac-introduce-missing-kfree
++++ a/drivers/edac/i7core_edac.c
+@@ -1215,8 +1215,10 @@ int i7core_get_onedevice(struct pci_dev 
+ 			return -ENOMEM;
+ 		i7core_dev->pdev = kzalloc(sizeof(*i7core_dev->pdev) * n_devs,
+ 					   GFP_KERNEL);
+-		if (!i7core_dev->pdev)
++		if (!i7core_dev->pdev) {
++			kfree(i7core_dev);
+ 			return -ENOMEM;
++		}
+ 		i7core_dev->socket = socket;
+ 		i7core_dev->n_devs = n_devs;
+ 		list_add_tail(&i7core_dev->list, &i7core_edac_list);
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
