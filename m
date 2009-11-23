@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + davinci-fb-calculate-the-clock-divider-from-pixel-clock-info.patch added to -mm tree
-Date: Mon, 23 Nov 2009 13:16:30 -0800
-Message-ID: <200911232116.nANLGUu4030799@imap1.linux-foundation.org>
+Subject: + serial-16c950-add-preliminary-support-for-9-bit-receive-and-transmit.patch added to -mm tree
+Date: Mon, 23 Nov 2009 13:35:11 -0800
+Message-ID: <200911232135.nANLZBVw011164@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40906 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60036 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756001AbZKWVfX (ORCPT
+	by vger.kernel.org with ESMTP id S1754782AbZKWVfR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Nov 2009 16:35:23 -0500
+	Mon, 23 Nov 2009 16:35:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: chaithrika@ti.com, schen@mvista.com, sudhakar.raj@ti.com
+Cc: jpinkasfeld@aldebaran-robotics.com, alan@lxorguk.ukuu.org.uk, greg@kroah.com
 
 
 The patch titled
-     davinci: fb: calculate the clock divider from pixel clock info
+     serial 16c950: add preliminary support for 9-bit receive and transmit
 has been added to the -mm tree.  Its filename is
-     davinci-fb-calculate-the-clock-divider-from-pixel-clock-info.patch
+     serial-16c950-add-preliminary-support-for-9-bit-receive-and-transmit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,103 +34,152 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: davinci: fb: calculate the clock divider from pixel clock info
-From: Chaithrika U S <chaithrika@ti.com>
+Subject: serial 16c950: add preliminary support for 9-bit receive and transmit
+From: Joseph Pinkasfeld <jpinkasfeld@aldebaran-robotics.com>
 
-The clock divider value can be calculated from the pixel clock value for
-the panel.  This gives more flexiblity to the driver to change the divider
-value on the fly as in the case of cpufreq feature- support for which will
-be added shortly.
+2 bytes must be written or read for transmiting or receiving 9-bit data
+first byte LSB is ninth bit, second byte is normal data.
 
-Signed-off-by: Chaithrika U S <chaithrika@ti.com>
-Cc: Sudhakar Rajashekhara <sudhakar.raj@ti.com>
-Cc: Steve Chen <schen@mvista.com>
+Signed-off-by: pinkasfeld joseph <jpinkasfeld@aldebaran-robotics.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/da8xx-fb.c |   28 ++++++++++++++++++++--------
- 1 file changed, 20 insertions(+), 8 deletions(-)
+ drivers/serial/8250.c |   54 ++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 49 insertions(+), 5 deletions(-)
 
-diff -puN drivers/video/da8xx-fb.c~davinci-fb-calculate-the-clock-divider-from-pixel-clock-info drivers/video/da8xx-fb.c
---- a/drivers/video/da8xx-fb.c~davinci-fb-calculate-the-clock-divider-from-pixel-clock-info
-+++ a/drivers/video/da8xx-fb.c
-@@ -113,6 +113,7 @@ struct da8xx_fb_par {
- 	unsigned short pseudo_palette[16];
- 	unsigned int databuf_sz;
- 	unsigned int palette_sz;
-+	unsigned int pxl_clk;
- };
+diff -puN drivers/serial/8250.c~serial-16c950-add-preliminary-support-for-9-bit-receive-and-transmit drivers/serial/8250.c
+--- a/drivers/serial/8250.c~serial-16c950-add-preliminary-support-for-9-bit-receive-and-transmit
++++ a/drivers/serial/8250.c
+@@ -137,6 +137,7 @@ struct uart_8250_port {
+ 	unsigned short		bugs;		/* port bugs */
+ 	unsigned int		tx_loadsz;	/* transmit fifo load size */
+ 	unsigned char		acr;
++	unsigned char		nmr;
+ 	unsigned char		ier;
+ 	unsigned char		lcr;
+ 	unsigned char		mcr;
+@@ -838,6 +839,7 @@ static void autoconfig_has_efr(struct ua
+ 	 * recommended for new designs).
+ 	 */
+ 	up->acr = 0;
++	up->nmr = 0;
+ 	serial_out(up, UART_LCR, 0xBF);
+ 	serial_out(up, UART_EFR, UART_EFR_ECB);
+ 	serial_out(up, UART_LCR, 0x00);
+@@ -1380,8 +1382,8 @@ static void
+ receive_chars(struct uart_8250_port *up, unsigned int *status)
+ {
+ 	struct tty_struct *tty = up->port.state->port.tty;
+-	unsigned char ch, lsr = *status;
+-	int max_count = 256;
++	unsigned char ch, ch9, lsr = *status;
++	int error_break = 0, max_count = 256;
+ 	char flag;
  
- /* Variable Screen Information */
-@@ -155,7 +156,7 @@ struct da8xx_panel {
- 	int		vfp;		/* Vertical front porch */
- 	int		vbp;		/* Vertical back porch */
- 	int		vsw;		/* Vertical Sync Pulse Width */
--	int		pxl_clk;	/* Pixel clock */
-+	unsigned int	pxl_clk;	/* Pixel clock */
- 	unsigned char	invert_pxl_clk;	/* Invert Pixel clock */
- };
+ 	do {
+@@ -1403,7 +1405,20 @@ receive_chars(struct uart_8250_port *up,
+ 		lsr |= up->lsr_saved_flags;
+ 		up->lsr_saved_flags = 0;
  
-@@ -171,7 +172,7 @@ static struct da8xx_panel known_lcd_pane
- 		.vfp = 2,
- 		.vbp = 2,
- 		.vsw = 0,
--		.pxl_clk = 0x10,
-+		.pxl_clk = 4608000,
- 		.invert_pxl_clk = 1,
- 	},
- 	/* Sharp LK043T1DG01 */
-@@ -185,7 +186,7 @@ static struct da8xx_panel known_lcd_pane
- 		.vfp = 2,
- 		.vbp = 2,
- 		.vsw = 10,
--		.pxl_clk = 0x12,
-+		.pxl_clk = 7833600,
- 		.invert_pxl_clk = 0,
- 	},
- };
-@@ -451,6 +452,18 @@ static void lcd_reset(struct da8xx_fb_pa
- 	lcdc_write(0, LCD_RASTER_CTRL_REG);
+-		if (unlikely(lsr & UART_LSR_BRK_ERROR_BITS)) {
++		/*
++		 * Due to sharing of bit 2 in LSR depending on 9 bits mode
++		 * bit 2 rise Parity Error or 9th bit read
++		 */
++		error_break = 0 ;
++		if (up->nmr & UART_NMR_9BENB) {
++			if (lsr & UART_LSR_NBM_BRK_ERROR_BITS)
++				error_break = 1;
++		} else {
++			if (lsr & UART_LSR_BRK_ERROR_BITS)
++				error_break = 1;
++		}
++
++		if (unlikely(error_break)) {
+ 			/*
+ 			 * For statistics only
+ 			 */
+@@ -1418,7 +1433,8 @@ receive_chars(struct uart_8250_port *up,
+ 				 */
+ 				if (uart_handle_break(&up->port))
+ 					goto ignore_char;
+-			} else if (lsr & UART_LSR_PE)
++			} else if ((lsr & UART_LSR_PE) &&
++				!(up->nmr & UART_NMR_9BENB))
+ 				up->port.icount.parity++;
+ 			else if (lsr & UART_LSR_FE)
+ 				up->port.icount.frame++;
+@@ -1433,7 +1449,8 @@ receive_chars(struct uart_8250_port *up,
+ 			if (lsr & UART_LSR_BI) {
+ 				DEBUG_INTR("handling break....");
+ 				flag = TTY_BREAK;
+-			} else if (lsr & UART_LSR_PE)
++			} else if ((lsr & UART_LSR_PE) &&
++				!(up->nmr & UART_NMR_9BENB))
+ 				flag = TTY_PARITY;
+ 			else if (lsr & UART_LSR_FE)
+ 				flag = TTY_FRAME;
+@@ -1441,6 +1458,16 @@ receive_chars(struct uart_8250_port *up,
+ 		if (uart_handle_sysrq_char(&up->port, ch))
+ 			goto ignore_char;
+ 
++		/*
++		 * In 9bit mode Parity error is replace by 9th bit
++		 */
++		if (up->nmr & UART_NMR_9BENB) {
++			if (lsr & UART_LSR_9TH_BIT)
++				ch9 = 1;
++			else
++				ch9 = 0;
++			uart_insert_char(&up->port, lsr, UART_LSR_OE, ch9, flag);
++		}
+ 		uart_insert_char(&up->port, lsr, UART_LSR_OE, ch, flag);
+ 
+ ignore_char:
+@@ -1474,6 +1501,13 @@ static void transmit_chars(struct uart_8
+ 
+ 	count = up->tx_loadsz;
+ 	do {
++		/* first byte contain 9th bit for 9 bit mode */
++		if ((up->nmr  & UART_NMR_9BENB)  && (count > 1) ){
++			serial_out(up, UART_SCR, 0x01 & xmit->buf[xmit->tail]);
++			xmit->tail = (xmit->tail + 1) & (UART_XMIT_SIZE - 1);
++			if (uart_circ_empty(xmit))
++				break;
++		}
+ 		serial_out(up, UART_TX, xmit->buf[xmit->tail]);
+ 		xmit->tail = (xmit->tail + 1) & (UART_XMIT_SIZE - 1);
+ 		up->port.icount.tx++;
+@@ -1949,6 +1983,7 @@ static int serial8250_startup(struct uar
+ 	if (up->port.type == PORT_16C950) {
+ 		/* Wake up and initialize UART */
+ 		up->acr = 0;
++		up->nmr = 0;
+ 		serial_outp(up, UART_LCR, 0xBF);
+ 		serial_outp(up, UART_EFR, UART_EFR_ECB);
+ 		serial_outp(up, UART_IER, 0);
+@@ -2405,6 +2440,15 @@ serial8250_set_termios(struct uart_port 
+ 	/* Don't rewrite B0 */
+ 	if (tty_termios_baud_rate(termios))
+ 		tty_termios_encode_baud_rate(termios, baud, baud);
++
++	/*
++	 * 9-bit mode control flag on 16c950
++	 */
++	if (termios->c_cflag & CNBENB) {
++		up->nmr |= UART_NMR_9BENB;
++		serial_icr_write(up, UART_NMR, up->nmr);
++	}
++
  }
  
-+static void lcd_calc_clk_divider(struct da8xx_fb_par *par)
-+{
-+	unsigned int lcd_clk, div;
-+
-+	lcd_clk = clk_get_rate(par->lcdc_clk);
-+	div = lcd_clk / par->pxl_clk;
-+
-+	/* Configure the LCD clock divisor. */
-+	lcdc_write(LCD_CLK_DIVISOR(div) |
-+			(LCD_RASTER_MODE & 0x1), LCD_CTRL_REG);
-+}
-+
- static int lcd_init(struct da8xx_fb_par *par, const struct lcd_ctrl_config *cfg,
- 		struct da8xx_panel *panel)
- {
-@@ -459,9 +472,8 @@ static int lcd_init(struct da8xx_fb_par 
- 
- 	lcd_reset(par);
- 
--	/* Configure the LCD clock divisor. */
--	lcdc_write(LCD_CLK_DIVISOR(panel->pxl_clk) |
--			(LCD_RASTER_MODE & 0x1), LCD_CTRL_REG);
-+	/* Calculate the divider */
-+	lcd_calc_clk_divider(par);
- 
- 	if (panel->invert_pxl_clk)
- 		lcdc_write((lcdc_read(LCD_RASTER_TIMING_2_REG) |
-@@ -721,6 +733,8 @@ static int __init fb_probe(struct platfo
- 	}
- 
- 	par = da8xx_fb_info->par;
-+	par->lcdc_clk = fb_clk;
-+	par->pxl_clk = lcdc_info->pxl_clk;
- 
- 	if (lcd_init(par, lcd_cfg, lcdc_info) < 0) {
- 		dev_err(&device->dev, "lcd_init failed\n");
-@@ -754,8 +768,6 @@ static int __init fb_probe(struct platfo
- 	da8xx_fb_fix.smem_len = par->databuf_sz - par->palette_sz;
- 	da8xx_fb_fix.line_length = (lcdc_info->width * lcd_cfg->bpp) / 8;
- 
--	par->lcdc_clk = fb_clk;
+ static void
+_
+
+Patches currently in -mm which might be from jpinkasfeld@aldebaran-robotics.com are
+
+serial-add-configuration-c-flag-for-9-bit-mode.patch
+serial-16c950-add-preliminary-support-for-9-bit-receive-and-transmit.patch
+
