@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-usb-host-ehci-omapc-introduce-missing-kfree.patch added to -mm tree
-Date: Mon, 23 Nov 2009 15:39:45 -0800
-Message-ID: <200911232339.nANNdj1P020864@imap1.linux-foundation.org>
+Subject: + drivers-media-video-introduce-missing-kfree.patch added to -mm tree
+Date: Mon, 23 Nov 2009 15:39:37 -0800
+Message-ID: <200911232339.nANNdchd020571@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36963 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50894 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932130AbZKWXjm (ORCPT
+	by vger.kernel.org with ESMTP id S932071AbZKWXjo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Nov 2009 18:39:42 -0500
+	Mon, 23 Nov 2009 18:39:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, greg@kroah.com
+Cc: julia@diku.dk, mchehab@infradead.org
 
 
 The patch titled
-     drivers/usb/host/ehci-omap.c: introduce missing kfree
+     drivers/media/video: introduce missing kfree
 has been added to the -mm tree.  Its filename is
-     drivers-usb-host-ehci-omapc-introduce-missing-kfree.patch
+     drivers-media-video-introduce-missing-kfree.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,13 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/usb/host/ehci-omap.c: introduce missing kfree
+Subject: drivers/media/video: introduce missing kfree
 From: Julia Lawall <julia@diku.dk>
 
-Error handling code following a kzalloc should free the allocated data.
+Error handling code following a kzalloc should free the allocated data. 
+Similarly for usb-alloc urb.
 
-The semantic match that finds this problem is as follows:
+The semantic match that finds the first problem is as follows:
 (http://www.emn.fr/x-info/coccinelle/)
 
 // <smpl>
@@ -80,33 +81,45 @@ print "* file: %s kmalloc %s return %s" % (p1[0].file,p1[0].line,p2[0].line)
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Greg KH <greg@kroah.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/host/ehci-omap.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/media/video/hdpvr/hdpvr-video.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN drivers/usb/host/ehci-omap.c~drivers-usb-host-ehci-omapc-introduce-missing-kfree drivers/usb/host/ehci-omap.c
---- a/drivers/usb/host/ehci-omap.c~drivers-usb-host-ehci-omapc-introduce-missing-kfree
-+++ a/drivers/usb/host/ehci-omap.c
-@@ -558,7 +558,7 @@ static int ehci_hcd_omap_probe(struct pl
- 	omap = kzalloc(sizeof(*omap), GFP_KERNEL);
- 	if (!omap) {
- 		ret = -ENOMEM;
--		goto err_create_hcd;
-+		goto err_disabled;
+diff -puN drivers/media/video/hdpvr/hdpvr-video.c~drivers-media-video-introduce-missing-kfree drivers/media/video/hdpvr/hdpvr-video.c
+--- a/drivers/media/video/hdpvr/hdpvr-video.c~drivers-media-video-introduce-missing-kfree
++++ a/drivers/media/video/hdpvr/hdpvr-video.c
+@@ -139,7 +139,7 @@ int hdpvr_alloc_buffers(struct hdpvr_dev
+ 		urb = usb_alloc_urb(0, GFP_KERNEL);
+ 		if (!urb) {
+ 			v4l2_err(&dev->v4l2_dev, "cannot allocate urb\n");
+-			goto exit;
++			goto exit_urb;
+ 		}
+ 		buf->urb = urb;
+ 
+@@ -148,7 +148,7 @@ int hdpvr_alloc_buffers(struct hdpvr_dev
+ 		if (!mem) {
+ 			v4l2_err(&dev->v4l2_dev,
+ 				 "cannot allocate usb transfer buffer\n");
+-			goto exit;
++			goto exit_urb_buffer;
+ 		}
+ 
+ 		usb_fill_bulk_urb(buf->urb, dev->udev,
+@@ -161,6 +161,10 @@ int hdpvr_alloc_buffers(struct hdpvr_dev
+ 		list_add_tail(&buf->buff_list, &dev->free_buff_list);
  	}
- 
- 	hcd = usb_create_hcd(&ehci_omap_hc_driver, &pdev->dev,
-@@ -653,6 +653,7 @@ err_ioremap:
- 	usb_put_hcd(hcd);
- 
- err_create_hcd:
-+	kfree(omap);
- err_disabled:
- err_pdata:
- 	return ret;
+ 	return 0;
++exit_urb_buffer:
++	usb_free_urb(urb);
++exit_urb:
++	kfree(buf);
+ exit:
+ 	hdpvr_free_buffers(dev);
+ 	return retval;
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
