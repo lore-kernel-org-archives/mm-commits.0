@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sm501-implement-acceleration-features.patch added to -mm tree
-Date: Mon, 23 Nov 2009 12:41:13 -0800
-Message-ID: <200911232041.nANKfEh0010276@imap1.linux-foundation.org>
+Subject: + kexec-premit-reduction-of-the-reserved-memory-size.patch added to -mm tree
+Date: Mon, 23 Nov 2009 13:14:02 -0800
+Message-ID: <200911232114.nANLE2q0024920@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42909 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56742 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756935AbZKWUlQ (ORCPT
+	by vger.kernel.org with ESMTP id S1755098AbZKWVOW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Nov 2009 15:41:16 -0500
+	Mon, 23 Nov 2009 16:14:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vince@simtec.co.uk, ben@simtec.co.uk, krzysztof.h1@poczta.fm, linux@simtec.co.uk
+Cc: amwang@redhat.com, andi@firstfloor.org, ebiederm@xmission.com, nhorman@redhat.com
 
 
 The patch titled
-     sm501: implement acceleration features
+     kexec: premit reduction of the reserved memory size
 has been added to the -mm tree.  Its filename is
-     sm501-implement-acceleration-features.patch
+     kexec-premit-reduction-of-the-reserved-memory-size.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,384 +34,166 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sm501: implement acceleration features
-From: Vincent Sanders <vince@simtec.co.uk>
+Subject: kexec: premit reduction of the reserved memory size
+From: Amerigo Wang <amwang@redhat.com>
 
-This patch provides the acceleration entry points for the SM501
-framebuffer driver.
+Implement shrinking the reserved memory for crash kernel, if it is more
+than enough.
 
-This patch provides the sync, copyarea and fillrect entry points, using
-the SM501's 2D acceleration engine to perform the operations in-chip
-rather than across the bus.
+For example, if you have already reserved 128M, now you just want 100M,
+you can do:
 
-Signed-off-by: Ben Dooks <ben@simtec.co.uk>
-Signed-off-by: Simtec Linux Team <linux@simtec.co.uk>
-Signed-off-by: Vincent Sanders <vince@simtec.co.uk>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+# echo $((100*1024*1024)) > /sys/kernel/kexec_crash_size
+
+Note, you can only do this before loading the crash kernel.
+
+Signed-off-by: WANG Cong <amwang@redhat.com>
+Cc: Neil Horman <nhorman@redhat.com>
+Acked-by: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/sm501fb.c    |  237 +++++++++++++++++++++++++++++++++--
- include/linux/sm501-regs.h |    2 
- 2 files changed, 226 insertions(+), 13 deletions(-)
+ include/linux/kexec.h |    2 +
+ kernel/kexec.c        |   59 ++++++++++++++++++++++++++++++++++++++++
+ kernel/ksysfs.c       |   21 ++++++++++++++
+ 3 files changed, 82 insertions(+)
 
-diff -puN drivers/video/sm501fb.c~sm501-implement-acceleration-features drivers/video/sm501fb.c
---- a/drivers/video/sm501fb.c~sm501-implement-acceleration-features
-+++ a/drivers/video/sm501fb.c
-@@ -66,6 +66,7 @@ struct sm501fb_info {
- 	struct fb_info		*fb[2];		/* fb info for both heads */
- 	struct resource		*fbmem_res;	/* framebuffer resource */
- 	struct resource		*regs_res;	/* registers resource */
-+	struct resource		*regs2d_res;	/* 2d registers resource */
- 	struct sm501_platdata_fb *pdata;	/* our platform data */
+diff -puN include/linux/kexec.h~kexec-premit-reduction-of-the-reserved-memory-size include/linux/kexec.h
+--- a/include/linux/kexec.h~kexec-premit-reduction-of-the-reserved-memory-size
++++ a/include/linux/kexec.h
+@@ -206,6 +206,8 @@ extern size_t vmcoreinfo_max_size;
  
- 	unsigned long		 pm_crt_ctrl;	/* pm: crt ctrl save */
-@@ -73,6 +74,7 @@ struct sm501fb_info {
- 	int			 irq;
- 	int			 swap_endian;	/* set to swap rgb=>bgr */
- 	void __iomem		*regs;		/* remapped registers */
-+	void __iomem		*regs2d;	/* 2d remapped registers */
- 	void __iomem		*fbmem;		/* remapped framebuffer */
- 	size_t			 fbmem_len;	/* length of remapped region */
- };
-@@ -123,9 +125,9 @@ static inline void sm501fb_sync_regs(str
-  * This is an attempt to lay out memory for the two framebuffers and
-  * everything else
-  *
-- * |fbmem_res->start	                                       fbmem_res->end|
-- * |                                                                         |
-- * |fb[0].fix.smem_start    |         |fb[1].fix.smem_start    |     2K      |
-+ * |fbmem_res->start					       fbmem_res->end|
-+ * |									     |
-+ * |fb[0].fix.smem_start    |	      |fb[1].fix.smem_start    |     2K	     |
-  * |-> fb[0].fix.smem_len <-| spare   |-> fb[1].fix.smem_len <-|-> cursors <-|
-  *
-  * The "spare" space is for the 2d engine data
-@@ -1246,7 +1248,173 @@ static ssize_t sm501fb_debug_show_pnl(st
+ int __init parse_crashkernel(char *cmdline, unsigned long long system_ram,
+ 		unsigned long long *crash_size, unsigned long long *crash_base);
++int crash_shrink_memory(unsigned long new_size);
++size_t crash_get_memory_size(void);
  
- static DEVICE_ATTR(fbregs_pnl, 0444, sm501fb_debug_show_pnl, NULL);
+ #else /* !CONFIG_KEXEC */
+ struct pt_regs;
+diff -puN kernel/kexec.c~kexec-premit-reduction-of-the-reserved-memory-size kernel/kexec.c
+--- a/kernel/kexec.c~kexec-premit-reduction-of-the-reserved-memory-size
++++ a/kernel/kexec.c
+@@ -31,6 +31,7 @@
+ #include <linux/cpu.h>
+ #include <linux/console.h>
+ #include <linux/vmalloc.h>
++#include <linux/swap.h>
  
--/* framebuffer ops */
-+/* acceleration operations */
-+static int sm501fb_sync(struct fb_info *info)
-+{
-+	int count = 1000000;
-+	struct sm501fb_par  *par = info->par;
-+	struct sm501fb_info *fbi = par->info;
-+
-+	/* wait for the 2d engine to be ready */
-+	while ((count > 0) &&
-+	       (readl(fbi->regs + SM501_SYSTEM_CONTROL) &
-+		SM501_SYSCTRL_2D_ENGINE_STATUS) != 0)
-+		count--;
-+
-+	if (count <= 0) {
-+		dev_err(info->dev, "Timeout waiting for 2d engine sync\n");
-+		return 1;
-+	}
-+	return 0;
-+}
-+
-+static void sm501fb_copyarea(struct fb_info *info, const struct fb_copyarea *area)
-+{
-+	struct sm501fb_par  *par = info->par;
-+	struct sm501fb_info *fbi = par->info;
-+	int width = area->width;
-+	int height = area->height;
-+	int sx = area->sx;
-+	int sy = area->sy;
-+	int dx = area->dx;
-+	int dy = area->dy;
-+	unsigned long rtl = 0;
-+
-+	/* source clip */
-+	if ((sx >= info->var.xres_virtual) ||
-+	    (sy >= info->var.yres_virtual))
-+		/* source Area not within virtual screen, skipping */
-+		return;
-+	if ((sx + width) >= info->var.xres_virtual)
-+		width = info->var.xres_virtual - sx - 1;
-+	if ((sy + height) >= info->var.yres_virtual)
-+		height = info->var.yres_virtual - sy - 1;
-+
-+	/* dest clip */
-+	if ((dx >= info->var.xres_virtual) ||
-+	    (dy >= info->var.yres_virtual))
-+		/* Destination Area not within virtual screen, skipping */
-+		return;
-+	if ((dx + width) >= info->var.xres_virtual)
-+		width = info->var.xres_virtual - dx - 1;
-+	if ((dy + height) >= info->var.yres_virtual)
-+		height = info->var.yres_virtual - dy - 1;
-+
-+	if ((sx < dx) || (sy < dy)) {
-+		rtl = 1 << 27;
-+		sx += width - 1;
-+		dx += width - 1;
-+		sy += height - 1;
-+		dy += height - 1;
-+	}
-+
-+	if (sm501fb_sync(info))
-+		return;
-+
-+	/* set the base addresses */
-+	writel(par->screen.sm_addr, fbi->regs2d + SM501_2D_SOURCE_BASE);
-+	writel(par->screen.sm_addr, fbi->regs2d + SM501_2D_DESTINATION_BASE);
-+
-+	/* set the window width */
-+	writel((info->var.xres << 16) | info->var.xres,
-+	       fbi->regs2d + SM501_2D_WINDOW_WIDTH);
-+
-+	/* set window stride */
-+	writel((info->var.xres_virtual << 16) | info->var.xres_virtual,
-+	       fbi->regs2d + SM501_2D_PITCH);
-+
-+	/* set data format */
-+	switch (info->var.bits_per_pixel) {
-+	case 8:
-+		writel(0, fbi->regs2d + SM501_2D_STRETCH);
-+		break;
-+	case 16:
-+		writel(0x00100000, fbi->regs2d + SM501_2D_STRETCH);
-+		break;
-+	case 32:
-+		writel(0x00200000, fbi->regs2d + SM501_2D_STRETCH);
-+		break;
-+	}
-+
-+	/* 2d compare mask */
-+	writel(0xffffffff, fbi->regs2d + SM501_2D_COLOR_COMPARE_MASK);
-+
-+	/* 2d mask */
-+	writel(0xffffffff, fbi->regs2d + SM501_2D_MASK);
-+
-+	/* source and destination x y */
-+	writel((sx << 16) | sy, fbi->regs2d + SM501_2D_SOURCE);
-+	writel((dx << 16) | dy, fbi->regs2d + SM501_2D_DESTINATION);
-+
-+	/* w/h */
-+	writel((width << 16) | height, fbi->regs2d + SM501_2D_DIMENSION);
-+
-+	/* do area move */
-+	writel(0x800000cc | rtl, fbi->regs2d + SM501_2D_CONTROL);
-+}
-+
-+static void sm501fb_fillrect(struct fb_info *info, const struct fb_fillrect *rect)
-+{
-+	struct sm501fb_par  *par = info->par;
-+	struct sm501fb_info *fbi = par->info;
-+	int width = rect->width, height = rect->height;
-+
-+	if ((rect->dx >= info->var.xres_virtual) ||
-+	    (rect->dy >= info->var.yres_virtual))
-+		/* Rectangle not within virtual screen, skipping */
-+		return;
-+	if ((rect->dx + width) >= info->var.xres_virtual)
-+		width = info->var.xres_virtual - rect->dx - 1;
-+	if ((rect->dy + height) >= info->var.yres_virtual)
-+		height = info->var.yres_virtual - rect->dy - 1;
-+
-+	if (sm501fb_sync(info))
-+		return;
-+
-+	/* set the base addresses */
-+	writel(par->screen.sm_addr, fbi->regs2d + SM501_2D_SOURCE_BASE);
-+	writel(par->screen.sm_addr, fbi->regs2d + SM501_2D_DESTINATION_BASE);
-+
-+	/* set the window width */
-+	writel((info->var.xres << 16) | info->var.xres,
-+	       fbi->regs2d + SM501_2D_WINDOW_WIDTH);
-+
-+	/* set window stride */
-+	writel((info->var.xres_virtual << 16) | info->var.xres_virtual,
-+	       fbi->regs2d + SM501_2D_PITCH);
-+
-+	/* set data format */
-+	switch (info->var.bits_per_pixel) {
-+	case 8:
-+		writel(0, fbi->regs2d + SM501_2D_STRETCH);
-+		break;
-+	case 16:
-+		writel(0x00100000, fbi->regs2d + SM501_2D_STRETCH);
-+		break;
-+	case 32:
-+		writel(0x00200000, fbi->regs2d + SM501_2D_STRETCH);
-+		break;
-+	}
-+
-+	/* 2d compare mask */
-+	writel(0xffffffff, fbi->regs2d + SM501_2D_COLOR_COMPARE_MASK);
-+
-+	/* 2d mask */
-+	writel(0xffffffff, fbi->regs2d + SM501_2D_MASK);
-+
-+	/* colour */
-+	writel(rect->color, fbi->regs2d + SM501_2D_FOREGROUND);
-+
-+	/* x y */
-+	writel((rect->dx << 16) | rect->dy, fbi->regs2d + SM501_2D_DESTINATION);
-+
-+	/* w/h */
-+	writel((width << 16) | height, fbi->regs2d + SM501_2D_DIMENSION);
-+
-+	/* do rectangle fill */
-+	writel(0x800100cc, fbi->regs2d + SM501_2D_CONTROL);
-+}
-+
- 
- static struct fb_ops sm501fb_ops_crt = {
- 	.owner		= THIS_MODULE,
-@@ -1256,9 +1424,10 @@ static struct fb_ops sm501fb_ops_crt = {
- 	.fb_setcolreg	= sm501fb_setcolreg,
- 	.fb_pan_display	= sm501fb_pan_crt,
- 	.fb_cursor	= sm501fb_cursor,
--	.fb_fillrect	= cfb_fillrect,
--	.fb_copyarea	= cfb_copyarea,
-+	.fb_fillrect	= sm501fb_fillrect,
-+	.fb_copyarea	= sm501fb_copyarea,
- 	.fb_imageblit	= cfb_imageblit,
-+	.fb_sync	= sm501fb_sync,
- };
- 
- static struct fb_ops sm501fb_ops_pnl = {
-@@ -1269,9 +1438,10 @@ static struct fb_ops sm501fb_ops_pnl = {
- 	.fb_blank	= sm501fb_blank_pnl,
- 	.fb_setcolreg	= sm501fb_setcolreg,
- 	.fb_cursor	= sm501fb_cursor,
--	.fb_fillrect	= cfb_fillrect,
--	.fb_copyarea	= cfb_copyarea,
-+	.fb_fillrect	= sm501fb_fillrect,
-+	.fb_copyarea	= sm501fb_copyarea,
- 	.fb_imageblit	= cfb_imageblit,
-+	.fb_sync	= sm501fb_sync,
- };
- 
- /* sm501_init_cursor
-@@ -1329,7 +1499,8 @@ static int sm501fb_start(struct sm501fb_
- 		dev_warn(dev, "no irq for device\n");
+ #include <asm/page.h>
+ #include <asm/uaccess.h>
+@@ -1082,6 +1083,64 @@ void crash_kexec(struct pt_regs *regs)
  	}
+ }
  
--	/* allocate, reserve and remap resources for registers */
-+	/* allocate, reserve and remap resources for display
-+	 * controller registers */
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (res == NULL) {
- 		dev_err(dev, "no resource definition for registers\n");
-@@ -1354,12 +1525,38 @@ static int sm501fb_start(struct sm501fb_
- 		goto err_regs_res;
- 	}
- 
-+	/* allocate, reserve and remap resources for 2d
-+	 * controller registers */
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-+	if (res == NULL) {
-+		dev_err(dev, "no resource definition for 2d registers\n");
++size_t crash_get_memory_size(void)
++{
++	size_t size;
++	mutex_lock(&kexec_mutex);
++	size = crashk_res.end - crashk_res.start + 1;
++	mutex_unlock(&kexec_mutex);
++	return size;
++}
++
++static void free_reserved_phys_range(unsigned long begin, unsigned long end)
++{
++	unsigned long addr;
++
++	for (addr = begin; addr < end; addr += PAGE_SIZE) {
++		ClearPageReserved(pfn_to_page(addr >> PAGE_SHIFT));
++		init_page_count(pfn_to_page(addr >> PAGE_SHIFT));
++		free_page((unsigned long)__va(addr));
++		totalram_pages++;
++	}
++}
++
++int crash_shrink_memory(unsigned long new_size)
++{
++	int ret = 0;
++	unsigned long start, end;
++
++	mutex_lock(&kexec_mutex);
++
++	if (kexec_crash_image) {
 +		ret = -ENOENT;
-+		goto err_regs_map;
++		goto unlock;
++	}
++	start = crashk_res.start;
++	end = crashk_res.end;
++
++	if (new_size >= end - start + 1) {
++		ret = -EINVAL;
++		if (new_size == end - start + 1)
++			ret = 0;
++		goto unlock;
 +	}
 +
-+	info->regs2d_res = request_mem_region(res->start,
-+					      resource_size(res),
-+					      pdev->name);
++	start = roundup(start, PAGE_SIZE);
++	end = roundup(start + new_size, PAGE_SIZE);
 +
-+	if (info->regs2d_res == NULL) {
-+		dev_err(dev, "cannot claim registers\n");
-+		ret = -ENXIO;
-+		goto err_regs_map;
-+	}
++	free_reserved_phys_range(end, crashk_res.end);
 +
-+	info->regs2d = ioremap(res->start, resource_size(res));
-+	if (info->regs2d == NULL) {
-+		dev_err(dev, "cannot remap registers\n");
-+		ret = -ENXIO;
-+		goto err_regs2d_res;
-+	}
++	if (start == end) {
++		crashk_res.end = end;
++		release_resource(&crashk_res);
++	} else
++		crashk_res.end = end - 1;
 +
- 	/* allocate, reserve resources for framebuffer */
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 2);
- 	if (res == NULL) {
- 		dev_err(dev, "no memory resource defined\n");
- 		ret = -ENXIO;
--		goto err_regs_map;
-+		goto err_regs2d_map;
- 	}
- 
- 	info->fbmem_res = request_mem_region(res->start,
-@@ -1368,7 +1565,7 @@ static int sm501fb_start(struct sm501fb_
- 	if (info->fbmem_res == NULL) {
- 		dev_err(dev, "cannot claim framebuffer\n");
- 		ret = -ENXIO;
--		goto err_regs_map;
-+		goto err_regs2d_map;
- 	}
- 
- 	info->fbmem = ioremap(res->start, resource_size(res));
-@@ -1389,8 +1586,10 @@ static int sm501fb_start(struct sm501fb_
- 	/* enable display controller */
- 	sm501_unit_power(dev->parent, SM501_GATE_DISPLAY, 1);
- 
--	/* setup cursors */
-+	/* enable 2d controller */
-+	sm501_unit_power(dev->parent, SM501_GATE_2D_ENGINE, 1);
- 
-+	/* setup cursors */
- 	sm501_init_cursor(info->fb[HEAD_CRT], SM501_DC_CRT_HWC_ADDR);
- 	sm501_init_cursor(info->fb[HEAD_PANEL], SM501_DC_PANEL_HWC_ADDR);
- 
-@@ -1400,6 +1599,13 @@ static int sm501fb_start(struct sm501fb_
- 	release_resource(info->fbmem_res);
- 	kfree(info->fbmem_res);
- 
-+ err_regs2d_map:
-+	iounmap(info->regs2d);
++unlock:
++	mutex_unlock(&kexec_mutex);
++	return ret;
++}
 +
-+ err_regs2d_res:
-+	release_resource(info->regs2d_res);
-+	kfree(info->regs2d_res);
+ static u32 *append_elf_note(u32 *buf, char *name, unsigned type, void *data,
+ 			    size_t data_len)
+ {
+diff -puN kernel/ksysfs.c~kexec-premit-reduction-of-the-reserved-memory-size kernel/ksysfs.c
+--- a/kernel/ksysfs.c~kexec-premit-reduction-of-the-reserved-memory-size
++++ a/kernel/ksysfs.c
+@@ -100,6 +100,26 @@ static ssize_t kexec_crash_loaded_show(s
+ }
+ KERNEL_ATTR_RO(kexec_crash_loaded);
+ 
++static ssize_t kexec_crash_size_show(struct kobject *kobj,
++				       struct kobj_attribute *attr, char *buf)
++{
++	return sprintf(buf, "%lu\n", crash_get_memory_size());
++}
++static ssize_t kexec_crash_size_store(struct kobject *kobj,
++				   struct kobj_attribute *attr,
++				   const char *buf, size_t count)
++{
++	unsigned long cnt;
++	int ret;
 +
-  err_regs_map:
- 	iounmap(info->regs);
- 
-@@ -1420,6 +1626,10 @@ static void sm501fb_stop(struct sm501fb_
- 	release_resource(info->fbmem_res);
- 	kfree(info->fbmem_res);
- 
-+	iounmap(info->regs2d);
-+	release_resource(info->regs2d_res);
-+	kfree(info->regs2d_res);
++	if (strict_strtoul(buf, 0, &cnt))
++		return -EINVAL;
 +
- 	iounmap(info->regs);
- 	release_resource(info->regs_res);
- 	kfree(info->regs_res);
-@@ -1486,7 +1696,8 @@ static int sm501fb_init_fb(struct fb_inf
- 		par->ops.fb_cursor = NULL;
- 
- 	fb->fbops = &par->ops;
--	fb->flags = FBINFO_FLAG_DEFAULT |
-+	fb->flags = FBINFO_FLAG_DEFAULT | FBINFO_READS_FAST |
-+		FBINFO_HWACCEL_COPYAREA | FBINFO_HWACCEL_FILLRECT |
- 		FBINFO_HWACCEL_XPAN | FBINFO_HWACCEL_YPAN;
- 
- 	/* fixed data */
-diff -puN include/linux/sm501-regs.h~sm501-implement-acceleration-features include/linux/sm501-regs.h
---- a/include/linux/sm501-regs.h~sm501-implement-acceleration-features
-+++ a/include/linux/sm501-regs.h
-@@ -31,6 +31,8 @@
- #define SM501_SYSCTRL_PCI_SUBSYS_LOCK	(1<<11)
- #define SM501_SYSCTRL_PCI_BURST_READ_EN	(1<<15)
- 
-+#define SM501_SYSCTRL_2D_ENGINE_STATUS	(1<<19)
++	ret = crash_shrink_memory(cnt);
++	return ret < 0 ? ret : count;
++}
++KERNEL_ATTR_RW(kexec_crash_size);
 +
- /* miscellaneous control */
- 
- #define SM501_MISC_CONTROL		(0x000004)
+ static ssize_t vmcoreinfo_show(struct kobject *kobj,
+ 			       struct kobj_attribute *attr, char *buf)
+ {
+@@ -147,6 +167,7 @@ static struct attribute * kernel_attrs[]
+ #ifdef CONFIG_KEXEC
+ 	&kexec_loaded_attr.attr,
+ 	&kexec_crash_loaded_attr.attr,
++	&kexec_crash_size_attr.attr,
+ 	&vmcoreinfo_attr.attr,
+ #endif
+ 	NULL
 _
 
-Patches currently in -mm which might be from vince@simtec.co.uk are
+Patches currently in -mm which might be from amwang@redhat.com are
 
 linux-next.patch
-sm501-fix-missing-uses-of-resource_size.patch
-sm501-fix-use-of-old-asm-ioh-instead-of-linux-ioh.patch
-sm501-implement-acceleration-features.patch
+xtensa-use-generic-sys_pipe.patch
+rwsem-spinlock-remove-useless-function-exports.patch
+rwsem-fix-rwsem_is_locked-bugs.patch
+rwsem-fix-rwsem_is_locked-bugs-fix.patch
+kallsyms-remove-deprecated-print_fn_descriptor_symbol.patch
+kexec-premit-reduction-of-the-reserved-memory-size.patch
 
