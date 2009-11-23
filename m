@@ -1,149 +1,180 @@
 From: akpm@linux-foundation.org
-Subject: + mtd-nand-fix-multi-chip-suspend-problem-fix.patch added to -mm tree
-Date: Mon, 23 Nov 2009 12:23:45 -0800
-Message-ID: <200911232023.nANKNji5000312@imap1.linux-foundation.org>
+Subject: [nacked] mtdpart-memory-accessor-interface-for-mtd-layer.patch removed from -mm tree
+Date: Mon, 23 Nov 2009 12:24:22 -0800
+Message-ID: <200911232024.nANKOMjB001891@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42287 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57747 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756130AbZKWUYW (ORCPT
+	by vger.kernel.org with ESMTP id S1756222AbZKWUY5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Nov 2009 15:24:22 -0500
+	Mon, 23 Nov 2009 15:24:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, b24347@freescale.com, dedekind1@gmail.com, dwmw2@infradead.org, leoli@freescale.com
+To: sudhakar.raj@ti.com, david-b@pacbell.net, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mtd-nand-fix-multi-chip-suspend-problem-fix
-has been added to the -mm tree.  Its filename is
-     mtd-nand-fix-multi-chip-suspend-problem-fix.patch
+     mtdpart: memory accessor interface for MTD layer
+has been removed from the -mm tree.  Its filename was
+     mtdpart-memory-accessor-interface-for-mtd-layer.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was nacked
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd-nand-fix-multi-chip-suspend-problem-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mtdpart: memory accessor interface for MTD layer
+From: Sudhakar Rajashekhara <sudhakar.raj@ti.com>
 
-drivers/mtd/nand/nand_base.c: In function \u2018nand_get_device\u2019:
-drivers/mtd/nand/nand_base.c:700: warning: suggest explicit braces to
-avoid ambiguous \u2018else\u2019
+Implement memory accessor interface in the MTD layer which enables the
+kernel to access flash data.
 
-Cc: Artem Bityutskiy <dedekind1@gmail.com>
+This patch adds two new members to the mtd_partition structure, a function
+handler which will be called during setup of the partition and an argument
+to be passed to this setup function.
+
+Example:
++static struct mtd_partition spi_flash_partitions[] = {
++       [0] = {
++               .name       = "U-Boot",
++               .offset     = 0,
++               .size       = SZ_256K,
++               .mask_flags = MTD_WRITEABLE,
++       },
++       [1] = {
++               .name       = "U-Boot Environment",
++               .offset     = MTDPART_OFS_NXTBLK,
++               .size       = SZ_64K,
++               .mask_flags = MTD_WRITEABLE,
++       },
++       [2] = {
++               .name       = "Linux",
++               .offset     = MTDPART_OFS_NXTBLK,
++               .size       = SZ_7M,
++               .mask_flags = 0,
++       },
++       [3] = {
++               .name       = "MAC Address",
++               .offset     = MTDPART_OFS_NXTBLK,
++               .size       = SZ_64K,
++               .mask_flags = 0,
++               .setup      = davinci_get_mac_addr,
++               .context    = (void *)0,
++       },
++};
+
+The davinci_get_mac_addr function reads the MAC address from
+offset ZERO of last MTD partition.
+
+Signed-off-by: Sudhakar Rajashekhara <sudhakar.raj@ti.com>
+Cc: David Brownell <david-b@pacbell.net>
 Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Jin Qing <b24347@freescale.com>
-Cc: Li Yang <leoli@freescale.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/nand/nand_base.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/mtd/mtdpart.c          |   40 +++++++++++++++++++++++++++++++
+ include/linux/mtd/partitions.h |    3 ++
+ 2 files changed, 43 insertions(+)
 
-diff -puN drivers/mtd/nand/nand_base.c~mtd-nand-fix-multi-chip-suspend-problem-fix drivers/mtd/nand/nand_base.c
---- a/drivers/mtd/nand/nand_base.c~mtd-nand-fix-multi-chip-suspend-problem-fix
-+++ a/drivers/mtd/nand/nand_base.c
-@@ -697,7 +697,7 @@ nand_get_device(struct nand_chip *chip, 
- 		spin_unlock(lock);
- 		return 0;
- 	}
--	if (new_state == FL_PM_SUSPENDED)
-+	if (new_state == FL_PM_SUSPENDED) {
- 		if (chip->controller->active->state == FL_PM_SUSPENDED) {
- 			chip->state = FL_PM_SUSPENDED;
- 			spin_unlock(lock);
-@@ -706,7 +706,7 @@ nand_get_device(struct nand_chip *chip, 
- 			spin_unlock(lock);
- 			return -EAGAIN;
- 		}
--
-+	}
- 	set_current_state(TASK_UNINTERRUPTIBLE);
- 	add_wait_queue(wq, &wait);
- 	spin_unlock(lock);
+diff -puN drivers/mtd/mtdpart.c~mtdpart-memory-accessor-interface-for-mtd-layer drivers/mtd/mtdpart.c
+--- a/drivers/mtd/mtdpart.c~mtdpart-memory-accessor-interface-for-mtd-layer
++++ a/drivers/mtd/mtdpart.c
+@@ -26,6 +26,7 @@ static LIST_HEAD(mtd_partitions);
+ struct mtd_part {
+ 	struct mtd_info mtd;
+ 	struct mtd_info *master;
++	struct memory_accessor macc;
+ 	uint64_t offset;
+ 	struct list_head list;
+ };
+@@ -327,6 +328,39 @@ int del_mtd_partitions(struct mtd_info *
+ }
+ EXPORT_SYMBOL(del_mtd_partitions);
+ 
++/*
++ * This lets other kernel code access the flash data. For example, it
++ * might hold a board's Ethernet address, or board-specific calibration
++ * data generated on the manufacturing floor.
++ */
++static ssize_t mtd_macc_read(struct memory_accessor *macc, char *buf,
++			off_t offset, size_t count)
++{
++	struct mtd_part *part = container_of(macc, struct mtd_part, macc);
++	ssize_t ret = -EIO;
++	size_t retlen;
++
++	if (part_read((struct mtd_info *)part, offset, count,
++			&retlen, buf) == 0)
++		ret = retlen;
++
++	return ret;
++}
++
++static ssize_t mtd_macc_write(struct memory_accessor *macc, const char *buf,
++			off_t offset, size_t count)
++{
++	struct mtd_part *part = container_of(macc, struct mtd_part, macc);
++	ssize_t ret = -EIO;
++	size_t retlen;
++
++	if (part_write((struct mtd_info *)part, offset, count,
++			&retlen, buf) == 0)
++		ret = retlen;
++
++	return ret;
++}
++
+ static struct mtd_part *add_one_partition(struct mtd_info *master,
+ 		const struct mtd_partition *part, int partno,
+ 		uint64_t cur_offset)
+@@ -364,6 +398,9 @@ static struct mtd_part *add_one_partitio
+ 	slave->mtd.read = part_read;
+ 	slave->mtd.write = part_write;
+ 
++	slave->macc.read = mtd_macc_read;
++	slave->macc.write = mtd_macc_write;
++
+ 	if (master->panic_write)
+ 		slave->mtd.panic_write = part_panic_write;
+ 
+@@ -428,6 +465,9 @@ static struct mtd_part *add_one_partitio
+ 	printk(KERN_NOTICE "0x%012llx-0x%012llx : \"%s\"\n", (unsigned long long)slave->offset,
+ 		(unsigned long long)(slave->offset + slave->mtd.size), slave->mtd.name);
+ 
++	if (part->setup)
++		part->setup(&slave->macc, (void *)part->context);
++
+ 	/* let's do some sanity checks */
+ 	if (slave->offset >= master->size) {
+ 		/* let's register it anyway to preserve ordering */
+diff -puN include/linux/mtd/partitions.h~mtdpart-memory-accessor-interface-for-mtd-layer include/linux/mtd/partitions.h
+--- a/include/linux/mtd/partitions.h~mtdpart-memory-accessor-interface-for-mtd-layer
++++ a/include/linux/mtd/partitions.h
+@@ -10,6 +10,7 @@
+ #define MTD_PARTITIONS_H
+ 
+ #include <linux/types.h>
++#include <linux/memory.h>
+ 
+ 
+ /*
+@@ -40,6 +41,8 @@ struct mtd_partition {
+ 	uint64_t offset;		/* offset within the master MTD space */
+ 	uint32_t mask_flags;		/* master MTD flags to mask out for this partition */
+ 	struct nand_ecclayout *ecclayout;	/* out of band layout for this partition (NAND only)*/
++	void (*setup)(struct memory_accessor *, void *context);
++	void *context;
+ };
+ 
+ #define MTDPART_OFS_NXTBLK	(-2)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from sudhakar.raj@ti.com are
 
-drivers-media-dvb-dvb-core-dvb_frontendc-needs-semaphoreh.patch
+davinci-fb-fix-frame-buffer-driver-issues.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-recordmcount-stfu.patch
-include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
-drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-acpi-remove-nid_inval.patch
-drivers-acpi-acpi_padc-squish-warning.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices-checkpatch-fixes.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-kbuild-generate-modulesbuiltin-fix-2-checkpatch-fixes.patch
-drivers-leds-leds-ss4200c-fix-return-statement.patch
-mtd-nand-fix-multi-chip-suspend-problem-fix.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
-st-fix-test-of-value-range-in-st_set_options.patch
-scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-readahead-add-blk_run_backing_dev.patch
-mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
-oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
-oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes.patch
-mm-mlocking-in-try_to_unmap_one-fix-fix.patch
-mm-memory_hotplug-make-offline_pages-static.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup.patch
-floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
-drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
-rwsem-fix-rwsem_is_locked-bugs-fix.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
-errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
-msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes.patch
-crc32-minor-optimizations-and-cleanup-checkpatch-fixes.patch
-hwmon-w83627ehf-updates-checkpatch-fixes.patch
-spi-controller-driver-for-designware-spi-core-fix.patch
-spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3.patch
-ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
-memcg-coalesce-charging-via-percpu-storage-fix.patch
-char-cyclades-fix-compiler-warning.patch
-aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
-direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
-zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-reiser4-disable.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+mtd-nand-davinci-correct-4-bit-error-correction.patch
+mtdpart-memory-accessor-interface-for-mtd-layer.patch
+davinci-mmc-modify-data-types-of-edma-related-variables.patch
 
