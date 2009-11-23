@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + v4l-dvb-mxl5007tc-fix-test-in-copy_reg_bits.patch added to -mm tree
-Date: Mon, 23 Nov 2009 15:13:10 -0800
-Message-ID: <200911232313.nANNDAdA021208@imap1.linux-foundation.org>
+Subject: + thinkpad-acpi-fix-sign-of-erestartsys-return.patch added to -mm tree
+Date: Mon, 23 Nov 2009 15:17:47 -0800
+Message-ID: <200911232317.nANNHl7l032433@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37105 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45671 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756786AbZKWXOf (ORCPT
+	by vger.kernel.org with ESMTP id S1755883AbZKWXS0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Nov 2009 18:14:35 -0500
+	Mon, 23 Nov 2009 18:18:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, mchehab@infradead.org, mkrufky@linuxtv.org, stable@kernel.org
+Cc: roel.kluin@gmail.com, hmh@hmh.eng.br, lenb@kernel.org, stable@kernel.org
 
 
 The patch titled
-     v4l/dvb: mxl5007t.c: fix test in copy_reg_bits()
+     thinkpad-acpi: fix sign of ERESTARTSYS return
 has been added to the -mm tree.  Its filename is
-     v4l-dvb-mxl5007tc-fix-test-in-copy_reg_bits.patch
+     thinkpad-acpi-fix-sign-of-erestartsys-return.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: v4l/dvb: mxl5007t.c: fix test in copy_reg_bits()
+Subject: thinkpad-acpi: fix sign of ERESTARTSYS return
 From: Roel Kluin <roel.kluin@gmail.com>
 
-The reg_pair2[j].reg was tested twice.
+The returned error should be negative.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Acked-by: Michael Krufky <mkrufky@linuxtv.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Acked-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Len Brown <lenb@kernel.org>
 Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/common/tuners/mxl5007t.c |    2 +-
+ drivers/platform/x86/thinkpad_acpi.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/media/common/tuners/mxl5007t.c~v4l-dvb-mxl5007tc-fix-test-in-copy_reg_bits drivers/media/common/tuners/mxl5007t.c
---- a/drivers/media/common/tuners/mxl5007t.c~v4l-dvb-mxl5007tc-fix-test-in-copy_reg_bits
-+++ a/drivers/media/common/tuners/mxl5007t.c
-@@ -196,7 +196,7 @@ static void copy_reg_bits(struct reg_pai
- 	i = j = 0;
+diff -puN drivers/platform/x86/thinkpad_acpi.c~thinkpad-acpi-fix-sign-of-erestartsys-return drivers/platform/x86/thinkpad_acpi.c
+--- a/drivers/platform/x86/thinkpad_acpi.c~thinkpad-acpi-fix-sign-of-erestartsys-return
++++ a/drivers/platform/x86/thinkpad_acpi.c
+@@ -6325,7 +6325,7 @@ static int brightness_write(char *buf)
+ 	 * Doing it this way makes the syscall restartable in case of EINTR
+ 	 */
+ 	rc = brightness_set(level);
+-	return (rc == -EINTR)? ERESTARTSYS : rc;
++	return (rc == -EINTR) ? -ERESTARTSYS : rc;
+ }
  
- 	while (reg_pair1[i].reg || reg_pair1[i].val) {
--		while (reg_pair2[j].reg || reg_pair2[j].reg) {
-+		while (reg_pair2[j].reg || reg_pair2[j].val) {
- 			if (reg_pair1[i].reg != reg_pair2[j].reg) {
- 				j++;
- 				continue;
+ static struct ibm_struct brightness_driver_data = {
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
 
+thinkpad-acpi-fix-sign-of-erestartsys-return.patch
 linux-next.patch
 v4l-dvb-mxl5007tc-fix-test-in-copy_reg_bits.patch
 fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch
