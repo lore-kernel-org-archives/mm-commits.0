@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] serial-add-configuration-c-flag-for-9-bit-mode.patch removed from -mm tree
-Date: Mon, 23 Nov 2009 14:24:27 -0800
-Message-ID: <200911232224.nANMORh9000703@imap1.linux-foundation.org>
+Subject: [nacked] serial-16c950-add-preliminary-support-for-9-bit-receive-and-transmit.patch removed from -mm tree
+Date: Mon, 23 Nov 2009 14:24:30 -0800
+Message-ID: <200911232224.nANMOUgX000844@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38082 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51536 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757370AbZKWWYe (ORCPT
+	by vger.kernel.org with ESMTP id S1757378AbZKWWYe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 23 Nov 2009 17:24:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,19 +15,20 @@ To: jpinkasfeld@aldebaran-robotics.com, alan@lxorguk.ukuu.org.uk, greg@kroah.com
 
 
 The patch titled
-     serial: add configuration c-flag for 9-bit mode
+     serial 16c950: add preliminary support for 9-bit receive and transmit
 has been removed from the -mm tree.  Its filename was
-     serial-add-configuration-c-flag-for-9-bit-mode.patch
+     serial-16c950-add-preliminary-support-for-9-bit-receive-and-transmit.patch
 
 This patch was dropped because it was nacked
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial: add configuration c-flag for 9-bit mode
+Subject: serial 16c950: add preliminary support for 9-bit receive and transmit
 From: Joseph Pinkasfeld <jpinkasfeld@aldebaran-robotics.com>
 
-Add 9-bit bit mode configuration registers for 16C950.  Tested on OXPCIe954.
+2 bytes must be written or read for transmiting or receiving 9-bit data
+first byte LSB is ninth bit, second byte is normal data.
 
 Signed-off-by: pinkasfeld joseph <jpinkasfeld@aldebaran-robotics.com>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
@@ -35,219 +36,139 @@ Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/termbits.h     |    1 +
- arch/avr32/include/asm/termbits.h   |    1 +
- arch/cris/include/asm/termbits.h    |    1 +
- arch/frv/include/asm/termbits.h     |    1 +
- arch/h8300/include/asm/termbits.h   |    1 +
- arch/ia64/include/asm/termbits.h    |    1 +
- arch/m32r/include/asm/termbits.h    |    1 +
- arch/m68k/include/asm/termbits.h    |    1 +
- arch/mips/include/asm/termbits.h    |    1 +
- arch/mn10300/include/asm/termbits.h |    1 +
- arch/parisc/include/asm/termbits.h  |    1 +
- arch/powerpc/include/asm/termbits.h |    1 +
- arch/sparc/include/asm/termbits.h   |    1 +
- arch/xtensa/include/asm/termbits.h  |    1 +
- drivers/serial/serial_core.c        |    2 ++
- include/asm-generic/termbits.h      |    1 +
- include/linux/serial_reg.h          |    9 ++++++++-
- 17 files changed, 25 insertions(+), 1 deletion(-)
+ drivers/serial/8250.c |   54 ++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 49 insertions(+), 5 deletions(-)
 
-diff -puN arch/arm/include/asm/termbits.h~serial-add-configuration-c-flag-for-9-bit-mode arch/arm/include/asm/termbits.h
---- a/arch/arm/include/asm/termbits.h~serial-add-configuration-c-flag-for-9-bit-mode
-+++ a/arch/arm/include/asm/termbits.h
-@@ -155,6 +155,7 @@ struct ktermios {
- #define  B3000000 0010015
- #define  B3500000 0010016
- #define  B4000000 0010017
-+#define CNBENB    001000000000 /* 9 bit enable */
- #define CIBAUD	  002003600000		/* input baud rate */
- #define CMSPAR    010000000000		/* mark or space (stick) parity */
- #define CRTSCTS	  020000000000		/* flow control */
-diff -puN arch/avr32/include/asm/termbits.h~serial-add-configuration-c-flag-for-9-bit-mode arch/avr32/include/asm/termbits.h
---- a/arch/avr32/include/asm/termbits.h~serial-add-configuration-c-flag-for-9-bit-mode
-+++ a/arch/avr32/include/asm/termbits.h
-@@ -155,6 +155,7 @@ struct ktermios {
- #define  B3000000 0010015
- #define  B3500000 0010016
- #define  B4000000 0010017
-+#define CNBENB    001000000000 /* 9 bit enable */
- #define CIBAUD	  002003600000	/* input baud rate (not used) */
- #define CMSPAR	  010000000000		/* mark or space (stick) parity */
- #define CRTSCTS	  020000000000		/* flow control */
-diff -puN arch/cris/include/asm/termbits.h~serial-add-configuration-c-flag-for-9-bit-mode arch/cris/include/asm/termbits.h
---- a/arch/cris/include/asm/termbits.h~serial-add-configuration-c-flag-for-9-bit-mode
-+++ a/arch/cris/include/asm/termbits.h
-@@ -195,6 +195,7 @@ struct ktermios {
-  * shifted left IBSHIFT bits.
-  */
- #define IBSHIFT   16
-+#define CNBENB    001000000000 /* 9 bit enable */
- #define CMSPAR    010000000000 /* mark or space (stick) parity - PARODD=space*/
- #define CRTSCTS	  020000000000		/* flow control */
+diff -puN drivers/serial/8250.c~serial-16c950-add-preliminary-support-for-9-bit-receive-and-transmit drivers/serial/8250.c
+--- a/drivers/serial/8250.c~serial-16c950-add-preliminary-support-for-9-bit-receive-and-transmit
++++ a/drivers/serial/8250.c
+@@ -137,6 +137,7 @@ struct uart_8250_port {
+ 	unsigned short		bugs;		/* port bugs */
+ 	unsigned int		tx_loadsz;	/* transmit fifo load size */
+ 	unsigned char		acr;
++	unsigned char		nmr;
+ 	unsigned char		ier;
+ 	unsigned char		lcr;
+ 	unsigned char		mcr;
+@@ -838,6 +839,7 @@ static void autoconfig_has_efr(struct ua
+ 	 * recommended for new designs).
+ 	 */
+ 	up->acr = 0;
++	up->nmr = 0;
+ 	serial_out(up, UART_LCR, 0xBF);
+ 	serial_out(up, UART_EFR, UART_EFR_ECB);
+ 	serial_out(up, UART_LCR, 0x00);
+@@ -1380,8 +1382,8 @@ static void
+ receive_chars(struct uart_8250_port *up, unsigned int *status)
+ {
+ 	struct tty_struct *tty = up->port.state->port.tty;
+-	unsigned char ch, lsr = *status;
+-	int max_count = 256;
++	unsigned char ch, ch9, lsr = *status;
++	int error_break = 0, max_count = 256;
+ 	char flag;
  
-diff -puN arch/frv/include/asm/termbits.h~serial-add-configuration-c-flag-for-9-bit-mode arch/frv/include/asm/termbits.h
---- a/arch/frv/include/asm/termbits.h~serial-add-configuration-c-flag-for-9-bit-mode
-+++ a/arch/frv/include/asm/termbits.h
-@@ -157,6 +157,7 @@ struct ktermios {
- #define  B3000000 0010015
- #define  B3500000 0010016
- #define  B4000000 0010017
-+#define CNBENB    001000000000 /* 9 bit enable */
- #define CIBAUD	  002003600000		/* Input baud rate */
- #define CTVB	  004000000000		/* VisioBraille Terminal flow control */
- #define CMSPAR	  010000000000		/* mark or space (stick) parity */
-diff -puN arch/h8300/include/asm/termbits.h~serial-add-configuration-c-flag-for-9-bit-mode arch/h8300/include/asm/termbits.h
---- a/arch/h8300/include/asm/termbits.h~serial-add-configuration-c-flag-for-9-bit-mode
-+++ a/arch/h8300/include/asm/termbits.h
-@@ -157,6 +157,7 @@ struct ktermios {
- #define  B3000000 0010015
- #define  B3500000 0010016
- #define  B4000000 0010017
-+#define CNBENB    001000000000 /* 9 bit enable */
- #define CIBAUD	  002003600000		/* input baud rate */
- #define CMSPAR	  010000000000		/* mark or space (stick) parity */
- #define CRTSCTS	  020000000000		/* flow control */
-diff -puN arch/ia64/include/asm/termbits.h~serial-add-configuration-c-flag-for-9-bit-mode arch/ia64/include/asm/termbits.h
---- a/arch/ia64/include/asm/termbits.h~serial-add-configuration-c-flag-for-9-bit-mode
-+++ a/arch/ia64/include/asm/termbits.h
-@@ -165,6 +165,7 @@ struct ktermios {
- #define  B3000000 0010015
- #define  B3500000 0010016
- #define  B4000000 0010017
-+#define CNBENB    001000000000 /* 9 bit enable */
- #define CIBAUD	  002003600000		/* input baud rate */
- #define CMSPAR	  010000000000		/* mark or space (stick) parity */
- #define CRTSCTS	  020000000000		/* flow control */
-diff -puN arch/m32r/include/asm/termbits.h~serial-add-configuration-c-flag-for-9-bit-mode arch/m32r/include/asm/termbits.h
---- a/arch/m32r/include/asm/termbits.h~serial-add-configuration-c-flag-for-9-bit-mode
-+++ a/arch/m32r/include/asm/termbits.h
-@@ -156,6 +156,7 @@ struct ktermios {
- #define  B3000000 0010015
- #define  B3500000 0010016
- #define  B4000000 0010017
-+#define CNBENB    001000000000 /* 9 bit enable */
- #define CIBAUD	  002003600000		/** input baud rate */
- #define CTVB	  004000000000		/* VisioBraille Terminal flow control */
- #define CMSPAR	  010000000000		/* mark or space (stick) parity */
-diff -puN arch/m68k/include/asm/termbits.h~serial-add-configuration-c-flag-for-9-bit-mode arch/m68k/include/asm/termbits.h
---- a/arch/m68k/include/asm/termbits.h~serial-add-configuration-c-flag-for-9-bit-mode
-+++ a/arch/m68k/include/asm/termbits.h
-@@ -157,6 +157,7 @@ struct ktermios {
- #define  B3000000 0010015
- #define  B3500000 0010016
- #define  B4000000 0010017
-+#define CNBENB    001000000000 /* 9 bit enable */
- #define CIBAUD	  002003600000		/* input baud rate */
- #define CMSPAR	  010000000000		/* mark or space (stick) parity */
- #define CRTSCTS	  020000000000		/* flow control */
-diff -puN arch/mips/include/asm/termbits.h~serial-add-configuration-c-flag-for-9-bit-mode arch/mips/include/asm/termbits.h
---- a/arch/mips/include/asm/termbits.h~serial-add-configuration-c-flag-for-9-bit-mode
-+++ a/arch/mips/include/asm/termbits.h
-@@ -180,6 +180,7 @@ struct ktermios {
- #define  B3000000 0010015
- #define  B3500000 0010016
- #define  B4000000 0010017
-+#define CNBENB    001000000000 /* 9 bit enable */
- #define CIBAUD	  002003600000	/* input baud rate */
- #define CMSPAR    010000000000	/* mark or space (stick) parity */
- #define CRTSCTS	  020000000000	/* flow control */
-diff -puN arch/mn10300/include/asm/termbits.h~serial-add-configuration-c-flag-for-9-bit-mode arch/mn10300/include/asm/termbits.h
---- a/arch/mn10300/include/asm/termbits.h~serial-add-configuration-c-flag-for-9-bit-mode
-+++ a/arch/mn10300/include/asm/termbits.h
-@@ -157,6 +157,7 @@ struct ktermios {
- #define  B3000000 0010015
- #define  B3500000 0010016
- #define  B4000000 0010017
-+#define CNBENB    001000000000 /* 9 bit enable */
- #define CIBAUD	  002003600000	/* input baud rate (not used) */
- #define CTVB	  004000000000		/* VisioBraille Terminal flow control */
- #define CMSPAR	  010000000000		/* mark or space (stick) parity */
-diff -puN arch/parisc/include/asm/termbits.h~serial-add-configuration-c-flag-for-9-bit-mode arch/parisc/include/asm/termbits.h
---- a/arch/parisc/include/asm/termbits.h~serial-add-configuration-c-flag-for-9-bit-mode
-+++ a/arch/parisc/include/asm/termbits.h
-@@ -157,6 +157,7 @@ struct ktermios {
- #define  B3000000 0010015
- #define  B3500000 0010016
- #define  B4000000 0010017
-+#define CNBENB    001000000000 /* 9 bit enable */
- #define CIBAUD    002003600000		/* input baud rate */
- #define CMSPAR    010000000000          /* mark or space (stick) parity */
- #define CRTSCTS   020000000000          /* flow control */
-diff -puN arch/powerpc/include/asm/termbits.h~serial-add-configuration-c-flag-for-9-bit-mode arch/powerpc/include/asm/termbits.h
---- a/arch/powerpc/include/asm/termbits.h~serial-add-configuration-c-flag-for-9-bit-mode
-+++ a/arch/powerpc/include/asm/termbits.h
-@@ -170,6 +170,7 @@ struct ktermios {
- #define HUPCL	00040000
+ 	do {
+@@ -1403,7 +1405,20 @@ receive_chars(struct uart_8250_port *up,
+ 		lsr |= up->lsr_saved_flags;
+ 		up->lsr_saved_flags = 0;
  
- #define CLOCAL	00100000
-+#define CNBENB    001000000000 /* 9 bit enable */
- #define CMSPAR	  010000000000		/* mark or space (stick) parity */
- #define CRTSCTS	  020000000000		/* flow control */
+-		if (unlikely(lsr & UART_LSR_BRK_ERROR_BITS)) {
++		/*
++		 * Due to sharing of bit 2 in LSR depending on 9 bits mode
++		 * bit 2 rise Parity Error or 9th bit read
++		 */
++		error_break = 0 ;
++		if (up->nmr & UART_NMR_9BENB) {
++			if (lsr & UART_LSR_NBM_BRK_ERROR_BITS)
++				error_break = 1;
++		} else {
++			if (lsr & UART_LSR_BRK_ERROR_BITS)
++				error_break = 1;
++		}
++
++		if (unlikely(error_break)) {
+ 			/*
+ 			 * For statistics only
+ 			 */
+@@ -1418,7 +1433,8 @@ receive_chars(struct uart_8250_port *up,
+ 				 */
+ 				if (uart_handle_break(&up->port))
+ 					goto ignore_char;
+-			} else if (lsr & UART_LSR_PE)
++			} else if ((lsr & UART_LSR_PE) &&
++				!(up->nmr & UART_NMR_9BENB))
+ 				up->port.icount.parity++;
+ 			else if (lsr & UART_LSR_FE)
+ 				up->port.icount.frame++;
+@@ -1433,7 +1449,8 @@ receive_chars(struct uart_8250_port *up,
+ 			if (lsr & UART_LSR_BI) {
+ 				DEBUG_INTR("handling break....");
+ 				flag = TTY_BREAK;
+-			} else if (lsr & UART_LSR_PE)
++			} else if ((lsr & UART_LSR_PE) &&
++				!(up->nmr & UART_NMR_9BENB))
+ 				flag = TTY_PARITY;
+ 			else if (lsr & UART_LSR_FE)
+ 				flag = TTY_FRAME;
+@@ -1441,6 +1458,16 @@ receive_chars(struct uart_8250_port *up,
+ 		if (uart_handle_sysrq_char(&up->port, ch))
+ 			goto ignore_char;
  
-diff -puN arch/s390/include/asm/termbits.h~serial-add-configuration-c-flag-for-9-bit-mode arch/s390/include/asm/termbits.h
-diff -puN arch/sparc/include/asm/termbits.h~serial-add-configuration-c-flag-for-9-bit-mode arch/sparc/include/asm/termbits.h
---- a/arch/sparc/include/asm/termbits.h~serial-add-configuration-c-flag-for-9-bit-mode
-+++ a/arch/sparc/include/asm/termbits.h
-@@ -202,6 +202,7 @@ struct ktermios {
- #define B3000000  0x00001011
- #define B3500000  0x00001012
- #define B4000000  0x00001013  */
-+#define CNBENB    0x8000000 /* 9 bit enable */
- #define CIBAUD	  0x100f0000  /* input baud rate (not used) */
- #define CMSPAR	  0x40000000  /* mark or space (stick) parity */
- #define CRTSCTS	  0x80000000  /* flow control */
-diff -puN arch/xtensa/include/asm/termbits.h~serial-add-configuration-c-flag-for-9-bit-mode arch/xtensa/include/asm/termbits.h
---- a/arch/xtensa/include/asm/termbits.h~serial-add-configuration-c-flag-for-9-bit-mode
-+++ a/arch/xtensa/include/asm/termbits.h
-@@ -173,6 +173,7 @@ struct ktermios {
- #define  B3000000 0010015
- #define  B3500000 0010016
- #define  B4000000 0010017
-+#define CNBENB    001000000000 /* 9 bit enable */
- #define CIBAUD	  002003600000		/* input baud rate */
- #define CMSPAR	  010000000000		/* mark or space (stick) parity */
- #define CRTSCTS	  020000000000		/* flow control */
-diff -puN drivers/serial/serial_core.c~serial-add-configuration-c-flag-for-9-bit-mode drivers/serial/serial_core.c
---- a/drivers/serial/serial_core.c~serial-add-configuration-c-flag-for-9-bit-mode
-+++ a/drivers/serial/serial_core.c
-@@ -294,6 +294,8 @@ uart_update_timeout(struct uart_port *po
- 		break; /* CS8 */
- 	}
++		/*
++		 * In 9bit mode Parity error is replace by 9th bit
++		 */
++		if (up->nmr & UART_NMR_9BENB) {
++			if (lsr & UART_LSR_9TH_BIT)
++				ch9 = 1;
++			else
++				ch9 = 0;
++			uart_insert_char(&up->port, lsr, UART_LSR_OE, ch9, flag);
++		}
+ 		uart_insert_char(&up->port, lsr, UART_LSR_OE, ch, flag);
  
-+	if (cflag & CNBENB)
-+		bits = 11;
- 	if (cflag & CSTOPB)
- 		bits++;
- 	if (cflag & PARENB)
-diff -puN include/asm-generic/termbits.h~serial-add-configuration-c-flag-for-9-bit-mode include/asm-generic/termbits.h
---- a/include/asm-generic/termbits.h~serial-add-configuration-c-flag-for-9-bit-mode
-+++ a/include/asm-generic/termbits.h
-@@ -156,6 +156,7 @@ struct ktermios {
- #define  B3000000 0010015
- #define  B3500000 0010016
- #define  B4000000 0010017
-+#define CNBENB    001000000000 /* 9 bit enable */
- #define CIBAUD	  002003600000	/* input baud rate */
- #define CMSPAR	  010000000000	/* mark or space (stick) parity */
- #define CRTSCTS	  020000000000	/* flow control */
-diff -puN include/linux/serial_reg.h~serial-add-configuration-c-flag-for-9-bit-mode include/linux/serial_reg.h
---- a/include/linux/serial_reg.h~serial-add-configuration-c-flag-for-9-bit-mode
-+++ a/include/linux/serial_reg.h
-@@ -116,9 +116,11 @@
- #define UART_LSR_BI		0x10 /* Break interrupt indicator */
- #define UART_LSR_FE		0x08 /* Frame error indicator */
- #define UART_LSR_PE		0x04 /* Parity error indicator */
-+#define UART_LSR_9TH_BIT		0x04 /* 9th bit received in 9bit mode */
- #define UART_LSR_OE		0x02 /* Overrun error indicator */
- #define UART_LSR_DR		0x01 /* Receiver data ready */
- #define UART_LSR_BRK_ERROR_BITS	0x1E /* BI, FE, PE, OE bits */
-+#define UART_LSR_NBM_BRK_ERROR_BITS	0x1A /* BI,FE,OE bits in 9bit mode */
+ ignore_char:
+@@ -1474,6 +1501,13 @@ static void transmit_chars(struct uart_8
  
- #define UART_MSR	6	/* In:  Modem Status Register */
- #define UART_MSR_DCD		0x80 /* Data Carrier Detect */
-@@ -259,7 +261,12 @@
- #define UART_ACR_ICRRD	0x40	/* ICR Read enable */
- #define UART_ACR_ASREN	0x80	/* Additional status enable */
+ 	count = up->tx_loadsz;
+ 	do {
++		/* first byte contain 9th bit for 9 bit mode */
++		if ((up->nmr  & UART_NMR_9BENB)  && (count > 1) ){
++			serial_out(up, UART_SCR, 0x01 & xmit->buf[xmit->tail]);
++			xmit->tail = (xmit->tail + 1) & (UART_XMIT_SIZE - 1);
++			if (uart_circ_empty(xmit))
++				break;
++		}
+ 		serial_out(up, UART_TX, xmit->buf[xmit->tail]);
+ 		xmit->tail = (xmit->tail + 1) & (UART_XMIT_SIZE - 1);
+ 		up->port.icount.tx++;
+@@ -1949,6 +1983,7 @@ static int serial8250_startup(struct uar
+ 	if (up->port.type == PORT_16C950) {
+ 		/* Wake up and initialize UART */
+ 		up->acr = 0;
++		up->nmr = 0;
+ 		serial_outp(up, UART_LCR, 0xBF);
+ 		serial_outp(up, UART_EFR, UART_EFR_ECB);
+ 		serial_outp(up, UART_IER, 0);
+@@ -2405,6 +2440,15 @@ serial8250_set_termios(struct uart_port 
+ 	/* Don't rewrite B0 */
+ 	if (tty_termios_baud_rate(termios))
+ 		tty_termios_encode_baud_rate(termios, baud, baud);
++
++	/*
++	 * 9-bit mode control flag on 16c950
++	 */
++	if (termios->c_cflag & CNBENB) {
++		up->nmr |= UART_NMR_9BENB;
++		serial_icr_write(up, UART_NMR, up->nmr);
++	}
++
+ }
  
+ static void
+_
+
+Patches currently in -mm which might be from jpinkasfeld@aldebaran-robotics.com are
+
+serial-16c950-add-preliminary-support-for-9-bit-receive-and-transmit.patch
+
