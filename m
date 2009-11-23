@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + enclosure-fix-oops-while-iterating-enclosure_status-array.patch added to -mm tree
-Date: Mon, 23 Nov 2009 13:45:55 -0800
-Message-ID: <200911232145.nANLjtJ9004756@imap1.linux-foundation.org>
+Subject: + rtc-make-rtc-omap-driver-ioremap-its-register-space.patch added to -mm tree
+Date: Mon, 23 Nov 2009 13:31:47 -0800
+Message-ID: <200911232131.nANLVmjM002943@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37721 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50412 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753226AbZKWVp7 (ORCPT
+	by vger.kernel.org with ESMTP id S1753226AbZKWVwc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Nov 2009 16:45:59 -0500
+	Mon, 23 Nov 2009 16:52:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jeffm@jeffreymahoney.com, James.Bottomley@HansenPartnership.com, artur.wojcik@intel.com, jeffm@suse.com
+Cc: mgreer@mvista.com, a.zummo@towertech.it, dbrownell@users.sourceforge.net, khilman@deeprootsystems.com, tony@atomide.com
 
 
 The patch titled
-     enclosure: fix oops while iterating enclosure_status array
+     rtc: make rtc-omap driver ioremap its register space
 has been added to the -mm tree.  Its filename is
-     enclosure-fix-oops-while-iterating-enclosure_status-array.patch
+     rtc-make-rtc-omap-driver-ioremap-its-register-space.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,156 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: enclosure: fix oops while iterating enclosure_status array
-From: Jeff Mahoney <jeffm@jeffreymahoney.com>
+Subject: rtc: make rtc-omap driver ioremap its register space
+From: Mark A. Greer <mgreer@mvista.com>
 
-enclosure_status is expected to be a NULL terminated array of strings but
-isn't actually NULL terminated.  When writing an invalid value to
-/sys/class/enclosure/.../.../status, it goes off the end of the array and
-Oopses.
+The rtc-omap driver currently assumes that the rtc's registers are at a
+fixed address and already mapped into virtual memory space.  Remove those
+assumptions so the same driver can be used for similar devices that reside
+at different physical addresses (e.g., TI's DA8xx/OMAP-L13x SoC's).
 
-This patch uses the array size instead.
+Also allow the possibility for the timer and alarm interrupts to use the
+same IRQ.
 
-Reported-by: Artur Wojcik <artur.wojcik@intel.com>
-Signed-off-by: Jeff Mahoney <jeffm@suse.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Signed-off-by: Mark A. Greer <mgreer@mvista.com>
+Acked-by: David Brownell <dbrownell@users.sourceforge.net>
+Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
+Acked-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/enclosure.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/rtc/Kconfig    |    7 +++--
+ drivers/rtc/rtc-omap.c |   47 +++++++++++++++++++++------------------
+ 2 files changed, 30 insertions(+), 24 deletions(-)
 
-diff -puN drivers/misc/enclosure.c~enclosure-fix-oops-while-iterating-enclosure_status-array drivers/misc/enclosure.c
---- a/drivers/misc/enclosure.c~enclosure-fix-oops-while-iterating-enclosure_status-array
-+++ a/drivers/misc/enclosure.c
-@@ -441,8 +441,9 @@ static ssize_t set_component_status(stru
- 	struct enclosure_component *ecomp = to_enclosure_component(cdev);
- 	int i;
+diff -puN drivers/rtc/Kconfig~rtc-make-rtc-omap-driver-ioremap-its-register-space drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-make-rtc-omap-driver-ioremap-its-register-space
++++ a/drivers/rtc/Kconfig
+@@ -597,10 +597,11 @@ comment "on-CPU RTC drivers"
  
--	for (i = 0; enclosure_status[i]; i++) {
--		if (strncmp(buf, enclosure_status[i],
-+	for (i = 0; i < ARRAY_SIZE(enclosure_status); i++) {
-+		if (enclosure_status[i] &&
-+		    strncmp(buf, enclosure_status[i],
- 			    strlen(enclosure_status[i])) == 0 &&
- 		    (buf[strlen(enclosure_status[i])] == '\n' ||
- 		     buf[strlen(enclosure_status[i])] == '\0'))
+ config RTC_DRV_OMAP
+ 	tristate "TI OMAP1"
+-	depends on ARCH_OMAP15XX || ARCH_OMAP16XX || ARCH_OMAP730
++	depends on ARCH_OMAP15XX || ARCH_OMAP16XX || ARCH_OMAP730 || ARCH_DAVINCI_DA8XX
+ 	help
+-	  Say "yes" here to support the real time clock on TI OMAP1 chips.
+-	  This driver can also be built as a module called rtc-omap.
++	  Say "yes" here to support the real time clock on TI OMAP1 and
++	  DA8xx/OMAP-L13x chips.  This driver can also be built as a
++	  module called rtc-omap.
+ 
+ config RTC_DRV_S3C
+ 	tristate "Samsung S3C series SoC RTC"
+diff -puN drivers/rtc/rtc-omap.c~rtc-make-rtc-omap-driver-ioremap-its-register-space drivers/rtc/rtc-omap.c
+--- a/drivers/rtc/rtc-omap.c~rtc-make-rtc-omap-driver-ioremap-its-register-space
++++ a/drivers/rtc/rtc-omap.c
+@@ -87,9 +87,10 @@
+ #define OMAP_RTC_INTERRUPTS_IT_ALARM    (1<<3)
+ #define OMAP_RTC_INTERRUPTS_IT_TIMER    (1<<2)
+ 
++static void __iomem	*rtc_base;
+ 
+-#define rtc_read(addr)		omap_readb(OMAP_RTC_BASE + (addr))
+-#define rtc_write(val, addr)	omap_writeb(val, OMAP_RTC_BASE + (addr))
++#define rtc_read(addr)		__raw_readb(rtc_base + (addr))
++#define rtc_write(val, addr)	__raw_writeb(val, rtc_base + (addr))
+ 
+ 
+ /* we rely on the rtc framework to handle locking (rtc->ops_lock),
+@@ -330,32 +331,31 @@ static int __init omap_rtc_probe(struct 
+ 		return -ENOENT;
+ 	}
+ 
+-	/* NOTE:  using static mapping for RTC registers */
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	if (res && res->start != OMAP_RTC_BASE) {
+-		pr_debug("%s: RTC registers at %08x, expected %08x\n",
+-			pdev->name, (unsigned) res->start, OMAP_RTC_BASE);
++	if (!res) {
++		pr_debug("%s: RTC resource data missing\n", pdev->name);
+ 		return -ENOENT;
+ 	}
+ 
+-	if (res)
+-		mem = request_mem_region(res->start,
+-				res->end - res->start + 1,
+-				pdev->name);
+-	else
+-		mem = NULL;
++	mem = request_mem_region(res->start, resource_size(res), pdev->name);
+ 	if (!mem) {
+ 		pr_debug("%s: RTC registers at %08x are not free\n",
+-			pdev->name, OMAP_RTC_BASE);
++			pdev->name, res->start);
+ 		return -EBUSY;
+ 	}
+ 
++	rtc_base = ioremap(res->start, resource_size(res));
++	if (!rtc_base) {
++		pr_debug("%s: RTC registers can't be mapped\n", pdev->name);
++		goto fail;
++	}
++
+ 	rtc = rtc_device_register(pdev->name, &pdev->dev,
+ 			&omap_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(rtc)) {
+ 		pr_debug("%s: can't register RTC device, err %ld\n",
+ 			pdev->name, PTR_ERR(rtc));
+-		goto fail;
++		goto fail0;
+ 	}
+ 	platform_set_drvdata(pdev, rtc);
+ 	dev_set_drvdata(&rtc->dev, mem);
+@@ -380,13 +380,14 @@ static int __init omap_rtc_probe(struct 
+ 			dev_name(&rtc->dev), rtc)) {
+ 		pr_debug("%s: RTC timer interrupt IRQ%d already claimed\n",
+ 			pdev->name, omap_rtc_timer);
+-		goto fail0;
++		goto fail1;
+ 	}
+-	if (request_irq(omap_rtc_alarm, rtc_irq, IRQF_DISABLED,
+-			dev_name(&rtc->dev), rtc)) {
++	if ((omap_rtc_timer != omap_rtc_alarm) &&
++		(request_irq(omap_rtc_alarm, rtc_irq, IRQF_DISABLED,
++			dev_name(&rtc->dev), rtc))) {
+ 		pr_debug("%s: RTC alarm interrupt IRQ%d already claimed\n",
+ 			pdev->name, omap_rtc_alarm);
+-		goto fail1;
++		goto fail2;
+ 	}
+ 
+ 	/* On boards with split power, RTC_ON_NOFF won't reset the RTC */
+@@ -419,10 +420,12 @@ static int __init omap_rtc_probe(struct 
+ 
+ 	return 0;
+ 
+-fail1:
++fail2:
+ 	free_irq(omap_rtc_timer, NULL);
+-fail0:
++fail1:
+ 	rtc_device_unregister(rtc);
++fail0:
++	iounmap(rtc_base);
+ fail:
+ 	release_resource(mem);
+ 	return -EIO;
+@@ -438,7 +441,9 @@ static int __exit omap_rtc_remove(struct
+ 	rtc_write(0, OMAP_RTC_INTERRUPTS_REG);
+ 
+ 	free_irq(omap_rtc_timer, rtc);
+-	free_irq(omap_rtc_alarm, rtc);
++
++	if (omap_rtc_timer != omap_rtc_alarm)
++		free_irq(omap_rtc_alarm, rtc);
+ 
+ 	release_resource(dev_get_drvdata(&rtc->dev));
+ 	rtc_device_unregister(rtc);
 _
 
-Patches currently in -mm which might be from jeffm@jeffreymahoney.com are
+Patches currently in -mm which might be from mgreer@mvista.com are
 
-enclosure-fix-oops-while-iterating-enclosure_status-array.patch
+linux-next.patch
+rtc-make-rtc-omap-driver-ioremap-its-register-space.patch
 
