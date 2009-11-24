@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + gpio-langwell-gpio-driver-miscellaneous-clean-ups.patch added to -mm tree
-Date: Tue, 24 Nov 2009 12:29:42 -0800
-Message-ID: <200911242029.nAOKTg8I029765@imap1.linux-foundation.org>
+Subject: + pm-fix-kernel-doc-notation.patch added to -mm tree
+Date: Tue, 24 Nov 2009 12:34:32 -0800
+Message-ID: <200911242034.nAOKYWGC009004@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49530 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57468 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932420AbZKXU3z (ORCPT
+	by vger.kernel.org with ESMTP id S932833AbZKXUfv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Nov 2009 15:29:55 -0500
+	Tue, 24 Nov 2009 15:35:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alek.du@intel.com, david-b@pacbell.net
+Cc: jaswinder@kernel.org, jaswinderrajput@gmail.com, pavel@ucw.cz, randy.dunlap@oracle.com, rjw@sisk.pl
 
 
 The patch titled
-     gpio: Langwell GPIO driver miscellaneous clean-ups and bugfixes
+     pm: fix kernel-doc notation
 has been added to the -mm tree.  Its filename is
-     gpio-langwell-gpio-driver-miscellaneous-clean-ups.patch
+     pm-fix-kernel-doc-notation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,60 +34,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio: Langwell GPIO driver miscellaneous clean-ups and bugfixes
-From: Alek Du <alek.du@intel.com>
+Subject: pm: fix kernel-doc notation
+From: Jaswinder Singh Rajput <jaswinder@kernel.org>
 
-1. Use >= N to check invalid gpio number (unsigned type)
-2. Remove wrong and unnecessary unmask operation
-3. Remove extra GEDR reading
+Fix the following htmldocs warnings:
 
-The 2) and 3) will fix interrupts losing when two or more pins are
-triggered at close time.
+  Warning(drivers/base/power/main.c:249): No description found for parameter 'master'
+  Warning(drivers/base/power/main.c:249): Excess function parameter 'slave' description in 'device_pm_wait_for_slaves'
+  Warning(drivers/base/power/main.c:292): No description found for parameter 'master'
+  Warning(drivers/base/power/main.c:292): Excess function parameter 'slave' description in 'device_pm_check_slaves'
 
-Signed-off-by: Alek Du <alek.du@intel.com>
-Cc: David Brownell <david-b@pacbell.net>
+Signed-off-by: Jaswinder Singh Rajput <jaswinderrajput@gmail.com>
+Cc: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/langwell_gpio.c |   11 +----------
- 1 file changed, 1 insertion(+), 10 deletions(-)
+ drivers/base/power/main.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/gpio/langwell_gpio.c~gpio-langwell-gpio-driver-miscellaneous-clean-ups drivers/gpio/langwell_gpio.c
---- a/drivers/gpio/langwell_gpio.c~gpio-langwell-gpio-driver-miscellaneous-clean-ups
-+++ a/drivers/gpio/langwell_gpio.c
-@@ -144,13 +144,6 @@ static int lnw_irq_type(unsigned irq, un
+diff -puN drivers/base/power/main.c~pm-fix-kernel-doc-notation drivers/base/power/main.c
+--- a/drivers/base/power/main.c~pm-fix-kernel-doc-notation
++++ a/drivers/base/power/main.c
+@@ -243,7 +243,7 @@ static void device_pm_wait_for_masters(s
  
- static void lnw_irq_unmask(unsigned irq)
+ /**
+  * device_pm_wait_for_slaves - Wait for all slaves of given device.
+- * @slave: Device to wait for the slaves of.
++ * @master: Device to wait for the slaves of.
+  */
+ static void device_pm_wait_for_slaves(struct device *master)
  {
--	struct lnw_gpio *lnw = get_irq_chip_data(irq);
--	u32 gpio = irq - lnw->irq_base;
--	u8 reg = gpio / 32;
--	void __iomem *gedr;
--
--	gedr = (void __iomem *)(&lnw->reg_base->GEDR[reg]);
--	writel(BIT(gpio % 32), gedr);
- };
+@@ -286,7 +286,7 @@ static int device_pm_check_masters(struc
  
- static void lnw_irq_mask(unsigned irq)
-@@ -183,13 +176,11 @@ static void lnw_irq_handler(unsigned irq
- 		gedr_v = readl(gedr);
- 		if (!gedr_v)
- 			continue;
--		for (gpio = reg*32; gpio < reg*32+32; gpio++) {
--			gedr_v = readl(gedr);
-+		for (gpio = reg*32; gpio < reg*32+32; gpio++)
- 			if (gedr_v & BIT(gpio % 32)) {
- 				pr_debug("pin %d triggered\n", gpio);
- 				generic_handle_irq(lnw->irq_base + gpio);
- 			}
--		}
- 		/* clear the edge detect status bit */
- 		writel(gedr_v, gedr);
- 	}
+ /**
+  * device_pm_check_slaves - Check power.op_complete for slaves of a device.
+- * @slave: Device to check the slaves of.
++ * @master: Device to check the slaves of.
+  */
+ static int device_pm_check_slaves(struct device *master)
+ {
 _
 
-Patches currently in -mm which might be from alek.du@intel.com are
+Patches currently in -mm which might be from jaswinder@kernel.org are
 
-gpio-fix-test-on-unsigned-in-lnw_irq_type.patch
-gpio-langwell-gpio-driver-miscellaneous-clean-ups.patch
+linux-next.patch
+kernel-core-add-smp_call_function_any.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+xtensa-includecheck-fix-vectorss.patch
+mm-includecheck-fix-slqb.patch
+pm-fix-kernel-doc-notation.patch
 
