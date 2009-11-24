@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + gru-support-64-bit-gru-addresses.patch added to -mm tree
-Date: Tue, 24 Nov 2009 11:58:23 -0800
-Message-ID: <200911241958.nAOJwNuW018611@imap1.linux-foundation.org>
+Subject: + gru-add-debug-option-for-cache-flushing.patch added to -mm tree
+Date: Tue, 24 Nov 2009 11:58:27 -0800
+Message-ID: <200911241958.nAOJwRu7018722@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43587 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45686 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932711AbZKXT6T (ORCPT
+	by vger.kernel.org with ESMTP id S932732AbZKXT6X (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Nov 2009 14:58:19 -0500
+	Tue, 24 Nov 2009 14:58:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: steiner@sgi.com
 
 
 The patch titled
-     gru: support 64-bit GRU addresses
+     gru: add debug option for cache flushing
 has been added to the -mm tree.  Its filename is
-     gru-support-64-bit-gru-addresses.patch
+     gru-add-debug-option-for-cache-flushing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,84 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gru: support 64-bit GRU addresses
+Subject: gru: add debug option for cache flushing
 From: Jack Steiner <steiner@sgi.com>
 
-Increase the maximum address supported by the SGI GRU driver to a full 64
-bits.  Note that GRU addresses are not always the same as socket virtual
-addresses.  Sockets may not necessarily support the full 64 bits.
+Add a debug option to the SGI GRU driver for flushing GRU cache lines from
+memory.  In theory this is not needed but it is useful for debugging. 
+This has no use by end users.
 
 Signed-off-by: Jack Steiner <steiner@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-gru/grutables.h |    6 ------
- 1 file changed, 6 deletions(-)
+ drivers/misc/sgi-gru/grukdump.c |   13 ++++++++-----
+ drivers/misc/sgi-gru/grulib.h   |    2 ++
+ 2 files changed, 10 insertions(+), 5 deletions(-)
 
-diff -puN drivers/misc/sgi-gru/grutables.h~gru-support-64-bit-gru-addresses drivers/misc/sgi-gru/grutables.h
---- a/drivers/misc/sgi-gru/grutables.h~gru-support-64-bit-gru-addresses
-+++ a/drivers/misc/sgi-gru/grutables.h
-@@ -293,13 +293,7 @@ extern struct mcs_op_statistic mcs_op_st
- #define ASID_INC	8	/* number of regions */
+diff -puN drivers/misc/sgi-gru/grukdump.c~gru-add-debug-option-for-cache-flushing drivers/misc/sgi-gru/grukdump.c
+--- a/drivers/misc/sgi-gru/grukdump.c~gru-add-debug-option-for-cache-flushing
++++ a/drivers/misc/sgi-gru/grukdump.c
+@@ -44,7 +44,8 @@ static int gru_user_copy_handle(void __u
  
- /* Generate a GRU asid value from a GRU base asid & a virtual address. */
--#if defined CONFIG_IA64
- #define VADDR_HI_BIT		64
--#elif defined CONFIG_X86_64
--#define VADDR_HI_BIT		48
--#else
--#error "Unsupported architecture"
--#endif
- #define GRUREGION(addr)		((addr) >> (VADDR_HI_BIT - 3) & 3)
- #define GRUASID(asid, addr)	((asid) + GRUREGION(addr))
+ static int gru_dump_context_data(void *grubase,
+ 			struct gru_context_configuration_handle *cch,
+-			void __user *ubuf, int ctxnum, int dsrcnt)
++			void __user *ubuf, int ctxnum, int dsrcnt,
++			int flush_cbrs)
+ {
+ 	void *cb, *cbe, *tfh, *gseg;
+ 	int i, scr;
+@@ -55,6 +56,8 @@ static int gru_dump_context_data(void *g
+ 	tfh = grubase + GRU_TFH_BASE;
  
+ 	for_each_cbr_in_allocation_map(i, &cch->cbr_allocation_map, scr) {
++		if (flush_cbrs)
++			gru_flush_cache(cb);
+ 		if (gru_user_copy_handle(&ubuf, cb))
+ 			goto fail;
+ 		if (gru_user_copy_handle(&ubuf, tfh + i * GRU_HANDLE_STRIDE))
+@@ -115,7 +118,7 @@ fail:
+ 
+ static int gru_dump_context(struct gru_state *gru, int ctxnum,
+ 		void __user *ubuf, void __user *ubufend, char data_opt,
+-		char lock_cch)
++		char lock_cch, char flush_cbrs)
+ {
+ 	struct gru_dump_context_header hdr;
+ 	struct gru_dump_context_header __user *uhdr = ubuf;
+@@ -159,8 +162,7 @@ static int gru_dump_context(struct gru_s
+ 			ret = -EFBIG;
+ 		else
+ 			ret = gru_dump_context_data(grubase, cch, ubuf, ctxnum,
+-							dsrcnt);
+-
++							dsrcnt, flush_cbrs);
+ 	}
+ 	if (cch_locked)
+ 		unlock_cch_handle(cch);
+@@ -215,7 +217,8 @@ int gru_dump_chiplet_request(unsigned lo
+ 	for (ctxnum = 0; ctxnum < GRU_NUM_CCH; ctxnum++) {
+ 		if (req.ctxnum == ctxnum || req.ctxnum < 0) {
+ 			ret = gru_dump_context(gru, ctxnum, ubuf, ubufend,
+-						req.data_opt, req.lock_cch);
++						req.data_opt, req.lock_cch,
++						req.flush_cbrs);
+ 			if (ret < 0)
+ 				goto fail;
+ 			ubuf += ret;
+diff -puN drivers/misc/sgi-gru/grulib.h~gru-add-debug-option-for-cache-flushing drivers/misc/sgi-gru/grulib.h
+--- a/drivers/misc/sgi-gru/grulib.h~gru-add-debug-option-for-cache-flushing
++++ a/drivers/misc/sgi-gru/grulib.h
+@@ -125,6 +125,8 @@ struct gru_dump_chiplet_state_req {
+ 	int		ctxnum;
+ 	char		data_opt;
+ 	char		lock_cch;
++	char		flush_cbrs;
++	char		fill[10];
+ 	pid_t		pid;
+ 	void		*buf;
+ 	size_t		buflen;
 _
 
 Patches currently in -mm which might be from steiner@sgi.com are
