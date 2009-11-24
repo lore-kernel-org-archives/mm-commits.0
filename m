@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-uv-introduce-a-means-to-translate-from-gpa-socket_paddr.patch added to -mm tree
-Date: Tue, 24 Nov 2009 11:41:31 -0800
-Message-ID: <200911241941.nAOJfVwt010230@imap1.linux-foundation.org>
+Subject: + x86-uv-introduce-uv_gpa_is_mmr.patch added to -mm tree
+Date: Tue, 24 Nov 2009 11:41:34 -0800
+Message-ID: <200911241941.nAOJfY9S010362@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36916 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41264 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758054AbZKXTsg (ORCPT
+	by vger.kernel.org with ESMTP id S1758101AbZKXTsi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Nov 2009 14:48:36 -0500
+	Tue, 24 Nov 2009 14:48:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: holt@sgi.com, mingo@elte.hu, steiner@sgi.com
+Cc: holt@sgi.com, akpm@linux-foundation.org, mingo@elte.hu, steiner@sgi.com
 
 
 The patch titled
-     x86: uv: introduce a means to translate from gpa -> socket_paddr
+     x86: uv: introduce uv_gpa_is_mmr
 has been added to the -mm tree.  Its filename is
-     x86-uv-introduce-a-means-to-translate-from-gpa-socket_paddr.patch
+     x86-uv-introduce-uv_gpa_is_mmr.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,53 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: uv: introduce a means to translate from gpa -> socket_paddr
+Subject: x86: uv: introduce uv_gpa_is_mmr
 From: Robin Holt <holt@sgi.com>
 
-The UV BIOS has been updated to implement some of our interface
-functionality differently than originally expected.  These patches update
-the kernel to the bios implementation and include a few minor bug fixes
-which prevent us from doing significant testing on real hardware.
+Provide a mechanism for determining if a global physical address is
+pointing to a UV hub MMR.
 
-
-This patch:
-
-For SGI UV systems, translate from a global physical address back to a
-socket physical address.  This does nothing to ensure the socket physical
-address is actually addressable by the kernel.  That is the responsibility
-of the user of the function.
-
+To: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Robin Holt <holt@sgi.com>
 Cc: Jack Steiner <steiner@sgi.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/uv/uv_hub.h |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ arch/x86/include/asm/uv/uv_hub.h |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN arch/x86/include/asm/uv/uv_hub.h~x86-uv-introduce-a-means-to-translate-from-gpa-socket_paddr arch/x86/include/asm/uv/uv_hub.h
---- a/arch/x86/include/asm/uv/uv_hub.h~x86-uv-introduce-a-means-to-translate-from-gpa-socket_paddr
+diff -puN arch/x86/include/asm/uv/uv_hub.h~x86-uv-introduce-uv_gpa_is_mmr arch/x86/include/asm/uv/uv_hub.h
+--- a/arch/x86/include/asm/uv/uv_hub.h~x86-uv-introduce-uv_gpa_is_mmr
 +++ a/arch/x86/include/asm/uv/uv_hub.h
-@@ -232,6 +232,19 @@ static inline unsigned long uv_gpa(void 
+@@ -232,6 +232,13 @@ static inline unsigned long uv_gpa(void 
  	return uv_soc_phys_ram_to_gpa(__pa(v));
  }
  
-+/* UV global physical address --> socket phys RAM */
-+static inline unsigned long uv_gpa_to_soc_phys_ram(unsigned long gpa)
++/* Top two bits indicate the requested address is in MMR space.  */
++static inline int
++uv_gpa_in_mmr_space(unsigned long gpa)
 +{
-+	unsigned long paddr = gpa & uv_hub_info->gpa_mask;
-+	unsigned long remap_base = uv_hub_info->lowmem_remap_base;
-+	unsigned long remap_top =  uv_hub_info->lowmem_remap_top;
-+
-+	if (paddr >= remap_base && paddr < remap_base + remap_top)
-+		paddr -= remap_base;
-+	return paddr;
++	return (gpa >> 62) == 0x3UL;
 +}
 +
-+
- /* gnode -> pnode */
- static inline unsigned long uv_gpa_to_gnode(unsigned long gpa)
+ /* UV global physical address --> socket phys RAM */
+ static inline unsigned long uv_gpa_to_soc_phys_ram(unsigned long gpa)
  {
 _
 
