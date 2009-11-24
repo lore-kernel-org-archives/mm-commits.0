@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + gru-initial-gru-based-on-blade-topology.patch added to -mm tree
-Date: Tue, 24 Nov 2009 11:58:04 -0800
-Message-ID: <200911241958.nAOJw4F1017820@imap1.linux-foundation.org>
+Subject: + gru-add-comments-raised-in-previous-code-reviews.patch added to -mm tree
+Date: Tue, 24 Nov 2009 11:58:06 -0800
+Message-ID: <200911241958.nAOJw7OY017876@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35062 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42178 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932471AbZKXT6B (ORCPT
+	by vger.kernel.org with ESMTP id S932504AbZKXT6C (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Nov 2009 14:58:01 -0500
+	Tue, 24 Nov 2009 14:58:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: steiner@sgi.com
 
 
 The patch titled
-     gru: initial GRU based on blade topology
+     gru: add comments raised in previous code reviews
 has been added to the -mm tree.  Its filename is
-     gru-initial-gru-based-on-blade-topology.patch
+     gru-add-comments-raised-in-previous-code-reviews.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,57 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gru: initial GRU based on blade topology
+Subject: gru: add comments raised in previous code reviews
 From: Jack Steiner <steiner@sgi.com>
 
-Change the GRU initialization code to initialize based on blade topology
-instead of node topology.  The result is the same but blade-based
-initialization is cleaner.
+Add comments from previous code reviews.  The comments help explain some
+of the more esoteric aspects of the driver.
+
+Move a free() to the other side of an unlock.
 
 Signed-off-by: Jack Steiner <steiner@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-gru/grufile.c |   12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+ drivers/misc/sgi-gru/grufault.c     |    5 +++++
+ drivers/misc/sgi-gru/grukservices.c |    4 +++-
+ 2 files changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN drivers/misc/sgi-gru/grufile.c~gru-initial-gru-based-on-blade-topology drivers/misc/sgi-gru/grufile.c
---- a/drivers/misc/sgi-gru/grufile.c~gru-initial-gru-based-on-blade-topology
-+++ a/drivers/misc/sgi-gru/grufile.c
-@@ -264,11 +264,9 @@ static int gru_init_tables(unsigned long
+diff -puN drivers/misc/sgi-gru/grufault.c~gru-add-comments-raised-in-previous-code-reviews drivers/misc/sgi-gru/grufault.c
+--- a/drivers/misc/sgi-gru/grufault.c~gru-add-comments-raised-in-previous-code-reviews
++++ a/drivers/misc/sgi-gru/grufault.c
+@@ -733,6 +733,11 @@ long gru_get_gseg_statistics(unsigned lo
+ 	if (copy_from_user(&req, (void __user *)arg, sizeof(req)))
+ 		return -EFAULT;
  
- 	max_user_cbrs = GRU_NUM_CB;
- 	max_user_dsr_bytes = GRU_NUM_DSR_BYTES;
--	for_each_online_node(nid) {
--		bid = uv_node_to_blade_id(nid);
--		pnode = uv_node_to_pnode(nid);
--		if (bid < 0 || gru_base[bid])
--			continue;
-+	for_each_possible_blade(bid) {
-+		pnode = uv_blade_to_pnode(bid);
-+		nid = uv_blade_to_memory_nid(bid);
- 		page = alloc_pages_exact_node(nid, GFP_KERNEL, order);
- 		if (!page)
- 			goto fail;
-@@ -298,8 +296,8 @@ static int gru_init_tables(unsigned long
- 	return 0;
- 
- fail:
--	for (nid--; nid >= 0; nid--)
--		free_pages((unsigned long)gru_base[nid], order);
-+	for (bid--; bid >= 0; bid--)
-+		free_pages((unsigned long)gru_base[bid], order);
- 	return -ENOMEM;
- }
- 
++	/*
++	 * The library creates arrays of contexts for threaded programs.
++	 * If no gts exists in the array, the context has never been used & all
++	 * statistics are implicitly 0.
++	 */
+ 	gts = gru_find_lock_gts(req.gseg);
+ 	if (gts) {
+ 		memcpy(&req.stats, &gts->ustats, sizeof(gts->ustats));
+diff -puN drivers/misc/sgi-gru/grukservices.c~gru-add-comments-raised-in-previous-code-reviews drivers/misc/sgi-gru/grukservices.c
+--- a/drivers/misc/sgi-gru/grukservices.c~gru-add-comments-raised-in-previous-code-reviews
++++ a/drivers/misc/sgi-gru/grukservices.c
+@@ -200,13 +200,15 @@ static int gru_free_kernel_contexts(void
+ 		bs = gru_base[bid];
+ 		if (!bs)
+ 			continue;
++
++		/* Ignore busy contexts. Don't want to block here.  */
+ 		if (down_write_trylock(&bs->bs_kgts_sema)) {
+ 			kgts = bs->bs_kgts;
+ 			if (kgts && kgts->ts_gru)
+ 				gru_unload_context(kgts, 0);
+-			kfree(kgts);
+ 			bs->bs_kgts = NULL;
+ 			up_write(&bs->bs_kgts_sema);
++			kfree(kgts);
+ 		} else {
+ 			ret++;
+ 		}
 _
 
 Patches currently in -mm which might be from steiner@sgi.com are
