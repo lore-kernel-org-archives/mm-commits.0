@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + gru-add-additional-gru-statistics.patch added to -mm tree
-Date: Tue, 24 Nov 2009 11:58:38 -0800
-Message-ID: <200911241958.nAOJwc8L019181@imap1.linux-foundation.org>
+Subject: + gru-expicitly-set-instruction-status-to-active.patch added to -mm tree
+Date: Tue, 24 Nov 2009 11:58:40 -0800
+Message-ID: <200911241958.nAOJweVg019305@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35521 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47574 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932747AbZKXT6f (ORCPT
+	by vger.kernel.org with ESMTP id S932754AbZKXT6i (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Nov 2009 14:58:35 -0500
+	Tue, 24 Nov 2009 14:58:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: steiner@sgi.com
 
 
 The patch titled
-     gru: add additional GRU statistics
+     gru: expicitly set instruction status to active
 has been added to the -mm tree.  Its filename is
-     gru-add-additional-gru-statistics.patch
+     gru-expicitly-set-instruction-status-to-active.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,522 +34,341 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gru: add additional GRU statistics
+Subject: gru: expicitly set instruction status to active
 From: Jack Steiner <steiner@sgi.com>
 
-Add additional GRU statistics & debug messages.
+Explicitly set GRU instructions to "ACTIVE".  This eliminates the need for
+barriers that would have been necessary to prevent reading the instruction
+"status" field before the GRU had actually started the instruction.
 
 Signed-off-by: Jack Steiner <steiner@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-gru/grufault.c     |   18 ++++++++-----
- drivers/misc/sgi-gru/grufile.c      |    2 -
- drivers/misc/sgi-gru/gruhandles.c   |   11 +++++---
- drivers/misc/sgi-gru/grukservices.c |   35 +++++++++++++++++---------
- drivers/misc/sgi-gru/grumain.c      |   10 +++++--
- drivers/misc/sgi-gru/gruprocfs.c    |   25 +++++++++---------
- drivers/misc/sgi-gru/grutables.h    |   18 ++++++-------
- drivers/misc/sgi-gru/grutlbpurge.c  |    6 ++--
- 8 files changed, 77 insertions(+), 48 deletions(-)
+ drivers/misc/sgi-gru/gru_instructions.h |  119 ++++++++++++----------
+ drivers/misc/sgi-gru/gruhandles.c       |    4 
+ 2 files changed, 67 insertions(+), 56 deletions(-)
 
-diff -puN drivers/misc/sgi-gru/grufault.c~gru-add-additional-gru-statistics drivers/misc/sgi-gru/grufault.c
---- a/drivers/misc/sgi-gru/grufault.c~gru-add-additional-gru-statistics
-+++ a/drivers/misc/sgi-gru/grufault.c
-@@ -303,7 +303,7 @@ static int gru_try_dropin(struct gru_thr
- 			  struct gru_tlb_fault_handle *tfh,
- 			  struct gru_instruction_bits *cbk)
- {
--	int pageshift = 0, asid, write, ret, atomic = !cbk;
-+	int pageshift = 0, asid, write, ret, atomic = !cbk, indexway;
- 	unsigned long gpa = 0, vaddr = 0;
- 
- 	/*
-@@ -333,6 +333,7 @@ static int gru_try_dropin(struct gru_thr
- 	write = (tfh->cause & TFHCAUSE_TLB_MOD) != 0;
- 	vaddr = tfh->missvaddr;
- 	asid = tfh->missasid;
-+	indexway = tfh->indexway;
- 	if (asid == 0)
- 		goto failnoasid;
- 
-@@ -361,11 +362,12 @@ static int gru_try_dropin(struct gru_thr
- 	gru_cb_set_istatus_active(cbk);
- 	tfh_write_restart(tfh, gpa, GAA_RAM, vaddr, asid, write,
- 			  GRU_PAGESIZE(pageshift));
--	STAT(tlb_dropin);
- 	gru_dbg(grudev,
--		"%s: tfh 0x%p, vaddr 0x%lx, asid 0x%x, ps %d, gpa 0x%lx\n",
--		ret ? "non-atomic" : "atomic", tfh, vaddr, asid,
--		pageshift, gpa);
-+		"%s: gid %d, gts 0x%p, tfh 0x%p, vaddr 0x%lx, asid 0x%x, indexway 0x%x,"
-+		" rw %d, ps %d, gpa 0x%lx\n",
-+		atomic ? "atomic" : "non-atomic", gts->ts_gru->gs_gid, gts, tfh, vaddr, asid,
-+		indexway, write, pageshift, gpa);
-+	STAT(tlb_dropin);
- 	return 0;
- 
- failnoasid:
-@@ -460,12 +462,14 @@ static irqreturn_t gru_intr(int chiplet,
- 		dmap.fault_bits[0], dmap.fault_bits[1]);
- 
- 	for_each_cbr_in_tfm(cbrnum, dmap.fault_bits) {
-+		STAT(intr_cbr);
- 		complete(gru->gs_blade->bs_async_wq);
- 		gru_dbg(grudev, "gid %d, cbr_done %d, done %d\n",
- 			gru->gs_gid, cbrnum, gru->gs_blade->bs_async_wq->done);
- 	}
- 
- 	for_each_cbr_in_tfm(cbrnum, imap.fault_bits) {
-+		STAT(intr_tfh);
- 		tfh = get_tfh_by_index(gru, cbrnum);
- 		prefetchw(tfh);	/* Helps on hdw, required for emulator */
- 
-@@ -551,7 +555,6 @@ int gru_handle_user_call_os(unsigned lon
- 	int ucbnum, cbrnum, ret = -EINVAL;
- 
- 	STAT(call_os);
--	gru_dbg(grudev, "address 0x%lx\n", cb);
- 
- 	/* sanity check the cb pointer */
- 	ucbnum = get_cb_number((void *)cb);
-@@ -561,6 +564,7 @@ int gru_handle_user_call_os(unsigned lon
- 	gts = gru_find_lock_gts(cb);
- 	if (!gts)
- 		return -EINVAL;
-+	gru_dbg(grudev, "address 0x%lx, gid %d, gts 0x%p\n", cb, gts->ts_gru ? gts->ts_gru->gs_gid : -1, gts);
- 
- 	if (ucbnum >= gts->ts_cbr_au_count * GRU_CBR_AU_SIZE)
- 		goto exit;
-@@ -603,11 +607,11 @@ int gru_get_exception_detail(unsigned lo
- 	if (copy_from_user(&excdet, (void __user *)arg, sizeof(excdet)))
- 		return -EFAULT;
- 
--	gru_dbg(grudev, "address 0x%lx\n", excdet.cb);
- 	gts = gru_find_lock_gts(excdet.cb);
- 	if (!gts)
- 		return -EINVAL;
- 
-+	gru_dbg(grudev, "address 0x%lx, gid %d, gts 0x%p\n", excdet.cb, gts->ts_gru ? gts->ts_gru->gs_gid : -1, gts);
- 	ucbnum = get_cb_number((void *)excdet.cb);
- 	if (ucbnum >= gts->ts_cbr_au_count * GRU_CBR_AU_SIZE) {
- 		ret = -EINVAL;
-diff -puN drivers/misc/sgi-gru/grufile.c~gru-add-additional-gru-statistics drivers/misc/sgi-gru/grufile.c
---- a/drivers/misc/sgi-gru/grufile.c~gru-add-additional-gru-statistics
-+++ a/drivers/misc/sgi-gru/grufile.c
-@@ -192,7 +192,7 @@ static long gru_file_unlocked_ioctl(stru
- {
- 	int err = -EBADRQC;
- 
--	gru_dbg(grudev, "file %p\n", file);
-+	gru_dbg(grudev, "file %p, req 0x%x, 0x%lx\n", file, req, arg);
- 
- 	switch (req) {
- 	case GRU_CREATE_CONTEXT:
-diff -puN drivers/misc/sgi-gru/gruhandles.c~gru-add-additional-gru-statistics drivers/misc/sgi-gru/gruhandles.c
---- a/drivers/misc/sgi-gru/gruhandles.c~gru-add-additional-gru-statistics
-+++ a/drivers/misc/sgi-gru/gruhandles.c
-@@ -27,9 +27,11 @@
- #ifdef CONFIG_IA64
- #include <asm/processor.h>
- #define GRU_OPERATION_TIMEOUT	(((cycles_t) local_cpu_data->itc_freq)*10)
-+#define CLKS2NSEC(c)		((c) *1000000000 / local_cpu_data->itc_freq)
+diff -puN drivers/misc/sgi-gru/gru_instructions.h~gru-expicitly-set-instruction-status-to-active drivers/misc/sgi-gru/gru_instructions.h
+--- a/drivers/misc/sgi-gru/gru_instructions.h~gru-expicitly-set-instruction-status-to-active
++++ a/drivers/misc/sgi-gru/gru_instructions.h
+@@ -34,17 +34,17 @@ extern void gru_wait_abort_proc(void *cb
+ #include <asm/intrinsics.h>
+ #define __flush_cache(p)		ia64_fc((unsigned long)p)
+ /* Use volatile on IA64 to ensure ordering via st4.rel */
+-#define gru_ordered_store_int(p, v)					\
++#define gru_ordered_store_ulong(p, v)					\
+ 		do {							\
+ 			barrier();					\
+-			*((volatile int *)(p)) = v; /* force st.rel */	\
++			*((volatile unsigned long *)(p)) = v; /* force st.rel */	\
+ 		} while (0)
+ #elif defined(CONFIG_X86_64)
+ #define __flush_cache(p)		clflush(p)
+-#define gru_ordered_store_int(p, v)					\
++#define gru_ordered_store_ulong(p, v)					\
+ 		do {							\
+ 			barrier();					\
+-			*(int *)p = v;					\
++			*(unsigned long *)p = v;			\
+ 		} while (0)
  #else
- #include <asm/tsc.h>
- #define GRU_OPERATION_TIMEOUT	((cycles_t) tsc_khz*10*1000)
-+#define CLKS2NSEC(c)		((c) * 1000000 / tsc_khz)
- #endif
+ #error "Unsupported architecture"
+@@ -129,8 +129,13 @@ struct gru_instruction_bits {
+  */
+ struct gru_instruction {
+     /* DW 0 */
+-    unsigned int		op32;    /* icmd,xtype,iaa0,ima,opc */
+-    unsigned int		tri0;
++    union {
++    	unsigned long		op64;    /* icmd,xtype,iaa0,ima,opc,tri0 */
++	struct {
++		unsigned int	op32;
++		unsigned int	tri0;
++	};
++    };
+     unsigned long		tri1_bufsize;		/* DW 1 */
+     unsigned long		baddr0;			/* DW 2 */
+     unsigned long		nelem;			/* DW 3 */
+@@ -140,7 +145,7 @@ struct gru_instruction {
+     unsigned long		avalue;			/* DW 7 */
+ };
  
- /* Extract the status field from a kernel handle */
-@@ -39,10 +41,13 @@ struct mcs_op_statistic mcs_op_statistic
+-/* Some shifts and masks for the low 32 bits of a GRU command */
++/* Some shifts and masks for the low 64 bits of a GRU command */
+ #define GRU_CB_ICMD_SHFT	0
+ #define GRU_CB_ICMD_MASK	0x1
+ #define GRU_CB_XTYPE_SHFT	8
+@@ -155,6 +160,10 @@ struct gru_instruction {
+ #define GRU_CB_OPC_MASK		0xff
+ #define GRU_CB_EXOPC_SHFT	24
+ #define GRU_CB_EXOPC_MASK	0xff
++#define GRU_IDEF2_SHFT		32
++#define GRU_IDEF2_MASK		0x3ffff
++#define GRU_ISTATUS_SHFT	56
++#define GRU_ISTATUS_MASK	0x3
  
- static void update_mcs_stats(enum mcs_op op, unsigned long clks)
+ /* GRU instruction opcodes (opc field) */
+ #define OP_NOP		0x00
+@@ -296,12 +305,14 @@ union gru_mesqhead {
+ 
+ 
+ /* Generate the low word of a GRU instruction */
+-static inline unsigned int
+-__opword(unsigned char opcode, unsigned char exopc, unsigned char xtype,
++static inline unsigned long
++__opdword(unsigned char opcode, unsigned char exopc, unsigned char xtype,
+        unsigned char iaa0, unsigned char iaa1,
+-       unsigned char ima)
++       unsigned long idef2, unsigned char ima)
  {
-+	unsigned long nsec;
-+
-+	nsec = CLKS2NSEC(clks);
- 	atomic_long_inc(&mcs_op_statistics[op].count);
--	atomic_long_add(clks, &mcs_op_statistics[op].total);
--	if (mcs_op_statistics[op].max < clks)
--		mcs_op_statistics[op].max = clks;
-+	atomic_long_add(nsec, &mcs_op_statistics[op].total);
-+	if (mcs_op_statistics[op].max < nsec)
-+		mcs_op_statistics[op].max = nsec;
- }
- 
- static void start_instruction(void *h)
-diff -puN drivers/misc/sgi-gru/grukservices.c~gru-add-additional-gru-statistics drivers/misc/sgi-gru/grukservices.c
---- a/drivers/misc/sgi-gru/grukservices.c~gru-add-additional-gru-statistics
-+++ a/drivers/misc/sgi-gru/grukservices.c
-@@ -414,8 +414,8 @@ char *gru_get_cb_exception_detail_str(in
- 	if (ret > 0 && gen->istatus == CBS_EXCEPTION) {
- 		gru_get_cb_exception_detail(cb, &excdet);
- 		snprintf(buf, size,
--			"GRU exception: cb %p, opc %d, exopc %d, ecause 0x%x,"
--			"excdet0 0x%lx, excdet1 0x%x",
-+			"GRU:%d exception: cb %p, opc %d, exopc %d, ecause 0x%x,"
-+			"excdet0 0x%lx, excdet1 0x%x", smp_processor_id(),
- 			gen, excdet.opc, excdet.exopc, excdet.ecause,
- 			excdet.exceptdet0, excdet.exceptdet1);
- 	} else {
-@@ -604,6 +604,8 @@ static int send_noop_message(void *cb, s
- 				ret = MQE_UNEXPECTED_CB_ERR;
- 			break;
- 		case CBSS_PAGE_OVERFLOW:
-+			STAT(mesq_noop_page_overflow);
-+			/* fallthru */
- 		default:
- 			BUG();
- 		}
-@@ -745,6 +747,9 @@ static int send_message_failure(void *cb
- 		STAT(mesq_send_put_nacked);
- 		ret = send_message_put_nacked(cb, mqd, mesg, lines);
- 		break;
-+	case CBSS_PAGE_OVERFLOW:
-+		STAT(mesq_page_overflow);
-+		/* fallthru */
- 	default:
- 		BUG();
- 	}
-@@ -837,7 +842,6 @@ void *gru_get_next_message(struct gru_me
- 	int present = mhdr->present;
- 
- 	/* skip NOOP messages */
--	STAT(mesq_receive);
- 	while (present == MQS_NOOP) {
- 		gru_free_message(mqd, mhdr);
- 		mhdr = mq->next;
-@@ -857,6 +861,7 @@ void *gru_get_next_message(struct gru_me
- 	if (mhdr->lines == 2)
- 		restore_present2(mhdr, mhdr->present2);
- 
-+	STAT(mesq_receive);
- 	return mhdr;
- }
- EXPORT_SYMBOL_GPL(gru_get_next_message);
-@@ -927,24 +932,24 @@ static int quicktest0(unsigned long arg)
- 
- 	gru_vload(cb, uv_gpa(&word0), gru_get_tri(dsr), XTYPE_DW, 1, 1, IMA);
- 	if (gru_wait(cb) != CBS_IDLE) {
--		printk(KERN_DEBUG "GRU quicktest0: CBR failure 1\n");
-+		printk(KERN_DEBUG "GRU:%d quicktest0: CBR failure 1\n", smp_processor_id());
- 		goto done;
- 	}
- 
- 	if (*p != MAGIC) {
--		printk(KERN_DEBUG "GRU: quicktest0 bad magic 0x%lx\n", *p);
-+		printk(KERN_DEBUG "GRU:%d quicktest0 bad magic 0x%lx\n", smp_processor_id(), *p);
- 		goto done;
- 	}
- 	gru_vstore(cb, uv_gpa(&word1), gru_get_tri(dsr), XTYPE_DW, 1, 1, IMA);
- 	if (gru_wait(cb) != CBS_IDLE) {
--		printk(KERN_DEBUG "GRU quicktest0: CBR failure 2\n");
-+		printk(KERN_DEBUG "GRU:%d quicktest0: CBR failure 2\n", smp_processor_id());
- 		goto done;
- 	}
- 
- 	if (word0 != word1 || word1 != MAGIC) {
- 		printk(KERN_DEBUG
--		       "GRU quicktest0 err: found 0x%lx, expected 0x%lx\n",
--		     word1, MAGIC);
-+		       "GRU:%d quicktest0 err: found 0x%lx, expected 0x%lx\n",
-+		     smp_processor_id(), word1, MAGIC);
- 		goto done;
- 	}
- 	ret = 0;
-@@ -981,8 +986,11 @@ static int quicktest1(unsigned long arg)
- 		if (ret)
- 			break;
- 	}
--	if (ret != MQE_QUEUE_FULL || i != 4)
-+	if (ret != MQE_QUEUE_FULL || i != 4) {
-+		printk(KERN_DEBUG "GRU:%d quicktest1: unexpect status %d, i %d\n",
-+		       smp_processor_id(), ret, i);
- 		goto done;
-+	}
- 
- 	for (i = 0; i < 6; i++) {
- 		m = gru_get_next_message(&mqd);
-@@ -990,7 +998,12 @@ static int quicktest1(unsigned long arg)
- 			break;
- 		gru_free_message(&mqd, m);
- 	}
--	ret = (i == 4) ? 0 : -EIO;
-+	if (i != 4) {
-+		printk(KERN_DEBUG "GRU:%d quicktest2: bad message, i %d, m %p, m8 %d\n",
-+			smp_processor_id(), i, m, m ? m[8] : -1);
-+		goto done;
-+	}
-+	ret = 0;
- 
- done:
- 	kfree(p);
-@@ -1069,7 +1082,7 @@ static int quicktest3(unsigned long arg)
- 	memset(buf1, get_cycles() & 255, sizeof(buf1));
- 	gru_copy_gpa(uv_gpa(buf2), uv_gpa(buf1), BUFSIZE);
- 	if (memcmp(buf1, buf2, BUFSIZE)) {
--		printk(KERN_DEBUG "GRU quicktest3 error\n");
-+		printk(KERN_DEBUG "GRU:%d quicktest3 error\n", smp_processor_id());
- 		ret = -EIO;
- 	}
- 	return ret;
-diff -puN drivers/misc/sgi-gru/grumain.c~gru-add-additional-gru-statistics drivers/misc/sgi-gru/grumain.c
---- a/drivers/misc/sgi-gru/grumain.c~gru-add-additional-gru-statistics
-+++ a/drivers/misc/sgi-gru/grumain.c
-@@ -370,6 +370,7 @@ struct gru_vma_data *gru_alloc_vma_data(
- 	if (!vdata)
- 		return NULL;
- 
-+	STAT(vdata_alloc);
- 	INIT_LIST_HEAD(&vdata->vd_head);
- 	spin_lock_init(&vdata->vd_lock);
- 	gru_dbg(grudev, "alloc vdata %p\n", vdata);
-@@ -552,7 +553,8 @@ void gru_unload_context(struct gru_threa
- 		zap_vma_ptes(gts->ts_vma, UGRUADDR(gts), GRU_GSEG_PAGESIZE);
- 	cch = get_cch(gru->gs_gru_base_vaddr, ctxnum);
- 
--	gru_dbg(grudev, "gts %p\n", gts);
-+	gru_dbg(grudev, "gts %p, cbrmap 0x%lx, dsrmap 0x%lx\n",
-+		gts, gts->ts_cbr_map, gts->ts_dsr_map);
- 	lock_cch_handle(cch);
- 	if (cch_interrupt_sync(cch))
- 		BUG();
-@@ -583,9 +585,7 @@ void gru_load_context(struct gru_thread_
- 	struct gru_context_configuration_handle *cch;
- 	int i, err, asid, ctxnum = gts->ts_ctxnum;
- 
--	gru_dbg(grudev, "gts %p\n", gts);
- 	cch = get_cch(gru->gs_gru_base_vaddr, ctxnum);
--
- 	lock_cch_handle(cch);
- 	cch->tfm_fault_bit_enable =
- 	    (gts->ts_user_options == GRU_OPT_MISS_FMM_POLL
-@@ -635,6 +635,10 @@ void gru_load_context(struct gru_thread_
- 	if (cch_start(cch))
- 		BUG();
- 	unlock_cch_handle(cch);
-+
-+	gru_dbg(grudev, "gid %d, gts %p, cbrmap 0x%lx, dsrmap 0x%lx, tie %d, tis %d\n",
-+		gts->ts_gru->gs_gid, gts, gts->ts_cbr_map, gts->ts_dsr_map,
-+		(gts->ts_user_options == GRU_OPT_MISS_FMM_INTR), gts->ts_tlb_int_select);
+     return (1 << GRU_CB_ICMD_SHFT) |
++	   ((unsigned long)CBS_ACTIVE << GRU_ISTATUS_SHFT) |
++	   (idef2<< GRU_IDEF2_SHFT) |
+ 	   (iaa0 << GRU_CB_IAA0_SHFT) |
+ 	   (iaa1 << GRU_CB_IAA1_SHFT) |
+ 	   (ima << GRU_CB_IMA_SHFT) |
+@@ -319,12 +330,12 @@ static inline void gru_flush_cache(void 
  }
  
  /*
-diff -puN drivers/misc/sgi-gru/gruprocfs.c~gru-add-additional-gru-statistics drivers/misc/sgi-gru/gruprocfs.c
---- a/drivers/misc/sgi-gru/gruprocfs.c~gru-add-additional-gru-statistics
-+++ a/drivers/misc/sgi-gru/gruprocfs.c
-@@ -36,8 +36,7 @@ static void printstat_val(struct seq_fil
+- * Store the lower 32 bits of the command including the "start" bit. Then
++ * Store the lower 64 bits of the command including the "start" bit. Then
+  * start the instruction executing.
+  */
+-static inline void gru_start_instruction(struct gru_instruction *ins, int op32)
++static inline void gru_start_instruction(struct gru_instruction *ins, unsigned long op64)
  {
- 	unsigned long val = atomic_long_read(v);
+-	gru_ordered_store_int(ins, op32);
++	gru_ordered_store_ulong(ins, op64);
+ 	mb();
+ 	gru_flush_cache(ins);
+ }
+@@ -348,10 +359,9 @@ static inline void gru_vload_phys(void *
  
--	if (val)
--		seq_printf(s, "%16lu %s\n", val, id);
-+	seq_printf(s, "%16lu %s\n", val, id);
+ 	ins->baddr0 = (long)gpa | ((unsigned long)iaa << 62);
+ 	ins->nelem = 1;
+-	ins->tri0 = tri0;
+ 	ins->op1_stride = 1;
+-	gru_start_instruction(ins, __opword(OP_VLOAD, 0, XTYPE_DW, iaa, 0,
+-					CB_IMA(hints)));
++	gru_start_instruction(ins, __opdword(OP_VLOAD, 0, XTYPE_DW, iaa, 0,
++					(unsigned long)tri0, CB_IMA(hints)));
  }
  
- static int statistics_show(struct seq_file *s, void *p)
-@@ -46,7 +45,8 @@ static int statistics_show(struct seq_fi
- 	printstat(s, vdata_free);
- 	printstat(s, gts_alloc);
- 	printstat(s, gts_free);
--	printstat(s, vdata_double_alloc);
-+	printstat(s, gms_alloc);
-+	printstat(s, gms_free);
- 	printstat(s, gts_double_allocate);
- 	printstat(s, assign_context);
- 	printstat(s, assign_context_failed);
-@@ -59,15 +59,15 @@ static int statistics_show(struct seq_fi
- 	printstat(s, steal_kernel_context);
- 	printstat(s, steal_context_failed);
- 	printstat(s, nopfn);
--	printstat(s, break_cow);
- 	printstat(s, asid_new);
- 	printstat(s, asid_next);
- 	printstat(s, asid_wrap);
- 	printstat(s, asid_reuse);
- 	printstat(s, intr);
-+	printstat(s, intr_cbr);
-+	printstat(s, intr_tfh);
- 	printstat(s, intr_mm_lock_failed);
- 	printstat(s, call_os);
--	printstat(s, call_os_check_for_bug);
- 	printstat(s, call_os_wait_queue);
- 	printstat(s, user_flush_tlb);
- 	printstat(s, user_unload_context);
-@@ -83,11 +83,9 @@ static int statistics_show(struct seq_fi
- 	printstat(s, tlb_dropin_fail_idle);
- 	printstat(s, tlb_dropin_fail_fmm);
- 	printstat(s, tlb_dropin_fail_no_exception);
--	printstat(s, tlb_dropin_fail_no_exception_war);
- 	printstat(s, tfh_stale_on_fault);
- 	printstat(s, mmu_invalidate_range);
- 	printstat(s, mmu_invalidate_page);
--	printstat(s, mmu_clear_flush_young);
- 	printstat(s, flush_tlb);
- 	printstat(s, flush_tlb_gru);
- 	printstat(s, flush_tlb_gru_tgh);
-@@ -104,7 +102,6 @@ static int statistics_show(struct seq_fi
- 	printstat(s, mesq_send_qlimit_reached);
- 	printstat(s, mesq_send_amo_nacked);
- 	printstat(s, mesq_send_put_nacked);
--	printstat(s, mesq_qf_not_full);
- 	printstat(s, mesq_qf_locked);
- 	printstat(s, mesq_qf_noop_not_full);
- 	printstat(s, mesq_qf_switch_head_failed);
-@@ -114,6 +111,7 @@ static int statistics_show(struct seq_fi
- 	printstat(s, mesq_noop_qlimit_reached);
- 	printstat(s, mesq_noop_amo_nacked);
- 	printstat(s, mesq_noop_put_nacked);
-+	printstat(s, mesq_noop_page_overflow);
- 	return 0;
+ static inline void gru_vload(void *cb, unsigned long mem_addr,
+@@ -362,10 +372,9 @@ static inline void gru_vload(void *cb, u
+ 
+ 	ins->baddr0 = (long)mem_addr;
+ 	ins->nelem = nelem;
+-	ins->tri0 = tri0;
+ 	ins->op1_stride = stride;
+-	gru_start_instruction(ins, __opword(OP_VLOAD, 0, xtype, IAA_RAM, 0,
+-					CB_IMA(hints)));
++	gru_start_instruction(ins, __opdword(OP_VLOAD, 0, xtype, IAA_RAM, 0,
++					(unsigned long)tri0, CB_IMA(hints)));
  }
  
-@@ -131,6 +129,7 @@ static int mcs_statistics_show(struct se
- 	static char *id[] = {"cch_allocate", "cch_start", "cch_interrupt",
- 		"cch_interrupt_sync", "cch_deallocate", "tgh_invalidate"};
+ static inline void gru_vstore(void *cb, unsigned long mem_addr,
+@@ -376,10 +385,9 @@ static inline void gru_vstore(void *cb, 
  
-+	seq_printf(s, "%-20s%12s%12s%12s\n", "#id", "count", "aver-clks", "max-clks");
- 	for (op = 0; op < mcsop_last; op++) {
- 		count = atomic_long_read(&mcs_op_statistics[op].count);
- 		total = atomic_long_read(&mcs_op_statistics[op].total);
-@@ -150,6 +149,7 @@ static ssize_t mcs_statistics_write(stru
+ 	ins->baddr0 = (long)mem_addr;
+ 	ins->nelem = nelem;
+-	ins->tri0 = tri0;
+ 	ins->op1_stride = stride;
+-	gru_start_instruction(ins, __opword(OP_VSTORE, 0, xtype, IAA_RAM, 0,
+-					CB_IMA(hints)));
++	gru_start_instruction(ins, __opdword(OP_VSTORE, 0, xtype, IAA_RAM, 0,
++					tri0, CB_IMA(hints)));
+ }
  
- static int options_show(struct seq_file *s, void *p)
+ static inline void gru_ivload(void *cb, unsigned long mem_addr,
+@@ -390,10 +398,9 @@ static inline void gru_ivload(void *cb, 
+ 
+ 	ins->baddr0 = (long)mem_addr;
+ 	ins->nelem = nelem;
+-	ins->tri0 = tri0;
+ 	ins->tri1_bufsize = tri1;
+-	gru_start_instruction(ins, __opword(OP_IVLOAD, 0, xtype, IAA_RAM, 0,
+-					CB_IMA(hints)));
++	gru_start_instruction(ins, __opdword(OP_IVLOAD, 0, xtype, IAA_RAM, 0,
++					tri0, CB_IMA(hints)));
+ }
+ 
+ static inline void gru_ivstore(void *cb, unsigned long mem_addr,
+@@ -404,10 +411,9 @@ static inline void gru_ivstore(void *cb,
+ 
+ 	ins->baddr0 = (long)mem_addr;
+ 	ins->nelem = nelem;
+-	ins->tri0 = tri0;
+ 	ins->tri1_bufsize = tri1;
+-	gru_start_instruction(ins, __opword(OP_IVSTORE, 0, xtype, IAA_RAM, 0,
+-					CB_IMA(hints)));
++	gru_start_instruction(ins, __opdword(OP_IVSTORE, 0, xtype, IAA_RAM, 0,
++					tri0, CB_IMA(hints)));
+ }
+ 
+ static inline void gru_vset(void *cb, unsigned long mem_addr,
+@@ -420,8 +426,8 @@ static inline void gru_vset(void *cb, un
+ 	ins->op2_value_baddr1 = value;
+ 	ins->nelem = nelem;
+ 	ins->op1_stride = stride;
+-	gru_start_instruction(ins, __opword(OP_VSET, 0, xtype, IAA_RAM, 0,
+-					 CB_IMA(hints)));
++	gru_start_instruction(ins, __opdword(OP_VSET, 0, xtype, IAA_RAM, 0,
++					 0, CB_IMA(hints)));
+ }
+ 
+ static inline void gru_ivset(void *cb, unsigned long mem_addr,
+@@ -434,8 +440,8 @@ static inline void gru_ivset(void *cb, u
+ 	ins->op2_value_baddr1 = value;
+ 	ins->nelem = nelem;
+ 	ins->tri1_bufsize = tri1;
+-	gru_start_instruction(ins, __opword(OP_IVSET, 0, xtype, IAA_RAM, 0,
+-					CB_IMA(hints)));
++	gru_start_instruction(ins, __opdword(OP_IVSET, 0, xtype, IAA_RAM, 0,
++					0, CB_IMA(hints)));
+ }
+ 
+ static inline void gru_vflush(void *cb, unsigned long mem_addr,
+@@ -447,15 +453,15 @@ static inline void gru_vflush(void *cb, 
+ 	ins->baddr0 = (long)mem_addr;
+ 	ins->op1_stride = stride;
+ 	ins->nelem = nelem;
+-	gru_start_instruction(ins, __opword(OP_VFLUSH, 0, xtype, IAA_RAM, 0,
+-					CB_IMA(hints)));
++	gru_start_instruction(ins, __opdword(OP_VFLUSH, 0, xtype, IAA_RAM, 0,
++					0, CB_IMA(hints)));
+ }
+ 
+ static inline void gru_nop(void *cb, int hints)
  {
-+	seq_printf(s, "#bitmask: 1=trace, 2=statistics\n");
- 	seq_printf(s, "0x%lx\n", gru_options);
- 	return 0;
+ 	struct gru_instruction *ins = (void *)cb;
+ 
+-	gru_start_instruction(ins, __opword(OP_NOP, 0, 0, 0, 0, CB_IMA(hints)));
++	gru_start_instruction(ins, __opdword(OP_NOP, 0, 0, 0, 0, 0, CB_IMA(hints)));
  }
-@@ -179,16 +179,17 @@ static int cch_seq_show(struct seq_file 
- 	const char *mode[] = { "??", "UPM", "INTR", "OS_POLL" };
- 
- 	if (gid == 0)
--		seq_printf(file, "#%5s%5s%6s%9s%6s%8s%8s\n", "gid", "bid",
--			   "ctx#", "pid", "cbrs", "dsbytes", "mode");
-+		seq_printf(file, "#%5s%5s%6s%7s%9s%6s%8s%8s\n", "gid", "bid",
-+			   "ctx#", "asid", "pid", "cbrs", "dsbytes", "mode");
- 	if (gru)
- 		for (i = 0; i < GRU_NUM_CCH; i++) {
- 			ts = gru->gs_gts[i];
- 			if (!ts)
- 				continue;
--			seq_printf(file, " %5d%5d%6d%9d%6d%8d%8s\n",
-+			seq_printf(file, " %5d%5d%6d%7d%9d%6d%8d%8s\n",
- 				   gru->gs_gid, gru->gs_blade_id, i,
--				   ts->ts_tgid_owner,
-+				   is_kernel_context(ts) ? 0 : ts->ts_gms->ms_asids[gid].mt_asid,
-+				   is_kernel_context(ts) ? 0 : ts->ts_tgid_owner,
- 				   ts->ts_cbr_au_count * GRU_CBR_AU_SIZE,
- 				   ts->ts_cbr_au_count * GRU_DSR_AU_BYTES,
- 				   mode[ts->ts_user_options &
-diff -puN drivers/misc/sgi-gru/grutables.h~gru-add-additional-gru-statistics drivers/misc/sgi-gru/grutables.h
---- a/drivers/misc/sgi-gru/grutables.h~gru-add-additional-gru-statistics
-+++ a/drivers/misc/sgi-gru/grutables.h
-@@ -171,7 +171,8 @@ struct gru_stats_s {
- 	atomic_long_t vdata_free;
- 	atomic_long_t gts_alloc;
- 	atomic_long_t gts_free;
--	atomic_long_t vdata_double_alloc;
-+	atomic_long_t gms_alloc;
-+	atomic_long_t gms_free;
- 	atomic_long_t gts_double_allocate;
- 	atomic_long_t assign_context;
- 	atomic_long_t assign_context_failed;
-@@ -184,15 +185,15 @@ struct gru_stats_s {
- 	atomic_long_t steal_kernel_context;
- 	atomic_long_t steal_context_failed;
- 	atomic_long_t nopfn;
--	atomic_long_t break_cow;
- 	atomic_long_t asid_new;
- 	atomic_long_t asid_next;
- 	atomic_long_t asid_wrap;
- 	atomic_long_t asid_reuse;
- 	atomic_long_t intr;
-+	atomic_long_t intr_cbr;
-+	atomic_long_t intr_tfh;
- 	atomic_long_t intr_mm_lock_failed;
- 	atomic_long_t call_os;
--	atomic_long_t call_os_check_for_bug;
- 	atomic_long_t call_os_wait_queue;
- 	atomic_long_t user_flush_tlb;
- 	atomic_long_t user_unload_context;
-@@ -208,11 +209,9 @@ struct gru_stats_s {
- 	atomic_long_t tlb_dropin_fail_idle;
- 	atomic_long_t tlb_dropin_fail_fmm;
- 	atomic_long_t tlb_dropin_fail_no_exception;
--	atomic_long_t tlb_dropin_fail_no_exception_war;
- 	atomic_long_t tfh_stale_on_fault;
- 	atomic_long_t mmu_invalidate_range;
- 	atomic_long_t mmu_invalidate_page;
--	atomic_long_t mmu_clear_flush_young;
- 	atomic_long_t flush_tlb;
- 	atomic_long_t flush_tlb_gru;
- 	atomic_long_t flush_tlb_gru_tgh;
-@@ -231,7 +230,7 @@ struct gru_stats_s {
- 	atomic_long_t mesq_send_qlimit_reached;
- 	atomic_long_t mesq_send_amo_nacked;
- 	atomic_long_t mesq_send_put_nacked;
--	atomic_long_t mesq_qf_not_full;
-+	atomic_long_t mesq_page_overflow;
- 	atomic_long_t mesq_qf_locked;
- 	atomic_long_t mesq_qf_noop_not_full;
- 	atomic_long_t mesq_qf_switch_head_failed;
-@@ -241,6 +240,7 @@ struct gru_stats_s {
- 	atomic_long_t mesq_noop_qlimit_reached;
- 	atomic_long_t mesq_noop_amo_nacked;
- 	atomic_long_t mesq_noop_put_nacked;
-+	atomic_long_t mesq_noop_page_overflow;
- 
- };
- 
-@@ -255,8 +255,8 @@ struct mcs_op_statistic {
- 
- extern struct mcs_op_statistic mcs_op_statistics[mcsop_last];
- 
--#define OPT_DPRINT	1
--#define OPT_STATS	2
-+#define OPT_DPRINT		1
-+#define OPT_STATS		2
  
  
- #define IRQ_GRU			110	/* Starting IRQ number for interrupts */
-@@ -279,7 +279,7 @@ extern struct mcs_op_statistic mcs_op_st
- #define gru_dbg(dev, fmt, x...)						\
- 	do {								\
- 		if (gru_options & OPT_DPRINT)				\
--			dev_dbg(dev, "%s: " fmt, __func__, x);		\
-+			printk(KERN_DEBUG "GRU:%d %s: " fmt, smp_processor_id(), __func__, x);\
- 	} while (0)
- #else
- #define gru_dbg(x...)
-diff -puN drivers/misc/sgi-gru/grutlbpurge.c~gru-add-additional-gru-statistics drivers/misc/sgi-gru/grutlbpurge.c
---- a/drivers/misc/sgi-gru/grutlbpurge.c~gru-add-additional-gru-statistics
-+++ a/drivers/misc/sgi-gru/grutlbpurge.c
-@@ -184,8 +184,8 @@ void gru_flush_tlb_range(struct gru_mm_s
- 			STAT(flush_tlb_gru_tgh);
- 			asid = GRUASID(asid, start);
- 			gru_dbg(grudev,
--	"  FLUSH gruid %d, asid 0x%x, num %ld, cbmap 0x%x\n",
--				gid, asid, num, asids->mt_ctxbitmap);
-+	"  FLUSH gruid %d, asid 0x%x, vaddr 0x%lx, vamask 0x%x, num %ld, cbmap 0x%x\n",
-+			      gid, asid, start, grupagesize, num, asids->mt_ctxbitmap);
- 			tgh = get_lock_tgh_handle(gru);
- 			tgh_invalidate(tgh, start, ~0, asid, grupagesize, 0,
- 				       num - 1, asids->mt_ctxbitmap);
-@@ -308,6 +308,7 @@ struct gru_mm_struct *gru_register_mmu_n
- 	} else {
- 		gms = kzalloc(sizeof(*gms), GFP_KERNEL);
- 		if (gms) {
-+			STAT(gms_alloc);
- 			spin_lock_init(&gms->ms_asid_lock);
- 			gms->ms_notifier.ops = &gru_mmuops;
- 			atomic_set(&gms->ms_refcnt, 1);
-@@ -333,6 +334,7 @@ void gru_drop_mmu_notifier(struct gru_mm
- 		if (!gms->ms_released)
- 			mmu_notifier_unregister(&gms->ms_notifier, current->mm);
- 		kfree(gms);
-+		STAT(gms_free);
- 	}
+@@ -469,10 +475,9 @@ static inline void gru_bcopy(void *cb, c
+ 	ins->baddr0 = (long)src;
+ 	ins->op2_value_baddr1 = (long)dest;
+ 	ins->nelem = nelem;
+-	ins->tri0 = tri0;
+ 	ins->tri1_bufsize = bufsize;
+-	gru_start_instruction(ins, __opword(OP_BCOPY, 0, xtype, IAA_RAM,
+-					IAA_RAM, CB_IMA(hints)));
++	gru_start_instruction(ins, __opdword(OP_BCOPY, 0, xtype, IAA_RAM,
++					IAA_RAM, tri0, CB_IMA(hints)));
+ }
+ 
+ static inline void gru_bstore(void *cb, const unsigned long src,
+@@ -484,9 +489,8 @@ static inline void gru_bstore(void *cb, 
+ 	ins->baddr0 = (long)src;
+ 	ins->op2_value_baddr1 = (long)dest;
+ 	ins->nelem = nelem;
+-	ins->tri0 = tri0;
+-	gru_start_instruction(ins, __opword(OP_BSTORE, 0, xtype, 0, IAA_RAM,
+-					CB_IMA(hints)));
++	gru_start_instruction(ins, __opdword(OP_BSTORE, 0, xtype, 0, IAA_RAM,
++					tri0, CB_IMA(hints)));
+ }
+ 
+ static inline void gru_gamir(void *cb, int exopc, unsigned long src,
+@@ -495,8 +499,8 @@ static inline void gru_gamir(void *cb, i
+ 	struct gru_instruction *ins = (void *)cb;
+ 
+ 	ins->baddr0 = (long)src;
+-	gru_start_instruction(ins, __opword(OP_GAMIR, exopc, xtype, IAA_RAM, 0,
+-					CB_IMA(hints)));
++	gru_start_instruction(ins, __opdword(OP_GAMIR, exopc, xtype, IAA_RAM, 0,
++					0, CB_IMA(hints)));
+ }
+ 
+ static inline void gru_gamirr(void *cb, int exopc, unsigned long src,
+@@ -505,8 +509,8 @@ static inline void gru_gamirr(void *cb, 
+ 	struct gru_instruction *ins = (void *)cb;
+ 
+ 	ins->baddr0 = (long)src;
+-	gru_start_instruction(ins, __opword(OP_GAMIRR, exopc, xtype, IAA_RAM, 0,
+-					CB_IMA(hints)));
++	gru_start_instruction(ins, __opdword(OP_GAMIRR, exopc, xtype, IAA_RAM, 0,
++					0, CB_IMA(hints)));
+ }
+ 
+ static inline void gru_gamer(void *cb, int exopc, unsigned long src,
+@@ -519,8 +523,8 @@ static inline void gru_gamer(void *cb, i
+ 	ins->baddr0 = (long)src;
+ 	ins->op1_stride = operand1;
+ 	ins->op2_value_baddr1 = operand2;
+-	gru_start_instruction(ins, __opword(OP_GAMER, exopc, xtype, IAA_RAM, 0,
+-					CB_IMA(hints)));
++	gru_start_instruction(ins, __opdword(OP_GAMER, exopc, xtype, IAA_RAM, 0,
++					0, CB_IMA(hints)));
+ }
+ 
+ static inline void gru_gamerr(void *cb, int exopc, unsigned long src,
+@@ -532,8 +536,8 @@ static inline void gru_gamerr(void *cb, 
+ 	ins->baddr0 = (long)src;
+ 	ins->op1_stride = operand1;
+ 	ins->op2_value_baddr1 = operand2;
+-	gru_start_instruction(ins, __opword(OP_GAMERR, exopc, xtype, IAA_RAM, 0,
+-					CB_IMA(hints)));
++	gru_start_instruction(ins, __opdword(OP_GAMERR, exopc, xtype, IAA_RAM, 0,
++					0, CB_IMA(hints)));
+ }
+ 
+ static inline void gru_gamxr(void *cb, unsigned long src,
+@@ -543,8 +547,8 @@ static inline void gru_gamxr(void *cb, u
+ 
+ 	ins->baddr0 = (long)src;
+ 	ins->nelem = 4;
+-	gru_start_instruction(ins, __opword(OP_GAMXR, EOP_XR_CSWAP, XTYPE_DW,
+-				 IAA_RAM, 0, CB_IMA(hints)));
++	gru_start_instruction(ins, __opdword(OP_GAMXR, EOP_XR_CSWAP, XTYPE_DW,
++				 IAA_RAM, 0, 0, CB_IMA(hints)));
+ }
+ 
+ static inline void gru_mesq(void *cb, unsigned long queue,
+@@ -555,9 +559,8 @@ static inline void gru_mesq(void *cb, un
+ 
+ 	ins->baddr0 = (long)queue;
+ 	ins->nelem = nelem;
+-	ins->tri0 = tri0;
+-	gru_start_instruction(ins, __opword(OP_MESQ, 0, XTYPE_CL, IAA_RAM, 0,
+-					CB_IMA(hints)));
++	gru_start_instruction(ins, __opdword(OP_MESQ, 0, XTYPE_CL, IAA_RAM, 0,
++					tri0, CB_IMA(hints)));
+ }
+ 
+ static inline unsigned long gru_get_amo_value(void *cb)
+@@ -676,6 +679,14 @@ static inline void gru_wait_abort(void *
+ 	gru_wait_abort_proc(cb);
+ }
+ 
++/*
++ * Get a pointer to the start of a gseg
++ * 	p	- Any valid pointer within the gseg
++ */
++static inline void *gru_get_gseg_pointer (void *p)
++{
++	return (void *)((unsigned long)p & ~(GRU_GSEG_PAGESIZE - 1));
++}
+ 
+ /*
+  * Get a pointer to a control block
+diff -puN drivers/misc/sgi-gru/gruhandles.c~gru-expicitly-set-instruction-status-to-active drivers/misc/sgi-gru/gruhandles.c
+--- a/drivers/misc/sgi-gru/gruhandles.c~gru-expicitly-set-instruction-status-to-active
++++ a/drivers/misc/sgi-gru/gruhandles.c
+@@ -54,8 +54,8 @@ static void start_instruction(void *h)
+ {
+ 	unsigned long *w0 = h;
+ 
+-	wmb();		/* setting CMD bit must be last */
+-	*w0 = *w0 | 1;
++	wmb();		/* setting CMD/STATUS bits must be last */
++	*w0 = *w0 | 0x20001;
+ 	gru_flush_cache(h);
  }
  
 _
