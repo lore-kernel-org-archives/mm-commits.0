@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kexec-premit-reduction-of-the-reserved-memory-size-fix.patch added to -mm tree
-Date: Tue, 24 Nov 2009 14:46:34 -0800
-Message-ID: <200911242246.nAOMkYjr004897@imap1.linux-foundation.org>
+Subject: + drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch added to -mm tree
+Date: Tue, 24 Nov 2009 15:03:08 -0800
+Message-ID: <200911242327.nAONR09w005377@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59299 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40732 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934252AbZKXWqs (ORCPT
+	by vger.kernel.org with ESMTP id S934344AbZKXX12 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Nov 2009 17:46:48 -0500
+	Tue, 24 Nov 2009 18:27:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: amwang@redhat.com, error27@gmail.com
+Cc: akpm@linux-foundation.org, airlied@linux.ie
 
 
 The patch titled
-     kexec-premit-reduction-of-the-reserved-memory-size-fix
+     drivers/gpu/drm/radeon/radeon_combios.c: fix warning
 has been added to the -mm tree.  Its filename is
-     kexec-premit-reduction-of-the-reserved-memory-size-fix.patch
+     drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,107 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kexec-premit-reduction-of-the-reserved-memory-size-fix
-From: Cong Wang <amwang@redhat.com>
+Subject: drivers/gpu/drm/radeon/radeon_combios.c: fix warning
+From: Andrew Morton <akpm@linux-foundation.org>
 
-kernel/ksysfs.c: In function `kexec_crash_size_show':
-kernel/ksysfs.c:106: warning: format `%lu' expects type `long unsigned int', but argument 3 has type `size_t'
+drivers/gpu/drm/radeon/radeon_combios.c: In function 'radeon_combios_get_lvds_info':
+drivers/gpu/drm/radeon/radeon_combios.c:893: warning: comparison is always false due to limited range of data type
 
-Cc: Dan Carpenter <error27@gmail.com>
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/ksysfs.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/gpu/drm/radeon/radeon_combios.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN kernel/ksysfs.c~kexec-premit-reduction-of-the-reserved-memory-size-fix kernel/ksysfs.c
---- a/kernel/ksysfs.c~kexec-premit-reduction-of-the-reserved-memory-size-fix
-+++ a/kernel/ksysfs.c
-@@ -103,7 +103,7 @@ KERNEL_ATTR_RO(kexec_crash_loaded);
- static ssize_t kexec_crash_size_show(struct kobject *kobj,
- 				       struct kobj_attribute *attr, char *buf)
- {
--	return sprintf(buf, "%lu\n", crash_get_memory_size());
-+	return sprintf(buf, "%zu\n", crash_get_memory_size());
- }
- static ssize_t kexec_crash_size_store(struct kobject *kobj,
- 				   struct kobj_attribute *attr,
+diff -puN drivers/gpu/drm/radeon/radeon_combios.c~drivers-gpu-drm-radeon-radeon_combiosc-fix-warning drivers/gpu/drm/radeon/radeon_combios.c
+--- a/drivers/gpu/drm/radeon/radeon_combios.c~drivers-gpu-drm-radeon-radeon_combiosc-fix-warning
++++ a/drivers/gpu/drm/radeon/radeon_combios.c
+@@ -890,8 +890,7 @@ struct radeon_encoder_lvds *radeon_combi
+ 			 lvds->native_mode.vdisplay);
+ 
+ 		lvds->panel_vcc_delay = RBIOS16(lcd_info + 0x2c);
+-		if (lvds->panel_vcc_delay > 2000 || lvds->panel_vcc_delay < 0)
+-			lvds->panel_vcc_delay = 2000;
++		lvds->panel_vcc_delay = min_t(u16, lvds->panel_vcc_delay, 2000);
+ 
+ 		lvds->panel_pwr_delay = RBIOS8(lcd_info + 0x24);
+ 		lvds->panel_digon_delay = RBIOS16(lcd_info + 0x38) & 0xf;
 _
 
-Patches currently in -mm which might be from amwang@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+drivers-media-dvb-dvb-core-dvb_frontendc-needs-semaphoreh.patch
 linux-next.patch
-xtensa-use-generic-sys_pipe.patch
-rwsem-spinlock-remove-useless-function-exports.patch
-rwsem-fix-rwsem_is_locked-bugs.patch
+linux-next-fixup.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+recordmcount-stfu.patch
+include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
+drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+acpi-remove-nid_inval.patch
+drivers-acpi-acpi_padc-squish-warning.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices-checkpatch-fixes.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+kbuild-generate-modulesbuiltin-fix-2-checkpatch-fixes.patch
+drivers-leds-leds-ss4200c-fix-return-statement.patch
+mtd-nand-fix-multi-chip-suspend-problem-fix.patch
+3x59x-fix-pci-resource-management.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
+st-fix-test-of-value-range-in-st_set_options.patch
+scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
+wusb-use-sizeof-struct-rather-than-pointer.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+fs-improve-remountro-vs-buffercache-coherency.patch
+percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+readahead-add-blk_run_backing_dev.patch
+mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
+oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
+oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes.patch
+mm-mlocking-in-try_to_unmap_one-fix-fix.patch
+mm-memory_hotplug-make-offline_pages-static.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup.patch
+floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
+drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
 rwsem-fix-rwsem_is_locked-bugs-fix.patch
-kallsyms-remove-deprecated-print_fn_descriptor_symbol.patch
-kexec-premit-reduction-of-the-reserved-memory-size.patch
-kexec-premit-reduction-of-the-reserved-memory-size-fix.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
+errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
+msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes.patch
+crc32-minor-optimizations-and-cleanup-checkpatch-fixes.patch
+hwmon-w83627ehf-updates-checkpatch-fixes.patch
+spi-controller-driver-for-designware-spi-core-fix.patch
+spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3.patch
+ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
+memcg-coalesce-charging-via-percpu-storage-fix.patch
+char-cyclades-fix-compiler-warning.patch
+aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
+direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
+zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes.patch
+lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes.patch
+lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+reiser4-disable.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
 
