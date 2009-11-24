@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + gru-allow-users-to-specify-gru-chiplet-1.patch added to -mm tree
-Date: Tue, 24 Nov 2009 11:58:12 -0800
-Message-ID: <200911241958.nAOJwClw018135@imap1.linux-foundation.org>
+Subject: + gru-fix-istatus-race-in-gru-tlb-dropin.patch added to -mm tree
+Date: Tue, 24 Nov 2009 11:58:08 -0800
+Message-ID: <200911241958.nAOJw9Mg017965@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35929 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59692 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932678AbZKXT6I (ORCPT
+	by vger.kernel.org with ESMTP id S932499AbZKXT6F (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Nov 2009 14:58:08 -0500
+	Tue, 24 Nov 2009 14:58:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: steiner@sgi.com
 
 
 The patch titled
-     gru: allow users to specify gru chiplet 1
+     gru: fix istatus race in GRU tlb dropin
 has been added to the -mm tree.  Its filename is
-     gru-allow-users-to-specify-gru-chiplet-1.patch
+     gru-fix-istatus-race-in-gru-tlb-dropin.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,85 +34,168 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gru: allow users to specify gru chiplet 1
+Subject: gru: fix istatus race in GRU tlb dropin
 From: Jack Steiner <steiner@sgi.com>
 
-Add table & user request infrastructure that is needed to allow users to
-specify the blade and chiplet for allocation of GRU contexts.  Use of this
-information is in a subsequent patch.
+TLB dropins require updates to the CBR instruction istatus field.  This is
+needed to resolve race conditions in the chip.
+
+The code currently uses the user address of the CBR.  This works but opens
+up additional endcases related to stealing of contexts and accessing the
+CBR from tasks that do not have access to the user address space.  (Some
+of this non-user task access is debug code that is not currently being
+pushed to the community).
+
+User CBRs are also directly accessible using the kernel mapping of the
+CBR.  Change the TLB dropin code to use the the kernel mapping of the CBR.
 
 Signed-off-by: Jack Steiner <steiner@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-gru/grufault.c  |   10 ++++++++++
- drivers/misc/sgi-gru/grulib.h    |    5 +++--
- drivers/misc/sgi-gru/grumain.c   |    2 ++
- drivers/misc/sgi-gru/grutables.h |    2 ++
- 4 files changed, 17 insertions(+), 2 deletions(-)
+ drivers/misc/sgi-gru/grufault.c |   53 ++++++++++++------------------
+ 1 file changed, 22 insertions(+), 31 deletions(-)
 
-diff -puN drivers/misc/sgi-gru/grufault.c~gru-allow-users-to-specify-gru-chiplet-1 drivers/misc/sgi-gru/grufault.c
---- a/drivers/misc/sgi-gru/grufault.c~gru-allow-users-to-specify-gru-chiplet-1
+diff -puN drivers/misc/sgi-gru/grufault.c~gru-fix-istatus-race-in-gru-tlb-dropin drivers/misc/sgi-gru/grufault.c
+--- a/drivers/misc/sgi-gru/grufault.c~gru-fix-istatus-race-in-gru-tlb-dropin
 +++ a/drivers/misc/sgi-gru/grufault.c
-@@ -763,6 +763,16 @@ int gru_set_context_option(unsigned long
- 		return -EINVAL;
+@@ -122,22 +122,11 @@ static void gru_unlock_gts(struct gru_th
+  * is necessary to prevent the user from seeing a stale cb.istatus that will
+  * change as soon as the TFH restart is complete. Races may cause an
+  * occasional failure to clear the cb.istatus, but that is ok.
+- *
+- * If the cb address is not valid (should not happen, but...), nothing
+- * bad will happen.. The get_user()/put_user() will fail but there
+- * are no bad side-effects.
+- */
+-static void gru_cb_set_istatus_active(unsigned long __user *cb)
+-{
+-	union {
+-		struct gru_instruction_bits bits;
+-		unsigned long dw;
+-	} u;
+-
+-	if (cb) {
+-		get_user(u.dw, cb);
+-		u.bits.istatus = CBS_ACTIVE;
+-		put_user(u.dw, cb);
++ */
++static void gru_cb_set_istatus_active(struct gru_instruction_bits *cbk)
++{
++	if (cbk) {
++		cbk->istatus = CBS_ACTIVE;
+ 	}
+ }
  
- 	switch (req.op) {
-+	case sco_blade_chiplet:
-+		/* Select blade/chiplet for GRU context */
-+		if (req.val1 < -1 || req.val1 >= GRU_MAX_BLADES || !gru_base[req.val1] ||
-+		    req.val0 < -1 || req.val0 >= GRU_CHIPLETS_PER_HUB) {
-+			ret = -EINVAL;
-+		} else {
-+			gts->ts_user_blade_id = req.val1;
-+			gts->ts_user_chiplet_id = req.val0;
-+		}
-+		break;
- 	case sco_gseg_owner:
-  		/* Register the current task as the GSEG owner */
- 		gts->ts_tgid_owner = current->tgid;
-diff -puN drivers/misc/sgi-gru/grulib.h~gru-allow-users-to-specify-gru-chiplet-1 drivers/misc/sgi-gru/grulib.h
---- a/drivers/misc/sgi-gru/grulib.h~gru-allow-users-to-specify-gru-chiplet-1
-+++ a/drivers/misc/sgi-gru/grulib.h
-@@ -98,11 +98,12 @@ struct gru_unload_context_req {
- /*
-  * Structure used to set context options
+@@ -322,9 +311,9 @@ upm:
   */
--enum {sco_gseg_owner, sco_cch_req_slice};
-+enum {sco_gseg_owner, sco_cch_req_slice, sco_blade_chiplet};
- struct gru_set_context_option_req {
- 	unsigned long	gseg;
- 	int		op;
--	unsigned long	val1;
-+	int		val0;
-+	long		val1;
- };
+ static int gru_try_dropin(struct gru_thread_state *gts,
+ 			  struct gru_tlb_fault_handle *tfh,
+-			  unsigned long __user *cb)
++			  struct gru_instruction_bits *cbk)
+ {
+-	int pageshift = 0, asid, write, ret, atomic = !cb;
++	int pageshift = 0, asid, write, ret, atomic = !cbk;
+ 	unsigned long gpa = 0, vaddr = 0;
  
- /*
-diff -puN drivers/misc/sgi-gru/grumain.c~gru-allow-users-to-specify-gru-chiplet-1 drivers/misc/sgi-gru/grumain.c
---- a/drivers/misc/sgi-gru/grumain.c~gru-allow-users-to-specify-gru-chiplet-1
-+++ a/drivers/misc/sgi-gru/grumain.c
-@@ -328,6 +328,8 @@ struct gru_thread_state *gru_alloc_gts(s
- 	gts->ts_cbr_au_count = cbr_au_count;
- 	gts->ts_dsr_au_count = dsr_au_count;
- 	gts->ts_user_options = options;
-+	gts->ts_user_blade_id = -1;
-+	gts->ts_user_chiplet_id = -1;
- 	gts->ts_tsid = tsid;
- 	gts->ts_ctxnum = NULLCTX;
- 	gts->ts_tlb_int_select = -1;
-diff -puN drivers/misc/sgi-gru/grutables.h~gru-allow-users-to-specify-gru-chiplet-1 drivers/misc/sgi-gru/grutables.h
---- a/drivers/misc/sgi-gru/grutables.h~gru-allow-users-to-specify-gru-chiplet-1
-+++ a/drivers/misc/sgi-gru/grutables.h
-@@ -369,6 +369,8 @@ struct gru_thread_state {
- 	long			ts_user_options;/* misc user option flags */
- 	pid_t			ts_tgid_owner;	/* task that is using the
- 						   context - for migration */
-+	short			ts_user_blade_id;/* user selected blade */
-+	char			ts_user_chiplet_id;/* user selected chiplet */
- 	unsigned short		ts_sizeavail;	/* Pagesizes in use */
- 	int			ts_tsid;	/* thread that owns the
- 						   structure */
+ 	/*
+@@ -347,7 +336,7 @@ static int gru_try_dropin(struct gru_thr
+ 	}
+ 	if (tfh->state == TFHSTATE_IDLE)
+ 		goto failidle;
+-	if (tfh->state == TFHSTATE_MISS_FMM && cb)
++	if (tfh->state == TFHSTATE_MISS_FMM && cbk)
+ 		goto failfmm;
+ 
+ 	write = (tfh->cause & TFHCAUSE_TLB_MOD) != 0;
+@@ -378,7 +367,7 @@ static int gru_try_dropin(struct gru_thr
+ 			goto failupm;
+ 		}
+ 	}
+-	gru_cb_set_istatus_active(cb);
++	gru_cb_set_istatus_active(cbk);
+ 	tfh_write_restart(tfh, gpa, GAA_RAM, vaddr, asid, write,
+ 			  GRU_PAGESIZE(pageshift));
+ 	STAT(tlb_dropin);
+@@ -392,7 +381,7 @@ failnoasid:
+ 	/* No asid (delayed unload). */
+ 	STAT(tlb_dropin_fail_no_asid);
+ 	gru_dbg(grudev, "FAILED no_asid tfh: 0x%p, vaddr 0x%lx\n", tfh, vaddr);
+-	if (!cb)
++	if (!cbk)
+ 		tfh_user_polling_mode(tfh);
+ 	else
+ 		gru_flush_cache(tfh);
+@@ -415,17 +404,18 @@ failfmm:
+ failnoexception:
+ 	/* TFH status did not show exception pending */
+ 	gru_flush_cache(tfh);
+-	if (cb)
+-		gru_flush_cache(cb);
++	if (cbk)
++		gru_flush_cache(cbk);
+ 	STAT(tlb_dropin_fail_no_exception);
+-	gru_dbg(grudev, "FAILED non-exception tfh: 0x%p, status %d, state %d\n", tfh, tfh->status, tfh->state);
++	gru_dbg(grudev, "FAILED non-exception tfh: 0x%p, status %d, state %d\n",
++		tfh, tfh->status, tfh->state);
+ 	return 0;
+ 
+ failidle:
+ 	/* TFH state was idle  - no miss pending */
+ 	gru_flush_cache(tfh);
+-	if (cb)
+-		gru_flush_cache(cb);
++	if (cbk)
++		gru_flush_cache(cbk);
+ 	STAT(tlb_dropin_fail_idle);
+ 	gru_dbg(grudev, "FAILED idle tfh: 0x%p, state %d\n", tfh, tfh->state);
+ 	return 0;
+@@ -439,7 +429,7 @@ failinval:
+ 
+ failactive:
+ 	/* Range invalidate active. Switch to UPM iff atomic */
+-	if (!cb)
++	if (!cbk)
+ 		tfh_user_polling_mode(tfh);
+ 	else
+ 		gru_flush_cache(tfh);
+@@ -512,7 +502,7 @@ irqreturn_t gru_intr(int irq, void *dev_
+ 
+ static int gru_user_dropin(struct gru_thread_state *gts,
+ 			   struct gru_tlb_fault_handle *tfh,
+-			   unsigned long __user *cb)
++			   void *cb)
+ {
+ 	struct gru_mm_struct *gms = gts->ts_gms;
+ 	int ret;
+@@ -538,7 +528,7 @@ int gru_handle_user_call_os(unsigned lon
+ {
+ 	struct gru_tlb_fault_handle *tfh;
+ 	struct gru_thread_state *gts;
+-	unsigned long __user *cbp;
++	void *cbk;
+ 	int ucbnum, cbrnum, ret = -EINVAL;
+ 
+ 	STAT(call_os);
+@@ -548,7 +538,6 @@ int gru_handle_user_call_os(unsigned lon
+ 	ucbnum = get_cb_number((void *)cb);
+ 	if ((cb & (GRU_HANDLE_STRIDE - 1)) || ucbnum >= GRU_NUM_CB)
+ 		return -EINVAL;
+-	cbp = (unsigned long *)cb;
+ 
+ 	gts = gru_find_lock_gts(cb);
+ 	if (!gts)
+@@ -583,7 +572,9 @@ int gru_handle_user_call_os(unsigned lon
+ 		gru_unload_context(gts, 1);
+ 	} else if (gts->ts_gru) {
+ 		tfh = get_tfh_by_index(gts->ts_gru, cbrnum);
+-		ret = gru_user_dropin(gts, tfh, cbp);
++		cbk = get_gseg_base_address_cb(gts->ts_gru->gs_gru_base_vaddr,
++				gts->ts_ctxnum, ucbnum);
++		ret = gru_user_dropin(gts, tfh, cbk);
+ 	}
+ exit:
+ 	gru_unlock_gts(gts);
 _
 
 Patches currently in -mm which might be from steiner@sgi.com are
