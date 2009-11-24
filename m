@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + gru-fix-bug-in-module-unload.patch added to -mm tree
-Date: Tue, 24 Nov 2009 11:58:19 -0800
-Message-ID: <200911241958.nAOJwJIB018441@imap1.linux-foundation.org>
+Subject: + gru-support-64-bit-gru-addresses.patch added to -mm tree
+Date: Tue, 24 Nov 2009 11:58:23 -0800
+Message-ID: <200911241958.nAOJwNuW018611@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52569 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43587 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932711AbZKXT6P (ORCPT
+	by vger.kernel.org with ESMTP id S932711AbZKXT6T (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Nov 2009 14:58:15 -0500
+	Tue, 24 Nov 2009 14:58:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: steiner@sgi.com
 
 
 The patch titled
-     gru: fix bug in module unload
+     gru: support 64-bit GRU addresses
 has been added to the -mm tree.  Its filename is
-     gru-fix-bug-in-module-unload.patch
+     gru-support-64-bit-gru-addresses.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,30 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gru: fix bug in module unload
+Subject: gru: support 64-bit GRU addresses
 From: Jack Steiner <steiner@sgi.com>
 
-Fix bug in module unload.  Previous code was not correctly deleting the
-files in /proc.
+Increase the maximum address supported by the SGI GRU driver to a full 64
+bits.  Note that GRU addresses are not always the same as socket virtual
+addresses.  Sockets may not necessarily support the full 64 bits.
 
 Signed-off-by: Jack Steiner <steiner@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-gru/gruprocfs.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/misc/sgi-gru/grutables.h |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN drivers/misc/sgi-gru/gruprocfs.c~gru-fix-bug-in-module-unload drivers/misc/sgi-gru/gruprocfs.c
---- a/drivers/misc/sgi-gru/gruprocfs.c~gru-fix-bug-in-module-unload
-+++ a/drivers/misc/sgi-gru/gruprocfs.c
-@@ -351,7 +351,7 @@ static void delete_proc_files(void)
- 		for (p = proc_files; p->name; p++)
- 			if (p->entry)
- 				remove_proc_entry(p->name, proc_gru);
--		remove_proc_entry("gru", NULL);
-+		remove_proc_entry("gru", proc_gru->parent);
- 	}
- }
+diff -puN drivers/misc/sgi-gru/grutables.h~gru-support-64-bit-gru-addresses drivers/misc/sgi-gru/grutables.h
+--- a/drivers/misc/sgi-gru/grutables.h~gru-support-64-bit-gru-addresses
++++ a/drivers/misc/sgi-gru/grutables.h
+@@ -293,13 +293,7 @@ extern struct mcs_op_statistic mcs_op_st
+ #define ASID_INC	8	/* number of regions */
+ 
+ /* Generate a GRU asid value from a GRU base asid & a virtual address. */
+-#if defined CONFIG_IA64
+ #define VADDR_HI_BIT		64
+-#elif defined CONFIG_X86_64
+-#define VADDR_HI_BIT		48
+-#else
+-#error "Unsupported architecture"
+-#endif
+ #define GRUREGION(addr)		((addr) >> (VADDR_HI_BIT - 3) & 3)
+ #define GRUASID(asid, addr)	((asid) + GRUREGION(addr))
  
 _
 
