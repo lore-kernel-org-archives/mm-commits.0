@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + gru-update-gru-structures-to-match-latest-hardware-spec.patch added to -mm tree
-Date: Tue, 24 Nov 2009 11:58:52 -0800
-Message-ID: <200911241958.nAOJwq2q019783@imap1.linux-foundation.org>
+Subject: + gru-add-hugepage-support.patch added to -mm tree
+Date: Tue, 24 Nov 2009 11:58:56 -0800
+Message-ID: <200911241958.nAOJwu4D019911@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36131 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53385 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932763AbZKXT6s (ORCPT
+	by vger.kernel.org with ESMTP id S932779AbZKXT6w (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Nov 2009 14:58:48 -0500
+	Tue, 24 Nov 2009 14:58:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: steiner@sgi.com
 
 
 The patch titled
-     gru: update GRU structures to match latest hardware spec
+     gru: add hugepage support
 has been added to the -mm tree.  Its filename is
-     gru-update-gru-structures-to-match-latest-hardware-spec.patch
+     gru-add-hugepage-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,69 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gru: update GRU structures to match latest hardware spec
+Subject: gru: add hugepage support
 From: Jack Steiner <steiner@sgi.com>
 
-Add a few new definitions for chipset MMR field names.  This matches rev
-0.7 of the hardware spec.
+Add support for hugepages. Easier than I originally thought.
 
 Signed-off-by: Jack Steiner <steiner@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-gru/gru_instructions.h |    5 ++++-
- drivers/misc/sgi-gru/gruhandles.h       |   11 +++++++++++
- 2 files changed, 15 insertions(+), 1 deletion(-)
+ drivers/misc/sgi-gru/grufault.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/misc/sgi-gru/gru_instructions.h~gru-update-gru-structures-to-match-latest-hardware-spec drivers/misc/sgi-gru/gru_instructions.h
---- a/drivers/misc/sgi-gru/gru_instructions.h~gru-update-gru-structures-to-match-latest-hardware-spec
-+++ a/drivers/misc/sgi-gru/gru_instructions.h
-@@ -265,6 +265,7 @@ struct gru_instruction {
- #define CBE_CAUSE_PROTOCOL_STATE_DATA_ERROR	(1 << 16)
- #define CBE_CAUSE_RA_RESPONSE_DATA_ERROR	(1 << 17)
- #define CBE_CAUSE_HA_RESPONSE_DATA_ERROR	(1 << 18)
-+#define CBE_CAUSE_FORCED_ERROR			(1 << 19)
+diff -puN drivers/misc/sgi-gru/grufault.c~gru-add-hugepage-support drivers/misc/sgi-gru/grufault.c
+--- a/drivers/misc/sgi-gru/grufault.c~gru-add-hugepage-support
++++ a/drivers/misc/sgi-gru/grufault.c
+@@ -192,10 +192,11 @@ static int non_atomic_pte_lookup(struct 
+ {
+ 	struct page *page;
  
- /* CBE cbrexecstatus bits */
- #define CBR_EXS_ABORT_OCC_BIT			0
-@@ -273,13 +274,15 @@ struct gru_instruction {
- #define CBR_EXS_QUEUED_BIT			3
- #define CBR_EXS_TLB_INVAL_BIT			4
- #define CBR_EXS_EXCEPTION_BIT			5
-+#define CBR_EXS_CB_INT_PENDING_BIT		6
- 
- #define CBR_EXS_ABORT_OCC			(1 << CBR_EXS_ABORT_OCC_BIT)
- #define CBR_EXS_INT_OCC				(1 << CBR_EXS_INT_OCC_BIT)
- #define CBR_EXS_PENDING				(1 << CBR_EXS_PENDING_BIT)
- #define CBR_EXS_QUEUED				(1 << CBR_EXS_QUEUED_BIT)
--#define CBR_TLB_INVAL				(1 << CBR_EXS_TLB_INVAL_BIT)
-+#define CBR_EXS_TLB_INVAL			(1 << CBR_EXS_TLB_INVAL_BIT)
- #define CBR_EXS_EXCEPTION			(1 << CBR_EXS_EXCEPTION_BIT)
-+#define CBR_EXS_CB_INT_PENDING			(1 << CBR_EXS_CB_INT_PENDING_BIT)
- 
- /*
-  * Exceptions are retried for the following cases. If any OTHER bits are set
-diff -puN drivers/misc/sgi-gru/gruhandles.h~gru-update-gru-structures-to-match-latest-hardware-spec drivers/misc/sgi-gru/gruhandles.h
---- a/drivers/misc/sgi-gru/gruhandles.h~gru-update-gru-structures-to-match-latest-hardware-spec
-+++ a/drivers/misc/sgi-gru/gruhandles.h
-@@ -252,6 +252,17 @@ enum gru_tgh_state {
- 	TGHSTATE_RESTART_CTX,
- };
- 
-+enum gru_tgh_cause {
-+	TGHCAUSE_RR_ECC,
-+	TGHCAUSE_TLB_ECC,
-+	TGHCAUSE_LRU_ECC,
-+	TGHCAUSE_PS_ECC,
-+	TGHCAUSE_MUL_ERR,
-+	TGHCAUSE_DATA_ERR,
-+	TGHCAUSE_SW_FORCE
-+};
-+
-+
- /*
-  * TFH - TLB Global Handle
-  * 	Used for TLB dropins into the GRU TLB.
+-	/* ZZZ Need to handle HUGE pages */
+-	if (is_vm_hugetlb_page(vma))
+-		return -EFAULT;
++#ifdef CONFIG_HUGETLB_PAGE
++	*pageshift = is_vm_hugetlb_page(vma) ? HPAGE_SHIFT : PAGE_SHIFT;
++#else
+ 	*pageshift = PAGE_SHIFT;
++#endif
+ 	if (get_user_pages
+ 	    (current, current->mm, vaddr, 1, write, 0, &page, NULL) <= 0)
+ 		return -EFAULT;
 _
 
 Patches currently in -mm which might be from steiner@sgi.com are
