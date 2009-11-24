@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + gru-add-debug-option-for-cache-flushing.patch added to -mm tree
-Date: Tue, 24 Nov 2009 11:58:27 -0800
-Message-ID: <200911241958.nAOJwRu7018722@imap1.linux-foundation.org>
+Subject: + gru-handle-failures-to-mmu_notifier_register.patch added to -mm tree
+Date: Tue, 24 Nov 2009 11:58:25 -0800
+Message-ID: <200911241958.nAOJwP6Q018647@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45686 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43727 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932732AbZKXT6X (ORCPT
+	by vger.kernel.org with ESMTP id S932727AbZKXT6V (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Nov 2009 14:58:23 -0500
+	Tue, 24 Nov 2009 14:58:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: steiner@sgi.com
 
 
 The patch titled
-     gru: add debug option for cache flushing
+     gru: handle failures to mmu_notifier_register
 has been added to the -mm tree.  Its filename is
-     gru-add-debug-option-for-cache-flushing.patch
+     gru-handle-failures-to-mmu_notifier_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,84 +34,144 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gru: add debug option for cache flushing
+Subject: gru: handle failures to mmu_notifier_register
 From: Jack Steiner <steiner@sgi.com>
 
-Add a debug option to the SGI GRU driver for flushing GRU cache lines from
-memory.  In theory this is not needed but it is useful for debugging. 
-This has no use by end users.
+Under some conditions, mmu_notifier_register() will fail to register a
+mmu_notifier.  Fix the GRU driver to correctly handle these failures.
 
 Signed-off-by: Jack Steiner <steiner@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-gru/grukdump.c |   13 ++++++++-----
- drivers/misc/sgi-gru/grulib.h   |    2 ++
- 2 files changed, 10 insertions(+), 5 deletions(-)
+ drivers/misc/sgi-gru/grufault.c    |    6 +++---
+ drivers/misc/sgi-gru/grumain.c     |   18 +++++++++++-------
+ drivers/misc/sgi-gru/grutlbpurge.c |    8 +++++++-
+ 3 files changed, 21 insertions(+), 11 deletions(-)
 
-diff -puN drivers/misc/sgi-gru/grukdump.c~gru-add-debug-option-for-cache-flushing drivers/misc/sgi-gru/grukdump.c
---- a/drivers/misc/sgi-gru/grukdump.c~gru-add-debug-option-for-cache-flushing
-+++ a/drivers/misc/sgi-gru/grukdump.c
-@@ -44,7 +44,8 @@ static int gru_user_copy_handle(void __u
+diff -puN drivers/misc/sgi-gru/grufault.c~gru-handle-failures-to-mmu_notifier_register drivers/misc/sgi-gru/grufault.c
+--- a/drivers/misc/sgi-gru/grufault.c~gru-handle-failures-to-mmu_notifier_register
++++ a/drivers/misc/sgi-gru/grufault.c
+@@ -96,7 +96,7 @@ static struct gru_thread_state *gru_allo
+ 	vma = gru_find_vma(vaddr);
+ 	if (vma)
+ 		gts = gru_alloc_thread_state(vma, TSID(vaddr, vma));
+-	if (gts) {
++	if (!IS_ERR(gts)) {
+ 		mutex_lock(&gts->ts_ctxlock);
+ 		downgrade_write(&mm->mmap_sem);
+ 	} else {
+@@ -747,8 +747,8 @@ int gru_set_context_option(unsigned long
+ 	gru_dbg(grudev, "op %d, gseg 0x%lx, value1 0x%lx\n", req.op, req.gseg, req.val1);
  
- static int gru_dump_context_data(void *grubase,
- 			struct gru_context_configuration_handle *cch,
--			void __user *ubuf, int ctxnum, int dsrcnt)
-+			void __user *ubuf, int ctxnum, int dsrcnt,
-+			int flush_cbrs)
+ 	gts = gru_alloc_locked_gts(req.gseg);
+-	if (!gts)
+-		return -EINVAL;
++	if (IS_ERR(gts))
++		return PTR_ERR(gts);
+ 
+ 	switch (req.op) {
+ 	case sco_blade_chiplet:
+diff -puN drivers/misc/sgi-gru/grumain.c~gru-handle-failures-to-mmu_notifier_register drivers/misc/sgi-gru/grumain.c
+--- a/drivers/misc/sgi-gru/grumain.c~gru-handle-failures-to-mmu_notifier_register
++++ a/drivers/misc/sgi-gru/grumain.c
+@@ -27,6 +27,7 @@
+ #include <linux/sched.h>
+ #include <linux/device.h>
+ #include <linux/list.h>
++#include <linux/err.h>
+ #include <asm/uv/uv_hub.h>
+ #include "gru.h"
+ #include "grutables.h"
+@@ -286,7 +287,8 @@ static void gru_unload_mm_tracker(struct
+ void gts_drop(struct gru_thread_state *gts)
  {
- 	void *cb, *cbe, *tfh, *gseg;
- 	int i, scr;
-@@ -55,6 +56,8 @@ static int gru_dump_context_data(void *g
- 	tfh = grubase + GRU_TFH_BASE;
- 
- 	for_each_cbr_in_allocation_map(i, &cch->cbr_allocation_map, scr) {
-+		if (flush_cbrs)
-+			gru_flush_cache(cb);
- 		if (gru_user_copy_handle(&ubuf, cb))
- 			goto fail;
- 		if (gru_user_copy_handle(&ubuf, tfh + i * GRU_HANDLE_STRIDE))
-@@ -115,7 +118,7 @@ fail:
- 
- static int gru_dump_context(struct gru_state *gru, int ctxnum,
- 		void __user *ubuf, void __user *ubufend, char data_opt,
--		char lock_cch)
-+		char lock_cch, char flush_cbrs)
- {
- 	struct gru_dump_context_header hdr;
- 	struct gru_dump_context_header __user *uhdr = ubuf;
-@@ -159,8 +162,7 @@ static int gru_dump_context(struct gru_s
- 			ret = -EFBIG;
- 		else
- 			ret = gru_dump_context_data(grubase, cch, ubuf, ctxnum,
--							dsrcnt);
--
-+							dsrcnt, flush_cbrs);
+ 	if (gts && atomic_dec_return(&gts->ts_refcnt) == 0) {
+-		gru_drop_mmu_notifier(gts->ts_gms);
++		if (gts->ts_gms)
++			gru_drop_mmu_notifier(gts->ts_gms);
+ 		kfree(gts);
+ 		STAT(gts_free);
  	}
- 	if (cch_locked)
- 		unlock_cch_handle(cch);
-@@ -215,7 +217,8 @@ int gru_dump_chiplet_request(unsigned lo
- 	for (ctxnum = 0; ctxnum < GRU_NUM_CCH; ctxnum++) {
- 		if (req.ctxnum == ctxnum || req.ctxnum < 0) {
- 			ret = gru_dump_context(gru, ctxnum, ubuf, ubufend,
--						req.data_opt, req.lock_cch);
-+						req.data_opt, req.lock_cch,
-+						req.flush_cbrs);
- 			if (ret < 0)
- 				goto fail;
- 			ubuf += ret;
-diff -puN drivers/misc/sgi-gru/grulib.h~gru-add-debug-option-for-cache-flushing drivers/misc/sgi-gru/grulib.h
---- a/drivers/misc/sgi-gru/grulib.h~gru-add-debug-option-for-cache-flushing
-+++ a/drivers/misc/sgi-gru/grulib.h
-@@ -125,6 +125,8 @@ struct gru_dump_chiplet_state_req {
- 	int		ctxnum;
- 	char		data_opt;
- 	char		lock_cch;
-+	char		flush_cbrs;
-+	char		fill[10];
- 	pid_t		pid;
- 	void		*buf;
- 	size_t		buflen;
+@@ -313,13 +315,14 @@ struct gru_thread_state *gru_alloc_gts(s
+ 		int cbr_au_count, int dsr_au_count, int options, int tsid)
+ {
+ 	struct gru_thread_state *gts;
++	struct gru_mm_struct *gms;
+ 	int bytes;
+ 
+ 	bytes = DSR_BYTES(dsr_au_count) + CBR_BYTES(cbr_au_count);
+ 	bytes += sizeof(struct gru_thread_state);
+ 	gts = kmalloc(bytes, GFP_KERNEL);
+ 	if (!gts)
+-		return NULL;
++		return ERR_PTR(-ENOMEM);
+ 
+ 	STAT(gts_alloc);
+ 	memset(gts, 0, sizeof(struct gru_thread_state)); /* zero out header */
+@@ -338,9 +341,10 @@ struct gru_thread_state *gru_alloc_gts(s
+ 	if (vma) {
+ 		gts->ts_mm = current->mm;
+ 		gts->ts_vma = vma;
+-		gts->ts_gms = gru_register_mmu_notifier();
+-		if (!gts->ts_gms)
++		gms = gru_register_mmu_notifier();
++		if (IS_ERR(gms))
+ 			goto err;
++		gts->ts_gms = gms;
+ 	}
+ 
+ 	gru_dbg(grudev, "alloc gts %p\n", gts);
+@@ -348,7 +352,7 @@ struct gru_thread_state *gru_alloc_gts(s
+ 
+ err:
+ 	gts_drop(gts);
+-	return NULL;
++	return ERR_CAST(gms);
+ }
+ 
+ /*
+@@ -396,8 +400,8 @@ struct gru_thread_state *gru_alloc_threa
+ 
+ 	gts = gru_alloc_gts(vma, vdata->vd_cbr_au_count, vdata->vd_dsr_au_count,
+ 			    vdata->vd_user_options, tsid);
+-	if (!gts)
+-		return NULL;
++	if (IS_ERR(gts))
++		return gts;
+ 
+ 	spin_lock(&vdata->vd_lock);
+ 	ngts = gru_find_current_gts_nolock(vdata, tsid);
+diff -puN drivers/misc/sgi-gru/grutlbpurge.c~gru-handle-failures-to-mmu_notifier_register drivers/misc/sgi-gru/grutlbpurge.c
+--- a/drivers/misc/sgi-gru/grutlbpurge.c~gru-handle-failures-to-mmu_notifier_register
++++ a/drivers/misc/sgi-gru/grutlbpurge.c
+@@ -299,6 +299,7 @@ struct gru_mm_struct *gru_register_mmu_n
+ {
+ 	struct gru_mm_struct *gms;
+ 	struct mmu_notifier *mn;
++	int err;
+ 
+ 	mn = mmu_find_ops(current->mm, &gru_mmuops);
+ 	if (mn) {
+@@ -311,12 +312,17 @@ struct gru_mm_struct *gru_register_mmu_n
+ 			gms->ms_notifier.ops = &gru_mmuops;
+ 			atomic_set(&gms->ms_refcnt, 1);
+ 			init_waitqueue_head(&gms->ms_wait_queue);
+-			__mmu_notifier_register(&gms->ms_notifier, current->mm);
++			err = __mmu_notifier_register(&gms->ms_notifier, current->mm);
++			if (err)
++				goto error;
+ 		}
+ 	}
+ 	gru_dbg(grudev, "gms %p, refcnt %d\n", gms,
+ 		atomic_read(&gms->ms_refcnt));
+ 	return gms;
++error:
++	kfree(gms);
++	return ERR_PTR(err);
+ }
+ 
+ void gru_drop_mmu_notifier(struct gru_mm_struct *gms)
 _
 
 Patches currently in -mm which might be from steiner@sgi.com are
