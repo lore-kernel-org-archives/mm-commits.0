@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + gru-fix-bug-in-exception-handling.patch added to -mm tree
-Date: Tue, 24 Nov 2009 11:58:44 -0800
-Message-ID: <200911241958.nAOJwiii019476@imap1.linux-foundation.org>
+Subject: + gru-add-symbolic-names-for-gru-error-code.patch added to -mm tree
+Date: Tue, 24 Nov 2009 11:58:46 -0800
+Message-ID: <200911241958.nAOJwkhA019507@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60876 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45409 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932748AbZKXT6k (ORCPT
+	by vger.kernel.org with ESMTP id S932763AbZKXT6m (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Nov 2009 14:58:40 -0500
+	Tue, 24 Nov 2009 14:58:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: steiner@sgi.com
 
 
 The patch titled
-     gru: fix bug in exception handling
+     gru: add symbolic names for GRU error code
 has been added to the -mm tree.  Its filename is
-     gru-fix-bug-in-exception-handling.patch
+     gru-add-symbolic-names-for-gru-error-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,66 +34,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gru: fix bug in exception handling
+Subject: gru: add symbolic names for GRU error code
 From: Jack Steiner <steiner@sgi.com>
 
-Fix a GRU driver bug converting a CBR address to the context that contains
-the CBR.  The conversion is rarely done so performance does not matter.
+Use symbol names instead of numbers for error return values for the vtop
+functions.
 
 Signed-off-by: Jack Steiner <steiner@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-gru/grukservices.c |   30 +++++++++++++++++++-------
- 1 file changed, 22 insertions(+), 8 deletions(-)
+ drivers/misc/sgi-gru/grufault.c |   16 +++++++++++-----
+ 1 file changed, 11 insertions(+), 5 deletions(-)
 
-diff -puN drivers/misc/sgi-gru/grukservices.c~gru-fix-bug-in-exception-handling drivers/misc/sgi-gru/grukservices.c
---- a/drivers/misc/sgi-gru/grukservices.c~gru-fix-bug-in-exception-handling
-+++ a/drivers/misc/sgi-gru/grukservices.c
-@@ -97,9 +97,6 @@
- #define ASYNC_HAN_TO_BID(h)	((h) - 1)
- #define ASYNC_BID_TO_HAN(b)	((b) + 1)
- #define ASYNC_HAN_TO_BS(h)	gru_base[ASYNC_HAN_TO_BID(h)]
--#define KCB_TO_GID(cb)		((cb - gru_start_vaddr) /		\
--					(GRU_SIZE * GRU_CHIPLETS_PER_BLADE))
--#define KCB_TO_BS(cb)		gru_base[KCB_TO_GID(cb)]
+diff -puN drivers/misc/sgi-gru/grufault.c~gru-add-symbolic-names-for-gru-error-code drivers/misc/sgi-gru/grufault.c
+--- a/drivers/misc/sgi-gru/grufault.c~gru-add-symbolic-names-for-gru-error-code
++++ a/drivers/misc/sgi-gru/grufault.c
+@@ -40,6 +40,12 @@
+ #include "gru_instructions.h"
+ #include <asm/uv/uv_hub.h>
  
- #define GRU_NUM_KERNEL_CBR	1
- #define GRU_NUM_KERNEL_DSR_BYTES 256
-@@ -388,11 +385,28 @@ int gru_get_cb_exception_detail(void *cb
- 		struct control_block_extended_exc_detail *excdet)
- {
- 	struct gru_control_block_extended *cbe;
--	struct gru_blade_state *bs;
--	int cbrnum;
--
--	bs = KCB_TO_BS(cb);
--	cbrnum = thread_cbr_number(bs->bs_kgts, get_cb_number(cb));
-+	struct gru_thread_state *kgts = NULL;
-+	unsigned long off;
-+	int cbrnum, bid;
++/* Return codes for vtop functions */
++#define VTOP_SUCCESS               0
++#define VTOP_INVALID               -1
++#define VTOP_RETRY                 -2
 +
-+	/*
-+	 * Locate kgts for cb. This algorithm is SLOW but
-+	 * this function is rarely called (ie., almost never).
-+	 * Performance does not matter.
-+	 */
-+	for_each_possible_blade(bid) {
-+		if (!gru_base[bid])
-+			break;
-+		kgts = gru_base[bid]->bs_kgts;
-+		if (!kgts || !kgts->ts_gru)
-+			continue;
-+		off = cb - kgts->ts_gru->gs_gru_base_vaddr;
-+		if (off < GRU_SIZE)
-+			break;
-+		kgts = NULL;
-+	}
-+	BUG_ON(!kgts);
-+	cbrnum = thread_cbr_number(kgts, get_cb_number(cb));
- 	cbe = get_cbe(GRUBASE(cb), cbrnum);
- 	gru_flush_cache(cbe);	/* CBE not coherent */
- 	sync_core();
++
+ /*
+  * Test if a physical address is a valid GRU GSEG address
+  */
+@@ -280,12 +286,12 @@ static int gru_vtop(struct gru_thread_st
+ 	paddr = paddr & ~((1UL << ps) - 1);
+ 	*gpa = uv_soc_phys_ram_to_gpa(paddr);
+ 	*pageshift = ps;
+-	return 0;
++	return VTOP_SUCCESS;
+ 
+ inval:
+-	return -1;
++	return VTOP_INVALID;
+ upm:
+-	return -2;
++	return VTOP_RETRY;
+ }
+ 
+ 
+@@ -412,9 +418,9 @@ static int gru_try_dropin(struct gru_thr
+ 		goto failactive;
+ 
+ 	ret = gru_vtop(gts, vaddr, write, atomic, &gpa, &pageshift);
+-	if (ret == -1)
++	if (ret == VTOP_INVALID)
+ 		goto failinval;
+-	if (ret == -2)
++	if (ret == VTOP_RETRY)
+ 		goto failupm;
+ 
+ 	if (!(gts->ts_sizeavail & GRU_SIZEAVAIL(pageshift))) {
 _
 
 Patches currently in -mm which might be from steiner@sgi.com are
