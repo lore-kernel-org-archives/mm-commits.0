@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + aoe-switch-to-the-new-bio_flush_dcache_pages-interface.patch added to -mm tree
-Date: Wed, 25 Nov 2009 12:53:13 -0800
-Message-ID: <200911252053.nAPKrDrx005201@imap1.linux-foundation.org>
+Subject: + rtc-vr41xx-use-resource_size.patch added to -mm tree
+Date: Wed, 25 Nov 2009 12:57:10 -0800
+Message-ID: <200911252057.nAPKvA7P014687@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41921 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45561 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935043AbZKYUxn (ORCPT
+	by vger.kernel.org with ESMTP id S1753923AbZKYU5m (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Nov 2009 15:53:43 -0500
+	Wed, 25 Nov 2009 15:57:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dwmw2@infradead.org, ecashin@coraid.com, isloginov@gmail.com, jens.axboe@oracle.com, mingo@elte.hu, phorton@bitbox.co.uk
+Cc: yuasa@linux-mips.org
 
 
 The patch titled
-     aoe: switch to the new bio_flush_dcache_pages() interface
+     rtc-vr41xx: use resource_size()
 has been added to the -mm tree.  Its filename is
-     aoe-switch-to-the-new-bio_flush_dcache_pages-interface.patch
+     rtc-vr41xx-use-resource_size.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,134 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: aoe: switch to the new bio_flush_dcache_pages() interface
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: rtc-vr41xx: use resource_size()
+From: Yoichi Yuasa <yuasa@linux-mips.org>
 
-Cc: "Ed L. Cashin" <ecashin@coraid.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Ilya Loginov <isloginov@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Peter Horton <phorton@bitbox.co.uk>
+Signed-off-by: Yoichi Yuasa <yuasa@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/aoe/aoecmd.c |   17 +----------------
- 1 file changed, 1 insertion(+), 16 deletions(-)
+ drivers/rtc/rtc-vr41xx.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/block/aoe/aoecmd.c~aoe-switch-to-the-new-bio_flush_dcache_pages-interface drivers/block/aoe/aoecmd.c
---- a/drivers/block/aoe/aoecmd.c~aoe-switch-to-the-new-bio_flush_dcache_pages-interface
-+++ a/drivers/block/aoe/aoecmd.c
-@@ -735,21 +735,6 @@ diskstats(struct gendisk *disk, struct b
- 	part_stat_unlock();
- }
+diff -puN drivers/rtc/rtc-vr41xx.c~rtc-vr41xx-use-resource_size drivers/rtc/rtc-vr41xx.c
+--- a/drivers/rtc/rtc-vr41xx.c~rtc-vr41xx-use-resource_size
++++ a/drivers/rtc/rtc-vr41xx.c
+@@ -327,7 +327,7 @@ static int __devinit rtc_probe(struct pl
+ 	if (!res)
+ 		return -EBUSY;
  
--/*
-- * Ensure we don't create aliases in VI caches
-- */
--static inline void
--killalias(struct bio *bio)
--{
--	struct bio_vec *bv;
--	int i;
--
--	if (bio_data_dir(bio) == READ)
--		__bio_for_each_segment(bv, bio, i, 0) {
--			flush_dcache_page(bv->bv_page);
--		}
--}
--
- void
- aoecmd_ata_rsp(struct sk_buff *skb)
- {
-@@ -871,7 +856,7 @@ aoecmd_ata_rsp(struct sk_buff *skb)
- 		if (buf->flags & BUFFL_FAIL)
- 			bio_endio(buf->bio, -EIO);
- 		else {
--			killalias(buf->bio);
-+			bio_flush_dcache_pages(buf->bio);
- 			bio_endio(buf->bio, 0);
- 		}
- 		mempool_free(buf, d->bufpool);
+-	rtc1_base = ioremap(res->start, res->end - res->start + 1);
++	rtc1_base = ioremap(res->start, resource_size(res));
+ 	if (!rtc1_base)
+ 		return -EBUSY;
+ 
+@@ -337,7 +337,7 @@ static int __devinit rtc_probe(struct pl
+ 		goto err_rtc1_iounmap;
+ 	}
+ 
+-	rtc2_base = ioremap(res->start, res->end - res->start + 1);
++	rtc2_base = ioremap(res->start, resource_size(res));
+ 	if (!rtc2_base) {
+ 		retval = -EBUSY;
+ 		goto err_rtc1_iounmap;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from yuasa@linux-mips.org are
 
-drivers-media-dvb-dvb-core-dvb_frontendc-needs-semaphoreh.patch
-linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-recordmcount-stfu.patch
-include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
-drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-acpi-remove-nid_inval.patch
-drivers-acpi-acpi_padc-squish-warning.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices-checkpatch-fixes.patch
-drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-kbuild-generate-modulesbuiltin-fix-2-checkpatch-fixes.patch
-drivers-leds-leds-ss4200c-fix-return-statement.patch
-mtd-nand-fix-multi-chip-suspend-problem-fix.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
-st-fix-test-of-value-range-in-st_set_options.patch
-scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
-block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages-checkpatch-fixes.patch
-aoe-switch-to-the-new-bio_flush_dcache_pages-interface.patch
-wusb-use-sizeof-struct-rather-than-pointer.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-readahead-add-blk_run_backing_dev.patch
-mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
-oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
-oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes.patch
-mm-mlocking-in-try_to_unmap_one-fix-fix.patch
-mm-memory_hotplug-make-offline_pages-static.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup.patch
-floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
-drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
-rwsem-fix-rwsem_is_locked-bugs-fix.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
-errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
-msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes.patch
-crc32-minor-optimizations-and-cleanup-checkpatch-fixes.patch
-hwmon-w83627ehf-updates-checkpatch-fixes.patch
-spi-controller-driver-for-designware-spi-core-fix.patch
-spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3.patch
-ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
-memcg-coalesce-charging-via-percpu-storage-fix.patch
-char-cyclades-fix-compiler-warning.patch
-aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
-direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-drivers-media-video-cx23885-needs-kfifo-updates.patch
-zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-reiser4-disable.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+rtc-vr41xx-use-resource_size.patch
 
