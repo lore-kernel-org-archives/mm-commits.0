@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-x1205-reset-clock-to-sane-state-after-power-failure.patch added to -mm tree
-Date: Wed, 25 Nov 2009 14:11:10 -0800
-Message-ID: <200911252211.nAPMBAk0031825@imap1.linux-foundation.org>
+Subject: + drivers-video-via-viafbdevc-fix-oops-with-no-proc.patch added to -mm tree
+Date: Wed, 25 Nov 2009 14:20:56 -0800
+Message-ID: <200911252220.nAPMKu4F023085@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41783 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60701 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759550AbZKYWMC (ORCPT
+	by vger.kernel.org with ESMTP id S964928AbZKYWVQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Nov 2009 17:12:02 -0500
+	Wed, 25 Nov 2009 17:21:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jw@emlix.com, a.zummo@towertech.it, p_gortmaker@yahoo.com
+Cc: error27@gmail.com, FlorianSchandinat@gmx.de, JosephChan@via.com.tw, ScottFang@viatech.com.cn
 
 
 The patch titled
-     rtc-x1205: reset clock to sane state after power failure
+     drivers/video/via/viafbdev.c: fix oops with no /proc
 has been added to the -mm tree.  Its filename is
-     rtc-x1205-reset-clock-to-sane-state-after-power-failure.patch
+     drivers-video-via-viafbdevc-fix-oops-with-no-proc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-x1205: reset clock to sane state after power failure
-From: Johannes Weiner <jw@emlix.com>
+Subject: drivers/video/via/viafbdev.c: fix oops with no /proc
+From: Dan Carpenter <error27@gmail.com>
 
-When detecting power failure, the probe function would reset the clock
-time to defined state.
+Fixed a typo: missing *.  This would lead to a kernel oops if the kernel
+was compiled without support for the /proc file system.
 
-However, the clock's _date_ might still be bogus and a subsequent probe
-fails when sanity-checking these values.
+Found with a static checker.  Compile tested.
 
-Change the power-failure fixup code to do a full setting of rtc_time,
-including a valid date.
-
-Signed-off-by: Johannes Weiner <jw@emlix.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Paul Gortmaker <p_gortmaker@yahoo.com>
+Signed-off-by: Dan Carpenter <error27@gmail.com>
+Acked-by: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Cc: Joseph Chan <JosephChan@via.com.tw>
+Cc: Scott Fang <ScottFang@viatech.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-x1205.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/via/viafbdev.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-x1205.c~rtc-x1205-reset-clock-to-sane-state-after-power-failure drivers/rtc/rtc-x1205.c
---- a/drivers/rtc/rtc-x1205.c~rtc-x1205-reset-clock-to-sane-state-after-power-failure
-+++ a/drivers/rtc/rtc-x1205.c
-@@ -280,9 +280,9 @@ static int x1205_fix_osc(struct i2c_clie
- 	int err;
- 	struct rtc_time tm;
- 
--	tm.tm_hour = tm.tm_min = tm.tm_sec = 0;
-+	memset(&tm, 0, sizeof(tm));
- 
--	err = x1205_set_datetime(client, &tm, 0, X1205_CCR_BASE, 0);
-+	err = x1205_set_datetime(client, &tm, 1, X1205_CCR_BASE, 0);
- 	if (err < 0)
- 		dev_err(&client->dev, "unable to restart the oscillator\n");
- 
+diff -puN drivers/video/via/viafbdev.c~drivers-video-via-viafbdevc-fix-oops-with-no-proc drivers/video/via/viafbdev.c
+--- a/drivers/video/via/viafbdev.c~drivers-video-via-viafbdevc-fix-oops-with-no-proc
++++ a/drivers/video/via/viafbdev.c
+@@ -1797,7 +1797,7 @@ static const struct file_operations viaf
+ static void viafb_init_proc(struct proc_dir_entry **viafb_entry)
+ {
+ 	*viafb_entry = proc_mkdir("viafb", NULL);
+-	if (viafb_entry) {
++	if (*viafb_entry) {
+ 		proc_create("dvp0", 0, *viafb_entry, &viafb_dvp0_proc_fops);
+ 		proc_create("dvp1", 0, *viafb_entry, &viafb_dvp1_proc_fops);
+ 		proc_create("dfph", 0, *viafb_entry, &viafb_dfph_proc_fops);
 _
 
-Patches currently in -mm which might be from jw@emlix.com are
+Patches currently in -mm which might be from error27@gmail.com are
 
-xtensa-use-generic-sys_pipe.patch
-rtc-x1205-fix-rtc_time-to-y2k-register-value-conversion.patch
-rtc-x1205-reset-clock-to-sane-state-after-power-failure.patch
-rtc-x1205-unconditionally-set-date-when-setting-clock.patch
+drivers-rtc-rtc-pcf50633c-fix-use-after-free-in-pcf50633_rtc_probe.patch
+drivers-video-via-viafbdevc-fix-oops-with-no-proc.patch
+linux-next.patch
+kexec-premit-reduction-of-the-reserved-memory-size-fix.patch
 
