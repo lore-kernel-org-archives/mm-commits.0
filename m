@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + clocksource-add-argument-to-resume-callback.patch added to -mm tree
-Date: Wed, 25 Nov 2009 13:39:56 -0800
-Message-ID: <200911252139.nAPLdvG7020950@imap1.linux-foundation.org>
+Subject: + clocksource-start-cmt-at-clocksource-resume.patch added to -mm tree
+Date: Wed, 25 Nov 2009 13:39:59 -0800
+Message-ID: <200911252139.nAPLdxsP021079@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56575 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58036 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932900AbZKYVkO (ORCPT
+	by vger.kernel.org with ESMTP id S932340AbZKYVkV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Nov 2009 16:40:14 -0500
+	Wed, 25 Nov 2009 16:40:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: damm@opensource.se, johnstul@us.ibm.com, lethal@linux-sh.org, tglx@linutroni
 
 
 The patch titled
-     clocksource: add argument to resume callback
+     clocksource: start CMT at clocksource resume
 has been added to the -mm tree.  Its filename is
-     clocksource-add-argument-to-resume-callback.patch
+     clocksource-start-cmt-at-clocksource-resume.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,14 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: clocksource: add argument to resume callback
+Subject: clocksource: start CMT at clocksource resume
 From: Magnus Damm <damm@opensource.se>
 
-Pass the clocksource as an argument to the clocksource resume callback. 
-Needed so we can point out which CMT channel the sh_cmt.c driver shall
-resume.
+Add code to start the CMT timer on clocksource resume.
+
+This makes sure the timer is started during sysdev_resume().  Without this
+patch the clocksource may be read as suspended, this after sysdev resume
+but before platform device resume.
 
 Signed-off-by: Magnus Damm <damm@opensource.se>
 Cc: john stultz <johnstul@us.ibm.com>
@@ -48,73 +50,34 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/time.c     |    2 +-
- arch/x86/kernel/hpet.c      |    2 +-
- arch/x86/kernel/tsc.c       |    2 +-
- include/linux/clocksource.h |    2 +-
- kernel/time/clocksource.c   |    2 +-
- 5 files changed, 5 insertions(+), 5 deletions(-)
+ drivers/clocksource/sh_cmt.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN arch/ia64/kernel/time.c~clocksource-add-argument-to-resume-callback arch/ia64/kernel/time.c
---- a/arch/ia64/kernel/time.c~clocksource-add-argument-to-resume-callback
-+++ a/arch/ia64/kernel/time.c
-@@ -61,7 +61,7 @@ unsigned long long sched_clock(void)
+diff -puN drivers/clocksource/sh_cmt.c~clocksource-start-cmt-at-clocksource-resume drivers/clocksource/sh_cmt.c
+--- a/drivers/clocksource/sh_cmt.c~clocksource-start-cmt-at-clocksource-resume
++++ a/drivers/clocksource/sh_cmt.c
+@@ -432,6 +432,13 @@ static void sh_cmt_clocksource_disable(s
+ 	sh_cmt_stop(cs_to_sh_cmt(cs), FLAG_CLOCKSOURCE);
+ }
  
- #ifdef CONFIG_PARAVIRT
- static void
--paravirt_clocksource_resume(void)
-+paravirt_clocksource_resume(struct clocksource *cs)
++static void sh_cmt_clocksource_resume(struct clocksource *cs)
++{
++	struct sh_cmt_priv *p = cs_to_sh_cmt(cs);
++
++	sh_cmt_start(p, FLAG_CLOCKSOURCE);
++}
++
+ static int sh_cmt_register_clocksource(struct sh_cmt_priv *p,
+ 				       char *name, unsigned long rating)
  {
- 	if (pv_time_ops.clocksource_resume)
- 		pv_time_ops.clocksource_resume();
-diff -puN arch/x86/kernel/hpet.c~clocksource-add-argument-to-resume-callback arch/x86/kernel/hpet.c
---- a/arch/x86/kernel/hpet.c~clocksource-add-argument-to-resume-callback
-+++ a/arch/x86/kernel/hpet.c
-@@ -264,7 +264,7 @@ static void hpet_resume_device(void)
- 	force_hpet_resume();
- }
- 
--static void hpet_resume_counter(void)
-+static void hpet_resume_counter(struct clocksource *cs)
- {
- 	hpet_resume_device();
- 	hpet_restart_counter();
-diff -puN arch/x86/kernel/tsc.c~clocksource-add-argument-to-resume-callback arch/x86/kernel/tsc.c
---- a/arch/x86/kernel/tsc.c~clocksource-add-argument-to-resume-callback
-+++ a/arch/x86/kernel/tsc.c
-@@ -740,7 +740,7 @@ static cycle_t __vsyscall_fn vread_tsc(v
- }
- #endif
- 
--static void resume_tsc(void)
-+static void resume_tsc(struct clocksource *cs)
- {
- 	clocksource_tsc.cycle_last = 0;
- }
-diff -puN include/linux/clocksource.h~clocksource-add-argument-to-resume-callback include/linux/clocksource.h
---- a/include/linux/clocksource.h~clocksource-add-argument-to-resume-callback
-+++ a/include/linux/clocksource.h
-@@ -172,7 +172,7 @@ struct clocksource {
- 	u64 max_idle_ns;
- 	unsigned long flags;
- 	cycle_t (*vread)(void);
--	void (*resume)(void);
-+	void (*resume)(struct clocksource *cs);
- #ifdef CONFIG_IA64
- 	void *fsys_mmio;        /* used by fsyscall asm code */
- #define CLKSRC_FSYS_MMIO_SET(mmio, addr)      ((mmio) = (addr))
-diff -puN kernel/time/clocksource.c~clocksource-add-argument-to-resume-callback kernel/time/clocksource.c
---- a/kernel/time/clocksource.c~clocksource-add-argument-to-resume-callback
-+++ a/kernel/time/clocksource.c
-@@ -449,7 +449,7 @@ void clocksource_resume(void)
- 
- 	list_for_each_entry(cs, &clocksource_list, list)
- 		if (cs->resume)
--			cs->resume();
-+			cs->resume(cs);
- 
- 	clocksource_resume_watchdog();
- }
+@@ -442,6 +449,7 @@ static int sh_cmt_register_clocksource(s
+ 	cs->read = sh_cmt_clocksource_read;
+ 	cs->enable = sh_cmt_clocksource_enable;
+ 	cs->disable = sh_cmt_clocksource_disable;
++	cs->resume = sh_cmt_clocksource_resume;
+ 	cs->mask = CLOCKSOURCE_MASK(sizeof(unsigned long) * 8);
+ 	cs->flags = CLOCK_SOURCE_IS_CONTINUOUS;
+ 	pr_info("sh_cmt: %s used as clock source\n", cs->name);
 _
 
 Patches currently in -mm which might be from damm@opensource.se are
