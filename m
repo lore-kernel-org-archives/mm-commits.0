@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-media-video-cx23885-needs-kfifo-conversion.patch added to -mm tree
-Date: Tue, 24 Nov 2009 16:23:57 -0800
-Message-ID: <200911250047.nAP0lnfq006088@imap1.linux-foundation.org>
+Subject: + drivers-media-video-cx23885-needs-kfifo-updates.patch added to -mm tree
+Date: Tue, 24 Nov 2009 16:37:28 -0800
+Message-ID: <200911250101.nAP11K38006306@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35049 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40229 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933578AbZKYAr5 (ORCPT
+	by vger.kernel.org with ESMTP id S933704AbZKYBB4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Nov 2009 19:47:57 -0500
+	Tue, 24 Nov 2009 20:01:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, stefani@seibold.net
 
 
 The patch titled
-     drivers/media/video/cx23885 needs kfifo conversion
+     drivers/media/video/cx23885: needs kfifo updates
 has been added to the -mm tree.  Its filename is
-     drivers-media-video-cx23885-needs-kfifo-conversion.patch
+     drivers-media-video-cx23885-needs-kfifo-updates.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/media/video/cx23885 needs kfifo conversion
+Subject: drivers/media/video/cx23885: needs kfifo updates
 From: Andrew Morton <akpm@linux-foundation.org>
 
-linux-next:
-
-drivers/media/video/cx23885/cx23888-ir.c: In function 'cx23888_ir_irq_handler':
-drivers/media/video/cx23885/cx23888-ir.c:597: error: implicit declaration of function 'kfifo_put'
-drivers/media/video/cx23885/cx23888-ir.c: In function 'cx23888_ir_rx_read':
-drivers/media/video/cx23885/cx23888-ir.c:660: error: implicit declaration of function 'kfifo_get'
-drivers/media/video/cx23885/cx23888-ir.c: In function 'cx23888_ir_probe':
-drivers/media/video/cx23885/cx23888-ir.c:1172: warning: passing argument 1 of 'kfifo_alloc' makes pointer from integer without a cast
-drivers/media/video/cx23885/cx23888-ir.c:1172: warning: passing argument 3 of 'kfifo_alloc' makes integer from pointer without a cast
-drivers/media/video/cx23885/cx23888-ir.c:1172: warning: assignment makes pointer from integer without a cast
-drivers/media/video/cx23885/cx23888-ir.c:1178: warning: passing argument 1 of 'kfifo_alloc' makes pointer from integer without a cast
-drivers/media/video/cx23885/cx23888-ir.c:1178: warning: passing argument 3 of 'kfifo_alloc' makes integer from pointer without a cast
-drivers/media/video/cx23885/cx23888-ir.c:1178: warning: assignment makes pointer from integer without a cast
+linux-next again.
 
 Cc: Stefani Seibold <stefani@seibold.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/cx231xx/Kconfig |    1 +
+ drivers/media/video/cx23885/Kconfig |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN drivers/media/video/cx231xx/Kconfig~drivers-media-video-cx23885-needs-kfifo-conversion drivers/media/video/cx231xx/Kconfig
---- a/drivers/media/video/cx231xx/Kconfig~drivers-media-video-cx23885-needs-kfifo-conversion
-+++ a/drivers/media/video/cx231xx/Kconfig
+diff -puN drivers/media/video/cx23885/Makefile~a drivers/media/video/cx23885/Makefile
+diff -puN drivers/media/video/cx23885/Kconfig~a drivers/media/video/cx23885/Kconfig
+--- a/drivers/media/video/cx23885/Kconfig~a
++++ a/drivers/media/video/cx23885/Kconfig
 @@ -1,6 +1,7 @@
- config VIDEO_CX231XX
- 	tristate "Conexant cx231xx USB video capture support"
- 	depends on VIDEO_DEV && I2C && INPUT
+ config VIDEO_CX23885
+ 	tristate "Conexant cx23885 (2388x successor) support"
+ 	depends on DVB_CORE && VIDEO_DEV && PCI && I2C && INPUT
 +	depends on BROKEN
+ 	select I2C_ALGOBIT
+ 	select VIDEO_BTCX
  	select VIDEO_TUNER
- 	select VIDEO_TVEEPROM
- 	select VIDEO_IR
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -147,4 +136,5 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 notify_change-callers-must-hold-i_mutex.patch
+drivers-media-video-cx23885-needs-kfifo-updates.patch
 
