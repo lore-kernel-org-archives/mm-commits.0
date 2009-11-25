@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + spi-superh-msiof-spi-master-driver.patch added to -mm tree
-Date: Wed, 25 Nov 2009 12:11:56 -0800
-Message-ID: <200911252011.nAPKBufI002455@imap1.linux-foundation.org>
+Subject: + block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages.patch added to -mm tree
+Date: Wed, 25 Nov 2009 12:49:35 -0800
+Message-ID: <200911252049.nAPKnZG7028882@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59975 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38244 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934910AbZKYUMG (ORCPT
+	by vger.kernel.org with ESMTP id S934810AbZKYUuH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Nov 2009 15:12:06 -0500
+	Wed, 25 Nov 2009 15:50:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: damm@opensource.se, david-b@pacbell.net, grant.likely@secretlab.ca, lethal@linux-sh.org
+Cc: isloginov@gmail.com, dwmw2@infradead.org, ecashin@coraid.com, jens.axboe@oracle.com, mingo@elte.hu, phorton@bitbox.co.uk
 
 
 The patch titled
-     spi: SuperH MSIOF SPI Master driver
+     block: add helpers to run flush_dcache_page() against a bio and a request's pages
 has been added to the -mm tree.  Its filename is
-     spi-superh-msiof-spi-master-driver.patch
+     block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,776 +34,462 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi: SuperH MSIOF SPI Master driver
-From: Magnus Damm <damm@opensource.se>
+Subject: block: add helpers to run flush_dcache_page() against a bio and a request's pages
+From: Ilya Loginov <isloginov@gmail.com>
 
-This patch adds SPI Master support for the SuperH MSIOF hardware block. 
-Full duplex, spi mode 0-3, active high cs, 3-wire and lsb first should all
-be supported, but the driver has so far only been tested with "mmc_spi".
+Mtdblock driver doesn't call flush_dcache_page for pages in request.  So,
+this causes problems on architectures where the icache doesn't fill from
+the dcache or with dcache aliases.  The patch fixes this.
 
-The MSIOF hardware comes with 32-bit FIFOs for receive and transmit, and
-this driver simply breaks the SPI messages into FIFO-sized chunks.  The
-MSIOF hardware manages the pins for clock, receive and transmit
-(sck/miso/mosi), but the chip select pin is managed by software and must
-be configured as a regular GPIO pin by the board code.
+The ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE symbol was introduced to avoid
+pointless empty cache-thrashing loops on architectures for which
+flush_dcache_page() is a no-op.  Every architecture was provided with this
+#define.  New functions bio_flush_dcache_pages and rq_flush_dcache_pages
+flush pages on architectires where ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE is
+equal 1 or do nothing otherwise.
 
-Performance wise there is still room for improvement, but on a Ecovec
-board with the built-in sh7724 MSIOF0 this driver gets Mini-sd read speeds
-of about half a megabyte per second.
+See "fix mtd_blkdevs problem with caches on some architectures" discussion
+on LKML for more information.
 
-Future work include better clock setup and merging of 8-bit transfers into
-32-bit words to reduce interrupt load and improve throughput.
-
-Signed-off-by: Magnus Damm <damm@opensource.se>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Grant Likely <grant.likely@secretlab.ca>
+Signed-off-by: Ilya Loginov <isloginov@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Peter Horton <phorton@bitbox.co.uk>
+Cc: "Ed L. Cashin" <ecashin@coraid.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/Kconfig          |    7 
- drivers/spi/Makefile         |    1 
- drivers/spi/spi.c            |    1 
- drivers/spi/spi_sh_msiof.c   |  675 +++++++++++++++++++++++++++++++++
- include/linux/spi/sh_msiof.h |   10 
- 5 files changed, 693 insertions(+), 1 deletion(-)
+ arch/alpha/include/asm/cacheflush.h      |    1 +
+ arch/arm/include/asm/cacheflush.h        |    1 +
+ arch/avr32/include/asm/cacheflush.h      |    1 +
+ arch/blackfin/include/asm/cacheflush.h   |    2 ++
+ arch/cris/include/asm/cacheflush.h       |    1 +
+ arch/frv/include/asm/cacheflush.h        |    1 +
+ arch/h8300/include/asm/cacheflush.h      |    1 +
+ arch/ia64/include/asm/cacheflush.h       |    1 +
+ arch/m32r/include/asm/cacheflush.h       |    3 +++
+ arch/m68k/include/asm/cacheflush_mm.h    |    1 +
+ arch/m68k/include/asm/cacheflush_no.h    |    1 +
+ arch/microblaze/include/asm/cacheflush.h |    1 +
+ arch/mips/include/asm/cacheflush.h       |    1 +
+ arch/mn10300/include/asm/cacheflush.h    |    1 +
+ arch/parisc/include/asm/cacheflush.h     |    1 +
+ arch/powerpc/include/asm/cacheflush.h    |    1 +
+ arch/s390/include/asm/cacheflush.h       |    1 +
+ arch/score/include/asm/cacheflush.h      |    1 +
+ arch/sh/include/asm/cacheflush.h         |    1 +
+ arch/sparc/include/asm/cacheflush_32.h   |    1 +
+ arch/sparc/include/asm/cacheflush_64.h   |    1 +
+ arch/x86/include/asm/cacheflush.h        |    1 +
+ arch/xtensa/include/asm/cacheflush.h     |    1 +
+ block/blk-core.c                         |   19 +++++++++++++++++++
+ drivers/mtd/mtd_blkdevs.c                |    2 ++
+ fs/bio.c                                 |   12 ++++++++++++
+ include/asm-generic/cacheflush.h         |    1 +
+ include/linux/bio.h                      |   12 ++++++++++++
+ include/linux/blkdev.h                   |   11 +++++++++++
+ 29 files changed, 83 insertions(+)
 
-diff -puN drivers/spi/Kconfig~spi-superh-msiof-spi-master-driver drivers/spi/Kconfig
---- a/drivers/spi/Kconfig~spi-superh-msiof-spi-master-driver
-+++ a/drivers/spi/Kconfig
-@@ -231,6 +231,13 @@ config SPI_S3C24XX_GPIO
- 	  the inbuilt hardware cannot provide the transfer mode, or
- 	  where the board is using non hardware connected pins.
- 
-+config SPI_SH_MSIOF
-+	tristate "SuperH MSIOF SPI controller"
-+	depends on SUPERH && HAVE_CLK
-+	select SPI_BITBANG
-+	help
-+	  SPI driver for SuperH MSIOF blocks.
-+
- config SPI_SH_SCI
- 	tristate "SuperH SCI SPI controller"
- 	depends on SUPERH
-diff -puN drivers/spi/Makefile~spi-superh-msiof-spi-master-driver drivers/spi/Makefile
---- a/drivers/spi/Makefile~spi-superh-msiof-spi-master-driver
-+++ a/drivers/spi/Makefile
-@@ -35,6 +35,7 @@ obj-$(CONFIG_SPI_XILINX)		+= xilinx_spi.
- obj-$(CONFIG_SPI_XILINX_OF)		+= xilinx_spi_of.o
- obj-$(CONFIG_SPI_XILINX_PLTFM)		+= xilinx_spi_pltfm.o
- obj-$(CONFIG_SPI_SH_SCI)		+= spi_sh_sci.o
-+obj-$(CONFIG_SPI_SH_MSIOF)		+= spi_sh_msiof.o
- obj-$(CONFIG_SPI_STMP3XXX)		+= spi_stmp.o
- obj-$(CONFIG_SPI_DESIGNWARE)		+= dw_spi.o
- obj-$(CONFIG_SPI_DW_PCI)		+= dw_spi_pci.o
-diff -puN drivers/spi/spi.c~spi-superh-msiof-spi-master-driver drivers/spi/spi.c
---- a/drivers/spi/spi.c~spi-superh-msiof-spi-master-driver
-+++ a/drivers/spi/spi.c
-@@ -17,7 +17,6 @@
-  * along with this program; if not, write to the Free Software
-  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+diff -puN arch/alpha/include/asm/cacheflush.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages arch/alpha/include/asm/cacheflush.h
+--- a/arch/alpha/include/asm/cacheflush.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages
++++ a/arch/alpha/include/asm/cacheflush.h
+@@ -9,6 +9,7 @@
+ #define flush_cache_dup_mm(mm)			do { } while (0)
+ #define flush_cache_range(vma, start, end)	do { } while (0)
+ #define flush_cache_page(vma, vmaddr, pfn)	do { } while (0)
++#define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 0
+ #define flush_dcache_page(page)			do { } while (0)
+ #define flush_dcache_mmap_lock(mapping)		do { } while (0)
+ #define flush_dcache_mmap_unlock(mapping)	do { } while (0)
+diff -puN arch/arm/include/asm/cacheflush.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages arch/arm/include/asm/cacheflush.h
+--- a/arch/arm/include/asm/cacheflush.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages
++++ a/arch/arm/include/asm/cacheflush.h
+@@ -418,6 +418,7 @@ extern void flush_ptrace_access(struct v
+  * about to change to user space.  This is the same method as used on SPARC64.
+  * See update_mmu_cache for the user space part.
   */
--
- #include <linux/kernel.h>
- #include <linux/device.h>
- #include <linux/init.h>
-diff -puN /dev/null drivers/spi/spi_sh_msiof.c
---- /dev/null
-+++ a/drivers/spi/spi_sh_msiof.c
-@@ -0,0 +1,675 @@
-+/*
-+ * SuperH MSIOF SPI Master Interface
++#define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 1
+ extern void flush_dcache_page(struct page *);
+ 
+ static inline void __flush_icache_all(void)
+diff -puN arch/avr32/include/asm/cacheflush.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages arch/avr32/include/asm/cacheflush.h
+--- a/arch/avr32/include/asm/cacheflush.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages
++++ a/arch/avr32/include/asm/cacheflush.h
+@@ -107,6 +107,7 @@ extern void flush_icache_page(struct vm_
+  * do something here, but only for certain configurations.  No such
+  * configurations exist at this time.
+  */
++#define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 0
+ #define flush_dcache_page(page)			do { } while (0)
+ #define flush_dcache_mmap_lock(page)		do { } while (0)
+ #define flush_dcache_mmap_unlock(page)		do { } while (0)
+diff -puN arch/blackfin/include/asm/cacheflush.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages arch/blackfin/include/asm/cacheflush.h
+--- a/arch/blackfin/include/asm/cacheflush.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages
++++ a/arch/blackfin/include/asm/cacheflush.h
+@@ -68,9 +68,11 @@ do { memcpy(dst, src, len);						\
+ #endif
+ #if defined(CONFIG_BFIN_EXTMEM_WRITEBACK) || defined(CONFIG_BFIN_L2_WRITEBACK)
+ # define flush_dcache_range(start,end)		blackfin_dcache_flush_range((start), (end))
++#define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 1
+ # define flush_dcache_page(page)		blackfin_dflush_page(page_address(page))
+ #else
+ # define flush_dcache_range(start,end)		do { } while (0)
++#define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 0
+ # define flush_dcache_page(page)		do { } while (0)
+ #endif
+ 
+diff -puN arch/cris/include/asm/cacheflush.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages arch/cris/include/asm/cacheflush.h
+--- a/arch/cris/include/asm/cacheflush.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages
++++ a/arch/cris/include/asm/cacheflush.h
+@@ -12,6 +12,7 @@
+ #define flush_cache_dup_mm(mm)			do { } while (0)
+ #define flush_cache_range(vma, start, end)	do { } while (0)
+ #define flush_cache_page(vma, vmaddr, pfn)	do { } while (0)
++#define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 0
+ #define flush_dcache_page(page)			do { } while (0)
+ #define flush_dcache_mmap_lock(mapping)		do { } while (0)
+ #define flush_dcache_mmap_unlock(mapping)	do { } while (0)
+diff -puN arch/frv/include/asm/cacheflush.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages arch/frv/include/asm/cacheflush.h
+--- a/arch/frv/include/asm/cacheflush.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages
++++ a/arch/frv/include/asm/cacheflush.h
+@@ -47,6 +47,7 @@ static inline void __flush_cache_all(voi
+ }
+ 
+ /* dcache/icache coherency... */
++#define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 1
+ #ifdef CONFIG_MMU
+ extern void flush_dcache_page(struct page *page);
+ #else
+diff -puN arch/h8300/include/asm/cacheflush.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages arch/h8300/include/asm/cacheflush.h
+--- a/arch/h8300/include/asm/cacheflush.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages
++++ a/arch/h8300/include/asm/cacheflush.h
+@@ -15,6 +15,7 @@
+ #define	flush_cache_dup_mm(mm)		do { } while (0)
+ #define	flush_cache_range(vma,a,b)
+ #define	flush_cache_page(vma,p,pfn)
++#define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 0
+ #define	flush_dcache_page(page)
+ #define	flush_dcache_mmap_lock(mapping)
+ #define	flush_dcache_mmap_unlock(mapping)
+diff -puN arch/ia64/include/asm/cacheflush.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages arch/ia64/include/asm/cacheflush.h
+--- a/arch/ia64/include/asm/cacheflush.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages
++++ a/arch/ia64/include/asm/cacheflush.h
+@@ -25,6 +25,7 @@
+ #define flush_cache_vmap(start, end)		do { } while (0)
+ #define flush_cache_vunmap(start, end)		do { } while (0)
+ 
++#define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 1
+ #define flush_dcache_page(page)			\
+ do {						\
+ 	clear_bit(PG_arch_1, &(page)->flags);	\
+diff -puN arch/m32r/include/asm/cacheflush.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages arch/m32r/include/asm/cacheflush.h
+--- a/arch/m32r/include/asm/cacheflush.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages
++++ a/arch/m32r/include/asm/cacheflush.h
+@@ -12,6 +12,7 @@ extern void _flush_cache_copyback_all(vo
+ #define flush_cache_dup_mm(mm)			do { } while (0)
+ #define flush_cache_range(vma, start, end)	do { } while (0)
+ #define flush_cache_page(vma, vmaddr, pfn)	do { } while (0)
++#define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 0
+ #define flush_dcache_page(page)			do { } while (0)
+ #define flush_dcache_mmap_lock(mapping)		do { } while (0)
+ #define flush_dcache_mmap_unlock(mapping)	do { } while (0)
+@@ -33,6 +34,7 @@ extern void smp_flush_cache_all(void);
+ #define flush_cache_dup_mm(mm)			do { } while (0)
+ #define flush_cache_range(vma, start, end)	do { } while (0)
+ #define flush_cache_page(vma, vmaddr, pfn)	do { } while (0)
++#define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 0
+ #define flush_dcache_page(page)			do { } while (0)
+ #define flush_dcache_mmap_lock(mapping)		do { } while (0)
+ #define flush_dcache_mmap_unlock(mapping)	do { } while (0)
+@@ -46,6 +48,7 @@ extern void smp_flush_cache_all(void);
+ #define flush_cache_dup_mm(mm)			do { } while (0)
+ #define flush_cache_range(vma, start, end)	do { } while (0)
+ #define flush_cache_page(vma, vmaddr, pfn)	do { } while (0)
++#define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 0
+ #define flush_dcache_page(page)			do { } while (0)
+ #define flush_dcache_mmap_lock(mapping)		do { } while (0)
+ #define flush_dcache_mmap_unlock(mapping)	do { } while (0)
+diff -puN arch/m68k/include/asm/cacheflush_mm.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages arch/m68k/include/asm/cacheflush_mm.h
+--- a/arch/m68k/include/asm/cacheflush_mm.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages
++++ a/arch/m68k/include/asm/cacheflush_mm.h
+@@ -128,6 +128,7 @@ static inline void __flush_page_to_ram(v
+ 	}
+ }
+ 
++#define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 1
+ #define flush_dcache_page(page)		__flush_page_to_ram(page_address(page))
+ #define flush_dcache_mmap_lock(mapping)		do { } while (0)
+ #define flush_dcache_mmap_unlock(mapping)	do { } while (0)
+diff -puN arch/m68k/include/asm/cacheflush_no.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages arch/m68k/include/asm/cacheflush_no.h
+--- a/arch/m68k/include/asm/cacheflush_no.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages
++++ a/arch/m68k/include/asm/cacheflush_no.h
+@@ -12,6 +12,7 @@
+ #define flush_cache_range(vma, start, end)	__flush_cache_all()
+ #define flush_cache_page(vma, vmaddr)		do { } while (0)
+ #define flush_dcache_range(start,len)		__flush_cache_all()
++#define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 0
+ #define flush_dcache_page(page)			do { } while (0)
+ #define flush_dcache_mmap_lock(mapping)		do { } while (0)
+ #define flush_dcache_mmap_unlock(mapping)	do { } while (0)
+diff -puN arch/microblaze/include/asm/cacheflush.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages arch/microblaze/include/asm/cacheflush.h
+--- a/arch/microblaze/include/asm/cacheflush.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages
++++ a/arch/microblaze/include/asm/cacheflush.h
+@@ -37,6 +37,7 @@
+ #define flush_cache_page(vma, vmaddr, pfn)	do { } while (0)
+ 
+ #define flush_dcache_range(start, end)	__invalidate_dcache_range(start, end)
++#define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 0
+ #define flush_dcache_page(page)			do { } while (0)
+ #define flush_dcache_mmap_lock(mapping)		do { } while (0)
+ #define flush_dcache_mmap_unlock(mapping)	do { } while (0)
+diff -puN arch/mips/include/asm/cacheflush.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages arch/mips/include/asm/cacheflush.h
+--- a/arch/mips/include/asm/cacheflush.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages
++++ a/arch/mips/include/asm/cacheflush.h
+@@ -38,6 +38,7 @@ extern void (*flush_cache_range)(struct 
+ extern void (*flush_cache_page)(struct vm_area_struct *vma, unsigned long page, unsigned long pfn);
+ extern void __flush_dcache_page(struct page *page);
+ 
++#define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 1
+ static inline void flush_dcache_page(struct page *page)
+ {
+ 	if (cpu_has_dc_aliases || !cpu_has_ic_fills_f_dc)
+diff -puN arch/mn10300/include/asm/cacheflush.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages arch/mn10300/include/asm/cacheflush.h
+--- a/arch/mn10300/include/asm/cacheflush.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages
++++ a/arch/mn10300/include/asm/cacheflush.h
+@@ -26,6 +26,7 @@
+ #define flush_cache_page(vma, vmaddr, pfn)	do {} while (0)
+ #define flush_cache_vmap(start, end)		do {} while (0)
+ #define flush_cache_vunmap(start, end)		do {} while (0)
++#define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 0
+ #define flush_dcache_page(page)			do {} while (0)
+ #define flush_dcache_mmap_lock(mapping)		do {} while (0)
+ #define flush_dcache_mmap_unlock(mapping)	do {} while (0)
+diff -puN arch/parisc/include/asm/cacheflush.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages arch/parisc/include/asm/cacheflush.h
+--- a/arch/parisc/include/asm/cacheflush.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages
++++ a/arch/parisc/include/asm/cacheflush.h
+@@ -42,6 +42,7 @@ void flush_cache_mm(struct mm_struct *mm
+ #define flush_cache_vmap(start, end)		flush_cache_all()
+ #define flush_cache_vunmap(start, end)		flush_cache_all()
+ 
++#define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 1
+ extern void flush_dcache_page(struct page *page);
+ 
+ #define flush_dcache_mmap_lock(mapping) \
+diff -puN arch/powerpc/include/asm/cacheflush.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages arch/powerpc/include/asm/cacheflush.h
+--- a/arch/powerpc/include/asm/cacheflush.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages
++++ a/arch/powerpc/include/asm/cacheflush.h
+@@ -25,6 +25,7 @@
+ #define flush_cache_vmap(start, end)		do { } while (0)
+ #define flush_cache_vunmap(start, end)		do { } while (0)
+ 
++#define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 1
+ extern void flush_dcache_page(struct page *page);
+ #define flush_dcache_mmap_lock(mapping)		do { } while (0)
+ #define flush_dcache_mmap_unlock(mapping)	do { } while (0)
+diff -puN arch/s390/include/asm/cacheflush.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages arch/s390/include/asm/cacheflush.h
+--- a/arch/s390/include/asm/cacheflush.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages
++++ a/arch/s390/include/asm/cacheflush.h
+@@ -10,6 +10,7 @@
+ #define flush_cache_dup_mm(mm)			do { } while (0)
+ #define flush_cache_range(vma, start, end)	do { } while (0)
+ #define flush_cache_page(vma, vmaddr, pfn)	do { } while (0)
++#define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 0
+ #define flush_dcache_page(page)			do { } while (0)
+ #define flush_dcache_mmap_lock(mapping)		do { } while (0)
+ #define flush_dcache_mmap_unlock(mapping)	do { } while (0)
+diff -puN arch/score/include/asm/cacheflush.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages arch/score/include/asm/cacheflush.h
+--- a/arch/score/include/asm/cacheflush.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages
++++ a/arch/score/include/asm/cacheflush.h
+@@ -16,6 +16,7 @@ extern void flush_icache_range(unsigned 
+ extern void flush_dcache_range(unsigned long start, unsigned long end);
+ 
+ #define flush_cache_dup_mm(mm)			do {} while (0)
++#define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 0
+ #define flush_dcache_page(page)			do {} while (0)
+ #define flush_dcache_mmap_lock(mapping)		do {} while (0)
+ #define flush_dcache_mmap_unlock(mapping)	do {} while (0)
+diff -puN arch/sh/include/asm/cacheflush.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages arch/sh/include/asm/cacheflush.h
+--- a/arch/sh/include/asm/cacheflush.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages
++++ a/arch/sh/include/asm/cacheflush.h
+@@ -42,6 +42,7 @@ extern void flush_cache_page(struct vm_a
+ 				unsigned long addr, unsigned long pfn);
+ extern void flush_cache_range(struct vm_area_struct *vma,
+ 				 unsigned long start, unsigned long end);
++#define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 1
+ extern void flush_dcache_page(struct page *page);
+ extern void flush_icache_range(unsigned long start, unsigned long end);
+ extern void flush_icache_page(struct vm_area_struct *vma,
+diff -puN arch/sparc/include/asm/cacheflush_32.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages arch/sparc/include/asm/cacheflush_32.h
+--- a/arch/sparc/include/asm/cacheflush_32.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages
++++ a/arch/sparc/include/asm/cacheflush_32.h
+@@ -75,6 +75,7 @@ BTFIXUPDEF_CALL(void, flush_sig_insns, s
+ 
+ extern void sparc_flush_page_to_ram(struct page *page);
+ 
++#define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 1
+ #define flush_dcache_page(page)			sparc_flush_page_to_ram(page)
+ #define flush_dcache_mmap_lock(mapping)		do { } while (0)
+ #define flush_dcache_mmap_unlock(mapping)	do { } while (0)
+diff -puN arch/sparc/include/asm/cacheflush_64.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages arch/sparc/include/asm/cacheflush_64.h
+--- a/arch/sparc/include/asm/cacheflush_64.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages
++++ a/arch/sparc/include/asm/cacheflush_64.h
+@@ -37,6 +37,7 @@ extern void flush_dcache_page_all(struct
+ #endif
+ 
+ extern void __flush_dcache_range(unsigned long start, unsigned long end);
++#define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 1
+ extern void flush_dcache_page(struct page *page);
+ 
+ #define flush_icache_page(vma, pg)	do { } while(0)
+diff -puN arch/x86/include/asm/cacheflush.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages arch/x86/include/asm/cacheflush.h
+--- a/arch/x86/include/asm/cacheflush.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages
++++ a/arch/x86/include/asm/cacheflush.h
+@@ -12,6 +12,7 @@ static inline void flush_cache_range(str
+ 				     unsigned long start, unsigned long end) { }
+ static inline void flush_cache_page(struct vm_area_struct *vma,
+ 				    unsigned long vmaddr, unsigned long pfn) { }
++#define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 0
+ static inline void flush_dcache_page(struct page *page) { }
+ static inline void flush_dcache_mmap_lock(struct address_space *mapping) { }
+ static inline void flush_dcache_mmap_unlock(struct address_space *mapping) { }
+diff -puN arch/xtensa/include/asm/cacheflush.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages arch/xtensa/include/asm/cacheflush.h
+--- a/arch/xtensa/include/asm/cacheflush.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages
++++ a/arch/xtensa/include/asm/cacheflush.h
+@@ -101,6 +101,7 @@ static inline void __invalidate_icache_p
+ #define flush_cache_vmap(start,end)	flush_cache_all()
+ #define flush_cache_vunmap(start,end)	flush_cache_all()
+ 
++#define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 1
+ extern void flush_dcache_page(struct page*);
+ extern void flush_cache_range(struct vm_area_struct*, ulong, ulong);
+ extern void flush_cache_page(struct vm_area_struct*, unsigned long, unsigned long);
+diff -puN block/blk-core.c~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages block/blk-core.c
+--- a/block/blk-core.c~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages
++++ a/block/blk-core.c
+@@ -2358,6 +2358,25 @@ void blk_rq_bio_prep(struct request_queu
+ 		rq->rq_disk = bio->bi_bdev->bd_disk;
+ }
+ 
++#if ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE
++/**
++ * rq_flush_dcache_pages - Helper function to flush all pages in a request
++ * @rq: the request to be flushed
 + *
-+ * Copyright (c) 2009 Magnus Damm
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
++ * Description:
++ *     Flush all pages in @rq.
 + */
-+
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/delay.h>
-+#include <linux/interrupt.h>
-+#include <linux/platform_device.h>
-+#include <linux/completion.h>
-+#include <linux/pm_runtime.h>
-+#include <linux/gpio.h>
-+#include <linux/bitmap.h>
-+#include <linux/clk.h>
-+#include <linux/io.h>
-+
-+#include <linux/spi/spi.h>
-+#include <linux/spi/spi_bitbang.h>
-+#include <linux/spi/sh_msiof.h>
-+
-+#include <asm/spi.h>
-+#include <asm/unaligned.h>
-+
-+struct sh_msiof_spi_priv {
-+	struct spi_bitbang bitbang; /* must be first for spi_bitbang.c */
-+	void __iomem *mapbase;
-+	struct clk *clk;
-+	struct platform_device *pdev;
-+	struct sh_msiof_spi_info *info;
-+	struct completion done;
-+	unsigned long flags;
-+	int tx_fifo_size;
-+	int rx_fifo_size;
-+};
-+
-+#define TMDR1	0x00
-+#define TMDR2	0x04
-+#define TMDR3	0x08
-+#define RMDR1	0x10
-+#define RMDR2	0x14
-+#define RMDR3	0x18
-+#define TSCR	0x20
-+#define RSCR	0x22
-+#define CTR	0x28
-+#define FCTR	0x30
-+#define STR	0x40
-+#define IER	0x44
-+#define TDR1	0x48
-+#define TDR2	0x4c
-+#define TFDR	0x50
-+#define RDR1	0x58
-+#define RDR2	0x5c
-+#define RFDR	0x60
-+
-+#define CTR_TSCKE (1 << 15)
-+#define CTR_TFSE  (1 << 14)
-+#define CTR_TXE   (1 << 9)
-+#define CTR_RXE   (1 << 8)
-+
-+#define STR_TEOF  (1 << 23)
-+#define STR_REOF  (1 << 7)
-+
-+static unsigned long sh_msiof_read(struct sh_msiof_spi_priv *p, int reg_offs)
++void rq_flush_dcache_pages(struct request *rq)
 +{
-+	switch (reg_offs) {
-+	case TSCR:
-+	case RSCR:
-+		return ioread16(p->mapbase + reg_offs);
-+	default:
-+		return ioread32(p->mapbase + reg_offs);
-+	}
++	struct req_iterator iter;
++	struct bio_vec* bvec;
++
++	rq_for_each_segment(bvec, rq, iter)
++		flush_dcache_page(bvec->bv_page);
 +}
++EXPORT_SYMBOL_GPL(rq_flush_dcache_pages);
++#endif
 +
-+static void sh_msiof_write(struct sh_msiof_spi_priv *p, int reg_offs,
-+			   unsigned long value)
+ /**
+  * blk_lld_busy - Check if underlying low-level drivers of a device are busy
+  * @q : the queue of the device being checked
+diff -puN drivers/mtd/mtd_blkdevs.c~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages drivers/mtd/mtd_blkdevs.c
+--- a/drivers/mtd/mtd_blkdevs.c~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages
++++ a/drivers/mtd/mtd_blkdevs.c
+@@ -59,12 +59,14 @@ static int do_blktrans_request(struct mt
+ 		for (; nsect > 0; nsect--, block++, buf += tr->blksize)
+ 			if (tr->readsect(dev, block, buf))
+ 				return -EIO;
++		rq_flush_dcache_pages(req);
+ 		return 0;
+ 
+ 	case WRITE:
+ 		if (!tr->writesect)
+ 			return -EIO;
+ 
++		rq_flush_dcache_pages(req);
+ 		for (; nsect > 0; nsect--, block++, buf += tr->blksize)
+ 			if (tr->writesect(dev, block, buf))
+ 				return -EIO;
+diff -puN fs/bio.c~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages fs/bio.c
+--- a/fs/bio.c~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages
++++ a/fs/bio.c
+@@ -1393,6 +1393,18 @@ void bio_check_pages_dirty(struct bio *b
+ 	}
+ }
+ 
++#if ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE
++void bio_flush_dcache_pages(struct bio *bi)
 +{
-+	switch (reg_offs) {
-+	case TSCR:
-+	case RSCR:
-+		iowrite16(value, p->mapbase + reg_offs);
-+		break;
-+	default:
-+		iowrite32(value, p->mapbase + reg_offs);
-+		break;
-+	}
-+}
-+
-+static void sh_msiof_modify_ctr_wait(struct sh_msiof_spi_priv *p,
-+				     unsigned long clr, unsigned long set)
-+{
-+	unsigned long mask = clr | set;
-+	unsigned long data;
-+
-+	data = sh_msiof_read(p, CTR);
-+	data &= ~clr;
-+	data |= set;
-+	sh_msiof_write(p, CTR, data);
-+
-+	while ((sh_msiof_read(p, CTR) & mask) != set)
-+		;
-+}
-+
-+static irqreturn_t sh_msiof_spi_irq(int irq, void *data)
-+{
-+	struct sh_msiof_spi_priv *p = data;
-+
-+	/* just disable the interrupt and wake up */
-+	sh_msiof_write(p, IER, 0);
-+
-+	complete(&p->done);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static struct {
-+	unsigned short div;
-+	unsigned short scr;
-+} sh_msiof_spi_clk_table[] = {
-+	{ 1, 0x0007 },
-+	{ 2, 0x0000 },
-+	{ 4, 0x0001 },
-+	{ 8, 0x0002 },
-+	{ 16, 0x0003 },
-+	{ 32, 0x0004 },
-+	{ 64, 0x1f00 },
-+	{ 128, 0x1f01 },
-+	{ 256, 0x1f02 },
-+	{ 512, 0x1f03 },
-+	{ 1024, 0x1f04 },
-+};
-+
-+static void sh_msiof_spi_set_clk_regs(struct sh_msiof_spi_priv *p,
-+				      unsigned long parent_rate,
-+				      unsigned long spi_hz)
-+{
-+	unsigned long div = 1024;
-+	int k;
-+
-+	if (!spi_hz || !parent_rate)
-+		WARN_ON(1);
-+	else
-+		div = parent_rate / spi_hz;
-+
-+	/* TODO: make more fine grained */
-+
-+	for (k = 0; k < ARRAY_SIZE(sh_msiof_spi_clk_table); k++) {
-+		if (sh_msiof_spi_clk_table[k].div >= div)
-+			break;
-+	}
-+
-+	k = min_t(int, k, ARRAY_SIZE(sh_msiof_spi_clk_table) - 1);
-+
-+	sh_msiof_write(p, TSCR, sh_msiof_spi_clk_table[k].scr);
-+	sh_msiof_write(p, RSCR, sh_msiof_spi_clk_table[k].scr);
-+}
-+
-+static void sh_msiof_spi_set_pin_regs(struct sh_msiof_spi_priv *p,
-+				      int cpol, int cpha,
-+				      int tx_hi_z, int lsb_first)
-+{
-+	unsigned long tmp;
-+	int edge;
-+
-+	/*
-+	 * CPOL CPHA     TSCKIZ RSCKIZ TEDG REDG(!)
-+	 *    0    0         10     10    1    0
-+	 *    0    1         10     10    0    1
-+	 *    1    0         11     11    0    1
-+	 *    1    1         11     11    1    0
-+	 *
-+	 * (!) Note: REDG is inverted recommended data sheet setting
-+	 */
-+
-+	sh_msiof_write(p, FCTR, 0);
-+	sh_msiof_write(p, TMDR1, 0xe2000005 | (lsb_first << 24));
-+	sh_msiof_write(p, RMDR1, 0x22000005 | (lsb_first << 24));
-+
-+	tmp = 0xa0000000;
-+	tmp |= cpol << 30; /* TSCKIZ */
-+	tmp |= cpol << 28; /* RSCKIZ */
-+
-+	edge = cpol ? cpha : !cpha;
-+
-+	tmp |= edge << 27; /* TEDG */
-+	tmp |= !edge << 26; /* REDG */
-+	tmp |= (tx_hi_z ? 2 : 0) << 22; /* TXDIZ */
-+	sh_msiof_write(p, CTR, tmp);
-+}
-+
-+static void sh_msiof_spi_set_mode_regs(struct sh_msiof_spi_priv *p,
-+				       const void *tx_buf, void *rx_buf,
-+				       int bits, int words)
-+{
-+	unsigned long dr2;
-+
-+	dr2 = ((bits - 1) << 24) | ((words - 1) << 16);
-+
-+	if (tx_buf)
-+		sh_msiof_write(p, TMDR2, dr2);
-+	else
-+		sh_msiof_write(p, TMDR2, dr2 | 1);
-+
-+	if (rx_buf)
-+		sh_msiof_write(p, RMDR2, dr2);
-+
-+	sh_msiof_write(p, IER, STR_TEOF | STR_REOF);
-+}
-+
-+static void sh_msiof_reset_str(struct sh_msiof_spi_priv *p)
-+{
-+	sh_msiof_write(p, STR, sh_msiof_read(p, STR));
-+}
-+
-+static void sh_msiof_spi_write_fifo_8(struct sh_msiof_spi_priv *p,
-+				      const void *tx_buf, int words, int fs)
-+{
-+	const unsigned char *buf_8 = tx_buf;
-+	int k;
-+
-+	for (k = 0; k < words; k++)
-+		sh_msiof_write(p, TFDR, buf_8[k] << fs);
-+}
-+
-+static void sh_msiof_spi_write_fifo_16(struct sh_msiof_spi_priv *p,
-+				       const void *tx_buf, int words, int fs)
-+{
-+	const unsigned short *buf_16 = tx_buf;
-+	int k;
-+
-+	for (k = 0; k < words; k++)
-+		sh_msiof_write(p, TFDR, buf_16[k] << fs);
-+}
-+
-+static void sh_msiof_spi_write_fifo_16u(struct sh_msiof_spi_priv *p,
-+					const void *tx_buf, int words, int fs)
-+{
-+	const unsigned short *buf_16 = tx_buf;
-+	int k;
-+
-+	for (k = 0; k < words; k++)
-+		sh_msiof_write(p, TFDR, get_unaligned(&buf_16[k]) << fs);
-+}
-+
-+static void sh_msiof_spi_write_fifo_32(struct sh_msiof_spi_priv *p,
-+				       const void *tx_buf, int words, int fs)
-+{
-+	const unsigned int *buf_32 = tx_buf;
-+	int k;
-+
-+	for (k = 0; k < words; k++)
-+		sh_msiof_write(p, TFDR, buf_32[k] << fs);
-+}
-+
-+static void sh_msiof_spi_write_fifo_32u(struct sh_msiof_spi_priv *p,
-+					const void *tx_buf, int words, int fs)
-+{
-+	const unsigned int *buf_32 = tx_buf;
-+	int k;
-+
-+	for (k = 0; k < words; k++)
-+		sh_msiof_write(p, TFDR, get_unaligned(&buf_32[k]) << fs);
-+}
-+
-+static void sh_msiof_spi_read_fifo_8(struct sh_msiof_spi_priv *p,
-+				     void *rx_buf, int words, int fs)
-+{
-+	unsigned char *buf_8 = rx_buf;
-+	int k;
-+
-+	for (k = 0; k < words; k++)
-+		buf_8[k] = sh_msiof_read(p, RFDR) >> fs;
-+}
-+
-+static void sh_msiof_spi_read_fifo_16(struct sh_msiof_spi_priv *p,
-+				      void *rx_buf, int words, int fs)
-+{
-+	unsigned short *buf_16 = rx_buf;
-+	int k;
-+
-+	for (k = 0; k < words; k++)
-+		buf_16[k] = sh_msiof_read(p, RFDR) >> fs;
-+}
-+
-+static void sh_msiof_spi_read_fifo_16u(struct sh_msiof_spi_priv *p,
-+				       void *rx_buf, int words, int fs)
-+{
-+	unsigned short *buf_16 = rx_buf;
-+	int k;
-+
-+	for (k = 0; k < words; k++)
-+		put_unaligned(sh_msiof_read(p, RFDR) >> fs, &buf_16[k]);
-+}
-+
-+static void sh_msiof_spi_read_fifo_32(struct sh_msiof_spi_priv *p,
-+				      void *rx_buf, int words, int fs)
-+{
-+	unsigned int *buf_32 = rx_buf;
-+	int k;
-+
-+	for (k = 0; k < words; k++)
-+		buf_32[k] = sh_msiof_read(p, RFDR) >> fs;
-+}
-+
-+static void sh_msiof_spi_read_fifo_32u(struct sh_msiof_spi_priv *p,
-+				       void *rx_buf, int words, int fs)
-+{
-+	unsigned int *buf_32 = rx_buf;
-+	int k;
-+
-+	for (k = 0; k < words; k++)
-+		put_unaligned(sh_msiof_read(p, RFDR) >> fs, &buf_32[k]);
-+}
-+
-+static int sh_msiof_spi_bits(struct spi_device *spi, struct spi_transfer *t)
-+{
-+	int bits;
-+
-+	bits = t ? t->bits_per_word : 0;
-+	bits = bits ? bits : spi->bits_per_word;
-+
-+	return bits;
-+}
-+
-+static unsigned long sh_msiof_spi_hz(struct spi_device *spi,
-+				     struct spi_transfer *t)
-+{
-+	unsigned long hz;
-+
-+	hz = t ? t->speed_hz : 0;
-+	hz = hz ? hz : spi->max_speed_hz;
-+
-+	return hz;
-+}
-+
-+static int sh_msiof_spi_setup_transfer(struct spi_device *spi,
-+				       struct spi_transfer *t)
-+{
-+	int bits;
-+
-+	bits = sh_msiof_spi_bits(spi, t);
-+
-+	if (bits < 8)
-+		return -EINVAL;
-+
-+	if (bits > 32)
-+		return -EINVAL;
-+
-+	/* noting to check hz values against since parent clock is disabled */
-+
-+	return 0;
-+}
-+
-+static void sh_msiof_spi_chipselect(struct spi_device *spi, int is_on)
-+{
-+	struct sh_msiof_spi_priv *p = spi_master_get_devdata(spi->master);
-+	int value;
-+
-+	/* chip select ia active low unless SPI_CS_HIGH is set */
-+	if (spi->mode & SPI_CS_HIGH)
-+		value = (is_on == BITBANG_CS_ACTIVE) ? 1 : 0;
-+	else
-+		value = (is_on == BITBANG_CS_ACTIVE) ? 0 : 1;
-+
-+	if (is_on == BITBANG_CS_ACTIVE) {
-+		if (!test_and_set_bit(0, &p->flags)) {
-+			pm_runtime_get_sync(&p->pdev->dev);
-+			clk_enable(p->clk);
-+		}
-+
-+		/* Configure pins before asserting CS */
-+		sh_msiof_spi_set_pin_regs(p, !!(spi->mode & SPI_CPOL),
-+					  !!(spi->mode & SPI_CPHA),
-+					  !!(spi->mode & SPI_3WIRE),
-+					  !!(spi->mode & SPI_LSB_FIRST));
-+	}
-+
-+	/* use spi->controller data for CS (same as spi_gpio) */
-+	gpio_set_value((unsigned)spi->controller_data, value);
-+
-+	if (is_on == BITBANG_CS_INACTIVE) {
-+		if (test_and_clear_bit(0, &p->flags)) {
-+			clk_disable(p->clk);
-+			pm_runtime_put(&p->pdev->dev);
-+		}
-+	}
-+}
-+
-+static int sh_msiof_spi_txrx_once(struct sh_msiof_spi_priv *p,
-+				  void (*tx_fifo)(struct sh_msiof_spi_priv *,
-+						  const void *, int, int),
-+				  void (*rx_fifo)(struct sh_msiof_spi_priv *,
-+						  void *, int, int),
-+				  const void *tx_buf, void *rx_buf,
-+				  int words, int bits)
-+{
-+	int fifo_shift;
-+
-+	/* limit maximum word transfer to rx/tx fifo size */
-+	if (tx_buf)
-+		words = min_t(int, words, p->tx_fifo_size);
-+	if (rx_buf)
-+		words = min_t(int, words, p->rx_fifo_size);
-+
-+	/* the fifo contents need shifting */
-+	fifo_shift = 32 - bits;
-+
-+	/* setup msiof transfer mode registers */
-+	sh_msiof_spi_set_mode_regs(p, tx_buf, rx_buf, bits, words);
-+
-+	/* write tx fifo */
-+	if (tx_buf)
-+		tx_fifo(p, tx_buf, words, fifo_shift);
-+
-+	/* setup clock and rx/tx signals */
-+	sh_msiof_modify_ctr_wait(p, 0, CTR_TSCKE);
-+	if (rx_buf)
-+		sh_msiof_modify_ctr_wait(p, 0, CTR_RXE);
-+	sh_msiof_modify_ctr_wait(p, 0, CTR_TXE);
-+
-+	/* start by setting frame bit */
-+	INIT_COMPLETION(p->done);
-+	sh_msiof_modify_ctr_wait(p, 0, CTR_TFSE);
-+
-+	/* wait for tx fifo to be emptied / rx fifo to be filled */
-+	wait_for_completion(&p->done);
-+
-+	/* read rx fifo */
-+	if (rx_buf)
-+		rx_fifo(p, rx_buf, words, fifo_shift);
-+
-+	/* clear status bits */
-+	sh_msiof_reset_str(p);
-+
-+	/* shut down frame, tx/tx and clock signals */
-+	sh_msiof_modify_ctr_wait(p, CTR_TFSE, 0);
-+	sh_msiof_modify_ctr_wait(p, CTR_TXE, 0);
-+	if (rx_buf)
-+		sh_msiof_modify_ctr_wait(p, CTR_RXE, 0);
-+	sh_msiof_modify_ctr_wait(p, CTR_TSCKE, 0);
-+
-+	return words;
-+}
-+
-+static int sh_msiof_spi_txrx(struct spi_device *spi, struct spi_transfer *t)
-+{
-+	struct sh_msiof_spi_priv *p = spi_master_get_devdata(spi->master);
-+	void (*tx_fifo)(struct sh_msiof_spi_priv *, const void *, int, int);
-+	void (*rx_fifo)(struct sh_msiof_spi_priv *, void *, int, int);
-+	int bits;
-+	int bytes_per_word;
-+	int bytes_done;
-+	int words;
-+	int n;
-+
-+	bits = sh_msiof_spi_bits(spi, t);
-+
-+	/* setup bytes per word and fifo read/write functions */
-+	if (bits <= 8) {
-+		bytes_per_word = 1;
-+		tx_fifo = sh_msiof_spi_write_fifo_8;
-+		rx_fifo = sh_msiof_spi_read_fifo_8;
-+	} else if (bits <= 16) {
-+		bytes_per_word = 2;
-+		if ((unsigned long)t->tx_buf & 0x01)
-+			tx_fifo = sh_msiof_spi_write_fifo_16u;
-+		else
-+			tx_fifo = sh_msiof_spi_write_fifo_16;
-+
-+		if ((unsigned long)t->rx_buf & 0x01)
-+			rx_fifo = sh_msiof_spi_read_fifo_16u;
-+		else
-+			rx_fifo = sh_msiof_spi_read_fifo_16;
-+	} else {
-+		bytes_per_word = 4;
-+		if ((unsigned long)t->tx_buf & 0x03)
-+			tx_fifo = sh_msiof_spi_write_fifo_32u;
-+		else
-+			tx_fifo = sh_msiof_spi_write_fifo_32;
-+
-+		if ((unsigned long)t->rx_buf & 0x03)
-+			rx_fifo = sh_msiof_spi_read_fifo_32u;
-+		else
-+			rx_fifo = sh_msiof_spi_read_fifo_32;
-+	}
-+
-+	/* setup clocks (clock already enabled in chipselect()) */
-+	sh_msiof_spi_set_clk_regs(p, clk_get_rate(p->clk),
-+				  sh_msiof_spi_hz(spi, t));
-+
-+	/* transfer in fifo sized chunks */
-+	words = t->len / bytes_per_word;
-+	bytes_done = 0;
-+
-+	while (bytes_done < t->len) {
-+		n = sh_msiof_spi_txrx_once(p, tx_fifo, rx_fifo,
-+					   t->tx_buf + bytes_done,
-+					   t->rx_buf + bytes_done,
-+					   words, bits);
-+		bytes_done += n * bytes_per_word;
-+		words -= n;
-+	}
-+
-+	return bytes_done;
-+}
-+
-+static u32 sh_msiof_spi_txrx_word(struct spi_device *spi, unsigned nsecs,
-+				  u32 word, u8 bits)
-+{
-+	BUG_ON(1); /* unused but needed by bitbang code */
-+	return 0;
-+}
-+
-+static int sh_msiof_spi_probe(struct platform_device *pdev)
-+{
-+	struct resource	*r;
-+	struct spi_master *master;
-+	struct sh_msiof_spi_priv *p;
-+	char clk_name[16];
 +	int i;
-+	int ret;
++	struct bio_vec* bvec;
 +
-+	master = spi_alloc_master(&pdev->dev, sizeof(struct sh_msiof_spi_priv));
-+	if (master == NULL) {
-+		dev_err(&pdev->dev, "failed to allocate spi master\n");
-+		ret = -ENOMEM;
-+		goto err0;
-+	}
-+
-+	p = spi_master_get_devdata(master);
-+
-+	platform_set_drvdata(pdev, p);
-+	p->info = pdev->dev.platform_data;
-+	init_completion(&p->done);
-+
-+	snprintf(clk_name, sizeof(clk_name), "msiof%d", pdev->id);
-+	p->clk = clk_get(&pdev->dev, clk_name);
-+	if (IS_ERR(p->clk)) {
-+		dev_err(&pdev->dev, "cannot get clock \"%s\"\n", clk_name);
-+		ret = PTR_ERR(p->clk);
-+		goto err1;
-+	}
-+
-+	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	i = platform_get_irq(pdev, 0);
-+	if (!r || i < 0) {
-+		dev_err(&pdev->dev, "cannot get platform resources\n");
-+		ret = -ENOENT;
-+		goto err2;
-+	}
-+	p->mapbase = ioremap_nocache(r->start, resource_size(r));
-+	if (!p->mapbase) {
-+		dev_err(&pdev->dev, "unable to ioremap\n");
-+		ret = -ENXIO;
-+		goto err2;
-+	}
-+
-+	ret = request_irq(i, sh_msiof_spi_irq, IRQF_DISABLED,
-+			  dev_name(&pdev->dev), p);
-+	if (ret) {
-+		dev_err(&pdev->dev, "unable to request irq\n");
-+		goto err3;
-+	}
-+
-+	p->pdev = pdev;
-+	pm_runtime_enable(&pdev->dev);
-+
-+	/* The standard version of MSIOF use 64 word FIFOs */
-+	p->tx_fifo_size = 64;
-+	p->rx_fifo_size = 64;
-+
-+	/* Platform data may override FIFO sizes */
-+	if (p->info->tx_fifo_override)
-+		p->tx_fifo_size = p->info->tx_fifo_override;
-+	if (p->info->rx_fifo_override)
-+		p->rx_fifo_size = p->info->rx_fifo_override;
-+
-+	/* init master and bitbang code */
-+	master->mode_bits = SPI_CPOL | SPI_CPHA | SPI_CS_HIGH;
-+	master->mode_bits |= SPI_LSB_FIRST | SPI_3WIRE;
-+	master->flags = 0;
-+	master->bus_num = pdev->id;
-+	master->num_chipselect = p->info->num_chipselect;
-+	master->setup = spi_bitbang_setup;
-+	master->cleanup = spi_bitbang_cleanup;
-+
-+	p->bitbang.master = master;
-+	p->bitbang.chipselect = sh_msiof_spi_chipselect;
-+	p->bitbang.setup_transfer = sh_msiof_spi_setup_transfer;
-+	p->bitbang.txrx_bufs = sh_msiof_spi_txrx;
-+	p->bitbang.txrx_word[SPI_MODE_0] = sh_msiof_spi_txrx_word;
-+	p->bitbang.txrx_word[SPI_MODE_1] = sh_msiof_spi_txrx_word;
-+	p->bitbang.txrx_word[SPI_MODE_2] = sh_msiof_spi_txrx_word;
-+	p->bitbang.txrx_word[SPI_MODE_3] = sh_msiof_spi_txrx_word;
-+
-+	ret = spi_bitbang_start(&p->bitbang);
-+	if (ret == 0)
-+		return 0;
-+
-+	pm_runtime_disable(&pdev->dev);
-+ err3:
-+	iounmap(p->mapbase);
-+ err2:
-+	clk_put(p->clk);
-+ err1:
-+	spi_master_put(master);
-+ err0:
-+	return ret;
++	bio_for_each_segment(bvec, bi, i)
++		flush_dcache_page(bvec->bv_page);
 +}
++EXPORT_SYMBOL(bio_flush_dcache_pages);
++#endif
 +
-+static int sh_msiof_spi_remove(struct platform_device *pdev)
+ /**
+  * bio_endio - end I/O on a bio
+  * @bio:	bio
+diff -puN include/asm-generic/cacheflush.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages include/asm-generic/cacheflush.h
+--- a/include/asm-generic/cacheflush.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages
++++ a/include/asm-generic/cacheflush.h
+@@ -13,6 +13,7 @@
+ #define flush_cache_dup_mm(mm)			do { } while (0)
+ #define flush_cache_range(vma, start, end)	do { } while (0)
+ #define flush_cache_page(vma, vmaddr, pfn)	do { } while (0)
++#define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 0
+ #define flush_dcache_page(page)			do { } while (0)
+ #define flush_dcache_mmap_lock(mapping)		do { } while (0)
+ #define flush_dcache_mmap_unlock(mapping)	do { } while (0)
+diff -puN include/linux/bio.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages include/linux/bio.h
+--- a/include/linux/bio.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages
++++ a/include/linux/bio.h
+@@ -391,6 +391,18 @@ extern struct bio *bio_copy_kern(struct 
+ 				 gfp_t, int);
+ extern void bio_set_pages_dirty(struct bio *bio);
+ extern void bio_check_pages_dirty(struct bio *bio);
++
++#ifndef ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE
++# error	"You should to define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE for your platform."
++#endif
++#if ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE
++extern void bio_flush_dcache_pages(struct bio *bi);
++#else
++static inline void bio_flush_dcache_pages(struct bio *bi)
 +{
-+	struct sh_msiof_spi_priv *p = platform_get_drvdata(pdev);
-+	int ret;
-+
-+	ret = spi_bitbang_stop(&p->bitbang);
-+	if (!ret) {
-+		pm_runtime_disable(&pdev->dev);
-+		free_irq(platform_get_irq(pdev, 0), sh_msiof_spi_irq);
-+		iounmap(p->mapbase);
-+		clk_put(p->clk);
-+		spi_master_put(p->bitbang.master);
-+	}
-+	return ret;
 +}
++#endif
 +
-+static int sh_msiof_spi_runtime_nop(struct device *dev)
+ extern struct bio *bio_copy_user(struct request_queue *, struct rq_map_data *,
+ 				 unsigned long, unsigned int, int, gfp_t);
+ extern struct bio *bio_copy_user_iov(struct request_queue *,
+diff -puN include/linux/blkdev.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages include/linux/blkdev.h
+--- a/include/linux/blkdev.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages
++++ a/include/linux/blkdev.h
+@@ -752,6 +752,17 @@ struct req_iterator {
+ #define rq_iter_last(rq, _iter)					\
+ 		(_iter.bio->bi_next == NULL && _iter.i == _iter.bio->bi_vcnt-1)
+ 
++#ifndef ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE
++# error	"You should to define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE for your platform."
++#endif
++#if ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE
++extern void rq_flush_dcache_pages(struct request *rq);
++#else
++static inline void rq_flush_dcache_pages(struct request *rq)
 +{
-+	/* Runtime PM callback shared between ->runtime_suspend()
-+	 * and ->runtime_resume(). Simply returns success.
-+	 *
-+	 * This driver re-initializes all registers after
-+	 * pm_runtime_get_sync() anyway so there is no need
-+	 * to save and restore registers here.
-+	 */
-+	return 0;
 +}
++#endif
 +
-+static struct dev_pm_ops sh_msiof_spi_dev_pm_ops = {
-+	.runtime_suspend = sh_msiof_spi_runtime_nop,
-+	.runtime_resume = sh_msiof_spi_runtime_nop,
-+};
-+
-+static struct platform_driver sh_msiof_spi_drv = {
-+	.probe		= sh_msiof_spi_probe,
-+	.remove		= sh_msiof_spi_remove,
-+	.driver		= {
-+		.name	= "spi_sh_msiof",
-+		.owner		= THIS_MODULE,
-+		.pm		= &sh_msiof_spi_dev_pm_ops,
-+	},
-+};
-+
-+static int __init sh_msiof_spi_init(void)
-+{
-+	return platform_driver_register(&sh_msiof_spi_drv);
-+}
-+module_init(sh_msiof_spi_init);
-+
-+static void __exit sh_msiof_spi_exit(void)
-+{
-+	platform_driver_unregister(&sh_msiof_spi_drv);
-+}
-+module_exit(sh_msiof_spi_exit);
-+
-+MODULE_DESCRIPTION("SuperH MSIOF SPI Master Interface Driver");
-+MODULE_AUTHOR("Magnus Damm");
-+MODULE_LICENSE("GPL v2");
-+MODULE_ALIAS("platform:spi_sh_msiof");
-diff -puN /dev/null include/linux/spi/sh_msiof.h
---- /dev/null
-+++ a/include/linux/spi/sh_msiof.h
-@@ -0,0 +1,10 @@
-+#ifndef __SPI_SH_MSIOF_H__
-+#define __SPI_SH_MSIOF_H__
-+
-+struct sh_msiof_spi_info {
-+	int tx_fifo_override;
-+	int rx_fifo_override;
-+	u16 num_chipselect;
-+};
-+
-+#endif /* __SPI_SH_MSIOF_H__ */
+ extern int blk_register_queue(struct gendisk *disk);
+ extern void blk_unregister_queue(struct gendisk *disk);
+ extern void register_disk(struct gendisk *dev);
 _
 
-Patches currently in -mm which might be from damm@opensource.se are
+Patches currently in -mm which might be from isloginov@gmail.com are
 
-linux-next.patch
-spi-superh-msiof-spi-master-driver.patch
+block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages.patch
 
