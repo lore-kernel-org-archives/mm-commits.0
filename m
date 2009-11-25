@@ -1,54 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-fixup.patch removed from -mm tree
-Date: Wed, 25 Nov 2009 10:52:19 -0800
-Message-ID: <200911251852.nAPIqJis004026@imap1.linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Wed, 25 Nov 2009 10:52:14 -0800
+Message-ID: <200911251852.nAPIqEUt003847@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59975 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49068 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759002AbZKYSxC (ORCPT
+	by vger.kernel.org with ESMTP id S1758848AbZKYSxA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Nov 2009 13:53:02 -0500
+	Wed, 25 Nov 2009 13:53:00 -0500
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id nAPIqKuN016057
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id nAPIqEDQ016050
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 25 Nov 2009 10:52:21 -0800
+	for <mm-commits@vger.kernel.org>; Wed, 25 Nov 2009 10:52:15 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     linux-next-fixup
-has been removed from the -mm tree.  Its filename was
-     linux-next-fixup.patch
+     linux-next-git-rejects
+has been added to the -mm tree.  Its filename is
+     linux-next-git-rejects.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-fixup
+Subject: linux-next-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/thinkpad_acpi.c |    3 +++
- 1 file changed, 3 insertions(+)
+ arch/arm/plat-s3c/dev-hsmmc2.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN drivers/platform/x86/thinkpad_acpi.c~linux-next-fixup drivers/platform/x86/thinkpad_acpi.c
---- a/drivers/platform/x86/thinkpad_acpi.c~linux-next-fixup
-+++ a/drivers/platform/x86/thinkpad_acpi.c
-@@ -6337,6 +6337,9 @@ static int brightness_write(char *buf)
- 	 * Doing it this way makes the syscall restartable in case of EINTR
- 	 */
- 	rc = brightness_set(level);
-+	if (!rc && ibm_backlight_device)
-+		backlight_force_update(ibm_backlight_device,
-+					BACKLIGHT_UPDATE_SYSFS);
- 	return (rc == -EINTR) ? -ERESTARTSYS : rc;
- }
+diff -puN arch/arm/plat-s3c/dev-hsmmc2.c~linux-next-git-rejects arch/arm/plat-s3c/dev-hsmmc2.c
+--- a/arch/arm/plat-s3c/dev-hsmmc2.c~linux-next-git-rejects
++++ a/arch/arm/plat-s3c/dev-hsmmc2.c
+@@ -19,10 +19,6 @@
+ #include <mach/map.h>
+ #include <plat/sdhci.h>
+ #include <plat/devs.h>
+-<<<<<<< HEAD
+-#include <plat/cpu.h>
+-=======
+->>>>>>> next-s5pc1xx
+ 
+ #define S3C_SZ_HSMMC	(0x1000)
  
 _
 
