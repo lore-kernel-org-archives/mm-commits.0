@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mpt-fusion-convert-to-seq_file.patch added to -mm tree
-Date: Wed, 25 Nov 2009 13:11:44 -0800
-Message-ID: <200911252111.nAPLBiVf017604@imap1.linux-foundation.org>
+Subject: + asus_acpi-convert-to-seq_file.patch added to -mm tree
+Date: Wed, 25 Nov 2009 13:11:54 -0800
+Message-ID: <200911252111.nAPLBsPr018012@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43590 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50790 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933040AbZKYVMR (ORCPT
+	by vger.kernel.org with ESMTP id S932749AbZKYVMh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Nov 2009 16:12:17 -0500
+	Wed, 25 Nov 2009 16:12:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com, Eric.Moore@lsi.com, James.Bottomley@HansenPartnership.com
+Cc: adobriyan@gmail.com, corentincj@iksaif.net, len.brown@intel.com, sziwan@users.sourceforge.net
 
 
 The patch titled
-     mpt fusion: convert to seq_file
+     asus_acpi: convert to seq_file
 has been added to the -mm tree.  Its filename is
-     mpt-fusion-convert-to-seq_file.patch
+     asus_acpi-convert-to-seq_file.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,432 +34,549 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mpt fusion: convert to seq_file
+Subject: asus_acpi: convert to seq_file
 From: Alexey Dobriyan <adobriyan@gmail.com>
 
-Convert everything except ->proc_info() stuff, it is done withing separate
-->proc_info path series.
-
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Eric Moore <Eric.Moore@lsi.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Corentin Chary <corentincj@iksaif.net>
+Cc: Karol Kozimor <sziwan@users.sourceforge.net>
+Cc: Len Brown <len.brown@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/message/fusion/mptbase.c |  236 ++++++++++++++---------------
- drivers/message/fusion/mptbase.h |   25 ---
- 2 files changed, 119 insertions(+), 142 deletions(-)
+ drivers/platform/x86/asus_acpi.c |  321 +++++++++++++++++------------
+ 1 file changed, 194 insertions(+), 127 deletions(-)
 
-diff -puN drivers/message/fusion/mptbase.c~mpt-fusion-convert-to-seq_file drivers/message/fusion/mptbase.c
---- a/drivers/message/fusion/mptbase.c~mpt-fusion-convert-to-seq_file
-+++ a/drivers/message/fusion/mptbase.c
-@@ -50,6 +50,7 @@
- #include <linux/module.h>
- #include <linux/errno.h>
+diff -puN drivers/platform/x86/asus_acpi.c~asus_acpi-convert-to-seq_file drivers/platform/x86/asus_acpi.c
+--- a/drivers/platform/x86/asus_acpi.c~asus_acpi-convert-to-seq_file
++++ a/drivers/platform/x86/asus_acpi.c
+@@ -35,6 +35,7 @@
  #include <linux/init.h>
-+#include <linux/seq_file.h>
- #include <linux/slab.h>
  #include <linux/types.h>
- #include <linux/pci.h>
-@@ -197,12 +198,9 @@ static int	mpt_host_page_access_control(
- static int	mpt_host_page_alloc(MPT_ADAPTER *ioc, pIOCInit_t ioc_init);
- 
- #ifdef CONFIG_PROC_FS
--static int	procmpt_summary_read(char *buf, char **start, off_t offset,
--				int request, int *eof, void *data);
--static int	procmpt_version_read(char *buf, char **start, off_t offset,
--				int request, int *eof, void *data);
--static int	procmpt_iocinfo_read(char *buf, char **start, off_t offset,
--				int request, int *eof, void *data);
-+static const struct file_operations mpt_summary_proc_fops;
-+static const struct file_operations mpt_version_proc_fops;
-+static const struct file_operations mpt_iocinfo_proc_fops;
- #endif
- static void	mpt_get_fw_exp_ver(char *buf, MPT_ADAPTER *ioc);
- 
-@@ -1717,7 +1715,7 @@ mpt_attach(struct pci_dev *pdev, const s
- 	u8		 pcixcmd;
- 	static int	 mpt_ids = 0;
- #ifdef CONFIG_PROC_FS
--	struct proc_dir_entry *dent, *ent;
-+	struct proc_dir_entry *dent;
- #endif
- 
- 	ioc = kzalloc(sizeof(MPT_ADAPTER), GFP_ATOMIC);
-@@ -1970,16 +1968,8 @@ mpt_attach(struct pci_dev *pdev, const s
- 	 */
- 	dent = proc_mkdir(ioc->name, mpt_proc_root_dir);
- 	if (dent) {
--		ent = create_proc_entry("info", S_IFREG|S_IRUGO, dent);
--		if (ent) {
--			ent->read_proc = procmpt_iocinfo_read;
--			ent->data = ioc;
--		}
--		ent = create_proc_entry("summary", S_IFREG|S_IRUGO, dent);
--		if (ent) {
--			ent->read_proc = procmpt_summary_read;
--			ent->data = ioc;
--		}
-+		proc_create_data("info", S_IRUGO, dent, &mpt_iocinfo_proc_fops, ioc);
-+		proc_create_data("summary", S_IRUGO, dent, &mpt_summary_proc_fops, ioc);
- 	}
- #endif
- 
-@@ -6528,20 +6518,12 @@ mpt_ioc_reset(MPT_ADAPTER *ioc, int rese
- static int
- procmpt_create(void)
- {
--	struct proc_dir_entry	*ent;
--
- 	mpt_proc_root_dir = proc_mkdir(MPT_PROCFS_MPTBASEDIR, NULL);
- 	if (mpt_proc_root_dir == NULL)
- 		return -ENOTDIR;
- 
--	ent = create_proc_entry("summary", S_IFREG|S_IRUGO, mpt_proc_root_dir);
--	if (ent)
--		ent->read_proc = procmpt_summary_read;
--
--	ent = create_proc_entry("version", S_IFREG|S_IRUGO, mpt_proc_root_dir);
--	if (ent)
--		ent->read_proc = procmpt_version_read;
--
-+	proc_create("summary", S_IRUGO, mpt_proc_root_dir, &mpt_summary_proc_fops);
-+	proc_create("version", S_IRUGO, mpt_proc_root_dir, &mpt_version_proc_fops);
- 	return 0;
+ #include <linux/proc_fs.h>
++#include <linux/seq_file.h>
+ #include <linux/backlight.h>
+ #include <acpi/acpi_drivers.h>
+ #include <acpi/acpi_bus.h>
+@@ -512,26 +513,12 @@ static int read_acpi_int(acpi_handle han
+ 	return (status == AE_OK) && (out_obj.type == ACPI_TYPE_INTEGER);
  }
  
-@@ -6561,70 +6543,46 @@ procmpt_destroy(void)
+-/*
+- * We write our info in page, we begin at offset off and cannot write more
+- * than count bytes. We set eof to 1 if we handle those 2 values. We return the
+- * number of bytes written in page
+- */
+-static int
+-proc_read_info(char *page, char **start, off_t off, int count, int *eof,
+-	       void *data)
++static int asus_info_proc_show(struct seq_file *m, void *v)
+ {
+-	int len = 0;
+ 	int temp;
+-	char buf[16];		/* enough for all info */
+-	/*
+-	 * We use the easy way, we don't care of off and count,
+-	 * so we don't set eof to 1
+-	 */
  
- /*=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
- /**
-- *	procmpt_summary_read - Handle read request of a summary file
-- *	@buf: Pointer to area to write information
-- *	@start: Pointer to start pointer
-- *	@offset: Offset to start writing
-- *	@request: Amount of read data requested
-- *	@eof: Pointer to EOF integer
-- *	@data: Pointer
-- *
-  *	Handles read request from /proc/mpt/summary or /proc/mpt/iocN/summary.
-- *	Returns number of characters written to process performing the read.
+-	len += sprintf(page, ACPI_HOTK_NAME " " ASUS_ACPI_VERSION "\n");
+-	len += sprintf(page + len, "Model reference    : %s\n",
+-		       hotk->methods->name);
++	seq_printf(m, ACPI_HOTK_NAME " " ASUS_ACPI_VERSION "\n");
++	seq_printf(m, "Model reference    : %s\n", hotk->methods->name);
+ 	/*
+ 	 * The SFUN method probably allows the original driver to get the list
+ 	 * of features supported by a given model. For now, 0x0100 or 0x0800
+@@ -539,8 +526,7 @@ proc_read_info(char *page, char **start,
+ 	 * The significance of others is yet to be found.
+ 	 */
+ 	if (read_acpi_int(hotk->handle, "SFUN", &temp))
+-		len +=
+-		    sprintf(page + len, "SFUN value         : 0x%04x\n", temp);
++		seq_printf(m, "SFUN value         : 0x%04x\n", temp);
+ 	/*
+ 	 * Another value for userspace: the ASYM method returns 0x02 for
+ 	 * battery low and 0x04 for battery critical, its readings tend to be
+@@ -549,30 +535,34 @@ proc_read_info(char *page, char **start,
+ 	 * silently ignored.
+ 	 */
+ 	if (read_acpi_int(hotk->handle, "ASYM", &temp))
+-		len +=
+-		    sprintf(page + len, "ASYM value         : 0x%04x\n", temp);
++		seq_printf(m, "ASYM value         : 0x%04x\n", temp);
+ 	if (asus_info) {
+-		snprintf(buf, 16, "%d", asus_info->length);
+-		len += sprintf(page + len, "DSDT length        : %s\n", buf);
+-		snprintf(buf, 16, "%d", asus_info->checksum);
+-		len += sprintf(page + len, "DSDT checksum      : %s\n", buf);
+-		snprintf(buf, 16, "%d", asus_info->revision);
+-		len += sprintf(page + len, "DSDT revision      : %s\n", buf);
+-		snprintf(buf, 7, "%s", asus_info->oem_id);
+-		len += sprintf(page + len, "OEM id             : %s\n", buf);
+-		snprintf(buf, 9, "%s", asus_info->oem_table_id);
+-		len += sprintf(page + len, "OEM table id       : %s\n", buf);
+-		snprintf(buf, 16, "%x", asus_info->oem_revision);
+-		len += sprintf(page + len, "OEM revision       : 0x%s\n", buf);
+-		snprintf(buf, 5, "%s", asus_info->asl_compiler_id);
+-		len += sprintf(page + len, "ASL comp vendor id : %s\n", buf);
+-		snprintf(buf, 16, "%x", asus_info->asl_compiler_revision);
+-		len += sprintf(page + len, "ASL comp revision  : 0x%s\n", buf);
++		seq_printf(m, "DSDT length        : %d\n", asus_info->length);
++		seq_printf(m, "DSDT checksum      : %d\n", asus_info->checksum);
++		seq_printf(m, "DSDT revision      : %d\n", asus_info->revision);
++		seq_printf(m, "OEM id             : %.*s\n", ACPI_OEM_ID_SIZE, asus_info->oem_id);
++		seq_printf(m, "OEM table id       : %.*s\n", ACPI_OEM_TABLE_ID_SIZE, asus_info->oem_table_id);
++		seq_printf(m, "OEM revision       : 0x%x\n", asus_info->oem_revision);
++		seq_printf(m, "ASL comp vendor id : %.*s\n", ACPI_NAME_SIZE, asus_info->asl_compiler_id);
++		seq_printf(m, "ASL comp revision  : 0x%x\n", asus_info->asl_compiler_revision);
+ 	}
+ 
+-	return len;
++	return 0;
++}
++
++static int asus_info_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, asus_info_proc_show, NULL);
+ }
+ 
++static const struct file_operations asus_info_proc_fops = {
++	.owner		= THIS_MODULE,
++	.open		= asus_info_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++};
++
+ /*
+  * /proc handlers
+  * We write our info in page, we begin at offset off and cannot write more
+@@ -638,34 +628,48 @@ write_led(const char __user *buffer, uns
+ /*
+  * Proc handlers for MLED
   */
 -static int
--procmpt_summary_read(char *buf, char **start, off_t offset, int request, int *eof, void *data)
--{
--	MPT_ADAPTER *ioc;
--	char *out = buf;
--	int len;
-+static void seq_mpt_print_ioc_summary(MPT_ADAPTER *ioc, struct seq_file *m, int showlan);
- 
--	if (data) {
--		int more = 0;
--
--		ioc = data;
--		mpt_print_ioc_summary(ioc, out, &more, 0, 1);
-+static int mpt_summary_proc_show(struct seq_file *m, void *v)
-+{
-+	MPT_ADAPTER *ioc = m->private;
- 
--		out += more;
-+	if (ioc) {
-+		seq_mpt_print_ioc_summary(ioc, m, 1);
- 	} else {
- 		list_for_each_entry(ioc, &ioc_list, list) {
--			int	more = 0;
--
--			mpt_print_ioc_summary(ioc, out, &more, 0, 1);
--
--			out += more;
--			if ((out-buf) >= request)
--				break;
-+			seq_mpt_print_ioc_summary(ioc, m, 1);
- 		}
- 	}
- 
--	len = out - buf;
-+	return 0;
-+}
- 
--	MPT_PROC_READ_RETURN(buf,start,offset,request,eof,len);
-+static int mpt_summary_proc_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, mpt_summary_proc_show, PDE(inode)->data);
- }
- 
--/*=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
--/**
-- *	procmpt_version_read - Handle read request from /proc/mpt/version.
-- *	@buf: Pointer to area to write information
-- *	@start: Pointer to start pointer
-- *	@offset: Offset to start writing
-- *	@request: Amount of read data requested
-- *	@eof: Pointer to EOF integer
-- *	@data: Pointer
-- *
-- *	Returns number of characters written to process performing the read.
-- */
--static int
--procmpt_version_read(char *buf, char **start, off_t offset, int request, int *eof, void *data)
-+static const struct file_operations mpt_summary_proc_fops = {
-+	.owner		= THIS_MODULE,
-+	.open		= mpt_summary_proc_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+};
-+
-+static int mpt_version_proc_show(struct seq_file *m, void *v)
+-proc_read_mled(char *page, char **start, off_t off, int count, int *eof,
+-	       void *data)
++static int mled_proc_show(struct seq_file *m, void *v)
  {
- 	u8	 cb_idx;
- 	int	 scsi, fc, sas, lan, ctl, targ, dmp;
- 	char	*drvname;
--	int	 len;
- 
--	len = sprintf(buf, "%s-%s\n", "mptlinux", MPT_LINUX_VERSION_COMMON);
--	len += sprintf(buf+len, "  Fusion MPT base driver\n");
-+	seq_printf(m, "%s-%s\n", "mptlinux", MPT_LINUX_VERSION_COMMON);
-+	seq_printf(m, "  Fusion MPT base driver\n");
- 
- 	scsi = fc = sas = lan = ctl = targ = dmp = 0;
- 	for (cb_idx = MPT_MAX_PROTOCOL_DRIVERS-1; cb_idx; cb_idx--) {
-@@ -6652,98 +6610,97 @@ procmpt_version_read(char *buf, char **s
- 			}
- 
- 			if (drvname)
--				len += sprintf(buf+len, "  Fusion MPT %s driver\n", drvname);
-+				seq_printf(m, "  Fusion MPT %s driver\n", drvname);
- 		}
- 	}
- 
--	MPT_PROC_READ_RETURN(buf,start,offset,request,eof,len);
+-	return sprintf(page, "%d\n",
+-		       read_led(hotk->methods->mled_status, MLED_ON));
++	seq_printf(m, "%d\n", read_led(hotk->methods->mled_status, MLED_ON));
 +	return 0;
  }
  
--/*=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
--/**
-- *	procmpt_iocinfo_read - Handle read request from /proc/mpt/iocN/info.
-- *	@buf: Pointer to area to write information
-- *	@start: Pointer to start pointer
-- *	@offset: Offset to start writing
-- *	@request: Amount of read data requested
-- *	@eof: Pointer to EOF integer
-- *	@data: Pointer
-- *
-- *	Returns number of characters written to process performing the read.
-- */
 -static int
--procmpt_iocinfo_read(char *buf, char **start, off_t offset, int request, int *eof, void *data)
-+static int mpt_version_proc_open(struct inode *inode, struct file *file)
+-proc_write_mled(struct file *file, const char __user *buffer,
+-		unsigned long count, void *data)
++static int mled_proc_open(struct inode *inode, struct file *file)
 +{
-+	return single_open(file, mpt_version_proc_show, NULL);
++	return single_open(file, mled_proc_show, NULL);
 +}
 +
-+static const struct file_operations mpt_version_proc_fops = {
++static ssize_t mled_proc_write(struct file *file, const char __user *buffer,
++		size_t count, loff_t *pos)
+ {
+ 	return write_led(buffer, count, hotk->methods->mt_mled, MLED_ON, 1);
+ }
+ 
++static const struct file_operations mled_proc_fops = {
 +	.owner		= THIS_MODULE,
-+	.open		= mpt_version_proc_open,
++	.open		= mled_proc_open,
 +	.read		= seq_read,
 +	.llseek		= seq_lseek,
 +	.release	= single_release,
++	.write		= mled_proc_write,
 +};
 +
-+static int mpt_iocinfo_proc_show(struct seq_file *m, void *v)
+ /*
+  * Proc handlers for LED display
+  */
+-static int
+-proc_read_ledd(char *page, char **start, off_t off, int count, int *eof,
+-	       void *data)
++static int ledd_proc_show(struct seq_file *m, void *v)
  {
--	MPT_ADAPTER	*ioc = data;
--	int		 len;
-+	MPT_ADAPTER	*ioc = m->private;
- 	char		 expVer[32];
- 	int		 sz;
- 	int		 p;
+-	return sprintf(page, "0x%08x\n", hotk->ledd_status);
++	seq_printf(m, "0x%08x\n", hotk->ledd_status);
++	return 0;
+ }
  
- 	mpt_get_fw_exp_ver(expVer, ioc);
+-static int
+-proc_write_ledd(struct file *file, const char __user *buffer,
+-		unsigned long count, void *data)
++static int ledd_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, ledd_proc_show, NULL);
++}
++
++static ssize_t ledd_proc_write(struct file *file, const char __user *buffer,
++		size_t count, loff_t *pos)
+ {
+ 	int rv, value;
  
--	len = sprintf(buf, "%s:", ioc->name);
-+	seq_printf(m, "%s:", ioc->name);
- 	if (ioc->facts.Flags & MPI_IOCFACTS_FLAGS_FW_DOWNLOAD_BOOT)
--		len += sprintf(buf+len, "  (f/w download boot flag set)");
-+		seq_printf(m, "  (f/w download boot flag set)");
- //	if (ioc->facts.IOCExceptions & MPI_IOCFACTS_EXCEPT_CONFIG_CHECKSUM_FAIL)
--//		len += sprintf(buf+len, "  CONFIG_CHECKSUM_FAIL!");
-+//		seq_printf(m, "  CONFIG_CHECKSUM_FAIL!");
+@@ -681,61 +685,104 @@ proc_write_ledd(struct file *file, const
+ 	return rv;
+ }
  
--	len += sprintf(buf+len, "\n  ProductID = 0x%04x (%s)\n",
-+	seq_printf(m, "\n  ProductID = 0x%04x (%s)\n",
- 			ioc->facts.ProductID,
- 			ioc->prod_name);
--	len += sprintf(buf+len, "  FWVersion = 0x%08x%s", ioc->facts.FWVersion.Word, expVer);
-+	seq_printf(m, "  FWVersion = 0x%08x%s", ioc->facts.FWVersion.Word, expVer);
- 	if (ioc->facts.FWImageSize)
--		len += sprintf(buf+len, " (fw_size=%d)", ioc->facts.FWImageSize);
--	len += sprintf(buf+len, "\n  MsgVersion = 0x%04x\n", ioc->facts.MsgVersion);
--	len += sprintf(buf+len, "  FirstWhoInit = 0x%02x\n", ioc->FirstWhoInit);
--	len += sprintf(buf+len, "  EventState = 0x%02x\n", ioc->facts.EventState);
-+		seq_printf(m, " (fw_size=%d)", ioc->facts.FWImageSize);
-+	seq_printf(m, "\n  MsgVersion = 0x%04x\n", ioc->facts.MsgVersion);
-+	seq_printf(m, "  FirstWhoInit = 0x%02x\n", ioc->FirstWhoInit);
-+	seq_printf(m, "  EventState = 0x%02x\n", ioc->facts.EventState);
++static const struct file_operations ledd_proc_fops = {
++	.owner		= THIS_MODULE,
++	.open		= ledd_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++	.write		= ledd_proc_write,
++};
++
+ /*
+  * Proc handlers for WLED
+  */
+-static int
+-proc_read_wled(char *page, char **start, off_t off, int count, int *eof,
+-	       void *data)
++static int wled_proc_show(struct seq_file *m, void *v)
+ {
+-	return sprintf(page, "%d\n",
+-		       read_led(hotk->methods->wled_status, WLED_ON));
++	seq_printf(m, "%d\n", read_led(hotk->methods->wled_status, WLED_ON));
++	return 0;
+ }
  
--	len += sprintf(buf+len, "  CurrentHostMfaHighAddr = 0x%08x\n",
-+	seq_printf(m, "  CurrentHostMfaHighAddr = 0x%08x\n",
- 			ioc->facts.CurrentHostMfaHighAddr);
--	len += sprintf(buf+len, "  CurrentSenseBufferHighAddr = 0x%08x\n",
-+	seq_printf(m, "  CurrentSenseBufferHighAddr = 0x%08x\n",
- 			ioc->facts.CurrentSenseBufferHighAddr);
+-static int
+-proc_write_wled(struct file *file, const char __user *buffer,
+-		unsigned long count, void *data)
++static int wled_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, wled_proc_show, NULL);
++}
++
++static ssize_t wled_proc_write(struct file *file, const char __user *buffer,
++		size_t count, loff_t *pos)
+ {
+ 	return write_led(buffer, count, hotk->methods->mt_wled, WLED_ON, 0);
+ }
  
--	len += sprintf(buf+len, "  MaxChainDepth = 0x%02x frames\n", ioc->facts.MaxChainDepth);
--	len += sprintf(buf+len, "  MinBlockSize = 0x%02x bytes\n", 4*ioc->facts.BlockSize);
-+	seq_printf(m, "  MaxChainDepth = 0x%02x frames\n", ioc->facts.MaxChainDepth);
-+	seq_printf(m, "  MinBlockSize = 0x%02x bytes\n", 4*ioc->facts.BlockSize);
++static const struct file_operations wled_proc_fops = {
++	.owner		= THIS_MODULE,
++	.open		= wled_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++	.write		= wled_proc_write,
++};
++
+ /*
+  * Proc handlers for Bluetooth
+  */
+-static int
+-proc_read_bluetooth(char *page, char **start, off_t off, int count, int *eof,
+-		    void *data)
++static int bluetooth_proc_show(struct seq_file *m, void *v)
+ {
+-	return sprintf(page, "%d\n", read_led(hotk->methods->bt_status, BT_ON));
++	seq_printf(m, "%d\n", read_led(hotk->methods->bt_status, BT_ON));
++	return 0;
+ }
  
--	len += sprintf(buf+len, "  RequestFrames @ 0x%p (Dma @ 0x%p)\n",
-+	seq_printf(m, "  RequestFrames @ 0x%p (Dma @ 0x%p)\n",
- 					(void *)ioc->req_frames, (void *)(ulong)ioc->req_frames_dma);
- 	/*
- 	 *  Rounding UP to nearest 4-kB boundary here...
- 	 */
- 	sz = (ioc->req_sz * ioc->req_depth) + 128;
- 	sz = ((sz + 0x1000UL - 1UL) / 0x1000) * 0x1000;
--	len += sprintf(buf+len, "    {CurReqSz=%d} x {CurReqDepth=%d} = %d bytes ^= 0x%x\n",
-+	seq_printf(m, "    {CurReqSz=%d} x {CurReqDepth=%d} = %d bytes ^= 0x%x\n",
- 					ioc->req_sz, ioc->req_depth, ioc->req_sz*ioc->req_depth, sz);
--	len += sprintf(buf+len, "    {MaxReqSz=%d}   {MaxReqDepth=%d}\n",
-+	seq_printf(m, "    {MaxReqSz=%d}   {MaxReqDepth=%d}\n",
- 					4*ioc->facts.RequestFrameSize,
- 					ioc->facts.GlobalCredits);
+-static int
+-proc_write_bluetooth(struct file *file, const char __user *buffer,
+-		     unsigned long count, void *data)
++static int bluetooth_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, bluetooth_proc_show, NULL);
++}
++
++static ssize_t bluetooth_proc_write(struct file *file,
++		const char __user *buffer, size_t count, loff_t *pos)
+ {
+ 	/* Note: mt_bt_switch controls both internal Bluetooth adapter's
+ 	   presence and its LED */
+ 	return write_led(buffer, count, hotk->methods->mt_bt_switch, BT_ON, 0);
+ }
  
--	len += sprintf(buf+len, "  Frames   @ 0x%p (Dma @ 0x%p)\n",
-+	seq_printf(m, "  Frames   @ 0x%p (Dma @ 0x%p)\n",
- 					(void *)ioc->alloc, (void *)(ulong)ioc->alloc_dma);
- 	sz = (ioc->reply_sz * ioc->reply_depth) + 128;
--	len += sprintf(buf+len, "    {CurRepSz=%d} x {CurRepDepth=%d} = %d bytes ^= 0x%x\n",
-+	seq_printf(m, "    {CurRepSz=%d} x {CurRepDepth=%d} = %d bytes ^= 0x%x\n",
- 					ioc->reply_sz, ioc->reply_depth, ioc->reply_sz*ioc->reply_depth, sz);
--	len += sprintf(buf+len, "    {MaxRepSz=%d}   {MaxRepDepth=%d}\n",
-+	seq_printf(m, "    {MaxRepSz=%d}   {MaxRepDepth=%d}\n",
- 					ioc->facts.CurReplyFrameSize,
- 					ioc->facts.ReplyQueueDepth);
++static const struct file_operations bluetooth_proc_fops = {
++	.owner		= THIS_MODULE,
++	.open		= bluetooth_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++	.write		= bluetooth_proc_write,
++};
++
+ /*
+  * Proc handlers for TLED
+  */
+-static int
+-proc_read_tled(char *page, char **start, off_t off, int count, int *eof,
+-	       void *data)
++static int tled_proc_show(struct seq_file *m, void *v)
+ {
+-	return sprintf(page, "%d\n",
+-		       read_led(hotk->methods->tled_status, TLED_ON));
++	seq_printf(m, "%d\n", read_led(hotk->methods->tled_status, TLED_ON));
++	return 0;
+ }
  
--	len += sprintf(buf+len, "  MaxDevices = %d\n",
-+	seq_printf(m, "  MaxDevices = %d\n",
- 			(ioc->facts.MaxDevices==0) ? 255 : ioc->facts.MaxDevices);
--	len += sprintf(buf+len, "  MaxBuses = %d\n", ioc->facts.MaxBuses);
-+	seq_printf(m, "  MaxBuses = %d\n", ioc->facts.MaxBuses);
+-static int
+-proc_write_tled(struct file *file, const char __user *buffer,
+-		unsigned long count, void *data)
++static int tled_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, tled_proc_show, NULL);
++}
++
++static ssize_t tled_proc_write(struct file *file, const char __user *buffer,
++		size_t count, loff_t *pos)
+ {
+ 	return write_led(buffer, count, hotk->methods->mt_tled, TLED_ON, 0);
+ }
  
- 	/* per-port info */
- 	for (p=0; p < ioc->facts.NumberOfPorts; p++) {
--		len += sprintf(buf+len, "  PortNumber = %d (of %d)\n",
-+		seq_printf(m, "  PortNumber = %d (of %d)\n",
- 				p+1,
- 				ioc->facts.NumberOfPorts);
- 		if (ioc->bus_type == FC) {
- 			if (ioc->pfacts[p].ProtocolFlags & MPI_PORTFACTS_PROTOCOL_LAN) {
- 				u8 *a = (u8*)&ioc->lan_cnfg_page1.HardwareAddressLow;
--				len += sprintf(buf+len, "    LanAddr = %02X:%02X:%02X:%02X:%02X:%02X\n",
-+				seq_printf(m, "    LanAddr = %02X:%02X:%02X:%02X:%02X:%02X\n",
- 						a[5], a[4], a[3], a[2], a[1], a[0]);
- 			}
--			len += sprintf(buf+len, "    WWN = %08X%08X:%08X%08X\n",
-+			seq_printf(m, "    WWN = %08X%08X:%08X%08X\n",
- 					ioc->fc_port_page0[p].WWNN.High,
- 					ioc->fc_port_page0[p].WWNN.Low,
- 					ioc->fc_port_page0[p].WWPN.High,
-@@ -6751,9 +6708,21 @@ procmpt_iocinfo_read(char *buf, char **s
- 		}
- 	}
++static const struct file_operations tled_proc_fops = {
++	.owner		= THIS_MODULE,
++	.open		= tled_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++	.write		= tled_proc_write,
++};
++
+ static int get_lcd_state(void)
+ {
+ 	int lcd = 0;
+@@ -828,16 +875,19 @@ static int set_lcd_state(int value)
  
--	MPT_PROC_READ_RETURN(buf,start,offset,request,eof,len);
+ }
+ 
+-static int
+-proc_read_lcd(char *page, char **start, off_t off, int count, int *eof,
+-	      void *data)
++static int lcd_proc_show(struct seq_file *m, void *v)
+ {
+-	return sprintf(page, "%d\n", get_lcd_state());
++	seq_printf(m, "%d\n", get_lcd_state());
++	return 0;
+ }
+ 
+-static int
+-proc_write_lcd(struct file *file, const char __user *buffer,
+-	       unsigned long count, void *data)
++static int lcd_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, lcd_proc_show, NULL);
++}
++
++static ssize_t lcd_proc_write(struct file *file, const char __user *buffer,
++	       size_t count, loff_t *pos)
+ {
+ 	int rv, value;
+ 
+@@ -847,6 +897,15 @@ proc_write_lcd(struct file *file, const 
+ 	return rv;
+ }
+ 
++static const struct file_operations lcd_proc_fops = {
++	.owner		= THIS_MODULE,
++	.open		= lcd_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++	.write		= lcd_proc_write,
++};
++
+ static int read_brightness(struct backlight_device *bd)
+ {
+ 	int value;
+@@ -906,16 +965,19 @@ static int set_brightness_status(struct 
+ 	return set_brightness(bd->props.brightness);
+ }
+ 
+-static int
+-proc_read_brn(char *page, char **start, off_t off, int count, int *eof,
+-	      void *data)
++static int brn_proc_show(struct seq_file *m, void *v)
+ {
+-	return sprintf(page, "%d\n", read_brightness(NULL));
++	seq_printf(m, "%d\n", read_brightness(NULL));
++	return 0;
+ }
+ 
+-static int
+-proc_write_brn(struct file *file, const char __user *buffer,
+-	       unsigned long count, void *data)
++static int brn_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, brn_proc_show, NULL);
++}
++
++static ssize_t brn_proc_write(struct file *file, const char __user *buffer,
++	       size_t count, loff_t *pos)
+ {
+ 	int rv, value;
+ 
+@@ -928,6 +990,15 @@ proc_write_brn(struct file *file, const 
+ 	return rv;
+ }
+ 
++static const struct file_operations brn_proc_fops = {
++	.owner		= THIS_MODULE,
++	.open		= brn_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++	.write		= brn_proc_write,
++};
++
+ static void set_display(int value)
+ {
+ 	/* no sanity check needed for now */
+@@ -941,9 +1012,7 @@ static void set_display(int value)
+  * Now, *this* one could be more user-friendly, but so far, no-one has
+  * complained. The significance of bits is the same as in proc_write_disp()
+  */
+-static int
+-proc_read_disp(char *page, char **start, off_t off, int count, int *eof,
+-	       void *data)
++static int disp_proc_show(struct seq_file *m, void *v)
+ {
+ 	int value = 0;
+ 
+@@ -951,7 +1020,13 @@ proc_read_disp(char *page, char **start,
+ 		printk(KERN_WARNING
+ 		       "Asus ACPI: Error reading display status\n");
+ 	value &= 0x07;	/* needed for some models, shouldn't hurt others */
+-	return sprintf(page, "%d\n", value);
++	seq_printf(m, "%d\n", value);
 +	return 0;
 +}
 +
-+static int mpt_iocinfo_proc_open(struct inode *inode, struct file *file)
++static int disp_proc_open(struct inode *inode, struct file *file)
 +{
-+	return single_open(file, mpt_iocinfo_proc_show, PDE(inode)->data);
++	return single_open(file, disp_proc_show, NULL);
  }
- 
-+static const struct file_operations mpt_iocinfo_proc_fops = {
-+	.owner		= THIS_MODULE,
-+	.open		= mpt_iocinfo_proc_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+};
- #endif		/* CONFIG_PROC_FS } */
- 
- /*=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
-@@ -6819,6 +6788,39 @@ mpt_print_ioc_summary(MPT_ADAPTER *ioc, 
- 
- 	*size = y;
- }
-+
-+static void seq_mpt_print_ioc_summary(MPT_ADAPTER *ioc, struct seq_file *m, int showlan)
-+{
-+	char expVer[32];
-+
-+	mpt_get_fw_exp_ver(expVer, ioc);
-+
-+	/*
-+	 *  Shorter summary of attached ioc's...
-+	 */
-+	seq_printf(m, "%s: %s, %s%08xh%s, Ports=%d, MaxQ=%d",
-+			ioc->name,
-+			ioc->prod_name,
-+			MPT_FW_REV_MAGIC_ID_STRING,	/* "FwRev=" or somesuch */
-+			ioc->facts.FWVersion.Word,
-+			expVer,
-+			ioc->facts.NumberOfPorts,
-+			ioc->req_depth);
-+
-+	if (showlan && (ioc->pfacts[0].ProtocolFlags & MPI_PORTFACTS_PROTOCOL_LAN)) {
-+		u8 *a = (u8*)&ioc->lan_cnfg_page1.HardwareAddressLow;
-+		seq_printf(m, ", LanAddr=%02X:%02X:%02X:%02X:%02X:%02X",
-+			a[5], a[4], a[3], a[2], a[1], a[0]);
-+	}
-+
-+	seq_printf(m, ", IRQ=%d", ioc->pci_irq);
-+
-+	if (!ioc->active)
-+		seq_printf(m, " (disabled)");
-+
-+	seq_putc(m, '\n');
-+}
-+
- /**
-  *	mpt_set_taskmgmt_in_progress_flag - set flags associated with task management
-  *	@ioc: Pointer to MPT_ADAPTER structure
-diff -puN drivers/message/fusion/mptbase.h~mpt-fusion-convert-to-seq_file drivers/message/fusion/mptbase.h
---- a/drivers/message/fusion/mptbase.h~mpt-fusion-convert-to-seq_file
-+++ a/drivers/message/fusion/mptbase.h
-@@ -418,31 +418,6 @@ typedef struct _VirtDevice {
- #define MPT_TARGET_FLAGS_LED_ON		0x80
  
  /*
-- *	/proc/mpt interface
-- */
--typedef struct {
--	const char	*name;
--	mode_t		 mode;
--	int		 pad;
--	read_proc_t	*read_proc;
--	write_proc_t	*write_proc;
--} mpt_proc_entry_t;
--
--#define MPT_PROC_READ_RETURN(buf,start,offset,request,eof,len) \
--do { \
--	len -= offset;			\
--	if (len < request) {		\
--		*eof = 1;		\
--		if (len <= 0)		\
--			return 0;	\
--	} else				\
--		len = request;		\
--	*start = buf + offset;		\
--	return len;			\
--} while (0)
--
--
--/*
-  *	IOCTL structure and associated defines
+@@ -960,9 +1035,8 @@ proc_read_disp(char *page, char **start,
+  * (bitwise) of these will suffice. I never actually tested 3 displays hooked
+  * up simultaneously, so be warned. See the acpi4asus README for more info.
   */
+-static int
+-proc_write_disp(struct file *file, const char __user *buffer,
+-		unsigned long count, void *data)
++static ssize_t disp_proc_write(struct file *file, const char __user *buffer,
++		size_t count, loff_t *pos)
+ {
+ 	int rv, value;
  
+@@ -972,25 +1046,27 @@ proc_write_disp(struct file *file, const
+ 	return rv;
+ }
+ 
+-typedef int (proc_readfunc) (char *page, char **start, off_t off, int count,
+-			     int *eof, void *data);
+-typedef int (proc_writefunc) (struct file *file, const char __user *buffer,
+-			      unsigned long count, void *data);
++static const struct file_operations disp_proc_fops = {
++	.owner		= THIS_MODULE,
++	.open		= disp_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++	.write		= disp_proc_write,
++};
+ 
+ static int
+-asus_proc_add(char *name, proc_writefunc *writefunc,
+-		     proc_readfunc *readfunc, mode_t mode,
++asus_proc_add(char *name, const struct file_operations *proc_fops, mode_t mode,
+ 		     struct acpi_device *device)
+ {
+-	struct proc_dir_entry *proc =
+-	    create_proc_entry(name, mode, acpi_device_dir(device));
++	struct proc_dir_entry *proc;
++
++	proc = proc_create_data(name, mode, acpi_device_dir(device),
++				proc_fops, acpi_driver_data(device));
+ 	if (!proc) {
+ 		printk(KERN_WARNING "  Unable to create %s fs entry\n", name);
+ 		return -1;
+ 	}
+-	proc->write_proc = writefunc;
+-	proc->read_proc = readfunc;
+-	proc->data = acpi_driver_data(device);
+ 	proc->uid = asus_uid;
+ 	proc->gid = asus_gid;
+ 	return 0;
+@@ -1019,10 +1095,9 @@ static int asus_hotk_add_fs(struct acpi_
+ 	if (!acpi_device_dir(device))
+ 		return -ENODEV;
+ 
+-	proc = create_proc_entry(PROC_INFO, mode, acpi_device_dir(device));
++	proc = proc_create(PROC_INFO, mode, acpi_device_dir(device),
++			   &asus_info_proc_fops);
+ 	if (proc) {
+-		proc->read_proc = proc_read_info;
+-		proc->data = acpi_driver_data(device);
+ 		proc->uid = asus_uid;
+ 		proc->gid = asus_gid;
+ 	} else {
+@@ -1031,28 +1106,23 @@ static int asus_hotk_add_fs(struct acpi_
+ 	}
+ 
+ 	if (hotk->methods->mt_wled) {
+-		asus_proc_add(PROC_WLED, &proc_write_wled, &proc_read_wled,
+-			      mode, device);
++		asus_proc_add(PROC_WLED, &wled_proc_fops, mode, device);
+ 	}
+ 
+ 	if (hotk->methods->mt_ledd) {
+-		asus_proc_add(PROC_LEDD, &proc_write_ledd, &proc_read_ledd,
+-			      mode, device);
++		asus_proc_add(PROC_LEDD, &ledd_proc_fops, mode, device);
+ 	}
+ 
+ 	if (hotk->methods->mt_mled) {
+-		asus_proc_add(PROC_MLED, &proc_write_mled, &proc_read_mled,
+-			      mode, device);
++		asus_proc_add(PROC_MLED, &mled_proc_fops, mode, device);
+ 	}
+ 
+ 	if (hotk->methods->mt_tled) {
+-		asus_proc_add(PROC_TLED, &proc_write_tled, &proc_read_tled,
+-			      mode, device);
++		asus_proc_add(PROC_TLED, &tled_proc_fops, mode, device);
+ 	}
+ 
+ 	if (hotk->methods->mt_bt_switch) {
+-		asus_proc_add(PROC_BT, &proc_write_bluetooth,
+-			      &proc_read_bluetooth, mode, device);
++		asus_proc_add(PROC_BT, &bluetooth_proc_fops, mode, device);
+ 	}
+ 
+ 	/*
+@@ -1060,19 +1130,16 @@ static int asus_hotk_add_fs(struct acpi_
+ 	 * accessible from the keyboard
+ 	 */
+ 	if (hotk->methods->mt_lcd_switch && hotk->methods->lcd_status) {
+-		asus_proc_add(PROC_LCD, &proc_write_lcd, &proc_read_lcd, mode,
+-			      device);
++		asus_proc_add(PROC_LCD, &lcd_proc_fops, mode, device);
+ 	}
+ 
+ 	if ((hotk->methods->brightness_up && hotk->methods->brightness_down) ||
+ 	    (hotk->methods->brightness_get && hotk->methods->brightness_set)) {
+-		asus_proc_add(PROC_BRN, &proc_write_brn, &proc_read_brn, mode,
+-			      device);
++		asus_proc_add(PROC_BRN, &brn_proc_fops, mode, device);
+ 	}
+ 
+ 	if (hotk->methods->display_set) {
+-		asus_proc_add(PROC_DISP, &proc_write_disp, &proc_read_disp,
+-			      mode, device);
++		asus_proc_add(PROC_DISP, &disp_proc_fops, mode, device);
+ 	}
+ 
+ 	return 0;
 _
 
 Patches currently in -mm which might be from adobriyan@gmail.com are
