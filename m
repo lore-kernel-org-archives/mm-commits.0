@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 25 Nov 2009 12:50:53 -0800
-Message-ID: <200911252050.nAPKorkv032025@imap1.linux-foundation.org>
+Subject: + aoe-switch-to-the-new-bio_flush_dcache_pages-interface.patch added to -mm tree
+Date: Wed, 25 Nov 2009 12:53:13 -0800
+Message-ID: <200911252053.nAPKrDrx005201@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40350 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41921 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934993AbZKYUvP (ORCPT
+	by vger.kernel.org with ESMTP id S935043AbZKYUxn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Nov 2009 15:51:15 -0500
+	Wed, 25 Nov 2009 15:53:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, dwmw2@infradead.org, ecashin@coraid.com, islogino
 
 
 The patch titled
-     block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages-checkpatch-fixes
+     aoe: switch to the new bio_flush_dcache_pages() interface
 has been added to the -mm tree.  Its filename is
-     block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages-checkpatch-fixes.patch
+     aoe-switch-to-the-new-bio_flush_dcache_pages-interface.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,8 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages-checkpatch-fixes
+Subject: aoe: switch to the new bio_flush_dcache_pages() interface
 From: Andrew Morton <akpm@linux-foundation.org>
-
-ERROR: "foo* bar" should be "foo *bar"
-#348: FILE: block/blk-core.c:2372:
-+	struct bio_vec* bvec;
-
-ERROR: "foo* bar" should be "foo *bar"
-#388: FILE: fs/bio.c:1400:
-+	struct bio_vec* bvec;
-
-WARNING: line over 80 characters
-#419: FILE: include/linux/bio.h:396:
-+# error	"You should to define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE for your platform."
-
-WARNING: line over 80 characters
-#440: FILE: include/linux/blkdev.h:756:
-+# error	"You should to define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE for your platform."
-
-total: 2 errors, 2 warnings, 278 lines checked
-
-./patches/block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
 
 Cc: "Ed L. Cashin" <ecashin@coraid.com>
 Cc: David Woodhouse <dwmw2@infradead.org>
@@ -70,60 +46,43 @@ Cc: Peter Horton <phorton@bitbox.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/blk-core.c       |    2 +-
- fs/bio.c               |    2 +-
- include/linux/bio.h    |    2 +-
- include/linux/blkdev.h |    2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/block/aoe/aoecmd.c |   17 +----------------
+ 1 file changed, 1 insertion(+), 16 deletions(-)
 
-diff -puN block/blk-core.c~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages-checkpatch-fixes block/blk-core.c
---- a/block/blk-core.c~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages-checkpatch-fixes
-+++ a/block/blk-core.c
-@@ -2369,7 +2369,7 @@ void blk_rq_bio_prep(struct request_queu
- void rq_flush_dcache_pages(struct request *rq)
+diff -puN drivers/block/aoe/aoecmd.c~aoe-switch-to-the-new-bio_flush_dcache_pages-interface drivers/block/aoe/aoecmd.c
+--- a/drivers/block/aoe/aoecmd.c~aoe-switch-to-the-new-bio_flush_dcache_pages-interface
++++ a/drivers/block/aoe/aoecmd.c
+@@ -735,21 +735,6 @@ diskstats(struct gendisk *disk, struct b
+ 	part_stat_unlock();
+ }
+ 
+-/*
+- * Ensure we don't create aliases in VI caches
+- */
+-static inline void
+-killalias(struct bio *bio)
+-{
+-	struct bio_vec *bv;
+-	int i;
+-
+-	if (bio_data_dir(bio) == READ)
+-		__bio_for_each_segment(bv, bio, i, 0) {
+-			flush_dcache_page(bv->bv_page);
+-		}
+-}
+-
+ void
+ aoecmd_ata_rsp(struct sk_buff *skb)
  {
- 	struct req_iterator iter;
--	struct bio_vec* bvec;
-+	struct bio_vec *bvec;
- 
- 	rq_for_each_segment(bvec, rq, iter)
- 		flush_dcache_page(bvec->bv_page);
-diff -puN fs/bio.c~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages-checkpatch-fixes fs/bio.c
---- a/fs/bio.c~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages-checkpatch-fixes
-+++ a/fs/bio.c
-@@ -1397,7 +1397,7 @@ void bio_check_pages_dirty(struct bio *b
- void bio_flush_dcache_pages(struct bio *bi)
- {
- 	int i;
--	struct bio_vec* bvec;
-+	struct bio_vec *bvec;
- 
- 	bio_for_each_segment(bvec, bi, i)
- 		flush_dcache_page(bvec->bv_page);
-diff -puN include/linux/bio.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages-checkpatch-fixes include/linux/bio.h
---- a/include/linux/bio.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages-checkpatch-fixes
-+++ a/include/linux/bio.h
-@@ -393,7 +393,7 @@ extern void bio_set_pages_dirty(struct b
- extern void bio_check_pages_dirty(struct bio *bio);
- 
- #ifndef ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE
--# error	"You should to define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE for your platform."
-+# error	"You should define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE for your platform"
- #endif
- #if ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE
- extern void bio_flush_dcache_pages(struct bio *bi);
-diff -puN include/linux/blkdev.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages-checkpatch-fixes include/linux/blkdev.h
---- a/include/linux/blkdev.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages-checkpatch-fixes
-+++ a/include/linux/blkdev.h
-@@ -753,7 +753,7 @@ struct req_iterator {
- 		(_iter.bio->bi_next == NULL && _iter.i == _iter.bio->bi_vcnt-1)
- 
- #ifndef ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE
--# error	"You should to define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE for your platform."
-+# error	"You should define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE for your platform"
- #endif
- #if ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE
- extern void rq_flush_dcache_pages(struct request *rq);
+@@ -871,7 +856,7 @@ aoecmd_ata_rsp(struct sk_buff *skb)
+ 		if (buf->flags & BUFFL_FAIL)
+ 			bio_endio(buf->bio, -EIO);
+ 		else {
+-			killalias(buf->bio);
++			bio_flush_dcache_pages(buf->bio);
+ 			bio_endio(buf->bio, 0);
+ 		}
+ 		mempool_free(buf, d->bufpool);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -152,6 +111,7 @@ atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
 st-fix-test-of-value-range-in-st_set_options.patch
 scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
 block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages-checkpatch-fixes.patch
+aoe-switch-to-the-new-bio_flush_dcache_pages-interface.patch
 wusb-use-sizeof-struct-rather-than-pointer.patch
 raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
 fs-improve-remountro-vs-buffercache-coherency.patch
