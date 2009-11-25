@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pnpbios-convert-to-seq_file.patch added to -mm tree
-Date: Wed, 25 Nov 2009 13:11:59 -0800
-Message-ID: <200911252111.nAPLBxJE018209@imap1.linux-foundation.org>
+Subject: + toshiba_acpi-convert-to-seq_file.patch added to -mm tree
+Date: Wed, 25 Nov 2009 13:11:57 -0800
+Message-ID: <200911252111.nAPLBvDF018111@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53505 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34947 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935063AbZKYVMc (ORCPT
+	by vger.kernel.org with ESMTP id S1753527AbZKYVNO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Nov 2009 16:12:32 -0500
+	Wed, 25 Nov 2009 16:13:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com, abelay@mit.edu, bjorn.helgaas@hp.com
+Cc: adobriyan@gmail.com, johannes@sipsolutions.net, len.brown@intel.com, linville@tuxdriver.com
 
 
 The patch titled
-     pnpbios: convert to seq_file
+     toshiba_acpi: convert to seq_file
 has been added to the -mm tree.  Its filename is
-     pnpbios-convert-to-seq_file.patch
+     toshiba_acpi-convert-to-seq_file.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,351 +34,423 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pnpbios: convert to seq_file
+Subject: toshiba_acpi: convert to seq_file
 From: Alexey Dobriyan <adobriyan@gmail.com>
 
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Adam Belay <abelay@mit.edu>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: John W. Linville <linville@tuxdriver.com>
+Cc: Johannes Berg <johannes@sipsolutions.net>
+Cc: Len Brown <len.brown@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/pnpbios/proc.c |  204 ++++++++++++++++++++++-------------
- 1 file changed, 129 insertions(+), 75 deletions(-)
+ drivers/platform/x86/toshiba_acpi.c |  259 ++++++++++++++------------
+ 1 file changed, 147 insertions(+), 112 deletions(-)
 
-diff -puN drivers/pnp/pnpbios/proc.c~pnpbios-convert-to-seq_file drivers/pnp/pnpbios/proc.c
---- a/drivers/pnp/pnpbios/proc.c~pnpbios-convert-to-seq_file
-+++ a/drivers/pnp/pnpbios/proc.c
-@@ -24,6 +24,7 @@
+diff -puN drivers/platform/x86/toshiba_acpi.c~toshiba_acpi-convert-to-seq_file drivers/platform/x86/toshiba_acpi.c
+--- a/drivers/platform/x86/toshiba_acpi.c~toshiba_acpi-convert-to-seq_file
++++ a/drivers/platform/x86/toshiba_acpi.c
+@@ -42,6 +42,7 @@
+ #include <linux/init.h>
  #include <linux/types.h>
  #include <linux/proc_fs.h>
- #include <linux/pnp.h>
 +#include <linux/seq_file.h>
- #include <linux/init.h>
+ #include <linux/backlight.h>
+ #include <linux/platform_device.h>
+ #include <linux/rfkill.h>
+@@ -357,63 +358,6 @@ static int force_fan;
+ static int last_key_event;
+ static int key_event_valid;
  
- #include <asm/uaccess.h>
-@@ -33,42 +34,65 @@
- static struct proc_dir_entry *proc_pnp = NULL;
- static struct proc_dir_entry *proc_pnp_boot = NULL;
- 
--static int proc_read_pnpconfig(char *buf, char **start, off_t pos,
--			       int count, int *eof, void *data)
-+static int pnpconfig_proc_show(struct seq_file *m, void *v)
- {
- 	struct pnp_isa_config_struc pnps;
- 
- 	if (pnp_bios_isapnp_config(&pnps))
- 		return -EIO;
--	return snprintf(buf, count,
--			"structure_revision %d\n"
--			"number_of_CSNs %d\n"
--			"ISA_read_data_port 0x%x\n",
--			pnps.revision, pnps.no_csns, pnps.isa_rd_data_port);
-+	seq_printf(m, "structure_revision %d\n"
-+		      "number_of_CSNs %d\n"
-+		      "ISA_read_data_port 0x%x\n",
-+		   pnps.revision, pnps.no_csns, pnps.isa_rd_data_port);
-+	return 0;
- }
- 
--static int proc_read_escdinfo(char *buf, char **start, off_t pos,
--			      int count, int *eof, void *data)
-+static int pnpconfig_proc_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, pnpconfig_proc_show, NULL);
-+}
-+
-+static const struct file_operations pnpconfig_proc_fops = {
-+	.owner		= THIS_MODULE,
-+	.open		= pnpconfig_proc_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+};
-+
-+static int escd_info_proc_show(struct seq_file *m, void *v)
- {
- 	struct escd_info_struc escd;
- 
- 	if (pnp_bios_escd_info(&escd))
- 		return -EIO;
--	return snprintf(buf, count,
--			"min_ESCD_write_size %d\n"
-+	seq_printf(m, "min_ESCD_write_size %d\n"
- 			"ESCD_size %d\n"
- 			"NVRAM_base 0x%x\n",
- 			escd.min_escd_write_size,
- 			escd.escd_size, escd.nv_storage_base);
-+	return 0;
- }
- 
-+static int escd_info_proc_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, escd_info_proc_show, NULL);
-+}
-+
-+static const struct file_operations escd_info_proc_fops = {
-+	.owner		= THIS_MODULE,
-+	.open		= escd_info_proc_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+};
-+
- #define MAX_SANE_ESCD_SIZE (32*1024)
--static int proc_read_escd(char *buf, char **start, off_t pos,
--			  int count, int *eof, void *data)
-+static int escd_proc_show(struct seq_file *m, void *v)
- {
- 	struct escd_info_struc escd;
- 	char *tmpbuf;
--	int escd_size, escd_left_to_read, n;
-+	int escd_size;
- 
- 	if (pnp_bios_escd_info(&escd))
- 		return -EIO;
-@@ -76,7 +100,7 @@ static int proc_read_escd(char *buf, cha
- 	/* sanity check */
- 	if (escd.escd_size > MAX_SANE_ESCD_SIZE) {
- 		printk(KERN_ERR
--		       "PnPBIOS: proc_read_escd: ESCD size reported by BIOS escd_info call is too great\n");
-+		       "PnPBIOS: %s: ESCD size reported by BIOS escd_info call is too great\n", __func__);
- 		return -EFBIG;
- 	}
- 
-@@ -94,56 +118,75 @@ static int proc_read_escd(char *buf, cha
- 
- 	/* sanity check */
- 	if (escd_size > MAX_SANE_ESCD_SIZE) {
--		printk(KERN_ERR "PnPBIOS: proc_read_escd: ESCD size reported by"
--				" BIOS read_escd call is too great\n");
-+		printk(KERN_ERR "PnPBIOS: %s: ESCD size reported by"
-+				" BIOS read_escd call is too great\n", __func__);
- 		kfree(tmpbuf);
- 		return -EFBIG;
- 	}
- 
--	escd_left_to_read = escd_size - pos;
--	if (escd_left_to_read < 0)
--		escd_left_to_read = 0;
--	if (escd_left_to_read == 0)
--		*eof = 1;
--	n = min(count, escd_left_to_read);
--	memcpy(buf, tmpbuf + pos, n);
-+	seq_write(m, tmpbuf, escd_size);
- 	kfree(tmpbuf);
--	*start = buf;
--	return n;
-+	return 0;
- }
- 
--static int proc_read_legacyres(char *buf, char **start, off_t pos,
--			       int count, int *eof, void *data)
-+static int escd_proc_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, escd_proc_show, NULL);
-+}
-+
-+static const struct file_operations escd_proc_fops = {
-+	.owner		= THIS_MODULE,
-+	.open		= escd_proc_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+};
-+
-+static int pnp_legacyres_proc_show(struct seq_file *m, void *v)
- {
--	/* Assume that the following won't overflow the buffer */
--	if (pnp_bios_get_stat_res(buf))
-+	void *buf;
-+
-+	buf = kmalloc(65536, GFP_KERNEL);
-+	if (!buf)
-+		return -ENOMEM;
-+	if (pnp_bios_get_stat_res(buf)) {
-+		kfree(buf);
- 		return -EIO;
-+	}
-+
-+	seq_write(m, buf, 65536);
-+	kfree(buf);
-+	return 0;
-+}
- 
--	return count;		// FIXME: Return actual length
-+static int pnp_legacyres_proc_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, pnp_legacyres_proc_show, NULL);
- }
- 
--static int proc_read_devices(char *buf, char **start, off_t pos,
--			     int count, int *eof, void *data)
-+static const struct file_operations pnp_legacyres_proc_fops = {
-+	.owner		= THIS_MODULE,
-+	.open		= pnp_legacyres_proc_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+};
-+
-+static int pnp_devices_proc_show(struct seq_file *m, void *v)
- {
- 	struct pnp_bios_node *node;
- 	u8 nodenum;
--	char *p = buf;
+-typedef struct _ProcItem {
+-	const char *name;
+-	char *(*read_func) (char *);
+-	unsigned long (*write_func) (const char *, unsigned long);
+-} ProcItem;
 -
--	if (pos >= 0xff)
--		return 0;
- 
- 	node = kzalloc(node_info.max_node_size, GFP_KERNEL);
- 	if (!node)
- 		return -ENOMEM;
- 
--	for (nodenum = pos; nodenum < 0xff;) {
-+	for (nodenum = 0; nodenum < 0xff;) {
- 		u8 thisnodenum = nodenum;
--		/* 26 = the number of characters per line sprintf'ed */
--		if ((p - buf + 26) > count)
--			break;
-+
- 		if (pnp_bios_get_dev_node(&nodenum, PNPMODE_DYNAMIC, node))
- 			break;
--		p += sprintf(p, "%02x\t%08x\t%02x:%02x:%02x\t%04x\n",
-+		seq_printf(m, "%02x\t%08x\t%02x:%02x:%02x\t%04x\n",
- 			     node->handle, node->eisa_id,
- 			     node->type_code[0], node->type_code[1],
- 			     node->type_code[2], node->flags);
-@@ -153,20 +196,29 @@ static int proc_read_devices(char *buf, 
- 			       "PnPBIOS: proc_read_devices:",
- 			       (unsigned int)nodenum,
- 			       (unsigned int)thisnodenum);
--			*eof = 1;
- 			break;
- 		}
- 	}
- 	kfree(node);
--	if (nodenum == 0xff)
+-/* proc file handlers
+- */
+-
+-static int
+-dispatch_read(char *page, char **start, off_t off, int count, int *eof,
+-	      ProcItem * item)
+-{
+-	char *p = page;
+-	int len;
+-
+-	if (off == 0)
+-		p = item->read_func(p);
+-
+-	/* ISSUE: I don't understand this code */
+-	len = (p - page);
+-	if (len <= off + count)
 -		*eof = 1;
--	*start = (char *)((off_t) nodenum - pos);
--	return p - buf;
-+	return 0;
-+}
-+
-+static int pnp_devices_proc_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, pnp_devices_proc_show, NULL);
- }
- 
--static int proc_read_node(char *buf, char **start, off_t pos,
--			  int count, int *eof, void *data)
-+static const struct file_operations pnp_devices_proc_fops = {
-+	.owner		= THIS_MODULE,
-+	.open		= pnp_devices_proc_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+};
-+
-+static int pnpbios_proc_show(struct seq_file *m, void *v)
- {
-+	void *data = m->private;
- 	struct pnp_bios_node *node;
- 	int boot = (long)data >> 8;
- 	u8 nodenum = (long)data;
-@@ -180,14 +232,20 @@ static int proc_read_node(char *buf, cha
- 		return -EIO;
- 	}
- 	len = node->size - sizeof(struct pnp_bios_node);
--	memcpy(buf, node->data, len);
-+	seq_write(m, node->data, len);
- 	kfree(node);
+-	*start = page + off;
+-	len -= off;
+-	if (len > count)
+-		len = count;
+-	if (len < 0)
+-		len = 0;
 -	return len;
+-}
+-
+-static int
+-dispatch_write(struct file *file, const char __user * buffer,
+-	       unsigned long count, ProcItem * item)
+-{
+-	int result;
+-	char *tmp_buffer;
+-
+-	/* Arg buffer points to userspace memory, which can't be accessed
+-	 * directly.  Since we're making a copy, zero-terminate the
+-	 * destination so that sscanf can be used on it safely.
+-	 */
+-	tmp_buffer = kmalloc(count + 1, GFP_KERNEL);
+-	if (!tmp_buffer)
+-		return -ENOMEM;
+-
+-	if (copy_from_user(tmp_buffer, buffer, count)) {
+-		result = -EFAULT;
+-	} else {
+-		tmp_buffer[count] = 0;
+-		result = item->write_func(tmp_buffer, count);
+-	}
+-	kfree(tmp_buffer);
+-	return result;
+-}
+-
+ static int get_lcd(struct backlight_device *bd)
+ {
+ 	u32 hci_result;
+@@ -426,19 +370,24 @@ static int get_lcd(struct backlight_devi
+ 		return -EFAULT;
+ }
+ 
+-static char *read_lcd(char *p)
++static int lcd_proc_show(struct seq_file *m, void *v)
+ {
+ 	int value = get_lcd(NULL);
+ 
+ 	if (value >= 0) {
+-		p += sprintf(p, "brightness:              %d\n", value);
+-		p += sprintf(p, "brightness_levels:       %d\n",
++		seq_printf(m, "brightness:              %d\n", value);
++		seq_printf(m, "brightness_levels:       %d\n",
+ 			     HCI_LCD_BRIGHTNESS_LEVELS);
+ 	} else {
+ 		printk(MY_ERR "Error reading LCD brightness\n");
+ 	}
+ 
+-	return p;
 +	return 0;
 +}
 +
-+static int pnpbios_proc_open(struct inode *inode, struct file *file)
++static int lcd_proc_open(struct inode *inode, struct file *file)
 +{
-+	return single_open(file, pnpbios_proc_show, PDE(inode)->data);
++	return single_open(file, lcd_proc_show, NULL);
  }
  
--static int proc_write_node(struct file *file, const char __user * buf,
--			   unsigned long count, void *data)
-+static ssize_t pnpbios_proc_write(struct file *file, const char __user *buf,
-+				  size_t count, loff_t *pos)
+ static int set_lcd(int value)
+@@ -458,12 +407,20 @@ static int set_lcd_status(struct backlig
+ 	return set_lcd(bd->props.brightness);
+ }
+ 
+-static unsigned long write_lcd(const char *buffer, unsigned long count)
++static ssize_t lcd_proc_write(struct file *file, const char __user *buf,
++			      size_t count, loff_t *pos)
  {
-+	void *data = PDE(file->f_path.dentry->d_inode)->data;
- 	struct pnp_bios_node *node;
- 	int boot = (long)data >> 8;
- 	u8 nodenum = (long)data;
-@@ -218,34 +276,33 @@ out:
++	char cmd[42];
++	size_t len;
+ 	int value;
+ 	int ret;
+ 
+-	if (sscanf(buffer, " brightness : %i", &value) == 1 &&
++	len = min(count, sizeof(cmd) - 1);
++	if (copy_from_user(cmd, buf, len))
++		return -EFAULT;
++	cmd[len] = '\0';
++
++	if (sscanf(cmd, " brightness : %i", &value) == 1 &&
+ 	    value >= 0 && value < HCI_LCD_BRIGHTNESS_LEVELS) {
+ 		ret = set_lcd(value);
+ 		if (ret == 0)
+@@ -474,7 +431,16 @@ static unsigned long write_lcd(const cha
  	return ret;
  }
  
-+static const struct file_operations pnpbios_proc_fops = {
+-static char *read_video(char *p)
++static const struct file_operations lcd_proc_fops = {
 +	.owner		= THIS_MODULE,
-+	.open		= pnpbios_proc_open,
++	.open		= lcd_proc_open,
 +	.read		= seq_read,
 +	.llseek		= seq_lseek,
 +	.release	= single_release,
-+	.write		= pnpbios_proc_write,
++	.write		= lcd_proc_write,
 +};
 +
- int pnpbios_interface_attach_device(struct pnp_bios_node *node)
++static int video_proc_show(struct seq_file *m, void *v)
  {
- 	char name[3];
--	struct proc_dir_entry *ent;
- 
- 	sprintf(name, "%02x", node->handle);
- 
- 	if (!proc_pnp)
- 		return -EIO;
- 	if (!pnpbios_dont_use_current_config) {
--		ent = create_proc_entry(name, 0, proc_pnp);
--		if (ent) {
--			ent->read_proc = proc_read_node;
--			ent->write_proc = proc_write_node;
--			ent->data = (void *)(long)(node->handle);
--		}
-+		proc_create_data(name, 0644, proc_pnp, &pnpbios_proc_fops,
-+				 (void *)(long)(node->handle));
+ 	u32 hci_result;
+ 	u32 value;
+@@ -484,18 +450,25 @@ static char *read_video(char *p)
+ 		int is_lcd = (value & HCI_VIDEO_OUT_LCD) ? 1 : 0;
+ 		int is_crt = (value & HCI_VIDEO_OUT_CRT) ? 1 : 0;
+ 		int is_tv = (value & HCI_VIDEO_OUT_TV) ? 1 : 0;
+-		p += sprintf(p, "lcd_out:                 %d\n", is_lcd);
+-		p += sprintf(p, "crt_out:                 %d\n", is_crt);
+-		p += sprintf(p, "tv_out:                  %d\n", is_tv);
++		seq_printf(m, "lcd_out:                 %d\n", is_lcd);
++		seq_printf(m, "crt_out:                 %d\n", is_crt);
++		seq_printf(m, "tv_out:                  %d\n", is_tv);
+ 	} else {
+ 		printk(MY_ERR "Error reading video out status\n");
  	}
  
- 	if (!proc_pnp_boot)
- 		return -EIO;
--	ent = create_proc_entry(name, 0, proc_pnp_boot);
--	if (ent) {
--		ent->read_proc = proc_read_node;
--		ent->write_proc = proc_write_node;
--		ent->data = (void *)(long)(node->handle + 0x100);
-+	if (proc_create_data(name, 0644, proc_pnp_boot, &pnpbios_proc_fops,
-+			     (void *)(long)(node->handle + 0x100)))
- 		return 0;
--	}
+-	return p;
++	return 0;
++}
++
++static int video_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, video_proc_show, NULL);
+ }
+ 
+-static unsigned long write_video(const char *buffer, unsigned long count)
++static ssize_t video_proc_write(struct file *file, const char __user *buf,
++				size_t count, loff_t *pos)
+ {
++	char *cmd, *buffer;
+ 	int value;
+ 	int remain = count;
+ 	int lcd_out = -1;
+@@ -504,6 +477,17 @@ static unsigned long write_video(const c
+ 	u32 hci_result;
+ 	u32 video_out;
+ 
++	cmd = kmalloc(count + 1, GFP_KERNEL);
++	if (!cmd)
++		return -ENOMEM;
++	if (copy_from_user(cmd, buf, count)) {
++		kfree(cmd);
++		return -EFAULT;
++	}
++	cmd[count] = '\0';
++
++	buffer = cmd;
++
+ 	/* scan expression.  Multiple expressions may be delimited with ;
+ 	 *
+ 	 *  NOTE: to keep scanning simple, invalid fields are ignored
+@@ -523,6 +507,8 @@ static unsigned long write_video(const c
+ 		while (remain && *(buffer - 1) != ';');
+ 	}
+ 
++	kfree(cmd);
++
+ 	hci_read1(HCI_VIDEO_OUT, &video_out, &hci_result);
+ 	if (hci_result == HCI_SUCCESS) {
+ 		unsigned int new_video_out = video_out;
+@@ -543,28 +529,50 @@ static unsigned long write_video(const c
+ 	return count;
+ }
+ 
+-static char *read_fan(char *p)
++static const struct file_operations video_proc_fops = {
++	.owner		= THIS_MODULE,
++	.open		= video_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++	.write		= video_proc_write,
++};
++
++static int fan_proc_show(struct seq_file *m, void *v)
+ {
+ 	u32 hci_result;
+ 	u32 value;
+ 
+ 	hci_read1(HCI_FAN, &value, &hci_result);
+ 	if (hci_result == HCI_SUCCESS) {
+-		p += sprintf(p, "running:                 %d\n", (value > 0));
+-		p += sprintf(p, "force_on:                %d\n", force_fan);
++		seq_printf(m, "running:                 %d\n", (value > 0));
++		seq_printf(m, "force_on:                %d\n", force_fan);
+ 	} else {
+ 		printk(MY_ERR "Error reading fan status\n");
+ 	}
+ 
+-	return p;
++	return 0;
+ }
+ 
+-static unsigned long write_fan(const char *buffer, unsigned long count)
++static int fan_proc_open(struct inode *inode, struct file *file)
+ {
++	return single_open(file, fan_proc_show, NULL);
++}
++
++static ssize_t fan_proc_write(struct file *file, const char __user *buf,
++			      size_t count, loff_t *pos)
++{
++	char cmd[42];
++	size_t len;
+ 	int value;
+ 	u32 hci_result;
+ 
+-	if (sscanf(buffer, " force_on : %i", &value) == 1 &&
++	len = min(count, sizeof(cmd) - 1);
++	if (copy_from_user(cmd, buf, len))
++		return -EFAULT;
++	cmd[len] = '\0';
++
++	if (sscanf(cmd, " force_on : %i", &value) == 1 &&
+ 	    value >= 0 && value <= 1) {
+ 		hci_write1(HCI_FAN, value, &hci_result);
+ 		if (hci_result != HCI_SUCCESS)
+@@ -578,7 +586,16 @@ static unsigned long write_fan(const cha
+ 	return count;
+ }
+ 
+-static char *read_keys(char *p)
++static const struct file_operations fan_proc_fops = {
++	.owner		= THIS_MODULE,
++	.open		= fan_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++	.write		= fan_proc_write,
++};
++
++static int keys_proc_show(struct seq_file *m, void *v)
+ {
+ 	u32 hci_result;
+ 	u32 value;
+@@ -602,18 +619,30 @@ static char *read_keys(char *p)
+ 		}
+ 	}
+ 
+-	p += sprintf(p, "hotkey_ready:            %d\n", key_event_valid);
+-	p += sprintf(p, "hotkey:                  0x%04x\n", last_key_event);
++	seq_printf(m, "hotkey_ready:            %d\n", key_event_valid);
++	seq_printf(m, "hotkey:                  0x%04x\n", last_key_event);
++end:
++	return 0;
++}
+ 
+-      end:
+-	return p;
++static int keys_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, keys_proc_show, NULL);
+ }
+ 
+-static unsigned long write_keys(const char *buffer, unsigned long count)
++static ssize_t keys_proc_write(struct file *file, const char __user *buf,
++			       size_t count, loff_t *pos)
+ {
++	char cmd[42];
++	size_t len;
+ 	int value;
+ 
+-	if (sscanf(buffer, " hotkey_ready : %i", &value) == 1 && value == 0) {
++	len = min(count, sizeof(cmd) - 1);
++	if (copy_from_user(cmd, buf, len))
++		return -EFAULT;
++	cmd[len] = '\0';
++
++	if (sscanf(cmd, " hotkey_ready : %i", &value) == 1 && value == 0) {
+ 		key_event_valid = 0;
+ 	} else {
+ 		return -EINVAL;
+@@ -622,52 +651,58 @@ static unsigned long write_keys(const ch
+ 	return count;
+ }
+ 
+-static char *read_version(char *p)
++static const struct file_operations keys_proc_fops = {
++	.owner		= THIS_MODULE,
++	.open		= keys_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++	.write		= keys_proc_write,
++};
++
++static int version_proc_show(struct seq_file *m, void *v)
++{
++	seq_printf(m, "driver:                  %s\n", TOSHIBA_ACPI_VERSION);
++	seq_printf(m, "proc_interface:          %d\n", PROC_INTERFACE_VERSION);
++	return 0;
++}
++
++static int version_proc_open(struct inode *inode, struct file *file)
+ {
+-	p += sprintf(p, "driver:                  %s\n", TOSHIBA_ACPI_VERSION);
+-	p += sprintf(p, "proc_interface:          %d\n",
+-		     PROC_INTERFACE_VERSION);
+-	return p;
++	return single_open(file, version_proc_show, PDE(inode)->data);
+ }
+ 
++static const struct file_operations version_proc_fops = {
++	.owner		= THIS_MODULE,
++	.open		= version_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++};
++
+ /* proc and module init
+  */
+ 
+ #define PROC_TOSHIBA		"toshiba"
+ 
+-static ProcItem proc_items[] = {
+-	{"lcd", read_lcd, write_lcd},
+-	{"video", read_video, write_video},
+-	{"fan", read_fan, write_fan},
+-	{"keys", read_keys, write_keys},
+-	{"version", read_version, NULL},
+-	{NULL}
+-};
 -
- 	return -EIO;
+ static acpi_status __init add_device(void)
+ {
+-	struct proc_dir_entry *proc;
+-	ProcItem *item;
+-
+-	for (item = proc_items; item->name; ++item) {
+-		proc = create_proc_read_entry(item->name,
+-					      S_IFREG | S_IRUGO | S_IWUSR,
+-					      toshiba_proc_dir,
+-					      (read_proc_t *) dispatch_read,
+-					      item);
+-		if (proc && item->write_func)
+-			proc->write_proc = (write_proc_t *) dispatch_write;
+-	}
++	proc_create("lcd", S_IRUGO | S_IWUSR, toshiba_proc_dir, &lcd_proc_fops);
++	proc_create("video", S_IRUGO | S_IWUSR, toshiba_proc_dir, &video_proc_fops);
++	proc_create("fan", S_IRUGO | S_IWUSR, toshiba_proc_dir, &fan_proc_fops);
++	proc_create("keys", S_IRUGO | S_IWUSR, toshiba_proc_dir, &keys_proc_fops);
++	proc_create("version", S_IRUGO, toshiba_proc_dir, &version_proc_fops);
+ 
+ 	return AE_OK;
  }
  
-@@ -262,14 +319,11 @@ int __init pnpbios_proc_init(void)
- 	proc_pnp_boot = proc_mkdir("boot", proc_pnp);
- 	if (!proc_pnp_boot)
- 		return -EIO;
--	create_proc_read_entry("devices", 0, proc_pnp, proc_read_devices, NULL);
--	create_proc_read_entry("configuration_info", 0, proc_pnp,
--			       proc_read_pnpconfig, NULL);
--	create_proc_read_entry("escd_info", 0, proc_pnp, proc_read_escdinfo,
--			       NULL);
--	create_proc_read_entry("escd", S_IRUSR, proc_pnp, proc_read_escd, NULL);
--	create_proc_read_entry("legacy_device_resources", 0, proc_pnp,
--			       proc_read_legacyres, NULL);
-+	proc_create("devices", 0, proc_pnp, &pnp_devices_proc_fops);
-+	proc_create("configuration_info", 0, proc_pnp, &pnpconfig_proc_fops);
-+	proc_create("escd_info", 0, proc_pnp, &escd_info_proc_fops);
-+	proc_create("escd", S_IRUSR, proc_pnp, &escd_proc_fops);
-+	proc_create("legacy_device_resources", 0, proc_pnp, &pnp_legacyres_proc_fops);
- 
- 	return 0;
+ static acpi_status remove_device(void)
+ {
+-	ProcItem *item;
+-
+-	for (item = proc_items; item->name; ++item)
+-		remove_proc_entry(item->name, toshiba_proc_dir);
++	remove_proc_entry("lcd", toshiba_proc_dir);
++	remove_proc_entry("video", toshiba_proc_dir);
++	remove_proc_entry("fan", toshiba_proc_dir);
++	remove_proc_entry("keys", toshiba_proc_dir);
++	remove_proc_entry("version", toshiba_proc_dir);
+ 	return AE_OK;
  }
+ 
 _
 
 Patches currently in -mm which might be from adobriyan@gmail.com are
