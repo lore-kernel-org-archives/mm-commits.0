@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-do-not-evict-inactive-pages-when-skipping-an-active-list-scan.patch added to -mm tree
-Date: Wed, 25 Nov 2009 14:26:36 -0800
-Message-ID: <200911252226.nAPMQaLA004360@imap1.linux-foundation.org>
+Subject: + scripts-mod-modpostc-dont-tase-me-bro.patch added to -mm tree
+Date: Wed, 25 Nov 2009 16:18:18 -0800
+Message-ID: <200911260042.nAQ0gC0K007760@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48622 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52300 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759305AbZKYW05 (ORCPT
+	by vger.kernel.org with ESMTP id S965052AbZKZAmQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Nov 2009 17:26:57 -0500
+	Wed, 25 Nov 2009 19:42:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: riel@redhat.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, lwoodman@redhat.com, mangoo@wpkg.org
+Cc: akpm@linux-foundation.org, alan-jenkins@tuffmail.co.uk, rusty@rustcorp.com.au
 
 
 The patch titled
-     vmscan: do not evict inactive pages when skipping an active list scan
+     scripts/mod/modpost.c: don't tase me, bro
 has been added to the -mm tree.  Its filename is
-     vmscan-do-not-evict-inactive-pages-when-skipping-an-active-list-scan.patch
+     scripts-mod-modpostc-dont-tase-me-bro.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,90 +34,114 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: do not evict inactive pages when skipping an active list scan
-From: Rik van Riel <riel@redhat.com>
+Subject: scripts/mod/modpost.c: don't tase me, bro
+From: Andrew Morton <akpm@linux-foundation.org>
 
-In AIM7 runs, recent kernels start swapping out anonymous pages well
-before they should.  This is due to shrink_list falling through to
-shrink_inactive_list if !inactive_anon_is_low(zone, sc), when all we
-really wanted to do is pre-age some anonymous pages to give them extra
-time to be referenced while on the inactive list.
-
-The obvious fix is to make sure that shrink_list does not fall through to
-scanning/reclaiming inactive pages when we called it to scan one of the
-active lists.
-
-This change should be safe because the loop in shrink_zone ensures that we
-will still shrink the anon and file inactive lists whenever we should.
-
-Reported-by: Larry Woodman <lwoodman@redhat.com>
-Signed-off-by: Rik van Riel <riel@redhat.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Tomasz Chmielewski <mangoo@wpkg.org>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ scripts/mod/modpost.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/vmscan.c~vmscan-do-not-evict-inactive-pages-when-skipping-an-active-list-scan mm/vmscan.c
---- a/mm/vmscan.c~vmscan-do-not-evict-inactive-pages-when-skipping-an-active-list-scan
-+++ a/mm/vmscan.c
-@@ -1472,13 +1472,15 @@ static unsigned long shrink_list(enum lr
- {
- 	int file = is_file_lru(lru);
+diff -puN /dev/null /dev/null
+diff -puN Makefile~scripts-mod-modpostc-dont-tase-me-bro Makefile
+diff -puN scripts/mod/modpost.c~scripts-mod-modpostc-dont-tase-me-bro scripts/mod/modpost.c
+--- a/scripts/mod/modpost.c~scripts-mod-modpostc-dont-tase-me-bro
++++ a/scripts/mod/modpost.c
+@@ -2059,6 +2059,9 @@ static void write_exports(const char *fn
+ 	for (i = 0; i < n; i++) {
+ 		sym = symbols[i];
  
--	if (lru == LRU_ACTIVE_FILE && inactive_file_is_low(zone, sc)) {
--		shrink_active_list(nr_to_scan, zone, sc, priority, file);
-+	if (lru == LRU_ACTIVE_FILE) {
-+		if (inactive_file_is_low(zone, sc))
-+		      shrink_active_list(nr_to_scan, zone, sc, priority, file);
- 		return 0;
- 	}
- 
--	if (lru == LRU_ACTIVE_ANON && inactive_anon_is_low(zone, sc)) {
--		shrink_active_list(nr_to_scan, zone, sc, priority, file);
-+	if (lru == LRU_ACTIVE_ANON) {
-+		if (inactive_file_is_low(zone, sc))
-+		      shrink_active_list(nr_to_scan, zone, sc, priority, file);
- 		return 0;
- 	}
- 	return shrink_inactive_list(nr_to_scan, zone, sc, priority, file);
++		if (sym->export == export_unknown)
++			continue;
++
+ 		buf_printf(&buf, "__EXPORT_%s_SYMBOL(%s,"
+ 					" __ksymtab%s_sorted,"
+ 					" __ksymtab_strings_sorted,"
 _
 
-Patches currently in -mm which might be from riel@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-vsmcan-check-shrink_active_list-sc-isolate_pages-return-value.patch
-mm-clear-node-in-n_high_memory-and-stop-kswapd-when-all-memory-is-offlined.patch
-swap_info-private-to-swapfilec.patch
-swap_info-change-to-array-of-pointers.patch
-swap_info-include-first_swap_extent.patch
-swap_info-include-first_swap_extent-fix.patch
-swap_info-include-first_swap_extent-fix-fix.patch
-swap_info-miscellaneous-minor-cleanups.patch
-swap_info-swap_has_cache-cleanups.patch
-swap_info-swap_map-of-chars-not-shorts.patch
-swap_info-swap-count-continuations.patch
-swap_info-note-swap_map_shmem.patch
-swap_info-reorder-its-fields.patch
-page-allocator-wait-on-both-sync-and-async-congestion-after-direct-reclaim.patch
-vmscan-have-kswapd-sleep-for-a-short-interval-and-double-check-it-should-be-asleep.patch
-vmscan-stop-kswapd-waiting-on-congestion-when-the-min-watermark-is-not-being-met-v2.patch
-vmscan-have-kswapd-sleep-for-a-short-interval-and-double-check-it-should-be-asleep-fix-1.patch
-mm-define-page_mapping_flags.patch
-mm-mlocking-in-try_to_unmap_one.patch
-mm-mlocking-in-try_to_unmap_one-fix.patch
+drivers-media-dvb-dvb-core-dvb_frontendc-needs-semaphoreh.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+scripts-mod-modpostc-dont-tase-me-bro.patch
+recordmcount-stfu.patch
+include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
+drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+acpi-remove-nid_inval.patch
+drivers-acpi-acpi_padc-squish-warning.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices-checkpatch-fixes.patch
+drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+kbuild-generate-modulesbuiltin-fix-2-checkpatch-fixes.patch
+drivers-leds-leds-ss4200c-fix-return-statement.patch
+mtd-nand-fix-multi-chip-suspend-problem-fix.patch
+3x59x-fix-pci-resource-management.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
+st-fix-test-of-value-range-in-st_set_options.patch
+scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
+block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages-checkpatch-fixes.patch
+aoe-switch-to-the-new-bio_flush_dcache_pages-interface.patch
+wusb-use-sizeof-struct-rather-than-pointer.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+fs-improve-remountro-vs-buffercache-coherency.patch
+percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+readahead-add-blk_run_backing_dev.patch
+mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
+oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
+oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes.patch
 mm-mlocking-in-try_to_unmap_one-fix-fix.patch
-mm-config_mmu-for-pg_mlocked.patch
-mm-pass-address-down-to-rmap-ones.patch
-mm-stop-ptlock-enlarging-struct-page.patch
-mm-sigbus-instead-of-abusing-oom.patch
-vmscan-separate-scswap_cluster_max-and-scnr_max_reclaim.patch
-vmscan-kill-hibernation-specific-reclaim-logic-and-unify-it.patch
-vmscan-zone_reclaim-dont-use-insane-swap_cluster_max.patch
-vmscan-kill-scswap_cluster_max.patch
-vmscan-make-consistent-of-reclaim-bale-out-between-do_try_to_free_page-and-shrink_zone.patch
-ksm-fix-mlockfreed-to-munlocked.patch
-vmscan-do-not-evict-inactive-pages-when-skipping-an-active-list-scan.patch
+mm-memory_hotplug-make-offline_pages-static.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup.patch
+floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
+drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
+rwsem-fix-rwsem_is_locked-bugs-fix.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
+errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
+msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes.patch
+blackfin-sd-host-controller-driver-fix.patch
+blackfin-sd-host-controller-driver-fix-fix.patch
+crc32-minor-optimizations-and-cleanup-checkpatch-fixes.patch
+hwmon-w83627ehf-updates-checkpatch-fixes.patch
+spi-controller-driver-for-designware-spi-core-fix.patch
+spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3.patch
+ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
+memcg-coalesce-charging-via-percpu-storage-fix.patch
+char-cyclades-fix-compiler-warning.patch
+aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
+direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
+drivers-media-video-cx23885-needs-kfifo-conversion.patch
+drivers-media-video-cx23885-needs-kfifo-updates.patch
+zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes.patch
+lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes.patch
+lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+reiser4-disable.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
