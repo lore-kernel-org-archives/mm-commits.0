@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-mod-modpostc-dont-tase-me-bro.patch added to -mm tree
-Date: Wed, 25 Nov 2009 16:18:18 -0800
-Message-ID: <200911260042.nAQ0gC0K007760@imap1.linux-foundation.org>
+Subject: + memcg-avoid-oom-killing-innocent-task-in-case-of-use_hierarchy.patch added to -mm tree
+Date: Wed, 25 Nov 2009 16:45:21 -0800
+Message-ID: <200911260045.nAQ0jLU8015479@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52300 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33126 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965052AbZKZAmQ (ORCPT
+	by vger.kernel.org with ESMTP id S965084AbZKZApa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Nov 2009 19:42:16 -0500
+	Wed, 25 Nov 2009 19:45:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan-jenkins@tuffmail.co.uk, rusty@rustcorp.com.au
+Cc: nishimura@mxp.nes.nec.co.jp, balbir@linux.vnet.ibm.com
 
 
 The patch titled
-     scripts/mod/modpost.c: don't tase me, bro
+     memcg: avoid oom-killing innocent task in case of use_hierarchy
 has been added to the -mm tree.  Its filename is
-     scripts-mod-modpostc-dont-tase-me-bro.patch
+     memcg-avoid-oom-killing-innocent-task-in-case-of-use_hierarchy.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,114 +34,131 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts/mod/modpost.c: don't tase me, bro
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memcg: avoid oom-killing innocent task in case of use_hierarchy
+From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 
-Cc: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+task_in_mem_cgroup(), which is called by select_bad_process() to check
+whether a task can be a candidate for being oom-killed from memcg's limit,
+checks "curr->use_hierarchy"("curr" is the mem_cgroup the task belongs
+to).
+
+But this check return true(it's false positive) when:
+
+	<some path>/aa		use_hierarchy == 0	<- hitting limit
+	  <some path>/aa/00	use_hierarchy == 1	<- the task belongs to
+
+This leads to killing an innocent task in aa/00.  This patch is a fix for
+this bug.  And this patch also fixes the arg for
+mem_cgroup_print_oom_info().  We should print information of mem_cgroup
+which the task being killed, not current, belongs to.
+
+Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/mod/modpost.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/memcontrol.c |   10 ++++++++--
+ mm/oom_kill.c   |   13 +++++++------
+ 2 files changed, 15 insertions(+), 8 deletions(-)
 
-diff -puN /dev/null /dev/null
-diff -puN Makefile~scripts-mod-modpostc-dont-tase-me-bro Makefile
-diff -puN scripts/mod/modpost.c~scripts-mod-modpostc-dont-tase-me-bro scripts/mod/modpost.c
---- a/scripts/mod/modpost.c~scripts-mod-modpostc-dont-tase-me-bro
-+++ a/scripts/mod/modpost.c
-@@ -2059,6 +2059,9 @@ static void write_exports(const char *fn
- 	for (i = 0; i < n; i++) {
- 		sym = symbols[i];
+diff -puN mm/memcontrol.c~memcg-avoid-oom-killing-innocent-task-in-case-of-use_hierarchy mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-avoid-oom-killing-innocent-task-in-case-of-use_hierarchy
++++ a/mm/memcontrol.c
+@@ -760,7 +760,13 @@ int task_in_mem_cgroup(struct task_struc
+ 	task_unlock(task);
+ 	if (!curr)
+ 		return 0;
+-	if (curr->use_hierarchy)
++	/*
++	 * We should check use_hierarchy of "mem" not "curr". Because checking
++	 * use_hierarchy of "curr" here make this function true if hierarchy is
++	 * enabled in "curr" and "curr" is a child of "mem" in *cgroup*
++	 * hierarchy(even if use_hierarchy is disabled in "mem").
++	 */
++	if (mem->use_hierarchy)
+ 		ret = css_is_ancestor(&curr->css, &mem->css);
+ 	else
+ 		ret = (curr == mem);
+@@ -1009,7 +1015,7 @@ void mem_cgroup_print_oom_info(struct me
+ 	static char memcg_name[PATH_MAX];
+ 	int ret;
  
-+		if (sym->export == export_unknown)
-+			continue;
-+
- 		buf_printf(&buf, "__EXPORT_%s_SYMBOL(%s,"
- 					" __ksymtab%s_sorted,"
- 					" __ksymtab_strings_sorted,"
+-	if (!memcg)
++	if (!memcg || !p)
+ 		return;
+ 
+ 
+diff -puN mm/oom_kill.c~memcg-avoid-oom-killing-innocent-task-in-case-of-use_hierarchy mm/oom_kill.c
+--- a/mm/oom_kill.c~memcg-avoid-oom-killing-innocent-task-in-case-of-use_hierarchy
++++ a/mm/oom_kill.c
+@@ -356,7 +356,8 @@ static void dump_tasks(const struct mem_
+ 	} while_each_thread(g, p);
+ }
+ 
+-static void dump_header(gfp_t gfp_mask, int order, struct mem_cgroup *mem)
++static void dump_header(struct task_struct *p, gfp_t gfp_mask, int order,
++							struct mem_cgroup *mem)
+ {
+ 	pr_warning("%s invoked oom-killer: gfp_mask=0x%x, order=%d, "
+ 		"oom_adj=%d\n",
+@@ -365,7 +366,7 @@ static void dump_header(gfp_t gfp_mask, 
+ 	cpuset_print_task_mems_allowed(current);
+ 	task_unlock(current);
+ 	dump_stack();
+-	mem_cgroup_print_oom_info(mem, current);
++	mem_cgroup_print_oom_info(mem, p);
+ 	show_mem();
+ 	if (sysctl_oom_dump_tasks)
+ 		dump_tasks(mem);
+@@ -440,7 +441,7 @@ static int oom_kill_process(struct task_
+ 	struct task_struct *c;
+ 
+ 	if (printk_ratelimit())
+-		dump_header(gfp_mask, order, mem);
++		dump_header(p, gfp_mask, order, mem);
+ 
+ 	/*
+ 	 * If the task is already exiting, don't alarm the sysadmin or kill
+@@ -576,7 +577,7 @@ retry:
+ 	/* Found nothing?!?! Either we hang forever, or we panic. */
+ 	if (!p) {
+ 		read_unlock(&tasklist_lock);
+-		dump_header(gfp_mask, order, NULL);
++		dump_header(NULL, gfp_mask, order, NULL);
+ 		panic("Out of memory and no killable processes...\n");
+ 	}
+ 
+@@ -644,7 +645,7 @@ void out_of_memory(struct zonelist *zone
+ 		return;
+ 
+ 	if (sysctl_panic_on_oom == 2) {
+-		dump_header(gfp_mask, order, NULL);
++		dump_header(NULL, gfp_mask, order, NULL);
+ 		panic("out of memory. Compulsory panic_on_oom is selected.\n");
+ 	}
+ 
+@@ -663,7 +664,7 @@ void out_of_memory(struct zonelist *zone
+ 
+ 	case CONSTRAINT_NONE:
+ 		if (sysctl_panic_on_oom) {
+-			dump_header(gfp_mask, order, NULL);
++			dump_header(NULL, gfp_mask, order, NULL);
+ 			panic("out of memory. panic_on_oom is selected\n");
+ 		}
+ 		/* Fall-through */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
 
-drivers-media-dvb-dvb-core-dvb_frontendc-needs-semaphoreh.patch
-linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-scripts-mod-modpostc-dont-tase-me-bro.patch
-recordmcount-stfu.patch
-include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
-drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-acpi-remove-nid_inval.patch
-drivers-acpi-acpi_padc-squish-warning.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices-checkpatch-fixes.patch
-drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-kbuild-generate-modulesbuiltin-fix-2-checkpatch-fixes.patch
-drivers-leds-leds-ss4200c-fix-return-statement.patch
-mtd-nand-fix-multi-chip-suspend-problem-fix.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
-st-fix-test-of-value-range-in-st_set_options.patch
-scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
-block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages-checkpatch-fixes.patch
-aoe-switch-to-the-new-bio_flush_dcache_pages-interface.patch
-wusb-use-sizeof-struct-rather-than-pointer.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-readahead-add-blk_run_backing_dev.patch
-mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
-oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
+oom-kill-fix-numa-consraint-check-with-nodemask-v42.patch
 oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes.patch
-mm-mlocking-in-try_to_unmap_one-fix-fix.patch
-mm-memory_hotplug-make-offline_pages-static.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup.patch
-floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
-drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
-rwsem-fix-rwsem_is_locked-bugs-fix.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
-errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
-msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes.patch
-blackfin-sd-host-controller-driver-fix.patch
-blackfin-sd-host-controller-driver-fix-fix.patch
-crc32-minor-optimizations-and-cleanup-checkpatch-fixes.patch
-hwmon-w83627ehf-updates-checkpatch-fixes.patch
-spi-controller-driver-for-designware-spi-core-fix.patch
-spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3.patch
-ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
+memcg-coalesce-uncharge-during-unmap-truncate.patch
+memcg-coalesce-charging-via-percpu-storage.patch
 memcg-coalesce-charging-via-percpu-storage-fix.patch
-char-cyclades-fix-compiler-warning.patch
-aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
-direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-drivers-media-video-cx23885-needs-kfifo-updates.patch
-zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-reiser4-disable.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+memcg-coalesce-charging-via-percpu-storage-fix-2.patch
+memcg-make-memcgs-file-mapped-consistent-with-global-vm.patch
+memcg-add-mem_cgroup_cancel_charge.patch
+memcg-cleanup-mem_cgroup_move_parent.patch
+memcg-avoid-oom-killing-innocent-task-in-case-of-use_hierarchy.patch
+memcg-remove-memcg_tasklist.patch
 
