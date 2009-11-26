@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-hw_breakpointc-fix-local-global-shadowing.patch added to -mm tree
-Date: Wed, 25 Nov 2009 23:01:50 -0800
-Message-ID: <200911260701.nAQ71owx016356@imap1.linux-foundation.org>
+Subject: + arch-x86-kernel-hw_breakpointc-fix-local-global-shadowing.patch added to -mm tree
+Date: Wed, 25 Nov 2009 23:01:48 -0800
+Message-ID: <200911260701.nAQ71mjs016251@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45409 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48989 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754511AbZKZHCE (ORCPT
+	by vger.kernel.org with ESMTP id S1755181AbZKZHCN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Nov 2009 02:02:04 -0500
+	Thu, 26 Nov 2009 02:02:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, fweisbec@gmail.com, mingo@elte.hu, prasad@linux.vnet.ibm.com
+Cc: akpm@linux-foundation.org, fweisbec@gmail.com, hpa@zytor.com, mingo@redhat.com, tglx@linutronix.de
 
 
 The patch titled
-     kernel/hw_breakpoint.c: fix local/global shadowing
+     arch/x86/kernel/hw_breakpoint.c: fix local/global shadowing
 has been added to the -mm tree.  Its filename is
-     kernel-hw_breakpointc-fix-local-global-shadowing.patch
+     arch-x86-kernel-hw_breakpointc-fix-local-global-shadowing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,55 +34,73 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel/hw_breakpoint.c: fix local/global shadowing
+Subject: arch/x86/kernel/hw_breakpoint.c: fix local/global shadowing
 From: Andrew Morton <akpm@linux-foundation.org>
 
-kernel/hw_breakpoint.c: In function 'toggle_bp_task_slot':
-kernel/hw_breakpoint.c:151: warning: 'task_bp_pinned' is used uninitialized in this function
+arch/x86/kernel/hw_breakpoint.c: In function 'arch_install_hw_breakpoint':
+arch/x86/kernel/hw_breakpoint.c:121: warning: assignment from incompatible pointer type
+arch/x86/kernel/hw_breakpoint.c: In function 'arch_uninstall_hw_breakpoint':
+arch/x86/kernel/hw_breakpoint.c:156: warning: assignment from incompatible pointer type
 
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: H. Peter Anvin <hpa@zytor.com>
 Cc: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: K.Prasad <prasad@linux.vnet.ibm.com>
-
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/hw_breakpoint.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ arch/x86/kernel/hw_breakpoint.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN kernel/hw_breakpoint.c~kernel-hw_breakpointc-fix-local-global-shadowing kernel/hw_breakpoint.c
---- a/kernel/hw_breakpoint.c~kernel-hw_breakpointc-fix-local-global-shadowing
-+++ a/kernel/hw_breakpoint.c
-@@ -121,7 +121,7 @@ static void toggle_bp_task_slot(struct t
- 	int count = 0;
- 	struct perf_event *bp;
- 	struct perf_event_context *ctx = tsk->perf_event_ctxp;
--	unsigned int *task_bp_pinned;
-+	unsigned int *tsk_pinned;
- 	struct list_head *list;
- 	unsigned long flags;
+diff -puN arch/x86/kernel/hw_breakpoint.c~arch-x86-kernel-hw_breakpointc-fix-local-global-shadowing arch/x86/kernel/hw_breakpoint.c
+--- a/arch/x86/kernel/hw_breakpoint.c~arch-x86-kernel-hw_breakpointc-fix-local-global-shadowing
++++ a/arch/x86/kernel/hw_breakpoint.c
+@@ -100,7 +100,7 @@ int decode_dr7(unsigned long dr7, int bp
+ int arch_install_hw_breakpoint(struct perf_event *bp)
+ {
+ 	struct arch_hw_breakpoint *info = counter_arch_bp(bp);
+-	unsigned long *dr7;
++	unsigned long *pdr7;
+ 	int i;
  
-@@ -146,15 +146,15 @@ static void toggle_bp_task_slot(struct t
- 	if (WARN_ONCE(count < 0, "No breakpoint counter found in the counter list"))
+ 	for (i = 0; i < HBP_NUM; i++) {
+@@ -118,10 +118,10 @@ int arch_install_hw_breakpoint(struct pe
+ 	set_debugreg(info->address, i);
+ 	__get_cpu_var(cpu_debugreg[i]) = info->address;
+ 
+-	dr7 = &__get_cpu_var(dr7);
+-	*dr7 |= encode_dr7(i, info->len, info->type);
++	pdr7 = &__get_cpu_var(dr7);
++	*pdr7 |= encode_dr7(i, info->len, info->type);
+ 
+-	set_debugreg(*dr7, 7);
++	set_debugreg(*pdr7, 7);
+ 
+ 	return 0;
+ }
+@@ -138,7 +138,7 @@ int arch_install_hw_breakpoint(struct pe
+ void arch_uninstall_hw_breakpoint(struct perf_event *bp)
+ {
+ 	struct arch_hw_breakpoint *info = counter_arch_bp(bp);
+-	unsigned long *dr7;
++	unsigned long *pdr7;
+ 	int i;
+ 
+ 	for (i = 0; i < HBP_NUM; i++) {
+@@ -153,10 +153,10 @@ void arch_uninstall_hw_breakpoint(struct
+ 	if (WARN_ONCE(i == HBP_NUM, "Can't find any breakpoint slot"))
  		return;
  
--	task_bp_pinned = per_cpu(task_bp_pinned, cpu);
-+	tsk_pinned = per_cpu(task_bp_pinned, cpu);
- 	if (enable) {
--		task_bp_pinned[count]++;
-+		tsk_pinned[count]++;
- 		if (count > 0)
--			task_bp_pinned[count-1]--;
-+			tsk_pinned[count-1]--;
- 	} else {
--		task_bp_pinned[count]--;
-+		tsk_pinned[count]--;
- 		if (count > 0)
--			task_bp_pinned[count-1]++;
-+			tsk_pinned[count-1]++;
- 	}
+-	dr7 = &__get_cpu_var(dr7);
+-	*dr7 &= ~encode_dr7(i, info->len, info->type);
++	pdr7 = &__get_cpu_var(dr7);
++	*pdr7 &= ~encode_dr7(i, info->len, info->type);
+ 
+-	set_debugreg(*dr7, 7);
++	set_debugreg(*pdr7, 7);
  }
  
+ static int get_hbp_len(u8 hbp_len)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
