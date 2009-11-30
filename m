@@ -1,115 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] acerhdf-return-temperature-in-milidegree-instead-of-degree.patch removed from -mm tree
-Date: Mon, 30 Nov 2009 12:33:14 -0800
-Message-ID: <200911302033.nAUKXE11020585@imap1.linux-foundation.org>
+Subject: [merged] scsi-fix-crash-when-disconnecting-usb-storage.patch removed from -mm tree
+Date: Mon, 30 Nov 2009 12:33:23 -0800
+Message-ID: <200911302033.nAUKXNqr020954@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47497 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45708 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752533AbZK3Ud5 (ORCPT
+	by vger.kernel.org with ESMTP id S1752624AbZK3UeD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Nov 2009 15:33:57 -0500
+	Mon, 30 Nov 2009 15:34:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: peter@piie.net, andi@lisas.de, lenb@kernel.org, petkovbb@gmail.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: kuznet@ms2.inr.ac.ru, James.Bottomley@HansenPartnership.com, alan@lxorguk.ukuu.org.uk, den@openvz.org, stern@rowland.harvard.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     acerhdf: return temperature in milidegree instead of degree
+     scsi: fix crash when disconnecting usb storage
 has been removed from the -mm tree.  Its filename was
-     acerhdf-return-temperature-in-milidegree-instead-of-degree.patch
+     scsi-fix-crash-when-disconnecting-usb-storage.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acerhdf: return temperature in milidegree instead of degree
-=46rom: Peter Feuerer <peter@piie.net>
+Subject: scsi: fix crash when disconnecting usb storage
+From: Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>
 
-Return temperature in millidegrees instead of degrees, as the sysfs API
-requires the temperature in millidegrees.
+__scsi_remove_device() in scsi_forget_host() is executed out of scan_mutex
+and races with scsi_destroy_sdev() <- scsi_sysfs_add_devices() <-
+scsi_finish_async_scan().  The result is use after free and/or double
+free, oops.
 
-Signed-off-by: Peter Feuerer <peter@piie.net>
-Tested-by: Borislav Petkov <petkovbb@gmail.com>
-Cc: Andreas Mohr <andi@lisas.de>
-Cc: Len Brown <lenb@kernel.org>
-Cc: <stable@kernel.org>
+The fix is simple, move scsi_forget_host() under scan_mutex.
+
+scsi_forget_host() is just sequence of __scsi_remove_device().  All
+another calls of __scsi_remove_device() are made under scan_mutex.  So
+that it is safe.
+
+Signed-off-by: Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Signed-off-by: Denis V. Lunev <den@openvz.org>
+Cc: Alan Stern <stern@rowland.harvard.edu>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/acerhdf.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/scsi/hosts.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/platform/x86/acerhdf.c~acerhdf-return-temperature-in-=
-milidegree-instead-of-degree drivers/platform/x86/acerhdf.c
---- a/drivers/platform/x86/acerhdf.c~acerhdf-return-temperature-in-mili=
-degree-instead-of-degree
-+++ a/drivers/platform/x86/acerhdf.c
-@@ -52,7 +52,7 @@
-  */
- #undef START_IN_KERNEL_MODE
-=20
--#define DRV_VER "0.5.17"
-+#define DRV_VER "0.5.18"
-=20
- /*
-  * According to the Atom N270 datasheet,
-@@ -61,7 +61,7 @@
-  * measured by the on-die thermal monitor are within 0 <=3D Tj <=3D 90=
-=2E So,
-  * assume 89=C2=B0C is critical temperature.
-  */
--#define ACERHDF_TEMP_CRIT 89
-+#define ACERHDF_TEMP_CRIT 89000
- #define ACERHDF_FAN_OFF 0
- #define ACERHDF_FAN_AUTO 1
-=20
-@@ -69,7 +69,7 @@
-  * No matter what value the user puts into the fanon variable, turn on=
- the fan
-  * at 80 degree Celsius to prevent hardware damage
-  */
--#define ACERHDF_MAX_FANON 80
-+#define ACERHDF_MAX_FANON 80000
-=20
- /*
-  * Maximum interval between two temperature checks is 15 seconds, as t=
-he die
-@@ -85,8 +85,8 @@ static int kernelmode;
- #endif
-=20
- static unsigned int interval =3D 10;
--static unsigned int fanon =3D 63;
--static unsigned int fanoff =3D 58;
-+static unsigned int fanon =3D 63000;
-+static unsigned int fanoff =3D 58000;
- static unsigned int verbose;
- static unsigned int fanstate =3D ACERHDF_FAN_AUTO;
- static char force_bios[16];
-@@ -171,7 +171,7 @@ static int acerhdf_get_temp(int *temp)
- 	if (ec_read(bios_cfg->tempreg, &read_temp))
- 		return -EINVAL;
-=20
--	*temp =3D read_temp;
-+	*temp =3D read_temp * 1000;
-=20
- 	return 0;
- }
+diff -puN drivers/scsi/hosts.c~scsi-fix-crash-when-disconnecting-usb-storage drivers/scsi/hosts.c
+--- a/drivers/scsi/hosts.c~scsi-fix-crash-when-disconnecting-usb-storage
++++ a/drivers/scsi/hosts.c
+@@ -164,8 +164,8 @@ void scsi_remove_host(struct Scsi_Host *
+ 			return;
+ 		}
+ 	spin_unlock_irqrestore(shost->host_lock, flags);
+-	mutex_unlock(&shost->scan_mutex);
+ 	scsi_forget_host(shost);
++	mutex_unlock(&shost->scan_mutex);
+ 	scsi_proc_host_rm(shost);
+ 
+ 	spin_lock_irqsave(shost->host_lock, flags);
 _
 
-Patches currently in -mm which might be from peter@piie.net are
+Patches currently in -mm which might be from kuznet@ms2.inr.ac.ru are
 
 linux-next.patch
-acerhdf-added-new-bios-versions.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
