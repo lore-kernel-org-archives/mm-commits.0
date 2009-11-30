@@ -1,285 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kbuild-clear-marker-out-of-modpost.patch removed from -mm tree
-Date: Mon, 30 Nov 2009 12:34:11 -0800
-Message-ID: <200911302034.nAUKYBKW022926@imap1.linux-foundation.org>
+Subject: [merged] irq-fix-test-in-__exit-parport_mfc3_exit.patch removed from -mm tree
+Date: Mon, 30 Nov 2009 12:34:39 -0800
+Message-ID: <200911302034.nAUKYdab024108@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48961 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48560 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753057AbZK3UfE (ORCPT
+	by vger.kernel.org with ESMTP id S1753075AbZK3UfI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Nov 2009 15:35:04 -0500
+	Mon, 30 Nov 2009 15:35:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wenji.huang@oracle.com, anibal@debian.org, mmarek@suse.cz, rostedt@goodmis.org, rusty@rustcorp.com.au, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, geert@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kbuild: clear marker out of modpost
+     parport: fix IRQ test in __exit parport_mfc3_exit()
 has been removed from the -mm tree.  Its filename was
-     kbuild-clear-marker-out-of-modpost.patch
+     irq-fix-test-in-__exit-parport_mfc3_exit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kbuild: clear marker out of modpost
-From: Wenji Huang <wenji.huang@oracle.com>
+Subject: parport: fix IRQ test in __exit parport_mfc3_exit()
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Remove the unnecessary functions and variables.
+Not makes it a bool before the comparison.
 
-Signed-off-by: Wenji Huang <wenji.huang@oracle.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Anibal Monsalve Salazar <anibal@debian.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Michal Marek <mmarek@suse.cz>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/mod/modpost.c |  164 ----------------------------------------
- scripts/mod/modpost.h |    3 
- 2 files changed, 167 deletions(-)
+ drivers/parport/parport_mfc3.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/mod/modpost.c~kbuild-clear-marker-out-of-modpost scripts/mod/modpost.c
---- a/scripts/mod/modpost.c~kbuild-clear-marker-out-of-modpost
-+++ a/scripts/mod/modpost.c
-@@ -463,8 +463,6 @@ static int parse_elf(struct elf_info *in
- 			info->export_unused_gpl_sec = i;
- 		else if (strcmp(secname, "__ksymtab_gpl_future") == 0)
- 			info->export_gpl_future_sec = i;
--		else if (strcmp(secname, "__markers_strings") == 0)
--			info->markers_strings_sec = i;
- 
- 		if (sechdrs[i].sh_type != SHT_SYMTAB)
+diff -puN drivers/parport/parport_mfc3.c~irq-fix-test-in-__exit-parport_mfc3_exit drivers/parport/parport_mfc3.c
+--- a/drivers/parport/parport_mfc3.c~irq-fix-test-in-__exit-parport_mfc3_exit
++++ a/drivers/parport/parport_mfc3.c
+@@ -386,7 +386,7 @@ static void __exit parport_mfc3_exit(voi
+ 		if (!this_port[i])
  			continue;
-@@ -1545,62 +1543,6 @@ static void check_sec_ref(struct module 
- 	}
- }
- 
--static void get_markers(struct elf_info *info, struct module *mod)
--{
--	const Elf_Shdr *sh = &info->sechdrs[info->markers_strings_sec];
--	const char *strings = (const char *) info->hdr + sh->sh_offset;
--	const Elf_Sym *sym, *first_sym, *last_sym;
--	size_t n;
--
--	if (!info->markers_strings_sec)
--		return;
--
--	/*
--	 * First count the strings.  We look for all the symbols defined
--	 * in the __markers_strings section named __mstrtab_*.  For
--	 * these local names, the compiler puts a random .NNN suffix on,
--	 * so the names don't correspond exactly.
--	 */
--	first_sym = last_sym = NULL;
--	n = 0;
--	for (sym = info->symtab_start; sym < info->symtab_stop; sym++)
--		if (ELF_ST_TYPE(sym->st_info) == STT_OBJECT &&
--		    sym->st_shndx == info->markers_strings_sec &&
--		    !strncmp(info->strtab + sym->st_name,
--			     "__mstrtab_", sizeof "__mstrtab_" - 1)) {
--			if (first_sym == NULL)
--				first_sym = sym;
--			last_sym = sym;
--			++n;
--		}
--
--	if (n == 0)
--		return;
--
--	/*
--	 * Now collect each name and format into a line for the output.
--	 * Lines look like:
--	 *	marker_name	vmlinux	marker %s format %d
--	 * The format string after the second \t can use whitespace.
--	 */
--	mod->markers = NOFAIL(malloc(sizeof mod->markers[0] * n));
--	mod->nmarkers = n;
--
--	n = 0;
--	for (sym = first_sym; sym <= last_sym; sym++)
--		if (ELF_ST_TYPE(sym->st_info) == STT_OBJECT &&
--		    sym->st_shndx == info->markers_strings_sec &&
--		    !strncmp(info->strtab + sym->st_name,
--			     "__mstrtab_", sizeof "__mstrtab_" - 1)) {
--			const char *name = strings + sym->st_value;
--			const char *fmt = strchr(name, '\0') + 1;
--			char *line = NULL;
--			asprintf(&line, "%s\t%s\t%s\n", name, mod->name, fmt);
--			NOFAIL(line);
--			mod->markers[n++] = line;
--		}
--}
--
- static void read_symbols(char *modname)
- {
- 	const char *symname;
-@@ -1663,8 +1605,6 @@ static void read_symbols(char *modname)
- 		get_src_version(modname, mod->srcversion,
- 				sizeof(mod->srcversion)-1);
- 
--	get_markers(&info, mod);
--
- 	parse_elf_finish(&info);
- 
- 	/* Our trick to get versioning for module struct etc. - it's
-@@ -2072,96 +2012,6 @@ static void write_exports(const char *fn
- 	write_if_changed(&buf, fname);
- }
- 
--static void add_marker(struct module *mod, const char *name, const char *fmt)
--{
--	char *line = NULL;
--	asprintf(&line, "%s\t%s\t%s\n", name, mod->name, fmt);
--	NOFAIL(line);
--
--	mod->markers = NOFAIL(realloc(mod->markers, ((mod->nmarkers + 1) *
--						     sizeof mod->markers[0])));
--	mod->markers[mod->nmarkers++] = line;
--}
--
--static void read_markers(const char *fname)
--{
--	unsigned long size, pos = 0;
--	void *file = grab_file(fname, &size);
--	char *line;
--
--	if (!file)		/* No old markers, silently ignore */
--		return;
--
--	while ((line = get_next_line(&pos, file, size))) {
--		char *marker, *modname, *fmt;
--		struct module *mod;
--
--		marker = line;
--		modname = strchr(marker, '\t');
--		if (!modname)
--			goto fail;
--		*modname++ = '\0';
--		fmt = strchr(modname, '\t');
--		if (!fmt)
--			goto fail;
--		*fmt++ = '\0';
--		if (*marker == '\0' || *modname == '\0')
--			goto fail;
--
--		mod = find_module(modname);
--		if (!mod) {
--			mod = new_module(modname);
--			mod->skip = 1;
--		}
--		if (is_vmlinux(modname)) {
--			have_vmlinux = 1;
--			mod->skip = 0;
--		}
--
--		if (!mod->skip)
--			add_marker(mod, marker, fmt);
--	}
--	release_file(file, size);
--	return;
--fail:
--	fatal("parse error in markers list file\n");
--}
--
--static int compare_strings(const void *a, const void *b)
--{
--	return strcmp(*(const char **) a, *(const char **) b);
--}
--
--static void write_markers(const char *fname)
--{
--	struct buffer buf = { };
--	struct module *mod;
--	size_t i;
--
--	for (mod = modules; mod; mod = mod->next)
--		if ((!external_module || !mod->skip) && mod->markers != NULL) {
--			/*
--			 * Sort the strings so we can skip duplicates when
--			 * we write them out.
--			 */
--			qsort(mod->markers, mod->nmarkers,
--			      sizeof mod->markers[0], &compare_strings);
--			for (i = 0; i < mod->nmarkers; ++i) {
--				char *line = mod->markers[i];
--				buf_write(&buf, line, strlen(line));
--				while (i + 1 < mod->nmarkers &&
--				       !strcmp(mod->markers[i],
--					       mod->markers[i + 1]))
--					free(mod->markers[i++]);
--				free(mod->markers[i]);
--			}
--			free(mod->markers);
--			mod->markers = NULL;
--		}
--
--	write_if_changed(&buf, fname);
--}
--
- struct ext_sym_list {
- 	struct ext_sym_list *next;
- 	const char *file;
-@@ -2174,8 +2024,6 @@ int main(int argc, char **argv)
- 	char *kernel_read = NULL, *module_read = NULL;
- 	char *dump_write = NULL;
- 	char *exports_write = NULL;
--	char *markers_read = NULL;
--	char *markers_write = NULL;
- 	int opt;
- 	int err;
- 	struct ext_sym_list *extsym_iter;
-@@ -2222,12 +2070,6 @@ int main(int argc, char **argv)
- 		case 'x':
- 			exports_write = optarg;
- 			break;
--			case 'M':
--				markers_write = optarg;
--				break;
--			case 'K':
--				markers_read = optarg;
--				break;
- 		default:
- 			exit(1);
+ 		parport_remove_port(this_port[i]);
+-		if (!this_port[i]->irq != PARPORT_IRQ_NONE) {
++		if (this_port[i]->irq != PARPORT_IRQ_NONE) {
+ 			if (--use_cnt == 0) 
+ 				free_irq(IRQ_AMIGA_PORTS, &pp_mfc3_ops);
  		}
-@@ -2285,11 +2127,5 @@ int main(int argc, char **argv)
- 	if (exports_write)
- 		write_exports(exports_write);
- 
--	if (markers_read)
--		read_markers(markers_read);
--
--	if (markers_write)
--		write_markers(markers_write);
--
- 	return err;
- }
-diff -puN scripts/mod/modpost.h~kbuild-clear-marker-out-of-modpost scripts/mod/modpost.h
---- a/scripts/mod/modpost.h~kbuild-clear-marker-out-of-modpost
-+++ a/scripts/mod/modpost.h
-@@ -112,8 +112,6 @@ struct module {
- 	int has_init;
- 	int has_cleanup;
- 	struct buffer dev_table_buf;
--	char **markers;
--	size_t nmarkers;
- 	char	     srcversion[25];
- };
- 
-@@ -128,7 +126,6 @@ struct elf_info {
- 	Elf_Section  export_gpl_sec;
- 	Elf_Section  export_unused_gpl_sec;
- 	Elf_Section  export_gpl_future_sec;
--	Elf_Section  markers_strings_sec;
- 	const char   *strtab;
- 	char	     *modinfo;
- 	unsigned int modinfo_len;
 _
 
-Patches currently in -mm which might be from wenji.huang@oracle.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 linux-next.patch
+fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch
+omap-return-ptr_err-rather-than-is_err.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+mtd-error-return-eio-instead-of-eio.patch
+jffs2-fix-min-max-confusion.patch
+imx-bit-confusion.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
+zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
+ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
+scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
+r8192u_core-test-for-negative-error-in-rtl8192_rx_isr.patch
+wusb-use-sizeof-struct-rather-than-pointer.patch
+page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+cryptocop-fix-assertion-in-create_output_descriptors.patch
+gpio-fix-test-on-unsigned-in-lnw_irq_type.patch
+fbdev-tv_paln-bit-set-twice-in-sisfb_detect_vb_connect.patch
+hvc_console-fix-test-on-unsigned-in-hvc_console_print.patch
+zlib-optimize-inffast-when-copying-direct-from-output.patch
 
