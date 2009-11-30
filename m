@@ -1,79 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [merged] konicawcc-possible-buffer-overflow-while-use-strncat.patch removed from -mm tree
-Date: Mon, 30 Nov 2009 12:33:47 -0800
-Message-ID: <200911302033.nAUKXlKN021912@imap1.linux-foundation.org>
+Subject: [merged] v4l-dvb-mxl5007tc-fix-test-in-copy_reg_bits.patch removed from -mm tree
+Date: Mon, 30 Nov 2009 12:33:20 -0800
+Message-ID: <200911302033.nAUKXKRw020808@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52103 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56882 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752624AbZK3Uej (ORCPT
+	by vger.kernel.org with ESMTP id S1751824AbZK3Ueq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Nov 2009 15:34:39 -0500
+	Mon, 30 Nov 2009 15:34:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: strakh@ispras.ru, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, mchehab@infradead.org, mkrufky@linuxtv.org, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     konicawc.c: possible buffer overflow while use strncat
+     v4l/dvb: mxl5007t.c: fix test in copy_reg_bits()
 has been removed from the -mm tree.  Its filename was
-     konicawcc-possible-buffer-overflow-while-use-strncat.patch
+     v4l-dvb-mxl5007tc-fix-test-in-copy_reg_bits.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: konicawc.c: possible buffer overflow while use strncat
-From: Alexander Strakh <strakh@ispras.ru>
+Subject: v4l/dvb: mxl5007t.c: fix test in copy_reg_bits()
+From: Roel Kluin <roel.kluin@gmail.com>
 
-	In driver ./drivers/media/video/usbvideo/konicawc.c in line 227:
+The reg_pair2[j].reg was tested twice.
 
-227         usb_make_path(dev, cam->input_physname, sizeof(cam->input_physname));
-
-After this line we use strncat:
-
-228         strncat(cam->input_physname, "/input0", sizeof(cam->input_physname));
-
-where sizeof(cam->input_physname) returns length of cam->input_phisname
-without length for null-symbol.  But this parameter must be - "maximum
-numbers of bytes to copy", i.e.:
-sizeof(cam->input_physname)-strlen(cam->input_physname)-1.
-
-In this case, after call to usb_make_path the similar drivers use strlcat.
-
-Like in drivers/hid/usbhid/hid-core.c:
-1152         usb_make_path(dev, hid->phys, sizeof(hid->phys));
-1153         strlcat(hid->phys, "/input", sizeof(hid->phys));
-
-Found by Linux Driver Verification Project.
-
-Use strlcat instead of strncat.
-
-Signed-off-by: Alexander Strakh <strakh@ispras.ru>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Acked-by: Michael Krufky <mkrufky@linuxtv.org>
 Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/usbvideo/konicawc.c |    2 +-
+ drivers/media/common/tuners/mxl5007t.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/media/video/usbvideo/konicawc.c~konicawcc-possible-buffer-overflow-while-use-strncat drivers/media/video/usbvideo/konicawc.c
---- a/drivers/media/video/usbvideo/konicawc.c~konicawcc-possible-buffer-overflow-while-use-strncat
-+++ a/drivers/media/video/usbvideo/konicawc.c
-@@ -225,7 +225,7 @@ static void konicawc_register_input(stru
- 	int error;
+diff -puN drivers/media/common/tuners/mxl5007t.c~v4l-dvb-mxl5007tc-fix-test-in-copy_reg_bits drivers/media/common/tuners/mxl5007t.c
+--- a/drivers/media/common/tuners/mxl5007t.c~v4l-dvb-mxl5007tc-fix-test-in-copy_reg_bits
++++ a/drivers/media/common/tuners/mxl5007t.c
+@@ -196,7 +196,7 @@ static void copy_reg_bits(struct reg_pai
+ 	i = j = 0;
  
- 	usb_make_path(dev, cam->input_physname, sizeof(cam->input_physname));
--	strncat(cam->input_physname, "/input0", sizeof(cam->input_physname));
-+	strlcat(cam->input_physname, "/input0", sizeof(cam->input_physname));
- 
- 	cam->input = input_dev = input_allocate_device();
- 	if (!input_dev) {
+ 	while (reg_pair1[i].reg || reg_pair1[i].val) {
+-		while (reg_pair2[j].reg || reg_pair2[j].reg) {
++		while (reg_pair2[j].reg || reg_pair2[j].val) {
+ 			if (reg_pair1[i].reg != reg_pair2[j].reg) {
+ 				j++;
+ 				continue;
 _
 
-Patches currently in -mm which might be from strakh@ispras.ru are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 linux-next.patch
-scsi_libc-avoid-calling-scsi_device_put-from-under-host_lock.patch
+fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch
+omap-return-ptr_err-rather-than-is_err.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+mtd-error-return-eio-instead-of-eio.patch
+jffs2-fix-min-max-confusion.patch
+imx-bit-confusion.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
+zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
+ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
+scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
+r8192u_core-test-for-negative-error-in-rtl8192_rx_isr.patch
+wusb-use-sizeof-struct-rather-than-pointer.patch
+page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+cryptocop-fix-assertion-in-create_output_descriptors.patch
+gpio-fix-test-on-unsigned-in-lnw_irq_type.patch
+fbdev-tv_paln-bit-set-twice-in-sisfb_detect_vb_connect.patch
+hvc_console-fix-test-on-unsigned-in-hvc_console_print.patch
+zlib-optimize-inffast-when-copying-direct-from-output.patch
 
