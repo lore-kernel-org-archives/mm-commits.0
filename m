@@ -1,88 +1,178 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] scsi-fix-another-crash-at-disconnect-of-usb-strorage.patch removed from -mm tree
-Date: Mon, 30 Nov 2009 12:14:52 -0800
-Message-ID: <200911302014.nAUKEqO8007823@imap1.linux-foundation.org>
+Subject: [alternative-merged] arch-x86-kernel-hw_breakpointc-fix-local-global-shadowing.patch removed from -mm tree
+Date: Mon, 30 Nov 2009 12:20:50 -0800
+Message-ID: <200911302020.nAUKKoTF022459@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53108 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42149 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752274AbZK3UPz (ORCPT
+	by vger.kernel.org with ESMTP id S1751421AbZK3UVP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Nov 2009 15:15:55 -0500
+	Mon, 30 Nov 2009 15:21:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kuznet@ms2.inr.ac.ru, James.Bottomley@HansenPartnership.com, alan@lxorguk.ukuu.org.uk, den@openvz.org, stern@rowland.harvard.edu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, fweisbec@gmail.com, hpa@zytor.com, mingo@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scsi: fix another crash at disconnect of usb strorage
+     arch/x86/kernel/hw_breakpoint.c: fix local/global shadowing
 has been removed from the -mm tree.  Its filename was
-     scsi-fix-another-crash-at-disconnect-of-usb-strorage.patch
+     arch-x86-kernel-hw_breakpointc-fix-local-global-shadowing.patch
 
 This patch was dropped because an alternative patch was merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi: fix another crash at disconnect of usb strorage
-From: Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>
+Subject: arch/x86/kernel/hw_breakpoint.c: fix local/global shadowing
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Asynchronous scan (scsi_add_lun()) sets state to SDEV_RUNNING, but the
-device is not registered in sysfs.  Before async scan it was OK, because
-before releasing scan_mutex old code called either scsi_sysfs_add_sdev()
-or scsi_destroy_sdev() and, therefore, completed the work or discarded it.
+arch/x86/kernel/hw_breakpoint.c: In function 'arch_install_hw_breakpoint':
+arch/x86/kernel/hw_breakpoint.c:121: warning: assignment from incompatible pointer type
+arch/x86/kernel/hw_breakpoint.c: In function 'arch_uninstall_hw_breakpoint':
+arch/x86/kernel/hw_breakpoint.c:156: warning: assignment from incompatible pointer type
 
-With async scan the invariant is broken and scsi crashes in
-__scsi_remove_device() when trying to unregister not registered devices.
-
-The fix could be introducing new state(s), which is equivalent to
-SDEV_RUNNING, except for one thing, we know that scsi_sysfs_add_sdev() has
-not been called yet.  Or a separate flag, because the state can be
-SDEV_BLOCK or even something else.
-
-Simpler way is just to check that the device is regstered in sysfs before
-unregistering.  Another operations in __scsi_remove_device() seem to be
-idempotent or even required, because scsi_add_lun() makes some part of
-work duplicated in scsi_sysfs_add_sdev().
-
-Signed-off-by: Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Signed-off-by: Denis V. Lunev <den@openvz.org>
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Frederic Weisbecker <fweisbec@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/scsi_sysfs.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ arch/x86/kernel/hw_breakpoint.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN drivers/scsi/scsi_sysfs.c~scsi-fix-another-crash-at-disconnect-of-usb-strorage drivers/scsi/scsi_sysfs.c
---- a/drivers/scsi/scsi_sysfs.c~scsi-fix-another-crash-at-disconnect-of-usb-strorage
-+++ a/drivers/scsi/scsi_sysfs.c
-@@ -965,9 +965,17 @@ void __scsi_remove_device(struct scsi_de
+diff -puN arch/x86/kernel/hw_breakpoint.c~arch-x86-kernel-hw_breakpointc-fix-local-global-shadowing arch/x86/kernel/hw_breakpoint.c
+--- a/arch/x86/kernel/hw_breakpoint.c~arch-x86-kernel-hw_breakpointc-fix-local-global-shadowing
++++ a/arch/x86/kernel/hw_breakpoint.c
+@@ -100,7 +100,7 @@ int decode_dr7(unsigned long dr7, int bp
+ int arch_install_hw_breakpoint(struct perf_event *bp)
+ {
+ 	struct arch_hw_breakpoint *info = counter_arch_bp(bp);
+-	unsigned long *dr7;
++	unsigned long *pdr7;
+ 	int i;
+ 
+ 	for (i = 0; i < HBP_NUM; i++) {
+@@ -118,10 +118,10 @@ int arch_install_hw_breakpoint(struct pe
+ 	set_debugreg(info->address, i);
+ 	__get_cpu_var(cpu_debugreg[i]) = info->address;
+ 
+-	dr7 = &__get_cpu_var(dr7);
+-	*dr7 |= encode_dr7(i, info->len, info->type);
++	pdr7 = &__get_cpu_var(dr7);
++	*pdr7 |= encode_dr7(i, info->len, info->type);
+ 
+-	set_debugreg(*dr7, 7);
++	set_debugreg(*pdr7, 7);
+ 
+ 	return 0;
+ }
+@@ -138,7 +138,7 @@ int arch_install_hw_breakpoint(struct pe
+ void arch_uninstall_hw_breakpoint(struct perf_event *bp)
+ {
+ 	struct arch_hw_breakpoint *info = counter_arch_bp(bp);
+-	unsigned long *dr7;
++	unsigned long *pdr7;
+ 	int i;
+ 
+ 	for (i = 0; i < HBP_NUM; i++) {
+@@ -153,10 +153,10 @@ void arch_uninstall_hw_breakpoint(struct
+ 	if (WARN_ONCE(i == HBP_NUM, "Can't find any breakpoint slot"))
  		return;
  
- 	bsg_unregister_queue(sdev->request_queue);
--	device_unregister(&sdev->sdev_dev);
-+	/* Asynchronous scan violates invariant that SDEV_RUNNING
-+	 * implies that device is registered in sysfs.
-+	 * We could introduce new state flag or extend set of state,
-+	 * but just plain checking that device is registered already
-+	 * before trying to unregister it is enough.
-+	 */
-+	if (sdev->sdev_dev.kobj.parent)
-+		device_unregister(&sdev->sdev_dev);
- 	transport_remove_device(dev);
--	device_del(dev);
-+	if (dev->kobj.parent)
-+		device_del(dev);
- 	scsi_device_set_state(sdev, SDEV_DEL);
- 	if (sdev->host->hostt->slave_destroy)
- 		sdev->host->hostt->slave_destroy(sdev);
+-	dr7 = &__get_cpu_var(dr7);
+-	*dr7 &= ~encode_dr7(i, info->len, info->type);
++	pdr7 = &__get_cpu_var(dr7);
++	*pdr7 &= ~encode_dr7(i, info->len, info->type);
+ 
+-	set_debugreg(*dr7, 7);
++	set_debugreg(*pdr7, 7);
+ }
+ 
+ static int get_hbp_len(u8 hbp_len)
 _
 
-Patches currently in -mm which might be from kuznet@ms2.inr.ac.ru are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+drivers-media-dvb-dvb-core-dvb_frontendc-needs-semaphoreh.patch
 linux-next.patch
-scsi-fix-another-crash-at-disconnect-of-usb-strorage.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
+drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+acpi-remove-nid_inval.patch
+drivers-acpi-acpi_padc-squish-warning.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices-checkpatch-fixes.patch
+arch-x86-kernel-hw_breakpointc-fix-local-global-shadowing.patch
+kernel-hw_breakpointc-fix-local-global-shadowing.patch
+drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+kbuild-generate-modulesbuiltin-fix-2-checkpatch-fixes.patch
+drivers-leds-leds-ss4200c-fix-return-statement.patch
+mtd-nand-fix-multi-chip-suspend-problem-fix.patch
+3x59x-fix-pci-resource-management.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
+st-fix-test-of-value-range-in-st_set_options.patch
+scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
+block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages-checkpatch-fixes.patch
+aoe-switch-to-the-new-bio_flush_dcache_pages-interface.patch
+wusb-use-sizeof-struct-rather-than-pointer.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+fs-improve-remountro-vs-buffercache-coherency.patch
+percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+readahead-add-blk_run_backing_dev.patch
+mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
+oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
+oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes.patch
+mm-mlocking-in-try_to_unmap_one-fix-fix.patch
+mm-memory_hotplug-make-offline_pages-static.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup.patch
+floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
+drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
+rwsem-fix-rwsem_is_locked-bugs-fix.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
+errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
+msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes.patch
+blackfin-sd-host-controller-driver-fix.patch
+blackfin-sd-host-controller-driver-fix-fix.patch
+crc32-minor-optimizations-and-cleanup-checkpatch-fixes.patch
+hwmon-w83627ehf-updates-checkpatch-fixes.patch
+spi-controller-driver-for-designware-spi-core-fix.patch
+spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3.patch
+ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
+memcg-coalesce-charging-via-percpu-storage-fix.patch
+char-cyclades-fix-compiler-warning.patch
+aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
+direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
+drivers-media-video-cx23885-needs-kfifo-conversion.patch
+drivers-media-video-cx23885-needs-kfifo-updates.patch
+zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes.patch
+lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes.patch
+lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+reiser4-disable.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
