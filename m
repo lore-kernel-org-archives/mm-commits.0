@@ -1,70 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged] scsi-fix-crash-when-disconnecting-usb-storage.patch removed from -mm tree
-Date: Mon, 30 Nov 2009 12:33:23 -0800
-Message-ID: <200911302033.nAUKXNqr020954@imap1.linux-foundation.org>
+Subject: [merged] pm-fix-kernel-doc-notation.patch removed from -mm tree
+Date: Mon, 30 Nov 2009 12:33:11 -0800
+Message-ID: <200911302033.nAUKXBQV020406@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45708 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44333 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752624AbZK3UeD (ORCPT
+	by vger.kernel.org with ESMTP id S1752057AbZK3UeM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Nov 2009 15:34:03 -0500
+	Mon, 30 Nov 2009 15:34:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kuznet@ms2.inr.ac.ru, James.Bottomley@HansenPartnership.com, alan@lxorguk.ukuu.org.uk, den@openvz.org, stern@rowland.harvard.edu, mm-commits@vger.kernel.org
+To: jaswinder@kernel.org, jaswinderrajput@gmail.com, pavel@ucw.cz, randy.dunlap@oracle.com, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scsi: fix crash when disconnecting usb storage
+     pm: fix kernel-doc notation
 has been removed from the -mm tree.  Its filename was
-     scsi-fix-crash-when-disconnecting-usb-storage.patch
+     pm-fix-kernel-doc-notation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi: fix crash when disconnecting usb storage
-From: Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>
+Subject: pm: fix kernel-doc notation
+From: Jaswinder Singh Rajput <jaswinder@kernel.org>
 
-__scsi_remove_device() in scsi_forget_host() is executed out of scan_mutex
-and races with scsi_destroy_sdev() <- scsi_sysfs_add_devices() <-
-scsi_finish_async_scan().  The result is use after free and/or double
-free, oops.
+Fix the following htmldocs warnings:
 
-The fix is simple, move scsi_forget_host() under scan_mutex.
+  Warning(drivers/base/power/main.c:249): No description found for parameter 'master'
+  Warning(drivers/base/power/main.c:249): Excess function parameter 'slave' description in 'device_pm_wait_for_slaves'
+  Warning(drivers/base/power/main.c:292): No description found for parameter 'master'
+  Warning(drivers/base/power/main.c:292): Excess function parameter 'slave' description in 'device_pm_check_slaves'
 
-scsi_forget_host() is just sequence of __scsi_remove_device().  All
-another calls of __scsi_remove_device() are made under scan_mutex.  So
-that it is safe.
-
-Signed-off-by: Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Signed-off-by: Denis V. Lunev <den@openvz.org>
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Jaswinder Singh Rajput <jaswinderrajput@gmail.com>
+Cc: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/hosts.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/base/power/main.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/scsi/hosts.c~scsi-fix-crash-when-disconnecting-usb-storage drivers/scsi/hosts.c
---- a/drivers/scsi/hosts.c~scsi-fix-crash-when-disconnecting-usb-storage
-+++ a/drivers/scsi/hosts.c
-@@ -164,8 +164,8 @@ void scsi_remove_host(struct Scsi_Host *
- 			return;
- 		}
- 	spin_unlock_irqrestore(shost->host_lock, flags);
--	mutex_unlock(&shost->scan_mutex);
- 	scsi_forget_host(shost);
-+	mutex_unlock(&shost->scan_mutex);
- 	scsi_proc_host_rm(shost);
+diff -puN drivers/base/power/main.c~pm-fix-kernel-doc-notation drivers/base/power/main.c
+--- a/drivers/base/power/main.c~pm-fix-kernel-doc-notation
++++ a/drivers/base/power/main.c
+@@ -243,7 +243,7 @@ static void device_pm_wait_for_masters(s
  
- 	spin_lock_irqsave(shost->host_lock, flags);
+ /**
+  * device_pm_wait_for_slaves - Wait for all slaves of given device.
+- * @slave: Device to wait for the slaves of.
++ * @master: Device to wait for the slaves of.
+  */
+ static void device_pm_wait_for_slaves(struct device *master)
+ {
+@@ -286,7 +286,7 @@ static int device_pm_check_masters(struc
+ 
+ /**
+  * device_pm_check_slaves - Check power.op_complete for slaves of a device.
+- * @slave: Device to check the slaves of.
++ * @master: Device to check the slaves of.
+  */
+ static int device_pm_check_slaves(struct device *master)
+ {
 _
 
-Patches currently in -mm which might be from kuznet@ms2.inr.ac.ru are
+Patches currently in -mm which might be from jaswinder@kernel.org are
 
 linux-next.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+xtensa-includecheck-fix-vectorss.patch
+writeback-fix-missing-kernel-doc-notation.patch
 
