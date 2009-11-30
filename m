@@ -1,79 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: [merged] quickcam_messengerc-possible-buffer-overflow-while-use-strncat.patch removed from -mm tree
-Date: Mon, 30 Nov 2009 12:33:50 -0800
-Message-ID: <200911302033.nAUKXoI5022063@imap1.linux-foundation.org>
+Subject: [merged] scsi-fix-func-names-in-kernel-doc.patch removed from -mm tree
+Date: Mon, 30 Nov 2009 12:34:14 -0800
+Message-ID: <200911302034.nAUKYESt023115@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40874 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35099 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751098AbZK3Uec (ORCPT
+	by vger.kernel.org with ESMTP id S1752688AbZK3Ued (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Nov 2009 15:34:32 -0500
+	Mon, 30 Nov 2009 15:34:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: strakh@ispras.ru, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, James.Bottomley@HansenPartnership.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     quickcam_messenger.c: possible buffer overflow while use strncat
+     scsi: fix func names in kernel-doc
 has been removed from the -mm tree.  Its filename was
-     quickcam_messengerc-possible-buffer-overflow-while-use-strncat.patch
+     scsi-fix-func-names-in-kernel-doc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: quickcam_messenger.c: possible buffer overflow while use strncat
-From: Alexander Strakh <strakh@ispras.ru>
+Subject: scsi: fix func names in kernel-doc
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-In driver ./drivers/media/video/usbvideo/quickcam_messenger.c in line 91:
+Fix scsi_devinfo.c kernel-doc function names to match actual function
+names.
 
-  91         usb_make_path(dev, cam->input_physname, sizeof(cam->input_physname));
-
-After this line we use strncat:
-
-  92         strncat(cam->input_physname, "/input0", sizeof(cam->input_physname));
-
-where sizeof(cam->input_physname) returns length of cam->input_phisname
-without length for null-symbol.  But this parameter must be - "maximum
-numbers of bytes to copy", i.e.:
-sizeof(cam->input_physname)-strlen(cam->input_physname)-1.
-
-In this case, after call to usb_make_path the similar drivers use strlcat.
-
-Like in: drivers/hid/usbhid/hid-core.c:
-1152         usb_make_path(dev, hid->phys, sizeof(hid->phys));
-1153         strlcat(hid->phys, "/input", sizeof(hid->phys));
-
-Found by Linux Driver Verification Project.
-
-Use strlcat instead of strncat.
-
-Signed-off-by: Alexander Strakh <strakh@ispras.ru>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/usbvideo/quickcam_messenger.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/scsi/scsi_devinfo.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/media/video/usbvideo/quickcam_messenger.c~quickcam_messengerc-possible-buffer-overflow-while-use-strncat drivers/media/video/usbvideo/quickcam_messenger.c
---- a/drivers/media/video/usbvideo/quickcam_messenger.c~quickcam_messengerc-possible-buffer-overflow-while-use-strncat
-+++ a/drivers/media/video/usbvideo/quickcam_messenger.c
-@@ -89,7 +89,7 @@ static void qcm_register_input(struct qc
- 	int error;
+diff -puN drivers/scsi/scsi_devinfo.c~scsi-fix-func-names-in-kernel-doc drivers/scsi/scsi_devinfo.c
+--- a/drivers/scsi/scsi_devinfo.c~scsi-fix-func-names-in-kernel-doc
++++ a/drivers/scsi/scsi_devinfo.c
+@@ -453,7 +453,7 @@ int scsi_get_device_flags(struct scsi_de
  
- 	usb_make_path(dev, cam->input_physname, sizeof(cam->input_physname));
--	strncat(cam->input_physname, "/input0", sizeof(cam->input_physname));
-+	strlcat(cam->input_physname, "/input0", sizeof(cam->input_physname));
  
- 	cam->input = input_dev = input_allocate_device();
- 	if (!input_dev) {
+ /**
+- * get_device_flags_keyed - get device specific flags from the dynamic device list.
++ * scsi_get_device_flags_keyed - get device specific flags from the dynamic device list
+  * @sdev:       &scsi_device to get flags for
+  * @vendor:	vendor name
+  * @model:	model name
+@@ -684,7 +684,7 @@ MODULE_PARM_DESC(default_dev_flags,
+ 		 "scsi default device flag integer value");
+ 
+ /**
+- * scsi_dev_info_list_delete - called from scsi.c:exit_scsi to remove the scsi_dev_info_list.
++ * scsi_exit_devinfo - remove /proc/scsi/device_info & the scsi_dev_info_list
+  **/
+ void scsi_exit_devinfo(void)
+ {
 _
 
-Patches currently in -mm which might be from strakh@ispras.ru are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 linux-next.patch
-scsi_libc-avoid-calling-scsi_device_put-from-under-host_lock.patch
+sysfs-fix-sysfs_deprecated_v2-prompt.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
+readahead-add-blk_run_backing_dev.patch
+page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
+nodemask-make-nodemask_alloc-more-general.patch
+hugetlb-rework-hstate_next_node_-functions.patch
+hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions.patch
+hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions-fix.patch
+hugetlb-factor-init_nodemask_of_node.patch
+hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy.patch
+hugetlb-add-generic-definition-of-numa_no_node.patch
+hugetlb-add-per-node-hstate-attributes.patch
+hugetlb-update-hugetlb-documentation-for-numa-controls.patch
+hugetlb-use-only-nodes-with-memory-for-huge-pages.patch
+mm-clear-node-in-n_high_memory-and-stop-kswapd-when-all-memory-is-offlined.patch
+hugetlb-handle-memory-hot-plug-events.patch
+hugetlb-offload-per-node-attribute-registrations.patch
+hugetlb-offload-per-node-attribute-registrations-fix.patch
+mm-add-gfp-flags-for-nodemask_alloc-slab-allocations.patch
+mm-add-numa-node-symlink-for-memory-section-in-sysfs.patch
+mm-refactor-register_cpu_under_node.patch
+mm-refactor-unregister_cpu_under_node.patch
+mm-add-numa-node-symlink-for-cpu-devices-in-sysfs.patch
+documentation-abi-sys-devices-system-cpu-cpu-node.patch
+writeback-fix-missing-kernel-doc-notation.patch
+spi-add-pci-interface-driver-for-designware-spi-core-fix.patch
+docs-large-update-to-ioctl-numbertxt.patch
+doc-submitchecklist-add-ioctls-remove-osdl-reference.patch
+reiser4-export-remove_from_page_cache-fix.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
