@@ -1,97 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: [merged] scsi-fix-func-names-in-kernel-doc.patch removed from -mm tree
-Date: Mon, 30 Nov 2009 12:34:14 -0800
-Message-ID: <200911302034.nAUKYESt023115@imap1.linux-foundation.org>
+Subject: [merged] drivers-media-video-introduce-missing-kfree.patch removed from -mm tree
+Date: Mon, 30 Nov 2009 12:33:59 -0800
+Message-ID: <200911302033.nAUKXxAM022431@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35099 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38522 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752688AbZK3Ued (ORCPT
+	by vger.kernel.org with ESMTP id S1752709AbZK3Uee (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Nov 2009 15:34:33 -0500
+	Mon, 30 Nov 2009 15:34:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, James.Bottomley@HansenPartnership.com, mm-commits@vger.kernel.org
+To: julia@diku.dk, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scsi: fix func names in kernel-doc
+     drivers/media/video: introduce missing kfree
 has been removed from the -mm tree.  Its filename was
-     scsi-fix-func-names-in-kernel-doc.patch
+     drivers-media-video-introduce-missing-kfree.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi: fix func names in kernel-doc
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: drivers/media/video: introduce missing kfree
+From: Julia Lawall <julia@diku.dk>
 
-Fix scsi_devinfo.c kernel-doc function names to match actual function
-names.
+Error handling code following a kzalloc should free the allocated data. 
+Similarly for usb-alloc urb.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+The semantic match that finds the first problem is as follows:
+(http://www.emn.fr/x-info/coccinelle/)
+
+// <smpl>
+@r exists@
+local idexpression x;
+statement S;
+expression E;
+identifier f,f1,l;
+position p1,p2;
+expression *ptr != NULL;
+@@
+
+x@p1 = \(kmalloc\|kzalloc\|kcalloc\)(...);
+...
+if (x == NULL) S
+<... when != x
+     when != if (...) { <+...x...+> }
+(
+x->f1 = E
+|
+ (x->f1 == NULL || ...)
+|
+ f(...,x->f1,...)
+)
+...>
+(
+ return \(0\|<+...x...+>\|ptr\);
+|
+ return@p2 ...;
+)
+
+@script:python@
+p1 << r.p1;
+p2 << r.p2;
+@@
+
+print "* file: %s kmalloc %s return %s" % (p1[0].file,p1[0].line,p2[0].line)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/scsi_devinfo.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/video/hdpvr/hdpvr-video.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN drivers/scsi/scsi_devinfo.c~scsi-fix-func-names-in-kernel-doc drivers/scsi/scsi_devinfo.c
---- a/drivers/scsi/scsi_devinfo.c~scsi-fix-func-names-in-kernel-doc
-+++ a/drivers/scsi/scsi_devinfo.c
-@@ -453,7 +453,7 @@ int scsi_get_device_flags(struct scsi_de
+diff -puN drivers/media/video/hdpvr/hdpvr-video.c~drivers-media-video-introduce-missing-kfree drivers/media/video/hdpvr/hdpvr-video.c
+--- a/drivers/media/video/hdpvr/hdpvr-video.c~drivers-media-video-introduce-missing-kfree
++++ a/drivers/media/video/hdpvr/hdpvr-video.c
+@@ -139,7 +139,7 @@ int hdpvr_alloc_buffers(struct hdpvr_dev
+ 		urb = usb_alloc_urb(0, GFP_KERNEL);
+ 		if (!urb) {
+ 			v4l2_err(&dev->v4l2_dev, "cannot allocate urb\n");
+-			goto exit;
++			goto exit_urb;
+ 		}
+ 		buf->urb = urb;
  
+@@ -148,7 +148,7 @@ int hdpvr_alloc_buffers(struct hdpvr_dev
+ 		if (!mem) {
+ 			v4l2_err(&dev->v4l2_dev,
+ 				 "cannot allocate usb transfer buffer\n");
+-			goto exit;
++			goto exit_urb_buffer;
+ 		}
  
- /**
-- * get_device_flags_keyed - get device specific flags from the dynamic device list.
-+ * scsi_get_device_flags_keyed - get device specific flags from the dynamic device list
-  * @sdev:       &scsi_device to get flags for
-  * @vendor:	vendor name
-  * @model:	model name
-@@ -684,7 +684,7 @@ MODULE_PARM_DESC(default_dev_flags,
- 		 "scsi default device flag integer value");
- 
- /**
-- * scsi_dev_info_list_delete - called from scsi.c:exit_scsi to remove the scsi_dev_info_list.
-+ * scsi_exit_devinfo - remove /proc/scsi/device_info & the scsi_dev_info_list
-  **/
- void scsi_exit_devinfo(void)
- {
+ 		usb_fill_bulk_urb(buf->urb, dev->udev,
+@@ -161,6 +161,10 @@ int hdpvr_alloc_buffers(struct hdpvr_dev
+ 		list_add_tail(&buf->buff_list, &dev->free_buff_list);
+ 	}
+ 	return 0;
++exit_urb_buffer:
++	usb_free_urb(urb);
++exit_urb:
++	kfree(buf);
+ exit:
+ 	hdpvr_free_buffers(dev);
+ 	return retval;
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from julia@diku.dk are
 
 linux-next.patch
-sysfs-fix-sysfs_deprecated_v2-prompt.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
-readahead-add-blk_run_backing_dev.patch
-page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
-nodemask-make-nodemask_alloc-more-general.patch
-hugetlb-rework-hstate_next_node_-functions.patch
-hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions.patch
-hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions-fix.patch
-hugetlb-factor-init_nodemask_of_node.patch
-hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy.patch
-hugetlb-add-generic-definition-of-numa_no_node.patch
-hugetlb-add-per-node-hstate-attributes.patch
-hugetlb-update-hugetlb-documentation-for-numa-controls.patch
-hugetlb-use-only-nodes-with-memory-for-huge-pages.patch
-mm-clear-node-in-n_high_memory-and-stop-kswapd-when-all-memory-is-offlined.patch
-hugetlb-handle-memory-hot-plug-events.patch
-hugetlb-offload-per-node-attribute-registrations.patch
-hugetlb-offload-per-node-attribute-registrations-fix.patch
-mm-add-gfp-flags-for-nodemask_alloc-slab-allocations.patch
-mm-add-numa-node-symlink-for-memory-section-in-sysfs.patch
-mm-refactor-register_cpu_under_node.patch
-mm-refactor-unregister_cpu_under_node.patch
-mm-add-numa-node-symlink-for-cpu-devices-in-sysfs.patch
-documentation-abi-sys-devices-system-cpu-cpu-node.patch
-writeback-fix-missing-kernel-doc-notation.patch
-spi-add-pci-interface-driver-for-designware-spi-core-fix.patch
-docs-large-update-to-ioctl-numbertxt.patch
-doc-submitchecklist-add-ioctls-remove-osdl-reference.patch
-reiser4-export-remove_from_page_cache-fix.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
+drivers-media-video-move-dereference-after-null-test.patch
+drivers-scsi-libsas-use-sam_good.patch
+drivers-scsi-remove-unnecessary-null-test.patch
+drivers-message-move-dereference-after-null-test.patch
+drivers-block-dac960c-use-dac960_v2_controller.patch
+drivers-usb-host-xhci-memc-introduce-missing-kfree.patch
+drivers-usb-host-ehci-omapc-introduce-missing-kfree.patch
+drivers-usb-wusbcore-introduce-missing-usb_free_urb.patch
+drivers-cpuidle-move-dereference-after-null-test.patch
+drivers-mmc-move-dereference-after-null-test.patch
+drivers-video-move-dereference-after-null-test.patch
+drivers-char-ipmi-use-kcs_idle_state.patch
+drivers-edac-introduce-missing-kfree.patch
 
