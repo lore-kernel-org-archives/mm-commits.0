@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + kfifo-add-record-handling-functions-fix.patch added to -mm tree
-Date: Mon, 30 Nov 2009 15:48:33 -0800
-Message-ID: <200911302348.nAUNmXau014240@imap1.linux-foundation.org>
+Subject: + kfifo-add-define_kfifo-and-friends-add-very-tiny-functions-fix.patch added to -mm tree
+Date: Mon, 30 Nov 2009 15:48:53 -0800
+Message-ID: <200911302348.nAUNmrDd015050@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51841 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52538 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753856AbZK3Xsl (ORCPT
+	by vger.kernel.org with ESMTP id S1753866AbZK3XtA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Nov 2009 18:48:41 -0500
+	Mon, 30 Nov 2009 18:49:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: stefani@seibold.net
 
 
 The patch titled
-     kfifo-add-record-handling-functions-fix
+     kfifo-add-define_kfifo-and-friends-add-very-tiny-functions fix
 has been added to the -mm tree.  Its filename is
-     kfifo-add-record-handling-functions-fix.patch
+     kfifo-add-define_kfifo-and-friends-add-very-tiny-functions-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kfifo-add-record-handling-functions-fix
+Subject: kfifo-add-define_kfifo-and-friends-add-very-tiny-functions fix
 From: Stefani Seibold <stefani@seibold.net>
 
 The following patch undef temporary used defines after the last usage.
@@ -46,28 +46,29 @@ Signed-off-by: Stefani Seibold <stefani@seibold.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kfifo.h |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/kfifo.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN include/linux/kfifo.h~kfifo-add-record-handling-functions-fix include/linux/kfifo.h
---- a/include/linux/kfifo.h~kfifo-add-record-handling-functions-fix
+diff -puN include/linux/kfifo.h~kfifo-add-define_kfifo-and-friends-add-very-tiny-functions-fix include/linux/kfifo.h
+--- a/include/linux/kfifo.h~kfifo-add-define_kfifo-and-friends-add-very-tiny-functions-fix
 +++ a/include/linux/kfifo.h
-@@ -296,6 +296,7 @@ static inline unsigned int __kfifo_peek_
- 		l |= __KFIFO_GET(fifo, 1, 8);
+@@ -55,6 +55,7 @@ struct kfifo {
+  * Macros for declaration and initialization of the kfifo datatype
+  */
  
- 	return l;
-+#undef	__KFIFO_GET
- }
++/* helper macro */
+ #define __kfifo_initializer(s, b) \
+ 	(struct kfifo) { \
+ 		.size	= s, \
+@@ -102,6 +103,8 @@ union { \
+ 	unsigned char name##kfifo_buffer[size]; \
+ 	struct kfifo name = __kfifo_initializer(size, name##kfifo_buffer)
  
- /**
-@@ -315,6 +316,7 @@ static inline void __kfifo_poke_n(struct
- 
- 	if (--recsize)
- 		__KFIFO_PUT(fifo, 1, n, 8);
-+#undef	__KFIFO_PUT
- }
- 
- /**
++#undef __kfifo_initializer
++
+ extern void kfifo_init(struct kfifo *fifo, unsigned char *buffer,
+ 			unsigned int size);
+ extern __must_check int kfifo_alloc(struct kfifo *fifo, unsigned int size,
 _
 
 Patches currently in -mm which might be from stefani@seibold.net are
