@@ -1,55 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] scripts-mod-modpostc-dont-tase-me-bro.patch removed from -mm tree
-Date: Mon, 30 Nov 2009 12:13:48 -0800
-Message-ID: <200911302013.nAUKDm69005173@imap1.linux-foundation.org>
+Subject: [alternative-merged] recordmcount-stfu.patch removed from -mm tree
+Date: Mon, 30 Nov 2009 12:14:28 -0800
+Message-ID: <200911302014.nAUKES4A006816@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33282 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58632 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752196AbZK3UNv (ORCPT
+	by vger.kernel.org with ESMTP id S1751503AbZK3UO1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Nov 2009 15:13:51 -0500
+	Mon, 30 Nov 2009 15:14:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan-jenkins@tuffmail.co.uk, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, lihong.hi@gmail.com, rostedt@goodmis.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scripts/mod/modpost.c: don't tase me, bro
+     recordmcount-stfu
 has been removed from the -mm tree.  Its filename was
-     scripts-mod-modpostc-dont-tase-me-bro.patch
+     recordmcount-stfu.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because an alternative patch was merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts/mod/modpost.c: don't tase me, bro
+Subject: recordmcount-stfu
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+oy, people are trying to get work done here.
+
+Cc: Li Hong <lihong.hi@gmail.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/mod/modpost.c |    3 +++
- 1 file changed, 3 insertions(+)
+ scripts/recordmcount.pl |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN /dev/null /dev/null
-diff -puN Makefile~scripts-mod-modpostc-dont-tase-me-bro Makefile
-diff -puN scripts/mod/modpost.c~scripts-mod-modpostc-dont-tase-me-bro scripts/mod/modpost.c
---- a/scripts/mod/modpost.c~scripts-mod-modpostc-dont-tase-me-bro
-+++ a/scripts/mod/modpost.c
-@@ -2059,6 +2059,9 @@ static void write_exports(const char *fn
- 	for (i = 0; i < n; i++) {
- 		sym = symbols[i];
+diff -puN scripts/recordmcount.pl~recordmcount-stfu scripts/recordmcount.pl
+--- a/scripts/recordmcount.pl~recordmcount-stfu
++++ a/scripts/recordmcount.pl
+@@ -180,9 +180,9 @@ sub check_objcopy
+     close (IN);
  
-+		if (sym->export == export_unknown)
-+			continue;
-+
- 		buf_printf(&buf, "__EXPORT_%s_SYMBOL(%s,"
- 					" __ksymtab%s_sorted,"
- 					" __ksymtab_strings_sorted,"
+     if (!$can_use_local) {
+-	print STDERR "WARNING: could not find objcopy version or version " .
+-	    "is less than 2.17.\n" .
+-	    "\tLocal function references is disabled.\n";
++#	print STDERR "WARNING: could not find objcopy version or version " .
++#	    "is less than 2.17.\n" .
++#	    "\tLocal function references is disabled.\n";
+     }
+ }
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -59,7 +62,6 @@ linux-next.patch
 linux-next-git-rejects.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
-scripts-mod-modpostc-dont-tase-me-bro.patch
 recordmcount-stfu.patch
 include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
 drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
