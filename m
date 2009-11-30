@@ -1,99 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sms-cards-make-id-unsigned-in-sms_get_board.patch removed from -mm tree
-Date: Mon, 30 Nov 2009 12:33:53 -0800
-Message-ID: <200911302033.nAUKXrKM022197@imap1.linux-foundation.org>
+Subject: [merged] thinkpad-acpi-fix-detection-of-old-thinkpads.patch removed from -mm tree
+Date: Mon, 30 Nov 2009 12:33:17 -0800
+Message-ID: <200911302033.nAUKXHN1020667@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44285 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56194 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752230AbZK3UeO (ORCPT
+	by vger.kernel.org with ESMTP id S1752496AbZK3UeQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Nov 2009 15:34:14 -0500
+	Mon, 30 Nov 2009 15:34:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, mchehab@infradead.org, mkrufky@kernellabs.com, mm-commits@vger.kernel.org
+To: hmh@hmh.eng.br, bjorn.helgaas@hp.com, kimoto@lightlink.com, lenb@kernel.org, rjw@sisk.pl, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sms-cards: make id unsigned in sms_get_board()
+     thinkpad-acpi: fix detection of old ThinkPads
 has been removed from the -mm tree.  Its filename was
-     sms-cards-make-id-unsigned-in-sms_get_board.patch
+     thinkpad-acpi-fix-detection-of-old-thinkpads.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sms-cards: make id unsigned in sms_get_board()
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: thinkpad-acpi: fix detection of old ThinkPads
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Make id signed so we can't get an invalid pointer when we pass a negative
-id.
+There is a problem in the quirk tables used by tpacpi_is_fw_known() and
+tpacpi_check_outdated_fw(), which causes outdated BIOSes that are lacking
+the EC firmware ID DMI field to never match.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Michael Krufky <mkrufky@kernellabs.com>
+This breaks module loading on, e.g.  a T23 with outdated BIOS, and the
+module will refuse to load unless the "force_load=1" parameter is given.
+
+Fix the quirk tables so that they can also match the outdated BIOSes,
+which in turn will both fix the module loading, and also warn the user
+that he is using outdated firmware and should upgrade.
+
+This fixes a serious regression, introduced by commit
+e675abafcc0df38125e6e94a9ba91c92fe774f52, "thinkpad-acpi: be more strict
+when detecting a ThinkPad".
+
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=14597
+
+Reported-by: Paul Kimoto <kimoto@lightlink.com>
+Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Tested-by: Paul Kimoto <kimoto@lightlink.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/siano/sms-cards.c |    2 +-
- drivers/media/dvb/siano/sms-cards.h |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/platform/x86/thinkpad_acpi.c |   24 ++++++++++++++++++------
+ 1 file changed, 18 insertions(+), 6 deletions(-)
 
-diff -puN drivers/media/dvb/siano/sms-cards.c~sms-cards-make-id-unsigned-in-sms_get_board drivers/media/dvb/siano/sms-cards.c
---- a/drivers/media/dvb/siano/sms-cards.c~sms-cards-make-id-unsigned-in-sms_get_board
-+++ a/drivers/media/dvb/siano/sms-cards.c
-@@ -97,7 +97,7 @@ static struct sms_board sms_boards[] = {
- 	},
- };
+diff -puN drivers/platform/x86/thinkpad_acpi.c~thinkpad-acpi-fix-detection-of-old-thinkpads drivers/platform/x86/thinkpad_acpi.c
+--- a/drivers/platform/x86/thinkpad_acpi.c~thinkpad-acpi-fix-detection-of-old-thinkpads
++++ a/drivers/platform/x86/thinkpad_acpi.c
+@@ -1680,36 +1680,48 @@ static void tpacpi_remove_driver_attribu
+ 			  | (__bv1) << 8 | (__bv2) }
  
--struct sms_board *sms_get_board(int id)
-+struct sms_board *sms_get_board(unsigned id)
- {
- 	BUG_ON(id >= ARRAY_SIZE(sms_boards));
+ #define TPV_Q_X(__v, __bid1, __bid2, __bv1, __bv2,	\
+-		__eid1, __eid2, __ev1, __ev2)		\
++		__eid, __ev1, __ev2)			\
+ 	{ .vendor	= (__v),			\
+ 	  .bios		= TPID(__bid1, __bid2),		\
+-	  .ec		= TPID(__eid1, __eid2),		\
++	  .ec		= __eid,			\
+ 	  .quirks	= (__ev1) << 24 | (__ev2) << 16 \
+ 			  | (__bv1) << 8 | (__bv2) }
  
-diff -puN drivers/media/dvb/siano/sms-cards.h~sms-cards-make-id-unsigned-in-sms_get_board drivers/media/dvb/siano/sms-cards.h
---- a/drivers/media/dvb/siano/sms-cards.h~sms-cards-make-id-unsigned-in-sms_get_board
-+++ a/drivers/media/dvb/siano/sms-cards.h
-@@ -81,7 +81,7 @@ struct sms_board {
- 	int led_power, led_hi, led_lo, lna_ctrl, rf_switch;
- };
+ #define TPV_QI0(__id1, __id2, __bv1, __bv2) \
+ 	TPV_Q(PCI_VENDOR_ID_IBM, __id1, __id2, __bv1, __bv2)
  
--struct sms_board *sms_get_board(int id);
-+struct sms_board *sms_get_board(unsigned id);
++/* Outdated IBM BIOSes often lack the EC id string */
+ #define TPV_QI1(__id1, __id2, __bv1, __bv2, __ev1, __ev2) \
+ 	TPV_Q_X(PCI_VENDOR_ID_IBM, __id1, __id2, 	\
+-		__bv1, __bv2, __id1, __id2, __ev1, __ev2)
++		__bv1, __bv2, TPID(__id1, __id2),	\
++		__ev1, __ev2),				\
++	TPV_Q_X(PCI_VENDOR_ID_IBM, __id1, __id2, 	\
++		__bv1, __bv2, TPACPI_MATCH_UNKNOWN,	\
++		__ev1, __ev2)
  
- extern struct smscore_device_t *coredev;
++/* Outdated IBM BIOSes often lack the EC id string */
+ #define TPV_QI2(__bid1, __bid2, __bv1, __bv2,		\
+ 		__eid1, __eid2, __ev1, __ev2) 		\
+ 	TPV_Q_X(PCI_VENDOR_ID_IBM, __bid1, __bid2, 	\
+-		__bv1, __bv2, __eid1, __eid2, __ev1, __ev2)
++		__bv1, __bv2, TPID(__eid1, __eid2),	\
++		__ev1, __ev2),				\
++	TPV_Q_X(PCI_VENDOR_ID_IBM, __bid1, __bid2, 	\
++		__bv1, __bv2, TPACPI_MATCH_UNKNOWN,	\
++		__ev1, __ev2)
  
+ #define TPV_QL0(__id1, __id2, __bv1, __bv2) \
+ 	TPV_Q(PCI_VENDOR_ID_LENOVO, __id1, __id2, __bv1, __bv2)
+ 
+ #define TPV_QL1(__id1, __id2, __bv1, __bv2, __ev1, __ev2) \
+ 	TPV_Q_X(PCI_VENDOR_ID_LENOVO, __id1, __id2, 	\
+-		__bv1, __bv2, __id1, __id2, __ev1, __ev2)
++		__bv1, __bv2, TPID(__id1, __id2),	\
++		__ev1, __ev2)
+ 
+ #define TPV_QL2(__bid1, __bid2, __bv1, __bv2,		\
+ 		__eid1, __eid2, __ev1, __ev2) 		\
+ 	TPV_Q_X(PCI_VENDOR_ID_LENOVO, __bid1, __bid2, 	\
+-		__bv1, __bv2, __eid1, __eid2, __ev1, __ev2)
++		__bv1, __bv2, TPID(__eid1, __eid2),	\
++		__ev1, __ev2)
+ 
+ static const struct tpacpi_quirk tpacpi_bios_version_qtable[] __initconst = {
+ 	/*  Numeric models ------------------ */
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from hmh@hmh.eng.br are
 
 linux-next.patch
-fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch
-omap-return-ptr_err-rather-than-is_err.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-mtd-error-return-eio-instead-of-eio.patch
-jffs2-fix-min-max-confusion.patch
-imx-bit-confusion.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
-ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
-scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
-r8192u_core-test-for-negative-error-in-rtl8192_rx_isr.patch
-wusb-use-sizeof-struct-rather-than-pointer.patch
-page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-cryptocop-fix-assertion-in-create_output_descriptors.patch
-gpio-fix-test-on-unsigned-in-lnw_irq_type.patch
-fbdev-tv_paln-bit-set-twice-in-sisfb_detect_vb_connect.patch
-hvc_console-fix-test-on-unsigned-in-hvc_console_print.patch
-zlib-optimize-inffast-when-copying-direct-from-output.patch
 
