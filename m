@@ -1,76 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pm-fix-kernel-doc-notation.patch removed from -mm tree
-Date: Mon, 30 Nov 2009 12:33:11 -0800
-Message-ID: <200911302033.nAUKXBQV020406@imap1.linux-foundation.org>
+Subject: [merged] sms-cards-make-id-unsigned-in-sms_get_board.patch removed from -mm tree
+Date: Mon, 30 Nov 2009 12:33:53 -0800
+Message-ID: <200911302033.nAUKXrKM022197@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44333 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44285 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752057AbZK3UeM (ORCPT
+	by vger.kernel.org with ESMTP id S1752230AbZK3UeO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Nov 2009 15:34:12 -0500
+	Mon, 30 Nov 2009 15:34:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jaswinder@kernel.org, jaswinderrajput@gmail.com, pavel@ucw.cz, randy.dunlap@oracle.com, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, mchehab@infradead.org, mkrufky@kernellabs.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pm: fix kernel-doc notation
+     sms-cards: make id unsigned in sms_get_board()
 has been removed from the -mm tree.  Its filename was
-     pm-fix-kernel-doc-notation.patch
+     sms-cards-make-id-unsigned-in-sms_get_board.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pm: fix kernel-doc notation
-From: Jaswinder Singh Rajput <jaswinder@kernel.org>
+Subject: sms-cards: make id unsigned in sms_get_board()
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Fix the following htmldocs warnings:
+Make id signed so we can't get an invalid pointer when we pass a negative
+id.
 
-  Warning(drivers/base/power/main.c:249): No description found for parameter 'master'
-  Warning(drivers/base/power/main.c:249): Excess function parameter 'slave' description in 'device_pm_wait_for_slaves'
-  Warning(drivers/base/power/main.c:292): No description found for parameter 'master'
-  Warning(drivers/base/power/main.c:292): Excess function parameter 'slave' description in 'device_pm_check_slaves'
-
-Signed-off-by: Jaswinder Singh Rajput <jaswinderrajput@gmail.com>
-Cc: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Pavel Machek <pavel@ucw.cz>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Michael Krufky <mkrufky@kernellabs.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/power/main.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/dvb/siano/sms-cards.c |    2 +-
+ drivers/media/dvb/siano/sms-cards.h |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/base/power/main.c~pm-fix-kernel-doc-notation drivers/base/power/main.c
---- a/drivers/base/power/main.c~pm-fix-kernel-doc-notation
-+++ a/drivers/base/power/main.c
-@@ -243,7 +243,7 @@ static void device_pm_wait_for_masters(s
+diff -puN drivers/media/dvb/siano/sms-cards.c~sms-cards-make-id-unsigned-in-sms_get_board drivers/media/dvb/siano/sms-cards.c
+--- a/drivers/media/dvb/siano/sms-cards.c~sms-cards-make-id-unsigned-in-sms_get_board
++++ a/drivers/media/dvb/siano/sms-cards.c
+@@ -97,7 +97,7 @@ static struct sms_board sms_boards[] = {
+ 	},
+ };
  
- /**
-  * device_pm_wait_for_slaves - Wait for all slaves of given device.
-- * @slave: Device to wait for the slaves of.
-+ * @master: Device to wait for the slaves of.
-  */
- static void device_pm_wait_for_slaves(struct device *master)
+-struct sms_board *sms_get_board(int id)
++struct sms_board *sms_get_board(unsigned id)
  {
-@@ -286,7 +286,7 @@ static int device_pm_check_masters(struc
+ 	BUG_ON(id >= ARRAY_SIZE(sms_boards));
  
- /**
-  * device_pm_check_slaves - Check power.op_complete for slaves of a device.
-- * @slave: Device to check the slaves of.
-+ * @master: Device to check the slaves of.
-  */
- static int device_pm_check_slaves(struct device *master)
- {
+diff -puN drivers/media/dvb/siano/sms-cards.h~sms-cards-make-id-unsigned-in-sms_get_board drivers/media/dvb/siano/sms-cards.h
+--- a/drivers/media/dvb/siano/sms-cards.h~sms-cards-make-id-unsigned-in-sms_get_board
++++ a/drivers/media/dvb/siano/sms-cards.h
+@@ -81,7 +81,7 @@ struct sms_board {
+ 	int led_power, led_hi, led_lo, lna_ctrl, rf_switch;
+ };
+ 
+-struct sms_board *sms_get_board(int id);
++struct sms_board *sms_get_board(unsigned id);
+ 
+ extern struct smscore_device_t *coredev;
+ 
 _
 
-Patches currently in -mm which might be from jaswinder@kernel.org are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 linux-next.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-xtensa-includecheck-fix-vectorss.patch
-writeback-fix-missing-kernel-doc-notation.patch
+fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch
+omap-return-ptr_err-rather-than-is_err.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+mtd-error-return-eio-instead-of-eio.patch
+jffs2-fix-min-max-confusion.patch
+imx-bit-confusion.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
+zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
+ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
+scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
+r8192u_core-test-for-negative-error-in-rtl8192_rx_isr.patch
+wusb-use-sizeof-struct-rather-than-pointer.patch
+page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+cryptocop-fix-assertion-in-create_output_descriptors.patch
+gpio-fix-test-on-unsigned-in-lnw_irq_type.patch
+fbdev-tv_paln-bit-set-twice-in-sisfb_detect_vb_connect.patch
+hvc_console-fix-test-on-unsigned-in-hvc_console_print.patch
+zlib-optimize-inffast-when-copying-direct-from-output.patch
 
