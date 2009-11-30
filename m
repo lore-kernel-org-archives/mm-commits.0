@@ -1,84 +1,197 @@
 From: akpm@linux-foundation.org
-Subject: [merged] irq-fix-test-in-__exit-parport_mfc3_exit.patch removed from -mm tree
-Date: Mon, 30 Nov 2009 12:34:39 -0800
-Message-ID: <200911302034.nAUKYdab024108@imap1.linux-foundation.org>
+Subject: [merged] block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 30 Nov 2009 12:34:25 -0800
+Message-ID: <200911302034.nAUKYPmI023526@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48560 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59456 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753075AbZK3UfI (ORCPT
+	by vger.kernel.org with ESMTP id S1753057AbZK3UfH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Nov 2009 15:35:08 -0500
+	Mon, 30 Nov 2009 15:35:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, geert@linux-m68k.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dwmw2@infradead.org, ecashin@coraid.com, isloginov@gmail.com, jens.axboe@oracle.com, mingo@elte.hu, phorton@bitbox.co.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     parport: fix IRQ test in __exit parport_mfc3_exit()
+     block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     irq-fix-test-in-__exit-parport_mfc3_exit.patch
+     block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages-checkpatch-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: parport: fix IRQ test in __exit parport_mfc3_exit()
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Not makes it a bool before the comparison.
+ERROR: "foo* bar" should be "foo *bar"
+#348: FILE: block/blk-core.c:2372:
++	struct bio_vec* bvec;
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+ERROR: "foo* bar" should be "foo *bar"
+#388: FILE: fs/bio.c:1400:
++	struct bio_vec* bvec;
+
+WARNING: line over 80 characters
+#419: FILE: include/linux/bio.h:396:
++# error	"You should to define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE for your platform."
+
+WARNING: line over 80 characters
+#440: FILE: include/linux/blkdev.h:756:
++# error	"You should to define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE for your platform."
+
+total: 2 errors, 2 warnings, 278 lines checked
+
+./patches/block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: "Ed L. Cashin" <ecashin@coraid.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Ilya Loginov <isloginov@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Peter Horton <phorton@bitbox.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/parport/parport_mfc3.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ block/blk-core.c       |    2 +-
+ fs/bio.c               |    2 +-
+ include/linux/bio.h    |    2 +-
+ include/linux/blkdev.h |    2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/parport/parport_mfc3.c~irq-fix-test-in-__exit-parport_mfc3_exit drivers/parport/parport_mfc3.c
---- a/drivers/parport/parport_mfc3.c~irq-fix-test-in-__exit-parport_mfc3_exit
-+++ a/drivers/parport/parport_mfc3.c
-@@ -386,7 +386,7 @@ static void __exit parport_mfc3_exit(voi
- 		if (!this_port[i])
- 			continue;
- 		parport_remove_port(this_port[i]);
--		if (!this_port[i]->irq != PARPORT_IRQ_NONE) {
-+		if (this_port[i]->irq != PARPORT_IRQ_NONE) {
- 			if (--use_cnt == 0) 
- 				free_irq(IRQ_AMIGA_PORTS, &pp_mfc3_ops);
- 		}
+diff -puN block/blk-core.c~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages-checkpatch-fixes block/blk-core.c
+--- a/block/blk-core.c~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages-checkpatch-fixes
++++ a/block/blk-core.c
+@@ -2369,7 +2369,7 @@ void blk_rq_bio_prep(struct request_queu
+ void rq_flush_dcache_pages(struct request *rq)
+ {
+ 	struct req_iterator iter;
+-	struct bio_vec* bvec;
++	struct bio_vec *bvec;
+ 
+ 	rq_for_each_segment(bvec, rq, iter)
+ 		flush_dcache_page(bvec->bv_page);
+diff -puN fs/bio.c~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages-checkpatch-fixes fs/bio.c
+--- a/fs/bio.c~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages-checkpatch-fixes
++++ a/fs/bio.c
+@@ -1397,7 +1397,7 @@ void bio_check_pages_dirty(struct bio *b
+ void bio_flush_dcache_pages(struct bio *bi)
+ {
+ 	int i;
+-	struct bio_vec* bvec;
++	struct bio_vec *bvec;
+ 
+ 	bio_for_each_segment(bvec, bi, i)
+ 		flush_dcache_page(bvec->bv_page);
+diff -puN include/linux/bio.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages-checkpatch-fixes include/linux/bio.h
+--- a/include/linux/bio.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages-checkpatch-fixes
++++ a/include/linux/bio.h
+@@ -393,7 +393,7 @@ extern void bio_set_pages_dirty(struct b
+ extern void bio_check_pages_dirty(struct bio *bio);
+ 
+ #ifndef ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE
+-# error	"You should to define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE for your platform."
++# error	"You should define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE for your platform"
+ #endif
+ #if ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE
+ extern void bio_flush_dcache_pages(struct bio *bi);
+diff -puN include/linux/blkdev.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages-checkpatch-fixes include/linux/blkdev.h
+--- a/include/linux/blkdev.h~block-add-helpers-to-run-flush_dcache_page-against-a-bio-and-a-requests-pages-checkpatch-fixes
++++ a/include/linux/blkdev.h
+@@ -753,7 +753,7 @@ struct req_iterator {
+ 		(_iter.bio->bi_next == NULL && _iter.i == _iter.bio->bi_vcnt-1)
+ 
+ #ifndef ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE
+-# error	"You should to define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE for your platform."
++# error	"You should define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE for your platform"
+ #endif
+ #if ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE
+ extern void rq_flush_dcache_pages(struct request *rq);
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+drivers-media-dvb-dvb-core-dvb_frontendc-needs-semaphoreh.patch
 linux-next.patch
-fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch
-omap-return-ptr_err-rather-than-is_err.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-mtd-error-return-eio-instead-of-eio.patch
-jffs2-fix-min-max-confusion.patch
-imx-bit-confusion.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
-ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
-scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
-r8192u_core-test-for-negative-error-in-rtl8192_rx_isr.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
+drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+acpi-remove-nid_inval.patch
+drivers-acpi-acpi_padc-squish-warning.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices-checkpatch-fixes.patch
+drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+kbuild-generate-modulesbuiltin-fix-2-checkpatch-fixes.patch
+drivers-leds-leds-ss4200c-fix-return-statement.patch
+mtd-nand-fix-multi-chip-suspend-problem-fix.patch
+3x59x-fix-pci-resource-management.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
+scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
+aoe-switch-to-the-new-bio_flush_dcache_pages-interface.patch
 wusb-use-sizeof-struct-rather-than-pointer.patch
-page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
-frv-duplicate-output_buffer-of-e03.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+fs-improve-remountro-vs-buffercache-coherency.patch
+percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+readahead-add-blk_run_backing_dev.patch
+mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
+oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
+oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes.patch
+mm-mlocking-in-try_to_unmap_one-fix-fix.patch
+mm-memory_hotplug-make-offline_pages-static.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-cryptocop-fix-assertion-in-create_output_descriptors.patch
-gpio-fix-test-on-unsigned-in-lnw_irq_type.patch
-fbdev-tv_paln-bit-set-twice-in-sisfb_detect_vb_connect.patch
-hvc_console-fix-test-on-unsigned-in-hvc_console_print.patch
-zlib-optimize-inffast-when-copying-direct-from-output.patch
+procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup.patch
+floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
+drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
+rwsem-fix-rwsem_is_locked-bugs-fix.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
+errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
+msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes.patch
+blackfin-sd-host-controller-driver-fix.patch
+blackfin-sd-host-controller-driver-fix-fix.patch
+crc32-minor-optimizations-and-cleanup-checkpatch-fixes.patch
+hwmon-w83627ehf-updates-checkpatch-fixes.patch
+spi-controller-driver-for-designware-spi-core-fix.patch
+spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3.patch
+ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
+memcg-coalesce-charging-via-percpu-storage-fix.patch
+char-cyclades-fix-compiler-warning.patch
+aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
+direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
+drivers-media-video-cx23885-needs-kfifo-conversion.patch
+drivers-media-video-cx23885-needs-kfifo-updates.patch
+zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes.patch
+lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes.patch
+lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+reiser4-disable.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
