@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + da850-omap-l138-add-callback-to-control-lcd-panel-power.patch added to -mm tree
-Date: Tue, 01 Dec 2009 14:00:30 -0800
-Message-ID: <200912012200.nB1M0U3l012625@imap1.linux-foundation.org>
+Subject: + davinci-fb-add-framebuffer-blank-operation.patch added to -mm tree
+Date: Tue, 01 Dec 2009 14:00:35 -0800
+Message-ID: <200912012200.nB1M0Z7H012876@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56026 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48690 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753191AbZLAWAe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Dec 2009 17:00:34 -0500
+	by vger.kernel.org with ESMTP id S1753319AbZLAWAg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Dec 2009 17:00:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: chaithrika@ti.com, khilman@deeprootsystems.com, krzysztof.h1@poczta.fm
 
 
 The patch titled
-     da850/omap-l138: add callback to control LCD panel power
+     davinci: fb: add framebuffer blank operation
 has been added to the -mm tree.  Its filename is
-     da850-omap-l138-add-callback-to-control-lcd-panel-power.patch
+     davinci-fb-add-framebuffer-blank-operation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,11 +33,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: da850/omap-l138: add callback to control LCD panel power
+Subject: davinci: fb: add framebuffer blank operation
 From: Chaithrika U S <chaithrika@ti.com>
 
-Add the platform specific callback to control LCD panel and backlight
-power.
+Implement frame buffer blank operation feature for DA8xx/OMAP-L1xx driver.
 
 Signed-off-by: Chaithrika U S <chaithrika@ti.com>
 Cc: Kevin Hilman <khilman@deeprootsystems.com>
@@ -45,58 +44,56 @@ Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-davinci/board-da850-evm.c |   24 ++++++++++++----------
- 1 file changed, 14 insertions(+), 10 deletions(-)
+ drivers/video/da8xx-fb.c |   30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
 
-diff -puN arch/arm/mach-davinci/board-da850-evm.c~da850-omap-l138-add-callback-to-control-lcd-panel-power arch/arm/mach-davinci/board-da850-evm.c
---- a/arch/arm/mach-davinci/board-da850-evm.c~da850-omap-l138-add-callback-to-control-lcd-panel-power
-+++ a/arch/arm/mach-davinci/board-da850-evm.c
-@@ -339,6 +339,15 @@ static struct davinci_mmc_config da850_m
- 	.version	= MMC_CTLR_VERSION_2,
- };
- 
-+static void da850_panel_power_ctrl(int val)
-+{
-+	/* lcd backlight */
-+	gpio_set_value(DA850_LCD_BL_PIN, val);
-+
-+	/* lcd power */
-+	gpio_set_value(DA850_LCD_PWR_PIN, val);
-+}
-+
- static int da850_lcd_hw_init(void)
- {
- 	int status;
-@@ -356,17 +365,11 @@ static int da850_lcd_hw_init(void)
- 	gpio_direction_output(DA850_LCD_BL_PIN, 0);
- 	gpio_direction_output(DA850_LCD_PWR_PIN, 0);
- 
--	/* disable lcd backlight */
--	gpio_set_value(DA850_LCD_BL_PIN, 0);
--
--	/* disable lcd power */
--	gpio_set_value(DA850_LCD_PWR_PIN, 0);
--
--	/* enable lcd power */
--	gpio_set_value(DA850_LCD_PWR_PIN, 1);
-+	/* Switch off panel power and backlight */
-+	da850_panel_power_ctrl(0);
- 
--	/* enable lcd backlight */
--	gpio_set_value(DA850_LCD_BL_PIN, 1);
-+	/* Switch on panel power and backlight */
-+	da850_panel_power_ctrl(1);
- 
+diff -puN drivers/video/da8xx-fb.c~davinci-fb-add-framebuffer-blank-operation drivers/video/da8xx-fb.c
+--- a/drivers/video/da8xx-fb.c~davinci-fb-add-framebuffer-blank-operation
++++ a/drivers/video/da8xx-fb.c
+@@ -702,6 +702,35 @@ static int fb_ioctl(struct fb_info *info
  	return 0;
  }
-@@ -674,6 +677,7 @@ static __init void da850_evm_init(void)
- 		pr_warning("da850_evm_init: lcd initialization failed: %d\n",
- 				ret);
  
-+	sharp_lk043t1dg01_pdata.panel_power_ctrl = da850_panel_power_ctrl,
- 	ret = da8xx_register_lcdc(&sharp_lk043t1dg01_pdata);
- 	if (ret)
- 		pr_warning("da850_evm_init: lcdc registration failed: %d\n",
++static int cfb_blank(int blank, struct fb_info *info)
++{
++	struct da8xx_fb_par *par = info->par;
++	int ret = 0;
++
++	if (par->blank == blank)
++		return 0;
++
++	par->blank = blank;
++	switch (blank) {
++	case FB_BLANK_UNBLANK:
++		if (par->panel_power_ctrl)
++			par->panel_power_ctrl(1);
++
++		lcd_enable_raster();
++		break;
++	case FB_BLANK_POWERDOWN:
++		if (par->panel_power_ctrl)
++			par->panel_power_ctrl(0);
++
++		lcd_disable_raster();
++		break;
++	default:
++		ret = -EINVAL;
++	}
++
++	return ret;
++}
++
+ static struct fb_ops da8xx_fb_ops = {
+ 	.owner = THIS_MODULE,
+ 	.fb_check_var = fb_check_var,
+@@ -710,6 +739,7 @@ static struct fb_ops da8xx_fb_ops = {
+ 	.fb_fillrect = cfb_fillrect,
+ 	.fb_copyarea = cfb_copyarea,
+ 	.fb_imageblit = cfb_imageblit,
++	.fb_blank = cfb_blank,
+ };
+ 
+ static int __init fb_probe(struct platform_device *device)
 _
 
 Patches currently in -mm which might be from chaithrika@ti.com are
