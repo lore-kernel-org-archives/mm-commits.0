@@ -1,117 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mtd-error-return-eio-instead-of-eio.patch removed from -mm tree
-Date: Tue, 01 Dec 2009 12:17:51 -0800
-Message-ID: <200912012017.nB1KHpLR019528@imap1.linux-foundation.org>
+Subject: [merged] mtd-nand-fix-multi-chip-suspend-problem-fix.patch removed from -mm tree
+Date: Tue, 01 Dec 2009 12:17:57 -0800
+Message-ID: <200912012017.nB1KHvM6019811@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38422 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38809 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751957AbZLAURx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Dec 2009 15:17:53 -0500
+	by vger.kernel.org with ESMTP id S1752815AbZLAUSB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Dec 2009 15:18:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, b24347@freescale.com, dedekind1@gmail.com, dwmw2@infradead.org, leoli@freescale.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mtd: error return -EIO instead of EIO
+     mtd-nand-fix-multi-chip-suspend-problem-fix
 has been removed from the -mm tree.  Its filename was
-     mtd-error-return-eio-instead-of-eio.patch
+     mtd-nand-fix-multi-chip-suspend-problem-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd: error return -EIO instead of EIO
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: mtd-nand-fix-multi-chip-suspend-problem-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Return a negative error value instead of a positive
+drivers/mtd/nand/nand_base.c: In function \u2018nand_get_device\u2019:
+drivers/mtd/nand/nand_base.c:700: warning: suggest explicit braces to
+avoid ambiguous \u2018else\u2019
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Artem Bityutskiy <dedekind1@gmail.com>
 Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Jin Qing <b24347@freescale.com>
+Cc: Li Yang <leoli@freescale.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/maps/physmap.c    |    2 +-
- drivers/mtd/maps/vmu-flash.c  |    2 +-
- drivers/mtd/nand/atmel_nand.c |    4 ++--
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/mtd/nand/nand_base.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/mtd/maps/physmap.c~mtd-error-return-eio-instead-of-eio drivers/mtd/maps/physmap.c
---- a/drivers/mtd/maps/physmap.c~mtd-error-return-eio-instead-of-eio
-+++ a/drivers/mtd/maps/physmap.c
-@@ -129,7 +129,7 @@ static int physmap_flash_probe(struct pl
- 						 info->map[i].size);
- 		if (info->map[i].virt == NULL) {
- 			dev_err(&dev->dev, "Failed to ioremap flash region\n");
--			err = EIO;
-+			err = -EIO;
- 			goto err_out;
+diff -puN drivers/mtd/nand/nand_base.c~mtd-nand-fix-multi-chip-suspend-problem-fix drivers/mtd/nand/nand_base.c
+--- a/drivers/mtd/nand/nand_base.c~mtd-nand-fix-multi-chip-suspend-problem-fix
++++ a/drivers/mtd/nand/nand_base.c
+@@ -697,7 +697,7 @@ nand_get_device(struct nand_chip *chip, 
+ 		spin_unlock(lock);
+ 		return 0;
+ 	}
+-	if (new_state == FL_PM_SUSPENDED)
++	if (new_state == FL_PM_SUSPENDED) {
+ 		if (chip->controller->active->state == FL_PM_SUSPENDED) {
+ 			chip->state = FL_PM_SUSPENDED;
+ 			spin_unlock(lock);
+@@ -706,7 +706,7 @@ nand_get_device(struct nand_chip *chip, 
+ 			spin_unlock(lock);
+ 			return -EAGAIN;
  		}
- 
-diff -puN drivers/mtd/maps/vmu-flash.c~mtd-error-return-eio-instead-of-eio drivers/mtd/maps/vmu-flash.c
---- a/drivers/mtd/maps/vmu-flash.c~mtd-error-return-eio-instead-of-eio
-+++ a/drivers/mtd/maps/vmu-flash.c
-@@ -621,7 +621,7 @@ static int __devinit vmu_connect(struct 
- 
- 	card = kmalloc(sizeof(struct memcard), GFP_KERNEL);
- 	if (!card) {
--		error = ENOMEM;
-+		error = -ENOMEM;
- 		goto fail_nomem;
- 	}
- 
-diff -puN drivers/mtd/nand/atmel_nand.c~mtd-error-return-eio-instead-of-eio drivers/mtd/nand/atmel_nand.c
---- a/drivers/mtd/nand/atmel_nand.c~mtd-error-return-eio-instead-of-eio
-+++ a/drivers/mtd/nand/atmel_nand.c
-@@ -463,7 +463,7 @@ static int __init atmel_nand_probe(struc
- 	if (host->board->det_pin) {
- 		if (gpio_get_value(host->board->det_pin)) {
- 			printk(KERN_INFO "No SmartMedia card inserted.\n");
--			res = ENXIO;
-+			res = -ENXIO;
- 			goto err_no_card;
- 		}
- 	}
-@@ -534,7 +534,7 @@ static int __init atmel_nand_probe(struc
- 
- 	if ((!partitions) || (num_partitions == 0)) {
- 		printk(KERN_ERR "atmel_nand: No partitions defined, or unsupported device.\n");
--		res = ENXIO;
-+		res = -ENXIO;
- 		goto err_no_partitions;
- 	}
- 
+-
++	}
+ 	set_current_state(TASK_UNINTERRUPTIBLE);
+ 	add_wait_queue(wq, &wait);
+ 	spin_unlock(lock);
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+drivers-media-dvb-dvb-core-dvb_frontendc-needs-semaphoreh.patch
 linux-next.patch
-fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch
-omap-return-ptr_err-rather-than-is_err.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-imx-bit-confusion.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
-ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
-scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
-r8192u_core-test-for-negative-error-in-rtl8192_rx_isr.patch
+include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
+linux-next-git-rejects-git-rejects.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+acpi-remove-nid_inval.patch
+drivers-acpi-acpi_padc-squish-warning.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices-checkpatch-fixes.patch
+drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+kbuild-generate-modulesbuiltin-fix-2-checkpatch-fixes.patch
+drivers-leds-leds-ss4200c-fix-return-statement.patch
+3x59x-fix-pci-resource-management.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
+scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
+aoe-switch-to-the-new-bio_flush_dcache_pages-interface.patch
 wusb-use-sizeof-struct-rather-than-pointer.patch
-page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
-frv-duplicate-output_buffer-of-e03.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+fs-improve-remountro-vs-buffercache-coherency.patch
+percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+readahead-add-blk_run_backing_dev.patch
+mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
+oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
+oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes.patch
+mm-mlocking-in-try_to_unmap_one-fix-fix.patch
+mm-memory_hotplug-make-offline_pages-static.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-cryptocop-fix-assertion-in-create_output_descriptors.patch
-gpio-fix-test-on-unsigned-in-lnw_irq_type.patch
-fbdev-tv_paln-bit-set-twice-in-sisfb_detect_vb_connect.patch
-hvc_console-fix-test-on-unsigned-in-hvc_console_print.patch
-zlib-optimize-inffast-when-copying-direct-from-output.patch
+procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup.patch
+floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
+drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
+rwsem-fix-rwsem_is_locked-bugs-fix.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
+errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
+msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes.patch
+blackfin-sd-host-controller-driver-fix.patch
+blackfin-sd-host-controller-driver-fix-fix.patch
+crc32-minor-optimizations-and-cleanup-checkpatch-fixes.patch
+hwmon-w83627ehf-updates-checkpatch-fixes.patch
+spi-controller-driver-for-designware-spi-core-fix.patch
+spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
+drivers-gpio-pca953xc-add-interrupt-handling-capability-fix.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3.patch
+ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
+memcg-coalesce-charging-via-percpu-storage-fix.patch
+char-cyclades-fix-compiler-warning.patch
+aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
+direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
+drivers-media-video-cx23885-needs-kfifo-conversion.patch
+drivers-media-video-cx23885-needs-kfifo-updates.patch
+zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes.patch
+lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes.patch
+lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+reiser4-disable.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
