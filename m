@@ -1,190 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fbdev-migrate-mailing-lists-to-vger.patch removed from -mm tree
-Date: Tue, 01 Dec 2009 12:17:43 -0800
-Message-ID: <200912012017.nB1KHh5O019239@imap1.linux-foundation.org>
+Subject: [merged] drm-make-sure-page-protections-are-updated-after-changing-vm_flags.patch removed from -mm tree
+Date: Tue, 01 Dec 2009 12:17:47 -0800
+Message-ID: <200912012017.nB1KHlZC019411@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44705 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56707 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753190AbZLAUSH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Dec 2009 15:18:07 -0500
+	by vger.kernel.org with ESMTP id S1752912AbZLAUSM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Dec 2009 15:18:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geert@linux-m68k.org, khali@linux-fr.org, mm-commits@vger.kernel.org
+To: jeremy@goop.org, JBeulich@novell.com, airlied@linux.ie, jeremy.fitzhardinge@citrix.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fbdev: migrate mailing lists to vger
+     drm: make sure page protections are updated after changing vm_flags
 has been removed from the -mm tree.  Its filename was
-     fbdev-migrate-mailing-lists-to-vger.patch
+     drm-make-sure-page-protections-are-updated-after-changing-vm_flags.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev: migrate mailing lists to vger
-From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: drm: make sure page protections are updated after changing vm_flags
+From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-The fbdev mailing lists at SourceForge have been migrated to a single
-mailing list at kernel.org: linux-fbdev@vger.kernel.org.
+Some architectures compute ->vm_page_prot depending on ->vm_flags, so we
+need to update the protections after adjusting the flags.
 
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+AFAIK this only affects running X under Xen; without this patch you get
+lots of coloured blobs on the screen, or maybe a complete lockup.  Or
+anything really.
+
+But that still depends on lots of out-of-tree stuff, so I don't think
+there are any consequences for anyone else.  But it is wrong in principle.
+
+Reported-by: Jan Beulich <JBeulich@novell.com>
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/fb/framebuffer.txt |    6 ++----
- MAINTAINERS                      |   28 ++++++++++++++--------------
- 2 files changed, 16 insertions(+), 18 deletions(-)
+ drivers/gpu/drm/drm_gem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/fb/framebuffer.txt~fbdev-migrate-mailing-lists-to-vger Documentation/fb/framebuffer.txt
---- a/Documentation/fb/framebuffer.txt~fbdev-migrate-mailing-lists-to-vger
-+++ a/Documentation/fb/framebuffer.txt
-@@ -312,10 +312,8 @@ and to the following documentation:
- 8. Mailing list
- ---------------
+diff -puN drivers/gpu/drm/drm_gem.c~drm-make-sure-page-protections-are-updated-after-changing-vm_flags drivers/gpu/drm/drm_gem.c
+--- a/drivers/gpu/drm/drm_gem.c~drm-make-sure-page-protections-are-updated-after-changing-vm_flags
++++ a/drivers/gpu/drm/drm_gem.c
+@@ -552,7 +552,7 @@ int drm_gem_mmap(struct file *filp, stru
+ 	vma->vm_flags |= VM_RESERVED | VM_IO | VM_PFNMAP | VM_DONTEXPAND;
+ 	vma->vm_ops = obj->dev->driver->gem_vm_ops;
+ 	vma->vm_private_data = map->handle;
+-	vma->vm_page_prot = pgprot_writecombine(vma->vm_page_prot);
++	vma->vm_page_prot =  pgprot_writecombine(vm_get_page_prot(vma->vm_flags));
  
--There are several frame buffer device related mailing lists at SourceForge:
--  - linux-fbdev-announce@lists.sourceforge.net, for announcements,
--  - linux-fbdev-user@lists.sourceforge.net, for generic user support,
--  - linux-fbdev-devel@lists.sourceforge.net, for project developers.
-+There is a frame buffer device related mailing list at kernel.org:
-+linux-fbdev@vger.kernel.org.
- 
- Point your web browser to http://sourceforge.net/projects/linux-fbdev/ for
- subscription information and archive browsing.
-diff -puN MAINTAINERS~fbdev-migrate-mailing-lists-to-vger MAINTAINERS
---- a/MAINTAINERS~fbdev-migrate-mailing-lists-to-vger
-+++ a/MAINTAINERS
-@@ -1040,7 +1040,7 @@ F:	drivers/serial/atmel_serial.c
- 
- ATMEL LCDFB DRIVER
- M:	Nicolas Ferre <nicolas.ferre@atmel.com>
--L:	linux-fbdev-devel@lists.sourceforge.net (moderated for non-subscribers)
-+L:	linux-fbdev@vger.kernel.org
- S:	Maintained
- F:	drivers/video/atmel_lcdfb.c
- F:	include/video/atmel_lcdc.h
-@@ -2153,7 +2153,7 @@ F:	drivers/net/wan/dlci.c
- F:	drivers/net/wan/sdla.c
- 
- FRAMEBUFFER LAYER
--L:	linux-fbdev-devel@lists.sourceforge.net (moderated for non-subscribers)
-+L:	linux-fbdev@vger.kernel.org
- W:	http://linux-fbdev.sourceforge.net/
- S:	Orphan
- F:	Documentation/fb/
-@@ -2176,7 +2176,7 @@ F:	drivers/i2c/busses/i2c-cpm.c
- 
- FREESCALE IMX / MXC FRAMEBUFFER DRIVER
- M:	Sascha Hauer <kernel@pengutronix.de>
--L:	linux-fbdev-devel@lists.sourceforge.net (moderated for non-subscribers)
-+L:	linux-fbdev@vger.kernel.org
- L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
- S:	Maintained
- F:	arch/arm/plat-mxc/include/mach/imxfb.h
-@@ -2684,7 +2684,7 @@ S:	Supported
- F:	security/integrity/ima/
- 
- IMS TWINTURBO FRAMEBUFFER DRIVER
--L:	linux-fbdev-devel@lists.sourceforge.net (moderated for non-subscribers)
-+L:	linux-fbdev@vger.kernel.org
- S:	Orphan
- F:	drivers/video/imsttfb.c
- 
-@@ -2719,14 +2719,14 @@ F:	drivers/input/
- 
- INTEL FRAMEBUFFER DRIVER (excluding 810 and 815)
- M:	Sylvain Meyer <sylvain.meyer@worldonline.fr>
--L:	linux-fbdev-devel@lists.sourceforge.net (moderated for non-subscribers)
-+L:	linux-fbdev@vger.kernel.org
- S:	Maintained
- F:	Documentation/fb/intelfb.txt
- F:	drivers/video/intelfb/
- 
- INTEL 810/815 FRAMEBUFFER DRIVER
- M:	Antonino Daplas <adaplas@gmail.com>
--L:	linux-fbdev-devel@lists.sourceforge.net (moderated for non-subscribers)
-+L:	linux-fbdev@vger.kernel.org
- S:	Maintained
- F:	drivers/video/i810/
- 
-@@ -3453,7 +3453,7 @@ S:	Supported
- 
- MATROX FRAMEBUFFER DRIVER
- M:	Petr Vandrovec <vandrove@vc.cvut.cz>
--L:	linux-fbdev-devel@lists.sourceforge.net (moderated for non-subscribers)
-+L:	linux-fbdev@vger.kernel.org
- S:	Maintained
- F:	drivers/video/matrox/matroxfb_*
- F:	include/linux/matroxfb.h
-@@ -3840,7 +3840,7 @@ F:	fs/ntfs/
- 
- NVIDIA (rivafb and nvidiafb) FRAMEBUFFER DRIVER
- M:	Antonino Daplas <adaplas@gmail.com>
--L:	linux-fbdev-devel@lists.sourceforge.net (moderated for non-subscribers)
-+L:	linux-fbdev@vger.kernel.org
- S:	Maintained
- F:	drivers/video/riva/
- F:	drivers/video/nvidia/
-@@ -3875,7 +3875,7 @@ F:	sound/soc/omap/
- 
- OMAP FRAMEBUFFER SUPPORT
- M:	Imre Deak <imre.deak@nokia.com>
--L:	linux-fbdev-devel@lists.sourceforge.net (moderated for non-subscribers)
-+L:	linux-fbdev@vger.kernel.org
- L:	linux-omap@vger.kernel.org
- S:	Maintained
- F:	drivers/video/omap/
-@@ -4405,14 +4405,14 @@ F:	include/linux/qnxtypes.h
- 
- RADEON FRAMEBUFFER DISPLAY DRIVER
- M:	Benjamin Herrenschmidt <benh@kernel.crashing.org>
--L:	linux-fbdev-devel@lists.sourceforge.net (moderated for non-subscribers)
-+L:	linux-fbdev@vger.kernel.org
- S:	Maintained
- F:	drivers/video/aty/radeon*
- F:	include/linux/radeonfb.h
- 
- RAGE128 FRAMEBUFFER DISPLAY DRIVER
- M:	Paul Mackerras <paulus@samba.org>
--L:	linux-fbdev-devel@lists.sourceforge.net (moderated for non-subscribers)
-+L:	linux-fbdev@vger.kernel.org
- S:	Maintained
- F:	drivers/video/aty/aty128fb.c
- 
-@@ -4551,7 +4551,7 @@ F:	drivers/net/wireless/rtl818x/rtl8187*
- 
- S3 SAVAGE FRAMEBUFFER DRIVER
- M:	Antonino Daplas <adaplas@gmail.com>
--L:	linux-fbdev-devel@lists.sourceforge.net (moderated for non-subscribers)
-+L:	linux-fbdev@vger.kernel.org
- S:	Maintained
- F:	drivers/video/savage/
- 
-@@ -5722,7 +5722,7 @@ S:	Maintained
- 
- UVESAFB DRIVER
- M:	Michal Januszewski <spock@gentoo.org>
--L:	linux-fbdev-devel@lists.sourceforge.net (moderated for non-subscribers)
-+L:	linux-fbdev@vger.kernel.org
- W:	http://dev.gentoo.org/~spock/projects/uvesafb/
- S:	Maintained
- F:	Documentation/fb/uvesafb.txt
-@@ -5777,7 +5777,7 @@ F:	drivers/mmc/host/via-sdmmc.c
- VIA UNICHROME(PRO)/CHROME9 FRAMEBUFFER DRIVER
- M:	Joseph Chan <JosephChan@via.com.tw>
- M:	Scott Fang <ScottFang@viatech.com.cn>
--L:	linux-fbdev-devel@lists.sourceforge.net (moderated for non-subscribers)
-+L:	linux-fbdev@vger.kernel.org
- S:	Maintained
- F:	drivers/video/via/
- 
+ 	/* Take a ref for this mapping of the object, so that the fault
+ 	 * handler can dereference the mmap offset's pointer to the object.
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from jeremy@goop.org are
 
 origin.patch
 linux-next.patch
-vt-make-the-default-cursor-shape-configurable.patch
 
