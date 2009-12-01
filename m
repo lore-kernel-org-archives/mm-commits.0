@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + arm-convert-proc-cpu-aligment-to-seq_file-fix.patch added to -mm tree
-Date: Tue, 01 Dec 2009 15:16:51 -0800
-Message-ID: <200912012316.nB1NGp6C005688@imap1.linux-foundation.org>
+Subject: + reiser4-some-changes-from-reiser4-2631-patch.patch added to -mm tree
+Date: Tue, 01 Dec 2009 15:54:01 -0800
+Message-ID: <200912012354.nB1Ns1Jq032144@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36901 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57315 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753016AbZLAXQ7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Dec 2009 18:16:59 -0500
+	by vger.kernel.org with ESMTP id S1754139AbZLAXy2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Dec 2009 18:54:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com, rmk@arm.linux.org.uk
+Cc: buchner.johannes@gmx.at, edward.shishkin@gmail.com
 
 
 The patch titled
-     arm-convert-proc-cpu-aligment-to-seq_file-fix
+     reiser4: some changes from reiser4-2.6.31 patch
 has been added to the -mm tree.  Its filename is
-     arm-convert-proc-cpu-aligment-to-seq_file-fix.patch
+     reiser4-some-changes-from-reiser4-2631-patch.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,61 +33,85 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arm-convert-proc-cpu-aligment-to-seq_file-fix
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: reiser4: some changes from reiser4-2.6.31 patch
+From: Johannes Buchner <buchner.johannes@gmx.at>
 
-Fix compilation on some arm defconfigs due to THIS_MODULE by removing
-line.
+> from
+> http://www.kernel.org/pub/linux/kernel/people/edward/reiser4/reiser4-for-2.6/
+I'm sorry, I did not see half of this is already covered by
+vfs-take-2add-set_page_dirty_notag.patch. With that part removed,
+this patch is only cosmetics now.
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Edward Shishkin <edward.shishkin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mm/alignment.c |    1 -
- 1 file changed, 1 deletion(-)
+ fs/reiser4/carry.c     |    2 +-
+ fs/reiser4/carry_ops.c |    2 +-
+ fs/reiser4/znode.h     |    1 -
+ mm/filemap.c           |    2 +-
+ 4 files changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN arch/arm/mm/alignment.c~arm-convert-proc-cpu-aligment-to-seq_file-fix arch/arm/mm/alignment.c
---- a/arch/arm/mm/alignment.c~arm-convert-proc-cpu-aligment-to-seq_file-fix
-+++ a/arch/arm/mm/alignment.c
-@@ -128,7 +128,6 @@ static ssize_t alignment_proc_write(stru
- }
+diff -puN fs/reiser4/carry.c~reiser4-some-changes-from-reiser4-2631-patch fs/reiser4/carry.c
+--- a/fs/reiser4/carry.c~reiser4-some-changes-from-reiser4-2631-patch
++++ a/fs/reiser4/carry.c
+@@ -1095,7 +1095,7 @@ static void fatal_carry_error(carry_leve
+  *
+  * This function itself only manages changes in carry structures and delegates
+  * all hard work (allocation of znode for new root, changes of parent and
+- * sibling pointers to the reiser4_add_tree_root().
++ * sibling pointers) to the reiser4_add_tree_root().
+  *
+  * Locking: old tree root is locked by carry at this point. Fake znode is also
+  * locked.
+diff -puN fs/reiser4/carry_ops.c~reiser4-some-changes-from-reiser4-2631-patch fs/reiser4/carry_ops.c
+--- a/fs/reiser4/carry_ops.c~reiser4-some-changes-from-reiser4-2631-patch
++++ a/fs/reiser4/carry_ops.c
+@@ -2015,7 +2015,7 @@ static int carry_estimate_bitmaps(void)
+ 		int bytes;
  
- static const struct file_operations alignment_proc_fops = {
--	.owner		= THIS_MODULE,
- 	.open		= alignment_proc_open,
- 	.read		= seq_read,
- 	.llseek		= seq_lseek,
+ 		bytes = capped_height() * (0 +	/* bnode should be added, but
+-						 * its is private to bitmap.c,
++						 * it is private to bitmap.c,
+ 						 * skip for now. */
+ 					   2 * sizeof(jnode));
+ 						/* working and commit jnodes */
+diff -puN fs/reiser4/znode.h~reiser4-some-changes-from-reiser4-2631-patch fs/reiser4/znode.h
+--- a/fs/reiser4/znode.h~reiser4-some-changes-from-reiser4-2631-patch
++++ a/fs/reiser4/znode.h
+@@ -18,7 +18,6 @@
+ 
+ #include <linux/types.h>
+ #include <linux/spinlock.h>
+-#include <linux/semaphore.h>
+ #include <linux/pagemap.h>	/* for PAGE_CACHE_SIZE */
+ #include <asm/atomic.h>
+ 
+diff -puN mm/filemap.c~reiser4-some-changes-from-reiser4-2631-patch mm/filemap.c
+--- a/mm/filemap.c~reiser4-some-changes-from-reiser4-2631-patch
++++ a/mm/filemap.c
+@@ -779,7 +779,6 @@ repeat:
+ 	rcu_read_unlock();
+ 	return ret;
+ }
+-EXPORT_SYMBOL(find_get_pages);
+ 
+ /**
+  * find_get_pages_contig - gang contiguous pagecache lookup
+@@ -949,6 +948,7 @@ static void shrink_readahead_size_eio(st
+ {
+ 	ra->ra_pages /= 4;
+ }
++EXPORT_SYMBOL(find_get_pages);
+ 
+ /**
+  * do_generic_file_read - generic file read routine
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from buchner.johannes@gmx.at are
 
-linux-next.patch
-thinkpad_acpi-convert-to-seq_file.patch
-asus_acpi-convert-to-seq_file.patch
-toshiba_acpi-convert-to-seq_file.patch
-arm-convert-proc-cpu-aligment-to-seq_file.patch
-arm-convert-proc-cpu-aligment-to-seq_file-fix.patch
-iseries-convert-to-proc_fops.patch
-via-pmu-convert-to-proc_fops-seq_file.patch
-proc_fops-convert-av7110.patch
-proc_fops-convert-cpia.patch
-proc_fops-convert-drivers-isdn-to-seq_file.patch
-proc_fops-convert-drivers-isdn-to-seq_file-fix.patch
-parisc-convert-proc-pdc-lcdled-to-seq_file.patch
-mpt-fusion-convert-to-seq_file.patch
-alpha-convert-srm-code-to-seq_file.patch
-const-constify-remaining-dev_pm_ops.patch
-uml-convert-to-seq_file-proc_fops.patch
-uml-irq-register-race-condition.patch
-make-debug_bugverbose-default-to-y.patch
-proc-rename-de_get-to-pde_get-and-inline-it.patch
-clps711xfb-convert-to-proc_fops.patch
-pnpbios-convert-to-seq_file.patch
-const-constify-remaining-pipe_buf_operations.patch
-ufs-pass-qstr-instead-of-dentry-where-necessary-for-nfs.patch
-ufs-nfs-support.patch
-reiserfs-remove-proc-fs-reiserfs-version.patch
-reiserfs-dont-compile-procfso-at-all-if-no-support.patch
-proc-remove-docbook-and-example.patch
+reiser4-some-changes-from-reiser4-2631-patch.patch
+reiser4-some-comments-were-still-mentioning-pdflush.patch
+reiser4-generic_sync_sb_inodes-doesnt-exist-anymore.patch
+reiser4-fixed-null-pointer-dereference.patch
 
