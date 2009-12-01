@@ -1,34 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + __builtin_object_size-unavailable-on-gcc-402.patch added to -mm tree
-Date: Tue, 01 Dec 2009 12:13:02 -0800
-Message-ID: <200912012013.nB1KD2gQ007697@imap1.linux-foundation.org>
+Subject: [obsolete] __builtin_object_size-unavailable-on-gcc-402.patch removed from -mm tree
+Date: Tue, 01 Dec 2009 12:15:09 -0800
+Message-ID: <200912012015.nB1KFAll012923@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33503 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51889 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753211AbZLAUNh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Dec 2009 15:13:37 -0500
+	by vger.kernel.org with ESMTP id S1752513AbZLAUPs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Dec 2009 15:15:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, arjan@linux.intel.com, mingo@elte.hu
+To: akpm@linux-foundation.org, arjan@linux.intel.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
      __builtin_object_size unavailable on gcc-4.0.2
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      __builtin_object_size-unavailable-on-gcc-402.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -72,12 +62,12 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 drivers-media-dvb-dvb-core-dvb_frontendc-needs-semaphoreh.patch
 linux-next.patch
+include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
 linux-next-git-rejects-git-rejects.patch
 __builtin_object_size-unavailable-on-gcc-402.patch
 linux-next-git-rejects.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
-include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
 drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
 arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
 acpi-remove-nid_inval.patch
