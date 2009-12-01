@@ -1,82 +1,190 @@
 From: akpm@linux-foundation.org
-Subject: [merged] jffs2-fix-min-max-confusion.patch removed from -mm tree
-Date: Tue, 01 Dec 2009 12:18:00 -0800
-Message-ID: <200912012018.nB1KI01h019935@imap1.linux-foundation.org>
+Subject: [merged] fbdev-migrate-mailing-lists-to-vger.patch removed from -mm tree
+Date: Tue, 01 Dec 2009 12:17:43 -0800
+Message-ID: <200912012017.nB1KHh5O019239@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55554 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44705 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753398AbZLAUSC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Dec 2009 15:18:02 -0500
+	by vger.kernel.org with ESMTP id S1753190AbZLAUSH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Dec 2009 15:18:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: geert@linux-m68k.org, khali@linux-fr.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     jffs2: fix min/max confusion
+     fbdev: migrate mailing lists to vger
 has been removed from the -mm tree.  Its filename was
-     jffs2-fix-min-max-confusion.patch
+     fbdev-migrate-mailing-lists-to-vger.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: jffs2: fix min/max confusion
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: fbdev: migrate mailing lists to vger
+From: Geert Uytterhoeven <geert@linux-m68k.org>
 
-MAX_SUMMARY_SIZE was meant as a limit, not as a minimum.
+The fbdev mailing lists at SourceForge have been migrated to a single
+mailing list at kernel.org: linux-fbdev@vger.kernel.org.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jffs2/summary.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/fb/framebuffer.txt |    6 ++----
+ MAINTAINERS                      |   28 ++++++++++++++--------------
+ 2 files changed, 16 insertions(+), 18 deletions(-)
 
-diff -puN fs/jffs2/summary.c~jffs2-fix-min-max-confusion fs/jffs2/summary.c
---- a/fs/jffs2/summary.c~jffs2-fix-min-max-confusion
-+++ a/fs/jffs2/summary.c
-@@ -23,7 +23,7 @@
+diff -puN Documentation/fb/framebuffer.txt~fbdev-migrate-mailing-lists-to-vger Documentation/fb/framebuffer.txt
+--- a/Documentation/fb/framebuffer.txt~fbdev-migrate-mailing-lists-to-vger
++++ a/Documentation/fb/framebuffer.txt
+@@ -312,10 +312,8 @@ and to the following documentation:
+ 8. Mailing list
+ ---------------
  
- int jffs2_sum_init(struct jffs2_sb_info *c)
- {
--	uint32_t sum_size = max_t(uint32_t, c->sector_size, MAX_SUMMARY_SIZE);
-+	uint32_t sum_size = min_t(uint32_t, c->sector_size, MAX_SUMMARY_SIZE);
+-There are several frame buffer device related mailing lists at SourceForge:
+-  - linux-fbdev-announce@lists.sourceforge.net, for announcements,
+-  - linux-fbdev-user@lists.sourceforge.net, for generic user support,
+-  - linux-fbdev-devel@lists.sourceforge.net, for project developers.
++There is a frame buffer device related mailing list at kernel.org:
++linux-fbdev@vger.kernel.org.
  
- 	c->summary = kzalloc(sizeof(struct jffs2_summary), GFP_KERNEL);
+ Point your web browser to http://sourceforge.net/projects/linux-fbdev/ for
+ subscription information and archive browsing.
+diff -puN MAINTAINERS~fbdev-migrate-mailing-lists-to-vger MAINTAINERS
+--- a/MAINTAINERS~fbdev-migrate-mailing-lists-to-vger
++++ a/MAINTAINERS
+@@ -1040,7 +1040,7 @@ F:	drivers/serial/atmel_serial.c
+ 
+ ATMEL LCDFB DRIVER
+ M:	Nicolas Ferre <nicolas.ferre@atmel.com>
+-L:	linux-fbdev-devel@lists.sourceforge.net (moderated for non-subscribers)
++L:	linux-fbdev@vger.kernel.org
+ S:	Maintained
+ F:	drivers/video/atmel_lcdfb.c
+ F:	include/video/atmel_lcdc.h
+@@ -2153,7 +2153,7 @@ F:	drivers/net/wan/dlci.c
+ F:	drivers/net/wan/sdla.c
+ 
+ FRAMEBUFFER LAYER
+-L:	linux-fbdev-devel@lists.sourceforge.net (moderated for non-subscribers)
++L:	linux-fbdev@vger.kernel.org
+ W:	http://linux-fbdev.sourceforge.net/
+ S:	Orphan
+ F:	Documentation/fb/
+@@ -2176,7 +2176,7 @@ F:	drivers/i2c/busses/i2c-cpm.c
+ 
+ FREESCALE IMX / MXC FRAMEBUFFER DRIVER
+ M:	Sascha Hauer <kernel@pengutronix.de>
+-L:	linux-fbdev-devel@lists.sourceforge.net (moderated for non-subscribers)
++L:	linux-fbdev@vger.kernel.org
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+ S:	Maintained
+ F:	arch/arm/plat-mxc/include/mach/imxfb.h
+@@ -2684,7 +2684,7 @@ S:	Supported
+ F:	security/integrity/ima/
+ 
+ IMS TWINTURBO FRAMEBUFFER DRIVER
+-L:	linux-fbdev-devel@lists.sourceforge.net (moderated for non-subscribers)
++L:	linux-fbdev@vger.kernel.org
+ S:	Orphan
+ F:	drivers/video/imsttfb.c
+ 
+@@ -2719,14 +2719,14 @@ F:	drivers/input/
+ 
+ INTEL FRAMEBUFFER DRIVER (excluding 810 and 815)
+ M:	Sylvain Meyer <sylvain.meyer@worldonline.fr>
+-L:	linux-fbdev-devel@lists.sourceforge.net (moderated for non-subscribers)
++L:	linux-fbdev@vger.kernel.org
+ S:	Maintained
+ F:	Documentation/fb/intelfb.txt
+ F:	drivers/video/intelfb/
+ 
+ INTEL 810/815 FRAMEBUFFER DRIVER
+ M:	Antonino Daplas <adaplas@gmail.com>
+-L:	linux-fbdev-devel@lists.sourceforge.net (moderated for non-subscribers)
++L:	linux-fbdev@vger.kernel.org
+ S:	Maintained
+ F:	drivers/video/i810/
+ 
+@@ -3453,7 +3453,7 @@ S:	Supported
+ 
+ MATROX FRAMEBUFFER DRIVER
+ M:	Petr Vandrovec <vandrove@vc.cvut.cz>
+-L:	linux-fbdev-devel@lists.sourceforge.net (moderated for non-subscribers)
++L:	linux-fbdev@vger.kernel.org
+ S:	Maintained
+ F:	drivers/video/matrox/matroxfb_*
+ F:	include/linux/matroxfb.h
+@@ -3840,7 +3840,7 @@ F:	fs/ntfs/
+ 
+ NVIDIA (rivafb and nvidiafb) FRAMEBUFFER DRIVER
+ M:	Antonino Daplas <adaplas@gmail.com>
+-L:	linux-fbdev-devel@lists.sourceforge.net (moderated for non-subscribers)
++L:	linux-fbdev@vger.kernel.org
+ S:	Maintained
+ F:	drivers/video/riva/
+ F:	drivers/video/nvidia/
+@@ -3875,7 +3875,7 @@ F:	sound/soc/omap/
+ 
+ OMAP FRAMEBUFFER SUPPORT
+ M:	Imre Deak <imre.deak@nokia.com>
+-L:	linux-fbdev-devel@lists.sourceforge.net (moderated for non-subscribers)
++L:	linux-fbdev@vger.kernel.org
+ L:	linux-omap@vger.kernel.org
+ S:	Maintained
+ F:	drivers/video/omap/
+@@ -4405,14 +4405,14 @@ F:	include/linux/qnxtypes.h
+ 
+ RADEON FRAMEBUFFER DISPLAY DRIVER
+ M:	Benjamin Herrenschmidt <benh@kernel.crashing.org>
+-L:	linux-fbdev-devel@lists.sourceforge.net (moderated for non-subscribers)
++L:	linux-fbdev@vger.kernel.org
+ S:	Maintained
+ F:	drivers/video/aty/radeon*
+ F:	include/linux/radeonfb.h
+ 
+ RAGE128 FRAMEBUFFER DISPLAY DRIVER
+ M:	Paul Mackerras <paulus@samba.org>
+-L:	linux-fbdev-devel@lists.sourceforge.net (moderated for non-subscribers)
++L:	linux-fbdev@vger.kernel.org
+ S:	Maintained
+ F:	drivers/video/aty/aty128fb.c
+ 
+@@ -4551,7 +4551,7 @@ F:	drivers/net/wireless/rtl818x/rtl8187*
+ 
+ S3 SAVAGE FRAMEBUFFER DRIVER
+ M:	Antonino Daplas <adaplas@gmail.com>
+-L:	linux-fbdev-devel@lists.sourceforge.net (moderated for non-subscribers)
++L:	linux-fbdev@vger.kernel.org
+ S:	Maintained
+ F:	drivers/video/savage/
+ 
+@@ -5722,7 +5722,7 @@ S:	Maintained
+ 
+ UVESAFB DRIVER
+ M:	Michal Januszewski <spock@gentoo.org>
+-L:	linux-fbdev-devel@lists.sourceforge.net (moderated for non-subscribers)
++L:	linux-fbdev@vger.kernel.org
+ W:	http://dev.gentoo.org/~spock/projects/uvesafb/
+ S:	Maintained
+ F:	Documentation/fb/uvesafb.txt
+@@ -5777,7 +5777,7 @@ F:	drivers/mmc/host/via-sdmmc.c
+ VIA UNICHROME(PRO)/CHROME9 FRAMEBUFFER DRIVER
+ M:	Joseph Chan <JosephChan@via.com.tw>
+ M:	Scott Fang <ScottFang@viatech.com.cn>
+-L:	linux-fbdev-devel@lists.sourceforge.net (moderated for non-subscribers)
++L:	linux-fbdev@vger.kernel.org
+ S:	Maintained
+ F:	drivers/video/via/
  
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
 origin.patch
 linux-next.patch
-fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch
-omap-return-ptr_err-rather-than-is_err.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-imx-bit-confusion.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
-ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
-scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
-r8192u_core-test-for-negative-error-in-rtl8192_rx_isr.patch
-wusb-use-sizeof-struct-rather-than-pointer.patch
-page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-cryptocop-fix-assertion-in-create_output_descriptors.patch
-gpio-fix-test-on-unsigned-in-lnw_irq_type.patch
-fbdev-tv_paln-bit-set-twice-in-sisfb_detect_vb_connect.patch
-hvc_console-fix-test-on-unsigned-in-hvc_console_print.patch
-zlib-optimize-inffast-when-copying-direct-from-output.patch
+vt-make-the-default-cursor-shape-configurable.patch
 
