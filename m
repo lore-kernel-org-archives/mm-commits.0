@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + iseries-convert-to-proc_fops.patch added to -mm tree
-Date: Tue, 01 Dec 2009 14:05:35 -0800
-Message-ID: <200912012205.nB1M5Z3n025210@imap1.linux-foundation.org>
+Subject: + via-pmu-convert-to-proc_fops-seq_file.patch added to -mm tree
+Date: Tue, 01 Dec 2009 14:05:42 -0800
+Message-ID: <200912012205.nB1M5gMK025471@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48694 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48730 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753191AbZLAWGH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Dec 2009 17:06:07 -0500
+	by vger.kernel.org with ESMTP id S1753319AbZLAWGL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Dec 2009 17:06:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com, benh@kernel.crashing.org, michael@ellerman.id.au
+Cc: adobriyan@gmail.com, benh@kernel.crashing.org, galak@kernel.crashing.org, grant.likely@secretlab.ca, paulus@samba.org
 
 
 The patch titled
-     iseries: convert to proc_fops
+     via-pmu: convert to proc_fops/seq_file
 has been added to the -mm tree.  Its filename is
-     iseries-convert-to-proc_fops.patch
+     via-pmu-convert-to-proc_fops-seq_file.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,272 +33,255 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: iseries: convert to proc_fops
+Subject: via-pmu: convert to proc_fops/seq_file
 From: Alexey Dobriyan <adobriyan@gmail.com>
 
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Michael Ellerman <michael@ellerman.id.au>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Kumar Gala <galak@kernel.crashing.org>
+Cc: Grant Likely <grant.likely@secretlab.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/iseries/mf.c |  147 ++++++++++++++------------
- 1 file changed, 83 insertions(+), 64 deletions(-)
+ drivers/macintosh/via-pmu.c |  160 +++++++++++++++++++---------------
+ 1 file changed, 91 insertions(+), 69 deletions(-)
 
-diff -puN arch/powerpc/platforms/iseries/mf.c~iseries-convert-to-proc_fops arch/powerpc/platforms/iseries/mf.c
---- a/arch/powerpc/platforms/iseries/mf.c~iseries-convert-to-proc_fops
-+++ a/arch/powerpc/platforms/iseries/mf.c
-@@ -855,59 +855,58 @@ static int mf_get_boot_rtc(struct rtc_ti
- }
+diff -puN drivers/macintosh/via-pmu.c~via-pmu-convert-to-proc_fops-seq_file drivers/macintosh/via-pmu.c
+--- a/drivers/macintosh/via-pmu.c~via-pmu-convert-to-proc_fops-seq_file
++++ a/drivers/macintosh/via-pmu.c
+@@ -36,6 +36,7 @@
+ #include <linux/spinlock.h>
+ #include <linux/pm.h>
+ #include <linux/proc_fs.h>
++#include <linux/seq_file.h>
+ #include <linux/init.h>
+ #include <linux/interrupt.h>
+ #include <linux/device.h>
+@@ -186,17 +187,11 @@ static int init_pmu(void);
+ static void pmu_start(void);
+ static irqreturn_t via_pmu_interrupt(int irq, void *arg);
+ static irqreturn_t gpio1_interrupt(int irq, void *arg);
+-static int proc_get_info(char *page, char **start, off_t off,
+-			  int count, int *eof, void *data);
+-static int proc_get_irqstats(char *page, char **start, off_t off,
+-			  int count, int *eof, void *data);
++static const struct file_operations pmu_info_proc_fops;
++static const struct file_operations pmu_irqstats_proc_fops;
+ static void pmu_pass_intr(unsigned char *data, int len);
+-static int proc_get_batt(char *page, char **start, off_t off,
+-			int count, int *eof, void *data);
+-static int proc_read_options(char *page, char **start, off_t off,
+-			int count, int *eof, void *data);
+-static int proc_write_options(struct file *file, const char __user *buffer,
+-			unsigned long count, void *data);
++static const struct file_operations pmu_battery_proc_fops;
++static const struct file_operations pmu_options_proc_fops;
  
- #ifdef CONFIG_PROC_FS
--
--static int proc_mf_dump_cmdline(char *page, char **start, off_t off,
--		int count, int *eof, void *data)
-+static int mf_cmdline_proc_show(struct seq_file *m, void *v)
- {
--	int len;
--	char *p;
-+	char *page, *p;
- 	struct vsp_cmd_data vsp_cmd;
- 	int rc;
- 	dma_addr_t dma_addr;
- 
- 	/* The HV appears to return no more than 256 bytes of command line */
--	if (off >= 256)
--		return 0;
--	if ((off + count) > 256)
--		count = 256 - off;
-+	page = kmalloc(256, GFP_KERNEL);
-+	if (!page)
-+		return -ENOMEM;
- 
--	dma_addr = iseries_hv_map(page, off + count, DMA_FROM_DEVICE);
--	if (dma_addr == DMA_ERROR_CODE)
-+	dma_addr = iseries_hv_map(page, 256, DMA_FROM_DEVICE);
-+	if (dma_addr == DMA_ERROR_CODE) {
-+		kfree(page);
- 		return -ENOMEM;
--	memset(page, 0, off + count);
-+	}
-+	memset(page, 0, 256);
- 	memset(&vsp_cmd, 0, sizeof(vsp_cmd));
- 	vsp_cmd.cmd = 33;
- 	vsp_cmd.sub_data.kern.token = dma_addr;
- 	vsp_cmd.sub_data.kern.address_type = HvLpDma_AddressType_TceIndex;
--	vsp_cmd.sub_data.kern.side = (u64)data;
--	vsp_cmd.sub_data.kern.length = off + count;
-+	vsp_cmd.sub_data.kern.side = (u64)m->private;
-+	vsp_cmd.sub_data.kern.length = 256;
- 	mb();
- 	rc = signal_vsp_instruction(&vsp_cmd);
--	iseries_hv_unmap(dma_addr, off + count, DMA_FROM_DEVICE);
--	if (rc)
-+	iseries_hv_unmap(dma_addr, 256, DMA_FROM_DEVICE);
-+	if (rc) {
-+		kfree(page);
- 		return rc;
--	if (vsp_cmd.result_code != 0)
-+	}
-+	if (vsp_cmd.result_code != 0) {
-+		kfree(page);
- 		return -ENOMEM;
-+	}
- 	p = page;
--	len = 0;
--	while (len < (off + count)) {
--		if ((*p == '\0') || (*p == '\n')) {
--			if (*p == '\0')
--				*p = '\n';
--			p++;
--			len++;
--			*eof = 1;
-+	while (p - page < 256) {
-+		if (*p == '\0' || *p == '\n') {
-+			*p = '\n';
- 			break;
+ #ifdef CONFIG_ADB
+ struct adb_driver via_pmu_driver = {
+@@ -507,19 +502,15 @@ static int __init via_pmu_dev_init(void)
+ 		for (i=0; i<pmu_battery_count; i++) {
+ 			char title[16];
+ 			sprintf(title, "battery_%ld", i);
+-			proc_pmu_batt[i] = create_proc_read_entry(title, 0, proc_pmu_root,
+-						proc_get_batt, (void *)i);
++			proc_pmu_batt[i] = proc_create_data(title, 0, proc_pmu_root,
++					&pmu_battery_proc_fops, (void *)i);
  		}
- 		p++;
--		len++;
--	}
  
--	if (len < off) {
--		*eof = 1;
--		len = 0;
+-		proc_pmu_info = create_proc_read_entry("info", 0, proc_pmu_root,
+-					proc_get_info, NULL);
+-		proc_pmu_irqstats = create_proc_read_entry("interrupts", 0, proc_pmu_root,
+-					proc_get_irqstats, NULL);
+-		proc_pmu_options = create_proc_entry("options", 0600, proc_pmu_root);
+-		if (proc_pmu_options) {
+-			proc_pmu_options->read_proc = proc_read_options;
+-			proc_pmu_options->write_proc = proc_write_options;
+-		}
++		proc_pmu_info = proc_create("info", 0, proc_pmu_root, &pmu_info_proc_fops);
++		proc_pmu_irqstats = proc_create("interrupts", 0, proc_pmu_root,
++						&pmu_irqstats_proc_fops);
++		proc_pmu_options = proc_create("options", 0600, proc_pmu_root,
++						&pmu_options_proc_fops);
  	}
--	return len;
-+	seq_write(m, page, p - page);
-+	kfree(page);
-+	return 0;
-+}
-+
-+static int mf_cmdline_proc_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, mf_cmdline_proc_show, PDE(inode)->data);
- }
- 
- #if 0
-@@ -962,10 +961,8 @@ static int proc_mf_dump_vmlinux(char *pa
- }
- #endif
- 
--static int proc_mf_dump_side(char *page, char **start, off_t off,
--		int count, int *eof, void *data)
-+static int mf_side_proc_show(struct seq_file *m, void *v)
- {
--	int len;
- 	char mf_current_side = ' ';
- 	struct vsp_cmd_data vsp_cmd;
- 
-@@ -989,21 +986,17 @@ static int proc_mf_dump_side(char *page,
- 		}
- 	}
- 
--	len = sprintf(page, "%c\n", mf_current_side);
-+	seq_printf(m, "%c\n", mf_current_side);
-+	return 0;
-+}
- 
--	if (len <= (off + count))
--		*eof = 1;
--	*start = page + off;
--	len -= off;
--	if (len > count)
--		len = count;
--	if (len < 0)
--		len = 0;
--	return len;
-+static int mf_side_proc_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, mf_side_proc_show, NULL);
- }
- 
--static int proc_mf_change_side(struct file *file, const char __user *buffer,
--		unsigned long count, void *data)
-+static ssize_t mf_side_proc_write(struct file *file, const char __user *buffer,
-+				  size_t count, loff_t *pos)
- {
- 	char side;
- 	u64 newSide;
-@@ -1041,6 +1034,15 @@ static int proc_mf_change_side(struct fi
- 	return count;
- }
- 
-+static const struct file_operations mf_side_proc_fops = {
-+	.owner		= THIS_MODULE,
-+	.open		= mf_side_proc_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+	.write		= mf_side_proc_write,
-+};
-+
- #if 0
- static void mf_getSrcHistory(char *buffer, int size)
- {
-@@ -1087,8 +1089,7 @@ static void mf_getSrcHistory(char *buffe
- }
- #endif
- 
--static int proc_mf_dump_src(char *page, char **start, off_t off,
--		int count, int *eof, void *data)
-+static int mf_src_proc_show(struct seq_file *m, void *v)
- {
- #if 0
- 	int len;
-@@ -1109,8 +1110,13 @@ static int proc_mf_dump_src(char *page, 
- #endif
- }
- 
--static int proc_mf_change_src(struct file *file, const char __user *buffer,
--		unsigned long count, void *data)
-+static int mf_src_proc_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, mf_src_proc_show, NULL);
-+}
-+
-+static ssize_t mf_src_proc_write(struct file *file, const char __user *buffer,
-+				 size_t count, loff_t *pos)
- {
- 	char stkbuf[10];
- 
-@@ -1135,9 +1141,19 @@ static int proc_mf_change_src(struct fil
- 	return count;
- }
- 
--static int proc_mf_change_cmdline(struct file *file, const char __user *buffer,
--		unsigned long count, void *data)
-+static const struct file_operations mf_src_proc_fops = {
-+	.owner		= THIS_MODULE,
-+	.open		= mf_src_proc_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+	.write		= mf_src_proc_write,
-+};
-+
-+static ssize_t mf_cmdline_proc_write(struct file *file, const char __user *buffer,
-+				     size_t count, loff_t *pos)
- {
-+	void *data = PDE(file->f_path.dentry->d_inode)->data;
- 	struct vsp_cmd_data vsp_cmd;
- 	dma_addr_t dma_addr;
- 	char *page;
-@@ -1172,6 +1188,15 @@ out:
- 	return ret;
- }
- 
-+static const struct file_operations mf_cmdline_proc_fops = {
-+	.owner		= THIS_MODULE,
-+	.open		= mf_cmdline_proc_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+	.write		= mf_cmdline_proc_write,
-+};
-+
- static ssize_t proc_mf_change_vmlinux(struct file *file,
- 				      const char __user *buf,
- 				      size_t count, loff_t *ppos)
-@@ -1246,12 +1271,10 @@ static int __init mf_proc_init(void)
- 		if (!mf)
- 			return 1;
- 
--		ent = create_proc_entry("cmdline", S_IFREG|S_IRUSR|S_IWUSR, mf);
-+		ent = proc_create_data("cmdline", S_IRUSR|S_IWUSR, mf,
-+				       &mf_cmdline_proc_fops, (void *)(long)i);
- 		if (!ent)
- 			return 1;
--		ent->data = (void *)(long)i;
--		ent->read_proc = proc_mf_dump_cmdline;
--		ent->write_proc = proc_mf_change_cmdline;
- 
- 		if (i == 3)	/* no vmlinux entry for 'D' */
- 			continue;
-@@ -1263,19 +1286,15 @@ static int __init mf_proc_init(void)
- 			return 1;
- 	}
- 
--	ent = create_proc_entry("side", S_IFREG|S_IRUSR|S_IWUSR, mf_proc_root);
-+	ent = proc_create("side", S_IFREG|S_IRUSR|S_IWUSR, mf_proc_root,
-+			  &mf_side_proc_fops);
- 	if (!ent)
- 		return 1;
--	ent->data = (void *)0;
--	ent->read_proc = proc_mf_dump_side;
--	ent->write_proc = proc_mf_change_side;
- 
--	ent = create_proc_entry("src", S_IFREG|S_IRUSR|S_IWUSR, mf_proc_root);
-+	ent = proc_create("src", S_IFREG|S_IRUSR|S_IWUSR, mf_proc_root,
-+			  &mf_src_proc_fops);
- 	if (!ent)
- 		return 1;
--	ent->data = (void *)0;
--	ent->read_proc = proc_mf_dump_src;
--	ent->write_proc = proc_mf_change_src;
- 
  	return 0;
  }
+@@ -799,27 +790,33 @@ query_battery_state(void)
+ 			2, PMU_SMART_BATTERY_STATE, pmu_cur_battery+1);
+ }
+ 
+-static int
+-proc_get_info(char *page, char **start, off_t off,
+-		int count, int *eof, void *data)
++static int pmu_info_proc_show(struct seq_file *m, void *v)
+ {
+-	char* p = page;
+-
+-	p += sprintf(p, "PMU driver version     : %d\n", PMU_DRIVER_VERSION);
+-	p += sprintf(p, "PMU firmware version   : %02x\n", pmu_version);
+-	p += sprintf(p, "AC Power               : %d\n",
++	seq_printf(m, "PMU driver version     : %d\n", PMU_DRIVER_VERSION);
++	seq_printf(m, "PMU firmware version   : %02x\n", pmu_version);
++	seq_printf(m, "AC Power               : %d\n",
+ 		((pmu_power_flags & PMU_PWR_AC_PRESENT) != 0) || pmu_battery_count == 0);
+-	p += sprintf(p, "Battery count          : %d\n", pmu_battery_count);
++	seq_printf(m, "Battery count          : %d\n", pmu_battery_count);
++
++	return 0;
++}
+ 
+-	return p - page;
++static int pmu_info_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, pmu_info_proc_show, NULL);
+ }
+ 
+-static int
+-proc_get_irqstats(char *page, char **start, off_t off,
+-		  int count, int *eof, void *data)
++static const struct file_operations pmu_info_proc_fops = {
++	.owner		= THIS_MODULE,
++	.open		= pmu_info_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++};
++
++static int pmu_irqstats_proc_show(struct seq_file *m, void *v)
+ {
+ 	int i;
+-	char* p = page;
+ 	static const char *irq_names[] = {
+ 		"Total CB1 triggered events",
+ 		"Total GPIO1 triggered events",
+@@ -835,60 +832,76 @@ proc_get_irqstats(char *page, char **sta
+         };
+ 
+ 	for (i=0; i<11; i++) {
+-		p += sprintf(p, " %2u: %10u (%s)\n",
++		seq_printf(m, " %2u: %10u (%s)\n",
+ 			     i, pmu_irq_stats[i], irq_names[i]);
+ 	}
+-	return p - page;
++	return 0;
+ }
+ 
+-static int
+-proc_get_batt(char *page, char **start, off_t off,
+-		int count, int *eof, void *data)
++static int pmu_irqstats_proc_open(struct inode *inode, struct file *file)
+ {
+-	long batnum = (long)data;
+-	char *p = page;
+-	
+-	p += sprintf(p, "\n");
+-	p += sprintf(p, "flags      : %08x\n",
+-		pmu_batteries[batnum].flags);
+-	p += sprintf(p, "charge     : %d\n",
+-		pmu_batteries[batnum].charge);
+-	p += sprintf(p, "max_charge : %d\n",
+-		pmu_batteries[batnum].max_charge);
+-	p += sprintf(p, "current    : %d\n",
+-		pmu_batteries[batnum].amperage);
+-	p += sprintf(p, "voltage    : %d\n",
+-		pmu_batteries[batnum].voltage);
+-	p += sprintf(p, "time rem.  : %d\n",
+-		pmu_batteries[batnum].time_remaining);
++	return single_open(file, pmu_irqstats_proc_show, NULL);
++}
++
++static const struct file_operations pmu_irqstats_proc_fops = {
++	.owner		= THIS_MODULE,
++	.open		= pmu_irqstats_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++};
+ 
+-	return p - page;
++static int pmu_battery_proc_show(struct seq_file *m, void *v)
++{
++	long batnum = (long)m->private;
++	
++	seq_putc(m, '\n');
++	seq_printf(m, "flags      : %08x\n", pmu_batteries[batnum].flags);
++	seq_printf(m, "charge     : %d\n", pmu_batteries[batnum].charge);
++	seq_printf(m, "max_charge : %d\n", pmu_batteries[batnum].max_charge);
++	seq_printf(m, "current    : %d\n", pmu_batteries[batnum].amperage);
++	seq_printf(m, "voltage    : %d\n", pmu_batteries[batnum].voltage);
++	seq_printf(m, "time rem.  : %d\n", pmu_batteries[batnum].time_remaining);
++	return 0;
+ }
+ 
+-static int
+-proc_read_options(char *page, char **start, off_t off,
+-			int count, int *eof, void *data)
++static int pmu_battery_proc_open(struct inode *inode, struct file *file)
+ {
+-	char *p = page;
++	return single_open(file, pmu_battery_proc_show, PDE(inode)->data);
++}
++
++static const struct file_operations pmu_battery_proc_fops = {
++	.owner		= THIS_MODULE,
++	.open		= pmu_battery_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++};
+ 
++static int pmu_options_proc_show(struct seq_file *m, void *v)
++{
+ #if defined(CONFIG_SUSPEND) && defined(CONFIG_PPC32)
+ 	if (pmu_kind == PMU_KEYLARGO_BASED &&
+ 	    pmac_call_feature(PMAC_FTR_SLEEP_STATE,NULL,0,-1) >= 0)
+-		p += sprintf(p, "lid_wakeup=%d\n", option_lid_wakeup);
++		seq_printf(m, "lid_wakeup=%d\n", option_lid_wakeup);
+ #endif
+ 	if (pmu_kind == PMU_KEYLARGO_BASED)
+-		p += sprintf(p, "server_mode=%d\n", option_server_mode);
++		seq_printf(m, "server_mode=%d\n", option_server_mode);
+ 
+-	return p - page;
++	return 0;
+ }
+-			
+-static int
+-proc_write_options(struct file *file, const char __user *buffer,
+-			unsigned long count, void *data)
++
++static int pmu_options_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, pmu_options_proc_show, NULL);
++}
++
++static ssize_t pmu_options_proc_write(struct file *file,
++		const char __user *buffer, size_t count, loff_t *pos)
+ {
+ 	char tmp[33];
+ 	char *label, *val;
+-	unsigned long fcount = count;
++	size_t fcount = count;
+ 	
+ 	if (!count)
+ 		return -EINVAL;
+@@ -927,6 +940,15 @@ proc_write_options(struct file *file, co
+ 	return fcount;
+ }
+ 
++static const struct file_operations pmu_options_proc_fops = {
++	.owner		= THIS_MODULE,
++	.open		= pmu_options_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++	.write		= pmu_options_proc_write,
++};
++
+ #ifdef CONFIG_ADB
+ /* Send an ADB command */
+ static int pmu_send_request(struct adb_request *req, int sync)
 _
 
 Patches currently in -mm which might be from adobriyan@gmail.com are
