@@ -1,142 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] __builtin_object_size-unavailable-on-gcc-402.patch removed from -mm tree
-Date: Tue, 01 Dec 2009 12:15:09 -0800
-Message-ID: <200912012015.nB1KFAll012923@imap1.linux-foundation.org>
+Subject: [merged] mtd-nand-fix-multi-chip-suspend-problem.patch removed from -mm tree
+Date: Tue, 01 Dec 2009 12:17:54 -0800
+Message-ID: <200912012017.nB1KHsSZ019682@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51889 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49866 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752513AbZLAUPs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Dec 2009 15:15:48 -0500
+	by vger.kernel.org with ESMTP id S1752187AbZLAUR6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Dec 2009 15:17:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, arjan@linux.intel.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: leoli@freescale.com, b24347@freescale.com, dedekind1@gmail.com, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     __builtin_object_size unavailable on gcc-4.0.2
+     mtd/nand: fix multi-chip suspend problem
 has been removed from the -mm tree.  Its filename was
-     __builtin_object_size-unavailable-on-gcc-402.patch
+     mtd-nand-fix-multi-chip-suspend-problem.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: __builtin_object_size unavailable on gcc-4.0.2
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mtd/nand: fix multi-chip suspend problem
+From: Li Yang <leoli@freescale.com>
 
-WARNING: could not find objcopy version or version is less than 2.17.
-	Local function references are disabled.
-In file included from /usr/src/25/arch/x86/include/asm/uaccess.h:573,
-                 from include/linux/uaccess.h:5,
-                 from include/linux/crypto.h:26,
-                 from arch/x86/kernel/asm-offsets_64.c:8,
-                 from arch/x86/kernel/asm-offsets.c:4:
-/usr/src/25/arch/x86/include/asm/uaccess_64.h: In function 'copy_from_user':
-/usr/src/25/arch/x86/include/asm/uaccess_64.h:32: error: implicit declaration of function '__builtin_object_size'
+Symptom:
+device_suspend(): mtd_cls_suspend+0x0/0x58 returns -11
+PM: Device mtd14 failed to suspend: error -11
+PM: Some devices failed to suspend
 
-Cc: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+This patch enables other chips to be suspended if the active chip of
+the controller has been suspended.
+
+Signed-off-by: Jin Qing <b24347@freescale.com>
+Signed-off-by: Li Yang <leoli@freescale.com>
+Cc: Artem Bityutskiy <dedekind1@gmail.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler-gcc4.h |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/mtd/nand/nand_base.c |   14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/compiler-gcc4.h~__builtin_object_size-unavailable-on-gcc-402 include/linux/compiler-gcc4.h
---- a/include/linux/compiler-gcc4.h~__builtin_object_size-unavailable-on-gcc-402
-+++ a/include/linux/compiler-gcc4.h
-@@ -38,7 +38,6 @@
- 
- #endif
- 
--#define __compiletime_object_size(obj) __builtin_object_size(obj, 0)
- #if __GNUC_MINOR__ >= 4
- #define __compiletime_warning(message) __attribute__((warning(message)))
- #define __compiletime_error(message) __attribute__((error(message)))
+diff -puN drivers/mtd/nand/nand_base.c~mtd-nand-fix-multi-chip-suspend-problem drivers/mtd/nand/nand_base.c
+--- a/drivers/mtd/nand/nand_base.c~mtd-nand-fix-multi-chip-suspend-problem
++++ a/drivers/mtd/nand/nand_base.c
+@@ -697,10 +697,16 @@ nand_get_device(struct nand_chip *chip, 
+ 		spin_unlock(lock);
+ 		return 0;
+ 	}
+-	if (new_state == FL_PM_SUSPENDED) {
+-		spin_unlock(lock);
+-		return (chip->state == FL_PM_SUSPENDED) ? 0 : -EAGAIN;
+-	}
++	if (new_state == FL_PM_SUSPENDED)
++		if (chip->controller->active->state == FL_PM_SUSPENDED) {
++			chip->state = FL_PM_SUSPENDED;
++			spin_unlock(lock);
++			return 0;
++		} else {
++			spin_unlock(lock);
++			return -EAGAIN;
++		}
++
+ 	set_current_state(TASK_UNINTERRUPTIBLE);
+ 	add_wait_queue(wq, &wait);
+ 	spin_unlock(lock);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from leoli@freescale.com are
 
-origin.patch
-drivers-media-dvb-dvb-core-dvb_frontendc-needs-semaphoreh.patch
 linux-next.patch
-include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
-linux-next-git-rejects-git-rejects.patch
-__builtin_object_size-unavailable-on-gcc-402.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-acpi-remove-nid_inval.patch
-drivers-acpi-acpi_padc-squish-warning.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices-checkpatch-fixes.patch
-drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-kbuild-generate-modulesbuiltin-fix-2-checkpatch-fixes.patch
-drivers-leds-leds-ss4200c-fix-return-statement.patch
-mtd-nand-fix-multi-chip-suspend-problem-fix.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
-scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
-aoe-switch-to-the-new-bio_flush_dcache_pages-interface.patch
-wusb-use-sizeof-struct-rather-than-pointer.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-readahead-add-blk_run_backing_dev.patch
-mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
-oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
-oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes.patch
-mm-mlocking-in-try_to_unmap_one-fix-fix.patch
-mm-memory_hotplug-make-offline_pages-static.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup.patch
-floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
-drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
-rwsem-fix-rwsem_is_locked-bugs-fix.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
-errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
-msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes.patch
-blackfin-sd-host-controller-driver-fix.patch
-blackfin-sd-host-controller-driver-fix-fix.patch
-crc32-minor-optimizations-and-cleanup-checkpatch-fixes.patch
-hwmon-w83627ehf-updates-checkpatch-fixes.patch
-spi-controller-driver-for-designware-spi-core-fix.patch
-spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
-drivers-gpio-pca953xc-add-interrupt-handling-capability-fix.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3.patch
-ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
-memcg-coalesce-charging-via-percpu-storage-fix.patch
-char-cyclades-fix-compiler-warning.patch
-aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
-direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-drivers-media-video-cx23885-needs-kfifo-updates.patch
-zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-reiser4-disable.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
 
