@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + mmc-remove-const-from-tmio-mmc-platform-data-v2.patch added to -mm tree
-Date: Tue, 01 Dec 2009 13:54:19 -0800
-Message-ID: <200912012154.nB1LsJPm029862__38883.7137179964$1259704477$gmane$org@imap1.linux-foundation.org>
+Subject: + mmc-balance-tmio-mmc-cell-enable-disable-calls.patch added to -mm tree
+Date: Tue, 01 Dec 2009 13:54:21 -0800
+Message-ID: <200912012154.nB1LsL0R029951@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34186 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53884 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752667AbZLAVyT (ORCPT
+	by vger.kernel.org with ESMTP id S1752753AbZLAVyT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Dec 2009 16:54:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: damm@opensource.se, lethal@linux-sh.org, linux-mmc@vger.kernel.org
 
 
 The patch titled
-     mmc: remove const from tmio-mmc platform data
+     mmc: balance tmio-mmc cell enable()/disable() calls
 has been added to the -mm tree.  Its filename is
-     mmc-remove-const-from-tmio-mmc-platform-data-v2.patch
+     mmc-balance-tmio-mmc-cell-enable-disable-calls.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,11 +33,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: remove const from tmio-mmc platform data
+Subject: mmc: balance tmio-mmc cell enable()/disable() calls
 From: Magnus Damm <damm@opensource.se>
 
-Remove the const from the tmio-mmc platform data parameter "hclk".  Needed
-by the SDHI driver.
+Add cell->disable() calls to the tmio-mmc probe() error handling and the
+remove() function.
 
 Signed-off-by: Magnus Damm <damm@opensource.se>
 Cc: <linux-mmc@vger.kernel.org>
@@ -45,21 +45,56 @@ Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mfd/tmio.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/mmc/host/tmio_mmc.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/mfd/tmio.h~mmc-remove-const-from-tmio-mmc-platform-data-v2 include/linux/mfd/tmio.h
---- a/include/linux/mfd/tmio.h~mmc-remove-const-from-tmio-mmc-platform-data-v2
-+++ a/include/linux/mfd/tmio.h
-@@ -60,7 +60,7 @@ void tmio_core_set_bus_shift(int bus_shi
-  * data for the MMC controller
-  */
- struct tmio_mmc_data {
--	const unsigned int		hclk;
-+	unsigned int		hclk;
- 	void (*set_pwr)(struct platform_device *host, int state);
- 	void (*set_no_clk_div)(struct platform_device *host, int state);
- };
+diff -puN drivers/mmc/host/tmio_mmc.c~mmc-balance-tmio-mmc-cell-enable-disable-calls drivers/mmc/host/tmio_mmc.c
+--- a/drivers/mmc/host/tmio_mmc.c~mmc-balance-tmio-mmc-cell-enable-disable-calls
++++ a/drivers/mmc/host/tmio_mmc.c
+@@ -577,14 +577,14 @@ static int __devinit tmio_mmc_probe(stru
+ 	if (ret >= 0)
+ 		host->irq = ret;
+ 	else
+-		goto unmap_ctl;
++		goto cell_disable;
+ 
+ 	disable_mmc_irqs(host, TMIO_MASK_ALL);
+ 
+ 	ret = request_irq(host->irq, tmio_mmc_irq, IRQF_DISABLED |
+ 		IRQF_TRIGGER_FALLING, dev_name(&dev->dev), host);
+ 	if (ret)
+-		goto unmap_ctl;
++		goto cell_disable;
+ 
+ 	mmc_add_host(mmc);
+ 
+@@ -596,6 +596,9 @@ static int __devinit tmio_mmc_probe(stru
+ 
+ 	return 0;
+ 
++cell_disable:
++	if (cell->disable)
++		cell->disable(dev);
+ unmap_ctl:
+ 	iounmap(host->ctl);
+ host_free:
+@@ -606,6 +609,7 @@ out:
+ 
+ static int __devexit tmio_mmc_remove(struct platform_device *dev)
+ {
++	struct mfd_cell	*cell = (struct mfd_cell *)dev->dev.platform_data;
+ 	struct mmc_host *mmc = platform_get_drvdata(dev);
+ 
+ 	platform_set_drvdata(dev, NULL);
+@@ -614,6 +618,8 @@ static int __devexit tmio_mmc_remove(str
+ 		struct tmio_mmc_host *host = mmc_priv(mmc);
+ 		mmc_remove_host(mmc);
+ 		free_irq(host->irq, host);
++		if (cell->disable)
++			cell->disable(dev);
+ 		iounmap(host->ctl);
+ 		mmc_free_host(mmc);
+ 	}
 _
 
 Patches currently in -mm which might be from damm@opensource.se are
