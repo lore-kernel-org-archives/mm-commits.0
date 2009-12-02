@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + spi-nuc900-add-arm-driver-support-for-nuc900.patch added to -mm tree
-Date: Wed, 02 Dec 2009 15:34:31 -0800
-Message-ID: <200912022334.nB2NYVu5022817@imap1.linux-foundation.org>
+Subject: + clocksource-add-suspend-callback.patch added to -mm tree
+Date: Wed, 02 Dec 2009 15:36:45 -0800
+Message-ID: <200912022336.nB2NajQP028486@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46889 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57505 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755397AbZLBXfN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Dec 2009 18:35:13 -0500
+	by vger.kernel.org with ESMTP id S1755801AbZLBXhf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Dec 2009 18:37:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mcuos.com@gmail.com, david-b@pacbell.net, grant.likely@secretlab.ca, rmk@arm.linux.org.uk
+Cc: damm@opensource.se, johnstul@us.ibm.com, lethal@linux-sh.org, tglx@linutronix.de
 
 
 The patch titled
-     spi: NUC900: add arm driver support for nuc900
+     clocksource: add suspend callback
 has been added to the -mm tree.  Its filename is
-     spi-nuc900-add-arm-driver-support-for-nuc900.patch
+     clocksource-add-suspend-callback.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,602 +33,107 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi: NUC900: add arm driver support for nuc900
-From: Wan ZongShun <mcuos.com@gmail.com>
+Subject: clocksource: add suspend callback
+From: Magnus Damm <damm@opensource.se>
 
-Signed-off-by: Wan ZongShun <mcuos.com@gmail.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Grant Likely <grant.likely@secretlab.ca>
+Add a clocksource suspend callback.  This callback can be used by the
+clocksource driver to shutdown and perform any kind of late suspend
+activities even though the clocksource driver itself is a non-sysdev
+driver.
+
+One example where this is useful is to fix the sh_cmt.c platform driver
+that today suspends using the platform bus and shuts down the clocksource
+too early.
+
+With this callback in place the sh_cmt driver will suspend using the
+clocksource and clockevent hooks and leave the platform device pm
+callbacks unused.
+
+Signed-off-by: Magnus Damm <damm@opensource.se>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-w90x900/include/mach/nuc900_spi.h |   35 
- drivers/spi/Kconfig                             |    7 
- drivers/spi/Makefile                            |    1 
- drivers/spi/spi_nuc900.c                        |  504 ++++++++++++++
- 4 files changed, 547 insertions(+)
+ include/linux/clocksource.h |    3 +++
+ kernel/time/clocksource.c   |   12 ++++++++++++
+ kernel/time/timekeeping.c   |    1 +
+ 3 files changed, 16 insertions(+)
 
-diff -puN /dev/null arch/arm/mach-w90x900/include/mach/nuc900_spi.h
---- /dev/null
-+++ a/arch/arm/mach-w90x900/include/mach/nuc900_spi.h
-@@ -0,0 +1,35 @@
-+/*
-+ * arch/arm/mach-w90x900/include/mach/nuc900_spi.h
-+ *
-+ * Copyright (c) 2009 Nuvoton technology corporation.
-+ *
-+ * Wan ZongShun <mcuos.com@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation;version 2 of the License.
-+ *
-+ */
-+
-+#ifndef __ASM_ARCH_SPI_H
-+#define __ASM_ARCH_SPI_H
-+
-+extern void mfp_set_groupg(struct device *dev);
-+
-+struct nuc900_spi_info {
-+	unsigned int num_cs;
-+	unsigned int lsb;
-+	unsigned int txneg;
-+	unsigned int rxneg;
-+	unsigned int divider;
-+	unsigned int sleep;
-+	unsigned int txnum;
-+	unsigned int txbitlen;
-+	int bus_num;
-+};
-+
-+struct nuc900_spi_chip {
-+	unsigned char bits_per_word;
-+};
-+
-+#endif /* __ASM_ARCH_SPI_H */
-diff -puN drivers/spi/Kconfig~spi-nuc900-add-arm-driver-support-for-nuc900 drivers/spi/Kconfig
---- a/drivers/spi/Kconfig~spi-nuc900-add-arm-driver-support-for-nuc900
-+++ a/drivers/spi/Kconfig
-@@ -283,6 +283,13 @@ config SPI_XILINX_PLTFM
- 	  This is the platform driver for the SPI controller IP
- 	  from the Xilinx EDK.
+diff -puN include/linux/clocksource.h~clocksource-add-suspend-callback include/linux/clocksource.h
+--- a/include/linux/clocksource.h~clocksource-add-suspend-callback
++++ a/include/linux/clocksource.h
+@@ -154,6 +154,7 @@ extern u64 timecounter_cyc2time(struct t
+  * @max_idle_ns:	max idle time permitted by the clocksource (nsecs)
+  * @flags:		flags describing special properties
+  * @vread:		vsyscall based read
++ * @suspend:		suspend function for the clocksource, if necessary
+  * @resume:		resume function for the clocksource, if necessary
+  */
+ struct clocksource {
+@@ -172,6 +173,7 @@ struct clocksource {
+ 	u64 max_idle_ns;
+ 	unsigned long flags;
+ 	cycle_t (*vread)(void);
++	void (*suspend)(struct clocksource *cs);
+ 	void (*resume)(struct clocksource *cs);
+ #ifdef CONFIG_IA64
+ 	void *fsys_mmio;        /* used by fsyscall asm code */
+@@ -277,6 +279,7 @@ extern void clocksource_unregister(struc
+ extern void clocksource_touch_watchdog(void);
+ extern struct clocksource* clocksource_get_next(void);
+ extern void clocksource_change_rating(struct clocksource *cs, int rating);
++extern void clocksource_suspend(void);
+ extern void clocksource_resume(void);
+ extern struct clocksource * __init __weak clocksource_default_clock(void);
  
-+config SPI_NUC900
-+	tristate "Nuvoton NUC900 series SPI"
-+	depends on ARCH_W90X900 && EXPERIMENTAL
-+	select SPI_BITBANG
-+	help
-+	  SPI driver for Nuvoton NUC900 series ARM SoCs
-+
- #
- # Add new SPI master controllers in alphabetical order above this line
- #
-diff -puN drivers/spi/Makefile~spi-nuc900-add-arm-driver-support-for-nuc900 drivers/spi/Makefile
---- a/drivers/spi/Makefile~spi-nuc900-add-arm-driver-support-for-nuc900
-+++ a/drivers/spi/Makefile
-@@ -27,6 +27,7 @@ obj-$(CONFIG_SPI_PL022)			+= amba-pl022.
- obj-$(CONFIG_SPI_MPC52xx_PSC)		+= mpc52xx_psc_spi.o
- obj-$(CONFIG_SPI_MPC52xx)		+= mpc52xx_spi.o
- obj-$(CONFIG_SPI_MPC8xxx)		+= spi_mpc8xxx.o
-+obj-$(CONFIG_SPI_NUC900)		+= spi_nuc900.o
- obj-$(CONFIG_SPI_PPC4xx)		+= spi_ppc4xx.o
- obj-$(CONFIG_SPI_S3C24XX_GPIO)		+= spi_s3c24xx_gpio.o
- obj-$(CONFIG_SPI_S3C24XX)		+= spi_s3c24xx_hw.o
-diff -puN /dev/null drivers/spi/spi_nuc900.c
---- /dev/null
-+++ a/drivers/spi/spi_nuc900.c
-@@ -0,0 +1,504 @@
-+/* linux/drivers/spi/spi_nuc900.c
-+ *
-+ * Copyright (c) 2009 Nuvoton technology.
-+ * Wan ZongShun <mcuos.com@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+*/
-+
-+#include <linux/init.h>
-+#include <linux/spinlock.h>
-+#include <linux/workqueue.h>
-+#include <linux/interrupt.h>
-+#include <linux/delay.h>
-+#include <linux/errno.h>
-+#include <linux/err.h>
-+#include <linux/clk.h>
-+#include <linux/device.h>
-+#include <linux/platform_device.h>
-+#include <linux/gpio.h>
-+#include <linux/io.h>
-+
-+#include <linux/spi/spi.h>
-+#include <linux/spi/spi_bitbang.h>
-+
-+#include <mach/nuc900_spi.h>
-+
-+/* usi registers offset */
-+#define USI_CNT		0x00
-+#define USI_DIV		0x04
-+#define USI_SSR		0x08
-+#define USI_RX0		0x10
-+#define USI_TX0		0x10
-+
-+/* usi register bit */
-+#define ENINT		(0x01 << 17)
-+#define ENFLG		(0x01 << 16)
-+#define TXNUM		(0x03 << 8)
-+#define TXNEG		(0x01 << 2)
-+#define RXNEG		(0x01 << 1)
-+#define LSB		(0x01 << 10)
-+#define SELECTLEV	(0x01 << 2)
-+#define SELECTPOL	(0x01 << 31)
-+#define SELECTSLAVE	0x01
-+#define GOBUSY		0x01
-+
-+struct nuc900_spi {
-+	struct spi_bitbang	 bitbang;
-+	struct completion	 done;
-+	void __iomem		*regs;
-+	int			 irq;
-+	int			 len;
-+	int			 count;
-+	const unsigned char	*tx;
-+	unsigned char		*rx;
-+	struct clk		*clk;
-+	struct resource		*ioarea;
-+	struct spi_master	*master;
-+	struct spi_device	*curdev;
-+	struct device		*dev;
-+	struct nuc900_spi_info *pdata;
-+	spinlock_t		lock;
-+	struct resource		*res;
-+};
-+
-+static inline struct nuc900_spi *to_hw(struct spi_device *sdev)
+diff -puN kernel/time/clocksource.c~clocksource-add-suspend-callback kernel/time/clocksource.c
+--- a/kernel/time/clocksource.c~clocksource-add-suspend-callback
++++ a/kernel/time/clocksource.c
+@@ -441,6 +441,18 @@ static inline int clocksource_watchdog_k
+ #endif /* CONFIG_CLOCKSOURCE_WATCHDOG */
+ 
+ /**
++ * clocksource_suspend - suspend the clocksource(s)
++ */
++void clocksource_suspend(void)
 +{
-+	return spi_master_get_devdata(sdev->master);
++	struct clocksource *cs;
++
++	list_for_each_entry_reverse(cs, &clocksource_list, list)
++		if (cs->suspend)
++			cs->suspend(cs);
 +}
 +
-+static void nuc900_slave_select(struct spi_device *spi, unsigned int ssr)
-+{
-+	struct nuc900_spi *hw = to_hw(spi);
-+	unsigned int val;
-+	unsigned int cs = spi->mode & SPI_CS_HIGH ? 1 : 0;
-+	unsigned int cpol = spi->mode & SPI_CPOL ? 1 : 0;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&hw->lock, flags);
-+
-+	val = __raw_readl(hw->regs + USI_SSR);
-+
-+	if (!cs)
-+		val &= ~SELECTLEV;
-+	else
-+		val |= SELECTLEV;
-+
-+	if (!ssr)
-+		val &= ~SELECTSLAVE;
-+	else
-+		val |= SELECTSLAVE;
-+
-+	__raw_writel(val, hw->regs + USI_SSR);
-+
-+	val = __raw_readl(hw->regs + USI_CNT);
-+
-+	if (!cpol)
-+		val &= ~SELECTPOL;
-+	else
-+		val |= SELECTPOL;
-+
-+	__raw_writel(val, hw->regs + USI_CNT);
-+
-+	spin_unlock_irqrestore(&hw->lock, flags);
-+}
-+
-+static void nuc900_spi_chipsel(struct spi_device *spi, int value)
-+{
-+	switch (value) {
-+	case BITBANG_CS_INACTIVE:
-+		nuc900_slave_select(spi, 0);
-+		break;
-+
-+	case BITBANG_CS_ACTIVE:
-+		nuc900_slave_select(spi, 1);
-+		break;
-+	}
-+}
-+
-+static void nuc900_spi_setup_txnum(struct nuc900_spi *hw,
-+							unsigned int txnum)
-+{
-+	unsigned int val;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&hw->lock, flags);
-+
-+	val = __raw_readl(hw->regs + USI_CNT);
-+
-+	if (!txnum)
-+		val &= ~TXNUM;
-+	else
-+		val |= txnum << 0x08;
-+
-+	__raw_writel(val, hw->regs + USI_CNT);
-+
-+	spin_unlock_irqrestore(&hw->lock, flags);
-+
-+}
-+
-+static void nuc900_spi_setup_txbitlen(struct nuc900_spi *hw,
-+							unsigned int txbitlen)
-+{
-+	unsigned int val;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&hw->lock, flags);
-+
-+	val = __raw_readl(hw->regs + USI_CNT);
-+
-+	val |= (txbitlen << 0x03);
-+
-+	__raw_writel(val, hw->regs + USI_CNT);
-+
-+	spin_unlock_irqrestore(&hw->lock, flags);
-+}
-+
-+static void nuc900_spi_gobusy(struct nuc900_spi *hw)
-+{
-+	unsigned int val;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&hw->lock, flags);
-+
-+	val = __raw_readl(hw->regs + USI_CNT);
-+
-+	val |= GOBUSY;
-+
-+	__raw_writel(val, hw->regs + USI_CNT);
-+
-+	spin_unlock_irqrestore(&hw->lock, flags);
-+}
-+
-+static int nuc900_spi_setupxfer(struct spi_device *spi,
-+				 struct spi_transfer *t)
-+{
-+	return 0;
-+}
-+
-+static int nuc900_spi_setup(struct spi_device *spi)
-+{
-+	return 0;
-+}
-+
-+static inline unsigned int hw_txbyte(struct nuc900_spi *hw, int count)
-+{
-+	return hw->tx ? hw->tx[count] : 0;
-+}
-+
-+static int nuc900_spi_txrx(struct spi_device *spi, struct spi_transfer *t)
-+{
-+	struct nuc900_spi *hw = to_hw(spi);
-+
-+	hw->tx = t->tx_buf;
-+	hw->rx = t->rx_buf;
-+	hw->len = t->len;
-+	hw->count = 0;
-+
-+	__raw_writel(hw_txbyte(hw, 0x0), hw->regs + USI_TX0);
-+
-+	nuc900_spi_gobusy(hw);
-+
-+	wait_for_completion(&hw->done);
-+
-+	return hw->count;
-+}
-+
-+static irqreturn_t nuc900_spi_irq(int irq, void *dev)
-+{
-+	struct nuc900_spi *hw = dev;
-+	unsigned int status;
-+	unsigned int count = hw->count;
-+
-+	status = __raw_readl(hw->regs + USI_CNT);
-+	__raw_writel(status, hw->regs + USI_CNT);
-+
-+	if (status & ENFLG) {
-+		hw->count++;
-+
-+		if (hw->rx)
-+			hw->rx[count] = __raw_readl(hw->regs + USI_RX0);
-+		count++;
-+
-+		if (count < hw->len) {
-+			__raw_writel(hw_txbyte(hw, count), hw->regs + USI_TX0);
-+			nuc900_spi_gobusy(hw);
-+		} else {
-+			complete(&hw->done);
-+		}
-+
-+		return IRQ_HANDLED;
-+	}
-+
-+	complete(&hw->done);
-+	return IRQ_HANDLED;
-+}
-+
-+static void nuc900_tx_edge(struct nuc900_spi *hw, unsigned int edge)
-+{
-+	unsigned int val;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&hw->lock, flags);
-+
-+	val = __raw_readl(hw->regs + USI_CNT);
-+
-+	if (edge)
-+		val |= TXNEG;
-+	else
-+		val &= ~TXNEG;
-+	__raw_writel(val, hw->regs + USI_CNT);
-+
-+	spin_unlock_irqrestore(&hw->lock, flags);
-+}
-+
-+static void nuc900_rx_edge(struct nuc900_spi *hw, unsigned int edge)
-+{
-+	unsigned int val;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&hw->lock, flags);
-+
-+	val = __raw_readl(hw->regs + USI_CNT);
-+
-+	if (edge)
-+		val |= RXNEG;
-+	else
-+		val &= ~RXNEG;
-+	__raw_writel(val, hw->regs + USI_CNT);
-+
-+	spin_unlock_irqrestore(&hw->lock, flags);
-+}
-+
-+static void nuc900_send_first(struct nuc900_spi *hw, unsigned int lsb)
-+{
-+	unsigned int val;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&hw->lock, flags);
-+
-+	val = __raw_readl(hw->regs + USI_CNT);
-+
-+	if (lsb)
-+		val |= LSB;
-+	else
-+		val &= ~LSB;
-+	__raw_writel(val, hw->regs + USI_CNT);
-+
-+	spin_unlock_irqrestore(&hw->lock, flags);
-+}
-+
-+static void nuc900_set_sleep(struct nuc900_spi *hw, unsigned int sleep)
-+{
-+	unsigned int val;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&hw->lock, flags);
-+
-+	val = __raw_readl(hw->regs + USI_CNT);
-+
-+	if (sleep)
-+		val |= (sleep << 12);
-+	else
-+		val &= ~(0x0f << 12);
-+	__raw_writel(val, hw->regs + USI_CNT);
-+
-+	spin_unlock_irqrestore(&hw->lock, flags);
-+}
-+
-+static void nuc900_enable_int(struct nuc900_spi *hw)
-+{
-+	unsigned int val;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&hw->lock, flags);
-+
-+	val = __raw_readl(hw->regs + USI_CNT);
-+
-+	val |= ENINT;
-+
-+	__raw_writel(val, hw->regs + USI_CNT);
-+
-+	spin_unlock_irqrestore(&hw->lock, flags);
-+}
-+
-+static void nuc900_set_divider(struct nuc900_spi *hw)
-+{
-+	__raw_writel(hw->pdata->divider, hw->regs + USI_DIV);
-+}
-+
-+static void nuc900_init_spi(struct nuc900_spi *hw)
-+{
-+	clk_enable(hw->clk);
-+	spin_lock_init(&hw->lock);
-+
-+	nuc900_tx_edge(hw, hw->pdata->txneg);
-+	nuc900_rx_edge(hw, hw->pdata->rxneg);
-+	nuc900_send_first(hw, hw->pdata->lsb);
-+	nuc900_set_sleep(hw, hw->pdata->sleep);
-+	nuc900_spi_setup_txbitlen(hw, hw->pdata->txbitlen);
-+	nuc900_spi_setup_txnum(hw, hw->pdata->txnum);
-+	nuc900_set_divider(hw);
-+	nuc900_enable_int(hw);
-+}
-+
-+static int __devinit nuc900_spi_probe(struct platform_device *pdev)
-+{
-+	struct nuc900_spi *hw;
-+	struct spi_master *master;
-+	int err = 0;
-+
-+	master = spi_alloc_master(&pdev->dev, sizeof(struct nuc900_spi));
-+	if (master == NULL) {
-+		dev_err(&pdev->dev, "No memory for spi_master\n");
-+		err = -ENOMEM;
-+		goto err_nomem;
-+	}
-+
-+	hw = spi_master_get_devdata(master);
-+	memset(hw, 0, sizeof(struct nuc900_spi));
-+
-+	hw->master = spi_master_get(master);
-+	hw->pdata  = pdev->dev.platform_data;
-+	hw->dev = &pdev->dev;
-+
-+	if (hw->pdata == NULL) {
-+		dev_err(&pdev->dev, "No platform data supplied\n");
-+		err = -ENOENT;
-+		goto err_pdata;
-+	}
-+
-+	platform_set_drvdata(pdev, hw);
-+	init_completion(&hw->done);
-+
-+	master->mode_bits          = SPI_MODE_0;
-+	master->num_chipselect     = hw->pdata->num_cs;
-+	master->bus_num            = hw->pdata->bus_num;
-+	hw->bitbang.master         = hw->master;
-+	hw->bitbang.setup_transfer = nuc900_spi_setupxfer;
-+	hw->bitbang.chipselect     = nuc900_spi_chipsel;
-+	hw->bitbang.txrx_bufs      = nuc900_spi_txrx;
-+	hw->bitbang.master->setup  = nuc900_spi_setup;
-+
-+	hw->res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (hw->res == NULL) {
-+		dev_err(&pdev->dev, "Cannot get IORESOURCE_MEM\n");
-+		err = -ENOENT;
-+		goto err_pdata;
-+	}
-+
-+	hw->ioarea = request_mem_region(hw->res->start,
-+					resource_size(hw->res), pdev->name);
-+
-+	if (hw->ioarea == NULL) {
-+		dev_err(&pdev->dev, "Cannot reserve region\n");
-+		err = -ENXIO;
-+		goto err_pdata;
-+	}
-+
-+	hw->regs = ioremap(hw->res->start, resource_size(hw->res));
-+	if (hw->regs == NULL) {
-+		dev_err(&pdev->dev, "Cannot map IO\n");
-+		err = -ENXIO;
-+		goto err_iomap;
-+	}
-+
-+	hw->irq = platform_get_irq(pdev, 0);
-+	if (hw->irq < 0) {
-+		dev_err(&pdev->dev, "No IRQ specified\n");
-+		err = -ENOENT;
-+		goto err_irq;
-+	}
-+
-+	err = request_irq(hw->irq, nuc900_spi_irq, 0, pdev->name, hw);
-+	if (err) {
-+		dev_err(&pdev->dev, "Cannot claim IRQ\n");
-+		goto err_irq;
-+	}
-+
-+	hw->clk = clk_get(&pdev->dev, "spi");
-+	if (IS_ERR(hw->clk)) {
-+		dev_err(&pdev->dev, "No clock for device\n");
-+		err = PTR_ERR(hw->clk);
-+		goto err_clk;
-+	}
-+
-+	mfp_set_groupg(&pdev->dev);
-+	nuc900_init_spi(hw);
-+
-+	err = spi_bitbang_start(&hw->bitbang);
-+	if (err) {
-+		dev_err(&pdev->dev, "Failed to register SPI master\n");
-+		goto err_register;
-+	}
-+
-+	return 0;
-+
-+err_register:
-+	clk_disable(hw->clk);
-+	clk_put(hw->clk);
-+err_clk:
-+	free_irq(hw->irq, hw);
-+err_irq:
-+	iounmap(hw->regs);
-+err_iomap:
-+	release_mem_region(hw->res->start, resource_size(hw->res));
-+	kfree(hw->ioarea);
-+err_pdata:
-+	spi_master_put(hw->master);;
-+
-+err_nomem:
-+	return err;
-+}
-+
-+static int __devexit nuc900_spi_remove(struct platform_device *dev)
-+{
-+	struct nuc900_spi *hw = platform_get_drvdata(dev);
-+
-+	free_irq(hw->irq, hw);
-+
-+	platform_set_drvdata(dev, NULL);
-+
-+	spi_unregister_master(hw->master);
-+
-+	clk_disable(hw->clk);
-+	clk_put(hw->clk);
-+
-+	iounmap(hw->regs);
-+
-+	release_mem_region(hw->res->start, resource_size(hw->res));
-+	kfree(hw->ioarea);
-+
-+	spi_master_put(hw->master);
-+	return 0;
-+}
-+
-+static struct platform_driver nuc900_spi_driver = {
-+	.probe		= nuc900_spi_probe,
-+	.remove		= __devexit_p(nuc900_spi_remove),
-+	.driver		= {
-+		.name	= "nuc900-spi",
-+		.owner	= THIS_MODULE,
-+	},
-+};
-+
-+static int __init nuc900_spi_init(void)
-+{
-+	return platform_driver_register(&nuc900_spi_driver);
-+}
-+
-+static void __exit nuc900_spi_exit(void)
-+{
-+	platform_driver_unregister(&nuc900_spi_driver);
-+}
-+
-+module_init(nuc900_spi_init);
-+module_exit(nuc900_spi_exit);
-+
-+MODULE_AUTHOR("Wan ZongShun <mcuos.com@gmail.com>");
-+MODULE_DESCRIPTION("nuc900 spi driver!");
-+MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:nuc900-spi");
++/**
+  * clocksource_resume - resume the clocksource(s)
+  */
+ void clocksource_resume(void)
+diff -puN kernel/time/timekeeping.c~clocksource-add-suspend-callback kernel/time/timekeeping.c
+--- a/kernel/time/timekeeping.c~clocksource-add-suspend-callback
++++ a/kernel/time/timekeeping.c
+@@ -611,6 +611,7 @@ static int timekeeping_suspend(struct sy
+ 	write_sequnlock_irqrestore(&xtime_lock, flags);
+ 
+ 	clockevents_notify(CLOCK_EVT_NOTIFY_SUSPEND, NULL);
++	clocksource_suspend();
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from mcuos.com@gmail.com are
+Patches currently in -mm which might be from damm@opensource.se are
 
 linux-next.patch
-spi-nuc900-add-arm-driver-support-for-nuc900.patch
-arm-nuc900-add-rtc-driver-support-for-nuc910-and-nuc920.patch
+driver-core-early-platform-driver-buffer.patch
+clocksource-add-argument-to-resume-callback.patch
+clocksource-start-cmt-at-clocksource-resume.patch
+clocksource-add-suspend-callback.patch
+mm-uncached-vma-support-with-writenotify.patch
+mmc-let-tmio-mmc-use-dev_name-with-request_irq.patch
+mmc-remove-const-from-tmio-mmc-platform-data-v2.patch
+mmc-balance-tmio-mmc-cell-enable-disable-calls.patch
+spi-superh-msiof-spi-master-driver.patch
+spi-superh-msiof-spi-master-driver-update.patch
 
