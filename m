@@ -1,134 +1,145 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Wed, 02 Dec 2009 12:22:06 -0800
-Message-ID: <200912022022.nB2KM6QT003281@imap1.linux-foundation.org>
+Subject: + ksm-hold-anon_vma-in-rmap_item-fix.patch added to -mm tree
+Date: Wed, 02 Dec 2009 12:49:50 -0800
+Message-ID: <200912022049.nB2KnoXU006667@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46222 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40236 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752929AbZLBUWc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Dec 2009 15:22:32 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id nB2KM7WH020565
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 2 Dec 2009 12:22:08 -0800
+	by vger.kernel.org with ESMTP id S1754300AbZLBUul (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Dec 2009 15:50:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: hugh.dickins@tiscali.co.uk, aarcange@redhat.com, balbir@linux.vnet.ibm.com, chrisw@redhat.com, ieidus@redhat.com
 
 
 The patch titled
-     linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     ksm: hold anon_vma in rmap_item fix
+has been added to the -mm tree.  Its filename is
+     ksm-hold-anon_vma-in-rmap_item-fix.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ksm: hold anon_vma in rmap_item fix
+From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
+KSM mem_cgroup testing oopsed on NULL pointer in mem_cgroup_from_task(),
+called from the mm_match_cgroup() in page_referenced_ksm().
+
+Right, it is inappropriate to use mm_match_cgroup() on rmap_item->mm
+there: that mm could be waiting for ksmd's final mmdrop(), with its
+mm->owner task long gone.
+
+Move the mm_match_cgroup() test down into the anon_vma loop, which is
+where it now should be to match page_referenced_anon().  The anon_vma
+guarantees its vmas are valid, which guarantee their mms are valid.
+
+However...  although this moves the oops from easy-to-reproduce to
+never-seen, I think we shall want to do more later: so far as I can see,
+with or without KSM, the use of mm->owner from page_referenced() is
+unsafe.  No problem when NULL, but it may have been left pointing to a
+task_struct freed by now, with nonsense in mm->owner->cgroups.
+
+But let's put this patch in while we discuss that separately: perhaps
+mm_need_new_owner() should not short-circuit when mm_users <= 1, or
+perhaps it should then set mm->owner to NULL, or perhaps we abandon
+mm->owner as more trouble than it's worth, or...  perhaps I'm wrong.
+
+Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: Izik Eidus <ieidus@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Chris Wright <chrisw@redhat.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/plat-s3c/dev-hsmmc2.c |    4 ----
- 1 file changed, 4 deletions(-)
+ mm/ksm.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/arm/plat-s3c/dev-hsmmc2.c~linux-next-git-rejects arch/arm/plat-s3c/dev-hsmmc2.c
---- a/arch/arm/plat-s3c/dev-hsmmc2.c~linux-next-git-rejects
-+++ a/arch/arm/plat-s3c/dev-hsmmc2.c
-@@ -19,10 +19,6 @@
- #include <mach/map.h>
- #include <plat/sdhci.h>
- #include <plat/devs.h>
--<<<<<<< HEAD
--#include <plat/cpu.h>
--=======
-->>>>>>> next-s5pc1xx
+diff -puN mm/ksm.c~ksm-hold-anon_vma-in-rmap_item-fix mm/ksm.c
+--- a/mm/ksm.c~ksm-hold-anon_vma-in-rmap_item-fix
++++ a/mm/ksm.c
+@@ -1530,9 +1530,6 @@ again:
+ 		struct anon_vma *anon_vma = rmap_item->anon_vma;
+ 		struct vm_area_struct *vma;
  
- #define S3C_SZ_HSMMC	(0x1000)
+-		if (memcg && !mm_match_cgroup(rmap_item->mm, memcg))
+-			continue;
+-
+ 		spin_lock(&anon_vma->lock);
+ 		list_for_each_entry(vma, &anon_vma->head, anon_vma_node) {
+ 			if (rmap_item->address < vma->vm_start ||
+@@ -1547,6 +1544,9 @@ again:
+ 			if ((rmap_item->mm == vma->vm_mm) == search_new_forks)
+ 				continue;
  
++			if (memcg && !mm_match_cgroup(vma->vm_mm, memcg))
++				continue;
++
+ 			referenced += page_referenced_one(page, vma,
+ 				rmap_item->address, &mapcount, vm_flags);
+ 			if (!search_new_forks || !mapcount)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
 
-origin.patch
-drivers-media-dvb-dvb-core-dvb_frontendc-needs-semaphoreh.patch
-linux-next.patch
-include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
-linux-next-git-rejects-git-rejects.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-acpi-remove-nid_inval.patch
-drivers-acpi-acpi_padc-squish-warning.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices-checkpatch-fixes.patch
-drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-kbuild-generate-modulesbuiltin-fix-2-checkpatch-fixes.patch
-drivers-leds-leds-ss4200c-fix-return-statement.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
-scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
-aoe-switch-to-the-new-bio_flush_dcache_pages-interface.patch
-wusb-use-sizeof-struct-rather-than-pointer.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-readahead-add-blk_run_backing_dev.patch
+mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap.patch
 mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
-oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
-oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes.patch
+vmalloc-adjust-gfp-mask-passed-on-nested-vmalloc-invocation.patch
+swap_info-private-to-swapfilec.patch
+swap_info-change-to-array-of-pointers.patch
+swap_info-include-first_swap_extent.patch
+swap_info-include-first_swap_extent-fix.patch
+swap_info-include-first_swap_extent-fix-fix.patch
+swap_info-miscellaneous-minor-cleanups.patch
+swap_info-swap_has_cache-cleanups.patch
+swap_info-swap_map-of-chars-not-shorts.patch
+swap_info-swap-count-continuations.patch
+swap_info-note-swap_map_shmem.patch
+swap_info-reorder-its-fields.patch
+rmap-fix-the-comment-for-try_to_unmap_anon.patch
+oom_kill-use-rss-value-instead-of-vm-size-for-badness.patch
+mm-define-page_mapping_flags.patch
+mm-mlocking-in-try_to_unmap_one.patch
+mm-mlocking-in-try_to_unmap_one-fix.patch
 mm-mlocking-in-try_to_unmap_one-fix-fix.patch
-mm-memory_hotplug-make-offline_pages-static.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup.patch
-floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
-drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
-rwsem-fix-rwsem_is_locked-bugs-fix.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
-errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
-msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes.patch
-blackfin-sd-host-controller-driver-fix.patch
-blackfin-sd-host-controller-driver-fix-fix.patch
-crc32-minor-optimizations-and-cleanup-checkpatch-fixes.patch
-hwmon-w83627ehf-updates-checkpatch-fixes.patch
-spi-controller-driver-for-designware-spi-core-fix.patch
-spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
-drivers-gpio-pca953xc-add-interrupt-handling-capability-fix.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3.patch
-ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
-memcg-coalesce-charging-via-percpu-storage-fix.patch
-char-cyclades-fix-compiler-warning.patch
-aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
-direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-drivers-media-video-cx23885-needs-kfifo-updates.patch
-zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+mm-config_mmu-for-pg_mlocked.patch
+mm-pass-address-down-to-rmap-ones.patch
+mm-stop-ptlock-enlarging-struct-page.patch
+mm-sigbus-instead-of-abusing-oom.patch
+ksm-three-remove_rmap_item_from_tree-cleanups.patch
+ksm-remove-redundancies-when-merging-page.patch
+ksm-cleanup-some-function-arguments.patch
+ksm-singly-linked-rmap_list.patch
+ksm-separate-stable_node.patch
+ksm-stable_node-point-to-page-and-back.patch
+ksm-fix-mlockfreed-to-munlocked.patch
+ksm-let-shared-pages-be-swappable.patch
+ksm-hold-anon_vma-in-rmap_item.patch
+ksm-hold-anon_vma-in-rmap_item-fix.patch
+ksm-take-keyhole-reference-to-page.patch
+ksm-share-anon-page-without-allocating.patch
+ksm-mem-cgroup-charge-swapin-copy.patch
+ksm-rmap_walk-to-remove_migation_ptes.patch
+ksm-memory-hotremove-migration-only.patch
+ksm-remove-unswappable-max_kernel_pages.patch
+hugetlb-prevent-deadlock-in-__unmap_hugepage_range-when-alloc_huge_page-fails-2.patch
+mm-simplify-try_to_unmap_one.patch
+mm-simplify-try_to_unmap_one-fix.patch
+mm-uncached-vma-support-with-writenotify.patch
+elf-kill-use_elf_core_dump.patch
+prio_tree-debugging-patch.patch
 
