@@ -1,115 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: + sched-f83f9ac-causes-tasks-running-at-max_prio.patch added to -mm tree
-Date: Tue, 01 Dec 2009 16:32:49 -0800
-Message-ID: <200912020032.nB20WnsX030200@imap1.linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Wed, 02 Dec 2009 12:22:06 -0800
+Message-ID: <200912022022.nB2KM6QT003281@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59796 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46222 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754849AbZLBAdQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Dec 2009 19:33:16 -0500
+	by vger.kernel.org with ESMTP id S1752929AbZLBUWc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Dec 2009 15:22:32 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id nB2KM7WH020565
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 2 Dec 2009 12:22:08 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: efault@gmx.de, a.p.zijlstra@chello.nl, mingo@elte.hu, pwil3058@bigpond.net.au, rjw@sisk.pl
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sched: f83f9ac causes tasks running at MAX_PRIO
-has been added to the -mm tree.  Its filename is
-     sched-f83f9ac-causes-tasks-running-at-max_prio.patch
+     linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sched: f83f9ac causes tasks running at MAX_PRIO
-From: Mike Galbraith <efault@gmx.de>
+Subject: linux-next-git-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
 
-top - 11:33:19 up 1 min, 21 users,  load average: 4.47, 1.44, 0.51
-Tasks: 288 total,   1 running, 287 sleeping,   0 stopped,   0 zombie
-Cpu(s):  0.2%us,  0.5%sy,  0.0%ni, 99.3%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
-
-  PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  P COMMAND
-  568 root      20   0     0    0    0 S    1  0.0   0:00.02 3 scsi_eh_1
- 4724 root      40   0  358m  22m 4008 S    1  0.7   0:01.69 0 Xorg
- 6064 root      40   0  8872 1316  852 R    1  0.0   0:00.07 3 top
-    1 root      40   0  1064  388  324 S    0  0.0   0:01.30 2 init
-    2 root      40   0     0    0    0 S    0  0.0   0:00.00 1 kthreadd
-    3 root      RT   0     0    0    0 S    0  0.0   0:00.00 0 migration/0
-
-WARN_ON(current->normal_prio == MAX_PRIO);
-
-[    0.092016] ------------[ cut here ]------------
-[    0.096008] WARNING: at kernel/sched.c:2591 sched_fork+0xe4/0x1ae()
-[    0.100002] Hardware name: MS-7502
-[    0.104002] Modules linked in:
-[    0.108191] Pid: 0, comm: swapper Not tainted 2.6.32-tip-smpx #956
-[    0.112002] Call Trace:
-[    0.116004]  [<ffffffff810365ab>] ? sched_fork+0xe4/0x1ae
-[    0.120004]  [<ffffffff81038eb8>] warn_slowpath_common+0x77/0xa4
-[    0.124004]  [<ffffffff81038ef4>] warn_slowpath_null+0xf/0x11
-[    0.128003]  [<ffffffff810365ab>] sched_fork+0xe4/0x1ae
-[    0.132005]  [<ffffffff81059a9f>] ? monotonic_to_bootbased+0x26/0x34
-[    0.136004]  [<ffffffff8103783b>] copy_process+0x4b9/0x10e4
-[    0.140006]  [<ffffffff810bd38b>] ? __get_vm_area_node+0x175/0x1bf
-[    0.144004]  [<ffffffff810385b2>] do_fork+0x14c/0x304
-[    0.148005]  [<ffffffff810200dd>] ? __ioremap_caller+0x292/0x2fb
-[    0.152005]  [<ffffffff812838b0>] ? acpi_os_map_memory+0x12/0x1b
-[    0.156006]  [<ffffffff810038d2>] kernel_thread+0x82/0xe0
-[    0.160006]  [<ffffffff8146c510>] ? kernel_init+0x0/0x1af
-[    0.164004]  [<ffffffff81003930>] ? child_rip+0x0/0x20
-[    0.168004]  [<ffffffff81281a48>] ? rest_init+0x1c/0x76
-[    0.172003]  [<ffffffff8146cc54>] start_kernel+0x351/0x35c
-[    0.176004]  [<ffffffff8146c29a>] x86_64_start_reservations+0xaa/0xae
-[    0.180004]  [<ffffffff8146c37f>] x86_64_start_kernel+0xe1/0xe8
-[    0.184007] ---[ end trace 4eaa2a86a8e2da22 ]---
-
-sched: fix task priority bug.
-
-f83f9ac removed a call to effective_prio() in wake_up_new_task(), which
-leads to tasks running at MAX_PRIO.  That call set both the child's prio
-and normal_prio fields to normal_prio(child).  Do the same fork time by
-setting both to normal_prio(parent).
-
-Signed-off-by: Mike Galbraith <efault@gmx.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Peter Williams <pwil3058@bigpond.net.au>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/plat-s3c/dev-hsmmc2.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN kernel/sched.c~sched-f83f9ac-causes-tasks-running-at-max_prio kernel/sched.c
---- a/kernel/sched.c~sched-f83f9ac-causes-tasks-running-at-max_prio
-+++ a/kernel/sched.c
-@@ -2663,7 +2663,7 @@ void sched_fork(struct task_struct *p, i
- 	/*
- 	 * Make sure we do not leak PI boosting priority to the child.
- 	 */
--	p->prio = current->normal_prio;
-+	p->prio = p->normal_prio = normal_prio(current);
+diff -puN arch/arm/plat-s3c/dev-hsmmc2.c~linux-next-git-rejects arch/arm/plat-s3c/dev-hsmmc2.c
+--- a/arch/arm/plat-s3c/dev-hsmmc2.c~linux-next-git-rejects
++++ a/arch/arm/plat-s3c/dev-hsmmc2.c
+@@ -19,10 +19,6 @@
+ #include <mach/map.h>
+ #include <plat/sdhci.h>
+ #include <plat/devs.h>
+-<<<<<<< HEAD
+-#include <plat/cpu.h>
+-=======
+->>>>>>> next-s5pc1xx
  
- 	if (!rt_prio(p->prio))
- 		p->sched_class = &fair_sched_class;
+ #define S3C_SZ_HSMMC	(0x1000)
+ 
 _
 
-Patches currently in -mm which might be from efault@gmx.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+drivers-media-dvb-dvb-core-dvb_frontendc-needs-semaphoreh.patch
 linux-next.patch
-sched-f83f9ac-causes-tasks-running-at-max_prio.patch
+include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
+linux-next-git-rejects-git-rejects.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
 arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+acpi-remove-nid_inval.patch
+drivers-acpi-acpi_padc-squish-warning.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices-checkpatch-fixes.patch
+drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+kbuild-generate-modulesbuiltin-fix-2-checkpatch-fixes.patch
+drivers-leds-leds-ss4200c-fix-return-statement.patch
+3x59x-fix-pci-resource-management.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
+scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
+aoe-switch-to-the-new-bio_flush_dcache_pages-interface.patch
+wusb-use-sizeof-struct-rather-than-pointer.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+fs-improve-remountro-vs-buffercache-coherency.patch
+percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+readahead-add-blk_run_backing_dev.patch
+mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
+oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
+oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes.patch
+mm-mlocking-in-try_to_unmap_one-fix-fix.patch
+mm-memory_hotplug-make-offline_pages-static.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup.patch
+floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
+drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
+rwsem-fix-rwsem_is_locked-bugs-fix.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
+errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
+msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes.patch
+blackfin-sd-host-controller-driver-fix.patch
+blackfin-sd-host-controller-driver-fix-fix.patch
+crc32-minor-optimizations-and-cleanup-checkpatch-fixes.patch
+hwmon-w83627ehf-updates-checkpatch-fixes.patch
+spi-controller-driver-for-designware-spi-core-fix.patch
+spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
+drivers-gpio-pca953xc-add-interrupt-handling-capability-fix.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3.patch
+ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
+memcg-coalesce-charging-via-percpu-storage-fix.patch
+char-cyclades-fix-compiler-warning.patch
+aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
+direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
+drivers-media-video-cx23885-needs-kfifo-conversion.patch
+drivers-media-video-cx23885-needs-kfifo-updates.patch
+zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes.patch
+lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes.patch
+lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
