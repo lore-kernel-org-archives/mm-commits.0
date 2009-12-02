@@ -1,26 +1,26 @@
 From: akpm@linux-foundation.org
-Subject: + lis3-selftest-support.patch added to -mm tree
-Date: Wed, 02 Dec 2009 15:03:02 -0800
-Message-ID: <200912022303.nB2N32Ym010281@imap1.linux-foundation.org>
+Subject: + lis3-update-documentation-to-match-latest-changes-fix.patch added to -mm tree
+Date: Wed, 02 Dec 2009 15:03:13 -0800
+Message-ID: <200912022303.nB2N3DSA010721@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55385 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42408 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755128AbZLBXDk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Dec 2009 18:03:40 -0500
+	by vger.kernel.org with ESMTP id S1755159AbZLBXDp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Dec 2009 18:03:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: samu.p.onkalo@nokia.com, Eric.Piel@tremplin-utc.net, pavel@ucw.cz
+Cc: akpm@linux-foundation.org, Eric.Piel@tremplin-utc.net, pavel@ucw.cz, randy.dunlap@oracle.com, samu.p.onkalo@nokia.com
 
 
 The patch titled
-     lis3: selftest support
+     lis3-update-documentation-to-match-latest-changes-fix
 has been added to the -mm tree.  Its filename is
-     lis3-selftest-support.patch
+     lis3-update-documentation-to-match-latest-changes-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,237 +38,136 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
 otm/
 
 ------------------------------------------------------
-Subject: lis3: selftest support
-=46rom: Samu Onkalo <samu.p.onkalo@nokia.com>
+Subject: lis3-update-documentation-to-match-latest-changes-fix
+=46rom: Andrew Morton <akpm@linux-foundation.org>
 
-Implement selftest feature as specified by chip manufacturer.  Control:
-read selftest sysfs entry
-
-Response: "OK x y z" or "FAIL x y z"
-
-where x, y, and z are difference between selftest mode and normal mode.=
-=20
-Test is passed when values are within acceptance limit values.
-
-Acceptance limits are provided via platform data.  See chip spesificati=
-ons
-for acceptance limits.  If limits are not properly set, OK / FAIL decis=
-ion
-is meaningless.  However, userspace application can still make decision
-based on the numeric x, y, z values.
-
-Selftest is meant for HW diagnostic purposes.  It is not meant to be
-called during normal use of the chip.  It may cause false interrupt
-events.  Selftest mode delays polling of the normal results but it does=
-n't
-cause wrong values.  Chip must be in static state during selftest.  Any
-acceration during the test causes most probably failure.
-
-Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
-Acked-by: =C9ric Piel <Eric.Piel@tremplin-utc.net>
 Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Samu Onkalo <samu.p.onkalo@nokia.com>
+Cc: =C9ric Piel <Eric.Piel@tremplin-utc.net>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/lis3lv02d.c |   67 +++++++++++++++++++++++++++++++++++-
- drivers/hwmon/lis3lv02d.h |   14 ++++++-
- include/linux/lis3lv02d.h |    3 +
- 3 files changed, 81 insertions(+), 3 deletions(-)
+ Documentation/hwmon/lis3lv02d |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/hwmon/lis3lv02d.c~lis3-selftest-support drivers/hwmon=
-/lis3lv02d.c
---- a/drivers/hwmon/lis3lv02d.c~lis3-selftest-support
-+++ a/drivers/hwmon/lis3lv02d.c
-@@ -106,9 +106,11 @@ static void lis3lv02d_get_xyz(struct lis
- {
- 	int position[3];
+diff -puN Documentation/hwmon/lis3lv02d~lis3-update-documentation-to-ma=
+tch-latest-changes-fix Documentation/hwmon/lis3lv02d
+--- a/Documentation/hwmon/lis3lv02d~lis3-update-documentation-to-match-=
+latest-changes-fix
++++ a/Documentation/hwmon/lis3lv02d
+@@ -40,7 +40,7 @@ Events are also available as input event
 =20
-+	mutex_lock(&lis3->mutex);
- 	position[0] =3D lis3->read_data(lis3, OUTX);
- 	position[1] =3D lis3->read_data(lis3, OUTY);
- 	position[2] =3D lis3->read_data(lis3, OUTZ);
-+	mutex_unlock(&lis3->mutex);
-=20
- 	*x =3D lis3lv02d_get_axis(lis3->ac.x, position);
- 	*y =3D lis3lv02d_get_axis(lis3->ac.y, position);
-@@ -133,6 +135,55 @@ static int lis3lv02d_get_odr(void)
- 	return val;
- }
-=20
-+static int lis3lv02d_selftest(struct lis3lv02d *lis3, s16 results[3])
-+{
-+	u8 reg;
-+	s16 x, y, z;
-+	u8 selftest;
-+	int ret;
-+
-+	mutex_lock(&lis3->mutex);
-+	if (lis3_dev.whoami =3D=3D WAI_12B)
-+		selftest =3D CTRL1_ST;
-+	else
-+		selftest =3D CTRL1_STP;
-+
-+	lis3->read(lis3, CTRL_REG1, &reg);
-+	lis3->write(lis3, CTRL_REG1, (reg | selftest));
-+	msleep(lis3->pwron_delay / lis3lv02d_get_odr());
-+
-+	/* Read directly to avoid axis remap */
-+	x =3D lis3->read_data(lis3, OUTX);
-+	y =3D lis3->read_data(lis3, OUTY);
-+	z =3D lis3->read_data(lis3, OUTZ);
-+
-+	/* back to normal settings */
-+	lis3->write(lis3, CTRL_REG1, reg);
-+	msleep(lis3->pwron_delay / lis3lv02d_get_odr());
-+
-+	results[0] =3D x - lis3->read_data(lis3, OUTX);
-+	results[1] =3D y - lis3->read_data(lis3, OUTY);
-+	results[2] =3D z - lis3->read_data(lis3, OUTZ);
-+
-+	ret =3D 0;
-+	if (lis3->pdata) {
-+		int i;
-+		for (i =3D 0; i < 3; i++) {
-+			/* Check against selftest acceptance limits */
-+			if ((results[i] < lis3->pdata->st_min_limits[i]) ||
-+			    (results[i] > lis3->pdata->st_max_limits[i])) {
-+				ret =3D -EIO;
-+				goto fail;
-+			}
-+		}
-+	}
-+
-+	/* test passed */
-+fail:
-+	mutex_unlock(&lis3->mutex);
-+	return ret;
-+}
-+
- void lis3lv02d_poweroff(struct lis3lv02d *lis3)
- {
- 	/* disable X,Y,Z axis and power down */
-@@ -365,6 +416,17 @@ void lis3lv02d_joystick_disable(void)
- EXPORT_SYMBOL_GPL(lis3lv02d_joystick_disable);
-=20
- /* Sysfs stuff */
-+static ssize_t lis3lv02d_selftest_show(struct device *dev,
-+				struct device_attribute *attr, char *buf)
-+{
-+	int result;
-+	s16 values[3];
-+
-+	result =3D lis3lv02d_selftest(&lis3_dev, values);
-+	return sprintf(buf, "%s %d %d %d\n", result =3D=3D 0 ? "OK" : "FAIL",
-+		values[0], values[1], values[2]);
-+}
-+
- static ssize_t lis3lv02d_position_show(struct device *dev,
- 				struct device_attribute *attr, char *buf)
- {
-@@ -394,12 +456,14 @@ static ssize_t lis3lv02d_rate_show(struc
- 	return sprintf(buf, "%d\n", lis3lv02d_get_odr());
- }
-=20
-+static DEVICE_ATTR(selftest, S_IRUSR, lis3lv02d_selftest_show, NULL);
- static DEVICE_ATTR(position, S_IRUGO, lis3lv02d_position_show, NULL);
- static DEVICE_ATTR(calibrate, S_IRUGO|S_IWUSR, lis3lv02d_calibrate_sho=
-w,
- 	lis3lv02d_calibrate_store);
- static DEVICE_ATTR(rate, S_IRUGO, lis3lv02d_rate_show, NULL);
-=20
- static struct attribute *lis3lv02d_attributes[] =3D {
-+	&dev_attr_selftest.attr,
- 	&dev_attr_position.attr,
- 	&dev_attr_calibrate.attr,
- 	&dev_attr_rate.attr,
-@@ -455,6 +519,8 @@ int lis3lv02d_init_device(struct lis3lv0
- 		return -EINVAL;
- 	}
-=20
-+	mutex_init(&dev->mutex);
-+
- 	lis3lv02d_add_fs(dev);
- 	lis3lv02d_poweron(dev);
-=20
-@@ -507,4 +573,3 @@ EXPORT_SYMBOL_GPL(lis3lv02d_init_device)
- MODULE_DESCRIPTION("ST LIS3LV02Dx three-axis digital accelerometer dri=
-ver");
- MODULE_AUTHOR("Yan Burman, Eric Piel, Pavel Machek");
- MODULE_LICENSE("GPL");
--
-diff -puN drivers/hwmon/lis3lv02d.h~lis3-selftest-support drivers/hwmon=
-/lis3lv02d.h
---- a/drivers/hwmon/lis3lv02d.h~lis3-selftest-support
-+++ a/drivers/hwmon/lis3lv02d.h
-@@ -98,7 +98,7 @@ enum lis3_who_am_i {
- 	WAI_6B		=3D 0x52, /* 6 bits: LIS331DLF - not supported */
- };
-=20
--enum lis3lv02d_ctrl1 {
-+enum lis3lv02d_ctrl1_12b {
- 	CTRL1_Xen	=3D 0x01,
- 	CTRL1_Yen	=3D 0x02,
- 	CTRL1_Zen	=3D 0x04,
-@@ -107,8 +107,17 @@ enum lis3lv02d_ctrl1 {
- 	CTRL1_DF1	=3D 0x20,
- 	CTRL1_PD0	=3D 0x40,
- 	CTRL1_PD1	=3D 0x80,
--	CTRL1_DR	=3D 0x80, /* Data rate on 8 bits */
- };
-+
-+/* Delta to ctrl1_12b version */
-+enum lis3lv02d_ctrl1_8b {
-+	CTRL1_STM	=3D 0x08,
-+	CTRL1_STP	=3D 0x10,
-+	CTRL1_FS	=3D 0x20,
-+	CTRL1_PD	=3D 0x40,
-+	CTRL1_DR	=3D 0x80,
-+};
-+
- enum lis3lv02d_ctrl2 {
- 	CTRL2_DAS	=3D 0x01,
- 	CTRL2_SIM	=3D 0x02,
-@@ -218,6 +227,7 @@ struct lis3lv02d {
- 	unsigned long		misc_opened; /* bit0: whether the device is open */
-=20
- 	struct lis3lv02d_platform_data *pdata;	/* for passing board config */
-+	struct mutex		mutex;     /* Serialize poll and selftest */
- };
-=20
- int lis3lv02d_init_device(struct lis3lv02d *lis3);
-diff -puN include/linux/lis3lv02d.h~lis3-selftest-support include/linux=
-/lis3lv02d.h
---- a/include/linux/lis3lv02d.h~lis3-selftest-support
-+++ a/include/linux/lis3lv02d.h
-@@ -55,6 +55,9 @@ struct lis3lv02d_platform_data {
- 	s8 axis_z;
- 	int (*setup_resources)(void);
- 	int (*release_resources)(void);
-+	/* Limits for selftest are specified in chip data sheet */
-+	s16 st_min_limits[3]; /* min pass limit x, y, z */
-+	s16 st_max_limits[3]; /* max pass limit x, y, z */
- };
-=20
- #endif /* __LIS3LV02D_H_ */
+ Selftest is meant only for hardware diagnostic purposes. It is not mea=
+nt to be
+ used during normal operations. Position data is not corrupted during s=
+elftest
+-but interrupt behaviour is not quaranteed to work reliably. In test mo=
+de, the
++but interrupt behaviour is not guaranteed to work reliably. In test mo=
+de, the
+ sensing element is internally moved little bit. Selftest measures diff=
+erence
+ between normal mode and test mode. Chip specifications tell the accept=
+ance
+ limit for each type of the chip. Limits are provided via platform data
 _
 
-Patches currently in -mm which might be from samu.p.onkalo@nokia.com ar=
-e
+Patches currently in -mm which might be from akpm@linux-foundation.org =
+are
 
+origin.patch
+drivers-media-dvb-dvb-core-dvb_frontendc-needs-semaphoreh.patch
 linux-next.patch
-lis3lv02d-axis-remap-and-resource-setup-release.patch
-lis3lv02d-i2c-support.patch
-lis3lv02d-send-sync-event.patch
-lis3lv02d-correct-memory-leak-in-module-unload.patch
-lis3-update-documentation-and-comments.patch
-lis3-fix-show-rate-for-8-bits-chips.patch
-lis3lv02d-proper-power-on-sequence.patch
-lis3-selftest-support.patch
-lis3lv02d-remove-calibaration-functionality.patch
-lis3-sysfs-entry-for-setting-chip-measurement-rate.patch
-lis3-scale-output-values-to-mg.patch
-lis3-update-documentation-to-match-latest-changes.patch
+include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object=
+_size.patch
+linux-next-git-rejects-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by=
+-using-smp_call_function_any.patch
+acpi-remove-nid_inval.patch
+drivers-acpi-acpi_padc-squish-warning.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices-checkpatch-fixes.pa=
+tch
+drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+kbuild-generate-modulesbuiltin-fix-2-checkpatch-fixes.patch
+drivers-leds-leds-ss4200c-fix-return-statement.patch
+3x59x-fix-pci-resource-management.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
+scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
+aoe-switch-to-the-new-bio_flush_dcache_pages-interface.patch
+wusb-use-sizeof-struct-rather-than-pointer.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+fs-improve-remountro-vs-buffercache-coherency.patch
+percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+readahead-add-blk_run_backing_dev.patch
+mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap=
+-checkpatch-fixes.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
+oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fi=
+x.patch
+oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes.pa=
+tch
+mm-mlocking-in-try_to_unmap_one-fix-fix.patch
+mm-memory_hotplug-make-offline_pages-static.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cle=
+anup.patch
+floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
+drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
+rwsem-fix-rwsem_is_locked-bugs-fix.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
+errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
+msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes.patch
+blackfin-sd-host-controller-driver-fix.patch
+blackfin-sd-host-controller-driver-fix-fix.patch
+crc32-minor-optimizations-and-cleanup-checkpatch-fixes.patch
+hwmon-w83627ehf-updates-checkpatch-fixes.patch
 lis3-update-documentation-to-match-latest-changes-fix.patch
+spi-controller-driver-for-designware-spi-core-fix.patch
+spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fix=
+es.patch
+drivers-gpio-pca953xc-add-interrupt-handling-capability-fix.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyar=
+ea-fillrect-fix.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyar=
+ea-fillrect-fix2.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyar=
+ea-fillrect-fix2-fix-3.patch
+ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkp=
+atch-fixes.patch
+memcg-coalesce-charging-via-percpu-storage-fix.patch
+ipc-remove-unreachable-code-in-semc-fix.patch
+char-cyclades-fix-compiler-warning.patch
+aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
+direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
+drivers-media-video-cx23885-needs-kfifo-conversion.patch
+drivers-media-video-cx23885-needs-kfifo-updates.patch
+zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes.=
+patch
+lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes.patch
+lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.pat=
+ch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
 --
 To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
