@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sysctl_max_map_count-should-be-non-negative.patch added to -mm tree
-Date: Wed, 02 Dec 2009 13:01:36 -0800
-Message-ID: <200912022101.nB2L1alw003125@imap1.linux-foundation.org>
+Subject: + matroxfb-fix-problems-with-display-stability.patch added to -mm tree
+Date: Wed, 02 Dec 2009 14:00:32 -0800
+Message-ID: <200912022200.nB2M0Wdr018394@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58378 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51716 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752473AbZLBVCe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Dec 2009 16:02:34 -0500
+	by vger.kernel.org with ESMTP id S1754621AbZLBWCv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Dec 2009 17:02:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: amwang@redhat.com, a.p.zijlstra@chello.nl, adobriyan@gmail.com, jengelh@medozas.de, jmorris@namei.org, mingo@elte.hu
+Cc: alan@linux.intel.com, VANDROVE@vc.cvut.cz, account@bugzilla.kernel.org.juxtaposition.net, pc@us.ibm.com, penberg@cs.helsinki.fi, rvm1974@raketnet.nl, stable@kernel.org
 
 
 The patch titled
-     'sysctl_max_map_count' should be non-negative
+     matroxfb: fix problems with display stability
 has been added to the -mm tree.  Its filename is
-     sysctl_max_map_count-should-be-non-negative.patch
+     matroxfb-fix-problems-with-display-stability.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,58 +33,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: 'sysctl_max_map_count' should be non-negative
-From: Amerigo Wang <amwang@redhat.com>
+Subject: matroxfb: fix problems with display stability
+From: Alan Cox <alan@linux.intel.com>
 
-Jan Engelhardt reported we have this problem:
+Regression caused in 2.6.23 and then despite repeated requests never fixed
+or dealt with (Petr promised to sort it in 2008 but seems to have
+forgotten).
 
-setting max_map_count to a value large enough results in programs dying at
-first try.  This is on 2.6.31.6:
+Enough is enough - remove the problem line that was added.  If it upsets
+someone they've had two years to deal with it and at the very least it'll
+rattle their cage and wake them up.
 
-15:59 borg:/proc/sys/vm # echo $[1<<31-1] >max_map_count
-15:59 borg:/proc/sys/vm # cat max_map_count
-1073741824
-15:59 borg:/proc/sys/vm # echo $[1<<31] >max_map_count
-15:59 borg:/proc/sys/vm # cat max_map_count
-Killed
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=9709
 
-This is because we have a chance to make 'max_map_count' negative.  but
-it's meaningless.  Make it only accept non-negative values.
-
-Reported-by: Jan Engelhardt <jengelh@medozas.de>
-Signed-off-by: WANG Cong <amwang@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: James Morris <jmorris@namei.org>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Signed-off-by: Alan Cox <alan@linux.intel.com>
+Reported-by: Damon <account@bugzilla.kernel.org.juxtaposition.net>
+Cc: Ruud van Melick <rvm1974@raketnet.nl>
+Cc: Petr Vandrovec <VANDROVE@vc.cvut.cz>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Paul A. Clarke <pc@us.ibm.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/video/matrox/g450_pll.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN kernel/sysctl.c~sysctl_max_map_count-should-be-non-negative kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl_max_map_count-should-be-non-negative
-+++ a/kernel/sysctl.c
-@@ -1124,6 +1124,7 @@ static struct ctl_table vm_table[] = {
- 		.maxlen		= sizeof(sysctl_max_map_count),
- 		.mode		= 0644,
- 		.proc_handler	= proc_dointvec
-+		.extra1		= &zero,
- 	},
- #else
- 	{
+diff -puN drivers/video/matrox/g450_pll.c~matroxfb-fix-problems-with-display-stability drivers/video/matrox/g450_pll.c
+--- a/drivers/video/matrox/g450_pll.c~matroxfb-fix-problems-with-display-stability
++++ a/drivers/video/matrox/g450_pll.c
+@@ -368,7 +368,8 @@ static int __g450_setclk(struct matrox_f
+ 					M1064_XDVICLKCTRL_C1DVICLKEN |
+ 					M1064_XDVICLKCTRL_DVILOOPCTL |
+ 					M1064_XDVICLKCTRL_P1LOOPBWDTCTL;
+-				matroxfb_DAC_out(minfo, M1064_XDVICLKCTRL, tmp);
++                                /* Setting this breaks PC systems so don't do it */
++				/* matroxfb_DAC_out(minfo, M1064_XDVICLKCTRL, tmp); */
+ 				matroxfb_DAC_out(minfo, M1064_XPWRCTRL,
+ 						 xpwrctrl);
+ 
 _
 
-Patches currently in -mm which might be from amwang@redhat.com are
+Patches currently in -mm which might be from alan@linux.intel.com are
 
+origin.patch
 linux-next.patch
-xtensa-use-generic-sys_pipe.patch
-sysctl_max_map_count-should-be-non-negative.patch
-rwsem-spinlock-remove-useless-function-exports.patch
-rwsem-fix-rwsem_is_locked-bugs.patch
-rwsem-fix-rwsem_is_locked-bugs-fix.patch
-kallsyms-remove-deprecated-print_fn_descriptor_symbol.patch
-kexec-premit-reduction-of-the-reserved-memory-size.patch
-kexec-premit-reduction-of-the-reserved-memory-size-fix.patch
+8250-add-serial-transmitter-fully-empty-test.patch
+imx-bit-confusion.patch
+i810fb-fix-stack-exploding.patch
+matroxfb-fix-problems-with-display-stability.patch
+char-cyclades-fix-compiler-warning.patch
+parport_pcc-use-correct-length-in-strncmp.patch
 
