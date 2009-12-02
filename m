@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + clocksource-add-suspend-callback.patch added to -mm tree
-Date: Wed, 02 Dec 2009 15:36:45 -0800
-Message-ID: <200912022336.nB2NajQP028486@imap1.linux-foundation.org>
+Subject: + sdio-initialise-sdio-functions-and-update-card-sdio_funcs-in-lockstep.patch added to -mm tree
+Date: Wed, 02 Dec 2009 15:49:44 -0800
+Message-ID: <200912022349.nB2NnidU027871__26817.9420302205$1259797832$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57505 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48423 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755801AbZLBXhf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Dec 2009 18:37:35 -0500
+	by vger.kernel.org with ESMTP id S1752866AbZLBXuO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Dec 2009 18:50:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: damm@opensource.se, johnstul@us.ibm.com, lethal@linux-sh.org, tglx@linutronix.de
+Cc: matt@console-pimps.org, dsd@laptop.org, linux-mmc@vger.kernel.org
 
 
 The patch titled
-     clocksource: add suspend callback
+     sdio: initialise SDIO functions and update card->sdio_funcs in lockstep
 has been added to the -mm tree.  Its filename is
-     clocksource-add-suspend-callback.patch
+     sdio-initialise-sdio-functions-and-update-card-sdio_funcs-in-lockstep.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,107 +33,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: clocksource: add suspend callback
-From: Magnus Damm <damm@opensource.se>
+Subject: sdio: initialise SDIO functions and update card->sdio_funcs in lockstep
+From: Matt Fleming <matt@console-pimps.org>
 
-Add a clocksource suspend callback.  This callback can be used by the
-clocksource driver to shutdown and perform any kind of late suspend
-activities even though the clocksource driver itself is a non-sysdev
-driver.
+We need to accurately track how many SDIO functions have been initialised
+(and keep card->sdio_funcs in sync) so that we don't try to remove more
+functions than we initialised if we hit the error path in
+mmc_attach_sdio().
 
-One example where this is useful is to fix the sh_cmt.c platform driver
-that today suspends using the platform bus and shuts down the clocksource
-too early.
+Without this patch if we hit the error path in mmc_attach_sdio() we run
+the risk of deferencing invalid memory in sdio_remove_func(), leading to a
+crash.
 
-With this callback in place the sh_cmt driver will suspend using the
-clocksource and clockevent hooks and leave the platform device pm
-callbacks unused.
-
-Signed-off-by: Magnus Damm <damm@opensource.se>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: john stultz <johnstul@us.ibm.com>
+Signed-off-by: Matt Fleming <matt@console-pimps.org>
+Cc: Daniel Drake <dsd@laptop.org>
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/clocksource.h |    3 +++
- kernel/time/clocksource.c   |   12 ++++++++++++
- kernel/time/timekeeping.c   |    1 +
- 3 files changed, 16 insertions(+)
+ drivers/mmc/core/sdio.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/clocksource.h~clocksource-add-suspend-callback include/linux/clocksource.h
---- a/include/linux/clocksource.h~clocksource-add-suspend-callback
-+++ a/include/linux/clocksource.h
-@@ -154,6 +154,7 @@ extern u64 timecounter_cyc2time(struct t
-  * @max_idle_ns:	max idle time permitted by the clocksource (nsecs)
-  * @flags:		flags describing special properties
-  * @vread:		vsyscall based read
-+ * @suspend:		suspend function for the clocksource, if necessary
-  * @resume:		resume function for the clocksource, if necessary
-  */
- struct clocksource {
-@@ -172,6 +173,7 @@ struct clocksource {
- 	u64 max_idle_ns;
- 	unsigned long flags;
- 	cycle_t (*vread)(void);
-+	void (*suspend)(struct clocksource *cs);
- 	void (*resume)(struct clocksource *cs);
- #ifdef CONFIG_IA64
- 	void *fsys_mmio;        /* used by fsyscall asm code */
-@@ -277,6 +279,7 @@ extern void clocksource_unregister(struc
- extern void clocksource_touch_watchdog(void);
- extern struct clocksource* clocksource_get_next(void);
- extern void clocksource_change_rating(struct clocksource *cs, int rating);
-+extern void clocksource_suspend(void);
- extern void clocksource_resume(void);
- extern struct clocksource * __init __weak clocksource_default_clock(void);
+diff -puN drivers/mmc/core/sdio.c~sdio-initialise-sdio-functions-and-update-card-sdio_funcs-in-lockstep drivers/mmc/core/sdio.c
+--- a/drivers/mmc/core/sdio.c~sdio-initialise-sdio-functions-and-update-card-sdio_funcs-in-lockstep
++++ a/drivers/mmc/core/sdio.c
+@@ -516,7 +516,8 @@ int mmc_attach_sdio(struct mmc_host *hos
+ 	 * The number of functions on the card is encoded inside
+ 	 * the ocr.
+ 	 */
+-	card->sdio_funcs = funcs = (ocr & 0x70000000) >> 28;
++	funcs = (ocr & 0x70000000) >> 28;
++	card->sdio_funcs = 0;
  
-diff -puN kernel/time/clocksource.c~clocksource-add-suspend-callback kernel/time/clocksource.c
---- a/kernel/time/clocksource.c~clocksource-add-suspend-callback
-+++ a/kernel/time/clocksource.c
-@@ -441,6 +441,18 @@ static inline int clocksource_watchdog_k
- #endif /* CONFIG_CLOCKSOURCE_WATCHDOG */
- 
- /**
-+ * clocksource_suspend - suspend the clocksource(s)
-+ */
-+void clocksource_suspend(void)
-+{
-+	struct clocksource *cs;
-+
-+	list_for_each_entry_reverse(cs, &clocksource_list, list)
-+		if (cs->suspend)
-+			cs->suspend(cs);
-+}
-+
-+/**
-  * clocksource_resume - resume the clocksource(s)
-  */
- void clocksource_resume(void)
-diff -puN kernel/time/timekeeping.c~clocksource-add-suspend-callback kernel/time/timekeeping.c
---- a/kernel/time/timekeeping.c~clocksource-add-suspend-callback
-+++ a/kernel/time/timekeeping.c
-@@ -611,6 +611,7 @@ static int timekeeping_suspend(struct sy
- 	write_sequnlock_irqrestore(&xtime_lock, flags);
- 
- 	clockevents_notify(CLOCK_EVT_NOTIFY_SUSPEND, NULL);
-+	clocksource_suspend();
- 
- 	return 0;
- }
+ 	/*
+ 	 * If needed, disconnect card detection pull-up resistor.
+@@ -528,7 +529,7 @@ int mmc_attach_sdio(struct mmc_host *hos
+ 	/*
+ 	 * Initialize (but don't add) all present functions.
+ 	 */
+-	for (i = 0;i < funcs;i++) {
++	for (i = 0;i < funcs;i++, card->sdio_funcs++) {
+ 		err = sdio_init_func(host->card, i + 1);
+ 		if (err)
+ 			goto remove;
 _
 
-Patches currently in -mm which might be from damm@opensource.se are
+Patches currently in -mm which might be from matt@console-pimps.org are
 
 linux-next.patch
-driver-core-early-platform-driver-buffer.patch
-clocksource-add-argument-to-resume-callback.patch
-clocksource-start-cmt-at-clocksource-resume.patch
-clocksource-add-suspend-callback.patch
-mm-uncached-vma-support-with-writenotify.patch
-mmc-let-tmio-mmc-use-dev_name-with-request_irq.patch
-mmc-remove-const-from-tmio-mmc-platform-data-v2.patch
-mmc-balance-tmio-mmc-cell-enable-disable-calls.patch
-spi-superh-msiof-spi-master-driver.patch
-spi-superh-msiof-spi-master-driver-update.patch
+sdio-initialise-sdio-functions-and-update-card-sdio_funcs-in-lockstep.patch
 
