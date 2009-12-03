@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + arm-nuc900-add-rtc-driver-support-for-nuc910-and-nuc920-v5.patch added to -mm tree
-Date: Wed, 02 Dec 2009 16:41:28 -0800
-Message-ID: <200912030041.nB30fSaS025248@imap1.linux-foundation.org>
+Subject: + hugetlb-acquire-the-i_mmap_lock-before-walking-the-prio_tree-to-unmap-a-page-v2.patch added to -mm tree
+Date: Wed, 02 Dec 2009 17:04:25 -0800
+Message-ID: <200912030104.nB314PQS016800@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35197 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41021 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752753AbZLCAlv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Dec 2009 19:41:51 -0500
+	by vger.kernel.org with ESMTP id S1752854AbZLCBEx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Dec 2009 20:04:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mcuos.com@gmail.com, a.zummo@towertech.it, david-b@pacbell.net, jack_wang@usish.com, rmk@arm.linux.org.uk, specter118@gmail.com
+Cc: mel@csn.ul.ie, hugh.dickins@tiscali.co.uk
 
 
 The patch titled
-     arm-nuc900-add-rtc-driver-support-for-nuc910-and-nuc920-v5.
+     hugetlb: acquire the i_mmap_lock before walking the prio_tree to unmap a page
 has been added to the -mm tree.  Its filename is
-     arm-nuc900-add-rtc-driver-support-for-nuc910-and-nuc920-v5.patch
+     hugetlb-acquire-the-i_mmap_lock-before-walking-the-prio_tree-to-unmap-a-page-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,93 +33,88 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arm-nuc900-add-rtc-driver-support-for-nuc910-and-nuc920-v5.
-From: Wan ZongShun <mcuos.com@gmail.com>
+Subject: hugetlb: acquire the i_mmap_lock before walking the prio_tree to unmap a page
+From: Mel Gorman <mel@csn.ul.ie>
 
-Regarding your advice for 'check_rtc_power', I have modified some codes
-and thanks for your comment.
+When the owner of a mapping fails COW because a child process is holding a
+reference, the children VMAs are walked and the page is unmapped.  The
+i_mmap_lock is taken for the unmapping of the page but not the walking of
+the prio_tree.  In theory, that tree could be changing if the lock is not
+held.  This patch takes the i_mmap_lock properly for the duration of the
+prio_tree walk.
 
-This patch named v5,and I fixed 'check_rtc_power' function, maybe I can
-make a patch relative to that patch v4?
-
-Signed-off-by: Wan ZongShun <mcuos.com@gmail.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Hu Ruihuan <specter118@gmail.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: "jack wang" <jack_wang@usish.com>
-Cc: David Brownell <david-b@pacbell.net>
+[hugh.dickins@tiscali.co.uk: Spotted the problem in the first place]
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-nuc900.c |   21 ++++++++++++++++-----
- 1 file changed, 16 insertions(+), 5 deletions(-)
+ mm/hugetlb.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-nuc900.c~arm-nuc900-add-rtc-driver-support-for-nuc910-and-nuc920-v5 drivers/rtc/rtc-nuc900.c
---- a/drivers/rtc/rtc-nuc900.c~arm-nuc900-add-rtc-driver-support-for-nuc910-and-nuc920-v5
-+++ a/drivers/rtc/rtc-nuc900.c
-@@ -82,7 +82,7 @@ static irqreturn_t nuc900_rtc_interrupt(
- 	return IRQ_HANDLED;
- }
+diff -puN mm/hugetlb.c~hugetlb-acquire-the-i_mmap_lock-before-walking-the-prio_tree-to-unmap-a-page-v2 mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-acquire-the-i_mmap_lock-before-walking-the-prio_tree-to-unmap-a-page-v2
++++ a/mm/hugetlb.c
+@@ -2237,6 +2237,12 @@ static int unmap_ref_private(struct mm_s
+ 		+ (vma->vm_pgoff >> PAGE_SHIFT);
+ 	mapping = (struct address_space *)page_private(page);
  
--static void check_rtc_power(struct nuc900_rtc *nuc900_rtc)
-+static int *check_rtc_access_enable(struct nuc900_rtc *nuc900_rtc)
- {
- 	unsigned int i;
- 	__raw_writel(INIRRESET, nuc900_rtc->rtc_reg + REG_RTC_INIR);
-@@ -91,10 +91,15 @@ static void check_rtc_power(struct nuc90
- 
- 	__raw_writel(AERPOWERON, nuc900_rtc->rtc_reg + REG_RTC_AER);
- 
--	for (i = 0; i < 1000000; i++) {
-+	for (i = 0; i < 1000; i++) {
- 		if (__raw_readl(nuc900_rtc->rtc_reg + REG_RTC_AER) & AERRWENB)
--			break;
-+			return 0;
++	/*
++	 * Take the mapping lock for the duration of the table walk. As
++	 * this mapping should be shared between all the VMAs,
++	 * __unmap_hugepage_range() is called as the lock is already held
++	 */
++	spin_lock(&mapping->i_mmap_lock);
+ 	vma_prio_tree_foreach(iter_vma, &iter, &mapping->i_mmap, pgoff, pgoff) {
+ 		/* Do not unmap the current VMA */
+ 		if (iter_vma == vma)
+@@ -2250,10 +2256,11 @@ static int unmap_ref_private(struct mm_s
+ 		 * from the time of fork. This would look like data corruption
+ 		 */
+ 		if (!is_vma_resv_set(iter_vma, HPAGE_RESV_OWNER))
+-			unmap_hugepage_range(iter_vma,
++			__unmap_hugepage_range(iter_vma,
+ 				address, address + huge_page_size(h),
+ 				page);
  	}
-+
-+	if ((__raw_readl(nuc900_rtc->rtc_reg + REG_RTC_AER) & AERRWENB) == 0x0)
-+		return ERR_PTR(-ENODEV);
-+
-+	return ERR_PTR(-EPERM);
++	spin_unlock(&mapping->i_mmap_lock);
+ 
+ 	return 1;
  }
- 
- static void nuc900_rtc_bcd2bin(unsigned int timereg,
-@@ -169,10 +174,13 @@ static int nuc900_rtc_set_time(struct de
- 	struct nuc900_rtc *rtc = dev_get_drvdata(dev);
- 	struct nuc900_bcd_time gettm;
- 	unsigned long val;
-+	int *err;
- 
- 	nuc900_rtc_bin2bcd(tm, &gettm);
- 
--	check_rtc_power(rtc);
-+	err = check_rtc_access_enable(rtc);
-+	if (IS_ERR(err))
-+		return PTR_ERR(err);
- 
- 	val = gettm.bcd_mday | gettm.bcd_mon | gettm.bcd_year;
- 	__raw_writel(val, rtc->rtc_reg + REG_RTC_CLR);
-@@ -201,10 +209,13 @@ static int nuc900_rtc_set_alarm(struct d
- 	struct nuc900_rtc *rtc = dev_get_drvdata(dev);
- 	struct nuc900_bcd_time tm;
- 	unsigned long val;
-+	int *err;
- 
- 	nuc900_rtc_bin2bcd(&alrm->time, &tm);
- 
--	check_rtc_power(rtc);
-+	err = check_rtc_access_enable(rtc);
-+	if (IS_ERR(err))
-+		return PTR_ERR(err);
- 
- 	val = tm.bcd_mday | tm.bcd_mon | tm.bcd_year;
- 	__raw_writel(val, rtc->rtc_reg + REG_RTC_CAR);
 _
 
-Patches currently in -mm which might be from mcuos.com@gmail.com are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
 linux-next.patch
-spi-nuc900-add-arm-driver-support-for-nuc900.patch
-arm-nuc900-add-rtc-driver-support-for-nuc910-and-nuc920.patch
-arm-nuc900-add-rtc-driver-support-for-nuc910-and-nuc920-v5.patch
+mm-add-notifier-in-pageblock-isolation-for-balloon-drivers.patch
+powerpc-make-the-cmm-memory-hotplug-aware.patch
+powerpc-make-the-cmm-memory-hotplug-aware-update.patch
+mm-warn-once-when-a-page-is-freed-with-pg_mlocked-set.patch
+nodemask-make-nodemask_alloc-more-general.patch
+hugetlb-rework-hstate_next_node_-functions.patch
+hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions.patch
+hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions-fix.patch
+hugetlb-factor-init_nodemask_of_node.patch
+hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy.patch
+hugetlb-add-generic-definition-of-numa_no_node.patch
+hugetlb-add-per-node-hstate-attributes.patch
+hugetlb-update-hugetlb-documentation-for-numa-controls.patch
+hugetlb-use-only-nodes-with-memory-for-huge-pages.patch
+mm-clear-node-in-n_high_memory-and-stop-kswapd-when-all-memory-is-offlined.patch
+hugetlb-handle-memory-hot-plug-events.patch
+hugetlb-offload-per-node-attribute-registrations.patch
+mm-add-gfp-flags-for-nodemask_alloc-slab-allocations.patch
+page-allocator-wait-on-both-sync-and-async-congestion-after-direct-reclaim.patch
+vmscan-have-kswapd-sleep-for-a-short-interval-and-double-check-it-should-be-asleep.patch
+vmscan-stop-kswapd-waiting-on-congestion-when-the-min-watermark-is-not-being-met-v2.patch
+vmscan-have-kswapd-sleep-for-a-short-interval-and-double-check-it-should-be-asleep-fix-1.patch
+vmscan-separate-scswap_cluster_max-and-scnr_max_reclaim.patch
+vmscan-kill-hibernation-specific-reclaim-logic-and-unify-it.patch
+vmscan-zone_reclaim-dont-use-insane-swap_cluster_max.patch
+vmscan-kill-scswap_cluster_max.patch
+vmscan-make-consistent-of-reclaim-bale-out-between-do_try_to_free_page-and-shrink_zone.patch
+ksm-fix-mlockfreed-to-munlocked.patch
+hugetlb-prevent-deadlock-in-__unmap_hugepage_range-when-alloc_huge_page-fails-2.patch
+hugetlb-acquire-the-i_mmap_lock-before-walking-the-prio_tree-to-unmap-a-page-v2.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
 
