@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + security-do-not-check-mmap_min_addr-on-nommu-systems.patch added to -mm tree
-Date: Thu, 03 Dec 2009 15:05:22 -0800
-Message-ID: <200912032305.nB3N5Mmw022560@imap1.linux-foundation.org>
+Subject: + gru-function-to-generate-chipset-ipi-values.patch added to -mm tree
+Date: Thu, 03 Dec 2009 15:20:28 -0800
+Message-ID: <200912032320.nB3NKSmF027265@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60904 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55093 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751970AbZLCXGE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Dec 2009 18:06:04 -0500
+	by vger.kernel.org with ESMTP id S1751376AbZLCXUY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Dec 2009 18:20:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: eparis@redhat.com, dhowells@redhat.com, graf.yang@analog.com, jmorris@namei.org, vapier.adi@gmail.com
+Cc: steiner@sgi.com
 
 
 The patch titled
-     security: do not check mmap_min_addr on nommu systems
+     gru: function to generate chipset IPI values
 has been added to the -mm tree.  Its filename is
-     security-do-not-check-mmap_min_addr-on-nommu-systems.patch
+     gru-function-to-generate-chipset-ipi-values.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,238 +33,119 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: security: do not check mmap_min_addr on nommu systems
-From: Eric Paris <eparis@redhat.com>
+Subject: gru: function to generate chipset IPI values
+From: Jack Steiner <steiner@sgi.com>
 
-nommu systems can do anything with memory they please and so they already
-win.  mmap_min_addr is the least of their worries.  Currently the
-mmap_min_addr implementation is problamatic on such systems.  This patch
-changes the addr_only argument to be a flags which can take the arguments
-for addr_only or not_addr.  LSMs then need to properly implement these two
-flags.
+Create a function to generate the value that is written to the UV hub MMR
+to cause an IPI interrupt to be sent.  The function will be used in the
+GRU message queue error recovery code that sends IPIs to nodes in remote
+partitions.
 
-Signed-off-by: Eric Paris <eparis@redhat.com>
-Cc: David Howells <dhowells@redhat.com>
-Reported-by: Graff Yang <graf.yang@analog.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: Mike Frysinger <vapier.adi@gmail.com>
+Signed-off-by: Jack Steiner <steiner@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/security.h |   18 +++++++++++++-----
- mm/mmap.c                |    6 ++++--
- mm/mremap.c              |    6 ++++--
- mm/nommu.c               |    3 ++-
- security/commoncap.c     |    7 ++++---
- security/security.c      |    5 +++--
- security/selinux/hooks.c |    9 +++++----
- 7 files changed, 35 insertions(+), 19 deletions(-)
+ arch/x86/include/asm/uv/uv_hub.h |   24 ++++++++++++++++++++----
+ 1 file changed, 20 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/security.h~security-do-not-check-mmap_min_addr-on-nommu-systems include/linux/security.h
---- a/include/linux/security.h~security-do-not-check-mmap_min_addr-on-nommu-systems
-+++ a/include/linux/security.h
-@@ -43,6 +43,12 @@
- #define SECURITY_CAP_NOAUDIT 0
- #define SECURITY_CAP_AUDIT 1
+diff -puN arch/x86/include/asm/uv/uv_hub.h~gru-function-to-generate-chipset-ipi-values arch/x86/include/asm/uv/uv_hub.h
+--- a/arch/x86/include/asm/uv/uv_hub.h~gru-function-to-generate-chipset-ipi-values
++++ a/arch/x86/include/asm/uv/uv_hub.h
+@@ -172,6 +172,8 @@ DECLARE_PER_CPU(struct uv_hub_info_s, __
+ #define UV_LOCAL_MMR_SIZE		(64UL * 1024 * 1024)
+ #define UV_GLOBAL_MMR32_SIZE		(64UL * 1024 * 1024)
  
-+/* sec_flags for security_file_mmap */
-+/* Only check the address portion */
-+#define SECURITY_MMAP_ADDR_ONLY	0x01
-+/* Do not do the address checks */
-+#define SECURITY_MMAP_NOT_ADDR	0x02
++#define UV_GLOBAL_GRU_MMR_BASE		0x4000000
 +
- struct ctl_table;
- struct audit_krule;
+ #define UV_GLOBAL_MMR32_PNODE_SHIFT	15
+ #define UV_GLOBAL_MMR64_PNODE_SHIFT	26
  
-@@ -69,7 +75,7 @@ extern int cap_inode_need_killpriv(struc
- extern int cap_inode_killpriv(struct dentry *dentry);
- extern int cap_file_mmap(struct file *file, unsigned long reqprot,
- 			 unsigned long prot, unsigned long flags,
--			 unsigned long addr, unsigned long addr_only);
-+			 unsigned long addr, unsigned long sec_flags);
- extern int cap_task_fix_setuid(struct cred *new, const struct cred *old, int flags);
- extern int cap_task_prctl(int option, unsigned long arg2, unsigned long arg3,
- 			  unsigned long arg4, unsigned long arg5);
-@@ -609,6 +615,8 @@ static inline void security_free_mnt_opt
-  *	@reqprot contains the protection requested by the application.
-  *	@prot contains the protection that will be applied by the kernel.
-  *	@flags contains the operational flags.
-+ *	@addr address vm will map to
-+ *	@sec_flags what security checks should be done
-  *	Return 0 if permission is granted.
-  * @file_mprotect:
-  *	Check permissions before changing memory access permissions.
-@@ -1556,7 +1564,7 @@ struct security_operations {
- 	int (*file_mmap) (struct file *file,
- 			  unsigned long reqprot, unsigned long prot,
- 			  unsigned long flags, unsigned long addr,
--			  unsigned long addr_only);
-+			  unsigned long sec_flags);
- 	int (*file_mprotect) (struct vm_area_struct *vma,
- 			      unsigned long reqprot,
- 			      unsigned long prot);
-@@ -1826,7 +1834,7 @@ void security_file_free(struct file *fil
- int security_file_ioctl(struct file *file, unsigned int cmd, unsigned long arg);
- int security_file_mmap(struct file *file, unsigned long reqprot,
- 			unsigned long prot, unsigned long flags,
--			unsigned long addr, unsigned long addr_only);
-+			unsigned long addr, unsigned long sec_flags);
- int security_file_mprotect(struct vm_area_struct *vma, unsigned long reqprot,
- 			   unsigned long prot);
- int security_file_lock(struct file *file, unsigned int cmd);
-@@ -2323,9 +2331,9 @@ static inline int security_file_mmap(str
- 				     unsigned long prot,
- 				     unsigned long flags,
- 				     unsigned long addr,
--				     unsigned long addr_only)
-+				     unsigned long sec_flags)
- {
--	return cap_file_mmap(file, reqprot, prot, flags, addr, addr_only);
-+	return cap_file_mmap(file, reqprot, prot, flags, addr, sec_flags);
+@@ -328,6 +330,15 @@ static inline unsigned long uv_read_glob
  }
  
- static inline int security_file_mprotect(struct vm_area_struct *vma,
-diff -puN mm/mmap.c~security-do-not-check-mmap_min_addr-on-nommu-systems mm/mmap.c
---- a/mm/mmap.c~security-do-not-check-mmap_min_addr-on-nommu-systems
-+++ a/mm/mmap.c
-@@ -1676,7 +1676,8 @@ static int expand_downwards(struct vm_ar
- 		return -ENOMEM;
- 
- 	address &= PAGE_MASK;
--	error = security_file_mmap(NULL, 0, 0, 0, address, 1);
-+	error = security_file_mmap(NULL, 0, 0, 0, address,
-+				   SECURITY_MMAP_ADDR_ONLY);
- 	if (error)
- 		return error;
- 
-@@ -2037,7 +2038,8 @@ unsigned long do_brk(unsigned long addr,
- 	if (is_hugepage_only_range(mm, addr, len))
- 		return -EINVAL;
- 
--	error = security_file_mmap(NULL, 0, 0, 0, addr, 1);
-+	error = security_file_mmap(NULL, 0, 0, 0, addr,
-+				   SECURITY_MMAP_ADDR_ONLY);
- 	if (error)
- 		return error;
- 
-diff -puN mm/mremap.c~security-do-not-check-mmap_min_addr-on-nommu-systems mm/mremap.c
---- a/mm/mremap.c~security-do-not-check-mmap_min_addr-on-nommu-systems
-+++ a/mm/mremap.c
-@@ -313,7 +313,8 @@ unsigned long do_mremap(unsigned long ad
- 		if ((addr <= new_addr) && (addr+old_len) > new_addr)
- 			goto out;
- 
--		ret = security_file_mmap(NULL, 0, 0, 0, new_addr, 1);
-+		ret = security_file_mmap(NULL, 0, 0, 0, new_addr,
-+					 SECURITY_MMAP_ADDR_ONLY);
- 		if (ret)
- 			goto out;
- 
-@@ -421,7 +422,8 @@ unsigned long do_mremap(unsigned long ad
- 				goto out;
- 			}
- 
--			ret = security_file_mmap(NULL, 0, 0, 0, new_addr, 1);
-+			ret = security_file_mmap(NULL, 0, 0, 0, new_addr,
-+						 SECURITY_MMAP_ADDR_ONLY);
- 			if (ret)
- 				goto out;
- 		}
-diff -puN mm/nommu.c~security-do-not-check-mmap_min_addr-on-nommu-systems mm/nommu.c
---- a/mm/nommu.c~security-do-not-check-mmap_min_addr-on-nommu-systems
-+++ a/mm/nommu.c
-@@ -974,7 +974,8 @@ static int validate_mmap_request(struct 
- 	}
- 
- 	/* allow the security API to have its say */
--	ret = security_file_mmap(file, reqprot, prot, flags, addr, 0);
-+	ret = security_file_mmap(file, reqprot, prot, flags, 0,
-+				 SECURITY_MMAP_NOT_ADDR);
- 	if (ret < 0)
- 		return ret;
- 
-diff -puN security/commoncap.c~security-do-not-check-mmap_min_addr-on-nommu-systems security/commoncap.c
---- a/security/commoncap.c~security-do-not-check-mmap_min_addr-on-nommu-systems
-+++ a/security/commoncap.c
-@@ -924,7 +924,7 @@ int cap_vm_enough_memory(struct mm_struc
-  * @prot: unused
-  * @flags: unused
-  * @addr: address attempting to be mapped
-- * @addr_only: unused
-+ * @sec_flags: should the addr be checked?
-  *
-  * If the process is attempting to map memory below mmap_min_addr they need
-  * CAP_SYS_RAWIO.  The other parameters to this function are unused by the
-@@ -933,11 +933,12 @@ int cap_vm_enough_memory(struct mm_struc
+ /*
++ * Global MMR space addresses when referenced by the GRU. (GRU does
++ * NOT use socket addressing).
++ */
++static inline unsigned long uv_global_gru_mmr_address(int pnode, unsigned long offset)
++{
++	return UV_GLOBAL_GRU_MMR_BASE | offset | (pnode << uv_hub_info->m_val);
++}
++
++/*
+  * Access hub local MMRs. Faster than using global space but only local MMRs
+  * are accessible.
   */
- int cap_file_mmap(struct file *file, unsigned long reqprot,
- 		  unsigned long prot, unsigned long flags,
--		  unsigned long addr, unsigned long addr_only)
-+		  unsigned long addr, unsigned long sec_flags)
- {
- 	int ret = 0;
- 
--	if (addr < dac_mmap_min_addr) {
-+	if (!(sec_flags & SECURITY_MMAP_NOT_ADDR) &&
-+	    (addr < dac_mmap_min_addr)) {
- 		ret = cap_capable(current, current_cred(), CAP_SYS_RAWIO,
- 				  SECURITY_CAP_AUDIT);
- 		/* set PF_SUPERPRIV if it turns out we allow the low mmap */
-diff -puN security/security.c~security-do-not-check-mmap_min_addr-on-nommu-systems security/security.c
---- a/security/security.c~security-do-not-check-mmap_min_addr-on-nommu-systems
-+++ a/security/security.c
-@@ -677,11 +677,12 @@ int security_file_ioctl(struct file *fil
- 
- int security_file_mmap(struct file *file, unsigned long reqprot,
- 			unsigned long prot, unsigned long flags,
--			unsigned long addr, unsigned long addr_only)
-+			unsigned long addr, unsigned long sec_flags)
- {
- 	int ret;
- 
--	ret = security_ops->file_mmap(file, reqprot, prot, flags, addr, addr_only);
-+	ret = security_ops->file_mmap(file, reqprot, prot, flags, addr,
-+				      sec_flags);
- 	if (ret)
- 		return ret;
- 	return ima_file_mmap(file, prot);
-diff -puN security/selinux/hooks.c~security-do-not-check-mmap_min_addr-on-nommu-systems security/selinux/hooks.c
---- a/security/selinux/hooks.c~security-do-not-check-mmap_min_addr-on-nommu-systems
-+++ a/security/selinux/hooks.c
-@@ -3043,7 +3043,7 @@ error:
- 
- static int selinux_file_mmap(struct file *file, unsigned long reqprot,
- 			     unsigned long prot, unsigned long flags,
--			     unsigned long addr, unsigned long addr_only)
-+			     unsigned long addr, unsigned long sec_flags)
- {
- 	int rc = 0;
- 	u32 sid = current_sid();
-@@ -3054,7 +3054,8 @@ static int selinux_file_mmap(struct file
- 	 * at bad behaviour/exploit that we always want to get the AVC, even
- 	 * if DAC would have also denied the operation.
- 	 */
--	if (addr < CONFIG_LSM_MMAP_MIN_ADDR) {
-+	if (!(sec_flags & SECURITY_MMAP_NOT_ADDR) &&
-+	    (addr < CONFIG_LSM_MMAP_MIN_ADDR)) {
- 		rc = avc_has_perm(sid, sid, SECCLASS_MEMPROTECT,
- 				  MEMPROTECT__MMAP_ZERO, NULL);
- 		if (rc)
-@@ -3062,8 +3063,8 @@ static int selinux_file_mmap(struct file
+@@ -454,6 +465,14 @@ static inline void uv_set_cpu_scir_bits(
  	}
+ }
  
- 	/* do DAC check on address space usage */
--	rc = cap_file_mmap(file, reqprot, prot, flags, addr, addr_only);
--	if (rc || addr_only)
-+	rc = cap_file_mmap(file, reqprot, prot, flags, addr, sec_flags);
-+	if (rc || (sec_flags & SECURITY_MMAP_ADDR_ONLY))
- 		return rc;
++static unsigned long uv_hub_ipi_value(int apicid, int vector, int mode)
++{
++	return (1UL << UVH_IPI_INT_SEND_SHFT) |
++			((apicid) << UVH_IPI_INT_APIC_ID_SHFT) |
++			(mode << UVH_IPI_INT_DELIVERY_MODE_SHFT) |
++			(vector << UVH_IPI_INT_VECTOR_SHFT);
++}
++
+ static inline void uv_hub_send_ipi(int pnode, int apicid, int vector)
+ {
+ 	unsigned long val;
+@@ -462,10 +481,7 @@ static inline void uv_hub_send_ipi(int p
+ 	if (vector == NMI_VECTOR)
+ 		dmode = dest_NMI;
  
- 	if (selinux_checkreqprot)
+-	val = (1UL << UVH_IPI_INT_SEND_SHFT) |
+-			((apicid) << UVH_IPI_INT_APIC_ID_SHFT) |
+-			(dmode << UVH_IPI_INT_DELIVERY_MODE_SHFT) |
+-			(vector << UVH_IPI_INT_VECTOR_SHFT);
++	val = uv_hub_ipi_value(apicid, vector, dmode);
+ 	uv_write_global_mmr64(pnode, UVH_IPI_INT, val);
+ }
+ 
 _
 
-Patches currently in -mm which might be from eparis@redhat.com are
+Patches currently in -mm which might be from steiner@sgi.com are
 
 linux-next.patch
-security-do-not-check-mmap_min_addr-on-nommu-systems.patch
+x86-uv-introduce-a-means-to-translate-from-gpa-socket_paddr.patch
+x86-uv-xpc-needs-to-provide-an-abstraction-for-uv_gpa.patch
+x86-uv-introduce-uv_gpa_is_mmr.patch
+x86-uv-implement-a-gru_read_gpa-kernel-function.patch
+x86-uv-update-xpc-to-handle-updated-bios-interface.patch
+x86-uv-xpc-null-deref-when-mesq-becomes-empty.patch
+x86-uv-xpc_make_first_contact-hang-due-to-not-accepting-active-state.patch
+x86-uv-xpc-receive-message-reuse-triggers-invalid-bug_on.patch
+uv-xpc-pass-nasid-instead-of-nid-to-gru_create_message_queue.patch
+gru-initial-gru-based-on-blade-topology.patch
+gru-add-comments-raised-in-previous-code-reviews.patch
+gru-fix-istatus-race-in-gru-tlb-dropin.patch
+gru-handle-blades-without-memory.patch
+gru-allow-users-to-specify-gru-chiplet-1.patch
+gru-allow-users-to-specify-gru-chiplet-2.patch
+gru-allow-users-to-specify-gru-chiplet-3.patch
+gru-fix-bug-in-module-unload.patch
+gru-improve-messages-for-malfunctioning-grus.patch
+gru-support-64-bit-gru-addresses.patch
+gru-handle-failures-to-mmu_notifier_register.patch
+gru-add-debug-option-for-cache-flushing.patch
+gru-add-test-for-gru_copy_gpa.patch
+gru-check-for-valid-vma.patch
+gru-fix-prefetch-and-speculation-bugs.patch
+gru-update-irq-infrastructure.patch
+gru-add-additional-gru-statistics.patch
+gru-expicitly-set-instruction-status-to-active.patch
+gru-preload-tlb-for-bcopy-instructions.patch
+gru-fix-bug-in-exception-handling.patch
+gru-add-symbolic-names-for-gru-error-code.patch
+gru-remove-stray-local_irq_enable.patch
+gru-check-for-correct-gru-chiplet-assignment.patch
+gru-update-gru-structures-to-match-latest-hardware-spec.patch
+gru-fix-bug-in-allocation-of-kernel-contexts.patch
+gru-add-hugepage-support.patch
+gru-fix-gru-interrupt-race-at-deallocate.patch
+gru-improve-gru-tlb-dropin-statistics.patch
+gru-update-driver-version-number.patch
+gru-function-to-generate-chipset-ipi-values.patch
+gru-send-cross-partition-interrupts-using-the-gru.patch
 
