@@ -1,89 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sysfs-fix-sysfs_deprecated_v2-prompt.patch removed from -mm tree
-Date: Thu, 03 Dec 2009 12:36:11 -0800
-Message-ID: <200912032036.nB3KaBHn011609@imap1.linux-foundation.org>
+Subject: [merged] modules-dont-export-section-names-of-empty-sections-via-sysfs.patch removed from -mm tree
+Date: Thu, 03 Dec 2009 12:36:14 -0800
+Message-ID: <200912032036.nB3KaEx3011875@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42870 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43062 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754739AbZLCUgO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Dec 2009 15:36:14 -0500
+	by vger.kernel.org with ESMTP id S1754744AbZLCUgS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Dec 2009 15:36:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, greg@kroah.com, kay.sievers@vrfy.org, mm-commits@vger.kernel.org
+To: deller@gmx.de, James.Bottomley@HansenPartnership.com, rolandd@cisco.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysfs: fix SYSFS_DEPRECATED_V2 prompt
+     modules: don't export section names of empty sections via sysfs
 has been removed from the -mm tree.  Its filename was
-     sysfs-fix-sysfs_deprecated_v2-prompt.patch
+     modules-dont-export-section-names-of-empty-sections-via-sysfs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysfs: fix SYSFS_DEPRECATED_V2 prompt
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: modules: don't export section names of empty sections via sysfs
+From: Helge Deller <deller@gmx.de>
 
-The SYSFS_DEPRECATED_V2 says "remove" older, deprecated features, but it
-actually enables them, so correct this confusing, backwards text.
+On the parisc architecture we face for each and every loaded kernel module
+this kernel "badness warning":
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Greg KH <greg@kroah.com>
+  sysfs: cannot create duplicate filename '/module/ac97_bus/sections/.text'
+  Badness at fs/sysfs/dir.c:487
+
+Reason for that is, that on parisc all kernel modules do have multiple
+.text sections due to the usage of the -ffunction-sections compiler flag
+which is needed to reach all jump targets on this platform.
+
+An objdump on such a kernel module gives:
+Sections:
+Idx Name          Size      VMA       LMA       File off  Algn
+  0 .note.gnu.build-id 00000024  00000000  00000000  00000034  2**2
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+  1 .text         00000000  00000000  00000000  00000058  2**0
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  2 .text.ac97_bus_match 0000001c  00000000  00000000  00000058  2**2
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  3 .text         00000000  00000000  00000000  000000d4  2**0
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+
+...
+
+Since the .text sections are empty (size of 0 bytes) and won't be loaded
+by the kernel module loader anyway, I don't see a reason why such sections
+need to be listed under /sys/module/<module_name>/sections/<section_name>
+either.
+
+The attached patch does solve this issue by not exporting section names
+which are empty.
+
+This fixes bugzilla http://bugzilla.kernel.org/show_bug.cgi?id=14703
+
+Signed-off-by: Helge Deller <deller@gmx.de>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Roland Dreier <rolandd@cisco.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/module.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN init/Kconfig~sysfs-fix-sysfs_deprecated_v2-prompt init/Kconfig
---- a/init/Kconfig~sysfs-fix-sysfs_deprecated_v2-prompt
-+++ a/init/Kconfig
-@@ -606,7 +606,7 @@ config SYSFS_DEPRECATED
- 	bool
+diff -puN kernel/module.c~modules-dont-export-section-names-of-empty-sections-via-sysfs kernel/module.c
+--- a/kernel/module.c~modules-dont-export-section-names-of-empty-sections-via-sysfs
++++ a/kernel/module.c
+@@ -1037,7 +1037,8 @@ static void add_sect_attrs(struct module
  
- config SYSFS_DEPRECATED_V2
--	bool "remove sysfs features which may confuse old userspace tools"
-+	bool "enable deprecated sysfs features which may confuse old userspace tools"
- 	depends on SYSFS
- 	default n
- 	select SYSFS_DEPRECATED
+ 	/* Count loaded sections and allocate structures */
+ 	for (i = 0; i < nsect; i++)
+-		if (sechdrs[i].sh_flags & SHF_ALLOC)
++		if (sechdrs[i].sh_flags & SHF_ALLOC
++		    && sechdrs[i].sh_size)
+ 			nloaded++;
+ 	size[0] = ALIGN(sizeof(*sect_attrs)
+ 			+ nloaded * sizeof(sect_attrs->attrs[0]),
+@@ -1057,6 +1058,8 @@ static void add_sect_attrs(struct module
+ 	for (i = 0; i < nsect; i++) {
+ 		if (! (sechdrs[i].sh_flags & SHF_ALLOC))
+ 			continue;
++		if (!sechdrs[i].sh_size)
++			continue;
+ 		sattr->address = sechdrs[i].sh_addr;
+ 		sattr->name = kstrdup(secstrings + sechdrs[i].sh_name,
+ 					GFP_KERNEL);
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from deller@gmx.de are
 
 linux-next.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
-readahead-add-blk_run_backing_dev.patch
-page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
-nodemask-make-nodemask_alloc-more-general.patch
-hugetlb-rework-hstate_next_node_-functions.patch
-hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions.patch
-hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions-fix.patch
-hugetlb-factor-init_nodemask_of_node.patch
-hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy.patch
-hugetlb-add-generic-definition-of-numa_no_node.patch
-hugetlb-add-per-node-hstate-attributes.patch
-hugetlb-update-hugetlb-documentation-for-numa-controls.patch
-hugetlb-use-only-nodes-with-memory-for-huge-pages.patch
-mm-clear-node-in-n_high_memory-and-stop-kswapd-when-all-memory-is-offlined.patch
-hugetlb-handle-memory-hot-plug-events.patch
-hugetlb-offload-per-node-attribute-registrations.patch
-hugetlb-offload-per-node-attribute-registrations-fix.patch
-mm-add-gfp-flags-for-nodemask_alloc-slab-allocations.patch
-mm-add-numa-node-symlink-for-memory-section-in-sysfs.patch
-mm-refactor-register_cpu_under_node.patch
-mm-refactor-unregister_cpu_under_node.patch
-mm-add-numa-node-symlink-for-cpu-devices-in-sysfs.patch
-documentation-abi-sys-devices-system-cpu-cpu-node.patch
-writeback-fix-missing-kernel-doc-notation.patch
-lis3-update-documentation-to-match-latest-changes-fix.patch
-spi-add-pci-interface-driver-for-designware-spi-core-fix.patch
-docs-large-update-to-ioctl-numbertxt.patch
-doc-submitchecklist-add-ioctls-remove-osdl-reference.patch
-proc-remove-docbook-and-example.patch
-reiser4-export-remove_from_page_cache-fix.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
+kernel-sysc-implement-prctlpr_get_endian-for-all-architectures.patch
 
