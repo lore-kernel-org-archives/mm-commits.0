@@ -1,101 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] modules-dont-export-section-names-of-empty-sections-via-sysfs.patch removed from -mm tree
-Date: Thu, 03 Dec 2009 12:36:14 -0800
-Message-ID: <200912032036.nB3KaEx3011875@imap1.linux-foundation.org>
+Subject: [merged] kbuild-stepping-down-as-maintainer.patch removed from -mm tree
+Date: Thu, 03 Dec 2009 12:35:53 -0800
+Message-ID: <200912032035.nB3KZraC010962@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43062 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56541 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754744AbZLCUgS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Dec 2009 15:36:18 -0500
+	by vger.kernel.org with ESMTP id S1754754AbZLCUgV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Dec 2009 15:36:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: deller@gmx.de, James.Bottomley@HansenPartnership.com, rolandd@cisco.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: sam@ravnborg.org, anibal@debian.org, mmarek@suse.cz, rostedt@goodmis.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     modules: don't export section names of empty sections via sysfs
+     kbuild: stepping down as maintainer
 has been removed from the -mm tree.  Its filename was
-     modules-dont-export-section-names-of-empty-sections-via-sysfs.patch
+     kbuild-stepping-down-as-maintainer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: modules: don't export section names of empty sections via sysfs
-From: Helge Deller <deller@gmx.de>
+Subject: kbuild: stepping down as maintainer
+From: Sam Ravnborg <sam@ravnborg.org>
 
-On the parisc architecture we face for each and every loaded kernel module
-this kernel "badness warning":
+It has been fun but the last year or more it has been a duty and a burden.
+So I leave it open for others to take over.
 
-  sysfs: cannot create duplicate filename '/module/ac97_bus/sections/.text'
-  Badness at fs/sysfs/dir.c:487
-
-Reason for that is, that on parisc all kernel modules do have multiple
-.text sections due to the usage of the -ffunction-sections compiler flag
-which is needed to reach all jump targets on this platform.
-
-An objdump on such a kernel module gives:
-Sections:
-Idx Name          Size      VMA       LMA       File off  Algn
-  0 .note.gnu.build-id 00000024  00000000  00000000  00000034  2**2
-                  CONTENTS, ALLOC, LOAD, READONLY, DATA
-  1 .text         00000000  00000000  00000000  00000058  2**0
-                  CONTENTS, ALLOC, LOAD, READONLY, CODE
-  2 .text.ac97_bus_match 0000001c  00000000  00000000  00000058  2**2
-                  CONTENTS, ALLOC, LOAD, READONLY, CODE
-  3 .text         00000000  00000000  00000000  000000d4  2**0
-                  CONTENTS, ALLOC, LOAD, READONLY, CODE
-
-...
-
-Since the .text sections are empty (size of 0 bytes) and won't be loaded
-by the kernel module loader anyway, I don't see a reason why such sections
-need to be listed under /sys/module/<module_name>/sections/<section_name>
-either.
-
-The attached patch does solve this issue by not exporting section names
-which are empty.
-
-This fixes bugzilla http://bugzilla.kernel.org/show_bug.cgi?id=14703
-
-Signed-off-by: Helge Deller <deller@gmx.de>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Roland Dreier <rolandd@cisco.com>
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Anibal Monsalve Salazar <anibal@debian.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/module.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ MAINTAINERS |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN kernel/module.c~modules-dont-export-section-names-of-empty-sections-via-sysfs kernel/module.c
---- a/kernel/module.c~modules-dont-export-section-names-of-empty-sections-via-sysfs
-+++ a/kernel/module.c
-@@ -1037,7 +1037,8 @@ static void add_sect_attrs(struct module
+diff -puN MAINTAINERS~kbuild-stepping-down-as-maintainer MAINTAINERS
+--- a/MAINTAINERS~kbuild-stepping-down-as-maintainer
++++ a/MAINTAINERS
+@@ -3015,11 +3015,8 @@ S:	Maintained
+ F:	fs/autofs4/
  
- 	/* Count loaded sections and allocate structures */
- 	for (i = 0; i < nsect; i++)
--		if (sechdrs[i].sh_flags & SHF_ALLOC)
-+		if (sechdrs[i].sh_flags & SHF_ALLOC
-+		    && sechdrs[i].sh_size)
- 			nloaded++;
- 	size[0] = ALIGN(sizeof(*sect_attrs)
- 			+ nloaded * sizeof(sect_attrs->attrs[0]),
-@@ -1057,6 +1058,8 @@ static void add_sect_attrs(struct module
- 	for (i = 0; i < nsect; i++) {
- 		if (! (sechdrs[i].sh_flags & SHF_ALLOC))
- 			continue;
-+		if (!sechdrs[i].sh_size)
-+			continue;
- 		sattr->address = sechdrs[i].sh_addr;
- 		sattr->name = kstrdup(secstrings + sechdrs[i].sh_name,
- 					GFP_KERNEL);
+ KERNEL BUILD
+-M:	Sam Ravnborg <sam@ravnborg.org>
+-T:	git git://git.kernel.org/pub/scm/linux/kernel/git/sam/kbuild-next.git
+-T:	git git://git.kernel.org/pub/scm/linux/kernel/git/sam/kbuild-fixes.git
+ L:	linux-kbuild@vger.kernel.org
+-S:	Maintained
++S:	Orphan
+ F:	Documentation/kbuild/
+ F:	Makefile
+ F:	scripts/Makefile.*
 _
 
-Patches currently in -mm which might be from deller@gmx.de are
+Patches currently in -mm which might be from sam@ravnborg.org are
 
 linux-next.patch
-kernel-sysc-implement-prctlpr_get_endian-for-all-architectures.patch
+x86-_end-symbol-missing-from-symbolmap.patch
+kbuild-generate-modulesbuiltin.patch
+kbuild-rebuild-fix-for-makefilemodbuiltin.patch
+kbuild-generate-modulesbuiltin-fix-2.patch
+kconfig-cross_compile-option.patch
+kbuild-genksyms-properly-consider-export_unused_symbol_gpl.patch
+make-debug_bugverbose-default-to-y.patch
 
