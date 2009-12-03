@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-remove-unevictable_migrate_page-function.patch added to -mm tree
-Date: Wed, 02 Dec 2009 17:05:29 -0800
-Message-ID: <200912030105.nB315TIU019280@imap1.linux-foundation.org>
+Subject: + swap-rework-map_swap_page-again.patch added to -mm tree
+Date: Wed, 02 Dec 2009 17:06:35 -0800
+Message-ID: <200912030106.nB316ZMl022180@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50716 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47154 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753290AbZLCBF0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Dec 2009 20:05:26 -0500
+	by vger.kernel.org with ESMTP id S1752753AbZLCBGd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Dec 2009 20:06:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Lee.Schermerhorn@hp.com, cl@linux-foundation.org, lee.schermerhorn@hp.com
+Cc: Lee.Schermerhorn@hp.com, hugh.dickins@tiscali.co.uk, lee.schermerhorn@hp.com
 
 
 The patch titled
-     mm: remove unevictable_migrate_page function
+     swap: rework map_swap_page() again
 has been added to the -mm tree.  Its filename is
-     mm-remove-unevictable_migrate_page-function.patch
+     swap-rework-map_swap_page-again.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,64 +33,113 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: remove unevictable_migrate_page function
+Subject: swap: rework map_swap_page() again
 From: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
 
-unevictable_migrate_page() in mm/internal.h is a relic of the since
-removed UNEVICTABLE_LRU Kconfig option.  This patch removes the function
-and open codes the test in migrate_page_copy().
+Seems that page_io.c doesn't really need to know that page_private(page)
+is the swp_entry 'val'.  Rework map_swap_page() to do what its name says
+and map a page to a page offset in the swap space.
+
+The only other caller of map_swap_page() is internal to mm/swapfile.c and
+it does want to map a swap entry to the 'sector'.  So rename
+map_swap_page() to map_swap_entry(), make it 'static' and and implement
+map_swap_page() as a wrapper around that.
 
 Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Reviewed-by: Christoph Lameter <cl@linux-foundation.org>
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |   12 ------------
- mm/migrate.c  |    4 ++--
- 2 files changed, 2 insertions(+), 14 deletions(-)
+ include/linux/swap.h |    2 +-
+ mm/page_io.c         |    4 +---
+ mm/swapfile.c        |   20 ++++++++++++++++----
+ 3 files changed, 18 insertions(+), 8 deletions(-)
 
-diff -puN mm/internal.h~mm-remove-unevictable_migrate_page-function mm/internal.h
---- a/mm/internal.h~mm-remove-unevictable_migrate_page-function
-+++ a/mm/internal.h
-@@ -63,18 +63,6 @@ static inline unsigned long page_order(s
- 	return page_private(page);
+diff -puN include/linux/swap.h~swap-rework-map_swap_page-again include/linux/swap.h
+--- a/include/linux/swap.h~swap-rework-map_swap_page-again
++++ a/include/linux/swap.h
+@@ -325,7 +325,7 @@ extern void swapcache_free(swp_entry_t, 
+ extern int free_swap_and_cache(swp_entry_t);
+ extern int swap_type_of(dev_t, sector_t, struct block_device **);
+ extern unsigned int count_swap_pages(int, int);
+-extern sector_t map_swap_page(swp_entry_t, struct block_device **);
++extern sector_t map_swap_page(struct page *, struct block_device **);
+ extern sector_t swapdev_block(int, pgoff_t);
+ extern int reuse_swap_page(struct page *);
+ extern int try_to_free_swap(struct page *);
+diff -puN mm/page_io.c~swap-rework-map_swap_page-again mm/page_io.c
+--- a/mm/page_io.c~swap-rework-map_swap_page-again
++++ a/mm/page_io.c
+@@ -26,9 +26,7 @@ static struct bio *get_swap_bio(gfp_t gf
+ 
+ 	bio = bio_alloc(gfp_flags, 1);
+ 	if (bio) {
+-		swp_entry_t entry;
+-		entry.val = page_private(page);
+-		bio->bi_sector = map_swap_page(entry, &bio->bi_bdev);
++		bio->bi_sector = map_swap_page(page, &bio->bi_bdev);
+ 		bio->bi_sector <<= PAGE_SHIFT - 9;
+ 		bio->bi_io_vec[0].bv_page = page;
+ 		bio->bi_io_vec[0].bv_len = PAGE_SIZE;
+diff -puN mm/swapfile.c~swap-rework-map_swap_page-again mm/swapfile.c
+--- a/mm/swapfile.c~swap-rework-map_swap_page-again
++++ a/mm/swapfile.c
+@@ -38,6 +38,7 @@
+ static bool swap_count_continued(struct swap_info_struct *, pgoff_t,
+ 				 unsigned char);
+ static void free_swap_count_continuations(struct swap_info_struct *);
++static sector_t map_swap_entry(swp_entry_t, struct block_device**);
+ 
+ static DEFINE_SPINLOCK(swap_lock);
+ static unsigned int nr_swapfiles;
+@@ -782,7 +783,7 @@ sector_t swapdev_block(int type, pgoff_t
+ 		return 0;
+ 	if (!(swap_info[type]->flags & SWP_WRITEOK))
+ 		return 0;
+-	return map_swap_page(swp_entry(type, offset), &bdev);
++	return map_swap_entry(swp_entry(type, offset), &bdev);
  }
  
--/*
-- * unevictable_migrate_page() called only from migrate_page_copy() to
-- * migrate unevictable flag to new page.
-- * Note that the old page has been isolated from the LRU lists at this
-- * point so we don't need to worry about LRU statistics.
-- */
--static inline void unevictable_migrate_page(struct page *new, struct page *old)
--{
--	if (TestClearPageUnevictable(old))
--		SetPageUnevictable(new);
--}
--
- #ifdef CONFIG_MMU
- extern long mlock_vma_pages_range(struct vm_area_struct *vma,
- 			unsigned long start, unsigned long end);
-diff -puN mm/migrate.c~mm-remove-unevictable_migrate_page-function mm/migrate.c
---- a/mm/migrate.c~mm-remove-unevictable_migrate_page-function
-+++ a/mm/migrate.c
-@@ -288,8 +288,8 @@ static void migrate_page_copy(struct pag
- 	if (TestClearPageActive(page)) {
- 		VM_BUG_ON(PageUnevictable(page));
- 		SetPageActive(newpage);
--	} else
--		unevictable_migrate_page(newpage, page);
-+	} else if (TestClearPageUnevictable(page))
-+		SetPageUnevictable(newpage);
- 	if (PageChecked(page))
- 		SetPageChecked(newpage);
- 	if (PageMappedToDisk(page))
+ /*
+@@ -1249,10 +1250,11 @@ static void drain_mmlist(void)
+ 
+ /*
+  * Use this swapdev's extent info to locate the (PAGE_SIZE) block which
+- * corresponds to page offset `offset'.  Note that the type of this function
+- * is sector_t, but it returns page offset into the bdev, not sector offset.
++ * corresponds to page offset for the specified swap entry.
++ * Note that the type of this function is sector_t, but it returns page offset
++ * into the bdev, not sector offset.
+  */
+-sector_t map_swap_page(swp_entry_t entry, struct block_device **bdev)
++static sector_t map_swap_entry(swp_entry_t entry, struct block_device **bdev)
+ {
+ 	struct swap_info_struct *sis;
+ 	struct swap_extent *start_se;
+@@ -1281,6 +1283,16 @@ sector_t map_swap_page(swp_entry_t entry
+ }
+ 
+ /*
++ * Returns the page offset into bdev for the specified page's swap entry.
++ */
++sector_t map_swap_page(struct page *page, struct block_device **bdev)
++{
++	swp_entry_t entry;
++	entry.val = page_private(page);
++	return map_swap_entry(entry, bdev);
++}
++
++/*
+  * Free all of a swapdev's extent information
+  */
+ static void destroy_swap_extents(struct swap_info_struct *sis)
 _
 
 Patches currently in -mm which might be from Lee.Schermerhorn@hp.com are
 
 acpi-remove-nid_inval.patch
 hugetlb-offload-per-node-attribute-registrations-fix.patch
+swap-rework-map_swap_page-again.patch
 mm-define-page_mapping_flags.patch
 mm-mlocking-in-try_to_unmap_one.patch
 mm-mlocking-in-try_to_unmap_one-fix.patch
