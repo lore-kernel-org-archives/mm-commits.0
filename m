@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + usbtouchscreen-find-input-endpoint-automatically.patch added to -mm tree
-Date: Thu, 03 Dec 2009 14:43:43 -0800
-Message-ID: <200912032243.nB3Mhhqa001675@imap1.linux-foundation.org>
+Subject: + usbtouchscreen-convert-from-usb_device-to-usb_interface.patch added to -mm tree
+Date: Thu, 03 Dec 2009 14:43:37 -0800
+Message-ID: <200912032243.nB3MhbKv001527@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48285 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35705 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751772AbZLCWoB (ORCPT
+	by vger.kernel.org with ESMTP id S1751575AbZLCWoB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Dec 2009 17:44:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: linux@rainbow-software.org, daniel.ritz@gmx.ch, ddstreet@ieee.org, dmitry.to
 
 
 The patch titled
-     usbtouchscreen: find input endpoint automatically
+     usbtouchscreen: convert from usb_device to usb_interface
 has been added to the -mm tree.  Its filename is
-     usbtouchscreen-find-input-endpoint-automatically.patch
+     usbtouchscreen-convert-from-usb_device-to-usb_interface.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,12 +33,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usbtouchscreen: find input endpoint automatically
+Subject: usbtouchscreen: convert from usb_device to usb_interface
 From: Ondrej Zary <linux@rainbow-software.org>
 
-Find input enpoint automatically instead of assuming that the first one is
-OK.  This is needed for devices with multiple endpoints such as iNexio
-where the first endpoint might be output.
+Convert usbtouchscreen from storing usb_device to usb_interface. This is
+needed for multi-interface touchscreen devices such as iNexio.
 
 Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
 Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
@@ -51,40 +50,95 @@ Cc: Oliver Neukum <oliver@neukum.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/touchscreen/usbtouchscreen.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ drivers/input/touchscreen/usbtouchscreen.c |   22 ++++++++++---------
+ 1 file changed, 12 insertions(+), 10 deletions(-)
 
-diff -puN drivers/input/touchscreen/usbtouchscreen.c~usbtouchscreen-find-input-endpoint-automatically drivers/input/touchscreen/usbtouchscreen.c
---- a/drivers/input/touchscreen/usbtouchscreen.c~usbtouchscreen-find-input-endpoint-automatically
+diff -puN drivers/input/touchscreen/usbtouchscreen.c~usbtouchscreen-convert-from-usb_device-to-usb_interface drivers/input/touchscreen/usbtouchscreen.c
+--- a/drivers/input/touchscreen/usbtouchscreen.c~usbtouchscreen-convert-from-usb_device-to-usb_interface
 +++ a/drivers/input/touchscreen/usbtouchscreen.c
-@@ -1057,17 +1057,25 @@ static int usbtouch_probe(struct usb_int
- 	struct usbtouch_usb *usbtouch;
- 	struct input_dev *input_dev;
- 	struct usb_host_interface *interface;
--	struct usb_endpoint_descriptor *endpoint;
-+	struct usb_endpoint_descriptor *endpoint = NULL;
- 	struct usb_device *udev = interface_to_usbdev(intf);
+@@ -104,7 +104,7 @@ struct usbtouch_usb {
+ 	unsigned char *buffer;
+ 	int buf_len;
+ 	struct urb *irq;
+-	struct usb_device *udev;
++	struct usb_interface *interface;
+ 	struct input_dev *input;
  	struct usbtouch_device_info *type;
- 	int err = -ENOMEM;
-+	int i;
+ 	char name[128];
+@@ -234,8 +234,9 @@ static struct usb_device_id usbtouch_dev
+ static int e2i_init(struct usbtouch_usb *usbtouch)
+ {
+ 	int ret;
++	struct usb_device *udev = interface_to_usbdev(usbtouch->interface);
  
- 	/* some devices are ignored */
- 	if (id->driver_info == DEVTYPE_IGNORE)
- 		return -ENODEV;
+-	ret = usb_control_msg(usbtouch->udev, usb_rcvctrlpipe(usbtouch->udev, 0),
++	ret = usb_control_msg(udev, usb_rcvctrlpipe(udev, 0),
+ 	                      0x01, 0x02, 0x0000, 0x0081,
+ 	                      NULL, 0, USB_CTRL_SET_TIMEOUT);
  
- 	interface = intf->cur_altsetting;
--	endpoint = &interface->endpoint[0].desc;
-+	/* find first input endpoint */
-+	for (i = 0; i < interface->desc.bNumEndpoints; i++)
-+		if (usb_endpoint_dir_in(&interface->endpoint[i].desc)) {
-+			endpoint = &interface->endpoint[i].desc;
-+			break;
-+		}
-+	if (!endpoint)
-+		return -ENXIO;
+@@ -344,8 +345,9 @@ static int mtouch_read_data(struct usbto
+ static int mtouch_init(struct usbtouch_usb *usbtouch)
+ {
+ 	int ret, i;
++	struct usb_device *udev = interface_to_usbdev(usbtouch->interface);
  
- 	usbtouch = kzalloc(sizeof(struct usbtouch_usb), GFP_KERNEL);
- 	input_dev = input_allocate_device();
+-	ret = usb_control_msg(usbtouch->udev, usb_rcvctrlpipe(usbtouch->udev, 0),
++	ret = usb_control_msg(udev, usb_rcvctrlpipe(udev, 0),
+ 	                      MTOUCHUSB_RESET,
+ 	                      USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+ 	                      1, 0, NULL, 0, USB_CTRL_SET_TIMEOUT);
+@@ -356,7 +358,7 @@ static int mtouch_init(struct usbtouch_u
+ 	msleep(150);
+ 
+ 	for (i = 0; i < 3; i++) {
+-		ret = usb_control_msg(usbtouch->udev, usb_rcvctrlpipe(usbtouch->udev, 0),
++		ret = usb_control_msg(udev, usb_rcvctrlpipe(udev, 0),
+ 				      MTOUCHUSB_ASYNC_REPORT,
+ 				      USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+ 				      1, 1, NULL, 0, USB_CTRL_SET_TIMEOUT);
+@@ -489,7 +491,7 @@ static int gunze_read_data(struct usbtou
+ 
+ static int dmc_tsc10_init(struct usbtouch_usb *usbtouch)
+ {
+-	struct usb_device *dev = usbtouch->udev;
++	struct usb_device *dev = interface_to_usbdev(usbtouch->interface);
+ 	int ret = -ENOMEM;
+ 	unsigned char *buf;
+ 
+@@ -1021,7 +1023,7 @@ static int usbtouch_open(struct input_de
+ {
+ 	struct usbtouch_usb *usbtouch = input_get_drvdata(input);
+ 
+-	usbtouch->irq->dev = usbtouch->udev;
++	usbtouch->irq->dev = interface_to_usbdev(usbtouch->interface);
+ 
+ 	if (!usbtouch->type->irq_always) {
+ 		if (usb_submit_urb(usbtouch->irq, GFP_KERNEL))
+@@ -1094,7 +1096,7 @@ static int usbtouch_probe(struct usb_int
+ 		goto out_free_buffers;
+ 	}
+ 
+-	usbtouch->udev = udev;
++	usbtouch->interface = intf;
+ 	usbtouch->input = input_dev;
+ 
+ 	if (udev->manufacturer)
+@@ -1133,12 +1135,12 @@ static int usbtouch_probe(struct usb_int
+ 		input_set_abs_params(input_dev, ABS_PRESSURE, type->min_press,
+ 		                     type->max_press, 0, 0);
+ 
+-	usb_fill_int_urb(usbtouch->irq, usbtouch->udev,
+-			 usb_rcvintpipe(usbtouch->udev, endpoint->bEndpointAddress),
++	usb_fill_int_urb(usbtouch->irq, udev,
++			 usb_rcvintpipe(udev, endpoint->bEndpointAddress),
+ 			 usbtouch->data, type->rept_size,
+ 			 usbtouch_irq, usbtouch, endpoint->bInterval);
+ 
+-	usbtouch->irq->dev = usbtouch->udev;
++	usbtouch->irq->dev = udev;
+ 	usbtouch->irq->transfer_dma = usbtouch->data_dma;
+ 	usbtouch->irq->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
+ 
 _
 
 Patches currently in -mm which might be from linux@rainbow-software.org are
