@@ -1,132 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-media-dvb-dvb-core-dvb_frontendc-needs-semaphoreh.patch removed from -mm tree
-Date: Thu, 03 Dec 2009 12:35:44 -0800
-Message-ID: <200912032035.nB3KZibS010628@imap1.linux-foundation.org>
+Subject: [merged] drivers-rtc-rtc-pcf50633c-fix-use-after-free-in-pcf50633_rtc_probe.patch removed from -mm tree
+Date: Thu, 03 Dec 2009 12:35:47 -0800
+Message-ID: <200912032035.nB3KZlTP010682@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44319 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50525 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753617AbZLCUfr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Dec 2009 15:35:47 -0500
+	by vger.kernel.org with ESMTP id S1754350AbZLCUfs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Dec 2009 15:35:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mchehab@infradead.org, tstrelar@gmail.com, mm-commits@vger.kernel.org
+To: error27@gmail.com, a.zummo@towertech.it, david-b@pacbell.net, p_gortmaker@yahoo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/media/dvb/dvb-core/dvb_frontend.c: needs semaphore.h
+     drivers/rtc/rtc-pcf50633.c: fix use after free in pcf50633_rtc_probe()
 has been removed from the -mm tree.  Its filename was
-     drivers-media-dvb-dvb-core-dvb_frontendc-needs-semaphoreh.patch
+     drivers-rtc-rtc-pcf50633c-fix-use-after-free-in-pcf50633_rtc_probe.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/media/dvb/dvb-core/dvb_frontend.c: needs semaphore.h
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/rtc/rtc-pcf50633.c: fix use after free in pcf50633_rtc_probe()
+From: Dan Carpenter <error27@gmail.com>
 
-v4l/dvb_frontend.c: In function 'dvb_frontend_stop':
-v4l/dvb_frontend.c:707: error: implicit declaration of function 'init_MUTEX'
+"rtc" is freed and then dereferenced on the next line.  This patch fixes
+that.
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=14609
-
-Reported-by: <tstrelar@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: Dan Carpenter <error27@gmail.com>
+Acked-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Paul Gortmaker <p_gortmaker@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/dvb-core/dvb_frontend.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/rtc/rtc-pcf50633.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/media/dvb/dvb-core/dvb_frontend.c~drivers-media-dvb-dvb-core-dvb_frontendc-needs-semaphoreh drivers/media/dvb/dvb-core/dvb_frontend.c
---- a/drivers/media/dvb/dvb-core/dvb_frontend.c~drivers-media-dvb-dvb-core-dvb_frontendc-needs-semaphoreh
-+++ a/drivers/media/dvb/dvb-core/dvb_frontend.c
-@@ -31,6 +31,7 @@
- #include <linux/wait.h>
- #include <linux/slab.h>
- #include <linux/poll.h>
-+#include <linux/semaphore.h>
- #include <linux/module.h>
- #include <linux/list.h>
- #include <linux/freezer.h>
+diff -puN drivers/rtc/rtc-pcf50633.c~drivers-rtc-rtc-pcf50633c-fix-use-after-free-in-pcf50633_rtc_probe drivers/rtc/rtc-pcf50633.c
+--- a/drivers/rtc/rtc-pcf50633.c~drivers-rtc-rtc-pcf50633c-fix-use-after-free-in-pcf50633_rtc_probe
++++ a/drivers/rtc/rtc-pcf50633.c
+@@ -292,8 +292,9 @@ static int __devinit pcf50633_rtc_probe(
+ 				&pcf50633_rtc_ops, THIS_MODULE);
+ 
+ 	if (IS_ERR(rtc->rtc_dev)) {
++		int ret =  PTR_ERR(rtc->rtc_dev);
+ 		kfree(rtc);
+-		return PTR_ERR(rtc->rtc_dev);
++		return ret;
+ 	}
+ 
+ 	pcf50633_register_irq(rtc->pcf, PCF50633_IRQ_ALARM,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from error27@gmail.com are
 
 linux-next.patch
-include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
-linux-next-git-rejects-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-acpi-remove-nid_inval.patch
-drivers-acpi-acpi_padc-squish-warning.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices-checkpatch-fixes.patch
-drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-kbuild-generate-modulesbuiltin-fix-2-checkpatch-fixes.patch
-drivers-leds-leds-ss4200c-fix-return-statement.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
-scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
-aoe-switch-to-the-new-bio_flush_dcache_pages-interface.patch
-wusb-use-sizeof-struct-rather-than-pointer.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-readahead-add-blk_run_backing_dev.patch
-mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
-oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
-oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes.patch
-mm-mlocking-in-try_to_unmap_one-fix-fix.patch
-mm-memory_hotplug-make-offline_pages-static.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup.patch
-floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
-drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
-rwsem-fix-rwsem_is_locked-bugs-fix.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
-errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
-msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes.patch
-blackfin-sd-host-controller-driver-fix.patch
-blackfin-sd-host-controller-driver-fix-fix.patch
-crc32-minor-optimizations-and-cleanup-checkpatch-fixes.patch
-hwmon-w83627ehf-updates-checkpatch-fixes.patch
-lis3-update-documentation-to-match-latest-changes-fix.patch
-spi-controller-driver-for-designware-spi-core-fix.patch
-spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3.patch
-ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
-memcg-coalesce-charging-via-percpu-storage-fix.patch
-ipc-remove-unreachable-code-in-semc-fix.patch
-char-cyclades-fix-compiler-warning.patch
-aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
-direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-drivers-media-video-cx23885-needs-kfifo-updates.patch
-zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+drivers-video-via-viafbdevc-fix-oops-with-no-proc.patch
+kexec-premit-reduction-of-the-reserved-memory-size-fix.patch
 
