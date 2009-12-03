@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + uv-xpc-pass-nasid-instead-of-nid-to-gru_create_message_queue.patch added to -mm tree
-Date: Thu, 03 Dec 2009 14:32:09 -0800
-Message-ID: <200912032232.nB3MW92u005692@imap1.linux-foundation.org>
+Subject: + serial-8250_pnp-use-wildcard-for-serial-wacom-tablets.patch added to -mm tree
+Date: Thu, 03 Dec 2009 14:37:40 -0800
+Message-ID: <200912032237.nB3MbeME019244@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38337 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46574 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751583AbZLCWcH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Dec 2009 17:32:07 -0500
+	by vger.kernel.org with ESMTP id S1753265AbZLCWh6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Dec 2009 17:37:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: holt@sgi.com, steiner@sgi.com
+Cc: mjg@redhat.com, alan@lxorguk.ukuu.org.uk, greg@kroah.com, pingc@wacom.com
 
 
 The patch titled
-     UV - XPC: pass nasid instead of nid to gru_create_message_queue
+     serial/8250_pnp: use wildcard for serial Wacom tablets
 has been added to the -mm tree.  Its filename is
-     uv-xpc-pass-nasid-instead-of-nid-to-gru_create_message_queue.patch
+     serial-8250_pnp-use-wildcard-for-serial-wacom-tablets.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,55 +33,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: UV - XPC: pass nasid instead of nid to gru_create_message_queue
-From: Robin Holt <holt@sgi.com>
+Subject: serial/8250_pnp: use wildcard for serial Wacom tablets
+From: Matthew Garrett <mjg@redhat.com>
 
-Currently, the UV xpc code is passing nid to the gru_create_message_queue
-instead of nasid as it expects.
+Wacom claims that the WACF namespace will always be devoted to serial
+Wacom tablets.  Remove the existing entries and add a wildcard to avoid
+having to update the kernel every time they add a new device.
 
-Signed-off-by: Robin Holt <holt@sgi.com>
-Signed-off-by: Jack Steiner <steiner@sgi.com>
+Signed-off-by: Ping Cheng <pingc@wacom.com>
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+Tested-by: Ping Cheng <pingc@wacom.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-xp/xpc_uv.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/serial/8250_pnp.c |   10 +---------
+ 1 file changed, 1 insertion(+), 9 deletions(-)
 
-diff -puN drivers/misc/sgi-xp/xpc_uv.c~uv-xpc-pass-nasid-instead-of-nid-to-gru_create_message_queue drivers/misc/sgi-xp/xpc_uv.c
---- a/drivers/misc/sgi-xp/xpc_uv.c~uv-xpc-pass-nasid-instead-of-nid-to-gru_create_message_queue
-+++ a/drivers/misc/sgi-xp/xpc_uv.c
-@@ -207,6 +207,7 @@ xpc_create_gru_mq_uv(unsigned int mq_siz
- 	enum xp_retval xp_ret;
- 	int ret;
- 	int nid;
-+	int nasid;
- 	int pg_order;
- 	struct page *page;
- 	struct xpc_gru_mq_uv *mq;
-@@ -262,9 +263,11 @@ xpc_create_gru_mq_uv(unsigned int mq_siz
- 		goto out_5;
- 	}
- 
-+	nasid = UV_PNODE_TO_NASID(uv_cpu_to_pnode(cpu));
-+
- 	mmr_value = (struct uv_IO_APIC_route_entry *)&mq->mmr_value;
- 	ret = gru_create_message_queue(mq->gru_mq_desc, mq->address, mq_size,
--				       nid, mmr_value->vector, mmr_value->dest);
-+				     nasid, mmr_value->vector, mmr_value->dest);
- 	if (ret != 0) {
- 		dev_err(xpc_part, "gru_create_message_queue() returned "
- 			"error=%d\n", ret);
+diff -puN drivers/serial/8250_pnp.c~serial-8250_pnp-use-wildcard-for-serial-wacom-tablets drivers/serial/8250_pnp.c
+--- a/drivers/serial/8250_pnp.c~serial-8250_pnp-use-wildcard-for-serial-wacom-tablets
++++ a/drivers/serial/8250_pnp.c
+@@ -328,15 +328,7 @@ static const struct pnp_device_id pnp_de
+ 	/* U.S. Robotics 56K Voice INT PnP*/
+ 	{	"USR9190",		0	},
+ 	/* Wacom tablets */
+-	{	"WACF004",		0	},
+-	{	"WACF005",		0	},
+-	{       "WACF006",              0       },
+-	{       "WACF007",              0       },
+-	{       "WACF008",              0       },
+-	{       "WACF009",              0       },
+-	{       "WACF00A",              0       },
+-	{       "WACF00B",              0       },
+-	{       "WACF00C",              0       },
++	{	"WACFXXX",		0	},
+ 	/* Compaq touchscreen */
+ 	{       "FPI2002",              0 },
+ 	/* Fujitsu Stylistic touchscreens */
 _
 
-Patches currently in -mm which might be from holt@sgi.com are
+Patches currently in -mm which might be from mjg@redhat.com are
 
-x86-uv-introduce-a-means-to-translate-from-gpa-socket_paddr.patch
-x86-uv-xpc-needs-to-provide-an-abstraction-for-uv_gpa.patch
-x86-uv-introduce-uv_gpa_is_mmr.patch
-x86-uv-implement-a-gru_read_gpa-kernel-function.patch
-x86-uv-update-xpc-to-handle-updated-bios-interface.patch
-x86-uv-xpc-null-deref-when-mesq-becomes-empty.patch
-x86-uv-xpc_make_first_contact-hang-due-to-not-accepting-active-state.patch
-x86-uv-xpc-receive-message-reuse-triggers-invalid-bug_on.patch
-uv-xpc-pass-nasid-instead-of-nid-to-gru_create_message_queue.patch
+linux-next.patch
+serial-8250_pnp-use-wildcard-for-serial-wacom-tablets.patch
 
