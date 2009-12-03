@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + swap-rework-map_swap_page-again.patch added to -mm tree
-Date: Wed, 02 Dec 2009 17:06:35 -0800
-Message-ID: <200912030106.nB316ZMl022180@imap1.linux-foundation.org>
+Subject: + mlock-replace-stale-comments-in-munlock_vma_page.patch added to -mm tree
+Date: Wed, 02 Dec 2009 17:10:51 -0800
+Message-ID: <200912030110.nB31ApcT032544@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47154 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53857 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752753AbZLCBGd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Dec 2009 20:06:33 -0500
+	by vger.kernel.org with ESMTP id S1753674AbZLCBKw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Dec 2009 20:10:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Lee.Schermerhorn@hp.com, hugh.dickins@tiscali.co.uk, lee.schermerhorn@hp.com
+Cc: Lee.Schermerhorn@hp.com, hugh.dickins@tiscali.co.uk, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com
 
 
 The patch titled
-     swap: rework map_swap_page() again
+     mlock: replace stale comments in munlock_vma_page()
 has been added to the -mm tree.  Its filename is
-     swap-rework-map_swap_page-again.patch
+     mlock-replace-stale-comments-in-munlock_vma_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,106 +33,79 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: swap: rework map_swap_page() again
+Subject: mlock: replace stale comments in munlock_vma_page()
 From: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
 
-Seems that page_io.c doesn't really need to know that page_private(page)
-is the swp_entry 'val'.  Rework map_swap_page() to do what its name says
-and map a page to a page offset in the swap space.
-
-The only other caller of map_swap_page() is internal to mm/swapfile.c and
-it does want to map a swap entry to the 'sector'.  So rename
-map_swap_page() to map_swap_entry(), make it 'static' and and implement
-map_swap_page() as a wrapper around that.
+Cleanup stale comments on munlock_vma_page().
 
 Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    2 +-
- mm/page_io.c         |    4 +---
- mm/swapfile.c        |   20 ++++++++++++++++----
- 3 files changed, 18 insertions(+), 8 deletions(-)
+ mm/mlock.c |   41 +++++++++++++++++++----------------------
+ 1 file changed, 19 insertions(+), 22 deletions(-)
 
-diff -puN include/linux/swap.h~swap-rework-map_swap_page-again include/linux/swap.h
---- a/include/linux/swap.h~swap-rework-map_swap_page-again
-+++ a/include/linux/swap.h
-@@ -325,7 +325,7 @@ extern void swapcache_free(swp_entry_t, 
- extern int free_swap_and_cache(swp_entry_t);
- extern int swap_type_of(dev_t, sector_t, struct block_device **);
- extern unsigned int count_swap_pages(int, int);
--extern sector_t map_swap_page(swp_entry_t, struct block_device **);
-+extern sector_t map_swap_page(struct page *, struct block_device **);
- extern sector_t swapdev_block(int, pgoff_t);
- extern int reuse_swap_page(struct page *);
- extern int try_to_free_swap(struct page *);
-diff -puN mm/page_io.c~swap-rework-map_swap_page-again mm/page_io.c
---- a/mm/page_io.c~swap-rework-map_swap_page-again
-+++ a/mm/page_io.c
-@@ -26,9 +26,7 @@ static struct bio *get_swap_bio(gfp_t gf
- 
- 	bio = bio_alloc(gfp_flags, 1);
- 	if (bio) {
--		swp_entry_t entry;
--		entry.val = page_private(page);
--		bio->bi_sector = map_swap_page(entry, &bio->bi_bdev);
-+		bio->bi_sector = map_swap_page(page, &bio->bi_bdev);
- 		bio->bi_sector <<= PAGE_SHIFT - 9;
- 		bio->bi_io_vec[0].bv_page = page;
- 		bio->bi_io_vec[0].bv_len = PAGE_SIZE;
-diff -puN mm/swapfile.c~swap-rework-map_swap_page-again mm/swapfile.c
---- a/mm/swapfile.c~swap-rework-map_swap_page-again
-+++ a/mm/swapfile.c
-@@ -38,6 +38,7 @@
- static bool swap_count_continued(struct swap_info_struct *, pgoff_t,
- 				 unsigned char);
- static void free_swap_count_continuations(struct swap_info_struct *);
-+static sector_t map_swap_entry(swp_entry_t, struct block_device**);
- 
- static DEFINE_SPINLOCK(swap_lock);
- static unsigned int nr_swapfiles;
-@@ -782,7 +783,7 @@ sector_t swapdev_block(int type, pgoff_t
- 		return 0;
- 	if (!(swap_info[type]->flags & SWP_WRITEOK))
- 		return 0;
--	return map_swap_page(swp_entry(type, offset), &bdev);
-+	return map_swap_entry(swp_entry(type, offset), &bdev);
+diff -puN mm/mlock.c~mlock-replace-stale-comments-in-munlock_vma_page mm/mlock.c
+--- a/mm/mlock.c~mlock-replace-stale-comments-in-munlock_vma_page
++++ a/mm/mlock.c
+@@ -88,23 +88,20 @@ void mlock_vma_page(struct page *page)
+ 	}
  }
  
- /*
-@@ -1249,10 +1250,11 @@ static void drain_mmlist(void)
- 
- /*
-  * Use this swapdev's extent info to locate the (PAGE_SIZE) block which
-- * corresponds to page offset `offset'.  Note that the type of this function
-- * is sector_t, but it returns page offset into the bdev, not sector offset.
-+ * corresponds to page offset for the specified swap entry.
-+ * Note that the type of this function is sector_t, but it returns page offset
-+ * into the bdev, not sector offset.
+-/*
+- * called from munlock()/munmap() path with page supposedly on the LRU.
++/**
++ * munlock_vma_page - munlock a vma page
++ * @page - page to be unlocked
+  *
+- * Note:  unlike mlock_vma_page(), we can't just clear the PageMlocked
+- * [in try_to_munlock()] and then attempt to isolate the page.  We must
+- * isolate the page to keep others from messing with its unevictable
+- * and mlocked state while trying to munlock.  However, we pre-clear the
+- * mlocked state anyway as we might lose the isolation race and we might
+- * not get another chance to clear PageMlocked.  If we successfully
+- * isolate the page and try_to_munlock() detects other VM_LOCKED vmas
+- * mapping the page, it will restore the PageMlocked state, unless the page
+- * is mapped in a non-linear vma.  So, we go ahead and ClearPageMlocked(),
+- * perhaps redundantly.
+- * If we lose the isolation race, and the page is mapped by other VM_LOCKED
+- * vmas, we'll detect this in vmscan--via try_to_munlock() or try_to_unmap()
+- * either of which will restore the PageMlocked state by calling
+- * mlock_vma_page() above, if it can grab the vma's mmap sem.
++ * called from munlock()/munmap() path with page supposedly on the LRU.
++ * When we munlock a page, because the vma where we found the page is being
++ * munlock()ed or munmap()ed, we want to check whether other vmas hold the
++ * page locked so that we can leave it on the unevictable lru list and not
++ * bother vmscan with it.  However, to walk the page's rmap list in
++ * try_to_munlock() we must isolate the page from the LRU.  If some other
++ * task has removed the page from the LRU, we won't be able to do that.
++ * So we clear the PageMlocked as we might not get another chance.  If we
++ * can't isolate the page, we leave it for putback_lru_page() and vmscan
++ * [page_referenced()/try_to_unmap()] to deal with.
   */
--sector_t map_swap_page(swp_entry_t entry, struct block_device **bdev)
-+static sector_t map_swap_entry(swp_entry_t entry, struct block_device **bdev)
+ void munlock_vma_page(struct page *page)
  {
- 	struct swap_info_struct *sis;
- 	struct swap_extent *start_se;
-@@ -1281,6 +1283,16 @@ sector_t map_swap_page(swp_entry_t entry
- }
- 
- /*
-+ * Returns the page offset into bdev for the specified page's swap entry.
-+ */
-+sector_t map_swap_page(struct page *page, struct block_device **bdev)
-+{
-+	swp_entry_t entry;
-+	entry.val = page_private(page);
-+	return map_swap_entry(entry, bdev);
-+}
-+
-+/*
-  * Free all of a swapdev's extent information
-  */
- static void destroy_swap_extents(struct swap_info_struct *sis)
+@@ -123,12 +120,12 @@ void munlock_vma_page(struct page *page)
+ 			putback_lru_page(page);
+ 		} else {
+ 			/*
+-			 * We lost the race.  let try_to_unmap() deal
+-			 * with it.  At least we get the page state and
+-			 * mlock stats right.  However, page is still on
+-			 * the noreclaim list.  We'll fix that up when
+-			 * the page is eventually freed or we scan the
+-			 * noreclaim list.
++			 * Some other task has removed the page from the LRU.
++			 * putback_lru_page() will take care of removing the
++			 * page from the unevictable list, if necessary.
++			 * vmscan [page_referenced()] will move the page back
++			 * to the unevictable list if some other vma has it
++			 * mlocked.
+ 			 */
+ 			if (PageUnevictable(page))
+ 				count_vm_event(UNEVICTABLE_PGSTRANDED);
 _
 
 Patches currently in -mm which might be from Lee.Schermerhorn@hp.com are
@@ -149,4 +122,5 @@ mm-pass-address-down-to-rmap-ones.patch
 mm-stop-ptlock-enlarging-struct-page.patch
 mm-sigbus-instead-of-abusing-oom.patch
 mm-remove-unevictable_migrate_page-function.patch
+mlock-replace-stale-comments-in-munlock_vma_page.patch
 
