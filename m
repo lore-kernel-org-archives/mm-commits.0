@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + modules-dont-export-section-names-of-empty-sections-via-sysfs.patch added to -mm tree
-Date: Wed, 02 Dec 2009 15:54:10 -0800
-Message-ID: <200912022354.nB2NsBw9006336@imap1.linux-foundation.org>
+Subject: + arm-nuc900-add-rtc-driver-support-for-nuc910-and-nuc920-v5.patch added to -mm tree
+Date: Wed, 02 Dec 2009 16:41:28 -0800
+Message-ID: <200912030041.nB30fSaS025248@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46509 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35197 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754649AbZLBXyl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Dec 2009 18:54:41 -0500
+	by vger.kernel.org with ESMTP id S1752753AbZLCAlv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Dec 2009 19:41:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: deller@gmx.de, James.Bottomley@HansenPartnership.com, rolandd@cisco.com, rusty@rustcorp.com.au
+Cc: mcuos.com@gmail.com, a.zummo@towertech.it, david-b@pacbell.net, jack_wang@usish.com, rmk@arm.linux.org.uk, specter118@gmail.com
 
 
 The patch titled
-     modules: don't export section names of empty sections via sysfs
+     arm-nuc900-add-rtc-driver-support-for-nuc910-and-nuc920-v5.
 has been added to the -mm tree.  Its filename is
-     modules-dont-export-section-names-of-empty-sections-via-sysfs.patch
+     arm-nuc900-add-rtc-driver-support-for-nuc910-and-nuc920-v5.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,81 +33,93 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: modules: don't export section names of empty sections via sysfs
-From: Helge Deller <deller@gmx.de>
+Subject: arm-nuc900-add-rtc-driver-support-for-nuc910-and-nuc920-v5.
+From: Wan ZongShun <mcuos.com@gmail.com>
 
-On the parisc architecture we face for each and every loaded kernel module
-this kernel "badness warning":
+Regarding your advice for 'check_rtc_power', I have modified some codes
+and thanks for your comment.
 
-  sysfs: cannot create duplicate filename '/module/ac97_bus/sections/.text'
-  Badness at fs/sysfs/dir.c:487
+This patch named v5,and I fixed 'check_rtc_power' function, maybe I can
+make a patch relative to that patch v4?
 
-Reason for that is, that on parisc all kernel modules do have multiple
-.text sections due to the usage of the -ffunction-sections compiler flag
-which is needed to reach all jump targets on this platform.
-
-An objdump on such a kernel module gives:
-Sections:
-Idx Name          Size      VMA       LMA       File off  Algn
-  0 .note.gnu.build-id 00000024  00000000  00000000  00000034  2**2
-                  CONTENTS, ALLOC, LOAD, READONLY, DATA
-  1 .text         00000000  00000000  00000000  00000058  2**0
-                  CONTENTS, ALLOC, LOAD, READONLY, CODE
-  2 .text.ac97_bus_match 0000001c  00000000  00000000  00000058  2**2
-                  CONTENTS, ALLOC, LOAD, READONLY, CODE
-  3 .text         00000000  00000000  00000000  000000d4  2**0
-                  CONTENTS, ALLOC, LOAD, READONLY, CODE
-
-...
-
-Since the .text sections are empty (size of 0 bytes) and won't be loaded
-by the kernel module loader anyway, I don't see a reason why such sections
-need to be listed under /sys/module/<module_name>/sections/<section_name>
-either.
-
-The attached patch does solve this issue by not exporting section names
-which are empty.
-
-This fixes bugzilla http://bugzilla.kernel.org/show_bug.cgi?id=14703
-
-Signed-off-by: Helge Deller <deller@gmx.de>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Roland Dreier <rolandd@cisco.com>
+Signed-off-by: Wan ZongShun <mcuos.com@gmail.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Hu Ruihuan <specter118@gmail.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: "jack wang" <jack_wang@usish.com>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/module.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/rtc/rtc-nuc900.c |   21 ++++++++++++++++-----
+ 1 file changed, 16 insertions(+), 5 deletions(-)
 
-diff -puN kernel/module.c~modules-dont-export-section-names-of-empty-sections-via-sysfs kernel/module.c
---- a/kernel/module.c~modules-dont-export-section-names-of-empty-sections-via-sysfs
-+++ a/kernel/module.c
-@@ -1037,7 +1037,8 @@ static void add_sect_attrs(struct module
+diff -puN drivers/rtc/rtc-nuc900.c~arm-nuc900-add-rtc-driver-support-for-nuc910-and-nuc920-v5 drivers/rtc/rtc-nuc900.c
+--- a/drivers/rtc/rtc-nuc900.c~arm-nuc900-add-rtc-driver-support-for-nuc910-and-nuc920-v5
++++ a/drivers/rtc/rtc-nuc900.c
+@@ -82,7 +82,7 @@ static irqreturn_t nuc900_rtc_interrupt(
+ 	return IRQ_HANDLED;
+ }
  
- 	/* Count loaded sections and allocate structures */
- 	for (i = 0; i < nsect; i++)
--		if (sechdrs[i].sh_flags & SHF_ALLOC)
-+		if (sechdrs[i].sh_flags & SHF_ALLOC
-+		    && sechdrs[i].sh_size)
- 			nloaded++;
- 	size[0] = ALIGN(sizeof(*sect_attrs)
- 			+ nloaded * sizeof(sect_attrs->attrs[0]),
-@@ -1057,6 +1058,8 @@ static void add_sect_attrs(struct module
- 	for (i = 0; i < nsect; i++) {
- 		if (! (sechdrs[i].sh_flags & SHF_ALLOC))
- 			continue;
-+		if (!sechdrs[i].sh_size)
-+			continue;
- 		sattr->address = sechdrs[i].sh_addr;
- 		sattr->name = kstrdup(secstrings + sechdrs[i].sh_name,
- 					GFP_KERNEL);
+-static void check_rtc_power(struct nuc900_rtc *nuc900_rtc)
++static int *check_rtc_access_enable(struct nuc900_rtc *nuc900_rtc)
+ {
+ 	unsigned int i;
+ 	__raw_writel(INIRRESET, nuc900_rtc->rtc_reg + REG_RTC_INIR);
+@@ -91,10 +91,15 @@ static void check_rtc_power(struct nuc90
+ 
+ 	__raw_writel(AERPOWERON, nuc900_rtc->rtc_reg + REG_RTC_AER);
+ 
+-	for (i = 0; i < 1000000; i++) {
++	for (i = 0; i < 1000; i++) {
+ 		if (__raw_readl(nuc900_rtc->rtc_reg + REG_RTC_AER) & AERRWENB)
+-			break;
++			return 0;
+ 	}
++
++	if ((__raw_readl(nuc900_rtc->rtc_reg + REG_RTC_AER) & AERRWENB) == 0x0)
++		return ERR_PTR(-ENODEV);
++
++	return ERR_PTR(-EPERM);
+ }
+ 
+ static void nuc900_rtc_bcd2bin(unsigned int timereg,
+@@ -169,10 +174,13 @@ static int nuc900_rtc_set_time(struct de
+ 	struct nuc900_rtc *rtc = dev_get_drvdata(dev);
+ 	struct nuc900_bcd_time gettm;
+ 	unsigned long val;
++	int *err;
+ 
+ 	nuc900_rtc_bin2bcd(tm, &gettm);
+ 
+-	check_rtc_power(rtc);
++	err = check_rtc_access_enable(rtc);
++	if (IS_ERR(err))
++		return PTR_ERR(err);
+ 
+ 	val = gettm.bcd_mday | gettm.bcd_mon | gettm.bcd_year;
+ 	__raw_writel(val, rtc->rtc_reg + REG_RTC_CLR);
+@@ -201,10 +209,13 @@ static int nuc900_rtc_set_alarm(struct d
+ 	struct nuc900_rtc *rtc = dev_get_drvdata(dev);
+ 	struct nuc900_bcd_time tm;
+ 	unsigned long val;
++	int *err;
+ 
+ 	nuc900_rtc_bin2bcd(&alrm->time, &tm);
+ 
+-	check_rtc_power(rtc);
++	err = check_rtc_access_enable(rtc);
++	if (IS_ERR(err))
++		return PTR_ERR(err);
+ 
+ 	val = tm.bcd_mday | tm.bcd_mon | tm.bcd_year;
+ 	__raw_writel(val, rtc->rtc_reg + REG_RTC_CAR);
 _
 
-Patches currently in -mm which might be from deller@gmx.de are
+Patches currently in -mm which might be from mcuos.com@gmail.com are
 
-origin.patch
 linux-next.patch
-modules-dont-export-section-names-of-empty-sections-via-sysfs.patch
-kernel-sysc-implement-prctlpr_get_endian-for-all-architectures.patch
+spi-nuc900-add-arm-driver-support-for-nuc900.patch
+arm-nuc900-add-rtc-driver-support-for-nuc910-and-nuc920.patch
+arm-nuc900-add-rtc-driver-support-for-nuc910-and-nuc920-v5.patch
 
