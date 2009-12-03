@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + task_struct-make-journal_info-conditional.patch added to -mm tree
-Date: Thu, 03 Dec 2009 14:40:57 -0800
-Message-ID: <200912032240.nB3Mevae027408@imap1.linux-foundation.org>
+Subject: + usbtouchscreen-find-input-endpoint-automatically.patch added to -mm tree
+Date: Thu, 03 Dec 2009 14:43:43 -0800
+Message-ID: <200912032243.nB3Mhhqa001675@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37163 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48285 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750765AbZLCWla (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Dec 2009 17:41:30 -0500
+	by vger.kernel.org with ESMTP id S1751772AbZLCWoB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Dec 2009 17:44:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: h-shimamoto@ct.jp.nec.com, chris.mason@oracle.com, konishi.ryusuke@lab.ntt.co.jp, swhiteho@redhat.com, tytso@mit.edu
+Cc: linux@rainbow-software.org, daniel.ritz@gmx.ch, ddstreet@ieee.org, dmitry.torokhov@gmail.com, floe@butterbrot.org, greg@kroah.com, jim-linux@nurd.se, oliver@neukum.org
 
 
 The patch titled
-     task_struct: make journal_info conditional
+     usbtouchscreen: find input endpoint automatically
 has been added to the -mm tree.  Its filename is
-     task_struct-make-journal_info-conditional.patch
+     usbtouchscreen-find-input-endpoint-automatically.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,175 +33,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: task_struct: make journal_info conditional
-From: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
+Subject: usbtouchscreen: find input endpoint automatically
+From: Ondrej Zary <linux@rainbow-software.org>
 
-journal_info in task_struct is used in journaling file system only.  So
-introduce CONFIG_FS_JOURNAL_INFO and make it conditional.
+Find input enpoint automatically instead of assuming that the first one is
+OK.  This is needed for devices with multiple endpoints such as iNexio
+where the first endpoint might be output.
 
-Signed-off-by: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
-Cc: Chris Mason <chris.mason@oracle.com>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Steven Whitehouse <swhiteho@redhat.com>
-Cc: KONISHI Ryusuke <konishi.ryusuke@lab.ntt.co.jp>
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Jim Persson <jim-linux@nurd.se>
+Cc: Florian Echtler <floe@butterbrot.org>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Daniel Ritz <daniel.ritz@gmx.ch>
+Cc: Greg KH <greg@kroah.com>
+Cc: Oliver Neukum <oliver@neukum.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig                |    4 ++++
- fs/btrfs/Kconfig          |    1 +
- fs/ext4/Kconfig           |    1 +
- fs/gfs2/Kconfig           |    1 +
- fs/jbd/Kconfig            |    1 +
- fs/jbd2/Kconfig           |    1 +
- fs/nilfs2/Kconfig         |    1 +
- fs/reiserfs/Kconfig       |    1 +
- include/linux/init_task.h |    8 +++++++-
- include/linux/sched.h     |    2 ++
- 10 files changed, 20 insertions(+), 1 deletion(-)
+ drivers/input/touchscreen/usbtouchscreen.c |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff -puN fs/Kconfig~task_struct-make-journal_info-conditional fs/Kconfig
---- a/fs/Kconfig~task_struct-make-journal_info-conditional
-+++ a/fs/Kconfig
-@@ -6,6 +6,10 @@ menu "File systems"
+diff -puN drivers/input/touchscreen/usbtouchscreen.c~usbtouchscreen-find-input-endpoint-automatically drivers/input/touchscreen/usbtouchscreen.c
+--- a/drivers/input/touchscreen/usbtouchscreen.c~usbtouchscreen-find-input-endpoint-automatically
++++ a/drivers/input/touchscreen/usbtouchscreen.c
+@@ -1057,17 +1057,25 @@ static int usbtouch_probe(struct usb_int
+ 	struct usbtouch_usb *usbtouch;
+ 	struct input_dev *input_dev;
+ 	struct usb_host_interface *interface;
+-	struct usb_endpoint_descriptor *endpoint;
++	struct usb_endpoint_descriptor *endpoint = NULL;
+ 	struct usb_device *udev = interface_to_usbdev(intf);
+ 	struct usbtouch_device_info *type;
+ 	int err = -ENOMEM;
++	int i;
  
- if BLOCK
+ 	/* some devices are ignored */
+ 	if (id->driver_info == DEVTYPE_IGNORE)
+ 		return -ENODEV;
  
-+config FS_JOURNAL_INFO
-+	bool
-+	default n
-+
- source "fs/ext2/Kconfig"
- source "fs/ext3/Kconfig"
- source "fs/ext4/Kconfig"
-diff -puN fs/btrfs/Kconfig~task_struct-make-journal_info-conditional fs/btrfs/Kconfig
---- a/fs/btrfs/Kconfig~task_struct-make-journal_info-conditional
-+++ a/fs/btrfs/Kconfig
-@@ -4,6 +4,7 @@ config BTRFS_FS
- 	select LIBCRC32C
- 	select ZLIB_INFLATE
- 	select ZLIB_DEFLATE
-+	select FS_JOURNAL_INFO
- 	help
- 	  Btrfs is a new filesystem with extents, writable snapshotting,
- 	  support for multiple devices and many more features.
-diff -puN fs/ext4/Kconfig~task_struct-make-journal_info-conditional fs/ext4/Kconfig
---- a/fs/ext4/Kconfig~task_struct-make-journal_info-conditional
-+++ a/fs/ext4/Kconfig
-@@ -2,6 +2,7 @@ config EXT4_FS
- 	tristate "The Extended 4 (ext4) filesystem"
- 	select JBD2
- 	select CRC16
-+	select FS_JOURNAL_INFO
- 	help
- 	  This is the next generation of the ext3 filesystem.
+ 	interface = intf->cur_altsetting;
+-	endpoint = &interface->endpoint[0].desc;
++	/* find first input endpoint */
++	for (i = 0; i < interface->desc.bNumEndpoints; i++)
++		if (usb_endpoint_dir_in(&interface->endpoint[i].desc)) {
++			endpoint = &interface->endpoint[i].desc;
++			break;
++		}
++	if (!endpoint)
++		return -ENXIO;
  
-diff -puN fs/gfs2/Kconfig~task_struct-make-journal_info-conditional fs/gfs2/Kconfig
---- a/fs/gfs2/Kconfig~task_struct-make-journal_info-conditional
-+++ a/fs/gfs2/Kconfig
-@@ -10,6 +10,7 @@ config GFS2_FS
- 	select SLOW_WORK
- 	select QUOTA
- 	select QUOTACTL
-+	select FS_JOURNAL_INFO
- 	help
- 	  A cluster filesystem.
- 
-diff -puN fs/jbd/Kconfig~task_struct-make-journal_info-conditional fs/jbd/Kconfig
---- a/fs/jbd/Kconfig~task_struct-make-journal_info-conditional
-+++ a/fs/jbd/Kconfig
-@@ -1,5 +1,6 @@
- config JBD
- 	tristate
-+	select FS_JOURNAL_INFO
- 	help
- 	  This is a generic journalling layer for block devices.  It is
- 	  currently used by the ext3 file system, but it could also be
-diff -puN fs/jbd2/Kconfig~task_struct-make-journal_info-conditional fs/jbd2/Kconfig
---- a/fs/jbd2/Kconfig~task_struct-make-journal_info-conditional
-+++ a/fs/jbd2/Kconfig
-@@ -1,6 +1,7 @@
- config JBD2
- 	tristate
- 	select CRC32
-+	select FS_JOURNAL_INFO
- 	help
- 	  This is a generic journaling layer for block devices that support
- 	  both 32-bit and 64-bit block numbers.  It is currently used by
-diff -puN fs/nilfs2/Kconfig~task_struct-make-journal_info-conditional fs/nilfs2/Kconfig
---- a/fs/nilfs2/Kconfig~task_struct-make-journal_info-conditional
-+++ a/fs/nilfs2/Kconfig
-@@ -2,6 +2,7 @@ config NILFS2_FS
- 	tristate "NILFS2 file system support (EXPERIMENTAL)"
- 	depends on EXPERIMENTAL
- 	select CRC32
-+	select FS_JOURNAL_INFO
- 	help
- 	  NILFS2 is a log-structured file system (LFS) supporting continuous
- 	  snapshotting.  In addition to versioning capability of the entire
-diff -puN fs/reiserfs/Kconfig~task_struct-make-journal_info-conditional fs/reiserfs/Kconfig
---- a/fs/reiserfs/Kconfig~task_struct-make-journal_info-conditional
-+++ a/fs/reiserfs/Kconfig
-@@ -1,6 +1,7 @@
- config REISERFS_FS
- 	tristate "Reiserfs support"
- 	select CRC32
-+	select FS_JOURNAL_INFO
- 	help
- 	  Stores not just filenames but the files themselves in a balanced
- 	  tree.  Uses journalling.
-diff -puN include/linux/init_task.h~task_struct-make-journal_info-conditional include/linux/init_task.h
---- a/include/linux/init_task.h~task_struct-make-journal_info-conditional
-+++ a/include/linux/init_task.h
-@@ -111,6 +111,12 @@ extern struct cred init_cred;
- # define INIT_PERF_EVENTS(tsk)
- #endif
- 
-+#ifdef CONFIG_FS_JOURNAL_INFO
-+#define INIT_JOURNAL_INFO	.journal_info = NULL,
-+#else
-+#define INIT_JOURNAL_INFO
-+#endif
-+
- /*
-  *  INIT_TASK is used to set up the first task table, touch at
-  * your own risk!. Base=0, limit=0x1fffff (=2MB)
-@@ -162,7 +168,6 @@ extern struct cred init_cred;
- 		.signal = {{0}}},					\
- 	.blocked	= {{0}},					\
- 	.alloc_lock	= __SPIN_LOCK_UNLOCKED(tsk.alloc_lock),		\
--	.journal_info	= NULL,						\
- 	.cpu_timers	= INIT_CPU_TIMERS(tsk.cpu_timers),		\
- 	.fs_excl	= ATOMIC_INIT(0),				\
- 	.pi_lock	= __SPIN_LOCK_UNLOCKED(tsk.pi_lock),		\
-@@ -173,6 +178,7 @@ extern struct cred init_cred;
- 		[PIDTYPE_SID]  = INIT_PID_LINK(PIDTYPE_SID),		\
- 	},								\
- 	.dirties = INIT_PROP_LOCAL_SINGLE(dirties),			\
-+	INIT_JOURNAL_INFO						\
- 	INIT_IDS							\
- 	INIT_PERF_EVENTS(tsk)						\
- 	INIT_TRACE_IRQFLAGS						\
-diff -puN include/linux/sched.h~task_struct-make-journal_info-conditional include/linux/sched.h
---- a/include/linux/sched.h~task_struct-make-journal_info-conditional
-+++ a/include/linux/sched.h
-@@ -1452,8 +1452,10 @@ struct task_struct {
- 	gfp_t lockdep_reclaim_gfp;
- #endif
- 
-+#ifdef CONFIG_FS_JOURNAL_INFO
- /* journalling filesystem info */
- 	void *journal_info;
-+#endif
- 
- /* stacked block device info */
- 	struct bio *bio_list, **bio_tail;
+ 	usbtouch = kzalloc(sizeof(struct usbtouch_usb), GFP_KERNEL);
+ 	input_dev = input_allocate_device();
 _
 
-Patches currently in -mm which might be from h-shimamoto@ct.jp.nec.com are
+Patches currently in -mm which might be from linux@rainbow-software.org are
 
-linux-next.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
-task_struct-make-journal_info-conditional.patch
+usbtouchscreen-convert-from-usb_device-to-usb_interface.patch
+usbtouchscreen-find-input-endpoint-automatically.patch
+usbtouchscreen-add-nexio-or-inexio-support.patch
 
