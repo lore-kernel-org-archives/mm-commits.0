@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-abort-a-hugepage-pool-resize-if-a-signal-is-pending.patch added to -mm tree
-Date: Thu, 03 Dec 2009 14:09:11 -0800
-Message-ID: <200912032209.nB3M9Bqs013886@imap1.linux-foundation.org>
+Subject: + fsstack-ecryptfs-remove-unused-get_nlinks-param-to-fsstack_copy_attr_all.patch added to -mm tree
+Date: Thu, 03 Dec 2009 14:27:06 -0800
+Message-ID: <200912032227.nB3MR6We025792@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43732 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50847 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751605AbZLCWKB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Dec 2009 17:10:01 -0500
+	by vger.kernel.org with ESMTP id S1751575AbZLCW1L (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Dec 2009 17:27:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mel@csn.ul.ie, dave@linux.vnet.ibm.com
+Cc: ezk@cs.sunysb.edu, kirkland@canonical.com, tyhicks@linux.vnet.ibm.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     hugetlb: abort a hugepage pool resize if a signal is pending
+     fsstack/ecryptfs: remove unused get_nlinks param to fsstack_copy_attr_all
 has been added to the -mm tree.  Its filename is
-     hugetlb-abort-a-hugepage-pool-resize-if-a-signal-is-pending.patch
+     fsstack-ecryptfs-remove-unused-get_nlinks-param-to-fsstack_copy_attr_all.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,73 +33,113 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb: abort a hugepage pool resize if a signal is pending
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: fsstack/ecryptfs: remove unused get_nlinks param to fsstack_copy_attr_all
+From: Erez Zadok <ezk@cs.sunysb.edu>
 
-If a user asks for a hugepage pool resize but specified a large number,
-the machine can begin trashing.  In response, they might hit ctrl-c but
-signals are ignored and the pool resize continues until it fails an
-allocation.  This can take a considerable amount of time so this patch
-aborts a pool resize if a signal is pending.
+This get_nlinks parameter was never used by the only mainline user,
+ecryptfs; and it has never been used by unionfs or wrapfs either.
 
-Suggested by Dave Hansen.
-
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Cc: Dave Hansen <dave@linux.vnet.ibm.com>
+Signed-off-by: Erez Zadok <ezk@cs.sunysb.edu>
+Acked-by: Tyler Hicks <tyhicks@linux.vnet.ibm.com>
+Acked-by: Dustin Kirkland <kirkland@canonical.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    3 +++
- 1 file changed, 3 insertions(+)
+ fs/ecryptfs/dentry.c     |    2 +-
+ fs/ecryptfs/inode.c      |    6 +++---
+ fs/ecryptfs/main.c       |    2 +-
+ fs/stack.c               |   17 +++--------------
+ include/linux/fs_stack.h |    4 +---
+ 5 files changed, 9 insertions(+), 22 deletions(-)
 
-diff -puN mm/hugetlb.c~hugetlb-abort-a-hugepage-pool-resize-if-a-signal-is-pending mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-abort-a-hugepage-pool-resize-if-a-signal-is-pending
-+++ a/mm/hugetlb.c
-@@ -1278,6 +1278,9 @@ static unsigned long set_max_huge_pages(
- 		if (!ret)
- 			goto out;
+diff -puN fs/ecryptfs/dentry.c~fsstack-ecryptfs-remove-unused-get_nlinks-param-to-fsstack_copy_attr_all fs/ecryptfs/dentry.c
+--- a/fs/ecryptfs/dentry.c~fsstack-ecryptfs-remove-unused-get_nlinks-param-to-fsstack_copy_attr_all
++++ a/fs/ecryptfs/dentry.c
+@@ -62,7 +62,7 @@ static int ecryptfs_d_revalidate(struct 
+ 		struct inode *lower_inode =
+ 			ecryptfs_inode_to_lower(dentry->d_inode);
  
-+		/* Bail for signals. Probably ctrl-c from user */
-+		if (signal_pending(current))
-+			goto out;
+-		fsstack_copy_attr_all(dentry->d_inode, lower_inode, NULL);
++		fsstack_copy_attr_all(dentry->d_inode, lower_inode);
  	}
+ out:
+ 	return rc;
+diff -puN fs/ecryptfs/inode.c~fsstack-ecryptfs-remove-unused-get_nlinks-param-to-fsstack_copy_attr_all fs/ecryptfs/inode.c
+--- a/fs/ecryptfs/inode.c~fsstack-ecryptfs-remove-unused-get_nlinks-param-to-fsstack_copy_attr_all
++++ a/fs/ecryptfs/inode.c
+@@ -626,9 +626,9 @@ ecryptfs_rename(struct inode *old_dir, s
+ 			lower_new_dir_dentry->d_inode, lower_new_dentry);
+ 	if (rc)
+ 		goto out_lock;
+-	fsstack_copy_attr_all(new_dir, lower_new_dir_dentry->d_inode, NULL);
++	fsstack_copy_attr_all(new_dir, lower_new_dir_dentry->d_inode);
+ 	if (new_dir != old_dir)
+-		fsstack_copy_attr_all(old_dir, lower_old_dir_dentry->d_inode, NULL);
++		fsstack_copy_attr_all(old_dir, lower_old_dir_dentry->d_inode);
+ out_lock:
+ 	unlock_rename(lower_old_dir_dentry, lower_new_dir_dentry);
+ 	dput(lower_new_dentry->d_parent);
+@@ -1000,7 +1000,7 @@ static int ecryptfs_setattr(struct dentr
+ 	rc = notify_change(lower_dentry, &lower_ia);
+ 	mutex_unlock(&lower_dentry->d_inode->i_mutex);
+ out:
+-	fsstack_copy_attr_all(inode, lower_inode, NULL);
++	fsstack_copy_attr_all(inode, lower_inode);
+ 	return rc;
+ }
  
- 	/*
-_
-
-Patches currently in -mm which might be from mel@csn.ul.ie are
-
-linux-next.patch
-mm-add-notifier-in-pageblock-isolation-for-balloon-drivers.patch
-powerpc-make-the-cmm-memory-hotplug-aware.patch
-powerpc-make-the-cmm-memory-hotplug-aware-update.patch
-mm-warn-once-when-a-page-is-freed-with-pg_mlocked-set.patch
-nodemask-make-nodemask_alloc-more-general.patch
-hugetlb-rework-hstate_next_node_-functions.patch
-hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions.patch
-hugetlb-add-nodemask-arg-to-huge-page-alloc-free-and-surplus-adjust-functions-fix.patch
-hugetlb-factor-init_nodemask_of_node.patch
-hugetlb-derive-huge-pages-nodes-allowed-from-task-mempolicy.patch
-hugetlb-add-generic-definition-of-numa_no_node.patch
-hugetlb-add-per-node-hstate-attributes.patch
-hugetlb-update-hugetlb-documentation-for-numa-controls.patch
-hugetlb-use-only-nodes-with-memory-for-huge-pages.patch
-mm-clear-node-in-n_high_memory-and-stop-kswapd-when-all-memory-is-offlined.patch
-hugetlb-handle-memory-hot-plug-events.patch
-hugetlb-offload-per-node-attribute-registrations.patch
-mm-add-gfp-flags-for-nodemask_alloc-slab-allocations.patch
-page-allocator-wait-on-both-sync-and-async-congestion-after-direct-reclaim.patch
-vmscan-have-kswapd-sleep-for-a-short-interval-and-double-check-it-should-be-asleep.patch
-vmscan-stop-kswapd-waiting-on-congestion-when-the-min-watermark-is-not-being-met-v2.patch
-vmscan-have-kswapd-sleep-for-a-short-interval-and-double-check-it-should-be-asleep-fix-1.patch
-vmscan-separate-scswap_cluster_max-and-scnr_max_reclaim.patch
-vmscan-kill-hibernation-specific-reclaim-logic-and-unify-it.patch
-vmscan-zone_reclaim-dont-use-insane-swap_cluster_max.patch
-vmscan-kill-scswap_cluster_max.patch
-vmscan-make-consistent-of-reclaim-bale-out-between-do_try_to_free_page-and-shrink_zone.patch
-ksm-fix-mlockfreed-to-munlocked.patch
-hugetlb-prevent-deadlock-in-__unmap_hugepage_range-when-alloc_huge_page-fails-2.patch
-hugetlb-acquire-the-i_mmap_lock-before-walking-the-prio_tree-to-unmap-a-page-v2.patch
-hugetlb-abort-a-hugepage-pool-resize-if-a-signal-is-pending.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
-
+diff -puN fs/ecryptfs/main.c~fsstack-ecryptfs-remove-unused-get_nlinks-param-to-fsstack_copy_attr_all fs/ecryptfs/main.c
+--- a/fs/ecryptfs/main.c~fsstack-ecryptfs-remove-unused-get_nlinks-param-to-fsstack_copy_attr_all
++++ a/fs/ecryptfs/main.c
+@@ -194,7 +194,7 @@ int ecryptfs_interpose(struct dentry *lo
+ 		init_special_inode(inode, lower_inode->i_mode,
+ 				   lower_inode->i_rdev);
+ 	dentry->d_op = &ecryptfs_dops;
+-	fsstack_copy_attr_all(inode, lower_inode, NULL);
++	fsstack_copy_attr_all(inode, lower_inode);
+ 	/* This size will be overwritten for real files w/ headers and
+ 	 * other metadata */
+ 	fsstack_copy_inode_size(inode, lower_inode);
+diff -puN fs/stack.c~fsstack-ecryptfs-remove-unused-get_nlinks-param-to-fsstack_copy_attr_all fs/stack.c
+--- a/fs/stack.c~fsstack-ecryptfs-remove-unused-get_nlinks-param-to-fsstack_copy_attr_all
++++ a/fs/stack.c
+@@ -14,11 +14,8 @@ void fsstack_copy_inode_size(struct inod
+ }
+ EXPORT_SYMBOL_GPL(fsstack_copy_inode_size);
+ 
+-/* copy all attributes; get_nlinks is optional way to override the i_nlink
+- * copying
+- */
+-void fsstack_copy_attr_all(struct inode *dest, const struct inode *src,
+-				int (*get_nlinks)(struct inode *))
++/* copy all attributes */
++void fsstack_copy_attr_all(struct inode *dest, const struct inode *src)
+ {
+ 	dest->i_mode = src->i_mode;
+ 	dest->i_uid = src->i_uid;
+@@ -29,14 +26,6 @@ void fsstack_copy_attr_all(struct inode 
+ 	dest->i_ctime = src->i_ctime;
+ 	dest->i_blkbits = src->i_blkbits;
+ 	dest->i_flags = src->i_flags;
+-
+-	/*
+-	 * Update the nlinks AFTER updating the above fields, because the
+-	 * get_links callback may depend on them.
+-	 */
+-	if (!get_nlinks)
+-		dest->i_nlink = src->i_nlink;
+-	else
+-		dest->i_nlink = (*get_nlinks)(dest);
++	dest->i_nlink = src->i_nlink;
+ }
+ EXPORT_SYMBOL_GPL(fsstack_copy_attr_all);
+diff -puN include/linux/fs_stack.h~fsstack-ecryptfs-remove-unused-get_nlinks-param-to-fsstack_copy_attr_all include/linux/fs_stack.h
+--- a/include/linux/fs_stack.h~fsstack-ecryptfs-remove-unused-get_nlinks-param-to-fsstack_copy_attr_all
++++ a/include/linux/fs_stack.h
+@@ -8,9 +8,7 @@
+ #include <linux/fs.h>
+ 
+ /* externs for fs/stack.c */
+-extern void fsstack_copy_attr_all(struct inode *dest, const struct inode *src,
+-				int (*get_nlinks)(struct inode *));
