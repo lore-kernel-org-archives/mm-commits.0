@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kfifo-move-struct-kfifo-in-place-fix.patch added to -mm tree
-Date: Fri, 04 Dec 2009 07:30:08 -0800
-Message-ID: <200912041530.nB4FU8bp010221@imap1.linux-foundation.org>
+Subject: + usbtouchscreen-fix-nexio-ack-and-usb-disconnect.patch added to -mm tree
+Date: Fri, 04 Dec 2009 07:34:56 -0800
+Message-ID: <200912041534.nB4FYuge022011@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37464 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33464 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751285AbZLDPaw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Dec 2009 10:30:52 -0500
+	by vger.kernel.org with ESMTP id S1754081AbZLDPfE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Dec 2009 10:35:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, James.Bottomley@suse.de, fujita.tomonori@lab.ntt.co.jp, stefani@seibold.net
+Cc: linux@rainbow-software.org, daniel.ritz@gmx.ch, ddstreet@ieee.org, dmitry.torokhov@gmail.com, floe@butterbrot.org, greg@kroah.com, jim-linux@nurd.se, oliver@neukum.org
 
 
 The patch titled
-     kfifo-move-struct-kfifo-in-place-fix
+     usbtouchscreen: fix NEXIO ACK and USB disconnect
 has been added to the -mm tree.  Its filename is
-     kfifo-move-struct-kfifo-in-place-fix.patch
+     usbtouchscreen-fix-nexio-ack-and-usb-disconnect.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,116 +33,64 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kfifo-move-struct-kfifo-in-place-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: usbtouchscreen: fix NEXIO ACK and USB disconnect
+From: Ondrej Zary <linux@rainbow-software.org>
 
-drivers/scsi/libsrp.c: In function 'srp_iu_pool_alloc':
-drivers/scsi/libsrp.c:70: warning: label 'free_item' defined but not used
+Fix sending ACK urbs and oops on USB disconnecting NEXIO touchscreen.
 
-Cc: James E.J. Bottomley <James.Bottomley@suse.de>
-Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Stefani Seibold <stefani@seibold.net>
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Jim Persson <jim-linux@nurd.se>
+Cc: Florian Echtler <floe@butterbrot.org>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Daniel Ritz <daniel.ritz@gmx.ch>
+Cc: Greg KH <greg@kroah.com>
+Cc: Oliver Neukum <oliver@neukum.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/libsrp.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/input/touchscreen/usbtouchscreen.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN drivers/scsi/libsrp.c~kfifo-move-struct-kfifo-in-place-fix drivers/scsi/libsrp.c
---- a/drivers/scsi/libsrp.c~kfifo-move-struct-kfifo-in-place-fix
-+++ a/drivers/scsi/libsrp.c
-@@ -68,7 +68,6 @@ static int srp_iu_pool_alloc(struct srp_
- 	}
- 	return 0;
+diff -puN drivers/input/touchscreen/usbtouchscreen.c~usbtouchscreen-fix-nexio-ack-and-usb-disconnect drivers/input/touchscreen/usbtouchscreen.c
+--- a/drivers/input/touchscreen/usbtouchscreen.c~usbtouchscreen-fix-nexio-ack-and-usb-disconnect
++++ a/drivers/input/touchscreen/usbtouchscreen.c
+@@ -728,6 +728,10 @@ struct nexio_touch_packet {
+ static unsigned char nexio_ack_pkt[2] = { 0xaa, 0x02 };
+ static unsigned char nexio_init_pkt[4] = { 0x82, 0x04, 0x0a, 0x0f };
  
--free_item:
- 	kfree(q->items);
- free_pool:
- 	kfree(q->pool);
++static void nexio_ack_complete(struct urb *urb)
++{
++}
++
+ static int nexio_init(struct usbtouch_usb *usbtouch)
+ {
+ 	struct usb_device *dev = interface_to_usbdev(usbtouch->interface);
+@@ -811,8 +815,8 @@ static int nexio_init(struct usbtouch_us
+ 		goto err_ack_buf;
+ 	}
+ 	usb_fill_bulk_urb(priv->ack, dev, usb_sndbulkpipe(dev, output_ep),
+-			  priv->ack_buf, sizeof(priv->ack_buf), NULL,
+-			  usbtouch);
++			  priv->ack_buf, sizeof(nexio_ack_pkt),
++			  nexio_ack_complete, usbtouch);
+ 	ret = 0;
+ 	goto out_buf;
+ err_ack_buf:
+@@ -1227,6 +1231,7 @@ static void usbtouch_irq(struct urb *urb
+ 	case -ECONNRESET:
+ 	case -ENOENT:
+ 	case -ESHUTDOWN:
++	case -EPIPE:
+ 		/* this urb is terminated, clean up */
+ 		dbg("%s - urb shutting down with status: %d",
+ 		    __func__, urb->status);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from linux@rainbow-software.org are
 
-linux-next.patch
-include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
-linux-next-git-rejects-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-acpi-remove-nid_inval.patch
-drivers-acpi-acpi_padc-squish-warning.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices-checkpatch-fixes.patch
-drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
-drivers-media-video-pmsc-needs-versionh.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-kbuild-generate-modulesbuiltin-fix-2-checkpatch-fixes.patch
-drivers-leds-leds-ss4200c-fix-return-statement.patch
-net-sctp-socketc-squish-warning.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
-scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
-aoe-switch-to-the-new-bio_flush_dcache_pages-interface.patch
-wusb-use-sizeof-struct-rather-than-pointer.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-net-rfkill-corec-work-around-gcc-402-silliness.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-readahead-add-blk_run_backing_dev.patch
-mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
-oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
-oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes.patch
-mm-mlocking-in-try_to_unmap_one-fix-fix.patch
-mm-memory_hotplug-make-offline_pages-static.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup.patch
-floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
-drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
-rwsem-fix-rwsem_is_locked-bugs-fix.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
-errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
-msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes.patch
-blackfin-sd-host-controller-driver-fix.patch
-blackfin-sd-host-controller-driver-fix-fix.patch
-blackfin-sd-host-controller-driver-fix-fix-fix.patch
-crc32-minor-optimizations-and-cleanup-checkpatch-fixes.patch
-hwmon-w83627ehf-updates-checkpatch-fixes.patch
-lis3-update-documentation-to-match-latest-changes-fix.patch
-spi-controller-driver-for-designware-spi-core-fix.patch
-spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3.patch
-ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
-memcg-coalesce-charging-via-percpu-storage-fix.patch
-ipc-remove-unreachable-code-in-semc-fix.patch
-char-cyclades-fix-compiler-warning.patch
-ip2-remove-ifdef-module-from-ip2mainc-fix.patch
-drivers-edac-amd64_edacc-fix-use-uninitialised-bug.patch
-aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
-direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-drivers-media-video-cx23885-needs-kfifo-updates.patch
-kfifo-move-struct-kfifo-in-place-fix.patch
-zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+usbtouchscreen-convert-from-usb_device-to-usb_interface.patch
+usbtouchscreen-find-input-endpoint-automatically.patch
+usbtouchscreen-add-nexio-or-inexio-support.patch
+usbtouchscreen-fix-nexio-ack-and-usb-disconnect.patch
 
