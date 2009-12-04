@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + net-sctp-socketc-squish-warning.patch added to -mm tree
-Date: Thu, 03 Dec 2009 21:01:26 -0800
-Message-ID: <200912040501.nB451Qc3021755@imap1.linux-foundation.org>
+Subject: + drivers-scsi-libsrpc-squish-warning.patch added to -mm tree
+Date: Thu, 03 Dec 2009 21:03:10 -0800
+Message-ID: <200912040503.nB453Alt026113@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55299 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55087 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750761AbZLDFBZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Dec 2009 00:01:25 -0500
+	by vger.kernel.org with ESMTP id S1750788AbZLDFDr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Dec 2009 00:03:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, andrei@iptel.org, vladislav.yasevich@hp.com
+Cc: akpm@linux-foundation.org, James.Bottomley@suse.de, fujita.tomonori@lab.ntt.co.jp
 
 
 The patch titled
-     net/sctp/socket.c: squish warning
+     drivers/scsi/libsrp.c: squish warning
 has been added to the -mm tree.  Its filename is
-     net-sctp-socketc-squish-warning.patch
+     drivers-scsi-libsrpc-squish-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,35 +33,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: net/sctp/socket.c: squish warning
+Subject: drivers/scsi/libsrp.c: squish warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-net/sctp/socket.c: In function 'sctp_setsockopt_autoclose':
-net/sctp/socket.c:2090: warning: comparison is always false due to limited range of data type
+drivers/scsi/libsrp.c: In function 'srp_iu_pool_alloc':
+drivers/scsi/libsrp.c:70: warning: label 'free_item' defined but not used
 
-Cc: Andrei Pelinescu-Onciul <andrei@iptel.org>
-Cc: Vlad Yasevich <vladislav.yasevich@hp.com>
+Cc: James E.J. Bottomley <James.Bottomley@suse.de>
+Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sctp/socket.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/scsi/libsrp.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN net/sctp/socket.c~net-sctp-socketc-squish-warning net/sctp/socket.c
---- a/net/sctp/socket.c~net-sctp-socketc-squish-warning
-+++ a/net/sctp/socket.c
-@@ -2086,9 +2086,8 @@ static int sctp_setsockopt_autoclose(str
- 		return -EINVAL;
- 	if (copy_from_user(&sp->autoclose, optval, optlen))
- 		return -EFAULT;
--	/* make sure it won't exceed MAX_SCHEDULE_TIMEOUT */
--	if (sp->autoclose > (MAX_SCHEDULE_TIMEOUT / HZ) )
--		sp->autoclose = MAX_SCHEDULE_TIMEOUT / HZ ;
-+	/* make sure it won't exceed one hour */
-+	sp->autoclose = min_t(u32, sp->autoclose, 60 * 60);
- 
+diff -puN drivers/scsi/libsrp.c~drivers-scsi-libsrpc-squish-warning drivers/scsi/libsrp.c
+--- a/drivers/scsi/libsrp.c~drivers-scsi-libsrpc-squish-warning
++++ a/drivers/scsi/libsrp.c
+@@ -67,7 +67,6 @@ static int srp_iu_pool_alloc(struct srp_
+ 	}
  	return 0;
- }
+ 
+-free_item:
+ 	kfree(q->items);
+ free_pool:
+ 	kfree(q->pool);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -81,6 +77,7 @@ drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
 timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
 kbuild-generate-modulesbuiltin-fix-2-checkpatch-fixes.patch
 drivers-leds-leds-ss4200c-fix-return-statement.patch
+net-sctp-socketc-squish-warning.patch
 3x59x-fix-pci-resource-management.patch
 bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
 atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
@@ -145,5 +142,5 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 notify_change-callers-must-hold-i_mutex.patch
-net-sctp-socketc-squish-warning.patch
+drivers-scsi-libsrpc-squish-warning.patch
 
