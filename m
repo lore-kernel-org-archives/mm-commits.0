@@ -1,16 +1,16 @@
 From: akpm@linux-foundation.org
-Subject: + vsprintf-reduce-code-size-by-avoiding-extra-check.patch added to -mm tree
-Date: Fri, 04 Dec 2009 14:31:59 -0800
-Message-ID: <200912042232.nB4MVxw6011096@imap1.linux-foundation.org>
+Subject: + vsprintf-pre-calculate-final-string-length-for-later-use.patch added to -mm tree
+Date: Fri, 04 Dec 2009 14:31:53 -0800
+Message-ID: <200912042231.nB4MVrDg010833@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51132 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42176 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757266AbZLDWcM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Dec 2009 17:32:12 -0500
+	by vger.kernel.org with ESMTP id S932507AbZLDWcH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Dec 2009 17:32:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -18,9 +18,9 @@ Cc: andre.goddard@gmail.com, fweisbec@gmail.com
 
 
 The patch titled
-     vsprintf: reduce code size by avoiding extra check
+     vsprintf: pre-calculate final string length for later use
 has been added to the -mm tree.  Its filename is
-     vsprintf-reduce-code-size-by-avoiding-extra-check.patch
+     vsprintf-pre-calculate-final-string-length-for-later-use.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,42 +38,41 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
 otm/
 
 ------------------------------------------------------
-Subject: vsprintf: reduce code size by avoiding extra check
+Subject: vsprintf: pre-calculate final string length for later use
 =46rom: Andr=E9 Goddard Rosa <andre.goddard@gmail.com>
-
-No functional change, just refactor the code so that it avoid checking
-"if (hi)" two times in a sequence, taking advantage of previous check m=
-ade.
-
-It also reduces code size:
-   text    data     bss     dec     hex filename
-  15726       0       8   15734    3d76 vsprintf.o (ex lib/lib.a-BEFORE=
-)
-  15710       0       8   15718    3d66 vsprintf.o (ex lib/lib.a-AFTER)
 
 Signed-off-by: Andr=E9 Goddard Rosa <andre.goddard@gmail.com>
 Acked-by: Frederic Weisbecker <fweisbec@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/vsprintf.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ lib/vsprintf.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN lib/vsprintf.c~vsprintf-reduce-code-size-by-avoiding-extra-ch=
-eck lib/vsprintf.c
---- a/lib/vsprintf.c~vsprintf-reduce-code-size-by-avoiding-extra-check
+diff -puN lib/vsprintf.c~vsprintf-pre-calculate-final-string-length-for=
+-later-use lib/vsprintf.c
+--- a/lib/vsprintf.c~vsprintf-pre-calculate-final-string-length-for-lat=
+er-use
 +++ a/lib/vsprintf.c
-@@ -797,8 +797,9 @@ static char *ip6_compressed_string(char=20
- 				p =3D pack_hex_byte(p, hi);
- 			else
- 				*p++ =3D hex_asc_lo(hi);
-+			p =3D pack_hex_byte(p, lo);
+@@ -1496,13 +1496,14 @@ do {									\
+ 		case FORMAT_TYPE_STR: {
+ 			const char *save_str =3D va_arg(args, char *);
+ 			size_t len;
++
+ 			if ((unsigned long)save_str > (unsigned long)-PAGE_SIZE
+ 					|| (unsigned long)save_str < PAGE_SIZE)
+ 				save_str =3D "(null)";
+-			len =3D strlen(save_str);
+-			if (str + len + 1 < end)
+-				memcpy(str, save_str, len + 1);
+-			str +=3D len + 1;
++			len =3D strlen(save_str) + 1;
++			if (str + len < end)
++				memcpy(str, save_str, len);
++			str +=3D len;
+ 			break;
  		}
--		if (hi || lo > 0x0f)
-+		else if (lo > 0x0f)
- 			p =3D pack_hex_byte(p, lo);
- 		else
- 			*p++ =3D hex_asc_lo(lo);
+=20
 _
 
 Patches currently in -mm which might be from andre.goddard@gmail.com ar=
