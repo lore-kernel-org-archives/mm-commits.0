@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + net-rfkill-corec-work-around-gcc-402-silliness.patch added to -mm tree
-Date: Thu, 03 Dec 2009 20:45:07 -0800
-Message-ID: <200912040445.nB44j7ua014182@imap1.linux-foundation.org>
+Subject: + net-sctp-socketc-squish-warning.patch added to -mm tree
+Date: Thu, 03 Dec 2009 21:01:26 -0800
+Message-ID: <200912040501.nB451Qc3021755@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39724 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55299 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755800AbZLDEqU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Dec 2009 23:46:20 -0500
+	by vger.kernel.org with ESMTP id S1750761AbZLDFBZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Dec 2009 00:01:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davem@davemloft.net, johannes@sipsolutions.net, linville@tuxdriver.com
+Cc: akpm@linux-foundation.org, andrei@iptel.org, vladislav.yasevich@hp.com
 
 
 The patch titled
-     net/rfkill/core.c: work around gcc-4.0.2 silliness
+     net/sctp/socket.c: squish warning
 has been added to the -mm tree.  Its filename is
-     net-rfkill-corec-work-around-gcc-402-silliness.patch
+     net-sctp-socketc-squish-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,44 +33,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: net/rfkill/core.c: work around gcc-4.0.2 silliness
+Subject: net/sctp/socket.c: squish warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-net/rfkill/core.c: In function 'rfkill_type_show':
-net/rfkill/core.c:610: warning: control may reach end of non-void function 'rfkill_get_type_str' being inlined
+net/sctp/socket.c: In function 'sctp_setsockopt_autoclose':
+net/sctp/socket.c:2090: warning: comparison is always false due to limited range of data type
 
-A gcc bug, but simple enough to squish.
-
-Cc: John W. Linville <linville@tuxdriver.com>
-Cc: Johannes Berg <johannes@sipsolutions.net>
-Cc: David S. Miller <davem@davemloft.net>
+Cc: Andrei Pelinescu-Onciul <andrei@iptel.org>
+Cc: Vlad Yasevich <vladislav.yasevich@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/rfkill/core.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ net/sctp/socket.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN net/rfkill/core.c~net-rfkill-corec-work-around-gcc-402-silliness net/rfkill/core.c
---- a/net/rfkill/core.c~net-rfkill-corec-work-around-gcc-402-silliness
-+++ a/net/rfkill/core.c
-@@ -579,6 +579,8 @@ static ssize_t rfkill_name_show(struct d
+diff -puN net/sctp/socket.c~net-sctp-socketc-squish-warning net/sctp/socket.c
+--- a/net/sctp/socket.c~net-sctp-socketc-squish-warning
++++ a/net/sctp/socket.c
+@@ -2086,9 +2086,8 @@ static int sctp_setsockopt_autoclose(str
+ 		return -EINVAL;
+ 	if (copy_from_user(&sp->autoclose, optval, optlen))
+ 		return -EFAULT;
+-	/* make sure it won't exceed MAX_SCHEDULE_TIMEOUT */
+-	if (sp->autoclose > (MAX_SCHEDULE_TIMEOUT / HZ) )
+-		sp->autoclose = MAX_SCHEDULE_TIMEOUT / HZ ;
++	/* make sure it won't exceed one hour */
++	sp->autoclose = min_t(u32, sp->autoclose, 60 * 60);
  
- static const char *rfkill_get_type_str(enum rfkill_type type)
- {
-+	BUILD_BUG_ON(NUM_RFKILL_TYPES != RFKILL_TYPE_FM + 1);
-+
- 	switch (type) {
- 	case RFKILL_TYPE_WLAN:
- 		return "wlan";
-@@ -597,8 +599,6 @@ static const char *rfkill_get_type_str(e
- 	default:
- 		BUG();
- 	}
--
--	BUILD_BUG_ON(NUM_RFKILL_TYPES != RFKILL_TYPE_FM + 1);
+ 	return 0;
  }
- 
- static ssize_t rfkill_type_show(struct device *dev,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -154,4 +145,5 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 notify_change-callers-must-hold-i_mutex.patch
+net-sctp-socketc-squish-warning.patch
 
