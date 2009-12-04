@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ip2-remove-ifdef-module-from-ip2mainc-fix.patch added to -mm tree
-Date: Thu, 03 Dec 2009 20:14:38 -0800
-Message-ID: <200912040414.nB44EcPA004394@imap1.linux-foundation.org>
+Subject: + drivers-edac-amd64_edacc-fix-use-uninitialised-bug.patch added to -mm tree
+Date: Thu, 03 Dec 2009 20:41:49 -0800
+Message-ID: <200912040441.nB44fnbg006209@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42235 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49667 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755478AbZLDEPB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Dec 2009 23:15:01 -0500
+	by vger.kernel.org with ESMTP id S1755842AbZLDEme (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Dec 2009 23:42:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mhw@WittsEnd.com, rakib.mullick@gmail.com
+Cc: akpm@linux-foundation.org, borislav.petkov@amd.com, dougthompson@xmission.com, mchehab@redhat.com
 
 
 The patch titled
-     ip2-remove-ifdef-module-from-ip2mainc-fix
+     drivers/edac/amd64_edac.c: fix use-uninitialised bug
 has been added to the -mm tree.  Its filename is
-     ip2-remove-ifdef-module-from-ip2mainc-fix.patch
+     drivers-edac-amd64_edacc-fix-use-uninitialised-bug.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,38 +33,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ip2-remove-ifdef-module-from-ip2mainc-fix
+Subject: drivers/edac/amd64_edac.c: fix use-uninitialised bug
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fix build
+drivers/edac/amd64_edac.c: In function 'amd64_edac_init':
+drivers/edac/amd64_edac.c:2840: warning: 'ret' may be used uninitialized in this function
 
-Cc: Michael H. Warfield <mhw@WittsEnd.com>
-Cc: Rakib Mullick <rakib.mullick@gmail.com>
+Cc: Doug Thompson <dougthompson@xmission.com>
+Cc: Borislav Petkov <borislav.petkov@amd.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ip2/ip2main.c |    2 +-
+ drivers/edac/amd64_edac.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/ip2/ip2main.c~ip2-remove-ifdef-module-from-ip2mainc-fix drivers/char/ip2/ip2main.c
---- a/drivers/char/ip2/ip2main.c~ip2-remove-ifdef-module-from-ip2mainc-fix
-+++ a/drivers/char/ip2/ip2main.c
-@@ -636,6 +636,7 @@ static int __init ip2_loadmain(void)
- 				dev_err(&pdev->dev, "I/O address error\n");
+diff -puN drivers/edac/amd64_edac.c~drivers-edac-amd64_edacc-fix-use-uninitialised-bug drivers/edac/amd64_edac.c
+--- a/drivers/edac/amd64_edac.c~drivers-edac-amd64_edacc-fix-use-uninitialised-bug
++++ a/drivers/edac/amd64_edac.c
+@@ -2837,7 +2837,7 @@ static int amd64_init_2nd_stage(struct a
+ {
+ 	int node_id = pvt->mc_node_id;
+ 	struct mem_ctl_info *mci;
+-	int ret;
++	int ret = -ENODEV;
  
- 			ip2config.irq[i] = pdev->irq;
-+			pci_dev_put(pdev);
- 		}
- #else
- 			printk(KERN_ERR "IP2: PCI card specified but PCI "
-@@ -654,7 +655,6 @@ static int __init ip2_loadmain(void)
- 			break;
- 		}	/* switch */
- 	}	/* for */
--	pci_dev_put(pdev);
+ 	amd64_read_mc_registers(pvt);
  
- 	for (i = 0; i < IP2_MAX_BOARDS; ++i) {
- 		if (ip2config.addr[i]) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -127,6 +122,7 @@ memcg-coalesce-charging-via-percpu-storage-fix.patch
 ipc-remove-unreachable-code-in-semc-fix.patch
 char-cyclades-fix-compiler-warning.patch
 ip2-remove-ifdef-module-from-ip2mainc-fix.patch
+drivers-edac-amd64_edacc-fix-use-uninitialised-bug.patch
 aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
 direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
 drivers-media-video-cx23885-needs-kfifo-conversion.patch
