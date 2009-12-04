@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-edac-amd64_edacc-fix-use-uninitialised-bug.patch added to -mm tree
-Date: Thu, 03 Dec 2009 20:41:49 -0800
-Message-ID: <200912040441.nB44fnbg006209@imap1.linux-foundation.org>
+Subject: + net-rfkill-corec-work-around-gcc-402-silliness.patch added to -mm tree
+Date: Thu, 03 Dec 2009 20:45:07 -0800
+Message-ID: <200912040445.nB44j7ua014182@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49667 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39724 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755842AbZLDEme (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Dec 2009 23:42:34 -0500
+	by vger.kernel.org with ESMTP id S1755800AbZLDEqU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Dec 2009 23:46:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, borislav.petkov@amd.com, dougthompson@xmission.com, mchehab@redhat.com
+Cc: akpm@linux-foundation.org, davem@davemloft.net, johannes@sipsolutions.net, linville@tuxdriver.com
 
 
 The patch titled
-     drivers/edac/amd64_edac.c: fix use-uninitialised bug
+     net/rfkill/core.c: work around gcc-4.0.2 silliness
 has been added to the -mm tree.  Its filename is
-     drivers-edac-amd64_edacc-fix-use-uninitialised-bug.patch
+     net-rfkill-corec-work-around-gcc-402-silliness.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,33 +33,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/edac/amd64_edac.c: fix use-uninitialised bug
+Subject: net/rfkill/core.c: work around gcc-4.0.2 silliness
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/edac/amd64_edac.c: In function 'amd64_edac_init':
-drivers/edac/amd64_edac.c:2840: warning: 'ret' may be used uninitialized in this function
+net/rfkill/core.c: In function 'rfkill_type_show':
+net/rfkill/core.c:610: warning: control may reach end of non-void function 'rfkill_get_type_str' being inlined
 
-Cc: Doug Thompson <dougthompson@xmission.com>
-Cc: Borislav Petkov <borislav.petkov@amd.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+A gcc bug, but simple enough to squish.
+
+Cc: John W. Linville <linville@tuxdriver.com>
+Cc: Johannes Berg <johannes@sipsolutions.net>
+Cc: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/amd64_edac.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/rfkill/core.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/edac/amd64_edac.c~drivers-edac-amd64_edacc-fix-use-uninitialised-bug drivers/edac/amd64_edac.c
---- a/drivers/edac/amd64_edac.c~drivers-edac-amd64_edacc-fix-use-uninitialised-bug
-+++ a/drivers/edac/amd64_edac.c
-@@ -2837,7 +2837,7 @@ static int amd64_init_2nd_stage(struct a
+diff -puN net/rfkill/core.c~net-rfkill-corec-work-around-gcc-402-silliness net/rfkill/core.c
+--- a/net/rfkill/core.c~net-rfkill-corec-work-around-gcc-402-silliness
++++ a/net/rfkill/core.c
+@@ -579,6 +579,8 @@ static ssize_t rfkill_name_show(struct d
+ 
+ static const char *rfkill_get_type_str(enum rfkill_type type)
  {
- 	int node_id = pvt->mc_node_id;
- 	struct mem_ctl_info *mci;
--	int ret;
-+	int ret = -ENODEV;
++	BUILD_BUG_ON(NUM_RFKILL_TYPES != RFKILL_TYPE_FM + 1);
++
+ 	switch (type) {
+ 	case RFKILL_TYPE_WLAN:
+ 		return "wlan";
+@@ -597,8 +599,6 @@ static const char *rfkill_get_type_str(e
+ 	default:
+ 		BUG();
+ 	}
+-
+-	BUILD_BUG_ON(NUM_RFKILL_TYPES != RFKILL_TYPE_FM + 1);
+ }
  
- 	amd64_read_mc_registers(pvt);
- 
+ static ssize_t rfkill_type_show(struct device *dev,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -87,6 +98,7 @@ aoe-switch-to-the-new-bio_flush_dcache_pages-interface.patch
 wusb-use-sizeof-struct-rather-than-pointer.patch
 raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
 fs-improve-remountro-vs-buffercache-coherency.patch
+net-rfkill-corec-work-around-gcc-402-silliness.patch
 percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
 readahead-add-blk_run_backing_dev.patch
 mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
