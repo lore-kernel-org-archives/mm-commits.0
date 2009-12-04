@@ -1,23 +1,26 @@
 From: akpm@linux-foundation.org
-Subject: + lib-introduce-strim-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 04 Dec 2009 14:31:34 -0800
-Message-ID: <200912042231.nB4MVZVn010040@imap1.linux-foundation.org>
+Subject: + vsprintf-factorize-null-string.patch added to -mm tree
+Date: Fri, 04 Dec 2009 14:31:51 -0800
+Message-ID: <200912042231.nB4MVpRP010771@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57424 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45599 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757433AbZLDWb4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Dec 2009 17:31:56 -0500
+	by vger.kernel.org with ESMTP id S932483AbZLDWcF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Dec 2009 17:32:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, kosaki.motohiro@jp.fujitsu.com
+Cc: andre.goddard@gmail.com, fweisbec@gmail.com
 
 
 The patch titled
-     lib-introduce-strim-checkpatch-fixes
+     vsprintf: factorize "(null)" string
 has been added to the -mm tree.  Its filename is
-     lib-introduce-strim-checkpatch-fixes.patch
+     vsprintf-factorize-null-string.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -25,135 +28,89 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: lib-introduce-strim-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: vsprintf: factorize "(null)" string
+=46rom: Andr=E9 Goddard Rosa <andre.goddard@gmail.com>
 
-ERROR: "foo* bar" should be "foo *bar"
-#54: FILE: include/linux/string.h:69:
-+static inline __must_check char* strstrip(char *str)
+Change "<NULL>" to "(null)", unifying 3 equal strings.
+glibc also uses "(null)" for the same purpose.
 
-total: 1 errors, 0 warnings, 55 lines checked
+It decreases code size by 7 bytes:
+ text    data     bss     dec     hex filename
+15765       0       8   15773    3d9d vsprintf.o (ex lib/lib.a-BEFORE)
+15758       0       8   15766    3d96 vsprintf.o (ex lib/lib.a-AFTER)
 
-./patches/lib-introduce-strim.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Andr=E9 Goddard Rosa <andre.goddard@gmail.com>
+Acked-by: Frederic Weisbecker <fweisbec@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/string.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/vsprintf.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/string.h~lib-introduce-strim-checkpatch-fixes include/linux/string.h
---- a/include/linux/string.h~lib-introduce-strim-checkpatch-fixes
-+++ a/include/linux/string.h
-@@ -64,9 +64,9 @@ extern char * strrchr(const char *,int);
- #endif
- extern char * __must_check skip_spaces(const char *);
- 
--extern char * strim(char *);
-+extern char *strim(char *);
- 
--static inline __must_check char* strstrip(char *str)
-+static inline __must_check char *strstrip(char *str)
- {
- 	return strim(str);
+diff -puN lib/vsprintf.c~vsprintf-factorize-null-string lib/vsprintf.c
+--- a/lib/vsprintf.c~vsprintf-factorize-null-string
++++ a/lib/vsprintf.c
+@@ -546,12 +546,12 @@ static char *number(char *buf, char *end
+ 	return buf;
  }
+=20
+-static char *string(char *buf, char *end, char *s, struct printf_spec =
+spec)
++static char *string(char *buf, char *end, const char *s, struct printf=
+_spec spec)
+ {
+ 	int len, i;
+=20
+ 	if ((unsigned long)s < PAGE_SIZE)
+-		s =3D "<NULL>";
++		s =3D "(null)";
+=20
+ 	len =3D strnlen(s, spec.precision);
+=20
+@@ -1498,7 +1498,7 @@ do {									\
+ 			size_t len;
+ 			if ((unsigned long)save_str > (unsigned long)-PAGE_SIZE
+ 					|| (unsigned long)save_str < PAGE_SIZE)
+-				save_str =3D "<NULL>";
++				save_str =3D "(null)";
+ 			len =3D strlen(save_str);
+ 			if (str + len + 1 < end)
+ 				memcpy(str, save_str, len + 1);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from andre.goddard@gmail.com ar=
+e
 
 linux-next.patch
-linux-next-git-rejects-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-acpi-remove-nid_inval.patch
-drivers-acpi-acpi_padc-squish-warning.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices-checkpatch-fixes.patch
-drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
-drivers-media-video-pmsc-needs-versionh.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-kbuild-generate-modulesbuiltin-fix-2-checkpatch-fixes.patch
-drivers-leds-leds-ss4200c-fix-return-statement.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
-scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
-aoe-switch-to-the-new-bio_flush_dcache_pages-interface.patch
-wusb-use-sizeof-struct-rather-than-pointer.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-net-rfkill-corec-work-around-gcc-402-silliness.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-readahead-add-blk_run_backing_dev.patch
-mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
-oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
-oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes.patch
-mm-mlocking-in-try_to_unmap_one-fix-fix.patch
-mm-memory_hotplug-make-offline_pages-static.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup.patch
-floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
-drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
-rwsem-fix-rwsem_is_locked-bugs-fix.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
-errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
-lib-introduce-strim-checkpatch-fixes.patch
-msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes.patch
-blackfin-sd-host-controller-driver-fix.patch
-blackfin-sd-host-controller-driver-fix-fix.patch
-blackfin-sd-host-controller-driver-fix-fix-fix.patch
-crc32-minor-optimizations-and-cleanup-checkpatch-fixes.patch
-hwmon-w83627ehf-updates-checkpatch-fixes.patch
-lis3-update-documentation-to-match-latest-changes-fix.patch
-spi-controller-driver-for-designware-spi-core-fix.patch
-spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3.patch
-ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
-memcg-coalesce-charging-via-percpu-storage-fix.patch
-ipc-remove-unreachable-code-in-semc-fix.patch
-char-cyclades-fix-compiler-warning.patch
-ip2-remove-ifdef-module-from-ip2mainc-fix.patch
-drivers-edac-amd64_edacc-fix-use-uninitialised-bug.patch
-aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
-direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-drivers-media-video-cx23885-needs-kfifo-updates.patch
-kfifo-move-struct-kfifo-in-place-fix.patch
-zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+vsprintf-factorize-null-string.patch
+vsprintf-pre-calculate-final-string-length-for-later-use.patch
+vsprintf-give-it-some-care-to-please-checkpatchpl.patch
+vsprintf-use-tolower-whenever-possible.patch
+vsprintf-reduce-code-size-by-avoiding-extra-check.patch
+vsprintf-move-local-vars-to-block-local-vars-and-remove-unneeded-ones.p=
+atch
+vsprintf-factor-out-skip_space-code-in-a-separate-function.patch
+vsprintf-reuse-almost-identical-simple_strtoulx-functions.patch
+ctype-constify-read-only-_ctype-string.patch
+string-factorize-skip_spaces-and-export-it-to-be-generally-available.pa=
+tch
+string-on-strstrip-first-remove-leading-spaces-before-running-over-str.=
+patch
+tree-wide-convert-open-calls-to-remove-spaces-to-skip_spaces-lib-functi=
+on.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
