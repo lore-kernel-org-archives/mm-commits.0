@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + blackfin-sd-host-controller-driver-fix-fix-fix.patch added to -mm tree
-Date: Thu, 03 Dec 2009 18:57:42 -0800
-Message-ID: <200912040257.nB42vgv2010111__33599.3368913934$1259895516$gmane$org@imap1.linux-foundation.org>
+Subject: + ip2-remove-ifdef-module-from-ip2mainc-fix.patch added to -mm tree
+Date: Thu, 03 Dec 2009 20:14:38 -0800
+Message-ID: <200912040414.nB44EcPA004394@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56521 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42235 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755852AbZLDC6T (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Dec 2009 21:58:19 -0500
+	by vger.kernel.org with ESMTP id S1755478AbZLDEPB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Dec 2009 23:15:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, cliffcai.sh@gmail.com, cooloney@kernel.org, linux-mmc@vger.kernel.org, vapier@gentoo.org
+Cc: akpm@linux-foundation.org, mhw@WittsEnd.com, rakib.mullick@gmail.com
 
 
 The patch titled
-     blackfin-sd-host-controller-driver-fix-fix-fix
+     ip2-remove-ifdef-module-from-ip2mainc-fix
 has been added to the -mm tree.  Its filename is
-     blackfin-sd-host-controller-driver-fix-fix-fix.patch
+     ip2-remove-ifdef-module-from-ip2mainc-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,30 +33,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: blackfin-sd-host-controller-driver-fix-fix-fix
+Subject: ip2-remove-ifdef-module-from-ip2mainc-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: <linux-mmc@vger.kernel.org>
-Cc: Bryan Wu <cooloney@kernel.org>
-Cc: Cliff Cai <cliffcai.sh@gmail.com>
-Cc: Mike Frysinger <vapier@gentoo.org>
+fix build
+
+Cc: Michael H. Warfield <mhw@WittsEnd.com>
+Cc: Rakib Mullick <rakib.mullick@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/bfin_sdh.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/char/ip2/ip2main.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mmc/host/bfin_sdh.c~blackfin-sd-host-controller-driver-fix-fix-fix drivers/mmc/host/bfin_sdh.c
---- a/drivers/mmc/host/bfin_sdh.c~blackfin-sd-host-controller-driver-fix-fix-fix
-+++ a/drivers/mmc/host/bfin_sdh.c
-@@ -162,6 +162,7 @@ static int sdh_setup_data(struct sdh_hos
- 				i, host->sg_cpu[i].start_addr,
- 				host->sg_cpu[i].cfg, host->sg_cpu[i].x_count,
- 				host->sg_cpu[i].x_modify);
-+		}
- 	}
- 	flush_dcache_range((unsigned int)host->sg_cpu,
- 		(unsigned int)host->sg_cpu +
+diff -puN drivers/char/ip2/ip2main.c~ip2-remove-ifdef-module-from-ip2mainc-fix drivers/char/ip2/ip2main.c
+--- a/drivers/char/ip2/ip2main.c~ip2-remove-ifdef-module-from-ip2mainc-fix
++++ a/drivers/char/ip2/ip2main.c
+@@ -636,6 +636,7 @@ static int __init ip2_loadmain(void)
+ 				dev_err(&pdev->dev, "I/O address error\n");
+ 
+ 			ip2config.irq[i] = pdev->irq;
++			pci_dev_put(pdev);
+ 		}
+ #else
+ 			printk(KERN_ERR "IP2: PCI card specified but PCI "
+@@ -654,7 +655,6 @@ static int __init ip2_loadmain(void)
+ 			break;
+ 		}	/* switch */
+ 	}	/* for */
+-	pci_dev_put(pdev);
+ 
+ 	for (i = 0; i < IP2_MAX_BOARDS; ++i) {
+ 		if (ip2config.addr[i]) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -118,6 +126,7 @@ ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixe
 memcg-coalesce-charging-via-percpu-storage-fix.patch
 ipc-remove-unreachable-code-in-semc-fix.patch
 char-cyclades-fix-compiler-warning.patch
+ip2-remove-ifdef-module-from-ip2mainc-fix.patch
 aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
 direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
 drivers-media-video-cx23885-needs-kfifo-conversion.patch
