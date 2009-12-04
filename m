@@ -1,57 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - net-sctp-socketc-squish-warning.patch removed from -mm tree
-Date: Fri, 04 Dec 2009 12:29:40 -0800
-Message-ID: <200912042029.nB4KTeR8001433@imap1.linux-foundation.org>
+Subject: [merged] include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch removed from -mm tree
+Date: Fri, 04 Dec 2009 12:33:26 -0800
+Message-ID: <200912042033.nB4KXQWI010654@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55483 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50602 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755477AbZLDU3o (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Dec 2009 15:29:44 -0500
+	by vger.kernel.org with ESMTP id S1755477AbZLDUdg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Dec 2009 15:33:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andrei@iptel.org, vladislav.yasevich@hp.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, arjan@linux.intel.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     net/sctp/socket.c: squish warning
+     include/linux/compiler-gcc4.h: gcc-4.0.2 doesn't understand __builtin_object_size
 has been removed from the -mm tree.  Its filename was
-     net-sctp-socketc-squish-warning.patch
+     include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
 
-This patch was dropped because crap begets more crap
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: net/sctp/socket.c: squish warning
+Subject: include/linux/compiler-gcc4.h: gcc-4.0.2 doesn't understand __builtin_object_size
 From: Andrew Morton <akpm@linux-foundation.org>
 
-net/sctp/socket.c: In function 'sctp_setsockopt_autoclose':
-net/sctp/socket.c:2090: warning: comparison is always false due to limited range of data type
+Maybe 4.1.0 doesn't too, but this fixed it for me.
 
-Cc: Andrei Pelinescu-Onciul <andrei@iptel.org>
-Cc: Vlad Yasevich <vladislav.yasevich@hp.com>
+Cc: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sctp/socket.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ include/linux/compiler-gcc4.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN net/sctp/socket.c~net-sctp-socketc-squish-warning net/sctp/socket.c
---- a/net/sctp/socket.c~net-sctp-socketc-squish-warning
-+++ a/net/sctp/socket.c
-@@ -2086,9 +2086,8 @@ static int sctp_setsockopt_autoclose(str
- 		return -EINVAL;
- 	if (copy_from_user(&sp->autoclose, optval, optlen))
- 		return -EFAULT;
--	/* make sure it won't exceed MAX_SCHEDULE_TIMEOUT */
--	if (sp->autoclose > (MAX_SCHEDULE_TIMEOUT / HZ) )
--		sp->autoclose = MAX_SCHEDULE_TIMEOUT / HZ ;
-+	/* make sure it won't exceed one hour */
-+	sp->autoclose = min_t(u32, sp->autoclose, 60 * 60);
+diff -puN include/linux/compiler-gcc4.h~include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size include/linux/compiler-gcc4.h
+--- a/include/linux/compiler-gcc4.h~include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size
++++ a/include/linux/compiler-gcc4.h
+@@ -38,7 +38,9 @@
  
- 	return 0;
- }
+ #endif
+ 
++#if __GNUC_MINOR__ > 0
+ #define __compiletime_object_size(obj) __builtin_object_size(obj, 0)
++#endif
+ #if __GNUC_MINOR__ >= 4
+ #define __compiletime_warning(message) __attribute__((warning(message)))
+ #define __compiletime_error(message) __attribute__((error(message)))
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -71,7 +68,6 @@ drivers-media-video-pmsc-needs-versionh.patch
 timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
 kbuild-generate-modulesbuiltin-fix-2-checkpatch-fixes.patch
 drivers-leds-leds-ss4200c-fix-return-statement.patch
-net-sctp-socketc-squish-warning.patch
 3x59x-fix-pci-resource-management.patch
 bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
 atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
