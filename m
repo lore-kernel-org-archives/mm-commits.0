@@ -1,78 +1,140 @@
 From: akpm@linux-foundation.org
-Subject: [merged] acpi-thermal-display-forced-passive-trip-points-in-proc.patch removed from -mm tree
-Date: Thu, 03 Dec 2009 15:56:47 -0800
-Message-ID: <200912040020.nB40Kq2P013713@imap1.linux-foundation.org>
+Subject: + blackfin-sd-host-controller-driver-fix-fix-fix.patch added to -mm tree
+Date: Thu, 03 Dec 2009 18:57:42 -0800
+Message-ID: <200912040257.nB42vgv2010111__33599.3368913934$1259895516$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57776 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56521 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755321AbZLDAVj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Dec 2009 19:21:39 -0500
+	by vger.kernel.org with ESMTP id S1755852AbZLDC6T (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Dec 2009 21:58:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: elendil@planet.nl, lenb@kernel.org, mjg59@srcf.ucam.org, rui.zhang@intel.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, cliffcai.sh@gmail.com, cooloney@kernel.org, linux-mmc@vger.kernel.org, vapier@gentoo.org
 
 
 The patch titled
-     acpi: thermal: display forced passive trip points in proc
-has been removed from the -mm tree.  Its filename was
-     acpi-thermal-display-forced-passive-trip-points-in-proc.patch
+     blackfin-sd-host-controller-driver-fix-fix-fix
+has been added to the -mm tree.  Its filename is
+     blackfin-sd-host-controller-driver-fix-fix-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi: thermal: display forced passive trip points in proc
-From: Frans Pop <elendil@planet.nl>
+Subject: blackfin-sd-host-controller-driver-fix-fix-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Users can force a passive trip point for a thermal zone that does not have
-_PSV defined in ACPI by setting the passive attribute in sysfs.  It's
-useful to display such trip points in /proc/acpi/thermal_zone.
-
-.../TZ1/cooling_mode:<setting not supported>
-.../TZ1/polling_frequency:polling frequency:       10 seconds
-.../TZ1/state:state:                   ok
-.../TZ1/temperature:temperature:             53 C
-.../TZ1/trip_points:critical (S5):           110 C
-.../TZ1/trip_points:passive (forced):        95 C
-
-And if not set (passive is 0):
-.../TZ1/trip_points:passive (forced):<not set>
-
-Signed-off-by: Frans Pop <elendil@planet.nl>
-Acked-by: Zhang Rui <rui.zhang@intel.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Len Brown <lenb@kernel.org>
+Cc: <linux-mmc@vger.kernel.org>
+Cc: Bryan Wu <cooloney@kernel.org>
+Cc: Cliff Cai <cliffcai.sh@gmail.com>
+Cc: Mike Frysinger <vapier@gentoo.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/thermal.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/mmc/host/bfin_sdh.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/acpi/thermal.c~acpi-thermal-display-forced-passive-trip-points-in-proc drivers/acpi/thermal.c
---- a/drivers/acpi/thermal.c~acpi-thermal-display-forced-passive-trip-points-in-proc
-+++ a/drivers/acpi/thermal.c
-@@ -1052,6 +1052,13 @@ static int acpi_thermal_trip_seq_show(st
- 				   acpi_device_bid(device));
- 		}
- 		seq_puts(seq, "\n");
-+	} else {
-+		seq_printf(seq, "passive (forced):");
-+		if (tz->thermal_zone->forced_passive)
-+			seq_printf(seq, "        %i C\n",
-+				   tz->thermal_zone->forced_passive / 1000);
-+		else
-+			seq_printf(seq, "<not set>\n");
+diff -puN drivers/mmc/host/bfin_sdh.c~blackfin-sd-host-controller-driver-fix-fix-fix drivers/mmc/host/bfin_sdh.c
+--- a/drivers/mmc/host/bfin_sdh.c~blackfin-sd-host-controller-driver-fix-fix-fix
++++ a/drivers/mmc/host/bfin_sdh.c
+@@ -162,6 +162,7 @@ static int sdh_setup_data(struct sdh_hos
+ 				i, host->sg_cpu[i].start_addr,
+ 				host->sg_cpu[i].cfg, host->sg_cpu[i].x_count,
+ 				host->sg_cpu[i].x_modify);
++		}
  	}
- 
- 	for (i = 0; i < ACPI_THERMAL_MAX_ACTIVE; i++) {
+ 	flush_dcache_range((unsigned int)host->sg_cpu,
+ 		(unsigned int)host->sg_cpu +
 _
 
-Patches currently in -mm which might be from elendil@planet.nl are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-acpi-thermal-display-forced-passive-trip-points-in-proc.patch
-page-allocator-wait-on-both-sync-and-async-congestion-after-direct-reclaim.patch
-vmscan-have-kswapd-sleep-for-a-short-interval-and-double-check-it-should-be-asleep.patch
+include-linux-compiler-gcc4h-gcc-402-doesnt-understand-__builtin_object_size.patch
+linux-next-git-rejects-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+acpi-remove-nid_inval.patch
+drivers-acpi-acpi_padc-squish-warning.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices-checkpatch-fixes.patch
+drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+kbuild-generate-modulesbuiltin-fix-2-checkpatch-fixes.patch
+drivers-leds-leds-ss4200c-fix-return-statement.patch
+3x59x-fix-pci-resource-management.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
+scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
+aoe-switch-to-the-new-bio_flush_dcache_pages-interface.patch
+wusb-use-sizeof-struct-rather-than-pointer.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+fs-improve-remountro-vs-buffercache-coherency.patch
+percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+readahead-add-blk_run_backing_dev.patch
+mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
+oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
+oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes.patch
+mm-mlocking-in-try_to_unmap_one-fix-fix.patch
+mm-memory_hotplug-make-offline_pages-static.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup.patch
+floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
+drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
+rwsem-fix-rwsem_is_locked-bugs-fix.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
+errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
+msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes.patch
+blackfin-sd-host-controller-driver-fix.patch
+blackfin-sd-host-controller-driver-fix-fix.patch
+blackfin-sd-host-controller-driver-fix-fix-fix.patch
+crc32-minor-optimizations-and-cleanup-checkpatch-fixes.patch
+hwmon-w83627ehf-updates-checkpatch-fixes.patch
+lis3-update-documentation-to-match-latest-changes-fix.patch
+spi-controller-driver-for-designware-spi-core-fix.patch
+spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3.patch
+ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
+memcg-coalesce-charging-via-percpu-storage-fix.patch
+ipc-remove-unreachable-code-in-semc-fix.patch
+char-cyclades-fix-compiler-warning.patch
+aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
+direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
+drivers-media-video-cx23885-needs-kfifo-conversion.patch
+drivers-media-video-cx23885-needs-kfifo-updates.patch
+zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes.patch
+lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes.patch
+lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
