@@ -1,160 +1,159 @@
 From: akpm@linux-foundation.org
-Subject: [merged] writeback-remove-unused-nonblocking-and-congestion-checks-xfs.patch removed from -mm tree
-Date: Fri, 04 Dec 2009 12:33:29 -0800
-Message-ID: <200912042033.nB4KXTQx010849@imap1.linux-foundation.org>
+Subject: + lib-introduce-strim-checkpatch-fixes.patch added to -mm tree
+Date: Fri, 04 Dec 2009 14:31:34 -0800
+Message-ID: <200912042231.nB4MVZVn010040@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50477 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57424 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757228AbZLDUdv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Dec 2009 15:33:51 -0500
+	by vger.kernel.org with ESMTP id S1757433AbZLDWb4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Dec 2009 17:31:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@gmail.com, Trond.Myklebust@netapp.com, aelder@sgi.com, chris.mason@oracle.com, david@fromorbit.com, fengguang.wu@intel.com, hch@infradead.org, jens.axboe@oracle.com, zbr@
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, kosaki.motohiro@jp.fujitsu.com
 
 
 The patch titled
-     writeback: remove unused nonblocking and congestion checks
-has been removed from the -mm tree.  Its filename was
-     writeback-remove-unused-nonblocking-and-congestion-checks-xfs.patch
+     lib-introduce-strim-checkpatch-fixes
+has been added to the -mm tree.  Its filename is
+     lib-introduce-strim-checkpatch-fixes.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: writeback: remove unused nonblocking and congestion checks
-From: Wu Fengguang <fengguang.wu@gmail.com>
+Subject: lib-introduce-strim-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-- no one is calling wb_writeback and write_cache_pages with
-  wbc.nonblocking=1 any more
-- lumpy pageout will want to do nonblocking writeback without the
-  congestion wait
+ERROR: "foo* bar" should be "foo *bar"
+#54: FILE: include/linux/string.h:69:
++static inline __must_check char* strstrip(char *str)
 
-So remove the congestion checks as suggested by Chris.
+total: 1 errors, 0 warnings, 55 lines checked
 
-Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Chris Mason <chris.mason@oracle.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Evgeniy Polyakov <zbr@ioremap.net>
-Cc: Alex Elder <aelder@sgi.com>
+./patches/lib-introduce-strim.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/pohmelfs/inode.c |   10 ----------
- fs/fs-writeback.c                |    9 ---------
- fs/xfs/linux-2.6/xfs_aops.c      |    9 +--------
- mm/page-writeback.c              |   12 ------------
- 4 files changed, 1 insertion(+), 39 deletions(-)
+ include/linux/string.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/staging/pohmelfs/inode.c~writeback-remove-unused-nonblocking-and-congestion-checks-xfs drivers/staging/pohmelfs/inode.c
---- a/drivers/staging/pohmelfs/inode.c~writeback-remove-unused-nonblocking-and-congestion-checks-xfs
-+++ a/drivers/staging/pohmelfs/inode.c
-@@ -143,7 +143,6 @@ static int pohmelfs_writepages(struct ad
- 	struct inode *inode = mapping->host;
- 	struct pohmelfs_inode *pi = POHMELFS_I(inode);
- 	struct pohmelfs_sb *psb = POHMELFS_SB(inode->i_sb);
--	struct backing_dev_info *bdi = mapping->backing_dev_info;
- 	int err = 0;
- 	int done = 0;
- 	int nr_pages;
-@@ -152,11 +151,6 @@ static int pohmelfs_writepages(struct ad
- 	int scanned = 0;
- 	int range_whole = 0;
+diff -puN include/linux/string.h~lib-introduce-strim-checkpatch-fixes include/linux/string.h
+--- a/include/linux/string.h~lib-introduce-strim-checkpatch-fixes
++++ a/include/linux/string.h
+@@ -64,9 +64,9 @@ extern char * strrchr(const char *,int);
+ #endif
+ extern char * __must_check skip_spaces(const char *);
  
--	if (wbc->nonblocking && bdi_write_congested(bdi)) {
--		wbc->encountered_congestion = 1;
--		return 0;
--	}
--
- 	if (wbc->range_cyclic) {
- 		index = mapping->writeback_index; /* Start from prev offset */
- 		end = -1;
-@@ -248,10 +242,6 @@ retry:
+-extern char * strim(char *);
++extern char *strim(char *);
  
- 			if (wbc->nr_to_write <= 0)
- 				done = 1;
--			if (wbc->nonblocking && bdi_write_congested(bdi)) {
--				wbc->encountered_congestion = 1;
--				done = 1;
--			}
- 
- 			continue;
- out_continue:
-diff -puN fs/fs-writeback.c~writeback-remove-unused-nonblocking-and-congestion-checks-xfs fs/fs-writeback.c
---- a/fs/fs-writeback.c~writeback-remove-unused-nonblocking-and-congestion-checks-xfs
-+++ a/fs/fs-writeback.c
-@@ -658,14 +658,6 @@ static void writeback_inodes_wb(struct b
- 			continue;
- 		}
- 
--		if (wbc->nonblocking && bdi_write_congested(wb->bdi)) {
--			wbc->encountered_congestion = 1;
--			if (!is_blkdev_sb)
--				break;		/* Skip a congested fs */
--			requeue_io(inode);
--			continue;		/* Skip a congested blockdev */
--		}
--
- 		/*
- 		 * Was this inode dirtied after sync_sb_inodes was called?
- 		 * This keeps sync from extra jobs and livelock.
-@@ -788,7 +780,6 @@ static long wb_writeback(struct bdi_writ
- 			break;
- 
- 		wbc.more_io = 0;
--		wbc.encountered_congestion = 0;
- 		wbc.nr_to_write = MAX_WRITEBACK_PAGES;
- 		wbc.pages_skipped = 0;
- 		writeback_inodes_wb(wb, &wbc);
-diff -puN fs/xfs/linux-2.6/xfs_aops.c~writeback-remove-unused-nonblocking-and-congestion-checks-xfs fs/xfs/linux-2.6/xfs_aops.c
---- a/fs/xfs/linux-2.6/xfs_aops.c~writeback-remove-unused-nonblocking-and-congestion-checks-xfs
-+++ a/fs/xfs/linux-2.6/xfs_aops.c
-@@ -864,16 +864,9 @@ xfs_convert_page(
- 
- 	if (startio) {
- 		if (count) {
--			struct backing_dev_info *bdi;
--
--			bdi = inode->i_mapping->backing_dev_info;
- 			wbc->nr_to_write--;
--			if (bdi_write_congested(bdi)) {
--				wbc->encountered_congestion = 1;
--				done = 1;
--			} else if (wbc->nr_to_write <= 0) {
-+			if (wbc->nr_to_write <= 0)
- 				done = 1;
--			}
- 		}
- 		xfs_start_page_writeback(page, !page_dirty, count);
- 	}
-diff -puN mm/page-writeback.c~writeback-remove-unused-nonblocking-and-congestion-checks-xfs mm/page-writeback.c
---- a/mm/page-writeback.c~writeback-remove-unused-nonblocking-and-congestion-checks-xfs
-+++ a/mm/page-writeback.c
-@@ -821,7 +821,6 @@ int write_cache_pages(struct address_spa
- 		      struct writeback_control *wbc, writepage_t writepage,
- 		      void *data)
+-static inline __must_check char* strstrip(char *str)
++static inline __must_check char *strstrip(char *str)
  {
--	struct backing_dev_info *bdi = mapping->backing_dev_info;
- 	int ret = 0;
- 	int done = 0;
- 	struct pagevec pvec;
-@@ -834,11 +833,6 @@ int write_cache_pages(struct address_spa
- 	int range_whole = 0;
- 	long nr_to_write = wbc->nr_to_write;
- 
--	if (wbc->nonblocking && bdi_write_congested(bdi)) {
--		wbc->encountered_congestion = 1;
--		return 0;
--	}
--
- 	pagevec_init(&pvec, 0);
- 	if (wbc->range_cyclic) {
- 		writeback_index = mapping->writeback_index; /* prev offset */
-@@ -957,12 +951,6 @@ continue_unlock:
- 					break;
- 				}
- 			}
+ 	return strim(str);
+ }
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+linux-next.patch
+linux-next-git-rejects-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+acpi-remove-nid_inval.patch
+drivers-acpi-acpi_padc-squish-warning.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices-checkpatch-fixes.patch
+drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
+drivers-media-video-pmsc-needs-versionh.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+kbuild-generate-modulesbuiltin-fix-2-checkpatch-fixes.patch
+drivers-leds-leds-ss4200c-fix-return-statement.patch
+3x59x-fix-pci-resource-management.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
+scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
+aoe-switch-to-the-new-bio_flush_dcache_pages-interface.patch
+wusb-use-sizeof-struct-rather-than-pointer.patch
+raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
+fs-improve-remountro-vs-buffercache-coherency.patch
+net-rfkill-corec-work-around-gcc-402-silliness.patch
+percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+readahead-add-blk_run_backing_dev.patch
+mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
+oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
+oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes.patch
+mm-mlocking-in-try_to_unmap_one-fix-fix.patch
+mm-memory_hotplug-make-offline_pages-static.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup.patch
+floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
+drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
+rwsem-fix-rwsem_is_locked-bugs-fix.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
+errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
+lib-introduce-strim-checkpatch-fixes.patch
+msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes.patch
+blackfin-sd-host-controller-driver-fix.patch
+blackfin-sd-host-controller-driver-fix-fix.patch
+blackfin-sd-host-controller-driver-fix-fix-fix.patch
+crc32-minor-optimizations-and-cleanup-checkpatch-fixes.patch
+hwmon-w83627ehf-updates-checkpatch-fixes.patch
+lis3-update-documentation-to-match-latest-changes-fix.patch
+spi-controller-driver-for-designware-spi-core-fix.patch
+spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3.patch
+ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
+memcg-coalesce-charging-via-percpu-storage-fix.patch
+ipc-remove-unreachable-code-in-semc-fix.patch
+char-cyclades-fix-compiler-warning.patch
+ip2-remove-ifdef-module-from-ip2mainc-fix.patch
+drivers-edac-amd64_edacc-fix-use-uninitialised-bug.patch
+aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
+direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
+drivers-media-video-cx23885-needs-kfifo-conversion.patch
+drivers-media-video-cx23885-needs-kfifo-updates.patch
+kfifo-move-struct-kfifo-in-place-fix.patch
+zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes.patch
+lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes.patch
+lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+
