@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + viafb-documentation-update.patch added to -mm tree
-Date: Mon, 07 Dec 2009 13:32:31 -0800
-Message-ID: <200912072132.nB7LWVBE001840@imap1.linux-foundation.org>
+Subject: + ecryptfs-dont-ignore-return-value-from-lock_rename.patch added to -mm tree
+Date: Mon, 07 Dec 2009 13:34:16 -0800
+Message-ID: <200912072134.nB7LYGsT006172@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45224 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59820 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935606AbZLGVdN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Dec 2009 16:33:13 -0500
+	by vger.kernel.org with ESMTP id S965006AbZLGVjN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Dec 2009 16:39:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: laforge@gnumonks.org, FlorianSchandinat@gmx.de, HaraldWelte@viatech.com, JosephChan@via.com.tw, ScottFang@viatech.com.cn, krzysztof.h1@poczta.fm
+Cc: ezk@cs.sunysb.edu, kirkland@canonical.com, tyhicks@linux.vnet.ibm.com
 
 
 The patch titled
-     viafb: documentation update
+     ecryptfs: don't ignore return value from lock_rename()
 has been added to the -mm tree.  Its filename is
-     viafb-documentation-update.patch
+     ecryptfs-dont-ignore-return-value-from-lock_rename.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,42 +33,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: viafb: documentation update
-From: Harald Welte <laforge@gnumonks.org>
+Subject: ecryptfs: don't ignore return value from lock_rename()
+From: Erez Zadok <ezk@cs.sunysb.edu>
 
-We now support the VX855, and the VX800 is no longer unaccellerated.
-viafb_video_dev was removed as it was useless.
+Use return value from lock_rename() in ecryptfs_rename, and properly check
+that return value.  I've tested it briefly with ecryptfs: moved some
+files/directories at both the same level, as well as into subdirectories
+which may share a common ancestor.  Things seem to work, but perhaps more
+testing is needed.
 
-Signed-off-by: Harald Welte <HaraldWelte@viatech.com>
-Signed-off-by: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Cc: Joseph Chan <JosephChan@via.com.tw>
-Cc: Scott Fang <ScottFang@viatech.com.cn>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Identical code to this has been running in Unionfs for a couple of years,
+so I'm reasonably confident that this patch is correct.
+
+Signed-off-by: Erez Zadok <ezk@cs.sunysb.edu>
+Cc: Tyler Hicks <tyhicks@linux.vnet.ibm.com>
+Cc: Dustin Kirkland <kirkland@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/fb/viafb.txt |   12 +-----------
- 1 file changed, 1 insertion(+), 11 deletions(-)
+ fs/ecryptfs/inode.c |   13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/fb/viafb.txt~viafb-documentation-update Documentation/fb/viafb.txt
---- a/Documentation/fb/viafb.txt~viafb-documentation-update
-+++ a/Documentation/fb/viafb.txt
-@@ -7,7 +7,7 @@
-     VIA UniChrome Family(CLE266, PM800 / CN400 / CN300,
-                         P4M800CE / P4M800Pro / CN700 / VN800,
-                         CX700 / VX700, K8M890, P4M890,
--                        CN896 / P4M900, VX800)
-+                        CN896 / P4M900, VX800, VX855)
+diff -puN fs/ecryptfs/inode.c~ecryptfs-dont-ignore-return-value-from-lock_rename fs/ecryptfs/inode.c
+--- a/fs/ecryptfs/inode.c~ecryptfs-dont-ignore-return-value-from-lock_rename
++++ a/fs/ecryptfs/inode.c
+@@ -614,6 +614,7 @@ ecryptfs_rename(struct inode *old_dir, s
+ 	struct dentry *lower_new_dentry;
+ 	struct dentry *lower_old_dir_dentry;
+ 	struct dentry *lower_new_dir_dentry;
++	struct dentry *trap = NULL;
  
- [Driver features]
- ------------------------
-@@ -154,13 +154,6 @@
-         0 : No Dual Edge Panel (default)
-         1 : Dual Edge Panel
- 
--    viafb_video_dev:
--        This option is used to specify video output devices(CRT, DVI, LCD) for
--        duoview case.
--        For example:
--        To output video on DVI, we should use:
--            modprobe viafb viafb_video_dev=DVI...
+ 	lower_old_dentry = ecryptfs_dentry_to_lower(old_dentry);
+ 	lower_new_dentry = ecryptfs_dentry_to_lower(new_dentry);
+@@ -621,7 +622,17 @@ ecryptfs_rename(struct inode *old_dir, s
+ 	dget(lower_new_dentry);
+ 	lower_old_dir_dentry = dget_parent(lower_old_dentry);
+ 	lower_new_dir_dentry = dget_parent(lower_new_dentry);
+-	lock_rename(lower_old_dir_dentry, lower_new_dir_dentry);
++	trap = lock_rename(lower_old_dir_dentry, lower_new_dir_dentry);
++	/* source should not be ancestor of target */
++	if (trap == lower_old_dentry) {
++		rc = -EINVAL;
++		goto out_lock;
++	}
++	/* target should not be ancestor of source */
++	if (trap == lower_new_dentry) {
++		rc = -ENOTEMPTY;
++		goto out_lock;
++	}
+ 	rc = vfs_rename(lower_old_dir_dentry->d_inode, lower_old_dentry,
+ 			lower_new_dir_dentry->d_inode, lower_new_dentry);
+ 	if (rc)
+_
+
+Patches currently in -mm which might be from ezk@cs.sunysb.edu are
+
+linux-next.patch
+ecryptfs-dont-ignore-return-value-from-lock_rename.patch
+fsstack-ecryptfs-remove-unused-get_nlinks-param-to-fsstack_copy_attr_all.patch
+vfs-fsstack-handle-32-bit-smp-preempt-large-files-in-fsstack_copy_inode_size.patch
+
