@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmallocc-dont-use-vmalloc_end.patch added to -mm tree
-Date: Mon, 07 Dec 2009 15:36:21 -0800
-Message-ID: <200912072336.nB7NaLQI020762@imap1.linux-foundation.org>
+Subject: + powerpc-85xx-wrong-variable-returned-on-error.patch added to -mm tree
+Date: Mon, 07 Dec 2009 15:38:40 -0800
+Message-ID: <200912072338.nB7NceGp026560@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47854 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37852 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935547AbZLGXhF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Dec 2009 18:37:05 -0500
+	by vger.kernel.org with ESMTP id S935238AbZLGXiy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Dec 2009 18:38:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: JBeulich@novell.com, geert@linux-m68k.org, jbeulich@novell.com, tj@kernel.org, tony.luck@intel.com
+Cc: roel.kluin@gmail.com, benh@kernel.crashing.org, galak@kernel.crashing.org
 
 
 The patch titled
-     mm/vmalloc.c: don't use vmalloc_end
+     powerpc/85xx: wrong variable returned on error
 has been added to the -mm tree.  Its filename is
-     mm-vmallocc-dont-use-vmalloc_end.patch
+     powerpc-85xx-wrong-variable-returned-on-error.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,94 +33,65 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/vmalloc.c: don't use vmalloc_end
-From: "Jan Beulich" <JBeulich@novell.com>
+Subject: powerpc/85xx: wrong variable returned on error
+From: Roel Kluin <roel.kluin@gmail.com>
 
-At least on ia64 vmalloc_end is a global variable that VMALLOC_END expands
-to.  Hence having a local variable named vmalloc_end and initialized from
-VMALLOC_END won't work on such platforms.  Rename these variables, and for
-consistency also rename vmalloc_start.
+The wrong variable was returned in the case of an error.
 
-Signed-off-by: Jan Beulich <jbeulich@novell.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Kumar Gala <galak@kernel.crashing.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ arch/powerpc/platforms/85xx/mpc85xx_mds.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmalloc.c~mm-vmallocc-dont-use-vmalloc_end mm/vmalloc.c
---- a/mm/vmalloc.c~mm-vmallocc-dont-use-vmalloc_end
-+++ a/mm/vmalloc.c
-@@ -2060,13 +2060,13 @@ static unsigned long pvm_determine_end(s
- 				       struct vmap_area **pprev,
- 				       unsigned long align)
- {
--	const unsigned long vmalloc_end = VMALLOC_END & ~(align - 1);
-+	const unsigned long end = VMALLOC_END & ~(align - 1);
- 	unsigned long addr;
+diff -puN arch/powerpc/platforms/85xx/mpc85xx_mds.c~powerpc-85xx-wrong-variable-returned-on-error arch/powerpc/platforms/85xx/mpc85xx_mds.c
+--- a/arch/powerpc/platforms/85xx/mpc85xx_mds.c~powerpc-85xx-wrong-variable-returned-on-error
++++ a/arch/powerpc/platforms/85xx/mpc85xx_mds.c
+@@ -86,7 +86,7 @@ static int mpc8568_fixup_125_clock(struc
+ 	scr = phy_read(phydev, MV88E1111_SCR);
  
- 	if (*pnext)
--		addr = min((*pnext)->va_start & ~(align - 1), vmalloc_end);
-+		addr = min((*pnext)->va_start & ~(align - 1), end);
- 	else
--		addr = vmalloc_end;
-+		addr = end;
+ 	if (scr < 0)
+-		return err;
++		return scr;
  
- 	while (*pprev && (*pprev)->va_end > addr) {
- 		*pnext = *pprev;
-@@ -2105,8 +2105,8 @@ struct vm_struct **pcpu_get_vm_areas(con
- 				     const size_t *sizes, int nr_vms,
- 				     size_t align, gfp_t gfp_mask)
- {
--	const unsigned long vmalloc_start = ALIGN(VMALLOC_START, align);
--	const unsigned long vmalloc_end = VMALLOC_END & ~(align - 1);
-+	const unsigned long vstart = ALIGN(VMALLOC_START, align);
-+	const unsigned long vend = VMALLOC_END & ~(align - 1);
- 	struct vmap_area **vas, *prev, *next;
- 	struct vm_struct **vms;
- 	int area, area2, last_area, term_area;
-@@ -2142,7 +2142,7 @@ struct vm_struct **pcpu_get_vm_areas(con
- 	}
- 	last_end = offsets[last_area] + sizes[last_area];
+ 	err = phy_write(phydev, MV88E1111_SCR, scr | 0x0008);
  
--	if (vmalloc_end - vmalloc_start < last_end) {
-+	if (vend - vstart < last_end) {
- 		WARN_ON(true);
- 		return NULL;
- 	}
-@@ -2167,7 +2167,7 @@ retry:
- 	end = start + sizes[area];
- 
- 	if (!pvm_find_next_prev(vmap_area_pcpu_hole, &next, &prev)) {
--		base = vmalloc_end - last_end;
-+		base = vend - last_end;
- 		goto found;
- 	}
- 	base = pvm_determine_end(&next, &prev, align) - end;
-@@ -2180,7 +2180,7 @@ retry:
- 		 * base might have underflowed, add last_end before
- 		 * comparing.
- 		 */
--		if (base + last_end < vmalloc_start + last_end) {
-+		if (base + last_end < vstart + last_end) {
- 			spin_unlock(&vmap_area_lock);
- 			if (!purged) {
- 				purge_vmap_area_lazy();
 _
 
-Patches currently in -mm which might be from JBeulich@novell.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 origin.patch
 linux-next.patch
-mm-vmallocc-dont-use-vmalloc_end.patch
-kbuild-generate-modulesbuiltin.patch
-kbuild-rebuild-fix-for-makefilemodbuiltin.patch
-kbuild-generate-modulesbuiltin-fix-2.patch
-fix-section-mismatch-in-early-ehci-dbgp.patch
-vmalloc-adjust-gfp-mask-passed-on-nested-vmalloc-invocation.patch
-mm-bootmemc-properly-__init-annotate-helper-functions.patch
-dma-mapping-fix-off-by-one-error-in-dma_capable.patch
+fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch
+omap-return-ptr_err-rather-than-is_err.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+powerpc-85xx-wrong-variable-returned-on-error.patch
+ib-uverbs-ptr_err-return-of-wrong-pointer-in-ib_uverbs_get_context.patch
+hidp-ptr_err-return-of-wrong-pointer-in-hidp_setup_hid.patch
+imx-bit-confusion.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
+zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
+ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
+scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
+r8192u_core-test-for-negative-error-in-rtl8192_rx_isr.patch
+wusb-use-sizeof-struct-rather-than-pointer.patch
+page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
+keys-ptr_err-return-of-wrong-pointer-in-keyctl_get_security.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+cryptocop-fix-assertion-in-create_output_descriptors.patch
+gpio-fix-test-on-unsigned-in-lnw_irq_type.patch
+fbdev-tv_paln-bit-set-twice-in-sisfb_detect_vb_connect.patch
+hvc_console-fix-test-on-unsigned-in-hvc_console_print.patch
+zlib-optimize-inffast-when-copying-direct-from-output.patch
 
