@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-simplify-try_to_unmap_one-fix-fix.patch added to -mm tree
-Date: Mon, 07 Dec 2009 11:38:00 -0800
-Message-ID: <200912071938.nB7Jc0XQ001825@imap1.linux-foundation.org>
+Subject: + ip2-remove-ifdef-module-from-ip2mainc-fix-2.patch added to -mm tree
+Date: Mon, 07 Dec 2009 11:56:33 -0800
+Message-ID: <200912071956.nB7JuXsc020324@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32902 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33626 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932233AbZLGTj3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Dec 2009 14:39:29 -0500
+	by vger.kernel.org with ESMTP id S933589AbZLGT45 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Dec 2009 14:56:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, macli@brc.ubc.ca
+Cc: rakib.mullick@gmail.com, akpm@linux-foundation.org, mhw@WittsEnd.com
 
 
 The patch titled
-     try_to_unmap_one() comment fix
+     ip2-remove-ifdef-module-from-ip2mainc-fix-2
 has been added to the -mm tree.  Its filename is
-     mm-simplify-try_to_unmap_one-fix-fix.patch
+     ip2-remove-ifdef-module-from-ip2mainc-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,85 +33,80 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: try_to_unmap_one() comment fix
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: ip2-remove-ifdef-module-from-ip2mainc-fix-2
+From: Rakib Mullick <rakib.mullick@gmail.com>
 
-Viencent Li pointed out current comment is wrong. This patch fixes it.
+On 12/4/09, Andrew Morton <akpm@linux-foundation.org> wrote:
+> On Tue, 1 Dec 2009 15:02:56 +0600 Rakib Mullick <rakib.mullick@gmail.com> wrote:
+>
+> x86_64 allmodconfig:
+>
+>  drivers/char/ip2/ip2main.c: In function 'ip2_loadmain':
+>
+> drivers/char/ip2/ip2main.c:657: error: 'pdev' undeclared (first use in this function)
+>  drivers/char/ip2/ip2main.c:657: error: (Each undeclared identifier is reported only once
+>  drivers/char/ip2/ip2main.c:657: error: for each function it appears in.)
+>
+Yes, I've also notice that pci_dev_put was outside of the #ifdef CONFIG_PCI
+ context.  I was about to make patch for this.
+>
+>  I suppose this:
+>
+>  but it needs checking - does pci_get_device() need a balancing pci_dev_put()?
 
-Reported-by: Vincent Li <macli@brc.ubc.ca>
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+I thinks - yes. Otherwise we've to face ref counting problem.
+And when pci_enable_device fails we need to make sure that we're
+calling pci_dev_put.
+
+So.. please checkout the following patch. Following patch has
+been made without applying 'ip2-remove-ifdef-module-from-ip2mainc-fix' patch.
+Please just check is it okay or not.
+
+Cc: Rakib Mullick <rakib.mullick@gmail.com>
+Cc: Michael H. Warfield <mhw@WittsEnd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    5 +++--
+ drivers/char/ip2/ip2main.c |    5 +++--
  1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN mm/rmap.c~mm-simplify-try_to_unmap_one-fix-fix mm/rmap.c
---- a/mm/rmap.c~mm-simplify-try_to_unmap_one-fix-fix
-+++ a/mm/rmap.c
-@@ -875,8 +875,9 @@ out_mlock:
- 	 * We need mmap_sem locking, Otherwise VM_LOCKED check makes
- 	 * unstable result and race. Plus, We can't wait here because
- 	 * we now hold anon_vma->lock or mapping->i_mmap_lock.
--	 * If trylock failed, The page remain evictable lru and
--	 * retry to more unevictable lru by later vmscan.
-+	 * if trylock failed, the page remain in evictable lru and later
-+	 * vmscan could retry to move the page to unevictable lru if the
-+	 * page is actually mlocked.
- 	 */
- 	if (down_read_trylock(&vma->vm_mm->mmap_sem)) {
- 		if (vma->vm_flags & VM_LOCKED) {
+diff -puN drivers/char/ip2/ip2main.c~ip2-remove-ifdef-module-from-ip2mainc-fix-2 drivers/char/ip2/ip2main.c
+--- a/drivers/char/ip2/ip2main.c~ip2-remove-ifdef-module-from-ip2mainc-fix-2
++++ a/drivers/char/ip2/ip2main.c
+@@ -624,7 +624,7 @@ static int __init ip2_loadmain(void)
+ 
+ 			if (pci_enable_device(pdev)) {
+ 				dev_err(&pdev->dev, "can't enable device\n");
+-				break;
++				goto out;
+ 			}
+ 			ip2config.type[i] = PCI;
+ 			ip2config.pci_dev[i] = pci_dev_get(pdev);
+@@ -636,6 +636,8 @@ static int __init ip2_loadmain(void)
+ 				dev_err(&pdev->dev, "I/O address error\n");
+ 
+ 			ip2config.irq[i] = pdev->irq;
++out:
++			pci_dev_put(pdev);
+ 		}
+ #else
+ 			printk(KERN_ERR "IP2: PCI card specified but PCI "
+@@ -654,7 +656,6 @@ static int __init ip2_loadmain(void)
+ 			break;
+ 		}	/* switch */
+ 	}	/* for */
+-	pci_dev_put(pdev);
+ 
+ 	for (i = 0; i < IP2_MAX_BOARDS; ++i) {
+ 		if (ip2config.addr[i]) {
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from rakib.mullick@gmail.com are
 
 linux-next.patch
-oom-dump-stack-and-vm-state-when-oom-killer-panics.patch
-readahead-add-blk_run_backing_dev.patch
-mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap.patch
-mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
-mm-move-inc_zone_page_statenr_isolated-to-just-isolated-place.patch
-rmap-simplify-try_to_unmap_file.patch
-oom_kill-use-rss-value-instead-of-vm-size-for-badness.patch
-oom-kill-show-virtual-size-and-rss-information-of-the-killed-process.patch
-oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
-oom-kill-fix-numa-consraint-check-with-nodemask-v42.patch
-oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes.patch
-page-allocator-wait-on-both-sync-and-async-congestion-after-direct-reclaim.patch
-vmscan-have-kswapd-sleep-for-a-short-interval-and-double-check-it-should-be-asleep.patch
-vmscan-stop-kswapd-waiting-on-congestion-when-the-min-watermark-is-not-being-met-v2.patch
-vmscan-have-kswapd-sleep-for-a-short-interval-and-double-check-it-should-be-asleep-fix-1.patch
-mm-define-page_mapping_flags.patch
-mm-mlocking-in-try_to_unmap_one.patch
-mm-mlocking-in-try_to_unmap_one-fix.patch
-mm-mlocking-in-try_to_unmap_one-fix-fix.patch
-mm-config_mmu-for-pg_mlocked.patch
-mm-pass-address-down-to-rmap-ones.patch
-mm-stop-ptlock-enlarging-struct-page.patch
-mm-sigbus-instead-of-abusing-oom.patch
-mm-add-numa-node-symlink-for-memory-section-in-sysfs.patch
-mm-refactor-register_cpu_under_node.patch
-mm-refactor-unregister_cpu_under_node.patch
-mm-add-numa-node-symlink-for-cpu-devices-in-sysfs.patch
-documentation-abi-sys-devices-system-cpu-cpu-node.patch
-vmscan-separate-scswap_cluster_max-and-scnr_max_reclaim.patch
-vmscan-kill-hibernation-specific-reclaim-logic-and-unify-it.patch
-vmscan-zone_reclaim-dont-use-insane-swap_cluster_max.patch
-vmscan-kill-scswap_cluster_max.patch
-vmscan-make-consistent-of-reclaim-bale-out-between-do_try_to_free_page-and-shrink_zone.patch
-mm-memory_hotplug-make-offline_pages-static.patch
-mm-simplify-try_to_unmap_one.patch
-mm-simplify-try_to_unmap_one-fix.patch
-mm-simplify-try_to_unmap_one-fix-fix.patch
-vmscan-do-not-evict-inactive-pages-when-skipping-an-active-list-scan.patch
-vmscan-do-not-evict-inactive-pages-when-skipping-an-active-list-scan-fix.patch
-vmscan-simplify-code.patch
-mlock-replace-stale-comments-in-munlock_vma_page.patch
-procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm.patch
-procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-doc.patch
-maintainers-mark-cifs-mailing-list-as-moderated-for-non-subscribers.patch
-lib-introduce-strim.patch
-lib-introduce-strim-checkpatch-fixes.patch
-mm-introduce-coredump-parameter-structure.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
+mm-fix-section-mismatch-in-memory_hotplugc.patch
+moxa-remove-ifdef-module-completely.patch
+ip2-remove-ifdef-module-from-ip2mainc.patch
+ip2-remove-ifdef-module-from-ip2mainc-fix-2.patch
+ip2-remove-ifdef-module-from-ip2mainc-fix.patch
 
