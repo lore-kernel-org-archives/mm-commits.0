@@ -1,145 +1,140 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] ip2-remove-ifdef-module-from-ip2mainc-fix.patch removed from -mm tree
-Date: Mon, 07 Dec 2009 11:56:35 -0800
-Message-ID: <200912071956.nB7JuZlP020352@imap1.linux-foundation.org>
+Subject: + clocksource-start-cmt-at-clocksource-resume-v2.patch added to -mm tree
+Date: Mon, 07 Dec 2009 11:59:30 -0800
+Message-ID: <200912071959.nB7JxUqf027621@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34210 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35397 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933643AbZLGT46 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Dec 2009 14:56:58 -0500
+	by vger.kernel.org with ESMTP id S932779AbZLGT7q (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Dec 2009 14:59:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mhw@WittsEnd.com, rakib.mullick@gmail.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: damm@opensource.se, johnstul@us.ibm.com, lethal@linux-sh.org, tglx@linutronix.de
 
 
 The patch titled
-     ip2-remove-ifdef-module-from-ip2mainc-fix
-has been removed from the -mm tree.  Its filename was
-     ip2-remove-ifdef-module-from-ip2mainc-fix.patch
+     clocksource-start-cmt-at-clocksource-resume-v2
+has been added to the -mm tree.  Its filename is
+     clocksource-start-cmt-at-clocksource-resume-v2.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ip2-remove-ifdef-module-from-ip2mainc-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: clocksource-start-cmt-at-clocksource-resume-v2
+From: Magnus Damm <damm@opensource.se>
 
-fix build
+ V2 adds suspend handling.
 
-Cc: Michael H. Warfield <mhw@WittsEnd.com>
-Cc: Rakib Mullick <rakib.mullick@gmail.com>
+ Depends on the clocksource resume argument patch and the
+ clocksource suspend patch.
+
+Signed-off-by: Magnus Damm <damm@opensource.se>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ip2/ip2main.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/clocksource/sh_cmt.c |   33 ++-------------------------------
+ 1 file changed, 2 insertions(+), 31 deletions(-)
 
-diff -puN drivers/char/ip2/ip2main.c~ip2-remove-ifdef-module-from-ip2mainc-fix drivers/char/ip2/ip2main.c
---- a/drivers/char/ip2/ip2main.c~ip2-remove-ifdef-module-from-ip2mainc-fix
-+++ a/drivers/char/ip2/ip2main.c
-@@ -636,6 +636,7 @@ static int __init ip2_loadmain(void)
- 				dev_err(&pdev->dev, "I/O address error\n");
+diff -puN drivers/clocksource/sh_cmt.c~clocksource-start-cmt-at-clocksource-resume-v2 drivers/clocksource/sh_cmt.c
+--- a/drivers/clocksource/sh_cmt.c~clocksource-start-cmt-at-clocksource-resume-v2
++++ a/drivers/clocksource/sh_cmt.c
+@@ -40,7 +40,6 @@ struct sh_cmt_priv {
+ 	struct platform_device *pdev;
  
- 			ip2config.irq[i] = pdev->irq;
-+			pci_dev_put(pdev);
- 		}
- #else
- 			printk(KERN_ERR "IP2: PCI card specified but PCI "
-@@ -654,7 +655,6 @@ static int __init ip2_loadmain(void)
- 			break;
- 		}	/* switch */
- 	}	/* for */
--	pci_dev_put(pdev);
+ 	unsigned long flags;
+-	unsigned long flags_suspend;
+ 	unsigned long match_value;
+ 	unsigned long next_match_value;
+ 	unsigned long max_match_value;
+@@ -434,9 +433,7 @@ static void sh_cmt_clocksource_disable(s
  
- 	for (i = 0; i < IP2_MAX_BOARDS; ++i) {
- 		if (ip2config.addr[i]) {
+ static void sh_cmt_clocksource_resume(struct clocksource *cs)
+ {
+-	struct sh_cmt_priv *p = cs_to_sh_cmt(cs);
+-
+-	sh_cmt_start(p, FLAG_CLOCKSOURCE);
++	sh_cmt_start(cs_to_sh_cmt(cs), FLAG_CLOCKSOURCE);
+ }
+ 
+ static int sh_cmt_register_clocksource(struct sh_cmt_priv *p,
+@@ -449,6 +446,7 @@ static int sh_cmt_register_clocksource(s
+ 	cs->read = sh_cmt_clocksource_read;
+ 	cs->enable = sh_cmt_clocksource_enable;
+ 	cs->disable = sh_cmt_clocksource_disable;
++	cs->suspend = sh_cmt_clocksource_disable;
+ 	cs->resume = sh_cmt_clocksource_resume;
+ 	cs->mask = CLOCKSOURCE_MASK(sizeof(unsigned long) * 8);
+ 	cs->flags = CLOCK_SOURCE_IS_CONTINUOUS;
+@@ -676,38 +674,11 @@ static int __devexit sh_cmt_remove(struc
+ 	return -EBUSY; /* cannot unregister clockevent and clocksource */
+ }
+ 
+-static int sh_cmt_suspend(struct device *dev)
+-{
+-	struct platform_device *pdev = to_platform_device(dev);
+-	struct sh_cmt_priv *p = platform_get_drvdata(pdev);
+-
+-	/* save flag state and stop CMT channel */
+-	p->flags_suspend = p->flags;
+-	sh_cmt_stop(p, p->flags);
+-	return 0;
+-}
+-
+-static int sh_cmt_resume(struct device *dev)
+-{
+-	struct platform_device *pdev = to_platform_device(dev);
+-	struct sh_cmt_priv *p = platform_get_drvdata(pdev);
+-
+-	/* start CMT channel from saved state */
+-	sh_cmt_start(p, p->flags_suspend);
+-	return 0;
+-}
+-
+-static struct dev_pm_ops sh_cmt_dev_pm_ops = {
+-	.suspend = sh_cmt_suspend,
+-	.resume = sh_cmt_resume,
+-};
+-
+ static struct platform_driver sh_cmt_device_driver = {
+ 	.probe		= sh_cmt_probe,
+ 	.remove		= __devexit_p(sh_cmt_remove),
+ 	.driver		= {
+ 		.name	= "sh_cmt",
+-		.pm	= &sh_cmt_dev_pm_ops,
+ 	}
+ };
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from damm@opensource.se are
 
 origin.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-acpi-remove-nid_inval.patch
-drivers-acpi-acpi_padc-squish-warning.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices-checkpatch-fixes.patch
-drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
-drivers-media-video-pmsc-needs-versionh.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-kbuild-generate-modulesbuiltin-fix-2-checkpatch-fixes.patch
-drivers-leds-leds-ss4200c-fix-return-statement.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
-scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
-aoe-switch-to-the-new-bio_flush_dcache_pages-interface.patch
-drivers-staging-wlags49_h2-remove-cvs-metadata.patch
-wusb-use-sizeof-struct-rather-than-pointer.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-net-rfkill-corec-work-around-gcc-402-silliness.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-readahead-add-blk_run_backing_dev.patch
-mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
-oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
-oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes.patch
-mm-mlocking-in-try_to_unmap_one-fix-fix.patch
-mm-memory_hotplug-make-offline_pages-static.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup.patch
-floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
-drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
-rwsem-fix-rwsem_is_locked-bugs-fix.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
-errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
-lib-introduce-strim-checkpatch-fixes.patch
-msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes.patch
-blackfin-sd-host-controller-driver-fix.patch
-blackfin-sd-host-controller-driver-fix-fix.patch
-blackfin-sd-host-controller-driver-fix-fix-fix.patch
-crc32-minor-optimizations-and-cleanup-checkpatch-fixes.patch
-hwmon-w83627ehf-updates-checkpatch-fixes.patch
-lis3-update-documentation-to-match-latest-changes-fix.patch
-spi-controller-driver-for-designware-spi-core-fix.patch
-spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3.patch
-ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
-memcg-coalesce-charging-via-percpu-storage-fix.patch
-ipc-remove-unreachable-code-in-semc-fix.patch
-char-cyclades-fix-compiler-warning.patch
-ip2-remove-ifdef-module-from-ip2mainc-fix-2.patch
-ip2-remove-ifdef-module-from-ip2mainc-fix.patch
-drivers-edac-amd64_edacc-fix-use-uninitialised-bug.patch
-aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
-direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-drivers-media-video-cx23885-needs-kfifo-updates.patch
-kfifo-move-struct-kfifo-in-place-fix.patch
-zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+driver-core-early-platform-driver-buffer.patch
+clocksource-add-argument-to-resume-callback.patch
+clocksource-start-cmt-at-clocksource-resume.patch
+clocksource-start-cmt-at-clocksource-resume-v2.patch
+clocksource-add-suspend-callback.patch
+mm-uncached-vma-support-with-writenotify.patch
+mmc-let-tmio-mmc-use-dev_name-with-request_irq.patch
+mmc-remove-const-from-tmio-mmc-platform-data-v2.patch
+mmc-balance-tmio-mmc-cell-enable-disable-calls.patch
+spi-superh-msiof-spi-master-driver.patch
+spi-superh-msiof-spi-master-driver-update.patch
 
