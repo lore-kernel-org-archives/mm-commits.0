@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlb-fix-hugepage-memory-leak-in-walk_page_range.patch added to -mm tree
-Date: Tue, 08 Dec 2009 14:39:42 -0800
-Message-ID: <200912082239.nB8MdgwG019623@imap1.linux-foundation.org>
+Subject: + asoc-wrong-variable-returned-on-error.patch added to -mm tree
+Date: Tue, 08 Dec 2009 15:02:35 -0800
+Message-ID: <200912082302.nB8N2ZQP012190@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60419 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41099 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966742AbZLHWkv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2009 17:40:51 -0500
+	by vger.kernel.org with ESMTP id S966910AbZLHXCj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2009 18:02:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: n-horiguchi@ah.jp.nec.com, ak@linux.intel.com, apw@canonical.com, fengguang.wu@intel.com, hugh.dickins@tiscali.co.uk, lee.schermerhorn@hp.com, mel@csn.ul.ie, rientjes@google.com, stable@kernel.org
+Cc: roel.kluin@gmail.com, lrg@slimlogic.co.uk, tiwai@suse.de
 
 
 The patch titled
-     mm: hugetlb: fix hugepage memory leak in walk_page_range()
+     ASoC: wrong variable returned on error
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-fix-hugepage-memory-leak-in-walk_page_range.patch
+     asoc-wrong-variable-returned-on-error.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,153 +33,73 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: hugetlb: fix hugepage memory leak in walk_page_range()
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: ASoC: wrong variable returned on error
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Most callers of pmd_none_or_clear_bad() check whether the target page is
-in a hugepage or not, but mincore() and walk_page_range() do not check it.
-So if we use mincore() on a hugepage on x86 machine, the hugepage memory
-is leaked as shown below.  This patch fixes it by extending mincore()
-system call to support hugepages.
+The wrong variable was returned in the case of an error
 
-Details
-=======
-My test program (leak_mincore) works as follows:
- - creat() and mmap() a file on hugetlbfs (file size is 200MB == 100 hugepages,)
- - read()/write() something on it,
- - call mincore() for first ten pages and printf() the values of *vec
- - munmap() and unlink() the file on hugetlbfs
-
-Without my patch
-----------------
-$ cat /proc/meminfo| grep "HugePage"
-HugePages_Total:    1000
-HugePages_Free:     1000
-HugePages_Rsvd:        0
-HugePages_Surp:        0
-$ ./leak_mincore
-vec[0] 0
-vec[1] 0
-vec[2] 0
-vec[3] 0
-vec[4] 0
-vec[5] 0
-vec[6] 0
-vec[7] 0
-vec[8] 0
-vec[9] 0
-$ cat /proc/meminfo |grep "HugePage"
-HugePages_Total:    1000
-HugePages_Free:      999
-HugePages_Rsvd:        0
-HugePages_Surp:        0
-$ ls /hugetlbfs/
-$
-
-Return values in *vec from mincore() are set to 0, while the hugepage
-should be in memory, and 1 hugepage is still accounted as used while there
-is no file on hugetlbfs.
-
-With my patch
--------------
-$ cat /proc/meminfo| grep "HugePage"
-HugePages_Total:    1000
-HugePages_Free:     1000
-HugePages_Rsvd:        0
-HugePages_Surp:        0
-$ ./leak_mincore
-vec[0] 1
-vec[1] 1
-vec[2] 1
-vec[3] 1
-vec[4] 1
-vec[5] 1
-vec[6] 1
-vec[7] 1
-vec[8] 1
-vec[9] 1
-$ cat /proc/meminfo |grep "HugePage"
-HugePages_Total:    1000
-HugePages_Free:     1000
-HugePages_Rsvd:        0
-HugePages_Surp:        0
-$ ls /hugetlbfs/
-$
-
-Return value in *vec set to 1 and no memory leaks.
-
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Andy Whitcroft <apw@canonical.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Acked-by: Liam Girdwood <lrg@slimlogic.co.uk>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/pagewalk.c |   15 ++++++++++++++-
- 1 file changed, 14 insertions(+), 1 deletion(-)
+ sound/soc/imx/mx1_mx2-pcm.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/pagewalk.c~mm-hugetlb-fix-hugepage-memory-leak-in-walk_page_range mm/pagewalk.c
---- a/mm/pagewalk.c~mm-hugetlb-fix-hugepage-memory-leak-in-walk_page_range
-+++ a/mm/pagewalk.c
-@@ -1,6 +1,7 @@
- #include <linux/mm.h>
- #include <linux/highmem.h>
- #include <linux/sched.h>
-+#include <linux/hugetlb.h>
+diff -puN sound/soc/imx/mx1_mx2-pcm.c~asoc-wrong-variable-returned-on-error sound/soc/imx/mx1_mx2-pcm.c
+--- a/sound/soc/imx/mx1_mx2-pcm.c~asoc-wrong-variable-returned-on-error
++++ a/sound/soc/imx/mx1_mx2-pcm.c
+@@ -322,12 +322,12 @@ static int mx1_mx2_pcm_open(struct snd_p
  
- static int walk_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
- 			  struct mm_walk *walk)
-@@ -107,6 +108,7 @@ int walk_page_range(unsigned long addr, 
- 	pgd_t *pgd;
- 	unsigned long next;
- 	int err = 0;
-+	struct vm_area_struct *vma;
+ 	pr_debug("%s: Requesting dma channel (%s)\n", __func__,
+ 						prtd->dma_params->name);
+-	prtd->dma_ch = imx_dma_request_by_prio(prtd->dma_params->name,
+-						DMA_PRIO_HIGH);
+-	if (prtd->dma_ch < 0) {
++	ret = imx_dma_request_by_prio(prtd->dma_params->name, DMA_PRIO_HIGH);
++	if (ret < 0) {
+ 		printk(KERN_ERR "Error %d requesting dma channel\n", ret);
+ 		return ret;
+ 	}
++	prtd->dma_ch = ret;
+ 	imx_dma_config_burstlen(prtd->dma_ch,
+ 				prtd->dma_params->watermark_level);
  
- 	if (addr >= end)
- 		return err;
-@@ -117,11 +119,21 @@ int walk_page_range(unsigned long addr, 
- 	pgd = pgd_offset(walk->mm, addr);
- 	do {
- 		next = pgd_addr_end(addr, end);
-+
-+		/* skip hugetlb vma to avoid hugepage PMD being cleared
-+		 * in pmd_none_or_clear_bad(). */
-+		vma = find_vma(walk->mm, addr);
-+		if (is_vm_hugetlb_page(vma)) {
-+			next = (vma->vm_end < next) ? vma->vm_end : next;
-+			continue;
-+		}
-+
- 		if (pgd_none_or_clear_bad(pgd)) {
- 			if (walk->pte_hole)
- 				err = walk->pte_hole(addr, next, walk);
- 			if (err)
- 				break;
-+			pgd++;
- 			continue;
- 		}
- 		if (walk->pgd_entry)
-@@ -131,7 +143,8 @@ int walk_page_range(unsigned long addr, 
- 			err = walk_pud_range(pgd, addr, next, walk);
- 		if (err)
- 			break;
--	} while (pgd++, addr = next, addr != end);
-+		pgd++;
-+	} while (addr = next, addr != end);
- 
- 	return err;
- }
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
-mm-hugetlb-fix-hugepage-memory-leak-in-mincore.patch
-mm-hugetlb-fix-hugepage-memory-leak-in-mincore-cleanup.patch
-mm-hugetlb-fix-hugepage-memory-leak-in-walk_page_range.patch
-mm-hugetlb-add-hugepage-support-to-pagemap.patch
+origin.patch
+linux-next.patch
+fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch
+asoc-wrong-variable-returned-on-error.patch
+omap-return-ptr_err-rather-than-is_err.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+powerpc-85xx-wrong-variable-returned-on-error.patch
+ib-uverbs-ptr_err-return-of-wrong-pointer-in-ib_uverbs_get_context.patch
+hidp-ptr_err-return-of-wrong-pointer-in-hidp_setup_hid.patch
+imx-bit-confusion.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
+zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
+ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
+scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
+r8192u_core-test-for-negative-error-in-rtl8192_rx_isr.patch
+wusb-use-sizeof-struct-rather-than-pointer.patch
+page-types-unsigned-cannot-be-less-than-0-in-add_page.patch
+keys-ptr_err-return-of-wrong-pointer-in-keyctl_get_security.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+cryptocop-fix-assertion-in-create_output_descriptors.patch
+gpio-fix-test-on-unsigned-in-lnw_irq_type.patch
+fbdev-tv_paln-bit-set-twice-in-sisfb_detect_vb_connect.patch
+hvc_console-fix-test-on-unsigned-in-hvc_console_print.patch
+zlib-optimize-inffast-when-copying-direct-from-output.patch
 
