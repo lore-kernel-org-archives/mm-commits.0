@@ -1,16 +1,16 @@
 From: akpm@linux-foundation.org
-Subject: + spi-imx-use-platform_driver_probe-as-probe-lives-in-inittext.patch added to -mm tree
-Date: Tue, 08 Dec 2009 15:30:01 -0800
-Message-ID: <200912082330.nB8NU1Ud016093@imap1.linux-foundation.org>
+Subject: + spi-imx-use-positive-logic-to-distinguish-cpu-variants.patch added to -mm tree
+Date: Tue, 08 Dec 2009 15:30:06 -0800
+Message-ID: <200912082330.nB8NU6hn016248@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44024 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52125 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S937005AbZLHXaf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2009 18:30:35 -0500
+	by vger.kernel.org with ESMTP id S937012AbZLHXah (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2009 18:30:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -18,9 +18,9 @@ Cc: u.kleine-koenig@pengutronix.de, daniel@caiaq.de, dbrownell@users.sourceforge
 
 
 The patch titled
-     spi-imx: use platform_driver_probe as probe lives in .init.text
+     spi-imx: use positive logic to distinguish cpu variants
 has been added to the -mm tree.  Its filename is
-     spi-imx-use-platform_driver_probe-as-probe-lives-in-inittext.patch
+     spi-imx-use-positive-logic-to-distinguish-cpu-variants.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,19 +38,10 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
 otm/
 
 ------------------------------------------------------
-Subject: spi-imx: use platform_driver_probe as probe lives in .init.tex=
-t
+Subject: spi-imx: use positive logic to distinguish cpu variants
 =46rom: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
 
-Using platform_driver_register with a probe function defined using __in=
-it
-is wrong.
-
-This fixes an oops after:
-
-	cd /sys/bus/platform/drivers/spi_imx
-	echo -n spi_imx.0 > unbind
-	echo -n spi_imx.0 > bind
+This is much safer when support for new variants is added.
 
 Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
 Cc: David Brownell <dbrownell@users.sourceforge.net>
@@ -60,29 +51,23 @@ Cc: Grant Likely <grant.likely@secretlab.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_imx.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/spi/spi_imx.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/spi/spi_imx.c~spi-imx-use-platform_driver_probe-as-pr=
-obe-lives-in-inittext drivers/spi/spi_imx.c
---- a/drivers/spi/spi_imx.c~spi-imx-use-platform_driver_probe-as-probe-=
-lives-in-inittext
+diff -puN drivers/spi/spi_imx.c~spi-imx-use-positive-logic-to-distingui=
+sh-cpu-variants drivers/spi/spi_imx.c
+--- a/drivers/spi/spi_imx.c~spi-imx-use-positive-logic-to-distinguish-c=
+pu-variants
 +++ a/drivers/spi/spi_imx.c
-@@ -666,13 +666,12 @@ static struct platform_driver spi_imx_dr
- 		   .name =3D DRIVER_NAME,
- 		   .owner =3D THIS_MODULE,
- 		   },
--	.probe =3D spi_imx_probe,
- 	.remove =3D __exit_p(spi_imx_remove),
- };
+@@ -593,7 +593,7 @@ static int __init spi_imx_probe(struct p
+ 	clk_enable(spi_imx->clk);
+ 	spi_imx->spi_clk =3D clk_get_rate(spi_imx->clk);
 =20
- static int __init spi_imx_init(void)
- {
--	return platform_driver_register(&spi_imx_driver);
-+	return platform_driver_probe(&spi_imx_driver, spi_imx_probe);
- }
+-	if (!cpu_is_mx31() || !cpu_is_mx35())
++	if (cpu_is_mx1() || cpu_is_mx21() || cpu_is_mx27())
+ 		writel(1, spi_imx->base + MXC_RESET);
 =20
- static void __exit spi_imx_exit(void)
+ 	/* drain receive buffer */
 _
 
 Patches currently in -mm which might be from u.kleine-koenig@pengutroni=
