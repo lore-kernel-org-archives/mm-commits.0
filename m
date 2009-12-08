@@ -1,154 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: [merged] net-rfkill-corec-work-around-gcc-402-silliness.patch removed from -mm tree
-Date: Tue, 08 Dec 2009 13:05:35 -0800
-Message-ID: <200912082105.nB8L5Zvf009592@imap1.linux-foundation.org>
+Subject: + sdio-initialise-sdio-functions-and-update-card-sdio_funcs-in-lockstep.patch added to -mm tree
+Date: Tue, 08 Dec 2009 13:34:30 -0800
+Message-ID: <200912082134.nB8LYUI5017621__28255.5622784004$1260308117$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43071 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37691 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966125AbZLHVGT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2009 16:06:19 -0500
+	by vger.kernel.org with ESMTP id S965011AbZLHVes (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2009 16:34:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davem@davemloft.net, johannes@sipsolutions.net, linville@tuxdriver.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: matt@console-pimps.org, dsd@laptop.org, linux-mmc@vger.kernel.org
 
 
 The patch titled
-     net/rfkill/core.c: work around gcc-4.0.2 silliness
-has been removed from the -mm tree.  Its filename was
-     net-rfkill-corec-work-around-gcc-402-silliness.patch
+     sdio: initialise SDIO functions and update card->sdio_funcs in lockstep
+has been added to the -mm tree.  Its filename is
+     sdio-initialise-sdio-functions-and-update-card-sdio_funcs-in-lockstep.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: net/rfkill/core.c: work around gcc-4.0.2 silliness
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: sdio: initialise SDIO functions and update card->sdio_funcs in lockstep
+From: Matt Fleming <matt@console-pimps.org>
 
-net/rfkill/core.c: In function 'rfkill_type_show':
-net/rfkill/core.c:610: warning: control may reach end of non-void function 'rfkill_get_type_str' being inlined
+Daniel Drake noticed a crash in the error path of mmc_attach_sdio().  This
+bug is discussed at http://dev.laptop.org/ticket/9707.
 
-A gcc bug, but simple enough to squish.
+BUG: unable to handle kernel paging request at 6b6b6c57
+IP: [<b066d6e2>] sdio_remove_func+0x9/0x27
+Call Trace:
+[<b066cfb4>] ? mmc_sdio_remove+0x34/0x65
+[<b066d1fc>] ? mmc_attach_sdio+0x217/0x240
+[<b066a22f>] ? mmc_rescan+0x1a2/0x20f
+[<b042e9a0>] ? worker_thread+0x156/0x1e
 
-Cc: John W. Linville <linville@tuxdriver.com>
-Cc: Johannes Berg <johannes@sipsolutions.net>
-Cc: David S. Miller <davem@davemloft.net>
+We need to accurately track how many SDIO functions have been initialised
+(and keep card->sdio_funcs in sync) so that we don't try to remove more
+functions than we initialised if we hit the error path in
+mmc_attach_sdio().
+
+Without this patch if we hit the error path in mmc_attach_sdio() we run
+the risk of deferencing invalid memory in sdio_remove_func(), leading to a
+crash.
+
+Signed-off-by: Matt Fleming <matt@console-pimps.org>
+Cc: Daniel Drake <dsd@laptop.org>
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/rfkill/core.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/mmc/core/sdio.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN net/rfkill/core.c~net-rfkill-corec-work-around-gcc-402-silliness net/rfkill/core.c
---- a/net/rfkill/core.c~net-rfkill-corec-work-around-gcc-402-silliness
-+++ a/net/rfkill/core.c
-@@ -579,6 +579,8 @@ static ssize_t rfkill_name_show(struct d
+diff -puN drivers/mmc/core/sdio.c~sdio-initialise-sdio-functions-and-update-card-sdio_funcs-in-lockstep drivers/mmc/core/sdio.c
+--- a/drivers/mmc/core/sdio.c~sdio-initialise-sdio-functions-and-update-card-sdio_funcs-in-lockstep
++++ a/drivers/mmc/core/sdio.c
+@@ -516,7 +516,8 @@ int mmc_attach_sdio(struct mmc_host *hos
+ 	 * The number of functions on the card is encoded inside
+ 	 * the ocr.
+ 	 */
+-	card->sdio_funcs = funcs = (ocr & 0x70000000) >> 28;
++	funcs = (ocr & 0x70000000) >> 28;
++	card->sdio_funcs = 0;
  
- static const char *rfkill_get_type_str(enum rfkill_type type)
- {
-+	BUILD_BUG_ON(NUM_RFKILL_TYPES != RFKILL_TYPE_FM + 1);
-+
- 	switch (type) {
- 	case RFKILL_TYPE_WLAN:
- 		return "wlan";
-@@ -597,8 +599,6 @@ static const char *rfkill_get_type_str(e
- 	default:
- 		BUG();
- 	}
--
--	BUILD_BUG_ON(NUM_RFKILL_TYPES != RFKILL_TYPE_FM + 1);
- }
- 
- static ssize_t rfkill_type_show(struct device *dev,
+ 	/*
+ 	 * If needed, disconnect card detection pull-up resistor.
+@@ -528,7 +529,7 @@ int mmc_attach_sdio(struct mmc_host *hos
+ 	/*
+ 	 * Initialize (but don't add) all present functions.
+ 	 */
+-	for (i = 0;i < funcs;i++) {
++	for (i = 0; i < funcs; i++, card->sdio_funcs++) {
+ 		err = sdio_init_func(host->card, i + 1);
+ 		if (err)
+ 			goto remove;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from matt@console-pimps.org are
 
-origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-acpi-remove-nid_inval.patch
-drivers-acpi-acpi_padc-squish-warning.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices-checkpatch-fixes.patch
-drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
-drivers-media-video-pmsc-needs-versionh.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-drivers-leds-leds-ss4200c-fix-return-statement.patch
-proc_fops-convert-drivers-isdn-to-seq_file-fix2.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
-scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
-aoe-switch-to-the-new-bio_flush_dcache_pages-interface.patch
-drivers-staging-wlags49_h2-remove-cvs-metadata.patch
-wusb-use-sizeof-struct-rather-than-pointer.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-readahead-add-blk_run_backing_dev.patch
-mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
-oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
-oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes.patch
-mm-mlocking-in-try_to_unmap_one-fix-fix.patch
-mm-memory_hotplug-make-offline_pages-static.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup.patch
-floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
-drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
-rwsem-fix-rwsem_is_locked-bugs-fix.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
-errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
-drivers-scsi-sym53c8xx_2-sym_gluec-rename-skip_spaces-to-sym_skip_spaces.patch
-lib-introduce-strim-checkpatch-fixes.patch
-msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes.patch
-blackfin-sd-host-controller-driver-fix.patch
-blackfin-sd-host-controller-driver-fix-fix.patch
-blackfin-sd-host-controller-driver-fix-fix-fix.patch
-crc32-minor-optimizations-and-cleanup-checkpatch-fixes.patch
-hwmon-w83627ehf-updates-checkpatch-fixes.patch
-lis3-update-documentation-to-match-latest-changes-fix.patch
-spi-controller-driver-for-designware-spi-core-fix.patch
-spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3.patch
-ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
-memcg-coalesce-charging-via-percpu-storage-fix.patch
-memcg-code-cleanrm-unused-variable-in-mem_cgroup_resize_limit-cleanup.patch
-ipc-remove-unreachable-code-in-semc-fix.patch
-char-cyclades-fix-compiler-warning.patch
-ip2-remove-ifdef-module-from-ip2mainc-fix-2.patch
-drivers-edac-amd64_edacc-fix-use-uninitialised-bug.patch
-fs-cache-avoid-maybe-used-uninitialised-warning-on-variable.patch
-aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
-direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-drivers-media-video-cx23885-needs-kfifo-updates.patch
-kfifo-move-struct-kfifo-in-place-fix.patch
-zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+sdio-fix-reference-counting-in-sdio_remove_func.patch
+sdio-initialise-sdio-functions-and-update-card-sdio_funcs-in-lockstep.patch
 
