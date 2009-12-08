@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlb-fix-hugepage-memory-leak-in-mincore-cleanup.patch added to -mm tree
-Date: Tue, 08 Dec 2009 14:39:39 -0800
-Message-ID: <200912082239.nB8MddYj019503@imap1.linux-foundation.org>
+Subject: + mm-hugetlb-add-hugepage-support-to-pagemap.patch added to -mm tree
+Date: Tue, 08 Dec 2009 14:39:44 -0800
+Message-ID: <200912082239.nB8Mdi0Q019687@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43081 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33675 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966010AbZLHWjg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2009 17:39:36 -0500
+	by vger.kernel.org with ESMTP id S966565AbZLHWkM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2009 17:40:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, n-horiguchi@ah.jp.nec.com
+Cc: n-horiguchi@ah.jp.nec.com, ak@linux.intel.com, apw@canonical.com, fengguang.wu@intel.com, hugh.dickins@tiscali.co.uk, lee.schermerhorn@hp.com, mel@csn.ul.ie, rientjes@google.com
 
 
 The patch titled
-     mm-hugetlb-fix-hugepage-memory-leak-in-mincore-cleanup
+     mm hugetlb: add hugepage support to pagemap
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-fix-hugepage-memory-leak-in-mincore-cleanup.patch
+     mm-hugetlb-add-hugepage-support-to-pagemap.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,116 +33,155 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-hugetlb-fix-hugepage-memory-leak-in-mincore-cleanup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm hugetlb: add hugepage support to pagemap
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Enable extraction of the pfn of the hugepage from /proc/pid/pagemap in an
+architecture independent manner.
+
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Andy Whitcroft <apw@canonical.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mincore.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/proc/task_mmu.c |   43 +++++++++++++++++++++++++++++++++++++++++++
+ include/linux/mm.h |    3 +++
+ mm/pagewalk.c      |   18 ++++++++++++++++--
+ 3 files changed, 62 insertions(+), 2 deletions(-)
 
-diff -puN mm/mincore.c~mm-hugetlb-fix-hugepage-memory-leak-in-mincore-cleanup mm/mincore.c
---- a/mm/mincore.c~mm-hugetlb-fix-hugepage-memory-leak-in-mincore-cleanup
-+++ a/mm/mincore.c
-@@ -77,6 +77,7 @@ static long do_mincore(unsigned long add
- 		struct hstate *h;
- 		unsigned long nr_huge;
- 		unsigned char present;
+diff -puN fs/proc/task_mmu.c~mm-hugetlb-add-hugepage-support-to-pagemap fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~mm-hugetlb-add-hugepage-support-to-pagemap
++++ a/fs/proc/task_mmu.c
+@@ -650,6 +650,48 @@ static int pagemap_pte_range(pmd_t *pmd,
+ 	return err;
+ }
+ 
++static u64 huge_pte_to_pagemap_entry(pte_t pte, int offset)
++{
++	u64 pme = 0;
++	if (pte_present(pte))
++		pme = PM_PFRAME(pte_pfn(pte) + offset)
++			| PM_PSHIFT(PAGE_SHIFT) | PM_PRESENT;
++	return pme;
++}
 +
- 		i = 0;
- 		nr = min(pages, (vma->vm_end - addr) >> PAGE_SHIFT);
- 		h = hstate_vma(vma);
++static int pagemap_hugetlb_range(pte_t *pte, unsigned long addr,
++				 unsigned long end, struct mm_walk *walk)
++{
++	struct vm_area_struct *vma;
++	struct pagemapread *pm = walk->private;
++	struct hstate *hs = NULL;
++	int err = 0;
++
++	vma = find_vma(walk->mm, addr);
++	hs = hstate_vma(vma);
++	for (; addr != end; addr += PAGE_SIZE) {
++		u64 pfn = PM_NOT_PRESENT;
++
++		if (vma && (addr >= vma->vm_end)) {
++			vma = find_vma(walk->mm, addr);
++			hs = hstate_vma(vma);
++		}
++
++		if (vma && (vma->vm_start <= addr) && is_vm_hugetlb_page(vma)) {
++			/* calculate pfn of the "raw" page in the hugepage. */
++			int offset = (addr & ~huge_page_mask(hs)) >> PAGE_SHIFT;
++			pfn = huge_pte_to_pagemap_entry(*pte, offset);
++		}
++		err = add_to_pagemap(addr, pfn, pm);
++		if (err)
++			return err;
++	}
++
++	cond_resched();
++
++	return err;
++}
++
+ /*
+  * /proc/pid/pagemap - an array mapping virtual pages to pfns
+  *
+@@ -742,6 +784,7 @@ static ssize_t pagemap_read(struct file 
+ 
+ 	pagemap_walk.pmd_entry = pagemap_pte_range;
+ 	pagemap_walk.pte_hole = pagemap_pte_hole;
++	pagemap_walk.hugetlb_entry = pagemap_hugetlb_range;
+ 	pagemap_walk.mm = mm;
+ 	pagemap_walk.private = &pm;
+ 
+diff -puN include/linux/mm.h~mm-hugetlb-add-hugepage-support-to-pagemap include/linux/mm.h
+--- a/include/linux/mm.h~mm-hugetlb-add-hugepage-support-to-pagemap
++++ a/include/linux/mm.h
+@@ -770,6 +770,7 @@ unsigned long unmap_vmas(struct mmu_gath
+  * @pmd_entry: if set, called for each non-empty PMD (3rd-level) entry
+  * @pte_entry: if set, called for each non-empty PTE (4th-level) entry
+  * @pte_hole: if set, called for each hole at all levels
++ * @hugetlb_entry: if set, called for each hugetlb entry
+  *
+  * (see walk_page_range for more details)
+  */
+@@ -779,6 +780,8 @@ struct mm_walk {
+ 	int (*pmd_entry)(pmd_t *, unsigned long, unsigned long, struct mm_walk *);
+ 	int (*pte_entry)(pte_t *, unsigned long, unsigned long, struct mm_walk *);
+ 	int (*pte_hole)(unsigned long, unsigned long, struct mm_walk *);
++	int (*hugetlb_entry)(pte_t *, unsigned long, unsigned long,
++			     struct mm_walk *);
+ 	struct mm_struct *mm;
+ 	void *private;
+ };
+diff -puN mm/pagewalk.c~mm-hugetlb-add-hugepage-support-to-pagemap mm/pagewalk.c
+--- a/mm/pagewalk.c~mm-hugetlb-add-hugepage-support-to-pagemap
++++ a/mm/pagewalk.c
+@@ -106,9 +106,11 @@ int walk_page_range(unsigned long addr, 
+ 		    struct mm_walk *walk)
+ {
+ 	pgd_t *pgd;
++	pte_t *pte;
+ 	unsigned long next;
+ 	int err = 0;
+ 	struct vm_area_struct *vma;
++	struct hstate *hs;
+ 
+ 	if (addr >= end)
+ 		return err;
+@@ -120,11 +122,23 @@ int walk_page_range(unsigned long addr, 
+ 	do {
+ 		next = pgd_addr_end(addr, end);
+ 
+-		/* skip hugetlb vma to avoid hugepage PMD being cleared
+-		 * in pmd_none_or_clear_bad(). */
++		/*
++		 * handle hugetlb vma individually because pagetable walk for
++		 * the hugetlb page is dependent on the architecture and
++		 * we can't handled it in the same manner as non-huge pages.
++		 */
+ 		vma = find_vma(walk->mm, addr);
+ 		if (is_vm_hugetlb_page(vma)) {
+ 			next = (vma->vm_end < next) ? vma->vm_end : next;
++			hs = hstate_vma(vma);
++			pte = huge_pte_offset(walk->mm,
++					      addr & huge_page_mask(hs));
++			if (pte && !huge_pte_none(huge_ptep_get(pte))
++			    && walk->hugetlb_entry)
++				err = walk->hugetlb_entry(pte, addr,
++							  next, walk);
++			if (err)
++				break;
+ 			continue;
+ 		}
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
-origin.patch
-linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-acpi-remove-nid_inval.patch
-drivers-acpi-acpi_padc-squish-warning.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices-checkpatch-fixes.patch
-drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
-drivers-media-video-pmsc-needs-versionh.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-drivers-leds-leds-ss4200c-fix-return-statement.patch
-proc_fops-convert-drivers-isdn-to-seq_file-fix2.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
-scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
-aoe-switch-to-the-new-bio_flush_dcache_pages-interface.patch
-drivers-staging-wlags49_h2-remove-cvs-metadata.patch
-wusb-use-sizeof-struct-rather-than-pointer.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-readahead-add-blk_run_backing_dev.patch
-mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
-oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
-oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes.patch
-mm-mlocking-in-try_to_unmap_one-fix-fix.patch
-mm-memory_hotplug-make-offline_pages-static.patch
+mm-hugetlb-fix-hugepage-memory-leak-in-mincore.patch
 mm-hugetlb-fix-hugepage-memory-leak-in-mincore-cleanup.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup.patch
-floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
-drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
-rwsem-fix-rwsem_is_locked-bugs-fix.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
-errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
-drivers-scsi-sym53c8xx_2-sym_gluec-rename-skip_spaces-to-sym_skip_spaces.patch
-lib-introduce-strim-checkpatch-fixes.patch
-msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes.patch
-blackfin-sd-host-controller-driver-fix.patch
-blackfin-sd-host-controller-driver-fix-fix.patch
-blackfin-sd-host-controller-driver-fix-fix-fix.patch
-crc32-minor-optimizations-and-cleanup-checkpatch-fixes.patch
-hwmon-w83627ehf-updates-checkpatch-fixes.patch
-lis3-update-documentation-to-match-latest-changes-fix.patch
-spi-controller-driver-for-designware-spi-core-fix.patch
-spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3.patch
-ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
-memcg-coalesce-charging-via-percpu-storage-fix.patch
-memcg-code-cleanrm-unused-variable-in-mem_cgroup_resize_limit-cleanup.patch
-ipc-remove-unreachable-code-in-semc-fix.patch
-char-cyclades-fix-compiler-warning.patch
-ip2-remove-ifdef-module-from-ip2mainc-fix-2.patch
-drivers-edac-amd64_edacc-fix-use-uninitialised-bug.patch
-fs-cache-avoid-maybe-used-uninitialised-warning-on-variable.patch
-aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
-direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-drivers-media-video-cx23885-needs-kfifo-updates.patch
-kfifo-move-struct-kfifo-in-place-fix.patch
-zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+mm-hugetlb-fix-hugepage-memory-leak-in-walk_page_range.patch
+mm-hugetlb-add-hugepage-support-to-pagemap.patch
 
