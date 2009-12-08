@@ -1,16 +1,16 @@
 From: akpm@linux-foundation.org
-Subject: + spi-imx-dont-access-struct-device-directly-but-use-dev_get_platdata.patch added to -mm tree
-Date: Tue, 08 Dec 2009 15:30:10 -0800
-Message-ID: <200912082330.nB8NUAr3016440@imap1.linux-foundation.org>
+Subject: + spi-imx-correct-check-for-platform_get_irq-failing.patch added to -mm tree
+Date: Tue, 08 Dec 2009 15:30:04 -0800
+Message-ID: <200912082330.nB8NU4IO016215@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51115 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38454 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936982AbZLHXbA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2009 18:31:00 -0500
+	by vger.kernel.org with ESMTP id S936984AbZLHXbB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2009 18:31:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -18,11 +18,9 @@ Cc: u.kleine-koenig@pengutronix.de, daniel@caiaq.de, dbrownell@users.sourceforge
 
 
 The patch titled
-     spi-imx: don't access struct device directly but use dev_get_platd=
-ata
+     spi-imx: correct check for platform_get_irq failing
 has been added to the -mm tree.  Its filename is
-     spi-imx-dont-access-struct-device-directly-but-use-dev_get_platdat=
-a.patch
+     spi-imx-correct-check-for-platform_get_irq-failing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,11 +38,11 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
 otm/
 
 ------------------------------------------------------
-Subject: spi-imx: don't access struct device directly but use dev_get_p=
-latdata
+Subject: spi-imx: correct check for platform_get_irq failing
 =46rom: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
 
-Also there is no casting needed to assign a void pointer.
+platform_get_irq() returns -ENXIO if there is no entry.  So don't check
+return value being nonzero but greater or equal to zero.
 
 Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
 Cc: David Brownell <dbrownell@users.sourceforge.net>
@@ -57,21 +55,20 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  drivers/spi/spi_imx.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/spi/spi_imx.c~spi-imx-dont-access-struct-device-direc=
-tly-but-use-dev_get_platdata drivers/spi/spi_imx.c
---- a/drivers/spi/spi_imx.c~spi-imx-dont-access-struct-device-directly-=
-but-use-dev_get_platdata
+diff -puN drivers/spi/spi_imx.c~spi-imx-correct-check-for-platform_get_=
+irq-failing drivers/spi/spi_imx.c
+--- a/drivers/spi/spi_imx.c~spi-imx-correct-check-for-platform_get_irq-=
+failing
 +++ a/drivers/spi/spi_imx.c
-@@ -492,7 +492,7 @@ static int __init spi_imx_probe(struct p
- 	struct resource *res;
- 	int i, ret;
+@@ -554,7 +554,7 @@ static int __init spi_imx_probe(struct p
+ 	}
 =20
--	mxc_platform_info =3D (struct spi_imx_master *)pdev->dev.platform_dat=
-a;
-+	mxc_platform_info =3D dev_get_platdata(&pdev->dev);
- 	if (!mxc_platform_info) {
- 		dev_err(&pdev->dev, "can't get the platform data\n");
- 		return -EINVAL;
+ 	spi_imx->irq =3D platform_get_irq(pdev, 0);
+-	if (!spi_imx->irq) {
++	if (spi_imx->irq < 0) {
+ 		ret =3D -EINVAL;
+ 		goto out_iounmap;
+ 	}
 _
 
 Patches currently in -mm which might be from u.kleine-koenig@pengutroni=
