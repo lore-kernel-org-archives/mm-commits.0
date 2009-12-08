@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-rename-palm-treo-section-and-file-patterns.patch added to -mm tree
-Date: Tue, 08 Dec 2009 15:23:29 -0800
-Message-ID: <200912082323.nB8NNT27032117@imap1.linux-foundation.org>
+Subject: + maintainers-remove-file-pattern-from-kernel-virtual-machine-kvm-for-amd-v.patch added to -mm tree
+Date: Tue, 08 Dec 2009 15:25:18 -0800
+Message-ID: <200912082325.nB8NPIx5004252@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35511 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43128 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936954AbZLHXX7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2009 18:23:59 -0500
+	by vger.kernel.org with ESMTP id S935906AbZLHXZc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2009 18:25:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, sleep_walker@suse.cz
+Cc: joe@perches.com, avi@redhat.com, joerg.roedel@amd.com
 
 
 The patch titled
-     MAINTAINERS: rename PALM TREO section and file patterns
+     MAINTAINERS: remove file pattern from KERNEL VIRTUAL MACHINE (KVM) FOR AMD-V
 has been added to the -mm tree.  Its filename is
-     maintainers-rename-palm-treo-section-and-file-patterns.patch
+     maintainers-remove-file-pattern-from-kernel-virtual-machine-kvm-for-amd-v.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,37 +33,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: rename PALM TREO section and file patterns
+Subject: MAINTAINERS: remove file pattern from KERNEL VIRTUAL MACHINE (KVM) FOR AMD-V
 From: Joe Perches <joe@perches.com>
 
+Commit 6c8166a77c98f473eb91e96a61c3cf78ac617278 ("KVM: SVM: Fold kvm_svm.h
+info svm.c") folded this file away.
+
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Tomas Cech <sleep_walker@suse.cz>
+Cc: Avi Kivity <avi@redhat.com>
+Cc: Joerg Roedel <joerg.roedel@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ MAINTAINERS |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-rename-palm-treo-section-and-file-patterns MAINTAINERS
---- a/MAINTAINERS~maintainers-rename-palm-treo-section-and-file-patterns
+diff -puN MAINTAINERS~maintainers-remove-file-pattern-from-kernel-virtual-machine-kvm-for-amd-v MAINTAINERS
+--- a/MAINTAINERS~maintainers-remove-file-pattern-from-kernel-virtual-machine-kvm-for-amd-v
 +++ a/MAINTAINERS
-@@ -822,13 +822,13 @@ F:	arch/arm/mach-pxa/palmte2.c
- F:	arch/arm/mach-pxa/include/mach/palmtc.h
- F:	arch/arm/mach-pxa/palmtc.c
+@@ -3144,7 +3144,6 @@ L:	kvm@vger.kernel.org
+ W:	http://kvm.qumranet.com
+ S:	Supported
+ F:	arch/x86/include/asm/svm.h
+-F:	arch/x86/kvm/kvm_svm.h
+ F:	arch/x86/kvm/svm.c
  
--ARM/PALM TREO 680 SUPPORT
-+ARM/PALM TREO SUPPORT
- M:	Tomas Cech <sleep_walker@suse.cz>
- L:	linux-arm-kernel@lists.infradead.org
- W:	http://hackndev.com
- S:	Maintained
--F:	arch/arm/mach-pxa/include/mach/treo680.h
--F:	arch/arm/mach-pxa/treo680.c
-+F:	arch/arm/mach-pxa/include/mach/palmtreo.h
-+F:	arch/arm/mach-pxa/palmtreo.c
- 
- ARM/PALMZ72 SUPPORT
- M:	Sergey Lapin <slapin@ossfans.org>
+ KERNEL VIRTUAL MACHINE (KVM) FOR POWERPC
 _
 
 Patches currently in -mm which might be from joe@perches.com are
@@ -79,6 +74,8 @@ scripts-get_maintainerpl-add-roles-and-rolestats.patch
 scripts-get_maintainerpl-fix-non-with-git-blame-and-cleanups.patch
 scripts-get_maintainerpl-support-multiple-vcss-add-mercurial.patch
 maintainers-rename-palm-treo-section-and-file-patterns.patch
+maintainers-remove-file-pattern-from-kernel-virtual-machine-kvm-for-amd-v.patch
+maintainers-update-file-patterns-for-wolfson-microelectronics-pmic-drivers.patch
 lib-vsprintfc-add-%pu-to-print-uuid-guids.patch
 fs-xfs-xfs_log_recoverc-use-%pu-to-print-uuids.patch
 randomc-use-%pu-to-print-uuids.patch
