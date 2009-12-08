@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlb-fix-hugepage-memory-leak-in-mincore.patch added to -mm tree
-Date: Tue, 08 Dec 2009 14:39:36 -0800
-Message-ID: <200912082239.nB8Mda94019343@imap1.linux-foundation.org>
+Subject: + mm-hugetlb-fix-hugepage-memory-leak-in-walk_page_range.patch added to -mm tree
+Date: Tue, 08 Dec 2009 14:39:42 -0800
+Message-ID: <200912082239.nB8MdgwG019623@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50713 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60419 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966750AbZLHWkw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2009 17:40:52 -0500
+	by vger.kernel.org with ESMTP id S966742AbZLHWkv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2009 17:40:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: n-horiguchi@ah.jp.nec.com, ak@linux.intel.com, apw@canonical.com, fengguang.
 
 
 The patch titled
-     mm: hugetlb: fix hugepage memory leak in mincore()
+     mm: hugetlb: fix hugepage memory leak in walk_page_range()
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-fix-hugepage-memory-leak-in-mincore.patch
+     mm-hugetlb-fix-hugepage-memory-leak-in-walk_page_range.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,12 +33,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: hugetlb: fix hugepage memory leak in mincore()
+Subject: mm: hugetlb: fix hugepage memory leak in walk_page_range()
 From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 
 Most callers of pmd_none_or_clear_bad() check whether the target page is
 in a hugepage or not, but mincore() and walk_page_range() do not check it.
- So if we use mincore() on a hugepage on x86 machine, the hugepage memory
+So if we use mincore() on a hugepage on x86 machine, the hugepage memory
 is leaked as shown below.  This patch fixes it by extending mincore()
 system call to support hugepages.
 
@@ -77,8 +77,8 @@ $ ls /hugetlbfs/
 $
 
 Return values in *vec from mincore() are set to 0, while the hugepage
-should be in memory, and 1 hugepage is still accounted as used while
-there is no file on hugetlbfs.
+should be in memory, and 1 hugepage is still accounted as used while there
+is no file on hugetlbfs.
 
 With my patch
 -------------
@@ -120,60 +120,60 @@ Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mincore.c |   34 ++++++++++++++++++++++++++++++++++
- 1 file changed, 34 insertions(+)
+ mm/pagewalk.c |   15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
 
-diff -puN mm/mincore.c~mm-hugetlb-fix-hugepage-memory-leak-in-mincore mm/mincore.c
---- a/mm/mincore.c~mm-hugetlb-fix-hugepage-memory-leak-in-mincore
-+++ a/mm/mincore.c
-@@ -14,6 +14,7 @@
- #include <linux/syscalls.h>
- #include <linux/swap.h>
- #include <linux/swapops.h>
+diff -puN mm/pagewalk.c~mm-hugetlb-fix-hugepage-memory-leak-in-walk_page_range mm/pagewalk.c
+--- a/mm/pagewalk.c~mm-hugetlb-fix-hugepage-memory-leak-in-walk_page_range
++++ a/mm/pagewalk.c
+@@ -1,6 +1,7 @@
+ #include <linux/mm.h>
+ #include <linux/highmem.h>
+ #include <linux/sched.h>
 +#include <linux/hugetlb.h>
  
- #include <asm/uaccess.h>
- #include <asm/pgtable.h>
-@@ -72,6 +73,39 @@ static long do_mincore(unsigned long add
- 	if (!vma || addr < vma->vm_start)
- 		return -ENOMEM;
+ static int walk_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
+ 			  struct mm_walk *walk)
+@@ -107,6 +108,7 @@ int walk_page_range(unsigned long addr, 
+ 	pgd_t *pgd;
+ 	unsigned long next;
+ 	int err = 0;
++	struct vm_area_struct *vma;
  
-+	if (is_vm_hugetlb_page(vma)) {
-+		struct hstate *h;
-+		unsigned long nr_huge;
-+		unsigned char present;
-+		i = 0;
-+		nr = min(pages, (vma->vm_end - addr) >> PAGE_SHIFT);
-+		h = hstate_vma(vma);
-+		nr_huge = ((addr + pages * PAGE_SIZE - 1) >> huge_page_shift(h))
-+			  - (addr >> huge_page_shift(h)) + 1;
-+		nr_huge = min(nr_huge,
-+			      (vma->vm_end - addr) >> huge_page_shift(h));
-+		while (1) {
-+			/* hugepage always in RAM for now,
-+			 * but generally it needs to be check */
-+			ptep = huge_pte_offset(current->mm,
-+					       addr & huge_page_mask(h));
-+			present = !!(ptep &&
-+				     !huge_pte_none(huge_ptep_get(ptep)));
-+			while (1) {
-+				vec[i++] = present;
-+				addr += PAGE_SIZE;
-+				/* reach buffer limit */
-+				if (i == nr)
-+					return nr;
-+				/* check hugepage border */
-+				if (!((addr & ~huge_page_mask(h))
-+				      >> PAGE_SHIFT))
-+					break;
-+			}
-+		}
-+		return nr;
-+	}
+ 	if (addr >= end)
+ 		return err;
+@@ -117,11 +119,21 @@ int walk_page_range(unsigned long addr, 
+ 	pgd = pgd_offset(walk->mm, addr);
+ 	do {
+ 		next = pgd_addr_end(addr, end);
 +
- 	/*
- 	 * Calculate how many pages there are left in the last level of the
- 	 * PTE array for our address.
++		/* skip hugetlb vma to avoid hugepage PMD being cleared
++		 * in pmd_none_or_clear_bad(). */
++		vma = find_vma(walk->mm, addr);
++		if (is_vm_hugetlb_page(vma)) {
++			next = (vma->vm_end < next) ? vma->vm_end : next;
++			continue;
++		}
++
+ 		if (pgd_none_or_clear_bad(pgd)) {
+ 			if (walk->pte_hole)
+ 				err = walk->pte_hole(addr, next, walk);
+ 			if (err)
+ 				break;
++			pgd++;
+ 			continue;
+ 		}
+ 		if (walk->pgd_entry)
+@@ -131,7 +143,8 @@ int walk_page_range(unsigned long addr, 
+ 			err = walk_pud_range(pgd, addr, next, walk);
+ 		if (err)
+ 			break;
+-	} while (pgd++, addr = next, addr != end);
++		pgd++;
++	} while (addr = next, addr != end);
+ 
+ 	return err;
+ }
 _
 
 Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
