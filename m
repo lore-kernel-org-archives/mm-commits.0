@@ -1,66 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Tue, 08 Dec 2009 13:02:06 -0800
-Message-ID: <200912082102.nB8L26ie000845@imap1.linux-foundation.org>
+Subject: [merged] kbuild-generate-modulesbuiltin-fix-2-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 08 Dec 2009 13:05:32 -0800
+Message-ID: <200912082105.nB8L5WI2009449@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36277 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43036 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966148AbZLHVCU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2009 16:02:20 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id nB8L26tO027080
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 8 Dec 2009 13:02:07 -0800
+	by vger.kernel.org with ESMTP id S965801AbZLHVFa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2009 16:05:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, mmarek@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     kbuild-generate-modulesbuiltin-fix-2-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     kbuild-generate-modulesbuiltin-fix-2-checkpatch-fixes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
+Subject: kbuild-generate-modulesbuiltin-fix-2-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
+ERROR: code indent should use tabs where possible
+#220: FILE: scripts/kconfig/confdata.c:718:
++^I                  "# Automatically generated - do not edit\n"$
+
+ERROR: code indent should use tabs where possible
+#221: FILE: scripts/kconfig/confdata.c:719:
++^I                  "\n");$
+
+total: 2 errors, 0 warnings, 253 lines checked
+
+./patches/kbuild-generate-modulesbuiltin-fix-2.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sctp/sysctl.c |    4 ----
- 1 file changed, 4 deletions(-)
+ scripts/kconfig/confdata.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN net/sctp/sysctl.c~linux-next-git-rejects net/sctp/sysctl.c
---- a/net/sctp/sysctl.c~linux-next-git-rejects
-+++ a/net/sctp/sysctl.c
-@@ -252,11 +252,7 @@ static ctl_table sctp_table[] = {
- 		.extra2		= &rwnd_scale_max,
- 	},
- 
--<<<<<<< HEAD:net/sctp/sysctl.c
- 	{ /* sentinel */ }
--=======
--	{ }
-->>>>>>> FETCH_HEAD:net/sctp/sysctl.c
- };
- 
- static struct ctl_path sctp_path[] = {
+diff -puN scripts/kconfig/confdata.c~kbuild-generate-modulesbuiltin-fix-2-checkpatch-fixes scripts/kconfig/confdata.c
+--- a/scripts/kconfig/confdata.c~kbuild-generate-modulesbuiltin-fix-2-checkpatch-fixes
++++ a/scripts/kconfig/confdata.c
+@@ -715,8 +715,8 @@ int conf_write_autoconf(void)
+ 		     "#\n",
+ 		     sym_get_string_value(sym), ctime(&now));
+ 	fprintf(tristate, "#\n"
+-	                  "# Automatically generated - do not edit\n"
+-	                  "\n");
++			  "# Automatically generated - do not edit\n"
++			  "\n");
+ 	fprintf(out_h, "/*\n"
+ 		       " * Automatically generated C config: don't edit\n"
+ 		       " * Linux kernel version: %s\n"
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -80,7 +82,6 @@ cmpc_acpi-add-support-for-classmate-pc-acpi-devices-checkpatch-fixes.patch
 drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
 drivers-media-video-pmsc-needs-versionh.patch
 timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-kbuild-generate-modulesbuiltin-fix-2-checkpatch-fixes.patch
 drivers-leds-leds-ss4200c-fix-return-statement.patch
 proc_fops-convert-drivers-isdn-to-seq_file-fix2.patch
 3x59x-fix-pci-resource-management.patch
@@ -92,7 +93,6 @@ drivers-staging-wlags49_h2-remove-cvs-metadata.patch
 wusb-use-sizeof-struct-rather-than-pointer.patch
 raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
 fs-improve-remountro-vs-buffercache-coherency.patch
-net-rfkill-corec-work-around-gcc-402-silliness.patch
 percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
 readahead-add-blk_run_backing_dev.patch
 mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
