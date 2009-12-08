@@ -1,84 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ecryptfs-dont-ignore-return-value-from-lock_rename.patch removed from -mm tree
-Date: Tue, 08 Dec 2009 13:05:19 -0800
-Message-ID: <200912082105.nB8L5J7W008934@imap1.linux-foundation.org>
+Subject: [merged] kbuild-rebuild-fix-for-makefilemodbuiltin.patch removed from -mm tree
+Date: Tue, 08 Dec 2009 13:05:26 -0800
+Message-ID: <200912082105.nB8L5QTa009203@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37347 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40789 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965917AbZLHVFa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2009 16:05:30 -0500
+	by vger.kernel.org with ESMTP id S966123AbZLHVGA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2009 16:06:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ezk@cs.sunysb.edu, kirkland@canonical.com, tyhicks@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: JBeulich@novell.com, anibal@debian.org, mmarek@suse.cz, rostedt@goodmis.org, rusty@rustcorp.com.au, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ecryptfs: don't ignore return value from lock_rename()
+     kbuild: rebuild fix for Makefile.modbuiltin
 has been removed from the -mm tree.  Its filename was
-     ecryptfs-dont-ignore-return-value-from-lock_rename.patch
+     kbuild-rebuild-fix-for-makefilemodbuiltin.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ecryptfs: don't ignore return value from lock_rename()
-From: Erez Zadok <ezk@cs.sunysb.edu>
+Subject: kbuild: rebuild fix for Makefile.modbuiltin
+From: Jan Beulich <JBeulich@novell.com>
 
-Use return value from lock_rename() in ecryptfs_rename, and properly check
-that return value.  I've tested it briefly with ecryptfs: moved some
-files/directories at both the same level, as well as into subdirectories
-which may share a common ancestor.  Things seem to work, but perhaps more
-testing is needed.
+This patch addresses an issue with rebuilds failing to re-generate
+modules.builtin files after altering config options.
 
-Identical code to this has been running in Unionfs for a couple of years,
-so I'm reasonably confident that this patch is correct.
-
-Signed-off-by: Erez Zadok <ezk@cs.sunysb.edu>
-Cc: Tyler Hicks <tyhicks@linux.vnet.ibm.com>
-Cc: Dustin Kirkland <kirkland@canonical.com>
+Signed-off-by: Jan Beulich <JBeulich@novell.com>
+Signed-off-by: Michal Marek <mmarek@suse.cz>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/inode.c |   13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ scripts/Makefile.modbuiltin |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN fs/ecryptfs/inode.c~ecryptfs-dont-ignore-return-value-from-lock_rename fs/ecryptfs/inode.c
---- a/fs/ecryptfs/inode.c~ecryptfs-dont-ignore-return-value-from-lock_rename
-+++ a/fs/ecryptfs/inode.c
-@@ -614,6 +614,7 @@ ecryptfs_rename(struct inode *old_dir, s
- 	struct dentry *lower_new_dentry;
- 	struct dentry *lower_old_dir_dentry;
- 	struct dentry *lower_new_dir_dentry;
-+	struct dentry *trap = NULL;
+diff -puN scripts/Makefile.modbuiltin~kbuild-rebuild-fix-for-makefilemodbuiltin scripts/Makefile.modbuiltin
+--- a/scripts/Makefile.modbuiltin~kbuild-rebuild-fix-for-makefilemodbuiltin
++++ a/scripts/Makefile.modbuiltin
+@@ -31,9 +31,13 @@ modbuiltin-cmds =						\
+ 	for m in $(modbuiltin-mods); do echo kernel/$$m; done;	\
+ 	cat /dev/null $(modbuiltin-subdirs);
  
- 	lower_old_dentry = ecryptfs_dentry_to_lower(old_dentry);
- 	lower_new_dentry = ecryptfs_dentry_to_lower(new_dentry);
-@@ -621,7 +622,17 @@ ecryptfs_rename(struct inode *old_dir, s
- 	dget(lower_new_dentry);
- 	lower_old_dir_dentry = dget_parent(lower_old_dentry);
- 	lower_new_dir_dentry = dget_parent(lower_new_dentry);
--	lock_rename(lower_old_dir_dentry, lower_new_dir_dentry);
-+	trap = lock_rename(lower_old_dir_dentry, lower_new_dir_dentry);
-+	/* source should not be ancestor of target */
-+	if (trap == lower_old_dentry) {
-+		rc = -EINVAL;
-+		goto out_lock;
-+	}
-+	/* target should not be ancestor of source */
-+	if (trap == lower_new_dentry) {
-+		rc = -ENOTEMPTY;
-+		goto out_lock;
-+	}
- 	rc = vfs_rename(lower_old_dir_dentry->d_inode, lower_old_dentry,
- 			lower_new_dir_dentry->d_inode, lower_new_dentry);
- 	if (rc)
+-$(modbuiltin-target): $(subdir-ym)
++$(modbuiltin-target): $(subdir-ym) FORCE
+ 	$(Q)($(modbuiltin-cmds)) > $@
+ 
++PHONY += FORCE
++
++FORCE:
++
+ # Descending
+ # ---------------------------------------------------------------------------
+ 
 _
 
-Patches currently in -mm which might be from ezk@cs.sunysb.edu are
+Patches currently in -mm which might be from JBeulich@novell.com are
 
+origin.patch
 linux-next.patch
-fsstack-ecryptfs-remove-unused-get_nlinks-param-to-fsstack_copy_attr_all.patch
-vfs-fsstack-handle-32-bit-smp-preempt-large-files-in-fsstack_copy_inode_size.patch
+mm-vmallocc-dont-use-vmalloc_end.patch
+fix-section-mismatch-in-early-ehci-dbgp.patch
+vmalloc-adjust-gfp-mask-passed-on-nested-vmalloc-invocation.patch
+mm-bootmemc-properly-__init-annotate-helper-functions.patch
+dma-mapping-fix-off-by-one-error-in-dma_capable.patch
 
