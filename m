@@ -1,153 +1,312 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] makefile-fix-find-args.patch removed from -mm tree
-Date: Wed, 09 Dec 2009 11:35:11 -0800
-Message-ID: <200912091935.nB9JZBCs023520@imap1.linux-foundation.org>
+Subject: [merged] via-pmu-convert-to-proc_fops-seq_file.patch removed from -mm tree
+Date: Wed, 09 Dec 2009 11:49:54 -0800
+Message-ID: <200912091949.nB9JnsqM029000@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58026 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58622 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756814AbZLITfL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Dec 2009 14:35:11 -0500
+	by vger.kernel.org with ESMTP id S1754864AbZLITuZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Dec 2009 14:50:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mmarek@suse.cz, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, benh@kernel.crashing.org, galak@kernel.crashing.org, grant.likely@secretlab.ca, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Makefile: fix `find' args
+     via-pmu: convert to proc_fops/seq_file
 has been removed from the -mm tree.  Its filename was
-     makefile-fix-find-args.patch
+     via-pmu-convert-to-proc_fops-seq_file.patch
 
-This patch was dropped because an alternative patch was merged
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Makefile: fix `find' args
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: via-pmu: convert to proc_fops/seq_file
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-Repair
-
-commit 698699f681dac7a82c80076652feef0d5871ea5d
-Author:     Michal Marek <mmarek@suse.cz>
-AuthorDate: Mon Dec 7 16:38:33 2009 +0100
-Commit:     Michal Marek <mmarek@suse.cz>
-CommitDate: Mon Dec 7 23:14:23 2009 +0100
-
-    kbuild: generate modules.builtin
-    
-Cc: Michal Marek <mmarek@suse.cz>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Kumar Gala <galak@kernel.crashing.org>
+Cc: Grant Likely <grant.likely@secretlab.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/macintosh/via-pmu.c |  160 +++++++++++++++++++---------------
+ 1 file changed, 91 insertions(+), 69 deletions(-)
 
-diff -puN Makefile~makefile-fix-find-args Makefile
---- a/Makefile~makefile-fix-find-args
-+++ a/Makefile
-@@ -1174,7 +1174,7 @@ clean: archclean $(clean-dirs)
- 		\( -name '*.[oas]' -o -name '*.ko' -o -name '.*.cmd' \
- 		-o -name '.*.d' -o -name '.*.tmp' -o -name '*.mod.c' \
- 		-o -name '*.symtypes' -o -name 'modules.order' \
--		-o modules.order -o -name '.tmp_*.o.*' \
-+		-o -name '.tmp_*.o.*' \
- 		-o -name '*.gcno' \) -type f -print | xargs rm -f
+diff -puN drivers/macintosh/via-pmu.c~via-pmu-convert-to-proc_fops-seq_file drivers/macintosh/via-pmu.c
+--- a/drivers/macintosh/via-pmu.c~via-pmu-convert-to-proc_fops-seq_file
++++ a/drivers/macintosh/via-pmu.c
+@@ -36,6 +36,7 @@
+ #include <linux/spinlock.h>
+ #include <linux/pm.h>
+ #include <linux/proc_fs.h>
++#include <linux/seq_file.h>
+ #include <linux/init.h>
+ #include <linux/interrupt.h>
+ #include <linux/device.h>
+@@ -186,17 +187,11 @@ static int init_pmu(void);
+ static void pmu_start(void);
+ static irqreturn_t via_pmu_interrupt(int irq, void *arg);
+ static irqreturn_t gpio1_interrupt(int irq, void *arg);
+-static int proc_get_info(char *page, char **start, off_t off,
+-			  int count, int *eof, void *data);
+-static int proc_get_irqstats(char *page, char **start, off_t off,
+-			  int count, int *eof, void *data);
++static const struct file_operations pmu_info_proc_fops;
++static const struct file_operations pmu_irqstats_proc_fops;
+ static void pmu_pass_intr(unsigned char *data, int len);
+-static int proc_get_batt(char *page, char **start, off_t off,
+-			int count, int *eof, void *data);
+-static int proc_read_options(char *page, char **start, off_t off,
+-			int count, int *eof, void *data);
+-static int proc_write_options(struct file *file, const char __user *buffer,
+-			unsigned long count, void *data);
++static const struct file_operations pmu_battery_proc_fops;
++static const struct file_operations pmu_options_proc_fops;
  
- # mrproper - Delete all generated files, including .config
+ #ifdef CONFIG_ADB
+ struct adb_driver via_pmu_driver = {
+@@ -507,19 +502,15 @@ static int __init via_pmu_dev_init(void)
+ 		for (i=0; i<pmu_battery_count; i++) {
+ 			char title[16];
+ 			sprintf(title, "battery_%ld", i);
+-			proc_pmu_batt[i] = create_proc_read_entry(title, 0, proc_pmu_root,
+-						proc_get_batt, (void *)i);
++			proc_pmu_batt[i] = proc_create_data(title, 0, proc_pmu_root,
++					&pmu_battery_proc_fops, (void *)i);
+ 		}
+ 
+-		proc_pmu_info = create_proc_read_entry("info", 0, proc_pmu_root,
+-					proc_get_info, NULL);
+-		proc_pmu_irqstats = create_proc_read_entry("interrupts", 0, proc_pmu_root,
+-					proc_get_irqstats, NULL);
+-		proc_pmu_options = create_proc_entry("options", 0600, proc_pmu_root);
+-		if (proc_pmu_options) {
+-			proc_pmu_options->read_proc = proc_read_options;
+-			proc_pmu_options->write_proc = proc_write_options;
+-		}
++		proc_pmu_info = proc_create("info", 0, proc_pmu_root, &pmu_info_proc_fops);
++		proc_pmu_irqstats = proc_create("interrupts", 0, proc_pmu_root,
++						&pmu_irqstats_proc_fops);
++		proc_pmu_options = proc_create("options", 0600, proc_pmu_root,
++						&pmu_options_proc_fops);
+ 	}
+ 	return 0;
+ }
+@@ -799,27 +790,33 @@ query_battery_state(void)
+ 			2, PMU_SMART_BATTERY_STATE, pmu_cur_battery+1);
+ }
+ 
+-static int
+-proc_get_info(char *page, char **start, off_t off,
+-		int count, int *eof, void *data)
++static int pmu_info_proc_show(struct seq_file *m, void *v)
+ {
+-	char* p = page;
+-
+-	p += sprintf(p, "PMU driver version     : %d\n", PMU_DRIVER_VERSION);
+-	p += sprintf(p, "PMU firmware version   : %02x\n", pmu_version);
+-	p += sprintf(p, "AC Power               : %d\n",
++	seq_printf(m, "PMU driver version     : %d\n", PMU_DRIVER_VERSION);
++	seq_printf(m, "PMU firmware version   : %02x\n", pmu_version);
++	seq_printf(m, "AC Power               : %d\n",
+ 		((pmu_power_flags & PMU_PWR_AC_PRESENT) != 0) || pmu_battery_count == 0);
+-	p += sprintf(p, "Battery count          : %d\n", pmu_battery_count);
++	seq_printf(m, "Battery count          : %d\n", pmu_battery_count);
++
++	return 0;
++}
+ 
+-	return p - page;
++static int pmu_info_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, pmu_info_proc_show, NULL);
+ }
+ 
+-static int
+-proc_get_irqstats(char *page, char **start, off_t off,
+-		  int count, int *eof, void *data)
++static const struct file_operations pmu_info_proc_fops = {
++	.owner		= THIS_MODULE,
++	.open		= pmu_info_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++};
++
++static int pmu_irqstats_proc_show(struct seq_file *m, void *v)
+ {
+ 	int i;
+-	char* p = page;
+ 	static const char *irq_names[] = {
+ 		"Total CB1 triggered events",
+ 		"Total GPIO1 triggered events",
+@@ -835,60 +832,76 @@ proc_get_irqstats(char *page, char **sta
+         };
+ 
+ 	for (i=0; i<11; i++) {
+-		p += sprintf(p, " %2u: %10u (%s)\n",
++		seq_printf(m, " %2u: %10u (%s)\n",
+ 			     i, pmu_irq_stats[i], irq_names[i]);
+ 	}
+-	return p - page;
++	return 0;
+ }
+ 
+-static int
+-proc_get_batt(char *page, char **start, off_t off,
+-		int count, int *eof, void *data)
++static int pmu_irqstats_proc_open(struct inode *inode, struct file *file)
+ {
+-	long batnum = (long)data;
+-	char *p = page;
+-	
+-	p += sprintf(p, "\n");
+-	p += sprintf(p, "flags      : %08x\n",
+-		pmu_batteries[batnum].flags);
+-	p += sprintf(p, "charge     : %d\n",
+-		pmu_batteries[batnum].charge);
+-	p += sprintf(p, "max_charge : %d\n",
+-		pmu_batteries[batnum].max_charge);
+-	p += sprintf(p, "current    : %d\n",
+-		pmu_batteries[batnum].amperage);
+-	p += sprintf(p, "voltage    : %d\n",
+-		pmu_batteries[batnum].voltage);
+-	p += sprintf(p, "time rem.  : %d\n",
+-		pmu_batteries[batnum].time_remaining);
++	return single_open(file, pmu_irqstats_proc_show, NULL);
++}
++
++static const struct file_operations pmu_irqstats_proc_fops = {
++	.owner		= THIS_MODULE,
++	.open		= pmu_irqstats_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++};
+ 
+-	return p - page;
++static int pmu_battery_proc_show(struct seq_file *m, void *v)
++{
++	long batnum = (long)m->private;
++	
++	seq_putc(m, '\n');
++	seq_printf(m, "flags      : %08x\n", pmu_batteries[batnum].flags);
++	seq_printf(m, "charge     : %d\n", pmu_batteries[batnum].charge);
++	seq_printf(m, "max_charge : %d\n", pmu_batteries[batnum].max_charge);
++	seq_printf(m, "current    : %d\n", pmu_batteries[batnum].amperage);
++	seq_printf(m, "voltage    : %d\n", pmu_batteries[batnum].voltage);
++	seq_printf(m, "time rem.  : %d\n", pmu_batteries[batnum].time_remaining);
++	return 0;
+ }
+ 
+-static int
+-proc_read_options(char *page, char **start, off_t off,
+-			int count, int *eof, void *data)
++static int pmu_battery_proc_open(struct inode *inode, struct file *file)
+ {
+-	char *p = page;
++	return single_open(file, pmu_battery_proc_show, PDE(inode)->data);
++}
++
++static const struct file_operations pmu_battery_proc_fops = {
++	.owner		= THIS_MODULE,
++	.open		= pmu_battery_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++};
+ 
++static int pmu_options_proc_show(struct seq_file *m, void *v)
++{
+ #if defined(CONFIG_SUSPEND) && defined(CONFIG_PPC32)
+ 	if (pmu_kind == PMU_KEYLARGO_BASED &&
+ 	    pmac_call_feature(PMAC_FTR_SLEEP_STATE,NULL,0,-1) >= 0)
+-		p += sprintf(p, "lid_wakeup=%d\n", option_lid_wakeup);
++		seq_printf(m, "lid_wakeup=%d\n", option_lid_wakeup);
+ #endif
+ 	if (pmu_kind == PMU_KEYLARGO_BASED)
+-		p += sprintf(p, "server_mode=%d\n", option_server_mode);
++		seq_printf(m, "server_mode=%d\n", option_server_mode);
+ 
+-	return p - page;
++	return 0;
+ }
+-			
+-static int
+-proc_write_options(struct file *file, const char __user *buffer,
+-			unsigned long count, void *data)
++
++static int pmu_options_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, pmu_options_proc_show, NULL);
++}
++
++static ssize_t pmu_options_proc_write(struct file *file,
++		const char __user *buffer, size_t count, loff_t *pos)
+ {
+ 	char tmp[33];
+ 	char *label, *val;
+-	unsigned long fcount = count;
++	size_t fcount = count;
+ 	
+ 	if (!count)
+ 		return -EINVAL;
+@@ -927,6 +940,15 @@ proc_write_options(struct file *file, co
+ 	return fcount;
+ }
+ 
++static const struct file_operations pmu_options_proc_fops = {
++	.owner		= THIS_MODULE,
++	.open		= pmu_options_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++	.write		= pmu_options_proc_write,
++};
++
+ #ifdef CONFIG_ADB
+ /* Send an ADB command */
+ static int pmu_send_request(struct adb_request *req, int sync)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
 origin.patch
+bsdacct-fix-uid-gid-misreporting.patch
+hfs-fix-a-potential-buffer-overflow.patch
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-makefile-fix-find-args.patch
-drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-acpi-remove-nid_inval.patch
-drivers-acpi-acpi_padc-squish-warning.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices-checkpatch-fixes.patch
-drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
-drivers-media-video-pmsc-needs-versionh.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-drivers-leds-leds-ss4200c-fix-return-statement.patch
-net-sctp-socketc-fix-warning.patch
-net-ipv4-tcpc-fix-warning.patch
+asus_acpi-convert-to-seq_file.patch
+toshiba_acpi-convert-to-seq_file.patch
+thinkpad_acpi-convert-to-seq_file.patch
+arm-convert-proc-cpu-aligment-to-seq_file.patch
+arm-convert-proc-cpu-aligment-to-seq_file-fix.patch
+iseries-convert-to-proc_fops.patch
+proc_fops-convert-av7110.patch
+proc_fops-convert-cpia.patch
+proc_fops-convert-drivers-isdn-to-seq_file.patch
+proc_fops-convert-drivers-isdn-to-seq_file-fix.patch
 proc_fops-convert-drivers-isdn-to-seq_file-fix2.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
-scsi-add-hpsa-driver-for-hp-smart-array-controllers.patch
-aoe-switch-to-the-new-bio_flush_dcache_pages-interface.patch
-drivers-staging-wlags49_h2-remove-cvs-metadata.patch
-wusb-use-sizeof-struct-rather-than-pointer.patch
-raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-readahead-add-blk_run_backing_dev.patch
-mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
-oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
-oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes.patch
-mm-mlocking-in-try_to_unmap_one-fix-fix.patch
-mm-memory_hotplug-make-offline_pages-static.patch
-mm-hugetlb-fix-hugepage-memory-leak-in-mincore-cleanup.patch
-mm-hugetlb-fix-hugepage-memory-leak-in-mincore-build-fix.patch
-mm-hugetlb-add-hugepage-support-to-pagemap-build-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup.patch
-floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
-drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
-rwsem-fix-rwsem_is_locked-bugs-fix.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
-errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
-drivers-scsi-sym53c8xx_2-sym_gluec-rename-skip_spaces-to-sym_skip_spaces.patch
-lib-introduce-strim-checkpatch-fixes.patch
-msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes.patch
-blackfin-sd-host-controller-driver-fix.patch
-blackfin-sd-host-controller-driver-fix-fix.patch
-blackfin-sd-host-controller-driver-fix-fix-fix.patch
-crc32-minor-optimizations-and-cleanup-checkpatch-fixes.patch
-hwmon-w83627ehf-updates-checkpatch-fixes.patch
-lis3-update-documentation-to-match-latest-changes-fix.patch
-spi-controller-driver-for-designware-spi-core-fix.patch
-spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3.patch
-ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
-memcg-coalesce-charging-via-percpu-storage-fix.patch
-memcg-code-cleanrm-unused-variable-in-mem_cgroup_resize_limit-cleanup.patch
-ipc-remove-unreachable-code-in-semc-fix.patch
-char-cyclades-fix-compiler-warning.patch
-ip2-remove-ifdef-module-from-ip2mainc-fix-2.patch
-drivers-edac-amd64_edacc-fix-use-uninitialised-bug.patch
-fs-cache-avoid-maybe-used-uninitialised-warning-on-variable.patch
-aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
-direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-drivers-media-video-cx23885-needs-kfifo-updates.patch
-kfifo-move-struct-kfifo-in-place-fix.patch
-zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+parisc-convert-proc-pdc-lcdled-to-seq_file.patch
+mpt-fusion-convert-to-seq_file.patch
+sysctl_max_map_count-should-be-non-negative.patch
+alpha-convert-srm-code-to-seq_file.patch
+const-constify-remaining-dev_pm_ops.patch
+uml-convert-to-seq_file-proc_fops.patch
+uml-irq-register-race-condition.patch
+make-debug_bugverbose-default-to-y.patch
+proc-rename-de_get-to-pde_get-and-inline-it.patch
+clps711xfb-convert-to-proc_fops.patch
+pnpbios-convert-to-seq_file.patch
+const-constify-remaining-pipe_buf_operations.patch
+ufs-pass-qstr-instead-of-dentry-where-necessary-for-nfs.patch
+ufs-nfs-support.patch
+reiserfs-remove-proc-fs-reiserfs-version.patch
+reiserfs-dont-compile-procfso-at-all-if-no-support.patch
+proc-remove-docbook-and-example.patch
+seq_file-use-proc_create-in-documentation.patch
 
