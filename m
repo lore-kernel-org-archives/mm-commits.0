@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + makefile-fix-find-args.patch added to -mm tree
-Date: Tue, 08 Dec 2009 15:51:52 -0800
-Message-ID: <200912090016.nB90G4rS001743@imap1.linux-foundation.org>
+Subject: + net-sctp-socketc-fix-warning.patch added to -mm tree
+Date: Tue, 08 Dec 2009 16:15:15 -0800
+Message-ID: <200912090039.nB90dQrU027879@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36505 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47232 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966126AbZLIAQF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2009 19:16:05 -0500
+	by vger.kernel.org with ESMTP id S966136AbZLIAkA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2009 19:40:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mmarek@suse.cz
+Cc: akpm@linux-foundation.org, andrei@iptel.org, davem@davemloft.net, vladislav.yasevich@hp.com
 
 
 The patch titled
-     Makefile: fix `find' args
+     net/sctp/socket.c: fix warning
 has been added to the -mm tree.  Its filename is
-     makefile-fix-find-args.patch
+     net-sctp-socketc-fix-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,38 +33,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Makefile: fix `find' args
+Subject: net/sctp/socket.c: fix warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Repair
+x86_64 allmodconfig:
 
-commit 698699f681dac7a82c80076652feef0d5871ea5d
-Author:     Michal Marek <mmarek@suse.cz>
-AuthorDate: Mon Dec 7 16:38:33 2009 +0100
-Commit:     Michal Marek <mmarek@suse.cz>
-CommitDate: Mon Dec 7 23:14:23 2009 +0100
+net/sctp/socket.c: In function 'sctp_setsockopt_autoclose':
+net/sctp/socket.c:2090: warning: comparison is always false due to limited range of data type
 
-    kbuild: generate modules.builtin
-    
-Cc: Michal Marek <mmarek@suse.cz>
+Cc: Andrei Pelinescu-Onciul <andrei@iptel.org>
+Cc: Vlad Yasevich <vladislav.yasevich@hp.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/sctp/socket.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN Makefile~makefile-fix-find-args Makefile
---- a/Makefile~makefile-fix-find-args
-+++ a/Makefile
-@@ -1174,7 +1174,7 @@ clean: archclean $(clean-dirs)
- 		\( -name '*.[oas]' -o -name '*.ko' -o -name '.*.cmd' \
- 		-o -name '.*.d' -o -name '.*.tmp' -o -name '*.mod.c' \
- 		-o -name '*.symtypes' -o -name 'modules.order' \
--		-o modules.order -o -name '.tmp_*.o.*' \
-+		-o -name '.tmp_*.o.*' \
- 		-o -name '*.gcno' \) -type f -print | xargs rm -f
+diff -puN net/sctp/socket.c~net-sctp-socketc-fix-warning net/sctp/socket.c
+--- a/net/sctp/socket.c~net-sctp-socketc-fix-warning
++++ a/net/sctp/socket.c
+@@ -2087,8 +2087,7 @@ static int sctp_setsockopt_autoclose(str
+ 	if (copy_from_user(&sp->autoclose, optval, optlen))
+ 		return -EFAULT;
+ 	/* make sure it won't exceed MAX_SCHEDULE_TIMEOUT */
+-	if (sp->autoclose > (MAX_SCHEDULE_TIMEOUT / HZ) )
+-		sp->autoclose = (__u32)(MAX_SCHEDULE_TIMEOUT / HZ) ;
++	sp->autoclose = min(sp->autoclose, (u32)MAX_SCHEDULE_TIMEOUT / HZ);
  
- # mrproper - Delete all generated files, including .config
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -86,6 +84,7 @@ drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
 drivers-media-video-pmsc-needs-versionh.patch
 timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
 drivers-leds-leds-ss4200c-fix-return-statement.patch
+net-sctp-socketc-fix-warning.patch
 proc_fops-convert-drivers-isdn-to-seq_file-fix2.patch
 3x59x-fix-pci-resource-management.patch
 bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
