@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlb-fix-hugepage-memory-leak-in-mincore-build-fix.patch added to -mm tree
-Date: Tue, 08 Dec 2009 17:09:31 -0800
-Message-ID: <200912090133.nB91XgGD001686@imap1.linux-foundation.org>
+Subject: + mm-hugetlb-add-hugepage-support-to-pagemap-build-fix.patch added to -mm tree
+Date: Tue, 08 Dec 2009 17:16:32 -0800
+Message-ID: <200912090140.nB91ehsY019257@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33737 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49421 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967091AbZLIBfE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2009 20:35:04 -0500
+	by vger.kernel.org with ESMTP id S967130AbZLIBlS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2009 20:41:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@linux.intel.com, apw@canonical.com, fengguang.wu@intel.com, hugh.dickins@tiscali.co.uk, lee.schermerhorn@hp.com, mel@csn.ul.ie, n-horiguchi@ah.jp.nec.com, rientjes@google.com, stable@kernel.org
+Cc: akpm@linux-foundation.org, ak@linux.intel.com, apw@canonical.com, fengguang.wu@intel.com, hugh.dickins@tiscali.co.uk, lee.schermerhorn@hp.com, mel@csn.ul.ie, n-horiguchi@ah.jp.nec.com, rientjes@google.com
 
 
 The patch titled
-     mm-hugetlb-fix-hugepage-memory-leak-in-mincore-build-fix
+     mm-hugetlb-add-hugepage-support-to-pagemap-build-fix
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-fix-hugepage-memory-leak-in-mincore-build-fix.patch
+     mm-hugetlb-add-hugepage-support-to-pagemap-build-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,18 +33,15 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-hugetlb-fix-hugepage-memory-leak-in-mincore-build-fix
+Subject: mm-hugetlb-add-hugepage-support-to-pagemap-build-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-x86_64 allnoconfig:
+mm/pagewalk.c: In function 'walk_page_range':
+mm/pagewalk.c:134: error: implicit declaration of function 'huge_pte_offset'
+mm/pagewalk.c:135: warning: assignment makes pointer from integer without a cast
+mm/pagewalk.c:136: error: implicit declaration of function 'huge_pte_none'
+mm/pagewalk.c:136: error: implicit declaration of function 'huge_ptep_get'
 
-mm/mincore.c: In function 'do_mincore':
-mm/mincore.c:91: error: implicit declaration of function 'huge_pte_offset'
-mm/mincore.c:92: warning: assignment makes pointer from integer without a cast
-mm/mincore.c:94: error: implicit declaration of function 'huge_pte_none'
-mm/mincore.c:94: error: implicit declaration of function 'huge_ptep_get'
-
-Cc: <stable@kernel.org>
 Cc: Andi Kleen <ak@linux.intel.com>
 Cc: Andy Whitcroft <apw@canonical.com>
 Cc: David Rientjes <rientjes@google.com>
@@ -56,28 +53,45 @@ Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mincore.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/pagewalk.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN mm/mincore.c~mm-hugetlb-fix-hugepage-memory-leak-in-mincore-build-fix mm/mincore.c
---- a/mm/mincore.c~mm-hugetlb-fix-hugepage-memory-leak-in-mincore-build-fix
-+++ a/mm/mincore.c
-@@ -73,6 +73,7 @@ static long do_mincore(unsigned long add
- 	if (!vma || addr < vma->vm_start)
- 		return -ENOMEM;
+diff -puN mm/pagewalk.c~mm-hugetlb-add-hugepage-support-to-pagemap-build-fix mm/pagewalk.c
+--- a/mm/pagewalk.c~mm-hugetlb-add-hugepage-support-to-pagemap-build-fix
++++ a/mm/pagewalk.c
+@@ -106,11 +106,9 @@ int walk_page_range(unsigned long addr, 
+ 		    struct mm_walk *walk)
+ {
+ 	pgd_t *pgd;
+-	pte_t *pte;
+ 	unsigned long next;
+ 	int err = 0;
+ 	struct vm_area_struct *vma;
+-	struct hstate *hs;
  
+ 	if (addr >= end)
+ 		return err;
+@@ -128,7 +126,11 @@ int walk_page_range(unsigned long addr, 
+ 		 * we can't handled it in the same manner as non-huge pages.
+ 		 */
+ 		vma = find_vma(walk->mm, addr);
 +#ifdef CONFIG_HUGETLB_PAGE
- 	if (is_vm_hugetlb_page(vma)) {
- 		struct hstate *h;
- 		unsigned long nr_huge;
-@@ -106,6 +107,7 @@ static long do_mincore(unsigned long add
+ 		if (is_vm_hugetlb_page(vma)) {
++			pte_t *pte;
++			struct hstate *hs;
++
+ 			next = (vma->vm_end < next) ? vma->vm_end : next;
+ 			hs = hstate_vma(vma);
+ 			pte = huge_pte_offset(walk->mm,
+@@ -141,7 +143,7 @@ int walk_page_range(unsigned long addr, 
+ 				break;
+ 			continue;
  		}
- 		return nr;
- 	}
+-
 +#endif
- 
- 	/*
- 	 * Calculate how many pages there are left in the last level of the
+ 		if (pgd_none_or_clear_bad(pgd)) {
+ 			if (walk->pte_hole)
+ 				err = walk->pte_hole(addr, next, walk);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -122,6 +136,7 @@ mm-mlocking-in-try_to_unmap_one-fix-fix.patch
 mm-memory_hotplug-make-offline_pages-static.patch
 mm-hugetlb-fix-hugepage-memory-leak-in-mincore-cleanup.patch
 mm-hugetlb-fix-hugepage-memory-leak-in-mincore-build-fix.patch
+mm-hugetlb-add-hugepage-support-to-pagemap-build-fix.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup.patch
 floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
