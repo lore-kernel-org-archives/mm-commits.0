@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + net-ipv4-tcpc-fix-warning.patch added to -mm tree
-Date: Tue, 08 Dec 2009 16:21:18 -0800
-Message-ID: <200912090045.nB90jTaO010647@imap1.linux-foundation.org>
+Subject: + net-sctp-socketc-fix-warning.patch added to -mm tree
+Date: Tue, 08 Dec 2009 16:27:13 -0800
+Message-ID: <200912090051.nB90pOKY025445@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50666 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49836 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967036AbZLIApY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2009 19:45:24 -0500
+	by vger.kernel.org with ESMTP id S967048AbZLIAvu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2009 19:51:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davem@davemloft.net, william.allen.simpson@gmail.com
+Cc: akpm@linux-foundation.org, andrei@iptel.org, davem@davemloft.net, vladislav.yasevich@hp.com
 
 
 The patch titled
-     net/ipv4/tcp.c: fix warning
+     net/sctp/socket.c: fix warning
 has been added to the -mm tree.  Its filename is
-     net-ipv4-tcpc-fix-warning.patch
+     net-sctp-socketc-fix-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,46 +33,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: net/ipv4/tcp.c: fix warning
+Subject: net/sctp/socket.c: fix warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
 x86_64 allmodconfig:
 
-net/ipv4/tcp.c: In function 'do_tcp_getsockopt':
-net/ipv4/tcp.c:2544: warning: comparison is always false due to limited range of data type
+net/sctp/socket.c: In function 'sctp_setsockopt_autoclose':
+net/sctp/socket.c:2090: warning: comparison is always false due to limited range of data type
 
-sizeof(tcpct_value) is 536, which can never be less than a value which is held
-in a u8.
-
-This fix is stupid - just delete the code?
-
-btw, what does "return as nonce" try to mean?
-
-Cc: William Allen Simpson <william.allen.simpson@gmail.com>
-Cc: David S. Miller <davem@davemloft.net>
+Cc: Andrei Pelinescu-Onciul <andrei@iptel.org>
+Cc: Vlad Yasevich <vladislav.yasevich@hp.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/ipv4/tcp.c |    2 ++
- 1 file changed, 2 insertions(+)
+ net/sctp/socket.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN net/ipv4/tcp.c~net-ipv4-tcpc-fix-warning net/ipv4/tcp.c
---- a/net/ipv4/tcp.c~net-ipv4-tcpc-fix-warning
-+++ a/net/ipv4/tcp.c
-@@ -2540,11 +2540,13 @@ static int do_tcp_getsockopt(struct sock
- 			ctd.tcpct_cookie_desired = cvp->cookie_desired;
- 			ctd.tcpct_s_data_desired = cvp->s_data_desired;
+diff -puN net/sctp/socket.c~net-sctp-socketc-fix-warning net/sctp/socket.c
+--- a/net/sctp/socket.c~net-sctp-socketc-fix-warning
++++ a/net/sctp/socket.c
+@@ -2087,8 +2087,7 @@ static int sctp_setsockopt_autoclose(str
+ 	if (copy_from_user(&sp->autoclose, optval, optlen))
+ 		return -EFAULT;
+ 	/* make sure it won't exceed MAX_SCHEDULE_TIMEOUT */
+-	if (sp->autoclose > (MAX_SCHEDULE_TIMEOUT / HZ) )
+-		sp->autoclose = (__u32)(MAX_SCHEDULE_TIMEOUT / HZ) ;
++	sp->autoclose = min_t(long, sp->autoclose, MAX_SCHEDULE_TIMEOUT / HZ);
  
-+#if TCP_MSS_DEFAULT < 256
- 			/* Cookie(s) saved, return as nonce */
- 			if (sizeof(ctd.tcpct_value) < cvp->cookie_pair_size) {
- 				/* impossible? */
- 				return -EINVAL;
- 			}
-+#endif
- 			memcpy(&ctd.tcpct_value[0], &cvp->cookie_pair[0],
- 			       cvp->cookie_pair_size);
- 			ctd.tcpct_used = cvp->cookie_pair_size;
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
