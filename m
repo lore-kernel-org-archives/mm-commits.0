@@ -1,63 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Wed, 09 Dec 2009 11:34:54 -0800
-Message-ID: <200912091934.nB9JYsek022856@imap1.linux-foundation.org>
+Subject: [alternative-merged] makefile-fix-find-args.patch removed from -mm tree
+Date: Wed, 09 Dec 2009 11:35:11 -0800
+Message-ID: <200912091935.nB9JZBCs023520@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54804 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58026 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754071AbZLITeu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Dec 2009 14:34:50 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id nB9JYthx024262
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 9 Dec 2009 11:34:56 -0800
+	by vger.kernel.org with ESMTP id S1756814AbZLITfL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Dec 2009 14:35:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mmarek@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-git-rejects
+     Makefile: fix `find' args
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     makefile-fix-find-args.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because an alternative patch was merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
+Subject: Makefile: fix `find' args
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Repair
+
+commit 698699f681dac7a82c80076652feef0d5871ea5d
+Author:     Michal Marek <mmarek@suse.cz>
+AuthorDate: Mon Dec 7 16:38:33 2009 +0100
+Commit:     Michal Marek <mmarek@suse.cz>
+CommitDate: Mon Dec 7 23:14:23 2009 +0100
+
+    kbuild: generate modules.builtin
+    
+Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sctp/sysctl.c |    4 ----
- 1 file changed, 4 deletions(-)
+ Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/sctp/sysctl.c~linux-next-git-rejects net/sctp/sysctl.c
---- a/net/sctp/sysctl.c~linux-next-git-rejects
-+++ a/net/sctp/sysctl.c
-@@ -252,11 +252,7 @@ static ctl_table sctp_table[] = {
- 		.extra2		= &rwnd_scale_max,
- 	},
+diff -puN Makefile~makefile-fix-find-args Makefile
+--- a/Makefile~makefile-fix-find-args
++++ a/Makefile
+@@ -1174,7 +1174,7 @@ clean: archclean $(clean-dirs)
+ 		\( -name '*.[oas]' -o -name '*.ko' -o -name '.*.cmd' \
+ 		-o -name '.*.d' -o -name '.*.tmp' -o -name '*.mod.c' \
+ 		-o -name '*.symtypes' -o -name 'modules.order' \
+-		-o modules.order -o -name '.tmp_*.o.*' \
++		-o -name '.tmp_*.o.*' \
+ 		-o -name '*.gcno' \) -type f -print | xargs rm -f
  
--<<<<<<< HEAD:net/sctp/sysctl.c
- 	{ /* sentinel */ }
--=======
--	{ }
-->>>>>>> FETCH_HEAD:net/sctp/sysctl.c
- };
- 
- static struct ctl_path sctp_path[] = {
+ # mrproper - Delete all generated files, including .config
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
 revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
