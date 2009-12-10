@@ -1,177 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Thu, 10 Dec 2009 12:20:38 -0800
-Message-ID: <200912102020.nBAKKcId023361@imap1.linux-foundation.org>
+Subject: [alternative-merged] net-ipv4-tcpc-fix-warning.patch removed from -mm tree
+Date: Thu, 10 Dec 2009 12:21:05 -0800
+Message-ID: <200912102021.nBAKL5NG024570@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60555 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58462 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756488AbZLJUUe (ORCPT
+	by vger.kernel.org with ESMTP id S1757023AbZLJUVD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Dec 2009 15:20:34 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id nBAKKcJG012411
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 10 Dec 2009 12:20:39 -0800
+	Thu, 10 Dec 2009 15:21:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, davem@davemloft.net, william.allen.simpson@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     net/ipv4/tcp.c: fix warning
+has been removed from the -mm tree.  Its filename was
+     net-ipv4-tcpc-fix-warning.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an alternative patch was merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
+Subject: net/ipv4/tcp.c: fix warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
+x86_64 allmodconfig:
+
+net/ipv4/tcp.c: In function 'do_tcp_getsockopt':
+net/ipv4/tcp.c:2544: warning: comparison is always false due to limited range of data type
+
+sizeof(tcpct_value) is 536, which can never be less than a value which is held
+in a u8.
+
+This fix is stupid - just delete the code?
+
+btw, what does "return as nonce" try to mean?
+
+Cc: William Allen Simpson <william.allen.simpson@gmail.com>
+Cc: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/feature-removal-schedule.txt |    3 ---
- drivers/media/common/tuners/max2165.c      |    4 ----
- drivers/media/dvb/firewire/firedtv-1394.c  |   11 -----------
- drivers/media/dvb/firewire/firedtv-avc.c   |    4 ----
- drivers/media/dvb/firewire/firedtv-fw.c    |    4 ----
- drivers/media/dvb/firewire/firedtv.h       |    4 ----
- include/linux/videodev2.h                  |    3 ---
- 7 files changed, 33 deletions(-)
+ net/ipv4/tcp.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN Documentation/feature-removal-schedule.txt~linux-next-git-rejects Documentation/feature-removal-schedule.txt
---- a/Documentation/feature-removal-schedule.txt~linux-next-git-rejects
-+++ a/Documentation/feature-removal-schedule.txt
-@@ -490,8 +490,6 @@ Why:	Obsoleted by the adt7475 driver.
- Who:	Jean Delvare <khali@linux-fr.org>
+diff -puN net/ipv4/tcp.c~net-ipv4-tcpc-fix-warning net/ipv4/tcp.c
+--- a/net/ipv4/tcp.c~net-ipv4-tcpc-fix-warning
++++ a/net/ipv4/tcp.c
+@@ -2540,11 +2540,13 @@ static int do_tcp_getsockopt(struct sock
+ 			ctd.tcpct_cookie_desired = cvp->cookie_desired;
+ 			ctd.tcpct_s_data_desired = cvp->s_data_desired;
  
- ---------------------------
--<<<<<<< HEAD:Documentation/feature-removal-schedule.txt
--=======
- 
- What:	Support for lcd_switch and display_get in asus-laptop driver
- When:	March 2010
-@@ -512,4 +510,3 @@ Why:	These two features use non-standard
- Who:	Corentin Chary <corentin.chary@gmail.com>
- 
- ----------------------------
-->>>>>>> FETCH_HEAD:Documentation/feature-removal-schedule.txt
-diff -puN drivers/media/common/tuners/max2165.c~linux-next-git-rejects drivers/media/common/tuners/max2165.c
---- a/drivers/media/common/tuners/max2165.c~linux-next-git-rejects
-+++ a/drivers/media/common/tuners/max2165.c
-@@ -193,11 +193,7 @@ static int max2165_set_rf(struct max2165
- {
- 	u8 tf;
- 	u8 tf_ntch;
--<<<<<<< HEAD:drivers/media/common/tuners/max2165.c
- 	u32 t;
--=======
--	double t;
-->>>>>>> FETCH_HEAD:drivers/media/common/tuners/max2165.c
- 	u32 quotient, fraction;
- 
- 	/* Set PLL divider according to RF frequency */
-diff -puN drivers/media/dvb/firewire/firedtv-1394.c~linux-next-git-rejects drivers/media/dvb/firewire/firedtv-1394.c
---- a/drivers/media/dvb/firewire/firedtv-1394.c~linux-next-git-rejects
-+++ a/drivers/media/dvb/firewire/firedtv-1394.c
-@@ -90,7 +90,6 @@ static inline struct node_entry *node_of
- 	return container_of(fdtv->device, struct unit_directory, device)->ne;
- }
- 
--<<<<<<< HEAD:drivers/media/dvb/firewire/firedtv-1394.c
- static int node_lock(struct firedtv *fdtv, u64 addr, __be32 data[])
- {
- 	int ret;
-@@ -98,16 +97,6 @@ static int node_lock(struct firedtv *fdt
- 	ret = hpsb_node_lock(node_of(fdtv), addr, EXTCODE_COMPARE_SWAP,
- 		(__force quadlet_t *)&data[1], (__force quadlet_t)data[0]);
- 	data[0] = data[1];
--=======
--static int node_lock(struct firedtv *fdtv, u64 addr, void *data)
--{
--	quadlet_t *d = data;
--	int ret;
--
--	ret = hpsb_node_lock(node_of(fdtv), addr,
--			     EXTCODE_COMPARE_SWAP, &d[1], d[0]);
--	d[0] = d[1];
-->>>>>>> FETCH_HEAD:drivers/media/dvb/firewire/firedtv-1394.c
- 
- 	return ret;
- }
-diff -puN drivers/media/dvb/firewire/firedtv-avc.c~linux-next-git-rejects drivers/media/dvb/firewire/firedtv-avc.c
---- a/drivers/media/dvb/firewire/firedtv-avc.c~linux-next-git-rejects
-+++ a/drivers/media/dvb/firewire/firedtv-avc.c
-@@ -1295,11 +1295,7 @@ static int cmp_lock(struct firedtv *fdtv
- 	/* data[] is stack-allocated and should not be DMA-mapped. */
- 	memcpy(fdtv->avc_data, data, 8);
- 
--<<<<<<< HEAD:drivers/media/dvb/firewire/firedtv-avc.c
--	ret = fdtv->backend->lock(fdtv, addr, data);
--=======
- 	ret = fdtv->backend->lock(fdtv, addr, fdtv->avc_data);
-->>>>>>> FETCH_HEAD:drivers/media/dvb/firewire/firedtv-avc.c
- 	if (ret < 0)
- 		dev_err(fdtv->device, "CMP: lock I/O error\n");
- 	else
-diff -puN drivers/media/dvb/firewire/firedtv-fw.c~linux-next-git-rejects drivers/media/dvb/firewire/firedtv-fw.c
---- a/drivers/media/dvb/firewire/firedtv-fw.c~linux-next-git-rejects
-+++ a/drivers/media/dvb/firewire/firedtv-fw.c
-@@ -41,11 +41,7 @@ static int node_req(struct firedtv *fdtv
- 	return rcode != RCODE_COMPLETE ? -EIO : 0;
- }
- 
--<<<<<<< HEAD:drivers/media/dvb/firewire/firedtv-fw.c
- static int node_lock(struct firedtv *fdtv, u64 addr, __be32 data[])
--=======
--static int node_lock(struct firedtv *fdtv, u64 addr, void *data)
-->>>>>>> FETCH_HEAD:drivers/media/dvb/firewire/firedtv-fw.c
- {
- 	return node_req(fdtv, addr, data, 8, TCODE_LOCK_COMPARE_SWAP);
- }
-diff -puN drivers/media/dvb/firewire/firedtv.h~linux-next-git-rejects drivers/media/dvb/firewire/firedtv.h
---- a/drivers/media/dvb/firewire/firedtv.h~linux-next-git-rejects
-+++ a/drivers/media/dvb/firewire/firedtv.h
-@@ -73,11 +73,7 @@ struct input_dev;
- struct firedtv;
- 
- struct firedtv_backend {
--<<<<<<< HEAD:drivers/media/dvb/firewire/firedtv.h
- 	int (*lock)(struct firedtv *fdtv, u64 addr, __be32 data[]);
--=======
--	int (*lock)(struct firedtv *fdtv, u64 addr, void *data);
-->>>>>>> FETCH_HEAD:drivers/media/dvb/firewire/firedtv.h
- 	int (*read)(struct firedtv *fdtv, u64 addr, void *data);
- 	int (*write)(struct firedtv *fdtv, u64 addr, void *data, size_t len);
- 	int (*start_iso)(struct firedtv *fdtv);
-diff -puN include/linux/videodev2.h~linux-next-git-rejects include/linux/videodev2.h
---- a/include/linux/videodev2.h~linux-next-git-rejects
-+++ a/include/linux/videodev2.h
-@@ -361,10 +361,7 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_PJPG     v4l2_fourcc('P', 'J', 'P', 'G') /* Pixart 73xx JPEG */
- #define V4L2_PIX_FMT_OV511    v4l2_fourcc('O', '5', '1', '1') /* ov511 JPEG */
- #define V4L2_PIX_FMT_OV518    v4l2_fourcc('O', '5', '1', '8') /* ov518 JPEG */
--<<<<<<< HEAD:include/linux/videodev2.h
--=======
- #define V4L2_PIX_FMT_TM6000   v4l2_fourcc('T', 'M', '6', '0') /* tm5600/tm60x0 */
-->>>>>>> FETCH_HEAD:include/linux/videodev2.h
- #define V4L2_PIX_FMT_STV0680  v4l2_fourcc('S', '6', '8', '0') /* stv0680 bayer */
- 
- /*
++#if TCP_MSS_DEFAULT < 256
+ 			/* Cookie(s) saved, return as nonce */
+ 			if (sizeof(ctd.tcpct_value) < cvp->cookie_pair_size) {
+ 				/* impossible? */
+ 				return -EINVAL;
+ 			}
++#endif
+ 			memcpy(&ctd.tcpct_value[0], &cvp->cookie_pair[0],
+ 			       cvp->cookie_pair_size);
+ 			ctd.tcpct_used = cvp->cookie_pair_size;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
