@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mtd-nand-davinci-correct-4-bit-error-correction-update.patch added to -mm tree
-Date: Thu, 10 Dec 2009 15:09:55 -0800
-Message-ID: <200912102309.nBAN9taP028481@imap1.linux-foundation.org>
+Subject: + drivers-isdn-eliminate-duplicated-test.patch added to -mm tree
+Date: Thu, 10 Dec 2009 15:20:40 -0800
+Message-ID: <200912102320.nBANKe9J023218@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48850 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56102 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933088AbZLJXKE (ORCPT
+	by vger.kernel.org with ESMTP id S1753591AbZLJXUq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Dec 2009 18:10:04 -0500
+	Thu, 10 Dec 2009 18:20:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sudhakar.raj@ti.com, dwmw2@infradead.org, nsnehaprabha@ti.com
+Cc: julia@diku.dk, isdn@linux-pingi.de
 
 
 The patch titled
-     mtd-nand: davinci: Correct 4-bit error correction
+     drivers/isdn: eliminate duplicated test
 has been added to the -mm tree.  Its filename is
-     mtd-nand-davinci-correct-4-bit-error-correction-update.patch
+     drivers-isdn-eliminate-duplicated-test.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,64 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd-nand: davinci: Correct 4-bit error correction
-From: Sudhakar Rajashekhara <sudhakar.raj@ti.com>
+Subject: drivers/isdn: eliminate duplicated test
+From: Julia Lawall <julia@diku.dk>
 
- From the previous version, timeout has been added to come out
- of the infinite loop.
+The code checked slot_rx twice.  Check slot_tx by analogy with the bank
+case.
 
-Signed-off-by: Sudhakar Rajashekhara <sudhakar.raj@ti.com>
-Cc: Sneha Narnakaje <nsnehaprabha@ti.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
+The semantic match that finds this problem is as follows:
+(http://coccinelle.lip6.fr/)
+
+// <smpl>
+@@
+expression E;
+@@
+
+(
+*E && E
+|
+*E || E
+)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Karsten Keil <isdn@linux-pingi.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/nand/davinci_nand.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/isdn/hardware/mISDN/hfcmulti.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mtd/nand/davinci_nand.c~mtd-nand-davinci-correct-4-bit-error-correction-update drivers/mtd/nand/davinci_nand.c
---- a/drivers/mtd/nand/davinci_nand.c~mtd-nand-davinci-correct-4-bit-error-correction-update
-+++ a/drivers/mtd/nand/davinci_nand.c
-@@ -312,6 +312,7 @@ static int nand_davinci_correct_4bit(str
- 	u32 syndrome[4];
- 	u32 ecc_state;
- 	unsigned num_errors, corrected;
-+	unsigned long timeo = jiffies + msecs_to_jiffies(100);
- 
- 	/* All bytes 0xff?  It's an erased page; ignore its ECC. */
- 	for (i = 0; i < 10; i++) {
-@@ -374,7 +375,7 @@ compare:
- 		ecc_state = (davinci_nand_readl(info,
- 				NANDFSR_OFFSET) >> 8) & 0x0f;
- 		cpu_relax();
--	} while (ecc_state < 4);
-+	} while ((ecc_state < 4) && time_before(jiffies, timeo));
- 
- 	for (;;) {
- 		u32	fsr = davinci_nand_readl(info, NANDFSR_OFFSET);
+diff -puN drivers/isdn/hardware/mISDN/hfcmulti.c~drivers-isdn-eliminate-duplicated-test drivers/isdn/hardware/mISDN/hfcmulti.c
+--- a/drivers/isdn/hardware/mISDN/hfcmulti.c~drivers-isdn-eliminate-duplicated-test
++++ a/drivers/isdn/hardware/mISDN/hfcmulti.c
+@@ -3152,7 +3152,7 @@ static void
+ hfcmulti_pcm(struct hfc_multi *hc, int ch, int slot_tx, int bank_tx,
+     int slot_rx, int bank_rx)
+ {
+-	if (slot_rx < 0 || slot_rx < 0 || bank_tx < 0 || bank_rx < 0) {
++	if (slot_tx < 0 || slot_rx < 0 || bank_tx < 0 || bank_rx < 0) {
+ 		/* disable PCM */
+ 		mode_hfcmulti(hc, ch, hc->chan[ch].protocol, -1, 0, -1, 0);
+ 		return;
 _
 
-Patches currently in -mm which might be from sudhakar.raj@ti.com are
+Patches currently in -mm which might be from julia@diku.dk are
 
 origin.patch
 linux-next.patch
-mtd-nand-davinci-correct-4-bit-error-correction.patch
-mtd-nand-davinci-correct-4-bit-error-correction-update.patch
-davinci-mmc-modify-data-types-of-edma-related-variables.patch
-davinci-fb-calculate-the-clock-divider-from-pixel-clock-info.patch
+drivers-media-video-move-dereference-after-null-test.patch
+drivers-isdn-eliminate-duplicated-test.patch
+drivers-scsi-libsas-use-sam_good.patch
+drivers-scsi-remove-unnecessary-null-test.patch
+drivers-message-move-dereference-after-null-test.patch
+drivers-block-dac960c-use-dac960_v2_controller.patch
+drivers-usb-wusbcore-introduce-missing-usb_free_urb.patch
+drivers-cpuidle-move-dereference-after-null-test.patch
+tree-wide-convert-open-calls-to-remove-spaces-to-skip_spaces-lib-function.patch
+drivers-mmc-move-dereference-after-null-test.patch
+drivers-video-move-dereference-after-null-test.patch
+drivers-char-ipmi-use-kcs_idle_state.patch
+drivers-edac-introduce-missing-kfree.patch
 
