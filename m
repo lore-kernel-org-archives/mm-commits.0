@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-hard_msgmax-should-be-higher-not-lower-on-64bit.patch added to -mm tree
-Date: Fri, 11 Dec 2009 14:05:13 -0800
-Message-ID: <200912112205.nBBM5Dbu024112@imap1.linux-foundation.org>
+Subject: + usbtouchscreen-fix-leaks-and-check-return-value-of-usb_submit_urb.patch added to -mm tree
+Date: Fri, 11 Dec 2009 14:26:13 -0800
+Message-ID: <200912112226.nBBMQD6J012432@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36200 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49642 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758722AbZLKWGD (ORCPT
+	by vger.kernel.org with ESMTP id S1762880AbZLKW0w (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Dec 2009 17:06:03 -0500
+	Fri, 11 Dec 2009 17:26:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: amwang@redhat.com, clg@fr.ibm.com, serue@us.ibm.com
+Cc: linux@rainbow-software.org, daniel.ritz@gmx.ch, ddstreet@ieee.org, dmitry.torokhov@gmail.com, floe@butterbrot.org, greg@kroah.com, jim-linux@nurd.se, oliver@neukum.org
 
 
 The patch titled
-     ipc: HARD_MSGMAX should be higher not lower on 64bit
+     usbtouchscreen: fix leaks and check return value of usb_submit_urb()
 has been added to the -mm tree.  Its filename is
-     ipc-hard_msgmax-should-be-higher-not-lower-on-64bit.patch
+     usbtouchscreen-fix-leaks-and-check-return-value-of-usb_submit_urb.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +34,88 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ipc: HARD_MSGMAX should be higher not lower on 64bit
-From: Amerigo Wang <amwang@redhat.com>
+Subject: usbtouchscreen: fix leaks and check return value of usb_submit_urb()
+From: Ondrej Zary <linux@rainbow-software.org>
 
-We have HARD_MSGMAX lower on 64bit than on 32bit, since usually 64bit
-machines have more memory than 32bit machines.
+Fix urb and priv leaks in error paths of initialization and NEXIO ack_buf
+leak.
 
-Making it higher on 64bit seems reasonable, and keep the original number
-on 32bit.
+Also check usb_submit_urb() return value.
 
-Acked-by: Serge E. Hallyn <serue@us.ibm.com>
-Cc: Cedric Le Goater <clg@fr.ibm.com>
-Signed-off-by: WANG Cong <amwang@redhat.com>
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Jim Persson <jim-linux@nurd.se>
+Cc: Florian Echtler <floe@butterbrot.org>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Daniel Ritz <daniel.ritz@gmx.ch>
+Cc: Greg KH <greg@kroah.com>
+Cc: Oliver Neukum <oliver@neukum.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ipc_namespace.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/input/touchscreen/usbtouchscreen.c |   21 +++++++++++++++----
+ 1 file changed, 17 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/ipc_namespace.h~ipc-hard_msgmax-should-be-higher-not-lower-on-64bit include/linux/ipc_namespace.h
---- a/include/linux/ipc_namespace.h~ipc-hard_msgmax-should-be-higher-not-lower-on-64bit
-+++ a/include/linux/ipc_namespace.h
-@@ -87,7 +87,7 @@ extern int mq_init_ns(struct ipc_namespa
- /* default values */
- #define DFLT_QUEUESMAX 256     /* max number of message queues */
- #define DFLT_MSGMAX    10      /* max number of messages in each queue */
--#define HARD_MSGMAX    (131072/sizeof(void *))
-+#define HARD_MSGMAX    (32768*sizeof(void *)/4)
- #define DFLT_MSGSIZEMAX 8192   /* max message size */
- #else
- static inline int mq_init_ns(struct ipc_namespace *ns) { return 0; }
+diff -puN drivers/input/touchscreen/usbtouchscreen.c~usbtouchscreen-fix-leaks-and-check-return-value-of-usb_submit_urb drivers/input/touchscreen/usbtouchscreen.c
+--- a/drivers/input/touchscreen/usbtouchscreen.c~usbtouchscreen-fix-leaks-and-check-return-value-of-usb_submit_urb
++++ a/drivers/input/touchscreen/usbtouchscreen.c
+@@ -834,6 +834,7 @@ static void nexio_exit(struct usbtouch_u
+ 
+ 	usb_kill_urb(priv->ack);
+ 	usb_free_urb(priv->ack);
++	kfree(priv->ack_buf);
+ 	kfree(priv);
+ }
+ 
+@@ -1395,23 +1396,35 @@ static int usbtouch_probe(struct usb_int
+ 		err = type->init(usbtouch);
+ 		if (err) {
+ 			dbg("%s - type->init() failed, err: %d", __func__, err);
+-			goto out_free_buffers;
++			goto out_free_urb;
+ 		}
+ 	}
+ 
+ 	err = input_register_device(usbtouch->input);
+ 	if (err) {
+ 		dbg("%s - input_register_device failed, err: %d", __func__, err);
+-		goto out_free_buffers;
++		goto out_exit;
+ 	}
+ 
+ 	usb_set_intfdata(intf, usbtouch);
+ 
+-	if (usbtouch->type->irq_always)
+-		usb_submit_urb(usbtouch->irq, GFP_KERNEL);
++	if (usbtouch->type->irq_always) {
++		err = usb_submit_urb(usbtouch->irq, GFP_KERNEL);
++		if (err) {
++			err("%s - usb_submit_urb failed with result: %d",
++			    __func__, err);
++			input_unregister_device(usbtouch->input);
++			goto out_exit;
++		}
++	}
+ 
+ 	return 0;
+ 
++out_exit:
++	if (type->exit)
++		type->exit(usbtouch);
++out_free_urb:
++	usb_free_urb(usbtouch->irq);
+ out_free_buffers:
+ 	usbtouch_free_buffers(udev, usbtouch);
+ out_free:
 _
 
-Patches currently in -mm which might be from amwang@redhat.com are
+Patches currently in -mm which might be from linux@rainbow-software.org are
 
 origin.patch
-hfs-fix-a-potential-buffer-overflow.patch
-linux-next.patch
-xtensa-use-generic-sys_pipe.patch
-sysctl_max_map_count-should-be-non-negative.patch
-rwsem-spinlock-remove-useless-function-exports.patch
-rwsem-fix-rwsem_is_locked-bugs.patch
-rwsem-fix-rwsem_is_locked-bugs-fix.patch
-kallsyms-remove-deprecated-print_fn_descriptor_symbol.patch
-ipc-remove-unreachable-code-in-semc.patch
-ipc-remove-unreachable-code-in-semc-fix.patch
-ipc-hard_msgmax-should-be-higher-not-lower-on-64bit.patch
-kexec-premit-reduction-of-the-reserved-memory-size.patch
-kexec-premit-reduction-of-the-reserved-memory-size-fix.patch
+usbtouchscreen-convert-from-usb_device-to-usb_interface.patch
+usbtouchscreen-find-input-endpoint-automatically.patch
+usbtouchscreen-add-nexio-or-inexio-support.patch
+usbtouchscreen-fix-nexio-ack-and-usb-disconnect.patch
+usbtouchscreen-dont-send-interrupt-urbs-to-bulk-endpoints.patch
+usbtouchscreen-fix-leaks-and-check-return-value-of-usb_submit_urb.patch
 
