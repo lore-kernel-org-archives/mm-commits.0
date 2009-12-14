@@ -1,65 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [folded] spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 14 Dec 2009 14:19:32 -0800
-Message-ID: <200912142219.nBEMJWhp032325@imap1.linux-foundation.org>
+Subject: + cs5535-add-a-generic-clock-event-mfgpt-driver-fix.patch added to -mm tree
+Date: Mon, 14 Dec 2009 15:37:58 -0800
+Message-ID: <200912150002.nBF02HUr006252@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45690 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57802 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932824AbZLNWTu (ORCPT
+	by vger.kernel.org with ESMTP id S1757754AbZLOAC3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Dec 2009 17:19:50 -0500
+	Mon, 14 Dec 2009 19:02:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cascardo@holoscopio.com, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, dilinger@collabora.co.uk, jordan@cosmicpenguin.net
 
 
 The patch titled
-     spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes
-has been removed from the -mm tree.  Its filename was
-     spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
+     cs5535-add-a-generic-clock-event-mfgpt-driver-fix
+has been added to the -mm tree.  Its filename is
+     cs5535-add-a-generic-clock-event-mfgpt-driver-fix.patch
 
-This patch was dropped because it was folded into spidev-use-declare_bitmap-instead-of-declaring-the-array.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes
+Subject: cs5535-add-a-generic-clock-event-mfgpt-driver-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: space required after that ',' (ctx:VxV)
-#17: FILE: drivers/spi/spidev.c:57:
-+static DECLARE_BITMAP(minors,N_SPI_MINORS);
-                             ^
+sparc64 allmodconfig:
 
-total: 1 errors, 0 warnings, 8 lines checked
+drivers/clocksource/cs5535-clockevt.c: In function `cs5535_mfgpt_init':
+drivers/clocksource/cs5535-clockevt.c:160: error: implicit declaration of function `setup_irq'
 
-./patches/spidev-use-declare_bitmap-instead-of-declaring-the-array.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
+Cc: Andres Salomon <dilinger@collabora.co.uk>
+Cc: Jordan Crouse <jordan@cosmicpenguin.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spidev.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/clocksource/cs5535-clockevt.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/spi/spidev.c~spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes drivers/spi/spidev.c
---- a/drivers/spi/spidev.c~spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes
-+++ a/drivers/spi/spidev.c
-@@ -53,7 +53,7 @@
- #define SPIDEV_MAJOR			153	/* assigned */
- #define N_SPI_MINORS			32	/* ... up to 256 */
+diff -puN drivers/clocksource/cs5535-clockevt.c~cs5535-add-a-generic-clock-event-mfgpt-driver-fix drivers/clocksource/cs5535-clockevt.c
+--- a/drivers/clocksource/cs5535-clockevt.c~cs5535-add-a-generic-clock-event-mfgpt-driver-fix
++++ a/drivers/clocksource/cs5535-clockevt.c
+@@ -13,6 +13,7 @@
+  */
  
--static DECLARE_BITMAP(minors,N_SPI_MINORS);
-+static DECLARE_BITMAP(minors, N_SPI_MINORS);
- 
- 
- /* Bit masks for spi_device.mode management.  Note that incorrect
+ #include <linux/kernel.h>
++#include <linux/irq.h>
+ #include <linux/interrupt.h>
+ #include <linux/module.h>
+ #include <linux/cs5535.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -82,6 +83,7 @@ rwsem-fix-rwsem_is_locked-bugs-fix.patch
 kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
 kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
 errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
+cs5535-add-a-generic-clock-event-mfgpt-driver-fix.patch
 drivers-scsi-sym53c8xx_2-sym_gluec-rename-skip_spaces-to-sym_skip_spaces.patch
 lib-introduce-strim-checkpatch-fixes.patch
 blackfin-sd-host-controller-driver-fix.patch
@@ -119,7 +121,6 @@ readahead-add-blk_run_backing_dev.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 spi-controller-driver-for-designware-spi-core.patch
 spidev-use-declare_bitmap-instead-of-declaring-the-array.patch
-spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
 gpiolib-add-names-file-in-gpio-chip-sysfs.patch
 mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
 mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
