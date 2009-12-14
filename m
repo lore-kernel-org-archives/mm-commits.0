@@ -1,289 +1,442 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Mon, 14 Dec 2009 12:54:00 -0800
-Message-ID: <200912142054.nBEKs1oI005505@imap1.linux-foundation.org>
+Subject: [wrecked] raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch removed from -mm tree
+Date: Mon, 14 Dec 2009 12:57:55 -0800
+Message-ID: <200912142057.nBEKvtGF015599@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43899 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42712 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932181AbZLNUyG (ORCPT
+	by vger.kernel.org with ESMTP id S1754991AbZLNU6D (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Dec 2009 15:54:06 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id nBEKs1Bf014676
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 14 Dec 2009 12:54:02 -0800
+	Mon, 14 Dec 2009 15:58:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: viro@ZenIV.linux.org.uk, arnd@arndb.deviro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-git-rejects
+     raw: fix rawctl compat ioctls breakage on amd64 and itanic
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because other changes were merged, which wrecked this patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: raw: fix rawctl compat ioctls breakage on amd64 and itanic
+From: Al Viro <viro@ZenIV.linux.org.uk>
 
+RAW_SETBIND and RAW_GETBIND 32bit versions are fscked in interesting ways.
+
+1) fs/compat_ioctl.c has COMPATIBLE_IOCTL(RAW_SETBIND) followed by
+HANDLE_IOCTL(RAW_SETBIND, raw_ioctl).  The latter is ignored.
+
+2) on amd64 (and itanic) the damn thing is broken - we have int + u64 + u64
+and layouts on i386 and amd64 are _not_ the same.  raw_ioctl() would
+work there, but it's never called due to (1).  As it is, i386 /sbin/raw
+definitely doesn't work on amd64 boxen.
+
+3) switching to raw_ioctl() as is would *not* work on e.g. sparc64 and ppc64,
+which would be rather sad, seeing that normal userland there is 32bit.
+The thing is, slapping __packed on the struct in question does not DTRT -
+it eliminates *all* padding.  The real solution is to use compat_u64.
+
+4) of course, all that stuff has no business being outside of raw.c in the
+first place - there should be ->compat_ioctl() for /dev/rawctl instead of
+messing with compat_ioctl.c.
+
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS                             |   10 ----------
- arch/arm/configs/omap_3430sdp_defconfig |    3 ---
- arch/arm/mach-omap2/board-3430sdp.c     |   11 -----------
- arch/arm/mach-omap2/io.c                |    3 ---
- arch/arm/plat-omap/fb.c                 |    3 ---
- drivers/gpu/drm/drm_fb_helper.c         |    4 ----
- drivers/video/omap2/displays/Kconfig    |    3 ---
- drivers/video/omap2/displays/Makefile   |    3 ---
- 8 files changed, 40 deletions(-)
+ drivers/char/raw.c |  227 ++++++++++++++++++++++++++-----------------
+ fs/compat_ioctl.c  |   73 -------------
+ 2 files changed, 138 insertions(+), 162 deletions(-)
 
-diff -puN MAINTAINERS~linux-next-git-rejects MAINTAINERS
---- a/MAINTAINERS~linux-next-git-rejects
-+++ a/MAINTAINERS
-@@ -3963,13 +3963,8 @@ F:	drivers/video/omap/
+diff -puN drivers/char/raw.c~raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic drivers/char/raw.c
+--- a/drivers/char/raw.c~raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic
++++ a/drivers/char/raw.c
+@@ -20,6 +20,7 @@
+ #include <linux/device.h>
+ #include <linux/mutex.h>
+ #include <linux/smp_lock.h>
++#include <linux/compat.h>
  
- OMAP DISPLAY SUBSYSTEM SUPPORT (DSS2)
- M:	Tomi Valkeinen <tomi.valkeinen@nokia.com>
--<<<<<<< HEAD:MAINTAINERS
--L:	linux-omap@vger.kernel.org
--L:	linux-fbdev@vger.kernel.org (moderated for non-subscribers)
--=======
- L:	linux-fbdev-devel@lists.sourceforge.net (moderated for non-subscribers)
- L:	linux-omap@vger.kernel.org
-->>>>>>> FETCH_HEAD:MAINTAINERS
- S:	Maintained
- F:	drivers/video/omap2/dss/
- F:	drivers/video/omap2/vrfb.c
-@@ -3978,13 +3973,8 @@ F:	Documentation/arm/OMAP/DSS
+ #include <asm/uaccess.h>
  
- OMAP FRAMEBUFFER SUPPORT (FOR DSS2)
- M:	Tomi Valkeinen <tomi.valkeinen@nokia.com>
--<<<<<<< HEAD:MAINTAINERS
--L:	linux-omap@vger.kernel.org
--L:	linux-fbdev@vger.kernel.org (moderated for non-subscribers)
--=======
- L:	linux-fbdev-devel@lists.sourceforge.net (moderated for non-subscribers)
- L:	linux-omap@vger.kernel.org
-->>>>>>> FETCH_HEAD:MAINTAINERS
- S:	Maintained
- F:	drivers/video/omap2/omapfb/
- 
-diff -puN arch/arm/configs/omap_3430sdp_defconfig~linux-next-git-rejects arch/arm/configs/omap_3430sdp_defconfig
---- a/arch/arm/configs/omap_3430sdp_defconfig~linux-next-git-rejects
-+++ a/arch/arm/configs/omap_3430sdp_defconfig
-@@ -988,10 +988,7 @@ CONFIG_FB_OMAP2_NUM_FBS=3
- # OMAP2/3 Display Device Drivers
- #
- CONFIG_PANEL_GENERIC=y
--<<<<<<< HEAD:arch/arm/configs/omap_3430sdp_defconfig
--=======
- # CONFIG_PANEL_SAMSUNG_LTE430WQ_F0C is not set
-->>>>>>> FETCH_HEAD:arch/arm/configs/omap_3430sdp_defconfig
- CONFIG_PANEL_SHARP_LS037V7DW01=y
- # CONFIG_BACKLIGHT_LCD_SUPPORT is not set
- 
-diff -puN arch/arm/mach-omap2/board-3430sdp.c~linux-next-git-rejects arch/arm/mach-omap2/board-3430sdp.c
---- a/arch/arm/mach-omap2/board-3430sdp.c~linux-next-git-rejects
-+++ a/arch/arm/mach-omap2/board-3430sdp.c
-@@ -273,7 +273,6 @@ static struct omap_dss_device *sdp3430_d
- 	&sdp3430_lcd_device,
- 	&sdp3430_dvi_device,
- 	&sdp3430_tv_device,
--<<<<<<< HEAD:arch/arm/mach-omap2/board-3430sdp.c
- };
- 
- static struct omap_dss_board_info sdp3430_dss_data = {
-@@ -282,16 +281,6 @@ static struct omap_dss_board_info sdp343
- 	.default_device	= &sdp3430_lcd_device,
- };
- 
--=======
--};
--
--static struct omap_dss_board_info sdp3430_dss_data = {
--	.num_devices	= ARRAY_SIZE(sdp3430_dss_devices),
--	.devices	= sdp3430_dss_devices,
--	.default_device	= &sdp3430_lcd_device,
--};
--
-->>>>>>> FETCH_HEAD:arch/arm/mach-omap2/board-3430sdp.c
- static struct platform_device sdp3430_dss_device = {
- 	.name		= "omapdss",
- 	.id		= -1,
-diff -puN arch/arm/mach-omap2/io.c~linux-next-git-rejects arch/arm/mach-omap2/io.c
---- a/arch/arm/mach-omap2/io.c~linux-next-git-rejects
-+++ a/arch/arm/mach-omap2/io.c
-@@ -33,10 +33,7 @@
- #include <plat/sdrc.h>
- #include <plat/gpmc.h>
- #include <plat/serial.h>
--<<<<<<< HEAD:arch/arm/mach-omap2/io.c
--=======
- #include <plat/mux.h>
-->>>>>>> FETCH_HEAD:arch/arm/mach-omap2/io.c
- #include <plat/vram.h>
- 
- #ifndef CONFIG_ARCH_OMAP4	/* FIXME: Remove this once clkdev is ready */
-diff -puN arch/arm/plat-omap/fb.c~linux-next-git-rejects arch/arm/plat-omap/fb.c
---- a/arch/arm/plat-omap/fb.c~linux-next-git-rejects
-+++ a/arch/arm/plat-omap/fb.c
-@@ -371,13 +371,10 @@ unsigned long omapfb_reserve_sram(unsign
- 
- #else
- 
--<<<<<<< HEAD:arch/arm/plat-omap/fb.c
- void omapfb_set_platform_data(struct omapfb_platform_data *data)
- {
+@@ -129,11 +130,81 @@ raw_ioctl(struct inode *inode, struct fi
+ 	return blkdev_ioctl(bdev, 0, command, arg);
  }
  
--=======
-->>>>>>> FETCH_HEAD:arch/arm/plat-omap/fb.c
- void omapfb_reserve_sdram(void) {}
- unsigned long omapfb_reserve_sram(unsigned long sram_pstart,
- 				  unsigned long sram_vstart,
-diff -puN drivers/gpu/drm/drm_fb_helper.c~linux-next-git-rejects drivers/gpu/drm/drm_fb_helper.c
---- a/drivers/gpu/drm/drm_fb_helper.c~linux-next-git-rejects
-+++ a/drivers/gpu/drm/drm_fb_helper.c
-@@ -908,11 +908,7 @@ int drm_fb_helper_single_fb_probe(struct
+-static void bind_device(struct raw_config_request *rq)
++static int bind_set(int number, u64 major, u64 minor)
+ {
+-	device_destroy(raw_class, MKDEV(RAW_MAJOR, rq->raw_minor));
+-	device_create(raw_class, NULL, MKDEV(RAW_MAJOR, rq->raw_minor), NULL,
+-		      "raw%d", rq->raw_minor);
++	dev_t dev = MKDEV(major, minor);
++	struct raw_device_data *rawdev;
++	int err = 0;
++
++	if (number <= 0 || number >= MAX_RAW_MINORS)
++		return -EINVAL;
++
++	if (MAJOR(dev) != major || MINOR(dev) != minor)
++		return -EINVAL;
++
++	rawdev = &raw_devices[number];
++
++	/*
++	 * This is like making block devices, so demand the
++	 * same capability
++	 */
++	if (!capable(CAP_SYS_ADMIN))
++		return -EPERM;
++
++	/*
++	 * For now, we don't need to check that the underlying
++	 * block device is present or not: we can do that when
++	 * the raw device is opened.  Just check that the
++	 * major/minor numbers make sense.
++	 */
++
++	if (MAJOR(dev) == 0 && dev != 0)
++		return -EINVAL;
++
++	mutex_lock(&raw_mutex);
++	if (rawdev->inuse) {
++		mutex_unlock(&raw_mutex);
++		return -EBUSY;
++	}
++	if (rawdev->binding) {
++		bdput(rawdev->binding);
++		module_put(THIS_MODULE);
++	}
++	if (!dev) {
++		/* unbind */
++		rawdev->binding = NULL;
++		device_destroy(raw_class, MKDEV(RAW_MAJOR, number));
++	} else {
++		rawdev->binding = bdget(dev);
++		if (rawdev->binding == NULL) {
++			err = -ENOMEM;
++		} else {
++			dev_t raw = MKDEV(RAW_MAJOR, number);
++			__module_get(THIS_MODULE);
++			device_destroy(raw_class, raw);
++			device_create(raw_class, NULL, raw, NULL,
++				      "raw%d", number);
++		}
++	}
++	mutex_unlock(&raw_mutex);
++	return err;
++}
++
++static int bind_get(int number, dev_t *dev)
++{
++	struct raw_device_data *rawdev;
++	struct block_device *bdev;
++
++	if (number <= 0 || number >= MAX_RAW_MINORS)
++		return -EINVAL;
++
++	rawdev = &raw_devices[number];
++
++	mutex_lock(&raw_mutex);
++	bdev = rawdev->binding;
++	*dev = bdev ? bdev->bd_dev : 0;
++	mutex_unlock(&raw_mutex);
++	return 0;
+ }
  
- 	if (new_fb) {
- 		info->var.pixclock = 0;
--<<<<<<< HEAD:drivers/gpu/drm/drm_fb_helper.c
--		ret = fb_alloc_cmap(&info->cmap, modeset->crtc->gamma_size, 0);
--=======
- 		ret = fb_alloc_cmap(&info->cmap, crtc->gamma_size, 0);
-->>>>>>> FETCH_HEAD:drivers/gpu/drm/drm_fb_helper.c
- 		if (ret)
- 			return ret;
- 		if (register_framebuffer(info) < 0) {
-diff -puN drivers/video/omap2/displays/Kconfig~linux-next-git-rejects drivers/video/omap2/displays/Kconfig
---- a/drivers/video/omap2/displays/Kconfig~linux-next-git-rejects
-+++ a/drivers/video/omap2/displays/Kconfig
-@@ -7,15 +7,12 @@ config PANEL_GENERIC
- 	  Generic panel driver.
- 	  Used for DVI output for Beagle and OMAP3 SDP.
+ /*
+@@ -144,103 +215,78 @@ static int raw_ctl_ioctl(struct inode *i
+ 			unsigned int command, unsigned long arg)
+ {
+ 	struct raw_config_request rq;
+-	struct raw_device_data *rawdev;
+-	int err = 0;
++	dev_t dev;
++	int err;
  
--<<<<<<< HEAD:drivers/video/omap2/displays/Kconfig
--=======
- config PANEL_SAMSUNG_LTE430WQ_F0C
-         tristate "Samsung LTE430WQ-F0C LCD Panel"
-         depends on OMAP2_DSS
-         help
-           LCD Panel used on Overo Palo43
+ 	switch (command) {
+ 	case RAW_SETBIND:
++		if (copy_from_user(&rq, (void __user *) arg, sizeof(rq)))
++			return -EFAULT;
++
++		return bind_set(rq.raw_minor, rq.block_major, rq.block_minor);
++
+ 	case RAW_GETBIND:
++		if (copy_from_user(&rq, (void __user *) arg, sizeof(rq)))
++			return -EFAULT;
  
-->>>>>>> FETCH_HEAD:drivers/video/omap2/displays/Kconfig
- config PANEL_SHARP_LS037V7DW01
-         tristate "Sharp LS037V7DW01 LCD Panel"
-         depends on OMAP2_DSS
-diff -puN drivers/video/omap2/displays/Makefile~linux-next-git-rejects drivers/video/omap2/displays/Makefile
---- a/drivers/video/omap2/displays/Makefile~linux-next-git-rejects
-+++ a/drivers/video/omap2/displays/Makefile
-@@ -1,8 +1,5 @@
- obj-$(CONFIG_PANEL_GENERIC) += panel-generic.o
--<<<<<<< HEAD:drivers/video/omap2/displays/Makefile
--=======
- obj-$(CONFIG_PANEL_SAMSUNG_LTE430WQ_F0C) += panel-samsung-lte430wq-f0c.o
-->>>>>>> FETCH_HEAD:drivers/video/omap2/displays/Makefile
- obj-$(CONFIG_PANEL_SHARP_LS037V7DW01) += panel-sharp-ls037v7dw01.o
+-		/* First, find out which raw minor we want */
++		err = bind_get(rq.raw_minor, &dev);
++		if (err)
++			return err;
  
- obj-$(CONFIG_PANEL_TAAL) += panel-taal.o
+-		if (copy_from_user(&rq, (void __user *) arg, sizeof(rq))) {
+-			err = -EFAULT;
+-			goto out;
+-		}
++		rq.block_major = MAJOR(dev);
++		rq.block_minor = MINOR(dev);
+ 
+-		if (rq.raw_minor <= 0 || rq.raw_minor >= MAX_RAW_MINORS) {
+-			err = -EINVAL;
+-			goto out;
+-		}
+-		rawdev = &raw_devices[rq.raw_minor];
++		if (copy_to_user((void __user *)arg, &rq, sizeof(rq)))
++			return -EFAULT;
+ 
+-		if (command == RAW_SETBIND) {
+-			dev_t dev;
++		return 0;
++	}
+ 
+-			/*
+-			 * This is like making block devices, so demand the
+-			 * same capability
+-			 */
+-			if (!capable(CAP_SYS_ADMIN)) {
+-				err = -EPERM;
+-				goto out;
+-			}
+-
+-			/*
+-			 * For now, we don't need to check that the underlying
+-			 * block device is present or not: we can do that when
+-			 * the raw device is opened.  Just check that the
+-			 * major/minor numbers make sense.
+-			 */
+-
+-			dev = MKDEV(rq.block_major, rq.block_minor);
+-			if ((rq.block_major == 0 && rq.block_minor != 0) ||
+-					MAJOR(dev) != rq.block_major ||
+-					MINOR(dev) != rq.block_minor) {
+-				err = -EINVAL;
+-				goto out;
+-			}
+-
+-			mutex_lock(&raw_mutex);
+-			if (rawdev->inuse) {
+-				mutex_unlock(&raw_mutex);
+-				err = -EBUSY;
+-				goto out;
+-			}
+-			if (rawdev->binding) {
+-				bdput(rawdev->binding);
+-				module_put(THIS_MODULE);
+-			}
+-			if (rq.block_major == 0 && rq.block_minor == 0) {
+-				/* unbind */
+-				rawdev->binding = NULL;
+-				device_destroy(raw_class,
+-						MKDEV(RAW_MAJOR, rq.raw_minor));
+-			} else {
+-				rawdev->binding = bdget(dev);
+-				if (rawdev->binding == NULL)
+-					err = -ENOMEM;
+-				else {
+-					__module_get(THIS_MODULE);
+-					bind_device(&rq);
+-				}
+-			}
+-			mutex_unlock(&raw_mutex);
+-		} else {
+-			struct block_device *bdev;
++	return -EINVAL;
++}
+ 
+-			mutex_lock(&raw_mutex);
+-			bdev = rawdev->binding;
+-			if (bdev) {
+-				rq.block_major = MAJOR(bdev->bd_dev);
+-				rq.block_minor = MINOR(bdev->bd_dev);
+-			} else {
+-				rq.block_major = rq.block_minor = 0;
+-			}
+-			mutex_unlock(&raw_mutex);
+-			if (copy_to_user((void __user *)arg, &rq, sizeof(rq))) {
+-				err = -EFAULT;
+-				goto out;
+-			}
+-		}
+-		break;
+-	default:
+-		err = -EINVAL;
+-		break;
++#ifdef CONFIG_COMPAT
++struct raw32_config_request {
++	compat_int_t	raw_minor;
++	compat_u64	block_major;
++	compat_u64	block_minor;
++};
++
++static long raw_ctl_compat_ioctl(struct file *file, unsigned int cmd,
++				unsigned long arg)
++{
++	struct raw32_config_request __user *user_req = compat_ptr(arg);
++	struct raw32_config_request rq;
++	dev_t dev;
++	int err = 0;
++
++	switch (cmd) {
++	case RAW_SETBIND:
++		if (copy_from_user(&rq, user_req, sizeof(rq)))
++			return -EFAULT;
++
++		return bind_set(rq.raw_minor, rq.block_major, rq.block_minor);
++
++	case RAW_GETBIND:
++		if (copy_from_user(&rq, user_req, sizeof(rq)))
++			return -EFAULT;
++
++		err = bind_get(rq.raw_minor, &dev);
++		if (err)
++			return err;
++
++		rq.block_major = MAJOR(dev);
++		rq.block_minor = MINOR(dev);
++
++		if (copy_to_user(user_req, &rq, sizeof(rq)))
++			return -EFAULT;
++
++		return 0;
+ 	}
+-out:
+-	return err;
++
++	return -EINVAL;
+ }
++#endif
+ 
+ static const struct file_operations raw_fops = {
+ 	.read	=	do_sync_read,
+@@ -255,6 +301,9 @@ static const struct file_operations raw_
+ 
+ static const struct file_operations raw_ctl_fops = {
+ 	.ioctl	=	raw_ctl_ioctl,
++#ifdef CONFIG_COMPAT
++	.compat_ioctl =	raw_ctl_compat_ioctl,
++#endif
+ 	.open	=	raw_open,
+ 	.owner	=	THIS_MODULE,
+ };
+diff -puN fs/compat_ioctl.c~raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic fs/compat_ioctl.c
+--- a/fs/compat_ioctl.c~raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic
++++ a/fs/compat_ioctl.c
+@@ -820,73 +820,6 @@ static int ioc_settimeout(unsigned int f
+ #define HIDPGETCONNLIST	_IOR('H', 210, int)
+ #define HIDPGETCONNINFO	_IOR('H', 211, int)
+ 
+-#ifdef CONFIG_BLOCK
+-struct raw32_config_request
+-{
+-        compat_int_t    raw_minor;
+-        __u64   block_major;
+-        __u64   block_minor;
+-} __attribute__((packed));
+-
+-static int get_raw32_request(struct raw_config_request *req, struct raw32_config_request __user *user_req)
+-{
+-        int ret;
+-
+-        if (!access_ok(VERIFY_READ, user_req, sizeof(struct raw32_config_request)))
+-                return -EFAULT;
+-
+-        ret = __get_user(req->raw_minor, &user_req->raw_minor);
+-        ret |= __get_user(req->block_major, &user_req->block_major);
+-        ret |= __get_user(req->block_minor, &user_req->block_minor);
+-
+-        return ret ? -EFAULT : 0;
+-}
+-
+-static int set_raw32_request(struct raw_config_request *req, struct raw32_config_request __user *user_req)
+-{
+-	int ret;
+-
+-        if (!access_ok(VERIFY_WRITE, user_req, sizeof(struct raw32_config_request)))
+-                return -EFAULT;
+-
+-        ret = __put_user(req->raw_minor, &user_req->raw_minor);
+-        ret |= __put_user(req->block_major, &user_req->block_major);
+-        ret |= __put_user(req->block_minor, &user_req->block_minor);
+-
+-        return ret ? -EFAULT : 0;
+-}
+-
+-static int raw_ioctl(unsigned fd, unsigned cmd, unsigned long arg)
+-{
+-        int ret;
+-
+-        switch (cmd) {
+-        case RAW_SETBIND:
+-        case RAW_GETBIND: {
+-                struct raw_config_request req;
+-                struct raw32_config_request __user *user_req = compat_ptr(arg);
+-                mm_segment_t oldfs = get_fs();
+-
+-                if ((ret = get_raw32_request(&req, user_req)))
+-                        return ret;
+-
+-                set_fs(KERNEL_DS);
+-                ret = sys_ioctl(fd,cmd,(unsigned long)&req);
+-                set_fs(oldfs);
+-
+-                if ((!ret) && (cmd == RAW_GETBIND)) {
+-                        ret = set_raw32_request(&req, user_req);
+-                }
+-                break;
+-        }
+-        default:
+-                ret = sys_ioctl(fd, cmd, arg);
+-                break;
+-        }
+-        return ret;
+-}
+-#endif /* CONFIG_BLOCK */
+-
+ struct serial_struct32 {
+         compat_int_t    type;
+         compat_int_t    line;
+@@ -1647,9 +1580,6 @@ COMPATIBLE_IOCTL(AUTOFS_IOC_EXPIRE)
+ COMPATIBLE_IOCTL(AUTOFS_IOC_EXPIRE_MULTI)
+ COMPATIBLE_IOCTL(AUTOFS_IOC_PROTOSUBVER)
+ COMPATIBLE_IOCTL(AUTOFS_IOC_ASKUMOUNT)
+-/* Raw devices */
+-COMPATIBLE_IOCTL(RAW_SETBIND)
+-COMPATIBLE_IOCTL(RAW_GETBIND)
+ /* SMB ioctls which do not need any translations */
+ COMPATIBLE_IOCTL(SMB_IOC_NEWCONN)
+ /* Watchdog */
+@@ -1885,9 +1815,6 @@ HANDLE_IOCTL(SMB_IOC_GETMOUNTUID_32, do_
+ #ifdef CONFIG_BLOCK
+ /* loop */
+ IGNORE_IOCTL(LOOP_CLR_FD)
+-/* Raw devices */
+-HANDLE_IOCTL(RAW_SETBIND, raw_ioctl)
+-HANDLE_IOCTL(RAW_GETBIND, raw_ioctl)
+ #endif
+ /* Serial */
+ HANDLE_IOCTL(TIOCGSERIAL, serial_struct_ioctl)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from viro@ZenIV.linux.org.uk are
 
-origin.patch
-linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-acpi-remove-nid_inval.patch
-drivers-acpi-acpi_padc-squish-warning.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices-checkpatch-fixes.patch
-drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
-drivers-media-video-pmsc-needs-versionh.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-drivers-leds-leds-ss4200c-fix-return-statement.patch
-net-sctp-socketc-fix-warning.patch
-proc_fops-convert-drivers-isdn-to-seq_file-fix2.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
-scsi-aacraid-fix-memory-leak-checkpatch-fixes.patch
-aoe-switch-to-the-new-bio_flush_dcache_pages-interface.patch
 raw-fix-rawctl-compat-ioctls-breakage-on-amd64-and-itanic.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-readahead-add-blk_run_backing_dev.patch
-mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
-oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
-oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes.patch
-mm-mlocking-in-try_to_unmap_one-fix-fix.patch
-ksm-memory-hotremove-migration-only-fix.patch
-mm-memory_hotplug-make-offline_pages-static.patch
-mm-hugetlb-fix-hugepage-memory-leak-in-mincore-cleanup.patch
-mm-hugetlb-fix-hugepage-memory-leak-in-mincore-build-fix.patch
-mm-hugetlb-add-hugepage-support-to-pagemap-build-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup.patch
-floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
-drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
-rwsem-fix-rwsem_is_locked-bugs-fix.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
-errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
-drivers-scsi-sym53c8xx_2-sym_gluec-rename-skip_spaces-to-sym_skip_spaces.patch
-lib-introduce-strim-checkpatch-fixes.patch
-msm_sdccc-add-missing-include-fix-compilation-checkpatch-fixes.patch
-blackfin-sd-host-controller-driver-fix.patch
-blackfin-sd-host-controller-driver-fix-fix.patch
-blackfin-sd-host-controller-driver-fix-fix-fix.patch
-crc32-minor-optimizations-and-cleanup-checkpatch-fixes.patch
-hwmon-w83627ehf-updates-checkpatch-fixes.patch
-lis3-update-documentation-to-match-latest-changes-fix.patch
-spi-controller-driver-for-designware-spi-core-fix.patch
-spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3.patch
-ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
-memcg-coalesce-charging-via-percpu-storage-fix.patch
-memcg-code-cleanrm-unused-variable-in-mem_cgroup_resize_limit-cleanup.patch
-ipc-remove-unreachable-code-in-semc-fix.patch
-char-cyclades-fix-compiler-warning.patch
-fs-cache-avoid-maybe-used-uninitialised-warning-on-variable.patch
-aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
-direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-drivers-media-video-cx23885-needs-kfifo-updates.patch
-revert-tty-sdio_uart-use-kfifo-instead-of-the-messy-circ-stuff.patch
-kfifo-move-struct-kfifo-in-place-fix.patch
-zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+autofs4-use-helper-functions-for-active-list-handling.patch
+autofs4-use-helper-functions-for-expiring-list.patch
+autofs4-use-helper-function-for-need-mount-check.patch
+autofs4-use-autofs_info-for-pending-flag.patch
+autofs4-renamer-unhashed-to-active-in-autofs4_lookup.patch
+autofs4-cleanup-active-and-expire-lookup.patch
+autofs4-eliminate-d_unhashed-in-path-walk-checks.patch
+autofs4-rename-dentry-to-active-in-autofs4_lookup_active.patch
+autofs4-rename-dentry-to-expiring-in-autofs4_lookup_expiring.patch
+autofs4-always-use-lookup-for-lookup.patch
 
