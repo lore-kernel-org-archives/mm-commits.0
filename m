@@ -1,75 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [folded] spi-controller-driver-for-designware-spi-core-fix.patch removed from -mm tree
-Date: Mon, 14 Dec 2009 14:19:00 -0800
-Message-ID: <200912142219.nBEMJ1lC030991@imap1.linux-foundation.org>
+Subject: [folded] spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 14 Dec 2009 14:19:32 -0800
+Message-ID: <200912142219.nBEMJWhp032325@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41477 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45690 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932964AbZLNWTI (ORCPT
+	by vger.kernel.org with ESMTP id S932824AbZLNWTu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Dec 2009 17:19:08 -0500
+	Mon, 14 Dec 2009 17:19:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, david-b@pacbell.net, feng.tang@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, cascardo@holoscopio.com, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi-controller-driver-for-designware-spi-core-fix
+     spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     spi-controller-driver-for-designware-spi-core-fix.patch
+     spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into spi-controller-driver-for-designware-spi-core.patch
+This patch was dropped because it was folded into spidev-use-declare_bitmap-instead-of-declaring-the-array.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi-controller-driver-for-designware-spi-core-fix
+Subject: spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: "dw_spi_resume_host" [drivers/spi/dw_spi_pci.ko] undefined!
-ERROR: "dw_spi_suspend_host" [drivers/spi/dw_spi_pci.ko] undefined!
-ERROR: "dw_spi_add_host" [drivers/spi/dw_spi_pci.ko] undefined!
+ERROR: space required after that ',' (ctx:VxV)
+#17: FILE: drivers/spi/spidev.c:57:
++static DECLARE_BITMAP(minors,N_SPI_MINORS);
+                             ^
 
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Feng Tang <feng.tang@intel.com>
+total: 1 errors, 0 warnings, 8 lines checked
+
+./patches/spidev-use-declare_bitmap-instead-of-declaring-the-array.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/dw_spi.c |    3 +++
- linux/spi/dw_spi.h   |    0 
- 2 files changed, 3 insertions(+)
+ drivers/spi/spidev.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/spi/Kconfig~spi-controller-driver-for-designware-spi-core-fix drivers/spi/Kconfig
-diff -puN drivers/spi/Makefile~spi-controller-driver-for-designware-spi-core-fix drivers/spi/Makefile
-diff -puN drivers/spi/dw_spi.c~spi-controller-driver-for-designware-spi-core-fix drivers/spi/dw_spi.c
---- a/drivers/spi/dw_spi.c~spi-controller-driver-for-designware-spi-core-fix
-+++ a/drivers/spi/dw_spi.c
-@@ -889,6 +889,7 @@ err_free_master:
- exit:
- 	return ret;
- }
-+EXPORT_SYMBOL(dw_spi_add_host);
+diff -puN drivers/spi/spidev.c~spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes drivers/spi/spidev.c
+--- a/drivers/spi/spidev.c~spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes
++++ a/drivers/spi/spidev.c
+@@ -53,7 +53,7 @@
+ #define SPIDEV_MAJOR			153	/* assigned */
+ #define N_SPI_MINORS			32	/* ... up to 256 */
  
- void __devexit dw_spi_remove_host(struct dw_spi *dws)
- {
-@@ -924,6 +925,7 @@ int dw_spi_suspend_host(struct dw_spi *d
- 	spi_set_clk(dws, 0);
- 	return ret;
- }
-+EXPORT_SYMBOL(dw_spi_suspend_host);
+-static DECLARE_BITMAP(minors,N_SPI_MINORS);
++static DECLARE_BITMAP(minors, N_SPI_MINORS);
  
- int dw_spi_resume_host(struct dw_spi *dws)
- {
-@@ -935,6 +937,7 @@ int dw_spi_resume_host(struct dw_spi *dw
- 		dev_err(&dws->master->dev, "fail to start queue (%d)\n", ret);
- 	return ret;
- }
-+EXPORT_SYMBOL(dw_spi_resume_host);
  
- MODULE_AUTHOR("Feng Tang <feng.tang@intel.com>");
- MODULE_DESCRIPTION("Driver for DesignWare SPI controller core");
-diff -puN include/linux/spi/dw_spi.h~spi-controller-driver-for-designware-spi-core-fix include/linux/spi/dw_spi.h
+ /* Bit masks for spi_device.mode management.  Note that incorrect
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -128,7 +118,7 @@ percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
 readahead-add-blk_run_backing_dev.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 spi-controller-driver-for-designware-spi-core.patch
-spi-controller-driver-for-designware-spi-core-fix.patch
+spidev-use-declare_bitmap-instead-of-declaring-the-array.patch
 spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
 gpiolib-add-names-file-in-gpio-chip-sysfs.patch
 mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
