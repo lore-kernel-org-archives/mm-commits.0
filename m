@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cs5535-add-a-generic-clock-event-mfgpt-driver-fix.patch added to -mm tree
-Date: Mon, 14 Dec 2009 15:37:58 -0800
-Message-ID: <200912150002.nBF02HUr006252@imap1.linux-foundation.org>
+Subject: + fs-ext4-superc-fix-printk-warning.patch added to -mm tree
+Date: Mon, 14 Dec 2009 15:40:49 -0800
+Message-ID: <200912150005.nBF057G5013517@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57802 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55303 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757754AbZLOAC3 (ORCPT
+	by vger.kernel.org with ESMTP id S1756413AbZLOAFL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Dec 2009 19:02:29 -0500
+	Mon, 14 Dec 2009 19:05:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dilinger@collabora.co.uk, jordan@cosmicpenguin.net
+Cc: akpm@linux-foundation.org, tytso@mit.edu
 
 
 The patch titled
-     cs5535-add-a-generic-clock-event-mfgpt-driver-fix
+     fs/ext4/super.c: fix printk warning
 has been added to the -mm tree.  Its filename is
-     cs5535-add-a-generic-clock-event-mfgpt-driver-fix.patch
+     fs-ext4-superc-fix-printk-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cs5535-add-a-generic-clock-event-mfgpt-driver-fix
+Subject: fs/ext4/super.c: fix printk warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
 sparc64 allmodconfig:
 
-drivers/clocksource/cs5535-clockevt.c: In function `cs5535_mfgpt_init':
-drivers/clocksource/cs5535-clockevt.c:160: error: implicit declaration of function `setup_irq'
+fs/ext4/super.c: In function `lifetime_write_kbytes_show':
+fs/ext4/super.c:2174: warning: long long unsigned int format, long unsigned int arg (arg 4)
+fs/ext4/super.c:2174: warning: long long unsigned int format, long unsigned int arg (arg 4)
 
-Cc: Andres Salomon <dilinger@collabora.co.uk>
-Cc: Jordan Crouse <jordan@cosmicpenguin.net>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/clocksource/cs5535-clockevt.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/ext4/super.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/clocksource/cs5535-clockevt.c~cs5535-add-a-generic-clock-event-mfgpt-driver-fix drivers/clocksource/cs5535-clockevt.c
---- a/drivers/clocksource/cs5535-clockevt.c~cs5535-add-a-generic-clock-event-mfgpt-driver-fix
-+++ a/drivers/clocksource/cs5535-clockevt.c
-@@ -13,6 +13,7 @@
-  */
+diff -puN fs/ext4/super.c~fs-ext4-superc-fix-printk-warning fs/ext4/super.c
+--- a/fs/ext4/super.c~fs-ext4-superc-fix-printk-warning
++++ a/fs/ext4/super.c
+@@ -2172,9 +2172,9 @@ static ssize_t lifetime_write_kbytes_sho
+ 	struct super_block *sb = sbi->s_buddy_cache->i_sb;
  
- #include <linux/kernel.h>
-+#include <linux/irq.h>
- #include <linux/interrupt.h>
- #include <linux/module.h>
- #include <linux/cs5535.h>
+ 	return snprintf(buf, PAGE_SIZE, "%llu\n",
+-			sbi->s_kbytes_written + 
++			(unsigned long long)(sbi->s_kbytes_written +
+ 			((part_stat_read(sb->s_bdev->bd_part, sectors[1]) -
+-			  EXT4_SB(sb)->s_sectors_written_start) >> 1));
++			  EXT4_SB(sb)->s_sectors_written_start) >> 1)));
+ }
+ 
+ static ssize_t inode_readahead_blks_store(struct ext4_attr *a,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -152,4 +156,5 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 notify_change-callers-must-hold-i_mutex.patch
+fs-ext4-superc-fix-printk-warning.patch
 
