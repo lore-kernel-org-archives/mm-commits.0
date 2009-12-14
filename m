@@ -1,277 +1,626 @@
 From: akpm@linux-foundation.org
-Subject: [merged] spi-superh-msiof-spi-master-driver-update.patch removed from -mm tree
-Date: Mon, 14 Dec 2009 13:23:46 -0800
-Message-ID: <200912142123.nBELNkmg017563@imap1.linux-foundation.org>
+Subject: [merged] spi-nuc900-add-arm-driver-support-for-nuc900.patch removed from -mm tree
+Date: Mon, 14 Dec 2009 13:23:49 -0800
+Message-ID: <200912142123.nBELNnfd017625@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42906 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41689 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751967AbZLNVX7 (ORCPT
+	by vger.kernel.org with ESMTP id S1758277AbZLNVX7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 14 Dec 2009 16:23:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: damm@opensource.se, david-b@pacbell.net, grant.likely@secretlab.ca, lethal@linux-sh.org, mm-commits@vger.kernel.org
+To: mcuos.com@gmail.com, david-b@pacbell.net, grant.likely@secretlab.ca, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi-superh-msiof-spi-master-driver-update
+     spi: NUC900: add arm driver support for nuc900
 has been removed from the -mm tree.  Its filename was
-     spi-superh-msiof-spi-master-driver-update.patch
+     spi-nuc900-add-arm-driver-support-for-nuc900.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi-superh-msiof-spi-master-driver-update
-From: Magnus Damm <damm@opensource.se>
+Subject: spi: NUC900: add arm driver support for nuc900
+From: Wan ZongShun <mcuos.com@gmail.com>
 
- Changes since V1:
- - added timeout handling code
- - const, size_t, WARN_ON(), BUG() fixes
- - use spi_bitbang_setup_transfer()
- - cosmetic stuff
-
-Signed-off-by: Magnus Damm <damm@opensource.se>
+Signed-off-by: Wan ZongShun <mcuos.com@gmail.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Cc: David Brownell <david-b@pacbell.net>
-Cc: Paul Mundt <lethal@linux-sh.org>
 Cc: Grant Likely <grant.likely@secretlab.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi.c          |    1 
- drivers/spi/spi_sh_msiof.c |   74 +++++++++++++++++++++--------------
- 2 files changed, 46 insertions(+), 29 deletions(-)
+ arch/arm/mach-w90x900/include/mach/nuc900_spi.h |   35 
+ drivers/spi/Kconfig                             |    7 
+ drivers/spi/Makefile                            |    1 
+ drivers/spi/spi_nuc900.c                        |  504 ++++++++++++++
+ 4 files changed, 547 insertions(+)
 
-diff -puN drivers/spi/spi.c~spi-superh-msiof-spi-master-driver-update drivers/spi/spi.c
---- a/drivers/spi/spi.c~spi-superh-msiof-spi-master-driver-update
-+++ a/drivers/spi/spi.c
-@@ -17,6 +17,7 @@
-  * along with this program; if not, write to the Free Software
-  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-  */
+diff -puN /dev/null arch/arm/mach-w90x900/include/mach/nuc900_spi.h
+--- /dev/null
++++ a/arch/arm/mach-w90x900/include/mach/nuc900_spi.h
+@@ -0,0 +1,35 @@
++/*
++ * arch/arm/mach-w90x900/include/mach/nuc900_spi.h
++ *
++ * Copyright (c) 2009 Nuvoton technology corporation.
++ *
++ * Wan ZongShun <mcuos.com@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation;version 2 of the License.
++ *
++ */
 +
- #include <linux/kernel.h>
- #include <linux/device.h>
- #include <linux/init.h>
-diff -puN drivers/spi/spi_sh_msiof.c~spi-superh-msiof-spi-master-driver-update drivers/spi/spi_sh_msiof.c
---- a/drivers/spi/spi_sh_msiof.c~spi-superh-msiof-spi-master-driver-update
-+++ a/drivers/spi/spi_sh_msiof.c
-@@ -92,19 +92,26 @@ static void sh_msiof_write(struct sh_msi
- 	}
- }
- 
--static void sh_msiof_modify_ctr_wait(struct sh_msiof_spi_priv *p,
--				     unsigned long clr, unsigned long set)
-+static int sh_msiof_modify_ctr_wait(struct sh_msiof_spi_priv *p,
-+				    unsigned long clr, unsigned long set)
- {
- 	unsigned long mask = clr | set;
- 	unsigned long data;
-+	int k;
- 
- 	data = sh_msiof_read(p, CTR);
- 	data &= ~clr;
- 	data |= set;
- 	sh_msiof_write(p, CTR, data);
- 
--	while ((sh_msiof_read(p, CTR) & mask) != set)
--		;
-+	for (k = 100; k > 0; k--) {
-+		if ((sh_msiof_read(p, CTR) & mask) == set)
-+			break;
++#ifndef __ASM_ARCH_SPI_H
++#define __ASM_ARCH_SPI_H
 +
-+		udelay(10);
++extern void mfp_set_groupg(struct device *dev);
++
++struct nuc900_spi_info {
++	unsigned int num_cs;
++	unsigned int lsb;
++	unsigned int txneg;
++	unsigned int rxneg;
++	unsigned int divider;
++	unsigned int sleep;
++	unsigned int txnum;
++	unsigned int txbitlen;
++	int bus_num;
++};
++
++struct nuc900_spi_chip {
++	unsigned char bits_per_word;
++};
++
++#endif /* __ASM_ARCH_SPI_H */
+diff -puN drivers/spi/Kconfig~spi-nuc900-add-arm-driver-support-for-nuc900 drivers/spi/Kconfig
+--- a/drivers/spi/Kconfig~spi-nuc900-add-arm-driver-support-for-nuc900
++++ a/drivers/spi/Kconfig
+@@ -283,6 +283,13 @@ config SPI_XILINX_PLTFM
+ 	  This is the platform driver for the SPI controller IP
+ 	  from the Xilinx EDK.
+ 
++config SPI_NUC900
++	tristate "Nuvoton NUC900 series SPI"
++	depends on ARCH_W90X900 && EXPERIMENTAL
++	select SPI_BITBANG
++	help
++	  SPI driver for Nuvoton NUC900 series ARM SoCs
++
+ #
+ # Add new SPI master controllers in alphabetical order above this line
+ #
+diff -puN drivers/spi/Makefile~spi-nuc900-add-arm-driver-support-for-nuc900 drivers/spi/Makefile
+--- a/drivers/spi/Makefile~spi-nuc900-add-arm-driver-support-for-nuc900
++++ a/drivers/spi/Makefile
+@@ -27,6 +27,7 @@ obj-$(CONFIG_SPI_PL022)			+= amba-pl022.
+ obj-$(CONFIG_SPI_MPC52xx_PSC)		+= mpc52xx_psc_spi.o
+ obj-$(CONFIG_SPI_MPC52xx)		+= mpc52xx_spi.o
+ obj-$(CONFIG_SPI_MPC8xxx)		+= spi_mpc8xxx.o
++obj-$(CONFIG_SPI_NUC900)		+= spi_nuc900.o
+ obj-$(CONFIG_SPI_PPC4xx)		+= spi_ppc4xx.o
+ obj-$(CONFIG_SPI_S3C24XX_GPIO)		+= spi_s3c24xx_gpio.o
+ obj-$(CONFIG_SPI_S3C24XX)		+= spi_s3c24xx_hw.o
+diff -puN /dev/null drivers/spi/spi_nuc900.c
+--- /dev/null
++++ a/drivers/spi/spi_nuc900.c
+@@ -0,0 +1,504 @@
++/* linux/drivers/spi/spi_nuc900.c
++ *
++ * Copyright (c) 2009 Nuvoton technology.
++ * Wan ZongShun <mcuos.com@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++*/
++
++#include <linux/init.h>
++#include <linux/spinlock.h>
++#include <linux/workqueue.h>
++#include <linux/interrupt.h>
++#include <linux/delay.h>
++#include <linux/errno.h>
++#include <linux/err.h>
++#include <linux/clk.h>
++#include <linux/device.h>
++#include <linux/platform_device.h>
++#include <linux/gpio.h>
++#include <linux/io.h>
++
++#include <linux/spi/spi.h>
++#include <linux/spi/spi_bitbang.h>
++
++#include <mach/nuc900_spi.h>
++
++/* usi registers offset */
++#define USI_CNT		0x00
++#define USI_DIV		0x04
++#define USI_SSR		0x08
++#define USI_RX0		0x10
++#define USI_TX0		0x10
++
++/* usi register bit */
++#define ENINT		(0x01 << 17)
++#define ENFLG		(0x01 << 16)
++#define TXNUM		(0x03 << 8)
++#define TXNEG		(0x01 << 2)
++#define RXNEG		(0x01 << 1)
++#define LSB		(0x01 << 10)
++#define SELECTLEV	(0x01 << 2)
++#define SELECTPOL	(0x01 << 31)
++#define SELECTSLAVE	0x01
++#define GOBUSY		0x01
++
++struct nuc900_spi {
++	struct spi_bitbang	 bitbang;
++	struct completion	 done;
++	void __iomem		*regs;
++	int			 irq;
++	int			 len;
++	int			 count;
++	const unsigned char	*tx;
++	unsigned char		*rx;
++	struct clk		*clk;
++	struct resource		*ioarea;
++	struct spi_master	*master;
++	struct spi_device	*curdev;
++	struct device		*dev;
++	struct nuc900_spi_info *pdata;
++	spinlock_t		lock;
++	struct resource		*res;
++};
++
++static inline struct nuc900_spi *to_hw(struct spi_device *sdev)
++{
++	return spi_master_get_devdata(sdev->master);
++}
++
++static void nuc900_slave_select(struct spi_device *spi, unsigned int ssr)
++{
++	struct nuc900_spi *hw = to_hw(spi);
++	unsigned int val;
++	unsigned int cs = spi->mode & SPI_CS_HIGH ? 1 : 0;
++	unsigned int cpol = spi->mode & SPI_CPOL ? 1 : 0;
++	unsigned long flags;
++
++	spin_lock_irqsave(&hw->lock, flags);
++
++	val = __raw_readl(hw->regs + USI_SSR);
++
++	if (!cs)
++		val &= ~SELECTLEV;
++	else
++		val |= SELECTLEV;
++
++	if (!ssr)
++		val &= ~SELECTSLAVE;
++	else
++		val |= SELECTSLAVE;
++
++	__raw_writel(val, hw->regs + USI_SSR);
++
++	val = __raw_readl(hw->regs + USI_CNT);
++
++	if (!cpol)
++		val &= ~SELECTPOL;
++	else
++		val |= SELECTPOL;
++
++	__raw_writel(val, hw->regs + USI_CNT);
++
++	spin_unlock_irqrestore(&hw->lock, flags);
++}
++
++static void nuc900_spi_chipsel(struct spi_device *spi, int value)
++{
++	switch (value) {
++	case BITBANG_CS_INACTIVE:
++		nuc900_slave_select(spi, 0);
++		break;
++
++	case BITBANG_CS_ACTIVE:
++		nuc900_slave_select(spi, 1);
++		break;
++	}
++}
++
++static void nuc900_spi_setup_txnum(struct nuc900_spi *hw,
++							unsigned int txnum)
++{
++	unsigned int val;
++	unsigned long flags;
++
++	spin_lock_irqsave(&hw->lock, flags);
++
++	val = __raw_readl(hw->regs + USI_CNT);
++
++	if (!txnum)
++		val &= ~TXNUM;
++	else
++		val |= txnum << 0x08;
++
++	__raw_writel(val, hw->regs + USI_CNT);
++
++	spin_unlock_irqrestore(&hw->lock, flags);
++
++}
++
++static void nuc900_spi_setup_txbitlen(struct nuc900_spi *hw,
++							unsigned int txbitlen)
++{
++	unsigned int val;
++	unsigned long flags;
++
++	spin_lock_irqsave(&hw->lock, flags);
++
++	val = __raw_readl(hw->regs + USI_CNT);
++
++	val |= (txbitlen << 0x03);
++
++	__raw_writel(val, hw->regs + USI_CNT);
++
++	spin_unlock_irqrestore(&hw->lock, flags);
++}
++
++static void nuc900_spi_gobusy(struct nuc900_spi *hw)
++{
++	unsigned int val;
++	unsigned long flags;
++
++	spin_lock_irqsave(&hw->lock, flags);
++
++	val = __raw_readl(hw->regs + USI_CNT);
++
++	val |= GOBUSY;
++
++	__raw_writel(val, hw->regs + USI_CNT);
++
++	spin_unlock_irqrestore(&hw->lock, flags);
++}
++
++static int nuc900_spi_setupxfer(struct spi_device *spi,
++				 struct spi_transfer *t)
++{
++	return 0;
++}
++
++static int nuc900_spi_setup(struct spi_device *spi)
++{
++	return 0;
++}
++
++static inline unsigned int hw_txbyte(struct nuc900_spi *hw, int count)
++{
++	return hw->tx ? hw->tx[count] : 0;
++}
++
++static int nuc900_spi_txrx(struct spi_device *spi, struct spi_transfer *t)
++{
++	struct nuc900_spi *hw = to_hw(spi);
++
++	hw->tx = t->tx_buf;
++	hw->rx = t->rx_buf;
++	hw->len = t->len;
++	hw->count = 0;
++
++	__raw_writel(hw_txbyte(hw, 0x0), hw->regs + USI_TX0);
++
++	nuc900_spi_gobusy(hw);
++
++	wait_for_completion(&hw->done);
++
++	return hw->count;
++}
++
++static irqreturn_t nuc900_spi_irq(int irq, void *dev)
++{
++	struct nuc900_spi *hw = dev;
++	unsigned int status;
++	unsigned int count = hw->count;
++
++	status = __raw_readl(hw->regs + USI_CNT);
++	__raw_writel(status, hw->regs + USI_CNT);
++
++	if (status & ENFLG) {
++		hw->count++;
++
++		if (hw->rx)
++			hw->rx[count] = __raw_readl(hw->regs + USI_RX0);
++		count++;
++
++		if (count < hw->len) {
++			__raw_writel(hw_txbyte(hw, count), hw->regs + USI_TX0);
++			nuc900_spi_gobusy(hw);
++		} else {
++			complete(&hw->done);
++		}
++
++		return IRQ_HANDLED;
 +	}
 +
-+	return k > 0 ? 0 : -ETIMEDOUT;
- }
- 
- static irqreturn_t sh_msiof_spi_irq(int irq, void *data)
-@@ -113,7 +120,6 @@ static irqreturn_t sh_msiof_spi_irq(int 
- 
- 	/* just disable the interrupt and wake up */
- 	sh_msiof_write(p, IER, 0);
--
- 	complete(&p->done);
- 
- 	return IRQ_HANDLED;
-@@ -122,7 +128,7 @@ static irqreturn_t sh_msiof_spi_irq(int 
- static struct {
- 	unsigned short div;
- 	unsigned short scr;
--} sh_msiof_spi_clk_table[] = {
-+} const sh_msiof_spi_clk_table[] = {
- 	{ 1, 0x0007 },
- 	{ 2, 0x0000 },
- 	{ 4, 0x0001 },
-@@ -141,11 +147,9 @@ static void sh_msiof_spi_set_clk_regs(st
- 				      unsigned long spi_hz)
- {
- 	unsigned long div = 1024;
--	int k;
-+	size_t k;
- 
--	if (!spi_hz || !parent_rate)
--		WARN_ON(1);
--	else
-+	if (!WARN_ON(!spi_hz || !parent_rate))
- 		div = parent_rate / spi_hz;
- 
- 	/* TODO: make more fine grained */
-@@ -324,7 +328,6 @@ static int sh_msiof_spi_bits(struct spi_
- 
- 	bits = t ? t->bits_per_word : 0;
- 	bits = bits ? bits : spi->bits_per_word;
--
- 	return bits;
- }
- 
-@@ -335,7 +338,6 @@ static unsigned long sh_msiof_spi_hz(str
- 
- 	hz = t ? t->speed_hz : 0;
- 	hz = hz ? hz : spi->max_speed_hz;
--
- 	return hz;
- }
- 
-@@ -344,17 +346,15 @@ static int sh_msiof_spi_setup_transfer(s
- {
- 	int bits;
- 
--	bits = sh_msiof_spi_bits(spi, t);
-+	/* noting to check hz values against since parent clock is disabled */
- 
-+	bits = sh_msiof_spi_bits(spi, t);
- 	if (bits < 8)
- 		return -EINVAL;
--
- 	if (bits > 32)
- 		return -EINVAL;
- 
--	/* noting to check hz values against since parent clock is disabled */
--
--	return 0;
-+	return spi_bitbang_setup_transfer(spi, t);
- }
- 
- static void sh_msiof_spi_chipselect(struct spi_device *spi, int is_on)
-@@ -362,7 +362,7 @@ static void sh_msiof_spi_chipselect(stru
- 	struct sh_msiof_spi_priv *p = spi_master_get_devdata(spi->master);
- 	int value;
- 
--	/* chip select ia active low unless SPI_CS_HIGH is set */
-+	/* chip select is active low unless SPI_CS_HIGH is set */
- 	if (spi->mode & SPI_CS_HIGH)
- 		value = (is_on == BITBANG_CS_ACTIVE) ? 1 : 0;
- 	else
-@@ -381,7 +381,7 @@ static void sh_msiof_spi_chipselect(stru
- 					  !!(spi->mode & SPI_LSB_FIRST));
- 	}
- 
--	/* use spi->controller data for CS (same as spi_gpio) */
-+	/* use spi->controller data for CS (same strategy as spi_gpio) */
- 	gpio_set_value((unsigned)spi->controller_data, value);
- 
- 	if (is_on == BITBANG_CS_INACTIVE) {
-@@ -401,6 +401,7 @@ static int sh_msiof_spi_txrx_once(struct
- 				  int words, int bits)
- {
- 	int fifo_shift;
-+	int ret;
- 
- 	/* limit maximum word transfer to rx/tx fifo size */
- 	if (tx_buf)
-@@ -419,14 +420,18 @@ static int sh_msiof_spi_txrx_once(struct
- 		tx_fifo(p, tx_buf, words, fifo_shift);
- 
- 	/* setup clock and rx/tx signals */
--	sh_msiof_modify_ctr_wait(p, 0, CTR_TSCKE);
-+	ret = sh_msiof_modify_ctr_wait(p, 0, CTR_TSCKE);
- 	if (rx_buf)
--		sh_msiof_modify_ctr_wait(p, 0, CTR_RXE);
--	sh_msiof_modify_ctr_wait(p, 0, CTR_TXE);
-+		ret = ret ? ret : sh_msiof_modify_ctr_wait(p, 0, CTR_RXE);
-+	ret = ret ? ret : sh_msiof_modify_ctr_wait(p, 0, CTR_TXE);
- 
- 	/* start by setting frame bit */
- 	INIT_COMPLETION(p->done);
--	sh_msiof_modify_ctr_wait(p, 0, CTR_TFSE);
-+	ret = ret ? ret : sh_msiof_modify_ctr_wait(p, 0, CTR_TFSE);
-+	if (ret) {
-+		dev_err(&p->pdev->dev, "failed to start hardware\n");
-+		goto err;
-+	}
- 
- 	/* wait for tx fifo to be emptied / rx fifo to be filled */
- 	wait_for_completion(&p->done);
-@@ -439,13 +444,21 @@ static int sh_msiof_spi_txrx_once(struct
- 	sh_msiof_reset_str(p);
- 
- 	/* shut down frame, tx/tx and clock signals */
--	sh_msiof_modify_ctr_wait(p, CTR_TFSE, 0);
--	sh_msiof_modify_ctr_wait(p, CTR_TXE, 0);
-+	ret = sh_msiof_modify_ctr_wait(p, CTR_TFSE, 0);
-+	ret = ret ? ret : sh_msiof_modify_ctr_wait(p, CTR_TXE, 0);
- 	if (rx_buf)
--		sh_msiof_modify_ctr_wait(p, CTR_RXE, 0);
--	sh_msiof_modify_ctr_wait(p, CTR_TSCKE, 0);
-+		ret = ret ? ret : sh_msiof_modify_ctr_wait(p, CTR_RXE, 0);
-+	ret = ret ? ret : sh_msiof_modify_ctr_wait(p, CTR_TSCKE, 0);
-+	if (ret) {
-+		dev_err(&p->pdev->dev, "failed to shut down hardware\n");
-+		goto err;
-+	}
- 
- 	return words;
++	complete(&hw->done);
++	return IRQ_HANDLED;
++}
 +
-+ err:
-+	sh_msiof_write(p, IER, 0);
-+	return ret;
- }
- 
- static int sh_msiof_spi_txrx(struct spi_device *spi, struct spi_transfer *t)
-@@ -503,6 +516,9 @@ static int sh_msiof_spi_txrx(struct spi_
- 					   t->tx_buf + bytes_done,
- 					   t->rx_buf + bytes_done,
- 					   words, bits);
-+		if (n < 0)
-+			break;
++static void nuc900_tx_edge(struct nuc900_spi *hw, unsigned int edge)
++{
++	unsigned int val;
++	unsigned long flags;
 +
- 		bytes_done += n * bytes_per_word;
- 		words -= n;
- 	}
-@@ -513,7 +529,7 @@ static int sh_msiof_spi_txrx(struct spi_
- static u32 sh_msiof_spi_txrx_word(struct spi_device *spi, unsigned nsecs,
- 				  u32 word, u8 bits)
- {
--	BUG_ON(1); /* unused but needed by bitbang code */
-+	BUG(); /* unused but needed by bitbang code */
- 	return 0;
- }
- 
-@@ -651,7 +667,7 @@ static struct platform_driver sh_msiof_s
- 	.probe		= sh_msiof_spi_probe,
- 	.remove		= sh_msiof_spi_remove,
- 	.driver		= {
--		.name	= "spi_sh_msiof",
-+		.name		= "spi_sh_msiof",
- 		.owner		= THIS_MODULE,
- 		.pm		= &sh_msiof_spi_dev_pm_ops,
- 	},
++	spin_lock_irqsave(&hw->lock, flags);
++
++	val = __raw_readl(hw->regs + USI_CNT);
++
++	if (edge)
++		val |= TXNEG;
++	else
++		val &= ~TXNEG;
++	__raw_writel(val, hw->regs + USI_CNT);
++
++	spin_unlock_irqrestore(&hw->lock, flags);
++}
++
++static void nuc900_rx_edge(struct nuc900_spi *hw, unsigned int edge)
++{
++	unsigned int val;
++	unsigned long flags;
++
++	spin_lock_irqsave(&hw->lock, flags);
++
++	val = __raw_readl(hw->regs + USI_CNT);
++
++	if (edge)
++		val |= RXNEG;
++	else
++		val &= ~RXNEG;
++	__raw_writel(val, hw->regs + USI_CNT);
++
++	spin_unlock_irqrestore(&hw->lock, flags);
++}
++
++static void nuc900_send_first(struct nuc900_spi *hw, unsigned int lsb)
++{
++	unsigned int val;
++	unsigned long flags;
++
++	spin_lock_irqsave(&hw->lock, flags);
++
++	val = __raw_readl(hw->regs + USI_CNT);
++
++	if (lsb)
++		val |= LSB;
++	else
++		val &= ~LSB;
++	__raw_writel(val, hw->regs + USI_CNT);
++
++	spin_unlock_irqrestore(&hw->lock, flags);
++}
++
++static void nuc900_set_sleep(struct nuc900_spi *hw, unsigned int sleep)
++{
++	unsigned int val;
++	unsigned long flags;
++
++	spin_lock_irqsave(&hw->lock, flags);
++
++	val = __raw_readl(hw->regs + USI_CNT);
++
++	if (sleep)
++		val |= (sleep << 12);
++	else
++		val &= ~(0x0f << 12);
++	__raw_writel(val, hw->regs + USI_CNT);
++
++	spin_unlock_irqrestore(&hw->lock, flags);
++}
++
++static void nuc900_enable_int(struct nuc900_spi *hw)
++{
++	unsigned int val;
++	unsigned long flags;
++
++	spin_lock_irqsave(&hw->lock, flags);
++
++	val = __raw_readl(hw->regs + USI_CNT);
++
++	val |= ENINT;
++
++	__raw_writel(val, hw->regs + USI_CNT);
++
++	spin_unlock_irqrestore(&hw->lock, flags);
++}
++
++static void nuc900_set_divider(struct nuc900_spi *hw)
++{
++	__raw_writel(hw->pdata->divider, hw->regs + USI_DIV);
++}
++
++static void nuc900_init_spi(struct nuc900_spi *hw)
++{
++	clk_enable(hw->clk);
++	spin_lock_init(&hw->lock);
++
++	nuc900_tx_edge(hw, hw->pdata->txneg);
++	nuc900_rx_edge(hw, hw->pdata->rxneg);
++	nuc900_send_first(hw, hw->pdata->lsb);
++	nuc900_set_sleep(hw, hw->pdata->sleep);
++	nuc900_spi_setup_txbitlen(hw, hw->pdata->txbitlen);
++	nuc900_spi_setup_txnum(hw, hw->pdata->txnum);
++	nuc900_set_divider(hw);
++	nuc900_enable_int(hw);
++}
++
++static int __devinit nuc900_spi_probe(struct platform_device *pdev)
++{
++	struct nuc900_spi *hw;
++	struct spi_master *master;
++	int err = 0;
++
++	master = spi_alloc_master(&pdev->dev, sizeof(struct nuc900_spi));
++	if (master == NULL) {
++		dev_err(&pdev->dev, "No memory for spi_master\n");
++		err = -ENOMEM;
++		goto err_nomem;
++	}
++
++	hw = spi_master_get_devdata(master);
++	memset(hw, 0, sizeof(struct nuc900_spi));
++
++	hw->master = spi_master_get(master);
++	hw->pdata  = pdev->dev.platform_data;
++	hw->dev = &pdev->dev;
++
++	if (hw->pdata == NULL) {
++		dev_err(&pdev->dev, "No platform data supplied\n");
++		err = -ENOENT;
++		goto err_pdata;
++	}
++
++	platform_set_drvdata(pdev, hw);
++	init_completion(&hw->done);
++
++	master->mode_bits          = SPI_MODE_0;
++	master->num_chipselect     = hw->pdata->num_cs;
++	master->bus_num            = hw->pdata->bus_num;
++	hw->bitbang.master         = hw->master;
++	hw->bitbang.setup_transfer = nuc900_spi_setupxfer;
++	hw->bitbang.chipselect     = nuc900_spi_chipsel;
++	hw->bitbang.txrx_bufs      = nuc900_spi_txrx;
++	hw->bitbang.master->setup  = nuc900_spi_setup;
++
++	hw->res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (hw->res == NULL) {
++		dev_err(&pdev->dev, "Cannot get IORESOURCE_MEM\n");
++		err = -ENOENT;
++		goto err_pdata;
++	}
++
++	hw->ioarea = request_mem_region(hw->res->start,
++					resource_size(hw->res), pdev->name);
++
++	if (hw->ioarea == NULL) {
++		dev_err(&pdev->dev, "Cannot reserve region\n");
++		err = -ENXIO;
++		goto err_pdata;
++	}
++
++	hw->regs = ioremap(hw->res->start, resource_size(hw->res));
++	if (hw->regs == NULL) {
++		dev_err(&pdev->dev, "Cannot map IO\n");
++		err = -ENXIO;
++		goto err_iomap;
++	}
++
++	hw->irq = platform_get_irq(pdev, 0);
++	if (hw->irq < 0) {
++		dev_err(&pdev->dev, "No IRQ specified\n");
++		err = -ENOENT;
++		goto err_irq;
++	}
++
++	err = request_irq(hw->irq, nuc900_spi_irq, 0, pdev->name, hw);
++	if (err) {
++		dev_err(&pdev->dev, "Cannot claim IRQ\n");
++		goto err_irq;
++	}
++
++	hw->clk = clk_get(&pdev->dev, "spi");
++	if (IS_ERR(hw->clk)) {
++		dev_err(&pdev->dev, "No clock for device\n");
++		err = PTR_ERR(hw->clk);
++		goto err_clk;
++	}
++
++	mfp_set_groupg(&pdev->dev);
++	nuc900_init_spi(hw);
++
++	err = spi_bitbang_start(&hw->bitbang);
++	if (err) {
++		dev_err(&pdev->dev, "Failed to register SPI master\n");
++		goto err_register;
++	}
++
++	return 0;
++
++err_register:
++	clk_disable(hw->clk);
++	clk_put(hw->clk);
++err_clk:
++	free_irq(hw->irq, hw);
++err_irq:
++	iounmap(hw->regs);
++err_iomap:
++	release_mem_region(hw->res->start, resource_size(hw->res));
++	kfree(hw->ioarea);
++err_pdata:
++	spi_master_put(hw->master);;
++
++err_nomem:
++	return err;
++}
++
++static int __devexit nuc900_spi_remove(struct platform_device *dev)
++{
++	struct nuc900_spi *hw = platform_get_drvdata(dev);
++
++	free_irq(hw->irq, hw);
++
++	platform_set_drvdata(dev, NULL);
++
++	spi_unregister_master(hw->master);
++
++	clk_disable(hw->clk);
++	clk_put(hw->clk);
++
++	iounmap(hw->regs);
++
++	release_mem_region(hw->res->start, resource_size(hw->res));
++	kfree(hw->ioarea);
++
++	spi_master_put(hw->master);
++	return 0;
++}
++
++static struct platform_driver nuc900_spi_driver = {
++	.probe		= nuc900_spi_probe,
++	.remove		= __devexit_p(nuc900_spi_remove),
++	.driver		= {
++		.name	= "nuc900-spi",
++		.owner	= THIS_MODULE,
++	},
++};
++
++static int __init nuc900_spi_init(void)
++{
++	return platform_driver_register(&nuc900_spi_driver);
++}
++
++static void __exit nuc900_spi_exit(void)
++{
++	platform_driver_unregister(&nuc900_spi_driver);
++}
++
++module_init(nuc900_spi_init);
++module_exit(nuc900_spi_exit);
++
++MODULE_AUTHOR("Wan ZongShun <mcuos.com@gmail.com>");
++MODULE_DESCRIPTION("nuc900 spi driver!");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:nuc900-spi");
 _
 
-Patches currently in -mm which might be from damm@opensource.se are
+Patches currently in -mm which might be from mcuos.com@gmail.com are
 
 origin.patch
 linux-next.patch
-clocksource-add-argument-to-resume-callback.patch
-clocksource-start-cmt-at-clocksource-resume.patch
-clocksource-start-cmt-at-clocksource-resume-v2.patch
-clocksource-add-suspend-callback.patch
-mm-uncached-vma-support-with-writenotify.patch
-mmc-let-tmio-mmc-use-dev_name-with-request_irq.patch
-mmc-remove-const-from-tmio-mmc-platform-data-v2.patch
-mmc-balance-tmio-mmc-cell-enable-disable-calls.patch
+arm-nuc900-add-rtc-driver-support-for-nuc910-and-nuc920.patch
+arm-nuc900-add-rtc-driver-support-for-nuc910-and-nuc920-v5.patch
 
