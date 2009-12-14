@@ -1,807 +1,236 @@
 From: akpm@linux-foundation.org
-Subject: [merged] spi-superh-msiof-spi-master-driver.patch removed from -mm tree
-Date: Mon, 14 Dec 2009 13:23:42 -0800
-Message-ID: <200912142123.nBELNg6B017324@imap1.linux-foundation.org>
+Subject: + linux-next-fixups.patch added to -mm tree
+Date: Mon, 14 Dec 2009 14:16:10 -0800
+Message-ID: <200912142216.nBEMGAA4023708@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54265 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49551 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932777AbZLNVYJ (ORCPT
+	by vger.kernel.org with ESMTP id S932626AbZLNWQR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Dec 2009 16:24:09 -0500
+	Mon, 14 Dec 2009 17:16:17 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id nBEMGEBs026521
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 14 Dec 2009 14:16:15 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: damm@opensource.se, david-b@pacbell.net, grant.likely@secretlab.ca, lethal@linux-sh.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     spi: SuperH MSIOF SPI Master driver
-has been removed from the -mm tree.  Its filename was
-     spi-superh-msiof-spi-master-driver.patch
+     linux-next-fixups
+has been added to the -mm tree.  Its filename is
+     linux-next-fixups.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi: SuperH MSIOF SPI Master driver
-From: Magnus Damm <damm@opensource.se>
+Subject: linux-next-fixups
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This patch adds SPI Master support for the SuperH MSIOF hardware block. 
-Full duplex, spi mode 0-3, active high cs, 3-wire and lsb first should all
-be supported, but the driver has so far only been tested with "mmc_spi".
-
-The MSIOF hardware comes with 32-bit FIFOs for receive and transmit, and
-this driver simply breaks the SPI messages into FIFO-sized chunks.  The
-MSIOF hardware manages the pins for clock, receive and transmit
-(sck/miso/mosi), but the chip select pin is managed by software and must
-be configured as a regular GPIO pin by the board code.
-
-Performance wise there is still room for improvement, but on a Ecovec
-board with the built-in sh7724 MSIOF0 this driver gets Mini-sd read speeds
-of about half a megabyte per second.
-
-Future work include better clock setup and merging of 8-bit transfers into
-32-bit words to reduce interrupt load and improve throughput.
-
-Signed-off-by: Magnus Damm <damm@opensource.se>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Grant Likely <grant.likely@secretlab.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/Kconfig          |    7 
- drivers/spi/Makefile         |    1 
- drivers/spi/spi.c            |    1 
- drivers/spi/spi_sh_msiof.c   |  675 +++++++++++++++++++++++++++++++++
- include/linux/spi/sh_msiof.h |   10 
- 5 files changed, 693 insertions(+), 1 deletion(-)
+ drivers/mmc/host/tmio_mmc.c         |    4 +-
+ drivers/platform/x86/eeepc-laptop.c |   52 --------------------------
+ mm/memcontrol.c                     |    2 -
+ 3 files changed, 3 insertions(+), 55 deletions(-)
 
-diff -puN drivers/spi/Kconfig~spi-superh-msiof-spi-master-driver drivers/spi/Kconfig
---- a/drivers/spi/Kconfig~spi-superh-msiof-spi-master-driver
-+++ a/drivers/spi/Kconfig
-@@ -231,6 +231,13 @@ config SPI_S3C24XX_GPIO
- 	  the inbuilt hardware cannot provide the transfer mode, or
- 	  where the board is using non hardware connected pins.
+diff -puN drivers/mmc/host/tmio_mmc.c~linux-next-fixups drivers/mmc/host/tmio_mmc.c
+--- a/drivers/mmc/host/tmio_mmc.c~linux-next-fixups
++++ a/drivers/mmc/host/tmio_mmc.c
+@@ -577,14 +577,14 @@ static int __devinit tmio_mmc_probe(stru
+ 	if (ret >= 0)
+ 		host->irq = ret;
+ 	else
+-		goto unmap_cnf;
++		goto unmap_ctl;
  
-+config SPI_SH_MSIOF
-+	tristate "SuperH MSIOF SPI controller"
-+	depends on SUPERH && HAVE_CLK
-+	select SPI_BITBANG
-+	help
-+	  SPI driver for SuperH MSIOF blocks.
-+
- config SPI_SH_SCI
- 	tristate "SuperH SCI SPI controller"
- 	depends on SUPERH
-diff -puN drivers/spi/Makefile~spi-superh-msiof-spi-master-driver drivers/spi/Makefile
---- a/drivers/spi/Makefile~spi-superh-msiof-spi-master-driver
-+++ a/drivers/spi/Makefile
-@@ -35,6 +35,7 @@ obj-$(CONFIG_SPI_XILINX)		+= xilinx_spi.
- obj-$(CONFIG_SPI_XILINX_OF)		+= xilinx_spi_of.o
- obj-$(CONFIG_SPI_XILINX_PLTFM)		+= xilinx_spi_pltfm.o
- obj-$(CONFIG_SPI_SH_SCI)		+= spi_sh_sci.o
-+obj-$(CONFIG_SPI_SH_MSIOF)		+= spi_sh_msiof.o
- obj-$(CONFIG_SPI_STMP3XXX)		+= spi_stmp.o
- obj-$(CONFIG_SPI_DESIGNWARE)		+= dw_spi.o
- obj-$(CONFIG_SPI_DW_PCI)		+= dw_spi_pci.o
-diff -puN drivers/spi/spi.c~spi-superh-msiof-spi-master-driver drivers/spi/spi.c
---- a/drivers/spi/spi.c~spi-superh-msiof-spi-master-driver
-+++ a/drivers/spi/spi.c
-@@ -17,7 +17,6 @@
-  * along with this program; if not, write to the Free Software
-  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-  */
+ 	disable_mmc_irqs(host, TMIO_MASK_ALL);
+ 
+ 	ret = request_irq(host->irq, tmio_mmc_irq, IRQF_DISABLED |
+ 		IRQF_TRIGGER_FALLING, dev_name(&dev->dev), host);
+ 	if (ret)
+-		goto unmap_cnf;
++		goto unmap_ctl;
+ 
+ 	mmc_add_host(mmc);
+ 
+diff -puN drivers/platform/x86/eeepc-laptop.c~linux-next-fixups drivers/platform/x86/eeepc-laptop.c
+--- a/drivers/platform/x86/eeepc-laptop.c~linux-next-fixups
++++ a/drivers/platform/x86/eeepc-laptop.c
+@@ -120,58 +120,6 @@ static const char *cm_setv[] = {
+ 	NULL, NULL, "PBPS", "TPDS"
+ };
+ 
+-#define EEEPC_EC	"\\_SB.PCI0.SBRG.EC0."
 -
- #include <linux/kernel.h>
- #include <linux/device.h>
- #include <linux/init.h>
-diff -puN /dev/null drivers/spi/spi_sh_msiof.c
---- /dev/null
-+++ a/drivers/spi/spi_sh_msiof.c
-@@ -0,0 +1,675 @@
-+/*
-+ * SuperH MSIOF SPI Master Interface
-+ *
-+ * Copyright (c) 2009 Magnus Damm
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/delay.h>
-+#include <linux/interrupt.h>
-+#include <linux/platform_device.h>
-+#include <linux/completion.h>
-+#include <linux/pm_runtime.h>
-+#include <linux/gpio.h>
-+#include <linux/bitmap.h>
-+#include <linux/clk.h>
-+#include <linux/io.h>
-+
-+#include <linux/spi/spi.h>
-+#include <linux/spi/spi_bitbang.h>
-+#include <linux/spi/sh_msiof.h>
-+
-+#include <asm/spi.h>
-+#include <asm/unaligned.h>
-+
-+struct sh_msiof_spi_priv {
-+	struct spi_bitbang bitbang; /* must be first for spi_bitbang.c */
-+	void __iomem *mapbase;
-+	struct clk *clk;
-+	struct platform_device *pdev;
-+	struct sh_msiof_spi_info *info;
-+	struct completion done;
-+	unsigned long flags;
-+	int tx_fifo_size;
-+	int rx_fifo_size;
-+};
-+
-+#define TMDR1	0x00
-+#define TMDR2	0x04
-+#define TMDR3	0x08
-+#define RMDR1	0x10
-+#define RMDR2	0x14
-+#define RMDR3	0x18
-+#define TSCR	0x20
-+#define RSCR	0x22
-+#define CTR	0x28
-+#define FCTR	0x30
-+#define STR	0x40
-+#define IER	0x44
-+#define TDR1	0x48
-+#define TDR2	0x4c
-+#define TFDR	0x50
-+#define RDR1	0x58
-+#define RDR2	0x5c
-+#define RFDR	0x60
-+
-+#define CTR_TSCKE (1 << 15)
-+#define CTR_TFSE  (1 << 14)
-+#define CTR_TXE   (1 << 9)
-+#define CTR_RXE   (1 << 8)
-+
-+#define STR_TEOF  (1 << 23)
-+#define STR_REOF  (1 << 7)
-+
-+static unsigned long sh_msiof_read(struct sh_msiof_spi_priv *p, int reg_offs)
-+{
-+	switch (reg_offs) {
-+	case TSCR:
-+	case RSCR:
-+		return ioread16(p->mapbase + reg_offs);
-+	default:
-+		return ioread32(p->mapbase + reg_offs);
-+	}
-+}
-+
-+static void sh_msiof_write(struct sh_msiof_spi_priv *p, int reg_offs,
-+			   unsigned long value)
-+{
-+	switch (reg_offs) {
-+	case TSCR:
-+	case RSCR:
-+		iowrite16(value, p->mapbase + reg_offs);
-+		break;
-+	default:
-+		iowrite32(value, p->mapbase + reg_offs);
-+		break;
-+	}
-+}
-+
-+static void sh_msiof_modify_ctr_wait(struct sh_msiof_spi_priv *p,
-+				     unsigned long clr, unsigned long set)
-+{
-+	unsigned long mask = clr | set;
-+	unsigned long data;
-+
-+	data = sh_msiof_read(p, CTR);
-+	data &= ~clr;
-+	data |= set;
-+	sh_msiof_write(p, CTR, data);
-+
-+	while ((sh_msiof_read(p, CTR) & mask) != set)
-+		;
-+}
-+
-+static irqreturn_t sh_msiof_spi_irq(int irq, void *data)
-+{
-+	struct sh_msiof_spi_priv *p = data;
-+
-+	/* just disable the interrupt and wake up */
-+	sh_msiof_write(p, IER, 0);
-+
-+	complete(&p->done);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static struct {
-+	unsigned short div;
-+	unsigned short scr;
-+} sh_msiof_spi_clk_table[] = {
-+	{ 1, 0x0007 },
-+	{ 2, 0x0000 },
-+	{ 4, 0x0001 },
-+	{ 8, 0x0002 },
-+	{ 16, 0x0003 },
-+	{ 32, 0x0004 },
-+	{ 64, 0x1f00 },
-+	{ 128, 0x1f01 },
-+	{ 256, 0x1f02 },
-+	{ 512, 0x1f03 },
-+	{ 1024, 0x1f04 },
-+};
-+
-+static void sh_msiof_spi_set_clk_regs(struct sh_msiof_spi_priv *p,
-+				      unsigned long parent_rate,
-+				      unsigned long spi_hz)
-+{
-+	unsigned long div = 1024;
-+	int k;
-+
-+	if (!spi_hz || !parent_rate)
-+		WARN_ON(1);
-+	else
-+		div = parent_rate / spi_hz;
-+
-+	/* TODO: make more fine grained */
-+
-+	for (k = 0; k < ARRAY_SIZE(sh_msiof_spi_clk_table); k++) {
-+		if (sh_msiof_spi_clk_table[k].div >= div)
-+			break;
-+	}
-+
-+	k = min_t(int, k, ARRAY_SIZE(sh_msiof_spi_clk_table) - 1);
-+
-+	sh_msiof_write(p, TSCR, sh_msiof_spi_clk_table[k].scr);
-+	sh_msiof_write(p, RSCR, sh_msiof_spi_clk_table[k].scr);
-+}
-+
-+static void sh_msiof_spi_set_pin_regs(struct sh_msiof_spi_priv *p,
-+				      int cpol, int cpha,
-+				      int tx_hi_z, int lsb_first)
-+{
-+	unsigned long tmp;
-+	int edge;
-+
-+	/*
-+	 * CPOL CPHA     TSCKIZ RSCKIZ TEDG REDG(!)
-+	 *    0    0         10     10    1    0
-+	 *    0    1         10     10    0    1
-+	 *    1    0         11     11    0    1
-+	 *    1    1         11     11    1    0
-+	 *
-+	 * (!) Note: REDG is inverted recommended data sheet setting
-+	 */
-+
-+	sh_msiof_write(p, FCTR, 0);
-+	sh_msiof_write(p, TMDR1, 0xe2000005 | (lsb_first << 24));
-+	sh_msiof_write(p, RMDR1, 0x22000005 | (lsb_first << 24));
-+
-+	tmp = 0xa0000000;
-+	tmp |= cpol << 30; /* TSCKIZ */
-+	tmp |= cpol << 28; /* RSCKIZ */
-+
-+	edge = cpol ? cpha : !cpha;
-+
-+	tmp |= edge << 27; /* TEDG */
-+	tmp |= !edge << 26; /* REDG */
-+	tmp |= (tx_hi_z ? 2 : 0) << 22; /* TXDIZ */
-+	sh_msiof_write(p, CTR, tmp);
-+}
-+
-+static void sh_msiof_spi_set_mode_regs(struct sh_msiof_spi_priv *p,
-+				       const void *tx_buf, void *rx_buf,
-+				       int bits, int words)
-+{
-+	unsigned long dr2;
-+
-+	dr2 = ((bits - 1) << 24) | ((words - 1) << 16);
-+
-+	if (tx_buf)
-+		sh_msiof_write(p, TMDR2, dr2);
-+	else
-+		sh_msiof_write(p, TMDR2, dr2 | 1);
-+
-+	if (rx_buf)
-+		sh_msiof_write(p, RMDR2, dr2);
-+
-+	sh_msiof_write(p, IER, STR_TEOF | STR_REOF);
-+}
-+
-+static void sh_msiof_reset_str(struct sh_msiof_spi_priv *p)
-+{
-+	sh_msiof_write(p, STR, sh_msiof_read(p, STR));
-+}
-+
-+static void sh_msiof_spi_write_fifo_8(struct sh_msiof_spi_priv *p,
-+				      const void *tx_buf, int words, int fs)
-+{
-+	const unsigned char *buf_8 = tx_buf;
-+	int k;
-+
-+	for (k = 0; k < words; k++)
-+		sh_msiof_write(p, TFDR, buf_8[k] << fs);
-+}
-+
-+static void sh_msiof_spi_write_fifo_16(struct sh_msiof_spi_priv *p,
-+				       const void *tx_buf, int words, int fs)
-+{
-+	const unsigned short *buf_16 = tx_buf;
-+	int k;
-+
-+	for (k = 0; k < words; k++)
-+		sh_msiof_write(p, TFDR, buf_16[k] << fs);
-+}
-+
-+static void sh_msiof_spi_write_fifo_16u(struct sh_msiof_spi_priv *p,
-+					const void *tx_buf, int words, int fs)
-+{
-+	const unsigned short *buf_16 = tx_buf;
-+	int k;
-+
-+	for (k = 0; k < words; k++)
-+		sh_msiof_write(p, TFDR, get_unaligned(&buf_16[k]) << fs);
-+}
-+
-+static void sh_msiof_spi_write_fifo_32(struct sh_msiof_spi_priv *p,
-+				       const void *tx_buf, int words, int fs)
-+{
-+	const unsigned int *buf_32 = tx_buf;
-+	int k;
-+
-+	for (k = 0; k < words; k++)
-+		sh_msiof_write(p, TFDR, buf_32[k] << fs);
-+}
-+
-+static void sh_msiof_spi_write_fifo_32u(struct sh_msiof_spi_priv *p,
-+					const void *tx_buf, int words, int fs)
-+{
-+	const unsigned int *buf_32 = tx_buf;
-+	int k;
-+
-+	for (k = 0; k < words; k++)
-+		sh_msiof_write(p, TFDR, get_unaligned(&buf_32[k]) << fs);
-+}
-+
-+static void sh_msiof_spi_read_fifo_8(struct sh_msiof_spi_priv *p,
-+				     void *rx_buf, int words, int fs)
-+{
-+	unsigned char *buf_8 = rx_buf;
-+	int k;
-+
-+	for (k = 0; k < words; k++)
-+		buf_8[k] = sh_msiof_read(p, RFDR) >> fs;
-+}
-+
-+static void sh_msiof_spi_read_fifo_16(struct sh_msiof_spi_priv *p,
-+				      void *rx_buf, int words, int fs)
-+{
-+	unsigned short *buf_16 = rx_buf;
-+	int k;
-+
-+	for (k = 0; k < words; k++)
-+		buf_16[k] = sh_msiof_read(p, RFDR) >> fs;
-+}
-+
-+static void sh_msiof_spi_read_fifo_16u(struct sh_msiof_spi_priv *p,
-+				       void *rx_buf, int words, int fs)
-+{
-+	unsigned short *buf_16 = rx_buf;
-+	int k;
-+
-+	for (k = 0; k < words; k++)
-+		put_unaligned(sh_msiof_read(p, RFDR) >> fs, &buf_16[k]);
-+}
-+
-+static void sh_msiof_spi_read_fifo_32(struct sh_msiof_spi_priv *p,
-+				      void *rx_buf, int words, int fs)
-+{
-+	unsigned int *buf_32 = rx_buf;
-+	int k;
-+
-+	for (k = 0; k < words; k++)
-+		buf_32[k] = sh_msiof_read(p, RFDR) >> fs;
-+}
-+
-+static void sh_msiof_spi_read_fifo_32u(struct sh_msiof_spi_priv *p,
-+				       void *rx_buf, int words, int fs)
-+{
-+	unsigned int *buf_32 = rx_buf;
-+	int k;
-+
-+	for (k = 0; k < words; k++)
-+		put_unaligned(sh_msiof_read(p, RFDR) >> fs, &buf_32[k]);
-+}
-+
-+static int sh_msiof_spi_bits(struct spi_device *spi, struct spi_transfer *t)
-+{
-+	int bits;
-+
-+	bits = t ? t->bits_per_word : 0;
-+	bits = bits ? bits : spi->bits_per_word;
-+
-+	return bits;
-+}
-+
-+static unsigned long sh_msiof_spi_hz(struct spi_device *spi,
-+				     struct spi_transfer *t)
-+{
-+	unsigned long hz;
-+
-+	hz = t ? t->speed_hz : 0;
-+	hz = hz ? hz : spi->max_speed_hz;
-+
-+	return hz;
-+}
-+
-+static int sh_msiof_spi_setup_transfer(struct spi_device *spi,
-+				       struct spi_transfer *t)
-+{
-+	int bits;
-+
-+	bits = sh_msiof_spi_bits(spi, t);
-+
-+	if (bits < 8)
-+		return -EINVAL;
-+
-+	if (bits > 32)
-+		return -EINVAL;
-+
-+	/* noting to check hz values against since parent clock is disabled */
-+
-+	return 0;
-+}
-+
-+static void sh_msiof_spi_chipselect(struct spi_device *spi, int is_on)
-+{
-+	struct sh_msiof_spi_priv *p = spi_master_get_devdata(spi->master);
-+	int value;
-+
-+	/* chip select ia active low unless SPI_CS_HIGH is set */
-+	if (spi->mode & SPI_CS_HIGH)
-+		value = (is_on == BITBANG_CS_ACTIVE) ? 1 : 0;
-+	else
-+		value = (is_on == BITBANG_CS_ACTIVE) ? 0 : 1;
-+
-+	if (is_on == BITBANG_CS_ACTIVE) {
-+		if (!test_and_set_bit(0, &p->flags)) {
-+			pm_runtime_get_sync(&p->pdev->dev);
-+			clk_enable(p->clk);
-+		}
-+
-+		/* Configure pins before asserting CS */
-+		sh_msiof_spi_set_pin_regs(p, !!(spi->mode & SPI_CPOL),
-+					  !!(spi->mode & SPI_CPHA),
-+					  !!(spi->mode & SPI_3WIRE),
-+					  !!(spi->mode & SPI_LSB_FIRST));
-+	}
-+
-+	/* use spi->controller data for CS (same as spi_gpio) */
-+	gpio_set_value((unsigned)spi->controller_data, value);
-+
-+	if (is_on == BITBANG_CS_INACTIVE) {
-+		if (test_and_clear_bit(0, &p->flags)) {
-+			clk_disable(p->clk);
-+			pm_runtime_put(&p->pdev->dev);
-+		}
-+	}
-+}
-+
-+static int sh_msiof_spi_txrx_once(struct sh_msiof_spi_priv *p,
-+				  void (*tx_fifo)(struct sh_msiof_spi_priv *,
-+						  const void *, int, int),
-+				  void (*rx_fifo)(struct sh_msiof_spi_priv *,
-+						  void *, int, int),
-+				  const void *tx_buf, void *rx_buf,
-+				  int words, int bits)
-+{
-+	int fifo_shift;
-+
-+	/* limit maximum word transfer to rx/tx fifo size */
-+	if (tx_buf)
-+		words = min_t(int, words, p->tx_fifo_size);
-+	if (rx_buf)
-+		words = min_t(int, words, p->rx_fifo_size);
-+
-+	/* the fifo contents need shifting */
-+	fifo_shift = 32 - bits;
-+
-+	/* setup msiof transfer mode registers */
-+	sh_msiof_spi_set_mode_regs(p, tx_buf, rx_buf, bits, words);
-+
-+	/* write tx fifo */
-+	if (tx_buf)
-+		tx_fifo(p, tx_buf, words, fifo_shift);
-+
-+	/* setup clock and rx/tx signals */
-+	sh_msiof_modify_ctr_wait(p, 0, CTR_TSCKE);
-+	if (rx_buf)
-+		sh_msiof_modify_ctr_wait(p, 0, CTR_RXE);
-+	sh_msiof_modify_ctr_wait(p, 0, CTR_TXE);
-+
-+	/* start by setting frame bit */
-+	INIT_COMPLETION(p->done);
-+	sh_msiof_modify_ctr_wait(p, 0, CTR_TFSE);
-+
-+	/* wait for tx fifo to be emptied / rx fifo to be filled */
-+	wait_for_completion(&p->done);
-+
-+	/* read rx fifo */
-+	if (rx_buf)
-+		rx_fifo(p, rx_buf, words, fifo_shift);
-+
-+	/* clear status bits */
-+	sh_msiof_reset_str(p);
-+
-+	/* shut down frame, tx/tx and clock signals */
-+	sh_msiof_modify_ctr_wait(p, CTR_TFSE, 0);
-+	sh_msiof_modify_ctr_wait(p, CTR_TXE, 0);
-+	if (rx_buf)
-+		sh_msiof_modify_ctr_wait(p, CTR_RXE, 0);
-+	sh_msiof_modify_ctr_wait(p, CTR_TSCKE, 0);
-+
-+	return words;
-+}
-+
-+static int sh_msiof_spi_txrx(struct spi_device *spi, struct spi_transfer *t)
-+{
-+	struct sh_msiof_spi_priv *p = spi_master_get_devdata(spi->master);
-+	void (*tx_fifo)(struct sh_msiof_spi_priv *, const void *, int, int);
-+	void (*rx_fifo)(struct sh_msiof_spi_priv *, void *, int, int);
-+	int bits;
-+	int bytes_per_word;
-+	int bytes_done;
-+	int words;
-+	int n;
-+
-+	bits = sh_msiof_spi_bits(spi, t);
-+
-+	/* setup bytes per word and fifo read/write functions */
-+	if (bits <= 8) {
-+		bytes_per_word = 1;
-+		tx_fifo = sh_msiof_spi_write_fifo_8;
-+		rx_fifo = sh_msiof_spi_read_fifo_8;
-+	} else if (bits <= 16) {
-+		bytes_per_word = 2;
-+		if ((unsigned long)t->tx_buf & 0x01)
-+			tx_fifo = sh_msiof_spi_write_fifo_16u;
-+		else
-+			tx_fifo = sh_msiof_spi_write_fifo_16;
-+
-+		if ((unsigned long)t->rx_buf & 0x01)
-+			rx_fifo = sh_msiof_spi_read_fifo_16u;
-+		else
-+			rx_fifo = sh_msiof_spi_read_fifo_16;
-+	} else {
-+		bytes_per_word = 4;
-+		if ((unsigned long)t->tx_buf & 0x03)
-+			tx_fifo = sh_msiof_spi_write_fifo_32u;
-+		else
-+			tx_fifo = sh_msiof_spi_write_fifo_32;
-+
-+		if ((unsigned long)t->rx_buf & 0x03)
-+			rx_fifo = sh_msiof_spi_read_fifo_32u;
-+		else
-+			rx_fifo = sh_msiof_spi_read_fifo_32;
-+	}
-+
-+	/* setup clocks (clock already enabled in chipselect()) */
-+	sh_msiof_spi_set_clk_regs(p, clk_get_rate(p->clk),
-+				  sh_msiof_spi_hz(spi, t));
-+
-+	/* transfer in fifo sized chunks */
-+	words = t->len / bytes_per_word;
-+	bytes_done = 0;
-+
-+	while (bytes_done < t->len) {
-+		n = sh_msiof_spi_txrx_once(p, tx_fifo, rx_fifo,
-+					   t->tx_buf + bytes_done,
-+					   t->rx_buf + bytes_done,
-+					   words, bits);
-+		bytes_done += n * bytes_per_word;
-+		words -= n;
-+	}
-+
-+	return bytes_done;
-+}
-+
-+static u32 sh_msiof_spi_txrx_word(struct spi_device *spi, unsigned nsecs,
-+				  u32 word, u8 bits)
-+{
-+	BUG_ON(1); /* unused but needed by bitbang code */
-+	return 0;
-+}
-+
-+static int sh_msiof_spi_probe(struct platform_device *pdev)
-+{
-+	struct resource	*r;
-+	struct spi_master *master;
-+	struct sh_msiof_spi_priv *p;
-+	char clk_name[16];
-+	int i;
-+	int ret;
-+
-+	master = spi_alloc_master(&pdev->dev, sizeof(struct sh_msiof_spi_priv));
-+	if (master == NULL) {
-+		dev_err(&pdev->dev, "failed to allocate spi master\n");
-+		ret = -ENOMEM;
-+		goto err0;
-+	}
-+
-+	p = spi_master_get_devdata(master);
-+
-+	platform_set_drvdata(pdev, p);
-+	p->info = pdev->dev.platform_data;
-+	init_completion(&p->done);
-+
-+	snprintf(clk_name, sizeof(clk_name), "msiof%d", pdev->id);
-+	p->clk = clk_get(&pdev->dev, clk_name);
-+	if (IS_ERR(p->clk)) {
-+		dev_err(&pdev->dev, "cannot get clock \"%s\"\n", clk_name);
-+		ret = PTR_ERR(p->clk);
-+		goto err1;
-+	}
-+
-+	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	i = platform_get_irq(pdev, 0);
-+	if (!r || i < 0) {
-+		dev_err(&pdev->dev, "cannot get platform resources\n");
-+		ret = -ENOENT;
-+		goto err2;
-+	}
-+	p->mapbase = ioremap_nocache(r->start, resource_size(r));
-+	if (!p->mapbase) {
-+		dev_err(&pdev->dev, "unable to ioremap\n");
-+		ret = -ENXIO;
-+		goto err2;
-+	}
-+
-+	ret = request_irq(i, sh_msiof_spi_irq, IRQF_DISABLED,
-+			  dev_name(&pdev->dev), p);
-+	if (ret) {
-+		dev_err(&pdev->dev, "unable to request irq\n");
-+		goto err3;
-+	}
-+
-+	p->pdev = pdev;
-+	pm_runtime_enable(&pdev->dev);
-+
-+	/* The standard version of MSIOF use 64 word FIFOs */
-+	p->tx_fifo_size = 64;
-+	p->rx_fifo_size = 64;
-+
-+	/* Platform data may override FIFO sizes */
-+	if (p->info->tx_fifo_override)
-+		p->tx_fifo_size = p->info->tx_fifo_override;
-+	if (p->info->rx_fifo_override)
-+		p->rx_fifo_size = p->info->rx_fifo_override;
-+
-+	/* init master and bitbang code */
-+	master->mode_bits = SPI_CPOL | SPI_CPHA | SPI_CS_HIGH;
-+	master->mode_bits |= SPI_LSB_FIRST | SPI_3WIRE;
-+	master->flags = 0;
-+	master->bus_num = pdev->id;
-+	master->num_chipselect = p->info->num_chipselect;
-+	master->setup = spi_bitbang_setup;
-+	master->cleanup = spi_bitbang_cleanup;
-+
-+	p->bitbang.master = master;
-+	p->bitbang.chipselect = sh_msiof_spi_chipselect;
-+	p->bitbang.setup_transfer = sh_msiof_spi_setup_transfer;
-+	p->bitbang.txrx_bufs = sh_msiof_spi_txrx;
-+	p->bitbang.txrx_word[SPI_MODE_0] = sh_msiof_spi_txrx_word;
-+	p->bitbang.txrx_word[SPI_MODE_1] = sh_msiof_spi_txrx_word;
-+	p->bitbang.txrx_word[SPI_MODE_2] = sh_msiof_spi_txrx_word;
-+	p->bitbang.txrx_word[SPI_MODE_3] = sh_msiof_spi_txrx_word;
-+
-+	ret = spi_bitbang_start(&p->bitbang);
-+	if (ret == 0)
-+		return 0;
-+
-+	pm_runtime_disable(&pdev->dev);
-+ err3:
-+	iounmap(p->mapbase);
-+ err2:
-+	clk_put(p->clk);
-+ err1:
-+	spi_master_put(master);
-+ err0:
-+	return ret;
-+}
-+
-+static int sh_msiof_spi_remove(struct platform_device *pdev)
-+{
-+	struct sh_msiof_spi_priv *p = platform_get_drvdata(pdev);
-+	int ret;
-+
-+	ret = spi_bitbang_stop(&p->bitbang);
-+	if (!ret) {
-+		pm_runtime_disable(&pdev->dev);
-+		free_irq(platform_get_irq(pdev, 0), sh_msiof_spi_irq);
-+		iounmap(p->mapbase);
-+		clk_put(p->clk);
-+		spi_master_put(p->bitbang.master);
-+	}
-+	return ret;
-+}
-+
-+static int sh_msiof_spi_runtime_nop(struct device *dev)
-+{
-+	/* Runtime PM callback shared between ->runtime_suspend()
-+	 * and ->runtime_resume(). Simply returns success.
-+	 *
-+	 * This driver re-initializes all registers after
-+	 * pm_runtime_get_sync() anyway so there is no need
-+	 * to save and restore registers here.
-+	 */
-+	return 0;
-+}
-+
-+static struct dev_pm_ops sh_msiof_spi_dev_pm_ops = {
-+	.runtime_suspend = sh_msiof_spi_runtime_nop,
-+	.runtime_resume = sh_msiof_spi_runtime_nop,
-+};
-+
-+static struct platform_driver sh_msiof_spi_drv = {
-+	.probe		= sh_msiof_spi_probe,
-+	.remove		= sh_msiof_spi_remove,
-+	.driver		= {
-+		.name	= "spi_sh_msiof",
-+		.owner		= THIS_MODULE,
-+		.pm		= &sh_msiof_spi_dev_pm_ops,
-+	},
-+};
-+
-+static int __init sh_msiof_spi_init(void)
-+{
-+	return platform_driver_register(&sh_msiof_spi_drv);
-+}
-+module_init(sh_msiof_spi_init);
-+
-+static void __exit sh_msiof_spi_exit(void)
-+{
-+	platform_driver_unregister(&sh_msiof_spi_drv);
-+}
-+module_exit(sh_msiof_spi_exit);
-+
-+MODULE_DESCRIPTION("SuperH MSIOF SPI Master Interface Driver");
-+MODULE_AUTHOR("Magnus Damm");
-+MODULE_LICENSE("GPL v2");
-+MODULE_ALIAS("platform:spi_sh_msiof");
-diff -puN /dev/null include/linux/spi/sh_msiof.h
---- /dev/null
-+++ a/include/linux/spi/sh_msiof.h
-@@ -0,0 +1,10 @@
-+#ifndef __SPI_SH_MSIOF_H__
-+#define __SPI_SH_MSIOF_H__
-+
-+struct sh_msiof_spi_info {
-+	int tx_fifo_override;
-+	int rx_fifo_override;
-+	u16 num_chipselect;
-+};
-+
-+#endif /* __SPI_SH_MSIOF_H__ */
+-#define EEEPC_EC_FAN_PWM	EEEPC_EC "SC02" /* Fan PWM duty cycle (%) */
+-#define EEEPC_EC_SC02		0x63
+-#define EEEPC_EC_FAN_HRPM	EEEPC_EC "SC05" /* High byte, fan speed (RPM) */
+-#define EEEPC_EC_FAN_LRPM	EEEPC_EC "SC06" /* Low byte, fan speed (RPM) */
+-#define EEEPC_EC_FAN_CTRL	EEEPC_EC "SFB3" /* Byte containing SF25  */
+-#define EEEPC_EC_SFB3		0xD3
+-
+-/*
+- * This is the main structure, we can use it to store useful information
+- * about the hotk device
+- */
+-struct eeepc_hotk {
+-	struct acpi_device *device;	/* the device we are in */
+-	acpi_handle handle;		/* the handle of the hotk device */
+-	u32 cm_supported;		/* the control methods supported
+-					   by this BIOS */
+-	uint init_flag;			/* Init flags */
+-	u16 event_count[128];		/* count for each event */
+-	struct input_dev *inputdev;
+-	u16 *keycode_map;
+-	struct rfkill *wlan_rfkill;
+-	struct rfkill *bluetooth_rfkill;
+-	struct rfkill *wwan3g_rfkill;
+-	struct rfkill *wimax_rfkill;
+-	struct hotplug_slot *hotplug_slot;
+-	struct mutex hotplug_lock;
+-};
+-
+-/* The actual device the driver binds to */
+-static struct eeepc_hotk *ehotk;
+-
+-/* Platform device/driver */
+-static int eeepc_hotk_thaw(struct device *device);
+-static int eeepc_hotk_restore(struct device *device);
+-
+-static const struct dev_pm_ops eeepc_pm_ops = {
+-	.thaw = eeepc_hotk_thaw,
+-	.restore = eeepc_hotk_restore,
+-};
+-
+-static struct platform_driver platform_driver = {
+-	.driver = {
+-		.name = EEEPC_HOTK_FILE,
+-		.owner = THIS_MODULE,
+-		.pm = &eeepc_pm_ops,
+-	}
+-};
+-
+-static struct platform_device *platform_device;
+-
+ struct key_entry {
+ 	char type;
+ 	u8 code;
+diff -puN mm/memcontrol.c~linux-next-fixups mm/memcontrol.c
+--- a/mm/memcontrol.c~linux-next-fixups
++++ a/mm/memcontrol.c
+@@ -1745,7 +1745,7 @@ int mem_cgroup_try_charge_swapin(struct 
+ 	 */
+ 	if (!PageSwapCache(page))
+ 		goto charge_cur_mm;
+-	mem = try_get_mem_cgroup_from_swapcache(page);
++	mem = try_get_mem_cgroup_from_page(page);
+ 	if (!mem)
+ 		goto charge_cur_mm;
+ 	*ptr = mem;
 _
 
-Patches currently in -mm which might be from damm@opensource.se are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
+oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
+oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes.patch
+mm-mlocking-in-try_to_unmap_one-fix-fix.patch
+mm-memory_hotplug-make-offline_pages-static.patch
+mm-hugetlb-fix-hugepage-memory-leak-in-mincore-cleanup.patch
+mm-hugetlb-fix-hugepage-memory-leak-in-mincore-build-fix.patch
+mm-hugetlb-add-hugepage-support-to-pagemap-build-fix.patch
+procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup.patch
+floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
+drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
+rwsem-fix-rwsem_is_locked-bugs-fix.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
+errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
+drivers-scsi-sym53c8xx_2-sym_gluec-rename-skip_spaces-to-sym_skip_spaces.patch
+lib-introduce-strim-checkpatch-fixes.patch
+blackfin-sd-host-controller-driver-fix.patch
+blackfin-sd-host-controller-driver-fix-fix.patch
+blackfin-sd-host-controller-driver-fix-fix-fix.patch
+crc32-minor-optimizations-and-cleanup-checkpatch-fixes.patch
+hwmon-w83627ehf-updates-checkpatch-fixes.patch
+lis3-update-documentation-to-match-latest-changes-fix.patch
 linux-next.patch
-clocksource-add-argument-to-resume-callback.patch
-clocksource-start-cmt-at-clocksource-resume.patch
-clocksource-start-cmt-at-clocksource-resume-v2.patch
-clocksource-add-suspend-callback.patch
-mm-uncached-vma-support-with-writenotify.patch
-mmc-let-tmio-mmc-use-dev_name-with-request_irq.patch
-mmc-remove-const-from-tmio-mmc-platform-data-v2.patch
-mmc-balance-tmio-mmc-cell-enable-disable-calls.patch
+linux-next-fixups.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+ksm-memory-hotremove-migration-only-fix.patch
+revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
+drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+acpi-remove-nid_inval.patch
+drivers-acpi-acpi_padc-squish-warning.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices-checkpatch-fixes.patch
+drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
+drivers-media-video-pmsc-needs-versionh.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+drivers-leds-leds-ss4200c-fix-return-statement.patch
+net-sctp-socketc-fix-warning.patch
+proc_fops-convert-drivers-isdn-to-seq_file-fix2.patch
+3x59x-fix-pci-resource-management.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
+scsi-aacraid-fix-memory-leak-checkpatch-fixes.patch
+aoe-switch-to-the-new-bio_flush_dcache_pages-interface.patch
+fs-improve-remountro-vs-buffercache-coherency.patch
+percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+readahead-add-blk_run_backing_dev.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+spi-controller-driver-for-designware-spi-core-fix.patch
+spidev-use-declare_bitmap-instead-of-declaring-the-array-checkpatch-fixes.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3.patch
+ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
+memcg-coalesce-charging-via-percpu-storage-fix.patch
+memcg-code-cleanrm-unused-variable-in-mem_cgroup_resize_limit-cleanup.patch
+ipc-remove-unreachable-code-in-semc-fix.patch
+char-cyclades-fix-compiler-warning.patch
+fs-cache-avoid-maybe-used-uninitialised-warning-on-variable.patch
+aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
+direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
+drivers-media-video-cx23885-needs-kfifo-conversion.patch
+drivers-media-video-cx23885-needs-kfifo-updates.patch
+revert-tty-sdio_uart-use-kfifo-instead-of-the-messy-circ-stuff.patch
+kfifo-move-struct-kfifo-in-place-fix.patch
+zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes.patch
+lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes.patch
+lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
