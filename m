@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-net-wireless-iwlwifi-iwl-txc-fix-gcc-345-warning.patch added to -mm tree
-Date: Mon, 14 Dec 2009 15:56:54 -0800
-Message-ID: <200912150021.nBF0LCu7022643@imap1.linux-foundation.org>
+Subject: + cs5535-add-a-generic-mfgpt-driver-fix.patch added to -mm tree
+Date: Mon, 14 Dec 2009 16:08:36 -0800
+Message-ID: <200912150032.nBF0Wst8020379@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46545 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35979 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758845AbZLOAV3 (ORCPT
+	by vger.kernel.org with ESMTP id S1750793AbZLOAdY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Dec 2009 19:21:29 -0500
+	Mon, 14 Dec 2009 19:33:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, linville@tuxdriver.com, reinette.chatre@intel.com, yi.zhu@intel.com
+Cc: akpm@linux-foundation.org, cjb@laptop.org, dilinger@collabora.co.uk, johnstul@us.ibm.com, jordan@cosmicpenguin.net, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     drivers/net/wireless/iwlwifi/iwl-tx.c: fix gcc-3.4.5 warning
+     cs5535-add-a-generic-mfgpt-driver-fix
 has been added to the -mm tree.  Its filename is
-     drivers-net-wireless-iwlwifi-iwl-txc-fix-gcc-345-warning.patch
+     cs5535-add-a-generic-mfgpt-driver-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/net/wireless/iwlwifi/iwl-tx.c: fix gcc-3.4.5 warning
+Subject: cs5535-add-a-generic-mfgpt-driver-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/net/wireless/iwlwifi/iwl-tx.c: In function `iwl_hw_txq_ctx_free':
-drivers/net/wireless/iwlwifi/iwl-tx.c:410: warning: suggest explicit braces to avoid ambiguous `else'
+sparc64 allmodconfig:
 
-Cc: Zhu Yi <yi.zhu@intel.com>
-Cc: Reinette Chatre <reinette.chatre@intel.com>
-Cc: John W. Linville <linville@tuxdriver.com>
+drivers/misc/cs5535-mfgpt.c: In function `cs5535_mfgpt_toggle_event':
+drivers/misc/cs5535-mfgpt.c:84: error: implicit declaration of function `rdmsr'
+drivers/misc/cs5535-mfgpt.c:91: error: implicit declaration of function `wrmsr'
+
+Signed-off-by: Andres Salomon <dilinger@collabora.co.uk>
+Cc: Jordan Crouse <jordan@cosmicpenguin.net>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Chris Ball <cjb@laptop.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/iwlwifi/iwl-tx.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/misc/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/net/wireless/iwlwifi/iwl-tx.c~drivers-net-wireless-iwlwifi-iwl-txc-fix-gcc-345-warning drivers/net/wireless/iwlwifi/iwl-tx.c
---- a/drivers/net/wireless/iwlwifi/iwl-tx.c~drivers-net-wireless-iwlwifi-iwl-txc-fix-gcc-345-warning
-+++ a/drivers/net/wireless/iwlwifi/iwl-tx.c
-@@ -407,13 +407,14 @@ void iwl_hw_txq_ctx_free(struct iwl_priv
- 	int txq_id;
- 
- 	/* Tx queues */
--	if (priv->txq)
-+	if (priv->txq) {
- 		for (txq_id = 0; txq_id < priv->hw_params.max_txq_num;
- 		     txq_id++)
- 			if (txq_id == IWL_CMD_QUEUE_NUM)
- 				iwl_cmd_queue_free(priv);
- 			else
- 				iwl_tx_queue_free(priv, txq_id);
-+	}
- 	iwl_free_dma_ptr(priv, &priv->kw);
- 
- 	iwl_free_dma_ptr(priv, &priv->scd_bc_tbls);
+diff -puN drivers/misc/Kconfig~cs5535-add-a-generic-mfgpt-driver-fix drivers/misc/Kconfig
+--- a/drivers/misc/Kconfig~cs5535-add-a-generic-mfgpt-driver-fix
++++ a/drivers/misc/Kconfig
+@@ -190,6 +190,7 @@ config SGI_XP
+ config CS5535_MFGPT
+ 	tristate "CS5535/CS5536 Geode Multi-Function General Purpose Timer (MFGPT) support"
+ 	depends on PCI && !MGEODE_LX
++	depends on X86
+ 	default n
+ 	help
+ 	  This driver provides access to MFGPT functionality for other
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -100,5 +98,4 @@ blackfin-sd-host-controller-driver-fix-fix-fix.patch
 crc32-minor-optimizations-and-cleanup-checkpatch-fixes.patch
 hwmon-w83627ehf-updates-checkpatch-fixes.patch
 lis3-update-documentation-to-match-latest-changes-fix.patch
-drivers-net-wireless-iwlwifi-iwl-txc-fix-gcc-345-warning.patch
 
