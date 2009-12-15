@@ -1,133 +1,208 @@
 From: akpm@linux-foundation.org
-Subject: [merged] page-types-learn-to-describe-flags-directly-from-command-line.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 13:50:13 -0800
-Message-ID: <200912152150.nBFLoDxx014932@imap1.linux-foundation.org>
+Subject: [merged] cs5535-move-vsa2-checks-into-linux-cs5535h.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 13:56:34 -0800
+Message-ID: <200912152156.nBFLuYhg015649@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49356 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52429 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755768AbZLOWSL (ORCPT
+	by vger.kernel.org with ESMTP id S934016AbZLOWSU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 17:18:11 -0500
+	Tue, 15 Dec 2009 17:18:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: achiang@hp.com, andi@firstfloor.org, fengguang.wu@intel.com, haicheng.li@intel.com, mm-commits@vger.kernel.org
+To: dilinger@collabora.co.uk, cjb@laptop.org, johnstul@us.ibm.com, jordan@cosmicpenguin.net, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     page-types: learn to describe flags directly from command line
+     cs5535: move VSA2 checks into linux/cs5535.h
 has been removed from the -mm tree.  Its filename was
-     page-types-learn-to-describe-flags-directly-from-command-line.patch
+     cs5535-move-vsa2-checks-into-linux-cs5535h.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page-types: learn to describe flags directly from command line
-From: Alex Chiang <achiang@hp.com>
+Subject: cs5535: move VSA2 checks into linux/cs5535.h
+From: Andres Salomon <dilinger@collabora.co.uk>
 
-Teach page-types to describe page flags directly from the command line.
-
-Why is this useful?  For instance, if you're using memory hotplug and see
-this in /var/log/messages:
-
-	kernel: removing from LRU failed 3836dd0/1/1e00000000000010
-
-It would be nice to decode those page flags without staring at the source.
-
-Example usage and output:
-
-# Documentation/vm/page-types -d 0x10
-0x0000000000000010	____D_____________________________	dirty
-
-# Documentation/vm/page-types -d anon
-0x0000000000001000	____________a_____________________	anonymous
-
-# Documentation/vm/page-types -d anon,0x10
-0x0000000000001010	____D_______a_____________________	dirty,anonymous
-
-[achiang@hp.com: documentation]
-Signed-off-by: Alex Chiang <achiang@hp.com>
-Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Haicheng Li <haicheng.li@intel.com>
+Signed-off-by: Andres Salomon <dilinger@collabora.co.uk>
+Cc: Jordan Crouse <jordan@cosmicpenguin.net>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Chris Ball <cjb@laptop.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/page-types.c |   21 ++++++++++++++++++++-
- 1 file changed, 20 insertions(+), 1 deletion(-)
+ arch/x86/include/asm/geode.h     |   19 -----------------
+ arch/x86/kernel/geode_32.c       |   22 -------------------
+ arch/x86/kernel/olpc.c           |    4 +--
+ drivers/video/geode/display_gx.c |    2 -
+ drivers/video/geode/lxfb_ops.c   |    2 -
+ include/linux/cs5535.h           |   32 +++++++++++++++++++++++++++++
+ 6 files changed, 36 insertions(+), 45 deletions(-)
 
-diff -puN Documentation/vm/page-types.c~page-types-learn-to-describe-flags-directly-from-command-line Documentation/vm/page-types.c
---- a/Documentation/vm/page-types.c~page-types-learn-to-describe-flags-directly-from-command-line
-+++ a/Documentation/vm/page-types.c
-@@ -674,6 +674,7 @@ static void usage(void)
- 	printf(
- "page-types [options]\n"
- "            -r|--raw                  Raw mode, for kernel developers\n"
-+"            -d|--describe flags        Describe flags\n"
- "            -a|--addr    addr-spec    Walk a range of pages\n"
- "            -b|--bits    bits-spec    Walk pages with specified bits\n"
- "            -p|--pid     pid          Walk process address space\n"
-@@ -686,6 +687,10 @@ static void usage(void)
- "            -X|--hwpoison             hwpoison pages\n"
- "            -x|--unpoison             unpoison pages\n"
- "            -h|--help                 Show this usage message\n"
-+"flags:\n"
-+"            0x10                      bitfield format, e.g.\n"
-+"            anon                      bit-name, e.g.\n"
-+"            0x10,anon                 comma-separated list, e.g.\n"
- "addr-spec:\n"
- "            N                         one page at offset N (unit: pages)\n"
- "            N+M                       pages range from N to N+M-1\n"
-@@ -884,6 +889,15 @@ static void parse_bits_mask(const char *
- 	add_bits_filter(mask, bits);
+diff -puN arch/x86/include/asm/geode.h~cs5535-move-vsa2-checks-into-linux-cs5535h arch/x86/include/asm/geode.h
+--- a/arch/x86/include/asm/geode.h~cs5535-move-vsa2-checks-into-linux-cs5535h
++++ a/arch/x86/include/asm/geode.h
+@@ -95,16 +95,6 @@ extern int geode_get_dev_base(unsigned i
+ #define PM_AWKD			0x50
+ #define PM_SSC			0x54
+ 
+-/* VSA2 magic values */
+-
+-#define VSA_VRC_INDEX		0xAC1C
+-#define VSA_VRC_DATA		0xAC1E
+-#define VSA_VR_UNLOCK		0xFC53	/* unlock virtual register */
+-#define VSA_VR_SIGNATURE	0x0003
+-#define VSA_VR_MEM_SIZE		0x0200
+-#define AMD_VSA_SIG		0x4132	/* signature is ascii 'VSA2' */
+-#define GSW_VSA_SIG		0x534d  /* General Software signature */
+-
+ static inline u32 geode_gpio(unsigned int nr)
+ {
+ 	BUG_ON(nr > 28);
+@@ -148,15 +138,6 @@ static inline int is_geode(void)
+ 	return (is_geode_gx() || is_geode_lx());
  }
  
-+static void describe_flags(const char *optarg)
-+{
-+	uint64_t flags = parse_flag_names(optarg, 0);
+-#ifdef CONFIG_MGEODE_LX
+-extern int geode_has_vsa2(void);
+-#else
+-static inline int geode_has_vsa2(void)
+-{
+-	return 0;
+-}
+-#endif
+-
+ static inline void geode_mfgpt_write(int timer, u16 reg, u16 value)
+ {
+ 	u32 base = geode_get_dev_base(GEODE_DEV_MFGPT);
+diff -puN arch/x86/kernel/geode_32.c~cs5535-move-vsa2-checks-into-linux-cs5535h arch/x86/kernel/geode_32.c
+--- a/arch/x86/kernel/geode_32.c~cs5535-move-vsa2-checks-into-linux-cs5535h
++++ a/arch/x86/kernel/geode_32.c
+@@ -161,28 +161,6 @@ void geode_gpio_setup_event(unsigned int
+ }
+ EXPORT_SYMBOL_GPL(geode_gpio_setup_event);
+ 
+-int geode_has_vsa2(void)
+-{
+-	static int has_vsa2 = -1;
+-
+-	if (has_vsa2 == -1) {
+-		u16 val;
+-
+-		/*
+-		 * The VSA has virtual registers that we can query for a
+-		 * signature.
+-		 */
+-		outw(VSA_VR_UNLOCK, VSA_VRC_INDEX);
+-		outw(VSA_VR_SIGNATURE, VSA_VRC_INDEX);
+-
+-		val = inw(VSA_VRC_DATA);
+-		has_vsa2 = (val == AMD_VSA_SIG || val == GSW_VSA_SIG);
+-	}
+-
+-	return has_vsa2;
+-}
+-EXPORT_SYMBOL_GPL(geode_has_vsa2);
+-
+ static int __init geode_southbridge_init(void)
+ {
+ 	if (!is_geode())
+diff -puN arch/x86/kernel/olpc.c~cs5535-move-vsa2-checks-into-linux-cs5535h arch/x86/kernel/olpc.c
+--- a/arch/x86/kernel/olpc.c~cs5535-move-vsa2-checks-into-linux-cs5535h
++++ a/arch/x86/kernel/olpc.c
+@@ -212,7 +212,7 @@ static int __init olpc_init(void)
+ 	unsigned char *romsig;
+ 
+ 	/* The ioremap check is dangerous; limit what we run it on */
+-	if (!is_geode() || geode_has_vsa2())
++	if (!is_geode() || cs5535_has_vsa2())
+ 		return 0;
+ 
+ 	spin_lock_init(&ec_lock);
+@@ -244,7 +244,7 @@ static int __init olpc_init(void)
+ 			(unsigned char *) &olpc_platform_info.ecver, 1);
+ 
+ 	/* check to see if the VSA exists */
+-	if (geode_has_vsa2())
++	if (cs5535_has_vsa2())
+ 		olpc_platform_info.flags |= OLPC_F_VSA;
+ 
+ 	printk(KERN_INFO "OLPC board revision %s%X (EC=%x)\n",
+diff -puN drivers/video/geode/display_gx.c~cs5535-move-vsa2-checks-into-linux-cs5535h drivers/video/geode/display_gx.c
+--- a/drivers/video/geode/display_gx.c~cs5535-move-vsa2-checks-into-linux-cs5535h
++++ a/drivers/video/geode/display_gx.c
+@@ -25,7 +25,7 @@ unsigned int gx_frame_buffer_size(void)
+ {
+ 	unsigned int val;
+ 
+-	if (!geode_has_vsa2()) {
++	if (!cs5535_has_vsa2()) {
+ 		uint32_t hi, lo;
+ 
+ 		/* The number of pages is (PMAX - PMIN)+1 */
+diff -puN drivers/video/geode/lxfb_ops.c~cs5535-move-vsa2-checks-into-linux-cs5535h drivers/video/geode/lxfb_ops.c
+--- a/drivers/video/geode/lxfb_ops.c~cs5535-move-vsa2-checks-into-linux-cs5535h
++++ a/drivers/video/geode/lxfb_ops.c
+@@ -307,7 +307,7 @@ unsigned int lx_framebuffer_size(void)
+ {
+ 	unsigned int val;
+ 
+-	if (!geode_has_vsa2()) {
++	if (!cs5535_has_vsa2()) {
+ 		uint32_t hi, lo;
+ 
+ 		/* The number of pages is (PMAX - PMIN)+1 */
+diff -puN include/linux/cs5535.h~cs5535-move-vsa2-checks-into-linux-cs5535h include/linux/cs5535.h
+--- a/include/linux/cs5535.h~cs5535-move-vsa2-checks-into-linux-cs5535h
++++ a/include/linux/cs5535.h
+@@ -36,6 +36,38 @@
+ #define LBAR_ACPI_SIZE		0x40
+ #define LBAR_PMS_SIZE		0x80
+ 
++/* VSA2 magic values */
++#define VSA_VRC_INDEX		0xAC1C
++#define VSA_VRC_DATA		0xAC1E
++#define VSA_VR_UNLOCK		0xFC53  /* unlock virtual register */
++#define VSA_VR_SIGNATURE	0x0003
++#define VSA_VR_MEM_SIZE		0x0200
++#define AMD_VSA_SIG		0x4132  /* signature is ascii 'VSA2' */
++#define GSW_VSA_SIG		0x534d  /* General Software signature */
 +
-+	printf("0x%016llx\t%s\t%s\n",
-+		(unsigned long long)flags,
-+		page_flag_name(flags),
-+		page_flag_longname(flags));
++#include <linux/io.h>
++
++static inline int cs5535_has_vsa2(void)
++{
++	static int has_vsa2 = -1;
++
++	if (has_vsa2 == -1) {
++		uint16_t val;
++
++		/*
++		 * The VSA has virtual registers that we can query for a
++		 * signature.
++		 */
++		outw(VSA_VR_UNLOCK, VSA_VRC_INDEX);
++		outw(VSA_VR_SIGNATURE, VSA_VRC_INDEX);
++
++		val = inw(VSA_VRC_DATA);
++		has_vsa2 = (val == AMD_VSA_SIG || val == GSW_VSA_SIG);
++	}
++
++	return has_vsa2;
 +}
- 
- static const struct option opts[] = {
- 	{ "raw"       , 0, NULL, 'r' },
-@@ -891,6 +905,7 @@ static const struct option opts[] = {
- 	{ "file"      , 1, NULL, 'f' },
- 	{ "addr"      , 1, NULL, 'a' },
- 	{ "bits"      , 1, NULL, 'b' },
-+	{ "describe"  , 1, NULL, 'd' },
- 	{ "list"      , 0, NULL, 'l' },
- 	{ "list-each" , 0, NULL, 'L' },
- 	{ "no-summary", 0, NULL, 'N' },
-@@ -907,7 +922,7 @@ int main(int argc, char *argv[])
- 	page_size = getpagesize();
- 
- 	while ((c = getopt_long(argc, argv,
--				"rp:f:a:b:lLNXxh", opts, NULL)) != -1) {
-+				"rp:f:a:b:d:lLNXxh", opts, NULL)) != -1) {
- 		switch (c) {
- 		case 'r':
- 			opt_raw = 1;
-@@ -924,6 +939,10 @@ int main(int argc, char *argv[])
- 		case 'b':
- 			parse_bits_mask(optarg);
- 			break;
-+		case 'd':
-+			opt_no_summary = 1;
-+			describe_flags(optarg);
-+			break;
- 		case 'l':
- 			opt_list = 1;
- 			break;
++
+ /* GPIOs */
+ #define GPIO_OUTPUT_VAL		0x00
+ #define GPIO_OUTPUT_ENABLE	0x04
 _
 
-Patches currently in -mm which might be from achiang@hp.com are
+Patches currently in -mm which might be from dilinger@collabora.co.uk are
 
 origin.patch
-linux-next.patch
+lxfb-add-copyright-license-info.patch
 
