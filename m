@@ -1,205 +1,140 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-hugetlb-add-hugepage-support-to-pagemap.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 13:54:54 -0800
-Message-ID: <200912152154.nBFLssn0015403@imap1.linux-foundation.org>
+Subject: [merged] hugetlb-prevent-deadlock-in-__unmap_hugepage_range-when-alloc_huge_page-fails-2.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 13:54:02 -0800
+Message-ID: <200912152154.nBFLs3kO015326@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53799 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59773 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934016AbZLOWTs (ORCPT
+	by vger.kernel.org with ESMTP id S934021AbZLOWUH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 17:19:48 -0500
+	Tue, 15 Dec 2009 17:20:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: n-horiguchi@ah.jp.nec.com, ak@linux.intel.com, apw@canonical.com, fengguang.wu@intel.com, hugh.dickins@tiscali.co.uk, lee.schermerhorn@hp.com, mel@csn.ul.ie, rientjes@google.com, mm-c
+To: lwoodman@redhat.com, agl@us.ibm.com, apw@shadowen.org, david@gibson.dropbear.id.au, hugh.dickins@tiscali.co.uk, lee.schermerhorn@hp.com, lwooman@redhat.com, mel@csn.ul.ie, mm-commits@
 
 
 The patch titled
-     mm hugetlb: add hugepage support to pagemap
+     hugetlb: prevent deadlock in __unmap_hugepage_range() when alloc_huge_page() fails
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-add-hugepage-support-to-pagemap.patch
+     hugetlb-prevent-deadlock-in-__unmap_hugepage_range-when-alloc_huge_page-fails-2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm hugetlb: add hugepage support to pagemap
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: hugetlb: prevent deadlock in __unmap_hugepage_range() when alloc_huge_page() fails
+From: Larry Woodman <lwoodman@redhat.com>
 
-This patch enables extraction of the pfn of a hugepage from
-/proc/pid/pagemap in an architecture independent manner.
+hugetlb_fault() takes the mm->page_table_lock spinlock then calls
+hugetlb_cow().  If the alloc_huge_page() in hugetlb_cow() fails due to an
+insufficient huge page pool it calls unmap_ref_private() with the
+mm->page_table_lock held.  unmap_ref_private() then calls
+unmap_hugepage_range() which tries to acquire the mm->page_table_lock.
 
-Details
--------
-My test program (leak_pagemap) works as follows:
- - creat() and mmap() a file on hugetlbfs (file size is 200MB == 100 hugepages,)
- - read()/write() something on it,
- - call page-types with option -p,
- - munmap() and unlink() the file on hugetlbfs
+[<ffffffff810928c3>] print_circular_bug_tail+0x80/0x9f
+ [<ffffffff8109280b>] ? check_noncircular+0xb0/0xe8
+ [<ffffffff810935e0>] __lock_acquire+0x956/0xc0e
+ [<ffffffff81093986>] lock_acquire+0xee/0x12e
+ [<ffffffff8111a7a6>] ? unmap_hugepage_range+0x3e/0x84
+ [<ffffffff8111a7a6>] ? unmap_hugepage_range+0x3e/0x84
+ [<ffffffff814c348d>] _spin_lock+0x40/0x89
+ [<ffffffff8111a7a6>] ? unmap_hugepage_range+0x3e/0x84
+ [<ffffffff8111afee>] ? alloc_huge_page+0x218/0x318
+ [<ffffffff8111a7a6>] unmap_hugepage_range+0x3e/0x84
+ [<ffffffff8111b2d0>] hugetlb_cow+0x1e2/0x3f4
+ [<ffffffff8111b935>] ? hugetlb_fault+0x453/0x4f6
+ [<ffffffff8111b962>] hugetlb_fault+0x480/0x4f6
+ [<ffffffff8111baee>] follow_hugetlb_page+0x116/0x2d9
+ [<ffffffff814c31a7>] ? _spin_unlock_irq+0x3a/0x5c
+ [<ffffffff81107b4d>] __get_user_pages+0x2a3/0x427
+ [<ffffffff81107d0f>] get_user_pages+0x3e/0x54
+ [<ffffffff81040b8b>] get_user_pages_fast+0x170/0x1b5
+ [<ffffffff81160352>] dio_get_page+0x64/0x14a
+ [<ffffffff8116112a>] __blockdev_direct_IO+0x4b7/0xb31
+ [<ffffffff8115ef91>] blkdev_direct_IO+0x58/0x6e
+ [<ffffffff8115e0a4>] ? blkdev_get_blocks+0x0/0xb8
+ [<ffffffff810ed2c5>] generic_file_aio_read+0xdd/0x528
+ [<ffffffff81219da3>] ? avc_has_perm+0x66/0x8c
+ [<ffffffff81132842>] do_sync_read+0xf5/0x146
+ [<ffffffff8107da00>] ? autoremove_wake_function+0x0/0x5a
+ [<ffffffff81211857>] ? security_file_permission+0x24/0x3a
+ [<ffffffff81132fd8>] vfs_read+0xb5/0x126
+ [<ffffffff81133f6b>] ? fget_light+0x5e/0xf8
+ [<ffffffff81133131>] sys_read+0x54/0x8c
+ [<ffffffff81011e42>] system_call_fastpath+0x16/0x1b
 
-Without my patches
-------------------
-$ ./leak_pagemap
-             flags page-count       MB  symbolic-flags                     long-symbolic-flags
-0x0000000000000000          1        0  __________________________________
-0x0000000000000804          1        0  __R________M______________________ referenced,mmap
-0x000000000000086c         81        0  __RU_lA____M______________________ referenced,uptodate,lru,active,mmap
-0x0000000000005808          5        0  ___U_______Ma_b___________________ uptodate,mmap,anonymous,swapbacked
-0x0000000000005868         12        0  ___U_lA____Ma_b___________________ uptodate,lru,active,mmap,anonymous,swapbacked
-0x000000000000586c          1        0  __RU_lA____Ma_b___________________ referenced,uptodate,lru,active,mmap,anonymous,swapbacked
-             total        101        0
+This can be fixed by dropping the mm->page_table_lock around the call to
+unmap_ref_private() if alloc_huge_page() fails, its dropped right below in
+the normal path anyway.  However, earlier in the that function, it's also
+possible to call into the page allocator with the same spinlock held.
 
-The output of page-types don't show any hugepage.
+What this patch does is drop the spinlock before the page allocator is
+potentially entered.  The check for page allocation failure can be made
+without the page_table_lock as well as the copy of the huge page.  Even if
+the PTE changed while the spinlock was held, the consequence is that a
+huge page is copied unnecessarily.  This resolves both the double taking
+of the lock and sleeping with the spinlock held.
 
-
-With my patches
----------------
-$ ./leak_pagemap
-             flags page-count       MB  symbolic-flags                     long-symbolic-flags
-0x0000000000000000          1        0  __________________________________
-0x0000000000030000      51100      199  ________________TG________________ compound_tail,huge
-0x0000000000028018        100        0  ___UD__________H_G________________ uptodate,dirty,compound_head,huge
-0x0000000000000804          1        0  __R________M______________________ referenced,mmap
-0x000000000000080c          1        0  __RU_______M______________________ referenced,uptodate,mmap
-0x000000000000086c         80        0  __RU_lA____M______________________ referenced,uptodate,lru,active,mmap
-0x0000000000005808          4        0  ___U_______Ma_b___________________ uptodate,mmap,anonymous,swapbacked
-0x0000000000005868         12        0  ___U_lA____Ma_b___________________ uptodate,lru,active,mmap,anonymous,swapbacked
-0x000000000000586c          1        0  __RU_lA____Ma_b___________________ referenced,uptodate,lru,active,mmap,anonymous,swapbacked
-             total      51300      200
-
-The output of page-types shows 51200 pages contributing to hugepages,
-containing 100 head pages and 51100 tail pages as expected.
-
-[akpm@linux-foundation.org: build fix]
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Cc: Mel Gorman <mel@csn.ul.ie>
+[mel@csn.ul.ie: Cover also the case where process can sleep with spinlock]
+Signed-off-by: Larry Woodman <lwooman@redhat.com>
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Acked-by: Adam Litke <agl@us.ibm.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
 Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Andy Whitcroft <apw@canonical.com>
-Cc: David Rientjes <rientjes@google.com>
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: David Gibson <david@gibson.dropbear.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   45 +++++++++++++++++++++++++++++++++++++++++++
- include/linux/mm.h |    3 ++
- mm/pagewalk.c      |   22 ++++++++++++++++++---
- 3 files changed, 67 insertions(+), 3 deletions(-)
+ mm/hugetlb.c |   13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~mm-hugetlb-add-hugepage-support-to-pagemap fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~mm-hugetlb-add-hugepage-support-to-pagemap
-+++ a/fs/proc/task_mmu.c
-@@ -650,6 +650,50 @@ static int pagemap_pte_range(pmd_t *pmd,
- 	return err;
- }
+diff -puN mm/hugetlb.c~hugetlb-prevent-deadlock-in-__unmap_hugepage_range-when-alloc_huge_page-fails-2 mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-prevent-deadlock-in-__unmap_hugepage_range-when-alloc_huge_page-fails-2
++++ a/mm/hugetlb.c
+@@ -2293,6 +2293,9 @@ retry_avoidcopy:
+ 		outside_reserve = 1;
  
-+static u64 huge_pte_to_pagemap_entry(pte_t pte, int offset)
-+{
-+	u64 pme = 0;
-+	if (pte_present(pte))
-+		pme = PM_PFRAME(pte_pfn(pte) + offset)
-+			| PM_PSHIFT(PAGE_SHIFT) | PM_PRESENT;
-+	return pme;
-+}
+ 	page_cache_get(old_page);
 +
-+static int pagemap_hugetlb_range(pte_t *pte, unsigned long addr,
-+				 unsigned long end, struct mm_walk *walk)
-+{
-+	struct vm_area_struct *vma;
-+	struct pagemapread *pm = walk->private;
-+	struct hstate *hs = NULL;
-+	int err = 0;
-+
-+	vma = find_vma(walk->mm, addr);
-+	if (vma)
-+		hs = hstate_vma(vma);
-+	for (; addr != end; addr += PAGE_SIZE) {
-+		u64 pfn = PM_NOT_PRESENT;
-+
-+		if (vma && (addr >= vma->vm_end)) {
-+			vma = find_vma(walk->mm, addr);
-+			if (vma)
-+				hs = hstate_vma(vma);
-+		}
-+
-+		if (vma && (vma->vm_start <= addr) && is_vm_hugetlb_page(vma)) {
-+			/* calculate pfn of the "raw" page in the hugepage. */
-+			int offset = (addr & ~huge_page_mask(hs)) >> PAGE_SHIFT;
-+			pfn = huge_pte_to_pagemap_entry(*pte, offset);
-+		}
-+		err = add_to_pagemap(addr, pfn, pm);
-+		if (err)
-+			return err;
-+	}
-+
-+	cond_resched();
-+
-+	return err;
-+}
-+
- /*
-  * /proc/pid/pagemap - an array mapping virtual pages to pfns
-  *
-@@ -742,6 +786,7 @@ static ssize_t pagemap_read(struct file 
++	/* Drop page_table_lock as buddy allocator may be called */
++	spin_unlock(&mm->page_table_lock);
+ 	new_page = alloc_huge_page(vma, address, outside_reserve);
  
- 	pagemap_walk.pmd_entry = pagemap_pte_range;
- 	pagemap_walk.pte_hole = pagemap_pte_hole;
-+	pagemap_walk.hugetlb_entry = pagemap_hugetlb_range;
- 	pagemap_walk.mm = mm;
- 	pagemap_walk.private = &pm;
- 
-diff -puN include/linux/mm.h~mm-hugetlb-add-hugepage-support-to-pagemap include/linux/mm.h
---- a/include/linux/mm.h~mm-hugetlb-add-hugepage-support-to-pagemap
-+++ a/include/linux/mm.h
-@@ -770,6 +770,7 @@ unsigned long unmap_vmas(struct mmu_gath
-  * @pmd_entry: if set, called for each non-empty PMD (3rd-level) entry
-  * @pte_entry: if set, called for each non-empty PTE (4th-level) entry
-  * @pte_hole: if set, called for each hole at all levels
-+ * @hugetlb_entry: if set, called for each hugetlb entry
-  *
-  * (see walk_page_range for more details)
-  */
-@@ -779,6 +780,8 @@ struct mm_walk {
- 	int (*pmd_entry)(pmd_t *, unsigned long, unsigned long, struct mm_walk *);
- 	int (*pte_entry)(pte_t *, unsigned long, unsigned long, struct mm_walk *);
- 	int (*pte_hole)(unsigned long, unsigned long, struct mm_walk *);
-+	int (*hugetlb_entry)(pte_t *, unsigned long, unsigned long,
-+			     struct mm_walk *);
- 	struct mm_struct *mm;
- 	void *private;
- };
-diff -puN mm/pagewalk.c~mm-hugetlb-add-hugepage-support-to-pagemap mm/pagewalk.c
---- a/mm/pagewalk.c~mm-hugetlb-add-hugepage-support-to-pagemap
-+++ a/mm/pagewalk.c
-@@ -120,15 +120,31 @@ int walk_page_range(unsigned long addr, 
- 	do {
- 		next = pgd_addr_end(addr, end);
- 
--		/* skip hugetlb vma to avoid hugepage PMD being cleared
--		 * in pmd_none_or_clear_bad(). */
-+		/*
-+		 * handle hugetlb vma individually because pagetable walk for
-+		 * the hugetlb page is dependent on the architecture and
-+		 * we can't handled it in the same manner as non-huge pages.
-+		 */
- 		vma = find_vma(walk->mm, addr);
-+#ifdef CONFIG_HUGETLB_PAGE
- 		if (vma && is_vm_hugetlb_page(vma)) {
-+			pte_t *pte;
-+			struct hstate *hs;
-+
- 			if (vma->vm_end < next)
- 				next = vma->vm_end;
-+			hs = hstate_vma(vma);
-+			pte = huge_pte_offset(walk->mm,
-+					      addr & huge_page_mask(hs));
-+			if (pte && !huge_pte_none(huge_ptep_get(pte))
-+			    && walk->hugetlb_entry)
-+				err = walk->hugetlb_entry(pte, addr,
-+							  next, walk);
-+			if (err)
-+				break;
- 			continue;
+ 	if (IS_ERR(new_page)) {
+@@ -2310,19 +2313,25 @@ retry_avoidcopy:
+ 			if (unmap_ref_private(mm, vma, old_page, address)) {
+ 				BUG_ON(page_count(old_page) != 1);
+ 				BUG_ON(huge_pte_none(pte));
++				spin_lock(&mm->page_table_lock);
+ 				goto retry_avoidcopy;
+ 			}
+ 			WARN_ON_ONCE(1);
  		}
+ 
++		/* Caller expects lock to be held */
++		spin_lock(&mm->page_table_lock);
+ 		return -PTR_ERR(new_page);
+ 	}
+ 
+-	spin_unlock(&mm->page_table_lock);
+ 	copy_huge_page(new_page, old_page, address, vma);
+ 	__SetPageUptodate(new_page);
+-	spin_lock(&mm->page_table_lock);
+ 
++	/*
++	 * Retake the page_table_lock to check for racing updates
++	 * before the page tables are altered
++	 */
++	spin_lock(&mm->page_table_lock);
+ 	ptep = huge_pte_offset(mm, address & huge_page_mask(h));
+ 	if (likely(pte_same(huge_ptep_get(ptep), pte))) {
+ 		/* Break COW */
+_
+
+Patches currently in -mm which might be from lwoodman@redhat.com are
+
+origin.patch
+
