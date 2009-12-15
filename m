@@ -1,133 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: [merged] swap-rework-map_swap_page-again.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 13:52:00 -0800
-Message-ID: <200912152152.nBFLq0n1015152@imap1.linux-foundation.org>
+Subject: [merged] lis3lv02d-remove-calibaration-functionality.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 13:59:33 -0800
+Message-ID: <200912152159.nBFLxXZO015912@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41432 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55651 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933877AbZLOWOM (ORCPT
+	by vger.kernel.org with ESMTP id S1761365AbZLOWOF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 17:14:12 -0500
+	Tue, 15 Dec 2009 17:14:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Lee.Schermerhorn@hp.com, hugh.dickins@tiscali.co.uk, lee.schermerhorn@hp.com, mm-commits@vger.kernel.org
+To: samu.p.onkalo@nokia.com, Eric.Piel@tremplin-utc.net, pavel@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     swap: rework map_swap_page() again
+     lis3lv02d: remove calibaration functionality
 has been removed from the -mm tree.  Its filename was
-     swap-rework-map_swap_page-again.patch
+     lis3lv02d-remove-calibaration-functionality.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: swap: rework map_swap_page() again
-From: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Subject: lis3lv02d: remove calibaration functionality
+=46rom: Samu Onkalo <samu.p.onkalo@nokia.com>
 
-Seems that page_io.c doesn't really need to know that page_private(page)
-is the swp_entry 'val'.  Rework map_swap_page() to do what its name says
-and map a page to a page offset in the swap space.
+Chip is calibrated by the manufacturer.  There is no need to calibarate=
+ it
+at driver level.  If the chip is used as a joystick, calibaration can b=
+e
+done using joystick device calibration mechanism.
 
-The only other caller of map_swap_page() is internal to mm/swapfile.c and
-it does want to map a swap entry to the 'sector'.  So rename
-map_swap_page() to map_swap_entry(), make it 'static' and and implement
-map_swap_page() as a wrapper around that.
-
-Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
+Acked-by: =C9ric Piel <Eric.Piel@tremplin-utc.net>
+Cc: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    2 +-
- mm/page_io.c         |    4 +---
- mm/swapfile.c        |   20 ++++++++++++++++----
- 3 files changed, 18 insertions(+), 8 deletions(-)
+ drivers/hwmon/lis3lv02d.c |   32 +++-----------------------------
+ drivers/hwmon/lis3lv02d.h |    3 ---
+ 2 files changed, 3 insertions(+), 32 deletions(-)
 
-diff -puN include/linux/swap.h~swap-rework-map_swap_page-again include/linux/swap.h
---- a/include/linux/swap.h~swap-rework-map_swap_page-again
-+++ a/include/linux/swap.h
-@@ -325,7 +325,7 @@ extern void swapcache_free(swp_entry_t, 
- extern int free_swap_and_cache(swp_entry_t);
- extern int swap_type_of(dev_t, sector_t, struct block_device **);
- extern unsigned int count_swap_pages(int, int);
--extern sector_t map_swap_page(swp_entry_t, struct block_device **);
-+extern sector_t map_swap_page(struct page *, struct block_device **);
- extern sector_t swapdev_block(int, pgoff_t);
- extern int reuse_swap_page(struct page *);
- extern int try_to_free_swap(struct page *);
-diff -puN mm/page_io.c~swap-rework-map_swap_page-again mm/page_io.c
---- a/mm/page_io.c~swap-rework-map_swap_page-again
-+++ a/mm/page_io.c
-@@ -26,9 +26,7 @@ static struct bio *get_swap_bio(gfp_t gf
- 
- 	bio = bio_alloc(gfp_flags, 1);
- 	if (bio) {
--		swp_entry_t entry;
--		entry.val = page_private(page);
--		bio->bi_sector = map_swap_page(entry, &bio->bi_bdev);
-+		bio->bi_sector = map_swap_page(page, &bio->bi_bdev);
- 		bio->bi_sector <<= PAGE_SHIFT - 9;
- 		bio->bi_io_vec[0].bv_page = page;
- 		bio->bi_io_vec[0].bv_len = PAGE_SIZE;
-diff -puN mm/swapfile.c~swap-rework-map_swap_page-again mm/swapfile.c
---- a/mm/swapfile.c~swap-rework-map_swap_page-again
-+++ a/mm/swapfile.c
-@@ -38,6 +38,7 @@
- static bool swap_count_continued(struct swap_info_struct *, pgoff_t,
- 				 unsigned char);
- static void free_swap_count_continuations(struct swap_info_struct *);
-+static sector_t map_swap_entry(swp_entry_t, struct block_device**);
- 
- static DEFINE_SPINLOCK(swap_lock);
- static unsigned int nr_swapfiles;
-@@ -782,7 +783,7 @@ sector_t swapdev_block(int type, pgoff_t
- 		return 0;
- 	if (!(swap_info[type]->flags & SWP_WRITEOK))
- 		return 0;
--	return map_swap_page(swp_entry(type, offset), &bdev);
-+	return map_swap_entry(swp_entry(type, offset), &bdev);
+diff -puN drivers/hwmon/lis3lv02d.c~lis3lv02d-remove-calibaration-funct=
+ionality drivers/hwmon/lis3lv02d.c
+--- a/drivers/hwmon/lis3lv02d.c~lis3lv02d-remove-calibaration-functiona=
+lity
++++ a/drivers/hwmon/lis3lv02d.c
+@@ -350,19 +350,12 @@ static void lis3lv02d_joystick_poll(stru
+ 	int x, y, z;
+=20
+ 	lis3lv02d_get_xyz(&lis3_dev, &x, &y, &z);
+-	input_report_abs(pidev->input, ABS_X, x - lis3_dev.xcalib);
+-	input_report_abs(pidev->input, ABS_Y, y - lis3_dev.ycalib);
+-	input_report_abs(pidev->input, ABS_Z, z - lis3_dev.zcalib);
++	input_report_abs(pidev->input, ABS_X, x);
++	input_report_abs(pidev->input, ABS_Y, y);
++	input_report_abs(pidev->input, ABS_Z, z);
+ 	input_sync(pidev->input);
  }
- 
- /*
-@@ -1249,10 +1250,11 @@ static void drain_mmlist(void)
- 
- /*
-  * Use this swapdev's extent info to locate the (PAGE_SIZE) block which
-- * corresponds to page offset `offset'.  Note that the type of this function
-- * is sector_t, but it returns page offset into the bdev, not sector offset.
-+ * corresponds to page offset for the specified swap entry.
-+ * Note that the type of this function is sector_t, but it returns page offset
-+ * into the bdev, not sector offset.
-  */
--sector_t map_swap_page(swp_entry_t entry, struct block_device **bdev)
-+static sector_t map_swap_entry(swp_entry_t entry, struct block_device **bdev)
+=20
+-
+-static inline void lis3lv02d_calibrate_joystick(void)
+-{
+-	lis3lv02d_get_xyz(&lis3_dev,
+-		&lis3_dev.xcalib, &lis3_dev.ycalib, &lis3_dev.zcalib);
+-}
+-
+ int lis3lv02d_joystick_enable(void)
  {
- 	struct swap_info_struct *sis;
- 	struct swap_extent *start_se;
-@@ -1281,6 +1283,16 @@ sector_t map_swap_page(swp_entry_t entry
+ 	struct input_dev *input_dev;
+@@ -379,8 +372,6 @@ int lis3lv02d_joystick_enable(void)
+ 	lis3_dev.idev->poll_interval =3D MDPS_POLL_INTERVAL;
+ 	input_dev =3D lis3_dev.idev->input;
+=20
+-	lis3lv02d_calibrate_joystick();
+-
+ 	input_dev->name       =3D "ST LIS3LV02DL Accelerometer";
+ 	input_dev->phys       =3D DRIVER_NAME "/input0";
+ 	input_dev->id.bustype =3D BUS_HOST;
+@@ -436,20 +427,6 @@ static ssize_t lis3lv02d_position_show(s
+ 	return sprintf(buf, "(%d,%d,%d)\n", x, y, z);
  }
- 
- /*
-+ * Returns the page offset into bdev for the specified page's swap entry.
-+ */
-+sector_t map_swap_page(struct page *page, struct block_device **bdev)
-+{
-+	swp_entry_t entry;
-+	entry.val = page_private(page);
-+	return map_swap_entry(entry, bdev);
-+}
-+
-+/*
-  * Free all of a swapdev's extent information
-  */
- static void destroy_swap_extents(struct swap_info_struct *sis)
+=20
+-static ssize_t lis3lv02d_calibrate_show(struct device *dev,
+-				struct device_attribute *attr, char *buf)
+-{
+-	return sprintf(buf, "(%d,%d,%d)\n", lis3_dev.xcalib, lis3_dev.ycalib,=
+ lis3_dev.zcalib);
+-}
+-
+-static ssize_t lis3lv02d_calibrate_store(struct device *dev,
+-				struct device_attribute *attr,
+-				const char *buf, size_t count)
+-{
+-	lis3lv02d_calibrate_joystick();
+-	return count;
+-}
+-
+ static ssize_t lis3lv02d_rate_show(struct device *dev,
+ 			struct device_attribute *attr, char *buf)
+ {
+@@ -458,14 +435,11 @@ static ssize_t lis3lv02d_rate_show(struc
+=20
+ static DEVICE_ATTR(selftest, S_IRUSR, lis3lv02d_selftest_show, NULL);
+ static DEVICE_ATTR(position, S_IRUGO, lis3lv02d_position_show, NULL);
+-static DEVICE_ATTR(calibrate, S_IRUGO|S_IWUSR, lis3lv02d_calibrate_sho=
+w,
+-	lis3lv02d_calibrate_store);
+ static DEVICE_ATTR(rate, S_IRUGO, lis3lv02d_rate_show, NULL);
+=20
+ static struct attribute *lis3lv02d_attributes[] =3D {
+ 	&dev_attr_selftest.attr,
+ 	&dev_attr_position.attr,
+-	&dev_attr_calibrate.attr,
+ 	&dev_attr_rate.attr,
+ 	NULL
+ };
+diff -puN drivers/hwmon/lis3lv02d.h~lis3lv02d-remove-calibaration-funct=
+ionality drivers/hwmon/lis3lv02d.h
+--- a/drivers/hwmon/lis3lv02d.h~lis3lv02d-remove-calibaration-functiona=
+lity
++++ a/drivers/hwmon/lis3lv02d.h
+@@ -216,9 +216,6 @@ struct lis3lv02d {
+ 	struct input_polled_dev	*idev;     /* input device */
+ 	struct platform_device	*pdev;     /* platform device */
+ 	atomic_t		count;     /* interrupt count after last read */
+-	int			xcalib;    /* calibrated null value for x */
+-	int			ycalib;    /* calibrated null value for y */
+-	int			zcalib;    /* calibrated null value for z */
+ 	struct axis_conversion	ac;        /* hw -> logical axis */
+=20
+ 	u32			irq;       /* IRQ number */
 _
 
-Patches currently in -mm which might be from Lee.Schermerhorn@hp.com are
+Patches currently in -mm which might be from samu.p.onkalo@nokia.com ar=
+e
 
 origin.patch
-acpi-remove-nid_inval.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
