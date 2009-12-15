@@ -1,82 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: [folded] procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup.patch removed from -mm tree
-Date: Mon, 14 Dec 2009 17:06:22 -0800
-Message-ID: <200912150106.nBF16N6B009632@imap1.linux-foundation.org>
+Subject: [folded] floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch removed from -mm tree
+Date: Mon, 14 Dec 2009 17:07:02 -0800
+Message-ID: <200912150107.nBF1738v011345@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41259 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47265 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758922AbZLOBG0 (ORCPT
+	by vger.kernel.org with ESMTP id S1758923AbZLOBHK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Dec 2009 20:06:26 -0500
+	Mon, 14 Dec 2009 20:07:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, johnstul@us.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, arjan@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup
+     floppy-add-an-extra-bound-check-on-ioctl-arguments-fix
 has been removed from the -mm tree.  Its filename was
-     procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup.patch
+     floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
 
-This patch was dropped because it was folded into procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm.patch
+This patch was dropped because it was folded into floppy-add-an-extra-bound-check-on-ioctl-arguments.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup
+Subject: floppy-add-an-extra-bound-check-on-ioctl-arguments-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-convert into kernel code ;)
+add WARN_ON()
 
-Cc: john stultz <johnstul@us.ibm.com>
+Cc: Arjan van de Ven <arjan@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |   10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+ drivers/block/floppy.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/proc/base.c~procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup fs/proc/base.c
---- a/fs/proc/base.c~procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup
-+++ a/fs/proc/base.c
-@@ -1348,11 +1348,8 @@ static const struct file_operations proc
+diff -puN drivers/block/floppy.c~floppy-add-an-extra-bound-check-on-ioctl-arguments-fix drivers/block/floppy.c
+--- a/drivers/block/floppy.c~floppy-add-an-extra-bound-check-on-ioctl-arguments-fix
++++ a/drivers/block/floppy.c
+@@ -3497,7 +3497,7 @@ static int fd_ioctl(struct block_device 
+ 	    ((cmd & 0x80) && !capable(CAP_SYS_ADMIN)))
+ 		return -EPERM;
  
- #endif
+-	if (size < 0 || size > sizeof(inparam))
++	if (WARN_ON(size < 0 || size > sizeof(inparam)))
+ 		return -EINVAL;
  
--
--
--static ssize_t
--comm_write(struct file *file, const char __user *buf,
--	    size_t count, loff_t *offset)
-+static ssize_t comm_write(struct file *file, const char __user *buf,
-+				size_t count, loff_t *offset)
- {
- 	struct inode *inode = file->f_path.dentry->d_inode;
- 	struct task_struct *p;
-@@ -1378,7 +1375,6 @@ comm_write(struct file *file, const char
- 	return count;
- }
- 
--
- static int comm_show(struct seq_file *m, void *v)
- {
- 	struct inode *inode = m->private;
-@@ -1410,7 +1406,6 @@ static int comm_open(struct inode *inode
- 	return ret;
- }
- 
--
- static const struct file_operations proc_pid_set_comm_operations = {
- 	.open		= comm_open,
- 	.read		= seq_read,
-@@ -1419,7 +1414,6 @@ static const struct file_operations proc
- 	.release	= single_release,
- };
- 
--
- /*
-  * We added or removed a vma mapping the executable. The vmas are only mapped
-  * during exec and are not mapped with the mmap system call.
+ 	/* copyin */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -90,7 +61,7 @@ mm-memory_hotplug-make-offline_pages-static.patch
 mm-hugetlb-fix-hugepage-memory-leak-in-mincore.patch
 mm-hugetlb-add-hugepage-support-to-pagemap.patch
 procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm.patch
-procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup.patch
+floppy-add-an-extra-bound-check-on-ioctl-arguments.patch
 floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
 drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
 rwsem-fix-rwsem_is_locked-bugs-fix.patch
