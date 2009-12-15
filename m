@@ -1,152 +1,236 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lis3lv02d-remove-calibaration-functionality.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 13:59:33 -0800
-Message-ID: <200912152159.nBFLxXZO015912@imap1.linux-foundation.org>
+Subject: [merged] ioc3-ioc4-various-section-fixes.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 13:56:03 -0800
+Message-ID: <200912152156.nBFLu3uI015538@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55651 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52880 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761365AbZLOWOF (ORCPT
+	by vger.kernel.org with ESMTP id S933948AbZLOWOy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 17:14:05 -0500
+	Tue, 15 Dec 2009 17:14:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: samu.p.onkalo@nokia.com, Eric.Piel@tremplin-utc.net, pavel@ucw.cz, mm-commits@vger.kernel.org
+To: khali@linux-fr.org, alan@lxorguk.ukuu.org.uk, pfg@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lis3lv02d: remove calibaration functionality
+     ioc3/ioc4: various section fixes
 has been removed from the -mm tree.  Its filename was
-     lis3lv02d-remove-calibaration-functionality.patch
+     ioc3-ioc4-various-section-fixes.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lis3lv02d: remove calibaration functionality
-=46rom: Samu Onkalo <samu.p.onkalo@nokia.com>
+Subject: ioc3/ioc4: various section fixes
+From: Jean Delvare <khali@linux-fr.org>
 
-Chip is calibrated by the manufacturer.  There is no need to calibarate=
- it
-at driver level.  If the chip is used as a joystick, calibaration can b=
-e
-done using joystick device calibration mechanism.
+Several IOC3 and IOC4 drivers misuse the __devinit and __devexit section
+markers.  Use __init and __exit instead as appropriate, then add __devinit
+and __devexit where they really belong for PCI drivers.
 
-Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
-Acked-by: =C9ric Piel <Eric.Piel@tremplin-utc.net>
-Cc: Pavel Machek <pavel@ucw.cz>
+Also make ioc4_serial_init static.
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Pat Gefre <pfg@sgi.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/lis3lv02d.c |   32 +++-----------------------------
- drivers/hwmon/lis3lv02d.h |    3 ---
- 2 files changed, 3 insertions(+), 32 deletions(-)
+ drivers/misc/ioc4.c          |   16 ++++++++--------
+ drivers/serial/ioc3_serial.c |    4 ++--
+ drivers/serial/ioc4_serial.c |    4 ++--
+ drivers/sn/ioc3.c            |   15 ++++++++-------
+ 4 files changed, 20 insertions(+), 19 deletions(-)
 
-diff -puN drivers/hwmon/lis3lv02d.c~lis3lv02d-remove-calibaration-funct=
-ionality drivers/hwmon/lis3lv02d.c
---- a/drivers/hwmon/lis3lv02d.c~lis3lv02d-remove-calibaration-functiona=
-lity
-+++ a/drivers/hwmon/lis3lv02d.c
-@@ -350,19 +350,12 @@ static void lis3lv02d_joystick_poll(stru
- 	int x, y, z;
-=20
- 	lis3lv02d_get_xyz(&lis3_dev, &x, &y, &z);
--	input_report_abs(pidev->input, ABS_X, x - lis3_dev.xcalib);
--	input_report_abs(pidev->input, ABS_Y, y - lis3_dev.ycalib);
--	input_report_abs(pidev->input, ABS_Z, z - lis3_dev.zcalib);
-+	input_report_abs(pidev->input, ABS_X, x);
-+	input_report_abs(pidev->input, ABS_Y, y);
-+	input_report_abs(pidev->input, ABS_Z, z);
- 	input_sync(pidev->input);
- }
-=20
--
--static inline void lis3lv02d_calibrate_joystick(void)
--{
--	lis3lv02d_get_xyz(&lis3_dev,
--		&lis3_dev.xcalib, &lis3_dev.ycalib, &lis3_dev.zcalib);
--}
--
- int lis3lv02d_joystick_enable(void)
+diff -puN drivers/misc/ioc4.c~ioc3-ioc4-various-section-fixes drivers/misc/ioc4.c
+--- a/drivers/misc/ioc4.c~ioc3-ioc4-various-section-fixes
++++ a/drivers/misc/ioc4.c
+@@ -138,7 +138,7 @@ ioc4_unregister_submodule(struct ioc4_su
+  * even though the following code utilizes external interrupt registers
+  * to perform the speed calculation.
+  */
+-static void
++static void __devinit
+ ioc4_clock_calibrate(struct ioc4_driver_data *idd)
  {
- 	struct input_dev *input_dev;
-@@ -379,8 +372,6 @@ int lis3lv02d_joystick_enable(void)
- 	lis3_dev.idev->poll_interval =3D MDPS_POLL_INTERVAL;
- 	input_dev =3D lis3_dev.idev->input;
-=20
--	lis3lv02d_calibrate_joystick();
--
- 	input_dev->name       =3D "ST LIS3LV02DL Accelerometer";
- 	input_dev->phys       =3D DRIVER_NAME "/input0";
- 	input_dev->id.bustype =3D BUS_HOST;
-@@ -436,20 +427,6 @@ static ssize_t lis3lv02d_position_show(s
- 	return sprintf(buf, "(%d,%d,%d)\n", x, y, z);
- }
-=20
--static ssize_t lis3lv02d_calibrate_show(struct device *dev,
--				struct device_attribute *attr, char *buf)
--{
--	return sprintf(buf, "(%d,%d,%d)\n", lis3_dev.xcalib, lis3_dev.ycalib,=
- lis3_dev.zcalib);
--}
--
--static ssize_t lis3lv02d_calibrate_store(struct device *dev,
--				struct device_attribute *attr,
--				const char *buf, size_t count)
--{
--	lis3lv02d_calibrate_joystick();
--	return count;
--}
--
- static ssize_t lis3lv02d_rate_show(struct device *dev,
- 			struct device_attribute *attr, char *buf)
+ 	union ioc4_int_out int_out;
+@@ -230,7 +230,7 @@ ioc4_clock_calibrate(struct ioc4_driver_
+  * on the same PCI bus at slot number 3 to differentiate IO9 from IO10.
+  * If neither is present, it's a PCI-RT.
+  */
+-static unsigned int
++static unsigned int __devinit
+ ioc4_variant(struct ioc4_driver_data *idd)
  {
-@@ -458,14 +435,11 @@ static ssize_t lis3lv02d_rate_show(struc
-=20
- static DEVICE_ATTR(selftest, S_IRUSR, lis3lv02d_selftest_show, NULL);
- static DEVICE_ATTR(position, S_IRUGO, lis3lv02d_position_show, NULL);
--static DEVICE_ATTR(calibrate, S_IRUGO|S_IWUSR, lis3lv02d_calibrate_sho=
-w,
--	lis3lv02d_calibrate_store);
- static DEVICE_ATTR(rate, S_IRUGO, lis3lv02d_rate_show, NULL);
-=20
- static struct attribute *lis3lv02d_attributes[] =3D {
- 	&dev_attr_selftest.attr,
- 	&dev_attr_position.attr,
--	&dev_attr_calibrate.attr,
- 	&dev_attr_rate.attr,
- 	NULL
+ 	struct pci_dev *pdev = NULL;
+@@ -269,7 +269,7 @@ ioc4_variant(struct ioc4_driver_data *id
+ 	return IOC4_VARIANT_PCI_RT;
+ }
+ 
+-static void
++static void __devinit
+ ioc4_load_modules(struct work_struct *work)
+ {
+ 	/* arg just has to be freed */
+@@ -280,7 +280,7 @@ ioc4_load_modules(struct work_struct *wo
+ }
+ 
+ /* Adds a new instance of an IOC4 card */
+-static int
++static int __devinit
+ ioc4_probe(struct pci_dev *pdev, const struct pci_device_id *pci_id)
+ {
+ 	struct ioc4_driver_data *idd;
+@@ -425,7 +425,7 @@ out:
+ }
+ 
+ /* Removes a particular instance of an IOC4 card. */
+-static void
++static void __devexit
+ ioc4_remove(struct pci_dev *pdev)
+ {
+ 	struct ioc4_submodule *is;
+@@ -476,7 +476,7 @@ static struct pci_driver ioc4_driver = {
+ 	.name = "IOC4",
+ 	.id_table = ioc4_id_table,
+ 	.probe = ioc4_probe,
+-	.remove = ioc4_remove,
++	.remove = __devexit_p(ioc4_remove),
  };
-diff -puN drivers/hwmon/lis3lv02d.h~lis3lv02d-remove-calibaration-funct=
-ionality drivers/hwmon/lis3lv02d.h
---- a/drivers/hwmon/lis3lv02d.h~lis3lv02d-remove-calibaration-functiona=
-lity
-+++ a/drivers/hwmon/lis3lv02d.h
-@@ -216,9 +216,6 @@ struct lis3lv02d {
- 	struct input_polled_dev	*idev;     /* input device */
- 	struct platform_device	*pdev;     /* platform device */
- 	atomic_t		count;     /* interrupt count after last read */
--	int			xcalib;    /* calibrated null value for x */
--	int			ycalib;    /* calibrated null value for y */
--	int			zcalib;    /* calibrated null value for z */
- 	struct axis_conversion	ac;        /* hw -> logical axis */
-=20
- 	u32			irq;       /* IRQ number */
+ 
+ MODULE_DEVICE_TABLE(pci, ioc4_id_table);
+@@ -486,14 +486,14 @@ MODULE_DEVICE_TABLE(pci, ioc4_id_table);
+  *********************/
+ 
+ /* Module load */
+-static int __devinit
++static int __init
+ ioc4_init(void)
+ {
+ 	return pci_register_driver(&ioc4_driver);
+ }
+ 
+ /* Module unload */
+-static void __devexit
++static void __exit
+ ioc4_exit(void)
+ {
+ 	/* Ensure ioc4_load_modules() has completed before exiting */
+diff -puN drivers/serial/ioc3_serial.c~ioc3-ioc4-various-section-fixes drivers/serial/ioc3_serial.c
+--- a/drivers/serial/ioc3_serial.c~ioc3-ioc4-various-section-fixes
++++ a/drivers/serial/ioc3_serial.c
+@@ -2162,7 +2162,7 @@ static struct ioc3_submodule ioc3uart_op
+ /**
+  * ioc3_detect - module init called,
+  */
+-static int __devinit ioc3uart_init(void)
++static int __init ioc3uart_init(void)
+ {
+ 	int ret;
+ 
+@@ -2179,7 +2179,7 @@ static int __devinit ioc3uart_init(void)
+ 	return ret;
+ }
+ 
+-static void __devexit ioc3uart_exit(void)
++static void __exit ioc3uart_exit(void)
+ {
+ 	ioc3_unregister_submodule(&ioc3uart_ops);
+ 	uart_unregister_driver(&ioc3_uart);
+diff -puN drivers/serial/ioc4_serial.c~ioc3-ioc4-various-section-fixes drivers/serial/ioc4_serial.c
+--- a/drivers/serial/ioc4_serial.c~ioc3-ioc4-various-section-fixes
++++ a/drivers/serial/ioc4_serial.c
+@@ -2904,7 +2904,7 @@ static struct ioc4_submodule ioc4_serial
+ /**
+  * ioc4_serial_init - module init
+  */
+-int ioc4_serial_init(void)
++static int __init ioc4_serial_init(void)
+ {
+ 	int ret;
+ 
+@@ -2926,7 +2926,7 @@ int ioc4_serial_init(void)
+ 	return ioc4_register_submodule(&ioc4_serial_submodule);
+ }
+ 
+-static void __devexit ioc4_serial_exit(void)
++static void __exit ioc4_serial_exit(void)
+ {
+ 	ioc4_unregister_submodule(&ioc4_serial_submodule);
+ 	uart_unregister_driver(&ioc4_uart_rs232);
+diff -puN drivers/sn/ioc3.c~ioc3-ioc4-various-section-fixes drivers/sn/ioc3.c
+--- a/drivers/sn/ioc3.c~ioc3-ioc4-various-section-fixes
++++ a/drivers/sn/ioc3.c
+@@ -574,11 +574,11 @@ void ioc3_unregister_submodule(struct io
+  * Device management *
+  *********************/
+ 
+-static char *
++static char * __devinitdata
+ ioc3_class_names[]={"unknown", "IP27 BaseIO", "IP30 system", "MENET 1/2/3",
+ 			"MENET 4", "CADduo", "Altix Serial"};
+ 
+-static int ioc3_class(struct ioc3_driver_data *idd)
++static int __devinit ioc3_class(struct ioc3_driver_data *idd)
+ {
+ 	int res = IOC3_CLASS_NONE;
+ 	/* NIC-based logic */
+@@ -601,7 +601,8 @@ static int ioc3_class(struct ioc3_driver
+ 	return res;
+ }
+ /* Adds a new instance of an IOC3 card */
+-static int ioc3_probe(struct pci_dev *pdev, const struct pci_device_id *pci_id)
++static int __devinit
++ioc3_probe(struct pci_dev *pdev, const struct pci_device_id *pci_id)
+ {
+ 	struct ioc3_driver_data *idd;
+ 	uint32_t pcmd;
+@@ -753,7 +754,7 @@ out:
+ }
+ 
+ /* Removes a particular instance of an IOC3 card. */
+-static void ioc3_remove(struct pci_dev *pdev)
++static void __devexit ioc3_remove(struct pci_dev *pdev)
+ {
+ 	int id;
+ 	struct ioc3_driver_data *idd;
+@@ -805,7 +806,7 @@ static struct pci_driver ioc3_driver = {
+ 	.name = "IOC3",
+ 	.id_table = ioc3_id_table,
+ 	.probe = ioc3_probe,
+-	.remove = ioc3_remove,
++	.remove = __devexit_p(ioc3_remove),
+ };
+ 
+ MODULE_DEVICE_TABLE(pci, ioc3_id_table);
+@@ -815,7 +816,7 @@ MODULE_DEVICE_TABLE(pci, ioc3_id_table);
+  *********************/
+ 
+ /* Module load */
+-static int __devinit ioc3_init(void)
++static int __init ioc3_init(void)
+ {
+ 	if (ia64_platform_is("sn2"))
+ 		return pci_register_driver(&ioc3_driver);
+@@ -823,7 +824,7 @@ static int __devinit ioc3_init(void)
+ }
+ 
+ /* Module unload */
+-static void __devexit ioc3_exit(void)
++static void __exit ioc3_exit(void)
+ {
+ 	pci_unregister_driver(&ioc3_driver);
+ }
 _
 
-Patches currently in -mm which might be from samu.p.onkalo@nokia.com ar=
-e
+Patches currently in -mm which might be from khali@linux-fr.org are
 
 origin.patch
+linux-next.patch
+rtc-set-wakeup-capability-for-i2c-and-spi-rtc-drivers.patch
+gpio-add-driver-for-max7300-i2c-gpio-extender.patch
+resource-constify-arg-to-resource_size-and-resource_type.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
