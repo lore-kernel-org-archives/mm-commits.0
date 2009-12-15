@@ -1,140 +1,154 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hugetlb-prevent-deadlock-in-__unmap_hugepage_range-when-alloc_huge_page-fails-2.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 13:54:02 -0800
-Message-ID: <200912152154.nBFLs3kO015326@imap1.linux-foundation.org>
+Subject: [merged] mm-hugetlb-fix-hugepage-memory-leak-in-walk_page_range.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 13:54:51 -0800
+Message-ID: <200912152154.nBFLsptn015397@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59773 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60875 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934021AbZLOWUH (ORCPT
+	by vger.kernel.org with ESMTP id S934022AbZLOWU0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 17:20:07 -0500
+	Tue, 15 Dec 2009 17:20:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lwoodman@redhat.com, agl@us.ibm.com, apw@shadowen.org, david@gibson.dropbear.id.au, hugh.dickins@tiscali.co.uk, lee.schermerhorn@hp.com, lwooman@redhat.com, mel@csn.ul.ie, mm-commits@
+To: n-horiguchi@ah.jp.nec.com, ak@linux.intel.com, apw@canonical.com, fengguang.wu@intel.com, hugh.dickins@tiscali.co.uk, lee.schermerhorn@hp.com, mel@csn.ul.ie, rientjes@google.com, stab
 
 
 The patch titled
-     hugetlb: prevent deadlock in __unmap_hugepage_range() when alloc_huge_page() fails
+     mm: hugetlb: fix hugepage memory leak in walk_page_range()
 has been removed from the -mm tree.  Its filename was
-     hugetlb-prevent-deadlock-in-__unmap_hugepage_range-when-alloc_huge_page-fails-2.patch
+     mm-hugetlb-fix-hugepage-memory-leak-in-walk_page_range.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb: prevent deadlock in __unmap_hugepage_range() when alloc_huge_page() fails
-From: Larry Woodman <lwoodman@redhat.com>
+Subject: mm: hugetlb: fix hugepage memory leak in walk_page_range()
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 
-hugetlb_fault() takes the mm->page_table_lock spinlock then calls
-hugetlb_cow().  If the alloc_huge_page() in hugetlb_cow() fails due to an
-insufficient huge page pool it calls unmap_ref_private() with the
-mm->page_table_lock held.  unmap_ref_private() then calls
-unmap_hugepage_range() which tries to acquire the mm->page_table_lock.
+Most callers of pmd_none_or_clear_bad() check whether the target page is
+in a hugepage or not, but walk_page_range() do not check it.  So if we
+read /proc/pid/pagemap for the hugepage on x86 machine, the hugepage
+memory is leaked as shown below.  This patch fixes it.
 
-[<ffffffff810928c3>] print_circular_bug_tail+0x80/0x9f
- [<ffffffff8109280b>] ? check_noncircular+0xb0/0xe8
- [<ffffffff810935e0>] __lock_acquire+0x956/0xc0e
- [<ffffffff81093986>] lock_acquire+0xee/0x12e
- [<ffffffff8111a7a6>] ? unmap_hugepage_range+0x3e/0x84
- [<ffffffff8111a7a6>] ? unmap_hugepage_range+0x3e/0x84
- [<ffffffff814c348d>] _spin_lock+0x40/0x89
- [<ffffffff8111a7a6>] ? unmap_hugepage_range+0x3e/0x84
- [<ffffffff8111afee>] ? alloc_huge_page+0x218/0x318
- [<ffffffff8111a7a6>] unmap_hugepage_range+0x3e/0x84
- [<ffffffff8111b2d0>] hugetlb_cow+0x1e2/0x3f4
- [<ffffffff8111b935>] ? hugetlb_fault+0x453/0x4f6
- [<ffffffff8111b962>] hugetlb_fault+0x480/0x4f6
- [<ffffffff8111baee>] follow_hugetlb_page+0x116/0x2d9
- [<ffffffff814c31a7>] ? _spin_unlock_irq+0x3a/0x5c
- [<ffffffff81107b4d>] __get_user_pages+0x2a3/0x427
- [<ffffffff81107d0f>] get_user_pages+0x3e/0x54
- [<ffffffff81040b8b>] get_user_pages_fast+0x170/0x1b5
- [<ffffffff81160352>] dio_get_page+0x64/0x14a
- [<ffffffff8116112a>] __blockdev_direct_IO+0x4b7/0xb31
- [<ffffffff8115ef91>] blkdev_direct_IO+0x58/0x6e
- [<ffffffff8115e0a4>] ? blkdev_get_blocks+0x0/0xb8
- [<ffffffff810ed2c5>] generic_file_aio_read+0xdd/0x528
- [<ffffffff81219da3>] ? avc_has_perm+0x66/0x8c
- [<ffffffff81132842>] do_sync_read+0xf5/0x146
- [<ffffffff8107da00>] ? autoremove_wake_function+0x0/0x5a
- [<ffffffff81211857>] ? security_file_permission+0x24/0x3a
- [<ffffffff81132fd8>] vfs_read+0xb5/0x126
- [<ffffffff81133f6b>] ? fget_light+0x5e/0xf8
- [<ffffffff81133131>] sys_read+0x54/0x8c
- [<ffffffff81011e42>] system_call_fastpath+0x16/0x1b
+Details
+=======
+My test program (leak_pagemap) works as follows:
+ - creat() and mmap() a file on hugetlbfs (file size is 200MB == 100 hugepages,)
+ - read()/write() something on it,
+ - call page-types with option -p (walk around the page tables),
+ - munmap() and unlink() the file on hugetlbfs
 
-This can be fixed by dropping the mm->page_table_lock around the call to
-unmap_ref_private() if alloc_huge_page() fails, its dropped right below in
-the normal path anyway.  However, earlier in the that function, it's also
-possible to call into the page allocator with the same spinlock held.
+Without my patches
+------------------
+$ cat /proc/meminfo |grep "HugePage"
+HugePages_Total:    1000
+HugePages_Free:     1000
+HugePages_Rsvd:        0
+HugePages_Surp:        0
+$ ./leak_pagemap
+[snip output]
+$ cat /proc/meminfo |grep "HugePage"
+HugePages_Total:    1000
+HugePages_Free:      900
+HugePages_Rsvd:        0
+HugePages_Surp:        0
+$ ls /hugetlbfs/
+$
 
-What this patch does is drop the spinlock before the page allocator is
-potentially entered.  The check for page allocation failure can be made
-without the page_table_lock as well as the copy of the huge page.  Even if
-the PTE changed while the spinlock was held, the consequence is that a
-huge page is copied unnecessarily.  This resolves both the double taking
-of the lock and sleeping with the spinlock held.
+100 hugepages are accounted as used while there is no file on hugetlbfs.
 
-[mel@csn.ul.ie: Cover also the case where process can sleep with spinlock]
-Signed-off-by: Larry Woodman <lwooman@redhat.com>
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Acked-by: Adam Litke <agl@us.ibm.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+
+With my patches
+---------------
+$ cat /proc/meminfo |grep "HugePage"
+HugePages_Total:    1000
+HugePages_Free:     1000
+HugePages_Rsvd:        0
+HugePages_Surp:        0
+$ ./leak_pagemap
+[snip output]
+$ cat /proc/meminfo |grep "HugePage"
+HugePages_Total:    1000
+HugePages_Free:     1000
+HugePages_Rsvd:        0
+HugePages_Surp:        0
+$ ls /hugetlbfs
+$
+
+No memory leaks.
+
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Cc: David Gibson <david@gibson.dropbear.id.au>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Andy Whitcroft <apw@canonical.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
+ mm/pagewalk.c |   16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
 
-diff -puN mm/hugetlb.c~hugetlb-prevent-deadlock-in-__unmap_hugepage_range-when-alloc_huge_page-fails-2 mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-prevent-deadlock-in-__unmap_hugepage_range-when-alloc_huge_page-fails-2
-+++ a/mm/hugetlb.c
-@@ -2293,6 +2293,9 @@ retry_avoidcopy:
- 		outside_reserve = 1;
+diff -puN mm/pagewalk.c~mm-hugetlb-fix-hugepage-memory-leak-in-walk_page_range mm/pagewalk.c
+--- a/mm/pagewalk.c~mm-hugetlb-fix-hugepage-memory-leak-in-walk_page_range
++++ a/mm/pagewalk.c
+@@ -1,6 +1,7 @@
+ #include <linux/mm.h>
+ #include <linux/highmem.h>
+ #include <linux/sched.h>
++#include <linux/hugetlb.h>
  
- 	page_cache_get(old_page);
+ static int walk_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
+ 			  struct mm_walk *walk)
+@@ -107,6 +108,7 @@ int walk_page_range(unsigned long addr, 
+ 	pgd_t *pgd;
+ 	unsigned long next;
+ 	int err = 0;
++	struct vm_area_struct *vma;
+ 
+ 	if (addr >= end)
+ 		return err;
+@@ -117,11 +119,22 @@ int walk_page_range(unsigned long addr, 
+ 	pgd = pgd_offset(walk->mm, addr);
+ 	do {
+ 		next = pgd_addr_end(addr, end);
 +
-+	/* Drop page_table_lock as buddy allocator may be called */
-+	spin_unlock(&mm->page_table_lock);
- 	new_page = alloc_huge_page(vma, address, outside_reserve);
- 
- 	if (IS_ERR(new_page)) {
-@@ -2310,19 +2313,25 @@ retry_avoidcopy:
- 			if (unmap_ref_private(mm, vma, old_page, address)) {
- 				BUG_ON(page_count(old_page) != 1);
- 				BUG_ON(huge_pte_none(pte));
-+				spin_lock(&mm->page_table_lock);
- 				goto retry_avoidcopy;
- 			}
- 			WARN_ON_ONCE(1);
++		/* skip hugetlb vma to avoid hugepage PMD being cleared
++		 * in pmd_none_or_clear_bad(). */
++		vma = find_vma(walk->mm, addr);
++		if (vma && is_vm_hugetlb_page(vma)) {
++			if (vma->vm_end < next)
++				next = vma->vm_end;
++			continue;
++		}
++
+ 		if (pgd_none_or_clear_bad(pgd)) {
+ 			if (walk->pte_hole)
+ 				err = walk->pte_hole(addr, next, walk);
+ 			if (err)
+ 				break;
++			pgd++;
+ 			continue;
  		}
+ 		if (walk->pgd_entry)
+@@ -131,7 +144,8 @@ int walk_page_range(unsigned long addr, 
+ 			err = walk_pud_range(pgd, addr, next, walk);
+ 		if (err)
+ 			break;
+-	} while (pgd++, addr = next, addr != end);
++		pgd++;
++	} while (addr = next, addr != end);
  
-+		/* Caller expects lock to be held */
-+		spin_lock(&mm->page_table_lock);
- 		return -PTR_ERR(new_page);
- 	}
- 
--	spin_unlock(&mm->page_table_lock);
- 	copy_huge_page(new_page, old_page, address, vma);
- 	__SetPageUptodate(new_page);
--	spin_lock(&mm->page_table_lock);
- 
-+	/*
-+	 * Retake the page_table_lock to check for racing updates
-+	 * before the page tables are altered
-+	 */
-+	spin_lock(&mm->page_table_lock);
- 	ptep = huge_pte_offset(mm, address & huge_page_mask(h));
- 	if (likely(pte_same(huge_ptep_get(ptep), pte))) {
- 		/* Break COW */
+ 	return err;
+ }
 _
 
-Patches currently in -mm which might be from lwoodman@redhat.com are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
 origin.patch
 
