@@ -1,230 +1,473 @@
 From: akpm@linux-foundation.org
-Subject: [merged] vt-introduce-and-use-vt_kmsg_redirect-function.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 13:56:43 -0800
-Message-ID: <200912152156.nBFLuhSF015664@imap1.linux-foundation.org>
+Subject: [merged] scripts-get_maintainerpl-support-multiple-vcss-add-mercurial.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 13:56:58 -0800
+Message-ID: <200912152156.nBFLuwbn015677@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45818 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55779 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761295AbZLOV5j (ORCPT
+	by vger.kernel.org with ESMTP id S1761292AbZLOV5e (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 16:57:39 -0500
+	Tue, 15 Dec 2009 16:57:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bernhard@bwalle.de, alan@lxorguk.ukuu.org.uk, mingo@elte.hu, mm-commits@vger.kernel.org
+To: joe@perches.com, marti@juffo.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vt: introduce and use vt_kmsg_redirect() function
+     scripts/get_maintainer.pl: support multiple VCSs - add mercurial
 has been removed from the -mm tree.  Its filename was
-     vt-introduce-and-use-vt_kmsg_redirect-function.patch
+     scripts-get_maintainerpl-support-multiple-vcss-add-mercurial.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vt: introduce and use vt_kmsg_redirect() function
-From: Bernhard Walle <bernhard@bwalle.de>
+Subject: scripts/get_maintainer.pl: support multiple VCSs - add mercurial
+From: Joe Perches <joe@perches.com>
 
-The kernel offers with TIOCL_GETKMSGREDIRECT ioctl() the possibility to
-redirect the kernel messages to a specific console.
+Restructure a bit for multiple version control systems support.
 
-However, since it's not possible to switch to the kernel message console
-after a panic(), it would be nice if the kernel would print the panic
-message on the current console.
+Use a hash for each supported VCS that contains the commands
+and patterns used to find commits, logs, and signers.
 
-This patch series adds a new interface to access the global kmsg_redirect
-variable by a function to be able to use it in code where
-CONFIG_VT_CONSOLE is not set (kernel/panic.c).
+--git command line options are still used for hg except for
+--git-since.  Use --hg-since instead.
 
+The number of commits can differ for git and hg, so --rolestats
+might be different.
 
+Style changes: Use common push style push(@foo...), simplify a return
 
-This patch:
+Bumped version to 0.23.
 
-Instead of using and exporting a global value kmsg_redirect, introduce a
-function vt_kmsg_redirect() that both can set and return the console where
-messages are printed.
-
-Change all users of kmsg_redirect (the VT code itself and kernel/power.c)
-to the new interface.
-
-The main advantage is that vt_kmsg_redirect() can also be used when
-CONFIG_VT_CONSOLE is not set.
-
-Signed-off-by: Bernhard Walle <bernhard@bwalle.de>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Marti Raudsepp <marti@juffo.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/vt.c      |   43 +++++++++++++++++++++++++++++++++------
- include/linux/tty.h    |    2 -
- include/linux/vt.h     |   15 +++++++++++++
- kernel/power/console.c |    7 ++----
- 4 files changed, 55 insertions(+), 12 deletions(-)
+ scripts/get_maintainer.pl |  261 +++++++++++++++++++++++-------------
+ 1 file changed, 168 insertions(+), 93 deletions(-)
 
-diff -puN drivers/char/vt.c~vt-introduce-and-use-vt_kmsg_redirect-function drivers/char/vt.c
---- a/drivers/char/vt.c~vt-introduce-and-use-vt_kmsg_redirect-function
-+++ a/drivers/char/vt.c
-@@ -184,12 +184,10 @@ static DECLARE_WORK(console_work, consol
-  * fg_console is the current virtual console,
-  * last_console is the last used one,
-  * want_console is the console we want to switch to,
-- * kmsg_redirect is the console for kernel messages,
-  */
- int fg_console;
- int last_console;
- int want_console = -1;
--int kmsg_redirect;
+diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-support-multiple-vcss-add-mercurial scripts/get_maintainer.pl
+--- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-support-multiple-vcss-add-mercurial
++++ a/scripts/get_maintainer.pl
+@@ -13,7 +13,7 @@
+ use strict;
  
- /*
-  * For each existing display, we have a pointer to console currently visible
-@@ -2434,6 +2432,37 @@ struct tty_driver *console_driver;
+ my $P = $0;
+-my $V = '0.22';
++my $V = '0.23';
  
- #ifdef CONFIG_VT_CONSOLE
+ use Getopt::Long qw(:config no_auto_abbrev);
  
-+/**
-+ * vt_kmsg_redirect() - Sets/gets the kernel message console
-+ * @new:	The new virtual terminal number or -1 if the console should stay
-+ * 		unchanged
-+ *
-+ * By default, the kernel messages are always printed on the current virtual
-+ * console. However, the user may modify that default with the
-+ * TIOCL_SETKMSGREDIRECT ioctl call.
-+ *
-+ * This function sets the kernel message console to be @new. It returns the old
-+ * virtual console number. The virtual terminal number 0 (both as parameter and
-+ * return value) means no redirection (i.e. always printed on the currently
-+ * active console).
-+ *
-+ * The parameter -1 means that only the current console is returned, but the
-+ * value is not modified. You may use the macro vt_get_kmsg_redirect() in that
-+ * case to make the code more understandable.
-+ *
-+ * When the kernel is compiled without CONFIG_VT_CONSOLE, this function ignores
-+ * the parameter and always returns 0.
-+ */
-+int vt_kmsg_redirect(int new)
-+{
-+	static int kmsg_con;
+@@ -23,13 +23,14 @@ my $email_usename = 1;
+ my $email_maintainer = 1;
+ my $email_list = 1;
+ my $email_subscriber_list = 0;
+-my $email_git = 1;
+ my $email_git_penguin_chiefs = 0;
++my $email_git = 1;
++my $email_git_blame = 0;
+ my $email_git_min_signatures = 1;
+ my $email_git_max_maintainers = 5;
+ my $email_git_min_percent = 5;
+ my $email_git_since = "1-year-ago";
+-my $email_git_blame = 0;
++my $email_hg_since = "-365";
+ my $email_remove_duplicates = 1;
+ my $output_multiline = 1;
+ my $output_separator = ", ";
+@@ -66,15 +67,44 @@ my $penguin_chiefs = "\(" . join("|",@pe
+ my $rfc822_lwsp = "(?:(?:\\r\\n)?[ \\t])";
+ my $rfc822_char = '[\\000-\\377]';
+ 
++# VCS command support: class-like functions and strings
 +
-+	if (new != -1)
-+		return xchg(&kmsg_con, new);
-+	else
-+		return kmsg_con;
++my %VCS_cmds;
++
++my %VCS_cmds_git = (
++    "execute_cmd" => \&git_execute_cmd,
++    "available" => '(which("git") ne "") && (-d ".git")',
++    "find_signers_cmd" => "git log --since=\$email_git_since -- \$file",
++    "find_commit_signers_cmd" => "git log -1 \$commit",
++    "blame_range_cmd" => "git blame -l -L \$diff_start,+\$diff_length \$file",
++    "blame_file_cmd" => "git blame -l \$file",
++    "commit_pattern" => "^commit [0-9a-f]{40,40}",
++    "blame_commit_pattern" => "^([0-9a-f]+) "
++);
++
++my %VCS_cmds_hg = (
++    "execute_cmd" => \&hg_execute_cmd,
++    "available" => '(which("hg") ne "") && (-d ".hg")',
++    "find_signers_cmd" =>
++	"hg log --date=\$email_hg_since" .
++		" --template='commit {node}\\n{desc}\\n' -- \$file",
++    "find_commit_signers_cmd" => "hg log --template='{desc}\\n' -r \$commit",
++    "blame_range_cmd" => "",		# not supported
++    "blame_file_cmd" => "hg blame -c \$file",
++    "commit_pattern" => "^commit [0-9a-f]{40,40}",
++    "blame_commit_pattern" => "^([0-9a-f]+):"
++);
++
+ if (!GetOptions(
+ 		'email!' => \$email,
+ 		'git!' => \$email_git,
++		'git-blame!' => \$email_git_blame,
+ 		'git-chief-penguins!' => \$email_git_penguin_chiefs,
+ 		'git-min-signatures=i' => \$email_git_min_signatures,
+ 		'git-max-maintainers=i' => \$email_git_max_maintainers,
+ 		'git-min-percent=i' => \$email_git_min_percent,
+ 		'git-since=s' => \$email_git_since,
+-		'git-blame!' => \$email_git_blame,
++		'hg-since=s' => \$email_hg_since,
+ 		'remove-duplicates!' => \$email_remove_duplicates,
+ 		'm!' => \$email_maintainer,
+ 		'n!' => \$email_usename,
+@@ -309,11 +339,11 @@ foreach my $file (@files) {
+     }
+ 
+     if ($email && $email_git) {
+-	git_file_signoffs($file);
++	vcs_file_signoffs($file);
+     }
+ 
+     if ($email && $email_git_blame) {
+-	git_assign_blame($file);
++	vcs_file_blame($file);
+     }
+ }
+ 
+@@ -403,8 +433,9 @@ MAINTAINER field selection options:
+     --git-min-signatures => number of signatures required (default: 1)
+     --git-max-maintainers => maximum maintainers to add (default: 5)
+     --git-min-percent => minimum percentage of commits required (default: 5)
+-    --git-since => git history to use (default: 1-year-ago)
+     --git-blame => use git blame to find modified commits for patch or file
++    --git-since => git history to use (default: 1-year-ago)
++    --hg-since => hg history to use (default: -365)
+     --m => include maintainer(s) if any
+     --n => include name 'Full Name <addr\@domain.tld>'
+     --l => include list(s) if any
+@@ -437,8 +468,8 @@ Notes:
+           directory are examined as git recurses directories.
+           Any specified X: (exclude) pattern matches are _not_ ignored.
+       Used with "--nogit", directory is used as a pattern match,
+-         no individual file within the directory or subdirectory
+-         is matched.
++          no individual file within the directory or subdirectory
++          is matched.
+       Used with "--git-blame", does not iterate all files in directory
+   Using "--git-blame" is slow and may add old committers and authors
+       that are no longer active maintainers to the output.
+@@ -449,6 +480,12 @@ Notes:
+       not the percentage of the entire file authored.  # of commits is
+       not a good measure of amount of code authored.  1 major commit may
+       contain a thousand lines, 5 trivial commits may modify a single line.
++  If git is not installed, but mercurial (hg) is installed and an .hg
++      repository exists, the following options apply to mercurial:
++          --git,
++          --git-min-signatures, --git-max-maintainers, --git-min-percent, and
++          --git-blame
++      Use --hg-since not --git-since to control date selection
+ EOT
+ }
+ 
+@@ -807,44 +844,37 @@ sub mailmap {
+     return @lines;
+ }
+ 
+-my $printed_nogit = 0;
+-my $printed_nogitdir = 0;
+-sub has_git {
+-    if (which("git") eq "") {
+-	if (!$printed_nogit) {
+-	    warn("$P: git not found.  Add --nogit to options?\n");
+-	    $printed_nogit = 1;
+-	}
+-	return 0;
+-    }
+-    if (!(-d ".git")) {
+-	if (!$printed_nogitdir) {
+-	    warn(".git directory not found.  "
+-		 . "Using a git repository produces better results.\n");
+-	    warn("Try Linus Torvalds' latest git repository using:\n");
+-	    warn("git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git\n");
+-	    $printed_nogitdir = 1;
+-	}
+-	return 0;
+-    }
++sub git_execute_cmd {
++    my ($cmd) = @_;
++    my @lines = ();
+ 
+-    return 1;
++    my $output = `$cmd`;
++    $output =~ s/^\s*//gm;
++    @lines = split("\n", $output);
++
++    return @lines;
+ }
+ 
+-sub git_find_signers {
++sub hg_execute_cmd {
+     my ($cmd) = @_;
++    my @lines = ();
+ 
+-    my $output;
++    my $output = `$cmd`;
++    @lines = split("\n", $output);
++
++    return @lines;
 +}
 +
- /*
-  *	Console on virtual terminal
-  *
-@@ -2448,6 +2477,7 @@ static void vt_console_print(struct cons
- 	const ushort *start;
- 	ushort cnt = 0;
- 	ushort myx;
-+	int kmsg_console;
++sub vcs_find_signers {
++    my ($cmd) = @_;
+     my @lines = ();
+     my $commits;
  
- 	/* console busy or not yet initialized */
- 	if (!printable)
-@@ -2455,8 +2485,9 @@ static void vt_console_print(struct cons
- 	if (!spin_trylock(&printing_lock))
- 		return;
+-    return (0, @lines) if (!has_git());
++    @lines = &{$VCS_cmds{"execute_cmd"}}($cmd);
  
--	if (kmsg_redirect && vc_cons_allocated(kmsg_redirect - 1))
--		vc = vc_cons[kmsg_redirect - 1].d;
-+	kmsg_console = vt_get_kmsg_redirect();
-+	if (kmsg_console && vc_cons_allocated(kmsg_console - 1))
-+		vc = vc_cons[kmsg_console - 1].d;
+-    $output = `${cmd}`;
+-    $output =~ s/^\s*//gm;
++    my $pattern = $VCS_cmds{"commit_pattern"};
  
- 	/* read `x' only after setting currcons properly (otherwise
- 	   the `x' macro will read the x of the foreground console). */
-@@ -2613,7 +2644,7 @@ int tioclinux(struct tty_struct *tty, un
- 			ret = set_vesa_blanking(p);
- 			break;
- 		case TIOCL_GETKMSGREDIRECT:
--			data = kmsg_redirect;
-+			data = vt_get_kmsg_redirect();
- 			ret = __put_user(data, p);
- 			break;
- 		case TIOCL_SETKMSGREDIRECT:
-@@ -2623,7 +2654,7 @@ int tioclinux(struct tty_struct *tty, un
- 				if (get_user(data, p+1))
- 					ret = -EFAULT;
- 				else
--					kmsg_redirect = data;
-+					vt_kmsg_redirect(data);
- 			}
- 			break;
- 		case TIOCL_GETFGCONSOLE:
-diff -puN include/linux/tty.h~vt-introduce-and-use-vt_kmsg_redirect-function include/linux/tty.h
---- a/include/linux/tty.h~vt-introduce-and-use-vt_kmsg_redirect-function
-+++ a/include/linux/tty.h
-@@ -350,8 +350,6 @@ extern void tty_write_flush(struct tty_s
+-    @lines = split("\n", $output);
+-    $commits = grep(/^commit [0-9a-f]{40,40}/, @lines);		# of commits
++    $commits = grep(/$pattern/, @lines);	# of commits
  
- extern struct ktermios tty_std_termios;
+     @lines = grep(/^[-_ 	a-z]+by:.*\@.*$/i, @lines);
+     if (!$email_git_penguin_chiefs) {
+@@ -863,17 +893,93 @@ sub git_find_signers {
+     return ($commits, @lines);
+ }
  
--extern int kmsg_redirect;
+-sub git_assign_signers {
++sub vcs_save_commits {
++    my ($cmd) = @_;
++    my @lines = ();
++    my @commits = ();
++
++    @lines = &{$VCS_cmds{"execute_cmd"}}($cmd);
++
++    foreach my $line (@lines) {
++	if ($line =~ m/$VCS_cmds{"blame_commit_pattern"}/) {
++	    push(@commits, $1);
++	}
++    }
++
++    return @commits;
++}
++
++sub vcs_blame {
++    my ($file) = @_;
++    my $cmd;
++    my @commits = ();
++
++    return @commits if (!(-f $file));
++
++    if (@range && $VCS_cmds{"blame_range_cmd"} eq "") {
++	my @all_commits = ();
++
++	$cmd = $VCS_cmds{"blame_file_cmd"};
++	$cmd =~ s/(\$\w+)/$1/eeg;		#interpolate $cmd
++	@all_commits = vcs_save_commits($cmd);
++
++	foreach my $file_range_diff (@range) {
++	    next if (!($file_range_diff =~ m/(.+):(.+):(.+)/));
++	    my $diff_file = $1;
++	    my $diff_start = $2;
++	    my $diff_length = $3;
++	    next if ("$file" ne "$diff_file");
++	    for (my $i = $diff_start; $i < $diff_start + $diff_length; $i++) {
++		push(@commits, $all_commits[$i]);
++	    }
++	}
++    } elsif (@range) {
++	foreach my $file_range_diff (@range) {
++	    next if (!($file_range_diff =~ m/(.+):(.+):(.+)/));
++	    my $diff_file = $1;
++	    my $diff_start = $2;
++	    my $diff_length = $3;
++	    next if ("$file" ne "$diff_file");
++	    $cmd = $VCS_cmds{"blame_range_cmd"};
++	    $cmd =~ s/(\$\w+)/$1/eeg;		#interpolate $cmd
++	    push(@commits, vcs_save_commits($cmd));
++	}
++    } else {
++	$cmd = $VCS_cmds{"blame_file_cmd"};
++	$cmd =~ s/(\$\w+)/$1/eeg;		#interpolate $cmd
++	@commits = vcs_save_commits($cmd);
++    }
++
++    return @commits;
++}
++
++my $printed_novcs = 0;
++sub vcs_exists {
++    %VCS_cmds = %VCS_cmds_git;
++    return 1 if eval $VCS_cmds{"available"};
++    %VCS_cmds = %VCS_cmds_hg;
++    return 1 if eval $VCS_cmds{"available"};
++    %VCS_cmds = ();
++    if (!$printed_novcs) {
++	warn("$P: No supported VCS found.  Add --nogit to options?\n");
++	warn("Using a git repository produces better results.\n");
++	warn("Try Linus Torvalds' latest git repository using:\n");
++	warn("git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git\n");
++	$printed_novcs = 1;
++    }
++    return 0;
++}
++
++sub vcs_assign {
+     my ($role, $divisor, @lines) = @_;
+ 
+     my %hash;
+     my $count = 0;
+ 
+-    return if (!has_git());
+     return if (@lines <= 0);
+ 
+     if ($divisor <= 0) {
+-	warn("Bad divisor in git_assign_signers: $divisor\n");
++	warn("Bad divisor in " . (caller(0))[3] . ": $divisor\n");
+ 	$divisor = 1;
+     }
+ 
+@@ -906,62 +1012,31 @@ sub git_assign_signers {
+     }
+ }
+ 
+-sub git_file_signoffs {
++sub vcs_file_signoffs {
+     my ($file) = @_;
+ 
+     my @signers = ();
+-    my $total_signers;
 -
- extern void console_init(void);
- extern int vcs_init(void);
+-    return if (!has_git());
+-
+-    ($total_signers, @signers) =
+-	git_find_signers("git log --since=$email_git_since -- $file");
+-    git_assign_signers("git_signer", $total_signers, @signers);
+-}
+-
+-sub save_commits {
+-    my ($cmd, @commits) = @_;
+-    my $output;
+-    my @lines = ();
++    my $commits;
  
-diff -puN include/linux/vt.h~vt-introduce-and-use-vt_kmsg_redirect-function include/linux/vt.h
---- a/include/linux/vt.h~vt-introduce-and-use-vt_kmsg_redirect-function
-+++ a/include/linux/vt.h
-@@ -84,4 +84,19 @@ struct vt_setactivate {
+-    return (@lines) if (!has_git());
++    return if (!vcs_exists());
  
- #define VT_SETACTIVATE	0x560F	/* Activate and set the mode of a console */
+-    $output = `${cmd}`;
++    my $cmd = $VCS_cmds{"find_signers_cmd"};
++    $cmd =~ s/(\$\w+)/$1/eeg;		# interpolate $cmd
  
-+#ifdef CONFIG_VT_CONSOLE
-+
-+extern int vt_kmsg_redirect(int new);
-+
-+#else
-+
-+static inline int vt_kmsg_redirect(int new)
-+{
-+	return 0;
-+}
-+
-+#endif
-+
-+#define vt_get_kmsg_redirect() vt_kmsg_redirect(-1)
-+
- #endif /* _LINUX_VT_H */
-diff -puN kernel/power/console.c~vt-introduce-and-use-vt_kmsg_redirect-function kernel/power/console.c
---- a/kernel/power/console.c~vt-introduce-and-use-vt_kmsg_redirect-function
-+++ a/kernel/power/console.c
-@@ -6,7 +6,7 @@
- 
- #include <linux/vt_kern.h>
- #include <linux/kbd_kern.h>
--#include <linux/console.h>
-+#include <linux/vt.h>
- #include <linux/module.h>
- #include "power.h"
- 
-@@ -21,8 +21,7 @@ int pm_prepare_console(void)
- 	if (orig_fgconsole < 0)
- 		return 1;
- 
--	orig_kmsg = kmsg_redirect;
--	kmsg_redirect = SUSPEND_CONSOLE;
-+	orig_kmsg = vt_kmsg_redirect(SUSPEND_CONSOLE);
- 	return 0;
+-    @lines = split("\n", $output);
+-    foreach my $line (@lines) {
+-	if ($line =~ m/^(\w+) /) {
+-	    push (@commits, $1);
+-	}
+-    }
+-    return @commits;
++    ($commits, @signers) = vcs_find_signers($cmd);
++    vcs_assign("commit_signer", $commits, @signers);
  }
  
-@@ -30,7 +29,7 @@ void pm_restore_console(void)
- {
- 	if (orig_fgconsole >= 0) {
- 		vt_move_to_console(orig_fgconsole, 0);
--		kmsg_redirect = orig_kmsg;
-+		vt_kmsg_redirect(orig_kmsg);
+-sub git_assign_blame {
++sub vcs_file_blame {
+     my ($file) = @_;
+ 
+-    my $cmd;
+-    my @commits = ();
+     my @signers = ();
++    my @commits = ();
+     my $total_commits;
+ 
+-    if (@range) {
+-	foreach my $file_range_diff (@range) {
+-	    next if (!($file_range_diff =~ m/(.+):(.+):(.+)/));
+-	    my $diff_file = $1;
+-	    my $diff_start = $2;
+-	    my $diff_length = $3;
+-	    next if (!("$file" eq "$diff_file"));
+-	    $cmd = "git blame -l -L $diff_start,+$diff_length $file";
+-	    @commits = save_commits($cmd, @commits);
+-	}
+-    } else {
+-	if (-f $file) {
+-	    $cmd = "git blame -l $file";
+-	    @commits = save_commits($cmd, @commits);
+-	}
+-    }
++    return if (!vcs_exists());
+ 
++    @commits = vcs_blame($file);
+     @commits = uniq(@commits);
+     $total_commits = @commits;
+ 
+@@ -969,15 +1044,17 @@ sub git_assign_blame {
+ 	my $commit_count;
+ 	my @commit_signers = ();
+ 
+-	($commit_count, @commit_signers) =
+-	    git_find_signers("git log -1 $commit");
+-	@signers = (@signers, @commit_signers);
++	my $cmd = $VCS_cmds{"find_commit_signers_cmd"};
++	$cmd =~ s/(\$\w+)/$1/eeg;	#interpolate $cmd
++
++	($commit_count, @commit_signers) = vcs_find_signers($cmd);
++	push(@signers, @commit_signers);
+     }
+ 
+     if ($from_filename) {
+-	git_assign_signers("commits", $total_commits, @signers);
++	vcs_assign("commits", $total_commits, @signers);
+     } else {
+-	git_assign_signers("modified commits", $total_commits, @signers);
++	vcs_assign("modified commits", $total_commits, @signers);
+     }
+ }
+ 
+@@ -1006,9 +1083,9 @@ sub merge_email {
+ 	my ($address, $role) = @$_;
+ 	if (!$saw{$address}) {
+ 	    if ($output_roles) {
+-		push @lines, "$address ($role)";
++		push(@lines, "$address ($role)");
+ 	    } else {
+-		push @lines, $address;
++		push(@lines, $address);
+ 	    }
+ 	    $saw{$address} = 1;
  	}
+@@ -1115,11 +1192,9 @@ sub rfc822_validlist ($) {
+     if ($s =~ m/^(?:$rfc822re)?(?:,(?:$rfc822re)?)*$/so &&
+ 	$s =~ m/^$rfc822_char*$/) {
+         while ($s =~ m/(?:^|,$rfc822_lwsp*)($rfc822re)/gos) {
+-            push @r, $1;
++            push(@r, $1);
+         }
+         return wantarray ? (scalar(@r), @r) : 1;
+     }
+-    else {
+-        return wantarray ? () : 0;
+-    }
++    return wantarray ? () : 0;
  }
- #endif
 _
 
-Patches currently in -mm which might be from bernhard@bwalle.de are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
+linux-next.patch
+scripts-checkpatchpl-add-warn-on-sizeof.patch
+checkpatchpl-allow-80-char-lines-for-logging-functions-not-just-printk.patch
+isicomc-use-pr_fmt-and-pr_level.patch
+parport_pcc-use-correct-length-in-strncmp.patch
 
