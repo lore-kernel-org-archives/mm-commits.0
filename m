@@ -1,97 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-simplify-try_to_unmap_one-fix-fix.patch removed from -mm tree
-Date: Mon, 14 Dec 2009 17:03:10 -0800
-Message-ID: <200912150103.nBF13A8D001244@imap1.linux-foundation.org>
+Subject: [folded] mm-hugetlb-fix-hugepage-memory-leak-in-mincore-cleanup.patch removed from -mm tree
+Date: Mon, 14 Dec 2009 17:04:30 -0800
+Message-ID: <200912150104.nBF14VVm004752@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35760 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45108 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758711AbZLOBEI (ORCPT
+	by vger.kernel.org with ESMTP id S1758417AbZLOBEg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Dec 2009 20:04:08 -0500
+	Mon, 14 Dec 2009 20:04:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, macli@brc.ubc.ca, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     try_to_unmap_one() comment fix
+     mm-hugetlb-fix-hugepage-memory-leak-in-mincore-cleanup
 has been removed from the -mm tree.  Its filename was
-     mm-simplify-try_to_unmap_one-fix-fix.patch
+     mm-hugetlb-fix-hugepage-memory-leak-in-mincore-cleanup.patch
 
-This patch was dropped because it was folded into mm-simplify-try_to_unmap_one.patch
+This patch was dropped because it was folded into mm-hugetlb-fix-hugepage-memory-leak-in-mincore.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: try_to_unmap_one() comment fix
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: mm-hugetlb-fix-hugepage-memory-leak-in-mincore-cleanup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Viencent Li pointed out current comment is wrong. This patch fixes it.
-
-Reported-by: Vincent Li <macli@brc.ubc.ca>
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/mincore.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/rmap.c~mm-simplify-try_to_unmap_one-fix-fix mm/rmap.c
---- a/mm/rmap.c~mm-simplify-try_to_unmap_one-fix-fix
-+++ a/mm/rmap.c
-@@ -875,8 +875,9 @@ out_mlock:
- 	 * We need mmap_sem locking, Otherwise VM_LOCKED check makes
- 	 * unstable result and race. Plus, We can't wait here because
- 	 * we now hold anon_vma->lock or mapping->i_mmap_lock.
--	 * If trylock failed, The page remain evictable lru and
--	 * retry to more unevictable lru by later vmscan.
-+	 * if trylock failed, the page remain in evictable lru and later
-+	 * vmscan could retry to move the page to unevictable lru if the
-+	 * page is actually mlocked.
- 	 */
- 	if (down_read_trylock(&vma->vm_mm->mmap_sem)) {
- 		if (vma->vm_flags & VM_LOCKED) {
+diff -puN mm/mincore.c~mm-hugetlb-fix-hugepage-memory-leak-in-mincore-cleanup mm/mincore.c
+--- a/mm/mincore.c~mm-hugetlb-fix-hugepage-memory-leak-in-mincore-cleanup
++++ a/mm/mincore.c
+@@ -77,6 +77,7 @@ static long do_mincore(unsigned long add
+ 		struct hstate *h;
+ 		unsigned long nr_huge;
+ 		unsigned char present;
++
+ 		i = 0;
+ 		nr = min(pages, (vma->vm_end - addr) >> PAGE_SHIFT);
+ 		h = hstate_vma(vma);
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-oom-dump-stack-and-vm-state-when-oom-killer-panics.patch
 mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap.patch
-mm-move-inc_zone_page_statenr_isolated-to-just-isolated-place.patch
-rmap-simplify-try_to_unmap_file.patch
-oom_kill-use-rss-value-instead-of-vm-size-for-badness.patch
-oom-kill-show-virtual-size-and-rss-information-of-the-killed-process.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls.patch
 oom-kill-fix-numa-consraint-check-with-nodemask-v42.patch
-vmscan-have-kswapd-sleep-for-a-short-interval-and-double-check-it-should-be-asleep.patch
-vmscan-stop-kswapd-waiting-on-congestion-when-the-min-watermark-is-not-being-met-v2.patch
-mm-define-page_mapping_flags.patch
 mm-mlocking-in-try_to_unmap_one.patch
-mm-config_mmu-for-pg_mlocked.patch
-mm-pass-address-down-to-rmap-ones.patch
-mm-stop-ptlock-enlarging-struct-page.patch
-mm-sigbus-instead-of-abusing-oom.patch
-mm-add-numa-node-symlink-for-memory-section-in-sysfs.patch
-mm-refactor-register_cpu_under_node.patch
-mm-refactor-unregister_cpu_under_node.patch
-mm-add-numa-node-symlink-for-cpu-devices-in-sysfs.patch
-documentation-abi-sys-devices-system-cpu-cpu-node.patch
-vmscan-separate-scswap_cluster_max-and-scnr_max_reclaim.patch
-vmscan-kill-hibernation-specific-reclaim-logic-and-unify-it.patch
-vmscan-zone_reclaim-dont-use-insane-swap_cluster_max.patch
-vmscan-kill-scswap_cluster_max.patch
-vmscan-make-consistent-of-reclaim-bale-out-between-do_try_to_free_page-and-shrink_zone.patch
 mm-memory_hotplug-make-offline_pages-static.patch
-mm-simplify-try_to_unmap_one.patch
-mm-simplify-try_to_unmap_one-fix-fix.patch
-vmscan-do-not-evict-inactive-pages-when-skipping-an-active-list-scan.patch
-vmscan-do-not-evict-inactive-pages-when-skipping-an-active-list-scan-fix.patch
-vmscan-simplify-code.patch
-mlock-replace-stale-comments-in-munlock_vma_page.patch
-procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm.patch
-procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-doc.patch
-maintainers-mark-cifs-mailing-list-as-moderated-for-non-subscribers.patch
-lib-introduce-strim.patch
+mm-hugetlb-fix-hugepage-memory-leak-in-mincore.patch
+mm-hugetlb-fix-hugepage-memory-leak-in-mincore-cleanup.patch
+mm-hugetlb-fix-hugepage-memory-leak-in-mincore-build-fix.patch
+mm-hugetlb-add-hugepage-support-to-pagemap-build-fix.patch
+procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup.patch
+floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
+drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
+rwsem-fix-rwsem_is_locked-bugs-fix.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
+errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
+cs5535-add-a-generic-mfgpt-driver-fix.patch
+cs5535-add-a-generic-clock-event-mfgpt-driver-fix.patch
+drivers-scsi-sym53c8xx_2-sym_gluec-rename-skip_spaces-to-sym_skip_spaces.patch
 lib-introduce-strim-checkpatch-fixes.patch
+blackfin-sd-host-controller-driver-fix.patch
+blackfin-sd-host-controller-driver-fix-fix.patch
+blackfin-sd-host-controller-driver-fix-fix-fix.patch
+crc32-minor-optimizations-and-cleanup-checkpatch-fixes.patch
+hwmon-w83627ehf-updates-checkpatch-fixes.patch
+lis3-update-documentation-to-match-latest-changes-fix.patch
 
