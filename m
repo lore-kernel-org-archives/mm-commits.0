@@ -1,50 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-hugetlb-fix-hugepage-memory-leak-in-mincore-cleanup.patch removed from -mm tree
-Date: Mon, 14 Dec 2009 17:04:30 -0800
-Message-ID: <200912150104.nBF14VVm004752@imap1.linux-foundation.org>
+Subject: [folded] mm-hugetlb-fix-hugepage-memory-leak-in-mincore-build-fix.patch removed from -mm tree
+Date: Mon, 14 Dec 2009 17:04:33 -0800
+Message-ID: <200912150104.nBF14Yel004886@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45108 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47293 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758417AbZLOBEg (ORCPT
+	by vger.kernel.org with ESMTP id S1758442AbZLOBFa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Dec 2009 20:04:36 -0500
+	Mon, 14 Dec 2009 20:05:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@linux.intel.com, apw@canonical.com, fengguang.wu@intel.com, hugh.dickins@tiscali.co.uk, lee.schermerhorn@hp.com, mel@csn.ul.ie, n-horiguchi@ah.jp.nec.com
 
 
 The patch titled
-     mm-hugetlb-fix-hugepage-memory-leak-in-mincore-cleanup
+     mm-hugetlb-fix-hugepage-memory-leak-in-mincore-build-fix
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-fix-hugepage-memory-leak-in-mincore-cleanup.patch
+     mm-hugetlb-fix-hugepage-memory-leak-in-mincore-build-fix.patch
 
 This patch was dropped because it was folded into mm-hugetlb-fix-hugepage-memory-leak-in-mincore.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-hugetlb-fix-hugepage-memory-leak-in-mincore-cleanup
+Subject: mm-hugetlb-fix-hugepage-memory-leak-in-mincore-build-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+x86_64 allnoconfig:
+
+mm/mincore.c: In function 'do_mincore':
+mm/mincore.c:91: error: implicit declaration of function 'huge_pte_offset'
+mm/mincore.c:92: warning: assignment makes pointer from integer without a cast
+mm/mincore.c:94: error: implicit declaration of function 'huge_pte_none'
+mm/mincore.c:94: error: implicit declaration of function 'huge_ptep_get'
+
+Cc: <stable@kernel.org>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Andy Whitcroft <apw@canonical.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mincore.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/mincore.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/mincore.c~mm-hugetlb-fix-hugepage-memory-leak-in-mincore-cleanup mm/mincore.c
---- a/mm/mincore.c~mm-hugetlb-fix-hugepage-memory-leak-in-mincore-cleanup
+diff -puN mm/mincore.c~mm-hugetlb-fix-hugepage-memory-leak-in-mincore-build-fix mm/mincore.c
+--- a/mm/mincore.c~mm-hugetlb-fix-hugepage-memory-leak-in-mincore-build-fix
 +++ a/mm/mincore.c
-@@ -77,6 +77,7 @@ static long do_mincore(unsigned long add
+@@ -73,6 +73,7 @@ static long do_mincore(unsigned long add
+ 	if (!vma || addr < vma->vm_start)
+ 		return -ENOMEM;
+ 
++#ifdef CONFIG_HUGETLB_PAGE
+ 	if (is_vm_hugetlb_page(vma)) {
  		struct hstate *h;
  		unsigned long nr_huge;
- 		unsigned char present;
-+
- 		i = 0;
- 		nr = min(pages, (vma->vm_end - addr) >> PAGE_SHIFT);
- 		h = hstate_vma(vma);
+@@ -106,6 +107,7 @@ static long do_mincore(unsigned long add
+ 		}
+ 		return nr;
+ 	}
++#endif
+ 
+ 	/*
+ 	 * Calculate how many pages there are left in the last level of the
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -56,7 +80,6 @@ oom-kill-fix-numa-consraint-check-with-nodemask-v42.patch
 mm-mlocking-in-try_to_unmap_one.patch
 mm-memory_hotplug-make-offline_pages-static.patch
 mm-hugetlb-fix-hugepage-memory-leak-in-mincore.patch
-mm-hugetlb-fix-hugepage-memory-leak-in-mincore-cleanup.patch
 mm-hugetlb-fix-hugepage-memory-leak-in-mincore-build-fix.patch
 mm-hugetlb-add-hugepage-support-to-pagemap-build-fix.patch
 procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup.patch
