@@ -1,183 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [merged] nommu-fix-malloc-performance-by-adding-uninitialized-flag.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 13:54:57 -0800
-Message-ID: <200912152154.nBFLsvbb015406@imap1.linux-foundation.org>
+Subject: [merged] kernelh-remove-initialization-of-bool-in-printk_once.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 13:55:40 -0800
+Message-ID: <200912152155.nBFLteLW015503@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33063 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56528 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761283AbZLOV4D (ORCPT
+	by vger.kernel.org with ESMTP id S933757AbZLOV4N (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 16:56:03 -0500
+	Tue, 15 Dec 2009 16:56:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jie.zhang@analog.com, dhowells@redhat.com, gerg@snapgear.com, lethal@linux-sh.org, rgetz@blackfin.uclinux.org, vapier@gentoo.org, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nommu: fix malloc performance by adding uninitialized flag
+     kernel.h: remove initialization of bool in printk_once
 has been removed from the -mm tree.  Its filename was
-     nommu-fix-malloc-performance-by-adding-uninitialized-flag.patch
+     kernelh-remove-initialization-of-bool-in-printk_once.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nommu: fix malloc performance by adding uninitialized flag
-From: Jie Zhang <jie.zhang@analog.com>
+Subject: kernel.h: remove initialization of bool in printk_once
+From: Joe Perches <joe@perches.com>
 
-The NOMMU code currently clears all anonymous mmapped memory.  While this
-is what we want in the default case, all memory allocation from userspace
-under NOMMU has to go through this interface, including malloc() which is
-allowed to return uninitialized memory.  This can easily be a significant
-performance penalty.  So for constrained embedded systems were security is
-irrelevant, allow people to avoid clearing memory unnecessarily.
+Don't initialize __print_once.  Invert the test to reduce initialized
+data.
 
-This also alters the ELF-FDPIC binfmt such that it obtains uninitialised
-memory for the brk and stack region.
+defconfig before:	$size vmlinux
+   text	   data	    bss	    dec	    hex	filename
+6976022	 679572	1359668	9015262	 898fde	vmlinux
 
-Signed-off-by: Jie Zhang <jie.zhang@analog.com>
-Signed-off-by: Robin Getz <rgetz@blackfin.uclinux.org>
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Signed-off-by: David Howells <dhowells@redhat.com>
-Acked-by: Paul Mundt <lethal@linux-sh.org>
-Acked-by: Greg Ungerer <gerg@snapgear.com>
+defconfig after:	$size vmlinux
+   text	   data	    bss	    dec	    hex	filename
+6976006	 679508	1359700	9015214	 898fae	vmlinux
+
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/nommu-mmap.txt      |   26 ++++++++++++++++++++++++++
- fs/binfmt_elf_fdpic.c             |    3 ++-
- include/asm-generic/mman-common.h |    5 +++++
- init/Kconfig                      |   22 ++++++++++++++++++++++
- mm/nommu.c                        |    8 +++++---
- 5 files changed, 60 insertions(+), 4 deletions(-)
+ include/linux/kernel.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/nommu-mmap.txt~nommu-fix-malloc-performance-by-adding-uninitialized-flag Documentation/nommu-mmap.txt
---- a/Documentation/nommu-mmap.txt~nommu-fix-malloc-performance-by-adding-uninitialized-flag
-+++ a/Documentation/nommu-mmap.txt
-@@ -119,6 +119,32 @@ FURTHER NOTES ON NO-MMU MMAP
-      granule but will only discard the excess if appropriately configured as
-      this has an effect on fragmentation.
- 
-+ (*) The memory allocated by a request for an anonymous mapping will normally
-+     be cleared by the kernel before being returned in accordance with the
-+     Linux man pages (ver 2.22 or later).
-+
-+     In the MMU case this can be achieved with reasonable performance as
-+     regions are backed by virtual pages, with the contents only being mapped
-+     to cleared physical pages when a write happens on that specific page
-+     (prior to which, the pages are effectively mapped to the global zero page
-+     from which reads can take place).  This spreads out the time it takes to
-+     initialize the contents of a page - depending on the write-usage of the
-+     mapping.
-+
-+     In the no-MMU case, however, anonymous mappings are backed by physical
-+     pages, and the entire map is cleared at allocation time.  This can cause
-+     significant delays during a userspace malloc() as the C library does an
-+     anonymous mapping and the kernel then does a memset for the entire map.
-+
-+     However, for memory that isn't required to be precleared - such as that
-+     returned by malloc() - mmap() can take a MAP_UNINITIALIZED flag to
-+     indicate to the kernel that it shouldn't bother clearing the memory before
-+     returning it.  Note that CONFIG_MMAP_ALLOW_UNINITIALIZED must be enabled
-+     to permit this, otherwise the flag will be ignored.
-+
-+     uClibc uses this to speed up malloc(), and the ELF-FDPIC binfmt uses this
-+     to allocate the brk and stack region.
-+
-  (*) A list of all the private copy and anonymous mappings on the system is
-      visible through /proc/maps in no-MMU mode.
- 
-diff -puN fs/binfmt_elf_fdpic.c~nommu-fix-malloc-performance-by-adding-uninitialized-flag fs/binfmt_elf_fdpic.c
---- a/fs/binfmt_elf_fdpic.c~nommu-fix-malloc-performance-by-adding-uninitialized-flag
-+++ a/fs/binfmt_elf_fdpic.c
-@@ -380,7 +380,8 @@ static int load_elf_fdpic_binary(struct 
- 	down_write(&current->mm->mmap_sem);
- 	current->mm->start_brk = do_mmap(NULL, 0, stack_size,
- 					 PROT_READ | PROT_WRITE | PROT_EXEC,
--					 MAP_PRIVATE | MAP_ANONYMOUS | MAP_GROWSDOWN,
-+					 MAP_PRIVATE | MAP_ANONYMOUS |
-+					 MAP_UNINITIALIZED | MAP_GROWSDOWN,
- 					 0);
- 
- 	if (IS_ERR_VALUE(current->mm->start_brk)) {
-diff -puN include/asm-generic/mman-common.h~nommu-fix-malloc-performance-by-adding-uninitialized-flag include/asm-generic/mman-common.h
---- a/include/asm-generic/mman-common.h~nommu-fix-malloc-performance-by-adding-uninitialized-flag
-+++ a/include/asm-generic/mman-common.h
-@@ -19,6 +19,11 @@
- #define MAP_TYPE	0x0f		/* Mask for type of mapping */
- #define MAP_FIXED	0x10		/* Interpret addr exactly */
- #define MAP_ANONYMOUS	0x20		/* don't use a file */
-+#ifdef CONFIG_MMAP_ALLOW_UNINITIALIZED
-+# define MAP_UNINITIALIZED 0x4000000	/* For anonymous mmap, memory could be uninitialized */
-+#else
-+# define MAP_UNINITIALIZED 0x0		/* Don't support this flag */
-+#endif
- 
- #define MS_ASYNC	1		/* sync memory asynchronously */
- #define MS_INVALIDATE	2		/* invalidate the caches */
-diff -puN init/Kconfig~nommu-fix-malloc-performance-by-adding-uninitialized-flag init/Kconfig
---- a/init/Kconfig~nommu-fix-malloc-performance-by-adding-uninitialized-flag
-+++ a/init/Kconfig
-@@ -1079,6 +1079,28 @@ config SLOB
- 
- endchoice
- 
-+config MMAP_ALLOW_UNINITIALIZED
-+	bool "Allow mmapped anonymous memory to be uninitialized"
-+	depends on EMBEDDED && !MMU
-+	default n
-+	help
-+	  Normally, and according to the Linux spec, anonymous memory obtained
-+	  from mmap() has it's contents cleared before it is passed to
-+	  userspace.  Enabling this config option allows you to request that
-+	  mmap() skip that if it is given an MAP_UNINITIALIZED flag, thus
-+	  providing a huge performance boost.  If this option is not enabled,
-+	  then the flag will be ignored.
-+
-+	  This is taken advantage of by uClibc's malloc(), and also by
-+	  ELF-FDPIC binfmt's brk and stack allocator.
-+
-+	  Because of the obvious security issues, this option should only be
-+	  enabled on embedded devices where you control what is run in
-+	  userspace.  Since that isn't generally a problem on no-MMU systems,
-+	  it is normally safe to say Y here.
-+
-+	  See Documentation/nommu-mmap.txt for more information.
-+
- config PROFILING
- 	bool "Profiling support (EXPERIMENTAL)"
- 	help
-diff -puN mm/nommu.c~nommu-fix-malloc-performance-by-adding-uninitialized-flag mm/nommu.c
---- a/mm/nommu.c~nommu-fix-malloc-performance-by-adding-uninitialized-flag
-+++ a/mm/nommu.c
-@@ -1144,9 +1144,6 @@ static int do_mmap_private(struct vm_are
- 		if (ret < rlen)
- 			memset(base + ret, 0, rlen - ret);
- 
--	} else {
--		/* if it's an anonymous mapping, then just clear it */
--		memset(base, 0, rlen);
- 	}
- 
- 	return 0;
-@@ -1344,6 +1341,11 @@ unsigned long do_mmap_pgoff(struct file 
- 		goto error_just_free;
- 	add_nommu_region(region);
- 
-+	/* clear anonymous mappings that don't ask for uninitialized data */
-+	if (!vma->vm_file && !(flags & MAP_UNINITIALIZED))
-+		memset((void *)region->vm_start, 0,
-+		       region->vm_end - region->vm_start);
-+
- 	/* okay... we have a mapping; now we have to register it */
- 	result = vma->vm_start;
- 
+diff -puN include/linux/kernel.h~kernelh-remove-initialization-of-bool-in-printk_once include/linux/kernel.h
+--- a/include/linux/kernel.h~kernelh-remove-initialization-of-bool-in-printk_once
++++ a/include/linux/kernel.h
+@@ -251,10 +251,10 @@ extern int printk_delay_msec;
+  * Print a one-time message (analogous to WARN_ONCE() et al):
+  */
+ #define printk_once(x...) ({			\
+-	static bool __print_once = true;	\
++	static bool __print_once;		\
+ 						\
+-	if (__print_once) {			\
+-		__print_once = false;		\
++	if (!__print_once) {			\
++		__print_once = true;		\
+ 		printk(x);			\
+ 	}					\
+ })
 _
 
-Patches currently in -mm which might be from jie.zhang@analog.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
 linux-next.patch
+scripts-checkpatchpl-add-warn-on-sizeof.patch
+checkpatchpl-allow-80-char-lines-for-logging-functions-not-just-printk.patch
+isicomc-use-pr_fmt-and-pr_level.patch
+parport_pcc-use-correct-length-in-strncmp.patch
 
