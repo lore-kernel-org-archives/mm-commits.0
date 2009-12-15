@@ -1,106 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mlock-replace-stale-comments-in-munlock_vma_page.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 13:54:41 -0800
-Message-ID: <200912152154.nBFLsfkT015379@imap1.linux-foundation.org>
+Subject: [merged] vmscan-zone_reclaim-dont-use-insane-swap_cluster_max.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 13:53:03 -0800
+Message-ID: <200912152153.nBFLr34q015238@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42482 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55273 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761350AbZLOWQD (ORCPT
+	by vger.kernel.org with ESMTP id S1761352AbZLOWQS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 17:16:03 -0500
+	Tue, 15 Dec 2009 17:16:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Lee.Schermerhorn@hp.com, hugh.dickins@tiscali.co.uk, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, mm-commits@vger.kernel.org
+To: kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mlock: replace stale comments in munlock_vma_page()
+     vmscan: zone_reclaim() don't use insane swap_cluster_max
 has been removed from the -mm tree.  Its filename was
-     mlock-replace-stale-comments-in-munlock_vma_page.patch
+     vmscan-zone_reclaim-dont-use-insane-swap_cluster_max.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mlock: replace stale comments in munlock_vma_page()
-From: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Subject: vmscan: zone_reclaim() don't use insane swap_cluster_max
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Cleanup stale comments on munlock_vma_page().
+In old days, we didn't have sc.nr_to_reclaim and it brought
+sc.swap_cluster_max misuse.
 
-Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Acked-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+huge sc.swap_cluster_max might makes unnecessary OOM risk and no
+performance benefit.
+
+Now, we can stop its insane thing.
+
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |   41 +++++++++++++++++++----------------------
- 1 file changed, 19 insertions(+), 22 deletions(-)
+ mm/vmscan.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN mm/mlock.c~mlock-replace-stale-comments-in-munlock_vma_page mm/mlock.c
---- a/mm/mlock.c~mlock-replace-stale-comments-in-munlock_vma_page
-+++ a/mm/mlock.c
-@@ -88,23 +88,20 @@ void mlock_vma_page(struct page *page)
- 	}
- }
- 
--/*
-- * called from munlock()/munmap() path with page supposedly on the LRU.
-+/**
-+ * munlock_vma_page - munlock a vma page
-+ * @page - page to be unlocked
-  *
-- * Note:  unlike mlock_vma_page(), we can't just clear the PageMlocked
-- * [in try_to_munlock()] and then attempt to isolate the page.  We must
-- * isolate the page to keep others from messing with its unevictable
-- * and mlocked state while trying to munlock.  However, we pre-clear the
-- * mlocked state anyway as we might lose the isolation race and we might
-- * not get another chance to clear PageMlocked.  If we successfully
-- * isolate the page and try_to_munlock() detects other VM_LOCKED vmas
-- * mapping the page, it will restore the PageMlocked state, unless the page
-- * is mapped in a non-linear vma.  So, we go ahead and ClearPageMlocked(),
-- * perhaps redundantly.
-- * If we lose the isolation race, and the page is mapped by other VM_LOCKED
-- * vmas, we'll detect this in vmscan--via try_to_munlock() or try_to_unmap()
-- * either of which will restore the PageMlocked state by calling
-- * mlock_vma_page() above, if it can grab the vma's mmap sem.
-+ * called from munlock()/munmap() path with page supposedly on the LRU.
-+ * When we munlock a page, because the vma where we found the page is being
-+ * munlock()ed or munmap()ed, we want to check whether other vmas hold the
-+ * page locked so that we can leave it on the unevictable lru list and not
-+ * bother vmscan with it.  However, to walk the page's rmap list in
-+ * try_to_munlock() we must isolate the page from the LRU.  If some other
-+ * task has removed the page from the LRU, we won't be able to do that.
-+ * So we clear the PageMlocked as we might not get another chance.  If we
-+ * can't isolate the page, we leave it for putback_lru_page() and vmscan
-+ * [page_referenced()/try_to_unmap()] to deal with.
-  */
- void munlock_vma_page(struct page *page)
- {
-@@ -123,12 +120,12 @@ void munlock_vma_page(struct page *page)
- 			putback_lru_page(page);
- 		} else {
- 			/*
--			 * We lost the race.  let try_to_unmap() deal
--			 * with it.  At least we get the page state and
--			 * mlock stats right.  However, page is still on
--			 * the noreclaim list.  We'll fix that up when
--			 * the page is eventually freed or we scan the
--			 * noreclaim list.
-+			 * Some other task has removed the page from the LRU.
-+			 * putback_lru_page() will take care of removing the
-+			 * page from the unevictable list, if necessary.
-+			 * vmscan [page_referenced()] will move the page back
-+			 * to the unevictable list if some other vma has it
-+			 * mlocked.
- 			 */
- 			if (PageUnevictable(page))
- 				count_vm_event(UNEVICTABLE_PGSTRANDED);
+diff -puN mm/vmscan.c~vmscan-zone_reclaim-dont-use-insane-swap_cluster_max mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-zone_reclaim-dont-use-insane-swap_cluster_max
++++ a/mm/vmscan.c
+@@ -2539,8 +2539,7 @@ static int __zone_reclaim(struct zone *z
+ 		.may_writepage = !!(zone_reclaim_mode & RECLAIM_WRITE),
+ 		.may_unmap = !!(zone_reclaim_mode & RECLAIM_SWAP),
+ 		.may_swap = 1,
+-		.swap_cluster_max = max_t(unsigned long, nr_pages,
+-				       SWAP_CLUSTER_MAX),
++		.swap_cluster_max = SWAP_CLUSTER_MAX,
+ 		.nr_to_reclaim = max_t(unsigned long, nr_pages,
+ 				       SWAP_CLUSTER_MAX),
+ 		.gfp_mask = gfp_mask,
 _
 
-Patches currently in -mm which might be from Lee.Schermerhorn@hp.com are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 origin.patch
-acpi-remove-nid_inval.patch
+linux-next.patch
+readahead-add-blk_run_backing_dev.patch
+oom-kill-show-virtual-size-and-rss-information-of-the-killed-process.patch
+oom-kill-fix-numa-consraint-check-with-nodemask-v42.patch
+mm-introduce-coredump-parameter-structure.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
