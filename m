@@ -1,185 +1,194 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-misc-add-driver-for-texas-instruments-dac7512.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 13:55:34 -0800
-Message-ID: <200912152155.nBFLtY32015497@imap1.linux-foundation.org>
+Subject: [merged] task_struct-make-journal_info-conditional.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 13:56:00 -0800
+Message-ID: <200912152156.nBFLu0bb015534@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48044 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36123 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933783AbZLOV41 (ORCPT
+	by vger.kernel.org with ESMTP id S933770AbZLOV4v (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 16:56:27 -0500
+	Tue, 15 Dec 2009 16:56:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: daniel@caiaq.de, dbrownell@users.sourceforge.net, hartleys@visionengravers.com, mm-commits@vger.kernel.org
+To: h-shimamoto@ct.jp.nec.com, chris.mason@oracle.com, konishi.ryusuke@lab.ntt.co.jp, swhiteho@redhat.com, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/misc: add driver for Texas Instruments DAC7512
+     task_struct: make journal_info conditional
 has been removed from the -mm tree.  Its filename was
-     drivers-misc-add-driver-for-texas-instruments-dac7512.patch
+     task_struct-make-journal_info-conditional.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/misc: add driver for Texas Instruments DAC7512
-From: Daniel Mack <daniel@caiaq.de>
+Subject: task_struct: make journal_info conditional
+From: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
 
-Signed-off-by: Daniel Mack <daniel@caiaq.de>
-Cc: "H Hartley Sweeten" <hartleys@visionengravers.com>
-Cc: David Brownell <dbrownell@users.sourceforge.net>
+journal_info in task_struct is used in journaling file system only.  So
+introduce CONFIG_FS_JOURNAL_INFO and make it conditional.
+
+Signed-off-by: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
+Cc: Chris Mason <chris.mason@oracle.com>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Steven Whitehouse <swhiteho@redhat.com>
+Cc: KONISHI Ryusuke <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/Kconfig      |   10 +++
- drivers/misc/Makefile     |    1 
- drivers/misc/ti_dac7512.c |  101 ++++++++++++++++++++++++++++++++++++
- 3 files changed, 112 insertions(+)
+ fs/Kconfig                |    4 ++++
+ fs/btrfs/Kconfig          |    1 +
+ fs/ext4/Kconfig           |    1 +
+ fs/gfs2/Kconfig           |    1 +
+ fs/jbd/Kconfig            |    1 +
+ fs/jbd2/Kconfig           |    1 +
+ fs/nilfs2/Kconfig         |    1 +
+ fs/reiserfs/Kconfig       |    1 +
+ include/linux/init_task.h |    8 +++++++-
+ include/linux/sched.h     |    2 ++
+ 10 files changed, 20 insertions(+), 1 deletion(-)
 
-diff -puN drivers/misc/Kconfig~drivers-misc-add-driver-for-texas-instruments-dac7512 drivers/misc/Kconfig
---- a/drivers/misc/Kconfig~drivers-misc-add-driver-for-texas-instruments-dac7512
-+++ a/drivers/misc/Kconfig
-@@ -270,6 +270,16 @@ config DS1682
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called ds1682.
+diff -puN fs/Kconfig~task_struct-make-journal_info-conditional fs/Kconfig
+--- a/fs/Kconfig~task_struct-make-journal_info-conditional
++++ a/fs/Kconfig
+@@ -6,6 +6,10 @@ menu "File systems"
  
-+config TI_DAC7512
-+	tristate "Texas Instruments DAC7512"
-+	depends on SPI && SYSFS
-+	help
-+	  If you say yes here you get support for the Texas Instruments
-+	  DAC7512 16-bit digital-to-analog converter.
+ if BLOCK
+ 
++config FS_JOURNAL_INFO
++	bool
++	default n
 +
-+	  This driver can also be built as a module. If so, the module
-+	  will be calles ti_dac7512.
+ source "fs/ext2/Kconfig"
+ source "fs/ext3/Kconfig"
+ source "fs/ext4/Kconfig"
+diff -puN fs/btrfs/Kconfig~task_struct-make-journal_info-conditional fs/btrfs/Kconfig
+--- a/fs/btrfs/Kconfig~task_struct-make-journal_info-conditional
++++ a/fs/btrfs/Kconfig
+@@ -4,6 +4,7 @@ config BTRFS_FS
+ 	select LIBCRC32C
+ 	select ZLIB_INFLATE
+ 	select ZLIB_DEFLATE
++	select FS_JOURNAL_INFO
+ 	help
+ 	  Btrfs is a new filesystem with extents, writable snapshotting,
+ 	  support for multiple devices and many more features.
+diff -puN fs/ext4/Kconfig~task_struct-make-journal_info-conditional fs/ext4/Kconfig
+--- a/fs/ext4/Kconfig~task_struct-make-journal_info-conditional
++++ a/fs/ext4/Kconfig
+@@ -2,6 +2,7 @@ config EXT4_FS
+ 	tristate "The Extended 4 (ext4) filesystem"
+ 	select JBD2
+ 	select CRC16
++	select FS_JOURNAL_INFO
+ 	help
+ 	  This is the next generation of the ext3 filesystem.
+ 
+diff -puN fs/gfs2/Kconfig~task_struct-make-journal_info-conditional fs/gfs2/Kconfig
+--- a/fs/gfs2/Kconfig~task_struct-make-journal_info-conditional
++++ a/fs/gfs2/Kconfig
+@@ -10,6 +10,7 @@ config GFS2_FS
+ 	select SLOW_WORK
+ 	select QUOTA
+ 	select QUOTACTL
++	select FS_JOURNAL_INFO
+ 	help
+ 	  A cluster filesystem.
+ 
+diff -puN fs/jbd/Kconfig~task_struct-make-journal_info-conditional fs/jbd/Kconfig
+--- a/fs/jbd/Kconfig~task_struct-make-journal_info-conditional
++++ a/fs/jbd/Kconfig
+@@ -1,5 +1,6 @@
+ config JBD
+ 	tristate
++	select FS_JOURNAL_INFO
+ 	help
+ 	  This is a generic journalling layer for block devices.  It is
+ 	  currently used by the ext3 file system, but it could also be
+diff -puN fs/jbd2/Kconfig~task_struct-make-journal_info-conditional fs/jbd2/Kconfig
+--- a/fs/jbd2/Kconfig~task_struct-make-journal_info-conditional
++++ a/fs/jbd2/Kconfig
+@@ -1,6 +1,7 @@
+ config JBD2
+ 	tristate
+ 	select CRC32
++	select FS_JOURNAL_INFO
+ 	help
+ 	  This is a generic journaling layer for block devices that support
+ 	  both 32-bit and 64-bit block numbers.  It is currently used by
+diff -puN fs/nilfs2/Kconfig~task_struct-make-journal_info-conditional fs/nilfs2/Kconfig
+--- a/fs/nilfs2/Kconfig~task_struct-make-journal_info-conditional
++++ a/fs/nilfs2/Kconfig
+@@ -2,6 +2,7 @@ config NILFS2_FS
+ 	tristate "NILFS2 file system support (EXPERIMENTAL)"
+ 	depends on EXPERIMENTAL
+ 	select CRC32
++	select FS_JOURNAL_INFO
+ 	help
+ 	  NILFS2 is a log-structured file system (LFS) supporting continuous
+ 	  snapshotting.  In addition to versioning capability of the entire
+diff -puN fs/reiserfs/Kconfig~task_struct-make-journal_info-conditional fs/reiserfs/Kconfig
+--- a/fs/reiserfs/Kconfig~task_struct-make-journal_info-conditional
++++ a/fs/reiserfs/Kconfig
+@@ -1,6 +1,7 @@
+ config REISERFS_FS
+ 	tristate "Reiserfs support"
+ 	select CRC32
++	select FS_JOURNAL_INFO
+ 	help
+ 	  Stores not just filenames but the files themselves in a balanced
+ 	  tree.  Uses journalling.
+diff -puN include/linux/init_task.h~task_struct-make-journal_info-conditional include/linux/init_task.h
+--- a/include/linux/init_task.h~task_struct-make-journal_info-conditional
++++ a/include/linux/init_task.h
+@@ -111,6 +111,12 @@ extern struct cred init_cred;
+ # define INIT_PERF_EVENTS(tsk)
+ #endif
+ 
++#ifdef CONFIG_FS_JOURNAL_INFO
++#define INIT_JOURNAL_INFO	.journal_info = NULL,
++#else
++#define INIT_JOURNAL_INFO
++#endif
 +
- source "drivers/misc/c2port/Kconfig"
- source "drivers/misc/eeprom/Kconfig"
- source "drivers/misc/cb710/Kconfig"
-diff -puN drivers/misc/Makefile~drivers-misc-add-driver-for-texas-instruments-dac7512 drivers/misc/Makefile
---- a/drivers/misc/Makefile~drivers-misc-add-driver-for-texas-instruments-dac7512
-+++ a/drivers/misc/Makefile
-@@ -22,6 +22,7 @@ obj-$(CONFIG_HP_ILO)		+= hpilo.o
- obj-$(CONFIG_ISL29003)		+= isl29003.o
- obj-$(CONFIG_EP93XX_PWM)	+= ep93xx_pwm.o
- obj-$(CONFIG_DS1682)		+= ds1682.o
-+obj-$(CONFIG_TI_DAC7512)	+= ti_dac7512.o
- obj-$(CONFIG_C2PORT)		+= c2port/
- obj-$(CONFIG_IWMC3200TOP)      += iwmc3200top/
- obj-y				+= eeprom/
-diff -puN /dev/null drivers/misc/ti_dac7512.c
---- /dev/null
-+++ a/drivers/misc/ti_dac7512.c
-@@ -0,0 +1,101 @@
-+/*
-+ *  dac7512.c - Linux kernel module for
-+ * 	Texas Instruments DAC7512
-+ *
-+ *  Copyright (c) 2009 Daniel Mack <daniel@caiaq.de>
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; either version 2 of the License, or
-+ *  (at your option) any later version.
-+ *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *  GNU General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License
-+ *  along with this program; if not, write to the Free Software
-+ *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/spi/spi.h>
-+
-+#define DAC7512_DRV_NAME	"dac7512"
-+#define DRIVER_VERSION		"1.0"
-+
-+static ssize_t dac7512_store_val(struct device *dev,
-+				 struct device_attribute *attr,
-+				 const char *buf, size_t count)
-+{
-+	struct spi_device *spi = to_spi_device(dev);
-+	unsigned char tmp[2];
-+	unsigned long val;
-+
-+	if (strict_strtoul(buf, 10, &val) < 0)
-+		return -EINVAL;
-+
-+	tmp[0] = val >> 8;
-+	tmp[1] = val & 0xff;
-+	spi_write(spi, tmp, sizeof(tmp));
-+	return count;
-+}
-+
-+static DEVICE_ATTR(value, S_IWUSR, NULL, dac7512_store_val);
-+
-+static struct attribute *dac7512_attributes[] = {
-+	&dev_attr_value.attr,
-+	NULL
-+};
-+
-+static const struct attribute_group dac7512_attr_group = {
-+	.attrs = dac7512_attributes,
-+};
-+
-+static int __devinit dac7512_probe(struct spi_device *spi)
-+{
-+	int ret;
-+
-+	spi->bits_per_word = 8;
-+	spi->mode = SPI_MODE_0;
-+	ret = spi_setup(spi);
-+	if (ret < 0)
-+		return ret;
-+
-+	return sysfs_create_group(&spi->dev.kobj, &dac7512_attr_group);
-+}
-+
-+static int __devexit dac7512_remove(struct spi_device *spi)
-+{
-+	sysfs_remove_group(&spi->dev.kobj, &dac7512_attr_group);
-+	return 0;
-+}
-+
-+static struct spi_driver dac7512_driver = {
-+	.driver = {
-+		.name	= DAC7512_DRV_NAME,
-+		.owner	= THIS_MODULE,
-+	},
-+	.probe	= dac7512_probe,
-+	.remove	= __devexit_p(dac7512_remove),
-+};
-+
-+static int __init dac7512_init(void)
-+{
-+	return spi_register_driver(&dac7512_driver);
-+}
-+
-+static void __exit dac7512_exit(void)
-+{
-+	spi_unregister_driver(&dac7512_driver);
-+}
-+
-+MODULE_AUTHOR("Daniel Mack <daniel@caiaq.de>");
-+MODULE_DESCRIPTION("DAC7512 16-bit DAC");
-+MODULE_LICENSE("GPL v2");
-+MODULE_VERSION(DRIVER_VERSION);
-+
-+module_init(dac7512_init);
-+module_exit(dac7512_exit);
+ /*
+  *  INIT_TASK is used to set up the first task table, touch at
+  * your own risk!. Base=0, limit=0x1fffff (=2MB)
+@@ -162,7 +168,6 @@ extern struct cred init_cred;
+ 		.signal = {{0}}},					\
+ 	.blocked	= {{0}},					\
+ 	.alloc_lock	= __SPIN_LOCK_UNLOCKED(tsk.alloc_lock),		\
+-	.journal_info	= NULL,						\
+ 	.cpu_timers	= INIT_CPU_TIMERS(tsk.cpu_timers),		\
+ 	.fs_excl	= ATOMIC_INIT(0),				\
+ 	.pi_lock	= __SPIN_LOCK_UNLOCKED(tsk.pi_lock),		\
+@@ -173,6 +178,7 @@ extern struct cred init_cred;
+ 		[PIDTYPE_SID]  = INIT_PID_LINK(PIDTYPE_SID),		\
+ 	},								\
+ 	.dirties = INIT_PROP_LOCAL_SINGLE(dirties),			\
++	INIT_JOURNAL_INFO						\
+ 	INIT_IDS							\
+ 	INIT_PERF_EVENTS(tsk)						\
+ 	INIT_TRACE_IRQFLAGS						\
+diff -puN include/linux/sched.h~task_struct-make-journal_info-conditional include/linux/sched.h
+--- a/include/linux/sched.h~task_struct-make-journal_info-conditional
++++ a/include/linux/sched.h
+@@ -1446,8 +1446,10 @@ struct task_struct {
+ 	gfp_t lockdep_reclaim_gfp;
+ #endif
+ 
++#ifdef CONFIG_FS_JOURNAL_INFO
+ /* journalling filesystem info */
+ 	void *journal_info;
++#endif
+ 
+ /* stacked block device info */
+ 	struct bio *bio_list, **bio_tail;
 _
 
-Patches currently in -mm which might be from daniel@caiaq.de are
+Patches currently in -mm which might be from h-shimamoto@ct.jp.nec.com are
 
 origin.patch
-linux-next.patch
-vt-make-the-default-cursor-shape-configurable.patch
-drivers-video-move-dereference-after-null-test.patch
 
