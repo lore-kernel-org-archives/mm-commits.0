@@ -1,62 +1,185 @@
 From: akpm@linux-foundation.org
-Subject: [merged] errh-add-helper-function-to-simplify-pointer-error-checking.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 13:56:08 -0800
-Message-ID: <200912152156.nBFLu8R1015549@imap1.linux-foundation.org>
+Subject: [merged] drivers-misc-add-driver-for-texas-instruments-dac7512.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 13:55:34 -0800
+Message-ID: <200912152155.nBFLtY32015497@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38817 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48044 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933791AbZLOV4j (ORCPT
+	by vger.kernel.org with ESMTP id S933783AbZLOV41 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 16:56:39 -0500
+	Tue, 15 Dec 2009 16:56:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ext-phil.2.carmody@nokia.com, mm-commits@vger.kernel.org
+To: daniel@caiaq.de, dbrownell@users.sourceforge.net, hartleys@visionengravers.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     err.h: add helper function to simplify pointer error checking
+     drivers/misc: add driver for Texas Instruments DAC7512
 has been removed from the -mm tree.  Its filename was
-     errh-add-helper-function-to-simplify-pointer-error-checking.patch
+     drivers-misc-add-driver-for-texas-instruments-dac7512.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: err.h: add helper function to simplify pointer error checking
-From: Phil Carmody <ext-phil.2.carmody@nokia.com>
+Subject: drivers/misc: add driver for Texas Instruments DAC7512
+From: Daniel Mack <daniel@caiaq.de>
 
-There are quite a few instances in the kernel of checks of pointers both
-against NULL and against the errno range, handling both cases identically.
-This additional helper function would simplify such code.
-
-[akpm@linux-foundation.org: build fix]
-Signed-off-by: Phil Carmody <ext-phil.2.carmody@nokia.com>
+Signed-off-by: Daniel Mack <daniel@caiaq.de>
+Cc: "H Hartley Sweeten" <hartleys@visionengravers.com>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/err.h |    5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/misc/Kconfig      |   10 +++
+ drivers/misc/Makefile     |    1 
+ drivers/misc/ti_dac7512.c |  101 ++++++++++++++++++++++++++++++++++++
+ 3 files changed, 112 insertions(+)
 
-diff -puN include/linux/err.h~errh-add-helper-function-to-simplify-pointer-error-checking include/linux/err.h
---- a/include/linux/err.h~errh-add-helper-function-to-simplify-pointer-error-checking
-+++ a/include/linux/err.h
-@@ -34,6 +34,11 @@ static inline long IS_ERR(const void *pt
- 	return IS_ERR_VALUE((unsigned long)ptr);
- }
+diff -puN drivers/misc/Kconfig~drivers-misc-add-driver-for-texas-instruments-dac7512 drivers/misc/Kconfig
+--- a/drivers/misc/Kconfig~drivers-misc-add-driver-for-texas-instruments-dac7512
++++ a/drivers/misc/Kconfig
+@@ -270,6 +270,16 @@ config DS1682
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called ds1682.
  
-+static inline long IS_ERR_OR_NULL(const void *ptr)
++config TI_DAC7512
++	tristate "Texas Instruments DAC7512"
++	depends on SPI && SYSFS
++	help
++	  If you say yes here you get support for the Texas Instruments
++	  DAC7512 16-bit digital-to-analog converter.
++
++	  This driver can also be built as a module. If so, the module
++	  will be calles ti_dac7512.
++
+ source "drivers/misc/c2port/Kconfig"
+ source "drivers/misc/eeprom/Kconfig"
+ source "drivers/misc/cb710/Kconfig"
+diff -puN drivers/misc/Makefile~drivers-misc-add-driver-for-texas-instruments-dac7512 drivers/misc/Makefile
+--- a/drivers/misc/Makefile~drivers-misc-add-driver-for-texas-instruments-dac7512
++++ a/drivers/misc/Makefile
+@@ -22,6 +22,7 @@ obj-$(CONFIG_HP_ILO)		+= hpilo.o
+ obj-$(CONFIG_ISL29003)		+= isl29003.o
+ obj-$(CONFIG_EP93XX_PWM)	+= ep93xx_pwm.o
+ obj-$(CONFIG_DS1682)		+= ds1682.o
++obj-$(CONFIG_TI_DAC7512)	+= ti_dac7512.o
+ obj-$(CONFIG_C2PORT)		+= c2port/
+ obj-$(CONFIG_IWMC3200TOP)      += iwmc3200top/
+ obj-y				+= eeprom/
+diff -puN /dev/null drivers/misc/ti_dac7512.c
+--- /dev/null
++++ a/drivers/misc/ti_dac7512.c
+@@ -0,0 +1,101 @@
++/*
++ *  dac7512.c - Linux kernel module for
++ * 	Texas Instruments DAC7512
++ *
++ *  Copyright (c) 2009 Daniel Mack <daniel@caiaq.de>
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or
++ *  (at your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/spi/spi.h>
++
++#define DAC7512_DRV_NAME	"dac7512"
++#define DRIVER_VERSION		"1.0"
++
++static ssize_t dac7512_store_val(struct device *dev,
++				 struct device_attribute *attr,
++				 const char *buf, size_t count)
 +{
-+	return !ptr || IS_ERR_VALUE((unsigned long)ptr);
++	struct spi_device *spi = to_spi_device(dev);
++	unsigned char tmp[2];
++	unsigned long val;
++
++	if (strict_strtoul(buf, 10, &val) < 0)
++		return -EINVAL;
++
++	tmp[0] = val >> 8;
++	tmp[1] = val & 0xff;
++	spi_write(spi, tmp, sizeof(tmp));
++	return count;
 +}
 +
- /**
-  * ERR_CAST - Explicitly cast an error-valued pointer to another pointer type
-  * @ptr: The pointer to cast.
++static DEVICE_ATTR(value, S_IWUSR, NULL, dac7512_store_val);
++
++static struct attribute *dac7512_attributes[] = {
++	&dev_attr_value.attr,
++	NULL
++};
++
++static const struct attribute_group dac7512_attr_group = {
++	.attrs = dac7512_attributes,
++};
++
++static int __devinit dac7512_probe(struct spi_device *spi)
++{
++	int ret;
++
++	spi->bits_per_word = 8;
++	spi->mode = SPI_MODE_0;
++	ret = spi_setup(spi);
++	if (ret < 0)
++		return ret;
++
++	return sysfs_create_group(&spi->dev.kobj, &dac7512_attr_group);
++}
++
++static int __devexit dac7512_remove(struct spi_device *spi)
++{
++	sysfs_remove_group(&spi->dev.kobj, &dac7512_attr_group);
++	return 0;
++}
++
++static struct spi_driver dac7512_driver = {
++	.driver = {
++		.name	= DAC7512_DRV_NAME,
++		.owner	= THIS_MODULE,
++	},
++	.probe	= dac7512_probe,
++	.remove	= __devexit_p(dac7512_remove),
++};
++
++static int __init dac7512_init(void)
++{
++	return spi_register_driver(&dac7512_driver);
++}
++
++static void __exit dac7512_exit(void)
++{
++	spi_unregister_driver(&dac7512_driver);
++}
++
++MODULE_AUTHOR("Daniel Mack <daniel@caiaq.de>");
++MODULE_DESCRIPTION("DAC7512 16-bit DAC");
++MODULE_LICENSE("GPL v2");
++MODULE_VERSION(DRIVER_VERSION);
++
++module_init(dac7512_init);
++module_exit(dac7512_exit);
 _
 
-Patches currently in -mm which might be from ext-phil.2.carmody@nokia.com are
+Patches currently in -mm which might be from daniel@caiaq.de are
 
 origin.patch
+linux-next.patch
+vt-make-the-default-cursor-shape-configurable.patch
+drivers-video-move-dereference-after-null-test.patch
 
