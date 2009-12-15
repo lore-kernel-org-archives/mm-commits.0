@@ -1,236 +1,255 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ioc3-ioc4-various-section-fixes.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 13:56:03 -0800
-Message-ID: <200912152156.nBFLu3uI015538@imap1.linux-foundation.org>
+Subject: [merged] lis3-selftest-support.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 13:59:30 -0800
+Message-ID: <200912152159.nBFLxU8p015908@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52880 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59366 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933948AbZLOWOy (ORCPT
+	by vger.kernel.org with ESMTP id S933959AbZLOWPG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 17:14:54 -0500
+	Tue, 15 Dec 2009 17:15:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khali@linux-fr.org, alan@lxorguk.ukuu.org.uk, pfg@sgi.com, mm-commits@vger.kernel.org
+To: samu.p.onkalo@nokia.com, Eric.Piel@tremplin-utc.net, pavel@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ioc3/ioc4: various section fixes
+     lis3: selftest support
 has been removed from the -mm tree.  Its filename was
-     ioc3-ioc4-various-section-fixes.patch
+     lis3-selftest-support.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: ioc3/ioc4: various section fixes
-From: Jean Delvare <khali@linux-fr.org>
+Subject: lis3: selftest support
+=46rom: Samu Onkalo <samu.p.onkalo@nokia.com>
 
-Several IOC3 and IOC4 drivers misuse the __devinit and __devexit section
-markers.  Use __init and __exit instead as appropriate, then add __devinit
-and __devexit where they really belong for PCI drivers.
+Implement selftest feature as specified by chip manufacturer.  Control:
+read selftest sysfs entry
 
-Also make ioc4_serial_init static.
+Response: "OK x y z" or "FAIL x y z"
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: Pat Gefre <pfg@sgi.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+where x, y, and z are difference between selftest mode and normal mode.=
+=20
+Test is passed when values are within acceptance limit values.
+
+Acceptance limits are provided via platform data.  See chip spesificati=
+ons
+for acceptance limits.  If limits are not properly set, OK / FAIL decis=
+ion
+is meaningless.  However, userspace application can still make decision
+based on the numeric x, y, z values.
+
+Selftest is meant for HW diagnostic purposes.  It is not meant to be
+called during normal use of the chip.  It may cause false interrupt
+events.  Selftest mode delays polling of the normal results but it does=
+n't
+cause wrong values.  Chip must be in static state during selftest.  Any
+acceration during the test causes most probably failure.
+
+Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
+Acked-by: =C9ric Piel <Eric.Piel@tremplin-utc.net>
+Cc: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/ioc4.c          |   16 ++++++++--------
- drivers/serial/ioc3_serial.c |    4 ++--
- drivers/serial/ioc4_serial.c |    4 ++--
- drivers/sn/ioc3.c            |   15 ++++++++-------
- 4 files changed, 20 insertions(+), 19 deletions(-)
+ drivers/hwmon/lis3lv02d.c |   67 +++++++++++++++++++++++++++++++++++-
+ drivers/hwmon/lis3lv02d.h |   14 ++++++-
+ include/linux/lis3lv02d.h |    3 +
+ 3 files changed, 81 insertions(+), 3 deletions(-)
 
-diff -puN drivers/misc/ioc4.c~ioc3-ioc4-various-section-fixes drivers/misc/ioc4.c
---- a/drivers/misc/ioc4.c~ioc3-ioc4-various-section-fixes
-+++ a/drivers/misc/ioc4.c
-@@ -138,7 +138,7 @@ ioc4_unregister_submodule(struct ioc4_su
-  * even though the following code utilizes external interrupt registers
-  * to perform the speed calculation.
-  */
--static void
-+static void __devinit
- ioc4_clock_calibrate(struct ioc4_driver_data *idd)
+diff -puN drivers/hwmon/lis3lv02d.c~lis3-selftest-support drivers/hwmon=
+/lis3lv02d.c
+--- a/drivers/hwmon/lis3lv02d.c~lis3-selftest-support
++++ a/drivers/hwmon/lis3lv02d.c
+@@ -106,9 +106,11 @@ static void lis3lv02d_get_xyz(struct lis
  {
- 	union ioc4_int_out int_out;
-@@ -230,7 +230,7 @@ ioc4_clock_calibrate(struct ioc4_driver_
-  * on the same PCI bus at slot number 3 to differentiate IO9 from IO10.
-  * If neither is present, it's a PCI-RT.
-  */
--static unsigned int
-+static unsigned int __devinit
- ioc4_variant(struct ioc4_driver_data *idd)
- {
- 	struct pci_dev *pdev = NULL;
-@@ -269,7 +269,7 @@ ioc4_variant(struct ioc4_driver_data *id
- 	return IOC4_VARIANT_PCI_RT;
+ 	int position[3];
+=20
++	mutex_lock(&lis3->mutex);
+ 	position[0] =3D lis3->read_data(lis3, OUTX);
+ 	position[1] =3D lis3->read_data(lis3, OUTY);
+ 	position[2] =3D lis3->read_data(lis3, OUTZ);
++	mutex_unlock(&lis3->mutex);
+=20
+ 	*x =3D lis3lv02d_get_axis(lis3->ac.x, position);
+ 	*y =3D lis3lv02d_get_axis(lis3->ac.y, position);
+@@ -133,6 +135,55 @@ static int lis3lv02d_get_odr(void)
+ 	return val;
  }
- 
--static void
-+static void __devinit
- ioc4_load_modules(struct work_struct *work)
+=20
++static int lis3lv02d_selftest(struct lis3lv02d *lis3, s16 results[3])
++{
++	u8 reg;
++	s16 x, y, z;
++	u8 selftest;
++	int ret;
++
++	mutex_lock(&lis3->mutex);
++	if (lis3_dev.whoami =3D=3D WAI_12B)
++		selftest =3D CTRL1_ST;
++	else
++		selftest =3D CTRL1_STP;
++
++	lis3->read(lis3, CTRL_REG1, &reg);
++	lis3->write(lis3, CTRL_REG1, (reg | selftest));
++	msleep(lis3->pwron_delay / lis3lv02d_get_odr());
++
++	/* Read directly to avoid axis remap */
++	x =3D lis3->read_data(lis3, OUTX);
++	y =3D lis3->read_data(lis3, OUTY);
++	z =3D lis3->read_data(lis3, OUTZ);
++
++	/* back to normal settings */
++	lis3->write(lis3, CTRL_REG1, reg);
++	msleep(lis3->pwron_delay / lis3lv02d_get_odr());
++
++	results[0] =3D x - lis3->read_data(lis3, OUTX);
++	results[1] =3D y - lis3->read_data(lis3, OUTY);
++	results[2] =3D z - lis3->read_data(lis3, OUTZ);
++
++	ret =3D 0;
++	if (lis3->pdata) {
++		int i;
++		for (i =3D 0; i < 3; i++) {
++			/* Check against selftest acceptance limits */
++			if ((results[i] < lis3->pdata->st_min_limits[i]) ||
++			    (results[i] > lis3->pdata->st_max_limits[i])) {
++				ret =3D -EIO;
++				goto fail;
++			}
++		}
++	}
++
++	/* test passed */
++fail:
++	mutex_unlock(&lis3->mutex);
++	return ret;
++}
++
+ void lis3lv02d_poweroff(struct lis3lv02d *lis3)
  {
- 	/* arg just has to be freed */
-@@ -280,7 +280,7 @@ ioc4_load_modules(struct work_struct *wo
+ 	/* disable X,Y,Z axis and power down */
+@@ -365,6 +416,17 @@ void lis3lv02d_joystick_disable(void)
+ EXPORT_SYMBOL_GPL(lis3lv02d_joystick_disable);
+=20
+ /* Sysfs stuff */
++static ssize_t lis3lv02d_selftest_show(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	int result;
++	s16 values[3];
++
++	result =3D lis3lv02d_selftest(&lis3_dev, values);
++	return sprintf(buf, "%s %d %d %d\n", result =3D=3D 0 ? "OK" : "FAIL",
++		values[0], values[1], values[2]);
++}
++
+ static ssize_t lis3lv02d_position_show(struct device *dev,
+ 				struct device_attribute *attr, char *buf)
+ {
+@@ -394,12 +456,14 @@ static ssize_t lis3lv02d_rate_show(struc
+ 	return sprintf(buf, "%d\n", lis3lv02d_get_odr());
  }
- 
- /* Adds a new instance of an IOC4 card */
--static int
-+static int __devinit
- ioc4_probe(struct pci_dev *pdev, const struct pci_device_id *pci_id)
- {
- 	struct ioc4_driver_data *idd;
-@@ -425,7 +425,7 @@ out:
- }
- 
- /* Removes a particular instance of an IOC4 card. */
--static void
-+static void __devexit
- ioc4_remove(struct pci_dev *pdev)
- {
- 	struct ioc4_submodule *is;
-@@ -476,7 +476,7 @@ static struct pci_driver ioc4_driver = {
- 	.name = "IOC4",
- 	.id_table = ioc4_id_table,
- 	.probe = ioc4_probe,
--	.remove = ioc4_remove,
-+	.remove = __devexit_p(ioc4_remove),
+=20
++static DEVICE_ATTR(selftest, S_IRUSR, lis3lv02d_selftest_show, NULL);
+ static DEVICE_ATTR(position, S_IRUGO, lis3lv02d_position_show, NULL);
+ static DEVICE_ATTR(calibrate, S_IRUGO|S_IWUSR, lis3lv02d_calibrate_sho=
+w,
+ 	lis3lv02d_calibrate_store);
+ static DEVICE_ATTR(rate, S_IRUGO, lis3lv02d_rate_show, NULL);
+=20
+ static struct attribute *lis3lv02d_attributes[] =3D {
++	&dev_attr_selftest.attr,
+ 	&dev_attr_position.attr,
+ 	&dev_attr_calibrate.attr,
+ 	&dev_attr_rate.attr,
+@@ -455,6 +519,8 @@ int lis3lv02d_init_device(struct lis3lv0
+ 		return -EINVAL;
+ 	}
+=20
++	mutex_init(&dev->mutex);
++
+ 	lis3lv02d_add_fs(dev);
+ 	lis3lv02d_poweron(dev);
+=20
+@@ -507,4 +573,3 @@ EXPORT_SYMBOL_GPL(lis3lv02d_init_device)
+ MODULE_DESCRIPTION("ST LIS3LV02Dx three-axis digital accelerometer dri=
+ver");
+ MODULE_AUTHOR("Yan Burman, Eric Piel, Pavel Machek");
+ MODULE_LICENSE("GPL");
+-
+diff -puN drivers/hwmon/lis3lv02d.h~lis3-selftest-support drivers/hwmon=
+/lis3lv02d.h
+--- a/drivers/hwmon/lis3lv02d.h~lis3-selftest-support
++++ a/drivers/hwmon/lis3lv02d.h
+@@ -98,7 +98,7 @@ enum lis3_who_am_i {
+ 	WAI_6B		=3D 0x52, /* 6 bits: LIS331DLF - not supported */
  };
- 
- MODULE_DEVICE_TABLE(pci, ioc4_id_table);
-@@ -486,14 +486,14 @@ MODULE_DEVICE_TABLE(pci, ioc4_id_table);
-  *********************/
- 
- /* Module load */
--static int __devinit
-+static int __init
- ioc4_init(void)
- {
- 	return pci_register_driver(&ioc4_driver);
- }
- 
- /* Module unload */
--static void __devexit
-+static void __exit
- ioc4_exit(void)
- {
- 	/* Ensure ioc4_load_modules() has completed before exiting */
-diff -puN drivers/serial/ioc3_serial.c~ioc3-ioc4-various-section-fixes drivers/serial/ioc3_serial.c
---- a/drivers/serial/ioc3_serial.c~ioc3-ioc4-various-section-fixes
-+++ a/drivers/serial/ioc3_serial.c
-@@ -2162,7 +2162,7 @@ static struct ioc3_submodule ioc3uart_op
- /**
-  * ioc3_detect - module init called,
-  */
--static int __devinit ioc3uart_init(void)
-+static int __init ioc3uart_init(void)
- {
- 	int ret;
- 
-@@ -2179,7 +2179,7 @@ static int __devinit ioc3uart_init(void)
- 	return ret;
- }
- 
--static void __devexit ioc3uart_exit(void)
-+static void __exit ioc3uart_exit(void)
- {
- 	ioc3_unregister_submodule(&ioc3uart_ops);
- 	uart_unregister_driver(&ioc3_uart);
-diff -puN drivers/serial/ioc4_serial.c~ioc3-ioc4-various-section-fixes drivers/serial/ioc4_serial.c
---- a/drivers/serial/ioc4_serial.c~ioc3-ioc4-various-section-fixes
-+++ a/drivers/serial/ioc4_serial.c
-@@ -2904,7 +2904,7 @@ static struct ioc4_submodule ioc4_serial
- /**
-  * ioc4_serial_init - module init
-  */
--int ioc4_serial_init(void)
-+static int __init ioc4_serial_init(void)
- {
- 	int ret;
- 
-@@ -2926,7 +2926,7 @@ int ioc4_serial_init(void)
- 	return ioc4_register_submodule(&ioc4_serial_submodule);
- }
- 
--static void __devexit ioc4_serial_exit(void)
-+static void __exit ioc4_serial_exit(void)
- {
- 	ioc4_unregister_submodule(&ioc4_serial_submodule);
- 	uart_unregister_driver(&ioc4_uart_rs232);
-diff -puN drivers/sn/ioc3.c~ioc3-ioc4-various-section-fixes drivers/sn/ioc3.c
---- a/drivers/sn/ioc3.c~ioc3-ioc4-various-section-fixes
-+++ a/drivers/sn/ioc3.c
-@@ -574,11 +574,11 @@ void ioc3_unregister_submodule(struct io
-  * Device management *
-  *********************/
- 
--static char *
-+static char * __devinitdata
- ioc3_class_names[]={"unknown", "IP27 BaseIO", "IP30 system", "MENET 1/2/3",
- 			"MENET 4", "CADduo", "Altix Serial"};
- 
--static int ioc3_class(struct ioc3_driver_data *idd)
-+static int __devinit ioc3_class(struct ioc3_driver_data *idd)
- {
- 	int res = IOC3_CLASS_NONE;
- 	/* NIC-based logic */
-@@ -601,7 +601,8 @@ static int ioc3_class(struct ioc3_driver
- 	return res;
- }
- /* Adds a new instance of an IOC3 card */
--static int ioc3_probe(struct pci_dev *pdev, const struct pci_device_id *pci_id)
-+static int __devinit
-+ioc3_probe(struct pci_dev *pdev, const struct pci_device_id *pci_id)
- {
- 	struct ioc3_driver_data *idd;
- 	uint32_t pcmd;
-@@ -753,7 +754,7 @@ out:
- }
- 
- /* Removes a particular instance of an IOC3 card. */
--static void ioc3_remove(struct pci_dev *pdev)
-+static void __devexit ioc3_remove(struct pci_dev *pdev)
- {
- 	int id;
- 	struct ioc3_driver_data *idd;
-@@ -805,7 +806,7 @@ static struct pci_driver ioc3_driver = {
- 	.name = "IOC3",
- 	.id_table = ioc3_id_table,
- 	.probe = ioc3_probe,
--	.remove = ioc3_remove,
-+	.remove = __devexit_p(ioc3_remove),
+=20
+-enum lis3lv02d_ctrl1 {
++enum lis3lv02d_ctrl1_12b {
+ 	CTRL1_Xen	=3D 0x01,
+ 	CTRL1_Yen	=3D 0x02,
+ 	CTRL1_Zen	=3D 0x04,
+@@ -107,8 +107,17 @@ enum lis3lv02d_ctrl1 {
+ 	CTRL1_DF1	=3D 0x20,
+ 	CTRL1_PD0	=3D 0x40,
+ 	CTRL1_PD1	=3D 0x80,
+-	CTRL1_DR	=3D 0x80, /* Data rate on 8 bits */
  };
- 
- MODULE_DEVICE_TABLE(pci, ioc3_id_table);
-@@ -815,7 +816,7 @@ MODULE_DEVICE_TABLE(pci, ioc3_id_table);
-  *********************/
- 
- /* Module load */
--static int __devinit ioc3_init(void)
-+static int __init ioc3_init(void)
- {
- 	if (ia64_platform_is("sn2"))
- 		return pci_register_driver(&ioc3_driver);
-@@ -823,7 +824,7 @@ static int __devinit ioc3_init(void)
- }
- 
- /* Module unload */
--static void __devexit ioc3_exit(void)
-+static void __exit ioc3_exit(void)
- {
- 	pci_unregister_driver(&ioc3_driver);
- }
++
++/* Delta to ctrl1_12b version */
++enum lis3lv02d_ctrl1_8b {
++	CTRL1_STM	=3D 0x08,
++	CTRL1_STP	=3D 0x10,
++	CTRL1_FS	=3D 0x20,
++	CTRL1_PD	=3D 0x40,
++	CTRL1_DR	=3D 0x80,
++};
++
+ enum lis3lv02d_ctrl2 {
+ 	CTRL2_DAS	=3D 0x01,
+ 	CTRL2_SIM	=3D 0x02,
+@@ -218,6 +227,7 @@ struct lis3lv02d {
+ 	unsigned long		misc_opened; /* bit0: whether the device is open */
+=20
+ 	struct lis3lv02d_platform_data *pdata;	/* for passing board config */
++	struct mutex		mutex;     /* Serialize poll and selftest */
+ };
+=20
+ int lis3lv02d_init_device(struct lis3lv02d *lis3);
+diff -puN include/linux/lis3lv02d.h~lis3-selftest-support include/linux=
+/lis3lv02d.h
+--- a/include/linux/lis3lv02d.h~lis3-selftest-support
++++ a/include/linux/lis3lv02d.h
+@@ -55,6 +55,9 @@ struct lis3lv02d_platform_data {
+ 	s8 axis_z;
+ 	int (*setup_resources)(void);
+ 	int (*release_resources)(void);
++	/* Limits for selftest are specified in chip data sheet */
++	s16 st_min_limits[3]; /* min pass limit x, y, z */
++	s16 st_max_limits[3]; /* max pass limit x, y, z */
+ };
+=20
+ #endif /* __LIS3LV02D_H_ */
 _
 
-Patches currently in -mm which might be from khali@linux-fr.org are
+Patches currently in -mm which might be from samu.p.onkalo@nokia.com ar=
+e
 
 origin.patch
-linux-next.patch
-rtc-set-wakeup-capability-for-i2c-and-spi-rtc-drivers.patch
-gpio-add-driver-for-max7300-i2c-gpio-extender.patch
-resource-constify-arg-to-resource_size-and-resource_type.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
