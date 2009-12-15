@@ -1,140 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sdhci-add-support-for-the-syskonnect-cardbus2sdio-adapter.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 13:58:49 -0800
-Message-ID: <200912152158.nBFLwn8A015848@imap1.linux-foundation.org>
+Subject: [merged] ksm-three-remove_rmap_item_from_tree-cleanups.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 13:53:12 -0800
+Message-ID: <200912152153.nBFLrCMS015255@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53350 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36047 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761346AbZLOWNL (ORCPT
+	by vger.kernel.org with ESMTP id S1761346AbZLOWNO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 17:13:11 -0500
+	Tue, 15 Dec 2009 17:13:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nico@fluxnic.net, linux-mmc@vger.kernel.org, nico@marvell.com, mm-commits@vger.kernel.org
+To: hugh.dickins@tiscali.co.uk, aarcange@redhat.com, ieidus@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sdhci: add support for the SysKonnect CardBus2SDIO adapter
+     ksm: three remove_rmap_item_from_tree cleanups
 has been removed from the -mm tree.  Its filename was
-     sdhci-add-support-for-the-syskonnect-cardbus2sdio-adapter.patch
+     ksm-three-remove_rmap_item_from_tree-cleanups.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sdhci: add support for the SysKonnect CardBus2SDIO adapter
-From: Nicolas Pitre <nico@fluxnic.net>
+Subject: ksm: three remove_rmap_item_from_tree cleanups
+From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
-This is still in use especially to develop SDIO device drivers on laptop
-machines which are lacking SDIO slots.  This adapter supports SDIO cards
-only due to lack of 136-bit response capability.
+1. remove_rmap_item_from_tree() is called as a precaution from
+   various places: don't dirty the rmap_item cacheline unnecessarily,
+   just mask the flags out of the address when they have been set.
 
-Signed-off-by: Nicolas Pitre <nico@marvell.com>
-Cc: <linux-mmc@vger.kernel.org>
+2. First get_next_rmap_item() removes an unstable rmap_item from its tree,
+   then shortly afterwards cmp_and_merge_page() removes a stable rmap_item
+   from its tree: it's easier just to do both at once (but definitely keep
+   the BUG_ON(age > 1) which guards against a future omission).
+
+3. When cmp_and_merge_page() moves an rmap_item from unstable to stable
+   tree, it does its own rb_erase() and accounting: that's better
+   expressed by remove_rmap_item_from_tree().
+
+Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: Izik Eidus <ieidus@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/sdhci-pci.c |   75 +++++++++++++++++++++++++++++++++
- 1 file changed, 75 insertions(+)
+ mm/ksm.c |   17 ++++++-----------
+ 1 file changed, 6 insertions(+), 11 deletions(-)
 
-diff -puN drivers/mmc/host/sdhci-pci.c~sdhci-add-support-for-the-syskonnect-cardbus2sdio-adapter drivers/mmc/host/sdhci-pci.c
---- a/drivers/mmc/host/sdhci-pci.c~sdhci-add-support-for-the-syskonnect-cardbus2sdio-adapter
-+++ a/drivers/mmc/host/sdhci-pci.c
-@@ -285,6 +285,73 @@ static const struct sdhci_pci_fixes sdhc
- 	.resume		= jmicron_resume,
- };
+diff -puN mm/ksm.c~ksm-three-remove_rmap_item_from_tree-cleanups mm/ksm.c
+--- a/mm/ksm.c~ksm-three-remove_rmap_item_from_tree-cleanups
++++ a/mm/ksm.c
+@@ -453,6 +453,7 @@ static void remove_rmap_item_from_tree(s
+ 		}
  
-+/* SysKonnect CardBus2SDIO extra registers */
-+#define SYSKT_CTRL		0x200
-+#define SYSKT_RDFIFO_STAT	0x204
-+#define SYSKT_WRFIFO_STAT	0x208
-+#define SYSKT_POWER_DATA	0x20c
-+#define   SYSKT_POWER_330	0xef
-+#define   SYSKT_POWER_300	0xf8
-+#define   SYSKT_POWER_184	0xcc
-+#define SYSKT_POWER_CMD		0x20d
-+#define   SYSKT_POWER_START	(1 << 7)
-+#define SYSKT_POWER_STATUS	0x20e
-+#define   SYSKT_POWER_STATUS_OK	(1 << 0)
-+#define SYSKT_BOARD_REV		0x210
-+#define SYSKT_CHIP_REV		0x211
-+#define SYSKT_CONF_DATA		0x212
-+#define   SYSKT_CONF_DATA_1V8	(1 << 2)
-+#define   SYSKT_CONF_DATA_2V5	(1 << 1)
-+#define   SYSKT_CONF_DATA_3V3	(1 << 0)
-+
-+static int syskt_probe(struct sdhci_pci_chip *chip)
-+{
-+	if ((chip->pdev->class & 0x0000FF) == PCI_SDHCI_IFVENDOR) {
-+		chip->pdev->class &= ~0x0000FF;
-+		chip->pdev->class |= PCI_SDHCI_IFDMA;
-+	}
-+	return 0;
-+}
-+
-+static int syskt_probe_slot(struct sdhci_pci_slot *slot)
-+{
-+	int tm, ps;
-+
-+	u8 board_rev = readb(slot->host->ioaddr + SYSKT_BOARD_REV);
-+	u8  chip_rev = readb(slot->host->ioaddr + SYSKT_CHIP_REV);
-+	dev_info(&slot->chip->pdev->dev, "SysKonnect CardBus2SDIO, "
-+					 "board rev %d.%d, chip rev %d.%d\n",
-+					 board_rev >> 4, board_rev & 0xf,
-+					 chip_rev >> 4,  chip_rev & 0xf);
-+	if (chip_rev >= 0x20)
-+		slot->host->quirks |= SDHCI_QUIRK_FORCE_DMA;
-+
-+	writeb(SYSKT_POWER_330, slot->host->ioaddr + SYSKT_POWER_DATA);
-+	writeb(SYSKT_POWER_START, slot->host->ioaddr + SYSKT_POWER_CMD);
-+	udelay(50);
-+	tm = 10;  /* Wait max 1 ms */
-+	do {
-+		ps = readw(slot->host->ioaddr + SYSKT_POWER_STATUS);
-+		if (ps & SYSKT_POWER_STATUS_OK)
-+			break;
-+		udelay(100);
-+	} while (--tm);
-+	if (!tm) {
-+		dev_err(&slot->chip->pdev->dev,
-+			"power regulator never stabilized");
-+		writeb(0, slot->host->ioaddr + SYSKT_POWER_CMD);
-+		return -ENODEV;
-+	}
-+
-+	return 0;
-+}
-+
-+static const struct sdhci_pci_fixes sdhci_syskt = {
-+	.quirks		= SDHCI_QUIRK_NO_SIMULT_VDD_AND_POWER,
-+	.probe		= syskt_probe,
-+	.probe_slot	= syskt_probe_slot,
-+};
-+
- static int via_probe(struct sdhci_pci_chip *chip)
- {
- 	if (chip->pdev->revision == 0x10)
-@@ -363,6 +430,14 @@ static const struct pci_device_id pci_id
- 	},
+ 		rmap_item->next = NULL;
++		rmap_item->address &= PAGE_MASK;
  
- 	{
-+		.vendor		= PCI_VENDOR_ID_SYSKONNECT,
-+		.device		= 0x8000,
-+		.subvendor	= PCI_ANY_ID,
-+		.subdevice	= PCI_ANY_ID,
-+		.driver_data	= (kernel_ulong_t)&sdhci_syskt,
-+	},
+ 	} else if (rmap_item->address & NODE_FLAG) {
+ 		unsigned char age;
+@@ -467,11 +468,11 @@ static void remove_rmap_item_from_tree(s
+ 		BUG_ON(age > 1);
+ 		if (!age)
+ 			rb_erase(&rmap_item->node, &root_unstable_tree);
 +
-+	{
- 		.vendor		= PCI_VENDOR_ID_VIA,
- 		.device		= 0x95d0,
- 		.subvendor	= PCI_ANY_ID,
+ 		ksm_pages_unshared--;
++		rmap_item->address &= PAGE_MASK;
+ 	}
+ 
+-	rmap_item->address &= PAGE_MASK;
+-
+ 	cond_resched();		/* we're called from many long loops */
+ }
+ 
+@@ -1086,8 +1087,7 @@ static void cmp_and_merge_page(struct pa
+ 	unsigned int checksum;
+ 	int err;
+ 
+-	if (in_stable_tree(rmap_item))
+-		remove_rmap_item_from_tree(rmap_item);
++	remove_rmap_item_from_tree(rmap_item);
+ 
+ 	/* We first start with searching the page inside the stable tree */
+ 	tree_rmap_item = stable_tree_search(page, page2, rmap_item);
+@@ -1143,9 +1143,7 @@ static void cmp_and_merge_page(struct pa
+ 		 * tree, and insert it instead as new node in the stable tree.
+ 		 */
+ 		if (!err) {
+-			rb_erase(&tree_rmap_item->node, &root_unstable_tree);
+-			tree_rmap_item->address &= ~NODE_FLAG;
+-			ksm_pages_unshared--;
++			remove_rmap_item_from_tree(tree_rmap_item);
+ 
+ 			/*
+ 			 * If we fail to insert the page into the stable tree,
+@@ -1174,11 +1172,8 @@ static struct rmap_item *get_next_rmap_i
+ 
+ 	while (cur != &mm_slot->rmap_list) {
+ 		rmap_item = list_entry(cur, struct rmap_item, link);
+-		if ((rmap_item->address & PAGE_MASK) == addr) {
+-			if (!in_stable_tree(rmap_item))
+-				remove_rmap_item_from_tree(rmap_item);
++		if ((rmap_item->address & PAGE_MASK) == addr)
+ 			return rmap_item;
+-		}
+ 		if (rmap_item->address > addr)
+ 			break;
+ 		cur = cur->next;
 _
 
-Patches currently in -mm which might be from nico@fluxnic.net are
+Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
 
 origin.patch
 linux-next.patch
+vfs-fsstack-handle-32-bit-smp-preempt-large-files-in-fsstack_copy_inode_size.patch
+ksm-memory-hotremove-migration-only-fix.patch
+elf-kill-use_elf_core_dump.patch
+prio_tree-debugging-patch.patch
 
