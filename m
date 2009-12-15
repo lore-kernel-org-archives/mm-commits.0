@@ -1,153 +1,205 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-add-numa-node-symlink-for-memory-section-in-sysfs.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 13:52:41 -0800
-Message-ID: <200912152152.nBFLqfpF015210@imap1.linux-foundation.org>
+Subject: [merged] mm-hugetlb-add-hugepage-support-to-pagemap.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 13:54:54 -0800
+Message-ID: <200912152154.nBFLssn0015403@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40349 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53799 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933993AbZLOWT3 (ORCPT
+	by vger.kernel.org with ESMTP id S934016AbZLOWTs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 17:19:29 -0500
+	Tue, 15 Dec 2009 17:19:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: achiang@hp.com, garyhade@us.ibm.com, greg@kroah.com, kosaki.motohiro@jp.fujitsu.com, mingo@elte.hu, pbadari@us.ibm.com, randy.dunlap@oracle.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, ak@linux.intel.com, apw@canonical.com, fengguang.wu@intel.com, hugh.dickins@tiscali.co.uk, lee.schermerhorn@hp.com, mel@csn.ul.ie, rientjes@google.com, mm-c
 
 
 The patch titled
-     mm: add numa node symlink for memory section in sysfs
+     mm hugetlb: add hugepage support to pagemap
 has been removed from the -mm tree.  Its filename was
-     mm-add-numa-node-symlink-for-memory-section-in-sysfs.patch
+     mm-hugetlb-add-hugepage-support-to-pagemap.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: add numa node symlink for memory section in sysfs
-From: Alex Chiang <achiang@hp.com>
+Subject: mm hugetlb: add hugepage support to pagemap
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 
-Commit c04fc586c (mm: show node to memory section relationship with
-symlinks in sysfs) created symlinks from nodes to memory sections, e.g.
+This patch enables extraction of the pfn of a hugepage from
+/proc/pid/pagemap in an architecture independent manner.
 
-/sys/devices/system/node/node1/memory135 -> ../../memory/memory135
+Details
+-------
+My test program (leak_pagemap) works as follows:
+ - creat() and mmap() a file on hugetlbfs (file size is 200MB == 100 hugepages,)
+ - read()/write() something on it,
+ - call page-types with option -p,
+ - munmap() and unlink() the file on hugetlbfs
 
-If you're examining the memory section though and are wondering what node
-it might belong to, you can find it by grovelling around in sysfs, but
-it's a little cumbersome.
+Without my patches
+------------------
+$ ./leak_pagemap
+             flags page-count       MB  symbolic-flags                     long-symbolic-flags
+0x0000000000000000          1        0  __________________________________
+0x0000000000000804          1        0  __R________M______________________ referenced,mmap
+0x000000000000086c         81        0  __RU_lA____M______________________ referenced,uptodate,lru,active,mmap
+0x0000000000005808          5        0  ___U_______Ma_b___________________ uptodate,mmap,anonymous,swapbacked
+0x0000000000005868         12        0  ___U_lA____Ma_b___________________ uptodate,lru,active,mmap,anonymous,swapbacked
+0x000000000000586c          1        0  __RU_lA____Ma_b___________________ referenced,uptodate,lru,active,mmap,anonymous,swapbacked
+             total        101        0
 
-Add a reverse symlink for each memory section that points back to the
-node to which it belongs.
+The output of page-types don't show any hugepage.
 
-Signed-off-by: Alex Chiang <achiang@hp.com>
-Cc: Gary Hade <garyhade@us.ibm.com>
-Cc: Badari Pulavarty <pbadari@us.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+
+With my patches
+---------------
+$ ./leak_pagemap
+             flags page-count       MB  symbolic-flags                     long-symbolic-flags
+0x0000000000000000          1        0  __________________________________
+0x0000000000030000      51100      199  ________________TG________________ compound_tail,huge
+0x0000000000028018        100        0  ___UD__________H_G________________ uptodate,dirty,compound_head,huge
+0x0000000000000804          1        0  __R________M______________________ referenced,mmap
+0x000000000000080c          1        0  __RU_______M______________________ referenced,uptodate,mmap
+0x000000000000086c         80        0  __RU_lA____M______________________ referenced,uptodate,lru,active,mmap
+0x0000000000005808          4        0  ___U_______Ma_b___________________ uptodate,mmap,anonymous,swapbacked
+0x0000000000005868         12        0  ___U_lA____Ma_b___________________ uptodate,lru,active,mmap,anonymous,swapbacked
+0x000000000000586c          1        0  __RU_lA____Ma_b___________________ referenced,uptodate,lru,active,mmap,anonymous,swapbacked
+             total      51300      200
+
+The output of page-types shows 51200 pages contributing to hugepages,
+containing 100 head pages and 51100 tail pages as expected.
+
+[akpm@linux-foundation.org: build fix]
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Andy Whitcroft <apw@canonical.com>
 Cc: David Rientjes <rientjes@google.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-devices-memory |   14 +++++++++++++-
- Documentation/memory-hotplug.txt               |   11 +++++++----
- drivers/base/node.c                            |   11 ++++++++++-
- 3 files changed, 30 insertions(+), 6 deletions(-)
+ fs/proc/task_mmu.c |   45 +++++++++++++++++++++++++++++++++++++++++++
+ include/linux/mm.h |    3 ++
+ mm/pagewalk.c      |   22 ++++++++++++++++++---
+ 3 files changed, 67 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/ABI/testing/sysfs-devices-memory~mm-add-numa-node-symlink-for-memory-section-in-sysfs Documentation/ABI/testing/sysfs-devices-memory
---- a/Documentation/ABI/testing/sysfs-devices-memory~mm-add-numa-node-symlink-for-memory-section-in-sysfs
-+++ a/Documentation/ABI/testing/sysfs-devices-memory
-@@ -60,6 +60,19 @@ Description:
- Users:		hotplug memory remove tools
- 		https://w3.opensource.ibm.com/projects/powerpc-utils/
- 
-+
-+What:		/sys/devices/system/memoryX/nodeY
-+Date:		October 2009
-+Contact:	Linux Memory Management list <linux-mm@kvack.org>
-+Description:
-+		When CONFIG_NUMA is enabled, a symbolic link that
-+		points to the corresponding NUMA node directory.
-+
-+		For example, the following symbolic link is created for
-+		memory section 9 on node0:
-+		/sys/devices/system/memory/memory9/node0 -> ../../node/node0
-+
-+
- What:		/sys/devices/system/node/nodeX/memoryY
- Date:		September 2008
- Contact:	Gary Hade <garyhade@us.ibm.com>
-@@ -70,4 +83,3 @@ Description:
- 		memory section directory.  For example, the following symbolic
- 		link is created for memory section 9 on node0.
- 		/sys/devices/system/node/node0/memory9 -> ../../memory/memory9
--
-diff -puN Documentation/memory-hotplug.txt~mm-add-numa-node-symlink-for-memory-section-in-sysfs Documentation/memory-hotplug.txt
---- a/Documentation/memory-hotplug.txt~mm-add-numa-node-symlink-for-memory-section-in-sysfs
-+++ a/Documentation/memory-hotplug.txt
-@@ -160,12 +160,15 @@ Under each section, you can see 4 files.
- NOTE:
-   These directories/files appear after physical memory hotplug phase.
- 
--If CONFIG_NUMA is enabled the
--/sys/devices/system/memory/memoryXXX memory section
--directories can also be accessed via symbolic links located in
--the /sys/devices/system/node/node* directories.  For example:
-+If CONFIG_NUMA is enabled the memoryXXX/ directories can also be accessed
-+via symbolic links located in the /sys/devices/system/node/node* directories.
-+
-+For example:
- /sys/devices/system/node/node0/memory9 -> ../../memory/memory9
- 
-+A backlink will also be created:
-+/sys/devices/system/memory/memory9/node0 -> ../../node/node0
-+
- --------------------------------
- 4. Physical memory hot-add phase
- --------------------------------
-diff -puN drivers/base/node.c~mm-add-numa-node-symlink-for-memory-section-in-sysfs drivers/base/node.c
---- a/drivers/base/node.c~mm-add-numa-node-symlink-for-memory-section-in-sysfs
-+++ a/drivers/base/node.c
-@@ -312,6 +312,7 @@ static int get_nid_for_pfn(unsigned long
- /* register memory section under specified node if it spans that node */
- int register_mem_sect_under_node(struct memory_block *mem_blk, int nid)
- {
-+	int ret;
- 	unsigned long pfn, sect_start_pfn, sect_end_pfn;
- 
- 	if (!mem_blk)
-@@ -328,9 +329,15 @@ int register_mem_sect_under_node(struct 
- 			continue;
- 		if (page_nid != nid)
- 			continue;
--		return sysfs_create_link_nowarn(&node_devices[nid].sysdev.kobj,
-+		ret = sysfs_create_link_nowarn(&node_devices[nid].sysdev.kobj,
- 					&mem_blk->sysdev.kobj,
- 					kobject_name(&mem_blk->sysdev.kobj));
-+		if (ret)
-+			return ret;
-+
-+		return sysfs_create_link_nowarn(&mem_blk->sysdev.kobj,
-+				&node_devices[nid].sysdev.kobj,
-+				kobject_name(&node_devices[nid].sysdev.kobj));
- 	}
- 	/* mem section does not span the specified node */
- 	return 0;
-@@ -359,6 +366,8 @@ int unregister_mem_sect_under_nodes(stru
- 			continue;
- 		sysfs_remove_link(&node_devices[nid].sysdev.kobj,
- 			 kobject_name(&mem_blk->sysdev.kobj));
-+		sysfs_remove_link(&mem_blk->sysdev.kobj,
-+			 kobject_name(&node_devices[nid].sysdev.kobj));
- 	}
- 	return 0;
+diff -puN fs/proc/task_mmu.c~mm-hugetlb-add-hugepage-support-to-pagemap fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~mm-hugetlb-add-hugepage-support-to-pagemap
++++ a/fs/proc/task_mmu.c
+@@ -650,6 +650,50 @@ static int pagemap_pte_range(pmd_t *pmd,
+ 	return err;
  }
-_
-
-Patches currently in -mm which might be from achiang@hp.com are
-
-origin.patch
-linux-next.patch
-
+ 
++static u64 huge_pte_to_pagemap_entry(pte_t pte, int offset)
++{
++	u64 pme = 0;
++	if (pte_present(pte))
++		pme = PM_PFRAME(pte_pfn(pte) + offset)
++			| PM_PSHIFT(PAGE_SHIFT) | PM_PRESENT;
++	return pme;
++}
++
++static int pagemap_hugetlb_range(pte_t *pte, unsigned long addr,
++				 unsigned long end, struct mm_walk *walk)
++{
++	struct vm_area_struct *vma;
++	struct pagemapread *pm = walk->private;
++	struct hstate *hs = NULL;
++	int err = 0;
++
++	vma = find_vma(walk->mm, addr);
++	if (vma)
++		hs = hstate_vma(vma);
++	for (; addr != end; addr += PAGE_SIZE) {
++		u64 pfn = PM_NOT_PRESENT;
++
++		if (vma && (addr >= vma->vm_end)) {
++			vma = find_vma(walk->mm, addr);
++			if (vma)
++				hs = hstate_vma(vma);
++		}
++
++		if (vma && (vma->vm_start <= addr) && is_vm_hugetlb_page(vma)) {
++			/* calculate pfn of the "raw" page in the hugepage. */
++			int offset = (addr & ~huge_page_mask(hs)) >> PAGE_SHIFT;
++			pfn = huge_pte_to_pagemap_entry(*pte, offset);
++		}
++		err = add_to_pagemap(addr, pfn, pm);
++		if (err)
++			return err;
++	}
++
++	cond_resched();
++
++	return err;
++}
++
+ /*
+  * /proc/pid/pagemap - an array mapping virtual pages to pfns
+  *
+@@ -742,6 +786,7 @@ static ssize_t pagemap_read(struct file 
+ 
+ 	pagemap_walk.pmd_entry = pagemap_pte_range;
+ 	pagemap_walk.pte_hole = pagemap_pte_hole;
++	pagemap_walk.hugetlb_entry = pagemap_hugetlb_range;
+ 	pagemap_walk.mm = mm;
+ 	pagemap_walk.private = &pm;
+ 
+diff -puN include/linux/mm.h~mm-hugetlb-add-hugepage-support-to-pagemap include/linux/mm.h
+--- a/include/linux/mm.h~mm-hugetlb-add-hugepage-support-to-pagemap
++++ a/include/linux/mm.h
+@@ -770,6 +770,7 @@ unsigned long unmap_vmas(struct mmu_gath
+  * @pmd_entry: if set, called for each non-empty PMD (3rd-level) entry
+  * @pte_entry: if set, called for each non-empty PTE (4th-level) entry
+  * @pte_hole: if set, called for each hole at all levels
++ * @hugetlb_entry: if set, called for each hugetlb entry
+  *
+  * (see walk_page_range for more details)
+  */
+@@ -779,6 +780,8 @@ struct mm_walk {
+ 	int (*pmd_entry)(pmd_t *, unsigned long, unsigned long, struct mm_walk *);
+ 	int (*pte_entry)(pte_t *, unsigned long, unsigned long, struct mm_walk *);
+ 	int (*pte_hole)(unsigned long, unsigned long, struct mm_walk *);
++	int (*hugetlb_entry)(pte_t *, unsigned long, unsigned long,
++			     struct mm_walk *);
+ 	struct mm_struct *mm;
+ 	void *private;
+ };
+diff -puN mm/pagewalk.c~mm-hugetlb-add-hugepage-support-to-pagemap mm/pagewalk.c
+--- a/mm/pagewalk.c~mm-hugetlb-add-hugepage-support-to-pagemap
++++ a/mm/pagewalk.c
+@@ -120,15 +120,31 @@ int walk_page_range(unsigned long addr, 
+ 	do {
+ 		next = pgd_addr_end(addr, end);
+ 
+-		/* skip hugetlb vma to avoid hugepage PMD being cleared
+-		 * in pmd_none_or_clear_bad(). */
++		/*
++		 * handle hugetlb vma individually because pagetable walk for
++		 * the hugetlb page is dependent on the architecture and
++		 * we can't handled it in the same manner as non-huge pages.
++		 */
+ 		vma = find_vma(walk->mm, addr);
++#ifdef CONFIG_HUGETLB_PAGE
+ 		if (vma && is_vm_hugetlb_page(vma)) {
++			pte_t *pte;
++			struct hstate *hs;
++
+ 			if (vma->vm_end < next)
+ 				next = vma->vm_end;
++			hs = hstate_vma(vma);
++			pte = huge_pte_offset(walk->mm,
++					      addr & huge_page_mask(hs));
++			if (pte && !huge_pte_none(huge_ptep_get(pte))
++			    && walk->hugetlb_entry)
++				err = walk->hugetlb_entry(pte, addr,
++							  next, walk);
++			if (err)
++				break;
+ 			continue;
+ 		}
