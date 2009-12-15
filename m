@@ -1,81 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged] vsprintf-reduce-code-size-by-avoiding-extra-check.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 13:57:24 -0800
-Message-ID: <200912152157.nBFLvOkO015719@imap1.linux-foundation.org>
+Subject: [merged] maintainers-mark-cifs-mailing-list-as-moderated-for-non-subscribers.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 13:57:01 -0800
+Message-ID: <200912152157.nBFLv1LQ015680@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38956 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59591 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761301AbZLOV5x (ORCPT
+	by vger.kernel.org with ESMTP id S1761291AbZLOV5f (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 16:57:53 -0500
+	Tue, 15 Dec 2009 16:57:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andre.goddard@gmail.com, fweisbec@gmail.com, mm-commits@vger.kernel.org
+To: kosaki.motohiro@jp.fujitsu.com, sfrench@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vsprintf: reduce code size by avoiding extra check
+     MAINTAINERS: mark cifs mailing list as "moderated for non-subscribers"
 has been removed from the -mm tree.  Its filename was
-     vsprintf-reduce-code-size-by-avoiding-extra-check.patch
+     maintainers-mark-cifs-mailing-list-as-moderated-for-non-subscribers.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vsprintf: reduce code size by avoiding extra check
-=46rom: Andr=E9 Goddard Rosa <andre.goddard@gmail.com>
+Subject: MAINTAINERS: mark cifs mailing list as "moderated for non-subscribers"
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-No functional change, just refactor the code so that it avoid checking
-"if (hi)" two times in a sequence, taking advantage of previous check m=
-ade.
+If non-subscribers post bug report to CIFS mailing list, they will get
+following messages.
 
-It also reduces code size:
-   text    data     bss     dec     hex filename
-  15726       0       8   15734    3d76 vsprintf.o (ex lib/lib.a-BEFORE=
-)
-  15710       0       8   15718    3d66 vsprintf.o (ex lib/lib.a-AFTER)
+	Your mail to 'linux-cifs-client' with the subject
 
-Signed-off-by: Andr=E9 Goddard Rosa <andre.goddard@gmail.com>
-Acked-by: Frederic Weisbecker <fweisbec@gmail.com>
+	    [PATCH x/x] cifs: xxxxxxxxxxxxx
+
+	Is being held until the list moderator can review it for approval.
+
+	The reason it is being held:
+
+	    Post by non-member to a members-only list
+
+	Either the message will get posted to the list, or you will receive
+	notification of the moderator's decision.  If you would like to cancel
+	this posting, please visit the following URL:
+
+members-only list should be written as so in MAINTAINERS file.
+
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Steve French <sfrench@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/vsprintf.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ MAINTAINERS |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN lib/vsprintf.c~vsprintf-reduce-code-size-by-avoiding-extra-ch=
-eck lib/vsprintf.c
---- a/lib/vsprintf.c~vsprintf-reduce-code-size-by-avoiding-extra-check
-+++ a/lib/vsprintf.c
-@@ -797,8 +797,9 @@ static char *ip6_compressed_string(char=20
- 				p =3D pack_hex_byte(p, hi);
- 			else
- 				*p++ =3D hex_asc_lo(hi);
-+			p =3D pack_hex_byte(p, lo);
- 		}
--		if (hi || lo > 0x0f)
-+		else if (lo > 0x0f)
- 			p =3D pack_hex_byte(p, lo);
- 		else
- 			*p++ =3D hex_asc_lo(lo);
+diff -puN MAINTAINERS~maintainers-mark-cifs-mailing-list-as-moderated-for-non-subscribers MAINTAINERS
+--- a/MAINTAINERS~maintainers-mark-cifs-mailing-list-as-moderated-for-non-subscribers
++++ a/MAINTAINERS
+@@ -1482,8 +1482,8 @@ F:	include/linux/coda*.h
+ 
+ COMMON INTERNET FILE SYSTEM (CIFS)
+ M:	Steve French <sfrench@samba.org>
+-L:	linux-cifs-client@lists.samba.org
+-L:	samba-technical@lists.samba.org
++L:	linux-cifs-client@lists.samba.org (moderated for non-subscribers)
++L:	samba-technical@lists.samba.org (moderated for non-subscribers)
+ W:	http://linux-cifs.samba.org/
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/sfrench/cifs-2.6.git
+ S:	Supported
 _
 
-Patches currently in -mm which might be from andre.goddard@gmail.com ar=
-e
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 origin.patch
-pid-tighten-pidmap-spinlock-critical-section-by-removing-kfree.patch
-pid-reduce-code-size-by-using-a-pointer-to-iterate-over-array.patch
+linux-next.patch
+readahead-add-blk_run_backing_dev.patch
+oom-kill-show-virtual-size-and-rss-information-of-the-killed-process.patch
+oom-kill-fix-numa-consraint-check-with-nodemask-v42.patch
+mm-introduce-coredump-parameter-structure.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
