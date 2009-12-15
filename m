@@ -1,154 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: [merged] vmscan-have-kswapd-sleep-for-a-short-interval-and-double-check-it-should-be-asleep.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 13:52:13 -0800
-Message-ID: <200912152152.nBFLqDwd015179@imap1.linux-foundation.org>
+Subject: [merged] mm-stop-ptlock-enlarging-struct-page.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 13:52:33 -0800
+Message-ID: <200912152152.nBFLqXxn015201@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45987 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60344 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761227AbZLOVx3 (ORCPT
+	by vger.kernel.org with ESMTP id S1761228AbZLOVxa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 16:53:29 -0500
+	Tue, 15 Dec 2009 16:53:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mel@csn.ul.ie, cl@linux-foundation.org, elendil@planet.nl, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: hugh.dickins@tiscali.co.uk, Lee.Schermerhorn@hp.com, aarcange@redhat.com, andi@firstfloor.org, fengguang.wu@intel.com, ieidus@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohi
 
 
 The patch titled
-     vmscan: have kswapd sleep for a short interval and double check it should be asleep
+     mm: stop ptlock enlarging struct page
 has been removed from the -mm tree.  Its filename was
-     vmscan-have-kswapd-sleep-for-a-short-interval-and-double-check-it-should-be-asleep.patch
+     mm-stop-ptlock-enlarging-struct-page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: have kswapd sleep for a short interval and double check it should be asleep
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: mm: stop ptlock enlarging struct page
+From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
-After kswapd balances all zones in a pgdat, it goes to sleep.  In the
-event of no IO congestion, kswapd can go to sleep very shortly after the
-high watermark was reached.  If there are a constant stream of allocations
-from parallel processes, it can mean that kswapd went to sleep too quickly
-and the high watermark is not being maintained for sufficient length time.
+CONFIG_DEBUG_SPINLOCK adds 12 or 16 bytes to a 32- or 64-bit spinlock_t,
+and CONFIG_DEBUG_LOCK_ALLOC adds another 12 or 24 bytes to it: lockdep
+enables both of those, and CONFIG_LOCK_STAT adds 8 or 16 bytes to that.
 
-This patch makes kswapd go to sleep as a two-stage process.  It first
-tries to sleep for HZ/10.  If it is woken up by another process or the
-high watermark is no longer met, it's considered a premature sleep and
-kswapd continues work.  Otherwise it goes fully to sleep.
+When 2.6.15 placed the split page table lock inside struct page (usually
+sized 32 or 56 bytes), only CONFIG_DEBUG_SPINLOCK was a possibility, and
+we ignored the enlargement (but fitted in CONFIG_GENERIC_LOCKBREAK's 4 by
+letting the spinlock_t occupy both page->private and page->mapping).
 
-This adds more counters to distinguish between fast and slow breaches of
-watermarks.  A "fast" premature sleep is one where the low watermark was
-hit in a very short time after kswapd going to sleep.  A "slow" premature
-sleep indicates that the high watermark was breached after a very short
-interval.
+Should these debugging options be allowed to double the size of a struct
+page, when only one minority use of the page (as a page table) needs to
+fit a spinlock in there?  Perhaps not.
 
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Cc: Frans Pop <elendil@planet.nl>
+Take the easy way out: switch off SPLIT_PTLOCK_CPUS when DEBUG_SPINLOCK or
+DEBUG_LOCK_ALLOC is in force.  I've sometimes tried to be cleverer,
+kmallocing a cacheline for the spinlock when it doesn't fit, but given up
+each time.  Falling back to mm->page_table_lock (as we do when ptlock is
+not split) lets lockdep check out the strictest path anyway.
+
+And now that some arches allow 8192 cpus, use 999999 for infinity.
+
+(What has this got to do with KSM swapping?  It doesn't care about the
+size of struct page, but may care about random junk in page->mapping - to
+be explained separately later.)
+
+Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: Izik Eidus <ieidus@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Nick Piggin <npiggin@suse.de>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Rik van Riel <riel@redhat.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmstat.h |    1 
- mm/vmscan.c            |   44 +++++++++++++++++++++++++++++++++++++--
- mm/vmstat.c            |    2 +
- 3 files changed, 45 insertions(+), 2 deletions(-)
+ mm/Kconfig |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/vmstat.h~vmscan-have-kswapd-sleep-for-a-short-interval-and-double-check-it-should-be-asleep include/linux/vmstat.h
---- a/include/linux/vmstat.h~vmscan-have-kswapd-sleep-for-a-short-interval-and-double-check-it-should-be-asleep
-+++ a/include/linux/vmstat.h
-@@ -40,6 +40,7 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- 		PGSCAN_ZONE_RECLAIM_FAILED,
- #endif
- 		PGINODESTEAL, SLABS_SCANNED, KSWAPD_STEAL, KSWAPD_INODESTEAL,
-+		KSWAPD_PREMATURE_FAST, KSWAPD_PREMATURE_SLOW,
- 		PAGEOUTRUN, ALLOCSTALL, PGROTATED,
- #ifdef CONFIG_HUGETLB_PAGE
- 		HTLB_BUDDY_PGALLOC, HTLB_BUDDY_PGALLOC_FAIL,
-diff -puN mm/vmscan.c~vmscan-have-kswapd-sleep-for-a-short-interval-and-double-check-it-should-be-asleep mm/vmscan.c
---- a/mm/vmscan.c~vmscan-have-kswapd-sleep-for-a-short-interval-and-double-check-it-should-be-asleep
-+++ a/mm/vmscan.c
-@@ -1904,6 +1904,24 @@ unsigned long try_to_free_mem_cgroup_pag
- }
- #endif
+diff -puN mm/Kconfig~mm-stop-ptlock-enlarging-struct-page mm/Kconfig
+--- a/mm/Kconfig~mm-stop-ptlock-enlarging-struct-page
++++ a/mm/Kconfig
+@@ -158,11 +158,13 @@ config PAGEFLAGS_EXTENDED
+ # Default to 4 for wider testing, though 8 might be more appropriate.
+ # ARM's adjust_pte (unused if VIPT) depends on mm-wide page_table_lock.
+ # PA-RISC 7xxx's spinlock_t would enlarge struct page from 32 to 44 bytes.
++# DEBUG_SPINLOCK and DEBUG_LOCK_ALLOC spinlock_t also enlarge struct page.
+ #
+ config SPLIT_PTLOCK_CPUS
+ 	int
+-	default "4096" if ARM && !CPU_CACHE_VIPT
+-	default "4096" if PARISC && !PA20
++	default "999999" if ARM && !CPU_CACHE_VIPT
++	default "999999" if PARISC && !PA20
++	default "999999" if DEBUG_SPINLOCK || DEBUG_LOCK_ALLOC
+ 	default "4"
  
-+/* is kswapd sleeping prematurely? */
-+static int sleeping_prematurely(int order, long remaining)
-+{
-+	struct zone *zone;
-+
-+	/* If a direct reclaimer woke kswapd within HZ/10, it's premature */
-+	if (remaining)
-+		return 1;
-+
-+	/* If after HZ/10, a zone is below the high mark, it's premature */
-+	for_each_populated_zone(zone)
-+		if (!zone_watermark_ok(zone, order, high_wmark_pages(zone),
-+								0, 0))
-+			return 1;
-+
-+	return 0;
-+}
-+
- /*
-  * For kswapd, balance_pgdat() will work across all this node's zones until
-  * they are all at high_wmark_pages(zone).
-@@ -2185,8 +2203,30 @@ static int kswapd(void *p)
- 			 */
- 			order = new_order;
- 		} else {
--			if (!freezing(current) && !kthread_should_stop())
--				schedule();
-+			if (!freezing(current) && !kthread_should_stop()) {
-+				long remaining = 0;
-+
-+				/* Try to sleep for a short interval */
-+				if (!sleeping_prematurely(order, remaining)) {
-+					remaining = schedule_timeout(HZ/10);
-+					finish_wait(&pgdat->kswapd_wait, &wait);
-+					prepare_to_wait(&pgdat->kswapd_wait, &wait, TASK_INTERRUPTIBLE);
-+				}
-+
-+				/*
-+				 * After a short sleep, check if it was a
-+				 * premature sleep. If not, then go fully
-+				 * to sleep until explicitly woken up
-+				 */
-+				if (!sleeping_prematurely(order, remaining))
-+					schedule();
-+				else {
-+					if (remaining)
-+						count_vm_event(KSWAPD_PREMATURE_FAST);
-+					else
-+						count_vm_event(KSWAPD_PREMATURE_SLOW);
-+				}
-+			}
- 
- 			order = pgdat->kswapd_max_order;
- 		}
-diff -puN mm/vmstat.c~vmscan-have-kswapd-sleep-for-a-short-interval-and-double-check-it-should-be-asleep mm/vmstat.c
---- a/mm/vmstat.c~vmscan-have-kswapd-sleep-for-a-short-interval-and-double-check-it-should-be-asleep
-+++ a/mm/vmstat.c
-@@ -683,6 +683,8 @@ static const char * const vmstat_text[] 
- 	"slabs_scanned",
- 	"kswapd_steal",
- 	"kswapd_inodesteal",
-+	"kswapd_slept_prematurely_fast",
-+	"kswapd_slept_prematurely_slow",
- 	"pageoutrun",
- 	"allocstall",
- 
+ #
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
 
 origin.patch
-mm-add-notifier-in-pageblock-isolation-for-balloon-drivers.patch
-powerpc-make-the-cmm-memory-hotplug-aware.patch
-powerpc-make-the-cmm-memory-hotplug-aware-update.patch
-mm-warn-once-when-a-page-is-freed-with-pg_mlocked-set.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
+linux-next.patch
+vfs-fsstack-handle-32-bit-smp-preempt-large-files-in-fsstack_copy_inode_size.patch
+ksm-memory-hotremove-migration-only-fix.patch
+elf-kill-use_elf_core_dump.patch
+prio_tree-debugging-patch.patch
 
