@@ -1,64 +1,220 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-new-kbuild-maintainer.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 13:50:01 -0800
-Message-ID: <200912152150.nBFLo1K9014900@imap1.linux-foundation.org>
+Subject: [merged] mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 13:50:21 -0800
+Message-ID: <200912152150.nBFLoLX0014948@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45158 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51071 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760272AbZLOVul (ORCPT
+	by vger.kernel.org with ESMTP id S1760165AbZLOVu7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 16:50:41 -0500
+	Tue, 15 Dec 2009 16:50:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mmarek@suse.cz, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: kosaki.motohiro@jp.fujitsu.com, hugh.dickins@tiscali.co.uk, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MAINTAINERS: new kbuild maintainer
+     mmap: don't return ENOMEM when mapcount is temporarily exceeded in munmap()
 has been removed from the -mm tree.  Its filename was
-     maintainers-new-kbuild-maintainer.patch
+     mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: new kbuild maintainer
-From: Michal Marek <mmarek@suse.cz>
+Subject: mmap: don't return ENOMEM when mapcount is temporarily exceeded in munmap()
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Sam was fine with handing over kbuild maintainership to me. The git
-trees are already in linux-next, a merge request will follow shortly.
+On ia64, the following test program exit abnormally, because glibc thread
+library called abort().
 
-Acked-by: Sam Ravnborg <sam@ravnborg.org>
-Signed-off-by: Michal Marek <mmarek@suse.cz>
+ ========================================================
+ (gdb) bt
+ #0  0xa000000000010620 in __kernel_syscall_via_break ()
+ #1  0x20000000003208e0 in raise () from /lib/libc.so.6.1
+ #2  0x2000000000324090 in abort () from /lib/libc.so.6.1
+ #3  0x200000000027c3e0 in __deallocate_stack () from /lib/libpthread.so.0
+ #4  0x200000000027f7c0 in start_thread () from /lib/libpthread.so.0
+ #5  0x200000000047ef60 in __clone2 () from /lib/libc.so.6.1
+ ========================================================
+
+The fact is, glibc call munmap() when thread exitng time for freeing
+stack, and it assume munlock() never fail.  However, munmap() often make
+vma splitting and it with many mapcount make -ENOMEM.
+
+Oh well, that's crazy, because stack unmapping never increase mapcount. 
+The maxcount exceeding is only temporary.  internal temporary exceeding
+shouldn't make ENOMEM.
+
+This patch does it.
+
+ test_max_mapcount.c
+ ==================================================================
+  #include<stdio.h>
+  #include<stdlib.h>
+  #include<string.h>
+  #include<pthread.h>
+  #include<errno.h>
+  #include<unistd.h>
+
+  #define THREAD_NUM 30000
+  #define MAL_SIZE (8*1024*1024)
+
+ void *wait_thread(void *args)
+ {
+ 	void *addr;
+
+ 	addr = malloc(MAL_SIZE);
+ 	sleep(10);
+
+ 	return NULL;
+ }
+
+ void *wait_thread2(void *args)
+ {
+ 	sleep(60);
+
+ 	return NULL;
+ }
+
+ int main(int argc, char *argv[])
+ {
+ 	int i;
+ 	pthread_t thread[THREAD_NUM], th;
+ 	int ret, count = 0;
+ 	pthread_attr_t attr;
+
+ 	ret = pthread_attr_init(&attr);
+ 	if(ret) {
+ 		perror("pthread_attr_init");
+ 	}
+
+ 	ret = pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+ 	if(ret) {
+ 		perror("pthread_attr_setdetachstate");
+ 	}
+
+ 	for (i = 0; i < THREAD_NUM; i++) {
+ 		ret = pthread_create(&th, &attr, wait_thread, NULL);
+ 		if(ret) {
+ 			fprintf(stderr, "[%d] ", count);
+ 			perror("pthread_create");
+ 		} else {
+ 			printf("[%d] create OK.\n", count);
+ 		}
+ 		count++;
+
+ 		ret = pthread_create(&thread[i], &attr, wait_thread2, NULL);
+ 		if(ret) {
+ 			fprintf(stderr, "[%d] ", count);
+ 			perror("pthread_create");
+ 		} else {
+ 			printf("[%d] create OK.\n", count);
+ 		}
+ 		count++;
+ 	}
+
+ 	sleep(3600);
+ 	return 0;
+ }
+ ==================================================================
+
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/mmap.c |   36 ++++++++++++++++++++++++++++--------
+ 1 file changed, 28 insertions(+), 8 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-new-kbuild-maintainer MAINTAINERS
---- a/MAINTAINERS~maintainers-new-kbuild-maintainer
-+++ a/MAINTAINERS
-@@ -3081,8 +3081,11 @@ S:	Maintained
- F:	fs/autofs4/
+diff -puN mm/mmap.c~mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap mm/mmap.c
+--- a/mm/mmap.c~mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap
++++ a/mm/mmap.c
+@@ -1812,10 +1812,10 @@ detach_vmas_to_be_unmapped(struct mm_str
+ }
  
- KERNEL BUILD
-+M:	Michal Marek <mmarek@suse.cz>
-+T:	git git://repo.or.cz/linux-kbuild.git for-next
-+T:	git git://repo.or.cz/linux-kbuild.git for-linus
- L:	linux-kbuild@vger.kernel.org
--S:	Orphan
-+S:	Maintained
- F:	Documentation/kbuild/
- F:	Makefile
- F:	scripts/Makefile.*
+ /*
+- * Split a vma into two pieces at address 'addr', a new vma is allocated
+- * either for the first part or the tail.
++ * __split_vma() bypasses sysctl_max_map_count checking.  We use this on the
++ * munmap path where it doesn't make sense to fail.
+  */
+-int split_vma(struct mm_struct * mm, struct vm_area_struct * vma,
++static int __split_vma(struct mm_struct * mm, struct vm_area_struct * vma,
+ 	      unsigned long addr, int new_below)
+ {
+ 	struct mempolicy *pol;
+@@ -1825,9 +1825,6 @@ int split_vma(struct mm_struct * mm, str
+ 					~(huge_page_mask(hstate_vma(vma)))))
+ 		return -EINVAL;
+ 
+-	if (mm->map_count >= sysctl_max_map_count)
+-		return -ENOMEM;
+-
+ 	new = kmem_cache_alloc(vm_area_cachep, GFP_KERNEL);
+ 	if (!new)
+ 		return -ENOMEM;
+@@ -1867,6 +1864,19 @@ int split_vma(struct mm_struct * mm, str
+ 	return 0;
+ }
+ 
++/*
++ * Split a vma into two pieces at address 'addr', a new vma is allocated
++ * either for the first part or the tail.
++ */
++int split_vma(struct mm_struct *mm, struct vm_area_struct *vma,
++	      unsigned long addr, int new_below)
++{
++	if (mm->map_count >= sysctl_max_map_count)
++		return -ENOMEM;
++
++	return __split_vma(mm, vma, addr, new_below);
++}
++
+ /* Munmap is split into 2 main parts -- this part which finds
+  * what needs doing, and the areas themselves, which do the
+  * work.  This now handles partial unmappings.
+@@ -1902,7 +1912,17 @@ int do_munmap(struct mm_struct *mm, unsi
+ 	 * places tmp vma above, and higher split_vma places tmp vma below.
+ 	 */
+ 	if (start > vma->vm_start) {
+-		int error = split_vma(mm, vma, start, 0);
++		int error;
++
++		/*
++		 * Make sure that map_count on return from munmap() will
++		 * not exceed its limit; but let map_count go just above
++		 * its limit temporarily, to help free resources as expected.
++		 */
++		if (end < vma->vm_end && mm->map_count >= sysctl_max_map_count)
++			return -ENOMEM;
++
++		error = __split_vma(mm, vma, start, 0);
+ 		if (error)
+ 			return error;
+ 		prev = vma;
+@@ -1911,7 +1931,7 @@ int do_munmap(struct mm_struct *mm, unsi
+ 	/* Does it split the last one? */
+ 	last = find_vma(mm, end);
+ 	if (last && end > last->vm_start) {
+-		int error = split_vma(mm, last, end, 1);
++		int error = __split_vma(mm, last, end, 1);
+ 		if (error)
+ 			return error;
+ 	}
 _
 
-Patches currently in -mm which might be from mmarek@suse.cz are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 origin.patch
 linux-next.patch
-kconfig-cross_compile-option.patch
+readahead-add-blk_run_backing_dev.patch
+oom-kill-show-virtual-size-and-rss-information-of-the-killed-process.patch
+oom-kill-fix-numa-consraint-check-with-nodemask-v42.patch
+mm-introduce-coredump-parameter-structure.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
