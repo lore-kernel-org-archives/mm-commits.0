@@ -1,206 +1,222 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mmc-add-module-parameter-to-set-whether-cards-are-assumed-removable.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 13:58:52 -0800
-Message-ID: <200912152158.nBFLwqvW015852__44749.8437752531$1260914458$gmane$org@imap1.linux-foundation.org>
+Subject: [merged] hwmon-w83627ehf-updates.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 13:59:12 -0800
+Message-ID: <200912152159.nBFLxCRK015881@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56821 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42184 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933832AbZLOWAA (ORCPT
+	by vger.kernel.org with ESMTP id S933832AbZLOWAZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 17:00:00 -0500
+	Tue, 15 Dec 2009 17:00:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ben@decadent.org.uk, larstiq@larstiq.dyndns.org, linux-mmc@vger.kernel.org, mm-commits@vger.kernel.org
+To: daniel.blueman@gmail.com, david.c.hubbard@gmail.com, hdegoede@redhat.com, khali@linux-fr.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mmc: add module parameter to set whether cards are assumed removable
+     hwmon: w83627ehf updates
 has been removed from the -mm tree.  Its filename was
-     mmc-add-module-parameter-to-set-whether-cards-are-assumed-removable.patch
+     hwmon-w83627ehf-updates.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: add module parameter to set whether cards are assumed removable
-From: Ben Hutchings <ben@decadent.org.uk>
+Subject: hwmon: w83627ehf updates
+From: Daniel J Blueman <daniel.blueman@gmail.com>
 
-Some people run general-purpose distribution kernels on netbooks with
-a card that is physically non-removable or logically non-removable
-(e.g. used for /home) and cannot be cleanly unmounted during suspend.
-Add a module parameter to set whether cards are assumed removable or
-non-removable, with the default set by CONFIG_MMC_UNSAFE_RESUME.
+Add control of fan minimum turn-on output levels, decoupling it from the
+fan turn-off output level.  Add control of rate of change of fan output
+level.  These in turn allow lower turn-off rotor speed and smoother
+transitions for better thermal and acoustic control authority.  Add
+support for constant fan speed and proportional-response operations modes.
 
-In general, it is not possible to tell whether a card present in an MMC
-slot after resume is the same that was there before suspend.  So there are
-two possible behaviours, each of which will cause data loss in some cases:
-
-CONFIG_MMC_UNSAFE_RESUME=n (default): Cards are assumed to be removed
-during suspend.  Any filesystem on them must be unmounted before suspend;
-otherwise, buffered writes will be lost.
-
-CONFIG_MMC_UNSAFE_RESUME=y: Cards are assumed to remain present during
-suspend.  They must not be swapped during suspend; otherwise, buffered
-writes will be flushed to the wrong card.
-
-Currently the choice is made at compile time and this allows that to be
-overridden at module load time.
-
-Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
-Cc: Wouter van Heyst <larstiq@larstiq.dyndns.org>
-Cc: <linux-mmc@vger.kernel.org>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Daniel J Blueman <daniel.blueman@gmail.com>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: David Hubbard <david.c.hubbard@gmail.com>
+Cc: Hans de Goede <hdegoede@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/Kconfig |    4 +++-
- drivers/mmc/core/core.c  |   16 ++++++++++++++++
- drivers/mmc/core/core.h  |    2 ++
- drivers/mmc/core/mmc.c   |   23 +----------------------
- drivers/mmc/core/sd.c    |   21 +--------------------
- 5 files changed, 23 insertions(+), 43 deletions(-)
+ Documentation/hwmon/w83627ehf |   10 +++-
+ drivers/hwmon/w83627ehf.c     |   72 +++++++++++++++++++++++---------
+ 2 files changed, 61 insertions(+), 21 deletions(-)
 
-diff -puN drivers/mmc/core/Kconfig~mmc-add-module-parameter-to-set-whether-cards-are-assumed-removable drivers/mmc/core/Kconfig
---- a/drivers/mmc/core/Kconfig~mmc-add-module-parameter-to-set-whether-cards-are-assumed-removable
-+++ a/drivers/mmc/core/Kconfig
-@@ -3,7 +3,7 @@
- #
+diff -puN Documentation/hwmon/w83627ehf~hwmon-w83627ehf-updates Documentation/hwmon/w83627ehf
+--- a/Documentation/hwmon/w83627ehf~hwmon-w83627ehf-updates
++++ a/Documentation/hwmon/w83627ehf
+@@ -81,8 +81,14 @@ pwm[1-4] - this file stores PWM duty cyc
+ 	   0 (stop) to 255 (full)
  
- config MMC_UNSAFE_RESUME
--	bool "Allow unsafe resume (DANGEROUS)"
-+	bool "Assume MMC/SD cards are non-removable (DANGEROUS)"
- 	help
- 	  If you say Y here, the MMC layer will assume that all cards
- 	  stayed in their respective slots during the suspend. The
-@@ -14,3 +14,5 @@ config MMC_UNSAFE_RESUME
- 	  This option is usually just for embedded systems which use
- 	  a MMC/SD card for rootfs. Most people should say N here.
- 
-+	  This option sets a default which can be overridden by the
-+	  module parameter "removable=0" or "removable=1".
-diff -puN drivers/mmc/core/core.c~mmc-add-module-parameter-to-set-whether-cards-are-assumed-removable drivers/mmc/core/core.c
---- a/drivers/mmc/core/core.c~mmc-add-module-parameter-to-set-whether-cards-are-assumed-removable
-+++ a/drivers/mmc/core/core.c
-@@ -48,6 +48,22 @@ int use_spi_crc = 1;
- module_param(use_spi_crc, bool, 0);
- 
- /*
-+ * We normally treat cards as removed during suspend if they are not
-+ * known to be on a non-removable bus, to avoid the risk of writing
-+ * back data to a different card after resume.  Allow this to be
-+ * overridden if necessary.
-+ */
-+#ifdef CONFIG_MMC_UNSAFE_RESUME
-+int mmc_assume_removable;
-+#else
-+int mmc_assume_removable = 1;
-+#endif
-+module_param_named(removable, mmc_assume_removable, bool, 0644);
-+MODULE_PARM_DESC(
-+	removable,
-+	"MMC/SD cards are removable and may be removed during suspend");
+ pwm[1-4]_enable - this file controls mode of fan/temperature control:
+-	* 1 Manual Mode, write to pwm file any value 0-255 (full speed)
+-	* 2 Thermal Cruise
++	* 1 Manual mode, write to pwm file any value 0-255 (full speed)
++	* 2 "Thermal Cruise" mode
++	* 3 "Fan Speed Cruise" mode
++	* 4 "Smart Fan III" mode
 +
-+/*
-  * Internal function. Schedule delayed work in the MMC work queue.
-  */
- static int mmc_schedule_delayed_work(struct delayed_work *work,
-diff -puN drivers/mmc/core/core.h~mmc-add-module-parameter-to-set-whether-cards-are-assumed-removable drivers/mmc/core/core.h
---- a/drivers/mmc/core/core.h~mmc-add-module-parameter-to-set-whether-cards-are-assumed-removable
-+++ a/drivers/mmc/core/core.h
-@@ -54,7 +54,9 @@ int mmc_attach_mmc(struct mmc_host *host
- int mmc_attach_sd(struct mmc_host *host, u32 ocr);
- int mmc_attach_sdio(struct mmc_host *host, u32 ocr);
++pwm[1-4]_mode - controls if output is PWM or DC level
++        * 0 DC output (0 - 12v)
++        * 1 PWM output
  
-+/* Module parameters */
- extern int use_spi_crc;
-+extern int mmc_assume_removable;
+ Thermal Cruise mode
+ -------------------
+diff -puN drivers/hwmon/w83627ehf.c~hwmon-w83627ehf-updates drivers/hwmon/w83627ehf.c
+--- a/drivers/hwmon/w83627ehf.c~hwmon-w83627ehf-updates
++++ a/drivers/hwmon/w83627ehf.c
+@@ -5,6 +5,7 @@
+     Copyright (C) 2006  Yuan Mu (Winbond),
+                         Rudolf Marek <r.marek@assembler.cz>
+                         David Hubbard <david.c.hubbard@gmail.com>
++			Daniel J Blueman <daniel.blueman@gmail.com>
  
- /* Debugfs information for hosts and cards */
- void mmc_add_host_debugfs(struct mmc_host *host);
-diff -puN drivers/mmc/core/mmc.c~mmc-add-module-parameter-to-set-whether-cards-are-assumed-removable drivers/mmc/core/mmc.c
---- a/drivers/mmc/core/mmc.c~mmc-add-module-parameter-to-set-whether-cards-are-assumed-removable
-+++ a/drivers/mmc/core/mmc.c
-@@ -602,25 +602,6 @@ static int mmc_awake(struct mmc_host *ho
- 	return err;
- }
+     Shamelessly ripped from the w83627hf driver
+     Copyright (C) 2003  Mark Studebaker
+@@ -177,12 +178,15 @@ static const u16 W83627EHF_REG_TEMP_CONF
+ #define W83627EHF_REG_ALARM3		0x45B
  
--#ifdef CONFIG_MMC_UNSAFE_RESUME
--
--static const struct mmc_bus_ops mmc_ops = {
--	.awake = mmc_awake,
--	.sleep = mmc_sleep,
--	.remove = mmc_remove,
--	.detect = mmc_detect,
--	.suspend = mmc_suspend,
--	.resume = mmc_resume,
--	.power_restore = mmc_power_restore,
--};
--
--static void mmc_attach_bus_ops(struct mmc_host *host)
--{
--	mmc_attach_bus(host, &mmc_ops);
--}
--
--#else
--
- static const struct mmc_bus_ops mmc_ops = {
- 	.awake = mmc_awake,
- 	.sleep = mmc_sleep,
-@@ -645,15 +626,13 @@ static void mmc_attach_bus_ops(struct mm
- {
- 	const struct mmc_bus_ops *bus_ops;
+ /* SmartFan registers */
++#define W83627EHF_REG_FAN_STEPUP_TIME 0x0f
++#define W83627EHF_REG_FAN_STEPDOWN_TIME 0x0e
++
+ /* DC or PWM output fan configuration */
+ static const u8 W83627EHF_REG_PWM_ENABLE[] = {
+ 	0x04,			/* SYS FAN0 output mode and PWM mode */
+ 	0x04,			/* CPU FAN0 output mode and PWM mode */
+ 	0x12,			/* AUX FAN mode */
+-	0x62,			/* CPU fan1 mode */
++	0x62,			/* CPU FAN1 mode */
+ };
  
--	if (host->caps & MMC_CAP_NONREMOVABLE)
-+	if (host->caps & MMC_CAP_NONREMOVABLE || !mmc_assume_removable)
- 		bus_ops = &mmc_ops_unsafe;
- 	else
- 		bus_ops = &mmc_ops;
- 	mmc_attach_bus(host, bus_ops);
- }
+ static const u8 W83627EHF_PWM_MODE_SHIFT[] = { 0, 1, 0, 6 };
+@@ -193,10 +197,12 @@ static const u8 W83627EHF_REG_PWM[] = { 
+ static const u8 W83627EHF_REG_TARGET[] = { 0x05, 0x06, 0x13, 0x63 };
+ static const u8 W83627EHF_REG_TOLERANCE[] = { 0x07, 0x07, 0x14, 0x62 };
  
--#endif
 -
+ /* Advanced Fan control, some values are common for all fans */
+-static const u8 W83627EHF_REG_FAN_MIN_OUTPUT[] = { 0x08, 0x09, 0x15, 0x64 };
+-static const u8 W83627EHF_REG_FAN_STOP_TIME[] = { 0x0C, 0x0D, 0x17, 0x66 };
++static const u8 W83627EHF_REG_FAN_START_OUTPUT[] = { 0x0a, 0x0b, 0x16, 0x65 };
++static const u8 W83627EHF_REG_FAN_STOP_OUTPUT[] = { 0x08, 0x09, 0x15, 0x64 };
++static const u8 W83627EHF_REG_FAN_STOP_TIME[] = { 0x0c, 0x0d, 0x17, 0x66 };
++static const u8 W83627EHF_REG_FAN_MAX_OUTPUT[] = { 0xff, 0x67, 0xff, 0x69 };
++static const u8 W83627EHF_REG_FAN_STEP_OUTPUT[] = { 0xff, 0x68, 0xff, 0x6a };
+ 
  /*
-  * Starting point for MMC card init.
-  */
-diff -puN drivers/mmc/core/sd.c~mmc-add-module-parameter-to-set-whether-cards-are-assumed-removable drivers/mmc/core/sd.c
---- a/drivers/mmc/core/sd.c~mmc-add-module-parameter-to-set-whether-cards-are-assumed-removable
-+++ a/drivers/mmc/core/sd.c
-@@ -606,23 +606,6 @@ static void mmc_sd_power_restore(struct 
- 	mmc_release_host(host);
+  * Conversions
+@@ -295,14 +301,19 @@ struct w83627ehf_data {
+ 
+ 	u8 pwm_mode[4]; /* 0->DC variable voltage, 1->PWM variable duty cycle */
+ 	u8 pwm_enable[4]; /* 1->manual
+-			     2->thermal cruise (also called SmartFan I) */
++			     2->thermal cruise mode (also called SmartFan I)
++			     3->fan speed cruise mode
++			     4->variable thermal cruise (also called SmartFan III) */
+ 	u8 pwm_num;		/* number of pwm */
+ 	u8 pwm[4];
+ 	u8 target_temp[4];
+ 	u8 tolerance[4];
+ 
+-	u8 fan_min_output[4]; /* minimum fan speed */
+-	u8 fan_stop_time[4];
++	u8 fan_start_output[4]; /* minimum fan speed when spinning up */
++	u8 fan_stop_output[4]; /* minimum fan speed when spinning down */
++	u8 fan_stop_time[4]; /* time at minimum before disabling fan */
++	u8 fan_max_output[4]; /* maximum fan speed */
++	u8 fan_step_output[4]; /* rate of change output value */
+ 
+ 	u8 vid;
+ 	u8 vrm;
+@@ -529,8 +540,10 @@ static struct w83627ehf_data *w83627ehf_
+ 						& 3) + 1;
+ 			data->pwm[i] = w83627ehf_read_value(data,
+ 						W83627EHF_REG_PWM[i]);
+-			data->fan_min_output[i] = w83627ehf_read_value(data,
+-						W83627EHF_REG_FAN_MIN_OUTPUT[i]);
++			data->fan_start_output[i] = w83627ehf_read_value(data,
++						W83627EHF_REG_FAN_START_OUTPUT[i]);
++			data->fan_stop_output[i] = w83627ehf_read_value(data,
++						W83627EHF_REG_FAN_STOP_OUTPUT[i]);
+ 			data->fan_stop_time[i] = w83627ehf_read_value(data,
+ 						W83627EHF_REG_FAN_STOP_TIME[i]);
+ 			data->target_temp[i] =
+@@ -976,7 +989,7 @@ store_pwm_enable(struct device *dev, str
+ 	u32 val = simple_strtoul(buf, NULL, 10);
+ 	u16 reg;
+ 
+-	if (!val || (val > 2))	/* only modes 1 and 2 are supported */
++	if (!val || (val > 4))
+ 		return -EINVAL;
+ 	mutex_lock(&data->update_lock);
+ 	reg = w83627ehf_read_value(data, W83627EHF_REG_PWM_ENABLE[nr]);
+@@ -1118,7 +1131,10 @@ store_##reg(struct device *dev, struct d
+ 	return count; \
  }
  
--#ifdef CONFIG_MMC_UNSAFE_RESUME
--
--static const struct mmc_bus_ops mmc_sd_ops = {
--	.remove = mmc_sd_remove,
--	.detect = mmc_sd_detect,
--	.suspend = mmc_sd_suspend,
--	.resume = mmc_sd_resume,
--	.power_restore = mmc_sd_power_restore,
--};
--
--static void mmc_sd_attach_bus_ops(struct mmc_host *host)
--{
--	mmc_attach_bus(host, &mmc_sd_ops);
--}
--
--#else
--
- static const struct mmc_bus_ops mmc_sd_ops = {
- 	.remove = mmc_sd_remove,
- 	.detect = mmc_sd_detect,
-@@ -643,15 +626,13 @@ static void mmc_sd_attach_bus_ops(struct
- {
- 	const struct mmc_bus_ops *bus_ops;
+-fan_functions(fan_min_output, FAN_MIN_OUTPUT)
++fan_functions(fan_start_output, FAN_START_OUTPUT)
++fan_functions(fan_stop_output, FAN_STOP_OUTPUT)
++fan_functions(fan_max_output, FAN_MAX_OUTPUT)
++fan_functions(fan_step_output, FAN_STEP_OUTPUT)
  
--	if (host->caps & MMC_CAP_NONREMOVABLE)
-+	if (host->caps & MMC_CAP_NONREMOVABLE || !mmc_assume_removable)
- 		bus_ops = &mmc_sd_ops_unsafe;
- 	else
- 		bus_ops = &mmc_sd_ops;
- 	mmc_attach_bus(host, bus_ops);
- }
+ #define fan_time_functions(reg, REG) \
+ static ssize_t show_##reg(struct device *dev, struct device_attribute *attr, \
+@@ -1161,8 +1177,14 @@ static DEVICE_ATTR(name, S_IRUGO, show_n
+ static struct sensor_device_attribute sda_sf3_arrays_fan4[] = {
+ 	SENSOR_ATTR(pwm4_stop_time, S_IWUSR | S_IRUGO, show_fan_stop_time,
+ 		    store_fan_stop_time, 3),
+-	SENSOR_ATTR(pwm4_min_output, S_IWUSR | S_IRUGO, show_fan_min_output,
+-		    store_fan_min_output, 3),
++	SENSOR_ATTR(pwm4_start_output, S_IWUSR | S_IRUGO, show_fan_start_output,
++		    store_fan_start_output, 3),
++	SENSOR_ATTR(pwm4_stop_output, S_IWUSR | S_IRUGO, show_fan_stop_output,
++		    store_fan_stop_output, 3),
++	SENSOR_ATTR(pwm4_max_output, S_IWUSR | S_IRUGO, show_fan_max_output,
++		    store_fan_max_output, 3),
++	SENSOR_ATTR(pwm4_step_output, S_IWUSR | S_IRUGO, show_fan_step_output,
++		    store_fan_step_output, 3),
+ };
  
--#endif
+ static struct sensor_device_attribute sda_sf3_arrays[] = {
+@@ -1172,12 +1194,24 @@ static struct sensor_device_attribute sd
+ 		    store_fan_stop_time, 1),
+ 	SENSOR_ATTR(pwm3_stop_time, S_IWUSR | S_IRUGO, show_fan_stop_time,
+ 		    store_fan_stop_time, 2),
+-	SENSOR_ATTR(pwm1_min_output, S_IWUSR | S_IRUGO, show_fan_min_output,
+-		    store_fan_min_output, 0),
+-	SENSOR_ATTR(pwm2_min_output, S_IWUSR | S_IRUGO, show_fan_min_output,
+-		    store_fan_min_output, 1),
+-	SENSOR_ATTR(pwm3_min_output, S_IWUSR | S_IRUGO, show_fan_min_output,
+-		    store_fan_min_output, 2),
++	SENSOR_ATTR(pwm1_start_output, S_IWUSR | S_IRUGO, show_fan_start_output,
++		    store_fan_start_output, 0),
++	SENSOR_ATTR(pwm2_start_output, S_IWUSR | S_IRUGO, show_fan_start_output,
++		    store_fan_start_output, 1),
++	SENSOR_ATTR(pwm3_start_output, S_IWUSR | S_IRUGO, show_fan_start_output,
++		    store_fan_start_output, 2),
++	SENSOR_ATTR(pwm1_stop_output, S_IWUSR | S_IRUGO, show_fan_stop_output,
++		    store_fan_stop_output, 0),
++	SENSOR_ATTR(pwm2_stop_output, S_IWUSR | S_IRUGO, show_fan_stop_output,
++		    store_fan_stop_output, 1),
++	SENSOR_ATTR(pwm3_stop_output, S_IWUSR | S_IRUGO, show_fan_stop_output,
++		    store_fan_stop_output, 2),
++
++	/* pwm1 and pwm3 don't support max and step settings */
++	SENSOR_ATTR(pwm2_max_output, S_IWUSR | S_IRUGO, show_fan_max_output,
++		    store_fan_max_output, 1),
++	SENSOR_ATTR(pwm2_step_output, S_IWUSR | S_IRUGO, show_fan_step_output,
++		    store_fan_step_output, 1),
+ };
+ 
+ static ssize_t
+_
+
+Patches currently in -mm which might be from daniel.blueman@gmail.com are
+
+origin.patch
+
