@@ -1,84 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lis3lv02d-axis-remap-and-resource-setup-release.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 13:59:09 -0800
-Message-ID: <200912152159.nBFLx9J3015878@imap1.linux-foundation.org>
+Subject: [merged] davinci-mmc-modify-data-types-of-edma-related-variables.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 13:58:36 -0800
+Message-ID: <200912152158.nBFLwasH015831__10707.7101165943$1260915462$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33925 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36638 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761374AbZLOWQm (ORCPT
+	by vger.kernel.org with ESMTP id S933993AbZLOWQr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 17:16:42 -0500
+	Tue, 15 Dec 2009 17:16:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: samu.p.onkalo@nokia.com, eric.piel@tremplin-utc.net, kalhan.trisal@intel.com, khali@linux-fr.org, pavel@ucw.cz, mm-commits@vger.kernel.org
+To: sudhakar.raj@ti.com, dbrownell@users.sourceforge.net, linux-mmc@vger.kernel.org, purushotam@ti.com, vipin.bhandari@ti.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lis3lv02d: axis remap and resource setup/release
+     mmc: davinci: modify data types of EDMA related variables
 has been removed from the -mm tree.  Its filename was
-     lis3lv02d-axis-remap-and-resource-setup-release.patch
+     davinci-mmc-modify-data-types-of-edma-related-variables.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lis3lv02d: axis remap and resource setup/release
-=46rom: Samu Onkalo <samu.p.onkalo@nokia.com>
+Subject: mmc: davinci: modify data types of EDMA related variables
+From: Sudhakar Rajashekhara <sudhakar.raj@ti.com>
 
-Add the possibility to remap axes via platform data.  Function pointers
-for resource setup and release purposes
+Currently DaVinci EDMA driver supports multiple EDMA channel controller
+instances.  edma_alloc_channel() api returns a 32 bit value which has the
+channel controller number in MSB and the EDMA channel number in LSB.  The
+variables which store the value returned by edma_alloc_channel() have to
+be 32 bit wide now.
 
-Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
-Acked-by: =C9ric Piel <eric.piel@tremplin-utc.net>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc:  "Trisal, Kalhan" <kalhan.trisal@intel.com>
+Signed-off-by: Sudhakar Rajashekhara <sudhakar.raj@ti.com>
+Acked-by: Vipin Bhandari <vipin.bhandari@ti.com>
+Cc: Purshotam Kumar <purushotam@ti.com>
+Acked-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/lis3lv02d.h |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ drivers/mmc/host/davinci_mmc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/lis3lv02d.h~lis3lv02d-axis-remap-and-resource-s=
-etup-release include/linux/lis3lv02d.h
---- a/include/linux/lis3lv02d.h~lis3lv02d-axis-remap-and-resource-setup=
--release
-+++ a/include/linux/lis3lv02d.h
-@@ -43,6 +43,18 @@ struct lis3lv02d_platform_data {
- #define LIS3_WAKEUP_Z_HI	(1 << 5)
- 	unsigned char wakeup_flags;
- 	unsigned char wakeup_thresh;
-+#define LIS3_NO_MAP		0
-+#define LIS3_DEV_X		1
-+#define LIS3_DEV_Y		2
-+#define LIS3_DEV_Z		3
-+#define LIS3_INV_DEV_X	       -1
-+#define LIS3_INV_DEV_Y	       -2
-+#define LIS3_INV_DEV_Z	       -3
-+	s8 axis_x;
-+	s8 axis_y;
-+	s8 axis_z;
-+	int (*setup_resources)(void);
-+	int (*release_resources)(void);
- };
-=20
- #endif /* __LIS3LV02D_H_ */
+diff -puN drivers/mmc/host/davinci_mmc.c~davinci-mmc-modify-data-types-of-edma-related-variables drivers/mmc/host/davinci_mmc.c
+--- a/drivers/mmc/host/davinci_mmc.c~davinci-mmc-modify-data-types-of-edma-related-variables
++++ a/drivers/mmc/host/davinci_mmc.c
+@@ -178,7 +178,7 @@ struct mmc_davinci_host {
+ 	u32 buffer_bytes_left;
+ 	u32 bytes_left;
+ 
+-	u8 rxdma, txdma;
++	u32 rxdma, txdma;
+ 	bool use_dma;
+ 	bool do_dma;
+ 
+@@ -190,7 +190,7 @@ struct mmc_davinci_host {
+ 	struct edmacc_param	tx_template;
+ 	struct edmacc_param	rx_template;
+ 	unsigned		n_link;
+-	u8			links[NR_SG - 1];
++	u32			links[NR_SG - 1];
+ 
+ 	/* For PIO we walk scatterlists one segment at a time. */
+ 	unsigned int		sg_len;
 _
 
-Patches currently in -mm which might be from samu.p.onkalo@nokia.com ar=
-e
+Patches currently in -mm which might be from sudhakar.raj@ti.com are
 
 origin.patch
+linux-next.patch
+mtd-nand-davinci-correct-4-bit-error-correction.patch
+mtd-nand-davinci-correct-4-bit-error-correction-update.patch
+davinci-fb-calculate-the-clock-divider-from-pixel-clock-info.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
