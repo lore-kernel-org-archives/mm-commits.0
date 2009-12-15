@@ -1,255 +1,289 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lis3-selftest-support.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 13:59:30 -0800
-Message-ID: <200912152159.nBFLxU8p015908@imap1.linux-foundation.org>
+Subject: [merged] sdio-rework-cis-tuple-parsing.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 13:58:27 -0800
+Message-ID: <200912152158.nBFLwRlm015819@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59366 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36768 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933959AbZLOWPG (ORCPT
+	by vger.kernel.org with ESMTP id S933963AbZLOWPO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 17:15:06 -0500
+	Tue, 15 Dec 2009 17:15:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: samu.p.onkalo@nokia.com, Eric.Piel@tremplin-utc.net, pavel@ucw.cz, mm-commits@vger.kernel.org
+To: albert_herranz@yahoo.es, linux-mmc@vger.kernel.org, pierre@ossman.eu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lis3: selftest support
+     sdio: rework cis tuple parsing
 has been removed from the -mm tree.  Its filename was
-     lis3-selftest-support.patch
+     sdio-rework-cis-tuple-parsing.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lis3: selftest support
-=46rom: Samu Onkalo <samu.p.onkalo@nokia.com>
+Subject: sdio: rework cis tuple parsing
+From: Albert Herranz <albert_herranz@yahoo.es>
 
-Implement selftest feature as specified by chip manufacturer.  Control:
-read selftest sysfs entry
+Rework the current CIS tuple parsing code, reusing the existing
+infrastructure and providing an easy way to add new CISTPL_FUNCE parsers
+by TPLFE_TYPE.
 
-Response: "OK x y z" or "FAIL x y z"
+Valid known CIS tuples are now silently queued for the SDIO function
+driver when not parsed/processed (-EILSEQ) by the SDIO core.  Unknown CIS
+tuples (-ENOENT) are queued too for the SDIO function driver without
+aborting the initialization, but emit a warning in the kernel log.
 
-where x, y, and z are difference between selftest mode and normal mode.=
-=20
-Test is passed when values are within acceptance limit values.
+CISTPL_FUNCE tuples can be "whitelisted" now by adding a matching entry to
+the cis_tpl_funce_list table.
 
-Acceptance limits are provided via platform data.  See chip spesificati=
-ons
-for acceptance limits.  If limits are not properly set, OK / FAIL decis=
-ion
-is meaningless.  However, userspace application can still make decision
-based on the numeric x, y, z values.
-
-Selftest is meant for HW diagnostic purposes.  It is not meant to be
-called during normal use of the chip.  It may cause false interrupt
-events.  Selftest mode delays polling of the normal results but it does=
-n't
-cause wrong values.  Chip must be in static state during selftest.  Any
-acceration during the test causes most probably failure.
-
-Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
-Acked-by: =C9ric Piel <Eric.Piel@tremplin-utc.net>
-Cc: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Albert Herranz <albert_herranz@yahoo.es>
+Acked-by: Pierre Ossman <pierre@ossman.eu>
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/lis3lv02d.c |   67 +++++++++++++++++++++++++++++++++++-
- drivers/hwmon/lis3lv02d.h |   14 ++++++-
- include/linux/lis3lv02d.h |    3 +
- 3 files changed, 81 insertions(+), 3 deletions(-)
+ drivers/mmc/core/sdio_cis.c |  167 ++++++++++++++++++----------------
+ 1 file changed, 93 insertions(+), 74 deletions(-)
 
-diff -puN drivers/hwmon/lis3lv02d.c~lis3-selftest-support drivers/hwmon=
-/lis3lv02d.c
---- a/drivers/hwmon/lis3lv02d.c~lis3-selftest-support
-+++ a/drivers/hwmon/lis3lv02d.c
-@@ -106,9 +106,11 @@ static void lis3lv02d_get_xyz(struct lis
+diff -puN drivers/mmc/core/sdio_cis.c~sdio-rework-cis-tuple-parsing drivers/mmc/core/sdio_cis.c
+--- a/drivers/mmc/core/sdio_cis.c~sdio-rework-cis-tuple-parsing
++++ a/drivers/mmc/core/sdio_cis.c
+@@ -97,26 +97,56 @@ static const unsigned char speed_val[16]
+ static const unsigned int speed_unit[8] =
+ 	{ 10000, 100000, 1000000, 10000000, 0, 0, 0, 0 };
+ 
+-/* FUNCE tuples with these types get passed to SDIO drivers */
+-static const unsigned char funce_type_whitelist[] = {
+-	4 /* CISTPL_FUNCE_LAN_NODE_ID used in Broadcom cards */
++
++typedef int (tpl_parse_t)(struct mmc_card *, struct sdio_func *,
++			   const unsigned char *, unsigned);
++
++struct cis_tpl {
++	unsigned char code;
++	unsigned char min_size;
++	tpl_parse_t *parse;
+ };
+ 
+-static int cistpl_funce_whitelisted(unsigned char type)
++static int cis_tpl_parse(struct mmc_card *card, struct sdio_func *func,
++			 const char *tpl_descr,
++			 const struct cis_tpl *tpl, int tpl_count,
++			 unsigned char code,
++			 const unsigned char *buf, unsigned size)
  {
- 	int position[3];
-=20
-+	mutex_lock(&lis3->mutex);
- 	position[0] =3D lis3->read_data(lis3, OUTX);
- 	position[1] =3D lis3->read_data(lis3, OUTY);
- 	position[2] =3D lis3->read_data(lis3, OUTZ);
-+	mutex_unlock(&lis3->mutex);
-=20
- 	*x =3D lis3lv02d_get_axis(lis3->ac.x, position);
- 	*y =3D lis3lv02d_get_axis(lis3->ac.y, position);
-@@ -133,6 +135,55 @@ static int lis3lv02d_get_odr(void)
- 	return val;
- }
-=20
-+static int lis3lv02d_selftest(struct lis3lv02d *lis3, s16 results[3])
-+{
-+	u8 reg;
-+	s16 x, y, z;
-+	u8 selftest;
-+	int ret;
-+
-+	mutex_lock(&lis3->mutex);
-+	if (lis3_dev.whoami =3D=3D WAI_12B)
-+		selftest =3D CTRL1_ST;
-+	else
-+		selftest =3D CTRL1_STP;
-+
-+	lis3->read(lis3, CTRL_REG1, &reg);
-+	lis3->write(lis3, CTRL_REG1, (reg | selftest));
-+	msleep(lis3->pwron_delay / lis3lv02d_get_odr());
-+
-+	/* Read directly to avoid axis remap */
-+	x =3D lis3->read_data(lis3, OUTX);
-+	y =3D lis3->read_data(lis3, OUTY);
-+	z =3D lis3->read_data(lis3, OUTZ);
-+
-+	/* back to normal settings */
-+	lis3->write(lis3, CTRL_REG1, reg);
-+	msleep(lis3->pwron_delay / lis3lv02d_get_odr());
-+
-+	results[0] =3D x - lis3->read_data(lis3, OUTX);
-+	results[1] =3D y - lis3->read_data(lis3, OUTY);
-+	results[2] =3D z - lis3->read_data(lis3, OUTZ);
-+
-+	ret =3D 0;
-+	if (lis3->pdata) {
-+		int i;
-+		for (i =3D 0; i < 3; i++) {
-+			/* Check against selftest acceptance limits */
-+			if ((results[i] < lis3->pdata->st_min_limits[i]) ||
-+			    (results[i] > lis3->pdata->st_max_limits[i])) {
-+				ret =3D -EIO;
-+				goto fail;
-+			}
+-	int i;
++	int i, ret;
+ 
+-	for (i = 0; i < ARRAY_SIZE(funce_type_whitelist); i++) {
+-		if (funce_type_whitelist[i] == type)
+-			return 1;
++	/* look for a matching code in the table */
++	for (i = 0; i < tpl_count; i++, tpl++) {
++		if (tpl->code == code)
++			break;
+ 	}
+-	return 0;
++	if (i < tpl_count) {
++		if (size >= tpl->min_size) {
++			if (tpl->parse)
++				ret = tpl->parse(card, func, buf, size);
++			else
++				ret = -EILSEQ;	/* known tuple, not parsed */
++		} else {
++			/* invalid tuple */
++			ret = -EINVAL;
 +		}
++		if (ret && ret != -EILSEQ && ret != -ENOENT) {
++			printk(KERN_ERR "%s: bad %s tuple 0x%02x (%u bytes)\n",
++			       mmc_hostname(card->host), tpl_descr, code, size);
++		}
++	} else {
++		/* unknown tuple */
++		ret = -ENOENT;
 +	}
 +
-+	/* test passed */
-+fail:
-+	mutex_unlock(&lis3->mutex);
 +	return ret;
-+}
-+
- void lis3lv02d_poweroff(struct lis3lv02d *lis3)
- {
- 	/* disable X,Y,Z axis and power down */
-@@ -365,6 +416,17 @@ void lis3lv02d_joystick_disable(void)
- EXPORT_SYMBOL_GPL(lis3lv02d_joystick_disable);
-=20
- /* Sysfs stuff */
-+static ssize_t lis3lv02d_selftest_show(struct device *dev,
-+				struct device_attribute *attr, char *buf)
-+{
-+	int result;
-+	s16 values[3];
-+
-+	result =3D lis3lv02d_selftest(&lis3_dev, values);
-+	return sprintf(buf, "%s %d %d %d\n", result =3D=3D 0 ? "OK" : "FAIL",
-+		values[0], values[1], values[2]);
-+}
-+
- static ssize_t lis3lv02d_position_show(struct device *dev,
- 				struct device_attribute *attr, char *buf)
- {
-@@ -394,12 +456,14 @@ static ssize_t lis3lv02d_rate_show(struc
- 	return sprintf(buf, "%d\n", lis3lv02d_get_odr());
  }
-=20
-+static DEVICE_ATTR(selftest, S_IRUSR, lis3lv02d_selftest_show, NULL);
- static DEVICE_ATTR(position, S_IRUGO, lis3lv02d_position_show, NULL);
- static DEVICE_ATTR(calibrate, S_IRUGO|S_IWUSR, lis3lv02d_calibrate_sho=
-w,
- 	lis3lv02d_calibrate_store);
- static DEVICE_ATTR(rate, S_IRUGO, lis3lv02d_rate_show, NULL);
-=20
- static struct attribute *lis3lv02d_attributes[] =3D {
-+	&dev_attr_selftest.attr,
- 	&dev_attr_position.attr,
- 	&dev_attr_calibrate.attr,
- 	&dev_attr_rate.attr,
-@@ -455,6 +519,8 @@ int lis3lv02d_init_device(struct lis3lv0
+ 
+-static int cistpl_funce_common(struct mmc_card *card,
++static int cistpl_funce_common(struct mmc_card *card, struct sdio_func *func,
+ 			       const unsigned char *buf, unsigned size)
+ {
+-	if (size < 0x04 || buf[0] != 0)
++	/* Only valid for the common CIS (function 0) */
++	if (func)
  		return -EINVAL;
- 	}
-=20
-+	mutex_init(&dev->mutex);
-+
- 	lis3lv02d_add_fs(dev);
- 	lis3lv02d_poweron(dev);
-=20
-@@ -507,4 +573,3 @@ EXPORT_SYMBOL_GPL(lis3lv02d_init_device)
- MODULE_DESCRIPTION("ST LIS3LV02Dx three-axis digital accelerometer dri=
-ver");
- MODULE_AUTHOR("Yan Burman, Eric Piel, Pavel Machek");
- MODULE_LICENSE("GPL");
--
-diff -puN drivers/hwmon/lis3lv02d.h~lis3-selftest-support drivers/hwmon=
-/lis3lv02d.h
---- a/drivers/hwmon/lis3lv02d.h~lis3-selftest-support
-+++ a/drivers/hwmon/lis3lv02d.h
-@@ -98,7 +98,7 @@ enum lis3_who_am_i {
- 	WAI_6B		=3D 0x52, /* 6 bits: LIS331DLF - not supported */
- };
-=20
--enum lis3lv02d_ctrl1 {
-+enum lis3lv02d_ctrl1_12b {
- 	CTRL1_Xen	=3D 0x01,
- 	CTRL1_Yen	=3D 0x02,
- 	CTRL1_Zen	=3D 0x04,
-@@ -107,8 +107,17 @@ enum lis3lv02d_ctrl1 {
- 	CTRL1_DF1	=3D 0x20,
- 	CTRL1_PD0	=3D 0x40,
- 	CTRL1_PD1	=3D 0x80,
--	CTRL1_DR	=3D 0x80, /* Data rate on 8 bits */
- };
-+
-+/* Delta to ctrl1_12b version */
-+enum lis3lv02d_ctrl1_8b {
-+	CTRL1_STM	=3D 0x08,
-+	CTRL1_STP	=3D 0x10,
-+	CTRL1_FS	=3D 0x20,
-+	CTRL1_PD	=3D 0x40,
-+	CTRL1_DR	=3D 0x80,
+ 
+ 	/* TPLFE_FN0_BLK_SIZE */
+@@ -129,20 +159,24 @@ static int cistpl_funce_common(struct mm
+ 	return 0;
+ }
+ 
+-static int cistpl_funce_func(struct sdio_func *func,
++static int cistpl_funce_func(struct mmc_card *card, struct sdio_func *func,
+ 			     const unsigned char *buf, unsigned size)
+ {
+ 	unsigned vsn;
+ 	unsigned min_size;
+ 
+-	/* let SDIO drivers take care of whitelisted FUNCE tuples */
+-	if (cistpl_funce_whitelisted(buf[0]))
+-		return -EILSEQ;
++	/* Only valid for the individual function's CIS (1-7) */
++	if (!func)
++		return -EINVAL;
+ 
++	/*
++	 * This tuple has a different length depending on the SDIO spec
++	 * version.
++	 */
+ 	vsn = func->card->cccr.sdio_vsn;
+ 	min_size = (vsn == SDIO_SDIO_REV_1_00) ? 28 : 42;
+ 
+-	if (size < min_size || buf[0] != 1)
++	if (size < min_size)
+ 		return -EINVAL;
+ 
+ 	/* TPLFE_MAX_BLK_SIZE */
+@@ -157,39 +191,32 @@ static int cistpl_funce_func(struct sdio
+ 	return 0;
+ }
+ 
++/*
++ * Known TPLFE_TYPEs table for CISTPL_FUNCE tuples.
++ *
++ * Note that, unlike PCMCIA, CISTPL_FUNCE tuples are not parsed depending
++ * on the TPLFID_FUNCTION value of the previous CISTPL_FUNCID as on SDIO
++ * TPLFID_FUNCTION is always hardcoded to 0x0C.
++ */
++static const struct cis_tpl cis_tpl_funce_list[] = {
++	{	0x00,	4,	cistpl_funce_common		},
++	{	0x01,	0,	cistpl_funce_func		},
++	{	0x04,	1+1+6,	/* CISTPL_FUNCE_LAN_NODE_ID */	},
 +};
 +
- enum lis3lv02d_ctrl2 {
- 	CTRL2_DAS	=3D 0x01,
- 	CTRL2_SIM	=3D 0x02,
-@@ -218,6 +227,7 @@ struct lis3lv02d {
- 	unsigned long		misc_opened; /* bit0: whether the device is open */
-=20
- 	struct lis3lv02d_platform_data *pdata;	/* for passing board config */
-+	struct mutex		mutex;     /* Serialize poll and selftest */
- };
-=20
- int lis3lv02d_init_device(struct lis3lv02d *lis3);
-diff -puN include/linux/lis3lv02d.h~lis3-selftest-support include/linux=
-/lis3lv02d.h
---- a/include/linux/lis3lv02d.h~lis3-selftest-support
-+++ a/include/linux/lis3lv02d.h
-@@ -55,6 +55,9 @@ struct lis3lv02d_platform_data {
- 	s8 axis_z;
- 	int (*setup_resources)(void);
- 	int (*release_resources)(void);
-+	/* Limits for selftest are specified in chip data sheet */
-+	s16 st_min_limits[3]; /* min pass limit x, y, z */
-+	s16 st_max_limits[3]; /* max pass limit x, y, z */
- };
-=20
- #endif /* __LIS3LV02D_H_ */
+ static int cistpl_funce(struct mmc_card *card, struct sdio_func *func,
+ 			const unsigned char *buf, unsigned size)
+ {
+-	int ret;
+-
+-	/*
+-	 * There should be two versions of the CISTPL_FUNCE tuple,
+-	 * one for the common CIS (function 0) and a version used by
+-	 * the individual function's CIS (1-7). Yet, the later has a
+-	 * different length depending on the SDIO spec version.
+-	 */
+-	if (func)
+-		ret = cistpl_funce_func(func, buf, size);
+-	else
+-		ret = cistpl_funce_common(card, buf, size);
+-
+-	if (ret && ret != -EILSEQ) {
+-		printk(KERN_ERR "%s: bad CISTPL_FUNCE size %u "
+-		       "type %u\n", mmc_hostname(card->host), size, buf[0]);
+-	}
++	if (size < 1)
++		return -EINVAL;
+ 
+-	return ret;
++	return cis_tpl_parse(card, func, "CISTPL_FUNCE",
++			     cis_tpl_funce_list,
++			     ARRAY_SIZE(cis_tpl_funce_list),
++			     buf[0], buf, size);
+ }
+ 
+-typedef int (tpl_parse_t)(struct mmc_card *, struct sdio_func *,
+-			   const unsigned char *, unsigned);
+-
+-struct cis_tpl {
+-	unsigned char code;
+-	unsigned char min_size;
+-	tpl_parse_t *parse;
+-};
+-
++/* Known TPL_CODEs table for CIS tuples */
+ static const struct cis_tpl cis_tpl_list[] = {
+ 	{	0x15,	3,	cistpl_vers_1		},
+ 	{	0x20,	4,	cistpl_manfid		},
+@@ -268,46 +295,38 @@ static int sdio_read_cis(struct mmc_card
+ 			break;
+ 		}
+ 
+-		for (i = 0; i < ARRAY_SIZE(cis_tpl_list); i++)
+-			if (cis_tpl_list[i].code == tpl_code)
+-				break;
+-		if (i < ARRAY_SIZE(cis_tpl_list)) {
+-			const struct cis_tpl *tpl = cis_tpl_list + i;
+-			if (tpl_link < tpl->min_size) {
+-				printk(KERN_ERR
+-				       "%s: bad CIS tuple 0x%02x"
+-				       " (length = %u, expected >= %u)\n",
+-				       mmc_hostname(card->host),
+-				       tpl_code, tpl_link, tpl->min_size);
+-				ret = -EINVAL;
+-			} else if (tpl->parse) {
+-				ret = tpl->parse(card, func,
+-						 this->data, tpl_link);
+-			}
++		/* Try to parse the CIS tuple */
++		ret = cis_tpl_parse(card, func, "CIS",
++				    cis_tpl_list, ARRAY_SIZE(cis_tpl_list),
++				    tpl_code, this->data, tpl_link);
++		if (ret == -EILSEQ || ret == -ENOENT) {
+ 			/*
+-			 * We don't need the tuple anymore if it was
+-			 * successfully parsed by the SDIO core or if it is
+-			 * not going to be parsed by SDIO drivers.
++			 * The tuple is unknown or known but not parsed.
++			 * Queue the tuple for the function driver.
+ 			 */
+-			if (!ret || ret != -EILSEQ)
+-				kfree(this);
+-		} else {
+-			/* unknown tuple */
+-			ret = -EILSEQ;
+-		}
+-
+-		if (ret == -EILSEQ) {
+-			/* this tuple is unknown to the core or whitelisted */
+ 			this->next = NULL;
+ 			this->code = tpl_code;
+ 			this->size = tpl_link;
+ 			*prev = this;
+ 			prev = &this->next;
+-			printk(KERN_DEBUG
+-			       "%s: queuing CIS tuple 0x%02x length %u\n",
+-			       mmc_hostname(card->host), tpl_code, tpl_link);
++
++			if (ret == -ENOENT) {
++				/* warn about unknown tuples */
++				printk(KERN_WARNING "%s: queuing unknown"
++				       " CIS tuple 0x%02x (%u bytes)\n",
++				       mmc_hostname(card->host),
++				       tpl_code, tpl_link);
++			}
++
+ 			/* keep on analyzing tuples */
+ 			ret = 0;
++		} else {
++			/*
++			 * We don't need the tuple anymore if it was
++			 * successfully parsed by the SDIO core or if it is
++			 * not going to be queued for a driver.
++			 */
++			kfree(this);
+ 		}
+ 
+ 		ptr += tpl_link;
 _
 
-Patches currently in -mm which might be from samu.p.onkalo@nokia.com ar=
-e
+Patches currently in -mm which might be from albert_herranz@yahoo.es are
 
 origin.patch
+linux-next.patch
+sdio-recognize-io-card-without-powercycle.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
