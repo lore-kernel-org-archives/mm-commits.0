@@ -1,57 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-simplify-try_to_unmap_one-fix.patch removed from -mm tree
-Date: Mon, 14 Dec 2009 17:03:08 -0800
-Message-ID: <200912150103.nBF138HP001163@imap1.linux-foundation.org>
+Subject: [folded] vmscan-do-not-evict-inactive-pages-when-skipping-an-active-list-scan-fix.patch removed from -mm tree
+Date: Mon, 14 Dec 2009 17:03:29 -0800
+Message-ID: <200912150103.nBF13U8H002087@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37531 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58442 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932347AbZLOBDN (ORCPT
+	by vger.kernel.org with ESMTP id S1758388AbZLOBD4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Dec 2009 20:03:13 -0500
+	Mon, 14 Dec 2009 20:03:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, hugh.dickins@tiscali.co.uk, mm-commits@vger.kernel.org
+To: kosaki.motohiro@jp.fujitsu.com, hannes@cmpxchg.org, lwoodman@redhat.com, mangoo@wpkg.org, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-simplify-try_to_unmap_one-fix
+     vmscan-do-not-evict-inactive-pages-when-skipping-an-active-list-scan-fix
 has been removed from the -mm tree.  Its filename was
-     mm-simplify-try_to_unmap_one-fix.patch
+     vmscan-do-not-evict-inactive-pages-when-skipping-an-active-list-scan-fix.patch
 
-This patch was dropped because it was folded into mm-simplify-try_to_unmap_one.patch
+This patch was dropped because it was folded into vmscan-do-not-evict-inactive-pages-when-skipping-an-active-list-scan.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-simplify-try_to_unmap_one-fix
+Subject: vmscan-do-not-evict-inactive-pages-when-skipping-an-active-list-scan-fix
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+> In AIM7 runs, recent kernels start swapping out anonymous pages
+> well before they should.  This is due to shrink_list falling
+> through to shrink_inactive_list if !inactive_anon_is_low(zone, sc),
+> when all we really wanted to do is pre-age some anonymous pages to
+> give them extra time to be referenced while on the inactive list.
+>
+> The obvious fix is to make sure that shrink_list does not fall
+> through to scanning/reclaiming inactive pages when we called it
+> to scan one of the active lists.
+>
+> This change should be safe because the loop in shrink_zone ensures
+> that we will still shrink the anon and file inactive lists whenever
+> we should.
+
+Good catch!
+
+>
+> Reported-by: Larry Woodman <lwoodman@redhat.com>
+> Signed-off-by: Rik van Riel <riel@redhat.com>
+>
+> diff --git a/mm/vmscan.c b/mm/vmscan.c
+> index 777af57..ec4dfda 100644
+> --- a/mm/vmscan.c
+> +++ b/mm/vmscan.c
+> @@ -1469,13 +1469,15 @@ static unsigned long shrink_list(enum lru_list lru, unsigned long nr_to_scan,
+>  {
+>  	int file = is_file_lru(lru);
+>
+> -	if (lru == LRU_ACTIVE_FILE && inactive_file_is_low(zone, sc)) {
+> -		shrink_active_list(nr_to_scan, zone, sc, priority, file);
+> +	if (lru == LRU_ACTIVE_FILE) {
+> +		if (inactive_file_is_low(zone, sc))
+> +		      shrink_active_list(nr_to_scan, zone, sc, priority, file);
+>  		return 0;
+>  	}
+>
+> -	if (lru == LRU_ACTIVE_ANON && inactive_anon_is_low(zone, sc)) {
+> -		shrink_active_list(nr_to_scan, zone, sc, priority, file);
+> +	if (lru == LRU_ACTIVE_ANON) {
+> +		if (inactive_file_is_low(zone, sc))
+
+This inactive_file_is_low() should be inactive_anon_is_low().
+cut-n-paste programming often makes similar mistake. probaby we need make
+more cleanup to this function.
+
+How about this? (this is incremental patch from you)
+
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Larry Woodman <lwoodman@redhat.com>
+Reviewed-off-by: Rik van Riel <riel@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Tomasz Chmielewski <mangoo@wpkg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ mm/vmscan.c |   18 +++++++++++-------
+ 1 file changed, 11 insertions(+), 7 deletions(-)
 
-diff -puN mm/rmap.c~mm-simplify-try_to_unmap_one-fix mm/rmap.c
---- a/mm/rmap.c~mm-simplify-try_to_unmap_one-fix
-+++ a/mm/rmap.c
-@@ -870,6 +870,14 @@ out:
- out_mlock:
- 	pte_unmap_unlock(pte, ptl);
+diff -puN mm/vmscan.c~vmscan-do-not-evict-inactive-pages-when-skipping-an-active-list-scan-fix mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-do-not-evict-inactive-pages-when-skipping-an-active-list-scan-fix
++++ a/mm/vmscan.c
+@@ -1463,22 +1463,26 @@ static int inactive_file_is_low(struct z
+ 	return low;
+ }
  
++static int inactive_list_is_low(struct zone *zone, struct scan_control *sc,
++				int file)
++{
++	if (file)
++		return inactive_file_is_low(zone, sc);
++	else
++		return inactive_anon_is_low(zone, sc);
++}
 +
-+	/*
-+	 * We need mmap_sem locking, Otherwise VM_LOCKED check makes
-+	 * unstable result and race. Plus, We can't wait here because
-+	 * we now hold anon_vma->lock or mapping->i_mmap_lock.
-+	 * If trylock failed, The page remain evictable lru and
-+	 * retry to more unevictable lru by later vmscan.
-+	 */
- 	if (down_read_trylock(&vma->vm_mm->mmap_sem)) {
- 		if (vma->vm_flags & VM_LOCKED) {
- 			mlock_vma_page(page);
+ static unsigned long shrink_list(enum lru_list lru, unsigned long nr_to_scan,
+ 	struct zone *zone, struct scan_control *sc, int priority)
+ {
+ 	int file = is_file_lru(lru);
+ 
+-	if (lru == LRU_ACTIVE_FILE) {
+-		if (inactive_file_is_low(zone, sc))
++	if (is_active_lru(lru)) {
++		if (inactive_list_is_low(zone, sc, file))
+ 		    shrink_active_list(nr_to_scan, zone, sc, priority, file);
+ 		return 0;
+ 	}
+ 
+-	if (lru == LRU_ACTIVE_ANON) {
+-		if (inactive_file_is_low(zone, sc))
+-		    shrink_active_list(nr_to_scan, zone, sc, priority, file);
+-		return 0;
+-	}
+ 	return shrink_inactive_list(nr_to_scan, zone, sc, priority, file);
+ }
+ 
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
@@ -84,8 +154,6 @@ vmscan-kill-scswap_cluster_max.patch
 vmscan-make-consistent-of-reclaim-bale-out-between-do_try_to_free_page-and-shrink_zone.patch
 mm-memory_hotplug-make-offline_pages-static.patch
 mm-simplify-try_to_unmap_one.patch
-mm-simplify-try_to_unmap_one-fix.patch
-mm-simplify-try_to_unmap_one-fix-fix.patch
 vmscan-do-not-evict-inactive-pages-when-skipping-an-active-list-scan.patch
 vmscan-do-not-evict-inactive-pages-when-skipping-an-active-list-scan-fix.patch
 vmscan-simplify-code.patch
