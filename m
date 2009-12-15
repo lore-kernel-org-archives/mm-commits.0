@@ -1,625 +1,428 @@
 From: akpm@linux-foundation.org
-Subject: [merged] swap_info-swap-count-continuations.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 13:51:51 -0800
-Message-ID: <200912152151.nBFLppt0015138@imap1.linux-foundation.org>
+Subject: [merged] hugetlb-update-hugetlb-documentation-for-numa-controls.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 13:51:09 -0800
+Message-ID: <200912152151.nBFLp9vo015012@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45748 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39794 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761228AbZLOVwm (ORCPT
+	by vger.kernel.org with ESMTP id S1761193AbZLOVwV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 16:52:42 -0500
+	Tue, 15 Dec 2009 16:52:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh.dickins@tiscali.co.uk, kamezawa.hiroyu@jp.fujitsu.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: lee.schermerhorn@hp.com, agl@us.ibm.com, andi@firstfloor.org, apw@canonical.com, cl@linux-foundation.org, eric.whitney@hp.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, nacc@us.ib
 
 
 The patch titled
-     swap_info: swap count continuations
+     hugetlb: update hugetlb documentation for NUMA controls
 has been removed from the -mm tree.  Its filename was
-     swap_info-swap-count-continuations.patch
+     hugetlb-update-hugetlb-documentation-for-numa-controls.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: swap_info: swap count continuations
-From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Subject: hugetlb: update hugetlb documentation for NUMA controls
+From: Lee Schermerhorn <lee.schermerhorn@hp.com>
 
-Swap is duplicated (reference count incremented by one) whenever the same
-swap page is inserted into another mm (when forking finds a swap entry in
-place of a pte, or when reclaim unmaps a pte to insert the swap entry).
+Update the kernel huge tlb documentation to describe the numa memory
+policy based huge page management.  Additionaly, the patch includes a fair
+amount of rework to improve consistency, eliminate duplication and set the
+context for documenting the memory policy interaction.
 
-swap_info_struct's vmalloc'ed swap_map is the array of these reference
-counts: but what happens when the unsigned short (or unsigned char since
-the preceding patch) is full? (and its high bit is kept for a cache flag)
-
-We then lose track of it, never freeing, leaving it in use until swapoff:
-at which point we _hope_ that a single pass will have found all instances,
-assume there are no more, and will lose user data if we're wrong.
-
-Swapping of KSM pages has not yet been enabled; but it is implemented,
-and makes it very easy for a user to overflow the maximum swap count:
-possible with ordinary process pages, but unlikely, even when pid_max
-has been raised from PID_MAX_DEFAULT.
-
-This patch implements swap count continuations: when the count overflows,
-a continuation page is allocated and linked to the original vmalloc'ed
-map page, and this used to hold the continuation counts for that entry
-and its neighbours.  These continuation pages are seldom referenced:
-the common paths all work on the original swap_map, only referring to
-a continuation page when the low "digit" of a count is incremented or
-decremented through SWAP_MAP_MAX.
-
-Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
+Reviewed-by: Andi Kleen <andi@firstfloor.org>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Rik van Riel <riel@redhat.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Nishanth Aravamudan <nacc@us.ibm.com>
+Cc: Adam Litke <agl@us.ibm.com>
+Cc: Andy Whitcroft <apw@canonical.com>
+Cc: Eric Whitney <eric.whitney@hp.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |   22 ++
- mm/memory.c          |   19 ++
- mm/rmap.c            |    6 
- mm/swapfile.c        |  304 +++++++++++++++++++++++++++++++++--------
- 4 files changed, 287 insertions(+), 64 deletions(-)
+ Documentation/vm/hugetlbpage.txt |  267 +++++++++++++++++++----------
+ 1 file changed, 179 insertions(+), 88 deletions(-)
 
-diff -puN include/linux/swap.h~swap_info-swap-count-continuations include/linux/swap.h
---- a/include/linux/swap.h~swap_info-swap-count-continuations
-+++ a/include/linux/swap.h
-@@ -145,15 +145,18 @@ enum {
- 	SWP_DISCARDABLE = (1 << 2),	/* blkdev supports discard */
- 	SWP_DISCARDING	= (1 << 3),	/* now discarding a free cluster */
- 	SWP_SOLIDSTATE	= (1 << 4),	/* blkdev seeks are cheap */
-+	SWP_CONTINUED	= (1 << 5),	/* swap_map has count continuation */
- 					/* add others here before... */
- 	SWP_SCANNING	= (1 << 8),	/* refcount in scan_swap_map */
- };
+diff -puN Documentation/vm/hugetlbpage.txt~hugetlb-update-hugetlb-documentation-for-numa-controls Documentation/vm/hugetlbpage.txt
+--- a/Documentation/vm/hugetlbpage.txt~hugetlb-update-hugetlb-documentation-for-numa-controls
++++ a/Documentation/vm/hugetlbpage.txt
+@@ -11,23 +11,21 @@ This optimization is more critical now a
+ (several GBs) are more readily available.
  
- #define SWAP_CLUSTER_MAX 32
+ Users can use the huge page support in Linux kernel by either using the mmap
+-system call or standard SYSv shared memory system calls (shmget, shmat).
++system call or standard SYSV shared memory system calls (shmget, shmat).
  
--#define SWAP_MAP_MAX	0x7e
--#define SWAP_MAP_BAD	0x7f
--#define SWAP_HAS_CACHE	0x80		/* There is a swap cache of entry. */
-+#define SWAP_MAP_MAX	0x3e	/* Max duplication count, in first swap_map */
-+#define SWAP_MAP_BAD	0x3f	/* Note pageblock is bad, in first swap_map */
-+#define SWAP_HAS_CACHE	0x40	/* Flag page is cached, in first swap_map */
-+#define SWAP_CONT_MAX	0x7f	/* Max count, in each swap_map continuation */
-+#define COUNT_CONTINUED	0x80	/* See swap_map continuation for full count */
+ First the Linux kernel needs to be built with the CONFIG_HUGETLBFS
+ (present under "File systems") and CONFIG_HUGETLB_PAGE (selected
+ automatically when CONFIG_HUGETLBFS is selected) configuration
+ options.
  
- /*
-  * The in-memory structure used to track swap areas.
-@@ -311,9 +314,10 @@ extern long total_swap_pages;
- extern void si_swapinfo(struct sysinfo *);
- extern swp_entry_t get_swap_page(void);
- extern swp_entry_t get_swap_page_of_type(int);
--extern void swap_duplicate(swp_entry_t);
--extern int swapcache_prepare(swp_entry_t);
- extern int valid_swaphandles(swp_entry_t, unsigned long *);
-+extern int add_swap_count_continuation(swp_entry_t, gfp_t);
-+extern int swap_duplicate(swp_entry_t);
-+extern int swapcache_prepare(swp_entry_t);
- extern void swap_free(swp_entry_t);
- extern void swapcache_free(swp_entry_t, struct page *page);
- extern int free_swap_and_cache(swp_entry_t);
-@@ -385,8 +389,14 @@ static inline void show_swap_cache_info(
- #define free_swap_and_cache(swp)	is_migration_entry(swp)
- #define swapcache_prepare(swp)		is_migration_entry(swp)
+-The kernel built with huge page support should show the number of configured
+-huge pages in the system by running the "cat /proc/meminfo" command.
++The /proc/meminfo file provides information about the total number of
++persistent hugetlb pages in the kernel's huge page pool.  It also displays
++information about the number of free, reserved and surplus huge pages and the
++default huge page size.  The huge page size is needed for generating the
++proper alignment and size of the arguments to system calls that map huge page
++regions.
  
--static inline void swap_duplicate(swp_entry_t swp)
-+static inline int add_swap_count_continuation(swp_entry_t swp, gfp_t gfp_mask)
- {
-+	return 0;
-+}
-+
-+static inline int swap_duplicate(swp_entry_t swp)
-+{
-+	return 0;
- }
- 
- static inline void swap_free(swp_entry_t swp)
-diff -puN mm/memory.c~swap_info-swap-count-continuations mm/memory.c
---- a/mm/memory.c~swap_info-swap-count-continuations
-+++ a/mm/memory.c
-@@ -572,7 +572,7 @@ out:
-  * covered by this vma.
-  */
- 
--static inline void
-+static inline unsigned long
- copy_one_pte(struct mm_struct *dst_mm, struct mm_struct *src_mm,
- 		pte_t *dst_pte, pte_t *src_pte, struct vm_area_struct *vma,
- 		unsigned long addr, int *rss)
-@@ -586,7 +586,9 @@ copy_one_pte(struct mm_struct *dst_mm, s
- 		if (!pte_file(pte)) {
- 			swp_entry_t entry = pte_to_swp_entry(pte);
- 
--			swap_duplicate(entry);
-+			if (swap_duplicate(entry) < 0)
-+				return entry.val;
-+
- 			/* make sure dst_mm is on swapoff's mmlist. */
- 			if (unlikely(list_empty(&dst_mm->mmlist))) {
- 				spin_lock(&mmlist_lock);
-@@ -635,6 +637,7 @@ copy_one_pte(struct mm_struct *dst_mm, s
- 
- out_set_pte:
- 	set_pte_at(dst_mm, addr, dst_pte, pte);
-+	return 0;
- }
- 
- static int copy_pte_range(struct mm_struct *dst_mm, struct mm_struct *src_mm,
-@@ -646,6 +649,7 @@ static int copy_pte_range(struct mm_stru
- 	spinlock_t *src_ptl, *dst_ptl;
- 	int progress = 0;
- 	int rss[2];
-+	swp_entry_t entry = (swp_entry_t){0};
- 
- again:
- 	rss[1] = rss[0] = 0;
-@@ -674,7 +678,10 @@ again:
- 			progress++;
- 			continue;
- 		}
--		copy_one_pte(dst_mm, src_mm, dst_pte, src_pte, vma, addr, rss);
-+		entry.val = copy_one_pte(dst_mm, src_mm, dst_pte, src_pte,
-+							vma, addr, rss);
-+		if (entry.val)
-+			break;
- 		progress += 8;
- 	} while (dst_pte++, src_pte++, addr += PAGE_SIZE, addr != end);
- 
-@@ -684,6 +691,12 @@ again:
- 	add_mm_rss(dst_mm, rss[0], rss[1]);
- 	pte_unmap_unlock(orig_dst_pte, dst_ptl);
- 	cond_resched();
-+
-+	if (entry.val) {
-+		if (add_swap_count_continuation(entry, GFP_KERNEL) < 0)
-+			return -ENOMEM;
-+		progress = 0;
-+	}
- 	if (addr != end)
- 		goto again;
- 	return 0;
-diff -puN mm/rmap.c~swap_info-swap-count-continuations mm/rmap.c
---- a/mm/rmap.c~swap_info-swap-count-continuations
-+++ a/mm/rmap.c
-@@ -822,7 +822,11 @@ static int try_to_unmap_one(struct page 
- 			 * Store the swap location in the pte.
- 			 * See handle_pte_fault() ...
- 			 */
--			swap_duplicate(entry);
-+			if (swap_duplicate(entry) < 0) {
-+				set_pte_at(mm, address, pte, pteval);
-+				ret = SWAP_FAIL;
-+				goto out_unmap;
-+			}
- 			if (list_empty(&mm->mmlist)) {
- 				spin_lock(&mmlist_lock);
- 				if (list_empty(&mm->mmlist))
-diff -puN mm/swapfile.c~swap_info-swap-count-continuations mm/swapfile.c
---- a/mm/swapfile.c~swap_info-swap-count-continuations
-+++ a/mm/swapfile.c
-@@ -35,11 +35,14 @@
- #include <linux/swapops.h>
- #include <linux/page_cgroup.h>
- 
-+static bool swap_count_continued(struct swap_info_struct *, pgoff_t,
-+				 unsigned char);
-+static void free_swap_count_continuations(struct swap_info_struct *);
-+
- static DEFINE_SPINLOCK(swap_lock);
- static unsigned int nr_swapfiles;
- long nr_swap_pages;
- long total_swap_pages;
--static int swap_overflow;
- static int least_priority;
- 
- static const char Bad_file[] = "Bad swap file entry ";
-@@ -55,7 +58,7 @@ static DEFINE_MUTEX(swapon_mutex);
- 
- static inline unsigned char swap_count(unsigned char ent)
- {
--	return ent & ~SWAP_HAS_CACHE;
-+	return ent & ~SWAP_HAS_CACHE;	/* may include SWAP_HAS_CONT flag */
- }
- 
- /* returns 1 if swap entry is freed */
-@@ -545,8 +548,15 @@ static unsigned char swap_entry_free(str
- 	if (usage == SWAP_HAS_CACHE) {
- 		VM_BUG_ON(!has_cache);
- 		has_cache = 0;
--	} else if (count < SWAP_MAP_MAX)
--		count--;
-+	} else if ((count & ~COUNT_CONTINUED) <= SWAP_MAP_MAX) {
-+		if (count == COUNT_CONTINUED) {
-+			if (swap_count_continued(p, offset, count))
-+				count = SWAP_MAP_MAX | COUNT_CONTINUED;
-+			else
-+				count = SWAP_MAP_MAX;
-+		} else
-+			count--;
-+	}
- 
- 	if (!count)
- 		mem_cgroup_uncharge_swap(entry);
-@@ -604,6 +614,8 @@ void swapcache_free(swp_entry_t entry, s
- 
- /*
-  * How many references to page are currently swapped out?
-+ * This does not give an exact answer when swap count is continued,
-+ * but does include the high COUNT_CONTINUED flag to allow for that.
-  */
- static inline int page_swapcount(struct page *page)
- {
-@@ -1019,7 +1031,6 @@ static int try_to_unuse(unsigned int typ
- 	swp_entry_t entry;
- 	unsigned int i = 0;
- 	int retval = 0;
--	int reset_overflow = 0;
- 	int shmem;
- 
- 	/*
-@@ -1034,8 +1045,7 @@ static int try_to_unuse(unsigned int typ
- 	 * together, child after parent.  If we race with dup_mmap(), we
- 	 * prefer to resolve parent before child, lest we miss entries
- 	 * duplicated after we scanned child: using last mm would invert
--	 * that.  Though it's only a serious concern when an overflowed
--	 * swap count is reset from SWAP_MAP_MAX, preventing a rescan.
-+	 * that.
- 	 */
- 	start_mm = &init_mm;
- 	atomic_inc(&init_mm.mm_users);
-@@ -1165,36 +1175,6 @@ static int try_to_unuse(unsigned int typ
- 		}
- 
- 		/*
--		 * How could swap count reach 0x7ffe ?
--		 * There's no way to repeat a swap page within an mm
--		 * (except in shmem, where it's the shared object which takes
--		 * the reference count)?
--		 * We believe SWAP_MAP_MAX cannot occur.(if occur, unsigned
--		 * short is too small....)
--		 * If that's wrong, then we should worry more about
--		 * exit_mmap() and do_munmap() cases described above:
--		 * we might be resetting SWAP_MAP_MAX too early here.
--		 *
--		 * Yes, that's wrong: though very unlikely, swap count 0x7ffe
--		 * could surely occur if pid_max raised from PID_MAX_DEFAULT;
--		 * and we are now lowering SWAP_MAP_MAX to 0x7e, making it
--		 * much easier to reach.  But the next patch will fix that.
--		 *
--		 * We know "Undead"s can happen, they're okay, so don't
--		 * report them; but do report if we reset SWAP_MAP_MAX.
--		 */
--		/* We might release the lock_page() in unuse_mm(). */
--		if (!PageSwapCache(page) || page_private(page) != entry.val)
--			goto retry;
+-/proc/meminfo also provides information about the total number of hugetlb
+-pages configured in the kernel.  It also displays information about the
+-number of free hugetlb pages at any time.  It also displays information about
+-the configured huge page size - this is needed for generating the proper
+-alignment and size of the arguments to the above system calls.
 -
--		if (swap_count(*swap_map) == SWAP_MAP_MAX) {
--			spin_lock(&swap_lock);
--			*swap_map = SWAP_HAS_CACHE;
--			spin_unlock(&swap_lock);
--			reset_overflow = 1;
--		}
+-The output of "cat /proc/meminfo" will have lines like:
++The output of "cat /proc/meminfo" will include lines like:
+ 
+ .....
+ HugePages_Total: vvv
+@@ -53,59 +51,63 @@ HugePages_Surp  is short for "surplus," 
+ /proc/filesystems should also show a filesystem of type "hugetlbfs" configured
+ in the kernel.
+ 
+-/proc/sys/vm/nr_hugepages indicates the current number of configured hugetlb
+-pages in the kernel.  Super user can dynamically request more (or free some
+-pre-configured) huge pages.
+-The allocation (or deallocation) of hugetlb pages is possible only if there are
+-enough physically contiguous free pages in system (freeing of huge pages is
+-possible only if there are enough hugetlb pages free that can be transferred
+-back to regular memory pool).
 -
--		/*
- 		 * If a reference remains (rare), we would like to leave
- 		 * the page in the swap cache; but try_to_unmap could
- 		 * then re-duplicate the entry once we drop page lock,
-@@ -1235,7 +1215,6 @@ static int try_to_unuse(unsigned int typ
- 		 * mark page dirty so shrink_page_list will preserve it.
- 		 */
- 		SetPageDirty(page);
--retry:
- 		unlock_page(page);
- 		page_cache_release(page);
- 
-@@ -1247,10 +1226,6 @@ retry:
- 	}
- 
- 	mmput(start_mm);
--	if (reset_overflow) {
--		printk(KERN_WARNING "swapoff: cleared swap entry overflow\n");
--		swap_overflow = 0;
--	}
- 	return retval;
- }
- 
-@@ -1593,6 +1568,9 @@ SYSCALL_DEFINE1(swapoff, const char __us
- 	up_write(&swap_unplug_sem);
- 
- 	destroy_swap_extents(p);
-+	if (p->flags & SWP_CONTINUED)
-+		free_swap_count_continuations(p);
+-Pages that are used as hugetlb pages are reserved inside the kernel and cannot
+-be used for other purposes.
+-
+-Once the kernel with Hugetlb page support is built and running, a user can
+-use either the mmap system call or shared memory system calls to start using
+-the huge pages.  It is required that the system administrator preallocate
+-enough memory for huge page purposes.
+-
+-The administrator can preallocate huge pages on the kernel boot command line by
+-specifying the "hugepages=N" parameter, where 'N' = the number of huge pages
+-requested.  This is the most reliable method for preallocating huge pages as
+-memory has not yet become fragmented.
++/proc/sys/vm/nr_hugepages indicates the current number of "persistent" huge
++pages in the kernel's huge page pool.  "Persistent" huge pages will be
++returned to the huge page pool when freed by a task.  A user with root
++privileges can dynamically allocate more or free some persistent huge pages
++by increasing or decreasing the value of 'nr_hugepages'.
 +
- 	mutex_lock(&swapon_mutex);
- 	spin_lock(&swap_lock);
- 	drain_mmlist();
-@@ -2079,14 +2057,13 @@ void si_swapinfo(struct sysinfo *val)
- /*
-  * Verify that a swap entry is valid and increment its swap map count.
++Pages that are used as huge pages are reserved inside the kernel and cannot
++be used for other purposes.  Huge pages cannot be swapped out under
++memory pressure.
++
++Once a number of huge pages have been pre-allocated to the kernel huge page
++pool, a user with appropriate privilege can use either the mmap system call
++or shared memory system calls to use the huge pages.  See the discussion of
++Using Huge Pages, below.
++
++The administrator can allocate persistent huge pages on the kernel boot
++command line by specifying the "hugepages=N" parameter, where 'N' = the
++number of huge pages requested.  This is the most reliable method of
++allocating huge pages as memory has not yet become fragmented.
+ 
+-Some platforms support multiple huge page sizes.  To preallocate huge pages
++Some platforms support multiple huge page sizes.  To allocate huge pages
+ of a specific size, one must preceed the huge pages boot command parameters
+ with a huge page size selection parameter "hugepagesz=<size>".  <size> must
+ be specified in bytes with optional scale suffix [kKmMgG].  The default huge
+ page size may be selected with the "default_hugepagesz=<size>" boot parameter.
+ 
+-/proc/sys/vm/nr_hugepages indicates the current number of configured [default
+-size] hugetlb pages in the kernel.  Super user can dynamically request more
+-(or free some pre-configured) huge pages.
+-
+-Use the following command to dynamically allocate/deallocate default sized
+-huge pages:
++When multiple huge page sizes are supported, /proc/sys/vm/nr_hugepages
++indicates the current number of pre-allocated huge pages of the default size.
++Thus, one can use the following command to dynamically allocate/deallocate
++default sized persistent huge pages:
+ 
+ 	echo 20 > /proc/sys/vm/nr_hugepages
+ 
+-This command will try to configure 20 default sized huge pages in the system.
++This command will try to adjust the number of default sized huge pages in the
++huge page pool to 20, allocating or freeing huge pages, as required.
++
+ On a NUMA platform, the kernel will attempt to distribute the huge page pool
+-over the all on-line nodes.  These huge pages, allocated when nr_hugepages
+-is increased, are called "persistent huge pages".
++over all the set of allowed nodes specified by the NUMA memory policy of the
++task that modifies nr_hugepages.  The default for the allowed nodes--when the
++task has default memory policy--is all on-line nodes.  Allowed nodes with
++insufficient available, contiguous memory for a huge page will be silently
++skipped when allocating persistent huge pages.  See the discussion below of
++the interaction of task memory policy, cpusets and per node attributes with
++the allocation and freeing of persistent huge pages.
+ 
+ The success or failure of huge page allocation depends on the amount of
+-physically contiguous memory that is preset in system at the time of the
++physically contiguous memory that is present in system at the time of the
+ allocation attempt.  If the kernel is unable to allocate huge pages from
+ some nodes in a NUMA system, it will attempt to make up the difference by
+ allocating extra pages on other nodes with sufficient available contiguous
+ memory, if any.
+ 
+-System administrators may want to put this command in one of the local rc init
+-files.  This will enable the kernel to request huge pages early in the boot
+-process when the possibility of getting physical contiguous pages is still
+-very high.  Administrators can verify the number of huge pages actually
+-allocated by checking the sysctl or meminfo.  To check the per node
++System administrators may want to put this command in one of the local rc
++init files.  This will enable the kernel to allocate huge pages early in
++the boot process when the possibility of getting physical contiguous pages
++is still very high.  Administrators can verify the number of huge pages
++actually allocated by checking the sysctl or meminfo.  To check the per node
+ distribution of huge pages in a NUMA system, use:
+ 
+ 	cat /sys/devices/system/node/node*/meminfo | fgrep Huge
+@@ -113,45 +115,47 @@ distribution of huge pages in a NUMA sys
+ /proc/sys/vm/nr_overcommit_hugepages specifies how large the pool of
+ huge pages can grow, if more huge pages than /proc/sys/vm/nr_hugepages are
+ requested by applications.  Writing any non-zero value into this file
+-indicates that the hugetlb subsystem is allowed to try to obtain "surplus"
+-huge pages from the buddy allocator, when the normal pool is exhausted. As
+-these surplus huge pages go out of use, they are freed back to the buddy
+-allocator.
++indicates that the hugetlb subsystem is allowed to try to obtain that
++number of "surplus" huge pages from the kernel's normal page pool, when the
++persistent huge page pool is exhausted. As these surplus huge pages become
++unused, they are freed back to the kernel's normal page pool.
+ 
+-When increasing the huge page pool size via nr_hugepages, any surplus
++When increasing the huge page pool size via nr_hugepages, any existing surplus
+ pages will first be promoted to persistent huge pages.  Then, additional
+ huge pages will be allocated, if necessary and if possible, to fulfill
+-the new huge page pool size.
++the new persistent huge page pool size.
+ 
+-The administrator may shrink the pool of preallocated huge pages for
++The administrator may shrink the pool of persistent huge pages for
+ the default huge page size by setting the nr_hugepages sysctl to a
+ smaller value.  The kernel will attempt to balance the freeing of huge pages
+-across all on-line nodes.  Any free huge pages on the selected nodes will
+-be freed back to the buddy allocator.
+-
+-Caveat: Shrinking the pool via nr_hugepages such that it becomes less
+-than the number of huge pages in use will convert the balance to surplus
+-huge pages even if it would exceed the overcommit value.  As long as
+-this condition holds, however, no more surplus huge pages will be
+-allowed on the system until one of the two sysctls are increased
+-sufficiently, or the surplus huge pages go out of use and are freed.
++across all nodes in the memory policy of the task modifying nr_hugepages.
++Any free huge pages on the selected nodes will be freed back to the kernel's
++normal page pool.
++
++Caveat: Shrinking the persistent huge page pool via nr_hugepages such that
++it becomes less than the number of huge pages in use will convert the balance
++of the in-use huge pages to surplus huge pages.  This will occur even if
++the number of surplus pages it would exceed the overcommit value.  As long as
++this condition holds--that is, until nr_hugepages+nr_overcommit_hugepages is
++increased sufficiently, or the surplus huge pages go out of use and are freed--
++no more surplus huge pages will be allowed to be allocated.
+ 
+ With support for multiple huge page pools at run-time available, much of
+-the huge page userspace interface has been duplicated in sysfs. The above
+-information applies to the default huge page size which will be
+-controlled by the /proc interfaces for backwards compatibility. The root
+-huge page control directory in sysfs is:
++the huge page userspace interface in /proc/sys/vm has been duplicated in sysfs.
++The /proc interfaces discussed above have been retained for backwards
++compatibility. The root huge page control directory in sysfs is:
+ 
+ 	/sys/kernel/mm/hugepages
+ 
+ For each huge page size supported by the running kernel, a subdirectory
+-will exist, of the form
++will exist, of the form:
+ 
+ 	hugepages-${size}kB
+ 
+ Inside each of these directories, the same set of files will exist:
+ 
+ 	nr_hugepages
++	nr_hugepages_mempolicy
+ 	nr_overcommit_hugepages
+ 	free_hugepages
+ 	resv_hugepages
+@@ -159,6 +163,101 @@ Inside each of these directories, the sa
+ 
+ which function as described above for the default huge page-sized case.
+ 
++
++Interaction of Task Memory Policy with Huge Page Allocation/Freeing
++
++Whether huge pages are allocated and freed via the /proc interface or
++the /sysfs interface using the nr_hugepages_mempolicy attribute, the NUMA
++nodes from which huge pages are allocated or freed are controlled by the
++NUMA memory policy of the task that modifies the nr_hugepages_mempolicy
++sysctl or attribute.  When the nr_hugepages attribute is used, mempolicy
++is ignored.
++
++The recommended method to allocate or free huge pages to/from the kernel
++huge page pool, using the nr_hugepages example above, is:
++
++    numactl --interleave <node-list> echo 20 \
++				>/proc/sys/vm/nr_hugepages_mempolicy
++
++or, more succinctly:
++
++    numactl -m <node-list> echo 20 >/proc/sys/vm/nr_hugepages_mempolicy
++
++This will allocate or free abs(20 - nr_hugepages) to or from the nodes
++specified in <node-list>, depending on whether number of persistent huge pages
++is initially less than or greater than 20, respectively.  No huge pages will be
++allocated nor freed on any node not included in the specified <node-list>.
++
++When adjusting the persistent hugepage count via nr_hugepages_mempolicy, any
++memory policy mode--bind, preferred, local or interleave--may be used.  The
++resulting effect on persistent huge page allocation is as follows:
++
++1) Regardless of mempolicy mode [see Documentation/vm/numa_memory_policy.txt],
++   persistent huge pages will be distributed across the node or nodes
++   specified in the mempolicy as if "interleave" had been specified.
++   However, if a node in the policy does not contain sufficient contiguous
++   memory for a huge page, the allocation will not "fallback" to the nearest
++   neighbor node with sufficient contiguous memory.  To do this would cause
++   undesirable imbalance in the distribution of the huge page pool, or
++   possibly, allocation of persistent huge pages on nodes not allowed by
++   the task's memory policy.
++
++2) One or more nodes may be specified with the bind or interleave policy.
++   If more than one node is specified with the preferred policy, only the
++   lowest numeric id will be used.  Local policy will select the node where
++   the task is running at the time the nodes_allowed mask is constructed.
++   For local policy to be deterministic, the task must be bound to a cpu or
++   cpus in a single node.  Otherwise, the task could be migrated to some
++   other node at any time after launch and the resulting node will be
++   indeterminate.  Thus, local policy is not very useful for this purpose.
++   Any of the other mempolicy modes may be used to specify a single node.
++
++3) The nodes allowed mask will be derived from any non-default task mempolicy,
++   whether this policy was set explicitly by the task itself or one of its
++   ancestors, such as numactl.  This means that if the task is invoked from a
++   shell with non-default policy, that policy will be used.  One can specify a
++   node list of "all" with numactl --interleave or --membind [-m] to achieve
++   interleaving over all nodes in the system or cpuset.
++
++4) Any task mempolicy specifed--e.g., using numactl--will be constrained by
++   the resource limits of any cpuset in which the task runs.  Thus, there will
++   be no way for a task with non-default policy running in a cpuset with a
++   subset of the system nodes to allocate huge pages outside the cpuset
++   without first moving to a cpuset that contains all of the desired nodes.
++
++5) Boot-time huge page allocation attempts to distribute the requested number
++   of huge pages over all on-lines nodes.
++
++Per Node Hugepages Attributes
++
++A subset of the contents of the root huge page control directory in sysfs,
++described above, has been replicated under each "node" system device in:
++
++	/sys/devices/system/node/node[0-9]*/hugepages/
++
++Under this directory, the subdirectory for each supported huge page size
++contains the following attribute files:
++
++	nr_hugepages
++	free_hugepages
++	surplus_hugepages
++
++The free_' and surplus_' attribute files are read-only.  They return the number
++of free and surplus [overcommitted] huge pages, respectively, on the parent
++node.
++
++The nr_hugepages attribute returns the total number of huge pages on the
++specified node.  When this attribute is written, the number of persistent huge
++pages on the parent node will be adjusted to the specified value, if sufficient
++resources exist, regardless of the task's mempolicy or cpuset constraints.
++
++Note that the number of overcommit and reserve pages remain global quantities,
++as we don't know until fault time, when the faulting task's mempolicy is
++applied, from which node the huge page allocation will be attempted.
++
++
++Using Huge Pages
++
+ If the user applications are going to request huge pages using mmap system
+ call, then it is required that system administrator mount a file system of
+ type hugetlbfs:
+@@ -206,9 +305,11 @@ map_hugetlb.c.
+  * requesting huge pages.
   *
-- * Note: if swap_map[] reaches SWAP_MAP_MAX the entries are treated as
-- * "permanent", but will be reclaimed by the next swapoff.
-  * Returns error code in following case.
-  * - success -> 0
-  * - swp_entry is invalid -> EINVAL
-  * - swp_entry is migration entry -> EINVAL
-  * - swap-cache reference is requested but there is already one. -> EEXIST
-  * - swap-cache reference is requested but the entry is not used. -> ENOENT
-+ * - swap-mapped reference requested but needs continued swap count. -> ENOMEM
-  */
- static int __swap_duplicate(swp_entry_t entry, unsigned char usage)
+  * For the ia64 architecture, the Linux kernel reserves Region number 4 for
+- * huge pages.  That means the addresses starting with 0x800000... will need
+- * to be specified.  Specifying a fixed address is not required on ppc64,
+- * i386 or x86_64.
++ * huge pages.  That means that if one requires a fixed address, a huge page
++ * aligned address starting with 0x800000... will be required.  If a fixed
++ * address is not required, the kernel will select an address in the proper
++ * range.
++ * Other architectures, such as ppc64, i386 or x86_64 are not so constrained.
+  *
+  * Note: The default shared memory limit is quite low on many kernels,
+  * you may need to increase it via:
+@@ -237,14 +338,8 @@ map_hugetlb.c.
+ 
+ #define dprintf(x)  printf(x)
+ 
+-/* Only ia64 requires this */
+-#ifdef __ia64__
+-#define ADDR (void *)(0x8000000000000000UL)
+-#define SHMAT_FLAGS (SHM_RND)
+-#else
+-#define ADDR (void *)(0x0UL)
++#define ADDR (void *)(0x0UL)	/* let kernel choose address */
+ #define SHMAT_FLAGS (0)
+-#endif
+ 
+ int main(void)
  {
-@@ -2126,15 +2103,14 @@ static int __swap_duplicate(swp_entry_t 
- 
- 	} else if (count || has_cache) {
- 
--		if (count < SWAP_MAP_MAX - 1)
--			count++;
--		else if (count <= SWAP_MAP_MAX) {
--			if (swap_overflow++ < 5)
--				printk(KERN_WARNING
--				       "swap_dup: swap entry overflow\n");
--			count = SWAP_MAP_MAX;
--		} else
-+		if ((count & ~COUNT_CONTINUED) < SWAP_MAP_MAX)
-+			count += usage;
-+		else if ((count & ~COUNT_CONTINUED) > SWAP_MAP_MAX)
- 			err = -EINVAL;
-+		else if (swap_count_continued(p, offset, count))
-+			count = COUNT_CONTINUED;
-+		else
-+			err = -ENOMEM;
- 	} else
- 		err = -ENOENT;			/* unused swap entry */
- 
-@@ -2153,9 +2129,13 @@ bad_file:
- /*
-  * increase reference count of swap entry by 1.
+@@ -302,10 +397,12 @@ int main(void)
+  * example, the app is requesting memory of size 256MB that is backed by
+  * huge pages.
+  *
+- * For ia64 architecture, Linux kernel reserves Region number 4 for huge pages.
+- * That means the addresses starting with 0x800000... will need to be
+- * specified.  Specifying a fixed address is not required on ppc64, i386
+- * or x86_64.
++ * For the ia64 architecture, the Linux kernel reserves Region number 4 for
++ * huge pages.  That means that if one requires a fixed address, a huge page
++ * aligned address starting with 0x800000... will be required.  If a fixed
++ * address is not required, the kernel will select an address in the proper
++ * range.
++ * Other architectures, such as ppc64, i386 or x86_64 are not so constrained.
   */
--void swap_duplicate(swp_entry_t entry)
-+int swap_duplicate(swp_entry_t entry)
- {
--	__swap_duplicate(entry, 1);
-+	int err = 0;
-+
-+	while (!err && __swap_duplicate(entry, 1) == -ENOMEM)
-+		err = add_swap_count_continuation(entry, GFP_ATOMIC);
-+	return err;
- }
+ #include <stdlib.h>
+ #include <stdio.h>
+@@ -317,14 +414,8 @@ int main(void)
+ #define LENGTH (256UL*1024*1024)
+ #define PROTECTION (PROT_READ | PROT_WRITE)
  
- /*
-@@ -2222,3 +2202,219 @@ int valid_swaphandles(swp_entry_t entry,
- 	*offset = ++toff;
- 	return nr_pages? ++nr_pages: 0;
- }
-+
-+/*
-+ * add_swap_count_continuation - called when a swap count is duplicated
-+ * beyond SWAP_MAP_MAX, it allocates a new page and links that to the entry's
-+ * page of the original vmalloc'ed swap_map, to hold the continuation count
-+ * (for that entry and for its neighbouring PAGE_SIZE swap entries).  Called
-+ * again when count is duplicated beyond SWAP_MAP_MAX * SWAP_CONT_MAX, etc.
-+ *
-+ * These continuation pages are seldom referenced: the common paths all work
-+ * on the original swap_map, only referring to a continuation page when the
-+ * low "digit" of a count is incremented or decremented through SWAP_MAP_MAX.
-+ *
-+ * add_swap_count_continuation(, GFP_ATOMIC) can be called while holding
-+ * page table locks; if it fails, add_swap_count_continuation(, GFP_KERNEL)
-+ * can be called after dropping locks.
-+ */
-+int add_swap_count_continuation(swp_entry_t entry, gfp_t gfp_mask)
-+{
-+	struct swap_info_struct *si;
-+	struct page *head;
-+	struct page *page;
-+	struct page *list_page;
-+	pgoff_t offset;
-+	unsigned char count;
-+
-+	/*
-+	 * When debugging, it's easier to use __GFP_ZERO here; but it's better
-+	 * for latency not to zero a page while GFP_ATOMIC and holding locks.
-+	 */
-+	page = alloc_page(gfp_mask | __GFP_HIGHMEM);
-+
-+	si = swap_info_get(entry);
-+	if (!si) {
-+		/*
-+		 * An acceptable race has occurred since the failing
-+		 * __swap_duplicate(): the swap entry has been freed,
-+		 * perhaps even the whole swap_map cleared for swapoff.
-+		 */
-+		goto outer;
-+	}
-+
-+	offset = swp_offset(entry);
-+	count = si->swap_map[offset] & ~SWAP_HAS_CACHE;
-+
-+	if ((count & ~COUNT_CONTINUED) != SWAP_MAP_MAX) {
-+		/*
-+		 * The higher the swap count, the more likely it is that tasks
-+		 * will race to add swap count continuation: we need to avoid
-+		 * over-provisioning.
-+		 */
-+		goto out;
-+	}
-+
-+	if (!page) {
-+		spin_unlock(&swap_lock);
-+		return -ENOMEM;
-+	}
-+
-+	/*
-+	 * We are fortunate that although vmalloc_to_page uses pte_offset_map,
-+	 * no architecture is using highmem pages for kernel pagetables: so it
-+	 * will not corrupt the GFP_ATOMIC caller's atomic pagetable kmaps.
-+	 */
-+	head = vmalloc_to_page(si->swap_map + offset);
-+	offset &= ~PAGE_MASK;
-+
-+	/*
-+	 * Page allocation does not initialize the page's lru field,
-+	 * but it does always reset its private field.
-+	 */
-+	if (!page_private(head)) {
-+		BUG_ON(count & COUNT_CONTINUED);
-+		INIT_LIST_HEAD(&head->lru);
-+		set_page_private(head, SWP_CONTINUED);
-+		si->flags |= SWP_CONTINUED;
-+	}
-+
-+	list_for_each_entry(list_page, &head->lru, lru) {
-+		unsigned char *map;
-+
-+		/*
-+		 * If the previous map said no continuation, but we've found
-+		 * a continuation page, free our allocation and use this one.
-+		 */
-+		if (!(count & COUNT_CONTINUED))
-+			goto out;
-+
-+		map = kmap_atomic(list_page, KM_USER0) + offset;
-+		count = *map;
-+		kunmap_atomic(map, KM_USER0);
-+
-+		/*
-+		 * If this continuation count now has some space in it,
-+		 * free our allocation and use this one.
-+		 */
-+		if ((count & ~COUNT_CONTINUED) != SWAP_CONT_MAX)
-+			goto out;
-+	}
-+
-+	list_add_tail(&page->lru, &head->lru);
-+	page = NULL;			/* now it's attached, don't free it */
-+out:
-+	spin_unlock(&swap_lock);
-+outer:
-+	if (page)
-+		__free_page(page);
-+	return 0;
-+}
-+
-+/*
-+ * swap_count_continued - when the original swap_map count is incremented
-+ * from SWAP_MAP_MAX, check if there is already a continuation page to carry
-+ * into, carry if so, or else fail until a new continuation page is allocated;
-+ * when the original swap_map count is decremented from 0 with continuation,
-+ * borrow from the continuation and report whether it still holds more.
-+ * Called while __swap_duplicate() or swap_entry_free() holds swap_lock.
-+ */
-+static bool swap_count_continued(struct swap_info_struct *si,
-+				 pgoff_t offset, unsigned char count)
-+{
-+	struct page *head;
-+	struct page *page;
-+	unsigned char *map;
-+
-+	head = vmalloc_to_page(si->swap_map + offset);
-+	if (page_private(head) != SWP_CONTINUED) {
-+		BUG_ON(count & COUNT_CONTINUED);
-+		return false;		/* need to add count continuation */
-+	}
-+
-+	offset &= ~PAGE_MASK;
-+	page = list_entry(head->lru.next, struct page, lru);
-+	map = kmap_atomic(page, KM_USER0) + offset;
-+
-+	if (count == SWAP_MAP_MAX)	/* initial increment from swap_map */
-+		goto init_map;		/* jump over SWAP_CONT_MAX checks */
-+
-+	if (count == (SWAP_MAP_MAX | COUNT_CONTINUED)) { /* incrementing */
-+		/*
-+		 * Think of how you add 1 to 999
-+		 */
-+		while (*map == (SWAP_CONT_MAX | COUNT_CONTINUED)) {
-+			kunmap_atomic(map, KM_USER0);
-+			page = list_entry(page->lru.next, struct page, lru);
-+			BUG_ON(page == head);
-+			map = kmap_atomic(page, KM_USER0) + offset;
-+		}
-+		if (*map == SWAP_CONT_MAX) {
-+			kunmap_atomic(map, KM_USER0);
-+			page = list_entry(page->lru.next, struct page, lru);
-+			if (page == head)
-+				return false;	/* add count continuation */
-+			map = kmap_atomic(page, KM_USER0) + offset;
-+init_map:		*map = 0;		/* we didn't zero the page */
-+		}
-+		*map += 1;
-+		kunmap_atomic(map, KM_USER0);
-+		page = list_entry(page->lru.prev, struct page, lru);
-+		while (page != head) {
-+			map = kmap_atomic(page, KM_USER0) + offset;
-+			*map = COUNT_CONTINUED;
-+			kunmap_atomic(map, KM_USER0);
-+			page = list_entry(page->lru.prev, struct page, lru);
-+		}
-+		return true;			/* incremented */
-+
-+	} else {				/* decrementing */
-+		/*
-+		 * Think of how you subtract 1 from 1000
-+		 */
-+		BUG_ON(count != COUNT_CONTINUED);
-+		while (*map == COUNT_CONTINUED) {
-+			kunmap_atomic(map, KM_USER0);
-+			page = list_entry(page->lru.next, struct page, lru);
-+			BUG_ON(page == head);
-+			map = kmap_atomic(page, KM_USER0) + offset;
-+		}
-+		BUG_ON(*map == 0);
-+		*map -= 1;
-+		if (*map == 0)
-+			count = 0;
-+		kunmap_atomic(map, KM_USER0);
-+		page = list_entry(page->lru.prev, struct page, lru);
-+		while (page != head) {
-+			map = kmap_atomic(page, KM_USER0) + offset;
-+			*map = SWAP_CONT_MAX | count;
-+			count = COUNT_CONTINUED;
-+			kunmap_atomic(map, KM_USER0);
-+			page = list_entry(page->lru.prev, struct page, lru);
-+		}
-+		return count == COUNT_CONTINUED;
-+	}
-+}
-+
-+/*
-+ * free_swap_count_continuations - swapoff free all the continuation pages
-+ * appended to the swap_map, after swap_map is quiesced, before vfree'ing it.
-+ */
-+static void free_swap_count_continuations(struct swap_info_struct *si)
-+{
-+	pgoff_t offset;
-+
-+	for (offset = 0; offset < si->max; offset += PAGE_SIZE) {
-+		struct page *head;
-+		head = vmalloc_to_page(si->swap_map + offset);
-+		if (page_private(head)) {
-+			struct list_head *this, *next;
-+			list_for_each_safe(this, next, &head->lru) {
-+				struct page *page;
-+				page = list_entry(this, struct page, lru);
-+				list_del(this);
-+				__free_page(page);
-+			}
-+		}
-+	}
-+}
+-/* Only ia64 requires this */
+-#ifdef __ia64__
+-#define ADDR (void *)(0x8000000000000000UL)
+-#define FLAGS (MAP_SHARED | MAP_FIXED)
+-#else
+-#define ADDR (void *)(0x0UL)
++#define ADDR (void *)(0x0UL)	/* let kernel choose address */
+ #define FLAGS (MAP_SHARED)
+-#endif
+ 
+ void check_bytes(char *addr)
+ {
 _
 
-Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
+Patches currently in -mm which might be from lee.schermerhorn@hp.com are
 
 origin.patch
-linux-next.patch
-vfs-fsstack-handle-32-bit-smp-preempt-large-files-in-fsstack_copy_inode_size.patch
-ksm-memory-hotremove-migration-only-fix.patch
-elf-kill-use_elf_core_dump.patch
-prio_tree-debugging-patch.patch
 
