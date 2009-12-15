@@ -1,28 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-scsi-sym53c8xx_2-sym_gluec-rename-skip_spaces-to-sym_skip_spaces.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 13:57:38 -0800
-Message-ID: <200912152157.nBFLvcuK015735@imap1.linux-foundation.org>
+Subject: [merged] string-factorize-skip_spaces-and-export-it-to-be-generally-available.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 13:57:41 -0800
+Message-ID: <200912152157.nBFLvf1C015738@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40086 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42279 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933801AbZLOV6J (ORCPT
+	by vger.kernel.org with ESMTP id S933808AbZLOV6P (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 16:58:09 -0500
+	Tue, 15 Dec 2009 16:58:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, andre.goddard@gmail.com, mm-commits@vger.kernel.org
+To: andre.goddard@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/scsi/sym53c8xx_2/sym_glue.c: rename skip_spaces() to sym_s=
-kip_spaces()
+     string: factorize skip_spaces and export it to be generally availa=
+ble
 has been removed from the -mm tree.  Its filename was
-     drivers-scsi-sym53c8xx_2-sym_gluec-rename-skip_spaces-to-sym_skip_=
-spaces.patch
+     string-factorize-skip_spaces-and-export-it-to-be-generally-availab=
+le.patch
 
 This patch was dropped because it was merged into mainline or a subsyst=
 em tree
@@ -31,125 +31,90 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
 otm/
 
 ------------------------------------------------------
-Subject: drivers/scsi/sym53c8xx_2/sym_glue.c: rename skip_spaces() to s=
-ym_skip_spaces()
-=46rom: Andrew Morton <akpm@linux-foundation.org>
+Subject: string: factorize skip_spaces and export it to be generally av=
+ailable
+=46rom: Andr=E9 Goddard Rosa <andre.goddard@gmail.com>
 
-To avoid a collision with the newly-added kernel-wide skip_spaces().
+On the following sentence:
+    while (*s && isspace(*s))
+        s++;
+
+If *s =3D=3D 0, isspace() evaluates to ((_ctype[*s] & 0x20) !=3D 0), wh=
+ich
+evaluates to ((0x08 & 0x20) !=3D 0) which equals to 0 as well.
+If *s =3D=3D 1, we depend on isspace() result anyway. In other words,
+"a char equals zero is never a space", so remove this check.
+
+Also, *s !=3D 0 is most common case (non-null string).
+
+=46ixed const return as noticed by Jan Engelhardt and James Bottomley.
+=46ixed unnecessary extra cast on strstrip() as noticed by Jan Engelhar=
+dt.
 
 Signed-off-by: Andr=E9 Goddard Rosa <andre.goddard@gmail.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/sym53c8xx_2/sym_glue.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/ctype.h  |    1 +
+ include/linux/string.h |    1 +
+ lib/string.c           |   19 +++++++++++++++----
+ 3 files changed, 17 insertions(+), 4 deletions(-)
 
-diff -puN drivers/scsi/sym53c8xx_2/sym_glue.c~drivers-scsi-sym53c8xx_2-=
-sym_gluec-rename-skip_spaces-to-sym_skip_spaces drivers/scsi/sym53c8xx_=
-2/sym_glue.c
---- a/drivers/scsi/sym53c8xx_2/sym_glue.c~drivers-scsi-sym53c8xx_2-sym_=
-gluec-rename-skip_spaces-to-sym_skip_spaces
-+++ a/drivers/scsi/sym53c8xx_2/sym_glue.c
-@@ -984,7 +984,7 @@ static void sym_exec_user_command (struc
- 	}
- }
+diff -puN include/linux/ctype.h~string-factorize-skip_spaces-and-export=
+-it-to-be-generally-available include/linux/ctype.h
+--- a/include/linux/ctype.h~string-factorize-skip_spaces-and-export-it-=
+to-be-generally-available
++++ a/include/linux/ctype.h
+@@ -27,6 +27,7 @@ extern const unsigned char _ctype[];
+ #define islower(c)	((__ismask(c)&(_L)) !=3D 0)
+ #define isprint(c)	((__ismask(c)&(_P|_U|_L|_D|_SP)) !=3D 0)
+ #define ispunct(c)	((__ismask(c)&(_P)) !=3D 0)
++/* Note: isspace() must return false for %NUL-terminator */
+ #define isspace(c)	((__ismask(c)&(_S)) !=3D 0)
+ #define isupper(c)	((__ismask(c)&(_U)) !=3D 0)
+ #define isxdigit(c)	((__ismask(c)&(_D|_X)) !=3D 0)
+diff -puN include/linux/string.h~string-factorize-skip_spaces-and-expor=
+t-it-to-be-generally-available include/linux/string.h
+--- a/include/linux/string.h~string-factorize-skip_spaces-and-export-it=
+-to-be-generally-available
++++ a/include/linux/string.h
+@@ -62,6 +62,7 @@ extern char * strnchr(const char *, size
+ #ifndef __HAVE_ARCH_STRRCHR
+ extern char * strrchr(const char *,int);
+ #endif
++extern char * __must_check skip_spaces(const char *);
+ extern char * __must_check strstrip(char *);
+ #ifndef __HAVE_ARCH_STRSTR
+ extern char * strstr(const char *,const char *);
+diff -puN lib/string.c~string-factorize-skip_spaces-and-export-it-to-be=
+-generally-available lib/string.c
+--- a/lib/string.c~string-factorize-skip_spaces-and-export-it-to-be-gen=
+erally-available
++++ a/lib/string.c
+@@ -338,6 +338,20 @@ EXPORT_SYMBOL(strnchr);
+ #endif
 =20
--static int skip_spaces(char *ptr, int len)
-+static int sym_skip_spaces(char *ptr, int len)
- {
- 	int cnt, c;
+ /**
++ * skip_spaces - Removes leading whitespace from @s.
++ * @s: The string to be stripped.
++ *
++ * Returns a pointer to the first non-whitespace character in @s.
++ */
++char *skip_spaces(const char *str)
++{
++	while (isspace(*str))
++		++str;
++	return (char *)str;
++}
++EXPORT_SYMBOL(skip_spaces);
++
++/**
+  * strstrip - Removes leading and trailing whitespace from @s.
+  * @s: The string to be stripped.
+  *
+@@ -360,10 +374,7 @@ char *strstrip(char *s)
+ 		end--;
+ 	*(end + 1) =3D '\0';
 =20
-@@ -1012,7 +1012,7 @@ static int is_keyword(char *ptr, int len
- }
-=20
- #define SKIP_SPACES(ptr, len)						\
--	if ((arg_len =3D skip_spaces(ptr, len)) < 1)			\
-+	if ((arg_len =3D sym_skip_spaces(ptr, len)) < 1)			\
- 		return -EINVAL;						\
- 	ptr +=3D arg_len; len -=3D arg_len;
-=20
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org =
-are
-
-origin.patch
-linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by=
--using-smp_call_function_any.patch
-acpi-remove-nid_inval.patch
-drivers-acpi-acpi_padc-squish-warning.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices-checkpatch-fixes.pa=
-tch
-drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
-drivers-media-video-pmsc-needs-versionh.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-drivers-leds-leds-ss4200c-fix-return-statement.patch
-net-sctp-socketc-fix-warning.patch
-proc_fops-convert-drivers-isdn-to-seq_file-fix2.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-fs-ext4-superc-fix-printk-warning.patch
-atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
-scsi-aacraid-fix-memory-leak-checkpatch-fixes.patch
-aoe-switch-to-the-new-bio_flush_dcache_pages-interface.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-drivers-net-wireless-iwlwifi-iwl-txc-fix-gcc-345-warning.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-readahead-add-blk_run_backing_dev.patch
-oom-kill-fix-numa-consraint-check-with-nodemask-v42.patch
-ksm-memory-hotremove-migration-only-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-spi-controller-driver-for-designware-spi-core.patch
-spidev-use-declare_bitmap-instead-of-declaring-the-array.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyar=
-ea-fillrect-fix.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyar=
-ea-fillrect-fix2.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyar=
-ea-fillrect-fix2-fix-3.patch
-ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkp=
-atch-fixes.patch
-memcg-coalesce-charging-via-percpu-storage-fix.patch
-memcg-code-cleanrm-unused-variable-in-mem_cgroup_resize_limit-cleanup.p=
-atch
-ipc-remove-unreachable-code-in-semc-fix.patch
-char-cyclades-fix-compiler-warning.patch
-fs-cache-avoid-maybe-used-uninitialised-warning-on-variable.patch
-aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
-direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-drivers-media-video-cx23885-needs-kfifo-updates.patch
-revert-tty-sdio_uart-use-kfifo-instead-of-the-messy-circ-stuff.patch
-kfifo-move-struct-kfifo-in-place-fix.patch
-zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes.=
-patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.pat=
-ch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-	while (*s && isspace(*s))
+-		s++;
