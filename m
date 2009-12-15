@@ -1,357 +1,274 @@
 From: akpm@linux-foundation.org
-Subject: [merged] swap_info-swap_has_cache-cleanups.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 13:51:45 -0800
-Message-ID: <200912152151.nBFLpjIv015130@imap1.linux-foundation.org>
+Subject: [merged] mm-mlocking-in-try_to_unmap_one.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 13:52:23 -0800
+Message-ID: <200912152152.nBFLqNxe015190@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43320 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36050 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761215AbZLOVwf (ORCPT
+	by vger.kernel.org with ESMTP id S1761171AbZLOVxU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 16:52:35 -0500
+	Tue, 15 Dec 2009 16:53:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh.dickins@tiscali.co.uk, kamezawa.hiroyu@jp.fujitsu.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: hugh.dickins@tiscali.co.uk, Lee.Schermerhorn@hp.com, aarcange@redhat.com, andi@firstfloor.org, fengguang.wu@intel.com, ieidus@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohi
 
 
 The patch titled
-     swap_info: SWAP_HAS_CACHE cleanups
+     mm: mlocking in try_to_unmap_one
 has been removed from the -mm tree.  Its filename was
-     swap_info-swap_has_cache-cleanups.patch
+     mm-mlocking-in-try_to_unmap_one.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: swap_info: SWAP_HAS_CACHE cleanups
+Subject: mm: mlocking in try_to_unmap_one
 From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
-Though swap_count() is useful, I'm finding that swap_has_cache() and
-encode_swapmap() obscure what happens in the swap_map entry, just at
-those points where I need to understand it.  Remove them, and pass
-more usable "usage" values to scan_swap_map(), swap_entry_free() and
-__swap_duplicate(), instead of the SWAP_MAP and SWAP_CACHE enum.
+There's contorted mlock/munlock handling in try_to_unmap_anon() and
+try_to_unmap_file(), which we'd prefer not to repeat for KSM swapping. 
+Simplify it by moving it all down into try_to_unmap_one().
 
+One thing is then lost, try_to_munlock()'s distinction between when no vma
+holds the page mlocked, and when a vma does mlock it, but we could not get
+mmap_sem to set the page flag.  But its only caller takes no interest in
+that distinction (and is better testing SWAP_MLOCK anyway), so let's keep
+the code simple and return SWAP_AGAIN for both cases.
+
+try_to_unmap_file()'s TTU_MUNLOCK nonlinear handling was particularly
+amusing: once unravelled, it turns out to have been choosing between two
+different ways of doing the same nothing.  Ah, no, one way was actually
+returning SWAP_FAIL when it meant to return SWAP_SUCCESS.
+
+[kosaki.motohiro@jp.fujitsu.com: comment adding to mlocking in try_to_unmap_one]
+[akpm@linux-foundation.org: remove test of MLOCK_PAGES]
 Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Izik Eidus <ieidus@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Nick Piggin <npiggin@suse.de>
 Cc: Rik van Riel <riel@redhat.com>
+Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    2 
- mm/swapfile.c        |  155 ++++++++++++++++-------------------------
- 2 files changed, 65 insertions(+), 92 deletions(-)
+ mm/mlock.c |    2 
+ mm/rmap.c  |  110 ++++++++++++++-------------------------------------
+ 2 files changed, 32 insertions(+), 80 deletions(-)
 
-diff -puN include/linux/swap.h~swap_info-swap_has_cache-cleanups include/linux/swap.h
---- a/include/linux/swap.h~swap_info-swap_has_cache-cleanups
-+++ a/include/linux/swap.h
-@@ -154,7 +154,7 @@ enum {
- #define SWAP_MAP_MAX	0x7ffe
- #define SWAP_MAP_BAD	0x7fff
- #define SWAP_HAS_CACHE  0x8000		/* There is a swap cache of entry. */
--#define SWAP_COUNT_MASK (~SWAP_HAS_CACHE)
-+
- /*
-  * The in-memory structure used to track swap areas.
-  */
-diff -puN mm/swapfile.c~swap_info-swap_has_cache-cleanups mm/swapfile.c
---- a/mm/swapfile.c~swap_info-swap_has_cache-cleanups
-+++ a/mm/swapfile.c
-@@ -53,30 +53,9 @@ static struct swap_info_struct *swap_inf
+diff -puN mm/mlock.c~mm-mlocking-in-try_to_unmap_one mm/mlock.c
+--- a/mm/mlock.c~mm-mlocking-in-try_to_unmap_one
++++ a/mm/mlock.c
+@@ -117,7 +117,7 @@ static void munlock_vma_page(struct page
+ 			/*
+ 			 * did try_to_unlock() succeed or punt?
+ 			 */
+-			if (ret == SWAP_SUCCESS || ret == SWAP_AGAIN)
++			if (ret != SWAP_MLOCK)
+ 				count_vm_event(UNEVICTABLE_PGMUNLOCKED);
  
- static DEFINE_MUTEX(swapon_mutex);
- 
--/* For reference count accounting in swap_map */
--/* enum for swap_map[] handling. internal use only */
--enum {
--	SWAP_MAP = 0,	/* ops for reference from swap users */
--	SWAP_CACHE,	/* ops for reference from swap cache */
--};
--
- static inline int swap_count(unsigned short ent)
- {
--	return ent & SWAP_COUNT_MASK;
--}
--
--static inline bool swap_has_cache(unsigned short ent)
--{
--	return !!(ent & SWAP_HAS_CACHE);
--}
--
--static inline unsigned short encode_swapmap(int count, bool has_cache)
--{
--	unsigned short ret = count;
--
--	if (has_cache)
--		return SWAP_HAS_CACHE | ret;
--	return ret;
-+	return ent & ~SWAP_HAS_CACHE;
- }
- 
- /* returns 1 if swap entry is freed */
-@@ -224,7 +203,7 @@ static int wait_for_discard(void *word)
- #define LATENCY_LIMIT		256
- 
- static inline unsigned long scan_swap_map(struct swap_info_struct *si,
--					  int cache)
-+					  unsigned short usage)
- {
- 	unsigned long offset;
- 	unsigned long scan_base;
-@@ -355,10 +334,7 @@ checks:
- 		si->lowest_bit = si->max;
- 		si->highest_bit = 0;
- 	}
--	if (cache == SWAP_CACHE) /* at usual swap-out via vmscan.c */
--		si->swap_map[offset] = encode_swapmap(0, true);
--	else /* at suspend */
--		si->swap_map[offset] = encode_swapmap(1, false);
-+	si->swap_map[offset] = usage;
- 	si->cluster_next = offset + 1;
- 	si->flags -= SWP_SCANNING;
- 
-@@ -483,7 +459,7 @@ swp_entry_t get_swap_page(void)
- 
- 		swap_list.next = next;
- 		/* This is called for allocating swap entry for cache */
--		offset = scan_swap_map(si, SWAP_CACHE);
-+		offset = scan_swap_map(si, SWAP_HAS_CACHE);
- 		if (offset) {
- 			spin_unlock(&swap_lock);
- 			return swp_entry(type, offset);
-@@ -508,7 +484,7 @@ swp_entry_t get_swap_page_of_type(int ty
- 	if (si && (si->flags & SWP_WRITEOK)) {
- 		nr_swap_pages--;
- 		/* This is called for allocating swap entry, not cache */
--		offset = scan_swap_map(si, SWAP_MAP);
-+		offset = scan_swap_map(si, 1);
- 		if (offset) {
- 			spin_unlock(&swap_lock);
- 			return swp_entry(type, offset);
-@@ -555,29 +531,31 @@ out:
- 	return NULL;
- }
- 
--static int swap_entry_free(struct swap_info_struct *p,
--			   swp_entry_t ent, int cache)
-+static unsigned short swap_entry_free(struct swap_info_struct *p,
-+			   swp_entry_t entry, unsigned short usage)
- {
--	unsigned long offset = swp_offset(ent);
--	int count = swap_count(p->swap_map[offset]);
--	bool has_cache;
-+	unsigned long offset = swp_offset(entry);
-+	unsigned short count;
-+	unsigned short has_cache;
- 
--	has_cache = swap_has_cache(p->swap_map[offset]);
-+	count = p->swap_map[offset];
-+	has_cache = count & SWAP_HAS_CACHE;
-+	count &= ~SWAP_HAS_CACHE;
- 
--	if (cache == SWAP_MAP) { /* dropping usage count of swap */
--		if (count < SWAP_MAP_MAX) {
--			count--;
--			p->swap_map[offset] = encode_swapmap(count, has_cache);
--		}
--	} else { /* dropping swap cache flag */
-+	if (usage == SWAP_HAS_CACHE) {
- 		VM_BUG_ON(!has_cache);
--		p->swap_map[offset] = encode_swapmap(count, false);
-+		has_cache = 0;
-+	} else if (count < SWAP_MAP_MAX)
-+		count--;
-+
-+	if (!count)
-+		mem_cgroup_uncharge_swap(entry);
-+
-+	usage = count | has_cache;
-+	p->swap_map[offset] = usage;
- 
--	}
--	/* return code. */
--	count = p->swap_map[offset];
- 	/* free if no reference */
--	if (!count) {
-+	if (!usage) {
- 		if (offset < p->lowest_bit)
- 			p->lowest_bit = offset;
- 		if (offset > p->highest_bit)
-@@ -588,9 +566,8 @@ static int swap_entry_free(struct swap_i
- 		nr_swap_pages++;
- 		p->inuse_pages--;
- 	}
--	if (!swap_count(count))
--		mem_cgroup_uncharge_swap(ent);
--	return count;
-+
-+	return usage;
- }
- 
- /*
-@@ -603,7 +580,7 @@ void swap_free(swp_entry_t entry)
- 
- 	p = swap_info_get(entry);
- 	if (p) {
--		swap_entry_free(p, entry, SWAP_MAP);
-+		swap_entry_free(p, entry, 1);
- 		spin_unlock(&swap_lock);
- 	}
- }
-@@ -614,19 +591,13 @@ void swap_free(swp_entry_t entry)
- void swapcache_free(swp_entry_t entry, struct page *page)
- {
- 	struct swap_info_struct *p;
--	int ret;
-+	unsigned short count;
- 
- 	p = swap_info_get(entry);
- 	if (p) {
--		ret = swap_entry_free(p, entry, SWAP_CACHE);
--		if (page) {
--			bool swapout;
--			if (ret)
--				swapout = true; /* the end of swap out */
--			else
--				swapout = false; /* no more swap users! */
--			mem_cgroup_uncharge_swapcache(page, entry, swapout);
--		}
-+		count = swap_entry_free(p, entry, SWAP_HAS_CACHE);
-+		if (page)
-+			mem_cgroup_uncharge_swapcache(page, entry, count != 0);
- 		spin_unlock(&swap_lock);
- 	}
- }
-@@ -705,7 +676,7 @@ int free_swap_and_cache(swp_entry_t entr
- 
- 	p = swap_info_get(entry);
- 	if (p) {
--		if (swap_entry_free(p, entry, SWAP_MAP) == SWAP_HAS_CACHE) {
-+		if (swap_entry_free(p, entry, 1) == SWAP_HAS_CACHE) {
- 			page = find_get_page(&swapper_space, entry.val);
- 			if (page && !trylock_page(page)) {
- 				page_cache_release(page);
-@@ -1212,7 +1183,7 @@ static int try_to_unuse(unsigned int typ
- 
- 		if (swap_count(*swap_map) == SWAP_MAP_MAX) {
- 			spin_lock(&swap_lock);
--			*swap_map = encode_swapmap(0, true);
-+			*swap_map = SWAP_HAS_CACHE;
- 			spin_unlock(&swap_lock);
- 			reset_overflow = 1;
+ 			putback_lru_page(page);
+diff -puN mm/rmap.c~mm-mlocking-in-try_to_unmap_one mm/rmap.c
+--- a/mm/rmap.c~mm-mlocking-in-try_to_unmap_one
++++ a/mm/rmap.c
+@@ -788,6 +788,8 @@ static int try_to_unmap_one(struct page 
+ 			ret = SWAP_MLOCK;
+ 			goto out_unmap;
  		}
-@@ -2111,16 +2082,16 @@ void si_swapinfo(struct sysinfo *val)
-  * - swap-cache reference is requested but there is already one. -> EEXIST
-  * - swap-cache reference is requested but the entry is not used. -> ENOENT
-  */
--static int __swap_duplicate(swp_entry_t entry, bool cache)
-+static int __swap_duplicate(swp_entry_t entry, unsigned short usage)
- {
- 	struct swap_info_struct *p;
- 	unsigned long offset, type;
--	int result = -EINVAL;
--	int count;
--	bool has_cache;
-+	unsigned short count;
-+	unsigned short has_cache;
-+	int err = -EINVAL;
- 
- 	if (non_swap_entry(entry))
--		return -EINVAL;
-+		goto out;
- 
- 	type = swp_type(entry);
- 	if (type >= nr_swapfiles)
-@@ -2129,54 +2100,56 @@ static int __swap_duplicate(swp_entry_t 
- 	offset = swp_offset(entry);
- 
- 	spin_lock(&swap_lock);
--
- 	if (unlikely(offset >= p->max))
- 		goto unlock_out;
- 
--	count = swap_count(p->swap_map[offset]);
--	has_cache = swap_has_cache(p->swap_map[offset]);
-+	count = p->swap_map[offset];
-+	has_cache = count & SWAP_HAS_CACHE;
-+	count &= ~SWAP_HAS_CACHE;
-+	err = 0;
- 
--	if (cache == SWAP_CACHE) { /* called for swapcache/swapin-readahead */
-+	if (usage == SWAP_HAS_CACHE) {
- 
- 		/* set SWAP_HAS_CACHE if there is no cache and entry is used */
--		if (!has_cache && count) {
--			p->swap_map[offset] = encode_swapmap(count, true);
--			result = 0;
--		} else if (has_cache) /* someone added cache */
--			result = -EEXIST;
--		else if (!count) /* no users */
--			result = -ENOENT;
-+		if (!has_cache && count)
-+			has_cache = SWAP_HAS_CACHE;
-+		else if (has_cache)		/* someone else added cache */
-+			err = -EEXIST;
-+		else				/* no users remaining */
-+			err = -ENOENT;
- 
- 	} else if (count || has_cache) {
--		if (count < SWAP_MAP_MAX - 1) {
--			p->swap_map[offset] = encode_swapmap(count + 1,
--							     has_cache);
--			result = 0;
--		} else if (count <= SWAP_MAP_MAX) {
-+
-+		if (count < SWAP_MAP_MAX - 1)
-+			count++;
-+		else if (count <= SWAP_MAP_MAX) {
- 			if (swap_overflow++ < 5)
- 				printk(KERN_WARNING
- 				       "swap_dup: swap entry overflow\n");
--			p->swap_map[offset] = encode_swapmap(SWAP_MAP_MAX,
--							      has_cache);
--			result = 0;
--		}
-+			count = SWAP_MAP_MAX;
-+		} else
-+			err = -EINVAL;
++		if (MLOCK_PAGES && TTU_ACTION(flags) == TTU_MUNLOCK)
++			goto out_unmap;
+ 	}
+ 	if (!(flags & TTU_IGNORE_ACCESS)) {
+ 		if (ptep_clear_flush_young_notify(vma, address, pte)) {
+@@ -853,12 +855,22 @@ static int try_to_unmap_one(struct page 
  	} else
--		result = -ENOENT; /* unused swap entry */
-+		err = -ENOENT;			/* unused swap entry */
+ 		dec_mm_counter(mm, file_rss);
+ 
+-
+ 	page_remove_rmap(page);
+ 	page_cache_release(page);
+ 
+ out_unmap:
+ 	pte_unmap_unlock(pte, ptl);
 +
-+	p->swap_map[offset] = count | has_cache;
-+
- unlock_out:
- 	spin_unlock(&swap_lock);
++	if (MLOCK_PAGES && ret == SWAP_MLOCK) {
++		ret = SWAP_AGAIN;
++		if (down_read_trylock(&vma->vm_mm->mmap_sem)) {
++			if (vma->vm_flags & VM_LOCKED) {
++				mlock_vma_page(page);
++				ret = SWAP_MLOCK;
++			}
++			up_read(&vma->vm_mm->mmap_sem);
++		}
++	}
  out:
--	return result;
-+	return err;
- 
- bad_file:
- 	printk(KERN_ERR "swap_dup: %s%08lx\n", Bad_file, entry.val);
- 	goto out;
+ 	return ret;
  }
+@@ -980,23 +992,6 @@ static int try_to_unmap_cluster(unsigned
+ 	return ret;
+ }
+ 
+-/*
+- * common handling for pages mapped in VM_LOCKED vmas
+- */
+-static int try_to_mlock_page(struct page *page, struct vm_area_struct *vma)
+-{
+-	int mlocked = 0;
+-
+-	if (down_read_trylock(&vma->vm_mm->mmap_sem)) {
+-		if (vma->vm_flags & VM_LOCKED) {
+-			mlock_vma_page(page);
+-			mlocked++;	/* really mlocked the page */
+-		}
+-		up_read(&vma->vm_mm->mmap_sem);
+-	}
+-	return mlocked;
+-}
+-
+ /**
+  * try_to_unmap_anon - unmap or unlock anonymous page using the object-based
+  * rmap method
+@@ -1017,42 +1012,19 @@ static int try_to_unmap_anon(struct page
+ {
+ 	struct anon_vma *anon_vma;
+ 	struct vm_area_struct *vma;
+-	unsigned int mlocked = 0;
+ 	int ret = SWAP_AGAIN;
+-	int unlock = TTU_ACTION(flags) == TTU_MUNLOCK;
+-
+-	if (MLOCK_PAGES && unlikely(unlock))
+-		ret = SWAP_SUCCESS;	/* default for try_to_munlock() */
+ 
+ 	anon_vma = page_lock_anon_vma(page);
+ 	if (!anon_vma)
+ 		return ret;
+ 
+ 	list_for_each_entry(vma, &anon_vma->head, anon_vma_node) {
+-		if (MLOCK_PAGES && unlikely(unlock)) {
+-			if (!((vma->vm_flags & VM_LOCKED) &&
+-			      page_mapped_in_vma(page, vma)))
+-				continue;  /* must visit all unlocked vmas */
+-			ret = SWAP_MLOCK;  /* saw at least one mlocked vma */
+-		} else {
+-			ret = try_to_unmap_one(page, vma, flags);
+-			if (ret == SWAP_FAIL || !page_mapped(page))
+-				break;
+-		}
+-		if (ret == SWAP_MLOCK) {
+-			mlocked = try_to_mlock_page(page, vma);
+-			if (mlocked)
+-				break;	/* stop if actually mlocked page */
+-		}
++		ret = try_to_unmap_one(page, vma, flags);
++		if (ret != SWAP_AGAIN || !page_mapped(page))
++			break;
+ 	}
+ 
+ 	page_unlock_anon_vma(anon_vma);
+-
+-	if (mlocked)
+-		ret = SWAP_MLOCK;	/* actually mlocked the page */
+-	else if (ret == SWAP_MLOCK)
+-		ret = SWAP_AGAIN;	/* saw VM_LOCKED vma */
+-
+ 	return ret;
+ }
+ 
+@@ -1082,42 +1054,27 @@ static int try_to_unmap_file(struct page
+ 	unsigned long max_nl_cursor = 0;
+ 	unsigned long max_nl_size = 0;
+ 	unsigned int mapcount;
+-	unsigned int mlocked = 0;
+-	int unlock = TTU_ACTION(flags) == TTU_MUNLOCK;
+-
+-	if (MLOCK_PAGES && unlikely(unlock))
+-		ret = SWAP_SUCCESS;	/* default for try_to_munlock() */
+ 
+ 	spin_lock(&mapping->i_mmap_lock);
+ 	vma_prio_tree_foreach(vma, &iter, &mapping->i_mmap, pgoff, pgoff) {
+-		if (MLOCK_PAGES && unlikely(unlock)) {
+-			if (!((vma->vm_flags & VM_LOCKED) &&
+-						page_mapped_in_vma(page, vma)))
+-				continue;	/* must visit all vmas */
+-			ret = SWAP_MLOCK;
+-		} else {
+-			ret = try_to_unmap_one(page, vma, flags);
+-			if (ret == SWAP_FAIL || !page_mapped(page))
+-				goto out;
+-		}
+-		if (ret == SWAP_MLOCK) {
+-			mlocked = try_to_mlock_page(page, vma);
+-			if (mlocked)
+-				goto out;  /* stop if actually mlocked page */
+-		}
++		ret = try_to_unmap_one(page, vma, flags);
++		if (ret != SWAP_AGAIN || !page_mapped(page))
++			goto out;
+ 	}
+ 
+ 	if (list_empty(&mapping->i_mmap_nonlinear))
+ 		goto out;
+ 
++	/*
++	 * We don't bother to try to find the munlocked page in nonlinears.
++	 * It's costly. Instead, later, page reclaim logic may call
++	 * try_to_unmap(TTU_MUNLOCK) and recover PG_mlocked lazily.
++	 */
++	if (TTU_ACTION(flags) == TTU_MUNLOCK)
++		goto out;
 +
- /*
-  * increase reference count of swap entry by 1.
-  */
- void swap_duplicate(swp_entry_t entry)
- {
--	__swap_duplicate(entry, SWAP_MAP);
-+	__swap_duplicate(entry, 1);
+ 	list_for_each_entry(vma, &mapping->i_mmap_nonlinear,
+ 						shared.vm_set.list) {
+-		if (MLOCK_PAGES && unlikely(unlock)) {
+-			if (!(vma->vm_flags & VM_LOCKED))
+-				continue;	/* must visit all vmas */
+-			ret = SWAP_MLOCK;	/* leave mlocked == 0 */
+-			goto out;		/* no need to look further */
+-		}
+ 		if (!MLOCK_PAGES && !(flags & TTU_IGNORE_MLOCK) &&
+ 			(vma->vm_flags & VM_LOCKED))
+ 			continue;
+@@ -1159,10 +1116,9 @@ static int try_to_unmap_file(struct page
+ 			cursor = (unsigned long) vma->vm_private_data;
+ 			while ( cursor < max_nl_cursor &&
+ 				cursor < vma->vm_end - vma->vm_start) {
+-				ret = try_to_unmap_cluster(cursor, &mapcount,
+-								vma, page);
+-				if (ret == SWAP_MLOCK)
+-					mlocked = 2;	/* to return below */
++				if (try_to_unmap_cluster(cursor, &mapcount,
++						vma, page) == SWAP_MLOCK)
++					ret = SWAP_MLOCK;
+ 				cursor += CLUSTER_SIZE;
+ 				vma->vm_private_data = (void *) cursor;
+ 				if ((int)mapcount <= 0)
+@@ -1183,10 +1139,6 @@ static int try_to_unmap_file(struct page
+ 		vma->vm_private_data = NULL;
+ out:
+ 	spin_unlock(&mapping->i_mmap_lock);
+-	if (mlocked)
+-		ret = SWAP_MLOCK;	/* actually mlocked the page */
+-	else if (ret == SWAP_MLOCK)
+-		ret = SWAP_AGAIN;	/* saw VM_LOCKED vma */
+ 	return ret;
  }
  
- /*
-@@ -2189,7 +2162,7 @@ void swap_duplicate(swp_entry_t entry)
+@@ -1229,7 +1181,7 @@ int try_to_unmap(struct page *page, enum
+  *
+  * Return values are:
+  *
+- * SWAP_SUCCESS	- no vma's holding page mlocked.
++ * SWAP_AGAIN	- no vma is holding page mlocked, or,
+  * SWAP_AGAIN	- page mapped in mlocked vma -- couldn't acquire mmap sem
+  * SWAP_MLOCK	- page is now mlocked.
   */
- int swapcache_prepare(swp_entry_t entry)
- {
--	return __swap_duplicate(entry, SWAP_CACHE);
-+	return __swap_duplicate(entry, SWAP_HAS_CACHE);
- }
- 
- /*
 _
 
 Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
