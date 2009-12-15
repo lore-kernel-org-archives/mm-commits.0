@@ -1,167 +1,163 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lis3-sysfs-entry-for-setting-chip-measurement-rate.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 13:59:36 -0800
-Message-ID: <200912152159.nBFLxaIk015916@imap1.linux-foundation.org>
+Subject: [merged] lib-vsprintfc-add-%pu-to-print-uuid-guids.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 13:57:54 -0800
+Message-ID: <200912152157.nBFLvshu015759@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52428 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40719 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933838AbZLOWAd (ORCPT
+	by vger.kernel.org with ESMTP id S933840AbZLOV77 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 17:00:33 -0500
+	Tue, 15 Dec 2009 16:59:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: samu.p.onkalo@nokia.com, Eric.Piel@tremplin-utc.net, pavel@ucw.cz, mm-commits@vger.kernel.org
+To: joe@perches.com, adrian.hunter@nokia.com, aelder@sgi.com, dedekind@infradead.org, hch@lst.de, jgarzik@redhat.com, mchehab@infradead.org, mpm@selenic.com, neilb@suse.de, swhiteho@redha
 
 
 The patch titled
-     lis3: sysfs entry for setting chip measurement rate
+     lib/vsprintf.c: add %pU to print UUID/GUIDs
 has been removed from the -mm tree.  Its filename was
-     lis3-sysfs-entry-for-setting-chip-measurement-rate.patch
+     lib-vsprintfc-add-%pu-to-print-uuid-guids.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lis3: sysfs entry for setting chip measurement rate
-=46rom: Samu Onkalo <samu.p.onkalo@nokia.com>
+Subject: lib/vsprintf.c: add %pU to print UUID/GUIDs
+From: Joe Perches <joe@perches.com>
 
-It is possible to read position information at the chip measurement rat=
-e
-via sysfs.  This patch adds possibility to configure chip measurement
-rate.
+UUID/GUIDs are somewhat common in kernel source.
 
-Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
-Signed-off-by: =C9ric Piel <Eric.Piel@tremplin-utc.net>
-Cc: Pavel Machek <pavel@ucw.cz>
+Standardize the printed style of UUID/GUIDs by using
+another extension to %p.
+
+%pUb:   01020304-0506-0708-090a-0b0c0d0e0f10
+%pUB:   01020304-0506-0708-090A-0B0C0D0E0F10 (upper case)
+%pUl:   04030201-0605-0807-090a-0b0c0d0e0f10
+%pUL:   04030201-0605-0807-090A-0B0C0D0E0F10 (upper case)
+
+%pU defaults to %pUb
+
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Jeff Garzik <jgarzik@redhat.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Alex Elder <aelder@sgi.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Artem Bityutskiy <dedekind@infradead.org>
+Cc: Adrian Hunter <adrian.hunter@nokia.com>
+Cc: Steven Whitehouse <swhiteho@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/lis3lv02d.c |   51 +++++++++++++++++++++++++++++++-----
- drivers/hwmon/lis3lv02d.h |    2 +
- 2 files changed, 46 insertions(+), 7 deletions(-)
+ lib/vsprintf.c |   62 ++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 61 insertions(+), 1 deletion(-)
 
-diff -puN drivers/hwmon/lis3lv02d.c~lis3-sysfs-entry-for-setting-chip-m=
-easurement-rate drivers/hwmon/lis3lv02d.c
---- a/drivers/hwmon/lis3lv02d.c~lis3-sysfs-entry-for-setting-chip-measu=
-rement-rate
-+++ a/drivers/hwmon/lis3lv02d.c
-@@ -121,18 +121,35 @@ static void lis3lv02d_get_xyz(struct lis
- static int lis3_12_rates[4] =3D {40, 160, 640, 2560};
- static int lis3_8_rates[2] =3D {100, 400};
-=20
-+/* ODR is Output Data Rate */
- static int lis3lv02d_get_odr(void)
- {
- 	u8 ctrl;
--	int val;
-+	int shift;
-=20
- 	lis3_dev.read(&lis3_dev, CTRL_REG1, &ctrl);
-+	ctrl &=3D lis3_dev.odr_mask;
-+	shift =3D ffs(lis3_dev.odr_mask) - 1;
-+	return lis3_dev.odrs[(ctrl >> shift)];
-+}
-=20
--	if (lis3_dev.whoami =3D=3D WAI_12B)
--		val =3D lis3_12_rates[(ctrl & (CTRL1_DF0 | CTRL1_DF1)) >> 4];
--	else
--		val =3D lis3_8_rates[(ctrl & CTRL1_DR) >> 7];
--	return val;
-+static int lis3lv02d_set_odr(int rate)
+diff -puN lib/vsprintf.c~lib-vsprintfc-add-%pu-to-print-uuid-guids lib/vsprintf.c
+--- a/lib/vsprintf.c~lib-vsprintfc-add-%pu-to-print-uuid-guids
++++ a/lib/vsprintf.c
+@@ -834,6 +834,52 @@ static char *ip4_addr_string(char *buf, 
+ 	return string(buf, end, ip4_addr, spec);
+ }
+ 
++static char *uuid_string(char *buf, char *end, const u8 *addr,
++			 struct printf_spec spec, const char *fmt)
 +{
-+	u8 ctrl;
-+	int i, len, shift;
++	char uuid[sizeof("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")];
++	char *p = uuid;
++	int i;
++	static const u8 be[16] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
++	static const u8 le[16] = {3,2,1,0,5,4,7,6,8,9,10,11,12,13,14,15};
++	const u8 *index = be;
++	bool uc = false;
 +
-+	lis3_dev.read(&lis3_dev, CTRL_REG1, &ctrl);
-+	ctrl &=3D ~lis3_dev.odr_mask;
-+	len =3D 1 << hweight_long(lis3_dev.odr_mask); /* # of possible values=
- */
-+	shift =3D ffs(lis3_dev.odr_mask) - 1;
++	switch (*(++fmt)) {
++	case 'L':
++		uc = true;		/* fall-through */
++	case 'l':
++		index = le;
++		break;
++	case 'B':
++		uc = true;
++		break;
++	}
 +
-+	for (i =3D 0; i < len; i++)
-+		if (lis3_dev.odrs[i] =3D=3D rate) {
-+			lis3_dev.write(&lis3_dev, CTRL_REG1,
-+					ctrl | (i << shift));
-+			return 0;
++	for (i = 0; i < 16; i++) {
++		p = pack_hex_byte(p, addr[index[i]]);
++		switch (i) {
++		case 3:
++		case 5:
++		case 7:
++		case 9:
++			*p++ = '-';
++			break;
 +		}
-+	return -EINVAL;
- }
-=20
- static int lis3lv02d_selftest(struct lis3lv02d *lis3, s16 results[3])
-@@ -433,9 +450,25 @@ static ssize_t lis3lv02d_rate_show(struc
- 	return sprintf(buf, "%d\n", lis3lv02d_get_odr());
- }
-=20
-+static ssize_t lis3lv02d_rate_set(struct device *dev,
-+				struct device_attribute *attr, const char *buf,
-+				size_t count)
-+{
-+	unsigned long rate;
++	}
 +
-+	if (strict_strtoul(buf, 0, &rate))
-+		return -EINVAL;
++	*p = 0;
 +
-+	if (lis3lv02d_set_odr(rate))
-+		return -EINVAL;
++	if (uc) {
++		p = uuid;
++		do {
++			*p = toupper(*p);
++		} while (*(++p));
++	}
 +
-+	return count;
++	return string(buf, end, uuid, spec);
 +}
 +
- static DEVICE_ATTR(selftest, S_IRUSR, lis3lv02d_selftest_show, NULL);
- static DEVICE_ATTR(position, S_IRUGO, lis3lv02d_position_show, NULL);
--static DEVICE_ATTR(rate, S_IRUGO, lis3lv02d_rate_show, NULL);
-+static DEVICE_ATTR(rate, S_IRUGO | S_IWUSR, lis3lv02d_rate_show,
-+					    lis3lv02d_rate_set);
-=20
- static struct attribute *lis3lv02d_attributes[] =3D {
- 	&dev_attr_selftest.attr,
-@@ -480,12 +513,16 @@ int lis3lv02d_init_device(struct lis3lv0
- 		dev->read_data =3D lis3lv02d_read_12;
- 		dev->mdps_max_val =3D 2048;
- 		dev->pwron_delay =3D LIS3_PWRON_DELAY_WAI_12B;
-+		dev->odrs =3D lis3_12_rates;
-+		dev->odr_mask =3D CTRL1_DF0 | CTRL1_DF1;
+ /*
+  * Show a '%p' thing.  A kernel extension is that the '%p' is followed
+  * by an extra set of alphanumeric characters that are extended format
+@@ -858,6 +904,18 @@ static char *ip4_addr_string(char *buf, 
+  *       IPv4 uses dot-separated decimal with leading 0's (010.123.045.006)
+  * - 'I6c' for IPv6 addresses printed as specified by
+  *       http://www.ietf.org/id/draft-kawamura-ipv6-text-representation-03.txt
++ * - 'U' For a 16 byte UUID/GUID, it prints the UUID/GUID in the form
++ *       "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
++ *       Options for %pU are:
++ *         b big endian lower case hex (default)
++ *         B big endian UPPER case hex
++ *         l little endian lower case hex
++ *         L little endian UPPER case hex
++ *           big endian output byte order is:
++ *             [0][1][2][3]-[4][5]-[6][7]-[8][9]-[10][11][12][13][14][15]
++ *           little endian output byte order is:
++ *             [3][2][1][0]-[5][4]-[7][6]-[8][9]-[10][11][12][13][14][15]
++ *
+  * Note: The difference between 'S' and 'F' is that on ia64 and ppc64
+  * function pointers are really function descriptors, which contain a
+  * pointer to the real address.
+@@ -873,8 +931,8 @@ static char *pointer(const char *fmt, ch
+ 	case 'f':
+ 		ptr = dereference_function_descriptor(ptr);
+ 		/* Fallthrough */
+-	case 's':
+ 	case 'S':
++	case 's':
+ 		return symbol_string(buf, end, ptr, spec, *fmt);
+ 	case 'R':
+ 	case 'r':
+@@ -898,6 +956,8 @@ static char *pointer(const char *fmt, ch
+ 			return ip4_addr_string(buf, end, ptr, spec, fmt);
+ 		}
  		break;
- 	case WAI_8B:
- 		printk(KERN_INFO DRIVER_NAME ": 8 bits sensor found\n");
- 		dev->read_data =3D lis3lv02d_read_8;
- 		dev->mdps_max_val =3D 128;
- 		dev->pwron_delay =3D LIS3_PWRON_DELAY_WAI_8B;
-+		dev->odrs =3D lis3_8_rates;
-+		dev->odr_mask =3D CTRL1_DR;
- 		break;
- 	default:
- 		printk(KERN_ERR DRIVER_NAME
-diff -puN drivers/hwmon/lis3lv02d.h~lis3-sysfs-entry-for-setting-chip-m=
-easurement-rate drivers/hwmon/lis3lv02d.h
---- a/drivers/hwmon/lis3lv02d.h~lis3-sysfs-entry-for-setting-chip-measu=
-rement-rate
-+++ a/drivers/hwmon/lis3lv02d.h
-@@ -208,6 +208,8 @@ struct lis3lv02d {
- 	int (*write) (struct lis3lv02d *lis3, int reg, u8 val);
- 	int (*read) (struct lis3lv02d *lis3, int reg, u8 *ret);
-=20
-+	int                     *odrs;     /* Supported output data rates */
-+	u8                      odr_mask;  /* ODR bit mask */
- 	u8			whoami;    /* indicates measurement precision */
- 	s16 (*read_data) (struct lis3lv02d *lis3, int reg);
- 	int			mdps_max_val;
++	case 'U':
++		return uuid_string(buf, end, ptr, spec, fmt);
+ 	}
+ 	spec.flags |= SMALL;
+ 	if (spec.field_width == -1) {
 _
 
-Patches currently in -mm which might be from samu.p.onkalo@nokia.com ar=
-e
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
+linux-next.patch
+scripts-checkpatchpl-add-warn-on-sizeof.patch
+checkpatchpl-allow-80-char-lines-for-logging-functions-not-just-printk.patch
+isicomc-use-pr_fmt-and-pr_level.patch
+parport_pcc-use-correct-length-in-strncmp.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
