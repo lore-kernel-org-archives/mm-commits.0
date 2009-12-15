@@ -1,203 +1,130 @@
 From: akpm@linux-foundation.org
-Subject: [merged] alsa-cs5535audio-free-olpc-quirks-from-reliance-on-mgeode_lx-cpu-optimization.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 13:56:23 -0800
-Message-ID: <200912152156.nBFLuNCA015564@imap1.linux-foundation.org>
+Subject: [merged] lib-introduce-strim.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 13:58:17 -0800
+Message-ID: <200912152158.nBFLwH2G015798@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45728 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52269 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761310AbZLOV6f (ORCPT
+	by vger.kernel.org with ESMTP id S1761314AbZLOV7L (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 16:58:35 -0500
+	Tue, 15 Dec 2009 16:59:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dilinger@collabora.co.uk, david-b@pacbell.net, jordan@cosmicpenguin.net, tiwai@suse.de, mm-commits@vger.kernel.org
+To: kosaki.motohiro@jp.fujitsu.com, James.Bottomley@HansenPartnership.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ALSA: cs5535audio: free OLPC quirks from reliance on MGEODE_LX cpu optimization
+     Subject: Re: [PATCH] strstrip incorrectly marked __must_check
 has been removed from the -mm tree.  Its filename was
-     alsa-cs5535audio-free-olpc-quirks-from-reliance-on-mgeode_lx-cpu-optimization.patch
+     lib-introduce-strim.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ALSA: cs5535audio: free OLPC quirks from reliance on MGEODE_LX cpu optimization
-From: Andres Salomon <dilinger@collabora.co.uk>
+Subject: Subject: Re: [PATCH] strstrip incorrectly marked __must_check
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Previously, OLPC support for the mic extensions was only enabled in the
-ALSA driver if CONFIG_OLPC and CONFIG_MGEODE_LX were both set.  This was
-because the old geode GPIO code was written in a manner that assumed
-CONFIG_MGEODE_LX.  With the new cs553x-gpio driver, this is no longer the
-case; as such, we can drop the requirement on CONFIG_MGEODE_LX and instead
-include a requirement on GPIOLIB.
+Recently, We marked strstrip() as must_check.  because it was frequently
+misused and it should be checked.  However, we found one exception. 
+scsi/ipr.c intentionally ignore return value of strstrip.  Because it
+wishes to keep the whitespace at the beginning.
 
-We use the generic GPIO API rather than the cs553x-specific API.
+Thus we need to keep with and without checked whitespace trim function. 
+This patch adds a new strim() and changes ipr.c to use it.
 
-Signed-off-by: Andres Salomon <dilinger@collabora.co.uk>
-Cc: Takashi Iwai <tiwai@suse.de>
-Cc: Jordan Crouse <jordan@cosmicpenguin.net>
-Cc: David Brownell <david-b@pacbell.net>
+[akpm@linux-foundation.org: coding-style fixes]
+Suggested-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig                         |    1 
- arch/x86/include/asm/olpc.h              |    2 -
- sound/pci/cs5535audio/Makefile           |    2 -
- sound/pci/cs5535audio/cs5535audio.c      |    1 
- sound/pci/cs5535audio/cs5535audio.h      |    4 ++-
- sound/pci/cs5535audio/cs5535audio_olpc.c |   26 +++++++++++++++------
- 6 files changed, 25 insertions(+), 11 deletions(-)
+ drivers/scsi/ipr.c     |    4 ++--
+ include/linux/string.h |    9 ++++++++-
+ lib/string.c           |    6 +++---
+ 3 files changed, 13 insertions(+), 6 deletions(-)
 
-diff -puN arch/x86/Kconfig~alsa-cs5535audio-free-olpc-quirks-from-reliance-on-mgeode_lx-cpu-optimization arch/x86/Kconfig
---- a/arch/x86/Kconfig~alsa-cs5535audio-free-olpc-quirks-from-reliance-on-mgeode_lx-cpu-optimization
-+++ a/arch/x86/Kconfig
-@@ -2024,6 +2024,7 @@ config GEODE_MFGPT_TIMER
+diff -puN drivers/scsi/ipr.c~lib-introduce-strim drivers/scsi/ipr.c
+--- a/drivers/scsi/ipr.c~lib-introduce-strim
++++ a/drivers/scsi/ipr.c
+@@ -1333,7 +1333,7 @@ static void ipr_log_enhanced_dual_ioa_er
  
- config OLPC
- 	bool "One Laptop Per Child support"
-+	select GPIOLIB
- 	default n
- 	---help---
- 	  Add support for detecting the unique features of the OLPC
-diff -puN arch/x86/include/asm/olpc.h~alsa-cs5535audio-free-olpc-quirks-from-reliance-on-mgeode_lx-cpu-optimization arch/x86/include/asm/olpc.h
---- a/arch/x86/include/asm/olpc.h~alsa-cs5535audio-free-olpc-quirks-from-reliance-on-mgeode_lx-cpu-optimization
-+++ a/arch/x86/include/asm/olpc.h
-@@ -120,7 +120,7 @@ extern int olpc_ec_mask_unset(uint8_t bi
+ 	error = &hostrcb->hcam.u.error.u.type_17_error;
+ 	error->failure_reason[sizeof(error->failure_reason) - 1] = '\0';
+-	strstrip(error->failure_reason);
++	strim(error->failure_reason);
  
- /* GPIO assignments */
+ 	ipr_hcam_err(hostrcb, "%s [PRC: %08X]\n", error->failure_reason,
+ 		     be32_to_cpu(hostrcb->hcam.u.error.prc));
+@@ -1359,7 +1359,7 @@ static void ipr_log_dual_ioa_error(struc
  
--#define OLPC_GPIO_MIC_AC	geode_gpio(1)
-+#define OLPC_GPIO_MIC_AC	1
- #define OLPC_GPIO_DCON_IRQ	geode_gpio(7)
- #define OLPC_GPIO_THRM_ALRM	geode_gpio(10)
- #define OLPC_GPIO_SMB_CLK	geode_gpio(14)
-diff -puN sound/pci/cs5535audio/Makefile~alsa-cs5535audio-free-olpc-quirks-from-reliance-on-mgeode_lx-cpu-optimization sound/pci/cs5535audio/Makefile
---- a/sound/pci/cs5535audio/Makefile~alsa-cs5535audio-free-olpc-quirks-from-reliance-on-mgeode_lx-cpu-optimization
-+++ a/sound/pci/cs5535audio/Makefile
-@@ -4,9 +4,7 @@
+ 	error = &hostrcb->hcam.u.error.u.type_07_error;
+ 	error->failure_reason[sizeof(error->failure_reason) - 1] = '\0';
+-	strstrip(error->failure_reason);
++	strim(error->failure_reason);
  
- snd-cs5535audio-y := cs5535audio.o cs5535audio_pcm.o
- snd-cs5535audio-$(CONFIG_PM) += cs5535audio_pm.o
--ifdef CONFIG_MGEODE_LX
- snd-cs5535audio-$(CONFIG_OLPC) += cs5535audio_olpc.o
--endif
- 
- # Toplevel Module Dependency
- obj-$(CONFIG_SND_CS5535AUDIO) += snd-cs5535audio.o
-diff -puN sound/pci/cs5535audio/cs5535audio.c~alsa-cs5535audio-free-olpc-quirks-from-reliance-on-mgeode_lx-cpu-optimization sound/pci/cs5535audio/cs5535audio.c
---- a/sound/pci/cs5535audio/cs5535audio.c~alsa-cs5535audio-free-olpc-quirks-from-reliance-on-mgeode_lx-cpu-optimization
-+++ a/sound/pci/cs5535audio/cs5535audio.c
-@@ -389,6 +389,7 @@ probefail_out:
- 
- static void __devexit snd_cs5535audio_remove(struct pci_dev *pci)
- {
-+	olpc_quirks_cleanup();
- 	snd_card_free(pci_get_drvdata(pci));
- 	pci_set_drvdata(pci, NULL);
- }
-diff -puN sound/pci/cs5535audio/cs5535audio.h~alsa-cs5535audio-free-olpc-quirks-from-reliance-on-mgeode_lx-cpu-optimization sound/pci/cs5535audio/cs5535audio.h
---- a/sound/pci/cs5535audio/cs5535audio.h~alsa-cs5535audio-free-olpc-quirks-from-reliance-on-mgeode_lx-cpu-optimization
-+++ a/sound/pci/cs5535audio/cs5535audio.h
-@@ -99,10 +99,11 @@ int snd_cs5535audio_suspend(struct pci_d
- int snd_cs5535audio_resume(struct pci_dev *pci);
+ 	ipr_hcam_err(hostrcb, "%s [PRC: %08X]\n", error->failure_reason,
+ 		     be32_to_cpu(hostrcb->hcam.u.error.prc));
+diff -puN include/linux/string.h~lib-introduce-strim include/linux/string.h
+--- a/include/linux/string.h~lib-introduce-strim
++++ a/include/linux/string.h
+@@ -63,7 +63,14 @@ extern char * strnchr(const char *, size
+ extern char * strrchr(const char *,int);
  #endif
- 
--#if defined(CONFIG_OLPC) && defined(CONFIG_MGEODE_LX)
-+#ifdef CONFIG_OLPC
- void __devinit olpc_prequirks(struct snd_card *card,
- 		struct snd_ac97_template *ac97);
- int __devinit olpc_quirks(struct snd_card *card, struct snd_ac97 *ac97);
-+void __devexit olpc_quirks_cleanup(void);
- void olpc_analog_input(struct snd_ac97 *ac97, int on);
- void olpc_mic_bias(struct snd_ac97 *ac97, int on);
- 
-@@ -128,6 +129,7 @@ static inline int olpc_quirks(struct snd
- {
- 	return 0;
- }
-+static inline void olpc_quirks_cleanup(void) { }
- static inline void olpc_analog_input(struct snd_ac97 *ac97, int on) { }
- static inline void olpc_mic_bias(struct snd_ac97 *ac97, int on) { }
- static inline void olpc_capture_open(struct snd_ac97 *ac97) { }
-diff -puN sound/pci/cs5535audio/cs5535audio_olpc.c~alsa-cs5535audio-free-olpc-quirks-from-reliance-on-mgeode_lx-cpu-optimization sound/pci/cs5535audio/cs5535audio_olpc.c
---- a/sound/pci/cs5535audio/cs5535audio_olpc.c~alsa-cs5535audio-free-olpc-quirks-from-reliance-on-mgeode_lx-cpu-optimization
-+++ a/sound/pci/cs5535audio/cs5535audio_olpc.c
-@@ -13,10 +13,13 @@
- #include <sound/info.h>
- #include <sound/control.h>
- #include <sound/ac97_codec.h>
-+#include <linux/gpio.h>
- 
- #include <asm/olpc.h>
- #include "cs5535audio.h"
- 
-+#define DRV_NAME "cs5535audio-olpc"
+ extern char * __must_check skip_spaces(const char *);
+-extern char * __must_check strstrip(char *);
 +
- /*
-  * OLPC has an additional feature on top of the regular AD1888 codec features.
-  * It has an Analog Input mode that is switched into (after disabling the
-@@ -38,10 +41,7 @@ void olpc_analog_input(struct snd_ac97 *
- 	}
- 
- 	/* set Analog Input through GPIO */
--	if (on)
--		geode_gpio_set(OLPC_GPIO_MIC_AC, GPIO_OUTPUT_VAL);
--	else
--		geode_gpio_clear(OLPC_GPIO_MIC_AC, GPIO_OUTPUT_VAL);
-+	gpio_set_value(OLPC_GPIO_MIC_AC, on);
- }
- 
- /*
-@@ -73,8 +73,7 @@ static int olpc_dc_info(struct snd_kcont
- 
- static int olpc_dc_get(struct snd_kcontrol *kctl, struct snd_ctl_elem_value *v)
- {
--	v->value.integer.value[0] = geode_gpio_isset(OLPC_GPIO_MIC_AC,
--			GPIO_OUTPUT_VAL);
-+	v->value.integer.value[0] = gpio_get_value(OLPC_GPIO_MIC_AC);
- 	return 0;
- }
- 
-@@ -153,6 +152,12 @@ int __devinit olpc_quirks(struct snd_car
- 	if (!machine_is_olpc())
- 		return 0;
- 
-+	if (gpio_request(OLPC_GPIO_MIC_AC, DRV_NAME)) {
-+		printk(KERN_ERR DRV_NAME ": unable to allocate MIC GPIO\n");
-+		return -EIO;
-+	}
-+	gpio_direction_output(OLPC_GPIO_MIC_AC, 0);
++extern char *strim(char *);
 +
- 	/* drop the original AD1888 HPF control */
- 	memset(&elem, 0, sizeof(elem));
- 	elem.iface = SNDRV_CTL_ELEM_IFACE_MIXER;
-@@ -169,11 +174,18 @@ int __devinit olpc_quirks(struct snd_car
- 	for (i = 0; i < ARRAY_SIZE(olpc_cs5535audio_ctls); i++) {
- 		err = snd_ctl_add(card, snd_ctl_new1(&olpc_cs5535audio_ctls[i],
- 				ac97->private_data));
--		if (err < 0)
-+		if (err < 0) {
-+			gpio_free(OLPC_GPIO_MIC_AC);
- 			return err;
-+		}
- 	}
- 
- 	/* turn off the mic by default */
- 	olpc_mic_bias(ac97, 0);
- 	return 0;
- }
-+
-+void __devexit olpc_quirks_cleanup(void)
++static inline __must_check char *strstrip(char *str)
 +{
-+	gpio_free(OLPC_GPIO_MIC_AC);
++	return strim(str);
 +}
++
+ #ifndef __HAVE_ARCH_STRSTR
+ extern char * strstr(const char *,const char *);
+ #endif
+diff -puN lib/string.c~lib-introduce-strim lib/string.c
+--- a/lib/string.c~lib-introduce-strim
++++ a/lib/string.c
+@@ -352,14 +352,14 @@ char *skip_spaces(const char *str)
+ EXPORT_SYMBOL(skip_spaces);
+ 
+ /**
+- * strstrip - Removes leading and trailing whitespace from @s.
++ * strim - Removes leading and trailing whitespace from @s.
+  * @s: The string to be stripped.
+  *
+  * Note that the first trailing whitespace is replaced with a %NUL-terminator
+  * in the given string @s. Returns a pointer to the first non-whitespace
+  * character in @s.
+  */
+-char *strstrip(char *s)
++char *strim(char *s)
+ {
+ 	size_t size;
+ 	char *end;
+@@ -376,7 +376,7 @@ char *strstrip(char *s)
+ 
+ 	return s;
+ }
+-EXPORT_SYMBOL(strstrip);
++EXPORT_SYMBOL(strim);
+ 
+ #ifndef __HAVE_ARCH_STRLEN
+ /**
 _
 
-Patches currently in -mm which might be from dilinger@collabora.co.uk are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 origin.patch
-lxfb-add-copyright-license-info.patch
+linux-next.patch
+readahead-add-blk_run_backing_dev.patch
+oom-kill-show-virtual-size-and-rss-information-of-the-killed-process.patch
+oom-kill-fix-numa-consraint-check-with-nodemask-v42.patch
+mm-introduce-coredump-parameter-structure.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
