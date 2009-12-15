@@ -1,82 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-mark-cifs-mailing-list-as-moderated-for-non-subscribers.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 13:57:01 -0800
-Message-ID: <200912152157.nBFLv1LQ015680@imap1.linux-foundation.org>
+Subject: [merged] vsprintf-factorize-null-string.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 13:57:13 -0800
+Message-ID: <200912152157.nBFLvDOU015702@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59591 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59956 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761291AbZLOV5f (ORCPT
+	by vger.kernel.org with ESMTP id S933802AbZLOV5u (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 16:57:35 -0500
+	Tue, 15 Dec 2009 16:57:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, sfrench@samba.org, mm-commits@vger.kernel.org
+To: andre.goddard@gmail.com, fweisbec@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MAINTAINERS: mark cifs mailing list as "moderated for non-subscribers"
+     vsprintf: factorize "(null)" string
 has been removed from the -mm tree.  Its filename was
-     maintainers-mark-cifs-mailing-list-as-moderated-for-non-subscribers.patch
+     vsprintf-factorize-null-string.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: mark cifs mailing list as "moderated for non-subscribers"
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: vsprintf: factorize "(null)" string
+=46rom: Andr=E9 Goddard Rosa <andre.goddard@gmail.com>
 
-If non-subscribers post bug report to CIFS mailing list, they will get
-following messages.
+This patchset reduces lib/lib.a code size by 482 bytes on my Core 2 wit=
+h
+gcc 4.4.1 even considering that it exports a newly defined function
+skip_spaces() to drivers:
 
-	Your mail to 'linux-cifs-client' with the subject
+   text    data     bss     dec     hex filename
+  64867     840     592   66299   102fb (TOTALS-lib.a-BEFORE)
+  64641     584     592   65817   10119 (TOTALS-lib.a-AFTER)
+and implements some code tidy up.
 
-	    [PATCH x/x] cifs: xxxxxxxxxxxxx
+Besides reducing lib.a size, it converts many in-tree drivers to use th=
+e
+newly defined function, which makes another small reduction on kernel s=
+ize
+overall when those drivers are used.
 
-	Is being held until the list moderator can review it for approval.
 
-	The reason it is being held:
+This patch:
 
-	    Post by non-member to a members-only list
+Change "<NULL>" to "(null)", unifying 3 equal strings.
+glibc also uses "(null)" for the same purpose.
 
-	Either the message will get posted to the list, or you will receive
-	notification of the moderator's decision.  If you would like to cancel
-	this posting, please visit the following URL:
+It decreases code size by 7 bytes:
+ text    data     bss     dec     hex filename
+15765       0       8   15773    3d9d vsprintf.o (ex lib/lib.a-BEFORE)
+15758       0       8   15766    3d96 vsprintf.o (ex lib/lib.a-AFTER)
 
-members-only list should be written as so in MAINTAINERS file.
-
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Steve French <sfrench@samba.org>
+Signed-off-by: Andr=E9 Goddard Rosa <andre.goddard@gmail.com>
+Acked-by: Frederic Weisbecker <fweisbec@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/vsprintf.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-mark-cifs-mailing-list-as-moderated-for-non-subscribers MAINTAINERS
---- a/MAINTAINERS~maintainers-mark-cifs-mailing-list-as-moderated-for-non-subscribers
-+++ a/MAINTAINERS
-@@ -1482,8 +1482,8 @@ F:	include/linux/coda*.h
- 
- COMMON INTERNET FILE SYSTEM (CIFS)
- M:	Steve French <sfrench@samba.org>
--L:	linux-cifs-client@lists.samba.org
--L:	samba-technical@lists.samba.org
-+L:	linux-cifs-client@lists.samba.org (moderated for non-subscribers)
-+L:	samba-technical@lists.samba.org (moderated for non-subscribers)
- W:	http://linux-cifs.samba.org/
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/sfrench/cifs-2.6.git
- S:	Supported
+diff -puN lib/vsprintf.c~vsprintf-factorize-null-string lib/vsprintf.c
+--- a/lib/vsprintf.c~vsprintf-factorize-null-string
++++ a/lib/vsprintf.c
+@@ -546,12 +546,12 @@ static char *number(char *buf, char *end
+ 	return buf;
+ }
+=20
+-static char *string(char *buf, char *end, char *s, struct printf_spec =
+spec)
++static char *string(char *buf, char *end, const char *s, struct printf=
+_spec spec)
+ {
+ 	int len, i;
+=20
+ 	if ((unsigned long)s < PAGE_SIZE)
+-		s =3D "<NULL>";
++		s =3D "(null)";
+=20
+ 	len =3D strnlen(s, spec.precision);
+=20
+@@ -1498,7 +1498,7 @@ do {									\
+ 			size_t len;
+ 			if ((unsigned long)save_str > (unsigned long)-PAGE_SIZE
+ 					|| (unsigned long)save_str < PAGE_SIZE)
+-				save_str =3D "<NULL>";
++				save_str =3D "(null)";
+ 			len =3D strlen(save_str);
+ 			if (str + len + 1 < end)
+ 				memcpy(str, save_str, len + 1);
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from andre.goddard@gmail.com ar=
+e
 
 origin.patch
-linux-next.patch
-readahead-add-blk_run_backing_dev.patch
-oom-kill-show-virtual-size-and-rss-information-of-the-killed-process.patch
-oom-kill-fix-numa-consraint-check-with-nodemask-v42.patch
-mm-introduce-coredump-parameter-structure.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
+pid-tighten-pidmap-spinlock-critical-section-by-removing-kfree.patch
+pid-reduce-code-size-by-using-a-pointer-to-iterate-over-array.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
