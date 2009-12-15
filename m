@@ -1,86 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [folded] dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch removed from -mm tree
-Date: Mon, 14 Dec 2009 16:56:00 -0800
-Message-ID: <200912150056.nBF0u09A015124@imap1.linux-foundation.org>
+Subject: [folded] hugetlb-offload-per-node-attribute-registrations-fix.patch removed from -mm tree
+Date: Mon, 14 Dec 2009 16:57:53 -0800
+Message-ID: <200912150057.nBF0vroH019998@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41763 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34259 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757798AbZLOA47 (ORCPT
+	by vger.kernel.org with ESMTP id S1757597AbZLOA6B (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Dec 2009 19:56:59 -0500
+	Mon, 14 Dec 2009 19:58:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@linux.intel.com, avi@qumranet.com, broonie@opensource.wolfsonmicro.com, fengguang.wu@intel.com, gregkh@suse.de, johannes@sipsolutions.net, mtosatti@redhat
+To: Lee.Schermerhorn@hp.com, lee.schermerhorn@hp.com, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix
+     hugetlb: offload per node attribute registrations fix
 has been removed from the -mm tree.  Its filename was
-     dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
+     hugetlb-offload-per-node-attribute-registrations-fix.patch
 
-This patch was dropped because it was folded into dev-mem-cleanup-unxlate_dev_mem_ptr-calls.patch
+This patch was dropped because it was folded into hugetlb-offload-per-node-attribute-registrations.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: hugetlb: offload per node attribute registrations fix
+From: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
 
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Avi Kivity <avi@qumranet.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Johannes Berg <johannes@sipsolutions.net>
-Cc: Marcelo Tosatti <mtosatti@redhat.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+Fix build failure when MEMORY_HOTPLUG_SPARSE and !HUGETLBFS:
+
+drivers/base/node.c:484: error: implicit declaration of function 'init_node_hugetlb_work'
+drivers/base/node.c:582: error: 'node_memory_callback' undeclared (first use in this function)
+
+Reported-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mem.c |    1 -
- 1 file changed, 1 deletion(-)
 
-diff -puN drivers/char/mem.c~dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix drivers/char/mem.c
---- a/drivers/char/mem.c~dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix
-+++ a/drivers/char/mem.c
-@@ -155,7 +155,6 @@ static ssize_t read_mem(struct file * fi
+diff -puN drivers/base/node.c~hugetlb-offload-per-node-attribute-registrations-fix drivers/base/node.c
+--- a/drivers/base/node.c~hugetlb-offload-per-node-attribute-registrations-fix
++++ a/drivers/base/node.c
+@@ -445,8 +445,12 @@ static int node_memory_callback(struct n
+ }
+ #endif	/* CONFIG_HUGETLBFS */
+ #else	/* !CONFIG_MEMORY_HOTPLUG_SPARSE */
++
+ static int link_mem_sections(int nid) { return 0; }
++#endif	/* CONFIG_MEMORY_HOTPLUG_SPARSE */
  
- 	while (count > 0) {
- 		unsigned long remaining;
--		int ret;
++#if !defined(CONFIG_MEMORY_HOTPLUG_SPARSE) || \
++    !defined(CONFIG_HUGETLBFS)
+ static inline int node_memory_callback(struct notifier_block *self,
+ 				unsigned long action, void *arg)
+ {
+@@ -455,7 +459,7 @@ static inline int node_memory_callback(s
  
- 		sz = size_inside_page(p, count);
+ static void init_node_hugetlb_work(int nid) { }
  
+-#endif /* CONFIG_MEMORY_HOTPLUG_SPARSE */
++#endif
+ 
+ int register_one_node(int nid)
+ {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from Lee.Schermerhorn@hp.com are
 
-origin.patch
-mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls.patch
-dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
-oom-kill-show-virtual-size-and-rss-information-of-the-killed-process-fix.patch
-oom-kill-fix-numa-consraint-check-with-nodemask-v42-checkpatch-fixes.patch
+hugetlb-offload-per-node-attribute-registrations.patch
+hugetlb-offload-per-node-attribute-registrations-fix.patch
+swap-rework-map_swap_page-again.patch
+mm-define-page_mapping_flags.patch
+mm-mlocking-in-try_to_unmap_one.patch
+mm-mlocking-in-try_to_unmap_one-fix.patch
 mm-mlocking-in-try_to_unmap_one-fix-fix.patch
-mm-memory_hotplug-make-offline_pages-static.patch
-mm-hugetlb-fix-hugepage-memory-leak-in-mincore-cleanup.patch
-mm-hugetlb-fix-hugepage-memory-leak-in-mincore-build-fix.patch
-mm-hugetlb-add-hugepage-support-to-pagemap-build-fix.patch
-procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm-cleanup.patch
-floppy-add-an-extra-bound-check-on-ioctl-arguments-fix.patch
-drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
-rwsem-fix-rwsem_is_locked-bugs-fix.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
-errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
-cs5535-add-a-generic-mfgpt-driver-fix.patch
-cs5535-add-a-generic-clock-event-mfgpt-driver-fix.patch
-drivers-scsi-sym53c8xx_2-sym_gluec-rename-skip_spaces-to-sym_skip_spaces.patch
-lib-introduce-strim-checkpatch-fixes.patch
-blackfin-sd-host-controller-driver-fix.patch
-blackfin-sd-host-controller-driver-fix-fix.patch
-blackfin-sd-host-controller-driver-fix-fix-fix.patch
-crc32-minor-optimizations-and-cleanup-checkpatch-fixes.patch
-hwmon-w83627ehf-updates-checkpatch-fixes.patch
-lis3-update-documentation-to-match-latest-changes-fix.patch
+mm-config_mmu-for-pg_mlocked.patch
+mm-pass-address-down-to-rmap-ones.patch
+mm-stop-ptlock-enlarging-struct-page.patch
+mm-sigbus-instead-of-abusing-oom.patch
+mm-remove-unevictable_migrate_page-function.patch
+mlock-replace-stale-comments-in-munlock_vma_page.patch
 
