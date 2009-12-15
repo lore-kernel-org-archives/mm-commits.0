@@ -1,194 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [merged] task_struct-make-journal_info-conditional.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 13:56:00 -0800
-Message-ID: <200912152156.nBFLu0bb015534@imap1.linux-foundation.org>
+Subject: [merged] floppy-add-an-extra-bound-check-on-ioctl-arguments.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 13:55:17 -0800
+Message-ID: <200912152155.nBFLtH5E015470@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36123 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40661 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933770AbZLOV4v (ORCPT
+	by vger.kernel.org with ESMTP id S933791AbZLOV45 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 16:56:51 -0500
+	Tue, 15 Dec 2009 16:56:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: h-shimamoto@ct.jp.nec.com, chris.mason@oracle.com, konishi.ryusuke@lab.ntt.co.jp, swhiteho@redhat.com, tytso@mit.edu, mm-commits@vger.kernel.org
+To: arjan@infradead.org, arjan@linux.intel.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     task_struct: make journal_info conditional
+     floppy: Add an extra bound check on ioctl arguments
 has been removed from the -mm tree.  Its filename was
-     task_struct-make-journal_info-conditional.patch
+     floppy-add-an-extra-bound-check-on-ioctl-arguments.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: task_struct: make journal_info conditional
-From: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
+Subject: floppy: Add an extra bound check on ioctl arguments
+From: Arjan van de Ven <arjan@infradead.org>
 
-journal_info in task_struct is used in journaling file system only.  So
-introduce CONFIG_FS_JOURNAL_INFO and make it conditional.
+gcc is not convinced that the floppy.c ioctl has sufficient bound checks:
 
-Signed-off-by: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
-Cc: Chris Mason <chris.mason@oracle.com>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Steven Whitehouse <swhiteho@redhat.com>
-Cc: KONISHI Ryusuke <konishi.ryusuke@lab.ntt.co.jp>
+In function `copy_from_user',
+    inlined from `fd_copyin' at drivers/block/floppy.c:3080,
+    inlined from `fd_ioctl' at drivers/block/floppy.c:3503:
+    arch/x86/include/asm/uaccess_32.h:211:
+warning: call to `copy_from_user_overflow' declared with attribute
+warning: copy_from_user buffer size is not provably correct
+
+And frankly, as a human I have a hard time proving the same more or less
+(the size comes from the ioctl argument.  humpf.  maybe.  the code isn't
+very nice)
+
+This patch adds an explicit check to make 100% sure it's safe, better than
+finding out later that there indeed was a gap.
+
+[akpm@linux-foundation.org: add WARN_ON()]
+Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
+Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig                |    4 ++++
- fs/btrfs/Kconfig          |    1 +
- fs/ext4/Kconfig           |    1 +
- fs/gfs2/Kconfig           |    1 +
- fs/jbd/Kconfig            |    1 +
- fs/jbd2/Kconfig           |    1 +
- fs/nilfs2/Kconfig         |    1 +
- fs/reiserfs/Kconfig       |    1 +
- include/linux/init_task.h |    8 +++++++-
- include/linux/sched.h     |    2 ++
- 10 files changed, 20 insertions(+), 1 deletion(-)
+ drivers/block/floppy.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN fs/Kconfig~task_struct-make-journal_info-conditional fs/Kconfig
---- a/fs/Kconfig~task_struct-make-journal_info-conditional
-+++ a/fs/Kconfig
-@@ -6,6 +6,10 @@ menu "File systems"
+diff -puN drivers/block/floppy.c~floppy-add-an-extra-bound-check-on-ioctl-arguments drivers/block/floppy.c
+--- a/drivers/block/floppy.c~floppy-add-an-extra-bound-check-on-ioctl-arguments
++++ a/drivers/block/floppy.c
+@@ -3497,6 +3497,9 @@ static int fd_ioctl(struct block_device 
+ 	    ((cmd & 0x80) && !capable(CAP_SYS_ADMIN)))
+ 		return -EPERM;
  
- if BLOCK
- 
-+config FS_JOURNAL_INFO
-+	bool
-+	default n
++	if (WARN_ON(size < 0 || size > sizeof(inparam)))
++		return -EINVAL;
 +
- source "fs/ext2/Kconfig"
- source "fs/ext3/Kconfig"
- source "fs/ext4/Kconfig"
-diff -puN fs/btrfs/Kconfig~task_struct-make-journal_info-conditional fs/btrfs/Kconfig
---- a/fs/btrfs/Kconfig~task_struct-make-journal_info-conditional
-+++ a/fs/btrfs/Kconfig
-@@ -4,6 +4,7 @@ config BTRFS_FS
- 	select LIBCRC32C
- 	select ZLIB_INFLATE
- 	select ZLIB_DEFLATE
-+	select FS_JOURNAL_INFO
- 	help
- 	  Btrfs is a new filesystem with extents, writable snapshotting,
- 	  support for multiple devices and many more features.
-diff -puN fs/ext4/Kconfig~task_struct-make-journal_info-conditional fs/ext4/Kconfig
---- a/fs/ext4/Kconfig~task_struct-make-journal_info-conditional
-+++ a/fs/ext4/Kconfig
-@@ -2,6 +2,7 @@ config EXT4_FS
- 	tristate "The Extended 4 (ext4) filesystem"
- 	select JBD2
- 	select CRC16
-+	select FS_JOURNAL_INFO
- 	help
- 	  This is the next generation of the ext3 filesystem.
- 
-diff -puN fs/gfs2/Kconfig~task_struct-make-journal_info-conditional fs/gfs2/Kconfig
---- a/fs/gfs2/Kconfig~task_struct-make-journal_info-conditional
-+++ a/fs/gfs2/Kconfig
-@@ -10,6 +10,7 @@ config GFS2_FS
- 	select SLOW_WORK
- 	select QUOTA
- 	select QUOTACTL
-+	select FS_JOURNAL_INFO
- 	help
- 	  A cluster filesystem.
- 
-diff -puN fs/jbd/Kconfig~task_struct-make-journal_info-conditional fs/jbd/Kconfig
---- a/fs/jbd/Kconfig~task_struct-make-journal_info-conditional
-+++ a/fs/jbd/Kconfig
-@@ -1,5 +1,6 @@
- config JBD
- 	tristate
-+	select FS_JOURNAL_INFO
- 	help
- 	  This is a generic journalling layer for block devices.  It is
- 	  currently used by the ext3 file system, but it could also be
-diff -puN fs/jbd2/Kconfig~task_struct-make-journal_info-conditional fs/jbd2/Kconfig
---- a/fs/jbd2/Kconfig~task_struct-make-journal_info-conditional
-+++ a/fs/jbd2/Kconfig
-@@ -1,6 +1,7 @@
- config JBD2
- 	tristate
- 	select CRC32
-+	select FS_JOURNAL_INFO
- 	help
- 	  This is a generic journaling layer for block devices that support
- 	  both 32-bit and 64-bit block numbers.  It is currently used by
-diff -puN fs/nilfs2/Kconfig~task_struct-make-journal_info-conditional fs/nilfs2/Kconfig
---- a/fs/nilfs2/Kconfig~task_struct-make-journal_info-conditional
-+++ a/fs/nilfs2/Kconfig
-@@ -2,6 +2,7 @@ config NILFS2_FS
- 	tristate "NILFS2 file system support (EXPERIMENTAL)"
- 	depends on EXPERIMENTAL
- 	select CRC32
-+	select FS_JOURNAL_INFO
- 	help
- 	  NILFS2 is a log-structured file system (LFS) supporting continuous
- 	  snapshotting.  In addition to versioning capability of the entire
-diff -puN fs/reiserfs/Kconfig~task_struct-make-journal_info-conditional fs/reiserfs/Kconfig
---- a/fs/reiserfs/Kconfig~task_struct-make-journal_info-conditional
-+++ a/fs/reiserfs/Kconfig
-@@ -1,6 +1,7 @@
- config REISERFS_FS
- 	tristate "Reiserfs support"
- 	select CRC32
-+	select FS_JOURNAL_INFO
- 	help
- 	  Stores not just filenames but the files themselves in a balanced
- 	  tree.  Uses journalling.
-diff -puN include/linux/init_task.h~task_struct-make-journal_info-conditional include/linux/init_task.h
---- a/include/linux/init_task.h~task_struct-make-journal_info-conditional
-+++ a/include/linux/init_task.h
-@@ -111,6 +111,12 @@ extern struct cred init_cred;
- # define INIT_PERF_EVENTS(tsk)
- #endif
- 
-+#ifdef CONFIG_FS_JOURNAL_INFO
-+#define INIT_JOURNAL_INFO	.journal_info = NULL,
-+#else
-+#define INIT_JOURNAL_INFO
-+#endif
-+
- /*
-  *  INIT_TASK is used to set up the first task table, touch at
-  * your own risk!. Base=0, limit=0x1fffff (=2MB)
-@@ -162,7 +168,6 @@ extern struct cred init_cred;
- 		.signal = {{0}}},					\
- 	.blocked	= {{0}},					\
- 	.alloc_lock	= __SPIN_LOCK_UNLOCKED(tsk.alloc_lock),		\
--	.journal_info	= NULL,						\
- 	.cpu_timers	= INIT_CPU_TIMERS(tsk.cpu_timers),		\
- 	.fs_excl	= ATOMIC_INIT(0),				\
- 	.pi_lock	= __SPIN_LOCK_UNLOCKED(tsk.pi_lock),		\
-@@ -173,6 +178,7 @@ extern struct cred init_cred;
- 		[PIDTYPE_SID]  = INIT_PID_LINK(PIDTYPE_SID),		\
- 	},								\
- 	.dirties = INIT_PROP_LOCAL_SINGLE(dirties),			\
-+	INIT_JOURNAL_INFO						\
- 	INIT_IDS							\
- 	INIT_PERF_EVENTS(tsk)						\
- 	INIT_TRACE_IRQFLAGS						\
-diff -puN include/linux/sched.h~task_struct-make-journal_info-conditional include/linux/sched.h
---- a/include/linux/sched.h~task_struct-make-journal_info-conditional
-+++ a/include/linux/sched.h
-@@ -1446,8 +1446,10 @@ struct task_struct {
- 	gfp_t lockdep_reclaim_gfp;
- #endif
- 
-+#ifdef CONFIG_FS_JOURNAL_INFO
- /* journalling filesystem info */
- 	void *journal_info;
-+#endif
- 
- /* stacked block device info */
- 	struct bio *bio_list, **bio_tail;
+ 	/* copyin */
+ 	CLEARSTRUCT(&inparam);
+ 	if (_IOC_DIR(cmd) & _IOC_WRITE)
 _
 
-Patches currently in -mm which might be from h-shimamoto@ct.jp.nec.com are
+Patches currently in -mm which might be from arjan@infradead.org are
 
 origin.patch
+linux-next.patch
 
