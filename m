@@ -1,420 +1,229 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ksm-hold-anon_vma-in-rmap_item.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 13:53:36 -0800
-Message-ID: <200912152153.nBFLra4v015289@imap1.linux-foundation.org>
+Subject: [merged] ksm-singly-linked-rmap_list.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 13:53:21 -0800
+Message-ID: <200912152153.nBFLrLhb015265@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53337 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60344 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761267AbZLOVyV (ORCPT
+	by vger.kernel.org with ESMTP id S1761265AbZLOVyH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 16:54:21 -0500
+	Tue, 15 Dec 2009 16:54:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh.dickins@tiscali.co.uk, aarcange@redhat.com, chrisw@redhat.com, ieidus@redhat.com, mm-commits@vger.kernel.org
+To: hugh.dickins@tiscali.co.uk, aarcange@redhat.com, ieidus@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ksm: hold anon_vma in rmap_item
+     ksm: singly-linked rmap_list
 has been removed from the -mm tree.  Its filename was
-     ksm-hold-anon_vma-in-rmap_item.patch
+     ksm-singly-linked-rmap_list.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ksm: hold anon_vma in rmap_item
+Subject: ksm: singly-linked rmap_list
 From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
-For full functionality, page_referenced_one() and try_to_unmap_one() need
-to know the vma: to pass vma down to arch-dependent flushes, or to observe
-VM_LOCKED or VM_EXEC.  But KSM keeps no record of vma: nor can it, since
-vmas get split and merged without its knowledge.
+Free up a pointer in struct rmap_item, by making the mm_slot's rmap_list a
+singly-linked list: we always traverse that list sequentially, and we
+don't even lose any prefetches (but should consider adding a few later). 
+Name it rmap_list throughout.
 
-Instead, note page's anon_vma in its rmap_item when adding to stable tree:
-all the vmas which might map that page are listed by its anon_vma.
-
-page_referenced_ksm() and try_to_unmap_ksm() then traverse the anon_vma,
-first to find the probable vma, that which matches rmap_item's mm; but if
-that is not enough to locate all instances, traverse again to try the
-others.  This catches those occasions when fork has duplicated a pte of a
-ksm page, but ksmd has not yet come around to assign it an rmap_item.
-
-But each rmap_item in the stable tree which refers to an anon_vma needs to
-take a reference to it.  Andrea's anon_vma design cleverly avoided a
-reference count (an anon_vma was free when its list of vmas was empty),
-but KSM now needs to add that.  Is a 32-bit count sufficient?  I believe
-so - the anon_vma is only free when both count is 0 and list is empty.
+Do we need to free up that pointer?  Not immediately, and in the end, we
+could continue to avoid it with a union; but having done the conversion,
+let's keep it this way, since there's no downside, and maybe we'll want
+more in future (struct rmap_item is a cache-friendly 32 bytes on 32-bit
+and 64 bytes on 64-bit, so we shall want to avoid expanding it).
 
 Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Cc: Izik Eidus <ieidus@redhat.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Chris Wright <chrisw@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |   24 ++++++
- mm/ksm.c             |  157 ++++++++++++++++++++++++-----------------
- mm/rmap.c            |    5 -
- 3 files changed, 122 insertions(+), 64 deletions(-)
+ mm/ksm.c |   56 ++++++++++++++++++++++++-----------------------------
+ 1 file changed, 26 insertions(+), 30 deletions(-)
 
-diff -puN include/linux/rmap.h~ksm-hold-anon_vma-in-rmap_item include/linux/rmap.h
---- a/include/linux/rmap.h~ksm-hold-anon_vma-in-rmap_item
-+++ a/include/linux/rmap.h
-@@ -26,6 +26,9 @@
+diff -puN mm/ksm.c~ksm-singly-linked-rmap_list mm/ksm.c
+--- a/mm/ksm.c~ksm-singly-linked-rmap_list
++++ a/mm/ksm.c
+@@ -79,13 +79,13 @@
+  * struct mm_slot - ksm information per mm that is being scanned
+  * @link: link to the mm_slots hash list
+  * @mm_list: link into the mm_slots list, rooted in ksm_mm_head
+- * @rmap_list: head for this mm_slot's list of rmap_items
++ * @rmap_list: head for this mm_slot's singly-linked list of rmap_items
+  * @mm: the mm that this information is valid for
   */
- struct anon_vma {
- 	spinlock_t lock;	/* Serialize access to vma list */
-+#ifdef CONFIG_KSM
-+	atomic_t ksm_refcount;
-+#endif
- 	/*
- 	 * NOTE: the LSB of the head.next is set by
- 	 * mm_take_all_locks() _after_ taking the above lock. So the
-@@ -38,6 +41,26 @@ struct anon_vma {
+ struct mm_slot {
+ 	struct hlist_node link;
+ 	struct list_head mm_list;
+-	struct list_head rmap_list;
++	struct rmap_item *rmap_list;
+ 	struct mm_struct *mm;
  };
  
- #ifdef CONFIG_MMU
-+#ifdef CONFIG_KSM
-+static inline void ksm_refcount_init(struct anon_vma *anon_vma)
-+{
-+	atomic_set(&anon_vma->ksm_refcount, 0);
-+}
-+
-+static inline int ksm_refcount(struct anon_vma *anon_vma)
-+{
-+	return atomic_read(&anon_vma->ksm_refcount);
-+}
-+#else
-+static inline void ksm_refcount_init(struct anon_vma *anon_vma)
-+{
-+}
-+
-+static inline int ksm_refcount(struct anon_vma *anon_vma)
-+{
-+	return 0;
-+}
-+#endif /* CONFIG_KSM */
+@@ -93,7 +93,7 @@ struct mm_slot {
+  * struct ksm_scan - cursor for scanning
+  * @mm_slot: the current mm_slot we are scanning
+  * @address: the next address inside that to be scanned
+- * @rmap_item: the current rmap that we are scanning inside the rmap_list
++ * @rmap_list: link to the next rmap to be scanned in the rmap_list
+  * @seqnr: count of completed full scans (needed when removing unstable node)
+  *
+  * There is only the one ksm_scan instance of this cursor structure.
+@@ -101,13 +101,14 @@ struct mm_slot {
+ struct ksm_scan {
+ 	struct mm_slot *mm_slot;
+ 	unsigned long address;
+-	struct rmap_item *rmap_item;
++	struct rmap_item **rmap_list;
+ 	unsigned long seqnr;
+ };
  
- static inline struct anon_vma *page_anon_vma(struct page *page)
- {
-@@ -70,6 +93,7 @@ void __anon_vma_merge(struct vm_area_str
- void anon_vma_unlink(struct vm_area_struct *);
- void anon_vma_link(struct vm_area_struct *);
- void __anon_vma_link(struct vm_area_struct *);
-+void anon_vma_free(struct anon_vma *);
- 
- /*
-  * rmap interfaces called when adding or removing pte of page
-diff -puN mm/ksm.c~ksm-hold-anon_vma-in-rmap_item mm/ksm.c
---- a/mm/ksm.c~ksm-hold-anon_vma-in-rmap_item
-+++ a/mm/ksm.c
-@@ -121,7 +121,7 @@ struct stable_node {
  /**
   * struct rmap_item - reverse mapping item for virtual addresses
-  * @rmap_list: next rmap_item in mm_slot's singly-linked rmap_list
-- * @filler: unused space we're making available in this patch
-+ * @anon_vma: pointer to anon_vma for this mm,address, when in stable tree
+- * @link: link into mm_slot's rmap_list (rmap_list is per mm)
++ * @rmap_list: next rmap_item in mm_slot's singly-linked rmap_list
++ * @filler: unused space we're making available in this patch
   * @mm: the memory structure this rmap_item is pointing into
   * @address: the virtual address this rmap_item tracks (+ flags in low bits)
   * @oldchecksum: previous checksum of the page at that virtual address
-@@ -131,7 +131,7 @@ struct stable_node {
+@@ -116,7 +117,8 @@ struct ksm_scan {
+  * @prev: previous rmap_item hanging off the same node of the stable tree
   */
  struct rmap_item {
- 	struct rmap_item *rmap_list;
--	unsigned long filler;
-+	struct anon_vma *anon_vma;	/* when stable */
+-	struct list_head link;
++	struct rmap_item *rmap_list;
++	unsigned long filler;
  	struct mm_struct *mm;
  	unsigned long address;		/* + low bits used for flags below */
- 	unsigned int oldchecksum;	/* when unstable */
-@@ -196,13 +196,6 @@ static DECLARE_WAIT_QUEUE_HEAD(ksm_threa
- static DEFINE_MUTEX(ksm_thread_mutex);
- static DEFINE_SPINLOCK(ksm_mmlist_lock);
- 
--/*
-- * Temporary hack for page_referenced_ksm() and try_to_unmap_ksm(),
-- * later we rework things a little to get the right vma to them.
-- */
--static DEFINE_SPINLOCK(ksm_fallback_vma_lock);
--static struct vm_area_struct ksm_fallback_vma;
--
- #define KSM_KMEM_CACHE(__struct, __flags) kmem_cache_create("ksm_"#__struct,\
- 		sizeof(struct __struct), __alignof__(struct __struct),\
- 		(__flags), NULL)
-@@ -323,6 +316,25 @@ static inline int in_stable_tree(struct 
- 	return rmap_item->address & STABLE_FLAG;
+ 	union {
+@@ -275,7 +277,6 @@ static void insert_to_mm_slots_hash(stru
+ 	bucket = &mm_slots_hash[((unsigned long)mm / sizeof(struct mm_struct))
+ 				% MM_SLOTS_HASH_HEADS];
+ 	mm_slot->mm = mm;
+-	INIT_LIST_HEAD(&mm_slot->rmap_list);
+ 	hlist_add_head(&mm_slot->link, bucket);
  }
  
-+static void hold_anon_vma(struct rmap_item *rmap_item,
-+			  struct anon_vma *anon_vma)
-+{
-+	rmap_item->anon_vma = anon_vma;
-+	atomic_inc(&anon_vma->ksm_refcount);
-+}
-+
-+static void drop_anon_vma(struct rmap_item *rmap_item)
-+{
-+	struct anon_vma *anon_vma = rmap_item->anon_vma;
-+
-+	if (atomic_dec_and_lock(&anon_vma->ksm_refcount, &anon_vma->lock)) {
-+		int empty = list_empty(&anon_vma->head);
-+		spin_unlock(&anon_vma->lock);
-+		if (empty)
-+			anon_vma_free(anon_vma);
-+	}
-+}
-+
- /*
-  * ksmd, and unmerge_and_remove_all_rmap_items(), must not touch an mm's
-  * page tables after it has passed through ksm_exit() - which, if necessary,
-@@ -472,6 +484,7 @@ static void remove_rmap_item_from_tree(s
- 			ksm_pages_shared--;
- 		}
- 
-+		drop_anon_vma(rmap_item);
- 		rmap_item->address &= PAGE_MASK;
- 
- 	} else if (rmap_item->address & UNSTABLE_FLAG) {
-@@ -752,6 +765,9 @@ static int try_to_merge_one_page(struct 
- 	pte_t orig_pte = __pte(0);
- 	int err = -EFAULT;
- 
-+	if (page == kpage)			/* ksm page forked */
-+		return 0;
-+
- 	if (!(vma->vm_flags & VM_MERGEABLE))
- 		goto out;
- 	if (!PageAnon(page))
-@@ -805,9 +821,6 @@ static int try_to_merge_with_ksm_page(st
- 	struct vm_area_struct *vma;
- 	int err = -EFAULT;
- 
--	if (page == kpage)			/* ksm page forked */
--		return 0;
--
- 	down_read(&mm->mmap_sem);
- 	if (ksm_test_exit(mm))
- 		goto out;
-@@ -816,6 +829,11 @@ static int try_to_merge_with_ksm_page(st
- 		goto out;
- 
- 	err = try_to_merge_one_page(vma, page, kpage);
-+	if (err)
-+		goto out;
-+
-+	/* Must get reference to anon_vma while still holding mmap_sem */
-+	hold_anon_vma(rmap_item, vma->anon_vma);
- out:
- 	up_read(&mm->mmap_sem);
- 	return err;
-@@ -869,6 +887,11 @@ static struct page *try_to_merge_two_pag
- 	lru_cache_add_lru(kpage, LRU_ACTIVE_ANON);
- 
- 	err = try_to_merge_one_page(vma, page, kpage);
-+	if (err)
-+		goto up;
-+
-+	/* Must get reference to anon_vma while still holding mmap_sem */
-+	hold_anon_vma(rmap_item, vma->anon_vma);
- up:
- 	up_read(&mm->mmap_sem);
- 
-@@ -879,8 +902,10 @@ up:
- 		 * If that fails, we have a ksm page with only one pte
- 		 * pointing to it: so break it.
- 		 */
--		if (err)
-+		if (err) {
-+			drop_anon_vma(rmap_item);
- 			break_cow(rmap_item);
-+		}
- 	}
- 	if (err) {
- 		put_page(kpage);
-@@ -1155,7 +1180,9 @@ static void cmp_and_merge_page(struct pa
- 			 * in which case we need to break_cow on both.
- 			 */
- 			if (!stable_node) {
-+				drop_anon_vma(tree_rmap_item);
- 				break_cow(tree_rmap_item);
-+				drop_anon_vma(rmap_item);
- 				break_cow(rmap_item);
- 			}
- 		}
-@@ -1490,7 +1517,7 @@ int page_referenced_ksm(struct page *pag
- 	struct hlist_node *hlist;
- 	unsigned int mapcount = page_mapcount(page);
- 	int referenced = 0;
--	struct vm_area_struct *vma;
-+	int search_new_forks = 0;
- 
- 	VM_BUG_ON(!PageKsm(page));
- 	VM_BUG_ON(!PageLocked(page));
-@@ -1498,36 +1525,40 @@ int page_referenced_ksm(struct page *pag
- 	stable_node = page_stable_node(page);
- 	if (!stable_node)
- 		return 0;
--
--	/*
--	 * Temporary hack: really we need anon_vma in rmap_item, to
--	 * provide the correct vma, and to find recently forked instances.
--	 * Use zalloc to avoid weirdness if any other fields are involved.
--	 */
--	vma = kmem_cache_zalloc(vm_area_cachep, GFP_ATOMIC);
--	if (!vma) {
--		spin_lock(&ksm_fallback_vma_lock);
--		vma = &ksm_fallback_vma;
--	}
--
-+again:
- 	hlist_for_each_entry(rmap_item, hlist, &stable_node->hlist, hlist) {
--		if (memcg && !mm_match_cgroup(rmap_item->mm, memcg))
--			continue;
-+		struct anon_vma *anon_vma = rmap_item->anon_vma;
-+		struct vm_area_struct *vma;
-+
-+		spin_lock(&anon_vma->lock);
-+		list_for_each_entry(vma, &anon_vma->head, anon_vma_node) {
-+			if (rmap_item->address < vma->vm_start ||
-+			    rmap_item->address >= vma->vm_end)
-+				continue;
-+			/*
-+			 * Initially we examine only the vma which covers this
-+			 * rmap_item; but later, if there is still work to do,
-+			 * we examine covering vmas in other mms: in case they
-+			 * were forked from the original since ksmd passed.
-+			 */
-+			if ((rmap_item->mm == vma->vm_mm) == search_new_forks)
-+				continue;
- 
--		vma->vm_mm = rmap_item->mm;
--		vma->vm_start = rmap_item->address;
--		vma->vm_end = vma->vm_start + PAGE_SIZE;
-+			if (memcg && !mm_match_cgroup(vma->vm_mm, memcg))
-+				continue;
- 
--		referenced += page_referenced_one(page, vma,
-+			referenced += page_referenced_one(page, vma,
- 				rmap_item->address, &mapcount, vm_flags);
-+			if (!search_new_forks || !mapcount)
-+				break;
-+		}
-+		spin_unlock(&anon_vma->lock);
- 		if (!mapcount)
- 			goto out;
- 	}
-+	if (!search_new_forks++)
-+		goto again;
- out:
--	if (vma == &ksm_fallback_vma)
--		spin_unlock(&ksm_fallback_vma_lock);
--	else
--		kmem_cache_free(vm_area_cachep, vma);
- 	return referenced;
+@@ -479,15 +480,12 @@ static void remove_rmap_item_from_tree(s
  }
  
-@@ -1537,7 +1568,7 @@ int try_to_unmap_ksm(struct page *page, 
- 	struct hlist_node *hlist;
- 	struct rmap_item *rmap_item;
- 	int ret = SWAP_AGAIN;
--	struct vm_area_struct *vma;
-+	int search_new_forks = 0;
- 
- 	VM_BUG_ON(!PageKsm(page));
- 	VM_BUG_ON(!PageLocked(page));
-@@ -1545,35 +1576,37 @@ int try_to_unmap_ksm(struct page *page, 
- 	stable_node = page_stable_node(page);
- 	if (!stable_node)
- 		return SWAP_FAIL;
--
--	/*
--	 * Temporary hack: really we need anon_vma in rmap_item, to
--	 * provide the correct vma, and to find recently forked instances.
--	 * Use zalloc to avoid weirdness if any other fields are involved.
--	 */
--	if (TTU_ACTION(flags) != TTU_UNMAP)
--		return SWAP_FAIL;
--
--	vma = kmem_cache_zalloc(vm_area_cachep, GFP_ATOMIC);
--	if (!vma) {
--		spin_lock(&ksm_fallback_vma_lock);
--		vma = &ksm_fallback_vma;
--	}
--
-+again:
- 	hlist_for_each_entry(rmap_item, hlist, &stable_node->hlist, hlist) {
--		vma->vm_mm = rmap_item->mm;
--		vma->vm_start = rmap_item->address;
--		vma->vm_end = vma->vm_start + PAGE_SIZE;
-+		struct anon_vma *anon_vma = rmap_item->anon_vma;
-+		struct vm_area_struct *vma;
- 
--		ret = try_to_unmap_one(page, vma, rmap_item->address, flags);
--		if (ret != SWAP_AGAIN || !page_mapped(page))
--			goto out;
-+		spin_lock(&anon_vma->lock);
-+		list_for_each_entry(vma, &anon_vma->head, anon_vma_node) {
-+			if (rmap_item->address < vma->vm_start ||
-+			    rmap_item->address >= vma->vm_end)
-+				continue;
-+			/*
-+			 * Initially we examine only the vma which covers this
-+			 * rmap_item; but later, if there is still work to do,
-+			 * we examine covering vmas in other mms: in case they
-+			 * were forked from the original since ksmd passed.
-+			 */
-+			if ((rmap_item->mm == vma->vm_mm) == search_new_forks)
-+				continue;
-+
-+			ret = try_to_unmap_one(page, vma,
-+					rmap_item->address, flags);
-+			if (ret != SWAP_AGAIN || !page_mapped(page)) {
-+				spin_unlock(&anon_vma->lock);
-+				goto out;
-+			}
-+		}
-+		spin_unlock(&anon_vma->lock);
- 	}
-+	if (!search_new_forks++)
-+		goto again;
- out:
--	if (vma == &ksm_fallback_vma)
--		spin_unlock(&ksm_fallback_vma_lock);
--	else
--		kmem_cache_free(vm_area_cachep, vma);
- 	return ret;
- }
- 
-diff -puN mm/rmap.c~ksm-hold-anon_vma-in-rmap_item mm/rmap.c
---- a/mm/rmap.c~ksm-hold-anon_vma-in-rmap_item
-+++ a/mm/rmap.c
-@@ -68,7 +68,7 @@ static inline struct anon_vma *anon_vma_
- 	return kmem_cache_alloc(anon_vma_cachep, GFP_KERNEL);
- }
- 
--static inline void anon_vma_free(struct anon_vma *anon_vma)
-+void anon_vma_free(struct anon_vma *anon_vma)
+ static void remove_trailing_rmap_items(struct mm_slot *mm_slot,
+-				       struct list_head *cur)
++				       struct rmap_item **rmap_list)
  {
- 	kmem_cache_free(anon_vma_cachep, anon_vma);
+-	struct rmap_item *rmap_item;
+-
+-	while (cur != &mm_slot->rmap_list) {
+-		rmap_item = list_entry(cur, struct rmap_item, link);
+-		cur = cur->next;
++	while (*rmap_list) {
++		struct rmap_item *rmap_item = *rmap_list;
++		*rmap_list = rmap_item->rmap_list;
+ 		remove_rmap_item_from_tree(rmap_item);
+-		list_del(&rmap_item->link);
+ 		free_rmap_item(rmap_item);
+ 	}
  }
-@@ -172,7 +172,7 @@ void anon_vma_unlink(struct vm_area_stru
- 	list_del(&vma->anon_vma_node);
+@@ -553,7 +551,7 @@ static int unmerge_and_remove_all_rmap_i
+ 				goto error;
+ 		}
  
- 	/* We must garbage collect the anon_vma if it's empty */
--	empty = list_empty(&anon_vma->head);
-+	empty = list_empty(&anon_vma->head) && !ksm_refcount(anon_vma);
- 	spin_unlock(&anon_vma->lock);
+-		remove_trailing_rmap_items(mm_slot, mm_slot->rmap_list.next);
++		remove_trailing_rmap_items(mm_slot, &mm_slot->rmap_list);
  
- 	if (empty)
-@@ -184,6 +184,7 @@ static void anon_vma_ctor(void *data)
- 	struct anon_vma *anon_vma = data;
- 
- 	spin_lock_init(&anon_vma->lock);
-+	ksm_refcount_init(anon_vma);
- 	INIT_LIST_HEAD(&anon_vma->head);
+ 		spin_lock(&ksm_mmlist_lock);
+ 		ksm_scan.mm_slot = list_entry(mm_slot->mm_list.next,
+@@ -1141,20 +1139,19 @@ static void cmp_and_merge_page(struct pa
  }
  
+ static struct rmap_item *get_next_rmap_item(struct mm_slot *mm_slot,
+-					    struct list_head *cur,
++					    struct rmap_item **rmap_list,
+ 					    unsigned long addr)
+ {
+ 	struct rmap_item *rmap_item;
+ 
+-	while (cur != &mm_slot->rmap_list) {
+-		rmap_item = list_entry(cur, struct rmap_item, link);
++	while (*rmap_list) {
++		rmap_item = *rmap_list;
+ 		if ((rmap_item->address & PAGE_MASK) == addr)
+ 			return rmap_item;
+ 		if (rmap_item->address > addr)
+ 			break;
+-		cur = cur->next;
++		*rmap_list = rmap_item->rmap_list;
+ 		remove_rmap_item_from_tree(rmap_item);
+-		list_del(&rmap_item->link);
+ 		free_rmap_item(rmap_item);
+ 	}
+ 
+@@ -1163,7 +1160,8 @@ static struct rmap_item *get_next_rmap_i
+ 		/* It has already been zeroed */
+ 		rmap_item->mm = mm_slot->mm;
+ 		rmap_item->address = addr;
+-		list_add_tail(&rmap_item->link, cur);
++		rmap_item->rmap_list = *rmap_list;
++		*rmap_list = rmap_item;
+ 	}
+ 	return rmap_item;
+ }
+@@ -1188,8 +1186,7 @@ static struct rmap_item *scan_get_next_r
+ 		spin_unlock(&ksm_mmlist_lock);
+ next_mm:
+ 		ksm_scan.address = 0;
+-		ksm_scan.rmap_item = list_entry(&slot->rmap_list,
+-						struct rmap_item, link);
++		ksm_scan.rmap_list = &slot->rmap_list;
+ 	}
+ 
+ 	mm = slot->mm;
+@@ -1215,10 +1212,10 @@ next_mm:
+ 				flush_anon_page(vma, *page, ksm_scan.address);
+ 				flush_dcache_page(*page);
+ 				rmap_item = get_next_rmap_item(slot,
+-					ksm_scan.rmap_item->link.next,
+-					ksm_scan.address);
++					ksm_scan.rmap_list, ksm_scan.address);
+ 				if (rmap_item) {
+-					ksm_scan.rmap_item = rmap_item;
++					ksm_scan.rmap_list =
++							&rmap_item->rmap_list;
+ 					ksm_scan.address += PAGE_SIZE;
+ 				} else
+ 					put_page(*page);
+@@ -1234,14 +1231,13 @@ next_mm:
+ 
+ 	if (ksm_test_exit(mm)) {
+ 		ksm_scan.address = 0;
+-		ksm_scan.rmap_item = list_entry(&slot->rmap_list,
+-						struct rmap_item, link);
++		ksm_scan.rmap_list = &slot->rmap_list;
+ 	}
+ 	/*
+ 	 * Nuke all the rmap_items that are above this current rmap:
+ 	 * because there were no VM_MERGEABLE vmas with such addresses.
+ 	 */
+-	remove_trailing_rmap_items(slot, ksm_scan.rmap_item->link.next);
++	remove_trailing_rmap_items(slot, ksm_scan.rmap_list);
+ 
+ 	spin_lock(&ksm_mmlist_lock);
+ 	ksm_scan.mm_slot = list_entry(slot->mm_list.next,
+@@ -1423,7 +1419,7 @@ void __ksm_exit(struct mm_struct *mm)
+ 	spin_lock(&ksm_mmlist_lock);
+ 	mm_slot = get_mm_slot(mm);
+ 	if (mm_slot && ksm_scan.mm_slot != mm_slot) {
+-		if (list_empty(&mm_slot->rmap_list)) {
++		if (!mm_slot->rmap_list) {
+ 			hlist_del(&mm_slot->link);
+ 			list_del(&mm_slot->mm_list);
+ 			easy_to_free = 1;
 _
 
 Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
