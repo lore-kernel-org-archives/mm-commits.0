@@ -1,84 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-refactor-unregister_cpu_under_node.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 13:52:47 -0800
-Message-ID: <200912152152.nBFLqlaY015216@imap1.linux-foundation.org>
+Subject: [merged] vmscan-make-consistent-of-reclaim-bale-out-between-do_try_to_free_page-and-shrink_zone.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 13:53:09 -0800
+Message-ID: <200912152153.nBFLr9d4015250@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60908 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52605 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761238AbZLOVxv (ORCPT
+	by vger.kernel.org with ESMTP id S1761258AbZLOVyA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 16:53:51 -0500
+	Tue, 15 Dec 2009 16:54:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: achiang@hp.com, garyhade@us.ibm.com, greg@kroah.com, kosaki.motohiro@jp.fujitsu.com, mingo@elte.hu, pbadari@us.ibm.com, randy.dunlap@oracle.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: refactor unregister_cpu_under_node()
+     vmscan: make consistent of reclaim bale out between do_try_to_free_page and shrink_zone
 has been removed from the -mm tree.  Its filename was
-     mm-refactor-unregister_cpu_under_node.patch
+     vmscan-make-consistent-of-reclaim-bale-out-between-do_try_to_free_page-and-shrink_zone.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: refactor unregister_cpu_under_node()
-From: Alex Chiang <achiang@hp.com>
+Subject: vmscan: make consistent of reclaim bale out between do_try_to_free_page and shrink_zone
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-By returning early if the node is not online, we can unindent the
-interesting code by two levels.
+Fix small inconsistent of ">" and ">=".
 
-No functional change.
-
-Signed-off-by: Alex Chiang <achiang@hp.com>
-Cc: Gary Hade <garyhade@us.ibm.com>
-Cc: Badari Pulavarty <pbadari@us.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c |   18 ++++++++++++------
- 1 file changed, 12 insertions(+), 6 deletions(-)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/base/node.c~mm-refactor-unregister_cpu_under_node drivers/base/node.c
---- a/drivers/base/node.c~mm-refactor-unregister_cpu_under_node
-+++ a/drivers/base/node.c
-@@ -287,12 +287,18 @@ int register_cpu_under_node(unsigned int
- 
- int unregister_cpu_under_node(unsigned int cpu, unsigned int nid)
- {
--	if (node_online(nid)) {
--		struct sys_device *obj = get_cpu_sysdev(cpu);
--		if (obj)
--			sysfs_remove_link(&node_devices[nid].sysdev.kobj,
--					 kobject_name(&obj->kobj));
--	}
-+	struct sys_device *obj;
-+
-+	if (!node_online(nid))
-+		return 0;
-+
-+	obj = get_cpu_sysdev(cpu);
-+	if (!obj)
-+		return 0;
-+
-+	sysfs_remove_link(&node_devices[nid].sysdev.kobj,
-+			  kobject_name(&obj->kobj));
-+
- 	return 0;
- }
+diff -puN mm/vmscan.c~vmscan-make-consistent-of-reclaim-bale-out-between-do_try_to_free_page-and-shrink_zone mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-make-consistent-of-reclaim-bale-out-between-do_try_to_free_page-and-shrink_zone
++++ a/mm/vmscan.c
+@@ -1637,7 +1637,7 @@ static void shrink_zone(int priority, st
+ 		 * with multiple processes reclaiming pages, the total
+ 		 * freeing target can get unreasonably large.
+ 		 */
+-		if (nr_reclaimed > nr_to_reclaim && priority < DEF_PRIORITY)
++		if (nr_reclaimed >= nr_to_reclaim && priority < DEF_PRIORITY)
+ 			break;
+ 	}
  
 _
 
-Patches currently in -mm which might be from achiang@hp.com are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 origin.patch
 linux-next.patch
+readahead-add-blk_run_backing_dev.patch
+oom-kill-show-virtual-size-and-rss-information-of-the-killed-process.patch
+oom-kill-fix-numa-consraint-check-with-nodemask-v42.patch
+mm-introduce-coredump-parameter-structure.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
