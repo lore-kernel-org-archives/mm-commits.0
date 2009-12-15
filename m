@@ -1,116 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rwsem-fix-rwsem_is_locked-bugs.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 13:55:45 -0800
-Message-ID: <200912152155.nBFLtjk8015509@imap1.linux-foundation.org>
+Subject: [merged] errh-add-helper-function-to-simplify-pointer-error-checking.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 13:56:08 -0800
+Message-ID: <200912152156.nBFLu8R1015549@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35710 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38817 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933785AbZLOV4b (ORCPT
+	by vger.kernel.org with ESMTP id S933791AbZLOV4j (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 16:56:31 -0500
+	Tue, 15 Dec 2009 16:56:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: amwang@redhat.com, behlendorf1@llnl.gov, bwoodard@llnl.gov, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: ext-phil.2.carmody@nokia.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rwsem: fix rwsem_is_locked() bugs
+     err.h: add helper function to simplify pointer error checking
 has been removed from the -mm tree.  Its filename was
-     rwsem-fix-rwsem_is_locked-bugs.patch
+     errh-add-helper-function-to-simplify-pointer-error-checking.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rwsem: fix rwsem_is_locked() bugs
-From: Amerigo Wang <amwang@redhat.com>
+Subject: err.h: add helper function to simplify pointer error checking
+From: Phil Carmody <ext-phil.2.carmody@nokia.com>
 
-rwsem_is_locked() tests ->activity without locks, so we should always keep
-->activity consistent.  However, the code in __rwsem_do_wake() breaks this
-rule, it updates ->activity after _all_ readers waken up, this may give
-some reader a wrong ->activity value, thus cause rwsem_is_locked() behaves
-wrong.
+There are quite a few instances in the kernel of checks of pointers both
+against NULL and against the errno range, handling both cases identically.
+This additional helper function would simplify such code.
 
-Quote from Andrew:
-
-"
-- we have one or more processes sleeping in down_read(), waiting for access.
-
-- we wake one or more processes up without altering ->activity
-
-- they start to run and they do rwsem_is_locked().  This incorrectly
-  returns "false", because the waker process is still crunching away in
-  __rwsem_do_wake().
-
-- the waker now alters ->activity, but it was too late.
-"
-
-So we need get a spinlock to protect this.  And rwsem_is_locked() should
-not block, thus we use spin_trylock_irqsave().
-
-[akpm@linux-foundation.org: simplify code]
-Reported-by: Brian Behlendorf <behlendorf1@llnl.gov>
-Cc: Ben Woodard <bwoodard@llnl.gov>
-Cc: David Howells <dhowells@redhat.com>
-Signed-off-by: WANG Cong <amwang@redhat.com>
+[akpm@linux-foundation.org: build fix]
+Signed-off-by: Phil Carmody <ext-phil.2.carmody@nokia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rwsem-spinlock.h |    6 +-----
- lib/rwsem-spinlock.c           |   13 +++++++++++++
- 2 files changed, 14 insertions(+), 5 deletions(-)
+ include/linux/err.h |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN include/linux/rwsem-spinlock.h~rwsem-fix-rwsem_is_locked-bugs include/linux/rwsem-spinlock.h
---- a/include/linux/rwsem-spinlock.h~rwsem-fix-rwsem_is_locked-bugs
-+++ a/include/linux/rwsem-spinlock.h
-@@ -68,11 +68,7 @@ extern int __down_write_trylock(struct r
- extern void __up_read(struct rw_semaphore *sem);
- extern void __up_write(struct rw_semaphore *sem);
- extern void __downgrade_write(struct rw_semaphore *sem);
--
--static inline int rwsem_is_locked(struct rw_semaphore *sem)
--{
--	return (sem->activity != 0);
--}
-+extern int rwsem_is_locked(struct rw_semaphore *sem);
+diff -puN include/linux/err.h~errh-add-helper-function-to-simplify-pointer-error-checking include/linux/err.h
+--- a/include/linux/err.h~errh-add-helper-function-to-simplify-pointer-error-checking
++++ a/include/linux/err.h
+@@ -34,6 +34,11 @@ static inline long IS_ERR(const void *pt
+ 	return IS_ERR_VALUE((unsigned long)ptr);
+ }
  
- #endif /* __KERNEL__ */
- #endif /* _LINUX_RWSEM_SPINLOCK_H */
-diff -puN lib/rwsem-spinlock.c~rwsem-fix-rwsem_is_locked-bugs lib/rwsem-spinlock.c
---- a/lib/rwsem-spinlock.c~rwsem-fix-rwsem_is_locked-bugs
-+++ a/lib/rwsem-spinlock.c
-@@ -17,6 +17,19 @@ struct rwsem_waiter {
- #define RWSEM_WAITING_FOR_WRITE	0x00000002
- };
- 
-+int rwsem_is_locked(struct rw_semaphore *sem)
++static inline long IS_ERR_OR_NULL(const void *ptr)
 +{
-+	int ret = 1;
-+	unsigned long flags;
-+
-+	if (spin_trylock_irqsave(&sem->wait_lock, flags)) {
-+		ret = (sem->activity != 0);
-+		spin_unlock_irqrestore(&sem->wait_lock, flags);
-+	}
-+	return ret;
++	return !ptr || IS_ERR_VALUE((unsigned long)ptr);
 +}
-+EXPORT_SYMBOL(rwsem_is_locked);
 +
- /*
-  * initialise the semaphore
-  */
+ /**
+  * ERR_CAST - Explicitly cast an error-valued pointer to another pointer type
+  * @ptr: The pointer to cast.
 _
 
-Patches currently in -mm which might be from amwang@redhat.com are
+Patches currently in -mm which might be from ext-phil.2.carmody@nokia.com are
 
 origin.patch
-linux-next.patch
-xtensa-use-generic-sys_pipe.patch
-ipc-remove-unreachable-code-in-semc.patch
-ipc-remove-unreachable-code-in-semc-fix.patch
-ipc-hard_msgmax-should-be-higher-not-lower-on-64bit.patch
-kexec-premit-reduction-of-the-reserved-memory-size.patch
-kexec-premit-reduction-of-the-reserved-memory-size-fix.patch
 
