@@ -1,91 +1,140 @@
 From: akpm@linux-foundation.org
-Subject: [merged] swap_info-reorder-its-fields.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 13:51:57 -0800
-Message-ID: <200912152151.nBFLpv2V015148@imap1.linux-foundation.org>
+Subject: [merged] sdhci-add-support-for-the-syskonnect-cardbus2sdio-adapter.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 13:58:49 -0800
+Message-ID: <200912152158.nBFLwn8A015848@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35875 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53350 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761348AbZLOWM6 (ORCPT
+	by vger.kernel.org with ESMTP id S1761346AbZLOWNL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 17:12:58 -0500
+	Tue, 15 Dec 2009 17:13:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh.dickins@tiscali.co.uk, kamezawa.hiroyu@jp.fujitsu.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: nico@fluxnic.net, linux-mmc@vger.kernel.org, nico@marvell.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     swap_info: reorder its fields
+     sdhci: add support for the SysKonnect CardBus2SDIO adapter
 has been removed from the -mm tree.  Its filename was
-     swap_info-reorder-its-fields.patch
+     sdhci-add-support-for-the-syskonnect-cardbus2sdio-adapter.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: swap_info: reorder its fields
-From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Subject: sdhci: add support for the SysKonnect CardBus2SDIO adapter
+From: Nicolas Pitre <nico@fluxnic.net>
 
-Reorder (and comment) the fields of swap_info_struct, to make better
-use of its cachelines: it's good for swap_duplicate() in particular
-if unsigned int max and swap_map are near the start.
+This is still in use especially to develop SDIO device drivers on laptop
+machines which are lacking SDIO slots.  This adapter supports SDIO cards
+only due to lack of 136-bit response capability.
 
-Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Rik van Riel <riel@redhat.com>
+Signed-off-by: Nicolas Pitre <nico@marvell.com>
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |   26 +++++++++++++-------------
- 1 file changed, 13 insertions(+), 13 deletions(-)
+ drivers/mmc/host/sdhci-pci.c |   75 +++++++++++++++++++++++++++++++++
+ 1 file changed, 75 insertions(+)
 
-diff -puN include/linux/swap.h~swap_info-reorder-its-fields include/linux/swap.h
---- a/include/linux/swap.h~swap_info-reorder-its-fields
-+++ a/include/linux/swap.h
-@@ -167,21 +167,21 @@ struct swap_info_struct {
- 	signed short	prio;		/* swap priority of this type */
- 	signed char	type;		/* strange name for an index */
- 	signed char	next;		/* next type on the swap list */
--	struct file *swap_file;
--	struct block_device *bdev;
--	struct swap_extent first_swap_extent;
--	struct swap_extent *curr_swap_extent;
--	unsigned char *swap_map;
--	unsigned int lowest_bit;
--	unsigned int highest_bit;
-+	unsigned int	max;		/* extent of the swap_map */
-+	unsigned char *swap_map;	/* vmalloc'ed array of usage counts */
-+	unsigned int lowest_bit;	/* index of first free in swap_map */
-+	unsigned int highest_bit;	/* index of last free in swap_map */
-+	unsigned int pages;		/* total of usable pages of swap */
-+	unsigned int inuse_pages;	/* number of those currently in use */
-+	unsigned int cluster_next;	/* likely index for next allocation */
-+	unsigned int cluster_nr;	/* countdown to next cluster search */
- 	unsigned int lowest_alloc;	/* while preparing discard cluster */
- 	unsigned int highest_alloc;	/* while preparing discard cluster */
--	unsigned int cluster_next;
--	unsigned int cluster_nr;
--	unsigned int pages;
--	unsigned int max;
--	unsigned int inuse_pages;
--	unsigned int old_block_size;
-+	struct swap_extent *curr_swap_extent;
-+	struct swap_extent first_swap_extent;
-+	struct block_device *bdev;	/* swap device or bdev of swap file */
-+	struct file *swap_file;		/* seldom referenced */
-+	unsigned int old_block_size;	/* seldom referenced */
+diff -puN drivers/mmc/host/sdhci-pci.c~sdhci-add-support-for-the-syskonnect-cardbus2sdio-adapter drivers/mmc/host/sdhci-pci.c
+--- a/drivers/mmc/host/sdhci-pci.c~sdhci-add-support-for-the-syskonnect-cardbus2sdio-adapter
++++ a/drivers/mmc/host/sdhci-pci.c
+@@ -285,6 +285,73 @@ static const struct sdhci_pci_fixes sdhc
+ 	.resume		= jmicron_resume,
  };
  
- struct swap_list_t {
++/* SysKonnect CardBus2SDIO extra registers */
++#define SYSKT_CTRL		0x200
++#define SYSKT_RDFIFO_STAT	0x204
++#define SYSKT_WRFIFO_STAT	0x208
++#define SYSKT_POWER_DATA	0x20c
++#define   SYSKT_POWER_330	0xef
++#define   SYSKT_POWER_300	0xf8
++#define   SYSKT_POWER_184	0xcc
++#define SYSKT_POWER_CMD		0x20d
++#define   SYSKT_POWER_START	(1 << 7)
++#define SYSKT_POWER_STATUS	0x20e
++#define   SYSKT_POWER_STATUS_OK	(1 << 0)
++#define SYSKT_BOARD_REV		0x210
++#define SYSKT_CHIP_REV		0x211
++#define SYSKT_CONF_DATA		0x212
++#define   SYSKT_CONF_DATA_1V8	(1 << 2)
++#define   SYSKT_CONF_DATA_2V5	(1 << 1)
++#define   SYSKT_CONF_DATA_3V3	(1 << 0)
++
++static int syskt_probe(struct sdhci_pci_chip *chip)
++{
++	if ((chip->pdev->class & 0x0000FF) == PCI_SDHCI_IFVENDOR) {
++		chip->pdev->class &= ~0x0000FF;
++		chip->pdev->class |= PCI_SDHCI_IFDMA;
++	}
++	return 0;
++}
++
++static int syskt_probe_slot(struct sdhci_pci_slot *slot)
++{
++	int tm, ps;
++
++	u8 board_rev = readb(slot->host->ioaddr + SYSKT_BOARD_REV);
++	u8  chip_rev = readb(slot->host->ioaddr + SYSKT_CHIP_REV);
++	dev_info(&slot->chip->pdev->dev, "SysKonnect CardBus2SDIO, "
++					 "board rev %d.%d, chip rev %d.%d\n",
++					 board_rev >> 4, board_rev & 0xf,
++					 chip_rev >> 4,  chip_rev & 0xf);
++	if (chip_rev >= 0x20)
++		slot->host->quirks |= SDHCI_QUIRK_FORCE_DMA;
++
++	writeb(SYSKT_POWER_330, slot->host->ioaddr + SYSKT_POWER_DATA);
++	writeb(SYSKT_POWER_START, slot->host->ioaddr + SYSKT_POWER_CMD);
++	udelay(50);
++	tm = 10;  /* Wait max 1 ms */
++	do {
++		ps = readw(slot->host->ioaddr + SYSKT_POWER_STATUS);
++		if (ps & SYSKT_POWER_STATUS_OK)
++			break;
++		udelay(100);
++	} while (--tm);
++	if (!tm) {
++		dev_err(&slot->chip->pdev->dev,
++			"power regulator never stabilized");
++		writeb(0, slot->host->ioaddr + SYSKT_POWER_CMD);
++		return -ENODEV;
++	}
++
++	return 0;
++}
++
++static const struct sdhci_pci_fixes sdhci_syskt = {
++	.quirks		= SDHCI_QUIRK_NO_SIMULT_VDD_AND_POWER,
++	.probe		= syskt_probe,
++	.probe_slot	= syskt_probe_slot,
++};
++
+ static int via_probe(struct sdhci_pci_chip *chip)
+ {
+ 	if (chip->pdev->revision == 0x10)
+@@ -363,6 +430,14 @@ static const struct pci_device_id pci_id
+ 	},
+ 
+ 	{
++		.vendor		= PCI_VENDOR_ID_SYSKONNECT,
++		.device		= 0x8000,
++		.subvendor	= PCI_ANY_ID,
++		.subdevice	= PCI_ANY_ID,
++		.driver_data	= (kernel_ulong_t)&sdhci_syskt,
++	},
++
++	{
+ 		.vendor		= PCI_VENDOR_ID_VIA,
+ 		.device		= 0x95d0,
+ 		.subvendor	= PCI_ANY_ID,
 _
 
-Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
+Patches currently in -mm which might be from nico@fluxnic.net are
 
 origin.patch
 linux-next.patch
-vfs-fsstack-handle-32-bit-smp-preempt-large-files-in-fsstack_copy_inode_size.patch
-ksm-memory-hotremove-migration-only-fix.patch
-elf-kill-use_elf_core_dump.patch
-prio_tree-debugging-patch.patch
 
