@@ -1,89 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged] parser-remove-unnecessary-strlen.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 13:57:51 -0800
-Message-ID: <200912152157.nBFLvpde015752@imap1.linux-foundation.org>
+Subject: [merged] fs-gfs2-sysc-use-%pub-to-print-uuids.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 13:58:09 -0800
+Message-ID: <200912152158.nBFLw9hS015788@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41719 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47814 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761324AbZLOV6o (ORCPT
+	by vger.kernel.org with ESMTP id S1761310AbZLOV7N (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 16:58:44 -0500
+	Tue, 15 Dec 2009 16:59:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andre.goddard@gmail.com, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: joe@perches.com, swhiteho@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     parser: remove unnecessary strlen()
+     fs/gfs2/sys.c: use %pUB to print UUIDs
 has been removed from the -mm tree.  Its filename was
-     parser-remove-unnecessary-strlen.patch
+     fs-gfs2-sysc-use-%pub-to-print-uuids.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: parser: remove unnecessary strlen()
-=46rom: Andr=E9 Goddard Rosa <andre.goddard@gmail.com>
+Subject: fs/gfs2/sys.c: use %pUB to print UUIDs
+From: Joe Perches <joe@perches.com>
 
-No functional change.  Cache strlen() result to avoid recalculating it =
-up
-to 3 times on the worst case.
-
-Reduces code size a little by 32 bytes:
-   text    data     bss     dec     hex filename
-   1385       0       0    1385     569 lib/parser.o-BEFORE
-   1353       0       0    1353     549 lib/parser.o-AFTER
-
-Signed-off-by: Andr=E9 Goddard Rosa <andre.goddard@gmail.com>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Steven Whitehouse <swhiteho@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/parser.c |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ fs/gfs2/sys.c |   16 +++-------------
+ 1 file changed, 3 insertions(+), 13 deletions(-)
 
-diff -puN lib/parser.c~parser-remove-unnecessary-strlen lib/parser.c
---- a/lib/parser.c~parser-remove-unnecessary-strlen
-+++ a/lib/parser.c
-@@ -56,13 +56,16 @@ static int match_one(char *s, const char
-=20
- 		args[argc].from =3D s;
- 		switch (*p++) {
--		case 's':
--			if (strlen(s) =3D=3D 0)
-+		case 's': {
-+			size_t str_len =3D strlen(s);
-+
-+			if (str_len =3D=3D 0)
- 				return 0;
--			else if (len =3D=3D -1 || len > strlen(s))
--				len =3D strlen(s);
-+			if (len =3D=3D -1 || len > str_len)
-+				len =3D str_len;
- 			args[argc].to =3D s + len;
- 			break;
-+		}
- 		case 'd':
- 			simple_strtol(s, &args[argc].to, 0);
- 			goto num;
+diff -puN fs/gfs2/sys.c~fs-gfs2-sysc-use-%pub-to-print-uuids fs/gfs2/sys.c
+--- a/fs/gfs2/sys.c~fs-gfs2-sysc-use-%pub-to-print-uuids
++++ a/fs/gfs2/sys.c
+@@ -85,11 +85,7 @@ static ssize_t uuid_show(struct gfs2_sbd
+ 	buf[0] = '\0';
+ 	if (!gfs2_uuid_valid(uuid))
+ 		return 0;
+-	return snprintf(buf, PAGE_SIZE, "%02X%02X%02X%02X-%02X%02X-"
+-			"%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X\n",
+-			uuid[0], uuid[1], uuid[2], uuid[3], uuid[4], uuid[5],
+-			uuid[6], uuid[7], uuid[8], uuid[9], uuid[10], uuid[11],
+-			uuid[12], uuid[13], uuid[14], uuid[15]);
++	return snprintf(buf, PAGE_SIZE, "%pUB\n", uuid);
+ }
+ 
+ static ssize_t freeze_show(struct gfs2_sbd *sdp, char *buf)
+@@ -575,14 +571,8 @@ static int gfs2_uevent(struct kset *kset
+ 	add_uevent_var(env, "LOCKPROTO=%s", sdp->sd_proto_name);
+ 	if (!sdp->sd_args.ar_spectator)
+ 		add_uevent_var(env, "JOURNALID=%u", sdp->sd_lockstruct.ls_jid);
+-	if (gfs2_uuid_valid(uuid)) {
+-		add_uevent_var(env, "UUID=%02X%02X%02X%02X-%02X%02X-%02X%02X-"
+-			       "%02X%02X-%02X%02X%02X%02X%02X%02X",
+-			       uuid[0], uuid[1], uuid[2], uuid[3], uuid[4],
+-			       uuid[5], uuid[6], uuid[7], uuid[8], uuid[9],
+-			       uuid[10], uuid[11], uuid[12], uuid[13],
+-			       uuid[14], uuid[15]);
+-	}
++	if (gfs2_uuid_valid(uuid))
++		add_uevent_var(env, "UUID=%pUB", uuid);
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from andre.goddard@gmail.com ar=
-e
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
-pid-tighten-pidmap-spinlock-critical-section-by-removing-kfree.patch
-pid-reduce-code-size-by-using-a-pointer-to-iterate-over-array.patch
+linux-next.patch
+scripts-checkpatchpl-add-warn-on-sizeof.patch
+checkpatchpl-allow-80-char-lines-for-logging-functions-not-just-printk.patch
+isicomc-use-pr_fmt-and-pr_level.patch
+parport_pcc-use-correct-length-in-strncmp.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
