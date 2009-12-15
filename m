@@ -1,26 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: [merged] vsprintf-reuse-almost-identical-simple_strtoulx-functions.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 13:57:33 -0800
-Message-ID: <200912152157.nBFLvXC7015728@imap1.linux-foundation.org>
+Subject: [merged] drivers-scsi-sym53c8xx_2-sym_gluec-rename-skip_spaces-to-sym_skip_spaces.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 13:57:38 -0800
+Message-ID: <200912152157.nBFLvcuK015735@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43224 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40086 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761246AbZLOV6C (ORCPT
+	by vger.kernel.org with ESMTP id S933801AbZLOV6J (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 16:58:02 -0500
+	Tue, 15 Dec 2009 16:58:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andre.goddard@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, andre.goddard@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vsprintf: reuse almost identical simple_strtoulX() functions
+     drivers/scsi/sym53c8xx_2/sym_glue.c: rename skip_spaces() to sym_s=
+kip_spaces()
 has been removed from the -mm tree.  Its filename was
-     vsprintf-reuse-almost-identical-simple_strtoulx-functions.patch
+     drivers-scsi-sym53c8xx_2-sym_gluec-rename-skip_spaces-to-sym_skip_=
+spaces.patch
 
 This patch was dropped because it was merged into mainline or a subsyst=
 em tree
@@ -29,145 +31,122 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
 otm/
 
 ------------------------------------------------------
-Subject: vsprintf: reuse almost identical simple_strtoulX() functions
-=46rom: Andr=E9 Goddard Rosa <andre.goddard@gmail.com>
+Subject: drivers/scsi/sym53c8xx_2/sym_glue.c: rename skip_spaces() to s=
+ym_skip_spaces()
+=46rom: Andrew Morton <akpm@linux-foundation.org>
 
-The difference between simple_strtoul() and simple_strtoull() is just
-the size of the variable used to keep track of the sum of characters
-converted to numbers:
-
-unsigned long simple_strtoul() {...}
-unsigned long long simple_strtoull(){...}
-
-Both are same size on my Core 2/gcc 4.4.1.
-Overflow condition is not checked on both functions, so an extremely la=
-rge
-string can break these functions so that they don't even notice it.
-
-As we do not care for overflowing on these functions, always keep the s=
-um
-using the larger variable around (unsigned long long) on simple_strtoul=
-l()
-and cast it to (unsigned long) on simple_strtoul(), which then becomes
-just a wrapper around simple_strtoull().
-
-Code size decreases by 304 bytes:
-   text    data     bss     dec     hex filename
-  15534       0       8   15542    3cb6 vsprintf.o (ex lib/lib.a-BEFORE=
-)
-  15230       0       8   15238    3b86 vsprintf.o (ex lib/lib.a-AFTER)
+To avoid a collision with the newly-added kernel-wide skip_spaces().
 
 Signed-off-by: Andr=E9 Goddard Rosa <andre.goddard@gmail.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/vsprintf.c |   48 +++++++++++++----------------------------------
- 1 file changed, 14 insertions(+), 34 deletions(-)
+ drivers/scsi/sym53c8xx_2/sym_glue.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN lib/vsprintf.c~vsprintf-reuse-almost-identical-simple_strtoul=
-x-functions lib/vsprintf.c
---- a/lib/vsprintf.c~vsprintf-reuse-almost-identical-simple_strtoulx-fu=
-nctions
-+++ a/lib/vsprintf.c
-@@ -47,14 +47,14 @@ static unsigned int simple_guess_base(co
+diff -puN drivers/scsi/sym53c8xx_2/sym_glue.c~drivers-scsi-sym53c8xx_2-=
+sym_gluec-rename-skip_spaces-to-sym_skip_spaces drivers/scsi/sym53c8xx_=
+2/sym_glue.c
+--- a/drivers/scsi/sym53c8xx_2/sym_glue.c~drivers-scsi-sym53c8xx_2-sym_=
+gluec-rename-skip_spaces-to-sym_skip_spaces
++++ a/drivers/scsi/sym53c8xx_2/sym_glue.c
+@@ -984,7 +984,7 @@ static void sym_exec_user_command (struc
+ 	}
  }
 =20
- /**
-- * simple_strtoul - convert a string to an unsigned long
-+ * simple_strtoull - convert a string to an unsigned long long
-  * @cp: The start of the string
-  * @endp: A pointer to the end of the parsed string will be placed her=
-e
-  * @base: The number base to use
-  */
--unsigned long simple_strtoul(const char *cp, char **endp, unsigned int=
- base)
-+unsigned long long simple_strtoull(const char *cp, char **endp, unsign=
-ed int base)
+-static int skip_spaces(char *ptr, int len)
++static int sym_skip_spaces(char *ptr, int len)
  {
--	unsigned long result =3D 0;
-+	unsigned long long result =3D 0;
+ 	int cnt, c;
 =20
- 	if (!base)
- 		base =3D simple_guess_base(cp);
-@@ -76,54 +76,34 @@ unsigned long simple_strtoul(const char=20
-=20
- 	return result;
+@@ -1012,7 +1012,7 @@ static int is_keyword(char *ptr, int len
  }
--EXPORT_SYMBOL(simple_strtoul);
-+EXPORT_SYMBOL(simple_strtoull);
 =20
- /**
-- * simple_strtol - convert a string to a signed long
-+ * simple_strtoul - convert a string to an unsigned long
-  * @cp: The start of the string
-  * @endp: A pointer to the end of the parsed string will be placed her=
-e
-  * @base: The number base to use
-  */
--long simple_strtol(const char *cp, char **endp, unsigned int base)
-+unsigned long simple_strtoul(const char *cp, char **endp, unsigned int=
- base)
- {
--	if (*cp =3D=3D '-')
--		return -simple_strtoul(cp + 1, endp, base);
--
--	return simple_strtoul(cp, endp, base);
-+	return simple_strtoull(cp, endp, base);
- }
--EXPORT_SYMBOL(simple_strtol);
-+EXPORT_SYMBOL(simple_strtoul);
+ #define SKIP_SPACES(ptr, len)						\
+-	if ((arg_len =3D skip_spaces(ptr, len)) < 1)			\
++	if ((arg_len =3D sym_skip_spaces(ptr, len)) < 1)			\
+ 		return -EINVAL;						\
+ 	ptr +=3D arg_len; len -=3D arg_len;
 =20
- /**
-- * simple_strtoull - convert a string to an unsigned long long
-+ * simple_strtol - convert a string to a signed long
-  * @cp: The start of the string
-  * @endp: A pointer to the end of the parsed string will be placed her=
-e
-  * @base: The number base to use
-  */
--unsigned long long simple_strtoull(const char *cp, char **endp, unsign=
-ed int base)
-+long simple_strtol(const char *cp, char **endp, unsigned int base)
- {
--	unsigned long long result =3D 0;
--
--	if (!base)
--		base =3D simple_guess_base(cp);
--
--	if (base =3D=3D 16 && cp[0] =3D=3D '0' && TOLOWER(cp[1]) =3D=3D 'x')
--		cp +=3D 2;
--
--	while (isxdigit(*cp)) {
--		unsigned int value;
--
--		value =3D isdigit(*cp) ? *cp - '0' : TOLOWER(*cp) - 'a' + 10;
--		if (value >=3D base)
--			break;
--		result =3D result * base + value;
--		cp++;
--	}
--	if (endp)
--		*endp =3D (char *)cp;
-+	if (*cp =3D=3D '-')
-+		return -simple_strtoul(cp + 1, endp, base);
-=20
--	return result;
-+	return simple_strtoul(cp, endp, base);
- }
--EXPORT_SYMBOL(simple_strtoull);
-+EXPORT_SYMBOL(simple_strtol);
-=20
- /**
-  * simple_strtoll - convert a string to a signed long long
 _
 
-Patches currently in -mm which might be from andre.goddard@gmail.com ar=
-e
+Patches currently in -mm which might be from akpm@linux-foundation.org =
+are
 
 origin.patch
-pid-tighten-pidmap-spinlock-critical-section-by-removing-kfree.patch
-pid-reduce-code-size-by-using-a-pointer-to-iterate-over-array.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
+drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by=
+-using-smp_call_function_any.patch
+acpi-remove-nid_inval.patch
+drivers-acpi-acpi_padc-squish-warning.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices-checkpatch-fixes.pa=
+tch
+drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
+drivers-media-video-pmsc-needs-versionh.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+drivers-leds-leds-ss4200c-fix-return-statement.patch
+net-sctp-socketc-fix-warning.patch
+proc_fops-convert-drivers-isdn-to-seq_file-fix2.patch
+3x59x-fix-pci-resource-management.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+fs-ext4-superc-fix-printk-warning.patch
+atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
+scsi-aacraid-fix-memory-leak-checkpatch-fixes.patch
+aoe-switch-to-the-new-bio_flush_dcache_pages-interface.patch
+fs-improve-remountro-vs-buffercache-coherency.patch
+drivers-net-wireless-iwlwifi-iwl-txc-fix-gcc-345-warning.patch
+percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+readahead-add-blk_run_backing_dev.patch
+oom-kill-fix-numa-consraint-check-with-nodemask-v42.patch
+ksm-memory-hotremove-migration-only-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+spi-controller-driver-for-designware-spi-core.patch
+spidev-use-declare_bitmap-instead-of-declaring-the-array.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyar=
+ea-fillrect-fix.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyar=
+ea-fillrect-fix2.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyar=
+ea-fillrect-fix2-fix-3.patch
+ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkp=
+atch-fixes.patch
+memcg-coalesce-charging-via-percpu-storage-fix.patch
+memcg-code-cleanrm-unused-variable-in-mem_cgroup_resize_limit-cleanup.p=
+atch
+ipc-remove-unreachable-code-in-semc-fix.patch
+char-cyclades-fix-compiler-warning.patch
+fs-cache-avoid-maybe-used-uninitialised-warning-on-variable.patch
+aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
+direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
+drivers-media-video-cx23885-needs-kfifo-conversion.patch
+drivers-media-video-cx23885-needs-kfifo-updates.patch
+revert-tty-sdio_uart-use-kfifo-instead-of-the-messy-circ-stuff.patch
+kfifo-move-struct-kfifo-in-place-fix.patch
+zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes.=
+patch
+lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes.patch
+lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.pat=
+ch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
 --
 To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
