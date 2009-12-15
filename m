@@ -1,86 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-ubifs-use-%pub-to-print-uuids.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 13:58:11 -0800
-Message-ID: <200912152158.nBFLwBri015791@imap1.linux-foundation.org>
+Subject: [merged] swap_info-reorder-its-fields.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 13:51:57 -0800
+Message-ID: <200912152151.nBFLpv2V015148@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37243 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35875 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761345AbZLOWMi (ORCPT
+	by vger.kernel.org with ESMTP id S1761348AbZLOWM6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 17:12:38 -0500
+	Tue, 15 Dec 2009 17:12:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, adrian.hunter@nokia.com, dedekind@infradead.org, mm-commits@vger.kernel.org
+To: hugh.dickins@tiscali.co.uk, kamezawa.hiroyu@jp.fujitsu.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/ubifs: use %pUB to print UUIDs
+     swap_info: reorder its fields
 has been removed from the -mm tree.  Its filename was
-     fs-ubifs-use-%pub-to-print-uuids.patch
+     swap_info-reorder-its-fields.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/ubifs: use %pUB to print UUIDs
-From: Joe Perches <joe@perches.com>
+Subject: swap_info: reorder its fields
+From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Artem Bityutskiy <dedekind@infradead.org>
-Cc: Adrian Hunter <adrian.hunter@nokia.com>
+Reorder (and comment) the fields of swap_info_struct, to make better
+use of its cachelines: it's good for swap_duplicate() in particular
+if unsigned int max and swap_map are near the start.
+
+Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ubifs/debug.c |    9 ++-------
- fs/ubifs/super.c |    7 +------
- 2 files changed, 3 insertions(+), 13 deletions(-)
+ include/linux/swap.h |   26 +++++++++++++-------------
+ 1 file changed, 13 insertions(+), 13 deletions(-)
 
-diff -puN fs/ubifs/debug.c~fs-ubifs-use-%pub-to-print-uuids fs/ubifs/debug.c
---- a/fs/ubifs/debug.c~fs-ubifs-use-%pub-to-print-uuids
-+++ a/fs/ubifs/debug.c
-@@ -350,13 +350,8 @@ void dbg_dump_node(const struct ubifs_in
- 		       le32_to_cpu(sup->fmt_version));
- 		printk(KERN_DEBUG "\ttime_gran      %u\n",
- 		       le32_to_cpu(sup->time_gran));
--		printk(KERN_DEBUG "\tUUID           %02X%02X%02X%02X-%02X%02X"
--		       "-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X\n",
--		       sup->uuid[0], sup->uuid[1], sup->uuid[2], sup->uuid[3],
--		       sup->uuid[4], sup->uuid[5], sup->uuid[6], sup->uuid[7],
--		       sup->uuid[8], sup->uuid[9], sup->uuid[10], sup->uuid[11],
--		       sup->uuid[12], sup->uuid[13], sup->uuid[14],
--		       sup->uuid[15]);
-+		printk(KERN_DEBUG "\tUUID           %pUB\n",
-+		       sup->uuid);
- 		break;
- 	}
- 	case UBIFS_MST_NODE:
-diff -puN fs/ubifs/super.c~fs-ubifs-use-%pub-to-print-uuids fs/ubifs/super.c
---- a/fs/ubifs/super.c~fs-ubifs-use-%pub-to-print-uuids
-+++ a/fs/ubifs/super.c
-@@ -1393,12 +1393,7 @@ static int mount_ubifs(struct ubifs_info
- 		c->leb_size, c->leb_size >> 10);
- 	dbg_msg("data journal heads:  %d",
- 		c->jhead_cnt - NONDATA_JHEADS_CNT);
--	dbg_msg("UUID:                %02X%02X%02X%02X-%02X%02X"
--	       "-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X",
--	       c->uuid[0], c->uuid[1], c->uuid[2], c->uuid[3],
--	       c->uuid[4], c->uuid[5], c->uuid[6], c->uuid[7],
--	       c->uuid[8], c->uuid[9], c->uuid[10], c->uuid[11],
--	       c->uuid[12], c->uuid[13], c->uuid[14], c->uuid[15]);
-+	dbg_msg("UUID:                %pUB", c->uuid);
- 	dbg_msg("big_lpt              %d", c->big_lpt);
- 	dbg_msg("log LEBs:            %d (%d - %d)",
- 		c->log_lebs, UBIFS_LOG_LNUM, c->log_last);
+diff -puN include/linux/swap.h~swap_info-reorder-its-fields include/linux/swap.h
+--- a/include/linux/swap.h~swap_info-reorder-its-fields
++++ a/include/linux/swap.h
+@@ -167,21 +167,21 @@ struct swap_info_struct {
+ 	signed short	prio;		/* swap priority of this type */
+ 	signed char	type;		/* strange name for an index */
+ 	signed char	next;		/* next type on the swap list */
+-	struct file *swap_file;
+-	struct block_device *bdev;
+-	struct swap_extent first_swap_extent;
+-	struct swap_extent *curr_swap_extent;
+-	unsigned char *swap_map;
+-	unsigned int lowest_bit;
+-	unsigned int highest_bit;
++	unsigned int	max;		/* extent of the swap_map */
++	unsigned char *swap_map;	/* vmalloc'ed array of usage counts */
++	unsigned int lowest_bit;	/* index of first free in swap_map */
++	unsigned int highest_bit;	/* index of last free in swap_map */
++	unsigned int pages;		/* total of usable pages of swap */
++	unsigned int inuse_pages;	/* number of those currently in use */
++	unsigned int cluster_next;	/* likely index for next allocation */
++	unsigned int cluster_nr;	/* countdown to next cluster search */
+ 	unsigned int lowest_alloc;	/* while preparing discard cluster */
+ 	unsigned int highest_alloc;	/* while preparing discard cluster */
+-	unsigned int cluster_next;
+-	unsigned int cluster_nr;
+-	unsigned int pages;
+-	unsigned int max;
+-	unsigned int inuse_pages;
+-	unsigned int old_block_size;
++	struct swap_extent *curr_swap_extent;
++	struct swap_extent first_swap_extent;
++	struct block_device *bdev;	/* swap device or bdev of swap file */
++	struct file *swap_file;		/* seldom referenced */
++	unsigned int old_block_size;	/* seldom referenced */
+ };
+ 
+ struct swap_list_t {
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
 
 origin.patch
 linux-next.patch
-scripts-checkpatchpl-add-warn-on-sizeof.patch
-checkpatchpl-allow-80-char-lines-for-logging-functions-not-just-printk.patch
-isicomc-use-pr_fmt-and-pr_level.patch
-parport_pcc-use-correct-length-in-strncmp.patch
+vfs-fsstack-handle-32-bit-smp-preempt-large-files-in-fsstack_copy_inode_size.patch
+ksm-memory-hotremove-migration-only-fix.patch
+elf-kill-use_elf_core_dump.patch
+prio_tree-debugging-patch.patch
 
