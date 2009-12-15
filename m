@@ -1,137 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [folded] lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 15:54:30 -0800
-Message-ID: <200912152354.nBFNsUYi021843@imap1.linux-foundation.org>
+Subject: [folded] arm-add-support-for-lzo-compressed-kernels-fix.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 15:54:52 -0800
+Message-ID: <200912152354.nBFNsqMZ021851@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40014 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48167 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755928AbZLOX51 (ORCPT
+	by vger.kernel.org with ESMTP id S1755358AbZLPACb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 18:57:27 -0500
+	Tue, 15 Dec 2009 19:02:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, albin.tonnerre@free-electrons.com, hpa@zytor.com, mingo@elte.hu, ralf@linux-mips.org, rmk@arm.linux.org.uk, tglx@linutronix.de, wuzhangjin@gmail.com, mm-com
+To: albin.tonnerre@free-electrons.com, hpa@zytor.com, mingo@elte.hu, ralf@linux-mips.org, rmk@arm.linux.org.uk, tbm@cyrius.com, tglx@linutronix.de, wuzhangjin@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup
+     arm-add-support-for-lzo-compressed-kernels-fix
 has been removed from the -mm tree.  Its filename was
-     lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.patch
+     arm-add-support-for-lzo-compressed-kernels-fix.patch
 
-This patch was dropped because it was folded into lib-add-support-for-lzo-compressed-kernels.patch
+This patch was dropped because it was folded into arm-add-support-for-lzo-compressed-kernels.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: arm-add-support-for-lzo-compressed-kernels-fix
+From: Albin Tonnerre <albin.tonnerre@free-electrons.com>
 
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Albin Tonnerre <albin.tonnerre@free-electrons.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Updated patch to fix the out-of-tree build issue, thanks to Martin Michlmayr
+and Russell King
+
+Signed-off-by: Albin Tonnerre <albin.tonnerre@free-electrons.com>
 Cc: Wu Zhangjin <wuzhangjin@gmail.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Martin Michlmayr <tbm@cyrius.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/decompress_unlzo.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/arm/boot/compressed/Makefile |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN lib/decompress_unlzo.c~lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup lib/decompress_unlzo.c
---- a/lib/decompress_unlzo.c~lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup
-+++ a/lib/decompress_unlzo.c
-@@ -101,9 +101,9 @@ STATIC inline int INIT unlzo(u8 *input, 
+diff -puN arch/arm/boot/compressed/Makefile~arm-add-support-for-lzo-compressed-kernels-fix arch/arm/boot/compressed/Makefile
+--- a/arch/arm/boot/compressed/Makefile~arm-add-support-for-lzo-compressed-kernels-fix
++++ a/arch/arm/boot/compressed/Makefile
+@@ -101,7 +101,10 @@ LDFLAGS_vmlinux += -X
+ LDFLAGS_vmlinux += -T
  
- 	set_error_fn(error_fn);
+ # For __aeabi_uidivmod
+-lib1funcs = $(srctree)/arch/$(SRCARCH)/lib/lib1funcs.o
++lib1funcs = $(obj)/lib1funcs.o
++
++$(obj)/lib1funcs.S: $(srctree)/arch/$(SRCARCH)/lib/lib1funcs.S FORCE
++	$(call cmd,shipped)
  
--	if (output)
-+	if (output) {
- 		out_buf = output;
--	else if (!flush) {
-+	} else if (!flush) {
- 		error("NULL output pointer and no flush function provided");
- 		goto exit;
- 	} else {
-@@ -117,9 +117,9 @@ STATIC inline int INIT unlzo(u8 *input, 
- 	if (input && fill) {
- 		error("Both input pointer and fill function provided, don't know what to do");
- 		goto exit_1;
--	} else if (input)
-+	} else if (input) {
- 		in_buf = input;
--	else if (!fill || !posp) {
-+	} else if (!fill || !posp) {
- 		error("NULL input pointer and missing position pointer or fill function");
- 		goto exit_1;
- 	} else {
+ # Don't allow any static data in misc.o, which
+ # would otherwise mess up our GOT table
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from albin.tonnerre@free-electrons.com are
 
 origin.patch
-oom-kill-fix-numa-consraint-check-with-nodemask-v42.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3.patch
-ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
-memcg-coalesce-charging-via-percpu-storage-fix.patch
-memcg-code-cleanrm-unused-variable-in-mem_cgroup_resize_limit-cleanup.patch
-ipc-remove-unreachable-code-in-semc-fix.patch
-fs-cache-avoid-maybe-used-uninitialised-warning-on-variable.patch
-aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
-direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
-linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-acpi-remove-nid_inval.patch
-drivers-acpi-acpi_padc-squish-warning.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices-checkpatch-fixes.patch
-drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
-drivers-media-video-pmsc-needs-versionh.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-drivers-leds-leds-ss4200c-fix-return-statement.patch
-net-sctp-socketc-fix-warning.patch
-proc_fops-convert-drivers-isdn-to-seq_file-fix2.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-fs-ext4-superc-fix-printk-warning.patch
 atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
-scsi-aacraid-fix-memory-leak-checkpatch-fixes.patch
-aoe-switch-to-the-new-bio_flush_dcache_pages-interface.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-drivers-net-wireless-iwlwifi-iwl-txc-fix-gcc-345-warning.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-readahead-add-blk_run_backing_dev.patch
-ksm-memory-hotremove-migration-only-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-spi-controller-driver-for-designware-spi-core.patch
-spidev-use-declare_bitmap-instead-of-declaring-the-array.patch
-char-cyclades-fix-compiler-warning.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-drivers-media-video-cx23885-needs-kfifo-updates.patch
-revert-tty-sdio_uart-use-kfifo-instead-of-the-messy-circ-stuff.patch
-kfifo-move-struct-kfifo-in-place-fix.patch
-zlib-optimize-inffast-when-copying-direct-from-output.patch
 lib-add-support-for-lzo-compressed-kernels.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+arm-add-support-for-lzo-compressed-kernels.patch
+arm-add-support-for-lzo-compressed-kernels-fix.patch
+x86-add-support-for-lzo-compressed-kernels.patch
+add-lzo-compression-support-for-initramfs-and-old-style-initrd.patch
 
