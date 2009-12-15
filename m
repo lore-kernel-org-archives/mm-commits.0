@@ -1,155 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-clear-node-in-n_high_memory-and-stop-kswapd-when-all-memory-is-offlined.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 13:51:16 -0800
-Message-ID: <200912152151.nBFLpGXD015018@imap1.linux-foundation.org>
+Subject: [nacked] gpiolib-add-names-file-in-gpio-chip-sysfs.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 14:44:27 -0800
+Message-ID: <200912152244.nBFMiRXD018283@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42695 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60240 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761384AbZLOWWF (ORCPT
+	by vger.kernel.org with ESMTP id S1755162AbZLOWoj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 17:22:05 -0500
+	Tue, 15 Dec 2009 17:44:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, agl@us.ibm.com, andi@firstfloor.org, apw@canonical.com, cl@linux-foundation.org, eric.whitney@hp.com, kamezawa.hiroyu@jp.fujitsu.com, lee.schermerhorn@hp.com, mel
+To: ben@simtec.co.uk, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: clear node in N_HIGH_MEMORY and stop kswapd when all memory is offlined
+     gpiolib: add names file in gpio chip sysfs
 has been removed from the -mm tree.  Its filename was
-     mm-clear-node-in-n_high_memory-and-stop-kswapd-when-all-memory-is-offlined.patch
+     gpiolib-add-names-file-in-gpio-chip-sysfs.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was nacked
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: clear node in N_HIGH_MEMORY and stop kswapd when all memory is offlined
-From: David Rientjes <rientjes@google.com>
+Subject: gpiolib: add names file in gpio chip sysfs
+From: Ben Dooks <ben@simtec.co.uk>
 
-When memory is hot-removed, its node must be cleared in N_HIGH_MEMORY if
-there are no present pages left.
+Add a 'names' file to the sysfs entries for each chip to show which
+have names.
 
-In such a situation, kswapd must also be stopped since it has nothing left
-to do.
-
-Signed-off-by: David Rientjes <rientjes@google.com>
-Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Nishanth Aravamudan <nacc@us.ibm.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Adam Litke <agl@us.ibm.com>
-Cc: Andy Whitcroft <apw@canonical.com>
-Cc: Eric Whitney <eric.whitney@hp.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Ben Dooks <ben@simtec.co.uk>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    1 +
- mm/memory_hotplug.c  |    4 ++++
- mm/vmscan.c          |   28 ++++++++++++++++++++++------
- 3 files changed, 27 insertions(+), 6 deletions(-)
+ drivers/gpio/gpiolib.c |   21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
-diff -puN include/linux/swap.h~mm-clear-node-in-n_high_memory-and-stop-kswapd-when-all-memory-is-offlined include/linux/swap.h
---- a/include/linux/swap.h~mm-clear-node-in-n_high_memory-and-stop-kswapd-when-all-memory-is-offlined
-+++ a/include/linux/swap.h
-@@ -273,6 +273,7 @@ extern int scan_unevictable_register_nod
- extern void scan_unevictable_unregister_node(struct node *node);
+diff -puN drivers/gpio/gpiolib.c~gpiolib-add-names-file-in-gpio-chip-sysfs drivers/gpio/gpiolib.c
+--- a/drivers/gpio/gpiolib.c~gpiolib-add-names-file-in-gpio-chip-sysfs
++++ a/drivers/gpio/gpiolib.c
+@@ -577,6 +577,7 @@ static const struct attribute_group gpio
+  *   /base ... matching gpio_chip.base (N)
+  *   /label ... matching gpio_chip.label
+  *   /ngpio ... matching gpio_chip.ngpio
++ *   /names ... matching gpio_chip.names
+  */
  
- extern int kswapd_run(int nid);
-+extern void kswapd_stop(int nid);
- 
- #ifdef CONFIG_MMU
- /* linux/mm/shmem.c */
-diff -puN mm/memory_hotplug.c~mm-clear-node-in-n_high_memory-and-stop-kswapd-when-all-memory-is-offlined mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-clear-node-in-n_high_memory-and-stop-kswapd-when-all-memory-is-offlined
-+++ a/mm/memory_hotplug.c
-@@ -853,6 +853,10 @@ repeat:
- 
- 	setup_per_zone_wmarks();
- 	calculate_zone_inactive_ratio(zone);
-+	if (!node_present_pages(node)) {
-+		node_clear_state(node, N_HIGH_MEMORY);
-+		kswapd_stop(node);
-+	}
- 
- 	vm_total_pages = nr_free_pagecache_pages();
- 	writeback_set_ratelimit();
-diff -puN mm/vmscan.c~mm-clear-node-in-n_high_memory-and-stop-kswapd-when-all-memory-is-offlined mm/vmscan.c
---- a/mm/vmscan.c~mm-clear-node-in-n_high_memory-and-stop-kswapd-when-all-memory-is-offlined
-+++ a/mm/vmscan.c
-@@ -2173,6 +2173,7 @@ static int kswapd(void *p)
- 	order = 0;
- 	for ( ; ; ) {
- 		unsigned long new_order;
-+		int ret;
- 
- 		prepare_to_wait(&pgdat->kswapd_wait, &wait, TASK_INTERRUPTIBLE);
- 		new_order = pgdat->kswapd_max_order;
-@@ -2184,19 +2185,23 @@ static int kswapd(void *p)
- 			 */
- 			order = new_order;
- 		} else {
--			if (!freezing(current))
-+			if (!freezing(current) && !kthread_should_stop())
- 				schedule();
- 
- 			order = pgdat->kswapd_max_order;
- 		}
- 		finish_wait(&pgdat->kswapd_wait, &wait);
- 
--		if (!try_to_freeze()) {
--			/* We can speed up thawing tasks if we don't call
--			 * balance_pgdat after returning from the refrigerator
--			 */
-+		ret = try_to_freeze();
-+		if (kthread_should_stop())
-+			break;
-+
-+		/*
-+		 * We can speed up thawing tasks if we don't call balance_pgdat
-+		 * after returning from the refrigerator
-+		 */
-+		if (!ret)
- 			balance_pgdat(pgdat, order);
--		}
- 	}
- 	return 0;
+ static ssize_t chip_base_show(struct device *dev,
+@@ -606,10 +607,30 @@ static ssize_t chip_ngpio_show(struct de
  }
-@@ -2451,6 +2456,17 @@ int kswapd_run(int nid)
- 	return ret;
- }
+ static DEVICE_ATTR(ngpio, 0444, chip_ngpio_show, NULL);
  
-+/*
-+ * Called by memory hotplug when all memory in a node is offlined.
-+ */
-+void kswapd_stop(int nid)
++static ssize_t chip_names_show(struct device *dev,
++			       struct device_attribute *attr, char *buf)
 +{
-+	struct task_struct *kswapd = NODE_DATA(nid)->kswapd;
++	const struct gpio_chip *chip = dev_get_drvdata(dev);
++	char **names = chip->names;
++	int ptr = 0;
++	int name;
 +
-+	if (kswapd)
-+		kthread_stop(kswapd);
++	if (!names)
++		return -EINVAL;
++
++	for (name = 0; name < chip->ngpio && ptr < PAGE_SIZE; name++)
++		ptr += snprintf(buf + ptr, PAGE_SIZE - ptr,
++				"%s\n", names[name] ? names[name] : "");
++
++	return ptr;
 +}
++static DEVICE_ATTR(names, 0444, chip_names_show, NULL);
 +
- static int __init kswapd_init(void)
- {
- 	int nid;
+ static const struct attribute *gpiochip_attrs[] = {
+ 	&dev_attr_base.attr,
+ 	&dev_attr_label.attr,
+ 	&dev_attr_ngpio.attr,
++	&dev_attr_names.attr,
+ 	NULL,
+ };
+ 
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from ben@simtec.co.uk are
 
 origin.patch
-acpi-remove-nid_inval.patch
-oom-kill-show-virtual-size-and-rss-information-of-the-killed-process.patch
-oom-kill-fix-numa-consraint-check-with-nodemask-v42.patch
-do_wait-optimization-do-not-place-sub-threads-on-task_struct-children-list.patch
+linux-next.patch
+spi_s3c24xx-add-fiq-pseudo-dma-support.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs.patch
+sm501-fix-missing-uses-of-resource_size.patch
+sm501-fix-use-of-old-asm-ioh-instead-of-linux-ioh.patch
+sm501-implement-acceleration-features.patch
 
