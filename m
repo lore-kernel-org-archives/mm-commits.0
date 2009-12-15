@@ -1,77 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged] davinci-mmc-modify-data-types-of-edma-related-variables.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 13:58:36 -0800
-Message-ID: <200912152158.nBFLwasH015831__10707.7101165943$1260915462$gmane$org@imap1.linux-foundation.org>
+Subject: [merged] generic-ipi-cleanup-for-generic_smp_call_function_interrupt.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 13:55:31 -0800
+Message-ID: <200912152155.nBFLtVIf015494@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36638 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51137 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933993AbZLOWQr (ORCPT
+	by vger.kernel.org with ESMTP id S1761359AbZLOWRF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 17:16:47 -0500
+	Tue, 15 Dec 2009 17:17:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sudhakar.raj@ti.com, dbrownell@users.sourceforge.net, linux-mmc@vger.kernel.org, purushotam@ti.com, vipin.bhandari@ti.com, mm-commits@vger.kernel.org
+To: xiaoguangrong@cn.fujitsu.com, jens.axboe@oracle.com, mingo@elte.hu, nickpiggin@yahoo.com.au, peterz@infradead.org, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mmc: davinci: modify data types of EDMA related variables
+     generic-ipi: cleanup for generic_smp_call_function_interrupt()
 has been removed from the -mm tree.  Its filename was
-     davinci-mmc-modify-data-types-of-edma-related-variables.patch
+     generic-ipi-cleanup-for-generic_smp_call_function_interrupt.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: davinci: modify data types of EDMA related variables
-From: Sudhakar Rajashekhara <sudhakar.raj@ti.com>
+Subject: generic-ipi: cleanup for generic_smp_call_function_interrupt()
+From: Xiao Guangrong <xiaoguangrong@cn.fujitsu.com>
 
-Currently DaVinci EDMA driver supports multiple EDMA channel controller
-instances.  edma_alloc_channel() api returns a 32 bit value which has the
-channel controller number in MSB and the EDMA channel number in LSB.  The
-variables which store the value returned by edma_alloc_channel() have to
-be 32 bit wide now.
+Use smp_processor_id() instead of get_cpu() and put_cpu() in
+generic_smp_call_function_interrupt(), It's no need to disable preempt,
+because we must call generic_smp_call_function_interrupt() with interrupts
+disabled.
 
-Signed-off-by: Sudhakar Rajashekhara <sudhakar.raj@ti.com>
-Acked-by: Vipin Bhandari <vipin.bhandari@ti.com>
-Cc: Purshotam Kumar <purushotam@ti.com>
-Acked-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: <linux-mmc@vger.kernel.org>
+Signed-off-by: Xiao Guangrong <xiaoguangrong@cn.fujitsu.com>
+Acked-by: Ingo Molnar <mingo@elte.hu>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/davinci_mmc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/smp.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/mmc/host/davinci_mmc.c~davinci-mmc-modify-data-types-of-edma-related-variables drivers/mmc/host/davinci_mmc.c
---- a/drivers/mmc/host/davinci_mmc.c~davinci-mmc-modify-data-types-of-edma-related-variables
-+++ a/drivers/mmc/host/davinci_mmc.c
-@@ -178,7 +178,7 @@ struct mmc_davinci_host {
- 	u32 buffer_bytes_left;
- 	u32 bytes_left;
+diff -puN kernel/smp.c~generic-ipi-cleanup-for-generic_smp_call_function_interrupt kernel/smp.c
+--- a/kernel/smp.c~generic-ipi-cleanup-for-generic_smp_call_function_interrupt
++++ a/kernel/smp.c
+@@ -171,7 +171,7 @@ void generic_exec_single(int cpu, struct
+ void generic_smp_call_function_interrupt(void)
+ {
+ 	struct call_function_data *data;
+-	int cpu = get_cpu();
++	int cpu = smp_processor_id();
  
--	u8 rxdma, txdma;
-+	u32 rxdma, txdma;
- 	bool use_dma;
- 	bool do_dma;
+ 	/*
+ 	 * Shouldn't receive this interrupt on a cpu that is not yet online.
+@@ -212,7 +212,6 @@ void generic_smp_call_function_interrupt
+ 		csd_unlock(&data->csd);
+ 	}
  
-@@ -190,7 +190,7 @@ struct mmc_davinci_host {
- 	struct edmacc_param	tx_template;
- 	struct edmacc_param	rx_template;
- 	unsigned		n_link;
--	u8			links[NR_SG - 1];
-+	u32			links[NR_SG - 1];
+-	put_cpu();
+ }
  
- 	/* For PIO we walk scatterlists one segment at a time. */
- 	unsigned int		sg_len;
+ /*
 _
 
-Patches currently in -mm which might be from sudhakar.raj@ti.com are
+Patches currently in -mm which might be from xiaoguangrong@cn.fujitsu.com are
 
 origin.patch
 linux-next.patch
-mtd-nand-davinci-correct-4-bit-error-correction.patch
-mtd-nand-davinci-correct-4-bit-error-correction-update.patch
-davinci-fb-calculate-the-clock-divider-from-pixel-clock-info.patch
 
