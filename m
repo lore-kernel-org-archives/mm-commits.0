@@ -1,120 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-char-miscc-use-bitmap-bitops-functions-for-dynamic-minor-number-allocation.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 13:56:13 -0800
-Message-ID: <200912152156.nBFLuDBG015555@imap1.linux-foundation.org>
+Subject: [merged] drivers-cpuidle-move-dereference-after-null-test.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 13:55:13 -0800
+Message-ID: <200912152155.nBFLtE0A015455@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60749 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45126 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933783AbZLOV4v (ORCPT
+	by vger.kernel.org with ESMTP id S933770AbZLOV4x (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 16:56:51 -0500
+	Tue, 15 Dec 2009 16:56:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cascardo@holoscopio.com, alan@lxorguk.ukuu.org.uk, hpa@zytor.com, mm-commits@vger.kernel.org
+To: julia@diku.dk, arjan@linux.intel.com, mingo@elte.hu, venkatesh.pallipadi@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/char/misc.c: use bitmap/bitops functions for dynamic minor number allocation
+     drivers/cpuidle: Move dereference after NULL test
 has been removed from the -mm tree.  Its filename was
-     drivers-char-miscc-use-bitmap-bitops-functions-for-dynamic-minor-number-allocation.patch
+     drivers-cpuidle-move-dereference-after-null-test.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/char/misc.c: use bitmap/bitops functions for dynamic minor number allocation
-From: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
+Subject: drivers/cpuidle: Move dereference after NULL test
+From: Julia Lawall <julia@diku.dk>
 
-Use DECLARE_BITMAP(), find_first_zero_bit(), set_bit() and clear_bit()
-instead of rewriting code to do it with the minor number dynamic
-allocation bitmap.
+It does not seem possible that ldev can be NULL, so drop the unnecessary
+test.  If ldev can somehow be NULL, then the initialization of last_idx
+should be moved below the test.
 
-We need to invert the bit position to keep the code behaviour of using the
-last minor numbers first, since we don't have a find_last_zero_bit.
+A simplified version of the semantic match that detects this problem is as
+follows (http://coccinelle.lip6.fr/):
 
-Signed-off-by: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+// <smpl>
+@match exists@
+expression x, E;
+identifier fld;
+@@
+
+* x->fld
+  ... when != \(x = E\|&x\)
+* x == NULL
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Acked-by: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/misc.c |   22 +++++++++-------------
- 1 file changed, 9 insertions(+), 13 deletions(-)
+ drivers/cpuidle/governors/ladder.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN drivers/char/misc.c~drivers-char-miscc-use-bitmap-bitops-functions-for-dynamic-minor-number-allocation drivers/char/misc.c
---- a/drivers/char/misc.c~drivers-char-miscc-use-bitmap-bitops-functions-for-dynamic-minor-number-allocation
-+++ a/drivers/char/misc.c
-@@ -60,7 +60,7 @@ static DEFINE_MUTEX(misc_mtx);
-  * Assigned numbers, used for dynamic minors
-  */
- #define DYNAMIC_MINORS 64 /* like dynamic majors */
--static unsigned char misc_minors[DYNAMIC_MINORS / 8];
-+static DECLARE_BITMAP(misc_minors, DYNAMIC_MINORS);
+diff -puN drivers/cpuidle/governors/ladder.c~drivers-cpuidle-move-dereference-after-null-test drivers/cpuidle/governors/ladder.c
+--- a/drivers/cpuidle/governors/ladder.c~drivers-cpuidle-move-dereference-after-null-test
++++ a/drivers/cpuidle/governors/ladder.c
+@@ -69,9 +69,6 @@ static int ladder_select_state(struct cp
+ 	int last_residency, last_idx = ldev->last_state_idx;
+ 	int latency_req = pm_qos_requirement(PM_QOS_CPU_DMA_LATENCY);
  
- #ifdef CONFIG_PROC_FS
- static void *misc_seq_start(struct seq_file *seq, loff_t *pos)
-@@ -196,27 +196,23 @@ int misc_register(struct miscdevice * mi
- 	}
- 
- 	if (misc->minor == MISC_DYNAMIC_MINOR) {
--		int i = DYNAMIC_MINORS;
--		while (--i >= 0)
--			if ( (misc_minors[i>>3] & (1 << (i&7))) == 0)
--				break;
--		if (i<0) {
-+		int i = find_first_zero_bit(misc_minors, DYNAMIC_MINORS);
-+		if (i >= DYNAMIC_MINORS) {
- 			mutex_unlock(&misc_mtx);
- 			return -EBUSY;
- 		}
--		misc->minor = i;
-+		misc->minor = DYNAMIC_MINORS - i - 1;
-+		set_bit(i, misc_minors);
- 	}
- 
--	if (misc->minor < DYNAMIC_MINORS)
--		misc_minors[misc->minor >> 3] |= 1 << (misc->minor & 7);
- 	dev = MKDEV(MISC_MAJOR, misc->minor);
- 
- 	misc->this_device = device_create(misc_class, misc->parent, dev,
- 					  misc, "%s", misc->name);
- 	if (IS_ERR(misc->this_device)) {
--		int i = misc->minor;
-+		int i = DYNAMIC_MINORS - misc->minor - 1;
- 		if (i < DYNAMIC_MINORS && i >= 0)
--			misc_minors[i>>3] &= ~(1 << (i & 7));
-+			clear_bit(i, misc_minors);
- 		err = PTR_ERR(misc->this_device);
- 		goto out;
- 	}
-@@ -243,7 +239,7 @@ int misc_register(struct miscdevice * mi
- 
- int misc_deregister(struct miscdevice *misc)
- {
--	int i = misc->minor;
-+	int i = DYNAMIC_MINORS - misc->minor - 1;
- 
- 	if (list_empty(&misc->list))
- 		return -EINVAL;
-@@ -252,7 +248,7 @@ int misc_deregister(struct miscdevice *m
- 	list_del(&misc->list);
- 	device_destroy(misc_class, MKDEV(MISC_MAJOR, misc->minor));
- 	if (i < DYNAMIC_MINORS && i >= 0)
--		misc_minors[i>>3] &= ~(1 << (i & 7));
-+		clear_bit(i, misc_minors);
- 	mutex_unlock(&misc_mtx);
- 	return 0;
- }
-_
-
-Patches currently in -mm which might be from cascardo@holoscopio.com are
-
-origin.patch
-linux-next.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices-checkpatch-fixes.patch
-drivers-char-miscc-use-a-proper-range-for-minor-number-dynamic-allocation.patch
-spidev-use-declare_bitmap-instead-of-declaring-the-array.patch
-
+-	if (unlikely(!ldev))
+-		return 0;
