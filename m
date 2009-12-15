@@ -1,222 +1,167 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hwmon-w83627ehf-updates.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 13:59:12 -0800
-Message-ID: <200912152159.nBFLxCRK015881@imap1.linux-foundation.org>
+Subject: [merged] lis3-sysfs-entry-for-setting-chip-measurement-rate.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 13:59:36 -0800
+Message-ID: <200912152159.nBFLxaIk015916@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42184 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52428 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933832AbZLOWAZ (ORCPT
+	by vger.kernel.org with ESMTP id S933838AbZLOWAd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 17:00:25 -0500
+	Tue, 15 Dec 2009 17:00:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: daniel.blueman@gmail.com, david.c.hubbard@gmail.com, hdegoede@redhat.com, khali@linux-fr.org, mm-commits@vger.kernel.org
+To: samu.p.onkalo@nokia.com, Eric.Piel@tremplin-utc.net, pavel@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hwmon: w83627ehf updates
+     lis3: sysfs entry for setting chip measurement rate
 has been removed from the -mm tree.  Its filename was
-     hwmon-w83627ehf-updates.patch
+     lis3-sysfs-entry-for-setting-chip-measurement-rate.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: hwmon: w83627ehf updates
-From: Daniel J Blueman <daniel.blueman@gmail.com>
+Subject: lis3: sysfs entry for setting chip measurement rate
+=46rom: Samu Onkalo <samu.p.onkalo@nokia.com>
 
-Add control of fan minimum turn-on output levels, decoupling it from the
-fan turn-off output level.  Add control of rate of change of fan output
-level.  These in turn allow lower turn-off rotor speed and smoother
-transitions for better thermal and acoustic control authority.  Add
-support for constant fan speed and proportional-response operations modes.
+It is possible to read position information at the chip measurement rat=
+e
+via sysfs.  This patch adds possibility to configure chip measurement
+rate.
 
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Daniel J Blueman <daniel.blueman@gmail.com>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: David Hubbard <david.c.hubbard@gmail.com>
-Cc: Hans de Goede <hdegoede@redhat.com>
+Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
+Signed-off-by: =C9ric Piel <Eric.Piel@tremplin-utc.net>
+Cc: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/hwmon/w83627ehf |   10 +++-
- drivers/hwmon/w83627ehf.c     |   72 +++++++++++++++++++++++---------
- 2 files changed, 61 insertions(+), 21 deletions(-)
+ drivers/hwmon/lis3lv02d.c |   51 +++++++++++++++++++++++++++++++-----
+ drivers/hwmon/lis3lv02d.h |    2 +
+ 2 files changed, 46 insertions(+), 7 deletions(-)
 
-diff -puN Documentation/hwmon/w83627ehf~hwmon-w83627ehf-updates Documentation/hwmon/w83627ehf
---- a/Documentation/hwmon/w83627ehf~hwmon-w83627ehf-updates
-+++ a/Documentation/hwmon/w83627ehf
-@@ -81,8 +81,14 @@ pwm[1-4] - this file stores PWM duty cyc
- 	   0 (stop) to 255 (full)
- 
- pwm[1-4]_enable - this file controls mode of fan/temperature control:
--	* 1 Manual Mode, write to pwm file any value 0-255 (full speed)
--	* 2 Thermal Cruise
-+	* 1 Manual mode, write to pwm file any value 0-255 (full speed)
-+	* 2 "Thermal Cruise" mode
-+	* 3 "Fan Speed Cruise" mode
-+	* 4 "Smart Fan III" mode
+diff -puN drivers/hwmon/lis3lv02d.c~lis3-sysfs-entry-for-setting-chip-m=
+easurement-rate drivers/hwmon/lis3lv02d.c
+--- a/drivers/hwmon/lis3lv02d.c~lis3-sysfs-entry-for-setting-chip-measu=
+rement-rate
++++ a/drivers/hwmon/lis3lv02d.c
+@@ -121,18 +121,35 @@ static void lis3lv02d_get_xyz(struct lis
+ static int lis3_12_rates[4] =3D {40, 160, 640, 2560};
+ static int lis3_8_rates[2] =3D {100, 400};
+=20
++/* ODR is Output Data Rate */
+ static int lis3lv02d_get_odr(void)
+ {
+ 	u8 ctrl;
+-	int val;
++	int shift;
+=20
+ 	lis3_dev.read(&lis3_dev, CTRL_REG1, &ctrl);
++	ctrl &=3D lis3_dev.odr_mask;
++	shift =3D ffs(lis3_dev.odr_mask) - 1;
++	return lis3_dev.odrs[(ctrl >> shift)];
++}
+=20
+-	if (lis3_dev.whoami =3D=3D WAI_12B)
+-		val =3D lis3_12_rates[(ctrl & (CTRL1_DF0 | CTRL1_DF1)) >> 4];
+-	else
+-		val =3D lis3_8_rates[(ctrl & CTRL1_DR) >> 7];
+-	return val;
++static int lis3lv02d_set_odr(int rate)
++{
++	u8 ctrl;
++	int i, len, shift;
 +
-+pwm[1-4]_mode - controls if output is PWM or DC level
-+        * 0 DC output (0 - 12v)
-+        * 1 PWM output
- 
- Thermal Cruise mode
- -------------------
-diff -puN drivers/hwmon/w83627ehf.c~hwmon-w83627ehf-updates drivers/hwmon/w83627ehf.c
---- a/drivers/hwmon/w83627ehf.c~hwmon-w83627ehf-updates
-+++ a/drivers/hwmon/w83627ehf.c
-@@ -5,6 +5,7 @@
-     Copyright (C) 2006  Yuan Mu (Winbond),
-                         Rudolf Marek <r.marek@assembler.cz>
-                         David Hubbard <david.c.hubbard@gmail.com>
-+			Daniel J Blueman <daniel.blueman@gmail.com>
- 
-     Shamelessly ripped from the w83627hf driver
-     Copyright (C) 2003  Mark Studebaker
-@@ -177,12 +178,15 @@ static const u16 W83627EHF_REG_TEMP_CONF
- #define W83627EHF_REG_ALARM3		0x45B
- 
- /* SmartFan registers */
-+#define W83627EHF_REG_FAN_STEPUP_TIME 0x0f
-+#define W83627EHF_REG_FAN_STEPDOWN_TIME 0x0e
++	lis3_dev.read(&lis3_dev, CTRL_REG1, &ctrl);
++	ctrl &=3D ~lis3_dev.odr_mask;
++	len =3D 1 << hweight_long(lis3_dev.odr_mask); /* # of possible values=
+ */
++	shift =3D ffs(lis3_dev.odr_mask) - 1;
 +
- /* DC or PWM output fan configuration */
- static const u8 W83627EHF_REG_PWM_ENABLE[] = {
- 	0x04,			/* SYS FAN0 output mode and PWM mode */
- 	0x04,			/* CPU FAN0 output mode and PWM mode */
- 	0x12,			/* AUX FAN mode */
--	0x62,			/* CPU fan1 mode */
-+	0x62,			/* CPU FAN1 mode */
- };
- 
- static const u8 W83627EHF_PWM_MODE_SHIFT[] = { 0, 1, 0, 6 };
-@@ -193,10 +197,12 @@ static const u8 W83627EHF_REG_PWM[] = { 
- static const u8 W83627EHF_REG_TARGET[] = { 0x05, 0x06, 0x13, 0x63 };
- static const u8 W83627EHF_REG_TOLERANCE[] = { 0x07, 0x07, 0x14, 0x62 };
- 
--
- /* Advanced Fan control, some values are common for all fans */
--static const u8 W83627EHF_REG_FAN_MIN_OUTPUT[] = { 0x08, 0x09, 0x15, 0x64 };
--static const u8 W83627EHF_REG_FAN_STOP_TIME[] = { 0x0C, 0x0D, 0x17, 0x66 };
-+static const u8 W83627EHF_REG_FAN_START_OUTPUT[] = { 0x0a, 0x0b, 0x16, 0x65 };
-+static const u8 W83627EHF_REG_FAN_STOP_OUTPUT[] = { 0x08, 0x09, 0x15, 0x64 };
-+static const u8 W83627EHF_REG_FAN_STOP_TIME[] = { 0x0c, 0x0d, 0x17, 0x66 };
-+static const u8 W83627EHF_REG_FAN_MAX_OUTPUT[] = { 0xff, 0x67, 0xff, 0x69 };
-+static const u8 W83627EHF_REG_FAN_STEP_OUTPUT[] = { 0xff, 0x68, 0xff, 0x6a };
- 
- /*
-  * Conversions
-@@ -295,14 +301,19 @@ struct w83627ehf_data {
- 
- 	u8 pwm_mode[4]; /* 0->DC variable voltage, 1->PWM variable duty cycle */
- 	u8 pwm_enable[4]; /* 1->manual
--			     2->thermal cruise (also called SmartFan I) */
-+			     2->thermal cruise mode (also called SmartFan I)
-+			     3->fan speed cruise mode
-+			     4->variable thermal cruise (also called SmartFan III) */
- 	u8 pwm_num;		/* number of pwm */
- 	u8 pwm[4];
- 	u8 target_temp[4];
- 	u8 tolerance[4];
- 
--	u8 fan_min_output[4]; /* minimum fan speed */
--	u8 fan_stop_time[4];
-+	u8 fan_start_output[4]; /* minimum fan speed when spinning up */
-+	u8 fan_stop_output[4]; /* minimum fan speed when spinning down */
-+	u8 fan_stop_time[4]; /* time at minimum before disabling fan */
-+	u8 fan_max_output[4]; /* maximum fan speed */
-+	u8 fan_step_output[4]; /* rate of change output value */
- 
- 	u8 vid;
- 	u8 vrm;
-@@ -529,8 +540,10 @@ static struct w83627ehf_data *w83627ehf_
- 						& 3) + 1;
- 			data->pwm[i] = w83627ehf_read_value(data,
- 						W83627EHF_REG_PWM[i]);
--			data->fan_min_output[i] = w83627ehf_read_value(data,
--						W83627EHF_REG_FAN_MIN_OUTPUT[i]);
-+			data->fan_start_output[i] = w83627ehf_read_value(data,
-+						W83627EHF_REG_FAN_START_OUTPUT[i]);
-+			data->fan_stop_output[i] = w83627ehf_read_value(data,
-+						W83627EHF_REG_FAN_STOP_OUTPUT[i]);
- 			data->fan_stop_time[i] = w83627ehf_read_value(data,
- 						W83627EHF_REG_FAN_STOP_TIME[i]);
- 			data->target_temp[i] =
-@@ -976,7 +989,7 @@ store_pwm_enable(struct device *dev, str
- 	u32 val = simple_strtoul(buf, NULL, 10);
- 	u16 reg;
- 
--	if (!val || (val > 2))	/* only modes 1 and 2 are supported */
-+	if (!val || (val > 4))
- 		return -EINVAL;
- 	mutex_lock(&data->update_lock);
- 	reg = w83627ehf_read_value(data, W83627EHF_REG_PWM_ENABLE[nr]);
-@@ -1118,7 +1131,10 @@ store_##reg(struct device *dev, struct d
- 	return count; \
++	for (i =3D 0; i < len; i++)
++		if (lis3_dev.odrs[i] =3D=3D rate) {
++			lis3_dev.write(&lis3_dev, CTRL_REG1,
++					ctrl | (i << shift));
++			return 0;
++		}
++	return -EINVAL;
  }
- 
--fan_functions(fan_min_output, FAN_MIN_OUTPUT)
-+fan_functions(fan_start_output, FAN_START_OUTPUT)
-+fan_functions(fan_stop_output, FAN_STOP_OUTPUT)
-+fan_functions(fan_max_output, FAN_MAX_OUTPUT)
-+fan_functions(fan_step_output, FAN_STEP_OUTPUT)
- 
- #define fan_time_functions(reg, REG) \
- static ssize_t show_##reg(struct device *dev, struct device_attribute *attr, \
-@@ -1161,8 +1177,14 @@ static DEVICE_ATTR(name, S_IRUGO, show_n
- static struct sensor_device_attribute sda_sf3_arrays_fan4[] = {
- 	SENSOR_ATTR(pwm4_stop_time, S_IWUSR | S_IRUGO, show_fan_stop_time,
- 		    store_fan_stop_time, 3),
--	SENSOR_ATTR(pwm4_min_output, S_IWUSR | S_IRUGO, show_fan_min_output,
--		    store_fan_min_output, 3),
-+	SENSOR_ATTR(pwm4_start_output, S_IWUSR | S_IRUGO, show_fan_start_output,
-+		    store_fan_start_output, 3),
-+	SENSOR_ATTR(pwm4_stop_output, S_IWUSR | S_IRUGO, show_fan_stop_output,
-+		    store_fan_stop_output, 3),
-+	SENSOR_ATTR(pwm4_max_output, S_IWUSR | S_IRUGO, show_fan_max_output,
-+		    store_fan_max_output, 3),
-+	SENSOR_ATTR(pwm4_step_output, S_IWUSR | S_IRUGO, show_fan_step_output,
-+		    store_fan_step_output, 3),
- };
- 
- static struct sensor_device_attribute sda_sf3_arrays[] = {
-@@ -1172,12 +1194,24 @@ static struct sensor_device_attribute sd
- 		    store_fan_stop_time, 1),
- 	SENSOR_ATTR(pwm3_stop_time, S_IWUSR | S_IRUGO, show_fan_stop_time,
- 		    store_fan_stop_time, 2),
--	SENSOR_ATTR(pwm1_min_output, S_IWUSR | S_IRUGO, show_fan_min_output,
--		    store_fan_min_output, 0),
--	SENSOR_ATTR(pwm2_min_output, S_IWUSR | S_IRUGO, show_fan_min_output,
--		    store_fan_min_output, 1),
--	SENSOR_ATTR(pwm3_min_output, S_IWUSR | S_IRUGO, show_fan_min_output,
--		    store_fan_min_output, 2),
-+	SENSOR_ATTR(pwm1_start_output, S_IWUSR | S_IRUGO, show_fan_start_output,
-+		    store_fan_start_output, 0),
-+	SENSOR_ATTR(pwm2_start_output, S_IWUSR | S_IRUGO, show_fan_start_output,
-+		    store_fan_start_output, 1),
-+	SENSOR_ATTR(pwm3_start_output, S_IWUSR | S_IRUGO, show_fan_start_output,
-+		    store_fan_start_output, 2),
-+	SENSOR_ATTR(pwm1_stop_output, S_IWUSR | S_IRUGO, show_fan_stop_output,
-+		    store_fan_stop_output, 0),
-+	SENSOR_ATTR(pwm2_stop_output, S_IWUSR | S_IRUGO, show_fan_stop_output,
-+		    store_fan_stop_output, 1),
-+	SENSOR_ATTR(pwm3_stop_output, S_IWUSR | S_IRUGO, show_fan_stop_output,
-+		    store_fan_stop_output, 2),
+=20
+ static int lis3lv02d_selftest(struct lis3lv02d *lis3, s16 results[3])
+@@ -433,9 +450,25 @@ static ssize_t lis3lv02d_rate_show(struc
+ 	return sprintf(buf, "%d\n", lis3lv02d_get_odr());
+ }
+=20
++static ssize_t lis3lv02d_rate_set(struct device *dev,
++				struct device_attribute *attr, const char *buf,
++				size_t count)
++{
++	unsigned long rate;
 +
-+	/* pwm1 and pwm3 don't support max and step settings */
-+	SENSOR_ATTR(pwm2_max_output, S_IWUSR | S_IRUGO, show_fan_max_output,
-+		    store_fan_max_output, 1),
-+	SENSOR_ATTR(pwm2_step_output, S_IWUSR | S_IRUGO, show_fan_step_output,
-+		    store_fan_step_output, 1),
- };
- 
- static ssize_t
++	if (strict_strtoul(buf, 0, &rate))
++		return -EINVAL;
++
++	if (lis3lv02d_set_odr(rate))
++		return -EINVAL;
++
++	return count;
++}
++
+ static DEVICE_ATTR(selftest, S_IRUSR, lis3lv02d_selftest_show, NULL);
+ static DEVICE_ATTR(position, S_IRUGO, lis3lv02d_position_show, NULL);
+-static DEVICE_ATTR(rate, S_IRUGO, lis3lv02d_rate_show, NULL);
++static DEVICE_ATTR(rate, S_IRUGO | S_IWUSR, lis3lv02d_rate_show,
++					    lis3lv02d_rate_set);
+=20
+ static struct attribute *lis3lv02d_attributes[] =3D {
+ 	&dev_attr_selftest.attr,
+@@ -480,12 +513,16 @@ int lis3lv02d_init_device(struct lis3lv0
+ 		dev->read_data =3D lis3lv02d_read_12;
+ 		dev->mdps_max_val =3D 2048;
+ 		dev->pwron_delay =3D LIS3_PWRON_DELAY_WAI_12B;
++		dev->odrs =3D lis3_12_rates;
++		dev->odr_mask =3D CTRL1_DF0 | CTRL1_DF1;
+ 		break;
+ 	case WAI_8B:
+ 		printk(KERN_INFO DRIVER_NAME ": 8 bits sensor found\n");
+ 		dev->read_data =3D lis3lv02d_read_8;
+ 		dev->mdps_max_val =3D 128;
+ 		dev->pwron_delay =3D LIS3_PWRON_DELAY_WAI_8B;
++		dev->odrs =3D lis3_8_rates;
++		dev->odr_mask =3D CTRL1_DR;
+ 		break;
+ 	default:
+ 		printk(KERN_ERR DRIVER_NAME
+diff -puN drivers/hwmon/lis3lv02d.h~lis3-sysfs-entry-for-setting-chip-m=
+easurement-rate drivers/hwmon/lis3lv02d.h
+--- a/drivers/hwmon/lis3lv02d.h~lis3-sysfs-entry-for-setting-chip-measu=
+rement-rate
++++ a/drivers/hwmon/lis3lv02d.h
+@@ -208,6 +208,8 @@ struct lis3lv02d {
+ 	int (*write) (struct lis3lv02d *lis3, int reg, u8 val);
+ 	int (*read) (struct lis3lv02d *lis3, int reg, u8 *ret);
+=20
++	int                     *odrs;     /* Supported output data rates */
++	u8                      odr_mask;  /* ODR bit mask */
+ 	u8			whoami;    /* indicates measurement precision */
+ 	s16 (*read_data) (struct lis3lv02d *lis3, int reg);
+ 	int			mdps_max_val;
 _
 
-Patches currently in -mm which might be from daniel.blueman@gmail.com are
+Patches currently in -mm which might be from samu.p.onkalo@nokia.com ar=
+e
 
 origin.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
