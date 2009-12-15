@@ -1,49 +1,39 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ksm-share-anon-page-without-allocating.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 13:53:43 -0800
-Message-ID: <200912152153.nBFLrhtu015296@imap1.linux-foundation.org>
+Subject: [merged] ksm-remove-unswappable-max_kernel_pages.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 13:53:56 -0800
+Message-ID: <200912152153.nBFLru3F015319@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39826 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35067 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761357AbZLOWQf (ORCPT
+	by vger.kernel.org with ESMTP id S934005AbZLOWQw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 17:16:35 -0500
+	Tue, 15 Dec 2009 17:16:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hugh.dickins@tiscali.co.uk, aarcange@redhat.com, chrisw@redhat.com, ieidus@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ksm: share anon page without allocating
+     ksm: remove unswappable max_kernel_pages
 has been removed from the -mm tree.  Its filename was
-     ksm-share-anon-page-without-allocating.patch
+     ksm-remove-unswappable-max_kernel_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ksm: share anon page without allocating
+Subject: ksm: remove unswappable max_kernel_pages
 From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
-When ksm pages were unswappable, it made no sense to include them in mem
-cgroup accounting; but now that they are swappable (although I see no
-strict logical connection) the principle of least surprise implies that
-they should be accounted (with the usual dissatisfaction, that a shared
-page is accounted to only one of the cgroups using it).
+Now that ksm pages are swappable, and the known holes plugged, remove
+mention of unswappable kernel pages from KSM documentation and comments.
 
-This patch was intended to add mem cgroup accounting where necessary; but
-turned inside out, it now avoids allocating a ksm page, instead upgrading
-an anon page to ksm - which brings its existing mem cgroup accounting with
-it.  Thus mem cgroups don't appear in the patch at all.
-
-This upgrade from PageAnon to PageKsm takes place under page lock (via a
-somewhat hacky NULL kpage interface), and audit showed only one place
-which needed to cope with the race - page_referenced() is sometimes used
-without page lock, so page_lock_anon_vma() needs an ACCESS_ONCE() to be
-sure of getting anon_vma and flags together (no problem if the page goes
-ksm an instant after, the integrity of that anon_vma list is unaffected).
+Remove the totalram_pages/4 initialization of max_kernel_pages.  In fact,
+remove max_kernel_pages altogether - we can reinstate it if removal turns
+out to break someone's script; but if we later want to limit KSM's memory
+usage, limiting the stable nodes would not be an effective approach.
 
 Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Cc: Izik Eidus <ieidus@redhat.com>
@@ -52,166 +42,156 @@ Cc: Chris Wright <chrisw@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c  |   67 ++++++++++++++++------------------------------------
- mm/rmap.c |    6 +++-
- 2 files changed, 25 insertions(+), 48 deletions(-)
+ Documentation/vm/ksm.txt |   22 ++++++-------------
+ mm/Kconfig               |    2 -
+ mm/ksm.c                 |   41 +------------------------------------
+ 3 files changed, 10 insertions(+), 55 deletions(-)
 
-diff -puN mm/ksm.c~ksm-share-anon-page-without-allocating mm/ksm.c
---- a/mm/ksm.c~ksm-share-anon-page-without-allocating
+diff -puN Documentation/vm/ksm.txt~ksm-remove-unswappable-max_kernel_pages Documentation/vm/ksm.txt
+--- a/Documentation/vm/ksm.txt~ksm-remove-unswappable-max_kernel_pages
++++ a/Documentation/vm/ksm.txt
+@@ -16,9 +16,9 @@ by sharing the data common between them.
+ application which generates many instances of the same data.
+ 
+ KSM only merges anonymous (private) pages, never pagecache (file) pages.
+-KSM's merged pages are at present locked into kernel memory for as long
+-as they are shared: so cannot be swapped out like the user pages they
+-replace (but swapping KSM pages should follow soon in a later release).
++KSM's merged pages were originally locked into kernel memory, but can now
++be swapped out just like other user pages (but sharing is broken when they
++are swapped back in: ksmd must rediscover their identity and merge again).
+ 
+ KSM only operates on those areas of address space which an application
+ has advised to be likely candidates for merging, by using the madvise(2)
+@@ -44,20 +44,12 @@ includes unmapped gaps (though working o
+ and might fail with EAGAIN if not enough memory for internal structures.
+ 
+ Applications should be considerate in their use of MADV_MERGEABLE,
+-restricting its use to areas likely to benefit.  KSM's scans may use
+-a lot of processing power, and its kernel-resident pages are a limited
+-resource.  Some installations will disable KSM for these reasons.
++restricting its use to areas likely to benefit.  KSM's scans may use a lot
++of processing power: some installations will disable KSM for that reason.
+ 
+ The KSM daemon is controlled by sysfs files in /sys/kernel/mm/ksm/,
+ readable by all but writable only by root:
+ 
+-max_kernel_pages - set to maximum number of kernel pages that KSM may use
+-                   e.g. "echo 100000 > /sys/kernel/mm/ksm/max_kernel_pages"
+-                   Value 0 imposes no limit on the kernel pages KSM may use;
+-                   but note that any process using MADV_MERGEABLE can cause
+-                   KSM to allocate these pages, unswappable until it exits.
+-                   Default: quarter of memory (chosen to not pin too much)
+-
+ pages_to_scan    - how many present pages to scan before ksmd goes to sleep
+                    e.g. "echo 100 > /sys/kernel/mm/ksm/pages_to_scan"
+                    Default: 100 (chosen for demonstration purposes)
+@@ -75,7 +67,7 @@ run              - set 0 to stop ksmd fr
+ 
+ The effectiveness of KSM and MADV_MERGEABLE is shown in /sys/kernel/mm/ksm/:
+ 
+-pages_shared     - how many shared unswappable kernel pages KSM is using
++pages_shared     - how many shared pages are being used
+ pages_sharing    - how many more sites are sharing them i.e. how much saved
+ pages_unshared   - how many pages unique but repeatedly checked for merging
+ pages_volatile   - how many pages changing too fast to be placed in a tree
+@@ -87,4 +79,4 @@ pages_volatile embraces several differen
+ proportion there would also indicate poor use of madvise MADV_MERGEABLE.
+ 
+ Izik Eidus,
+-Hugh Dickins, 24 Sept 2009
++Hugh Dickins, 17 Nov 2009
+diff -puN mm/Kconfig~ksm-remove-unswappable-max_kernel_pages mm/Kconfig
+--- a/mm/Kconfig~ksm-remove-unswappable-max_kernel_pages
++++ a/mm/Kconfig
+@@ -212,7 +212,7 @@ config KSM
+ 	  Enable Kernel Samepage Merging: KSM periodically scans those areas
+ 	  of an application's address space that an app has advised may be
+ 	  mergeable.  When it finds pages of identical content, it replaces
+-	  the many instances by a single resident page with that content, so
++	  the many instances by a single page with that content, so
+ 	  saving memory until one or another app needs to modify the content.
+ 	  Recommended for use with KVM, or with other duplicative applications.
+ 	  See Documentation/vm/ksm.txt for more information: KSM is inactive
+diff -puN mm/ksm.c~ksm-remove-unswappable-max_kernel_pages mm/ksm.c
+--- a/mm/ksm.c~ksm-remove-unswappable-max_kernel_pages
 +++ a/mm/ksm.c
-@@ -831,7 +831,8 @@ out:
-  * try_to_merge_one_page - take two pages and merge them into one
-  * @vma: the vma that holds the pte pointing to page
-  * @page: the PageAnon page that we want to replace with kpage
-- * @kpage: the PageKsm page that we want to map instead of page
-+ * @kpage: the PageKsm page that we want to map instead of page,
-+ *         or NULL the first time when we want to use page as kpage.
-  *
-  * This function returns 0 if the pages were merged, -EFAULT otherwise.
-  */
-@@ -864,15 +865,24 @@ static int try_to_merge_one_page(struct 
- 	 * ptes are necessarily already write-protected.  But in either
- 	 * case, we need to lock and check page_count is not raised.
- 	 */
--	if (write_protect_page(vma, page, &orig_pte) == 0 &&
--	    pages_identical(page, kpage))
--		err = replace_page(vma, page, kpage, orig_pte);
-+	if (write_protect_page(vma, page, &orig_pte) == 0) {
-+		if (!kpage) {
-+			/*
-+			 * While we hold page lock, upgrade page from
-+			 * PageAnon+anon_vma to PageKsm+NULL stable_node:
-+			 * stable_tree_insert() will update stable_node.
-+			 */
-+			set_page_stable_node(page, NULL);
-+			mark_page_accessed(page);
-+			err = 0;
-+		} else if (pages_identical(page, kpage))
-+			err = replace_page(vma, page, kpage, orig_pte);
-+	}
+@@ -179,9 +179,6 @@ static unsigned long ksm_pages_unshared;
+ /* The number of rmap_items in use: to calculate pages_volatile */
+ static unsigned long ksm_rmap_items;
  
--	if ((vma->vm_flags & VM_LOCKED) && !err) {
-+	if ((vma->vm_flags & VM_LOCKED) && kpage && !err) {
- 		munlock_vma_page(page);
- 		if (!PageMlocked(kpage)) {
- 			unlock_page(page);
--			lru_add_drain();
- 			lock_page(kpage);
- 			mlock_vma_page(kpage);
- 			page = kpage;		/* for final unlock */
-@@ -922,7 +932,7 @@ out:
-  * This function returns the kpage if we successfully merged two identical
-  * pages into one ksm page, NULL otherwise.
-  *
-- * Note that this function allocates a new kernel page: if one of the pages
-+ * Note that this function upgrades page to ksm page: if one of the pages
-  * is already a ksm page, try_to_merge_with_ksm_page should be used.
-  */
- static struct page *try_to_merge_two_pages(struct rmap_item *rmap_item,
-@@ -930,10 +940,7 @@ static struct page *try_to_merge_two_pag
- 					   struct rmap_item *tree_rmap_item,
- 					   struct page *tree_page)
+-/* Limit on the number of unswappable pages used */
+-static unsigned long ksm_max_kernel_pages;
+-
+ /* Number of pages ksmd should scan in one batch */
+ static unsigned int ksm_thread_pages_to_scan = 100;
+ 
+@@ -943,14 +940,6 @@ static struct page *try_to_merge_two_pag
  {
--	struct mm_struct *mm = rmap_item->mm;
--	struct vm_area_struct *vma;
--	struct page *kpage;
--	int err = -EFAULT;
-+	int err;
+ 	int err;
  
- 	/*
- 	 * The number of nodes in the stable tree
-@@ -943,37 +950,10 @@ static struct page *try_to_merge_two_pag
- 	    ksm_max_kernel_pages <= ksm_pages_shared)
- 		return NULL;
- 
--	kpage = alloc_page(GFP_HIGHUSER);
--	if (!kpage)
+-	/*
+-	 * The number of nodes in the stable tree
+-	 * is the number of kernel pages that we hold.
+-	 */
+-	if (ksm_max_kernel_pages &&
+-	    ksm_max_kernel_pages <= ksm_pages_shared)
 -		return NULL;
 -
--	down_read(&mm->mmap_sem);
--	if (ksm_test_exit(mm))
--		goto up;
--	vma = find_vma(mm, rmap_item->address);
--	if (!vma || vma->vm_start > rmap_item->address)
--		goto up;
--
--	copy_user_highpage(kpage, page, rmap_item->address, vma);
--
--	SetPageDirty(kpage);
--	__SetPageUptodate(kpage);
--	SetPageSwapBacked(kpage);
--	set_page_stable_node(kpage, NULL);	/* mark it PageKsm */
--	lru_cache_add_lru(kpage, LRU_ACTIVE_ANON);
--
--	err = try_to_merge_one_page(vma, page, kpage);
--	if (err)
--		goto up;
--
--	/* Must get reference to anon_vma while still holding mmap_sem */
--	hold_anon_vma(rmap_item, vma->anon_vma);
--up:
--	up_read(&mm->mmap_sem);
--
-+	err = try_to_merge_with_ksm_page(rmap_item, page, NULL);
+ 	err = try_to_merge_with_ksm_page(rmap_item, page, NULL);
  	if (!err) {
  		err = try_to_merge_with_ksm_page(tree_rmap_item,
--							tree_page, kpage);
-+							tree_page, page);
- 		/*
- 		 * If that fails, we have a ksm page with only one pte
- 		 * pointing to it: so break it.
-@@ -981,11 +961,7 @@ up:
- 		if (err)
- 			break_cow(rmap_item);
- 	}
--	if (err) {
--		put_page(kpage);
--		kpage = NULL;
--	}
--	return kpage;
-+	return err ? NULL : page;
+@@ -1850,8 +1839,8 @@ static ssize_t run_store(struct kobject 
+ 	/*
+ 	 * KSM_RUN_MERGE sets ksmd running, and 0 stops it running.
+ 	 * KSM_RUN_UNMERGE stops it running and unmerges all rmap_items,
+-	 * breaking COW to free the unswappable pages_shared (but leaves
+-	 * mm_slots on the list for when ksmd may be set running again).
++	 * breaking COW to free the pages_shared (but leaves mm_slots
++	 * on the list for when ksmd may be set running again).
+ 	 */
+ 
+ 	mutex_lock(&ksm_thread_mutex);
+@@ -1876,29 +1865,6 @@ static ssize_t run_store(struct kobject 
  }
+ KSM_ATTR(run);
  
- /*
-@@ -1244,7 +1220,6 @@ static void cmp_and_merge_page(struct pa
- 				stable_tree_append(rmap_item, stable_node);
- 			}
- 			unlock_page(kpage);
--			put_page(kpage);
+-static ssize_t max_kernel_pages_store(struct kobject *kobj,
+-				      struct kobj_attribute *attr,
+-				      const char *buf, size_t count)
+-{
+-	int err;
+-	unsigned long nr_pages;
+-
+-	err = strict_strtoul(buf, 10, &nr_pages);
+-	if (err)
+-		return -EINVAL;
+-
+-	ksm_max_kernel_pages = nr_pages;
+-
+-	return count;
+-}
+-
+-static ssize_t max_kernel_pages_show(struct kobject *kobj,
+-				     struct kobj_attribute *attr, char *buf)
+-{
+-	return sprintf(buf, "%lu\n", ksm_max_kernel_pages);
+-}
+-KSM_ATTR(max_kernel_pages);
+-
+ static ssize_t pages_shared_show(struct kobject *kobj,
+ 				 struct kobj_attribute *attr, char *buf)
+ {
+@@ -1948,7 +1914,6 @@ static struct attribute *ksm_attrs[] = {
+ 	&sleep_millisecs_attr.attr,
+ 	&pages_to_scan_attr.attr,
+ 	&run_attr.attr,
+-	&max_kernel_pages_attr.attr,
+ 	&pages_shared_attr.attr,
+ 	&pages_sharing_attr.attr,
+ 	&pages_unshared_attr.attr,
+@@ -1968,8 +1933,6 @@ static int __init ksm_init(void)
+ 	struct task_struct *ksm_thread;
+ 	int err;
  
- 			/*
- 			 * If we fail to insert the page into the stable tree,
-diff -puN mm/rmap.c~ksm-share-anon-page-without-allocating mm/rmap.c
---- a/mm/rmap.c~ksm-share-anon-page-without-allocating
-+++ a/mm/rmap.c
-@@ -204,7 +204,7 @@ struct anon_vma *page_lock_anon_vma(stru
- 	unsigned long anon_mapping;
- 
- 	rcu_read_lock();
--	anon_mapping = (unsigned long) page->mapping;
-+	anon_mapping = (unsigned long) ACCESS_ONCE(page->mapping);
- 	if ((anon_mapping & PAGE_MAPPING_FLAGS) != PAGE_MAPPING_ANON)
- 		goto out;
- 	if (!page_mapped(page))
-@@ -666,7 +666,9 @@ static void __page_check_anon_rmap(struc
-  * @address:	the user virtual address mapped
-  *
-  * The caller needs to hold the pte lock, and the page must be locked in
-- * the anon_vma case: to serialize mapping,index checking after setting.
-+ * the anon_vma case: to serialize mapping,index checking after setting,
-+ * and to ensure that PageAnon is not being upgraded racily to PageKsm
-+ * (but PageKsm is never downgraded to PageAnon).
-  */
- void page_add_anon_rmap(struct page *page,
- 	struct vm_area_struct *vma, unsigned long address)
-_
-
-Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
-
-origin.patch
-linux-next.patch
-vfs-fsstack-handle-32-bit-smp-preempt-large-files-in-fsstack_copy_inode_size.patch
-ksm-memory-hotremove-migration-only-fix.patch
-elf-kill-use_elf_core_dump.patch
-prio_tree-debugging-patch.patch
-
+-	ksm_max_kernel_pages = totalram_pages / 4;
