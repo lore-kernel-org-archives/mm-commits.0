@@ -1,107 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [folded] kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 14 Dec 2009 17:08:25 -0800
-Message-ID: <200912150108.nBF18PMY014875@imap1.linux-foundation.org>
+Subject: [folded] errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch removed from -mm tree
+Date: Mon, 14 Dec 2009 17:09:05 -0800
+Message-ID: <200912150109.nBF195Oo016546@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39288 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49524 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758417AbZLOBI4 (ORCPT
+	by vger.kernel.org with ESMTP id S1758143AbZLOBJJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Dec 2009 20:08:56 -0500
+	Mon, 14 Dec 2009 20:09:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, h-shimamoto@ct.jp.nec.com, joe@perches.com, mingo@elte.hu, nooiwa@miraclelinux.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ext-phil.2.carmody@nokia.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes
+     errh-add-helper-function-to-simplify-pointer-error-checking-fix
 has been removed from the -mm tree.  Its filename was
-     kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
+     errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
 
-This patch was dropped because it was folded into kernelh-add-printk_ratelimited-and-pr_level_rl.patch
+This patch was dropped because it was folded into errh-add-helper-function-to-simplify-pointer-error-checking.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes
+Subject: errh-add-helper-function-to-simplify-pointer-error-checking-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: code indent should use tabs where possible
-#42: FILE: include/linux/kernel.h:427:
-+        printk_ratelimited(KERN_EMERG pr_fmt(fmt), ##__VA_ARGS__)$
+/usr/src/devel/arch/x86/Makefile:82: stack protector enabled but no compiler support
+/usr/src/devel/arch/x86/Makefile:82: stack protector enabled but no compiler support
+In file included from crypto/api.c:18:
+include/linux/err.h: In function 'IS_ERR_OR_NULL':
+include/linux/err.h:39: error: 'NULL' undeclared (first use in this function)
+include/linux/err.h:39: error: (Each undeclared identifier is reported only once
+include/linux/err.h:39: error: for each function it appears in.)
 
-ERROR: code indent should use tabs where possible
-#44: FILE: include/linux/kernel.h:429:
-+        printk_ratelimited(KERN_ALERT pr_fmt(fmt), ##__VA_ARGS__)$
-
-ERROR: code indent should use tabs where possible
-#46: FILE: include/linux/kernel.h:431:
-+        printk_ratelimited(KERN_CRIT pr_fmt(fmt), ##__VA_ARGS__)$
-
-ERROR: code indent should use tabs where possible
-#48: FILE: include/linux/kernel.h:433:
-+        printk_ratelimited(KERN_ERR pr_fmt(fmt), ##__VA_ARGS__)$
-
-ERROR: code indent should use tabs where possible
-#50: FILE: include/linux/kernel.h:435:
-+        printk_ratelimited(KERN_WARNING pr_fmt(fmt), ##__VA_ARGS__)$
-
-ERROR: code indent should use tabs where possible
-#52: FILE: include/linux/kernel.h:437:
-+        printk_ratelimited(KERN_NOTICE pr_fmt(fmt), ##__VA_ARGS__)$
-
-ERROR: code indent should use tabs where possible
-#54: FILE: include/linux/kernel.h:439:
-+        printk_ratelimited(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)$
-
-total: 7 errors, 0 warnings, 50 lines checked
-
-./patches/kernelh-add-printk_ratelimited-and-pr_level_rl.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Joe Perches <joe@perches.com>
-Cc: Naohiro Ooiwa <nooiwa@miraclelinux.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Phil Carmody <ext-phil.2.carmody@nokia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ include/linux/err.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/kernel.h~kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes include/linux/kernel.h
---- a/include/linux/kernel.h~kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes
-+++ a/include/linux/kernel.h
-@@ -424,19 +424,19 @@ static inline char *pack_hex_byte(char *
- #endif
+diff -puN include/linux/err.h~errh-add-helper-function-to-simplify-pointer-error-checking-fix include/linux/err.h
+--- a/include/linux/err.h~errh-add-helper-function-to-simplify-pointer-error-checking-fix
++++ a/include/linux/err.h
+@@ -36,7 +36,7 @@ static inline long IS_ERR(const void *pt
  
- #define pr_emerg_rl(fmt, ...) \
--        printk_ratelimited(KERN_EMERG pr_fmt(fmt), ##__VA_ARGS__)
-+	printk_ratelimited(KERN_EMERG pr_fmt(fmt), ##__VA_ARGS__)
- #define pr_alert_rl(fmt, ...) \
--        printk_ratelimited(KERN_ALERT pr_fmt(fmt), ##__VA_ARGS__)
-+	printk_ratelimited(KERN_ALERT pr_fmt(fmt), ##__VA_ARGS__)
- #define pr_crit_rl(fmt, ...) \
--        printk_ratelimited(KERN_CRIT pr_fmt(fmt), ##__VA_ARGS__)
-+	printk_ratelimited(KERN_CRIT pr_fmt(fmt), ##__VA_ARGS__)
- #define pr_err_rl(fmt, ...) \
--        printk_ratelimited(KERN_ERR pr_fmt(fmt), ##__VA_ARGS__)
-+	printk_ratelimited(KERN_ERR pr_fmt(fmt), ##__VA_ARGS__)
- #define pr_warning_rl(fmt, ...) \
--        printk_ratelimited(KERN_WARNING pr_fmt(fmt), ##__VA_ARGS__)
-+	printk_ratelimited(KERN_WARNING pr_fmt(fmt), ##__VA_ARGS__)
- #define pr_notice_rl(fmt, ...) \
--        printk_ratelimited(KERN_NOTICE pr_fmt(fmt), ##__VA_ARGS__)
-+	printk_ratelimited(KERN_NOTICE pr_fmt(fmt), ##__VA_ARGS__)
- #define pr_info_rl(fmt, ...) \
--        printk_ratelimited(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
-+	printk_ratelimited(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
- /* no pr_cont_rl, don't do that... */
- /* If you are writing a driver, please use dev_dbg instead */
- #if defined(DEBUG)
+ static inline long IS_ERR_OR_NULL(const void *ptr)
+ {
+-	return (ptr == NULL) || IS_ERR_VALUE((unsigned long)ptr);
++	return !ptr || IS_ERR_VALUE((unsigned long)ptr);
+ }
+ 
+ /**
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -118,8 +70,7 @@ procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm.patch
 floppy-add-an-extra-bound-check-on-ioctl-arguments.patch
 rwsem-fix-rwsem_is_locked-bugs.patch
 kernelh-add-printk_ratelimited-and-pr_level_rl.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
-kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
+errh-add-helper-function-to-simplify-pointer-error-checking.patch
 errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
 cs5535-add-a-generic-mfgpt-driver-fix.patch
 cs5535-add-a-generic-clock-event-mfgpt-driver-fix.patch
