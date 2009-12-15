@@ -1,121 +1,162 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ksm-three-remove_rmap_item_from_tree-cleanups.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 13:53:12 -0800
-Message-ID: <200912152153.nBFLrCMS015255@imap1.linux-foundation.org>
+Subject: [merged] lis3lv02d-proper-power-on-sequence.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 13:59:27 -0800
+Message-ID: <200912152159.nBFLxR41015905@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36047 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51417 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761346AbZLOWNO (ORCPT
+	by vger.kernel.org with ESMTP id S1755690AbZLOWNr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 17:13:14 -0500
+	Tue, 15 Dec 2009 17:13:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh.dickins@tiscali.co.uk, aarcange@redhat.com, ieidus@redhat.com, mm-commits@vger.kernel.org
+To: samu.p.onkalo@nokia.com, eric.piel@tremplin-utc.net, pavel@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ksm: three remove_rmap_item_from_tree cleanups
+     lis3lv02d: proper power on sequence
 has been removed from the -mm tree.  Its filename was
-     ksm-three-remove_rmap_item_from_tree-cleanups.patch
+     lis3lv02d-proper-power-on-sequence.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: ksm: three remove_rmap_item_from_tree cleanups
-From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Subject: lis3lv02d: proper power on sequence
+=46rom: Samu Onkalo <samu.p.onkalo@nokia.com>
 
-1. remove_rmap_item_from_tree() is called as a precaution from
-   various places: don't dirty the rmap_item cacheline unnecessarily,
-   just mask the flags out of the address when they have been set.
+Lis3 accelerometer sensors have quite long power on delay (up to 125
+ms). This patch adds necessary delay to power on sequence for currently
+supported lis3 chips.
 
-2. First get_next_rmap_item() removes an unstable rmap_item from its tree,
-   then shortly afterwards cmp_and_merge_page() removes a stable rmap_item
-   from its tree: it's easier just to do both at once (but definitely keep
-   the BUG_ON(age > 1) which guards against a future omission).
-
-3. When cmp_and_merge_page() moves an rmap_item from unstable to stable
-   tree, it does its own rb_erase() and accounting: that's better
-   expressed by remove_rmap_item_from_tree().
-
-Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Cc: Izik Eidus <ieidus@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
+Tested-by: =C9ric Piel <eric.piel@tremplin-utc.net>
+Acked-by: =C9ric Piel <eric.piel@tremplin-utc.net>
+Cc: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |   17 ++++++-----------
- 1 file changed, 6 insertions(+), 11 deletions(-)
+ drivers/hwmon/lis3lv02d.c |   41 +++++++++++++++++++++++-------------
+ drivers/hwmon/lis3lv02d.h |    1=20
+ 2 files changed, 28 insertions(+), 14 deletions(-)
 
-diff -puN mm/ksm.c~ksm-three-remove_rmap_item_from_tree-cleanups mm/ksm.c
---- a/mm/ksm.c~ksm-three-remove_rmap_item_from_tree-cleanups
-+++ a/mm/ksm.c
-@@ -453,6 +453,7 @@ static void remove_rmap_item_from_tree(s
- 		}
- 
- 		rmap_item->next = NULL;
-+		rmap_item->address &= PAGE_MASK;
- 
- 	} else if (rmap_item->address & NODE_FLAG) {
- 		unsigned char age;
-@@ -467,11 +468,11 @@ static void remove_rmap_item_from_tree(s
- 		BUG_ON(age > 1);
- 		if (!age)
- 			rb_erase(&rmap_item->node, &root_unstable_tree);
+diff -puN drivers/hwmon/lis3lv02d.c~lis3lv02d-proper-power-on-sequence =
+drivers/hwmon/lis3lv02d.c
+--- a/drivers/hwmon/lis3lv02d.c~lis3lv02d-proper-power-on-sequence
++++ a/drivers/hwmon/lis3lv02d.c
+@@ -50,6 +50,9 @@
+  * joystick.
+  */
+=20
++#define LIS3_PWRON_DELAY_WAI_12B	(5000)
++#define LIS3_PWRON_DELAY_WAI_8B		(3000)
 +
- 		ksm_pages_unshared--;
-+		rmap_item->address &= PAGE_MASK;
- 	}
- 
--	rmap_item->address &= PAGE_MASK;
--
- 	cond_resched();		/* we're called from many long loops */
+ struct lis3lv02d lis3_dev =3D {
+ 	.misc_wait   =3D __WAIT_QUEUE_HEAD_INITIALIZER(lis3_dev.misc_wait),
+ };
+@@ -112,6 +115,24 @@ static void lis3lv02d_get_xyz(struct lis
+ 	*z =3D lis3lv02d_get_axis(lis3->ac.z, position);
  }
- 
-@@ -1086,8 +1087,7 @@ static void cmp_and_merge_page(struct pa
- 	unsigned int checksum;
- 	int err;
- 
--	if (in_stable_tree(rmap_item))
--		remove_rmap_item_from_tree(rmap_item);
-+	remove_rmap_item_from_tree(rmap_item);
- 
- 	/* We first start with searching the page inside the stable tree */
- 	tree_rmap_item = stable_tree_search(page, page2, rmap_item);
-@@ -1143,9 +1143,7 @@ static void cmp_and_merge_page(struct pa
- 		 * tree, and insert it instead as new node in the stable tree.
- 		 */
- 		if (!err) {
--			rb_erase(&tree_rmap_item->node, &root_unstable_tree);
--			tree_rmap_item->address &= ~NODE_FLAG;
--			ksm_pages_unshared--;
-+			remove_rmap_item_from_tree(tree_rmap_item);
- 
- 			/*
- 			 * If we fail to insert the page into the stable tree,
-@@ -1174,11 +1172,8 @@ static struct rmap_item *get_next_rmap_i
- 
- 	while (cur != &mm_slot->rmap_list) {
- 		rmap_item = list_entry(cur, struct rmap_item, link);
--		if ((rmap_item->address & PAGE_MASK) == addr) {
--			if (!in_stable_tree(rmap_item))
--				remove_rmap_item_from_tree(rmap_item);
-+		if ((rmap_item->address & PAGE_MASK) == addr)
- 			return rmap_item;
--		}
- 		if (rmap_item->address > addr)
- 			break;
- 		cur = cur->next;
+=20
++/* conversion btw sampling rate and the register values */
++static int lis3_12_rates[4] =3D {40, 160, 640, 2560};
++static int lis3_8_rates[2] =3D {100, 400};
++
++static int lis3lv02d_get_odr(void)
++{
++	u8 ctrl;
++	int val;
++
++	lis3_dev.read(&lis3_dev, CTRL_REG1, &ctrl);
++
++	if (lis3_dev.whoami =3D=3D WAI_12B)
++		val =3D lis3_12_rates[(ctrl & (CTRL1_DF0 | CTRL1_DF1)) >> 4];
++	else
++		val =3D lis3_8_rates[(ctrl & CTRL1_DR) >> 7];
++	return val;
++}
++
+ void lis3lv02d_poweroff(struct lis3lv02d *lis3)
+ {
+ 	/* disable X,Y,Z axis and power down */
+@@ -125,6 +146,9 @@ void lis3lv02d_poweron(struct lis3lv02d=20
+=20
+ 	lis3->init(lis3);
+=20
++	/* LIS3 power on delay is quite long */
++	msleep(lis3->pwron_delay / lis3lv02d_get_odr());
++
+ 	/*
+ 	 * Common configuration
+ 	 * BDU: (12 bits sensors only) LSB and MSB values are not updated unt=
+il
+@@ -364,23 +388,10 @@ static ssize_t lis3lv02d_calibrate_store
+ 	return count;
+ }
+=20
+-/* conversion btw sampling rate and the register values */
+-static int lis3_12_rates[4] =3D {40, 160, 640, 2560};
+-static int lis3_8_rates[2] =3D {100, 400};
+ static ssize_t lis3lv02d_rate_show(struct device *dev,
+ 			struct device_attribute *attr, char *buf)
+ {
+-	u8 ctrl;
+-	int val;
+-
+-	lis3_dev.read(&lis3_dev, CTRL_REG1, &ctrl);
+-
+-	if (lis3_dev.whoami =3D=3D WAI_12B)
+-		val =3D lis3_12_rates[(ctrl & (CTRL1_DF0 | CTRL1_DF1)) >> 4];
+-	else
+-		val =3D lis3_8_rates[(ctrl & CTRL1_DR) >> 7];
+-
+-	return sprintf(buf, "%d\n", val);
++	return sprintf(buf, "%d\n", lis3lv02d_get_odr());
+ }
+=20
+ static DEVICE_ATTR(position, S_IRUGO, lis3lv02d_position_show, NULL);
+@@ -430,11 +441,13 @@ int lis3lv02d_init_device(struct lis3lv0
+ 		printk(KERN_INFO DRIVER_NAME ": 12 bits sensor found\n");
+ 		dev->read_data =3D lis3lv02d_read_12;
+ 		dev->mdps_max_val =3D 2048;
++		dev->pwron_delay =3D LIS3_PWRON_DELAY_WAI_12B;
+ 		break;
+ 	case WAI_8B:
+ 		printk(KERN_INFO DRIVER_NAME ": 8 bits sensor found\n");
+ 		dev->read_data =3D lis3lv02d_read_8;
+ 		dev->mdps_max_val =3D 128;
++		dev->pwron_delay =3D LIS3_PWRON_DELAY_WAI_8B;
+ 		break;
+ 	default:
+ 		printk(KERN_ERR DRIVER_NAME
+diff -puN drivers/hwmon/lis3lv02d.h~lis3lv02d-proper-power-on-sequence =
+drivers/hwmon/lis3lv02d.h
+--- a/drivers/hwmon/lis3lv02d.h~lis3lv02d-proper-power-on-sequence
++++ a/drivers/hwmon/lis3lv02d.h
+@@ -202,6 +202,7 @@ struct lis3lv02d {
+ 	u8			whoami;    /* indicates measurement precision */
+ 	s16 (*read_data) (struct lis3lv02d *lis3, int reg);
+ 	int			mdps_max_val;
++	int			pwron_delay;
+=20
+ 	struct input_polled_dev	*idev;     /* input device */
+ 	struct platform_device	*pdev;     /* platform device */
 _
 
-Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
+Patches currently in -mm which might be from samu.p.onkalo@nokia.com ar=
+e
 
 origin.patch
-linux-next.patch
-vfs-fsstack-handle-32-bit-smp-preempt-large-files-in-fsstack_copy_inode_size.patch
-ksm-memory-hotremove-migration-only-fix.patch
-elf-kill-use_elf_core_dump.patch
-prio_tree-debugging-patch.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
