@@ -1,111 +1,149 @@
 From: akpm@linux-foundation.org
-Subject: [merged] dev-mem-remove-redundant-parameter-from-do_write_kmem.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 13:50:39 -0800
-Message-ID: <200912152150.nBFLodJI014973@imap1.linux-foundation.org>
+Subject: [merged] mm-add-gfp-flags-for-nodemask_alloc-slab-allocations.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 13:51:26 -0800
+Message-ID: <200912152151.nBFLpQbl015033@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56408 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42725 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761160AbZLOVwI (ORCPT
+	by vger.kernel.org with ESMTP id S1761197AbZLOVwX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 16:52:08 -0500
+	Tue, 15 Dec 2009 16:52:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@intel.com, ak@linux.intel.com, avi@qumranet.com, broonie@opensource.wolfsonmicro.com, gregkh@suse.de, johannes@sipsolutions.net, mtosatti@redhat.com, mm-commits@vger.kernel.org
+To: rientjes@google.com, agl@us.ibm.com, andi@firstfloor.org, apw@canonical.com, cl@linux-foundation.org, eric.whitney@hp.com, kamezawa.hiroyu@jp.fujitsu.com, lee.schermerhorn@hp.com, mel
 
 
 The patch titled
-     /dev/mem: remove redundant parameter from do_write_kmem()
+     mm: add gfp flags for NODEMASK_ALLOC slab allocations
 has been removed from the -mm tree.  Its filename was
-     dev-mem-remove-redundant-parameter-from-do_write_kmem.patch
+     mm-add-gfp-flags-for-nodemask_alloc-slab-allocations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: /dev/mem: remove redundant parameter from do_write_kmem()
-From: Wu Fengguang <fengguang.wu@intel.com>
+Subject: mm: add gfp flags for NODEMASK_ALLOC slab allocations
+From: David Rientjes <rientjes@google.com>
 
-Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Avi Kivity <avi@qumranet.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Johannes Berg <johannes@sipsolutions.net>
-Cc: Marcelo Tosatti <mtosatti@redhat.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Objects passed to NODEMASK_ALLOC() are relatively small in size and are
+backed by slab caches that are not of large order, traditionally never
+greater than PAGE_ALLOC_COSTLY_ORDER.
+
+Thus, using GFP_KERNEL for these allocations on large machines when
+CONFIG_NODES_SHIFT > 8 will cause the page allocator to loop endlessly in
+the allocation attempt, each time invoking both direct reclaim or the oom
+killer.
+
+This is of particular interest when using NODEMASK_ALLOC() from a
+mempolicy context (either directly in mm/mempolicy.c or the mempolicy
+constrained hugetlb allocations) since the oom killer always kills current
+when allocations are constrained by mempolicies.  So for all present use
+cases in the kernel, current would end up being oom killed when direct
+reclaim fails.  That would allow the NODEMASK_ALLOC() to succeed but
+current would have sacrificed itself upon returning.
+
+This patch adds gfp flags to NODEMASK_ALLOC() to pass to kmalloc() on
+CONFIG_NODES_SHIFT > 8; this parameter is a nop on other configurations. 
+All current use cases either directly from hugetlb code or indirectly via
+NODEMASK_SCRATCH() union __GFP_NORETRY to avoid direct reclaim and the oom
+killer when the slab allocator needs to allocate additional pages.
+
+The side-effect of this change is that all current use cases of either
+NODEMASK_ALLOC() or NODEMASK_SCRATCH() need appropriate -ENOMEM handling
+when the allocation fails (never for CONFIG_NODES_SHIFT <= 8).  All
+current use cases were audited and do have appropriate error handling at
+this time.
+
+Signed-off-by: David Rientjes <rientjes@google.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Nishanth Aravamudan <nacc@us.ibm.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Adam Litke <agl@us.ibm.com>
+Cc: Andy Whitcroft <apw@canonical.com>
+Cc: Eric Whitney <eric.whitney@hp.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mem.c |   14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+ include/linux/nodemask.h |   21 ++++++++++++---------
+ mm/hugetlb.c             |    5 +++--
+ 2 files changed, 15 insertions(+), 11 deletions(-)
 
-diff -puN drivers/char/mem.c~dev-mem-remove-redundant-parameter-from-do_write_kmem drivers/char/mem.c
---- a/drivers/char/mem.c~dev-mem-remove-redundant-parameter-from-do_write_kmem
-+++ a/drivers/char/mem.c
-@@ -461,7 +461,7 @@ static ssize_t read_kmem(struct file *fi
+diff -puN include/linux/nodemask.h~mm-add-gfp-flags-for-nodemask_alloc-slab-allocations include/linux/nodemask.h
+--- a/include/linux/nodemask.h~mm-add-gfp-flags-for-nodemask_alloc-slab-allocations
++++ a/include/linux/nodemask.h
+@@ -485,15 +485,17 @@ static inline int num_node_state(enum no
+ #define for_each_online_node(node) for_each_node_state(node, N_ONLINE)
+ 
+ /*
+- * For nodemask scrach area.(See CPUMASK_ALLOC() in cpumask.h)
+- * NODEMASK_ALLOC(x, m) allocates an object of type 'x' with the name 'm'.
++ * For nodemask scrach area.
++ * NODEMASK_ALLOC(type, name) allocates an object with a specified type and
++ * name.
+  */
+-#if NODES_SHIFT > 8 /* nodemask_t > 64 bytes */
+-#define NODEMASK_ALLOC(x, m)		x *m = kmalloc(sizeof(*m), GFP_KERNEL)
+-#define NODEMASK_FREE(m)		kfree(m)
++#if NODES_SHIFT > 8 /* nodemask_t > 256 bytes */
++#define NODEMASK_ALLOC(type, name, gfp_flags)	\
++			type *name = kmalloc(sizeof(*name), gfp_flags)
++#define NODEMASK_FREE(m)			kfree(m)
+ #else
+-#define NODEMASK_ALLOC(x, m)		x _m, *m = &_m
+-#define NODEMASK_FREE(m)		do {} while (0)
++#define NODEMASK_ALLOC(type, name, gfp_flags)	type _name, *name = &_name
++#define NODEMASK_FREE(m)			do {} while (0)
+ #endif
+ 
+ /* A example struture for using NODEMASK_ALLOC, used in mempolicy. */
+@@ -502,8 +504,9 @@ struct nodemask_scratch {
+ 	nodemask_t	mask2;
+ };
+ 
+-#define NODEMASK_SCRATCH(x)	\
+-		NODEMASK_ALLOC(struct nodemask_scratch, x)
++#define NODEMASK_SCRATCH(x)						\
++			NODEMASK_ALLOC(struct nodemask_scratch, x,	\
++					GFP_KERNEL | __GFP_NORETRY)
+ #define NODEMASK_SCRATCH_FREE(x)	NODEMASK_FREE(x)
  
  
- static inline ssize_t
--do_write_kmem(void *p, unsigned long realp, const char __user * buf,
-+do_write_kmem(unsigned long p, const char __user *buf,
- 	      size_t count, loff_t *ppos)
- {
- 	ssize_t written, sz;
-@@ -470,12 +470,11 @@ do_write_kmem(void *p, unsigned long rea
- 	written = 0;
- #ifdef __ARCH_HAS_NO_PAGE_ZERO_MAPPED
- 	/* we don't have page 0 mapped on sparc and m68k.. */
--	if (realp < PAGE_SIZE) {
--		sz = size_inside_page(realp, count);
-+	if (p < PAGE_SIZE) {
-+		sz = size_inside_page(p, count);
- 		/* Hmm. Do something? */
- 		buf += sz;
- 		p += sz;
--		realp += sz;
- 		count -= sz;
- 		written += sz;
- 	}
-@@ -484,14 +483,14 @@ do_write_kmem(void *p, unsigned long rea
- 	while (count > 0) {
- 		char *ptr;
+diff -puN mm/hugetlb.c~mm-add-gfp-flags-for-nodemask_alloc-slab-allocations mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-add-gfp-flags-for-nodemask_alloc-slab-allocations
++++ a/mm/hugetlb.c
+@@ -1361,7 +1361,7 @@ static ssize_t nr_hugepages_store_common
+ 	int nid;
+ 	unsigned long count;
+ 	struct hstate *h;
+-	NODEMASK_ALLOC(nodemask_t, nodes_allowed);
++	NODEMASK_ALLOC(nodemask_t, nodes_allowed, GFP_KERNEL | __GFP_NORETRY);
  
--		sz = size_inside_page(realp, count);
-+		sz = size_inside_page(p, count);
+ 	err = strict_strtoul(buf, 10, &count);
+ 	if (err)
+@@ -1857,7 +1857,8 @@ static int hugetlb_sysctl_handler_common
+ 	proc_doulongvec_minmax(table, write, buffer, length, ppos);
  
- 		/*
- 		 * On ia64 if a page has been mapped somewhere as
- 		 * uncached, then it must also be accessed uncached
- 		 * by the kernel or data corruption may occur
- 		 */
--		ptr = xlate_dev_kmem_ptr(p);
-+		ptr = xlate_dev_kmem_ptr((char *)p);
- 
- 		copied = copy_from_user(ptr, buf, sz);
- 		if (copied) {
-@@ -502,7 +501,6 @@ do_write_kmem(void *p, unsigned long rea
- 		}
- 		buf += sz;
- 		p += sz;
--		realp += sz;
- 		count -= sz;
- 		written += sz;
- 	}
-@@ -526,7 +524,7 @@ static ssize_t write_kmem(struct file * 
- 	if (p < (unsigned long) high_memory) {
- 		unsigned long to_write = min_t(unsigned long, count,
- 					       (unsigned long)high_memory - p);
--		wrote = do_write_kmem((void *)p, p, buf, to_write, ppos);
-+		wrote = do_write_kmem(p, buf, to_write, ppos);
- 		if (wrote != to_write)
- 			return wrote;
- 		p += wrote;
+ 	if (write) {
+-		NODEMASK_ALLOC(nodemask_t, nodes_allowed);
++		NODEMASK_ALLOC(nodemask_t, nodes_allowed,
++						GFP_KERNEL | __GFP_NORETRY);
+ 		if (!(obey_mempolicy &&
+ 			       init_nodemask_of_mempolicy(nodes_allowed))) {
+ 			NODEMASK_FREE(nodes_allowed);
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
-linux-next.patch
-readahead-add-blk_run_backing_dev.patch
+acpi-remove-nid_inval.patch
+oom-kill-show-virtual-size-and-rss-information-of-the-killed-process.patch
+oom-kill-fix-numa-consraint-check-with-nodemask-v42.patch
+do_wait-optimization-do-not-place-sub-threads-on-task_struct-children-list.patch
 
