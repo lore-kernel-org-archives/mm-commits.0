@@ -1,63 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: [merged] nodemask-make-nodemask_alloc-more-general.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 13:50:45 -0800
-Message-ID: <200912152150.nBFLojV2014979@imap1.linux-foundation.org>
+Subject: [merged] hugetlb-use-only-nodes-with-memory-for-huge-pages.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 13:51:13 -0800
+Message-ID: <200912152151.nBFLpD09015015@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35877 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60745 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761191AbZLOVwU (ORCPT
+	by vger.kernel.org with ESMTP id S1761179AbZLOVwT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 16:52:20 -0500
+	Tue, 15 Dec 2009 16:52:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, agl@us.ibm.com, andi@firstfloor.org, apw@canonical.com, cl@linux-foundation.org, eric.whitney@hp.com, kamezawa.hiroyu@jp.fujitsu.com, lee.schermerhorn@hp.com, mel
+To: lee.schermerhorn@hp.com, agl@us.ibm.com, andi@firstfloor.org, apw@canonical.com, cl@linux-foundation.org, eric.whitney@hp.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, nacc@us.ib
 
 
 The patch titled
-     nodemask: make NODEMASK_ALLOC more general
+     hugetlb: use only nodes with memory for huge pages
 has been removed from the -mm tree.  Its filename was
-     nodemask-make-nodemask_alloc-more-general.patch
+     hugetlb-use-only-nodes-with-memory-for-huge-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nodemask: make NODEMASK_ALLOC more general
-From: David Rientjes <rientjes@google.com>
+Subject: hugetlb: use only nodes with memory for huge pages
+From: Lee Schermerhorn <lee.schermerhorn@hp.com>
 
-This is a series of patches to provide control over the location of the
-allocation and freeing of persistent huge pages on a NUMA platform. 
-Please consider for merging into mmotm.
+Register per node hstate sysfs attributes only for nodes with memory. 
+Global replacement of 'all online nodes" with "all nodes with memory" in
+mm/hugetlb.c.  Suggested by David Rientjes.
 
-This series uses two mechanisms to constrain the nodes from which
-persistent huge pages are allocated: 1) the task NUMA mempolicy of the
-task modifying a new sysctl "nr_hugepages_mempolicy", based on a
-suggestion by Mel Gorman; and 2) a subset of the hugepages hstate sysfs
-attributes have been added [in V4] to each node system device under:
+A subsequent patch will handle adding/removing of per node hstate sysfs
+attributes when nodes transition to/from memoryless state via memory
+hotplug.
 
-	/sys/devices/node/node[0-9]*/hugepages
+NOTE: this patch has not been tested with memoryless nodes.
 
-The per node attibutes allow direct assignment of a huge page count on a
-specific node, regardless of the task's mempolicy or cpuset constraints.  
-
-
-This patch:
-
-NODEMASK_ALLOC(x, m) assumes x is a type of struct, which is unnecessary. 
-It's perfectly reasonable to use this macro to allocate a nodemask_t,
-which is anonymous, either dynamically or on the stack depending on
-NODES_SHIFT.
-
-Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Reviewed-by: Andi Kleen <andi@firstfloor.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
 Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Cc: Nishanth Aravamudan <nacc@us.ibm.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: David Rientjes <rientjes@google.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Cc: Adam Litke <agl@us.ibm.com>
 Cc: Andy Whitcroft <apw@canonical.com>
 Cc: Eric Whitney <eric.whitney@hp.com>
@@ -65,51 +51,142 @@ Cc: Christoph Lameter <cl@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/nodemask.h |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ Documentation/vm/hugetlbpage.txt |   12 ++++-----
+ mm/hugetlb.c                     |   35 ++++++++++++++---------------
+ 2 files changed, 24 insertions(+), 23 deletions(-)
 
-diff -puN include/linux/nodemask.h~nodemask-make-nodemask_alloc-more-general include/linux/nodemask.h
---- a/include/linux/nodemask.h~nodemask-make-nodemask_alloc-more-general
-+++ a/include/linux/nodemask.h
-@@ -481,14 +481,14 @@ static inline int num_node_state(enum no
+diff -puN Documentation/vm/hugetlbpage.txt~hugetlb-use-only-nodes-with-memory-for-huge-pages Documentation/vm/hugetlbpage.txt
+--- a/Documentation/vm/hugetlbpage.txt~hugetlb-use-only-nodes-with-memory-for-huge-pages
++++ a/Documentation/vm/hugetlbpage.txt
+@@ -90,11 +90,11 @@ huge page pool to 20, allocating or free
+ On a NUMA platform, the kernel will attempt to distribute the huge page pool
+ over all the set of allowed nodes specified by the NUMA memory policy of the
+ task that modifies nr_hugepages.  The default for the allowed nodes--when the
+-task has default memory policy--is all on-line nodes.  Allowed nodes with
+-insufficient available, contiguous memory for a huge page will be silently
+-skipped when allocating persistent huge pages.  See the discussion below of
+-the interaction of task memory policy, cpusets and per node attributes with
+-the allocation and freeing of persistent huge pages.
++task has default memory policy--is all on-line nodes with memory.  Allowed
++nodes with insufficient available, contiguous memory for a huge page will be
++silently skipped when allocating persistent huge pages.  See the discussion
++below of the interaction of task memory policy, cpusets and per node attributes
++with the allocation and freeing of persistent huge pages.
+ 
+ The success or failure of huge page allocation depends on the amount of
+ physically contiguous memory that is present in system at the time of the
+@@ -226,7 +226,7 @@ resulting effect on persistent huge page
+    without first moving to a cpuset that contains all of the desired nodes.
+ 
+ 5) Boot-time huge page allocation attempts to distribute the requested number
+-   of huge pages over all on-lines nodes.
++   of huge pages over all on-lines nodes with memory.
+ 
+ Per Node Hugepages Attributes
+ 
+diff -puN mm/hugetlb.c~hugetlb-use-only-nodes-with-memory-for-huge-pages mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-use-only-nodes-with-memory-for-huge-pages
++++ a/mm/hugetlb.c
+@@ -942,14 +942,14 @@ static void return_unused_surplus_pages(
+ 
+ 	/*
+ 	 * We want to release as many surplus pages as possible, spread
+-	 * evenly across all nodes. Iterate across all nodes until we
+-	 * can no longer free unreserved surplus pages. This occurs when
+-	 * the nodes with surplus pages have no free pages.
+-	 * free_pool_huge_page() will balance the the frees across the
+-	 * on-line nodes for us and will handle the hstate accounting.
++	 * evenly across all nodes with memory. Iterate across these nodes
++	 * until we can no longer free unreserved surplus pages. This occurs
++	 * when the nodes with surplus pages have no free pages.
++	 * free_pool_huge_page() will balance the the freed pages across the
++	 * on-line nodes with memory and will handle the hstate accounting.
+ 	 */
+ 	while (nr_pages--) {
+-		if (!free_pool_huge_page(h, &node_online_map, 1))
++		if (!free_pool_huge_page(h, &node_states[N_HIGH_MEMORY], 1))
+ 			break;
+ 	}
+ }
+@@ -1053,14 +1053,14 @@ static struct page *alloc_huge_page(stru
+ int __weak alloc_bootmem_huge_page(struct hstate *h)
+ {
+ 	struct huge_bootmem_page *m;
+-	int nr_nodes = nodes_weight(node_online_map);
++	int nr_nodes = nodes_weight(node_states[N_HIGH_MEMORY]);
+ 
+ 	while (nr_nodes) {
+ 		void *addr;
+ 
+ 		addr = __alloc_bootmem_node_nopanic(
+ 				NODE_DATA(hstate_next_node_to_alloc(h,
+-							&node_online_map)),
++						&node_states[N_HIGH_MEMORY])),
+ 				huge_page_size(h), huge_page_size(h), 0);
+ 
+ 		if (addr) {
+@@ -1115,7 +1115,8 @@ static void __init hugetlb_hstate_alloc_
+ 		if (h->order >= MAX_ORDER) {
+ 			if (!alloc_bootmem_huge_page(h))
+ 				break;
+-		} else if (!alloc_fresh_huge_page(h, &node_online_map))
++		} else if (!alloc_fresh_huge_page(h,
++					 &node_states[N_HIGH_MEMORY]))
+ 			break;
+ 	}
+ 	h->max_huge_pages = i;
+@@ -1388,7 +1389,7 @@ static ssize_t nr_hugepages_store_common
+ 
+ 	h->max_huge_pages = set_max_huge_pages(h, count, nodes_allowed);
+ 
+-	if (nodes_allowed != &node_online_map)
++	if (nodes_allowed != &node_states[N_HIGH_MEMORY])
+ 		NODEMASK_FREE(nodes_allowed);
+ 
+ 	return len;
+@@ -1610,7 +1611,7 @@ void hugetlb_unregister_node(struct node
+ 	struct node_hstate *nhs = &node_hstates[node->sysdev.id];
+ 
+ 	if (!nhs->hugepages_kobj)
+-		return;
++		return;		/* no hstate attributes */
+ 
+ 	for_each_hstate(h)
+ 		if (nhs->hstate_kobjs[h - hstates]) {
+@@ -1675,15 +1676,15 @@ void hugetlb_register_node(struct node *
+ }
  
  /*
-  * For nodemask scrach area.(See CPUMASK_ALLOC() in cpumask.h)
-+ * NODEMASK_ALLOC(x, m) allocates an object of type 'x' with the name 'm'.
+- * hugetlb init time:  register hstate attributes for all registered
+- * node sysdevs.  All on-line nodes should have registered their
+- * associated sysdev by the time the hugetlb module initializes.
++ * hugetlb init time:  register hstate attributes for all registered node
++ * sysdevs of nodes that have memory.  All on-line nodes should have
++ * registered their associated sysdev by this time.
   */
--
- #if NODES_SHIFT > 8 /* nodemask_t > 64 bytes */
--#define NODEMASK_ALLOC(x, m) struct x *m = kmalloc(sizeof(*m), GFP_KERNEL)
--#define NODEMASK_FREE(m) kfree(m)
-+#define NODEMASK_ALLOC(x, m)		x *m = kmalloc(sizeof(*m), GFP_KERNEL)
-+#define NODEMASK_FREE(m)		kfree(m)
- #else
--#define NODEMASK_ALLOC(x, m) struct x _m, *m = &_m
--#define NODEMASK_FREE(m)
-+#define NODEMASK_ALLOC(x, m)		x _m, *m = &_m
-+#define NODEMASK_FREE(m)		do {} while (0)
- #endif
+ static void hugetlb_register_all_nodes(void)
+ {
+ 	int nid;
  
- /* A example struture for using NODEMASK_ALLOC, used in mempolicy. */
-@@ -497,8 +497,9 @@ struct nodemask_scratch {
- 	nodemask_t	mask2;
- };
+-	for (nid = 0; nid < nr_node_ids; nid++) {
++	for_each_node_state(nid, N_HIGH_MEMORY) {
+ 		struct node *node = &node_devices[nid];
+ 		if (node->sysdev.id == nid)
+ 			hugetlb_register_node(node);
+@@ -1777,8 +1778,8 @@ void __init hugetlb_add_hstate(unsigned 
+ 	h->free_huge_pages = 0;
+ 	for (i = 0; i < MAX_NUMNODES; ++i)
+ 		INIT_LIST_HEAD(&h->hugepage_freelists[i]);
+-	h->next_nid_to_alloc = first_node(node_online_map);
+-	h->next_nid_to_free = first_node(node_online_map);
++	h->next_nid_to_alloc = first_node(node_states[N_HIGH_MEMORY]);
++	h->next_nid_to_free = first_node(node_states[N_HIGH_MEMORY]);
+ 	snprintf(h->name, HSTATE_NAME_LEN, "hugepages-%lukB",
+ 					huge_page_size(h)/1024);
  
--#define NODEMASK_SCRATCH(x) NODEMASK_ALLOC(nodemask_scratch, x)
--#define NODEMASK_SCRATCH_FREE(x)  NODEMASK_FREE(x)
-+#define NODEMASK_SCRATCH(x)	\
-+		NODEMASK_ALLOC(struct nodemask_scratch, x)
-+#define NODEMASK_SCRATCH_FREE(x)	NODEMASK_FREE(x)
- 
- 
- #endif /* __LINUX_NODEMASK_H */
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from lee.schermerhorn@hp.com are
 
 origin.patch
-acpi-remove-nid_inval.patch
-oom-kill-show-virtual-size-and-rss-information-of-the-killed-process.patch
-oom-kill-fix-numa-consraint-check-with-nodemask-v42.patch
-do_wait-optimization-do-not-place-sub-threads-on-task_struct-children-list.patch
 
