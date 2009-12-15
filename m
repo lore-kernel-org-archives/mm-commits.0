@@ -1,56 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: [folded] lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 15:54:09 -0800
-Message-ID: <200912152354.nBFNs9ZJ021836@imap1.linux-foundation.org>
+Subject: [folded] lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 15:54:30 -0800
+Message-ID: <200912152354.nBFNsUYi021843@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36977 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40014 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934011AbZLOXzT (ORCPT
+	by vger.kernel.org with ESMTP id S1755928AbZLOX51 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 18:55:19 -0500
+	Tue, 15 Dec 2009 18:57:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, albin.tonnerre@free-electrons.com, hpa@zytor.com, mingo@elte.hu, ralf@linux-mips.org, rmk@arm.linux.org.uk, tglx@linutronix.de, wuzhangjin@gmail.com, mm-com
 
 
 The patch titled
-     lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes
+     lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup
 has been removed from the -mm tree.  Its filename was
-     lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes.patch
+     lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.patch
 
 This patch was dropped because it was folded into lib-add-support-for-lzo-compressed-kernels.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes
+Subject: lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup
 From: Andrew Morton <akpm@linux-foundation.org>
-
-ERROR: that open brace { should be on the previous line
-#184: FILE: lib/decompress_unlzo.c:48:
-+static const unsigned char lzop_magic[] =
-+	{ 0x89, 0x4c, 0x5a, 0x4f, 0x00, 0x0d, 0x0a, 0x1a, 0x0a };
-
-WARNING: line over 80 characters
-#254: FILE: lib/decompress_unlzo.c:118:
-+		error("Both input pointer and fill function provided, don't know what to do");
-
-WARNING: line over 80 characters
-#259: FILE: lib/decompress_unlzo.c:123:
-+		error("NULL input pointer and missing position pointer or fill function");
-
-WARNING: line over 80 characters
-#313: FILE: lib/decompress_unlzo.c:177:
-+		r = lzo1x_decompress_safe((u8 *) in_buf, src_len, out_buf, &tmp);
-
-total: 1 errors, 3 warnings, 291 lines checked
-
-./patches/lib-add-support-for-lzo-compressed-kernels.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
 
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Albin Tonnerre <albin.tonnerre@free-electrons.com>
@@ -62,33 +37,36 @@ Cc: Wu Zhangjin <wuzhangjin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/decompress_unlzo.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ lib/decompress_unlzo.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN lib/decompress_unlzo.c~lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes lib/decompress_unlzo.c
---- a/lib/decompress_unlzo.c~lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes
+diff -puN lib/decompress_unlzo.c~lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup lib/decompress_unlzo.c
+--- a/lib/decompress_unlzo.c~lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup
 +++ a/lib/decompress_unlzo.c
-@@ -44,8 +44,8 @@
- #include <linux/compiler.h>
- #include <asm/unaligned.h>
+@@ -101,9 +101,9 @@ STATIC inline int INIT unlzo(u8 *input, 
  
--static const unsigned char lzop_magic[] =
--	{ 0x89, 0x4c, 0x5a, 0x4f, 0x00, 0x0d, 0x0a, 0x1a, 0x0a };
-+static const unsigned char lzop_magic[] = {
-+	0x89, 0x4c, 0x5a, 0x4f, 0x00, 0x0d, 0x0a, 0x1a, 0x0a };
+ 	set_error_fn(error_fn);
  
- #define LZO_BLOCK_SIZE        (256*1024l)
- #define HEADER_HAS_FILTER      0x00000800L
-@@ -174,7 +174,8 @@ STATIC inline int INIT unlzo(u8 *input, 
- 
- 		/* decompress */
- 		tmp = dst_len;
--		r = lzo1x_decompress_safe((u8 *) in_buf, src_len, out_buf, &tmp);
-+		r = lzo1x_decompress_safe((u8 *) in_buf, src_len,
-+						out_buf, &tmp);
- 
- 		if (r != LZO_E_OK || dst_len != tmp) {
- 			error("Compressed data violation");
+-	if (output)
++	if (output) {
+ 		out_buf = output;
+-	else if (!flush) {
++	} else if (!flush) {
+ 		error("NULL output pointer and no flush function provided");
+ 		goto exit;
+ 	} else {
+@@ -117,9 +117,9 @@ STATIC inline int INIT unlzo(u8 *input, 
+ 	if (input && fill) {
+ 		error("Both input pointer and fill function provided, don't know what to do");
+ 		goto exit_1;
+-	} else if (input)
++	} else if (input) {
+ 		in_buf = input;
+-	else if (!fill || !posp) {
++	} else if (!fill || !posp) {
+ 		error("NULL input pointer and missing position pointer or fill function");
+ 		goto exit_1;
+ 	} else {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -143,7 +121,6 @@ revert-tty-sdio_uart-use-kfifo-instead-of-the-messy-circ-stuff.patch
 kfifo-move-struct-kfifo-in-place-fix.patch
 zlib-optimize-inffast-when-copying-direct-from-output.patch
 lib-add-support-for-lzo-compressed-kernels.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes.patch
 lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.patch
 net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
 reiser4-export-remove_from_page_cache-fix.patch
