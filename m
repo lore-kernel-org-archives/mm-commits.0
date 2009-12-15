@@ -1,188 +1,225 @@
 From: akpm@linux-foundation.org
-Subject: [merged] vmscan-stop-kswapd-waiting-on-congestion-when-the-min-watermark-is-not-being-met-v2.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 13:52:16 -0800
-Message-ID: <200912152152.nBFLqG50015182@imap1.linux-foundation.org>
+Subject: [merged] mm-define-page_mapping_flags.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 13:52:19 -0800
+Message-ID: <200912152152.nBFLqJiO015186@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56667 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37675 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761202AbZLOVx1 (ORCPT
+	by vger.kernel.org with ESMTP id S1761233AbZLOVxS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 16:53:27 -0500
+	Tue, 15 Dec 2009 16:53:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, riel@redhat.com, mm-commits@vger.kernel.org
+To: hugh.dickins@tiscali.co.uk, Lee.Schermerhorn@hp.com, aarcange@redhat.com, andi@firstfloor.org, fengguang.wu@intel.com, ieidus@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohi
 
 
 The patch titled
-     vmscan: stop kswapd waiting on congestion when the min watermark is not being met
+     mm: define PAGE_MAPPING_FLAGS
 has been removed from the -mm tree.  Its filename was
-     vmscan-stop-kswapd-waiting-on-congestion-when-the-min-watermark-is-not-being-met-v2.patch
+     mm-define-page_mapping_flags.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: stop kswapd waiting on congestion when the min watermark is not being met
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: mm: define PAGE_MAPPING_FLAGS
+From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
-If reclaim fails to make sufficient progress, the priority is raised. 
-Once the priority is higher, kswapd starts waiting on congestion. 
-However, if the zone is below the min watermark then kswapd needs to
-continue working without delay as there is a danger of an increased rate
-of GFP_ATOMIC allocation failure.
+At present we define PageAnon(page) by the low PAGE_MAPPING_ANON bit set
+in page->mapping, with the higher bits a pointer to the anon_vma; and have
+defined PageKsm(page) as that with NULL anon_vma.
 
-This patch changes the conditions under which kswapd waits on congestion
-by only going to sleep if the min watermarks are being met.
+But KSM swapping will need to store a pointer there: so in preparation for
+that, now define PAGE_MAPPING_FLAGS as the low two bits, including
+PAGE_MAPPING_KSM (always set along with PAGE_MAPPING_ANON, until some
+other use for the bit emerges).
 
-[mel@csn.ul.ie: add stats to track how relevant the logic is]
-[mel@csn.ul.ie: make kswapd only check its own zones and rename the relevant counters]
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Declare page_rmapping(page) to return the pointer part of page->mapping,
+and page_anon_vma(page) to return the anon_vma pointer when that's what it
+is.  Use these in a few appropriate places: notably, unuse_vma() has been
+testing page->mapping, but is better to be testing page_anon_vma() (cases
+may be added in which flag bits are set without any pointer).
+
+Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: Izik Eidus <ieidus@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Reviewed-by: Rik van Riel <riel@redhat.com>
+Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmstat.h |    3 ++-
- mm/vmscan.c            |   38 +++++++++++++++++++++++++++++---------
- mm/vmstat.c            |    5 +++--
- 3 files changed, 34 insertions(+), 12 deletions(-)
+ include/linux/ksm.h  |    5 +++--
+ include/linux/mm.h   |   17 ++++++++++++++++-
+ include/linux/rmap.h |    8 ++++++++
+ mm/migrate.c         |   11 ++++-------
+ mm/rmap.c            |    7 +++----
+ mm/swapfile.c        |    2 +-
+ 6 files changed, 35 insertions(+), 15 deletions(-)
 
-diff -puN include/linux/vmstat.h~vmscan-stop-kswapd-waiting-on-congestion-when-the-min-watermark-is-not-being-met-v2 include/linux/vmstat.h
---- a/include/linux/vmstat.h~vmscan-stop-kswapd-waiting-on-congestion-when-the-min-watermark-is-not-being-met-v2
-+++ a/include/linux/vmstat.h
-@@ -40,7 +40,8 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- 		PGSCAN_ZONE_RECLAIM_FAILED,
- #endif
- 		PGINODESTEAL, SLABS_SCANNED, KSWAPD_STEAL, KSWAPD_INODESTEAL,
--		KSWAPD_PREMATURE_FAST, KSWAPD_PREMATURE_SLOW,
-+		KSWAPD_LOW_WMARK_HIT_QUICKLY, KSWAPD_HIGH_WMARK_HIT_QUICKLY,
-+		KSWAPD_SKIP_CONGESTION_WAIT,
- 		PAGEOUTRUN, ALLOCSTALL, PGROTATED,
- #ifdef CONFIG_HUGETLB_PAGE
- 		HTLB_BUDDY_PGALLOC, HTLB_BUDDY_PGALLOC_FAIL,
-diff -puN mm/vmscan.c~vmscan-stop-kswapd-waiting-on-congestion-when-the-min-watermark-is-not-being-met-v2 mm/vmscan.c
---- a/mm/vmscan.c~vmscan-stop-kswapd-waiting-on-congestion-when-the-min-watermark-is-not-being-met-v2
-+++ a/mm/vmscan.c
-@@ -1905,19 +1905,25 @@ unsigned long try_to_free_mem_cgroup_pag
- #endif
- 
- /* is kswapd sleeping prematurely? */
--static int sleeping_prematurely(int order, long remaining)
-+static int sleeping_prematurely(pg_data_t *pgdat, int order, long remaining)
+diff -puN include/linux/ksm.h~mm-define-page_mapping_flags include/linux/ksm.h
+--- a/include/linux/ksm.h~mm-define-page_mapping_flags
++++ a/include/linux/ksm.h
+@@ -38,7 +38,8 @@ static inline void ksm_exit(struct mm_st
+  */
+ static inline int PageKsm(struct page *page)
  {
--	struct zone *zone;
-+	int i;
- 
- 	/* If a direct reclaimer woke kswapd within HZ/10, it's premature */
- 	if (remaining)
- 		return 1;
- 
- 	/* If after HZ/10, a zone is below the high mark, it's premature */
--	for_each_populated_zone(zone)
-+	for (i = 0; i < pgdat->nr_zones; i++) {
-+		struct zone *zone = pgdat->node_zones + i;
-+
-+		if (!populated_zone(zone))
-+			continue;
-+
- 		if (!zone_watermark_ok(zone, order, high_wmark_pages(zone),
- 								0, 0))
- 			return 1;
-+	}
- 
- 	return 0;
+-	return ((unsigned long)page->mapping == PAGE_MAPPING_ANON);
++	return ((unsigned long)page->mapping & PAGE_MAPPING_FLAGS) ==
++				(PAGE_MAPPING_ANON | PAGE_MAPPING_KSM);
  }
-@@ -1979,6 +1985,7 @@ loop_again:
- 	for (priority = DEF_PRIORITY; priority >= 0; priority--) {
- 		int end_zone = 0;	/* Inclusive.  0 = ZONE_DMA */
- 		unsigned long lru_pages = 0;
-+		int has_under_min_watermark_zone = 0;
  
- 		/* The swap token gets in the way of swapout... */
- 		if (!priority)
-@@ -2085,6 +2092,15 @@ loop_again:
- 			if (total_scanned > SWAP_CLUSTER_MAX * 2 &&
- 			    total_scanned > sc.nr_reclaimed + sc.nr_reclaimed / 2)
- 				sc.may_writepage = 1;
+ /*
+@@ -47,7 +48,7 @@ static inline int PageKsm(struct page *p
+ static inline void page_add_ksm_rmap(struct page *page)
+ {
+ 	if (atomic_inc_and_test(&page->_mapcount)) {
+-		page->mapping = (void *) PAGE_MAPPING_ANON;
++		page->mapping = (void *) (PAGE_MAPPING_ANON | PAGE_MAPPING_KSM);
+ 		__inc_zone_page_state(page, NR_ANON_PAGES);
+ 	}
+ }
+diff -puN include/linux/mm.h~mm-define-page_mapping_flags include/linux/mm.h
+--- a/include/linux/mm.h~mm-define-page_mapping_flags
++++ a/include/linux/mm.h
+@@ -620,13 +620,22 @@ void page_address_init(void);
+ /*
+  * On an anonymous page mapped into a user virtual memory area,
+  * page->mapping points to its anon_vma, not to a struct address_space;
+- * with the PAGE_MAPPING_ANON bit set to distinguish it.
++ * with the PAGE_MAPPING_ANON bit set to distinguish it.  See rmap.h.
++ *
++ * On an anonymous page in a VM_MERGEABLE area, if CONFIG_KSM is enabled,
++ * the PAGE_MAPPING_KSM bit may be set along with the PAGE_MAPPING_ANON bit;
++ * and then page->mapping points, not to an anon_vma, but to a private
++ * structure which KSM associates with that merged page.  See ksm.h.
++ *
++ * PAGE_MAPPING_KSM without PAGE_MAPPING_ANON is currently never used.
+  *
+  * Please note that, confusingly, "page_mapping" refers to the inode
+  * address_space which maps the page from disk; whereas "page_mapped"
+  * refers to user virtual address space into which the page is mapped.
+  */
+ #define PAGE_MAPPING_ANON	1
++#define PAGE_MAPPING_KSM	2
++#define PAGE_MAPPING_FLAGS	(PAGE_MAPPING_ANON | PAGE_MAPPING_KSM)
+ 
+ extern struct address_space swapper_space;
+ static inline struct address_space *page_mapping(struct page *page)
+@@ -644,6 +653,12 @@ static inline struct address_space *page
+ 	return mapping;
+ }
+ 
++/* Neutral page->mapping pointer to address_space or anon_vma or other */
++static inline void *page_rmapping(struct page *page)
++{
++	return (void *)((unsigned long)page->mapping & ~PAGE_MAPPING_FLAGS);
++}
 +
-+			/*
-+			 * We are still under min water mark. it mean we have
-+			 * GFP_ATOMIC allocation failure risk. Hurry up!
-+			 */
-+			if (!zone_watermark_ok(zone, order, min_wmark_pages(zone),
-+					      end_zone, 0))
-+				has_under_min_watermark_zone = 1;
+ static inline int PageAnon(struct page *page)
+ {
+ 	return ((unsigned long)page->mapping & PAGE_MAPPING_ANON) != 0;
+diff -puN include/linux/rmap.h~mm-define-page_mapping_flags include/linux/rmap.h
+--- a/include/linux/rmap.h~mm-define-page_mapping_flags
++++ a/include/linux/rmap.h
+@@ -39,6 +39,14 @@ struct anon_vma {
+ 
+ #ifdef CONFIG_MMU
+ 
++static inline struct anon_vma *page_anon_vma(struct page *page)
++{
++	if (((unsigned long)page->mapping & PAGE_MAPPING_FLAGS) !=
++					    PAGE_MAPPING_ANON)
++		return NULL;
++	return page_rmapping(page);
++}
 +
- 		}
- 		if (all_zones_ok)
- 			break;		/* kswapd: all done */
-@@ -2092,8 +2108,12 @@ loop_again:
- 		 * OK, kswapd is getting into trouble.  Take a nap, then take
- 		 * another pass across the zones.
- 		 */
--		if (total_scanned && priority < DEF_PRIORITY - 2)
--			congestion_wait(BLK_RW_ASYNC, HZ/10);
-+		if (total_scanned && (priority < DEF_PRIORITY - 2)) {
-+			if (has_under_min_watermark_zone)
-+				count_vm_event(KSWAPD_SKIP_CONGESTION_WAIT);
-+			else
-+				congestion_wait(BLK_RW_ASYNC, HZ/10);
-+		}
+ static inline void anon_vma_lock(struct vm_area_struct *vma)
+ {
+ 	struct anon_vma *anon_vma = vma->anon_vma;
+diff -puN mm/migrate.c~mm-define-page_mapping_flags mm/migrate.c
+--- a/mm/migrate.c~mm-define-page_mapping_flags
++++ a/mm/migrate.c
+@@ -172,17 +172,14 @@ static void remove_anon_migration_ptes(s
+ {
+ 	struct anon_vma *anon_vma;
+ 	struct vm_area_struct *vma;
+-	unsigned long mapping;
+-
+-	mapping = (unsigned long)new->mapping;
+-
+-	if (!mapping || (mapping & PAGE_MAPPING_ANON) == 0)
+-		return;
  
- 		/*
- 		 * We do this so kswapd doesn't build up large priorities for
-@@ -2207,7 +2227,7 @@ static int kswapd(void *p)
- 				long remaining = 0;
+ 	/*
+ 	 * We hold the mmap_sem lock. So no need to call page_lock_anon_vma.
+ 	 */
+-	anon_vma = (struct anon_vma *) (mapping - PAGE_MAPPING_ANON);
++	anon_vma = page_anon_vma(new);
++	if (!anon_vma)
++		return;
++
+ 	spin_lock(&anon_vma->lock);
  
- 				/* Try to sleep for a short interval */
--				if (!sleeping_prematurely(order, remaining)) {
-+				if (!sleeping_prematurely(pgdat, order, remaining)) {
- 					remaining = schedule_timeout(HZ/10);
- 					finish_wait(&pgdat->kswapd_wait, &wait);
- 					prepare_to_wait(&pgdat->kswapd_wait, &wait, TASK_INTERRUPTIBLE);
-@@ -2218,13 +2238,13 @@ static int kswapd(void *p)
- 				 * premature sleep. If not, then go fully
- 				 * to sleep until explicitly woken up
- 				 */
--				if (!sleeping_prematurely(order, remaining))
-+				if (!sleeping_prematurely(pgdat, order, remaining))
- 					schedule();
- 				else {
- 					if (remaining)
--						count_vm_event(KSWAPD_PREMATURE_FAST);
-+						count_vm_event(KSWAPD_LOW_WMARK_HIT_QUICKLY);
- 					else
--						count_vm_event(KSWAPD_PREMATURE_SLOW);
-+						count_vm_event(KSWAPD_HIGH_WMARK_HIT_QUICKLY);
- 				}
- 			}
+ 	list_for_each_entry(vma, &anon_vma->head, anon_vma_node)
+diff -puN mm/rmap.c~mm-define-page_mapping_flags mm/rmap.c
+--- a/mm/rmap.c~mm-define-page_mapping_flags
++++ a/mm/rmap.c
+@@ -203,7 +203,7 @@ struct anon_vma *page_lock_anon_vma(stru
  
-diff -puN mm/vmstat.c~vmscan-stop-kswapd-waiting-on-congestion-when-the-min-watermark-is-not-being-met-v2 mm/vmstat.c
---- a/mm/vmstat.c~vmscan-stop-kswapd-waiting-on-congestion-when-the-min-watermark-is-not-being-met-v2
-+++ a/mm/vmstat.c
-@@ -683,8 +683,9 @@ static const char * const vmstat_text[] 
- 	"slabs_scanned",
- 	"kswapd_steal",
- 	"kswapd_inodesteal",
--	"kswapd_slept_prematurely_fast",
--	"kswapd_slept_prematurely_slow",
-+	"kswapd_low_wmark_hit_quickly",
-+	"kswapd_high_wmark_hit_quickly",
-+	"kswapd_skip_congestion_wait",
- 	"pageoutrun",
- 	"allocstall",
+ 	rcu_read_lock();
+ 	anon_mapping = (unsigned long) page->mapping;
+-	if (!(anon_mapping & PAGE_MAPPING_ANON))
++	if ((anon_mapping & PAGE_MAPPING_FLAGS) != PAGE_MAPPING_ANON)
+ 		goto out;
+ 	if (!page_mapped(page))
+ 		goto out;
+@@ -248,8 +248,7 @@ vma_address(struct page *page, struct vm
+ unsigned long page_address_in_vma(struct page *page, struct vm_area_struct *vma)
+ {
+ 	if (PageAnon(page)) {
+-		if ((void *)vma->anon_vma !=
+-		    (void *)page->mapping - PAGE_MAPPING_ANON)
++		if (vma->anon_vma != page_anon_vma(page))
+ 			return -EFAULT;
+ 	} else if (page->mapping && !(vma->vm_flags & VM_NONLINEAR)) {
+ 		if (!vma->vm_file ||
+@@ -513,7 +512,7 @@ int page_referenced(struct page *page,
+ 		referenced++;
  
+ 	*vm_flags = 0;
+-	if (page_mapped(page) && page->mapping) {
++	if (page_mapped(page) && page_rmapping(page)) {
+ 		if (PageAnon(page))
+ 			referenced += page_referenced_anon(page, mem_cont,
+ 								vm_flags);
+diff -puN mm/swapfile.c~mm-define-page_mapping_flags mm/swapfile.c
+--- a/mm/swapfile.c~mm-define-page_mapping_flags
++++ a/mm/swapfile.c
+@@ -938,7 +938,7 @@ static int unuse_vma(struct vm_area_stru
+ 	unsigned long addr, end, next;
+ 	int ret;
+ 
+-	if (page->mapping) {
++	if (page_anon_vma(page)) {
+ 		addr = page_address_in_vma(page, vma);
+ 		if (addr == -EFAULT)
+ 			return 0;
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
 
 origin.patch
 linux-next.patch
-readahead-add-blk_run_backing_dev.patch
-oom-kill-show-virtual-size-and-rss-information-of-the-killed-process.patch
-oom-kill-fix-numa-consraint-check-with-nodemask-v42.patch
-mm-introduce-coredump-parameter-structure.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
+vfs-fsstack-handle-32-bit-smp-preempt-large-files-in-fsstack_copy_inode_size.patch
+ksm-memory-hotremove-migration-only-fix.patch
+elf-kill-use_elf_core_dump.patch
+prio_tree-debugging-patch.patch
 
