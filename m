@@ -1,289 +1,331 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sdio-rework-cis-tuple-parsing.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 13:58:27 -0800
-Message-ID: <200912152158.nBFLwRlm015819@imap1.linux-foundation.org>
+Subject: [merged] lis3-update-documentation-and-comments.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 13:59:21 -0800
+Message-ID: <200912152159.nBFLxLPN015898@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36768 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40610 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933963AbZLOWPO (ORCPT
+	by vger.kernel.org with ESMTP id S1755528AbZLOWPb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 17:15:14 -0500
+	Tue, 15 Dec 2009 17:15:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: albert_herranz@yahoo.es, linux-mmc@vger.kernel.org, pierre@ossman.eu, mm-commits@vger.kernel.org
+To: eric.piel@tremplin-utc.net, pavel@ucw.cz, samu.p.onkalo@nokia.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sdio: rework cis tuple parsing
+     lis3: update documentation and comments
 has been removed from the -mm tree.  Its filename was
-     sdio-rework-cis-tuple-parsing.patch
+     lis3-update-documentation-and-comments.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: sdio: rework cis tuple parsing
-From: Albert Herranz <albert_herranz@yahoo.es>
+Subject: lis3: update documentation and comments
+=46rom: =C9ric Piel <eric.piel@tremplin-utc.net>
 
-Rework the current CIS tuple parsing code, reusing the existing
-infrastructure and providing an easy way to add new CISTPL_FUNCE parsers
-by TPLFE_TYPE.
+Most of the documentation and comments were written when the driver was
+only supporting one type of chip, only via ACPI/HP. Update the info to
+the much clearer understanding that we have now.
 
-Valid known CIS tuples are now silently queued for the SDIO function
-driver when not parsed/processed (-EILSEQ) by the SDIO core.  Unknown CIS
-tuples (-ENOENT) are queued too for the SDIO function driver without
-aborting the initialization, but emit a warning in the kernel log.
-
-CISTPL_FUNCE tuples can be "whitelisted" now by adding a matching entry to
-the cis_tpl_funce_list table.
-
-Signed-off-by: Albert Herranz <albert_herranz@yahoo.es>
-Acked-by: Pierre Ossman <pierre@ossman.eu>
-Cc: <linux-mmc@vger.kernel.org>
+Signed-off-by: =C9ric Piel <eric.piel@tremplin-utc.net>
+Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
+Cc: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/sdio_cis.c |  167 ++++++++++++++++++----------------
- 1 file changed, 93 insertions(+), 74 deletions(-)
+ Documentation/hwmon/lis3lv02d |   24 ++++++++++++++----------
+ drivers/hwmon/Kconfig         |   22 ++++++++++++----------
+ drivers/hwmon/lis3lv02d.c     |   20 ++++++++++----------
+ drivers/hwmon/lis3lv02d.h     |   28 ++++++++++++++++------------
+ 4 files changed, 52 insertions(+), 42 deletions(-)
 
-diff -puN drivers/mmc/core/sdio_cis.c~sdio-rework-cis-tuple-parsing drivers/mmc/core/sdio_cis.c
---- a/drivers/mmc/core/sdio_cis.c~sdio-rework-cis-tuple-parsing
-+++ a/drivers/mmc/core/sdio_cis.c
-@@ -97,26 +97,56 @@ static const unsigned char speed_val[16]
- static const unsigned int speed_unit[8] =
- 	{ 10000, 100000, 1000000, 10000000, 0, 0, 0, 0 };
- 
--/* FUNCE tuples with these types get passed to SDIO drivers */
--static const unsigned char funce_type_whitelist[] = {
--	4 /* CISTPL_FUNCE_LAN_NODE_ID used in Broadcom cards */
+diff -puN Documentation/hwmon/lis3lv02d~lis3-update-documentation-and-c=
+omments Documentation/hwmon/lis3lv02d
+--- a/Documentation/hwmon/lis3lv02d~lis3-update-documentation-and-comme=
+nts
++++ a/Documentation/hwmon/lis3lv02d
+@@ -3,7 +3,8 @@ Kernel driver lis3lv02d
+=20
+ Supported chips:
+=20
+-  * STMicroelectronics LIS3LV02DL and LIS3LV02DQ
++  * STMicroelectronics LIS3LV02DL, LIS3LV02DQ (12 bits precision)
++  * STMicroelectronics LIS302DL, LIS3L02DQ, LIS331DL (8 bits)
+=20
+ Authors:
+         Yan Burman <burman.yan@gmail.com>
+@@ -13,13 +14,12 @@ Authors:
+ Description
+ -----------
+=20
+-This driver provides support for the accelerometer found in various HP
+-laptops sporting the feature officially called "HP Mobile Data
+-Protection System 3D" or "HP 3D DriveGuard". It detects automatically
+-laptops with this sensor. Known models (for now the HP 2133, nc6420,
+-nc2510, nc8510, nc84x0, nw9440 and nx9420) will have their axis
+-automatically oriented on standard way (eg: you can directly play
+-neverball).  The accelerometer data is readable via
++This driver provides support for the accelerometer found in various HP=
+ laptops
++sporting the feature officially called "HP Mobile Data Protection Syst=
+em 3D" or
++"HP 3D DriveGuard". It detects automatically laptops with this sensor.=
+ Known
++models (full list can be found in drivers/hwmon/hp_accel.c) will have =
+their
++axis automatically oriented on standard way (eg: you can directly play
++neverball). The accelerometer data is readable via
+ /sys/devices/platform/lis3lv02d.
+=20
+ Sysfs attributes under /sys/devices/platform/lis3lv02d/:
+@@ -33,12 +33,16 @@ rate - reports the sampling rate of the=20
+ This driver also provides an absolute input class device, allowing
+ the laptop to act as a pinball machine-esque joystick.
+=20
++On HP laptops, if the led infrastructure is activated, support for a l=
+ed
++indicating disk protection will be provided as /sys/class/leds/hp::hdd=
+protect.
 +
-+typedef int (tpl_parse_t)(struct mmc_card *, struct sdio_func *,
-+			   const unsigned char *, unsigned);
-+
-+struct cis_tpl {
-+	unsigned char code;
-+	unsigned char min_size;
-+	tpl_parse_t *parse;
+ Another feature of the driver is misc device called "freefall" that
+ acts similar to /dev/rtc and reacts on free-fall interrupts received
+ from the device. It supports blocking operations, poll/select and
+ fasync operation modes. You must read 1 bytes from the device.  The
+ result is number of free-fall interrupts since the last successful
+-read (or 255 if number of interrupts would not fit).
++read (or 255 if number of interrupts would not fit). See the hpfall.c
++file for an example on using the device.
+=20
+=20
+ Axes orientation
+@@ -55,7 +59,7 @@ the accelerometer are converted into a "
+  * If the laptop is put upside-down, Z becomes negative
+=20
+ If your laptop model is not recognized (cf "dmesg"), you can send an
+-email to the authors to add it to the database.  When reporting a new
++email to the maintainer to add it to the database.  When reporting a n=
+ew
+ laptop, please include the output of "dmidecode" plus the value of
+ /sys/devices/platform/lis3lv02d/position in these four cases.
+=20
+diff -puN drivers/hwmon/Kconfig~lis3-update-documentation-and-comments =
+drivers/hwmon/Kconfig
+--- a/drivers/hwmon/Kconfig~lis3-update-documentation-and-comments
++++ a/drivers/hwmon/Kconfig
+@@ -1073,25 +1073,27 @@ config SENSORS_ATK0110
+ 	  will be called asus_atk0110.
+=20
+ config SENSORS_LIS3LV02D
+-	tristate "STMicroeletronics LIS3LV02Dx three-axis digital acceleromet=
+er"
++	tristate "STMicroeletronics LIS3* three-axis digital accelerometer"
+ 	depends on INPUT
+ 	select INPUT_POLLDEV
+ 	select NEW_LEDS
+ 	select LEDS_CLASS
+ 	default n
+ 	help
+-	  This driver provides support for the LIS3LV02Dx accelerometer. In
+-	  particular, it can be found in a number of HP laptops, which have t=
+he
+-	  "Mobile Data Protection System 3D" or "3D DriveGuard" feature. On s=
+uch
+-	  systems the driver should load automatically (via ACPI). The
+-	  accelerometer might also be found in other systems, connected via S=
+PI
+-	  or I2C.  The accelerometer data is readable via
+-	  /sys/devices/platform/lis3lv02d.
++	  This driver provides support for the LIS3* accelerometers, such as =
+the
++	  LIS3LV02DL or the LIS331DL. In particular, it can be found in a num=
+ber
++	  of HP laptops, which have the "Mobile Data Protection System 3D" or
++	  "3D DriveGuard" feature. On such systems the driver should load
++	  automatically (via ACPI alias). The accelerometer might also be fou=
+nd
++	  in other systems, connected via SPI or I2C. The accelerometer data =
+is
++	  readable via /sys/devices/platform/lis3lv02d.
+=20
+ 	  This driver also provides an absolute input class device, allowing
+-	  the laptop to act as a pinball machine-esque joystick. On HP laptop=
+s,
++	  a laptop to act as a pinball machine-esque joystick. It provides al=
+so
++	  a misc device which can be used to detect free-fall. On HP laptops,
+ 	  if the led infrastructure is activated, support for a led indicatin=
+g
+-	  disk protection will be provided as hp:red:hddprotection.
++	  disk protection will be provided as hp::hddprotect. For more
++	  information on the feature, refer to Documentation/hwmon/lis3lv02d.
+=20
+ 	  This driver can also be built as modules.  If so, the core module
+ 	  will be called lis3lv02d and a specific module for HP laptops will =
+be
+diff -puN drivers/hwmon/lis3lv02d.c~lis3-update-documentation-and-comme=
+nts drivers/hwmon/lis3lv02d.c
+--- a/drivers/hwmon/lis3lv02d.c~lis3-update-documentation-and-comments
++++ a/drivers/hwmon/lis3lv02d.c
+@@ -43,7 +43,7 @@
+ #define MDPS_POLL_INTERVAL 50
+ /*
+  * The sensor can also generate interrupts (DRDY) but it's pretty poin=
+tless
+- * because their are generated even if the data do not change. So it's=
+ better
++ * because they are generated even if the data do not change. So it's =
+better
+  * to keep the interrupt for the free-fall event. The values are updat=
+ed at
+  * 40Hz (at the lowest frequency), but as it can be pretty time consum=
+ing on
+  * some low processor, we poll the sensor only at 20Hz... enough for t=
+he
+@@ -65,7 +65,7 @@ static s16 lis3lv02d_read_8(struct lis3l
+ 	return lo;
+ }
+=20
+-static s16 lis3lv02d_read_16(struct lis3lv02d *lis3, int reg)
++static s16 lis3lv02d_read_12(struct lis3lv02d *lis3, int reg)
+ {
+ 	u8 lo, hi;
+=20
+@@ -411,20 +411,20 @@ EXPORT_SYMBOL_GPL(lis3lv02d_remove_fs);
+=20
+ /*
+  * Initialise the accelerometer and the various subsystems.
+- * Should be rather independant of the bus system.
++ * Should be rather independent of the bus system.
+  */
+ int lis3lv02d_init_device(struct lis3lv02d *dev)
+ {
+ 	dev->whoami =3D lis3lv02d_read_8(dev, WHO_AM_I);
+=20
+ 	switch (dev->whoami) {
+-	case LIS_DOUBLE_ID:
+-		printk(KERN_INFO DRIVER_NAME ": 2-byte sensor found\n");
+-		dev->read_data =3D lis3lv02d_read_16;
++	case WAI_12B:
++		printk(KERN_INFO DRIVER_NAME ": 12 bits sensor found\n");
++		dev->read_data =3D lis3lv02d_read_12;
+ 		dev->mdps_max_val =3D 2048;
+ 		break;
+-	case LIS_SINGLE_ID:
+-		printk(KERN_INFO DRIVER_NAME ": 1-byte sensor found\n");
++	case WAI_8B:
++		printk(KERN_INFO DRIVER_NAME ": 8 bits sensor found\n");
+ 		dev->read_data =3D lis3lv02d_read_8;
+ 		dev->mdps_max_val =3D 128;
+ 		break;
+@@ -445,7 +445,7 @@ int lis3lv02d_init_device(struct lis3lv0
+ 	if (dev->pdata) {
+ 		struct lis3lv02d_platform_data *p =3D dev->pdata;
+=20
+-		if (p->click_flags && (dev->whoami =3D=3D LIS_SINGLE_ID)) {
++		if (p->click_flags && (dev->whoami =3D=3D WAI_8B)) {
+ 			dev->write(dev, CLICK_CFG, p->click_flags);
+ 			dev->write(dev, CLICK_TIMELIMIT, p->click_time_limit);
+ 			dev->write(dev, CLICK_LATENCY, p->click_latency);
+@@ -456,7 +456,7 @@ int lis3lv02d_init_device(struct lis3lv0
+ 					(p->click_thresh_y << 4));
+ 		}
+=20
+-		if (p->wakeup_flags && (dev->whoami =3D=3D LIS_SINGLE_ID)) {
++		if (p->wakeup_flags && (dev->whoami =3D=3D WAI_8B)) {
+ 			dev->write(dev, FF_WU_CFG_1, p->wakeup_flags);
+ 			dev->write(dev, FF_WU_THS_1, p->wakeup_thresh & 0x7f);
+ 			/* default to 2.5ms for now */
+diff -puN drivers/hwmon/lis3lv02d.h~lis3-update-documentation-and-comme=
+nts drivers/hwmon/lis3lv02d.h
+--- a/drivers/hwmon/lis3lv02d.h~lis3-update-documentation-and-comments
++++ a/drivers/hwmon/lis3lv02d.h
+@@ -2,7 +2,7 @@
+  *  lis3lv02d.h - ST LIS3LV02DL accelerometer driver
+  *
+  *  Copyright (C) 2007-2008 Yan Burman
+- *  Copyright (C) 2008 Eric Piel
++ *  Copyright (C) 2008-2009 Eric Piel
+  *
+  *  This program is free software; you can redistribute it and/or modi=
+fy
+  *  it under the terms of the GNU General Public License as published =
+by
+@@ -22,20 +22,18 @@
+ #include <linux/input-polldev.h>
+=20
+ /*
+- * The actual chip is STMicroelectronics LIS3LV02DL or LIS3LV02DQ that=
+ seems to
+- * be connected via SPI. There exists also several similar chips (such=
+ as LIS302DL or
+- * LIS3L02DQ) and they have slightly different registers, but we can p=
+rovide a
+- * common interface for all of them.
+- * They can also be connected via I=C2=B2C.
++ * This driver tries to support the "digital" accelerometer chips from
++ * STMicroelectronics such as LIS3LV02DL, LIS302DL, LIS3L02DQ, LIS331D=
+L,
++ * LIS35DE, or LIS202DL. They are very similar in terms of programming=
+, with
++ * almost the same registers. In addition to differing on physical pro=
+perties,
++ * they differ on the number of axes (2/3), precision (8/12 bits), and=
+ special
++ * features (freefall detection, click...). Unfortunately, not all the
++ * differences can be probed via a register.
++ * They can be connected either via I=C2=B2C or SPI.
+  */
+=20
+ #include <linux/lis3lv02d.h>
+=20
+-/* 2-byte registers */
+-#define LIS_DOUBLE_ID	0x3A /* LIS3LV02D[LQ] */
+-/* 1-byte registers */
+-#define LIS_SINGLE_ID	0x3B /* LIS[32]02DL and others */
+-
+ enum lis3_reg {
+ 	WHO_AM_I	=3D 0x0F,
+ 	OFFSET_X	=3D 0x16,
+@@ -94,6 +92,12 @@ enum lis3lv02d_reg {
+ 	DD_THSE_H	=3D 0x3F,
  };
- 
--static int cistpl_funce_whitelisted(unsigned char type)
-+static int cis_tpl_parse(struct mmc_card *card, struct sdio_func *func,
-+			 const char *tpl_descr,
-+			 const struct cis_tpl *tpl, int tpl_count,
-+			 unsigned char code,
-+			 const unsigned char *buf, unsigned size)
- {
--	int i;
-+	int i, ret;
- 
--	for (i = 0; i < ARRAY_SIZE(funce_type_whitelist); i++) {
--		if (funce_type_whitelist[i] == type)
--			return 1;
-+	/* look for a matching code in the table */
-+	for (i = 0; i < tpl_count; i++, tpl++) {
-+		if (tpl->code == code)
-+			break;
- 	}
--	return 0;
-+	if (i < tpl_count) {
-+		if (size >= tpl->min_size) {
-+			if (tpl->parse)
-+				ret = tpl->parse(card, func, buf, size);
-+			else
-+				ret = -EILSEQ;	/* known tuple, not parsed */
-+		} else {
-+			/* invalid tuple */
-+			ret = -EINVAL;
-+		}
-+		if (ret && ret != -EILSEQ && ret != -ENOENT) {
-+			printk(KERN_ERR "%s: bad %s tuple 0x%02x (%u bytes)\n",
-+			       mmc_hostname(card->host), tpl_descr, code, size);
-+		}
-+	} else {
-+		/* unknown tuple */
-+		ret = -ENOENT;
-+	}
-+
-+	return ret;
- }
- 
--static int cistpl_funce_common(struct mmc_card *card,
-+static int cistpl_funce_common(struct mmc_card *card, struct sdio_func *func,
- 			       const unsigned char *buf, unsigned size)
- {
--	if (size < 0x04 || buf[0] != 0)
-+	/* Only valid for the common CIS (function 0) */
-+	if (func)
- 		return -EINVAL;
- 
- 	/* TPLFE_FN0_BLK_SIZE */
-@@ -129,20 +159,24 @@ static int cistpl_funce_common(struct mm
- 	return 0;
- }
- 
--static int cistpl_funce_func(struct sdio_func *func,
-+static int cistpl_funce_func(struct mmc_card *card, struct sdio_func *func,
- 			     const unsigned char *buf, unsigned size)
- {
- 	unsigned vsn;
- 	unsigned min_size;
- 
--	/* let SDIO drivers take care of whitelisted FUNCE tuples */
--	if (cistpl_funce_whitelisted(buf[0]))
--		return -EILSEQ;
-+	/* Only valid for the individual function's CIS (1-7) */
-+	if (!func)
-+		return -EINVAL;
- 
-+	/*
-+	 * This tuple has a different length depending on the SDIO spec
-+	 * version.
-+	 */
- 	vsn = func->card->cccr.sdio_vsn;
- 	min_size = (vsn == SDIO_SDIO_REV_1_00) ? 28 : 42;
- 
--	if (size < min_size || buf[0] != 1)
-+	if (size < min_size)
- 		return -EINVAL;
- 
- 	/* TPLFE_MAX_BLK_SIZE */
-@@ -157,39 +191,32 @@ static int cistpl_funce_func(struct sdio
- 	return 0;
- }
- 
-+/*
-+ * Known TPLFE_TYPEs table for CISTPL_FUNCE tuples.
-+ *
-+ * Note that, unlike PCMCIA, CISTPL_FUNCE tuples are not parsed depending
-+ * on the TPLFID_FUNCTION value of the previous CISTPL_FUNCID as on SDIO
-+ * TPLFID_FUNCTION is always hardcoded to 0x0C.
-+ */
-+static const struct cis_tpl cis_tpl_funce_list[] = {
-+	{	0x00,	4,	cistpl_funce_common		},
-+	{	0x01,	0,	cistpl_funce_func		},
-+	{	0x04,	1+1+6,	/* CISTPL_FUNCE_LAN_NODE_ID */	},
+=20
++enum lis3_who_am_i {
++	WAI_12B		=3D 0x3A, /* 12 bits: LIS3LV02D[LQ]... */
++	WAI_8B		=3D 0x3B, /* 8 bits: LIS[23]02D[LQ]... */
++	WAI_6B		=3D 0x52, /* 6 bits: LIS331DLF - not supported */
 +};
 +
- static int cistpl_funce(struct mmc_card *card, struct sdio_func *func,
- 			const unsigned char *buf, unsigned size)
- {
--	int ret;
--
--	/*
--	 * There should be two versions of the CISTPL_FUNCE tuple,
--	 * one for the common CIS (function 0) and a version used by
--	 * the individual function's CIS (1-7). Yet, the later has a
--	 * different length depending on the SDIO spec version.
--	 */
--	if (func)
--		ret = cistpl_funce_func(func, buf, size);
--	else
--		ret = cistpl_funce_common(card, buf, size);
--
--	if (ret && ret != -EILSEQ) {
--		printk(KERN_ERR "%s: bad CISTPL_FUNCE size %u "
--		       "type %u\n", mmc_hostname(card->host), size, buf[0]);
--	}
-+	if (size < 1)
-+		return -EINVAL;
- 
--	return ret;
-+	return cis_tpl_parse(card, func, "CISTPL_FUNCE",
-+			     cis_tpl_funce_list,
-+			     ARRAY_SIZE(cis_tpl_funce_list),
-+			     buf[0], buf, size);
- }
- 
--typedef int (tpl_parse_t)(struct mmc_card *, struct sdio_func *,
--			   const unsigned char *, unsigned);
--
--struct cis_tpl {
--	unsigned char code;
--	unsigned char min_size;
--	tpl_parse_t *parse;
--};
--
-+/* Known TPL_CODEs table for CIS tuples */
- static const struct cis_tpl cis_tpl_list[] = {
- 	{	0x15,	3,	cistpl_vers_1		},
- 	{	0x20,	4,	cistpl_manfid		},
-@@ -268,46 +295,38 @@ static int sdio_read_cis(struct mmc_card
- 			break;
- 		}
- 
--		for (i = 0; i < ARRAY_SIZE(cis_tpl_list); i++)
--			if (cis_tpl_list[i].code == tpl_code)
--				break;
--		if (i < ARRAY_SIZE(cis_tpl_list)) {
--			const struct cis_tpl *tpl = cis_tpl_list + i;
--			if (tpl_link < tpl->min_size) {
--				printk(KERN_ERR
--				       "%s: bad CIS tuple 0x%02x"
--				       " (length = %u, expected >= %u)\n",
--				       mmc_hostname(card->host),
--				       tpl_code, tpl_link, tpl->min_size);
--				ret = -EINVAL;
--			} else if (tpl->parse) {
--				ret = tpl->parse(card, func,
--						 this->data, tpl_link);
--			}
-+		/* Try to parse the CIS tuple */
-+		ret = cis_tpl_parse(card, func, "CIS",
-+				    cis_tpl_list, ARRAY_SIZE(cis_tpl_list),
-+				    tpl_code, this->data, tpl_link);
-+		if (ret == -EILSEQ || ret == -ENOENT) {
- 			/*
--			 * We don't need the tuple anymore if it was
--			 * successfully parsed by the SDIO core or if it is
--			 * not going to be parsed by SDIO drivers.
-+			 * The tuple is unknown or known but not parsed.
-+			 * Queue the tuple for the function driver.
- 			 */
--			if (!ret || ret != -EILSEQ)
--				kfree(this);
--		} else {
--			/* unknown tuple */
--			ret = -EILSEQ;
--		}
--
--		if (ret == -EILSEQ) {
--			/* this tuple is unknown to the core or whitelisted */
- 			this->next = NULL;
- 			this->code = tpl_code;
- 			this->size = tpl_link;
- 			*prev = this;
- 			prev = &this->next;
--			printk(KERN_DEBUG
--			       "%s: queuing CIS tuple 0x%02x length %u\n",
--			       mmc_hostname(card->host), tpl_code, tpl_link);
-+
-+			if (ret == -ENOENT) {
-+				/* warn about unknown tuples */
-+				printk(KERN_WARNING "%s: queuing unknown"
-+				       " CIS tuple 0x%02x (%u bytes)\n",
-+				       mmc_hostname(card->host),
-+				       tpl_code, tpl_link);
-+			}
-+
- 			/* keep on analyzing tuples */
- 			ret = 0;
-+		} else {
-+			/*
-+			 * We don't need the tuple anymore if it was
-+			 * successfully parsed by the SDIO core or if it is
-+			 * not going to be queued for a driver.
-+			 */
-+			kfree(this);
- 		}
- 
- 		ptr += tpl_link;
+ enum lis3lv02d_ctrl1 {
+ 	CTRL1_Xen	=3D 0x01,
+ 	CTRL1_Yen	=3D 0x02,
+@@ -194,7 +198,7 @@ struct lis3lv02d {
+ 	int (*write) (struct lis3lv02d *lis3, int reg, u8 val);
+ 	int (*read) (struct lis3lv02d *lis3, int reg, u8 *ret);
+=20
+-	u8			whoami;    /* 3Ah: 2-byte registries, 3Bh: 1-byte registries */
++	u8			whoami;    /* indicates measurement precision */
+ 	s16 (*read_data) (struct lis3lv02d *lis3, int reg);
+ 	int			mdps_max_val;
+=20
 _
 
-Patches currently in -mm which might be from albert_herranz@yahoo.es are
+Patches currently in -mm which might be from eric.piel@tremplin-utc.net=
+ are
 
 origin.patch
-linux-next.patch
-sdio-recognize-io-card-without-powercycle.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
