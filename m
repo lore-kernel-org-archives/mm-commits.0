@@ -1,308 +1,219 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] lis3lv02d-i2c-support.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 13:45:57 -0800
-Message-ID: <200912152145.nBFLjvhH014693@imap1.linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Tue, 15 Dec 2009 13:48:15 -0800
+Message-ID: <200912152148.nBFLmFp2014839@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54860 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51197 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752263AbZLOVrP (ORCPT
+	by vger.kernel.org with ESMTP id S932817AbZLOVsq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 16:47:15 -0500
+	Tue, 15 Dec 2009 16:48:46 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id nBFLmFOS003007
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 15 Dec 2009 13:48:16 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: samu.p.onkalo@nokia.com, eric.piel@tremplin-utc.net, kalhan.trisal@intel.com, khali@linux-fr.org, pavel@ucw.cz, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     lis3lv02d: I2C support
-has been removed from the -mm tree.  Its filename was
-     lis3lv02d-i2c-support.patch
+     linux-next-git-rejects
+has been added to the -mm tree.  Its filename is
+     linux-next-git-rejects.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
+
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lis3lv02d: I2C support
-=46rom: Samu Onkalo <samu.p.onkalo@nokia.com>
+Subject: linux-next-git-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
 
-I2C bus support for lis3lv02d and variant accelerometer chips
-
-Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
-Acked-by: =C9ric Piel <eric.piel@tremplin-utc.net>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc:  "Trisal, Kalhan" <kalhan.trisal@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/Kconfig         |   17 ++
- drivers/hwmon/Makefile        |    1=20
- drivers/hwmon/lis3lv02d_i2c.c |  184 ++++++++++++++++++++++++++++++++
- 3 files changed, 202 insertions(+)
+ drivers/platform/x86/eeepc-laptop.c |   55 --------------------------
+ kernel/sched_idletask.c             |    5 --
+ mm/memcontrol.c                     |    5 --
+ 3 files changed, 65 deletions(-)
 
-diff -puN drivers/hwmon/Kconfig~lis3lv02d-i2c-support drivers/hwmon/Kco=
-nfig
---- a/drivers/hwmon/Kconfig~lis3lv02d-i2c-support
-+++ a/drivers/hwmon/Kconfig
-@@ -1008,6 +1008,23 @@ config SENSORS_LIS3_SPI
- 	  will be called lis3lv02d and a specific module for the SPI transpor=
-t
- 	  is called lis3lv02d_spi.
-=20
-+config SENSORS_LIS3_I2C
-+	tristate "STMicroeletronics LIS3LV02Dx three-axis digital acceleromet=
-er (I2C)"
-+	depends on I2C && INPUT
-+	select INPUT_POLLDEV
-+	default n
-+	help
-+	  This driver provides support for the LIS3LV02Dx accelerometer conne=
-cted
-+	  via I2C. The accelerometer data is readable via
-+	  /sys/devices/platform/lis3lv02d.
-+
-+	  This driver also provides an absolute input class device, allowing
-+	  the device to act as a pinball machine-esque joystick.
-+
-+	  This driver can also be built as modules.  If so, the core module
-+	  will be called lis3lv02d and a specific module for the I2C transpor=
-t
-+	  is called lis3lv02d_i2c.
-+
- config SENSORS_APPLESMC
- 	tristate "Apple SMC (Motion sensor, light sensor, keyboard backlight)=
-"
- 	depends on INPUT && X86
-diff -puN drivers/hwmon/Makefile~lis3lv02d-i2c-support drivers/hwmon/Ma=
-kefile
---- a/drivers/hwmon/Makefile~lis3lv02d-i2c-support
-+++ a/drivers/hwmon/Makefile
-@@ -55,6 +55,7 @@ obj-$(CONFIG_SENSORS_IT87)	+=3D it87.o
- obj-$(CONFIG_SENSORS_K8TEMP)	+=3D k8temp.o
- obj-$(CONFIG_SENSORS_LIS3LV02D) +=3D lis3lv02d.o hp_accel.o
- obj-$(CONFIG_SENSORS_LIS3_SPI)	+=3D lis3lv02d.o lis3lv02d_spi.o
-+obj-$(CONFIG_SENSORS_LIS3_I2C)	+=3D lis3lv02d.o lis3lv02d_i2c.o
- obj-$(CONFIG_SENSORS_LM63)	+=3D lm63.o
- obj-$(CONFIG_SENSORS_LM70)	+=3D lm70.o
- obj-$(CONFIG_SENSORS_LM73)	+=3D lm73.o
-diff -puN /dev/null drivers/hwmon/lis3lv02d_i2c.c
---- /dev/null
-+++ a/drivers/hwmon/lis3lv02d_i2c.c
-@@ -0,0 +1,184 @@
-+/*
-+ * drivers/hwmon/lis3lv02d_i2c.c
-+ *
-+ * Implements I2C interface for lis3lv02d (STMicroelectronics) acceler=
-ometer.
-+ * Driver is based on corresponding SPI driver written by Daniel Mack
-+ * (lis3lv02d_spi.c (C) 2009 Daniel Mack <daniel@caiaq.de> ).
-+ *
-+ * Copyright (C) 2009 Nokia Corporation and/or its subsidiary(-ies).
-+ *
-+ * Contact: Samu Onkalo <samu.p.onkalo@nokia.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/err.h>
-+#include <linux/i2c.h>
-+#include "lis3lv02d.h"
-+
-+#define DRV_NAME 	"lis3lv02d_i2c"
-+
-+static inline s32 lis3_i2c_write(struct lis3lv02d *lis3, int reg, u8 v=
-alue)
-+{
-+	struct i2c_client *c =3D lis3->bus_priv;
-+	return i2c_smbus_write_byte_data(c, reg, value);
-+}
-+
-+static inline s32 lis3_i2c_read(struct lis3lv02d *lis3, int reg, u8 *v=
-)
-+{
-+	struct i2c_client *c =3D lis3->bus_priv;
-+	*v =3D i2c_smbus_read_byte_data(c, reg);
-+	return 0;
-+}
-+
-+static int lis3_i2c_init(struct lis3lv02d *lis3)
-+{
-+	u8 reg;
-+	int ret;
-+
-+	/* power up the device */
-+	ret =3D lis3->read(lis3, CTRL_REG1, &reg);
-+	if (ret < 0)
-+		return ret;
-+
-+	reg |=3D CTRL1_PD0;
-+	return lis3->write(lis3, CTRL_REG1, reg);
-+}
-+
-+/* Default axis mapping but it can be overwritten by platform data */
-+static struct axis_conversion lis3lv02d_axis_map =3D { LIS3_DEV_X,
-+						     LIS3_DEV_Y,
-+						     LIS3_DEV_Z };
-+
-+static int __devinit lis3lv02d_i2c_probe(struct i2c_client *client,
-+					const struct i2c_device_id *id)
-+{
-+	int ret =3D 0;
-+	struct lis3lv02d_platform_data *pdata =3D client->dev.platform_data;
-+
-+	if (pdata) {
-+		if (pdata->axis_x)
-+			lis3lv02d_axis_map.x =3D pdata->axis_x;
-+
-+		if (pdata->axis_y)
-+			lis3lv02d_axis_map.y =3D pdata->axis_y;
-+
-+		if (pdata->axis_z)
-+			lis3lv02d_axis_map.z =3D pdata->axis_z;
-+
-+		if (pdata->setup_resources)
-+			ret =3D pdata->setup_resources();
-+
-+		if (ret)
-+			goto fail;
-+	}
-+
-+	lis3_dev.pdata	  =3D pdata;
-+	lis3_dev.bus_priv =3D client;
-+	lis3_dev.init	  =3D lis3_i2c_init;
-+	lis3_dev.read	  =3D lis3_i2c_read;
-+	lis3_dev.write	  =3D lis3_i2c_write;
-+	lis3_dev.irq	  =3D client->irq;
-+	lis3_dev.ac	  =3D lis3lv02d_axis_map;
-+
-+	i2c_set_clientdata(client, &lis3_dev);
-+	ret =3D lis3lv02d_init_device(&lis3_dev);
-+fail:
-+	return ret;
-+}
-+
-+static int __devexit lis3lv02d_i2c_remove(struct i2c_client *client)
-+{
-+	struct lis3lv02d *lis3 =3D i2c_get_clientdata(client);
-+	struct lis3lv02d_platform_data *pdata =3D client->dev.platform_data;
-+
-+	if (pdata && pdata->release_resources)
-+		pdata->release_resources();
-+
-+	lis3lv02d_joystick_disable();
-+	lis3lv02d_poweroff(lis3);
-+
-+	return lis3lv02d_remove_fs(&lis3_dev);
-+}
-+
-+#ifdef CONFIG_PM
-+static int lis3lv02d_i2c_suspend(struct i2c_client *client, pm_message=
-_t mesg)
-+{
-+	struct lis3lv02d *lis3 =3D i2c_get_clientdata(client);
-+
-+	if (!lis3->pdata->wakeup_flags)
-+		lis3lv02d_poweroff(lis3);
-+	return 0;
-+}
-+
-+static int lis3lv02d_i2c_resume(struct i2c_client *client)
-+{
-+	struct lis3lv02d *lis3 =3D i2c_get_clientdata(client);
-+
-+	if (!lis3->pdata->wakeup_flags)
-+		lis3lv02d_poweron(lis3);
-+	return 0;
-+}
-+
-+static void lis3lv02d_i2c_shutdown(struct i2c_client *client)
-+{
-+	lis3lv02d_i2c_suspend(client, PMSG_SUSPEND);
-+}
-+#else
-+#define lis3lv02d_i2c_suspend	NULL
-+#define lis3lv02d_i2c_resume	NULL
-+#define lis3lv02d_i2c_shutdown	NULL
-+#endif
-+
-+static const struct i2c_device_id lis3lv02d_id[] =3D {
-+	{"lis3lv02d", 0 },
-+	{}
-+};
-+
-+MODULE_DEVICE_TABLE(i2c, lis3lv02d_id);
-+
-+static struct i2c_driver lis3lv02d_i2c_driver =3D {
-+	.driver	 =3D {
-+		.name   =3D DRV_NAME,
-+		.owner  =3D THIS_MODULE,
-+	},
-+	.suspend =3D lis3lv02d_i2c_suspend,
-+	.shutdown =3D lis3lv02d_i2c_shutdown,
-+	.resume =3D lis3lv02d_i2c_resume,
-+	.probe	=3D lis3lv02d_i2c_probe,
-+	.remove	=3D __devexit_p(lis3lv02d_i2c_remove),
-+	.id_table =3D lis3lv02d_id,
-+};
-+
-+static int __init lis3lv02d_init(void)
-+{
-+	return i2c_add_driver(&lis3lv02d_i2c_driver);
-+}
-+
-+static void __exit lis3lv02d_exit(void)
-+{
-+	i2c_del_driver(&lis3lv02d_i2c_driver);
-+}
-+
-+MODULE_AUTHOR("Nokia Corporation");
-+MODULE_DESCRIPTION("lis3lv02d I2C interface");
-+MODULE_LICENSE("GPL");
-+MODULE_ALIAS("i2c:" DRV_NAME);
-+
-+module_init(lis3lv02d_init);
-+module_exit(lis3lv02d_exit);
+diff -puN drivers/platform/x86/eeepc-laptop.c~linux-next-git-rejects drivers/platform/x86/eeepc-laptop.c
+--- a/drivers/platform/x86/eeepc-laptop.c~linux-next-git-rejects
++++ a/drivers/platform/x86/eeepc-laptop.c
+@@ -120,61 +120,6 @@ static const char *cm_setv[] = {
+ 	NULL, NULL, "PBPS", "TPDS"
+ };
+ 
+-<<<<<<< HEAD:drivers/platform/x86/eeepc-laptop.c
+-#define EEEPC_EC	"\\_SB.PCI0.SBRG.EC0."
+-
+-#define EEEPC_EC_FAN_PWM	EEEPC_EC "SC02" /* Fan PWM duty cycle (%) */
+-#define EEEPC_EC_SC02		0x63
+-#define EEEPC_EC_FAN_HRPM	EEEPC_EC "SC05" /* High byte, fan speed (RPM) */
+-#define EEEPC_EC_FAN_LRPM	EEEPC_EC "SC06" /* Low byte, fan speed (RPM) */
+-#define EEEPC_EC_FAN_CTRL	EEEPC_EC "SFB3" /* Byte containing SF25  */
+-#define EEEPC_EC_SFB3		0xD3
+-
+-/*
+- * This is the main structure, we can use it to store useful information
+- * about the hotk device
+- */
+-struct eeepc_hotk {
+-	struct acpi_device *device;	/* the device we are in */
+-	acpi_handle handle;		/* the handle of the hotk device */
+-	u32 cm_supported;		/* the control methods supported
+-					   by this BIOS */
+-	uint init_flag;			/* Init flags */
+-	u16 event_count[128];		/* count for each event */
+-	struct input_dev *inputdev;
+-	u16 *keycode_map;
+-	struct rfkill *wlan_rfkill;
+-	struct rfkill *bluetooth_rfkill;
+-	struct rfkill *wwan3g_rfkill;
+-	struct rfkill *wimax_rfkill;
+-	struct hotplug_slot *hotplug_slot;
+-	struct mutex hotplug_lock;
+-};
+-
+-/* The actual device the driver binds to */
+-static struct eeepc_hotk *ehotk;
+-
+-/* Platform device/driver */
+-static int eeepc_hotk_thaw(struct device *device);
+-static int eeepc_hotk_restore(struct device *device);
+-
+-static const struct dev_pm_ops eeepc_pm_ops = {
+-	.thaw = eeepc_hotk_thaw,
+-	.restore = eeepc_hotk_restore,
+-};
+-
+-static struct platform_driver platform_driver = {
+-	.driver = {
+-		.name = EEEPC_HOTK_FILE,
+-		.owner = THIS_MODULE,
+-		.pm = &eeepc_pm_ops,
+-	}
+-};
+-
+-static struct platform_device *platform_device;
+-
+-=======
+->>>>>>> FETCH_HEAD:drivers/platform/x86/eeepc-laptop.c
+ struct key_entry {
+ 	char type;
+ 	u8 code;
+diff -puN kernel/sched_idletask.c~linux-next-git-rejects kernel/sched_idletask.c
+--- a/kernel/sched_idletask.c~linux-next-git-rejects
++++ a/kernel/sched_idletask.c
+@@ -34,13 +34,8 @@ static struct task_struct *pick_next_tas
+ static void
+ dequeue_task_idle(struct rq *rq, struct task_struct *p, int sleep)
+ {
+-<<<<<<< HEAD:kernel/sched_idletask.c
+ 	raw_spin_unlock_irq(&rq->lock);
+ 	printk(KERN_ERR "bad: scheduling from the idle thread!\n");
+-=======
+-	spin_unlock_irq(&rq->lock);
+-	pr_err("bad: scheduling from the idle thread!\n");
+->>>>>>> FETCH_HEAD:kernel/sched_idletask.c
+ 	dump_stack();
+ 	raw_spin_lock_irq(&rq->lock);
+ }
+diff -puN mm/memcontrol.c~linux-next-git-rejects mm/memcontrol.c
+--- a/mm/memcontrol.c~linux-next-git-rejects
++++ a/mm/memcontrol.c
+@@ -1744,13 +1744,8 @@ int mem_cgroup_try_charge_swapin(struct 
+ 	 * KSM case which does need to charge the page.
+ 	 */
+ 	if (!PageSwapCache(page))
+-<<<<<<< HEAD:mm/memcontrol.c
+ 		goto charge_cur_mm;
+-	mem = try_get_mem_cgroup_from_swapcache(page);
+-=======
+-		return 0;
+ 	mem = try_get_mem_cgroup_from_page(page);
+->>>>>>> FETCH_HEAD:mm/memcontrol.c
+ 	if (!mem)
+ 		goto charge_cur_mm;
+ 	*ptr = mem;
 _
 
-Patches currently in -mm which might be from samu.p.onkalo@nokia.com ar=
-e
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-lis3lv02d-i2c-support.patch
-lis3lv02d-send-sync-event.patch
-lis3lv02d-correct-memory-leak-in-module-unload.patch
-lis3-update-documentation-and-comments.patch
-lis3-fix-show-rate-for-8-bits-chips.patch
-lis3lv02d-proper-power-on-sequence.patch
-lis3-selftest-support.patch
-lis3lv02d-remove-calibaration-functionality.patch
-lis3-sysfs-entry-for-setting-chip-measurement-rate.patch
-lis3-scale-output-values-to-mg.patch
-lis3-update-documentation-to-match-latest-changes.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
+drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+acpi-remove-nid_inval.patch
+drivers-acpi-acpi_padc-squish-warning.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices-checkpatch-fixes.patch
+drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
+drivers-media-video-pmsc-needs-versionh.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+drivers-leds-leds-ss4200c-fix-return-statement.patch
+net-sctp-socketc-fix-warning.patch
+proc_fops-convert-drivers-isdn-to-seq_file-fix2.patch
+3x59x-fix-pci-resource-management.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+fs-ext4-superc-fix-printk-warning.patch
+atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
+scsi-aacraid-fix-memory-leak-checkpatch-fixes.patch
+aoe-switch-to-the-new-bio_flush_dcache_pages-interface.patch
+fs-improve-remountro-vs-buffercache-coherency.patch
+drivers-net-wireless-iwlwifi-iwl-txc-fix-gcc-345-warning.patch
+percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+readahead-add-blk_run_backing_dev.patch
+oom-kill-fix-numa-consraint-check-with-nodemask-v42.patch
+ksm-memory-hotremove-migration-only-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+spi-controller-driver-for-designware-spi-core.patch
+spidev-use-declare_bitmap-instead-of-declaring-the-array.patch
+gpiolib-add-names-file-in-gpio-chip-sysfs.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3.patch
+ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
+memcg-coalesce-charging-via-percpu-storage-fix.patch
+memcg-code-cleanrm-unused-variable-in-mem_cgroup_resize_limit-cleanup.patch
+ipc-remove-unreachable-code-in-semc-fix.patch
+char-cyclades-fix-compiler-warning.patch
+fs-cache-avoid-maybe-used-uninitialised-warning-on-variable.patch
+aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
+direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
+drivers-media-video-cx23885-needs-kfifo-conversion.patch
+drivers-media-video-cx23885-needs-kfifo-updates.patch
+revert-tty-sdio_uart-use-kfifo-instead-of-the-messy-circ-stuff.patch
+kfifo-move-struct-kfifo-in-place-fix.patch
+zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes.patch
+lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes.patch
+lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
