@@ -1,76 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: + cs5535-add-a-generic-mfgpt-driver-fix.patch added to -mm tree
-Date: Mon, 14 Dec 2009 16:08:36 -0800
-Message-ID: <200912150032.nBF0Wst8020379@imap1.linux-foundation.org>
+Subject: [folded] mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 14 Dec 2009 16:55:33 -0800
+Message-ID: <200912150055.nBF0tY3h013968@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35979 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47571 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750793AbZLOAdY (ORCPT
+	by vger.kernel.org with ESMTP id S1756625AbZLOAzn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Dec 2009 19:33:24 -0500
+	Mon, 14 Dec 2009 19:55:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, cjb@laptop.org, dilinger@collabora.co.uk, johnstul@us.ibm.com, jordan@cosmicpenguin.net, mingo@elte.hu, tglx@linutronix.de
+To: akpm@linux-foundation.org, hugh.dickins@tiscali.co.uk, kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cs5535-add-a-generic-mfgpt-driver-fix
-has been added to the -mm tree.  Its filename is
-     cs5535-add-a-generic-mfgpt-driver-fix.patch
+     mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cs5535-add-a-generic-mfgpt-driver-fix
+Subject: mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-sparc64 allmodconfig:
+ERROR: "foo * bar" should be "foo *bar"
+#116: FILE: mm/mmap.c:1835:
++static int __split_vma(struct mm_struct * mm, struct vm_area_struct * vma,
 
-drivers/misc/cs5535-mfgpt.c: In function `cs5535_mfgpt_toggle_event':
-drivers/misc/cs5535-mfgpt.c:84: error: implicit declaration of function `rdmsr'
-drivers/misc/cs5535-mfgpt.c:91: error: implicit declaration of function `wrmsr'
+ERROR: "foo * bar" should be "foo *bar"
+#138: FILE: mm/mmap.c:1888:
++int split_vma(struct mm_struct * mm, struct vm_area_struct * vma,
 
-Signed-off-by: Andres Salomon <dilinger@collabora.co.uk>
-Cc: Jordan Crouse <jordan@cosmicpenguin.net>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: Chris Ball <cjb@laptop.org>
+total: 2 errors, 0 warnings, 67 lines checked
+
+./patches/mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ mm/mmap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/misc/Kconfig~cs5535-add-a-generic-mfgpt-driver-fix drivers/misc/Kconfig
---- a/drivers/misc/Kconfig~cs5535-add-a-generic-mfgpt-driver-fix
-+++ a/drivers/misc/Kconfig
-@@ -190,6 +190,7 @@ config SGI_XP
- config CS5535_MFGPT
- 	tristate "CS5535/CS5536 Geode Multi-Function General Purpose Timer (MFGPT) support"
- 	depends on PCI && !MGEODE_LX
-+	depends on X86
- 	default n
- 	help
- 	  This driver provides access to MFGPT functionality for other
+diff -puN mm/mmap.c~mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes mm/mmap.c
+--- a/mm/mmap.c~mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes
++++ a/mm/mmap.c
+@@ -1882,7 +1882,7 @@ static int __split_vma(struct mm_struct 
+  * Split a vma into two pieces at address 'addr', a new vma is allocated
+  * either for the first part or the tail.
+  */
+-int split_vma(struct mm_struct * mm, struct vm_area_struct * vma,
++int split_vma(struct mm_struct *mm, struct vm_area_struct *vma,
+ 	      unsigned long addr, int new_below)
+ {
+ 	if (mm->map_count >= sysctl_max_map_count)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap.patch
 mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap-checkpatch-fixes.patch
 dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix.patch
 dev-mem-cleanup-unxlate_dev_mem_ptr-calls-fix-fix.patch
