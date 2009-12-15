@@ -1,59 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [folded] errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch removed from -mm tree
-Date: Mon, 14 Dec 2009 17:09:05 -0800
-Message-ID: <200912150109.nBF195Oo016546@imap1.linux-foundation.org>
+Subject: [folded] cs5535-add-a-generic-mfgpt-driver-fix.patch removed from -mm tree
+Date: Mon, 14 Dec 2009 17:09:38 -0800
+Message-ID: <200912150109.nBF19c1L018021@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49524 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48076 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758143AbZLOBJJ (ORCPT
+	by vger.kernel.org with ESMTP id S1758331AbZLOBKK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Dec 2009 20:09:09 -0500
+	Mon, 14 Dec 2009 20:10:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ext-phil.2.carmody@nokia.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, cjb@laptop.org, dilinger@collabora.co.uk, johnstul@us.ibm.com, jordan@cosmicpenguin.net, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     errh-add-helper-function-to-simplify-pointer-error-checking-fix
+     cs5535-add-a-generic-mfgpt-driver-fix
 has been removed from the -mm tree.  Its filename was
-     errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
+     cs5535-add-a-generic-mfgpt-driver-fix.patch
 
-This patch was dropped because it was folded into errh-add-helper-function-to-simplify-pointer-error-checking.patch
+This patch was dropped because it was folded into cs5535-add-a-generic-mfgpt-driver.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: errh-add-helper-function-to-simplify-pointer-error-checking-fix
+Subject: cs5535-add-a-generic-mfgpt-driver-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-/usr/src/devel/arch/x86/Makefile:82: stack protector enabled but no compiler support
-/usr/src/devel/arch/x86/Makefile:82: stack protector enabled but no compiler support
-In file included from crypto/api.c:18:
-include/linux/err.h: In function 'IS_ERR_OR_NULL':
-include/linux/err.h:39: error: 'NULL' undeclared (first use in this function)
-include/linux/err.h:39: error: (Each undeclared identifier is reported only once
-include/linux/err.h:39: error: for each function it appears in.)
+sparc64 allmodconfig:
 
-Cc: Phil Carmody <ext-phil.2.carmody@nokia.com>
+drivers/misc/cs5535-mfgpt.c: In function `cs5535_mfgpt_toggle_event':
+drivers/misc/cs5535-mfgpt.c:84: error: implicit declaration of function `rdmsr'
+drivers/misc/cs5535-mfgpt.c:91: error: implicit declaration of function `wrmsr'
+
+Signed-off-by: Andres Salomon <dilinger@collabora.co.uk>
+Cc: Jordan Crouse <jordan@cosmicpenguin.net>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Chris Ball <cjb@laptop.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/err.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/misc/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/err.h~errh-add-helper-function-to-simplify-pointer-error-checking-fix include/linux/err.h
---- a/include/linux/err.h~errh-add-helper-function-to-simplify-pointer-error-checking-fix
-+++ a/include/linux/err.h
-@@ -36,7 +36,7 @@ static inline long IS_ERR(const void *pt
- 
- static inline long IS_ERR_OR_NULL(const void *ptr)
- {
--	return (ptr == NULL) || IS_ERR_VALUE((unsigned long)ptr);
-+	return !ptr || IS_ERR_VALUE((unsigned long)ptr);
- }
- 
- /**
+diff -puN drivers/misc/Kconfig~cs5535-add-a-generic-mfgpt-driver-fix drivers/misc/Kconfig
+--- a/drivers/misc/Kconfig~cs5535-add-a-generic-mfgpt-driver-fix
++++ a/drivers/misc/Kconfig
+@@ -190,6 +190,7 @@ config SGI_XP
+ config CS5535_MFGPT
+ 	tristate "CS5535/CS5536 Geode Multi-Function General Purpose Timer (MFGPT) support"
+ 	depends on PCI && !MGEODE_LX
++	depends on X86
+ 	default n
+ 	help
+ 	  This driver provides access to MFGPT functionality for other
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -71,7 +73,7 @@ floppy-add-an-extra-bound-check-on-ioctl-arguments.patch
 rwsem-fix-rwsem_is_locked-bugs.patch
 kernelh-add-printk_ratelimited-and-pr_level_rl.patch
 errh-add-helper-function-to-simplify-pointer-error-checking.patch
-errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
+cs5535-add-a-generic-mfgpt-driver.patch
 cs5535-add-a-generic-mfgpt-driver-fix.patch
 cs5535-add-a-generic-clock-event-mfgpt-driver-fix.patch
 drivers-scsi-sym53c8xx_2-sym_gluec-rename-skip_spaces-to-sym_skip_spaces.patch
