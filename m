@@ -1,167 +1,234 @@
 From: akpm@linux-foundation.org
-Subject: [merged] swap_info-private-to-swapfilec.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 13:51:33 -0800
-Message-ID: <200912152151.nBFLpXLr015117@imap1.linux-foundation.org>
+Subject: [merged] swap_info-include-first_swap_extent.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 13:51:39 -0800
+Message-ID: <200912152151.nBFLpdOq015124@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42680 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43232 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933962AbZLOWSt (ORCPT
+	by vger.kernel.org with ESMTP id S934007AbZLOWSt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 15 Dec 2009 17:18:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh.dickins@tiscali.co.uk, kamezawa.hiroyu@jp.fujitsu.com, ncunningham@crca.org.au, riel@redhat.com, mm-commits@vger.kernel.org
+To: hugh.dickins@tiscali.co.uk, jirislaby@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     swap_info: private to swapfile.c
+     swap_info: include first_swap_extent
 has been removed from the -mm tree.  Its filename was
-     swap_info-private-to-swapfilec.patch
+     swap_info-include-first_swap_extent.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: swap_info: private to swapfile.c
+Subject: swap_info: include first_swap_extent
 From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
-The swap_info_struct is mostly private to mm/swapfile.c, with only
-one other in-tree user: get_swap_bio().  Adjust its interface to
-map_swap_page(), so that we can then remove get_swap_info_struct().
+Make better use of the space by folding first swap_extent into its
+swap_info_struct, instead of just the list_head: swap partitions need
+only that one, and for others it's used as a circular list anyway.
 
-But there is a popular user out-of-tree, TuxOnIce: so leave the
-declaration of swap_info_struct in linux/swap.h.
-
+[jirislaby@gmail.com: fix crash on double swapon]
 Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Cc: Nigel Cunningham <ncunningham@crca.org.au>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Reviewed-by: Rik van Riel <riel@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    3 +--
- mm/page_io.c         |   19 +++++++------------
- mm/swapfile.c        |   29 +++++++++++++++++------------
- 3 files changed, 25 insertions(+), 26 deletions(-)
+ include/linux/swap.h |    2 -
+ mm/swapfile.c        |   72 +++++++++++++++++++++--------------------
+ 2 files changed, 38 insertions(+), 36 deletions(-)
 
-diff -puN include/linux/swap.h~swap_info-private-to-swapfilec include/linux/swap.h
---- a/include/linux/swap.h~swap_info-private-to-swapfilec
+diff -puN include/linux/swap.h~swap_info-include-first_swap_extent include/linux/swap.h
+--- a/include/linux/swap.h~swap_info-include-first_swap_extent
 +++ a/include/linux/swap.h
-@@ -318,9 +318,8 @@ extern void swapcache_free(swp_entry_t, 
- extern int free_swap_and_cache(swp_entry_t);
- extern int swap_type_of(dev_t, sector_t, struct block_device **);
- extern unsigned int count_swap_pages(int, int);
--extern sector_t map_swap_page(struct swap_info_struct *, pgoff_t);
-+extern sector_t map_swap_page(swp_entry_t, struct block_device **);
- extern sector_t swapdev_block(int, pgoff_t);
--extern struct swap_info_struct *get_swap_info_struct(unsigned);
- extern int reuse_swap_page(struct page *);
- extern int try_to_free_swap(struct page *);
- struct backing_dev_info;
-diff -puN mm/page_io.c~swap_info-private-to-swapfilec mm/page_io.c
---- a/mm/page_io.c~swap_info-private-to-swapfilec
-+++ a/mm/page_io.c
-@@ -19,20 +19,17 @@
- #include <linux/writeback.h>
- #include <asm/pgtable.h>
- 
--static struct bio *get_swap_bio(gfp_t gfp_flags, pgoff_t index,
-+static struct bio *get_swap_bio(gfp_t gfp_flags,
- 				struct page *page, bio_end_io_t end_io)
+@@ -165,7 +165,7 @@ struct swap_info_struct {
+ 	signed char	next;		/* next type on the swap list */
+ 	struct file *swap_file;
+ 	struct block_device *bdev;
+-	struct list_head extent_list;
++	struct swap_extent first_swap_extent;
+ 	struct swap_extent *curr_swap_extent;
+ 	unsigned short *swap_map;
+ 	unsigned int lowest_bit;
+diff -puN mm/swapfile.c~swap_info-include-first_swap_extent mm/swapfile.c
+--- a/mm/swapfile.c~swap_info-include-first_swap_extent
++++ a/mm/swapfile.c
+@@ -145,23 +145,28 @@ void swap_unplug_io_fn(struct backing_de
+ static int discard_swap(struct swap_info_struct *si)
  {
- 	struct bio *bio;
+ 	struct swap_extent *se;
++	sector_t start_block;
++	sector_t nr_blocks;
+ 	int err = 0;
  
- 	bio = bio_alloc(gfp_flags, 1);
- 	if (bio) {
--		struct swap_info_struct *sis;
--		swp_entry_t entry = { .val = index, };
+-	list_for_each_entry(se, &si->extent_list, list) {
+-		sector_t start_block = se->start_block << (PAGE_SHIFT - 9);
+-		sector_t nr_blocks = (sector_t)se->nr_pages << (PAGE_SHIFT - 9);
 -
--		sis = get_swap_info_struct(swp_type(entry));
--		bio->bi_sector = map_swap_page(sis, swp_offset(entry)) *
--					(PAGE_SIZE >> 9);
--		bio->bi_bdev = sis->bdev;
-+		swp_entry_t entry;
-+		entry.val = page_private(page);
-+		bio->bi_sector = map_swap_page(entry, &bio->bi_bdev);
-+		bio->bi_sector <<= PAGE_SHIFT - 9;
- 		bio->bi_io_vec[0].bv_page = page;
- 		bio->bi_io_vec[0].bv_len = PAGE_SIZE;
- 		bio->bi_io_vec[0].bv_offset = 0;
-@@ -102,8 +99,7 @@ int swap_writepage(struct page *page, st
- 		unlock_page(page);
+-		if (se->start_page == 0) {
+-			/* Do not discard the swap header page! */
+-			start_block += 1 << (PAGE_SHIFT - 9);
+-			nr_blocks -= 1 << (PAGE_SHIFT - 9);
+-			if (!nr_blocks)
+-				continue;
+-		}
++	/* Do not discard the swap header page! */
++	se = &si->first_swap_extent;
++	start_block = (se->start_block + 1) << (PAGE_SHIFT - 9);
++	nr_blocks = ((sector_t)se->nr_pages - 1) << (PAGE_SHIFT - 9);
++	if (nr_blocks) {
++		err = blkdev_issue_discard(si->bdev, start_block,
++				nr_blocks, GFP_KERNEL, DISCARD_FL_BARRIER);
++		if (err)
++			return err;
++		cond_resched();
++	}
++
++	list_for_each_entry(se, &si->first_swap_extent.list, list) {
++		start_block = se->start_block << (PAGE_SHIFT - 9);
++		nr_blocks = (sector_t)se->nr_pages << (PAGE_SHIFT - 9);
+ 
+ 		err = blkdev_issue_discard(si->bdev, start_block,
+-						nr_blocks, GFP_KERNEL,
+-						DISCARD_FL_BARRIER);
++				nr_blocks, GFP_KERNEL, DISCARD_FL_BARRIER);
+ 		if (err)
+ 			break;
+ 
+@@ -200,14 +205,11 @@ static void discard_swap_cluster(struct 
+ 			start_block <<= PAGE_SHIFT - 9;
+ 			nr_blocks <<= PAGE_SHIFT - 9;
+ 			if (blkdev_issue_discard(si->bdev, start_block,
+-							nr_blocks, GFP_NOIO,
+-							DISCARD_FL_BARRIER))
++				    nr_blocks, GFP_NOIO, DISCARD_FL_BARRIER))
+ 				break;
+ 		}
+ 
+ 		lh = se->list.next;
+-		if (lh == &si->extent_list)
+-			lh = lh->next;
+ 		se = list_entry(lh, struct swap_extent, list);
+ 	}
+ }
+@@ -761,10 +763,8 @@ int swap_type_of(dev_t device, sector_t 
+ 			return type;
+ 		}
+ 		if (bdev == sis->bdev) {
+-			struct swap_extent *se;
++			struct swap_extent *se = &sis->first_swap_extent;
+ 
+-			se = list_entry(sis->extent_list.next,
+-					struct swap_extent, list);
+ 			if (se->start_block == offset) {
+ 				if (bdev_p)
+ 					*bdev_p = bdgrab(sis->bdev);
+@@ -1310,8 +1310,6 @@ sector_t map_swap_page(swp_entry_t entry
+ 			return se->start_block + (offset - se->start_page);
+ 		}
+ 		lh = se->list.next;
+-		if (lh == &sis->extent_list)
+-			lh = lh->next;
+ 		se = list_entry(lh, struct swap_extent, list);
+ 		sis->curr_swap_extent = se;
+ 		BUG_ON(se == start_se);		/* It *must* be present */
+@@ -1340,10 +1338,10 @@ sector_t swapdev_block(int type, pgoff_t
+  */
+ static void destroy_swap_extents(struct swap_info_struct *sis)
+ {
+-	while (!list_empty(&sis->extent_list)) {
++	while (!list_empty(&sis->first_swap_extent.list)) {
+ 		struct swap_extent *se;
+ 
+-		se = list_entry(sis->extent_list.next,
++		se = list_entry(sis->first_swap_extent.list.next,
+ 				struct swap_extent, list);
+ 		list_del(&se->list);
+ 		kfree(se);
+@@ -1364,8 +1362,15 @@ add_swap_extent(struct swap_info_struct 
+ 	struct swap_extent *new_se;
+ 	struct list_head *lh;
+ 
+-	lh = sis->extent_list.prev;	/* The highest page extent */
+-	if (lh != &sis->extent_list) {
++	if (start_page == 0) {
++		se = &sis->first_swap_extent;
++		sis->curr_swap_extent = se;
++		se->start_page = 0;
++		se->nr_pages = nr_pages;
++		se->start_block = start_block;
++		return 1;
++	} else {
++		lh = sis->first_swap_extent.list.prev;	/* Highest extent */
+ 		se = list_entry(lh, struct swap_extent, list);
+ 		BUG_ON(se->start_page + se->nr_pages != start_page);
+ 		if (se->start_block + se->nr_pages == start_block) {
+@@ -1385,7 +1390,7 @@ add_swap_extent(struct swap_info_struct 
+ 	new_se->nr_pages = nr_pages;
+ 	new_se->start_block = start_block;
+ 
+-	list_add_tail(&new_se->list, &sis->extent_list);
++	list_add_tail(&new_se->list, &sis->first_swap_extent.list);
+ 	return 1;
+ }
+ 
+@@ -1437,7 +1442,7 @@ static int setup_swap_extents(struct swa
+ 	if (S_ISBLK(inode->i_mode)) {
+ 		ret = add_swap_extent(sis, 0, sis->max, 0);
+ 		*span = sis->pages;
+-		goto done;
++		goto out;
+ 	}
+ 
+ 	blkbits = inode->i_blkbits;
+@@ -1508,15 +1513,12 @@ reprobe:
+ 	sis->max = page_no;
+ 	sis->pages = page_no - 1;
+ 	sis->highest_bit = page_no - 1;
+-done:
+-	sis->curr_swap_extent = list_entry(sis->extent_list.prev,
+-					struct swap_extent, list);
+-	goto out;
++out:
++	return ret;
+ bad_bmap:
+ 	printk(KERN_ERR "swapon: swapfile has holes\n");
+ 	ret = -EINVAL;
+-out:
+-	return ret;
++	goto out;
+ }
+ 
+ SYSCALL_DEFINE1(swapoff, const char __user *, specialfile)
+@@ -1815,7 +1817,6 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 		kfree(p);
  		goto out;
  	}
--	bio = get_swap_bio(GFP_NOIO, page_private(page), page,
--				end_swap_bio_write);
-+	bio = get_swap_bio(GFP_NOIO, page, end_swap_bio_write);
- 	if (bio == NULL) {
- 		set_page_dirty(page);
- 		unlock_page(page);
-@@ -127,8 +123,7 @@ int swap_readpage(struct page *page)
- 
- 	VM_BUG_ON(!PageLocked(page));
- 	VM_BUG_ON(PageUptodate(page));
--	bio = get_swap_bio(GFP_KERNEL, page_private(page), page,
--				end_swap_bio_read);
-+	bio = get_swap_bio(GFP_KERNEL, page, end_swap_bio_read);
- 	if (bio == NULL) {
- 		unlock_page(page);
- 		ret = -ENOMEM;
-diff -puN mm/swapfile.c~swap_info-private-to-swapfilec mm/swapfile.c
---- a/mm/swapfile.c~swap_info-private-to-swapfilec
-+++ a/mm/swapfile.c
-@@ -1283,12 +1283,22 @@ static void drain_mmlist(void)
- 
- /*
-  * Use this swapdev's extent info to locate the (PAGE_SIZE) block which
-- * corresponds to page offset `offset'.
-+ * corresponds to page offset `offset'.  Note that the type of this function
-+ * is sector_t, but it returns page offset into the bdev, not sector offset.
-  */
--sector_t map_swap_page(struct swap_info_struct *sis, pgoff_t offset)
-+sector_t map_swap_page(swp_entry_t entry, struct block_device **bdev)
- {
--	struct swap_extent *se = sis->curr_swap_extent;
--	struct swap_extent *start_se = se;
-+	struct swap_info_struct *sis;
-+	struct swap_extent *start_se;
-+	struct swap_extent *se;
-+	pgoff_t offset;
-+
-+	sis = swap_info + swp_type(entry);
-+	*bdev = sis->bdev;
-+
-+	offset = swp_offset(entry);
-+	start_se = sis->curr_swap_extent;
-+	se = start_se;
- 
- 	for ( ; ; ) {
- 		struct list_head *lh;
-@@ -1314,12 +1324,14 @@ sector_t map_swap_page(struct swap_info_
- sector_t swapdev_block(int swap_type, pgoff_t offset)
- {
- 	struct swap_info_struct *sis;
-+	struct block_device *bdev;
- 
- 	if (swap_type >= nr_swapfiles)
- 		return 0;
- 
- 	sis = swap_info + swap_type;
--	return (sis->flags & SWP_WRITEOK) ? map_swap_page(sis, offset) : 0;
-+	return (sis->flags & SWP_WRITEOK) ?
-+		map_swap_page(swp_entry(swap_type, offset), &bdev) : 0;
- }
- #endif /* CONFIG_HIBERNATION */
- 
-@@ -2159,13 +2171,6 @@ int swapcache_prepare(swp_entry_t entry)
- 	return __swap_duplicate(entry, SWAP_CACHE);
- }
- 
--
--struct swap_info_struct *
--get_swap_info_struct(unsigned type)
--{
--	return &swap_info[type];
--}
+-	INIT_LIST_HEAD(&p->extent_list);
+ 	if (type >= nr_swapfiles) {
+ 		p->type = type;
+ 		swap_info[type] = p;
+@@ -1834,6 +1835,7 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 		 * would be relying on p->type to remain valid.
+ 		 */
+ 	}
++	INIT_LIST_HEAD(&p->first_swap_extent.list);
+ 	p->flags = SWP_USED;
+ 	p->next = -1;
+ 	spin_unlock(&swap_lock);
+_
+
+Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
+
+origin.patch
+linux-next.patch
+vfs-fsstack-handle-32-bit-smp-preempt-large-files-in-fsstack_copy_inode_size.patch
+ksm-memory-hotremove-migration-only-fix.patch
+elf-kill-use_elf_core_dump.patch
+prio_tree-debugging-patch.patch
+
