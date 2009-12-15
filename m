@@ -1,135 +1,425 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-memory_hotplug-make-offline_pages-static.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 13:53:59 -0800
-Message-ID: <200912152153.nBFLrxiM015322@imap1.linux-foundation.org>
+Subject: [merged] ksm-memory-hotremove-migration-only.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 13:53:52 -0800
+Message-ID: <200912152153.nBFLrqr7015313@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51122 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41096 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761266AbZLOVyl (ORCPT
+	by vger.kernel.org with ESMTP id S1761246AbZLOVyl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 15 Dec 2009 16:54:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andi@firstfloor.org, gerald.schaefer@de.ibm.com, kosaki.motohiro@jp.fujitsu.com, rjw@sisk.pl, y-goto@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: hugh.dickins@tiscali.co.uk, aarcange@redhat.com, chrisw@redhat.com, ieidus@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: memory_hotplug: make offline_pages() static
+     ksm: memory hotremove migration only
 has been removed from the -mm tree.  Its filename was
-     mm-memory_hotplug-make-offline_pages-static.patch
+     ksm-memory-hotremove-migration-only.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: memory_hotplug: make offline_pages() static
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ksm: memory hotremove migration only
+From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 
-It has no references outside memory_hotplug.c.
+The previous patch enables page migration of ksm pages, but that soon gets
+into trouble: not surprising, since we're using the ksm page lock to lock
+operations on its stable_node, but page migration switches the page whose
+lock is to be used for that.  Another layer of locking would fix it, but
+do we need that yet?
 
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+Do we actually need page migration of ksm pages?  Yes, memory hotremove
+needs to offline sections of memory: and since we stopped allocating ksm
+pages with GFP_HIGHUSER, they will tend to be GFP_HIGHUSER_MOVABLE
+candidates for migration.
+
+But KSM is currently unconscious of NUMA issues, happily merging pages
+from different NUMA nodes: at present the rule must be, not to use
+MADV_MERGEABLE where you care about NUMA.  So no, NUMA page migration of
+ksm pages does not make sense yet.
+
+So, to complete support for ksm swapping we need to make hotremove safe. 
+ksm_memory_callback() take ksm_thread_mutex when MEM_GOING_OFFLINE and
+release it when MEM_OFFLINE or MEM_CANCEL_OFFLINE.  But if mapped pages
+are freed before migration reaches them, stable_nodes may be left still
+pointing to struct pages which have been removed from the system: the
+stable_node needs to identify a page by pfn rather than page pointer, then
+it can safely prune them when MEM_OFFLINE.
+
+And make NUMA migration skip PageKsm pages where it skips PageReserved. 
+But it's only when we reach unmap_and_move() that the page lock is taken
+and we can be sure that raised pagecount has prevented a PageAnon from
+being upgraded: so add offlining arg to migrate_pages(), to migrate ksm
+page when offlining (has sufficient locking) but reject it otherwise.
+
+Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: Izik Eidus <ieidus@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Chris Wright <chrisw@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memory_hotplug.h |    1 -
- mm/memory_hotplug.c            |    2 +-
- 2 files changed, 1 insertion(+), 2 deletions(-)
+ include/linux/migrate.h |    8 +--
+ mm/ksm.c                |   84 ++++++++++++++++++++++++++++++++------
+ mm/memory_hotplug.c     |    2 
+ mm/mempolicy.c          |   19 +++-----
+ mm/migrate.c            |   27 +++++++++---
+ 5 files changed, 103 insertions(+), 37 deletions(-)
 
-diff -puN include/linux/memory_hotplug.h~mm-memory_hotplug-make-offline_pages-static include/linux/memory_hotplug.h
---- a/include/linux/memory_hotplug.h~mm-memory_hotplug-make-offline_pages-static
-+++ a/include/linux/memory_hotplug.h
-@@ -69,7 +69,6 @@ extern void online_page(struct page *pag
- /* VM interface that may be used by firmware interface */
- extern int online_pages(unsigned long, unsigned long);
- extern void __offline_isolated_pages(unsigned long, unsigned long);
--extern int offline_pages(unsigned long, unsigned long, unsigned long);
+diff -puN include/linux/migrate.h~ksm-memory-hotremove-migration-only include/linux/migrate.h
+--- a/include/linux/migrate.h~ksm-memory-hotremove-migration-only
++++ a/include/linux/migrate.h
+@@ -12,7 +12,8 @@ typedef struct page *new_page_t(struct p
+ extern int putback_lru_pages(struct list_head *l);
+ extern int migrate_page(struct address_space *,
+ 			struct page *, struct page *);
+-extern int migrate_pages(struct list_head *l, new_page_t x, unsigned long);
++extern int migrate_pages(struct list_head *l, new_page_t x,
++			unsigned long private, int offlining);
  
- /* reasonably generic interface to expand the physical pages in a zone  */
- extern int __add_pages(int nid, struct zone *zone, unsigned long start_pfn,
-diff -puN mm/memory_hotplug.c~mm-memory_hotplug-make-offline_pages-static mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory_hotplug-make-offline_pages-static
-+++ a/mm/memory_hotplug.c
-@@ -751,7 +751,7 @@ check_pages_isolated(unsigned long start
- 	return offlined;
- }
+ extern int fail_migrate_page(struct address_space *,
+ 			struct page *, struct page *);
+@@ -26,10 +27,7 @@ extern int migrate_vmas(struct mm_struct
  
--int offline_pages(unsigned long start_pfn,
-+static int offline_pages(unsigned long start_pfn,
- 		  unsigned long end_pfn, unsigned long timeout)
+ static inline int putback_lru_pages(struct list_head *l) { return 0; }
+ static inline int migrate_pages(struct list_head *l, new_page_t x,
+-		unsigned long private) { return -ENOSYS; }
+-
+-static inline int migrate_pages_to(struct list_head *pagelist,
+-			struct vm_area_struct *vma, int dest) { return 0; }
++		unsigned long private, int offlining) { return -ENOSYS; }
+ 
+ static inline int migrate_prep(void) { return -ENOSYS; }
+ 
+diff -puN mm/ksm.c~ksm-memory-hotremove-migration-only mm/ksm.c
+--- a/mm/ksm.c~ksm-memory-hotremove-migration-only
++++ a/mm/ksm.c
+@@ -29,6 +29,7 @@
+ #include <linux/wait.h>
+ #include <linux/slab.h>
+ #include <linux/rbtree.h>
++#include <linux/memory.h>
+ #include <linux/mmu_notifier.h>
+ #include <linux/swap.h>
+ #include <linux/ksm.h>
+@@ -108,14 +109,14 @@ struct ksm_scan {
+ 
+ /**
+  * struct stable_node - node of the stable rbtree
+- * @page: pointer to struct page of the ksm page
+  * @node: rb node of this ksm page in the stable tree
+  * @hlist: hlist head of rmap_items using this ksm page
++ * @kpfn: page frame number of this ksm page
+  */
+ struct stable_node {
+-	struct page *page;
+ 	struct rb_node node;
+ 	struct hlist_head hlist;
++	unsigned long kpfn;
+ };
+ 
+ /**
+@@ -515,7 +516,7 @@ static struct page *get_ksm_page(struct 
+ 	struct page *page;
+ 	void *expected_mapping;
+ 
+-	page = stable_node->page;
++	page = pfn_to_page(stable_node->kpfn);
+ 	expected_mapping = (void *)stable_node +
+ 				(PAGE_MAPPING_ANON | PAGE_MAPPING_KSM);
+ 	rcu_read_lock();
+@@ -973,7 +974,7 @@ static struct page *try_to_merge_two_pag
+  * This function returns the stable tree node of identical content if found,
+  * NULL otherwise.
+  */
+-static struct stable_node *stable_tree_search(struct page *page)
++static struct page *stable_tree_search(struct page *page)
  {
- 	unsigned long pfn, nr_pages, expire;
+ 	struct rb_node *node = root_stable_tree.rb_node;
+ 	struct stable_node *stable_node;
+@@ -981,7 +982,7 @@ static struct stable_node *stable_tree_s
+ 	stable_node = page_stable_node(page);
+ 	if (stable_node) {			/* ksm page forked */
+ 		get_page(page);
+-		return stable_node;
++		return page;
+ 	}
+ 
+ 	while (node) {
+@@ -1003,7 +1004,7 @@ static struct stable_node *stable_tree_s
+ 			put_page(tree_page);
+ 			node = node->rb_right;
+ 		} else
+-			return stable_node;
++			return tree_page;
+ 	}
+ 
+ 	return NULL;
+@@ -1059,7 +1060,7 @@ static struct stable_node *stable_tree_i
+ 
+ 	INIT_HLIST_HEAD(&stable_node->hlist);
+ 
+-	stable_node->page = kpage;
++	stable_node->kpfn = page_to_pfn(kpage);
+ 	set_page_stable_node(kpage, stable_node);
+ 
+ 	return stable_node;
+@@ -1170,9 +1171,8 @@ static void cmp_and_merge_page(struct pa
+ 	remove_rmap_item_from_tree(rmap_item);
+ 
+ 	/* We first start with searching the page inside the stable tree */
+-	stable_node = stable_tree_search(page);
+-	if (stable_node) {
+-		kpage = stable_node->page;
++	kpage = stable_tree_search(page);
++	if (kpage) {
+ 		err = try_to_merge_with_ksm_page(rmap_item, page, kpage);
+ 		if (!err) {
+ 			/*
+@@ -1180,7 +1180,7 @@ static void cmp_and_merge_page(struct pa
+ 			 * add its rmap_item to the stable tree.
+ 			 */
+ 			lock_page(kpage);
+-			stable_tree_append(rmap_item, stable_node);
++			stable_tree_append(rmap_item, page_stable_node(kpage));
+ 			unlock_page(kpage);
+ 		}
+ 		put_page(kpage);
+@@ -1715,12 +1715,63 @@ void ksm_migrate_page(struct page *newpa
+ 
+ 	stable_node = page_stable_node(newpage);
+ 	if (stable_node) {
+-		VM_BUG_ON(stable_node->page != oldpage);
+-		stable_node->page = newpage;
++		VM_BUG_ON(stable_node->kpfn != page_to_pfn(oldpage));
++		stable_node->kpfn = page_to_pfn(newpage);
+ 	}
+ }
+ #endif /* CONFIG_MIGRATION */
+ 
++#ifdef CONFIG_MEMORY_HOTREMOVE
++static struct stable_node *ksm_check_stable_tree(unsigned long start_pfn,
++						 unsigned long end_pfn)
++{
++	struct rb_node *node;
++
++	for (node = rb_first(&root_stable_tree); node; node = rb_next(node)) {
++		struct stable_node *stable_node;
++
++		stable_node = rb_entry(node, struct stable_node, node);
++		if (stable_node->kpfn >= start_pfn &&
++		    stable_node->kpfn < end_pfn)
++			return stable_node;
++	}
++	return NULL;
++}
++
++static int ksm_memory_callback(struct notifier_block *self,
++			       unsigned long action, void *arg)
++{
++	struct memory_notify *mn = arg;
++	struct stable_node *stable_node;
++
++	switch (action) {
++	case MEM_GOING_OFFLINE:
++		/*
++		 * Keep it very simple for now: just lock out ksmd and
++		 * MADV_UNMERGEABLE while any memory is going offline.
++		 */
++		mutex_lock(&ksm_thread_mutex);
++		break;
++
++	case MEM_OFFLINE:
++		/*
++		 * Most of the work is done by page migration; but there might
++		 * be a few stable_nodes left over, still pointing to struct
++		 * pages which have been offlined: prune those from the tree.
++		 */
++		while ((stable_node = ksm_check_stable_tree(mn->start_pfn,
++					mn->start_pfn + mn->nr_pages)) != NULL)
++			remove_node_from_stable_tree(stable_node);
++		/* fallthrough */
++
++	case MEM_CANCEL_OFFLINE:
++		mutex_unlock(&ksm_thread_mutex);
++		break;
++	}
++	return NOTIFY_OK;
++}
++#endif /* CONFIG_MEMORY_HOTREMOVE */
++
+ #ifdef CONFIG_SYSFS
+ /*
+  * This all compiles without CONFIG_SYSFS, but is a waste of space.
+@@ -1946,6 +1997,13 @@ static int __init ksm_init(void)
+ 
+ #endif /* CONFIG_SYSFS */
+ 
++#ifdef CONFIG_MEMORY_HOTREMOVE
++	/*
++	 * Choose a high priority since the callback takes ksm_thread_mutex:
++	 * later callbacks could only be taking locks which nest within that.
++	 */
++	hotplug_memory_notifier(ksm_memory_callback, 100);
++#endif
+ 	return 0;
+ 
+ out_free2:
+diff -puN mm/memory_hotplug.c~ksm-memory-hotremove-migration-only mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~ksm-memory-hotremove-migration-only
++++ a/mm/memory_hotplug.c
+@@ -698,7 +698,7 @@ do_migrate_range(unsigned long start_pfn
+ 	if (list_empty(&source))
+ 		goto out;
+ 	/* this function returns # of failed pages */
+-	ret = migrate_pages(&source, hotremove_migrate_alloc, 0);
++	ret = migrate_pages(&source, hotremove_migrate_alloc, 0, 1);
+ 
+ out:
+ 	return ret;
+diff -puN mm/mempolicy.c~ksm-memory-hotremove-migration-only mm/mempolicy.c
+--- a/mm/mempolicy.c~ksm-memory-hotremove-migration-only
++++ a/mm/mempolicy.c
+@@ -85,6 +85,7 @@
+ #include <linux/seq_file.h>
+ #include <linux/proc_fs.h>
+ #include <linux/migrate.h>
++#include <linux/ksm.h>
+ #include <linux/rmap.h>
+ #include <linux/security.h>
+ #include <linux/syscalls.h>
+@@ -413,17 +414,11 @@ static int check_pte_range(struct vm_are
+ 		if (!page)
+ 			continue;
+ 		/*
+-		 * The check for PageReserved here is important to avoid
+-		 * handling zero pages and other pages that may have been
+-		 * marked special by the system.
+-		 *
+-		 * If the PageReserved would not be checked here then f.e.
+-		 * the location of the zero page could have an influence
+-		 * on MPOL_MF_STRICT, zero pages would be counted for
+-		 * the per node stats, and there would be useless attempts
+-		 * to put zero pages on the migration list.
++		 * vm_normal_page() filters out zero pages, but there might
++		 * still be PageReserved pages to skip, perhaps in a VDSO.
++		 * And we cannot move PageKsm pages sensibly or safely yet.
+ 		 */
+-		if (PageReserved(page))
++		if (PageReserved(page) || PageKsm(page))
+ 			continue;
+ 		nid = page_to_nid(page);
+ 		if (node_isset(nid, *nodes) == !!(flags & MPOL_MF_INVERT))
+@@ -839,7 +834,7 @@ static int migrate_to_node(struct mm_str
+ 			flags | MPOL_MF_DISCONTIG_OK, &pagelist);
+ 
+ 	if (!list_empty(&pagelist))
+-		err = migrate_pages(&pagelist, new_node_page, dest);
++		err = migrate_pages(&pagelist, new_node_page, dest, 0);
+ 
+ 	return err;
+ }
+@@ -1056,7 +1051,7 @@ static long do_mbind(unsigned long start
+ 
+ 		if (!list_empty(&pagelist))
+ 			nr_failed = migrate_pages(&pagelist, new_vma_page,
+-						(unsigned long)vma);
++						(unsigned long)vma, 0);
+ 
+ 		if (!err && nr_failed && (flags & MPOL_MF_STRICT))
+ 			err = -EIO;
+diff -puN mm/migrate.c~ksm-memory-hotremove-migration-only mm/migrate.c
+--- a/mm/migrate.c~ksm-memory-hotremove-migration-only
++++ a/mm/migrate.c
+@@ -543,7 +543,7 @@ static int move_to_new_page(struct page 
+  * to the newly allocated page in newpage.
+  */
+ static int unmap_and_move(new_page_t get_new_page, unsigned long private,
+-			struct page *page, int force)
++			struct page *page, int force, int offlining)
+ {
+ 	int rc = 0;
+ 	int *result = NULL;
+@@ -569,6 +569,20 @@ static int unmap_and_move(new_page_t get
+ 		lock_page(page);
+ 	}
+ 
++	/*
++	 * Only memory hotplug's offline_pages() caller has locked out KSM,
++	 * and can safely migrate a KSM page.  The other cases have skipped
++	 * PageKsm along with PageReserved - but it is only now when we have
++	 * the page lock that we can be certain it will not go KSM beneath us
++	 * (KSM will not upgrade a page from PageAnon to PageKsm when it sees
++	 * its pagecount raised, but only here do we take the page lock which
++	 * serializes that).
++	 */
++	if (PageKsm(page) && !offlining) {
++		rc = -EBUSY;
++		goto unlock;
++	}
++
+ 	/* charge against new page */
+ 	charge = mem_cgroup_prepare_migration(page, &mem);
+ 	if (charge == -ENOMEM) {
+@@ -685,7 +699,7 @@ move_newpage:
+  * Return: Number of pages not migrated or error code.
+  */
+ int migrate_pages(struct list_head *from,
+-		new_page_t get_new_page, unsigned long private)
++		new_page_t get_new_page, unsigned long private, int offlining)
+ {
+ 	int retry = 1;
+ 	int nr_failed = 0;
+@@ -705,7 +719,7 @@ int migrate_pages(struct list_head *from
+ 			cond_resched();
+ 
+ 			rc = unmap_and_move(get_new_page, private,
+-						page, pass > 2);
++						page, pass > 2, offlining);
+ 
+ 			switch(rc) {
+ 			case -ENOMEM:
+@@ -801,7 +815,8 @@ static int do_move_page_to_node_array(st
+ 		if (!page)
+ 			goto set_status;
+ 
+-		if (PageReserved(page))		/* Check for zero page */
++		/* Use PageReserved to check for zero page */
++		if (PageReserved(page) || PageKsm(page))
+ 			goto put_and_set;
+ 
+ 		pp->page = page;
+@@ -838,7 +853,7 @@ set_status:
+ 	err = 0;
+ 	if (!list_empty(&pagelist))
+ 		err = migrate_pages(&pagelist, new_page_node,
+-				(unsigned long)pm);
++				(unsigned long)pm, 0);
+ 
+ 	up_read(&mm->mmap_sem);
+ 	return err;
+@@ -959,7 +974,7 @@ static void do_pages_stat_array(struct m
+ 
+ 		err = -ENOENT;
+ 		/* Use PageReserved to check for zero page */
+-		if (!page || PageReserved(page))
++		if (!page || PageReserved(page) || PageKsm(page))
+ 			goto set_status;
+ 
+ 		err = page_to_nid(page);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hugh.dickins@tiscali.co.uk are
 
 origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-acpi-remove-nid_inval.patch
-drivers-acpi-acpi_padc-squish-warning.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices-checkpatch-fixes.patch
-drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
-drivers-media-video-pmsc-needs-versionh.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-drivers-leds-leds-ss4200c-fix-return-statement.patch
-net-sctp-socketc-fix-warning.patch
-proc_fops-convert-drivers-isdn-to-seq_file-fix2.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-fs-ext4-superc-fix-printk-warning.patch
-atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
-scsi-aacraid-fix-memory-leak-checkpatch-fixes.patch
-aoe-switch-to-the-new-bio_flush_dcache_pages-interface.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-drivers-net-wireless-iwlwifi-iwl-txc-fix-gcc-345-warning.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-readahead-add-blk_run_backing_dev.patch
-oom-kill-fix-numa-consraint-check-with-nodemask-v42.patch
+vfs-fsstack-handle-32-bit-smp-preempt-large-files-in-fsstack_copy_inode_size.patch
 ksm-memory-hotremove-migration-only-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-spi-controller-driver-for-designware-spi-core.patch
-spidev-use-declare_bitmap-instead-of-declaring-the-array.patch
-gpiolib-add-names-file-in-gpio-chip-sysfs.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3.patch
-ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
-memcg-coalesce-charging-via-percpu-storage-fix.patch
-memcg-code-cleanrm-unused-variable-in-mem_cgroup_resize_limit-cleanup.patch
-ipc-remove-unreachable-code-in-semc-fix.patch
-char-cyclades-fix-compiler-warning.patch
-fs-cache-avoid-maybe-used-uninitialised-warning-on-variable.patch
-aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
-direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-drivers-media-video-cx23885-needs-kfifo-updates.patch
-revert-tty-sdio_uart-use-kfifo-instead-of-the-messy-circ-stuff.patch
-kfifo-move-struct-kfifo-in-place-fix.patch
-zlib-optimize-inffast-when-copying-direct-from-output-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes.patch
-lib-add-support-for-lzo-compressed-kernels-checkpatch-fixes-cleanup.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+elf-kill-use_elf_core_dump.patch
+prio_tree-debugging-patch.patch
 
