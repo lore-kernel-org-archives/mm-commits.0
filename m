@@ -1,107 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: [folded] drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch removed from -mm tree
-Date: Mon, 14 Dec 2009 17:07:31 -0800
-Message-ID: <200912150107.nBF17VYR012555@imap1.linux-foundation.org>
+Subject: [folded] rwsem-fix-rwsem_is_locked-bugs-fix.patch removed from -mm tree
+Date: Mon, 14 Dec 2009 17:07:49 -0800
+Message-ID: <200912150107.nBF17nZA013333@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37319 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38810 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756625AbZLOBH6 (ORCPT
+	by vger.kernel.org with ESMTP id S1758162AbZLOBIG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Dec 2009 20:07:58 -0500
+	Mon, 14 Dec 2009 20:08:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: daniel@caiaq.de, akpm@linux-foundation.org, dbrownell@users.sourceforge.net, hartleys@visionengravers.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, amwang@redhat.com, behlendorf1@llnl.gov, bwoodard@llnl.gov, dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers-misc-add-driver-for-texas-instruments-dac7512-update
+     rwsem-fix-rwsem_is_locked-bugs-fix
 has been removed from the -mm tree.  Its filename was
-     drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
+     rwsem-fix-rwsem_is_locked-bugs-fix.patch
 
-This patch was dropped because it was folded into drivers-misc-add-driver-for-texas-instruments-dac7512.patch
+This patch was dropped because it was folded into rwsem-fix-rwsem_is_locked-bugs.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers-misc-add-driver-for-texas-instruments-dac7512-update
-From: Daniel Mack <daniel@caiaq.de>
+Subject: rwsem-fix-rwsem_is_locked-bugs-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-On Mon, Oct 12, 2009 at 12:31:46PM -0400, H Hartley Sweeten wrote:
-> On Wednesday, October 07, 2009 1:01 PM, Daniel Mack wrote:
-> > This is actually too trivial to publish, but to export the function of
-> > that chip to the userspace, a module like this is needed.
-> >
-> > Signed-off-by: Daniel Mack <daniel@caiaq.de>
-> > Cc: Andrew Morton <akpm@linux-foundation.org>
-> > Cc: David Brownell <dbrownell@users.sourceforge.net>
-> > Cc: spi-devel-general@lists.sourceforge.net
-> > ---
->
-> [snip]
->
-> > +static ssize_t dac7512_store_val(struct device *dev,
-> > +				 struct device_attribute *attr,
-> > +				 const char *buf, size_t count)
-> > +{
-> > +	struct spi_device *spi = to_spi_device(dev);
-> > +	unsigned char tmp[2];
-> > +	unsigned long val;
-> > +
-> > +	if (strict_strtoul(buf, 10, &val) < 0)
-> > +		return -EINVAL;
-> > +
-> > +	tmp[0] = val >> 8;
-> > +	tmp[1] = val & 0xff;
-> > +	spi_write(spi, tmp, sizeof(tmp));
-> > +	return count;
-> > +}
-> > +
-> > +static DEVICE_ATTR(value, S_IWUSR | S_IRUGO,
-> > +		   NULL, dac7512_store_val);
->
-> You have declared the "value" device attribute with mode S_IWUSR | S_IRUGO
-> but have not provided a show callback.
+simplify
 
-Sorry, forget my last mail, I got you wrong. You're of course right,
-S_IRUGO shouldn't be set for write-only attributes. Updates patch below.
-
-Thanks,
-Daniel
-
-From ab18a967e55d2bb1d39559333bca81a01c2838f0 Mon Sep 17 00:00:00 2001
-Date: Thu, 8 Oct 2009 03:55:46 +0800
-Subject: [PATCH] drivers/misc: add driver for Texas Instruments DAC7512
-
-This is actually too trivial to publish, but to export the function of
-that chip to the userspace, a module like this is needed.
-
-Signed-off-by: Daniel Mack <daniel@caiaq.de>
-Cc: David Brownell <dbrownell@users.sourceforge.net>
-Cc: "H Hartley Sweeten" <hartleys@visionengravers.com>
+Cc: Amerigo Wang <amwang@redhat.com>
+Cc: Ben Woodard <bwoodard@llnl.gov>
+Cc: Brian Behlendorf <behlendorf1@llnl.gov>
+Cc: David Howells <dhowells@redhat.com>
+Cc: WANG Cong <amwang@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/misc/Makefile~drivers-misc-add-driver-for-texas-instruments-dac7512-update drivers/misc/Makefile
-diff -puN drivers/misc/ti_dac7512.c~drivers-misc-add-driver-for-texas-instruments-dac7512-update drivers/misc/ti_dac7512.c
---- a/drivers/misc/ti_dac7512.c~drivers-misc-add-driver-for-texas-instruments-dac7512-update
-+++ a/drivers/misc/ti_dac7512.c
-@@ -43,8 +43,7 @@ static ssize_t dac7512_store_val(struct 
- 	return count;
+diff -puN include/linux/rwsem-spinlock.h~rwsem-fix-rwsem_is_locked-bugs-fix include/linux/rwsem-spinlock.h
+--- a/include/linux/rwsem-spinlock.h~rwsem-fix-rwsem_is_locked-bugs-fix
++++ a/include/linux/rwsem-spinlock.h
+@@ -68,9 +68,7 @@ extern int __down_write_trylock(struct r
+ extern void __up_read(struct rw_semaphore *sem);
+ extern void __up_write(struct rw_semaphore *sem);
+ extern void __downgrade_write(struct rw_semaphore *sem);
+-extern int __rwsem_is_locked(struct rw_semaphore *sem);
+-
+-#define rwsem_is_locked(sem) __rwsem_is_locked(sem)
++extern int rwsem_is_locked(struct rw_semaphore *sem);
+ 
+ #endif /* __KERNEL__ */
+ #endif /* _LINUX_RWSEM_SPINLOCK_H */
+diff -puN lib/rwsem-spinlock.c~rwsem-fix-rwsem_is_locked-bugs-fix lib/rwsem-spinlock.c
+--- a/lib/rwsem-spinlock.c~rwsem-fix-rwsem_is_locked-bugs-fix
++++ a/lib/rwsem-spinlock.c
+@@ -17,7 +17,7 @@ struct rwsem_waiter {
+ #define RWSEM_WAITING_FOR_WRITE	0x00000002
+ };
+ 
+-int __rwsem_is_locked(struct rw_semaphore *sem)
++int rwsem_is_locked(struct rw_semaphore *sem)
+ {
+ 	int ret = 1;
+ 	unsigned long flags;
+@@ -28,7 +28,7 @@ int __rwsem_is_locked(struct rw_semaphor
+ 	}
+ 	return ret;
  }
+-EXPORT_SYMBOL(__rwsem_is_locked);
++EXPORT_SYMBOL(rwsem_is_locked);
  
--static DEVICE_ATTR(value, S_IWUSR | S_IRUGO,
--		   NULL, dac7512_store_val);
-+static DEVICE_ATTR(value, S_IWUSR, NULL, dac7512_store_val);
- 
- static struct attribute *dac7512_attributes[] = {
- 	&dev_attr_value.attr,
+ /*
+  * initialise the semaphore
 _
 
-Patches currently in -mm which might be from daniel@caiaq.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-drivers-misc-add-driver-for-texas-instruments-dac7512.patch
-drivers-misc-add-driver-for-texas-instruments-dac7512-update.patch
+mmap-dont-return-enomem-when-mapcount-is-temporarily-exceeded-in-munmap.patch
+dev-mem-cleanup-unxlate_dev_mem_ptr-calls.patch
+oom-kill-fix-numa-consraint-check-with-nodemask-v42.patch
+mm-mlocking-in-try_to_unmap_one.patch
+mm-memory_hotplug-make-offline_pages-static.patch
+mm-hugetlb-fix-hugepage-memory-leak-in-mincore.patch
+mm-hugetlb-add-hugepage-support-to-pagemap.patch
+procfs-allow-threads-to-rename-siblings-via-proc-pid-tasks-tid-comm.patch
+floppy-add-an-extra-bound-check-on-ioctl-arguments.patch
+rwsem-fix-rwsem_is_locked-bugs.patch
+rwsem-fix-rwsem_is_locked-bugs-fix.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-checkpatch-fixes.patch
+kernelh-add-printk_ratelimited-and-pr_level_rl-rename.patch
+errh-add-helper-function-to-simplify-pointer-error-checking-fix.patch
+cs5535-add-a-generic-mfgpt-driver-fix.patch
+cs5535-add-a-generic-clock-event-mfgpt-driver-fix.patch
+drivers-scsi-sym53c8xx_2-sym_gluec-rename-skip_spaces-to-sym_skip_spaces.patch
+lib-introduce-strim-checkpatch-fixes.patch
+blackfin-sd-host-controller-driver-fix.patch
+blackfin-sd-host-controller-driver-fix-fix.patch
+blackfin-sd-host-controller-driver-fix-fix-fix.patch
+crc32-minor-optimizations-and-cleanup-checkpatch-fixes.patch
+hwmon-w83627ehf-updates-checkpatch-fixes.patch
+lis3-update-documentation-to-match-latest-changes-fix.patch
 
