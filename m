@@ -1,80 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: [merged] signals-send_signal-use-si_fromuser-to-detect-from_ancestor_ns.patch removed from -mm tree
-Date: Wed, 16 Dec 2009 12:38:18 -0800
-Message-ID: <200912162038.nBGKcIqY013414@imap1.linux-foundation.org>
+Subject: [merged] ipc-semc-sem-optimise-undo-list-search.patch removed from -mm tree
+Date: Wed, 16 Dec 2009 12:38:33 -0800
+Message-ID: <200912162038.nBGKcXr9013441@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42790 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35135 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964944AbZLPUio (ORCPT
+	by vger.kernel.org with ESMTP id S964944AbZLPUik (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Dec 2009 15:38:44 -0500
+	Wed, 16 Dec 2009 15:38:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, dlezcano@fr.ibm.com, roland@redhat.com, sukadev@us.ibm.com, mm-commits@vger.kernel.org
+To: npiggin@suse.de, manfred@colorfullife.com, peifferp@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     signals: send_signal: use si_fromuser() to detect from_ancestor_ns
+     ipc/sem.c: sem optimise undo list search
 has been removed from the -mm tree.  Its filename was
-     signals-send_signal-use-si_fromuser-to-detect-from_ancestor_ns.patch
+     ipc-semc-sem-optimise-undo-list-search.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signals: send_signal: use si_fromuser() to detect from_ancestor_ns
-From: Oleg Nesterov <oleg@redhat.com>
+Subject: ipc/sem.c: sem optimise undo list search
+From: Nick Piggin <npiggin@suse.de>
 
-Change send_signal() to use si_fromuser().  From now SEND_SIG_NOINFO
-triggers the "from_ancestor_ns" check.
+Around a month ago, there was some discussion about an improvement of the
+sysv sem algorithm: Most (at least: some important) users only use simple
+semaphore operations, therefore it's worthwile to optimize this use case.
 
-This fixes reparent_thread()->group_send_sig_info(pdeath_signal)
-behaviour, before this patch send_signal() does not detect the
-cross-namespace case when the child of the dying parent belongs to the
-sub-namespace.
 
-This patch can affect the behaviour of send_sig(), kill_pgrp() and
-kill_pid() when the caller sends the signal to the sub-namespace with
-"priv == 0" but surprisingly all callers seem to use them correctly,
-including disassociate_ctty(on_exit).
+This patch:
 
-Except: drivers/staging/comedi/drivers/addi-data/*.c incorrectly use
-send_sig(priv => 0).  But his is minor and should be fixed anyway.
+Move last looked up sem_undo struct to the head of the task's undo list. 
+Attempt to move common entries to the front of the list so search time is
+reduced.  This reduces lookup_undo on oprofile of problematic SAP workload
+by 30% (see patch 4 for a description of SAP workload).
 
-Reported-by: Daniel Lezcano <dlezcano@fr.ibm.com>
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Roland McGrath <roland@redhat.com>
-Reviewed-by: Sukadev Bhattiprolu <sukadev@us.ibm.com>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
+Cc: Pierre Peiffer <peifferp@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ ipc/sem.c |   26 ++++++++++++++++++++------
+ 1 file changed, 20 insertions(+), 6 deletions(-)
 
-diff -puN kernel/signal.c~signals-send_signal-use-si_fromuser-to-detect-from_ancestor_ns kernel/signal.c
---- a/kernel/signal.c~signals-send_signal-use-si_fromuser-to-detect-from_ancestor_ns
-+++ a/kernel/signal.c
-@@ -960,9 +960,8 @@ static int send_signal(int sig, struct s
- 	int from_ancestor_ns = 0;
+diff -puN ipc/sem.c~ipc-semc-sem-optimise-undo-list-search ipc/sem.c
+--- a/ipc/sem.c~ipc-semc-sem-optimise-undo-list-search
++++ a/ipc/sem.c
+@@ -962,17 +962,31 @@ static inline int get_undo_list(struct s
+ 	return 0;
+ }
  
- #ifdef CONFIG_PID_NS
--	if (!is_si_special(info) && SI_FROMUSER(info) &&
--			task_pid_nr_ns(current, task_active_pid_ns(t)) <= 0)
--		from_ancestor_ns = 1;
-+	from_ancestor_ns = si_fromuser(info) &&
-+			   !task_pid_nr_ns(current, task_active_pid_ns(t));
- #endif
+-static struct sem_undo *lookup_undo(struct sem_undo_list *ulp, int semid)
++static struct sem_undo *__lookup_undo(struct sem_undo_list *ulp, int semid)
+ {
+-	struct sem_undo *walk;
++	struct sem_undo *un;
  
- 	return __send_signal(sig, info, t, group, from_ancestor_ns);
+-	list_for_each_entry_rcu(walk, &ulp->list_proc, list_proc) {
+-		if (walk->semid == semid)
+-			return walk;
++	list_for_each_entry_rcu(un, &ulp->list_proc, list_proc) {
++		if (un->semid == semid)
++			return un;
+ 	}
+ 	return NULL;
+ }
+ 
++static struct sem_undo *lookup_undo(struct sem_undo_list *ulp, int semid)
++{
++	struct sem_undo *un;
++
++  	assert_spin_locked(&ulp->lock);
++
++	un = __lookup_undo(ulp, semid);
++	if (un) {
++		list_del_rcu(&un->list_proc);
++		list_add_rcu(&un->list_proc, &ulp->list_proc);
++	}
++	return un;
++}
++
+ /**
+  * find_alloc_undo - Lookup (and if not present create) undo array
+  * @ns: namespace
+@@ -1308,7 +1322,7 @@ void exit_sem(struct task_struct *tsk)
+ 		if (IS_ERR(sma))
+ 			continue;
+ 
+-		un = lookup_undo(ulp, semid);
++		un = __lookup_undo(ulp, semid);
+ 		if (un == NULL) {
+ 			/* exit_sem raced with IPC_RMID+semget() that created
+ 			 * exactly the same semid. Nothing to do.
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from npiggin@suse.de are
 
 origin.patch
-do_wait-optimization-do-not-place-sub-threads-on-task_struct-children-list.patch
-mm-introduce-coredump-parameter-structure.patch
 linux-next.patch
-posix-cpu-timers-reset-expire-cache-when-no-timer-is-running.patch
+fs-anon_inodes-implement-dname.patch
+fs-remove-unneeded-dcache_unhashed-tricks.patch
+fs-improve-remountro-vs-buffercache-coherency.patch
+reiser4.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
