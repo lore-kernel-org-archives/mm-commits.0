@@ -1,91 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-video-move-dereference-after-null-test.patch removed from -mm tree
-Date: Wed, 16 Dec 2009 12:35:42 -0800
-Message-ID: <200912162035.nBGKZg4K013115@imap1.linux-foundation.org>
+Subject: [merged] i810fb-fix-stack-exploding.patch removed from -mm tree
+Date: Wed, 16 Dec 2009 12:36:00 -0800
+Message-ID: <200912162036.nBGKa0TI013133@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52907 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36352 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935400AbZLPUf5 (ORCPT
+	by vger.kernel.org with ESMTP id S935402AbZLPUgC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Dec 2009 15:35:57 -0500
+	Wed, 16 Dec 2009 15:36:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: julia@diku.dk, daniel@caiaq.de, eric.y.miao@gmail.com, krzysztof.h1@poczta.fm, mm-commits@vger.kernel.org
+To: krzysztof.h1@wp.pl, alan@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/video: Move dereference after NULL test
+     i810fb: fix stack exploding
 has been removed from the -mm tree.  Its filename was
-     drivers-video-move-dereference-after-null-test.patch
+     i810fb-fix-stack-exploding.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/video: Move dereference after NULL test
-From: Julia Lawall <julia@diku.dk>
+Subject: i810fb: fix stack exploding
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-If the NULL test on fbi is needed, then the dereference should be after the
-NULL test.
+Alan Cox has found that the i810fb function "uses a whopping 2.5K of stack".
 
-A simplified version of the semantic match that detects this problem is as
-follows (http://coccinelle.lip6.fr/):
-
-// <smpl>
-@match exists@
-expression x, E;
-identifier fld;
-@@
-
-* x->fld
-  ... when != \(x = E\|&x\)
-* x == NULL
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
-Cc: Eric Miao <eric.y.miao@gmail.com>
-Cc: Daniel Mack <daniel@caiaq.de>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Reported-by: Alan Cox <alan@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/pxafb.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/video/i810/i810_dvt.c |   53 +++++++++++++++++---------------
+ 1 file changed, 29 insertions(+), 24 deletions(-)
 
-diff -puN drivers/video/pxafb.c~drivers-video-move-dereference-after-null-test drivers/video/pxafb.c
---- a/drivers/video/pxafb.c~drivers-video-move-dereference-after-null-test
-+++ a/drivers/video/pxafb.c
-@@ -1221,13 +1221,14 @@ static void setup_smart_timing(struct px
- static int pxafb_smart_thread(void *arg)
- {
- 	struct pxafb_info *fbi = arg;
--	struct pxafb_mach_info *inf = fbi->dev->platform_data;
-+	struct pxafb_mach_info *inf;
+diff -puN drivers/video/i810/i810_dvt.c~i810fb-fix-stack-exploding drivers/video/i810/i810_dvt.c
+--- a/drivers/video/i810/i810_dvt.c~i810fb-fix-stack-exploding
++++ a/drivers/video/i810/i810_dvt.c
+@@ -212,24 +212,29 @@ inline void round_off_yres(u32 *xres, u3
+ 	*yres = (*xres * 3) >> 2;
+ }
  
--	if (!fbi || !inf->smart_update) {
-+	if (!fbi || !fbi->dev->platform_data->smart_update) {
- 		pr_err("%s: not properly initialized, thread terminated\n",
- 				__func__);
- 		return -EINVAL;
+-void i810fb_encode_registers(const struct fb_var_screeninfo *var,
+-			     struct i810fb_par *par, u32 xres, u32 yres)
++static int i810fb_find_best_mode(u32 xres, u32 yres, u32 pixclock)
+ { 
+ 	u32 diff = 0, diff_best = 0xFFFFFFFF, i = 0, i_best = 0; 
+-	u8 hfl;
++	u8 hfl = (u8) ((xres >> 3) - 1);
+ 
+-	hfl = (u8) ((xres >> 3) - 1);
+ 	for (i = 0; i < ARRAY_SIZE(std_modes); i++) { 
+ 		if (std_modes[i].cr01 == hfl) { 
+-			if (std_modes[i].pixclock <= par->regs.pixclock)
+-				diff = par->regs.pixclock - 
+-					std_modes[i].pixclock;
++			if (std_modes[i].pixclock <= pixclock)
++				diff = pixclock - std_modes[i].pixclock;
+ 			if (diff < diff_best) {	 
+ 		    		i_best = i;
+ 		    		diff_best = diff;
+ 			}
+ 		}
  	}
-+	inf = fbi->dev->platform_data;
++	return i_best;
++}
++
++void i810fb_encode_registers(const struct fb_var_screeninfo *var,
++			     struct i810fb_par *par, u32 xres, u32 yres)
++{
++	u32 i_best = i810fb_find_best_mode(xres, yres, par->regs.pixclock);
++
+ 	par->regs = std_modes[i_best];
  
- 	pr_debug("%s(): task starting\n", __func__);
+ 	/* overlay */
+@@ -239,36 +244,36 @@ void i810fb_encode_registers(const struc
  
-_
-
-Patches currently in -mm which might be from julia@diku.dk are
-
-origin.patch
-linux-next.patch
-drivers-media-video-move-dereference-after-null-test.patch
-drivers-isdn-eliminate-duplicated-test.patch
-drivers-scsi-libsas-use-sam_good.patch
-drivers-scsi-remove-unnecessary-null-test.patch
-drivers-message-move-dereference-after-null-test.patch
-drivers-block-dac960c-use-dac960_v2_controller.patch
-drivers-usb-wusbcore-introduce-missing-usb_free_urb.patch
-drivers-edac-introduce-missing-kfree.patch
-
+ void i810fb_fill_var_timings(struct fb_var_screeninfo *var)
+ {
+-	struct i810fb_par par;
+ 	u32 total, xres, yres;
++	u32 mode, pixclock;
+ 
+ 	xres = var->xres;
+ 	yres = var->yres;
+ 	
+-	par.regs.pixclock = 1000000000/var->pixclock;
+-	i810fb_encode_registers(var, &par, xres, yres);
++	pixclock = 1000000000 / var->pixclock;
++	mode = i810fb_find_best_mode(xres, yres, pixclock);
+ 	
+-	total = ((par.regs.cr00 | (par.regs.cr35 & 1) << 8) + 3) << 3;
++	total = (std_modes[mode].cr00 | (std_modes[mode].cr35 & 1) << 8) + 3;
++	total <<= 3;
+ 	
+-	var->pixclock = 1000000000/par.regs.pixclock;
+-	var->right_margin = (par.regs.cr04 << 3) - xres;
+-	var->hsync_len = ((par.regs.cr05 & 0x1F) - 
+-			       (par.regs.cr04 & 0x1F)) << 3;
++	var->pixclock = 1000000000 / std_modes[mode].pixclock;
++	var->right_margin = (std_modes[mode].cr04 << 3) - xres;
++	var->hsync_len = ((std_modes[mode].cr05 & 0x1F) -
++			 (std_modes[mode].cr04 & 0x1F)) << 3;
+ 	var->left_margin = (total - (xres + var->right_margin + 
+ 				     var->hsync_len));
+ 	var->sync = FB_SYNC_ON_GREEN;
+-	if (~(par.regs.msr & (1 << 6)))
++	if (~(std_modes[mode].msr & (1 << 6)))
+ 		var->sync |= FB_SYNC_HOR_HIGH_ACT;
+-	if (~(par.regs.msr & (1 << 7)))
++	if (~(std_modes[mode].msr & (1 << 7)))
+ 		var->sync |= FB_SYNC_VERT_HIGH_ACT;
+ 
