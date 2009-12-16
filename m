@@ -1,146 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: [merged] davinci-fb-add-cpufreq-support.patch removed from -mm tree
-Date: Wed, 16 Dec 2009 12:35:54 -0800
-Message-ID: <200912162035.nBGKZsZg013127@imap1.linux-foundation.org>
+Subject: [merged] davinci-fb-calculate-the-clock-divider-from-pixel-clock-info.patch removed from -mm tree
+Date: Wed, 16 Dec 2009 12:35:51 -0800
+Message-ID: <200912162035.nBGKZpsx013122@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60898 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54807 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935405AbZLPUgL (ORCPT
+	by vger.kernel.org with ESMTP id S935412AbZLPUgF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Dec 2009 15:36:11 -0500
+	Wed, 16 Dec 2009 15:36:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chaithrika@ti.com, davej@codemonkey.org.uk, khilman@deeprootsystems.com, krzysztof.h1@poczta.fm, mm-commits@vger.kernel.org
+To: chaithrika@ti.com, schen@mvista.com, sudhakar.raj@ti.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     davinci: fb: add cpufreq support
+     davinci: fb: calculate the clock divider from pixel clock info
 has been removed from the -mm tree.  Its filename was
-     davinci-fb-add-cpufreq-support.patch
+     davinci-fb-calculate-the-clock-divider-from-pixel-clock-info.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: davinci: fb: add cpufreq support
+Subject: davinci: fb: calculate the clock divider from pixel clock info
 From: Chaithrika U S <chaithrika@ti.com>
 
-Add cpufreq support for DA8xx/OMAP-L1xx frame buffer driver
+The clock divider value can be calculated from the pixel clock value for
+the panel.  This gives more flexiblity to the driver to change the divider
+value on the fly as in the case of cpufreq feature- support for which will
+be added shortly.
 
 Signed-off-by: Chaithrika U S <chaithrika@ti.com>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Dave Jones <davej@codemonkey.org.uk>
+Cc: Sudhakar Rajashekhara <sudhakar.raj@ti.com>
+Cc: Steve Chen <schen@mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/da8xx-fb.c |   55 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 55 insertions(+)
+ drivers/video/da8xx-fb.c |   28 ++++++++++++++++++++--------
+ 1 file changed, 20 insertions(+), 8 deletions(-)
 
-diff -puN drivers/video/da8xx-fb.c~davinci-fb-add-cpufreq-support drivers/video/da8xx-fb.c
---- a/drivers/video/da8xx-fb.c~davinci-fb-add-cpufreq-support
+diff -puN drivers/video/da8xx-fb.c~davinci-fb-calculate-the-clock-divider-from-pixel-clock-info drivers/video/da8xx-fb.c
+--- a/drivers/video/da8xx-fb.c~davinci-fb-calculate-the-clock-divider-from-pixel-clock-info
 +++ a/drivers/video/da8xx-fb.c
-@@ -28,6 +28,7 @@
- #include <linux/uaccess.h>
- #include <linux/interrupt.h>
- #include <linux/clk.h>
-+#include <linux/cpufreq.h>
- #include <video/da8xx-fb.h>
- 
- #define DRIVER_NAME "da8xx_lcdc"
-@@ -114,6 +115,9 @@ struct da8xx_fb_par {
+@@ -113,6 +113,7 @@ struct da8xx_fb_par {
+ 	unsigned short pseudo_palette[16];
  	unsigned int databuf_sz;
  	unsigned int palette_sz;
- 	unsigned int pxl_clk;
-+#ifdef CONFIG_CPU_FREQ
-+	struct notifier_block	freq_transition;
-+#endif
++	unsigned int pxl_clk;
  };
  
  /* Variable Screen Information */
-@@ -586,6 +590,41 @@ static int fb_check_var(struct fb_var_sc
- 	return err;
+@@ -155,7 +156,7 @@ struct da8xx_panel {
+ 	int		vfp;		/* Vertical front porch */
+ 	int		vbp;		/* Vertical back porch */
+ 	int		vsw;		/* Vertical Sync Pulse Width */
+-	int		pxl_clk;	/* Pixel clock */
++	unsigned int	pxl_clk;	/* Pixel clock */
+ 	unsigned char	invert_pxl_clk;	/* Invert Pixel clock */
+ };
+ 
+@@ -171,7 +172,7 @@ static struct da8xx_panel known_lcd_pane
+ 		.vfp = 2,
+ 		.vbp = 2,
+ 		.vsw = 0,
+-		.pxl_clk = 0x10,
++		.pxl_clk = 4608000,
+ 		.invert_pxl_clk = 1,
+ 	},
+ 	/* Sharp LK043T1DG01 */
+@@ -185,7 +186,7 @@ static struct da8xx_panel known_lcd_pane
+ 		.vfp = 2,
+ 		.vbp = 2,
+ 		.vsw = 10,
+-		.pxl_clk = 0x12,
++		.pxl_clk = 7833600,
+ 		.invert_pxl_clk = 0,
+ 	},
+ };
+@@ -451,6 +452,18 @@ static void lcd_reset(struct da8xx_fb_pa
+ 	lcdc_write(0, LCD_RASTER_CTRL_REG);
  }
  
-+#ifdef CONFIG_CPU_FREQ
-+static int lcd_da8xx_cpufreq_transition(struct notifier_block *nb,
-+				     unsigned long val, void *data)
++static void lcd_calc_clk_divider(struct da8xx_fb_par *par)
 +{
-+	struct da8xx_fb_par *par;
-+	unsigned int reg;
++	unsigned int lcd_clk, div;
 +
-+	par = container_of(nb, struct da8xx_fb_par, freq_transition);
-+	if (val == CPUFREQ_PRECHANGE) {
-+		reg = lcdc_read(LCD_RASTER_CTRL_REG);
-+		lcdc_write(reg & ~LCD_RASTER_ENABLE, LCD_RASTER_CTRL_REG);
-+	} else if (val == CPUFREQ_POSTCHANGE) {
-+		lcd_calc_clk_divider(par);
-+		reg = lcdc_read(LCD_RASTER_CTRL_REG);
-+		lcdc_write(reg | LCD_RASTER_ENABLE, LCD_RASTER_CTRL_REG);
-+	}
++	lcd_clk = clk_get_rate(par->lcdc_clk);
++	div = lcd_clk / par->pxl_clk;
 +
-+	return 0;
++	/* Configure the LCD clock divisor. */
++	lcdc_write(LCD_CLK_DIVISOR(div) |
++			(LCD_RASTER_MODE & 0x1), LCD_CTRL_REG);
 +}
 +
-+static inline int lcd_da8xx_cpufreq_register(struct da8xx_fb_par *par)
-+{
-+	par->freq_transition.notifier_call = lcd_da8xx_cpufreq_transition;
-+
-+	return cpufreq_register_notifier(&par->freq_transition,
-+					 CPUFREQ_TRANSITION_NOTIFIER);
-+}
-+
-+static inline void lcd_da8xx_cpufreq_deregister(struct da8xx_fb_par *par)
-+{
-+	cpufreq_unregister_notifier(&par->freq_transition,
-+				    CPUFREQ_TRANSITION_NOTIFIER);
-+}
-+#endif
-+
- static int __devexit fb_remove(struct platform_device *dev)
+ static int lcd_init(struct da8xx_fb_par *par, const struct lcd_ctrl_config *cfg,
+ 		struct da8xx_panel *panel)
  {
- 	struct fb_info *info = dev_get_drvdata(&dev->dev);
-@@ -593,6 +632,9 @@ static int __devexit fb_remove(struct pl
- 	if (info) {
- 		struct da8xx_fb_par *par = info->par;
+@@ -459,9 +472,8 @@ static int lcd_init(struct da8xx_fb_par 
  
-+#ifdef CONFIG_CPU_FREQ
-+		lcd_da8xx_cpufreq_deregister(par);
-+#endif
- 		if (lcdc_read(LCD_RASTER_CTRL_REG) & LCD_RASTER_ENABLE)
- 			lcd_disable_raster(par);
- 		lcdc_write(0, LCD_RASTER_CTRL_REG);
-@@ -826,12 +868,25 @@ static int __init fb_probe(struct platfo
- 		goto err_dealloc_cmap;
+ 	lcd_reset(par);
+ 
+-	/* Configure the LCD clock divisor. */
+-	lcdc_write(LCD_CLK_DIVISOR(panel->pxl_clk) |
+-			(LCD_RASTER_MODE & 0x1), LCD_CTRL_REG);
++	/* Calculate the divider */
++	lcd_calc_clk_divider(par);
+ 
+ 	if (panel->invert_pxl_clk)
+ 		lcdc_write((lcdc_read(LCD_RASTER_TIMING_2_REG) |
+@@ -721,6 +733,8 @@ static int __init fb_probe(struct platfo
  	}
  
-+#ifdef CONFIG_CPU_FREQ
-+	ret = lcd_da8xx_cpufreq_register(par);
-+	if (ret) {
-+		dev_err(&device->dev, "failed to register cpufreq\n");
-+		goto err_cpu_freq;
-+	}
-+#endif
-+
- 	/* enable raster engine */
- 	lcdc_write(lcdc_read(LCD_RASTER_CTRL_REG) |
- 			LCD_RASTER_ENABLE, LCD_RASTER_CTRL_REG);
+ 	par = da8xx_fb_info->par;
++	par->lcdc_clk = fb_clk;
++	par->pxl_clk = lcdc_info->pxl_clk;
  
- 	return 0;
+ 	if (lcd_init(par, lcd_cfg, lcdc_info) < 0) {
+ 		dev_err(&device->dev, "lcd_init failed\n");
+@@ -754,8 +768,6 @@ static int __init fb_probe(struct platfo
+ 	da8xx_fb_fix.smem_len = par->databuf_sz - par->palette_sz;
+ 	da8xx_fb_fix.line_length = (lcdc_info->width * lcd_cfg->bpp) / 8;
  
-+#ifdef CONFIG_CPU_FREQ
-+err_cpu_freq:
-+	unregister_framebuffer(da8xx_fb_info);
-+#endif
-+
- err_dealloc_cmap:
- 	fb_dealloc_cmap(&da8xx_fb_info->cmap);
- 
-_
-
-Patches currently in -mm which might be from chaithrika@ti.com are
-
-origin.patch
-
+-	par->lcdc_clk = fb_clk;
