@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kfifo-fix-warn_unused_result.patch added to -mm tree
-Date: Tue, 15 Dec 2009 18:14:16 -0800
-Message-ID: <200912160214.nBG2EG7B028743@imap1.linux-foundation.org>
+Subject: + linux-next-fixup.patch added to -mm tree
+Date: Wed, 16 Dec 2009 12:28:57 -0800
+Message-ID: <200912162028.nBGKSvvv012736@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55035 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43078 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934497AbZLPCOd (ORCPT
+	by vger.kernel.org with ESMTP id S1752603AbZLPU3F (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 21:14:33 -0500
+	Wed, 16 Dec 2009 15:29:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: stefani@seibold.net
+Cc: akpm@linux-foundation.org, sfr@canb.auug.org.au
 
 
 The patch titled
-     kfifo: fix warn_unused_result
+     linux-next-fixup
 has been added to the -mm tree.  Its filename is
-     kfifo-fix-warn_unused_result.patch
+     linux-next-fixup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,222 +34,84 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kfifo: fix warn_unused_result
-From: Stefani Seibold <stefani@seibold.net>
+Subject: linux-next-fixup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix the "ignoring return value of '...', declared with attribute
-warn_unused_result" compiler warning in several users of the new kfifo
-API.
+linux-next will need this tomorrow..
 
-It removes the __must_check attribute from kfifo_in() and
-kfifo_in_locked() which must not necessary performed.
-
-Fix the allocation bug in the nozomi driver file, by moving out the
-kfifo_alloc from the interrupt handler into the probe function.
-
-Fix the kfifo_out() and kfifo_out_locked() users to handle a unexpected
-end of fifo. 
-
-Signed-off-by: Stefani Seibold <stefani@seibold.net>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/nozomi.c                       |   31 +++++++++++++++---
- drivers/infiniband/hw/cxgb3/cxio_resource.c |    5 +-
- drivers/media/video/meye.c                  |    5 +-
- drivers/net/wireless/libertas/main.c        |    6 ++-
- drivers/scsi/libiscsi_tcp.c                 |    9 ++++-
- drivers/scsi/libsrp.c                       |    7 ++--
- include/linux/kfifo.h                       |    4 +-
- 7 files changed, 51 insertions(+), 16 deletions(-)
+ fs/exec.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/nozomi.c~kfifo-fix-warn_unused_result drivers/char/nozomi.c
---- a/drivers/char/nozomi.c~kfifo-fix-warn_unused_result
-+++ a/drivers/char/nozomi.c
-@@ -685,8 +685,6 @@ static int nozomi_read_config_table(stru
- 		dump_table(dc);
+diff -puN fs/exec.c~linux-next-fixup fs/exec.c
+--- a/fs/exec.c~linux-next-fixup
++++ a/fs/exec.c
+@@ -1775,7 +1775,7 @@ void do_coredump(long signr, int exit_co
+ 	struct coredump_params cprm = {
+ 		.signr = signr,
+ 		.regs = regs,
+-		.limit = current->signal->rlim[RLIMIT_CORE].rlim_cur,
++		.limit = rlimit(RLIMIT_CORE);
+ 	};
  
- 		for (i = PORT_MDM; i < MAX_PORT; i++) {
--			kfifo_alloc(&dc->port[i].fifo_ul,
--				FIFO_BUFFER_SIZE_UL, GFP_ATOMIC);
- 			memset(&dc->port[i].ctrl_dl, 0, sizeof(struct ctrl_dl));
- 			memset(&dc->port[i].ctrl_ul, 0, sizeof(struct ctrl_ul));
- 		}
-@@ -1433,6 +1431,16 @@ static int __devinit nozomi_card_init(st
- 		goto err_free_sbuf;
- 	}
- 
-+	for (i = PORT_MDM; i < MAX_PORT; i++) {
-+		if (kfifo_alloc(&dc->port[i].fifo_ul,
-+		      FIFO_BUFFER_SIZE_UL, GFP_ATOMIC)) {
-+			dev_err(&pdev->dev,
-+					"Could not allocate kfifo buffer\n");
-+			ret = -ENOMEM;
-+			goto err_free_kfifo;
-+		}
-+	}
-+
- 	spin_lock_init(&dc->spin_mutex);
- 
- 	nozomi_setup_private_data(dc);
-@@ -1445,7 +1453,7 @@ static int __devinit nozomi_card_init(st
- 			NOZOMI_NAME, dc);
- 	if (unlikely(ret)) {
- 		dev_err(&pdev->dev, "can't request irq %d\n", pdev->irq);
--		goto err_free_sbuf;
-+		goto err_free_kfifo;
- 	}
- 
- 	DBG1("base_addr: %p", dc->base_addr);
-@@ -1464,13 +1472,28 @@ static int __devinit nozomi_card_init(st
- 	dc->state = NOZOMI_STATE_ENABLED;
- 
- 	for (i = 0; i < MAX_PORT; i++) {
-+		struct device *tty_dev;
-+
- 		mutex_init(&dc->port[i].tty_sem);
- 		tty_port_init(&dc->port[i].port);
--		tty_register_device(ntty_driver, dc->index_start + i,
-+		tty_dev = tty_register_device(ntty_driver, dc->index_start + i,
- 							&pdev->dev);
-+
-+		if (IS_ERR(tty_dev)) {
-+			ret = PTR_ERR(tty_dev);
-+			dev_err(&pdev->dev, "Could not allocate tty?\n");
-+			goto err_free_tty;
-+		}
- 	}
-+
- 	return 0;
- 
-+err_free_tty:
-+	for (i = dc->index_start; i < dc->index_start + MAX_PORT; ++i)
-+		tty_unregister_device(ntty_driver, i);
-+err_free_kfifo:
-+	for (i = 0; i < MAX_PORT; i++)
-+		kfifo_free(&dc->port[i].fifo_ul);
- err_free_sbuf:
- 	kfree(dc->send_buf);
- 	iounmap(dc->base_addr);
-diff -puN drivers/infiniband/hw/cxgb3/cxio_resource.c~kfifo-fix-warn_unused_result drivers/infiniband/hw/cxgb3/cxio_resource.c
---- a/drivers/infiniband/hw/cxgb3/cxio_resource.c~kfifo-fix-warn_unused_result
-+++ a/drivers/infiniband/hw/cxgb3/cxio_resource.c
-@@ -86,8 +86,9 @@ static int __cxio_init_resource_fifo(str
- 			kfifo_in(fifo, (unsigned char *) &i, sizeof(u32));
- 
- 	for (i = 0; i < skip_low + skip_high; i++)
--		kfifo_out_locked(fifo, (unsigned char *) &entry,
--				sizeof(u32), fifo_lock);
-+		if (kfifo_out_locked(fifo, (unsigned char *) &entry,
-+				sizeof(u32), fifo_lock) != sizeof(u32))
-+					break;
- 	return 0;
- }
- 
-diff -puN drivers/media/video/meye.c~kfifo-fix-warn_unused_result drivers/media/video/meye.c
---- a/drivers/media/video/meye.c~kfifo-fix-warn_unused_result
-+++ a/drivers/media/video/meye.c
-@@ -968,8 +968,9 @@ static int meyeioc_sync(struct file *fil
- 		/* fall through */
- 	case MEYE_BUF_DONE:
- 		meye.grab_buffer[*i].state = MEYE_BUF_UNUSED;
--		kfifo_out_locked(&meye.doneq, (unsigned char *)&unused,
--				sizeof(int), &meye.doneq_lock);
-+		if (kfifo_out_locked(&meye.doneq, (unsigned char *)&unused,
-+				sizeof(int), &meye.doneq_lock) != sizeof(int))
-+					break;
- 	}
- 	*i = meye.grab_buffer[*i].size;
- 	mutex_unlock(&meye.lock);
-diff -puN drivers/net/wireless/libertas/main.c~kfifo-fix-warn_unused_result drivers/net/wireless/libertas/main.c
---- a/drivers/net/wireless/libertas/main.c~kfifo-fix-warn_unused_result
-+++ a/drivers/net/wireless/libertas/main.c
-@@ -514,8 +514,10 @@ static int lbs_thread(void *data)
- 		while (kfifo_len(&priv->event_fifo)) {
- 			u32 event;
- 
--			kfifo_out(&priv->event_fifo, (unsigned char *) &event,
--				sizeof(event));
-+			if (kfifo_out(&priv->event_fifo,
-+				(unsigned char *) &event, sizeof(event)) !=
-+				sizeof(event))
-+					break;
- 			spin_unlock_irq(&priv->driver_lock);
- 			lbs_process_event(priv, event);
- 			spin_lock_irq(&priv->driver_lock);
-diff -puN drivers/scsi/libiscsi_tcp.c~kfifo-fix-warn_unused_result drivers/scsi/libiscsi_tcp.c
---- a/drivers/scsi/libiscsi_tcp.c~kfifo-fix-warn_unused_result
-+++ a/drivers/scsi/libiscsi_tcp.c
-@@ -990,8 +990,13 @@ static struct iscsi_r2t_info *iscsi_tcp_
- 		}
- 
- 		if (r2t == NULL) {
--			kfifo_out(&tcp_task->r2tqueue,
--				    (void *)&tcp_task->r2t, sizeof(void *));
-+			if (kfifo_out(&tcp_task->r2tqueue,
-+			    (void *)&tcp_task->r2t, sizeof(void *)) !=
-+			    sizeof(void *)) {
-+				WARN_ONCE(1, "unexpected fifo state");
-+				r2t = NULL;
-+			}
-+
- 			r2t = tcp_task->r2t;
- 		}
- 		spin_unlock_bh(&session->lock);
-diff -puN drivers/scsi/libsrp.c~kfifo-fix-warn_unused_result drivers/scsi/libsrp.c
---- a/drivers/scsi/libsrp.c~kfifo-fix-warn_unused_result
-+++ a/drivers/scsi/libsrp.c
-@@ -163,8 +163,11 @@ struct iu_entry *srp_iu_get(struct srp_t
- {
- 	struct iu_entry *iue = NULL;
- 
--	kfifo_out_locked(&target->iu_queue.queue, (void *) &iue,
--			sizeof(void *), &target->iu_queue.lock);
-+	if (kfifo_out_locked(&target->iu_queue.queue, (void *) &iue,
-+		sizeof(void *), &target->iu_queue.lock) != sizeof(void *)) {
-+			WARN_ONCE(1, "unexpected fifo state");
-+			return NULL;
-+	}
- 	if (!iue)
- 		return iue;
- 	iue->target = target;
-diff -puN include/linux/kfifo.h~kfifo-fix-warn_unused_result include/linux/kfifo.h
---- a/include/linux/kfifo.h~kfifo-fix-warn_unused_result
-+++ a/include/linux/kfifo.h
-@@ -56,7 +56,7 @@ extern void kfifo_init(struct kfifo *fif
- extern __must_check int kfifo_alloc(struct kfifo *fifo, unsigned int size,
- 			gfp_t gfp_mask);
- extern void kfifo_free(struct kfifo *fifo);
--extern __must_check unsigned int kfifo_in(struct kfifo *fifo,
-+extern unsigned int kfifo_in(struct kfifo *fifo,
- 				const unsigned char *from, unsigned int len);
- extern __must_check unsigned int kfifo_out(struct kfifo *fifo,
- 				unsigned char *to, unsigned int len);
-@@ -94,7 +94,7 @@ static inline unsigned int kfifo_len(str
-  * the FIFO depending on the free space, and returns the number of
-  * bytes copied.
-  */
--static inline __must_check unsigned int kfifo_in_locked(struct kfifo *fifo,
-+static inline unsigned int kfifo_in_locked(struct kfifo *fifo,
- 		const unsigned char *from, unsigned int n, spinlock_t *lock)
- {
- 	unsigned long flags;
+ 	audit_core_dumps(signr);
 _
 
-Patches currently in -mm which might be from stefani@seibold.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+linux-next.patch
+linux-next-fixup.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
+drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+acpi-remove-nid_inval.patch
+drivers-acpi-acpi_padc-squish-warning.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices-checkpatch-fixes.patch
+drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
+drivers-media-video-pmsc-needs-versionh.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+drivers-leds-leds-ss4200c-fix-return-statement.patch
+net-sctp-socketc-fix-warning.patch
+proc_fops-convert-drivers-isdn-to-seq_file-fix2.patch
+3x59x-fix-pci-resource-management.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+fs-ext4-superc-fix-printk-warning.patch
+atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
+scsi-aacraid-fix-memory-leak-checkpatch-fixes.patch
+aoe-switch-to-the-new-bio_flush_dcache_pages-interface.patch
+fs-improve-remountro-vs-buffercache-coherency.patch
+drivers-net-wireless-iwlwifi-iwl-txc-fix-gcc-345-warning.patch
+percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+readahead-add-blk_run_backing_dev.patch
+ksm-memory-hotremove-migration-only-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+spi-controller-driver-for-designware-spi-core.patch
+spidev-use-declare_bitmap-instead-of-declaring-the-array.patch
+char-cyclades-fix-compiler-warning.patch
 drivers-media-video-cx23885-needs-kfifo-conversion.patch
 drivers-media-video-cx23885-needs-kfifo-updates.patch
 revert-tty-sdio_uart-use-kfifo-instead-of-the-messy-circ-stuff.patch
-kfifo-move-struct-kfifo-in-place.patch
 kfifo-move-struct-kfifo-in-place-fix.patch
-kfifo-move-out-spinlock.patch
-kfifo-cleanup-namespace.patch
-kfifo-rename-kfifo_put-into-kfifo_in-and-kfifo_get-into-kfifo_out.patch
-kfifo-fix-warn_unused_result.patch
-kfifo-add-define_kfifo-and-friends-add-very-tiny-functions.patch
-kfifo-add-define_kfifo-and-friends-add-very-tiny-functions-fix.patch
-kfifo-add-kfifo_skip-kfifo_from_user-and-kfifo_to_user.patch
-kfifo-add-record-handling-functions.patch
-kfifo-add-record-handling-functions-fix.patch
+zlib-optimize-inffast-when-copying-direct-from-output.patch
+lib-add-support-for-lzo-compressed-kernels.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
