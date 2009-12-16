@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-usb-gadget-use-err_ptr-is_err.patch added to -mm tree
-Date: Wed, 16 Dec 2009 14:32:25 -0800
-Message-ID: <200912162232.nBGMWPdf018815@imap1.linux-foundation.org>
+Subject: + serial-add-support-for-korenix-jetcard.patch added to -mm tree
+Date: Wed, 16 Dec 2009 14:34:11 -0800
+Message-ID: <200912162234.nBGMYBmN018875@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38363 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55542 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934497AbZLPWdN (ORCPT
+	by vger.kernel.org with ESMTP id S1752898AbZLPWeq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Dec 2009 17:33:13 -0500
+	Wed, 16 Dec 2009 17:34:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, dbrownell@users.sourceforge.net, greg@kroah.com
+Cc: kiros@korenix.com, alan@linux.intel.com, greg@kroah.com
 
 
 The patch titled
-     drivers/usb/gadget: use ERR_PTR/IS_ERR
+     serial: add support for Korenix JetCard
 has been added to the -mm tree.  Its filename is
-     drivers-usb-gadget-use-err_ptr-is_err.patch
+     serial-add-support-for-korenix-jetcard.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,81 +34,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/usb/gadget: use ERR_PTR/IS_ERR
-From: Julia Lawall <julia@diku.dk>
+Subject: serial: add support for Korenix JetCard
+From: Kiros Yeh <kiros@korenix.com>
 
-Use ERR_PTR and IS_ERR rather than mixing integers and pointers.
+Add different model (with a different PCI ID) to support Korenix JetCard.
 
-The semantic match that finds this problem is as follows:
-(http://coccinelle.lip6.fr/)
-
-// <smpl>
-@@
-expression *E;
-@@
-
-* E < 0
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Acked-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Kiros Yeh <kiros@korenix.com>
+Acked-by: Alan Cox <alan@linux.intel.com>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/gadget/f_audio.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ drivers/serial/8250_pci.c |    9 +++++++++
+ include/linux/pci_ids.h   |    2 ++
+ 2 files changed, 11 insertions(+)
 
-diff -puN drivers/usb/gadget/f_audio.c~drivers-usb-gadget-use-err_ptr-is_err drivers/usb/gadget/f_audio.c
---- a/drivers/usb/gadget/f_audio.c~drivers-usb-gadget-use-err_ptr-is_err
-+++ a/drivers/usb/gadget/f_audio.c
-@@ -252,12 +252,12 @@ static struct f_audio_buf *f_audio_buffe
+diff -puN drivers/serial/8250_pci.c~serial-add-support-for-korenix-jetcard drivers/serial/8250_pci.c
+--- a/drivers/serial/8250_pci.c~serial-add-support-for-korenix-jetcard
++++ a/drivers/serial/8250_pci.c
+@@ -3199,6 +3199,15 @@ static struct pci_device_id serial_pci_t
+ 		0x1208, 0x0004, 0, 0,
+ 		pbn_b0_4_921600 },
  
- 	copy_buf = kzalloc(sizeof *copy_buf, GFP_ATOMIC);
- 	if (!copy_buf)
--		return (struct f_audio_buf *)-ENOMEM;
-+		return ERR_PTR(-ENOMEM);
++	{	PCI_VENDOR_ID_KORENIX, PCI_DEVICE_ID_KORENIX_JETCARDF2,
++		0x1204, 0x0004, 0, 0,
++		pbn_b0_4_921600 },
++	{	PCI_VENDOR_ID_KORENIX, PCI_DEVICE_ID_KORENIX_JETCARDF2,
++		0x1208, 0x0004, 0, 0,
++		pbn_b0_4_921600 },
++	{	PCI_VENDOR_ID_KORENIX, PCI_DEVICE_ID_KORENIX_JETCARDF3,
++		0x1208, 0x0004, 0, 0,
++		pbn_b0_4_921600 },
+ 	/*
+ 	 * Dell Remote Access Card 4 - Tim_T_Murphy@Dell.com
+ 	 */
+diff -puN include/linux/pci_ids.h~serial-add-support-for-korenix-jetcard include/linux/pci_ids.h
+--- a/include/linux/pci_ids.h~serial-add-support-for-korenix-jetcard
++++ a/include/linux/pci_ids.h
+@@ -2333,6 +2333,8 @@
+ #define PCI_VENDOR_ID_KORENIX		0x1982
+ #define PCI_DEVICE_ID_KORENIX_JETCARDF0	0x1600
+ #define PCI_DEVICE_ID_KORENIX_JETCARDF1	0x16ff
++#define PCI_DEVICE_ID_KORENIX_JETCARDF2	0x1700
++#define PCI_DEVICE_ID_KORENIX_JETCARDF3	0x17ff
  
- 	copy_buf->buf = kzalloc(buf_size, GFP_ATOMIC);
- 	if (!copy_buf->buf) {
- 		kfree(copy_buf);
--		return (struct f_audio_buf *)-ENOMEM;
-+		return ERR_PTR(-ENOMEM);
- 	}
+ #define PCI_VENDOR_ID_QMI		0x1a32
  
- 	return copy_buf;
-@@ -332,7 +332,7 @@ static int f_audio_out_ep_complete(struc
- 		list_add_tail(&copy_buf->list, &audio->play_queue);
- 		schedule_work(&audio->playback_work);
- 		copy_buf = f_audio_buffer_alloc(audio_buf_size);
--		if (copy_buf < 0)
-+		if (IS_ERR(copy_buf))
- 			return -ENOMEM;
- 	}
- 
-@@ -576,6 +576,8 @@ static int f_audio_set_alt(struct usb_fu
- 			usb_ep_enable(out_ep, audio->out_desc);
- 			out_ep->driver_data = audio;
- 			audio->copy_buf = f_audio_buffer_alloc(audio_buf_size);
-+			if (IS_ERR(audio->copy_buf))
-+				return -ENOMEM;
- 
- 			/*
- 			 * allocate a bunch of read buffers
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from kiros@korenix.com are
 
-origin.patch
-drivers-video-via-viafbdevc-correct-code-taking-the-size-of-a-pointer.patch
-linux-next.patch
-drivers-media-video-move-dereference-after-null-test.patch
-drivers-isdn-eliminate-duplicated-test.patch
-drivers-scsi-libsas-use-sam_good.patch
-drivers-scsi-remove-unnecessary-null-test.patch
-drivers-message-move-dereference-after-null-test.patch
-drivers-block-dac960c-use-dac960_v2_controller.patch
-drivers-usb-wusbcore-introduce-missing-usb_free_urb.patch
-drivers-usb-gadget-use-err_ptr-is_err.patch
-drivers-edac-introduce-missing-kfree.patch
+serial-add-support-for-korenix-jetcard.patch
 
