@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + thermal-fix-test-of-unsigned-in-thermal_cooling_device_cur_state_store.patch added to -mm tree
-Date: Wed, 16 Dec 2009 15:01:22 -0800
-Message-ID: <200912162301.nBGN1MKP020414@imap1.linux-foundation.org>
+Subject: + asiliantfb-fix-test-of-unsigned-in-asiliant_calc_dclk2.patch added to -mm tree
+Date: Wed, 16 Dec 2009 15:03:34 -0800
+Message-ID: <200912162303.nBGN3Y8P020643@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59259 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38440 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964874AbZLPXCH (ORCPT
+	by vger.kernel.org with ESMTP id S1763128AbZLPXDx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Dec 2009 18:02:07 -0500
+	Wed, 16 Dec 2009 18:03:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, lenb@kernel.org, rui.zhang@intel.com
+Cc: roel.kluin@gmail.com, dilinger@debian.org, krzysztof.h1@poczta.fm
 
 
 The patch titled
-     thermal: fix test of unsigned in thermal_cooling_device_cur_state_store()
+     asiliantfb: fix test of unsigned in asiliant_calc_dclk2()
 has been added to the -mm tree.  Its filename is
-     thermal-fix-test-of-unsigned-in-thermal_cooling_device_cur_state_store.patch
+     asiliantfb-fix-test-of-unsigned-in-asiliant_calc_dclk2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thermal: fix test of unsigned in thermal_cooling_device_cur_state_store()
+Subject: asiliantfb: fix test of unsigned in asiliant_calc_dclk2()
 From: Roel Kluin <roel.kluin@gmail.com>
 
-state is unsigned long so the test did not work.
+Ftarget, Fret, n and m are unsigned so the tests did not work.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Acked-by: Zhang Rui <rui.zhang@intel.com>
-Cc: Len Brown <lenb@kernel.org>
+Cc: Andres Salomon <dilinger@debian.org>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/thermal/thermal_sys.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/asiliantfb.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/thermal/thermal_sys.c~thermal-fix-test-of-unsigned-in-thermal_cooling_device_cur_state_store drivers/thermal/thermal_sys.c
---- a/drivers/thermal/thermal_sys.c~thermal-fix-test-of-unsigned-in-thermal_cooling_device_cur_state_store
-+++ a/drivers/thermal/thermal_sys.c
-@@ -377,7 +377,7 @@ thermal_cooling_device_cur_state_store(s
- 	if (!sscanf(buf, "%ld\n", &state))
- 		return -EINVAL;
+diff -puN drivers/video/asiliantfb.c~asiliantfb-fix-test-of-unsigned-in-asiliant_calc_dclk2 drivers/video/asiliantfb.c
+--- a/drivers/video/asiliantfb.c~asiliantfb-fix-test-of-unsigned-in-asiliant_calc_dclk2
++++ a/drivers/video/asiliantfb.c
+@@ -140,7 +140,7 @@ static void asiliant_calc_dclk2(u32 *ppi
  
--	if (state < 0)
-+	if ((long)state < 0)
- 		return -EINVAL;
- 
- 	result = cdev->ops->set_cur_state(cdev, state);
+ 		/* 3 <= m <= 257 */
+ 		if (m >= 3 && m <= 257) {
+-			unsigned new_error = ((Ftarget * n) - (Fref * m)) >= 0 ?
++			unsigned new_error = Ftarget * n >= Fref * m ?
+ 					       ((Ftarget * n) - (Fref * m)) : ((Fref * m) - (Ftarget * n));
+ 			if (new_error < best_error) {
+ 				best_n = n;
+@@ -152,7 +152,7 @@ static void asiliant_calc_dclk2(u32 *ppi
+ 		else if (m <= 1028) {
+ 			/* remember there are still only 8-bits of precision in m, so
+ 			 * avoid over-optimistic error calculations */
+-			unsigned new_error = ((Ftarget * n) - (Fref * (m & ~3))) >= 0 ?
++			unsigned new_error = Ftarget * n >= Fref * (m & ~3) ?
+ 					       ((Ftarget * n) - (Fref * (m & ~3))) : ((Fref * (m & ~3)) - (Ftarget * n));
+ 			if (new_error < best_error) {
+ 				best_n = n;
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -89,6 +98,7 @@ keys-ptr_err-return-of-wrong-pointer-in-keyctl_get_security.patch
 frv-duplicate-output_buffer-of-e03.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 cryptocop-fix-assertion-in-create_output_descriptors.patch
+asiliantfb-fix-test-of-unsigned-in-asiliant_calc_dclk2.patch
 hvc_console-fix-test-on-unsigned-in-hvc_console_print.patch
 zlib-optimize-inffast-when-copying-direct-from-output.patch
 
