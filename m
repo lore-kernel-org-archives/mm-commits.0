@@ -1,116 +1,141 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-add-mem_cgroup_cancel_charge.patch removed from -mm tree
-Date: Wed, 16 Dec 2009 12:37:39 -0800
-Message-ID: <200912162037.nBGKbdHZ013356@imap1.linux-foundation.org>
+Subject: [merged] memcg-avoid-oom-killing-innocent-task-in-case-of-use_hierarchy.patch removed from -mm tree
+Date: Wed, 16 Dec 2009 12:37:45 -0800
+Message-ID: <200912162037.nBGKbj6L013364@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35257 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60373 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964831AbZLPUh4 (ORCPT
+	by vger.kernel.org with ESMTP id S964824AbZLPUhx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Dec 2009 15:37:56 -0500
+	Wed, 16 Dec 2009 15:37:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nishimura@mxp.nes.nec.co.jp, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: nishimura@mxp.nes.nec.co.jp, balbir@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: add mem_cgroup_cancel_charge()
+     memcg: avoid oom-killing innocent task in case of use_hierarchy
 has been removed from the -mm tree.  Its filename was
-     memcg-add-mem_cgroup_cancel_charge.patch
+     memcg-avoid-oom-killing-innocent-task-in-case-of-use_hierarchy.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: add mem_cgroup_cancel_charge()
+Subject: memcg: avoid oom-killing innocent task in case of use_hierarchy
 From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 
-There are some places calling both res_counter_uncharge() and css_put() to
-cancel the charge and the refcnt we have got by mem_cgroup_tyr_charge().
+task_in_mem_cgroup(), which is called by select_bad_process() to check
+whether a task can be a candidate for being oom-killed from memcg's limit,
+checks "curr->use_hierarchy"("curr" is the mem_cgroup the task belongs
+to).
 
-This patch introduces mem_cgroup_cancel_charge() and call it in those
-places.
+But this check return true(it's false positive) when:
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+	<some path>/aa		use_hierarchy == 0	<- hitting limit
+	  <some path>/aa/00	use_hierarchy == 1	<- the task belongs to
+
+This leads to killing an innocent task in aa/00.  This patch is a fix for
+this bug.  And this patch also fixes the arg for
+mem_cgroup_print_oom_info().  We should print information of mem_cgroup
+which the task being killed, not current, belongs to.
+
 Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Reviewed-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   38 ++++++++++++++++++--------------------
- 1 file changed, 18 insertions(+), 20 deletions(-)
+ mm/memcontrol.c |   10 ++++++++--
+ mm/oom_kill.c   |   13 +++++++------
+ 2 files changed, 15 insertions(+), 8 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-add-mem_cgroup_cancel_charge mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-add-mem_cgroup_cancel_charge
+diff -puN mm/memcontrol.c~memcg-avoid-oom-killing-innocent-task-in-case-of-use_hierarchy mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-avoid-oom-killing-innocent-task-in-case-of-use_hierarchy
 +++ a/mm/memcontrol.c
-@@ -1500,6 +1500,21 @@ nomem:
+@@ -760,7 +760,13 @@ int task_in_mem_cgroup(struct task_struc
+ 	task_unlock(task);
+ 	if (!curr)
+ 		return 0;
+-	if (curr->use_hierarchy)
++	/*
++	 * We should check use_hierarchy of "mem" not "curr". Because checking
++	 * use_hierarchy of "curr" here make this function true if hierarchy is
++	 * enabled in "curr" and "curr" is a child of "mem" in *cgroup*
++	 * hierarchy(even if use_hierarchy is disabled in "mem").
++	 */
++	if (mem->use_hierarchy)
+ 		ret = css_is_ancestor(&curr->css, &mem->css);
+ 	else
+ 		ret = (curr == mem);
+@@ -1009,7 +1015,7 @@ void mem_cgroup_print_oom_info(struct me
+ 	static char memcg_name[PATH_MAX];
+ 	int ret;
+ 
+-	if (!memcg)
++	if (!memcg || !p)
+ 		return;
+ 
+ 
+diff -puN mm/oom_kill.c~memcg-avoid-oom-killing-innocent-task-in-case-of-use_hierarchy mm/oom_kill.c
+--- a/mm/oom_kill.c~memcg-avoid-oom-killing-innocent-task-in-case-of-use_hierarchy
++++ a/mm/oom_kill.c
+@@ -356,7 +356,8 @@ static void dump_tasks(const struct mem_
+ 	} while_each_thread(g, p);
  }
  
- /*
-+ * Somemtimes we have to undo a charge we got by try_charge().
-+ * This function is for that and do uncharge, put css's refcnt.
-+ * gotten by try_charge().
-+ */
-+static void mem_cgroup_cancel_charge(struct mem_cgroup *mem)
-+{
-+	if (!mem_cgroup_is_root(mem)) {
-+		res_counter_uncharge(&mem->res, PAGE_SIZE);
-+		if (do_swap_account)
-+			res_counter_uncharge(&mem->memsw, PAGE_SIZE);
-+	}
-+	css_put(&mem->css);
-+}
-+
-+/*
-  * A helper function to get mem_cgroup from ID. must be called under
-  * rcu_read_lock(). The caller must check css_is_removed() or some if
-  * it's concern. (dropping refcnt from swap can be called against removed
-@@ -1565,12 +1580,7 @@ static void __mem_cgroup_commit_charge(s
- 	lock_page_cgroup(pc);
- 	if (unlikely(PageCgroupUsed(pc))) {
- 		unlock_page_cgroup(pc);
--		if (!mem_cgroup_is_root(mem)) {
--			res_counter_uncharge(&mem->res, PAGE_SIZE);
--			if (do_swap_account)
--				res_counter_uncharge(&mem->memsw, PAGE_SIZE);
--		}
--		css_put(&mem->css);
-+		mem_cgroup_cancel_charge(mem);
- 		return;
+-static void dump_header(gfp_t gfp_mask, int order, struct mem_cgroup *mem)
++static void dump_header(struct task_struct *p, gfp_t gfp_mask, int order,
++							struct mem_cgroup *mem)
+ {
+ 	pr_warning("%s invoked oom-killer: gfp_mask=0x%x, order=%d, "
+ 		"oom_adj=%d\n",
+@@ -365,7 +366,7 @@ static void dump_header(gfp_t gfp_mask, 
+ 	cpuset_print_task_mems_allowed(current);
+ 	task_unlock(current);
+ 	dump_stack();
+-	mem_cgroup_print_oom_info(mem, current);
++	mem_cgroup_print_oom_info(mem, p);
+ 	show_mem();
+ 	if (sysctl_oom_dump_tasks)
+ 		dump_tasks(mem);
+@@ -440,7 +441,7 @@ static int oom_kill_process(struct task_
+ 	struct task_struct *c;
+ 
+ 	if (printk_ratelimit())
+-		dump_header(gfp_mask, order, mem);
++		dump_header(p, gfp_mask, order, mem);
+ 
+ 	/*
+ 	 * If the task is already exiting, don't alarm the sysadmin or kill
+@@ -576,7 +577,7 @@ retry:
+ 	/* Found nothing?!?! Either we hang forever, or we panic. */
+ 	if (!p) {
+ 		read_unlock(&tasklist_lock);
+-		dump_header(gfp_mask, order, NULL);
++		dump_header(NULL, gfp_mask, order, NULL);
+ 		panic("Out of memory and no killable processes...\n");
  	}
  
-@@ -1734,14 +1744,7 @@ static int mem_cgroup_move_parent(struct
- cancel:
- 	put_page(page);
- uncharge:
--	/* drop extra refcnt by try_charge() */
--	css_put(&parent->css);
--	/* uncharge if move fails */
--	if (!mem_cgroup_is_root(parent)) {
--		res_counter_uncharge(&parent->res, PAGE_SIZE);
--		if (do_swap_account)
--			res_counter_uncharge(&parent->memsw, PAGE_SIZE);
--	}
-+	mem_cgroup_cancel_charge(parent);
- 	return ret;
- }
- 
-@@ -1958,12 +1961,7 @@ void mem_cgroup_cancel_charge_swapin(str
+@@ -644,7 +645,7 @@ void out_of_memory(struct zonelist *zone
  		return;
- 	if (!mem)
- 		return;
--	if (!mem_cgroup_is_root(mem)) {
--		res_counter_uncharge(&mem->res, PAGE_SIZE);
--		if (do_swap_account)
--			res_counter_uncharge(&mem->memsw, PAGE_SIZE);
--	}
--	css_put(&mem->css);
-+	mem_cgroup_cancel_charge(mem);
- }
  
- static void
+ 	if (sysctl_panic_on_oom == 2) {
+-		dump_header(gfp_mask, order, NULL);
++		dump_header(NULL, gfp_mask, order, NULL);
+ 		panic("out of memory. Compulsory panic_on_oom is selected.\n");
+ 	}
+ 
+@@ -663,7 +664,7 @@ void out_of_memory(struct zonelist *zone
+ 
+ 	case CONSTRAINT_NONE:
+ 		if (sysctl_panic_on_oom) {
+-			dump_header(gfp_mask, order, NULL);
++			dump_header(NULL, gfp_mask, order, NULL);
+ 			panic("out of memory. panic_on_oom is selected\n");
+ 		}
+ 		/* Fall-through */
 _
 
 Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
