@@ -1,38 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: [merged] davinci-fb-add-suspend-resume-suuport-for-da8xx-omap-l1xx-fb-driver.patch removed from -mm tree
-Date: Wed, 16 Dec 2009 12:36:21 -0800
-Message-ID: <200912162036.nBGKaLq1013163@imap1.linux-foundation.org>
+Subject: [merged] davinci-fb-add-framebuffer-blank-operation.patch removed from -mm tree
+Date: Wed, 16 Dec 2009 12:36:24 -0800
+Message-ID: <200912162036.nBGKaOZD013166@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43952 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60603 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935418AbZLPUg1 (ORCPT
+	by vger.kernel.org with ESMTP id S935443AbZLPUga (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Dec 2009 15:36:27 -0500
+	Wed, 16 Dec 2009 15:36:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: chaithrika@ti.com, khilman@deeprootsystems.com, krzysztof.h1@poczta.fm, mm-commits@vger.kernel.org
 
 
 The patch titled
-     davinci: fb : add suspend/resume suuport for DA8xx/OMAP-L1xx fb driver
+     davinci: fb: add framebuffer blank operation
 has been removed from the -mm tree.  Its filename was
-     davinci-fb-add-suspend-resume-suuport-for-da8xx-omap-l1xx-fb-driver.patch
+     davinci-fb-add-framebuffer-blank-operation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: davinci: fb : add suspend/resume suuport for DA8xx/OMAP-L1xx fb driver
+Subject: davinci: fb: add framebuffer blank operation
 From: Chaithrika U S <chaithrika@ti.com>
 
-Suspend/resume support DA8xx/OMAP-L1xx frame buffer driver.  This feature
-has been tested on DA850/OMAP-L138 EVM.  For the purpose of testing, the
-patch series[1] which adds suspend support for DA850/OMAP-L138 SoC was
-applied.
-
-[1] http://patchwork.kernel.org/patch/60260/
+Implement frame buffer blank operation feature for DA8xx/OMAP-L1xx driver.
 
 Signed-off-by: Chaithrika U S <chaithrika@ti.com>
 Cc: Kevin Hilman <khilman@deeprootsystems.com>
@@ -40,58 +35,56 @@ Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/da8xx-fb.c |   29 +++++++++++++++++++++++++++--
- 1 file changed, 27 insertions(+), 2 deletions(-)
+ drivers/video/da8xx-fb.c |   30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
 
-diff -puN drivers/video/da8xx-fb.c~davinci-fb-add-suspend-resume-suuport-for-da8xx-omap-l1xx-fb-driver drivers/video/da8xx-fb.c
---- a/drivers/video/da8xx-fb.c~davinci-fb-add-suspend-resume-suuport-for-da8xx-omap-l1xx-fb-driver
+diff -puN drivers/video/da8xx-fb.c~davinci-fb-add-framebuffer-blank-operation drivers/video/da8xx-fb.c
+--- a/drivers/video/da8xx-fb.c~davinci-fb-add-framebuffer-blank-operation
 +++ a/drivers/video/da8xx-fb.c
-@@ -29,6 +29,7 @@
- #include <linux/interrupt.h>
- #include <linux/clk.h>
- #include <linux/cpufreq.h>
-+#include <linux/console.h>
- #include <video/da8xx-fb.h>
+@@ -702,6 +702,35 @@ static int fb_ioctl(struct fb_info *info
+ 	return 0;
+ }
  
- #define DRIVER_NAME "da8xx_lcdc"
-@@ -930,11 +931,35 @@ err_request_mem:
- #ifdef CONFIG_PM
- static int fb_suspend(struct platform_device *dev, pm_message_t state)
- {
--	 return -EBUSY;
-+	struct fb_info *info = platform_get_drvdata(dev);
++static int cfb_blank(int blank, struct fb_info *info)
++{
 +	struct da8xx_fb_par *par = info->par;
++	int ret = 0;
 +
-+	acquire_console_sem();
-+	if (par->panel_power_ctrl)
-+		par->panel_power_ctrl(0);
++	if (par->blank == blank)
++		return 0;
 +
-+	fb_set_suspend(info, 1);
-+	lcd_disable_raster();
-+	clk_disable(par->lcdc_clk);
-+	release_console_sem();
++	par->blank = blank;
++	switch (blank) {
++	case FB_BLANK_UNBLANK:
++		if (par->panel_power_ctrl)
++			par->panel_power_ctrl(1);
 +
-+	return 0;
- }
- static int fb_resume(struct platform_device *dev)
- {
--	 return -EBUSY;
-+	struct fb_info *info = platform_get_drvdata(dev);
-+	struct da8xx_fb_par *par = info->par;
++		lcd_enable_raster();
++		break;
++	case FB_BLANK_POWERDOWN:
++		if (par->panel_power_ctrl)
++			par->panel_power_ctrl(0);
 +
-+	acquire_console_sem();
-+	if (par->panel_power_ctrl)
-+		par->panel_power_ctrl(1);
++		lcd_disable_raster();
++		break;
++	default:
++		ret = -EINVAL;
++	}
 +
-+	clk_enable(par->lcdc_clk);
-+	lcd_enable_raster();
-+	fb_set_suspend(info, 0);
-+	release_console_sem();
++	return ret;
++}
 +
-+	return 0;
- }
- #else
- #define fb_suspend NULL
+ static struct fb_ops da8xx_fb_ops = {
+ 	.owner = THIS_MODULE,
+ 	.fb_check_var = fb_check_var,
+@@ -710,6 +739,7 @@ static struct fb_ops da8xx_fb_ops = {
+ 	.fb_fillrect = cfb_fillrect,
+ 	.fb_copyarea = cfb_copyarea,
+ 	.fb_imageblit = cfb_imageblit,
++	.fb_blank = cfb_blank,
+ };
+ 
+ static int __init fb_probe(struct platform_device *device)
 _
 
 Patches currently in -mm which might be from chaithrika@ti.com are
