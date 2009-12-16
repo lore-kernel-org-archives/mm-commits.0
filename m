@@ -1,43 +1,44 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ipc-semc-sem-optimise-undo-list-search.patch removed from -mm tree
-Date: Wed, 16 Dec 2009 12:38:33 -0800
-Message-ID: <200912162038.nBGKcXr9013441@imap1.linux-foundation.org>
+Subject: [merged] ipc-semc-sem-preempt-improve.patch removed from -mm tree
+Date: Wed, 16 Dec 2009 12:38:39 -0800
+Message-ID: <200912162038.nBGKcdXK013453@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35135 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47580 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964944AbZLPUik (ORCPT
+	by vger.kernel.org with ESMTP id S964971AbZLPUip (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Dec 2009 15:38:40 -0500
+	Wed, 16 Dec 2009 15:38:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: npiggin@suse.de, manfred@colorfullife.com, peifferp@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ipc/sem.c: sem optimise undo list search
+     ipc/sem.c: sem preempt improve
 has been removed from the -mm tree.  Its filename was
-     ipc-semc-sem-optimise-undo-list-search.patch
+     ipc-semc-sem-preempt-improve.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ipc/sem.c: sem optimise undo list search
+Subject: ipc/sem.c: sem preempt improve
 From: Nick Piggin <npiggin@suse.de>
 
-Around a month ago, there was some discussion about an improvement of the
-sysv sem algorithm: Most (at least: some important) users only use simple
-semaphore operations, therefore it's worthwile to optimize this use case.
+The strange sysv semaphore wakeup scheme has a kind of busy-wait lock
+involved, which could deadlock if preemption is enabled during the "lock".
 
+It is an implementation detail (due to a spinlock being held) that this is
+actually the case.  However if "spinlocks" are made preemptible, or if the
+sem lock is changed to a sleeping lock for example, then the wakeup would
+become buggy.  So this might be a bugfix for -rt kernels.
 
-This patch:
-
-Move last looked up sem_undo struct to the head of the task's undo list. 
-Attempt to move common entries to the front of the list so search time is
-reduced.  This reduces lookup_undo on oprofile of problematic SAP workload
-by 30% (see patch 4 for a description of SAP workload).
+Imagine waker being preempted by wakee and never clearing IN_WAKEUP -- if
+wakee has higher RT priority then there is a priority inversion deadlock. 
+Even if there is not a priority inversion to cause a deadlock, then there
+is still time wasted spinning.
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
@@ -45,58 +46,71 @@ Cc: Pierre Peiffer <peifferp@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c |   26 ++++++++++++++++++++------
- 1 file changed, 20 insertions(+), 6 deletions(-)
+ ipc/sem.c |   38 +++++++++++++++++++++++---------------
+ 1 file changed, 23 insertions(+), 15 deletions(-)
 
-diff -puN ipc/sem.c~ipc-semc-sem-optimise-undo-list-search ipc/sem.c
---- a/ipc/sem.c~ipc-semc-sem-optimise-undo-list-search
+diff -puN ipc/sem.c~ipc-semc-sem-preempt-improve ipc/sem.c
+--- a/ipc/sem.c~ipc-semc-sem-preempt-improve
 +++ a/ipc/sem.c
-@@ -962,17 +962,31 @@ static inline int get_undo_list(struct s
- 	return 0;
+@@ -398,6 +398,27 @@ undo:
+ 	return result;
  }
  
--static struct sem_undo *lookup_undo(struct sem_undo_list *ulp, int semid)
-+static struct sem_undo *__lookup_undo(struct sem_undo_list *ulp, int semid)
- {
--	struct sem_undo *walk;
-+	struct sem_undo *un;
- 
--	list_for_each_entry_rcu(walk, &ulp->list_proc, list_proc) {
--		if (walk->semid == semid)
--			return walk;
-+	list_for_each_entry_rcu(un, &ulp->list_proc, list_proc) {
-+		if (un->semid == semid)
-+			return un;
- 	}
- 	return NULL;
- }
- 
-+static struct sem_undo *lookup_undo(struct sem_undo_list *ulp, int semid)
++/*
++ * Wake up a process waiting on the sem queue with a given error.
++ * The queue is invalid (may not be accessed) after the function returns.
++ */
++static void wake_up_sem_queue(struct sem_queue *q, int error)
 +{
-+	struct sem_undo *un;
-+
-+  	assert_spin_locked(&ulp->lock);
-+
-+	un = __lookup_undo(ulp, semid);
-+	if (un) {
-+		list_del_rcu(&un->list_proc);
-+		list_add_rcu(&un->list_proc, &ulp->list_proc);
-+	}
-+	return un;
++	/*
++	 * Hold preempt off so that we don't get preempted and have the
++	 * wakee busy-wait until we're scheduled back on. We're holding
++	 * locks here so it may not strictly be needed, however if the
++	 * locks become preemptible then this prevents such a problem.
++	 */
++	preempt_disable();
++	q->status = IN_WAKEUP;
++	wake_up_process(q->sleeper);
++	/* hands-off: q can disappear immediately after writing q->status. */
++	smp_wmb();
++	q->status = error;
++	preempt_enable();
 +}
 +
- /**
-  * find_alloc_undo - Lookup (and if not present create) undo array
-  * @ns: namespace
-@@ -1308,7 +1322,7 @@ void exit_sem(struct task_struct *tsk)
- 		if (IS_ERR(sma))
- 			continue;
+ /* Go through the pending queue for the indicated semaphore
+  * looking for tasks that can be completed.
+  */
+@@ -429,17 +450,7 @@ again:
+ 		 *   continue.
+ 		 */
+ 		alter = q->alter;
+-
+-		/* wake up the waiting thread */
+-		q->status = IN_WAKEUP;
+-
+-		wake_up_process(q->sleeper);
+-		/* hands-off: q will disappear immediately after
+-		 * writing q->status.
+-		 */
+-		smp_wmb();
+-		q->status = error;
+-
++		wake_up_sem_queue(q, error);
+ 		if (alter)
+ 			goto again;
+ 	}
+@@ -523,10 +534,7 @@ static void freeary(struct ipc_namespace
+ 	list_for_each_entry_safe(q, tq, &sma->sem_pending, list) {
+ 		list_del(&q->list);
  
--		un = lookup_undo(ulp, semid);
-+		un = __lookup_undo(ulp, semid);
- 		if (un == NULL) {
- 			/* exit_sem raced with IPC_RMID+semget() that created
- 			 * exactly the same semid. Nothing to do.
+-		q->status = IN_WAKEUP;
+-		wake_up_process(q->sleeper); /* doesn't sleep */
+-		smp_wmb();
+-		q->status = -EIDRM;	/* hands-off q */
++		wake_up_sem_queue(q, -EIDRM);
+ 	}
+ 
+ 	/* Remove the semaphore set from the IDR */
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
