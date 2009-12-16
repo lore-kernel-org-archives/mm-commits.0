@@ -1,86 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: [merged] gru-add-symbolic-names-for-gru-error-code.patch removed from -mm tree
-Date: Wed, 16 Dec 2009 12:40:55 -0800
-Message-ID: <200912162040.nBGKetRW013688@imap1.linux-foundation.org>
+Subject: [merged] gru-check-for-correct-gru-chiplet-assignment.patch removed from -mm tree
+Date: Wed, 16 Dec 2009 12:41:00 -0800
+Message-ID: <200912162041.nBGKf0vH013694@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43073 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44353 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965025AbZLPUk6 (ORCPT
+	by vger.kernel.org with ESMTP id S965028AbZLPUlD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Dec 2009 15:40:58 -0500
+	Wed, 16 Dec 2009 15:41:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: steiner@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gru: add symbolic names for GRU error code
+     gru: check for correct GRU chiplet assignment
 has been removed from the -mm tree.  Its filename was
-     gru-add-symbolic-names-for-gru-error-code.patch
+     gru-check-for-correct-gru-chiplet-assignment.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gru: add symbolic names for GRU error code
+Subject: gru: check for correct GRU chiplet assignment
 From: Jack Steiner <steiner@sgi.com>
 
-Use symbol names instead of numbers for error return values for the vtop
-functions.
+Simplify the code that checks for correct assignment of GRU contexts to
+users.
 
 Signed-off-by: Jack Steiner <steiner@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-gru/grufault.c |   16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+ drivers/misc/sgi-gru/grumain.c |   44 +++++++++++++++++++++----------
+ 1 file changed, 30 insertions(+), 14 deletions(-)
 
-diff -puN drivers/misc/sgi-gru/grufault.c~gru-add-symbolic-names-for-gru-error-code drivers/misc/sgi-gru/grufault.c
---- a/drivers/misc/sgi-gru/grufault.c~gru-add-symbolic-names-for-gru-error-code
-+++ a/drivers/misc/sgi-gru/grufault.c
-@@ -40,6 +40,12 @@
- #include "gru_instructions.h"
- #include <asm/uv/uv_hub.h>
- 
-+/* Return codes for vtop functions */
-+#define VTOP_SUCCESS               0
-+#define VTOP_INVALID               -1
-+#define VTOP_RETRY                 -2
-+
-+
- /*
-  * Test if a physical address is a valid GRU GSEG address
+diff -puN drivers/misc/sgi-gru/grumain.c~gru-check-for-correct-gru-chiplet-assignment drivers/misc/sgi-gru/grumain.c
+--- a/drivers/misc/sgi-gru/grumain.c~gru-check-for-correct-gru-chiplet-assignment
++++ a/drivers/misc/sgi-gru/grumain.c
+@@ -53,12 +53,16 @@ struct device *grudev = &gru_device;
   */
-@@ -280,12 +286,12 @@ static int gru_vtop(struct gru_thread_st
- 	paddr = paddr & ~((1UL << ps) - 1);
- 	*gpa = uv_soc_phys_ram_to_gpa(paddr);
- 	*pageshift = ps;
--	return 0;
-+	return VTOP_SUCCESS;
+ int gru_cpu_fault_map_id(void)
+ {
++#ifdef CONFIG_IA64
++	return uv_blade_processor_id() % GRU_NUM_TFM;
++#else
+ 	int cpu = smp_processor_id();
+ 	int id, core;
  
- inval:
--	return -1;
-+	return VTOP_INVALID;
- upm:
--	return -2;
-+	return VTOP_RETRY;
+ 	core = uv_cpu_core_number(cpu);
+ 	id = core + UV_MAX_INT_CORES * uv_cpu_socket_number(cpu);
+ 	return id;
++#endif
  }
  
+ /*--------- ASID Management -------------------------------------------
+@@ -699,15 +703,34 @@ static int gru_retarget_intr(struct gru_
+ }
  
-@@ -412,9 +418,9 @@ static int gru_try_dropin(struct gru_thr
- 		goto failactive;
+ /*
++ * Check if a GRU context is allowed to use a specific chiplet. By default
++ * a context is assigned to any blade-local chiplet. However, users can
++ * override this.
++ * 	Returns 1 if assignment allowed, 0 otherwise
++ */
++static int gru_check_chiplet_assignment(struct gru_state *gru,
++					struct gru_thread_state *gts)
++{
++	int blade_id;
++	int chiplet_id;
++
++	blade_id = gts->ts_user_blade_id;
++	if (blade_id < 0)
++		blade_id = uv_numa_blade_id();
++
++	chiplet_id = gts->ts_user_chiplet_id;
++	return gru->gs_blade_id == blade_id &&
++		(chiplet_id < 0 || chiplet_id == gru->gs_chiplet_id);
++}
++
++/*
+  * Unload the gru context if it is not assigned to the correct blade or
+  * chiplet. Misassignment can occur if the process migrates to a different
+  * blade or if the user changes the selected blade/chiplet.
+- * 	Return 0 if  context correct placed, otherwise 1
+  */
+ void gru_check_context_placement(struct gru_thread_state *gts)
+ {
+ 	struct gru_state *gru;
+-	int blade_id, chiplet_id;
  
- 	ret = gru_vtop(gts, vaddr, write, atomic, &gpa, &pageshift);
--	if (ret == -1)
-+	if (ret == VTOP_INVALID)
- 		goto failinval;
--	if (ret == -2)
-+	if (ret == VTOP_RETRY)
- 		goto failupm;
+ 	/*
+ 	 * If the current task is the context owner, verify that the
+@@ -718,13 +741,7 @@ void gru_check_context_placement(struct 
+ 	if (!gru || gts->ts_tgid_owner != current->tgid)
+ 		return;
  
- 	if (!(gts->ts_sizeavail & GRU_SIZEAVAIL(pageshift))) {
+-	blade_id = gts->ts_user_blade_id;
+-	if (blade_id < 0)
+-		blade_id = uv_numa_blade_id();
+-
+-	chiplet_id = gts->ts_user_chiplet_id;
+-	if (gru->gs_blade_id != blade_id ||
+-	    (chiplet_id >= 0 && chiplet_id != gru->gs_chiplet_id)) {
++	if (!gru_check_chiplet_assignment(gru, gts)) {
+ 		STAT(check_context_unload);
+ 		gru_unload_context(gts, 1);
+ 	} else if (gru_retarget_intr(gts)) {
+@@ -768,9 +785,9 @@ void gru_steal_context(struct gru_thread
+ 	struct gru_state *gru, *gru0;
+ 	struct gru_thread_state *ngts = NULL;
+ 	int ctxnum, ctxnum0, flag = 0, cbr, dsr;
+-	int blade_id = gts->ts_user_blade_id;
+-	int chiplet_id = gts->ts_user_chiplet_id;
++	int blade_id;
+ 
++	blade_id = gts->ts_user_blade_id;
+ 	if (blade_id < 0)
+ 		blade_id = uv_numa_blade_id();
+ 	cbr = gts->ts_cbr_au_count;
+@@ -788,7 +805,7 @@ void gru_steal_context(struct gru_thread
+ 	ctxnum0 = ctxnum;
+ 	gru0 = gru;
+ 	while (1) {
+-		if (chiplet_id < 0 || chiplet_id == gru->gs_chiplet_id) {
++		if (gru_check_chiplet_assignment(gru, gts)) {
+ 			if (check_gru_resources(gru, cbr, dsr, GRU_NUM_CCH))
+ 				break;
+ 			spin_lock(&gru->gs_lock);
+@@ -853,7 +870,6 @@ struct gru_state *gru_assign_gru_context
+ 	struct gru_state *gru, *grux;
+ 	int i, max_active_contexts;
+ 	int blade_id = gts->ts_user_blade_id;
+-	int chiplet_id = gts->ts_user_chiplet_id;
+ 
+ 	if (blade_id < 0)
+ 		blade_id = uv_numa_blade_id();
+@@ -861,7 +877,7 @@ again:
+ 	gru = NULL;
+ 	max_active_contexts = GRU_NUM_CCH;
+ 	for_each_gru_on_blade(grux, blade_id, i) {
+-		if (chiplet_id >= 0 && chiplet_id != grux->gs_chiplet_id)
++		if (!gru_check_chiplet_assignment(grux, gts))
+ 			continue;
+ 		if (check_gru_resources(grux, gts->ts_cbr_au_count,
+ 					gts->ts_dsr_au_count,
 _
 
 Patches currently in -mm which might be from steiner@sgi.com are
