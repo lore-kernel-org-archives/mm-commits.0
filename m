@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vt-dont-export-vt_kmsg_redirect-to-userspace.patch added to -mm tree
-Date: Wed, 16 Dec 2009 14:16:00 -0800
-Message-ID: <200912162216.nBGMG0U4017893@imap1.linux-foundation.org>
+Subject: + 8250_pci-add-support-for-mcs9865-syba-6x-serial-port-card.patch added to -mm tree
+Date: Wed, 16 Dec 2009 14:18:18 -0800
+Message-ID: <200912162218.nBGMIIBt018028@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52788 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36841 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935823AbZLPWQF (ORCPT
+	by vger.kernel.org with ESMTP id S1750892AbZLPWSb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Dec 2009 17:16:05 -0500
+	Wed, 16 Dec 2009 17:18:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bernhard@bwalle.de
+Cc: iws@ovro.caltech.edu, alan@lxorguk.ukuu.org.uk, augulis.darius@gmail.com, greg@kroah.com
 
 
 The patch titled
-     vt: don't export vt_kmsg_redirect() to userspace
+     8250_pci: add support for MCS9865 / SYBA 6x Serial Port Card
 has been added to the -mm tree.  Its filename is
-     vt-dont-export-vt_kmsg_redirect-to-userspace.patch
+     8250_pci-add-support-for-mcs9865-syba-6x-serial-port-card.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,50 +34,128 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vt: don't export vt_kmsg_redirect() to userspace
-From: Bernhard Walle <bernhard@bwalle.de>
+Subject: 8250_pci: add support for MCS9865 / SYBA 6x Serial Port Card
+From: "Ira W. Snyder" <iws@ovro.caltech.edu>
 
-Fix following warning in linux-next by guarding the function definition
-(both the "extern" and the inline) with #ifdef __KERNEL__.
+This patch is heavily based on an earlier patch found on the linux-serial
+mailing list [1], written by Darius Augulis.
 
-usr/include/linux/vt.h:89: userspace cannot call function or variable defined in
-the kernel
+The previous incarnation of this patch only supported a 2x serial port
+card.  I have added support for my SYBA 6x serial port card, and tested on
+x86.
 
-Introduced by commit 5ada918b82399eef3afd6a71e3637697d6bd719f ("vt:
-introduce and use vt_kmsg_redirect() function").
+[1]: http://marc.info/?l=linux-serial&m=124975806304760
 
-Signed-off-by: Bernhard Walle <bernhard@bwalle.de>
+Signed-off-by: Ira W. Snyder <iws@ovro.caltech.edu>
+Cc: Darius Augulis <augulis.darius@gmail.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vt.h |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/parport/parport_pc.c |    6 ++++++
+ drivers/serial/8250_pci.c    |   22 +++++++++++++++++++++-
+ include/linux/pci_ids.h      |    1 +
+ 3 files changed, 28 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/vt.h~vt-dont-export-vt_kmsg_redirect-to-userspace include/linux/vt.h
---- a/include/linux/vt.h~vt-dont-export-vt_kmsg_redirect-to-userspace
-+++ a/include/linux/vt.h
-@@ -84,6 +84,8 @@ struct vt_setactivate {
+diff -puN drivers/parport/parport_pc.c~8250_pci-add-support-for-mcs9865-syba-6x-serial-port-card drivers/parport/parport_pc.c
+--- a/drivers/parport/parport_pc.c~8250_pci-add-support-for-mcs9865-syba-6x-serial-port-card
++++ a/drivers/parport/parport_pc.c
+@@ -2908,6 +2908,7 @@ enum parport_pc_pci_cards {
+ 	netmos_9805,
+ 	netmos_9815,
+ 	netmos_9901,
++	netmos_9865,
+ 	quatech_sppxp100,
+ };
  
- #define VT_SETACTIVATE	0x560F	/* Activate and set the mode of a console */
+@@ -2989,6 +2990,7 @@ static struct parport_pc_pci {
+ 	/* netmos_9805 */               { 1, { { 0, -1 }, } },
+ 	/* netmos_9815 */               { 2, { { 0, -1 }, { 2, -1 }, } },
+ 	/* netmos_9901 */               { 1, { { 0, -1 }, } },
++	/* netmos_9865 */               { 1, { { 0, -1 }, } },
+ 	/* quatech_sppxp100 */		{ 1, { { 0, 1 }, } },
+ };
  
-+#ifdef __KERNEL__
+@@ -3092,6 +3094,10 @@ static const struct pci_device_id parpor
+ 	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, netmos_9815 },
+ 	{ PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9901,
+ 	  0xA000, 0x2000, 0, 0, netmos_9901 },
++	{ PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9865,
++	  0xA000, 0x1000, 0, 0, netmos_9865 },
++	{ PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9865,
++	  0xA000, 0x2000, 0, 0, netmos_9865 },
+ 	/* Quatech SPPXP-100 Parallel port PCI ExpressCard */
+ 	{ PCI_VENDOR_ID_QUATECH, PCI_DEVICE_ID_QUATECH_SPPXP_100,
+ 	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, quatech_sppxp100 },
+diff -puN drivers/serial/8250_pci.c~8250_pci-add-support-for-mcs9865-syba-6x-serial-port-card drivers/serial/8250_pci.c
+--- a/drivers/serial/8250_pci.c~8250_pci-add-support-for-mcs9865-syba-6x-serial-port-card
++++ a/drivers/serial/8250_pci.c
+@@ -760,7 +760,8 @@ static int pci_netmos_init(struct pci_de
+ 	/* subdevice 0x00PS means <P> parallel, <S> serial */
+ 	unsigned int num_serial = dev->subsystem_device & 0xf;
+ 
+-	if (dev->device == PCI_DEVICE_ID_NETMOS_9901)
++	if ((dev->device == PCI_DEVICE_ID_NETMOS_9901) ||
++		(dev->device == PCI_DEVICE_ID_NETMOS_9865))
+ 		return 0;
+ 	if (dev->subsystem_vendor == PCI_VENDOR_ID_IBM &&
+ 			dev->subsystem_device == 0x0299)
+@@ -1479,6 +1480,7 @@ enum pci_board_num_t {
+ 
+ 	pbn_b0_bt_1_115200,
+ 	pbn_b0_bt_2_115200,
++	pbn_b0_bt_4_115200,
+ 	pbn_b0_bt_8_115200,
+ 
+ 	pbn_b0_bt_1_460800,
+@@ -1703,6 +1705,12 @@ static struct pciserial_board pci_boards
+ 		.base_baud	= 115200,
+ 		.uart_offset	= 8,
+ 	},
++	[pbn_b0_bt_4_115200] = {
++		.flags		= FL_BASE0|FL_BASE_BARS,
++		.num_ports	= 4,
++		.base_baud	= 115200,
++		.uart_offset	= 8,
++	},
+ 	[pbn_b0_bt_8_115200] = {
+ 		.flags		= FL_BASE0|FL_BASE_BARS,
+ 		.num_ports	= 8,
+@@ -3649,6 +3657,18 @@ static struct pci_device_id serial_pci_t
+ 		0, 0, pbn_b0_1_115200 },
+ 
+ 	/*
++	 * Best Connectivity PCI Multi I/O cards
++	 */
 +
- #ifdef CONFIG_VT_CONSOLE
- 
- extern int vt_kmsg_redirect(int new);
-@@ -97,6 +99,8 @@ static inline int vt_kmsg_redirect(int n
- 
- #endif
- 
-+#endif /* __KERNEL__ */
++	{	PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9865,
++		0xA000, 0x1000,
++		0, 0, pbn_b0_1_115200 },
 +
- #define vt_get_kmsg_redirect() vt_kmsg_redirect(-1)
++	{	PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9865,
++		0xA000, 0x3004,
++		0, 0, pbn_b0_bt_4_115200 },
++
++	/*
+ 	 * These entries match devices with class COMMUNICATION_SERIAL,
+ 	 * COMMUNICATION_MODEM or COMMUNICATION_MULTISERIAL
+ 	 */
+diff -puN include/linux/pci_ids.h~8250_pci-add-support-for-mcs9865-syba-6x-serial-port-card include/linux/pci_ids.h
+--- a/include/linux/pci_ids.h~8250_pci-add-support-for-mcs9865-syba-6x-serial-port-card
++++ a/include/linux/pci_ids.h
+@@ -2713,6 +2713,7 @@
+ #define PCI_DEVICE_ID_NETMOS_9835	0x9835
+ #define PCI_DEVICE_ID_NETMOS_9845	0x9845
+ #define PCI_DEVICE_ID_NETMOS_9855	0x9855
++#define PCI_DEVICE_ID_NETMOS_9865	0x9865
+ #define PCI_DEVICE_ID_NETMOS_9901	0x9901
  
- #endif /* _LINUX_VT_H */
+ #define PCI_VENDOR_ID_3COM_2		0xa727
 _
 
-Patches currently in -mm which might be from bernhard@bwalle.de are
+Patches currently in -mm which might be from iws@ovro.caltech.edu are
 
-origin.patch
-vt-dont-export-vt_kmsg_redirect-to-userspace.patch
+linux-next.patch
+8250_pci-add-support-for-mcs9865-syba-6x-serial-port-card.patch
 
