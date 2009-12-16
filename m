@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drbd-fix-test-of-unsigned-in-_drbd_fault_random.patch added to -mm tree
-Date: Wed, 16 Dec 2009 14:58:17 -0800
-Message-ID: <200912162258.nBGMwH0o020265@imap1.linux-foundation.org>
+Subject: + thermal-fix-test-of-unsigned-in-thermal_cooling_device_cur_state_store.patch added to -mm tree
+Date: Wed, 16 Dec 2009 15:01:22 -0800
+Message-ID: <200912162301.nBGN1MKP020414@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49870 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59259 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752921AbZLPW6c (ORCPT
+	by vger.kernel.org with ESMTP id S964874AbZLPXCH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Dec 2009 17:58:32 -0500
+	Wed, 16 Dec 2009 18:02:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, drbd-dev@lists.linbit.com, jens.axboe@oracle.com, philipp.reisner@linbit.com
+Cc: roel.kluin@gmail.com, lenb@kernel.org, rui.zhang@intel.com
 
 
 The patch titled
-     drbd: fix test of unsigned in _drbd_fault_random()
+     thermal: fix test of unsigned in thermal_cooling_device_cur_state_store()
 has been added to the -mm tree.  Its filename is
-     drbd-fix-test-of-unsigned-in-_drbd_fault_random.patch
+     thermal-fix-test-of-unsigned-in-thermal_cooling_device_cur_state_store.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drbd: fix test of unsigned in _drbd_fault_random()
+Subject: thermal: fix test of unsigned in thermal_cooling_device_cur_state_store()
 From: Roel Kluin <roel.kluin@gmail.com>
 
-rsp->count is unsigned so the test does not work.
+state is unsigned long so the test did not work.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Lars Ellenberg <drbd-dev@lists.linbit.com>
-Cc: Philipp Reisner <philipp.reisner@linbit.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Acked-by: Zhang Rui <rui.zhang@intel.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/drbd/drbd_main.c |    2 +-
+ drivers/thermal/thermal_sys.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/block/drbd/drbd_main.c~drbd-fix-test-of-unsigned-in-_drbd_fault_random drivers/block/drbd/drbd_main.c
---- a/drivers/block/drbd/drbd_main.c~drbd-fix-test-of-unsigned-in-_drbd_fault_random
-+++ a/drivers/block/drbd/drbd_main.c
-@@ -3623,7 +3623,7 @@ _drbd_fault_random(struct fault_random_s
- {
- 	long refresh;
+diff -puN drivers/thermal/thermal_sys.c~thermal-fix-test-of-unsigned-in-thermal_cooling_device_cur_state_store drivers/thermal/thermal_sys.c
+--- a/drivers/thermal/thermal_sys.c~thermal-fix-test-of-unsigned-in-thermal_cooling_device_cur_state_store
++++ a/drivers/thermal/thermal_sys.c
+@@ -377,7 +377,7 @@ thermal_cooling_device_cur_state_store(s
+ 	if (!sscanf(buf, "%ld\n", &state))
+ 		return -EINVAL;
  
--	if (--rsp->count < 0) {
-+	if (!rsp->count--) {
- 		get_random_bytes(&refresh, sizeof(refresh));
- 		rsp->state += refresh;
- 		rsp->count = FAULT_RANDOM_REFRESH;
+-	if (state < 0)
++	if ((long)state < 0)
+ 		return -EINVAL;
+ 
+ 	result = cdev->ops->set_cur_state(cdev, state);
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -68,6 +67,7 @@ Patches currently in -mm which might be from roel.kluin@gmail.com are
 origin.patch
 linux-next.patch
 fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch
+thermal-fix-test-of-unsigned-in-thermal_cooling_device_cur_state_store.patch
 powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
 powerpc-85xx-wrong-variable-returned-on-error.patch
 hidp-ptr_err-return-of-wrong-pointer-in-hidp_setup_hid.patch
