@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-platform-x86-acerhdfc-check-bios-information-whether-it-begins-with-string-of-table.patch added to -mm tree
-Date: Wed, 16 Dec 2009 15:13:39 -0800
-Message-ID: <200912162313.nBGNDdGr021182@imap1.linux-foundation.org>
+Subject: + pcie-aer-fix-aer-inject-result-in-kernel-oops.patch added to -mm tree
+Date: Wed, 16 Dec 2009 15:23:06 -0800
+Message-ID: <200912162323.nBGNN7sx021683@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49245 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40522 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763359AbZLPXOs (ORCPT
+	by vger.kernel.org with ESMTP id S933850AbZLPXXL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Dec 2009 18:14:48 -0500
+	Wed, 16 Dec 2009 18:23:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: peter@piie.net, andi@lisas.de, hpa@zytor.com, lenb@kernel.org, mingo@elte.hu, petkovbb@gmail.com, tglx@linutronix.de
+Cc: youquan.song@linux.intel.com, andrew.patterson@hp.com, jbarnes@virtuousgeek.org, ying.huang@intel.com, youquan.song@intel.com
 
 
 The patch titled
-     drivers/platform/x86/acerhdf.c: check BIOS information whether it begins with string of table
+     PCIe AER: fix aer inject result in kernel oops
 has been added to the -mm tree.  Its filename is
-     drivers-platform-x86-acerhdfc-check-bios-information-whether-it-begins-with-string-of-table.patch
+     pcie-aer-fix-aer-inject-result-in-kernel-oops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,119 +34,77 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/platform/x86/acerhdf.c: check BIOS information whether it begins with string of table
-From: Peter Feuerer <peter@piie.net>
+Subject: PCIe AER: fix aer inject result in kernel oops
+From: "Youquan,Song" <youquan.song@linux.intel.com>
 
-BIOS information is now checked whether it begins with the strings stored
-in the BIOS table.  Previous method did a strcmp, what lead to problems if
-BIOS information has appended whitespaces.
+If BIOS does not export _OSC to allow OS take over the PCIe AER, pcie aer
+driver will not initialize aer service.  But aer_inject driver does not
+check this scenario, it results in kernel oops when inject aer error to
+OS.  Some of kernel oops information as following:
 
-Signed-off-by: Peter Feuerer <peter@piie.net>
-Cc: Borislav Petkov <petkovbb@gmail.com>
-Cc: Andreas Mohr <andi@lisas.de>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+BUG: unable to handle kernel NULL pointer dereference at 0000000000000350
+IP: [<ffffffff812e08f7>] _spin_lock_irqsave+0xc/0x23
+PGD 155c41067 PUD 157fe0067 PMD 0
+Oops: 0002 [#1] SMP
+Pid: 5119, comm: aer-inject Not tainted 2.6.32-rc8-mce #2
+RIP: 0010:[<ffffffff812e08f7>]  [<ffffffff812e08f7>] _spin_lock_irqsave+0xc/0x23
+RSP: 0018:ffff880157f81e28  EFLAGS: 00010096
+RAX: 0000000000000296 RBX: 0000000000000000 RCX: 0000000000000100
+RDX: 0000000000010000 RSI: 0000000000000246 RDI: 0000000000000350
+RBP: ffff880157f81e28 R08: 0000000000000004 R09: ffff880157f81dac
+R10: ffff88015a666f60 R11: ffff88015a666f40 R12: ffff88015758cc00
+R13: 0000000000000350 R14: 0000000000000000 R15: 0000000000000100
+FS:  00007f4d4a66e6f0(0000) GS:ffff8800282e0000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+CR2: 0000000000000350 CR3: 000000015661a000 CR4: 00000000000006e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+Process aer-inject (pid: 5119, threadinfo ffff880157f80000, task ffff8801585f4340)
+Stack:
+ ffff880157f81e78 ffffffff811b1615 ffff880157f81e78 ffffffff81222823
+Call Trace:
+ [<ffffffff811b1615>] aer_irq+0x38/0x117
+ [<ffffffff81222823>] ? device_for_each_child+0x5f/0x6f
+ [<ffffffffa00967bf>] aer_inject_write+0x409/0x45e [aer_inject]
+ [<ffffffff810eb80e>] vfs_write+0xae/0x16a
+ [<ffffffff810eb98e>] sys_write+0x47/0x6e
+ [<ffffffff8100ba2b>] system_call_fastpath+0x16/0x1b
+RIP  [<ffffffff812e08f7>] _spin_lock_irqsave+0xc/0x23
+ RSP <ffff880157f81e28>
+CR2: 0000000000000350
+
+Signed-off-by: Youquan, Song <youquan.song@intel.com>
+Acked-by: Ying, Huang <ying.huang@intel.com>
+Cc: Andrew Patterson <andrew.patterson@hp.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/acerhdf.c |   46 ++++++++++++++++++-------------
- 1 file changed, 28 insertions(+), 18 deletions(-)
+ drivers/pci/pcie/aer/aer_inject.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN drivers/platform/x86/acerhdf.c~drivers-platform-x86-acerhdfc-check-bios-information-whether-it-begins-with-string-of-table drivers/platform/x86/acerhdf.c
---- a/drivers/platform/x86/acerhdf.c~drivers-platform-x86-acerhdfc-check-bios-information-whether-it-begins-with-string-of-table
-+++ a/drivers/platform/x86/acerhdf.c
-@@ -52,7 +52,7 @@
-  */
- #undef START_IN_KERNEL_MODE
+diff -puN drivers/pci/pcie/aer/aer_inject.c~pcie-aer-fix-aer-inject-result-in-kernel-oops drivers/pci/pcie/aer/aer_inject.c
+--- a/drivers/pci/pcie/aer/aer_inject.c~pcie-aer-fix-aer-inject-result-in-kernel-oops
++++ a/drivers/pci/pcie/aer/aer_inject.c
+@@ -413,8 +413,14 @@ static int aer_inject(struct aer_error_i
+ 	if (ret)
+ 		goto out_put;
  
--#define DRV_VER "0.5.21"
-+#define DRV_VER "0.5.22"
- 
- /*
-  * According to the Atom N270 datasheet,
-@@ -165,12 +165,9 @@ static const struct bios_settings_t bios
- 	/* Gateway */
- 	{"Gateway", "AOA110", "v0.3103", 0x55, 0x58, {0x21, 0x21, 0x00} },
- 	{"Gateway", "AOA150", "v0.3103", 0x55, 0x58, {0x20, 0x20, 0x00} },
--	{"Gateway         ", "LT31            ", "v1.3103 ", 0x55, 0x58,
--		{0x10, 0x0f, 0x00} },
--	{"Gateway         ", "LT31            ", "v1.3201 ", 0x55, 0x58,
--		{0x10, 0x0f, 0x00} },
--	{"Gateway         ", "LT31            ", "v1.3302 ", 0x55, 0x58,
--		{0x10, 0x0f, 0x00} },
-+	{"Gateway", "LT31", "v1.3103", 0x55, 0x58, {0x10, 0x0f, 0x00} },
-+	{"Gateway", "LT31", "v1.3201", 0x55, 0x58, {0x10, 0x0f, 0x00} },
-+	{"Gateway", "LT31", "v1.3302", 0x55, 0x58, {0x10, 0x0f, 0x00} },
- 	/* Packard Bell */
- 	{"Packard Bell", "DOA150", "v0.3104", 0x55, 0x58, {0x21, 0x21, 0x00} },
- 	{"Packard Bell", "DOA150", "v0.3105", 0x55, 0x58, {0x20, 0x20, 0x00} },
-@@ -495,13 +492,26 @@ static struct platform_driver acerhdf_dr
- 	.remove = acerhdf_remove,
- };
- 
-+/* checks if str begins with start */
-+static int str_starts_with(const char *str, const char *start)
-+{
-+	unsigned long str_len = 0, start_len = 0;
-+
-+	str_len = strlen(str);
-+	start_len = strlen(start);
-+
-+	if (str_len >= start_len &&
-+			!strncmp(str, start, start_len))
-+		return 1;
-+
-+	return 0;
-+}
- 
- /* check hardware */
- static int acerhdf_check_hardware(void)
- {
- 	char const *vendor, *version, *product;
--	int i;
--	unsigned long prod_len = 0;
-+	const struct bios_settings_t *bt = NULL;
- 
- 	/* get BIOS data */
- 	vendor  = dmi_get_system_info(DMI_SYS_VENDOR);
-@@ -523,20 +533,20 @@ static int acerhdf_check_hardware(void)
- 		kernelmode = 0;
- 	}
- 
--	prod_len = strlen(product);
--
- 	if (verbose)
- 		pr_info("BIOS info: %s %s, product: %s\n",
- 			vendor, version, product);
- 
- 	/* search BIOS version and vendor in BIOS settings table */
--	for (i = 0; bios_tbl[i].version[0]; i++) {
--		if (strlen(bios_tbl[i].product) >= prod_len &&
--		    !strncmp(bios_tbl[i].product, product,
--			   strlen(bios_tbl[i].product)) &&
--		    !strcmp(bios_tbl[i].vendor, vendor) &&
--		    !strcmp(bios_tbl[i].version, version)) {
--			bios_cfg = &bios_tbl[i];
-+	for (bt = bios_tbl; bt->vendor[0]; bt++) {
-+		/*
-+		 * check if actual hardware BIOS vendor, product and version
-+		 * IDs start with the strings of BIOS table entry
-+		 */
-+		if (str_starts_with(vendor, bt->vendor) &&
-+				str_starts_with(product, bt->product) &&
-+				str_starts_with(version, bt->version)) {
-+			bios_cfg = bt;
- 			break;
- 		}
- 	}
+-	if (find_aer_device(rpdev, &edev))
++	if (find_aer_device(rpdev, &edev)) {
++		if (!get_service_data(edev)) {
++			printk(KERN_WARNING "AER service is not initialized\n");
++			ret = -EINVAL;
++			goto out_put;
++		}
+ 		aer_irq(-1, edev);
++	}
+ 	else
+ 		ret = -EINVAL;
+ out_put:
 _
 
-Patches currently in -mm which might be from peter@piie.net are
+Patches currently in -mm which might be from youquan.song@linux.intel.com are
 
-acerhdf-added-new-bios-versions.patch
-acerhdf-limit-modalias-matching-to-supported.patch
-acerhdf-add-new-bios-versions.patch
-drivers-platform-x86-acerhdfc-check-bios-information-whether-it-begins-with-string-of-table.patch
+pcie-aer-fix-aer-inject-result-in-kernel-oops.patch
 
