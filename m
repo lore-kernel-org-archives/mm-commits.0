@@ -1,93 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged] davinci-fb-add-framebuffer-blank-operation.patch removed from -mm tree
-Date: Wed, 16 Dec 2009 12:36:24 -0800
-Message-ID: <200912162036.nBGKaOZD013166@imap1.linux-foundation.org>
+Subject: [merged] viafb-documentation-update.patch removed from -mm tree
+Date: Wed, 16 Dec 2009 12:36:32 -0800
+Message-ID: <200912162036.nBGKaW2J013249@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60603 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52796 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935443AbZLPUga (ORCPT
+	by vger.kernel.org with ESMTP id S935442AbZLPUgs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Dec 2009 15:36:30 -0500
+	Wed, 16 Dec 2009 15:36:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chaithrika@ti.com, khilman@deeprootsystems.com, krzysztof.h1@poczta.fm, mm-commits@vger.kernel.org
+To: laforge@gnumonks.org, FlorianSchandinat@gmx.de, HaraldWelte@viatech.com, JosephChan@via.com.tw, ScottFang@viatech.com.cn, krzysztof.h1@poczta.fm, mm-commits@vger.kernel.org
 
 
 The patch titled
-     davinci: fb: add framebuffer blank operation
+     viafb: documentation update
 has been removed from the -mm tree.  Its filename was
-     davinci-fb-add-framebuffer-blank-operation.patch
+     viafb-documentation-update.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: davinci: fb: add framebuffer blank operation
-From: Chaithrika U S <chaithrika@ti.com>
+Subject: viafb: documentation update
+From: Harald Welte <laforge@gnumonks.org>
 
-Implement frame buffer blank operation feature for DA8xx/OMAP-L1xx driver.
+We now support the VX855, and the VX800 is no longer unaccellerated.
+viafb_video_dev was removed as it was useless.
 
-Signed-off-by: Chaithrika U S <chaithrika@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Signed-off-by: Harald Welte <HaraldWelte@viatech.com>
+Signed-off-by: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Cc: Joseph Chan <JosephChan@via.com.tw>
+Cc: Scott Fang <ScottFang@viatech.com.cn>
 Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/da8xx-fb.c |   30 ++++++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
+ Documentation/fb/viafb.txt |   12 +-----------
+ 1 file changed, 1 insertion(+), 11 deletions(-)
 
-diff -puN drivers/video/da8xx-fb.c~davinci-fb-add-framebuffer-blank-operation drivers/video/da8xx-fb.c
---- a/drivers/video/da8xx-fb.c~davinci-fb-add-framebuffer-blank-operation
-+++ a/drivers/video/da8xx-fb.c
-@@ -702,6 +702,35 @@ static int fb_ioctl(struct fb_info *info
- 	return 0;
- }
+diff -puN Documentation/fb/viafb.txt~viafb-documentation-update Documentation/fb/viafb.txt
+--- a/Documentation/fb/viafb.txt~viafb-documentation-update
++++ a/Documentation/fb/viafb.txt
+@@ -7,7 +7,7 @@
+     VIA UniChrome Family(CLE266, PM800 / CN400 / CN300,
+                         P4M800CE / P4M800Pro / CN700 / VN800,
+                         CX700 / VX700, K8M890, P4M890,
+-                        CN896 / P4M900, VX800)
++                        CN896 / P4M900, VX800, VX855)
  
-+static int cfb_blank(int blank, struct fb_info *info)
-+{
-+	struct da8xx_fb_par *par = info->par;
-+	int ret = 0;
-+
-+	if (par->blank == blank)
-+		return 0;
-+
-+	par->blank = blank;
-+	switch (blank) {
-+	case FB_BLANK_UNBLANK:
-+		if (par->panel_power_ctrl)
-+			par->panel_power_ctrl(1);
-+
-+		lcd_enable_raster();
-+		break;
-+	case FB_BLANK_POWERDOWN:
-+		if (par->panel_power_ctrl)
-+			par->panel_power_ctrl(0);
-+
-+		lcd_disable_raster();
-+		break;
-+	default:
-+		ret = -EINVAL;
-+	}
-+
-+	return ret;
-+}
-+
- static struct fb_ops da8xx_fb_ops = {
- 	.owner = THIS_MODULE,
- 	.fb_check_var = fb_check_var,
-@@ -710,6 +739,7 @@ static struct fb_ops da8xx_fb_ops = {
- 	.fb_fillrect = cfb_fillrect,
- 	.fb_copyarea = cfb_copyarea,
- 	.fb_imageblit = cfb_imageblit,
-+	.fb_blank = cfb_blank,
- };
+ [Driver features]
+ ------------------------
+@@ -154,13 +154,6 @@
+         0 : No Dual Edge Panel (default)
+         1 : Dual Edge Panel
  
- static int __init fb_probe(struct platform_device *device)
-_
-
-Patches currently in -mm which might be from chaithrika@ti.com are
-
-origin.patch
-
+-    viafb_video_dev:
+-        This option is used to specify video output devices(CRT, DVI, LCD) for
+-        duoview case.
+-        For example:
+-        To output video on DVI, we should use:
+-            modprobe viafb viafb_video_dev=DVI...
