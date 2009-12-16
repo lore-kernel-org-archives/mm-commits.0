@@ -1,133 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ufs-nfs-support.patch removed from -mm tree
-Date: Wed, 16 Dec 2009 12:36:59 -0800
-Message-ID: <200912162036.nBGKaxFx013278@imap1.linux-foundation.org>
+Subject: [merged] hpfs-use-bitmap_weight.patch removed from -mm tree
+Date: Wed, 16 Dec 2009 12:37:11 -0800
+Message-ID: <200912162037.nBGKbBlt013316@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51776 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34436 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935480AbZLPUhM (ORCPT
+	by vger.kernel.org with ESMTP id S935491AbZLPUhP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Dec 2009 15:37:12 -0500
+	Wed, 16 Dec 2009 15:37:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, dushistov@mail.ru, hch@lst.de, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, mikulas@artax.karlin.mff.cuni.cz, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ufs: NFS support
+     hpfs: use bitmap_weight()
 has been removed from the -mm tree.  Its filename was
-     ufs-nfs-support.patch
+     hpfs-use-bitmap_weight.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ufs: NFS support
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: hpfs: use bitmap_weight()
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Acked-by: Evgeniy Dushistov <dushistov@mail.ru>
-Cc: Christoph Hellwig <hch@lst.de>
+Use bitmap_weight instead of doing hweight32 for each 32bit in bitmap.
+
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ufs/super.c |   52 +++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 52 insertions(+)
+ fs/hpfs/super.c |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
-diff -puN fs/ufs/super.c~ufs-nfs-support fs/ufs/super.c
---- a/fs/ufs/super.c~ufs-nfs-support
-+++ a/fs/ufs/super.c
-@@ -66,6 +66,7 @@
-  */
+diff -puN fs/hpfs/super.c~hpfs-use-bitmap_weight fs/hpfs/super.c
+--- a/fs/hpfs/super.c~hpfs-use-bitmap_weight
++++ a/fs/hpfs/super.c
+@@ -14,6 +14,7 @@
+ #include <linux/magic.h>
+ #include <linux/sched.h>
+ #include <linux/smp_lock.h>
++#include <linux/bitmap.h>
  
+ /* Mark the filesystem dirty, so that chkdsk checks it when os/2 booted */
  
-+#include <linux/exportfs.h>
- #include <linux/module.h>
- #include <linux/bitops.h>
- 
-@@ -96,6 +97,56 @@
- #include "swab.h"
- #include "util.h"
- 
-+static struct inode *ufs_nfs_get_inode(struct super_block *sb, u64 ino, u32 generation)
-+{
-+	struct ufs_sb_private_info *uspi = UFS_SB(sb)->s_uspi;
-+	struct inode *inode;
+@@ -115,12 +116,13 @@ static void hpfs_put_super(struct super_
+ unsigned hpfs_count_one_bitmap(struct super_block *s, secno secno)
+ {
+ 	struct quad_buffer_head qbh;
+-	unsigned *bits;
+-	unsigned i, count;
+-	if (!(bits = hpfs_map_4sectors(s, secno, &qbh, 4))) return 0;
+-	count = 0;
+-	for (i = 0; i < 2048 / sizeof(unsigned); i++)
+-		count += hweight32(bits[i]);
++	unsigned long *bits;
++	unsigned count;
 +
-+	if (ino < UFS_ROOTINO || ino > uspi->s_ncg * uspi->s_ipg)
-+		return ERR_PTR(-ESTALE);
-+
-+	inode = ufs_iget(sb, ino);
-+	if (IS_ERR(inode))
-+		return ERR_CAST(inode);
-+	if (generation && inode->i_generation != generation) {
-+		iput(inode);
-+		return ERR_PTR(-ESTALE);
-+	}
-+	return inode;
-+}
-+
-+static struct dentry *ufs_fh_to_dentry(struct super_block *sb, struct fid *fid,
-+				       int fh_len, int fh_type)
-+{
-+	return generic_fh_to_dentry(sb, fid, fh_len, fh_type, ufs_nfs_get_inode);
-+}
-+
-+static struct dentry *ufs_fh_to_parent(struct super_block *sb, struct fid *fid,
-+				       int fh_len, int fh_type)
-+{
-+	return generic_fh_to_parent(sb, fid, fh_len, fh_type, ufs_nfs_get_inode);
-+}
-+
-+static struct dentry *ufs_get_parent(struct dentry *child)
-+{
-+	struct qstr dot_dot = {
-+		.name	= "..",
-+		.len	= 2,
-+	};
-+	ino_t ino;
-+
-+	ino = ufs_inode_by_name(child->d_inode, &dot_dot);
-+	if (!ino)
-+		return ERR_PTR(-ENOENT);
-+	return d_obtain_alias(ufs_iget(child->d_inode->i_sb, ino));
-+}
-+
-+static const struct export_operations ufs_export_ops = {
-+	.fh_to_dentry	= ufs_fh_to_dentry,
-+	.fh_to_parent	= ufs_fh_to_parent,
-+	.get_parent	= ufs_get_parent,
-+};
-+
- #ifdef CONFIG_UFS_DEBUG
- /*
-  * Print contents of ufs_super_block, useful for debugging
-@@ -990,6 +1041,7 @@ magic_found:
- 	 * Read ufs_super_block into internal data structures
- 	 */
- 	sb->s_op = &ufs_super_ops;
-+	sb->s_export_op = &ufs_export_ops;
- 	sb->dq_op = NULL; /***/
- 	sb->s_magic = fs32_to_cpu(sb, usb3->fs_magic);
- 
++	bits = hpfs_map_4sectors(s, secno, &qbh, 4);
++	if (!bits)
++		return 0;
++	count = bitmap_weight(bits, 2048 * BITS_PER_BYTE);
+ 	hpfs_brelse4(&qbh);
+ 	return count;
+ }
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 origin.patch
 linux-next.patch
-asus_acpi-convert-to-seq_file.patch
-toshiba_acpi-convert-to-seq_file.patch
-thinkpad_acpi-convert-to-seq_file.patch
-arm-convert-proc-cpu-aligment-to-seq_file.patch
-arm-convert-proc-cpu-aligment-to-seq_file-fix.patch
-iseries-convert-to-proc_fops.patch
-proc_fops-convert-av7110.patch
-proc_fops-convert-drivers-isdn-to-seq_file.patch
-proc_fops-convert-drivers-isdn-to-seq_file-fix.patch
-proc_fops-convert-drivers-isdn-to-seq_file-fix2.patch
-mpt-fusion-convert-to-seq_file.patch
-uml-irq-register-race-condition.patch
+x86-optimize-hweight32.patch
+ntfs-use-bitmap_weight.patch
 
