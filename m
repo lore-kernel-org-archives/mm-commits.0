@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + serial-fix-test-of-unsigned.patch added to -mm tree
-Date: Wed, 16 Dec 2009 15:04:57 -0800
-Message-ID: <200912162304.nBGN4v4L020673@imap1.linux-foundation.org>
+Subject: + drivers-platform-x86-acerhdfc-check-bios-information-whether-it-begins-with-string-of-table.patch added to -mm tree
+Date: Wed, 16 Dec 2009 15:13:39 -0800
+Message-ID: <200912162313.nBGNDdGr021182@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52262 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49245 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935310AbZLPXFI (ORCPT
+	by vger.kernel.org with ESMTP id S1763359AbZLPXOs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Dec 2009 18:05:08 -0500
+	Wed, 16 Dec 2009 18:14:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, alan@lxorguk.ukuu.org.uk, greg@kroah.com
+Cc: peter@piie.net, andi@lisas.de, hpa@zytor.com, lenb@kernel.org, mingo@elte.hu, petkovbb@gmail.com, tglx@linutronix.de
 
 
 The patch titled
-     serial: fix test of unsigned
+     drivers/platform/x86/acerhdf.c: check BIOS information whether it begins with string of table
 has been added to the -mm tree.  Its filename is
-     serial-fix-test-of-unsigned.patch
+     drivers-platform-x86-acerhdfc-check-bios-information-whether-it-begins-with-string-of-table.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,103 +34,119 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial: fix test of unsigned
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: drivers/platform/x86/acerhdf.c: check BIOS information whether it begins with string of table
+From: Peter Feuerer <peter@piie.net>
 
-The variables were unsigned so the tests did not work.
+BIOS information is now checked whether it begins with the strings stored
+in the BIOS table.  Previous method did a strcmp, what lead to problems if
+BIOS information has appended whitespaces.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Peter Feuerer <peter@piie.net>
+Cc: Borislav Petkov <petkovbb@gmail.com>
+Cc: Andreas Mohr <andi@lisas.de>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/msm_serial.c |    6 ++++--
- drivers/serial/timbuart.c   |    7 ++++---
- 2 files changed, 8 insertions(+), 5 deletions(-)
+ drivers/platform/x86/acerhdf.c |   46 ++++++++++++++++++-------------
+ 1 file changed, 28 insertions(+), 18 deletions(-)
 
-diff -puN drivers/serial/msm_serial.c~serial-fix-test-of-unsigned drivers/serial/msm_serial.c
---- a/drivers/serial/msm_serial.c~serial-fix-test-of-unsigned
-+++ a/drivers/serial/msm_serial.c
-@@ -691,6 +691,7 @@ static int __init msm_serial_probe(struc
- 	struct msm_port *msm_port;
- 	struct resource *resource;
- 	struct uart_port *port;
-+	int irq;
+diff -puN drivers/platform/x86/acerhdf.c~drivers-platform-x86-acerhdfc-check-bios-information-whether-it-begins-with-string-of-table drivers/platform/x86/acerhdf.c
+--- a/drivers/platform/x86/acerhdf.c~drivers-platform-x86-acerhdfc-check-bios-information-whether-it-begins-with-string-of-table
++++ a/drivers/platform/x86/acerhdf.c
+@@ -52,7 +52,7 @@
+  */
+ #undef START_IN_KERNEL_MODE
  
- 	if (unlikely(pdev->id < 0 || pdev->id >= UART_NR))
- 		return -ENXIO;
-@@ -711,9 +712,10 @@ static int __init msm_serial_probe(struc
- 		return -ENXIO;
- 	port->mapbase = resource->start;
+-#define DRV_VER "0.5.21"
++#define DRV_VER "0.5.22"
  
--	port->irq = platform_get_irq(pdev, 0);
--	if (unlikely(port->irq < 0))
-+	irq = platform_get_irq(pdev, 0);
-+	if (unlikely(irq < 0))
- 		return -ENXIO;
-+	port->irq = irq;
+ /*
+  * According to the Atom N270 datasheet,
+@@ -165,12 +165,9 @@ static const struct bios_settings_t bios
+ 	/* Gateway */
+ 	{"Gateway", "AOA110", "v0.3103", 0x55, 0x58, {0x21, 0x21, 0x00} },
+ 	{"Gateway", "AOA150", "v0.3103", 0x55, 0x58, {0x20, 0x20, 0x00} },
+-	{"Gateway         ", "LT31            ", "v1.3103 ", 0x55, 0x58,
+-		{0x10, 0x0f, 0x00} },
+-	{"Gateway         ", "LT31            ", "v1.3201 ", 0x55, 0x58,
+-		{0x10, 0x0f, 0x00} },
+-	{"Gateway         ", "LT31            ", "v1.3302 ", 0x55, 0x58,
+-		{0x10, 0x0f, 0x00} },
++	{"Gateway", "LT31", "v1.3103", 0x55, 0x58, {0x10, 0x0f, 0x00} },
++	{"Gateway", "LT31", "v1.3201", 0x55, 0x58, {0x10, 0x0f, 0x00} },
++	{"Gateway", "LT31", "v1.3302", 0x55, 0x58, {0x10, 0x0f, 0x00} },
+ 	/* Packard Bell */
+ 	{"Packard Bell", "DOA150", "v0.3104", 0x55, 0x58, {0x21, 0x21, 0x00} },
+ 	{"Packard Bell", "DOA150", "v0.3105", 0x55, 0x58, {0x20, 0x20, 0x00} },
+@@ -495,13 +492,26 @@ static struct platform_driver acerhdf_dr
+ 	.remove = acerhdf_remove,
+ };
  
- 	platform_set_drvdata(pdev, port);
++/* checks if str begins with start */
++static int str_starts_with(const char *str, const char *start)
++{
++	unsigned long str_len = 0, start_len = 0;
++
++	str_len = strlen(str);
++	start_len = strlen(start);
++
++	if (str_len >= start_len &&
++			!strncmp(str, start, start_len))
++		return 1;
++
++	return 0;
++}
  
-diff -puN drivers/serial/timbuart.c~serial-fix-test-of-unsigned drivers/serial/timbuart.c
---- a/drivers/serial/timbuart.c~serial-fix-test-of-unsigned
-+++ a/drivers/serial/timbuart.c
-@@ -421,7 +421,7 @@ static struct uart_driver timbuart_drive
- 
- static int timbuart_probe(struct platform_device *dev)
+ /* check hardware */
+ static int acerhdf_check_hardware(void)
  {
--	int err;
-+	int err, irq;
- 	struct timbuart_port *uart;
- 	struct resource *iomem;
+ 	char const *vendor, *version, *product;
+-	int i;
+-	unsigned long prod_len = 0;
++	const struct bios_settings_t *bt = NULL;
  
-@@ -453,11 +453,12 @@ static int timbuart_probe(struct platfor
- 	uart->port.mapbase = iomem->start;
- 	uart->port.membase = NULL;
- 
--	uart->port.irq = platform_get_irq(dev, 0);
--	if (uart->port.irq < 0) {
-+	irq = platform_get_irq(dev, 0);
-+	if (irq < 0) {
- 		err = -EINVAL;
- 		goto err_register;
+ 	/* get BIOS data */
+ 	vendor  = dmi_get_system_info(DMI_SYS_VENDOR);
+@@ -523,20 +533,20 @@ static int acerhdf_check_hardware(void)
+ 		kernelmode = 0;
  	}
-+	uart->port.irq = irq;
  
- 	tasklet_init(&uart->tasklet, timbuart_tasklet, (unsigned long)uart);
+-	prod_len = strlen(product);
+-
+ 	if (verbose)
+ 		pr_info("BIOS info: %s %s, product: %s\n",
+ 			vendor, version, product);
  
+ 	/* search BIOS version and vendor in BIOS settings table */
+-	for (i = 0; bios_tbl[i].version[0]; i++) {
+-		if (strlen(bios_tbl[i].product) >= prod_len &&
+-		    !strncmp(bios_tbl[i].product, product,
+-			   strlen(bios_tbl[i].product)) &&
+-		    !strcmp(bios_tbl[i].vendor, vendor) &&
+-		    !strcmp(bios_tbl[i].version, version)) {
+-			bios_cfg = &bios_tbl[i];
++	for (bt = bios_tbl; bt->vendor[0]; bt++) {
++		/*
++		 * check if actual hardware BIOS vendor, product and version
++		 * IDs start with the strings of BIOS table entry
++		 */
++		if (str_starts_with(vendor, bt->vendor) &&
++				str_starts_with(product, bt->product) &&
++				str_starts_with(version, bt->version)) {
++			bios_cfg = bt;
+ 			break;
+ 		}
+ 	}
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from peter@piie.net are
 
-origin.patch
-linux-next.patch
-fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch
-thermal-fix-test-of-unsigned-in-thermal_cooling_device_cur_state_store.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-powerpc-85xx-wrong-variable-returned-on-error.patch
-hidp-ptr_err-return-of-wrong-pointer-in-hidp_setup_hid.patch
-imx-bit-confusion.patch
-serial-fix-test-of-unsigned.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
-ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
-scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
-drbd-fix-test-of-unsigned-in-_drbd_fault_random.patch
-r8192u_core-test-for-negative-error-in-rtl8192_rx_isr.patch
-keys-ptr_err-return-of-wrong-pointer-in-keyctl_get_security.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-cryptocop-fix-assertion-in-create_output_descriptors.patch
-asiliantfb-fix-test-of-unsigned-in-asiliant_calc_dclk2.patch
-hvc_console-fix-test-on-unsigned-in-hvc_console_print.patch
-zlib-optimize-inffast-when-copying-direct-from-output.patch
+acerhdf-added-new-bios-versions.patch
+acerhdf-limit-modalias-matching-to-supported.patch
+acerhdf-add-new-bios-versions.patch
+drivers-platform-x86-acerhdfc-check-bios-information-whether-it-begins-with-string-of-table.patch
 
