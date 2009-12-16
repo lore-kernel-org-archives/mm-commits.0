@@ -1,157 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-x1205-unconditionally-set-date-when-setting-clock.patch removed from -mm tree
-Date: Wed, 16 Dec 2009 12:35:07 -0800
-Message-ID: <200912162035.nBGKZ74U013071@imap1.linux-foundation.org>
+Subject: [merged] add-palette-register-check.patch removed from -mm tree
+Date: Wed, 16 Dec 2009 12:35:39 -0800
+Message-ID: <200912162035.nBGKZdbA013112@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56659 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42100 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935392AbZLPUfj (ORCPT
+	by vger.kernel.org with ESMTP id S935272AbZLPUfm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Dec 2009 15:35:39 -0500
+	Wed, 16 Dec 2009 15:35:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jw@emlix.com, a.zummo@towertech.it, p_gortmaker@yahoo.com, mm-commits@vger.kernel.org
+To: krzysztof.h1@wp.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc-x1205: unconditionally set date when setting clock
+     fbdev: add palette register check to several drivers
 has been removed from the -mm tree.  Its filename was
-     rtc-x1205-unconditionally-set-date-when-setting-clock.patch
+     add-palette-register-check.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-x1205: unconditionally set date when setting clock
-From: Johannes Weiner <jw@emlix.com>
+Subject: fbdev: add palette register check to several drivers
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-All callsites of x1205_set_datetime() want the date to be set as well, so
-remove the flag parameter and set it unconditionally.
+Add check if palette register number is in correct range for few drivers
+which miss it.  The regno value comes indirectly from user space.
 
-Signed-off-by: Johannes Weiner <jw@emlix.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Paul Gortmaker <p_gortmaker@yahoo.com>
+Two drivers has converted check from BUG_ON() macro to just return an
+error (non-zero value).
+
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-x1205.c |   53 ++++++++++++--------------------------
- 1 file changed, 18 insertions(+), 35 deletions(-)
+ drivers/video/atafb.c      |    3 +++
+ drivers/video/ep93xx-fb.c  |    2 ++
+ drivers/video/maxinefb.c   |    3 +++
+ drivers/video/pmag-ba-fb.c |    3 ++-
+ drivers/video/pmagb-b-fb.c |    3 ++-
+ 5 files changed, 12 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-x1205.c~rtc-x1205-unconditionally-set-date-when-setting-clock drivers/rtc/rtc-x1205.c
---- a/drivers/rtc/rtc-x1205.c~rtc-x1205-unconditionally-set-date-when-setting-clock
-+++ a/drivers/rtc/rtc-x1205.c
-@@ -155,11 +155,11 @@ static int x1205_get_status(struct i2c_c
- }
+diff -puN drivers/video/atafb.c~add-palette-register-check drivers/video/atafb.c
+--- a/drivers/video/atafb.c~add-palette-register-check
++++ a/drivers/video/atafb.c
+@@ -2245,6 +2245,9 @@ static int ext_setcolreg(unsigned int re
+ 	if (regno > 255)
+ 		return 1;
  
- static int x1205_set_datetime(struct i2c_client *client, struct rtc_time *tm,
--			int datetoo, u8 reg_base, unsigned char alm_enable)
-+			u8 reg_base, unsigned char alm_enable)
++	if (regno > 255)
++		return 1;
++
+ 	switch (external_card_type) {
+ 	case IS_VGA:
+ 		OUTB(0x3c8, regno);
+diff -puN drivers/video/ep93xx-fb.c~add-palette-register-check drivers/video/ep93xx-fb.c
+--- a/drivers/video/ep93xx-fb.c~add-palette-register-check
++++ a/drivers/video/ep93xx-fb.c
+@@ -358,6 +358,8 @@ static int ep93xxfb_setcolreg(unsigned i
+ 
+ 	switch (info->fix.visual) {
+ 	case FB_VISUAL_PSEUDOCOLOR:
++		if (regno > 255)
++			return 1;
+ 		rgb = ((red & 0xff00) << 8) | (green & 0xff00) |
+ 			((blue & 0xff00) >> 8);
+ 
+diff -puN drivers/video/maxinefb.c~add-palette-register-check drivers/video/maxinefb.c
+--- a/drivers/video/maxinefb.c~add-palette-register-check
++++ a/drivers/video/maxinefb.c
+@@ -92,6 +92,9 @@ static int maxinefb_setcolreg(unsigned r
+ 	/* value to be written into the palette reg. */
+ 	unsigned long hw_colorvalue = 0;
+ 
++	if (regno > 255)
++		return 1;
++
+ 	red   >>= 8;    /* The cmap fields are 16 bits    */
+ 	green >>= 8;    /* wide, but the harware colormap */
+ 	blue  >>= 8;    /* registers are only 8 bits wide */
+diff -puN drivers/video/pmag-ba-fb.c~add-palette-register-check drivers/video/pmag-ba-fb.c
+--- a/drivers/video/pmag-ba-fb.c~add-palette-register-check
++++ a/drivers/video/pmag-ba-fb.c
+@@ -98,7 +98,8 @@ static int pmagbafb_setcolreg(unsigned i
  {
--	int i, xfer, nbytes;
--	unsigned char buf[8];
-+	int i, xfer;
- 	unsigned char rdata[10] = { 0, reg_base };
-+	unsigned char *buf = rdata + 2;
+ 	struct pmagbafb_par *par = info->par;
  
- 	static const unsigned char wel[3] = { 0, X1205_REG_SR,
- 						X1205_SR_WEL };
-@@ -170,9 +170,9 @@ static int x1205_set_datetime(struct i2c
- 	static const unsigned char diswe[3] = { 0, X1205_REG_SR, 0 };
+-	BUG_ON(regno >= info->cmap.len);
++	if (regno >= info->cmap.len)
++		return 1;
  
- 	dev_dbg(&client->dev,
--		"%s: secs=%d, mins=%d, hours=%d\n",
--		__func__,
--		tm->tm_sec, tm->tm_min, tm->tm_hour);
-+		"%s: sec=%d min=%d hour=%d mday=%d mon=%d year=%d wday=%d\n",
-+		__func__, tm->tm_sec, tm->tm_min, tm->tm_hour, tm->tm_mday,
-+		tm->tm_mon, tm->tm_year, tm->tm_wday);
- 
- 	buf[CCR_SEC] = bin2bcd(tm->tm_sec);
- 	buf[CCR_MIN] = bin2bcd(tm->tm_min);
-@@ -180,23 +180,15 @@ static int x1205_set_datetime(struct i2c
- 	/* set hour and 24hr bit */
- 	buf[CCR_HOUR] = bin2bcd(tm->tm_hour) | X1205_HR_MIL;
- 
--	/* should we also set the date? */
--	if (datetoo) {
--		dev_dbg(&client->dev,
--			"%s: mday=%d, mon=%d, year=%d, wday=%d\n",
--			__func__,
--			tm->tm_mday, tm->tm_mon, tm->tm_year, tm->tm_wday);
--
--		buf[CCR_MDAY] = bin2bcd(tm->tm_mday);
-+	buf[CCR_MDAY] = bin2bcd(tm->tm_mday);
- 
--		/* month, 1 - 12 */
--		buf[CCR_MONTH] = bin2bcd(tm->tm_mon + 1);
-+	/* month, 1 - 12 */
-+	buf[CCR_MONTH] = bin2bcd(tm->tm_mon + 1);
- 
--		/* year, since the rtc epoch*/
--		buf[CCR_YEAR] = bin2bcd(tm->tm_year % 100);
--		buf[CCR_WDAY] = tm->tm_wday & 0x07;
--		buf[CCR_Y2K] = bin2bcd((tm->tm_year + 1900) / 100);
--	}
-+	/* year, since the rtc epoch*/
-+	buf[CCR_YEAR] = bin2bcd(tm->tm_year % 100);
-+	buf[CCR_WDAY] = tm->tm_wday & 0x07;
-+	buf[CCR_Y2K] = bin2bcd((tm->tm_year + 1900) / 100);
- 
- 	/* If writing alarm registers, set compare bits on registers 0-4 */
- 	if (reg_base < X1205_CCR_BASE)
-@@ -214,17 +206,8 @@ static int x1205_set_datetime(struct i2c
- 		return -EIO;
- 	}
- 
--
--	/* write register's data */
--	if (datetoo)
--		nbytes = 8;
--	else
--		nbytes = 3;
--	for (i = 0; i < nbytes; i++)
--		rdata[2+i] = buf[i];
--
--	xfer = i2c_master_send(client, rdata, nbytes+2);
--	if (xfer != nbytes+2) {
-+	xfer = i2c_master_send(client, rdata, sizeof(rdata));
-+	if (xfer != sizeof(rdata)) {
- 		dev_err(&client->dev,
- 			"%s: result=%d addr=%02x, data=%02x\n",
- 			__func__,
-@@ -282,7 +265,7 @@ static int x1205_fix_osc(struct i2c_clie
- 
- 	memset(&tm, 0, sizeof(tm));
- 
--	err = x1205_set_datetime(client, &tm, 1, X1205_CCR_BASE, 0);
-+	err = x1205_set_datetime(client, &tm, X1205_CCR_BASE, 0);
- 	if (err < 0)
- 		dev_err(&client->dev, "unable to restart the oscillator\n");
- 
-@@ -481,7 +464,7 @@ static int x1205_rtc_read_alarm(struct d
- static int x1205_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
+ 	red   >>= 8;	/* The cmap fields are 16 bits    */
+ 	green >>= 8;	/* wide, but the hardware colormap */
+diff -puN drivers/video/pmagb-b-fb.c~add-palette-register-check drivers/video/pmagb-b-fb.c
+--- a/drivers/video/pmagb-b-fb.c~add-palette-register-check
++++ a/drivers/video/pmagb-b-fb.c
+@@ -102,7 +102,8 @@ static int pmagbbfb_setcolreg(unsigned i
  {
- 	return x1205_set_datetime(to_i2c_client(dev),
--		&alrm->time, 1, X1205_ALM0_BASE, alrm->enabled);
-+		&alrm->time, X1205_ALM0_BASE, alrm->enabled);
- }
+ 	struct pmagbbfb_par *par = info->par;
  
- static int x1205_rtc_read_time(struct device *dev, struct rtc_time *tm)
-@@ -493,7 +476,7 @@ static int x1205_rtc_read_time(struct de
- static int x1205_rtc_set_time(struct device *dev, struct rtc_time *tm)
- {
- 	return x1205_set_datetime(to_i2c_client(dev),
--		tm, 1, X1205_CCR_BASE, 0);
-+		tm, X1205_CCR_BASE, 0);
- }
+-	BUG_ON(regno >= info->cmap.len);
++	if (regno >= info->cmap.len)
++		return 1;
  
- static int x1205_rtc_proc(struct device *dev, struct seq_file *seq)
+ 	red   >>= 8;	/* The cmap fields are 16 bits    */
+ 	green >>= 8;	/* wide, but the hardware colormap */
 _
 
-Patches currently in -mm which might be from jw@emlix.com are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
 origin.patch
-xtensa-use-generic-sys_pipe.patch
+linux-next.patch
 
