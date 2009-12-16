@@ -1,176 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: [merged] davinci-fb-updates-the-driver-in-preparation-for-addition-of-power-management-features.patch removed from -mm tree
-Date: Wed, 16 Dec 2009 12:36:18 -0800
-Message-ID: <200912162036.nBGKaI4q013158@imap1.linux-foundation.org>
+Subject: [merged] clps711xfb-convert-to-proc_fops.patch removed from -mm tree
+Date: Wed, 16 Dec 2009 12:36:16 -0800
+Message-ID: <200912162036.nBGKaG70013155@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36208 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41838 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935442AbZLPUgX (ORCPT
+	by vger.kernel.org with ESMTP id S935421AbZLPUgS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Dec 2009 15:36:23 -0500
+	Wed, 16 Dec 2009 15:36:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chaithrika@ti.com, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     davinci: fb: update the driver in preparation for addition of power management features
+     clps711xfb: convert to proc_fops
 has been removed from the -mm tree.  Its filename was
-     davinci-fb-updates-the-driver-in-preparation-for-addition-of-power-management-features.patch
+     clps711xfb-convert-to-proc_fops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: davinci: fb: update the driver in preparation for addition of power management features
-From: Chaithrika U S <chaithrika@ti.com>
+Subject: clps711xfb: convert to proc_fops
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-Add a helper function to enable raster.  Also add one member in the
-private data structure to track the current blank status, another function
-pointer which takes in the platform specific callback function to control
-panel power.
-
-These updates will help in adding suspend/resume and frame buffer blank
-operation features.
-
-Signed-off-by: Chaithrika U S <chaithrika@ti.com>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/da8xx-fb.c |   43 +++++++++++++++++++++++--------------
- include/video/da8xx-fb.h |    1 
- 2 files changed, 28 insertions(+), 16 deletions(-)
+ drivers/video/clps711xfb.c |   50 ++++++++++++++---------------------
+ 1 file changed, 21 insertions(+), 29 deletions(-)
 
-diff -puN drivers/video/da8xx-fb.c~davinci-fb-updates-the-driver-in-preparation-for-addition-of-power-management-features drivers/video/da8xx-fb.c
---- a/drivers/video/da8xx-fb.c~davinci-fb-updates-the-driver-in-preparation-for-addition-of-power-management-features
-+++ a/drivers/video/da8xx-fb.c
-@@ -115,9 +115,11 @@ struct da8xx_fb_par {
- 	unsigned int databuf_sz;
- 	unsigned int palette_sz;
- 	unsigned int pxl_clk;
-+	int blank;
- #ifdef CONFIG_CPU_FREQ
- 	struct notifier_block	freq_transition;
- #endif
-+	void (*panel_power_ctrl)(int);
+diff -puN drivers/video/clps711xfb.c~clps711xfb-convert-to-proc_fops drivers/video/clps711xfb.c
+--- a/drivers/video/clps711xfb.c~clps711xfb-convert-to-proc_fops
++++ a/drivers/video/clps711xfb.c
+@@ -19,8 +19,10 @@
+  *
+  *  Framebuffer driver for the CLPS7111 and EP7212 processors.
+  */
++#include <linux/mm.h>
+ #include <linux/module.h>
+ #include <linux/kernel.h>
++#include <linux/seq_file.h>
+ #include <linux/slab.h>
+ #include <linux/fb.h>
+ #include <linux/init.h>
+@@ -38,14 +40,6 @@ struct fb_info	*cfb;
+ 
+ #define CMAP_MAX_SIZE	16
+ 
+-/* The /proc entry for the backlight. */
+-static struct proc_dir_entry *clps7111fb_backlight_proc_entry = NULL;
+-
+-static int clps7111fb_proc_backlight_read(char *page, char **start, off_t off,
+-		int count, int *eof, void *data);
+-static int clps7111fb_proc_backlight_write(struct file *file, 
+-		const char *buffer, unsigned long count, void *data);
+-
+ /*
+  * LCD AC Prescale.  This comes from the LCD panel manufacturers specifications.
+  * This determines how many clocks + 1 of CL1 before the M signal toggles.
+@@ -221,26 +215,23 @@ static struct fb_ops clps7111fb_ops = {
+ 	.fb_imageblit	= cfb_imageblit,
  };
  
- /* Variable Screen Information */
-@@ -195,8 +197,18 @@ static struct da8xx_panel known_lcd_pane
- 	},
- };
- 
-+/* Enable the Raster Engine of the LCD Controller */
-+static inline void lcd_enable_raster(void)
-+{
-+	u32 reg;
-+
-+	reg = lcdc_read(LCD_RASTER_CTRL_REG);
-+	if (!(reg & LCD_RASTER_ENABLE))
-+		lcdc_write(reg | LCD_RASTER_ENABLE, LCD_RASTER_CTRL_REG);
-+}
-+
- /* Disable the Raster Engine of the LCD Controller */
--static void lcd_disable_raster(struct da8xx_fb_par *par)
-+static inline void lcd_disable_raster(void)
+-static int 
+-clps7111fb_proc_backlight_read(char *page, char **start, off_t off,
+-		int count, int *eof, void *data)
++static int backlight_proc_show(struct seq_file *m, void *v)
  {
- 	u32 reg;
- 
-@@ -448,8 +460,7 @@ static int fb_setcolreg(unsigned regno, 
- static void lcd_reset(struct da8xx_fb_par *par)
- {
- 	/* Disable the Raster if previously Enabled */
--	if (lcdc_read(LCD_RASTER_CTRL_REG) & LCD_RASTER_ENABLE)
--		lcd_disable_raster(par);
-+	lcd_disable_raster();
- 
- 	/* DMA has to be disabled */
- 	lcdc_write(0, LCD_DMA_CTRL_REG);
-@@ -529,13 +540,11 @@ static int lcd_init(struct da8xx_fb_par 
- static irqreturn_t lcdc_irq_handler(int irq, void *arg)
- {
- 	u32 stat = lcdc_read(LCD_STAT_REG);
--	u32 reg;
- 
- 	if ((stat & LCD_SYNC_LOST) && (stat & LCD_FIFO_UNDERFLOW)) {
--		reg = lcdc_read(LCD_RASTER_CTRL_REG);
--		lcdc_write(reg & ~LCD_RASTER_ENABLE, LCD_RASTER_CTRL_REG);
-+		lcd_disable_raster();
- 		lcdc_write(stat, LCD_STAT_REG);
--		lcdc_write(reg | LCD_RASTER_ENABLE, LCD_RASTER_CTRL_REG);
-+		lcd_enable_raster();
- 	} else
- 		lcdc_write(stat, LCD_STAT_REG);
- 
-@@ -595,16 +604,13 @@ static int lcd_da8xx_cpufreq_transition(
- 				     unsigned long val, void *data)
- {
- 	struct da8xx_fb_par *par;
--	unsigned int reg;
- 
- 	par = container_of(nb, struct da8xx_fb_par, freq_transition);
- 	if (val == CPUFREQ_PRECHANGE) {
--		reg = lcdc_read(LCD_RASTER_CTRL_REG);
--		lcdc_write(reg & ~LCD_RASTER_ENABLE, LCD_RASTER_CTRL_REG);
-+		lcd_disable_raster();
- 	} else if (val == CPUFREQ_POSTCHANGE) {
- 		lcd_calc_clk_divider(par);
--		reg = lcdc_read(LCD_RASTER_CTRL_REG);
--		lcdc_write(reg | LCD_RASTER_ENABLE, LCD_RASTER_CTRL_REG);
-+		lcd_enable_raster();
+-	/* We need at least two characters, one for the digit, and one for
+-	 * the terminating NULL. */
+-	if (count < 2) 
+-		return -EINVAL;
+-
+ 	if (machine_is_edb7211()) {
+-		return sprintf(page, "%d\n", 
++		seq_printf(m, "%d\n",
+ 				(clps_readb(PDDR) & EDB_PD3_LCDBL) ? 1 : 0);
  	}
  
  	return 0;
-@@ -635,8 +641,10 @@ static int __devexit fb_remove(struct pl
- #ifdef CONFIG_CPU_FREQ
- 		lcd_da8xx_cpufreq_deregister(par);
- #endif
--		if (lcdc_read(LCD_RASTER_CTRL_REG) & LCD_RASTER_ENABLE)
--			lcd_disable_raster(par);
-+		if (par->panel_power_ctrl)
-+			par->panel_power_ctrl(0);
+ }
+ 
+-static int 
+-clps7111fb_proc_backlight_write(struct file *file, const char *buffer, 
+-		unsigned long count, void *data)
++static int backlight_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, backlight_proc_show, NULL);
++}
 +
-+		lcd_disable_raster();
- 		lcdc_write(0, LCD_RASTER_CTRL_REG);
++static ssize_t backlight_proc_write(struct file *file, const char *buffer,
++				    size_t count, loff_t *pos)
+ {
+ 	unsigned char char_value;
+ 	int value;
+@@ -271,6 +262,15 @@ clps7111fb_proc_backlight_write(struct f
+ 	return count;
+ }
  
- 		/* disable DMA  */
-@@ -777,6 +785,10 @@ static int __init fb_probe(struct platfo
- 	par = da8xx_fb_info->par;
- 	par->lcdc_clk = fb_clk;
- 	par->pxl_clk = lcdc_info->pxl_clk;
-+	if (fb_pdata->panel_power_ctrl) {
-+		par->panel_power_ctrl = fb_pdata->panel_power_ctrl;
-+		par->panel_power_ctrl(1);
-+	}
++static const struct file_operations backlight_proc_fops = {
++	.owner		= THIS_MODULE,
++	.open		= backlight_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++	.write		= backlight_proc_write,
++};
++
+ static void __init clps711x_guess_lcd_params(struct fb_info *info)
+ {
+ 	unsigned int lcdcon, syscon, size;
+@@ -379,19 +379,11 @@ int __init clps711xfb_init(void)
  
- 	if (lcd_init(par, lcd_cfg, lcdc_info) < 0) {
- 		dev_err(&device->dev, "lcd_init failed\n");
-@@ -877,8 +889,7 @@ static int __init fb_probe(struct platfo
- #endif
+ 	fb_alloc_cmap(&cfb->cmap, CMAP_MAX_SIZE, 0);
  
- 	/* enable raster engine */
--	lcdc_write(lcdc_read(LCD_RASTER_CTRL_REG) |
--			LCD_RASTER_ENABLE, LCD_RASTER_CTRL_REG);
-+	lcd_enable_raster();
+-	/* Register the /proc entries. */
+-	clps7111fb_backlight_proc_entry = create_proc_entry("backlight", 0444,
+-		NULL);
+-	if (clps7111fb_backlight_proc_entry == NULL) {
++	if (!proc_create("backlight", 0444, NULL, &backlight_proc_fops)) {
+ 		printk("Couldn't create the /proc entry for the backlight.\n");
+ 		return -EINVAL;
+ 	}
  
- 	return 0;
- 
-diff -puN include/video/da8xx-fb.h~davinci-fb-updates-the-driver-in-preparation-for-addition-of-power-management-features include/video/da8xx-fb.h
---- a/include/video/da8xx-fb.h~davinci-fb-updates-the-driver-in-preparation-for-addition-of-power-management-features
-+++ a/include/video/da8xx-fb.h
-@@ -38,6 +38,7 @@ struct da8xx_lcdc_platform_data {
- 	const char manu_name[10];
- 	void *controller_data;
- 	const char type[25];
-+	void (*panel_power_ctrl)(int);
- };
- 
- struct lcd_ctrl_config {
-_
-
-Patches currently in -mm which might be from chaithrika@ti.com are
-
-origin.patch
-
+-	clps7111fb_backlight_proc_entry->read_proc = 
+-		&clps7111fb_proc_backlight_read;
+-	clps7111fb_backlight_proc_entry->write_proc = 
+-		&clps7111fb_proc_backlight_write;
