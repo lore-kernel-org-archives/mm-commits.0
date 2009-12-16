@@ -1,111 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [merged] gru-allow-users-to-specify-gru-chiplet-1.patch removed from -mm tree
-Date: Wed, 16 Dec 2009 12:40:18 -0800
-Message-ID: <200912162040.nBGKeItT013626@imap1.linux-foundation.org>
+Subject: [merged] x86-uv-xpc-receive-message-reuse-triggers-invalid-bug_on.patch removed from -mm tree
+Date: Wed, 16 Dec 2009 12:40:03 -0800
+Message-ID: <200912162040.nBGKe3uO013581@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38292 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47619 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965012AbZLPUkV (ORCPT
+	by vger.kernel.org with ESMTP id S965007AbZLPUkQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Dec 2009 15:40:21 -0500
+	Wed, 16 Dec 2009 15:40:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: steiner@sgi.com, mm-commits@vger.kernel.org
+To: holt@sgi.com, mingo@elte.hu, steiner@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gru: allow users to specify gru chiplet 1
+     x86: uv: XPC receive message reuse triggers invalid BUG_ON()
 has been removed from the -mm tree.  Its filename was
-     gru-allow-users-to-specify-gru-chiplet-1.patch
+     x86-uv-xpc-receive-message-reuse-triggers-invalid-bug_on.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gru: allow users to specify gru chiplet 1
-From: Jack Steiner <steiner@sgi.com>
+Subject: x86: uv: XPC receive message reuse triggers invalid BUG_ON()
+From: Robin Holt <holt@sgi.com>
 
-Add table & user request infrastructure that is needed to allow users to
-specify the blade and chiplet for allocation of GRU contexts.  Use of this
-information is in a subsequent patch.
+This was a difficult bug to trip.  XPC was in the middle of sending an
+acknowledgement for a received message.
 
-Signed-off-by: Jack Steiner <steiner@sgi.com>
+In xpc_received_payload_uv():
+.
+        ret = xpc_send_gru_msg(ch->sn.uv.cached_notify_gru_mq_desc, msg,
+                               sizeof(struct xpc_notify_mq_msghdr_uv));
+        if (ret != xpSuccess)
+                XPC_DEACTIVATE_PARTITION(&xpc_partitions[ch->partid], ret);
+
+        msg->hdr.msg_slot_number += ch->remote_nentries;
+
+at the point in xpc_send_gru_msg() where the hardware has dispatched the
+acknowledgement, the remote side is able to reuse the message structure
+and send a message with a different slot number.  This problem is made
+worse by interrupts.
+
+The adjustment of msg_slot_number and the BUG_ON in
+xpc_handle_notify_mq_msg_uv() which verifies the msg_slot_number is
+consistent are only used for debug purposes.  Since a fix for this that
+preserves the debug functionality would either have to infringe upon the
+payload or allocate another structure just for debug, I decided to remove
+it entirely.
+
+Signed-off-by: Robin Holt <holt@sgi.com>
+Cc: Jack Steiner <steiner@sgi.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-gru/grufault.c  |   10 ++++++++++
- drivers/misc/sgi-gru/grulib.h    |    5 +++--
- drivers/misc/sgi-gru/grumain.c   |    2 ++
- drivers/misc/sgi-gru/grutables.h |    2 ++
- 4 files changed, 17 insertions(+), 2 deletions(-)
+ drivers/misc/sgi-xp/xpc_uv.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN drivers/misc/sgi-gru/grufault.c~gru-allow-users-to-specify-gru-chiplet-1 drivers/misc/sgi-gru/grufault.c
---- a/drivers/misc/sgi-gru/grufault.c~gru-allow-users-to-specify-gru-chiplet-1
-+++ a/drivers/misc/sgi-gru/grufault.c
-@@ -763,6 +763,16 @@ int gru_set_context_option(unsigned long
- 		return -EINVAL;
+diff -puN drivers/misc/sgi-xp/xpc_uv.c~x86-uv-xpc-receive-message-reuse-triggers-invalid-bug_on drivers/misc/sgi-xp/xpc_uv.c
+--- a/drivers/misc/sgi-xp/xpc_uv.c~x86-uv-xpc-receive-message-reuse-triggers-invalid-bug_on
++++ a/drivers/misc/sgi-xp/xpc_uv.c
+@@ -1428,7 +1428,6 @@ xpc_handle_notify_mq_msg_uv(struct xpc_p
+ 	msg_slot = ch_uv->recv_msg_slots +
+ 	    (msg->hdr.msg_slot_number % ch->remote_nentries) * ch->entry_size;
  
- 	switch (req.op) {
-+	case sco_blade_chiplet:
-+		/* Select blade/chiplet for GRU context */
-+		if (req.val1 < -1 || req.val1 >= GRU_MAX_BLADES || !gru_base[req.val1] ||
-+		    req.val0 < -1 || req.val0 >= GRU_CHIPLETS_PER_HUB) {
-+			ret = -EINVAL;
-+		} else {
-+			gts->ts_user_blade_id = req.val1;
-+			gts->ts_user_chiplet_id = req.val0;
-+		}
-+		break;
- 	case sco_gseg_owner:
-  		/* Register the current task as the GSEG owner */
- 		gts->ts_tgid_owner = current->tgid;
-diff -puN drivers/misc/sgi-gru/grulib.h~gru-allow-users-to-specify-gru-chiplet-1 drivers/misc/sgi-gru/grulib.h
---- a/drivers/misc/sgi-gru/grulib.h~gru-allow-users-to-specify-gru-chiplet-1
-+++ a/drivers/misc/sgi-gru/grulib.h
-@@ -98,11 +98,12 @@ struct gru_unload_context_req {
- /*
-  * Structure used to set context options
-  */
--enum {sco_gseg_owner, sco_cch_req_slice};
-+enum {sco_gseg_owner, sco_cch_req_slice, sco_blade_chiplet};
- struct gru_set_context_option_req {
- 	unsigned long	gseg;
- 	int		op;
--	unsigned long	val1;
-+	int		val0;
-+	long		val1;
- };
+-	BUG_ON(msg->hdr.msg_slot_number != msg_slot->hdr.msg_slot_number);
+ 	BUG_ON(msg_slot->hdr.size != 0);
  
- /*
-diff -puN drivers/misc/sgi-gru/grumain.c~gru-allow-users-to-specify-gru-chiplet-1 drivers/misc/sgi-gru/grumain.c
---- a/drivers/misc/sgi-gru/grumain.c~gru-allow-users-to-specify-gru-chiplet-1
-+++ a/drivers/misc/sgi-gru/grumain.c
-@@ -328,6 +328,8 @@ struct gru_thread_state *gru_alloc_gts(s
- 	gts->ts_cbr_au_count = cbr_au_count;
- 	gts->ts_dsr_au_count = dsr_au_count;
- 	gts->ts_user_options = options;
-+	gts->ts_user_blade_id = -1;
-+	gts->ts_user_chiplet_id = -1;
- 	gts->ts_tsid = tsid;
- 	gts->ts_ctxnum = NULLCTX;
- 	gts->ts_tlb_int_select = -1;
-diff -puN drivers/misc/sgi-gru/grutables.h~gru-allow-users-to-specify-gru-chiplet-1 drivers/misc/sgi-gru/grutables.h
---- a/drivers/misc/sgi-gru/grutables.h~gru-allow-users-to-specify-gru-chiplet-1
-+++ a/drivers/misc/sgi-gru/grutables.h
-@@ -369,6 +369,8 @@ struct gru_thread_state {
- 	long			ts_user_options;/* misc user option flags */
- 	pid_t			ts_tgid_owner;	/* task that is using the
- 						   context - for migration */
-+	short			ts_user_blade_id;/* user selected blade */
-+	char			ts_user_chiplet_id;/* user selected chiplet */
- 	unsigned short		ts_sizeavail;	/* Pagesizes in use */
- 	int			ts_tsid;	/* thread that owns the
- 						   structure */
-_
-
-Patches currently in -mm which might be from steiner@sgi.com are
-
-origin.patch
-
+ 	memcpy(msg_slot, msg, msg->hdr.size);
+@@ -1652,8 +1651,6 @@ xpc_received_payload_uv(struct xpc_chann
+ 			       sizeof(struct xpc_notify_mq_msghdr_uv));
+ 	if (ret != xpSuccess)
+ 		XPC_DEACTIVATE_PARTITION(&xpc_partitions[ch->partid], ret);
