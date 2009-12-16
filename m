@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: [merged] viafb-documentation-update.patch removed from -mm tree
-Date: Wed, 16 Dec 2009 12:36:32 -0800
-Message-ID: <200912162036.nBGKaW2J013249@imap1.linux-foundation.org>
+Subject: [merged] viafb-cosmetic-cleanup-of-function-integrated_lvds_enable.patch removed from -mm tree
+Date: Wed, 16 Dec 2009 12:36:36 -0800
+Message-ID: <200912162036.nBGKaa01013254@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52796 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35632 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935442AbZLPUgs (ORCPT
+	by vger.kernel.org with ESMTP id S935445AbZLPUgs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 16 Dec 2009 15:36:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,20 +15,19 @@ To: laforge@gnumonks.org, FlorianSchandinat@gmx.de, HaraldWelte@viatech.com, Jos
 
 
 The patch titled
-     viafb: documentation update
+     viafb: cosmetic cleanup of function integrated_lvds_enable()
 has been removed from the -mm tree.  Its filename was
-     viafb-documentation-update.patch
+     viafb-cosmetic-cleanup-of-function-integrated_lvds_enable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: viafb: documentation update
+Subject: viafb: cosmetic cleanup of function integrated_lvds_enable()
 From: Harald Welte <laforge@gnumonks.org>
 
-We now support the VX855, and the VX800 is no longer unaccellerated.
-viafb_video_dev was removed as it was useless.
+A humble attempt to simplify the coding style to improve readability
 
 Signed-off-by: Harald Welte <HaraldWelte@viatech.com>
 Signed-off-by: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
@@ -38,28 +37,53 @@ Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/fb/viafb.txt |   12 +-----------
- 1 file changed, 1 insertion(+), 11 deletions(-)
+ drivers/video/via/lcd.c |   40 +++++++++++++-------------------------
+ 1 file changed, 14 insertions(+), 26 deletions(-)
 
-diff -puN Documentation/fb/viafb.txt~viafb-documentation-update Documentation/fb/viafb.txt
---- a/Documentation/fb/viafb.txt~viafb-documentation-update
-+++ a/Documentation/fb/viafb.txt
-@@ -7,7 +7,7 @@
-     VIA UniChrome Family(CLE266, PM800 / CN400 / CN300,
-                         P4M800CE / P4M800Pro / CN700 / VN800,
-                         CX700 / VX700, K8M890, P4M890,
--                        CN896 / P4M900, VX800)
-+                        CN896 / P4M900, VX800, VX855)
+diff -puN drivers/video/via/lcd.c~viafb-cosmetic-cleanup-of-function-integrated_lvds_enable drivers/video/via/lcd.c
+--- a/drivers/video/via/lcd.c~viafb-cosmetic-cleanup-of-function-integrated_lvds_enable
++++ a/drivers/video/via/lcd.c
+@@ -1134,45 +1134,33 @@ static void integrated_lvds_enable(struc
+ 			    *plvds_setting_info,
+ 			    struct lvds_chip_information *plvds_chip_info)
+ {
+-	bool turn_on_first_powersequence = false;
+-	bool turn_on_second_powersequence = false;
+-
+ 	DEBUG_MSG(KERN_INFO "integrated_lvds_enable, out_interface:%d\n",
+ 		  plvds_chip_info->output_interface);
+ 	if (plvds_setting_info->lcd_mode == LCD_SPWG)
+ 		viafb_write_reg_mask(CRD2, VIACR, 0x00, BIT0 + BIT1);
+-	 else
++	else
+ 		viafb_write_reg_mask(CRD2, VIACR, 0x03, BIT0 + BIT1);
+-	if (INTERFACE_LVDS0LVDS1 == plvds_chip_info->output_interface)
+-		turn_on_first_powersequence = true;
+-	if (INTERFACE_LVDS0 == plvds_chip_info->output_interface)
+-		turn_on_first_powersequence = true;
+-	if (INTERFACE_LVDS1 == plvds_chip_info->output_interface)
+-		turn_on_second_powersequence = true;
+-
+-	if (turn_on_second_powersequence) {
+-		/* Use second power sequence control: */
+-
+-		/* Use hardware control power sequence. */
+-		viafb_write_reg_mask(CRD3, VIACR, 0, BIT0);
+-
+-		/* Turn on back light. */
+-		viafb_write_reg_mask(CRD3, VIACR, 0, BIT6 + BIT7);
  
- [Driver features]
- ------------------------
-@@ -154,13 +154,6 @@
-         0 : No Dual Edge Panel (default)
-         1 : Dual Edge Panel
- 
--    viafb_video_dev:
--        This option is used to specify video output devices(CRT, DVI, LCD) for
--        duoview case.
--        For example:
--        To output video on DVI, we should use:
--            modprobe viafb viafb_video_dev=DVI...
+-		/* Turn on hardware power sequence. */
+-		viafb_write_reg_mask(CRD4, VIACR, 0x02, BIT1);
+-	}
+-	if (turn_on_first_powersequence) {
++	switch (plvds_chip_info->output_interface) {
++	case INTERFACE_LVDS0LVDS1:
++	case INTERFACE_LVDS0:
+ 		/* Use first power sequence control: */
+-
+ 		/* Use hardware control power sequence. */
+ 		viafb_write_reg_mask(CR91, VIACR, 0, BIT0);
+-
+ 		/* Turn on back light. */
+ 		viafb_write_reg_mask(CR91, VIACR, 0, BIT6 + BIT7);
