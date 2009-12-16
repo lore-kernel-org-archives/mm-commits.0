@@ -1,646 +1,404 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect.patch removed from -mm tree
-Date: Wed, 16 Dec 2009 12:35:46 -0800
-Message-ID: <200912162035.nBGKZkN0013119@imap1.linux-foundation.org>
+Subject: [merged] sm501-implement-acceleration-features.patch removed from -mm tree
+Date: Wed, 16 Dec 2009 12:36:10 -0800
+Message-ID: <200912162036.nBGKaAsI013148@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39548 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38877 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935429AbZLPUgP (ORCPT
+	by vger.kernel.org with ESMTP id S935418AbZLPUgR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Dec 2009 15:36:15 -0500
+	Wed, 16 Dec 2009 15:36:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: valentin.sitdikov@siemens.com, agust@denx.de, krzysztof.h1@poczta.fm, virtuoso@slind.org, mm-commits@vger.kernel.org
+To: vince@simtec.co.uk, ben@simtec.co.uk, krzysztof.h1@poczta.fm, linux@simtec.co.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mb862xxfb: add acceleration support for Coral-P/Coral-PA. * imageblt * copyarea * fillrect
+     sm501: implement acceleration features
 has been removed from the -mm tree.  Its filename was
-     mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect.patch
+     sm501-implement-acceleration-features.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mb862xxfb: add acceleration support for Coral-P/Coral-PA. * imageblt * copyarea * fillrect
-From: Valentin Sitdikov <valentin.sitdikov@siemens.com>
+Subject: sm501: implement acceleration features
+From: Vincent Sanders <vince@simtec.co.uk>
 
-[akpm@linux-foundation.org: clean up comments, remove do-nothing tests, use min()]
-[akpm@linux-foundation.org: fix Alexandr's email address]
-[akpm@linux-foundation.org: export mb862xxfb_init_accel]
-Signed-off-by: Valentin Sitdikov <valentin.sitdikov@siemens.com>
+This patch provides the acceleration entry points for the SM501
+framebuffer driver.
+
+This patch provides the sync, copyarea and fillrect entry points, using
+the SM501's 2D acceleration engine to perform the operations in-chip
+rather than across the bus.
+
+Signed-off-by: Ben Dooks <ben@simtec.co.uk>
+Signed-off-by: Simtec Linux Team <linux@simtec.co.uk>
+Signed-off-by: Vincent Sanders <vince@simtec.co.uk>
 Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
-Cc: Anatolij Gustschin <agust@denx.de>
-Signed-off-by: Alexander Shishkin <virtuoso@slind.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/mb862xx/Makefile          |    2 
- drivers/video/mb862xx/mb862xxfb.c       |   14 
- drivers/video/mb862xx/mb862xxfb.h       |    2 
- drivers/video/mb862xx/mb862xxfb_accel.c |  331 ++++++++++++++++++++++
- drivers/video/mb862xx/mb862xxfb_accel.h |  203 +++++++++++++
- 5 files changed, 551 insertions(+), 1 deletion(-)
+ drivers/video/sm501fb.c    |  237 +++++++++++++++++++++++++++++++++--
+ include/linux/sm501-regs.h |    2 
+ 2 files changed, 226 insertions(+), 13 deletions(-)
 
-diff -puN drivers/video/mb862xx/Makefile~mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect drivers/video/mb862xx/Makefile
---- a/drivers/video/mb862xx/Makefile~mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect
-+++ a/drivers/video/mb862xx/Makefile
-@@ -2,4 +2,4 @@
- # Makefile for the MB862xx framebuffer driver
- #
+diff -puN drivers/video/sm501fb.c~sm501-implement-acceleration-features drivers/video/sm501fb.c
+--- a/drivers/video/sm501fb.c~sm501-implement-acceleration-features
++++ a/drivers/video/sm501fb.c
+@@ -66,6 +66,7 @@ struct sm501fb_info {
+ 	struct fb_info		*fb[2];		/* fb info for both heads */
+ 	struct resource		*fbmem_res;	/* framebuffer resource */
+ 	struct resource		*regs_res;	/* registers resource */
++	struct resource		*regs2d_res;	/* 2d registers resource */
+ 	struct sm501_platdata_fb *pdata;	/* our platform data */
  
--obj-$(CONFIG_FB_MB862XX)	:= mb862xxfb.o
-+obj-$(CONFIG_FB_MB862XX)	:= mb862xxfb.o mb862xxfb_accel.o
-diff -puN drivers/video/mb862xx/mb862xxfb.c~mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect drivers/video/mb862xx/mb862xxfb.c
---- a/drivers/video/mb862xx/mb862xxfb.c~mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect
-+++ a/drivers/video/mb862xx/mb862xxfb.c
-@@ -214,6 +214,8 @@ static int mb862xxfb_set_par(struct fb_i
- 	unsigned long reg, sc;
+ 	unsigned long		 pm_crt_ctrl;	/* pm: crt ctrl save */
+@@ -73,6 +74,7 @@ struct sm501fb_info {
+ 	int			 irq;
+ 	int			 swap_endian;	/* set to swap rgb=>bgr */
+ 	void __iomem		*regs;		/* remapped registers */
++	void __iomem		*regs2d;	/* 2d remapped registers */
+ 	void __iomem		*fbmem;		/* remapped framebuffer */
+ 	size_t			 fbmem_len;	/* length of remapped region */
+ };
+@@ -123,9 +125,9 @@ static inline void sm501fb_sync_regs(str
+  * This is an attempt to lay out memory for the two framebuffers and
+  * everything else
+  *
+- * |fbmem_res->start	                                       fbmem_res->end|
+- * |                                                                         |
+- * |fb[0].fix.smem_start    |         |fb[1].fix.smem_start    |     2K      |
++ * |fbmem_res->start					       fbmem_res->end|
++ * |									     |
++ * |fb[0].fix.smem_start    |	      |fb[1].fix.smem_start    |     2K	     |
+  * |-> fb[0].fix.smem_len <-| spare   |-> fb[1].fix.smem_len <-|-> cursors <-|
+  *
+  * The "spare" space is for the 2d engine data
+@@ -1246,7 +1248,173 @@ static ssize_t sm501fb_debug_show_pnl(st
  
- 	dev_dbg(par->dev, "%s\n", __func__);
-+	if (par->type == BT_CORALP)
-+		mb862xxfb_init_accel(fbi, fbi->var.xres);
+ static DEVICE_ATTR(fbregs_pnl, 0444, sm501fb_debug_show_pnl, NULL);
  
- 	if (par->pre_init)
- 		return 0;
-@@ -453,6 +455,18 @@ static ssize_t mb862xxfb_show_dispregs(s
- 		ptr += sprintf(ptr, "%08x = %08x\n",
- 			       reg, inreg(disp, reg));
- 
-+	for (reg = 0x400; reg <= 0x410; reg += 4)
-+		ptr += sprintf(ptr, "geo %08x = %08x\n",
-+			       reg, inreg(geo, reg));
+-/* framebuffer ops */
++/* acceleration operations */
++static int sm501fb_sync(struct fb_info *info)
++{
++	int count = 1000000;
++	struct sm501fb_par  *par = info->par;
++	struct sm501fb_info *fbi = par->info;
 +
-+	for (reg = 0x400; reg <= 0x410; reg += 4)
-+		ptr += sprintf(ptr, "draw %08x = %08x\n",
-+			       reg, inreg(draw, reg));
++	/* wait for the 2d engine to be ready */
++	while ((count > 0) &&
++	       (readl(fbi->regs + SM501_SYSTEM_CONTROL) &
++		SM501_SYSCTRL_2D_ENGINE_STATUS) != 0)
++		count--;
 +
-+	for (reg = 0x440; reg <= 0x450; reg += 4)
-+		ptr += sprintf(ptr, "draw %08x = %08x\n",
-+			       reg, inreg(draw, reg));
++	if (count <= 0) {
++		dev_err(info->dev, "Timeout waiting for 2d engine sync\n");
++		return 1;
++	}
++	return 0;
++}
 +
- 	return ptr - buf;
- }
++static void sm501fb_copyarea(struct fb_info *info, const struct fb_copyarea *area)
++{
++	struct sm501fb_par  *par = info->par;
++	struct sm501fb_info *fbi = par->info;
++	int width = area->width;
++	int height = area->height;
++	int sx = area->sx;
++	int sy = area->sy;
++	int dx = area->dx;
++	int dy = area->dy;
++	unsigned long rtl = 0;
++
++	/* source clip */
++	if ((sx >= info->var.xres_virtual) ||
++	    (sy >= info->var.yres_virtual))
++		/* source Area not within virtual screen, skipping */
++		return;
++	if ((sx + width) >= info->var.xres_virtual)
++		width = info->var.xres_virtual - sx - 1;
++	if ((sy + height) >= info->var.yres_virtual)
++		height = info->var.yres_virtual - sy - 1;
++
++	/* dest clip */
++	if ((dx >= info->var.xres_virtual) ||
++	    (dy >= info->var.yres_virtual))
++		/* Destination Area not within virtual screen, skipping */
++		return;
++	if ((dx + width) >= info->var.xres_virtual)
++		width = info->var.xres_virtual - dx - 1;
++	if ((dy + height) >= info->var.yres_virtual)
++		height = info->var.yres_virtual - dy - 1;
++
++	if ((sx < dx) || (sy < dy)) {
++		rtl = 1 << 27;
++		sx += width - 1;
++		dx += width - 1;
++		sy += height - 1;
++		dy += height - 1;
++	}
++
++	if (sm501fb_sync(info))
++		return;
++
++	/* set the base addresses */
++	writel(par->screen.sm_addr, fbi->regs2d + SM501_2D_SOURCE_BASE);
++	writel(par->screen.sm_addr, fbi->regs2d + SM501_2D_DESTINATION_BASE);
++
++	/* set the window width */
++	writel((info->var.xres << 16) | info->var.xres,
++	       fbi->regs2d + SM501_2D_WINDOW_WIDTH);
++
++	/* set window stride */
++	writel((info->var.xres_virtual << 16) | info->var.xres_virtual,
++	       fbi->regs2d + SM501_2D_PITCH);
++
++	/* set data format */
++	switch (info->var.bits_per_pixel) {
++	case 8:
++		writel(0, fbi->regs2d + SM501_2D_STRETCH);
++		break;
++	case 16:
++		writel(0x00100000, fbi->regs2d + SM501_2D_STRETCH);
++		break;
++	case 32:
++		writel(0x00200000, fbi->regs2d + SM501_2D_STRETCH);
++		break;
++	}
++
++	/* 2d compare mask */
++	writel(0xffffffff, fbi->regs2d + SM501_2D_COLOR_COMPARE_MASK);
++
++	/* 2d mask */
++	writel(0xffffffff, fbi->regs2d + SM501_2D_MASK);
++
++	/* source and destination x y */
++	writel((sx << 16) | sy, fbi->regs2d + SM501_2D_SOURCE);
++	writel((dx << 16) | dy, fbi->regs2d + SM501_2D_DESTINATION);
++
++	/* w/h */
++	writel((width << 16) | height, fbi->regs2d + SM501_2D_DIMENSION);
++
++	/* do area move */
++	writel(0x800000cc | rtl, fbi->regs2d + SM501_2D_CONTROL);
++}
++
++static void sm501fb_fillrect(struct fb_info *info, const struct fb_fillrect *rect)
++{
++	struct sm501fb_par  *par = info->par;
++	struct sm501fb_info *fbi = par->info;
++	int width = rect->width, height = rect->height;
++
++	if ((rect->dx >= info->var.xres_virtual) ||
++	    (rect->dy >= info->var.yres_virtual))
++		/* Rectangle not within virtual screen, skipping */
++		return;
++	if ((rect->dx + width) >= info->var.xres_virtual)
++		width = info->var.xres_virtual - rect->dx - 1;
++	if ((rect->dy + height) >= info->var.yres_virtual)
++		height = info->var.yres_virtual - rect->dy - 1;
++
++	if (sm501fb_sync(info))
++		return;
++
++	/* set the base addresses */
++	writel(par->screen.sm_addr, fbi->regs2d + SM501_2D_SOURCE_BASE);
++	writel(par->screen.sm_addr, fbi->regs2d + SM501_2D_DESTINATION_BASE);
++
++	/* set the window width */
++	writel((info->var.xres << 16) | info->var.xres,
++	       fbi->regs2d + SM501_2D_WINDOW_WIDTH);
++
++	/* set window stride */
++	writel((info->var.xres_virtual << 16) | info->var.xres_virtual,
++	       fbi->regs2d + SM501_2D_PITCH);
++
++	/* set data format */
++	switch (info->var.bits_per_pixel) {
++	case 8:
++		writel(0, fbi->regs2d + SM501_2D_STRETCH);
++		break;
++	case 16:
++		writel(0x00100000, fbi->regs2d + SM501_2D_STRETCH);
++		break;
++	case 32:
++		writel(0x00200000, fbi->regs2d + SM501_2D_STRETCH);
++		break;
++	}
++
++	/* 2d compare mask */
++	writel(0xffffffff, fbi->regs2d + SM501_2D_COLOR_COMPARE_MASK);
++
++	/* 2d mask */
++	writel(0xffffffff, fbi->regs2d + SM501_2D_MASK);
++
++	/* colour */
++	writel(rect->color, fbi->regs2d + SM501_2D_FOREGROUND);
++
++	/* x y */
++	writel((rect->dx << 16) | rect->dy, fbi->regs2d + SM501_2D_DESTINATION);
++
++	/* w/h */
++	writel((width << 16) | height, fbi->regs2d + SM501_2D_DIMENSION);
++
++	/* do rectangle fill */
++	writel(0x800100cc, fbi->regs2d + SM501_2D_CONTROL);
++}
++
  
-diff -puN drivers/video/mb862xx/mb862xxfb.h~mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect drivers/video/mb862xx/mb862xxfb.h
---- a/drivers/video/mb862xx/mb862xxfb.h~mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect
-+++ a/drivers/video/mb862xx/mb862xxfb.h
-@@ -61,6 +61,8 @@ struct mb862xxfb_par {
- 	u32			pseudo_palette[16];
+ static struct fb_ops sm501fb_ops_crt = {
+ 	.owner		= THIS_MODULE,
+@@ -1256,9 +1424,10 @@ static struct fb_ops sm501fb_ops_crt = {
+ 	.fb_setcolreg	= sm501fb_setcolreg,
+ 	.fb_pan_display	= sm501fb_pan_crt,
+ 	.fb_cursor	= sm501fb_cursor,
+-	.fb_fillrect	= cfb_fillrect,
+-	.fb_copyarea	= cfb_copyarea,
++	.fb_fillrect	= sm501fb_fillrect,
++	.fb_copyarea	= sm501fb_copyarea,
+ 	.fb_imageblit	= cfb_imageblit,
++	.fb_sync	= sm501fb_sync,
  };
  
-+extern void mb862xxfb_init_accel(struct fb_info *info, int xres);
-+
- #if defined(CONFIG_FB_MB862XX_LIME) && defined(CONFIG_FB_MB862XX_PCI_GDC)
- #error	"Select Lime GDC or CoralP/Carmine support, but not both together"
- #endif
-diff -puN /dev/null drivers/video/mb862xx/mb862xxfb_accel.c
---- /dev/null
-+++ a/drivers/video/mb862xx/mb862xxfb_accel.c
-@@ -0,0 +1,331 @@
-+/*
-+ * drivers/mb862xx/mb862xxfb_accel.c
-+ *
-+ * Fujitsu Carmine/Coral-P(A)/Lime framebuffer driver acceleration support
-+ *
-+ * (C) 2007 Alexander Shishkin <virtuoso@slind.org>
-+ * (C) 2009 Valentin Sitdikov <valentin.sitdikov@siemens.com>
-+ * (C) 2009 Siemens AG
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ */
-+#include <linux/fb.h>
-+#include <linux/delay.h>
-+#include <linux/init.h>
-+#include <linux/interrupt.h>
-+#include <linux/pci.h>
-+#if defined(CONFIG_OF)
-+#include <linux/of_platform.h>
-+#endif
-+#include "mb862xxfb.h"
-+#include "mb862xx_reg.h"
-+#include "mb862xxfb_accel.h"
-+
-+static void mb862xxfb_write_fifo(u32 count, u32 *data, struct fb_info *info)
-+{
-+	struct mb862xxfb_par *par = info->par;
-+	static u32 free;
-+
-+	u32 total = 0;
-+	while (total < count) {
-+		if (free) {
-+			outreg(geo, GDC_GEO_REG_INPUT_FIFO, data[total]);
-+			total++;
-+			free--;
-+		} else {
-+			free = (u32) inreg(draw, GDC_REG_FIFO_COUNT);
-+		}
-+	}
-+}
-+
-+static void mb86290fb_copyarea(struct fb_info *info,
-+			       const struct fb_copyarea *area)
-+{
-+	__u32 cmd[6];
-+
-+	cmd[0] = (GDC_TYPE_SETREGISTER << 24) | (1 << 16) | GDC_REG_MODE_BITMAP;
-+	/* Set raster operation */
-+	cmd[1] = (2 << 7) | (GDC_ROP_COPY << 9);
-+	cmd[2] = GDC_TYPE_BLTCOPYP << 24;
-+
-+	if (area->sx >= area->dx && area->sy >= area->dy)
-+		cmd[2] |= GDC_CMD_BLTCOPY_TOP_LEFT << 16;
-+	else if (area->sx >= area->dx && area->sy <= area->dy)
-+		cmd[2] |= GDC_CMD_BLTCOPY_BOTTOM_LEFT << 16;
-+	else if (area->sx <= area->dx && area->sy >= area->dy)
-+		cmd[2] |= GDC_CMD_BLTCOPY_TOP_RIGHT << 16;
-+	else
-+		cmd[2] |= GDC_CMD_BLTCOPY_BOTTOM_RIGHT << 16;
-+
-+	cmd[3] = (area->sy << 16) | area->sx;
-+	cmd[4] = (area->dy << 16) | area->dx;
-+	cmd[5] = (area->height << 16) | area->width;
-+	mb862xxfb_write_fifo(6, cmd, info);
-+}
-+
-+/*
-+ * Fill in the cmd array /GDC FIFO commands/ to draw a 1bit image.
-+ * Make sure cmd has enough room!
-+ */
-+static void mb86290fb_imageblit1(u32 *cmd, u16 step, u16 dx, u16 dy,
-+				 u16 width, u16 height, u32 fgcolor,
-+				 u32 bgcolor, const struct fb_image *image,
-+				 struct fb_info *info)
-+{
-+	int i;
-+	unsigned const char *line;
-+	u16 bytes;
-+
-+	/* set colors and raster operation regs */
-+	cmd[0] = (GDC_TYPE_SETREGISTER << 24) | (1 << 16) | GDC_REG_MODE_BITMAP;
-+	/* Set raster operation */
-+	cmd[1] = (2 << 7) | (GDC_ROP_COPY << 9);
-+	cmd[2] =
-+	    (GDC_TYPE_SETCOLORREGISTER << 24) | (GDC_CMD_BODY_FORE_COLOR << 16);
-+	cmd[3] = fgcolor;
-+	cmd[4] =
-+	    (GDC_TYPE_SETCOLORREGISTER << 24) | (GDC_CMD_BODY_BACK_COLOR << 16);
-+	cmd[5] = bgcolor;
-+
-+	i = 0;
-+	line = image->data;
-+	bytes = (image->width + 7) >> 3;
-+
-+	/* and the image */
-+	cmd[6] = (GDC_TYPE_DRAWBITMAPP << 24) |
-+	    (GDC_CMD_BITMAP << 16) | (2 + (step * height));
-+	cmd[7] = (dy << 16) | dx;
-+	cmd[8] = (height << 16) | width;
-+
-+	while (i < height) {
-+		memcpy(&cmd[9 + i * step], line, step << 2);
-+#ifdef __LITTLE_ENDIAN
-+		{
-+			int k = 0;
-+			for (k = 0; k < step; k++)
-+				cmd[9 + i * step + k] =
-+				    cpu_to_be32(cmd[9 + i * step + k]);
-+		}
-+#endif
-+		line += bytes;
-+		i++;
-+	}
-+}
-+
-+/*
-+ * Fill in the cmd array /GDC FIFO commands/ to draw a 8bit image.
-+ * Make sure cmd has enough room!
-+ */
-+static void mb86290fb_imageblit8(u32 *cmd, u16 step, u16 dx, u16 dy,
-+				 u16 width, u16 height, u32 fgcolor,
-+				 u32 bgcolor, const struct fb_image *image,
-+				 struct fb_info *info)
-+{
-+	int i, j;
-+	unsigned const char *line, *ptr;
-+	u16 bytes;
-+
-+	cmd[0] = (GDC_TYPE_DRAWBITMAPP << 24) |
-+	    (GDC_CMD_BLT_DRAW << 16) | (2 + (height * step));
-+	cmd[1] = (dy << 16) | dx;
-+	cmd[2] = (height << 16) | width;
-+
-+	i = 0;
-+	line = ptr = image->data;
-+	bytes = image->width;
-+
-+	while (i < height) {
-+		ptr = line;
-+		for (j = 0; j < step; j++) {
-+			cmd[3 + i * step + j] =
-+			    (((u32 *) (info->pseudo_palette))[*ptr]) & 0xffff;
-+			ptr++;
-+			cmd[3 + i * step + j] |=
-+			    ((((u32 *) (info->
-+					pseudo_palette))[*ptr]) & 0xffff) << 16;
-+			ptr++;
-+		}
-+
-+		line += bytes;
-+		i++;
-+	}
-+}
-+
-+/*
-+ * Fill in the cmd array /GDC FIFO commands/ to draw a 16bit image.
-+ * Make sure cmd has enough room!
-+ */
-+static void mb86290fb_imageblit16(u32 *cmd, u16 step, u16 dx, u16 dy,
-+				  u16 width, u16 height, u32 fgcolor,
-+				  u32 bgcolor, const struct fb_image *image,
-+				  struct fb_info *info)
-+{
-+	int i;
-+	unsigned const char *line;
-+	u16 bytes;
-+
-+	i = 0;
-+	line = image->data;
-+	bytes = image->width << 1;
-+
-+	cmd[0] = (GDC_TYPE_DRAWBITMAPP << 24) |
-+	    (GDC_CMD_BLT_DRAW << 16) | (2 + step * height);
-+	cmd[1] = (dy << 16) | dx;
-+	cmd[2] = (height << 16) | width;
-+
-+	while (i < height) {
-+		memcpy(&cmd[3 + i * step], line, step);
-+		line += bytes;
-+		i++;
-+	}
-+}
-+
-+static void mb86290fb_imageblit(struct fb_info *info,
-+				const struct fb_image *image)
-+{
-+	int mdr;
-+	u32 *cmd = NULL;
-+	void (*cmdfn) (u32 *, u16, u16, u16, u16, u16, u32, u32,
-+		       const struct fb_image *, struct fb_info *) = NULL;
-+	u32 cmdlen;
-+	u32 fgcolor = 0, bgcolor = 0;
-+	u16 step;
-+
-+	u16 width = image->width, height = image->height;
-+	u16 dx = image->dx, dy = image->dy;
-+	int x2, y2, vxres, vyres;
-+
-+	mdr = (GDC_ROP_COPY << 9);
-+	x2 = image->dx + image->width;
-+	y2 = image->dy + image->height;
-+	vxres = info->var.xres_virtual;
-+	vyres = info->var.yres_virtual;
-+	x2 = min(x2, vxres);
-+	y2 = min(y2, vyres);
-+	width = x2 - dx;
-+	height = y2 - dy;
-+
-+	switch (image->depth) {
-+	case 1:
-+		step = (width + 31) >> 5;
-+		cmdlen = 9 + height * step;
-+		cmdfn = mb86290fb_imageblit1;
-+		if (info->fix.visual == FB_VISUAL_TRUECOLOR ||
-+		    info->fix.visual == FB_VISUAL_DIRECTCOLOR) {
-+			fgcolor =
-+			    ((u32 *) (info->pseudo_palette))[image->fg_color];
-+			bgcolor =
-+			    ((u32 *) (info->pseudo_palette))[image->bg_color];
-+		} else {
-+			fgcolor = image->fg_color;
-+			bgcolor = image->bg_color;
-+		}
-+
-+		break;
-+
-+	case 8:
-+		step = (width + 1) >> 1;
-+		cmdlen = 3 + height * step;
-+		cmdfn = mb86290fb_imageblit8;
-+		break;
-+
-+	case 16:
-+		step = (width + 1) >> 1;
-+		cmdlen = 3 + height * step;
-+		cmdfn = mb86290fb_imageblit16;
-+		break;
-+
-+	default:
-+		cfb_imageblit(info, image);
-+		return;
+ static struct fb_ops sm501fb_ops_pnl = {
+@@ -1269,9 +1438,10 @@ static struct fb_ops sm501fb_ops_pnl = {
+ 	.fb_blank	= sm501fb_blank_pnl,
+ 	.fb_setcolreg	= sm501fb_setcolreg,
+ 	.fb_cursor	= sm501fb_cursor,
+-	.fb_fillrect	= cfb_fillrect,
+-	.fb_copyarea	= cfb_copyarea,
++	.fb_fillrect	= sm501fb_fillrect,
++	.fb_copyarea	= sm501fb_copyarea,
+ 	.fb_imageblit	= cfb_imageblit,
++	.fb_sync	= sm501fb_sync,
+ };
+ 
+ /* sm501_init_cursor
+@@ -1329,7 +1499,8 @@ static int sm501fb_start(struct sm501fb_
+ 		dev_warn(dev, "no irq for device\n");
+ 	}
+ 
+-	/* allocate, reserve and remap resources for registers */
++	/* allocate, reserve and remap resources for display
++	 * controller registers */
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (res == NULL) {
+ 		dev_err(dev, "no resource definition for registers\n");
+@@ -1354,12 +1525,38 @@ static int sm501fb_start(struct sm501fb_
+ 		goto err_regs_res;
+ 	}
+ 
++	/* allocate, reserve and remap resources for 2d
++	 * controller registers */
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
++	if (res == NULL) {
++		dev_err(dev, "no resource definition for 2d registers\n");
++		ret = -ENOENT;
++		goto err_regs_map;
 +	}
 +
-+	cmd = kmalloc(cmdlen * 4, GFP_DMA);
-+	if (!cmd)
-+		return cfb_imageblit(info, image);
-+	cmdfn(cmd, step, dx, dy, width, height, fgcolor, bgcolor, image, info);
-+	mb862xxfb_write_fifo(cmdlen, cmd, info);
-+	kfree(cmd);
-+}
++	info->regs2d_res = request_mem_region(res->start,
++					      resource_size(res),
++					      pdev->name);
 +
-+static void mb86290fb_fillrect(struct fb_info *info,
-+			       const struct fb_fillrect *rect)
-+{
-+
-+	u32 x2, y2, vxres, vyres, height, width, fg;
-+	u32 cmd[7];
-+
-+	vxres = info->var.xres_virtual;
-+	vyres = info->var.yres_virtual;
-+
-+	if (!rect->width || !rect->height || rect->dx > vxres
-+	    || rect->dy > vyres)
-+		return;
-+
-+	/* We could use hardware clipping but on many cards you get around
-+	 * hardware clipping by writing to framebuffer directly. */
-+	x2 = rect->dx + rect->width;
-+	y2 = rect->dy + rect->height;
-+	x2 = min(x2, vxres);
-+	y2 = min(y2, vyres);
-+	width = x2 - rect->dx;
-+	height = y2 - rect->dy;
-+	if (info->fix.visual == FB_VISUAL_TRUECOLOR ||
-+	    info->fix.visual == FB_VISUAL_DIRECTCOLOR)
-+		fg = ((u32 *) (info->pseudo_palette))[rect->color];
-+	else
-+		fg = rect->color;
-+
-+	switch (rect->rop) {
-+
-+	case ROP_XOR:
-+		/* Set raster operation */
-+		cmd[1] = (2 << 7) | (GDC_ROP_XOR << 9);
-+		break;
-+
-+	case ROP_COPY:
-+		/* Set raster operation */
-+		cmd[1] = (2 << 7) | (GDC_ROP_COPY << 9);
-+		break;
-+
++	if (info->regs2d_res == NULL) {
++		dev_err(dev, "cannot claim registers\n");
++		ret = -ENXIO;
++		goto err_regs_map;
 +	}
 +
-+	cmd[0] = (GDC_TYPE_SETREGISTER << 24) | (1 << 16) | GDC_REG_MODE_BITMAP;
-+	/* cmd[1] set earlier */
-+	cmd[2] =
-+	    (GDC_TYPE_SETCOLORREGISTER << 24) | (GDC_CMD_BODY_FORE_COLOR << 16);
-+	cmd[3] = fg;
-+	cmd[4] = (GDC_TYPE_DRAWRECTP << 24) | (GDC_CMD_BLT_FILL << 16);
-+	cmd[5] = (rect->dy << 16) | (rect->dx);
-+	cmd[6] = (height << 16) | width;
-+
-+	mb862xxfb_write_fifo(7, cmd, info);
-+}
-+
-+void mb862xxfb_init_accel(struct fb_info *info, int xres)
-+{
-+	struct mb862xxfb_par *par = info->par;
-+
-+	if (info->var.bits_per_pixel == 32) {
-+		info->fbops->fb_fillrect = cfb_fillrect;
-+		info->fbops->fb_copyarea = cfb_copyarea;
-+		info->fbops->fb_imageblit = cfb_imageblit;
-+	} else {
-+		outreg(disp, GC_L0EM, 3);
-+		info->fbops->fb_fillrect = mb86290fb_fillrect;
-+		info->fbops->fb_copyarea = mb86290fb_copyarea;
-+		info->fbops->fb_imageblit = mb86290fb_imageblit;
++	info->regs2d = ioremap(res->start, resource_size(res));
++	if (info->regs2d == NULL) {
++		dev_err(dev, "cannot remap registers\n");
++		ret = -ENXIO;
++		goto err_regs2d_res;
 +	}
-+	outreg(draw, GDC_REG_DRAW_BASE, 0);
-+	outreg(draw, GDC_REG_MODE_MISC, 0x8000);
-+	outreg(draw, GDC_REG_X_RESOLUTION, xres);
 +
-+	info->flags |=
-+	    FBINFO_HWACCEL_COPYAREA | FBINFO_HWACCEL_FILLRECT |
-+	    FBINFO_HWACCEL_IMAGEBLIT;
-+	info->fix.accel = 0xff;	/*FIXME: add right define */
-+}
-+EXPORT_SYMBOL(mb862xxfb_init_accel);
-diff -puN /dev/null drivers/video/mb862xx/mb862xxfb_accel.h
---- /dev/null
-+++ a/drivers/video/mb862xx/mb862xxfb_accel.h
-@@ -0,0 +1,203 @@
-+#ifndef __MB826XXFB_ACCEL_H__
-+#define __MB826XXFB_ACCEL_H__
+ 	/* allocate, reserve resources for framebuffer */
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 2);
+ 	if (res == NULL) {
+ 		dev_err(dev, "no memory resource defined\n");
+ 		ret = -ENXIO;
+-		goto err_regs_map;
++		goto err_regs2d_map;
+ 	}
+ 
+ 	info->fbmem_res = request_mem_region(res->start,
+@@ -1368,7 +1565,7 @@ static int sm501fb_start(struct sm501fb_
+ 	if (info->fbmem_res == NULL) {
+ 		dev_err(dev, "cannot claim framebuffer\n");
+ 		ret = -ENXIO;
+-		goto err_regs_map;
++		goto err_regs2d_map;
+ 	}
+ 
+ 	info->fbmem = ioremap(res->start, resource_size(res));
+@@ -1389,8 +1586,10 @@ static int sm501fb_start(struct sm501fb_
+ 	/* enable display controller */
+ 	sm501_unit_power(dev->parent, SM501_GATE_DISPLAY, 1);
+ 
+-	/* setup cursors */
++	/* enable 2d controller */
++	sm501_unit_power(dev->parent, SM501_GATE_2D_ENGINE, 1);
+ 
++	/* setup cursors */
+ 	sm501_init_cursor(info->fb[HEAD_CRT], SM501_DC_CRT_HWC_ADDR);
+ 	sm501_init_cursor(info->fb[HEAD_PANEL], SM501_DC_PANEL_HWC_ADDR);
+ 
+@@ -1400,6 +1599,13 @@ static int sm501fb_start(struct sm501fb_
+ 	release_resource(info->fbmem_res);
+ 	kfree(info->fbmem_res);
+ 
++ err_regs2d_map:
++	iounmap(info->regs2d);
 +
-+/* registers */
-+#define GDC_GEO_REG_INPUT_FIFO 0x00000400L
++ err_regs2d_res:
++	release_resource(info->regs2d_res);
++	kfree(info->regs2d_res);
 +
-+/* Special Registers */
-+#define GDC_REG_CTRL                0x00000400L
-+#define GDC_REG_FIFO_STATUS         0x00000404L
-+#define GDC_REG_FIFO_COUNT          0x00000408L
-+#define GDC_REG_SETUP_STATUS        0x0000040CL
-+#define GDC_REG_DDA_STATUS          0x00000410L
-+#define GDC_REG_ENGINE_STATUS       0x00000414L
-+#define GDC_REG_ERROR_STATUS        0x00000418L
-+#define GDC_REG_MODE_MISC           0x00000420L	/* MDR0 */
-+#define GDC_REG_MODE_LINE           0x00000424L	/* MDR1 */
-+#define GDC_REG_MODE_POLYGON        0x00000428L	/* MDR2 */
-+#define GDC_REG_MODE_TEXTURE        0x0000042CL	/* MDR3 */
-+#define GDC_REG_MODE_BITMAP         0x00000430L	/* MDR4 */
-+#define GDC_REG_MODE_EXTENSION      0x0000043CL	/* MDR7 */
+  err_regs_map:
+ 	iounmap(info->regs);
+ 
+@@ -1420,6 +1626,10 @@ static void sm501fb_stop(struct sm501fb_
+ 	release_resource(info->fbmem_res);
+ 	kfree(info->fbmem_res);
+ 
++	iounmap(info->regs2d);
++	release_resource(info->regs2d_res);
++	kfree(info->regs2d_res);
 +
-+/* Configuration Registers */
-+#define GDC_REG_DRAW_BASE           0x00000440L
-+#define GDC_REG_X_RESOLUTION        0x00000444L
-+#define GDC_REG_Z_BASE              0x00000448L
-+#define GDC_REG_TEXTURE_BASE        0x0000044CL
-+#define GDC_REG_POLYGON_FLAG_BASE   0x00000450L
-+#define GDC_REG_CLIP_XMIN           0x00000454L
-+#define GDC_REG_CLIP_XMAX           0x00000458L
-+#define GDC_REG_CLIP_YMIN           0x0000045CL
-+#define GDC_REG_CLIP_YMAX           0x00000460L
-+#define GDC_REG_TEXURE_SIZE         0x00000464L
-+#define GDC_REG_TILE_SIZE           0x00000468L
-+#define GDC_REG_TEX_BUF_OFFSET      0x0000046CL
+ 	iounmap(info->regs);
+ 	release_resource(info->regs_res);
+ 	kfree(info->regs_res);
+@@ -1486,7 +1696,8 @@ static int sm501fb_init_fb(struct fb_inf
+ 		par->ops.fb_cursor = NULL;
+ 
+ 	fb->fbops = &par->ops;
+-	fb->flags = FBINFO_FLAG_DEFAULT |
++	fb->flags = FBINFO_FLAG_DEFAULT | FBINFO_READS_FAST |
++		FBINFO_HWACCEL_COPYAREA | FBINFO_HWACCEL_FILLRECT |
+ 		FBINFO_HWACCEL_XPAN | FBINFO_HWACCEL_YPAN;
+ 
+ 	/* fixed data */
+diff -puN include/linux/sm501-regs.h~sm501-implement-acceleration-features include/linux/sm501-regs.h
+--- a/include/linux/sm501-regs.h~sm501-implement-acceleration-features
++++ a/include/linux/sm501-regs.h
+@@ -31,6 +31,8 @@
+ #define SM501_SYSCTRL_PCI_SUBSYS_LOCK	(1<<11)
+ #define SM501_SYSCTRL_PCI_BURST_READ_EN	(1<<15)
+ 
++#define SM501_SYSCTRL_2D_ENGINE_STATUS	(1<<19)
 +
-+/* for MB86293 or later */
-+#define GDC_REG_ALPHA_MAP_BASE      0x00000474L	/* ABR */
-+
-+/* Constant Registers */
-+#define GDC_REG_FOREGROUND_COLOR    0x00000480L
-+#define GDC_REG_BACKGROUND_COLOR    0x00000484L
-+#define GDC_REG_ALPHA               0x00000488L
-+#define GDC_REG_LINE_PATTERN        0x0000048CL
-+#define GDC_REG_TEX_BORDER_COLOR    0x00000494L
-+#define GDC_REG_LINE_PATTERN_OFFSET 0x000003E0L
-+
-+/* Coomand Code */
-+#define GDC_CMD_PIXEL                   0x00000000L
-+#define GDC_CMD_PIXEL_Z                 0x00000001L
-+
-+#define GDC_CMD_X_VECTOR                0x00000020L
-+#define GDC_CMD_Y_VECTOR                0x00000021L
-+#define GDC_CMD_X_VECTOR_NOEND          0x00000022L
-+#define GDC_CMD_Y_VECTOR_NOEND          0x00000023L
-+#define GDC_CMD_X_VECTOR_BLPO           0x00000024L
-+#define GDC_CMD_Y_VECTOR_BLPO           0x00000025L
-+#define GDC_CMD_X_VECTOR_NOEND_BLPO     0x00000026L
-+#define GDC_CMD_Y_VECTOR_NOEND_BLPO     0x00000027L
-+#define GDC_CMD_AA_X_VECTOR             0x00000028L
-+#define GDC_CMD_AA_Y_VECTOR             0x00000029L
-+#define GDC_CMD_AA_X_VECTOR_NOEND       0x0000002AL
-+#define GDC_CMD_AA_Y_VECTOR_NOEND       0x0000002BL
-+#define GDC_CMD_AA_X_VECTOR_BLPO        0x0000002CL
-+#define GDC_CMD_AA_Y_VECTOR_BLPO        0x0000002DL
-+#define GDC_CMD_AA_X_VECTOR_NOEND_BLPO  0x0000002EL
-+#define GDC_CMD_AA_Y_VECTOR_NOEND_BLPO  0x0000002FL
-+
-+#define GDC_CMD_0_VECTOR                0x00000030L
-+#define GDC_CMD_1_VECTOR                0x00000031L
-+#define GDC_CMD_0_VECTOR_NOEND          0x00000032L
-+#define GDC_CMD_1_VECTOR_NOEND          0x00000033L
-+#define GDC_CMD_0_VECTOR_BLPO           0x00000034L
-+#define GDC_CMD_1_VECTOR_BLPO           0x00000035L
-+#define GDC_CMD_0_VECTOR_NOEND_BLPO     0x00000036L
-+#define GDC_CMD_1_VECTOR_NOEND_BLPO     0x00000037L
-+#define GDC_CMD_AA_0_VECTOR             0x00000038L
-+#define GDC_CMD_AA_1_VECTOR             0x00000039L
-+#define GDC_CMD_AA_0_VECTOR_NOEND       0x0000003AL
-+#define GDC_CMD_AA_1_VECTOR_NOEND       0x0000003BL
-+#define GDC_CMD_AA_0_VECTOR_BLPO        0x0000003CL
-+#define GDC_CMD_AA_1_VECTOR_BLPO        0x0000003DL
-+#define GDC_CMD_AA_0_VECTOR_NOEND_BLPO  0x0000003EL
-+#define GDC_CMD_AA_1_VECTOR_NOEND_BLPO  0x0000003FL
-+
-+#define GDC_CMD_BLT_FILL                0x00000041L
-+#define GDC_CMD_BLT_DRAW                0x00000042L
-+#define GDC_CMD_BITMAP                  0x00000043L
-+#define GDC_CMD_BLTCOPY_TOP_LEFT        0x00000044L
-+#define GDC_CMD_BLTCOPY_TOP_RIGHT       0x00000045L
-+#define GDC_CMD_BLTCOPY_BOTTOM_LEFT     0x00000046L
-+#define GDC_CMD_BLTCOPY_BOTTOM_RIGHT    0x00000047L
-+#define GDC_CMD_LOAD_TEXTURE            0x00000048L
-+#define GDC_CMD_LOAD_TILE               0x00000049L
-+
-+#define GDC_CMD_TRAP_RIGHT              0x00000060L
-+#define GDC_CMD_TRAP_LEFT               0x00000061L
-+#define GDC_CMD_TRIANGLE_FAN            0x00000062L
-+#define GDC_CMD_FLAG_TRIANGLE_FAN       0x00000063L
-+
-+#define GDC_CMD_FLUSH_FB                0x000000C1L
-+#define GDC_CMD_FLUSH_Z                 0x000000C2L
-+
-+#define GDC_CMD_POLYGON_BEGIN           0x000000E0L
-+#define GDC_CMD_POLYGON_END             0x000000E1L
-+#define GDC_CMD_CLEAR_POLY_FLAG         0x000000E2L
-+#define GDC_CMD_NORMAL                  0x000000FFL
-+
-+#define GDC_CMD_VECTOR_BLPO_FLAG        0x00040000L
-+#define GDC_CMD_FAST_VECTOR_BLPO_FLAG   0x00000004L
-+
-+/* for MB86293 or later */
-+#define GDC_CMD_MDR1                            0x00000000L
-+#define GDC_CMD_MDR1S                           0x00000002L
-+#define GDC_CMD_MDR1B                           0x00000004L
-+#define GDC_CMD_MDR2                            0x00000001L
-+#define GDC_CMD_MDR2S                           0x00000003L
-+#define GDC_CMD_MDR2TL                          0x00000007L
-+#define GDC_CMD_GMDR1E                          0x00000010L
-+#define GDC_CMD_GMDR2E                          0x00000020L
-+#define GDC_CMD_OVERLAP_SHADOW_XY               0x00000000L
-+#define GDC_CMD_OVERLAP_SHADOW_XY_COMPOSITION   0x00000001L
-+#define GDC_CMD_OVERLAP_Z_PACKED_ONBS           0x00000007L
-+#define GDC_CMD_OVERLAP_Z_ORIGIN                0x00000000L
-+#define GDC_CMD_OVERLAP_Z_NON_TOPLEFT           0x00000001L
-+#define GDC_CMD_OVERLAP_Z_BORDER                0x00000002L
-+#define GDC_CMD_OVERLAP_Z_SHADOW                0x00000003L
-+#define GDC_CMD_BLTCOPY_ALT_ALPHA               0x00000000L	/* Reserverd */
-+#define GDC_CMD_DC_LOGOUT                       0x00000000L	/* Reserverd */
-+#define GDC_CMD_BODY_FORE_COLOR                 0x00000000L
-+#define GDC_CMD_BODY_BACK_COLOR                 0x00000001L
-+#define GDC_CMD_SHADOW_FORE_COLOR               0x00000002L
-+#define GDC_CMD_SHADOW_BACK_COLOR               0x00000003L
-+#define GDC_CMD_BORDER_FORE_COLOR               0x00000004L
-+#define GDC_CMD_BORDER_BACK_COLOR               0x00000005L
-+
-+/* Type Code Table */
-+#define GDC_TYPE_G_NOP                                  0x00000020L
-+#define GDC_TYPE_G_BEGIN                                0x00000021L
-+#define GDC_TYPE_G_BEGINCONT                            0x00000022L
-+#define GDC_TYPE_G_END                                  0x00000023L
-+#define GDC_TYPE_G_VERTEX                               0x00000030L
-+#define GDC_TYPE_G_VERTEXLOG                            0x00000032L
-+#define GDC_TYPE_G_VERTEXNOPLOG                         0x00000033L
-+#define GDC_TYPE_G_INIT                                 0x00000040L
-+#define GDC_TYPE_G_VIEWPORT                             0x00000041L
-+#define GDC_TYPE_G_DEPTHRANGE                           0x00000042L
-+#define GDC_TYPE_G_LOADMATRIX                           0x00000043L
-+#define GDC_TYPE_G_VIEWVOLUMEXYCLIP                     0x00000044L
-+#define GDC_TYPE_G_VIEWVOLUMEZCLIP                      0x00000045L
-+#define GDC_TYPE_G_VIEWVOLUMEWCLIP                      0x00000046L
-+#define GDC_TYPE_SETLVERTEX2I                           0x00000072L
-+#define GDC_TYPE_SETLVERTEX2IP                          0x00000073L
-+#define GDC_TYPE_SETMODEREGISTER                        0x000000C0L
-+#define GDC_TYPE_SETGMODEREGISTER                       0x000000C1L
-+#define GDC_TYPE_OVERLAPXYOFFT                          0x000000C8L
-+#define GDC_TYPE_OVERLAPZOFFT                           0x000000C9L
-+#define GDC_TYPE_DC_LOGOUTADDR                          0x000000CCL
-+#define GDC_TYPE_SETCOLORREGISTER                       0x000000CEL
-+#define GDC_TYPE_G_BEGINE                               0x000000E1L
-+#define GDC_TYPE_G_BEGINCONTE                           0x000000E2L
-+#define GDC_TYPE_G_ENDE                                 0x000000E3L
-+#define GDC_TYPE_DRAWPIXEL                              0x00000000L
-+#define GDC_TYPE_DRAWPIXELZ                             0x00000001L
-+#define GDC_TYPE_DRAWLINE                               0x00000002L
-+#define GDC_TYPE_DRAWLINE2I                             0x00000003L
-+#define GDC_TYPE_DRAWLINE2IP                            0x00000004L
-+#define GDC_TYPE_DRAWTRAP                               0x00000005L
-+#define GDC_TYPE_DRAWVERTEX2I                           0x00000006L
-+#define GDC_TYPE_DRAWVERTEX2IP                          0x00000007L
-+#define GDC_TYPE_DRAWRECTP                              0x00000009L
-+#define GDC_TYPE_DRAWBITMAPP                            0x0000000BL
-+#define GDC_TYPE_BLTCOPYP                               0x0000000DL
-+#define GDC_TYPE_BLTCOPYALTERNATEP                      0x0000000FL
-+#define GDC_TYPE_LOADTEXTUREP                           0x00000011L
-+#define GDC_TYPE_BLTTEXTUREP                            0x00000013L
-+#define GDC_TYPE_BLTCOPYALTALPHABLENDP                  0x0000001FL
-+#define GDC_TYPE_SETVERTEX2I                            0x00000070L
-+#define GDC_TYPE_SETVERTEX2IP                           0x00000071L
-+#define GDC_TYPE_DRAW                                   0x000000F0L
-+#define GDC_TYPE_SETREGISTER                            0x000000F1L
-+#define GDC_TYPE_SYNC                                   0x000000FCL
-+#define GDC_TYPE_INTERRUPT                              0x000000FDL
-+#define GDC_TYPE_NOP                                    0x0
-+
-+/* Raster operation */
-+#define GDC_ROP_CLEAR                   0x0000
-+#define GDC_ROP_AND                     0x0001
-+#define GDC_ROP_AND_REVERSE             0x0002
-+#define GDC_ROP_COPY                    0x0003
-+#define GDC_ROP_AND_INVERTED            0x0004
-+#define GDC_ROP_NOP                     0x0005
-+#define GDC_ROP_XOR                     0x0006
-+#define GDC_ROP_OR                      0x0007
-+#define GDC_ROP_NOR                     0x0008
-+#define GDC_ROP_EQUIV                   0x0009
-+#define GDC_ROP_INVERT                  0x000A
-+#define GDC_ROP_OR_REVERSE              0x000B
-+#define GDC_ROP_COPY_INVERTED           0x000C
-+#define GDC_ROP_OR_INVERTED             0x000D
-+#define GDC_ROP_NAND                    0x000E
-+#define GDC_ROP_SET                     0x000F
-+
-+#endif
+ /* miscellaneous control */
+ 
+ #define SM501_MISC_CONTROL		(0x000004)
 _
 
-Patches currently in -mm which might be from valentin.sitdikov@siemens.com are
+Patches currently in -mm which might be from vince@simtec.co.uk are
 
 origin.patch
 
