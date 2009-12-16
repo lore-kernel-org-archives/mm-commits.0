@@ -1,104 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mlx4-use-bitmap_find_next_zero_area.patch removed from -mm tree
-Date: Wed, 16 Dec 2009 12:41:37 -0800
-Message-ID: <200912162041.nBGKfbdB013828@imap1.linux-foundation.org>
+Subject: [merged] x86-_end-symbol-missing-from-symbolmap.patch removed from -mm tree
+Date: Wed, 16 Dec 2009 12:41:48 -0800
+Message-ID: <200912162041.nBGKfm5P013845@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39291 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57892 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965043AbZLPUmQ (ORCPT
+	by vger.kernel.org with ESMTP id S964842AbZLPUmq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Dec 2009 15:42:16 -0500
+	Wed, 16 Dec 2009 15:42:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, rolandd@cisco.com, yevgenyp@mellanox.co.il, mm-commits@vger.kernel.org
+To: hare@suse.de, mingo@elte.hu, sam@ravnborg.org, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mlx4: use bitmap_find_next_zero_area
+     x86: _end symbol missing from Symbol.map
 has been removed from the -mm tree.  Its filename was
-     mlx4-use-bitmap_find_next_zero_area.patch
+     x86-_end-symbol-missing-from-symbolmap.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mlx4: use bitmap_find_next_zero_area
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: x86: _end symbol missing from Symbol.map
+From: Hannes Reinecke <hare@suse.de>
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Reviewed-by: Roland Dreier <rolandd@cisco.com>
-Cc: Yevgeny Petrilin <yevgenyp@mellanox.co.il>
+With 2.6.31 'crash' on x86_64 falls flat on its face as the '_end' symbol
+is missing from the System.map file.
+
+The culprit is commit 091e52c3551d3031343df24b573b770b4c6c72b6, which
+moved the '_end' symbol into it's own section.  Apparently this causes
+kallsyms to not reference it properly.
+
+So either we'd need to revert part of the patch to not include _end in
+it's own section.
+
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/mlx4/alloc.c |   37 ++++---------------------------------
- 1 file changed, 4 insertions(+), 33 deletions(-)
+ arch/x86/kernel/vmlinux.lds.S |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/net/mlx4/alloc.c~mlx4-use-bitmap_find_next_zero_area drivers/net/mlx4/alloc.c
---- a/drivers/net/mlx4/alloc.c~mlx4-use-bitmap_find_next_zero_area
-+++ a/drivers/net/mlx4/alloc.c
-@@ -72,35 +72,6 @@ void mlx4_bitmap_free(struct mlx4_bitmap
- 	mlx4_bitmap_free_range(bitmap, obj, 1);
- }
- 
--static unsigned long find_aligned_range(unsigned long *bitmap,
--					u32 start, u32 nbits,
--					int len, int align)
--{
--	unsigned long end, i;
--
--again:
--	start = ALIGN(start, align);
--
--	while ((start < nbits) && test_bit(start, bitmap))
--		start += align;
--
--	if (start >= nbits)
--		return -1;
--
--	end = start+len;
--	if (end > nbits)
--		return -1;
--
--	for (i = start + 1; i < end; i++) {
--		if (test_bit(i, bitmap)) {
--			start = i + 1;
--			goto again;
--		}
--	}
--
--	return start;
--}
--
- u32 mlx4_bitmap_alloc_range(struct mlx4_bitmap *bitmap, int cnt, int align)
- {
- 	u32 obj, i;
-@@ -110,13 +81,13 @@ u32 mlx4_bitmap_alloc_range(struct mlx4_
- 
- 	spin_lock(&bitmap->lock);
- 
--	obj = find_aligned_range(bitmap->table, bitmap->last,
--				 bitmap->max, cnt, align);
-+	obj = bitmap_find_next_zero_area(bitmap->table, bitmap->max,
-+				bitmap->last, cnt, align - 1);
- 	if (obj >= bitmap->max) {
- 		bitmap->top = (bitmap->top + bitmap->max + bitmap->reserved_top)
- 				& bitmap->mask;
--		obj = find_aligned_range(bitmap->table, 0, bitmap->max,
--					 cnt, align);
-+		obj = bitmap_find_next_zero_area(bitmap->table, bitmap->max,
-+						0, cnt, align - 1);
+diff -puN arch/x86/kernel/vmlinux.lds.S~x86-_end-symbol-missing-from-symbolmap arch/x86/kernel/vmlinux.lds.S
+--- a/arch/x86/kernel/vmlinux.lds.S~x86-_end-symbol-missing-from-symbolmap
++++ a/arch/x86/kernel/vmlinux.lds.S
+@@ -319,9 +319,7 @@ SECTIONS
+ 		__brk_limit = .;
  	}
  
- 	if (obj < bitmap->max) {
+-	.end : AT(ADDR(.end) - LOAD_OFFSET) {
+-		_end = .;
+-	}
++	_end = .;
+ 
+         STABS_DEBUG
+         DWARF_DEBUG
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from hare@suse.de are
 
 origin.patch
-linux-next.patch
-x86-optimize-hweight32.patch
-ntfs-use-bitmap_weight.patch
 
