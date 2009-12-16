@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + arch-mips-alchemy-correct-code-taking-the-size-of-a-pointer.patch added to -mm tree
-Date: Wed, 16 Dec 2009 15:53:50 -0800
-Message-ID: <200912162353.nBGNro0u022997@imap1.linux-foundation.org>
+Subject: + drivers-usb-correct-code-taking-the-size-of-a-pointer.patch added to -mm tree
+Date: Wed, 16 Dec 2009 15:53:53 -0800
+Message-ID: <200912162353.nBGNrrSc023003@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35677 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45666 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757719AbZLPXyH (ORCPT
+	by vger.kernel.org with ESMTP id S1757692AbZLPXyH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 16 Dec 2009 18:54:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, ralf@linux-mips.org
+Cc: julia@diku.dk, david.vrabel@csr.com
 
 
 The patch titled
-     arch/mips/alchemy: correct code taking the size of a pointer
+     drivers/usb: correct code taking the size of a pointer
 has been added to the -mm tree.  Its filename is
-     arch-mips-alchemy-correct-code-taking-the-size-of-a-pointer.patch
+     drivers-usb-correct-code-taking-the-size-of-a-pointer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/mips/alchemy: correct code taking the size of a pointer
+Subject: drivers/usb: correct code taking the size of a pointer
 From: Julia Lawall <julia@diku.dk>
 
-sizeof(dp) is just the size of the pointer.  Change it to the size of the
+sizeof(chid) is just the size of the pointer.  Change it to the size of the
 referenced structure.
 
 A simplified version of the semantic patch that finds this problem is as
@@ -54,34 +54,25 @@ type T;
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: David Vrabel <david.vrabel@csr.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/alchemy/common/dbdma.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/usb/wusbcore/mmc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/mips/alchemy/common/dbdma.c~arch-mips-alchemy-correct-code-taking-the-size-of-a-pointer arch/mips/alchemy/common/dbdma.c
---- a/arch/mips/alchemy/common/dbdma.c~arch-mips-alchemy-correct-code-taking-the-size-of-a-pointer
-+++ a/arch/mips/alchemy/common/dbdma.c
-@@ -612,7 +612,7 @@ u32 au1xxx_dbdma_put_source(u32 chanid, 
- 	dma_cache_wback_inv((unsigned long)buf, nbytes);
- 	dp->dscr_cmd0 |= DSCR_CMD0_V;	/* Let it rip */
- 	au_sync();
--	dma_cache_wback_inv((unsigned long)dp, sizeof(dp));
-+	dma_cache_wback_inv((unsigned long)dp, sizeof(*dp));
- 	ctp->chan_ptr->ddma_dbell = 0;
+diff -puN drivers/usb/wusbcore/mmc.c~drivers-usb-correct-code-taking-the-size-of-a-pointer drivers/usb/wusbcore/mmc.c
+--- a/drivers/usb/wusbcore/mmc.c~drivers-usb-correct-code-taking-the-size-of-a-pointer
++++ a/drivers/usb/wusbcore/mmc.c
+@@ -263,7 +263,7 @@ int wusbhc_chid_set(struct wusbhc *wusbh
+ {
+ 	int result = 0;
  
- 	/* Get next descriptor pointer.	*/
-@@ -674,7 +674,7 @@ u32 au1xxx_dbdma_put_dest(u32 chanid, dm
- 	dma_cache_inv((unsigned long)buf, nbytes);
- 	dp->dscr_cmd0 |= DSCR_CMD0_V;	/* Let it rip */
- 	au_sync();
--	dma_cache_wback_inv((unsigned long)dp, sizeof(dp));
-+	dma_cache_wback_inv((unsigned long)dp, sizeof(*dp));
- 	ctp->chan_ptr->ddma_dbell = 0;
+-	if (memcmp(chid, &wusb_ckhdid_zero, sizeof(chid)) == 0)
++	if (memcmp(chid, &wusb_ckhdid_zero, sizeof(*chid)) == 0)
+ 		chid = NULL;
  
- 	/* Get next descriptor pointer.	*/
+ 	mutex_lock(&wusbhc->mutex);
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
