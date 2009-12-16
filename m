@@ -1,128 +1,185 @@
 From: akpm@linux-foundation.org
-Subject: [merged] x86-uv-xpc-needs-to-provide-an-abstraction-for-uv_gpa.patch removed from -mm tree
-Date: Wed, 16 Dec 2009 12:39:48 -0800
-Message-ID: <200912162039.nBGKdmk7013559@imap1.linux-foundation.org>
+Subject: [merged] kexec-premit-reduction-of-the-reserved-memory-size.patch removed from -mm tree
+Date: Wed, 16 Dec 2009 12:39:28 -0800
+Message-ID: <200912162039.nBGKdSXk013536@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56282 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35607 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964996AbZLPUjy (ORCPT
+	by vger.kernel.org with ESMTP id S964992AbZLPUjm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Dec 2009 15:39:54 -0500
+	Wed, 16 Dec 2009 15:39:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: holt@sgi.com, mingo@elte.hu, steiner@sgi.com, mm-commits@vger.kernel.org
+To: amwang@redhat.com, andi@firstfloor.org, ebiederm@xmission.com, nhorman@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: uv: xpc needs to provide an abstraction for uv_gpa
+     kexec: premit reduction of the reserved memory size
 has been removed from the -mm tree.  Its filename was
-     x86-uv-xpc-needs-to-provide-an-abstraction-for-uv_gpa.patch
+     kexec-premit-reduction-of-the-reserved-memory-size.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: uv: xpc needs to provide an abstraction for uv_gpa
-From: Robin Holt <holt@sgi.com>
+Subject: kexec: premit reduction of the reserved memory size
+From: Amerigo Wang <amwang@redhat.com>
 
-Provide an SGI SN2/UV agnositic method for converting a global physical
-address into a socket physical address.
+Implement shrinking the reserved memory for crash kernel, if it is more
+than enough.
 
-Signed-off-by: Robin Holt <holt@sgi.com>
-Cc: Jack Steiner <steiner@sgi.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+For example, if you have already reserved 128M, now you just want 100M,
+you can do:
+
+# echo $((100*1024*1024)) > /sys/kernel/kexec_crash_size
+
+Note, you can only do this before loading the crash kernel.
+
+Signed-off-by: WANG Cong <amwang@redhat.com>
+Cc: Neil Horman <nhorman@redhat.com>
+Acked-by: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-xp/xp.h      |    1 +
- drivers/misc/sgi-xp/xp_main.c |    3 +++
- drivers/misc/sgi-xp/xp_sn2.c  |   10 ++++++++++
- drivers/misc/sgi-xp/xp_uv.c   |   10 ++++++++++
- 4 files changed, 24 insertions(+)
+ include/linux/kexec.h |    2 +
+ kernel/kexec.c        |   59 ++++++++++++++++++++++++++++++++++++++++
+ kernel/ksysfs.c       |   21 ++++++++++++++
+ 3 files changed, 82 insertions(+)
 
-diff -puN drivers/misc/sgi-xp/xp.h~x86-uv-xpc-needs-to-provide-an-abstraction-for-uv_gpa drivers/misc/sgi-xp/xp.h
---- a/drivers/misc/sgi-xp/xp.h~x86-uv-xpc-needs-to-provide-an-abstraction-for-uv_gpa
-+++ a/drivers/misc/sgi-xp/xp.h
-@@ -339,6 +339,7 @@ extern short xp_partition_id;
- extern u8 xp_region_size;
+diff -puN include/linux/kexec.h~kexec-premit-reduction-of-the-reserved-memory-size include/linux/kexec.h
+--- a/include/linux/kexec.h~kexec-premit-reduction-of-the-reserved-memory-size
++++ a/include/linux/kexec.h
+@@ -206,6 +206,8 @@ extern size_t vmcoreinfo_max_size;
  
- extern unsigned long (*xp_pa) (void *);
-+extern unsigned long (*xp_socket_pa) (unsigned long);
- extern enum xp_retval (*xp_remote_memcpy) (unsigned long, const unsigned long,
- 		       size_t);
- extern int (*xp_cpu_to_nasid) (int);
-diff -puN drivers/misc/sgi-xp/xp_main.c~x86-uv-xpc-needs-to-provide-an-abstraction-for-uv_gpa drivers/misc/sgi-xp/xp_main.c
---- a/drivers/misc/sgi-xp/xp_main.c~x86-uv-xpc-needs-to-provide-an-abstraction-for-uv_gpa
-+++ a/drivers/misc/sgi-xp/xp_main.c
-@@ -44,6 +44,9 @@ EXPORT_SYMBOL_GPL(xp_region_size);
- unsigned long (*xp_pa) (void *addr);
- EXPORT_SYMBOL_GPL(xp_pa);
+ int __init parse_crashkernel(char *cmdline, unsigned long long system_ram,
+ 		unsigned long long *crash_size, unsigned long long *crash_base);
++int crash_shrink_memory(unsigned long new_size);
++size_t crash_get_memory_size(void);
  
-+unsigned long (*xp_socket_pa) (unsigned long gpa);
-+EXPORT_SYMBOL_GPL(xp_socket_pa);
-+
- enum xp_retval (*xp_remote_memcpy) (unsigned long dst_gpa,
- 				    const unsigned long src_gpa, size_t len);
- EXPORT_SYMBOL_GPL(xp_remote_memcpy);
-diff -puN drivers/misc/sgi-xp/xp_sn2.c~x86-uv-xpc-needs-to-provide-an-abstraction-for-uv_gpa drivers/misc/sgi-xp/xp_sn2.c
---- a/drivers/misc/sgi-xp/xp_sn2.c~x86-uv-xpc-needs-to-provide-an-abstraction-for-uv_gpa
-+++ a/drivers/misc/sgi-xp/xp_sn2.c
-@@ -84,6 +84,15 @@ xp_pa_sn2(void *addr)
+ #else /* !CONFIG_KEXEC */
+ struct pt_regs;
+diff -puN kernel/kexec.c~kexec-premit-reduction-of-the-reserved-memory-size kernel/kexec.c
+--- a/kernel/kexec.c~kexec-premit-reduction-of-the-reserved-memory-size
++++ a/kernel/kexec.c
+@@ -31,6 +31,7 @@
+ #include <linux/cpu.h>
+ #include <linux/console.h>
+ #include <linux/vmalloc.h>
++#include <linux/swap.h>
+ 
+ #include <asm/page.h>
+ #include <asm/uaccess.h>
+@@ -1082,6 +1083,64 @@ void crash_kexec(struct pt_regs *regs)
+ 	}
  }
  
- /*
-+ * Convert a global physical to a socket physical address.
-+ */
-+static unsigned long
-+xp_socket_pa_sn2(unsigned long gpa)
++size_t crash_get_memory_size(void)
 +{
-+	return gpa;
++	size_t size;
++	mutex_lock(&kexec_mutex);
++	size = crashk_res.end - crashk_res.start + 1;
++	mutex_unlock(&kexec_mutex);
++	return size;
 +}
 +
-+/*
-  * Wrapper for bte_copy().
-  *
-  *	dst_pa - physical address of the destination of the transfer.
-@@ -162,6 +171,7 @@ xp_init_sn2(void)
- 	xp_region_size = sn_region_size;
- 
- 	xp_pa = xp_pa_sn2;
-+	xp_socket_pa = xp_socket_pa_sn2;
- 	xp_remote_memcpy = xp_remote_memcpy_sn2;
- 	xp_cpu_to_nasid = xp_cpu_to_nasid_sn2;
- 	xp_expand_memprotect = xp_expand_memprotect_sn2;
-diff -puN drivers/misc/sgi-xp/xp_uv.c~x86-uv-xpc-needs-to-provide-an-abstraction-for-uv_gpa drivers/misc/sgi-xp/xp_uv.c
---- a/drivers/misc/sgi-xp/xp_uv.c~x86-uv-xpc-needs-to-provide-an-abstraction-for-uv_gpa
-+++ a/drivers/misc/sgi-xp/xp_uv.c
-@@ -32,6 +32,15 @@ xp_pa_uv(void *addr)
- 	return uv_gpa(addr);
++static void free_reserved_phys_range(unsigned long begin, unsigned long end)
++{
++	unsigned long addr;
++
++	for (addr = begin; addr < end; addr += PAGE_SIZE) {
++		ClearPageReserved(pfn_to_page(addr >> PAGE_SHIFT));
++		init_page_count(pfn_to_page(addr >> PAGE_SHIFT));
++		free_page((unsigned long)__va(addr));
++		totalram_pages++;
++	}
++}
++
++int crash_shrink_memory(unsigned long new_size)
++{
++	int ret = 0;
++	unsigned long start, end;
++
++	mutex_lock(&kexec_mutex);
++
++	if (kexec_crash_image) {
++		ret = -ENOENT;
++		goto unlock;
++	}
++	start = crashk_res.start;
++	end = crashk_res.end;
++
++	if (new_size >= end - start + 1) {
++		ret = -EINVAL;
++		if (new_size == end - start + 1)
++			ret = 0;
++		goto unlock;
++	}
++
++	start = roundup(start, PAGE_SIZE);
++	end = roundup(start + new_size, PAGE_SIZE);
++
++	free_reserved_phys_range(end, crashk_res.end);
++
++	if (start == end) {
++		crashk_res.end = end;
++		release_resource(&crashk_res);
++	} else
++		crashk_res.end = end - 1;
++
++unlock:
++	mutex_unlock(&kexec_mutex);
++	return ret;
++}
++
+ static u32 *append_elf_note(u32 *buf, char *name, unsigned type, void *data,
+ 			    size_t data_len)
+ {
+diff -puN kernel/ksysfs.c~kexec-premit-reduction-of-the-reserved-memory-size kernel/ksysfs.c
+--- a/kernel/ksysfs.c~kexec-premit-reduction-of-the-reserved-memory-size
++++ a/kernel/ksysfs.c
+@@ -100,6 +100,26 @@ static ssize_t kexec_crash_loaded_show(s
  }
+ KERNEL_ATTR_RO(kexec_crash_loaded);
  
-+/*
-+ * Convert a global physical to socket physical address.
-+ */
-+static unsigned long
-+xp_socket_pa_uv(unsigned long gpa)
++static ssize_t kexec_crash_size_show(struct kobject *kobj,
++				       struct kobj_attribute *attr, char *buf)
 +{
-+	return uv_gpa_to_soc_phys_ram(gpa);
++	return sprintf(buf, "%zu\n", crash_get_memory_size());
 +}
++static ssize_t kexec_crash_size_store(struct kobject *kobj,
++				   struct kobj_attribute *attr,
++				   const char *buf, size_t count)
++{
++	unsigned long cnt;
++	int ret;
 +
- static enum xp_retval
- xp_remote_memcpy_uv(unsigned long dst_gpa, const unsigned long src_gpa,
- 		    size_t len)
-@@ -123,6 +132,7 @@ xp_init_uv(void)
- 	xp_region_size = sn_region_size;
- 
- 	xp_pa = xp_pa_uv;
-+	xp_socket_pa = xp_socket_pa_uv;
- 	xp_remote_memcpy = xp_remote_memcpy_uv;
- 	xp_cpu_to_nasid = xp_cpu_to_nasid_uv;
- 	xp_expand_memprotect = xp_expand_memprotect_uv;
++	if (strict_strtoul(buf, 0, &cnt))
++		return -EINVAL;
++
++	ret = crash_shrink_memory(cnt);
++	return ret < 0 ? ret : count;
++}
++KERNEL_ATTR_RW(kexec_crash_size);
++
+ static ssize_t vmcoreinfo_show(struct kobject *kobj,
+ 			       struct kobj_attribute *attr, char *buf)
+ {
+@@ -147,6 +167,7 @@ static struct attribute * kernel_attrs[]
+ #ifdef CONFIG_KEXEC
+ 	&kexec_loaded_attr.attr,
+ 	&kexec_crash_loaded_attr.attr,
++	&kexec_crash_size_attr.attr,
+ 	&vmcoreinfo_attr.attr,
+ #endif
+ 	NULL
 _
 
-Patches currently in -mm which might be from holt@sgi.com are
+Patches currently in -mm which might be from amwang@redhat.com are
 
 origin.patch
+linux-next.patch
+xtensa-use-generic-sys_pipe.patch
 
