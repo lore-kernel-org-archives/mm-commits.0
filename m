@@ -1,76 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [folded] ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 16:34:42 -0800
-Message-ID: <200912160034.nBG0YgnU023669@imap1.linux-foundation.org>
+Subject: [folded] memcg-coalesce-charging-via-percpu-storage-fix.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 16:35:11 -0800
+Message-ID: <200912160035.nBG0ZBCa023682@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52551 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34774 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761439AbZLPAfO (ORCPT
+	by vger.kernel.org with ESMTP id S1761443AbZLPAfz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 19:35:14 -0500
+	Tue, 15 Dec 2009 19:35:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, tytso@mit.edu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes
+     memcg-coalescing-charge-by-percpu-fix
 has been removed from the -mm tree.  Its filename was
-     ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
+     memcg-coalesce-charging-via-percpu-storage-fix.patch
 
-This patch was dropped because it was folded into ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock.patch
+This patch was dropped because it was folded into memcg-coalesce-charging-via-percpu-storage.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes
+Subject: memcg-coalescing-charge-by-percpu-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: "foo * bar" should be "foo *bar"
-#18: FILE: fs/ext2/super.c:1092:
-+static void ext2_clear_super_error(struct super_block * sb)
+tweak comments
 
-total: 1 errors, 0 warnings, 37 lines checked
-
-./patches/ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/super.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memcontrol.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN fs/ext2/super.c~ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes fs/ext2/super.c
---- a/fs/ext2/super.c~ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes
-+++ a/fs/ext2/super.c
-@@ -1105,7 +1105,7 @@ failed_sbi:
- 	return ret;
+diff -puN mm/memcontrol.c~memcg-coalesce-charging-via-percpu-storage-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-coalesce-charging-via-percpu-storage-fix
++++ a/mm/memcontrol.c
+@@ -1301,8 +1301,7 @@ static bool consume_stock(struct mem_cgr
  }
  
--static void ext2_clear_super_error(struct super_block * sb)
-+static void ext2_clear_super_error(struct super_block *sb)
+ /*
+- * Retruens stocks cached in percpu to res_counter and reset
+- * cached information.
++ * Returns stocks cached in percpu to res_counter and reset cached information.
+  */
+ static void drain_stock(struct memcg_stock_pcp *stock)
  {
- 	struct buffer_head *sbh = EXT2_SB(sb)->s_sbh;
- 
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-oom-kill-fix-numa-consraint-check-with-nodemask-v42.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect.patch
-ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock.patch
-ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
-memcg-coalesce-charging-via-percpu-storage-fix.patch
-memcg-code-cleanrm-unused-variable-in-mem_cgroup_resize_limit-cleanup.patch
-ipc-remove-unreachable-code-in-semc-fix.patch
-fs-cache-avoid-maybe-used-uninitialised-warning-on-variable.patch
-aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
-direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
-
+@@ -1331,7 +1330,6 @@ static void drain_local_stock(struct wor
+  * Cache charges(val) which is from res_counter, to local per_cpu area.
+  * This will be consumed by consumt_stock() function, later.
+  */
+-
+ static void refill_stock(struct mem_cgroup *mem, int val)
+ {
+ 	struct memcg_stock_pcp *stock = &get_cpu_var(memcg_stock);
+@@ -1350,7 +1348,6 @@ static void refill_stock(struct mem_cgro
+  * expects some charges will be back to res_counter later but cannot wait for
+  * it.
+  */
