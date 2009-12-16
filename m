@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cs5535-cs5535_mfgpt_default_irq-should-depend-on-cs5535_mfgpt.patch added to -mm tree
-Date: Wed, 16 Dec 2009 13:08:22 -0800
-Message-ID: <200912162108.nBGL8M0Y015060@imap1.linux-foundation.org>
+Subject: + reiserfs-truncate-blocks-not-used-by-a-write-v2-fix.patch added to -mm tree
+Date: Wed, 16 Dec 2009 13:17:59 -0800
+Message-ID: <200912162117.nBGLHxZM015471@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50688 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55240 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757515AbZLPVJG (ORCPT
+	by vger.kernel.org with ESMTP id S1757605AbZLPVSF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Dec 2009 16:09:06 -0500
+	Wed, 16 Dec 2009 16:18:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: geert@linux-m68k.org, dilinger@collabora.co.uk
+Cc: jack@suse.cz, jeffm@suse.com
 
 
 The patch titled
-     cs5535: CS5535_MFGPT_DEFAULT_IRQ should depend on CS5535_MFGPT
+     reiserfs-truncate-blocks-not-used-by-a-write-v2-fix
 has been added to the -mm tree.  Its filename is
-     cs5535-cs5535_mfgpt_default_irq-should-depend-on-cs5535_mfgpt.patch
+     reiserfs-truncate-blocks-not-used-by-a-write-v2-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cs5535: CS5535_MFGPT_DEFAULT_IRQ should depend on CS5535_MFGPT
-From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: reiserfs-truncate-blocks-not-used-by-a-write-v2-fix
+From: Jan Kara <jack@suse.cz>
 
-It doesn't make much sense to have CS5535_MFGPT_DEFAULT_IRQ show up in
-configs that cannot have CS5535_MFGPT.
+  Andrew, this patch should have been replaced by the one below - this
+version causes data corruption when using writev() (same problem as ext3 &
+ext4 had)... I've sent you a new version on 2009-12-02 but apparently you
+didn't see it.
 
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Acked-by: Andres Salomon <dilinger@collabora.co.uk>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: Jeff Mahoney <jeffm@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ fs/reiserfs/inode.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN drivers/misc/Kconfig~cs5535-cs5535_mfgpt_default_irq-should-depend-on-cs5535_mfgpt drivers/misc/Kconfig
---- a/drivers/misc/Kconfig~cs5535-cs5535_mfgpt_default_irq-should-depend-on-cs5535_mfgpt
-+++ a/drivers/misc/Kconfig
-@@ -203,6 +203,7 @@ config CS5535_MFGPT
+diff -puN fs/reiserfs/inode.c~reiserfs-truncate-blocks-not-used-by-a-write-v2-fix fs/reiserfs/inode.c
+--- a/fs/reiserfs/inode.c~reiserfs-truncate-blocks-not-used-by-a-write-v2-fix
++++ a/fs/reiserfs/inode.c
+@@ -2538,6 +2538,12 @@ static int reiserfs_writepage(struct pag
+ 	return reiserfs_write_full_page(page, wbc);
+ }
  
- config CS5535_MFGPT_DEFAULT_IRQ
- 	int
-+	depends on CS5535_MFGPT
- 	default 7
- 	help
- 	  MFGPTs on the CS5535 require an interrupt.  The selected IRQ
++static void reiserfs_truncate_failed_write(struct inode *inode)
++{
++	truncate_inode_pages(inode->i_mapping, inode->i_size);
++	reiserfs_truncate_file(inode, 0);
++}
++
+ static int reiserfs_write_begin(struct file *file,
+ 				struct address_space *mapping,
+ 				loff_t pos, unsigned len, unsigned flags,
+@@ -2605,7 +2611,7 @@ static int reiserfs_write_begin(struct f
+ 		unlock_page(page);
+ 		page_cache_release(page);
+ 		/* Truncate allocated blocks */
+-		reiserfs_truncate_file(inode, 0);
++		reiserfs_truncate_failed_write(inode);
+ 	}
+ 	return ret;
+ }
+@@ -2753,7 +2759,7 @@ static int reiserfs_write_end(struct fil
+ 	page_cache_release(page);
+ 
+ 	if (pos + len > inode->i_size)
+-		reiserfs_truncate_file(inode, 0);
++		reiserfs_truncate_failed_write(inode);
+ 
+ 	return ret == 0 ? copied : ret;
+ 
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from jack@suse.cz are
 
 origin.patch
-cs5535-cs5535_mfgpt_default_irq-should-depend-on-cs5535_mfgpt.patch
+reiserfs-truncate-blocks-not-used-by-a-write-v2.patch
+reiserfs-truncate-blocks-not-used-by-a-write-v2-fix.patch
 linux-next.patch
-mm-vmallocc-dont-use-vmalloc_end.patch
+reiser4-update-names-of-quota-methods.patch
 
