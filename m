@@ -1,118 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-remove-__raw_-accessors-from-pl031-rtc.patch removed from -mm tree
-Date: Wed, 16 Dec 2009 12:34:59 -0800
-Message-ID: <200912162035.nBGKYxH0013059@imap1.linux-foundation.org>
+Subject: [merged] rtc-vr41xx-use-resource_size.patch removed from -mm tree
+Date: Wed, 16 Dec 2009 12:35:05 -0800
+Message-ID: <200912162035.nBGKZ5DZ013066@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51568 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34195 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935261AbZLPUfJ (ORCPT
+	by vger.kernel.org with ESMTP id S935248AbZLPUfN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Dec 2009 15:35:09 -0500
+	Wed, 16 Dec 2009 15:35:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linus.walleij@stericsson.com, a.zummo@towertech.it, mm-commits@vger.kernel.org
+To: yuasa@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc: remove __raw_* accessors from PL031 RTC
+     rtc-vr41xx: use resource_size()
 has been removed from the -mm tree.  Its filename was
-     rtc-remove-__raw_-accessors-from-pl031-rtc.patch
+     rtc-vr41xx-use-resource_size.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: remove __raw_* accessors from PL031 RTC
-From: Linus Walleij <linus.walleij@stericsson.com>
+Subject: rtc-vr41xx: use resource_size()
+From: Yoichi Yuasa <yuasa@linux-mips.org>
 
-This switches __raw_[read|write]l() for plain [read|write]l in the PL031
-RTC driver.  The sister driver for PL030 use the simple accessors as most
-PrimeCell drivers.
-
-Signed-off-by: Linus Walleij <linus.walleij@stericsson.com>
-Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Yoichi Yuasa <yuasa@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pl031.c |   23 ++++++++++++-----------
- 1 file changed, 12 insertions(+), 11 deletions(-)
+ drivers/rtc/rtc-vr41xx.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-pl031.c~rtc-remove-__raw_-accessors-from-pl031-rtc drivers/rtc/rtc-pl031.c
---- a/drivers/rtc/rtc-pl031.c~rtc-remove-__raw_-accessors-from-pl031-rtc
-+++ a/drivers/rtc/rtc-pl031.c
-@@ -51,10 +51,10 @@ static int pl031_ioctl(struct device *de
+diff -puN drivers/rtc/rtc-vr41xx.c~rtc-vr41xx-use-resource_size drivers/rtc/rtc-vr41xx.c
+--- a/drivers/rtc/rtc-vr41xx.c~rtc-vr41xx-use-resource_size
++++ a/drivers/rtc/rtc-vr41xx.c
+@@ -327,7 +327,7 @@ static int __devinit rtc_probe(struct pl
+ 	if (!res)
+ 		return -EBUSY;
  
- 	switch (cmd) {
- 	case RTC_AIE_OFF:
--		__raw_writel(1, ldata->base + RTC_MIS);
-+		writel(1, ldata->base + RTC_MIS);
- 		return 0;
- 	case RTC_AIE_ON:
--		__raw_writel(0, ldata->base + RTC_MIS);
-+		writel(0, ldata->base + RTC_MIS);
- 		return 0;
+-	rtc1_base = ioremap(res->start, res->end - res->start + 1);
++	rtc1_base = ioremap(res->start, resource_size(res));
+ 	if (!rtc1_base)
+ 		return -EBUSY;
+ 
+@@ -337,7 +337,7 @@ static int __devinit rtc_probe(struct pl
+ 		goto err_rtc1_iounmap;
  	}
  
-@@ -65,7 +65,7 @@ static int pl031_read_time(struct device
- {
- 	struct pl031_local *ldata = dev_get_drvdata(dev);
- 
--	rtc_time_to_tm(__raw_readl(ldata->base + RTC_DR), tm);
-+	rtc_time_to_tm(readl(ldata->base + RTC_DR), tm);
- 
- 	return 0;
- }
-@@ -76,7 +76,7 @@ static int pl031_set_time(struct device 
- 	struct pl031_local *ldata = dev_get_drvdata(dev);
- 
- 	rtc_tm_to_time(tm, &time);
--	__raw_writel(time, ldata->base + RTC_LR);
-+	writel(time, ldata->base + RTC_LR);
- 
- 	return 0;
- }
-@@ -85,9 +85,9 @@ static int pl031_read_alarm(struct devic
- {
- 	struct pl031_local *ldata = dev_get_drvdata(dev);
- 
--	rtc_time_to_tm(__raw_readl(ldata->base + RTC_MR), &alarm->time);
--	alarm->pending = __raw_readl(ldata->base + RTC_RIS);
--	alarm->enabled = __raw_readl(ldata->base + RTC_IMSC);
-+	rtc_time_to_tm(readl(ldata->base + RTC_MR), &alarm->time);
-+	alarm->pending = readl(ldata->base + RTC_RIS);
-+	alarm->enabled = readl(ldata->base + RTC_IMSC);
- 
- 	return 0;
- }
-@@ -99,8 +99,8 @@ static int pl031_set_alarm(struct device
- 
- 	rtc_tm_to_time(&alarm->time, &time);
- 
--	__raw_writel(time, ldata->base + RTC_MR);
--	__raw_writel(!alarm->enabled, ldata->base + RTC_MIS);
-+	writel(time, ldata->base + RTC_MR);
-+	writel(!alarm->enabled, ldata->base + RTC_MIS);
- 
- 	return 0;
- }
-@@ -180,8 +180,9 @@ err_req:
- 
- static struct amba_id pl031_ids[] __initdata = {
- 	{
--		 .id = 0x00041031,
--	 	.mask = 0x000fffff, },
-+		.id = 0x00041031,
-+		.mask = 0x000fffff,
-+	},
- 	{0, 0},
- };
- 
+-	rtc2_base = ioremap(res->start, res->end - res->start + 1);
++	rtc2_base = ioremap(res->start, resource_size(res));
+ 	if (!rtc2_base) {
+ 		retval = -EBUSY;
+ 		goto err_rtc1_iounmap;
 _
 
-Patches currently in -mm which might be from linus.walleij@stericsson.com are
+Patches currently in -mm which might be from yuasa@linux-mips.org are
 
 origin.patch
-linux-next.patch
 
