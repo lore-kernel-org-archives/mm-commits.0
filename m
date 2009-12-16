@@ -1,89 +1,160 @@
 From: akpm@linux-foundation.org
-Subject: [merged] viafb-cosmetic-cleanup-of-function-integrated_lvds_enable.patch removed from -mm tree
-Date: Wed, 16 Dec 2009 12:36:36 -0800
-Message-ID: <200912162036.nBGKaa01013254@imap1.linux-foundation.org>
+Subject: [merged] intelfb-fix-setting-of-active-pipe-with-lvds-displays.patch removed from -mm tree
+Date: Wed, 16 Dec 2009 12:36:39 -0800
+Message-ID: <200912162036.nBGKadDW013257@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35632 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52404 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935445AbZLPUgs (ORCPT
+	by vger.kernel.org with ESMTP id S935452AbZLPUgt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Dec 2009 15:36:48 -0500
+	Wed, 16 Dec 2009 15:36:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: laforge@gnumonks.org, FlorianSchandinat@gmx.de, HaraldWelte@viatech.com, JosephChan@via.com.tw, ScottFang@viatech.com.cn, krzysztof.h1@poczta.fm, mm-commits@vger.kernel.org
+To: krzysztof.h1@wp.pl, hramrach@centrum.cz, samanddeanus@yahoo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     viafb: cosmetic cleanup of function integrated_lvds_enable()
+     intelfb: fix setting of active pipe with LVDS displays
 has been removed from the -mm tree.  Its filename was
-     viafb-cosmetic-cleanup-of-function-integrated_lvds_enable.patch
+     intelfb-fix-setting-of-active-pipe-with-lvds-displays.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: viafb: cosmetic cleanup of function integrated_lvds_enable()
-From: Harald Welte <laforge@gnumonks.org>
+Subject: intelfb: fix setting of active pipe with LVDS displays
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-A humble attempt to simplify the coding style to improve readability
+The intelfb driver sets color map depending on currently active pipe. 
+However, if an LVDS display is attached (like in laptop) the active pipe
+variable is never set.  The default value is PIPE_A and can be wrong.  Set
+up the pipe variable during driver initialization after hardware state was
+read.
 
-Signed-off-by: Harald Welte <HaraldWelte@viatech.com>
-Signed-off-by: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Cc: Joseph Chan <JosephChan@via.com.tw>
-Cc: Scott Fang <ScottFang@viatech.com.cn>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Also, the detection of the active display (and hence the pipe) is wrong. 
+The pipes are assigned to so called planes.  Both pipes are always enabled
+on my laptop but only one plane is enabled (the plane A for the CRT or the
+plane B for the LVDS).  Change active pipe detection code to take into
+account a status of the plane assigned to each pipe.
+
+The problem is visible in the 8 bpp mode if colors above 15 are used.  The
+first 16 color entries are displayed correctly.
+
+The graphics chip description is here (G45 vol. 3):
+http://intellinuxgraphics.org/documentation.html
+
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=13285
+
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Cc: Michal Suchanek <hramrach@centrum.cz>
+Cc: Dean Menezes <samanddeanus@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/via/lcd.c |   40 +++++++++++++-------------------------
- 1 file changed, 14 insertions(+), 26 deletions(-)
+ drivers/video/intelfb/intelfbdrv.c |    3 +
+ drivers/video/intelfb/intelfbhw.c  |   47 +++++++++++++++++----------
+ drivers/video/intelfb/intelfbhw.h  |    1 
+ 3 files changed, 34 insertions(+), 17 deletions(-)
 
-diff -puN drivers/video/via/lcd.c~viafb-cosmetic-cleanup-of-function-integrated_lvds_enable drivers/video/via/lcd.c
---- a/drivers/video/via/lcd.c~viafb-cosmetic-cleanup-of-function-integrated_lvds_enable
-+++ a/drivers/video/via/lcd.c
-@@ -1134,45 +1134,33 @@ static void integrated_lvds_enable(struc
- 			    *plvds_setting_info,
- 			    struct lvds_chip_information *plvds_chip_info)
- {
--	bool turn_on_first_powersequence = false;
--	bool turn_on_second_powersequence = false;
--
- 	DEBUG_MSG(KERN_INFO "integrated_lvds_enable, out_interface:%d\n",
- 		  plvds_chip_info->output_interface);
- 	if (plvds_setting_info->lcd_mode == LCD_SPWG)
- 		viafb_write_reg_mask(CRD2, VIACR, 0x00, BIT0 + BIT1);
--	 else
-+	else
- 		viafb_write_reg_mask(CRD2, VIACR, 0x03, BIT0 + BIT1);
--	if (INTERFACE_LVDS0LVDS1 == plvds_chip_info->output_interface)
--		turn_on_first_powersequence = true;
--	if (INTERFACE_LVDS0 == plvds_chip_info->output_interface)
--		turn_on_first_powersequence = true;
--	if (INTERFACE_LVDS1 == plvds_chip_info->output_interface)
--		turn_on_second_powersequence = true;
--
--	if (turn_on_second_powersequence) {
--		/* Use second power sequence control: */
--
--		/* Use hardware control power sequence. */
--		viafb_write_reg_mask(CRD3, VIACR, 0, BIT0);
--
--		/* Turn on back light. */
--		viafb_write_reg_mask(CRD3, VIACR, 0, BIT6 + BIT7);
+diff -puN drivers/video/intelfb/intelfbdrv.c~intelfb-fix-setting-of-active-pipe-with-lvds-displays drivers/video/intelfb/intelfbdrv.c
+--- a/drivers/video/intelfb/intelfbdrv.c~intelfb-fix-setting-of-active-pipe-with-lvds-displays
++++ a/drivers/video/intelfb/intelfbdrv.c
+@@ -874,6 +874,9 @@ static int __devinit intelfb_pci_registe
+ 	if (bailearly == 18)
+ 		bailout(dinfo);
  
--		/* Turn on hardware power sequence. */
--		viafb_write_reg_mask(CRD4, VIACR, 0x02, BIT1);
--	}
--	if (turn_on_first_powersequence) {
-+	switch (plvds_chip_info->output_interface) {
-+	case INTERFACE_LVDS0LVDS1:
-+	case INTERFACE_LVDS0:
- 		/* Use first power sequence control: */
++	/* read active pipe */
++	dinfo->pipe = intelfbhw_active_pipe(&dinfo->save_state);
++
+ 	/* Cursor initialisation */
+ 	if (dinfo->hwcursor) {
+ 		intelfbhw_cursor_init(dinfo);
+diff -puN drivers/video/intelfb/intelfbhw.c~intelfb-fix-setting-of-active-pipe-with-lvds-displays drivers/video/intelfb/intelfbhw.c
+--- a/drivers/video/intelfb/intelfbhw.c~intelfb-fix-setting-of-active-pipe-with-lvds-displays
++++ a/drivers/video/intelfb/intelfbhw.c
+@@ -469,6 +469,32 @@ void intelfbhw_do_blank(int blank, struc
+ }
+ 
+ 
++/* Check which pipe is connected to an active display plane. */
++int intelfbhw_active_pipe(const struct intelfb_hwstate *hw)
++{
++	int pipe = -1;
++
++	/* keep old default behaviour - prefer PIPE_A */
++	if (hw->disp_b_ctrl & DISPPLANE_PLANE_ENABLE) {
++		pipe = (hw->disp_b_ctrl >> DISPPLANE_SEL_PIPE_SHIFT);
++		pipe &= PIPE_MASK;
++		if (unlikely(pipe == PIPE_A))
++			return PIPE_A;
++	}
++	if (hw->disp_a_ctrl & DISPPLANE_PLANE_ENABLE) {
++		pipe = (hw->disp_a_ctrl >> DISPPLANE_SEL_PIPE_SHIFT);
++		pipe &= PIPE_MASK;
++		if (likely(pipe == PIPE_A))
++			return PIPE_A;
++	}
++	/* Impossible that no pipe is selected - return PIPE_A */
++	WARN_ON(pipe == -1);
++	if (unlikely(pipe == -1))
++		pipe = PIPE_A;
++
++	return pipe;
++}
++
+ void intelfbhw_setcolreg(struct intelfb_info *dinfo, unsigned regno,
+ 			 unsigned red, unsigned green, unsigned blue,
+ 			 unsigned transp)
+@@ -1019,7 +1045,7 @@ int intelfbhw_mode_to_hw(struct intelfb_
+ 			 struct intelfb_hwstate *hw,
+ 			 struct fb_var_screeninfo *var)
+ {
+-	int pipe = PIPE_A;
++	int pipe = intelfbhw_active_pipe(hw);
+ 	u32 *dpll, *fp0, *fp1;
+ 	u32 m1, m2, n, p1, p2, clock_target, clock;
+ 	u32 hsync_start, hsync_end, hblank_start, hblank_end, htotal, hactive;
+@@ -1033,12 +1059,6 @@ int intelfbhw_mode_to_hw(struct intelfb_
+ 	/* Disable VGA */
+ 	hw->vgacntrl |= VGA_DISABLE;
+ 
+-	/* Check whether pipe A or pipe B is enabled. */
+-	if (hw->pipe_a_conf & PIPECONF_ENABLE)
+-		pipe = PIPE_A;
+-	else if (hw->pipe_b_conf & PIPECONF_ENABLE)
+-		pipe = PIPE_B;
 -
- 		/* Use hardware control power sequence. */
- 		viafb_write_reg_mask(CR91, VIACR, 0, BIT0);
--
- 		/* Turn on back light. */
- 		viafb_write_reg_mask(CR91, VIACR, 0, BIT6 + BIT7);
+ 	/* Set which pipe's registers will be set. */
+ 	if (pipe == PIPE_B) {
+ 		dpll = &hw->dpll_b;
+@@ -1262,7 +1282,6 @@ int intelfbhw_mode_to_hw(struct intelfb_
+ int intelfbhw_program_mode(struct intelfb_info *dinfo,
+ 			   const struct intelfb_hwstate *hw, int blank)
+ {
+-	int pipe = PIPE_A;
+ 	u32 tmp;
+ 	const u32 *dpll, *fp0, *fp1, *pipe_conf;
+ 	const u32 *hs, *ht, *hb, *vs, *vt, *vb, *ss;
+@@ -1272,7 +1291,7 @@ int intelfbhw_program_mode(struct intelf
+ 	u32 src_size_reg;
+ 	u32 count, tmp_val[3];
+ 
+-	/* Assume single pipe, display plane A, analog CRT. */
++	/* Assume single pipe */
+ 
+ #if VERBOSE > 0
+ 	DBG_MSG("intelfbhw_program_mode\n");
+@@ -1283,15 +1302,9 @@ int intelfbhw_program_mode(struct intelf
+ 	tmp |= VGA_DISABLE;
+ 	OUTREG(VGACNTRL, tmp);
+ 
+-	/* Check whether pipe A or pipe B is enabled. */
+-	if (hw->pipe_a_conf & PIPECONF_ENABLE)
+-		pipe = PIPE_A;
+-	else if (hw->pipe_b_conf & PIPECONF_ENABLE)
+-		pipe = PIPE_B;
++	dinfo->pipe = intelfbhw_active_pipe(hw);
+ 
+-	dinfo->pipe = pipe;
