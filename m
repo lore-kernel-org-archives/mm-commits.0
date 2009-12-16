@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + 8250_pci-add-support-for-mcs9865-syba-6x-serial-port-card.patch added to -mm tree
-Date: Wed, 16 Dec 2009 14:18:18 -0800
-Message-ID: <200912162218.nBGMIIBt018028@imap1.linux-foundation.org>
+Subject: + sysctl-fix-sysctl-breakage-on-systems-with-older-glibc.patch added to -mm tree
+Date: Wed, 16 Dec 2009 14:21:54 -0800
+Message-ID: <200912162221.nBGMLs2U018269@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36841 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48534 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750892AbZLPWSb (ORCPT
+	by vger.kernel.org with ESMTP id S1763023AbZLPWWE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Dec 2009 17:18:31 -0500
+	Wed, 16 Dec 2009 17:22:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: iws@ovro.caltech.edu, alan@lxorguk.ukuu.org.uk, augulis.darius@gmail.com, greg@kroah.com
+Cc: andi@firstfloor.org, ak@linux.intel.com, ebiederm@xmission.com
 
 
 The patch titled
-     8250_pci: add support for MCS9865 / SYBA 6x Serial Port Card
+     sysctl: fix sysctl breakage on systems with older glibc
 has been added to the -mm tree.  Its filename is
-     8250_pci-add-support-for-mcs9865-syba-6x-serial-port-card.patch
+     sysctl-fix-sysctl-breakage-on-systems-with-older-glibc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,128 +34,50 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: 8250_pci: add support for MCS9865 / SYBA 6x Serial Port Card
-From: "Ira W. Snyder" <iws@ovro.caltech.edu>
+Subject: sysctl: fix sysctl breakage on systems with older glibc
+From: Andi Kleen <andi@firstfloor.org>
 
-This patch is heavily based on an earlier patch found on the linux-serial
-mailing list [1], written by Darius Augulis.
+As predicted during code review, the sysctl(2) changes made systems with
+old glibc nearly unusable.  About every command gives a:
 
-The previous incarnation of this patch only supported a 2x serial port
-card.  I have added support for my SYBA 6x serial port card, and tested on
-x86.
+warning: process `ls' used the deprecated sysctl s ystem call with 1.4
 
-[1]: http://marc.info/?l=linux-serial&m=124975806304760
+warning in the log.
 
-Signed-off-by: Ira W. Snyder <iws@ovro.caltech.edu>
-Cc: Darius Augulis <augulis.darius@gmail.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+I see this on a SUSE 10.0 system with glibc 2.3.5.  Don't warn for this
+common case.
+
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/parport/parport_pc.c |    6 ++++++
- drivers/serial/8250_pci.c    |   22 +++++++++++++++++++++-
- include/linux/pci_ids.h      |    1 +
- 3 files changed, 28 insertions(+), 1 deletion(-)
+ kernel/sysctl_binary.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN drivers/parport/parport_pc.c~8250_pci-add-support-for-mcs9865-syba-6x-serial-port-card drivers/parport/parport_pc.c
---- a/drivers/parport/parport_pc.c~8250_pci-add-support-for-mcs9865-syba-6x-serial-port-card
-+++ a/drivers/parport/parport_pc.c
-@@ -2908,6 +2908,7 @@ enum parport_pc_pci_cards {
- 	netmos_9805,
- 	netmos_9815,
- 	netmos_9901,
-+	netmos_9865,
- 	quatech_sppxp100,
- };
+diff -puN kernel/sysctl_binary.c~sysctl-fix-sysctl-breakage-on-systems-with-older-glibc kernel/sysctl_binary.c
+--- a/kernel/sysctl_binary.c~sysctl-fix-sysctl-breakage-on-systems-with-older-glibc
++++ a/kernel/sysctl_binary.c
+@@ -1399,6 +1399,13 @@ static void deprecated_sysctl_warning(co
+ {
+ 	int i;
  
-@@ -2989,6 +2990,7 @@ static struct parport_pc_pci {
- 	/* netmos_9805 */               { 1, { { 0, -1 }, } },
- 	/* netmos_9815 */               { 2, { { 0, -1 }, { 2, -1 }, } },
- 	/* netmos_9901 */               { 1, { { 0, -1 }, } },
-+	/* netmos_9865 */               { 1, { { 0, -1 }, } },
- 	/* quatech_sppxp100 */		{ 1, { { 0, 1 }, } },
- };
- 
-@@ -3092,6 +3094,10 @@ static const struct pci_device_id parpor
- 	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, netmos_9815 },
- 	{ PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9901,
- 	  0xA000, 0x2000, 0, 0, netmos_9901 },
-+	{ PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9865,
-+	  0xA000, 0x1000, 0, 0, netmos_9865 },
-+	{ PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9865,
-+	  0xA000, 0x2000, 0, 0, netmos_9865 },
- 	/* Quatech SPPXP-100 Parallel port PCI ExpressCard */
- 	{ PCI_VENDOR_ID_QUATECH, PCI_DEVICE_ID_QUATECH_SPPXP_100,
- 	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, quatech_sppxp100 },
-diff -puN drivers/serial/8250_pci.c~8250_pci-add-support-for-mcs9865-syba-6x-serial-port-card drivers/serial/8250_pci.c
---- a/drivers/serial/8250_pci.c~8250_pci-add-support-for-mcs9865-syba-6x-serial-port-card
-+++ a/drivers/serial/8250_pci.c
-@@ -760,7 +760,8 @@ static int pci_netmos_init(struct pci_de
- 	/* subdevice 0x00PS means <P> parallel, <S> serial */
- 	unsigned int num_serial = dev->subsystem_device & 0xf;
- 
--	if (dev->device == PCI_DEVICE_ID_NETMOS_9901)
-+	if ((dev->device == PCI_DEVICE_ID_NETMOS_9901) ||
-+		(dev->device == PCI_DEVICE_ID_NETMOS_9865))
- 		return 0;
- 	if (dev->subsystem_vendor == PCI_VENDOR_ID_IBM &&
- 			dev->subsystem_device == 0x0299)
-@@ -1479,6 +1480,7 @@ enum pci_board_num_t {
- 
- 	pbn_b0_bt_1_115200,
- 	pbn_b0_bt_2_115200,
-+	pbn_b0_bt_4_115200,
- 	pbn_b0_bt_8_115200,
- 
- 	pbn_b0_bt_1_460800,
-@@ -1703,6 +1705,12 @@ static struct pciserial_board pci_boards
- 		.base_baud	= 115200,
- 		.uart_offset	= 8,
- 	},
-+	[pbn_b0_bt_4_115200] = {
-+		.flags		= FL_BASE0|FL_BASE_BARS,
-+		.num_ports	= 4,
-+		.base_baud	= 115200,
-+		.uart_offset	= 8,
-+	},
- 	[pbn_b0_bt_8_115200] = {
- 		.flags		= FL_BASE0|FL_BASE_BARS,
- 		.num_ports	= 8,
-@@ -3649,6 +3657,18 @@ static struct pci_device_id serial_pci_t
- 		0, 0, pbn_b0_1_115200 },
- 
- 	/*
-+	 * Best Connectivity PCI Multi I/O cards
-+	 */
-+
-+	{	PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9865,
-+		0xA000, 0x1000,
-+		0, 0, pbn_b0_1_115200 },
-+
-+	{	PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9865,
-+		0xA000, 0x3004,
-+		0, 0, pbn_b0_bt_4_115200 },
-+
 +	/*
- 	 * These entries match devices with class COMMUNICATION_SERIAL,
- 	 * COMMUNICATION_MODEM or COMMUNICATION_MULTISERIAL
- 	 */
-diff -puN include/linux/pci_ids.h~8250_pci-add-support-for-mcs9865-syba-6x-serial-port-card include/linux/pci_ids.h
---- a/include/linux/pci_ids.h~8250_pci-add-support-for-mcs9865-syba-6x-serial-port-card
-+++ a/include/linux/pci_ids.h
-@@ -2713,6 +2713,7 @@
- #define PCI_DEVICE_ID_NETMOS_9835	0x9835
- #define PCI_DEVICE_ID_NETMOS_9845	0x9845
- #define PCI_DEVICE_ID_NETMOS_9855	0x9855
-+#define PCI_DEVICE_ID_NETMOS_9865	0x9865
- #define PCI_DEVICE_ID_NETMOS_9901	0x9901
- 
- #define PCI_VENDOR_ID_3COM_2		0xa727
++	 * CTL_KERN/KERN_VERSION is used by older glibc and cannot
++	 * ever go away.
++	 */
++	if (name[0] == CTL_KERN && name[1] == KERN_VERSION)
++		return;
++
+ 	if (printk_ratelimit()) {
+ 		printk(KERN_INFO
+ 			"warning: process `%s' used the deprecated sysctl "
 _
 
-Patches currently in -mm which might be from iws@ovro.caltech.edu are
+Patches currently in -mm which might be from andi@firstfloor.org are
 
+origin.patch
 linux-next.patch
-8250_pci-add-support-for-mcs9865-syba-6x-serial-port-card.patch
+hardware-latency-detector-remove-default-m.patch
+sysctl-fix-sysctl-breakage-on-systems-with-older-glibc.patch
 
