@@ -1,152 +1,154 @@
 From: akpm@linux-foundation.org
-Subject: [merged] aio-dont-zero-out-the-pages-array-inside-struct-dio.patch removed from -mm tree
-Date: Wed, 16 Dec 2009 12:39:37 -0800
-Message-ID: <200912162039.nBGKdbQt013550@imap1.linux-foundation.org>
+Subject: [merged] x86-uv-implement-a-gru_read_gpa-kernel-function.patch removed from -mm tree
+Date: Wed, 16 Dec 2009 12:39:51 -0800
+Message-ID: <200912162039.nBGKdpkR013563@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58050 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44182 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964998AbZLPUj7 (ORCPT
+	by vger.kernel.org with ESMTP id S964999AbZLPUkC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Dec 2009 15:39:59 -0500
+	Wed, 16 Dec 2009 15:40:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jmoyer@redhat.com, zach.brown@oracle.com, mm-commits@vger.kernel.org
+To: holt@sgi.com, mingo@elte.hu, steiner@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dio: don't zero out the pages array inside struct dio
+     X86: uv: implement a gru_read_gpa kernel function
 has been removed from the -mm tree.  Its filename was
-     aio-dont-zero-out-the-pages-array-inside-struct-dio.patch
+     x86-uv-implement-a-gru_read_gpa-kernel-function.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dio: don't zero out the pages array inside struct dio
-From: Jeff Moyer <jmoyer@redhat.com>
+Subject: X86: uv: implement a gru_read_gpa kernel function
+From: Robin Holt <holt@sgi.com>
 
-Intel reported a performance regression caused by the following commit:
+The BIOS has decided to store a pointer to the partition reserved page in
+a scratch MMR.  The GRU is only able to read an MMR using a vload
+instruction.  The gru_read_gpa() function will implemented.
 
-commit 848c4dd5153c7a0de55470ce99a8e13a63b4703f
-Author: Zach Brown <zach.brown@oracle.com>
-Date:   Mon Aug 20 17:12:01 2007 -0700
-
-    dio: zero struct dio with kzalloc instead of manually
-
-    This patch uses kzalloc to zero all of struct dio rather than
-    manually trying to track which fields we rely on being zero.  It
-    passed aio+dio stress testing and some bug regression testing on
-    ext3.
-
-    This patch was introduced by Linus in the conversation that lead up
-    to Badari's minimal fix to manually zero .map_bh.b_state in commit:
-
-      6a648fa72161d1f6468dabd96c5d3c0db04f598a
-
-    It makes the code a bit smaller.  Maybe a couple fewer cachelines to
-    load, if we're lucky:
-
-       text    data     bss     dec     hex filename
-    3285925  568506 1304616 5159047  4eb887 vmlinux
-    3285797  568506 1304616 5158919  4eb807 vmlinux.patched
-
-    I was unable to measure a stable difference in the number of cpu
-    cycles spent in blockdev_direct_IO() when pushing aio+dio 256K reads
-    at ~340MB/s.
-
-    So the resulting intent of the patch isn't a performance gain but to
-    avoid exposing ourselves to the risk of finding another field like
-    .map_bh.b_state where we rely on zeroing but don't enforce it in the
-    code.
-
-Zach surmised that zeroing out the page array was what caused most of
-the problem, and suggested the approach taken in the attached patch for
-resolving the issue.  Intel re-tested with this patch and saw a 0.6%
-performance gain (the original regression was 0.5%).
-
-[akpm@linux-foundation.org: add comment]
-Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
-Acked-by: Zach Brown <zach.brown@oracle.com>
+Signed-off-by: Robin Holt <holt@sgi.com>
+Signed-off-by: Jack Steiner <steiner@sgi.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/direct-io.c |   38 +++++++++++++++++++++++++-------------
- 1 file changed, 25 insertions(+), 13 deletions(-)
+ drivers/misc/sgi-gru/gru_instructions.h |   13 ++++++++++++
+ drivers/misc/sgi-gru/grukservices.c     |   23 ++++++++++++++++++++++
+ drivers/misc/sgi-gru/grukservices.h     |   14 +++++++++++++
+ drivers/misc/sgi-gru/gruprocfs.c        |    1 
+ drivers/misc/sgi-gru/grutables.h        |    1 
+ 5 files changed, 52 insertions(+)
 
-diff -puN fs/direct-io.c~aio-dont-zero-out-the-pages-array-inside-struct-dio fs/direct-io.c
---- a/fs/direct-io.c~aio-dont-zero-out-the-pages-array-inside-struct-dio
-+++ a/fs/direct-io.c
-@@ -104,6 +104,18 @@ struct dio {
- 	unsigned cur_page_len;		/* Nr of bytes at cur_page_offset */
- 	sector_t cur_page_block;	/* Where it starts */
- 
-+	/* BIO completion state */
-+	spinlock_t bio_lock;		/* protects BIO fields below */
-+	unsigned long refcount;		/* direct_io_worker() and bios */
-+	struct bio *bio_list;		/* singly linked via bi_private */
-+	struct task_struct *waiter;	/* waiting task (NULL if none) */
+diff -puN drivers/misc/sgi-gru/gru_instructions.h~x86-uv-implement-a-gru_read_gpa-kernel-function drivers/misc/sgi-gru/gru_instructions.h
+--- a/drivers/misc/sgi-gru/gru_instructions.h~x86-uv-implement-a-gru_read_gpa-kernel-function
++++ a/drivers/misc/sgi-gru/gru_instructions.h
+@@ -340,6 +340,19 @@ static inline void gru_start_instruction
+  *     	- nelem and stride are in elements
+  *     	- tri0/tri1 is in bytes for the beginning of the data segment.
+  */
++static inline void gru_vload_phys(void *cb, unsigned long gpa,
++		unsigned int tri0, int iaa, unsigned long hints)
++{
++	struct gru_instruction *ins = (struct gru_instruction *)cb;
 +
-+	/* AIO related stuff */
-+	struct kiocb *iocb;		/* kiocb */
-+	int is_async;			/* is IO async ? */
-+	int io_error;			/* IO error in completion path */
-+	ssize_t result;                 /* IO result */
++	ins->baddr0 = (long)gpa | ((unsigned long)iaa << 62);
++	ins->nelem = 1;
++	ins->tri0 = tri0;
++	ins->op1_stride = 1;
++	gru_start_instruction(ins, __opword(OP_VLOAD, 0, XTYPE_DW, iaa, 0,
++					CB_IMA(hints)));
++}
 +
- 	/*
- 	 * Page fetching state. These variables belong to dio_refill_pages().
- 	 */
-@@ -115,22 +127,16 @@ struct dio {
- 	 * Page queue.  These variables belong to dio_refill_pages() and
- 	 * dio_get_page().
- 	 */
--	struct page *pages[DIO_PAGES];	/* page buffer */
- 	unsigned head;			/* next page to process */
- 	unsigned tail;			/* last valid page + 1 */
- 	int page_errors;		/* errno from get_user_pages() */
- 
--	/* BIO completion state */
--	spinlock_t bio_lock;		/* protects BIO fields below */
--	unsigned long refcount;		/* direct_io_worker() and bios */
--	struct bio *bio_list;		/* singly linked via bi_private */
--	struct task_struct *waiter;	/* waiting task (NULL if none) */
--
--	/* AIO related stuff */
--	struct kiocb *iocb;		/* kiocb */
--	int is_async;			/* is IO async ? */
--	int io_error;			/* IO error in completion path */
--	ssize_t result;                 /* IO result */
-+	/*
-+	 * pages[] (and any fields placed after it) are not zeroed out at
-+	 * allocation time.  Don't add new fields after pages[] unless you
-+	 * wish that they not be zeroed.
-+	 */
-+	struct page *pages[DIO_PAGES];	/* page buffer */
- };
+ static inline void gru_vload(void *cb, unsigned long mem_addr,
+ 		unsigned int tri0, unsigned char xtype, unsigned long nelem,
+ 		unsigned long stride, unsigned long hints)
+diff -puN drivers/misc/sgi-gru/grukservices.c~x86-uv-implement-a-gru_read_gpa-kernel-function drivers/misc/sgi-gru/grukservices.c
+--- a/drivers/misc/sgi-gru/grukservices.c~x86-uv-implement-a-gru_read_gpa-kernel-function
++++ a/drivers/misc/sgi-gru/grukservices.c
+@@ -858,6 +858,29 @@ EXPORT_SYMBOL_GPL(gru_get_next_message);
+ /* ---------------------- GRU DATA COPY FUNCTIONS ---------------------------*/
  
  /*
-@@ -1151,10 +1157,16 @@ __blockdev_direct_IO(int rw, struct kioc
- 		}
- 	}
++ * Load a DW from a global GPA. The GPA can be a memory or MMR address.
++ */
++int gru_read_gpa(unsigned long *value, unsigned long gpa)
++{
++	void *cb;
++	void *dsr;
++	int ret, iaa;
++
++	STAT(read_gpa);
++	if (gru_get_cpu_resources(GRU_NUM_KERNEL_DSR_BYTES, &cb, &dsr))
++		return MQE_BUG_NO_RESOURCES;
++	iaa = gpa >> 62;
++	gru_vload_phys(cb, gpa, gru_get_tri(dsr), iaa, IMA);
++	ret = gru_wait(cb);
++	if (ret == CBS_IDLE)
++		*value = *(unsigned long *)dsr;
++	gru_free_cpu_resources(cb, dsr);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(gru_read_gpa);
++
++
++/*
+  * Copy a block of data using the GRU resources
+  */
+ int gru_copy_gpa(unsigned long dest_gpa, unsigned long src_gpa,
+diff -puN drivers/misc/sgi-gru/grukservices.h~x86-uv-implement-a-gru_read_gpa-kernel-function drivers/misc/sgi-gru/grukservices.h
+--- a/drivers/misc/sgi-gru/grukservices.h~x86-uv-implement-a-gru_read_gpa-kernel-function
++++ a/drivers/misc/sgi-gru/grukservices.h
+@@ -131,6 +131,20 @@ extern void *gru_get_next_message(struct
  
--	dio = kzalloc(sizeof(*dio), GFP_KERNEL);
-+	dio = kmalloc(sizeof(*dio), GFP_KERNEL);
- 	retval = -ENOMEM;
- 	if (!dio)
- 		goto out;
-+	/*
-+	 * Believe it or not, zeroing out the page array caused a .5%
-+	 * performance regression in a database benchmark.  So, we take
-+	 * care to only zero out what's needed.
-+	 */
-+	memset(dio, 0, offsetof(struct dio, pages));
  
- 	/*
- 	 * For block device access DIO_NO_LOCKING is used,
+ /*
++ * Read a GRU global GPA. Source can be located in a remote partition.
++ *
++ *    Input:
++ *    	value		memory address where MMR value is returned
++ *    	gpa		source numalink physical address of GPA
++ *
++ *    Output:
++ *	0		OK
++ *	>0		error
++ */
++int gru_read_gpa(unsigned long *value, unsigned long gpa);
++
++
++/*
+  * Copy data using the GRU. Source or destination can be located in a remote
+  * partition.
+  *
+diff -puN drivers/misc/sgi-gru/gruprocfs.c~x86-uv-implement-a-gru_read_gpa-kernel-function drivers/misc/sgi-gru/gruprocfs.c
+--- a/drivers/misc/sgi-gru/gruprocfs.c~x86-uv-implement-a-gru_read_gpa-kernel-function
++++ a/drivers/misc/sgi-gru/gruprocfs.c
+@@ -98,6 +98,7 @@ static int statistics_show(struct seq_fi
+ 	printstat(s, flush_tlb_gru_tgh);
+ 	printstat(s, flush_tlb_gru_zero_asid);
+ 	printstat(s, copy_gpa);
++	printstat(s, read_gpa);
+ 	printstat(s, mesq_receive);
+ 	printstat(s, mesq_receive_none);
+ 	printstat(s, mesq_send);
+diff -puN drivers/misc/sgi-gru/grutables.h~x86-uv-implement-a-gru_read_gpa-kernel-function drivers/misc/sgi-gru/grutables.h
+--- a/drivers/misc/sgi-gru/grutables.h~x86-uv-implement-a-gru_read_gpa-kernel-function
++++ a/drivers/misc/sgi-gru/grutables.h
+@@ -224,6 +224,7 @@ struct gru_stats_s {
+ 	atomic_long_t flush_tlb_gru_zero_asid;
+ 
+ 	atomic_long_t copy_gpa;
++	atomic_long_t read_gpa;
+ 
+ 	atomic_long_t mesq_receive;
+ 	atomic_long_t mesq_receive_none;
 _
 
-Patches currently in -mm which might be from jmoyer@redhat.com are
+Patches currently in -mm which might be from holt@sgi.com are
 
 origin.patch
 
