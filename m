@@ -1,78 +1,181 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ptrace-x86-change-syscall_trace_leave-to-rely-on-tracehook-when-stepping.patch removed from -mm tree
-Date: Wed, 16 Dec 2009 12:38:12 -0800
-Message-ID: <200912162038.nBGKcCsp013407__7717.69598727605$1260995945$gmane$org@imap1.linux-foundation.org>
+Subject: [merged] ipc-semc-add-a-per-semaphore-pending-list.patch removed from -mm tree
+Date: Wed, 16 Dec 2009 12:38:45 -0800
+Message-ID: <200912162038.nBGKcjRZ013463@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53697 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43988 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964949AbZLPUit (ORCPT
+	by vger.kernel.org with ESMTP id S964944AbZLPUiv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Dec 2009 15:38:49 -0500
+	Wed, 16 Dec 2009 15:38:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, hpa@zytor.com, linux-arch@vger.kernel.org, mingo@elte.hu, roland@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: manfred@colorfullife.com, npiggin@suse.de, peifferp@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ptrace: x86: change syscall_trace_leave() to rely on tracehook when stepping
+     ipc/sem.c: add a per-semaphore pending list
 has been removed from the -mm tree.  Its filename was
-     ptrace-x86-change-syscall_trace_leave-to-rely-on-tracehook-when-stepping.patch
+     ipc-semc-add-a-per-semaphore-pending-list.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace: x86: change syscall_trace_leave() to rely on tracehook when stepping
-From: Oleg Nesterov <oleg@redhat.com>
+Subject: ipc/sem.c: add a per-semaphore pending list
+From: Manfred Spraul <manfred@colorfullife.com>
 
-Suggested by Roland.
+Based on Nick's findings:
 
-Unlike powepc, x86 always calls tracehook_report_syscall_exit(step) with
-step = 0, and sends the trap by hand.
+sysv sem has the concept of semaphore arrays that consist out of multiple
+semaphores.  Atomic operations that affect multiple semaphores are
+supported.
 
-This results in unnecessary SIGTRAP when PTRACE_SINGLESTEP follows the
-syscall-exit stop.
+The patch is the first step for optimizing simple, single semaphore
+operations: In addition to the global list of all pending operations, a
+2nd, per-semaphore list with the simple operations is added.
 
-Change syscall_trace_leave() to pass the correct "step" argument to
-tracehook and remove the send_sigtrap() logic.
+Note: this patch does not make sense by itself, the new list is used
+nowhere.
 
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Roland McGrath <roland@redhat.com>
-Cc: <linux-arch@vger.kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Pierre Peiffer <peifferp@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/ptrace.c |   21 +++++++--------------
- 1 file changed, 7 insertions(+), 14 deletions(-)
+ include/linux/sem.h |    5 ++++-
+ ipc/sem.c           |   37 ++++++++++++++++++++++++++++++++-----
+ 2 files changed, 36 insertions(+), 6 deletions(-)
 
-diff -puN arch/x86/kernel/ptrace.c~ptrace-x86-change-syscall_trace_leave-to-rely-on-tracehook-when-stepping arch/x86/kernel/ptrace.c
---- a/arch/x86/kernel/ptrace.c~ptrace-x86-change-syscall_trace_leave-to-rely-on-tracehook-when-stepping
-+++ a/arch/x86/kernel/ptrace.c
-@@ -1767,29 +1767,22 @@ asmregparm long syscall_trace_enter(stru
+diff -puN include/linux/sem.h~ipc-semc-add-a-per-semaphore-pending-list include/linux/sem.h
+--- a/include/linux/sem.h~ipc-semc-add-a-per-semaphore-pending-list
++++ a/include/linux/sem.h
+@@ -86,6 +86,7 @@ struct task_struct;
+ struct sem {
+ 	int	semval;		/* current value */
+ 	int	sempid;		/* pid of last operation */
++	struct list_head sem_pending; /* pending single-sop operations */
+ };
  
- asmregparm void syscall_trace_leave(struct pt_regs *regs)
- {
-+	bool step;
+ /* One sem_array data structure for each set of semaphores in the system. */
+@@ -96,11 +97,13 @@ struct sem_array {
+ 	struct sem		*sem_base;	/* ptr to first semaphore in array */
+ 	struct list_head	sem_pending;	/* pending operations to be processed */
+ 	struct list_head	list_id;	/* undo requests on this array */
+-	unsigned long		sem_nsems;	/* no. of semaphores in array */
++	int			sem_nsems;	/* no. of semaphores in array */
++	int			complex_count;	/* pending complex operations */
+ };
+ 
+ /* One queue for each sleeping process in the system. */
+ struct sem_queue {
++	struct list_head	simple_list; /* queue of pending operations */
+ 	struct list_head	list;	 /* queue of pending operations */
+ 	struct task_struct	*sleeper; /* this process */
+ 	struct sem_undo		*undo;	 /* undo structure */
+diff -puN ipc/sem.c~ipc-semc-add-a-per-semaphore-pending-list ipc/sem.c
+--- a/ipc/sem.c~ipc-semc-add-a-per-semaphore-pending-list
++++ a/ipc/sem.c
+@@ -241,6 +241,7 @@ static int newary(struct ipc_namespace *
+ 	key_t key = params->key;
+ 	int nsems = params->u.nsems;
+ 	int semflg = params->flg;
++	int i;
+ 
+ 	if (!nsems)
+ 		return -EINVAL;
+@@ -273,6 +274,11 @@ static int newary(struct ipc_namespace *
+ 	ns->used_sems += nsems;
+ 
+ 	sma->sem_base = (struct sem *) &sma[1];
 +
- 	if (unlikely(current->audit_context))
- 		audit_syscall_exit(AUDITSC_RESULT(regs->ax), regs->ax);
++	for (i = 0; i < nsems; i++)
++		INIT_LIST_HEAD(&sma->sem_base[i].sem_pending);
++
++	sma->complex_count = 0;
+ 	INIT_LIST_HEAD(&sma->sem_pending);
+ 	INIT_LIST_HEAD(&sma->list_id);
+ 	sma->sem_nsems = nsems;
+@@ -419,6 +425,15 @@ static void wake_up_sem_queue(struct sem
+ 	preempt_enable();
+ }
  
- 	if (unlikely(test_thread_flag(TIF_SYSCALL_TRACEPOINT)))
- 		trace_sys_exit(regs, regs->ax);
++static void unlink_queue(struct sem_array *sma, struct sem_queue *q)
++{
++	list_del(&q->list);
++	if (q->nsops == 1)
++		list_del(&q->simple_list);
++	else
++		sma->complex_count--;
++}
++
+ /* Go through the pending queue for the indicated semaphore
+  * looking for tasks that can be completed.
+  */
+@@ -438,7 +453,7 @@ again:
+ 		if (error > 0)
+ 			continue;
  
--	if (test_thread_flag(TIF_SYSCALL_TRACE))
--		tracehook_report_syscall_exit(regs, 0);
+-		list_del(&q->list);
++		unlink_queue(sma, q);
+ 
+ 		/*
+ 		 * The next operation that must be checked depends on the type
+@@ -532,8 +547,7 @@ static void freeary(struct ipc_namespace
+ 
+ 	/* Wake up all pending processes and let them fail with EIDRM. */
+ 	list_for_each_entry_safe(q, tq, &sma->sem_pending, list) {
+-		list_del(&q->list);
 -
- 	/*
- 	 * If TIF_SYSCALL_EMU is set, we only get here because of
- 	 * TIF_SINGLESTEP (i.e. this is PTRACE_SYSEMU_SINGLESTEP).
- 	 * We already reported this syscall instruction in
--	 * syscall_trace_enter(), so don't do any more now.
--	 */
--	if (unlikely(test_thread_flag(TIF_SYSCALL_EMU)))
--		return;
++		unlink_queue(sma, q);
+ 		wake_up_sem_queue(q, -EIDRM);
+ 	}
+ 
+@@ -1191,6 +1205,19 @@ SYSCALL_DEFINE4(semtimedop, int, semid, 
+ 	else
+ 		list_add(&queue.list, &sma->sem_pending);
+ 
++	if (nsops == 1) {
++		struct sem *curr;
++		curr = &sma->sem_base[sops->sem_num];
++
++		if (alter)
++			list_add_tail(&queue.simple_list, &curr->sem_pending);
++		else
++			list_add(&queue.simple_list, &curr->sem_pending);
++	} else {
++		INIT_LIST_HEAD(&queue.simple_list);
++		sma->complex_count++;
++	}
++
+ 	queue.status = -EINTR;
+ 	queue.sleeper = current;
+ 	current->state = TASK_INTERRUPTIBLE;
+@@ -1232,7 +1259,7 @@ SYSCALL_DEFINE4(semtimedop, int, semid, 
+ 	 */
+ 	if (timeout && jiffies_left == 0)
+ 		error = -EAGAIN;
+-	list_del(&queue.list);
++	unlink_queue(sma, &queue);
+ 
+ out_unlock_free:
+ 	sem_unlock(sma);
+@@ -1375,7 +1402,7 @@ static int sysvipc_sem_proc_show(struct 
+ 	struct sem_array *sma = it;
+ 
+ 	return seq_printf(s,
+-			  "%10d %10d  %4o %10lu %5u %5u %5u %5u %10lu %10lu\n",
++			  "%10d %10d  %4o %10u %5u %5u %5u %5u %10lu %10lu\n",
+ 			  sma->sem_perm.key,
+ 			  sma->sem_perm.id,
+ 			  sma->sem_perm.mode,
+_
+
+Patches currently in -mm which might be from manfred@colorfullife.com are
+
+origin.patch
+slab-leaks3-default-y.patch
+
