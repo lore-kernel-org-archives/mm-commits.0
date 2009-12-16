@@ -1,114 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fbdev-drop-custom-atoi-from-drivers-video-modedbc.patch removed from -mm tree
-Date: Wed, 16 Dec 2009 12:35:37 -0800
-Message-ID: <200912162035.nBGKZbgG013109@imap1.linux-foundation.org>
+Subject: [merged] fbdev-tv_paln-bit-set-twice-in-sisfb_detect_vb_connect.patch removed from -mm tree
+Date: Wed, 16 Dec 2009 12:35:33 -0800
+Message-ID: <200912162035.nBGKZX32013106@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55667 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38889 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935400AbZLPUfr (ORCPT
+	by vger.kernel.org with ESMTP id S935400AbZLPUfn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Dec 2009 15:35:47 -0500
+	Wed, 16 Dec 2009 15:35:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ext-andriy.shevchenko@nokia.com, krzysztof.h1@poczta.fm, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, krzysztof.h1@poczta.fm, thomas@winischhofer.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fbdev: drop custom atoi from drivers/video/modedb.c
+     fbdev: TV_PALN bit set twice in sisfb_detect_VB_connect()
 has been removed from the -mm tree.  Its filename was
-     fbdev-drop-custom-atoi-from-drivers-video-modedbc.patch
+     fbdev-tv_paln-bit-set-twice-in-sisfb_detect_vb_connect.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev: drop custom atoi from drivers/video/modedb.c
-From: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
+Subject: fbdev: TV_PALN bit set twice in sisfb_detect_VB_connect()
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Kernel has simple_strtol() implementation which could be used as atoi().
+The TV_PALN bit was tested twice, replace one by TV_PALM.
 
-Signed-off-by: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Thomas Winischhofer <thomas@winischhofer.net>
 Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/modedb.c |   24 +++++-------------------
- 1 file changed, 5 insertions(+), 19 deletions(-)
+ drivers/video/sis/sis_main.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/modedb.c~fbdev-drop-custom-atoi-from-drivers-video-modedbc drivers/video/modedb.c
---- a/drivers/video/modedb.c~fbdev-drop-custom-atoi-from-drivers-video-modedbc
-+++ a/drivers/video/modedb.c
-@@ -13,6 +13,7 @@
- 
- #include <linux/module.h>
- #include <linux/fb.h>
-+#include <linux/kernel.h>
- 
- #undef DEBUG
- 
-@@ -402,21 +403,6 @@ const struct fb_videomode vesa_modes[] =
- EXPORT_SYMBOL(vesa_modes);
- #endif /* CONFIG_FB_MODE_HELPERS */
- 
--static int my_atoi(const char *name)
--{
--    int val = 0;
--
--    for (;; name++) {
--	switch (*name) {
--	    case '0' ... '9':
--		val = 10*val+(*name-'0');
--		break;
--	    default:
--		return val;
--	}
--    }
--}
--
- /**
-  *	fb_try_mode - test a video mode
-  *	@var: frame buffer user defined part of display
-@@ -539,7 +525,7 @@ int fb_find_mode(struct fb_var_screeninf
- 		    namelen = i;
- 		    if (!refresh_specified && !bpp_specified &&
- 			!yres_specified) {
--			refresh = my_atoi(&name[i+1]);
-+			refresh = simple_strtol(&name[i+1], NULL, 10);
- 			refresh_specified = 1;
- 			if (cvt || rb)
- 			    cvt = 0;
-@@ -549,7 +535,7 @@ int fb_find_mode(struct fb_var_screeninf
- 		case '-':
- 		    namelen = i;
- 		    if (!bpp_specified && !yres_specified) {
--			bpp = my_atoi(&name[i+1]);
-+			bpp = simple_strtol(&name[i+1], NULL, 10);
- 			bpp_specified = 1;
- 			if (cvt || rb)
- 			    cvt = 0;
-@@ -558,7 +544,7 @@ int fb_find_mode(struct fb_var_screeninf
- 		    break;
- 		case 'x':
- 		    if (!yres_specified) {
--			yres = my_atoi(&name[i+1]);
-+			yres = simple_strtol(&name[i+1], NULL, 10);
- 			yres_specified = 1;
- 		    } else
- 			goto done;
-@@ -586,7 +572,7 @@ int fb_find_mode(struct fb_var_screeninf
- 	    }
- 	}
- 	if (i < 0 && yres_specified) {
--	    xres = my_atoi(name);
-+	    xres = simple_strtol(name, NULL, 10);
- 	    res_specified = 1;
- 	}
- done:
+diff -puN drivers/video/sis/sis_main.c~fbdev-tv_paln-bit-set-twice-in-sisfb_detect_vb_connect drivers/video/sis/sis_main.c
+--- a/drivers/video/sis/sis_main.c~fbdev-tv_paln-bit-set-twice-in-sisfb_detect_vb_connect
++++ a/drivers/video/sis/sis_main.c
+@@ -2115,7 +2115,7 @@ sisfb_detect_VB_connect(struct sis_video
+ 	   if( (!(ivideo->vbflags2 & VB2_SISBRIDGE)) &&
+ 	       (!((ivideo->sisvga_engine == SIS_315_VGA) &&
+ 			(ivideo->vbflags2 & VB2_CHRONTEL))) ) {
+-	      if(ivideo->sisfb_tvstd & (TV_PALN | TV_PALN | TV_NTSCJ)) {
++	      if(ivideo->sisfb_tvstd & (TV_PALM | TV_PALN | TV_NTSCJ)) {
+ 		 ivideo->sisfb_tvstd = -1;
+ 		 printk(KERN_ERR "sisfb: PALM/PALN/NTSCJ not supported\n");
+ 	      }
 _
 
-Patches currently in -mm which might be from ext-andriy.shevchenko@nokia.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 origin.patch
+linux-next.patch
+fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+powerpc-85xx-wrong-variable-returned-on-error.patch
+hidp-ptr_err-return-of-wrong-pointer-in-hidp_setup_hid.patch
+imx-bit-confusion.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
+zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
+ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
+scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
+r8192u_core-test-for-negative-error-in-rtl8192_rx_isr.patch
+keys-ptr_err-return-of-wrong-pointer-in-keyctl_get_security.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+cryptocop-fix-assertion-in-create_output_descriptors.patch
+hvc_console-fix-test-on-unsigned-in-hvc_console_print.patch
+zlib-optimize-inffast-when-copying-direct-from-output.patch
 
