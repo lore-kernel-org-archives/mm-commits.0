@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + nommu-ramfs-remove-unused-local-var.patch added to -mm tree
-Date: Wed, 16 Dec 2009 15:33:39 -0800
-Message-ID: <200912162333.nBGNXd0e022133@imap1.linux-foundation.org>
+Subject: + arch-mips-alchemy-correct-code-taking-the-size-of-a-pointer.patch added to -mm tree
+Date: Wed, 16 Dec 2009 15:53:50 -0800
+Message-ID: <200912162353.nBGNro0u022997@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40941 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35677 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761579AbZLPXeD (ORCPT
+	by vger.kernel.org with ESMTP id S1757719AbZLPXyH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Dec 2009 18:34:03 -0500
+	Wed, 16 Dec 2009 18:54:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vapier@gentoo.org, dhowells@redhat.com, gerg@snapgear.com
+Cc: julia@diku.dk, ralf@linux-mips.org
 
 
 The patch titled
-     nommu: ramfs: remove unused local var
+     arch/mips/alchemy: correct code taking the size of a pointer
 has been added to the -mm tree.  Its filename is
-     nommu-ramfs-remove-unused-local-var.patch
+     arch-mips-alchemy-correct-code-taking-the-size-of-a-pointer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,70 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nommu: ramfs: remove unused local var
-From: Mike Frysinger <vapier@gentoo.org>
+Subject: arch/mips/alchemy: correct code taking the size of a pointer
+From: Julia Lawall <julia@diku.dk>
 
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Greg Ungerer <gerg@snapgear.com>
+sizeof(dp) is just the size of the pointer.  Change it to the size of the
+referenced structure.
+
+A simplified version of the semantic patch that finds this problem is as
+follows: (http://coccinelle.lip6.fr/)
+
+// <smpl>
+@@
+expression *x;
+expression f;
+type T;
+@@
+
+*f(...,(T)x,...)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ramfs/file-nommu.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/mips/alchemy/common/dbdma.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/ramfs/file-nommu.c~nommu-ramfs-remove-unused-local-var fs/ramfs/file-nommu.c
---- a/fs/ramfs/file-nommu.c~nommu-ramfs-remove-unused-local-var
-+++ a/fs/ramfs/file-nommu.c
-@@ -60,7 +60,7 @@ const struct inode_operations ramfs_file
-  */
- int ramfs_nommu_expand_for_mapping(struct inode *inode, size_t newsize)
- {
--	unsigned long npages, xpages, loop, limit;
-+	unsigned long npages, xpages, loop;
- 	struct page *pages;
- 	unsigned order;
- 	void *data;
+diff -puN arch/mips/alchemy/common/dbdma.c~arch-mips-alchemy-correct-code-taking-the-size-of-a-pointer arch/mips/alchemy/common/dbdma.c
+--- a/arch/mips/alchemy/common/dbdma.c~arch-mips-alchemy-correct-code-taking-the-size-of-a-pointer
++++ a/arch/mips/alchemy/common/dbdma.c
+@@ -612,7 +612,7 @@ u32 au1xxx_dbdma_put_source(u32 chanid, 
+ 	dma_cache_wback_inv((unsigned long)buf, nbytes);
+ 	dp->dscr_cmd0 |= DSCR_CMD0_V;	/* Let it rip */
+ 	au_sync();
+-	dma_cache_wback_inv((unsigned long)dp, sizeof(dp));
++	dma_cache_wback_inv((unsigned long)dp, sizeof(*dp));
+ 	ctp->chan_ptr->ddma_dbell = 0;
+ 
+ 	/* Get next descriptor pointer.	*/
+@@ -674,7 +674,7 @@ u32 au1xxx_dbdma_put_dest(u32 chanid, dm
+ 	dma_cache_inv((unsigned long)buf, nbytes);
+ 	dp->dscr_cmd0 |= DSCR_CMD0_V;	/* Let it rip */
+ 	au_sync();
+-	dma_cache_wback_inv((unsigned long)dp, sizeof(dp));
++	dma_cache_wback_inv((unsigned long)dp, sizeof(*dp));
+ 	ctp->chan_ptr->ddma_dbell = 0;
+ 
+ 	/* Get next descriptor pointer.	*/
 _
 
-Patches currently in -mm which might be from vapier@gentoo.org are
+Patches currently in -mm which might be from julia@diku.dk are
 
 origin.patch
-nommu-ramfs-remove-unused-local-var.patch
+drivers-video-via-viafbdevc-correct-code-taking-the-size-of-a-pointer.patch
 linux-next.patch
-documentation-cpu-freq-governorstxt-fix-default-value-for-ondemand-governor.patch
-serial-fit-blackfin-uart-over-sport-driver-into-common-uart-infrastructure.patch
-spidev-add-proper-section-markers.patch
+drivers-media-video-move-dereference-after-null-test.patch
+drivers-isdn-eliminate-duplicated-test.patch
+drivers-scsi-libsas-use-sam_good.patch
+drivers-scsi-remove-unnecessary-null-test.patch
+drivers-message-move-dereference-after-null-test.patch
+drivers-block-dac960c-use-dac960_v2_controller.patch
+drivers-usb-wusbcore-introduce-missing-usb_free_urb.patch
+drivers-usb-gadget-use-err_ptr-is_err.patch
+drivers-edac-introduce-missing-kfree.patch
+arch-mips-alchemy-correct-code-taking-the-size-of-a-pointer.patch
+drivers-usb-correct-code-taking-the-size-of-a-pointer.patch
 
