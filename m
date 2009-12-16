@@ -1,115 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: [folded] arm-nuc900-add-rtc-driver-support-for-nuc910-and-nuc920-v5.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 16:32:14 -0800
-Message-ID: <200912160032.nBG0WEBY023606@imap1.linux-foundation.org>
+Subject: [folded] mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 16:32:55 -0800
+Message-ID: <200912160032.nBG0WtoV023619@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56773 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51025 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756086AbZLPAdX (ORCPT
+	by vger.kernel.org with ESMTP id S1756086AbZLPAdl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 19:33:23 -0500
+	Tue, 15 Dec 2009 19:33:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mcuos.com@gmail.com, a.zummo@towertech.it, david-b@pacbell.net, jack_wang@usish.com, rmk@arm.linux.org.uk, specter118@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, agust@denx.de, krzysztof.h1@poczta.fm, valentin.sitdikov@siemens.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arm-nuc900-add-rtc-driver-support-for-nuc910-and-nuc920-v5.
+     mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix
 has been removed from the -mm tree.  Its filename was
-     arm-nuc900-add-rtc-driver-support-for-nuc910-and-nuc920-v5.patch
+     mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
 
-This patch was dropped because it was folded into arm-nuc900-add-rtc-driver-support-for-nuc910-and-nuc920.patch
+This patch was dropped because it was folded into mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arm-nuc900-add-rtc-driver-support-for-nuc910-and-nuc920-v5.
-From: Wan ZongShun <mcuos.com@gmail.com>
+Subject: mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Regarding your advice for 'check_rtc_power', I have modified some codes
-and thanks for your comment.
+- clean up comments
+- remove do-nothing tests
+- use min()
 
-This patch named v5,and I fixed 'check_rtc_power' function, maybe I can
-make a patch relative to that patch v4?
-
-Signed-off-by: Wan ZongShun <mcuos.com@gmail.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Hu Ruihuan <specter118@gmail.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: "jack wang" <jack_wang@usish.com>
-Cc: David Brownell <david-b@pacbell.net>
+Cc: Anatolij Gustschin <agust@denx.de>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Cc: Valentin Sitdikov <valentin.sitdikov@siemens.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-nuc900.c |   21 ++++++++++++++++-----
- 1 file changed, 16 insertions(+), 5 deletions(-)
+ drivers/video/mb862xx/mb862xxfb_accel.c |   28 ++++++++++++----------
+ 1 file changed, 16 insertions(+), 12 deletions(-)
 
-diff -puN drivers/rtc/rtc-nuc900.c~arm-nuc900-add-rtc-driver-support-for-nuc910-and-nuc920-v5 drivers/rtc/rtc-nuc900.c
---- a/drivers/rtc/rtc-nuc900.c~arm-nuc900-add-rtc-driver-support-for-nuc910-and-nuc920-v5
-+++ a/drivers/rtc/rtc-nuc900.c
-@@ -82,7 +82,7 @@ static irqreturn_t nuc900_rtc_interrupt(
- 	return IRQ_HANDLED;
+diff -puN drivers/video/mb862xx/mb862xxfb_accel.c~mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix drivers/video/mb862xx/mb862xxfb_accel.c
+--- a/drivers/video/mb862xx/mb862xxfb_accel.c~mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix
++++ a/drivers/video/mb862xx/mb862xxfb_accel.c
+@@ -66,8 +66,10 @@ static void mb86290fb_copyarea(struct fb
+ 	mb862xxfb_write_fifo(6, cmd, info);
  }
  
--static void check_rtc_power(struct nuc900_rtc *nuc900_rtc)
-+static int *check_rtc_access_enable(struct nuc900_rtc *nuc900_rtc)
- {
- 	unsigned int i;
- 	__raw_writel(INIRRESET, nuc900_rtc->rtc_reg + REG_RTC_INIR);
-@@ -91,10 +91,15 @@ static void check_rtc_power(struct nuc90
- 
- 	__raw_writel(AERPOWERON, nuc900_rtc->rtc_reg + REG_RTC_AER);
- 
--	for (i = 0; i < 1000000; i++) {
-+	for (i = 0; i < 1000; i++) {
- 		if (__raw_readl(nuc900_rtc->rtc_reg + REG_RTC_AER) & AERRWENB)
--			break;
-+			return 0;
+-/* Fill in the cmd array /GDC FIFO commands/ to draw a 1bit image.
+- * Make sure cmd has enough room! */
++/*
++ * Fill in the cmd array /GDC FIFO commands/ to draw a 1bit image.
++ * Make sure cmd has enough room!
++ */
+ static void mb86290fb_imageblit1(u32 *cmd, u16 step, u16 dx, u16 dy,
+ 				 u16 width, u16 height, u32 fgcolor,
+ 				 u32 bgcolor, const struct fb_image *image,
+@@ -113,8 +115,10 @@ static void mb86290fb_imageblit1(u32 *cm
  	}
-+
-+	if ((__raw_readl(nuc900_rtc->rtc_reg + REG_RTC_AER) & AERRWENB) == 0x0)
-+		return ERR_PTR(-ENODEV);
-+
-+	return ERR_PTR(-EPERM);
  }
  
- static void nuc900_rtc_bcd2bin(unsigned int timereg,
-@@ -169,10 +174,13 @@ static int nuc900_rtc_set_time(struct de
- 	struct nuc900_rtc *rtc = dev_get_drvdata(dev);
- 	struct nuc900_bcd_time gettm;
- 	unsigned long val;
-+	int *err;
+-/* Fill in the cmd array /GDC FIFO commands/ to draw a 8bit image.
+- * Make sure cmd has enough room! */
++/*
++ * Fill in the cmd array /GDC FIFO commands/ to draw a 8bit image.
++ * Make sure cmd has enough room!
++ */
+ static void mb86290fb_imageblit8(u32 *cmd, u16 step, u16 dx, u16 dy,
+ 				 u16 width, u16 height, u32 fgcolor,
+ 				 u32 bgcolor, const struct fb_image *image,
+@@ -150,8 +154,10 @@ static void mb86290fb_imageblit8(u32 *cm
+ 	}
+ }
  
- 	nuc900_rtc_bin2bcd(tm, &gettm);
+-/* Fill in the cmd array /GDC FIFO commands/ to draw a 16bit image.
+- * Make sure cmd has enough room! */
++/*
++ * Fill in the cmd array /GDC FIFO commands/ to draw a 16bit image.
++ * Make sure cmd has enough room!
++ */
+ static void mb86290fb_imageblit16(u32 *cmd, u16 step, u16 dx, u16 dy,
+ 				  u16 width, u16 height, u32 fgcolor,
+ 				  u32 bgcolor, const struct fb_image *image,
+@@ -195,12 +201,10 @@ static void mb86290fb_imageblit(struct f
+ 	mdr = (GDC_ROP_COPY << 9);
+ 	x2 = image->dx + image->width;
+ 	y2 = image->dy + image->height;
+-	dx = image->dx > 0 ? image->dx : 0;
+-	dy = image->dy > 0 ? image->dy : 0;
+ 	vxres = info->var.xres_virtual;
+ 	vyres = info->var.yres_virtual;
+-	x2 = x2 < vxres ? x2 : vxres;
+-	y2 = y2 < vyres ? y2 : vyres;
++	x2 = min(x2, vxres);
++	y2 = min(y2, vyres);
+ 	width = x2 - dx;
+ 	height = y2 - dy;
  
--	check_rtc_power(rtc);
-+	err = check_rtc_access_enable(rtc);
-+	if (IS_ERR(err))
-+		return PTR_ERR(err);
- 
- 	val = gettm.bcd_mday | gettm.bcd_mon | gettm.bcd_year;
- 	__raw_writel(val, rtc->rtc_reg + REG_RTC_CLR);
-@@ -201,10 +209,13 @@ static int nuc900_rtc_set_alarm(struct d
- 	struct nuc900_rtc *rtc = dev_get_drvdata(dev);
- 	struct nuc900_bcd_time tm;
- 	unsigned long val;
-+	int *err;
- 
- 	nuc900_rtc_bin2bcd(&alrm->time, &tm);
- 
--	check_rtc_power(rtc);
-+	err = check_rtc_access_enable(rtc);
-+	if (IS_ERR(err))
-+		return PTR_ERR(err);
- 
- 	val = tm.bcd_mday | tm.bcd_mon | tm.bcd_year;
- 	__raw_writel(val, rtc->rtc_reg + REG_RTC_CAR);
+@@ -265,8 +269,8 @@ static void mb86290fb_fillrect(struct fb
+ 	 * hardware clipping by writing to framebuffer directly. */
+ 	x2 = rect->dx + rect->width;
+ 	y2 = rect->dy + rect->height;
+-	x2 = x2 < vxres ? x2 : vxres;
+-	y2 = y2 < vyres ? y2 : vyres;
++	x2 = min(x2, vxres);
++	y2 = min(y2, vyres);
+ 	width = x2 - rect->dx;
+ 	height = y2 - rect->dy;
+ 	if (info->fix.visual == FB_VISUAL_TRUECOLOR ||
 _
 
-Patches currently in -mm which might be from mcuos.com@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-arm-nuc900-add-rtc-driver-support-for-nuc910-and-nuc920.patch
-arm-nuc900-add-rtc-driver-support-for-nuc910-and-nuc920-v5.patch
+oom-kill-fix-numa-consraint-check-with-nodemask-v42.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3.patch
+ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
+memcg-coalesce-charging-via-percpu-storage-fix.patch
+memcg-code-cleanrm-unused-variable-in-mem_cgroup_resize_limit-cleanup.patch
+ipc-remove-unreachable-code-in-semc-fix.patch
+fs-cache-avoid-maybe-used-uninitialised-warning-on-variable.patch
+aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
+direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
 
