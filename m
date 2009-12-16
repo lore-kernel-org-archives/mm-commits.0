@@ -1,125 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ipc-semc-sem-preempt-improve.patch removed from -mm tree
-Date: Wed, 16 Dec 2009 12:38:39 -0800
-Message-ID: <200912162038.nBGKcdXK013453@imap1.linux-foundation.org>
+Subject: [merged] ptrace-x86-implement-user_single_step_siginfo.patch removed from -mm tree
+Date: Wed, 16 Dec 2009 12:38:09 -0800
+Message-ID: <200912162038.nBGKc97h013404@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47580 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49851 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964971AbZLPUip (ORCPT
+	by vger.kernel.org with ESMTP id S964950AbZLPUir (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Dec 2009 15:38:45 -0500
+	Wed, 16 Dec 2009 15:38:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, manfred@colorfullife.com, peifferp@gmail.com, mm-commits@vger.kernel.org
+To: oleg@redhat.com, hpa@zytor.com, linux-arch@vger.kernel.org, mingo@elte.hu, roland@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ipc/sem.c: sem preempt improve
+     ptrace: x86: implement user_single_step_siginfo()
 has been removed from the -mm tree.  Its filename was
-     ipc-semc-sem-preempt-improve.patch
+     ptrace-x86-implement-user_single_step_siginfo.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ipc/sem.c: sem preempt improve
-From: Nick Piggin <npiggin@suse.de>
+Subject: ptrace: x86: implement user_single_step_siginfo()
+From: Oleg Nesterov <oleg@redhat.com>
 
-The strange sysv semaphore wakeup scheme has a kind of busy-wait lock
-involved, which could deadlock if preemption is enabled during the "lock".
+Suggested by Roland.
 
-It is an implementation detail (due to a spinlock being held) that this is
-actually the case.  However if "spinlocks" are made preemptible, or if the
-sem lock is changed to a sleeping lock for example, then the wakeup would
-become buggy.  So this might be a bugfix for -rt kernels.
+Implement user_single_step_siginfo() for x86.  Extract this code from
+send_sigtrap().
 
-Imagine waker being preempted by wakee and never clearing IN_WAKEUP -- if
-wakee has higher RT priority then there is a priority inversion deadlock. 
-Even if there is not a priority inversion to cause a deadlock, then there
-is still time wasted spinning.
+Since x86 calls tracehook_report_syscall_exit(step => 0) the new helper is
+not used yet.
 
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
-Cc: Pierre Peiffer <peifferp@gmail.com>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Roland McGrath <roland@redhat.com>
+Cc: <linux-arch@vger.kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c |   38 +++++++++++++++++++++++---------------
- 1 file changed, 23 insertions(+), 15 deletions(-)
+ arch/x86/include/asm/ptrace.h |    2 ++
+ arch/x86/kernel/ptrace.c      |   30 +++++++++++++++++++++---------
+ 2 files changed, 23 insertions(+), 9 deletions(-)
 
-diff -puN ipc/sem.c~ipc-semc-sem-preempt-improve ipc/sem.c
---- a/ipc/sem.c~ipc-semc-sem-preempt-improve
-+++ a/ipc/sem.c
-@@ -398,6 +398,27 @@ undo:
- 	return result;
+diff -puN arch/x86/include/asm/ptrace.h~ptrace-x86-implement-user_single_step_siginfo arch/x86/include/asm/ptrace.h
+--- a/arch/x86/include/asm/ptrace.h~ptrace-x86-implement-user_single_step_siginfo
++++ a/arch/x86/include/asm/ptrace.h
+@@ -292,6 +292,8 @@ extern void user_enable_block_step(struc
+ #define arch_has_block_step()	(boot_cpu_data.x86 >= 6)
+ #endif
+ 
++#define ARCH_HAS_USER_SINGLE_STEP_INFO
++
+ struct user_desc;
+ extern int do_get_thread_area(struct task_struct *p, int idx,
+ 			      struct user_desc __user *info);
+diff -puN arch/x86/kernel/ptrace.c~ptrace-x86-implement-user_single_step_siginfo arch/x86/kernel/ptrace.c
+--- a/arch/x86/kernel/ptrace.c~ptrace-x86-implement-user_single_step_siginfo
++++ a/arch/x86/kernel/ptrace.c
+@@ -1676,21 +1676,33 @@ const struct user_regset_view *task_user
+ #endif
  }
  
-+/*
-+ * Wake up a process waiting on the sem queue with a given error.
-+ * The queue is invalid (may not be accessed) after the function returns.
-+ */
-+static void wake_up_sem_queue(struct sem_queue *q, int error)
-+{
-+	/*
-+	 * Hold preempt off so that we don't get preempted and have the
-+	 * wakee busy-wait until we're scheduled back on. We're holding
-+	 * locks here so it may not strictly be needed, however if the
-+	 * locks become preemptible then this prevents such a problem.
-+	 */
-+	preempt_disable();
-+	q->status = IN_WAKEUP;
-+	wake_up_process(q->sleeper);
-+	/* hands-off: q can disappear immediately after writing q->status. */
-+	smp_wmb();
-+	q->status = error;
-+	preempt_enable();
+-void send_sigtrap(struct task_struct *tsk, struct pt_regs *regs,
+-					 int error_code, int si_code)
++static void fill_sigtrap_info(struct task_struct *tsk,
++				struct pt_regs *regs,
++				int error_code, int si_code,
++				struct siginfo *info)
+ {
+-	struct siginfo info;
+-
+ 	tsk->thread.trap_no = 1;
+ 	tsk->thread.error_code = error_code;
+ 
+-	memset(&info, 0, sizeof(info));
+-	info.si_signo = SIGTRAP;
+-	info.si_code = si_code;
++	memset(info, 0, sizeof(*info));
++	info->si_signo = SIGTRAP;
++	info->si_code = si_code;
++	info->si_addr = user_mode_vm(regs) ? (void __user *)regs->ip : NULL;
 +}
 +
- /* Go through the pending queue for the indicated semaphore
-  * looking for tasks that can be completed.
-  */
-@@ -429,17 +450,7 @@ again:
- 		 *   continue.
- 		 */
- 		alter = q->alter;
--
--		/* wake up the waiting thread */
--		q->status = IN_WAKEUP;
--
--		wake_up_process(q->sleeper);
--		/* hands-off: q will disappear immediately after
--		 * writing q->status.
--		 */
--		smp_wmb();
--		q->status = error;
--
-+		wake_up_sem_queue(q, error);
- 		if (alter)
- 			goto again;
- 	}
-@@ -523,10 +534,7 @@ static void freeary(struct ipc_namespace
- 	list_for_each_entry_safe(q, tq, &sma->sem_pending, list) {
- 		list_del(&q->list);
++void user_single_step_siginfo(struct task_struct *tsk,
++				struct pt_regs *regs,
++				struct siginfo *info)
++{
++	fill_sigtrap_info(tsk, regs, 0, TRAP_BRKPT, info);
++}
  
--		q->status = IN_WAKEUP;
--		wake_up_process(q->sleeper); /* doesn't sleep */
--		smp_wmb();
--		q->status = -EIDRM;	/* hands-off q */
-+		wake_up_sem_queue(q, -EIDRM);
- 	}
+-	/* User-mode ip? */
+-	info.si_addr = user_mode_vm(regs) ? (void __user *) regs->ip : NULL;
++void send_sigtrap(struct task_struct *tsk, struct pt_regs *regs,
++					 int error_code, int si_code)
++{
++	struct siginfo info;
  
- 	/* Remove the semaphore set from the IDR */
++	fill_sigtrap_info(tsk, regs, error_code, si_code, &info);
+ 	/* Send us the fake SIGTRAP */
+ 	force_sig_info(SIGTRAP, &info, tsk);
+ }
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 origin.patch
+do_wait-optimization-do-not-place-sub-threads-on-task_struct-children-list.patch
+mm-introduce-coredump-parameter-structure.patch
 linux-next.patch
-fs-anon_inodes-implement-dname.patch
-fs-remove-unneeded-dcache_unhashed-tricks.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-reiser4.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
+posix-cpu-timers-reset-expire-cache-when-no-timer-is-running.patch
 
