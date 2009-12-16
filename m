@@ -1,34 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: [merged] autofs4-use-helper-functions-for-active-list-handling.patch removed from -mm tree
-Date: Wed, 16 Dec 2009 12:33:38 -0800
-Message-ID: <200912162033.nBGKXcD0012952@imap1.linux-foundation.org>
+Subject: [merged] autofs4-renamer-unhashed-to-active-in-autofs4_lookup.patch removed from -mm tree
+Date: Wed, 16 Dec 2009 12:33:50 -0800
+Message-ID: <200912162033.nBGKXodw012978@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41433 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47286 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754262AbZLPUd4 (ORCPT
+	by vger.kernel.org with ESMTP id S1762996AbZLPUeC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Dec 2009 15:33:56 -0500
+	Wed, 16 Dec 2009 15:34:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: raven@themaw.net, adilger@sun.com, hch@infradead.org, sage@newdream.net, viro@ZenIV.linux.org.uk, yehuda@newdream.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     autofs4: use helper functions for active list handling
+     autofs4: renamer unhashed to active in autofs4_lookup()
 has been removed from the -mm tree.  Its filename was
-     autofs4-use-helper-functions-for-active-list-handling.patch
+     autofs4-renamer-unhashed-to-active-in-autofs4_lookup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: autofs4: use helper functions for active list handling
+Subject: autofs4: renamer unhashed to active in autofs4_lookup()
 From: Ian Kent <raven@themaw.net>
 
-Define some simple helper functions for adding and deleting entries on the
-active (and unhashed) dentry list.
+Rename the variable unhashed to active in autofs4_lookup() to better
+reflect its usage.
 
 Signed-off-by: Ian Kent <raven@themaw.net>
 Cc: Sage Weil <sage@newdream.net>
@@ -39,111 +39,64 @@ Cc: Yehuda Saheh <yehuda@newdream.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/autofs_i.h |    2 +
- fs/autofs4/inode.c    |    1 
- fs/autofs4/root.c     |   46 ++++++++++++++++++++++++++++++----------
- 3 files changed, 38 insertions(+), 11 deletions(-)
+ fs/autofs4/root.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN fs/autofs4/autofs_i.h~autofs4-use-helper-functions-for-active-list-handling fs/autofs4/autofs_i.h
---- a/fs/autofs4/autofs_i.h~autofs4-use-helper-functions-for-active-list-handling
-+++ a/fs/autofs4/autofs_i.h
-@@ -75,6 +75,8 @@ struct autofs_info {
- 	struct completion expire_complete;
- 
- 	struct list_head active;
-+	int active_count;
-+
- 	struct list_head expiring;
- 
- 	struct autofs_sb_info *sbi;
-diff -puN fs/autofs4/inode.c~autofs4-use-helper-functions-for-active-list-handling fs/autofs4/inode.c
---- a/fs/autofs4/inode.c~autofs4-use-helper-functions-for-active-list-handling
-+++ a/fs/autofs4/inode.c
-@@ -49,6 +49,7 @@ struct autofs_info *autofs4_init_ino(str
- 		ino->dentry = NULL;
- 		ino->size = 0;
- 		INIT_LIST_HEAD(&ino->active);
-+		ino->active_count = 0;
- 		INIT_LIST_HEAD(&ino->expiring);
- 		atomic_set(&ino->count, 0);
- 	}
-diff -puN fs/autofs4/root.c~autofs4-use-helper-functions-for-active-list-handling fs/autofs4/root.c
---- a/fs/autofs4/root.c~autofs4-use-helper-functions-for-active-list-handling
+diff -puN fs/autofs4/root.c~autofs4-renamer-unhashed-to-active-in-autofs4_lookup fs/autofs4/root.c
+--- a/fs/autofs4/root.c~autofs4-renamer-unhashed-to-active-in-autofs4_lookup
 +++ a/fs/autofs4/root.c
-@@ -72,6 +72,38 @@ const struct inode_operations autofs4_di
- 	.rmdir		= autofs4_dir_rmdir,
- };
- 
-+static void autofs4_add_active(struct dentry *dentry)
-+{
-+	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
-+	struct autofs_info *ino = autofs4_dentry_ino(dentry);
-+	if (ino) {
-+		spin_lock(&sbi->lookup_lock);
-+		if (!ino->active_count) {
-+			if (list_empty(&ino->active))
-+				list_add(&ino->active, &sbi->active_list);
-+		}
-+		ino->active_count++;
-+		spin_unlock(&sbi->lookup_lock);
-+	}
-+	return;
-+}
-+
-+static void autofs4_del_active(struct dentry *dentry)
-+{
-+	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
-+	struct autofs_info *ino = autofs4_dentry_ino(dentry);
-+	if (ino) {
-+		spin_lock(&sbi->lookup_lock);
-+		ino->active_count--;
-+		if (!ino->active_count) {
-+			if (!list_empty(&ino->active))
-+				list_del_init(&ino->active);
-+		}
-+		spin_unlock(&sbi->lookup_lock);
-+	}
-+	return;
-+}
-+
- static int autofs4_dir_open(struct inode *inode, struct file *file)
+@@ -514,7 +514,7 @@ static struct dentry *autofs4_lookup(str
  {
- 	struct dentry *dentry = file->f_path.dentry;
-@@ -513,9 +545,7 @@ static struct dentry *autofs4_lookup(str
- 		dentry->d_fsdata = ino;
- 		ino->dentry = dentry;
+ 	struct autofs_sb_info *sbi;
+ 	struct autofs_info *ino;
+-	struct dentry *expiring, *unhashed;
++	struct dentry *expiring, *active;
+ 	int oz_mode;
  
--		spin_lock(&sbi->lookup_lock);
--		list_add(&ino->active, &sbi->active_list);
--		spin_unlock(&sbi->lookup_lock);
-+		autofs4_add_active(dentry);
+ 	DPRINTK("name = %.*s",
+@@ -530,9 +530,9 @@ static struct dentry *autofs4_lookup(str
+ 	DPRINTK("pid = %u, pgrp = %u, catatonic = %d, oz_mode = %d",
+ 		 current->pid, task_pgrp_nr(current), sbi->catatonic, oz_mode);
  
- 		d_instantiate(dentry, NULL);
+-	unhashed = autofs4_lookup_active(sbi, dentry->d_parent, &dentry->d_name);
+-	if (unhashed) {
+-		dentry = unhashed;
++	active = autofs4_lookup_active(sbi, dentry->d_parent, &dentry->d_name);
++	if (active) {
++		dentry = active;
+ 		ino = autofs4_dentry_ino(dentry);
+ 	} else {
+ 		/*
+@@ -600,8 +600,8 @@ static struct dentry *autofs4_lookup(str
+ 			if (sigismember (sigset, SIGKILL) ||
+ 			    sigismember (sigset, SIGQUIT) ||
+ 			    sigismember (sigset, SIGINT)) {
+-			    if (unhashed)
+-				dput(unhashed);
++			    if (active)
++				dput(active);
+ 			    return ERR_PTR(-ERESTARTNOINTR);
+ 			}
+ 		}
+@@ -633,14 +633,14 @@ static struct dentry *autofs4_lookup(str
+ 		else
+ 			dentry = ERR_PTR(-ENOENT);
+ 
+-		if (unhashed)
+-			dput(unhashed);
++		if (active)
++			dput(active);
+ 
+ 		return dentry;
  	}
-@@ -624,10 +654,7 @@ static int autofs4_dir_symlink(struct in
- 	if (!ino)
- 		return -ENOMEM;
  
--	spin_lock(&sbi->lookup_lock);
--	if (!list_empty(&ino->active))
--		list_del_init(&ino->active);
--	spin_unlock(&sbi->lookup_lock);
-+	autofs4_del_active(dentry);
+-	if (unhashed)
+-		return unhashed;
++	if (active)
++		return active;
  
- 	ino->size = strlen(symname);
- 	cp = kmalloc(ino->size + 1, GFP_KERNEL);
-@@ -775,10 +802,7 @@ static int autofs4_dir_mkdir(struct inod
- 	if (!ino)
- 		return -ENOMEM;
- 
--	spin_lock(&sbi->lookup_lock);
--	if (!list_empty(&ino->active))
--		list_del_init(&ino->active);
--	spin_unlock(&sbi->lookup_lock);
-+	autofs4_del_active(dentry);
- 
- 	inode = autofs4_get_inode(dir->i_sb, ino);
- 	if (!inode) {
+ 	return NULL;
+ }
 _
 
 Patches currently in -mm which might be from raven@themaw.net are
