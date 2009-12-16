@@ -1,444 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: [merged] gru-allow-users-to-specify-gru-chiplet-2.patch removed from -mm tree
-Date: Wed, 16 Dec 2009 12:40:20 -0800
-Message-ID: <200912162040.nBGKeKfo013629@imap1.linux-foundation.org>
+Subject: [merged] gru-fix-bug-in-module-unload.patch removed from -mm tree
+Date: Wed, 16 Dec 2009 12:40:25 -0800
+Message-ID: <200912162040.nBGKeP1e013636@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60429 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44842 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965007AbZLPUkX (ORCPT
+	by vger.kernel.org with ESMTP id S965015AbZLPUk2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Dec 2009 15:40:23 -0500
+	Wed, 16 Dec 2009 15:40:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: steiner@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gru: allow users to specify gru chiplet 2
+     gru: fix bug in module unload
 has been removed from the -mm tree.  Its filename was
-     gru-allow-users-to-specify-gru-chiplet-2.patch
+     gru-fix-bug-in-module-unload.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gru: allow users to specify gru chiplet 2
+Subject: gru: fix bug in module unload
 From: Jack Steiner <steiner@sgi.com>
 
-Add support to the GRU driver to allow users to specify the blade &
-chiplet for allocation of GRU contexts.  Add new statistics for context
-loading/unloading/retargeting.  Also deleted a few GRU stats that were no
-longer being unused.
+Fix bug in module unload.  Previous code was not correctly deleting the
+files in /proc.
 
 Signed-off-by: Jack Steiner <steiner@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-gru/grufault.c     |   13 --
- drivers/misc/sgi-gru/grufile.c      |   15 +--
- drivers/misc/sgi-gru/grukservices.c |    8 +
- drivers/misc/sgi-gru/grumain.c      |  128 +++++++++++++++++---------
- drivers/misc/sgi-gru/gruprocfs.c    |    9 -
- drivers/misc/sgi-gru/grutables.h    |   16 +--
- 6 files changed, 109 insertions(+), 80 deletions(-)
+ drivers/misc/sgi-gru/gruprocfs.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/misc/sgi-gru/grufault.c~gru-allow-users-to-specify-gru-chiplet-2 drivers/misc/sgi-gru/grufault.c
---- a/drivers/misc/sgi-gru/grufault.c~gru-allow-users-to-specify-gru-chiplet-2
-+++ a/drivers/misc/sgi-gru/grufault.c
-@@ -546,17 +546,7 @@ int gru_handle_user_call_os(unsigned lon
- 	if (ucbnum >= gts->ts_cbr_au_count * GRU_CBR_AU_SIZE)
- 		goto exit;
- 
--	/*
--	 * If force_unload is set, the UPM TLB fault is phony. The task
--	 * has migrated to another node and the GSEG must be moved. Just
--	 * unload the context. The task will page fault and assign a new
--	 * context.
--	 */
--	if (gts->ts_tgid_owner == current->tgid && gts->ts_blade >= 0 &&
--				gts->ts_blade != uv_numa_blade_id()) {
--		STAT(call_os_offnode_reference);
--		gts->ts_force_unload = 1;
--	}
-+	gru_check_context_placement(gts);
- 
- 	/*
- 	 * CCH may contain stale data if ts_force_cch_reload is set.
-@@ -771,6 +761,7 @@ int gru_set_context_option(unsigned long
- 		} else {
- 			gts->ts_user_blade_id = req.val1;
- 			gts->ts_user_chiplet_id = req.val0;
-+			gru_check_context_placement(gts);
- 		}
- 		break;
- 	case sco_gseg_owner:
-diff -puN drivers/misc/sgi-gru/grufile.c~gru-allow-users-to-specify-gru-chiplet-2 drivers/misc/sgi-gru/grufile.c
---- a/drivers/misc/sgi-gru/grufile.c~gru-allow-users-to-specify-gru-chiplet-2
-+++ a/drivers/misc/sgi-gru/grufile.c
-@@ -232,23 +232,24 @@ static long gru_file_unlocked_ioctl(stru
-  * system.
-  */
- static void gru_init_chiplet(struct gru_state *gru, unsigned long paddr,
--			     void *vaddr, int nid, int bid, int grunum)
-+			     void *vaddr, int blade_id, int chiplet_id)
- {
- 	spin_lock_init(&gru->gs_lock);
- 	spin_lock_init(&gru->gs_asid_lock);
- 	gru->gs_gru_base_paddr = paddr;
- 	gru->gs_gru_base_vaddr = vaddr;
--	gru->gs_gid = bid * GRU_CHIPLETS_PER_BLADE + grunum;
--	gru->gs_blade = gru_base[bid];
--	gru->gs_blade_id = bid;
-+	gru->gs_gid = blade_id * GRU_CHIPLETS_PER_BLADE + chiplet_id;
-+	gru->gs_blade = gru_base[blade_id];
-+	gru->gs_blade_id = blade_id;
-+	gru->gs_chiplet_id = chiplet_id;
- 	gru->gs_cbr_map = (GRU_CBR_AU == 64) ? ~0 : (1UL << GRU_CBR_AU) - 1;
- 	gru->gs_dsr_map = (1UL << GRU_DSR_AU) - 1;
- 	gru->gs_asid_limit = MAX_ASID;
- 	gru_tgh_flush_init(gru);
- 	if (gru->gs_gid >= gru_max_gids)
- 		gru_max_gids = gru->gs_gid + 1;
--	gru_dbg(grudev, "bid %d, nid %d, gid %d, vaddr %p (0x%lx)\n",
--		bid, nid, gru->gs_gid, gru->gs_gru_base_vaddr,
-+	gru_dbg(grudev, "bid %d, gid %d, vaddr %p (0x%lx)\n",
-+		blade_id, gru->gs_gid, gru->gs_gru_base_vaddr,
- 		gru->gs_gru_base_paddr);
- }
- 
-@@ -283,7 +284,7 @@ static int gru_init_tables(unsigned long
- 				chip++, gru++) {
- 			paddr = gru_chiplet_paddr(gru_base_paddr, pnode, chip);
- 			vaddr = gru_chiplet_vaddr(gru_base_vaddr, pnode, chip);
--			gru_init_chiplet(gru, paddr, vaddr, nid, bid, chip);
-+			gru_init_chiplet(gru, paddr, vaddr, bid, chip);
- 			n = hweight64(gru->gs_cbr_map) * GRU_CBR_AU_SIZE;
- 			cbrs = max(cbrs, n);
- 			n = hweight64(gru->gs_dsr_map) * GRU_DSR_AU_BYTES;
-diff -puN drivers/misc/sgi-gru/grukservices.c~gru-allow-users-to-specify-gru-chiplet-2 drivers/misc/sgi-gru/grukservices.c
---- a/drivers/misc/sgi-gru/grukservices.c~gru-allow-users-to-specify-gru-chiplet-2
-+++ a/drivers/misc/sgi-gru/grukservices.c
-@@ -160,8 +160,10 @@ static void gru_load_kernel_context(stru
- 	up_read(&bs->bs_kgts_sema);
- 	down_write(&bs->bs_kgts_sema);
- 
--	if (!bs->bs_kgts)
-+	if (!bs->bs_kgts) {
- 		bs->bs_kgts = gru_alloc_gts(NULL, 0, 0, 0, 0);
-+		bs->bs_kgts->ts_user_blade_id = blade_id;
-+	}
- 	kgts = bs->bs_kgts;
- 
- 	if (!kgts->ts_gru) {
-@@ -172,9 +174,9 @@ static void gru_load_kernel_context(stru
- 		kgts->ts_dsr_au_count = GRU_DS_BYTES_TO_AU(
- 			GRU_NUM_KERNEL_DSR_BYTES * ncpus +
- 				bs->bs_async_dsr_bytes);
--		while (!gru_assign_gru_context(kgts, blade_id)) {
-+		while (!gru_assign_gru_context(kgts)) {
- 			msleep(1);
--			gru_steal_context(kgts, blade_id);
-+			gru_steal_context(kgts);
- 		}
- 		gru_load_context(kgts);
- 		gru = bs->bs_kgts->ts_gru;
-diff -puN drivers/misc/sgi-gru/grumain.c~gru-allow-users-to-specify-gru-chiplet-2 drivers/misc/sgi-gru/grumain.c
---- a/drivers/misc/sgi-gru/grumain.c~gru-allow-users-to-specify-gru-chiplet-2
-+++ a/drivers/misc/sgi-gru/grumain.c
-@@ -684,6 +684,40 @@ static int gru_retarget_intr(struct gru_
- 	return gru_update_cch(gts, 0);
- }
- 
-+/*
-+ * Unload the gru context if it is not assigned to the correct blade or
-+ * chiplet. Misassignment can occur if the process migrates to a different
-+ * blade or if the user changes the selected blade/chiplet.
-+ * 	Return 0 if  context correct placed, otherwise 1
-+ */
-+void gru_check_context_placement(struct gru_thread_state *gts)
-+{
-+	struct gru_state *gru;
-+	int blade_id, chiplet_id;
-+
-+	/*
-+	 * If the current task is the context owner, verify that the
-+	 * context is correctly placed. This test is skipped for non-owner
-+	 * references. Pthread apps use non-owner references to the CBRs.
-+	 */
-+	gru = gts->ts_gru;
-+	if (!gru || gts->ts_tgid_owner != current->tgid)
-+		return;
-+
-+	blade_id = gts->ts_user_blade_id;
-+	if (blade_id < 0)
-+		blade_id = uv_numa_blade_id();
-+
-+	chiplet_id = gts->ts_user_chiplet_id;
-+	if (gru->gs_blade_id != blade_id ||
-+	    (chiplet_id >= 0 && chiplet_id != gru->gs_chiplet_id)) {
-+		STAT(check_context_unload);
-+		gru_unload_context(gts, 1);
-+	} else if (gru_retarget_intr(gts)) {
-+		STAT(check_context_retarget_intr);
-+	}
-+}
-+
- 
- /*
-  * Insufficient GRU resources available on the local blade. Steal a context from
-@@ -714,13 +748,17 @@ static void gts_stolen(struct gru_thread
- 	}
- }
- 
--void gru_steal_context(struct gru_thread_state *gts, int blade_id)
-+void gru_steal_context(struct gru_thread_state *gts)
- {
- 	struct gru_blade_state *blade;
- 	struct gru_state *gru, *gru0;
- 	struct gru_thread_state *ngts = NULL;
- 	int ctxnum, ctxnum0, flag = 0, cbr, dsr;
-+	int blade_id = gts->ts_user_blade_id;
-+	int chiplet_id = gts->ts_user_chiplet_id;
- 
-+	if (blade_id < 0)
-+		blade_id = uv_numa_blade_id();
- 	cbr = gts->ts_cbr_au_count;
- 	dsr = gts->ts_dsr_au_count;
- 
-@@ -731,35 +769,39 @@ void gru_steal_context(struct gru_thread
- 	gru = blade->bs_lru_gru;
- 	if (ctxnum == 0)
- 		gru = next_gru(blade, gru);
-+	blade->bs_lru_gru = gru;
-+	blade->bs_lru_ctxnum = ctxnum;
- 	ctxnum0 = ctxnum;
- 	gru0 = gru;
- 	while (1) {
--		if (check_gru_resources(gru, cbr, dsr, GRU_NUM_CCH))
--			break;
--		spin_lock(&gru->gs_lock);
--		for (; ctxnum < GRU_NUM_CCH; ctxnum++) {
--			if (flag && gru == gru0 && ctxnum == ctxnum0)
-+		if (chiplet_id < 0 || chiplet_id == gru->gs_chiplet_id) {
-+			if (check_gru_resources(gru, cbr, dsr, GRU_NUM_CCH))
- 				break;
--			ngts = gru->gs_gts[ctxnum];
--			/*
--			 * We are grabbing locks out of order, so trylock is
--			 * needed. GTSs are usually not locked, so the odds of
--			 * success are high. If trylock fails, try to steal a
--			 * different GSEG.
--			 */
--			if (ngts && is_gts_stealable(ngts, blade))
-+			spin_lock(&gru->gs_lock);
-+			for (; ctxnum < GRU_NUM_CCH; ctxnum++) {
-+				if (flag && gru == gru0 && ctxnum == ctxnum0)
-+					break;
-+				ngts = gru->gs_gts[ctxnum];
-+				/*
-+			 	* We are grabbing locks out of order, so trylock is
-+			 	* needed. GTSs are usually not locked, so the odds of
-+			 	* success are high. If trylock fails, try to steal a
-+			 	* different GSEG.
-+			 	*/
-+				if (ngts && is_gts_stealable(ngts, blade))
-+					break;
-+				ngts = NULL;
-+			}
-+			spin_unlock(&gru->gs_lock);
-+			if (ngts || (flag && gru == gru0 && ctxnum == ctxnum0))
- 				break;
--			ngts = NULL;
--			flag = 1;
- 		}
--		spin_unlock(&gru->gs_lock);
--		if (ngts || (flag && gru == gru0 && ctxnum == ctxnum0))
-+		if (flag && gru == gru0)
- 			break;
-+		flag = 1;
- 		ctxnum = 0;
- 		gru = next_gru(blade, gru);
- 	}
--	blade->bs_lru_gru = gru;
--	blade->bs_lru_ctxnum = ctxnum;
- 	spin_unlock(&blade->bs_lock);
- 
- 	if (ngts) {
-@@ -778,19 +820,35 @@ void gru_steal_context(struct gru_thread
- }
- 
- /*
-+ * Assign a gru context.
-+ */
-+static int gru_assign_context_number(struct gru_state *gru)
-+{
-+	int ctxnum;
-+
-+	ctxnum = find_first_zero_bit(&gru->gs_context_map, GRU_NUM_CCH);
-+	__set_bit(ctxnum, &gru->gs_context_map);
-+	return ctxnum;
-+}
-+
-+/*
-  * Scan the GRUs on the local blade & assign a GRU context.
-  */
--struct gru_state *gru_assign_gru_context(struct gru_thread_state *gts,
--						int blade)
-+struct gru_state *gru_assign_gru_context(struct gru_thread_state *gts)
- {
- 	struct gru_state *gru, *grux;
- 	int i, max_active_contexts;
-+	int blade_id = gts->ts_user_blade_id;
-+	int chiplet_id = gts->ts_user_chiplet_id;
- 
--
-+	if (blade_id < 0)
-+		blade_id = uv_numa_blade_id();
- again:
- 	gru = NULL;
- 	max_active_contexts = GRU_NUM_CCH;
--	for_each_gru_on_blade(grux, blade, i) {
-+	for_each_gru_on_blade(grux, blade_id, i) {
-+		if (chiplet_id >= 0 && chiplet_id != grux->gs_chiplet_id)
-+			continue;
- 		if (check_gru_resources(grux, gts->ts_cbr_au_count,
- 					gts->ts_dsr_au_count,
- 					max_active_contexts)) {
-@@ -811,12 +869,9 @@ again:
- 		reserve_gru_resources(gru, gts);
- 		gts->ts_gru = gru;
- 		gts->ts_blade = gru->gs_blade_id;
--		gts->ts_ctxnum =
--		    find_first_zero_bit(&gru->gs_context_map, GRU_NUM_CCH);
--		BUG_ON(gts->ts_ctxnum == GRU_NUM_CCH);
-+		gts->ts_ctxnum = gru_assign_context_number(gru);
- 		atomic_inc(&gts->ts_refcnt);
- 		gru->gs_gts[gts->ts_ctxnum] = gts;
--		__set_bit(gts->ts_ctxnum, &gru->gs_context_map);
- 		spin_unlock(&gru->gs_lock);
- 
- 		STAT(assign_context);
-@@ -844,7 +899,6 @@ int gru_fault(struct vm_area_struct *vma
- {
- 	struct gru_thread_state *gts;
- 	unsigned long paddr, vaddr;
--	int blade_id;
- 
- 	vaddr = (unsigned long)vmf->virtual_address;
- 	gru_dbg(grudev, "vma %p, vaddr 0x%lx (0x%lx)\n",
-@@ -859,28 +913,18 @@ int gru_fault(struct vm_area_struct *vma
- again:
- 	mutex_lock(&gts->ts_ctxlock);
- 	preempt_disable();
--	blade_id = uv_numa_blade_id();
- 
--	if (gts->ts_gru) {
--		if (gts->ts_gru->gs_blade_id != blade_id) {
--			STAT(migrated_nopfn_unload);
--			gru_unload_context(gts, 1);
--		} else {
--			if (gru_retarget_intr(gts))
--				STAT(migrated_nopfn_retarget);
--		}
--	}
-+	gru_check_context_placement(gts);
- 
- 	if (!gts->ts_gru) {
- 		STAT(load_user_context);
--		if (!gru_assign_gru_context(gts, blade_id)) {
-+		if (!gru_assign_gru_context(gts)) {
- 			preempt_enable();
- 			mutex_unlock(&gts->ts_ctxlock);
- 			set_current_state(TASK_INTERRUPTIBLE);
- 			schedule_timeout(GRU_ASSIGN_DELAY);  /* true hack ZZZ */
--			blade_id = uv_numa_blade_id();
- 			if (gts->ts_steal_jiffies + GRU_STEAL_DELAY < jiffies)
--				gru_steal_context(gts, blade_id);
-+				gru_steal_context(gts);
- 			goto again;
- 		}
- 		gru_load_context(gts);
-diff -puN drivers/misc/sgi-gru/gruprocfs.c~gru-allow-users-to-specify-gru-chiplet-2 drivers/misc/sgi-gru/gruprocfs.c
---- a/drivers/misc/sgi-gru/gruprocfs.c~gru-allow-users-to-specify-gru-chiplet-2
+diff -puN drivers/misc/sgi-gru/gruprocfs.c~gru-fix-bug-in-module-unload drivers/misc/sgi-gru/gruprocfs.c
+--- a/drivers/misc/sgi-gru/gruprocfs.c~gru-fix-bug-in-module-unload
 +++ a/drivers/misc/sgi-gru/gruprocfs.c
-@@ -67,19 +67,14 @@ static int statistics_show(struct seq_fi
- 	printstat(s, intr);
- 	printstat(s, intr_mm_lock_failed);
- 	printstat(s, call_os);
--	printstat(s, call_os_offnode_reference);
- 	printstat(s, call_os_check_for_bug);
- 	printstat(s, call_os_wait_queue);
- 	printstat(s, user_flush_tlb);
- 	printstat(s, user_unload_context);
- 	printstat(s, user_exception);
- 	printstat(s, set_context_option);
--	printstat(s, migrate_check);
--	printstat(s, migrated_retarget);
--	printstat(s, migrated_unload);
--	printstat(s, migrated_unload_delay);
--	printstat(s, migrated_nopfn_retarget);
--	printstat(s, migrated_nopfn_unload);
-+	printstat(s, check_context_retarget_intr);
-+	printstat(s, check_context_unload);
- 	printstat(s, tlb_dropin);
- 	printstat(s, tlb_dropin_fail_no_asid);
- 	printstat(s, tlb_dropin_fail_upm);
-diff -puN drivers/misc/sgi-gru/grutables.h~gru-allow-users-to-specify-gru-chiplet-2 drivers/misc/sgi-gru/grutables.h
---- a/drivers/misc/sgi-gru/grutables.h~gru-allow-users-to-specify-gru-chiplet-2
-+++ a/drivers/misc/sgi-gru/grutables.h
-@@ -192,19 +192,14 @@ struct gru_stats_s {
- 	atomic_long_t intr;
- 	atomic_long_t intr_mm_lock_failed;
- 	atomic_long_t call_os;
--	atomic_long_t call_os_offnode_reference;
- 	atomic_long_t call_os_check_for_bug;
- 	atomic_long_t call_os_wait_queue;
- 	atomic_long_t user_flush_tlb;
- 	atomic_long_t user_unload_context;
- 	atomic_long_t user_exception;
- 	atomic_long_t set_context_option;
--	atomic_long_t migrate_check;
--	atomic_long_t migrated_retarget;
--	atomic_long_t migrated_unload;
--	atomic_long_t migrated_unload_delay;
--	atomic_long_t migrated_nopfn_retarget;
--	atomic_long_t migrated_nopfn_unload;
-+	atomic_long_t check_context_retarget_intr;
-+	atomic_long_t check_context_unload;
- 	atomic_long_t tlb_dropin;
- 	atomic_long_t tlb_dropin_fail_no_asid;
- 	atomic_long_t tlb_dropin_fail_upm;
-@@ -425,6 +420,7 @@ struct gru_state {
- 							   gru segments (64) */
- 	unsigned short		gs_gid;			/* unique GRU number */
- 	unsigned short		gs_blade_id;		/* blade of GRU */
-+	unsigned char		gs_chiplet_id;		/* blade chiplet of GRU */
- 	unsigned char		gs_tgh_local_shift;	/* used to pick TGH for
- 							   local flush */
- 	unsigned char		gs_tgh_first_remote;	/* starting TGH# for
-@@ -636,10 +632,9 @@ extern struct gru_thread_state *gru_find
- 				*vma, int tsid);
- extern struct gru_thread_state *gru_alloc_thread_state(struct vm_area_struct
- 				*vma, int tsid);
--extern struct gru_state *gru_assign_gru_context(struct gru_thread_state *gts,
--		int blade);
-+extern struct gru_state *gru_assign_gru_context(struct gru_thread_state *gts);
- extern void gru_load_context(struct gru_thread_state *gts);
--extern void gru_steal_context(struct gru_thread_state *gts, int blade_id);
-+extern void gru_steal_context(struct gru_thread_state *gts);
- extern void gru_unload_context(struct gru_thread_state *gts, int savestate);
- extern int gru_update_cch(struct gru_thread_state *gts, int force_unload);
- extern void gts_drop(struct gru_thread_state *gts);
-@@ -654,6 +649,7 @@ extern int gru_user_flush_tlb(unsigned l
- extern int gru_user_unload_context(unsigned long arg);
- extern int gru_get_exception_detail(unsigned long arg);
- extern int gru_set_context_option(unsigned long address);
-+extern void gru_check_context_placement(struct gru_thread_state *gts);
- extern int gru_cpu_fault_map_id(void);
- extern struct vm_area_struct *gru_find_vma(unsigned long vaddr);
- extern void gru_flush_all_tlb(struct gru_state *gru);
+@@ -351,7 +351,7 @@ static void delete_proc_files(void)
+ 		for (p = proc_files; p->name; p++)
+ 			if (p->entry)
+ 				remove_proc_entry(p->name, proc_gru);
+-		remove_proc_entry("gru", NULL);
++		remove_proc_entry("gru", proc_gru->parent);
+ 	}
+ }
+ 
 _
 
 Patches currently in -mm which might be from steiner@sgi.com are
