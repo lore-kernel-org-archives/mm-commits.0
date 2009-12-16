@@ -1,102 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [folded] memcg-coalesce-charging-via-percpu-storage-fix-2.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 16:35:14 -0800
-Message-ID: <200912160035.nBG0ZEqB023685@imap1.linux-foundation.org>
+Subject: [folded] memcg-code-cleanrm-unused-variable-in-mem_cgroup_resize_limit-cleanup.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 16:36:07 -0800
+Message-ID: <200912160036.nBG0a7t1023705@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40762 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39634 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761445AbZLPAf4 (ORCPT
+	by vger.kernel.org with ESMTP id S1761446AbZLPAgk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 19:35:56 -0500
+	Tue, 15 Dec 2009 19:36:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nishimura@mxp.nes.nec.co.jp, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, balbir@linux.vnet.ibm.com, lliubbo@gmail.com, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: don't do INIT_WORK() repeatedly against the same work_struct
+     memcg-code-cleanrm-unused-variable-in-mem_cgroup_resize_limit-cleanup
 has been removed from the -mm tree.  Its filename was
-     memcg-coalesce-charging-via-percpu-storage-fix-2.patch
+     memcg-code-cleanrm-unused-variable-in-mem_cgroup_resize_limit-cleanup.patch
 
-This patch was dropped because it was folded into memcg-coalesce-charging-via-percpu-storage.patch
+This patch was dropped because it was folded into memcg-code-cleanrm-unused-variable-in-mem_cgroup_resize_limit.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: don't do INIT_WORK() repeatedly against the same work_struct
-From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Subject: memcg-code-cleanrm-unused-variable-in-mem_cgroup_resize_limit-cleanup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Don't do INIT_WORK() repeatedly against the same work_struct.  It can
-actually lead to a BUG.
-
-Just do it once in initialization.
-
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Bob Liu <lliubbo@gmail.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ mm/memcontrol.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-coalesce-charging-via-percpu-storage-fix-2 mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-coalesce-charging-via-percpu-storage-fix-2
+diff -puN mm/memcontrol.c~memcg-code-cleanrm-unused-variable-in-mem_cgroup_resize_limit-cleanup mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-code-cleanrm-unused-variable-in-mem_cgroup_resize_limit-cleanup
 +++ a/mm/memcontrol.c
-@@ -1354,8 +1354,8 @@ static void drain_all_stock_async(void)
- 	/* This function is for scheduling "drain" in asynchronous way.
- 	 * The result of "drain" is not directly handled by callers. Then,
- 	 * if someone is calling drain, we don't have to call drain more.
--	 * Anyway, work_pending() will catch if there is a race. We just do
--	 * loose check here.
-+	 * Anyway, WORK_STRUCT_PENDING check in queue_work_on() will catch if
-+	 * there is a race. We just do loose check here.
- 	 */
- 	if (atomic_read(&memcg_drain_count))
- 		return;
-@@ -1364,9 +1364,6 @@ static void drain_all_stock_async(void)
- 	get_online_cpus();
- 	for_each_online_cpu(cpu) {
- 		struct memcg_stock_pcp *stock = &per_cpu(memcg_stock, cpu);
--		if (work_pending(&stock->work))
--			continue;
--		INIT_WORK(&stock->work, drain_local_stock);
- 		schedule_work_on(cpu, &stock->work);
- 	}
-  	put_online_cpus();
-@@ -3330,11 +3327,17 @@ mem_cgroup_create(struct cgroup_subsys *
+@@ -2356,8 +2356,7 @@ static int mem_cgroup_resize_limit(struc
+ 		if (!ret)
+ 			break;
  
- 	/* root ? */
- 	if (cont->parent == NULL) {
-+		int cpu;
- 		enable_swap_cgroup();
- 		parent = NULL;
- 		root_mem_cgroup = mem;
- 		if (mem_cgroup_soft_limit_tree_init())
- 			goto free_out;
-+		for_each_possible_cpu(cpu) {
-+			struct memcg_stock_pcp *stock =
-+						&per_cpu(memcg_stock, cpu);
-+			INIT_WORK(&stock->work, drain_local_stock);
-+		}
- 		hotcpu_notifier(memcg_stock_cpu_callback, 0);
- 
- 	} else {
+-		mem_cgroup_hierarchical_reclaim(memcg, NULL,
+-						GFP_KERNEL,
++		mem_cgroup_hierarchical_reclaim(memcg, NULL, GFP_KERNEL,
+ 						MEM_CGROUP_RECLAIM_SHRINK);
+ 		curusage = res_counter_read_u64(&memcg->res, RES_USAGE);
+ 		/* Usage is reduced ? */
 _
 
-Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 oom-kill-fix-numa-consraint-check-with-nodemask-v42.patch
-memcg-fix-memorymemswusage_in_bytes-for-root-cgroup.patch
-memcg-coalesce-uncharge-during-unmap-truncate.patch
+mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect.patch
+ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock.patch
 memcg-coalesce-charging-via-percpu-storage.patch
-memcg-coalesce-charging-via-percpu-storage-fix-2.patch
-memcg-make-memcgs-file-mapped-consistent-with-global-vm.patch
-memcg-add-mem_cgroup_cancel_charge.patch
-memcg-cleanup-mem_cgroup_move_parent.patch
-memcg-avoid-oom-killing-innocent-task-in-case-of-use_hierarchy.patch
-memcg-remove-memcg_tasklist.patch
 memcg-code-cleanrm-unused-variable-in-mem_cgroup_resize_limit.patch
 memcg-code-cleanrm-unused-variable-in-mem_cgroup_resize_limit-cleanup.patch
+ipc-remove-unreachable-code-in-semc-fix.patch
+fs-cache-avoid-maybe-used-uninitialised-warning-on-variable.patch
+aio-dont-zero-out-the-pages-array-inside-struct-dio-fix.patch
+direct-io-cleanup-blockdev_direct_io-locking-checkpatch-fixes.patch
 
