@@ -1,145 +1,211 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-avoid-oom-killing-innocent-task-in-case-of-use_hierarchy.patch removed from -mm tree
-Date: Wed, 16 Dec 2009 12:37:45 -0800
-Message-ID: <200912162037.nBGKbj6L013364@imap1.linux-foundation.org>
+Subject: [merged] memcg-cleanup-mem_cgroup_move_parent.patch removed from -mm tree
+Date: Wed, 16 Dec 2009 12:37:42 -0800
+Message-ID: <200912162037.nBGKbg9b013361@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60373 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45083 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964824AbZLPUhx (ORCPT
+	by vger.kernel.org with ESMTP id S964832AbZLPUh7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Dec 2009 15:37:53 -0500
+	Wed, 16 Dec 2009 15:37:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nishimura@mxp.nes.nec.co.jp, balbir@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: nishimura@mxp.nes.nec.co.jp, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: avoid oom-killing innocent task in case of use_hierarchy
+     memcg: cleanup mem_cgroup_move_parent()
 has been removed from the -mm tree.  Its filename was
-     memcg-avoid-oom-killing-innocent-task-in-case-of-use_hierarchy.patch
+     memcg-cleanup-mem_cgroup_move_parent.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: avoid oom-killing innocent task in case of use_hierarchy
+Subject: memcg: cleanup mem_cgroup_move_parent()
 From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 
-task_in_mem_cgroup(), which is called by select_bad_process() to check
-whether a task can be a candidate for being oom-killed from memcg's limit,
-checks "curr->use_hierarchy"("curr" is the mem_cgroup the task belongs
-to).
+mem_cgroup_move_parent() calls try_charge first and cancel_charge on
+failure.  IMHO, charge/uncharge(especially charge) is high cost operation,
+so we should avoid it as far as possible.
 
-But this check return true(it's false positive) when:
+This patch tries to delay try_charge in mem_cgroup_move_parent() by
+re-ordering checks it does.
 
-	<some path>/aa		use_hierarchy == 0	<- hitting limit
-	  <some path>/aa/00	use_hierarchy == 1	<- the task belongs to
+And this patch renames mem_cgroup_move_account() to
+__mem_cgroup_move_account(), changes the return value of
+__mem_cgroup_move_account() from int to void, and adds a new
+wrapper(mem_cgroup_move_account()), which checks whether a @pc is valid
+for moving account and calls __mem_cgroup_move_account().
 
-This leads to killing an innocent task in aa/00.  This patch is a fix for
-this bug.  And this patch also fixes the arg for
-mem_cgroup_print_oom_info().  We should print information of mem_cgroup
-which the task being killed, not current, belongs to.
+This patch removes the last caller of trylock_page_cgroup(), so removes
+its definition too.
 
 Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   10 ++++++++--
- mm/oom_kill.c   |   13 +++++++------
- 2 files changed, 15 insertions(+), 8 deletions(-)
+ include/linux/page_cgroup.h |    7 --
+ mm/memcontrol.c             |   84 ++++++++++++++--------------------
+ 2 files changed, 37 insertions(+), 54 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-avoid-oom-killing-innocent-task-in-case-of-use_hierarchy mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-avoid-oom-killing-innocent-task-in-case-of-use_hierarchy
-+++ a/mm/memcontrol.c
-@@ -760,7 +760,13 @@ int task_in_mem_cgroup(struct task_struc
- 	task_unlock(task);
- 	if (!curr)
- 		return 0;
--	if (curr->use_hierarchy)
-+	/*
-+	 * We should check use_hierarchy of "mem" not "curr". Because checking
-+	 * use_hierarchy of "curr" here make this function true if hierarchy is
-+	 * enabled in "curr" and "curr" is a child of "mem" in *cgroup*
-+	 * hierarchy(even if use_hierarchy is disabled in "mem").
-+	 */
-+	if (mem->use_hierarchy)
- 		ret = css_is_ancestor(&curr->css, &mem->css);
- 	else
- 		ret = (curr == mem);
-@@ -1009,7 +1015,7 @@ void mem_cgroup_print_oom_info(struct me
- 	static char memcg_name[PATH_MAX];
- 	int ret;
+diff -puN include/linux/page_cgroup.h~memcg-cleanup-mem_cgroup_move_parent include/linux/page_cgroup.h
+--- a/include/linux/page_cgroup.h~memcg-cleanup-mem_cgroup_move_parent
++++ a/include/linux/page_cgroup.h
+@@ -57,6 +57,8 @@ static inline void ClearPageCgroup##unam
+ static inline int TestClearPageCgroup##uname(struct page_cgroup *pc)	\
+ 	{ return test_and_clear_bit(PCG_##lname, &pc->flags);  }
  
--	if (!memcg)
-+	if (!memcg || !p)
- 		return;
- 
- 
-diff -puN mm/oom_kill.c~memcg-avoid-oom-killing-innocent-task-in-case-of-use_hierarchy mm/oom_kill.c
---- a/mm/oom_kill.c~memcg-avoid-oom-killing-innocent-task-in-case-of-use_hierarchy
-+++ a/mm/oom_kill.c
-@@ -356,7 +356,8 @@ static void dump_tasks(const struct mem_
- 	} while_each_thread(g, p);
++TESTPCGFLAG(Locked, LOCK)
++
+ /* Cache flag is set only once (at allocation) */
+ TESTPCGFLAG(Cache, CACHE)
+ CLEARPCGFLAG(Cache, CACHE)
+@@ -86,11 +88,6 @@ static inline void lock_page_cgroup(stru
+ 	bit_spin_lock(PCG_LOCK, &pc->flags);
  }
  
--static void dump_header(gfp_t gfp_mask, int order, struct mem_cgroup *mem)
-+static void dump_header(struct task_struct *p, gfp_t gfp_mask, int order,
-+							struct mem_cgroup *mem)
+-static inline int trylock_page_cgroup(struct page_cgroup *pc)
+-{
+-	return bit_spin_trylock(PCG_LOCK, &pc->flags);
+-}
+-
+ static inline void unlock_page_cgroup(struct page_cgroup *pc)
  {
- 	pr_warning("%s invoked oom-killer: gfp_mask=0x%x, order=%d, "
- 		"oom_adj=%d\n",
-@@ -365,7 +366,7 @@ static void dump_header(gfp_t gfp_mask, 
- 	cpuset_print_task_mems_allowed(current);
- 	task_unlock(current);
- 	dump_stack();
--	mem_cgroup_print_oom_info(mem, current);
-+	mem_cgroup_print_oom_info(mem, p);
- 	show_mem();
- 	if (sysctl_oom_dump_tasks)
- 		dump_tasks(mem);
-@@ -440,7 +441,7 @@ static int oom_kill_process(struct task_
- 	struct task_struct *c;
+ 	bit_spin_unlock(PCG_LOCK, &pc->flags);
+diff -puN mm/memcontrol.c~memcg-cleanup-mem_cgroup_move_parent mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-cleanup-mem_cgroup_move_parent
++++ a/mm/memcontrol.c
+@@ -1613,27 +1613,22 @@ static void __mem_cgroup_commit_charge(s
+ }
  
- 	if (printk_ratelimit())
--		dump_header(gfp_mask, order, mem);
-+		dump_header(p, gfp_mask, order, mem);
+ /**
+- * mem_cgroup_move_account - move account of the page
++ * __mem_cgroup_move_account - move account of the page
+  * @pc:	page_cgroup of the page.
+  * @from: mem_cgroup which the page is moved from.
+  * @to:	mem_cgroup which the page is moved to. @from != @to.
+  *
+  * The caller must confirm following.
+  * - page is not on LRU (isolate_page() is useful.)
+- *
+- * returns 0 at success,
+- * returns -EBUSY when lock is busy or "pc" is unstable.
++ * - the pc is locked, used, and ->mem_cgroup points to @from.
+  *
+  * This function does "uncharge" from old cgroup but doesn't do "charge" to
+  * new cgroup. It should be done by a caller.
+  */
  
+-static int mem_cgroup_move_account(struct page_cgroup *pc,
++static void __mem_cgroup_move_account(struct page_cgroup *pc,
+ 	struct mem_cgroup *from, struct mem_cgroup *to)
+ {
+-	struct mem_cgroup_per_zone *from_mz, *to_mz;
+-	int nid, zid;
+-	int ret = -EBUSY;
+ 	struct page *page;
+ 	int cpu;
+ 	struct mem_cgroup_stat *stat;
+@@ -1641,20 +1636,9 @@ static int mem_cgroup_move_account(struc
+ 
+ 	VM_BUG_ON(from == to);
+ 	VM_BUG_ON(PageLRU(pc->page));
+-
+-	nid = page_cgroup_nid(pc);
+-	zid = page_cgroup_zid(pc);
+-	from_mz =  mem_cgroup_zoneinfo(from, nid, zid);
+-	to_mz =  mem_cgroup_zoneinfo(to, nid, zid);
+-
+-	if (!trylock_page_cgroup(pc))
+-		return ret;
+-
+-	if (!PageCgroupUsed(pc))
+-		goto out;
+-
+-	if (pc->mem_cgroup != from)
+-		goto out;
++	VM_BUG_ON(!PageCgroupLocked(pc));
++	VM_BUG_ON(!PageCgroupUsed(pc));
++	VM_BUG_ON(pc->mem_cgroup != from);
+ 
+ 	if (!mem_cgroup_is_root(from))
+ 		res_counter_uncharge(&from->res, PAGE_SIZE);
+@@ -1683,15 +1667,28 @@ static int mem_cgroup_move_account(struc
+ 	css_get(&to->css);
+ 	pc->mem_cgroup = to;
+ 	mem_cgroup_charge_statistics(to, pc, true);
+-	ret = 0;
+-out:
+-	unlock_page_cgroup(pc);
  	/*
- 	 * If the task is already exiting, don't alarm the sysadmin or kill
-@@ -576,7 +577,7 @@ retry:
- 	/* Found nothing?!?! Either we hang forever, or we panic. */
- 	if (!p) {
- 		read_unlock(&tasklist_lock);
--		dump_header(gfp_mask, order, NULL);
-+		dump_header(NULL, gfp_mask, order, NULL);
- 		panic("Out of memory and no killable processes...\n");
- 	}
+ 	 * We charges against "to" which may not have any tasks. Then, "to"
+ 	 * can be under rmdir(). But in current implementation, caller of
+ 	 * this function is just force_empty() and it's garanteed that
+ 	 * "to" is never removed. So, we don't check rmdir status here.
+ 	 */
++}
++
++/*
++ * check whether the @pc is valid for moving account and call
++ * __mem_cgroup_move_account()
++ */
++static int mem_cgroup_move_account(struct page_cgroup *pc,
++				struct mem_cgroup *from, struct mem_cgroup *to)
++{
++	int ret = -EINVAL;
++	lock_page_cgroup(pc);
++	if (PageCgroupUsed(pc) && pc->mem_cgroup == from) {
++		__mem_cgroup_move_account(pc, from, to);
++		ret = 0;
++	}
++	unlock_page_cgroup(pc);
+ 	return ret;
+ }
  
-@@ -644,7 +645,7 @@ void out_of_memory(struct zonelist *zone
- 		return;
+@@ -1713,38 +1710,27 @@ static int mem_cgroup_move_parent(struct
+ 	if (!pcg)
+ 		return -EINVAL;
  
- 	if (sysctl_panic_on_oom == 2) {
--		dump_header(gfp_mask, order, NULL);
-+		dump_header(NULL, gfp_mask, order, NULL);
- 		panic("out of memory. Compulsory panic_on_oom is selected.\n");
- 	}
++	ret = -EBUSY;
++	if (!get_page_unless_zero(page))
++		goto out;
++	if (isolate_lru_page(page))
++		goto put;
  
-@@ -663,7 +664,7 @@ void out_of_memory(struct zonelist *zone
+ 	parent = mem_cgroup_from_cont(pcg);
+-
+-
+ 	ret = __mem_cgroup_try_charge(NULL, gfp_mask, &parent, false, page);
+ 	if (ret || !parent)
+-		return ret;
+-
+-	if (!get_page_unless_zero(page)) {
+-		ret = -EBUSY;
+-		goto uncharge;
+-	}
+-
+-	ret = isolate_lru_page(page);
+-
+-	if (ret)
+-		goto cancel;
++		goto put_back;
  
- 	case CONSTRAINT_NONE:
- 		if (sysctl_panic_on_oom) {
--			dump_header(gfp_mask, order, NULL);
-+			dump_header(NULL, gfp_mask, order, NULL);
- 			panic("out of memory. panic_on_oom is selected\n");
- 		}
- 		/* Fall-through */
-_
-
-Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
-
-origin.patch
-linux-next.patch
-
+ 	ret = mem_cgroup_move_account(pc, child, parent);
+-
++	if (!ret)
++		css_put(&parent->css);	/* drop extra refcnt by try_charge() */
++	else
++		mem_cgroup_cancel_charge(parent);	/* does css_put */
++put_back:
+ 	putback_lru_page(page);
+-	if (!ret) {
+-		put_page(page);
+-		/* drop extra refcnt by try_charge() */
+-		css_put(&parent->css);
+-		return 0;
+-	}
