@@ -1,185 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kexec-premit-reduction-of-the-reserved-memory-size.patch removed from -mm tree
-Date: Wed, 16 Dec 2009 12:39:28 -0800
-Message-ID: <200912162039.nBGKdSXk013536@imap1.linux-foundation.org>
+Subject: [merged] x86-uv-introduce-a-means-to-translate-from-gpa-socket_paddr.patch removed from -mm tree
+Date: Wed, 16 Dec 2009 12:39:45 -0800
+Message-ID: <200912162039.nBGKdjEx013556@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35607 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54015 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964992AbZLPUjm (ORCPT
+	by vger.kernel.org with ESMTP id S964997AbZLPUj4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Dec 2009 15:39:42 -0500
+	Wed, 16 Dec 2009 15:39:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: amwang@redhat.com, andi@firstfloor.org, ebiederm@xmission.com, nhorman@redhat.com, mm-commits@vger.kernel.org
+To: holt@sgi.com, mingo@elte.hu, steiner@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kexec: premit reduction of the reserved memory size
+     x86: uv: introduce a means to translate from gpa -> socket_paddr
 has been removed from the -mm tree.  Its filename was
-     kexec-premit-reduction-of-the-reserved-memory-size.patch
+     x86-uv-introduce-a-means-to-translate-from-gpa-socket_paddr.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kexec: premit reduction of the reserved memory size
-From: Amerigo Wang <amwang@redhat.com>
+Subject: x86: uv: introduce a means to translate from gpa -> socket_paddr
+From: Robin Holt <holt@sgi.com>
 
-Implement shrinking the reserved memory for crash kernel, if it is more
-than enough.
+The UV BIOS has been updated to implement some of our interface
+functionality differently than originally expected.  These patches update
+the kernel to the bios implementation and include a few minor bug fixes
+which prevent us from doing significant testing on real hardware.
 
-For example, if you have already reserved 128M, now you just want 100M,
-you can do:
 
-# echo $((100*1024*1024)) > /sys/kernel/kexec_crash_size
+This patch:
 
-Note, you can only do this before loading the crash kernel.
+For SGI UV systems, translate from a global physical address back to a
+socket physical address.  This does nothing to ensure the socket physical
+address is actually addressable by the kernel.  That is the responsibility
+of the user of the function.
 
-Signed-off-by: WANG Cong <amwang@redhat.com>
-Cc: Neil Horman <nhorman@redhat.com>
-Acked-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Andi Kleen <andi@firstfloor.org>
+Signed-off-by: Robin Holt <holt@sgi.com>
+Cc: Jack Steiner <steiner@sgi.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kexec.h |    2 +
- kernel/kexec.c        |   59 ++++++++++++++++++++++++++++++++++++++++
- kernel/ksysfs.c       |   21 ++++++++++++++
- 3 files changed, 82 insertions(+)
+ arch/x86/include/asm/uv/uv_hub.h |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff -puN include/linux/kexec.h~kexec-premit-reduction-of-the-reserved-memory-size include/linux/kexec.h
---- a/include/linux/kexec.h~kexec-premit-reduction-of-the-reserved-memory-size
-+++ a/include/linux/kexec.h
-@@ -206,6 +206,8 @@ extern size_t vmcoreinfo_max_size;
- 
- int __init parse_crashkernel(char *cmdline, unsigned long long system_ram,
- 		unsigned long long *crash_size, unsigned long long *crash_base);
-+int crash_shrink_memory(unsigned long new_size);
-+size_t crash_get_memory_size(void);
- 
- #else /* !CONFIG_KEXEC */
- struct pt_regs;
-diff -puN kernel/kexec.c~kexec-premit-reduction-of-the-reserved-memory-size kernel/kexec.c
---- a/kernel/kexec.c~kexec-premit-reduction-of-the-reserved-memory-size
-+++ a/kernel/kexec.c
-@@ -31,6 +31,7 @@
- #include <linux/cpu.h>
- #include <linux/console.h>
- #include <linux/vmalloc.h>
-+#include <linux/swap.h>
- 
- #include <asm/page.h>
- #include <asm/uaccess.h>
-@@ -1082,6 +1083,64 @@ void crash_kexec(struct pt_regs *regs)
- 	}
+diff -puN arch/x86/include/asm/uv/uv_hub.h~x86-uv-introduce-a-means-to-translate-from-gpa-socket_paddr arch/x86/include/asm/uv/uv_hub.h
+--- a/arch/x86/include/asm/uv/uv_hub.h~x86-uv-introduce-a-means-to-translate-from-gpa-socket_paddr
++++ a/arch/x86/include/asm/uv/uv_hub.h
+@@ -232,6 +232,19 @@ static inline unsigned long uv_gpa(void 
+ 	return uv_soc_phys_ram_to_gpa(__pa(v));
  }
  
-+size_t crash_get_memory_size(void)
++/* UV global physical address --> socket phys RAM */
++static inline unsigned long uv_gpa_to_soc_phys_ram(unsigned long gpa)
 +{
-+	size_t size;
-+	mutex_lock(&kexec_mutex);
-+	size = crashk_res.end - crashk_res.start + 1;
-+	mutex_unlock(&kexec_mutex);
-+	return size;
++	unsigned long paddr = gpa & uv_hub_info->gpa_mask;
++	unsigned long remap_base = uv_hub_info->lowmem_remap_base;
++	unsigned long remap_top =  uv_hub_info->lowmem_remap_top;
++
++	if (paddr >= remap_base && paddr < remap_base + remap_top)
++		paddr -= remap_base;
++	return paddr;
 +}
 +
-+static void free_reserved_phys_range(unsigned long begin, unsigned long end)
-+{
-+	unsigned long addr;
 +
-+	for (addr = begin; addr < end; addr += PAGE_SIZE) {
-+		ClearPageReserved(pfn_to_page(addr >> PAGE_SHIFT));
-+		init_page_count(pfn_to_page(addr >> PAGE_SHIFT));
-+		free_page((unsigned long)__va(addr));
-+		totalram_pages++;
-+	}
-+}
-+
-+int crash_shrink_memory(unsigned long new_size)
-+{
-+	int ret = 0;
-+	unsigned long start, end;
-+
-+	mutex_lock(&kexec_mutex);
-+
-+	if (kexec_crash_image) {
-+		ret = -ENOENT;
-+		goto unlock;
-+	}
-+	start = crashk_res.start;
-+	end = crashk_res.end;
-+
-+	if (new_size >= end - start + 1) {
-+		ret = -EINVAL;
-+		if (new_size == end - start + 1)
-+			ret = 0;
-+		goto unlock;
-+	}
-+
-+	start = roundup(start, PAGE_SIZE);
-+	end = roundup(start + new_size, PAGE_SIZE);
-+
-+	free_reserved_phys_range(end, crashk_res.end);
-+
-+	if (start == end) {
-+		crashk_res.end = end;
-+		release_resource(&crashk_res);
-+	} else
-+		crashk_res.end = end - 1;
-+
-+unlock:
-+	mutex_unlock(&kexec_mutex);
-+	return ret;
-+}
-+
- static u32 *append_elf_note(u32 *buf, char *name, unsigned type, void *data,
- 			    size_t data_len)
+ /* gnode -> pnode */
+ static inline unsigned long uv_gpa_to_gnode(unsigned long gpa)
  {
-diff -puN kernel/ksysfs.c~kexec-premit-reduction-of-the-reserved-memory-size kernel/ksysfs.c
---- a/kernel/ksysfs.c~kexec-premit-reduction-of-the-reserved-memory-size
-+++ a/kernel/ksysfs.c
-@@ -100,6 +100,26 @@ static ssize_t kexec_crash_loaded_show(s
- }
- KERNEL_ATTR_RO(kexec_crash_loaded);
- 
-+static ssize_t kexec_crash_size_show(struct kobject *kobj,
-+				       struct kobj_attribute *attr, char *buf)
-+{
-+	return sprintf(buf, "%zu\n", crash_get_memory_size());
-+}
-+static ssize_t kexec_crash_size_store(struct kobject *kobj,
-+				   struct kobj_attribute *attr,
-+				   const char *buf, size_t count)
-+{
-+	unsigned long cnt;
-+	int ret;
-+
-+	if (strict_strtoul(buf, 0, &cnt))
-+		return -EINVAL;
-+
-+	ret = crash_shrink_memory(cnt);
-+	return ret < 0 ? ret : count;
-+}
-+KERNEL_ATTR_RW(kexec_crash_size);
-+
- static ssize_t vmcoreinfo_show(struct kobject *kobj,
- 			       struct kobj_attribute *attr, char *buf)
- {
-@@ -147,6 +167,7 @@ static struct attribute * kernel_attrs[]
- #ifdef CONFIG_KEXEC
- 	&kexec_loaded_attr.attr,
- 	&kexec_crash_loaded_attr.attr,
-+	&kexec_crash_size_attr.attr,
- 	&vmcoreinfo_attr.attr,
- #endif
- 	NULL
 _
 
-Patches currently in -mm which might be from amwang@redhat.com are
+Patches currently in -mm which might be from holt@sgi.com are
 
 origin.patch
-linux-next.patch
-xtensa-use-generic-sys_pipe.patch
 
