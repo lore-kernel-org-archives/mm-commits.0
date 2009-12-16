@@ -1,36 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: [merged] autofs4-cleanup-active-and-expire-lookup.patch removed from -mm tree
-Date: Wed, 16 Dec 2009 12:33:53 -0800
-Message-ID: <200912162033.nBGKXrC6012981@imap1.linux-foundation.org>
+Subject: [merged] autofs4-use-helper-function-for-need-mount-check.patch removed from -mm tree
+Date: Wed, 16 Dec 2009 12:33:44 -0800
+Message-ID: <200912162033.nBGKXi4f012969@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44153 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40031 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763051AbZLPUeF (ORCPT
+	by vger.kernel.org with ESMTP id S1754584AbZLPUeA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Dec 2009 15:34:05 -0500
+	Wed, 16 Dec 2009 15:34:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: raven@themaw.net, adilger@sun.com, hch@infradead.org, sage@newdream.net, viro@ZenIV.linux.org.uk, yehuda@newdream.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     autofs4: cleanup active and expire lookup
+     autofs4: use helper function for need mount check
 has been removed from the -mm tree.  Its filename was
-     autofs4-cleanup-active-and-expire-lookup.patch
+     autofs4-use-helper-function-for-need-mount-check.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: autofs4: cleanup active and expire lookup
+Subject: autofs4: use helper function for need mount check
 From: Ian Kent <raven@themaw.net>
 
-The lookup functions for active and expiring dentrys use parameters that
-can be easily obtained on entry so we change the call to to take just the
-dentry.  This makes the subsequent change, to send all lookups to
-->lookup(), a bit cleaner.
+Define simple helper function for checking if we need to trigger a mount.
 
 Signed-off-by: Ian Kent <raven@themaw.net>
 Cc: Sage Weil <sage@newdream.net>
@@ -41,58 +38,45 @@ Cc: Yehuda Saheh <yehuda@newdream.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/root.c |   16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+ fs/autofs4/root.c |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff -puN fs/autofs4/root.c~autofs4-cleanup-active-and-expire-lookup fs/autofs4/root.c
---- a/fs/autofs4/root.c~autofs4-cleanup-active-and-expire-lookup
+diff -puN fs/autofs4/root.c~autofs4-use-helper-function-for-need-mount-check fs/autofs4/root.c
+--- a/fs/autofs4/root.c~autofs4-use-helper-function-for-need-mount-check
 +++ a/fs/autofs4/root.c
-@@ -405,8 +405,11 @@ static const struct dentry_operations au
- 	.d_release	= autofs4_dentry_release,
- };
- 
--static struct dentry *autofs4_lookup_active(struct autofs_sb_info *sbi, struct dentry *parent, struct qstr *name)
-+static struct dentry *autofs4_lookup_active(struct dentry *dentry)
- {
-+	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
-+	struct dentry *parent = dentry->d_parent;
-+	struct qstr *name = &dentry->d_name;
- 	unsigned int len = name->len;
- 	unsigned int hash = name->hash;
- 	const unsigned char *str = name->name;
-@@ -457,8 +460,11 @@ next:
- 	return NULL;
+@@ -104,6 +104,14 @@ static void autofs4_del_active(struct de
+ 	return;
  }
  
--static struct dentry *autofs4_lookup_expiring(struct autofs_sb_info *sbi, struct dentry *parent, struct qstr *name)
-+static struct dentry *autofs4_lookup_expiring(struct dentry *dentry)
++static unsigned int autofs4_need_mount(unsigned int flags)
++{
++	unsigned int res = 0;
++	if (flags & (TRIGGER_FLAGS | TRIGGER_INTENTS))
++		res = 1;
++	return res;
++}
++
+ static int autofs4_dir_open(struct inode *inode, struct file *file)
  {
-+	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
-+	struct dentry *parent = dentry->d_parent;
-+	struct qstr *name = &dentry->d_name;
- 	unsigned int len = name->len;
- 	unsigned int hash = name->hash;
- 	const unsigned char *str = name->name;
-@@ -530,7 +536,7 @@ static struct dentry *autofs4_lookup(str
- 	DPRINTK("pid = %u, pgrp = %u, catatonic = %d, oz_mode = %d",
- 		 current->pid, task_pgrp_nr(current), sbi->catatonic, oz_mode);
+ 	struct dentry *dentry = file->f_path.dentry;
+@@ -168,7 +176,7 @@ static int try_to_fill_dentry(struct den
+ 		}
+ 	/* Trigger mount for path component or follow link */
+ 	} else if (dentry->d_flags & DCACHE_AUTOFS_PENDING ||
+-			flags & (TRIGGER_FLAGS | TRIGGER_INTENTS) ||
++			autofs4_need_mount(flags) ||
+ 			current->link_count) {
+ 		DPRINTK("waiting for mount name=%.*s",
+ 			dentry->d_name.len, dentry->d_name.name);
+@@ -234,7 +242,7 @@ static void *autofs4_follow_link(struct 
+ 	autofs4_expire_wait(dentry);
  
--	active = autofs4_lookup_active(sbi, dentry->d_parent, &dentry->d_name);
-+	active = autofs4_lookup_active(dentry);
- 	if (active) {
- 		dentry = active;
- 		ino = autofs4_dentry_ino(dentry);
-@@ -567,9 +573,7 @@ static struct dentry *autofs4_lookup(str
+ 	/* We trigger a mount for almost all flags */
+-	lookup_type = nd->flags & (TRIGGER_FLAGS | TRIGGER_INTENTS);
++	lookup_type = autofs4_need_mount(nd->flags);
+ 	if (!(lookup_type || dentry->d_flags & DCACHE_AUTOFS_PENDING))
+ 		goto follow;
  
- 	if (!oz_mode) {
- 		mutex_unlock(&dir->i_mutex);
--		expiring = autofs4_lookup_expiring(sbi,
--						   dentry->d_parent,
--						   &dentry->d_name);
-+		expiring = autofs4_lookup_expiring(dentry);
- 		if (expiring) {
- 			/*
- 			 * If we are racing with expire the request might not
 _
 
 Patches currently in -mm which might be from raven@themaw.net are
