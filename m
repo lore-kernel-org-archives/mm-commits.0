@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pcie-aer-fix-aer-inject-result-in-kernel-oops.patch added to -mm tree
-Date: Wed, 16 Dec 2009 15:23:06 -0800
-Message-ID: <200912162323.nBGNN7sx021683@imap1.linux-foundation.org>
+Subject: + adt7462-fix-pin-28-monitoring.patch added to -mm tree
+Date: Wed, 16 Dec 2009 15:29:57 -0800
+Message-ID: <200912162329.nBGNTvqq021936@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40522 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38633 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933850AbZLPXXL (ORCPT
+	by vger.kernel.org with ESMTP id S935245AbZLPXaW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Dec 2009 18:23:11 -0500
+	Wed, 16 Dec 2009 18:30:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: youquan.song@linux.intel.com, andrew.patterson@hp.com, jbarnes@virtuousgeek.org, ying.huang@intel.com, youquan.song@intel.com
+Cc: blofeldus@yahoo.com, djwong@us.ibm.com, khali@linux-fr.org, w.sang@pengutronix.de
 
 
 The patch titled
-     PCIe AER: fix aer inject result in kernel oops
+     drivers/hwmon/adt7462.c: fix pin 28 monitoring
 has been added to the -mm tree.  Its filename is
-     pcie-aer-fix-aer-inject-result-in-kernel-oops.patch
+     adt7462-fix-pin-28-monitoring.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,77 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: PCIe AER: fix aer inject result in kernel oops
-From: "Youquan,Song" <youquan.song@linux.intel.com>
+Subject: drivers/hwmon/adt7462.c: fix pin 28 monitoring
+From: roger blofeld <blofeldus@yahoo.com>
 
-If BIOS does not export _OSC to allow OS take over the PCIe AER, pcie aer
-driver will not initialize aer service.  But aer_inject driver does not
-check this scenario, it results in kernel oops when inject aer error to
-OS.  Some of kernel oops information as following:
+The ADT7462_PIN28_VOLT value is a 4-bit field, so the corresponding shift
+must be 4.
 
-BUG: unable to handle kernel NULL pointer dereference at 0000000000000350
-IP: [<ffffffff812e08f7>] _spin_lock_irqsave+0xc/0x23
-PGD 155c41067 PUD 157fe0067 PMD 0
-Oops: 0002 [#1] SMP
-Pid: 5119, comm: aer-inject Not tainted 2.6.32-rc8-mce #2
-RIP: 0010:[<ffffffff812e08f7>]  [<ffffffff812e08f7>] _spin_lock_irqsave+0xc/0x23
-RSP: 0018:ffff880157f81e28  EFLAGS: 00010096
-RAX: 0000000000000296 RBX: 0000000000000000 RCX: 0000000000000100
-RDX: 0000000000010000 RSI: 0000000000000246 RDI: 0000000000000350
-RBP: ffff880157f81e28 R08: 0000000000000004 R09: ffff880157f81dac
-R10: ffff88015a666f60 R11: ffff88015a666f40 R12: ffff88015758cc00
-R13: 0000000000000350 R14: 0000000000000000 R15: 0000000000000100
-FS:  00007f4d4a66e6f0(0000) GS:ffff8800282e0000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-CR2: 0000000000000350 CR3: 000000015661a000 CR4: 00000000000006e0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-Process aer-inject (pid: 5119, threadinfo ffff880157f80000, task ffff8801585f4340)
-Stack:
- ffff880157f81e78 ffffffff811b1615 ffff880157f81e78 ffffffff81222823
-Call Trace:
- [<ffffffff811b1615>] aer_irq+0x38/0x117
- [<ffffffff81222823>] ? device_for_each_child+0x5f/0x6f
- [<ffffffffa00967bf>] aer_inject_write+0x409/0x45e [aer_inject]
- [<ffffffff810eb80e>] vfs_write+0xae/0x16a
- [<ffffffff810eb98e>] sys_write+0x47/0x6e
- [<ffffffff8100ba2b>] system_call_fastpath+0x16/0x1b
-RIP  [<ffffffff812e08f7>] _spin_lock_irqsave+0xc/0x23
- RSP <ffff880157f81e28>
-CR2: 0000000000000350
-
-Signed-off-by: Youquan, Song <youquan.song@intel.com>
-Acked-by: Ying, Huang <ying.huang@intel.com>
-Cc: Andrew Patterson <andrew.patterson@hp.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Signed-off-by: Roger Blofeld <blofeldus@yahoo.com>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Wolfram Sang <w.sang@pengutronix.de>
+Cc: Darrick J. Wong <djwong@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/pcie/aer/aer_inject.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ drivers/hwmon/adt7462.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/pci/pcie/aer/aer_inject.c~pcie-aer-fix-aer-inject-result-in-kernel-oops drivers/pci/pcie/aer/aer_inject.c
---- a/drivers/pci/pcie/aer/aer_inject.c~pcie-aer-fix-aer-inject-result-in-kernel-oops
-+++ a/drivers/pci/pcie/aer/aer_inject.c
-@@ -413,8 +413,14 @@ static int aer_inject(struct aer_error_i
- 	if (ret)
- 		goto out_put;
+diff -puN drivers/hwmon/adt7462.c~adt7462-fix-pin-28-monitoring drivers/hwmon/adt7462.c
+--- a/drivers/hwmon/adt7462.c~adt7462-fix-pin-28-monitoring
++++ a/drivers/hwmon/adt7462.c
+@@ -94,7 +94,7 @@ static const unsigned short normal_i2c[]
+ #define		ADT7462_PIN24_SHIFT		6
+ #define		ADT7462_PIN26_VOLT_INPUT	0x08
+ #define		ADT7462_PIN25_VOLT_INPUT	0x20
+-#define		ADT7462_PIN28_SHIFT		6	/* cfg3 */
++#define        ADT7462_PIN28_SHIFT        4    /* cfg3 */
+ #define		ADT7462_PIN28_VOLT		0x5
  
--	if (find_aer_device(rpdev, &edev))
-+	if (find_aer_device(rpdev, &edev)) {
-+		if (!get_service_data(edev)) {
-+			printk(KERN_WARNING "AER service is not initialized\n");
-+			ret = -EINVAL;
-+			goto out_put;
-+		}
- 		aer_irq(-1, edev);
-+	}
- 	else
- 		ret = -EINVAL;
- out_put:
+ #define ADT7462_REG_ALARM1			0xB8
 _
 
-Patches currently in -mm which might be from youquan.song@linux.intel.com are
+Patches currently in -mm which might be from blofeldus@yahoo.com are
 
-pcie-aer-fix-aer-inject-result-in-kernel-oops.patch
+adt7462-fix-pin-28-monitoring.patch
 
