@@ -1,31 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch removed from -mm tree
-Date: Tue, 15 Dec 2009 16:32:59 -0800
-Message-ID: <200912160032.nBG0WxUC023624@imap1.linux-foundation.org>
+Subject: [folded] mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3.patch removed from -mm tree
+Date: Tue, 15 Dec 2009 16:33:02 -0800
+Message-ID: <200912160033.nBG0X2js023629@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41993 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36001 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761177AbZLPAdp (ORCPT
+	by vger.kernel.org with ESMTP id S1761426AbZLPAdt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Dec 2009 19:33:45 -0500
+	Tue, 15 Dec 2009 19:33:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, agust@denx.de, krzysztof.h1@poczta.fm, valentin.sitdikov@siemens.com, virtuoso@slind.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2
+     mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3
 has been removed from the -mm tree.  Its filename was
-     mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
+     mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3.patch
 
 This patch was dropped because it was folded into mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2
+Subject: mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3
 From: Andrew Morton <akpm@linux-foundation.org>
+
+ERROR: "mb862xxfb_init_accel" [drivers/video/mb862xx/mb862xxfb.ko] undefined!
 
 Cc: Alexander Shishkin <virtuoso@slind.org>
 Cc: Anatolij Gustschin <agust@denx.de>
@@ -34,21 +36,17 @@ Cc: Valentin Sitdikov <valentin.sitdikov@siemens.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ drivers/video/mb862xx/mb862xxfb_accel.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/video/mb862xx/mb862xxfb_accel.c~mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2 drivers/video/mb862xx/mb862xxfb_accel.c
---- a/drivers/video/mb862xx/mb862xxfb_accel.c~mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2
+diff -puN drivers/video/mb862xx/mb862xxfb_accel.c~mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3 drivers/video/mb862xx/mb862xxfb_accel.c
+--- a/drivers/video/mb862xx/mb862xxfb_accel.c~mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3
 +++ a/drivers/video/mb862xx/mb862xxfb_accel.c
-@@ -3,8 +3,8 @@
-  *
-  * Fujitsu Carmine/Coral-P(A)/Lime framebuffer driver acceleration support
-  *
-- * (C) 2007 Alexandr Shishkin <alexandr.shishkin@siemens.com>
-- * (C) 2009 Valentin Sitdikov <valentin.sitdikovt@siemens.com>
-+ * (C) 2007 Alexander Shishkin <virtuoso@slind.org>
-+ * (C) 2009 Valentin Sitdikov <valentin.sitdikov@siemens.com>
-  * (C) 2009 Siemens AG
-  *
-  * This program is free software; you can redistribute it and/or modify
+@@ -328,3 +328,4 @@ void mb862xxfb_init_accel(struct fb_info
+ 	    FBINFO_HWACCEL_IMAGEBLIT;
+ 	info->fix.accel = 0xff;	/*FIXME: add right define */
+ }
++EXPORT_SYMBOL(mb862xxfb_init_accel);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -56,7 +54,6 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 oom-kill-fix-numa-consraint-check-with-nodemask-v42.patch
 mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect.patch
-mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2.patch
 mb862xxfb-add-acceleration-support-for-coral-p-coral-pa-imageblt-copyarea-fillrect-fix2-fix-3.patch
 ext2-avoid-warn-messages-when-failing-to-write-to-the-superblock-checkpatch-fixes.patch
 memcg-coalesce-charging-via-percpu-storage-fix.patch
