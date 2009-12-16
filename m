@@ -1,117 +1,236 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-fixup.patch added to -mm tree
-Date: Wed, 16 Dec 2009 12:28:57 -0800
-Message-ID: <200912162028.nBGKSvvv012736@imap1.linux-foundation.org>
+Subject: [merged] proc-rename-de_get-to-pde_get-and-inline-it.patch removed from -mm tree
+Date: Wed, 16 Dec 2009 12:33:30 -0800
+Message-ID: <200912162033.nBGKXUFV012942@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43078 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43991 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752603AbZLPU3F (ORCPT
+	by vger.kernel.org with ESMTP id S1763052AbZLPUdd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Dec 2009 15:29:05 -0500
+	Wed, 16 Dec 2009 15:33:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, sfr@canb.auug.org.au
+To: adobriyan@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-fixup
-has been added to the -mm tree.  Its filename is
-     linux-next-fixup.patch
+     proc: rename de_get() to pde_get() and inline it
+has been removed from the -mm tree.  Its filename was
+     proc-rename-de_get-to-pde_get-and-inline-it.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-fixup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: proc: rename de_get() to pde_get() and inline it
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-linux-next will need this tomorrow..
+* de_get() is trivial -- make inline, save a few bits of code, drop
+  "refcount is 0" check -- it should be done in some generic refcount
+  code, don't recall it's was helpful
 
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+* rename GET and PUT functions to pde_get(), pde_put() for cool prefix!
+
+* remove obvious and incorrent comments
+
+* in remove_proc_entry() use pde_put(), when I fixed PDE refcounting to
+  be normal one, remove_proc_entry() was supposed to do "-1" and code now
+  reflects that.
+
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/generic.c  |   21 +++++++++++++--------
+ fs/proc/inode.c    |   31 ++++---------------------------
+ fs/proc/internal.h |   10 ++++++----
+ 3 files changed, 23 insertions(+), 39 deletions(-)
 
-diff -puN fs/exec.c~linux-next-fixup fs/exec.c
---- a/fs/exec.c~linux-next-fixup
-+++ a/fs/exec.c
-@@ -1775,7 +1775,7 @@ void do_coredump(long signr, int exit_co
- 	struct coredump_params cprm = {
- 		.signr = signr,
- 		.regs = regs,
--		.limit = current->signal->rlim[RLIMIT_CORE].rlim_cur,
-+		.limit = rlimit(RLIMIT_CORE);
- 	};
+diff -puN fs/proc/generic.c~proc-rename-de_get-to-pde_get-and-inline-it fs/proc/generic.c
+--- a/fs/proc/generic.c~proc-rename-de_get-to-pde_get-and-inline-it
++++ a/fs/proc/generic.c
+@@ -429,7 +429,7 @@ struct dentry *proc_lookup_de(struct pro
+ 			unsigned int ino;
  
- 	audit_core_dumps(signr);
+ 			ino = de->low_ino;
+-			de_get(de);
++			pde_get(de);
+ 			spin_unlock(&proc_subdir_lock);
+ 			error = -EINVAL;
+ 			inode = proc_get_inode(dir->i_sb, ino, de);
+@@ -445,7 +445,7 @@ out_unlock:
+ 		return NULL;
+ 	}
+ 	if (de)
+-		de_put(de);
++		pde_put(de);
+ 	return ERR_PTR(error);
+ }
+ 
+@@ -509,17 +509,17 @@ int proc_readdir_de(struct proc_dir_entr
+ 				struct proc_dir_entry *next;
+ 
+ 				/* filldir passes info to user space */
+-				de_get(de);
++				pde_get(de);
+ 				spin_unlock(&proc_subdir_lock);
+ 				if (filldir(dirent, de->name, de->namelen, filp->f_pos,
+ 					    de->low_ino, de->mode >> 12) < 0) {
+-					de_put(de);
++					pde_put(de);
+ 					goto out;
+ 				}
+ 				spin_lock(&proc_subdir_lock);
+ 				filp->f_pos++;
+ 				next = de->next;
+-				de_put(de);
++				pde_put(de);
+ 				de = next;
+ 			} while (de);
+ 			spin_unlock(&proc_subdir_lock);
+@@ -763,7 +763,7 @@ out:
+ 	return NULL;
+ }
+ 
+-void free_proc_entry(struct proc_dir_entry *de)
++static void free_proc_entry(struct proc_dir_entry *de)
+ {
+ 	unsigned int ino = de->low_ino;
+ 
+@@ -777,6 +777,12 @@ void free_proc_entry(struct proc_dir_ent
+ 	kfree(de);
+ }
+ 
++void pde_put(struct proc_dir_entry *pde)
++{
++	if (atomic_dec_and_test(&pde->count))
++		free_proc_entry(pde);
++}
++
+ /*
+  * Remove a /proc entry and free it if it's not currently in use.
+  */
+@@ -845,6 +851,5 @@ continue_removing:
+ 	WARN(de->subdir, KERN_WARNING "%s: removing non-empty directory "
+ 			"'%s/%s', leaking at least '%s'\n", __func__,
+ 			de->parent->name, de->name, de->subdir->name);
+-	if (atomic_dec_and_test(&de->count))
+-		free_proc_entry(de);
++	pde_put(de);
+ }
+diff -puN fs/proc/inode.c~proc-rename-de_get-to-pde_get-and-inline-it fs/proc/inode.c
+--- a/fs/proc/inode.c~proc-rename-de_get-to-pde_get-and-inline-it
++++ a/fs/proc/inode.c
+@@ -24,29 +24,6 @@
+ 
+ #include "internal.h"
+ 
+-struct proc_dir_entry *de_get(struct proc_dir_entry *de)
+-{
+-	atomic_inc(&de->count);
+-	return de;
+-}
+-
+-/*
+- * Decrements the use count and checks for deferred deletion.
+- */
+-void de_put(struct proc_dir_entry *de)
+-{
+-	if (!atomic_read(&de->count)) {
+-		printk("de_put: entry %s already free!\n", de->name);
+-		return;
+-	}
+-
+-	if (atomic_dec_and_test(&de->count))
+-		free_proc_entry(de);
+-}
+-
+-/*
+- * Decrement the use count of the proc_dir_entry.
+- */
+ static void proc_delete_inode(struct inode *inode)
+ {
+ 	struct proc_dir_entry *de;
+@@ -59,7 +36,7 @@ static void proc_delete_inode(struct ino
+ 	/* Let go of any associated proc directory entry */
+ 	de = PROC_I(inode)->pde;
+ 	if (de)
+-		de_put(de);
++		pde_put(de);
+ 	if (PROC_I(inode)->sysctl)
+ 		sysctl_head_put(PROC_I(inode)->sysctl);
+ 	clear_inode(inode);
+@@ -480,7 +457,7 @@ struct inode *proc_get_inode(struct supe
+ 		}
+ 		unlock_new_inode(inode);
+ 	} else
+-	       de_put(de);
++	       pde_put(de);
+ 	return inode;
+ }			
+ 
+@@ -495,7 +472,7 @@ int proc_fill_super(struct super_block *
+ 	s->s_op = &proc_sops;
+ 	s->s_time_gran = 1;
+ 	
+-	de_get(&proc_root);
++	pde_get(&proc_root);
+ 	root_inode = proc_get_inode(s, PROC_ROOT_INO, &proc_root);
+ 	if (!root_inode)
+ 		goto out_no_root;
+@@ -509,6 +486,6 @@ int proc_fill_super(struct super_block *
+ out_no_root:
+ 	printk("proc_read_super: get root inode failed\n");
+ 	iput(root_inode);
+-	de_put(&proc_root);
++	pde_put(&proc_root);
+ 	return -ENOMEM;
+ }
+diff -puN fs/proc/internal.h~proc-rename-de_get-to-pde_get-and-inline-it fs/proc/internal.h
+--- a/fs/proc/internal.h~proc-rename-de_get-to-pde_get-and-inline-it
++++ a/fs/proc/internal.h
+@@ -61,8 +61,6 @@ extern const struct file_operations proc
+ extern const struct file_operations proc_net_operations;
+ extern const struct inode_operations proc_net_inode_operations;
+ 
+-void free_proc_entry(struct proc_dir_entry *de);
+-
+ void proc_init_inodecache(void);
+ 
+ static inline struct pid *proc_pid(struct inode *inode)
+@@ -101,8 +99,12 @@ unsigned long task_vsize(struct mm_struc
+ int task_statm(struct mm_struct *, int *, int *, int *, int *);
+ void task_mem(struct seq_file *, struct mm_struct *);
+ 
+-struct proc_dir_entry *de_get(struct proc_dir_entry *de);
+-void de_put(struct proc_dir_entry *de);
++static inline struct proc_dir_entry *pde_get(struct proc_dir_entry *pde)
++{
++	atomic_inc(&pde->count);
++	return pde;
++}
++void pde_put(struct proc_dir_entry *pde);
+ 
+ extern struct vfsmount *proc_mnt;
+ int proc_fill_super(struct super_block *);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
 origin.patch
 linux-next.patch
-linux-next-fixup.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-acpi-remove-nid_inval.patch
-drivers-acpi-acpi_padc-squish-warning.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices-checkpatch-fixes.patch
-drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
-drivers-media-video-pmsc-needs-versionh.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-drivers-leds-leds-ss4200c-fix-return-statement.patch
-net-sctp-socketc-fix-warning.patch
+asus_acpi-convert-to-seq_file.patch
+toshiba_acpi-convert-to-seq_file.patch
+thinkpad_acpi-convert-to-seq_file.patch
+arm-convert-proc-cpu-aligment-to-seq_file.patch
+arm-convert-proc-cpu-aligment-to-seq_file-fix.patch
+iseries-convert-to-proc_fops.patch
+proc_fops-convert-av7110.patch
+proc_fops-convert-drivers-isdn-to-seq_file.patch
+proc_fops-convert-drivers-isdn-to-seq_file-fix.patch
 proc_fops-convert-drivers-isdn-to-seq_file-fix2.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-fs-ext4-superc-fix-printk-warning.patch
-atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
-scsi-aacraid-fix-memory-leak-checkpatch-fixes.patch
-aoe-switch-to-the-new-bio_flush_dcache_pages-interface.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-drivers-net-wireless-iwlwifi-iwl-txc-fix-gcc-345-warning.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-readahead-add-blk_run_backing_dev.patch
-ksm-memory-hotremove-migration-only-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-spi-controller-driver-for-designware-spi-core.patch
-spidev-use-declare_bitmap-instead-of-declaring-the-array.patch
-char-cyclades-fix-compiler-warning.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-drivers-media-video-cx23885-needs-kfifo-updates.patch
-revert-tty-sdio_uart-use-kfifo-instead-of-the-messy-circ-stuff.patch
-kfifo-move-struct-kfifo-in-place-fix.patch
-zlib-optimize-inffast-when-copying-direct-from-output.patch
-lib-add-support-for-lzo-compressed-kernels.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+mpt-fusion-convert-to-seq_file.patch
+uml-irq-register-race-condition.patch
 
