@@ -1,35 +1,40 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ptrace-powerpc-implement-user_single_step_siginfo.patch removed from -mm tree
-Date: Wed, 16 Dec 2009 12:38:03 -0800
-Message-ID: <200912162038.nBGKc30B013393@imap1.linux-foundation.org>
+Subject: [merged] ptrace-introduce-user_single_step_siginfo-helper.patch removed from -mm tree
+Date: Wed, 16 Dec 2009 12:38:00 -0800
+Message-ID: <200912162038.nBGKc08c013389@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41841 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56700 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964832AbZLPUi1 (ORCPT
+	by vger.kernel.org with ESMTP id S964835AbZLPUi2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Dec 2009 15:38:27 -0500
+	Wed, 16 Dec 2009 15:38:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@redhat.com, hpa@zytor.com, linux-arch@vger.kernel.org, mingo@elte.hu, roland@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ptrace: powerpc: implement user_single_step_siginfo()
+     ptrace: introduce user_single_step_siginfo() helper
 has been removed from the -mm tree.  Its filename was
-     ptrace-powerpc-implement-user_single_step_siginfo.patch
+     ptrace-introduce-user_single_step_siginfo-helper.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace: powerpc: implement user_single_step_siginfo()
+Subject: ptrace: introduce user_single_step_siginfo() helper
 From: Oleg Nesterov <oleg@redhat.com>
 
 Suggested by Roland.
 
-Implement user_single_step_siginfo() for powerpc.
+Currently there is no way to synthesize a single-stepping trap in the
+arch-independent manner.  This patch adds the default helper which fills
+siginfo_t, arch/ can can override it.
+
+Architetures which implement user_enable_single_step() should add
+user_single_step_siginfo() also.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Acked-by: Roland McGrath <roland@redhat.com>
@@ -40,41 +45,31 @@ Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/ptrace.h |    2 ++
- arch/powerpc/kernel/traps.c       |    9 +++++++++
- 2 files changed, 11 insertions(+)
+ include/linux/ptrace.h |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff -puN arch/powerpc/include/asm/ptrace.h~ptrace-powerpc-implement-user_single_step_siginfo arch/powerpc/include/asm/ptrace.h
---- a/arch/powerpc/include/asm/ptrace.h~ptrace-powerpc-implement-user_single_step_siginfo
-+++ a/arch/powerpc/include/asm/ptrace.h
-@@ -140,6 +140,8 @@ extern void user_enable_single_step(stru
- extern void user_enable_block_step(struct task_struct *);
- extern void user_disable_single_step(struct task_struct *);
- 
-+#define ARCH_HAS_USER_SINGLE_STEP_INFO
-+
- #endif /* __ASSEMBLY__ */
- 
- #endif /* __KERNEL__ */
-diff -puN arch/powerpc/kernel/traps.c~ptrace-powerpc-implement-user_single_step_siginfo arch/powerpc/kernel/traps.c
---- a/arch/powerpc/kernel/traps.c~ptrace-powerpc-implement-user_single_step_siginfo
-+++ a/arch/powerpc/kernel/traps.c
-@@ -174,6 +174,15 @@ int die(const char *str, struct pt_regs 
- 	return 0;
+diff -puN include/linux/ptrace.h~ptrace-introduce-user_single_step_siginfo-helper include/linux/ptrace.h
+--- a/include/linux/ptrace.h~ptrace-introduce-user_single_step_siginfo-helper
++++ a/include/linux/ptrace.h
+@@ -273,6 +273,18 @@ static inline void user_enable_block_ste
  }
+ #endif	/* arch_has_block_step */
  
-+void user_single_step_siginfo(struct task_struct *tsk,
++#ifdef ARCH_HAS_USER_SINGLE_STEP_INFO
++extern void user_single_step_siginfo(struct task_struct *tsk,
++				struct pt_regs *regs, siginfo_t *info);
++#else
++static inline void user_single_step_siginfo(struct task_struct *tsk,
 +				struct pt_regs *regs, siginfo_t *info)
 +{
 +	memset(info, 0, sizeof(*info));
 +	info->si_signo = SIGTRAP;
-+	info->si_code = TRAP_TRACE;
-+	info->si_addr = (void __user *)regs->nip;
 +}
++#endif
 +
- void _exception(int signr, struct pt_regs *regs, int code, unsigned long addr)
- {
- 	siginfo_t info;
+ #ifndef arch_ptrace_stop_needed
+ /**
+  * arch_ptrace_stop_needed - Decide whether arch_ptrace_stop() should be called
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
