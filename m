@@ -1,115 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ptrace-change-tracehook_report_syscall_exit-to-handle-stepping.patch removed from -mm tree
-Date: Wed, 16 Dec 2009 12:38:06 -0800
-Message-ID: <200912162038.nBGKc6Qc013401@imap1.linux-foundation.org>
+Subject: [merged] signals-send_signal-use-si_fromuser-to-detect-from_ancestor_ns.patch removed from -mm tree
+Date: Wed, 16 Dec 2009 12:38:18 -0800
+Message-ID: <200912162038.nBGKcIqY013414@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54337 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42790 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964956AbZLPUin (ORCPT
+	by vger.kernel.org with ESMTP id S964944AbZLPUio (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Dec 2009 15:38:43 -0500
+	Wed, 16 Dec 2009 15:38:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, hpa@zytor.com, linux-arch@vger.kernel.org, mingo@elte.hu, roland@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: oleg@redhat.com, dlezcano@fr.ibm.com, roland@redhat.com, sukadev@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ptrace: change tracehook_report_syscall_exit() to handle stepping
+     signals: send_signal: use si_fromuser() to detect from_ancestor_ns
 has been removed from the -mm tree.  Its filename was
-     ptrace-change-tracehook_report_syscall_exit-to-handle-stepping.patch
+     signals-send_signal-use-si_fromuser-to-detect-from_ancestor_ns.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace: change tracehook_report_syscall_exit() to handle stepping
+Subject: signals: send_signal: use si_fromuser() to detect from_ancestor_ns
 From: Oleg Nesterov <oleg@redhat.com>
 
-Suggested by Roland.
+Change send_signal() to use si_fromuser().  From now SEND_SIG_NOINFO
+triggers the "from_ancestor_ns" check.
 
-Change tracehook_report_syscall_exit() to look at step flag and send the
-trap signal if needed.
+This fixes reparent_thread()->group_send_sig_info(pdeath_signal)
+behaviour, before this patch send_signal() does not detect the
+cross-namespace case when the child of the dying parent belongs to the
+sub-namespace.
 
-This change affects ia64, microblaze, parisc, powerpc, sh.  They pass
-nonzero "step" argument to tracehook but since it was ignored the tracee
-reports via ptrace_notify(), this is not right and not consistent.
+This patch can affect the behaviour of send_sig(), kill_pgrp() and
+kill_pid() when the caller sends the signal to the sub-namespace with
+"priv == 0" but surprisingly all callers seem to use them correctly,
+including disassociate_ctty(on_exit).
 
-	- PTRACE_SETSIGINFO doesn't work
+Except: drivers/staging/comedi/drivers/addi-data/*.c incorrectly use
+send_sig(priv => 0).  But his is minor and should be fixed anyway.
 
-	- if the tracer resumes the tracee with signr != 0 the new signal
-	  is generated rather than delivering it
-
-	- If PT_TRACESYSGOOD is set the tracee reports the wrong exit_code
-
-I don't have a powerpc machine, but I think this test-case should see the
-difference:
-
-	#include <unistd.h>
-	#include <sys/ptrace.h>
-	#include <sys/wait.h>
-	#include <assert.h>
-	#include <stdio.h>
-
-	int main(void)
-	{
-		int pid, status;
-
-		if (!(pid = fork())) {
-			assert(ptrace(PTRACE_TRACEME) == 0);
-			kill(getpid(), SIGSTOP);
-
-			getppid();
-
-			return 0;
-		}
-
-		assert(pid == wait(&status));
-		assert(ptrace(PTRACE_SETOPTIONS, pid, 0, PTRACE_O_TRACESYSGOOD) == 0);
-
-		assert(ptrace(PTRACE_SYSCALL, pid, 0,0) == 0);
-		assert(pid == wait(&status));
-
-		assert(ptrace(PTRACE_SINGLESTEP, pid, 0,0) == 0);
-		assert(pid == wait(&status));
-
-		if (status == 0x57F)
-			return 0;
-
-		printf("kernel bug: status=%X shouldn't have 0x80\n", status);
-		return 1;
-	}
-
+Reported-by: Daniel Lezcano <dlezcano@fr.ibm.com>
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Roland McGrath <roland@redhat.com>
-Cc: <linux-arch@vger.kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Roland McGrath <roland@redhat.com>
+Reviewed-by: Sukadev Bhattiprolu <sukadev@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/tracehook.h |    7 +++++++
- 1 file changed, 7 insertions(+)
+ kernel/signal.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/tracehook.h~ptrace-change-tracehook_report_syscall_exit-to-handle-stepping include/linux/tracehook.h
---- a/include/linux/tracehook.h~ptrace-change-tracehook_report_syscall_exit-to-handle-stepping
-+++ a/include/linux/tracehook.h
-@@ -134,6 +134,13 @@ static inline __must_check int tracehook
-  */
- static inline void tracehook_report_syscall_exit(struct pt_regs *regs, int step)
- {
-+	if (step) {
-+		siginfo_t info;
-+		user_single_step_siginfo(current, regs, &info);
-+		force_sig_info(SIGTRAP, &info, current);
-+		return;
-+	}
-+
- 	ptrace_report_syscall(regs);
- }
+diff -puN kernel/signal.c~signals-send_signal-use-si_fromuser-to-detect-from_ancestor_ns kernel/signal.c
+--- a/kernel/signal.c~signals-send_signal-use-si_fromuser-to-detect-from_ancestor_ns
++++ a/kernel/signal.c
+@@ -960,9 +960,8 @@ static int send_signal(int sig, struct s
+ 	int from_ancestor_ns = 0;
  
+ #ifdef CONFIG_PID_NS
+-	if (!is_si_special(info) && SI_FROMUSER(info) &&
+-			task_pid_nr_ns(current, task_active_pid_ns(t)) <= 0)
+-		from_ancestor_ns = 1;
++	from_ancestor_ns = si_fromuser(info) &&
++			   !task_pid_nr_ns(current, task_active_pid_ns(t));
+ #endif
+ 
+ 	return __send_signal(sig, info, t, group, from_ancestor_ns);
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
