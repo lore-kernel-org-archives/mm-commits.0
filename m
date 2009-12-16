@@ -1,63 +1,154 @@
 From: akpm@linux-foundation.org
-Subject: [merged] timecompare-fix-half-y2k38-problem-in-timecompare_update-while-calculating-offset.patch removed from -mm tree
-Date: Wed, 16 Dec 2009 12:33:26 -0800
-Message-ID: <200912162033.nBGKXQkt012933@imap1.linux-foundation.org>
+Subject: [merged] autofs4-use-helper-functions-for-active-list-handling.patch removed from -mm tree
+Date: Wed, 16 Dec 2009 12:33:38 -0800
+Message-ID: <200912162033.nBGKXcD0012952@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36149 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41433 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754584AbZLPUd5 (ORCPT
+	by vger.kernel.org with ESMTP id S1754262AbZLPUd4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Dec 2009 15:33:57 -0500
+	Wed, 16 Dec 2009 15:33:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: 21cnbao@gmail.com, davem@davemloft.net, johnstul@us.ibm.com, mingo@elte.hu, patrick.ohly@intel.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: raven@themaw.net, adilger@sun.com, hch@infradead.org, sage@newdream.net, viro@ZenIV.linux.org.uk, yehuda@newdream.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     timecompare: fix half-Y2K38 problem in timecompare_update while calculating offset
+     autofs4: use helper functions for active list handling
 has been removed from the -mm tree.  Its filename was
-     timecompare-fix-half-y2k38-problem-in-timecompare_update-while-calculating-offset.patch
+     autofs4-use-helper-functions-for-active-list-handling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: timecompare: fix half-Y2K38 problem in timecompare_update while calculating offset
-From: Barry Song <21cnbao@gmail.com>
+Subject: autofs4: use helper functions for active list handling
+From: Ian Kent <raven@themaw.net>
 
-ktime will overflow from 03:14:07 UTC on Tuesday, 19 January 2038,
-ktime_add() in timecompare_update() will overflow a half earlier.  As a
-result, wrong offset will be gotten, then cause some strange problems.
+Define some simple helper functions for adding and deleting entries on the
+active (and unhashed) dentry list.
 
-Signed-off-by: Barry Song <21cnbao@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Patrick Ohly <patrick.ohly@intel.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: John Stultz <johnstul@us.ibm.com>
+Signed-off-by: Ian Kent <raven@themaw.net>
+Cc: Sage Weil <sage@newdream.net>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Andreas Dilger <adilger@sun.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Yehuda Saheh <yehuda@newdream.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/timecompare.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/autofs4/autofs_i.h |    2 +
+ fs/autofs4/inode.c    |    1 
+ fs/autofs4/root.c     |   46 ++++++++++++++++++++++++++++++----------
+ 3 files changed, 38 insertions(+), 11 deletions(-)
 
-diff -puN kernel/time/timecompare.c~timecompare-fix-half-y2k38-problem-in-timecompare_update-while-calculating-offset kernel/time/timecompare.c
---- a/kernel/time/timecompare.c~timecompare-fix-half-y2k38-problem-in-timecompare_update-while-calculating-offset
-+++ a/kernel/time/timecompare.c
-@@ -89,7 +89,7 @@ int timecompare_offset(struct timecompar
- 			 * source time
- 			 */
- 			sample.offset =
--				ktime_to_ns(ktime_add(end, start)) / 2 -
-+				(ktime_to_ns(end) + ktime_to_ns(start)) / 2 -
- 				ts;
+diff -puN fs/autofs4/autofs_i.h~autofs4-use-helper-functions-for-active-list-handling fs/autofs4/autofs_i.h
+--- a/fs/autofs4/autofs_i.h~autofs4-use-helper-functions-for-active-list-handling
++++ a/fs/autofs4/autofs_i.h
+@@ -75,6 +75,8 @@ struct autofs_info {
+ 	struct completion expire_complete;
  
- 			/* simple insertion sort based on duration */
+ 	struct list_head active;
++	int active_count;
++
+ 	struct list_head expiring;
+ 
+ 	struct autofs_sb_info *sbi;
+diff -puN fs/autofs4/inode.c~autofs4-use-helper-functions-for-active-list-handling fs/autofs4/inode.c
+--- a/fs/autofs4/inode.c~autofs4-use-helper-functions-for-active-list-handling
++++ a/fs/autofs4/inode.c
+@@ -49,6 +49,7 @@ struct autofs_info *autofs4_init_ino(str
+ 		ino->dentry = NULL;
+ 		ino->size = 0;
+ 		INIT_LIST_HEAD(&ino->active);
++		ino->active_count = 0;
+ 		INIT_LIST_HEAD(&ino->expiring);
+ 		atomic_set(&ino->count, 0);
+ 	}
+diff -puN fs/autofs4/root.c~autofs4-use-helper-functions-for-active-list-handling fs/autofs4/root.c
+--- a/fs/autofs4/root.c~autofs4-use-helper-functions-for-active-list-handling
++++ a/fs/autofs4/root.c
+@@ -72,6 +72,38 @@ const struct inode_operations autofs4_di
+ 	.rmdir		= autofs4_dir_rmdir,
+ };
+ 
++static void autofs4_add_active(struct dentry *dentry)
++{
++	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
++	struct autofs_info *ino = autofs4_dentry_ino(dentry);
++	if (ino) {
++		spin_lock(&sbi->lookup_lock);
++		if (!ino->active_count) {
++			if (list_empty(&ino->active))
++				list_add(&ino->active, &sbi->active_list);
++		}
++		ino->active_count++;
++		spin_unlock(&sbi->lookup_lock);
++	}
++	return;
++}
++
++static void autofs4_del_active(struct dentry *dentry)
++{
++	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
++	struct autofs_info *ino = autofs4_dentry_ino(dentry);
++	if (ino) {
++		spin_lock(&sbi->lookup_lock);
++		ino->active_count--;
++		if (!ino->active_count) {
++			if (!list_empty(&ino->active))
++				list_del_init(&ino->active);
++		}
++		spin_unlock(&sbi->lookup_lock);
++	}
++	return;
++}
++
+ static int autofs4_dir_open(struct inode *inode, struct file *file)
+ {
+ 	struct dentry *dentry = file->f_path.dentry;
+@@ -513,9 +545,7 @@ static struct dentry *autofs4_lookup(str
+ 		dentry->d_fsdata = ino;
+ 		ino->dentry = dentry;
+ 
+-		spin_lock(&sbi->lookup_lock);
+-		list_add(&ino->active, &sbi->active_list);
+-		spin_unlock(&sbi->lookup_lock);
++		autofs4_add_active(dentry);
+ 
+ 		d_instantiate(dentry, NULL);
+ 	}
+@@ -624,10 +654,7 @@ static int autofs4_dir_symlink(struct in
+ 	if (!ino)
+ 		return -ENOMEM;
+ 
+-	spin_lock(&sbi->lookup_lock);
+-	if (!list_empty(&ino->active))
+-		list_del_init(&ino->active);
+-	spin_unlock(&sbi->lookup_lock);
++	autofs4_del_active(dentry);
+ 
+ 	ino->size = strlen(symname);
+ 	cp = kmalloc(ino->size + 1, GFP_KERNEL);
+@@ -775,10 +802,7 @@ static int autofs4_dir_mkdir(struct inod
+ 	if (!ino)
+ 		return -ENOMEM;
+ 
+-	spin_lock(&sbi->lookup_lock);
+-	if (!list_empty(&ino->active))
+-		list_del_init(&ino->active);
+-	spin_unlock(&sbi->lookup_lock);
++	autofs4_del_active(dentry);
+ 
+ 	inode = autofs4_get_inode(dir->i_sb, ino);
+ 	if (!inode) {
 _
 
-Patches currently in -mm which might be from 21cnbao@gmail.com are
+Patches currently in -mm which might be from raven@themaw.net are
 
 origin.patch
+vfs-make-real_lookup-do-dentry-revalidation-with-i_mutex-held.patch
+vfs-clean-up-real_lookup.patch
 
