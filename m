@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + printk-fix-new-kernel-doc-warnings.patch added to -mm tree
-Date: Thu, 17 Dec 2009 13:03:16 -0800
-Message-ID: <200912172103.nBHL3GOG018672@imap1.linux-foundation.org>
+Subject: + revert-fbdev-atafb-add-palette-register-check.patch added to -mm tree
+Date: Thu, 17 Dec 2009 14:00:06 -0800
+Message-ID: <200912172200.nBHM06WP021068@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45158 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55731 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759484AbZLQVDX (ORCPT
+	by vger.kernel.org with ESMTP id S1763075AbZLQWAz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Dec 2009 16:03:23 -0500
+	Thu, 17 Dec 2009 17:00:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com
+Cc: geert@linux-m68k.org, krzysztof.h1@wp.pl
 
 
 The patch titled
-     printk: fix new kernel-doc warnings
+     Revert "fbdev: atafb - add palette register check"
 has been added to the -mm tree.  Its filename is
-     printk-fix-new-kernel-doc-warnings.patch
+     revert-fbdev-atafb-add-palette-register-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,56 +34,29 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: printk: fix new kernel-doc warnings
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Revert "fbdev: atafb - add palette register check"
+From: Geert Uytterhoeven <geert@linux-m68k.org>
 
-Fix kernel-doc warnings in printk.c:
+This reverts commit 8546e3ce6e37c359979b69862442f94e0ef0e03b, as it's a
+partial duplicate of commit 2f390380ca69e1617cdddb12d8da94f0a9f4319d ("fbdev:
+add palette register check to several drivers").
+The former went in first through the m68k tree, the latter through Andrew
+Morton.
 
-Warning(kernel/printk.c:1422): No description found for parameter 'dumper'
-Warning(kernel/printk.c:1422): Excess function parameter 'dump' description in 'kmsg_dump_register'
-Warning(kernel/printk.c:1451): No description found for parameter 'dumper'
-Warning(kernel/printk.c:1451): Excess function parameter 'dump' description in 'kmsg_dump_unregister'
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Acked-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/atafb.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN kernel/printk.c~printk-fix-new-kernel-doc-warnings kernel/printk.c
---- a/kernel/printk.c~printk-fix-new-kernel-doc-warnings
-+++ a/kernel/printk.c
-@@ -1412,7 +1412,7 @@ static LIST_HEAD(dump_list);
+diff -puN drivers/video/atafb.c~revert-fbdev-atafb-add-palette-register-check drivers/video/atafb.c
+--- a/drivers/video/atafb.c~revert-fbdev-atafb-add-palette-register-check
++++ a/drivers/video/atafb.c
+@@ -2242,9 +2242,6 @@ static int ext_setcolreg(unsigned int re
+ 	if (!external_vgaiobase)
+ 		return 1;
  
- /**
-  * kmsg_dump_register - register a kernel log dumper.
-- * @dump: pointer to the kmsg_dumper structure
-+ * @dumper: pointer to the kmsg_dumper structure
-  *
-  * Adds a kernel log dumper to the system. The dump callback in the
-  * structure will be called when the kernel oopses or panics and must be
-@@ -1442,7 +1442,7 @@ EXPORT_SYMBOL_GPL(kmsg_dump_register);
- 
- /**
-  * kmsg_dump_unregister - unregister a kmsg dumper.
-- * @dump: pointer to the kmsg_dumper structure
-+ * @dumper: pointer to the kmsg_dumper structure
-  *
-  * Removes a dump device from the system. Returns zero on success and
-  * %-EINVAL otherwise.
-_
-
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
-
-origin.patch
-readahead-add-blk_run_backing_dev.patch
-printk-fix-new-kernel-doc-warnings.patch
-linux-next.patch
-docs-large-update-to-ioctl-numbertxt.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
-spi-controller-driver-for-designware-spi-core.patch
-gpio-add-driver-for-max7300-i2c-gpio-extender.patch
-reiser4-export-remove_from_page_cache-fix.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
-
+-	if (regno > 255)
+-		return 1;
