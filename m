@@ -1,68 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: [folded] drivers-media-video-cx23885-needs-kfifo-updates.patch removed from -mm tree
-Date: Thu, 17 Dec 2009 14:57:41 -0800
-Message-ID: <200912172257.nBHMvf7V023572@imap1.linux-foundation.org>
+Subject: + arch-x86-tools-chkobjdumpawk-fix-it.patch added to -mm tree
+Date: Thu, 17 Dec 2009 15:26:36 -0800
+Message-ID: <200912172326.nBHNQaQl024796@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46367 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54447 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750987AbZLQW6W (ORCPT
+	by vger.kernel.org with ESMTP id S1751070AbZLQX1R (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Dec 2009 17:58:22 -0500
+	Thu, 17 Dec 2009 18:27:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, stefani@seibold.net, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, hpa@zytor.com, mingo@elte.hu, mingo@redhat.com, tglx@linutronix.de
 
 
 The patch titled
-     drivers/media/video/cx23885: needs kfifo updates
-has been removed from the -mm tree.  Its filename was
-     drivers-media-video-cx23885-needs-kfifo-updates.patch
+     arch/x86/tools/chkobjdump.awk: fix it
+has been added to the -mm tree.  Its filename is
+     arch-x86-tools-chkobjdumpawk-fix-it.patch
 
-This patch was dropped because it was folded into drivers-media-video-cx23885-needs-kfifo-conversion.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/media/video/cx23885: needs kfifo updates
+Subject: arch/x86/tools/chkobjdump.awk: fix it
 From: Andrew Morton <akpm@linux-foundation.org>
 
-linux-next again.
+It says
 
-Cc: Stefani Seibold <stefani@seibold.net>
+Warning: objdump version  is older than 2.19
+Warning: Skipping posttest.
+
+because it used the wrong field from `objdump -v':
+
+akpm:/usr/src/25> /opt/crosstool/gcc-4.0.2-glibc-2.3.6/x86_64-unknown-linux-gnu/bin/x86_64-unknown-linux-gnu-objdump -v
+GNU objdump 2.16.1
+Copyright 2005 Free Software Foundation, Inc.
+This program is free software; you may redistribute it under the terms of
+the GNU General Public License.  This program has absolutely no warranty.
+
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/cx23885/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ arch/x86/tools/chkobjdump.awk |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/media/video/cx23885/Makefile~a drivers/media/video/cx23885/Makefile
-diff -puN drivers/media/video/cx23885/Kconfig~a drivers/media/video/cx23885/Kconfig
---- a/drivers/media/video/cx23885/Kconfig~a
-+++ a/drivers/media/video/cx23885/Kconfig
-@@ -1,6 +1,7 @@
- config VIDEO_CX23885
- 	tristate "Conexant cx23885 (2388x successor) support"
- 	depends on DVB_CORE && VIDEO_DEV && PCI && I2C && INPUT
-+	depends on BROKEN
- 	select I2C_ALGOBIT
- 	select VIDEO_BTCX
- 	select VIDEO_TUNER
+diff -puN arch/x86/tools/chkobjdump.awk~arch-x86-tools-chkobjdumpawk-fix-it arch/x86/tools/chkobjdump.awk
+--- a/arch/x86/tools/chkobjdump.awk~arch-x86-tools-chkobjdumpawk-fix-it
++++ a/arch/x86/tools/chkobjdump.awk
+@@ -9,7 +9,7 @@ BEGIN {
+ }
+ 
+ /^GNU/ {
+-	split($4, ver, ".");
++	split($3, ver, ".");
+ 	if (ver[1] > od_ver ||
+ 	    (ver[1] == od_ver && ver[2] >= od_sver)) {
+ 		exit 1;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 readahead-add-blk_run_backing_dev.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-drivers-media-video-cx23885-needs-kfifo-updates.patch
 kfifo-move-struct-kfifo-in-place-fix.patch
 linux-next.patch
 linux-next-fixup.patch
 next-remove-localversion.patch
 i-need-old-gcc.patch
 revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
+drivers-media-video-cx23885-needs-kfifo-conversion.patch
 drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
+arch-x86-tools-chkobjdumpawk-fix-it.patch
 arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
 cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
 cmpc_acpi-add-support-for-classmate-pc-acpi-devices-checkpatch-fixes.patch
