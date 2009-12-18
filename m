@@ -1,71 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [merged] vt-dont-export-vt_kmsg_redirect-to-userspace.patch removed from -mm tree
-Date: Fri, 18 Dec 2009 12:26:21 -0800
-Message-ID: <200912182026.nBIKQLHv016454@imap1.linux-foundation.org>
+Subject: [merged] sdhci-protect-header-file-against-multi-inclusion.patch removed from -mm tree
+Date: Fri, 18 Dec 2009 12:26:42 -0800
+Message-ID: <200912182026.nBIKQgwa016548@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38535 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51617 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932779AbZLRU01 (ORCPT
+	by vger.kernel.org with ESMTP id S1754157AbZLRU0o (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Dec 2009 15:26:27 -0500
+	Fri, 18 Dec 2009 15:26:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bernhard@bwalle.de, mm-commits@vger.kernel.org
+To: albert_herranz@yahoo.es, linux-mmc@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vt: don't export vt_kmsg_redirect() to userspace
+     sdhci: protect header file against multi inclusion
 has been removed from the -mm tree.  Its filename was
-     vt-dont-export-vt_kmsg_redirect-to-userspace.patch
+     sdhci-protect-header-file-against-multi-inclusion.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vt: don't export vt_kmsg_redirect() to userspace
-From: Bernhard Walle <bernhard@bwalle.de>
+Subject: sdhci: protect header file against multi inclusion
+From: Albert Herranz <albert_herranz@yahoo.es>
 
-Fix following warning in linux-next by guarding the function definition
-(both the "extern" and the inline) with #ifdef __KERNEL__.
-
-usr/include/linux/vt.h:89: userspace cannot call function or variable defined in
-the kernel
-
-Introduced by commit 5ada918b82399eef3afd6a71e3637697d6bd719f ("vt:
-introduce and use vt_kmsg_redirect() function").
-
-Signed-off-by: Bernhard Walle <bernhard@bwalle.de>
+Signed-off-by: Albert Herranz <albert_herranz@yahoo.es>
+Cc: <linux-mmc@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vt.h |    4 ++++
+ drivers/mmc/host/sdhci.h |    4 ++++
  1 file changed, 4 insertions(+)
 
-diff -puN include/linux/vt.h~vt-dont-export-vt_kmsg_redirect-to-userspace include/linux/vt.h
---- a/include/linux/vt.h~vt-dont-export-vt_kmsg_redirect-to-userspace
-+++ a/include/linux/vt.h
-@@ -84,6 +84,8 @@ struct vt_setactivate {
+diff -puN drivers/mmc/host/sdhci.h~sdhci-protect-header-file-against-multi-inclusion drivers/mmc/host/sdhci.h
+--- a/drivers/mmc/host/sdhci.h~sdhci-protect-header-file-against-multi-inclusion
++++ a/drivers/mmc/host/sdhci.h
+@@ -8,6 +8,8 @@
+  * the Free Software Foundation; either version 2 of the License, or (at
+  * your option) any later version.
+  */
++#ifndef __SDHCI_H
++#define __SDHCI_H
  
- #define VT_SETACTIVATE	0x560F	/* Activate and set the mode of a console */
- 
-+#ifdef __KERNEL__
-+
- #ifdef CONFIG_VT_CONSOLE
- 
- extern int vt_kmsg_redirect(int new);
-@@ -97,6 +99,8 @@ static inline int vt_kmsg_redirect(int n
- 
+ #include <linux/scatterlist.h>
+ #include <linux/compiler.h>
+@@ -408,3 +410,5 @@ extern void sdhci_remove_host(struct sdh
+ extern int sdhci_suspend_host(struct sdhci_host *host, pm_message_t state);
+ extern int sdhci_resume_host(struct sdhci_host *host);
  #endif
- 
-+#endif /* __KERNEL__ */
 +
- #define vt_get_kmsg_redirect() vt_kmsg_redirect(-1)
- 
- #endif /* _LINUX_VT_H */
++#endif /* __SDHCI_H */
 _
 
-Patches currently in -mm which might be from bernhard@bwalle.de are
+Patches currently in -mm which might be from albert_herranz@yahoo.es are
 
+sdio-recognize-io-card-without-powercycle.patch
 
