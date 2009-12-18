@@ -1,60 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: [merged] adt7462-fix-pin-28-monitoring.patch removed from -mm tree
-Date: Fri, 18 Dec 2009 12:27:06 -0800
-Message-ID: <200912182027.nBIKR6b4016605@imap1.linux-foundation.org>
+Subject: + media-video-cx23888-driver-ported-to-new-kfifo-api-fix.patch added to -mm tree
+Date: Fri, 18 Dec 2009 14:30:05 -0800
+Message-ID: <200912182230.nBIMU6aI022264@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35433 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49485 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932849AbZLRU1g (ORCPT
+	by vger.kernel.org with ESMTP id S1751020AbZLRWa7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Dec 2009 15:27:36 -0500
+	Fri, 18 Dec 2009 17:30:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: blofeldus@yahoo.com, djwong@us.ibm.com, khali@linux-fr.org, w.sang@pengutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: stefani@seibold.net, awalls@radix.net, mchehab@infradead.org
 
 
 The patch titled
-     drivers/hwmon/adt7462.c: fix pin 28 monitoring
-has been removed from the -mm tree.  Its filename was
-     adt7462-fix-pin-28-monitoring.patch
+     media video cx23888 driver: fix possible races using new kfifo_API kfifo_reset()
+has been added to the -mm tree.  Its filename is
+     media-video-cx23888-driver-ported-to-new-kfifo-api-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/hwmon/adt7462.c: fix pin 28 monitoring
-From: roger blofeld <blofeldus@yahoo.com>
+Subject: media video cx23888 driver: fix possible races using new kfifo_API kfifo_reset()
+From: Stefani Seibold <stefani@seibold.net>
 
-The ADT7462_PIN28_VOLT value is a 4-bit field, so the corresponding shift
-must be 4.
+Fix the cx23888 driver to use the new kfifo API.  Using kfifo_reset() may
+result in a possible race conditions.  This patch fix it by using spinlock
+around the kfifo_reset() function.
 
-Signed-off-by: Roger Blofeld <blofeldus@yahoo.com>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Wolfram Sang <w.sang@pengutronix.de>
-Cc: Darrick J. Wong <djwong@us.ibm.com>
+Signed-off-by: Stefani Seibold <stefani@seibold.net>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Andy Walls <awalls@radix.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/adt7462.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/video/cx23885/cx23888-ir.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN drivers/hwmon/adt7462.c~adt7462-fix-pin-28-monitoring drivers/hwmon/adt7462.c
---- a/drivers/hwmon/adt7462.c~adt7462-fix-pin-28-monitoring
-+++ a/drivers/hwmon/adt7462.c
-@@ -94,7 +94,7 @@ static const unsigned short normal_i2c[]
- #define		ADT7462_PIN24_SHIFT		6
- #define		ADT7462_PIN26_VOLT_INPUT	0x08
- #define		ADT7462_PIN25_VOLT_INPUT	0x20
--#define		ADT7462_PIN28_SHIFT		6	/* cfg3 */
-+#define        ADT7462_PIN28_SHIFT        4    /* cfg3 */
- #define		ADT7462_PIN28_VOLT		0x5
+diff -puN drivers/media/video/cx23885/cx23888-ir.c~media-video-cx23888-driver-ported-to-new-kfifo-api-fix drivers/media/video/cx23885/cx23888-ir.c
+--- a/drivers/media/video/cx23885/cx23888-ir.c~media-video-cx23888-driver-ported-to-new-kfifo-api-fix
++++ a/drivers/media/video/cx23885/cx23888-ir.c
+@@ -519,6 +519,7 @@ static int cx23888_ir_irq_handler(struct
+ {
+ 	struct cx23888_ir_state *state = to_state(sd);
+ 	struct cx23885_dev *dev = state->dev;
++	unsigned long flags;
  
- #define ADT7462_REG_ALARM1			0xB8
+ 	u32 cntrl = cx23888_ir_read4(dev, CX23888_IR_CNTRL_REG);
+ 	u32 irqen = cx23888_ir_read4(dev, CX23888_IR_IRQEN_REG);
+@@ -629,8 +630,11 @@ static int cx23888_ir_irq_handler(struct
+ 		cx23888_ir_write4(dev, CX23888_IR_CNTRL_REG, cntrl);
+ 		*handled = true;
+ 	}
++
++	spin_lock_irqsave(&state->rx_kfifo_lock, flags);
+ 	if (kfifo_len(&state->rx_kfifo) >= CX23888_IR_RX_KFIFO_SIZE / 2)
+ 		events |= V4L2_SUBDEV_IR_RX_FIFO_SERVICE_REQ;
++	spin_unlock_irqrestore(&state->rx_kfifo_lock, flags);
+ 
+ 	if (events)
+ 		v4l2_subdev_notify(sd, V4L2_SUBDEV_IR_RX_NOTIFY, &events);
+@@ -783,7 +787,12 @@ static int cx23888_ir_rx_s_parameters(st
+ 	o->interrupt_enable = p->interrupt_enable;
+ 	o->enable = p->enable;
+ 	if (p->enable) {
++		unsigned long flags;
++
++		spin_lock_irqsave(&state->rx_kfifo_lock, flags);
+ 		kfifo_reset(&state->rx_kfifo);
++		/* reset tx_fifo too if there is one... */
++		spin_unlock_irqrestore(&state->rx_kfifo_lock, flags);
+ 		if (p->interrupt_enable)
+ 			irqenable_rx(dev, IRQEN_RSE | IRQEN_RTE | IRQEN_ROE);
+ 		control_rx_enable(dev, p->enable);
 _
 
-Patches currently in -mm which might be from blofeldus@yahoo.com are
+Patches currently in -mm which might be from stefani@seibold.net are
 
-linux-next.patch
+kfifo-move-struct-kfifo-in-place.patch
+kfifo-move-struct-kfifo-in-place-fix.patch
+kfifo-move-out-spinlock.patch
+kfifo-cleanup-namespace.patch
+kfifo-rename-kfifo_put-into-kfifo_in-and-kfifo_get-into-kfifo_out.patch
+kfifo-fix-warn_unused_result.patch
+kfifo-add-define_kfifo-and-friends-add-very-tiny-functions.patch
+kfifo-add-define_kfifo-and-friends-add-very-tiny-functions-fix.patch
+kfifo-add-kfifo_skip-kfifo_from_user-and-kfifo_to_user.patch
+kfifo-add-record-handling-functions.patch
+kfifo-add-record-handling-functions-fix.patch
+media-video-cx23888-driver-ported-to-new-kfifo-api.patch
+media-video-cx23888-driver-ported-to-new-kfifo-api-fix.patch
+drivers-media-video-cx23885-needs-kfifo-conversion.patch
 
