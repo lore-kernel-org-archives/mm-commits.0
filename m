@@ -1,83 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [merged] keys-ptr_err-return-of-wrong-pointer-in-keyctl_get_security.patch removed from -mm tree
-Date: Fri, 18 Dec 2009 12:27:15 -0800
-Message-ID: <200912182027.nBIKRFTR016617@imap1.linux-foundation.org>
+Subject: [merged] adt7462-fix-pin-28-monitoring.patch removed from -mm tree
+Date: Fri, 18 Dec 2009 12:27:06 -0800
+Message-ID: <200912182027.nBIKR6b4016605@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33128 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35433 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932855AbZLRU1g (ORCPT
+	by vger.kernel.org with ESMTP id S932849AbZLRU1g (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 18 Dec 2009 15:27:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, dhowells@redhat.com, jmorris@namei.org, mm-commits@vger.kernel.org
+To: blofeldus@yahoo.com, djwong@us.ibm.com, khali@linux-fr.org, w.sang@pengutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     keys: PTR_ERR return of wrong pointer in keyctl_get_security()
+     drivers/hwmon/adt7462.c: fix pin 28 monitoring
 has been removed from the -mm tree.  Its filename was
-     keys-ptr_err-return-of-wrong-pointer-in-keyctl_get_security.patch
+     adt7462-fix-pin-28-monitoring.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: keys: PTR_ERR return of wrong pointer in keyctl_get_security()
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: drivers/hwmon/adt7462.c: fix pin 28 monitoring
+From: roger blofeld <blofeldus@yahoo.com>
 
-Return the PTR_ERR of the correct pointer.
+The ADT7462_PIN28_VOLT value is a 4-bit field, so the corresponding shift
+must be 4.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: David Howells <dhowells@redhat.com>
+Signed-off-by: Roger Blofeld <blofeldus@yahoo.com>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Wolfram Sang <w.sang@pengutronix.de>
+Cc: Darrick J. Wong <djwong@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/keys/keyctl.c |    2 +-
+ drivers/hwmon/adt7462.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN security/keys/keyctl.c~keys-ptr_err-return-of-wrong-pointer-in-keyctl_get_security security/keys/keyctl.c
---- a/security/keys/keyctl.c~keys-ptr_err-return-of-wrong-pointer-in-keyctl_get_security
-+++ a/security/keys/keyctl.c
-@@ -1194,7 +1194,7 @@ long keyctl_get_security(key_serial_t ke
- 		 * have the authorisation token handy */
- 		instkey = key_get_instantiation_authkey(keyid);
- 		if (IS_ERR(instkey))
--			return PTR_ERR(key_ref);
-+			return PTR_ERR(instkey);
- 		key_put(instkey);
+diff -puN drivers/hwmon/adt7462.c~adt7462-fix-pin-28-monitoring drivers/hwmon/adt7462.c
+--- a/drivers/hwmon/adt7462.c~adt7462-fix-pin-28-monitoring
++++ a/drivers/hwmon/adt7462.c
+@@ -94,7 +94,7 @@ static const unsigned short normal_i2c[]
+ #define		ADT7462_PIN24_SHIFT		6
+ #define		ADT7462_PIN26_VOLT_INPUT	0x08
+ #define		ADT7462_PIN25_VOLT_INPUT	0x20
+-#define		ADT7462_PIN28_SHIFT		6	/* cfg3 */
++#define        ADT7462_PIN28_SHIFT        4    /* cfg3 */
+ #define		ADT7462_PIN28_VOLT		0x5
  
- 		key_ref = lookup_user_key(keyid, KEY_LOOKUP_PARTIAL, 0);
+ #define ADT7462_REG_ALARM1			0xB8
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from blofeldus@yahoo.com are
 
 linux-next.patch
-fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-powerpc-85xx-wrong-variable-returned-on-error.patch
-hidp-ptr_err-return-of-wrong-pointer-in-hidp_setup_hid.patch
-imx-bit-confusion.patch
-serial-fix-test-of-unsigned.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
-ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
-scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
-drbd-fix-test-of-unsigned-in-_drbd_fault_random.patch
-r8192u_core-test-for-negative-error-in-rtl8192_rx_isr.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-cryptocop-fix-assertion-in-create_output_descriptors.patch
-asiliantfb-fix-test-of-unsigned-in-asiliant_calc_dclk2.patch
-hvc_console-fix-test-on-unsigned-in-hvc_console_print.patch
-zlib-optimize-inffast-when-copying-direct-from-output.patch
 
