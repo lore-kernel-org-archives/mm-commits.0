@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + copy_signal-cleanup-kill-taskstats_tgid_init-and-acct_init_pacct.patch added to -mm tree
-Date: Fri, 18 Dec 2009 14:59:41 -0800
-Message-ID: <200912182259.nBIMxfmA023595@imap1.linux-foundation.org>
+Subject: + copy_signal-cleanup-clean-thread_group_cputime_init.patch added to -mm tree
+Date: Fri, 18 Dec 2009 14:59:43 -0800
+Message-ID: <200912182259.nBIMxhbf023598@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33651 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60083 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933188AbZLRW77 (ORCPT
+	by vger.kernel.org with ESMTP id S933195AbZLRXAB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Dec 2009 17:59:59 -0500
+	Fri, 18 Dec 2009 18:00:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: vfalico@redhat.com, oleg@redhat.com, roland@redhat.com
 
 
 The patch titled
-     copy_signal() cleanup: kill taskstats_tgid_init() and acct_init_pacct()
+     copy_signal() cleanup: clean thread_group_cputime_init()
 has been added to the -mm tree.  Its filename is
-     copy_signal-cleanup-kill-taskstats_tgid_init-and-acct_init_pacct.patch
+     copy_signal-cleanup-clean-thread_group_cputime_init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,78 +34,50 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: copy_signal() cleanup: kill taskstats_tgid_init() and acct_init_pacct()
+Subject: copy_signal() cleanup: clean thread_group_cputime_init()
 From: Veaceslav Falico <vfalico@redhat.com>
 
-Kill unused functions taskstats_tgid_init() and acct_init_pacct() because
-we don't use them anywhere after using kmem_cache_zalloc() in
-copy_signal().
+Remove unneeded initializations in thread_group_cputime_init() and in
+posix_cpu_timers_init_group().  They are useless after kmem_cache_zalloc()
+was used in copy_signal().
 
 Signed-off-by: Veaceslav Falico <vfalico@redhat.com>
+Acked-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Roland McGrath <roland@redhat.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/acct.h           |    2 --
- include/linux/taskstats_kern.h |    7 -------
- kernel/acct.c                  |   10 ----------
- 3 files changed, 19 deletions(-)
+ include/linux/sched.h |    2 --
+ kernel/fork.c         |   11 -----------
+ 2 files changed, 13 deletions(-)
 
-diff -puN include/linux/acct.h~copy_signal-cleanup-kill-taskstats_tgid_init-and-acct_init_pacct include/linux/acct.h
---- a/include/linux/acct.h~copy_signal-cleanup-kill-taskstats_tgid_init-and-acct_init_pacct
-+++ a/include/linux/acct.h
-@@ -123,14 +123,12 @@ struct pacct_struct;
- struct pid_namespace;
- extern void acct_auto_close_mnt(struct vfsmount *m);
- extern void acct_auto_close(struct super_block *sb);
--extern void acct_init_pacct(struct pacct_struct *pacct);
- extern void acct_collect(long exitcode, int group_dead);
- extern void acct_process(void);
- extern void acct_exit_ns(struct pid_namespace *);
- #else
- #define acct_auto_close_mnt(x)	do { } while (0)
- #define acct_auto_close(x)	do { } while (0)
--#define acct_init_pacct(x)	do { } while (0)
- #define acct_collect(x,y)	do { } while (0)
- #define acct_process()		do { } while (0)
- #define acct_exit_ns(ns)	do { } while (0)
-diff -puN include/linux/taskstats_kern.h~copy_signal-cleanup-kill-taskstats_tgid_init-and-acct_init_pacct include/linux/taskstats_kern.h
---- a/include/linux/taskstats_kern.h~copy_signal-cleanup-kill-taskstats_tgid_init-and-acct_init_pacct
-+++ a/include/linux/taskstats_kern.h
-@@ -14,11 +14,6 @@
- extern struct kmem_cache *taskstats_cache;
- extern struct mutex taskstats_exit_mutex;
+diff -puN include/linux/sched.h~copy_signal-cleanup-clean-thread_group_cputime_init include/linux/sched.h
+--- a/include/linux/sched.h~copy_signal-cleanup-clean-thread_group_cputime_init
++++ a/include/linux/sched.h
+@@ -2440,9 +2440,7 @@ void thread_group_cputimer(struct task_s
  
--static inline void taskstats_tgid_init(struct signal_struct *sig)
--{
--	sig->stats = NULL;
--}
--
- static inline void taskstats_tgid_free(struct signal_struct *sig)
+ static inline void thread_group_cputime_init(struct signal_struct *sig)
  {
- 	if (sig->stats)
-@@ -30,8 +25,6 @@ extern void taskstats_init_early(void);
- #else
- static inline void taskstats_exit(struct task_struct *tsk, int group_dead)
- {}
--static inline void taskstats_tgid_init(struct signal_struct *sig)
--{}
- static inline void taskstats_tgid_free(struct signal_struct *sig)
- {}
- static inline void taskstats_init_early(void)
-diff -puN kernel/acct.c~copy_signal-cleanup-kill-taskstats_tgid_init-and-acct_init_pacct kernel/acct.c
---- a/kernel/acct.c~copy_signal-cleanup-kill-taskstats_tgid_init-and-acct_init_pacct
-+++ a/kernel/acct.c
-@@ -588,16 +588,6 @@ out:
+-	sig->cputimer.cputime = INIT_CPUTIME;
+ 	spin_lock_init(&sig->cputimer.lock);
+-	sig->cputimer.running = 0;
  }
  
- /**
-- * acct_init_pacct - initialize a new pacct_struct
-- * @pacct: per-process accounting info struct to initialize
-- */
--void acct_init_pacct(struct pacct_struct *pacct)
--{
--	memset(pacct, 0, sizeof(struct pacct_struct));
--	pacct->ac_utime = pacct->ac_stime = cputime_zero;
--}
+ static inline void thread_group_cputime_free(struct signal_struct *sig)
+diff -puN kernel/fork.c~copy_signal-cleanup-clean-thread_group_cputime_init kernel/fork.c
+--- a/kernel/fork.c~copy_signal-cleanup-clean-thread_group_cputime_init
++++ a/kernel/fork.c
+@@ -829,17 +829,6 @@ static void posix_cpu_timers_init_group(
+ 	/* Thread group counters. */
+ 	thread_group_cputime_init(sig);
+ 
+-	/* Expiration times and increments. */
+-	sig->it[CPUCLOCK_PROF].expires = cputime_zero;
+-	sig->it[CPUCLOCK_PROF].incr = cputime_zero;
+-	sig->it[CPUCLOCK_VIRT].expires = cputime_zero;
+-	sig->it[CPUCLOCK_VIRT].incr = cputime_zero;
+-
+-	/* Cached expiration times. */
+-	sig->cputime_expires.prof_exp = cputime_zero;
+-	sig->cputime_expires.virt_exp = cputime_zero;
+-	sig->cputime_expires.sched_exp = 0;
