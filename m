@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + copy_signal-cleanup-use-zalloc-and-remove-initializations.patch added to -mm tree
-Date: Fri, 18 Dec 2009 14:59:39 -0800
-Message-ID: <200912182259.nBIMxd0o023592@imap1.linux-foundation.org>
+Subject: + copy_signal-cleanup-kill-taskstats_tgid_init-and-acct_init_pacct.patch added to -mm tree
+Date: Fri, 18 Dec 2009 14:59:41 -0800
+Message-ID: <200912182259.nBIMxfmA023595@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49468 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33651 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932436AbZLRW76 (ORCPT
+	by vger.kernel.org with ESMTP id S933188AbZLRW77 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Dec 2009 17:59:58 -0500
+	Fri, 18 Dec 2009 17:59:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: vfalico@redhat.com, oleg@redhat.com, roland@redhat.com
 
 
 The patch titled
-     copy_signal() cleanup: use zalloc and remove initializations
+     copy_signal() cleanup: kill taskstats_tgid_init() and acct_init_pacct()
 has been added to the -mm tree.  Its filename is
-     copy_signal-cleanup-use-zalloc-and-remove-initializations.patch
+     copy_signal-cleanup-kill-taskstats_tgid_init-and-acct_init_pacct.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,73 +34,78 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: copy_signal() cleanup: use zalloc and remove initializations
+Subject: copy_signal() cleanup: kill taskstats_tgid_init() and acct_init_pacct()
 From: Veaceslav Falico <vfalico@redhat.com>
 
-Use kmem_cache_zalloc() on signal creation and remove unneeded
-initialization lines in copy_signal().
+Kill unused functions taskstats_tgid_init() and acct_init_pacct() because
+we don't use them anywhere after using kmem_cache_zalloc() in
+copy_signal().
 
 Signed-off-by: Veaceslav Falico <vfalico@redhat.com>
-Acked-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Roland McGrath <roland@redhat.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |   27 +--------------------------
- 1 file changed, 1 insertion(+), 26 deletions(-)
+ include/linux/acct.h           |    2 --
+ include/linux/taskstats_kern.h |    7 -------
+ kernel/acct.c                  |   10 ----------
+ 3 files changed, 19 deletions(-)
 
-diff -puN kernel/fork.c~copy_signal-cleanup-use-zalloc-and-remove-initializations kernel/fork.c
---- a/kernel/fork.c~copy_signal-cleanup-use-zalloc-and-remove-initializations
-+++ a/kernel/fork.c
-@@ -859,7 +859,7 @@ static int copy_signal(unsigned long clo
- 	if (clone_flags & CLONE_THREAD)
- 		return 0;
+diff -puN include/linux/acct.h~copy_signal-cleanup-kill-taskstats_tgid_init-and-acct_init_pacct include/linux/acct.h
+--- a/include/linux/acct.h~copy_signal-cleanup-kill-taskstats_tgid_init-and-acct_init_pacct
++++ a/include/linux/acct.h
+@@ -123,14 +123,12 @@ struct pacct_struct;
+ struct pid_namespace;
+ extern void acct_auto_close_mnt(struct vfsmount *m);
+ extern void acct_auto_close(struct super_block *sb);
+-extern void acct_init_pacct(struct pacct_struct *pacct);
+ extern void acct_collect(long exitcode, int group_dead);
+ extern void acct_process(void);
+ extern void acct_exit_ns(struct pid_namespace *);
+ #else
+ #define acct_auto_close_mnt(x)	do { } while (0)
+ #define acct_auto_close(x)	do { } while (0)
+-#define acct_init_pacct(x)	do { } while (0)
+ #define acct_collect(x,y)	do { } while (0)
+ #define acct_process()		do { } while (0)
+ #define acct_exit_ns(ns)	do { } while (0)
+diff -puN include/linux/taskstats_kern.h~copy_signal-cleanup-kill-taskstats_tgid_init-and-acct_init_pacct include/linux/taskstats_kern.h
+--- a/include/linux/taskstats_kern.h~copy_signal-cleanup-kill-taskstats_tgid_init-and-acct_init_pacct
++++ a/include/linux/taskstats_kern.h
+@@ -14,11 +14,6 @@
+ extern struct kmem_cache *taskstats_cache;
+ extern struct mutex taskstats_exit_mutex;
  
--	sig = kmem_cache_alloc(signal_cachep, GFP_KERNEL);
-+	sig = kmem_cache_zalloc(signal_cachep, GFP_KERNEL);
- 	tsk->signal = sig;
- 	if (!sig)
- 		return -ENOMEM;
-@@ -867,46 +867,21 @@ static int copy_signal(unsigned long clo
- 	atomic_set(&sig->count, 1);
- 	atomic_set(&sig->live, 1);
- 	init_waitqueue_head(&sig->wait_chldexit);
--	sig->flags = 0;
- 	if (clone_flags & CLONE_NEWPID)
- 		sig->flags |= SIGNAL_UNKILLABLE;
--	sig->group_exit_code = 0;
--	sig->group_exit_task = NULL;
--	sig->group_stop_count = 0;
- 	sig->curr_target = tsk;
- 	init_sigpending(&sig->shared_pending);
- 	INIT_LIST_HEAD(&sig->posix_timers);
- 
- 	hrtimer_init(&sig->real_timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
--	sig->it_real_incr.tv64 = 0;
- 	sig->real_timer.function = it_real_fn;
- 
--	sig->leader = 0;	/* session leadership doesn't inherit */
--	sig->tty_old_pgrp = NULL;
--	sig->tty = NULL;
+-static inline void taskstats_tgid_init(struct signal_struct *sig)
+-{
+-	sig->stats = NULL;
+-}
 -
--	sig->utime = sig->stime = sig->cutime = sig->cstime = cputime_zero;
--	sig->gtime = cputime_zero;
--	sig->cgtime = cputime_zero;
--#ifndef CONFIG_VIRT_CPU_ACCOUNTING
--	sig->prev_utime = sig->prev_stime = cputime_zero;
--#endif
--	sig->nvcsw = sig->nivcsw = sig->cnvcsw = sig->cnivcsw = 0;
--	sig->min_flt = sig->maj_flt = sig->cmin_flt = sig->cmaj_flt = 0;
--	sig->inblock = sig->oublock = sig->cinblock = sig->coublock = 0;
--	sig->maxrss = sig->cmaxrss = 0;
--	task_io_accounting_init(&sig->ioac);
--	sig->sum_sched_runtime = 0;
--	taskstats_tgid_init(sig);
--
- 	task_lock(current->group_leader);
- 	memcpy(sig->rlim, current->signal->rlim, sizeof sig->rlim);
- 	task_unlock(current->group_leader);
+ static inline void taskstats_tgid_free(struct signal_struct *sig)
+ {
+ 	if (sig->stats)
+@@ -30,8 +25,6 @@ extern void taskstats_init_early(void);
+ #else
+ static inline void taskstats_exit(struct task_struct *tsk, int group_dead)
+ {}
+-static inline void taskstats_tgid_init(struct signal_struct *sig)
+-{}
+ static inline void taskstats_tgid_free(struct signal_struct *sig)
+ {}
+ static inline void taskstats_init_early(void)
+diff -puN kernel/acct.c~copy_signal-cleanup-kill-taskstats_tgid_init-and-acct_init_pacct kernel/acct.c
+--- a/kernel/acct.c~copy_signal-cleanup-kill-taskstats_tgid_init-and-acct_init_pacct
++++ a/kernel/acct.c
+@@ -588,16 +588,6 @@ out:
+ }
  
- 	posix_cpu_timers_init_group(sig);
- 
--	acct_init_pacct(&sig->pacct);
+ /**
+- * acct_init_pacct - initialize a new pacct_struct
+- * @pacct: per-process accounting info struct to initialize
+- */
+-void acct_init_pacct(struct pacct_struct *pacct)
+-{
+-	memset(pacct, 0, sizeof(struct pacct_struct));
+-	pacct->ac_utime = pacct->ac_stime = cputime_zero;
+-}
