@@ -1,183 +1,174 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sdhci-of-add-support-for-the-wii-sdhci-controller.patch removed from -mm tree
-Date: Fri, 18 Dec 2009 12:26:51 -0800
-Message-ID: <200912182026.nBIKQpvV016559__2939.23620270125$1261168106$gmane$org@imap1.linux-foundation.org>
+Subject: [merged] do_wait-optimization-do-not-place-sub-threads-on-task_struct-children-list.patch removed from -mm tree
+Date: Fri, 18 Dec 2009 12:26:31 -0800
+Message-ID: <200912182026.nBIKQVog016536@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48185 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50170 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932664AbZLRU0x (ORCPT
+	by vger.kernel.org with ESMTP id S932772AbZLRU1C (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Dec 2009 15:26:53 -0500
+	Fri, 18 Dec 2009 15:27:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: albert_herranz@yahoo.es, linux-mmc@vger.kernel.org, mm-commits@vger.kernel.org
+To: oleg@redhat.com, mingo@elte.hu, rientjes@google.com, rnalumasu@gmail.com, roland@redhat.com, vmayatsk@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sdhci-of: add support for the wii sdhci controller
+     do_wait() optimization: do not place sub-threads on task_struct->children list
 has been removed from the -mm tree.  Its filename was
-     sdhci-of-add-support-for-the-wii-sdhci-controller.patch
+     do_wait-optimization-do-not-place-sub-threads-on-task_struct-children-list.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sdhci-of: add support for the wii sdhci controller
-From: Albert Herranz <albert_herranz@yahoo.es>
+Subject: do_wait() optimization: do not place sub-threads on task_struct->children list
+From: Oleg Nesterov <oleg@redhat.com>
 
-Add support for the Secure Digital Host Controller Interface found on the
-"Hollywood" chipset of the Nintendo Wii video game console.
+Thanks to Roland who pointed out de_thread() issues.
 
-Signed-off-by: Albert Herranz <albert_herranz@yahoo.es>
-Cc: <linux-mmc@vger.kernel.org>
+Currently we add sub-threads to ->real_parent->children list.  This buys
+nothing but slows down do_wait().
+
+With this patch ->children contains only main threads (group leaders). 
+The only complication is that forget_original_parent() should iterate over
+sub-threads by hand, and de_thread() needs another list_replace() when it
+changes ->group_leader.
+
+Henceforth do_wait_thread() can never see task_detached() && !EXIT_DEAD
+tasks, we can remove this check (and we can unify do_wait_thread() and
+ptrace_do_wait()).
+
+This change can confuse the optimistic search in mm_update_next_owner(),
+but this is fixable and minor.
+
+Perhaps badness() and oom_kill_process() should be updated, but they
+should be fixed in any case.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Ratan Nalumasu <rnalumasu@gmail.com>
+Cc: Vitaly Mayatskikh <vmayatsk@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/Kconfig         |   13 +++++
- drivers/mmc/host/Makefile        |    1 
- drivers/mmc/host/sdhci-of-core.c |    3 +
- drivers/mmc/host/sdhci-of-hlwd.c |   65 +++++++++++++++++++++++++++++
- drivers/mmc/host/sdhci-of.h      |    1 
- 5 files changed, 82 insertions(+), 1 deletion(-)
+ fs/exec.c     |    2 ++
+ kernel/exit.c |   36 +++++++++++++++++-------------------
+ kernel/fork.c |    2 +-
+ 3 files changed, 20 insertions(+), 20 deletions(-)
 
-diff -puN drivers/mmc/host/Kconfig~sdhci-of-add-support-for-the-wii-sdhci-controller drivers/mmc/host/Kconfig
---- a/drivers/mmc/host/Kconfig~sdhci-of-add-support-for-the-wii-sdhci-controller
-+++ a/drivers/mmc/host/Kconfig
-@@ -55,7 +55,7 @@ config MMC_SDHCI_BIG_ENDIAN_32BIT_BYTE_S
- 	  has the effect of scrambling the addresses and formats of data
- 	  accessed in sizes other than the datum size.
+diff -puN fs/exec.c~do_wait-optimization-do-not-place-sub-threads-on-task_struct-children-list fs/exec.c
+--- a/fs/exec.c~do_wait-optimization-do-not-place-sub-threads-on-task_struct-children-list
++++ a/fs/exec.c
+@@ -826,7 +826,9 @@ static int de_thread(struct task_struct 
+ 		attach_pid(tsk, PIDTYPE_PID,  task_pid(leader));
+ 		transfer_pid(leader, tsk, PIDTYPE_PGID);
+ 		transfer_pid(leader, tsk, PIDTYPE_SID);
++
+ 		list_replace_rcu(&leader->tasks, &tsk->tasks);
++		list_replace_init(&leader->sibling, &tsk->sibling);
  
--	  This is the case for the Freescale eSDHC.
-+	  This is the case for the Freescale eSDHC and Nintendo Wii SDHCI.
+ 		tsk->group_leader = tsk;
+ 		leader->group_leader = tsk;
+diff -puN kernel/exit.c~do_wait-optimization-do-not-place-sub-threads-on-task_struct-children-list kernel/exit.c
+--- a/kernel/exit.c~do_wait-optimization-do-not-place-sub-threads-on-task_struct-children-list
++++ a/kernel/exit.c
+@@ -68,10 +68,10 @@ static void __unhash_process(struct task
+ 		detach_pid(p, PIDTYPE_SID);
  
- config MMC_SDHCI_PCI
- 	tristate "SDHCI support on PCI bus"
-@@ -103,6 +103,17 @@ config MMC_SDHCI_OF_ESDHC
+ 		list_del_rcu(&p->tasks);
++		list_del_init(&p->sibling);
+ 		__get_cpu_var(process_counts)--;
+ 	}
+ 	list_del_rcu(&p->thread_group);
+-	list_del_init(&p->sibling);
+ }
  
- 	  If unsure, say N.
+ /*
+@@ -736,12 +736,9 @@ static struct task_struct *find_new_reap
+ /*
+ * Any that need to be release_task'd are put on the @dead list.
+  */
+-static void reparent_thread(struct task_struct *father, struct task_struct *p,
++static void reparent_leader(struct task_struct *father, struct task_struct *p,
+ 				struct list_head *dead)
+ {
+-	if (p->pdeath_signal)
+-		group_send_sig_info(p->pdeath_signal, SEND_SIG_NOINFO, p);
+-
+ 	list_move_tail(&p->sibling, &p->real_parent->children);
  
-+config MMC_SDHCI_OF_HLWD
-+	bool "SDHCI OF support for the Nintendo Wii SDHCI controllers"
-+	depends on MMC_SDHCI_OF
-+	select MMC_SDHCI_BIG_ENDIAN_32BIT_BYTE_SWAPPER
-+	help
-+	  This selects the Secure Digital Host Controller Interface (SDHCI)
-+	  found in the "Hollywood" chipset of the Nintendo Wii video game
-+	  console.
-+
-+	  If unsure, say N.
-+
- config MMC_SDHCI_PLTFM
- 	tristate "SDHCI support on the platform specific bus"
- 	depends on MMC_SDHCI
-diff -puN drivers/mmc/host/Makefile~sdhci-of-add-support-for-the-wii-sdhci-controller drivers/mmc/host/Makefile
---- a/drivers/mmc/host/Makefile~sdhci-of-add-support-for-the-wii-sdhci-controller
-+++ a/drivers/mmc/host/Makefile
-@@ -39,6 +39,7 @@ obj-$(CONFIG_SDH_BFIN)		+= bfin_sdh.o
- obj-$(CONFIG_MMC_SDHCI_OF)	+= sdhci-of.o
- sdhci-of-y				:= sdhci-of-core.o
- sdhci-of-$(CONFIG_MMC_SDHCI_OF_ESDHC)	+= sdhci-of-esdhc.o
-+sdhci-of-$(CONFIG_MMC_SDHCI_OF_HLWD)	+= sdhci-of-hlwd.o
+ 	if (task_detached(p))
+@@ -780,12 +777,18 @@ static void forget_original_parent(struc
+ 	reaper = find_new_reaper(father);
  
- ifeq ($(CONFIG_CB710_DEBUG),y)
- 	CFLAGS-cb710-mmc	+= -DDEBUG
-diff -puN drivers/mmc/host/sdhci-of-core.c~sdhci-of-add-support-for-the-wii-sdhci-controller drivers/mmc/host/sdhci-of-core.c
---- a/drivers/mmc/host/sdhci-of-core.c~sdhci-of-add-support-for-the-wii-sdhci-controller
-+++ a/drivers/mmc/host/sdhci-of-core.c
-@@ -196,6 +196,9 @@ static const struct of_device_id sdhci_o
- 	{ .compatible = "fsl,mpc8536-esdhc", .data = &sdhci_esdhc, },
- 	{ .compatible = "fsl,esdhc", .data = &sdhci_esdhc, },
- #endif
-+#ifdef CONFIG_MMC_SDHCI_OF_HLWD
-+	{ .compatible = "nintendo,hollywood-sdhci", .data = &sdhci_hlwd, },
-+#endif
- 	{ .compatible = "generic-sdhci", },
- 	{},
- };
-diff -puN /dev/null drivers/mmc/host/sdhci-of-hlwd.c
---- /dev/null
-+++ a/drivers/mmc/host/sdhci-of-hlwd.c
-@@ -0,0 +1,65 @@
-+/*
-+ * drivers/mmc/host/sdhci-of-hlwd.c
-+ *
-+ * Nintendo Wii Secure Digital Host Controller Interface.
-+ * Copyright (C) 2009 The GameCube Linux Team
-+ * Copyright (C) 2009 Albert Herranz
-+ *
-+ * Based on sdhci-of-esdhc.c
-+ *
-+ * Copyright (c) 2007 Freescale Semiconductor, Inc.
-+ * Copyright (c) 2009 MontaVista Software, Inc.
-+ *
-+ * Authors: Xiaobo Xie <X.Xie@freescale.com>
-+ *	    Anton Vorontsov <avorontsov@ru.mvista.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or (at
-+ * your option) any later version.
-+ */
-+
-+#include <linux/delay.h>
-+#include <linux/mmc/host.h>
-+#include "sdhci-of.h"
-+#include "sdhci.h"
-+
-+/*
-+ * Ops and quirks for the Nintendo Wii SDHCI controllers.
-+ */
-+
-+/*
-+ * We need a small delay after each write, or things go horribly wrong.
-+ */
-+#define SDHCI_HLWD_WRITE_DELAY	5 /* usecs */
-+
-+static void sdhci_hlwd_writel(struct sdhci_host *host, u32 val, int reg)
-+{
-+	sdhci_be32bs_writel(host, val, reg);
-+	udelay(SDHCI_HLWD_WRITE_DELAY);
-+}
-+
-+static void sdhci_hlwd_writew(struct sdhci_host *host, u16 val, int reg)
-+{
-+	sdhci_be32bs_writew(host, val, reg);
-+	udelay(SDHCI_HLWD_WRITE_DELAY);
-+}
-+
-+static void sdhci_hlwd_writeb(struct sdhci_host *host, u8 val, int reg)
-+{
-+	sdhci_be32bs_writeb(host, val, reg);
-+	udelay(SDHCI_HLWD_WRITE_DELAY);
-+}
-+
-+struct sdhci_of_data sdhci_hlwd = {
-+	.quirks = SDHCI_QUIRK_32BIT_DMA_ADDR |
-+		  SDHCI_QUIRK_32BIT_DMA_SIZE,
-+	.ops = {
-+		.readl = sdhci_be32bs_readl,
-+		.readw = sdhci_be32bs_readw,
-+		.readb = sdhci_be32bs_readb,
-+		.writel = sdhci_hlwd_writel,
-+		.writew = sdhci_hlwd_writew,
-+		.writeb = sdhci_hlwd_writeb,
-+	},
-+};
-diff -puN drivers/mmc/host/sdhci-of.h~sdhci-of-add-support-for-the-wii-sdhci-controller drivers/mmc/host/sdhci-of.h
---- a/drivers/mmc/host/sdhci-of.h~sdhci-of-add-support-for-the-wii-sdhci-controller
-+++ a/drivers/mmc/host/sdhci-of.h
-@@ -37,5 +37,6 @@ extern void sdhci_be32bs_writew(struct s
- extern void sdhci_be32bs_writeb(struct sdhci_host *host, u8 val, int reg);
+ 	list_for_each_entry_safe(p, n, &father->children, sibling) {
+-		p->real_parent = reaper;
+-		if (p->parent == father) {
+-			BUG_ON(task_ptrace(p));
+-			p->parent = p->real_parent;
+-		}
+-		reparent_thread(father, p, &dead_children);
++		struct task_struct *t = p;
++		do {
++			t->real_parent = reaper;
++			if (t->parent == father) {
++				BUG_ON(task_ptrace(t));
++				t->parent = t->real_parent;
++			}
++			if (t->pdeath_signal)
++				group_send_sig_info(t->pdeath_signal,
++						    SEND_SIG_NOINFO, t);
++		} while_each_thread(p, t);
++		reparent_leader(father, p, &dead_children);
+ 	}
+ 	write_unlock_irq(&tasklist_lock);
  
- extern struct sdhci_of_data sdhci_esdhc;
-+extern struct sdhci_of_data sdhci_hlwd;
+@@ -1551,14 +1554,9 @@ static int do_wait_thread(struct wait_op
+ 	struct task_struct *p;
  
- #endif /* __SDHCI_OF_H */
+ 	list_for_each_entry(p, &tsk->children, sibling) {
+-		/*
+-		 * Do not consider detached threads.
+-		 */
+-		if (!task_detached(p)) {
+-			int ret = wait_consider_task(wo, 0, p);
+-			if (ret)
+-				return ret;
+-		}
++		int ret = wait_consider_task(wo, 0, p);
++		if (ret)
++			return ret;
+ 	}
+ 
+ 	return 0;
+diff -puN kernel/fork.c~do_wait-optimization-do-not-place-sub-threads-on-task_struct-children-list kernel/fork.c
+--- a/kernel/fork.c~do_wait-optimization-do-not-place-sub-threads-on-task_struct-children-list
++++ a/kernel/fork.c
+@@ -1291,7 +1291,6 @@ static struct task_struct *copy_process(
+ 	}
+ 
+ 	if (likely(p->pid)) {
+-		list_add_tail(&p->sibling, &p->real_parent->children);
+ 		tracehook_finish_clone(p, clone_flags, trace);
+ 
+ 		if (thread_group_leader(p)) {
+@@ -1303,6 +1302,7 @@ static struct task_struct *copy_process(
+ 			p->signal->tty = tty_kref_get(current->signal->tty);
+ 			attach_pid(p, PIDTYPE_PGID, task_pgrp(current));
+ 			attach_pid(p, PIDTYPE_SID, task_session(current));
++			list_add_tail(&p->sibling, &p->real_parent->children);
+ 			list_add_tail_rcu(&p->tasks, &init_task.tasks);
+ 			__get_cpu_var(process_counts)++;
+ 		}
 _
 
-Patches currently in -mm which might be from albert_herranz@yahoo.es are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-sdio-recognize-io-card-without-powercycle.patch
+linux-next.patch
+posix-cpu-timers-reset-expire-cache-when-no-timer-is-running.patch
 
