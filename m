@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + media-video-cx23888-driver-ported-to-new-kfifo-api-fix.patch added to -mm tree
-Date: Fri, 18 Dec 2009 14:30:05 -0800
-Message-ID: <200912182230.nBIMU6aI022264@imap1.linux-foundation.org>
+Subject: + copy_signal-cleanup-use-zalloc-and-remove-initializations.patch added to -mm tree
+Date: Fri, 18 Dec 2009 14:59:39 -0800
+Message-ID: <200912182259.nBIMxd0o023592@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49485 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49468 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751020AbZLRWa7 (ORCPT
+	by vger.kernel.org with ESMTP id S932436AbZLRW76 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Dec 2009 17:30:59 -0500
+	Fri, 18 Dec 2009 17:59:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: stefani@seibold.net, awalls@radix.net, mchehab@infradead.org
+Cc: vfalico@redhat.com, oleg@redhat.com, roland@redhat.com
 
 
 The patch titled
-     media video cx23888 driver: fix possible races using new kfifo_API kfifo_reset()
+     copy_signal() cleanup: use zalloc and remove initializations
 has been added to the -mm tree.  Its filename is
-     media-video-cx23888-driver-ported-to-new-kfifo-api-fix.patch
+     copy_signal-cleanup-use-zalloc-and-remove-initializations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,74 +34,73 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: media video cx23888 driver: fix possible races using new kfifo_API kfifo_reset()
-From: Stefani Seibold <stefani@seibold.net>
+Subject: copy_signal() cleanup: use zalloc and remove initializations
+From: Veaceslav Falico <vfalico@redhat.com>
 
-Fix the cx23888 driver to use the new kfifo API.  Using kfifo_reset() may
-result in a possible race conditions.  This patch fix it by using spinlock
-around the kfifo_reset() function.
+Use kmem_cache_zalloc() on signal creation and remove unneeded
+initialization lines in copy_signal().
 
-Signed-off-by: Stefani Seibold <stefani@seibold.net>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Andy Walls <awalls@radix.net>
+Signed-off-by: Veaceslav Falico <vfalico@redhat.com>
+Acked-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/cx23885/cx23888-ir.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ kernel/fork.c |   27 +--------------------------
+ 1 file changed, 1 insertion(+), 26 deletions(-)
 
-diff -puN drivers/media/video/cx23885/cx23888-ir.c~media-video-cx23888-driver-ported-to-new-kfifo-api-fix drivers/media/video/cx23885/cx23888-ir.c
---- a/drivers/media/video/cx23885/cx23888-ir.c~media-video-cx23888-driver-ported-to-new-kfifo-api-fix
-+++ a/drivers/media/video/cx23885/cx23888-ir.c
-@@ -519,6 +519,7 @@ static int cx23888_ir_irq_handler(struct
- {
- 	struct cx23888_ir_state *state = to_state(sd);
- 	struct cx23885_dev *dev = state->dev;
-+	unsigned long flags;
+diff -puN kernel/fork.c~copy_signal-cleanup-use-zalloc-and-remove-initializations kernel/fork.c
+--- a/kernel/fork.c~copy_signal-cleanup-use-zalloc-and-remove-initializations
++++ a/kernel/fork.c
+@@ -859,7 +859,7 @@ static int copy_signal(unsigned long clo
+ 	if (clone_flags & CLONE_THREAD)
+ 		return 0;
  
- 	u32 cntrl = cx23888_ir_read4(dev, CX23888_IR_CNTRL_REG);
- 	u32 irqen = cx23888_ir_read4(dev, CX23888_IR_IRQEN_REG);
-@@ -629,8 +630,11 @@ static int cx23888_ir_irq_handler(struct
- 		cx23888_ir_write4(dev, CX23888_IR_CNTRL_REG, cntrl);
- 		*handled = true;
- 	}
-+
-+	spin_lock_irqsave(&state->rx_kfifo_lock, flags);
- 	if (kfifo_len(&state->rx_kfifo) >= CX23888_IR_RX_KFIFO_SIZE / 2)
- 		events |= V4L2_SUBDEV_IR_RX_FIFO_SERVICE_REQ;
-+	spin_unlock_irqrestore(&state->rx_kfifo_lock, flags);
+-	sig = kmem_cache_alloc(signal_cachep, GFP_KERNEL);
++	sig = kmem_cache_zalloc(signal_cachep, GFP_KERNEL);
+ 	tsk->signal = sig;
+ 	if (!sig)
+ 		return -ENOMEM;
+@@ -867,46 +867,21 @@ static int copy_signal(unsigned long clo
+ 	atomic_set(&sig->count, 1);
+ 	atomic_set(&sig->live, 1);
+ 	init_waitqueue_head(&sig->wait_chldexit);
+-	sig->flags = 0;
+ 	if (clone_flags & CLONE_NEWPID)
+ 		sig->flags |= SIGNAL_UNKILLABLE;
+-	sig->group_exit_code = 0;
+-	sig->group_exit_task = NULL;
+-	sig->group_stop_count = 0;
+ 	sig->curr_target = tsk;
+ 	init_sigpending(&sig->shared_pending);
+ 	INIT_LIST_HEAD(&sig->posix_timers);
  
- 	if (events)
- 		v4l2_subdev_notify(sd, V4L2_SUBDEV_IR_RX_NOTIFY, &events);
-@@ -783,7 +787,12 @@ static int cx23888_ir_rx_s_parameters(st
- 	o->interrupt_enable = p->interrupt_enable;
- 	o->enable = p->enable;
- 	if (p->enable) {
-+		unsigned long flags;
-+
-+		spin_lock_irqsave(&state->rx_kfifo_lock, flags);
- 		kfifo_reset(&state->rx_kfifo);
-+		/* reset tx_fifo too if there is one... */
-+		spin_unlock_irqrestore(&state->rx_kfifo_lock, flags);
- 		if (p->interrupt_enable)
- 			irqenable_rx(dev, IRQEN_RSE | IRQEN_RTE | IRQEN_ROE);
- 		control_rx_enable(dev, p->enable);
-_
-
-Patches currently in -mm which might be from stefani@seibold.net are
-
-kfifo-move-struct-kfifo-in-place.patch
-kfifo-move-struct-kfifo-in-place-fix.patch
-kfifo-move-out-spinlock.patch
-kfifo-cleanup-namespace.patch
-kfifo-rename-kfifo_put-into-kfifo_in-and-kfifo_get-into-kfifo_out.patch
-kfifo-fix-warn_unused_result.patch
-kfifo-add-define_kfifo-and-friends-add-very-tiny-functions.patch
-kfifo-add-define_kfifo-and-friends-add-very-tiny-functions-fix.patch
-kfifo-add-kfifo_skip-kfifo_from_user-and-kfifo_to_user.patch
-kfifo-add-record-handling-functions.patch
-kfifo-add-record-handling-functions-fix.patch
-media-video-cx23888-driver-ported-to-new-kfifo-api.patch
-media-video-cx23888-driver-ported-to-new-kfifo-api-fix.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-
+ 	hrtimer_init(&sig->real_timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
+-	sig->it_real_incr.tv64 = 0;
+ 	sig->real_timer.function = it_real_fn;
+ 
+-	sig->leader = 0;	/* session leadership doesn't inherit */
+-	sig->tty_old_pgrp = NULL;
+-	sig->tty = NULL;
+-
+-	sig->utime = sig->stime = sig->cutime = sig->cstime = cputime_zero;
+-	sig->gtime = cputime_zero;
+-	sig->cgtime = cputime_zero;
+-#ifndef CONFIG_VIRT_CPU_ACCOUNTING
+-	sig->prev_utime = sig->prev_stime = cputime_zero;
+-#endif
+-	sig->nvcsw = sig->nivcsw = sig->cnvcsw = sig->cnivcsw = 0;
+-	sig->min_flt = sig->maj_flt = sig->cmin_flt = sig->cmaj_flt = 0;
+-	sig->inblock = sig->oublock = sig->cinblock = sig->coublock = 0;
+-	sig->maxrss = sig->cmaxrss = 0;
+-	task_io_accounting_init(&sig->ioac);
+-	sig->sum_sched_runtime = 0;
+-	taskstats_tgid_init(sig);
+-
+ 	task_lock(current->group_leader);
+ 	memcpy(sig->rlim, current->signal->rlim, sizeof sig->rlim);
+ 	task_unlock(current->group_leader);
+ 
+ 	posix_cpu_timers_init_group(sig);
+ 
+-	acct_init_pacct(&sig->pacct);
