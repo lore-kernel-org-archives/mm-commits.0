@@ -1,137 +1,176 @@
 From: akpm@linux-foundation.org
-Subject: [folded] powerpc-make-the-cmm-memory-hotplug-aware-update.patch removed from -mm tree
-Date: Thu, 17 Dec 2009 16:43:27 -0800
-Message-ID: <200912180043.nBI0hSWT028369@imap1.linux-foundation.org>
+Subject: + media-video-cx23888-driver-ported-to-new-kfifo-api.patch added to -mm tree
+Date: Fri, 18 Dec 2009 00:33:22 -0800
+Message-ID: <200912180833.nBI8XMAl015566@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40214 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55016 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754866AbZLRAoq (ORCPT
+	by vger.kernel.org with ESMTP id S1750867AbZLRIeS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Dec 2009 19:44:46 -0500
+	Fri, 18 Dec 2009 03:34:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rcj@linux.vnet.ibm.com, benh@kernel.crashing.org, brking@linux.vnet.ibm.com, geralds@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, mingo@elte.hu, paulus@samba.org
+To: mm-commits@vger.kernel.org
+Cc: stefani@seibold.net, awalls@radix.net, mchehab@infradead.org
 
 
 The patch titled
-     powerpc-make-the-cmm-memory-hotplug-aware-update
-has been removed from the -mm tree.  Its filename was
-     powerpc-make-the-cmm-memory-hotplug-aware-update.patch
+     media video cx23888 driver: ported to new kfifo API
+has been added to the -mm tree.  Its filename is
+     media-video-cx23888-driver-ported-to-new-kfifo-api.patch
 
-This patch was dropped because it was folded into powerpc-make-the-cmm-memory-hotplug-aware.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc-make-the-cmm-memory-hotplug-aware-update
-From: Robert Jennings <rcj@linux.vnet.ibm.com>
+Subject: media video cx23888 driver: ported to new kfifo API
+From: Stefani Seibold <stefani@seibold.net>
 
-The pages used to track loaned pages should not be marked as MOVABLE, so
-they need to be handled during a memory offline event.
+Fix the cx23888 driver to use the new kfifo API.
 
-Changes:
- * The structures for recording loaned pages are not allocated as MOVABLE
- * The structures for recording loaned pages are removed from sections
-   being taken offline by moving their contents to a newly allocated page.
-
-Signed-off-by: Robert Jennings <rcj@linux.vnet.ibm.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Brian King <brking@linux.vnet.ibm.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Gerald Schaefer <geralds@linux.vnet.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Stefani Seibold <stefani@seibold.net>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Andy Walls <awalls@radix.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/pseries/cmm.c |   39 +++++++++++++++++++++++--
- 1 file changed, 36 insertions(+), 3 deletions(-)
+ drivers/media/video/cx23885/cx23888-ir.c |   35 ++++++---------------
+ 1 file changed, 10 insertions(+), 25 deletions(-)
 
-diff -puN arch/powerpc/platforms/pseries/cmm.c~powerpc-make-the-cmm-memory-hotplug-aware-update arch/powerpc/platforms/pseries/cmm.c
---- a/arch/powerpc/platforms/pseries/cmm.c~powerpc-make-the-cmm-memory-hotplug-aware-update
-+++ a/arch/powerpc/platforms/pseries/cmm.c
-@@ -148,8 +148,7 @@ static long cmm_alloc_pages(long nr)
- 			spin_unlock(&cmm_lock);
- 			npa = (struct cmm_page_array *)__get_free_page(
- 					GFP_NOIO | __GFP_NOWARN |
--					__GFP_NORETRY | __GFP_NOMEMALLOC |
--					__GFP_MOVABLE);
-+					__GFP_NORETRY | __GFP_NOMEMALLOC);
- 			if (!npa) {
- 				pr_info("%s: Can not allocate new page list\n", __func__);
- 				free_page(addr);
-@@ -480,6 +479,8 @@ static unsigned long cmm_count_pages(voi
- 	spin_lock(&cmm_lock);
- 	pa = cmm_page_list;
- 	while (pa) {
-+		if ((unsigned long)pa >= start && (unsigned long)pa < end)
-+			marg->pages_found++;
- 		for (idx = 0; idx < pa->index; idx++)
- 			if (pa->page[idx] >= start && pa->page[idx] < end)
- 				marg->pages_found++;
-@@ -531,7 +532,7 @@ static int cmm_mem_going_offline(void *a
- 	struct memory_notify *marg = arg;
- 	unsigned long start_page = (unsigned long)pfn_to_kaddr(marg->start_pfn);
- 	unsigned long end_page = start_page + (marg->nr_pages << PAGE_SHIFT);
--	struct cmm_page_array *pa_curr, *pa_last;
-+	struct cmm_page_array *pa_curr, *pa_last, *npa;
- 	unsigned long idx;
- 	unsigned long freed = 0;
+diff -puN drivers/media/video/cx23885/cx23888-ir.c~media-video-cx23888-driver-ported-to-new-kfifo-api drivers/media/video/cx23885/cx23888-ir.c
+--- a/drivers/media/video/cx23885/cx23888-ir.c~media-video-cx23888-driver-ported-to-new-kfifo-api
++++ a/drivers/media/video/cx23885/cx23888-ir.c
+@@ -124,15 +124,12 @@ struct cx23888_ir_state {
+ 	atomic_t rxclk_divider;
+ 	atomic_t rx_invert;
  
-@@ -539,6 +540,7 @@ static int cmm_mem_going_offline(void *a
- 			start_page, marg->nr_pages);
- 	spin_lock(&cmm_lock);
+-	struct kfifo *rx_kfifo;
++	struct kfifo rx_kfifo;
+ 	spinlock_t rx_kfifo_lock;
  
-+	/* Search the page list for pages in the range to be offlined */
- 	pa_last = pa_curr = cmm_page_list;
- 	while (pa_curr) {
- 		for (idx = (pa_curr->index - 1); (idx + 1) > 0; idx--) {
-@@ -563,6 +565,37 @@ static int cmm_mem_going_offline(void *a
+ 	struct v4l2_subdev_ir_parameters tx_params;
+ 	struct mutex tx_params_lock;
+ 	atomic_t txclk_divider;
+-
+-	struct kfifo *tx_kfifo;
+-	spinlock_t tx_kfifo_lock;
+ };
+ 
+ static inline struct cx23888_ir_state *to_state(struct v4l2_subdev *sd)
+@@ -594,8 +591,9 @@ static int cx23888_ir_irq_handler(struct
+ 			if (i == 0)
+ 				break;
+ 			j = i * sizeof(u32);
+-			k = kfifo_put(state->rx_kfifo,
+-				      (unsigned char *) rx_data, j);
++			k = kfifo_in_locked(&state->rx_kfifo,
++				      (unsigned char *) rx_data, j,
++				      &state->rx_kfifo_lock);
+ 			if (k != j)
+ 				kror++; /* rx_kfifo over run */
  		}
- 		pa_curr = pa_curr->next;
+@@ -631,7 +629,7 @@ static int cx23888_ir_irq_handler(struct
+ 		cx23888_ir_write4(dev, CX23888_IR_CNTRL_REG, cntrl);
+ 		*handled = true;
  	}
-+
-+	/* Search for page list structures in the range to be offlined */
-+	pa_last = NULL;
-+	pa_curr = cmm_page_list;
-+	while (pa_curr) {
-+		if (((unsigned long)pa_curr >= start_page) &&
-+				((unsigned long)pa_curr < end_page)) {
-+			npa = (struct cmm_page_array *)__get_free_page(
-+					GFP_NOIO | __GFP_NOWARN |
-+					__GFP_NORETRY | __GFP_NOMEMALLOC);
-+			if (!npa) {
-+				spin_unlock(&cmm_lock);
-+				cmm_dbg("Failed to allocate memory for list "
-+						"management. Memory hotplug "
-+						"failed.\n");
-+				return ENOMEM;
-+			}
-+			memcpy(npa, pa_curr, PAGE_SIZE);
-+			if (pa_curr == cmm_page_list)
-+				cmm_page_list = npa;
-+			if (pa_last)
-+				pa_last->next = npa;
-+			free_page((unsigned long) pa_curr);
-+			freed++;
-+			pa_curr = npa;
-+		}
-+
-+		pa_last = pa_curr;
-+		pa_curr = pa_curr->next;
-+	}
-+
- 	spin_unlock(&cmm_lock);
- 	cmm_dbg("Released %ld pages in the search range.\n", freed);
+-	if (kfifo_len(state->rx_kfifo) >= CX23888_IR_RX_KFIFO_SIZE / 2)
++	if (kfifo_len(&state->rx_kfifo) >= CX23888_IR_RX_KFIFO_SIZE / 2)
+ 		events |= V4L2_SUBDEV_IR_RX_FIFO_SERVICE_REQ;
  
+ 	if (events)
+@@ -657,7 +655,7 @@ static int cx23888_ir_rx_read(struct v4l
+ 		return 0;
+ 	}
+ 
+-	n = kfifo_get(state->rx_kfifo, buf, n);
++	n = kfifo_out_locked(&state->rx_kfifo, buf, n, &state->rx_kfifo_lock);
+ 
+ 	n /= sizeof(u32);
+ 	*num = n * sizeof(u32);
+@@ -785,7 +783,7 @@ static int cx23888_ir_rx_s_parameters(st
+ 	o->interrupt_enable = p->interrupt_enable;
+ 	o->enable = p->enable;
+ 	if (p->enable) {
+-		kfifo_reset(state->rx_kfifo);
++		kfifo_reset(&state->rx_kfifo);
+ 		if (p->interrupt_enable)
+ 			irqenable_rx(dev, IRQEN_RSE | IRQEN_RTE | IRQEN_ROE);
+ 		control_rx_enable(dev, p->enable);
+@@ -892,7 +890,6 @@ static int cx23888_ir_tx_s_parameters(st
+ 	o->interrupt_enable = p->interrupt_enable;
+ 	o->enable = p->enable;
+ 	if (p->enable) {
+-		kfifo_reset(state->tx_kfifo);
+ 		if (p->interrupt_enable)
+ 			irqenable_tx(dev, IRQEN_TSE);
+ 		control_tx_enable(dev, p->enable);
+@@ -1168,19 +1165,9 @@ int cx23888_ir_probe(struct cx23885_dev 
+ 		return -ENOMEM;
+ 
+ 	spin_lock_init(&state->rx_kfifo_lock);
+-	state->rx_kfifo = kfifo_alloc(CX23888_IR_RX_KFIFO_SIZE, GFP_KERNEL,
+-				      &state->rx_kfifo_lock);
+-	if (state->rx_kfifo == NULL)
++	if (kfifo_alloc(&state->rx_kfifo, CX23888_IR_RX_KFIFO_SIZE, GFP_KERNEL))
+ 		return -ENOMEM;
+ 
+-	spin_lock_init(&state->tx_kfifo_lock);
+-	state->tx_kfifo = kfifo_alloc(CX23888_IR_TX_KFIFO_SIZE, GFP_KERNEL,
+-				      &state->tx_kfifo_lock);
+-	if (state->tx_kfifo == NULL) {
+-		kfifo_free(state->rx_kfifo);
+-		return -ENOMEM;
+-	}
+-
+ 	state->dev = dev;
+ 	state->id = V4L2_IDENT_CX23888_IR;
+ 	state->rev = 0;
+@@ -1211,8 +1198,7 @@ int cx23888_ir_probe(struct cx23885_dev 
+ 		       sizeof(struct v4l2_subdev_ir_parameters));
+ 		v4l2_subdev_call(sd, ir, tx_s_parameters, &default_params);
+ 	} else {
+-		kfifo_free(state->rx_kfifo);
+-		kfifo_free(state->tx_kfifo);
++		kfifo_free(&state->rx_kfifo);
+ 	}
+ 	return ret;
+ }
+@@ -1231,8 +1217,7 @@ int cx23888_ir_remove(struct cx23885_dev
+ 
+ 	state = to_state(sd);
+ 	v4l2_device_unregister_subdev(sd);
+-	kfifo_free(state->rx_kfifo);
+-	kfifo_free(state->tx_kfifo);
++	kfifo_free(&state->rx_kfifo);
+ 	kfree(state);
+ 	/* Nothing more to free() as state held the actual v4l2_subdev object */
+ 	return 0;
 _
 
-Patches currently in -mm which might be from rcj@linux.vnet.ibm.com are
+Patches currently in -mm which might be from stefani@seibold.net are
 
-mm-add-notifier-in-pageblock-isolation-for-balloon-drivers.patch
-powerpc-make-the-cmm-memory-hotplug-aware.patch
-powerpc-make-the-cmm-memory-hotplug-aware-update.patch
+kfifo-move-struct-kfifo-in-place.patch
+kfifo-move-struct-kfifo-in-place-fix.patch
+kfifo-move-out-spinlock.patch
+kfifo-cleanup-namespace.patch
+kfifo-rename-kfifo_put-into-kfifo_in-and-kfifo_get-into-kfifo_out.patch
+kfifo-fix-warn_unused_result.patch
+kfifo-add-define_kfifo-and-friends-add-very-tiny-functions.patch
+kfifo-add-define_kfifo-and-friends-add-very-tiny-functions-fix.patch
+kfifo-add-kfifo_skip-kfifo_from_user-and-kfifo_to_user.patch
+kfifo-add-record-handling-functions.patch
+kfifo-add-record-handling-functions-fix.patch
+media-video-cx23888-driver-ported-to-new-kfifo-api.patch
+drivers-media-video-cx23885-needs-kfifo-conversion.patch
 
