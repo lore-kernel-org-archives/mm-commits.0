@@ -1,57 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kernel-sysctlc-fix-the-incomplete-part-of-sysctl_max_map_count-should-be-non-negativepatch.patch removed from -mm tree
-Date: Fri, 18 Dec 2009 12:26:04 -0800
-Message-ID: <200912182026.nBIKQ4bM016431@imap1.linux-foundation.org>
+Subject: [merged] cs5535-cs5535_mfgpt_default_irq-should-depend-on-cs5535_mfgpt.patch removed from -mm tree
+Date: Fri, 18 Dec 2009 12:26:07 -0800
+Message-ID: <200912182026.nBIKQ75b016440@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59702 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34295 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932840AbZLRU0W (ORCPT
+	by vger.kernel.org with ESMTP id S932845AbZLRU0Z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Dec 2009 15:26:22 -0500
+	Fri, 18 Dec 2009 15:26:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: amwang@redhat.com, mm-commits@vger.kernel.org
+To: geert@linux-m68k.org, dilinger@collabora.co.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernel/sysctl.c: fix the incomplete part of sysctl_max_map_count-should-be-non-negative.patch
+     cs5535: CS5535_MFGPT_DEFAULT_IRQ should depend on CS5535_MFGPT
 has been removed from the -mm tree.  Its filename was
-     kernel-sysctlc-fix-the-incomplete-part-of-sysctl_max_map_count-should-be-non-negativepatch.patch
+     cs5535-cs5535_mfgpt_default_irq-should-depend-on-cs5535_mfgpt.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel/sysctl.c: fix the incomplete part of sysctl_max_map_count-should-be-non-negative.patch
-From: WANG Cong <amwang@redhat.com>
+Subject: cs5535: CS5535_MFGPT_DEFAULT_IRQ should depend on CS5535_MFGPT
+From: Geert Uytterhoeven <geert@linux-m68k.org>
 
-It is a mistake that we used 'proc_dointvec', it should be
-'proc_dointvec_minmax', as in the original patch.
+It doesn't make much sense to have CS5535_MFGPT_DEFAULT_IRQ show up in
+configs that cannot have CS5535_MFGPT.
 
-Signed-off-by: WANG Cong <amwang@redhat.com>
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Acked-by: Andres Salomon <dilinger@collabora.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/misc/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/sysctl.c~kernel-sysctlc-fix-the-incomplete-part-of-sysctl_max_map_count-should-be-non-negativepatch kernel/sysctl.c
---- a/kernel/sysctl.c~kernel-sysctlc-fix-the-incomplete-part-of-sysctl_max_map_count-should-be-non-negativepatch
-+++ a/kernel/sysctl.c
-@@ -1131,7 +1131,7 @@ static struct ctl_table vm_table[] = {
- 		.data		= &sysctl_max_map_count,
- 		.maxlen		= sizeof(sysctl_max_map_count),
- 		.mode		= 0644,
--		.proc_handler	= proc_dointvec,
-+		.proc_handler	= proc_dointvec_minmax,
- 		.extra1		= &zero,
- 	},
- #else
+diff -puN drivers/misc/Kconfig~cs5535-cs5535_mfgpt_default_irq-should-depend-on-cs5535_mfgpt drivers/misc/Kconfig
+--- a/drivers/misc/Kconfig~cs5535-cs5535_mfgpt_default_irq-should-depend-on-cs5535_mfgpt
++++ a/drivers/misc/Kconfig
+@@ -203,6 +203,7 @@ config CS5535_MFGPT
+ 
+ config CS5535_MFGPT_DEFAULT_IRQ
+ 	int
++	depends on CS5535_MFGPT
+ 	default 7
+ 	help
+ 	  MFGPTs on the CS5535 require an interrupt.  The selected IRQ
 _
 
-Patches currently in -mm which might be from amwang@redhat.com are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
+revert-fbdev-atafb-add-palette-register-check.patch
 linux-next.patch
 
