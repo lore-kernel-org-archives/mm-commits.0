@@ -1,71 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: + copy_signal-cleanup-clean-tty_audit_fork.patch added to -mm tree
-Date: Fri, 18 Dec 2009 14:59:45 -0800
-Message-ID: <200912182259.nBIMxjrY023601@imap1.linux-foundation.org>
+Subject: [merged] revert-fbdev-atafb-add-palette-register-check.patch removed from -mm tree
+Date: Fri, 18 Dec 2009 15:07:11 -0800
+Message-ID: <200912182307.nBIN7BMR024081@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36797 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53175 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754650AbZLRXAD (ORCPT
+	by vger.kernel.org with ESMTP id S1752751AbZLRXH6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Dec 2009 18:00:03 -0500
+	Fri, 18 Dec 2009 18:07:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: vfalico@redhat.com, oleg@redhat.com, roland@redhat.com
+To: geert@linux-m68k.org, krzysztof.h1@wp.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     copy_signal() cleanup: clean tty_audit_fork()
-has been added to the -mm tree.  Its filename is
-     copy_signal-cleanup-clean-tty_audit_fork.patch
+     Revert "fbdev: atafb - add palette register check"
+has been removed from the -mm tree.  Its filename was
+     revert-fbdev-atafb-add-palette-register-check.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: copy_signal() cleanup: clean tty_audit_fork()
-From: Veaceslav Falico <vfalico@redhat.com>
+Subject: Revert "fbdev: atafb - add palette register check"
+From: Geert Uytterhoeven <geert@linux-m68k.org>
 
-Remove unneeded initialization in tty_audit_fork().  It is called only via
-copy_signal() and is useless after the kmem_cache_zalloc() was used.
+This reverts commit 8546e3ce6e37c359979b69862442f94e0ef0e03b, as it's a
+partial duplicate of commit 2f390380ca69e1617cdddb12d8da94f0a9f4319d ("fbdev:
+add palette register check to several drivers").
+The former went in first through the m68k tree, the latter through Andrew
+Morton.
 
-Signed-off-by: Veaceslav Falico <vfalico@redhat.com>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Acked-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tty_audit.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/video/atafb.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN drivers/char/tty_audit.c~copy_signal-cleanup-clean-tty_audit_fork drivers/char/tty_audit.c
---- a/drivers/char/tty_audit.c~copy_signal-cleanup-clean-tty_audit_fork
-+++ a/drivers/char/tty_audit.c
-@@ -148,7 +148,6 @@ void tty_audit_fork(struct signal_struct
- 	spin_lock_irq(&current->sighand->siglock);
- 	sig->audit_tty = current->signal->audit_tty;
- 	spin_unlock_irq(&current->sighand->siglock);
--	sig->tty_audit_buf = NULL;
- }
+diff -puN drivers/video/atafb.c~revert-fbdev-atafb-add-palette-register-check drivers/video/atafb.c
+--- a/drivers/video/atafb.c~revert-fbdev-atafb-add-palette-register-check
++++ a/drivers/video/atafb.c
+@@ -2242,9 +2242,6 @@ static int ext_setcolreg(unsigned int re
+ 	if (!external_vgaiobase)
+ 		return 1;
  
- /**
-_
-
-Patches currently in -mm which might be from vfalico@redhat.com are
-
-copy_signal-cleanup-use-zalloc-and-remove-initializations.patch
-copy_signal-cleanup-kill-taskstats_tgid_init-and-acct_init_pacct.patch
-copy_signal-cleanup-clean-thread_group_cputime_init.patch
-copy_signal-cleanup-clean-tty_audit_fork.patch
-
+-	if (regno > 255)
+-		return 1;
