@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pcie-aer-reject-aer-inject-if-hardware-mask-error-reporting.patch added to -mm tree
-Date: Fri, 18 Dec 2009 15:59:06 -0800
-Message-ID: <200912182359.nBINx6jW026233@imap1.linux-foundation.org>
+Subject: + hpsa-fix-scsi-status-reporting-yet-again.patch added to -mm tree
+Date: Fri, 18 Dec 2009 16:00:34 -0800
+Message-ID: <200912190000.nBJ00YSq026293@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44415 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47158 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932086AbZLRX7N (ORCPT
+	by vger.kernel.org with ESMTP id S1752610AbZLSAAp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Dec 2009 18:59:13 -0500
+	Fri, 18 Dec 2009 19:00:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: youquan.song@linux.intel.com, ak@linux.intel.com, andrew.patterson@hp.com, jbarnes@virtuousgeek.org, ying.huang@intel.com, youquan.song@intel.com
+Cc: scameron@beardog.cce.hp.com, James.Bottomley@HansenPartnership.com
 
 
 The patch titled
-     PCIe AER: reject aer inject if hardware mask error reporting
+     hpsa: fix scsi status reporting yet again.
 has been added to the -mm tree.  Its filename is
-     pcie-aer-reject-aer-inject-if-hardware-mask-error-reporting.patch
+     hpsa-fix-scsi-status-reporting-yet-again.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,68 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: PCIe AER: reject aer inject if hardware mask error reporting
-From: "Youquan,Song" <youquan.song@linux.intel.com>
+Subject: hpsa: fix scsi status reporting yet again.
+From: Stephen M. Cameron <scameron@beardog.cce.hp.com>
 
-Correcteable/Uncorrectable Error Mask Register are used by PCIe AER driver
-which will controls the reporting of idividual errors to PCIe RC via PCIe
-error messages.
+Fix scsi status reporting yet again, reverting an earlier attempt.  The
+status byte does not need to be shifted << 1.  Code in other drivers that
+does "scp->result |= CHECK_CONDITION << 1;" works because CHECK_CONDITION
+macro is pre-shifted right 1 bit.
 
-If hardware masks special error reporting to RC, the aer_inject driver
-should not inject aer error.
-
-Signed-off-by: Youquan, Song <youquan.song@intel.com>
-Acked-by: Ying, Huang <ying.huang@intel.com>
-Cc: Andrew Patterson <andrew.patterson@hp.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Acked-by: Andi Kleen <ak@linux.intel.com>
+Signed-off-by: Stephen M. Cameron <scameron@beardog.cce.hp.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/pcie/aer/aer_inject.c |   20 +++++++++++++++++++-
- 1 file changed, 19 insertions(+), 1 deletion(-)
+ drivers/scsi/hpsa.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/pci/pcie/aer/aer_inject.c~pcie-aer-reject-aer-inject-if-hardware-mask-error-reporting drivers/pci/pcie/aer/aer_inject.c
---- a/drivers/pci/pcie/aer/aer_inject.c~pcie-aer-reject-aer-inject-if-hardware-mask-error-reporting
-+++ a/drivers/pci/pcie/aer/aer_inject.c
-@@ -321,7 +321,7 @@ static int aer_inject(struct aer_error_i
- 	unsigned long flags;
- 	unsigned int devfn = PCI_DEVFN(einj->dev, einj->fn);
- 	int pos_cap_err, rp_pos_cap_err;
--	u32 sever;
-+	u32 sever, mask;
- 	int ret = 0;
+diff -puN drivers/scsi/hpsa.c~hpsa-fix-scsi-status-reporting-yet-again drivers/scsi/hpsa.c
+--- a/drivers/scsi/hpsa.c~hpsa-fix-scsi-status-reporting-yet-again
++++ a/drivers/scsi/hpsa.c
+@@ -930,7 +930,7 @@ static void complete_scsi_command(struct
  
- 	dev = pci_get_domain_bus_and_slot((int)einj->domain, einj->bus, devfn);
-@@ -374,6 +374,24 @@ static int aer_inject(struct aer_error_i
- 	err->header_log2 = einj->header_log2;
- 	err->header_log3 = einj->header_log3;
+ 	cmd->result = (DID_OK << 16); 		/* host byte */
+ 	cmd->result |= (COMMAND_COMPLETE << 8);	/* msg byte */
+-	cmd->result |= (ei->ScsiStatus << 1);
++	cmd->result |= ei->ScsiStatus;
  
-+	pci_read_config_dword(dev, pos_cap_err + PCI_ERR_COR_MASK, &mask);
-+	if (einj->cor_status && !(einj->cor_status & ~mask)) {
-+		ret = -EINVAL;
-+		printk(KERN_WARNING "The correctable error(s) is masked "
-+				"by device\n");
-+		spin_unlock_irqrestore(&inject_lock, flags);
-+		goto out_put;
-+	}
-+
-+	pci_read_config_dword(dev, pos_cap_err + PCI_ERR_UNCOR_MASK, &mask);
-+	if (einj->uncor_status && !(einj->uncor_status & ~mask)) {
-+		ret = -EINVAL;
-+		printk(KERN_WARNING "The uncorrectable error(s) is masked "
-+				"by device\n");
-+		spin_unlock_irqrestore(&inject_lock, flags);
-+		goto out_put;
-+	}
-+
- 	rperr = __find_aer_error_by_dev(rpdev);
- 	if (!rperr) {
- 		rperr = rperr_alloc;
+ 	/* copy the sense data whether we need to or not. */
+ 	memcpy(cmd->sense_buffer, ei->SenseInfo,
 _
 
-Patches currently in -mm which might be from youquan.song@linux.intel.com are
+Patches currently in -mm which might be from scameron@beardog.cce.hp.com are
 
-pcie-aer-fix-aer-inject-result-in-kernel-oops.patch
-pcie-aer-reject-aer-inject-if-hardware-mask-error-reporting.patch
+hpsa-fix-scsi-status-reporting-yet-again.patch
+cciss-fix-bad-scsi-status-reporting.patch
 
