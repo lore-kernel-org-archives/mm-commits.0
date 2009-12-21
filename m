@@ -1,101 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] acpi-reintroduce-acpi_device_ops-shutdown-method.patch removed from -mm tree
-Date: Mon, 21 Dec 2009 15:54:03 -0800
-Message-ID: <200912212354.nBLNs36C003555@imap1.linux-foundation.org>
+Subject: [folded] arm-convert-proc-cpu-aligment-to-seq_file-fix.patch removed from -mm tree
+Date: Mon, 21 Dec 2009 15:55:32 -0800
+Message-ID: <200912212355.nBLNtWvm003600@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49328 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54334 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750875AbZLUXz3 (ORCPT
+	by vger.kernel.org with ESMTP id S1751295AbZLUXzo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Dec 2009 18:55:29 -0500
+	Mon, 21 Dec 2009 18:55:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david@hardeman.nu, bjorn.helgaas@hp.com, jbarnes@virtuousgeek.org, lenb@kernel.org, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     acpi: reintroduce acpi_device_ops .shutdown method
+     arm-convert-proc-cpu-aligment-to-seq_file-fix
 has been removed from the -mm tree.  Its filename was
-     acpi-reintroduce-acpi_device_ops-shutdown-method.patch
+     arm-convert-proc-cpu-aligment-to-seq_file-fix.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it was folded into arm-convert-proc-cpu-aligment-to-seq_file.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi: reintroduce acpi_device_ops .shutdown method
-From: David Hardeman <david@hardeman.nu>
+Subject: arm-convert-proc-cpu-aligment-to-seq_file-fix
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-Reintroduce the .shutdown method which is used by the winbond-cir driver. 
+Fix compilation on some arm defconfigs due to THIS_MODULE by removing
+line.
 
-I didn't want to call wbcir_shutdown from wbcir_remove since wbcir_remove
-is called on rmmod and the wbcir_shutdown method programs the chip so that
-wake-on-a-specific-ir-command is enabled (and I imagine that people would
-expect rmmod to disable the hardware completely).
-
-I think this single user does have a real dependency because of its
-wake-from-poweroff and wake-from-suspend capability.
-
-Signed-off-by: David Hardeman <david@hardeman.nu>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/scan.c     |   12 ++++++++++++
- include/acpi/acpi_bus.h |    2 ++
- 2 files changed, 14 insertions(+)
+ arch/arm/mm/alignment.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/acpi/scan.c~acpi-reintroduce-acpi_device_ops-shutdown-method drivers/acpi/scan.c
---- a/drivers/acpi/scan.c~acpi-reintroduce-acpi_device_ops-shutdown-method
-+++ a/drivers/acpi/scan.c
-@@ -427,10 +427,22 @@ static int acpi_device_remove(struct dev
- 	return 0;
+diff -puN arch/arm/mm/alignment.c~arm-convert-proc-cpu-aligment-to-seq_file-fix arch/arm/mm/alignment.c
+--- a/arch/arm/mm/alignment.c~arm-convert-proc-cpu-aligment-to-seq_file-fix
++++ a/arch/arm/mm/alignment.c
+@@ -128,7 +128,6 @@ static ssize_t alignment_proc_write(stru
  }
  
-+static void acpi_device_shutdown(struct device *dev)
-+{
-+	struct acpi_device *acpi_dev = to_acpi_device(dev);
-+	struct acpi_driver *acpi_drv = acpi_dev->driver;
-+
-+	if (acpi_drv && acpi_drv->ops.shutdown)
-+		acpi_drv->ops.shutdown(acpi_dev);
-+
-+	return ;
-+}
-+
- struct bus_type acpi_bus_type = {
- 	.name		= "acpi",
- 	.suspend	= acpi_device_suspend,
- 	.resume		= acpi_device_resume,
-+	.shutdown	= acpi_device_shutdown,
- 	.match		= acpi_bus_match,
- 	.probe		= acpi_device_probe,
- 	.remove		= acpi_device_remove,
-diff -puN include/acpi/acpi_bus.h~acpi-reintroduce-acpi_device_ops-shutdown-method include/acpi/acpi_bus.h
---- a/include/acpi/acpi_bus.h~acpi-reintroduce-acpi_device_ops-shutdown-method
-+++ a/include/acpi/acpi_bus.h
-@@ -92,6 +92,7 @@ typedef int (*acpi_op_resume) (struct ac
- typedef int (*acpi_op_bind) (struct acpi_device * device);
- typedef int (*acpi_op_unbind) (struct acpi_device * device);
- typedef void (*acpi_op_notify) (struct acpi_device * device, u32 event);
-+typedef int (*acpi_op_shutdown) (struct acpi_device *device);
- 
- struct acpi_bus_ops {
- 	u32 acpi_op_add:1;
-@@ -107,6 +108,7 @@ struct acpi_device_ops {
- 	acpi_op_bind bind;
- 	acpi_op_unbind unbind;
- 	acpi_op_notify notify;
-+	acpi_op_shutdown shutdown;
- };
- 
- #define ACPI_DRIVER_ALL_NOTIFY_EVENTS	0x1	/* system AND device events */
+ static const struct file_operations alignment_proc_fops = {
+-	.owner		= THIS_MODULE,
+ 	.open		= alignment_proc_open,
+ 	.read		= seq_read,
+ 	.llseek		= seq_lseek,
 _
 
-Patches currently in -mm which might be from david@hardeman.nu are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-acpi-reintroduce-acpi_device_ops-shutdown-method.patch
+origin.patch
+asus_acpi-convert-to-seq_file.patch
+toshiba_acpi-convert-to-seq_file.patch
+arm-convert-proc-cpu-aligment-to-seq_file.patch
+arm-convert-proc-cpu-aligment-to-seq_file-fix.patch
+iseries-convert-to-proc_fops.patch
+proc_fops-convert-av7110.patch
+proc_fops-convert-drivers-isdn-to-seq_file.patch
+proc_fops-convert-drivers-isdn-to-seq_file-fix.patch
+proc_fops-convert-drivers-isdn-to-seq_file-fix2.patch
+mpt-fusion-convert-to-seq_file.patch
+uml-irq-register-race-condition.patch
 
