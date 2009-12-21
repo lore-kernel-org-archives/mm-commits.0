@@ -1,120 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch removed from -mm tree
-Date: Mon, 21 Dec 2009 15:58:33 -0800
-Message-ID: <200912212358.nBLNwXe1003780@imap1.linux-foundation.org>
+Subject: [folded] scsi-aacraid-fix-memory-leak-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 21 Dec 2009 15:59:01 -0800
+Message-ID: <200912212359.nBLNx11p003796@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33564 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46546 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752018AbZLUX6v (ORCPT
+	by vger.kernel.org with ESMTP id S1751302AbZLUX7E (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Dec 2009 18:58:51 -0500
+	Mon, 21 Dec 2009 18:59:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lamarque@gmail.com, hidave.darkstar@gmail.com, jkosina@suse.cz, marcel@holtmann.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bluetooth: fix for Acer Bluetooth Optical Rechargeable Mouse
+     scsi-aacraid-fix-memory-leak-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+     scsi-aacraid-fix-memory-leak-checkpatch-fixes.patch
 
-This patch was dropped because it was nacked
+This patch was dropped because it was folded into scsi-aacraid-fix-memory-leak.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bluetooth: fix for Acer Bluetooth Optical Rechargeable Mouse
-From: Lamarque Vieira Souza <lamarque@gmail.com>
+Subject: scsi-aacraid-fix-memory-leak-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Work around one problem with my Acer Bluetooth Optical Rechargeable Mouse
-where the cursor gets stuck at screen's upper-left corner.
+WARNING: space prohibited between function name and open parenthesis '('
+#21: FILE: drivers/scsi/aacraid/commctrl.c:652:
++					kfree (usg);
 
-Even my notebook's touchpad is not able to move cursor when the bluetooth
-mouse is connected to my Acer Ferrari 4005 notebook.
+total: 0 errors, 1 warnings, 7 lines checked
 
-Using input session instead of hid session solves this problem although
-the cursor still moves a little sluggishly with the bluetooth mouse,
-cursor moves correctly using the touchpad.
+./patches/scsi-aacraid-fix-memory-leak.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
 
-My bluetooth mouse used to work well (no sluggish) until kernel 2.6.21,
-since then the problems are getting worse with each kernel release (it got
-sluggish in 2.6.22 and this this upper-left corner problem appeared in
-2.6.28 or 2.6.27).
+Please run checkpatch prior to sending patches
 
-The patch adds a general quirk handling framework to the HIDP core and
-then uses this framework to implement a quirk for this device.
-
-[akpm@linux-foundation.org: use ARRAY_SIZE()-based search]
-Signed-off-by: Lamarque V. Souza <lamarque@gmail.com>
-Cc: Marcel Holtmann <marcel@holtmann.org>
-Cc: Dave Young <hidave.darkstar@gmail.com>
-Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/bluetooth/hidp/core.c |   39 +++++++++++++++++++++++++++++++++++-
- 1 file changed, 38 insertions(+), 1 deletion(-)
+ drivers/scsi/aacraid/commctrl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/bluetooth/hidp/core.c~bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse net/bluetooth/hidp/core.c
---- a/net/bluetooth/hidp/core.c~bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse
-+++ a/net/bluetooth/hidp/core.c
-@@ -74,6 +74,41 @@ static unsigned char hidp_keycode[256] =
- 
- static unsigned char hidp_mkeyspat[] = { 0x01, 0x01, 0x01, 0x01, 0x01, 0x01 };
- 
-+/* HIDP device quirks */
-+enum {
-+	HIDP_QUIRK_USE_INPUT_SESSION
-+};
-+
-+struct quirk_id {
-+	__u16 vendor;
-+	__u16 product;
-+	unsigned long quirks;
-+};
-+
-+static const struct quirk_id hidp_quirks[] = {
-+	{
-+		/* Lamarque: Acer Bluetooth Optical Rechargeable Mouse
-+		 * does not work properly with hid session since 2.6.27. */
-+		.vendor = 0x0458,
-+		.product = 0x0058,
-+		.quirks = 1 << HIDP_QUIRK_USE_INPUT_SESSION
-+	},
-+};
-+
-+static int quirk_test_bit(__u16 vendor, __u16 product, int quirk)
-+{
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(hidp_quirks); i++) {
-+		const struct quirk_id *q = hidp_quirks + i;
-+
-+		if (q->vendor == vendor && q->product == product)
-+			return test_bit(quirk, &q->quirks);
-+	}
-+
-+	return 0;
-+}
-+
- static struct hidp_session *__hidp_get_session(bdaddr_t *bdaddr)
- {
- 	struct hidp_session *session;
-@@ -851,7 +886,9 @@ int hidp_add_connection(struct hidp_conn
- 	session->flags   = req->flags & (1 << HIDP_BLUETOOTH_VENDOR_ID);
- 	session->idle_to = req->idle_to;
- 
--	if (req->rd_size > 0) {
-+	if (req->rd_size > 0 &&
-+	    !quirk_test_bit(req->vendor, req->product,
-+			   HIDP_QUIRK_USE_INPUT_SESSION)) {
- 		err = hidp_setup_hid(session, req);
- 		if (err && err != -ENODEV)
- 			goto purge;
+diff -puN drivers/scsi/aacraid/commctrl.c~scsi-aacraid-fix-memory-leak-checkpatch-fixes drivers/scsi/aacraid/commctrl.c
+--- a/drivers/scsi/aacraid/commctrl.c~scsi-aacraid-fix-memory-leak-checkpatch-fixes
++++ a/drivers/scsi/aacraid/commctrl.c
+@@ -649,7 +649,7 @@ static int aac_send_raw_srb(struct aac_d
+ 				     AAC_OPT_NEW_COMM) ?
+ 				      (dev->scsi_host_ptr->max_sectors << 9) :
+ 				      65536) {
+-					kfree (usg);
++					kfree(usg);
+ 					rcode = -EINVAL;
+ 					goto cleanup;
+ 				}
 _
 
-Patches currently in -mm which might be from lamarque@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+origin.patch
+kfifo-move-struct-kfifo-in-place.patch
+linux-next.patch
+linux-next-fixup.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
+drivers-media-video-cx23885-needs-kfifo-conversion.patch
+drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
+drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
+drivers-media-video-pmsc-needs-versionh.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+net-sctp-socketc-squish-warning.patch
+proc_fops-convert-drivers-isdn-to-seq_file.patch
+3x59x-fix-pci-resource-management.patch
+fs-ext4-superc-fix-printk-warning.patch
+atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
+scsi-aacraid-fix-memory-leak.patch
+scsi-aacraid-fix-memory-leak-checkpatch-fixes.patch
+aoe-switch-to-the-new-bio_flush_dcache_pages-interface.patch
+fs-improve-remountro-vs-buffercache-coherency.patch
+percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+char-cyclades-fix-compiler-warning.patch
+zlib-optimize-inffast-when-copying-direct-from-output.patch
+lib-add-support-for-lzo-compressed-kernels.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
