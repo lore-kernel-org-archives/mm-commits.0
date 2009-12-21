@@ -1,67 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [merged] arch-x86-tools-chkobjdumpawk-fix-it.patch removed from -mm tree
-Date: Mon, 21 Dec 2009 12:25:03 -0800
-Message-ID: <200912212025.nBLKP4Gw027190@imap1.linux-foundation.org>
+Subject: + net-sctp-socketc-squish-warning.patch added to -mm tree
+Date: Mon, 21 Dec 2009 13:12:50 -0800
+Message-ID: <200912212137.nBLLbKNI030268@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51241 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60431 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756274AbZLUU0R (ORCPT
+	by vger.kernel.org with ESMTP id S1757326AbZLUVha (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Dec 2009 15:26:17 -0500
+	Mon, 21 Dec 2009 16:37:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hpa@zytor.com, mingo@elte.hu, mingo@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, andrei@iptel.org, davem@davemloft.net, vladislav.yasevich@hp.com
 
 
 The patch titled
-     arch/x86/tools/chkobjdump.awk: fix it
-has been removed from the -mm tree.  Its filename was
-     arch-x86-tools-chkobjdumpawk-fix-it.patch
+     net/sctp/socket.c: squish warning
+has been added to the -mm tree.  Its filename is
+     net-sctp-socketc-squish-warning.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/x86/tools/chkobjdump.awk: fix it
+Subject: net/sctp/socket.c: squish warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-It says
+net/sctp/socket.c: In function 'sctp_setsockopt_autoclose':
+net/sctp/socket.c:2090: warning: comparison is always false due to limited range of data type
 
-Warning: objdump version  is older than 2.19
-Warning: Skipping posttest.
-
-because it used the wrong field from `objdump -v':
-
-akpm:/usr/src/25> /opt/crosstool/gcc-4.0.2-glibc-2.3.6/x86_64-unknown-linux-gnu/bin/x86_64-unknown-linux-gnu-objdump -v
-GNU objdump 2.16.1
-Copyright 2005 Free Software Foundation, Inc.
-This program is free software; you may redistribute it under the terms of
-the GNU General Public License.  This program has absolutely no warranty.
-
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Andrei Pelinescu-Onciul <andrei@iptel.org>
+Cc: Vlad Yasevich <vladislav.yasevich@hp.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/tools/chkobjdump.awk |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/sctp/socket.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN arch/x86/tools/chkobjdump.awk~arch-x86-tools-chkobjdumpawk-fix-it arch/x86/tools/chkobjdump.awk
---- a/arch/x86/tools/chkobjdump.awk~arch-x86-tools-chkobjdumpawk-fix-it
-+++ a/arch/x86/tools/chkobjdump.awk
-@@ -9,7 +9,7 @@ BEGIN {
- }
+diff -puN net/sctp/socket.c~net-sctp-socketc-squish-warning net/sctp/socket.c
+--- a/net/sctp/socket.c~net-sctp-socketc-squish-warning
++++ a/net/sctp/socket.c
+@@ -2087,8 +2087,7 @@ static int sctp_setsockopt_autoclose(str
+ 	if (copy_from_user(&sp->autoclose, optval, optlen))
+ 		return -EFAULT;
+ 	/* make sure it won't exceed MAX_SCHEDULE_TIMEOUT */
+-	if (sp->autoclose > (MAX_SCHEDULE_TIMEOUT / HZ) )
+-		sp->autoclose = (__u32)(MAX_SCHEDULE_TIMEOUT / HZ) ;
++	sp->autoclose = min_t(long, sp->autoclose, MAX_SCHEDULE_TIMEOUT / HZ);
  
- /^GNU/ {
--	split($4, ver, ".");
-+	split($3, ver, ".");
- 	if (ver[1] > od_ver ||
- 	    (ver[1] == od_ver && ver[2] >= od_sver)) {
- 		exit 1;
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -106,4 +106,5 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 notify_change-callers-must-hold-i_mutex.patch
+net-sctp-socketc-squish-warning.patch
 
