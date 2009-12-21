@@ -1,54 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: [merged] r8192u_core-test-for-negative-error-in-rtl8192_rx_isr.patch removed from -mm tree
-Date: Mon, 21 Dec 2009 12:25:09 -0800
-Message-ID: <200912212025.nBLKP9up027196@imap1.linux-foundation.org>
+Subject: [merged] hidp-ptr_err-return-of-wrong-pointer-in-hidp_setup_hid.patch removed from -mm tree
+Date: Mon, 21 Dec 2009 12:25:07 -0800
+Message-ID: <200912212025.nBLKP7s4027193@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37816 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43899 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752793AbZLUUZi (ORCPT
+	by vger.kernel.org with ESMTP id S1752966AbZLUUZj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Dec 2009 15:25:38 -0500
+	Mon, 21 Dec 2009 15:25:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     r8192U_core: test for negative error in rtl8192_rx_isr()?
+     hidp: PTR_ERR return of wrong pointer in hidp_setup_hid()
 has been removed from the -mm tree.  Its filename was
-     r8192u_core-test-for-negative-error-in-rtl8192_rx_isr.patch
+     hidp-ptr_err-return-of-wrong-pointer-in-hidp_setup_hid.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: r8192U_core: test for negative error in rtl8192_rx_isr()?
+Subject: hidp: PTR_ERR return of wrong pointer in hidp_setup_hid()
 From: Roel Kluin <roel.kluin@gmail.com>
 
-The error tested for is negative
+Return the PTR_ERR of the correct pointer.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/rtl8192su/r8192U_core.c |    2 +-
+ net/bluetooth/hidp/core.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/staging/rtl8192su/r8192U_core.c~r8192u_core-test-for-negative-error-in-rtl8192_rx_isr drivers/staging/rtl8192su/r8192U_core.c
---- a/drivers/staging/rtl8192su/r8192U_core.c~r8192u_core-test-for-negative-error-in-rtl8192_rx_isr
-+++ a/drivers/staging/rtl8192su/r8192U_core.c
-@@ -1501,7 +1501,7 @@ static void rtl8192_rx_isr(struct urb *u
-         urb->context = skb;
-         skb_queue_tail(&priv->rx_queue, skb);
-         err = usb_submit_urb(urb, GFP_ATOMIC);
--	if(err && err != EPERM)
-+	if(err && err != -EPERM)
- 		printk("can not submit rxurb, err is %x,URB status is %x\n",err,urb->status);
- }
+diff -puN net/bluetooth/hidp/core.c~hidp-ptr_err-return-of-wrong-pointer-in-hidp_setup_hid net/bluetooth/hidp/core.c
+--- a/net/bluetooth/hidp/core.c~hidp-ptr_err-return-of-wrong-pointer-in-hidp_setup_hid
++++ a/net/bluetooth/hidp/core.c
+@@ -770,7 +770,7 @@ static int hidp_setup_hid(struct hidp_se
  
+ 	hid = hid_allocate_device();
+ 	if (IS_ERR(hid))
+-		return PTR_ERR(session->hid);
++		return PTR_ERR(hid);
+ 
+ 	session->hid = hid;
+ 	session->req = req;
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
