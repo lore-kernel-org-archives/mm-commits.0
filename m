@@ -1,122 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ramzswap-remove-arm-specific-d-cache-hack.patch removed from -mm tree
-Date: Mon, 21 Dec 2009 12:25:12 -0800
-Message-ID: <200912212025.nBLKPCnk027204@imap1.linux-foundation.org>
+Subject: [merged] drivers-net-wireless-iwlwifi-iwl-txc-fix-gcc-345-warning.patch removed from -mm tree
+Date: Mon, 21 Dec 2009 12:25:18 -0800
+Message-ID: <200912212025.nBLKPIHJ027215@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45166 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48923 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755724AbZLUUZy (ORCPT
+	by vger.kernel.org with ESMTP id S1752793AbZLUU0D (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Dec 2009 15:25:54 -0500
+	Mon, 21 Dec 2009 15:26:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ngupta@vflare.org, greg@kroah.com, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, linville@tuxdriver.com, reinette.chatre@intel.com, yi.zhu@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ramzswap: remove ARM specific d-cache hack
+     drivers/net/wireless/iwlwifi/iwl-tx.c: fix gcc-3.4.5 warning
 has been removed from the -mm tree.  Its filename was
-     ramzswap-remove-arm-specific-d-cache-hack.patch
+     drivers-net-wireless-iwlwifi-iwl-txc-fix-gcc-345-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ramzswap: remove ARM specific d-cache hack
-From: Nitin Gupta <ngupta@vflare.org>
+Subject: drivers/net/wireless/iwlwifi/iwl-tx.c: fix gcc-3.4.5 warning
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Remove d-cache hack in ramzswap driver that was needed to workaround a bug
-in ARM version of update_mmu_cache() which caused stale data in d-cache to
-be transferred to userspace.  This bug was fixed by
-787b2faadc4356b6c2c71feb42fb944fece9a12f ("ARM: force dcache flush if
-dcache_dirty bit set").
+drivers/net/wireless/iwlwifi/iwl-tx.c: In function `iwl_hw_txq_ctx_free':
+drivers/net/wireless/iwlwifi/iwl-tx.c:410: warning: suggest explicit braces to avoid ambiguous `else'
 
-This also brings down one entry in TODO file.
-
-Signed-off-by: Nitin Gupta <ngupta@vflare.org>
-Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: Greg KH <greg@kroah.com>
+Cc: Zhu Yi <yi.zhu@intel.com>
+Cc: Reinette Chatre <reinette.chatre@intel.com>
+Cc: John W. Linville <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/ramzswap/TODO           |    1 
- drivers/staging/ramzswap/ramzswap_drv.c |   28 ++--------------------
- 2 files changed, 3 insertions(+), 26 deletions(-)
+ drivers/net/wireless/iwlwifi/iwl-tx.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/staging/ramzswap/TODO~ramzswap-remove-arm-specific-d-cache-hack drivers/staging/ramzswap/TODO
---- a/drivers/staging/ramzswap/TODO~ramzswap-remove-arm-specific-d-cache-hack
-+++ a/drivers/staging/ramzswap/TODO
-@@ -1,6 +1,5 @@
- TODO:
- 	- Add support for swap notifiers
--	- Remove CONFIG_ARM hack
+diff -puN drivers/net/wireless/iwlwifi/iwl-tx.c~drivers-net-wireless-iwlwifi-iwl-txc-fix-gcc-345-warning drivers/net/wireless/iwlwifi/iwl-tx.c
+--- a/drivers/net/wireless/iwlwifi/iwl-tx.c~drivers-net-wireless-iwlwifi-iwl-txc-fix-gcc-345-warning
++++ a/drivers/net/wireless/iwlwifi/iwl-tx.c
+@@ -407,13 +407,14 @@ void iwl_hw_txq_ctx_free(struct iwl_priv
+ 	int txq_id;
  
- Please send patches to Greg Kroah-Hartman <greg@kroah.com> and
- Nitin Gupta <ngupta@vflare.org>
-diff -puN drivers/staging/ramzswap/ramzswap_drv.c~ramzswap-remove-arm-specific-d-cache-hack drivers/staging/ramzswap/ramzswap_drv.c
---- a/drivers/staging/ramzswap/ramzswap_drv.c~ramzswap-remove-arm-specific-d-cache-hack
-+++ a/drivers/staging/ramzswap/ramzswap_drv.c
-@@ -222,28 +222,6 @@ out:
- 	return ret;
- }
+ 	/* Tx queues */
+-	if (priv->txq)
++	if (priv->txq) {
+ 		for (txq_id = 0; txq_id < priv->hw_params.max_txq_num;
+ 		     txq_id++)
+ 			if (txq_id == IWL_CMD_QUEUE_NUM)
+ 				iwl_cmd_queue_free(priv);
+ 			else
+ 				iwl_tx_queue_free(priv, txq_id);
++	}
+ 	iwl_free_dma_ptr(priv, &priv->kw);
  
--static void ramzswap_flush_dcache_page(struct page *page)
--{
--#ifdef CONFIG_ARM
--	int flag = 0;
--	/*
--	 * Ugly hack to get flush_dcache_page() work on ARM.
--	 * page_mapping(page) == NULL after clearing this swap cache flag.
--	 * Without clearing this flag, flush_dcache_page() will simply set
--	 * "PG_dcache_dirty" bit and return.
--	 */
--	if (PageSwapCache(page)) {
--		flag = 1;
--		ClearPageSwapCache(page);
--	}
--#endif
--	flush_dcache_page(page);
--#ifdef CONFIG_ARM
--	if (flag)
--		SetPageSwapCache(page);
--#endif
--}
--
- void ramzswap_ioctl_get_stats(struct ramzswap *rzs,
- 			struct ramzswap_ioctl_stats *s)
- {
-@@ -655,7 +633,7 @@ static int handle_zero_page(struct bio *
- 	memset(user_mem, 0, PAGE_SIZE);
- 	kunmap_atomic(user_mem, KM_USER0);
- 
--	ramzswap_flush_dcache_page(page);
-+	flush_dcache_page(page);
- 
- 	set_bit(BIO_UPTODATE, &bio->bi_flags);
- 	bio_endio(bio, 0);
-@@ -679,7 +657,7 @@ static int handle_uncompressed_page(stru
- 	kunmap_atomic(user_mem, KM_USER0);
- 	kunmap_atomic(cmem, KM_USER1);
- 
--	ramzswap_flush_dcache_page(page);
-+	flush_dcache_page(page);
- 
- 	set_bit(BIO_UPTODATE, &bio->bi_flags);
- 	bio_endio(bio, 0);
-@@ -779,7 +757,7 @@ static int ramzswap_read(struct ramzswap
- 		goto out;
- 	}
- 
--	ramzswap_flush_dcache_page(page);
-+	flush_dcache_page(page);
- 
- 	set_bit(BIO_UPTODATE, &bio->bi_flags);
- 	bio_endio(bio, 0);
+ 	iwl_free_dma_ptr(priv, &priv->scd_bc_tbls);
 _
 
-Patches currently in -mm which might be from ngupta@vflare.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+kfifo-move-struct-kfifo-in-place-fix.patch
 linux-next.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
+drivers-media-video-cx23885-needs-kfifo-conversion.patch
+drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
+arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices-checkpatch-fixes.patch
+drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
+drivers-media-video-pmsc-needs-versionh.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+net-sctp-socketc-fix-warning.patch
+proc_fops-convert-drivers-isdn-to-seq_file-fix2.patch
+3x59x-fix-pci-resource-management.patch
+bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
+fs-ext4-superc-fix-printk-warning.patch
+atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
+scsi-aacraid-fix-memory-leak-checkpatch-fixes.patch
+aoe-switch-to-the-new-bio_flush_dcache_pages-interface.patch
+fs-improve-remountro-vs-buffercache-coherency.patch
+percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+char-cyclades-fix-compiler-warning.patch
+zlib-optimize-inffast-when-copying-direct-from-output.patch
+lib-add-support-for-lzo-compressed-kernels.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
