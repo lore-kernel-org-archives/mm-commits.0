@@ -1,80 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hidp-ptr_err-return-of-wrong-pointer-in-hidp_setup_hid.patch removed from -mm tree
-Date: Mon, 21 Dec 2009 12:25:07 -0800
-Message-ID: <200912212025.nBLKP7s4027193@imap1.linux-foundation.org>
+Subject: [merged] ramzswap-remove-arm-specific-d-cache-hack.patch removed from -mm tree
+Date: Mon, 21 Dec 2009 12:25:12 -0800
+Message-ID: <200912212025.nBLKPCnk027204@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43899 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45166 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752966AbZLUUZj (ORCPT
+	by vger.kernel.org with ESMTP id S1755724AbZLUUZy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Dec 2009 15:25:39 -0500
+	Mon, 21 Dec 2009 15:25:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, mm-commits@vger.kernel.org
+To: ngupta@vflare.org, greg@kroah.com, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hidp: PTR_ERR return of wrong pointer in hidp_setup_hid()
+     ramzswap: remove ARM specific d-cache hack
 has been removed from the -mm tree.  Its filename was
-     hidp-ptr_err-return-of-wrong-pointer-in-hidp_setup_hid.patch
+     ramzswap-remove-arm-specific-d-cache-hack.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hidp: PTR_ERR return of wrong pointer in hidp_setup_hid()
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: ramzswap: remove ARM specific d-cache hack
+From: Nitin Gupta <ngupta@vflare.org>
 
-Return the PTR_ERR of the correct pointer.
+Remove d-cache hack in ramzswap driver that was needed to workaround a bug
+in ARM version of update_mmu_cache() which caused stale data in d-cache to
+be transferred to userspace.  This bug was fixed by
+787b2faadc4356b6c2c71feb42fb944fece9a12f ("ARM: force dcache flush if
+dcache_dirty bit set").
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+This also brings down one entry in TODO file.
+
+Signed-off-by: Nitin Gupta <ngupta@vflare.org>
+Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/bluetooth/hidp/core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/staging/ramzswap/TODO           |    1 
+ drivers/staging/ramzswap/ramzswap_drv.c |   28 ++--------------------
+ 2 files changed, 3 insertions(+), 26 deletions(-)
 
-diff -puN net/bluetooth/hidp/core.c~hidp-ptr_err-return-of-wrong-pointer-in-hidp_setup_hid net/bluetooth/hidp/core.c
---- a/net/bluetooth/hidp/core.c~hidp-ptr_err-return-of-wrong-pointer-in-hidp_setup_hid
-+++ a/net/bluetooth/hidp/core.c
-@@ -770,7 +770,7 @@ static int hidp_setup_hid(struct hidp_se
+diff -puN drivers/staging/ramzswap/TODO~ramzswap-remove-arm-specific-d-cache-hack drivers/staging/ramzswap/TODO
+--- a/drivers/staging/ramzswap/TODO~ramzswap-remove-arm-specific-d-cache-hack
++++ a/drivers/staging/ramzswap/TODO
+@@ -1,6 +1,5 @@
+ TODO:
+ 	- Add support for swap notifiers
+-	- Remove CONFIG_ARM hack
  
- 	hid = hid_allocate_device();
- 	if (IS_ERR(hid))
--		return PTR_ERR(session->hid);
-+		return PTR_ERR(hid);
+ Please send patches to Greg Kroah-Hartman <greg@kroah.com> and
+ Nitin Gupta <ngupta@vflare.org>
+diff -puN drivers/staging/ramzswap/ramzswap_drv.c~ramzswap-remove-arm-specific-d-cache-hack drivers/staging/ramzswap/ramzswap_drv.c
+--- a/drivers/staging/ramzswap/ramzswap_drv.c~ramzswap-remove-arm-specific-d-cache-hack
++++ a/drivers/staging/ramzswap/ramzswap_drv.c
+@@ -222,28 +222,6 @@ out:
+ 	return ret;
+ }
  
- 	session->hid = hid;
- 	session->req = req;
+-static void ramzswap_flush_dcache_page(struct page *page)
+-{
+-#ifdef CONFIG_ARM
+-	int flag = 0;
+-	/*
+-	 * Ugly hack to get flush_dcache_page() work on ARM.
+-	 * page_mapping(page) == NULL after clearing this swap cache flag.
+-	 * Without clearing this flag, flush_dcache_page() will simply set
+-	 * "PG_dcache_dirty" bit and return.
+-	 */
+-	if (PageSwapCache(page)) {
+-		flag = 1;
+-		ClearPageSwapCache(page);
+-	}
+-#endif
+-	flush_dcache_page(page);
+-#ifdef CONFIG_ARM
+-	if (flag)
+-		SetPageSwapCache(page);
+-#endif
+-}
+-
+ void ramzswap_ioctl_get_stats(struct ramzswap *rzs,
+ 			struct ramzswap_ioctl_stats *s)
+ {
+@@ -655,7 +633,7 @@ static int handle_zero_page(struct bio *
+ 	memset(user_mem, 0, PAGE_SIZE);
+ 	kunmap_atomic(user_mem, KM_USER0);
+ 
+-	ramzswap_flush_dcache_page(page);
++	flush_dcache_page(page);
+ 
+ 	set_bit(BIO_UPTODATE, &bio->bi_flags);
+ 	bio_endio(bio, 0);
+@@ -679,7 +657,7 @@ static int handle_uncompressed_page(stru
+ 	kunmap_atomic(user_mem, KM_USER0);
+ 	kunmap_atomic(cmem, KM_USER1);
+ 
+-	ramzswap_flush_dcache_page(page);
++	flush_dcache_page(page);
+ 
+ 	set_bit(BIO_UPTODATE, &bio->bi_flags);
+ 	bio_endio(bio, 0);
+@@ -779,7 +757,7 @@ static int ramzswap_read(struct ramzswap
+ 		goto out;
+ 	}
+ 
+-	ramzswap_flush_dcache_page(page);
++	flush_dcache_page(page);
+ 
+ 	set_bit(BIO_UPTODATE, &bio->bi_flags);
+ 	bio_endio(bio, 0);
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from ngupta@vflare.org are
 
-origin.patch
 linux-next.patch
-fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-powerpc-85xx-wrong-variable-returned-on-error.patch
-imx-bit-confusion.patch
-serial-fix-test-of-unsigned.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
-ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
-scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
-drbd-fix-test-of-unsigned-in-_drbd_fault_random.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-cryptocop-fix-assertion-in-create_output_descriptors.patch
-asiliantfb-fix-test-of-unsigned-in-asiliant_calc_dclk2.patch
-hvc_console-fix-test-on-unsigned-in-hvc_console_print.patch
-zlib-optimize-inffast-when-copying-direct-from-output.patch
 
