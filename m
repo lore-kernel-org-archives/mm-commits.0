@@ -1,98 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [folded] kfifo-move-struct-kfifo-in-place-fix.patch removed from -mm tree
-Date: Mon, 21 Dec 2009 14:33:44 -0800
-Message-ID: <200912212233.nBLMXiA1032559@imap1.linux-foundation.org>
+Subject: [folded] kfifo-add-define_kfifo-and-friends-add-very-tiny-functions-fix.patch removed from -mm tree
+Date: Mon, 21 Dec 2009 14:34:15 -0800
+Message-ID: <200912212234.nBLMYFu8032574@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41930 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41809 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751860AbZLUWeM (ORCPT
+	by vger.kernel.org with ESMTP id S1750976AbZLUWe3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Dec 2009 17:34:12 -0500
+	Mon, 21 Dec 2009 17:34:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, James.Bottomley@suse.de, fujita.tomonori@lab.ntt.co.jp, stefani@seibold.net, mm-commits@vger.kernel.org
+To: stefani@seibold.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kfifo-move-struct-kfifo-in-place-fix
+     kfifo-add-define_kfifo-and-friends-add-very-tiny-functions fix
 has been removed from the -mm tree.  Its filename was
-     kfifo-move-struct-kfifo-in-place-fix.patch
+     kfifo-add-define_kfifo-and-friends-add-very-tiny-functions-fix.patch
 
-This patch was dropped because it was folded into kfifo-move-struct-kfifo-in-place.patch
+This patch was dropped because it was folded into kfifo-add-define_kfifo-and-friends-add-very-tiny-functions.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kfifo-move-struct-kfifo-in-place-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kfifo-add-define_kfifo-and-friends-add-very-tiny-functions fix
+From: Stefani Seibold <stefani@seibold.net>
 
-drivers/scsi/libsrp.c: In function 'srp_iu_pool_alloc':
-drivers/scsi/libsrp.c:70: warning: label 'free_item' defined but not used
+The following patch undef temporary used defines after the last usage.
 
-Cc: James E.J. Bottomley <James.Bottomley@suse.de>
-Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Stefani Seibold <stefani@seibold.net>
+The patch-set is against kfifo API v.07, which is currently included in
+the -mm tree
+
+Signed-off-by: Stefani Seibold <stefani@seibold.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/libsrp.c |    1 -
- 1 file changed, 1 deletion(-)
+ include/linux/kfifo.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN drivers/scsi/libsrp.c~kfifo-move-struct-kfifo-in-place-fix drivers/scsi/libsrp.c
---- a/drivers/scsi/libsrp.c~kfifo-move-struct-kfifo-in-place-fix
-+++ a/drivers/scsi/libsrp.c
-@@ -68,7 +68,6 @@ static int srp_iu_pool_alloc(struct srp_
- 	}
- 	return 0;
+diff -puN include/linux/kfifo.h~kfifo-add-define_kfifo-and-friends-add-very-tiny-functions-fix include/linux/kfifo.h
+--- a/include/linux/kfifo.h~kfifo-add-define_kfifo-and-friends-add-very-tiny-functions-fix
++++ a/include/linux/kfifo.h
+@@ -55,6 +55,7 @@ struct kfifo {
+  * Macros for declaration and initialization of the kfifo datatype
+  */
  
--free_item:
- 	kfree(q->items);
- free_pool:
- 	kfree(q->pool);
++/* helper macro */
+ #define __kfifo_initializer(s, b) \
+ 	(struct kfifo) { \
+ 		.size	= s, \
+@@ -102,6 +103,8 @@ union { \
+ 	unsigned char name##kfifo_buffer[size]; \
+ 	struct kfifo name = __kfifo_initializer(size, name##kfifo_buffer)
+ 
++#undef __kfifo_initializer
++
+ extern void kfifo_init(struct kfifo *fifo, unsigned char *buffer,
+ 			unsigned int size);
+ extern __must_check int kfifo_alloc(struct kfifo *fifo, unsigned int size,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from stefani@seibold.net are
 
-origin.patch
 kfifo-move-struct-kfifo-in-place.patch
-kfifo-move-struct-kfifo-in-place-fix.patch
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
+kfifo-move-out-spinlock.patch
+kfifo-cleanup-namespace.patch
+kfifo-rename-kfifo_put-into-kfifo_in-and-kfifo_get-into-kfifo_out.patch
+kfifo-fix-warn_unused_result.patch
+kfifo-add-define_kfifo-and-friends-add-very-tiny-functions.patch
+kfifo-add-define_kfifo-and-friends-add-very-tiny-functions-fix.patch
+kfifo-add-kfifo_skip-kfifo_from_user-and-kfifo_to_user.patch
+kfifo-add-record-handling-functions.patch
+kfifo-add-record-handling-functions-fix.patch
+media-video-cx23888-driver-ported-to-new-kfifo-api.patch
+media-video-cx23888-driver-ported-to-new-kfifo-api-fix.patch
 drivers-media-video-cx23885-needs-kfifo-conversion.patch
-drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices-checkpatch-fixes.patch
-drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
-drivers-media-video-pmsc-needs-versionh.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-net-sctp-socketc-squish-warning.patch
-proc_fops-convert-drivers-isdn-to-seq_file-fix2.patch
-3x59x-fix-pci-resource-management.patch
-bluetooth-fix-for-acer-bluetooth-optical-rechargeable-mouse.patch
-fs-ext4-superc-fix-printk-warning.patch
-atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
-scsi-aacraid-fix-memory-leak-checkpatch-fixes.patch
-aoe-switch-to-the-new-bio_flush_dcache_pages-interface.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-char-cyclades-fix-compiler-warning.patch
-zlib-optimize-inffast-when-copying-direct-from-output.patch
-lib-add-support-for-lzo-compressed-kernels.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
 
