@@ -1,24 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + mm-introduce-dump_page-and-print-symbolic-flag-names.patch added to -mm tree
-Date: Tue, 22 Dec 2009 14:05:25 -0800
-Message-ID: <200912222205.nBMM5PTk027087@imap1.linux-foundation.org>
+Subject: + vsnprintf-fix-reference-for-compressed-ipv6-addresses.patch added to -mm tree
+Date: Tue, 22 Dec 2009 14:07:41 -0800
+Message-ID: <200912222207.nBMM7f5r027232@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38656 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49506 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751169AbZLVWGi (ORCPT
+	by vger.kernel.org with ESMTP id S1752051AbZLVWIj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Dec 2009 17:06:38 -0500
+	Tue, 22 Dec 2009 17:08:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fengguang.wu@intel.com, achiang@hp.com, andi@firstfloor.org, cl@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, mel@linux.vnet.ibm.com, mingo@elte.hu, riel@redhat.com
+Cc: u.kleine-koenig@pengutronix.de, davem@davemloft.net, joe@perches.com, joy@entuzijast.net
 
 
 The patch titled
-     mm: introduce dump_page() and print symbolic flag names
+     vsnprintf: fix reference for compressed ipv6 addresses
 has been added to the -mm tree.  Its filename is
-     mm-introduce-dump_page-and-print-symbolic-flag-names.patch
+     vsnprintf-fix-reference-for-compressed-ipv6-addresses.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -26,200 +29,72 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: mm: introduce dump_page() and print symbolic flag names
-From: Wu Fengguang <fengguang.wu@intel.com>
+Subject: vsnprintf: fix reference for compressed ipv6 addresses
+=46rom: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
 
-- introduce dump_page() to print the page info for debugging some error
-  condition.
+Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+Reported-by: Josip Rodin <joy@entuzijast.net>
+Cc: Joe Perches <joe@perches.com>
+Cc: David S. Miller <davem@davemloft.net>
 
-- convert three mm users: bad_page(), print_bad_pte() and memory offline
-  failure.
-
-- print an extra field: the symbolic names of page->flags
-
-Example dump_page() output:
-
-[  157.521694] page:ffffea0000a7cba8 count:2 mapcount:1 mapping:ffff88001c901791 index:0x147
-[  157.525570] page flags: 0x100000000100068(uptodate|lru|active|swapbacked)
-
-Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Alex Chiang <achiang@hp.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Mel Gorman <mel@linux.vnet.ibm.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h  |    2 +
- mm/memory.c         |    8 +---
- mm/memory_hotplug.c |    6 +--
- mm/page_alloc.c     |   83 +++++++++++++++++++++++++++++++++++++++---
- 4 files changed, 86 insertions(+), 13 deletions(-)
+ lib/vsprintf.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/mm.h~mm-introduce-dump_page-and-print-symbolic-flag-names include/linux/mm.h
---- a/include/linux/mm.h~mm-introduce-dump_page-and-print-symbolic-flag-names
-+++ a/include/linux/mm.h
-@@ -1474,5 +1474,7 @@ extern void shake_page(struct page *p, i
- extern atomic_long_t mce_bad_pages;
- extern int soft_offline_page(struct page *page, int flags);
- 
-+extern void dump_page(struct page *page);
-+
- #endif /* __KERNEL__ */
- #endif /* _LINUX_MM_H */
-diff -puN mm/memory.c~mm-introduce-dump_page-and-print-symbolic-flag-names mm/memory.c
---- a/mm/memory.c~mm-introduce-dump_page-and-print-symbolic-flag-names
-+++ a/mm/memory.c
-@@ -549,12 +549,8 @@ static void print_bad_pte(struct vm_area
- 		"BUG: Bad page map in process %s  pte:%08llx pmd:%08llx\n",
- 		current->comm,
- 		(long long)pte_val(pte), (long long)pmd_val(*pmd));
--	if (page) {
--		printk(KERN_ALERT
--		"page:%p flags:%p count:%d mapcount:%d mapping:%p index:%lx\n",
--		page, (void *)page->flags, page_count(page),
--		page_mapcount(page), page->mapping, page->index);
--	}
-+	if (page)
-+		dump_page(page);
- 	printk(KERN_ALERT
- 		"addr:%p vm_flags:%08lx anon_vma:%p mapping:%p index:%lx\n",
- 		(void *)addr, vma->vm_flags, vma->anon_vma, mapping, index);
-diff -puN mm/memory_hotplug.c~mm-introduce-dump_page-and-print-symbolic-flag-names mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-introduce-dump_page-and-print-symbolic-flag-names
-+++ a/mm/memory_hotplug.c
-@@ -684,9 +684,9 @@ do_migrate_range(unsigned long start_pfn
- 			if (page_count(page))
- 				not_managed++;
- #ifdef CONFIG_DEBUG_VM
--			printk(KERN_INFO "removing from LRU failed"
--					 " %lx/%d/%lx\n",
--				pfn, page_count(page), page->flags);
-+			printk(KERN_ALERT "removing pfn %lx from LRU failed\n",
-+			       pfn);
-+			dump_page(page);
- #endif
- 		}
- 	}
-diff -puN mm/page_alloc.c~mm-introduce-dump_page-and-print-symbolic-flag-names mm/page_alloc.c
---- a/mm/page_alloc.c~mm-introduce-dump_page-and-print-symbolic-flag-names
-+++ a/mm/page_alloc.c
-@@ -50,6 +50,7 @@
- #include <linux/kmemleak.h>
- #include <linux/memory.h>
- #include <trace/events/kmem.h>
-+#include <linux/ftrace_event.h>
- 
- #include <asm/tlbflush.h>
- #include <asm/div64.h>
-@@ -263,10 +264,7 @@ static void bad_page(struct page *page)
- 
- 	printk(KERN_ALERT "BUG: Bad page state in process %s  pfn:%05lx\n",
- 		current->comm, page_to_pfn(page));
--	printk(KERN_ALERT
--		"page:%p flags:%p count:%d mapcount:%d mapping:%p index:%lx\n",
--		page, (void *)page->flags, page_count(page),
--		page_mapcount(page), page->mapping, page->index);
-+	dump_page(page);
- 
- 	dump_stack();
- out:
-@@ -5218,3 +5216,80 @@ bool is_free_buddy_page(struct page *pag
- 	return order < MAX_ORDER;
- }
- #endif
-+
-+static struct trace_print_flags pageflag_names[] = {
-+	{1UL << PG_locked,		"locked"	},
-+	{1UL << PG_error,		"error"		},
-+	{1UL << PG_referenced,		"referenced"	},
-+	{1UL << PG_uptodate,		"uptodate"	},
-+	{1UL << PG_dirty,		"dirty"		},
-+	{1UL << PG_lru,			"lru"		},
-+	{1UL << PG_active,		"active"	},
-+	{1UL << PG_slab,		"slab"		},
-+	{1UL << PG_owner_priv_1,	"owner_priv_1"	},
-+	{1UL << PG_arch_1,		"arch_1"	},
-+	{1UL << PG_reserved,		"reserved"	},
-+	{1UL << PG_private,		"private"	},
-+	{1UL << PG_private_2,		"private_2"	},
-+	{1UL << PG_writeback,		"writeback"	},
-+#ifdef CONFIG_PAGEFLAGS_EXTENDED
-+	{1UL << PG_head,		"head"		},
-+	{1UL << PG_tail,		"tail"		},
-+#else
-+	{1UL << PG_compound,		"compound"	},
-+#endif
-+	{1UL << PG_swapcache,		"swapcache"	},
-+	{1UL << PG_mappedtodisk,	"mappedtodisk"	},
-+	{1UL << PG_reclaim,		"reclaim"	},
-+	{1UL << PG_buddy,		"buddy"		},
-+	{1UL << PG_swapbacked,		"swapbacked"	},
-+	{1UL << PG_unevictable,		"unevictable"	},
-+#ifdef CONFIG_MMU
-+	{1UL << PG_mlocked,		"mlocked"	},
-+#endif
-+#ifdef CONFIG_ARCH_USES_PG_UNCACHED
-+	{1UL << PG_uncached,		"uncached"	},
-+#endif
-+#ifdef CONFIG_MEMORY_FAILURE
-+	{1UL << PG_hwpoison,		"hwpoison"	},
-+#endif
-+	{-1UL,				NULL		},
-+};
-+
-+static void dump_page_flags(unsigned long flags)
-+{
-+	const char *delim = "";
-+	unsigned long mask;
-+	int i;
-+
-+	printk(KERN_ALERT "page flags: %#lx(", flags);
-+
-+	/* remove zone id */
-+	flags &= (1UL << NR_PAGEFLAGS) - 1;
-+
-+	for (i = 0; pageflag_names[i].name && flags; i++) {
-+
-+		mask = pageflag_names[i].mask;
-+		if ((flags & mask) != mask)
-+			continue;
-+
-+		flags &= ~mask;
-+		printk("%s%s", delim, pageflag_names[i].name);
-+		delim = "|";
-+	}
-+
-+	/* check for left over flags */
-+	if (flags)
-+		printk("%s%#lx", delim, flags);
-+
-+	printk(")\n");
-+}
-+
-+void dump_page(struct page *page)
-+{
-+	printk(KERN_ALERT
-+	       "page:%p count:%d mapcount:%d mapping:%p index:%#lx\n",
-+		page, page_count(page), page_mapcount(page),
-+		page->mapping, page->index);
-+	dump_page_flags(page->flags);
-+}
+diff -puN lib/vsprintf.c~vsnprintf-fix-reference-for-compressed-ipv6-ad=
+dresses lib/vsprintf.c
+--- a/lib/vsprintf.c~vsnprintf-fix-reference-for-compressed-ipv6-addres=
+ses
++++ a/lib/vsprintf.c
+@@ -903,7 +903,7 @@ static char *uuid_string(char *buf, char
+  *       IPv6 omits the colons (01020304...0f)
+  *       IPv4 uses dot-separated decimal with leading 0's (010.123.045=
+=2E006)
+  * - 'I6c' for IPv6 addresses printed as specified by
+- *       http://www.ietf.org/id/draft-kawamura-ipv6-text-representatio=
+n-03.txt
++ *       http://tools.ietf.org/html/draft-ietf-6man-text-addr-represen=
+tation-00
+  * - 'U' For a 16 byte UUID/GUID, it prints the UUID/GUID in the form
+  *       "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+  *       Options for %pU are:
+@@ -1188,7 +1188,7 @@ qualifier:
+  * %pI6 print an IPv6 address with colons
+  * %pi6 print an IPv6 address without colons
+  * %pI6c print an IPv6 address as specified by
+- *   http://www.ietf.org/id/draft-kawamura-ipv6-text-representation-03=
+=2Etxt
++ *   http://tools.ietf.org/html/draft-ietf-6man-text-addr-representati=
+on-00
+  * %pU[bBlL] print a UUID/GUID in big or little endian using lower or =
+upper
+  *   case.
+  * %n is ignored
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from u.kleine-koenig@pengutroni=
+x.de are
 
+origin.patch
 linux-next.patch
-mm-introduce-dump_page-and-print-symbolic-flag-names.patch
+vsnprintf-fix-reference-for-compressed-ipv6-addresses.patch
+hrtimer-correct-a-few-numbers-in-comments.patch
+clockevents-ensure-taht-min_delta_ns-is-increased-in-error-path.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
