@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + tracehooks-check-pt_ptraced-before-reporting-the-single-step.patch added to -mm tree
-Date: Tue, 22 Dec 2009 13:58:27 -0800
-Message-ID: <200912222158.nBMLwSfI026793@imap1.linux-foundation.org>
+Subject: + export-__ptrace_detach-and-do_notify_parent_cldstop.patch added to -mm tree
+Date: Tue, 22 Dec 2009 13:58:33 -0800
+Message-ID: <200912222158.nBMLwXj7026799@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52058 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39775 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752951AbZLVV7G (ORCPT
+	by vger.kernel.org with ESMTP id S1754163AbZLVV7J (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Dec 2009 16:59:06 -0500
+	Tue, 22 Dec 2009 16:59:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: oleg@redhat.com, adobriyan@gmail.com, ananth@in.ibm.com, andi@firstfloor.org
 
 
 The patch titled
-     tracehooks: check PT_PTRACED before reporting the single-step
+     export __ptrace_detach() and do_notify_parent_cldstop()
 has been added to the -mm tree.  Its filename is
-     tracehooks-check-pt_ptraced-before-reporting-the-single-step.patch
+     export-__ptrace_detach-and-do_notify_parent_cldstop.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,16 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tracehooks: check PT_PTRACED before reporting the single-step
+Subject: export __ptrace_detach() and do_notify_parent_cldstop()
 From: Oleg Nesterov <oleg@redhat.com>
 
-No functional changes, preparation for utrace-ptrace.
-
-tracehook_report_syscall_exit() and tracehook_signal_handler() assume that
-only ptrace can set TIF_SINGLESTEP.  Currently this is true but we are
-going to change this, the stepping logic will be moved into utrace layer.
-
-Change this code to check PT_PTRACED, ptrace-utrace doesn't set it.
+Export __ptrace_detach() and do_notify_parent_cldstop() for ptrace-utrace.
 
 Signed-off-by: Roland McGrath <roland@redhat.com>
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
@@ -57,30 +51,58 @@ Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/tracehook.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/ptrace.h |    1 +
+ include/linux/sched.h  |    1 +
+ kernel/ptrace.c        |    2 +-
+ kernel/signal.c        |    2 +-
+ 4 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/tracehook.h~tracehooks-check-pt_ptraced-before-reporting-the-single-step include/linux/tracehook.h
---- a/include/linux/tracehook.h~tracehooks-check-pt_ptraced-before-reporting-the-single-step
-+++ a/include/linux/tracehook.h
-@@ -134,7 +134,7 @@ static inline __must_check int tracehook
+diff -puN include/linux/ptrace.h~export-__ptrace_detach-and-do_notify_parent_cldstop include/linux/ptrace.h
+--- a/include/linux/ptrace.h~export-__ptrace_detach-and-do_notify_parent_cldstop
++++ a/include/linux/ptrace.h
+@@ -85,6 +85,7 @@ extern int ptrace_traceme(void);
+ extern int ptrace_readdata(struct task_struct *tsk, unsigned long src, char __user *dst, int len);
+ extern int ptrace_writedata(struct task_struct *tsk, char __user *src, unsigned long dst, int len);
+ extern int ptrace_attach(struct task_struct *tsk);
++extern bool __ptrace_detach(struct task_struct *tracer, struct task_struct *tracee);
+ extern int ptrace_detach(struct task_struct *, unsigned int);
+ extern void ptrace_disable(struct task_struct *);
+ extern int ptrace_check_attach(struct task_struct *task, int kill);
+diff -puN include/linux/sched.h~export-__ptrace_detach-and-do_notify_parent_cldstop include/linux/sched.h
+--- a/include/linux/sched.h~export-__ptrace_detach-and-do_notify_parent_cldstop
++++ a/include/linux/sched.h
+@@ -2034,6 +2034,7 @@ extern int kill_pgrp(struct pid *pid, in
+ extern int kill_pid(struct pid *pid, int sig, int priv);
+ extern int kill_proc_info(int, struct siginfo *, pid_t);
+ extern int do_notify_parent(struct task_struct *, int);
++extern void do_notify_parent_cldstop(struct task_struct *, int);
+ extern void __wake_up_parent(struct task_struct *p, struct task_struct *parent);
+ extern void force_sig(int, struct task_struct *);
+ extern int send_sig(int, struct task_struct *, int);
+diff -puN kernel/ptrace.c~export-__ptrace_detach-and-do_notify_parent_cldstop kernel/ptrace.c
+--- a/kernel/ptrace.c~export-__ptrace_detach-and-do_notify_parent_cldstop
++++ a/kernel/ptrace.c
+@@ -271,7 +271,7 @@ static int ignoring_children(struct sigh
+  * reap it now, in that case we must also wake up sub-threads sleeping in
+  * do_wait().
   */
- static inline void tracehook_report_syscall_exit(struct pt_regs *regs, int step)
+-static bool __ptrace_detach(struct task_struct *tracer, struct task_struct *p)
++bool __ptrace_detach(struct task_struct *tracer, struct task_struct *p)
  {
--	if (step) {
-+	if (step && (task_ptrace(current) & PT_PTRACED)) {
- 		siginfo_t info;
- 		user_single_step_siginfo(current, regs, &info);
- 		force_sig_info(SIGTRAP, &info, current);
-@@ -386,7 +386,7 @@ static inline void tracehook_signal_hand
- 					    const struct k_sigaction *ka,
- 					    struct pt_regs *regs, int stepping)
- {
--	if (stepping)
-+	if (stepping && (task_ptrace(current) & PT_PTRACED))
- 		ptrace_notify(SIGTRAP);
+ 	__ptrace_unlink(p);
+ 
+diff -puN kernel/signal.c~export-__ptrace_detach-and-do_notify_parent_cldstop kernel/signal.c
+--- a/kernel/signal.c~export-__ptrace_detach-and-do_notify_parent_cldstop
++++ a/kernel/signal.c
+@@ -1497,7 +1497,7 @@ int do_notify_parent(struct task_struct 
+ 	return ret;
  }
  
+-static void do_notify_parent_cldstop(struct task_struct *tsk, int why)
++void do_notify_parent_cldstop(struct task_struct *tsk, int why)
+ {
+ 	struct siginfo info;
+ 	unsigned long flags;
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
