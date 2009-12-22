@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + prctl-return-timerslack-through-pointer.patch added to -mm tree
-Date: Tue, 22 Dec 2009 13:50:47 -0800
-Message-ID: <200912222150.nBMLolfT026454@imap1.linux-foundation.org>
+Subject: + tracehooks-kill-some-pt_ptraced-checks.patch added to -mm tree
+Date: Tue, 22 Dec 2009 13:58:20 -0800
+Message-ID: <200912222158.nBMLwLmf026786@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51941 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55029 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751152AbZLVVvK (ORCPT
+	by vger.kernel.org with ESMTP id S1752949AbZLVV7C (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Dec 2009 16:51:10 -0500
+	Tue, 22 Dec 2009 16:59:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: geoffx.smith@intel.com, arjan@linux.intel.com, mingo@elte.hu, tglx@linutronix.de
+Cc: oleg@redhat.com, adobriyan@gmail.com, ananth@in.ibm.com, andi@firstfloor.org, fche@redhat.com, hch@infradead.org, mingo@elte.hu, peterz@infradead.org, roland@redhat.com
 
 
 The patch titled
-     prctl: return timerslack through pointer
+     tracehooks: kill some PT_PTRACED checks
 has been added to the -mm tree.  Its filename is
-     prctl-return-timerslack-through-pointer.patch
+     tracehooks-kill-some-pt_ptraced-checks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,75 +34,76 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: prctl: return timerslack through pointer
-From: "Smith, GeoffX" <geoffx.smith@intel.com>
+Subject: tracehooks: kill some PT_PTRACED checks
+From: Oleg Nesterov <oleg@redhat.com>
 
-Fix the semantics of prctl() option PR_GET_TIMERSLACK to pass the return
-value through *arg2.
+No functional changes, preparation for utrace-ptrace.
 
-With this change, the option now follows the same conventions as the other
-"get" options added since 2.6.0, and also brings it into conformance with
-the advice in chapter 16 of Documentation/CodingStyle.
+task_ptrace() != 0 if and only if PT_PTRACED bit is set, kill some
+PT_PTRACED checks in tracehook.h to ensure the result is the same with or
+without utrace which doesn't set PT_PTRACED.
 
-In addition, it effectively doubles the range of time slack to 4.29
-seconds (on a 32-bit architecture).
-
-The timer slack feature was only added in Sep 2009 (new in 2.6.32.1), so
-there are not any production applications to break.  I have also repaired
-some unmatched signed/unsigned mismatches in timer slack calculations.
-
-Cc: Arjan van de Ven <arjan@linux.intel.com>
+Signed-off-by: Roland McGrath <roland@redhat.com>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Tested-by: Ananth Mavinakayanahalli <ananth@in.ibm.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: "Frank Ch. Eigler" <fche@redhat.com>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/select.c  |    8 ++++----
- kernel/sys.c |    3 ++-
- 2 files changed, 6 insertions(+), 5 deletions(-)
+ include/linux/tracehook.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/select.c~prctl-return-timerslack-through-pointer fs/select.c
---- a/fs/select.c~prctl-return-timerslack-through-pointer
-+++ a/fs/select.c
-@@ -44,10 +44,10 @@
- 
- #define MAX_SLACK	(100 * NSEC_PER_MSEC)
- 
--static long __estimate_accuracy(struct timespec *tv)
-+static unsigned long __estimate_accuracy(struct timespec *tv)
+diff -puN include/linux/tracehook.h~tracehooks-kill-some-pt_ptraced-checks include/linux/tracehook.h
+--- a/include/linux/tracehook.h~tracehooks-kill-some-pt_ptraced-checks
++++ a/include/linux/tracehook.h
+@@ -156,7 +156,7 @@ static inline int tracehook_unsafe_exec(
  {
--	long slack;
--	int divfactor = 1000;
-+	unsigned long slack;
-+	unsigned int divfactor = 1000;
- 
- 	if (tv->tv_sec < 0)
- 		return 0;
-@@ -67,7 +67,7 @@ static long __estimate_accuracy(struct t
- 	return slack;
+ 	int unsafe = 0;
+ 	int ptrace = task_ptrace(task);
+-	if (ptrace & PT_PTRACED) {
++	if (ptrace) {
+ 		if (ptrace & PT_PTRACE_CAP)
+ 			unsafe |= LSM_UNSAFE_PTRACE_CAP;
+ 		else
+@@ -178,7 +178,7 @@ static inline int tracehook_unsafe_exec(
+  */
+ static inline struct task_struct *tracehook_tracer_task(struct task_struct *tsk)
+ {
+-	if (task_ptrace(tsk) & PT_PTRACED)
++	if (task_ptrace(tsk))
+ 		return rcu_dereference(tsk->parent);
+ 	return NULL;
+ }
+@@ -492,7 +492,7 @@ static inline int tracehook_get_signal(s
+  */
+ static inline int tracehook_notify_jctl(int notify, int why)
+ {
+-	return notify ?: (current->ptrace & PT_PTRACED) ? why : 0;
++	return notify ?: task_ptrace(current) ? why : 0;
  }
  
--static long estimate_accuracy(struct timespec *tv)
-+static unsigned long estimate_accuracy(struct timespec *tv)
- {
- 	unsigned long ret;
- 	struct timespec now;
-diff -puN kernel/sys.c~prctl-return-timerslack-through-pointer kernel/sys.c
---- a/kernel/sys.c~prctl-return-timerslack-through-pointer
-+++ a/kernel/sys.c
-@@ -1638,7 +1638,8 @@ SYSCALL_DEFINE5(prctl, int, option, unsi
- 			error = perf_event_task_enable();
- 			break;
- 		case PR_GET_TIMERSLACK:
--			error = current->timer_slack_ns;
-+			error = put_user(current->timer_slack_ns,
-+				(unsigned long __user *)arg2);
- 			break;
- 		case PR_SET_TIMERSLACK:
- 			if (arg2 <= 0)
+ /**
 _
 
-Patches currently in -mm which might be from geoffx.smith@intel.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-prctl-return-timerslack-through-pointer.patch
+origin.patch
+linux-next.patch
+posix-cpu-timers-reset-expire-cache-when-no-timer-is-running.patch
+tracehooks-kill-some-pt_ptraced-checks.patch
+tracehooks-check-pt_ptraced-before-reporting-the-single-step.patch
+ptrace_signal-check-pt_ptraced-before-reporting-a-signal.patch
+export-__ptrace_detach-and-do_notify_parent_cldstop.patch
+reorder-the-code-in-kernel-ptracec.patch
+implement-utrace-ptrace.patch
+utrace-core.patch
+copy_signal-cleanup-use-zalloc-and-remove-initializations.patch
+copy_signal-cleanup-kill-taskstats_tgid_init-and-acct_init_pacct.patch
+copy_signal-cleanup-clean-thread_group_cputime_init.patch
+copy_signal-cleanup-clean-tty_audit_fork.patch
 
