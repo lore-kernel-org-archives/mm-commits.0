@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kmod-fix-resource-leak-in-call_usermodehelper_pipe.patch added to -mm tree
-Date: Tue, 22 Dec 2009 14:38:07 -0800
-Message-ID: <200912222238.nBMMc7x4028516@imap1.linux-foundation.org>
+Subject: + documentation-update-mmiotracetxt.patch added to -mm tree
+Date: Tue, 22 Dec 2009 14:41:46 -0800
+Message-ID: <200912222241.nBMMfk4B028677@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41884 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37463 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755173AbZLVWi5 (ORCPT
+	by vger.kernel.org with ESMTP id S1751053AbZLVWmE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Dec 2009 17:38:57 -0500
+	Tue, 22 Dec 2009 17:42:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mhiramat@redhat.com, rusty@rustcorp.com.au
+Cc: randy.dunlap@oracle.com, pq@iki.fi
 
 
 The patch titled
-     kmod: fix resource leak in call_usermodehelper_pipe()
+     Documentation: update mmiotrace.txt
 has been added to the -mm tree.  Its filename is
-     kmod-fix-resource-leak-in-call_usermodehelper_pipe.patch
+     documentation-update-mmiotracetxt.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,71 +34,92 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kmod: fix resource leak in call_usermodehelper_pipe()
-From: Masami Hiramatsu <mhiramat@redhat.com>
+Subject: Documentation: update mmiotrace.txt
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix resource (write-pipe file) leak in call_usermodehelper_pipe().
+Fix typos, spellos, hyphenation, line lengths.
 
-When call_usermodehelper_exec() fails, write-pipe file is opened and
-call_usermodehelper_pipe() just returns an error.  Since it is hard for
-caller to determine whether the error occured when opening the pipe or
-executing the helper, the caller cannot close the pipe by themselves.
+BTW: are there some userspace tools?  There is a reference to some at the
+wiki page, but there are no tools listed there.
 
-I've found this resoruce leak when testing coredump.  You can check how
-the resource leaks as below;
-
-$ echo "|nocommand" > /proc/sys/kernel/core_pattern
-$ ulimit -c unlimited
-$ while [ 1 ]; do ./segv; done &> /dev/null &
-$ cat /proc/meminfo (<- repeat it)
-
-where segv.c is;
-//-----
-int main () {
-        char *p = 0;
-        *p = 1;
-}
-//-----
-
-This patch closes write-pipe file if call_usermodehelper_exec() failed.
-
-Signed-off-by: Masami Hiramatsu <mhiramat@redhat.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Acked-by: Pekka Paalanen <pq@iki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kmod.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ Documentation/trace/mmiotrace.txt |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
-diff -puN kernel/kmod.c~kmod-fix-resource-leak-in-call_usermodehelper_pipe kernel/kmod.c
---- a/kernel/kmod.c~kmod-fix-resource-leak-in-call_usermodehelper_pipe
-+++ a/kernel/kmod.c
-@@ -520,13 +520,15 @@ int call_usermodehelper_pipe(char *path,
- 		return -ENOMEM;
+diff -puN Documentation/trace/mmiotrace.txt~documentation-update-mmiotracetxt Documentation/trace/mmiotrace.txt
+--- a/Documentation/trace/mmiotrace.txt~documentation-update-mmiotracetxt
++++ a/Documentation/trace/mmiotrace.txt
+@@ -44,7 +44,8 @@ Check for lost events.
+ Usage
+ -----
  
- 	ret = call_usermodehelper_stdinpipe(sub_info, filp);
--	if (ret < 0)
--		goto out;
-+	if (ret < 0) {
-+		call_usermodehelper_freeinfo(sub_info);
-+		return ret;
-+	}
+-Make sure debugfs is mounted to /sys/kernel/debug. If not, (requires root privileges)
++Make sure debugfs is mounted to /sys/kernel/debug.
++If not (requires root privileges):
+ $ mount -t debugfs debugfs /sys/kernel/debug
  
--	return call_usermodehelper_exec(sub_info, UMH_WAIT_EXEC);
-+	ret = call_usermodehelper_exec(sub_info, UMH_WAIT_EXEC);
-+	if (ret < 0)	/* Failed to execute helper, close pipe */
-+		filp_close(*filp, NULL);
+ Check that the driver you are about to trace is not loaded.
+@@ -91,7 +92,7 @@ $ dmesg > dmesg.txt
+ $ tar zcf pciid-nick-mmiotrace.tar.gz mydump.txt lspci.txt dmesg.txt
+ and then send the .tar.gz file. The trace compresses considerably. Replace
+ "pciid" and "nick" with the PCI ID or model name of your piece of hardware
+-under investigation and your nick name.
++under investigation and your nickname.
  
--  out:
--	call_usermodehelper_freeinfo(sub_info);
- 	return ret;
- }
- EXPORT_SYMBOL(call_usermodehelper_pipe);
+ 
+ How Mmiotrace Works
+@@ -100,7 +101,7 @@ How Mmiotrace Works
+ Access to hardware IO-memory is gained by mapping addresses from PCI bus by
+ calling one of the ioremap_*() functions. Mmiotrace is hooked into the
+ __ioremap() function and gets called whenever a mapping is created. Mapping is
+-an event that is recorded into the trace log. Note, that ISA range mappings
++an event that is recorded into the trace log. Note that ISA range mappings
+ are not caught, since the mapping always exists and is returned directly.
+ 
+ MMIO accesses are recorded via page faults. Just before __ioremap() returns,
+@@ -122,11 +123,11 @@ Trace Log Format
+ ----------------
+ 
+ The raw log is text and easily filtered with e.g. grep and awk. One record is
+-one line in the log. A record starts with a keyword, followed by keyword
+-dependant arguments. Arguments are separated by a space, or continue until the
++one line in the log. A record starts with a keyword, followed by keyword-
++dependent arguments. Arguments are separated by a space, or continue until the
+ end of line. The format for version 20070824 is as follows:
+ 
+-Explanation	Keyword	Space separated arguments
++Explanation	Keyword	Space-separated arguments
+ ---------------------------------------------------------------------------
+ 
+ read event	R	width, timestamp, map id, physical, value, PC, PID
+@@ -136,7 +137,7 @@ iounmap event	UNMAP	timestamp, map id, P
+ marker		MARK	timestamp, text
+ version		VERSION	the string "20070824"
+ info for reader	LSPCI	one line from lspci -v
+-PCI address map	PCIDEV	space separated /proc/bus/pci/devices data
++PCI address map	PCIDEV	space-separated /proc/bus/pci/devices data
+ unk. opcode	UNKNOWN	timestamp, map id, physical, data, PC, PID
+ 
+ Timestamp is in seconds with decimals. Physical is a PCI bus address, virtual
 _
 
-Patches currently in -mm which might be from mhiramat@redhat.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-kmod-fix-resource-leak-in-call_usermodehelper_pipe.patch
-mm-pass-mm-flags-as-a-coredump-parameter-for-consistency.patch
+lib-stringc-fix-kernel-doc-warnings.patch
+mm-tracing-cleanup-documentation-trace-events-kmemtxt.patch
+docs-large-update-to-ioctl-numbertxt.patch
+documentation-update-mmiotracetxt.patch
+documentation-update-tracepoint-analysistxt.patch
+documentation-update-ftrace-designtxt.patch
+documentation-update-ring-buffer-designtxt.patch
+linux-next.patch
+cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
+gpio-add-driver-for-max7300-i2c-gpio-extender.patch
+reiser4-export-remove_from_page_cache-fix.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
