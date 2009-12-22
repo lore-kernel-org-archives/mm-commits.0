@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-count-swap-usage-checkpatch-fixes.patch added to -mm tree
-Date: Mon, 21 Dec 2009 16:58:09 -0800
-Message-ID: <200912220058.nBM0w9Xr006874@imap1.linux-foundation.org>
+Subject: + mm-add-lowmem-detection-logic-fix.patch added to -mm tree
+Date: Mon, 21 Dec 2009 16:59:46 -0800
+Message-ID: <200912220059.nBM0xkwu006925@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48245 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47342 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751008AbZLVA6T (ORCPT
+	by vger.kernel.org with ESMTP id S1751004AbZLVA7w (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Dec 2009 19:58:19 -0500
+	Mon, 21 Dec 2009 19:59:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, cl@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, lee.schermerhorn@hp.com, minchan.kim@gmail.com, rientjes@google.com
+Cc: akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com
 
 
 The patch titled
-     mm-count-swap-usage-checkpatch-fixes
+     mm-add-lowmem-detection-logic-fix
 has been added to the -mm tree.  Its filename is
-     mm-count-swap-usage-checkpatch-fixes.patch
+     mm-add-lowmem-detection-logic-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-count-swap-usage-checkpatch-fixes
+Subject: mm-add-lowmem-detection-logic-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: code indent should use tabs where possible
-#150: FILE: mm/memory.c:984:
-+^I^I  ^Iif (unlikely(!free_swap_and_cache(entry)))$
+improve printk text
 
-total: 1 errors, 0 warnings, 102 lines checked
-
-./patches/mm-count-swap-usage.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: David Rientjes <rientjes@google.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/memory.c~mm-count-swap-usage-checkpatch-fixes mm/memory.c
---- a/mm/memory.c~mm-count-swap-usage-checkpatch-fixes
-+++ a/mm/memory.c
-@@ -981,7 +981,7 @@ static unsigned long zap_pte_range(struc
+diff -puN mm/page_alloc.c~mm-add-lowmem-detection-logic-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-add-lowmem-detection-logic-fix
++++ a/mm/page_alloc.c
+@@ -2851,7 +2851,8 @@ void build_all_zonelists(void)
+ 		printk("LOWMEM zone is detected as %s\n",
+ 			zone_names[lowmem_zone]);
+ 	else
+-		printk("There are no special LOWMEM. The system seems flat\n");
++		printk("There are no special LOWMEM zones.  "
++			"The system seems flat\n");
  
- 			if (!non_swap_entry(entry))
- 				rss[MM_SWAPENTS]--;
--		  	if (unlikely(!free_swap_and_cache(entry)))
-+			if (unlikely(!free_swap_and_cache(entry)))
- 				print_bad_pte(vma, addr, ptent, NULL);
- 		}
- 		pte_clear_not_present_full(mm, addr, pte, tlb->fullmm);
+ #ifdef CONFIG_NUMA
+ 	printk("Policy zone: %s\n", zone_names[policy_zone]);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -101,6 +88,7 @@ fs-improve-remountro-vs-buffercache-coherency.patch
 percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
 mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
 mm-count-swap-usage-checkpatch-fixes.patch
+mm-add-lowmem-detection-logic-fix.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 char-cyclades-fix-compiler-warning.patch
 zlib-optimize-inffast-when-copying-direct-from-output.patch
