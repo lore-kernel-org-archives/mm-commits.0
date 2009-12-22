@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mm-add-lowmem-detection-logic.patch added to -mm tree
-Date: Mon, 21 Dec 2009 16:56:31 -0800
-Message-ID: <200912220056.nBM0uV9p006829@imap1.linux-foundation.org>
+Subject: + mm-clean-up-mm_counter.patch added to -mm tree
+Date: Mon, 21 Dec 2009 16:56:22 -0800
+Message-ID: <200912220056.nBM0uM53006744@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53099 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39504 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751109AbZLVA4j (ORCPT
+	by vger.kernel.org with ESMTP id S1751109AbZLVA4h (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Dec 2009 19:56:39 -0500
+	Mon, 21 Dec 2009 19:56:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kamezawa.hiroyu@jp.fujitsu.com, cl@linux-foundation.org, lee.schermerhorn@hp
 
 
 The patch titled
-     mm: add lowmem detection logic
+     mm: clean up mm_counter
 has been added to the -mm tree.  Its filename is
-     mm-add-lowmem-detection-logic.patch
+     mm-clean-up-mm_counter.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,17 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: add lowmem detection logic
+Subject: mm: clean up mm_counter
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-The final purpose of this patch is to improve oom/memoy shortage
-detection.  In general there are OOM cases that lowmem is exhausted.  What
-this lowmem means is determined by the situation, but in general, limited
-amount of memory for some special use is lowmem.
+Presently, per-mm statistics counter is defined by macro in sched.h
 
-This patch adds an integer lowmem_zone, which is initialized to -1.  If
-zone_idx(zone) <= lowmem_zone, the zone is lowmem.
+This patch modifies it to
+  - defined in mm.h as inlinf functions
+  - use array instead of macro's name creation.
 
-This patch uses simple definition that the zone for special use is the
-lowmem.  Not taking the amount of memory into account.
-
-For example,
-  - if HIGHMEM is used, NORMAL is lowmem.
-  - If the system has both of NORMAL and DMA32, DMA32 is lowmem.
-  - When the system consists of only one zone, there are no lowmem.
-
-This will be used for lowmem accounting per mm_struct and its information
-will be used for oom-killer.
-
- Q: Why you don't use policy_zone ?
- A: It's for NUMA only. I want to use unified approach for detecting lowmem.
-    And policy_zone sounds like "for mempolicy"..
-
-Concerns or TODO:
- - Now, we have polizy_zone if CONFIG_NUMA=y. Maybe we can make it as
-   #define policy_zone  (lowmem_zone + 1)
-   or remove it. But this itself should be done in other patch.
+This patch is for reducing patch size in future patch to modify
+implementation of per-mm counter.
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
@@ -73,114 +54,559 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    9 ++++++
- mm/page_alloc.c    |   62 +++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 71 insertions(+)
+ fs/proc/task_mmu.c       |    4 -
+ include/linux/mm.h       |  104 +++++++++++++++++++++++++++++++++++++
+ include/linux/mm_types.h |   33 +++++++----
+ include/linux/sched.h    |   54 -------------------
+ kernel/fork.c            |    3 -
+ kernel/tsacct.c          |    1 
+ mm/filemap_xip.c         |    2 
+ mm/fremap.c              |    2 
+ mm/memory.c              |   56 ++++++++++++-------
+ mm/oom_kill.c            |    4 -
+ mm/rmap.c                |   10 +--
+ mm/swapfile.c            |    2 
+ 12 files changed, 174 insertions(+), 101 deletions(-)
 
-diff -puN include/linux/mm.h~mm-add-lowmem-detection-logic include/linux/mm.h
---- a/include/linux/mm.h~mm-add-lowmem-detection-logic
+diff -puN fs/proc/task_mmu.c~mm-clean-up-mm_counter fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~mm-clean-up-mm_counter
++++ a/fs/proc/task_mmu.c
+@@ -65,11 +65,11 @@ unsigned long task_vsize(struct mm_struc
+ int task_statm(struct mm_struct *mm, int *shared, int *text,
+ 	       int *data, int *resident)
+ {
+-	*shared = get_mm_counter(mm, file_rss);
++	*shared = get_mm_counter(mm, MM_FILEPAGES);
+ 	*text = (PAGE_ALIGN(mm->end_code) - (mm->start_code & PAGE_MASK))
+ 								>> PAGE_SHIFT;
+ 	*data = mm->total_vm - mm->shared_vm;
+-	*resident = *shared + get_mm_counter(mm, anon_rss);
++	*resident = *shared + get_mm_counter(mm, MM_ANONPAGES);
+ 	return mm->total_vm;
+ }
+ 
+diff -puN include/linux/mm.h~mm-clean-up-mm_counter include/linux/mm.h
+--- a/include/linux/mm.h~mm-clean-up-mm_counter
 +++ a/include/linux/mm.h
-@@ -583,6 +583,15 @@ static inline void set_page_links(struct
- }
- 
- /*
-+ * Check a page is in lower zone
-+ */
-+extern int lowmem_zone;
-+static inline bool is_lowmem_page(struct page *page)
-+{
-+	return page_zonenum(page) <= lowmem_zone;
-+}
-+
-+/*
-  * Some inline functions in vmstat.h depend on page_zone()
+@@ -867,6 +867,110 @@ extern int mprotect_fixup(struct vm_area
   */
- #include <linux/vmstat.h>
-diff -puN mm/page_alloc.c~mm-add-lowmem-detection-logic mm/page_alloc.c
---- a/mm/page_alloc.c~mm-add-lowmem-detection-logic
-+++ a/mm/page_alloc.c
-@@ -2306,6 +2306,59 @@ static void zoneref_set_zone(struct zone
- 	zoneref->zone_idx = zone_idx(zone);
- }
- 
-+/* the zone is lowmem if zone_idx(zone) <= lowmem_zone */
-+int lowmem_zone __read_mostly;
+ int __get_user_pages_fast(unsigned long start, int nr_pages, int write,
+ 			  struct page **pages);
 +/*
-+ * Find out LOWMEM zone on this host. LOWMEM means a zone for special use
-+ * and its size seems small and precious than other zones. For example,
-+ * NORMAL zone is considered to be LOWMEM on a host which has HIGHMEM.
-+ *
-+ * This lowmem zone is determined by zone ordering and equipped memory layout.
-+ * The amount of memory is not taken into account now.
++ * per-process(per-mm_struct) statistics.
 + */
-+static void find_lowmem_zone(void)
++#if USE_SPLIT_PTLOCKS
++/*
++ * The mm counters are not protected by its page_table_lock,
++ * so must be incremented atomically.
++ */
++static inline void set_mm_counter(struct mm_struct *mm, int member, long value)
 +{
-+	unsigned long pages[MAX_NR_ZONES];
-+	struct zone *zone;
-+	int idx;
-+
-+	for (idx = 0; idx < MAX_NR_ZONES; idx++)
-+		pages[idx] = 0;
-+	/* count the number of pages */
-+	for_each_populated_zone(zone) {
-+		idx = zone_idx(zone);
-+		pages[idx] += zone->present_pages;
-+	}
-+	/* If We have HIGHMEM...we ignore ZONE_MOVABLE in this case. */
-+#ifdef CONFIG_HIGHMEM
-+	if (pages[ZONE_HIGHMEM]) {
-+		lowmem_zone = ZONE_NORMAL;
-+		return;
-+	}
-+#endif
-+	/* If We have MOVABLE zone...which works like HIGHMEM. */
-+	if (pages[ZONE_MOVABLE]) {
-+		lowmem_zone = ZONE_NORMAL;
-+		return;
-+	}
-+#ifdef CONFIG_ZONE_DMA32
-+	/* If we have DMA32 and there is ZONE_NORMAL...*/
-+	if (pages[ZONE_DMA32] && pages[ZONE_NORMAL]) {
-+		lowmem_zone = ZONE_DMA32;
-+		return;
-+	}
-+#endif
-+#ifdef CONFIG_ZONE_DMA
-+	/* If we have DMA and there is ZONE_NORMAL...*/
-+	if (pages[ZONE_DMA] && pages[ZONE_NORMAL]) {
-+		lowmem_zone = ZONE_DMA;
-+		return;
-+	}
-+#endif
-+	lowmem_zone = -1;
-+	return;
++	atomic_long_set(&mm->rss_stat.count[member], value);
 +}
 +
- /*
-  * Builds allocation fallback zone lists.
-  *
-@@ -2785,12 +2838,21 @@ void build_all_zonelists(void)
- 	else
- 		page_group_by_mobility_disabled = 0;
++static inline unsigned long get_mm_counter(struct mm_struct *mm, int member)
++{
++	return (unsigned long)atomic_long_read(&mm->rss_stat.count[member]);
++}
++
++static inline void add_mm_counter(struct mm_struct *mm, int member, long value)
++{
++	atomic_long_add(value, &mm->rss_stat.count[member]);
++}
++
++static inline void inc_mm_counter(struct mm_struct *mm, int member)
++{
++	atomic_long_inc(&mm->rss_stat.count[member]);
++}
++
++static inline void dec_mm_counter(struct mm_struct *mm, int member)
++{
++	atomic_long_dec(&mm->rss_stat.count[member]);
++}
++
++#else  /* !USE_SPLIT_PTLOCKS */
++/*
++ * The mm counters are protected by its page_table_lock,
++ * so can be incremented directly.
++ */
++static inline void set_mm_counter(struct mm_struct *mm, int member, long value)
++{
++	mm->rss_stat.count[member] = value;
++}
++
++static inline unsigned long get_mm_counter(struct mm_struct *mm, int member)
++{
++	return mm->rss_stat.count[member];
++}
++
++static inline void add_mm_counter(struct mm_struct *mm, int member, long value)
++{
++	mm->rss_stat.count[member] += value;
++}
++
++static inline void inc_mm_counter(struct mm_struct *mm, int member)
++{
++	mm->rss_stat.count[member]++;
++}
++
++static inline void dec_mm_counter(struct mm_struct *mm, int member)
++{
++	mm->rss_stat.count[member]--;
++}
++
++#endif /* !USE_SPLIT_PTLOCKS */
++
++static inline unsigned long get_mm_rss(struct mm_struct *mm)
++{
++	return get_mm_counter(mm, MM_FILEPAGES) +
++		get_mm_counter(mm, MM_ANONPAGES);
++}
++
++static inline unsigned long get_mm_hiwater_rss(struct mm_struct *mm)
++{
++	return max(mm->hiwater_rss, get_mm_rss(mm));
++}
++
++static inline unsigned long get_mm_hiwater_vm(struct mm_struct *mm)
++{
++	return max(mm->hiwater_vm, mm->total_vm);
++}
++
++static inline void update_hiwater_rss(struct mm_struct *mm)
++{
++	unsigned long _rss = get_mm_rss(mm);
++
++	if ((mm)->hiwater_rss < _rss)
++		(mm)->hiwater_rss = _rss;
++}
++
++static inline void update_hiwater_vm(struct mm_struct *mm)
++{
++	if (mm->hiwater_vm < mm->total_vm)
++		mm->hiwater_vm = mm->total_vm;
++}
++
++static inline void setmax_mm_hiwater_rss(unsigned long *maxrss,
++					 struct mm_struct *mm)
++{
++	unsigned long hiwater_rss = get_mm_hiwater_rss(mm);
++
++	if (*maxrss < hiwater_rss)
++		*maxrss = hiwater_rss;
++}
++
  
-+	find_lowmem_zone();
+ /*
+  * A callback you can register to apply pressure to ageable caches.
+diff -puN include/linux/mm_types.h~mm-clean-up-mm_counter include/linux/mm_types.h
+--- a/include/linux/mm_types.h~mm-clean-up-mm_counter
++++ a/include/linux/mm_types.h
+@@ -24,12 +24,6 @@ struct address_space;
+ 
+ #define USE_SPLIT_PTLOCKS	(NR_CPUS >= CONFIG_SPLIT_PTLOCK_CPUS)
+ 
+-#if USE_SPLIT_PTLOCKS
+-typedef atomic_long_t mm_counter_t;
+-#else  /* !USE_SPLIT_PTLOCKS */
+-typedef unsigned long mm_counter_t;
+-#endif /* !USE_SPLIT_PTLOCKS */
+-
+ /*
+  * Each physical page in the system has a struct page associated with
+  * it to keep track of whatever it is we are using the page for at the
+@@ -199,6 +193,22 @@ struct core_state {
+ 	struct completion startup;
+ };
+ 
++enum {
++	MM_FILEPAGES,
++	MM_ANONPAGES,
++	NR_MM_COUNTERS
++};
 +
- 	printk("Built %i zonelists in %s order, mobility grouping %s.  "
- 		"Total pages: %ld\n",
- 			nr_online_nodes,
- 			zonelist_order_name[current_zonelist_order],
- 			page_group_by_mobility_disabled ? "off" : "on",
- 			vm_total_pages);
++#if USE_SPLIT_PTLOCKS
++struct mm_rss_stat {
++	atomic_long_t count[NR_MM_COUNTERS];
++};
++#else  /* !USE_SPLIT_PTLOCKS */
++struct mm_rss_stat {
++	unsigned long count[NR_MM_COUNTERS];
++};
++#endif /* !USE_SPLIT_PTLOCKS */
 +
-+	if (lowmem_zone >= 0)
-+		printk("LOWMEM zone is detected as %s\n",
-+			zone_names[lowmem_zone]);
-+	else
-+		printk("There are no special LOWMEM. The system seems flat\n");
+ struct mm_struct {
+ 	struct vm_area_struct * mmap;		/* list of VMAs */
+ 	struct rb_root mm_rb;
+@@ -223,11 +233,6 @@ struct mm_struct {
+ 						 * by mmlist_lock
+ 						 */
+ 
+-	/* Special counters, in some configurations protected by the
+-	 * page_table_lock, in other configurations by being atomic.
+-	 */
+-	mm_counter_t _file_rss;
+-	mm_counter_t _anon_rss;
+ 
+ 	unsigned long hiwater_rss;	/* High-watermark of RSS usage */
+ 	unsigned long hiwater_vm;	/* High-water virtual memory usage */
+@@ -240,6 +245,12 @@ struct mm_struct {
+ 
+ 	unsigned long saved_auxv[AT_VECTOR_SIZE]; /* for /proc/PID/auxv */
+ 
++	/*
++	 * Special counters, in some configurations protected by the
++	 * page_table_lock, in other configurations by being atomic.
++	 */
++	struct mm_rss_stat rss_stat;
 +
- #ifdef CONFIG_NUMA
- 	printk("Policy zone: %s\n", zone_names[policy_zone]);
- #endif
+ 	struct linux_binfmt *binfmt;
+ 
+ 	cpumask_t cpu_vm_mask;
+diff -puN include/linux/sched.h~mm-clean-up-mm_counter include/linux/sched.h
+--- a/include/linux/sched.h~mm-clean-up-mm_counter
++++ a/include/linux/sched.h
+@@ -387,60 +387,6 @@ arch_get_unmapped_area_topdown(struct fi
+ extern void arch_unmap_area(struct mm_struct *, unsigned long);
+ extern void arch_unmap_area_topdown(struct mm_struct *, unsigned long);
+ 
+-#if USE_SPLIT_PTLOCKS
+-/*
+- * The mm counters are not protected by its page_table_lock,
+- * so must be incremented atomically.
+- */
+-#define set_mm_counter(mm, member, value) atomic_long_set(&(mm)->_##member, value)
+-#define get_mm_counter(mm, member) ((unsigned long)atomic_long_read(&(mm)->_##member))
+-#define add_mm_counter(mm, member, value) atomic_long_add(value, &(mm)->_##member)
+-#define inc_mm_counter(mm, member) atomic_long_inc(&(mm)->_##member)
+-#define dec_mm_counter(mm, member) atomic_long_dec(&(mm)->_##member)
+-
+-#else  /* !USE_SPLIT_PTLOCKS */
+-/*
+- * The mm counters are protected by its page_table_lock,
+- * so can be incremented directly.
+- */
+-#define set_mm_counter(mm, member, value) (mm)->_##member = (value)
+-#define get_mm_counter(mm, member) ((mm)->_##member)
+-#define add_mm_counter(mm, member, value) (mm)->_##member += (value)
+-#define inc_mm_counter(mm, member) (mm)->_##member++
+-#define dec_mm_counter(mm, member) (mm)->_##member--
+-
+-#endif /* !USE_SPLIT_PTLOCKS */
+-
+-#define get_mm_rss(mm)					\
+-	(get_mm_counter(mm, file_rss) + get_mm_counter(mm, anon_rss))
+-#define update_hiwater_rss(mm)	do {			\
+-	unsigned long _rss = get_mm_rss(mm);		\
+-	if ((mm)->hiwater_rss < _rss)			\
+-		(mm)->hiwater_rss = _rss;		\
+-} while (0)
+-#define update_hiwater_vm(mm)	do {			\
+-	if ((mm)->hiwater_vm < (mm)->total_vm)		\
+-		(mm)->hiwater_vm = (mm)->total_vm;	\
+-} while (0)
+-
+-static inline unsigned long get_mm_hiwater_rss(struct mm_struct *mm)
+-{
+-	return max(mm->hiwater_rss, get_mm_rss(mm));
+-}
+-
+-static inline void setmax_mm_hiwater_rss(unsigned long *maxrss,
+-					 struct mm_struct *mm)
+-{
+-	unsigned long hiwater_rss = get_mm_hiwater_rss(mm);
+-
+-	if (*maxrss < hiwater_rss)
+-		*maxrss = hiwater_rss;
+-}
+-
+-static inline unsigned long get_mm_hiwater_vm(struct mm_struct *mm)
+-{
+-	return max(mm->hiwater_vm, mm->total_vm);
+-}
+ 
+ extern void set_dumpable(struct mm_struct *mm, int value);
+ extern int get_dumpable(struct mm_struct *mm);
+diff -puN kernel/fork.c~mm-clean-up-mm_counter kernel/fork.c
+--- a/kernel/fork.c~mm-clean-up-mm_counter
++++ a/kernel/fork.c
+@@ -454,8 +454,7 @@ static struct mm_struct * mm_init(struct
+ 		(current->mm->flags & MMF_INIT_MASK) : default_dump_filter;
+ 	mm->core_state = NULL;
+ 	mm->nr_ptes = 0;
+-	set_mm_counter(mm, file_rss, 0);
+-	set_mm_counter(mm, anon_rss, 0);
++	memset(&mm->rss_stat, 0, sizeof(mm->rss_stat));
+ 	spin_lock_init(&mm->page_table_lock);
+ 	mm->free_area_cache = TASK_UNMAPPED_BASE;
+ 	mm->cached_hole_size = ~0UL;
+diff -puN kernel/tsacct.c~mm-clean-up-mm_counter kernel/tsacct.c
+--- a/kernel/tsacct.c~mm-clean-up-mm_counter
++++ a/kernel/tsacct.c
+@@ -21,6 +21,7 @@
+ #include <linux/tsacct_kern.h>
+ #include <linux/acct.h>
+ #include <linux/jiffies.h>
++#include <linux/mm.h>
+ 
+ /*
+  * fill in basic accounting fields
+diff -puN mm/filemap_xip.c~mm-clean-up-mm_counter mm/filemap_xip.c
+--- a/mm/filemap_xip.c~mm-clean-up-mm_counter
++++ a/mm/filemap_xip.c
+@@ -194,7 +194,7 @@ retry:
+ 			flush_cache_page(vma, address, pte_pfn(*pte));
+ 			pteval = ptep_clear_flush_notify(vma, address, pte);
+ 			page_remove_rmap(page);
+-			dec_mm_counter(mm, file_rss);
++			dec_mm_counter(mm, MM_FILEPAGES);
+ 			BUG_ON(pte_dirty(pteval));
+ 			pte_unmap_unlock(pte, ptl);
+ 			page_cache_release(page);
+diff -puN mm/fremap.c~mm-clean-up-mm_counter mm/fremap.c
+--- a/mm/fremap.c~mm-clean-up-mm_counter
++++ a/mm/fremap.c
+@@ -40,7 +40,7 @@ static void zap_pte(struct mm_struct *mm
+ 			page_remove_rmap(page);
+ 			page_cache_release(page);
+ 			update_hiwater_rss(mm);
+-			dec_mm_counter(mm, file_rss);
++			dec_mm_counter(mm, MM_FILEPAGES);
+ 		}
+ 	} else {
+ 		if (!pte_file(pte))
+diff -puN mm/memory.c~mm-clean-up-mm_counter mm/memory.c
+--- a/mm/memory.c~mm-clean-up-mm_counter
++++ a/mm/memory.c
+@@ -121,6 +121,7 @@ static int __init init_zero_pfn(void)
+ }
+ core_initcall(init_zero_pfn);
+ 
++
+ /*
+  * If a p?d_bad entry is found while walking page tables, report
+  * the error, before resetting entry to p?d_none.  Usually (but
+@@ -376,12 +377,18 @@ int __pte_alloc_kernel(pmd_t *pmd, unsig
+ 	return 0;
+ }
+ 
+-static inline void add_mm_rss(struct mm_struct *mm, int file_rss, int anon_rss)
++static inline void init_rss_vec(int *rss)
+ {
+-	if (file_rss)
+-		add_mm_counter(mm, file_rss, file_rss);
+-	if (anon_rss)
+-		add_mm_counter(mm, anon_rss, anon_rss);
++	memset(rss, 0, sizeof(int) * NR_MM_COUNTERS);
++}
++
++static inline void add_mm_rss_vec(struct mm_struct *mm, int *rss)
++{
++	int i;
++
++	for (i = 0; i < NR_MM_COUNTERS; i++)
++		if (rss[i])
++			add_mm_counter(mm, i, rss[i]);
+ }
+ 
+ /*
+@@ -632,7 +639,10 @@ copy_one_pte(struct mm_struct *dst_mm, s
+ 	if (page) {
+ 		get_page(page);
+ 		page_dup_rmap(page);
+-		rss[PageAnon(page)]++;
++		if (PageAnon(page))
++			rss[MM_ANONPAGES]++;
++		else
++			rss[MM_FILEPAGES]++;
+ 	}
+ 
+ out_set_pte:
+@@ -648,11 +658,12 @@ static int copy_pte_range(struct mm_stru
+ 	pte_t *src_pte, *dst_pte;
+ 	spinlock_t *src_ptl, *dst_ptl;
+ 	int progress = 0;
+-	int rss[2];
++	int rss[NR_MM_COUNTERS];
+ 	swp_entry_t entry = (swp_entry_t){0};
+ 
+ again:
+-	rss[1] = rss[0] = 0;
++	init_rss_vec(rss);
++
+ 	dst_pte = pte_alloc_map_lock(dst_mm, dst_pmd, addr, &dst_ptl);
+ 	if (!dst_pte)
+ 		return -ENOMEM;
+@@ -688,7 +699,7 @@ again:
+ 	arch_leave_lazy_mmu_mode();
+ 	spin_unlock(src_ptl);
+ 	pte_unmap_nested(orig_src_pte);
+-	add_mm_rss(dst_mm, rss[0], rss[1]);
++	add_mm_rss_vec(dst_mm, rss);
+ 	pte_unmap_unlock(orig_dst_pte, dst_ptl);
+ 	cond_resched();
+ 
+@@ -816,8 +827,9 @@ static unsigned long zap_pte_range(struc
+ 	struct mm_struct *mm = tlb->mm;
+ 	pte_t *pte;
+ 	spinlock_t *ptl;
+-	int file_rss = 0;
+-	int anon_rss = 0;
++	int rss[NR_MM_COUNTERS];
++
++	init_rss_vec(rss);
+ 
+ 	pte = pte_offset_map_lock(mm, pmd, addr, &ptl);
+ 	arch_enter_lazy_mmu_mode();
+@@ -863,14 +875,14 @@ static unsigned long zap_pte_range(struc
+ 				set_pte_at(mm, addr, pte,
+ 					   pgoff_to_pte(page->index));
+ 			if (PageAnon(page))
+-				anon_rss--;
++				rss[MM_ANONPAGES]--;
+ 			else {
+ 				if (pte_dirty(ptent))
+ 					set_page_dirty(page);
+ 				if (pte_young(ptent) &&
+ 				    likely(!VM_SequentialReadHint(vma)))
+ 					mark_page_accessed(page);
+-				file_rss--;
++				rss[MM_FILEPAGES]--;
+ 			}
+ 			page_remove_rmap(page);
+ 			if (unlikely(page_mapcount(page) < 0))
+@@ -893,7 +905,7 @@ static unsigned long zap_pte_range(struc
+ 		pte_clear_not_present_full(mm, addr, pte, tlb->fullmm);
+ 	} while (pte++, addr += PAGE_SIZE, (addr != end && *zap_work > 0));
+ 
+-	add_mm_rss(mm, file_rss, anon_rss);
++	add_mm_rss_vec(mm, rss);
+ 	arch_leave_lazy_mmu_mode();
+ 	pte_unmap_unlock(pte - 1, ptl);
+ 
+@@ -1527,7 +1539,7 @@ static int insert_page(struct vm_area_st
+ 
+ 	/* Ok, finally just insert the thing.. */
+ 	get_page(page);
+-	inc_mm_counter(mm, file_rss);
++	inc_mm_counter(mm, MM_FILEPAGES);
+ 	page_add_file_rmap(page);
+ 	set_pte_at(mm, addr, pte, mk_pte(page, prot));
+ 
+@@ -2163,11 +2175,11 @@ gotten:
+ 	if (likely(pte_same(*page_table, orig_pte))) {
+ 		if (old_page) {
+ 			if (!PageAnon(old_page)) {
+-				dec_mm_counter(mm, file_rss);
+-				inc_mm_counter(mm, anon_rss);
++				dec_mm_counter(mm, MM_FILEPAGES);
++				inc_mm_counter(mm, MM_ANONPAGES);
+ 			}
+ 		} else
+-			inc_mm_counter(mm, anon_rss);
++			inc_mm_counter(mm, MM_ANONPAGES);
+ 		flush_cache_page(vma, address, pte_pfn(orig_pte));
+ 		entry = mk_pte(new_page, vma->vm_page_prot);
+ 		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
+@@ -2604,7 +2616,7 @@ static int do_swap_page(struct mm_struct
+ 	 * discarded at swap_free().
+ 	 */
+ 
+-	inc_mm_counter(mm, anon_rss);
++	inc_mm_counter(mm, MM_ANONPAGES);
+ 	pte = mk_pte(page, vma->vm_page_prot);
+ 	if ((flags & FAULT_FLAG_WRITE) && reuse_swap_page(page)) {
+ 		pte = maybe_mkwrite(pte_mkdirty(pte), vma);
+@@ -2688,7 +2700,7 @@ static int do_anonymous_page(struct mm_s
+ 	if (!pte_none(*page_table))
+ 		goto release;
+ 
+-	inc_mm_counter(mm, anon_rss);
++	inc_mm_counter(mm, MM_ANONPAGES);
+ 	page_add_new_anon_rmap(page, vma, address);
+ setpte:
+ 	set_pte_at(mm, address, page_table, entry);
+@@ -2842,10 +2854,10 @@ static int __do_fault(struct mm_struct *
+ 		if (flags & FAULT_FLAG_WRITE)
+ 			entry = maybe_mkwrite(pte_mkdirty(entry), vma);
+ 		if (anon) {
+-			inc_mm_counter(mm, anon_rss);
++			inc_mm_counter(mm, MM_ANONPAGES);
+ 			page_add_new_anon_rmap(page, vma, address);
+ 		} else {
+-			inc_mm_counter(mm, file_rss);
++			inc_mm_counter(mm, MM_FILEPAGES);
+ 			page_add_file_rmap(page);
+ 			if (flags & FAULT_FLAG_WRITE) {
+ 				dirty_page = page;
+diff -puN mm/oom_kill.c~mm-clean-up-mm_counter mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-clean-up-mm_counter
++++ a/mm/oom_kill.c
+@@ -401,8 +401,8 @@ static void __oom_kill_task(struct task_
+ 		       "vsz:%lukB, anon-rss:%lukB, file-rss:%lukB\n",
+ 		       task_pid_nr(p), p->comm,
+ 		       K(p->mm->total_vm),
+-		       K(get_mm_counter(p->mm, anon_rss)),
+-		       K(get_mm_counter(p->mm, file_rss)));
++		       K(get_mm_counter(p->mm, MM_ANONPAGES)),
++		       K(get_mm_counter(p->mm, MM_FILEPAGES)));
+ 	task_unlock(p);
+ 
+ 	/*
+diff -puN mm/rmap.c~mm-clean-up-mm_counter mm/rmap.c
+--- a/mm/rmap.c~mm-clean-up-mm_counter
++++ a/mm/rmap.c
+@@ -815,9 +815,9 @@ int try_to_unmap_one(struct page *page, 
+ 
+ 	if (PageHWPoison(page) && !(flags & TTU_IGNORE_HWPOISON)) {
+ 		if (PageAnon(page))
+-			dec_mm_counter(mm, anon_rss);
++			dec_mm_counter(mm, MM_ANONPAGES);
+ 		else
+-			dec_mm_counter(mm, file_rss);
++			dec_mm_counter(mm, MM_FILEPAGES);
+ 		set_pte_at(mm, address, pte,
+ 				swp_entry_to_pte(make_hwpoison_entry(page)));
+ 	} else if (PageAnon(page)) {
+@@ -839,7 +839,7 @@ int try_to_unmap_one(struct page *page, 
+ 					list_add(&mm->mmlist, &init_mm.mmlist);
+ 				spin_unlock(&mmlist_lock);
+ 			}
+-			dec_mm_counter(mm, anon_rss);
++			dec_mm_counter(mm, MM_ANONPAGES);
+ 		} else if (PAGE_MIGRATION) {
+ 			/*
+ 			 * Store the pfn of the page in a special migration
+@@ -857,7 +857,7 @@ int try_to_unmap_one(struct page *page, 
+ 		entry = make_migration_entry(page, pte_write(pteval));
+ 		set_pte_at(mm, address, pte, swp_entry_to_pte(entry));
+ 	} else
+-		dec_mm_counter(mm, file_rss);
++		dec_mm_counter(mm, MM_FILEPAGES);
+ 
+ 	page_remove_rmap(page);
+ 	page_cache_release(page);
+@@ -996,7 +996,7 @@ static int try_to_unmap_cluster(unsigned
+ 
+ 		page_remove_rmap(page);
+ 		page_cache_release(page);
+-		dec_mm_counter(mm, file_rss);
++		dec_mm_counter(mm, MM_FILEPAGES);
+ 		(*mapcount)--;
+ 	}
+ 	pte_unmap_unlock(pte - 1, ptl);
+diff -puN mm/swapfile.c~mm-clean-up-mm_counter mm/swapfile.c
+--- a/mm/swapfile.c~mm-clean-up-mm_counter
++++ a/mm/swapfile.c
+@@ -840,7 +840,7 @@ static int unuse_pte(struct vm_area_stru
+ 		goto out;
+ 	}
+ 
+-	inc_mm_counter(vma->vm_mm, anon_rss);
++	inc_mm_counter(vma->vm_mm, MM_ANONPAGES);
+ 	get_page(page);
+ 	set_pte_at(vma->vm_mm, addr, pte,
+ 		   pte_mkold(mk_pte(page, vma->vm_page_prot)));
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
