@@ -1,79 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cciss-fix-bad-scsi-status-reporting.patch removed from -mm tree
-Date: Tue, 22 Dec 2009 00:28:10 -0800
-Message-ID: <200912220828.nBM8SAQa024256@imap1.linux-foundation.org>
+Subject: [nacked] fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch removed from -mm tree
+Date: Tue, 22 Dec 2009 12:43:22 -0800
+Message-ID: <200912222043.nBMKhMP4023709@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58300 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41935 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750757AbZLVI20 (ORCPT
+	by vger.kernel.org with ESMTP id S1752376AbZLVUom (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Dec 2009 03:28:26 -0500
+	Tue, 22 Dec 2009 15:44:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: scameron@beardog.cce.hp.com, jens.axboe@oracle.com, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, jwoithe@physics.adelaide.edu.au, lenb@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cciss: fix bad scsi status reporting.
+     fujitsu-laptop: fix tests of acpi_evaluate_integer() return
 has been removed from the -mm tree.  Its filename was
-     cciss-fix-bad-scsi-status-reporting.patch
+     fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was nacked
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cciss: fix bad scsi status reporting.
-From: Stephen M. Cameron <scameron@beardog.cce.hp.com>
+Subject: fujitsu-laptop: fix tests of acpi_evaluate_integer() return
+From: Roel Kluin <roel.kluin@gmail.com>
 
-The SCSI status needs to be shifted left 1 bit, and only needs to be set
-once.
+The wrong test was used acpi_status status is unsigned.
 
-Signed-off-by: Stephen M. Cameron <scameron@beardog.cce.hp.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Acked-by: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss_scsi.c |   21 +++------------------
- 1 file changed, 3 insertions(+), 18 deletions(-)
+ drivers/platform/x86/fujitsu-laptop.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/block/cciss_scsi.c~cciss-fix-bad-scsi-status-reporting drivers/block/cciss_scsi.c
---- a/drivers/block/cciss_scsi.c~cciss-fix-bad-scsi-status-reporting
-+++ a/drivers/block/cciss_scsi.c
-@@ -728,9 +728,7 @@ complete_scsi_command( CommandList_struc
+diff -puN drivers/platform/x86/fujitsu-laptop.c~fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return drivers/platform/x86/fujitsu-laptop.c
+--- a/drivers/platform/x86/fujitsu-laptop.c~fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return
++++ a/drivers/platform/x86/fujitsu-laptop.c
+@@ -376,7 +376,7 @@ static int get_lcd_level(void)
  
- 	cmd->result = (DID_OK << 16); 		/* host byte */
- 	cmd->result |= (COMMAND_COMPLETE << 8);	/* msg byte */
--	/* cmd->result |= (GOOD < 1); */		/* status byte */
--
--	cmd->result |= (ei->ScsiStatus);
-+	cmd->result |= (ei->ScsiStatus << 1);
- 	/* printk("Scsistatus is 0x%02x\n", ei->ScsiStatus);  */
+ 	status =
+ 	    acpi_evaluate_integer(fujitsu->acpi_handle, "GBLL", NULL, &state);
+-	if (status < 0)
++	if (ACPI_FAILURE(status))
+ 		return status;
  
- 	/* copy the sense data whether we need to or not. */
-@@ -747,18 +745,8 @@ complete_scsi_command( CommandList_struc
- 		{
- 			case CMD_TARGET_STATUS:
- 				/* Pass it up to the upper layers... */
--				if( ei->ScsiStatus)
--                		{
--#if 0
--                    			printk(KERN_WARNING "cciss: cmd %p "
--					"has SCSI Status = %x\n",
--                        			cp,  
--						ei->ScsiStatus); 
--#endif
--					cmd->result |= (ei->ScsiStatus << 1);
--                		}
--				else {  /* scsi status is zero??? How??? */
--					
-+				if (ei->ScsiStatus == 0)
-+					cmd->result = DID_NO_CONNECT << 16;
- 	/* Ordinarily, this case should never happen, but there is a bug
- 	   in some released firmware revisions that allows it to happen
- 	   if, for example, a 4100 backplane loses power and the tape
-@@ -766,9 +754,6 @@ complete_scsi_command( CommandList_struc
- 	   kind because we can't show that it wasn't. We will make it
- 	   look like selection timeout since that is the most common
- 	   reason for this to occur, and it's severe enough. */
+ 	fujitsu->brightness_level = state & 0x0fffffff;
+@@ -398,7 +398,7 @@ static int get_max_brightness(void)
+ 
+ 	status =
+ 	    acpi_evaluate_integer(fujitsu->acpi_handle, "RBLL", NULL, &state);
+-	if (status < 0)
++	if (ACPI_FAILURE(status))
+ 		return status;
+ 
+ 	fujitsu->max_brightness = state;
+_
+
+Patches currently in -mm which might be from roel.kluin@gmail.com are
+
+origin.patch
+linux-next.patch
+fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+powerpc-85xx-wrong-variable-returned-on-error.patch
+imx-bit-confusion.patch
+serial-fix-test-of-unsigned.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
+zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
+ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
+scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
+drbd-fix-test-of-unsigned-in-_drbd_fault_random.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+cryptocop-fix-assertion-in-create_output_descriptors.patch
+asiliantfb-fix-test-of-unsigned-in-asiliant_calc_dclk2.patch
+hvc_console-fix-test-on-unsigned-in-hvc_console_print.patch
+zlib-optimize-inffast-when-copying-direct-from-output.patch
+
