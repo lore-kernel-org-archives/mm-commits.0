@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mmc_block-add-dev_t-initialization-check.patch added to -mm tree
-Date: Tue, 22 Dec 2009 14:21:01 -0800
-Message-ID: <200912222221.nBMML2OT027721@imap1.linux-foundation.org>
+Subject: + mmc_block-fix-probe-error-cleanup-bug.patch added to -mm tree
+Date: Tue, 22 Dec 2009 14:21:03 -0800
+Message-ID: <200912222221.nBMML3HS027725@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40260 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53737 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755064AbZLVWWM (ORCPT
+	by vger.kernel.org with ESMTP id S1755163AbZLVWWT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Dec 2009 17:22:12 -0500
+	Tue, 22 Dec 2009 17:22:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: EXT-Anna.Lemehova@nokia.com, adrian.hunter@nokia.com, linux-mmc@vger.kernel.org, stable@kernel.org
+Cc: jarkko.lavinen@nokia.com, adrian.hunter@nokia.com, linux-mmc@vger.kernel.org, stable@kernel.org
 
 
 The patch titled
-     mmc_block: add dev_t initialization check
+     mmc_block: fix probe error cleanup bug
 has been added to the -mm tree.  Its filename is
-     mmc_block-add-dev_t-initialization-check.patch
+     mmc_block-fix-probe-error-cleanup-bug.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc_block: add dev_t initialization check
-From: Anna Lemehova <EXT-Anna.Lemehova@nokia.com>
+Subject: mmc_block: fix probe error cleanup bug
+From: Jarkko Lavinen <jarkko.lavinen@nokia.com>
 
-When a card is removed before mmc_blk_probe() has called add_disk(), then
-the minor field is uninitialized and has value 0.  This caused
-mmc_blk_put() to always release devidx 0 even if 0 was still in use.  Then
-the next mmc_blk_probe() used the first free idx of 0, which oopses in
-sysfs, since it is used by another card.
+If mmc_blk_set_blksize() fails mmc_blk_probe() the request queue and its
+thread have been set up and they need to be shut down properly before
+putting the disk.
 
-Signed-off-by: Anna Lemehova <EXT-Anna.Lemehova@nokia.com>
+Signed-off-by: Jarkko Lavinen <jarkko.lavinen@nokia.com>
 Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
 Cc: <linux-mmc@vger.kernel.org>
 Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/card/block.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/mmc/card/block.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/mmc/card/block.c~mmc_block-add-dev_t-initialization-check drivers/mmc/card/block.c
---- a/drivers/mmc/card/block.c~mmc_block-add-dev_t-initialization-check
+diff -puN drivers/mmc/card/block.c~mmc_block-fix-probe-error-cleanup-bug drivers/mmc/card/block.c
+--- a/drivers/mmc/card/block.c~mmc_block-fix-probe-error-cleanup-bug
 +++ a/drivers/mmc/card/block.c
-@@ -85,7 +85,12 @@ static void mmc_blk_put(struct mmc_blk_d
- 	mutex_lock(&open_lock);
- 	md->usage--;
- 	if (md->usage == 0) {
-+		int devmaj = MAJOR(disk_devt(md->disk));
- 		int devidx = MINOR(disk_devt(md->disk)) >> MMC_SHIFT;
-+
-+		if (!devmaj)
-+			devidx = md->disk->first_minor >> MMC_SHIFT;
-+
- 		__clear_bit(devidx, dev_use);
+@@ -618,6 +618,7 @@ static int mmc_blk_probe(struct mmc_card
+ 	return 0;
  
- 		put_disk(md->disk);
+  out:
++	mmc_cleanup_queue(&md->queue);
+ 	mmc_blk_put(md);
+ 
+ 	return err;
 _
 
-Patches currently in -mm which might be from EXT-Anna.Lemehova@nokia.com are
+Patches currently in -mm which might be from jarkko.lavinen@nokia.com are
 
-mmc_block-add-dev_t-initialization-check.patch
+mmc_block-fix-probe-error-cleanup-bug.patch
 
