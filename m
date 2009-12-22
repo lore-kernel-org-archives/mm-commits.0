@@ -1,91 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch removed from -mm tree
-Date: Tue, 22 Dec 2009 12:43:22 -0800
-Message-ID: <200912222043.nBMKhMP4023709@imap1.linux-foundation.org>
+Subject: + acpi-do-not-select-acpi_dock-from-ata_acpi.patch added to -mm tree
+Date: Tue, 22 Dec 2009 13:45:39 -0800
+Message-ID: <200912222145.nBMLjdpl026246@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41935 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47348 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752376AbZLVUom (ORCPT
+	by vger.kernel.org with ESMTP id S1751169AbZLVVqz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Dec 2009 15:44:42 -0500
+	Tue, 22 Dec 2009 16:46:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, jwoithe@physics.adelaide.edu.au, lenb@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: crmafra@aei.mpg.de, lenb@kernel.org, shaohua.li@intel.com
 
 
 The patch titled
-     fujitsu-laptop: fix tests of acpi_evaluate_integer() return
-has been removed from the -mm tree.  Its filename was
-     fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch
+     acpi: do not select ACPI_DOCK from ATA_ACPI
+has been added to the -mm tree.  Its filename is
+     acpi-do-not-select-acpi_dock-from-ata_acpi.patch
 
-This patch was dropped because it was nacked
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fujitsu-laptop: fix tests of acpi_evaluate_integer() return
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: acpi: do not select ACPI_DOCK from ATA_ACPI
+From: "Carlos R. Mafra" <crmafra@aei.mpg.de>
 
-The wrong test was used acpi_status status is unsigned.
+In March 2008 commit 0ac4a3c2fbbcadc3e96e4dc47d4ae802d66e6f67 ("ACPI: fix
+ATA_ACPI build") made CONFIG_ACPI_DOCK be selected by CONFIG_ATA_ACPI because
+of a build error when CONFIG_ATA_ACPI=y and CONFIG_ACPI_DOCK=m.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Acked-by: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+However, in September 2008 commit 898b054f3eec5921320ae8614b5bdd7b07ea5b43
+("dock: make dock driver not a module") removed the possibility of having
+CONFIG_ACPI_DOCK=m and therefore there is no need for selecting it when
+CONFIG_ATA_ACPI=y.
+
+This makes the kernel ~5 Kb smaller for people who don't have a dock by
+allowing them to not have ACPI_DOCK compiled-in because of ATA_ACPI=y.
+
+Signed-off-by: Carlos R. Mafra <crmafra@aei.mpg.de>
+Cc: Shaohua Li <shaohua.li@intel.com>
 Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/fujitsu-laptop.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/ata/Kconfig |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/platform/x86/fujitsu-laptop.c~fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return drivers/platform/x86/fujitsu-laptop.c
---- a/drivers/platform/x86/fujitsu-laptop.c~fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return
-+++ a/drivers/platform/x86/fujitsu-laptop.c
-@@ -376,7 +376,7 @@ static int get_lcd_level(void)
- 
- 	status =
- 	    acpi_evaluate_integer(fujitsu->acpi_handle, "GBLL", NULL, &state);
--	if (status < 0)
-+	if (ACPI_FAILURE(status))
- 		return status;
- 
- 	fujitsu->brightness_level = state & 0x0fffffff;
-@@ -398,7 +398,7 @@ static int get_max_brightness(void)
- 
- 	status =
- 	    acpi_evaluate_integer(fujitsu->acpi_handle, "RBLL", NULL, &state);
--	if (status < 0)
-+	if (ACPI_FAILURE(status))
- 		return status;
- 
- 	fujitsu->max_brightness = state;
+diff -puN drivers/ata/Kconfig~acpi-do-not-select-acpi_dock-from-ata_acpi drivers/ata/Kconfig
+--- a/drivers/ata/Kconfig~acpi-do-not-select-acpi_dock-from-ata_acpi
++++ a/drivers/ata/Kconfig
+@@ -40,7 +40,6 @@ config ATA_VERBOSE_ERROR
+ config ATA_ACPI
+ 	bool "ATA ACPI Support"
+ 	depends on ACPI && PCI
+-	select ACPI_DOCK
+ 	default y
+ 	help
+ 	  This option adds support for ATA-related ACPI objects.
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from crmafra@aei.mpg.de are
 
-origin.patch
-linux-next.patch
-fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-powerpc-85xx-wrong-variable-returned-on-error.patch
-imx-bit-confusion.patch
-serial-fix-test-of-unsigned.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
-ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
-scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
-drbd-fix-test-of-unsigned-in-_drbd_fault_random.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-cryptocop-fix-assertion-in-create_output_descriptors.patch
-asiliantfb-fix-test-of-unsigned-in-asiliant_calc_dclk2.patch
-hvc_console-fix-test-on-unsigned-in-hvc_console_print.patch
-zlib-optimize-inffast-when-copying-direct-from-output.patch
+acpi-do-not-select-acpi_dock-from-ata_acpi.patch
 
