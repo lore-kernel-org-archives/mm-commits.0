@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-update-tracepoint-analysistxt.patch added to -mm tree
-Date: Tue, 22 Dec 2009 14:41:48 -0800
-Message-ID: <200912222241.nBMMfmea028680@imap1.linux-foundation.org>
+Subject: + documentation-update-ring-buffer-designtxt.patch added to -mm tree
+Date: Tue, 22 Dec 2009 14:41:53 -0800
+Message-ID: <200912222241.nBMMfrqd028686@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43297 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33966 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751565AbZLVWmV (ORCPT
+	by vger.kernel.org with ESMTP id S1751711AbZLVWmX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Dec 2009 17:42:21 -0500
+	Tue, 22 Dec 2009 17:42:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: randy.dunlap@oracle.com, mel@csn.ul.ie, rostedt@goodmis.org
 
 
 The patch titled
-     Documentation: update tracepoint-analysis.txt
+     Documentation: update ring-buffer-design.txt
 has been added to the -mm tree.  Its filename is
-     documentation-update-tracepoint-analysistxt.patch
+     documentation-update-ring-buffer-designtxt.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,210 +34,234 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Documentation: update tracepoint-analysis.txt
+Subject: Documentation: update ring-buffer-design.txt
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix grammar, spelling, punctuation, hyphenation, section numbering.  Tell
-what PCL means.
+Fix typos, grammos, spellos, hyphenation.
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Acked-by: Steven Rostedt <rostedt@goodmis.org>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/trace/tracepoint-analysis.txt |   60 +++++++++---------
- 1 file changed, 30 insertions(+), 30 deletions(-)
+ Documentation/trace/ring-buffer-design.txt |   56 +++++++++----------
+ 1 file changed, 28 insertions(+), 28 deletions(-)
 
-diff -puN Documentation/trace/tracepoint-analysis.txt~documentation-update-tracepoint-analysistxt Documentation/trace/tracepoint-analysis.txt
---- a/Documentation/trace/tracepoint-analysis.txt~documentation-update-tracepoint-analysistxt
-+++ a/Documentation/trace/tracepoint-analysis.txt
-@@ -10,8 +10,8 @@ Tracepoints (see Documentation/trace/tra
- creating custom kernel modules to register probe functions using the event
- tracing infrastructure.
+diff -puN Documentation/trace/ring-buffer-design.txt~documentation-update-ring-buffer-designtxt Documentation/trace/ring-buffer-design.txt
+--- a/Documentation/trace/ring-buffer-design.txt~documentation-update-ring-buffer-designtxt
++++ a/Documentation/trace/ring-buffer-design.txt
+@@ -33,9 +33,9 @@ head_page - a pointer to the page that t
  
--Simplistically, tracepoints will represent an important event that when can
--be taken in conjunction with other tracepoints to build a "Big Picture" of
-+Simplistically, tracepoints represent important events that can be
-+taken in conjunction with other tracepoints to build a "Big Picture" of
- what is going on within the system. There are a large number of methods for
- gathering and interpreting these events. Lacking any current Best Practises,
- this document describes some of the methods that can be used.
-@@ -33,12 +33,12 @@ calling
+ tail_page - a pointer to the page that will be written to next
  
- will give a fair indication of the number of events available.
+-commit_page - a pointer to the page with the last finished non nested write.
++commit_page - a pointer to the page with the last finished non-nested write.
  
--2.2 PCL
-+2.2 PCL (Performance Counters for Linux)
- -------
+-cmpxchg - hardware assisted atomic transaction that performs the following:
++cmpxchg - hardware-assisted atomic transaction that performs the following:
  
--Discovery and enumeration of all counters and events, including tracepoints
-+Discovery and enumeration of all counters and events, including tracepoints,
- are available with the perf tool. Getting a list of available events is a
--simple case of
-+simple case of:
+    A = B iff previous A == C
  
-   $ perf list 2>&1 | grep Tracepoint
-   ext4:ext4_free_inode                     [Tracepoint event]
-@@ -49,19 +49,19 @@ simple case of
-   [ .... remaining output snipped .... ]
+@@ -52,15 +52,15 @@ The Generic Ring Buffer
+ The ring buffer can be used in either an overwrite mode or in
+ producer/consumer mode.
+ 
+-Producer/consumer mode is where the producer were to fill up the
++Producer/consumer mode is where if the producer were to fill up the
+ buffer before the consumer could free up anything, the producer
+ will stop writing to the buffer. This will lose most recent events.
+ 
+-Overwrite mode is where the produce were to fill up the buffer
++Overwrite mode is where if the producer were to fill up the buffer
+ before the consumer could free up anything, the producer will
+ overwrite the older data. This will lose the oldest events.
+ 
+-No two writers can write at the same time (on the same per cpu buffer),
++No two writers can write at the same time (on the same per-cpu buffer),
+ but a writer may interrupt another writer, but it must finish writing
+ before the previous writer may continue. This is very important to the
+ algorithm. The writers act like a "stack". The way interrupts works
+@@ -79,16 +79,16 @@ the interrupt doing a write as well.
+ 
+ Readers can happen at any time. But no two readers may run at the
+ same time, nor can a reader preempt/interrupt another reader. A reader
+-can not preempt/interrupt a writer, but it may read/consume from the
++cannot preempt/interrupt a writer, but it may read/consume from the
+ buffer at the same time as a writer is writing, but the reader must be
+ on another processor to do so. A reader may read on its own processor
+ and can be preempted by a writer.
+ 
+-A writer can preempt a reader, but a reader can not preempt a writer.
++A writer can preempt a reader, but a reader cannot preempt a writer.
+ But a reader can read the buffer at the same time (on another processor)
+ as a writer.
+ 
+-The ring buffer is made up of a list of pages held together by a link list.
++The ring buffer is made up of a list of pages held together by a linked list.
+ 
+ At initialization a reader page is allocated for the reader that is not
+ part of the ring buffer.
+@@ -102,7 +102,7 @@ the head page.
+ 
+ The reader has its own page to use. At start up time, this page is
+ allocated but is not attached to the list. When the reader wants
+-to read from the buffer, if its page is empty (like it is on start up)
++to read from the buffer, if its page is empty (like it is on start-up),
+ it will swap its page with the head_page. The old reader page will
+ become part of the ring buffer and the head_page will be removed.
+ The page after the inserted page (old reader_page) will become the
+@@ -206,7 +206,7 @@ The main pointers:
+ 
+   commit page - the page that last finished a write.
+ 
+-The commit page only is updated by the outer most writer in the
++The commit page only is updated by the outermost writer in the
+ writer stack. A writer that preempts another writer will not move the
+ commit page.
+ 
+@@ -281,7 +281,7 @@ with the previous write.
+ The commit pointer points to the last write location that was
+ committed without preempting another write. When a write that
+ preempted another write is committed, it only becomes a pending commit
+-and will not be a full commit till all writes have been committed.
++and will not be a full commit until all writes have been committed.
+ 
+ The commit page points to the page that has the last full commit.
+ The tail page points to the page with the last write (before
+@@ -292,7 +292,7 @@ be several pages ahead. If the tail page
+ page then no more writes may take place (regardless of the mode
+ of the ring buffer: overwrite and produce/consumer).
+ 
+-The order of pages are:
++The order of pages is:
+ 
+  head page
+  commit page
+@@ -311,7 +311,7 @@ Possible scenario:
+ There is a special case that the head page is after either the commit page
+ and possibly the tail page. That is when the commit (and tail) page has been
+ swapped with the reader page. This is because the head page is always
+-part of the ring buffer, but the reader page is not. When ever there
++part of the ring buffer, but the reader page is not. Whenever there
+ has been less than a full page that has been committed inside the ring buffer,
+ and a reader swaps out a page, it will be swapping out the commit page.
+ 
+@@ -338,7 +338,7 @@ and a reader swaps out a page, it will b
+ In this case, the head page will not move when the tail and commit
+ move back into the ring buffer.
+ 
+-The reader can not swap a page into the ring buffer if the commit page
++The reader cannot swap a page into the ring buffer if the commit page
+ is still on that page. If the read meets the last commit (real commit
+ not pending or reserved), then there is nothing more to read.
+ The buffer is considered empty until another full commit finishes.
+@@ -395,7 +395,7 @@ The main idea behind the lockless algori
+ of the head_page pointer with the swapping of pages with the reader.
+ State flags are placed inside the pointer to the page. To do this,
+ each page must be aligned in memory by 4 bytes. This will allow the 2
+-least significant bits of the address to be used as flags. Since
++least significant bits of the address to be used as flags, since
+ they will always be zero for the address. To get the address,
+ simply mask out the flags.
+ 
+@@ -460,7 +460,7 @@ When the reader tries to swap the page w
+ will also use cmpxchg. If the flag bit in the pointer to the
+ head page does not have the HEADER flag set, the compare will fail
+ and the reader will need to look for the new head page and try again.
+-Note, the flag UPDATE and HEADER are never set at the same time.
++Note, the flags UPDATE and HEADER are never set at the same time.
+ 
+ The reader swaps the reader page as follows:
+ 
+@@ -539,7 +539,7 @@ updated to the reader page.
+     |  +-----------------------------+   |
+     +------------------------------------+
+ 
+-Another important point. The page that the reader page points back to
++Another important point: The page that the reader page points back to
+ by its previous pointer (the one that now points to the new head page)
+ never points back to the reader page. That is because the reader page is
+ not part of the ring buffer. Traversing the ring buffer via the next pointers
+@@ -572,7 +572,7 @@ not be able to swap the head page from t
+ move the head page, until the writer is finished with the move.
+ 
+ This eliminates any races that the reader can have on the writer. The reader
+-must spin, and this is why the reader can not preempt the writer.
++must spin, and this is why the reader cannot preempt the writer.
+ 
+             tail page
+                |
+@@ -659,9 +659,9 @@ before pushing the head page. If it is, 
+ tail page wrapped the buffer, and we must drop new writes.
+ 
+ This is not a race condition, because the commit page can only be moved
+-by the outter most writer (the writer that was preempted).
++by the outermost writer (the writer that was preempted).
+ This means that the commit will not move while a writer is moving the
+-tail page. The reader can not swap the reader page if it is also being
++tail page. The reader cannot swap the reader page if it is also being
+ used as the commit page. The reader can simply check that the commit
+ is off the reader page. Once the commit page leaves the reader page
+ it will never go back on it unless a reader does another swap with the
+@@ -733,7 +733,7 @@ The write converts the head page pointer
+ --->|   |<---|   |<---|   |<---|   |<---
+     +---+    +---+    +---+    +---+
+ 
+-But if a nested writer preempts here. It will see that the next
++But if a nested writer preempts here, it will see that the next
+ page is a head page, but it is also nested. It will detect that
+ it is nested and will save that information. The detection is the
+ fact that it sees the UPDATE flag instead of a HEADER or NORMAL
+@@ -761,7 +761,7 @@ to NORMAL.
+ --->|   |<---|   |<---|   |<---|   |<---
+     +---+    +---+    +---+    +---+
+ 
+-After the nested writer finishes, the outer most writer will convert
++After the nested writer finishes, the outermost writer will convert
+ the UPDATE pointer to NORMAL.
  
  
--2. Enabling Events
-+3. Enabling Events
- ==================
+@@ -812,7 +812,7 @@ head page.
+     +---+    +---+    +---+    +---+
  
--2.1 System-Wide Event Enabling
-+3.1 System-Wide Event Enabling
- ------------------------------
+ The nested writer moves the tail page forward. But does not set the old
+-update page to NORMAL because it is not the outer most writer.
++update page to NORMAL because it is not the outermost writer.
  
- See Documentation/trace/events.txt for a proper description on how events
- can be enabled system-wide. A short example of enabling all events related
--to page allocation would look something like
-+to page allocation would look something like:
+                     tail page
+                         |
+@@ -892,7 +892,7 @@ It will return to the first writer.
+ --->|   |<---|   |<---|   |<---|   |<---
+     +---+    +---+    +---+    +---+
  
-   $ for i in `find /sys/kernel/debug/tracing/events -name "enable" | grep mm_`; do echo 1 > $i; done
+-The first writer can not know atomically test if the tail page moved
++The first writer cannot know atomically if the tail page moved
+ while it updates the HEAD page. It will then update the head page to
+ what it thinks is the new head page.
  
--2.2 System-Wide Event Enabling with SystemTap
-+3.2 System-Wide Event Enabling with SystemTap
- ---------------------------------------------
+@@ -923,9 +923,9 @@ if the tail page is either where it use 
+ --->|   |<---|   |<---|   |<---|   |<---
+     +---+    +---+    +---+    +---+
  
- In SystemTap, tracepoints are accessible using the kernel.trace() function
-@@ -86,7 +86,7 @@ were allocating the pages.
-           print_count()
-   }
+-If tail page != A and tail page does not equal B, then it must reset the
+-pointer back to NORMAL. The fact that it only needs to worry about
+-nested writers, it only needs to check this after setting the HEAD page.
++If tail page != A and tail page != B, then it must reset the pointer
++back to NORMAL. The fact that it only needs to worry about nested
++writers means that it only needs to check this after setting the HEAD page.
  
--2.3 System-Wide Event Enabling with PCL
-+3.3 System-Wide Event Enabling with PCL
- ---------------------------------------
  
- By specifying the -a switch and analysing sleep, the system-wide events
-@@ -107,16 +107,16 @@ for a duration of time can be examined.
- Similarly, one could execute a shell and exit it as desired to get a report
- at that point.
+ (first writer)
+@@ -939,7 +939,7 @@ nested writers, it only needs to check t
+     +---+    +---+    +---+    +---+
  
--2.4 Local Event Enabling
-+3.4 Local Event Enabling
- ------------------------
+ Now the writer can update the head page. This is also why the head page must
+-remain in UPDATE and only reset by the outer most writer. This prevents
++remain in UPDATE and only reset by the outermost writer. This prevents
+ the reader from seeing the incorrect head page.
  
- Documentation/trace/ftrace.txt describes how to enable events on a per-thread
- basis using set_ftrace_pid.
  
--2.5 Local Event Enablement with PCL
-+3.5 Local Event Enablement with PCL
- -----------------------------------
- 
--Events can be activate and tracked for the duration of a process on a local
-+Events can be activated and tracked for the duration of a process on a local
- basis using PCL such as follows.
- 
-   $ perf stat -e kmem:mm_page_alloc -e kmem:mm_page_free_direct \
-@@ -131,18 +131,18 @@ basis using PCL such as follows.
- 
-     0.973913387  seconds time elapsed
- 
--3. Event Filtering
-+4. Event Filtering
- ==================
- 
- Documentation/trace/ftrace.txt covers in-depth how to filter events in
- ftrace.  Obviously using grep and awk of trace_pipe is an option as well
- as any script reading trace_pipe.
- 
--4. Analysing Event Variances with PCL
-+5. Analysing Event Variances with PCL
- =====================================
- 
- Any workload can exhibit variances between runs and it can be important
--to know what the standard deviation in. By and large, this is left to the
-+to know what the standard deviation is. By and large, this is left to the
- performance analyst to do it by hand. In the event that the discrete event
- occurrences are useful to the performance analyst, then perf can be used.
- 
-@@ -166,7 +166,7 @@ In the event that some higher-level even
- aggregation of discrete events, then a script would need to be developed.
- 
- Using --repeat, it is also possible to view how events are fluctuating over
--time on a system wide basis using -a and sleep.
-+time on a system-wide basis using -a and sleep.
- 
-   $ perf stat -e kmem:mm_page_alloc -e kmem:mm_page_free_direct \
- 		-e kmem:mm_pagevec_free \
-@@ -180,7 +180,7 @@ time on a system wide basis using -a and
- 
-     1.002251757  seconds time elapsed   ( +-   0.005% )
- 
--5. Higher-Level Analysis with Helper Scripts
-+6. Higher-Level Analysis with Helper Scripts
- ============================================
- 
- When events are enabled the events that are triggering can be read from
-@@ -190,11 +190,11 @@ be gathered on-line as appropriate. Exam
- 
-   o Reading information from /proc for the PID that triggered the event
-   o Deriving a higher-level event from a series of lower-level events.
--  o Calculate latencies between two events
-+  o Calculating latencies between two events
- 
- Documentation/trace/postprocess/trace-pagealloc-postprocess.pl is an example
- script that can read trace_pipe from STDIN or a copy of a trace. When used
--on-line, it can be interrupted once to generate a report without existing
-+on-line, it can be interrupted once to generate a report without exiting
- and twice to exit.
- 
- Simplistically, the script just reads STDIN and counts up events but it
-@@ -212,12 +212,12 @@ also can do more such as
-     processes, the parent process responsible for creating all the helpers
-     can be identified
- 
--6. Lower-Level Analysis with PCL
-+7. Lower-Level Analysis with PCL
- ================================
- 
--There may also be a requirement to identify what functions with a program
-+There may also be a requirement to identify what functions within a program
- were generating events within the kernel. To begin this sort of analysis, the
--data must be recorded. At the time of writing, this required root
-+data must be recorded. At the time of writing, this required root:
- 
-   $ perf record -c 1 \
- 	-e kmem:mm_page_alloc -e kmem:mm_page_free_direct \
-@@ -253,11 +253,11 @@ perf report.
-   # (For more details, try: perf report --sort comm,dso,symbol)
-   #
- 
--According to this, the vast majority of events occured triggered on events
--within the VDSO. With simple binaries, this will often be the case so lets
-+According to this, the vast majority of events triggered on events
-+within the VDSO. With simple binaries, this will often be the case so let's
- take a slightly different example. In the course of writing this, it was
--noticed that X was generating an insane amount of page allocations so lets look
--at it
-+noticed that X was generating an insane amount of page allocations so let's look
-+at it:
- 
-   $ perf record -c 1 -f \
- 		-e kmem:mm_page_alloc -e kmem:mm_page_free_direct \
-@@ -280,8 +280,8 @@ This was interrupted after a few seconds
-   # (For more details, try: perf report --sort comm,dso,symbol)
-   #
- 
--So, almost half of the events are occuring in a library. To get an idea which
--symbol.
-+So, almost half of the events are occurring in a library. To get an idea which
-+symbol:
- 
-   $ perf report --sort comm,dso,symbol
-   # Samples: 27666
-@@ -297,7 +297,7 @@ symbol.
-        0.01%     Xorg  /opt/gfx-test/lib/libpixman-1.so.0.13.1  [.] get_fast_path
-        0.00%     Xorg  [kernel]                                 [k] ftrace_trace_userstack
- 
--To see where within the function pixmanFillsse2 things are going wrong
-+To see where within the function pixmanFillsse2 things are going wrong:
- 
-   $ perf annotate pixmanFillsse2
-   [ ... ]
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
