@@ -1,106 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: [folded] scsi-aacraid-fix-memory-leak-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 21 Dec 2009 15:59:01 -0800
-Message-ID: <200912212359.nBLNx11p003796@imap1.linux-foundation.org>
+Subject: [nacked] kernel-sysc-implement-prctlpr_get_endian-for-all-architectures.patch removed from -mm tree
+Date: Mon, 21 Dec 2009 16:31:04 -0800
+Message-ID: <200912220031.nBM0V458005597@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46546 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59617 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751302AbZLUX7E (ORCPT
+	by vger.kernel.org with ESMTP id S1752777AbZLVAbR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Dec 2009 18:59:04 -0500
+	Mon, 21 Dec 2009 19:31:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, jirislaby@gmail.com, mm-commits@vger.kernel.org
+To: deller@gmx.de, anton@samba.org, mikpe@it.uu.se, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scsi-aacraid-fix-memory-leak-checkpatch-fixes
+     kernel/sys.c: implement prctl(PR_GET_ENDIAN) for all architectures
 has been removed from the -mm tree.  Its filename was
-     scsi-aacraid-fix-memory-leak-checkpatch-fixes.patch
+     kernel-sysc-implement-prctlpr_get_endian-for-all-architectures.patch
 
-This patch was dropped because it was folded into scsi-aacraid-fix-memory-leak.patch
+This patch was dropped because it was nacked
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi-aacraid-fix-memory-leak-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kernel/sys.c: implement prctl(PR_GET_ENDIAN) for all architectures
+From: Helge Deller <deller@gmx.de>
 
-WARNING: space prohibited between function name and open parenthesis '('
-#21: FILE: drivers/scsi/aacraid/commctrl.c:652:
-+					kfree (usg);
+The kernel provides an interface (for all architectures) which is
+currently only useable on one single architecture (ppc).
 
-total: 0 errors, 1 warnings, 7 lines checked
+So, either we could just remove the interface alltogether for all
+architectures beside ppc, or implement the functionality for all
+architectures so that they return at least some kind of useful values back
+to userspace.  This patch takes the latter approach.
 
-./patches/scsi-aacraid-fix-memory-leak.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
 
-Please run checkpatch prior to sending patches
+The PR_GET_ENDIAN and PR_SET_ENDIAN prctl() calls have been implemented to
+allow to switch processes at runtime from big-endian to little-endian mode
+(and vice versa) on PowerPC processors.  Since the other architectures
+don't support this feature, they currently will just fail and return
+-EINVAL.
 
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Jiri Slaby <jirislaby@gmail.com>
+This patch adds just minimal overhead and implements the PR_GET_ENDIAN
+call for all other architectures by returning the native endianess of the
+architecture.  Furthermore, calling prctl(PR_SET_ENDIAN) with the native
+endianess of the architecture will succeed, while trying to set another
+(not-supported) endianess, will fail.
+
+The patch can be tested with the following program:
+
+#include <stdio.h>
+#include <linux/prctl.h>
+
+int main(int argc, char **argv)
+{
+	int endian, ret;
+
+	ret = prctl(PR_GET_ENDIAN, &endian);
+	if (ret)
+		perror("prctl(PR_GET_ENDIAN) not implemented");
+	printf("current process/machine is running in %s endian mode (%d)\n",
+		endian == PR_ENDIAN_LITTLE ? "little":"big", endian);
+
+	/* setting native endianess should succeed */
+	ret = prctl(PR_SET_ENDIAN, endian);
+	printf("prctl(PR_SET_ENDIAN,%d) should succeed: %s\n",
+		endian, ret == 0 ? "OK":"FAIL");
+
+	/* setting foreign endianess should fail */
+	endian = (endian == PR_ENDIAN_LITTLE) ?
+		PR_ENDIAN_BIG : PR_ENDIAN_LITTLE;
+	ret = prctl(PR_SET_ENDIAN, endian);
+	printf("prctl(PR_SET_ENDIAN,%d) should fail: %s\n",
+		endian, ret == 0 ? "OK":"FAIL");
+}
+
+Signed-off-by: Helge Deller <deller@gmx.de>
+Cc: Anton Blanchard <anton@samba.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Mikael Pettersson <mikpe@it.uu.se>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/aacraid/commctrl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/sys.c |   15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
-diff -puN drivers/scsi/aacraid/commctrl.c~scsi-aacraid-fix-memory-leak-checkpatch-fixes drivers/scsi/aacraid/commctrl.c
---- a/drivers/scsi/aacraid/commctrl.c~scsi-aacraid-fix-memory-leak-checkpatch-fixes
-+++ a/drivers/scsi/aacraid/commctrl.c
-@@ -649,7 +649,7 @@ static int aac_send_raw_srb(struct aac_d
- 				     AAC_OPT_NEW_COMM) ?
- 				      (dev->scsi_host_ptr->max_sectors << 9) :
- 				      65536) {
--					kfree (usg);
-+					kfree(usg);
- 					rcode = -EINVAL;
- 					goto cleanup;
- 				}
+diff -puN kernel/sys.c~kernel-sysc-implement-prctlpr_get_endian-for-all-architectures kernel/sys.c
+--- a/kernel/sys.c~kernel-sysc-implement-prctlpr_get_endian-for-all-architectures
++++ a/kernel/sys.c
+@@ -45,6 +45,15 @@
+ #include <asm/io.h>
+ #include <asm/unistd.h>
+ 
++#if defined(__BIG_ENDIAN)
++# define PRCTL_ENDIAN_DEFAULT	(PR_ENDIAN_BIG)
++#elif defined(__LITTLE_ENDIAN)
++# define PRCTL_ENDIAN_DEFAULT	(PR_ENDIAN_LITTLE)
++#else
++# error "No endianess?"
++#endif
++
++
+ #ifndef SET_UNALIGN_CTL
+ # define SET_UNALIGN_CTL(a,b)	(-EINVAL)
+ #endif
+@@ -64,10 +73,12 @@
+ # define GET_FPEXC_CTL(a,b)	(-EINVAL)
+ #endif
+ #ifndef GET_ENDIAN
+-# define GET_ENDIAN(a,b)	(-EINVAL)
++# define GET_ENDIAN(task,addr)	\
++	put_user(PRCTL_ENDIAN_DEFAULT, (int __user *) (addr))
+ #endif
+ #ifndef SET_ENDIAN
+-# define SET_ENDIAN(a,b)	(-EINVAL)
++# define SET_ENDIAN(task,value)	\
++	( (value) == PRCTL_ENDIAN_DEFAULT ? 0 : -EINVAL )
+ #endif
+ #ifndef GET_TSC_CTL
+ # define GET_TSC_CTL(a)		(-EINVAL)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from deller@gmx.de are
 
-origin.patch
-kfifo-move-struct-kfifo-in-place.patch
-linux-next.patch
-linux-next-fixup.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
-drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
-drivers-media-video-pmsc-needs-versionh.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-net-sctp-socketc-squish-warning.patch
-proc_fops-convert-drivers-isdn-to-seq_file.patch
-3x59x-fix-pci-resource-management.patch
-fs-ext4-superc-fix-printk-warning.patch
-atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
-scsi-aacraid-fix-memory-leak.patch
-scsi-aacraid-fix-memory-leak-checkpatch-fixes.patch
-aoe-switch-to-the-new-bio_flush_dcache_pages-interface.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-char-cyclades-fix-compiler-warning.patch
-zlib-optimize-inffast-when-copying-direct-from-output.patch
-lib-add-support-for-lzo-compressed-kernels.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+kernel-sysc-implement-prctlpr_get_endian-for-all-architectures.patch
 
