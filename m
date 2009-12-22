@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mmc_block-fix-queue-cleanup.patch added to -mm tree
-Date: Tue, 22 Dec 2009 14:21:05 -0800
-Message-ID: <200912222221.nBMML5L4027733__14618.900899268$1261520554$gmane$org@imap1.linux-foundation.org>
+Subject: + mmc-allow-for-mmc-v44.patch added to -mm tree
+Date: Tue, 22 Dec 2009 14:22:35 -0800
+Message-ID: <200912222222.nBMMMZT7027863@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40406 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57758 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755174AbZLVWWV (ORCPT
+	by vger.kernel.org with ESMTP id S1755211AbZLVWXJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Dec 2009 17:22:21 -0500
+	Tue, 22 Dec 2009 17:23:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adrian.hunter@nokia.com, linux-mmc@vger.kernel.org, stable@kernel.org
+Cc: adrian.hunter@nokia.com, linux-mmc@vger.kernel.org
 
 
 The patch titled
-     mmc_block: fix queue cleanup
+     mmc: allow for MMC v4.4
 has been added to the -mm tree.  Its filename is
-     mmc_block-fix-queue-cleanup.patch
+     mmc-allow-for-mmc-v44.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,84 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc_block: fix queue cleanup
+Subject: mmc: allow for MMC v4.4
 From: Adrian Hunter <adrian.hunter@nokia.com>
 
-The main bug was that 'blk_cleanup_queue()' was called while the block
-device could still be in use, for example, because the card was removed
-while files were still open.
-
-In addition, to be sure that 'mmc_request()' will get called for all new
-requests (so it can error them out), the queue is emptied during cleanup. 
-This is done after the worker thread is stopped to avoid racing with it.
-
-Finally, it is not a device error for this to be happening, so quiet the
-(sometimes very many) error messages.
+JEDEC eMMC specification version 4.4 (MMCA 4.4) defines Extended CSD
+structure versions up to 5.
 
 Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
 Cc: <linux-mmc@vger.kernel.org>
-Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/card/block.c |    2 ++
- drivers/mmc/card/queue.c |   18 +++++++++---------
- 2 files changed, 11 insertions(+), 9 deletions(-)
+ drivers/mmc/core/mmc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mmc/card/block.c~mmc_block-fix-queue-cleanup drivers/mmc/card/block.c
---- a/drivers/mmc/card/block.c~mmc_block-fix-queue-cleanup
-+++ a/drivers/mmc/card/block.c
-@@ -91,6 +91,8 @@ static void mmc_blk_put(struct mmc_blk_d
- 		if (!devmaj)
- 			devidx = md->disk->first_minor >> MMC_SHIFT;
- 
-+		blk_cleanup_queue(md->queue.queue);
-+
- 		__clear_bit(devidx, dev_use);
- 
- 		put_disk(md->disk);
-diff -puN drivers/mmc/card/queue.c~mmc_block-fix-queue-cleanup drivers/mmc/card/queue.c
---- a/drivers/mmc/card/queue.c~mmc_block-fix-queue-cleanup
-+++ a/drivers/mmc/card/queue.c
-@@ -90,9 +90,10 @@ static void mmc_request(struct request_q
- 	struct request *req;
- 
- 	if (!mq) {
--		printk(KERN_ERR "MMC: killing requests for dead queue\n");
--		while ((req = blk_fetch_request(q)) != NULL)
-+		while ((req = blk_fetch_request(q)) != NULL) {
-+			req->cmd_flags |= REQ_QUIET;
- 			__blk_end_request_all(req, -EIO);
-+		}
- 		return;
+diff -puN drivers/mmc/core/mmc.c~mmc-allow-for-mmc-v44 drivers/mmc/core/mmc.c
+--- a/drivers/mmc/core/mmc.c~mmc-allow-for-mmc-v44
++++ a/drivers/mmc/core/mmc.c
+@@ -207,7 +207,7 @@ static int mmc_read_ext_csd(struct mmc_c
  	}
  
-@@ -223,17 +224,18 @@ void mmc_cleanup_queue(struct mmc_queue 
- 	struct request_queue *q = mq->queue;
- 	unsigned long flags;
- 
--	/* Mark that we should start throwing out stragglers */
--	spin_lock_irqsave(q->queue_lock, flags);
--	q->queuedata = NULL;
--	spin_unlock_irqrestore(q->queue_lock, flags);
--
- 	/* Make sure the queue isn't suspended, as that will deadlock */
- 	mmc_queue_resume(mq);
- 
- 	/* Then terminate our worker thread */
- 	kthread_stop(mq->thread);
- 
-+	/* Empty the queue */
-+	spin_lock_irqsave(q->queue_lock, flags);
-+	q->queuedata = NULL;
-+	blk_start_queue(q);
-+	spin_unlock_irqrestore(q->queue_lock, flags);
-+
-  	if (mq->bounce_sg)
-  		kfree(mq->bounce_sg);
-  	mq->bounce_sg = NULL;
-@@ -245,8 +247,6 @@ void mmc_cleanup_queue(struct mmc_queue 
- 		kfree(mq->bounce_buf);
- 	mq->bounce_buf = NULL;
- 
--	blk_cleanup_queue(mq->queue);
+ 	card->ext_csd.rev = ext_csd[EXT_CSD_REV];
+-	if (card->ext_csd.rev > 3) {
++	if (card->ext_csd.rev > 5) {
+ 		printk(KERN_ERR "%s: unrecognised EXT_CSD structure "
+ 			"version %d\n", mmc_hostname(card->host),
+ 			card->ext_csd.rev);
+_
+
+Patches currently in -mm which might be from adrian.hunter@nokia.com are
+
+mmc_block-add-dev_t-initialization-check.patch
+mmc_block-fix-probe-error-cleanup-bug.patch
+mmc_block-fix-queue-cleanup.patch
+mmc-allow-for-mmc-v44.patch
+
