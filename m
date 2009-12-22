@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch added to -mm tree
-Date: Mon, 21 Dec 2009 16:57:35 -0800
-Message-ID: <200912220057.nBM0vZXZ006865@imap1.linux-foundation.org>
+Subject: + mm-count-swap-usage-checkpatch-fixes.patch added to -mm tree
+Date: Mon, 21 Dec 2009 16:58:09 -0800
+Message-ID: <200912220058.nBM0w9Xr006874@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55793 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48245 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751424AbZLVA5i (ORCPT
+	by vger.kernel.org with ESMTP id S1751008AbZLVA6T (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Dec 2009 19:57:38 -0500
+	Mon, 21 Dec 2009 19:58:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com
+Cc: akpm@linux-foundation.org, cl@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, lee.schermerhorn@hp.com, minchan.kim@gmail.com, rientjes@google.com
 
 
 The patch titled
-     mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes
+     mm-count-swap-usage-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
+     mm-count-swap-usage-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,72 +34,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes
+Subject: mm-count-swap-usage-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: space required after that ',' (ctx:VxV)
-#173: FILE: mm/memory.c:149:
-+#define inc_mm_counter_fast(mm, member) add_mm_counter_fast(mm, member,1)
-                                                                       ^
-
-ERROR: space required after that ',' (ctx:VxO)
-#174: FILE: mm/memory.c:150:
-+#define dec_mm_counter_fast(mm, member) add_mm_counter_fast(mm, member,-1)
-                                                                       ^
-
-ERROR: space required before that '-' (ctx:OxV)
-#174: FILE: mm/memory.c:150:
-+#define dec_mm_counter_fast(mm, member) add_mm_counter_fast(mm, member,-1)
-                                                                        ^
-
 ERROR: code indent should use tabs where possible
-#192: FILE: mm/memory.c:168:
-+ ^I * The caller must guarantee task->mm is not invalid.$
+#150: FILE: mm/memory.c:984:
++^I^I  ^Iif (unlikely(!free_swap_and_cache(entry)))$
 
-ERROR: code indent should use tabs where possible
-#193: FILE: mm/memory.c:169:
-+ ^I */$
+total: 1 errors, 0 warnings, 102 lines checked
 
-total: 5 errors, 0 warnings, 225 lines checked
-
-./patches/mm-avoid-false-sharing-of-mm_counter.patch has style problems, please review.  If any of these errors
+./patches/mm-count-swap-usage.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: David Rientjes <rientjes@google.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memory.c~mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes mm/memory.c
---- a/mm/memory.c~mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes
+diff -puN mm/memory.c~mm-count-swap-usage-checkpatch-fixes mm/memory.c
+--- a/mm/memory.c~mm-count-swap-usage-checkpatch-fixes
 +++ a/mm/memory.c
-@@ -146,8 +146,8 @@ static void add_mm_counter_fast(struct m
- 	else
- 		add_mm_counter(mm, member, val);
- }
--#define inc_mm_counter_fast(mm, member) add_mm_counter_fast(mm, member,1)
--#define dec_mm_counter_fast(mm, member) add_mm_counter_fast(mm, member,-1)
-+#define inc_mm_counter_fast(mm, member) add_mm_counter_fast(mm, member, 1)
-+#define dec_mm_counter_fast(mm, member) add_mm_counter_fast(mm, member, -1)
+@@ -981,7 +981,7 @@ static unsigned long zap_pte_range(struc
  
- /* sync counter once per 64 page faults */
- #define TASK_RSS_EVENTS_THRESH	(64)
-@@ -165,8 +165,8 @@ unsigned long get_mm_counter(struct mm_s
- 
- 	/*
- 	 * Don't use task->mm here...for avoiding to use task_get_mm()..
-- 	 * The caller must guarantee task->mm is not invalid.
-- 	 */
-+	 * The caller must guarantee task->mm is not invalid.
-+	 */
- 	val = atomic_long_read(&mm->rss_stat.count[member]);
- 	/*
- 	 * counter is updated in asynchronous manner and may go to minus.
+ 			if (!non_swap_entry(entry))
+ 				rss[MM_SWAPENTS]--;
+-		  	if (unlikely(!free_swap_and_cache(entry)))
++			if (unlikely(!free_swap_and_cache(entry)))
+ 				print_bad_pte(vma, addr, ptent, NULL);
+ 		}
+ 		pte_clear_not_present_full(mm, addr, pte, tlb->fullmm);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -128,6 +100,7 @@ aoe-switch-to-the-new-bio_flush_dcache_pages-interface.patch
 fs-improve-remountro-vs-buffercache-coherency.patch
 percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
 mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
+mm-count-swap-usage-checkpatch-fixes.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 char-cyclades-fix-compiler-warning.patch
 zlib-optimize-inffast-when-copying-direct-from-output.patch
