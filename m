@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-move-charges-of-anonymous-page-cleanup.patch added to -mm tree
-Date: Tue, 22 Dec 2009 16:26:46 -0800
-Message-ID: <200912230026.nBN0Qk45001195@imap1.linux-foundation.org>
+Subject: + memcg-avoid-oom-during-moving-charge.patch added to -mm tree
+Date: Tue, 22 Dec 2009 16:26:51 -0800
+Message-ID: <200912230026.nBN0QpE7001201@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58691 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47570 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752994AbZLWA1J (ORCPT
+	by vger.kernel.org with ESMTP id S1754547AbZLWA1M (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Dec 2009 19:27:09 -0500
+	Tue, 22 Dec 2009 19:27:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, nishimura@mxp.nes.nec.co.jp
+Cc: nishimura@mxp.nes.nec.co.jp, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com
 
 
 The patch titled
-     memcg-move-charges-of-anonymous-page-cleanup
+     memcg: avoid oom during moving charge
 has been added to the -mm tree.  Its filename is
-     memcg-move-charges-of-anonymous-page-cleanup.patch
+     memcg-avoid-oom-during-moving-charge.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,90 +34,133 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-move-charges-of-anonymous-page-cleanup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memcg: avoid oom during moving charge
+From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 
-a little simplification
+This move-charge-at-task-migration feature has extra charges on
+"to"(pre-charges) and "from"(left-over charges) during moving charge. 
+This means unnecessary oom can happen.
 
+This patch tries to avoid such oom.
+
+Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Li Zefan <lizf@cn.fujitsu.com>
 Cc: Paul Menage <menage@google.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ mm/memcontrol.c |   53 ++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 51 insertions(+), 2 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-move-charges-of-anonymous-page-cleanup mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-move-charges-of-anonymous-page-cleanup
+diff -puN mm/memcontrol.c~memcg-avoid-oom-during-moving-charge mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-avoid-oom-during-moving-charge
 +++ a/mm/memcontrol.c
-@@ -247,14 +247,13 @@ enum move_type {
- 	MOVE_CHARGE_TYPE_ANON,	/* private anonymous page and swap of it */
- 	NR_MOVE_TYPE,
- };
-+
- /* "mc" and its members are protected by cgroup_mutex */
--struct move_charge_struct {
-+static struct move_charge_struct {
- 	struct mem_cgroup *from;
+@@ -254,7 +254,11 @@ static struct move_charge_struct {
  	struct mem_cgroup *to;
  	unsigned long precharge;
--};
--static struct move_charge_struct mc;
--
-+} mc;
+ 	unsigned long moved_charge;
+-} mc;
++	struct task_struct *moving_task;	/* a task moving charges */
++	wait_queue_head_t waitq;		/* a waitq for other context */
++} mc = {
++	.waitq = __WAIT_QUEUE_HEAD_INITIALIZER(mc.waitq),
++};
  
  /*
   * Maximum loops in mem_cgroup_hierarchical_reclaim(), used for soft
+@@ -1508,6 +1512,48 @@ static int __mem_cgroup_try_charge(struc
+ 		if (mem_cgroup_check_under_limit(mem_over_limit))
+ 			continue;
+ 
++		/* try to avoid oom while someone is moving charge */
++		if (mc.moving_task && current != mc.moving_task) {
++			struct mem_cgroup *from, *to;
++			bool do_continue = false;
++			/*
++			 * There is a small race that "from" or "to" can be
++			 * freed by rmdir, so we use css_tryget().
++			 */
++			rcu_read_lock();
++			from = mc.from;
++			to = mc.to;
++			if (from && css_tryget(&from->css)) {
++				if (mem_over_limit->use_hierarchy)
++					do_continue = css_is_ancestor(
++							&from->css,
++							&mem_over_limit->css);
++				else
++					do_continue = (from == mem_over_limit);
++				css_put(&from->css);
++			}
++			if (!do_continue && to && css_tryget(&to->css)) {
++				if (mem_over_limit->use_hierarchy)
++					do_continue = css_is_ancestor(
++							&to->css,
++							&mem_over_limit->css);
++				else
++					do_continue = (to == mem_over_limit);
++				css_put(&to->css);
++			}
++			rcu_read_unlock();
++			if (do_continue) {
++				DEFINE_WAIT(wait);
++				prepare_to_wait(&mc.waitq, &wait,
++							TASK_INTERRUPTIBLE);
++				/* moving charge context might have finished. */
++				if (mc.moving_task)
++					schedule();
++				finish_wait(&mc.waitq, &wait);
++				continue;
++			}
++		}
++
+ 		if (!nr_retries--) {
+ 			if (oom) {
+ 				mem_cgroup_out_of_memory(mem_over_limit, gfp_mask);
+@@ -3384,7 +3430,6 @@ mem_cgroup_create(struct cgroup_subsys *
+ 			INIT_WORK(&stock->work, drain_local_stock);
+ 		}
+ 		hotcpu_notifier(memcg_stock_cpu_callback, 0);
+-
+ 	} else {
+ 		parent = mem_cgroup_from_cont(cont->parent);
+ 		mem->use_hierarchy = parent->use_hierarchy;
+@@ -3644,6 +3689,8 @@ static void mem_cgroup_clear_mc(void)
+ 	}
+ 	mc.from = NULL;
+ 	mc.to = NULL;
++	mc.moving_task = NULL;
++	wake_up_all(&mc.waitq);
+ }
+ 
+ static int mem_cgroup_can_attach(struct cgroup_subsys *ss,
+@@ -3669,10 +3716,12 @@ static int mem_cgroup_can_attach(struct 
+ 			VM_BUG_ON(mc.to);
+ 			VM_BUG_ON(mc.precharge);
+ 			VM_BUG_ON(mc.moved_charge);
++			VM_BUG_ON(mc.moving_task);
+ 			mc.from = from;
+ 			mc.to = mem;
+ 			mc.precharge = 0;
+ 			mc.moved_charge = 0;
++			mc.moving_task = current;
+ 
+ 			ret = mem_cgroup_precharge_mc(mm);
+ 			if (ret)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
 
-origin.patch
-kfifo-move-struct-kfifo-in-place.patch
-linux-next.patch
-linux-next-fixup.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
-jbd2-dont-use-__gfp_nofail-in-journal_init_common.patch
-arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any.patch
-cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
-drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
-drivers-media-video-pmsc-needs-versionh.patch
-hid-logitech-g13-driver-002-fix.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-net-sctp-socketc-squish-warning.patch
-proc_fops-convert-drivers-isdn-to-seq_file.patch
-3x59x-fix-pci-resource-management.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc.patch
-fs-ext4-superc-fix-printk-warning.patch
-atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
-aoe-switch-to-the-new-bio_flush_dcache_pages-interface.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
-mm-count-swap-usage-checkpatch-fixes.patch
-mm-add-lowmem-detection-logic-fix.patch
-mm-count-lowmem-rss-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+cgroup-introduce-cancel_attach.patch
+cgroup-introduce-coalesce-css_get-and-css_put.patch
+memcg-add-interface-to-move-charge-at-task-migration.patch
+memcg-move-charges-of-anonymous-page.patch
 memcg-move-charges-of-anonymous-page-cleanup.patch
-char-cyclades-fix-compiler-warning.patch
-zlib-optimize-inffast-when-copying-direct-from-output.patch
-lib-add-support-for-lzo-compressed-kernels.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+memcg-improve-performance-in-moving-charge.patch
+memcg-avoid-oom-during-moving-charge.patch
+memcg-move-charges-of-anonymous-swap.patch
+memcg-improve-performance-in-moving-swap-charge.patch
 
