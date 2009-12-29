@@ -1,83 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged] char-cyclades-fix-compiler-warning.patch removed from -mm tree
-Date: Tue, 29 Dec 2009 13:33:40 -0800
-Message-ID: <200912292133.nBTLXeaA008719@imap1.linux-foundation.org>
+Subject: [merged] jbd-jbd-debug-and-jbd2-debug-should-be-writable.patch removed from -mm tree
+Date: Tue, 29 Dec 2009 13:33:37 -0800
+Message-ID: <200912292133.nBTLXbnY008716@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35447 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47430 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752846AbZL2Vdr (ORCPT
+	by vger.kernel.org with ESMTP id S1752840AbZL2Vdq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Dec 2009 16:33:47 -0500
+	Tue, 29 Dec 2009 16:33:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jslaby@novell.com, akpm@linux-foundation.org, alan@linux.intel.com, gregkh@suse.de, jirislaby@gmail.com, linux@linux.site, mm-commits@vger.kernel.org
+To: kangkai.yin@intel.com, aneesh.kumar@linux.vnet.ibm.com, jack@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: cyclades, fix compiler warning
+     jbd: jbd-debug and jbd2-debug should be writable
 has been removed from the -mm tree.  Its filename was
-     char-cyclades-fix-compiler-warning.patch
+     jbd-jbd-debug-and-jbd2-debug-should-be-writable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Char: cyclades, fix compiler warning
-From: Jiri Slaby <jslaby@novell.com>
+Subject: jbd: jbd-debug and jbd2-debug should be writable
+From: Yin Kangkai <kangkai.yin@intel.com>
 
-With gcc 4.0.2:
-drivers/char/cyclades.c: In function 'cyy_interrupt':
-drivers/char/cyclades.c:581: warning: 'info' may be used uninitialized in this function
+jbd-debug and jbd2-debug is currently read-only (S_IRUGO), which is not
+correct. Make it writable so that we can start debuging.
 
-introduced by
-
-: commit 3aeea5b92210083c7cffd4f08a0bb141d3f2d574
-: Author:     Jiri Slaby <jirislaby@gmail.com>
-: AuthorDate: Sat Sep 19 13:13:16 2009 -0700
-: Commit:     Live-CD User <linux@linux.site>
-: CommitDate: Sat Sep 19 13:13:16 2009 -0700
-:
-:    cyclades: introduce cyy_readb/writeb
-
-In fact the true branch which uses uninitialized 'info' can never
-happen because chip is always less than ->nchips and channel is
-always less than 4 which we alloc.
-
-So behave similar to rx handling and remove the test completely.
-
-I wonder why gcc 4.4.1 doesn't spit a word.
-
-Reported-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Alan Cox <alan@linux.intel.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Signed-off-by: Jiri Slaby <jslaby@novell.com>
+Signed-off-by: Yin Kangkai <kangkai.yin@intel.com>
+Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Jan Kara <jack@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/cyclades.c |    6 ------
- 1 file changed, 6 deletions(-)
+ fs/jbd/journal.c  |    2 +-
+ fs/jbd2/journal.c |    3 ++-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/cyclades.c~char-cyclades-fix-compiler-warning drivers/char/cyclades.c
---- a/drivers/char/cyclades.c~char-cyclades-fix-compiler-warning
-+++ a/drivers/char/cyclades.c
-@@ -598,12 +598,6 @@ static void cyy_chip_tx(struct cyclades_
- 	save_car = readb(base_addr + (CyCAR << index));
- 	cy_writeb(base_addr + (CyCAR << index), save_xir);
- 
--	/* validate the port# (as configured and open) */
--	if (channel + chip * 4 >= cinfo->nports) {
--		cy_writeb(base_addr + (CySRER << index),
--			  readb(base_addr + (CySRER << index)) & ~CyTxRdy);
--		goto end;
--	}
- 	info = &cinfo->ports[channel + chip * 4];
- 	tty = tty_port_tty_get(&info->port);
- 	if (tty == NULL) {
+diff -puN fs/jbd/journal.c~jbd-jbd-debug-and-jbd2-debug-should-be-writable fs/jbd/journal.c
+--- a/fs/jbd/journal.c~jbd-jbd-debug-and-jbd2-debug-should-be-writable
++++ a/fs/jbd/journal.c
+@@ -1913,7 +1913,7 @@ static void __init jbd_create_debugfs_en
+ {
+ 	jbd_debugfs_dir = debugfs_create_dir("jbd", NULL);
+ 	if (jbd_debugfs_dir)
+-		jbd_debug = debugfs_create_u8("jbd-debug", S_IRUGO,
++		jbd_debug = debugfs_create_u8("jbd-debug", S_IRUGO | S_IWUSR,
+ 					       jbd_debugfs_dir,
+ 					       &journal_enable_debug);
+ }
+diff -puN fs/jbd2/journal.c~jbd-jbd-debug-and-jbd2-debug-should-be-writable fs/jbd2/journal.c
+--- a/fs/jbd2/journal.c~jbd-jbd-debug-and-jbd2-debug-should-be-writable
++++ a/fs/jbd2/journal.c
+@@ -2110,7 +2110,8 @@ static void __init jbd2_create_debugfs_e
+ {
+ 	jbd2_debugfs_dir = debugfs_create_dir("jbd2", NULL);
+ 	if (jbd2_debugfs_dir)
+-		jbd2_debug = debugfs_create_u8(JBD2_DEBUG_NAME, S_IRUGO,
++		jbd2_debug = debugfs_create_u8(JBD2_DEBUG_NAME,
++					       S_IRUGO | S_IWUSR,
+ 					       jbd2_debugfs_dir,
+ 					       &jbd2_journal_enable_debug);
+ }
 _
 
-Patches currently in -mm which might be from jslaby@novell.com are
+Patches currently in -mm which might be from kangkai.yin@intel.com are
 
 linux-next.patch
 
