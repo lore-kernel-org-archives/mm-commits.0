@@ -1,95 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: [merged] jbd2-dont-use-__gfp_nofail-in-journal_init_common.patch removed from -mm tree
-Date: Tue, 29 Dec 2009 13:31:43 -0800
-Message-ID: <200912292131.nBTLVh0E008509@imap1.linux-foundation.org>
+Subject: [merged] documentation-update-mmiotracetxt.patch removed from -mm tree
+Date: Tue, 29 Dec 2009 13:31:33 -0800
+Message-ID: <200912292131.nBTLVX4B008499@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from smtp1.linux-foundation.org ([140.211.169.13]:56410 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751670AbZL2Vbu (ORCPT
+	by vger.kernel.org with ESMTP id S1752303AbZL2Vbx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Dec 2009 16:31:50 -0500
+	Tue, 29 Dec 2009 16:31:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, casteyde.christian@free.fr, tytso@mit.edu, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, pq@iki.fi, mm-commits@vger.kernel.org
 
 
 The patch titled
-     jbd2: don't use __GFP_NOFAIL in journal_init_common()
+     Documentation: update mmiotrace.txt
 has been removed from the -mm tree.  Its filename was
-     jbd2-dont-use-__gfp_nofail-in-journal_init_common.patch
+     documentation-update-mmiotracetxt.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: jbd2: don't use __GFP_NOFAIL in journal_init_common()
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Documentation: update mmiotrace.txt
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-It triggers the warning in get_page_from_freelist(), and it isn't
-appropriate to use __GFP_NOFAIL here anyway.
+Fix typos, spellos, hyphenation, line lengths.
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=14843
+BTW: are there some userspace tools?  There is a reference to some at the
+wiki page, but there are no tools listed there.
 
-Reported-by: Christian Casteyde <casteyde.christian@free.fr>
-Cc: Theodore Ts'o <tytso@mit.edu>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Acked-by: Pekka Paalanen <pq@iki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd2/journal.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/trace/mmiotrace.txt |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
-diff -puN fs/jbd2/journal.c~jbd2-dont-use-__gfp_nofail-in-journal_init_common fs/jbd2/journal.c
---- a/fs/jbd2/journal.c~jbd2-dont-use-__gfp_nofail-in-journal_init_common
-+++ a/fs/jbd2/journal.c
-@@ -814,7 +814,7 @@ static journal_t * journal_init_common (
- 	journal_t *journal;
- 	int err;
+diff -puN Documentation/trace/mmiotrace.txt~documentation-update-mmiotracetxt Documentation/trace/mmiotrace.txt
+--- a/Documentation/trace/mmiotrace.txt~documentation-update-mmiotracetxt
++++ a/Documentation/trace/mmiotrace.txt
+@@ -44,7 +44,8 @@ Check for lost events.
+ Usage
+ -----
  
--	journal = kzalloc(sizeof(*journal), GFP_KERNEL|__GFP_NOFAIL);
-+	journal = kzalloc(sizeof(*journal), GFP_KERNEL);
- 	if (!journal)
- 		goto fail;
+-Make sure debugfs is mounted to /sys/kernel/debug. If not, (requires root privileges)
++Make sure debugfs is mounted to /sys/kernel/debug.
++If not (requires root privileges):
+ $ mount -t debugfs debugfs /sys/kernel/debug
  
+ Check that the driver you are about to trace is not loaded.
+@@ -91,7 +92,7 @@ $ dmesg > dmesg.txt
+ $ tar zcf pciid-nick-mmiotrace.tar.gz mydump.txt lspci.txt dmesg.txt
+ and then send the .tar.gz file. The trace compresses considerably. Replace
+ "pciid" and "nick" with the PCI ID or model name of your piece of hardware
+-under investigation and your nick name.
++under investigation and your nickname.
+ 
+ 
+ How Mmiotrace Works
+@@ -100,7 +101,7 @@ How Mmiotrace Works
+ Access to hardware IO-memory is gained by mapping addresses from PCI bus by
+ calling one of the ioremap_*() functions. Mmiotrace is hooked into the
+ __ioremap() function and gets called whenever a mapping is created. Mapping is
+-an event that is recorded into the trace log. Note, that ISA range mappings
++an event that is recorded into the trace log. Note that ISA range mappings
+ are not caught, since the mapping always exists and is returned directly.
+ 
+ MMIO accesses are recorded via page faults. Just before __ioremap() returns,
+@@ -122,11 +123,11 @@ Trace Log Format
+ ----------------
+ 
+ The raw log is text and easily filtered with e.g. grep and awk. One record is
+-one line in the log. A record starts with a keyword, followed by keyword
+-dependant arguments. Arguments are separated by a space, or continue until the
++one line in the log. A record starts with a keyword, followed by keyword-
++dependent arguments. Arguments are separated by a space, or continue until the
+ end of line. The format for version 20070824 is as follows:
+ 
+-Explanation	Keyword	Space separated arguments
++Explanation	Keyword	Space-separated arguments
+ ---------------------------------------------------------------------------
+ 
+ read event	R	width, timestamp, map id, physical, value, PC, PID
+@@ -136,7 +137,7 @@ iounmap event	UNMAP	timestamp, map id, P
+ marker		MARK	timestamp, text
+ version		VERSION	the string "20070824"
+ info for reader	LSPCI	one line from lspci -v
+-PCI address map	PCIDEV	space separated /proc/bus/pci/devices data
++PCI address map	PCIDEV	space-separated /proc/bus/pci/devices data
+ unk. opcode	UNKNOWN	timestamp, map id, physical, data, PC, PID
+ 
+ Timestamp is in seconds with decimals. Physical is a PCI bus address, virtual
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-zlib-optimize-inffast-when-copying-direct-from-output.patch
-lib-add-support-for-lzo-compressed-kernels.patch
+docs-large-update-to-ioctl-numbertxt.patch
 linux-next.patch
-linux-next-fixup.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
-drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
-drivers-media-video-pmsc-needs-versionh.patch
-hid-logitech-g13-driver-002-fix.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-net-sctp-socketc-squish-warning.patch
-proc_fops-convert-drivers-isdn-to-seq_file.patch
-3x59x-fix-pci-resource-management.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
-mm-count-swap-usage-checkpatch-fixes.patch
-mm-add-lowmem-detection-logic-fix.patch
-mm-count-lowmem-rss-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-memcg-move-charges-of-anonymous-page-cleanup.patch
+documentation-update-ring-buffer-designtxt.patch
+gpio-add-driver-for-max7300-i2c-gpio-extender.patch
 reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
