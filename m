@@ -1,77 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drbd-fix-test-of-unsigned-in-_drbd_fault_random.patch removed from -mm tree
-Date: Tue, 29 Dec 2009 13:33:16 -0800
-Message-ID: <200912292133.nBTLXGXU008697@imap1.linux-foundation.org>
+Subject: [merged] serial-imx-fix-null-dereference-oops-when-pdata-==-null.patch removed from -mm tree
+Date: Tue, 29 Dec 2009 13:32:57 -0800
+Message-ID: <200912292132.nBTLWv0p008667@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41619 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46707 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752834AbZL2Vdg (ORCPT
+	by vger.kernel.org with ESMTP id S1752858AbZL2Ve0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Dec 2009 16:33:36 -0500
+	Tue, 29 Dec 2009 16:34:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, drbd-dev@lists.linbit.com, jens.axboe@oracle.com, philipp.reisner@linbit.com, mm-commits@vger.kernel.org
+To: baruch@tkos.co.il, alan@linux.intel.com, dg@emlix.com, fg@emlix.com, greg@kroah.com, os@emlix.com, s.hauer@pengutronix.de, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drbd: fix test of unsigned in _drbd_fault_random()
+     serial: imx: fix NULL dereference Oops when pdata =3D=3D NULL
 has been removed from the -mm tree.  Its filename was
-     drbd-fix-test-of-unsigned-in-_drbd_fault_random.patch
+     serial-imx-fix-null-dereference-oops-when-pdata-=3D=3D-null.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: drbd: fix test of unsigned in _drbd_fault_random()
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: serial: imx: fix NULL dereference Oops when pdata =3D=3D NULL
+=46rom: Baruch Siach <baruch@tkos.co.il>
 
-rsp->count is unsigned so the test does not work.
+The platform code doesn't have to provide platform data to get sensible
+default behaviour from the imx serial driver.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Lars Ellenberg <drbd-dev@lists.linbit.com>
-Cc: Philipp Reisner <philipp.reisner@linbit.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+This patch does not handle NULL dereference in the IrDA case, which sti=
+ll
+requires a valid platform data pointer (in imx_startup()/imx_shutdown()=
+),
+since I don't know whether there is a sensible default behaviour, or
+should the operation just fail cleanly.
+
+Signed-off-by: Baruch Siach <baruch@tkos.co.il>
+Cc: Baruch Siach <baruch@tkos.co.il>
+Cc: Alan Cox <alan@linux.intel.com>
+Cc: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: Oskar Schirmer <os@emlix.com>
+Cc: Fabian Godehardt <fg@emlix.com>
+Cc: Daniel Gl=F6ckner <dg@emlix.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/drbd/drbd_main.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/serial/imx.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/block/drbd/drbd_main.c~drbd-fix-test-of-unsigned-in-_drbd_fault_random drivers/block/drbd/drbd_main.c
---- a/drivers/block/drbd/drbd_main.c~drbd-fix-test-of-unsigned-in-_drbd_fault_random
-+++ a/drivers/block/drbd/drbd_main.c
-@@ -3623,7 +3623,7 @@ _drbd_fault_random(struct fault_random_s
- {
- 	long refresh;
- 
--	if (--rsp->count < 0) {
-+	if (!rsp->count--) {
- 		get_random_bytes(&refresh, sizeof(refresh));
- 		rsp->state += refresh;
- 		rsp->count = FAULT_RANDOM_REFRESH;
+diff -puN drivers/serial/imx.c~serial-imx-fix-null-dereference-oops-whe=
+n-pdata-=3D=3D-null drivers/serial/imx.c
+--- a/drivers/serial/imx.c~serial-imx-fix-null-dereference-oops-when-pd=
+ata-=3D=3D-null
++++ a/drivers/serial/imx.c
+@@ -1279,7 +1279,7 @@ static int serial_imx_probe(struct platf
+ 		sport->use_irda =3D 1;
+ #endif
+=20
+-	if (pdata->init) {
++	if (pdata && pdata->init) {
+ 		ret =3D pdata->init(pdev);
+ 		if (ret)
+ 			goto clkput;
+@@ -1292,7 +1292,7 @@ static int serial_imx_probe(struct platf
+=20
+ 	return 0;
+ deinit:
+-	if (pdata->exit)
++	if (pdata && pdata->exit)
+ 		pdata->exit(pdev);
+ clkput:
+ 	clk_put(sport->clk);
+@@ -1321,7 +1321,7 @@ static int serial_imx_remove(struct plat
+=20
+ 	clk_disable(sport->clk);
+=20
+-	if (pdata->exit)
++	if (pdata && pdata->exit)
+ 		pdata->exit(pdev);
+=20
+ 	iounmap(sport->port.membase);
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from baruch@tkos.co.il are
 
-zlib-optimize-inffast-when-copying-direct-from-output.patch
 linux-next.patch
-omap-confusion-in-iommu_put.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
-ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
-scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-cryptocop-fix-assertion-in-create_output_descriptors.patch
-asiliantfb-fix-test-of-unsigned-in-asiliant_calc_dclk2.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
