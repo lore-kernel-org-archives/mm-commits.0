@@ -1,138 +1,150 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-platform-x86-acerhdfc-check-bios-information-whether-it-begins-with-string-of-table.patch removed from -mm tree
-Date: Tue, 29 Dec 2009 13:32:08 -0800
-Message-ID: <200912292132.nBTLW8o2008610@imap1.linux-foundation.org>
+Subject: [merged] 8250_pci-add-support-for-mcs9865-syba-6x-serial-port-card.patch removed from -mm tree
+Date: Tue, 29 Dec 2009 13:32:54 -0800
+Message-ID: <200912292132.nBTLWsrv008664@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37582 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47315 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752809AbZL2VdS (ORCPT
+	by vger.kernel.org with ESMTP id S1752804AbZL2VdH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Dec 2009 16:33:18 -0500
+	Tue, 29 Dec 2009 16:33:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: peter@piie.net, andi@lisas.de, hpa@zytor.com, lenb@kernel.org, mingo@elte.hu, petkovbb@gmail.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: iws@ovro.caltech.edu, alan@lxorguk.ukuu.org.uk, augulis.darius@gmail.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/platform/x86/acerhdf.c: check BIOS information whether it begins with string of table
+     8250_pci: add support for MCS9865 / SYBA 6x Serial Port Card
 has been removed from the -mm tree.  Its filename was
-     drivers-platform-x86-acerhdfc-check-bios-information-whether-it-begins-with-string-of-table.patch
+     8250_pci-add-support-for-mcs9865-syba-6x-serial-port-card.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/platform/x86/acerhdf.c: check BIOS information whether it begins with string of table
-From: Peter Feuerer <peter@piie.net>
+Subject: 8250_pci: add support for MCS9865 / SYBA 6x Serial Port Card
+From: "Ira W. Snyder" <iws@ovro.caltech.edu>
 
-BIOS information is now checked whether it begins with the strings stored
-in the BIOS table.  Previous method did a strcmp, what lead to problems if
-BIOS information has appended whitespaces.
+This patch is heavily based on an earlier patch found on the linux-serial
+mailing list [1], written by Darius Augulis.
 
-Signed-off-by: Peter Feuerer <peter@piie.net>
-Cc: Borislav Petkov <petkovbb@gmail.com>
-Cc: Andreas Mohr <andi@lisas.de>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+The previous incarnation of this patch only supported a 2x serial port
+card.  I have added support for my SYBA 6x serial port card, and tested on
+x86.
+
+[1]: http://marc.info/?l=linux-serial&m=124975806304760
+
+Signed-off-by: Ira W. Snyder <iws@ovro.caltech.edu>
+Cc: Darius Augulis <augulis.darius@gmail.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/acerhdf.c |   46 ++++++++++++++++++-------------
- 1 file changed, 28 insertions(+), 18 deletions(-)
+ drivers/parport/parport_pc.c |    6 ++++++
+ drivers/serial/8250_pci.c    |   22 +++++++++++++++++++++-
+ include/linux/pci_ids.h      |    1 +
+ 3 files changed, 28 insertions(+), 1 deletion(-)
 
-diff -puN drivers/platform/x86/acerhdf.c~drivers-platform-x86-acerhdfc-check-bios-information-whether-it-begins-with-string-of-table drivers/platform/x86/acerhdf.c
---- a/drivers/platform/x86/acerhdf.c~drivers-platform-x86-acerhdfc-check-bios-information-whether-it-begins-with-string-of-table
-+++ a/drivers/platform/x86/acerhdf.c
-@@ -52,7 +52,7 @@
-  */
- #undef START_IN_KERNEL_MODE
- 
--#define DRV_VER "0.5.21"
-+#define DRV_VER "0.5.22"
- 
- /*
-  * According to the Atom N270 datasheet,
-@@ -165,12 +165,9 @@ static const struct bios_settings_t bios
- 	/* Gateway */
- 	{"Gateway", "AOA110", "v0.3103", 0x55, 0x58, {0x21, 0x21, 0x00} },
- 	{"Gateway", "AOA150", "v0.3103", 0x55, 0x58, {0x20, 0x20, 0x00} },
--	{"Gateway         ", "LT31            ", "v1.3103 ", 0x55, 0x58,
--		{0x10, 0x0f, 0x00} },
--	{"Gateway         ", "LT31            ", "v1.3201 ", 0x55, 0x58,
--		{0x10, 0x0f, 0x00} },
--	{"Gateway         ", "LT31            ", "v1.3302 ", 0x55, 0x58,
--		{0x10, 0x0f, 0x00} },
-+	{"Gateway", "LT31", "v1.3103", 0x55, 0x58, {0x10, 0x0f, 0x00} },
-+	{"Gateway", "LT31", "v1.3201", 0x55, 0x58, {0x10, 0x0f, 0x00} },
-+	{"Gateway", "LT31", "v1.3302", 0x55, 0x58, {0x10, 0x0f, 0x00} },
- 	/* Packard Bell */
- 	{"Packard Bell", "DOA150", "v0.3104", 0x55, 0x58, {0x21, 0x21, 0x00} },
- 	{"Packard Bell", "DOA150", "v0.3105", 0x55, 0x58, {0x20, 0x20, 0x00} },
-@@ -495,13 +492,26 @@ static struct platform_driver acerhdf_dr
- 	.remove = acerhdf_remove,
+diff -puN drivers/parport/parport_pc.c~8250_pci-add-support-for-mcs9865-syba-6x-serial-port-card drivers/parport/parport_pc.c
+--- a/drivers/parport/parport_pc.c~8250_pci-add-support-for-mcs9865-syba-6x-serial-port-card
++++ a/drivers/parport/parport_pc.c
+@@ -2908,6 +2908,7 @@ enum parport_pc_pci_cards {
+ 	netmos_9805,
+ 	netmos_9815,
+ 	netmos_9901,
++	netmos_9865,
+ 	quatech_sppxp100,
  };
  
-+/* checks if str begins with start */
-+static int str_starts_with(const char *str, const char *start)
-+{
-+	unsigned long str_len = 0, start_len = 0;
+@@ -2989,6 +2990,7 @@ static struct parport_pc_pci {
+ 	/* netmos_9805 */               { 1, { { 0, -1 }, } },
+ 	/* netmos_9815 */               { 2, { { 0, -1 }, { 2, -1 }, } },
+ 	/* netmos_9901 */               { 1, { { 0, -1 }, } },
++	/* netmos_9865 */               { 1, { { 0, -1 }, } },
+ 	/* quatech_sppxp100 */		{ 1, { { 0, 1 }, } },
+ };
+ 
+@@ -3092,6 +3094,10 @@ static const struct pci_device_id parpor
+ 	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, netmos_9815 },
+ 	{ PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9901,
+ 	  0xA000, 0x2000, 0, 0, netmos_9901 },
++	{ PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9865,
++	  0xA000, 0x1000, 0, 0, netmos_9865 },
++	{ PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9865,
++	  0xA000, 0x2000, 0, 0, netmos_9865 },
+ 	/* Quatech SPPXP-100 Parallel port PCI ExpressCard */
+ 	{ PCI_VENDOR_ID_QUATECH, PCI_DEVICE_ID_QUATECH_SPPXP_100,
+ 	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, quatech_sppxp100 },
+diff -puN drivers/serial/8250_pci.c~8250_pci-add-support-for-mcs9865-syba-6x-serial-port-card drivers/serial/8250_pci.c
+--- a/drivers/serial/8250_pci.c~8250_pci-add-support-for-mcs9865-syba-6x-serial-port-card
++++ a/drivers/serial/8250_pci.c
+@@ -760,7 +760,8 @@ static int pci_netmos_init(struct pci_de
+ 	/* subdevice 0x00PS means <P> parallel, <S> serial */
+ 	unsigned int num_serial = dev->subsystem_device & 0xf;
+ 
+-	if (dev->device == PCI_DEVICE_ID_NETMOS_9901)
++	if ((dev->device == PCI_DEVICE_ID_NETMOS_9901) ||
++		(dev->device == PCI_DEVICE_ID_NETMOS_9865))
+ 		return 0;
+ 	if (dev->subsystem_vendor == PCI_VENDOR_ID_IBM &&
+ 			dev->subsystem_device == 0x0299)
+@@ -1479,6 +1480,7 @@ enum pci_board_num_t {
+ 
+ 	pbn_b0_bt_1_115200,
+ 	pbn_b0_bt_2_115200,
++	pbn_b0_bt_4_115200,
+ 	pbn_b0_bt_8_115200,
+ 
+ 	pbn_b0_bt_1_460800,
+@@ -1703,6 +1705,12 @@ static struct pciserial_board pci_boards
+ 		.base_baud	= 115200,
+ 		.uart_offset	= 8,
+ 	},
++	[pbn_b0_bt_4_115200] = {
++		.flags		= FL_BASE0|FL_BASE_BARS,
++		.num_ports	= 4,
++		.base_baud	= 115200,
++		.uart_offset	= 8,
++	},
+ 	[pbn_b0_bt_8_115200] = {
+ 		.flags		= FL_BASE0|FL_BASE_BARS,
+ 		.num_ports	= 8,
+@@ -3649,6 +3657,18 @@ static struct pci_device_id serial_pci_t
+ 		0, 0, pbn_b0_1_115200 },
+ 
+ 	/*
++	 * Best Connectivity PCI Multi I/O cards
++	 */
 +
-+	str_len = strlen(str);
-+	start_len = strlen(start);
++	{	PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9865,
++		0xA000, 0x1000,
++		0, 0, pbn_b0_1_115200 },
 +
-+	if (str_len >= start_len &&
-+			!strncmp(str, start, start_len))
-+		return 1;
++	{	PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9865,
++		0xA000, 0x3004,
++		0, 0, pbn_b0_bt_4_115200 },
 +
-+	return 0;
-+}
++	/*
+ 	 * These entries match devices with class COMMUNICATION_SERIAL,
+ 	 * COMMUNICATION_MODEM or COMMUNICATION_MULTISERIAL
+ 	 */
+diff -puN include/linux/pci_ids.h~8250_pci-add-support-for-mcs9865-syba-6x-serial-port-card include/linux/pci_ids.h
+--- a/include/linux/pci_ids.h~8250_pci-add-support-for-mcs9865-syba-6x-serial-port-card
++++ a/include/linux/pci_ids.h
+@@ -2713,6 +2713,7 @@
+ #define PCI_DEVICE_ID_NETMOS_9835	0x9835
+ #define PCI_DEVICE_ID_NETMOS_9845	0x9845
+ #define PCI_DEVICE_ID_NETMOS_9855	0x9855
++#define PCI_DEVICE_ID_NETMOS_9865	0x9865
+ #define PCI_DEVICE_ID_NETMOS_9901	0x9901
  
- /* check hardware */
- static int acerhdf_check_hardware(void)
- {
- 	char const *vendor, *version, *product;
--	int i;
--	unsigned long prod_len = 0;
-+	const struct bios_settings_t *bt = NULL;
- 
- 	/* get BIOS data */
- 	vendor  = dmi_get_system_info(DMI_SYS_VENDOR);
-@@ -523,20 +533,20 @@ static int acerhdf_check_hardware(void)
- 		kernelmode = 0;
- 	}
- 
--	prod_len = strlen(product);
--
- 	if (verbose)
- 		pr_info("BIOS info: %s %s, product: %s\n",
- 			vendor, version, product);
- 
- 	/* search BIOS version and vendor in BIOS settings table */
--	for (i = 0; bios_tbl[i].version[0]; i++) {
--		if (strlen(bios_tbl[i].product) >= prod_len &&
--		    !strncmp(bios_tbl[i].product, product,
--			   strlen(bios_tbl[i].product)) &&
--		    !strcmp(bios_tbl[i].vendor, vendor) &&
--		    !strcmp(bios_tbl[i].version, version)) {
--			bios_cfg = &bios_tbl[i];
-+	for (bt = bios_tbl; bt->vendor[0]; bt++) {
-+		/*
-+		 * check if actual hardware BIOS vendor, product and version
-+		 * IDs start with the strings of BIOS table entry
-+		 */
-+		if (str_starts_with(vendor, bt->vendor) &&
-+				str_starts_with(product, bt->product) &&
-+				str_starts_with(version, bt->version)) {
-+			bios_cfg = bt;
- 			break;
- 		}
- 	}
+ #define PCI_VENDOR_ID_3COM_2		0xa727
 _
 
-Patches currently in -mm which might be from peter@piie.net are
+Patches currently in -mm which might be from iws@ovro.caltech.edu are
 
+linux-next.patch
 
