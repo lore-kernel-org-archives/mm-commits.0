@@ -1,60 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fix-section-mismatch-in-early-ehci-dbgp.patch removed from -mm tree
-Date: Tue, 29 Dec 2009 13:33:20 -0800
-Message-ID: <200912292133.nBTLXKHH008700@imap1.linux-foundation.org>
+Subject: [merged] usb-ftdi_sio-fix-error-message-on-close.patch removed from -mm tree
+Date: Tue, 29 Dec 2009 13:33:23 -0800
+Message-ID: <200912292133.nBTLXNBd008703@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45135 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53078 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752818AbZL2VdX (ORCPT
+	by vger.kernel.org with ESMTP id S1752830AbZL2Vdd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Dec 2009 16:33:23 -0500
+	Tue, 29 Dec 2009 16:33:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: JBeulich@novell.com, greg@kroah.com, jason.wessel@windriver.com, jbeulich@novell.com, mm-commits@vger.kernel.org
+To: jhovold@gmail.com, alan@lxorguk.ukuu.org.uk, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usb: fix section mismatch in early ehci dbgp
+     usb: ftdi_sio: fix error message on close
 has been removed from the -mm tree.  Its filename was
-     fix-section-mismatch-in-early-ehci-dbgp.patch
+     usb-ftdi_sio-fix-error-message-on-close.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb: fix section mismatch in early ehci dbgp
-From: "Jan Beulich" <JBeulich@novell.com>
+Subject: usb: ftdi_sio: fix error message on close
+From: Johan Hovold <jhovold@gmail.com>
 
-Commit 917778267fbe67703ab7d5c6f0b7a05d4c3df485 ("USB: ehci-dbgp:
-stability improvements and external re-init") removed __init from
-ehci_wait_for_port(), but left it in place on ehci_reset_port(), which is
-being called from the former function.
+Resubmitting read urb fails with -EPERM if completion handler runs while
+urb is being killed on close. This should not be reported as an error.
 
-Signed-off-by: Jan Beulich <jbeulich@novell.com>
-Acked-by: Jason Wessel <jason.wessel@windriver.com>
+Signed-off-by: Johan Hovold <jhovold@gmail.com>
 Cc: Greg KH <greg@kroah.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/early/ehci-dbgp.c |    2 +-
+ drivers/usb/serial/ftdi_sio.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/usb/early/ehci-dbgp.c~fix-section-mismatch-in-early-ehci-dbgp drivers/usb/early/ehci-dbgp.c
---- a/drivers/usb/early/ehci-dbgp.c~fix-section-mismatch-in-early-ehci-dbgp
-+++ a/drivers/usb/early/ehci-dbgp.c
-@@ -613,7 +613,7 @@ err:
- }
- EXPORT_SYMBOL_GPL(dbgp_external_startup);
- 
--static int __init ehci_reset_port(int port)
-+static int ehci_reset_port(int port)
- {
- 	u32 portsc;
- 	u32 delay_time, delay;
+diff -puN drivers/usb/serial/ftdi_sio.c~usb-ftdi_sio-fix-error-message-on-close drivers/usb/serial/ftdi_sio.c
+--- a/drivers/usb/serial/ftdi_sio.c~usb-ftdi_sio-fix-error-message-on-close
++++ a/drivers/usb/serial/ftdi_sio.c
+@@ -1700,7 +1700,7 @@ static int ftdi_submit_read_urb(struct u
+ 			   urb->transfer_buffer_length,
+ 			   ftdi_read_bulk_callback, port);
+ 	result = usb_submit_urb(urb, mem_flags);
+-	if (result)
++	if (result && result != -EPERM)
+ 		dev_err(&port->dev,
+ 			"%s - failed submitting read urb, error %d\n",
+ 							__func__, result);
 _
 
-Patches currently in -mm which might be from JBeulich@novell.com are
+Patches currently in -mm which might be from jhovold@gmail.com are
 
+linux-next.patch
 
