@@ -1,239 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-add-notifier-in-pageblock-isolation-for-balloon-drivers.patch removed from -mm tree
-Date: Wed, 23 Dec 2009 12:59:03 -0800
-Message-ID: <200912232059.nBNKx3ur021207@imap1.linux-foundation.org>
+Subject: [merged] jbd2-dont-use-__gfp_nofail-in-journal_init_common.patch removed from -mm tree
+Date: Tue, 29 Dec 2009 13:31:43 -0800
+Message-ID: <200912292131.nBTLVh0E008509@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55329 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56410 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755995AbZLWVAE (ORCPT
+	by vger.kernel.org with ESMTP id S1751670AbZL2Vbu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Dec 2009 16:00:04 -0500
+	Tue, 29 Dec 2009 16:31:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rcj@linux.vnet.ibm.com, benh@kernel.crashing.org, brking@linux.vnet.ibm.com, geralds@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, mingo@elte.hu, paulus@samba.org
+To: akpm@linux-foundation.org, casteyde.christian@free.fr, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: add notifier in pageblock isolation for balloon drivers
+     jbd2: don't use __GFP_NOFAIL in journal_init_common()
 has been removed from the -mm tree.  Its filename was
-     mm-add-notifier-in-pageblock-isolation-for-balloon-drivers.patch
+     jbd2-dont-use-__gfp_nofail-in-journal_init_common.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: add notifier in pageblock isolation for balloon drivers
-From: Robert Jennings <rcj@linux.vnet.ibm.com>
+Subject: jbd2: don't use __GFP_NOFAIL in journal_init_common()
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Memory balloon drivers can allocate a large amount of memory which is not
-movable but could be freed to accomodate memory hotplug remove.
+It triggers the warning in get_page_from_freelist(), and it isn't
+appropriate to use __GFP_NOFAIL here anyway.
 
-Prior to calling the memory hotplug notifier chain the memory in the
-pageblock is isolated.  Currently, if the migrate type is not
-MIGRATE_MOVABLE the isolation will not proceed, causing the memory removal
-for that page range to fail.
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=14843
 
-Rather than failing pageblock isolation if the migrateteype is not
-MIGRATE_MOVABLE, this patch checks if all of the pages in the pageblock,
-and not on the LRU, are owned by a registered balloon driver (or other
-entity) using a notifier chain.  If all of the non-movable pages are owned
-by a balloon, they can be freed later through the memory notifier chain
-and the range can still be isolated in set_migratetype_isolate().
-
-Signed-off-by: Robert Jennings <rcj@linux.vnet.ibm.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Brian King <brking@linux.vnet.ibm.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Gerald Schaefer <geralds@linux.vnet.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Reported-by: Christian Casteyde <casteyde.christian@free.fr>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c  |   19 +++++++++++++
- include/linux/memory.h |   27 ++++++++++++++++++
- mm/page_alloc.c        |   57 ++++++++++++++++++++++++++++++++++-----
- 3 files changed, 96 insertions(+), 7 deletions(-)
+ fs/jbd2/journal.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/base/memory.c~mm-add-notifier-in-pageblock-isolation-for-balloon-drivers drivers/base/memory.c
---- a/drivers/base/memory.c~mm-add-notifier-in-pageblock-isolation-for-balloon-drivers
-+++ a/drivers/base/memory.c
-@@ -63,6 +63,20 @@ void unregister_memory_notifier(struct n
- }
- EXPORT_SYMBOL(unregister_memory_notifier);
+diff -puN fs/jbd2/journal.c~jbd2-dont-use-__gfp_nofail-in-journal_init_common fs/jbd2/journal.c
+--- a/fs/jbd2/journal.c~jbd2-dont-use-__gfp_nofail-in-journal_init_common
++++ a/fs/jbd2/journal.c
+@@ -814,7 +814,7 @@ static journal_t * journal_init_common (
+ 	journal_t *journal;
+ 	int err;
  
-+static ATOMIC_NOTIFIER_HEAD(memory_isolate_chain);
-+
-+int register_memory_isolate_notifier(struct notifier_block *nb)
-+{
-+	return atomic_notifier_chain_register(&memory_isolate_chain, nb);
-+}
-+EXPORT_SYMBOL(register_memory_isolate_notifier);
-+
-+void unregister_memory_isolate_notifier(struct notifier_block *nb)
-+{
-+	atomic_notifier_chain_unregister(&memory_isolate_chain, nb);
-+}
-+EXPORT_SYMBOL(unregister_memory_isolate_notifier);
-+
- /*
-  * register_memory - Setup a sysfs device for a memory block
-  */
-@@ -157,6 +171,11 @@ int memory_notify(unsigned long val, voi
- 	return blocking_notifier_call_chain(&memory_chain, val, v);
- }
+-	journal = kzalloc(sizeof(*journal), GFP_KERNEL|__GFP_NOFAIL);
++	journal = kzalloc(sizeof(*journal), GFP_KERNEL);
+ 	if (!journal)
+ 		goto fail;
  
-+int memory_isolate_notify(unsigned long val, void *v)
-+{
-+	return atomic_notifier_call_chain(&memory_isolate_chain, val, v);
-+}
-+
- /*
-  * MEMORY_HOTPLUG depends on SPARSEMEM in mm/Kconfig, so it is
-  * OK to have direct references to sparsemem variables in here.
-diff -puN include/linux/memory.h~mm-add-notifier-in-pageblock-isolation-for-balloon-drivers include/linux/memory.h
---- a/include/linux/memory.h~mm-add-notifier-in-pageblock-isolation-for-balloon-drivers
-+++ a/include/linux/memory.h
-@@ -50,6 +50,19 @@ struct memory_notify {
- 	int status_change_nid;
- };
- 
-+/*
-+ * During pageblock isolation, count the number of pages within the
-+ * range [start_pfn, start_pfn + nr_pages) which are owned by code
-+ * in the notifier chain.
-+ */
-+#define MEM_ISOLATE_COUNT	(1<<0)
-+
-+struct memory_isolate_notify {
-+	unsigned long start_pfn;	/* Start of range to check */
-+	unsigned int nr_pages;		/* # pages in range to check */
-+	unsigned int pages_found;	/* # pages owned found by callbacks */
-+};
-+
- struct notifier_block;
- struct mem_section;
- 
-@@ -76,14 +89,28 @@ static inline int memory_notify(unsigned
- {
- 	return 0;
- }
-+static inline int register_memory_isolate_notifier(struct notifier_block *nb)
-+{
-+	return 0;
-+}
-+static inline void unregister_memory_isolate_notifier(struct notifier_block *nb)
-+{
-+}
-+static inline int memory_isolate_notify(unsigned long val, void *v)
-+{
-+	return 0;
-+}
- #else
- extern int register_memory_notifier(struct notifier_block *nb);
- extern void unregister_memory_notifier(struct notifier_block *nb);
-+extern int register_memory_isolate_notifier(struct notifier_block *nb);
-+extern void unregister_memory_isolate_notifier(struct notifier_block *nb);
- extern int register_new_memory(int, struct mem_section *);
- extern int unregister_memory_section(struct mem_section *);
- extern int memory_dev_init(void);
- extern int remove_memory_block(unsigned long, struct mem_section *, int);
- extern int memory_notify(unsigned long val, void *v);
-+extern int memory_isolate_notify(unsigned long val, void *v);
- extern struct memory_block *find_memory_block(struct mem_section *);
- #define CONFIG_MEM_BLOCK_SIZE	(PAGES_PER_SECTION<<PAGE_SHIFT)
- enum mem_add_context { BOOT, HOTPLUG };
-diff -puN mm/page_alloc.c~mm-add-notifier-in-pageblock-isolation-for-balloon-drivers mm/page_alloc.c
---- a/mm/page_alloc.c~mm-add-notifier-in-pageblock-isolation-for-balloon-drivers
-+++ a/mm/page_alloc.c
-@@ -48,6 +48,7 @@
- #include <linux/page_cgroup.h>
- #include <linux/debugobjects.h>
- #include <linux/kmemleak.h>
-+#include <linux/memory.h>
- #include <trace/events/kmem.h>
- 
- #include <asm/tlbflush.h>
-@@ -5008,23 +5009,65 @@ void set_pageblock_flags_group(struct pa
- int set_migratetype_isolate(struct page *page)
- {
- 	struct zone *zone;
--	unsigned long flags;
-+	struct page *curr_page;
-+	unsigned long flags, pfn, iter;
-+	unsigned long immobile = 0;
-+	struct memory_isolate_notify arg;
-+	int notifier_ret;
- 	int ret = -EBUSY;
- 	int zone_idx;
- 
- 	zone = page_zone(page);
- 	zone_idx = zone_idx(zone);
-+
- 	spin_lock_irqsave(&zone->lock, flags);
-+	if (get_pageblock_migratetype(page) == MIGRATE_MOVABLE ||
-+	    zone_idx == ZONE_MOVABLE) {
-+		ret = 0;
-+		goto out;
-+	}
-+
-+	pfn = page_to_pfn(page);
-+	arg.start_pfn = pfn;
-+	arg.nr_pages = pageblock_nr_pages;
-+	arg.pages_found = 0;
-+
- 	/*
--	 * In future, more migrate types will be able to be isolation target.
-+	 * It may be possible to isolate a pageblock even if the
-+	 * migratetype is not MIGRATE_MOVABLE. The memory isolation
-+	 * notifier chain is used by balloon drivers to return the
-+	 * number of pages in a range that are held by the balloon
-+	 * driver to shrink memory. If all the pages are accounted for
-+	 * by balloons, are free, or on the LRU, isolation can continue.
-+	 * Later, for example, when memory hotplug notifier runs, these
-+	 * pages reported as "can be isolated" should be isolated(freed)
-+	 * by the balloon driver through the memory notifier chain.
- 	 */
--	if (get_pageblock_migratetype(page) != MIGRATE_MOVABLE &&
--	    zone_idx != ZONE_MOVABLE)
-+	notifier_ret = memory_isolate_notify(MEM_ISOLATE_COUNT, &arg);
-+	notifier_ret = notifier_to_errno(notifier_ret);
-+	if (notifier_ret || !arg.pages_found)
- 		goto out;
--	set_pageblock_migratetype(page, MIGRATE_ISOLATE);
--	move_freepages_block(zone, page, MIGRATE_ISOLATE);
--	ret = 0;
-+
-+	for (iter = pfn; iter < (pfn + pageblock_nr_pages); iter++) {
-+		if (!pfn_valid_within(pfn))
-+			continue;
-+
-+		curr_page = pfn_to_page(iter);
-+		if (!page_count(curr_page) || PageLRU(curr_page))
-+			continue;
-+
-+		immobile++;
-+	}
-+
-+	if (arg.pages_found == immobile)
-+		ret = 0;
-+
- out:
-+	if (!ret) {
-+		set_pageblock_migratetype(page, MIGRATE_ISOLATE);
-+		move_freepages_block(zone, page, MIGRATE_ISOLATE);
-+	}
-+
- 	spin_unlock_irqrestore(&zone->lock, flags);
- 	if (!ret)
- 		drain_all_pages();
 _
 
-Patches currently in -mm which might be from rcj@linux.vnet.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-origin.patch
+percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+zlib-optimize-inffast-when-copying-direct-from-output.patch
+lib-add-support-for-lzo-compressed-kernels.patch
+linux-next.patch
+linux-next-fixup.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
+drivers-media-video-cx23885-needs-kfifo-conversion.patch
+drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
+drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
+drivers-media-video-pmsc-needs-versionh.patch
+hid-logitech-g13-driver-002-fix.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+net-sctp-socketc-squish-warning.patch
+proc_fops-convert-drivers-isdn-to-seq_file.patch
+3x59x-fix-pci-resource-management.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc.patch
+fs-improve-remountro-vs-buffercache-coherency.patch
+mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
+mm-count-swap-usage-checkpatch-fixes.patch
+mm-add-lowmem-detection-logic-fix.patch
+mm-count-lowmem-rss-checkpatch-fixes.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+memcg-move-charges-of-anonymous-page-cleanup.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
