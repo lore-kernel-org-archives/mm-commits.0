@@ -1,91 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch removed from -mm tree
-Date: Tue, 29 Dec 2009 13:32:36 -0800
-Message-ID: <200912292132.nBTLWa2j008639@imap1.linux-foundation.org>
+Subject: [merged] acpi-do-not-select-acpi_dock-from-ata_acpi.patch removed from -mm tree
+Date: Tue, 29 Dec 2009 13:32:11 -0800
+Message-ID: <200912292132.nBTLWBon008614@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39381 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52400 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752797AbZL2Vcz (ORCPT
+	by vger.kernel.org with ESMTP id S1752798AbZL2VdF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Dec 2009 16:32:55 -0500
+	Tue, 29 Dec 2009 16:33:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: albin.tonnerre@free-electrons.com, alan@lxorguk.ukuu.org.uk, haavard.skinnemoen@atmel.com, linux@maxim.org.za, mm-commits@vger.kernel.org
+To: crmafra@aei.mpg.de, lenb@kernel.org, shaohua.li@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atmel_serial: add poll_get_char and poll_put_char uart_ops
+     acpi: do not select ACPI_DOCK from ATA_ACPI
 has been removed from the -mm tree.  Its filename was
-     atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops.patch
+     acpi-do-not-select-acpi_dock-from-ata_acpi.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_serial: add poll_get_char and poll_put_char uart_ops
-From: Albin Tonnerre <albin.tonnerre@free-electrons.com>
+Subject: acpi: do not select ACPI_DOCK from ATA_ACPI
+From: "Carlos R. Mafra" <crmafra@aei.mpg.de>
 
-Permits using KGDB over the console with the atmel_serial driver.
+In March 2008 commit 0ac4a3c2fbbcadc3e96e4dc47d4ae802d66e6f67 ("ACPI: fix
+ATA_ACPI build") made CONFIG_ACPI_DOCK be selected by CONFIG_ATA_ACPI because
+of a build error when CONFIG_ATA_ACPI=y and CONFIG_ACPI_DOCK=m.
 
-[akpm@linux-foundation.org: s/barrier/cpu_relax/]
-Signed-off-by: Albin Tonnerre <albin.tonnerre@free-electrons.com>
-Acked-by: Andrew Victor <linux@maxim.org.za>
-Acked-by: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+However, in September 2008 commit 898b054f3eec5921320ae8614b5bdd7b07ea5b43
+("dock: make dock driver not a module") removed the possibility of having
+CONFIG_ACPI_DOCK=m and therefore there is no need for selecting it when
+CONFIG_ATA_ACPI=y.
+
+This makes the kernel ~5 Kb smaller for people who don't have a dock by
+allowing them to not have ACPI_DOCK compiled-in because of ATA_ACPI=y.
+
+Signed-off-by: Carlos R. Mafra <crmafra@aei.mpg.de>
+Cc: Shaohua Li <shaohua.li@intel.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/atmel_serial.c |   22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ drivers/ata/Kconfig |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/serial/atmel_serial.c~atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops drivers/serial/atmel_serial.c
---- a/drivers/serial/atmel_serial.c~atmel_serial-add-poll_get_char-and-poll_put_char-uart_ops
-+++ a/drivers/serial/atmel_serial.c
-@@ -1213,6 +1213,24 @@ static int atmel_verify_port(struct uart
- 	return ret;
- }
- 
-+#ifdef CONFIG_CONSOLE_POLL
-+static int atmel_poll_get_char(struct uart_port *port)
-+{
-+	while (!(UART_GET_CSR(port) & ATMEL_US_RXRDY))
-+		cpu_relax();
-+
-+	return UART_GET_CHAR(port);
-+}
-+
-+static void atmel_poll_put_char(struct uart_port *port, unsigned char ch)
-+{
-+	while (!(UART_GET_CSR(port) & ATMEL_US_TXRDY))
-+		cpu_relax();
-+
-+	UART_PUT_CHAR(port, ch);
-+}
-+#endif
-+
- static struct uart_ops atmel_pops = {
- 	.tx_empty	= atmel_tx_empty,
- 	.set_mctrl	= atmel_set_mctrl,
-@@ -1232,6 +1250,10 @@ static struct uart_ops atmel_pops = {
- 	.config_port	= atmel_config_port,
- 	.verify_port	= atmel_verify_port,
- 	.pm		= atmel_serial_pm,
-+#ifdef CONFIG_CONSOLE_POLL
-+	.poll_get_char	= atmel_poll_get_char,
-+	.poll_put_char	= atmel_poll_put_char,
-+#endif
- };
- 
- /*
+diff -puN drivers/ata/Kconfig~acpi-do-not-select-acpi_dock-from-ata_acpi drivers/ata/Kconfig
+--- a/drivers/ata/Kconfig~acpi-do-not-select-acpi_dock-from-ata_acpi
++++ a/drivers/ata/Kconfig
+@@ -40,7 +40,6 @@ config ATA_VERBOSE_ERROR
+ config ATA_ACPI
+ 	bool "ATA ACPI Support"
+ 	depends on ACPI && PCI
+-	select ACPI_DOCK
+ 	default y
+ 	help
+ 	  This option adds support for ATA-related ACPI objects.
 _
 
-Patches currently in -mm which might be from albin.tonnerre@free-electrons.com are
+Patches currently in -mm which might be from crmafra@aei.mpg.de are
 
-lib-add-support-for-lzo-compressed-kernels.patch
-arm-add-support-for-lzo-compressed-kernels.patch
-x86-add-support-for-lzo-compressed-kernels.patch
-add-lzo-compression-support-for-initramfs-and-old-style-initrd.patch
-linux-next.patch
 
