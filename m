@@ -1,409 +1,1149 @@
 From: akpm@linux-foundation.org
-Subject: [merged] synclink_gt-dropped-transmit-data-bugfix.patch removed from -mm tree
-Date: Tue, 29 Dec 2009 13:32:51 -0800
-Message-ID: <200912292132.nBTLWpjs008661@imap1.linux-foundation.org>
+Subject: [merged] serial-fit-blackfin-uart-over-sport-driver-into-common-uart-infrastructure.patch removed from -mm tree
+Date: Tue, 29 Dec 2009 13:32:25 -0800
+Message-ID: <200912292132.nBTLWPCj008627@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54316 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39044 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752800AbZL2VdH (ORCPT
+	by vger.kernel.org with ESMTP id S1752827AbZL2VdV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Dec 2009 16:33:07 -0500
+	Tue, 29 Dec 2009 16:33:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: paulkf@microgate.com, alan@lxorguk.ukuu.org.uk, greg@kroah.com, mm-commits@vger.kernel.org
+To: sonic.adi@gmail.com, alan@lxorguk.ukuu.org.uk, cooloney@kernel.org, sonic.zhang@analog.com, vapier@gentoo.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     synclink_gt: dropped transmit data bugfix
+     serial: fit blackfin uart over sport driver into common uart infrastructure
 has been removed from the -mm tree.  Its filename was
-     synclink_gt-dropped-transmit-data-bugfix.patch
+     serial-fit-blackfin-uart-over-sport-driver-into-common-uart-infrastructure.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: synclink_gt: dropped transmit data bugfix
-From: Paul Fulghum <paulkf@microgate.com>
+Subject: serial: fit blackfin uart over sport driver into common uart infrastructure
+From: sonic zhang <sonic.adi@gmail.com>
 
-Fix transmit bug that could drop send data if write() called close to
-serial transmitter going idle after sending previous data.  Bug is caused
-by incorrect use of device information member tx_count.
+Fit blackfin uart over sport driver into common uart inftrastructure.  It
+is based on the early platform interfaces to get the platform data early
+when the console is initilized.
 
-Driver originally processed one data block (write call) at a time, waiting
-for transmit idle before sending more.  tx_count recorded how much data
-was loaded in DMA buffers on write(), and was cleared on send completion. 
-tx_count use was overloaded to record accumulated data from put_char()
-callback when transmitter was idle.
+1. Enable sport uart driver to change uart baud, data bit, stop bit at
+   runtime.  Bind the index of uart device nodes to physical index of
+   sports.
 
-A bug was introduced when transmit code was reworked to allow multiple
-blocks of data in the tx DMA buffers which keeps transmitter from going
-idle between blocks.  tx_count was set to size of last block loaded,
-cleared when tx went idle, and monitored to know when to restart
-transmitter without proper synchronization.  tx_count could be cleared
-when unsent data remained in DMA buffers and transmitter required
-restarting, effectively dropping unsent data.
+2. Move all platform data into arch specific board files.  Register
+   and probe platform device data in both early and normal stages.
 
-Solution:
-1. tx_count now used only to track accumulated data from put_char
-2. DMA buffer state tracked by direct inspection of descriptors
-   with spinlock synchronization
-3. consolidate these tasks in tx_load() :
-   a. check for available buffer space
-   b. load buffers
-   c. restart DMA and or serial transmitter as needed
-   These steps were previously duplicated in multiple places,
-   sometimes incompletely.
-4. fix use of tx_count as active transmit indicator,
-   instead using tx_active which is meant for that purpose
+3. Console is registered in sport uart driver as well.
 
-Signed-off-by: Paul Fulghum <paulkf@microgate.com>
+4. Remove 500 us block waiting in sport tx stop code by putting a
+   dummy data into tx fifo to make sure the sport tx stops when all bytes
+   are shifted out except for the dummy data.
+
+5. clean up a bit and fix up coding style.
+
+Signed-off-by: Sonic Zhang <sonic.zhang@analog.com>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Greg KH <greg@kroah.com>
+Cc: Mike Frysinger <vapier@gentoo.org>
+Cc: Bryan Wu <cooloney@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/synclink_gt.c |  186 +++++++++++++++++++----------------
- 1 file changed, 105 insertions(+), 81 deletions(-)
+ drivers/serial/Kconfig           |   52 --
+ drivers/serial/bfin_sport_uart.c |  703 +++++++++++++++++++----------
+ drivers/serial/bfin_sport_uart.h |   38 -
+ 3 files changed, 512 insertions(+), 281 deletions(-)
 
-diff -puN drivers/char/synclink_gt.c~synclink_gt-dropped-transmit-data-bugfix drivers/char/synclink_gt.c
---- a/drivers/char/synclink_gt.c~synclink_gt-dropped-transmit-data-bugfix
-+++ a/drivers/char/synclink_gt.c
-@@ -468,7 +468,7 @@ static unsigned int free_tbuf_count(stru
- static unsigned int tbuf_bytes(struct slgt_info *info);
- static void reset_tbufs(struct slgt_info *info);
- static void tdma_reset(struct slgt_info *info);
--static void tx_load(struct slgt_info *info, const char *buf, unsigned int count);
-+static bool tx_load(struct slgt_info *info, const char *buf, unsigned int count);
+diff -puN drivers/serial/Kconfig~serial-fit-blackfin-uart-over-sport-driver-into-common-uart-infrastructure drivers/serial/Kconfig
+--- a/drivers/serial/Kconfig~serial-fit-blackfin-uart-over-sport-driver-into-common-uart-infrastructure
++++ a/drivers/serial/Kconfig
+@@ -1418,38 +1418,34 @@ config SERIAL_BFIN_SPORT
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called bfin_sport_uart.
  
- static void get_signals(struct slgt_info *info);
- static void set_signals(struct slgt_info *info);
-@@ -813,59 +813,32 @@ static int write(struct tty_struct *tty,
- 	int ret = 0;
- 	struct slgt_info *info = tty->driver_data;
- 	unsigned long flags;
--	unsigned int bufs_needed;
- 
- 	if (sanity_check(info, tty->name, "write"))
--		goto cleanup;
-+		return -EIO;
-+
- 	DBGINFO(("%s write count=%d\n", info->device_name, count));
- 
--	if (!info->tx_buf)
--		goto cleanup;
-+	if (!info->tx_buf || (count > info->max_frame_size))
-+		return -EIO;
- 
--	if (count > info->max_frame_size) {
--		ret = -EIO;
--		goto cleanup;
--	}
-+	if (!count || tty->stopped || tty->hw_stopped)
-+		return 0;
- 
--	if (!count)
--		goto cleanup;
-+	spin_lock_irqsave(&info->lock, flags);
- 
--	if (!info->tx_active && info->tx_count) {
-+	if (info->tx_count) {
- 		/* send accumulated data from send_char() */
--		tx_load(info, info->tx_buf, info->tx_count);
--		goto start;
-+		if (!tx_load(info, info->tx_buf, info->tx_count))
-+			goto cleanup;
-+		info->tx_count = 0;
- 	}
--	bufs_needed = (count/DMABUFSIZE);
--	if (count % DMABUFSIZE)
--		++bufs_needed;
--	if (bufs_needed > free_tbuf_count(info))
--		goto cleanup;
- 
--	ret = info->tx_count = count;
--	tx_load(info, buf, count);
--	goto start;
+-choice
+-	prompt "Baud rate for Blackfin SPORT UART"
+-	depends on SERIAL_BFIN_SPORT
+-	default SERIAL_SPORT_BAUD_RATE_57600
+-	help
+-	  Choose a baud rate for the SPORT UART, other uart settings are
+-	  8 bit, 1 stop bit, no parity, no flow control.
 -
--start:
-- 	if (info->tx_count && !tty->stopped && !tty->hw_stopped) {
--		spin_lock_irqsave(&info->lock,flags);
--		if (!info->tx_active)
--		 	tx_start(info);
--		else if (!(rd_reg32(info, TDCSR) & BIT0)) {
--			/* transmit still active but transmit DMA stopped */
--			unsigned int i = info->tbuf_current;
--			if (!i)
--				i = info->tbuf_count;
--			i--;
--			/* if DMA buf unsent must try later after tx idle */
--			if (desc_count(info->tbufs[i]))
--				ret = 0;
--		}
--		if (ret > 0)
--			update_tx_timer(info);
--		spin_unlock_irqrestore(&info->lock,flags);
-- 	}
-+	if (tx_load(info, buf, count))
-+		ret = count;
+-config SERIAL_SPORT_BAUD_RATE_115200
+-	bool "115200"
+-
+-config SERIAL_SPORT_BAUD_RATE_57600
+-	bool "57600"
++config SERIAL_BFIN_SPORT_CONSOLE
++	bool "Console on Blackfin sport emulated uart"
++	depends on SERIAL_BFIN_SPORT=y
++	select SERIAL_CORE_CONSOLE
  
- cleanup:
-+	spin_unlock_irqrestore(&info->lock, flags);
- 	DBGINFO(("%s write rc=%d\n", info->device_name, ret));
- 	return ret;
- }
-@@ -882,7 +855,7 @@ static int put_char(struct tty_struct *t
- 	if (!info->tx_buf)
- 		return 0;
- 	spin_lock_irqsave(&info->lock,flags);
--	if (!info->tx_active && (info->tx_count < info->max_frame_size)) {
-+	if (info->tx_count < info->max_frame_size) {
- 		info->tx_buf[info->tx_count++] = ch;
- 		ret = 1;
- 	}
-@@ -981,10 +954,8 @@ static void flush_chars(struct tty_struc
- 	DBGINFO(("%s flush_chars start transmit\n", info->device_name));
+-config SERIAL_SPORT_BAUD_RATE_38400
+-	bool "38400"
++config SERIAL_BFIN_SPORT0_UART
++	bool "Enable UART over SPORT0"
++	depends on SERIAL_BFIN_SPORT && !(BF542 || BF542M || BF544 || BF544M)
++	help
++	  Enable UART over SPORT0
  
- 	spin_lock_irqsave(&info->lock,flags);
--	if (!info->tx_active && info->tx_count) {
--		tx_load(info, info->tx_buf,info->tx_count);
--	 	tx_start(info);
--	}
-+	if (info->tx_count && tx_load(info, info->tx_buf, info->tx_count))
-+		info->tx_count = 0;
- 	spin_unlock_irqrestore(&info->lock,flags);
- }
+-config SERIAL_SPORT_BAUD_RATE_19200
+-	bool "19200"
++config SERIAL_BFIN_SPORT1_UART
++	bool "Enable UART over SPORT1"
++	depends on SERIAL_BFIN_SPORT
++	help
++	  Enable UART over SPORT1
  
-@@ -997,10 +968,9 @@ static void flush_buffer(struct tty_stru
- 		return;
- 	DBGINFO(("%s flush_buffer\n", info->device_name));
+-config SERIAL_SPORT_BAUD_RATE_9600
+-	bool "9600"
+-endchoice
++config SERIAL_BFIN_SPORT2_UART
++	bool "Enable UART over SPORT2"
++	depends on SERIAL_BFIN_SPORT && (BF54x || BF538 || BF539)
++	help
++	  Enable UART over SPORT2
  
--	spin_lock_irqsave(&info->lock,flags);
--	if (!info->tx_active)
--		info->tx_count = 0;
--	spin_unlock_irqrestore(&info->lock,flags);
-+	spin_lock_irqsave(&info->lock, flags);
-+	info->tx_count = 0;
-+	spin_unlock_irqrestore(&info->lock, flags);
+-config SPORT_BAUD_RATE
+-	int
+-	depends on SERIAL_BFIN_SPORT
+-	default 115200 if (SERIAL_SPORT_BAUD_RATE_115200)
+-	default 57600 if (SERIAL_SPORT_BAUD_RATE_57600)
+-	default 38400 if (SERIAL_SPORT_BAUD_RATE_38400)
+-	default 19200 if (SERIAL_SPORT_BAUD_RATE_19200)
+-	default 9600 if (SERIAL_SPORT_BAUD_RATE_9600)
++config SERIAL_BFIN_SPORT3_UART
++	bool "Enable UART over SPORT3"
++	depends on SERIAL_BFIN_SPORT && (BF54x || BF538 || BF539)
++	help
++	  Enable UART over SPORT3
  
- 	tty_wakeup(tty);
- }
-@@ -1033,12 +1003,10 @@ static void tx_release(struct tty_struct
- 	if (sanity_check(info, tty->name, "tx_release"))
- 		return;
- 	DBGINFO(("%s tx_release\n", info->device_name));
--	spin_lock_irqsave(&info->lock,flags);
--	if (!info->tx_active && info->tx_count) {
--		tx_load(info, info->tx_buf, info->tx_count);
--	 	tx_start(info);
--	}
--	spin_unlock_irqrestore(&info->lock,flags);
-+	spin_lock_irqsave(&info->lock, flags);
-+	if (info->tx_count && tx_load(info, info->tx_buf, info->tx_count))
-+		info->tx_count = 0;
-+	spin_unlock_irqrestore(&info->lock, flags);
- }
+ config SERIAL_TIMBERDALE
+ 	tristate "Support for timberdale UART"
+diff -puN drivers/serial/bfin_sport_uart.c~serial-fit-blackfin-uart-over-sport-driver-into-common-uart-infrastructure drivers/serial/bfin_sport_uart.c
+--- a/drivers/serial/bfin_sport_uart.c~serial-fit-blackfin-uart-over-sport-driver-into-common-uart-infrastructure
++++ a/drivers/serial/bfin_sport_uart.c
+@@ -1,27 +1,11 @@
+ /*
+- * File:	linux/drivers/serial/bfin_sport_uart.c
++ * Blackfin On-Chip Sport Emulated UART Driver
+  *
+- * Based on:	drivers/serial/bfin_5xx.c by Aubrey Li.
+- * Author:	Roy Huang <roy.huang@analog.com>
++ * Copyright 2006-2009 Analog Devices Inc.
+  *
+- * Created:	Nov 22, 2006
+- * Copyright:	(c) 2006-2007 Analog Devices Inc.
+- * Description: this driver enable SPORTs on Blackfin emulate UART.
++ * Enter bugs at http://blackfin.uclinux.org/
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, see the file COPYING, or write
+- * to the Free Software Foundation, Inc.,
+- * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
++ * Licensed under the GPL-2 or later.
+  */
  
  /*
-@@ -1506,27 +1474,25 @@ static netdev_tx_t hdlcdev_xmit(struct s
+@@ -29,39 +13,18 @@
+  * http://www.analog.com/UploadedFiles/Application_Notes/399447663EE191.pdf
+  * This application note describe how to implement a UART on a Sharc DSP,
+  * but this driver is implemented on Blackfin Processor.
++ * Transmit Frame Sync is not used by this driver to transfer data out.
+  */
  
- 	DBGINFO(("%s hdlc_xmit\n", dev->name));
- 
-+	if (!skb->len)
-+		return NETDEV_TX_OK;
-+
- 	/* stop sending until this frame completes */
- 	netif_stop_queue(dev);
- 
--	/* copy data to device buffers */
--	info->tx_count = skb->len;
--	tx_load(info, skb->data, skb->len);
+-/* After reset, there is a prelude of low level pulse when transmit data first
+- * time. No addtional pulse in following transmit.
+- * According to document:
+- * The SPORTs are ready to start transmitting or receiving data no later than
+- * three serial clock cycles after they are enabled in the SPORTx_TCR1 or
+- * SPORTx_RCR1 register. No serial clock cycles are lost from this point on.
+- * The first internal frame sync will occur one frame sync delay after the
+- * SPORTs are ready. External frame syncs can occur as soon as the SPORT is
+- * ready.
+- */
 -
- 	/* update network statistics */
- 	dev->stats.tx_packets++;
- 	dev->stats.tx_bytes += skb->len;
+-/* Thanks to Axel Alatalo <axel@rubico.se> for fixing sport rx bug. Sometimes
+- * sport receives data incorrectly. The following is Axel's words.
+- * As EE-191, sport rx samples 3 times of the UART baudrate and takes the
+- * middle smaple of every 3 samples as the data bit. For a 8-N-1 UART setting,
+- * 30 samples will be required for a byte. If transmitter sends a 1/3 bit short
+- * byte due to buadrate drift, then the 30th sample of a byte, this sample is
+- * also the third sample of the stop bit, will happens on the immediately
+- * following start bit which will be thrown away and missed. Thus since parts
+- * of the startbit will be missed and the receiver will begin to drift, the
+- * effect accumulates over time until synchronization is lost.
+- * If only require 2 samples of the stopbit (by sampling in total 29 samples),
+- * then a to short byte as in the case above will be tolerated. Then the 1/3
+- * early startbit will trigger a framesync since the last read is complete
+- * after only 2/3 stopbit and framesync is active during the last 1/3 looking
+- * for a possible early startbit. */
++/* #define DEBUG */
  
--	/* done with socket buffer, so free it */
--	dev_kfree_skb(skb);
+-//#define DEBUG
++#define DRV_NAME "bfin-sport-uart"
++#define DEVICE_NAME	"ttySS"
++#define pr_fmt(fmt) DRV_NAME ": " fmt
+ 
+ #include <linux/module.h>
+ #include <linux/ioport.h>
++#include <linux/io.h>
+ #include <linux/init.h>
+ #include <linux/console.h>
+ #include <linux/sysrq.h>
+@@ -75,23 +38,36 @@
+ 
+ #include "bfin_sport_uart.h"
+ 
++#ifdef CONFIG_SERIAL_BFIN_SPORT0_UART
+ unsigned short bfin_uart_pin_req_sport0[] =
+ 	{P_SPORT0_TFS, P_SPORT0_DTPRI, P_SPORT0_TSCLK, P_SPORT0_RFS, \
+ 	 P_SPORT0_DRPRI, P_SPORT0_RSCLK, P_SPORT0_DRSEC, P_SPORT0_DTSEC, 0};
 -
- 	/* save start time for transmit timeout detection */
- 	dev->trans_start = jiffies;
++#endif
++#ifdef CONFIG_SERIAL_BFIN_SPORT1_UART
+ unsigned short bfin_uart_pin_req_sport1[] =
+ 	{P_SPORT1_TFS, P_SPORT1_DTPRI, P_SPORT1_TSCLK, P_SPORT1_RFS, \
+ 	P_SPORT1_DRPRI, P_SPORT1_RSCLK, P_SPORT1_DRSEC, P_SPORT1_DTSEC, 0};
+-
+-#define DRV_NAME "bfin-sport-uart"
++#endif
++#ifdef CONFIG_SERIAL_BFIN_SPORT2_UART
++unsigned short bfin_uart_pin_req_sport2[] =
++	{P_SPORT2_TFS, P_SPORT2_DTPRI, P_SPORT2_TSCLK, P_SPORT2_RFS, \
++	P_SPORT2_DRPRI, P_SPORT2_RSCLK, P_SPORT2_DRSEC, P_SPORT2_DTSEC, 0};
++#endif
++#ifdef CONFIG_SERIAL_BFIN_SPORT3_UART
++unsigned short bfin_uart_pin_req_sport3[] =
++	{P_SPORT3_TFS, P_SPORT3_DTPRI, P_SPORT3_TSCLK, P_SPORT3_RFS, \
++	P_SPORT3_DRPRI, P_SPORT3_RSCLK, P_SPORT3_DRSEC, P_SPORT3_DTSEC, 0};
++#endif
  
--	spin_lock_irqsave(&info->lock,flags);
--	tx_start(info);
--	update_tx_timer(info);
--	spin_unlock_irqrestore(&info->lock,flags);
-+	spin_lock_irqsave(&info->lock, flags);
-+	tx_load(info, skb->data, skb->len);
-+	spin_unlock_irqrestore(&info->lock, flags);
+ struct sport_uart_port {
+ 	struct uart_port	port;
+-	char			*name;
+-
+-	int			tx_irq;
+-	int			rx_irq;
+ 	int			err_irq;
++	unsigned short		csize;
++	unsigned short		rxmask;
++	unsigned short		txmask1;
++	unsigned short		txmask2;
++	unsigned char		stopb;
++/*	unsigned char		parib; */
+ };
+ 
+ static void sport_uart_tx_chars(struct sport_uart_port *up);
+@@ -99,36 +75,42 @@ static void sport_stop_tx(struct uart_po
+ 
+ static inline void tx_one_byte(struct sport_uart_port *up, unsigned int value)
+ {
+-	pr_debug("%s value:%x\n", __func__, value);
+-	/* Place a Start and Stop bit */
++	pr_debug("%s value:%x, mask1=0x%x, mask2=0x%x\n", __func__, value,
++		up->txmask1, up->txmask2);
 +
-+	/* done with socket buffer, so free it */
-+	dev_kfree_skb(skb);
++	/* Place Start and Stop bits */
+ 	__asm__ __volatile__ (
+-		"R2 = b#01111111100;"
+-		"R3 = b#10000000001;"
+-		"%0 <<= 2;"
+-		"%0 = %0 & R2;"
+-		"%0 = %0 | R3;"
+-		: "=d"(value)
+-		: "d"(value)
+-		: "ASTAT", "R2", "R3"
++		"%[val] <<= 1;"
++		"%[val] = %[val] & %[mask1];"
++		"%[val] = %[val] | %[mask2];"
++		: [val]"+d"(value)
++		: [mask1]"d"(up->txmask1), [mask2]"d"(up->txmask2)
++		: "ASTAT"
+ 	);
+ 	pr_debug("%s value:%x\n", __func__, value);
  
- 	return NETDEV_TX_OK;
+ 	SPORT_PUT_TX(up, value);
  }
-@@ -2180,7 +2146,7 @@ static void isr_serial(struct slgt_info 
  
- 	if (info->params.mode == MGSL_MODE_ASYNC) {
- 		if (status & IRQ_TXIDLE) {
--			if (info->tx_count)
-+			if (info->tx_active)
- 				isr_txeom(info, status);
- 		}
- 		if (info->rx_pio && (status & IRQ_RXDATA))
-@@ -2276,13 +2242,42 @@ static void isr_tdma(struct slgt_info *i
+-static inline unsigned int rx_one_byte(struct sport_uart_port *up)
++static inline unsigned char rx_one_byte(struct sport_uart_port *up)
+ {
+-	unsigned int value, extract;
++	unsigned int value;
++	unsigned char extract;
+ 	u32 tmp_mask1, tmp_mask2, tmp_shift, tmp;
+ 
+-	value = SPORT_GET_RX32(up);
+-	pr_debug("%s value:%x\n", __func__, value);
++	if ((up->csize + up->stopb) > 7)
++		value = SPORT_GET_RX32(up);
++	else
++		value = SPORT_GET_RX(up);
+ 
+-	/* Extract 8 bits data */
++	pr_debug("%s value:%x, cs=%d, mask=0x%x\n", __func__, value,
++		up->csize, up->rxmask);
++
++	/* Extract data */
+ 	__asm__ __volatile__ (
+ 		"%[extr] = 0;"
+-		"%[mask1] = 0x1801(Z);"
+-		"%[mask2] = 0x0300(Z);"
++		"%[mask1] = %[rxmask];"
++		"%[mask2] = 0x0200(Z);"
+ 		"%[shift] = 0;"
+ 		"LSETUP(.Lloop_s, .Lloop_e) LC0 = %[lc];"
+ 		".Lloop_s:"
+@@ -138,9 +120,9 @@ static inline unsigned int rx_one_byte(s
+ 		"%[mask1] = %[mask1] - %[mask2];"
+ 		".Lloop_e:"
+ 		"%[shift] += 1;"
+-		: [val]"=d"(value), [extr]"=d"(extract), [shift]"=d"(tmp_shift), [tmp]"=d"(tmp),
+-		  [mask1]"=d"(tmp_mask1), [mask2]"=d"(tmp_mask2)
+-		: "d"(value), [lc]"a"(8)
++		: [extr]"=&d"(extract), [shift]"=&d"(tmp_shift), [tmp]"=&d"(tmp),
++		  [mask1]"=&d"(tmp_mask1), [mask2]"=&d"(tmp_mask2)
++		: [val]"d"(value), [rxmask]"d"(up->rxmask), [lc]"a"(up->csize)
+ 		: "ASTAT", "LB0", "LC0", "LT0"
+ 	);
+ 
+@@ -148,29 +130,28 @@ static inline unsigned int rx_one_byte(s
+ 	return extract;
+ }
+ 
+-static int sport_uart_setup(struct sport_uart_port *up, int sclk, int baud_rate)
++static int sport_uart_setup(struct sport_uart_port *up, int size, int baud_rate)
+ {
+-	int tclkdiv, tfsdiv, rclkdiv;
++	int tclkdiv, rclkdiv;
++	unsigned int sclk = get_sclk();
+ 
+-	/* Set TCR1 and TCR2 */
+-	SPORT_PUT_TCR1(up, (LATFS | ITFS | TFSR | TLSBIT | ITCLK));
+-	SPORT_PUT_TCR2(up, 10);
++	/* Set TCR1 and TCR2, TFSR is not enabled for uart */
++	SPORT_PUT_TCR1(up, (ITFS | TLSBIT | ITCLK));
++	SPORT_PUT_TCR2(up, size + 1);
+ 	pr_debug("%s TCR1:%x, TCR2:%x\n", __func__, SPORT_GET_TCR1(up), SPORT_GET_TCR2(up));
+ 
+ 	/* Set RCR1 and RCR2 */
+ 	SPORT_PUT_RCR1(up, (RCKFE | LARFS | LRFS | RFSR | IRCLK));
+-	SPORT_PUT_RCR2(up, 28);
++	SPORT_PUT_RCR2(up, (size + 1) * 2 - 1);
+ 	pr_debug("%s RCR1:%x, RCR2:%x\n", __func__, SPORT_GET_RCR1(up), SPORT_GET_RCR2(up));
+ 
+-	tclkdiv = sclk/(2 * baud_rate) - 1;
+-	tfsdiv = 12;
+-	rclkdiv = sclk/(2 * baud_rate * 3) - 1;
++	tclkdiv = sclk / (2 * baud_rate) - 1;
++	rclkdiv = sclk / (2 * baud_rate * 2) - 1;
+ 	SPORT_PUT_TCLKDIV(up, tclkdiv);
+-	SPORT_PUT_TFSDIV(up, tfsdiv);
+ 	SPORT_PUT_RCLKDIV(up, rclkdiv);
+ 	SSYNC();
+-	pr_debug("%s sclk:%d, baud_rate:%d, tclkdiv:%d, tfsdiv:%d, rclkdiv:%d\n",
+-			__func__, sclk, baud_rate, tclkdiv, tfsdiv, rclkdiv);
++	pr_debug("%s sclk:%d, baud_rate:%d, tclkdiv:%d, rclkdiv:%d\n",
++			__func__, sclk, baud_rate, tclkdiv, rclkdiv);
+ 
+ 	return 0;
+ }
+@@ -181,23 +162,29 @@ static irqreturn_t sport_uart_rx_irq(int
+ 	struct tty_struct *tty = up->port.state->port.tty;
+ 	unsigned int ch;
+ 
+-	do {
++	spin_lock(&up->port.lock);
++
++	while (SPORT_GET_STAT(up) & RXNE) {
+ 		ch = rx_one_byte(up);
+ 		up->port.icount.rx++;
+ 
+-		if (uart_handle_sysrq_char(&up->port, ch))
+-			;
+-		else
++		if (!uart_handle_sysrq_char(&up->port, ch))
+ 			tty_insert_flip_char(tty, ch, TTY_NORMAL);
+-	} while (SPORT_GET_STAT(up) & RXNE);
++	}
+ 	tty_flip_buffer_push(tty);
+ 
++	spin_unlock(&up->port.lock);
++
+ 	return IRQ_HANDLED;
+ }
+ 
+ static irqreturn_t sport_uart_tx_irq(int irq, void *dev_id)
+ {
+-	sport_uart_tx_chars(dev_id);
++	struct sport_uart_port *up = dev_id;
++
++	spin_lock(&up->port.lock);
++	sport_uart_tx_chars(up);
++	spin_unlock(&up->port.lock);
+ 
+ 	return IRQ_HANDLED;
+ }
+@@ -208,6 +195,8 @@ static irqreturn_t sport_uart_err_irq(in
+ 	struct tty_struct *tty = up->port.state->port.tty;
+ 	unsigned int stat = SPORT_GET_STAT(up);
+ 
++	spin_lock(&up->port.lock);
++
+ 	/* Overflow in RX FIFO */
+ 	if (stat & ROVF) {
+ 		up->port.icount.overrun++;
+@@ -216,15 +205,16 @@ static irqreturn_t sport_uart_err_irq(in
  	}
+ 	/* These should not happen */
+ 	if (stat & (TOVF | TUVF | RUVF)) {
+-		printk(KERN_ERR "SPORT Error:%s %s %s\n",
+-				(stat & TOVF)?"TX overflow":"",
+-				(stat & TUVF)?"TX underflow":"",
+-				(stat & RUVF)?"RX underflow":"");
++		pr_err("SPORT Error:%s %s %s\n",
++		       (stat & TOVF) ? "TX overflow" : "",
++		       (stat & TUVF) ? "TX underflow" : "",
++		       (stat & RUVF) ? "RX underflow" : "");
+ 		SPORT_PUT_TCR1(up, SPORT_GET_TCR1(up) & ~TSPEN);
+ 		SPORT_PUT_RCR1(up, SPORT_GET_RCR1(up) & ~RSPEN);
+ 	}
+ 	SSYNC();
+ 
++	spin_unlock(&up->port.lock);
+ 	return IRQ_HANDLED;
  }
  
-+/*
-+ * return true if there are unsent tx DMA buffers, otherwise false
-+ *
-+ * if there are unsent buffers then info->tbuf_start
-+ * is set to index of first unsent buffer
-+ */
-+static bool unsent_tbufs(struct slgt_info *info)
+@@ -232,60 +222,37 @@ static irqreturn_t sport_uart_err_irq(in
+ static int sport_startup(struct uart_port *port)
+ {
+ 	struct sport_uart_port *up = (struct sport_uart_port *)port;
+-	char buffer[20];
+-	int retval;
++	int ret;
+ 
+ 	pr_debug("%s enter\n", __func__);
+-	snprintf(buffer, 20, "%s rx", up->name);
+-	retval = request_irq(up->rx_irq, sport_uart_rx_irq, IRQF_SAMPLE_RANDOM, buffer, up);
+-	if (retval) {
+-		printk(KERN_ERR "Unable to request interrupt %s\n", buffer);
+-		return retval;
++	ret = request_irq(up->port.irq, sport_uart_rx_irq, 0,
++		"SPORT_UART_RX", up);
++	if (ret) {
++		dev_err(port->dev, "unable to request SPORT RX interrupt\n");
++		return ret;
+ 	}
+ 
+-	snprintf(buffer, 20, "%s tx", up->name);
+-	retval = request_irq(up->tx_irq, sport_uart_tx_irq, IRQF_SAMPLE_RANDOM, buffer, up);
+-	if (retval) {
+-		printk(KERN_ERR "Unable to request interrupt %s\n", buffer);
++	ret = request_irq(up->port.irq+1, sport_uart_tx_irq, 0,
++		"SPORT_UART_TX", up);
++	if (ret) {
++		dev_err(port->dev, "unable to request SPORT TX interrupt\n");
+ 		goto fail1;
+ 	}
+ 
+-	snprintf(buffer, 20, "%s err", up->name);
+-	retval = request_irq(up->err_irq, sport_uart_err_irq, IRQF_SAMPLE_RANDOM, buffer, up);
+-	if (retval) {
+-		printk(KERN_ERR "Unable to request interrupt %s\n", buffer);
++	ret = request_irq(up->err_irq, sport_uart_err_irq, 0,
++		"SPORT_UART_STATUS", up);
++	if (ret) {
++		dev_err(port->dev, "unable to request SPORT status interrupt\n");
+ 		goto fail2;
+ 	}
+ 
+-	if (port->line) {
+-		if (peripheral_request_list(bfin_uart_pin_req_sport1, DRV_NAME))
+-			goto fail3;
+-	} else {
+-		if (peripheral_request_list(bfin_uart_pin_req_sport0, DRV_NAME))
+-			goto fail3;
+-	}
+-
+-	sport_uart_setup(up, get_sclk(), port->uartclk);
+-
+-	/* Enable receive interrupt */
+-	SPORT_PUT_RCR1(up, (SPORT_GET_RCR1(up) | RSPEN));
+-	SSYNC();
+-
+ 	return 0;
++ fail2:
++	free_irq(up->port.irq+1, up);
++ fail1:
++	free_irq(up->port.irq, up);
+ 
+-
+-fail3:
+-	printk(KERN_ERR DRV_NAME
+-		": Requesting Peripherals failed\n");
+-
+-	free_irq(up->err_irq, up);
+-fail2:
+-	free_irq(up->tx_irq, up);
+-fail1:
+-	free_irq(up->rx_irq, up);
+-
+-	return retval;
+-
++	return ret;
+ }
+ 
+ static void sport_uart_tx_chars(struct sport_uart_port *up)
+@@ -344,20 +311,17 @@ static void sport_set_mctrl(struct uart_
+ static void sport_stop_tx(struct uart_port *port)
+ {
+ 	struct sport_uart_port *up = (struct sport_uart_port *)port;
+-	unsigned int stat;
+ 
+ 	pr_debug("%s enter\n", __func__);
+ 
+-	stat = SPORT_GET_STAT(up);
+-	while(!(stat & TXHRE)) {
+-		udelay(1);
+-		stat = SPORT_GET_STAT(up);
+-	}
+ 	/* Although the hold register is empty, last byte is still in shift
+-	 * register and not sent out yet. If baud rate is lower than default,
+-	 * delay should be longer. For example, if the baud rate is 9600,
+-	 * the delay must be at least 2ms by experience */
+-	udelay(500);
++	 * register and not sent out yet. So, put a dummy data into TX FIFO.
++	 * Then, sport tx stops when last byte is shift out and the dummy
++	 * data is moved into the shift register.
++	 */
++	SPORT_PUT_TX(up, 0xffff);
++	while (!(SPORT_GET_STAT(up) & TXHRE))
++		cpu_relax();
+ 
+ 	SPORT_PUT_TCR1(up, (SPORT_GET_TCR1(up) & ~TSPEN));
+ 	SSYNC();
+@@ -370,6 +334,7 @@ static void sport_start_tx(struct uart_p
+ 	struct sport_uart_port *up = (struct sport_uart_port *)port;
+ 
+ 	pr_debug("%s enter\n", __func__);
++
+ 	/* Write data into SPORT FIFO before enable SPROT to transmit */
+ 	sport_uart_tx_chars(up);
+ 
+@@ -403,37 +368,24 @@ static void sport_shutdown(struct uart_p
+ {
+ 	struct sport_uart_port *up = (struct sport_uart_port *)port;
+ 
+-	pr_debug("%s enter\n", __func__);
++	dev_dbg(port->dev, "%s enter\n", __func__);
+ 
+ 	/* Disable sport */
+ 	SPORT_PUT_TCR1(up, (SPORT_GET_TCR1(up) & ~TSPEN));
+ 	SPORT_PUT_RCR1(up, (SPORT_GET_RCR1(up) & ~RSPEN));
+ 	SSYNC();
+ 
+-	if (port->line) {
+-		peripheral_free_list(bfin_uart_pin_req_sport1);
+-	} else {
+-		peripheral_free_list(bfin_uart_pin_req_sport0);
+-	}
+-
+-	free_irq(up->rx_irq, up);
+-	free_irq(up->tx_irq, up);
++	free_irq(up->port.irq, up);
++	free_irq(up->port.irq+1, up);
+ 	free_irq(up->err_irq, up);
+ }
+ 
+-static void sport_set_termios(struct uart_port *port,
+-		struct ktermios *termios, struct ktermios *old)
+-{
+-	pr_debug("%s enter, c_cflag:%08x\n", __func__, termios->c_cflag);
+-	uart_update_timeout(port, CS8 ,port->uartclk);
+-}
+-
+ static const char *sport_type(struct uart_port *port)
+ {
+ 	struct sport_uart_port *up = (struct sport_uart_port *)port;
+ 
+ 	pr_debug("%s enter\n", __func__);
+-	return up->name;
++	return up->port.type == PORT_BFIN_SPORT ? "BFIN-SPORT-UART" : NULL;
+ }
+ 
+ static void sport_release_port(struct uart_port *port)
+@@ -461,6 +413,110 @@ static int sport_verify_port(struct uart
+ 	return 0;
+ }
+ 
++static void sport_set_termios(struct uart_port *port,
++		struct ktermios *termios, struct ktermios *old)
 +{
-+	unsigned int i = info->tbuf_current;
-+	bool rc = false;
++	struct sport_uart_port *up = (struct sport_uart_port *)port;
++	unsigned long flags;
++	int i;
++
++	pr_debug("%s enter, c_cflag:%08x\n", __func__, termios->c_cflag);
++
++	switch (termios->c_cflag & CSIZE) {
++	case CS8:
++		up->csize = 8;
++		break;
++	case CS7:
++		up->csize = 7;
++		break;
++	case CS6:
++		up->csize = 6;
++		break;
++	case CS5:
++		up->csize = 5;
++		break;
++	default:
++		pr_warning("requested word length not supported\n");
++	}
++
++	if (termios->c_cflag & CSTOPB) {
++		up->stopb = 1;
++	}
++	if (termios->c_cflag & PARENB) {
++		pr_warning("PAREN bits is not supported yet\n");
++		/* up->parib = 1; */
++	}
++
++	port->read_status_mask = OE;
++	if (termios->c_iflag & INPCK)
++		port->read_status_mask |= (FE | PE);
++	if (termios->c_iflag & (BRKINT | PARMRK))
++		port->read_status_mask |= BI;
 +
 +	/*
-+	 * search backwards from last loaded buffer (precedes tbuf_current)
-+	 * for first unsent buffer (desc_count > 0)
++	 * Characters to ignore
 +	 */
++	port->ignore_status_mask = 0;
++	if (termios->c_iflag & IGNPAR)
++		port->ignore_status_mask |= FE | PE;
++	if (termios->c_iflag & IGNBRK) {
++		port->ignore_status_mask |= BI;
++		/*
++		 * If we're ignoring parity and break indicators,
++		 * ignore overruns too (for real raw support).
++		 */
++		if (termios->c_iflag & IGNPAR)
++			port->ignore_status_mask |= OE;
++	}
 +
-+	do {
-+		if (i)
-+			i--;
-+		else
-+			i = info->tbuf_count - 1;
-+		if (!desc_count(info->tbufs[i]))
-+			break;
-+		info->tbuf_start = i;
-+		rc = true;
-+	} while (i != info->tbuf_current);
++	/* RX extract mask */
++	up->rxmask = 0x01 | (((up->csize + up->stopb) * 2 - 1) << 0x8);
++	/* TX masks, 8 bit data and 1 bit stop for example:
++	 * mask1 = b#0111111110
++	 * mask2 = b#1000000000
++	 */
++	for (i = 0, up->txmask1 = 0; i < up->csize; i++)
++		up->txmask1 |= (1<<i);
++	up->txmask2 = (1<<i);
++	if (up->stopb) {
++		++i;
++		up->txmask2 |= (1<<i);
++	}
++	up->txmask1 <<= 1;
++	up->txmask2 <<= 1;
++	/* uart baud rate */
++	port->uartclk = uart_get_baud_rate(port, termios, old, 0, get_sclk()/16);
 +
-+	return rc;
++	spin_lock_irqsave(&up->port.lock, flags);
++
++	/* Disable UART */
++	SPORT_PUT_TCR1(up, SPORT_GET_TCR1(up) & ~TSPEN);
++	SPORT_PUT_RCR1(up, SPORT_GET_RCR1(up) & ~RSPEN);
++
++	sport_uart_setup(up, up->csize + up->stopb, port->uartclk);
++
++	/* driver TX line high after config, one dummy data is
++	 * necessary to stop sport after shift one byte
++	 */
++	SPORT_PUT_TX(up, 0xffff);
++	SPORT_PUT_TX(up, 0xffff);
++	SPORT_PUT_TCR1(up, (SPORT_GET_TCR1(up) | TSPEN));
++	SSYNC();
++	while (!(SPORT_GET_STAT(up) & TXHRE))
++		cpu_relax();
++	SPORT_PUT_TCR1(up, SPORT_GET_TCR1(up) & ~TSPEN);
++	SSYNC();
++
++	/* Port speed changed, update the per-port timeout. */
++	uart_update_timeout(port, termios->c_cflag, port->uartclk);
++
++	/* Enable sport rx */
++	SPORT_PUT_RCR1(up, SPORT_GET_RCR1(up) | RSPEN);
++	SSYNC();
++
++	spin_unlock_irqrestore(&up->port.lock, flags);
 +}
 +
- static void isr_txeom(struct slgt_info *info, unsigned short status)
+ struct uart_ops sport_uart_ops = {
+ 	.tx_empty	= sport_tx_empty,
+ 	.set_mctrl	= sport_set_mctrl,
+@@ -480,138 +536,319 @@ struct uart_ops sport_uart_ops = {
+ 	.verify_port	= sport_verify_port,
+ };
+ 
+-static struct sport_uart_port sport_uart_ports[] = {
+-	{ /* SPORT 0 */
+-		.name	= "SPORT0",
+-		.tx_irq = IRQ_SPORT0_TX,
+-		.rx_irq = IRQ_SPORT0_RX,
+-		.err_irq= IRQ_SPORT0_ERROR,
+-		.port	= {
+-			.type		= PORT_BFIN_SPORT,
+-			.iotype		= UPIO_MEM,
+-			.membase	= (void __iomem *)SPORT0_TCR1,
+-			.mapbase	= SPORT0_TCR1,
+-			.irq		= IRQ_SPORT0_RX,
+-			.uartclk	= CONFIG_SPORT_BAUD_RATE,
+-			.fifosize	= 8,
+-			.ops		= &sport_uart_ops,
+-			.line		= 0,
+-		},
+-	}, { /* SPORT 1 */
+-		.name	= "SPORT1",
+-		.tx_irq = IRQ_SPORT1_TX,
+-		.rx_irq = IRQ_SPORT1_RX,
+-		.err_irq= IRQ_SPORT1_ERROR,
+-		.port	= {
+-			.type		= PORT_BFIN_SPORT,
+-			.iotype		= UPIO_MEM,
+-			.membase	= (void __iomem *)SPORT1_TCR1,
+-			.mapbase	= SPORT1_TCR1,
+-			.irq		= IRQ_SPORT1_RX,
+-			.uartclk	= CONFIG_SPORT_BAUD_RATE,
+-			.fifosize	= 8,
+-			.ops		= &sport_uart_ops,
+-			.line		= 1,
+-		},
+-	}
++#define BFIN_SPORT_UART_MAX_PORTS 4
++
++static struct sport_uart_port *bfin_sport_uart_ports[BFIN_SPORT_UART_MAX_PORTS];
++
++#ifdef CONFIG_SERIAL_BFIN_SPORT_CONSOLE
++static int __init
++sport_uart_console_setup(struct console *co, char *options)
++{
++	struct sport_uart_port *up;
++	int baud = 57600;
++	int bits = 8;
++	int parity = 'n';
++	int flow = 'n';
++
++	/* Check whether an invalid uart number has been specified */
++	if (co->index < 0 || co->index >= BFIN_SPORT_UART_MAX_PORTS)
++		return -ENODEV;
++
++	up = bfin_sport_uart_ports[co->index];
++	if (!up)
++		return -ENODEV;
++
++	if (options)
++		uart_parse_options(options, &baud, &parity, &bits, &flow);
++
++	return uart_set_options(&up->port, co, baud, parity, bits, flow);
++}
++
++static void sport_uart_console_putchar(struct uart_port *port, int ch)
++{
++	struct sport_uart_port *up = (struct sport_uart_port *)port;
++
++	while (SPORT_GET_STAT(up) & TXF)
++		barrier();
++
++	tx_one_byte(up, ch);
++}
++
++/*
++ * Interrupts are disabled on entering
++ */
++static void
++sport_uart_console_write(struct console *co, const char *s, unsigned int count)
++{
++	struct sport_uart_port *up = bfin_sport_uart_ports[co->index];
++	unsigned long flags;
++
++	spin_lock_irqsave(&up->port.lock, flags);
++
++	if (SPORT_GET_TCR1(up) & TSPEN)
++		uart_console_write(&up->port, s, count, sport_uart_console_putchar);
++	else {
++		/* dummy data to start sport */
++		while (SPORT_GET_STAT(up) & TXF)
++			barrier();
++		SPORT_PUT_TX(up, 0xffff);
++		/* Enable transmit, then an interrupt will generated */
++		SPORT_PUT_TCR1(up, (SPORT_GET_TCR1(up) | TSPEN));
++		SSYNC();
++
++		uart_console_write(&up->port, s, count, sport_uart_console_putchar);
++
++		/* Although the hold register is empty, last byte is still in shift
++		 * register and not sent out yet. So, put a dummy data into TX FIFO.
++		 * Then, sport tx stops when last byte is shift out and the dummy
++		 * data is moved into the shift register.
++		 */
++		while (SPORT_GET_STAT(up) & TXF)
++			barrier();
++		SPORT_PUT_TX(up, 0xffff);
++		while (!(SPORT_GET_STAT(up) & TXHRE))
++			barrier();
++
++		/* Stop sport tx transfer */
++		SPORT_PUT_TCR1(up, (SPORT_GET_TCR1(up) & ~TSPEN));
++		SSYNC();
++	}
++
++	spin_unlock_irqrestore(&up->port.lock, flags);
++}
++
++static struct uart_driver sport_uart_reg;
++
++static struct console sport_uart_console = {
++	.name		= DEVICE_NAME,
++	.write		= sport_uart_console_write,
++	.device		= uart_console_device,
++	.setup		= sport_uart_console_setup,
++	.flags		= CON_PRINTBUFFER,
++	.index		= -1,
++	.data		= &sport_uart_reg,
+ };
+ 
++#define SPORT_UART_CONSOLE	(&sport_uart_console)
++#else
++#define SPORT_UART_CONSOLE	NULL
++#endif /* CONFIG_SERIAL_BFIN_SPORT_CONSOLE */
++
++
+ static struct uart_driver sport_uart_reg = {
+ 	.owner		= THIS_MODULE,
+-	.driver_name	= "SPORT-UART",
+-	.dev_name	= "ttySS",
++	.driver_name	= DRV_NAME,
++	.dev_name	= DEVICE_NAME,
+ 	.major		= 204,
+ 	.minor		= 84,
+-	.nr		= ARRAY_SIZE(sport_uart_ports),
+-	.cons		= NULL,
++	.nr		= BFIN_SPORT_UART_MAX_PORTS,
++	.cons		= SPORT_UART_CONSOLE,
+ };
+ 
+-static int sport_uart_suspend(struct platform_device *dev, pm_message_t state)
++#ifdef CONFIG_PM
++static int sport_uart_suspend(struct device *dev)
  {
- 	DBGISR(("%s txeom status=%04x\n", info->device_name, status));
+-	struct sport_uart_port *sport = platform_get_drvdata(dev);
++	struct sport_uart_port *sport = dev_get_drvdata(dev);
  
- 	slgt_irq_off(info, IRQ_TXDATA + IRQ_TXIDLE + IRQ_TXUNDER);
- 	tdma_reset(info);
--	reset_tbufs(info);
- 	if (status & IRQ_TXUNDER) {
- 		unsigned short val = rd_reg16(info, TCR);
- 		wr_reg16(info, TCR, (unsigned short)(val | BIT2)); /* set reset bit */
-@@ -2297,8 +2292,12 @@ static void isr_txeom(struct slgt_info *
- 				info->icount.txok++;
- 		}
+-	pr_debug("%s enter\n", __func__);
++	dev_dbg(dev, "%s enter\n", __func__);
+ 	if (sport)
+ 		uart_suspend_port(&sport_uart_reg, &sport->port);
  
-+		if (unsent_tbufs(info)) {
-+			tx_start(info);
-+			update_tx_timer(info);
-+			return;
+ 	return 0;
+ }
+ 
+-static int sport_uart_resume(struct platform_device *dev)
++static int sport_uart_resume(struct device *dev)
+ {
+-	struct sport_uart_port *sport = platform_get_drvdata(dev);
++	struct sport_uart_port *sport = dev_get_drvdata(dev);
+ 
+-	pr_debug("%s enter\n", __func__);
++	dev_dbg(dev, "%s enter\n", __func__);
+ 	if (sport)
+ 		uart_resume_port(&sport_uart_reg, &sport->port);
+ 
+ 	return 0;
+ }
+ 
+-static int sport_uart_probe(struct platform_device *dev)
++static struct dev_pm_ops bfin_sport_uart_dev_pm_ops = {
++	.suspend	= sport_uart_suspend,
++	.resume		= sport_uart_resume,
++};
++#endif
++
++static int __devinit sport_uart_probe(struct platform_device *pdev)
+ {
+-	pr_debug("%s enter\n", __func__);
+-	sport_uart_ports[dev->id].port.dev = &dev->dev;
+-	uart_add_one_port(&sport_uart_reg, &sport_uart_ports[dev->id].port);
+-	platform_set_drvdata(dev, &sport_uart_ports[dev->id]);
++	struct resource *res;
++	struct sport_uart_port *sport;
++	int ret = 0;
++
++	dev_dbg(&pdev->dev, "%s enter\n", __func__);
++
++	if (pdev->id < 0 || pdev->id >= BFIN_SPORT_UART_MAX_PORTS) {
++		dev_err(&pdev->dev, "Wrong sport uart platform device id.\n");
++		return -ENOENT;
++	}
++
++	if (bfin_sport_uart_ports[pdev->id] == NULL) {
++		bfin_sport_uart_ports[pdev->id] =
++			kmalloc(sizeof(struct sport_uart_port), GFP_KERNEL);
++		sport = bfin_sport_uart_ports[pdev->id];
++		if (!sport) {
++			dev_err(&pdev->dev,
++				"Fail to kmalloc sport_uart_port\n");
++			return -ENOMEM;
 +		}
- 		info->tx_active = false;
--		info->tx_count = 0;
++
++		ret = peripheral_request_list(
++			(unsigned short *)pdev->dev.platform_data, DRV_NAME);
++		if (ret) {
++			dev_err(&pdev->dev,
++				"Fail to request SPORT peripherals\n");
++			goto out_error_free_mem;
++		}
++
++		spin_lock_init(&sport->port.lock);
++		sport->port.fifosize  = SPORT_TX_FIFO_SIZE,
++		sport->port.ops       = &sport_uart_ops;
++		sport->port.line      = pdev->id;
++		sport->port.iotype    = UPIO_MEM;
++		sport->port.flags     = UPF_BOOT_AUTOCONF;
++
++		res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++		if (res == NULL) {
++			dev_err(&pdev->dev, "Cannot get IORESOURCE_MEM\n");
++			ret = -ENOENT;
++			goto out_error_free_peripherals;
++		}
++
++		sport->port.membase = ioremap(res->start,
++			res->end - res->start);
++		if (!sport->port.membase) {
++			dev_err(&pdev->dev, "Cannot map sport IO\n");
++			ret = -ENXIO;
++			goto out_error_free_peripherals;
++		}
++
++		sport->port.irq = platform_get_irq(pdev, 0);
++		if (sport->port.irq < 0) {
++			dev_err(&pdev->dev, "No sport RX/TX IRQ specified\n");
++			ret = -ENOENT;
++			goto out_error_unmap;
++		}
++
++		sport->err_irq = platform_get_irq(pdev, 1);
++		if (sport->err_irq < 0) {
++			dev_err(&pdev->dev, "No sport status IRQ specified\n");
++			ret = -ENOENT;
++			goto out_error_unmap;
++		}
++	}
++
++#ifdef CONFIG_SERIAL_BFIN_SPORT_CONSOLE
++	if (!is_early_platform_device(pdev)) {
++#endif
++		sport = bfin_sport_uart_ports[pdev->id];
++		sport->port.dev = &pdev->dev;
++		dev_set_drvdata(&pdev->dev, sport);
++		ret = uart_add_one_port(&sport_uart_reg, &sport->port);
++#ifdef CONFIG_SERIAL_BFIN_SPORT_CONSOLE
++	}
++#endif
++	if (!ret)
++		return 0;
  
- 		del_timer(&info->tx_timer);
- 
-@@ -3949,7 +3948,7 @@ static void tx_start(struct slgt_info *i
- 		info->tx_enabled = true;
- 	}
- 
--	if (info->tx_count) {
-+	if (desc_count(info->tbufs[info->tbuf_start])) {
- 		info->drop_rts_on_tx_done = false;
- 
- 		if (info->params.mode != MGSL_MODE_ASYNC) {
-@@ -4772,25 +4771,36 @@ static unsigned int tbuf_bytes(struct sl
+-	return 0;
++	if (sport) {
++out_error_unmap:
++		iounmap(sport->port.membase);
++out_error_free_peripherals:
++		peripheral_free_list(
++			(unsigned short *)pdev->dev.platform_data);
++out_error_free_mem:
++		kfree(sport);
++		bfin_sport_uart_ports[pdev->id] = NULL;
++	}
++
++	return ret;
  }
  
- /*
-- * load transmit DMA buffer(s) with data
-+ * load data into transmit DMA buffer ring and start transmitter if needed
-+ * return true if data accepted, otherwise false (buffers full)
-  */
--static void tx_load(struct slgt_info *info, const char *buf, unsigned int size)
-+static bool tx_load(struct slgt_info *info, const char *buf, unsigned int size)
+-static int sport_uart_remove(struct platform_device *dev)
++static int __devexit sport_uart_remove(struct platform_device *pdev)
  {
- 	unsigned short count;
- 	unsigned int i;
- 	struct slgt_desc *d;
+-	struct sport_uart_port *sport = platform_get_drvdata(dev);
++	struct sport_uart_port *sport = platform_get_drvdata(pdev);
  
--	if (size == 0)
--		return;
-+	/* check required buffer space */
-+	if (DIV_ROUND_UP(size, DMABUFSIZE) > free_tbuf_count(info))
-+		return false;
+-	pr_debug("%s enter\n", __func__);
+-	platform_set_drvdata(dev, NULL);
++	dev_dbg(&pdev->dev, "%s enter\n", __func__);
++	dev_set_drvdata(&pdev->dev, NULL);
  
- 	DBGDATA(info, buf, size, "tx");
+-	if (sport)
++	if (sport) {
+ 		uart_remove_one_port(&sport_uart_reg, &sport->port);
++		iounmap(sport->port.membase);
++		peripheral_free_list(
++			(unsigned short *)pdev->dev.platform_data);
++		kfree(sport);
++		bfin_sport_uart_ports[pdev->id] = NULL;
++	}
  
-+	/*
-+	 * copy data to one or more DMA buffers in circular ring
-+	 * tbuf_start   = first buffer for this data
-+	 * tbuf_current = next free buffer
-+	 *
-+	 * Copy all data before making data visible to DMA controller by
-+	 * setting descriptor count of the first buffer.
-+	 * This prevents an active DMA controller from reading the first DMA
-+	 * buffers of a frame and stopping before the final buffers are filled.
-+	 */
-+
- 	info->tbuf_start = i = info->tbuf_current;
- 
- 	while (size) {
- 		d = &info->tbufs[i];
--		if (++i == info->tbuf_count)
--			i = 0;
- 
- 		count = (unsigned short)((size > DMABUFSIZE) ? DMABUFSIZE : size);
- 		memcpy(d->buf, buf, count);
-@@ -4808,11 +4818,27 @@ static void tx_load(struct slgt_info *in
- 		else
- 			set_desc_eof(*d, 0);
- 
--		set_desc_count(*d, count);
-+		/* set descriptor count for all but first buffer */
-+		if (i != info->tbuf_start)
-+			set_desc_count(*d, count);
- 		d->buf_count = count;
-+
-+		if (++i == info->tbuf_count)
-+			i = 0;
- 	}
- 
- 	info->tbuf_current = i;
-+
-+	/* set first buffer count to make new data visible to DMA controller */
-+	d = &info->tbufs[info->tbuf_start];
-+	set_desc_count(*d, d->buf_count);
-+
-+	/* start transmitter if needed and update transmit timeout */
-+	if (!info->tx_active)
-+		tx_start(info);
-+	update_tx_timer(info);
-+
-+	return true;
+ 	return 0;
  }
  
- static int register_test(struct slgt_info *info)
-@@ -4934,9 +4960,7 @@ static int loopback_test(struct slgt_inf
- 	spin_lock_irqsave(&info->lock,flags);
- 	async_mode(info);
- 	rx_start(info);
--	info->tx_count = count;
- 	tx_load(info, buf, count);
--	tx_start(info);
- 	spin_unlock_irqrestore(&info->lock, flags);
+ static struct platform_driver sport_uart_driver = {
+ 	.probe		= sport_uart_probe,
+-	.remove		= sport_uart_remove,
+-	.suspend	= sport_uart_suspend,
+-	.resume		= sport_uart_resume,
++	.remove		= __devexit_p(sport_uart_remove),
+ 	.driver		= {
+ 		.name	= DRV_NAME,
++#ifdef CONFIG_PM
++		.pm	= &bfin_sport_uart_dev_pm_ops,
++#endif
+ 	},
+ };
  
- 	/* wait for receive complete */
++#ifdef CONFIG_SERIAL_BFIN_SPORT_CONSOLE
++static __initdata struct early_platform_driver early_sport_uart_driver = {
++	.class_str = DRV_NAME,
++	.pdrv = &sport_uart_driver,
++	.requested_id = EARLY_PLATFORM_ID_UNSET,
++};
++
++static int __init sport_uart_rs_console_init(void)
++{
++	early_platform_driver_register(&early_sport_uart_driver, DRV_NAME);
++
++	early_platform_driver_probe(DRV_NAME, BFIN_SPORT_UART_MAX_PORTS, 0);
++
++	register_console(&sport_uart_console);
++
++	return 0;
++}
++console_initcall(sport_uart_rs_console_init);
++#endif
++
+ static int __init sport_uart_init(void)
+ {
+ 	int ret;
+ 
+-	pr_debug("%s enter\n", __func__);
++	pr_info("Serial: Blackfin uart over sport driver\n");
++
+ 	ret = uart_register_driver(&sport_uart_reg);
+-	if (ret != 0) {
+-		printk(KERN_ERR "Failed to register %s:%d\n",
++	if (ret) {
++		pr_err("failed to register %s:%d\n",
+ 				sport_uart_reg.driver_name, ret);
+ 		return ret;
+ 	}
+ 
+ 	ret = platform_driver_register(&sport_uart_driver);
+-	if (ret != 0) {
+-		printk(KERN_ERR "Failed to register sport uart driver:%d\n", ret);
++	if (ret) {
++		pr_err("failed to register sport uart driver:%d\n", ret);
+ 		uart_unregister_driver(&sport_uart_reg);
+ 	}
+ 
+-
+-	pr_debug("%s exit\n", __func__);
+ 	return ret;
+ }
++module_init(sport_uart_init);
+ 
+ static void __exit sport_uart_exit(void)
+ {
+-	pr_debug("%s enter\n", __func__);
+ 	platform_driver_unregister(&sport_uart_driver);
+ 	uart_unregister_driver(&sport_uart_reg);
+ }
+-
+-module_init(sport_uart_init);
+ module_exit(sport_uart_exit);
+ 
++MODULE_AUTHOR("Sonic Zhang, Roy Huang");
++MODULE_DESCRIPTION("Blackfin serial over SPORT driver");
+ MODULE_LICENSE("GPL");
+diff -puN drivers/serial/bfin_sport_uart.h~serial-fit-blackfin-uart-over-sport-driver-into-common-uart-infrastructure drivers/serial/bfin_sport_uart.h
+--- a/drivers/serial/bfin_sport_uart.h~serial-fit-blackfin-uart-over-sport-driver-into-common-uart-infrastructure
++++ a/drivers/serial/bfin_sport_uart.h
+@@ -1,29 +1,23 @@
+ /*
+- * File:	linux/drivers/serial/bfin_sport_uart.h
++ * Blackfin On-Chip Sport Emulated UART Driver
+  *
+- * Based on:	include/asm-blackfin/mach-533/bfin_serial_5xx.h
+- * Author:	Roy Huang <roy.huang>analog.com>
++ * Copyright 2006-2008 Analog Devices Inc.
+  *
+- * Created:	Nov 22, 2006
+- * Copyright:	(C) Analog Device Inc.
+- * Description: this driver enable SPORTs on Blackfin emulate UART.
++ * Enter bugs at http://blackfin.uclinux.org/
+  *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, see the file COPYING, or write
+- * to the Free Software Foundation, Inc.,
+- * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
++ * Licensed under the GPL-2 or later.
+  */
+ 
++/*
++ * This driver and the hardware supported are in term of EE-191 of ADI.
++ * http://www.analog.com/UploadedFiles/Application_Notes/399447663EE191.pdf
++ * This application note describe how to implement a UART on a Sharc DSP,
++ * but this driver is implemented on Blackfin Processor.
++ * Transmit Frame Sync is not used by this driver to transfer data out.
++ */
++
++#ifndef _BFIN_SPORT_UART_H
++#define _BFIN_SPORT_UART_H
+ 
+ #define OFFSET_TCR1		0x00	/* Transmit Configuration 1 Register */
+ #define OFFSET_TCR2		0x04	/* Transmit Configuration 2 Register */
+@@ -61,3 +55,7 @@
+ #define SPORT_PUT_RCLKDIV(sport, v)	bfin_write16(((sport)->port.membase + OFFSET_RCLKDIV), v)
+ #define SPORT_PUT_RFSDIV(sport, v)	bfin_write16(((sport)->port.membase + OFFSET_RFSDIV), v)
+ #define SPORT_PUT_STAT(sport, v)	bfin_write16(((sport)->port.membase + OFFSET_STAT), v)
++
++#define SPORT_TX_FIFO_SIZE	8
++
++#endif /* _BFIN_SPORT_UART_H */
 _
 
-Patches currently in -mm which might be from paulkf@microgate.com are
+Patches currently in -mm which might be from sonic.adi@gmail.com are
 
 linux-next.patch
 
