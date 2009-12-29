@@ -1,241 +1,585 @@
 From: akpm@linux-foundation.org
-Subject: [merged] documentation-update-tracepoint-analysistxt.patch removed from -mm tree
-Date: Tue, 29 Dec 2009 13:31:36 -0800
-Message-ID: <200912292131.nBTLVaAl008502@imap1.linux-foundation.org>
+Subject: [merged] asus_acpi-convert-to-seq_file.patch removed from -mm tree
+Date: Tue, 29 Dec 2009 13:31:56 -0800
+Message-ID: <200912292131.nBTLVu6x008521@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38942 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41109 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751753AbZL2VcP (ORCPT
+	by vger.kernel.org with ESMTP id S1752750AbZL2VcT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Dec 2009 16:32:15 -0500
+	Tue, 29 Dec 2009 16:32:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, mel@csn.ul.ie, rostedt@goodmis.org, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, corentincj@iksaif.net, len.brown@intel.com, sziwan@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Documentation: update tracepoint-analysis.txt
+     asus_acpi: convert to seq_file
 has been removed from the -mm tree.  Its filename was
-     documentation-update-tracepoint-analysistxt.patch
+     asus_acpi-convert-to-seq_file.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Documentation: update tracepoint-analysis.txt
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: asus_acpi: convert to seq_file
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-Fix grammar, spelling, punctuation, hyphenation, section numbering.  Tell
-what PCL means.
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Corentin Chary <corentincj@iksaif.net>
+Cc: Karol Kozimor <sziwan@users.sourceforge.net>
+Cc: Len Brown <len.brown@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/trace/tracepoint-analysis.txt |   60 +++++++++---------
- 1 file changed, 30 insertions(+), 30 deletions(-)
+ drivers/platform/x86/asus_acpi.c |  321 +++++++++++++++++------------
+ 1 file changed, 194 insertions(+), 127 deletions(-)
 
-diff -puN Documentation/trace/tracepoint-analysis.txt~documentation-update-tracepoint-analysistxt Documentation/trace/tracepoint-analysis.txt
---- a/Documentation/trace/tracepoint-analysis.txt~documentation-update-tracepoint-analysistxt
-+++ a/Documentation/trace/tracepoint-analysis.txt
-@@ -10,8 +10,8 @@ Tracepoints (see Documentation/trace/tra
- creating custom kernel modules to register probe functions using the event
- tracing infrastructure.
+diff -puN drivers/platform/x86/asus_acpi.c~asus_acpi-convert-to-seq_file drivers/platform/x86/asus_acpi.c
+--- a/drivers/platform/x86/asus_acpi.c~asus_acpi-convert-to-seq_file
++++ a/drivers/platform/x86/asus_acpi.c
+@@ -35,6 +35,7 @@
+ #include <linux/init.h>
+ #include <linux/types.h>
+ #include <linux/proc_fs.h>
++#include <linux/seq_file.h>
+ #include <linux/backlight.h>
+ #include <acpi/acpi_drivers.h>
+ #include <acpi/acpi_bus.h>
+@@ -512,26 +513,12 @@ static int read_acpi_int(acpi_handle han
+ 	return (status == AE_OK) && (out_obj.type == ACPI_TYPE_INTEGER);
+ }
  
--Simplistically, tracepoints will represent an important event that when can
--be taken in conjunction with other tracepoints to build a "Big Picture" of
-+Simplistically, tracepoints represent important events that can be
-+taken in conjunction with other tracepoints to build a "Big Picture" of
- what is going on within the system. There are a large number of methods for
- gathering and interpreting these events. Lacking any current Best Practises,
- this document describes some of the methods that can be used.
-@@ -33,12 +33,12 @@ calling
+-/*
+- * We write our info in page, we begin at offset off and cannot write more
+- * than count bytes. We set eof to 1 if we handle those 2 values. We return the
+- * number of bytes written in page
+- */
+-static int
+-proc_read_info(char *page, char **start, off_t off, int count, int *eof,
+-	       void *data)
++static int asus_info_proc_show(struct seq_file *m, void *v)
+ {
+-	int len = 0;
+ 	int temp;
+-	char buf[16];		/* enough for all info */
+-	/*
+-	 * We use the easy way, we don't care of off and count,
+-	 * so we don't set eof to 1
+-	 */
  
- will give a fair indication of the number of events available.
+-	len += sprintf(page, ACPI_HOTK_NAME " " ASUS_ACPI_VERSION "\n");
+-	len += sprintf(page + len, "Model reference    : %s\n",
+-		       hotk->methods->name);
++	seq_printf(m, ACPI_HOTK_NAME " " ASUS_ACPI_VERSION "\n");
++	seq_printf(m, "Model reference    : %s\n", hotk->methods->name);
+ 	/*
+ 	 * The SFUN method probably allows the original driver to get the list
+ 	 * of features supported by a given model. For now, 0x0100 or 0x0800
+@@ -539,8 +526,7 @@ proc_read_info(char *page, char **start,
+ 	 * The significance of others is yet to be found.
+ 	 */
+ 	if (read_acpi_int(hotk->handle, "SFUN", &temp))
+-		len +=
+-		    sprintf(page + len, "SFUN value         : 0x%04x\n", temp);
++		seq_printf(m, "SFUN value         : 0x%04x\n", temp);
+ 	/*
+ 	 * Another value for userspace: the ASYM method returns 0x02 for
+ 	 * battery low and 0x04 for battery critical, its readings tend to be
+@@ -549,30 +535,34 @@ proc_read_info(char *page, char **start,
+ 	 * silently ignored.
+ 	 */
+ 	if (read_acpi_int(hotk->handle, "ASYM", &temp))
+-		len +=
+-		    sprintf(page + len, "ASYM value         : 0x%04x\n", temp);
++		seq_printf(m, "ASYM value         : 0x%04x\n", temp);
+ 	if (asus_info) {
+-		snprintf(buf, 16, "%d", asus_info->length);
+-		len += sprintf(page + len, "DSDT length        : %s\n", buf);
+-		snprintf(buf, 16, "%d", asus_info->checksum);
+-		len += sprintf(page + len, "DSDT checksum      : %s\n", buf);
+-		snprintf(buf, 16, "%d", asus_info->revision);
+-		len += sprintf(page + len, "DSDT revision      : %s\n", buf);
+-		snprintf(buf, 7, "%s", asus_info->oem_id);
+-		len += sprintf(page + len, "OEM id             : %s\n", buf);
+-		snprintf(buf, 9, "%s", asus_info->oem_table_id);
+-		len += sprintf(page + len, "OEM table id       : %s\n", buf);
+-		snprintf(buf, 16, "%x", asus_info->oem_revision);
+-		len += sprintf(page + len, "OEM revision       : 0x%s\n", buf);
+-		snprintf(buf, 5, "%s", asus_info->asl_compiler_id);
+-		len += sprintf(page + len, "ASL comp vendor id : %s\n", buf);
+-		snprintf(buf, 16, "%x", asus_info->asl_compiler_revision);
+-		len += sprintf(page + len, "ASL comp revision  : 0x%s\n", buf);
++		seq_printf(m, "DSDT length        : %d\n", asus_info->length);
++		seq_printf(m, "DSDT checksum      : %d\n", asus_info->checksum);
++		seq_printf(m, "DSDT revision      : %d\n", asus_info->revision);
++		seq_printf(m, "OEM id             : %.*s\n", ACPI_OEM_ID_SIZE, asus_info->oem_id);
++		seq_printf(m, "OEM table id       : %.*s\n", ACPI_OEM_TABLE_ID_SIZE, asus_info->oem_table_id);
++		seq_printf(m, "OEM revision       : 0x%x\n", asus_info->oem_revision);
++		seq_printf(m, "ASL comp vendor id : %.*s\n", ACPI_NAME_SIZE, asus_info->asl_compiler_id);
++		seq_printf(m, "ASL comp revision  : 0x%x\n", asus_info->asl_compiler_revision);
+ 	}
  
--2.2 PCL
-+2.2 PCL (Performance Counters for Linux)
- -------
+-	return len;
++	return 0;
++}
++
++static int asus_info_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, asus_info_proc_show, NULL);
+ }
  
--Discovery and enumeration of all counters and events, including tracepoints
-+Discovery and enumeration of all counters and events, including tracepoints,
- are available with the perf tool. Getting a list of available events is a
--simple case of
-+simple case of:
++static const struct file_operations asus_info_proc_fops = {
++	.owner		= THIS_MODULE,
++	.open		= asus_info_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++};
++
+ /*
+  * /proc handlers
+  * We write our info in page, we begin at offset off and cannot write more
+@@ -638,34 +628,48 @@ write_led(const char __user *buffer, uns
+ /*
+  * Proc handlers for MLED
+  */
+-static int
+-proc_read_mled(char *page, char **start, off_t off, int count, int *eof,
+-	       void *data)
++static int mled_proc_show(struct seq_file *m, void *v)
+ {
+-	return sprintf(page, "%d\n",
+-		       read_led(hotk->methods->mled_status, MLED_ON));
++	seq_printf(m, "%d\n", read_led(hotk->methods->mled_status, MLED_ON));
++	return 0;
+ }
  
-   $ perf list 2>&1 | grep Tracepoint
-   ext4:ext4_free_inode                     [Tracepoint event]
-@@ -49,19 +49,19 @@ simple case of
-   [ .... remaining output snipped .... ]
+-static int
+-proc_write_mled(struct file *file, const char __user *buffer,
+-		unsigned long count, void *data)
++static int mled_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, mled_proc_show, NULL);
++}
++
++static ssize_t mled_proc_write(struct file *file, const char __user *buffer,
++		size_t count, loff_t *pos)
+ {
+ 	return write_led(buffer, count, hotk->methods->mt_mled, MLED_ON, 1);
+ }
  
++static const struct file_operations mled_proc_fops = {
++	.owner		= THIS_MODULE,
++	.open		= mled_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++	.write		= mled_proc_write,
++};
++
+ /*
+  * Proc handlers for LED display
+  */
+-static int
+-proc_read_ledd(char *page, char **start, off_t off, int count, int *eof,
+-	       void *data)
++static int ledd_proc_show(struct seq_file *m, void *v)
+ {
+-	return sprintf(page, "0x%08x\n", hotk->ledd_status);
++	seq_printf(m, "0x%08x\n", hotk->ledd_status);
++	return 0;
+ }
  
--2. Enabling Events
-+3. Enabling Events
- ==================
+-static int
+-proc_write_ledd(struct file *file, const char __user *buffer,
+-		unsigned long count, void *data)
++static int ledd_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, ledd_proc_show, NULL);
++}
++
++static ssize_t ledd_proc_write(struct file *file, const char __user *buffer,
++		size_t count, loff_t *pos)
+ {
+ 	int rv, value;
  
--2.1 System-Wide Event Enabling
-+3.1 System-Wide Event Enabling
- ------------------------------
+@@ -681,61 +685,104 @@ proc_write_ledd(struct file *file, const
+ 	return rv;
+ }
  
- See Documentation/trace/events.txt for a proper description on how events
- can be enabled system-wide. A short example of enabling all events related
--to page allocation would look something like
-+to page allocation would look something like:
++static const struct file_operations ledd_proc_fops = {
++	.owner		= THIS_MODULE,
++	.open		= ledd_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++	.write		= ledd_proc_write,
++};
++
+ /*
+  * Proc handlers for WLED
+  */
+-static int
+-proc_read_wled(char *page, char **start, off_t off, int count, int *eof,
+-	       void *data)
++static int wled_proc_show(struct seq_file *m, void *v)
+ {
+-	return sprintf(page, "%d\n",
+-		       read_led(hotk->methods->wled_status, WLED_ON));
++	seq_printf(m, "%d\n", read_led(hotk->methods->wled_status, WLED_ON));
++	return 0;
+ }
  
-   $ for i in `find /sys/kernel/debug/tracing/events -name "enable" | grep mm_`; do echo 1 > $i; done
+-static int
+-proc_write_wled(struct file *file, const char __user *buffer,
+-		unsigned long count, void *data)
++static int wled_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, wled_proc_show, NULL);
++}
++
++static ssize_t wled_proc_write(struct file *file, const char __user *buffer,
++		size_t count, loff_t *pos)
+ {
+ 	return write_led(buffer, count, hotk->methods->mt_wled, WLED_ON, 0);
+ }
  
--2.2 System-Wide Event Enabling with SystemTap
-+3.2 System-Wide Event Enabling with SystemTap
- ---------------------------------------------
++static const struct file_operations wled_proc_fops = {
++	.owner		= THIS_MODULE,
++	.open		= wled_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++	.write		= wled_proc_write,
++};
++
+ /*
+  * Proc handlers for Bluetooth
+  */
+-static int
+-proc_read_bluetooth(char *page, char **start, off_t off, int count, int *eof,
+-		    void *data)
++static int bluetooth_proc_show(struct seq_file *m, void *v)
+ {
+-	return sprintf(page, "%d\n", read_led(hotk->methods->bt_status, BT_ON));
++	seq_printf(m, "%d\n", read_led(hotk->methods->bt_status, BT_ON));
++	return 0;
+ }
  
- In SystemTap, tracepoints are accessible using the kernel.trace() function
-@@ -86,7 +86,7 @@ were allocating the pages.
-           print_count()
-   }
+-static int
+-proc_write_bluetooth(struct file *file, const char __user *buffer,
+-		     unsigned long count, void *data)
++static int bluetooth_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, bluetooth_proc_show, NULL);
++}
++
++static ssize_t bluetooth_proc_write(struct file *file,
++		const char __user *buffer, size_t count, loff_t *pos)
+ {
+ 	/* Note: mt_bt_switch controls both internal Bluetooth adapter's
+ 	   presence and its LED */
+ 	return write_led(buffer, count, hotk->methods->mt_bt_switch, BT_ON, 0);
+ }
  
--2.3 System-Wide Event Enabling with PCL
-+3.3 System-Wide Event Enabling with PCL
- ---------------------------------------
++static const struct file_operations bluetooth_proc_fops = {
++	.owner		= THIS_MODULE,
++	.open		= bluetooth_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++	.write		= bluetooth_proc_write,
++};
++
+ /*
+  * Proc handlers for TLED
+  */
+-static int
+-proc_read_tled(char *page, char **start, off_t off, int count, int *eof,
+-	       void *data)
++static int tled_proc_show(struct seq_file *m, void *v)
+ {
+-	return sprintf(page, "%d\n",
+-		       read_led(hotk->methods->tled_status, TLED_ON));
++	seq_printf(m, "%d\n", read_led(hotk->methods->tled_status, TLED_ON));
++	return 0;
+ }
  
- By specifying the -a switch and analysing sleep, the system-wide events
-@@ -107,16 +107,16 @@ for a duration of time can be examined.
- Similarly, one could execute a shell and exit it as desired to get a report
- at that point.
+-static int
+-proc_write_tled(struct file *file, const char __user *buffer,
+-		unsigned long count, void *data)
++static int tled_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, tled_proc_show, NULL);
++}
++
++static ssize_t tled_proc_write(struct file *file, const char __user *buffer,
++		size_t count, loff_t *pos)
+ {
+ 	return write_led(buffer, count, hotk->methods->mt_tled, TLED_ON, 0);
+ }
  
--2.4 Local Event Enabling
-+3.4 Local Event Enabling
- ------------------------
++static const struct file_operations tled_proc_fops = {
++	.owner		= THIS_MODULE,
++	.open		= tled_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++	.write		= tled_proc_write,
++};
++
+ static int get_lcd_state(void)
+ {
+ 	int lcd = 0;
+@@ -828,16 +875,19 @@ static int set_lcd_state(int value)
  
- Documentation/trace/ftrace.txt describes how to enable events on a per-thread
- basis using set_ftrace_pid.
+ }
  
--2.5 Local Event Enablement with PCL
-+3.5 Local Event Enablement with PCL
- -----------------------------------
+-static int
+-proc_read_lcd(char *page, char **start, off_t off, int count, int *eof,
+-	      void *data)
++static int lcd_proc_show(struct seq_file *m, void *v)
+ {
+-	return sprintf(page, "%d\n", get_lcd_state());
++	seq_printf(m, "%d\n", get_lcd_state());
++	return 0;
+ }
  
--Events can be activate and tracked for the duration of a process on a local
-+Events can be activated and tracked for the duration of a process on a local
- basis using PCL such as follows.
+-static int
+-proc_write_lcd(struct file *file, const char __user *buffer,
+-	       unsigned long count, void *data)
++static int lcd_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, lcd_proc_show, NULL);
++}
++
++static ssize_t lcd_proc_write(struct file *file, const char __user *buffer,
++	       size_t count, loff_t *pos)
+ {
+ 	int rv, value;
  
-   $ perf stat -e kmem:mm_page_alloc -e kmem:mm_page_free_direct \
-@@ -131,18 +131,18 @@ basis using PCL such as follows.
+@@ -847,6 +897,15 @@ proc_write_lcd(struct file *file, const 
+ 	return rv;
+ }
  
-     0.973913387  seconds time elapsed
++static const struct file_operations lcd_proc_fops = {
++	.owner		= THIS_MODULE,
++	.open		= lcd_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++	.write		= lcd_proc_write,
++};
++
+ static int read_brightness(struct backlight_device *bd)
+ {
+ 	int value;
+@@ -906,16 +965,19 @@ static int set_brightness_status(struct 
+ 	return set_brightness(bd->props.brightness);
+ }
  
--3. Event Filtering
-+4. Event Filtering
- ==================
+-static int
+-proc_read_brn(char *page, char **start, off_t off, int count, int *eof,
+-	      void *data)
++static int brn_proc_show(struct seq_file *m, void *v)
+ {
+-	return sprintf(page, "%d\n", read_brightness(NULL));
++	seq_printf(m, "%d\n", read_brightness(NULL));
++	return 0;
+ }
  
- Documentation/trace/ftrace.txt covers in-depth how to filter events in
- ftrace.  Obviously using grep and awk of trace_pipe is an option as well
- as any script reading trace_pipe.
+-static int
+-proc_write_brn(struct file *file, const char __user *buffer,
+-	       unsigned long count, void *data)
++static int brn_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, brn_proc_show, NULL);
++}
++
++static ssize_t brn_proc_write(struct file *file, const char __user *buffer,
++	       size_t count, loff_t *pos)
+ {
+ 	int rv, value;
  
--4. Analysing Event Variances with PCL
-+5. Analysing Event Variances with PCL
- =====================================
+@@ -928,6 +990,15 @@ proc_write_brn(struct file *file, const 
+ 	return rv;
+ }
  
- Any workload can exhibit variances between runs and it can be important
--to know what the standard deviation in. By and large, this is left to the
-+to know what the standard deviation is. By and large, this is left to the
- performance analyst to do it by hand. In the event that the discrete event
- occurrences are useful to the performance analyst, then perf can be used.
++static const struct file_operations brn_proc_fops = {
++	.owner		= THIS_MODULE,
++	.open		= brn_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++	.write		= brn_proc_write,
++};
++
+ static void set_display(int value)
+ {
+ 	/* no sanity check needed for now */
+@@ -941,9 +1012,7 @@ static void set_display(int value)
+  * Now, *this* one could be more user-friendly, but so far, no-one has
+  * complained. The significance of bits is the same as in proc_write_disp()
+  */
+-static int
+-proc_read_disp(char *page, char **start, off_t off, int count, int *eof,
+-	       void *data)
++static int disp_proc_show(struct seq_file *m, void *v)
+ {
+ 	int value = 0;
  
-@@ -166,7 +166,7 @@ In the event that some higher-level even
- aggregation of discrete events, then a script would need to be developed.
+@@ -951,7 +1020,13 @@ proc_read_disp(char *page, char **start,
+ 		printk(KERN_WARNING
+ 		       "Asus ACPI: Error reading display status\n");
+ 	value &= 0x07;	/* needed for some models, shouldn't hurt others */
+-	return sprintf(page, "%d\n", value);
++	seq_printf(m, "%d\n", value);
++	return 0;
++}
++
++static int disp_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, disp_proc_show, NULL);
+ }
  
- Using --repeat, it is also possible to view how events are fluctuating over
--time on a system wide basis using -a and sleep.
-+time on a system-wide basis using -a and sleep.
+ /*
+@@ -960,9 +1035,8 @@ proc_read_disp(char *page, char **start,
+  * (bitwise) of these will suffice. I never actually tested 3 displays hooked
+  * up simultaneously, so be warned. See the acpi4asus README for more info.
+  */
+-static int
+-proc_write_disp(struct file *file, const char __user *buffer,
+-		unsigned long count, void *data)
++static ssize_t disp_proc_write(struct file *file, const char __user *buffer,
++		size_t count, loff_t *pos)
+ {
+ 	int rv, value;
  
-   $ perf stat -e kmem:mm_page_alloc -e kmem:mm_page_free_direct \
- 		-e kmem:mm_pagevec_free \
-@@ -180,7 +180,7 @@ time on a system wide basis using -a and
+@@ -972,25 +1046,27 @@ proc_write_disp(struct file *file, const
+ 	return rv;
+ }
  
-     1.002251757  seconds time elapsed   ( +-   0.005% )
+-typedef int (proc_readfunc) (char *page, char **start, off_t off, int count,
+-			     int *eof, void *data);
+-typedef int (proc_writefunc) (struct file *file, const char __user *buffer,
+-			      unsigned long count, void *data);
++static const struct file_operations disp_proc_fops = {
++	.owner		= THIS_MODULE,
++	.open		= disp_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++	.write		= disp_proc_write,
++};
  
--5. Higher-Level Analysis with Helper Scripts
-+6. Higher-Level Analysis with Helper Scripts
- ============================================
+ static int
+-asus_proc_add(char *name, proc_writefunc *writefunc,
+-		     proc_readfunc *readfunc, mode_t mode,
++asus_proc_add(char *name, const struct file_operations *proc_fops, mode_t mode,
+ 		     struct acpi_device *device)
+ {
+-	struct proc_dir_entry *proc =
+-	    create_proc_entry(name, mode, acpi_device_dir(device));
++	struct proc_dir_entry *proc;
++
++	proc = proc_create_data(name, mode, acpi_device_dir(device),
++				proc_fops, acpi_driver_data(device));
+ 	if (!proc) {
+ 		printk(KERN_WARNING "  Unable to create %s fs entry\n", name);
+ 		return -1;
+ 	}
+-	proc->write_proc = writefunc;
+-	proc->read_proc = readfunc;
+-	proc->data = acpi_driver_data(device);
+ 	proc->uid = asus_uid;
+ 	proc->gid = asus_gid;
+ 	return 0;
+@@ -1019,10 +1095,9 @@ static int asus_hotk_add_fs(struct acpi_
+ 	if (!acpi_device_dir(device))
+ 		return -ENODEV;
  
- When events are enabled the events that are triggering can be read from
-@@ -190,11 +190,11 @@ be gathered on-line as appropriate. Exam
+-	proc = create_proc_entry(PROC_INFO, mode, acpi_device_dir(device));
++	proc = proc_create(PROC_INFO, mode, acpi_device_dir(device),
++			   &asus_info_proc_fops);
+ 	if (proc) {
+-		proc->read_proc = proc_read_info;
+-		proc->data = acpi_driver_data(device);
+ 		proc->uid = asus_uid;
+ 		proc->gid = asus_gid;
+ 	} else {
+@@ -1031,28 +1106,23 @@ static int asus_hotk_add_fs(struct acpi_
+ 	}
  
-   o Reading information from /proc for the PID that triggered the event
-   o Deriving a higher-level event from a series of lower-level events.
--  o Calculate latencies between two events
-+  o Calculating latencies between two events
+ 	if (hotk->methods->mt_wled) {
+-		asus_proc_add(PROC_WLED, &proc_write_wled, &proc_read_wled,
+-			      mode, device);
++		asus_proc_add(PROC_WLED, &wled_proc_fops, mode, device);
+ 	}
  
- Documentation/trace/postprocess/trace-pagealloc-postprocess.pl is an example
- script that can read trace_pipe from STDIN or a copy of a trace. When used
--on-line, it can be interrupted once to generate a report without existing
-+on-line, it can be interrupted once to generate a report without exiting
- and twice to exit.
+ 	if (hotk->methods->mt_ledd) {
+-		asus_proc_add(PROC_LEDD, &proc_write_ledd, &proc_read_ledd,
+-			      mode, device);
++		asus_proc_add(PROC_LEDD, &ledd_proc_fops, mode, device);
+ 	}
  
- Simplistically, the script just reads STDIN and counts up events but it
-@@ -212,12 +212,12 @@ also can do more such as
-     processes, the parent process responsible for creating all the helpers
-     can be identified
+ 	if (hotk->methods->mt_mled) {
+-		asus_proc_add(PROC_MLED, &proc_write_mled, &proc_read_mled,
+-			      mode, device);
++		asus_proc_add(PROC_MLED, &mled_proc_fops, mode, device);
+ 	}
  
--6. Lower-Level Analysis with PCL
-+7. Lower-Level Analysis with PCL
- ================================
+ 	if (hotk->methods->mt_tled) {
+-		asus_proc_add(PROC_TLED, &proc_write_tled, &proc_read_tled,
+-			      mode, device);
++		asus_proc_add(PROC_TLED, &tled_proc_fops, mode, device);
+ 	}
  
--There may also be a requirement to identify what functions with a program
-+There may also be a requirement to identify what functions within a program
- were generating events within the kernel. To begin this sort of analysis, the
--data must be recorded. At the time of writing, this required root
-+data must be recorded. At the time of writing, this required root:
+ 	if (hotk->methods->mt_bt_switch) {
+-		asus_proc_add(PROC_BT, &proc_write_bluetooth,
+-			      &proc_read_bluetooth, mode, device);
++		asus_proc_add(PROC_BT, &bluetooth_proc_fops, mode, device);
+ 	}
  
-   $ perf record -c 1 \
- 	-e kmem:mm_page_alloc -e kmem:mm_page_free_direct \
-@@ -253,11 +253,11 @@ perf report.
-   # (For more details, try: perf report --sort comm,dso,symbol)
-   #
+ 	/*
+@@ -1060,19 +1130,16 @@ static int asus_hotk_add_fs(struct acpi_
+ 	 * accessible from the keyboard
+ 	 */
+ 	if (hotk->methods->mt_lcd_switch && hotk->methods->lcd_status) {
+-		asus_proc_add(PROC_LCD, &proc_write_lcd, &proc_read_lcd, mode,
+-			      device);
++		asus_proc_add(PROC_LCD, &lcd_proc_fops, mode, device);
+ 	}
  
--According to this, the vast majority of events occured triggered on events
--within the VDSO. With simple binaries, this will often be the case so lets
-+According to this, the vast majority of events triggered on events
-+within the VDSO. With simple binaries, this will often be the case so let's
- take a slightly different example. In the course of writing this, it was
--noticed that X was generating an insane amount of page allocations so lets look
--at it
-+noticed that X was generating an insane amount of page allocations so let's look
-+at it:
+ 	if ((hotk->methods->brightness_up && hotk->methods->brightness_down) ||
+ 	    (hotk->methods->brightness_get && hotk->methods->brightness_set)) {
+-		asus_proc_add(PROC_BRN, &proc_write_brn, &proc_read_brn, mode,
+-			      device);
++		asus_proc_add(PROC_BRN, &brn_proc_fops, mode, device);
+ 	}
  
-   $ perf record -c 1 -f \
- 		-e kmem:mm_page_alloc -e kmem:mm_page_free_direct \
-@@ -280,8 +280,8 @@ This was interrupted after a few seconds
-   # (For more details, try: perf report --sort comm,dso,symbol)
-   #
+ 	if (hotk->methods->display_set) {
+-		asus_proc_add(PROC_DISP, &proc_write_disp, &proc_read_disp,
+-			      mode, device);
++		asus_proc_add(PROC_DISP, &disp_proc_fops, mode, device);
+ 	}
  
--So, almost half of the events are occuring in a library. To get an idea which
--symbol.
-+So, almost half of the events are occurring in a library. To get an idea which
-+symbol:
- 
-   $ perf report --sort comm,dso,symbol
-   # Samples: 27666
-@@ -297,7 +297,7 @@ symbol.
-        0.01%     Xorg  /opt/gfx-test/lib/libpixman-1.so.0.13.1  [.] get_fast_path
-        0.00%     Xorg  [kernel]                                 [k] ftrace_trace_userstack
- 
--To see where within the function pixmanFillsse2 things are going wrong
-+To see where within the function pixmanFillsse2 things are going wrong:
- 
-   $ perf annotate pixmanFillsse2
-   [ ... ]
+ 	return 0;
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-docs-large-update-to-ioctl-numbertxt.patch
-linux-next.patch
-documentation-update-ring-buffer-designtxt.patch
-gpio-add-driver-for-max7300-i2c-gpio-extender.patch
-reiser4-export-remove_from_page_cache-fix.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
+arm-convert-proc-cpu-aligment-to-seq_file.patch
+proc_fops-convert-av7110.patch
+proc_fops-convert-drivers-isdn-to-seq_file.patch
+mpt-fusion-convert-to-seq_file.patch
+tracehooks-kill-some-pt_ptraced-checks.patch
+tracehooks-check-pt_ptraced-before-reporting-the-single-step.patch
+ptrace_signal-check-pt_ptraced-before-reporting-a-signal.patch
+export-__ptrace_detach-and-do_notify_parent_cldstop.patch
+reorder-the-code-in-kernel-ptracec.patch
+implement-utrace-ptrace.patch
+utrace-core.patch
 
