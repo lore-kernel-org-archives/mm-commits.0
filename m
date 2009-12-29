@@ -1,100 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [merged] documentation-update-mmiotracetxt.patch removed from -mm tree
-Date: Tue, 29 Dec 2009 13:31:33 -0800
-Message-ID: <200912292131.nBTLVX4B008499@imap1.linux-foundation.org>
+Subject: [merged] documentation-update-ftrace-designtxt.patch removed from -mm tree
+Date: Tue, 29 Dec 2009 13:31:40 -0800
+Message-ID: <200912292131.nBTLVeh0008506@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56410 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40273 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752303AbZL2Vbx (ORCPT
+	by vger.kernel.org with ESMTP id S1752515AbZL2VcP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Dec 2009 16:31:53 -0500
+	Tue, 29 Dec 2009 16:32:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, pq@iki.fi, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, mel@csn.ul.ie, rostedt@goodmis.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Documentation: update mmiotrace.txt
+     Documentation: update ftrace-design.txt
 has been removed from the -mm tree.  Its filename was
-     documentation-update-mmiotracetxt.patch
+     documentation-update-ftrace-designtxt.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Documentation: update mmiotrace.txt
+Subject: Documentation: update ftrace-design.txt
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix typos, spellos, hyphenation, line lengths.
-
-BTW: are there some userspace tools?  There is a reference to some at the
-wiki page, but there are no tools listed there.
+Correct grammos.  Spell out words.  Add missing words.  Consistent use of
+"mcount()" function name.
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Acked-by: Pekka Paalanen <pq@iki.fi>
+Acked-by: Steven Rostedt <rostedt@goodmis.org>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/trace/mmiotrace.txt |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ Documentation/trace/ftrace-design.txt |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN Documentation/trace/mmiotrace.txt~documentation-update-mmiotracetxt Documentation/trace/mmiotrace.txt
---- a/Documentation/trace/mmiotrace.txt~documentation-update-mmiotracetxt
-+++ a/Documentation/trace/mmiotrace.txt
-@@ -44,7 +44,8 @@ Check for lost events.
- Usage
- -----
+diff -puN Documentation/trace/ftrace-design.txt~documentation-update-ftrace-designtxt Documentation/trace/ftrace-design.txt
+--- a/Documentation/trace/ftrace-design.txt~documentation-update-ftrace-designtxt
++++ a/Documentation/trace/ftrace-design.txt
+@@ -53,14 +53,14 @@ size of the mcount call that is embedded
+ For example, if the function foo() calls bar(), when the bar() function calls
+ mcount(), the arguments mcount() will pass to the tracer are:
+ 	"frompc" - the address bar() will use to return to foo()
+-	"selfpc" - the address bar() (with _mcount() size adjustment)
++	"selfpc" - the address bar() (with mcount() size adjustment)
  
--Make sure debugfs is mounted to /sys/kernel/debug. If not, (requires root privileges)
-+Make sure debugfs is mounted to /sys/kernel/debug.
-+If not (requires root privileges):
- $ mount -t debugfs debugfs /sys/kernel/debug
+ Also keep in mind that this mcount function will be called *a lot*, so
+ optimizing for the default case of no tracer will help the smooth running of
+ your system when tracing is disabled.  So the start of the mcount function is
+-typically the bare min with checking things before returning.  That also means
+-the code flow should usually kept linear (i.e. no branching in the nop case).
+-This is of course an optimization and not a hard requirement.
++typically the bare minimum with checking things before returning.  That also
++means the code flow should usually be kept linear (i.e. no branching in the nop
++case).  This is of course an optimization and not a hard requirement.
  
- Check that the driver you are about to trace is not loaded.
-@@ -91,7 +92,7 @@ $ dmesg > dmesg.txt
- $ tar zcf pciid-nick-mmiotrace.tar.gz mydump.txt lspci.txt dmesg.txt
- and then send the .tar.gz file. The trace compresses considerably. Replace
- "pciid" and "nick" with the PCI ID or model name of your piece of hardware
--under investigation and your nick name.
-+under investigation and your nickname.
+ Here is some pseudo code that should help (these functions should actually be
+ implemented in assembly):
+@@ -131,10 +131,10 @@ some functions to save (hijack) and rest
  
+ The mcount function should check the function pointers ftrace_graph_return
+ (compare to ftrace_stub) and ftrace_graph_entry (compare to
+-ftrace_graph_entry_stub).  If either of those are not set to the relevant stub
++ftrace_graph_entry_stub).  If either of those is not set to the relevant stub
+ function, call the arch-specific function ftrace_graph_caller which in turn
+ calls the arch-specific function prepare_ftrace_return.  Neither of these
+-function names are strictly required, but you should use them anyways to stay
++function names is strictly required, but you should use them anyway to stay
+ consistent across the architecture ports -- easier to compare & contrast
+ things.
  
- How Mmiotrace Works
-@@ -100,7 +101,7 @@ How Mmiotrace Works
- Access to hardware IO-memory is gained by mapping addresses from PCI bus by
- calling one of the ioremap_*() functions. Mmiotrace is hooked into the
- __ioremap() function and gets called whenever a mapping is created. Mapping is
--an event that is recorded into the trace log. Note, that ISA range mappings
-+an event that is recorded into the trace log. Note that ISA range mappings
- are not caught, since the mapping always exists and is returned directly.
+@@ -144,7 +144,7 @@ but the first argument should be a point
+ located on the stack.  This allows the function to hijack the return address
+ temporarily to have it point to the arch-specific function return_to_handler.
+ That function will simply call the common ftrace_return_to_handler function and
+-that will return the original return address with which, you can return to the
++that will return the original return address with which you can return to the
+ original call site.
  
- MMIO accesses are recorded via page faults. Just before __ioremap() returns,
-@@ -122,11 +123,11 @@ Trace Log Format
- ----------------
- 
- The raw log is text and easily filtered with e.g. grep and awk. One record is
--one line in the log. A record starts with a keyword, followed by keyword
--dependant arguments. Arguments are separated by a space, or continue until the
-+one line in the log. A record starts with a keyword, followed by keyword-
-+dependent arguments. Arguments are separated by a space, or continue until the
- end of line. The format for version 20070824 is as follows:
- 
--Explanation	Keyword	Space separated arguments
-+Explanation	Keyword	Space-separated arguments
- ---------------------------------------------------------------------------
- 
- read event	R	width, timestamp, map id, physical, value, PC, PID
-@@ -136,7 +137,7 @@ iounmap event	UNMAP	timestamp, map id, P
- marker		MARK	timestamp, text
- version		VERSION	the string "20070824"
- info for reader	LSPCI	one line from lspci -v
--PCI address map	PCIDEV	space separated /proc/bus/pci/devices data
-+PCI address map	PCIDEV	space-separated /proc/bus/pci/devices data
- unk. opcode	UNKNOWN	timestamp, map id, physical, data, PC, PID
- 
- Timestamp is in seconds with decimals. Physical is a PCI bus address, virtual
+ Here is the updated mcount pseudo code:
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
