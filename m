@@ -1,66 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [merged] adx_wdtc-use-resource_size.patch removed from -mm tree
-Date: Tue, 29 Dec 2009 13:33:32 -0800
-Message-ID: <200912292133.nBTLXWIc008713@imap1.linux-foundation.org>
+Subject: [merged] drivers-usb-correct-code-taking-the-size-of-a-pointer.patch removed from -mm tree
+Date: Tue, 29 Dec 2009 13:33:29 -0800
+Message-ID: <200912292133.nBTLXT22008710@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43870 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37988 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752836AbZL2Vdq (ORCPT
+	by vger.kernel.org with ESMTP id S1752835AbZL2Vdh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Dec 2009 16:33:46 -0500
+	Tue, 29 Dec 2009 16:33:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hartleys@visionengravers.com, hsweeten@visionengravers.com, thierry.reding@avionic-design.de, wim@iguana.be, mm-commits@vger.kernel.org
+To: julia@diku.dk, david.vrabel@csr.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     adx_wdt.c: use resource_size()
+     drivers/usb: correct code taking the size of a pointer
 has been removed from the -mm tree.  Its filename was
-     adx_wdtc-use-resource_size.patch
+     drivers-usb-correct-code-taking-the-size-of-a-pointer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: adx_wdt.c: use resource_size()
-From: "H Hartley Sweeten" <hartleys@visionengravers.com>
+Subject: drivers/usb: correct code taking the size of a pointer
+From: Julia Lawall <julia@diku.dk>
 
-Use resource_size().
+sizeof(chid) is just the size of the pointer.  Change it to the size of the
+referenced structure.
 
-Signed-off-by: H Hartley Sweeten <hsweeten@visionengravers.com>
-Acked-by: Thierry Reding <thierry.reding@avionic-design.de>
-Cc: Wim Van Sebroeck <wim@iguana.be>
+A simplified version of the semantic patch that finds this problem is as
+follows: (http://coccinelle.lip6.fr/)
+
+// <smpl>
+@@
+expression *x;
+expression f;
+type T;
+@@
+
+*f(...,(T)x,...)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: David Vrabel <david.vrabel@csr.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/adx_wdt.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/usb/wusbcore/mmc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/watchdog/adx_wdt.c~adx_wdtc-use-resource_size drivers/watchdog/adx_wdt.c
---- a/drivers/watchdog/adx_wdt.c~adx_wdtc-use-resource_size
-+++ a/drivers/watchdog/adx_wdt.c
-@@ -242,14 +242,14 @@ static int __devinit adx_wdt_probe(struc
- 	}
+diff -puN drivers/usb/wusbcore/mmc.c~drivers-usb-correct-code-taking-the-size-of-a-pointer drivers/usb/wusbcore/mmc.c
+--- a/drivers/usb/wusbcore/mmc.c~drivers-usb-correct-code-taking-the-size-of-a-pointer
++++ a/drivers/usb/wusbcore/mmc.c
+@@ -263,7 +263,7 @@ int wusbhc_chid_set(struct wusbhc *wusbh
+ {
+ 	int result = 0;
  
- 	res = devm_request_mem_region(&pdev->dev, res->start,
--			res->end - res->start + 1, res->name);
-+			resource_size(res), res->name);
- 	if (!res) {
- 		dev_err(&pdev->dev, "cannot request I/O memory region\n");
- 		return -ENXIO;
- 	}
+-	if (memcmp(chid, &wusb_ckhdid_zero, sizeof(chid)) == 0)
++	if (memcmp(chid, &wusb_ckhdid_zero, sizeof(*chid)) == 0)
+ 		chid = NULL;
  
- 	wdt->base = devm_ioremap_nocache(&pdev->dev, res->start,
--			res->end - res->start + 1);
-+			resource_size(res));
- 	if (!wdt->base) {
- 		dev_err(&pdev->dev, "cannot remap I/O memory region\n");
- 		return -ENXIO;
+ 	mutex_lock(&wusbhc->mutex);
 _
 
-Patches currently in -mm which might be from hartleys@visionengravers.com are
+Patches currently in -mm which might be from julia@diku.dk are
 
 linux-next.patch
+drivers-media-video-move-dereference-after-null-test.patch
+arch-mips-alchemy-correct-code-taking-the-size-of-a-pointer.patch
+drivers-isdn-eliminate-duplicated-test.patch
+drivers-scsi-libsas-use-sam_good.patch
+drivers-scsi-remove-unnecessary-null-test.patch
+drivers-message-move-dereference-after-null-test.patch
+drivers-edac-introduce-missing-kfree.patch
 
