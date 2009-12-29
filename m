@@ -1,714 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch removed from -mm tree
-Date: Tue, 29 Dec 2009 13:31:54 -0800
-Message-ID: <200912292131.nBTLVswr008518@imap1.linux-foundation.org>
+Subject: [merged] serial-copy-uart-properties-of-upf_fixed_type-ports-provisioned-using-early_serial_setup.patch removed from -mm tree
+Date: Tue, 29 Dec 2009 13:32:28 -0800
+Message-ID: <200912292132.nBTLWSqh008630@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40587 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37326 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752766AbZL2Vcg (ORCPT
+	by vger.kernel.org with ESMTP id S1752777AbZL2Vcw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Dec 2009 16:32:36 -0500
+	Tue, 29 Dec 2009 16:32:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cascardo@holoscopio.com, lenb@kernel.org, mm-commits@vger.kernel.org
+To: shmulik@jungo.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cmpc_acpi: add support for Classmate PC ACPI devices
+     serial: copy UART properties of UPF_FIXED_TYPE ports provisioned using early_serial_setup
 has been removed from the -mm tree.  Its filename was
-     cmpc_acpi-add-support-for-classmate-pc-acpi-devices.patch
+     serial-copy-uart-properties-of-upf_fixed_type-ports-provisioned-using-early_serial_setup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cmpc_acpi: add support for Classmate PC ACPI devices
-From: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
+Subject: serial: copy UART properties of UPF_FIXED_TYPE ports provisioned using early_serial_setup
+From: Shmulik Ladkani <shmulik@jungo.com>
 
-This add supports for devices like keyboard, backlight, tablet and
-accelerometer.
+Augment the UPF_FIXED_TYPE logic, which currently applies to UART ports
+provisioned using platform_device_register.
 
-This work is supported by International Syst S/A.
+The suggested patch applies same logic into 'serial8250_register_ports',
+making UART ports provisioned using early_serial_setup inherit their
+properties from the uart_config entry.
 
-[randy.dunlap@oracle.com: cmpc_acpi: depends on ACPI]
-[akpm@linux-foundation.org: readability tweaks]
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Shmulik Ladkani <shmulik@jungo.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS                             |    6 
- drivers/platform/x86/Kconfig            |   12 
- drivers/platform/x86/Makefile           |    1 
- drivers/platform/x86/classmate-laptop.c |  609 ++++++++++++++++++++++
- 4 files changed, 628 insertions(+)
+ drivers/serial/8250.c |   21 +++++++++++++++------
+ 1 file changed, 15 insertions(+), 6 deletions(-)
 
-diff -puN MAINTAINERS~cmpc_acpi-add-support-for-classmate-pc-acpi-devices MAINTAINERS
---- a/MAINTAINERS~cmpc_acpi-add-support-for-classmate-pc-acpi-devices
-+++ a/MAINTAINERS
-@@ -1479,6 +1479,12 @@ L:	linux-scsi@vger.kernel.org
- S:	Supported
- F:	drivers/scsi/fnic/
+diff -puN drivers/serial/8250.c~serial-copy-uart-properties-of-upf_fixed_type-ports-provisioned-using-early_serial_setup drivers/serial/8250.c
+--- a/drivers/serial/8250.c~serial-copy-uart-properties-of-upf_fixed_type-ports-provisioned-using-early_serial_setup
++++ a/drivers/serial/8250.c
+@@ -2689,6 +2689,15 @@ static void __init serial8250_isa_init_p
+ 	}
+ }
  
-+CMPC ACPI DRIVER
-+M:	Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
-+M:	Daniel Oliveira Nascimento <don@syst.com.br>
-+S:	Supported
-+F:	drivers/platform/x86/classmate-laptop.c
++static void
++serial8250_init_fixed_type_port(struct uart_8250_port *up, unsigned int type)
++{
++	up->port.type = type;
++	up->port.fifosize = uart_config[type].fifo_size;
++	up->capabilities = uart_config[type].flags;
++	up->tx_loadsz = uart_config[type].tx_loadsz;
++}
 +
- CODA FILE SYSTEM
- M:	Jan Harkes <jaharkes@cs.cmu.edu>
- M:	coda@cs.cmu.edu
-diff -puN drivers/platform/x86/Kconfig~cmpc_acpi-add-support-for-classmate-pc-acpi-devices drivers/platform/x86/Kconfig
---- a/drivers/platform/x86/Kconfig~cmpc_acpi-add-support-for-classmate-pc-acpi-devices
-+++ a/drivers/platform/x86/Kconfig
-@@ -464,4 +464,16 @@ config TOSHIBA_BT_RFKILL
+ static void __init
+ serial8250_register_ports(struct uart_driver *drv, struct device *dev)
+ {
+@@ -2705,6 +2714,10 @@ serial8250_register_ports(struct uart_dr
+ 		struct uart_8250_port *up = &serial8250_ports[i];
  
- 	  If you have a modern Toshiba laptop with a Bluetooth and an
- 	  RFKill switch (such as the Portege R500), say Y.
-+
-+config ACPI_CMPC
-+	tristate "CMPC Laptop Extras"
-+	depends on X86 && ACPI
-+	select INPUT
-+	select BACKLIGHT_CLASS_DEVICE
-+	default n
-+	help
-+	  Support for Intel Classmate PC ACPI devices, including some
-+	  keys as input device, backlight device, tablet and accelerometer
-+	  devices.
-+
- endif # X86_PLATFORM_DEVICES
-diff -puN drivers/platform/x86/Makefile~cmpc_acpi-add-support-for-classmate-pc-acpi-devices drivers/platform/x86/Makefile
---- a/drivers/platform/x86/Makefile~cmpc_acpi-add-support-for-classmate-pc-acpi-devices
-+++ a/drivers/platform/x86/Makefile
-@@ -5,6 +5,7 @@
- obj-$(CONFIG_ASUS_LAPTOP)	+= asus-laptop.o
- obj-$(CONFIG_EEEPC_LAPTOP)	+= eeepc-laptop.o
- obj-$(CONFIG_MSI_LAPTOP)	+= msi-laptop.o
-+obj-$(CONFIG_ACPI_CMPC)		+= classmate-laptop.o
- obj-$(CONFIG_COMPAL_LAPTOP)	+= compal-laptop.o
- obj-$(CONFIG_DELL_LAPTOP)	+= dell-laptop.o
- obj-$(CONFIG_DELL_WMI)		+= dell-wmi.o
-diff -puN /dev/null drivers/platform/x86/classmate-laptop.c
---- /dev/null
-+++ a/drivers/platform/x86/classmate-laptop.c
-@@ -0,0 +1,609 @@
-+/*
-+ *  Copyright (C) 2009  Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; either version 2 of the License, or
-+ *  (at your option) any later version.
-+ *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *  GNU General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License along
-+ *  with this program; if not, write to the Free Software Foundation, Inc.,
-+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-+ */
-+
-+
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/workqueue.h>
-+#include <acpi/acpi_drivers.h>
-+#include <linux/backlight.h>
-+#include <linux/input.h>
-+
-+MODULE_LICENSE("GPL");
-+
-+
-+struct cmpc_accel {
-+	int sensitivity;
-+};
-+
-+#define CMPC_ACCEL_SENSITIVITY_DEFAULT		5
-+
-+
-+/*
-+ * Generic input device code.
-+ */
-+
-+typedef void (*input_device_init)(struct input_dev *dev);
-+
-+static int cmpc_add_acpi_notify_device(struct acpi_device *acpi, char *name,
-+				       input_device_init idev_init)
-+{
-+	struct input_dev *inputdev;
-+	int error;
-+
-+	inputdev = input_allocate_device();
-+	if (!inputdev)
-+		return -ENOMEM;
-+	inputdev->name = name;
-+	inputdev->dev.parent = &acpi->dev;
-+	idev_init(inputdev);
-+	error = input_register_device(inputdev);
-+	if (error) {
-+		input_free_device(inputdev);
-+		return error;
-+	}
-+	dev_set_drvdata(&acpi->dev, inputdev);
-+	return 0;
-+}
-+
-+static int cmpc_remove_acpi_notify_device(struct acpi_device *acpi)
-+{
-+	struct input_dev *inputdev = dev_get_drvdata(&acpi->dev);
-+	input_unregister_device(inputdev);
-+	return 0;
-+}
-+
-+/*
-+ * Accelerometer code.
-+ */
-+static acpi_status cmpc_start_accel(acpi_handle handle)
-+{
-+	union acpi_object param[2];
-+	struct acpi_object_list input;
-+	acpi_status status;
-+
-+	param[0].type = ACPI_TYPE_INTEGER;
-+	param[0].integer.value = 0x3;
-+	param[1].type = ACPI_TYPE_INTEGER;
-+	input.count = 2;
-+	input.pointer = param;
-+	status = acpi_evaluate_object(handle, "ACMD", &input, NULL);
-+	return status;
-+}
-+
-+static acpi_status cmpc_stop_accel(acpi_handle handle)
-+{
-+	union acpi_object param[2];
-+	struct acpi_object_list input;
-+	acpi_status status;
-+
-+	param[0].type = ACPI_TYPE_INTEGER;
-+	param[0].integer.value = 0x4;
-+	param[1].type = ACPI_TYPE_INTEGER;
-+	input.count = 2;
-+	input.pointer = param;
-+	status = acpi_evaluate_object(handle, "ACMD", &input, NULL);
-+	return status;
-+}
-+
-+static acpi_status cmpc_accel_set_sensitivity(acpi_handle handle, int val)
-+{
-+	union acpi_object param[2];
-+	struct acpi_object_list input;
-+
-+	param[0].type = ACPI_TYPE_INTEGER;
-+	param[0].integer.value = 0x02;
-+	param[1].type = ACPI_TYPE_INTEGER;
-+	param[1].integer.value = val;
-+	input.count = 2;
-+	input.pointer = param;
-+	return acpi_evaluate_object(handle, "ACMD", &input, NULL);
-+}
-+
-+static acpi_status cmpc_get_accel(acpi_handle handle,
-+				  unsigned char *x,
-+				  unsigned char *y,
-+				  unsigned char *z)
-+{
-+	union acpi_object param[2];
-+	struct acpi_object_list input;
-+	struct acpi_buffer output = { ACPI_ALLOCATE_BUFFER, 0 };
-+	unsigned char *locs;
-+	acpi_status status;
-+
-+	param[0].type = ACPI_TYPE_INTEGER;
-+	param[0].integer.value = 0x01;
-+	param[1].type = ACPI_TYPE_INTEGER;
-+	input.count = 2;
-+	input.pointer = param;
-+	status = acpi_evaluate_object(handle, "ACMD", &input, &output);
-+	if (ACPI_SUCCESS(status)) {
-+		union acpi_object *obj;
-+		obj = output.pointer;
-+		locs = obj->buffer.pointer;
-+		*x = locs[0];
-+		*y = locs[1];
-+		*z = locs[2];
-+		kfree(output.pointer);
-+	}
-+	return status;
-+}
-+
-+static void cmpc_accel_handler(struct acpi_device *dev, u32 event)
-+{
-+	if (event == 0x81) {
-+		unsigned char x, y, z;
-+		acpi_status status;
-+
-+		status = cmpc_get_accel(dev->handle, &x, &y, &z);
-+		if (ACPI_SUCCESS(status)) {
-+			struct input_dev *inputdev = dev_get_drvdata(&dev->dev);
-+
-+			input_report_abs(inputdev, ABS_X, x);
-+			input_report_abs(inputdev, ABS_Y, y);
-+			input_report_abs(inputdev, ABS_Z, z);
-+			input_sync(inputdev);
-+		}
-+	}
-+}
-+
-+static ssize_t cmpc_accel_sensitivity_show(struct device *dev,
-+					   struct device_attribute *attr,
-+					   char *buf)
-+{
-+	struct acpi_device *acpi;
-+	struct input_dev *inputdev;
-+	struct cmpc_accel *accel;
-+
-+	acpi = to_acpi_device(dev);
-+	inputdev = dev_get_drvdata(&acpi->dev);
-+	accel = dev_get_drvdata(&inputdev->dev);
-+
-+	return sprintf(buf, "%d\n", accel->sensitivity);
-+}
-+
-+static ssize_t cmpc_accel_sensitivity_store(struct device *dev,
-+					    struct device_attribute *attr,
-+					    const char *buf, size_t count)
-+{
-+	struct acpi_device *acpi;
-+	struct input_dev *inputdev;
-+	struct cmpc_accel *accel;
-+	unsigned long sensitivity;
-+	int r;
-+
-+	acpi = to_acpi_device(dev);
-+	inputdev = dev_get_drvdata(&acpi->dev);
-+	accel = dev_get_drvdata(&inputdev->dev);
-+
-+	r = strict_strtoul(buf, 0, &sensitivity);
-+	if (r)
-+		return r;
-+
-+	accel->sensitivity = sensitivity;
-+	cmpc_accel_set_sensitivity(acpi->handle, sensitivity);
-+
-+	return strnlen(buf, count);
-+}
-+
-+struct device_attribute cmpc_accel_sensitivity_attr = {
-+	.attr = { .name = "sensitivity", .mode = 0660 },
-+	.show = cmpc_accel_sensitivity_show,
-+	.store = cmpc_accel_sensitivity_store
-+};
-+
-+static int cmpc_accel_open(struct input_dev *input)
-+{
-+	struct acpi_device *acpi;
-+
-+	acpi = to_acpi_device(input->dev.parent);
-+	if (ACPI_SUCCESS(cmpc_start_accel(acpi->handle)))
-+		return 0;
-+	return -EIO;
-+}
-+
-+static void cmpc_accel_close(struct input_dev *input)
-+{
-+	struct acpi_device *acpi;
-+
-+	acpi = to_acpi_device(input->dev.parent);
-+	cmpc_stop_accel(acpi->handle);
-+}
-+
-+static void cmpc_accel_idev_init(struct input_dev *inputdev)
-+{
-+	set_bit(EV_ABS, inputdev->evbit);
-+	input_set_abs_params(inputdev, ABS_X, 0, 255, 8, 0);
-+	input_set_abs_params(inputdev, ABS_Y, 0, 255, 8, 0);
-+	input_set_abs_params(inputdev, ABS_Z, 0, 255, 8, 0);
-+	inputdev->open = cmpc_accel_open;
-+	inputdev->close = cmpc_accel_close;
-+}
-+
-+static int cmpc_accel_add(struct acpi_device *acpi)
-+{
-+	int error;
-+	struct input_dev *inputdev;
-+	struct cmpc_accel *accel;
-+
-+	accel = kmalloc(sizeof(*accel), GFP_KERNEL);
-+	if (!accel)
-+		return -ENOMEM;
-+
-+	accel->sensitivity = CMPC_ACCEL_SENSITIVITY_DEFAULT;
-+	cmpc_accel_set_sensitivity(acpi->handle, accel->sensitivity);
-+
-+	error = device_create_file(&acpi->dev, &cmpc_accel_sensitivity_attr);
-+	if (error)
-+		goto failed_file;
-+
-+	error = cmpc_add_acpi_notify_device(acpi, "cmpc_accel",
-+					    cmpc_accel_idev_init);
-+	if (error)
-+		goto failed_input;
-+
-+	inputdev = dev_get_drvdata(&acpi->dev);
-+	dev_set_drvdata(&inputdev->dev, accel);
-+
-+	return 0;
-+
-+failed_input:
-+	device_remove_file(&acpi->dev, &cmpc_accel_sensitivity_attr);
-+failed_file:
-+	kfree(accel);
-+	return error;
-+}
-+
-+static int cmpc_accel_remove(struct acpi_device *acpi, int type)
-+{
-+	struct input_dev *inputdev;
-+	struct cmpc_accel *accel;
-+
-+	inputdev = dev_get_drvdata(&acpi->dev);
-+	accel = dev_get_drvdata(&inputdev->dev);
-+
-+	device_remove_file(&acpi->dev, &cmpc_accel_sensitivity_attr);
-+	return cmpc_remove_acpi_notify_device(acpi);
-+}
-+
-+static const struct acpi_device_id cmpc_accel_device_ids[] = {
-+	{"ACCE0000", 0},
-+	{"", 0}
-+};
-+MODULE_DEVICE_TABLE(acpi, cmpc_accel_device_ids);
-+
-+static struct acpi_driver cmpc_accel_acpi_driver = {
-+	.owner = THIS_MODULE,
-+	.name = "cmpc_accel",
-+	.class = "cmpc_accel",
-+	.ids = cmpc_accel_device_ids,
-+	.ops = {
-+		.add = cmpc_accel_add,
-+		.remove = cmpc_accel_remove,
-+		.notify = cmpc_accel_handler,
-+	}
-+};
-+
-+
-+/*
-+ * Tablet mode code.
-+ */
-+static acpi_status cmpc_get_tablet(acpi_handle handle,
-+				   unsigned long long *value)
-+{
-+	union acpi_object param;
-+	struct acpi_object_list input;
-+	unsigned long long output;
-+	acpi_status status;
-+
-+	param.type = ACPI_TYPE_INTEGER;
-+	param.integer.value = 0x01;
-+	input.count = 1;
-+	input.pointer = &param;
-+	status = acpi_evaluate_integer(handle, "TCMD", &input, &output);
-+	if (ACPI_SUCCESS(status))
-+		*value = output;
-+	return status;
-+}
-+
-+static void cmpc_tablet_handler(struct acpi_device *dev, u32 event)
-+{
-+	unsigned long long val = 0;
-+	struct input_dev *inputdev = dev_get_drvdata(&dev->dev);
-+
-+	if (event == 0x81) {
-+		if (ACPI_SUCCESS(cmpc_get_tablet(dev->handle, &val)))
-+			input_report_switch(inputdev, SW_TABLET_MODE, !val);
-+	}
-+}
-+
-+static void cmpc_tablet_idev_init(struct input_dev *inputdev)
-+{
-+	unsigned long long val = 0;
-+	struct acpi_device *acpi;
-+
-+	set_bit(EV_SW, inputdev->evbit);
-+	set_bit(SW_TABLET_MODE, inputdev->swbit);
-+
-+	acpi = to_acpi_device(inputdev->dev.parent);
-+	if (ACPI_SUCCESS(cmpc_get_tablet(acpi->handle, &val)))
-+		input_report_switch(inputdev, SW_TABLET_MODE, !val);
-+}
-+
-+static int cmpc_tablet_add(struct acpi_device *acpi)
-+{
-+	return cmpc_add_acpi_notify_device(acpi, "cmpc_tablet",
-+					   cmpc_tablet_idev_init);
-+}
-+
-+static int cmpc_tablet_remove(struct acpi_device *acpi, int type)
-+{
-+	return cmpc_remove_acpi_notify_device(acpi);
-+}
-+
-+static int cmpc_tablet_resume(struct acpi_device *acpi)
-+{
-+	struct input_dev *inputdev = dev_get_drvdata(&acpi->dev);
-+	unsigned long long val = 0;
-+	if (ACPI_SUCCESS(cmpc_get_tablet(acpi->handle, &val)))
-+		input_report_switch(inputdev, SW_TABLET_MODE, !val);
-+	return 0;
-+}
-+
-+static const struct acpi_device_id cmpc_tablet_device_ids[] = {
-+	{"TBLT0000", 0},
-+	{"", 0}
-+};
-+MODULE_DEVICE_TABLE(acpi, cmpc_tablet_device_ids);
-+
-+static struct acpi_driver cmpc_tablet_acpi_driver = {
-+	.owner = THIS_MODULE,
-+	.name = "cmpc_tablet",
-+	.class = "cmpc_tablet",
-+	.ids = cmpc_tablet_device_ids,
-+	.ops = {
-+		.add = cmpc_tablet_add,
-+		.remove = cmpc_tablet_remove,
-+		.resume = cmpc_tablet_resume,
-+		.notify = cmpc_tablet_handler,
-+	}
-+};
-+
-+
-+/*
-+ * Backlight code.
-+ */
-+
-+static acpi_status cmpc_get_brightness(acpi_handle handle,
-+				       unsigned long long *value)
-+{
-+	union acpi_object param;
-+	struct acpi_object_list input;
-+	unsigned long long output;
-+	acpi_status status;
-+
-+	param.type = ACPI_TYPE_INTEGER;
-+	param.integer.value = 0xC0;
-+	input.count = 1;
-+	input.pointer = &param;
-+	status = acpi_evaluate_integer(handle, "GRDI", &input, &output);
-+	if (ACPI_SUCCESS(status))
-+		*value = output;
-+	return status;
-+}
-+
-+static acpi_status cmpc_set_brightness(acpi_handle handle,
-+				       unsigned long long value)
-+{
-+	union acpi_object param[2];
-+	struct acpi_object_list input;
-+	acpi_status status;
-+	unsigned long long output;
-+
-+	param[0].type = ACPI_TYPE_INTEGER;
-+	param[0].integer.value = 0xC0;
-+	param[1].type = ACPI_TYPE_INTEGER;
-+	param[1].integer.value = value;
-+	input.count = 2;
-+	input.pointer = param;
-+	status = acpi_evaluate_integer(handle, "GWRI", &input, &output);
-+	return status;
-+}
-+
-+static int cmpc_bl_get_brightness(struct backlight_device *bd)
-+{
-+	acpi_status status;
-+	acpi_handle handle;
-+	unsigned long long brightness;
-+
-+	handle = bl_get_data(bd);
-+	status = cmpc_get_brightness(handle, &brightness);
-+	if (ACPI_SUCCESS(status))
-+		return brightness;
-+	else
-+		return -1;
-+}
-+
-+static int cmpc_bl_update_status(struct backlight_device *bd)
-+{
-+	acpi_status status;
-+	acpi_handle handle;
-+
-+	handle = bl_get_data(bd);
-+	status = cmpc_set_brightness(handle, bd->props.brightness);
-+	if (ACPI_SUCCESS(status))
-+		return 0;
-+	else
-+		return -1;
-+}
-+
-+static struct backlight_ops cmpc_bl_ops = {
-+	.get_brightness = cmpc_bl_get_brightness,
-+	.update_status = cmpc_bl_update_status
-+};
-+
-+static int cmpc_bl_add(struct acpi_device *acpi)
-+{
-+	struct backlight_device *bd;
-+
-+	bd = backlight_device_register("cmpc_bl", &acpi->dev,
-+				       acpi->handle, &cmpc_bl_ops);
-+	bd->props.max_brightness = 7;
-+	dev_set_drvdata(&acpi->dev, bd);
-+	return 0;
-+}
-+
-+static int cmpc_bl_remove(struct acpi_device *acpi, int type)
-+{
-+	struct backlight_device *bd;
-+
-+	bd = dev_get_drvdata(&acpi->dev);
-+	backlight_device_unregister(bd);
-+	return 0;
-+}
-+
-+static const struct acpi_device_id cmpc_device_ids[] = {
-+	{"IPML200", 0},
-+	{"", 0}
-+};
-+MODULE_DEVICE_TABLE(acpi, cmpc_device_ids);
-+
-+static struct acpi_driver cmpc_bl_acpi_driver = {
-+	.owner = THIS_MODULE,
-+	.name = "cmpc",
-+	.class = "cmpc",
-+	.ids = cmpc_device_ids,
-+	.ops = {
-+		.add = cmpc_bl_add,
-+		.remove = cmpc_bl_remove
-+	}
-+};
-+
-+
-+/*
-+ * Extra keys code.
-+ */
-+static int cmpc_keys_codes[] = {
-+	KEY_UNKNOWN,
-+	KEY_WLAN,
-+	KEY_SWITCHVIDEOMODE,
-+	KEY_BRIGHTNESSDOWN,
-+	KEY_BRIGHTNESSUP,
-+	KEY_VENDOR,
-+	KEY_MAX
-+};
-+
-+static void cmpc_keys_handler(struct acpi_device *dev, u32 event)
-+{
-+	struct input_dev *inputdev;
-+	int code = KEY_MAX;
-+
-+	if ((event & 0x0F) < ARRAY_SIZE(cmpc_keys_codes))
-+		code = cmpc_keys_codes[event & 0x0F];
-+	inputdev = dev_get_drvdata(&dev->dev);;
-+	input_report_key(inputdev, code, !(event & 0x10));
-+}
-+
-+static void cmpc_keys_idev_init(struct input_dev *inputdev)
-+{
-+	int i;
-+
-+	set_bit(EV_KEY, inputdev->evbit);
-+	for (i = 0; cmpc_keys_codes[i] != KEY_MAX; i++)
-+		set_bit(cmpc_keys_codes[i], inputdev->keybit);
-+}
-+
-+static int cmpc_keys_add(struct acpi_device *acpi)
-+{
-+	return cmpc_add_acpi_notify_device(acpi, "cmpc_keys",
-+					   cmpc_keys_idev_init);
-+}
-+
-+static int cmpc_keys_remove(struct acpi_device *acpi, int type)
-+{
-+	return cmpc_remove_acpi_notify_device(acpi);
-+}
-+
-+static const struct acpi_device_id cmpc_keys_device_ids[] = {
-+	{"FnBT0000", 0},
-+	{"", 0}
-+};
-+MODULE_DEVICE_TABLE(acpi, cmpc_keys_device_ids);
-+
-+static struct acpi_driver cmpc_keys_acpi_driver = {
-+	.owner = THIS_MODULE,
-+	.name = "cmpc_keys",
-+	.class = "cmpc_keys",
-+	.ids = cmpc_keys_device_ids,
-+	.ops = {
-+		.add = cmpc_keys_add,
-+		.remove = cmpc_keys_remove,
-+		.notify = cmpc_keys_handler,
-+	}
-+};
-+
-+
-+/*
-+ * General init/exit code.
-+ */
-+
-+static int cmpc_init(void)
-+{
-+	int r;
-+
-+	r = acpi_bus_register_driver(&cmpc_keys_acpi_driver);
-+	if (r)
-+		goto failed_keys;
-+
-+	r = acpi_bus_register_driver(&cmpc_bl_acpi_driver);
-+	if (r)
-+		goto failed_bl;
-+
-+	r = acpi_bus_register_driver(&cmpc_tablet_acpi_driver);
-+	if (r)
-+		goto failed_tablet;
-+
-+	r = acpi_bus_register_driver(&cmpc_accel_acpi_driver);
-+	if (r)
-+		goto failed_accel;
-+
-+	return r;
-+
-+failed_accel:
-+	acpi_bus_unregister_driver(&cmpc_tablet_acpi_driver);
-+
-+failed_tablet:
-+	acpi_bus_unregister_driver(&cmpc_bl_acpi_driver);
-+
-+failed_bl:
-+	acpi_bus_unregister_driver(&cmpc_keys_acpi_driver);
-+
-+failed_keys:
-+	return r;
-+}
-+
-+static void cmpc_exit(void)
-+{
-+	acpi_bus_unregister_driver(&cmpc_accel_acpi_driver);
-+	acpi_bus_unregister_driver(&cmpc_tablet_acpi_driver);
-+	acpi_bus_unregister_driver(&cmpc_bl_acpi_driver);
-+	acpi_bus_unregister_driver(&cmpc_keys_acpi_driver);
-+}
-+
-+module_init(cmpc_init);
-+module_exit(cmpc_exit);
+ 		up->port.dev = dev;
++
++		if (up->port.flags & UPF_FIXED_TYPE)
++			serial8250_init_fixed_type_port(up, up->port.type);
++
+ 		uart_add_one_port(drv, &up->port);
+ 	}
+ }
+@@ -3117,12 +3130,8 @@ int serial8250_register_port(struct uart
+ 		if (port->dev)
+ 			uart->port.dev = port->dev;
+ 
+-		if (port->flags & UPF_FIXED_TYPE) {
+-			uart->port.type = port->type;
+-			uart->port.fifosize = uart_config[port->type].fifo_size;
+-			uart->capabilities = uart_config[port->type].flags;
+-			uart->tx_loadsz = uart_config[port->type].tx_loadsz;
+-		}
++		if (port->flags & UPF_FIXED_TYPE)
++			serial8250_init_fixed_type_port(uart, port->type);
+ 
+ 		set_io_from_upio(&uart->port);
+ 		/* Possibly override default I/O functions.  */
 _
 
-Patches currently in -mm which might be from cascardo@holoscopio.com are
+Patches currently in -mm which might be from shmulik@jungo.com are
 
 linux-next.patch
 
