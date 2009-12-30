@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-scsi-sesc-eliminate-double-free.patch added to -mm tree
-Date: Wed, 30 Dec 2009 13:18:44 -0800
-Message-ID: <200912302118.nBULIigD002841@imap1.linux-foundation.org>
+Subject: + g_ncr5380-remove-misleading-pnp-error-message.patch added to -mm tree
+Date: Wed, 30 Dec 2009 13:20:57 -0800
+Message-ID: <200912302120.nBULKvMP002919@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42058 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57244 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752927AbZL3VSv (ORCPT
+	by vger.kernel.org with ESMTP id S1752552AbZL3VVG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Dec 2009 16:18:51 -0500
+	Wed, 30 Dec 2009 16:21:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, James.Bottomley@HansenPartnership.com
+Cc: linux@rainbow-software.org, James.Bottomley@HansenPartnership.com
 
 
 The patch titled
-     drivers/scsi/ses.c: eliminate double free
+     g_NCR5380: remove misleading pnp error message
 has been added to the -mm tree.  Its filename is
-     drivers-scsi-sesc-eliminate-double-free.patch
+     g_ncr5380-remove-misleading-pnp-error-message.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,71 +34,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/scsi/ses.c: eliminate double free
-From: Julia Lawall <julia@diku.dk>
+Subject: g_NCR5380: remove misleading pnp error message
+From: Ondrej Zary <linux@rainbow-software.org>
 
-The few lines below the kfree of hdr_buf may go to the label err_free
-which will also free hdr_buf.  The most straightforward solution seems to
-be to just move the kfree of hdr_buf after these gotos.
+Remove misleading error message that appears after pnp card has been
+detected correctly.
 
-A simplified version of the semantic match that finds this problem is as
-follows: (http://coccinelle.lip6.fr/)
-
-// <smpl>
-@r@
-identifier E;
-expression E1;
-iterator I;
-statement S;
-@@
-
-*kfree(E);
-... when != E = E1
-    when != I(E,...) S
-    when != &E
-*kfree(E);
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
 Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/ses.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/scsi/g_NCR5380.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/scsi/ses.c~drivers-scsi-sesc-eliminate-double-free drivers/scsi/ses.c
---- a/drivers/scsi/ses.c~drivers-scsi-sesc-eliminate-double-free
-+++ a/drivers/scsi/ses.c
-@@ -591,8 +591,6 @@ static int ses_intf_add(struct device *c
- 		ses_dev->page10_len = len;
- 		buf = NULL;
- 	}
--	kfree(hdr_buf);
--
- 	scomp = kzalloc(sizeof(struct ses_component) * components, GFP_KERNEL);
- 	if (!scomp)
- 		goto err_free;
-@@ -604,6 +602,8 @@ static int ses_intf_add(struct device *c
- 		goto err_free;
- 	}
- 
-+	kfree(hdr_buf);
-+
- 	edev->scratch = ses_dev;
- 	for (i = 0; i < components; i++)
- 		edev->component[i].scratch = scomp + i;
+diff -puN drivers/scsi/g_NCR5380.c~g_ncr5380-remove-misleading-pnp-error-message drivers/scsi/g_NCR5380.c
+--- a/drivers/scsi/g_NCR5380.c~g_ncr5380-remove-misleading-pnp-error-message
++++ a/drivers/scsi/g_NCR5380.c
+@@ -322,10 +322,8 @@ int __init generic_NCR5380_detect(struct
+ 		while ((dev = pnp_find_dev(NULL, ISAPNP_VENDOR('D', 'T', 'C'), ISAPNP_FUNCTION(0x436e), dev))) {
+ 			if (count >= NO_OVERRIDES)
+ 				break;
+-			if (pnp_device_attach(dev) < 0) {
+-				printk(KERN_ERR "dtc436e probe: attach failed\n");
++			if (pnp_device_attach(dev) < 0)
+ 				continue;
+-			}
+ 			if (pnp_activate_dev(dev) < 0) {
+ 				printk(KERN_ERR "dtc436e probe: activate failed\n");
+ 				pnp_device_detach(dev);
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from linux@rainbow-software.org are
 
-linux-next.patch
-drivers-scsi-sesc-eliminate-double-free.patch
-drivers-media-video-move-dereference-after-null-test.patch
-arch-mips-alchemy-correct-code-taking-the-size-of-a-pointer.patch
-drivers-isdn-eliminate-duplicated-test.patch
-drivers-scsi-libsas-use-sam_good.patch
-drivers-scsi-remove-unnecessary-null-test.patch
-drivers-message-move-dereference-after-null-test.patch
-drivers-edac-introduce-missing-kfree.patch
+usbtouchscreen-convert-from-usb_device-to-usb_interface.patch
+usbtouchscreen-find-input-endpoint-automatically.patch
+usbtouchscreen-add-nexio-or-inexio-support.patch
+usbtouchscreen-fix-nexio-ack-and-usb-disconnect.patch
+usbtouchscreen-dont-send-interrupt-urbs-to-bulk-endpoints.patch
+usbtouchscreen-fix-leaks-and-check-return-value-of-usb_submit_urb.patch
+g_ncr5380-remove-misleading-pnp-error-message.patch
 
