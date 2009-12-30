@@ -1,116 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged] aoe-switch-to-the-new-bio_flush_dcache_pages-interface.patch removed from -mm tree
-Date: Tue, 29 Dec 2009 13:33:12 -0800
-Message-ID: <200912292133.nBTLXC85008691@imap1.linux-foundation.org>
+Subject: + drivers-gpu-vga-vgaarbc-fix-userspace-pointer-dereference.patch added to -mm tree
+Date: Wed, 30 Dec 2009 13:17:07 -0800
+Message-ID: <200912302117.nBULH7gH002735@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32793 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37626 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752848AbZL2Vd6 (ORCPT
+	by vger.kernel.org with ESMTP id S1752980AbZL3VRx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Dec 2009 16:33:58 -0500
+	Wed, 30 Dec 2009 16:17:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dwmw2@infradead.org, ecashin@coraid.com, isloginov@gmail.com, jens.axboe@oracle.com, mingo@elte.hu, phorton@bitbox.co.uk, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: james.getzendanner@students.olin.edu, airlied@linux.ie, jbarnes@virtuousgeek.org, stable@kernel.org
 
 
 The patch titled
-     aoe: switch to the new bio_flush_dcache_pages() interface
-has been removed from the -mm tree.  Its filename was
-     aoe-switch-to-the-new-bio_flush_dcache_pages-interface.patch
+     drivers/gpu/vga/vgaarb.c: fix userspace pointer dereference
+has been added to the -mm tree.  Its filename is
+     drivers-gpu-vga-vgaarbc-fix-userspace-pointer-dereference.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: aoe: switch to the new bio_flush_dcache_pages() interface
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/gpu/vga/vgaarb.c: fix userspace pointer dereference
+From: Andy Getzendanner <james.getzendanner@students.olin.edu>
 
-Cc: "Ed L. Cashin" <ecashin@coraid.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Ilya Loginov <isloginov@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Peter Horton <phorton@bitbox.co.uk>
+This patch corrects a userspace pointer dereference in the VGA arbiter
+in 2.6.32.1.
+
+copy_from_user() is used at line 822 to copy the contents of buf into
+kbuf, but a call to strncmp() on line 964 uses buf rather than kbuf.  This
+problem led to a GPF in strncmp() when X was started on my x86_32 systems.
+ X triggered the behavior with a write of "target PCI:0000:01:00.0" to
+/dev/vga_arbiter.
+
+The patch has been tested against 2.6.32.1 and observed to correct the GPF
+observed when starting X or manually writing the string "target
+PCI:0000:01:00.0" to /dev/vga_arbiter.
+
+Signed-off-by: Andy Getzendanner <james.getzendanner@students.olin.edu>
+Cc: Dave Airlie <airlied@linux.ie>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/aoe/aoecmd.c |   17 +----------------
- 1 file changed, 1 insertion(+), 16 deletions(-)
+ drivers/gpu/vga/vgaarb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/block/aoe/aoecmd.c~aoe-switch-to-the-new-bio_flush_dcache_pages-interface drivers/block/aoe/aoecmd.c
---- a/drivers/block/aoe/aoecmd.c~aoe-switch-to-the-new-bio_flush_dcache_pages-interface
-+++ a/drivers/block/aoe/aoecmd.c
-@@ -735,21 +735,6 @@ diskstats(struct gendisk *disk, struct b
- 	part_stat_unlock();
- }
- 
--/*
-- * Ensure we don't create aliases in VI caches
-- */
--static inline void
--killalias(struct bio *bio)
--{
--	struct bio_vec *bv;
--	int i;
--
--	if (bio_data_dir(bio) == READ)
--		__bio_for_each_segment(bv, bio, i, 0) {
--			flush_dcache_page(bv->bv_page);
--		}
--}
--
- void
- aoecmd_ata_rsp(struct sk_buff *skb)
- {
-@@ -871,7 +856,7 @@ aoecmd_ata_rsp(struct sk_buff *skb)
- 		if (buf->flags & BUFFL_FAIL)
- 			bio_endio(buf->bio, -EIO);
+diff -puN drivers/gpu/vga/vgaarb.c~drivers-gpu-vga-vgaarbc-fix-userspace-pointer-dereference drivers/gpu/vga/vgaarb.c
+--- a/drivers/gpu/vga/vgaarb.c~drivers-gpu-vga-vgaarbc-fix-userspace-pointer-dereference
++++ a/drivers/gpu/vga/vgaarb.c
+@@ -961,7 +961,7 @@ static ssize_t vga_arb_write(struct file
+ 		remaining -= 7;
+ 		pr_devel("client 0x%p called 'target'\n", priv);
+ 		/* if target is default */
+-		if (!strncmp(buf, "default", 7))
++		if (!strncmp(kbuf, "default", 7))
+ 			pdev = pci_dev_get(vga_default_device());
  		else {
--			killalias(buf->bio);
-+			bio_flush_dcache_pages(buf->bio);
- 			bio_endio(buf->bio, 0);
- 		}
- 		mempool_free(buf, d->bufpool);
+ 			if (!vga_pci_str_to_vars(curr_pos, remaining,
+diff -puN /dev/null /dev/null
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from james.getzendanner@students.olin.edu are
 
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-zlib-optimize-inffast-when-copying-direct-from-output.patch
-lib-add-support-for-lzo-compressed-kernels.patch
-linux-next.patch
-linux-next-fixup.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
-drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
-drivers-media-video-pmsc-needs-versionh.patch
-hid-logitech-g13-driver-002-fix.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-net-sctp-socketc-squish-warning.patch
-proc_fops-convert-drivers-isdn-to-seq_file.patch
-3x59x-fix-pci-resource-management.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
-mm-count-swap-usage-checkpatch-fixes.patch
-mm-add-lowmem-detection-logic-fix.patch
-mm-count-lowmem-rss-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-memcg-move-charges-of-anonymous-page-cleanup.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+drivers-gpu-vga-vgaarbc-fix-userspace-pointer-dereference.patch
 
