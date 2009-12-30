@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + g_ncr5380-fix-missing-pnp_device_detach-and-scsi_unregister-on-rmmod.patch added to -mm tree
-Date: Wed, 30 Dec 2009 13:22:42 -0800
-Message-ID: <200912302122.nBULMgvM003056@imap1.linux-foundation.org>
+Subject: + fbdev-bf54x-lq043fb-bfin-t350mcqb-fb-drop-custom-mmap-handler.patch added to -mm tree
+Date: Wed, 30 Dec 2009 13:30:41 -0800
+Message-ID: <200912302130.nBULUfAY003407@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33632 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59317 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751468AbZL3VWs (ORCPT
+	by vger.kernel.org with ESMTP id S1753571AbZL3Vaq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Dec 2009 16:22:48 -0500
+	Wed, 30 Dec 2009 16:30:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: linux@rainbow-software.org, James.Bottomley@HansenPartnership.com
+Cc: michael.hennerich@analog.com, vapier@gentoo.org
 
 
 The patch titled
-     g_NCR5380: fix missing pnp_device_detach and scsi_unregister on rmmod
+     fbdev: bf54x-lq043fb/bfin-t350mcqb-fb: drop custom mmap() handler
 has been added to the -mm tree.  Its filename is
-     g_ncr5380-fix-missing-pnp_device_detach-and-scsi_unregister-on-rmmod.patch
+     fbdev-bf54x-lq043fb-bfin-t350mcqb-fb-drop-custom-mmap-handler.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,91 +34,128 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: g_NCR5380: fix missing pnp_device_detach and scsi_unregister on rmmod
-From: Ondrej Zary <linux@rainbow-software.org>
+Subject: fbdev: bf54x-lq043fb/bfin-t350mcqb-fb: drop custom mmap() handler
+From: Michael Hennerich <michael.hennerich@analog.com>
 
-Add missing pnp_device_detach() and scsi_unregister() at rmmod time.
+The common Blackfin code implements the get_fb_unmapped_area() function,
+so we no longer need to have our own mmap() handler.  The common fb code
+will take care of everything for us now.
 
-Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Signed-off-by: Michael Hennerich <michael.hennerich@analog.com>
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/g_NCR5380.c |    7 ++++++-
- drivers/scsi/g_NCR5380.h |    5 +++--
- 2 files changed, 9 insertions(+), 3 deletions(-)
+ drivers/video/bf54x-lq043fb.c    |   30 -----------------------------
+ drivers/video/bfin-t350mcqb-fb.c |   29 ----------------------------
+ 2 files changed, 59 deletions(-)
 
-diff -puN drivers/scsi/g_NCR5380.c~g_ncr5380-fix-missing-pnp_device_detach-and-scsi_unregister-on-rmmod drivers/scsi/g_NCR5380.c
---- a/drivers/scsi/g_NCR5380.c~g_ncr5380-fix-missing-pnp_device_detach-and-scsi_unregister-on-rmmod
-+++ a/drivers/scsi/g_NCR5380.c
-@@ -290,6 +290,7 @@ int __init generic_NCR5380_detect(struct
- #ifndef SCSI_G_NCR5380_MEM
- 	int i;
- 	unsigned long region_size = 16;
-+	struct pnp_dev *pnpdevs[NO_OVERRIDES];
- #endif
- 	static unsigned int __initdata ncr_53c400a_ports[] = {
- 		0x280, 0x290, 0x300, 0x310, 0x330, 0x340, 0x348, 0x350, 0
-@@ -337,6 +338,7 @@ int __init generic_NCR5380_detect(struct
- 				pnp_device_detach(dev);
- 				continue;
- 			}
-+			pnpdevs[count] = dev;
- 			if (pnp_irq_valid(dev, 0))
- 				overrides[count].irq = pnp_irq(dev, 0);
- 			else
-@@ -449,6 +451,7 @@ int __init generic_NCR5380_detect(struct
- 		instance->NCR5380_instance_name = overrides[current_override].NCR5380_map_name;
- #ifndef SCSI_G_NCR5380_MEM
- 		instance->n_io_port = region_size;
-+		((struct NCR5380_hostdata *)instance->hostdata)->pnpdev = pnpdevs[current_override];
- #else
- 		((struct NCR5380_hostdata *)instance->hostdata)->iomem = iomem;
- #endif
-@@ -520,12 +523,14 @@ int generic_NCR5380_release_resources(st
+diff -puN drivers/video/bf54x-lq043fb.c~fbdev-bf54x-lq043fb-bfin-t350mcqb-fb-drop-custom-mmap-handler drivers/video/bf54x-lq043fb.c
+--- a/drivers/video/bf54x-lq043fb.c~fbdev-bf54x-lq043fb-bfin-t350mcqb-fb-drop-custom-mmap-handler
++++ a/drivers/video/bf54x-lq043fb.c
+@@ -82,7 +82,6 @@ struct bfin_bf54xfb_info {
+ 	unsigned char *fb_buffer;	/* RGB Buffer */
  
- #ifndef SCSI_G_NCR5380_MEM
- 	release_region(instance->NCR5380_instance_name, instance->n_io_port);
-+	if (((struct NCR5380_hostdata *)instance->hostdata)->pnpdev)
-+		pnp_device_detach(((struct NCR5380_hostdata *)instance->hostdata)->pnpdev);
- #else
- 	iounmap(((struct NCR5380_hostdata *)instance->hostdata)->iomem);
- 	release_mem_region(instance->NCR5380_instance_name, NCR5380_region_size);
- #endif
+ 	dma_addr_t dma_handle;
+-	int lq043_mmap;
+ 	int lq043_open_cnt;
+ 	int irq;
+ 	spinlock_t lock;	/* lock */
+@@ -316,7 +315,6 @@ static int bfin_bf54x_fb_release(struct 
+ 	spin_lock(&fbi->lock);
  
--
-+	scsi_unregister(instance);
+ 	fbi->lq043_open_cnt--;
+-	fbi->lq043_mmap = 0;
+ 
+ 	if (fbi->lq043_open_cnt <= 0) {
+ 
+@@ -374,33 +372,6 @@ static int bfin_bf54x_fb_check_var(struc
  	return 0;
  }
  
-diff -puN drivers/scsi/g_NCR5380.h~g_ncr5380-fix-missing-pnp_device_detach-and-scsi_unregister-on-rmmod drivers/scsi/g_NCR5380.h
---- a/drivers/scsi/g_NCR5380.h~g_ncr5380-fix-missing-pnp_device_detach-and-scsi_unregister-on-rmmod
-+++ a/drivers/scsi/g_NCR5380.h
-@@ -82,10 +82,11 @@ static const char* generic_NCR5380_info(
- #define NCR5380_write(reg, value) (outb((value), (NCR5380_map_name + (reg))))
+-static int bfin_bf54x_fb_mmap(struct fb_info *info, struct vm_area_struct *vma)
+-{
+-
+-	struct bfin_bf54xfb_info *fbi = info->par;
+-
+-	if (fbi->lq043_mmap)
+-		return -1;
+-
+-	spin_lock(&fbi->lock);
+-	fbi->lq043_mmap = 1;
+-	spin_unlock(&fbi->lock);
+-
+-	vma->vm_start = (unsigned long)(fbi->fb_buffer);
+-
+-	vma->vm_end = vma->vm_start + info->fix.smem_len;
+-	/* For those who don't understand how mmap works, go read
+-	 *   Documentation/nommu-mmap.txt.
+-	 * For those that do, you will know that the VM_MAYSHARE flag
+-	 * must be set in the vma->vm_flags structure on noMMU
+-	 *   Other flags can be set, and are documented in
+-	 *   include/linux/mm.h
+-	 */
+-	vma->vm_flags |=  VM_MAYSHARE | VM_SHARED;
+-
+-	return 0;
+-}
+-
+ int bfin_bf54x_fb_cursor(struct fb_info *info, struct fb_cursor *cursor)
+ {
+ 	if (nocursor)
+@@ -452,7 +423,6 @@ static struct fb_ops bfin_bf54x_fb_ops =
+ 	.fb_fillrect = cfb_fillrect,
+ 	.fb_copyarea = cfb_copyarea,
+ 	.fb_imageblit = cfb_imageblit,
+-	.fb_mmap = bfin_bf54x_fb_mmap,
+ 	.fb_cursor = bfin_bf54x_fb_cursor,
+ 	.fb_setcolreg = bfin_bf54x_fb_setcolreg,
+ };
+diff -puN drivers/video/bfin-t350mcqb-fb.c~fbdev-bf54x-lq043fb-bfin-t350mcqb-fb-drop-custom-mmap-handler drivers/video/bfin-t350mcqb-fb.c
+--- a/drivers/video/bfin-t350mcqb-fb.c~fbdev-bf54x-lq043fb-bfin-t350mcqb-fb-drop-custom-mmap-handler
++++ a/drivers/video/bfin-t350mcqb-fb.c
+@@ -87,7 +87,6 @@ struct bfin_t350mcqbfb_info {
+ 	struct device *dev;
+ 	unsigned char *fb_buffer;	/* RGB Buffer */
+ 	dma_addr_t dma_handle;
+-	int lq043_mmap;
+ 	int lq043_open_cnt;
+ 	int irq;
+ 	spinlock_t lock;	/* lock */
+@@ -235,7 +234,6 @@ static int bfin_t350mcqb_fb_release(stru
+ 	spin_lock(&fbi->lock);
  
- #define NCR5380_implementation_fields \
--    NCR5380_map_type NCR5380_map_name
-+    NCR5380_map_type NCR5380_map_name; \
-+    struct pnp_dev *pnpdev;
+ 	fbi->lq043_open_cnt--;
+-	fbi->lq043_mmap = 0;
  
- #define NCR5380_local_declare() \
--    register NCR5380_implementation_fields
-+    NCR5380_map_type NCR5380_map_name
+ 	if (fbi->lq043_open_cnt <= 0) {
+ 		bfin_t350mcqb_disable_ppi();
+@@ -293,32 +291,6 @@ static int bfin_t350mcqb_fb_check_var(st
+ 	return 0;
+ }
  
- #define NCR5380_setup(instance) \
-     NCR5380_map_name = (NCR5380_map_type)((instance)->NCR5380_instance_name)
-_
-
-Patches currently in -mm which might be from linux@rainbow-software.org are
-
-usbtouchscreen-convert-from-usb_device-to-usb_interface.patch
-usbtouchscreen-find-input-endpoint-automatically.patch
-usbtouchscreen-add-nexio-or-inexio-support.patch
-usbtouchscreen-fix-nexio-ack-and-usb-disconnect.patch
-usbtouchscreen-dont-send-interrupt-urbs-to-bulk-endpoints.patch
-usbtouchscreen-fix-leaks-and-check-return-value-of-usb_submit_urb.patch
-g_ncr5380-remove-misleading-pnp-error-message.patch
-g_ncr5380-fix-broken-mmio-compilation.patch
-g_ncr5380-fix-missing-pnp_device_detach-and-scsi_unregister-on-rmmod.patch
-
+-static int bfin_t350mcqb_fb_mmap(struct fb_info *info, struct vm_area_struct *vma)
+-{
+-	struct bfin_t350mcqbfb_info *fbi = info->par;
+-
+-	if (fbi->lq043_mmap)
+-		return -1;
+-
+-	spin_lock(&fbi->lock);
+-	fbi->lq043_mmap = 1;
+-	spin_unlock(&fbi->lock);
+-
+-	vma->vm_start = (unsigned long)(fbi->fb_buffer + ACTIVE_VIDEO_MEM_OFFSET);
+-
+-	vma->vm_end = vma->vm_start + info->fix.smem_len;
+-	/* For those who don't understand how mmap works, go read
+-	 *   Documentation/nommu-mmap.txt.
+-	 * For those that do, you will know that the VM_MAYSHARE flag
+-	 * must be set in the vma->vm_flags structure on noMMU
+-	 *   Other flags can be set, and are documented in
+-	 *   include/linux/mm.h
+-	 */
+-	vma->vm_flags |= VM_MAYSHARE | VM_SHARED;
+-
+-	return 0;
+-}
