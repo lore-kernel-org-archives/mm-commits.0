@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cgroups-fix-2632-regression-causing-bug_on-in-cgroup_diput.patch added to -mm tree
-Date: Wed, 30 Dec 2009 15:36:29 -0800
-Message-ID: <200912302336.nBUNaTnR008502@imap1.linux-foundation.org>
+Subject: + hwmon-coretemp-fix-tjmax-for-atom-n450-d410-d510-cpus.patch added to -mm tree
+Date: Wed, 30 Dec 2009 15:41:49 -0800
+Message-ID: <200912302341.nBUNfnvT008697@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50514 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57004 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751162AbZL3Xhf (ORCPT
+	by vger.kernel.org with ESMTP id S1751827AbZL3XmE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Dec 2009 18:37:35 -0500
+	Wed, 30 Dec 2009 18:42:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: anderson@redhat.com, bblum@andrew.cmu.edu, lizf@cn.fujitsu.com, menage@google.com, stable@kernel.org
+Cc: yong.y.wang@linux.intel.com, huaxu.wan@intel.com, khali@linux-fr.org, yong.y.wang@intel.com
 
 
 The patch titled
-     cgroups: fix 2.6.32 regression causing BUG_ON() in cgroup_diput()
+     hwmon/coretemp: fix TjMax for Atom N450/D410/D510 CPUs
 has been added to the -mm tree.  Its filename is
-     cgroups-fix-2632-regression-causing-bug_on-in-cgroup_diput.patch
+     hwmon-coretemp-fix-tjmax-for-atom-n450-d410-d510-cpus.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,66 +34,69 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: fix 2.6.32 regression causing BUG_ON() in cgroup_diput()
-From: Dave Anderson <anderson@redhat.com>
+Subject: hwmon/coretemp: fix TjMax for Atom N450/D410/D510 CPUs
+From: Yong Wang <yong.y.wang@linux.intel.com>
 
-The LTP cgroup test suite generates a "kernel BUG at kernel/cgroup.c:790!"
-here in cgroup_diput():
+The max junction temperature of Atom N450/D410/D510 CPUs is 100 degrees
+Celsius.  Since these CPUs are always coupled with Intel NM10 chipset in
+one package, the best way to verify whether an Atom CPU is N450/D410/D510
+is to check the host bridge device.
 
-                 /*
-                  * if we're getting rid of the cgroup, refcount should ensure
-                  * that there are no pidlists left.
-                  */
-                 BUG_ON(!list_empty(&cgrp->pidlists));
-
-The cgroup pidlist rework in 2.6.32 generates the BUG_ON, which is caused
-when pidlist_array_load() calls cgroup_pidlist_find():
-
-(1) if a matching cgroup_pidlist is found, it down_write's the mutex of the
-     pre-existing cgroup_pidlist, and increments its use_count.
-(2) if no matching cgroup_pidlist is found, then a new one is allocated, it
-     down_write's its mutex, and the use_count is set to 0.
-(3) the matching, or new, cgroup_pidlist gets returned back to pidlist_array_load(),
-     which increments its use_count -- regardless whether new or pre-existing --
-     and up_write's the mutex.
-
-So if a matching list is ever encountered by cgroup_pidlist_find() during
-the life of a cgroup directory, it results in an inflated use_count value,
-preventing it from ever getting released by cgroup_release_pid_array(). 
-Then if the directory is subsequently removed, cgroup_diput() hits the
-BUG_ON() when it finds that the directory's cgroup is still populated with
-a pidlist.
-
-The patch simply removes the use_count increment when a matching pidlist
-is found by cgroup_pidlist_find(), because it gets bumped by the calling
-pidlist_array_load() function while still protected by the list's mutex.
-
-Signed-off-by: Dave Anderson <anderson@redhat.com>
-Reviewed-by: Li Zefan <lizf@cn.fujitsu.com>
-Acked-by: Ben Blum <bblum@andrew.cmu.edu>
-Cc: Paul Menage <menage@google.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Yong Wang <yong.y.wang@intel.com>
+Acked-by: Huaxu Wan <huaxu.wan@intel.com>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/hwmon/coretemp.c |   16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
 
-diff -puN kernel/cgroup.c~cgroups-fix-2632-regression-causing-bug_on-in-cgroup_diput kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-fix-2632-regression-causing-bug_on-in-cgroup_diput
-+++ a/kernel/cgroup.c
-@@ -2468,7 +2468,6 @@ static struct cgroup_pidlist *cgroup_pid
- 			/* make sure l doesn't vanish out from under us */
- 			down_write(&l->mutex);
- 			mutex_unlock(&cgrp->pidlist_mutex);
--			l->use_count++;
- 			return l;
- 		}
+diff -puN drivers/hwmon/coretemp.c~hwmon-coretemp-fix-tjmax-for-atom-n450-d410-d510-cpus drivers/hwmon/coretemp.c
+--- a/drivers/hwmon/coretemp.c~hwmon-coretemp-fix-tjmax-for-atom-n450-d410-d510-cpus
++++ a/drivers/hwmon/coretemp.c
+@@ -33,6 +33,7 @@
+ #include <linux/list.h>
+ #include <linux/platform_device.h>
+ #include <linux/cpu.h>
++#include <linux/pci.h>
+ #include <asm/msr.h>
+ #include <asm/processor.h>
+ 
+@@ -161,6 +162,7 @@ static int __devinit adjust_tjmax(struct
+ 	int usemsr_ee = 1;
+ 	int err;
+ 	u32 eax, edx;
++	struct pci_dev *host_bridge;
+ 
+ 	/* Early chips have no MSR for TjMax */
+ 
+@@ -168,11 +170,21 @@ static int __devinit adjust_tjmax(struct
+ 		usemsr_ee = 0;
  	}
-diff -puN /dev/null /dev/null
+ 
+-	/* Atoms seems to have TjMax at 90C */
++	/* Atoms CPUs */
+ 
+ 	if (c->x86_model == 0x1c) {
+ 		usemsr_ee = 0;
+-		tjmax = 90000;
++
++		host_bridge = pci_get_bus_and_slot(0, PCI_DEVFN(0, 0));
++
++		if (host_bridge && host_bridge->vendor == PCI_VENDOR_ID_INTEL
++		    && (host_bridge->device == 0xa000	/* NM10 based nettop */
++		    || host_bridge->device == 0xa010))	/* NM10 based netbook */
++			tjmax = 100000;
++		else
++			tjmax = 90000;
++
++		pci_dev_put(host_bridge);
+ 	}
+ 
+ 	if ((c->x86_model > 0xe) && (usemsr_ee)) {
 _
 
-Patches currently in -mm which might be from anderson@redhat.com are
+Patches currently in -mm which might be from yong.y.wang@linux.intel.com are
 
-cgroups-fix-2632-regression-causing-bug_on-in-cgroup_diput.patch
+hwmon-coretemp-fix-tjmax-for-atom-n450-d410-d510-cpus.patch
 
