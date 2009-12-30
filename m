@@ -1,112 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: + xen-add-kconfig-menu.patch added to -mm tree
-Date: Wed, 30 Dec 2009 13:58:58 -0800
-Message-ID: <200912302158.nBULwwFk004685@imap1.linux-foundation.org>
+Subject: [nacked] prctl-return-timerslack-through-pointer.patch removed from -mm tree
+Date: Wed, 30 Dec 2009 14:22:48 -0800
+Message-ID: <200912302222.nBUMMmn8005654@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36570 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35976 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752080AbZL3V7E (ORCPT
+	by vger.kernel.org with ESMTP id S1751416AbZL3WXU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Dec 2009 16:59:04 -0500
+	Wed, 30 Dec 2009 17:23:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, jeremy@xensource.com
+To: geoffx.smith@intel.com, andi@firstfloor.org, arjan@linux.intel.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     xen: add kconfig menu
-has been added to the -mm tree.  Its filename is
-     xen-add-kconfig-menu.patch
+     prctl: return timerslack through pointer
+has been removed from the -mm tree.  Its filename was
+     prctl-return-timerslack-through-pointer.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was nacked
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xen: add kconfig menu
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: prctl: return timerslack through pointer
+From: "Smith, GeoffX" <geoffx.smith@intel.com>
 
-Currently the xen support drivers are displayed in the main Device Drivers
-menu of the config tools instead of in their own sub-menu, so move them to
-their own sub-menu, like the rest of the driver world uses.
+Fix the semantics of prctl() option PR_GET_TIMERSLACK to pass the return
+value through *arg2.
 
-This keeps the main Device Drivers menu from becoming messy.
+With this change, the option now follows the same conventions as the other
+"get" options added since 2.6.0, and also brings it into conformance with
+the advice in chapter 16 of Documentation/CodingStyle.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Jeremy Fitzhardinge <jeremy@xensource.com>
+In addition, it effectively doubles the range of time slack to 4.29
+seconds (on a 32-bit architecture).
+
+The timer slack feature was only added in Sep 2009 (new in 2.6.32.1), so
+there are not any production applications to break.  I have also repaired
+some unmatched signed/unsigned mismatches in timer slack calculations.
+
+Signed-off-by: Geoff Smith <geoffx.smith@intel.com>
+Cc: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/xen/Kconfig |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ fs/select.c  |    8 ++++----
+ kernel/sys.c |    3 ++-
+ 2 files changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN drivers/xen/Kconfig~xen-add-kconfig-menu drivers/xen/Kconfig
---- a/drivers/xen/Kconfig~xen-add-kconfig-menu
-+++ a/drivers/xen/Kconfig
-@@ -1,6 +1,8 @@
-+menu "Xen driver support"
-+	depends on XEN
-+
- config XEN_BALLOON
- 	bool "Xen memory balloon driver"
--	depends on XEN
- 	default y
- 	help
- 	  The balloon driver allows the Xen domain to request more memory from
-@@ -20,7 +22,6 @@ config XEN_SCRUB_PAGES
+diff -puN fs/select.c~prctl-return-timerslack-through-pointer fs/select.c
+--- a/fs/select.c~prctl-return-timerslack-through-pointer
++++ a/fs/select.c
+@@ -44,10 +44,10 @@
  
- config XEN_DEV_EVTCHN
- 	tristate "Xen /dev/xen/evtchn device"
--	depends on XEN
- 	default y
- 	help
- 	  The evtchn driver allows a userspace process to triger event
-@@ -30,7 +31,6 @@ config XEN_DEV_EVTCHN
+ #define MAX_SLACK	(100 * NSEC_PER_MSEC)
  
- config XENFS
- 	tristate "Xen filesystem"
--	depends on XEN
- 	default y
- 	help
- 	  The xen filesystem provides a way for domains to share
-@@ -53,11 +53,13 @@ config XEN_COMPAT_XENFS
+-static long __estimate_accuracy(struct timespec *tv)
++static unsigned long __estimate_accuracy(struct timespec *tv)
+ {
+-	long slack;
+-	int divfactor = 1000;
++	unsigned long slack;
++	unsigned int divfactor = 1000;
  
- config XEN_SYS_HYPERVISOR
-        bool "Create xen entries under /sys/hypervisor"
--       depends on XEN && SYSFS
-+       depends on SYSFS
-        select SYS_HYPERVISOR
-        default y
-        help
-          Create entries under /sys/hypervisor describing the Xen
- 	 hypervisor environment.  When running native or in another
- 	 virtual environment, /sys/hypervisor will still be present,
--	 but will have no xen contents.
-\ No newline at end of file
-+	 but will have no xen contents.
-+
-+endmenu
+ 	if (tv->tv_sec < 0)
+ 		return 0;
+@@ -67,7 +67,7 @@ static long __estimate_accuracy(struct t
+ 	return slack;
+ }
+ 
+-static long estimate_accuracy(struct timespec *tv)
++static unsigned long estimate_accuracy(struct timespec *tv)
+ {
+ 	unsigned long ret;
+ 	struct timespec now;
+diff -puN kernel/sys.c~prctl-return-timerslack-through-pointer kernel/sys.c
+--- a/kernel/sys.c~prctl-return-timerslack-through-pointer
++++ a/kernel/sys.c
+@@ -1638,7 +1638,8 @@ SYSCALL_DEFINE5(prctl, int, option, unsi
+ 			error = perf_event_task_enable();
+ 			break;
+ 		case PR_GET_TIMERSLACK:
+-			error = current->timer_slack_ns;
++			error = put_user(current->timer_slack_ns,
++				(unsigned long __user *)arg2);
+ 			break;
+ 		case PR_SET_TIMERSLACK:
+ 			if (arg2 <= 0)
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from geoffx.smith@intel.com are
 
-docs-large-update-to-ioctl-numbertxt.patch
-linux-next.patch
-documentation-update-ring-buffer-designtxt.patch
-mfgpt-move-clocksource-menu.patch
-xen-add-kconfig-menu.patch
-gpio-add-driver-for-max7300-i2c-gpio-extender.patch
-reiser4-export-remove_from_page_cache-fix.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
+prctl-return-timerslack-through-pointer.patch
 
