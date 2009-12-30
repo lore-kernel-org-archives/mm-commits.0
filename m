@@ -1,99 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] prctl-return-timerslack-through-pointer.patch removed from -mm tree
-Date: Wed, 30 Dec 2009 14:22:48 -0800
-Message-ID: <200912302222.nBUMMmn8005654@imap1.linux-foundation.org>
+Subject: + ieee80211-add-missing-parentheses.patch added to -mm tree
+Date: Wed, 30 Dec 2009 14:24:41 -0800
+Message-ID: <200912302224.nBUMOf49005716@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35976 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48982 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751416AbZL3WXU (ORCPT
+	by vger.kernel.org with ESMTP id S1751416AbZL3WYu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Dec 2009 17:23:20 -0500
+	Wed, 30 Dec 2009 17:24:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geoffx.smith@intel.com, andi@firstfloor.org, arjan@linux.intel.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: roel.kluin@gmail.com, gregkh@suse.de
 
 
 The patch titled
-     prctl: return timerslack through pointer
-has been removed from the -mm tree.  Its filename was
-     prctl-return-timerslack-through-pointer.patch
+     ieee80211: add missing parentheses
+has been added to the -mm tree.  Its filename is
+     ieee80211-add-missing-parentheses.patch
 
-This patch was dropped because it was nacked
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: prctl: return timerslack through pointer
-From: "Smith, GeoffX" <geoffx.smith@intel.com>
+Subject: ieee80211: add missing parentheses
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Fix the semantics of prctl() option PR_GET_TIMERSLACK to pass the return
-value through *arg2.
+not(!) has a higher precedence than bit and(&).
 
-With this change, the option now follows the same conventions as the other
-"get" options added since 2.6.0, and also brings it into conformance with
-the advice in chapter 16 of Documentation/CodingStyle.
-
-In addition, it effectively doubles the range of time slack to 4.29
-seconds (on a 32-bit architecture).
-
-The timer slack feature was only added in Sep 2009 (new in 2.6.32.1), so
-there are not any production applications to break.  I have also repaired
-some unmatched signed/unsigned mismatches in timer slack calculations.
-
-Signed-off-by: Geoff Smith <geoffx.smith@intel.com>
-Cc: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/select.c  |    8 ++++----
- kernel/sys.c |    3 ++-
- 2 files changed, 6 insertions(+), 5 deletions(-)
+ drivers/staging/rtl8192u/ieee80211/ieee80211_wx.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/select.c~prctl-return-timerslack-through-pointer fs/select.c
---- a/fs/select.c~prctl-return-timerslack-through-pointer
-+++ a/fs/select.c
-@@ -44,10 +44,10 @@
+diff -puN drivers/staging/rtl8192u/ieee80211/ieee80211_wx.c~ieee80211-add-missing-parentheses drivers/staging/rtl8192u/ieee80211/ieee80211_wx.c
+--- a/drivers/staging/rtl8192u/ieee80211/ieee80211_wx.c~ieee80211-add-missing-parentheses
++++ a/drivers/staging/rtl8192u/ieee80211/ieee80211_wx.c
+@@ -718,7 +718,7 @@ int ieee80211_wx_get_encode_ext(struct i
+ 	} else
+ 		idx = ieee->tx_keyidx;
  
- #define MAX_SLACK	(100 * NSEC_PER_MSEC)
- 
--static long __estimate_accuracy(struct timespec *tv)
-+static unsigned long __estimate_accuracy(struct timespec *tv)
- {
--	long slack;
--	int divfactor = 1000;
-+	unsigned long slack;
-+	unsigned int divfactor = 1000;
- 
- 	if (tv->tv_sec < 0)
- 		return 0;
-@@ -67,7 +67,7 @@ static long __estimate_accuracy(struct t
- 	return slack;
- }
- 
--static long estimate_accuracy(struct timespec *tv)
-+static unsigned long estimate_accuracy(struct timespec *tv)
- {
- 	unsigned long ret;
- 	struct timespec now;
-diff -puN kernel/sys.c~prctl-return-timerslack-through-pointer kernel/sys.c
---- a/kernel/sys.c~prctl-return-timerslack-through-pointer
-+++ a/kernel/sys.c
-@@ -1638,7 +1638,8 @@ SYSCALL_DEFINE5(prctl, int, option, unsi
- 			error = perf_event_task_enable();
- 			break;
- 		case PR_GET_TIMERSLACK:
--			error = current->timer_slack_ns;
-+			error = put_user(current->timer_slack_ns,
-+				(unsigned long __user *)arg2);
- 			break;
- 		case PR_SET_TIMERSLACK:
- 			if (arg2 <= 0)
+-	if (!ext->ext_flags & IW_ENCODE_EXT_GROUP_KEY &&
++	if (!(ext->ext_flags & IW_ENCODE_EXT_GROUP_KEY) &&
+ 	    ext->alg != IW_ENCODE_ALG_WEP)
+ 		if (idx != 0 || ieee->iw_mode != IW_MODE_INFRA)
+ 			return -EINVAL;
 _
 
-Patches currently in -mm which might be from geoffx.smith@intel.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
-prctl-return-timerslack-through-pointer.patch
+zlib-optimize-inffast-when-copying-direct-from-output.patch
+linux-next.patch
+omap-confusion-in-iommu_put.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
+zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
+ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
+scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
+ieee80211-add-missing-parentheses.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+cryptocop-fix-assertion-in-create_output_descriptors.patch
+asiliantfb-fix-test-of-unsigned-in-asiliant_calc_dclk2.patch
 
