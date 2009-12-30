@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-cpuidle-governors-menuc-fix-undefined-reference-to-__udivdi3.patch added to -mm tree
-Date: Wed, 30 Dec 2009 13:37:25 -0800
-Message-ID: <200912302137.nBULbP5B003670@imap1.linux-foundation.org>
+Subject: + m68knommu-fix-invalid-flags-on-coldfire-pit-clocksource.patch added to -mm tree
+Date: Wed, 30 Dec 2009 13:41:23 -0800
+Message-ID: <200912302141.nBULfNLB003866@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36164 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57588 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751127AbZL3Vik (ORCPT
+	by vger.kernel.org with ESMTP id S1751764AbZL3VmG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Dec 2009 16:38:40 -0500
+	Wed, 30 Dec 2009 16:42:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shemminger@linux-foundation.org, arjan@linux.intel.com, len.brown@intel.com, shemminger@vyatta.com, stable@kernel.org, venkatesh.pallipadi@intel.com
+Cc: johnstul@us.ibm.com, gerg@snapgear.com, sfking@fdwdc.com
 
 
 The patch titled
-     drivers/cpuidle/governors/menu.c: fix undefined reference to `__udivdi3'
+     m68knommu: fix invalid flags on coldfire pit clocksource
 has been added to the -mm tree.  Its filename is
-     drivers-cpuidle-governors-menuc-fix-undefined-reference-to-__udivdi3.patch
+     m68knommu-fix-invalid-flags-on-coldfire-pit-clocksource.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,64 +34,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/cpuidle/governors/menu.c: fix undefined reference to `__udivdi3'
-From: Stephen Hemminger <shemminger@linux-foundation.org>
+Subject: m68knommu: fix invalid flags on coldfire pit clocksource
+From: john stultz <johnstul@us.ibm.com>
 
-menu: use proper 64 bit math
+The m68knommu coldfire pit clocksource looks like it was incorrectly
+marked as a continuous clocksource.  Running with it marked as a
+continuous clocksource could cause hangs when the system switches to
+highres mode or enables nohz.
 
-The new menu governor is incorrectly doing a 64 bit divide.  Compile
-tested only
+This patch removes the CLOCK_SOURCE_IS_CONTINUOUS flag on the coldfire pit
+clocksource.  This will disallow systems using this clocksource from
+entering oneshot mode (disabling highres timers and nohz).
 
-Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
-Cc: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Len Brown <len.brown@intel.com>
-Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: <stable@kernel.org>
+Signed-off-by: John Stultz <johnstul@us.ibm.com>
+Cc: Greg Ungerer <gerg@snapgear.com>
+Cc: Steven King <sfking@fdwdc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpuidle/governors/menu.c |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ arch/m68knommu/platform/coldfire/pit.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/cpuidle/governors/menu.c~drivers-cpuidle-governors-menuc-fix-undefined-reference-to-__udivdi3 drivers/cpuidle/governors/menu.c
---- a/drivers/cpuidle/governors/menu.c~drivers-cpuidle-governors-menuc-fix-undefined-reference-to-__udivdi3
-+++ a/drivers/cpuidle/governors/menu.c
-@@ -18,6 +18,7 @@
- #include <linux/hrtimer.h>
- #include <linux/tick.h>
- #include <linux/sched.h>
-+#include <linux/math64.h>
+diff -puN arch/m68knommu/platform/coldfire/pit.c~m68knommu-fix-invalid-flags-on-coldfire-pit-clocksource arch/m68knommu/platform/coldfire/pit.c
+--- a/arch/m68knommu/platform/coldfire/pit.c~m68knommu-fix-invalid-flags-on-coldfire-pit-clocksource
++++ a/arch/m68knommu/platform/coldfire/pit.c
+@@ -146,7 +146,6 @@ static struct clocksource pit_clk = {
+ 	.read	= pit_read_clk,
+ 	.shift	= 20,
+ 	.mask	= CLOCKSOURCE_MASK(32),
+-	.flags	= CLOCK_SOURCE_IS_CONTINUOUS,
+ };
  
- #define BUCKETS 12
- #define RESOLUTION 1024
-@@ -169,6 +170,12 @@ static DEFINE_PER_CPU(struct menu_device
- 
- static void menu_update(struct cpuidle_device *dev);
- 
-+/* This implements DIV_ROUND_CLOSEST but avoids 64 bit division */
-+static u64 div_round64(u64 dividend, u32 divisor)
-+{
-+	return div_u64(dividend + (divisor / 2), divisor);
-+}
-+
- /**
-  * menu_select - selects the next idle state to enter
-  * @dev: the CPU
-@@ -209,9 +216,8 @@ static int menu_select(struct cpuidle_de
- 		data->correction_factor[data->bucket] = RESOLUTION * DECAY;
- 
- 	/* Make sure to round up for half microseconds */
--	data->predicted_us = DIV_ROUND_CLOSEST(
--		data->expected_us * data->correction_factor[data->bucket],
--		RESOLUTION * DECAY);
-+	data->predicted_us = div_round64(data->expected_us * data->correction_factor[data->bucket],
-+					 RESOLUTION * DECAY);
- 
- 	/*
- 	 * We want to default to C1 (hlt), not to busy polling
+ /***************************************************************************/
 _
 
-Patches currently in -mm which might be from shemminger@linux-foundation.org are
+Patches currently in -mm which might be from johnstul@us.ibm.com are
 
-drivers-cpuidle-governors-menuc-fix-undefined-reference-to-__udivdi3.patch
+m68knommu-fix-invalid-flags-on-coldfire-pit-clocksource.patch
+convert-arm-to-arch_gettimeoffset.patch
+clocksource-add-argument-to-resume-callback.patch
+clocksource-start-cmt-at-clocksource-resume.patch
+clocksource-add-suspend-callback.patch
+convert-sparc-to-arch_gettimeoffset.patch
+cris-convert-to-use-arch_gettimeoffset.patch
 
