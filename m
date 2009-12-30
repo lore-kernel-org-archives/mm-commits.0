@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
 Subject: + g_ncr5380-fix-broken-mmio-compilation.patch added to -mm tree
-Date: Wed, 30 Dec 2009 13:21:30 -0800
-Message-ID: <200912302121.nBULLUUb002937@imap1.linux-foundation.org>
+Date: Wed, 30 Dec 2009 13:21:50 -0800
+Message-ID: <200912302121.nBULLoFe002946@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34735 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34060 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752702AbZL3VVf (ORCPT
+	by vger.kernel.org with ESMTP id S1752980AbZL3VV5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Dec 2009 16:21:35 -0500
+	Wed, 30 Dec 2009 16:21:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: linux@rainbow-software.org, James.Bottomley@HansenPartnership.com
+Cc: linux@rainbow-software.org, James.Bottomley@HansenPartnership.com, awalls@radix.net
 
 
 The patch titled
@@ -41,6 +41,7 @@ The ifdefs are broken so the MMIO code is never compiled and so it's
 broken too.  Fix them all.  Untested as I don't have the hardware.
 
 Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+Cc: Andy Walls <awalls@radix.net>
 Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
