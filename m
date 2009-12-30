@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-cpuc-delete-deprecated-definition-in-cpu_up.patch added to -mm tree
-Date: Wed, 30 Dec 2009 15:25:01 -0800
-Message-ID: <200912302325.nBUNP109008053@imap1.linux-foundation.org>
+Subject: + cgroups-fix-2632-regression-causing-bug_on-in-cgroup_diput.patch added to -mm tree
+Date: Wed, 30 Dec 2009 15:36:29 -0800
+Message-ID: <200912302336.nBUNaTnR008502@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44381 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50514 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751416AbZL3XZw (ORCPT
+	by vger.kernel.org with ESMTP id S1751162AbZL3Xhf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Dec 2009 18:25:52 -0500
+	Wed, 30 Dec 2009 18:37:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: gong.chen@linux.intel.com, mingo@elte.hu, rusty@rustcorp.com.au
+Cc: anderson@redhat.com, bblum@andrew.cmu.edu, lizf@cn.fujitsu.com, menage@google.com, stable@kernel.org
 
 
 The patch titled
-     kernel/cpu.c: delete deprecated definition in cpu_up()
+     cgroups: fix 2.6.32 regression causing BUG_ON() in cgroup_diput()
 has been added to the -mm tree.  Its filename is
-     kernel-cpuc-delete-deprecated-definition-in-cpu_up.patch
+     cgroups-fix-2632-regression-causing-bug_on-in-cgroup_diput.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,66 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel/cpu.c: delete deprecated definition in cpu_up()
-From: Chen Gong <gong.chen@linux.intel.com>
+Subject: cgroups: fix 2.6.32 regression causing BUG_ON() in cgroup_diput()
+From: Dave Anderson <anderson@redhat.com>
 
-Additional_cpus is only supported for IA64 now.  X86_64 should not be
-included.
+The LTP cgroup test suite generates a "kernel BUG at kernel/cgroup.c:790!"
+here in cgroup_diput():
 
-Signed-off-by: Chen Gong <gong.chen@linux.intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+                 /*
+                  * if we're getting rid of the cgroup, refcount should ensure
+                  * that there are no pidlists left.
+                  */
+                 BUG_ON(!list_empty(&cgrp->pidlists));
+
+The cgroup pidlist rework in 2.6.32 generates the BUG_ON, which is caused
+when pidlist_array_load() calls cgroup_pidlist_find():
+
+(1) if a matching cgroup_pidlist is found, it down_write's the mutex of the
+     pre-existing cgroup_pidlist, and increments its use_count.
+(2) if no matching cgroup_pidlist is found, then a new one is allocated, it
+     down_write's its mutex, and the use_count is set to 0.
+(3) the matching, or new, cgroup_pidlist gets returned back to pidlist_array_load(),
+     which increments its use_count -- regardless whether new or pre-existing --
+     and up_write's the mutex.
+
+So if a matching list is ever encountered by cgroup_pidlist_find() during
+the life of a cgroup directory, it results in an inflated use_count value,
+preventing it from ever getting released by cgroup_release_pid_array(). 
+Then if the directory is subsequently removed, cgroup_diput() hits the
+BUG_ON() when it finds that the directory's cgroup is still populated with
+a pidlist.
+
+The patch simply removes the use_count increment when a matching pidlist
+is found by cgroup_pidlist_find(), because it gets bumped by the calling
+pidlist_array_load() function while still protected by the list's mutex.
+
+Signed-off-by: Dave Anderson <anderson@redhat.com>
+Reviewed-by: Li Zefan <lizf@cn.fujitsu.com>
+Acked-by: Ben Blum <bblum@andrew.cmu.edu>
+Cc: Paul Menage <menage@google.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpu.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/cgroup.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN kernel/cpu.c~kernel-cpuc-delete-deprecated-definition-in-cpu_up kernel/cpu.c
---- a/kernel/cpu.c~kernel-cpuc-delete-deprecated-definition-in-cpu_up
-+++ a/kernel/cpu.c
-@@ -338,7 +338,7 @@ int __cpuinit cpu_up(unsigned int cpu)
- 	if (!cpu_possible(cpu)) {
- 		printk(KERN_ERR "can't online cpu %d because it is not "
- 			"configured as may-hotadd at boot time\n", cpu);
--#if defined(CONFIG_IA64) || defined(CONFIG_X86_64)
-+#if defined(CONFIG_IA64)
- 		printk(KERN_ERR "please check additional_cpus= boot "
- 				"parameter\n");
- #endif
+diff -puN kernel/cgroup.c~cgroups-fix-2632-regression-causing-bug_on-in-cgroup_diput kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-fix-2632-regression-causing-bug_on-in-cgroup_diput
++++ a/kernel/cgroup.c
+@@ -2468,7 +2468,6 @@ static struct cgroup_pidlist *cgroup_pid
+ 			/* make sure l doesn't vanish out from under us */
+ 			down_write(&l->mutex);
+ 			mutex_unlock(&cgrp->pidlist_mutex);
+-			l->use_count++;
+ 			return l;
+ 		}
+ 	}
+diff -puN /dev/null /dev/null
 _
 
-Patches currently in -mm which might be from gong.chen@linux.intel.com are
+Patches currently in -mm which might be from anderson@redhat.com are
 
-kernel-cpuc-delete-deprecated-definition-in-cpu_up.patch
+cgroups-fix-2632-regression-causing-bug_on-in-cgroup_diput.patch
 
