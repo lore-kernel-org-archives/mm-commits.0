@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-get_maintainerpl-fix-file-exclusion-x-logic.patch added to -mm tree
-Date: Wed, 30 Dec 2009 15:21:01 -0800
-Message-ID: <200912302321.nBUNL1FD007908@imap1.linux-foundation.org>
+Subject: + prctl-add-pr_set_proctitle_area-option-for-prctl.patch added to -mm tree
+Date: Wed, 30 Dec 2009 15:23:54 -0800
+Message-ID: <200912302323.nBUNNsGv008033@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60706 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49815 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751470AbZL3XVe (ORCPT
+	by vger.kernel.org with ESMTP id S1751162AbZL3XZJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Dec 2009 18:21:34 -0500
+	Wed, 30 Dec 2009 18:25:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, error27@gmail.com
+Cc: kosaki.motohiro@jp.fujitsu.com, bdonlan@gmail.com, drepper@redhat.com, linux-api@vger.kernel.org, mingo@elte.hu, oleg@redhat.com, tss@iki.fi, xiyou.wangcong@gmail.com
 
 
 The patch titled
-     scripts/get_maintainer.pl: fix file exclusion X: logic
+     prctl: add PR_SET_PROCTITLE_AREA option for prctl()
 has been added to the -mm tree.  Its filename is
-     scripts-get_maintainerpl-fix-file-exclusion-x-logic.patch
+     prctl-add-pr_set_proctitle_area-option-for-prctl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,140 +34,282 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts/get_maintainer.pl: fix file exclusion X: logic
-From: Joe Perches <joe@perches.com>
+Subject: prctl: add PR_SET_PROCTITLE_AREA option for prctl()
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-The following command doesn't generate any output.
-`./scripts/get_maintainer.pl --no-git -f drivers/net/wireless/wl12xx/wl1271_acx.c`
+Currently glibc2 doesn't have setproctitle(3), so several userland daemons
+attempt to emulate it by doing some brutal stack modifications.  This
+works most of the time, but it has problems.  For example:
 
-An excluded "X:" pattern match in any section would cause a file not to
-match any other section.
+ % ps -ef |grep avahi-daemon
+ avahi     1679     1  0 09:20 ?        00:00:00 avahi-daemon: running [kosadesk.local]
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Reported-by: Dan Carpenter <error27@gmail.com>
+ # cat /proc/1679/cmdline
+ avahi-daemon: running [kosadesk.local]
+
+This looks good, but the process has also overwritten its environment area
+and made the environ file useless:
+
+ # cat /proc/1679/environ
+ adesk.local]
+
+Another problem is that the process title length is limited by the size of
+the environment.  Security conscious people try to avoid potential
+information leaks by clearing most of the environment before running a
+daemon:
+
+ # env - MINIMUM_NEEDED_VAR=foo /path/to/daemon
+
+The resulting environment size may be too small to fit the wanted process
+titles.
+
+This patch makes it possible for userspace to implement setproctitle()
+cleanly.  It adds a new PR_SET_PROCTITLE_AREA option for prctl(), which
+updates task's mm_struct->arg_start and arg_end to the given area.
+
+ test_setproctitle.c
+ ================================================
+ #include <string.h>
+ #include <stdlib.h>
+ #include <unistd.h>
+ #include <stdio.h>
+ #include <sys/prctl.h>
+
+ #define ERR(str) (perror(str), exit(1))
+
+ void settitle(char* title){
+         int err;
+
+         err = prctl(35, title, strlen(title)+1);
+         if (err < 0)
+                 ERR("prctl ");
+ }
+
+ void main(void){
+         long i;
+         char buf[1024];
+
+         for (i = 0; i < 10000000000LL; i++){
+                 sprintf(buf, "loooooooooooooooooooooooong string %d",i);
+                 settitle(buf);
+         }
+ }
+ ==================================================
+
+Cc: Bryan Donlan <bdonlan@gmail.com>
+Cc: Ulrich Drepper <drepper@redhat.com>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Timo Sirainen <tss@iki.fi>
+Cc: WANG Cong <xiyou.wangcong@gmail.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: <linux-api@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |   82 +++++++++++++++++++++++-------------
- 1 file changed, 53 insertions(+), 29 deletions(-)
+ fs/proc/base.c        |   39 +++++++++++++++++++++++++++++----------
+ include/linux/mm.h    |    2 ++
+ include/linux/prctl.h |    3 +++
+ kernel/sys.c          |   26 ++++++++++++++++++++++++++
+ mm/memory.c           |   40 +++++++++++++++++++++++++++-------------
+ 5 files changed, 87 insertions(+), 23 deletions(-)
 
-diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-fix-file-exclusion-x-logic scripts/get_maintainer.pl
---- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-fix-file-exclusion-x-logic
-+++ a/scripts/get_maintainer.pl
-@@ -296,46 +296,56 @@ my @status = ();
+diff -puN fs/proc/base.c~prctl-add-pr_set_proctitle_area-option-for-prctl fs/proc/base.c
+--- a/fs/proc/base.c~prctl-add-pr_set_proctitle_area-option-for-prctl
++++ a/fs/proc/base.c
+@@ -255,34 +255,53 @@ static int proc_pid_cmdline(struct task_
+ 	int res = 0;
+ 	unsigned int len;
+ 	struct mm_struct *mm = get_task_mm(task);
++
+ 	if (!mm)
+ 		goto out;
++
++	/* The process was not constructed yet? */
+ 	if (!mm->arg_end)
+ 		goto out_mm;	/* Shh! No looking before we're done */
  
- foreach my $file (@files) {
+- 	len = mm->arg_end - mm->arg_start;
+- 
++	down_read(&mm->mmap_sem);
++	len = mm->arg_end - mm->arg_start;
+ 	if (len > PAGE_SIZE)
+ 		len = PAGE_SIZE;
+- 
+-	res = access_process_vm(task, mm->arg_start, buffer, len, 0);
  
--#Do not match excluded file patterns
-+    my %hash;
-+    my $tvi = find_first_section();
-+    while ($tvi < @typevalue) {
-+	my $start = find_starting_index($tvi);
-+	my $end = find_ending_index($tvi);
-+	my $exclude = 0;
-+	my $i;
- 
--    my $exclude = 0;
--    foreach my $line (@typevalue) {
--	if ($line =~ m/^(\C):\s*(.*)/) {
--	    my $type = $1;
--	    my $value = $2;
--	    if ($type eq 'X') {
--		if (file_match_pattern($file, $value)) {
--		    $exclude = 1;
--		    last;
--		}
--	    }
--	}
--    }
-+	#Do not match excluded file patterns
- 
--    if (!$exclude) {
--	my $tvi = 0;
--	my %hash;
--	foreach my $line (@typevalue) {
-+	for ($i = $start; $i < $end; $i++) {
-+	    my $line = $typevalue[$i];
- 	    if ($line =~ m/^(\C):\s*(.*)/) {
- 		my $type = $1;
- 		my $value = $2;
--		if ($type eq 'F') {
-+		if ($type eq 'X') {
- 		    if (file_match_pattern($file, $value)) {
--			my $value_pd = ($value =~ tr@/@@);
--			my $file_pd = ($file  =~ tr@/@@);
--			$value_pd++ if (substr($value,-1,1) ne "/");
--			if ($pattern_depth == 0 ||
--			    (($file_pd - $value_pd) < $pattern_depth)) {
--			    $hash{$tvi} = $value_pd;
--			}
-+			$exclude = 1;
- 		    }
+-	// If the nul at the end of args has been overwritten, then
+-	// assume application is using setproctitle(3).
++	res = access_process_vm_locked(task, mm, mm->arg_start, buffer, len, 0);
++
++	/*
++	 * If argv and environ aren't continuous (i.e. the process used
++	 * prctl(PR_SET_PROCTITLE_AREA)), we don't care about the evironment
++	 * override.
++	 */
++	if (mm->arg_end != mm->env_start)
++		goto out_unlock;
++
++	/*
++	 * If the nul at the end of args has been overwritten, then assume
++	 * application is using sendmail's SPT_REUSEARGV style argv override.
++	 */
+ 	if (res > 0 && buffer[res-1] != '\0' && len < PAGE_SIZE) {
+ 		len = strnlen(buffer, res);
+-		if (len < res) {
+-		    res = len;
+-		} else {
++		if (len < res)
++			res = len;
++		else {
+ 			len = mm->env_end - mm->env_start;
+ 			if (len > PAGE_SIZE - res)
+ 				len = PAGE_SIZE - res;
+-			res += access_process_vm(task, mm->env_start, buffer+res, len, 0);
++			res += access_process_vm_locked(task, mm, mm->env_start,
++							buffer+res, len, 0);
+ 			res = strnlen(buffer, res);
  		}
- 	    }
--	    $tvi++;
- 	}
--	foreach my $line (sort {$hash{$b} <=> $hash{$a}} keys %hash) {
--	    add_categories($line);
-+
-+	if (!$exclude) {
-+	    for ($i = $start; $i < $end; $i++) {
-+		my $line = $typevalue[$i];
-+		if ($line =~ m/^(\C):\s*(.*)/) {
-+		    my $type = $1;
-+		    my $value = $2;
-+		    if ($type eq 'F') {
-+			if (file_match_pattern($file, $value)) {
-+			    my $value_pd = ($value =~ tr@/@@);
-+			    my $file_pd = ($file  =~ tr@/@@);
-+			    $value_pd++ if (substr($value,-1,1) ne "/");
-+			    if ($pattern_depth == 0 ||
-+				(($file_pd - $value_pd) < $pattern_depth)) {
-+				$hash{$tvi} = $value_pd;
-+			    }
-+			}
-+		    }
-+		}
-+	    }
  	}
 +
-+	$tvi += ($end - $start);
++out_unlock:
++	up_read(&mm->mmap_sem);
 +
-+    }
+ out_mm:
+ 	mmput(mm);
 +
-+    foreach my $line (sort {$hash{$b} <=> $hash{$a}} keys %hash) {
-+	add_categories($line);
-     }
- 
-     if ($email && $email_git) {
-@@ -570,6 +580,20 @@ sub format_email {
-     return $formatted_email;
+ out:
+ 	return res;
  }
+diff -puN include/linux/mm.h~prctl-add-pr_set_proctitle_area-option-for-prctl include/linux/mm.h
+--- a/include/linux/mm.h~prctl-add-pr_set_proctitle_area-option-for-prctl
++++ a/include/linux/mm.h
+@@ -841,6 +841,8 @@ static inline int handle_mm_fault(struct
  
-+sub find_first_section {
-+    my $index = 0;
+ extern int make_pages_present(unsigned long addr, unsigned long end);
+ extern int access_process_vm(struct task_struct *tsk, unsigned long addr, void *buf, int len, int write);
++extern int access_process_vm_locked(struct task_struct *tsk, struct mm_struct *mm,
++				    unsigned long addr, void *buf, int len, int write);
+ 
+ int get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
+ 			unsigned long start, int nr_pages, int write, int force,
+diff -puN include/linux/prctl.h~prctl-add-pr_set_proctitle_area-option-for-prctl include/linux/prctl.h
+--- a/include/linux/prctl.h~prctl-add-pr_set_proctitle_area-option-for-prctl
++++ a/include/linux/prctl.h
+@@ -102,4 +102,7 @@
+ 
+ #define PR_MCE_KILL_GET 34
+ 
++/* Set process title memory area for setproctitle() */
++#define PR_SET_PROCTITLE_AREA 35
 +
-+    while ($index < @typevalue) {
-+	my $tv = $typevalue[$index];
-+	if (($tv =~ m/^(\C):\s*(.*)/)) {
-+	    last;
-+	}
-+	$index++;
-+    }
+ #endif /* _LINUX_PRCTL_H */
+diff -puN kernel/sys.c~prctl-add-pr_set_proctitle_area-option-for-prctl kernel/sys.c
+--- a/kernel/sys.c~prctl-add-pr_set_proctitle_area-option-for-prctl
++++ a/kernel/sys.c
+@@ -1683,6 +1683,32 @@ SYSCALL_DEFINE5(prctl, int, option, unsi
+ 			else
+ 				error = PR_MCE_KILL_DEFAULT;
+ 			break;
++		case PR_SET_PROCTITLE_AREA: {
++			struct mm_struct *mm = current->mm;
++			unsigned long start = arg2;
++			unsigned long len = arg3;
++			unsigned long end = start + len;
 +
-+    return $index;
++			if (len > PAGE_SIZE)
++				return -EINVAL;
++
++			/*
++			 * If the process pass broken pointer, EFAULT is might better
++			 * than ps output zero-length proctitle. Plus if
++			 * the process pass kernel address (or something-else),
++			 * We have to block it. Oherwise, strange exploit
++			 * chance is there.
++			 */
++			if (!access_ok(VERIFY_READ, start, len))
++				return -EFAULT;
++
++			down_write(&mm->mmap_sem);
++			mm->arg_start = start;
++			mm->arg_end = end;
++			up_write(&mm->mmap_sem);
++
++			return 0;
++		}
+ 		default:
+ 			error = -EINVAL;
+ 			break;
+diff -puN mm/memory.c~prctl-add-pr_set_proctitle_area-option-for-prctl mm/memory.c
+--- a/mm/memory.c~prctl-add-pr_set_proctitle_area-option-for-prctl
++++ a/mm/memory.c
+@@ -3415,22 +3415,13 @@ int generic_access_phys(struct vm_area_s
+ }
+ #endif
+ 
+-/*
+- * Access another process' address space.
+- * Source/target buffer must be kernel space,
+- * Do not walk the page table directly, use get_user_pages
+- */
+-int access_process_vm(struct task_struct *tsk, unsigned long addr, void *buf, int len, int write)
++/* Similar to access_process_vm(), but mmap_sem held is required. */
++int access_process_vm_locked(struct task_struct *tsk, struct mm_struct *mm,
++			     unsigned long addr, void *buf, int len, int write)
+ {
+-	struct mm_struct *mm;
+ 	struct vm_area_struct *vma;
+ 	void *old_buf = buf;
+ 
+-	mm = get_task_mm(tsk);
+-	if (!mm)
+-		return 0;
+-
+-	down_read(&mm->mmap_sem);
+ 	/* ignore errors, just check how much was successfully transferred */
+ 	while (len) {
+ 		int bytes, ret, offset;
+@@ -3477,10 +3468,33 @@ int access_process_vm(struct task_struct
+ 		buf += bytes;
+ 		addr += bytes;
+ 	}
++
++	return buf - old_buf;
 +}
 +
- sub find_starting_index {
-     my ($index) = @_;
++/*
++ * Access another process' address space.
++ * Source/target buffer must be kernel space,
++ * Do not walk the page table directly, use get_user_pages
++ * ignore errors, just check how much was successfully transferred. IOW, this
++ * function always return >=0 value.
++ */
++int access_process_vm(struct task_struct *tsk, unsigned long addr, void *buf, int len, int write)
++{
++	int ret;
++	struct mm_struct *mm;
++
++	/* Probably tsk isn't current. We can't access tsk->mm directly. */
++	mm = get_task_mm(tsk);
++	if (!mm)
++		return 0;
++
++	down_read(&mm->mmap_sem);
++	ret = access_process_vm_locked(tsk, mm, addr, buf, len, write);
+ 	up_read(&mm->mmap_sem);
+ 	mmput(mm);
  
+-	return buf - old_buf;
++	return ret;
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
-scripts-get_maintainerpl-fix-file-exclusion-x-logic.patch
-linux-next.patch
-vsnprintf-fix-reference-for-compressed-ipv6-addresses.patch
-scripts-checkpatchpl-add-warn-on-sizeof.patch
-checkpatchpl-allow-80-char-lines-for-logging-functions-not-just-printk.patch
+mm-introduce-dump_page-and-print-symbolic-flag-names.patch
+prctl-add-pr_set_proctitle_area-option-for-prctl.patch
+mm-pass-mm-flags-as-a-coredump-parameter-for-consistency.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
