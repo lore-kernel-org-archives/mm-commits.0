@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ieee80211-add-missing-parentheses.patch added to -mm tree
-Date: Wed, 30 Dec 2009 14:24:41 -0800
-Message-ID: <200912302224.nBUMOf49005716@imap1.linux-foundation.org>
+Subject: + omap3-add-missing-parentheses.patch added to -mm tree
+Date: Wed, 30 Dec 2009 14:25:45 -0800
+Message-ID: <200912302225.nBUMPj5a005760@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48982 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47265 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751416AbZL3WYu (ORCPT
+	by vger.kernel.org with ESMTP id S1751162AbZL3W0A (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Dec 2009 17:24:50 -0500
+	Wed, 30 Dec 2009 17:26:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, gregkh@suse.de
+Cc: roel.kluin@gmail.com, rmk@arm.linux.org.uk, tony@atomide.com
 
 
 The patch titled
-     ieee80211: add missing parentheses
+     omap3: add missing parentheses
 has been added to the -mm tree.  Its filename is
-     ieee80211-add-missing-parentheses.patch
+     omap3-add-missing-parentheses.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ieee80211: add missing parentheses
+Subject: omap3: add missing parentheses
 From: Roel Kluin <roel.kluin@gmail.com>
 
 not(!) has a higher precedence than bit and(&).
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/rtl8192u/ieee80211/ieee80211_wx.c |    2 +-
+ arch/arm/plat-omap/include/plat/control.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/staging/rtl8192u/ieee80211/ieee80211_wx.c~ieee80211-add-missing-parentheses drivers/staging/rtl8192u/ieee80211/ieee80211_wx.c
---- a/drivers/staging/rtl8192u/ieee80211/ieee80211_wx.c~ieee80211-add-missing-parentheses
-+++ a/drivers/staging/rtl8192u/ieee80211/ieee80211_wx.c
-@@ -718,7 +718,7 @@ int ieee80211_wx_get_encode_ext(struct i
- 	} else
- 		idx = ieee->tx_keyidx;
- 
--	if (!ext->ext_flags & IW_ENCODE_EXT_GROUP_KEY &&
-+	if (!(ext->ext_flags & IW_ENCODE_EXT_GROUP_KEY) &&
- 	    ext->alg != IW_ENCODE_ALG_WEP)
- 		if (idx != 0 || ieee->iw_mode != IW_MODE_INFRA)
- 			return -EINVAL;
+diff -puN arch/arm/plat-omap/include/plat/control.h~omap3-add-missing-parentheses arch/arm/plat-omap/include/plat/control.h
+--- a/arch/arm/plat-omap/include/plat/control.h~omap3-add-missing-parentheses
++++ a/arch/arm/plat-omap/include/plat/control.h
+@@ -147,7 +147,7 @@
+ #define OMAP343X_CONTROL_IVA2_BOOTADDR	(OMAP2_CONTROL_GENERAL + 0x0190)
+ #define OMAP343X_CONTROL_IVA2_BOOTMOD	(OMAP2_CONTROL_GENERAL + 0x0194)
+ #define OMAP343X_CONTROL_DEBOBS(i)	(OMAP2_CONTROL_GENERAL + 0x01B0 \
+-					+ ((i) >> 1) * 4 + (!(i) & 1) * 2)
++					+ ((i) >> 1) * 4 + (!((i) & 1)) * 2)
+ #define OMAP343X_CONTROL_PROG_IO0	(OMAP2_CONTROL_GENERAL + 0x01D4)
+ #define OMAP343X_CONTROL_PROG_IO1	(OMAP2_CONTROL_GENERAL + 0x01D8)
+ #define OMAP343X_CONTROL_DSS_DPLL_SPREADING	(OMAP2_CONTROL_GENERAL + 0x01E0)
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -66,6 +67,7 @@ Patches currently in -mm which might be from roel.kluin@gmail.com are
 zlib-optimize-inffast-when-copying-direct-from-output.patch
 linux-next.patch
 omap-confusion-in-iommu_put.patch
+omap3-add-missing-parentheses.patch
 powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
 drivers-scsi-fnic-fnic_scsic-clean-up.patch
 ibmmca-buffer-overflow.patch
