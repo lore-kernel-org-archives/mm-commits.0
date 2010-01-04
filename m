@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rt2860-test-off-by-one-in-rtmpasicsendcommandtomcu.patch added to -mm tree
-Date: Mon, 04 Jan 2010 15:02:16 -0800
-Message-ID: <201001042302.o04N2GmV023578@imap1.linux-foundation.org>
+Subject: + broadsheetfb-add-multiple-panel-type-support.patch added to -mm tree
+Date: Mon, 04 Jan 2010 15:06:03 -0800
+Message-ID: <201001042306.o04N63a1023754@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33099 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43697 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753463Ab0ADXCU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jan 2010 18:02:20 -0500
+	by vger.kernel.org with ESMTP id S1753613Ab0ADXGe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jan 2010 18:06:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, greg@kroah.com
+Cc: jayakumar.lkml@gmail.com, geert@linux-m68k.org, krzysztof.h1@wp.pl, rmk@arm.linux.org.uk
 
 
 The patch titled
-     rt2860: test off by one in RtmpAsicSendCommandToMcu()
+     broadsheetfb: add multiple panel type support
 has been added to the -mm tree.  Its filename is
-     rt2860-test-off-by-one-in-rtmpasicsendcommandtomcu.patch
+     broadsheetfb-add-multiple-panel-type-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,58 +33,246 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rt2860: test off by one in RtmpAsicSendCommandToMcu()
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: broadsheetfb: add multiple panel type support
+From: Jaya Kumar <jayakumar.lkml@gmail.com>
 
-`i' reaches 101 after the loop, so if it was 100 then it succeeded in
-the last iteration. This is probably unlikely to cause problems.
+Update broadsheetfb to add support for multiple panel types.  The 3.7" and
+6" are known to work but the 9.7" is untested due to lack of hardware.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Jaya Kumar <jayakumar.lkml@gmail.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Krzysztof Helt <krzysztof.h1@wp.pl>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/rt2860/common/rtmp_mcu.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/mach-pxa/am300epd.c |    2 
+ drivers/video/broadsheetfb.c |  125 ++++++++++++++++++++++++++++-----
+ include/video/broadsheetfb.h |    1 
+ 3 files changed, 111 insertions(+), 17 deletions(-)
 
-diff -puN drivers/staging/rt2860/common/rtmp_mcu.c~rt2860-test-off-by-one-in-rtmpasicsendcommandtomcu drivers/staging/rt2860/common/rtmp_mcu.c
---- a/drivers/staging/rt2860/common/rtmp_mcu.c~rt2860-test-off-by-one-in-rtmpasicsendcommandtomcu
-+++ a/drivers/staging/rt2860/common/rtmp_mcu.c
-@@ -221,7 +221,7 @@ int RtmpAsicSendCommandToMcu(struct rt_r
- 				 ("AsicSendCommanToMcu::Mail box is busy\n"));
- 		} while (i++ < 100);
+diff -puN arch/arm/mach-pxa/am300epd.c~broadsheetfb-add-multiple-panel-type-support arch/arm/mach-pxa/am300epd.c
+--- a/arch/arm/mach-pxa/am300epd.c~broadsheetfb-add-multiple-panel-type-support
++++ a/arch/arm/mach-pxa/am300epd.c
+@@ -288,7 +288,7 @@ int __init am300_init(void)
+ }
  
--		if (i >= 100) {
-+		if (i > 100) {
- 			DBGPRINT_ERR(("H2M_MAILBOX still hold by MCU. command fail\n"));
- 			return FALSE;
- 		}
+ module_param(panel_type, uint, 0);
+-MODULE_PARM_DESC(panel_type, "Select the panel type: 6, 8, 97");
++MODULE_PARM_DESC(panel_type, "Select the panel type: 37, 6, 97");
+ 
+ MODULE_DESCRIPTION("board driver for am300 epd kit");
+ MODULE_AUTHOR("Jaya Kumar");
+diff -puN drivers/video/broadsheetfb.c~broadsheetfb-add-multiple-panel-type-support drivers/video/broadsheetfb.c
+--- a/drivers/video/broadsheetfb.c~broadsheetfb-add-multiple-panel-type-support
++++ a/drivers/video/broadsheetfb.c
+@@ -33,7 +33,60 @@
+ 
+ #include <video/broadsheetfb.h>
+ 
+-/* Display specific information */
++/* track panel specific parameters */
++struct panel_info {
++	int w;
++	int h;
++	u16 sdcfg;
++	u16 gdcfg;
++	u16 lutfmt;
++	u16 fsynclen;
++	u16 fendfbegin;
++	u16 lsynclen;
++	u16 lendlbegin;
++	u16 pixclk;
++};
++
++/* table of panel specific parameters to be indexed into by the board drivers */
++static struct panel_info panel_table[] = {
++	{	/* standard 6" on TFT backplane */
++		.w = 800,
++		.h = 600,
++		.sdcfg = (100 | (1 << 8) | (1 << 9)),
++		.gdcfg = 2,
++		.lutfmt = (4 | (1 << 7)),
++		.fsynclen = 4,
++		.fendfbegin = (10 << 8) | 4,
++		.lsynclen = 10,
++		.lendlbegin = (100 << 8) | 4,
++		.pixclk = 6,
++	},
++	{	/* custom 3.7" flexible on PET or steel */
++		.w = 320,
++		.h = 240,
++		.sdcfg = (67 | (0 << 8) | (0 << 9) | (0 << 10) | (0 << 12)),
++		.gdcfg = 3,
++		.lutfmt = (4 | (1 << 7)),
++		.fsynclen = 0,
++		.fendfbegin = (80 << 8) | 4,
++		.lsynclen = 10,
++		.lendlbegin = (80 << 8) | 20,
++		.pixclk = 14,
++	},
++	{	/* standard 9.7" on TFT backplane */
++		.w = 1200,
++		.h = 825,
++		.sdcfg = (100 | (1 << 8) | (1 << 9) | (0 << 10) | (0 << 12)),
++		.gdcfg = 2,
++		.lutfmt = (4 | (1 << 7)),
++		.fsynclen = 0,
++		.fendfbegin = (4 << 8) | 4,
++		.lsynclen = 4,
++		.lendlbegin = (60 << 8) | 10,
++		.pixclk = 3,
++	},
++};
++
+ #define DPY_W 800
+ #define DPY_H 600
+ 
+@@ -160,6 +213,14 @@ static void broadsheet_write_reg(struct 
+ 	par->board->set_ctl(par, BS_CS, 1);
+ }
+ 
++static void broadsheet_write_reg32(struct broadsheetfb_par *par, u16 reg,
++					u32 data)
++{
++	broadsheet_write_reg(par, reg, cpu_to_le32(data) & 0xFFFF);
++	broadsheet_write_reg(par, reg + 2, (cpu_to_le32(data) >> 16) & 0xFFFF);
++}
++
++
+ static u16 broadsheet_read_reg(struct broadsheetfb_par *par, u16 reg)
+ {
+ 	broadsheet_send_command(par, reg);
+@@ -170,24 +231,28 @@ static u16 broadsheet_read_reg(struct br
+ static void __devinit broadsheet_init_display(struct broadsheetfb_par *par)
+ {
+ 	u16 args[5];
++	int xres = par->info->var.xres;
++	int yres = par->info->var.yres;
+ 
+-	args[0] = DPY_W;
+-	args[1] = DPY_H;
+-	args[2] = (100 | (1 << 8) | (1 << 9)); /* sdcfg */
+-	args[3] = 2; /* gdrv cfg */
+-	args[4] = (4 | (1 << 7)); /* lut index format */
++	args[0] = panel_table[par->panel_index].w;
++	args[1] = panel_table[par->panel_index].h;
++	args[2] = panel_table[par->panel_index].sdcfg;
++	args[3] = panel_table[par->panel_index].gdcfg;
++	args[4] = panel_table[par->panel_index].lutfmt;
+ 	broadsheet_send_cmdargs(par, BS_CMD_INIT_DSPE_CFG, 5, args);
+ 
+ 	/* did the controller really set it? */
+ 	broadsheet_send_cmdargs(par, BS_CMD_INIT_DSPE_CFG, 5, args);
+ 
+-	args[0] = 4; /* fsync len */
+-	args[1] = (10 << 8) | 4; /* fend/fbegin len */
+-	args[2] = 10; /* line sync len */
+-	args[3] = (100 << 8) | 4; /* line end/begin len */
+-	args[4] = 6; /* pixel clock cfg */
++	args[0] = panel_table[par->panel_index].fsynclen;
++	args[1] = panel_table[par->panel_index].fendfbegin;
++	args[2] = panel_table[par->panel_index].lsynclen;
++	args[3] = panel_table[par->panel_index].lendlbegin;
++	args[4] = panel_table[par->panel_index].pixclk;
+ 	broadsheet_send_cmdargs(par, BS_CMD_INIT_DSPE_TMG, 5, args);
+ 
++	broadsheet_write_reg32(par, 0x310, xres*yres*2);
++
+ 	/* setup waveform */
+ 	args[0] = 0x886;
+ 	args[1] = 0;
+@@ -207,8 +272,9 @@ static void __devinit broadsheet_init_di
+ 	args[0] = 0x154;
+ 	broadsheet_send_cmdargs(par, BS_CMD_WR_REG, 1, args);
+ 
+-	broadsheet_burst_write(par, DPY_W*DPY_H/2,
+-				(u16 *) par->info->screen_base);
++	broadsheet_burst_write(par, (panel_table[par->panel_index].w *
++					panel_table[par->panel_index].h)/2,
++					(u16 *) par->info->screen_base);
+ 
+ 	broadsheet_send_command(par, BS_CMD_LD_IMG_END);
+ 
+@@ -277,8 +343,9 @@ static void broadsheetfb_dpy_update(stru
+ 
+ 	args[0] = 0x154;
+ 	broadsheet_send_cmdargs(par, BS_CMD_WR_REG, 1, args);
+-	broadsheet_burst_write(par, DPY_W*DPY_H/2,
+-				(u16 *) par->info->screen_base);
++	broadsheet_burst_write(par, (panel_table[par->panel_index].w *
++					panel_table[par->panel_index].h)/2,
++					(u16 *) par->info->screen_base);
+ 
+ 	broadsheet_send_command(par, BS_CMD_LD_IMG_END);
+ 
+@@ -436,6 +503,8 @@ static int __devinit broadsheetfb_probe(
+ 	unsigned char *videomemory;
+ 	struct broadsheetfb_par *par;
+ 	int i;
++	int dpyw, dpyh;
++	int panel_index;
+ 
+ 	/* pick up board specific routines */
+ 	board = dev->dev.platform_data;
+@@ -450,7 +519,24 @@ static int __devinit broadsheetfb_probe(
+ 	if (!info)
+ 		goto err;
+ 
+-	videomemorysize = (DPY_W*DPY_H);
++	switch (board->get_panel_type()) {
++	case 37:
++		panel_index = 1;
++		break;
++	case 97:
++		panel_index = 2;
++		break;
++	case 6:
++	default:
++		panel_index = 0;
++		break;
++	}
++
++	dpyw = panel_table[panel_index].w;
++	dpyh = panel_table[panel_index].h;
++
++	videomemorysize = roundup((dpyw*dpyh), PAGE_SIZE);
++
+ 	videomemory = vmalloc(videomemorysize);
+ 	if (!videomemory)
+ 		goto err_fb_rel;
+@@ -460,10 +546,17 @@ static int __devinit broadsheetfb_probe(
+ 	info->screen_base = (char *)videomemory;
+ 	info->fbops = &broadsheetfb_ops;
+ 
++	broadsheetfb_var.xres = dpyw;
++	broadsheetfb_var.yres = dpyh;
++	broadsheetfb_var.xres_virtual = dpyw;
++	broadsheetfb_var.yres_virtual = dpyh;
+ 	info->var = broadsheetfb_var;
++
++	broadsheetfb_fix.line_length = dpyw;
+ 	info->fix = broadsheetfb_fix;
+ 	info->fix.smem_len = videomemorysize;
+ 	par = info->par;
++	par->panel_index = panel_index;
+ 	par->info = info;
+ 	par->board = board;
+ 	par->write_reg = broadsheet_write_reg;
+diff -puN include/video/broadsheetfb.h~broadsheetfb-add-multiple-panel-type-support include/video/broadsheetfb.h
+--- a/include/video/broadsheetfb.h~broadsheetfb-add-multiple-panel-type-support
++++ a/include/video/broadsheetfb.h
+@@ -41,6 +41,7 @@ struct broadsheetfb_par {
+ 	void (*write_reg)(struct broadsheetfb_par *, u16 reg, u16 val);
+ 	u16 (*read_reg)(struct broadsheetfb_par *, u16 reg);
+ 	wait_queue_head_t waitq;
++	int panel_index;
+ };
+ 
+ /* board specific routines */
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from jayakumar.lkml@gmail.com are
 
-origin.patch
-zlib-optimize-inffast-when-copying-direct-from-output.patch
-linux-next.patch
-omap-confusion-in-iommu_put.patch
-omap3-add-missing-parentheses.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
-ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
-scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
-dc395x-decrease-iteration-for-tag_number-of-max_command-in-start_scsi.patch
-ieee80211-add-missing-parentheses.patch
-rt2860-test-off-by-one-in-rtmpasicsendcommandtomcu.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-cryptocop-fix-assertion-in-create_output_descriptors.patch
-asiliantfb-fix-test-of-unsigned-in-asiliant_calc_dclk2.patch
+broadsheetfb-add-multiple-panel-type-support.patch
 
