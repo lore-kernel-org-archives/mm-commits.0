@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + console-limit-the-range-of-vgacon_soft_scrollback_size.patch added to -mm tree
-Date: Mon, 04 Jan 2010 12:34:55 -0800
-Message-ID: <201001042034.o04KYtq3016328@imap1.linux-foundation.org>
+Subject: + kernel-signalc-fix-kernel-information-leak-with-print-fatal-signals=1.patch added to -mm tree
+Date: Mon, 04 Jan 2010 13:16:54 -0800
+Message-ID: <201001042116.o04LGsOI018390@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59556 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54516 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753417Ab0ADUfO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jan 2010 15:35:14 -0500
+	by vger.kernel.org with ESMTP id S1752215Ab0ADVSC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jan 2010 16:18:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: amwang@redhat.com, buraphalinuxserver@gmail.com, davem@davemloft.net
+Cc: andi@firstfloor.org, ak@linux.intel.com, mingo@elte.hu, oleg@redhat.com, stable@kernel.org
 
 
 The patch titled
-     console: limit the range of VGACON_SOFT_SCROLLBACK_SIZE
+     kernel/signal.c: fix kernel information leak with print-fatal-signals=1
 has been added to the -mm tree.  Its filename is
-     console-limit-the-range-of-vgacon_soft_scrollback_size.patch
+     kernel-signalc-fix-kernel-information-leak-with-print-fatal-signals=1.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,41 +33,64 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: console: limit the range of VGACON_SOFT_SCROLLBACK_SIZE
-From: Amerigo Wang <amwang@redhat.com>
+Subject: kernel/signal.c: fix kernel information leak with print-fatal-signals=1
+From: Andi Kleen <andi@firstfloor.org>
 
-BuraphaLinux reported that we will trigger a mm warning when we
-CONFIG_VGACON_SOFT_SCROLLBACK_SIZE=65536, this is because mm cann't
-allocate so many pages.  We should limit the range of
-CONFIG_VGACON_SOFT_SCROLLBACK_SIZE, don't give a user any chance to
-trigger that.
+When print-fatal-signals is enabled it's possible to dump any memory
+reachable by the kernel to the log by simply jumping to that address from
+user space.
 
-Reported-by: BuraphaLinux Server <buraphalinuxserver@gmail.com>
-Tested-by: BuraphaLinux Server <buraphalinuxserver@gmail.com>
-Signed-off-by: WANG Cong <amwang@redhat.com>
-Cc: David S. Miller <davem@davemloft.net>
+Or crash the system if there's some hardware with read side effects.
+
+The fatal signals handler will dump 16 bytes at the execution address,
+which is fully controlled by ring 3.
+
+In addition when something jumps to a unmapped address there will be up to
+16 additional useless page faults, which might be potentially slow (and at
+least is not very efficient)
+
+Fortunately this option is off by default and only there on i386.
+
+But fix it by checking for kernel addresses and also stopping when there's
+a page fault.
+
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/console/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/signal.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/video/console/Kconfig~console-limit-the-range-of-vgacon_soft_scrollback_size drivers/video/console/Kconfig
---- a/drivers/video/console/Kconfig~console-limit-the-range-of-vgacon_soft_scrollback_size
-+++ a/drivers/video/console/Kconfig
-@@ -37,6 +37,7 @@ config VGACON_SOFT_SCROLLBACK
- config VGACON_SOFT_SCROLLBACK_SIZE
-        int "Scrollback Buffer Size (in KB)"
-        depends on VGACON_SOFT_SCROLLBACK
-+       range 1 1024
-        default "64"
-        help
-          Enter the amount of System RAM to allocate for the scrollback
+diff -puN kernel/signal.c~kernel-signalc-fix-kernel-information-leak-with-print-fatal-signals=1 kernel/signal.c
+--- a/kernel/signal.c~kernel-signalc-fix-kernel-information-leak-with-print-fatal-signals=1
++++ a/kernel/signal.c
+@@ -979,7 +979,8 @@ static void print_fatal_signal(struct pt
+ 		for (i = 0; i < 16; i++) {
+ 			unsigned char insn;
+ 
+-			__get_user(insn, (unsigned char *)(regs->ip + i));
++			if (get_user(insn, (unsigned char *)(regs->ip + i)))
++				break;
+ 			printk("%02x ", insn);
+ 		}
+ 	}
 _
 
-Patches currently in -mm which might be from amwang@redhat.com are
+Patches currently in -mm which might be from andi@firstfloor.org are
 
 origin.patch
-linux-next.patch
-console-limit-the-range-of-vgacon_soft_scrollback_size.patch
+kernel-signalc-fix-kernel-information-leak-with-print-fatal-signals=1.patch
+hardware-latency-detector-remove-default-m.patch
+kbuild-move-fno-dwarf2-cfi-asm-to-powerpc-only.patch
+mm-introduce-dump_page-and-print-symbolic-flag-names.patch
+tracehooks-kill-some-pt_ptraced-checks.patch
+tracehooks-check-pt_ptraced-before-reporting-the-single-step.patch
+ptrace_signal-check-pt_ptraced-before-reporting-a-signal.patch
+export-__ptrace_detach-and-do_notify_parent_cldstop.patch
+reorder-the-code-in-kernel-ptracec.patch
+implement-utrace-ptrace.patch
+utrace-core.patch
 
