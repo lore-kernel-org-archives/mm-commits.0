@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + paride-fix-off-by-one-test.patch added to -mm tree
-Date: Mon, 04 Jan 2010 15:08:36 -0800
-Message-ID: <201001042308.o04N8aL3023898@imap1.linux-foundation.org>
+Subject: + i2c-fix-off-by-one-in-piix4vt596_transaction.patch added to -mm tree
+Date: Mon, 04 Jan 2010 15:11:02 -0800
+Message-ID: <201001042311.o04NB294023993@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44901 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43636 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753422Ab0ADXIm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jan 2010 18:08:42 -0500
+	by vger.kernel.org with ESMTP id S1753829Ab0ADXL6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jan 2010 18:11:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, jens.axboe@oracle.com
+Cc: roel.kluin@gmail.com, ben-linux@fluff.org, khali@linux-fr.org
 
 
 The patch titled
-     paride: fix off-by-one test
+     i2c: fix off-by-one in {piix4,vt596}_transaction()
 has been added to the -mm tree.  Its filename is
-     paride-fix-off-by-one-test.patch
+     i2c-fix-off-by-one-in-piix4vt596_transaction.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,73 +33,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: paride: fix off-by-one test
+Subject: i2c: fix off-by-one in {piix4,vt596}_transaction()
 From: Roel Kluin <roel.kluin@gmail.com>
 
-With `while (j++ < PX_SPIN)' j reaches PX_SPIN + 1 after the loop.  This
-is probably unlikely to produce a problem.
+With `while (timeout++ < MAX_TIMEOUT)' timeout reaches MAX_TIMEOUT + 1
+after the loop This is probably unlikely to produce a problem.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Ben Dooks <ben-linux@fluff.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/paride/pcd.c |    4 ++--
- drivers/block/paride/pf.c  |    4 ++--
- drivers/block/paride/pt.c  |    4 ++--
- 3 files changed, 6 insertions(+), 6 deletions(-)
+ drivers/i2c/busses/i2c-piix4.c  |    2 +-
+ drivers/i2c/busses/i2c-viapro.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/block/paride/pcd.c~paride-fix-off-by-one-test drivers/block/paride/pcd.c
---- a/drivers/block/paride/pcd.c~paride-fix-off-by-one-test
-+++ a/drivers/block/paride/pcd.c
-@@ -341,11 +341,11 @@ static int pcd_wait(struct pcd_unit *cd,
- 	       && (j++ < PCD_SPIN))
- 		udelay(PCD_DELAY);
+diff -puN drivers/i2c/busses/i2c-piix4.c~i2c-fix-off-by-one-in-piix4vt596_transaction drivers/i2c/busses/i2c-piix4.c
+--- a/drivers/i2c/busses/i2c-piix4.c~i2c-fix-off-by-one-in-piix4vt596_transaction
++++ a/drivers/i2c/busses/i2c-piix4.c
+@@ -329,7 +329,7 @@ static int piix4_transaction(void)
+ 		msleep(1);
  
--	if ((r & (IDE_ERR & stop)) || (j >= PCD_SPIN)) {
-+	if ((r & (IDE_ERR & stop)) || (j > PCD_SPIN)) {
- 		s = read_reg(cd, 7);
- 		e = read_reg(cd, 1);
- 		p = read_reg(cd, 2);
--		if (j >= PCD_SPIN)
-+		if (j > PCD_SPIN)
- 			e |= 0x100;
- 		if (fun)
- 			printk("%s: %s %s: alt=0x%x stat=0x%x err=0x%x"
-diff -puN drivers/block/paride/pf.c~paride-fix-off-by-one-test drivers/block/paride/pf.c
---- a/drivers/block/paride/pf.c~paride-fix-off-by-one-test
-+++ a/drivers/block/paride/pf.c
-@@ -391,11 +391,11 @@ static int pf_wait(struct pf_unit *pf, i
- 	       && (j++ < PF_SPIN))
- 		udelay(PF_SPIN_DEL);
+ 	/* If the SMBus is still busy, we give up */
+-	if (timeout >= MAX_TIMEOUT) {
++	if (timeout > MAX_TIMEOUT) {
+ 		dev_err(&piix4_adapter.dev, "SMBus Timeout!\n");
+ 		result = -ETIMEDOUT;
+ 	}
+diff -puN drivers/i2c/busses/i2c-viapro.c~i2c-fix-off-by-one-in-piix4vt596_transaction drivers/i2c/busses/i2c-viapro.c
+--- a/drivers/i2c/busses/i2c-viapro.c~i2c-fix-off-by-one-in-piix4vt596_transaction
++++ a/drivers/i2c/busses/i2c-viapro.c
+@@ -168,7 +168,7 @@ static int vt596_transaction(u8 size)
+ 	} while ((temp & 0x01) && (timeout++ < MAX_TIMEOUT));
  
--	if ((r & (STAT_ERR & stop)) || (j >= PF_SPIN)) {
-+	if ((r & (STAT_ERR & stop)) || (j > PF_SPIN)) {
- 		s = read_reg(pf, 7);
- 		e = read_reg(pf, 1);
- 		p = read_reg(pf, 2);
--		if (j >= PF_SPIN)
-+		if (j > PF_SPIN)
- 			e |= 0x100;
- 		if (fun)
- 			printk("%s: %s %s: alt=0x%x stat=0x%x err=0x%x"
-diff -puN drivers/block/paride/pt.c~paride-fix-off-by-one-test drivers/block/paride/pt.c
---- a/drivers/block/paride/pt.c~paride-fix-off-by-one-test
-+++ a/drivers/block/paride/pt.c
-@@ -274,11 +274,11 @@ static int pt_wait(struct pt_unit *tape,
- 	       && (j++ < PT_SPIN))
- 		udelay(PT_SPIN_DEL);
- 
--	if ((r & (STAT_ERR & stop)) || (j >= PT_SPIN)) {
-+	if ((r & (STAT_ERR & stop)) || (j > PT_SPIN)) {
- 		s = read_reg(pi, 7);
- 		e = read_reg(pi, 1);
- 		p = read_reg(pi, 2);
--		if (j >= PT_SPIN)
-+		if (j > PT_SPIN)
- 			e |= 0x100;
- 		if (fun)
- 			printk("%s: %s %s: alt=0x%x stat=0x%x err=0x%x"
+ 	/* If the SMBus is still busy, we give up */
+-	if (timeout >= MAX_TIMEOUT) {
++	if (timeout > MAX_TIMEOUT) {
+ 		result = -ETIMEDOUT;
+ 		dev_err(&vt596_adapter.dev, "SMBus timeout!\n");
+ 	}
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -110,6 +83,7 @@ linux-next.patch
 omap-confusion-in-iommu_put.patch
 omap3-add-missing-parentheses.patch
 powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+i2c-fix-off-by-one-in-piix4vt596_transaction.patch
 drivers-scsi-fnic-fnic_scsic-clean-up.patch
 ibmmca-buffer-overflow.patch
 scsi-eata-fix-buffer-overflow.patch
