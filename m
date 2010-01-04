@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + dc395x-decrease-iteration-for-tag_number-of-max_command-in-start_scsi.patch added to -mm tree
-Date: Mon, 04 Jan 2010 14:49:54 -0800
-Message-ID: <201001042249.o04Mnsv2023031@imap1.linux-foundation.org>
+Subject: + rt2860-test-off-by-one-in-rtmpasicsendcommandtomcu.patch added to -mm tree
+Date: Mon, 04 Jan 2010 15:02:16 -0800
+Message-ID: <201001042302.o04N2GmV023578@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59410 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33099 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752965Ab0ADWua (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jan 2010 17:50:30 -0500
+	by vger.kernel.org with ESMTP id S1753463Ab0ADXCU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jan 2010 18:02:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, James.Bottomley@HansenPartnership.com, oliver@neukum.name
+Cc: roel.kluin@gmail.com, greg@kroah.com
 
 
 The patch titled
-     dc395x: decrease iteration for tag_number of max_command in start_scsi()
+     rt2860: test off by one in RtmpAsicSendCommandToMcu()
 has been added to the -mm tree.  Its filename is
-     dc395x-decrease-iteration-for-tag_number-of-max_command-in-start_scsi.patch
+     rt2860-test-off-by-one-in-rtmpasicsendcommandtomcu.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,33 +33,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dc395x: decrease iteration for tag_number of max_command in start_scsi()
+Subject: rt2860: test off by one in RtmpAsicSendCommandToMcu()
 From: Roel Kluin <roel.kluin@gmail.com>
 
-The tag_number reaches dcb->max_command + 1 after the loop, but when
-the tag_number equals dcb->max_command an error message is already
-issued. The last iteration therefore appears obsolete.
+`i' reaches 101 after the loop, so if it was 100 then it succeeded in
+the last iteration. This is probably unlikely to cause problems.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Oliver Neukum <oliver@neukum.name>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/dc395x.c |    2 +-
+ drivers/staging/rt2860/common/rtmp_mcu.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/dc395x.c~dc395x-decrease-iteration-for-tag_number-of-max_command-in-start_scsi drivers/scsi/dc395x.c
---- a/drivers/scsi/dc395x.c~dc395x-decrease-iteration-for-tag_number-of-max_command-in-start_scsi
-+++ a/drivers/scsi/dc395x.c
-@@ -1596,7 +1596,7 @@ static u8 start_scsi(struct AdapterCtlBl
- 		u32 tag_mask = 1;
- 		u8 tag_number = 0;
- 		while (tag_mask & dcb->tag_mask
--		       && tag_number <= dcb->max_command) {
-+		       && tag_number < dcb->max_command) {
- 			tag_mask = tag_mask << 1;
- 			tag_number++;
+diff -puN drivers/staging/rt2860/common/rtmp_mcu.c~rt2860-test-off-by-one-in-rtmpasicsendcommandtomcu drivers/staging/rt2860/common/rtmp_mcu.c
+--- a/drivers/staging/rt2860/common/rtmp_mcu.c~rt2860-test-off-by-one-in-rtmpasicsendcommandtomcu
++++ a/drivers/staging/rt2860/common/rtmp_mcu.c
+@@ -221,7 +221,7 @@ int RtmpAsicSendCommandToMcu(struct rt_r
+ 				 ("AsicSendCommanToMcu::Mail box is busy\n"));
+ 		} while (i++ < 100);
+ 
+-		if (i >= 100) {
++		if (i > 100) {
+ 			DBGPRINT_ERR(("H2M_MAILBOX still hold by MCU. command fail\n"));
+ 			return FALSE;
  		}
 _
 
@@ -84,6 +82,7 @@ ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
 scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
 dc395x-decrease-iteration-for-tag_number-of-max_command-in-start_scsi.patch
 ieee80211-add-missing-parentheses.patch
+rt2860-test-off-by-one-in-rtmpasicsendcommandtomcu.patch
 frv-duplicate-output_buffer-of-e03.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 cryptocop-fix-assertion-in-create_output_descriptors.patch
