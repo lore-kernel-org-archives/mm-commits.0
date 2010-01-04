@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + kfifo-add-kfifo_initialized.patch added to -mm tree
-Date: Mon, 04 Jan 2010 14:05:03 -0800
-Message-ID: <201001042205.o04M53UT020995@imap1.linux-foundation.org>
+Subject: + kfifo-add-kfifo_out_peek.patch added to -mm tree
+Date: Mon, 04 Jan 2010 14:05:01 -0800
+Message-ID: <201001042205.o04M51vo020990@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37336 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58957 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753731Ab0ADWGS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jan 2010 17:06:18 -0500
+	by vger.kernel.org with ESMTP id S1753820Ab0ADWGT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jan 2010 17:06:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: andi@firstfloor.org, ak@linux.intel.com, awalls@radix.net, dhillonv10@gmail.
 
 
 The patch titled
-     kfifo: add kfifo_initialized
+     kfifo: add kfifo_out_peek
 has been added to the -mm tree.  Its filename is
-     kfifo-add-kfifo_initialized.patch
+     kfifo-add-kfifo_out_peek.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,13 +33,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kfifo: add kfifo_initialized
+Subject: kfifo: add kfifo_out_peek
 From: Andi Kleen <andi@firstfloor.org>
 
-Simple inline that checks if kfifo_init() has been executed on a fifo.
-
-This is useful for walking all per CPU fifos, when some of them might not
-have been brought up yet.
+In some upcoming code it's useful to peek into a FIFO without permanentely
+removing data.  This patch implements a new kfifo_out_peek() to do this.
 
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
 Cc: Stefani Seibold <stefani@seibold.net>
@@ -50,29 +48,54 @@ Cc: Vikram Dhillon <dhillonv10@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kfifo.h |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ include/linux/kfifo.h |    3 +++
+ kernel/kfifo.c        |   21 +++++++++++++++++++++
+ 2 files changed, 24 insertions(+)
 
-diff -puN include/linux/kfifo.h~kfifo-add-kfifo_initialized include/linux/kfifo.h
---- a/include/linux/kfifo.h~kfifo-add-kfifo_initialized
+diff -puN include/linux/kfifo.h~kfifo-add-kfifo_out_peek include/linux/kfifo.h
+--- a/include/linux/kfifo.h~kfifo-add-kfifo_out_peek
 +++ a/include/linux/kfifo.h
-@@ -116,6 +116,16 @@ extern __must_check unsigned int kfifo_o
- extern __must_check unsigned int kfifo_out_peek(struct kfifo *fifo,
- 				void *to, unsigned int len, unsigned offset);
- 
-+/**
-+ * kfifo_initialized - Check if kfifo is initialized.
-+ * @fifo: fifo to check
-+ * Return %true if FIFO is initialized, otherwise %false.
-+ * Assumes the fifo was 0 before.
-+ */
-+static inline bool kfifo_initialized(struct kfifo *fifo)
-+{
-+	return fifo->buffer != 0;
-+}
+@@ -113,6 +113,9 @@ extern unsigned int kfifo_in(struct kfif
+ 				const void *from, unsigned int len);
+ extern __must_check unsigned int kfifo_out(struct kfifo *fifo,
+ 				void *to, unsigned int len);
++extern __must_check unsigned int kfifo_out_peek(struct kfifo *fifo,
++				void *to, unsigned int len, unsigned offset);
++
  
  /**
   * kfifo_reset - removes the entire FIFO contents
+diff -puN kernel/kfifo.c~kfifo-add-kfifo_out_peek kernel/kfifo.c
+--- a/kernel/kfifo.c~kfifo-add-kfifo_out_peek
++++ a/kernel/kfifo.c
+@@ -301,6 +301,27 @@ unsigned int kfifo_out(struct kfifo *fif
+ }
+ EXPORT_SYMBOL(kfifo_out);
+ 
++/**
++ * kfifo_out_peek - copy some data from the FIFO, but do not remove it
++ * @fifo: the fifo to be used.
++ * @to: where the data must be copied.
++ * @len: the size of the destination buffer.
++ * @offset: offset into the fifo
++ *
++ * This function copies at most @len bytes at @offset from the FIFO
++ * into the @to buffer and returns the number of copied bytes.
++ * The data is not removed from the FIFO.
++ */
++unsigned int kfifo_out_peek(struct kfifo *fifo, void *to, unsigned int len,
++			    unsigned offset)
++{
++	len = min(kfifo_len(fifo), len + offset);
++
++	__kfifo_out_data(fifo, to, len, offset);
++	return len;
++}
++EXPORT_SYMBOL(kfifo_out_peek);
++
+ unsigned int __kfifo_out_generic(struct kfifo *fifo,
+ 	void *to, unsigned int len, unsigned int recsize,
+ 	unsigned int *total)
 _
 
 Patches currently in -mm which might be from andi@firstfloor.org are
