@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-video-omap2-dss-rfbic-port-to-new-kfifo-api.patch added to -mm tree
-Date: Mon, 04 Jan 2010 15:07:20 -0800
-Message-ID: <201001042307.o04N7KaB023799@imap1.linux-foundation.org>
+Subject: + paride-fix-off-by-one-test.patch added to -mm tree
+Date: Mon, 04 Jan 2010 15:08:36 -0800
+Message-ID: <201001042308.o04N8aL3023898@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56201 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44901 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753484Ab0ADXHl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jan 2010 18:07:41 -0500
+	by vger.kernel.org with ESMTP id S1753422Ab0ADXIm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jan 2010 18:08:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: stefani@seibold.net, greg@kroah.com, tomi.valkeinen@nokia.com
+Cc: roel.kluin@gmail.com, jens.axboe@oracle.com
 
 
 The patch titled
-     drivers/video/omap2/dss/rfbi.c: port to new kfifo API
+     paride: fix off-by-one test
 has been added to the -mm tree.  Its filename is
-     drivers-video-omap2-dss-rfbic-port-to-new-kfifo-api.patch
+     paride-fix-off-by-one-test.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,97 +33,100 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/video/omap2/dss/rfbi.c: port to new kfifo API
-From: Stefani Seibold <stefani@seibold.net>
+Subject: paride: fix off-by-one test
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Port drivers/video/omap2/dss/rfbi.c to the new kfifo API.  This should be
-the last one.
+With `while (j++ < PX_SPIN)' j reaches PX_SPIN + 1 after the loop.  This
+is probably unlikely to produce a problem.
 
-Signed-off-by: Stefani Seibold <stefani@seibold.net>
-Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/omap2/dss/rfbi.c |   21 ++++++++++-----------
- 1 file changed, 10 insertions(+), 11 deletions(-)
+ drivers/block/paride/pcd.c |    4 ++--
+ drivers/block/paride/pf.c  |    4 ++--
+ drivers/block/paride/pt.c  |    4 ++--
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/video/omap2/dss/rfbi.c~drivers-video-omap2-dss-rfbic-port-to-new-kfifo-api drivers/video/omap2/dss/rfbi.c
---- a/drivers/video/omap2/dss/rfbi.c~drivers-video-omap2-dss-rfbic-port-to-new-kfifo-api
-+++ a/drivers/video/omap2/dss/rfbi.c
-@@ -120,7 +120,7 @@ static struct {
+diff -puN drivers/block/paride/pcd.c~paride-fix-off-by-one-test drivers/block/paride/pcd.c
+--- a/drivers/block/paride/pcd.c~paride-fix-off-by-one-test
++++ a/drivers/block/paride/pcd.c
+@@ -341,11 +341,11 @@ static int pcd_wait(struct pcd_unit *cd,
+ 	       && (j++ < PCD_SPIN))
+ 		udelay(PCD_DELAY);
  
- 	struct omap_dss_device *dssdev[2];
+-	if ((r & (IDE_ERR & stop)) || (j >= PCD_SPIN)) {
++	if ((r & (IDE_ERR & stop)) || (j > PCD_SPIN)) {
+ 		s = read_reg(cd, 7);
+ 		e = read_reg(cd, 1);
+ 		p = read_reg(cd, 2);
+-		if (j >= PCD_SPIN)
++		if (j > PCD_SPIN)
+ 			e |= 0x100;
+ 		if (fun)
+ 			printk("%s: %s %s: alt=0x%x stat=0x%x err=0x%x"
+diff -puN drivers/block/paride/pf.c~paride-fix-off-by-one-test drivers/block/paride/pf.c
+--- a/drivers/block/paride/pf.c~paride-fix-off-by-one-test
++++ a/drivers/block/paride/pf.c
+@@ -391,11 +391,11 @@ static int pf_wait(struct pf_unit *pf, i
+ 	       && (j++ < PF_SPIN))
+ 		udelay(PF_SPIN_DEL);
  
--	struct kfifo      *cmd_fifo;
-+	struct kfifo      cmd_fifo;
- 	spinlock_t        cmd_lock;
- 	struct completion cmd_done;
- 	atomic_t          cmd_fifo_full;
-@@ -1013,8 +1013,9 @@ static void process_cmd_fifo(void)
- 	while (true) {
- 		spin_lock_irqsave(rfbi.cmd_fifo->lock, flags);
+-	if ((r & (STAT_ERR & stop)) || (j >= PF_SPIN)) {
++	if ((r & (STAT_ERR & stop)) || (j > PF_SPIN)) {
+ 		s = read_reg(pf, 7);
+ 		e = read_reg(pf, 1);
+ 		p = read_reg(pf, 2);
+-		if (j >= PF_SPIN)
++		if (j > PF_SPIN)
+ 			e |= 0x100;
+ 		if (fun)
+ 			printk("%s: %s %s: alt=0x%x stat=0x%x err=0x%x"
+diff -puN drivers/block/paride/pt.c~paride-fix-off-by-one-test drivers/block/paride/pt.c
+--- a/drivers/block/paride/pt.c~paride-fix-off-by-one-test
++++ a/drivers/block/paride/pt.c
+@@ -274,11 +274,11 @@ static int pt_wait(struct pt_unit *tape,
+ 	       && (j++ < PT_SPIN))
+ 		udelay(PT_SPIN_DEL);
  
--		len = __kfifo_get(rfbi.cmd_fifo, (unsigned char *)&p,
--				  sizeof(struct update_param));
-+		len = kfifo_out_locked(&rfbi.cmd_fifo, (unsigned char *)&p,
-+				  sizeof(struct update_param),
-+				  &rfbi.cmd_lock);
- 		if (len == 0) {
- 			DSSDBG("nothing more in fifo\n");
- 			atomic_set(&rfbi.cmd_pending, 0);
-@@ -1053,8 +1054,7 @@ static void rfbi_push_cmd(struct update_
- 		int available;
- 
- 		spin_lock_irqsave(rfbi.cmd_fifo->lock, flags);
--		available = RFBI_CMD_FIFO_LEN_BYTES -
--			__kfifo_len(rfbi.cmd_fifo);
-+		available = kfifo_avail(&rfbi.cmd_fifo);
- 
- /*		DSSDBG("%d bytes left in fifo\n", available); */
- 		if (available < sizeof(struct update_param)) {
-@@ -1066,8 +1066,9 @@ static void rfbi_push_cmd(struct update_
- 			continue;
- 		}
- 
--		ret = __kfifo_put(rfbi.cmd_fifo, (unsigned char *)p,
--				  sizeof(struct update_param));
-+		ret = kfifo_in_locked(&rfbi.cmd_fifo, (unsigned char *)p,
-+				  sizeof(struct update_param),
-+				  &rfbi.cmd_lock);
- /*		DSSDBG("pushed %d bytes\n", ret);*/
- 
- 		spin_unlock_irqrestore(rfbi.cmd_fifo->lock, flags);
-@@ -1157,9 +1158,7 @@ int rfbi_init(void)
- 	u32 l;
- 
- 	spin_lock_init(&rfbi.cmd_lock);
--	rfbi.cmd_fifo = kfifo_alloc(RFBI_CMD_FIFO_LEN_BYTES, GFP_KERNEL,
--				    &rfbi.cmd_lock);
--	if (IS_ERR(rfbi.cmd_fifo))
-+	if (kfifo_alloc(&rfbi.cmd_fifo, RFBI_CMD_FIFO_LEN_BYTES, GFP_KERNEL))
- 		return -ENOMEM;
- 
- 	init_completion(&rfbi.cmd_done);
-@@ -1196,7 +1195,7 @@ void rfbi_exit(void)
- {
- 	DSSDBG("rfbi_exit\n");
- 
--	kfifo_free(rfbi.cmd_fifo);
-+	kfifo_free(&rfbi.cmd_fifo);
- 
- 	iounmap(rfbi.base);
- }
+-	if ((r & (STAT_ERR & stop)) || (j >= PT_SPIN)) {
++	if ((r & (STAT_ERR & stop)) || (j > PT_SPIN)) {
+ 		s = read_reg(pi, 7);
+ 		e = read_reg(pi, 1);
+ 		p = read_reg(pi, 2);
+-		if (j >= PT_SPIN)
++		if (j > PT_SPIN)
+ 			e |= 0x100;
+ 		if (fun)
+ 			printk("%s: %s %s: alt=0x%x stat=0x%x err=0x%x"
 _
 
-Patches currently in -mm which might be from stefani@seibold.net are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
-drivers-video-omap2-dss-rfbic-port-to-new-kfifo-api.patch
-kfifo-use-void-pointers-for-user-buffers.patch
-kfifo-make-kfifo_in-atomic.patch
-kfifo-sanitize-_user-error-handling.patch
-kfifo-add-kfifo_out_peek.patch
-kfifo-add-kfifo_initialized.patch
-kfifo-document-everywhere-that-size-has-to-be-power-of-two.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
+origin.patch
+zlib-optimize-inffast-when-copying-direct-from-output.patch
+linux-next.patch
+omap-confusion-in-iommu_put.patch
+omap3-add-missing-parentheses.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
+zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
+ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
+scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
+dc395x-decrease-iteration-for-tag_number-of-max_command-in-start_scsi.patch
+paride-fix-off-by-one-test.patch
+ieee80211-add-missing-parentheses.patch
+rt2860-test-off-by-one-in-rtmpasicsendcommandtomcu.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+cryptocop-fix-assertion-in-create_output_descriptors.patch
+asiliantfb-fix-test-of-unsigned-in-asiliant_calc_dclk2.patch
 
