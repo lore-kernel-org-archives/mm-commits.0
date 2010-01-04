@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + broadsheetfb-add-multiple-panel-type-support.patch added to -mm tree
-Date: Mon, 04 Jan 2010 15:06:03 -0800
-Message-ID: <201001042306.o04N63a1023754@imap1.linux-foundation.org>
+Subject: + drivers-video-omap2-dss-rfbic-port-to-new-kfifo-api.patch added to -mm tree
+Date: Mon, 04 Jan 2010 15:07:20 -0800
+Message-ID: <201001042307.o04N7KaB023799@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43697 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56201 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753613Ab0ADXGe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jan 2010 18:06:34 -0500
+	by vger.kernel.org with ESMTP id S1753484Ab0ADXHl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jan 2010 18:07:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jayakumar.lkml@gmail.com, geert@linux-m68k.org, krzysztof.h1@wp.pl, rmk@arm.linux.org.uk
+Cc: stefani@seibold.net, greg@kroah.com, tomi.valkeinen@nokia.com
 
 
 The patch titled
-     broadsheetfb: add multiple panel type support
+     drivers/video/omap2/dss/rfbi.c: port to new kfifo API
 has been added to the -mm tree.  Its filename is
-     broadsheetfb-add-multiple-panel-type-support.patch
+     drivers-video-omap2-dss-rfbic-port-to-new-kfifo-api.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,246 +33,97 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: broadsheetfb: add multiple panel type support
-From: Jaya Kumar <jayakumar.lkml@gmail.com>
+Subject: drivers/video/omap2/dss/rfbi.c: port to new kfifo API
+From: Stefani Seibold <stefani@seibold.net>
 
-Update broadsheetfb to add support for multiple panel types.  The 3.7" and
-6" are known to work but the 9.7" is untested due to lack of hardware.
+Port drivers/video/omap2/dss/rfbi.c to the new kfifo API.  This should be
+the last one.
 
-Signed-off-by: Jaya Kumar <jayakumar.lkml@gmail.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Krzysztof Helt <krzysztof.h1@wp.pl>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Signed-off-by: Stefani Seibold <stefani@seibold.net>
+Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-pxa/am300epd.c |    2 
- drivers/video/broadsheetfb.c |  125 ++++++++++++++++++++++++++++-----
- include/video/broadsheetfb.h |    1 
- 3 files changed, 111 insertions(+), 17 deletions(-)
+ drivers/video/omap2/dss/rfbi.c |   21 ++++++++++-----------
+ 1 file changed, 10 insertions(+), 11 deletions(-)
 
-diff -puN arch/arm/mach-pxa/am300epd.c~broadsheetfb-add-multiple-panel-type-support arch/arm/mach-pxa/am300epd.c
---- a/arch/arm/mach-pxa/am300epd.c~broadsheetfb-add-multiple-panel-type-support
-+++ a/arch/arm/mach-pxa/am300epd.c
-@@ -288,7 +288,7 @@ int __init am300_init(void)
- }
+diff -puN drivers/video/omap2/dss/rfbi.c~drivers-video-omap2-dss-rfbic-port-to-new-kfifo-api drivers/video/omap2/dss/rfbi.c
+--- a/drivers/video/omap2/dss/rfbi.c~drivers-video-omap2-dss-rfbic-port-to-new-kfifo-api
++++ a/drivers/video/omap2/dss/rfbi.c
+@@ -120,7 +120,7 @@ static struct {
  
- module_param(panel_type, uint, 0);
--MODULE_PARM_DESC(panel_type, "Select the panel type: 6, 8, 97");
-+MODULE_PARM_DESC(panel_type, "Select the panel type: 37, 6, 97");
+ 	struct omap_dss_device *dssdev[2];
  
- MODULE_DESCRIPTION("board driver for am300 epd kit");
- MODULE_AUTHOR("Jaya Kumar");
-diff -puN drivers/video/broadsheetfb.c~broadsheetfb-add-multiple-panel-type-support drivers/video/broadsheetfb.c
---- a/drivers/video/broadsheetfb.c~broadsheetfb-add-multiple-panel-type-support
-+++ a/drivers/video/broadsheetfb.c
-@@ -33,7 +33,60 @@
+-	struct kfifo      *cmd_fifo;
++	struct kfifo      cmd_fifo;
+ 	spinlock_t        cmd_lock;
+ 	struct completion cmd_done;
+ 	atomic_t          cmd_fifo_full;
+@@ -1013,8 +1013,9 @@ static void process_cmd_fifo(void)
+ 	while (true) {
+ 		spin_lock_irqsave(rfbi.cmd_fifo->lock, flags);
  
- #include <video/broadsheetfb.h>
+-		len = __kfifo_get(rfbi.cmd_fifo, (unsigned char *)&p,
+-				  sizeof(struct update_param));
++		len = kfifo_out_locked(&rfbi.cmd_fifo, (unsigned char *)&p,
++				  sizeof(struct update_param),
++				  &rfbi.cmd_lock);
+ 		if (len == 0) {
+ 			DSSDBG("nothing more in fifo\n");
+ 			atomic_set(&rfbi.cmd_pending, 0);
+@@ -1053,8 +1054,7 @@ static void rfbi_push_cmd(struct update_
+ 		int available;
  
--/* Display specific information */
-+/* track panel specific parameters */
-+struct panel_info {
-+	int w;
-+	int h;
-+	u16 sdcfg;
-+	u16 gdcfg;
-+	u16 lutfmt;
-+	u16 fsynclen;
-+	u16 fendfbegin;
-+	u16 lsynclen;
-+	u16 lendlbegin;
-+	u16 pixclk;
-+};
-+
-+/* table of panel specific parameters to be indexed into by the board drivers */
-+static struct panel_info panel_table[] = {
-+	{	/* standard 6" on TFT backplane */
-+		.w = 800,
-+		.h = 600,
-+		.sdcfg = (100 | (1 << 8) | (1 << 9)),
-+		.gdcfg = 2,
-+		.lutfmt = (4 | (1 << 7)),
-+		.fsynclen = 4,
-+		.fendfbegin = (10 << 8) | 4,
-+		.lsynclen = 10,
-+		.lendlbegin = (100 << 8) | 4,
-+		.pixclk = 6,
-+	},
-+	{	/* custom 3.7" flexible on PET or steel */
-+		.w = 320,
-+		.h = 240,
-+		.sdcfg = (67 | (0 << 8) | (0 << 9) | (0 << 10) | (0 << 12)),
-+		.gdcfg = 3,
-+		.lutfmt = (4 | (1 << 7)),
-+		.fsynclen = 0,
-+		.fendfbegin = (80 << 8) | 4,
-+		.lsynclen = 10,
-+		.lendlbegin = (80 << 8) | 20,
-+		.pixclk = 14,
-+	},
-+	{	/* standard 9.7" on TFT backplane */
-+		.w = 1200,
-+		.h = 825,
-+		.sdcfg = (100 | (1 << 8) | (1 << 9) | (0 << 10) | (0 << 12)),
-+		.gdcfg = 2,
-+		.lutfmt = (4 | (1 << 7)),
-+		.fsynclen = 0,
-+		.fendfbegin = (4 << 8) | 4,
-+		.lsynclen = 4,
-+		.lendlbegin = (60 << 8) | 10,
-+		.pixclk = 3,
-+	},
-+};
-+
- #define DPY_W 800
- #define DPY_H 600
+ 		spin_lock_irqsave(rfbi.cmd_fifo->lock, flags);
+-		available = RFBI_CMD_FIFO_LEN_BYTES -
+-			__kfifo_len(rfbi.cmd_fifo);
++		available = kfifo_avail(&rfbi.cmd_fifo);
  
-@@ -160,6 +213,14 @@ static void broadsheet_write_reg(struct 
- 	par->board->set_ctl(par, BS_CS, 1);
- }
+ /*		DSSDBG("%d bytes left in fifo\n", available); */
+ 		if (available < sizeof(struct update_param)) {
+@@ -1066,8 +1066,9 @@ static void rfbi_push_cmd(struct update_
+ 			continue;
+ 		}
  
-+static void broadsheet_write_reg32(struct broadsheetfb_par *par, u16 reg,
-+					u32 data)
-+{
-+	broadsheet_write_reg(par, reg, cpu_to_le32(data) & 0xFFFF);
-+	broadsheet_write_reg(par, reg + 2, (cpu_to_le32(data) >> 16) & 0xFFFF);
-+}
-+
-+
- static u16 broadsheet_read_reg(struct broadsheetfb_par *par, u16 reg)
+-		ret = __kfifo_put(rfbi.cmd_fifo, (unsigned char *)p,
+-				  sizeof(struct update_param));
++		ret = kfifo_in_locked(&rfbi.cmd_fifo, (unsigned char *)p,
++				  sizeof(struct update_param),
++				  &rfbi.cmd_lock);
+ /*		DSSDBG("pushed %d bytes\n", ret);*/
+ 
+ 		spin_unlock_irqrestore(rfbi.cmd_fifo->lock, flags);
+@@ -1157,9 +1158,7 @@ int rfbi_init(void)
+ 	u32 l;
+ 
+ 	spin_lock_init(&rfbi.cmd_lock);
+-	rfbi.cmd_fifo = kfifo_alloc(RFBI_CMD_FIFO_LEN_BYTES, GFP_KERNEL,
+-				    &rfbi.cmd_lock);
+-	if (IS_ERR(rfbi.cmd_fifo))
++	if (kfifo_alloc(&rfbi.cmd_fifo, RFBI_CMD_FIFO_LEN_BYTES, GFP_KERNEL))
+ 		return -ENOMEM;
+ 
+ 	init_completion(&rfbi.cmd_done);
+@@ -1196,7 +1195,7 @@ void rfbi_exit(void)
  {
- 	broadsheet_send_command(par, reg);
-@@ -170,24 +231,28 @@ static u16 broadsheet_read_reg(struct br
- static void __devinit broadsheet_init_display(struct broadsheetfb_par *par)
- {
- 	u16 args[5];
-+	int xres = par->info->var.xres;
-+	int yres = par->info->var.yres;
+ 	DSSDBG("rfbi_exit\n");
  
--	args[0] = DPY_W;
--	args[1] = DPY_H;
--	args[2] = (100 | (1 << 8) | (1 << 9)); /* sdcfg */
--	args[3] = 2; /* gdrv cfg */
--	args[4] = (4 | (1 << 7)); /* lut index format */
-+	args[0] = panel_table[par->panel_index].w;
-+	args[1] = panel_table[par->panel_index].h;
-+	args[2] = panel_table[par->panel_index].sdcfg;
-+	args[3] = panel_table[par->panel_index].gdcfg;
-+	args[4] = panel_table[par->panel_index].lutfmt;
- 	broadsheet_send_cmdargs(par, BS_CMD_INIT_DSPE_CFG, 5, args);
+-	kfifo_free(rfbi.cmd_fifo);
++	kfifo_free(&rfbi.cmd_fifo);
  
- 	/* did the controller really set it? */
- 	broadsheet_send_cmdargs(par, BS_CMD_INIT_DSPE_CFG, 5, args);
- 
--	args[0] = 4; /* fsync len */
--	args[1] = (10 << 8) | 4; /* fend/fbegin len */
--	args[2] = 10; /* line sync len */
--	args[3] = (100 << 8) | 4; /* line end/begin len */
--	args[4] = 6; /* pixel clock cfg */
-+	args[0] = panel_table[par->panel_index].fsynclen;
-+	args[1] = panel_table[par->panel_index].fendfbegin;
-+	args[2] = panel_table[par->panel_index].lsynclen;
-+	args[3] = panel_table[par->panel_index].lendlbegin;
-+	args[4] = panel_table[par->panel_index].pixclk;
- 	broadsheet_send_cmdargs(par, BS_CMD_INIT_DSPE_TMG, 5, args);
- 
-+	broadsheet_write_reg32(par, 0x310, xres*yres*2);
-+
- 	/* setup waveform */
- 	args[0] = 0x886;
- 	args[1] = 0;
-@@ -207,8 +272,9 @@ static void __devinit broadsheet_init_di
- 	args[0] = 0x154;
- 	broadsheet_send_cmdargs(par, BS_CMD_WR_REG, 1, args);
- 
--	broadsheet_burst_write(par, DPY_W*DPY_H/2,
--				(u16 *) par->info->screen_base);
-+	broadsheet_burst_write(par, (panel_table[par->panel_index].w *
-+					panel_table[par->panel_index].h)/2,
-+					(u16 *) par->info->screen_base);
- 
- 	broadsheet_send_command(par, BS_CMD_LD_IMG_END);
- 
-@@ -277,8 +343,9 @@ static void broadsheetfb_dpy_update(stru
- 
- 	args[0] = 0x154;
- 	broadsheet_send_cmdargs(par, BS_CMD_WR_REG, 1, args);
--	broadsheet_burst_write(par, DPY_W*DPY_H/2,
--				(u16 *) par->info->screen_base);
-+	broadsheet_burst_write(par, (panel_table[par->panel_index].w *
-+					panel_table[par->panel_index].h)/2,
-+					(u16 *) par->info->screen_base);
- 
- 	broadsheet_send_command(par, BS_CMD_LD_IMG_END);
- 
-@@ -436,6 +503,8 @@ static int __devinit broadsheetfb_probe(
- 	unsigned char *videomemory;
- 	struct broadsheetfb_par *par;
- 	int i;
-+	int dpyw, dpyh;
-+	int panel_index;
- 
- 	/* pick up board specific routines */
- 	board = dev->dev.platform_data;
-@@ -450,7 +519,24 @@ static int __devinit broadsheetfb_probe(
- 	if (!info)
- 		goto err;
- 
--	videomemorysize = (DPY_W*DPY_H);
-+	switch (board->get_panel_type()) {
-+	case 37:
-+		panel_index = 1;
-+		break;
-+	case 97:
-+		panel_index = 2;
-+		break;
-+	case 6:
-+	default:
-+		panel_index = 0;
-+		break;
-+	}
-+
-+	dpyw = panel_table[panel_index].w;
-+	dpyh = panel_table[panel_index].h;
-+
-+	videomemorysize = roundup((dpyw*dpyh), PAGE_SIZE);
-+
- 	videomemory = vmalloc(videomemorysize);
- 	if (!videomemory)
- 		goto err_fb_rel;
-@@ -460,10 +546,17 @@ static int __devinit broadsheetfb_probe(
- 	info->screen_base = (char *)videomemory;
- 	info->fbops = &broadsheetfb_ops;
- 
-+	broadsheetfb_var.xres = dpyw;
-+	broadsheetfb_var.yres = dpyh;
-+	broadsheetfb_var.xres_virtual = dpyw;
-+	broadsheetfb_var.yres_virtual = dpyh;
- 	info->var = broadsheetfb_var;
-+
-+	broadsheetfb_fix.line_length = dpyw;
- 	info->fix = broadsheetfb_fix;
- 	info->fix.smem_len = videomemorysize;
- 	par = info->par;
-+	par->panel_index = panel_index;
- 	par->info = info;
- 	par->board = board;
- 	par->write_reg = broadsheet_write_reg;
-diff -puN include/video/broadsheetfb.h~broadsheetfb-add-multiple-panel-type-support include/video/broadsheetfb.h
---- a/include/video/broadsheetfb.h~broadsheetfb-add-multiple-panel-type-support
-+++ a/include/video/broadsheetfb.h
-@@ -41,6 +41,7 @@ struct broadsheetfb_par {
- 	void (*write_reg)(struct broadsheetfb_par *, u16 reg, u16 val);
- 	u16 (*read_reg)(struct broadsheetfb_par *, u16 reg);
- 	wait_queue_head_t waitq;
-+	int panel_index;
- };
- 
- /* board specific routines */
+ 	iounmap(rfbi.base);
+ }
 _
 
-Patches currently in -mm which might be from jayakumar.lkml@gmail.com are
+Patches currently in -mm which might be from stefani@seibold.net are
 
-broadsheetfb-add-multiple-panel-type-support.patch
+drivers-video-omap2-dss-rfbic-port-to-new-kfifo-api.patch
+kfifo-use-void-pointers-for-user-buffers.patch
+kfifo-make-kfifo_in-atomic.patch
+kfifo-sanitize-_user-error-handling.patch
+kfifo-add-kfifo_out_peek.patch
+kfifo-add-kfifo_initialized.patch
+kfifo-document-everywhere-that-size-has-to-be-power-of-two.patch
+drivers-media-video-cx23885-needs-kfifo-conversion.patch
 
