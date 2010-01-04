@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + kfifo-document-everywhere-that-size-has-to-be-power-of-two.patch added to -mm tree
-Date: Mon, 04 Jan 2010 14:05:05 -0800
-Message-ID: <201001042205.o04M55Qh020998@imap1.linux-foundation.org>
+Subject: + kfifo-make-kfifo_in-atomic.patch added to -mm tree
+Date: Mon, 04 Jan 2010 14:04:56 -0800
+Message-ID: <201001042204.o04M4uEU020982@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60562 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58914 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753380Ab0ADWGK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jan 2010 17:06:10 -0500
+	by vger.kernel.org with ESMTP id S1753731Ab0ADWGO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jan 2010 17:06:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: andi@firstfloor.org, ak@linux.intel.com, awalls@radix.net, dhillonv10@gmail.
 
 
 The patch titled
-     kfifo: document everywhere that size has to be power of two
+     kfifo: make kfifo_in atomic
 has been added to the -mm tree.  Its filename is
-     kfifo-document-everywhere-that-size-has-to-be-power-of-two.patch
+     kfifo-make-kfifo_in-atomic.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,12 +33,21 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kfifo: document everywhere that size has to be power of two
+Subject: kfifo: make kfifo_in atomic
 From: Andi Kleen <andi@firstfloor.org>
 
-On my first try using them I missed that the fifos need to be power of
-two, resulting in a runtime bug.  Document that requirement everywhere
-(and fix one grammar bug)
+Right now kfifo_in allows copying in less than the input amount.  This is
+unfortunately not a good idea on any record oriented users: if the size of
+the kfifo is not a multiple of the record (and that can easily happen due
+to the power-of-two requirement) then when the FIFO fills up partial
+records could be put in.  Such a condition would be fatal for any record
+consumer who would get permanently desynchronized.  In fact I doubt unless
+the input is a totally boundary less data stream I doubt anything could
+handle this.
+
+Change kfifo_in() to always put in everything or nothing.
+
+The return value is now always 0 or the full length.
 
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
 Cc: Stefani Seibold <stefani@seibold.net>
@@ -49,43 +58,35 @@ Cc: Vikram Dhillon <dhillonv10@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kfifo.h |    4 ++--
- kernel/kfifo.c        |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ kernel/kfifo.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/kfifo.h~kfifo-document-everywhere-that-size-has-to-be-power-of-two include/linux/kfifo.h
---- a/include/linux/kfifo.h~kfifo-document-everywhere-that-size-has-to-be-power-of-two
-+++ a/include/linux/kfifo.h
-@@ -67,7 +67,7 @@ struct kfifo {
- /**
-  * DECLARE_KFIFO - macro to declare a kfifo and the associated buffer
-  * @name: name of the declared kfifo datatype
-- * @size: size of the fifo buffer
-+ * @size: size of the fifo buffer. Must be a power of two.
-  *
-  * Note1: the macro can be used inside struct or union declaration
-  * Note2: the macro creates two objects:
-@@ -91,7 +91,7 @@ union { \
- /**
-  * DEFINE_KFIFO - macro to define and initialize a kfifo
-  * @name: name of the declared kfifo datatype
-- * @size: size of the fifo buffer
-+ * @size: size of the fifo buffer. Must be a power of two.
-  *
-  * Note1: the macro can be used for global and local kfifo data type variables
-  * Note2: the macro creates two objects:
-diff -puN kernel/kfifo.c~kfifo-document-everywhere-that-size-has-to-be-power-of-two kernel/kfifo.c
---- a/kernel/kfifo.c~kfifo-document-everywhere-that-size-has-to-be-power-of-two
+diff -puN kernel/kfifo.c~kfifo-make-kfifo_in-atomic kernel/kfifo.c
+--- a/kernel/kfifo.c~kfifo-make-kfifo_in-atomic
 +++ a/kernel/kfifo.c
-@@ -41,7 +41,7 @@ static void _kfifo_init(struct kfifo *fi
-  * kfifo_init - initialize a FIFO using a preallocated buffer
-  * @fifo: the fifo to assign the buffer
-  * @buffer: the preallocated buffer to be used.
-- * @size: the size of the internal buffer, this have to be a power of 2.
-+ * @size: the size of the internal buffer, this has to be a power of 2.
+@@ -228,9 +228,8 @@ EXPORT_SYMBOL(__kfifo_in_n);
+  * @from: the data to be added.
+  * @len: the length of the data to be added.
   *
-  */
- void kfifo_init(struct kfifo *fifo, void *buffer, unsigned int size)
+- * This function copies at most @len bytes from the @from buffer into
+- * the FIFO depending on the free space, and returns the number of
+- * bytes copied.
++ * This function copies @len bytes from the @from buffer into
++ * the FIFO and returns 0 if there is not enough space.
+  *
+  * Note that with only one concurrent reader and one concurrent
+  * writer, you don't need extra locking to use these functions.
+@@ -238,8 +237,8 @@ EXPORT_SYMBOL(__kfifo_in_n);
+ unsigned int kfifo_in(struct kfifo *fifo, const void *from,
+ 				unsigned int len)
+ {
+-	len = min(kfifo_avail(fifo), len);
+-
++	if (kfifo_avail(fifo) < len)
++		return 0;
+ 	__kfifo_in_data(fifo, from, len, 0);
+ 	__kfifo_add_in(fifo, len);
+ 	return len;
 _
 
 Patches currently in -mm which might be from andi@firstfloor.org are
