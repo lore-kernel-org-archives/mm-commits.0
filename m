@@ -1,202 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] sparsemem-put-usemap-for-one-node-together.patch removed from -mm tree
-Date: Mon, 04 Jan 2010 18:38:41 -0800
-Message-ID: <201001050238.o052cfEI002757@imap1.linux-foundation.org>
+Subject: [nacked] drivers-video-omap2-dss-rfbic-port-to-new-kfifo-api.patch removed from -mm tree
+Date: Tue, 05 Jan 2010 11:31:55 -0800
+Message-ID: <201001051931.o05JVtOe014621@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48591 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38642 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753422Ab0AECjy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jan 2010 21:39:54 -0500
+	by vger.kernel.org with ESMTP id S1755019Ab0AETcP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jan 2010 14:32:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yinghai@kernel.org, cl@linux-foundation.org, hannes@cmpxchg.org, hpa@zytor.com, jbarnes@virtuousgeek.org, mingo@elte.hu, shaohua.li@intel.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: stefani@seibold.net, greg@kroah.com, tomi.valkeinen@nokia.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sparsemem: put usemap for one node together
+     drivers/video/omap2/dss/rfbi.c: port to new kfifo API
 has been removed from the -mm tree.  Its filename was
-     sparsemem-put-usemap-for-one-node-together.patch
+     drivers-video-omap2-dss-rfbic-port-to-new-kfifo-api.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it was nacked
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sparsemem: put usemap for one node together
-From: Yinghai Lu <yinghai@kernel.org>
+Subject: drivers/video/omap2/dss/rfbi.c: port to new kfifo API
+From: Stefani Seibold <stefani@seibold.net>
 
-Could save some buf instead of applying one by one.
+Port drivers/video/omap2/dss/rfbi.c to the new kfifo API.  This should be
+the last one.
 
-Could help that system that is going to use early_res instead of bootmem
-less entries in early_res make search more faster on system with more
-memory.
-
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Shaohua Li <shaohua.li@intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Stefani Seibold <stefani@seibold.net>
+Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |   86 ++++++++++++++++++++++++++++++++++++++------------
- 1 file changed, 67 insertions(+), 19 deletions(-)
+ drivers/video/omap2/dss/rfbi.c |   21 ++++++++++-----------
+ 1 file changed, 10 insertions(+), 11 deletions(-)
 
-diff -puN mm/sparse.c~sparsemem-put-usemap-for-one-node-together mm/sparse.c
---- a/mm/sparse.c~sparsemem-put-usemap-for-one-node-together
-+++ a/mm/sparse.c
-@@ -271,7 +271,8 @@ static unsigned long *__kmalloc_section_
+diff -puN drivers/video/omap2/dss/rfbi.c~drivers-video-omap2-dss-rfbic-port-to-new-kfifo-api drivers/video/omap2/dss/rfbi.c
+--- a/drivers/video/omap2/dss/rfbi.c~drivers-video-omap2-dss-rfbic-port-to-new-kfifo-api
++++ a/drivers/video/omap2/dss/rfbi.c
+@@ -120,7 +120,7 @@ static struct {
  
- #ifdef CONFIG_MEMORY_HOTREMOVE
- static unsigned long * __init
--sparse_early_usemap_alloc_pgdat_section(struct pglist_data *pgdat)
-+sparse_early_usemaps_alloc_pgdat_section(struct pglist_data *pgdat,
-+					 unsigned long count)
- {
- 	unsigned long section_nr;
+ 	struct omap_dss_device *dssdev[2];
  
-@@ -286,7 +287,7 @@ sparse_early_usemap_alloc_pgdat_section(
- 	 * this problem.
- 	 */
- 	section_nr = pfn_to_section_nr(__pa(pgdat) >> PAGE_SHIFT);
--	return alloc_bootmem_section(usemap_size(), section_nr);
-+	return alloc_bootmem_section(usemap_size() * count, section_nr);
- }
+-	struct kfifo      *cmd_fifo;
++	struct kfifo      cmd_fifo;
+ 	spinlock_t        cmd_lock;
+ 	struct completion cmd_done;
+ 	atomic_t          cmd_fifo_full;
+@@ -1013,8 +1013,9 @@ static void process_cmd_fifo(void)
+ 	while (true) {
+ 		spin_lock_irqsave(rfbi.cmd_fifo->lock, flags);
  
- static void __init check_usemap_section_nr(int nid, unsigned long *usemap)
-@@ -329,7 +330,8 @@ static void __init check_usemap_section_
- }
- #else
- static unsigned long * __init
--sparse_early_usemap_alloc_pgdat_section(struct pglist_data *pgdat)
-+sparse_early_usemaps_alloc_pgdat_section(struct pglist_data *pgdat,
-+					 unsigned long count)
- {
- 	return NULL;
- }
-@@ -339,27 +341,40 @@ static void __init check_usemap_section_
- }
- #endif /* CONFIG_MEMORY_HOTREMOVE */
+-		len = __kfifo_get(rfbi.cmd_fifo, (unsigned char *)&p,
+-				  sizeof(struct update_param));
++		len = kfifo_out_locked(&rfbi.cmd_fifo, (unsigned char *)&p,
++				  sizeof(struct update_param),
++				  &rfbi.cmd_lock);
+ 		if (len == 0) {
+ 			DSSDBG("nothing more in fifo\n");
+ 			atomic_set(&rfbi.cmd_pending, 0);
+@@ -1053,8 +1054,7 @@ static void rfbi_push_cmd(struct update_
+ 		int available;
  
--static unsigned long *__init sparse_early_usemap_alloc(unsigned long pnum)
-+static void __init sparse_early_usemaps_alloc_node(unsigned long**usemap_map,
-+				 unsigned long pnum_begin,
-+				 unsigned long pnum_end,
-+				 unsigned long usemap_count, int nodeid)
- {
--	unsigned long *usemap;
--	struct mem_section *ms = __nr_to_section(pnum);
--	int nid = sparse_early_nid(ms);
--
--	usemap = sparse_early_usemap_alloc_pgdat_section(NODE_DATA(nid));
--	if (usemap)
--		return usemap;
-+	void *usemap;
-+	unsigned long pnum;
-+	int size = usemap_size();
+ 		spin_lock_irqsave(rfbi.cmd_fifo->lock, flags);
+-		available = RFBI_CMD_FIFO_LEN_BYTES -
+-			__kfifo_len(rfbi.cmd_fifo);
++		available = kfifo_avail(&rfbi.cmd_fifo);
  
--	usemap = alloc_bootmem_node(NODE_DATA(nid), usemap_size());
-+	usemap = sparse_early_usemaps_alloc_pgdat_section(NODE_DATA(nodeid),
-+								 usemap_count);
- 	if (usemap) {
--		check_usemap_section_nr(nid, usemap);
--		return usemap;
-+		for (pnum = pnum_begin; pnum < pnum_end; pnum++) {
-+			if (!present_section_nr(pnum))
-+				continue;
-+			usemap_map[pnum] = usemap;
-+			usemap += size;
-+		}
-+		return;
- 	}
- 
--	/* Stupid: suppress gcc warning for SPARSEMEM && !NUMA */
--	nid = 0;
-+	usemap = alloc_bootmem_node(NODE_DATA(nodeid), size * usemap_count);
-+	if (usemap) {
-+		for (pnum = pnum_begin; pnum < pnum_end; pnum++) {
-+			if (!present_section_nr(pnum))
-+				continue;
-+			usemap_map[pnum] = usemap;
-+			usemap += size;
-+			check_usemap_section_nr(nodeid, usemap_map[pnum]);
-+		}
-+		return;
-+	}
- 
- 	printk(KERN_WARNING "%s: allocation failed\n", __func__);
--	return NULL;
- }
- 
- #ifndef CONFIG_SPARSEMEM_VMEMMAP
-@@ -396,6 +411,7 @@ static struct page __init *sparse_early_
- void __attribute__((weak)) __meminit vmemmap_populate_print_last(void)
- {
- }
-+
- /*
-  * Allocate the accumulated non-linear sections, allocate a mem_map
-  * for each and record the physical to section mapping.
-@@ -407,6 +423,9 @@ void __init sparse_init(void)
- 	unsigned long *usemap;
- 	unsigned long **usemap_map;
- 	int size;
-+	int nodeid_begin = 0;
-+	unsigned long pnum_begin = 0;
-+	unsigned long usemap_count;
- 
- 	/*
- 	 * map is using big page (aka 2M in x86 64 bit)
-@@ -425,10 +444,39 @@ void __init sparse_init(void)
- 		panic("can not allocate usemap_map\n");
- 
- 	for (pnum = 0; pnum < NR_MEM_SECTIONS; pnum++) {
-+		struct mem_section *ms;
-+
- 		if (!present_section_nr(pnum))
+ /*		DSSDBG("%d bytes left in fifo\n", available); */
+ 		if (available < sizeof(struct update_param)) {
+@@ -1066,8 +1066,9 @@ static void rfbi_push_cmd(struct update_
  			continue;
--		usemap_map[pnum] = sparse_early_usemap_alloc(pnum);
--	}
-+		ms = __nr_to_section(pnum);
-+		nodeid_begin = sparse_early_nid(ms);
-+		pnum_begin = pnum;
-+		break;
-+	}
-+	usemap_count = 1;
-+	for (pnum = pnum_begin + 1; pnum < NR_MEM_SECTIONS; pnum++) {
-+		struct mem_section *ms;
-+		int nodeid;
-+
-+		if (!present_section_nr(pnum))
-+			continue;
-+		ms = __nr_to_section(pnum);
-+		nodeid = sparse_early_nid(ms);
-+		if (nodeid == nodeid_begin) {
-+			usemap_count++;
-+			continue;
-+		}
-+		/* ok, we need to take cake of from pnum_begin to pnum - 1*/
-+		sparse_early_usemaps_alloc_node(usemap_map, pnum_begin, pnum,
-+						 usemap_count, nodeid_begin);
-+		/* new start, update count etc*/
-+		nodeid_begin = nodeid;
-+		pnum_begin = pnum;
-+		usemap_count = 1;
-+	}
-+	/* ok, last chunk */
-+	sparse_early_usemaps_alloc_node(usemap_map, pnum_begin, NR_MEM_SECTIONS,
-+					 usemap_count, nodeid_begin);
+ 		}
  
- 	for (pnum = 0; pnum < NR_MEM_SECTIONS; pnum++) {
- 		if (!present_section_nr(pnum))
+-		ret = __kfifo_put(rfbi.cmd_fifo, (unsigned char *)p,
+-				  sizeof(struct update_param));
++		ret = kfifo_in_locked(&rfbi.cmd_fifo, (unsigned char *)p,
++				  sizeof(struct update_param),
++				  &rfbi.cmd_lock);
+ /*		DSSDBG("pushed %d bytes\n", ret);*/
+ 
+ 		spin_unlock_irqrestore(rfbi.cmd_fifo->lock, flags);
+@@ -1157,9 +1158,7 @@ int rfbi_init(void)
+ 	u32 l;
+ 
+ 	spin_lock_init(&rfbi.cmd_lock);
+-	rfbi.cmd_fifo = kfifo_alloc(RFBI_CMD_FIFO_LEN_BYTES, GFP_KERNEL,
+-				    &rfbi.cmd_lock);
+-	if (IS_ERR(rfbi.cmd_fifo))
++	if (kfifo_alloc(&rfbi.cmd_fifo, RFBI_CMD_FIFO_LEN_BYTES, GFP_KERNEL))
+ 		return -ENOMEM;
+ 
+ 	init_completion(&rfbi.cmd_done);
+@@ -1196,7 +1195,7 @@ void rfbi_exit(void)
+ {
+ 	DSSDBG("rfbi_exit\n");
+ 
+-	kfifo_free(rfbi.cmd_fifo);
++	kfifo_free(&rfbi.cmd_fifo);
+ 
+ 	iounmap(rfbi.base);
+ }
 _
 
-Patches currently in -mm which might be from yinghai@kernel.org are
+Patches currently in -mm which might be from stefani@seibold.net are
 
-linux-next.patch
-sparsemem-put-usemap-for-one-node-together.patch
+drivers-video-omap2-dss-rfbic-port-to-new-kfifo-api.patch
+kfifo-use-void-pointers-for-user-buffers.patch
+kfifo-make-kfifo_in-atomic.patch
+kfifo-sanitize-_user-error-handling.patch
+kfifo-add-kfifo_out_peek.patch
+kfifo-add-kfifo_initialized.patch
+kfifo-document-everywhere-that-size-has-to-be-power-of-two.patch
+drivers-media-video-cx23885-needs-kfifo-conversion.patch
 
