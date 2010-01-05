@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + hisax-timeout-off-by-one-in-waitrecmsg.patch added to -mm tree
-Date: Mon, 04 Jan 2010 16:05:34 -0800
-Message-ID: <201001050005.o0505Yiw026640@imap1.linux-foundation.org>
+Subject: + arch-arm-plat-pxa-dmac-correct-null-test.patch added to -mm tree
+Date: Mon, 04 Jan 2010 16:25:06 -0800
+Message-ID: <201001050025.o050P6jk027461@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51480 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51710 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753900Ab0AEAFm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jan 2010 19:05:42 -0500
+	by vger.kernel.org with ESMTP id S1753365Ab0AEAZT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jan 2010 19:25:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, isdn@linux-pingi.de
+Cc: julia@diku.dk, eric.y.miao@gmail.com, linux@arm.linux.org.uk
 
 
 The patch titled
-     hisax: timeout off by one in waitrecmsg()
+     arch/arm/plat-pxa/dma.c: correct NULL test
 has been added to the -mm tree.  Its filename is
-     hisax-timeout-off-by-one-in-waitrecmsg.patch
+     arch-arm-plat-pxa-dmac-correct-null-test.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,61 +33,71 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hisax: timeout off by one in waitrecmsg()
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: arch/arm/plat-pxa/dma.c: correct NULL test
+From: Julia Lawall <julia@diku.dk>
 
-With `while (timeout++ < maxdelay)' timeout reaches maxdelay + 1 after the
-loop This is probably unlikely a problem in practice.
+Test the just-allocated value for NULL rather than some other value.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Karsten Keil <isdn@linux-pingi.de>
+The semantic patch that makes this change is as follows:
+(http://coccinelle.lip6.fr/)
+
+// <smpl>
+@@
+expression x,y;
+statement S;
+@@
+
+x = \(kmalloc\|kcalloc\|kzalloc\)(...);
+(
+if ((x) == NULL) S
+|
+if (
+-   y
++   x
+       == NULL)
+ S
+)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Eric Miao <eric.y.miao@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/hisax/isar.c |    2 +-
+ arch/arm/plat-pxa/dma.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/isdn/hisax/isar.c~hisax-timeout-off-by-one-in-waitrecmsg drivers/isdn/hisax/isar.c
---- a/drivers/isdn/hisax/isar.c~hisax-timeout-off-by-one-in-waitrecmsg
-+++ a/drivers/isdn/hisax/isar.c
-@@ -138,7 +138,7 @@ waitrecmsg(struct IsdnCardState *cs, u_c
- 	while((!(cs->BC_Read_Reg(cs, 0, ISAR_IRQBIT) & ISAR_IRQSTA)) &&
- 		(timeout++ < maxdelay))
- 		udelay(1);
--	if (timeout >= maxdelay) {
-+	if (timeout > maxdelay) {
- 		printk(KERN_WARNING"isar recmsg IRQSTA timeout\n");
- 		return(0);
- 	}
+diff -puN arch/arm/plat-pxa/dma.c~arch-arm-plat-pxa-dmac-correct-null-test arch/arm/plat-pxa/dma.c
+--- a/arch/arm/plat-pxa/dma.c~arch-arm-plat-pxa-dmac-correct-null-test
++++ a/arch/arm/plat-pxa/dma.c
+@@ -244,7 +244,7 @@ static void pxa_dma_init_debugfs(void)
+ 
+ 	dbgfs_chan = kmalloc(sizeof(*dbgfs_state) * num_dma_channels,
+ 			     GFP_KERNEL);
+-	if (!dbgfs_state)
++	if (!dbgfs_chan)
+ 		goto err_alloc;
+ 
+ 	chandir = debugfs_create_dir("channels", dbgfs_root);
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from julia@diku.dk are
 
 origin.patch
-zlib-optimize-inffast-when-copying-direct-from-output.patch
 linux-next.patch
-omap-confusion-in-iommu_put.patch
-omap3-add-missing-parentheses.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-i2c-fix-off-by-one-in-piix4vt596_transaction.patch
-hisax-timeout-off-by-one-in-waitrecmsg.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
-ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
-scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
-dc395x-decrease-iteration-for-tag_number-of-max_command-in-start_scsi.patch
-paride-fix-off-by-one-test.patch
-ieee80211-add-missing-parentheses.patch
-rt2860-test-off-by-one-in-rtmpasicsendcommandtomcu.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-cryptocop-fix-assertion-in-create_output_descriptors.patch
-asiliantfb-fix-test-of-unsigned-in-asiliant_calc_dclk2.patch
+drivers-scsi-sesc-eliminate-double-free.patch
+kernel-credc-use-kmem_cache_free.patch
+drivers-media-video-move-dereference-after-null-test.patch
+arch-mips-alchemy-correct-code-taking-the-size-of-a-pointer.patch
+drivers-isdn-eliminate-duplicated-test.patch
+drivers-scsi-libsas-use-sam_good.patch
+drivers-scsi-remove-unnecessary-null-test.patch
+drivers-message-move-dereference-after-null-test.patch
+drivers-edac-introduce-missing-kfree.patch
+arch-arm-plat-pxa-dmac-correct-null-test.patch
+drivers-block-drbd-drbd_receiverc-correct-null-test.patch
+drivers-gpu-drm-nouveau-nouveau_grctxc-correct-null-test.patch
+drivers-net-can-mcp251xc-correct-null-test.patch
+drivers-staging-tm6000-tm6000-videoc-correct-null-test.patch
 
