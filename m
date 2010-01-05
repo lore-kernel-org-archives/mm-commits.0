@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + mlock_vma_pages_range-never-return-negative-value.patch added to -mm tree
-Date: Mon, 04 Jan 2010 16:42:13 -0800
-Message-ID: <201001050042.o050gD5l028278@imap1.linux-foundation.org>
+Subject: + mlock_vma_pages_range-only-return-success-or-failure.patch added to -mm tree
+Date: Mon, 04 Jan 2010 16:42:15 -0800
+Message-ID: <201001050042.o050gGef028281@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49662 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50493 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754827Ab0AEAnM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jan 2010 19:43:12 -0500
+	by vger.kernel.org with ESMTP id S1754570Ab0AEAnQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jan 2010 19:43:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: kosaki.motohiro@jp.fujitsu.com, hugh.dickins@tiscali.co.uk, kamewzawa.hiroyu
 
 
 The patch titled
-     mm: mlock_vma_pages_range() never return negative value
+     mm: mlock_vma_pages_range() only return success or failure
 has been added to the -mm tree.  Its filename is
-     mlock_vma_pages_range-never-return-negative-value.patch
+     mlock_vma_pages_range-only-return-success-or-failure.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,11 +33,13 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: mlock_vma_pages_range() never return negative value
+Subject: mm: mlock_vma_pages_range() only return success or failure
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Currently, mlock_vma_pages_range() never return negative value.  Then, we
-can remove some worthless error check.
+Currently, mlock_vma_pages_range() only return len or 0.  then current
+error handling of mmap_region() is meaningless complex.
+
+This patch makes simplify and makes consist with brk() code.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Nick Piggin <npiggin@suse.de>
@@ -48,45 +50,23 @@ Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   11 ++---------
- 1 file changed, 2 insertions(+), 9 deletions(-)
+ mm/mmap.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/mmap.c~mlock_vma_pages_range-never-return-negative-value mm/mmap.c
---- a/mm/mmap.c~mlock_vma_pages_range-never-return-negative-value
+diff -puN mm/mmap.c~mlock_vma_pages_range-only-return-success-or-failure mm/mmap.c
+--- a/mm/mmap.c~mlock_vma_pages_range-only-return-success-or-failure
 +++ a/mm/mmap.c
-@@ -1265,12 +1265,7 @@ out:
+@@ -1265,8 +1265,8 @@ out:
  	mm->total_vm += len >> PAGE_SHIFT;
  	vm_stat_account(mm, vm_flags, file, len >> PAGE_SHIFT);
  	if (vm_flags & VM_LOCKED) {
--		/*
--		 * makes pages present; downgrades, drops, reacquires mmap_sem
--		 */
- 		long nr_pages = mlock_vma_pages_range(vma, addr, addr + len);
--		if (nr_pages < 0)
--			return nr_pages;	/* vma gone! */
- 		mm->locked_vm += (len >> PAGE_SHIFT) - nr_pages;
+-		long nr_pages = mlock_vma_pages_range(vma, addr, addr + len);
+-		mm->locked_vm += (len >> PAGE_SHIFT) - nr_pages;
++		if (!mlock_vma_pages_range(vma, addr, addr + len))
++			mm->locked_vm += (len >> PAGE_SHIFT);
  	} else if ((flags & MAP_POPULATE) && !(flags & MAP_NONBLOCK))
  		make_pages_present(addr, addr + len);
-@@ -1755,8 +1750,7 @@ find_extend_vma(struct mm_struct *mm, un
- 	if (!prev || expand_stack(prev, addr))
- 		return NULL;
- 	if (prev->vm_flags & VM_LOCKED) {
--		if (mlock_vma_pages_range(prev, addr, prev->vm_end) < 0)
--			return NULL;	/* vma gone! */
-+		mlock_vma_pages_range(prev, addr, prev->vm_end);
- 	}
- 	return prev;
- }
-@@ -1784,8 +1778,7 @@ find_extend_vma(struct mm_struct * mm, u
- 	if (expand_stack(vma, addr))
- 		return NULL;
- 	if (vma->vm_flags & VM_LOCKED) {
--		if (mlock_vma_pages_range(vma, addr, start) < 0)
--			return NULL;	/* vma gone! */
-+		mlock_vma_pages_range(vma, addr, start);
- 	}
- 	return vma;
- }
+ 	return addr;
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
