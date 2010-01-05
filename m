@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-net-can-mcp251xc-correct-null-test.patch added to -mm tree
-Date: Mon, 04 Jan 2010 16:25:15 -0800
-Message-ID: <201001050025.o050PFqe027478@imap1.linux-foundation.org>
+Subject: + drivers-block-drbd-drbd_receiverc-correct-null-test.patch added to -mm tree
+Date: Mon, 04 Jan 2010 16:25:09 -0800
+Message-ID: <201001050025.o050P9TC027469@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50658 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59010 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753409Ab0AEAZW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jan 2010 19:25:22 -0500
+	by vger.kernel.org with ESMTP id S1753422Ab0AEAZZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jan 2010 19:25:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, davem@davemloft.net, oliver.hartkopp@volkswagen.de, urs.thuermann@volkswagen.de
+Cc: julia@diku.dk, drbd-dev@lists.linbit.com, jens.axboe@oracle.com, philipp.reisner@linbit.com
 
 
 The patch titled
-     drivers/net/can/mcp251x.c: correct NULL test
+     drivers/block/drbd/drbd_receiver.c: correct NULL test
 has been added to the -mm tree.  Its filename is
-     drivers-net-can-mcp251xc-correct-null-test.patch
+     drivers-block-drbd-drbd_receiverc-correct-null-test.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,7 +33,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/net/can/mcp251x.c: correct NULL test
+Subject: drivers/block/drbd/drbd_receiver.c: correct NULL test
 From: Julia Lawall <julia@diku.dk>
 
 Test the just-allocated value for NULL rather than some other value.
@@ -60,27 +60,27 @@ if (
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Urs Thuermann <urs.thuermann@volkswagen.de>
-Cc: Oliver Hartkopp <oliver.hartkopp@volkswagen.de>
-Cc: David S. Miller <davem@davemloft.net>
+Cc: Lars Ellenberg <drbd-dev@lists.linbit.com>
+Cc: Philipp Reisner <philipp.reisner@linbit.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/can/mcp251x.c |    2 +-
+ drivers/block/drbd/drbd_receiver.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/can/mcp251x.c~drivers-net-can-mcp251xc-correct-null-test drivers/net/can/mcp251x.c
---- a/drivers/net/can/mcp251x.c~drivers-net-can-mcp251xc-correct-null-test
-+++ a/drivers/net/can/mcp251x.c
-@@ -990,7 +990,7 @@ static int __devinit mcp251x_can_probe(s
- 			goto error_tx_buf;
- 		}
- 		priv->spi_rx_buf = kmalloc(SPI_TRANSFER_BUF_LEN, GFP_KERNEL);
--		if (!priv->spi_tx_buf) {
-+		if (!priv->spi_rx_buf) {
- 			ret = -ENOMEM;
- 			goto error_rx_buf;
- 		}
+diff -puN drivers/block/drbd/drbd_receiver.c~drivers-block-drbd-drbd_receiverc-correct-null-test drivers/block/drbd/drbd_receiver.c
+--- a/drivers/block/drbd/drbd_receiver.c~drivers-block-drbd-drbd_receiverc-correct-null-test
++++ a/drivers/block/drbd/drbd_receiver.c
+@@ -3945,7 +3945,7 @@ static int drbd_do_auth(struct drbd_conf
+ 	}
+ 
+ 	right_response = kmalloc(resp_size, GFP_NOIO);
+-	if (response == NULL) {
++	if (right_response == NULL) {
+ 		dev_err(DEV, "kmalloc of right_response failed\n");
+ 		rv = 0;
+ 		goto fail;
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
