@@ -1,119 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] drivers-video-omap2-dss-rfbic-port-to-new-kfifo-api.patch removed from -mm tree
-Date: Tue, 05 Jan 2010 11:31:55 -0800
-Message-ID: <201001051931.o05JVtOe014621@imap1.linux-foundation.org>
+Subject: [to-be-updated] i2c-fix-off-by-one-in-piix4vt596_transaction.patch removed from -mm tree
+Date: Tue, 05 Jan 2010 11:36:07 -0800
+Message-ID: <201001051936.o05Ja73V014848@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38642 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38751 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755019Ab0AETcP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jan 2010 14:32:15 -0500
+	by vger.kernel.org with ESMTP id S932137Ab0AETga (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jan 2010 14:36:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: stefani@seibold.net, greg@kroah.com, tomi.valkeinen@nokia.com, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, ben-linux@fluff.org, khali@linux-fr.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/video/omap2/dss/rfbi.c: port to new kfifo API
+     i2c: fix off-by-one in {piix4,vt596}_transaction()
 has been removed from the -mm tree.  Its filename was
-     drivers-video-omap2-dss-rfbic-port-to-new-kfifo-api.patch
+     i2c-fix-off-by-one-in-piix4vt596_transaction.patch
 
-This patch was dropped because it was nacked
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/video/omap2/dss/rfbi.c: port to new kfifo API
-From: Stefani Seibold <stefani@seibold.net>
+Subject: i2c: fix off-by-one in {piix4,vt596}_transaction()
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Port drivers/video/omap2/dss/rfbi.c to the new kfifo API.  This should be
-the last one.
+With `while (timeout++ < MAX_TIMEOUT)' timeout reaches MAX_TIMEOUT + 1
+after the loop This is probably unlikely to produce a problem.
 
-Signed-off-by: Stefani Seibold <stefani@seibold.net>
-Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Ben Dooks <ben-linux@fluff.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/omap2/dss/rfbi.c |   21 ++++++++++-----------
- 1 file changed, 10 insertions(+), 11 deletions(-)
+ drivers/i2c/busses/i2c-piix4.c  |    2 +-
+ drivers/i2c/busses/i2c-viapro.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/omap2/dss/rfbi.c~drivers-video-omap2-dss-rfbic-port-to-new-kfifo-api drivers/video/omap2/dss/rfbi.c
---- a/drivers/video/omap2/dss/rfbi.c~drivers-video-omap2-dss-rfbic-port-to-new-kfifo-api
-+++ a/drivers/video/omap2/dss/rfbi.c
-@@ -120,7 +120,7 @@ static struct {
+diff -puN drivers/i2c/busses/i2c-piix4.c~i2c-fix-off-by-one-in-piix4vt596_transaction drivers/i2c/busses/i2c-piix4.c
+--- a/drivers/i2c/busses/i2c-piix4.c~i2c-fix-off-by-one-in-piix4vt596_transaction
++++ a/drivers/i2c/busses/i2c-piix4.c
+@@ -329,7 +329,7 @@ static int piix4_transaction(void)
+ 		msleep(1);
  
- 	struct omap_dss_device *dssdev[2];
+ 	/* If the SMBus is still busy, we give up */
+-	if (timeout >= MAX_TIMEOUT) {
++	if (timeout > MAX_TIMEOUT) {
+ 		dev_err(&piix4_adapter.dev, "SMBus Timeout!\n");
+ 		result = -ETIMEDOUT;
+ 	}
+diff -puN drivers/i2c/busses/i2c-viapro.c~i2c-fix-off-by-one-in-piix4vt596_transaction drivers/i2c/busses/i2c-viapro.c
+--- a/drivers/i2c/busses/i2c-viapro.c~i2c-fix-off-by-one-in-piix4vt596_transaction
++++ a/drivers/i2c/busses/i2c-viapro.c
+@@ -168,7 +168,7 @@ static int vt596_transaction(u8 size)
+ 	} while ((temp & 0x01) && (timeout++ < MAX_TIMEOUT));
  
--	struct kfifo      *cmd_fifo;
-+	struct kfifo      cmd_fifo;
- 	spinlock_t        cmd_lock;
- 	struct completion cmd_done;
- 	atomic_t          cmd_fifo_full;
-@@ -1013,8 +1013,9 @@ static void process_cmd_fifo(void)
- 	while (true) {
- 		spin_lock_irqsave(rfbi.cmd_fifo->lock, flags);
- 
--		len = __kfifo_get(rfbi.cmd_fifo, (unsigned char *)&p,
--				  sizeof(struct update_param));
-+		len = kfifo_out_locked(&rfbi.cmd_fifo, (unsigned char *)&p,
-+				  sizeof(struct update_param),
-+				  &rfbi.cmd_lock);
- 		if (len == 0) {
- 			DSSDBG("nothing more in fifo\n");
- 			atomic_set(&rfbi.cmd_pending, 0);
-@@ -1053,8 +1054,7 @@ static void rfbi_push_cmd(struct update_
- 		int available;
- 
- 		spin_lock_irqsave(rfbi.cmd_fifo->lock, flags);
--		available = RFBI_CMD_FIFO_LEN_BYTES -
--			__kfifo_len(rfbi.cmd_fifo);
-+		available = kfifo_avail(&rfbi.cmd_fifo);
- 
- /*		DSSDBG("%d bytes left in fifo\n", available); */
- 		if (available < sizeof(struct update_param)) {
-@@ -1066,8 +1066,9 @@ static void rfbi_push_cmd(struct update_
- 			continue;
- 		}
- 
--		ret = __kfifo_put(rfbi.cmd_fifo, (unsigned char *)p,
--				  sizeof(struct update_param));
-+		ret = kfifo_in_locked(&rfbi.cmd_fifo, (unsigned char *)p,
-+				  sizeof(struct update_param),
-+				  &rfbi.cmd_lock);
- /*		DSSDBG("pushed %d bytes\n", ret);*/
- 
- 		spin_unlock_irqrestore(rfbi.cmd_fifo->lock, flags);
-@@ -1157,9 +1158,7 @@ int rfbi_init(void)
- 	u32 l;
- 
- 	spin_lock_init(&rfbi.cmd_lock);
--	rfbi.cmd_fifo = kfifo_alloc(RFBI_CMD_FIFO_LEN_BYTES, GFP_KERNEL,
--				    &rfbi.cmd_lock);
--	if (IS_ERR(rfbi.cmd_fifo))
-+	if (kfifo_alloc(&rfbi.cmd_fifo, RFBI_CMD_FIFO_LEN_BYTES, GFP_KERNEL))
- 		return -ENOMEM;
- 
- 	init_completion(&rfbi.cmd_done);
-@@ -1196,7 +1195,7 @@ void rfbi_exit(void)
- {
- 	DSSDBG("rfbi_exit\n");
- 
--	kfifo_free(rfbi.cmd_fifo);
-+	kfifo_free(&rfbi.cmd_fifo);
- 
- 	iounmap(rfbi.base);
- }
+ 	/* If the SMBus is still busy, we give up */
+-	if (timeout >= MAX_TIMEOUT) {
++	if (timeout > MAX_TIMEOUT) {
+ 		result = -ETIMEDOUT;
+ 		dev_err(&vt596_adapter.dev, "SMBus timeout!\n");
+ 	}
 _
 
-Patches currently in -mm which might be from stefani@seibold.net are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
-drivers-video-omap2-dss-rfbic-port-to-new-kfifo-api.patch
-kfifo-use-void-pointers-for-user-buffers.patch
-kfifo-make-kfifo_in-atomic.patch
-kfifo-sanitize-_user-error-handling.patch
-kfifo-add-kfifo_out_peek.patch
-kfifo-add-kfifo_initialized.patch
-kfifo-document-everywhere-that-size-has-to-be-power-of-two.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
+origin.patch
+zlib-optimize-inffast-when-copying-direct-from-output.patch
+linux-next.patch
+omap-confusion-in-iommu_put.patch
+omap3-add-missing-parentheses.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+i2c-fix-off-by-one-in-piix4vt596_transaction.patch
+hisax-timeout-off-by-one-in-waitrecmsg.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
+zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
+ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
+scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
+dc395x-decrease-iteration-for-tag_number-of-max_command-in-start_scsi.patch
+paride-fix-off-by-one-test.patch
+ieee80211-add-missing-parentheses.patch
+rt2860-test-off-by-one-in-rtmpasicsendcommandtomcu.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+cryptocop-fix-assertion-in-create_output_descriptors.patch
+asiliantfb-fix-test-of-unsigned-in-asiliant_calc_dclk2.patch
+w1-fix-test-in-ds2482_wait_1wire_idle.patch
 
