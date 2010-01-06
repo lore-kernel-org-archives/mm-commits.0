@@ -1,53 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ieee80211-add-missing-parentheses.patch removed from -mm tree
-Date: Wed, 06 Jan 2010 13:33:50 -0800
-Message-ID: <201001062133.o06LXoLs019146@imap1.linux-foundation.org>
+Subject: [merged] rt2860-test-off-by-one-in-rtmpasicsendcommandtomcu.patch removed from -mm tree
+Date: Wed, 06 Jan 2010 13:33:52 -0800
+Message-ID: <201001062133.o06LXq3S019149@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46445 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52769 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932863Ab0AFVd6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jan 2010 16:33:58 -0500
+	by vger.kernel.org with ESMTP id S932873Ab0AFVeX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jan 2010 16:34:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, gregkh@suse.de, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ieee80211: add missing parentheses
+     rt2860: test off by one in RtmpAsicSendCommandToMcu()
 has been removed from the -mm tree.  Its filename was
-     ieee80211-add-missing-parentheses.patch
+     rt2860-test-off-by-one-in-rtmpasicsendcommandtomcu.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ieee80211: add missing parentheses
+Subject: rt2860: test off by one in RtmpAsicSendCommandToMcu()
 From: Roel Kluin <roel.kluin@gmail.com>
 
-not(!) has a higher precedence than bit and(&).
+`i' reaches 101 after the loop, so if it was 100 then it succeeded in
+the last iteration. This is probably unlikely to cause problems.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/rtl8192u/ieee80211/ieee80211_wx.c |    2 +-
+ drivers/staging/rt2860/common/rtmp_mcu.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/staging/rtl8192u/ieee80211/ieee80211_wx.c~ieee80211-add-missing-parentheses drivers/staging/rtl8192u/ieee80211/ieee80211_wx.c
---- a/drivers/staging/rtl8192u/ieee80211/ieee80211_wx.c~ieee80211-add-missing-parentheses
-+++ a/drivers/staging/rtl8192u/ieee80211/ieee80211_wx.c
-@@ -718,7 +718,7 @@ int ieee80211_wx_get_encode_ext(struct i
- 	} else
- 		idx = ieee->tx_keyidx;
+diff -puN drivers/staging/rt2860/common/rtmp_mcu.c~rt2860-test-off-by-one-in-rtmpasicsendcommandtomcu drivers/staging/rt2860/common/rtmp_mcu.c
+--- a/drivers/staging/rt2860/common/rtmp_mcu.c~rt2860-test-off-by-one-in-rtmpasicsendcommandtomcu
++++ a/drivers/staging/rt2860/common/rtmp_mcu.c
+@@ -221,7 +221,7 @@ int RtmpAsicSendCommandToMcu(struct rt_r
+ 				 ("AsicSendCommanToMcu::Mail box is busy\n"));
+ 		} while (i++ < 100);
  
--	if (!ext->ext_flags & IW_ENCODE_EXT_GROUP_KEY &&
-+	if (!(ext->ext_flags & IW_ENCODE_EXT_GROUP_KEY) &&
- 	    ext->alg != IW_ENCODE_ALG_WEP)
- 		if (idx != 0 || ieee->iw_mode != IW_MODE_INFRA)
- 			return -EINVAL;
+-		if (i >= 100) {
++		if (i > 100) {
+ 			DBGPRINT_ERR(("H2M_MAILBOX still hold by MCU. command fail\n"));
+ 			return FALSE;
+ 		}
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
