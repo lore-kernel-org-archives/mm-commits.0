@@ -1,54 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: [merged] omap-confusion-in-iommu_put.patch removed from -mm tree
-Date: Wed, 06 Jan 2010 13:33:40 -0800
-Message-ID: <201001062133.o06LXe9g019137@imap1.linux-foundation.org>
+Subject: [merged] ieee80211-add-missing-parentheses.patch removed from -mm tree
+Date: Wed, 06 Jan 2010 13:33:50 -0800
+Message-ID: <201001062133.o06LXoLs019146@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56928 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46445 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932854Ab0AFVd4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jan 2010 16:33:56 -0500
+	by vger.kernel.org with ESMTP id S932863Ab0AFVd6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jan 2010 16:33:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, rmk@arm.linux.org.uk, tony@atomide.com, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, gregkh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     omap: &&/|| confusion in iommu_put()
+     ieee80211: add missing parentheses
 has been removed from the -mm tree.  Its filename was
-     omap-confusion-in-iommu_put.patch
+     ieee80211-add-missing-parentheses.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: omap: &&/|| confusion in iommu_put()
+Subject: ieee80211: add missing parentheses
 From: Roel Kluin <roel.kluin@gmail.com>
 
-obj can't be both NULL and be an error pointer.
+not(!) has a higher precedence than bit and(&).
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/plat-omap/iommu.c |    2 +-
+ drivers/staging/rtl8192u/ieee80211/ieee80211_wx.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/arm/plat-omap/iommu.c~omap-confusion-in-iommu_put arch/arm/plat-omap/iommu.c
---- a/arch/arm/plat-omap/iommu.c~omap-confusion-in-iommu_put
-+++ a/arch/arm/plat-omap/iommu.c
-@@ -827,7 +827,7 @@ EXPORT_SYMBOL_GPL(iommu_get);
-  **/
- void iommu_put(struct iommu *obj)
- {
--	if (!obj && IS_ERR(obj))
-+	if (!obj || IS_ERR(obj))
- 		return;
+diff -puN drivers/staging/rtl8192u/ieee80211/ieee80211_wx.c~ieee80211-add-missing-parentheses drivers/staging/rtl8192u/ieee80211/ieee80211_wx.c
+--- a/drivers/staging/rtl8192u/ieee80211/ieee80211_wx.c~ieee80211-add-missing-parentheses
++++ a/drivers/staging/rtl8192u/ieee80211/ieee80211_wx.c
+@@ -718,7 +718,7 @@ int ieee80211_wx_get_encode_ext(struct i
+ 	} else
+ 		idx = ieee->tx_keyidx;
  
- 	mutex_lock(&obj->iommu_lock);
+-	if (!ext->ext_flags & IW_ENCODE_EXT_GROUP_KEY &&
++	if (!(ext->ext_flags & IW_ENCODE_EXT_GROUP_KEY) &&
+ 	    ext->alg != IW_ENCODE_ALG_WEP)
+ 		if (idx != 0 || ieee->iw_mode != IW_MODE_INFRA)
+ 			return -EINVAL;
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
