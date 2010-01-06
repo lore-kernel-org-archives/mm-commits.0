@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + usb-serial-fix-memory-leak-in-generic-driver.patch added to -mm tree
-Date: Wed, 06 Jan 2010 15:48:42 -0800
-Message-ID: <201001062348.o06Nmgxs025739@imap1.linux-foundation.org>
+Subject: + sunrpc-fix-build-time-warning.patch added to -mm tree
+Date: Wed, 06 Jan 2010 15:55:48 -0800
+Message-ID: <201001062355.o06Ntm4C026089@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42929 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39610 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933126Ab0AFXt1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jan 2010 18:49:27 -0500
+	by vger.kernel.org with ESMTP id S933193Ab0AFX4R (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jan 2010 18:56:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jhovold@gmail.com, greg@kroah.com, jason.wessel@windriver.com, stable@kernel.org
+Cc: jlayton@redhat.com, sfr@canb.auug.org.au, trond.myklebust@fys.uio.no
 
 
 The patch titled
-     usb: serial: fix memory leak in generic driver
+     sunrpc: fix build-time warning
 has been added to the -mm tree.  Its filename is
-     usb-serial-fix-memory-leak-in-generic-driver.patch
+     sunrpc-fix-build-time-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,42 +33,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb: serial: fix memory leak in generic driver
-From: Johan Hovold <jhovold@gmail.com>
+Subject: sunrpc: fix build-time warning
+From: Jeff Layton <jlayton@redhat.com>
 
-Fix a regression introduced by commit
-715b1dc01fe44537e8fce9566e4bb48d6821d84b ("USB: usb_debug,
-usb_generic_serial: implement multi urb write").
+Commit 486bad2e40e938cd68fd853b7a9fa3115a9d3a4a ("sunrpc: on successful
+gss error pipe write, don't return error") introduced this warning at
+build time on some 32-bit architectures:
 
-URB transfer buffer was never freed when using multi-urb writes. 
-Currently the only driver enabling multi-urb writes is usb_debug.
+net/sunrpc/auth_gss/auth_gss.c: In function 'gss_pipe_downcall':
+net/sunrpc/auth_gss/auth_gss.c:660: warning: format '%ld' expects type 'long int', but argument 3 has type 'ssize_t
 
-Signed-off-by: Johan Hovold <jhovold@gmail.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Jason Wessel <jason.wessel@windriver.com>
-Cc: <stable@kernel.org>
+...fix it by changing the length modifier in the printk.
+
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Jeff Layton <jlayton@redhat.com>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/generic.c |    2 ++
- 1 file changed, 2 insertions(+)
+ net/sunrpc/auth_gss/auth_gss.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/usb/serial/generic.c~usb-serial-fix-memory-leak-in-generic-driver drivers/usb/serial/generic.c
---- a/drivers/usb/serial/generic.c~usb-serial-fix-memory-leak-in-generic-driver
-+++ a/drivers/usb/serial/generic.c
-@@ -492,6 +492,8 @@ void usb_serial_generic_write_bulk_callb
- 	dbg("%s - port %d", __func__, port->number);
- 
- 	if (port->serial->type->max_in_flight_urbs) {
-+		kfree(urb->transfer_buffer);
-+
- 		spin_lock_irqsave(&port->lock, flags);
- 		--port->urbs_in_flight;
- 		port->tx_bytes_flight -= urb->transfer_buffer_length;
+diff -puN net/sunrpc/auth_gss/auth_gss.c~sunrpc-fix-build-time-warning net/sunrpc/auth_gss/auth_gss.c
+--- a/net/sunrpc/auth_gss/auth_gss.c~sunrpc-fix-build-time-warning
++++ a/net/sunrpc/auth_gss/auth_gss.c
+@@ -657,7 +657,7 @@ gss_pipe_downcall(struct file *filp, con
+ 			break;
+ 		default:
+ 			printk(KERN_CRIT "%s: bad return from "
+-				"gss_fill_context: %ld\n", __func__, err);
++				"gss_fill_context: %Zd\n", __func__, err);
+ 			BUG();
+ 		}
+ 		goto err_release_msg;
 _
 
-Patches currently in -mm which might be from jhovold@gmail.com are
+Patches currently in -mm which might be from jlayton@redhat.com are
 
 linux-next.patch
-usb-serial-fix-memory-leak-in-generic-driver.patch
+sunrpc-fix-build-time-warning.patch
 
