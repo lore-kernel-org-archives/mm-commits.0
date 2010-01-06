@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mpt2sas-fix-confusion-in-_scsih_sas_device_status_change_event.patch added to -mm tree
-Date: Wed, 06 Jan 2010 15:37:15 -0800
-Message-ID: <201001062337.o06NbFoc025158@imap1.linux-foundation.org>
+Subject: + nfs-fix-oops-in-nfs_rename.patch added to -mm tree
+Date: Wed, 06 Jan 2010 15:42:36 -0800
+Message-ID: <201001062342.o06Ngaes025383@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37623 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49437 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756137Ab0AFXhW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jan 2010 18:37:22 -0500
+	by vger.kernel.org with ESMTP id S932831Ab0AFXmr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jan 2010 18:42:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, Eric.moore@lsi.com, James.Bottomley@suse.de, kashyap.desai@lsi.com
+Cc: hirofumi@mail.parknet.co.jp, marvin24@gmx.de, trond.myklebust@fys.uio.no
 
 
 The patch titled
-     mpt2sas: fix &&/|| confusion in _scsih_sas_device_status_change_event()
+     nfs: fix oops in nfs_rename()
 has been added to the -mm tree.  Its filename is
-     mpt2sas-fix-confusion-in-_scsih_sas_device_status_change_event.patch
+     nfs-fix-oops-in-nfs_rename.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,57 +33,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mpt2sas: fix &&/|| confusion in _scsih_sas_device_status_change_event()
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: nfs: fix oops in nfs_rename()
+From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 
-This never evaluates to true.
+Recent change is missing to update "rehash".  With that change, it will
+become the cause of adding dentry to hash twice.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: James E.J. Bottomley <James.Bottomley@suse.de>
-Cc: Kashyap Desai <kashyap.desai@lsi.com>
-Cc: Eric Moore <Eric.moore@lsi.com>
+This explains the reason of Oops (dereference the freed dentry in
+__d_lookup()) on my machine.
+
+Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Reported-by: Marvin <marvin24@gmx.de>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/mpt2sas/mpt2sas_scsih.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/nfs/dir.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/scsi/mpt2sas/mpt2sas_scsih.c~mpt2sas-fix-confusion-in-_scsih_sas_device_status_change_event drivers/scsi/mpt2sas/mpt2sas_scsih.c
---- a/drivers/scsi/mpt2sas/mpt2sas_scsih.c~mpt2sas-fix-confusion-in-_scsih_sas_device_status_change_event
-+++ a/drivers/scsi/mpt2sas/mpt2sas_scsih.c
-@@ -4363,7 +4363,7 @@ _scsih_sas_device_status_change_event(st
- #endif
+diff -puN fs/nfs/dir.c~nfs-fix-oops-in-nfs_rename fs/nfs/dir.c
+--- a/fs/nfs/dir.c~nfs-fix-oops-in-nfs_rename
++++ a/fs/nfs/dir.c
+@@ -1615,6 +1615,7 @@ static int nfs_rename(struct inode *old_
+ 				goto out;
  
- 	if (!(event_data->ReasonCode ==
--	    MPI2_EVENT_SAS_DEV_STAT_RC_INTERNAL_DEVICE_RESET &&
-+	    MPI2_EVENT_SAS_DEV_STAT_RC_INTERNAL_DEVICE_RESET ||
- 	   event_data->ReasonCode ==
- 	    MPI2_EVENT_SAS_DEV_STAT_RC_CMP_INTERNAL_DEV_RESET))
- 		return;
+ 			new_dentry = dentry;
++			rehash = NULL;
+ 			new_inode = NULL;
+ 		}
+ 	}
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
 
-linux-next.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-hisax-timeout-off-by-one-in-waitrecmsg.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
-ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
-scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
-dc395x-decrease-iteration-for-tag_number-of-max_command-in-start_scsi.patch
-mpt2sas-fix-confusion-in-_scsih_sas_device_status_change_event.patch
-paride-fix-off-by-one-test.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-cryptocop-fix-assertion-in-create_output_descriptors.patch
-asiliantfb-fix-test-of-unsigned-in-asiliant_calc_dclk2.patch
-w1-fix-test-in-ds2482_wait_1wire_idle.patch
+rtc_cmos-convert-shutdown-to-new-pnp_driver-shutdown.patch
+nfs-fix-oops-in-nfs_rename.patch
+tpm_infineon-fix-suspend-resume-handler-for-pnp_driver.patch
 
