@@ -1,256 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: mmotm 2010-01-06-14-34 uploaded
-Date: Wed, 06 Jan 2010 14:34:36 -0800
-Message-ID: <201001062259.o06MxQrp023236@imap1.linux-foundation.org>
+Subject: + kernelh-add-build_bug_on_not_power_of_2.patch added to -mm tree
+Date: Wed, 06 Jan 2010 15:07:18 -0800
+Message-ID: <201001062307.o06N7JWN023618@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35374 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38079 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755625Ab0AFW73 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jan 2010 17:59:29 -0500
+	by vger.kernel.org with ESMTP id S932958Ab0AFXIU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jan 2010 18:08:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: rdreier@cisco.com, rolandd@cisco.com
 
-The mm-of-the-moment snapshot 2010-01-06-14-34 has been uploaded to
 
-   http://userweb.kernel.org/~akpm/mmotm/
+The patch titled
+     kernel.h: add BUILD_BUG_ON_NOT_POWER_OF_2()
+has been added to the -mm tree.  Its filename is
+     kernelh-add-build_bug_on_not_power_of_2.patch
 
-and will soon be available at
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-   git://zen-kernel.org/kernel/mmotm.git
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-It contains the following patches against 2.6.33-rc3:
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
-origin.patch
-mm-make-totalhigh_pages-unsigned-long.patch
-docs-large-update-to-ioctl-numbertxt.patch
-kmemcheck-make-bitfield-annotations-truly-no-ops-when-disabled.patch
-dma-debug-allow-dma_bidirectional-mappings-to-be-synced-with-dma_from_device-and.patch
-kmod-fix-resource-leak-in-call_usermodehelper_pipe.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-lib-rationalc-needs-moduleh.patch
-scripts-get_maintainerpl-fix-file-exclusion-x-logic.patch
-cgroups-fix-2632-regression-causing-bug_on-in-cgroup_diput.patch
-hwmon-coretemp-fix-tjmax-for-atom-n450-d410-d510-cpus.patch
-kernel-signalc-fix-kernel-information-leak-with-print-fatal-signals=1.patch
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+
+------------------------------------------------------
+Subject: kernel.h: add BUILD_BUG_ON_NOT_POWER_OF_2()
+From: Roland Dreier <rdreier@cisco.com>
+
+When code relies on a constant being a power of 2:
+
+	#define FOO	512	/* must be a power of 2 */
+
+it would be nice to be able to do:
+
+	BUILD_BUG_ON(!is_power_of_2(FOO));
+
+However applying an inline function does not result in a compile-time
+constant that can be used with BUILD_BUG_ON(), so trying that gives
+results in:
+
+	error: bit-field '<anonymous>' width not an integer constant
+
+As suggested by akpm, rather than monkeying around with is_power_of_2()
+and risking gcc warts about constant expressions, just create a macro
+BUILD_BUG_ON_NOT_POWER_OF_2() to encapsulate this common requirement.
+
+Signed-off-by: Roland Dreier <rolandd@cisco.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ include/linux/kernel.h |    4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff -puN include/linux/kernel.h~kernelh-add-build_bug_on_not_power_of_2 include/linux/kernel.h
+--- a/include/linux/kernel.h~kernelh-add-build_bug_on_not_power_of_2
++++ a/include/linux/kernel.h
+@@ -703,6 +703,10 @@ static inline void ftrace_dump(void) { }
+ struct sysinfo;
+ extern int do_sysinfo(struct sysinfo *info);
+ 
++/* Force a compilation error if expression is not a power of 2 */
++#define BUILD_BUG_ON_NOT_POWER_OF_2(n)			\
++	BUILD_BUG_ON(((n) != 0 && (((n) & ((n) - 1)) == 0)))
++
+ /* Force a compilation error if condition is true, but also produce a
+    result (of value 0 and type size_t), so the expression can be used
+    e.g. in a structure initializer (or where-ever else comma expressions
+_
+
+Patches currently in -mm which might be from rdreier@cisco.com are
+
 kfifo-use-void-pointers-for-user-buffers.patch
 kfifo-make-kfifo_in-atomic.patch
 kfifo-sanitize-_user-error-handling.patch
 kfifo-add-kfifo_out_peek.patch
 kfifo-add-kfifo_initialized.patch
 kfifo-document-everywhere-that-size-has-to-be-power-of-two.patch
-linux-next.patch
-linux-next-fixup.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-hardware-latency-detector-remove-default-m.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-mmc_block-add-dev_t-initialization-check.patch
-mmc_block-fix-probe-error-cleanup-bug.patch
-mmc_block-fix-queue-cleanup.patch
-mmc-allow-for-mmc-v44.patch
-vsnprintf-fix-reference-for-compressed-ipv6-addresses.patch
-gpiolib-fix-poll2-support-reconfigure-on-sysfs-polarity-change.patch
-hwmon-driver-for-texas-instruments-amc6821-chip.patch
-mm-hugetlb-fix-clear_huge_page.patch
-mmc-remove-const-from-tmio-mmc-platform-data-v2.patch
-mmc-balance-tmio-mmc-cell-enable-disable-calls.patch
-documentation-update-ring-buffer-designtxt.patch
-drivers-cpuidle-governors-menuc-fix-undefined-reference-to-__udivdi3.patch
-gpio-adp5588-gpio-new-driver-for-adp5588-gpio-expanders.patch
-documentation-update-kernel-doc-nano-howto-information.patch
-smaps-fix-wrong-rss-count.patch
-rtc_cmos-convert-shutdown-to-new-pnp_driver-shutdown.patch
-drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
-drivers-gpu-vga-vgaarbc-fix-userspace-pointer-dereference.patch
-m68knommu-fix-invalid-flags-on-coldfire-pit-clocksource.patch
-sched-f83f9ac-causes-tasks-running-at-max_prio.patch
-hpsa-fix-scsi-status-reporting-yet-again.patch
-drivers-scsi-sesc-eliminate-double-free.patch
-kernel-credc-use-kmem_cache_free.patch
-tpm_infineon-fix-suspend-resume-handler-for-pnp_driver.patch
-dell_laptop-when-the-hardware-switch-is-disabled-dont-actually-allow-changing-the-softblock-status.patch
-arm-convert-proc-cpu-aligment-to-seq_file.patch
-arch-arm-plat-pxa-dmac-correct-null-test.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-kbuild-move-fno-dwarf2-cfi-asm-to-powerpc-only.patch
-drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
-drivers-gpu-drm-nouveau-nouveau_grctxc-correct-null-test.patch
-drivers-media-video-move-dereference-after-null-test.patch
-proc_fops-convert-av7110.patch
-drivers-media-video-pmsc-needs-versionh.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-posix-cpu-timers-reset-expire-cache-when-no-timer-is-running.patch
-hrtimer-correct-a-few-numbers-in-comments.patch
-clockevents-ensure-taht-min_delta_ns-is-increased-in-error-path.patch
-clocksource-add-argument-to-resume-callback.patch
-clocksource-start-cmt-at-clocksource-resume.patch
-clocksource-add-suspend-callback.patch
-input-bcm5974-retract-efi-broken-suspend_resume.patch
-input-bcm5974-report-abs_mt-events.patch
-usbtouchscreen-convert-from-usb_device-to-usb_interface.patch
-usbtouchscreen-find-input-endpoint-automatically.patch
-usbtouchscreen-add-nexio-or-inexio-support.patch
-usbtouchscreen-fix-nexio-ack-and-usb-disconnect.patch
-usbtouchscreen-dont-send-interrupt-urbs-to-bulk-endpoints.patch
-usbtouchscreen-fix-leaks-and-check-return-value-of-usb_submit_urb.patch
-arch-mips-alchemy-correct-code-taking-the-size-of-a-pointer.patch
-mtd-nand-davinci-correct-4-bit-error-correction.patch
-jffs2-fix-memory-corruption-in-jffs2_read_inode_range.patch
-ntfs-use-bitmap_weight.patch
-hisax-timeout-off-by-one-in-waitrecmsg.patch
-3x59x-fix-pci-resource-management.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc.patch
-net-ipv4-correct-the-size-argument-to-kzalloc.patch
-sunrpc-use-formatting-of-module-name-in-sunrpc.patch
-kernel-irq-procc-expose-the-irq_desc-node-in-proc-irq.patch
-scsi-add-__init-__exit-macros-to-ibmvstgtc.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
-drivers-scsi-libsas-use-sam_good.patch
-ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
-drivers-scsi-remove-unnecessary-null-test.patch
-drivers-message-move-dereference-after-null-test.patch
-scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
-mpt-fusion-convert-to-seq_file.patch
-scsi-remove-unnecessary-null-test.patch
-g_ncr5380-remove-misleading-pnp-error-message.patch
-g_ncr5380-fix-broken-mmio-compilation.patch
-g_ncr5380-fix-missing-pnp_device_detach-and-scsi_unregister-on-rmmod.patch
-dc395x-decrease-iteration-for-tag_number-of-max_command-in-start_scsi.patch
-drivers-scsi-correct-the-size-argument-to-kmalloc.patch
-paride-fix-off-by-one-test.patch
-convert-sparc-to-arch_gettimeoffset.patch
-drivers-staging-tm6000-tm6000-videoc-correct-null-test.patch
-drivers-usb-correct-the-size-argument-to-kzalloc.patch
-vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
-vfs-improve-comment-describing-fget_light.patch
+kernelh-add-build_bug_on_not_power_of_2.patch
 ecryptfs-another-lockdep-issue.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-xtensa-convert-to-asm-generic-hardirqh.patch
-xtensa-includecheck-fix-vectorss.patch
-mm.patch
-mm-clean-up-mm_counter.patch
-mm-avoid-false-sharing-of-mm_counter.patch
-mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
-mm-count-swap-usage.patch
-mm-count-swap-usage-checkpatch-fixes.patch
-mm-add-lowmem-detection-logic.patch
-mm-add-lowmem-detection-logic-fix.patch
-mm-count-lowmem-rss.patch
-mm-count-lowmem-rss-checkpatch-fixes.patch
-mm-introduce-dump_page-and-print-symbolic-flag-names.patch
-mlock_vma_pages_range-never-return-negative-value.patch
-mlock_vma_pages_range-only-return-success-or-failure.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-cris-convert-to-use-arch_gettimeoffset.patch
-cryptocop-fix-assertion-in-create_output_descriptors.patch
-mfgpt-move-clocksource-menu.patch
-prctl-add-pr_set_proctitle_area-option-for-prctl.patch
-kernel-cpuc-delete-deprecated-definition-in-cpu_up.patch
-init-mainc-improve-usability-in-case-of-init-binary-failure.patch
-init-initramfsc-fix-symbol-shadows-an-earlier-one-noise.patch
-ricoh_mmc-port-from-driver-to-pci-quirk.patch
-ricoh_mmc-port-from-driver-to-pci-quirk-update.patch
-davinci-mmc-add-support-for-8bit-mmc-cards.patch
-sdio-recognize-io-card-without-powercycle.patch
-scripts-checkpatchpl-add-warn-on-sizeof.patch
-checkpatch-trivial-fix-for-trailing-statements-check.patch
-checkpatchpl-allow-80-char-lines-for-logging-functions-not-just-printk.patch
-checkpatch-fix-false-positive-on-__initconst.patch
-mm-pass-mm-flags-as-a-coredump-parameter-for-consistency.patch
-spi-mpc8xxx-dont-check-platform_get_irqs-return-value-against-zero.patch
-console-limit-the-range-of-vgacon_soft_scrollback_size.patch
-xen-add-kconfig-menu.patch
-gpio-add-driver-for-max7300-i2c-gpio-extender.patch
-asiliantfb-fix-test-of-unsigned-in-asiliant_calc_dclk2.patch
-viafb-deprecate-private-ioctls.patch
-viafb-remove-dead-code.patch
-viafb-split-global-index-up.patch
-viafb-remove-the-remaining-via_res_-uses.patch
-viafb-some-dvi-cleanup.patch
-fbdev-bf54x-lq043fb-bfin-t350mcqb-fb-drop-custom-mmap-handler.patch
-broadsheetfb-add-multiple-panel-type-support.patch
-hfsplus-identify-journal-info-block-in-volume-header.patch
-hfsplus-fix-journal-detection.patch
-cgroup-introduce-cancel_attach.patch
-cgroup-introduce-coalesce-css_get-and-css_put.patch
-memcg-add-interface-to-move-charge-at-task-migration.patch
-memcg-move-charges-of-anonymous-page.patch
-memcg-move-charges-of-anonymous-page-cleanup.patch
-memcg-improve-performance-in-moving-charge.patch
-memcg-avoid-oom-during-moving-charge.patch
-memcg-move-charges-of-anonymous-swap.patch
-memcg-improve-performance-in-moving-swap-charge.patch
-cgroup-implement-eventfd-based-generic-api-for-notifications.patch
-memcg-extract-mem_group_usage-from-mem_cgroup_read.patch
-memcg-rework-usage-of-stats-by-soft-limit.patch
-memcg-implement-memory-thresholds.patch
-memcg-implement-memory-thresholds-checkpatch-fixes.patch
-tracehooks-kill-some-pt_ptraced-checks.patch
-tracehooks-check-pt_ptraced-before-reporting-the-single-step.patch
-ptrace_signal-check-pt_ptraced-before-reporting-a-signal.patch
-export-__ptrace_detach-and-do_notify_parent_cldstop.patch
-reorder-the-code-in-kernel-ptracec.patch
-implement-utrace-ptrace.patch
-utrace-core.patch
-copy_signal-cleanup-use-zalloc-and-remove-initializations.patch
-copy_signal-cleanup-kill-taskstats_tgid_init-and-acct_init_pacct.patch
-copy_signal-cleanup-clean-thread_group_cputime_init.patch
-copy_signal-cleanup-clean-tty_audit_fork.patch
-ipmi-add-parameter-to-limit-cpu-usage-in-kipmid.patch
-drivers-edac-introduce-missing-kfree.patch
-w1-fix-test-in-ds2482_wait_1wire_idle.patch
-vfs-take-2add-set_page_dirty_notag.patch
-reiser4-vfs-add-super_operationssync_inodes-2.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4-export-find_get_pages.patch
-reiser4.patch
-reiser4-adjust-to-the-new-aops.patch
-reiser4-adjust-to-the-new-aops-fixup.patch
-reiser4-remove-simple_prepare_write-usage.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
-reiser4-handling-error-returned-by-d_obtain_alias-fixup.patch
-reiser4-update-names-of-quota-methods.patch
-reiser4-use-set_page_dirty_notag.patch
-fs-reiser4-add-parenths-around-x-y.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-reiser4-rename-psched-to-dispatch.patch
-reiser4-drop-journal-info.patch
-reiser4-fix-compile-warnings.patch
-reiser4-reduce-frame-size-of-reiser4_init_super_data.patch
-reiser4-reduce-frame-size-of-reiser4_init_super_data-fixup.patch
-reiser4-some-changes-from-reiser4-2631-patch.patch
-reiser4-some-comments-were-still-mentioning-pdflush.patch
-reiser4-generic_sync_sb_inodes-doesnt-exist-anymore.patch
-reiser4-fixed-null-pointer-dereference.patch
-make-sure-nobodys-leaking-resources.patch
-journal_add_journal_head-debug.patch
-releasing-resources-with-children.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
-workaround-for-a-pci-restoring-bug.patch
-prio_tree-debugging-patch.patch
-single_open-seq_release-leak-diagnostics.patch
-add-a-refcount-check-in-dput.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+
