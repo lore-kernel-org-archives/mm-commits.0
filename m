@@ -1,96 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch removed from -mm tree
-Date: Thu, 07 Jan 2010 13:10:31 -0800
-Message-ID: <201001072110.o07LAVvp017678@imap1.linux-foundation.org>
+Subject: [merged] sunrpc-fix-peername-failed-on-closed-listener.patch removed from -mm tree
+Date: Thu, 07 Jan 2010 13:10:34 -0800
+Message-ID: <201001072110.o07LAYOJ017682@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34779 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43526 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752022Ab0AGVME (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jan 2010 16:12:04 -0500
+	by vger.kernel.org with ESMTP id S1753159Ab0AGVNK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jan 2010 16:13:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, airlied@linux.ie, eric@anholt.net, jbarnes@virtuousgeek.org, stable@kernel.org, mm-commits@vger.kernel.org
+To: dfeng@redhat.com, Trond.Myklebust@netapp.com, bfields@fieldses.org, davem@davemloft.net, extmaillist@linuxbox.cz, neilb@suse.de, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/gpu/drm/i915/i915_dma.c: fix unused var
+     sunrpc: fix peername failed on closed listener
 has been removed from the -mm tree.  Its filename was
-     drivers-gpu-drm-i915-i915_dmac-fix-unused-var.patch
+     sunrpc-fix-peername-failed-on-closed-listener.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/gpu/drm/i915/i915_dma.c: fix unused var
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: sunrpc: fix peername failed on closed listener
+From: Xiaotian Feng <dfeng@redhat.com>
 
-drivers/gpu/drm/i915/i915_dma.c: In function 'i915_driver_load':
-drivers/gpu/drm/i915/i915_dma.c:1114: warning: 'll_base' may be used uninitialized in this function
+There're some warnings of "nfsd: peername failed (err 107)!" socket error
+-107 means Transport endpoint is not connected.  This warning message was
+outputed by svc_tcp_accept() [net/sunrpc/svcsock.c], when
+kernel_getpeername returns -107.  This means socket might be CLOSED.
 
-Partly this is because gcc isn't smart enough.  But `ll_base' does get used
-uninitialised in the DRM_DEBUG() call.
+And svc_tcp_accept was called by svc_recv() [net/sunrpc/svc_xprt.c]
 
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Eric Anholt <eric@anholt.net>
-Cc: Dave Airlie <airlied@linux.ie>
+        if (test_bit(XPT_LISTENER, &xprt->xpt_flags)) {
+        <snip>
+                newxpt = xprt->xpt_ops->xpo_accept(xprt);
+        <snip>
+
+So this might happen when xprt->xpt_flags has both XPT_LISTENER and XPT_CLOSE.
+
+Let's take a look at commit b0401d72 ("sunrpc: move the close processing
+after do recvfrom method"), this commit has moved the close processing
+after do recvfrom method, but this commit also introduces this warnings,
+if the xpt_flags has both XPT_LISTENER and XPT_CLOSED, we should close it,
+not accept then close.
+
+Signed-off-by: Xiaotian Feng <dfeng@redhat.com>
+Cc: J. Bruce Fields <bfields@fieldses.org>
+Cc: Neil Brown <neilb@suse.de>
+Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Nikola Ciprich <extmaillist@linuxbox.cz>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/i915_dma.c |    3 ++-
+ net/sunrpc/svc_xprt.c |    3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/gpu/drm/i915/i915_dma.c~drivers-gpu-drm-i915-i915_dmac-fix-unused-var drivers/gpu/drm/i915/i915_dma.c
---- a/drivers/gpu/drm/i915/i915_dma.c~drivers-gpu-drm-i915-i915_dmac-fix-unused-var
-+++ a/drivers/gpu/drm/i915/i915_dma.c
-@@ -1117,7 +1117,8 @@ static void i915_setup_compression(struc
- {
- 	struct drm_i915_private *dev_priv = dev->dev_private;
- 	struct drm_mm_node *compressed_fb, *compressed_llb;
--	unsigned long cfb_base, ll_base;
-+	unsigned long cfb_base;
-+	unsigned long ll_base = 0;
+diff -puN net/sunrpc/svc_xprt.c~sunrpc-fix-peername-failed-on-closed-listener net/sunrpc/svc_xprt.c
+--- a/net/sunrpc/svc_xprt.c~sunrpc-fix-peername-failed-on-closed-listener
++++ a/net/sunrpc/svc_xprt.c
+@@ -699,7 +699,8 @@ int svc_recv(struct svc_rqst *rqstp, lon
+ 	spin_unlock_bh(&pool->sp_lock);
  
- 	/* Leave 1M for line length buffer & misc. */
- 	compressed_fb = drm_mm_search_free(&dev_priv->vram, size, 4096, 0);
+ 	len = 0;
+-	if (test_bit(XPT_LISTENER, &xprt->xpt_flags)) {
++	if (test_bit(XPT_LISTENER, &xprt->xpt_flags) &&
++	    !test_bit(XPT_CLOSE, &xprt->xpt_flags)) {
+ 		struct svc_xprt *newxpt;
+ 		newxpt = xprt->xpt_ops->xpo_accept(xprt);
+ 		if (newxpt) {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dfeng@redhat.com are
 
 origin.patch
-percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
-zlib-optimize-inffast-when-copying-direct-from-output.patch
-lib-add-support-for-lzo-compressed-kernels.patch
 linux-next.patch
-linux-next-fixup.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-kernelh-add-build_bug_on_not_power_of_2-fix.patch
-drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
-drivers-media-video-pmsc-needs-versionh.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-3x59x-fix-pci-resource-management.patch
-net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
-mm-count-swap-usage-checkpatch-fixes.patch
-mm-add-lowmem-detection-logic-fix.patch
-mm-count-lowmem-rss-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-memcg-move-charges-of-anonymous-page-cleanup.patch
-memcg-implement-memory-thresholds-checkpatch-fixes.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
 
