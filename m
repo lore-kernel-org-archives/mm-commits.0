@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + bluetooth-wrong-variable-tested.patch added to -mm tree
-Date: Thu, 07 Jan 2010 15:07:04 -0800
-Message-ID: <201001072307.o07N740s022879@imap1.linux-foundation.org>
+Subject: + v4l-dvb-wrong-variable-tested.patch added to -mm tree
+Date: Thu, 07 Jan 2010 15:08:04 -0800
+Message-ID: <201001072308.o07N840X023002@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59980 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47855 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753853Ab0AGXHM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jan 2010 18:07:12 -0500
+	by vger.kernel.org with ESMTP id S1753856Ab0AGXIN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jan 2010 18:08:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, marcel@holtmann.org
+Cc: roel.kluin@gmail.com, mchehab@infradead.org, stoth@kernellabs.com
 
 
 The patch titled
-     bluetooth: wrong variable tested
+     v4l/dvb: wrong variable tested
 has been added to the -mm tree.  Its filename is
-     bluetooth-wrong-variable-tested.patch
+     v4l-dvb-wrong-variable-tested.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,40 +33,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bluetooth: wrong variable tested
+Subject: v4l/dvb: wrong variable tested
 From: Roel Kluin <roel.kluin@gmail.com>
 
-The return of the function sdio_readb() was not tested.
+The return of saa7164_i2caddr_to_reglen() was not tested.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Marcel Holtmann <marcel@holtmann.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Steven Toth <stoth@kernellabs.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/bluetooth/btmrvl_sdio.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/video/saa7164/saa7164-api.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/bluetooth/btmrvl_sdio.c~bluetooth-wrong-variable-tested drivers/bluetooth/btmrvl_sdio.c
---- a/drivers/bluetooth/btmrvl_sdio.c~bluetooth-wrong-variable-tested
-+++ a/drivers/bluetooth/btmrvl_sdio.c
-@@ -348,7 +348,7 @@ static int btmrvl_sdio_download_fw_w_hel
- 		for (tries = 0; tries < MAX_POLL_TRIES; tries++) {
- 			base0 = sdio_readb(card->func,
- 					SQ_READ_BASE_ADDRESS_A0_REG, &ret);
--			if (ret) {
-+			if (base0) {
- 				BT_ERR("BASE0 register read failed:"
- 					" base0 = 0x%04X(%d)."
- 					" Terminating download",
-@@ -358,7 +358,7 @@ static int btmrvl_sdio_download_fw_w_hel
- 			}
- 			base1 = sdio_readb(card->func,
- 					SQ_READ_BASE_ADDRESS_A1_REG, &ret);
--			if (ret) {
-+			if (base1) {
- 				BT_ERR("BASE1 register read failed:"
- 					" base1 = 0x%04X(%d)."
- 					" Terminating download",
+diff -puN drivers/media/video/saa7164/saa7164-api.c~v4l-dvb-wrong-variable-tested drivers/media/video/saa7164/saa7164-api.c
+--- a/drivers/media/video/saa7164/saa7164-api.c~v4l-dvb-wrong-variable-tested
++++ a/drivers/media/video/saa7164/saa7164-api.c
+@@ -523,7 +523,7 @@ int saa7164_api_i2c_write(struct saa7164
+ 	}
+ 
+ 	reglen = saa7164_i2caddr_to_reglen(bus, addr);
+-	if (unitid < 0) {
++	if (reglen < 0) {
+ 		printk(KERN_ERR
+ 			"%s() error, cannot translate regaddr to reglen\n",
+ 			__func__);
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -76,6 +68,7 @@ zlib-optimize-inffast-when-copying-direct-from-output.patch
 linux-next.patch
 acpi-fix-confusion-in-acpi_evaluate_string-in-comment.patch
 powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+v4l-dvb-wrong-variable-tested.patch
 hisax-timeout-off-by-one-in-waitrecmsg.patch
 bluetooth-wrong-variable-tested.patch
 drivers-scsi-fnic-fnic_scsic-clean-up.patch
