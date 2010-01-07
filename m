@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-fix-confusion-in-acpi_evaluate_string-in-comment.patch added to -mm tree
-Date: Wed, 06 Jan 2010 16:43:10 -0800
-Message-ID: <201001070043.o070hAWj028350@imap1.linux-foundation.org>
+Subject: + drm-kms-fix-confusion-in-drm_fb_helper_connector_parse_command_line.patch added to -mm tree
+Date: Wed, 06 Jan 2010 16:45:45 -0800
+Message-ID: <201001070045.o070jjW1028412@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38864 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44240 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756041Ab0AGAnx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jan 2010 19:43:53 -0500
+	by vger.kernel.org with ESMTP id S932500Ab0AGAp6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jan 2010 19:45:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, lenb@kernel.org
+Cc: roel.kluin@gmail.com, airlied@linux.ie, clemens@ladisch.de, jbarnes@virtuousgeek.org
 
 
 The patch titled
-     acpi: fix &&/|| confusion in acpi_evaluate_string() (in comment)
+     drm/kms: fix &&/|| confusion in drm_fb_helper_connector_parse_command_line()
 has been added to the -mm tree.  Its filename is
-     acpi-fix-confusion-in-acpi_evaluate_string-in-comment.patch
+     drm-kms-fix-confusion-in-drm_fb_helper_connector_parse_command_line.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,33 +33,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi: fix &&/|| confusion in acpi_evaluate_string() (in comment)
+Subject: drm/kms: fix &&/|| confusion in drm_fb_helper_connector_parse_command_line()
 From: Roel Kluin <roel.kluin@gmail.com>
 
 This always evaluates to true.
 
-It's between an #if 0 ... #endif.
-
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Len Brown <lenb@kernel.org>
+Cc: David Airlie <airlied@linux.ie>
+Cc: Clemens Ladisch <clemens@ladisch.de>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/utils.c |    2 +-
+ drivers/gpu/drm/drm_fb_helper.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/acpi/utils.c~acpi-fix-confusion-in-acpi_evaluate_string-in-comment drivers/acpi/utils.c
---- a/drivers/acpi/utils.c~acpi-fix-confusion-in-acpi_evaluate_string-in-comment
-+++ a/drivers/acpi/utils.c
-@@ -312,7 +312,7 @@ acpi_evaluate_string(acpi_handle handle,
- 	element = (acpi_object *) buffer.pointer;
- 
- 	if ((element->type != ACPI_TYPE_STRING)
--	    || (element->type != ACPI_TYPE_BUFFER)
-+	    && (element->type != ACPI_TYPE_BUFFER)
- 	    || !element->string.length) {
- 		acpi_util_eval_error(handle, pathname, AE_BAD_DATA);
- 		return AE_BAD_DATA;
+diff -puN drivers/gpu/drm/drm_fb_helper.c~drm-kms-fix-confusion-in-drm_fb_helper_connector_parse_command_line drivers/gpu/drm/drm_fb_helper.c
+--- a/drivers/gpu/drm/drm_fb_helper.c~drm-kms-fix-confusion-in-drm_fb_helper_connector_parse_command_line
++++ a/drivers/gpu/drm/drm_fb_helper.c
+@@ -157,7 +157,7 @@ static bool drm_fb_helper_connector_pars
+ 			force = DRM_FORCE_ON;
+ 			break;
+ 		case 'D':
+-			if ((connector->connector_type != DRM_MODE_CONNECTOR_DVII) ||
++			if ((connector->connector_type != DRM_MODE_CONNECTOR_DVII) &&
+ 			    (connector->connector_type != DRM_MODE_CONNECTOR_HDMIB))
+ 				force = DRM_FORCE_ON;
+ 			else
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -68,6 +68,7 @@ zlib-optimize-inffast-when-copying-direct-from-output.patch
 linux-next.patch
 acpi-fix-confusion-in-acpi_evaluate_string-in-comment.patch
 powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+drm-kms-fix-confusion-in-drm_fb_helper_connector_parse_command_line.patch
 hisax-timeout-off-by-one-in-waitrecmsg.patch
 drivers-scsi-fnic-fnic_scsic-clean-up.patch
 ibmmca-buffer-overflow.patch
