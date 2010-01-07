@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mn10300-add-cc-clobbers-to-asm-statements.patch added to -mm tree
-Date: Wed, 06 Jan 2010 16:28:23 -0800
-Message-ID: <201001070028.o070SObd027648@imap1.linux-foundation.org>
+Subject: + mn10300-use-generic-pci_enable_resources.patch added to -mm tree
+Date: Wed, 06 Jan 2010 16:28:31 -0800
+Message-ID: <201001070028.o070SV1E027661@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36869 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48254 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755569Ab0AGA2m (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jan 2010 19:28:42 -0500
+	by vger.kernel.org with ESMTP id S932368Ab0AGA2v (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jan 2010 19:28:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: msalter@redhat.com, dhowells@redhat.com
+Cc: bjorn.helgaas@hp.com, dhowells@redhat.com
 
 
 The patch titled
-     mn10300: add cc clobbers to asm statements
+     mn10300: use generic pci_enable_resources()
 has been added to the -mm tree.  Its filename is
-     mn10300-add-cc-clobbers-to-asm-statements.patch
+     mn10300-use-generic-pci_enable_resources.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,206 +33,112 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mn10300: add cc clobbers to asm statements
-From: Mark Salter <msalter@redhat.com>
+Subject: mn10300: use generic pci_enable_resources()
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-gcc 4.2.1 for MN10300 is more agressive than the older gcc in
-reordering/moving other insns between an insn that sets flags and an insn
-that uses those flags.  This leads to trouble with asm statements which
-are missing an explicit "cc" clobber.  This patch adds the explicit "cc"
-clobber to asm statements which do indeed clobber the condition flags.
+Use the generic pci_enable_resources() instead of the arch-specific code.
 
-Signed-off-by: Mark Salter <msalter@redhat.com>
+Unlike this arch-specific code, the generic version:
+
+ - checks PCI_NUM_RESOURCES (11), not 6, resources
+ - skips resources that have neither IORESOURCE_IO nor IORESOURCE_MEM set
+ - skips ROM resources unless IORESOURCE_ROM_ENABLE is set
+ - checks for resource collisions with "!r->parent"
+
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mn10300/include/asm/bitops.h    |    4 ++--
- arch/mn10300/include/asm/div64.h     |    2 ++
- arch/mn10300/include/asm/system.h    |    1 +
- arch/mn10300/include/asm/tlbflush.h  |    2 +-
- arch/mn10300/include/asm/uaccess.h   |    4 ++--
- arch/mn10300/kernel/mn10300-serial.c |    3 ++-
- arch/mn10300/lib/checksum.c          |    1 +
- arch/mn10300/lib/delay.c             |    3 ++-
- arch/mn10300/lib/usercopy.c          |    6 +++---
- arch/mn10300/mm/misalignment.c       |    4 ++--
- 10 files changed, 18 insertions(+), 12 deletions(-)
+ arch/mn10300/unit-asb2305/pci-asb2305.c |   39 ----------------------
+ arch/mn10300/unit-asb2305/pci-asb2305.h |    1 
+ arch/mn10300/unit-asb2305/pci.c         |    3 +
+ 3 files changed, 2 insertions(+), 41 deletions(-)
 
-diff -puN arch/mn10300/include/asm/bitops.h~mn10300-add-cc-clobbers-to-asm-statements arch/mn10300/include/asm/bitops.h
---- a/arch/mn10300/include/asm/bitops.h~mn10300-add-cc-clobbers-to-asm-statements
-+++ a/arch/mn10300/include/asm/bitops.h
-@@ -165,7 +165,7 @@ static inline __attribute__((const))
- unsigned long __ffs(unsigned long x)
+diff -puN arch/mn10300/unit-asb2305/pci-asb2305.c~mn10300-use-generic-pci_enable_resources arch/mn10300/unit-asb2305/pci-asb2305.c
+--- a/arch/mn10300/unit-asb2305/pci-asb2305.c~mn10300-use-generic-pci_enable_resources
++++ a/arch/mn10300/unit-asb2305/pci-asb2305.c
+@@ -218,45 +218,6 @@ void __init pcibios_resource_survey(void
+ 	pcibios_allocate_resources(1);
+ }
+ 
+-int pcibios_enable_resources(struct pci_dev *dev, int mask)
+-{
+-	u16 cmd, old_cmd;
+-	int idx;
+-	struct resource *r;
+-
+-	pci_read_config_word(dev, PCI_COMMAND, &cmd);
+-	old_cmd = cmd;
+-
+-	for (idx = 0; idx < 6; idx++) {
+-		/* Only set up the requested stuff */
+-		if (!(mask & (1 << idx)))
+-			continue;
+-
+-		r = &dev->resource[idx];
+-
+-		if (!r->start && r->end) {
+-			printk(KERN_ERR
+-			       "PCI: Device %s not available because of"
+-			       " resource collisions\n",
+-			       pci_name(dev));
+-			return -EINVAL;
+-		}
+-
+-		if (r->flags & IORESOURCE_IO)
+-			cmd |= PCI_COMMAND_IO;
+-		if (r->flags & IORESOURCE_MEM)
+-			cmd |= PCI_COMMAND_MEMORY;
+-	}
+-
+-	if (dev->resource[PCI_ROM_RESOURCE].start)
+-		cmd |= PCI_COMMAND_MEMORY;
+-
+-	if (cmd != old_cmd)
+-		pci_write_config_word(dev, PCI_COMMAND, cmd);
+-
+-	return 0;
+-}
+-
+ /*
+  *  If we set up a device for bus mastering, we need to check the latency
+  *  timer as certain crappy BIOSes forget to set it properly.
+diff -puN arch/mn10300/unit-asb2305/pci-asb2305.h~mn10300-use-generic-pci_enable_resources arch/mn10300/unit-asb2305/pci-asb2305.h
+--- a/arch/mn10300/unit-asb2305/pci-asb2305.h~mn10300-use-generic-pci_enable_resources
++++ a/arch/mn10300/unit-asb2305/pci-asb2305.h
+@@ -34,7 +34,6 @@ extern unsigned int pci_probe;
+ extern unsigned int pcibios_max_latency;
+ 
+ extern void pcibios_resource_survey(void);
+-extern int pcibios_enable_resources(struct pci_dev *dev, int mask);
+ 
+ /* pci.c */
+ 
+diff -puN arch/mn10300/unit-asb2305/pci.c~mn10300-use-generic-pci_enable_resources arch/mn10300/unit-asb2305/pci.c
+--- a/arch/mn10300/unit-asb2305/pci.c~mn10300-use-generic-pci_enable_resources
++++ a/arch/mn10300/unit-asb2305/pci.c
+@@ -440,7 +440,7 @@ int pcibios_enable_device(struct pci_dev
  {
- 	int bit;
--	asm("bsch %2,%0" : "=r"(bit) : "0"(0), "r"(x & -x));
-+	asm("bsch %2,%0" : "=r"(bit) : "0"(0), "r"(x & -x) : "cc");
- 	return bit;
- }
+ 	int err;
  
-@@ -177,7 +177,7 @@ static inline __attribute__((const))
- int __ilog2_u32(u32 n)
- {
- 	int bit;
--	asm("bsch %2,%0" : "=r"(bit) : "0"(0), "r"(n));
-+	asm("bsch %2,%0" : "=r"(bit) : "0"(0), "r"(n) : "cc");
- 	return bit;
- }
+-	err = pcibios_enable_resources(dev, mask);
++	err = pci_enable_resources(dev, mask);
+ 	if (err == 0)
+ 		pcibios_enable_irq(dev);
+ 	return err;
+@@ -455,6 +455,7 @@ static void __init unit_disable_pcnet(st
  
-diff -puN arch/mn10300/include/asm/div64.h~mn10300-add-cc-clobbers-to-asm-statements arch/mn10300/include/asm/div64.h
---- a/arch/mn10300/include/asm/div64.h~mn10300-add-cc-clobbers-to-asm-statements
-+++ a/arch/mn10300/include/asm/div64.h
-@@ -72,6 +72,7 @@ unsigned __muldiv64u(unsigned val, unsig
- 					 * MDR = MDR:val%div */
- 	    : "=r"(result)
- 	    : "0"(val), "ir"(mult), "r"(div)
-+	    : "cc"
- 	    );
+ 	bus->number = 0;
  
- 	return result;
-@@ -92,6 +93,7 @@ signed __muldiv64s(signed val, signed mu
- 					 * MDR = MDR:val%div */
- 	    : "=r"(result)
- 	    : "0"(val), "ir"(mult), "r"(div)
-+	    : "cc"
- 	    );
- 
- 	return result;
-diff -puN arch/mn10300/include/asm/system.h~mn10300-add-cc-clobbers-to-asm-statements arch/mn10300/include/asm/system.h
---- a/arch/mn10300/include/asm/system.h~mn10300-add-cc-clobbers-to-asm-statements
-+++ a/arch/mn10300/include/asm/system.h
-@@ -143,6 +143,7 @@ do {									\
- 		"	mov	%0,epsw		\n"			\
- 		: "=&d"(tmp)						\
- 		: "i"(~EPSW_IM), "r"(__mn10300_irq_enabled_epsw)	\
-+		: "cc"							\
- 		);							\
- } while (0)
- 
-diff -puN arch/mn10300/include/asm/tlbflush.h~mn10300-add-cc-clobbers-to-asm-statements arch/mn10300/include/asm/tlbflush.h
---- a/arch/mn10300/include/asm/tlbflush.h~mn10300-add-cc-clobbers-to-asm-statements
-+++ a/arch/mn10300/include/asm/tlbflush.h
-@@ -22,7 +22,7 @@ do {								\
- 		 "	mov %0,%1		\n"		\
- 		 : "=d"(w)					\
- 		 : "m"(MMUCTR), "i"(MMUCTR_IIV|MMUCTR_DIV)	\
--		 : "memory"					\
-+		 : "cc", "memory"				\
- 		 );						\
- } while (0)
- 
-diff -puN arch/mn10300/include/asm/uaccess.h~mn10300-add-cc-clobbers-to-asm-statements arch/mn10300/include/asm/uaccess.h
---- a/arch/mn10300/include/asm/uaccess.h~mn10300-add-cc-clobbers-to-asm-statements
-+++ a/arch/mn10300/include/asm/uaccess.h
-@@ -316,7 +316,7 @@ do {									\
- 			"	.previous\n"				\
- 			: "=a"(__from), "=a"(__to), "=r"(size), "=&r"(w)\
- 			: "0"(__from), "1"(__to), "2"(size)		\
--			: "memory");					\
-+			: "cc", "memory");				\
- 	}								\
- } while (0)
- 
-@@ -352,7 +352,7 @@ do {									\
- 			"	.previous\n"				\
- 			: "=a"(__from), "=a"(__to), "=r"(size), "=&r"(w)\
- 			: "0"(__from), "1"(__to), "2"(size)		\
--			: "memory");					\
-+			: "cc", "memory");				\
- 	}								\
- } while (0)
- 
-diff -puN arch/mn10300/kernel/mn10300-serial.c~mn10300-add-cc-clobbers-to-asm-statements arch/mn10300/kernel/mn10300-serial.c
---- a/arch/mn10300/kernel/mn10300-serial.c~mn10300-add-cc-clobbers-to-asm-statements
-+++ a/arch/mn10300/kernel/mn10300-serial.c
-@@ -380,7 +380,8 @@ static int mask_test_and_clear(volatile 
- 	u32 epsw;
- 	asm volatile("	bclr	%1,(%2)		\n"
- 		     "	mov	epsw,%0		\n"
--		     : "=d"(epsw) : "d"(mask), "a"(ptr));
-+		     : "=d"(epsw) : "d"(mask), "a"(ptr)
-+		     : "cc", "memory");
- 	return !(epsw & EPSW_FLAG_Z);
- }
- 
-diff -puN arch/mn10300/lib/checksum.c~mn10300-add-cc-clobbers-to-asm-statements arch/mn10300/lib/checksum.c
---- a/arch/mn10300/lib/checksum.c~mn10300-add-cc-clobbers-to-asm-statements
-+++ a/arch/mn10300/lib/checksum.c
-@@ -22,6 +22,7 @@ static inline unsigned short from32to16(
- 	    "	addc	0xffff,%0	\n"
- 	    : "=r" (sum)
- 	    : "r" (sum << 16), "0" (sum & 0xffff0000)
-+	    : "cc"
- 	    );
- 	return sum >> 16;
- }
-diff -puN arch/mn10300/lib/delay.c~mn10300-add-cc-clobbers-to-asm-statements arch/mn10300/lib/delay.c
---- a/arch/mn10300/lib/delay.c~mn10300-add-cc-clobbers-to-asm-statements
-+++ a/arch/mn10300/lib/delay.c
-@@ -28,7 +28,8 @@ void __delay(unsigned long loops)
- 		"2:	add	-1,%0	\n"
- 		"	bne	2b	\n"
- 		: "=&d" (d0)
--		: "0" (loops));
-+		: "0" (loops)
-+		: "cc");
- }
- EXPORT_SYMBOL(__delay);
- 
-diff -puN arch/mn10300/lib/usercopy.c~mn10300-add-cc-clobbers-to-asm-statements arch/mn10300/lib/usercopy.c
---- a/arch/mn10300/lib/usercopy.c~mn10300-add-cc-clobbers-to-asm-statements
-+++ a/arch/mn10300/lib/usercopy.c
-@@ -62,7 +62,7 @@ do {								\
- 		"	.previous"				\
- 		:"=&r"(res), "=r"(count), "=&r"(w)		\
- 		:"i"(-EFAULT), "1"(count), "a"(src), "a"(dst)	\
--		:"memory");					\
-+		: "memory", "cc");					\
- } while (0)
- 
- long
-@@ -109,7 +109,7 @@ do {						\
- 		".previous\n"			\
- 		: "+r"(size), "=&r"(w)		\
- 		: "a"(addr), "d"(0)		\
--		: "memory");			\
-+		: "memory", "cc");		\
- } while (0)
- 
- unsigned long
-@@ -161,6 +161,6 @@ long strnlen_user(const char *s, long n)
- 		".previous\n"
- 		:"=d"(res), "=&r"(w)
- 		:"0"(0), "a"(s), "r"(n)
--		:"memory");
-+		: "memory", "cc");
- 	return res;
- }
-diff -puN arch/mn10300/mm/misalignment.c~mn10300-add-cc-clobbers-to-asm-statements arch/mn10300/mm/misalignment.c
---- a/arch/mn10300/mm/misalignment.c~mn10300-add-cc-clobbers-to-asm-statements
-+++ a/arch/mn10300/mm/misalignment.c
-@@ -633,13 +633,13 @@ static int misalignment_addr(unsigned lo
- 			goto displace_or_inc;
- 		case SD24:
- 			tmp = disp << 8;
--			asm("asr 8,%0" : "=r"(tmp) : "0"(tmp));
-+			asm("asr 8,%0" : "=r"(tmp) : "0"(tmp) : "cc");
- 			disp = (long) tmp;
- 			goto displace_or_inc;
- 		case SIMM4_2:
- 			tmp = opcode >> 4 & 0x0f;
- 			tmp <<= 28;
--			asm("asr 28,%0" : "=r"(tmp) : "0"(tmp));
-+			asm("asr 28,%0" : "=r"(tmp) : "0"(tmp) : "cc");
- 			disp = (long) tmp;
- 			goto displace_or_inc;
- 		case IMM8:
++	o->read (bus, PCI_DEVFN(2, 0), PCI_VENDOR_ID,		4, &x);
+ 	o->read (bus, PCI_DEVFN(2, 0), PCI_COMMAND,		2, &x);
+ 	x |= PCI_COMMAND_MASTER |
+ 		PCI_COMMAND_IO | PCI_COMMAND_MEMORY |
 _
 
-Patches currently in -mm which might be from msalter@redhat.com are
+Patches currently in -mm which might be from bjorn.helgaas@hp.com are
 
-mn10300-signal-stack-fix.patch
-mn10300-objcopy-flags-fix.patch
-mn10300-add-cc-clobbers-to-asm-statements.patch
+rtc_cmos-convert-shutdown-to-new-pnp_driver-shutdown.patch
+mn10300-use-generic-pci_enable_resources.patch
 
