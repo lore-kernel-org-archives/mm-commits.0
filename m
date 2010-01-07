@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + nommu-use-copy__user_page-in-access_process_vm.patch added to -mm tree
-Date: Wed, 06 Jan 2010 16:23:24 -0800
-Message-ID: <201001070023.o070NO5Z027428@imap1.linux-foundation.org>
+Subject: + nommu-avoiding-duplicate-icache-flushes-of-shared-maps.patch added to -mm tree
+Date: Wed, 06 Jan 2010 16:23:21 -0800
+Message-ID: <201001070023.o070NLmA027422@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43237 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35332 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932422Ab0AGAXz (ORCPT
+	by vger.kernel.org with ESMTP id S932514Ab0AGAXz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jan 2010 19:23:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jie.zhang@analog.com, david_mccullough@mcafee.com, dhowells@redhat.com, gerg@uclinux.org, lethal@linux-sh.org, vapier@gentoo.org
+Cc: vapier.adi@gmail.com, david_mccullough@mcafee.com, dhowells@redhat.com, gerg@uclinux.org, jie.zhang@analog.com, lethal@linux-sh.org, vapier@gentoo.org
 
 
 The patch titled
-     nommu: use copy_*_user_page() in access_process_vm()
+     nommu: avoid duplicate icache flushes of shared maps
 has been added to the -mm tree.  Its filename is
-     nommu-use-copy__user_page-in-access_process_vm.patch
+     nommu-avoiding-duplicate-icache-flushes-of-shared-maps.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,55 +33,87 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nommu: use copy_*_user_page() in access_process_vm()
-From: Jie Zhang <jie.zhang@analog.com>
+Subject: nommu: avoid duplicate icache flushes of shared maps
+From: Mike Frysinger <vapier.adi@gmail.com>
 
-The MMU code uses the copy_*_user_page() variants in access_process_vm()
-rather than copy_*_user() as the former includes an icache flush.  This is
-important when doing things like setting software breakpoints with gdb. 
-So switch the NOMMU code over to do the same.
+When working with FDPIC, there are many shared mappings of read-only code
+regions between applications (the C library, applet packages like busybox,
+etc.), but the current do_mmap_pgoff() function will issue an icache flush
+whenever a VMA is added to an MM instead of only doing it when the map is
+initially created.
 
-This patch makes the reasonable assumption that copy_from_user_page()
-won't fail - which is probably fine, as we've checked the VMA from which
-we're copying is usable, and the copy is not allowed to cross VMAs.  The
-one case where it might go wrong is if the VMA is a device rather than
-RAM, and that device returns an error which - in which case rubbish will
-be returned rather than EIO.
+The flush can instead be done when a region is first mmapped PROT_EXEC. 
+Note that we may not rely on the first mapping of a region being
+executable - it's possible for it to be PROT_READ only, so we have to
+remember whether we've flushed the region or not, and then flush the
+entire region when a bit of it is made executable.
 
-Signed-off-by: Jie Zhang <jie.zhang@analog.com>
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+However, this also affects the brk area.  That will no longer be
+executable.  We can mprotect() it to PROT_EXEC on MPU-mode kernels, but
+for NOMMU mode kernels, when it increases the brk allocation, making
+sys_brk() flush the extra from the icache should suffice.  The brk area
+probably isn't used by NOMMU programs since the brk area can only use up
+the leavings from the stack allocation, where the stack allocation is
+larger than requested.
+
 Signed-off-by: David Howells <dhowells@redhat.com>
-Acked-by: David McCullough <david_mccullough@mcafee.com>
-Acked-by: Paul Mundt <lethal@linux-sh.org>
-Acked-by: Greg Ungerer <gerg@uclinux.org>
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Cc: Jie Zhang <jie.zhang@analog.com>
+Cc: Mike Frysinger <vapier@gentoo.org>
+Cc: David McCullough <david_mccullough@mcafee.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Greg Ungerer <gerg@uclinux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nommu.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ include/linux/mm_types.h |    2 ++
+ mm/nommu.c               |   11 ++++++++---
+ 2 files changed, 10 insertions(+), 3 deletions(-)
 
-diff -puN mm/nommu.c~nommu-use-copy__user_page-in-access_process_vm mm/nommu.c
---- a/mm/nommu.c~nommu-use-copy__user_page-in-access_process_vm
-+++ a/mm/nommu.c
-@@ -1921,9 +1921,11 @@ int access_process_vm(struct task_struct
+diff -puN include/linux/mm_types.h~nommu-avoiding-duplicate-icache-flushes-of-shared-maps include/linux/mm_types.h
+--- a/include/linux/mm_types.h~nommu-avoiding-duplicate-icache-flushes-of-shared-maps
++++ a/include/linux/mm_types.h
+@@ -123,6 +123,8 @@ struct vm_region {
+ 	struct file	*vm_file;	/* the backing file or NULL */
  
- 		/* only read or write mappings where it is permitted */
- 		if (write && vma->vm_flags & VM_MAYWRITE)
--			len -= copy_to_user((void *) addr, buf, len);
-+			copy_to_user_page(vma, NULL, addr,
-+					 (void *) addr, buf, len);
- 		else if (!write && vma->vm_flags & VM_MAYREAD)
--			len -= copy_from_user(buf, (void *) addr, len);
-+			copy_from_user_page(vma, NULL, addr,
-+					    buf, (void *) addr, len);
- 		else
- 			len = 0;
- 	} else {
+ 	atomic_t	vm_usage;	/* region usage count */
++	bool		vm_icache_flushed : 1; /* true if the icache has been flushed for
++						* this region */
+ };
+ 
+ /*
+diff -puN mm/nommu.c~nommu-avoiding-duplicate-icache-flushes-of-shared-maps mm/nommu.c
+--- a/mm/nommu.c~nommu-avoiding-duplicate-icache-flushes-of-shared-maps
++++ a/mm/nommu.c
+@@ -432,6 +432,7 @@ SYSCALL_DEFINE1(brk, unsigned long, brk)
+ 	/*
+ 	 * Ok, looks good - let it rip.
+ 	 */
++	flush_icache_range(mm->brk, brk);
+ 	return mm->brk = brk;
+ }
+ 
+@@ -1353,10 +1354,14 @@ unsigned long do_mmap_pgoff(struct file 
+ share:
+ 	add_vma_to_mm(current->mm, vma);
+ 
+-	up_write(&nommu_region_sem);
++	/* we flush the region from the icache only when the first executable
++	 * mapping of it is made  */
++	if (vma->vm_flags & VM_EXEC && !region->vm_icache_flushed) {
++		flush_icache_range(region->vm_start, region->vm_end);
++		region->vm_icache_flushed = true;
++	}
+ 
+-	if (prot & PROT_EXEC)
+-		flush_icache_range(result, result + len);
++	up_write(&nommu_region_sem);
+ 
+ 	kleave(" = %lx", result);
+ 	return result;
 _
 
-Patches currently in -mm which might be from jie.zhang@analog.com are
+Patches currently in -mm which might be from vapier.adi@gmail.com are
 
-fdpic-respect-pt_gnu_stack-exec-protection-markings-when-creating-nommu-stack.patch
 nommu-avoiding-duplicate-icache-flushes-of-shared-maps.patch
-nommu-use-copy__user_page-in-access_process_vm.patch
 
