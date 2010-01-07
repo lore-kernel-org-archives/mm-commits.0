@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drm-kms-fix-confusion-in-drm_fb_helper_connector_parse_command_line.patch added to -mm tree
-Date: Wed, 06 Jan 2010 16:45:45 -0800
-Message-ID: <201001070045.o070jjW1028412@imap1.linux-foundation.org>
+Subject: + 80211core-fix-confusion.patch added to -mm tree
+Date: Wed, 06 Jan 2010 16:46:52 -0800
+Message-ID: <201001070046.o070kqB4028433@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44240 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55162 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932500Ab0AGAp6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jan 2010 19:45:58 -0500
+	by vger.kernel.org with ESMTP id S932549Ab0AGAqz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jan 2010 19:46:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, airlied@linux.ie, clemens@ladisch.de, jbarnes@virtuousgeek.org
+Cc: roel.kluin@gmail.com, devel@driverdev.osuosl.org, greg@kroah.com
 
 
 The patch titled
-     drm/kms: fix &&/|| confusion in drm_fb_helper_connector_parse_command_line()
+     80211core: fix &&/|| confusion
 has been added to the -mm tree.  Its filename is
-     drm-kms-fix-confusion-in-drm_fb_helper_connector_parse_command_line.patch
+     80211core-fix-confusion.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,33 +33,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drm/kms: fix &&/|| confusion in drm_fb_helper_connector_parse_command_line()
+Subject: 80211core: fix &&/|| confusion
 From: Roel Kluin <roel.kluin@gmail.com>
 
 This always evaluates to true.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: David Airlie <airlied@linux.ie>
-Cc: Clemens Ladisch <clemens@ladisch.de>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Greg KH <greg@kroah.com>
+Cc: <devel@driverdev.osuosl.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/drm_fb_helper.c |    2 +-
+ drivers/staging/otus/80211core/cmmsta.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/gpu/drm/drm_fb_helper.c~drm-kms-fix-confusion-in-drm_fb_helper_connector_parse_command_line drivers/gpu/drm/drm_fb_helper.c
---- a/drivers/gpu/drm/drm_fb_helper.c~drm-kms-fix-confusion-in-drm_fb_helper_connector_parse_command_line
-+++ a/drivers/gpu/drm/drm_fb_helper.c
-@@ -157,7 +157,7 @@ static bool drm_fb_helper_connector_pars
- 			force = DRM_FORCE_ON;
- 			break;
- 		case 'D':
--			if ((connector->connector_type != DRM_MODE_CONNECTOR_DVII) ||
-+			if ((connector->connector_type != DRM_MODE_CONNECTOR_DVII) &&
- 			    (connector->connector_type != DRM_MODE_CONNECTOR_HDMIB))
- 				force = DRM_FORCE_ON;
- 			else
+diff -puN drivers/staging/otus/80211core/cmmsta.c~80211core-fix-confusion drivers/staging/otus/80211core/cmmsta.c
+--- a/drivers/staging/otus/80211core/cmmsta.c~80211core-fix-confusion
++++ a/drivers/staging/otus/80211core/cmmsta.c
+@@ -2808,7 +2808,7 @@ void zfStaProcessProbeReq(zdev_t* dev, z
+     zmw_get_wlan_dev(dev);
+ 
+     /* check mode : AP/IBSS */
+-    if ((wd->wlanMode != ZM_MODE_AP) || (wd->wlanMode != ZM_MODE_IBSS))
++    if ((wd->wlanMode != ZM_MODE_AP) && (wd->wlanMode != ZM_MODE_IBSS))
+     {
+         zm_msg0_mm(ZM_LV_3, "Ignore probe req");
+         return;
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -84,6 +83,7 @@ scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
 dc395x-decrease-iteration-for-tag_number-of-max_command-in-start_scsi.patch
 mpt2sas-fix-confusion-in-_scsih_sas_device_status_change_event.patch
 paride-fix-off-by-one-test.patch
+80211core-fix-confusion.patch
 frv-duplicate-output_buffer-of-e03.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 cryptocop-fix-assertion-in-create_output_descriptors.patch
