@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fix-several-bogus-includes-on-mn10300-abs2305.patch added to -mm tree
-Date: Wed, 06 Jan 2010 16:28:27 -0800
-Message-ID: <201001070028.o070SR7G027654@imap1.linux-foundation.org>
+Subject: + mn10300-update-the-asb2303-defconfig.patch added to -mm tree
+Date: Wed, 06 Jan 2010 16:28:37 -0800
+Message-ID: <201001070028.o070SbWH027670@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47453 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54326 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932616Ab0AGA2r (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jan 2010 19:28:47 -0500
+	by vger.kernel.org with ESMTP id S932473Ab0AGA2x (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jan 2010 19:28:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: viro@zeniv.linux.org.uk, dhowells@redhat.com
+Cc: dhowells@redhat.com
 
 
 The patch titled
-     mn10300: fix several bogus includes on abs2305
+     mn10300: update the ASB2303 defconfig
 has been added to the -mm tree.  Its filename is
-     fix-several-bogus-includes-on-mn10300-abs2305.patch
+     mn10300-update-the-asb2303-defconfig.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,85 +33,291 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mn10300: fix several bogus includes on abs2305
-From: Al Viro <viro@zeniv.linux.org.uk>
+Subject: mn10300: update the ASB2303 defconfig
+From: David Howells <dhowells@redhat.com>
 
-asm/cpu never existed for mn10300; the files they are looking for are in
-asm.
+Update the defconfig for the ASB2303 platform.
 
-Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mn10300/unit-asb2305/include/unit/serial.h |    2 +-
- arch/mn10300/unit-asb2305/include/unit/timex.h  |    2 +-
- arch/mn10300/unit-asb2305/leds.c                |    4 ++--
- arch/mn10300/unit-asb2305/unit-init.c           |    5 ++---
- 4 files changed, 6 insertions(+), 7 deletions(-)
+ arch/mn10300/configs/asb2303_defconfig |  107 +++++++++++++++--------
+ 1 file changed, 70 insertions(+), 37 deletions(-)
 
-diff -puN arch/mn10300/unit-asb2305/include/unit/serial.h~fix-several-bogus-includes-on-mn10300-abs2305 arch/mn10300/unit-asb2305/include/unit/serial.h
---- a/arch/mn10300/unit-asb2305/include/unit/serial.h~fix-several-bogus-includes-on-mn10300-abs2305
-+++ a/arch/mn10300/unit-asb2305/include/unit/serial.h
-@@ -11,7 +11,7 @@
- #ifndef _ASM_UNIT_SERIAL_H
- #define _ASM_UNIT_SERIAL_H
+diff -puN arch/mn10300/configs/asb2303_defconfig~mn10300-update-the-asb2303-defconfig arch/mn10300/configs/asb2303_defconfig
+--- a/arch/mn10300/configs/asb2303_defconfig~mn10300-update-the-asb2303-defconfig
++++ a/arch/mn10300/configs/asb2303_defconfig
+@@ -1,7 +1,7 @@
+ #
+ # Automatically generated make config: don't edit
+-# Linux kernel version: 2.6.30-rc2
+-# Sat Apr 18 11:13:22 2009
++# Linux kernel version: 2.6.33-rc1
++# Tue Dec 22 19:26:25 2009
+ #
+ CONFIG_MN10300=y
+ CONFIG_AM33=y
+@@ -22,6 +22,7 @@ CONFIG_GENERIC_HARDIRQS=y
+ # CONFIG_HOTPLUG_CPU is not set
+ CONFIG_HZ=1000
+ CONFIG_DEFCONFIG_LIST="/lib/modules/$UNAME_RELEASE/.config"
++CONFIG_CONSTRUCTORS=y
  
--#include <asm/cpu/cpu-regs.h>
-+#include <asm/cpu-regs.h>
- #include <proc/irq.h>
- #include <linux/serial_reg.h>
+ #
+ # General setup
+@@ -43,11 +44,10 @@ CONFIG_BSD_PROCESS_ACCT=y
+ #
+ # RCU Subsystem
+ #
+-CONFIG_CLASSIC_RCU=y
+ # CONFIG_TREE_RCU is not set
+-# CONFIG_PREEMPT_RCU is not set
++# CONFIG_TREE_PREEMPT_RCU is not set
++CONFIG_TINY_RCU=y
+ # CONFIG_TREE_RCU_TRACE is not set
+-# CONFIG_PREEMPT_RCU_TRACE is not set
+ # CONFIG_IKCONFIG is not set
+ CONFIG_LOG_BUF_SHIFT=14
+ # CONFIG_GROUP_SCHED is not set
+@@ -62,7 +62,6 @@ CONFIG_ANON_INODES=y
+ CONFIG_EMBEDDED=y
+ CONFIG_SYSCTL_SYSCALL=y
+ # CONFIG_KALLSYMS is not set
+-CONFIG_STRIP_ASM_SYMS=y
+ # CONFIG_HOTPLUG is not set
+ CONFIG_PRINTK=y
+ CONFIG_BUG=y
+@@ -75,14 +74,22 @@ CONFIG_TIMERFD=y
+ CONFIG_EVENTFD=y
+ CONFIG_SHMEM=y
+ CONFIG_AIO=y
++
++#
++# Kernel Performance Events And Counters
++#
+ # CONFIG_VM_EVENT_COUNTERS is not set
+ CONFIG_COMPAT_BRK=y
+ CONFIG_SLAB=y
+ # CONFIG_SLUB is not set
+ # CONFIG_SLOB is not set
+ CONFIG_PROFILING=y
+-# CONFIG_MARKERS is not set
+ CONFIG_HAVE_OPROFILE=y
++CONFIG_HAVE_ARCH_TRACEHOOK=y
++
++#
++# GCOV-based kernel profiling
++#
+ # CONFIG_SLOW_WORK is not set
+ # CONFIG_HAVE_GENERIC_DMA_COHERENT is not set
+ CONFIG_SLABINFO=y
+@@ -90,6 +97,35 @@ CONFIG_RT_MUTEXES=y
+ CONFIG_BASE_SMALL=0
+ # CONFIG_MODULES is not set
+ # CONFIG_BLOCK is not set
++# CONFIG_INLINE_SPIN_TRYLOCK is not set
++# CONFIG_INLINE_SPIN_TRYLOCK_BH is not set
++# CONFIG_INLINE_SPIN_LOCK is not set
++# CONFIG_INLINE_SPIN_LOCK_BH is not set
++# CONFIG_INLINE_SPIN_LOCK_IRQ is not set
++# CONFIG_INLINE_SPIN_LOCK_IRQSAVE is not set
++# CONFIG_INLINE_SPIN_UNLOCK is not set
++# CONFIG_INLINE_SPIN_UNLOCK_BH is not set
++# CONFIG_INLINE_SPIN_UNLOCK_IRQ is not set
++# CONFIG_INLINE_SPIN_UNLOCK_IRQRESTORE is not set
++# CONFIG_INLINE_READ_TRYLOCK is not set
++# CONFIG_INLINE_READ_LOCK is not set
++# CONFIG_INLINE_READ_LOCK_BH is not set
++# CONFIG_INLINE_READ_LOCK_IRQ is not set
++# CONFIG_INLINE_READ_LOCK_IRQSAVE is not set
++# CONFIG_INLINE_READ_UNLOCK is not set
++# CONFIG_INLINE_READ_UNLOCK_BH is not set
++# CONFIG_INLINE_READ_UNLOCK_IRQ is not set
++# CONFIG_INLINE_READ_UNLOCK_IRQRESTORE is not set
++# CONFIG_INLINE_WRITE_TRYLOCK is not set
++# CONFIG_INLINE_WRITE_LOCK is not set
++# CONFIG_INLINE_WRITE_LOCK_BH is not set
++# CONFIG_INLINE_WRITE_LOCK_IRQ is not set
++# CONFIG_INLINE_WRITE_LOCK_IRQSAVE is not set
++# CONFIG_INLINE_WRITE_UNLOCK is not set
++# CONFIG_INLINE_WRITE_UNLOCK_BH is not set
++# CONFIG_INLINE_WRITE_UNLOCK_IRQ is not set
++# CONFIG_INLINE_WRITE_UNLOCK_IRQRESTORE is not set
++# CONFIG_MUTEX_SPIN_ON_OWNER is not set
+ # CONFIG_FREEZER is not set
  
-diff -puN arch/mn10300/unit-asb2305/include/unit/timex.h~fix-several-bogus-includes-on-mn10300-abs2305 arch/mn10300/unit-asb2305/include/unit/timex.h
---- a/arch/mn10300/unit-asb2305/include/unit/timex.h~fix-several-bogus-includes-on-mn10300-abs2305
-+++ a/arch/mn10300/unit-asb2305/include/unit/timex.h
-@@ -15,7 +15,7 @@
- #include <linux/irq.h>
- #endif /* __ASSEMBLY__ */
+ #
+@@ -145,9 +181,8 @@ CONFIG_SPLIT_PTLOCK_CPUS=4
+ CONFIG_ZONE_DMA_FLAG=0
+ CONFIG_NR_QUICK=1
+ CONFIG_VIRT_TO_BUS=y
+-CONFIG_UNEVICTABLE_LRU=y
+-CONFIG_HAVE_MLOCK=y
+-CONFIG_HAVE_MLOCKED_PAGE_BIT=y
++# CONFIG_KSM is not set
++CONFIG_DEFAULT_MMAP_MIN_ADDR=4096
  
--#include <asm/cpu/timer-regs.h>
-+#include <asm/timer-regs.h>
- #include <unit/clock.h>
+ #
+ # Power management options
+@@ -202,6 +237,7 @@ CONFIG_DEFAULT_TCP_CONG="cubic"
+ # CONFIG_NETFILTER is not set
+ # CONFIG_IP_DCCP is not set
+ # CONFIG_IP_SCTP is not set
++# CONFIG_RDS is not set
+ # CONFIG_TIPC is not set
+ # CONFIG_ATM is not set
+ # CONFIG_BRIDGE is not set
+@@ -216,6 +252,7 @@ CONFIG_DEFAULT_TCP_CONG="cubic"
+ # CONFIG_ECONET is not set
+ # CONFIG_WAN_ROUTER is not set
+ # CONFIG_PHONET is not set
++# CONFIG_IEEE802154 is not set
+ # CONFIG_NET_SCHED is not set
+ # CONFIG_DCB is not set
  
- /*
-diff -puN arch/mn10300/unit-asb2305/leds.c~fix-several-bogus-includes-on-mn10300-abs2305 arch/mn10300/unit-asb2305/leds.c
---- a/arch/mn10300/unit-asb2305/leds.c~fix-several-bogus-includes-on-mn10300-abs2305
-+++ a/arch/mn10300/unit-asb2305/leds.c
-@@ -13,8 +13,8 @@
- #include <linux/init.h>
- #include <asm/io.h>
- #include <asm/processor.h>
--#include <asm/cpu/intctl-regs.h>
--#include <asm/cpu/rtc-regs.h>
-+#include <asm/intctl-regs.h>
-+#include <asm/rtc-regs.h>
- #include <unit/leds.h>
+@@ -341,7 +378,6 @@ CONFIG_MISC_DEVICES=y
+ # CONFIG_SCSI_DMA is not set
+ # CONFIG_SCSI_NETLINK is not set
+ CONFIG_NETDEVICES=y
+-CONFIG_COMPAT_NET_DEV_OPS=y
+ # CONFIG_DUMMY is not set
+ # CONFIG_BONDING is not set
+ # CONFIG_MACVLAN is not set
+@@ -362,14 +398,11 @@ CONFIG_SMC91X=y
+ # CONFIG_IBM_NEW_EMAC_MAL_CLR_ICINTSTAT is not set
+ # CONFIG_IBM_NEW_EMAC_MAL_COMMON_ERR is not set
+ # CONFIG_B44 is not set
++# CONFIG_KS8842 is not set
++# CONFIG_KS8851_MLL is not set
+ # CONFIG_NETDEV_1000 is not set
+ # CONFIG_NETDEV_10000 is not set
+-
+-#
+-# Wireless LAN
+-#
+-# CONFIG_WLAN_PRE80211 is not set
+-# CONFIG_WLAN_80211 is not set
++# CONFIG_WLAN is not set
  
- static const u8 asb2305_led_hex_tbl[16] = {
-diff -puN arch/mn10300/unit-asb2305/unit-init.c~fix-several-bogus-includes-on-mn10300-abs2305 arch/mn10300/unit-asb2305/unit-init.c
---- a/arch/mn10300/unit-asb2305/unit-init.c~fix-several-bogus-includes-on-mn10300-abs2305
-+++ a/arch/mn10300/unit-asb2305/unit-init.c
-@@ -15,9 +15,8 @@
- #include <asm/io.h>
- #include <asm/setup.h>
- #include <asm/processor.h>
--#include <asm/cpu/intctl-regs.h>
--#include <asm/cpu/rtc-regs.h>
--#include <asm/cpu/serial-regs.h>
-+#include <asm/intctl-regs.h>
-+#include <asm/serial-regs.h>
- #include <unit/serial.h>
+ #
+ # Enable WiMAX (Networking options) to see the WiMAX drivers
+@@ -430,11 +463,15 @@ CONFIG_RTC=y
+ # CONFIG_TCG_TPM is not set
+ # CONFIG_I2C is not set
+ # CONFIG_SPI is not set
++
++#
++# PPS support
++#
++# CONFIG_PPS is not set
+ # CONFIG_W1 is not set
+ # CONFIG_POWER_SUPPLY is not set
+ # CONFIG_HWMON is not set
+ # CONFIG_THERMAL is not set
+-# CONFIG_THERMAL_HWMON is not set
+ # CONFIG_WATCHDOG is not set
+ CONFIG_SSB_POSSIBLE=y
  
- /*
+@@ -451,22 +488,7 @@ CONFIG_SSB_POSSIBLE=y
+ # CONFIG_HTC_PASIC3 is not set
+ # CONFIG_MFD_TMIO is not set
+ # CONFIG_REGULATOR is not set
+-
+-#
+-# Multimedia devices
+-#
+-
+-#
+-# Multimedia core support
+-#
+-# CONFIG_VIDEO_DEV is not set
+-# CONFIG_DVB_CORE is not set
+-# CONFIG_VIDEO_MEDIA is not set
+-
+-#
+-# Multimedia drivers
+-#
+-# CONFIG_DAB is not set
++# CONFIG_MEDIA_SUPPORT is not set
+ 
+ #
+ # Graphics support
+@@ -490,11 +512,17 @@ CONFIG_SSB_POSSIBLE=y
+ # CONFIG_DMADEVICES is not set
+ # CONFIG_AUXDISPLAY is not set
+ # CONFIG_UIO is not set
++
++#
++# TI VLYNQ
++#
+ # CONFIG_STAGING is not set
+ 
+ #
+ # File systems
+ #
++CONFIG_FILE_LOCKING=y
++CONFIG_FSNOTIFY=y
+ CONFIG_DNOTIFY=y
+ CONFIG_INOTIFY=y
+ CONFIG_INOTIFY_USER=y
+@@ -539,6 +567,7 @@ CONFIG_NFS_V3=y
+ # CONFIG_NFS_V3_ACL is not set
+ # CONFIG_NFS_V4 is not set
+ CONFIG_ROOT_NFS=y
++# CONFIG_NFSD is not set
+ CONFIG_LOCKD=y
+ CONFIG_LOCKD_V4=y
+ CONFIG_NFS_COMMON=y
+@@ -561,13 +590,13 @@ CONFIG_ENABLE_WARN_DEPRECATED=y
+ CONFIG_ENABLE_MUST_CHECK=y
+ CONFIG_FRAME_WARN=1024
+ CONFIG_MAGIC_SYSRQ=y
++CONFIG_STRIP_ASM_SYMS=y
+ # CONFIG_UNUSED_SYMBOLS is not set
+ # CONFIG_DEBUG_FS is not set
+ # CONFIG_HEADERS_CHECK is not set
+ # CONFIG_DEBUG_KERNEL is not set
+-# CONFIG_DEBUG_BUGVERBOSE is not set
++CONFIG_DEBUG_BUGVERBOSE=y
+ # CONFIG_DEBUG_MEMORY_INIT is not set
+-# CONFIG_RCU_CPU_STALL_DETECTOR is not set
+ # CONFIG_SYSCTL_SYSCALL_CHECK is not set
+ # CONFIG_SAMPLES is not set
+ 
+@@ -577,7 +606,11 @@ CONFIG_MAGIC_SYSRQ=y
+ # CONFIG_KEYS is not set
+ # CONFIG_SECURITY is not set
+ # CONFIG_SECURITYFS is not set
+-# CONFIG_SECURITY_FILE_CAPABILITIES is not set
++# CONFIG_DEFAULT_SECURITY_SELINUX is not set
++# CONFIG_DEFAULT_SECURITY_SMACK is not set
++# CONFIG_DEFAULT_SECURITY_TOMOYO is not set
++CONFIG_DEFAULT_SECURITY_DAC=y
++CONFIG_DEFAULT_SECURITY=""
+ # CONFIG_CRYPTO is not set
+ # CONFIG_BINARY_PRINTF is not set
+ 
 _
 
-Patches currently in -mm which might be from viro@zeniv.linux.org.uk are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
-linux-next.patch
+mm-make-totalhigh_pages-unsigned-long.patch
+fdpic-respect-pt_gnu_stack-exec-protection-markings-when-creating-nommu-stack.patch
+nommu-avoiding-duplicate-icache-flushes-of-shared-maps.patch
+nommu-use-copy__user_page-in-access_process_vm.patch
+mn10300-signal-stack-fix.patch
+mn10300-objcopy-flags-fix.patch
+mn10300-add-cc-clobbers-to-asm-statements.patch
+mn10300-wire-up-missing-new-syscalls.patch
 fix-several-bogus-includes-on-mn10300-abs2305.patch
-vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
-vfs-improve-comment-describing-fget_light.patch
-ecryptfs-another-lockdep-issue.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-single_open-seq_release-leak-diagnostics.patch
+mn10300-use-kern_err-not-kern_error.patch
+mn10300-use-generic-pci_enable_resources.patch
+mn10300-insert-pci-root-bus-resources-for-the-asb2305-devel-motherboard.patch
+mn10300-make-the-asb2305s-pcnet32-nic-work-by-using-the-pci-bridges-sram.patch
+mn10300-update-the-asb2303-defconfig.patch
+kernel-credc-use-kmem_cache_free.patch
+frv-duplicate-output_buffer-of-e03.patch
+mutex-subsystem-synchro-test-module.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
