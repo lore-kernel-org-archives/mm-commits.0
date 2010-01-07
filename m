@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-fix-section-mismatch-warning-in-hugetlbc.patch added to -mm tree
-Date: Thu, 07 Jan 2010 14:18:25 -0800
-Message-ID: <201001072218.o07MIPNm020870@imap1.linux-foundation.org>
+Subject: + power-fix-kernel-doc-notation.patch added to -mm tree
+Date: Thu, 07 Jan 2010 14:38:47 -0800
+Message-ID: <201001072238.o07Mcl2H021781@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47441 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49056 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754392Ab0AGWS1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jan 2010 17:18:27 -0500
+	by vger.kernel.org with ESMTP id S1752531Ab0AGWjB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jan 2010 17:39:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rakib.mullick@gmail.com
+Cc: randy.dunlap@oracle.com, rjw@sisk.pl
 
 
 The patch titled
-     hugetlb: fix section mismatch warning in hugetlb.c
+     power: fix kernel-doc notation
 has been added to the -mm tree.  Its filename is
-     hugetlb-fix-section-mismatch-warning-in-hugetlbc.patch
+     power-fix-kernel-doc-notation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,53 +33,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb: fix section mismatch warning in hugetlb.c
-From: Rakib Mullick <rakib.mullick@gmail.com>
+Subject: power: fix kernel-doc notation
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Since hugetlb_sysfs_add_hstate()'s caller is __init and it isn't
-referencing from any other function, we can do this.
+Warning(drivers/base/power/main.c:453): No description found for parameter 'dev'
+Warning(drivers/base/power/main.c:453): No description found for parameter 'cb'
+Warning(drivers/base/power/main.c:719): No description found for parameter 'dev'
+Warning(drivers/base/power/main.c:719): No description found for parameter 'state'
+Warning(drivers/base/power/main.c:719): No description found for parameter 'cb'
 
-Signed-off-by: Rakib Mullick <rakib.mullick@gmail.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/base/power/main.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN mm/hugetlb.c~hugetlb-fix-section-mismatch-warning-in-hugetlbc mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-fix-section-mismatch-warning-in-hugetlbc
-+++ a/mm/hugetlb.c
-@@ -1650,7 +1650,7 @@ static void hugetlb_unregister_all_nodes
-  * Register hstate attributes for a single node sysdev.
-  * No-op if attributes already registered.
+diff -puN drivers/base/power/main.c~power-fix-kernel-doc-notation drivers/base/power/main.c
+--- a/drivers/base/power/main.c~power-fix-kernel-doc-notation
++++ a/drivers/base/power/main.c
+@@ -446,8 +446,8 @@ EXPORT_SYMBOL_GPL(dpm_resume_noirq);
+ 
+ /**
+  * legacy_resume - Execute a legacy (bus or class) resume callback for device.
+- * dev: Device to resume.
+- * cb: Resume callback to execute.
++ * @dev: Device to resume.
++ * @cb: Resume callback to execute.
   */
--void hugetlb_register_node(struct node *node)
-+void __init hugetlb_register_node(struct node *node)
+ static int legacy_resume(struct device *dev, int (*cb)(struct device *dev))
  {
- 	struct hstate *h;
- 	struct node_hstate *nhs = &node_hstates[node->sysdev.id];
-@@ -1683,7 +1683,7 @@ void hugetlb_register_node(struct node *
-  * sysdevs of nodes that have memory.  All on-line nodes should have
-  * registered their associated sysdev by this time.
+@@ -711,8 +711,9 @@ EXPORT_SYMBOL_GPL(dpm_suspend_noirq);
+ 
+ /**
+  * legacy_suspend - Execute a legacy (bus or class) suspend callback for device.
+- * dev: Device to suspend.
+- * cb: Suspend callback to execute.
++ * @dev: Device to suspend.
++ * @state: PM transition of the system being carried out.
++ * @cb: Suspend callback to execute.
   */
--static void hugetlb_register_all_nodes(void)
-+static void __init hugetlb_register_all_nodes(void)
- {
- 	int nid;
- 
-@@ -1712,7 +1712,7 @@ static struct hstate *kobj_to_node_hstat
- 
- static void hugetlb_unregister_all_nodes(void) { }
- 
--static void hugetlb_register_all_nodes(void) { }
-+static void __init hugetlb_register_all_nodes(void) { }
- 
- #endif
- 
+ static int legacy_suspend(struct device *dev, pm_message_t state,
+ 			  int (*cb)(struct device *dev, pm_message_t state))
 _
 
-Patches currently in -mm which might be from rakib.mullick@gmail.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
+docs-large-update-to-ioctl-numbertxt.patch
+proc-revert-procfs-provide-stack-information-for-threads.patch
+power-fix-kernel-doc-notation.patch
 linux-next.patch
-hugetlb-fix-section-mismatch-warning-in-hugetlbc.patch
+documentation-update-ring-buffer-designtxt.patch
+documentation-update-kernel-doc-nano-howto-information.patch
+mfgpt-move-clocksource-menu.patch
+xen-add-kconfig-menu.patch
+gpio-add-driver-for-max7300-i2c-gpio-extender.patch
+reiser4-export-remove_from_page_cache-fix.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
