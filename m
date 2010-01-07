@@ -1,146 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [wrecked] input-bcm5974-report-abs_mt-events.patch removed from -mm tree
-Date: Thu, 07 Jan 2010 13:08:17 -0800
-Message-ID: <201001072108.o07L8HWk017612@imap1.linux-foundation.org>
+Subject: [merged] hwmon-coretemp-fix-tjmax-for-atom-n450-d410-d510-cpus.patch removed from -mm tree
+Date: Thu, 07 Jan 2010 13:10:18 -0800
+Message-ID: <201001072110.o07LAIjR017662@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45539 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37452 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753578Ab0AGVJM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jan 2010 16:09:12 -0500
+	by vger.kernel.org with ESMTP id S1753591Ab0AGVLC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jan 2010 16:11:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rydberg@euromail.se, dtor@mail.ru, mm-commits@vger.kernel.org
+To: yong.y.wang@linux.intel.com, huaxu.wan@intel.com, khali@linux-fr.org, yong.y.wang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     input: bcm5974: report ABS_MT events
+     hwmon/coretemp: fix TjMax for Atom N450/D410/D510 CPUs
 has been removed from the -mm tree.  Its filename was
-     input-bcm5974-report-abs_mt-events.patch
+     hwmon-coretemp-fix-tjmax-for-atom-n450-d410-d510-cpus.patch
 
-This patch was dropped because other changes were merged, which wrecked this patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: input: bcm5974: report ABS_MT events
-From: "Henrik Rydberg" <rydberg@euromail.se>
+Subject: hwmon/coretemp: fix TjMax for Atom N450/D410/D510 CPUs
+From: Yong Wang <yong.y.wang@linux.intel.com>
 
-Make bcm5974 report raw multi-touch (MT) data in the form of ABS_MT
-events.  The module parameter (nomt) may be used to turn off the effect of
-this patch.
+The max junction temperature of Atom N450/D410/D510 CPUs is 100 degrees
+Celsius.  Since these CPUs are always coupled with Intel NM10 chipset in
+one package, the best way to verify whether an Atom CPU is N450/D410/D510
+is to check the host bridge device.
 
-The module paremeter was added because all MT events bypass the input
-filtering and get sent directly to the X driver.
-
-Although it works as intended, without visible side effects, the stream of
-events is rather large, and since the bypassing is completely new
-behavior, I felt compelled to provide an option to turn it all off. 
-
-Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Signed-off-by: Yong Wang <yong.y.wang@intel.com>
+Acked-by: Huaxu Wan <huaxu.wan@intel.com>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/mouse/bcm5974.c |   53 +++++++++++++++++++++++++++++++-
- 1 file changed, 52 insertions(+), 1 deletion(-)
+ drivers/hwmon/coretemp.c |   16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
 
-diff -puN drivers/input/mouse/bcm5974.c~input-bcm5974-report-abs_mt-events drivers/input/mouse/bcm5974.c
---- a/drivers/input/mouse/bcm5974.c~input-bcm5974-report-abs_mt-events
-+++ a/drivers/input/mouse/bcm5974.c
-@@ -96,6 +96,10 @@ static int debug = 1;
- module_param(debug, int, 0644);
- MODULE_PARM_DESC(debug, "Activate debugging output");
+diff -puN drivers/hwmon/coretemp.c~hwmon-coretemp-fix-tjmax-for-atom-n450-d410-d510-cpus drivers/hwmon/coretemp.c
+--- a/drivers/hwmon/coretemp.c~hwmon-coretemp-fix-tjmax-for-atom-n450-d410-d510-cpus
++++ a/drivers/hwmon/coretemp.c
+@@ -33,6 +33,7 @@
+ #include <linux/list.h>
+ #include <linux/platform_device.h>
+ #include <linux/cpu.h>
++#include <linux/pci.h>
+ #include <asm/msr.h>
+ #include <asm/processor.h>
  
-+static int nomt;
-+module_param(nomt, int, 0644);
-+MODULE_PARM_DESC(nomt, "Disable multitouch (MT) events");
+@@ -161,6 +162,7 @@ static int __devinit adjust_tjmax(struct
+ 	int usemsr_ee = 1;
+ 	int err;
+ 	u32 eax, edx;
++	struct pci_dev *host_bridge;
+ 
+ 	/* Early chips have no MSR for TjMax */
+ 
+@@ -168,11 +170,21 @@ static int __devinit adjust_tjmax(struct
+ 		usemsr_ee = 0;
+ 	}
+ 
+-	/* Atoms seems to have TjMax at 90C */
++	/* Atoms CPUs */
+ 
+ 	if (c->x86_model == 0x1c) {
+ 		usemsr_ee = 0;
+-		tjmax = 90000;
 +
- /* button data structure */
- struct bt_data {
- 	u8 unknown1;		/* constant */
-@@ -139,6 +143,7 @@ struct tp_finger {
- /* trackpad finger data size, empirically at least ten fingers */
- #define SIZEOF_FINGER		sizeof(struct tp_finger)
- #define SIZEOF_ALL_FINGERS	(16 * SIZEOF_FINGER)
-+#define MAX_FINGER_ORIENTATION	16384
- 
- /* device-specific parameters */
- struct bcm5974_param {
-@@ -284,6 +289,28 @@ static void setup_events_to_report(struc
- 	input_set_abs_params(input_dev, ABS_Y,
- 				0, cfg->y.dim, cfg->y.fuzz, 0);
- 
-+	if (!nomt) {
-+		/* finger touch area */
-+		input_set_abs_params(input_dev, ABS_MT_TOUCH_MAJOR,
-+				     cfg->w.devmin, cfg->w.devmax, 0, 0);
-+		input_set_abs_params(input_dev, ABS_MT_TOUCH_MINOR,
-+				     cfg->w.devmin, cfg->w.devmax, 0, 0);
-+		/* finger approach area */
-+		input_set_abs_params(input_dev, ABS_MT_WIDTH_MAJOR,
-+				     cfg->w.devmin, cfg->w.devmax, 0, 0);
-+		input_set_abs_params(input_dev, ABS_MT_WIDTH_MINOR,
-+				     cfg->w.devmin, cfg->w.devmax, 0, 0);
-+		/* finger orientation */
-+		input_set_abs_params(input_dev, ABS_MT_ORIENTATION,
-+				     -MAX_FINGER_ORIENTATION,
-+				     MAX_FINGER_ORIENTATION, 0, 0);
-+		/* finger position */
-+		input_set_abs_params(input_dev, ABS_MT_POSITION_X,
-+				     cfg->x.devmin, cfg->x.devmax, 0, 0);
-+		input_set_abs_params(input_dev, ABS_MT_POSITION_Y,
-+				     cfg->y.devmin, cfg->y.devmax, 0, 0);
-+	}
++		host_bridge = pci_get_bus_and_slot(0, PCI_DEVFN(0, 0));
 +
- 	__set_bit(EV_KEY, input_dev->evbit);
- 	__set_bit(BTN_TOUCH, input_dev->keybit);
- 	__set_bit(BTN_TOOL_FINGER, input_dev->keybit);
-@@ -316,7 +343,7 @@ static int report_tp_state(struct bcm597
- 	const struct bcm5974_config *c = &dev->cfg;
- 	const struct tp_finger *f;
- 	struct input_dev *input = dev->input;
--	int raw_p, raw_w, raw_x, raw_y, raw_n;
-+	int raw_p, raw_w, raw_x, raw_y, raw_n, i;
- 	int ptest, origin, ibt = 0, nmin = 0, nmax = 0;
- 	int abs_p = 0, abs_w = 0, abs_x = 0, abs_y = 0;
- 
-@@ -329,6 +356,30 @@ static int report_tp_state(struct bcm597
- 
- 	/* always track the first finger; when detached, start over */
- 	if (raw_n) {
++		if (host_bridge && host_bridge->vendor == PCI_VENDOR_ID_INTEL
++		    && (host_bridge->device == 0xa000	/* NM10 based nettop */
++		    || host_bridge->device == 0xa010))	/* NM10 based netbook */
++			tjmax = 100000;
++		else
++			tjmax = 90000;
 +
-+		/* report raw trackpad data */
-+		if (!nomt) {
-+			for (i = 0; i < raw_n; i++) {
-+				int y = c->y.devmin + c->y.devmax;
-+				input_report_abs(input, ABS_MT_TOUCH_MAJOR,
-+						 raw2int(f[i].force_major));
-+				input_report_abs(input, ABS_MT_TOUCH_MINOR,
-+						 raw2int(f[i].force_minor));
-+				input_report_abs(input, ABS_MT_WIDTH_MAJOR,
-+						 raw2int(f[i].size_major));
-+				input_report_abs(input, ABS_MT_WIDTH_MINOR,
-+						 raw2int(f[i].size_minor));
-+				input_report_abs(input, ABS_MT_ORIENTATION,
-+						 MAX_FINGER_ORIENTATION -
-+						 raw2int(f[i].orientation));
-+				input_report_abs(input, ABS_MT_POSITION_X,
-+						 raw2int(f[i].abs_x));
-+				input_report_abs(input, ABS_MT_POSITION_Y,
-+						 y - raw2int(f[i].abs_y));
-+				input_mt_sync(input);
-+			}
-+		}
-+
- 		raw_p = raw2int(f->force_major);
- 		raw_w = raw2int(f->size_major);
- 		raw_x = raw2int(f->abs_x);
++		pci_dev_put(host_bridge);
+ 	}
+ 
+ 	if ((c->x86_model > 0xe) && (usemsr_ee)) {
 _
 
-Patches currently in -mm which might be from rydberg@euromail.se are
+Patches currently in -mm which might be from yong.y.wang@linux.intel.com are
 
 linux-next.patch
-input-bcm5974-retract-efi-broken-suspend_resume.patch
-input-bcm5974-report-abs_mt-events.patch
 
