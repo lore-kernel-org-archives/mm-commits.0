@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cgroups-net_cls-as-module.patch added to -mm tree
-Date: Wed, 06 Jan 2010 16:08:04 -0800
-Message-ID: <201001070008.o07085Kk026760@imap1.linux-foundation.org>
+Subject: + nommu-use-copy__user_page-in-access_process_vm.patch added to -mm tree
+Date: Wed, 06 Jan 2010 16:23:24 -0800
+Message-ID: <201001070023.o070NO5Z027428@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37988 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43237 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933208Ab0AGAIQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jan 2010 19:08:16 -0500
+	by vger.kernel.org with ESMTP id S932422Ab0AGAXz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jan 2010 19:23:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bblum@andrew.cmu.edu, davem@davemloft.net, kamezawa.hiroyu@jp.fujitsu.com, laijs@cn.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com
+Cc: jie.zhang@analog.com, david_mccullough@mcafee.com, dhowells@redhat.com, gerg@uclinux.org, lethal@linux-sh.org, vapier@gentoo.org
 
 
 The patch titled
-     cgroups: net_cls as module
+     nommu: use copy_*_user_page() in access_process_vm()
 has been added to the -mm tree.  Its filename is
-     cgroups-net_cls-as-module.patch
+     nommu-use-copy__user_page-in-access_process_vm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,124 +33,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: net_cls as module
-From: Ben Blum <bblum@andrew.cmu.edu>
+Subject: nommu: use copy_*_user_page() in access_process_vm()
+From: Jie Zhang <jie.zhang@analog.com>
 
-Allows the net_cls cgroup subsystem to be compiled as a module
+The MMU code uses the copy_*_user_page() variants in access_process_vm()
+rather than copy_*_user() as the former includes an icache flush.  This is
+important when doing things like setting software breakpoints with gdb. 
+So switch the NOMMU code over to do the same.
 
-This patch modifies net/sched/cls_cgroup.c to allow the net_cls subsystem
-to be optionally compiled as a module instead of builtin.  The
-cgroup_subsys struct is moved around a bit to allow the subsys_id to be
-either declared as a compile-time constant by the cgroup_subsys.h include
-in cgroup.h, or, if it's a module, initialized within the struct by
-cgroup_load_subsys.
+This patch makes the reasonable assumption that copy_from_user_page()
+won't fail - which is probably fine, as we've checked the VMA from which
+we're copying is usable, and the copy is not allowed to cross VMAs.  The
+one case where it might go wrong is if the VMA is a device rather than
+RAM, and that device returns an error which - in which case rubbish will
+be returned rather than EIO.
 
-Signed-off-by: Ben Blum <bblum@andrew.cmu.edu>
-Acked-by: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Paul Menage <menage@google.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
+Signed-off-by: Jie Zhang <jie.zhang@analog.com>
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Signed-off-by: David Howells <dhowells@redhat.com>
+Acked-by: David McCullough <david_mccullough@mcafee.com>
+Acked-by: Paul Mundt <lethal@linux-sh.org>
+Acked-by: Greg Ungerer <gerg@uclinux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sched/Kconfig      |    5 ++++-
- net/sched/cls_cgroup.c |   36 +++++++++++++++++++++++++++---------
- 2 files changed, 31 insertions(+), 10 deletions(-)
+ mm/nommu.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN net/sched/Kconfig~cgroups-net_cls-as-module net/sched/Kconfig
---- a/net/sched/Kconfig~cgroups-net_cls-as-module
-+++ a/net/sched/Kconfig
-@@ -328,13 +328,16 @@ config NET_CLS_FLOW
- 	  module will be called cls_flow.
+diff -puN mm/nommu.c~nommu-use-copy__user_page-in-access_process_vm mm/nommu.c
+--- a/mm/nommu.c~nommu-use-copy__user_page-in-access_process_vm
++++ a/mm/nommu.c
+@@ -1921,9 +1921,11 @@ int access_process_vm(struct task_struct
  
- config NET_CLS_CGROUP
--	bool "Control Group Classifier"
-+	tristate "Control Group Classifier"
- 	select NET_CLS
- 	depends on CGROUPS
- 	---help---
- 	  Say Y here if you want to classify packets based on the control
- 	  cgroup of their process.
- 
-+	  To compile this code as a module, choose M here: the
-+	  module will be called cls_cgroup.
-+
- config NET_EMATCH
- 	bool "Extended Matches"
- 	select NET_CLS
-diff -puN net/sched/cls_cgroup.c~cgroups-net_cls-as-module net/sched/cls_cgroup.c
---- a/net/sched/cls_cgroup.c~cgroups-net_cls-as-module
-+++ a/net/sched/cls_cgroup.c
-@@ -24,6 +24,25 @@ struct cgroup_cls_state
- 	u32 classid;
- };
- 
-+static struct cgroup_subsys_state *cgrp_create(struct cgroup_subsys *ss,
-+					       struct cgroup *cgrp);
-+static void cgrp_destroy(struct cgroup_subsys *ss, struct cgroup *cgrp);
-+static int cgrp_populate(struct cgroup_subsys *ss, struct cgroup *cgrp);
-+
-+struct cgroup_subsys net_cls_subsys = {
-+	.name		= "net_cls",
-+	.create		= cgrp_create,
-+	.destroy	= cgrp_destroy,
-+	.populate	= cgrp_populate,
-+#ifdef CONFIG_NET_CLS_CGROUP
-+	.subsys_id	= net_cls_subsys_id,
-+#else
-+#define net_cls_subsys_id net_cls_subsys.subsys_id
-+#endif
-+	.module		= THIS_MODULE,
-+};
-+
-+
- static inline struct cgroup_cls_state *cgrp_cls_state(struct cgroup *cgrp)
- {
- 	return container_of(cgroup_subsys_state(cgrp, net_cls_subsys_id),
-@@ -79,14 +98,6 @@ static int cgrp_populate(struct cgroup_s
- 	return cgroup_add_files(cgrp, ss, ss_files, ARRAY_SIZE(ss_files));
- }
- 
--struct cgroup_subsys net_cls_subsys = {
--	.name		= "net_cls",
--	.create		= cgrp_create,
--	.destroy	= cgrp_destroy,
--	.populate	= cgrp_populate,
--	.subsys_id	= net_cls_subsys_id,
--};
--
- struct cls_cgroup_head
- {
- 	u32			handle;
-@@ -277,12 +288,19 @@ static struct tcf_proto_ops cls_cgroup_o
- 
- static int __init init_cgroup_cls(void)
- {
--	return register_tcf_proto_ops(&cls_cgroup_ops);
-+	int ret = register_tcf_proto_ops(&cls_cgroup_ops);
-+	if (ret)
-+		return ret;
-+	ret = cgroup_load_subsys(&net_cls_subsys);
-+	if (ret)
-+		unregister_tcf_proto_ops(&cls_cgroup_ops);
-+	return ret;
- }
- 
- static void __exit exit_cgroup_cls(void)
- {
- 	unregister_tcf_proto_ops(&cls_cgroup_ops);
-+	cgroup_unload_subsys(&net_cls_subsys);
- }
- 
- module_init(init_cgroup_cls);
+ 		/* only read or write mappings where it is permitted */
+ 		if (write && vma->vm_flags & VM_MAYWRITE)
+-			len -= copy_to_user((void *) addr, buf, len);
++			copy_to_user_page(vma, NULL, addr,
++					 (void *) addr, buf, len);
+ 		else if (!write && vma->vm_flags & VM_MAYREAD)
+-			len -= copy_from_user(buf, (void *) addr, len);
++			copy_from_user_page(vma, NULL, addr,
++					    buf, (void *) addr, len);
+ 		else
+ 			len = 0;
+ 	} else {
 _
 
-Patches currently in -mm which might be from bblum@andrew.cmu.edu are
+Patches currently in -mm which might be from jie.zhang@analog.com are
 
-cgroups-fix-2632-regression-causing-bug_on-in-cgroup_diput.patch
-cgroups-revamp-subsys-array.patch
-cgroups-subsystem-module-loading-interface.patch
-cgroups-subsystem-module-unloading.patch
-cgroups-net_cls-as-module.patch
+fdpic-respect-pt_gnu_stack-exec-protection-markings-when-creating-nommu-stack.patch
+nommu-avoiding-duplicate-icache-flushes-of-shared-maps.patch
+nommu-use-copy__user_page-in-access_process_vm.patch
 
