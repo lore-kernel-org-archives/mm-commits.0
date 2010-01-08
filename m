@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sysctl-add-call_usermodehelper_cleanup.patch added to -mm tree
-Date: Fri, 08 Jan 2010 15:54:11 -0800
-Message-ID: <201001082354.o08NsB7d021874@imap1.linux-foundation.org>
+Subject: + sysctl-use-rcu-protected-sysctl-for-ocfs-group-add-helper.patch added to -mm tree
+Date: Fri, 08 Jan 2010 15:54:20 -0800
+Message-ID: <201001082354.o08NsLGV021886@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52425 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43284 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754486Ab0AHXyk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jan 2010 18:54:40 -0500
+	by vger.kernel.org with ESMTP id S1754432Ab0AHXyu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jan 2010 18:54:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: andi@firstfloor.org, ak@linux.intel.com, ebiederm@xmission.com, paulmck@us.ibm.com, rmk+lkml@arm.linux.org.uk, rusty@rustcorp.com.au, sam@ravnborg.org
+Cc: andi@firstfloor.org, Joel.Becker@oracle.com, ak@linux.intel.com, ebiederm@xmission.com, paulmck@us.ibm.com, rmk+lkml@arm.linux.org.uk, rusty@rustcorp.com.au, sam@ravnborg.org
 
 
 The patch titled
-     sysctl: add call_usermodehelper_cleanup()
+     sysctl: use RCU protected sysctl for ocfs group add helper
 has been added to the -mm tree.  Its filename is
-     sysctl-add-call_usermodehelper_cleanup.patch
+     sysctl-use-rcu-protected-sysctl-for-ocfs-group-add-helper.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,58 +33,84 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysctl: add call_usermodehelper_cleanup()
+Subject: sysctl: use RCU protected sysctl for ocfs group add helper
 From: Andi Kleen <andi@firstfloor.org>
 
-This is the same as call_usermodehelper(), but with an cleanup callback. 
-Needed for some of the followon proc_rcu_string() users.
+This avoids races with unlocked sysctl()
 
-This avoids open coding this.
+Also saves ~220 bytes in the data segment.
 
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
 Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
 Cc: Russell King <rmk+lkml@arm.linux.org.uk>
 Cc: Sam Ravnborg <sam@ravnborg.org>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Joel Becker <Joel.Becker@oracle.com>
 Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kmod.h |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ fs/ocfs2/stackglue.c |   17 +++++++++++++----
+ 1 file changed, 13 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/kmod.h~sysctl-add-call_usermodehelper_cleanup include/linux/kmod.h
---- a/include/linux/kmod.h~sysctl-add-call_usermodehelper_cleanup
-+++ a/include/linux/kmod.h
-@@ -72,7 +72,8 @@ int call_usermodehelper_exec(struct subp
- void call_usermodehelper_freeinfo(struct subprocess_info *info);
+diff -puN fs/ocfs2/stackglue.c~sysctl-use-rcu-protected-sysctl-for-ocfs-group-add-helper fs/ocfs2/stackglue.c
+--- a/fs/ocfs2/stackglue.c~sysctl-use-rcu-protected-sysctl-for-ocfs-group-add-helper
++++ a/fs/ocfs2/stackglue.c
+@@ -27,6 +27,7 @@
+ #include <linux/kobject.h>
+ #include <linux/sysfs.h>
+ #include <linux/sysctl.h>
++#include <linux/rcustring.h>
  
- static inline int
--call_usermodehelper(char *path, char **argv, char **envp, enum umh_wait wait)
-+call_usermodehelper_cleanup(char *path, char **argv, char **envp, enum umh_wait wait,
-+			    void (*cleanup)(char **, char **))
+ #include "ocfs2_fs.h"
+ 
+@@ -40,7 +41,7 @@ static struct ocfs2_locking_protocol *lp
+ static DEFINE_SPINLOCK(ocfs2_stack_lock);
+ static LIST_HEAD(ocfs2_stack_list);
+ static char cluster_stack_name[OCFS2_STACK_LABEL_LEN + 1];
+-static char ocfs2_hb_ctl_path[OCFS2_MAX_HB_CTL_PATH] = "/sbin/ocfs2_hb_ctl";
++static char *ocfs2_hb_ctl_path = "/sbin/ocfs2_hb_ctl";
+ 
+ /*
+  * The stack currently in use.  If not null, active_stack->sp_count > 0,
+@@ -395,8 +396,15 @@ static void ocfs2_leave_group(const char
  {
- 	struct subprocess_info *info;
- 	gfp_t gfp_mask = (wait == UMH_NO_WAIT) ? GFP_ATOMIC : GFP_KERNEL;
-@@ -80,10 +81,18 @@ call_usermodehelper(char *path, char **a
- 	info = call_usermodehelper_setup(path, argv, envp, gfp_mask);
- 	if (info == NULL)
- 		return -ENOMEM;
-+	if (cleanup)
-+		call_usermodehelper_setcleanup(info, cleanup);
- 	return call_usermodehelper_exec(info, wait);
+ 	int ret;
+ 	char *argv[5], *envp[3];
++	char *helper;
+ 
+-	argv[0] = ocfs2_hb_ctl_path;
++	helper = access_rcu_string(&ocfs2_hb_ctl_path, OCFS2_MAX_HB_CTL_PATH, GFP_KERNEL);
++	if (!helper) {
++		printk(KERN_ERR "ocfs2_leave_group: no memory\n");
++		return;
++	}
++
++	argv[0] = helper;
+ 	argv[1] = "-K";
+ 	argv[2] = "-u";
+ 	argv[3] = (char *)group;
+@@ -414,6 +422,7 @@ static void ocfs2_leave_group(const char
+ 		       "\"%s %s %s %s\"\n",
+ 		       ret, argv[0], argv[1], argv[2], argv[3]);
+ 	}
++	kfree(helper);
  }
  
- static inline int
-+call_usermodehelper(char *path, char **argv, char **envp, enum umh_wait wait)
-+{
-+	return call_usermodehelper_cleanup(path, argv, envp, wait, NULL);
-+}
-+
-+static inline int
- call_usermodehelper_keys(char *path, char **argv, char **envp,
- 			 struct key *session_keyring, enum umh_wait wait)
- {
+ /*
+@@ -621,10 +630,10 @@ error:
+ static ctl_table ocfs2_nm_table[] = {
+ 	{
+ 		.procname	= "hb_ctl_path",
+-		.data		= ocfs2_hb_ctl_path,
++		.data		= &ocfs2_hb_ctl_path,
+ 		.maxlen		= OCFS2_MAX_HB_CTL_PATH,
+ 		.mode		= 0644,
+-		.proc_handler	= proc_dostring,
++		.proc_handler	= proc_rcu_string,
+ 	},
+ 	{ }
+ };
 _
 
 Patches currently in -mm which might be from andi@firstfloor.org are
