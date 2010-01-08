@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + elf-coredump-add-extended-numbering-support.patch added to -mm tree
-Date: Thu, 07 Jan 2010 16:29:57 -0800
-Message-ID: <201001080029.o080Tvcp026466__11024.0029207946$1262910705$gmane$org@imap1.linux-foundation.org>
+Subject: + coredump-unify-dump_seek-implementations-for-each-binfmt_c.patch added to -mm tree
+Date: Thu, 07 Jan 2010 16:29:45 -0800
+Message-ID: <201001080029.o080TjOM026452__903.467907528643$1262910840$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34721 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58120 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753154Ab0AHAb0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jan 2010 19:31:26 -0500
+	by vger.kernel.org with ESMTP id S1752625Ab0AHAdp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jan 2010 19:33:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: d.hatayama@jp.fujitsu.com, alan@lxorguk.ukuu.org.uk, andi@firstfloor.org, dh
 
 
 The patch titled
-     elf coredump: add extended numbering support
+     coredump: unify dump_seek() implementations for each binfmt_*.c
 has been added to the -mm tree.  Its filename is
-     elf-coredump-add-extended-numbering-support.patch
+     coredump-unify-dump_seek-implementations-for-each-binfmt_c.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,24 +33,161 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: elf coredump: add extended numbering support
+Subject: coredump: unify dump_seek() implementations for each binfmt_*.c
 From: Daisuke HATAYAMA <d.hatayama@jp.fujitsu.com>
 
-The current ELF dumper implementation can produce broken corefiles if
-program headers exceed 65535.  This number is determined by the number of
-vmas which the process have.  In particular, some extreme programs may use
-more than 65535 vmas.  (If you google max_map_count, you can find some
-users facing this problem.) This kind of program never be able to generate
-correct coredumps.
+The current ELF dumper can produce broken corefiles if program headers
+exceed 65535.  In particular, the program in 64-bit environment often
+demands more than 65535 mmaps.  If you google max_map_count, then you can
+find many users facing this problem.
 
-This patch implements ``extended numbering'' that uses sh_info field of
-the first section header instead of e_phnum field in order to represent
-upto 4294967295 vmas.
+Solaris has already dealt with this issue, and other OSes have also
+adopted the same method as in Solaris.  Currently, Sun's document and AMD
+64 ABI include the description for the extension, where they call the
+extension Extended Numbering.  See Reference for further information.
 
-This is supported by
-AMD64-ABI(http://www.x86-64.org/documentation.html) and
-Solaris(http://docs.sun.com/app/docs/doc/817-1984/).
-Of course, we are preparing patches for gdb and binutils.
+I believe that linux kernel should adopt the same way as they did, so I've
+written this patch.
+
+I am also preparing for patches of GDB and binutils.
+
+How to fix
+==========
+
+In new dumping process, there are two cases according to weather or
+not the number of program headers is equal to or more than 65535.
+
+ - if less than 65535, the produced corefile format is exactly the same
+   as the ordinary one.
+
+ - if equal to or more than 65535, then e_phnum field is set to newly
+   introduced constant PN_XNUM(0xffff) and the actual number of program
+   headers is set to sh_info field of the section header at index 0.
+
+Compatibility Concern
+=====================
+
+ * As already mentioned in Summary, Sun and AMD64 has already adopted
+   this.  See Reference.
+
+ * There are four combinations according to whether kernel and userland
+   tools are respectively modified or not.  The next table summarizes
+   shortly for each combination.
+
+                  ---------------------------------------------
+                     Original Kernel    |   Modified Kernel   
+                  ---------------------------------------------
+    	            < 65535  | >= 65535 | < 65535  | >= 65535 
+  -------------------------------------------------------------
+   Original Tools |    OK    |  broken  |   OK     | broken (#)
+  -------------------------------------------------------------
+   Modified Tools |    OK    |  broken  |   OK     |    OK
+  -------------------------------------------------------------
+
+  Note that there is no case that `OK' changes to `broken'.
+
+  (#) Although this case remains broken, O-M behaves better than
+  O-O. That is, while in O-O case e_phnum field would be extremely
+  small due to integer overflow, in O-M case it is guaranteed to be at
+  least 65535 by being set to PN_XNUM(0xFFFF), much closer to the
+  actual correct value than the O-O case.
+
+Test Program
+============
+
+Here is a test program mkmmaps.c that is useful to produce the
+corefile with many mmaps. To use this, please take the following
+steps:
+
+$ ulimit -c unlimited
+$ sysctl vm.max_map_count=70000 # default 65530 is too small
+$ sysctl fs.file-max=70000
+$ mkmmaps 65535
+
+Then, the program will abort and a corefile will be generated.
+
+If failed, there are two cases according to the error message
+displayed.
+
+ * ``out of memory'' means vm.max_map_count is still smaller
+
+ * ``too many open files'' means fs.file-max is still smaller
+
+So, please change it to a larger value, and then retry it.
+
+mkmmaps.c
+==
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/mman.h>
+#include <fcntl.h>
+#include <unistd.h>
+int main(int argc, char **argv)
+{ 
+	int maps_num;
+	if (argc < 2) {
+		fprintf(stderr, "mkmmaps [number of maps to be created]\n");
+		exit(1);
+	}
+	if (sscanf(argv[1], "%d", &maps_num) == EOF) {
+		perror("sscanf");
+		exit(2);
+	}
+	if (maps_num < 0) {
+		fprintf(stderr, "%d is invalid\n", maps_num);
+		exit(3);
+	}
+	for (; maps_num > 0; --maps_num) {
+		if (MAP_FAILED == mmap((void *)NULL, (size_t) 1, PROT_READ,
+					MAP_SHARED | MAP_ANONYMOUS, (int) -1,
+					(off_t) NULL)) {
+			perror("mmap");
+			exit(4);
+		}    
+	}
+	abort();
+	{
+		char buffer[128];
+		sprintf(buffer, "wc -l /proc/%u/maps", getpid());
+		system(buffer);
+	}
+	return 0;
+}
+
+Tested on i386, ia64 and um/sys-i386.
+Built on sh4 (which covers fs/binfmt_elf_fdpic.c)
+
+References
+==========
+
+ - Sun microsystems: Linker and Libraries.
+   Part No: 817-1984-17, September 2008.
+   URL: http://docs.sun.com/app/docs/doc/817-1984
+
+ - System V ABI AMD64 Architecture Processor Supplement
+   Draft Version 0.99., May 11, 2009.
+   URL: http://www.x86-64.org/
+
+
+
+
+This patch:
+
+There are three different definitions for dump_seek() functions in
+binfmt_aout.c, binfmt_elf.c and binfmt_elf_fdpic.c, respectively.  The
+only for binfmt_elf.c.
+
+My next patch will move dump_seek() into a header file in order to share
+the same implementations for dump_write() and dump_seek().  As the first
+step, this patch unify these three definitions for dump_seek() by applying
+the past commits that have been applied only for binfmt_elf.c.
+
+Specifically, the modification made here is part of the following commits:
+
+  * d025c9db7f31fc0554ce7fb2dfc78d35a77f3487
+  * 7f14daa19ea36b200d237ad3ac5826ae25360461
+
+This patch does not change a shape of corefiles.
 
 Signed-off-by: Daisuke HATAYAMA <d.hatayama@jp.fujitsu.com>
 Cc: "Luck, Tony" <tony.luck@intel.com>
@@ -67,387 +204,189 @@ Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/ia32/elfcore32.h |    1 
- arch/ia64/kernel/elfcore.c |   16 ++++++++
- arch/um/sys-i386/elfcore.c |   16 ++++++++
- fs/binfmt_elf.c            |   66 +++++++++++++++++++++++++++++++++--
- fs/binfmt_elf_fdpic.c      |   63 ++++++++++++++++++++++++++++++++-
- include/linux/elf.h        |   26 +++++++++++++
- include/linux/elfcore.h    |    1 
- kernel/elfcore.c           |    5 ++
- 8 files changed, 188 insertions(+), 6 deletions(-)
+ fs/binfmt_aout.c      |   31 ++++++++++++++++-----
+ fs/binfmt_elf_fdpic.c |   59 +++++++++++++++++++++++++---------------
+ 2 files changed, 62 insertions(+), 28 deletions(-)
 
-diff -puN arch/ia64/ia32/elfcore32.h~elf-coredump-add-extended-numbering-support arch/ia64/ia32/elfcore32.h
---- a/arch/ia64/ia32/elfcore32.h~elf-coredump-add-extended-numbering-support
-+++ a/arch/ia64/ia32/elfcore32.h
-@@ -161,5 +161,6 @@ elf_core_write_extra_phdrs(struct file *
- 			   unsigned long limit);
- extern int
- elf_core_write_extra_data(struct file *file, size_t *size, unsigned long limit);
-+extern size_t elf_core_extra_data_size(void);
- 
- #endif /* _ELFCORE32_H_ */
-diff -puN arch/ia64/kernel/elfcore.c~elf-coredump-add-extended-numbering-support arch/ia64/kernel/elfcore.c
---- a/arch/ia64/kernel/elfcore.c~elf-coredump-add-extended-numbering-support
-+++ a/arch/ia64/kernel/elfcore.c
-@@ -62,3 +62,19 @@ int elf_core_write_extra_data(struct fil
- 	}
- 	return 1;
+diff -puN fs/binfmt_aout.c~coredump-unify-dump_seek-implementations-for-each-binfmt_c fs/binfmt_aout.c
+--- a/fs/binfmt_aout.c~coredump-unify-dump_seek-implementations-for-each-binfmt_c
++++ a/fs/binfmt_aout.c
+@@ -69,16 +69,32 @@ static int dump_write(struct file *file,
+ 	return file->f_op->write(file, addr, nr, &file->f_pos) == nr;
  }
-+
-+size_t elf_core_extra_data_size(void)
+ 
++static int dump_seek(struct file *file, loff_t off)
 +{
-+	const struct elf_phdr *const gate_phdrs =
-+		(const struct elf_phdr *) (GATE_ADDR + GATE_EHDR->e_phoff);
-+	int i;
-+	size_t size = 0;
-+
-+	for (i = 0; i < GATE_EHDR->e_phnum; ++i) {
-+		if (gate_phdrs[i].p_type == PT_LOAD) {
-+			size += PAGE_ALIGN(gate_phdrs[i].p_memsz);
-+			break;
++	if (file->f_op->llseek && file->f_op->llseek != no_llseek) {
++		if (file->f_op->llseek(file, off, SEEK_CUR) < 0)
++			return 0;
++	} else {
++		char *buf = (char *)get_zeroed_page(GFP_KERNEL);
++		if (!buf)
++			return 0;
++		while (off > 0) {
++			unsigned long n = off;
++			if (n > PAGE_SIZE)
++				n = PAGE_SIZE;
++			if (!dump_write(file, buf, n))
++				return 0;
++			off -= n;
 +		}
++		free_page((unsigned long)buf);
 +	}
-+	return size;
++	return 1;
 +}
-diff -puN arch/um/sys-i386/elfcore.c~elf-coredump-add-extended-numbering-support arch/um/sys-i386/elfcore.c
---- a/arch/um/sys-i386/elfcore.c~elf-coredump-add-extended-numbering-support
-+++ a/arch/um/sys-i386/elfcore.c
-@@ -65,3 +65,19 @@ int elf_core_write_extra_data(struct fil
++
+ #define DUMP_WRITE(addr, nr)	\
+ 	if (!dump_write(file, (void *)(addr), (nr))) \
+ 		goto end_coredump;
+ 
+-#define DUMP_SEEK(offset) \
+-if (file->f_op->llseek) { \
+-	if (file->f_op->llseek(file,(offset),0) != (offset)) \
+- 		goto end_coredump; \
+-} else file->f_pos = (offset)
+-
+ /*
+  * Routine writes a core dump image in the current directory.
+  * Currently only a stub-function.
+@@ -132,7 +148,8 @@ static int aout_core_dump(struct coredum
+ /* struct user */
+ 	DUMP_WRITE(&dump,sizeof(dump));
+ /* Now dump all of the user data.  Include malloced stuff as well */
+-	DUMP_SEEK(PAGE_SIZE);
++	if (!dump_seek(cprm->file, PAGE_SIZE - sizeof(dump)))
++		goto end_coredump;
+ /* now we start writing out the user space info */
+ 	set_fs(USER_DS);
+ /* Dump the data area */
+diff -puN fs/binfmt_elf_fdpic.c~coredump-unify-dump_seek-implementations-for-each-binfmt_c fs/binfmt_elf_fdpic.c
+--- a/fs/binfmt_elf_fdpic.c~coredump-unify-dump_seek-implementations-for-each-binfmt_c
++++ a/fs/binfmt_elf_fdpic.c
+@@ -1223,11 +1223,22 @@ static int dump_write(struct file *file,
+ 
+ static int dump_seek(struct file *file, loff_t off)
+ {
+-	if (file->f_op->llseek) {
+-		if (file->f_op->llseek(file, off, SEEK_SET) != off)
++	if (file->f_op->llseek && file->f_op->llseek != no_llseek) {
++		if (file->f_op->llseek(file, off, SEEK_CUR) < 0)
+ 			return 0;
+ 	} else {
+-		file->f_pos = off;
++		char *buf = (char *)get_zeroed_page(GFP_KERNEL);
++		if (!buf)
++			return 0;
++		while (off > 0) {
++			unsigned long n = off;
++			if (n > PAGE_SIZE)
++				n = PAGE_SIZE;
++			if (!dump_write(file, buf, n))
++				return 0;
++			off -= n;
++		}
++		free_page((unsigned long)buf);
  	}
  	return 1;
  }
-+
-+size_t elf_core_extra_data_size(void)
-+{
-+	if ( vsyscall_ehdr ) {
-+		const struct elfhdr *const ehdrp =
-+			(struct elfhdr *)vsyscall_ehdr;
-+		const struct elf_phdr *const phdrp =
-+			(const struct elf_phdr *) (vsyscall_ehdr + ehdrp->e_phoff);
-+		int i;
-+
-+		for (i = 0; i < ehdrp->e_phnum; ++i)
-+			if (phdrp[i].p_type == PT_LOAD)
-+				return (size_t) phdrp[i].p_filesz;
-+	}
-+	return 0;
-+}
-diff -puN fs/binfmt_elf.c~elf-coredump-add-extended-numbering-support fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~elf-coredump-add-extended-numbering-support
-+++ a/fs/binfmt_elf.c
-@@ -1861,6 +1861,34 @@ static struct vm_area_struct *next_vma(s
- 	return gate_vma;
- }
+@@ -1310,30 +1321,35 @@ static int notesize(struct memelfnote *e
  
-+static void fill_extnum_info(struct elfhdr *elf, struct elf_shdr *shdr4extnum,
-+			     elf_addr_t e_shoff, int segs)
-+{
-+	elf->e_shoff = e_shoff;
-+	elf->e_shentsize = sizeof(*shdr4extnum);
-+	elf->e_shnum = 1;
-+	elf->e_shstrndx = SHN_UNDEF;
-+
-+	memset(shdr4extnum, 0, sizeof(*shdr4extnum));
-+
-+	shdr4extnum->sh_type = SHT_NULL;
-+	shdr4extnum->sh_size = elf->e_shnum;
-+	shdr4extnum->sh_link = elf->e_shstrndx;
-+	shdr4extnum->sh_info = segs;
-+}
-+
-+static size_t elf_core_vma_data_size(struct vm_area_struct *gate_vma,
-+				     unsigned long mm_flags)
-+{
-+	struct vm_area_struct *vma;
-+	size_t size = 0;
-+
-+	for (vma = first_vma(current, gate_vma); vma != NULL;
-+	     vma = next_vma(vma, gate_vma))
-+		size += vma_dump_size(vma, mm_flags);
-+	return size;
-+}
-+
- /*
-  * Actual dumper
-  *
-@@ -1880,6 +1908,9 @@ static int elf_core_dump(struct coredump
- 	unsigned long mm_flags;
- 	struct elf_note_info info;
- 	struct elf_phdr *phdr4note = NULL;
-+	struct elf_shdr *shdr4extnum = NULL;
-+	Elf_Half e_phnum;
-+	elf_addr_t e_shoff;
+ /* #define DEBUG */
  
- 	/*
- 	 * We no longer stop all VM operations.
-@@ -1908,12 +1939,19 @@ static int elf_core_dump(struct coredump
- 	if (gate_vma != NULL)
- 		segs++;
+-#define DUMP_WRITE(addr, nr)	\
+-	do { if (!dump_write(file, (addr), (nr))) return 0; } while(0)
+-#define DUMP_SEEK(off)	\
+-	do { if (!dump_seek(file, (off))) return 0; } while(0)
++#define DUMP_WRITE(addr, nr, foffset)	\
++	do { if (!dump_write(file, (addr), (nr))) return 0; *foffset += (nr); } while(0)
  
-+	/* for notes section */
-+	segs++;
-+
-+	/* If segs > PN_XNUM(0xffff), then e_phnum overflows. To avoid
-+	 * this, kernel supports extended numbering. Have a look at
-+	 * include/linux/elf.h for further information. */
-+	e_phnum = segs > PN_XNUM ? PN_XNUM : segs;
-+
- 	/*
- 	 * Collect all the non-memory information about the process for the
- 	 * notes.  This also sets up the file header.
- 	 */
--	if (!fill_note_info(elf, segs + 1, /* including notes section */
--			    &info, cprm->signr, cprm->regs))
-+	if (!fill_note_info(elf, e_phnum, &info, cprm->signr, cprm->regs))
- 		goto cleanup;
- 
- 	has_dumped = 1;
-@@ -1923,7 +1961,7 @@ static int elf_core_dump(struct coredump
- 	set_fs(KERNEL_DS);
- 
- 	offset += sizeof(*elf);				/* Elf header */
--	offset += (segs + 1) * sizeof(struct elf_phdr); /* Program headers */
-+	offset += segs * sizeof(struct elf_phdr);	/* Program headers */
- 	foffset = offset;
- 
- 	/* Write notes phdr entry */
-@@ -1949,6 +1987,19 @@ static int elf_core_dump(struct coredump
- 	 */
- 	mm_flags = current->mm->flags;
- 
-+	offset += elf_core_vma_data_size(gate_vma, mm_flags);
-+	offset += elf_core_extra_data_size();
-+	e_shoff = offset;
-+
-+	if (e_phnum == PN_XNUM) {
-+		shdr4extnum = kmalloc(sizeof(*shdr4extnum), GFP_KERNEL);
-+		if (!shdr4extnum)
-+			goto end_coredump;
-+		fill_extnum_info(elf, shdr4extnum, e_shoff, segs);
-+	}
-+
-+	offset = dataoff;
-+
- 	size += sizeof(*elf);
- 	if (size > cprm->limit || !dump_write(cprm->file, elf, sizeof(*elf)))
- 		goto end_coredump;
-@@ -2026,11 +2077,20 @@ static int elf_core_dump(struct coredump
- 	if (!elf_core_write_extra_data(cprm->file, &size, cprm->limit))
- 		goto end_coredump;
- 
-+	if (e_phnum == PN_XNUM) {
-+		size += sizeof(*shdr4extnum);
-+		if (size > cprm->limit
-+		    || !dump_write(cprm->file, shdr4extnum,
-+				   sizeof(*shdr4extnum)))
-+			goto end_coredump;
-+	}
-+
- end_coredump:
- 	set_fs(fs);
- 
- cleanup:
- 	free_note_info(&info);
-+	kfree(shdr4extnum);
- 	kfree(phdr4note);
- 	kfree(elf);
- out:
-diff -puN fs/binfmt_elf_fdpic.c~elf-coredump-add-extended-numbering-support fs/binfmt_elf_fdpic.c
---- a/fs/binfmt_elf_fdpic.c~elf-coredump-add-extended-numbering-support
-+++ a/fs/binfmt_elf_fdpic.c
-@@ -1502,6 +1502,22 @@ static int elf_dump_thread_status(long s
- 	return sz;
- }
- 
-+static void fill_extnum_info(struct elfhdr *elf, struct elf_shdr *shdr4extnum,
-+			     elf_addr_t e_shoff, int segs)
-+{
-+	elf->e_shoff = e_shoff;
-+	elf->e_shentsize = sizeof(*shdr4extnum);
-+	elf->e_shnum = 1;
-+	elf->e_shstrndx = SHN_UNDEF;
-+
-+	memset(shdr4extnum, 0, sizeof(*shdr4extnum));
-+
-+	shdr4extnum->sh_type = SHT_NULL;
-+	shdr4extnum->sh_size = elf->e_shnum;
-+	shdr4extnum->sh_link = elf->e_shstrndx;
-+	shdr4extnum->sh_info = segs;
-+}
-+
- /*
-  * dump the segments for an MMU process
-  */
-@@ -1566,6 +1582,17 @@ static int elf_fdpic_dump_segments(struc
- }
- #endif
- 
-+static size_t elf_core_vma_data_size(unsigned long mm_flags)
-+{
-+	struct vm_area_struct *vma;
-+	size_t size = 0;
-+
-+	for (vma = current->mm->mmap; vma; vma->vm_next)
-+		if (maydump(vma, mm_flags))
-+			size += vma->vm_end - vma->vm_start;
-+	return size;
-+}
-+
- /*
-  * Actual dumper
-  *
-@@ -1598,6 +1625,9 @@ static int elf_fdpic_core_dump(struct co
- 	elf_addr_t *auxv;
- 	unsigned long mm_flags;
- 	struct elf_phdr *phdr4note = NULL;
-+	struct elf_shdr *shdr4extnum = NULL;
-+	Elf_Half e_phnum;
-+	elf_addr_t e_shoff;
- 
- 	/*
- 	 * We no longer stop all VM operations.
-@@ -1664,8 +1694,16 @@ static int elf_fdpic_core_dump(struct co
- 	segs = current->mm->map_count;
- 	segs += elf_core_extra_phdrs();
- 
-+	/* for notes section */
-+	segs++;
-+
-+	/* If segs > PN_XNUM(0xffff), then e_phnum overflows. To avoid
-+	 * this, kernel supports extended numbering. Have a look at
-+	 * include/linux/elf.h for further information. */
-+	e_phnum = segs > PN_XNUM ? PN_XNUM : segs;
-+
- 	/* Set up header */
--	fill_elf_fdpic_header(elf, segs + 1);	/* including notes section */
-+	fill_elf_fdpic_header(elf, e_phnum);
- 
- 	has_dumped = 1;
- 	current->flags |= PF_DUMPCORE;
-@@ -1705,7 +1743,7 @@ static int elf_fdpic_core_dump(struct co
- 	set_fs(KERNEL_DS);
- 
- 	offset += sizeof(*elf);				/* Elf header */
--	offset += (segs+1) * sizeof(struct elf_phdr);	/* Program headers */
-+	offset += segs * sizeof(struct elf_phdr);	/* Program headers */
- 	foffset = offset;
- 
- 	/* Write notes phdr entry */
-@@ -1735,6 +1773,19 @@ static int elf_fdpic_core_dump(struct co
- 	 */
- 	mm_flags = current->mm->flags;
- 
-+	offset += elf_core_vma_data_size(mm_flags);
-+	offset += elf_core_extra_data_size();
-+	e_shoff = offset;
-+
-+	if (e_phnum == PN_XNUM) {
-+		shdr4extnum = kmalloc(sizeof(*shdr4extnum), GFP_KERNEL);
-+		if (!shdr4extnum)
-+			goto end_coredump;
-+		fill_extnum_info(elf, shdr4extnum, e_shoff, segs);
-+	}
-+
-+	offset = dataoff;
-+
- 	size += sizeof(*elf);
- 	if (size > cprm->limit || !dump_write(cprm->file, elf, sizeof(*elf)))
- 		goto end_coredump;
-@@ -1799,6 +1850,14 @@ static int elf_fdpic_core_dump(struct co
- 	if (!elf_core_write_extra_data(cprm->file, &size, cprm->limit))
- 		goto end_coredump;
- 
-+	if (e_phnum == PN_XNUM) {
-+		size += sizeof(*shdr4extnum);
-+		if (size > cprm->limit
-+		    || !dump_write(cprm->file, shdr4extnum,
-+				   sizeof(*shdr4extnum)))
-+			goto end_coredump;
-+	}
-+
- 	if (cprm->file->f_pos != offset) {
- 		/* Sanity check */
- 		printk(KERN_WARNING
-diff -puN include/linux/elf.h~elf-coredump-add-extended-numbering-support include/linux/elf.h
---- a/include/linux/elf.h~elf-coredump-add-extended-numbering-support
-+++ a/include/linux/elf.h
-@@ -50,6 +50,28 @@ typedef __s64	Elf64_Sxword;
- 
- #define PT_GNU_STACK	(PT_LOOS + 0x474e551)
- 
-+/*
-+ * Extended Numbering
-+ *
-+ * If the real number of program header table entries is larger than
-+ * or equal to PN_XNUM(0xffff), it is set to sh_info field of the
-+ * section header at index 0, and PN_XNUM is set to e_phnum
-+ * field. Otherwise, the section header at index 0 is zero
-+ * initialized, if it exists.
-+ *
-+ * Specifications are available in:
-+ *
-+ * - Sun microsystems: Linker and Libraries.
-+ *   Part No: 817-1984-17, September 2008.
-+ *   URL: http://docs.sun.com/app/docs/doc/817-1984
-+ *
-+ * - System V ABI AMD64 Architecture Processor Supplement
-+ *   Draft Version 0.99.,
-+ *   May 11, 2009.
-+ *   URL: http://www.x86-64.org/
-+ */
-+#define PN_XNUM 0xffff
-+
- /* These constants define the different elf file types */
- #define ET_NONE   0
- #define ET_REL    1
-@@ -286,7 +308,7 @@ typedef struct elf64_phdr {
- #define SHN_COMMON	0xfff2
- #define SHN_HIRESERVE	0xffff
-  
--typedef struct {
-+typedef struct elf32_shdr {
-   Elf32_Word	sh_name;
-   Elf32_Word	sh_type;
-   Elf32_Word	sh_flags;
-@@ -384,6 +406,7 @@ typedef struct elf64_note {
- extern Elf32_Dyn _DYNAMIC [];
- #define elfhdr		elf32_hdr
- #define elf_phdr	elf32_phdr
-+#define elf_shdr	elf32_shdr
- #define elf_note	elf32_note
- #define elf_addr_t	Elf32_Off
- #define Elf_Half	Elf32_Half
-@@ -393,6 +416,7 @@ extern Elf32_Dyn _DYNAMIC [];
- extern Elf64_Dyn _DYNAMIC [];
- #define elfhdr		elf64_hdr
- #define elf_phdr	elf64_phdr
-+#define elf_shdr	elf64_shdr
- #define elf_note	elf64_note
- #define elf_addr_t	Elf64_Off
- #define Elf_Half	Elf64_Half
-diff -puN include/linux/elfcore.h~elf-coredump-add-extended-numbering-support include/linux/elfcore.h
---- a/include/linux/elfcore.h~elf-coredump-add-extended-numbering-support
-+++ a/include/linux/elfcore.h
-@@ -166,5 +166,6 @@ elf_core_write_extra_phdrs(struct file *
- 			   unsigned long limit);
- extern int
- elf_core_write_extra_data(struct file *file, size_t *size, unsigned long limit);
-+extern size_t elf_core_extra_data_size(void);
- 
- #endif /* _LINUX_ELFCORE_H */
-diff -puN kernel/elfcore.c~elf-coredump-add-extended-numbering-support kernel/elfcore.c
---- a/kernel/elfcore.c~elf-coredump-add-extended-numbering-support
-+++ a/kernel/elfcore.c
-@@ -21,3 +21,8 @@ int __weak elf_core_write_extra_data(str
+-static int writenote(struct memelfnote *men, struct file *file)
++static int alignfile(struct file *file, loff_t *foffset)
  {
+-	struct elf_note en;
++	static const char buf[4] = { 0, };
++	DUMP_WRITE(buf, roundup(*foffset, 4) - *foffset, foffset);
++	return 1;
++}
+ 
++static int writenote(struct memelfnote *men, struct file *file,
++			loff_t *foffset)
++{
++	struct elf_note en;
+ 	en.n_namesz = strlen(men->name) + 1;
+ 	en.n_descsz = men->datasz;
+ 	en.n_type = men->type;
+ 
+-	DUMP_WRITE(&en, sizeof(en));
+-	DUMP_WRITE(men->name, en.n_namesz);
+-	/* XXX - cast from long long to long to avoid need for libgcc.a */
+-	DUMP_SEEK(roundup((unsigned long)file->f_pos, 4));	/* XXX */
+-	DUMP_WRITE(men->data, men->datasz);
+-	DUMP_SEEK(roundup((unsigned long)file->f_pos, 4));	/* XXX */
++	DUMP_WRITE(&en, sizeof(en), foffset);
++	DUMP_WRITE(men->name, en.n_namesz, foffset);
++	if (!alignfile(file, foffset))
++		return 0;
++	DUMP_WRITE(men->data, men->datasz, foffset);
++	if (!alignfile(file, foffset))
++		return 0;
+ 
  	return 1;
  }
-+
-+size_t __weak elf_core_extra_data_size(void)
-+{
-+	return 0;
-+}
+ #undef DUMP_WRITE
+-#undef DUMP_SEEK
+ 
+ #define DUMP_WRITE(addr, nr)				\
+ 	if ((size += (nr)) > cprm->limit ||		\
+@@ -1549,7 +1565,7 @@ static int elf_fdpic_dump_segments(struc
+ 					err = -EIO;
+ 				kunmap(page);
+ 				page_cache_release(page);
+-			} else if (!dump_seek(file, file->f_pos + PAGE_SIZE))
++			} else if (!dump_seek(file, PAGE_SIZE))
+ 				err = -EFBIG;
+ 			if (err)
+ 				goto out;
+@@ -1602,7 +1618,7 @@ static int elf_fdpic_core_dump(struct co
+ 	int i;
+ 	struct vm_area_struct *vma;
+ 	struct elfhdr *elf = NULL;
+-	loff_t offset = 0, dataoff;
++	loff_t offset = 0, dataoff, foffset;
+ 	int numnote;
+ 	struct memelfnote *notes = NULL;
+ 	struct elf_prstatus *prstatus = NULL;	/* NT_PRSTATUS */
+@@ -1727,6 +1743,7 @@ static int elf_fdpic_core_dump(struct co
+ 	DUMP_WRITE(elf, sizeof(*elf));
+ 	offset += sizeof(*elf);				/* Elf header */
+ 	offset += (segs+1) * sizeof(struct elf_phdr);	/* Program headers */
++	foffset = offset;
+ 
+ 	/* Write notes phdr entry */
+ 	{
+@@ -1783,7 +1800,7 @@ static int elf_fdpic_core_dump(struct co
+ 
+  	/* write out the notes section */
+ 	for (i = 0; i < numnote; i++)
+-		if (!writenote(notes + i, cprm->file))
++		if (!writenote(notes + i, cprm->file, &foffset))
+ 			goto end_coredump;
+ 
+ 	/* write out the thread status notes section */
+@@ -1792,11 +1809,11 @@ static int elf_fdpic_core_dump(struct co
+ 				list_entry(t, struct elf_thread_status, list);
+ 
+ 		for (i = 0; i < tmp->num_notes; i++)
+-			if (!writenote(&tmp->notes[i], cprm->file))
++			if (!writenote(&tmp->notes[i], cprm->file, &foffset))
+ 				goto end_coredump;
+ 	}
+ 
+-	if (!dump_seek(cprm->file, dataoff))
++	if (!dump_seek(cprm->file, dataoff - foffset))
+ 		goto end_coredump;
+ 
+ 	if (elf_fdpic_dump_segments(cprm->file, &size, &cprm->limit,
 _
 
 Patches currently in -mm which might be from d.hatayama@jp.fujitsu.com are
