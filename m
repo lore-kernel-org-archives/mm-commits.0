@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + add-a-kernel_address-that-works-for-data-too.patch added to -mm tree
-Date: Fri, 08 Jan 2010 15:54:03 -0800
-Message-ID: <201001082354.o08Ns4iM021858@imap1.linux-foundation.org>
+Subject: + sysctl-use-rcu-strings-for-core_pattern-sysctl.patch added to -mm tree
+Date: Fri, 08 Jan 2010 15:54:08 -0800
+Message-ID: <201001082354.o08Ns9nZ021871@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45816 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36842 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754234Ab0AHXyT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jan 2010 18:54:19 -0500
+	by vger.kernel.org with ESMTP id S1754437Ab0AHXyV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jan 2010 18:54:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: andi@firstfloor.org, ak@linux.intel.com, ebiederm@xmission.com, linux-arch@vger.kernel.org, rmk+lkml@arm.linux.org.uk, rusty@rustcorp.com.au, sam@ravnborg.org
+Cc: andi@firstfloor.org, ak@linux.intel.com, ebiederm@xmission.com, paulmck@us.ibm.com, rmk+lkml@arm.linux.org.uk, rusty@rustcorp.com.au, sam@ravnborg.org
 
 
 The patch titled
-     add a kernel_address() that works for data too
+     sysctl: use RCU strings for core_pattern sysctl
 has been added to the -mm tree.  Its filename is
-     add-a-kernel_address-that-works-for-data-too.patch
+     sysctl-use-rcu-strings-for-core_pattern-sysctl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,15 +33,15 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: add a kernel_address() that works for data too
+Subject: sysctl: use RCU strings for core_pattern sysctl
 From: Andi Kleen <andi@firstfloor.org>
 
-Add a variant of kernel_text_address() that includes kernel data.
+Also saves ~220 bytes in the data segment for default kernels.
 
-Assumes kernel is _text ... _end - init section. True everywhere?
+As a bonus this removes one use of the BKL.
 
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: <linux-arch@vger.kernel.org>
+Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
 Cc: Russell King <rmk+lkml@arm.linux.org.uk>
 Cc: Sam Ravnborg <sam@ravnborg.org>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
@@ -49,56 +49,72 @@ Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |    1 +
- kernel/extable.c       |   18 ++++++++++++++++++
- 2 files changed, 19 insertions(+)
+ fs/exec.c       |   11 +++++------
+ kernel/sysctl.c |    6 +++---
+ 2 files changed, 8 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/kernel.h~add-a-kernel_address-that-works-for-data-too include/linux/kernel.h
---- a/include/linux/kernel.h~add-a-kernel_address-that-works-for-data-too
-+++ a/include/linux/kernel.h
-@@ -206,6 +206,7 @@ extern unsigned long long memparse(const
- extern int core_kernel_text(unsigned long addr);
- extern int __kernel_text_address(unsigned long addr);
- extern int kernel_text_address(unsigned long addr);
-+extern int kernel_address(unsigned long addr);
- extern int func_ptr_is_kernel_text(void *ptr);
+diff -puN fs/exec.c~sysctl-use-rcu-strings-for-core_pattern-sysctl fs/exec.c
+--- a/fs/exec.c~sysctl-use-rcu-strings-for-core_pattern-sysctl
++++ a/fs/exec.c
+@@ -62,7 +62,7 @@
+ #include "internal.h"
  
- struct pid;
-diff -puN kernel/extable.c~add-a-kernel_address-that-works-for-data-too kernel/extable.c
---- a/kernel/extable.c~add-a-kernel_address-that-works-for-data-too
-+++ a/kernel/extable.c
-@@ -72,6 +72,18 @@ int core_kernel_text(unsigned long addr)
- 	return 0;
- }
+ int core_uses_pid;
+-char core_pattern[CORENAME_MAX_SIZE] = "core";
++char *core_pattern = "core";
+ unsigned int core_pipe_limit;
+ int suid_dumpable = 0;
  
-+static int core_kernel_address(unsigned long addr)
-+{
-+	if ((addr >= (unsigned long)_text &&
-+	     addr <= (unsigned long)_end)) {
-+		if (addr >= (unsigned long)__init_begin &&
-+		    addr < (unsigned long)__init_end)
-+			return system_state == SYSTEM_BOOTING;
-+		return 1;
-+	}
-+	return 0;
-+}
-+
- int __kernel_text_address(unsigned long addr)
+@@ -1422,7 +1422,7 @@ EXPORT_SYMBOL(set_binfmt);
+ static int format_corename(char *corename, long signr)
  {
- 	if (core_kernel_text(addr))
-@@ -98,6 +110,12 @@ int kernel_text_address(unsigned long ad
- 	return is_module_text_address(addr);
- }
+ 	const struct cred *cred = current_cred();
+-	const char *pat_ptr = core_pattern;
++	const char *pat_ptr = rcu_dereference(core_pattern);
+ 	int ispipe = (*pat_ptr == '|');
+ 	char *out_ptr = corename;
+ 	char *const out_end = corename + CORENAME_MAX_SIZE;
+@@ -1838,12 +1838,11 @@ void do_coredump(long signr, int exit_co
+ 	clear_thread_flag(TIF_SIGPENDING);
  
-+/* text or data in core kernel or module */
-+int kernel_address(unsigned long addr)
-+{
-+	return core_kernel_address(addr) || is_module_address(addr);
-+}
-+
- /*
-  * On some architectures (PPC64, IA64) function pointers
-  * are actually only tokens to some data that then holds the
+ 	/*
+-	 * lock_kernel() because format_corename() is controlled by sysctl, which
+-	 * uses lock_kernel()
++	 * Protect corename by RCU vs proc_rcu_string()
+ 	 */
+- 	lock_kernel();
++	rcu_read_lock();
+ 	ispipe = format_corename(corename, signr);
+-	unlock_kernel();
++	rcu_read_unlock();
+ 
+ 	if ((!ispipe) && (cprm.limit < binfmt->min_coredump))
+ 		goto fail_unlock;
+diff -puN kernel/sysctl.c~sysctl-use-rcu-strings-for-core_pattern-sysctl kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-use-rcu-strings-for-core_pattern-sysctl
++++ a/kernel/sysctl.c
+@@ -75,7 +75,7 @@ extern int sysctl_oom_dump_tasks;
+ extern int max_threads;
+ extern int core_uses_pid;
+ extern int suid_dumpable;
+-extern char core_pattern[];
++extern char *core_pattern;
+ extern unsigned int core_pipe_limit;
+ extern int pid_max;
+ extern int min_free_kbytes;
+@@ -399,10 +399,10 @@ static struct ctl_table kern_table[] = {
+ 	},
+ 	{
+ 		.procname	= "core_pattern",
+-		.data		= core_pattern,
++		.data		= &core_pattern,
+ 		.maxlen		= CORENAME_MAX_SIZE,
+ 		.mode		= 0644,
+-		.proc_handler	= proc_dostring,
++		.proc_handler	= proc_rcu_string,
+ 	},
+ 	{
+ 		.procname	= "core_pipe_limit",
 _
 
 Patches currently in -mm which might be from andi@firstfloor.org are
