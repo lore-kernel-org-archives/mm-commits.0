@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kfifo-fix-kfifo_out_locked-race-bug.patch added to -mm tree
-Date: Fri, 08 Jan 2010 15:15:22 -0800
-Message-ID: <201001082315.o08NFMoS019948@imap1.linux-foundation.org>
+Subject: + mm-page_alloc-fix-the-range-check-for-backward-merging.patch added to -mm tree
+Date: Fri, 08 Jan 2010 15:21:12 -0800
+Message-ID: <201001082321.o08NLCeS020238@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34286 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36866 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752161Ab0AHXPw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jan 2010 18:15:52 -0500
+	by vger.kernel.org with ESMTP id S1754109Ab0AHXWY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jan 2010 18:22:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: stefani@seibold.net, jhovold@gmail.com, zaitcev@redhat.com
+Cc: ki@epsilou.com, cl@linux-foundation.org, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, rientjes@google.com
 
 
 The patch titled
-     kfifo: fix kfifo_out_locked race bug
+     mm/page_alloc: fix the range check for backward merging
 has been added to the -mm tree.  Its filename is
-     kfifo-fix-kfifo_out_locked-race-bug.patch
+     mm-page_alloc-fix-the-range-check-for-backward-merging.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,31 +33,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kfifo: fix kfifo_out_locked race bug
-From: Stefani Seibold <stefani@seibold.net>
+Subject: mm/page_alloc: fix the range check for backward merging
+From: Kazuhisa Ichikawa <ki@epsilou.com>
 
-Fix a wrong optimization in include/linux/kfifo.h which could cause a race
-in kfifo_out_locked.
+The current check for 'backward merging' within add_active_range() does
+not seem correct.  start_pfn must be compared against
+early_node_map[i].start_pfn (and NOT against .end_pfn) to find out whether
+the new region is backward-mergeable with the existing range.
 
-Signed-off-by: Stefani Seibold <stefani@seibold.net>
-Reported-by: Johan Hovold <jhovold@gmail.com>
-Cc: Pete Zaitcev <zaitcev@redhat.com>
+Signed-off-by: Kazuhisa Ichikawa <ki@epsilou.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kfifo.h |    7 -------
- 1 file changed, 7 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/kfifo.h~kfifo-fix-kfifo_out_locked-race-bug include/linux/kfifo.h
---- a/include/linux/kfifo.h~kfifo-fix-kfifo_out_locked-race-bug
-+++ a/include/linux/kfifo.h
-@@ -228,13 +228,6 @@ static inline __must_check unsigned int 
+diff -puN mm/page_alloc.c~mm-page_alloc-fix-the-range-check-for-backward-merging mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-fix-the-range-check-for-backward-merging
++++ a/mm/page_alloc.c
+@@ -3937,7 +3937,7 @@ void __init add_active_range(unsigned in
+ 		}
  
- 	ret = kfifo_out(fifo, to, n);
- 
--	/*
--	 * optimization: if the FIFO is empty, set the indices to 0
--	 * so we don't wrap the next time
--	 */
--	if (kfifo_is_empty(fifo))
--		kfifo_reset(fifo);
+ 		/* Merge backward if suitable */
+-		if (start_pfn < early_node_map[i].end_pfn &&
++		if (start_pfn < early_node_map[i].start_pfn &&
+ 				end_pfn >= early_node_map[i].start_pfn) {
+ 			early_node_map[i].start_pfn = start_pfn;
+ 			return;
+_
+
+Patches currently in -mm which might be from ki@epsilou.com are
+
+mm-page_alloc-fix-the-range-check-for-backward-merging.patch
+
