@@ -1,107 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] kfifo-make-kfifo_in-atomic.patch removed from -mm tree
-Date: Fri, 08 Jan 2010 13:05:09 -0800
-Message-ID: <201001082105.o08L597o014012@imap1.linux-foundation.org>
+Subject: [to-be-updated] kernelh-add-build_bug_on_not_power_of_2-fix.patch removed from -mm tree
+Date: Fri, 08 Jan 2010 13:11:56 -0800
+Message-ID: <201001082111.o08LBuY3014253@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58384 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38345 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753652Ab0AHVGU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jan 2010 16:06:20 -0500
+	by vger.kernel.org with ESMTP id S1753845Ab0AHVMQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jan 2010 16:12:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andi@firstfloor.org, ak@linux.intel.com, awalls@radix.net, dhillonv10@gmail.com, dmitry.torokhov@gmail.com, rdreier@cisco.com, stefani@seibold.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, rolandd@cisco.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kfifo: make kfifo_in atomic
+     kernelh-add-build_bug_on_not_power_of_2-fix
 has been removed from the -mm tree.  Its filename was
-     kfifo-make-kfifo_in-atomic.patch
+     kernelh-add-build_bug_on_not_power_of_2-fix.patch
 
-This patch was dropped because it was withdrawn
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kfifo: make kfifo_in atomic
-From: Andi Kleen <andi@firstfloor.org>
+Subject: kernelh-add-build_bug_on_not_power_of_2-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Right now kfifo_in allows copying in less than the input amount.  This is
-unfortunately not a good idea on any record oriented users: if the size of
-the kfifo is not a multiple of the record (and that can easily happen due
-to the power-of-two requirement) then when the FIFO fills up partial
-records could be put in.  Such a condition would be fatal for any record
-consumer who would get permanently desynchronized.  In fact I doubt unless
-the input is a totally boundary less data stream I doubt anything could
-handle this.
+Improve the comment
 
-Change kfifo_in() to always put in everything or nothing.
-
-The return value is now always 0 or the full length.
-
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: Stefani Seibold <stefani@seibold.net>
-Cc: Roland Dreier <rdreier@cisco.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Andy Walls <awalls@radix.net>
-Cc: Vikram Dhillon <dhillonv10@gmail.com>
+Cc: Roland Dreier <rolandd@cisco.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kfifo.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ include/linux/kernel.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/kfifo.c~kfifo-make-kfifo_in-atomic kernel/kfifo.c
---- a/kernel/kfifo.c~kfifo-make-kfifo_in-atomic
-+++ a/kernel/kfifo.c
-@@ -228,9 +228,8 @@ EXPORT_SYMBOL(__kfifo_in_n);
-  * @from: the data to be added.
-  * @len: the length of the data to be added.
-  *
-- * This function copies at most @len bytes from the @from buffer into
-- * the FIFO depending on the free space, and returns the number of
-- * bytes copied.
-+ * This function copies @len bytes from the @from buffer into
-+ * the FIFO and returns 0 if there is not enough space.
-  *
-  * Note that with only one concurrent reader and one concurrent
-  * writer, you don't need extra locking to use these functions.
-@@ -238,8 +237,8 @@ EXPORT_SYMBOL(__kfifo_in_n);
- unsigned int kfifo_in(struct kfifo *fifo, const void *from,
- 				unsigned int len)
- {
--	len = min(kfifo_avail(fifo), len);
--
-+	if (kfifo_avail(fifo) < len)
-+		return 0;
- 	__kfifo_in_data(fifo, from, len, 0);
- 	__kfifo_add_in(fifo, len);
- 	return len;
+diff -puN include/linux/kernel.h~kernelh-add-build_bug_on_not_power_of_2-fix include/linux/kernel.h
+--- a/include/linux/kernel.h~kernelh-add-build_bug_on_not_power_of_2-fix
++++ a/include/linux/kernel.h
+@@ -703,7 +703,7 @@ static inline void ftrace_dump(void) { }
+ struct sysinfo;
+ extern int do_sysinfo(struct sysinfo *info);
+ 
+-/* Force a compilation error if expression is not a power of 2 */
++/* Force a compilation error if a constant expression is not a power of 2 */
+ #define BUILD_BUG_ON_NOT_POWER_OF_2(n)			\
+ 	BUILD_BUG_ON(((n) != 0 && (((n) & ((n) - 1)) == 0)))
+ 
 _
 
-Patches currently in -mm which might be from andi@firstfloor.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-kernel-signalc-fix-kernel-information-leak-with-print-fatal-signals=1.patch
+origin.patch
+percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+zlib-optimize-inffast-when-copying-direct-from-output.patch
+lib-add-support-for-lzo-compressed-kernels.patch
 proc-revert-procfs-provide-stack-information-for-threads.patch
-kfifo-use-void-pointers-for-user-buffers.patch
-kfifo-make-kfifo_in-atomic.patch
-kfifo-sanitize-_user-error-handling.patch
-kfifo-add-kfifo_out_peek.patch
-kfifo-add-kfifo_initialized.patch
-kfifo-document-everywhere-that-size-has-to-be-power-of-two.patch
-hardware-latency-detector-remove-default-m.patch
-kbuild-move-fno-dwarf2-cfi-asm-to-powerpc-only.patch
-mm-introduce-dump_page-and-print-symbolic-flag-names.patch
-coredump-unify-dump_seek-implementations-for-each-binfmt_c.patch
-coredump-move-dump_write-and-dump_seek-into-a-header-file.patch
-elf-coredump-replace-elf_core_extra_-macros-by-functions.patch
-elf-coredump-make-offset-calculation-process-and-writing-process-explicit.patch
-elf-coredump-add-extended-numbering-support.patch
-tracehooks-kill-some-pt_ptraced-checks.patch
-tracehooks-check-pt_ptraced-before-reporting-the-single-step.patch
-ptrace_signal-check-pt_ptraced-before-reporting-a-signal.patch
-export-__ptrace_detach-and-do_notify_parent_cldstop.patch
-reorder-the-code-in-kernel-ptracec.patch
-implement-utrace-ptrace.patch
-utrace-core.patch
+linux-next.patch
+linux-next-fixup.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
+drivers-media-video-cx23885-needs-kfifo-conversion.patch
+kernelh-add-build_bug_on_not_power_of_2-fix.patch
+drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
+drivers-media-video-pmsc-needs-versionh.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+3x59x-fix-pci-resource-management.patch
+net-netfilter-ipvs-ip_vs_wrrc-use-lib-gcdc.patch
+fs-improve-remountro-vs-buffercache-coherency.patch
+mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
+mm-count-swap-usage-checkpatch-fixes.patch
+mm-add-lowmem-detection-logic-fix.patch
+mm-count-lowmem-rss-checkpatch-fixes.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+memcg-move-charges-of-anonymous-page-cleanup.patch
+memcg-implement-memory-thresholds-checkpatch-fixes.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
