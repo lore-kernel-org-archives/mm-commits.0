@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sysctl-add-proc_rcu_string-to-manage-sysctls-using-rcu-strings.patch added to -mm tree
-Date: Fri, 08 Jan 2010 15:54:05 -0800
-Message-ID: <201001082354.o08Ns6D9021861@imap1.linux-foundation.org>
+Subject: + add-a-kernel_address-that-works-for-data-too.patch added to -mm tree
+Date: Fri, 08 Jan 2010 15:54:03 -0800
+Message-ID: <201001082354.o08Ns4iM021858@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43929 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45816 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753893Ab0AHXyS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jan 2010 18:54:18 -0500
+	by vger.kernel.org with ESMTP id S1754234Ab0AHXyT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jan 2010 18:54:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: andi@firstfloor.org, ak@linux.intel.com, ebiederm@xmission.com, paulmck@us.ibm.com, rmk+lkml@arm.linux.org.uk, rusty@rustcorp.com.au, sam@ravnborg.org
+Cc: andi@firstfloor.org, ak@linux.intel.com, ebiederm@xmission.com, linux-arch@vger.kernel.org, rmk+lkml@arm.linux.org.uk, rusty@rustcorp.com.au, sam@ravnborg.org
 
 
 The patch titled
-     sysctl: add proc_rcu_string to manage sysctls using rcu strings
+     add a kernel_address() that works for data too
 has been added to the -mm tree.  Its filename is
-     sysctl-add-proc_rcu_string-to-manage-sysctls-using-rcu-strings.patch
+     add-a-kernel_address-that-works-for-data-too.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,16 +33,15 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysctl: add proc_rcu_string to manage sysctls using rcu strings
+Subject: add a kernel_address() that works for data too
 From: Andi Kleen <andi@firstfloor.org>
 
-Add a helper to use the new rcu strings for managing access to text
-sysctls.  Conversions will be in follow-on patches.
+Add a variant of kernel_text_address() that includes kernel data.
 
-An alternative would be to use seqlocks here, but RCU seemed cleaner.
+Assumes kernel is _text ... _end - init section. True everywhere?
 
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
+Cc: <linux-arch@vger.kernel.org>
 Cc: Russell King <rmk+lkml@arm.linux.org.uk>
 Cc: Sam Ravnborg <sam@ravnborg.org>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
@@ -50,138 +49,56 @@ Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sysctl.h |    2 +
- kernel/sysctl.c        |   66 +++++++++++++++++++++++++++++++++++++++
- kernel/sysctl_check.c  |    1 
- 3 files changed, 69 insertions(+)
+ include/linux/kernel.h |    1 +
+ kernel/extable.c       |   18 ++++++++++++++++++
+ 2 files changed, 19 insertions(+)
 
-diff -puN include/linux/sysctl.h~sysctl-add-proc_rcu_string-to-manage-sysctls-using-rcu-strings include/linux/sysctl.h
---- a/include/linux/sysctl.h~sysctl-add-proc_rcu_string-to-manage-sysctls-using-rcu-strings
-+++ a/include/linux/sysctl.h
-@@ -970,6 +970,8 @@ typedef int proc_handler (struct ctl_tab
+diff -puN include/linux/kernel.h~add-a-kernel_address-that-works-for-data-too include/linux/kernel.h
+--- a/include/linux/kernel.h~add-a-kernel_address-that-works-for-data-too
++++ a/include/linux/kernel.h
+@@ -206,6 +206,7 @@ extern unsigned long long memparse(const
+ extern int core_kernel_text(unsigned long addr);
+ extern int __kernel_text_address(unsigned long addr);
+ extern int kernel_text_address(unsigned long addr);
++extern int kernel_address(unsigned long addr);
+ extern int func_ptr_is_kernel_text(void *ptr);
  
- extern int proc_dostring(struct ctl_table *, int,
- 			 void __user *, size_t *, loff_t *);
-+extern int proc_rcu_string(struct ctl_table *, int,
-+			 void __user *, size_t *, loff_t *);
- extern int proc_dointvec(struct ctl_table *, int,
- 			 void __user *, size_t *, loff_t *);
- extern int proc_dointvec_minmax(struct ctl_table *, int,
-diff -puN kernel/sysctl.c~sysctl-add-proc_rcu_string-to-manage-sysctls-using-rcu-strings kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-add-proc_rcu_string-to-manage-sysctls-using-rcu-strings
-+++ a/kernel/sysctl.c
-@@ -50,6 +50,7 @@
- #include <linux/ftrace.h>
- #include <linux/slow-work.h>
- #include <linux/perf_event.h>
-+#include <linux/rcustring.h>
- 
- #include <asm/uaccess.h>
- #include <asm/processor.h>
-@@ -2016,6 +2017,60 @@ static int _proc_do_string(void* data, i
+ struct pid;
+diff -puN kernel/extable.c~add-a-kernel_address-that-works-for-data-too kernel/extable.c
+--- a/kernel/extable.c~add-a-kernel_address-that-works-for-data-too
++++ a/kernel/extable.c
+@@ -72,6 +72,18 @@ int core_kernel_text(unsigned long addr)
+ 	return 0;
  }
  
- /**
-+ * proc_rcu_string - sysctl string with rcu protection
-+ * @table: the sysctl table
-+ * @write: %TRUE if this is a write to the sysctl file
-+ * @buffer: the user buffer
-+ * @lenp: the size of the user buffer
-+ * @ppos: file position
-+ *
-+ * Handle a string sysctl similar to proc_dostring.
-+ * The main difference is that the data pointer in the table
-+ * points to a pointer to a string. The string should be initially
-+ * pointing to a statically allocated (as a C object, not on the heap)
-+ * default. When it is replaced old uses will be protected by
-+ * RCU. The reader should use rcu_read_lock()/unlock() or
-+ * access_rcu_string().
-+ */
-+int proc_rcu_string(struct ctl_table *table, int write,
-+		void __user *buffer, size_t *lenp, loff_t *ppos)
++static int core_kernel_address(unsigned long addr)
 +{
-+	int ret;
-+
-+	if (write) {
-+		/* protect writers against each other */
-+		static DEFINE_MUTEX(rcu_string_mutex);
-+		char *old;
-+		char *new;
-+
-+		new = alloc_rcu_string(table->maxlen, GFP_KERNEL);
-+		if (!new)
-+			return -ENOMEM;
-+		mutex_lock(&rcu_string_mutex);
-+		old = *(char **)(table->data);
-+		strcpy(new, old);
-+		ret = _proc_do_string(new, table->maxlen, write, buffer, lenp, ppos);
-+		rcu_assign_pointer(*(char **)(table->data), new);
-+		/*
-+		 * For the first initialization allow constant strings.
-+		 */
-+		if (!kernel_address((unsigned long)old))
-+			free_rcu_string(old);
-+		mutex_unlock(&rcu_string_mutex);
-+	} else {
-+		char *str;
-+
-+		str = access_rcu_string((char **)(table->data), table->maxlen,
-+					GFP_KERNEL);
-+		if (!str)
-+			return -ENOMEM;
-+		ret = _proc_do_string(str, table->maxlen, write, buffer, lenp, ppos);
-+		kfree(str);
++	if ((addr >= (unsigned long)_text &&
++	     addr <= (unsigned long)_end)) {
++		if (addr >= (unsigned long)__init_begin &&
++		    addr < (unsigned long)__init_end)
++			return system_state == SYSTEM_BOOTING;
++		return 1;
 +	}
-+	return ret;
++	return 0;
 +}
 +
-+/**
-  * proc_dostring - read a string sysctl
-  * @table: the sysctl table
-  * @write: %TRUE if this is a write to the sysctl file
-@@ -2030,6 +2085,10 @@ static int _proc_do_string(void* data, i
-  * and a newline '\n' is added. It is truncated if the buffer is
-  * not large enough.
-  *
-+ * WARNING: this should be only used for read only strings
-+ * or when you have a wrapper with special locking. Otherwise
-+ * use proc_rcu_string to avoid races with the consumer.
-+ *
-  * Returns 0 on success.
-  */
- int proc_dostring(struct ctl_table *table, int write,
-@@ -2614,6 +2673,12 @@ int proc_dostring(struct ctl_table *tabl
- 	return -ENOSYS;
+ int __kernel_text_address(unsigned long addr)
+ {
+ 	if (core_kernel_text(addr))
+@@ -98,6 +110,12 @@ int kernel_text_address(unsigned long ad
+ 	return is_module_text_address(addr);
  }
  
-+int proc_rcu_string(struct ctl_table *table, int write,
-+		  void __user *buffer, size_t *lenp, loff_t *ppos)
++/* text or data in core kernel or module */
++int kernel_address(unsigned long addr)
 +{
-+	return -ENOSYS;
++	return core_kernel_address(addr) || is_module_address(addr);
 +}
 +
- int proc_dointvec(struct ctl_table *table, int write,
- 		  void __user *buffer, size_t *lenp, loff_t *ppos)
- {
-@@ -2670,6 +2735,7 @@ EXPORT_SYMBOL(proc_dointvec_minmax);
- EXPORT_SYMBOL(proc_dointvec_userhz_jiffies);
- EXPORT_SYMBOL(proc_dointvec_ms_jiffies);
- EXPORT_SYMBOL(proc_dostring);
-+EXPORT_SYMBOL(proc_rcu_string);
- EXPORT_SYMBOL(proc_doulongvec_minmax);
- EXPORT_SYMBOL(proc_doulongvec_ms_jiffies_minmax);
- EXPORT_SYMBOL(register_sysctl_table);
-diff -puN kernel/sysctl_check.c~sysctl-add-proc_rcu_string-to-manage-sysctls-using-rcu-strings kernel/sysctl_check.c
---- a/kernel/sysctl_check.c~sysctl-add-proc_rcu_string-to-manage-sysctls-using-rcu-strings
-+++ a/kernel/sysctl_check.c
-@@ -131,6 +131,7 @@ int sysctl_check_table(struct nsproxy *n
- 				set_fail(&fail, table, "Directory with extra2");
- 		} else {
- 			if ((table->proc_handler == proc_dostring) ||
-+			    (table->proc_handler == proc_rcu_string) ||
- 			    (table->proc_handler == proc_dointvec) ||
- 			    (table->proc_handler == proc_dointvec_minmax) ||
- 			    (table->proc_handler == proc_dointvec_jiffies) ||
+ /*
+  * On some architectures (PPC64, IA64) function pointers
+  * are actually only tokens to some data that then holds the
 _
 
 Patches currently in -mm which might be from andi@firstfloor.org are
