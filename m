@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-add-swap-slot-free-callback-to-block_device_operations.patch added to -mm tree
-Date: Fri, 08 Jan 2010 16:10:02 -0800
-Message-ID: <201001090010.o090A2WE022645@imap1.linux-foundation.org>
+Subject: + smp_call_function_any-pass-the-node-value-to-cpumask_of_node.patch added to -mm tree
+Date: Fri, 08 Jan 2010 16:14:29 -0800
+Message-ID: <201001090014.o090ETJ9022858@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58130 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35167 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754188Ab0AIALL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jan 2010 19:11:11 -0500
+	by vger.kernel.org with ESMTP id S1754233Ab0AIAPI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jan 2010 19:15:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ngupta@vflare.org, andi@firstfloor.org, greg@kroah.com, hch@infradead.org, hugh.dickins@tiscali.co.uk, jens.axboe@oracle.com, penberg@cs.helsinki.fi, viro@ZenIV.linux.org.uk
+Cc: davidjon@xenontk.org, hpa@zytor.com, mingo@elte.hu, rusty@rustcorp.com.au, suresh.b.siddha@intel.com, tglx@linutronix.de
 
 
 The patch titled
-     mm: add swap slot free callback to block_device_operations
+     smp_call_function_any(): pass the node value to cpumask_of_node()
 has been added to the -mm tree.  Its filename is
-     mm-add-swap-slot-free-callback-to-block_device_operations.patch
+     smp_call_function_any-pass-the-node-value-to-cpumask_of_node.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,72 +33,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: add swap slot free callback to block_device_operations
-From: Nitin Gupta <ngupta@vflare.org>
+Subject: smp_call_function_any(): pass the node value to cpumask_of_node()
+From: David John <davidjon@xenontk.org>
 
-This callback is required when RAM based devices are used as swap disks. 
-One such device is ramzswap[1] which is used as compressed in-memory swap
-disk.  For such devices, we need a callback as soon as a swap slot is no
-longer used to allow freeing memory allocated for this slot.  Without this
-callback, stale data can quickly accumulate in memory defeating the whole
-purpose of such devices.
+The change in acpi_cpufreq to use smp_call_function_any causes a warning
+when it is called since the function erroneously passes the cpu id to
+cpumask_of_node rather than the node that the cpu is on.  Fix this.
 
-Another user of this callback will be "preswap" as introduced by
-"Transcendent Memory" patches: http://lwn.net/Articles/367286/ (I intend
-to integrade preswap with ramzswap).
+cpumask_of_node(3): node > nr_node_ids(1)
+Pid: 1, comm: swapper Not tainted 2.6.33-rc3-00097-g2c1f189 #223
+Call Trace:
+ [<ffffffff81028bb3>] cpumask_of_node+0x23/0x58
+ [<ffffffff81061f51>] smp_call_function_any+0x65/0xfa
+ [<ffffffff810160d1>] ? do_drv_read+0x0/0x2f
+ [<ffffffff81015fba>] get_cur_val+0xb0/0x102
+ [<ffffffff81016080>] get_cur_freq_on_cpu+0x74/0xc5
+ [<ffffffff810168a7>] acpi_cpufreq_cpu_init+0x417/0x515
+ [<ffffffff81562ce9>] ? __down_write+0xb/0xd
+ [<ffffffff8148055e>] cpufreq_add_dev+0x278/0x922
 
-[1] ramzswap: http://code.google.com/p/compcache/
-
-Signed-off-by: Nitin Gupta <ngupta@vflare.org>
-Acked-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Cc: Greg KH <greg@kroah.com>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Andi Kleen <andi@firstfloor.org>
+Signed-off-by: David John <davidjon@xenontk.org>
+Cc: Suresh Siddha <suresh.b.siddha@intel.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/blkdev.h |    1 +
- mm/swapfile.c          |    3 +++
- 2 files changed, 4 insertions(+)
+ kernel/smp.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/blkdev.h~mm-add-swap-slot-free-callback-to-block_device_operations include/linux/blkdev.h
---- a/include/linux/blkdev.h~mm-add-swap-slot-free-callback-to-block_device_operations
-+++ a/include/linux/blkdev.h
-@@ -1296,6 +1296,7 @@ struct block_device_operations {
- 						unsigned long long);
- 	int (*revalidate_disk) (struct gendisk *);
- 	int (*getgeo)(struct block_device *, struct hd_geometry *);
-+	void (*swap_slot_free_notify) (struct block_device *, unsigned long);
- 	struct module *owner;
- };
+diff -puN kernel/smp.c~smp_call_function_any-pass-the-node-value-to-cpumask_of_node kernel/smp.c
+--- a/kernel/smp.c~smp_call_function_any-pass-the-node-value-to-cpumask_of_node
++++ a/kernel/smp.c
+@@ -347,7 +347,7 @@ int smp_call_function_any(const struct c
+ 		goto call;
  
-diff -puN mm/swapfile.c~mm-add-swap-slot-free-callback-to-block_device_operations mm/swapfile.c
---- a/mm/swapfile.c~mm-add-swap-slot-free-callback-to-block_device_operations
-+++ a/mm/swapfile.c
-@@ -575,6 +575,7 @@ static unsigned char swap_entry_free(str
- 
- 	/* free if no reference */
- 	if (!usage) {
-+		struct gendisk *disk = p->bdev->bd_disk;
- 		if (offset < p->lowest_bit)
- 			p->lowest_bit = offset;
- 		if (offset > p->highest_bit)
-@@ -584,6 +585,8 @@ static unsigned char swap_entry_free(str
- 			swap_list.next = p->type;
- 		nr_swap_pages++;
- 		p->inuse_pages--;
-+		if (disk->fops->swap_slot_free_notify)
-+			disk->fops->swap_slot_free_notify(p->bdev, offset);
- 	}
- 
- 	return usage;
+ 	/* Try for same node. */
+-	nodemask = cpumask_of_node(cpu);
++	nodemask = cpumask_of_node(cpu_to_node(cpu));
+ 	for (cpu = cpumask_first_and(nodemask, mask); cpu < nr_cpu_ids;
+ 	     cpu = cpumask_next_and(cpu, nodemask, mask)) {
+ 		if (cpu_online(cpu))
 _
 
-Patches currently in -mm which might be from ngupta@vflare.org are
+Patches currently in -mm which might be from davidjon@xenontk.org are
 
-mm-add-swap-slot-free-callback-to-block_device_operations.patch
-ramzswap-use-slot-free-callback-to-eliminate-stale-data.patch
+linux-next.patch
+smp_call_function_any-pass-the-node-value-to-cpumask_of_node.patch
 
