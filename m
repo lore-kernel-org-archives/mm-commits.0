@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sysctl-use-rcu-protected-sysctl-for-ocfs-group-add-helper.patch added to -mm tree
-Date: Fri, 08 Jan 2010 15:54:20 -0800
-Message-ID: <201001082354.o08NsLGV021886@imap1.linux-foundation.org>
+Subject: + ramzswap-use-slot-free-callback-to-eliminate-stale-data.patch added to -mm tree
+Date: Fri, 08 Jan 2010 16:10:06 -0800
+Message-ID: <201001090010.o090A6rB022650@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43284 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41738 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754432Ab0AHXyu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jan 2010 18:54:50 -0500
+	by vger.kernel.org with ESMTP id S1754196Ab0AIAKz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jan 2010 19:10:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: andi@firstfloor.org, Joel.Becker@oracle.com, ak@linux.intel.com, ebiederm@xmission.com, paulmck@us.ibm.com, rmk+lkml@arm.linux.org.uk, rusty@rustcorp.com.au, sam@ravnborg.org
+Cc: ngupta@vflare.org, andi@firstfloor.org, greg@kroah.com, hch@infradead.org, hugh.dickins@tiscali.co.uk, jens.axboe@oracle.com, penberg@cs.helsinki.fi, viro@ZenIV.linux.org.uk
 
 
 The patch titled
-     sysctl: use RCU protected sysctl for ocfs group add helper
+     ramzswap: use slot free callback to eliminate stale data
 has been added to the -mm tree.  Its filename is
-     sysctl-use-rcu-protected-sysctl-for-ocfs-group-add-helper.patch
+     ramzswap-use-slot-free-callback-to-eliminate-stale-data.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,117 +33,101 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysctl: use RCU protected sysctl for ocfs group add helper
-From: Andi Kleen <andi@firstfloor.org>
+Subject: ramzswap: use slot free callback to eliminate stale data
+From: Nitin Gupta <ngupta@vflare.org>
 
-This avoids races with unlocked sysctl()
+ramzswap driver creates RAM backed block devices which are used as swap
+disks.  Pages swapped to these disks are compressed and stored in memory
+itself.  However, when a swap page becomes stale i.e.  it is no longer
+referenced by any process (say, when owning process exits), the driver
+does not get any notification about this.  So, it has to keep such pages
+in memory until kernel swaps to the same swap slot again thereby
+overwriting previous (stale) page.
 
-Also saves ~220 bytes in the data segment.
+Often, a large number of such stale pages accumulate which defeats the
+whole purpose of in-memory compressed swapping and it begins to have a
+negative impact on system performance.
 
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
-Cc: Russell King <rmk+lkml@arm.linux.org.uk>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Joel Becker <Joel.Becker@oracle.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+To overcome this problem, we now register a callback function which is
+called as soon as a swap slot is freed which allows us to free
+corresponding memory, eliminating any stale data in (compressed) memory.
+
+Signed-off-by: Nitin Gupta <ngupta@vflare.org>
+Acked-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: Greg KH <greg@kroah.com>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/stackglue.c |   17 +++++++++++++----
- 1 file changed, 13 insertions(+), 4 deletions(-)
+ drivers/staging/ramzswap/ramzswap_drv.c   |   15 ++++++++++++++-
+ drivers/staging/ramzswap/ramzswap_drv.h   |    1 +
+ drivers/staging/ramzswap/ramzswap_ioctl.h |    1 +
+ 3 files changed, 16 insertions(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/stackglue.c~sysctl-use-rcu-protected-sysctl-for-ocfs-group-add-helper fs/ocfs2/stackglue.c
---- a/fs/ocfs2/stackglue.c~sysctl-use-rcu-protected-sysctl-for-ocfs-group-add-helper
-+++ a/fs/ocfs2/stackglue.c
-@@ -27,6 +27,7 @@
- #include <linux/kobject.h>
- #include <linux/sysfs.h>
- #include <linux/sysctl.h>
-+#include <linux/rcustring.h>
+diff -puN drivers/staging/ramzswap/ramzswap_drv.c~ramzswap-use-slot-free-callback-to-eliminate-stale-data drivers/staging/ramzswap/ramzswap_drv.c
+--- a/drivers/staging/ramzswap/ramzswap_drv.c~ramzswap-use-slot-free-callback-to-eliminate-stale-data
++++ a/drivers/staging/ramzswap/ramzswap_drv.c
+@@ -253,6 +253,7 @@ void ramzswap_ioctl_get_stats(struct ram
+ 	s->failed_reads = rs->failed_reads;
+ 	s->failed_writes = rs->failed_writes;
+ 	s->invalid_io = rs->invalid_io;
++	s->notify_free = rs->notify_free;
+ 	s->pages_zero = rs->pages_zero;
  
- #include "ocfs2_fs.h"
- 
-@@ -40,7 +41,7 @@ static struct ocfs2_locking_protocol *lp
- static DEFINE_SPINLOCK(ocfs2_stack_lock);
- static LIST_HEAD(ocfs2_stack_list);
- static char cluster_stack_name[OCFS2_STACK_LABEL_LEN + 1];
--static char ocfs2_hb_ctl_path[OCFS2_MAX_HB_CTL_PATH] = "/sbin/ocfs2_hb_ctl";
-+static char *ocfs2_hb_ctl_path = "/sbin/ocfs2_hb_ctl";
- 
- /*
-  * The stack currently in use.  If not null, active_stack->sp_count > 0,
-@@ -395,8 +396,15 @@ static void ocfs2_leave_group(const char
- {
- 	int ret;
- 	char *argv[5], *envp[3];
-+	char *helper;
- 
--	argv[0] = ocfs2_hb_ctl_path;
-+	helper = access_rcu_string(&ocfs2_hb_ctl_path, OCFS2_MAX_HB_CTL_PATH, GFP_KERNEL);
-+	if (!helper) {
-+		printk(KERN_ERR "ocfs2_leave_group: no memory\n");
-+		return;
-+	}
-+
-+	argv[0] = helper;
- 	argv[1] = "-K";
- 	argv[2] = "-u";
- 	argv[3] = (char *)group;
-@@ -414,6 +422,7 @@ static void ocfs2_leave_group(const char
- 		       "\"%s %s %s %s\"\n",
- 		       ret, argv[0], argv[1], argv[2], argv[3]);
- 	}
-+	kfree(helper);
+ 	s->good_compress_pct = good_compress_perc;
+@@ -1287,9 +1288,21 @@ out:
+ 	return ret;
  }
  
- /*
-@@ -621,10 +630,10 @@ error:
- static ctl_table ocfs2_nm_table[] = {
- 	{
- 		.procname	= "hb_ctl_path",
--		.data		= ocfs2_hb_ctl_path,
-+		.data		= &ocfs2_hb_ctl_path,
- 		.maxlen		= OCFS2_MAX_HB_CTL_PATH,
- 		.mode		= 0644,
--		.proc_handler	= proc_dostring,
-+		.proc_handler	= proc_rcu_string,
- 	},
- 	{ }
++void ramzswap_slot_free_notify(struct block_device *bdev, unsigned long index)
++{
++	struct ramzswap *rzs;
++
++	rzs = bdev->bd_disk->private_data;
++	ramzswap_free_page(rzs, index);
++	stat_inc(rzs->stats.notify_free);
++
++	return;
++}
++
+ static struct block_device_operations ramzswap_devops = {
+ 	.ioctl = ramzswap_ioctl,
+-	.owner = THIS_MODULE,
++	.swap_slot_free_notify = ramzswap_slot_free_notify,
++	.owner = THIS_MODULE
  };
+ 
+ static void create_device(struct ramzswap *rzs, int device_id)
+diff -puN drivers/staging/ramzswap/ramzswap_drv.h~ramzswap-use-slot-free-callback-to-eliminate-stale-data drivers/staging/ramzswap/ramzswap_drv.h
+--- a/drivers/staging/ramzswap/ramzswap_drv.h~ramzswap-use-slot-free-callback-to-eliminate-stale-data
++++ a/drivers/staging/ramzswap/ramzswap_drv.h
+@@ -124,6 +124,7 @@ struct ramzswap_stats {
+ 	u64 failed_reads;	/* can happen when memory is too low */
+ 	u64 failed_writes;	/* should NEVER! happen */
+ 	u64 invalid_io;		/* non-swap I/O requests */
++	u64 notify_free;	/* no. of swap slot free notifications */
+ 	u32 pages_zero;		/* no. of zero filled pages */
+ 	u32 pages_stored;	/* no. of pages currently stored */
+ 	u32 good_compress;	/* % of pages with compression ratio<=50% */
+diff -puN drivers/staging/ramzswap/ramzswap_ioctl.h~ramzswap-use-slot-free-callback-to-eliminate-stale-data drivers/staging/ramzswap/ramzswap_ioctl.h
+--- a/drivers/staging/ramzswap/ramzswap_ioctl.h~ramzswap-use-slot-free-callback-to-eliminate-stale-data
++++ a/drivers/staging/ramzswap/ramzswap_ioctl.h
+@@ -27,6 +27,7 @@ struct ramzswap_ioctl_stats {
+ 	u64 failed_reads;	/* can happen when memory is too low */
+ 	u64 failed_writes;	/* should NEVER! happen */
+ 	u64 invalid_io;		/* non-swap I/O requests */
++	u64 notify_free;	/* no. of swap slot free notifications */
+ 	u32 pages_zero;		/* no. of zero filled pages */
+ 	u32 good_compress_pct;	/* no. of pages with compression ratio<=50% */
+ 	u32 pages_expand_pct;	/* no. of incompressible pages */
 _
 
-Patches currently in -mm which might be from andi@firstfloor.org are
+Patches currently in -mm which might be from ngupta@vflare.org are
 
-kernel-signalc-fix-kernel-information-leak-with-print-fatal-signals=1.patch
-proc-revert-procfs-provide-stack-information-for-threads.patch
-kfifo-use-void-pointers-for-user-buffers.patch
-kfifo-sanitize-_user-error-handling.patch
-kfifo-add-kfifo_out_peek.patch
-kfifo-add-kfifo_initialized.patch
-kfifo-document-everywhere-that-size-has-to-be-power-of-two.patch
-hardware-latency-detector-remove-default-m.patch
-kbuild-move-fno-dwarf2-cfi-asm-to-powerpc-only.patch
-mm-introduce-dump_page-and-print-symbolic-flag-names.patch
-coredump-unify-dump_seek-implementations-for-each-binfmt_c.patch
-coredump-move-dump_write-and-dump_seek-into-a-header-file.patch
-elf-coredump-replace-elf_core_extra_-macros-by-functions.patch
-elf-coredump-make-offset-calculation-process-and-writing-process-explicit.patch
-elf-coredump-add-extended-numbering-support.patch
-tracehooks-kill-some-pt_ptraced-checks.patch
-tracehooks-check-pt_ptraced-before-reporting-the-single-step.patch
-ptrace_signal-check-pt_ptraced-before-reporting-a-signal.patch
-export-__ptrace_detach-and-do_notify_parent_cldstop.patch
-reorder-the-code-in-kernel-ptracec.patch
-implement-utrace-ptrace.patch
-utrace-core.patch
-rcu-add-rcustring-adt-for-rcu-protected-strings.patch
-add-a-kernel_address-that-works-for-data-too.patch
-sysctl-add-proc_rcu_string-to-manage-sysctls-using-rcu-strings.patch
-sysctl-use-rcu-strings-for-core_pattern-sysctl.patch
-sysctl-add-call_usermodehelper_cleanup.patch
-sysctl-convert-modprobe_path-to-proc_rcu_string.patch
-sysctl-convert-poweroff_command-to-proc_rcu_string.patch
-sysctl-convert-hotplug-helper-string-to-proc_rcu_string.patch
-sysctl-use-rcu-protected-sysctl-for-ocfs-group-add-helper.patch
+mm-add-swap-slot-free-callback-to-block_device_operations.patch
+ramzswap-use-slot-free-callback-to-eliminate-stale-data.patch
 
