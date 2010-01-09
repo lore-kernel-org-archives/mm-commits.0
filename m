@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + smp_call_function_any-pass-the-node-value-to-cpumask_of_node.patch added to -mm tree
-Date: Fri, 08 Jan 2010 16:14:29 -0800
-Message-ID: <201001090014.o090ETJ9022858@imap1.linux-foundation.org>
+Subject: + cpumask-let-num__cpus-function-always-return-unsigned-values.patch added to -mm tree
+Date: Fri, 08 Jan 2010 16:18:54 -0800
+Message-ID: <201001090018.o090IsRH023078@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35167 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35299 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754233Ab0AIAPI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jan 2010 19:15:08 -0500
+	by vger.kernel.org with ESMTP id S1754243Ab0AIATa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jan 2010 19:19:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: davidjon@xenontk.org, hpa@zytor.com, mingo@elte.hu, rusty@rustcorp.com.au, suresh.b.siddha@intel.com, tglx@linutronix.de
+Cc: heiko.carstens@de.ibm.com, ananth@in.ibm.com, mhiramat@redhat.com, mingo@elte.hu, rusty@rustcorp.com.au
 
 
 The patch titled
-     smp_call_function_any(): pass the node value to cpumask_of_node()
+     cpumask: let num_*_cpus() function always return unsigned values
 has been added to the -mm tree.  Its filename is
-     smp_call_function_any-pass-the-node-value-to-cpumask_of_node.patch
+     cpumask-let-num__cpus-function-always-return-unsigned-values.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,53 +33,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: smp_call_function_any(): pass the node value to cpumask_of_node()
-From: David John <davidjon@xenontk.org>
+Subject: cpumask: let num_*_cpus() function always return unsigned values
+From: Heiko Carstens <heiko.carstens@de.ibm.com>
 
-The change in acpi_cpufreq to use smp_call_function_any causes a warning
-when it is called since the function erroneously passes the cpu id to
-cpumask_of_node rather than the node that the cpu is on.  Fix this.
+Dependent on CONFIG_SMP the num_*_cpus() functions return unsigned or
+signed values.  Let them always return unsigned values to avoid strange
+casts.
 
-cpumask_of_node(3): node > nr_node_ids(1)
-Pid: 1, comm: swapper Not tainted 2.6.33-rc3-00097-g2c1f189 #223
-Call Trace:
- [<ffffffff81028bb3>] cpumask_of_node+0x23/0x58
- [<ffffffff81061f51>] smp_call_function_any+0x65/0xfa
- [<ffffffff810160d1>] ? do_drv_read+0x0/0x2f
- [<ffffffff81015fba>] get_cur_val+0xb0/0x102
- [<ffffffff81016080>] get_cur_freq_on_cpu+0x74/0xc5
- [<ffffffff810168a7>] acpi_cpufreq_cpu_init+0x417/0x515
- [<ffffffff81562ce9>] ? __down_write+0xb/0xd
- [<ffffffff8148055e>] cpufreq_add_dev+0x278/0x922
+Fixes at least one warning:
 
-Signed-off-by: David John <davidjon@xenontk.org>
-Cc: Suresh Siddha <suresh.b.siddha@intel.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+ kernel/kprobes.c: In function 'register_kretprobe':
+ kernel/kprobes.c:1038: warning: comparison of distinct pointer types lacks a cast
+
+Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
+Cc: Masami Hiramatsu <mhiramat@redhat.com>
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/smp.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/cpumask.h |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN kernel/smp.c~smp_call_function_any-pass-the-node-value-to-cpumask_of_node kernel/smp.c
---- a/kernel/smp.c~smp_call_function_any-pass-the-node-value-to-cpumask_of_node
-+++ a/kernel/smp.c
-@@ -347,7 +347,7 @@ int smp_call_function_any(const struct c
- 		goto call;
- 
- 	/* Try for same node. */
--	nodemask = cpumask_of_node(cpu);
-+	nodemask = cpumask_of_node(cpu_to_node(cpu));
- 	for (cpu = cpumask_first_and(nodemask, mask); cpu < nr_cpu_ids;
- 	     cpu = cpumask_next_and(cpu, nodemask, mask)) {
- 		if (cpu_online(cpu))
+diff -puN include/linux/cpumask.h~cpumask-let-num__cpus-function-always-return-unsigned-values include/linux/cpumask.h
+--- a/include/linux/cpumask.h~cpumask-let-num__cpus-function-always-return-unsigned-values
++++ a/include/linux/cpumask.h
+@@ -90,10 +90,10 @@ extern const struct cpumask *const cpu_a
+ #define cpu_present(cpu)	cpumask_test_cpu((cpu), cpu_present_mask)
+ #define cpu_active(cpu)		cpumask_test_cpu((cpu), cpu_active_mask)
+ #else
+-#define num_online_cpus()	1
+-#define num_possible_cpus()	1
+-#define num_present_cpus()	1
+-#define num_active_cpus()	1
++#define num_online_cpus()	1U
++#define num_possible_cpus()	1U
++#define num_present_cpus()	1U
++#define num_active_cpus()	1U
+ #define cpu_online(cpu)		((cpu) == 0)
+ #define cpu_possible(cpu)	((cpu) == 0)
+ #define cpu_present(cpu)	((cpu) == 0)
 _
 
-Patches currently in -mm which might be from davidjon@xenontk.org are
+Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
 
 linux-next.patch
-smp_call_function_any-pass-the-node-value-to-cpumask_of_node.patch
+cpumask-let-num__cpus-function-always-return-unsigned-values.patch
 
