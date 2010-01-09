@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-remove-superfluous-null-pointer-check-from-acpi_processor_get_throttling_info.patch added to -mm tree
-Date: Fri, 08 Jan 2010 16:35:21 -0800
-Message-ID: <201001090035.o090ZMDL023853@imap1.linux-foundation.org>
+Subject: + kernel-irq-chipc-set_irq_noprobe-shouldnt-be-__init.patch added to -mm tree
+Date: Fri, 08 Jan 2010 16:39:21 -0800
+Message-ID: <201001090039.o090dLJc024038@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53624 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46682 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751220Ab0AIAhr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jan 2010 19:37:47 -0500
+	by vger.kernel.org with ESMTP id S1751617Ab0AIAlz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jan 2010 19:41:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bzolnier@gmail.com, corbet@lwn.net, error27@gmail.com, eteo@redhat.com, lenb@kernel.org, ming.m.lin@intel.com, robert.moore@intel.com
+Cc: khali@linux-fr.org, mingo@elte.hu, ralf@linux-mips.org, sameo@linux.intel.com, tglx@linutronix.de, yinghai@kernel.org
 
 
 The patch titled
-     acpi: remove superfluous NULL pointer check from acpi_processor_get_throttling_info()
+     kernel/irq/chip.c: set_irq_noprobe shouldn't be __init
 has been added to the -mm tree.  Its filename is
-     acpi-remove-superfluous-null-pointer-check-from-acpi_processor_get_throttling_info.patch
+     kernel-irq-chipc-set_irq_noprobe-shouldnt-be-__init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,37 +33,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi: remove superfluous NULL pointer check from acpi_processor_get_throttling_info()
-From: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Subject: kernel/irq/chip.c: set_irq_noprobe shouldn't be __init
+From: Jean Delvare <khali@linux-fr.org>
 
-Dan's list contains:
+Non-__init functions need to call set_irq_noprobe() so this function
+shouldn't be marked __init.  Also remove __init from set_irq_probe() for
+consistency.
 
-drivers/acpi/processor_throttling.c +1139 acpi_processor_get_throttling_info(11) warning: variable derefenced before check 'pr'
-
-acpi_processor_get_throttling_info() is never called with pr == NULL.
-
-[ bart: the potential NULL pointer dereference was finally fixed in
-  (much later than mine) commit 5cfa245 but my patch is still valid ]
-
-Reported-by: Dan Carpenter <error27@gmail.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Eugene Teo <eteo@redhat.com>
-Signed-off-by: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Lin Ming <ming.m.lin@intel.com>
-Cc: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Yinghai Lu <yinghai@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_throttling.c |    3 ---
- 1 file changed, 3 deletions(-)
+ kernel/irq/chip.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/acpi/processor_throttling.c~acpi-remove-superfluous-null-pointer-check-from-acpi_processor_get_throttling_info drivers/acpi/processor_throttling.c
---- a/drivers/acpi/processor_throttling.c~acpi-remove-superfluous-null-pointer-check-from-acpi_processor_get_throttling_info
-+++ a/drivers/acpi/processor_throttling.c
-@@ -1133,9 +1133,6 @@ int acpi_processor_get_throttling_info(s
- 	int result = 0;
- 	struct acpi_processor_throttling *pthrottling;
+diff -puN kernel/irq/chip.c~kernel-irq-chipc-set_irq_noprobe-shouldnt-be-__init kernel/irq/chip.c
+--- a/kernel/irq/chip.c~kernel-irq-chipc-set_irq_noprobe-shouldnt-be-__init
++++ a/kernel/irq/chip.c
+@@ -682,7 +682,7 @@ set_irq_chip_and_handler_name(unsigned i
+ 	__set_irq_handler(irq, handle, 0, name);
+ }
  
--	if (!pr)
--		return -EINVAL;
+-void __init set_irq_noprobe(unsigned int irq)
++void set_irq_noprobe(unsigned int irq)
+ {
+ 	struct irq_desc *desc = irq_to_desc(irq);
+ 	unsigned long flags;
+@@ -697,7 +697,7 @@ void __init set_irq_noprobe(unsigned int
+ 	raw_spin_unlock_irqrestore(&desc->lock, flags);
+ }
+ 
+-void __init set_irq_probe(unsigned int irq)
++void set_irq_probe(unsigned int irq)
+ {
+ 	struct irq_desc *desc = irq_to_desc(irq);
+ 	unsigned long flags;
+_
+
+Patches currently in -mm which might be from khali@linux-fr.org are
+
+hwmon-driver-for-texas-instruments-amc6821-chip.patch
+gpio-adp5588-gpio-new-driver-for-adp5588-gpio-expanders.patch
+linux-next.patch
+kernel-irq-chipc-set_irq_noprobe-shouldnt-be-__init.patch
+gpio-add-driver-for-max7300-i2c-gpio-extender.patch
+pca953x-minor-include-cleanup.patch
+
