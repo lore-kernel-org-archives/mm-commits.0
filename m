@@ -1,356 +1,249 @@
 From: akpm@linux-foundation.org
-Subject: [merged] arm-add-support-for-lzo-compressed-kernels.patch removed from -mm tree
-Date: Mon, 11 Jan 2010 12:18:03 -0800
-Message-ID: <201001112018.o0BKI3Ah025454@imap1.linux-foundation.org>
+Subject: + viafb-yet-another-dead-code-removal.patch added to -mm tree
+Date: Mon, 11 Jan 2010 13:46:18 -0800
+Message-ID: <201001112146.o0BLkItc030074@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57461 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60593 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751475Ab0AKUjK (ORCPT
+	by vger.kernel.org with ESMTP id S1751180Ab0AKVqo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Jan 2010 15:39:10 -0500
+	Mon, 11 Jan 2010 16:46:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: albin.tonnerre@free-electrons.com, hpa@zytor.com, mingo@elte.hu, ralf@linux-mips.org, rmk@arm.linux.org.uk, tbm@cyrius.com, tglx@linutronix.de, wuzhangjin@gmail.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: FlorianSchandinat@gmx.de, JosephChan@via.com.tw, ScottFang@viatech.com.cn
 
 
 The patch titled
-     arm: add support for LZO-compressed kernels
-has been removed from the -mm tree.  Its filename was
-     arm-add-support-for-lzo-compressed-kernels.patch
+     viafb: yet another dead code removal
+has been added to the -mm tree.  Its filename is
+     viafb-yet-another-dead-code-removal.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arm: add support for LZO-compressed kernels
-From: Albin Tonnerre <albin.tonnerre@free-electrons.com>
+Subject: viafb: yet another dead code removal
+From: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 
- - changes to ach/arch/boot/Makefile to make it easier to add new
-   compression types
- - new piggy.lzo.S necessary for lzo compression
- - changes in arch/arm/boot/compressed/misc.c to allow the use of lzo or
-   gzip, depending on the config
- - Kconfig support
+Remove some functions that were never executed and a related undocumented
+module paramater.
 
-Signed-off-by: Albin Tonnerre <albin.tonnerre@free-electrons.com>
-Tested-by: Wu Zhangjin <wuzhangjin@gmail.com>
-Acked-by: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Tested-by: Russell King <rmk@arm.linux.org.uk>
-Acked-by: Russell King <rmk@arm.linux.org.uk>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Martin Michlmayr <tbm@cyrius.com>
+Signed-off-by: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Cc: Scott Fang <ScottFang@viatech.com.cn>
+Cc: Joseph Chan <JosephChan@via.com.tw>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/Kconfig                      |    2 
- arch/arm/boot/compressed/Makefile     |   34 +++++--
- arch/arm/boot/compressed/misc.c       |  116 +++++++-----------------
- arch/arm/boot/compressed/piggy.S      |    6 -
- arch/arm/boot/compressed/piggy.gzip.S |    6 +
- arch/arm/boot/compressed/piggy.lzo.S  |    6 +
- 6 files changed, 73 insertions(+), 97 deletions(-)
+ drivers/video/via/Makefile   |    2 
+ drivers/video/via/global.c   |    1 
+ drivers/video/via/global.h   |    1 
+ drivers/video/via/iface.c    |   78 ---------------------------------
+ drivers/video/via/iface.h    |   38 ----------------
+ drivers/video/via/viafbdev.c |    2 
+ drivers/video/via/viafbdev.h |    1 
+ 7 files changed, 1 insertion(+), 122 deletions(-)
 
-diff -puN arch/arm/Kconfig~arm-add-support-for-lzo-compressed-kernels arch/arm/Kconfig
---- a/arch/arm/Kconfig~arm-add-support-for-lzo-compressed-kernels
-+++ a/arch/arm/Kconfig
-@@ -18,6 +18,8 @@ config ARM
- 	select HAVE_KRETPROBES if (HAVE_KPROBES)
- 	select HAVE_FUNCTION_TRACER if (!XIP_KERNEL)
- 	select HAVE_GENERIC_DMA_COHERENT
-+	select HAVE_KERNEL_GZIP
-+	select HAVE_KERNEL_LZO
- 	help
- 	  The ARM series is a line of low-power-consumption RISC chip designs
- 	  licensed by ARM Ltd and targeted at embedded applications and
-diff -puN arch/arm/boot/compressed/Makefile~arm-add-support-for-lzo-compressed-kernels arch/arm/boot/compressed/Makefile
---- a/arch/arm/boot/compressed/Makefile~arm-add-support-for-lzo-compressed-kernels
-+++ a/arch/arm/boot/compressed/Makefile
-@@ -63,8 +63,12 @@ endif
+diff -puN drivers/video/via/Makefile~viafb-yet-another-dead-code-removal drivers/video/via/Makefile
+--- a/drivers/video/via/Makefile~viafb-yet-another-dead-code-removal
++++ a/drivers/video/via/Makefile
+@@ -4,4 +4,4 @@
  
- SEDFLAGS	= s/TEXT_START/$(ZTEXTADDR)/;s/BSS_START/$(ZBSSADDR)/
+ obj-$(CONFIG_FB_VIA) += viafb.o
  
--targets       := vmlinux vmlinux.lds piggy.gz piggy.o font.o font.c \
--		 head.o misc.o $(OBJS)
-+suffix_$(CONFIG_KERNEL_GZIP) = gzip
-+suffix_$(CONFIG_KERNEL_LZO)  = lzo
-+
-+targets       := vmlinux vmlinux.lds \
-+		 piggy.$(suffix_y) piggy.$(suffix_y).o \
-+		 font.o font.c head.o misc.o $(OBJS)
+-viafb-y	:=viafbdev.o hw.o iface.o  via_i2c.o dvi.o lcd.o ioctl.o accel.o via_utility.o vt1636.o global.o tblDPASetting.o viamode.o tbl1636.o
++viafb-y	:=viafbdev.o hw.o via_i2c.o dvi.o lcd.o ioctl.o accel.o via_utility.o vt1636.o global.o tblDPASetting.o viamode.o tbl1636.o
+diff -puN drivers/video/via/global.c~viafb-yet-another-dead-code-removal drivers/video/via/global.c
+--- a/drivers/video/via/global.c~viafb-yet-another-dead-code-removal
++++ a/drivers/video/via/global.c
+@@ -23,7 +23,6 @@ int viafb_platform_epia_dvi = STATE_OFF;
+ int viafb_device_lcd_dualedge = STATE_OFF;
+ int viafb_bus_width = 12;
+ int viafb_display_hardware_layout = HW_LAYOUT_LCD_DVI;
+-int viafb_memsize;
+ int viafb_DeviceStatus = CRT_Device;
+ int viafb_hotplug;
+ int viafb_refresh = 60;
+diff -puN drivers/video/via/global.h~viafb-yet-another-dead-code-removal drivers/video/via/global.h
+--- a/drivers/video/via/global.h~viafb-yet-another-dead-code-removal
++++ a/drivers/video/via/global.h
+@@ -35,7 +35,6 @@
  
- ifeq ($(CONFIG_FUNCTION_TRACER),y)
- ORIG_CFLAGS := $(KBUILD_CFLAGS)
-@@ -87,22 +91,34 @@ endif
- ifneq ($(PARAMS_PHYS),)
- LDFLAGS_vmlinux += --defsym params_phys=$(PARAMS_PHYS)
- endif
--LDFLAGS_vmlinux += -p --no-undefined -X \
--	$(shell $(CC) $(KBUILD_CFLAGS) --print-libgcc-file-name) -T
-+# ?
-+LDFLAGS_vmlinux += -p
-+# Report unresolved symbol references
-+LDFLAGS_vmlinux += --no-undefined
-+# Delete all temporary local symbols
-+LDFLAGS_vmlinux += -X
-+# Next argument is a linker script
-+LDFLAGS_vmlinux += -T
-+
-+# For __aeabi_uidivmod
-+lib1funcs = $(obj)/lib1funcs.o
-+
-+$(obj)/lib1funcs.S: $(srctree)/arch/$(SRCARCH)/lib/lib1funcs.S FORCE
-+	$(call cmd,shipped)
+ #include "debug.h"
  
- # Don't allow any static data in misc.o, which
- # would otherwise mess up our GOT table
- CFLAGS_misc.o := -Dstatic=
- 
--$(obj)/vmlinux: $(obj)/vmlinux.lds $(obj)/$(HEAD) $(obj)/piggy.o \
--	 	$(addprefix $(obj)/, $(OBJS)) FORCE
-+$(obj)/vmlinux: $(obj)/vmlinux.lds $(obj)/$(HEAD) $(obj)/piggy.$(suffix_y).o \
-+	 	$(addprefix $(obj)/, $(OBJS)) $(lib1funcs) FORCE
- 	$(call if_changed,ld)
- 	@:
- 
--$(obj)/piggy.gz: $(obj)/../Image FORCE
--	$(call if_changed,gzip)
-+$(obj)/piggy.$(suffix_y): $(obj)/../Image FORCE
-+	$(call if_changed,$(suffix_y))
- 
--$(obj)/piggy.o:  $(obj)/piggy.gz FORCE
-+$(obj)/piggy.$(suffix_y).o:  $(obj)/piggy.$(suffix_y) FORCE
- 
- CFLAGS_font.o := -Dstatic=
- 
-diff -puN arch/arm/boot/compressed/misc.c~arm-add-support-for-lzo-compressed-kernels arch/arm/boot/compressed/misc.c
---- a/arch/arm/boot/compressed/misc.c~arm-add-support-for-lzo-compressed-kernels
-+++ a/arch/arm/boot/compressed/misc.c
-@@ -18,10 +18,15 @@
- 
- unsigned int __machine_arch_type;
- 
-+#define _LINUX_STRING_H_
-+
- #include <linux/compiler.h>	/* for inline */
- #include <linux/types.h>	/* for size_t */
- #include <linux/stddef.h>	/* for NULL */
- #include <asm/string.h>
-+#include <linux/linkage.h>
-+
-+#include <asm/unaligned.h>
- 
- #ifdef STANDALONE_DEBUG
- #define putstr printf
-@@ -188,34 +193,8 @@ static inline __ptr_t memcpy(__ptr_t __d
- /*
-  * gzip delarations
-  */
--#define OF(args)  args
- #define STATIC static
- 
--typedef unsigned char  uch;
--typedef unsigned short ush;
--typedef unsigned long  ulg;
--
--#define WSIZE 0x8000		/* Window size must be at least 32k, */
--				/* and a power of two */
--
--static uch *inbuf;		/* input buffer */
--static uch window[WSIZE];	/* Sliding window buffer */
--
--static unsigned insize;		/* valid bytes in inbuf */
--static unsigned inptr;		/* index of next byte to be processed in inbuf */
--static unsigned outcnt;		/* bytes in output buffer */
--
--/* gzip flag byte */
--#define ASCII_FLAG   0x01 /* bit 0 set: file probably ascii text */
--#define CONTINUATION 0x02 /* bit 1 set: continuation of multi-part gzip file */
--#define EXTRA_FIELD  0x04 /* bit 2 set: extra field present */
--#define ORIG_NAME    0x08 /* bit 3 set: original file name present */
--#define COMMENT      0x10 /* bit 4 set: file comment present */
--#define ENCRYPTED    0x20 /* bit 5 set: file is encrypted */
--#define RESERVED     0xC0 /* bit 6,7:   reserved */
--
--#define get_byte()  (inptr < insize ? inbuf[inptr++] : fill_inbuf())
--
- /* Diagnostic functions */
- #ifdef DEBUG
- #  define Assert(cond,msg) {if(!(cond)) error(msg);}
-@@ -233,24 +212,20 @@ static unsigned outcnt;		/* bytes in out
- #  define Tracecv(c,x)
- #endif
- 
--static int  fill_inbuf(void);
--static void flush_window(void);
- static void error(char *m);
- 
- extern char input_data[];
- extern char input_data_end[];
- 
--static uch *output_data;
--static ulg output_ptr;
--static ulg bytes_out;
-+static unsigned char *output_data;
-+static unsigned long output_ptr;
- 
- static void error(char *m);
- 
- static void putstr(const char *);
- 
--extern int end;
--static ulg free_mem_ptr;
--static ulg free_mem_end_ptr;
-+static unsigned long free_mem_ptr;
-+static unsigned long free_mem_end_ptr;
- 
- #ifdef STANDALONE_DEBUG
- #define NO_INFLATE_MALLOC
-@@ -258,46 +233,13 @@ static ulg free_mem_end_ptr;
- 
- #define ARCH_HAS_DECOMP_WDOG
- 
--#include "../../../../lib/inflate.c"
--
--/* ===========================================================================
-- * Fill the input buffer. This is called only when the buffer is empty
-- * and at least one byte is really needed.
-- */
--int fill_inbuf(void)
--{
--	if (insize != 0)
--		error("ran out of input data");
--
--	inbuf = input_data;
--	insize = &input_data_end[0] - &input_data[0];
--
--	inptr = 1;
--	return inbuf[0];
--}
-+#ifdef CONFIG_KERNEL_GZIP
-+#include "../../../../lib/decompress_inflate.c"
-+#endif
- 
--/* ===========================================================================
-- * Write the output window window[0..outcnt-1] and update crc and bytes_out.
-- * (Used for the decompressed data only.)
-- */
--void flush_window(void)
--{
--	ulg c = crc;
--	unsigned n;
--	uch *in, *out, ch;
--
--	in = window;
--	out = &output_data[output_ptr];
--	for (n = 0; n < outcnt; n++) {
--		ch = *out++ = *in++;
--		c = crc_32_tab[((int)c ^ ch) & 0xff] ^ (c >> 8);
--	}
--	crc = c;
--	bytes_out += (ulg)outcnt;
--	output_ptr += (ulg)outcnt;
--	outcnt = 0;
--	putstr(".");
--}
-+#ifdef CONFIG_KERNEL_LZO
-+#include "../../../../lib/decompress_unlzo.c"
-+#endif
- 
- #ifndef arch_error
- #define arch_error(x)
-@@ -314,22 +256,33 @@ static void error(char *x)
- 	while(1);	/* Halt */
- }
- 
-+asmlinkage void __div0(void)
-+{
-+	error("Attempting division by 0!");
-+}
-+
- #ifndef STANDALONE_DEBUG
- 
--ulg
--decompress_kernel(ulg output_start, ulg free_mem_ptr_p, ulg free_mem_ptr_end_p,
--		  int arch_id)
-+unsigned long
-+decompress_kernel(unsigned long output_start, unsigned long free_mem_ptr_p,
-+		unsigned long free_mem_ptr_end_p,
-+		int arch_id)
- {
--	output_data		= (uch *)output_start;	/* Points to kernel start */
-+	unsigned char *tmp;
-+
-+	output_data		= (unsigned char *)output_start;
- 	free_mem_ptr		= free_mem_ptr_p;
- 	free_mem_end_ptr	= free_mem_ptr_end_p;
- 	__machine_arch_type	= arch_id;
- 
- 	arch_decomp_setup();
- 
--	makecrc();
-+	tmp = (unsigned char *) (((unsigned long)input_data_end) - 4);
-+	output_ptr = get_unaligned_le32(tmp);
-+
- 	putstr("Uncompressing Linux...");
--	gunzip();
-+	decompress(input_data, input_data_end - input_data,
-+			NULL, NULL, output_data, NULL, error);
- 	putstr(" done, booting the kernel.\n");
- 	return output_ptr;
- }
-@@ -341,11 +294,10 @@ int main()
- {
- 	output_data = output_buffer;
- 
--	makecrc();
- 	putstr("Uncompressing Linux...");
--	gunzip();
-+	decompress(input_data, input_data_end - input_data,
-+			NULL, NULL, output_data, NULL, error);
- 	putstr("done.\n");
- 	return 0;
- }
- #endif
--	
-diff -puN arch/arm/boot/compressed/piggy.S~arm-add-support-for-lzo-compressed-kernels /dev/null
---- a/arch/arm/boot/compressed/piggy.S
+-#include "iface.h"
+ #include "viafbdev.h"
+ #include "chip.h"
+ #include "accel.h"
+diff -puN drivers/video/via/iface.c~viafb-yet-another-dead-code-removal /dev/null
+--- a/drivers/video/via/iface.c
 +++ /dev/null
-@@ -1,6 +0,0 @@
--	.section .piggydata,#alloc
--	.globl	input_data
--input_data:
--	.incbin	"arch/arm/boot/compressed/piggy.gz"
--	.globl	input_data_end
--input_data_end:
-diff -puN /dev/null arch/arm/boot/compressed/piggy.gzip.S
---- /dev/null
-+++ a/arch/arm/boot/compressed/piggy.gzip.S
-@@ -0,0 +1,6 @@
-+	.section .piggydata,#alloc
-+	.globl	input_data
-+input_data:
-+	.incbin	"arch/arm/boot/compressed/piggy.gzip"
-+	.globl	input_data_end
-+input_data_end:
-diff -puN /dev/null arch/arm/boot/compressed/piggy.lzo.S
---- /dev/null
-+++ a/arch/arm/boot/compressed/piggy.lzo.S
-@@ -0,0 +1,6 @@
-+	.section .piggydata,#alloc
-+	.globl	input_data
-+input_data:
-+	.incbin	"arch/arm/boot/compressed/piggy.lzo"
-+	.globl	input_data_end
-+input_data_end:
+@@ -1,78 +0,0 @@
+-/*
+- * Copyright 1998-2008 VIA Technologies, Inc. All Rights Reserved.
+- * Copyright 2001-2008 S3 Graphics, Inc. All Rights Reserved.
+-
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public
+- * License as published by the Free Software Foundation;
+- * either version 2, or (at your option) any later version.
+-
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTIES OR REPRESENTATIONS; without even
+- * the implied warranty of MERCHANTABILITY or FITNESS FOR
+- * A PARTICULAR PURPOSE.See the GNU General Public License
+- * for more details.
+-
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc.,
+- * 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+- */
+-
+-#include "global.h"
+-
+-/* Get frame buffer size from VGA BIOS */
+-
+-unsigned int viafb_get_memsize(void)
+-{
+-	unsigned int m;
+-
+-	/* If memory size provided by user */
+-	if (viafb_memsize)
+-		m = viafb_memsize * Mb;
+-	else {
+-		m = (unsigned int)viafb_read_reg(VIASR, SR39);
+-		m = m * (4 * Mb);
+-
+-		if ((m < (16 * Mb)) || (m > (64 * Mb)))
+-			m = 16 * Mb;
+-	}
+-	DEBUG_MSG(KERN_INFO "framebuffer size = %d Mb\n", m / Mb);
+-	return m;
+-}
+-
+-/* Get Video Buffer Starting Physical Address(back door)*/
+-
+-unsigned long viafb_get_videobuf_addr(void)
+-{
+-	struct pci_dev *pdev = NULL;
+-	unsigned char sys_mem;
+-	unsigned char video_mem;
+-	unsigned long sys_mem_size;
+-	unsigned long video_mem_size;
+-	/*system memory = 256 MB, video memory 64 MB */
+-	unsigned long vmem_starting_adr = 0x0C000000;
+-
+-	pdev =
+-	    (struct pci_dev *)pci_get_device(VIA_K800_BRIDGE_VID,
+-					     VIA_K800_BRIDGE_DID, NULL);
+-	if (pdev != NULL) {
+-		pci_read_config_byte(pdev, VIA_K800_SYSTEM_MEMORY_REG,
+-				     &sys_mem);
+-		pci_read_config_byte(pdev, VIA_K800_VIDEO_MEMORY_REG,
+-				     &video_mem);
+-		video_mem = (video_mem & 0x70) >> 4;
+-		sys_mem_size = ((unsigned long)sys_mem) << 24;
+-		if (video_mem != 0)
+-			video_mem_size = (1 << (video_mem)) * 1024 * 1024;
+-		else
+-			video_mem_size = 0;
+-
+-		vmem_starting_adr = sys_mem_size - video_mem_size;
+-		pci_dev_put(pdev);
+-	}
+-
+-	DEBUG_MSG(KERN_INFO "Video Memory Starting Address = %lx \n",
+-		  vmem_starting_adr);
+-	return vmem_starting_adr;
+-}
+diff -puN drivers/video/via/iface.h~viafb-yet-another-dead-code-removal /dev/null
+--- a/drivers/video/via/iface.h
++++ /dev/null
+@@ -1,38 +0,0 @@
+-/*
+- * Copyright 1998-2008 VIA Technologies, Inc. All Rights Reserved.
+- * Copyright 2001-2008 S3 Graphics, Inc. All Rights Reserved.
+-
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public
+- * License as published by the Free Software Foundation;
+- * either version 2, or (at your option) any later version.
+-
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTIES OR REPRESENTATIONS; without even
+- * the implied warranty of MERCHANTABILITY or FITNESS FOR
+- * A PARTICULAR PURPOSE.See the GNU General Public License
+- * for more details.
+-
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc.,
+- * 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+- */
+-
+-#ifndef __IFACE_H__
+-#define __IFACE_H__
+-
+-#define Kb  (1024)
+-#define Mb  (Kb*Kb)
+-
+-#define VIA_K800_BRIDGE_VID         0x1106
+-#define VIA_K800_BRIDGE_DID         0x3204
+-
+-#define VIA_K800_SYSTEM_MEMORY_REG  0x47
+-#define VIA_K800_VIDEO_MEMORY_REG   0xA1
+-
+-extern int viafb_memsize;
+-unsigned int viafb_get_memsize(void);
+-unsigned long viafb_get_videobuf_addr(void);
+-
+-#endif /* __IFACE_H__ */
+diff -puN drivers/video/via/viafbdev.c~viafb-yet-another-dead-code-removal drivers/video/via/viafbdev.c
+--- a/drivers/video/via/viafbdev.c~viafb-yet-another-dead-code-removal
++++ a/drivers/video/via/viafbdev.c
+@@ -2215,8 +2215,6 @@ module_init(viafb_init);
+ module_exit(viafb_exit);
+ 
+ #ifdef MODULE
+-module_param(viafb_memsize, int, S_IRUSR);
+-
+ module_param(viafb_mode, charp, S_IRUSR);
+ MODULE_PARM_DESC(viafb_mode, "Set resolution (default=640x480)");
+ 
+diff -puN drivers/video/via/viafbdev.h~viafb-yet-another-dead-code-removal drivers/video/via/viafbdev.h
+--- a/drivers/video/via/viafbdev.h~viafb-yet-another-dead-code-removal
++++ a/drivers/video/via/viafbdev.h
+@@ -91,7 +91,6 @@ extern int viafb_LCD2_ON;
+ extern int viafb_LCD_ON;
+ extern int viafb_DVI_ON;
+ extern int viafb_hotplug;
+-extern int viafb_memsize;
+ 
+ extern int strict_strtoul(const char *cp, unsigned int base,
+ 	unsigned long *res);
 _
 
-Patches currently in -mm which might be from albin.tonnerre@free-electrons.com are
+Patches currently in -mm which might be from FlorianSchandinat@gmx.de are
 
-origin.patch
-linux-next.patch
-lzo-fix-up-add-support-for-lzo-compressed-kernels-patch.patch
+viafb-fix-lcd-hardware-cursor-regression.patch
+viafb-do-modesetting-after-updating-variables.patch
+viafb-fix-acceleration-for-some-chips.patch
+viafb-deprecate-private-ioctls.patch
+viafb-remove-dead-code.patch
+viafb-split-global-index-up.patch
+viafb-remove-the-remaining-via_res_-uses.patch
+viafb-some-dvi-cleanup.patch
+viafb-yet-another-dead-code-removal.patch
 
