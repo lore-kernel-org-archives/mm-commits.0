@@ -1,98 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: [merged] percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch removed from -mm tree
-Date: Mon, 11 Jan 2010 12:17:54 -0800
-Message-ID: <201001112017.o0BKHsvF025439@imap1.linux-foundation.org>
+Subject: [merged] mn10300-make-the-asb2305s-pcnet32-nic-work-by-using-the-pci-bridges-sram.patch removed from -mm tree
+Date: Mon, 11 Jan 2010 12:19:37 -0800
+Message-ID: <201001112019.o0BKJbWc025584@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38572 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36574 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753862Ab0AKUaE (ORCPT
+	by vger.kernel.org with ESMTP id S1754014Ab0AKUaW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Jan 2010 15:30:04 -0500
+	Mon, 11 Jan 2010 15:30:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kamalesh@linux.vnet.ibm.com, rusty@rustcorp.com.au, tj@kernel.org, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     percpu: avoid calling __pcpu_ptr_to_addr(NULL)
+     mn10300: make the ASB2305's PCnet32 NIC work by using the PCI bridge's SRAM
 has been removed from the -mm tree.  Its filename was
-     percpu-avoid-calling-__pcpu_ptr_to_addrnull.patch
+     mn10300-make-the-asb2305s-pcnet32-nic-work-by-using-the-pci-bridges-sram.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: percpu: avoid calling __pcpu_ptr_to_addr(NULL)
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mn10300: make the ASB2305's PCnet32 NIC work by using the PCI bridge's SRAM
+From: David Howells <dhowells@redhat.com>
 
-__pcpu_ptr_to_addr() can be overridden by the architecture and might not
-behave well if passed a NULL pointer.  So avoid calling it until we have
-verified that its arg is not NULL.
+Access to the ASB2305's PCnet32 NIC doesn't work correctly because when
+the NIC attempts to update the ring buffer flags by DMA, the change to RAM
+crops up about 17uS after the interrupt line is asserted.  This is almost
+certainly due to a bug in the PCI bridge FPGA on that board.
 
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
-Acked-by: Tejun Heo <tj@kernel.org>
+We can get around this by making dma_alloc_coherent() put the ring buffer
+in the SRAM attached to the PCI bridge rather than in the SDRAM.
+
+Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/percpu.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ arch/mn10300/mm/dma-alloc.c |   17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
-diff -puN mm/percpu.c~percpu-avoid-calling-__pcpu_ptr_to_addrnull mm/percpu.c
---- a/mm/percpu.c~percpu-avoid-calling-__pcpu_ptr_to_addrnull
-+++ a/mm/percpu.c
-@@ -1271,7 +1271,7 @@ static void pcpu_reclaim(struct work_str
-  */
- void free_percpu(void *ptr)
- {
--	void *addr = __pcpu_ptr_to_addr(ptr);
-+	void *addr;
- 	struct pcpu_chunk *chunk;
- 	unsigned long flags;
- 	int off;
-@@ -1279,6 +1279,8 @@ void free_percpu(void *ptr)
- 	if (!ptr)
- 		return;
+diff -puN arch/mn10300/mm/dma-alloc.c~mn10300-make-the-asb2305s-pcnet32-nic-work-by-using-the-pci-bridges-sram arch/mn10300/mm/dma-alloc.c
+--- a/arch/mn10300/mm/dma-alloc.c~mn10300-make-the-asb2305s-pcnet32-nic-work-by-using-the-pci-bridges-sram
++++ a/arch/mn10300/mm/dma-alloc.c
+@@ -16,12 +16,24 @@
+ #include <linux/pci.h>
+ #include <asm/io.h>
  
-+	addr = __pcpu_ptr_to_addr(ptr);
++static unsigned long pci_sram_allocated = 0xbc000000;
 +
- 	spin_lock_irqsave(&pcpu_lock, flags);
+ void *dma_alloc_coherent(struct device *dev, size_t size,
+ 			 dma_addr_t *dma_handle, int gfp)
+ {
+ 	unsigned long addr;
+ 	void *ret;
  
- 	chunk = pcpu_chunk_addr_search(addr);
++	printk("dma_alloc_coherent(%s,%zu,,%x)\n", dev_name(dev), size, gfp);
++
++	if (0xbe000000 - pci_sram_allocated >= size) {
++		size = (size + 255) & ~255;
++		addr = pci_sram_allocated;
++		pci_sram_allocated += size;
++		ret = (void *) addr;
++		goto done;
++	}
++
+ 	/* ignore region specifiers */
+ 	gfp &= ~(__GFP_DMA | __GFP_HIGHMEM);
+ 
+@@ -41,7 +53,9 @@ void *dma_alloc_coherent(struct device *
+ 	/* write back and evict all cache lines covering this region */
+ 	mn10300_dcache_flush_inv_range2(virt_to_phys((void *) addr), PAGE_SIZE);
+ 
++done:
+ 	*dma_handle = virt_to_bus((void *) addr);
++	printk("dma_alloc_coherent() = %p [%x]\n", ret, *dma_handle);
+ 	return ret;
+ }
+ EXPORT_SYMBOL(dma_alloc_coherent);
+@@ -51,6 +65,9 @@ void dma_free_coherent(struct device *de
+ {
+ 	unsigned long addr = (unsigned long) vaddr & ~0x20000000;
+ 
++	if (addr >= 0x9c000000)
++		return;
++
+ 	free_pages(addr, get_order(size));
+ }
+ EXPORT_SYMBOL(dma_free_coherent);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
 origin.patch
-linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
-drivers-media-video-pmsc-needs-versionh.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-3x59x-fix-pci-resource-management.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
-mm-count-swap-usage-checkpatch-fixes.patch
-mm-add-lowmem-detection-logic-fix.patch
-mm-count-lowmem-rss-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
-memcg-move-charges-of-anonymous-page-cleanup.patch
-memcg-implement-memory-thresholds-checkpatch-fixes.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+kernel-credc-use-kmem_cache_free.patch
+frv-duplicate-output_buffer-of-e03.patch
+coredump-unify-dump_seek-implementations-for-each-binfmt_c.patch
+coredump-move-dump_write-and-dump_seek-into-a-header-file.patch
+elf-coredump-replace-elf_core_extra_-macros-by-functions.patch
+elf-coredump-make-offset-calculation-process-and-writing-process-explicit.patch
+elf-coredump-add-extended-numbering-support.patch
+mutex-subsystem-synchro-test-module.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
