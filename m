@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + markup_oopspl-fix-error-with-x86.patch added to -mm tree
-Date: Mon, 11 Jan 2010 15:30:33 -0800
-Message-ID: <201001112330.o0BNUYJQ002742@imap1.linux-foundation.org>
+Subject: + memcg-implement-memory-thresholds-checkpatch-fixes-fix.patch added to -mm tree
+Date: Mon, 11 Jan 2010 15:33:20 -0800
+Message-ID: <201001112333.o0BNXKxZ002904@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59196 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46045 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750929Ab0AKXag (ORCPT
+	by vger.kernel.org with ESMTP id S1751538Ab0AKXdd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Jan 2010 18:30:36 -0500
+	Mon, 11 Jan 2010 18:33:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: teawater@gmail.com, arjan@linux.intel.com
+Cc: nishimura@mxp.nes.nec.co.jp, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kirill@shutemov.name
 
 
 The patch titled
-     markup_oops.pl: fix error with x86
+     memcg-implement-memory-thresholds-checkpatch-fixes-fix
 has been added to the -mm tree.  Its filename is
-     markup_oopspl-fix-error-with-x86.patch
+     memcg-implement-memory-thresholds-checkpatch-fixes-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,54 +34,81 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: markup_oops.pl: fix error with x86
-From: Hui Zhu <teawater@gmail.com>
+Subject: memcg-implement-memory-thresholds-checkpatch-fixes-fix
+From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 
-When I try to use markup_oops.pl in x86, I always get:
+Each memcg-implement-memory-thresholds.patch and
+memcg-add-interface-to-move-charge-at-task-migration.patch try to add a new
+section to Documentation/cgroup/memory.txt, so the document has been a bit
+mangled when these patches are merged at the same time.
 
-cat 1 | perl markup_oops.pl ./vmlinux
-objdump: --start-address: bad number: NaN
-No matching code found
+This patch fixes it.
 
-This is because in line:
-	if ($line =~ /EIP is at ([a-zA-Z0-9\_]+)\+0x([0-9a-f]+)\/[a-f0-9]/) {
- 		$function = $1;
- 		$func_offset = $2;
- 	}
-
-$func_offset will get a number like "0x2"
-
-But in follow code:
-
-my $decodestart = Math::BigInt->from_hex("0x$target") -
-Math::BigInt->from_hex("0x$func_offset");
-
-It add other ox to ox2.  Then this value will be set to NaN.
-
-So I made a small patch to fix it.
-
-Acked-by: Arjan van de Ven <arjan@linux.intel.com>
+Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Acked-by: Kirill A. Shutemov <kirill@shutemov.name>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/markup_oops.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/cgroups/memory.txt |   21 ++++++++++-----------
+ 1 file changed, 10 insertions(+), 11 deletions(-)
 
-diff -puN scripts/markup_oops.pl~markup_oopspl-fix-error-with-x86 scripts/markup_oops.pl
---- a/scripts/markup_oops.pl~markup_oopspl-fix-error-with-x86
-+++ a/scripts/markup_oops.pl
-@@ -154,7 +154,7 @@ while (<STDIN>) {
- 	if ($line =~ /RIP: 0010:\[\<([a-z0-9]+)\>\]/) {
- 		$target = $1;
- 	}
--	if ($line =~ /EIP is at ([a-zA-Z0-9\_]+)\+(0x[0-9a-f]+)\/0x[a-f0-9]/) {
-+	if ($line =~ /EIP is at ([a-zA-Z0-9\_]+)\+0x([0-9a-f]+)\/0x[a-f0-9]/) {
- 		$function = $1;
- 		$func_offset = $2;
- 	}
+diff -puN Documentation/cgroups/memory.txt~memcg-implement-memory-thresholds-checkpatch-fixes-fix Documentation/cgroups/memory.txt
+--- a/Documentation/cgroups/memory.txt~memcg-implement-memory-thresholds-checkpatch-fixes-fix
++++ a/Documentation/cgroups/memory.txt
+@@ -458,7 +458,15 @@ Note: Those pages and swaps must be char
+ Note: More type of pages(e.g. file cache, shmem,) will be supported by other
+       bits in future.
+ 
+-8.3 Memory thresholds
++8.3 TODO
++
++- Add support for other types of pages(e.g. file cache, shmem, etc.).
++- Implement madvise(2) to let users decide the vma to be moved or not to be
++  moved.
++- All of moving charge operations are done under cgroup_mutex. It's not good
++  behavior to hold the mutex too long, so we may need some trick.
++
++9. Memory thresholds
+ 
+ Memory controler implements memory thresholds using cgroups notification
+ API (see cgroups.txt). It allows to register multiple memory and memsw
+@@ -475,16 +483,7 @@ threshold in any direction.
+ 
+ It's applicable for root and non-root cgroup.
+ 
+-
+-8.4 TODO
+-
+-- Add support for other types of pages(e.g. file cache, shmem, etc.).
+-- Implement madvise(2) to let users decide the vma to be moved or not to be
+-  moved.
+-- All of moving charge operations are done under cgroup_mutex. It's not good
+-  behavior to hold the mutex too long, so we may need some trick.
+-
+-9. TODO
++10. TODO
+ 
+ 1. Add support for accounting huge pages (as a separate controller)
+ 2. Make per-cgroup scanner reclaim not-shared pages first
 _
 
-Patches currently in -mm which might be from teawater@gmail.com are
+Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
 
-markup_oopspl-fix-error-with-x86.patch
+cgroup-introduce-cancel_attach.patch
+cgroup-introduce-coalesce-css_get-and-css_put.patch
+memcg-add-interface-to-move-charge-at-task-migration.patch
+memcg-move-charges-of-anonymous-page.patch
+memcg-move-charges-of-anonymous-page-cleanup.patch
+memcg-improve-performance-in-moving-charge.patch
+memcg-avoid-oom-during-moving-charge.patch
+memcg-move-charges-of-anonymous-swap.patch
+memcg-improve-performance-in-moving-swap-charge.patch
+cgroup-implement-eventfd-based-generic-api-for-notifications.patch
+memcg-extract-mem_group_usage-from-mem_cgroup_read.patch
+memcg-rework-usage-of-stats-by-soft-limit.patch
+memcg-implement-memory-thresholds.patch
+memcg-implement-memory-thresholds-checkpatch-fixes.patch
+memcg-implement-memory-thresholds-checkpatch-fixes-fix.patch
 
