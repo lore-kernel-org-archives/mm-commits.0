@@ -1,135 +1,163 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mn10300-use-generic-pci_enable_resources.patch removed from -mm tree
-Date: Mon, 11 Jan 2010 12:19:31 -0800
-Message-ID: <201001112019.o0BKJVxN025578@imap1.linux-foundation.org>
+Subject: [merged] scripts-get_maintainerpl-fix-file-exclusion-x-logic.patch removed from -mm tree
+Date: Mon, 11 Jan 2010 12:18:15 -0800
+Message-ID: <201001112018.o0BKIFw7025475@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48963 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33812 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754128Ab0AKUfK (ORCPT
+	by vger.kernel.org with ESMTP id S1754132Ab0AKUfo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Jan 2010 15:35:10 -0500
+	Mon, 11 Jan 2010 15:35:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bjorn.helgaas@hp.com, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: joe@perches.com, error27@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mn10300: use generic pci_enable_resources()
+     scripts/get_maintainer.pl: fix file exclusion X: logic
 has been removed from the -mm tree.  Its filename was
-     mn10300-use-generic-pci_enable_resources.patch
+     scripts-get_maintainerpl-fix-file-exclusion-x-logic.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mn10300: use generic pci_enable_resources()
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: scripts/get_maintainer.pl: fix file exclusion X: logic
+From: Joe Perches <joe@perches.com>
 
-Use the generic pci_enable_resources() instead of the arch-specific code.
+The following command doesn't generate any output.
+`./scripts/get_maintainer.pl --no-git -f drivers/net/wireless/wl12xx/wl1271_acx.c`
 
-Unlike this arch-specific code, the generic version:
+An excluded "X:" pattern match in any section would cause a file not to
+match any other section.
 
- - checks PCI_NUM_RESOURCES (11), not 6, resources
- - skips resources that have neither IORESOURCE_IO nor IORESOURCE_MEM set
- - skips ROM resources unless IORESOURCE_ROM_ENABLE is set
- - checks for resource collisions with "!r->parent"
-
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Signed-off-by: David Howells <dhowells@redhat.com>
+Signed-off-by: Joe Perches <joe@perches.com>
+Reported-by: Dan Carpenter <error27@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mn10300/unit-asb2305/pci-asb2305.c |   39 ----------------------
- arch/mn10300/unit-asb2305/pci-asb2305.h |    1 
- arch/mn10300/unit-asb2305/pci.c         |    3 +
- 3 files changed, 2 insertions(+), 41 deletions(-)
+ scripts/get_maintainer.pl |   82 +++++++++++++++++++++++-------------
+ 1 file changed, 53 insertions(+), 29 deletions(-)
 
-diff -puN arch/mn10300/unit-asb2305/pci-asb2305.c~mn10300-use-generic-pci_enable_resources arch/mn10300/unit-asb2305/pci-asb2305.c
---- a/arch/mn10300/unit-asb2305/pci-asb2305.c~mn10300-use-generic-pci_enable_resources
-+++ a/arch/mn10300/unit-asb2305/pci-asb2305.c
-@@ -218,45 +218,6 @@ void __init pcibios_resource_survey(void
- 	pcibios_allocate_resources(1);
+diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-fix-file-exclusion-x-logic scripts/get_maintainer.pl
+--- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-fix-file-exclusion-x-logic
++++ a/scripts/get_maintainer.pl
+@@ -296,46 +296,56 @@ my @status = ();
+ 
+ foreach my $file (@files) {
+ 
+-#Do not match excluded file patterns
++    my %hash;
++    my $tvi = find_first_section();
++    while ($tvi < @typevalue) {
++	my $start = find_starting_index($tvi);
++	my $end = find_ending_index($tvi);
++	my $exclude = 0;
++	my $i;
+ 
+-    my $exclude = 0;
+-    foreach my $line (@typevalue) {
+-	if ($line =~ m/^(\C):\s*(.*)/) {
+-	    my $type = $1;
+-	    my $value = $2;
+-	    if ($type eq 'X') {
+-		if (file_match_pattern($file, $value)) {
+-		    $exclude = 1;
+-		    last;
+-		}
+-	    }
+-	}
+-    }
++	#Do not match excluded file patterns
+ 
+-    if (!$exclude) {
+-	my $tvi = 0;
+-	my %hash;
+-	foreach my $line (@typevalue) {
++	for ($i = $start; $i < $end; $i++) {
++	    my $line = $typevalue[$i];
+ 	    if ($line =~ m/^(\C):\s*(.*)/) {
+ 		my $type = $1;
+ 		my $value = $2;
+-		if ($type eq 'F') {
++		if ($type eq 'X') {
+ 		    if (file_match_pattern($file, $value)) {
+-			my $value_pd = ($value =~ tr@/@@);
+-			my $file_pd = ($file  =~ tr@/@@);
+-			$value_pd++ if (substr($value,-1,1) ne "/");
+-			if ($pattern_depth == 0 ||
+-			    (($file_pd - $value_pd) < $pattern_depth)) {
+-			    $hash{$tvi} = $value_pd;
+-			}
++			$exclude = 1;
+ 		    }
+ 		}
+ 	    }
+-	    $tvi++;
+ 	}
+-	foreach my $line (sort {$hash{$b} <=> $hash{$a}} keys %hash) {
+-	    add_categories($line);
++
++	if (!$exclude) {
++	    for ($i = $start; $i < $end; $i++) {
++		my $line = $typevalue[$i];
++		if ($line =~ m/^(\C):\s*(.*)/) {
++		    my $type = $1;
++		    my $value = $2;
++		    if ($type eq 'F') {
++			if (file_match_pattern($file, $value)) {
++			    my $value_pd = ($value =~ tr@/@@);
++			    my $file_pd = ($file  =~ tr@/@@);
++			    $value_pd++ if (substr($value,-1,1) ne "/");
++			    if ($pattern_depth == 0 ||
++				(($file_pd - $value_pd) < $pattern_depth)) {
++				$hash{$tvi} = $value_pd;
++			    }
++			}
++		    }
++		}
++	    }
+ 	}
++
++	$tvi += ($end - $start);
++
++    }
++
++    foreach my $line (sort {$hash{$b} <=> $hash{$a}} keys %hash) {
++	add_categories($line);
+     }
+ 
+     if ($email && $email_git) {
+@@ -570,6 +580,20 @@ sub format_email {
+     return $formatted_email;
  }
  
--int pcibios_enable_resources(struct pci_dev *dev, int mask)
--{
--	u16 cmd, old_cmd;
--	int idx;
--	struct resource *r;
--
--	pci_read_config_word(dev, PCI_COMMAND, &cmd);
--	old_cmd = cmd;
--
--	for (idx = 0; idx < 6; idx++) {
--		/* Only set up the requested stuff */
--		if (!(mask & (1 << idx)))
--			continue;
--
--		r = &dev->resource[idx];
--
--		if (!r->start && r->end) {
--			printk(KERN_ERR
--			       "PCI: Device %s not available because of"
--			       " resource collisions\n",
--			       pci_name(dev));
--			return -EINVAL;
--		}
--
--		if (r->flags & IORESOURCE_IO)
--			cmd |= PCI_COMMAND_IO;
--		if (r->flags & IORESOURCE_MEM)
--			cmd |= PCI_COMMAND_MEMORY;
--	}
--
--	if (dev->resource[PCI_ROM_RESOURCE].start)
--		cmd |= PCI_COMMAND_MEMORY;
--
--	if (cmd != old_cmd)
--		pci_write_config_word(dev, PCI_COMMAND, cmd);
--
--	return 0;
--}
--
- /*
-  *  If we set up a device for bus mastering, we need to check the latency
-  *  timer as certain crappy BIOSes forget to set it properly.
-diff -puN arch/mn10300/unit-asb2305/pci-asb2305.h~mn10300-use-generic-pci_enable_resources arch/mn10300/unit-asb2305/pci-asb2305.h
---- a/arch/mn10300/unit-asb2305/pci-asb2305.h~mn10300-use-generic-pci_enable_resources
-+++ a/arch/mn10300/unit-asb2305/pci-asb2305.h
-@@ -34,7 +34,6 @@ extern unsigned int pci_probe;
- extern unsigned int pcibios_max_latency;
++sub find_first_section {
++    my $index = 0;
++
++    while ($index < @typevalue) {
++	my $tv = $typevalue[$index];
++	if (($tv =~ m/^(\C):\s*(.*)/)) {
++	    last;
++	}
++	$index++;
++    }
++
++    return $index;
++}
++
+ sub find_starting_index {
+     my ($index) = @_;
  
- extern void pcibios_resource_survey(void);
--extern int pcibios_enable_resources(struct pci_dev *dev, int mask);
- 
- /* pci.c */
- 
-diff -puN arch/mn10300/unit-asb2305/pci.c~mn10300-use-generic-pci_enable_resources arch/mn10300/unit-asb2305/pci.c
---- a/arch/mn10300/unit-asb2305/pci.c~mn10300-use-generic-pci_enable_resources
-+++ a/arch/mn10300/unit-asb2305/pci.c
-@@ -440,7 +440,7 @@ int pcibios_enable_device(struct pci_dev
- {
- 	int err;
- 
--	err = pcibios_enable_resources(dev, mask);
-+	err = pci_enable_resources(dev, mask);
- 	if (err == 0)
- 		pcibios_enable_irq(dev);
- 	return err;
-@@ -455,6 +455,7 @@ static void __init unit_disable_pcnet(st
- 
- 	bus->number = 0;
- 
-+	o->read (bus, PCI_DEVFN(2, 0), PCI_VENDOR_ID,		4, &x);
- 	o->read (bus, PCI_DEVFN(2, 0), PCI_COMMAND,		2, &x);
- 	x |= PCI_COMMAND_MASTER |
- 		PCI_COMMAND_IO | PCI_COMMAND_MEMORY |
 _
 
-Patches currently in -mm which might be from bjorn.helgaas@hp.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
 linux-next.patch
+drivers-scsi-correct-the-size-argument-to-kmalloc.patch
+scripts-checkpatchpl-add-warn-on-sizeof.patch
+checkpatchpl-allow-80-char-lines-for-logging-functions-not-just-printk.patch
 
