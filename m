@@ -1,106 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc_cmos-convert-shutdown-to-new-pnp_driver-shutdown.patch removed from -mm tree
-Date: Mon, 11 Jan 2010 12:19:13 -0800
-Message-ID: <201001112019.o0BKJDeU025554@imap1.linux-foundation.org>
+Subject: [merged] mn10300-use-kern_err-not-kern_error.patch removed from -mm tree
+Date: Mon, 11 Jan 2010 12:19:29 -0800
+Message-ID: <201001112019.o0BKJTmd025575@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50976 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34423 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754286Ab0AKUVT (ORCPT
+	by vger.kernel.org with ESMTP id S1752220Ab0AKU2n (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Jan 2010 15:21:19 -0500
+	Mon, 11 Jan 2010 15:28:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hirofumi@mail.parknet.co.jp, a.zummo@towertech.it, bjorn.helgaas@hp.com, david@hardeman.nu, dtor@mail.ru, maltesch@gmx.de, p_gortmaker@yahoo.com, rjw@sisk.pl, stable@kernel.org, mm-co
+To: dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc_cmos: convert shutdown to new pnp_driver->shutdown
+     mn10300: use KERN_ERR not KERN_ERROR
 has been removed from the -mm tree.  Its filename was
-     rtc_cmos-convert-shutdown-to-new-pnp_driver-shutdown.patch
+     mn10300-use-kern_err-not-kern_error.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc_cmos: convert shutdown to new pnp_driver->shutdown
-=46rom: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Subject: mn10300: use KERN_ERR not KERN_ERROR
+From: David Howells <dhowells@redhat.com>
 
-commit abd6633c67925f90775bb74755f9c547e30f1f20 ("pnp: add a shutdown
-method to pnp drivers") adds shutdown method to bus driver blindly.  Wi=
-th
-it, driver->shutdown is no longer valid.
+Use KERN_ERR not KERN_ERROR in the ASB2305 platform code.
 
-Use pnp_driver->shutdown instead.
-
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=3D14889
-
-Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Reported-by: Malte Schr=F6der <maltesch@gmx.de>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: David Hardeman <david@hardeman.nu>
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Paul Gortmaker <p_gortmaker@yahoo.com>
-Cc: <stable@kernel.org>		[2.6.32.x]
+Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-cmos.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ arch/mn10300/unit-asb2305/pci.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-cmos.c~rtc_cmos-convert-shutdown-to-new-pnp_d=
-river-shutdown drivers/rtc/rtc-cmos.c
---- a/drivers/rtc/rtc-cmos.c~rtc_cmos-convert-shutdown-to-new-pnp_drive=
-r-shutdown
-+++ a/drivers/rtc/rtc-cmos.c
-@@ -1096,9 +1096,9 @@ static int cmos_pnp_resume(struct pnp_de
- #define	cmos_pnp_resume		NULL
- #endif
-=20
--static void cmos_pnp_shutdown(struct device *pdev)
-+static void cmos_pnp_shutdown(struct pnp_dev *pnp)
- {
--	if (system_state =3D=3D SYSTEM_POWER_OFF && !cmos_poweroff(pdev))
-+	if (system_state =3D=3D SYSTEM_POWER_OFF && !cmos_poweroff(&pnp->dev)=
-)
- 		return;
-=20
- 	cmos_do_shutdown();
-@@ -1117,15 +1117,12 @@ static struct pnp_driver cmos_pnp_driver
- 	.id_table	=3D rtc_ids,
- 	.probe		=3D cmos_pnp_probe,
- 	.remove		=3D __exit_p(cmos_pnp_remove),
-+	.shutdown	=3D cmos_pnp_shutdown,
-=20
- 	/* flag ensures resume() gets called, and stops syslog spam */
- 	.flags		=3D PNP_DRIVER_RES_DO_NOT_CHANGE,
- 	.suspend	=3D cmos_pnp_suspend,
- 	.resume		=3D cmos_pnp_resume,
--	.driver		=3D {
--		.name	  =3D (char *)driver_name,
--		.shutdown =3D cmos_pnp_shutdown,
--	}
- };
-=20
- #endif	/* CONFIG_PNP */
+diff -puN arch/mn10300/unit-asb2305/pci.c~mn10300-use-kern_err-not-kern_error arch/mn10300/unit-asb2305/pci.c
+--- a/arch/mn10300/unit-asb2305/pci.c~mn10300-use-kern_err-not-kern_error
++++ a/arch/mn10300/unit-asb2305/pci.c
+@@ -279,7 +279,7 @@ static int __init pci_sanity_check(struc
+ 	     (x == PCI_VENDOR_ID_INTEL || x == PCI_VENDOR_ID_COMPAQ)))
+ 		return 1;
+ 
+-	printk(KERN_ERROR "PCI: Sanity check failed\n");
++	printk(KERN_ERR "PCI: Sanity check failed\n");
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from hirofumi@mail.parknet.co.j=
-p are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
 origin.patch
-tpm_infineon-fix-suspend-resume-handler-for-pnp_driver.patch
+kernel-credc-use-kmem_cache_free.patch
+frv-duplicate-output_buffer-of-e03.patch
+coredump-unify-dump_seek-implementations-for-each-binfmt_c.patch
+coredump-move-dump_write-and-dump_seek-into-a-header-file.patch
+elf-coredump-replace-elf_core_extra_-macros-by-functions.patch
+elf-coredump-make-offset-calculation-process-and-writing-process-explicit.patch
+elf-coredump-add-extended-numbering-support.patch
+mutex-subsystem-synchro-test-module.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
