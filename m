@@ -1,421 +1,240 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-add-support-for-lzo-compressed-kernels.patch removed from -mm tree
-Date: Mon, 11 Jan 2010 12:18:00 -0800
-Message-ID: <201001112018.o0BKI0Hq025447@imap1.linux-foundation.org>
+Subject: [merged] proc-revert-procfs-provide-stack-information-for-threads.patch removed from -mm tree
+Date: Mon, 11 Jan 2010 12:18:28 -0800
+Message-ID: <201001112018.o0BKISAk025491@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51832 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37229 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751376Ab0AKUjF (ORCPT
+	by vger.kernel.org with ESMTP id S1751504Ab0AKUjF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 11 Jan 2010 15:39:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: albin.tonnerre@free-electrons.com, hpa@zytor.com, mingo@elte.hu, ralf@linux-mips.org, rmk@arm.linux.org.uk, tglx@linutronix.de, wuzhangjin@gmail.com, mm-commits@vger.kernel.org
+To: kosaki.motohiro@jp.fujitsu.com, a.p.zijlstra@chello.nl, adobriyan@gmail.com, akpm@linux-foundation.org, andi@firstfloor.org, ebiederm@xmission.com, mingo@elte.hu, randy.dunlap@oracle.
 
 
 The patch titled
-     lib: add support for LZO-compressed kernels
+     proc: partially revert "procfs: provide stack information for threads"
 has been removed from the -mm tree.  Its filename was
-     lib-add-support-for-lzo-compressed-kernels.patch
+     proc-revert-procfs-provide-stack-information-for-threads.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib: add support for LZO-compressed kernels
-From: Albin Tonnerre <albin.tonnerre@free-electrons.com>
+Subject: proc: partially revert "procfs: provide stack information for threads"
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-This patch series adds generic support for creating and extracting
-LZO-compressed kernel images, as well as support for using such images on
-the x86 and ARM architectures, and support for creating and using
-LZO-compressed initrd and initramfs images.
+Commit d899bf7b (procfs: provide stack information for threads) introduced
+to show stack information in /proc/{pid}/status.  But it cause large
+performance regression.  Unfortunately /proc/{pid}/status is used ps
+command too and ps is one of most important component.  Because both to
+take mmap_sem and page table walk are heavily operation.
+
+If many process run, the ps performance is,
+
+[before d899bf7b]
+
+% perf stat ps >/dev/null
+
+ Performance counter stats for 'ps':
+
+     4090.435806  task-clock-msecs         #      0.032 CPUs
+             229  context-switches         #      0.000 M/sec
+               0  CPU-migrations           #      0.000 M/sec
+             234  page-faults              #      0.000 M/sec
+      8587565207  cycles                   #   2099.425 M/sec
+      9866662403  instructions             #      1.149 IPC
+      3789415411  cache-references         #    926.409 M/sec
+        30419509  cache-misses             #      7.437 M/sec
+
+   128.859521955  seconds time elapsed
+
+[after d899bf7b]
+
+% perf stat  ps  > /dev/null
+
+ Performance counter stats for 'ps':
+
+     4305.081146  task-clock-msecs         #      0.028 CPUs
+             480  context-switches         #      0.000 M/sec
+               2  CPU-migrations           #      0.000 M/sec
+             237  page-faults              #      0.000 M/sec
+      9021211334  cycles                   #   2095.480 M/sec
+     10605887536  instructions             #      1.176 IPC
+      3612650999  cache-references         #    839.160 M/sec
+        23917502  cache-misses             #      5.556 M/sec
+
+   152.277819582  seconds time elapsed
+
+Thus, this patch revert it. Fortunately /proc/{pid}/task/{tid}/smaps
+provide almost same information. we can use it.
 
 
-Russell King said:
+Commit d899bf7b introduced two features:
 
-: Testing on a Cortex A9 model:
-: - lzo decompressor is 65% of the time gzip takes to decompress a kernel
-: - lzo kernel is 9% larger than a gzip kernel
-: 
-: which I'm happy to say confirms your figures when comparing the two.
-: 
-: However, when comparing your new gzip code to the old gzip code:
-: - new is 99% of the size of the old code
-: - new takes 42% of the time to decompress than the old code
-: 
-: What this means is that for a proper comparison, the results get even better:
-: - lzo is 7.5% larger than the old gzip'd kernel image
-: - lzo takes 28% of the time that the old gzip code took
-: 
-: So the expense seems definitely worth the effort.  The only reason I
-: can think of ever using gzip would be if you needed the additional
-: compression (eg, because you have limited flash to store the image.)
-: 
-: I would argue that the default for ARM should therefore be LZO.
+ 1) Add the annotattion of [thread stack: xxxx] mark to
+    /proc/{pid}/task/{tid}/maps.
+ 2) Add StackUsage field to /proc/{pid}/status.
 
+I only revert (2), because I haven't seen (1) cause regression.
 
-This patch:
-
-The lzo compressor is worse than gzip at compression, but faster at
-extraction.  Here are some figures for an ARM board I'm working on:
-
-Uncompressed size: 3.24Mo
-gzip  1.61Mo 0.72s
-lzo   1.75Mo 0.48s
-
-So for a compression ratio that is still relatively close to gzip, it's
-much faster to extract, at least in that case.
-
-This part contains:
- - Makefile routine to support lzo compression
- - Fixes to the existing lzo compressor so that it can be used in
-   compressed kernels
- - wrapper around the existing lzo1x_decompress, as it only extracts one
-   block at a time, while we need to extract a whole file here
- - config dialog for kernel compression
-
-[akpm@linux-foundation.org: coding-style fixes]
-[akpm@linux-foundation.org: cleanup]
-Signed-off-by: Albin Tonnerre <albin.tonnerre@free-electrons.com>
-Tested-by: Wu Zhangjin <wuzhangjin@gmail.com>
-Acked-by: "H. Peter Anvin" <hpa@zytor.com>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Stefani Seibold <stefani@seibold.net>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Tested-by: Russell King <rmk@arm.linux.org.uk>
-Acked-by: Russell King <rmk@arm.linux.org.uk>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/decompress/unlzo.h |   10 +
- init/Kconfig                     |   18 +-
- lib/decompress_unlzo.c           |  209 +++++++++++++++++++++++++++++
- lib/lzo/lzo1x_decompress.c       |    9 -
- scripts/Makefile.lib             |    5 
- 5 files changed, 244 insertions(+), 7 deletions(-)
+ Documentation/filesystems/proc.txt |    2 
+ fs/proc/array.c                    |   89 ---------------------------
+ 2 files changed, 91 deletions(-)
 
-diff -puN /dev/null include/linux/decompress/unlzo.h
---- /dev/null
-+++ a/include/linux/decompress/unlzo.h
-@@ -0,0 +1,10 @@
-+#ifndef DECOMPRESS_UNLZO_H
-+#define DECOMPRESS_UNLZO_H
-+
-+int unlzo(unsigned char *inbuf, int len,
-+	int(*fill)(void*, unsigned int),
-+	int(*flush)(void*, unsigned int),
-+	unsigned char *output,
-+	int *pos,
-+	void(*error)(char *x));
-+#endif
-diff -puN init/Kconfig~lib-add-support-for-lzo-compressed-kernels init/Kconfig
---- a/init/Kconfig~lib-add-support-for-lzo-compressed-kernels
-+++ a/init/Kconfig
-@@ -115,10 +115,13 @@ config HAVE_KERNEL_BZIP2
- config HAVE_KERNEL_LZMA
- 	bool
+diff -puN Documentation/filesystems/proc.txt~proc-revert-procfs-provide-stack-information-for-threads Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~proc-revert-procfs-provide-stack-information-for-threads
++++ a/Documentation/filesystems/proc.txt
+@@ -177,7 +177,6 @@ read the file /proc/PID/status:
+   CapBnd: ffffffffffffffff
+   voluntary_ctxt_switches:        0
+   nonvoluntary_ctxt_switches:     1
+-  Stack usage:    12 kB
  
-+config HAVE_KERNEL_LZO
-+	bool
-+
- choice
- 	prompt "Kernel compression mode"
- 	default KERNEL_GZIP
--	depends on HAVE_KERNEL_GZIP || HAVE_KERNEL_BZIP2 || HAVE_KERNEL_LZMA
-+	depends on HAVE_KERNEL_GZIP || HAVE_KERNEL_BZIP2 || HAVE_KERNEL_LZMA || HAVE_KERNEL_LZO
- 	help
- 	  The linux kernel is a kind of self-extracting executable.
- 	  Several compression algorithms are available, which differ
-@@ -141,9 +144,8 @@ config KERNEL_GZIP
- 	bool "Gzip"
- 	depends on HAVE_KERNEL_GZIP
- 	help
--	  The old and tried gzip compression. Its compression ratio is
--	  the poorest among the 3 choices; however its speed (both
--	  compression and decompression) is the fastest.
-+	  The old and tried gzip compression. It provides a good balance
-+	  between compression ratio and decompression speed.
+ This shows you nearly the same information you would get if you viewed it with
+ the ps  command.  In  fact,  ps  uses  the  proc  file  system  to  obtain its
+@@ -231,7 +230,6 @@ Table 1-2: Contents of the statm files (
+  Mems_allowed_list           Same as previous, but in "list format"
+  voluntary_ctxt_switches     number of voluntary context switches
+  nonvoluntary_ctxt_switches  number of non voluntary context switches
+- Stack usage:                stack usage high water mark (round up to page size)
+ ..............................................................................
  
- config KERNEL_BZIP2
- 	bool "Bzip2"
-@@ -164,6 +166,14 @@ config KERNEL_LZMA
- 	  two. Compression is slowest.	The kernel size is about 33%
- 	  smaller with LZMA in comparison to gzip.
- 
-+config KERNEL_LZO
-+	bool "LZO"
-+	depends on HAVE_KERNEL_LZO
-+	help
-+	  Its compression ratio is the poorest among the 4. The kernel
-+	  size is about about 10% bigger than gzip; however its speed
-+	  (both compression and decompression) is the fastest.
-+
- endchoice
- 
- config SWAP
-diff -puN /dev/null lib/decompress_unlzo.c
---- /dev/null
-+++ a/lib/decompress_unlzo.c
-@@ -0,0 +1,209 @@
-+/*
-+ * LZO decompressor for the Linux kernel. Code borrowed from the lzo
-+ * implementation by Markus Franz Xaver Johannes Oberhumer.
-+ *
-+ * Linux kernel adaptation:
-+ * Copyright (C) 2009
-+ * Albin Tonnerre, Free Electrons <albin.tonnerre@free-electrons.com>
-+ *
-+ * Original code:
-+ * Copyright (C) 1996-2005 Markus Franz Xaver Johannes Oberhumer
-+ * All Rights Reserved.
-+ *
-+ * lzop and the LZO library are free software; you can redistribute them
-+ * and/or modify them under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation; either version 2 of
-+ * the License, or (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; see the file COPYING.
-+ * If not, write to the Free Software Foundation, Inc.,
-+ * 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-+ *
-+ * Markus F.X.J. Oberhumer
-+ * <markus@oberhumer.com>
-+ * http://www.oberhumer.com/opensource/lzop/
-+ */
-+
-+#ifdef STATIC
-+#include "lzo/lzo1x_decompress.c"
-+#else
-+#include <linux/slab.h>
-+#include <linux/decompress/unlzo.h>
-+#endif
-+
-+#include <linux/types.h>
-+#include <linux/lzo.h>
-+#include <linux/decompress/mm.h>
-+
-+#include <linux/compiler.h>
-+#include <asm/unaligned.h>
-+
-+static const unsigned char lzop_magic[] = {
-+	0x89, 0x4c, 0x5a, 0x4f, 0x00, 0x0d, 0x0a, 0x1a, 0x0a };
-+
-+#define LZO_BLOCK_SIZE        (256*1024l)
-+#define HEADER_HAS_FILTER      0x00000800L
-+
-+STATIC inline int INIT parse_header(u8 *input, u8 *skip)
-+{
-+	int l;
-+	u8 *parse = input;
-+	u8 level = 0;
-+	u16 version;
-+
-+	/* read magic: 9 first bits */
-+	for (l = 0; l < 9; l++) {
-+		if (*parse++ != lzop_magic[l])
-+			return 0;
-+	}
-+	/* get version (2bytes), skip library version (2),
-+	 * 'need to be extracted' version (2) and
-+	 * method (1) */
-+	version = get_unaligned_be16(parse);
-+	parse += 7;
-+	if (version >= 0x0940)
-+		level = *parse++;
-+	if (get_unaligned_be32(parse) & HEADER_HAS_FILTER)
-+		parse += 8; /* flags + filter info */
-+	else
-+		parse += 4; /* flags */
-+
-+	/* skip mode and mtime_low */
-+	parse += 8;
-+	if (version >= 0x0940)
-+		parse += 4;	/* skip mtime_high */
-+
-+	l = *parse++;
-+	/* don't care about the file name, and skip checksum */
-+	parse += l + 4;
-+
-+	*skip = parse - input;
-+	return 1;
-+}
-+
-+STATIC inline int INIT unlzo(u8 *input, int in_len,
-+				int (*fill) (void *, unsigned int),
-+				int (*flush) (void *, unsigned int),
-+				u8 *output, int *posp,
-+				void (*error_fn) (char *x))
-+{
-+	u8 skip = 0, r = 0;
-+	u32 src_len, dst_len;
-+	size_t tmp;
-+	u8 *in_buf, *in_buf_save, *out_buf;
-+	int obytes_processed = 0;
-+
-+	set_error_fn(error_fn);
-+
-+	if (output) {
-+		out_buf = output;
-+	} else if (!flush) {
-+		error("NULL output pointer and no flush function provided");
-+		goto exit;
-+	} else {
-+		out_buf = malloc(LZO_BLOCK_SIZE);
-+		if (!out_buf) {
-+			error("Could not allocate output buffer");
-+			goto exit;
-+		}
-+	}
-+
-+	if (input && fill) {
-+		error("Both input pointer and fill function provided, don't know what to do");
-+		goto exit_1;
-+	} else if (input) {
-+		in_buf = input;
-+	} else if (!fill || !posp) {
-+		error("NULL input pointer and missing position pointer or fill function");
-+		goto exit_1;
-+	} else {
-+		in_buf = malloc(lzo1x_worst_compress(LZO_BLOCK_SIZE));
-+		if (!in_buf) {
-+			error("Could not allocate input buffer");
-+			goto exit_1;
-+		}
-+	}
-+	in_buf_save = in_buf;
-+
-+	if (posp)
-+		*posp = 0;
-+
-+	if (fill)
-+		fill(in_buf, lzo1x_worst_compress(LZO_BLOCK_SIZE));
-+
-+	if (!parse_header(input, &skip)) {
-+		error("invalid header");
-+		goto exit_2;
-+	}
-+	in_buf += skip;
-+
-+	if (posp)
-+		*posp = skip;
-+
-+	for (;;) {
-+		/* read uncompressed block size */
-+		dst_len = get_unaligned_be32(in_buf);
-+		in_buf += 4;
-+
-+		/* exit if last block */
-+		if (dst_len == 0) {
-+			if (posp)
-+				*posp += 4;
-+			break;
-+		}
-+
-+		if (dst_len > LZO_BLOCK_SIZE) {
-+			error("dest len longer than block size");
-+			goto exit_2;
-+		}
-+
-+		/* read compressed block size, and skip block checksum info */
-+		src_len = get_unaligned_be32(in_buf);
-+		in_buf += 8;
-+
-+		if (src_len <= 0 || src_len > dst_len) {
-+			error("file corrupted");
-+			goto exit_2;
-+		}
-+
-+		/* decompress */
-+		tmp = dst_len;
-+		r = lzo1x_decompress_safe((u8 *) in_buf, src_len,
-+						out_buf, &tmp);
-+
-+		if (r != LZO_E_OK || dst_len != tmp) {
-+			error("Compressed data violation");
-+			goto exit_2;
-+		}
-+
-+		obytes_processed += dst_len;
-+		if (flush)
-+			flush(out_buf, dst_len);
-+		if (output)
-+			out_buf += dst_len;
-+		if (posp)
-+			*posp += src_len + 12;
-+		if (fill) {
-+			in_buf = in_buf_save;
-+			fill(in_buf, lzo1x_worst_compress(LZO_BLOCK_SIZE));
-+		} else
-+			in_buf += src_len;
-+	}
-+
-+exit_2:
-+	if (!input)
-+		free(in_buf);
-+exit_1:
-+	if (!output)
-+		free(out_buf);
-+exit:
-+	return obytes_processed;
-+}
-+
-+#define decompress unlzo
-diff -puN lib/lzo/lzo1x_decompress.c~lib-add-support-for-lzo-compressed-kernels lib/lzo/lzo1x_decompress.c
---- a/lib/lzo/lzo1x_decompress.c~lib-add-support-for-lzo-compressed-kernels
-+++ a/lib/lzo/lzo1x_decompress.c
-@@ -11,11 +11,13 @@
-  *  Richard Purdie <rpurdie@openedhand.com>
-  */
- 
-+#ifndef STATIC
- #include <linux/module.h>
- #include <linux/kernel.h>
--#include <linux/lzo.h>
--#include <asm/byteorder.h>
-+#endif
-+
- #include <asm/unaligned.h>
-+#include <linux/lzo.h>
- #include "lzodefs.h"
- 
- #define HAVE_IP(x, ip_end, ip) ((size_t)(ip_end - ip) < (x))
-@@ -244,9 +246,10 @@ lookbehind_overrun:
- 	*out_len = op - out;
- 	return LZO_E_LOOKBEHIND_OVERRUN;
+ Table 1-3: Contents of the statm files (as of 2.6.8-rc3)
+diff -puN fs/proc/array.c~proc-revert-procfs-provide-stack-information-for-threads fs/proc/array.c
+--- a/fs/proc/array.c~proc-revert-procfs-provide-stack-information-for-threads
++++ a/fs/proc/array.c
+@@ -327,94 +327,6 @@ static inline void task_context_switch_c
+ 			p->nivcsw);
  }
+ 
+-#ifdef CONFIG_MMU
 -
-+#ifndef STATIC
- EXPORT_SYMBOL_GPL(lzo1x_decompress_safe);
+-struct stack_stats {
+-	struct vm_area_struct *vma;
+-	unsigned long	startpage;
+-	unsigned long	usage;
+-};
+-
+-static int stack_usage_pte_range(pmd_t *pmd, unsigned long addr,
+-				unsigned long end, struct mm_walk *walk)
+-{
+-	struct stack_stats *ss = walk->private;
+-	struct vm_area_struct *vma = ss->vma;
+-	pte_t *pte, ptent;
+-	spinlock_t *ptl;
+-	int ret = 0;
+-
+-	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
+-	for (; addr != end; pte++, addr += PAGE_SIZE) {
+-		ptent = *pte;
+-
+-#ifdef CONFIG_STACK_GROWSUP
+-		if (pte_present(ptent) || is_swap_pte(ptent))
+-			ss->usage = addr - ss->startpage + PAGE_SIZE;
+-#else
+-		if (pte_present(ptent) || is_swap_pte(ptent)) {
+-			ss->usage = ss->startpage - addr + PAGE_SIZE;
+-			pte++;
+-			ret = 1;
+-			break;
+-		}
+-#endif
+-	}
+-	pte_unmap_unlock(pte - 1, ptl);
+-	cond_resched();
+-	return ret;
+-}
+-
+-static inline unsigned long get_stack_usage_in_bytes(struct vm_area_struct *vma,
+-				struct task_struct *task)
+-{
+-	struct stack_stats ss;
+-	struct mm_walk stack_walk = {
+-		.pmd_entry = stack_usage_pte_range,
+-		.mm = vma->vm_mm,
+-		.private = &ss,
+-	};
+-
+-	if (!vma->vm_mm || is_vm_hugetlb_page(vma))
+-		return 0;
+-
+-	ss.vma = vma;
+-	ss.startpage = task->stack_start & PAGE_MASK;
+-	ss.usage = 0;
+-
+-#ifdef CONFIG_STACK_GROWSUP
+-	walk_page_range(KSTK_ESP(task) & PAGE_MASK, vma->vm_end,
+-		&stack_walk);
+-#else
+-	walk_page_range(vma->vm_start, (KSTK_ESP(task) & PAGE_MASK) + PAGE_SIZE,
+-		&stack_walk);
+-#endif
+-	return ss.usage;
+-}
+-
+-static inline void task_show_stack_usage(struct seq_file *m,
+-						struct task_struct *task)
+-{
+-	struct vm_area_struct	*vma;
+-	struct mm_struct	*mm = get_task_mm(task);
+-
+-	if (mm) {
+-		down_read(&mm->mmap_sem);
+-		vma = find_vma(mm, task->stack_start);
+-		if (vma)
+-			seq_printf(m, "Stack usage:\t%lu kB\n",
+-				get_stack_usage_in_bytes(vma, task) >> 10);
+-
+-		up_read(&mm->mmap_sem);
+-		mmput(mm);
+-	}
+-}
+-#else
+-static void task_show_stack_usage(struct seq_file *m, struct task_struct *task)
+-{
+-}
+-#endif		/* CONFIG_MMU */
+-
+ static void task_cpus_allowed(struct seq_file *m, struct task_struct *task)
+ {
+ 	seq_printf(m, "Cpus_allowed:\t");
+@@ -445,7 +357,6 @@ int proc_pid_status(struct seq_file *m, 
+ 	task_show_regs(m, task);
+ #endif
+ 	task_context_switch_counts(m, task);
+-	task_show_stack_usage(m, task);
+ 	return 0;
+ }
  
- MODULE_LICENSE("GPL");
- MODULE_DESCRIPTION("LZO1X Decompressor");
- 
-+#endif
-diff -puN scripts/Makefile.lib~lib-add-support-for-lzo-compressed-kernels scripts/Makefile.lib
---- a/scripts/Makefile.lib~lib-add-support-for-lzo-compressed-kernels
-+++ a/scripts/Makefile.lib
-@@ -235,3 +235,8 @@ quiet_cmd_lzma = LZMA    $@
- cmd_lzma = (cat $(filter-out FORCE,$^) | \
- 	lzma -9 && $(call size_append, $(filter-out FORCE,$^))) > $@ || \
- 	(rm -f $@ ; false)
-+
-+quiet_cmd_lzo = LZO    $@
-+cmd_lzo = (cat $(filter-out FORCE,$^) | \
-+	lzop -9 && $(call size_append, $(filter-out FORCE,$^))) > $@ || \
-+	(rm -f $@ ; false)
 _
 
-Patches currently in -mm which might be from albin.tonnerre@free-electrons.com are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 origin.patch
 linux-next.patch
-lzo-fix-up-add-support-for-lzo-compressed-kernels-patch.patch
+page-allocator-fix-update-nr_free_pages-only-as-necessary.patch
+mm-page_alloc-fix-the-range-check-for-backward-merging.patch
+mm-introduce-dump_page-and-print-symbolic-flag-names.patch
+page-allocator-reduce-fragmentation-in-buddy-allocator-by-adding-buddies-that-are-merging-to-the-tail-of-the-free-lists.patch
+mlock_vma_pages_range-never-return-negative-value.patch
+mlock_vma_pages_range-only-return-success-or-failure.patch
+prctl-add-pr_set_proctitle_area-option-for-prctl.patch
+mm-pass-mm-flags-as-a-coredump-parameter-for-consistency.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
