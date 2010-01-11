@@ -1,163 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [merged] zlib-optimize-inffast-when-copying-direct-from-output.patch removed from -mm tree
-Date: Mon, 11 Jan 2010 12:17:57 -0800
-Message-ID: <201001112017.o0BKHvPf025442@imap1.linux-foundation.org>
+Subject: [merged] drivers-cpuidle-governors-menuc-fix-undefined-reference-to-__udivdi3.patch removed from -mm tree
+Date: Mon, 11 Jan 2010 12:19:02 -0800
+Message-ID: <201001112019.o0BKJ2aS025528@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59029 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36488 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751347Ab0AKUgK (ORCPT
+	by vger.kernel.org with ESMTP id S1753979Ab0AKUgX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Jan 2010 15:36:10 -0500
+	Mon, 11 Jan 2010 15:36:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Joakim.Tjernlund@transmode.se, dwmw2@infradead.org, roel.kluin@gmail.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: shemminger@linux-foundation.org, arjan@linux.intel.com, len.brown@intel.com, shemminger@vyatta.com, stable@kernel.org, venkatesh.pallipadi@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     zlib: optimize inffast when copying direct from output
+     drivers/cpuidle/governors/menu.c: fix undefined reference to `__udivdi3'
 has been removed from the -mm tree.  Its filename was
-     zlib-optimize-inffast-when-copying-direct-from-output.patch
+     drivers-cpuidle-governors-menuc-fix-undefined-reference-to-__udivdi3.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: zlib: optimize inffast when copying direct from output
-From: Joakim Tjernlund <Joakim.Tjernlund@transmode.se>
+Subject: drivers/cpuidle/governors/menu.c: fix undefined reference to `__udivdi3'
+From: Stephen Hemminger <shemminger@linux-foundation.org>
 
-JFFS2 uses lesser compression ratio and inflate always ends up in "copy
-direct from output" case.
+menu: use proper 64 bit math
 
-This patch tries to optimize the direct copy procedure.  Uses
-get_unaligned() but only in one place.
+The new menu governor is incorrectly doing a 64 bit divide.  Compile
+tested only
 
-The copy loop just above this one can also use this optimization, but I
-havn't done so as I have not tested if it is a win there too.
-
-On my MPC8321 this is about 17% faster on my JFFS2 root FS than the
-original.
-
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Joakim Tjernlund <Joakim.Tjernlund@transmode.se>
-Cc: Roel Kluin <roel.kluin@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
+Cc: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Len Brown <len.brown@intel.com>
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/boot/Makefile |    4 +-
- lib/zlib_inflate/inffast.c |   55 ++++++++++++++++++++++++++++-------
- 2 files changed, 47 insertions(+), 12 deletions(-)
+ drivers/cpuidle/governors/menu.c |   12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-diff -puN arch/powerpc/boot/Makefile~zlib-optimize-inffast-when-copying-direct-from-output arch/powerpc/boot/Makefile
---- a/arch/powerpc/boot/Makefile~zlib-optimize-inffast-when-copying-direct-from-output
-+++ a/arch/powerpc/boot/Makefile
-@@ -20,7 +20,7 @@
- all: $(obj)/zImage
+diff -puN drivers/cpuidle/governors/menu.c~drivers-cpuidle-governors-menuc-fix-undefined-reference-to-__udivdi3 drivers/cpuidle/governors/menu.c
+--- a/drivers/cpuidle/governors/menu.c~drivers-cpuidle-governors-menuc-fix-undefined-reference-to-__udivdi3
++++ a/drivers/cpuidle/governors/menu.c
+@@ -18,6 +18,7 @@
+ #include <linux/hrtimer.h>
+ #include <linux/tick.h>
+ #include <linux/sched.h>
++#include <linux/math64.h>
  
- BOOTCFLAGS    := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
--		 -fno-strict-aliasing -Os -msoft-float -pipe \
-+		 -fno-strict-aliasing -Os -msoft-float -pipe -D__KERNEL__\
- 		 -fomit-frame-pointer -fno-builtin -fPIC -nostdinc \
- 		 -isystem $(shell $(CROSS32CC) -print-file-name=include)
- BOOTAFLAGS	:= -D__ASSEMBLY__ $(BOOTCFLAGS) -traditional -nostdinc
-@@ -34,6 +34,8 @@ BOOTCFLAGS	+= -fno-stack-protector
- endif
+ #define BUCKETS 12
+ #define RESOLUTION 1024
+@@ -169,6 +170,12 @@ static DEFINE_PER_CPU(struct menu_device
  
- BOOTCFLAGS	+= -I$(obj) -I$(srctree)/$(obj)
-+BOOTCFLAGS	+= -include include/linux/autoconf.h -Iarch/powerpc/include
-+BOOTCFLAGS	+= -Iinclude
+ static void menu_update(struct cpuidle_device *dev);
  
- DTS_FLAGS	?= -p 1024
- 
-diff -puN lib/zlib_inflate/inffast.c~zlib-optimize-inffast-when-copying-direct-from-output lib/zlib_inflate/inffast.c
---- a/lib/zlib_inflate/inffast.c~zlib-optimize-inffast-when-copying-direct-from-output
-+++ a/lib/zlib_inflate/inffast.c
-@@ -4,6 +4,8 @@
-  */
- 
- #include <linux/zutil.h>
-+#include <asm/unaligned.h>
-+#include <asm/byteorder.h>
- #include "inftrees.h"
- #include "inflate.h"
- #include "inffast.h"
-@@ -24,9 +26,11 @@
- #ifdef POSTINC
- #  define OFF 0
- #  define PUP(a) *(a)++
-+#  define UP_UNALIGNED(a) get_unaligned((a)++)
- #else
- #  define OFF 1
- #  define PUP(a) *++(a)
-+#  define UP_UNALIGNED(a) get_unaligned(++(a))
- #endif
- 
- /*
-@@ -239,18 +243,47 @@ void inflate_fast(z_streamp strm, unsign
-                     }
-                 }
-                 else {
-+		    unsigned short *sout;
-+		    unsigned long loops;
++/* This implements DIV_ROUND_CLOSEST but avoids 64 bit division */
++static u64 div_round64(u64 dividend, u32 divisor)
++{
++	return div_u64(dividend + (divisor / 2), divisor);
++}
 +
-                     from = out - dist;          /* copy direct from output */
--                    do {                        /* minimum length is three */
--                        PUP(out) = PUP(from);
--                        PUP(out) = PUP(from);
--                        PUP(out) = PUP(from);
--                        len -= 3;
--                    } while (len > 2);
--                    if (len) {
--                        PUP(out) = PUP(from);
--                        if (len > 1)
--                            PUP(out) = PUP(from);
--                    }
-+		    /* minimum length is three */
-+		    /* Align out addr */
-+		    if (!((long)(out - 1 + OFF) & 1)) {
-+			PUP(out) = PUP(from);
-+			len--;
-+		    }
-+		    sout = (unsigned short *)(out - OFF);
-+		    if (dist > 2) {
-+			unsigned short *sfrom;
-+
-+			sfrom = (unsigned short *)(from - OFF);
-+			loops = len >> 1;
-+			do
-+			    PUP(sout) = UP_UNALIGNED(sfrom);
-+			while (--loops);
-+			out = (unsigned char *)sout + OFF;
-+			from = (unsigned char *)sfrom + OFF;
-+		    } else { /* dist == 1 or dist == 2 */
-+			unsigned short pat16;
-+
-+			pat16 = *(sout-2+2*OFF);
-+			if (dist == 1)
-+#if defined(__BIG_ENDIAN)
-+			    pat16 = (pat16 & 0xff) | ((pat16 & 0xff) << 8);
-+#elif defined(__LITTLE_ENDIAN)
-+			    pat16 = (pat16 & 0xff00) | ((pat16 & 0xff00) >> 8);
-+#else
-+#error __BIG_ENDIAN nor __LITTLE_ENDIAN is defined
-+#endif
-+			loops = len >> 1;
-+			do
-+			    PUP(sout) = pat16;
-+			while (--loops);
-+			out = (unsigned char *)sout + OFF;
-+		    }
-+		    if (len & 1)
-+			PUP(out) = PUP(from);
-                 }
-             }
-             else if ((op & 64) == 0) {          /* 2nd level distance code */
+ /**
+  * menu_select - selects the next idle state to enter
+  * @dev: the CPU
+@@ -209,9 +216,8 @@ static int menu_select(struct cpuidle_de
+ 		data->correction_factor[data->bucket] = RESOLUTION * DECAY;
+ 
+ 	/* Make sure to round up for half microseconds */
+-	data->predicted_us = DIV_ROUND_CLOSEST(
+-		data->expected_us * data->correction_factor[data->bucket],
+-		RESOLUTION * DECAY);
++	data->predicted_us = div_round64(data->expected_us * data->correction_factor[data->bucket],
++					 RESOLUTION * DECAY);
+ 
+ 	/*
+ 	 * We want to default to C1 (hlt), not to busy polling
 _
 
-Patches currently in -mm which might be from Joakim.Tjernlund@transmode.se are
+Patches currently in -mm which might be from shemminger@linux-foundation.org are
 
 origin.patch
 
