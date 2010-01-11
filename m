@@ -1,108 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kernel-signalc-fix-kernel-information-leak-with-print-fatal-signals=1.patch removed from -mm tree
-Date: Mon, 11 Jan 2010 12:18:22 -0800
-Message-ID: <201001112018.o0BKIMIW025484@imap1.linux-foundation.org>
+Subject: [merged] x86-add-support-for-lzo-compressed-kernels.patch removed from -mm tree
+Date: Mon, 11 Jan 2010 12:18:06 -0800
+Message-ID: <201001112018.o0BKI6oG025458@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50279 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60987 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753955Ab0AKUiT (ORCPT
+	by vger.kernel.org with ESMTP id S1754276Ab0AKUig (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Jan 2010 15:38:19 -0500
+	Mon, 11 Jan 2010 15:38:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andi@firstfloor.org, ak@linux.intel.com, mingo@elte.hu, oleg@redhat.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: albin.tonnerre@free-electrons.com, hpa@zytor.com, mingo@elte.hu, ralf@linux-mips.org, rmk@arm.linux.org.uk, tglx@linutronix.de, wuzhangjin@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernel/signal.c: fix kernel information leak with print-fatal-signals=1
+     x86: add support for LZO-compressed kernels
 has been removed from the -mm tree.  Its filename was
-     kernel-signalc-fix-kernel-information-leak-with-print-fatal-signals=1.patch
+     x86-add-support-for-lzo-compressed-kernels.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel/signal.c: fix kernel information leak with print-fatal-signals=1
-From: Andi Kleen <andi@firstfloor.org>
+Subject: x86: add support for LZO-compressed kernels
+From: Albin Tonnerre <albin.tonnerre@free-electrons.com>
 
-When print-fatal-signals is enabled it's possible to dump any memory
-reachable by the kernel to the log by simply jumping to that address from
-user space.
+The necessary changes to the x86 Kconfig and boot/compressed to allow the
+use of this new compression method
 
-Or crash the system if there's some hardware with read side effects.
-
-The fatal signals handler will dump 16 bytes at the execution address,
-which is fully controlled by ring 3.
-
-In addition when something jumps to a unmapped address there will be up to
-16 additional useless page faults, which might be potentially slow (and at
-least is not very efficient)
-
-Fortunately this option is off by default and only there on i386.
-
-But fix it by checking for kernel addresses and also stopping when there's
-a page fault.
-
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Signed-off-by: Albin Tonnerre <albin.tonnerre@free-electrons.com>
+Acked-by: H. Peter Anvin <hpa@zytor.com>
+Tested-by: Wu Zhangjin <wuzhangjin@gmail.com>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: <stable@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Tested-by: Russell King <rmk@arm.linux.org.uk>
+Acked-by: Russell King <rmk@arm.linux.org.uk>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/x86/Kconfig                  |    1 +
+ arch/x86/boot/compressed/Makefile |    5 ++++-
+ arch/x86/boot/compressed/misc.c   |    4 ++++
+ 3 files changed, 9 insertions(+), 1 deletion(-)
 
-diff -puN kernel/signal.c~kernel-signalc-fix-kernel-information-leak-with-print-fatal-signals=1 kernel/signal.c
---- a/kernel/signal.c~kernel-signalc-fix-kernel-information-leak-with-print-fatal-signals=1
-+++ a/kernel/signal.c
-@@ -979,7 +979,8 @@ static void print_fatal_signal(struct pt
- 		for (i = 0; i < 16; i++) {
- 			unsigned char insn;
+diff -puN arch/x86/Kconfig~x86-add-support-for-lzo-compressed-kernels arch/x86/Kconfig
+--- a/arch/x86/Kconfig~x86-add-support-for-lzo-compressed-kernels
++++ a/arch/x86/Kconfig
+@@ -49,6 +49,7 @@ config X86
+ 	select HAVE_KERNEL_GZIP
+ 	select HAVE_KERNEL_BZIP2
+ 	select HAVE_KERNEL_LZMA
++	select HAVE_KERNEL_LZO
+ 	select HAVE_HW_BREAKPOINT
+ 	select PERF_EVENTS
+ 	select ANON_INODES
+diff -puN arch/x86/boot/compressed/Makefile~x86-add-support-for-lzo-compressed-kernels arch/x86/boot/compressed/Makefile
+--- a/arch/x86/boot/compressed/Makefile~x86-add-support-for-lzo-compressed-kernels
++++ a/arch/x86/boot/compressed/Makefile
+@@ -4,7 +4,7 @@
+ # create a compressed vmlinux image from the original vmlinux
+ #
  
--			__get_user(insn, (unsigned char *)(regs->ip + i));
-+			if (get_user(insn, (unsigned char *)(regs->ip + i)))
-+				break;
- 			printk("%02x ", insn);
- 		}
- 	}
+-targets := vmlinux.lds vmlinux vmlinux.bin vmlinux.bin.gz vmlinux.bin.bz2 vmlinux.bin.lzma head_$(BITS).o misc.o piggy.o
++targets := vmlinux.lds vmlinux vmlinux.bin vmlinux.bin.gz vmlinux.bin.bz2 vmlinux.bin.lzma vmlinux.bin.lzo head_$(BITS).o misc.o piggy.o
+ 
+ KBUILD_CFLAGS := -m$(BITS) -D__KERNEL__ $(LINUX_INCLUDE) -O2
+ KBUILD_CFLAGS += -fno-strict-aliasing -fPIC
+@@ -49,10 +49,13 @@ $(obj)/vmlinux.bin.bz2: $(vmlinux.bin.al
+ 	$(call if_changed,bzip2)
+ $(obj)/vmlinux.bin.lzma: $(vmlinux.bin.all-y) FORCE
+ 	$(call if_changed,lzma)
++$(obj)/vmlinux.bin.lzo: $(vmlinux.bin.all-y) FORCE
++	$(call if_changed,lzo)
+ 
+ suffix-$(CONFIG_KERNEL_GZIP)	:= gz
+ suffix-$(CONFIG_KERNEL_BZIP2)	:= bz2
+ suffix-$(CONFIG_KERNEL_LZMA)	:= lzma
++suffix-$(CONFIG_KERNEL_LZO) 	:= lzo
+ 
+ quiet_cmd_mkpiggy = MKPIGGY $@
+       cmd_mkpiggy = $(obj)/mkpiggy $< > $@ || ( rm -f $@ ; false )
+diff -puN arch/x86/boot/compressed/misc.c~x86-add-support-for-lzo-compressed-kernels arch/x86/boot/compressed/misc.c
+--- a/arch/x86/boot/compressed/misc.c~x86-add-support-for-lzo-compressed-kernels
++++ a/arch/x86/boot/compressed/misc.c
+@@ -162,6 +162,10 @@ static int lines, cols;
+ #include "../../../../lib/decompress_unlzma.c"
+ #endif
+ 
++#ifdef CONFIG_KERNEL_LZO
++#include "../../../../lib/decompress_unlzo.c"
++#endif
++
+ static void scroll(void)
+ {
+ 	int i;
 _
 
-Patches currently in -mm which might be from andi@firstfloor.org are
+Patches currently in -mm which might be from albin.tonnerre@free-electrons.com are
 
 origin.patch
-kfifo-use-void-pointers-for-user-buffers.patch
-kfifo-sanitize-_user-error-handling.patch
-kfifo-add-kfifo_out_peek.patch
-kfifo-add-kfifo_initialized.patch
-kfifo-document-everywhere-that-size-has-to-be-power-of-two.patch
 linux-next.patch
-hardware-latency-detector-remove-default-m.patch
-kbuild-move-fno-dwarf2-cfi-asm-to-powerpc-only.patch
-mm-introduce-dump_page-and-print-symbolic-flag-names.patch
-mm-add-swap-slot-free-callback-to-block_device_operations.patch
-ramzswap-use-slot-free-callback-to-eliminate-stale-data.patch
-coredump-unify-dump_seek-implementations-for-each-binfmt_c.patch
-coredump-move-dump_write-and-dump_seek-into-a-header-file.patch
-elf-coredump-replace-elf_core_extra_-macros-by-functions.patch
-elf-coredump-make-offset-calculation-process-and-writing-process-explicit.patch
-elf-coredump-add-extended-numbering-support.patch
-tracehooks-kill-some-pt_ptraced-checks.patch
-tracehooks-check-pt_ptraced-before-reporting-the-single-step.patch
-ptrace_signal-check-pt_ptraced-before-reporting-a-signal.patch
-export-__ptrace_detach-and-do_notify_parent_cldstop.patch
-reorder-the-code-in-kernel-ptracec.patch
-implement-utrace-ptrace.patch
-utrace-core.patch
-rcu-add-rcustring-adt-for-rcu-protected-strings.patch
-add-a-kernel_address-that-works-for-data-too.patch
-sysctl-add-proc_rcu_string-to-manage-sysctls-using-rcu-strings.patch
-sysctl-use-rcu-strings-for-core_pattern-sysctl.patch
-sysctl-add-call_usermodehelper_cleanup.patch
-sysctl-convert-modprobe_path-to-proc_rcu_string.patch
-sysctl-convert-poweroff_command-to-proc_rcu_string.patch
-sysctl-convert-hotplug-helper-string-to-proc_rcu_string.patch
-sysctl-use-rcu-protected-sysctl-for-ocfs-group-add-helper.patch
+lzo-fix-up-add-support-for-lzo-compressed-kernels-patch.patch
 
