@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-use-rlimit-helpers.patch added to -mm tree
-Date: Mon, 11 Jan 2010 14:32:22 -0800
-Message-ID: <201001112232.o0BMWMAh032337@imap1.linux-foundation.org>
+Subject: + ipc-use-rlimit-helpers.patch added to -mm tree
+Date: Mon, 11 Jan 2010 14:34:03 -0800
+Message-ID: <201001112234.o0BMY3Oa032389@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37394 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51946 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751133Ab0AKWcy (ORCPT
+	by vger.kernel.org with ESMTP id S1750948Ab0AKWef (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Jan 2010 17:32:54 -0500
+	Mon, 11 Jan 2010 17:34:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jslaby@suse.cz, viro@zeniv.linux.org.uk
+Cc: jslaby@suse.cz
 
 
 The patch titled
-     fs: use rlimit helpers
+     ipc: use rlimit helpers
 has been added to the -mm tree.  Its filename is
-     fs-use-rlimit-helpers.patch
+     ipc-use-rlimit-helpers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs: use rlimit helpers
+Subject: ipc: use rlimit helpers
 From: Jiri Slaby <jslaby@suse.cz>
 
 Make sure compiler won't do weird things with limits.  E.g.  fetching them
@@ -45,152 +45,38 @@ I.e.  either use rlimit helpers added in
 fetching rlimits") or ACCESS_ONCE if not applicable.
 
 Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/attr.c        |    2 +-
- fs/binfmt_aout.c |    2 +-
- fs/binfmt_flat.c |    2 +-
- fs/exec.c        |    8 ++++----
- fs/fcntl.c       |    2 +-
- fs/file.c        |    2 +-
- fs/proc/array.c  |    4 ++--
- fs/select.c      |    2 +-
- 8 files changed, 12 insertions(+), 12 deletions(-)
+ ipc/mqueue.c |    2 +-
+ ipc/shm.c    |    3 +--
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN fs/attr.c~fs-use-rlimit-helpers fs/attr.c
---- a/fs/attr.c~fs-use-rlimit-helpers
-+++ a/fs/attr.c
-@@ -82,7 +82,7 @@ int inode_newsize_ok(const struct inode 
- 	if (inode->i_size < offset) {
- 		unsigned long limit;
- 
--		limit = current->signal->rlim[RLIMIT_FSIZE].rlim_cur;
-+		limit = rlimit(RLIMIT_FSIZE);
- 		if (limit != RLIM_INFINITY && offset > limit)
- 			goto out_sig;
- 		if (offset > inode->i_sb->s_maxbytes)
-diff -puN fs/binfmt_aout.c~fs-use-rlimit-helpers fs/binfmt_aout.c
---- a/fs/binfmt_aout.c~fs-use-rlimit-helpers
-+++ a/fs/binfmt_aout.c
-@@ -247,7 +247,7 @@ static int load_aout_binary(struct linux
- 	 * size limits imposed on them by creating programs with large
- 	 * arrays in the data or bss.
- 	 */
--	rlim = current->signal->rlim[RLIMIT_DATA].rlim_cur;
-+	rlim = rlimit(RLIMIT_DATA);
- 	if (rlim >= RLIM_INFINITY)
- 		rlim = ~0;
- 	if (ex.a_data + ex.a_bss > rlim)
-diff -puN fs/binfmt_flat.c~fs-use-rlimit-helpers fs/binfmt_flat.c
---- a/fs/binfmt_flat.c~fs-use-rlimit-helpers
-+++ a/fs/binfmt_flat.c
-@@ -501,7 +501,7 @@ static int load_flat_file(struct linux_b
- 	 * size limits imposed on them by creating programs with large
- 	 * arrays in the data or bss.
- 	 */
--	rlim = current->signal->rlim[RLIMIT_DATA].rlim_cur;
-+	rlim = rlimit(RLIMIT_DATA);
- 	if (rlim >= RLIM_INFINITY)
- 		rlim = ~0;
- 	if (data_len + bss_len > rlim) {
-diff -puN fs/exec.c~fs-use-rlimit-helpers fs/exec.c
---- a/fs/exec.c~fs-use-rlimit-helpers
-+++ a/fs/exec.c
-@@ -195,7 +195,7 @@ static struct page *get_arg_page(struct 
- 		 *    to work from.
- 		 */
- 		rlim = current->signal->rlim;
--		if (size > rlim[RLIMIT_STACK].rlim_cur / 4) {
-+		if (size > ACCESS_ONCE(rlim[RLIMIT_STACK].rlim_cur) / 4) {
- 			put_page(page);
- 			return NULL;
+diff -puN ipc/mqueue.c~ipc-use-rlimit-helpers ipc/mqueue.c
+--- a/ipc/mqueue.c~ipc-use-rlimit-helpers
++++ a/ipc/mqueue.c
+@@ -152,7 +152,7 @@ static struct inode *mqueue_get_inode(st
+ 			spin_lock(&mq_lock);
+ 			if (u->mq_bytes + mq_bytes < u->mq_bytes ||
+ 		 	    u->mq_bytes + mq_bytes >
+-			    p->signal->rlim[RLIMIT_MSGQUEUE].rlim_cur) {
++			    task_rlimit(p, RLIMIT_MSGQUEUE)) {
+ 				spin_unlock(&mq_lock);
+ 				goto out_inode;
+ 			}
+diff -puN ipc/shm.c~ipc-use-rlimit-helpers ipc/shm.c
+--- a/ipc/shm.c~ipc-use-rlimit-helpers
++++ a/ipc/shm.c
+@@ -761,8 +761,7 @@ SYSCALL_DEFINE3(shmctl, int, shmid, int,
+ 			if (euid != shp->shm_perm.uid &&
+ 			    euid != shp->shm_perm.cuid)
+ 				goto out_unlock;
+-			if (cmd == SHM_LOCK &&
+-			    !current->signal->rlim[RLIMIT_MEMLOCK].rlim_cur)
++			if (cmd == SHM_LOCK && !rlimit(RLIMIT_MEMLOCK))
+ 				goto out_unlock;
  		}
-@@ -574,7 +574,7 @@ int setup_arg_pages(struct linux_binprm 
  
- #ifdef CONFIG_STACK_GROWSUP
- 	/* Limit stack size to 1GB */
--	stack_base = current->signal->rlim[RLIMIT_STACK].rlim_max;
-+	stack_base = rlimit_max(RLIMIT_STACK);
- 	if (stack_base > (1 << 30))
- 		stack_base = 1 << 30;
- 
-@@ -1511,7 +1511,7 @@ static int format_corename(char *corenam
- 			/* core limit size */
- 			case 'c':
- 				rc = snprintf(out_ptr, out_end - out_ptr,
--					      "%lu", current->signal->rlim[RLIMIT_CORE].rlim_cur);
-+					      "%lu", rlimit(RLIMIT_CORE));
- 				if (rc > out_end - out_ptr)
- 					goto out;
- 				out_ptr += rc;
-@@ -1776,7 +1776,7 @@ void do_coredump(long signr, int exit_co
- 	struct coredump_params cprm = {
- 		.signr = signr,
- 		.regs = regs,
--		.limit = current->signal->rlim[RLIMIT_CORE].rlim_cur,
-+		.limit = rlimit(RLIMIT_CORE),
- 	};
- 
- 	audit_core_dumps(signr);
-diff -puN fs/fcntl.c~fs-use-rlimit-helpers fs/fcntl.c
---- a/fs/fcntl.c~fs-use-rlimit-helpers
-+++ a/fs/fcntl.c
-@@ -344,7 +344,7 @@ static long do_fcntl(int fd, unsigned in
- 	switch (cmd) {
- 	case F_DUPFD:
- 	case F_DUPFD_CLOEXEC:
--		if (arg >= current->signal->rlim[RLIMIT_NOFILE].rlim_cur)
-+		if (arg >= rlimit(RLIMIT_NOFILE))
- 			break;
- 		err = alloc_fd(arg, cmd == F_DUPFD_CLOEXEC ? O_CLOEXEC : 0);
- 		if (err >= 0) {
-diff -puN fs/file.c~fs-use-rlimit-helpers fs/file.c
---- a/fs/file.c~fs-use-rlimit-helpers
-+++ a/fs/file.c
-@@ -257,7 +257,7 @@ int expand_files(struct files_struct *fi
- 	 * N.B. For clone tasks sharing a files structure, this test
- 	 * will limit the total number of files that can be opened.
- 	 */
--	if (nr >= current->signal->rlim[RLIMIT_NOFILE].rlim_cur)
-+	if (nr >= rlimit(RLIMIT_NOFILE))
- 		return -EMFILE;
- 
- 	/* Do we need to expand? */
-diff -puN fs/proc/array.c~fs-use-rlimit-helpers fs/proc/array.c
---- a/fs/proc/array.c~fs-use-rlimit-helpers
-+++ a/fs/proc/array.c
-@@ -271,7 +271,7 @@ static inline void task_sig(struct seq_f
- 		collect_sigign_sigcatch(p, &ignored, &caught);
- 		num_threads = atomic_read(&p->signal->count);
- 		qsize = atomic_read(&__task_cred(p)->user->sigpending);
--		qlim = p->signal->rlim[RLIMIT_SIGPENDING].rlim_cur;
-+		qlim = task_rlimit(p, RLIMIT_SIGPENDING);
- 		unlock_task_sighand(p, &flags);
- 	}
- 
-@@ -418,7 +418,7 @@ static int do_task_stat(struct seq_file 
- 		cutime = sig->cutime;
- 		cstime = sig->cstime;
- 		cgtime = sig->cgtime;
--		rsslim = sig->rlim[RLIMIT_RSS].rlim_cur;
-+		rsslim = ACCESS_ONCE(sig->rlim[RLIMIT_RSS].rlim_cur);
- 
- 		/* add up live thread stats at the group level */
- 		if (whole) {
-diff -puN fs/select.c~fs-use-rlimit-helpers fs/select.c
---- a/fs/select.c~fs-use-rlimit-helpers
-+++ a/fs/select.c
-@@ -821,7 +821,7 @@ int do_sys_poll(struct pollfd __user *uf
-  	struct poll_list *walk = head;
-  	unsigned long todo = nfds;
- 
--	if (nfds > current->signal->rlim[RLIMIT_NOFILE].rlim_cur)
-+	if (nfds > rlimit(RLIMIT_NOFILE))
- 		return -EINVAL;
- 
- 	len = min_t(unsigned int, nfds, N_STACK_PPS);
 _
 
 Patches currently in -mm which might be from jslaby@suse.cz are
@@ -200,6 +86,5 @@ linux-next.patch
 infiniband-use-rlimit-helpers.patch
 mm-use-rlimit-helpers.patch
 fs-use-rlimit-helpers.patch
-core-use-rlimit-helpers.patch
 ipc-use-rlimit-helpers.patch
 
