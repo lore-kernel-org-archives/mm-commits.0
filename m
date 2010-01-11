@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatchpl-add-union-and-struct-to-the-exceptions-list.patch added to -mm tree
-Date: Mon, 11 Jan 2010 14:42:47 -0800
-Message-ID: <201001112242.o0BMgl8v000363@imap1.linux-foundation.org>
+Subject: + da9030_battery-fix-spelling-in-comment.patch added to -mm tree
+Date: Mon, 11 Jan 2010 14:51:58 -0800
+Message-ID: <201001112251.o0BMpwZu000784@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47749 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45570 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752558Ab0AKWnO (ORCPT
+	by vger.kernel.org with ESMTP id S1752190Ab0AKWwH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Jan 2010 17:43:14 -0500
+	Mon, 11 Jan 2010 17:52:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: stefani@seibold.net, apw@shadowen.org
+Cc: weil@mail.berlios.de, cbouatmailru@gmail.com, mike@compulab.co.il
 
 
 The patch titled
-     checkpatch.pl: add union and struct to the exceptions list
+     da9030_battery: fix spelling in comment
 has been added to the -mm tree.  Its filename is
-     checkpatchpl-add-union-and-struct-to-the-exceptions-list.patch
+     da9030_battery-fix-spelling-in-comment.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch.pl: add union and struct to the exceptions list
-From: Stefani Seibold <stefani@seibold.net>
+Subject: da9030_battery: fix spelling in comment
+From: Stefan Weil <weil@mail.berlios.de>
 
-Add the `struct' and `union' keywords to the exceptions list of the
-checkpatch.pl script, to prevent error message "Macros with multiple
-statements should be enclosed in a do - while loop".  Otherwise it is not
-possible to build a struct or union with a macro.
+platfrom -> platform
+monotor -> monitor
 
-Signed-off-by: Stefani Seibold <stefani@seibold.net>
-Cc: Andy Whitcroft <apw@shadowen.org>
+Signed-off-by: Stefan Weil <weil@mail.berlios.de>
+Cc: Anton Vorontsov <cbouatmailru@gmail.com>
+Acked-by: Mike Rapoport <mike@compulab.co.il>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/power/da9030_battery.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatchpl-add-union-and-struct-to-the-exceptions-list scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatchpl-add-union-and-struct-to-the-exceptions-list
-+++ a/scripts/checkpatch.pl
-@@ -2361,6 +2361,8 @@ sub process {
- 				DECLARE_PER_CPU|
- 				DEFINE_PER_CPU|
- 				__typeof__\(|
-+				union|
-+				struct|
- 				\.$Ident\s*=\s*|
- 				^\"|\"$
- 			}x;
+diff -puN drivers/power/da9030_battery.c~da9030_battery-fix-spelling-in-comment drivers/power/da9030_battery.c
+--- a/drivers/power/da9030_battery.c~da9030_battery-fix-spelling-in-comment
++++ a/drivers/power/da9030_battery.c
+@@ -509,7 +509,7 @@ static int da9030_battery_probe(struct p
+ 
+ 	charger->master = pdev->dev.parent;
+ 
+-	/* 10 seconds between monotor runs unless platfrom defines other
++	/* 10 seconds between monitor runs unless platform defines other
+ 	   interval */
+ 	charger->interval = msecs_to_jiffies(
+ 		(pdata->batmon_interval ? : 10) * 1000);
 _
 
-Patches currently in -mm which might be from stefani@seibold.net are
+Patches currently in -mm which might be from weil@mail.berlios.de are
 
-origin.patch
-kfifo-fix-kfifo_out_locked-race-bug.patch
-kfifo-use-void-pointers-for-user-buffers.patch
-kfifo-sanitize-_user-error-handling.patch
-kfifo-add-kfifo_out_peek.patch
-kfifo-add-kfifo_initialized.patch
-kfifo-document-everywhere-that-size-has-to-be-power-of-two.patch
 linux-next.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-checkpatchpl-add-union-and-struct-to-the-exceptions-list.patch
+da9030_battery-fix-spelling-in-comment.patch
 
