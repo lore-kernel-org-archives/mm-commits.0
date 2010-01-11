@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-move-charges-of-anonymous-swap-fix.patch added to -mm tree
-Date: Mon, 11 Jan 2010 15:44:25 -0800
-Message-ID: <201001112344.o0BNiPjB003391@imap1.linux-foundation.org>
+Subject: + memcg-improve-performance-in-moving-swap-charge-fix.patch added to -mm tree
+Date: Mon, 11 Jan 2010 15:45:42 -0800
+Message-ID: <201001112345.o0BNjg5q003424@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36898 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52057 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753305Ab0AKXok (ORCPT
+	by vger.kernel.org with ESMTP id S1753167Ab0AKXqH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Jan 2010 18:44:40 -0500
+	Mon, 11 Jan 2010 18:46:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: nishimura@mxp.nes.nec.co.jp, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.f
 
 
 The patch titled
-     memcg-move-charges-of-anonymous-swap-fix
+     memcg-improve-performance-in-moving-swap-charge-fix
 has been added to the -mm tree.  Its filename is
-     memcg-move-charges-of-anonymous-swap-fix.patch
+     memcg-improve-performance-in-moving-swap-charge-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-move-charges-of-anonymous-swap-fix
+Subject: memcg-improve-performance-in-moving-swap-charge-fix
 From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 
-build fix in !CONFIG_SWAP case.
+build fix in !CONFIG_CGROUP_MEM_RES_CTLR_SWAP case.
 
   CC      mm/memcontrol.o
-mm/memcontrol.c: In function 'is_target_pte_for_mc':
-mm/memcontrol.c:3648: error: implicit declaration of function 'mem_cgroup_count_swap_user'
+mm/memcontrol.c: In function 'mem_cgroup_move_charge_pte_range':
+mm/memcontrol.c:3899: error: too many arguments to function 'mem_cgroup_move_swap_account'
+mm/memcontrol.c:3899: error: too many arguments to function 'mem_cgroup_move_swap_account'
+mm/memcontrol.c:3899: error: too many arguments to function 'mem_cgroup_move_swap_account'
 make[1]: *** [mm/memcontrol.o] Error 1
 make: *** [mm] Error 2
 
 Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Reported-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Li Zefan <lizf@cn.fujitsu.com>
 Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ mm/memcontrol.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/swap.h~memcg-move-charges-of-anonymous-swap-fix include/linux/swap.h
---- a/include/linux/swap.h~memcg-move-charges-of-anonymous-swap-fix
-+++ a/include/linux/swap.h
-@@ -488,6 +488,14 @@ mem_cgroup_uncharge_swapcache(struct pag
- {
+diff -puN mm/memcontrol.c~memcg-improve-performance-in-moving-swap-charge-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-improve-performance-in-moving-swap-charge-fix
++++ a/mm/memcontrol.c
+@@ -2326,7 +2326,7 @@ static int mem_cgroup_move_swap_account(
  }
- 
-+#ifdef CONFIG_CGROUP_MEM_RES_CTLR
-+static inline int
-+mem_cgroup_count_swap_user(swp_entry_t ent, struct page **pagep)
-+{
-+	return 0;
-+}
-+#endif
-+
- #endif /* CONFIG_SWAP */
- #endif /* __KERNEL__*/
- #endif /* _LINUX_SWAP_H */
+ #else
+ static inline int mem_cgroup_move_swap_account(swp_entry_t entry,
+-				struct mem_cgroup *from, struct mem_cgroup *to)
++		struct mem_cgroup *from, struct mem_cgroup *to, bool need_fixup)
+ {
+ 	return -EINVAL;
+ }
 _
 
 Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
@@ -89,6 +85,7 @@ memcg-avoid-oom-during-moving-charge.patch
 memcg-move-charges-of-anonymous-swap.patch
 memcg-move-charges-of-anonymous-swap-fix.patch
 memcg-improve-performance-in-moving-swap-charge.patch
+memcg-improve-performance-in-moving-swap-charge-fix.patch
 cgroup-implement-eventfd-based-generic-api-for-notifications.patch
 memcg-extract-mem_group_usage-from-mem_cgroup_read.patch
 memcg-rework-usage-of-stats-by-soft-limit.patch
