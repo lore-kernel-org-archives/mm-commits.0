@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-use-rlimit-helpers.patch added to -mm tree
-Date: Mon, 11 Jan 2010 14:32:15 -0800
-Message-ID: <201001112232.o0BMWFJc032326@imap1.linux-foundation.org>
+Subject: + fs-use-rlimit-helpers.patch added to -mm tree
+Date: Mon, 11 Jan 2010 14:32:22 -0800
+Message-ID: <201001112232.o0BMWMAh032337@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52337 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37394 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751133Ab0AKWcu (ORCPT
+	by vger.kernel.org with ESMTP id S1751133Ab0AKWcy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Jan 2010 17:32:50 -0500
+	Mon, 11 Jan 2010 17:32:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jslaby@suse.cz
+Cc: jslaby@suse.cz, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     mm: use rlimit helpers
+     fs: use rlimit helpers
 has been added to the -mm tree.  Its filename is
-     mm-use-rlimit-helpers.patch
+     fs-use-rlimit-helpers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: use rlimit helpers
+Subject: fs: use rlimit helpers
 From: Jiri Slaby <jslaby@suse.cz>
 
 Make sure compiler won't do weird things with limits.  E.g.  fetching them
@@ -45,151 +45,152 @@ I.e.  either use rlimit helpers added in
 fetching rlimits") or ACCESS_ONCE if not applicable.
 
 Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    2 +-
- mm/mlock.c   |   12 ++++++------
- mm/mmap.c    |   13 +++++++------
- mm/mremap.c  |    2 +-
- 4 files changed, 15 insertions(+), 14 deletions(-)
+ fs/attr.c        |    2 +-
+ fs/binfmt_aout.c |    2 +-
+ fs/binfmt_flat.c |    2 +-
+ fs/exec.c        |    8 ++++----
+ fs/fcntl.c       |    2 +-
+ fs/file.c        |    2 +-
+ fs/proc/array.c  |    4 ++--
+ fs/select.c      |    2 +-
+ 8 files changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN mm/filemap.c~mm-use-rlimit-helpers mm/filemap.c
---- a/mm/filemap.c~mm-use-rlimit-helpers
-+++ a/mm/filemap.c
-@@ -1950,7 +1950,7 @@ EXPORT_SYMBOL(iov_iter_single_seg_count)
- inline int generic_write_checks(struct file *file, loff_t *pos, size_t *count, int isblk)
- {
- 	struct inode *inode = file->f_mapping->host;
--	unsigned long limit = current->signal->rlim[RLIMIT_FSIZE].rlim_cur;
-+	unsigned long limit = rlimit(RLIMIT_FSIZE);
+diff -puN fs/attr.c~fs-use-rlimit-helpers fs/attr.c
+--- a/fs/attr.c~fs-use-rlimit-helpers
++++ a/fs/attr.c
+@@ -82,7 +82,7 @@ int inode_newsize_ok(const struct inode 
+ 	if (inode->i_size < offset) {
+ 		unsigned long limit;
  
-         if (unlikely(*pos < 0))
-                 return -EINVAL;
-diff -puN mm/mlock.c~mm-use-rlimit-helpers mm/mlock.c
---- a/mm/mlock.c~mm-use-rlimit-helpers
-+++ a/mm/mlock.c
-@@ -25,7 +25,7 @@ int can_do_mlock(void)
- {
- 	if (capable(CAP_IPC_LOCK))
- 		return 1;
--	if (current->signal->rlim[RLIMIT_MEMLOCK].rlim_cur != 0)
-+	if (rlimit(RLIMIT_MEMLOCK) != 0)
- 		return 1;
- 	return 0;
- }
-@@ -487,7 +487,7 @@ SYSCALL_DEFINE2(mlock, unsigned long, st
- 	locked = len >> PAGE_SHIFT;
- 	locked += current->mm->locked_vm;
- 
--	lock_limit = current->signal->rlim[RLIMIT_MEMLOCK].rlim_cur;
-+	lock_limit = rlimit(RLIMIT_MEMLOCK);
- 	lock_limit >>= PAGE_SHIFT;
- 
- 	/* check against resource limits */
-@@ -550,7 +550,7 @@ SYSCALL_DEFINE1(mlockall, int, flags)
- 
- 	down_write(&current->mm->mmap_sem);
- 
--	lock_limit = current->signal->rlim[RLIMIT_MEMLOCK].rlim_cur;
-+	lock_limit = rlimit(RLIMIT_MEMLOCK);
- 	lock_limit >>= PAGE_SHIFT;
- 
- 	ret = -ENOMEM;
-@@ -584,7 +584,7 @@ int user_shm_lock(size_t size, struct us
- 	int allowed = 0;
- 
- 	locked = (size + PAGE_SIZE - 1) >> PAGE_SHIFT;
--	lock_limit = current->signal->rlim[RLIMIT_MEMLOCK].rlim_cur;
-+	lock_limit = rlimit(RLIMIT_MEMLOCK);
- 	if (lock_limit == RLIM_INFINITY)
- 		allowed = 1;
- 	lock_limit >>= PAGE_SHIFT;
-@@ -618,12 +618,12 @@ int account_locked_memory(struct mm_stru
- 
- 	down_write(&mm->mmap_sem);
- 
--	lim = rlim[RLIMIT_AS].rlim_cur >> PAGE_SHIFT;
-+	lim = ACCESS_ONCE(rlim[RLIMIT_AS].rlim_cur) >> PAGE_SHIFT;
- 	vm   = mm->total_vm + pgsz;
- 	if (lim < vm)
- 		goto out;
- 
--	lim = rlim[RLIMIT_MEMLOCK].rlim_cur >> PAGE_SHIFT;
-+	lim = ACCESS_ONCE(rlim[RLIMIT_MEMLOCK].rlim_cur) >> PAGE_SHIFT;
- 	vm   = mm->locked_vm + pgsz;
- 	if (lim < vm)
- 		goto out;
-diff -puN mm/mmap.c~mm-use-rlimit-helpers mm/mmap.c
---- a/mm/mmap.c~mm-use-rlimit-helpers
-+++ a/mm/mmap.c
-@@ -265,7 +265,7 @@ SYSCALL_DEFINE1(brk, unsigned long, brk)
- 	 * segment grow beyond its set limit the in case where the limit is
- 	 * not page aligned -Ram Gupta
+-		limit = current->signal->rlim[RLIMIT_FSIZE].rlim_cur;
++		limit = rlimit(RLIMIT_FSIZE);
+ 		if (limit != RLIM_INFINITY && offset > limit)
+ 			goto out_sig;
+ 		if (offset > inode->i_sb->s_maxbytes)
+diff -puN fs/binfmt_aout.c~fs-use-rlimit-helpers fs/binfmt_aout.c
+--- a/fs/binfmt_aout.c~fs-use-rlimit-helpers
++++ a/fs/binfmt_aout.c
+@@ -247,7 +247,7 @@ static int load_aout_binary(struct linux
+ 	 * size limits imposed on them by creating programs with large
+ 	 * arrays in the data or bss.
  	 */
 -	rlim = current->signal->rlim[RLIMIT_DATA].rlim_cur;
 +	rlim = rlimit(RLIMIT_DATA);
- 	if (rlim < RLIM_INFINITY && (brk - mm->start_brk) +
- 			(mm->end_data - mm->start_data) > rlim)
- 		goto out;
-@@ -967,7 +967,7 @@ unsigned long do_mmap_pgoff(struct file 
- 		unsigned long locked, lock_limit;
- 		locked = len >> PAGE_SHIFT;
- 		locked += mm->locked_vm;
--		lock_limit = current->signal->rlim[RLIMIT_MEMLOCK].rlim_cur;
-+		lock_limit = rlimit(RLIMIT_MEMLOCK);
- 		lock_limit >>= PAGE_SHIFT;
- 		if (locked > lock_limit && !capable(CAP_IPC_LOCK))
- 			return -EAGAIN;
-@@ -1594,7 +1594,7 @@ static int acct_stack_growth(struct vm_a
- 		return -ENOMEM;
+ 	if (rlim >= RLIM_INFINITY)
+ 		rlim = ~0;
+ 	if (ex.a_data + ex.a_bss > rlim)
+diff -puN fs/binfmt_flat.c~fs-use-rlimit-helpers fs/binfmt_flat.c
+--- a/fs/binfmt_flat.c~fs-use-rlimit-helpers
++++ a/fs/binfmt_flat.c
+@@ -501,7 +501,7 @@ static int load_flat_file(struct linux_b
+ 	 * size limits imposed on them by creating programs with large
+ 	 * arrays in the data or bss.
+ 	 */
+-	rlim = current->signal->rlim[RLIMIT_DATA].rlim_cur;
++	rlim = rlimit(RLIMIT_DATA);
+ 	if (rlim >= RLIM_INFINITY)
+ 		rlim = ~0;
+ 	if (data_len + bss_len > rlim) {
+diff -puN fs/exec.c~fs-use-rlimit-helpers fs/exec.c
+--- a/fs/exec.c~fs-use-rlimit-helpers
++++ a/fs/exec.c
+@@ -195,7 +195,7 @@ static struct page *get_arg_page(struct 
+ 		 *    to work from.
+ 		 */
+ 		rlim = current->signal->rlim;
+-		if (size > rlim[RLIMIT_STACK].rlim_cur / 4) {
++		if (size > ACCESS_ONCE(rlim[RLIMIT_STACK].rlim_cur) / 4) {
+ 			put_page(page);
+ 			return NULL;
+ 		}
+@@ -574,7 +574,7 @@ int setup_arg_pages(struct linux_binprm 
  
- 	/* Stack limit test */
--	if (size > rlim[RLIMIT_STACK].rlim_cur)
-+	if (size > ACCESS_ONCE(rlim[RLIMIT_STACK].rlim_cur))
- 		return -ENOMEM;
+ #ifdef CONFIG_STACK_GROWSUP
+ 	/* Limit stack size to 1GB */
+-	stack_base = current->signal->rlim[RLIMIT_STACK].rlim_max;
++	stack_base = rlimit_max(RLIMIT_STACK);
+ 	if (stack_base > (1 << 30))
+ 		stack_base = 1 << 30;
  
- 	/* mlock limit tests */
-@@ -1602,7 +1602,8 @@ static int acct_stack_growth(struct vm_a
- 		unsigned long locked;
- 		unsigned long limit;
- 		locked = mm->locked_vm + grow;
--		limit = rlim[RLIMIT_MEMLOCK].rlim_cur >> PAGE_SHIFT;
-+		limit = ACCESS_ONCE(rlim[RLIMIT_MEMLOCK].rlim_cur);
-+		limit >>= PAGE_SHIFT;
- 		if (locked > limit && !capable(CAP_IPC_LOCK))
- 			return -ENOMEM;
+@@ -1511,7 +1511,7 @@ static int format_corename(char *corenam
+ 			/* core limit size */
+ 			case 'c':
+ 				rc = snprintf(out_ptr, out_end - out_ptr,
+-					      "%lu", current->signal->rlim[RLIMIT_CORE].rlim_cur);
++					      "%lu", rlimit(RLIMIT_CORE));
+ 				if (rc > out_end - out_ptr)
+ 					goto out;
+ 				out_ptr += rc;
+@@ -1776,7 +1776,7 @@ void do_coredump(long signr, int exit_co
+ 	struct coredump_params cprm = {
+ 		.signr = signr,
+ 		.regs = regs,
+-		.limit = current->signal->rlim[RLIMIT_CORE].rlim_cur,
++		.limit = rlimit(RLIMIT_CORE),
+ 	};
+ 
+ 	audit_core_dumps(signr);
+diff -puN fs/fcntl.c~fs-use-rlimit-helpers fs/fcntl.c
+--- a/fs/fcntl.c~fs-use-rlimit-helpers
++++ a/fs/fcntl.c
+@@ -344,7 +344,7 @@ static long do_fcntl(int fd, unsigned in
+ 	switch (cmd) {
+ 	case F_DUPFD:
+ 	case F_DUPFD_CLOEXEC:
+-		if (arg >= current->signal->rlim[RLIMIT_NOFILE].rlim_cur)
++		if (arg >= rlimit(RLIMIT_NOFILE))
+ 			break;
+ 		err = alloc_fd(arg, cmd == F_DUPFD_CLOEXEC ? O_CLOEXEC : 0);
+ 		if (err >= 0) {
+diff -puN fs/file.c~fs-use-rlimit-helpers fs/file.c
+--- a/fs/file.c~fs-use-rlimit-helpers
++++ a/fs/file.c
+@@ -257,7 +257,7 @@ int expand_files(struct files_struct *fi
+ 	 * N.B. For clone tasks sharing a files structure, this test
+ 	 * will limit the total number of files that can be opened.
+ 	 */
+-	if (nr >= current->signal->rlim[RLIMIT_NOFILE].rlim_cur)
++	if (nr >= rlimit(RLIMIT_NOFILE))
+ 		return -EMFILE;
+ 
+ 	/* Do we need to expand? */
+diff -puN fs/proc/array.c~fs-use-rlimit-helpers fs/proc/array.c
+--- a/fs/proc/array.c~fs-use-rlimit-helpers
++++ a/fs/proc/array.c
+@@ -271,7 +271,7 @@ static inline void task_sig(struct seq_f
+ 		collect_sigign_sigcatch(p, &ignored, &caught);
+ 		num_threads = atomic_read(&p->signal->count);
+ 		qsize = atomic_read(&__task_cred(p)->user->sigpending);
+-		qlim = p->signal->rlim[RLIMIT_SIGPENDING].rlim_cur;
++		qlim = task_rlimit(p, RLIMIT_SIGPENDING);
+ 		unlock_task_sighand(p, &flags);
  	}
-@@ -2067,7 +2068,7 @@ unsigned long do_brk(unsigned long addr,
- 		unsigned long locked, lock_limit;
- 		locked = len >> PAGE_SHIFT;
- 		locked += mm->locked_vm;
--		lock_limit = current->signal->rlim[RLIMIT_MEMLOCK].rlim_cur;
-+		lock_limit = rlimit(RLIMIT_MEMLOCK);
- 		lock_limit >>= PAGE_SHIFT;
- 		if (locked > lock_limit && !capable(CAP_IPC_LOCK))
- 			return -EAGAIN;
-@@ -2281,7 +2282,7 @@ int may_expand_vm(struct mm_struct *mm, 
- 	unsigned long cur = mm->total_vm;	/* pages */
- 	unsigned long lim;
  
--	lim = current->signal->rlim[RLIMIT_AS].rlim_cur >> PAGE_SHIFT;
-+	lim = rlimit(RLIMIT_AS) >> PAGE_SHIFT;
+@@ -418,7 +418,7 @@ static int do_task_stat(struct seq_file 
+ 		cutime = sig->cutime;
+ 		cstime = sig->cstime;
+ 		cgtime = sig->cgtime;
+-		rsslim = sig->rlim[RLIMIT_RSS].rlim_cur;
++		rsslim = ACCESS_ONCE(sig->rlim[RLIMIT_RSS].rlim_cur);
  
- 	if (cur + npages > lim)
- 		return 0;
-diff -puN mm/mremap.c~mm-use-rlimit-helpers mm/mremap.c
---- a/mm/mremap.c~mm-use-rlimit-helpers
-+++ a/mm/mremap.c
-@@ -285,7 +285,7 @@ static struct vm_area_struct *vma_to_res
- 	if (vma->vm_flags & VM_LOCKED) {
- 		unsigned long locked, lock_limit;
- 		locked = mm->locked_vm << PAGE_SHIFT;
--		lock_limit = current->signal->rlim[RLIMIT_MEMLOCK].rlim_cur;
-+		lock_limit = rlimit(RLIMIT_MEMLOCK);
- 		locked += new_len - old_len;
- 		if (locked > lock_limit && !capable(CAP_IPC_LOCK))
- 			goto Eagain;
+ 		/* add up live thread stats at the group level */
+ 		if (whole) {
+diff -puN fs/select.c~fs-use-rlimit-helpers fs/select.c
+--- a/fs/select.c~fs-use-rlimit-helpers
++++ a/fs/select.c
+@@ -821,7 +821,7 @@ int do_sys_poll(struct pollfd __user *uf
+  	struct poll_list *walk = head;
+  	unsigned long todo = nfds;
+ 
+-	if (nfds > current->signal->rlim[RLIMIT_NOFILE].rlim_cur)
++	if (nfds > rlimit(RLIMIT_NOFILE))
+ 		return -EINVAL;
+ 
+ 	len = min_t(unsigned int, nfds, N_STACK_PPS);
 _
 
 Patches currently in -mm which might be from jslaby@suse.cz are
