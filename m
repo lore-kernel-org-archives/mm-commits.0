@@ -1,87 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-cpuidle-governors-menuc-fix-undefined-reference-to-__udivdi3.patch removed from -mm tree
-Date: Mon, 11 Jan 2010 12:19:02 -0800
-Message-ID: <201001112019.o0BKJ2aS025528@imap1.linux-foundation.org>
+Subject: [merged] mmc_block-fix-queue-cleanup.patch removed from -mm tree
+Date: Mon, 11 Jan 2010 12:18:41 -0800
+Message-ID: <201001112018.o0BKIf4x025506@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36488 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33599 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753979Ab0AKUgX (ORCPT
+	by vger.kernel.org with ESMTP id S1754025Ab0AKUg0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Jan 2010 15:36:23 -0500
+	Mon, 11 Jan 2010 15:36:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shemminger@linux-foundation.org, arjan@linux.intel.com, len.brown@intel.com, shemminger@vyatta.com, stable@kernel.org, venkatesh.pallipadi@intel.com, mm-commits@vger.kernel.org
+To: adrian.hunter@nokia.com, linux-mmc@vger.kernel.org, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/cpuidle/governors/menu.c: fix undefined reference to `__udivdi3'
+     mmc_block: fix queue cleanup
 has been removed from the -mm tree.  Its filename was
-     drivers-cpuidle-governors-menuc-fix-undefined-reference-to-__udivdi3.patch
+     mmc_block-fix-queue-cleanup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/cpuidle/governors/menu.c: fix undefined reference to `__udivdi3'
-From: Stephen Hemminger <shemminger@linux-foundation.org>
+Subject: mmc_block: fix queue cleanup
+From: Adrian Hunter <adrian.hunter@nokia.com>
 
-menu: use proper 64 bit math
+The main bug was that 'blk_cleanup_queue()' was called while the block
+device could still be in use, for example, because the card was removed
+while files were still open.
 
-The new menu governor is incorrectly doing a 64 bit divide.  Compile
-tested only
+In addition, to be sure that 'mmc_request()' will get called for all new
+requests (so it can error them out), the queue is emptied during cleanup. 
+This is done after the worker thread is stopped to avoid racing with it.
 
-Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
-Cc: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Len Brown <len.brown@intel.com>
-Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Finally, it is not a device error for this to be happening, so quiet the
+(sometimes very many) error messages.
+
+Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
+Cc: <linux-mmc@vger.kernel.org>
 Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpuidle/governors/menu.c |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ drivers/mmc/card/block.c |    2 ++
+ drivers/mmc/card/queue.c |   18 +++++++++---------
+ 2 files changed, 11 insertions(+), 9 deletions(-)
 
-diff -puN drivers/cpuidle/governors/menu.c~drivers-cpuidle-governors-menuc-fix-undefined-reference-to-__udivdi3 drivers/cpuidle/governors/menu.c
---- a/drivers/cpuidle/governors/menu.c~drivers-cpuidle-governors-menuc-fix-undefined-reference-to-__udivdi3
-+++ a/drivers/cpuidle/governors/menu.c
-@@ -18,6 +18,7 @@
- #include <linux/hrtimer.h>
- #include <linux/tick.h>
- #include <linux/sched.h>
-+#include <linux/math64.h>
+diff -puN drivers/mmc/card/block.c~mmc_block-fix-queue-cleanup drivers/mmc/card/block.c
+--- a/drivers/mmc/card/block.c~mmc_block-fix-queue-cleanup
++++ a/drivers/mmc/card/block.c
+@@ -91,6 +91,8 @@ static void mmc_blk_put(struct mmc_blk_d
+ 		if (!devmaj)
+ 			devidx = md->disk->first_minor >> MMC_SHIFT;
  
- #define BUCKETS 12
- #define RESOLUTION 1024
-@@ -169,6 +170,12 @@ static DEFINE_PER_CPU(struct menu_device
- 
- static void menu_update(struct cpuidle_device *dev);
- 
-+/* This implements DIV_ROUND_CLOSEST but avoids 64 bit division */
-+static u64 div_round64(u64 dividend, u32 divisor)
-+{
-+	return div_u64(dividend + (divisor / 2), divisor);
-+}
++		blk_cleanup_queue(md->queue.queue);
 +
- /**
-  * menu_select - selects the next idle state to enter
-  * @dev: the CPU
-@@ -209,9 +216,8 @@ static int menu_select(struct cpuidle_de
- 		data->correction_factor[data->bucket] = RESOLUTION * DECAY;
+ 		__clear_bit(devidx, dev_use);
  
- 	/* Make sure to round up for half microseconds */
--	data->predicted_us = DIV_ROUND_CLOSEST(
--		data->expected_us * data->correction_factor[data->bucket],
--		RESOLUTION * DECAY);
-+	data->predicted_us = div_round64(data->expected_us * data->correction_factor[data->bucket],
-+					 RESOLUTION * DECAY);
+ 		put_disk(md->disk);
+diff -puN drivers/mmc/card/queue.c~mmc_block-fix-queue-cleanup drivers/mmc/card/queue.c
+--- a/drivers/mmc/card/queue.c~mmc_block-fix-queue-cleanup
++++ a/drivers/mmc/card/queue.c
+@@ -90,9 +90,10 @@ static void mmc_request(struct request_q
+ 	struct request *req;
  
- 	/*
- 	 * We want to default to C1 (hlt), not to busy polling
-_
-
-Patches currently in -mm which might be from shemminger@linux-foundation.org are
-
-origin.patch
-
+ 	if (!mq) {
+-		printk(KERN_ERR "MMC: killing requests for dead queue\n");
+-		while ((req = blk_fetch_request(q)) != NULL)
++		while ((req = blk_fetch_request(q)) != NULL) {
++			req->cmd_flags |= REQ_QUIET;
+ 			__blk_end_request_all(req, -EIO);
++		}
+ 		return;
+ 	}
+ 
+@@ -223,17 +224,18 @@ void mmc_cleanup_queue(struct mmc_queue 
+ 	struct request_queue *q = mq->queue;
+ 	unsigned long flags;
+ 
+-	/* Mark that we should start throwing out stragglers */
+-	spin_lock_irqsave(q->queue_lock, flags);
+-	q->queuedata = NULL;
+-	spin_unlock_irqrestore(q->queue_lock, flags);
+-
+ 	/* Make sure the queue isn't suspended, as that will deadlock */
+ 	mmc_queue_resume(mq);
+ 
+ 	/* Then terminate our worker thread */
+ 	kthread_stop(mq->thread);
+ 
++	/* Empty the queue */
++	spin_lock_irqsave(q->queue_lock, flags);
++	q->queuedata = NULL;
++	blk_start_queue(q);
++	spin_unlock_irqrestore(q->queue_lock, flags);
++
+  	if (mq->bounce_sg)
+  		kfree(mq->bounce_sg);
+  	mq->bounce_sg = NULL;
+@@ -245,8 +247,6 @@ void mmc_cleanup_queue(struct mmc_queue 
+ 		kfree(mq->bounce_buf);
+ 	mq->bounce_buf = NULL;
+ 
+-	blk_cleanup_queue(mq->queue);
