@@ -1,179 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kmemcheck-make-bitfield-annotations-truly-no-ops-when-disabled.patch removed from -mm tree
-Date: Mon, 11 Jan 2010 12:17:44 -0800
-Message-ID: <201001112017.o0BKHi78025422@imap1.linux-foundation.org>
+Subject: [merged] kmod-fix-resource-leak-in-call_usermodehelper_pipe.patch removed from -mm tree
+Date: Mon, 11 Jan 2010 12:17:51 -0800
+Message-ID: <201001112017.o0BKHp7Y025436@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59458 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55971 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753997Ab0AKUSh (ORCPT
+	by vger.kernel.org with ESMTP id S1753997Ab0AKUTM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Jan 2010 15:18:37 -0500
+	Mon, 11 Jan 2010 15:19:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vegard.nossum@gmail.com, eric.dumazet@gmail.com, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
+To: mhiramat@redhat.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kmemcheck: make bitfield annotations truly no-ops when disabled
+     kmod: fix resource leak in call_usermodehelper_pipe()
 has been removed from the -mm tree.  Its filename was
-     kmemcheck-make-bitfield-annotations-truly-no-ops-when-disabled.patch
+     kmod-fix-resource-leak-in-call_usermodehelper_pipe.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kmemcheck: make bitfield annotations truly no-ops when disabled
-From: Vegard Nossum <vegard.nossum@gmail.com>
+Subject: kmod: fix resource leak in call_usermodehelper_pipe()
+From: Masami Hiramatsu <mhiramat@redhat.com>
 
-It turns out that even zero-sized struct members (int foo[0];) will affect
-the struct layout, causing us in particular to lose 4 bytes in struct
-sock.
+Fix resource (write-pipe file) leak in call_usermodehelper_pipe().
 
-This patch fixes the regression in CONFIG_KMEMCHECK=n case.
+When call_usermodehelper_exec() fails, write-pipe file is opened and
+call_usermodehelper_pipe() just returns an error.  Since it is hard for
+caller to determine whether the error occured when opening the pipe or
+executing the helper, the caller cannot close the pipe by themselves.
 
-Reported-by: Eric Dumazet <eric.dumazet@gmail.com>
-Signed-off-by: Vegard Nossum <vegard.nossum@gmail.com>
-Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
+I've found this resoruce leak when testing coredump.  You can check how
+the resource leaks as below;
+
+$ echo "|nocommand" > /proc/sys/kernel/core_pattern
+$ ulimit -c unlimited
+$ while [ 1 ]; do ./segv; done &> /dev/null &
+$ cat /proc/meminfo (<- repeat it)
+
+where segv.c is;
+//-----
+int main () {
+        char *p = 0;
+        *p = 1;
+}
+//-----
+
+This patch closes write-pipe file if call_usermodehelper_exec() failed.
+
+Signed-off-by: Masami Hiramatsu <mhiramat@redhat.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kmemcheck.h |  110 ++++++++++++++++++------------------
- 1 file changed, 58 insertions(+), 52 deletions(-)
+ kernel/kmod.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/kmemcheck.h~kmemcheck-make-bitfield-annotations-truly-no-ops-when-disabled include/linux/kmemcheck.h
---- a/include/linux/kmemcheck.h~kmemcheck-make-bitfield-annotations-truly-no-ops-when-disabled
-+++ a/include/linux/kmemcheck.h
-@@ -36,6 +36,56 @@ int kmemcheck_hide_addr(unsigned long ad
+diff -puN kernel/kmod.c~kmod-fix-resource-leak-in-call_usermodehelper_pipe kernel/kmod.c
+--- a/kernel/kmod.c~kmod-fix-resource-leak-in-call_usermodehelper_pipe
++++ a/kernel/kmod.c
+@@ -520,13 +520,15 @@ int call_usermodehelper_pipe(char *path,
+ 		return -ENOMEM;
  
- bool kmemcheck_is_obj_initialized(unsigned long addr, size_t size);
+ 	ret = call_usermodehelper_stdinpipe(sub_info, filp);
+-	if (ret < 0)
+-		goto out;
++	if (ret < 0) {
++		call_usermodehelper_freeinfo(sub_info);
++		return ret;
++	}
  
-+/*
-+ * Bitfield annotations
-+ *
-+ * How to use: If you have a struct using bitfields, for example
-+ *
-+ *     struct a {
-+ *             int x:8, y:8;
-+ *     };
-+ *
-+ * then this should be rewritten as
-+ *
-+ *     struct a {
-+ *             kmemcheck_bitfield_begin(flags);
-+ *             int x:8, y:8;
-+ *             kmemcheck_bitfield_end(flags);
-+ *     };
-+ *
-+ * Now the "flags_begin" and "flags_end" members may be used to refer to the
-+ * beginning and end, respectively, of the bitfield (and things like
-+ * &x.flags_begin is allowed). As soon as the struct is allocated, the bit-
-+ * fields should be annotated:
-+ *
-+ *     struct a *a = kmalloc(sizeof(struct a), GFP_KERNEL);
-+ *     kmemcheck_annotate_bitfield(a, flags);
-+ */
-+#define kmemcheck_bitfield_begin(name)	\
-+	int name##_begin[0];
-+
-+#define kmemcheck_bitfield_end(name)	\
-+	int name##_end[0];
-+
-+#define kmemcheck_annotate_bitfield(ptr, name)				\
-+	do {								\
-+		int _n;							\
-+									\
-+		if (!ptr)						\
-+			break;						\
-+									\
-+		_n = (long) &((ptr)->name##_end)			\
-+			- (long) &((ptr)->name##_begin);		\
-+		MAYBE_BUILD_BUG_ON(_n < 0);				\
-+									\
-+		kmemcheck_mark_initialized(&((ptr)->name##_begin), _n);	\
-+	} while (0)
-+
-+#define kmemcheck_annotate_variable(var)				\
-+	do {								\
-+		kmemcheck_mark_initialized(&(var), sizeof(var));	\
-+	} while (0)							\
-+
- #else
- #define kmemcheck_enabled 0
+-	return call_usermodehelper_exec(sub_info, UMH_WAIT_EXEC);
++	ret = call_usermodehelper_exec(sub_info, UMH_WAIT_EXEC);
++	if (ret < 0)	/* Failed to execute helper, close pipe */
++		filp_close(*filp, NULL);
  
-@@ -106,60 +156,16 @@ static inline bool kmemcheck_is_obj_init
- 	return true;
+-  out:
+-	call_usermodehelper_freeinfo(sub_info);
+ 	return ret;
  }
- 
--#endif /* CONFIG_KMEMCHECK */
--
--/*
-- * Bitfield annotations
-- *
-- * How to use: If you have a struct using bitfields, for example
-- *
-- *     struct a {
-- *             int x:8, y:8;
-- *     };
-- *
-- * then this should be rewritten as
-- *
-- *     struct a {
-- *             kmemcheck_bitfield_begin(flags);
-- *             int x:8, y:8;
-- *             kmemcheck_bitfield_end(flags);
-- *     };
-- *
-- * Now the "flags_begin" and "flags_end" members may be used to refer to the
-- * beginning and end, respectively, of the bitfield (and things like
-- * &x.flags_begin is allowed). As soon as the struct is allocated, the bit-
-- * fields should be annotated:
-- *
-- *     struct a *a = kmalloc(sizeof(struct a), GFP_KERNEL);
-- *     kmemcheck_annotate_bitfield(a, flags);
-- *
-- * Note: We provide the same definitions for both kmemcheck and non-
-- * kmemcheck kernels. This makes it harder to introduce accidental errors. It
-- * is also allowed to pass NULL pointers to kmemcheck_annotate_bitfield().
-- */
--#define kmemcheck_bitfield_begin(name)	\
--	int name##_begin[0];
--
--#define kmemcheck_bitfield_end(name)	\
--	int name##_end[0];
-+#define kmemcheck_bitfield_begin(name)
-+#define kmemcheck_bitfield_end(name)
-+#define kmemcheck_annotate_bitfield(ptr, name)	\
-+	do {					\
-+	} while (0)
- 
--#define kmemcheck_annotate_bitfield(ptr, name)				\
--	do {								\
--		int _n;							\
--									\
--		if (!ptr)						\
--			break;						\
--									\
--		_n = (long) &((ptr)->name##_end)			\
--			- (long) &((ptr)->name##_begin);		\
--		MAYBE_BUILD_BUG_ON(_n < 0);				\
--									\
--		kmemcheck_mark_initialized(&((ptr)->name##_begin), _n);	\
-+#define kmemcheck_annotate_variable(var)	\
-+	do {					\
- 	} while (0)
- 
--#define kmemcheck_annotate_variable(var)				\
--	do {								\
--		kmemcheck_mark_initialized(&(var), sizeof(var));	\
--	} while (0)							\
-+#endif /* CONFIG_KMEMCHECK */
- 
- #endif /* LINUX_KMEMCHECK_H */
+ EXPORT_SYMBOL(call_usermodehelper_pipe);
 _
 
-Patches currently in -mm which might be from vegard.nossum@gmail.com are
+Patches currently in -mm which might be from mhiramat@redhat.com are
 
 origin.patch
+cpumask-let-num__cpus-function-always-return-unsigned-values.patch
+mm-pass-mm-flags-as-a-coredump-parameter-for-consistency.patch
+mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
 
