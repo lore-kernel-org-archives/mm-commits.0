@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cgroup-implement-eventfd-based-generic-api-for-notifications-kconfig-fix.patch added to -mm tree
-Date: Mon, 11 Jan 2010 15:41:53 -0800
-Message-ID: <201001112341.o0BNfrL4003224@imap1.linux-foundation.org>
+Subject: + memcg-move-charges-of-anonymous-swap-fix.patch added to -mm tree
+Date: Mon, 11 Jan 2010 15:44:25 -0800
+Message-ID: <201001112344.o0BNiPjB003391@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33477 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36898 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752841Ab0AKXmF (ORCPT
+	by vger.kernel.org with ESMTP id S1753305Ab0AKXok (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Jan 2010 18:42:05 -0500
+	Mon, 11 Jan 2010 18:44:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, kirill@shutemov.name, lizf@cn.fujitsu.com, menage@google.com, randy.dunlap@oracle.com
+Cc: nishimura@mxp.nes.nec.co.jp, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, randy.dunlap@oracle.com
 
 
 The patch titled
-     cgroup-implement-eventfd-based-generic-api-for-notifications-kconfig-fix
+     memcg-move-charges-of-anonymous-swap-fix
 has been added to the -mm tree.  Its filename is
-     cgroup-implement-eventfd-based-generic-api-for-notifications-kconfig-fix.patch
+     memcg-move-charges-of-anonymous-swap-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,65 +34,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroup-implement-eventfd-based-generic-api-for-notifications-kconfig-fix
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: memcg-move-charges-of-anonymous-swap-fix
+From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 
-Kconfig fix
+build fix in !CONFIG_SWAP case.
 
-Cgroup's eventfd feature has depenedecy to EVENTFD
+  CC      mm/memcontrol.o
+mm/memcontrol.c: In function 'is_target_pte_for_mc':
+mm/memcontrol.c:3648: error: implicit declaration of function 'mem_cgroup_count_swap_user'
+make[1]: *** [mm/memcontrol.o] Error 1
+make: *** [mm] Error 2
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Reported-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Cc: Li Zefan <lizf@cn.fujitsu.com>
 Cc: Paul Menage <menage@google.com>
-Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
-Acked-by: Kirill A. Shutemov <kirill@shutemov.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/swap.h |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN init/Kconfig~cgroup-implement-eventfd-based-generic-api-for-notifications-kconfig-fix init/Kconfig
---- a/init/Kconfig~cgroup-implement-eventfd-based-generic-api-for-notifications-kconfig-fix
-+++ a/init/Kconfig
-@@ -510,6 +510,7 @@ endchoice
+diff -puN include/linux/swap.h~memcg-move-charges-of-anonymous-swap-fix include/linux/swap.h
+--- a/include/linux/swap.h~memcg-move-charges-of-anonymous-swap-fix
++++ a/include/linux/swap.h
+@@ -488,6 +488,14 @@ mem_cgroup_uncharge_swapcache(struct pag
+ {
+ }
  
- menuconfig CGROUPS
- 	boolean "Control Group support"
-+	depends on EVENTFD
- 	help
- 	  This option adds support for grouping sets of processes together, for
- 	  use with process control subsystems such as Cpusets, CFS, memory
++#ifdef CONFIG_CGROUP_MEM_RES_CTLR
++static inline int
++mem_cgroup_count_swap_user(swp_entry_t ent, struct page **pagep)
++{
++	return 0;
++}
++#endif
++
+ #endif /* CONFIG_SWAP */
+ #endif /* __KERNEL__*/
+ #endif /* _LINUX_SWAP_H */
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
 
-origin.patch
-mm-clean-up-mm_counter.patch
-mm-avoid-false-sharing-of-mm_counter.patch
-mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
-mm-count-swap-usage.patch
-mm-count-swap-usage-checkpatch-fixes.patch
-mm-add-lowmem-detection-logic.patch
-mm-add-lowmem-detection-logic-fix.patch
-mm-count-lowmem-rss.patch
-mm-count-lowmem-rss-checkpatch-fixes.patch
-nodemaskh-remove-macro-any_online_node.patch
 cgroup-introduce-cancel_attach.patch
 cgroup-introduce-coalesce-css_get-and-css_put.patch
-cgroups-revamp-subsys-array.patch
-cgroups-subsystem-module-loading-interface.patch
-cgroups-subsystem-module-unloading.patch
-cgroups-net_cls-as-module.patch
 memcg-add-interface-to-move-charge-at-task-migration.patch
 memcg-move-charges-of-anonymous-page.patch
 memcg-move-charges-of-anonymous-page-cleanup.patch
 memcg-improve-performance-in-moving-charge.patch
 memcg-avoid-oom-during-moving-charge.patch
 memcg-move-charges-of-anonymous-swap.patch
+memcg-move-charges-of-anonymous-swap-fix.patch
 memcg-improve-performance-in-moving-swap-charge.patch
 cgroup-implement-eventfd-based-generic-api-for-notifications.patch
-cgroup-implement-eventfd-based-generic-api-for-notifications-kconfig-fix.patch
 memcg-extract-mem_group_usage-from-mem_cgroup_read.patch
 memcg-rework-usage-of-stats-by-soft-limit.patch
 memcg-implement-memory-thresholds.patch
