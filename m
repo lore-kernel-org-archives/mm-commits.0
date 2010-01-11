@@ -1,58 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mmc-allow-for-mmc-v44.patch removed from -mm tree
-Date: Mon, 11 Jan 2010 12:18:44 -0800
-Message-ID: <201001112018.o0BKIiJa025509__42436.376019805$1263241922$gmane$org@imap1.linux-foundation.org>
+Subject: [merged] mn10300-objcopy-flags-fix.patch removed from -mm tree
+Date: Mon, 11 Jan 2010 12:19:20 -0800
+Message-ID: <201001112019.o0BKJKFS025560@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37356 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54126 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751060Ab0AKUbq (ORCPT
+	by vger.kernel.org with ESMTP id S1753996Ab0AKUcr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Jan 2010 15:31:46 -0500
+	Mon, 11 Jan 2010 15:32:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adrian.hunter@nokia.com, linux-mmc@vger.kernel.org, mm-commits@vger.kernel.org
+To: msalter@redhat.com, dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mmc: allow for MMC v4.4
+     mn10300: objcopy flags fix
 has been removed from the -mm tree.  Its filename was
-     mmc-allow-for-mmc-v44.patch
+     mn10300-objcopy-flags-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: allow for MMC v4.4
-From: Adrian Hunter <adrian.hunter@nokia.com>
+Subject: mn10300: objcopy flags fix
+From: Mark Salter <msalter@redhat.com>
 
-JEDEC eMMC specification version 4.4 (MMCA 4.4) defines Extended CSD
-structure versions up to 5.
+The gcc-4.2.1 based toolchain for MN10300 adds some new note sections
+which need to be stripped from the binary image.  This patch takes care of
+that.
 
-Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
-Cc: <linux-mmc@vger.kernel.org>
+Signed-off-by: Mark Salter <msalter@redhat.com>
+Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/mmc.c |    2 +-
+ arch/mn10300/Makefile |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mmc/core/mmc.c~mmc-allow-for-mmc-v44 drivers/mmc/core/mmc.c
---- a/drivers/mmc/core/mmc.c~mmc-allow-for-mmc-v44
-+++ a/drivers/mmc/core/mmc.c
-@@ -207,7 +207,7 @@ static int mmc_read_ext_csd(struct mmc_c
- 	}
+diff -puN arch/mn10300/Makefile~mn10300-objcopy-flags-fix arch/mn10300/Makefile
+--- a/arch/mn10300/Makefile~mn10300-objcopy-flags-fix
++++ a/arch/mn10300/Makefile
+@@ -19,7 +19,7 @@ CCDIR	:= $(strip $(patsubst %/specs,%,$(
+ KBUILD_CPPFLAGS += -nostdinc -I$(CCDIR)/include
  
- 	card->ext_csd.rev = ext_csd[EXT_CSD_REV];
--	if (card->ext_csd.rev > 3) {
-+	if (card->ext_csd.rev > 5) {
- 		printk(KERN_ERR "%s: unrecognised EXT_CSD structure "
- 			"version %d\n", mmc_hostname(card->host),
- 			card->ext_csd.rev);
+ LDFLAGS		:=
+-OBJCOPYFLAGS	:= -O binary -R .note -R .comment -S
++OBJCOPYFLAGS	:= -O binary -R .note -R .comment -R .GCC-command-line -R .note.gnu.build-id -S
+ #LDFLAGS_vmlinux := -Map linkmap.txt
+ CHECKFLAGS	+=
+ 
 _
 
-Patches currently in -mm which might be from adrian.hunter@nokia.com are
+Patches currently in -mm which might be from msalter@redhat.com are
 
 origin.patch
 
