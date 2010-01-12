@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + davinci-mmc-updates-to-suspend-resume-implementation.patch added to -mm tree
-Date: Tue, 12 Jan 2010 15:37:44 -0800
-Message-ID: <201001122337.o0CNbjaC002222__9172.46548128805$1263339494$gmane$org@imap1.linux-foundation.org>
+Subject: + cgroups-fix-contents-in-cgroups-documentation.patch added to -mm tree
+Date: Tue, 12 Jan 2010 15:39:25 -0800
+Message-ID: <201001122339.o0CNdPmZ002278@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43509 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44673 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754762Ab0ALXhs (ORCPT
+	by vger.kernel.org with ESMTP id S1752022Ab0ALXjb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Jan 2010 18:37:48 -0500
+	Tue, 12 Jan 2010 18:39:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: chaithrika@ti.com, khilman@deeprootsystems.com, linux-mmc@vger.kernel.org
+Cc: kirill@shutemov.name, menage@google.com
 
 
 The patch titled
-     davinci: mmc: updates to suspend/resume implementation
+     cgroups: fix CONTENTS in cgroups documentation
 has been added to the -mm tree.  Its filename is
-     davinci-mmc-updates-to-suspend-resume-implementation.patch
+     cgroups-fix-contents-in-cgroups-documentation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,121 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: davinci: mmc: updates to suspend/resume implementation
-From: Chaithrika U S <chaithrika@ti.com>
+Subject: cgroups: fix CONTENTS in cgroups documentation
+From: "Kirill A. Shutemov" <kirill@shutemov.name>
 
-Improve the suspend and resume callbacks in DaVinci MMC host controller
-driver.  Modify the reset status of the contorller and clock during
-suspend and resume.  Also migrate the power management callbacks from
-platform driver to dev_pm_ops structure.
+Add a forgotten item into CONTENTS.
 
-Tested on DA850/OMAP-L138 EVM. This testing requires patches
-which add suspen-to-RAM support to DA850/OMAP-L138 SoC[1].
-
-[1]http://linux.davincidsp.com/pipermail/davinci-linux-open-source/
-2009-September/016118.html
-
-Signed-off-by: Chaithrika U S <chaithrika@ti.com>
-Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: <linux-mmc@vger.kernel.org>
+Signed-off-by: Kirill A. Shutemov <kirill@shutemov.name>
+Acked-by: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/davinci_mmc.c |   51 ++++++++++++++++++++++++++-----
- 1 file changed, 43 insertions(+), 8 deletions(-)
+ Documentation/cgroups/cgroups.txt |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/mmc/host/davinci_mmc.c~davinci-mmc-updates-to-suspend-resume-implementation drivers/mmc/host/davinci_mmc.c
---- a/drivers/mmc/host/davinci_mmc.c~davinci-mmc-updates-to-suspend-resume-implementation
-+++ a/drivers/mmc/host/davinci_mmc.c
-@@ -171,6 +171,7 @@ struct mmc_davinci_host {
- #define DAVINCI_MMC_DATADIR_READ	1
- #define DAVINCI_MMC_DATADIR_WRITE	2
- 	unsigned char data_dir;
-+	unsigned char suspended;
- 
- 	/* buffer is used during PIO of one scatterlist segment, and
- 	 * is updated along with buffer_bytes_left.  bytes_left applies
-@@ -1322,32 +1323,66 @@ static int __exit davinci_mmcsd_remove(s
- }
- 
- #ifdef CONFIG_PM
--static int davinci_mmcsd_suspend(struct platform_device *pdev, pm_message_t msg)
-+static int davinci_mmcsd_suspend(struct device *dev)
- {
-+	struct platform_device *pdev = to_platform_device(dev);
- 	struct mmc_davinci_host *host = platform_get_drvdata(pdev);
-+	struct pm_message msg = { PM_EVENT_SUSPEND };
-+	int ret;
- 
--	return mmc_suspend_host(host->mmc, msg);
-+	mmc_host_enable(host->mmc);
-+	ret = mmc_suspend_host(host->mmc, msg);
-+	if (!ret) {
-+		writel(0, host->base + DAVINCI_MMCIM);
-+		mmc_davinci_reset_ctrl(host, 1);
-+		mmc_host_disable(host->mmc);
-+		clk_disable(host->clk);
-+		host->suspended = 1;
-+	} else {
-+		host->suspended = 0;
-+		mmc_host_disable(host->mmc);
-+	}
-+
-+	return ret;
- }
- 
--static int davinci_mmcsd_resume(struct platform_device *pdev)
-+static int davinci_mmcsd_resume(struct device *dev)
- {
-+	struct platform_device *pdev = to_platform_device(dev);
- 	struct mmc_davinci_host *host = platform_get_drvdata(pdev);
-+	int ret;
- 
--	return mmc_resume_host(host->mmc);
-+	if (!host->suspended)
-+		return 0;
-+
-+	clk_enable(host->clk);
-+	mmc_host_enable(host->mmc);
-+
-+	mmc_davinci_reset_ctrl(host, 0);
-+	ret = mmc_resume_host(host->mmc);
-+	if (!ret)
-+		host->suspended = 0;
-+
-+	return ret;
- }
-+
-+static struct dev_pm_ops davinci_mmcsd_pm = {
-+	.suspend        = davinci_mmcsd_suspend,
-+	.resume         = davinci_mmcsd_resume,
-+};
-+
-+#define davinci_mmcsd_pm_ops (&davinci_mmcsd_pm)
- #else
--#define davinci_mmcsd_suspend	NULL
--#define davinci_mmcsd_resume	NULL
-+#define davinci_mmcsd_pm_ops NULL
- #endif
- 
- static struct platform_driver davinci_mmcsd_driver = {
- 	.driver		= {
- 		.name	= "davinci_mmc",
- 		.owner	= THIS_MODULE,
-+		.pm	= davinci_mmcsd_pm_ops,
- 	},
- 	.remove		= __exit_p(davinci_mmcsd_remove),
--	.suspend	= davinci_mmcsd_suspend,
--	.resume		= davinci_mmcsd_resume,
- };
- 
- static int __init davinci_mmcsd_init(void)
+diff -puN Documentation/cgroups/cgroups.txt~cgroups-fix-contents-in-cgroups-documentation Documentation/cgroups/cgroups.txt
+--- a/Documentation/cgroups/cgroups.txt~cgroups-fix-contents-in-cgroups-documentation
++++ a/Documentation/cgroups/cgroups.txt
+@@ -22,6 +22,7 @@ CONTENTS:
+ 2. Usage Examples and Syntax
+   2.1 Basic Usage
+   2.2 Attaching processes
++  2.3 Mounting hierarchies by name
+ 3. Kernel API
+   3.1 Overview
+   3.2 Synchronization
 _
 
-Patches currently in -mm which might be from chaithrika@ti.com are
+Patches currently in -mm which might be from kirill@shutemov.name are
 
-linux-next.patch
-davinci-mmc-add-support-for-8bit-mmc-cards.patch
-davinci-mmc-add-a-function-to-control-reset-state-of-the-controller.patch
-davinci-mmc-updates-to-suspend-resume-implementation.patch
+cgroups-fix-contents-in-cgroups-documentation.patch
+cgroup-implement-eventfd-based-generic-api-for-notifications.patch
+cgroup-implement-eventfd-based-generic-api-for-notifications-kconfig-fix.patch
+memcg-extract-mem_group_usage-from-mem_cgroup_read.patch
+memcg-rework-usage-of-stats-by-soft-limit.patch
+memcg-implement-memory-thresholds.patch
+memcg-implement-memory-thresholds-checkpatch-fixes.patch
+memcg-implement-memory-thresholds-checkpatch-fixes-fix.patch
+memcg-typo-in-comment-to-mem_cgroup_print_oom_info.patch
 
