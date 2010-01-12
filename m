@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-kswapd-dont-retry-balance_pgdat-if-all-zones-are-unreclaimable.patch added to -mm tree
-Date: Tue, 12 Jan 2010 14:20:47 -0800
-Message-ID: <201001122220.o0CMKlbp031107@imap1.linux-foundation.org>
+Subject: + vmscan-check-high-watermark-after-shrink-zone.patch added to -mm tree
+Date: Tue, 12 Jan 2010 15:03:04 -0800
+Message-ID: <201001122303.o0CN35V5000650@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36778 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46924 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751402Ab0ALWU7 (ORCPT
+	by vger.kernel.org with ESMTP id S932070Ab0ALXDs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Jan 2010 17:20:59 -0500
+	Tue, 12 Jan 2010 18:03:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, fengguang.wu@intel.com, mel@csn.ul.ie, minchan.kim@gmail.com, riel@redhat.com, will.newton@gmail.com
+Cc: minchan.kim@gmail.com, fengguang.wu@intel.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, riel@redhat.com
 
 
 The patch titled
-     vmscan: kswapd: don't retry balance_pgdat() if all zones are unreclaimable
+     vmscan: check high watermark after shrink zone
 has been added to the -mm tree.  Its filename is
-     vmscan-kswapd-dont-retry-balance_pgdat-if-all-zones-are-unreclaimable.patch
+     vmscan-check-high-watermark-after-shrink-zone.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,56 +34,81 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: kswapd: don't retry balance_pgdat() if all zones are unreclaimable
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: vmscan: check high watermark after shrink zone
+From: Minchan Kim <minchan.kim@gmail.com>
 
-Commit f50de2d3 (vmscan: have kswapd sleep for a short interval and double
-check it should be asleep) can cause kswapd to enter an infinite loop if
-running on a single-CPU system.  If all zones are unreclaimble,
-sleeping_prematurely return 1 and kswapd will call balance_pgdat() again. 
-but it's totally meaningless, balance_pgdat() doesn't anything against
-unreclaimable zone!
+Kswapd checks that zone has sufficient pages free via zone_watermark_ok().
 
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+If any zone doesn't have enough pages, we set all_zones_ok to zero. 
+!all_zone_ok makes kswapd retry rather than sleeping.
+
+I think the watermark check before shrink_zone() is pointless.  Only after
+kswapd has tried to shrink the zone is the check meaningful.
+
+Move the check to after the call to shrink_zone().
+
+Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
-Reported-by: Will Newton <will.newton@gmail.com>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Tested-by: Will Newton <will.newton@gmail.com>
+Cc: Rik van Riel <riel@redhat.com>
 Reviewed-by: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/vmscan.c |   21 +++++++++++----------
+ 1 file changed, 11 insertions(+), 10 deletions(-)
 
-diff -puN mm/vmscan.c~vmscan-kswapd-dont-retry-balance_pgdat-if-all-zones-are-unreclaimable mm/vmscan.c
---- a/mm/vmscan.c~vmscan-kswapd-dont-retry-balance_pgdat-if-all-zones-are-unreclaimable
+diff -puN mm/vmscan.c~vmscan-check-high-watermark-after-shrink-zone mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-check-high-watermark-after-shrink-zone
 +++ a/mm/vmscan.c
-@@ -1922,6 +1922,9 @@ static int sleeping_prematurely(pg_data_
- 		if (!populated_zone(zone))
- 			continue;
+@@ -2060,9 +2060,6 @@ loop_again:
+ 					priority != DEF_PRIORITY)
+ 				continue;
  
-+		if (zone_is_all_unreclaimable(zone))
-+			continue;
-+
- 		if (!zone_watermark_ok(zone, order, high_wmark_pages(zone),
- 								0, 0))
- 			return 1;
+-			if (!zone_watermark_ok(zone, order,
+-					high_wmark_pages(zone), end_zone, 0))
+-				all_zones_ok = 0;
+ 			temp_priority[i] = priority;
+ 			sc.nr_scanned = 0;
+ 			note_zone_scanning_priority(zone, priority);
+@@ -2102,13 +2099,17 @@ loop_again:
+ 			    total_scanned > sc.nr_reclaimed + sc.nr_reclaimed / 2)
+ 				sc.may_writepage = 1;
+ 
+-			/*
+-			 * We are still under min water mark. it mean we have
+-			 * GFP_ATOMIC allocation failure risk. Hurry up!
+-			 */
+-			if (!zone_watermark_ok(zone, order, min_wmark_pages(zone),
+-					      end_zone, 0))
+-				has_under_min_watermark_zone = 1;
++			if (!zone_watermark_ok(zone, order,
++					high_wmark_pages(zone), end_zone, 0)) {
++				all_zones_ok = 0;
++				/*
++				 * We are still under min water mark. it mean we have
++				 * GFP_ATOMIC allocation failure risk. Hurry up!
++				 */
++				if (!zone_watermark_ok(zone, order, min_wmark_pages(zone),
++						      end_zone, 0))
++					has_under_min_watermark_zone = 1;
++			}
+ 
+ 		}
+ 		if (all_zones_ok)
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from minchan.kim@gmail.com are
 
 origin.patch
-linux-next.patch
 page-allocator-fix-update-nr_free_pages-only-as-necessary.patch
-mm-page_alloc-fix-the-range-check-for-backward-merging.patch
 vmscan-kswapd-dont-retry-balance_pgdat-if-all-zones-are-unreclaimable.patch
-mm-introduce-dump_page-and-print-symbolic-flag-names.patch
-page-allocator-reduce-fragmentation-in-buddy-allocator-by-adding-buddies-that-are-merging-to-the-tail-of-the-free-lists.patch
-mlock_vma_pages_range-never-return-negative-value.patch
-mlock_vma_pages_range-only-return-success-or-failure.patch
-prctl-add-pr_set_proctitle_area-option-for-prctl.patch
-mm-pass-mm-flags-as-a-coredump-parameter-for-consistency.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
+mm-clean-up-mm_counter.patch
+mm-avoid-false-sharing-of-mm_counter.patch
+mm-count-swap-usage.patch
+mm-count-swap-usage-checkpatch-fixes.patch
+mm-add-lowmem-detection-logic.patch
+mm-count-lowmem-rss.patch
+vmscan-check-high-watermark-after-shrink-zone.patch
+vmscan-check-high-watermark-after-shrink-zone-fix.patch
 
