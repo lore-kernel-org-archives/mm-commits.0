@@ -1,88 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: + mtd-nand-fix-build-failure-caused-by-typo.patch added to -mm tree
-Date: Mon, 11 Jan 2010 15:54:34 -0800
-Message-ID: <201001112354.o0BNsYhL003849@imap1.linux-foundation.org>
+Subject: [nacked] arm-add-missing-parentheses.patch removed from -mm tree
+Date: Mon, 11 Jan 2010 16:38:53 -0800
+Message-ID: <201001120038.o0C0crsE006006@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59296 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49931 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752139Ab0AKXzW (ORCPT
+	by vger.kernel.org with ESMTP id S1754088Ab0ALAje (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Jan 2010 18:55:22 -0500
+	Mon, 11 Jan 2010 19:39:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: peterhuewe@gmx.de, dwmw2@infradead.org, hsweeten@visionengravers.com, u.kleine-koenig@pengutronix.de
+To: roel.kluin@gmail.com, ben-linux@fluff.org, linux@arm.linux.org.uk, linux@simtec.co.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mtd/nand: fix build failure caused by typo
-has been added to the -mm tree.  Its filename is
-     mtd-nand-fix-build-failure-caused-by-typo.patch
+     arm: add missing parentheses
+has been removed from the -mm tree.  Its filename was
+     arm-add-missing-parentheses.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it was nacked
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
-
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd/nand: fix build failure caused by typo
-=46rom: Peter Huewe <peterhuewe@gmx.de>
+Subject: arm: add missing parentheses
+From: Roel Kluin <roel.kluin@gmail.com>
 
-=46ix a build failure introduced by the patch
+`!' has a higher precedence than `&' so parentheses are required.
 
-    mtd: orion_nand.c: add error handling and use resource_size()
-
-The patch assigns something to a undeclared variable 'err', whereas the
-rest of the code uses 'ret' for this task.
-
-Signed-off-by: Peter Huewe <peterhuewe@gmx.de>
-Reviewed-by: H Hartley Sweeten <hsweeten@visionengravers.com>
-Acked-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Ben Dooks <ben-linux@fluff.org>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Simtec Linux Team <linux@simtec.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/nand/orion_nand.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/mach-s3c2440/mach-osiris-dvs.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/mtd/nand/orion_nand.c~mtd-nand-fix-build-failure-caus=
-ed-by-typo drivers/mtd/nand/orion_nand.c
---- a/drivers/mtd/nand/orion_nand.c~mtd-nand-fix-build-failure-caused-b=
-y-typo
-+++ a/drivers/mtd/nand/orion_nand.c
-@@ -92,7 +92,7 @@ static int __init orion_nand_probe(struc
-=20
- 	res =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (!res) {
--		err =3D -ENODEV;
-+		ret =3D -ENODEV;
- 		goto no_res;
- 	}
-=20
+diff -puN arch/arm/mach-s3c2440/mach-osiris-dvs.c~arm-add-missing-parentheses arch/arm/mach-s3c2440/mach-osiris-dvs.c
+--- a/arch/arm/mach-s3c2440/mach-osiris-dvs.c~arm-add-missing-parentheses
++++ a/arch/arm/mach-s3c2440/mach-osiris-dvs.c
+@@ -77,8 +77,8 @@ static int osiris_dvs_notify(struct noti
+ 		}
+ 		break;
+ 	case CPUFREQ_POSTCHANGE:
+-		if (!old_dvs & new_dvs ||
+-		    !cur_dvs & new_dvs) {
++		if (!(old_dvs & new_dvs) ||
++		    !(cur_dvs & new_dvs)) {
+ 			pr_debug("entering dvs\n");
+ 			cur_dvs = true;
+ 			gpio_set_value(OSIRIS_GPIO_DVS, 0);
 _
 
-Patches currently in -mm which might be from peterhuewe@gmx.de are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
+origin.patch
 linux-next.patch
-mtd-nand-fix-build-failure-caused-by-typo.patch
-scsi-add-__init-__exit-macros-to-ibmvstgtc.patch
+acpi-fix-confusion-in-acpi_evaluate_string-in-comment.patch
+arm-add-missing-parentheses.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+v4l-dvb-wrong-variable-tested.patch
+hisax-timeout-off-by-one-in-waitrecmsg.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+ibmmca-buffer-overflow.patch
+scsi-eata-fix-buffer-overflow.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
+zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
+ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
+scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
+dc395x-decrease-iteration-for-tag_number-of-max_command-in-start_scsi.patch
+mpt2sas-fix-confusion-in-_scsih_sas_device_status_change_event.patch
+paride-fix-off-by-one-test.patch
+80211core-fix-confusion.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+cryptocop-fix-assertion-in-create_output_descriptors.patch
+asiliantfb-fix-test-of-unsigned-in-asiliant_calc_dclk2.patch
+w1-fix-test-in-ds2482_wait_1wire_idle.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
