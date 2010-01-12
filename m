@@ -1,87 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] arm-add-missing-parentheses.patch removed from -mm tree
-Date: Mon, 11 Jan 2010 16:38:53 -0800
-Message-ID: <201001120038.o0C0crsE006006@imap1.linux-foundation.org>
+Subject: + vmscan-kswapd-should-notice-that-all-zones-are-not-ok-if-they-are-unreclaimble.patch added to -mm tree
+Date: Mon, 11 Jan 2010 17:03:07 -0800
+Message-ID: <201001120103.o0C13A5Z007301@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49931 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45650 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754088Ab0ALAje (ORCPT
+	by vger.kernel.org with ESMTP id S1753202Ab0ALBD6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Jan 2010 19:39:34 -0500
+	Mon, 11 Jan 2010 20:03:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, ben-linux@fluff.org, linux@arm.linux.org.uk, linux@simtec.co.uk, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: mel@csn.ul.ie, cl@linux-foundation.org, elendil@planet.nl, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com, will.newton@gmail.com
 
 
 The patch titled
-     arm: add missing parentheses
-has been removed from the -mm tree.  Its filename was
-     arm-add-missing-parentheses.patch
+     vmscan: kswapd should notice that all zones are not ok if they are unreclaimble
+has been added to the -mm tree.  Its filename is
+     vmscan-kswapd-should-notice-that-all-zones-are-not-ok-if-they-are-unreclaimble.patch
 
-This patch was dropped because it was nacked
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arm: add missing parentheses
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: vmscan: kswapd should notice that all zones are not ok if they are unreclaimble
+From: Mel Gorman <mel@csn.ul.ie>
 
-`!' has a higher precedence than `&' so parentheses are required.
+Commit f50de2d3 ("vmscan: have kswapd sleep for a short interval and
+double check it should be asleep") can cause kswapd to enter an infinite
+loop if running on a single-CPU system.  If all zones are unreclaimble,
+kswapd thinks "all zones are ok" and prepares to go to sleep.  However,
+the zones are not ok because the watermarks are not met so it stays awake
+but never calls cond_resched().
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Ben Dooks <ben-linux@fluff.org>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Simtec Linux Team <linux@simtec.co.uk>
+This patch notes that if all zones are unreclaimable then the zones are
+not ok.  It falls through and cond_resched() gets called.
+
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Tested-by: Will Newton <will.newton@gmail.com>
+Cc: Frans Pop <elendil@planet.nl>
+KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: Rik van Riel <riel@redhat.com>
+Christoph Lameter <cl@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-s3c2440/mach-osiris-dvs.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/vmscan.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN arch/arm/mach-s3c2440/mach-osiris-dvs.c~arm-add-missing-parentheses arch/arm/mach-s3c2440/mach-osiris-dvs.c
---- a/arch/arm/mach-s3c2440/mach-osiris-dvs.c~arm-add-missing-parentheses
-+++ a/arch/arm/mach-s3c2440/mach-osiris-dvs.c
-@@ -77,8 +77,8 @@ static int osiris_dvs_notify(struct noti
+diff -puN mm/vmscan.c~vmscan-kswapd-should-notice-that-all-zones-are-not-ok-if-they-are-unreclaimble mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-kswapd-should-notice-that-all-zones-are-not-ok-if-they-are-unreclaimble
++++ a/mm/vmscan.c
+@@ -2027,8 +2027,10 @@ loop_again:
+ 				break;
+ 			}
  		}
- 		break;
- 	case CPUFREQ_POSTCHANGE:
--		if (!old_dvs & new_dvs ||
--		    !cur_dvs & new_dvs) {
-+		if (!(old_dvs & new_dvs) ||
-+		    !(cur_dvs & new_dvs)) {
- 			pr_debug("entering dvs\n");
- 			cur_dvs = true;
- 			gpio_set_value(OSIRIS_GPIO_DVS, 0);
+-		if (i < 0)
++		if (i < 0) {
++			all_zones_ok = 0;
+ 			goto out;
++		}
+ 
+ 		for (i = 0; i <= end_zone; i++) {
+ 			struct zone *zone = pgdat->node_zones + i;
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
 origin.patch
 linux-next.patch
-acpi-fix-confusion-in-acpi_evaluate_string-in-comment.patch
-arm-add-missing-parentheses.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-v4l-dvb-wrong-variable-tested.patch
-hisax-timeout-off-by-one-in-waitrecmsg.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
-ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
-scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
-dc395x-decrease-iteration-for-tag_number-of-max_command-in-start_scsi.patch
-mpt2sas-fix-confusion-in-_scsih_sas_device_status_change_event.patch
-paride-fix-off-by-one-test.patch
-80211core-fix-confusion.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-cryptocop-fix-assertion-in-create_output_descriptors.patch
-asiliantfb-fix-test-of-unsigned-in-asiliant_calc_dclk2.patch
-w1-fix-test-in-ds2482_wait_1wire_idle.patch
+page-allocator-fix-update-nr_free_pages-only-as-necessary.patch
+mm-page_alloc-fix-the-range-check-for-backward-merging.patch
+vmscan-kswapd-should-notice-that-all-zones-are-not-ok-if-they-are-unreclaimble.patch
+page-allocator-reduce-fragmentation-in-buddy-allocator-by-adding-buddies-that-are-merging-to-the-tail-of-the-free-lists.patch
+nodemaskh-remove-macro-any_online_node.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
 
