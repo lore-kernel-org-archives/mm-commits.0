@@ -1,79 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] vmscan-kswapd-should-notice-that-all-zones-are-not-ok-if-they-are-unreclaimble.patch removed from -mm tree
-Date: Tue, 12 Jan 2010 14:19:21 -0800
-Message-ID: <201001122219.o0CMJLRW031051@imap1.linux-foundation.org>
+Subject: + vmscan-kswapd-dont-retry-balance_pgdat-if-all-zones-are-unreclaimable.patch added to -mm tree
+Date: Tue, 12 Jan 2010 14:20:47 -0800
+Message-ID: <201001122220.o0CMKlbp031107@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34667 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36778 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752416Ab0ALWUN (ORCPT
+	by vger.kernel.org with ESMTP id S1751402Ab0ALWU7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Jan 2010 17:20:13 -0500
+	Tue, 12 Jan 2010 17:20:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mel@csn.ul.ie, cl@linux-foundation.org, elendil@planet.nl, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com, will.newton@gmail.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: kosaki.motohiro@jp.fujitsu.com, fengguang.wu@intel.com, mel@csn.ul.ie, minchan.kim@gmail.com, riel@redhat.com, will.newton@gmail.com
 
 
 The patch titled
-     vmscan: kswapd should notice that all zones are not ok if they are unreclaimble
-has been removed from the -mm tree.  Its filename was
-     vmscan-kswapd-should-notice-that-all-zones-are-not-ok-if-they-are-unreclaimble.patch
+     vmscan: kswapd: don't retry balance_pgdat() if all zones are unreclaimable
+has been added to the -mm tree.  Its filename is
+     vmscan-kswapd-dont-retry-balance_pgdat-if-all-zones-are-unreclaimable.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: kswapd should notice that all zones are not ok if they are unreclaimble
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: vmscan: kswapd: don't retry balance_pgdat() if all zones are unreclaimable
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Commit f50de2d3 ("vmscan: have kswapd sleep for a short interval and
-double check it should be asleep") can cause kswapd to enter an infinite
-loop if running on a single-CPU system.  If all zones are unreclaimble,
-kswapd thinks "all zones are ok" and prepares to go to sleep.  However,
-the zones are not ok because the watermarks are not met so it stays awake
-but never calls cond_resched().
+Commit f50de2d3 (vmscan: have kswapd sleep for a short interval and double
+check it should be asleep) can cause kswapd to enter an infinite loop if
+running on a single-CPU system.  If all zones are unreclaimble,
+sleeping_prematurely return 1 and kswapd will call balance_pgdat() again. 
+but it's totally meaningless, balance_pgdat() doesn't anything against
+unreclaimable zone!
 
-This patch notes that if all zones are unreclaimable then the zones are
-not ok.  It falls through and cond_resched() gets called.
-
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Reported-by: Will Newton <will.newton@gmail.com>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
 Tested-by: Will Newton <will.newton@gmail.com>
-Cc: Frans Pop <elendil@planet.nl>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Acked-by: Rik van Riel <riel@redhat.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
+Reviewed-by: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/vmscan.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/vmscan.c~vmscan-kswapd-should-notice-that-all-zones-are-not-ok-if-they-are-unreclaimble mm/vmscan.c
---- a/mm/vmscan.c~vmscan-kswapd-should-notice-that-all-zones-are-not-ok-if-they-are-unreclaimble
+diff -puN mm/vmscan.c~vmscan-kswapd-dont-retry-balance_pgdat-if-all-zones-are-unreclaimable mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-kswapd-dont-retry-balance_pgdat-if-all-zones-are-unreclaimable
 +++ a/mm/vmscan.c
-@@ -2027,8 +2027,10 @@ loop_again:
- 				break;
- 			}
- 		}
--		if (i < 0)
-+		if (i < 0) {
-+			all_zones_ok = 0;
- 			goto out;
-+		}
+@@ -1922,6 +1922,9 @@ static int sleeping_prematurely(pg_data_
+ 		if (!populated_zone(zone))
+ 			continue;
  
- 		for (i = 0; i <= end_zone; i++) {
- 			struct zone *zone = pgdat->node_zones + i;
++		if (zone_is_all_unreclaimable(zone))
++			continue;
++
+ 		if (!zone_watermark_ok(zone, order, high_wmark_pages(zone),
+ 								0, 0))
+ 			return 1;
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 origin.patch
 linux-next.patch
 page-allocator-fix-update-nr_free_pages-only-as-necessary.patch
 mm-page_alloc-fix-the-range-check-for-backward-merging.patch
-vmscan-kswapd-should-notice-that-all-zones-are-not-ok-if-they-are-unreclaimble.patch
+vmscan-kswapd-dont-retry-balance_pgdat-if-all-zones-are-unreclaimable.patch
+mm-introduce-dump_page-and-print-symbolic-flag-names.patch
 page-allocator-reduce-fragmentation-in-buddy-allocator-by-adding-buddies-that-are-merging-to-the-tail-of-the-free-lists.patch
-nodemaskh-remove-macro-any_online_node.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
+mlock_vma_pages_range-never-return-negative-value.patch
+mlock_vma_pages_range-only-return-success-or-failure.patch
+prctl-add-pr_set_proctitle_area-option-for-prctl.patch
+mm-pass-mm-flags-as-a-coredump-parameter-for-consistency.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
