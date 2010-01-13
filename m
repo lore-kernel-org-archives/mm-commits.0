@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + net-sunrpc-remove-uses-of-nipquad-use-%pi4.patch added to -mm tree
-Date: Wed, 13 Jan 2010 12:54:35 -0800
-Message-ID: <201001132054.o0DKsZON027880@imap1.linux-foundation.org>
+Subject: + drivers-firmware-iscsi_ibftc-remove-nipquad_fmt-use-%pi4.patch added to -mm tree
+Date: Wed, 13 Jan 2010 12:54:39 -0800
+Message-ID: <201001132054.o0DKsdC3027886@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56612 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51247 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755618Ab0AMUz1 (ORCPT
+	by vger.kernel.org with ESMTP id S1754717Ab0AMUz6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Jan 2010 15:55:27 -0500
+	Wed, 13 Jan 2010 15:55:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, Trond.Myklebust@netapp.com, bfields@fieldses.org, neilb@suse.de
+Cc: joe@perches.com, James.Bottomley@HansenPartnership.com, ketuzsezr@darnok.org, michaelc@cs.wisc.edu, pjones@redhat.com
 
 
 The patch titled
-     net/sunrpc: remove uses of NIPQUAD, use %pI4
+     drivers/firmware/iscsi_ibft.c: remove NIPQUAD_FMT, use %pI4
 has been added to the -mm tree.  Its filename is
-     net-sunrpc-remove-uses-of-nipquad-use-%pi4.patch
+     drivers-firmware-iscsi_ibftc-remove-nipquad_fmt-use-%pi4.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: net/sunrpc: remove uses of NIPQUAD, use %pI4
+Subject: drivers/firmware/iscsi_ibft.c: remove NIPQUAD_FMT, use %pI4
 From: Joe Perches <joe@perches.com>
 
+Convert netmask to __be32 and format it with %pI4
+
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: J. Bruce Fields <bfields@fieldses.org>
-Cc: Neil Brown <neilb@suse.de>
-Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
+Cc: Konrad Rzeszutek <ketuzsezr@darnok.org>
+Cc: Mike Christie <michaelc@cs.wisc.edu>
+Cc: Peter Jones <pjones@redhat.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/xprtrdma/transport.c |    3 +--
- net/sunrpc/xprtsock.c           |    5 ++---
- 2 files changed, 3 insertions(+), 5 deletions(-)
+ drivers/firmware/iscsi_ibft.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN net/sunrpc/xprtrdma/transport.c~net-sunrpc-remove-uses-of-nipquad-use-%pi4 net/sunrpc/xprtrdma/transport.c
---- a/net/sunrpc/xprtrdma/transport.c~net-sunrpc-remove-uses-of-nipquad-use-%pi4
-+++ a/net/sunrpc/xprtrdma/transport.c
-@@ -165,8 +165,7 @@ xprt_rdma_format_addresses(struct rpc_xp
+diff -puN drivers/firmware/iscsi_ibft.c~drivers-firmware-iscsi_ibftc-remove-nipquad_fmt-use-%pi4 drivers/firmware/iscsi_ibft.c
+--- a/drivers/firmware/iscsi_ibft.c~drivers-firmware-iscsi_ibftc-remove-nipquad_fmt-use-%pi4
++++ a/drivers/firmware/iscsi_ibft.c
+@@ -380,7 +380,7 @@ static ssize_t ibft_attr_show_nic(struct
+ 	struct ibft_nic *nic = entry->nic;
+ 	void *ibft_loc = entry->header;
+ 	char *str = buf;
+-	int val;
++	__be32 val;
  
- 	xprt->address_strings[RPC_DISPLAY_PROTO] = "rdma";
- 
--	(void)snprintf(buf, sizeof(buf), "%02x%02x%02x%02x",
--				NIPQUAD(sin->sin_addr.s_addr));
-+	(void)snprintf(buf, sizeof(buf), "%08x", ntohl(sin->sin_addr.s_addr));
- 	xprt->address_strings[RPC_DISPLAY_HEX_ADDR] = kstrdup(buf, GFP_KERNEL);
- 
- 	(void)snprintf(buf, sizeof(buf), "%4hx", rpc_get_port(sap));
-diff -puN net/sunrpc/xprtsock.c~net-sunrpc-remove-uses-of-nipquad-use-%pi4 net/sunrpc/xprtsock.c
---- a/net/sunrpc/xprtsock.c~net-sunrpc-remove-uses-of-nipquad-use-%pi4
-+++ a/net/sunrpc/xprtsock.c
-@@ -297,12 +297,11 @@ static void xs_format_common_peer_addres
- 	switch (sap->sa_family) {
- 	case AF_INET:
- 		sin = xs_addr_in(xprt);
--		(void)snprintf(buf, sizeof(buf), "%02x%02x%02x%02x",
--					NIPQUAD(sin->sin_addr.s_addr));
-+		snprintf(buf, sizeof(buf), "%08x", ntohl(sin->sin_addr.s_addr));
+ 	if (!nic)
+ 		return 0;
+@@ -396,10 +396,8 @@ static ssize_t ibft_attr_show_nic(struct
+ 		str += sprintf_ipaddr(str, nic->ip_addr);
  		break;
- 	case AF_INET6:
- 		sin6 = xs_addr_in6(xprt);
--		(void)snprintf(buf, sizeof(buf), "%pi6", &sin6->sin6_addr);
-+		snprintf(buf, sizeof(buf), "%pi6", &sin6->sin6_addr);
+ 	case ibft_eth_subnet_mask:
+-		val = ~((1 << (32-nic->subnet_mask_prefix))-1);
+-		str += sprintf(str, NIPQUAD_FMT,
+-			       (u8)(val >> 24), (u8)(val >> 16),
+-			       (u8)(val >> 8), (u8)(val));
++		val = cpu_to_be32(~((1 << (32-nic->subnet_mask_prefix))-1));
++		str += sprintf(str, "%pI4", &val);
  		break;
- 	default:
- 		BUG();
+ 	case ibft_eth_origin:
+ 		str += sprintf(str, "%d\n", nic->origin);
 _
 
 Patches currently in -mm which might be from joe@perches.com are
