@@ -1,97 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] sort-introduce-generic-list_sort-function-v3-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 13 Jan 2010 11:28:33 -0800
-Message-ID: <201001131928.o0DJSXM7023807@imap1.linux-foundation.org>
+Subject: [alternative-merged] sort-introduce-generic-list_sort-function-v3.patch removed from -mm tree
+Date: Wed, 13 Jan 2010 11:28:24 -0800
+Message-ID: <201001131928.o0DJSOnI023802@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44459 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35937 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750862Ab0AMT2n (ORCPT
+	by vger.kernel.org with ESMTP id S1751411Ab0AMT24 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Jan 2010 14:28:43 -0500
+	Wed, 13 Jan 2010 14:28:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, david@fromorbit.com, mm-commits@vger.kernel.org
+To: david@fromorbit.com, airlied@redhat.com, dedekind@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sort-introduce-generic-list_sort-function-v3-checkpatch-fixes
+     sort-introduce-generic-list_sort-function-v3.txt
 has been removed from the -mm tree.  Its filename was
-     sort-introduce-generic-list_sort-function-v3-checkpatch-fixes.patch
+     sort-introduce-generic-list_sort-function-v3.patch
 
 This patch was dropped because an alternative patch was merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sort-introduce-generic-list_sort-function-v3-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: sort-introduce-generic-list_sort-function-v3.txt
+From: Dave Chinner <david@fromorbit.com>
 
-WARNING: EXPORT_SYMBOL(foo); should immediately follow its function/variable
-#20: FILE: lib/sort.c:221:
-+EXPORT_SYMBOL(list_sort);
+V3: Export list_sort()
 
-total: 0 errors, 1 warnings, 4 lines checked
-
-./patches/sort-introduce-generic-list_sort-function-v3.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Dave Chinner <david@fromorbit.com>
+Cc: Dave Airlie <airlied@redhat.com>
+Cc: Artem Bityutskiy <dedekind@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/sort.c |    1 -
- 1 file changed, 1 deletion(-)
+ lib/sort.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN lib/sort.c~sort-introduce-generic-list_sort-function-v3-checkpatch-fixes lib/sort.c
---- a/lib/sort.c~sort-introduce-generic-list_sort-function-v3-checkpatch-fixes
+diff -puN lib/sort.c~sort-introduce-generic-list_sort-function-v3 lib/sort.c
+--- a/lib/sort.c~sort-introduce-generic-list_sort-function-v3
 +++ a/lib/sort.c
-@@ -217,5 +217,4 @@ void list_sort(void *priv, struct list_h
- 	list->prev->next = head;
+@@ -218,3 +218,4 @@ void list_sort(void *priv, struct list_h
  	list->prev = head;
  }
--
- EXPORT_SYMBOL(list_sort);
+ 
++EXPORT_SYMBOL(list_sort);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from david@fromorbit.com are
 
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-ibmphp-read-the-length-of-ebda-and-map-entire-ebda-region-fix.patch
-revert-clockevents-prevent-clockevent_devices-list-corruption-on-cpu-hotplug.patch
-revert-cpufreq-fix-race-in-cpufreq_update_policy.patch
-drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
-drivers-media-video-pmsc-needs-versionh.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-jffs2-avoid-using-c-keyword-new-in-userspace-visible-header.patch
-3x59x-fix-pci-resource-management.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
-mm-count-swap-usage-checkpatch-fixes.patch
-mm-add-lowmem-detection-logic-fix.patch
-mm-count-lowmem-rss-checkpatch-fixes.patch
-vmscan-check-high-watermark-after-shrink-zone-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+sort-introduce-generic-list_sort-function-v3.patch
 sort-introduce-generic-list_sort-function-v3-checkpatch-fixes.patch
-mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
-memcg-move-charges-of-anonymous-page-cleanup.patch
-memcg-implement-memory-thresholds-checkpatch-fixes.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
 
