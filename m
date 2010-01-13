@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + char-synclink-remove-unnecessary-checks.patch added to -mm tree
-Date: Wed, 13 Jan 2010 14:00:26 -0800
-Message-ID: <201001132200.o0DM0Qdv031093@imap1.linux-foundation.org>
+Subject: + maintainers-ivtv-devel-is-moderated.patch added to -mm tree
+Date: Wed, 13 Jan 2010 14:01:13 -0800
+Message-ID: <201001132201.o0DM1DOs031131@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37375 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49971 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751612Ab0AMWB0 (ORCPT
+	by vger.kernel.org with ESMTP id S1755580Ab0AMWCE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Jan 2010 17:01:26 -0500
+	Wed, 13 Jan 2010 17:02:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jslaby@suse.cz, alan@linux.intel.com, gregkh@suse.de, paulkf@microgate.com
+Cc: jslaby@suse.cz, awalls@radix.net, mchehab@infradead.org
 
 
 The patch titled
-     Char: synclink, remove unnecessary checks
+     MAINTAINERS: ivtv-devel is moderated
 has been added to the -mm tree.  Its filename is
-     char-synclink-remove-unnecessary-checks.patch
+     maintainers-ivtv-devel-is-moderated.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Char: synclink, remove unnecessary checks
+Subject: MAINTAINERS: ivtv-devel is moderated
 From: Jiri Slaby <jslaby@suse.cz>
 
-Stanse found a potential null dereference in mgsl_put_char and mgsl_write.
- There is a check for tty being NULL, but it is dereferenced earlier.
-
-Actually, tty cannot be NULL in .write and .put_char, so remove the tests.
+Mark ivtv-devel@ivtvdriver.org as 'moderated for non-subscribers'.
 
 Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Alan Cox <alan@linux.intel.com>
-Cc: Paul Fulghum <paulkf@microgate.com>
+Acked-by: Andy Walls <awalls@radix.net>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/synclink.c |    4 ++--
+ MAINTAINERS |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/synclink.c~char-synclink-remove-unnecessary-checks drivers/char/synclink.c
---- a/drivers/char/synclink.c~char-synclink-remove-unnecessary-checks
-+++ a/drivers/char/synclink.c
-@@ -2031,7 +2031,7 @@ static int mgsl_put_char(struct tty_stru
- 	if (mgsl_paranoia_check(info, tty->name, "mgsl_put_char"))
- 		return 0;
+diff -puN MAINTAINERS~maintainers-ivtv-devel-is-moderated MAINTAINERS
+--- a/MAINTAINERS~maintainers-ivtv-devel-is-moderated
++++ a/MAINTAINERS
+@@ -1649,7 +1649,7 @@ F:	sound/pci/cs5535audio/
+ CX18 VIDEO4LINUX DRIVER
+ M:	Hans Verkuil <hverkuil@xs4all.nl>
+ M:	Andy Walls <awalls@radix.net>
+-L:	ivtv-devel@ivtvdriver.org
++L:	ivtv-devel@ivtvdriver.org (moderated for non-subscribers)
+ L:	linux-media@vger.kernel.org
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git
+ W:	http://linuxtv.org
+@@ -3037,7 +3037,7 @@ F:	drivers/isdn/hardware/eicon/
  
--	if (!tty || !info->xmit_buf)
-+	if (!info->xmit_buf)
- 		return 0;
- 
- 	spin_lock_irqsave(&info->irq_spinlock, flags);
-@@ -2121,7 +2121,7 @@ static int mgsl_write(struct tty_struct 
- 	if (mgsl_paranoia_check(info, tty->name, "mgsl_write"))
- 		goto cleanup;
- 
--	if (!tty || !info->xmit_buf)
-+	if (!info->xmit_buf)
- 		goto cleanup;
- 
- 	if ( info->params.mode == MGSL_MODE_HDLC ||
+ IVTV VIDEO4LINUX DRIVER
+ M:	Hans Verkuil <hverkuil@xs4all.nl>
+-L:	ivtv-devel@ivtvdriver.org
++L:	ivtv-devel@ivtvdriver.org (moderated for non-subscribers)
+ L:	linux-media@vger.kernel.org
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git
+ W:	http://www.ivtvdriver.org
 _
 
 Patches currently in -mm which might be from jslaby@suse.cz are
 
+maintainers-ivtv-devel-is-moderated.patch
 linux-next.patch
 media-dvb-siano-fix-memory-leak.patch
 media-video-tuner-core-fix-memory-leak.patch
