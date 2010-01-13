@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + media-video-tuner-core-fix-memory-leak.patch added to -mm tree
-Date: Wed, 13 Jan 2010 13:35:38 -0800
-Message-ID: <201001132135.o0DLZc3E029883@imap1.linux-foundation.org>
+Subject: + led-classc-quiet-boot-messages.patch added to -mm tree
+Date: Wed, 13 Jan 2010 13:36:12 -0800
+Message-ID: <201001132136.o0DLaC9p029914@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54744 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47347 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751724Ab0AMVgG (ORCPT
+	by vger.kernel.org with ESMTP id S1755411Ab0AMVgk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Jan 2010 16:36:06 -0500
+	Wed, 13 Jan 2010 16:36:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jslaby@suse.cz, hverkuil@xs4all.nl, mchehab@infradead.org, mkrufky@kernellabs.com
+Cc: hartleys@visionengravers.com, hsweeten@visionengravers.com, rpurdie@rpsys.net
 
 
 The patch titled
-     media: video/tuner-core, fix memory leak
+     led-class.c: quiet boot messages
 has been added to the -mm tree.  Its filename is
-     media-video-tuner-core-fix-memory-leak.patch
+     led-classc-quiet-boot-messages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: media: video/tuner-core, fix memory leak
-From: Jiri Slaby <jslaby@suse.cz>
+Subject: led-class.c: quiet boot messages
+From: H Hartley Sweeten <hartleys@visionengravers.com>
 
-Stanse found a memory leak in tuner_probe.  t is not freed/assigned on all
-paths.  Fix that.
+As each led device gets registered a kernel message gets printed.  In an
+embedded system with a number of leds this can produce a lot of output
+that just looks like noise.
 
-Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Michael Krufky <mkrufky@kernellabs.com>
+Change the message type to KERN_DEBUG since it might be useful in the
+dmesg output "after" booting.
+
+Signed-off-by: H Hartley Sweeten <hsweeten@visionengravers.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/tuner-core.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/leds/led-class.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/media/video/tuner-core.c~media-video-tuner-core-fix-memory-leak drivers/media/video/tuner-core.c
---- a/drivers/media/video/tuner-core.c~media-video-tuner-core-fix-memory-leak
-+++ a/drivers/media/video/tuner-core.c
-@@ -1078,6 +1078,7 @@ static int tuner_probe(struct i2c_client
+diff -puN drivers/leds/led-class.c~led-classc-quiet-boot-messages drivers/leds/led-class.c
+--- a/drivers/leds/led-class.c~led-classc-quiet-boot-messages
++++ a/drivers/leds/led-class.c
+@@ -164,7 +164,7 @@ int led_classdev_register(struct device 
+ 	led_trigger_set_default(led_cdev);
+ #endif
  
- 				goto register_client;
- 			}
-+			kfree(t);
- 			return -ENODEV;
- 		case 0x42:
- 		case 0x43:
+-	printk(KERN_INFO "Registered led device: %s\n",
++	printk(KERN_DEBUG "Registered led device: %s\n",
+ 			led_cdev->name);
+ 
+ 	return 0;
 _
 
-Patches currently in -mm which might be from jslaby@suse.cz are
+Patches currently in -mm which might be from hartleys@visionengravers.com are
 
 linux-next.patch
-media-dvb-siano-fix-memory-leak.patch
-media-video-tuner-core-fix-memory-leak.patch
-infiniband-use-rlimit-helpers.patch
-mm-use-rlimit-helpers.patch
-fs-use-rlimit-helpers.patch
-ipc-use-rlimit-helpers.patch
+led-classc-quiet-boot-messages.patch
+init-initramfsc-fix-symbol-shadows-an-earlier-one-noise.patch
+nodemaskh-remove-macro-any_online_node.patch
 
