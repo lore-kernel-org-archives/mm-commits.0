@@ -1,300 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: mmotm 2010-01-13-12-17 uploaded
-Date: Wed, 13 Jan 2010 12:17:36 -0800
-Message-ID: <201001132042.o0DKgaSR027272@imap1.linux-foundation.org>
+Subject: + net-rds-remove-uses-of-nipquad-use-%pi4.patch added to -mm tree
+Date: Wed, 13 Jan 2010 12:54:33 -0800
+Message-ID: <201001132054.o0DKsXYZ027874@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46518 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55808 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754973Ab0AMUnI (ORCPT
+	by vger.kernel.org with ESMTP id S1755503Ab0AMUyj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Jan 2010 15:43:08 -0500
+	Wed, 13 Jan 2010 15:54:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: joe@perches.com, andy.grover@oracle.com
 
-The mm-of-the-moment snapshot 2010-01-13-12-17 has been uploaded to
 
-   http://userweb.kernel.org/~akpm/mmotm/
+The patch titled
+     net/rds: remove uses of NIPQUAD, use %pI4
+has been added to the -mm tree.  Its filename is
+     net-rds-remove-uses-of-nipquad-use-%pi4.patch
 
-and will soon be available at
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-   git://zen-kernel.org/kernel/mmotm.git
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-It contains the following patches against 2.6.33-rc4:
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
-kfifo-fix-kfifo_out_locked-race-bug.patch
-viafb-fix-lcd-hardware-cursor-regression.patch
-viafb-do-modesetting-after-updating-variables.patch
-viafb-fix-acceleration-for-some-chips.patch
-markup_oopspl-fix-error-with-x86.patch
-serial-8250_pnp-add-a-new-fujitsu-wacom-tablet-pc-device.patch
-kfifo-use-void-pointers-for-user-buffers.patch
-kfifo-sanitize-_user-error-handling.patch
-kfifo-add-kfifo_out_peek.patch
-kfifo-add-kfifo_initialized.patch
-kfifo-document-everywhere-that-size-has-to-be-power-of-two.patch
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+
+------------------------------------------------------
+Subject: net/rds: remove uses of NIPQUAD, use %pI4
+From: Joe Perches <joe@perches.com>
+
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Andy Grover <andy.grover@oracle.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ net/rds/tcp_connect.c |    7 +++----
+ net/rds/tcp_listen.c  |    6 +++---
+ net/rds/tcp_send.c    |    4 ++--
+ 3 files changed, 8 insertions(+), 9 deletions(-)
+
+diff -puN net/rds/tcp_connect.c~net-rds-remove-uses-of-nipquad-use-%pi4 net/rds/tcp_connect.c
+--- a/net/rds/tcp_connect.c~net-rds-remove-uses-of-nipquad-use-%pi4
++++ a/net/rds/tcp_connect.c
+@@ -90,8 +90,8 @@ int rds_tcp_conn_connect(struct rds_conn
+ 
+ 	ret = sock->ops->bind(sock, (struct sockaddr *)&src, sizeof(src));
+ 	if (ret) {
+-		rdsdebug("bind failed with %d at address %u.%u.%u.%u\n",
+-		     ret, NIPQUAD(conn->c_laddr));
++		rdsdebug("bind failed with %d at address %pI4\n",
++			 ret, &conn->c_laddr);
+ 		goto out;
+ 	}
+ 
+@@ -108,8 +108,7 @@ int rds_tcp_conn_connect(struct rds_conn
+ 				 O_NONBLOCK);
+ 	sock = NULL;
+ 
+-	rdsdebug("connect to address %u.%u.%u.%u returned %d\n",
+-		 NIPQUAD(conn->c_faddr), ret);
++	rdsdebug("connect to address %pI4 returned %d\n", &conn->c_faddr, ret);
+ 	if (ret == -EINPROGRESS)
+ 		ret = 0;
+ 
+diff -puN net/rds/tcp_listen.c~net-rds-remove-uses-of-nipquad-use-%pi4 net/rds/tcp_listen.c
+--- a/net/rds/tcp_listen.c~net-rds-remove-uses-of-nipquad-use-%pi4
++++ a/net/rds/tcp_listen.c
+@@ -66,9 +66,9 @@ static int rds_tcp_accept_one(struct soc
+ 
+ 	inet = inet_sk(new_sock->sk);
+ 
+-	rdsdebug("accepted tcp %u.%u.%u.%u:%u -> %u.%u.%u.%u:%u\n",
+-		  NIPQUAD(inet->inet_saddr), ntohs(inet->inet_sport),
+-		  NIPQUAD(inet->inet_daddr), ntohs(inet->inet_dport));
++	rdsdebug("accepted tcp %pI4:%u -> %pI4:%u\n",
++		 &inet->inet_saddr, ntohs(inet->inet_sport),
++		 &inet->inet_daddr, ntohs(inet->inet_dport));
+ 
+ 	conn = rds_conn_create(inet->inet_saddr, inet->inet_daddr,
+ 			       &rds_tcp_transport, GFP_KERNEL);
+diff -puN net/rds/tcp_send.c~net-rds-remove-uses-of-nipquad-use-%pi4 net/rds/tcp_send.c
+--- a/net/rds/tcp_send.c~net-rds-remove-uses-of-nipquad-use-%pi4
++++ a/net/rds/tcp_send.c
+@@ -193,9 +193,9 @@ out:
+ 			rds_tcp_stats_inc(s_tcp_sndbuf_full);
+ 			ret = 0;
+ 		} else {
+-			printk(KERN_WARNING "RDS/tcp: send to %u.%u.%u.%u "
++			printk(KERN_WARNING "RDS/tcp: send to %pI4 "
+ 			       "returned %d, disconnecting and reconnecting\n",
+-			       NIPQUAD(conn->c_faddr), ret);
++			       &conn->c_faddr, ret);
+ 			rds_conn_drop(conn);
+ 		}
+ 	}
+_
+
+Patches currently in -mm which might be from joe@perches.com are
+
 linux-next.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-lzo-fix-up-add-support-for-lzo-compressed-kernels-patch.patch
-hardware-latency-detector-remove-default-m.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-page-allocator-fix-update-nr_free_pages-only-as-necessary.patch
-mm-page_alloc-fix-the-range-check-for-backward-merging.patch
-kernelh-add-build_bug_on_not_power_of_2.patch
-smp_call_function_any-pass-the-node-value-to-cpumask_of_node.patch
-mmc-remove-const-from-tmio-mmc-platform-data-v2.patch
-mmc-balance-tmio-mmc-cell-enable-disable-calls.patch
-vmscan-kswapd-dont-retry-balance_pgdat-if-all-zones-are-unreclaimable.patch
-drivers-gpu-vga-vgaarbc-fix-userspace-pointer-dereference.patch
-mtd-nand-fix-build-failure-caused-by-typo.patch
-m68knommu-fix-invalid-flags-on-coldfire-pit-clocksource.patch
-ibmphp-read-the-length-of-ebda-and-map-entire-ebda-region.patch
-ibmphp-read-the-length-of-ebda-and-map-entire-ebda-region-fix.patch
-sched-f83f9ac-causes-tasks-running-at-max_prio.patch
-hpsa-fix-scsi-status-reporting-yet-again.patch
-drivers-scsi-sesc-eliminate-double-free.patch
-kernel-credc-use-kmem_cache_free.patch
-revert-clockevents-prevent-clockevent_devices-list-corruption-on-cpu-hotplug.patch
-tpm_infineon-fix-suspend-resume-handler-for-pnp_driver.patch
-usb-serial-fix-memory-leak-in-generic-driver.patch
-dell_laptop-when-the-hardware-switch-is-disabled-dont-actually-allow-changing-the-softblock-status.patch
-acpi-fix-confusion-in-acpi_evaluate_string-in-comment.patch
-acpi-fix-unused-variable-warning-in-sbsc.patch
-acpi-remove-superfluous-null-pointer-check-from-acpi_processor_get_throttling_info.patch
-acpica-fix-acpi_ex_release_mutex-comment.patch
-arm-convert-proc-cpu-aligment-to-seq_file.patch
-arch-arm-plat-pxa-dmac-correct-null-test.patch
-revert-cpufreq-fix-race-in-cpufreq_update_policy.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-kbuild-move-fno-dwarf2-cfi-asm-to-powerpc-only.patch
-drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
-drivers-gpu-drm-nouveau-nouveau_grctxc-correct-null-test.patch
-drivers-media-video-move-dereference-after-null-test.patch
-proc_fops-convert-av7110.patch
-drivers-media-video-pmsc-needs-versionh.patch
-v4l-dvb-wrong-variable-tested.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-posix-cpu-timers-reset-expire-cache-when-no-timer-is-running.patch
-hrtimer-correct-a-few-numbers-in-comments.patch
-clockevents-ensure-taht-min_delta_ns-is-increased-in-error-path.patch
-clocksource-add-argument-to-resume-callback.patch
-clocksource-start-cmt-at-clocksource-resume.patch
-clocksource-add-suspend-callback.patch
-infiniband-use-rlimit-helpers.patch
-input-bcm5974-retract-efi-broken-suspend_resume.patch
-usbtouchscreen-convert-from-usb_device-to-usb_interface.patch
-usbtouchscreen-find-input-endpoint-automatically.patch
-usbtouchscreen-add-nexio-or-inexio-support.patch
-usbtouchscreen-fix-nexio-ack-and-usb-disconnect.patch
-usbtouchscreen-dont-send-interrupt-urbs-to-bulk-endpoints.patch
-usbtouchscreen-fix-leaks-and-check-return-value-of-usb_submit_urb.patch
-mtd-nand-davinci-correct-4-bit-error-correction.patch
-jffs2-fix-memory-corruption-in-jffs2_read_inode_range.patch
-jffs2-avoid-using-c-keyword-new-in-userspace-visible-header.patch
-ntfs-use-bitmap_weight.patch
-hisax-timeout-off-by-one-in-waitrecmsg.patch
-proc_fops-convert-drivers-isdn-to-seq_file.patch
-3x59x-fix-pci-resource-management.patch
-net-ipv4-correct-the-size-argument-to-kzalloc.patch
-da9030_battery-fix-spelling-in-comment.patch
-sunrpc-use-formatting-of-module-name-in-sunrpc.patch
-kernel-irq-procc-expose-the-irq_desc-node-in-proc-irq.patch
-scsi-add-__init-__exit-macros-to-ibmvstgtc.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
-drivers-scsi-libsas-use-sam_good.patch
-ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
-drivers-scsi-remove-unnecessary-null-test.patch
-drivers-message-move-dereference-after-null-test.patch
-scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
-mpt-fusion-convert-to-seq_file.patch
-scsi-remove-unnecessary-null-test.patch
-g_ncr5380-remove-misleading-pnp-error-message.patch
-g_ncr5380-fix-broken-mmio-compilation.patch
-g_ncr5380-fix-missing-pnp_device_detach-and-scsi_unregister-on-rmmod.patch
-dc395x-decrease-iteration-for-tag_number-of-max_command-in-start_scsi.patch
 drivers-scsi-correct-the-size-argument-to-kmalloc.patch
-scsi-remove-superfluous-null-pointer-check-from-scsi_kill_request.patch
-mpt2sas-fix-confusion-in-_scsih_sas_device_status_change_event.patch
-paride-fix-off-by-one-test.patch
-convert-sparc-to-arch_gettimeoffset.patch
-drivers-staging-tm6000-tm6000-videoc-correct-null-test.patch
-80211core-fix-confusion.patch
-drivers-usb-correct-the-size-argument-to-kzalloc.patch
-musb-test-always-evaluates-to-false.patch
-drivers-usb-core-sysfsc-set_reset_quirk-remove-unused-local.patch
-vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
-vfs-improve-comment-describing-fget_light.patch
-ecryptfs-another-lockdep-issue.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-xtensa-convert-to-asm-generic-hardirqh.patch
-xtensa-includecheck-fix-vectorss.patch
-mm.patch
-mm-clean-up-mm_counter.patch
-mm-avoid-false-sharing-of-mm_counter.patch
-mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
-mm-count-swap-usage.patch
-mm-count-swap-usage-checkpatch-fixes.patch
-mm-add-lowmem-detection-logic.patch
-mm-add-lowmem-detection-logic-fix.patch
-mm-count-lowmem-rss.patch
-mm-count-lowmem-rss-checkpatch-fixes.patch
-mm-introduce-dump_page-and-print-symbolic-flag-names.patch
-page-allocator-reduce-fragmentation-in-buddy-allocator-by-adding-buddies-that-are-merging-to-the-tail-of-the-free-lists.patch
-mm-add-swap-slot-free-callback-to-block_device_operations.patch
-ramzswap-use-slot-free-callback-to-eliminate-stale-data.patch
-mlock_vma_pages_range-never-return-negative-value.patch
-mlock_vma_pages_range-only-return-success-or-failure.patch
-mm-use-rlimit-helpers.patch
-vmscan-check-high-watermark-after-shrink-zone.patch
-vmscan-check-high-watermark-after-shrink-zone-fix.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-cris-convert-to-use-arch_gettimeoffset.patch
-cryptocop-fix-assertion-in-create_output_descriptors.patch
-mfgpt-move-clocksource-menu.patch
-prctl-add-pr_set_proctitle_area-option-for-prctl.patch
-kernel-cpuc-delete-deprecated-definition-in-cpu_up.patch
-init-mainc-improve-usability-in-case-of-init-binary-failure.patch
-init-initramfsc-fix-symbol-shadows-an-earlier-one-noise.patch
-cpumask-let-num__cpus-function-always-return-unsigned-values.patch
-fs-use-rlimit-helpers.patch
-nodemaskh-remove-macro-any_online_node.patch
 scripts-get_maintainerpl-add-file-emails-find-embedded-email-addresses.patch
-ricoh_mmc-port-from-driver-to-pci-quirk.patch
-davinci-mmc-add-support-for-8bit-mmc-cards.patch
-davinci-mmc-add-a-function-to-control-reset-state-of-the-controller.patch
-davinci-mmc-updates-to-suspend-resume-implementation.patch
-mmc-atmel-host-kconfig-cleanup-for-everyone-else.patch
-sdio-recognize-io-card-without-powercycle.patch
 scripts-checkpatchpl-add-warn-on-sizeof.patch
-checkpatch-trivial-fix-for-trailing-statements-check.patch
 checkpatchpl-allow-80-char-lines-for-logging-functions-not-just-printk.patch
-checkpatch-fix-false-positive-on-__initconst.patch
-checkpatchpl-add-union-and-struct-to-the-exceptions-list.patch
-coredump-unify-dump_seek-implementations-for-each-binfmt_c.patch
-coredump-move-dump_write-and-dump_seek-into-a-header-file.patch
-elf-coredump-replace-elf_core_extra_-macros-by-functions.patch
-elf-coredump-make-offset-calculation-process-and-writing-process-explicit.patch
-elf-coredump-add-extended-numbering-support.patch
-mm-pass-mm-flags-as-a-coredump-parameter-for-consistency.patch
-mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
-spi-mpc8xxx-dont-check-platform_get_irqs-return-value-against-zero.patch
-console-limit-the-range-of-vgacon_soft_scrollback_size.patch
-xen-add-kconfig-menu.patch
-rtc-mxc-fix-memory-leak.patch
-gpio-add-driver-for-max7300-i2c-gpio-extender.patch
-pca953x-minor-include-cleanup.patch
-gpio-introduce-gpio_request_one-and-friends.patch
-asiliantfb-fix-test-of-unsigned-in-asiliant_calc_dclk2.patch
-fbdev-bf54x-lq043fb-bfin-t350mcqb-fb-drop-custom-mmap-handler.patch
-broadsheetfb-add-multiple-panel-type-support.patch
-viafb-deprecate-private-ioctls.patch
-viafb-remove-dead-code.patch
-viafb-split-global-index-up.patch
-viafb-remove-the-remaining-via_res_-uses.patch
-viafb-some-dvi-cleanup.patch
-viafb-yet-another-dead-code-removal.patch
-hfsplus-identify-journal-info-block-in-volume-header.patch
-hfsplus-fix-journal-detection.patch
-cgroup-introduce-cancel_attach.patch
-cgroup-introduce-coalesce-css_get-and-css_put.patch
-cgroups-revamp-subsys-array.patch
-cgroups-subsystem-module-loading-interface.patch
-cgroups-subsystem-module-unloading.patch
-cgroups-net_cls-as-module.patch
-cgroups-fix-contents-in-cgroups-documentation.patch
-memcg-add-interface-to-move-charge-at-task-migration.patch
-memcg-move-charges-of-anonymous-page.patch
-memcg-move-charges-of-anonymous-page-cleanup.patch
-memcg-improve-performance-in-moving-charge.patch
-memcg-avoid-oom-during-moving-charge.patch
-memcg-move-charges-of-anonymous-swap.patch
-memcg-move-charges-of-anonymous-swap-fix.patch
-memcg-improve-performance-in-moving-swap-charge.patch
-memcg-improve-performance-in-moving-swap-charge-fix.patch
-cgroup-implement-eventfd-based-generic-api-for-notifications.patch
-cgroup-implement-eventfd-based-generic-api-for-notifications-kconfig-fix.patch
-memcg-extract-mem_group_usage-from-mem_cgroup_read.patch
-memcg-rework-usage-of-stats-by-soft-limit.patch
-memcg-implement-memory-thresholds.patch
-memcg-implement-memory-thresholds-checkpatch-fixes.patch
-memcg-implement-memory-thresholds-checkpatch-fixes-fix.patch
-memcg-typo-in-comment-to-mem_cgroup_print_oom_info.patch
-tracehooks-kill-some-pt_ptraced-checks.patch
-tracehooks-check-pt_ptraced-before-reporting-the-single-step.patch
-ptrace_signal-check-pt_ptraced-before-reporting-a-signal.patch
-export-__ptrace_detach-and-do_notify_parent_cldstop.patch
-reorder-the-code-in-kernel-ptracec.patch
-implement-utrace-ptrace.patch
-utrace-core.patch
-copy_signal-cleanup-use-zalloc-and-remove-initializations.patch
-copy_signal-cleanup-kill-taskstats_tgid_init-and-acct_init_pacct.patch
-copy_signal-cleanup-clean-thread_group_cputime_init.patch
-copy_signal-cleanup-clean-tty_audit_fork.patch
-ipc-use-rlimit-helpers.patch
-ipmi-add-parameter-to-limit-cpu-usage-in-kipmid.patch
-rcu-add-rcustring-adt-for-rcu-protected-strings.patch
-add-a-kernel_address-that-works-for-data-too.patch
-sysctl-add-proc_rcu_string-to-manage-sysctls-using-rcu-strings.patch
-sysctl-use-rcu-strings-for-core_pattern-sysctl.patch
-sysctl-add-call_usermodehelper_cleanup.patch
-sysctl-convert-modprobe_path-to-proc_rcu_string.patch
-sysctl-convert-poweroff_command-to-proc_rcu_string.patch
-sysctl-convert-hotplug-helper-string-to-proc_rcu_string.patch
-sysctl-use-rcu-protected-sysctl-for-ocfs-group-add-helper.patch
-drivers-edac-introduce-missing-kfree.patch
-w1-fix-test-in-ds2482_wait_1wire_idle.patch
-vfs-take-2add-set_page_dirty_notag.patch
-reiser4-vfs-add-super_operationssync_inodes-2.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4-export-find_get_pages.patch
-reiser4.patch
-reiser4-adjust-to-the-new-aops.patch
-reiser4-adjust-to-the-new-aops-fixup.patch
-reiser4-remove-simple_prepare_write-usage.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
-reiser4-handling-error-returned-by-d_obtain_alias-fixup.patch
-reiser4-update-names-of-quota-methods.patch
-reiser4-use-set_page_dirty_notag.patch
-fs-reiser4-add-parenths-around-x-y.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-reiser4-rename-psched-to-dispatch.patch
-reiser4-drop-journal-info.patch
-reiser4-fix-compile-warnings.patch
-reiser4-reduce-frame-size-of-reiser4_init_super_data.patch
-reiser4-reduce-frame-size-of-reiser4_init_super_data-fixup.patch
-reiser4-some-changes-from-reiser4-2631-patch.patch
-reiser4-some-comments-were-still-mentioning-pdflush.patch
-reiser4-generic_sync_sb_inodes-doesnt-exist-anymore.patch
-reiser4-fixed-null-pointer-dereference.patch
-make-sure-nobodys-leaking-resources.patch
-journal_add_journal_head-debug.patch
-releasing-resources-with-children.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
-workaround-for-a-pci-restoring-bug.patch
-prio_tree-debugging-patch.patch
-single_open-seq_release-leak-diagnostics.patch
-add-a-refcount-check-in-dput.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+drivers-scsi-remove-uses-of-nipquad-use-%pi4.patch
+drivers-staging-pohmelfs-inodec-remove-uses-of-nipquad-use-%pi4.patch
+net-rds-remove-uses-of-nipquad-use-%pi4.patch
+net-sunrpc-remove-uses-of-nipquad-use-%pi4.patch
+fs-ocfs2-cluster-tcpc-remove-use-of-nipquad-use-%pi4.patch
+drivers-firmware-iscsi_ibftc-remove-nipquad_fmt-use-%pi4.patch
+
