@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + led-classc-quiet-boot-messages.patch added to -mm tree
-Date: Wed, 13 Jan 2010 13:36:12 -0800
-Message-ID: <201001132136.o0DLaC9p029914@imap1.linux-foundation.org>
+Subject: + usb-fhci-avoid-null-pointer-dereference.patch added to -mm tree
+Date: Wed, 13 Jan 2010 13:37:00 -0800
+Message-ID: <201001132137.o0DLb05N029926@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47347 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38390 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755411Ab0AMVgk (ORCPT
+	by vger.kernel.org with ESMTP id S1755280Ab0AMVhe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Jan 2010 16:36:40 -0500
+	Wed, 13 Jan 2010 16:37:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hartleys@visionengravers.com, hsweeten@visionengravers.com, rpurdie@rpsys.net
+Cc: a.beregalov@gmail.com, avorontsov@ru.mvista.com, gregkh@suse.de
 
 
 The patch titled
-     led-class.c: quiet boot messages
+     usb: fhci: avoid NULL pointer dereference
 has been added to the -mm tree.  Its filename is
-     led-classc-quiet-boot-messages.patch
+     usb-fhci-avoid-null-pointer-dereference.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: led-class.c: quiet boot messages
-From: H Hartley Sweeten <hartleys@visionengravers.com>
+Subject: usb: fhci: avoid NULL pointer dereference
+From: Alexander Beregalov <a.beregalov@gmail.com>
 
-As each led device gets registered a kernel message gets printed.  In an
-embedded system with a number of leds this can produce a lot of output
-that just looks like noise.
+Assign fhci only if usb is not NULL.
 
-Change the message type to KERN_DEBUG since it might be useful in the
-dmesg output "after" booting.
-
-Signed-off-by: H Hartley Sweeten <hsweeten@visionengravers.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Signed-off-by: Alexander Beregalov <a.beregalov@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Anton Vorontsov <avorontsov@ru.mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/led-class.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/usb/host/fhci-hcd.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/leds/led-class.c~led-classc-quiet-boot-messages drivers/leds/led-class.c
---- a/drivers/leds/led-class.c~led-classc-quiet-boot-messages
-+++ a/drivers/leds/led-class.c
-@@ -164,7 +164,7 @@ int led_classdev_register(struct device 
- 	led_trigger_set_default(led_cdev);
- #endif
+diff -puN drivers/usb/host/fhci-hcd.c~usb-fhci-avoid-null-pointer-dereference drivers/usb/host/fhci-hcd.c
+--- a/drivers/usb/host/fhci-hcd.c~usb-fhci-avoid-null-pointer-dereference
++++ a/drivers/usb/host/fhci-hcd.c
+@@ -242,9 +242,10 @@ err:
+ static void fhci_usb_free(void *lld)
+ {
+ 	struct fhci_usb *usb = lld;
+-	struct fhci_hcd *fhci = usb->fhci;
++	struct fhci_hcd *fhci;
  
--	printk(KERN_INFO "Registered led device: %s\n",
-+	printk(KERN_DEBUG "Registered led device: %s\n",
- 			led_cdev->name);
- 
- 	return 0;
+ 	if (usb) {
++		fhci = usb->fhci;
+ 		fhci_config_transceiver(fhci, FHCI_PORT_POWER_OFF);
+ 		fhci_ep0_free(usb);
+ 		kfree(usb->actual_frame);
 _
 
-Patches currently in -mm which might be from hartleys@visionengravers.com are
+Patches currently in -mm which might be from a.beregalov@gmail.com are
 
 linux-next.patch
-led-classc-quiet-boot-messages.patch
-init-initramfsc-fix-symbol-shadows-an-earlier-one-noise.patch
-nodemaskh-remove-macro-any_online_node.patch
+usb-fhci-avoid-null-pointer-dereference.patch
+rtc-mxc-fix-memory-leak.patch
 
