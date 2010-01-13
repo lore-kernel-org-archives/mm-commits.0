@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-ivtv-devel-is-moderated.patch added to -mm tree
-Date: Wed, 13 Jan 2010 14:01:13 -0800
-Message-ID: <201001132201.o0DM1DOs031131@imap1.linux-foundation.org>
+Subject: + memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory.patch added to -mm tree
+Date: Wed, 13 Jan 2010 14:28:33 -0800
+Message-ID: <201001132228.o0DMSXvO032474@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49971 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48932 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755580Ab0AMWCE (ORCPT
+	by vger.kernel.org with ESMTP id S1756522Ab0AMW2m (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Jan 2010 17:02:04 -0500
+	Wed, 13 Jan 2010 17:28:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jslaby@suse.cz, awalls@radix.net, mchehab@infradead.org
+Cc: shaohui.zheng@intel.com, ak@linux.intel.com, fengguang.wu@intel.com, haveblue@us.ibm.com, y-goto@jp.fujitsu.com
 
 
 The patch titled
-     MAINTAINERS: ivtv-devel is moderated
+     memory-hotplug: create /sys/firmware/memmap entry for new memory
 has been added to the -mm tree.  Its filename is
-     maintainers-ivtv-devel-is-moderated.patch
+     memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +34,191 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: ivtv-devel is moderated
-From: Jiri Slaby <jslaby@suse.cz>
+Subject: memory-hotplug: create /sys/firmware/memmap entry for new memory
+From: Shaohui Zheng <shaohui.zheng@intel.com>
 
-Mark ivtv-devel@ivtvdriver.org as 'moderated for non-subscribers'.
+Interface firmware_map_add was not called explictly.  Remove it and add
+function firmware_map_add_hotplug as hotplug interface of memmap.
 
-Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-Acked-by: Andy Walls <awalls@radix.net>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+When we hot-add new memory, sysfs does not export memmap entry for it.  we
+add a call in function add_memory to function firmware_map_add_hotplug.
+
+Add a new function add_sysfs_fw_map_entry() to create memmap entry - it
+can avoid code duplication.
+
+Thanks for the careful review from Fengguang Wu and Dave Hansen.
+
+Signed-off-by: Shaohui Zheng <shaohui.zheng@intel.com>
+Acked-by: Andi Kleen <ak@linux.intel.com>
+Acked-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+Reviewed-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/firmware/memmap.c    |   62 ++++++++++++++++++++-------------
+ include/linux/firmware-map.h |    6 +--
+ mm/memory_hotplug.c          |    4 ++
+ 3 files changed, 46 insertions(+), 26 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-ivtv-devel-is-moderated MAINTAINERS
---- a/MAINTAINERS~maintainers-ivtv-devel-is-moderated
-+++ a/MAINTAINERS
-@@ -1649,7 +1649,7 @@ F:	sound/pci/cs5535audio/
- CX18 VIDEO4LINUX DRIVER
- M:	Hans Verkuil <hverkuil@xs4all.nl>
- M:	Andy Walls <awalls@radix.net>
--L:	ivtv-devel@ivtvdriver.org
-+L:	ivtv-devel@ivtvdriver.org (moderated for non-subscribers)
- L:	linux-media@vger.kernel.org
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git
- W:	http://linuxtv.org
-@@ -3037,7 +3037,7 @@ F:	drivers/isdn/hardware/eicon/
+diff -puN drivers/firmware/memmap.c~memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory drivers/firmware/memmap.c
+--- a/drivers/firmware/memmap.c~memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory
++++ a/drivers/firmware/memmap.c
+@@ -123,20 +123,40 @@ static int firmware_map_add_entry(u64 st
+ }
  
- IVTV VIDEO4LINUX DRIVER
- M:	Hans Verkuil <hverkuil@xs4all.nl>
--L:	ivtv-devel@ivtvdriver.org
-+L:	ivtv-devel@ivtvdriver.org (moderated for non-subscribers)
- L:	linux-media@vger.kernel.org
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git
- W:	http://www.ivtvdriver.org
+ /**
+- * firmware_map_add() - Adds a firmware mapping entry.
++ * Add memmap entry on sysfs
++ */
++static int add_sysfs_fw_map_entry(struct firmware_map_entry *entry)
++{
++	static int map_entries_nr;
++	static struct kset *mmap_kset;
++
++	if (!mmap_kset) {
++		mmap_kset = kset_create_and_add("memmap", NULL, firmware_kobj);
++		if (!mmap_kset)
++			return -ENOMEM;
++	}
++
++	entry->kobj.kset = mmap_kset;
++	if (kobject_add(&entry->kobj, NULL, "%d", map_entries_nr++))
++		kobject_put(&entry->kobj);
++
++	return 0;
++}
++
++/**
++ * firmware_map_add_early() - Adds a firmware mapping entry.
+  * @start: Start of the memory range.
+  * @end:   End of the memory range (inclusive).
+  * @type:  Type of the memory range.
+  *
+- * This function uses kmalloc() for memory
+- * allocation. Use firmware_map_add_early() if you want to use the bootmem
+- * allocator.
++ * Adds a firmware mapping entry. This function uses the bootmem allocator
++ * for memory allocation.
+  *
+  * That function must be called before late_initcall.
+  *
+  * Returns 0 on success, or -ENOMEM if no memory could be allocated.
+  **/
+-int firmware_map_add(u64 start, u64 end, const char *type)
++int __init firmware_map_add_early(u64 start, u64 end, const char *type)
+ {
+ 	struct firmware_map_entry *entry;
+ 
+@@ -148,27 +168,31 @@ int firmware_map_add(u64 start, u64 end,
+ }
+ 
+ /**
+- * firmware_map_add_early() - Adds a firmware mapping entry.
++ * firmware_map_add_hotplug() - Adds a firmware mapping entry when we do
++ * memory hotplug.
+  * @start: Start of the memory range.
+  * @end:   End of the memory range (inclusive).
+  * @type:  Type of the memory range.
+  *
+- * Adds a firmware mapping entry. This function uses the bootmem allocator
+- * for memory allocation. Use firmware_map_add() if you want to use kmalloc().
+- *
+- * That function must be called before late_initcall.
++ * Adds a firmware mapping entry. This function is for memory hotplug, it is
++ * simiar with function firmware_map_add_early. the only difference is that
++ * it will create the syfs entry dynamically.
+  *
+  * Returns 0 on success, or -ENOMEM if no memory could be allocated.
+  **/
+-int __init firmware_map_add_early(u64 start, u64 end, const char *type)
++int __meminit firmware_map_add_hotplug(u64 start, u64 end, const char *type)
+ {
+ 	struct firmware_map_entry *entry;
+ 
+-	entry = alloc_bootmem(sizeof(struct firmware_map_entry));
+-	if (WARN_ON(!entry))
++	entry = kzalloc(sizeof(struct firmware_map_entry), GFP_ATOMIC);
++	if (!entry)
+ 		return -ENOMEM;
+ 
+-	return firmware_map_add_entry(start, end, type, entry);
++	firmware_map_add_entry(start, end, type, entry);
++	/* create the memmap entry */
++	add_sysfs_fw_map_entry(entry);
++
++	return 0;
+ }
+ 
+ /*
+@@ -214,18 +238,10 @@ static ssize_t memmap_attr_show(struct k
+  */
+ static int __init memmap_init(void)
+ {
+-	int i = 0;
+ 	struct firmware_map_entry *entry;
+-	struct kset *memmap_kset;
+-
+-	memmap_kset = kset_create_and_add("memmap", NULL, firmware_kobj);
+-	if (WARN_ON(!memmap_kset))
+-		return -ENOMEM;
+ 
+ 	list_for_each_entry(entry, &map_entries, list) {
+-		entry->kobj.kset = memmap_kset;
+-		if (kobject_add(&entry->kobj, NULL, "%d", i++))
+-			kobject_put(&entry->kobj);
++		add_sysfs_fw_map_entry(entry);
+ 	}
+ 
+ 	return 0;
+diff -puN include/linux/firmware-map.h~memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory include/linux/firmware-map.h
+--- a/include/linux/firmware-map.h~memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory
++++ a/include/linux/firmware-map.h
+@@ -24,17 +24,17 @@
+  */
+ #ifdef CONFIG_FIRMWARE_MEMMAP
+ 
+-int firmware_map_add(u64 start, u64 end, const char *type);
+ int firmware_map_add_early(u64 start, u64 end, const char *type);
++int firmware_map_add_hotplug(u64 start, u64 end, const char *type);
+ 
+ #else /* CONFIG_FIRMWARE_MEMMAP */
+ 
+-static inline int firmware_map_add(u64 start, u64 end, const char *type)
++static inline int firmware_map_add_early(u64 start, u64 end, const char *type)
+ {
+ 	return 0;
+ }
+ 
+-static inline int firmware_map_add_early(u64 start, u64 end, const char *type)
++static inline int firmware_map_add_hotplug(u64 start, u64 end, const char *type)
+ {
+ 	return 0;
+ }
+diff -puN mm/memory_hotplug.c~memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory
++++ a/mm/memory_hotplug.c
+@@ -28,6 +28,7 @@
+ #include <linux/pfn.h>
+ #include <linux/suspend.h>
+ #include <linux/mm_inline.h>
++#include <linux/firmware-map.h>
+ 
+ #include <asm/tlbflush.h>
+ 
+@@ -523,6 +524,9 @@ int __ref add_memory(int nid, u64 start,
+ 		BUG_ON(ret);
+ 	}
+ 
++	/* create new memmap entry */
++	firmware_map_add_hotplug(start, start + size, "System RAM");
++
+ 	goto out;
+ 
+ error:
 _
 
-Patches currently in -mm which might be from jslaby@suse.cz are
+Patches currently in -mm which might be from shaohui.zheng@intel.com are
 
-maintainers-ivtv-devel-is-moderated.patch
-linux-next.patch
-media-dvb-siano-fix-memory-leak.patch
-media-video-tuner-core-fix-memory-leak.patch
-infiniband-use-rlimit-helpers.patch
-char-synclink-remove-unnecessary-checks.patch
-mm-use-rlimit-helpers.patch
-fs-use-rlimit-helpers.patch
-ipc-use-rlimit-helpers.patch
+memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory.patch
 
