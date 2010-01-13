@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-add-the-hp-pavilion-zv5000-to-the-power-dmi-table.patch added to -mm tree
-Date: Wed, 13 Jan 2010 13:55:31 -0800
-Message-ID: <201001132155.o0DLtVfD030826@imap1.linux-foundation.org>
+Subject: + char-synclink-remove-unnecessary-checks.patch added to -mm tree
+Date: Wed, 13 Jan 2010 14:00:26 -0800
+Message-ID: <201001132200.o0DM0Qdv031093@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56934 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37375 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756580Ab0AMV4v (ORCPT
+	by vger.kernel.org with ESMTP id S1751612Ab0AMWB0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Jan 2010 16:56:51 -0500
+	Wed, 13 Jan 2010 17:01:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: arjan@infradead.org, akwatts@ymail.com, arjan@linux.intel.com, lenb@kernel.org, venkatesh.pallipadi@intel.com
+Cc: jslaby@suse.cz, alan@linux.intel.com, gregkh@suse.de, paulkf@microgate.com
 
 
 The patch titled
-     acpi: add the HP Pavilion zv5000 to the power DMI table
+     Char: synclink, remove unnecessary checks
 has been added to the -mm tree.  Its filename is
-     acpi-add-the-hp-pavilion-zv5000-to-the-power-dmi-table.patch
+     char-synclink-remove-unnecessary-checks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi: add the HP Pavilion zv5000 to the power DMI table
-From: Arjan van de Ven <arjan@infradead.org>
+Subject: Char: synclink, remove unnecessary checks
+From: Jiri Slaby <jslaby@suse.cz>
 
-The HP Pavilion zv5000 is reported to not work well in C2; in fact the
-system exits C2 immediately.
+Stanse found a potential null dereference in mgsl_put_char and mgsl_write.
+ There is a check for tty being NULL, but it is dereferenced earlier.
 
-This patch adds a DMI entry for this system so that C2 is not used on this
-machine.
+Actually, tty cannot be NULL in .write and .put_char, so remove the tests.
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=14742
-
-Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
-Reported-by: <akwatts@ymail.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Alan Cox <alan@linux.intel.com>
+Cc: Paul Fulghum <paulkf@microgate.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_idle.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/char/synclink.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/acpi/processor_idle.c~acpi-add-the-hp-pavilion-zv5000-to-the-power-dmi-table drivers/acpi/processor_idle.c
---- a/drivers/acpi/processor_idle.c~acpi-add-the-hp-pavilion-zv5000-to-the-power-dmi-table
-+++ a/drivers/acpi/processor_idle.c
-@@ -110,6 +110,10 @@ static struct dmi_system_id __cpuinitdat
- 	  DMI_MATCH(DMI_BIOS_VENDOR,"Phoenix Technologies LTD"),
- 	  DMI_MATCH(DMI_BIOS_VERSION,"SHE845M0.86C.0013.D.0302131307")},
- 	 (void *)2},
-+	{ set_max_cstate, "Pavilion zv5000", {
-+	  DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
-+	  DMI_MATCH(DMI_PRODUCT_NAME,"Pavilion zv5000 (DS502A#ABA)")},
-+	 (void *)1},
- 	{},
- };
+diff -puN drivers/char/synclink.c~char-synclink-remove-unnecessary-checks drivers/char/synclink.c
+--- a/drivers/char/synclink.c~char-synclink-remove-unnecessary-checks
++++ a/drivers/char/synclink.c
+@@ -2031,7 +2031,7 @@ static int mgsl_put_char(struct tty_stru
+ 	if (mgsl_paranoia_check(info, tty->name, "mgsl_put_char"))
+ 		return 0;
  
+-	if (!tty || !info->xmit_buf)
++	if (!info->xmit_buf)
+ 		return 0;
+ 
+ 	spin_lock_irqsave(&info->irq_spinlock, flags);
+@@ -2121,7 +2121,7 @@ static int mgsl_write(struct tty_struct 
+ 	if (mgsl_paranoia_check(info, tty->name, "mgsl_write"))
+ 		goto cleanup;
+ 
+-	if (!tty || !info->xmit_buf)
++	if (!info->xmit_buf)
+ 		goto cleanup;
+ 
+ 	if ( info->params.mode == MGSL_MODE_HDLC ||
 _
 
-Patches currently in -mm which might be from arjan@infradead.org are
+Patches currently in -mm which might be from jslaby@suse.cz are
 
-acpi-add-the-hp-pavilion-zv5000-to-the-power-dmi-table.patch
+linux-next.patch
+media-dvb-siano-fix-memory-leak.patch
+media-video-tuner-core-fix-memory-leak.patch
+infiniband-use-rlimit-helpers.patch
+char-synclink-remove-unnecessary-checks.patch
+mm-use-rlimit-helpers.patch
+fs-use-rlimit-helpers.patch
+ipc-use-rlimit-helpers.patch
 
