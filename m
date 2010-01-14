@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory.patch added to -mm tree
-Date: Wed, 13 Jan 2010 14:28:33 -0800
-Message-ID: <201001132228.o0DMSXvO032474@imap1.linux-foundation.org>
+Subject: + fs-make-sure-data-is-on-disk-before-calling-write_inode.patch added to -mm tree
+Date: Wed, 13 Jan 2010 16:23:34 -0800
+Message-ID: <201001140023.o0E0NZ6S005322@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48932 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58739 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756522Ab0AMW2m (ORCPT
+	by vger.kernel.org with ESMTP id S1755197Ab0ANAY0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Jan 2010 17:28:42 -0500
+	Wed, 13 Jan 2010 19:24:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shaohui.zheng@intel.com, ak@linux.intel.com, fengguang.wu@intel.com, haveblue@us.ibm.com, y-goto@jp.fujitsu.com
+Cc: hch@lst.de, david@fromrobit.com, jack@suse.cz, trond.myklebust@fys.uio.no, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     memory-hotplug: create /sys/firmware/memmap entry for new memory
+     fs: make sure data is on disk before calling ->write_inode
 has been added to the -mm tree.  Its filename is
-     memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory.patch
+     fs-make-sure-data-is-on-disk-before-calling-write_inode.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,191 +34,129 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memory-hotplug: create /sys/firmware/memmap entry for new memory
-From: Shaohui Zheng <shaohui.zheng@intel.com>
+Subject: fs: make sure data is on disk before calling ->write_inode
+From: Christoph Hellwig <hch@lst.de>
 
-Interface firmware_map_add was not called explictly.  Remove it and add
-function firmware_map_add_hotplug as hotplug interface of memmap.
+Similar to the fsync issue fixed a while ago in commit
+2daea67e966dc0c42067ebea015ddac6834cef88 ("fsync: wait for data writeout
+completion before calling ->fsync") we need to wait for data to actually
+hit the disk before writing out the metadata to guarantee data integrity
+for filesystems that modify the inode in the data I/O completion path. 
 
-When we hot-add new memory, sysfs does not export memmap entry for it.  we
-add a call in function add_memory to function firmware_map_add_hotplug.
+Currently XFS and NFS handle this manually and AFS has a write_inode()
+method that does nothing but wait for data, while others are possibly
+missing out on this.
 
-Add a new function add_sysfs_fw_map_entry() to create memmap entry - it
-can avoid code duplication.
+Fortunately this change has a lot less impact than the fsync change as
+none of the write_inode methods starts data writeout of any form by
+itself.
 
-Thanks for the careful review from Fengguang Wu and Dave Hansen.
-
-Signed-off-by: Shaohui Zheng <shaohui.zheng@intel.com>
-Acked-by: Andi Kleen <ak@linux.intel.com>
-Acked-by: Yasunori Goto <y-goto@jp.fujitsu.com>
-Reviewed-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Dave Hansen <haveblue@us.ibm.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Acked-by: Dave Chinner <david@fromrobit.com>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/memmap.c    |   62 ++++++++++++++++++++-------------
- include/linux/firmware-map.h |    6 +--
- mm/memory_hotplug.c          |    4 ++
- 3 files changed, 46 insertions(+), 26 deletions(-)
+ fs/afs/internal.h            |    1 -
+ fs/afs/super.c               |    1 -
+ fs/afs/write.c               |   21 ---------------------
+ fs/fs-writeback.c            |   15 ++++++++++-----
+ fs/xfs/linux-2.6/xfs_super.c |    6 ------
+ 5 files changed, 10 insertions(+), 34 deletions(-)
 
-diff -puN drivers/firmware/memmap.c~memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory drivers/firmware/memmap.c
---- a/drivers/firmware/memmap.c~memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory
-+++ a/drivers/firmware/memmap.c
-@@ -123,20 +123,40 @@ static int firmware_map_add_entry(u64 st
- }
- 
- /**
-- * firmware_map_add() - Adds a firmware mapping entry.
-+ * Add memmap entry on sysfs
-+ */
-+static int add_sysfs_fw_map_entry(struct firmware_map_entry *entry)
-+{
-+	static int map_entries_nr;
-+	static struct kset *mmap_kset;
-+
-+	if (!mmap_kset) {
-+		mmap_kset = kset_create_and_add("memmap", NULL, firmware_kobj);
-+		if (!mmap_kset)
-+			return -ENOMEM;
-+	}
-+
-+	entry->kobj.kset = mmap_kset;
-+	if (kobject_add(&entry->kobj, NULL, "%d", map_entries_nr++))
-+		kobject_put(&entry->kobj);
-+
-+	return 0;
-+}
-+
-+/**
-+ * firmware_map_add_early() - Adds a firmware mapping entry.
-  * @start: Start of the memory range.
-  * @end:   End of the memory range (inclusive).
-  * @type:  Type of the memory range.
-  *
-- * This function uses kmalloc() for memory
-- * allocation. Use firmware_map_add_early() if you want to use the bootmem
-- * allocator.
-+ * Adds a firmware mapping entry. This function uses the bootmem allocator
-+ * for memory allocation.
-  *
-  * That function must be called before late_initcall.
-  *
-  * Returns 0 on success, or -ENOMEM if no memory could be allocated.
-  **/
--int firmware_map_add(u64 start, u64 end, const char *type)
-+int __init firmware_map_add_early(u64 start, u64 end, const char *type)
- {
- 	struct firmware_map_entry *entry;
- 
-@@ -148,27 +168,31 @@ int firmware_map_add(u64 start, u64 end,
- }
- 
- /**
-- * firmware_map_add_early() - Adds a firmware mapping entry.
-+ * firmware_map_add_hotplug() - Adds a firmware mapping entry when we do
-+ * memory hotplug.
-  * @start: Start of the memory range.
-  * @end:   End of the memory range (inclusive).
-  * @type:  Type of the memory range.
-  *
-- * Adds a firmware mapping entry. This function uses the bootmem allocator
-- * for memory allocation. Use firmware_map_add() if you want to use kmalloc().
-- *
-- * That function must be called before late_initcall.
-+ * Adds a firmware mapping entry. This function is for memory hotplug, it is
-+ * simiar with function firmware_map_add_early. the only difference is that
-+ * it will create the syfs entry dynamically.
-  *
-  * Returns 0 on success, or -ENOMEM if no memory could be allocated.
-  **/
--int __init firmware_map_add_early(u64 start, u64 end, const char *type)
-+int __meminit firmware_map_add_hotplug(u64 start, u64 end, const char *type)
- {
- 	struct firmware_map_entry *entry;
- 
--	entry = alloc_bootmem(sizeof(struct firmware_map_entry));
--	if (WARN_ON(!entry))
-+	entry = kzalloc(sizeof(struct firmware_map_entry), GFP_ATOMIC);
-+	if (!entry)
- 		return -ENOMEM;
- 
--	return firmware_map_add_entry(start, end, type, entry);
-+	firmware_map_add_entry(start, end, type, entry);
-+	/* create the memmap entry */
-+	add_sysfs_fw_map_entry(entry);
-+
-+	return 0;
+diff -puN fs/afs/internal.h~fs-make-sure-data-is-on-disk-before-calling-write_inode fs/afs/internal.h
+--- a/fs/afs/internal.h~fs-make-sure-data-is-on-disk-before-calling-write_inode
++++ a/fs/afs/internal.h
+@@ -733,7 +733,6 @@ extern int afs_write_end(struct file *fi
+ 			struct page *page, void *fsdata);
+ extern int afs_writepage(struct page *, struct writeback_control *);
+ extern int afs_writepages(struct address_space *, struct writeback_control *);
+-extern int afs_write_inode(struct inode *, int);
+ extern void afs_pages_written_back(struct afs_vnode *, struct afs_call *);
+ extern ssize_t afs_file_write(struct kiocb *, const struct iovec *,
+ 			      unsigned long, loff_t);
+diff -puN fs/afs/super.c~fs-make-sure-data-is-on-disk-before-calling-write_inode fs/afs/super.c
+--- a/fs/afs/super.c~fs-make-sure-data-is-on-disk-before-calling-write_inode
++++ a/fs/afs/super.c
+@@ -48,7 +48,6 @@ struct file_system_type afs_fs_type = {
+ static const struct super_operations afs_super_ops = {
+ 	.statfs		= afs_statfs,
+ 	.alloc_inode	= afs_alloc_inode,
+-	.write_inode	= afs_write_inode,
+ 	.destroy_inode	= afs_destroy_inode,
+ 	.clear_inode	= afs_clear_inode,
+ 	.put_super	= afs_put_super,
+diff -puN fs/afs/write.c~fs-make-sure-data-is-on-disk-before-calling-write_inode fs/afs/write.c
+--- a/fs/afs/write.c~fs-make-sure-data-is-on-disk-before-calling-write_inode
++++ a/fs/afs/write.c
+@@ -585,27 +585,6 @@ int afs_writepages(struct address_space 
  }
  
  /*
-@@ -214,18 +238,10 @@ static ssize_t memmap_attr_show(struct k
-  */
- static int __init memmap_init(void)
- {
--	int i = 0;
- 	struct firmware_map_entry *entry;
--	struct kset *memmap_kset;
+- * write an inode back
+- */
+-int afs_write_inode(struct inode *inode, int sync)
+-{
+-	struct afs_vnode *vnode = AFS_FS_I(inode);
+-	int ret;
 -
--	memmap_kset = kset_create_and_add("memmap", NULL, firmware_kobj);
--	if (WARN_ON(!memmap_kset))
--		return -ENOMEM;
- 
- 	list_for_each_entry(entry, &map_entries, list) {
--		entry->kobj.kset = memmap_kset;
--		if (kobject_add(&entry->kobj, NULL, "%d", i++))
--			kobject_put(&entry->kobj);
-+		add_sysfs_fw_map_entry(entry);
- 	}
- 
- 	return 0;
-diff -puN include/linux/firmware-map.h~memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory include/linux/firmware-map.h
---- a/include/linux/firmware-map.h~memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory
-+++ a/include/linux/firmware-map.h
-@@ -24,17 +24,17 @@
+-	_enter("{%x:%u},", vnode->fid.vid, vnode->fid.vnode);
+-
+-	ret = 0;
+-	if (sync) {
+-		ret = filemap_fdatawait(inode->i_mapping);
+-		if (ret < 0)
+-			__mark_inode_dirty(inode, I_DIRTY_DATASYNC);
+-	}
+-
+-	_leave(" = %d", ret);
+-	return ret;
+-}
+-
+-/*
+  * completion of write to server
   */
- #ifdef CONFIG_FIRMWARE_MEMMAP
+ void afs_pages_written_back(struct afs_vnode *vnode, struct afs_call *call)
+diff -puN fs/fs-writeback.c~fs-make-sure-data-is-on-disk-before-calling-write_inode fs/fs-writeback.c
+--- a/fs/fs-writeback.c~fs-make-sure-data-is-on-disk-before-calling-write_inode
++++ a/fs/fs-writeback.c
+@@ -472,15 +472,20 @@ writeback_single_inode(struct inode *ino
  
--int firmware_map_add(u64 start, u64 end, const char *type);
- int firmware_map_add_early(u64 start, u64 end, const char *type);
-+int firmware_map_add_hotplug(u64 start, u64 end, const char *type);
+ 	ret = do_writepages(mapping, wbc);
  
- #else /* CONFIG_FIRMWARE_MEMMAP */
- 
--static inline int firmware_map_add(u64 start, u64 end, const char *type)
-+static inline int firmware_map_add_early(u64 start, u64 end, const char *type)
- {
- 	return 0;
- }
- 
--static inline int firmware_map_add_early(u64 start, u64 end, const char *type)
-+static inline int firmware_map_add_hotplug(u64 start, u64 end, const char *type)
- {
- 	return 0;
- }
-diff -puN mm/memory_hotplug.c~memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory
-+++ a/mm/memory_hotplug.c
-@@ -28,6 +28,7 @@
- #include <linux/pfn.h>
- #include <linux/suspend.h>
- #include <linux/mm_inline.h>
-+#include <linux/firmware-map.h>
- 
- #include <asm/tlbflush.h>
- 
-@@ -523,6 +524,9 @@ int __ref add_memory(int nid, u64 start,
- 		BUG_ON(ret);
+-	/* Don't write the inode if only I_DIRTY_PAGES was set */
+-	if (dirty & (I_DIRTY_SYNC | I_DIRTY_DATASYNC)) {
+-		int err = write_inode(inode, wait);
++	/*
++	 * Make sure to wait on the data before writing out the metadata.
++	 * This is important for filesystems that modify metadata on data
++	 * I/O completion.
++	 */
++	if (wait) {
++		int err = filemap_fdatawait(mapping);
+ 		if (ret == 0)
+ 			ret = err;
  	}
  
-+	/* create new memmap entry */
-+	firmware_map_add_hotplug(start, start + size, "System RAM");
-+
- 	goto out;
+-	if (wait) {
+-		int err = filemap_fdatawait(mapping);
++	/* Don't write the inode if only I_DIRTY_PAGES was set */
++	if (dirty & (I_DIRTY_SYNC | I_DIRTY_DATASYNC)) {
++		int err = write_inode(inode, wait);
+ 		if (ret == 0)
+ 			ret = err;
+ 	}
+diff -puN fs/xfs/linux-2.6/xfs_super.c~fs-make-sure-data-is-on-disk-before-calling-write_inode fs/xfs/linux-2.6/xfs_super.c
+--- a/fs/xfs/linux-2.6/xfs_super.c~fs-make-sure-data-is-on-disk-before-calling-write_inode
++++ a/fs/xfs/linux-2.6/xfs_super.c
+@@ -1044,12 +1044,6 @@ xfs_fs_write_inode(
+ 	if (XFS_FORCED_SHUTDOWN(mp))
+ 		return XFS_ERROR(EIO);
  
- error:
-_
-
-Patches currently in -mm which might be from shaohui.zheng@intel.com are
-
-memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory.patch
-
+-	if (sync) {
+-		error = xfs_wait_on_pages(ip, 0, -1);
+-		if (error)
+-			goto out;
+-	}
