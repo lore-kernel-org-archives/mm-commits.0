@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + nommu-fix-shared-mmap-after-truncate-shrinkage-problems.patch added to -mm tree
-Date: Thu, 14 Jan 2010 15:34:51 -0800
-Message-ID: <201001142334.o0ENYqaK006413@imap1.linux-foundation.org>
+Subject: + edac-i5000_edac-critical-fix-panic-out-of-bounds.patch added to -mm tree
+Date: Thu, 14 Jan 2010 15:42:39 -0800
+Message-ID: <201001142342.o0ENgdv3006806@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48510 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37965 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757446Ab0ANXfN (ORCPT
+	by vger.kernel.org with ESMTP id S1754681Ab0ANXoL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Jan 2010 18:35:13 -0500
+	Thu, 14 Jan 2010 18:44:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com, gerg@snapgear.com, viro@zeniv.linux.org.uk
+Cc: tom@vincze.org, dougthompson@xmission.com, mchehab@redhat.com, stable@kernel.org
 
 
 The patch titled
-     nommu: fix shared mmap after truncate shrinkage problems
+     edac: i5000_edac critical fix panic out of bounds
 has been added to the -mm tree.  Its filename is
-     nommu-fix-shared-mmap-after-truncate-shrinkage-problems.patch
+     edac-i5000_edac-critical-fix-panic-out-of-bounds.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,205 +34,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nommu: fix shared mmap after truncate shrinkage problems
-From: David Howells <dhowells@redhat.com>
+Subject: edac: i5000_edac critical fix panic out of bounds
+From: Tamas Vincze <tom@vincze.org>
 
-Fix a problem in NOMMU mmap with ramfs whereby a shared mmap can happen
-over the end of a truncation.  The problem is that
-ramfs_nommu_check_mappings() checks that the reduced file size against the
-VMA tree, but not the vm_region tree.
+EDAC MC0: INTERNAL ERROR: channel-b out of range (4 >= 4)
+Kernel panic - not syncing: EDAC MC0: Uncorrected Error  (XEN) Domain 0 crashed: 'noreboot' set - not rebooting.
 
-The following sequence of events can cause the problem:
+This happens because FERR_NF_FBD bit 28 is not updated on i5000.  Due to
+that, both bits 28 and 29 may be equal to one, returning channel = 3.  As
+this value is invalid, EDAC core generates the panic.
 
-	fd = open("/tmp/x", O_RDWR|O_TRUNC|O_CREAT, 0600);
-	ftruncate(fd, 32 * 1024);
-	a = mmap(NULL, 32 * 1024, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
-	b = mmap(NULL, 16 * 1024, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
-	munmap(a, 32 * 1024);
-	ftruncate(fd, 16 * 1024);
-	c = mmap(NULL, 32 * 1024, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=14568
 
-Mapping 'a' creates a vm_region covering 32KB of the file.  Mapping 'b'
-sees that the vm_region from 'a' is covering the region it wants and so
-shares it, pinning it in memory.
-
-Mapping 'a' then goes away and the file is truncated to the end of VMA
-'b'.  However, the region allocated by 'a' is still in effect, and has
-_not_ been reduced.
-
-Mapping 'c' is then created, and because there's a vm_region covering the
-desired region, get_unmapped_area() is _not_ called to repeat the check,
-and the mapping is granted, even though the pages from the latter half of
-the mapping have been discarded.
-
-However:
-
-	d = mmap(NULL, 16 * 1024, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
-
-Mapping 'd' should work, and should end up sharing the region allocated by
-'a'.
-
-To deal with this, we shrink the vm_region struct during the truncation,
-lest do_mmap_pgoff() take it as licence to share the full region
-automatically without calling the get_unmapped_area() file op again.
-
-Signed-off-by: David Howells <dhowells@redhat.com>
-Acked-by: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Greg Ungerer <gerg@snapgear.com>
+Signed-off-by: Tamas Vincze <tom@vincze.org>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Doug Thompson <dougthompson@xmission.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ramfs/file-nommu.c |   31 --------------------
- include/linux/mm.h    |    1 
- mm/nommu.c            |   62 ++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 64 insertions(+), 30 deletions(-)
+ drivers/edac/i5000_edac.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN fs/ramfs/file-nommu.c~nommu-fix-shared-mmap-after-truncate-shrinkage-problems fs/ramfs/file-nommu.c
---- a/fs/ramfs/file-nommu.c~nommu-fix-shared-mmap-after-truncate-shrinkage-problems
-+++ a/fs/ramfs/file-nommu.c
-@@ -123,35 +123,6 @@ add_error:
+diff -puN drivers/edac/i5000_edac.c~edac-i5000_edac-critical-fix-panic-out-of-bounds drivers/edac/i5000_edac.c
+--- a/drivers/edac/i5000_edac.c~edac-i5000_edac-critical-fix-panic-out-of-bounds
++++ a/drivers/edac/i5000_edac.c
+@@ -577,7 +577,13 @@ static void i5000_process_nonfatal_error
+ 		debugf0("\tUncorrected bits= 0x%x\n", ue_errors);
  
- /*****************************************************************************/
- /*
-- * check that file shrinkage doesn't leave any VMAs dangling in midair
-- */
--static int ramfs_nommu_check_mappings(struct inode *inode,
--				      size_t newsize, size_t size)
--{
--	struct vm_area_struct *vma;
--	struct prio_tree_iter iter;
--
--	down_write(&nommu_region_sem);
--
--	/* search for VMAs that fall within the dead zone */
--	vma_prio_tree_foreach(vma, &iter, &inode->i_mapping->i_mmap,
--			      newsize >> PAGE_SHIFT,
--			      (size + PAGE_SIZE - 1) >> PAGE_SHIFT
--			      ) {
--		/* found one - only interested if it's shared out of the page
--		 * cache */
--		if (vma->vm_flags & VM_SHARED) {
--			up_write(&nommu_region_sem);
--			return -ETXTBSY; /* not quite true, but near enough */
--		}
--	}
--
--	up_write(&nommu_region_sem);
--	return 0;
--}
--
--/*****************************************************************************/
--/*
-  *
-  */
- static int ramfs_nommu_resize(struct inode *inode, loff_t newsize, loff_t size)
-@@ -169,7 +140,7 @@ static int ramfs_nommu_resize(struct ino
- 
- 	/* check that a decrease in size doesn't cut off any shared mappings */
- 	if (newsize < size) {
--		ret = ramfs_nommu_check_mappings(inode, newsize, size);
-+		ret = nommu_shrink_inode_mappings(inode, size, newsize);
- 		if (ret < 0)
- 			return ret;
- 	}
-diff -puN include/linux/mm.h~nommu-fix-shared-mmap-after-truncate-shrinkage-problems include/linux/mm.h
---- a/include/linux/mm.h~nommu-fix-shared-mmap-after-truncate-shrinkage-problems
-+++ a/include/linux/mm.h
-@@ -1085,6 +1085,7 @@ extern void zone_pcp_update(struct zone 
- 
- /* nommu.c */
- extern atomic_long_t mmap_pages_allocated;
-+extern int nommu_shrink_inode_mappings(struct inode *, size_t, size_t);
- 
- /* prio_tree.c */
- void vma_prio_tree_add(struct vm_area_struct *, struct vm_area_struct *old);
-diff -puN mm/nommu.c~nommu-fix-shared-mmap-after-truncate-shrinkage-problems mm/nommu.c
---- a/mm/nommu.c~nommu-fix-shared-mmap-after-truncate-shrinkage-problems
-+++ a/mm/nommu.c
-@@ -1914,3 +1914,65 @@ int access_process_vm(struct task_struct
- 	mmput(mm);
- 	return len;
- }
+ 		branch = EXTRACT_FBDCHAN_INDX(info->ferr_nf_fbd);
+-		channel = branch;
 +
-+/**
-+ * nommu_shrink_inode_mappings - Shrink the shared mappings on an inode
-+ * @inode: The inode to check
-+ * @size: The current filesize of the inode
-+ * @newsize: The proposed filesize of the inode
-+ *
-+ * Check the shared mappings on an inode on behalf of a shrinking truncate to
-+ * make sure that that any outstanding VMAs aren't broken and then shrink the
-+ * vm_regions that extend that beyond so that do_mmap_pgoff() doesn't
-+ * automatically grant mappings that are too large.
-+ */
-+int nommu_shrink_inode_mappings(struct inode *inode, size_t size,
-+				size_t newsize)
-+{
-+	struct vm_area_struct *vma;
-+	struct prio_tree_iter iter;
-+	struct vm_region *region;
-+	pgoff_t low, high;
-+	size_t r_size, r_top;
++		/*
++		 * According with i5000 datasheet, bit 28 has no significance
++		 * for errors M4Err-M12Err and M17Err-M21Err, on FERR_NF_FBD
++		 */
++		channel = branch & 2;
 +
-+	low = newsize >> PAGE_SHIFT;
-+	high = (size + PAGE_SIZE - 1) >> PAGE_SHIFT;
-+
-+	down_write(&nommu_region_sem);
-+
-+	/* search for VMAs that fall within the dead zone */
-+	vma_prio_tree_foreach(vma, &iter, &inode->i_mapping->i_mmap,
-+			      low, high) {
-+		/* found one - only interested if it's shared out of the page
-+		 * cache */
-+		if (vma->vm_flags & VM_SHARED) {
-+			up_write(&nommu_region_sem);
-+			return -ETXTBSY; /* not quite true, but near enough */
-+		}
-+	}
-+
-+	/* reduce any regions that overlap the dead zone - if in existence,
-+	 * these will be pointed to by VMAs that don't overlap the dead zone
-+	 *
-+	 * we don't check for any regions that start beyond the EOF as there
-+	 * shouldn't be any
-+	 */
-+	vma_prio_tree_foreach(vma, &iter, &inode->i_mapping->i_mmap,
-+			      0, ULONG_MAX) {
-+		if (!(vma->vm_flags & VM_SHARED))
-+			continue;
-+
-+		region = vma->vm_region;
-+		r_size = region->vm_top - region->vm_start;
-+		r_top = (region->vm_pgoff << PAGE_SHIFT) + r_size;
-+
-+		if (r_top > newsize) {
-+			region->vm_top -= r_top - newsize;
-+			if (region->vm_end > region->vm_top)
-+				region->vm_end = region->vm_top;
-+		}
-+	}
-+
-+	up_write(&nommu_region_sem);
-+	return 0;
-+}
+ 		bank = NREC_BANK(info->nrecmema);
+ 		rank = NREC_RANK(info->nrecmema);
+ 		rdwr = NREC_RDWR(info->nrecmema);
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from tom@vincze.org are
 
-nommu-fix-sysv-shm-for-nommu.patch
-nommu-struct-vm_regions-vm_usage-count-need-not-be-atomic.patch
-nommu-remove-a-superfluous-check-of-vm_region-vm_usage.patch
-nommu-dont-need-get_unmapped_area-for-nommu.patch
-nommu-fix-race-between-ramfs-truncation-and-shared-mmap.patch
-nommu-fix-shared-mmap-after-truncate-shrinkage-problems.patch
-kernel-credc-use-kmem_cache_free.patch
-nfs-avoid-warnings-when-config_nfs_v4=n.patch
-frv-duplicate-output_buffer-of-e03.patch
-coredump-unify-dump_seek-implementations-for-each-binfmt_c.patch
-coredump-move-dump_write-and-dump_seek-into-a-header-file.patch
-elf-coredump-replace-elf_core_extra_-macros-by-functions.patch
-elf-coredump-make-offset-calculation-process-and-writing-process-explicit.patch
-elf-coredump-add-extended-numbering-support.patch
-mutex-subsystem-synchro-test-module.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
+edac-i5000_edac-critical-fix-panic-out-of-bounds.patch
 
