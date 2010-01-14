@@ -1,140 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [merged] revert-cpufreq-fix-race-in-cpufreq_update_policy.patch removed from -mm tree
-Date: Thu, 14 Jan 2010 13:20:36 -0800
-Message-ID: <201001142120.o0ELKang031611@imap1.linux-foundation.org>
+Subject: [merged] proc_fops-convert-av7110.patch removed from -mm tree
+Date: Thu, 14 Jan 2010 13:20:39 -0800
+Message-ID: <201001142120.o0ELKdQh031614@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52910 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36113 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754214Ab0ANVVN (ORCPT
+	by vger.kernel.org with ESMTP id S1754790Ab0ANVVV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Jan 2010 16:21:13 -0500
+	Thu, 14 Jan 2010 16:21:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, Valdis.Kletnieks@vt.edu, davej@redhat.com, minchan.kim@gmail.com, mschmidt@redhat.com, trenn@suse.de, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert "[CPUFREQ] Fix race in cpufreq_update_policy()"
+     proc_fops: convert av7110
 has been removed from the -mm tree.  Its filename was
-     revert-cpufreq-fix-race-in-cpufreq_update_policy.patch
+     proc_fops-convert-av7110.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert "[CPUFREQ] Fix race in cpufreq_update_policy()"
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: proc_fops: convert av7110
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-Revert
+Drop S_IRUGO, proc entry doesn't contain read hooks.
+Drop S_IFREG, simply unnecessary.
 
-: commit 46aeb7430f79cb4d03e17fedd6399884ab3aa697
-: Author: Thomas Renninger <trenn@suse.de>
-: AuthorDate: Mon Dec 14 11:44:11 2009 +0100
-: Commit: Dave Jones <davej@redhat.com>
-: CommitDate: Thu Dec 17 12:33:02 2009 -0500
-:
-:	[CPUFREQ] Fix race in cpufreq_update_policy()
-
-Due to "kernel BUG at drivers/cpufreq/cpufreq.c:88!" reports from Valdis
-Kletnieks and Minchan Kim.
-
-Cc: Thomas Renninger <trenn@suse.de>
-Cc: Michal Schmidt <mschmidt@redhat.com>
-Cc: Dave Jones <davej@redhat.com>
-Reported-by: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
-Reported-by: Minchan Kim <minchan.kim@gmail.com>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpufreq/cpufreq.c |   19 +++++++++----------
- 1 file changed, 9 insertions(+), 10 deletions(-)
+ drivers/media/dvb/ttpci/av7110_ir.c |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
-diff -puN drivers/cpufreq/cpufreq.c~revert-cpufreq-fix-race-in-cpufreq_update_policy drivers/cpufreq/cpufreq.c
---- a/drivers/cpufreq/cpufreq.c~revert-cpufreq-fix-race-in-cpufreq_update_policy
-+++ a/drivers/cpufreq/cpufreq.c
-@@ -1811,22 +1811,20 @@ error_out:
-  */
- int cpufreq_update_policy(unsigned int cpu)
- {
--	struct cpufreq_policy *data;
-+	struct cpufreq_policy *data = cpufreq_cpu_get(cpu);
- 	struct cpufreq_policy policy;
- 	int ret;
+diff -puN drivers/media/dvb/ttpci/av7110_ir.c~proc_fops-convert-av7110 drivers/media/dvb/ttpci/av7110_ir.c
+--- a/drivers/media/dvb/ttpci/av7110_ir.c~proc_fops-convert-av7110
++++ a/drivers/media/dvb/ttpci/av7110_ir.c
+@@ -268,8 +268,8 @@ int av7110_check_ir_config(struct av7110
  
--	if (unlikely(lock_policy_rwsem_write(cpu))) {
--		ret = -EINVAL;
--		goto fail;
--	}
--	data = cpufreq_cpu_get(cpu);
--
- 	if (!data) {
--		dprintk("Update: No policy on cpu: %u\n", cpu);
- 		ret = -ENODEV;
- 		goto no_policy;
+ 
+ /* /proc/av7110_ir interface */
+-static int av7110_ir_write_proc(struct file *file, const char __user *buffer,
+-				unsigned long count, void *data)
++static ssize_t av7110_ir_proc_write(struct file *file, const char __user *buffer,
++				    size_t count, loff_t *pos)
+ {
+ 	char *page;
+ 	u32 ir_config;
+@@ -309,6 +309,10 @@ static int av7110_ir_write_proc(struct f
+ 	return count;
+ }
+ 
++static const struct file_operations av7110_ir_proc_fops = {
++	.owner		= THIS_MODULE,
++	.write		= av7110_ir_proc_write,
++};
+ 
+ /* interrupt handler */
+ static void ir_handler(struct av7110 *av7110, u32 ircom)
+@@ -368,11 +372,9 @@ int __devinit av7110_ir_init(struct av71
+ 	input_dev->timer.data = (unsigned long) &av7110->ir;
+ 
+ 	if (av_cnt == 1) {
+-		e = create_proc_entry("av7110_ir", S_IFREG | S_IRUGO | S_IWUSR, NULL);
+-		if (e) {
+-			e->write_proc = av7110_ir_write_proc;
++		e = proc_create("av7110_ir", S_IWUSR, NULL, &av7110_ir_proc_fops);
++		if (e)
+ 			e->size = 4 + 256 * sizeof(u16);
+-		}
  	}
  
-+	if (unlikely(lock_policy_rwsem_write(cpu))) {
-+		ret = -EINVAL;
-+		goto fail;
-+	}
-+
- 	dprintk("updating policy for CPU %u\n", cpu);
- 	memcpy(&policy, data, sizeof(struct cpufreq_policy));
- 	policy.min = data->user_policy.min;
-@@ -1850,10 +1848,11 @@ int cpufreq_update_policy(unsigned int c
- 
- 	ret = __cpufreq_set_policy(data, &policy);
- 
--	cpufreq_cpu_put(data);
--no_policy:
- 	unlock_policy_rwsem_write(cpu);
-+
- fail:
-+	cpufreq_cpu_put(data);
-+no_policy:
- 	return ret;
- }
- EXPORT_SYMBOL(cpufreq_update_policy);
+ 	tasklet_init(&av7110->ir.ir_tasklet, av7110_emit_key, (unsigned long) &av7110->ir);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-ibmphp-read-the-length-of-ebda-and-map-entire-ebda-region-fix.patch
-revert-clockevents-prevent-clockevent_devices-list-corruption-on-cpu-hotplug.patch
-drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
-drivers-media-video-pmsc-needs-versionh.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-jffs2-avoid-using-c-keyword-new-in-userspace-visible-header.patch
-3x59x-fix-pci-resource-management.patch
-drivers-usb-core-sysfsc-set_reset_quirk-remove-unused-local.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
-mm-count-swap-usage-checkpatch-fixes.patch
-mm-add-lowmem-detection-logic-fix.patch
-mm-count-lowmem-rss-checkpatch-fixes.patch
-vmscan-check-high-watermark-after-shrink-zone-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
-memcg-move-charges-of-anonymous-page-cleanup.patch
-memcg-implement-memory-thresholds-checkpatch-fixes.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+arm-convert-proc-cpu-aligment-to-seq_file.patch
+proc_fops-convert-drivers-isdn-to-seq_file.patch
+mpt-fusion-convert-to-seq_file.patch
+tracehooks-kill-some-pt_ptraced-checks.patch
+tracehooks-check-pt_ptraced-before-reporting-the-single-step.patch
+ptrace_signal-check-pt_ptraced-before-reporting-a-signal.patch
+export-__ptrace_detach-and-do_notify_parent_cldstop.patch
+reorder-the-code-in-kernel-ptracec.patch
+implement-utrace-ptrace.patch
+utrace-core.patch
 
