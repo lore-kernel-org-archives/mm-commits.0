@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: + ttyh-make-function-static.patch added to -mm tree
-Date: Thu, 14 Jan 2010 15:46:31 -0800
-Message-ID: <201001142346.o0ENkVcY007021@imap1.linux-foundation.org>
+Date: Thu, 14 Jan 2010 15:48:30 -0800
+Message-ID: <201001142348.o0ENmU9X007082@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49492 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55913 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753802Ab0ANXrI (ORCPT
+	by vger.kernel.org with ESMTP id S1756677Ab0ANXtL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Jan 2010 18:47:08 -0500
+	Thu, 14 Jan 2010 18:49:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -51,8 +51,8 @@ Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/tty.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/tty.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff -puN include/linux/tty.h~ttyh-make-function-static include/linux/tty.h
 --- a/include/linux/tty.h~ttyh-make-function-static
@@ -66,11 +66,21 @@ diff -puN include/linux/tty.h~ttyh-make-function-static include/linux/tty.h
  {
  	if (port)
  		kref_get(&port->kref);
+@@ -486,7 +486,7 @@ extern void tty_port_close(struct tty_po
+ 				struct tty_struct *tty, struct file *filp);
+ extern int tty_port_open(struct tty_port *port,
+ 				struct tty_struct *tty, struct file *filp);
+-static inline int tty_port_users(struct tty_port *port)
++extern inline int tty_port_users(struct tty_port *port)
+ {
+ 	return port->count + port->blocked_open;
+ }
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 ttyh-make-function-static.patch
+ttyh-make-function-static-fix.patch
 linux-next.patch
 mfgpt-move-clocksource-menu.patch
 xen-add-kconfig-menu.patch
