@@ -1,78 +1,190 @@
 From: akpm@linux-foundation.org
-Subject: [merged] media-dvb-siano-fix-memory-leak.patch removed from -mm tree
-Date: Thu, 14 Jan 2010 13:20:44 -0800
-Message-ID: <201001142120.o0ELKig7031623@imap1.linux-foundation.org>
+Subject: + gpio-introduce-gpio_request_one-and-friends-update.patch added to -mm tree
+Date: Thu, 14 Jan 2010 14:19:31 -0800
+Message-ID: <201001142219.o0EMJVhe001856@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57084 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38138 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754868Ab0ANVVd (ORCPT
+	by vger.kernel.org with ESMTP id S1751313Ab0ANWT5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Jan 2010 16:21:33 -0500
+	Thu, 14 Jan 2010 17:19:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jslaby@suse.cz, mchehab@infradead.org, mkrufky@linuxtv.org, uris@siano-ms.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: eric.y.miao@gmail.com, bn@niasdigital.com, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     media: dvb/siano, fix memory leak
-has been removed from the -mm tree.  Its filename was
-     media-dvb-siano-fix-memory-leak.patch
+     gpio-introduce-gpio_request_one-and-friends-update
+has been added to the -mm tree.  Its filename is
+     gpio-introduce-gpio_request_one-and-friends-update.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: media: dvb/siano, fix memory leak
-From: Jiri Slaby <jslaby@suse.cz>
+Subject: gpio-introduce-gpio_request_one-and-friends-update
+From: Eric Miao <eric.y.miao@gmail.com>
 
-Stanse found a memory leak in smscore_gpio_configure. buffer is not
-freed/assigned on all paths. Fix that.
-
-Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Uri Shkolnik <uris@siano-ms.com>
-Cc: Michael Krufky <mkrufky@linuxtv.org>
+Signed-off-by: Eric Miao <eric.y.miao@gmail.com>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Ben Nizette <bn@niasdigital.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/siano/smscoreapi.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ Documentation/gpio.txt     |   64 +++++++++++++++++++++++++++++++++++
+ drivers/gpio/gpiolib.c     |   16 ++++++++
+ include/asm-generic/gpio.h |    6 +++
+ 3 files changed, 86 insertions(+)
 
-diff -puN drivers/media/dvb/siano/smscoreapi.c~media-dvb-siano-fix-memory-leak drivers/media/dvb/siano/smscoreapi.c
---- a/drivers/media/dvb/siano/smscoreapi.c~media-dvb-siano-fix-memory-leak
-+++ a/drivers/media/dvb/siano/smscoreapi.c
-@@ -1459,8 +1459,10 @@ int smscore_gpio_configure(struct smscor
- 	if (!(coredev->device_flags & SMS_DEVICE_FAMILY2)) {
- 		pMsg->xMsgHeader.msgType = MSG_SMS_GPIO_CONFIG_REQ;
- 		if (GetGpioPinParams(PinNum, &TranslatedPinNum, &GroupNum,
--				&groupCfg) != 0)
--			return -EINVAL;
-+				&groupCfg) != 0) {
-+			rc = -EINVAL;
-+			goto free;
-+		}
+diff -puN Documentation/gpio.txt~gpio-introduce-gpio_request_one-and-friends-update Documentation/gpio.txt
+--- a/Documentation/gpio.txt~gpio-introduce-gpio_request_one-and-friends-update
++++ a/Documentation/gpio.txt
+@@ -253,6 +253,70 @@ pin setup (e.g. controlling which pin th
+ Also note that it's your responsibility to have stopped using a GPIO
+ before you free it.
  
- 		pMsg->msgData[1] = TranslatedPinNum;
- 		pMsg->msgData[2] = GroupNum;
-@@ -1490,6 +1492,7 @@ int smscore_gpio_configure(struct smscor
- 		else
- 			sms_err("smscore_gpio_configure error");
- 	}
-+free:
- 	kfree(buffer);
++Considering in most cases GPIOs are actually configured right after they
++are claimed, three additional calls are defined:
++
++	/* request a single GPIO, with initial configuration specified by
++	 * 'flags', identical to gpio_request() wrt other arguments and
++	 * return value
++	 */
++	int gpio_request_one(unsigned gpio, unsigned long flags, const char *label);
++
++	/* request multiple GPIOs in a single call
++	 */
++	int gpio_request_array(struct gpio *array, size_t num);
++
++	/* release multiple GPIOs in a single call
++	 */
++	void gpio_free_array(struct gpio *array, size_t num);
++
++where 'flags' is currently defined to specify the following properties:
++
++	* GPIOF_DIR_IN		- to configure direction as input
++	* GPIOF_DIR_OUT		- to configure direction as output
++
++	* GPIOF_INIT_LOW	- as output, set initial level to LOW
++	* GPIOF_INIT_HIGH	- as output, set initial level to HIGH
++
++since GPIOF_INIT_* are only valid when configured as output, so group valid
++combinations as:
++
++	* GPIOF_IN		- configure as input
++	* GPIOF_OUT_INIT_LOW	- configured as output, initial level LOW
++	* GPIOF_OUT_INIT_HIGH	- configured as output, initial level HIGH
++
++In the future, these flags can be extended to support more properties such
++as open-drain status.
++
++Further more, to ease the claim/release of multiple GPIOs, 'struct gpio' is
++introduced to encapsulate all three fields as:
++
++	struct gpio {
++		unsigned	gpio;
++		unsigned long	flags;
++		const char	*label;
++	};
++
++A typical example of usage:
++
++	static struct gpio leds_gpios[] = {
++		{ 32, GPIOF_OUT_INIT_HIGH, "Power LED" }, /* default to ON */
++		{ 33, GPIOF_OUT_INIT_LOW,  "Green LED" }, /* default to OFF */
++		{ 34, GPIOF_OUT_INIT_LOW,  "Red LED"   }, /* default to OFF */
++		{ 35, GPIOF_OUT_INIT_LOW,  "Blue LED"  }, /* default to OFF */
++		{ ... },
++	};
++
++	err = gpio_request_one(31, GPIOF_IN, "Reset Button");
++	if (err)
++		...
++
++	err = gpio_request_array(leds_gpios, ARRAY_SIZE(leds_gpios));
++	if (err)
++		...
++
++	gpio_free_array(leds_gpios, ARRAY_SIZE(leds_gpios));
++
  
- 	return rc;
+ GPIOs mapped to IRQs
+ --------------------
+diff -puN drivers/gpio/gpiolib.c~gpio-introduce-gpio_request_one-and-friends-update drivers/gpio/gpiolib.c
+--- a/drivers/gpio/gpiolib.c~gpio-introduce-gpio_request_one-and-friends-update
++++ a/drivers/gpio/gpiolib.c
+@@ -1237,6 +1237,12 @@ void gpio_free(unsigned gpio)
+ }
+ EXPORT_SYMBOL_GPL(gpio_free);
+ 
++/**
++ * gpio_request_one - request a single GPIO with initial configuration
++ * @gpio:	the GPIO number
++ * @flags:	GPIO configuration as specified by GPIOF_*
++ * @label:	a literal description string of this GPIO
++ */
+ int gpio_request_one(unsigned gpio, unsigned long flags, const char *label)
+ {
+ 	int err;
+@@ -1255,6 +1261,11 @@ int gpio_request_one(unsigned gpio, unsi
+ }
+ EXPORT_SYMBOL_GPL(gpio_request_one);
+ 
++/**
++ * gpio_request_array - request multiple GPIOs in a single call
++ * @array:	array of the 'struct gpio'
++ * @num:	how many GPIOs in the array
++ */
+ int gpio_request_array(struct gpio *array, size_t num)
+ {
+ 	int i, err;
+@@ -1273,6 +1284,11 @@ err_free:
+ }
+ EXPORT_SYMBOL_GPL(gpio_request_array);
+ 
++/**
++ * gpio_free_array - release multiple GPIOs in a single call
++ * @array:	array of the 'struct gpio'
++ * @num:	how many GPIOs in the array
++ */
+ void gpio_free_array(struct gpio *array, size_t num)
+ {
+ 	while (num--)
+diff -puN include/asm-generic/gpio.h~gpio-introduce-gpio_request_one-and-friends-update include/asm-generic/gpio.h
+--- a/include/asm-generic/gpio.h~gpio-introduce-gpio_request_one-and-friends-update
++++ a/include/asm-generic/gpio.h
+@@ -146,6 +146,12 @@ extern int __gpio_to_irq(unsigned gpio);
+ #define GPIOF_OUT_INIT_LOW	(GPIOF_DIR_OUT | GPIOF_INIT_LOW)
+ #define GPIOF_OUT_INIT_HIGH	(GPIOF_DIR_OUT | GPIOF_INIT_HIGH)
+ 
++/**
++ * struct gpio - a structure describing a GPIO with configuration
++ * @gpio:	the GPIO number
++ * @flags:	GPIO configuration as specified by GPIOF_*
++ * @label:	a literal description string of this GPIO
++ */
+ struct gpio {
+ 	unsigned	gpio;
+ 	unsigned long	flags;
 _
 
-Patches currently in -mm which might be from jslaby@suse.cz are
+Patches currently in -mm which might be from eric.y.miao@gmail.com are
 
-origin.patch
 linux-next.patch
-infiniband-use-rlimit-helpers.patch
-char-synclink-remove-unnecessary-checks.patch
-mm-use-rlimit-helpers.patch
-fs-use-rlimit-helpers.patch
-ipc-use-rlimit-helpers.patch
+arch-arm-plat-pxa-dmac-correct-null-test.patch
+genirq-warn-about-irqf_sharedirqf_disabled-at-the-right-place.patch
+gpio-introduce-gpio_request_one-and-friends.patch
+gpio-introduce-gpio_request_one-and-friends-update.patch
 
