@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-update-performance-events-f-patterns.patch added to -mm tree
-Date: Thu, 14 Jan 2010 15:14:32 -0800
-Message-ID: <201001142314.o0ENEWsT005196@imap1.linux-foundation.org>
+Subject: + maintainers-starmode-radio-ip-strip-moved-to-staging.patch added to -mm tree
+Date: Thu, 14 Jan 2010 15:14:34 -0800
+Message-ID: <201001142314.o0ENEYLZ005199@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40154 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45913 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754896Ab0ANXOv (ORCPT
+	by vger.kernel.org with ESMTP id S1756985Ab0ANXOx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Jan 2010 18:14:51 -0500
+	Thu, 14 Jan 2010 18:14:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: joe@perches.com
 
 
 The patch titled
-     MAINTAINERS: update PERFORMANCE EVENTS F: patterns
+     MAINTAINERS: STARMODE RADIO IP (STRIP) moved to staging
 has been added to the -mm tree.  Its filename is
-     maintainers-update-performance-events-f-patterns.patch
+     maintainers-starmode-radio-ip-strip-moved-to-staging.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: update PERFORMANCE EVENTS F: patterns
+Subject: MAINTAINERS: STARMODE RADIO IP (STRIP) moved to staging
 From: Joe Perches <joe@perches.com>
 
-To match arch/*/kernel perf_event location changes
+by commit 955015bb0b42167d14f776ff5947ae2463a974dc
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-update-performance-events-f-patterns MAINTAINERS
---- a/MAINTAINERS~maintainers-update-performance-events-f-patterns
+diff -puN MAINTAINERS~maintainers-starmode-radio-ip-strip-moved-to-staging MAINTAINERS
+--- a/MAINTAINERS~maintainers-starmode-radio-ip-strip-moved-to-staging
 +++ a/MAINTAINERS
-@@ -4248,7 +4248,9 @@ M:	Ingo Molnar <mingo@elte.hu>
- S:	Supported
- F:	kernel/perf_event.c
- F:	include/linux/perf_event.h
--F:	arch/*/*/kernel/perf_event.c
-+F:	arch/*/kernel/perf_event.c
-+F:	arch/*/kernel/*/perf_event.c
-+F:	arch/*/kernel/*/*/perf_event.c
- F:	arch/*/include/asm/perf_event.h
- F:	arch/*/lib/perf_event.c
- F:	arch/*/kernel/perf_callchain.c
+@@ -5175,7 +5175,7 @@ F:	drivers/net/starfire*
+ 
+ STARMODE RADIO IP (STRIP) PROTOCOL DRIVER
+ S:	Orphan
+-F:	drivers/net/wireless/strip.c
++F:	drivers/staging/strip/strip.c
+ F:	include/linux/if_strip.h
+ 
+ STRADIS MPEG-2 DECODER DRIVER
 _
 
 Patches currently in -mm which might be from joe@perches.com are
