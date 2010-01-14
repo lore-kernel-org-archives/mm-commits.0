@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + asus-acpi-remove-duplicate-comparison-of-asus_model-strings.patch added to -mm tree
-Date: Thu, 14 Jan 2010 15:09:58 -0800
-Message-ID: <201001142309.o0EN9wsm004895@imap1.linux-foundation.org>
+Subject: + scripts-get_maintainerpl-add-sections-print-entire-matched-subsystem.patch added to -mm tree
+Date: Thu, 14 Jan 2010 15:12:59 -0800
+Message-ID: <201001142312.o0ENCx1R005115@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39773 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59607 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757156Ab0ANXLO (ORCPT
+	by vger.kernel.org with ESMTP id S1755346Ab0ANXNU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Jan 2010 18:11:14 -0500
+	Thu, 14 Jan 2010 18:13:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, corentincj@iksaif.net, lenb@kernel.org, sziwan@users.sourceforge.net
+Cc: joe@perches.com
 
 
 The patch titled
-     asus-acpi: remove duplicate comparison of asus_model strings
+     scripts/get_maintainer.pl: add --sections, print entire matched subsystem
 has been added to the -mm tree.  Its filename is
-     asus-acpi-remove-duplicate-comparison-of-asus_model-strings.patch
+     scripts-get_maintainerpl-add-sections-print-entire-matched-subsystem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,64 +34,108 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: asus-acpi: remove duplicate comparison of asus_model strings
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: scripts/get_maintainer.pl: add --sections, print entire matched subsystem
+From: Joe Perches <joe@perches.com>
 
-These tests already occur elsewhere
+Print the complete contents of the matched subsystem in pattern match
+depth order.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Corentin Chary <corentincj@iksaif.net>
-Cc: Karol Kozimor <sziwan@users.sourceforge.net>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/asus_acpi.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ scripts/get_maintainer.pl |   36 ++++++++++++++++++++++++++++++++----
+ 1 file changed, 32 insertions(+), 4 deletions(-)
 
-diff -puN drivers/platform/x86/asus_acpi.c~asus-acpi-remove-duplicate-comparison-of-asus_model-strings drivers/platform/x86/asus_acpi.c
---- a/drivers/platform/x86/asus_acpi.c~asus-acpi-remove-duplicate-comparison-of-asus_model-strings
-+++ a/drivers/platform/x86/asus_acpi.c
-@@ -1225,9 +1225,8 @@ static int asus_model_match(char *model)
- 	else if (strncmp(model, "M2N", 3) == 0 ||
- 		 strncmp(model, "M3N", 3) == 0 ||
- 		 strncmp(model, "M5N", 3) == 0 ||
--		 strncmp(model, "M6N", 3) == 0 ||
- 		 strncmp(model, "S1N", 3) == 0 ||
--		 strncmp(model, "S5N", 3) == 0 || strncmp(model, "W1N", 3) == 0)
-+		 strncmp(model, "S5N", 3) == 0)
- 		return xxN;
- 	else if (strncmp(model, "M1", 2) == 0)
- 		return M1A;
+diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-add-sections-print-entire-matched-subsystem scripts/get_maintainer.pl
+--- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-add-sections-print-entire-matched-subsystem
++++ a/scripts/get_maintainer.pl
+@@ -41,6 +41,7 @@ my $web = 0;
+ my $subsystem = 0;
+ my $status = 0;
+ my $keywords = 1;
++my $sections = 0;
+ my $file_emails = 0;
+ my $from_filename = 0;
+ my $pattern_depth = 0;
+@@ -121,6 +122,7 @@ if (!GetOptions(
+ 		'web!' => \$web,
+ 		'pattern-depth=i' => \$pattern_depth,
+ 		'k|keywords!' => \$keywords,
++		'sections!' => \$sections,
+ 		'fe|file-emails!' => \$file_emails,
+ 		'f|file' => \$from_filename,
+ 		'v|version' => \$version,
+@@ -152,10 +154,20 @@ if ($output_rolestats) {
+     $output_roles = 1;
+ }
+ 
+-my $selections = $email + $scm + $status + $subsystem + $web;
+-if ($selections == 0) {
+-    usage();
+-    die "$P:  Missing required option: email, scm, status, subsystem or web\n";
++if ($sections) {
++    $email = 0;
++    $email_list = 0;
++    $scm = 0;
++    $status = 0;
++    $subsystem = 0;
++    $web = 0;
++    $keywords = 0;
++} else {
++    my $selections = $email + $scm + $status + $subsystem + $web;
++    if ($selections == 0) {
++	usage();
++	die "$P:  Missing required option: email, scm, status, subsystem or web\n";
++    }
+ }
+ 
+ if ($email &&
+@@ -357,6 +369,21 @@ foreach my $file (@files) {
+ 
+     foreach my $line (sort {$hash{$b} <=> $hash{$a}} keys %hash) {
+ 	add_categories($line);
++	    if ($sections) {
++		my $i;
++		my $start = find_starting_index($line);
++		my $end = find_ending_index($line);
++		for ($i = $start; $i < $end; $i++) {
++		    my $line = $typevalue[$i];
++		    if ($line =~ /^[FX]:/) {		##Restore file patterns
++			$line =~ s/([^\\])\.([^\*])/$1\?$2/g;
++			$line =~ s/([^\\])\.$/$1\?/g;	##Convert . back to ?
++			$line =~ s/\\\./\./g;       	##Convert \. to .
++			$line =~ s/\.\*/\*/g;       	##Convert .* to *
++		    }
++		    print("$line\n");
++		}
++	    }
+     }
+ 
+     if ($email && $email_git) {
+@@ -486,6 +513,7 @@ Output type options:
+ Other options:
+   --pattern-depth => Number of pattern directory traversals (default: 0 (all))
+   --keywords => scan patch for keywords (default: 1 (on))
++  --sections => print the entire subsystem sections with pattern matches
+   --version => show version
+   --help => show this help information
+ 
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 linux-next.patch
-acpi-fix-confusion-in-acpi_evaluate_string-in-comment.patch
-asus-acpi-remove-duplicate-comparison-of-asus_model-strings.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-hisax-timeout-off-by-one-in-waitrecmsg.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-ibmmca-buffer-overflow.patch
-scsi-eata-fix-buffer-overflow.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-u14-34fc-fix-uffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
-ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
-scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
-dc395x-decrease-iteration-for-tag_number-of-max_command-in-start_scsi.patch
-mpt2sas-fix-confusion-in-_scsih_sas_device_status_change_event.patch
-paride-fix-off-by-one-test.patch
-80211core-fix-confusion.patch
-musb-test-always-evaluates-to-false.patch
-musb-dont-dereference-null-tusb_dma-in-dma_controller_destroy.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-cryptocop-fix-assertion-in-create_output_descriptors.patch
-asiliantfb-fix-test-of-unsigned-in-asiliant_calc_dclk2.patch
-w1-fix-test-in-ds2482_wait_1wire_idle.patch
+net-rds-remove-uses-of-nipquad-use-%pi4.patch
+net-sunrpc-remove-uses-of-nipquad-use-%pi4.patch
+fs-ocfs2-cluster-tcpc-remove-use-of-nipquad-use-%pi4.patch
+drivers-scsi-correct-the-size-argument-to-kmalloc.patch
+drivers-scsi-remove-uses-of-nipquad-use-%pi4.patch
+drivers-firmware-iscsi_ibftc-remove-nipquad_fmt-use-%pi4.patch
+drivers-staging-pohmelfs-inodec-remove-uses-of-nipquad-use-%pi4.patch
+scripts-get_maintainerpl-add-file-emails-find-embedded-email-addresses.patch
+scripts-get_maintainerpl-add-file-emails-find-embedded-email-addresses-v2.patch
+scripts-get_maintainerpl-add-sections-print-entire-matched-subsystem.patch
+scripts-checkpatchpl-add-warn-on-sizeof.patch
+checkpatchpl-allow-80-char-lines-for-logging-functions-not-just-printk.patch
 
