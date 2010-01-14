@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-ensure-list-is-empty-at-rmdir.patch added to -mm tree
-Date: Wed, 13 Jan 2010 17:12:23 -0800
-Message-ID: <201001140112.o0E1CN4Y007519@imap1.linux-foundation.org>
+Subject: + convert-sparc-to-arch_gettimeoffset-fix.patch added to -mm tree
+Date: Wed, 13 Jan 2010 17:13:33 -0800
+Message-ID: <201001140113.o0E1DXdB007536@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33024 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53752 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750978Ab0ANBNv (ORCPT
+	by vger.kernel.org with ESMTP id S1753632Ab0ANBOH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Jan 2010 20:13:51 -0500
+	Wed, 13 Jan 2010 20:14:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nishimura@mxp.nes.nec.co.jp, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, stable@kernel.org
+Cc: johnstul@us.ibm.com, davem@davemloft.net
 
 
 The patch titled
-     memcg: ensure list is empty at rmdir
+     convert-sparc-to-arch_gettimeoffset-fix
 has been added to the -mm tree.  Its filename is
-     memcg-ensure-list-is-empty-at-rmdir.patch
+     convert-sparc-to-arch_gettimeoffset-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,148 +34,71 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: ensure list is empty at rmdir
-From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Subject: convert-sparc-to-arch_gettimeoffset-fix
+From: john stultz <johnstul@us.ibm.com>
 
-Current mem_cgroup_force_empty() only ensures mem->res.usage == 0 on
-success.  But this doesn't guarantee memcg's LRU is really empty, because
-there are some cases in which !PageCgrupUsed pages exist on memcg's LRU.
+Move do_arch_gettimeoffset function pointer declaration to a timex_32.h
 
-For example:
-- Pages can be uncharged by its owner process while they are on LRU.
-- race between mem_cgroup_add_lru_list() and __mem_cgroup_uncharge_common().
-
-So there can be a case in which the usage is zero but some of the LRUs are not empty.
-
-OTOH, mem_cgroup_del_lru_list(), which can be called asynchronously with
-rmdir, accesses the mem_cgroup, so this access can cause a problem if it
-races with rmdir because the mem_cgroup might have been freed by rmdir.
-
-Actually, I saw a bug which seems to be caused by this race.
-
-	[1530745.949906] BUG: unable to handle kernel NULL pointer dereference at 0000000000000230
-	[1530745.950651] IP: [<ffffffff810fbc11>] mem_cgroup_del_lru_list+0x30/0x80
-	[1530745.950651] PGD 3863de067 PUD 3862c7067 PMD 0
-	[1530745.950651] Oops: 0002 [#1] SMP
-	[1530745.950651] last sysfs file: /sys/devices/system/cpu/cpu7/cache/index1/shared_cpu_map
-	[1530745.950651] CPU 3
-	[1530745.950651] Modules linked in: configs ipt_REJECT xt_tcpudp iptable_filter ip_tables x_tables bridge stp nfsd nfs_acl auth_rpcgss exportfs autofs4 hidp rfcomm l2cap crc16 bluetooth lockd sunrpc ib_iser rdma_cm ib_cm iw_cm ib_sa ib_mad ib_core ib_addr iscsi_tcp bnx2i cnic uio ipv6 cxgb3i cxgb3 mdio libiscsi_tcp libiscsi scsi_transport_iscsi dm_mirror dm_multipath scsi_dh video output sbs sbshc battery ac lp kvm_intel kvm sg ide_cd_mod cdrom serio_raw tpm_tis tpm tpm_bios acpi_memhotplug button parport_pc parport rtc_cmos rtc_core rtc_lib e1000 i2c_i801 i2c_core pcspkr dm_region_hash dm_log dm_mod ata_piix libata shpchp megaraid_mbox sd_mod scsi_mod megaraid_mm ext3 jbd uhci_hcd ohci_hcd ehci_hcd [last unloaded: freq_table]
-	[1530745.950651] Pid: 19653, comm: shmem_test_02 Tainted: G   M       2.6.32-mm1-00701-g2b04386 #3 Express5800/140Rd-4 [N8100-1065]
-	[1530745.950651] RIP: 0010:[<ffffffff810fbc11>]  [<ffffffff810fbc11>] mem_cgroup_del_lru_list+0x30/0x80
-	[1530745.950651] RSP: 0018:ffff8803863ddcb8  EFLAGS: 00010002
-	[1530745.950651] RAX: 00000000000001e0 RBX: ffff8803abc02238 RCX: 00000000000001e0
-	[1530745.950651] RDX: 0000000000000000 RSI: ffff88038611a000 RDI: ffff8803abc02238
-	[1530745.950651] RBP: ffff8803863ddcc8 R08: 0000000000000002 R09: ffff8803a04c8643
-	[1530745.950651] R10: 0000000000000000 R11: ffffffff810c7333 R12: 0000000000000000
-	[1530745.950651] R13: ffff880000017f00 R14: 0000000000000092 R15: ffff8800179d0310
-	[1530745.950651] FS:  0000000000000000(0000) GS:ffff880017800000(0000) knlGS:0000000000000000
-	[1530745.950651] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-	[1530745.950651] CR2: 0000000000000230 CR3: 0000000379d87000 CR4: 00000000000006e0
-	[1530745.950651] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-	[1530745.950651] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-	[1530745.950651] Process shmem_test_02 (pid: 19653, threadinfo ffff8803863dc000, task ffff88038612a8a0)
-	[1530745.950651] Stack:
-	[1530745.950651]  ffffea00040c2fe8 0000000000000000 ffff8803863ddd98 ffffffff810c739a
-	[1530745.950651] <0> 00000000863ddd18 000000000000000c 0000000000000000 0000000000000000
-	[1530745.950651] <0> 0000000000000002 0000000000000000 ffff8803863ddd68 0000000000000046
-	[1530745.950651] Call Trace:
-	[1530745.950651]  [<ffffffff810c739a>] release_pages+0x142/0x1e7
-	[1530745.950651]  [<ffffffff810c778f>] ? pagevec_move_tail+0x6e/0x112
-	[1530745.950651]  [<ffffffff810c781e>] pagevec_move_tail+0xfd/0x112
-	[1530745.950651]  [<ffffffff810c78a9>] lru_add_drain+0x76/0x94
-	[1530745.950651]  [<ffffffff810dba0c>] exit_mmap+0x6e/0x145
-	[1530745.950651]  [<ffffffff8103f52d>] mmput+0x5e/0xcf
-	[1530745.950651]  [<ffffffff81043ea8>] exit_mm+0x11c/0x129
-	[1530745.950651]  [<ffffffff8108fb29>] ? audit_free+0x196/0x1c9
-	[1530745.950651]  [<ffffffff81045353>] do_exit+0x1f5/0x6b7
-	[1530745.950651]  [<ffffffff8106133f>] ? up_read+0x2b/0x2f
-	[1530745.950651]  [<ffffffff8137d187>] ? lockdep_sys_exit_thunk+0x35/0x67
-	[1530745.950651]  [<ffffffff81045898>] do_group_exit+0x83/0xb0
-	[1530745.950651]  [<ffffffff810458dc>] sys_exit_group+0x17/0x1b
-	[1530745.950651]  [<ffffffff81002c1b>] system_call_fastpath+0x16/0x1b
-	[1530745.950651] Code: 54 53 0f 1f 44 00 00 83 3d cc 29 7c 00 00 41 89 f4 75 63 eb 4e 48 83 7b 08 00 75 04 0f 0b eb fe 48 89 df e8 18 f3 ff ff 44 89 e2 <48> ff 4c d0 50 48 8b 05 2b 2d 7c 00 48 39 43 08 74 39 48 8b 4b
-	[1530745.950651] RIP  [<ffffffff810fbc11>] mem_cgroup_del_lru_list+0x30/0x80
-	[1530745.950651]  RSP <ffff8803863ddcb8>
-	[1530745.950651] CR2: 0000000000000230
-	[1530745.950651] ---[ end trace c3419c1bb8acc34f ]---
-	[1530745.950651] Fixing recursive fault but reboot is needed!
-
-The problem here is pages on LRU may contain pointer to stale memcg.  To
-make res->usage to be 0, all pages on memcg must be uncharged or moved to
-another(parent) memcg.  Moved page_cgroup have already removed from
-original LRU, but uncharged page_cgroup contains pointer to memcg withou
-PCG_USED bit.  (This asynchronous LRU work is for improving performance.)
-If PCG_USED bit is not set, page_cgroup will never be added to memcg's
-LRU.  So, about pages not on LRU, they never access stale pointer.  Then,
-what we have to take care of is page_cgroup _on_ LRU list.  This patch
-fixes this problem by making mem_cgroup_force_empty() visit all LRUs
-before exiting its loop and guarantee there are no pages on its LRU.
-
-Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: <stable@kernel.org>
+Signed-off-by: John Stultz <johnstul@us.ibm.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   11 ++++-------
- 1 file changed, 4 insertions(+), 7 deletions(-)
+ arch/sparc/include/asm/timex_32.h |    1 +
+ arch/sparc/kernel/pcic.c          |    3 +--
+ arch/sparc/kernel/time_32.c       |    1 +
+ 3 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-ensure-list-is-empty-at-rmdir mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-ensure-list-is-empty-at-rmdir
-+++ a/mm/memcontrol.c
-@@ -2586,7 +2586,7 @@ static int mem_cgroup_force_empty(struct
- 	if (free_all)
- 		goto try_to_free;
- move_account:
--	while (mem->res.usage > 0) {
-+	do {
- 		ret = -EBUSY;
- 		if (cgroup_task_count(cgrp) || !list_empty(&cgrp->children))
- 			goto out;
-@@ -2614,8 +2614,8 @@ move_account:
- 		if (ret == -ENOMEM)
- 			goto try_to_free;
- 		cond_resched();
--	}
--	ret = 0;
-+	/* "ret" should also be checked to ensure all lists are empty. */
-+	} while (mem->res.usage > 0 || ret);
- out:
- 	css_put(&mem->css);
- 	return ret;
-@@ -2648,10 +2648,7 @@ try_to_free:
- 	}
- 	lru_add_drain();
- 	/* try move_account...there may be some *locked* pages. */
--	if (mem->res.usage)
--		goto move_account;
--	ret = 0;
--	goto out;
-+	goto move_account;
- }
+diff -puN arch/sparc/include/asm/timex_32.h~convert-sparc-to-arch_gettimeoffset-fix arch/sparc/include/asm/timex_32.h
+--- a/arch/sparc/include/asm/timex_32.h~convert-sparc-to-arch_gettimeoffset-fix
++++ a/arch/sparc/include/asm/timex_32.h
+@@ -12,4 +12,5 @@
+ typedef unsigned long cycles_t;
+ #define get_cycles()	(0)
  
- int mem_cgroup_force_empty_write(struct cgroup *cont, unsigned int event)
++extern u32 (*do_arch_gettimeoffset)(void);
+ #endif
+diff -puN arch/sparc/kernel/pcic.c~convert-sparc-to-arch_gettimeoffset-fix arch/sparc/kernel/pcic.c
+--- a/arch/sparc/kernel/pcic.c~convert-sparc-to-arch_gettimeoffset-fix
++++ a/arch/sparc/kernel/pcic.c
+@@ -30,6 +30,7 @@
+ #include <asm/oplib.h>
+ #include <asm/prom.h>
+ #include <asm/pcic.h>
++#include <asm/timex.h>
+ #include <asm/timer.h>
+ #include <asm/uaccess.h>
+ #include <asm/irq_regs.h>
+@@ -714,8 +715,6 @@ static irqreturn_t pcic_timer_handler (i
+ #define USECS_PER_JIFFY  10000  /* We have 100HZ "standard" timer for sparc */
+ #define TICK_TIMER_LIMIT ((100*1000000/4)/100)
+ 
+-extern u32 (*do_arch_gettimeoffset)(void);
+-
+ u32 pci_gettimeoffset(void)
+ {
+ 	/*
+diff -puN arch/sparc/kernel/time_32.c~convert-sparc-to-arch_gettimeoffset-fix arch/sparc/kernel/time_32.c
+--- a/arch/sparc/kernel/time_32.c~convert-sparc-to-arch_gettimeoffset-fix
++++ a/arch/sparc/kernel/time_32.c
+@@ -35,6 +35,7 @@
+ #include <linux/platform_device.h>
+ 
+ #include <asm/oplib.h>
++#include <asm/timex.h>
+ #include <asm/timer.h>
+ #include <asm/system.h>
+ #include <asm/irq.h>
 _
 
-Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
+Patches currently in -mm which might be from johnstul@us.ibm.com are
 
-memcg-ensure-list-is-empty-at-rmdir.patch
-cgroup-introduce-cancel_attach.patch
-cgroup-introduce-coalesce-css_get-and-css_put.patch
-memcg-add-interface-to-move-charge-at-task-migration.patch
-memcg-move-charges-of-anonymous-page.patch
-memcg-move-charges-of-anonymous-page-cleanup.patch
-memcg-improve-performance-in-moving-charge.patch
-memcg-avoid-oom-during-moving-charge.patch
-memcg-move-charges-of-anonymous-swap.patch
-memcg-move-charges-of-anonymous-swap-fix.patch
-memcg-improve-performance-in-moving-swap-charge.patch
-memcg-improve-performance-in-moving-swap-charge-fix.patch
-cgroup-implement-eventfd-based-generic-api-for-notifications.patch
-memcg-extract-mem_group_usage-from-mem_cgroup_read.patch
-memcg-rework-usage-of-stats-by-soft-limit.patch
-memcg-implement-memory-thresholds.patch
-memcg-implement-memory-thresholds-checkpatch-fixes.patch
-memcg-implement-memory-thresholds-checkpatch-fixes-fix.patch
+m68knommu-fix-invalid-flags-on-coldfire-pit-clocksource.patch
+clocksource-add-argument-to-resume-callback.patch
+clocksource-start-cmt-at-clocksource-resume.patch
+clocksource-add-suspend-callback.patch
+genirq-warn-about-irqf_sharedirqf_disabled-at-the-right-place.patch
+convert-sparc-to-arch_gettimeoffset.patch
+convert-sparc-to-arch_gettimeoffset-fix.patch
+cris-convert-to-use-arch_gettimeoffset.patch
 
