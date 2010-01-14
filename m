@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-fix-section-mismatch.patch added to -mm tree
-Date: Wed, 13 Jan 2010 17:03:25 -0800
-Message-ID: <201001140103.o0E13PJK007119@imap1.linux-foundation.org>
+Subject: + virtio-fix-section-mismatch-warnings.patch added to -mm tree
+Date: Wed, 13 Jan 2010 17:08:12 -0800
+Message-ID: <201001140108.o0E18Cis007340@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44731 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54248 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751687Ab0ANBEN (ORCPT
+	by vger.kernel.org with ESMTP id S932083Ab0ANBIU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Jan 2010 20:04:13 -0500
+	Wed, 13 Jan 2010 20:08:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jeffm@suse.com, achiang@hp.com, lenb@kernel.org, tony.luck@intel.com
+Cc: jeffm@suse.com, rusty@rustcorp.com.au
 
 
 The patch titled
-     acpi: fix section mismatch
+     virtio: fix section mismatch warnings
 has been added to the -mm tree.  Its filename is
-     acpi-fix-section-mismatch.patch
+     virtio-fix-section-mismatch-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,84 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi: fix section mismatch
+Subject: virtio: fix section mismatch warnings
 From: Jeff Mahoney <jeffm@suse.com>
 
-acpi_early_processor_set_pdc() uses processor_idle_dmi_table(), which is
-marked __cpuinitdata.  It's only called by acpi_bus_init, which is __init.
-We mark it __cpuinit.
+Fix fixes the following warnings by renaming the driver structures to be
+suffixed with _driver.
+
+WARNING: drivers/virtio/virtio_balloon.o(.data+0x88): Section mismatch in reference from the variable virtio_balloon to the function .devexit.text:virtballoon_remove()
+
+WARNING: drivers/char/hw_random/virtio-rng.o(.data+0x88): Section mismatch in reference from the variable virtio_rng to the function .devexit.text:virtrng_remove()
 
 Signed-off-by: Jeff Mahoney <jeffm@suse.com>
-Cc: Alex Chiang <achiang@hp.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+Acked-by: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_pdc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/hw_random/virtio-rng.c |    6 +++---
+ drivers/virtio/virtio_balloon.c     |    6 +++---
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/acpi/processor_pdc.c~acpi-fix-section-mismatch drivers/acpi/processor_pdc.c
---- a/drivers/acpi/processor_pdc.c~acpi-fix-section-mismatch
-+++ a/drivers/acpi/processor_pdc.c
-@@ -151,7 +151,7 @@ early_init_pdc(acpi_handle handle, u32 l
- 	return AE_OK;
+diff -puN drivers/char/hw_random/virtio-rng.c~virtio-fix-section-mismatch-warnings drivers/char/hw_random/virtio-rng.c
+--- a/drivers/char/hw_random/virtio-rng.c~virtio-fix-section-mismatch-warnings
++++ a/drivers/char/hw_random/virtio-rng.c
+@@ -114,7 +114,7 @@ static struct virtio_device_id id_table[
+ 	{ 0 },
+ };
+ 
+-static struct virtio_driver virtio_rng = {
++static struct virtio_driver virtio_rng_driver = {
+ 	.driver.name =	KBUILD_MODNAME,
+ 	.driver.owner =	THIS_MODULE,
+ 	.id_table =	id_table,
+@@ -124,12 +124,12 @@ static struct virtio_driver virtio_rng =
+ 
+ static int __init init(void)
+ {
+-	return register_virtio_driver(&virtio_rng);
++	return register_virtio_driver(&virtio_rng_driver);
  }
  
--void acpi_early_processor_set_pdc(void)
-+void __cpuinit acpi_early_processor_set_pdc(void)
+ static void __exit fini(void)
  {
- 	/*
- 	 * Check whether the system is DMI table. If yes, OSPM
+-	unregister_virtio_driver(&virtio_rng);
++	unregister_virtio_driver(&virtio_rng_driver);
+ }
+ module_init(init);
+ module_exit(fini);
+diff -puN drivers/virtio/virtio_balloon.c~virtio-fix-section-mismatch-warnings drivers/virtio/virtio_balloon.c
+--- a/drivers/virtio/virtio_balloon.c~virtio-fix-section-mismatch-warnings
++++ a/drivers/virtio/virtio_balloon.c
+@@ -358,7 +358,7 @@ static unsigned int features[] = {
+ 	VIRTIO_BALLOON_F_STATS_VQ,
+ };
+ 
+-static struct virtio_driver virtio_balloon = {
++static struct virtio_driver virtio_balloon_driver = {
+ 	.feature_table = features,
+ 	.feature_table_size = ARRAY_SIZE(features),
+ 	.driver.name =	KBUILD_MODNAME,
+@@ -371,12 +371,12 @@ static struct virtio_driver virtio_ballo
+ 
+ static int __init init(void)
+ {
+-	return register_virtio_driver(&virtio_balloon);
++	return register_virtio_driver(&virtio_balloon_driver);
+ }
+ 
+ static void __exit fini(void)
+ {
+-	unregister_virtio_driver(&virtio_balloon);
++	unregister_virtio_driver(&virtio_balloon_driver);
+ }
+ module_init(init);
+ module_exit(fini);
 _
 
 Patches currently in -mm which might be from jeffm@suse.com are
 
 acpi-fix-section-mismatch.patch
 hugetlb-fix-section-mismatches-2.patch
+virtio-fix-section-mismatch-warnings.patch
 
