@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + nommu-remove-a-superfluous-check-of-vm_region-vm_usage.patch added to -mm tree
-Date: Thu, 14 Jan 2010 15:34:40 -0800
-Message-ID: <201001142334.o0ENYekx006402@imap1.linux-foundation.org>
+Subject: + nommu-fix-race-between-ramfs-truncation-and-shared-mmap.patch added to -mm tree
+Date: Thu, 14 Jan 2010 15:34:45 -0800
+Message-ID: <201001142334.o0ENYjp9006408@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40657 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33616 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757253Ab0ANXfD (ORCPT
+	by vger.kernel.org with ESMTP id S1757443Ab0ANXfJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Jan 2010 18:35:03 -0500
+	Thu, 14 Jan 2010 18:35:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: dhowells@redhat.com, gerg@snapgear.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     nommu: remove a superfluous check of vm_region::vm_usage
+     nommu: fix race between ramfs truncation and shared mmap
 has been added to the -mm tree.  Its filename is
-     nommu-remove-a-superfluous-check-of-vm_region-vm_usage.patch
+     nommu-fix-race-between-ramfs-truncation-and-shared-mmap.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,20 +34,23 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nommu: remove a superfluous check of vm_region::vm_usage
+Subject: nommu: fix race between ramfs truncation and shared mmap
 From: David Howells <dhowells@redhat.com>
 
-In split_vma(), there's no need to check if the VMA being split has a
-region that's in use by more than one VMA because:
+Fix the race between the truncation of a ramfs file and an attempt to make
+a shared mmap of region of that file.
 
- (1) The preceding test prohibits splitting of non-anonymous VMAs and regions
-     (eg: file or chardev backed VMAs).
+The problem is that do_mmap_pgoff() calls f_op->get_unmapped_area() to
+verify that the file region is made of contiguous pages and to find its
+base address - but there isn't any locking to guarantee this region until
+vma_prio_tree_insert() is called by add_vma_to_mm().
 
- (2) Anonymous regions can't be mapped multiple times because there's no handle
-     by which to refer to the already existing region.
+Note that moving the functionality into f_op->mmap() doesn't help as that
+is also called before vma_prio_tree_insert().
 
- (3) If a VMA has previously been split, then the region backing it has also
-     been split into two regions, each of usage 1.
+Instead make ramfs_nommu_check_mappings() grab nommu_region_sem whilst it
+does its checks.  This means that this function will wait whilst mmaps
+take place.
 
 Signed-off-by: David Howells <dhowells@redhat.com>
 Acked-by: Al Viro <viro@zeniv.linux.org.uk>
@@ -55,26 +58,36 @@ Cc: Greg Ungerer <gerg@snapgear.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nommu.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ fs/ramfs/file-nommu.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN mm/nommu.c~nommu-remove-a-superfluous-check-of-vm_region-vm_usage mm/nommu.c
---- a/mm/nommu.c~nommu-remove-a-superfluous-check-of-vm_region-vm_usage
-+++ a/mm/nommu.c
-@@ -1441,10 +1441,9 @@ int split_vma(struct mm_struct *mm, stru
+diff -puN fs/ramfs/file-nommu.c~nommu-fix-race-between-ramfs-truncation-and-shared-mmap fs/ramfs/file-nommu.c
+--- a/fs/ramfs/file-nommu.c~nommu-fix-race-between-ramfs-truncation-and-shared-mmap
++++ a/fs/ramfs/file-nommu.c
+@@ -131,6 +131,8 @@ static int ramfs_nommu_check_mappings(st
+ 	struct vm_area_struct *vma;
+ 	struct prio_tree_iter iter;
  
- 	kenter("");
++	down_write(&nommu_region_sem);
++
+ 	/* search for VMAs that fall within the dead zone */
+ 	vma_prio_tree_foreach(vma, &iter, &inode->i_mapping->i_mmap,
+ 			      newsize >> PAGE_SHIFT,
+@@ -138,10 +140,13 @@ static int ramfs_nommu_check_mappings(st
+ 			      ) {
+ 		/* found one - only interested if it's shared out of the page
+ 		 * cache */
+-		if (vma->vm_flags & VM_SHARED)
++		if (vma->vm_flags & VM_SHARED) {
++			up_write(&nommu_region_sem);
+ 			return -ETXTBSY; /* not quite true, but near enough */
++		}
+ 	}
  
--	/* we're only permitted to split anonymous regions that have a single
--	 * owner */
--	if (vma->vm_file ||
--	    vma->vm_region->vm_usage != 1)
-+	/* we're only permitted to split anonymous regions (these should have
-+	 * only a single usage on the region) */
-+	if (vma->vm_file)
- 		return -ENOMEM;
++	up_write(&nommu_region_sem);
+ 	return 0;
+ }
  
- 	if (mm->map_count >= sysctl_max_map_count)
 _
 
 Patches currently in -mm which might be from dhowells@redhat.com are
