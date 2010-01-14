@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memory-hotplug-add-0x-prefix-to-hex-block_size_bytes.patch added to -mm tree
-Date: Thu, 14 Jan 2010 15:30:34 -0800
-Message-ID: <201001142330.o0ENUYdD006193@imap1.linux-foundation.org>
+Subject: + sysdev-fix-prototype-for-memory_sysdev_class-show-store-functions.patch added to -mm tree
+Date: Thu, 14 Jan 2010 15:30:37 -0800
+Message-ID: <201001142330.o0ENUb3e006196@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49787 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48294 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754859Ab0ANXbH (ORCPT
+	by vger.kernel.org with ESMTP id S1756742Ab0ANXbL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Jan 2010 18:31:07 -0500
+	Thu, 14 Jan 2010 18:31:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fengguang.wu@intel.com, andi@firstfloor.org, greg@kroah.com
+Cc: fengguang.wu@intel.com, andi@firstfloor.org, gregkh@suse.de, shaohui.zheng@intel.com
 
 
 The patch titled
-     memory-hotplug: add 0x prefix to HEX block_size_bytes
+     sysdev: fix prototype for memory_sysdev_class show/store functions
 has been added to the -mm tree.  Its filename is
-     memory-hotplug-add-0x-prefix-to-hex-block_size_bytes.patch
+     sysdev-fix-prototype-for-memory_sysdev_class-show-store-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,30 +34,136 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memory-hotplug: add 0x prefix to HEX block_size_bytes
+Subject: sysdev: fix prototype for memory_sysdev_class show/store functions
 From: Wu Fengguang <fengguang.wu@intel.com>
+
+The function prototype mismatches in call stack:
+
+                [<ffffffff81494268>] print_block_size+0x58/0x60
+                [<ffffffff81487e3f>] sysdev_class_show+0x1f/0x30
+                [<ffffffff811d629b>] sysfs_read_file+0xcb/0x1f0
+                [<ffffffff81176328>] vfs_read+0xc8/0x180
+
+Due to prototype mismatch, print_block_size() will sprintf() into
+*attribute instead of *buf, hence user space will read the initial
+zeros from *buf:
+	$ hexdump /sys/devices/system/memory/block_size_bytes
+	0000000 0000 0000 0000 0000
+	0000008
+
+After patch:
+	cat /sys/devices/system/memory/block_size_bytes
+	0x8000000
+
+This complements commits c29af9636 and 4a0b2b4dbe.
 
 Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
 Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Greg KH <greg@kroah.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: "Zheng, Shaohui" <shaohui.zheng@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/base/memory.c |   32 ++++++++++++++++++++------------
+ 1 file changed, 20 insertions(+), 12 deletions(-)
 
-diff -puN drivers/base/memory.c~memory-hotplug-add-0x-prefix-to-hex-block_size_bytes drivers/base/memory.c
---- a/drivers/base/memory.c~memory-hotplug-add-0x-prefix-to-hex-block_size_bytes
+diff -puN drivers/base/memory.c~sysdev-fix-prototype-for-memory_sysdev_class-show-store-functions drivers/base/memory.c
+--- a/drivers/base/memory.c~sysdev-fix-prototype-for-memory_sysdev_class-show-store-functions
 +++ a/drivers/base/memory.c
-@@ -311,7 +311,7 @@ static SYSDEV_ATTR(removable, 0444, show
+@@ -309,17 +309,19 @@ static SYSDEV_ATTR(removable, 0444, show
+  * Block size attribute stuff
+  */
  static ssize_t
- print_block_size(struct class *class, char *buf)
+-print_block_size(struct class *class, char *buf)
++print_block_size(struct sysdev_class *class,
++		 struct sysdev_class_attribute *class_attr,
++		 char *buf)
  {
--	return sprintf(buf, "%lx\n", (unsigned long)PAGES_PER_SECTION * PAGE_SIZE);
-+	return sprintf(buf, "%#lx\n", (unsigned long)PAGES_PER_SECTION * PAGE_SIZE);
+ 	return sprintf(buf, "%#lx\n", (unsigned long)PAGES_PER_SECTION * PAGE_SIZE);
  }
  
- static CLASS_ATTR(block_size_bytes, 0444, print_block_size, NULL);
+-static CLASS_ATTR(block_size_bytes, 0444, print_block_size, NULL);
++static SYSDEV_CLASS_ATTR(block_size_bytes, 0444, print_block_size, NULL);
+ 
+ static int block_size_init(void)
+ {
+ 	return sysfs_create_file(&memory_sysdev_class.kset.kobj,
+-				&class_attr_block_size_bytes.attr);
++				&attr_block_size_bytes.attr);
+ }
+ 
+ /*
+@@ -330,7 +332,9 @@ static int block_size_init(void)
+  */
+ #ifdef CONFIG_ARCH_MEMORY_PROBE
+ static ssize_t
+-memory_probe_store(struct class *class, const char *buf, size_t count)
++memory_probe_store(struct sysdev_class *class,
++		   struct sysdev_class_attribute *class_attr,
++		   const char *buf, size_t count)
+ {
+ 	u64 phys_addr;
+ 	int nid;
+@@ -346,12 +350,12 @@ memory_probe_store(struct class *class, 
+ 
+ 	return count;
+ }
+-static CLASS_ATTR(probe, S_IWUSR, NULL, memory_probe_store);
++static SYSDEV_CLASS_ATTR(probe, S_IWUSR, NULL, memory_probe_store);
+ 
+ static int memory_probe_init(void)
+ {
+ 	return sysfs_create_file(&memory_sysdev_class.kset.kobj,
+-				&class_attr_probe.attr);
++				&attr_probe.attr);
+ }
+ #else
+ static inline int memory_probe_init(void)
+@@ -367,7 +371,9 @@ static inline int memory_probe_init(void
+ 
+ /* Soft offline a page */
+ static ssize_t
+-store_soft_offline_page(struct class *class, const char *buf, size_t count)
++store_soft_offline_page(struct sysdev_class *class,
++			struct sysdev_class_attribute *class_attr,
++			const char *buf, size_t count)
+ {
+ 	int ret;
+ 	u64 pfn;
+@@ -384,7 +390,9 @@ store_soft_offline_page(struct class *cl
+ 
+ /* Forcibly offline a page, including killing processes. */
+ static ssize_t
+-store_hard_offline_page(struct class *class, const char *buf, size_t count)
++store_hard_offline_page(struct sysdev_class *class,
++			struct sysdev_class_attribute *class_attr,
++			const char *buf, size_t count)
+ {
+ 	int ret;
+ 	u64 pfn;
+@@ -397,18 +405,18 @@ store_hard_offline_page(struct class *cl
+ 	return ret ? ret : count;
+ }
+ 
+-static CLASS_ATTR(soft_offline_page, 0644, NULL, store_soft_offline_page);
+-static CLASS_ATTR(hard_offline_page, 0644, NULL, store_hard_offline_page);
++static SYSDEV_CLASS_ATTR(soft_offline_page, 0644, NULL, store_soft_offline_page);
++static SYSDEV_CLASS_ATTR(hard_offline_page, 0644, NULL, store_hard_offline_page);
+ 
+ static __init int memory_fail_init(void)
+ {
+ 	int err;
+ 
+ 	err = sysfs_create_file(&memory_sysdev_class.kset.kobj,
+-				&class_attr_soft_offline_page.attr);
++				&attr_soft_offline_page.attr);
+ 	if (!err)
+ 		err = sysfs_create_file(&memory_sysdev_class.kset.kobj,
+-				&class_attr_hard_offline_page.attr);
++				&attr_hard_offline_page.attr);
+ 	return err;
+ }
+ #else
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
