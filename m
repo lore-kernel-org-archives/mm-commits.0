@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + edac-i5000_edac-critical-fix-panic-out-of-bounds.patch added to -mm tree
-Date: Thu, 14 Jan 2010 15:42:39 -0800
-Message-ID: <201001142342.o0ENgdv3006806@imap1.linux-foundation.org>
+Subject: + cgroups-subsystem-module-unloading-fix.patch added to -mm tree
+Date: Thu, 14 Jan 2010 15:45:11 -0800
+Message-ID: <201001142345.o0ENjBBc006897@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37965 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48009 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754681Ab0ANXoL (ORCPT
+	by vger.kernel.org with ESMTP id S1754712Ab0ANXpr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Jan 2010 18:44:11 -0500
+	Thu, 14 Jan 2010 18:45:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tom@vincze.org, dougthompson@xmission.com, mchehab@redhat.com, stable@kernel.org
+Cc: bblum@andrew.cmu.edu, randy.dunlap@oracle.com
 
 
 The patch titled
-     edac: i5000_edac critical fix panic out of bounds
+     cgroups-subsystem-module-unloading-fix
 has been added to the -mm tree.  Its filename is
-     edac-i5000_edac-critical-fix-panic-out-of-bounds.patch
+     cgroups-subsystem-module-unloading-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: edac: i5000_edac critical fix panic out of bounds
-From: Tamas Vincze <tom@vincze.org>
+Subject: cgroups-subsystem-module-unloading-fix
+From: Ben Blum <bblum@andrew.cmu.edu>
 
-EDAC MC0: INTERNAL ERROR: channel-b out of range (4 >= 4)
-Kernel panic - not syncing: EDAC MC0: Uncorrected Error  (XEN) Domain 0 crashed: 'noreboot' set - not rebooting.
-
-This happens because FERR_NF_FBD bit 28 is not updated on i5000.  Due to
-that, both bits 28 and 29 may be equal to one, returning channel = 3.  As
-this value is invalid, EDAC core generates the panic.
-
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=14568
-
-Signed-off-by: Tamas Vincze <tom@vincze.org>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-Signed-off-by: Doug Thompson <dougthompson@xmission.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Ben Blum <bblum@andrew.cmu.edu>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/i5000_edac.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ kernel/cgroup.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/edac/i5000_edac.c~edac-i5000_edac-critical-fix-panic-out-of-bounds drivers/edac/i5000_edac.c
---- a/drivers/edac/i5000_edac.c~edac-i5000_edac-critical-fix-panic-out-of-bounds
-+++ a/drivers/edac/i5000_edac.c
-@@ -577,7 +577,13 @@ static void i5000_process_nonfatal_error
- 		debugf0("\tUncorrected bits= 0x%x\n", ue_errors);
- 
- 		branch = EXTRACT_FBDCHAN_INDX(info->ferr_nf_fbd);
--		channel = branch;
-+
-+		/*
-+		 * According with i5000 datasheet, bit 28 has no significance
-+		 * for errors M4Err-M12Err and M17Err-M21Err, on FERR_NF_FBD
-+		 */
-+		channel = branch & 2;
-+
- 		bank = NREC_BANK(info->nrecmema);
- 		rank = NREC_RANK(info->nrecmema);
- 		rdwr = NREC_RDWR(info->nrecmema);
+diff -puN kernel/cgroup.c~cgroups-subsystem-module-unloading-fix kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-subsystem-module-unloading-fix
++++ a/kernel/cgroup.c
+@@ -962,7 +962,9 @@ static int rebind_subsystems(struct cgro
+ 			 * drop the extra reference.
+ 			 */
+ 			module_put(ss->module);
++#ifdef CONFIG_MODULE_UNLOAD
+ 			BUG_ON(ss->module && !module_refcount(ss->module));
++#endif
+ 		} else {
+ 			/* Subsystem state shouldn't exist */
+ 			BUG_ON(cgrp->subsys[i]);
 _
 
-Patches currently in -mm which might be from tom@vincze.org are
+Patches currently in -mm which might be from bblum@andrew.cmu.edu are
 
-edac-i5000_edac-critical-fix-panic-out-of-bounds.patch
+cgroups-revamp-subsys-array.patch
+cgroups-subsystem-module-loading-interface.patch
+cgroups-subsystem-module-loading-interface-fix.patch
+cgroups-subsystem-module-unloading.patch
+cgroups-subsystem-module-unloading-fix.patch
+cgroups-net_cls-as-module.patch
+cgroups-blkio-subsystem-as-module.patch
 
