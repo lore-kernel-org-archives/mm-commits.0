@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sysdev-fix-prototype-for-memory_sysdev_class-show-store-functions.patch added to -mm tree
-Date: Thu, 14 Jan 2010 15:30:37 -0800
-Message-ID: <201001142330.o0ENUb3e006196@imap1.linux-foundation.org>
+Subject: + nommu-fix-sysv-shm-for-nommu.patch added to -mm tree
+Date: Thu, 14 Jan 2010 15:34:35 -0800
+Message-ID: <201001142334.o0ENYZGt006394@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48294 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40220 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756742Ab0ANXbL (ORCPT
+	by vger.kernel.org with ESMTP id S1753847Ab0ANXe7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Jan 2010 18:31:11 -0500
+	Thu, 14 Jan 2010 18:34:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fengguang.wu@intel.com, andi@firstfloor.org, gregkh@suse.de, shaohui.zheng@intel.com
+Cc: dhowells@redhat.com, gerg@snapgear.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     sysdev: fix prototype for memory_sysdev_class show/store functions
+     nommu: fix SYSV SHM for NOMMU
 has been added to the -mm tree.  Its filename is
-     sysdev-fix-prototype-for-memory_sysdev_class-show-store-functions.patch
+     nommu-fix-sysv-shm-for-nommu.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,147 +34,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysdev: fix prototype for memory_sysdev_class show/store functions
-From: Wu Fengguang <fengguang.wu@intel.com>
+Subject: nommu: fix SYSV SHM for NOMMU
+From: David Howells <dhowells@redhat.com>
 
-The function prototype mismatches in call stack:
+Commit c4caa778157dbbf04116f0ac2111e389b5cd7a29 ("file
+->get_unmapped_area() shouldn't duplicate work of get_unmapped_area()")
+broke SYSV SHM for NOMMU by taking away the pointer to
+shm_get_unmapped_area() from shm_file_operations.
 
-                [<ffffffff81494268>] print_block_size+0x58/0x60
-                [<ffffffff81487e3f>] sysdev_class_show+0x1f/0x30
-                [<ffffffff811d629b>] sysfs_read_file+0xcb/0x1f0
-                [<ffffffff81176328>] vfs_read+0xc8/0x180
+Put it back conditionally on CONFIG_MMU=n.
 
-Due to prototype mismatch, print_block_size() will sprintf() into
-*attribute instead of *buf, hence user space will read the initial
-zeros from *buf:
-	$ hexdump /sys/devices/system/memory/block_size_bytes
-	0000000 0000 0000 0000 0000
-	0000008
+file->f_ops->get_unmapped_area() is used to find out the base address for a
+mapping of a mappable chardev device or mappable memory-based file (such as a
+ramfs file).  It needs to be called prior to file->f_ops->mmap() being called.
 
-After patch:
-	cat /sys/devices/system/memory/block_size_bytes
-	0x8000000
-
-This complements commits c29af9636 and 4a0b2b4dbe.
-
-Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: "Zheng, Shaohui" <shaohui.zheng@intel.com>
+Signed-off-by: David Howells <dhowells@redhat.com>
+Acked-by: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Greg Ungerer <gerg@snapgear.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c |   32 ++++++++++++++++++++------------
- 1 file changed, 20 insertions(+), 12 deletions(-)
+ ipc/shm.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN drivers/base/memory.c~sysdev-fix-prototype-for-memory_sysdev_class-show-store-functions drivers/base/memory.c
---- a/drivers/base/memory.c~sysdev-fix-prototype-for-memory_sysdev_class-show-store-functions
-+++ a/drivers/base/memory.c
-@@ -309,17 +309,19 @@ static SYSDEV_ATTR(removable, 0444, show
-  * Block size attribute stuff
-  */
- static ssize_t
--print_block_size(struct class *class, char *buf)
-+print_block_size(struct sysdev_class *class,
-+		 struct sysdev_class_attribute *class_attr,
-+		 char *buf)
- {
- 	return sprintf(buf, "%#lx\n", (unsigned long)PAGES_PER_SECTION * PAGE_SIZE);
- }
+diff -puN ipc/shm.c~nommu-fix-sysv-shm-for-nommu ipc/shm.c
+--- a/ipc/shm.c~nommu-fix-sysv-shm-for-nommu
++++ a/ipc/shm.c
+@@ -298,6 +298,9 @@ static const struct file_operations shm_
+ 	.mmap		= shm_mmap,
+ 	.fsync		= shm_fsync,
+ 	.release	= shm_release,
++#ifndef CONFIG_MMU
++	.get_unmapped_area	= shm_get_unmapped_area,
++#endif
+ };
  
--static CLASS_ATTR(block_size_bytes, 0444, print_block_size, NULL);
-+static SYSDEV_CLASS_ATTR(block_size_bytes, 0444, print_block_size, NULL);
- 
- static int block_size_init(void)
- {
- 	return sysfs_create_file(&memory_sysdev_class.kset.kobj,
--				&class_attr_block_size_bytes.attr);
-+				&attr_block_size_bytes.attr);
- }
- 
- /*
-@@ -330,7 +332,9 @@ static int block_size_init(void)
-  */
- #ifdef CONFIG_ARCH_MEMORY_PROBE
- static ssize_t
--memory_probe_store(struct class *class, const char *buf, size_t count)
-+memory_probe_store(struct sysdev_class *class,
-+		   struct sysdev_class_attribute *class_attr,
-+		   const char *buf, size_t count)
- {
- 	u64 phys_addr;
- 	int nid;
-@@ -346,12 +350,12 @@ memory_probe_store(struct class *class, 
- 
- 	return count;
- }
--static CLASS_ATTR(probe, S_IWUSR, NULL, memory_probe_store);
-+static SYSDEV_CLASS_ATTR(probe, S_IWUSR, NULL, memory_probe_store);
- 
- static int memory_probe_init(void)
- {
- 	return sysfs_create_file(&memory_sysdev_class.kset.kobj,
--				&class_attr_probe.attr);
-+				&attr_probe.attr);
- }
- #else
- static inline int memory_probe_init(void)
-@@ -367,7 +371,9 @@ static inline int memory_probe_init(void
- 
- /* Soft offline a page */
- static ssize_t
--store_soft_offline_page(struct class *class, const char *buf, size_t count)
-+store_soft_offline_page(struct sysdev_class *class,
-+			struct sysdev_class_attribute *class_attr,
-+			const char *buf, size_t count)
- {
- 	int ret;
- 	u64 pfn;
-@@ -384,7 +390,9 @@ store_soft_offline_page(struct class *cl
- 
- /* Forcibly offline a page, including killing processes. */
- static ssize_t
--store_hard_offline_page(struct class *class, const char *buf, size_t count)
-+store_hard_offline_page(struct sysdev_class *class,
-+			struct sysdev_class_attribute *class_attr,
-+			const char *buf, size_t count)
- {
- 	int ret;
- 	u64 pfn;
-@@ -397,18 +405,18 @@ store_hard_offline_page(struct class *cl
- 	return ret ? ret : count;
- }
- 
--static CLASS_ATTR(soft_offline_page, 0644, NULL, store_soft_offline_page);
--static CLASS_ATTR(hard_offline_page, 0644, NULL, store_hard_offline_page);
-+static SYSDEV_CLASS_ATTR(soft_offline_page, 0644, NULL, store_soft_offline_page);
-+static SYSDEV_CLASS_ATTR(hard_offline_page, 0644, NULL, store_hard_offline_page);
- 
- static __init int memory_fail_init(void)
- {
- 	int err;
- 
- 	err = sysfs_create_file(&memory_sysdev_class.kset.kobj,
--				&class_attr_soft_offline_page.attr);
-+				&attr_soft_offline_page.attr);
- 	if (!err)
- 		err = sysfs_create_file(&memory_sysdev_class.kset.kobj,
--				&class_attr_hard_offline_page.attr);
-+				&attr_hard_offline_page.attr);
- 	return err;
- }
- #else
+ static const struct file_operations shm_file_operations_huge = {
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
-linux-next.patch
-vmscan-kswapd-dont-retry-balance_pgdat-if-all-zones-are-unreclaimable.patch
-memory-hotplug-add-0x-prefix-to-hex-block_size_bytes.patch
-sysdev-fix-prototype-for-memory_sysdev_class-show-store-functions.patch
-mm-introduce-dump_page-and-print-symbolic-flag-names.patch
-vmscan-check-high-watermark-after-shrink-zone.patch
-vmscan-check-high-watermark-after-shrink-zone-fix.patch
-memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory.patch
-mm-restore-zone-all_unreclaimable-to-independence-word.patch
+nommu-fix-sysv-shm-for-nommu.patch
+nommu-struct-vm_regions-vm_usage-count-need-not-be-atomic.patch
+nommu-remove-a-superfluous-check-of-vm_region-vm_usage.patch
+nommu-dont-need-get_unmapped_area-for-nommu.patch
+nommu-fix-race-between-ramfs-truncation-and-shared-mmap.patch
+nommu-fix-shared-mmap-after-truncate-shrinkage-problems.patch
+kernel-credc-use-kmem_cache_free.patch
+nfs-avoid-warnings-when-config_nfs_v4=n.patch
+frv-duplicate-output_buffer-of-e03.patch
+coredump-unify-dump_seek-implementations-for-each-binfmt_c.patch
+coredump-move-dump_write-and-dump_seek-into-a-header-file.patch
+elf-coredump-replace-elf_core_extra_-macros-by-functions.patch
+elf-coredump-make-offset-calculation-process-and-writing-process-explicit.patch
+elf-coredump-add-extended-numbering-support.patch
+mutex-subsystem-synchro-test-module.patch
+mutex-subsystem-synchro-test-module-add-missing-header-file.patch
 
