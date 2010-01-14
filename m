@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-starmode-radio-ip-strip-moved-to-staging.patch added to -mm tree
-Date: Thu, 14 Jan 2010 15:14:34 -0800
-Message-ID: <201001142314.o0ENEYLZ005199@imap1.linux-foundation.org>
+Subject: + maintainers-wavelan-moved-to-staging.patch added to -mm tree
+Date: Thu, 14 Jan 2010 15:14:36 -0800
+Message-ID: <201001142314.o0ENEanH005202@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45913 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47196 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756985Ab0ANXOx (ORCPT
+	by vger.kernel.org with ESMTP id S1757052Ab0ANXO4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Jan 2010 18:14:53 -0500
+	Thu, 14 Jan 2010 18:14:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: joe@perches.com
 
 
 The patch titled
-     MAINTAINERS: STARMODE RADIO IP (STRIP) moved to staging
+     MAINTAINERS: WAVELAN moved to staging
 has been added to the -mm tree.  Its filename is
-     maintainers-starmode-radio-ip-strip-moved-to-staging.patch
+     maintainers-wavelan-moved-to-staging.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: STARMODE RADIO IP (STRIP) moved to staging
+Subject: MAINTAINERS: WAVELAN moved to staging
 From: Joe Perches <joe@perches.com>
 
-by commit 955015bb0b42167d14f776ff5947ae2463a974dc
+by commit 0234f84ebb00d36c48062befa5436eef36b71ccd
+Update patterns
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
@@ -46,18 +47,18 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  MAINTAINERS |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-starmode-radio-ip-strip-moved-to-staging MAINTAINERS
---- a/MAINTAINERS~maintainers-starmode-radio-ip-strip-moved-to-staging
+diff -puN MAINTAINERS~maintainers-wavelan-moved-to-staging MAINTAINERS
+--- a/MAINTAINERS~maintainers-wavelan-moved-to-staging
 +++ a/MAINTAINERS
-@@ -5175,7 +5175,7 @@ F:	drivers/net/starfire*
+@@ -5964,7 +5964,7 @@ L:	linux-wireless@vger.kernel.org
+ W:	http://www.hpl.hp.com/personal/Jean_Tourrilhes/Linux/
+ S:	Maintained
+ F:	Documentation/networking/wavelan.txt
+-F:	drivers/net/wireless/wavelan*
++F:	drivers/staging/wavelan/
  
- STARMODE RADIO IP (STRIP) PROTOCOL DRIVER
- S:	Orphan
--F:	drivers/net/wireless/strip.c
-+F:	drivers/staging/strip/strip.c
- F:	include/linux/if_strip.h
- 
- STRADIS MPEG-2 DECODER DRIVER
+ WD7000 SCSI DRIVER
+ M:	Miroslav Zagorac <zaga@fly.cc.fer.hr>
 _
 
 Patches currently in -mm which might be from joe@perches.com are
