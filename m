@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-remove-amd-geode-f-arch-x86-kernel-geode_32c.patch added to -mm tree
-Date: Thu, 14 Jan 2010 15:14:28 -0800
-Message-ID: <201001142314.o0ENES5l005188@imap1.linux-foundation.org>
+Subject: + maintainers-remove-hayes-esp-serial-driver.patch added to -mm tree
+Date: Thu, 14 Jan 2010 15:14:30 -0800
+Message-ID: <201001142314.o0ENEUiQ005191@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39079 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40320 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751060Ab0ANXOu (ORCPT
+	by vger.kernel.org with ESMTP id S1756894Ab0ANXOv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Jan 2010 18:14:50 -0500
+	Thu, 14 Jan 2010 18:14:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: joe@perches.com
 
 
 The patch titled
-     MAINTAINERS: remove AMD GEODE F: arch/x86/kernel/geode_32.c
+     MAINTAINERS: remove HAYES ESP SERIAL DRIVER
 has been added to the -mm tree.  Its filename is
-     maintainers-remove-amd-geode-f-arch-x86-kernel-geode_32c.patch
+     maintainers-remove-hayes-esp-serial-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,29 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: remove AMD GEODE F: arch/x86/kernel/geode_32.c
+Subject: MAINTAINERS: remove HAYES ESP SERIAL DRIVER
 From: Joe Perches <joe@perches.com>
 
-Commit c95d1e53ed89b75a4d7b68d1cbae4607b1479243 removed it.
+Commit f53a2ade0bb9f2a81f473e6469155172a96b7c38 removed it
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 -
- 1 file changed, 1 deletion(-)
+ MAINTAINERS |    7 -------
+ 1 file changed, 7 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-remove-amd-geode-f-arch-x86-kernel-geode_32c MAINTAINERS
---- a/MAINTAINERS~maintainers-remove-amd-geode-f-arch-x86-kernel-geode_32c
+diff -puN MAINTAINERS~maintainers-remove-hayes-esp-serial-driver MAINTAINERS
+--- a/MAINTAINERS~maintainers-remove-hayes-esp-serial-driver
 +++ a/MAINTAINERS
-@@ -427,7 +427,6 @@ P:	Jordan Crouse
- L:	linux-geode@lists.infradead.org (moderated for non-subscribers)
- W:	http://www.amd.com/us-en/ConnectivitySolutions/TechnicalResources/0,,50_2334_2452_11363,00.html
- S:	Supported
--F:	arch/x86/kernel/geode_32.c
- F:	drivers/char/hw_random/geode-rng.c
- F:	drivers/crypto/geode*
- F:	drivers/video/geode/
+@@ -2486,13 +2486,6 @@ L:	linux-parisc@vger.kernel.org
+ S:	Maintained
+ F:	sound/parisc/harmony.*
+ 
+-HAYES ESP SERIAL DRIVER
+-M:	"Andrew J. Robinson" <arobinso@nyx.net>
+-W:	http://www.nyx.net/~arobinso
+-S:	Maintained
+-F:	Documentation/serial/hayes-esp.txt
+-F:	drivers/char/esp.c
+-
+ HEWLETT-PACKARD SMART2 RAID DRIVER
+ M:	Chirag Kantharia <chirag.kantharia@hp.com>
+ L:	iss_storagedev@hp.com
 _
 
 Patches currently in -mm which might be from joe@perches.com are
