@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ttyh-make-function-static-fix.patch added to -mm tree
-Date: Thu, 14 Jan 2010 15:48:52 -0800
-Message-ID: <201001142348.o0ENmqJL007114@imap1.linux-foundation.org>
+Subject: + mm-add-swap-slot-free-callback-to-block_device_operations-fix.patch added to -mm tree
+Date: Thu, 14 Jan 2010 15:50:38 -0800
+Message-ID: <201001142350.o0ENoceI007181@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55266 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58892 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756813Ab0ANXtd (ORCPT
+	by vger.kernel.org with ESMTP id S1756787Ab0ANXun (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Jan 2010 18:49:33 -0500
+	Thu, 14 Jan 2010 18:50:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, randy.dunlap@oracle.com
+Cc: ngupta@vflare.org, hugh.dickins@tiscali.co.uk
 
 
 The patch titled
-     ttyh-make-function-static-fix
+     mm-add-swap-slot-free-callback-to-block_device_operations-fix
 has been added to the -mm tree.  Its filename is
-     ttyh-make-function-static-fix.patch
+     mm-add-swap-slot-free-callback-to-block_device_operations-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,70 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ttyh-make-function-static-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-add-swap-slot-free-callback-to-block_device_operations-fix
+From: Nitin Gupta <ngupta@vflare.org>
 
-May as well convert tty_port_users() also.
+A block device makes swap_slot_free_notify() callback when the last
+reference to a swap slot is dropped.
 
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+This callback is made under swap_lock and sometimes page table lock.  This
+is a note of warning for registered callback function which must meet
+these constraints.
+
+Signed-off-by: Nitin Gupta <ngupta@vflare.org>
+Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/tty.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/blkdev.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/tty.h~ttyh-make-function-static-fix include/linux/tty.h
---- a/include/linux/tty.h~ttyh-make-function-static-fix
-+++ a/include/linux/tty.h
-@@ -486,7 +486,7 @@ extern void tty_port_close(struct tty_po
- 				struct tty_struct *tty, struct file *filp);
- extern int tty_port_open(struct tty_port *port,
- 				struct tty_struct *tty, struct file *filp);
--extern inline int tty_port_users(struct tty_port *port)
-+static inline int tty_port_users(struct tty_port *port)
- {
- 	return port->count + port->blocked_open;
- }
+diff -puN include/linux/blkdev.h~mm-add-swap-slot-free-callback-to-block_device_operations-fix include/linux/blkdev.h
+--- a/include/linux/blkdev.h~mm-add-swap-slot-free-callback-to-block_device_operations-fix
++++ a/include/linux/blkdev.h
+@@ -1294,6 +1294,7 @@ struct block_device_operations {
+ 						unsigned long long);
+ 	int (*revalidate_disk) (struct gendisk *);
+ 	int (*getgeo)(struct block_device *, struct hd_geometry *);
++	/* this callback is with swap_lock and sometimes page table lock held */
+ 	void (*swap_slot_free_notify) (struct block_device *, unsigned long);
+ 	struct module *owner;
+ };
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ngupta@vflare.org are
 
-origin.patch
-ttyh-make-function-static-fix.patch
-linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-ibmphp-read-the-length-of-ebda-and-map-entire-ebda-region-fix.patch
-revert-clockevents-prevent-clockevent_devices-list-corruption-on-cpu-hotplug.patch
-drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
-drivers-media-video-pmsc-needs-versionh.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-jffs2-avoid-using-c-keyword-new-in-userspace-visible-header.patch
-3x59x-fix-pci-resource-management.patch
-drivers-usb-core-sysfsc-set_reset_quirk-remove-unused-local.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
-mm-count-swap-usage-checkpatch-fixes.patch
-mm-add-lowmem-detection-logic-fix.patch
-mm-count-lowmem-rss-checkpatch-fixes.patch
-vmscan-check-high-watermark-after-shrink-zone-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
-memcg-move-charges-of-anonymous-page-cleanup.patch
-memcg-implement-memory-thresholds-checkpatch-fixes.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+mm-add-swap-slot-free-callback-to-block_device_operations.patch
+mm-add-swap-slot-free-callback-to-block_device_operations-fix.patch
+ramzswap-use-slot-free-callback-to-eliminate-stale-data.patch
 
