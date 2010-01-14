@@ -1,167 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Thu, 14 Jan 2010 13:19:44 -0800
-Message-ID: <201001142119.o0ELJiSk031559@imap1.linux-foundation.org>
+Subject: [obsolete] lzo-fix-up-add-support-for-lzo-compressed-kernels-patch.patch removed from -mm tree
+Date: Thu, 14 Jan 2010 13:19:57 -0800
+Message-ID: <201001142119.o0ELJv4f031567@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52648 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46857 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932151Ab0ANVUO (ORCPT
+	by vger.kernel.org with ESMTP id S1753047Ab0ANVU6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Jan 2010 16:20:14 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id o0ELJicc010911
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 14 Jan 2010 13:19:45 -0800
+	Thu, 14 Jan 2010 16:20:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: phillip@lougher.demon.co.uk, albin.tonnerre@free-electrons.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     lzo: fix-up add support for lzo compressed kernels patch
+has been removed from the -mm tree.  Its filename was
+     lzo-fix-up-add-support-for-lzo-compressed-kernels-patch.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lzo: fix-up add support for lzo compressed kernels patch
+From: Phillip Lougher <phillip@lougher.demon.co.uk>
 
+The add support for lzo compressed kernels patch relies on INIT and error
+definitions which have been moved to separate xxx_mm.h files for each
+decompressor.
+
+This patch adds a unlzo_mm.h file which supplies these definitions.
+
+Signed-off-by: Phillip Lougher <phillip@lougher.demon.co.uk>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Albin Tonnerre <albin.tonnerre@free-electrons.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/zlib_inflate/inffast.c |   59 -----------------------------------
- 1 file changed, 59 deletions(-)
+ include/linux/decompress/unlzo_mm.h |   13 +++++++++++++
+ lib/decompress_unlzo.c              |    1 +
+ 2 files changed, 14 insertions(+)
 
-diff -puN lib/zlib_inflate/inffast.c~linux-next-git-rejects lib/zlib_inflate/inffast.c
---- a/lib/zlib_inflate/inffast.c~linux-next-git-rejects
-+++ a/lib/zlib_inflate/inffast.c
-@@ -254,64 +254,6 @@ void inflate_fast(z_streamp strm, unsign
-                     }
-                 }
-                 else {
--<<<<<<< HEAD:lib/zlib_inflate/inffast.c
--#ifdef CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS
--		    unsigned short *sout;
--		    unsigned long loops;
--
--                    from = out - dist;          /* copy direct from output */
--		    /* minimum length is three */
--		    /* Align out addr */
--		    if (!((long)(out - 1 + OFF) & 1)) {
--			PUP(out) = PUP(from);
--			len--;
--		    }
--		    sout = (unsigned short *)(out - OFF);
--		    if (dist > 2) {
--			unsigned short *sfrom;
--
--			sfrom = (unsigned short *)(from - OFF);
--			loops = len >> 1;
--			do
--			    PUP(sout) = UP_UNALIGNED(sfrom);
--			while (--loops);
--			out = (unsigned char *)sout + OFF;
--			from = (unsigned char *)sfrom + OFF;
--		    } else { /* dist == 1 or dist == 2 */
--			unsigned short pat16;
--
--			pat16 = *(sout-2+2*OFF);
--			if (dist == 1)
--#if defined(__BIG_ENDIAN)
--			    pat16 = (pat16 & 0xff) | ((pat16 & 0xff) << 8);
--#elif defined(__LITTLE_ENDIAN)
--			    pat16 = (pat16 & 0xff00) | ((pat16 & 0xff00) >> 8);
--#else
--#error __BIG_ENDIAN nor __LITTLE_ENDIAN is defined
--#endif
--			loops = len >> 1;
--			do
--			    PUP(sout) = pat16;
--			while (--loops);
--			out = (unsigned char *)sout + OFF;
--		    }
--		    if (len & 1)
--			PUP(out) = PUP(from);
--#else /* CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS */
--                    from = out - dist;          /* copy direct from output */
--                    do {                        /* minimum length is three */
--			 PUP(out) = PUP(from);
--			 PUP(out) = PUP(from);
--			 PUP(out) = PUP(from);
--			 len -= 3;
--                    } while (len > 2);
--                    if (len) {
--			 PUP(out) = PUP(from);
--			 if (len > 1)
--			     PUP(out) = PUP(from);
--                    }
--#endif /* !CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS */
--=======
-                     from = out - dist;          /* copy direct from output */
-                     do {                        /* minimum length is three */
-                         PUP(out) = PUP(from);
-@@ -324,7 +266,6 @@ void inflate_fast(z_streamp strm, unsign
-                         if (len > 1)
-                             PUP(out) = PUP(from);
-                     }
-->>>>>>> FETCH_HEAD:lib/zlib_inflate/inffast.c
-                 }
-             }
-             else if ((op & 64) == 0) {          /* 2nd level distance code */
+diff -puN /dev/null include/linux/decompress/unlzo_mm.h
+--- /dev/null
++++ a/include/linux/decompress/unlzo_mm.h
+@@ -0,0 +1,13 @@
++#ifndef UNLZO_MM_H
++#define UNLZO_MM_H
++
++#ifdef STATIC
++/* Code active when included from pre-boot environment: */
++#define INIT
++#else
++/* Compile for initramfs/initrd code only */
++#define INIT __init
++static void(*error)(char *m);
++#endif
++
++#endif
+diff -puN lib/decompress_unlzo.c~lzo-fix-up-add-support-for-lzo-compressed-kernels-patch lib/decompress_unlzo.c
+--- a/lib/decompress_unlzo.c~lzo-fix-up-add-support-for-lzo-compressed-kernels-patch
++++ a/lib/decompress_unlzo.c
+@@ -39,6 +39,7 @@
+ 
+ #include <linux/types.h>
+ #include <linux/lzo.h>
++#include <linux/decompress/unlzo_mm.h>
+ #include <linux/decompress/mm.h>
+ 
+ #include <linux/compiler.h>
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from phillip@lougher.demon.co.uk are
 
-origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-ibmphp-read-the-length-of-ebda-and-map-entire-ebda-region-fix.patch
-revert-clockevents-prevent-clockevent_devices-list-corruption-on-cpu-hotplug.patch
-revert-cpufreq-fix-race-in-cpufreq_update_policy.patch
-drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
-drivers-media-video-pmsc-needs-versionh.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-jffs2-avoid-using-c-keyword-new-in-userspace-visible-header.patch
-3x59x-fix-pci-resource-management.patch
-drivers-usb-core-sysfsc-set_reset_quirk-remove-unused-local.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
-mm-count-swap-usage-checkpatch-fixes.patch
-mm-add-lowmem-detection-logic-fix.patch
-mm-count-lowmem-rss-checkpatch-fixes.patch
-vmscan-check-high-watermark-after-shrink-zone-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
-memcg-move-charges-of-anonymous-page-cleanup.patch
-memcg-implement-memory-thresholds-checkpatch-fixes.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+lzo-fix-up-add-support-for-lzo-compressed-kernels-patch.patch
 
