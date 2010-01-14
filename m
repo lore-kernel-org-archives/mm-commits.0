@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + gemini-wrong-registers-used-to-set-reg_level-in-gpio_set_irq_type.patch added to -mm tree
-Date: Thu, 14 Jan 2010 15:53:57 -0800
-Message-ID: <201001142353.o0ENrvM5007371@imap1.linux-foundation.org>
+Subject: + ia64-wrong-attribute-of-hub-chip-written-in-uv_setup.patch added to -mm tree
+Date: Thu, 14 Jan 2010 15:54:47 -0800
+Message-ID: <201001142354.o0ENslvu007383@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52458 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49421 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751456Ab0ANXyQ (ORCPT
+	by vger.kernel.org with ESMTP id S1757095Ab0ANXyu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Jan 2010 18:54:16 -0500
+	Thu, 14 Jan 2010 18:54:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, linux@arm.linux.org.uk, paulius.zaleckas@teltonika.lt
+Cc: roel.kluin@gmail.com, fenghua.yu@intel.com, tony.luck@intel.com
 
 
 The patch titled
-     arch/arm/mach-gemini/gpio.c: wrong registers used to set reg_level in gpio_set_irq_type()
+     arch/ia64/uv/kernel/setup.c: wrong attribute of HUB chip written in uv_setup()
 has been added to the -mm tree.  Its filename is
-     gemini-wrong-registers-used-to-set-reg_level-in-gpio_set_irq_type.patch
+     ia64-wrong-attribute-of-hub-chip-written-in-uv_setup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/arm/mach-gemini/gpio.c: wrong registers used to set reg_level in gpio_set_irq_type()
+Subject: arch/ia64/uv/kernel/setup.c: wrong attribute of HUB chip written in uv_setup()
 From: Roel Kluin <roel.kluin@gmail.com>
 
-It appears the wrong GPIO registers were used
+n_val should be assigned to n_val attribute of HUB chip.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
-Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-gemini/gpio.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/ia64/uv/kernel/setup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/arm/mach-gemini/gpio.c~gemini-wrong-registers-used-to-set-reg_level-in-gpio_set_irq_type arch/arm/mach-gemini/gpio.c
---- a/arch/arm/mach-gemini/gpio.c~gemini-wrong-registers-used-to-set-reg_level-in-gpio_set_irq_type
-+++ a/arch/arm/mach-gemini/gpio.c
-@@ -86,7 +86,7 @@ static int gpio_set_irq_type(unsigned in
- 	unsigned int reg_both, reg_level, reg_type;
- 
- 	reg_type = __raw_readl(base + GPIO_INT_TYPE);
--	reg_level = __raw_readl(base + GPIO_INT_BOTH_EDGE);
-+	reg_level = __raw_readl(base + GPIO_INT_LEVEL);
- 	reg_both = __raw_readl(base + GPIO_INT_BOTH_EDGE);
- 
- 	switch (type) {
-@@ -117,7 +117,7 @@ static int gpio_set_irq_type(unsigned in
- 	}
- 
- 	__raw_writel(reg_type, base + GPIO_INT_TYPE);
--	__raw_writel(reg_level, base + GPIO_INT_BOTH_EDGE);
-+	__raw_writel(reg_level, base + GPIO_INT_LEVEL);
- 	__raw_writel(reg_both, base + GPIO_INT_BOTH_EDGE);
- 
- 	gpio_ack_irq(irq);
+diff -puN arch/ia64/uv/kernel/setup.c~ia64-wrong-attribute-of-hub-chip-written-in-uv_setup arch/ia64/uv/kernel/setup.c
+--- a/arch/ia64/uv/kernel/setup.c~ia64-wrong-attribute-of-hub-chip-written-in-uv_setup
++++ a/arch/ia64/uv/kernel/setup.c
+@@ -104,7 +104,7 @@ void __init uv_setup(char **cmdline_p)
+ 		uv_cpu_hub_info(cpu)->lowmem_remap_top =
+ 			lowmem_redir_base + lowmem_redir_size;
+ 		uv_cpu_hub_info(cpu)->m_val = m_val;
+-		uv_cpu_hub_info(cpu)->n_val = m_val;
++		uv_cpu_hub_info(cpu)->n_val = n_val;
+ 		uv_cpu_hub_info(cpu)->pnode_mask = (1 << n_val) -1;
+ 		uv_cpu_hub_info(cpu)->gpa_mask = (1 << (m_val + n_val)) - 1;
+ 		uv_cpu_hub_info(cpu)->gnode_upper = gnode_upper;
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -78,6 +69,7 @@ acpi-fix-confusion-in-acpi_evaluate_string-in-comment.patch
 asus-acpi-remove-duplicate-comparison-of-asus_model-strings.patch
 gemini-wrong-registers-used-to-set-reg_level-in-gpio_set_irq_type.patch
 powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+ia64-wrong-attribute-of-hub-chip-written-in-uv_setup.patch
 hisax-timeout-off-by-one-in-waitrecmsg.patch
 das_net-not-copied-but-assigned-to-itself-in-aarp_rcv.patch
 drivers-scsi-fnic-fnic_scsic-clean-up.patch
