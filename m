@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + nommu-dont-need-get_unmapped_area-for-nommu.patch added to -mm tree
-Date: Thu, 14 Jan 2010 15:34:42 -0800
-Message-ID: <201001142334.o0ENYgqx006405@imap1.linux-foundation.org>
+Subject: + nommu-fix-shared-mmap-after-truncate-shrinkage-problems.patch added to -mm tree
+Date: Thu, 14 Jan 2010 15:34:51 -0800
+Message-ID: <201001142334.o0ENYqaK006413@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33387 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48510 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757441Ab0ANXfJ (ORCPT
+	by vger.kernel.org with ESMTP id S1757446Ab0ANXfN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Jan 2010 18:35:09 -0500
+	Thu, 14 Jan 2010 18:35:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: dhowells@redhat.com, gerg@snapgear.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     nommu: don't need get_unmapped_area() for NOMMU
+     nommu: fix shared mmap after truncate shrinkage problems
 has been added to the -mm tree.  Its filename is
-     nommu-dont-need-get_unmapped_area-for-nommu.patch
+     nommu-fix-shared-mmap-after-truncate-shrinkage-problems.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nommu: don't need get_unmapped_area() for NOMMU
+Subject: nommu: fix shared mmap after truncate shrinkage problems
 From: David Howells <dhowells@redhat.com>
 
-get_unmapped_area() is unnecessary for NOMMU as no-one calls it.
+Fix a problem in NOMMU mmap with ramfs whereby a shared mmap can happen
+over the end of a truncation.  The problem is that
+ramfs_nommu_check_mappings() checks that the reduced file size against the
+VMA tree, but not the vm_region tree.
+
+The following sequence of events can cause the problem:
+
+	fd = open("/tmp/x", O_RDWR|O_TRUNC|O_CREAT, 0600);
+	ftruncate(fd, 32 * 1024);
+	a = mmap(NULL, 32 * 1024, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+	b = mmap(NULL, 16 * 1024, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+	munmap(a, 32 * 1024);
+	ftruncate(fd, 16 * 1024);
+	c = mmap(NULL, 32 * 1024, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+
+Mapping 'a' creates a vm_region covering 32KB of the file.  Mapping 'b'
+sees that the vm_region from 'a' is covering the region it wants and so
+shares it, pinning it in memory.
+
+Mapping 'a' then goes away and the file is truncated to the end of VMA
+'b'.  However, the region allocated by 'a' is still in effect, and has
+_not_ been reduced.
+
+Mapping 'c' is then created, and because there's a vm_region covering the
+desired region, get_unmapped_area() is _not_ called to repeat the check,
+and the mapping is granted, even though the pages from the latter half of
+the mapping have been discarded.
+
+However:
+
+	d = mmap(NULL, 16 * 1024, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+
+Mapping 'd' should work, and should end up sharing the region allocated by
+'a'.
+
+To deal with this, we shrink the vm_region struct during the truncation,
+lest do_mmap_pgoff() take it as licence to share the full region
+automatically without calling the get_unmapped_area() file op again.
 
 Signed-off-by: David Howells <dhowells@redhat.com>
 Acked-by: Al Viro <viro@zeniv.linux.org.uk>
@@ -45,102 +82,139 @@ Cc: Greg Ungerer <gerg@snapgear.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |    2 ++
- include/linux/sched.h    |    7 +++++--
- mm/nommu.c               |   21 ---------------------
- mm/util.c                |    2 +-
- 4 files changed, 8 insertions(+), 24 deletions(-)
+ fs/ramfs/file-nommu.c |   31 --------------------
+ include/linux/mm.h    |    1 
+ mm/nommu.c            |   62 ++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 64 insertions(+), 30 deletions(-)
 
-diff -puN include/linux/mm_types.h~nommu-dont-need-get_unmapped_area-for-nommu include/linux/mm_types.h
---- a/include/linux/mm_types.h~nommu-dont-need-get_unmapped_area-for-nommu
-+++ a/include/linux/mm_types.h
-@@ -205,10 +205,12 @@ struct mm_struct {
- 	struct vm_area_struct * mmap;		/* list of VMAs */
- 	struct rb_root mm_rb;
- 	struct vm_area_struct * mmap_cache;	/* last find_vma result */
-+#ifdef CONFIG_MMU
- 	unsigned long (*get_unmapped_area) (struct file *filp,
- 				unsigned long addr, unsigned long len,
- 				unsigned long pgoff, unsigned long flags);
- 	void (*unmap_area) (struct mm_struct *mm, unsigned long addr);
-+#endif
- 	unsigned long mmap_base;		/* base of mmap area */
- 	unsigned long task_size;		/* size of task vm space */
- 	unsigned long cached_hole_size; 	/* if non-zero, the largest hole below free_area_cache */
-diff -puN include/linux/sched.h~nommu-dont-need-get_unmapped_area-for-nommu include/linux/sched.h
---- a/include/linux/sched.h~nommu-dont-need-get_unmapped_area-for-nommu
-+++ a/include/linux/sched.h
-@@ -381,6 +381,8 @@ extern int sysctl_max_map_count;
+diff -puN fs/ramfs/file-nommu.c~nommu-fix-shared-mmap-after-truncate-shrinkage-problems fs/ramfs/file-nommu.c
+--- a/fs/ramfs/file-nommu.c~nommu-fix-shared-mmap-after-truncate-shrinkage-problems
++++ a/fs/ramfs/file-nommu.c
+@@ -123,35 +123,6 @@ add_error:
  
- #include <linux/aio.h>
- 
-+#ifdef CONFIG_MMU
-+extern void arch_pick_mmap_layout(struct mm_struct *mm);
- extern unsigned long
- arch_get_unmapped_area(struct file *, unsigned long, unsigned long,
- 		       unsigned long, unsigned long);
-@@ -390,6 +392,9 @@ arch_get_unmapped_area_topdown(struct fi
- 			  unsigned long flags);
- extern void arch_unmap_area(struct mm_struct *, unsigned long);
- extern void arch_unmap_area_topdown(struct mm_struct *, unsigned long);
-+#else
-+static inline void arch_pick_mmap_layout(struct mm_struct *mm) {}
-+#endif
- 
- #if USE_SPLIT_PTLOCKS
+ /*****************************************************************************/
  /*
-@@ -2495,8 +2500,6 @@ static inline void set_task_cpu(struct t
- 
- #endif /* CONFIG_SMP */
- 
--extern void arch_pick_mmap_layout(struct mm_struct *mm);
--
- #ifdef CONFIG_TRACING
- extern void
- __trace_special(void *__tr, void *__data,
-diff -puN mm/nommu.c~nommu-dont-need-get_unmapped_area-for-nommu mm/nommu.c
---- a/mm/nommu.c~nommu-dont-need-get_unmapped_area-for-nommu
-+++ a/mm/nommu.c
-@@ -1761,27 +1761,6 @@ void unmap_mapping_range(struct address_
- EXPORT_SYMBOL(unmap_mapping_range);
- 
- /*
-- * ask for an unmapped area at which to create a mapping on a file
+- * check that file shrinkage doesn't leave any VMAs dangling in midair
 - */
--unsigned long get_unmapped_area(struct file *file, unsigned long addr,
--				unsigned long len, unsigned long pgoff,
--				unsigned long flags)
+-static int ramfs_nommu_check_mappings(struct inode *inode,
+-				      size_t newsize, size_t size)
 -{
--	unsigned long (*get_area)(struct file *, unsigned long, unsigned long,
--				  unsigned long, unsigned long);
+-	struct vm_area_struct *vma;
+-	struct prio_tree_iter iter;
 -
--	get_area = current->mm->get_unmapped_area;
--	if (file && file->f_op && file->f_op->get_unmapped_area)
--		get_area = file->f_op->get_unmapped_area;
+-	down_write(&nommu_region_sem);
 -
--	if (!get_area)
--		return -ENOSYS;
+-	/* search for VMAs that fall within the dead zone */
+-	vma_prio_tree_foreach(vma, &iter, &inode->i_mapping->i_mmap,
+-			      newsize >> PAGE_SHIFT,
+-			      (size + PAGE_SIZE - 1) >> PAGE_SHIFT
+-			      ) {
+-		/* found one - only interested if it's shared out of the page
+-		 * cache */
+-		if (vma->vm_flags & VM_SHARED) {
+-			up_write(&nommu_region_sem);
+-			return -ETXTBSY; /* not quite true, but near enough */
+-		}
+-	}
 -
--	return get_area(file, addr, len, pgoff, flags);
+-	up_write(&nommu_region_sem);
+-	return 0;
 -}
--EXPORT_SYMBOL(get_unmapped_area);
 -
+-/*****************************************************************************/
 -/*
-  * Check that a process has enough memory to allocate a new virtual
-  * mapping. 0 means there is enough memory for the allocation to
-  * succeed and -ENOMEM implies there is not.
-diff -puN mm/util.c~nommu-dont-need-get_unmapped_area-for-nommu mm/util.c
---- a/mm/util.c~nommu-dont-need-get_unmapped_area-for-nommu
-+++ a/mm/util.c
-@@ -220,7 +220,7 @@ char *strndup_user(const char __user *s,
- }
- EXPORT_SYMBOL(strndup_user);
+  *
+  */
+ static int ramfs_nommu_resize(struct inode *inode, loff_t newsize, loff_t size)
+@@ -169,7 +140,7 @@ static int ramfs_nommu_resize(struct ino
  
--#ifndef HAVE_ARCH_PICK_MMAP_LAYOUT
-+#if defined(CONFIG_MMU) && !defined(HAVE_ARCH_PICK_MMAP_LAYOUT)
- void arch_pick_mmap_layout(struct mm_struct *mm)
- {
- 	mm->mmap_base = TASK_UNMAPPED_BASE;
+ 	/* check that a decrease in size doesn't cut off any shared mappings */
+ 	if (newsize < size) {
+-		ret = ramfs_nommu_check_mappings(inode, newsize, size);
++		ret = nommu_shrink_inode_mappings(inode, size, newsize);
+ 		if (ret < 0)
+ 			return ret;
+ 	}
+diff -puN include/linux/mm.h~nommu-fix-shared-mmap-after-truncate-shrinkage-problems include/linux/mm.h
+--- a/include/linux/mm.h~nommu-fix-shared-mmap-after-truncate-shrinkage-problems
++++ a/include/linux/mm.h
+@@ -1085,6 +1085,7 @@ extern void zone_pcp_update(struct zone 
+ 
+ /* nommu.c */
+ extern atomic_long_t mmap_pages_allocated;
++extern int nommu_shrink_inode_mappings(struct inode *, size_t, size_t);
+ 
+ /* prio_tree.c */
+ void vma_prio_tree_add(struct vm_area_struct *, struct vm_area_struct *old);
+diff -puN mm/nommu.c~nommu-fix-shared-mmap-after-truncate-shrinkage-problems mm/nommu.c
+--- a/mm/nommu.c~nommu-fix-shared-mmap-after-truncate-shrinkage-problems
++++ a/mm/nommu.c
+@@ -1914,3 +1914,65 @@ int access_process_vm(struct task_struct
+ 	mmput(mm);
+ 	return len;
+ }
++
++/**
++ * nommu_shrink_inode_mappings - Shrink the shared mappings on an inode
++ * @inode: The inode to check
++ * @size: The current filesize of the inode
++ * @newsize: The proposed filesize of the inode
++ *
++ * Check the shared mappings on an inode on behalf of a shrinking truncate to
++ * make sure that that any outstanding VMAs aren't broken and then shrink the
++ * vm_regions that extend that beyond so that do_mmap_pgoff() doesn't
++ * automatically grant mappings that are too large.
++ */
++int nommu_shrink_inode_mappings(struct inode *inode, size_t size,
++				size_t newsize)
++{
++	struct vm_area_struct *vma;
++	struct prio_tree_iter iter;
++	struct vm_region *region;
++	pgoff_t low, high;
++	size_t r_size, r_top;
++
++	low = newsize >> PAGE_SHIFT;
++	high = (size + PAGE_SIZE - 1) >> PAGE_SHIFT;
++
++	down_write(&nommu_region_sem);
++
++	/* search for VMAs that fall within the dead zone */
++	vma_prio_tree_foreach(vma, &iter, &inode->i_mapping->i_mmap,
++			      low, high) {
++		/* found one - only interested if it's shared out of the page
++		 * cache */
++		if (vma->vm_flags & VM_SHARED) {
++			up_write(&nommu_region_sem);
++			return -ETXTBSY; /* not quite true, but near enough */
++		}
++	}
++
++	/* reduce any regions that overlap the dead zone - if in existence,
++	 * these will be pointed to by VMAs that don't overlap the dead zone
++	 *
++	 * we don't check for any regions that start beyond the EOF as there
++	 * shouldn't be any
++	 */
++	vma_prio_tree_foreach(vma, &iter, &inode->i_mapping->i_mmap,
++			      0, ULONG_MAX) {
++		if (!(vma->vm_flags & VM_SHARED))
++			continue;
++
++		region = vma->vm_region;
++		r_size = region->vm_top - region->vm_start;
++		r_top = (region->vm_pgoff << PAGE_SHIFT) + r_size;
++
++		if (r_top > newsize) {
++			region->vm_top -= r_top - newsize;
++			if (region->vm_end > region->vm_top)
++				region->vm_end = region->vm_top;
++		}
++	}
++
++	up_write(&nommu_region_sem);
++	return 0;
++}
 _
 
 Patches currently in -mm which might be from dhowells@redhat.com are
