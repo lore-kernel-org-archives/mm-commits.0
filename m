@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch added to -mm tree
-Date: Thu, 14 Jan 2010 16:19:21 -0800
-Message-ID: <201001150044.o0F0iM56009603@imap1.linux-foundation.org>
+Subject: + lib-allow-linker-to-eliminate-unused-functions-fix.patch added to -mm tree
+Date: Thu, 14 Jan 2010 16:53:44 -0800
+Message-ID: <201001150118.o0F1IjRM011160@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45741 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59485 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752367Ab0AOApL (ORCPT
+	by vger.kernel.org with ESMTP id S1751319Ab0AOBTR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Jan 2010 19:45:11 -0500
+	Thu, 14 Jan 2010 20:19:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, fengguang.wu@intel.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, riel@redhat.com, rientjes@google.com, shijie8@gmail.com
+Cc: akpm@linux-foundation.org, airlied@redhat.com, ak@linux.intel.com, david@fromorbit.com
 
 
 The patch titled
-     mm-restore-zone-all_unreclaimable-to-independence-word-fix
+     lib-allow-linker-to-eliminate-unused-functions-fix
 has been added to the -mm tree.  Its filename is
-     mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
+     lib-allow-linker-to-eliminate-unused-functions-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-restore-zone-all_unreclaimable-to-independence-word-fix
+Subject: lib-allow-linker-to-eliminate-unused-functions-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-mm-restore-zone-all_unreclaimable-to-independence-word.patch broke
-vmscan-kswapd-dont-retry-balance_pgdat-if-all-zones-are-unreclaimable.patch
+ERROR: "list_sort" [drivers/gpu/drm/drm.ko] undefined!
 
-Cc: David Rientjes <rientjes@google.com>
-Cc: Huang Shijie <shijie8@gmail.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Rik van Riel <riel@redhat.com>
+Update it for list_sort changes.
+
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Dave Airlie <airlied@redhat.com>
+Cc: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/lib-syms.c  |    3 +++
+ lib/list_sort.c |    2 --
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN mm/vmscan.c~mm-restore-zone-all_unreclaimable-to-independence-word-fix mm/vmscan.c
---- a/mm/vmscan.c~mm-restore-zone-all_unreclaimable-to-independence-word-fix
-+++ a/mm/vmscan.c
-@@ -1948,7 +1948,7 @@ static int sleeping_prematurely(pg_data_
- 		if (!populated_zone(zone))
- 			continue;
+diff -puN lib/Makefile~lib-allow-linker-to-eliminate-unused-functions-fix lib/Makefile
+diff -puN lib/list_sort.c~lib-allow-linker-to-eliminate-unused-functions-fix lib/list_sort.c
+--- a/lib/list_sort.c~lib-allow-linker-to-eliminate-unused-functions-fix
++++ a/lib/list_sort.c
+@@ -98,5 +98,3 @@ void list_sort(void *priv, struct list_h
+ 	list->prev->next = head;
+ 	list->prev = head;
+ }
+-
+-EXPORT_SYMBOL(list_sort);
+diff -puN lib/lib-syms.c~lib-allow-linker-to-eliminate-unused-functions-fix lib/lib-syms.c
+--- a/lib/lib-syms.c~lib-allow-linker-to-eliminate-unused-functions-fix
++++ a/lib/lib-syms.c
+@@ -31,6 +31,9 @@ EXPORT_SYMBOL(iter_div_u64_rem);
+ #include <linux/sort.h>
+ EXPORT_SYMBOL(sort);
  
--		if (zone_is_all_unreclaimable(zone))
-+		if (zone->all_unreclaimable)
- 			continue;
- 
- 		if (!zone_watermark_ok(zone, order, high_wmark_pages(zone),
++#include <linux/list_sort.h>
++EXPORT_SYMBOL(list_sort);
++
+ #include <linux/parser.h>
+ EXPORT_SYMBOL(match_token);
+ EXPORT_SYMBOL(match_int);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -96,6 +104,7 @@ vmscan-check-high-watermark-after-shrink-zone-fix.patch
 mm-remove-function-free_hot_page-fix.patch
 mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+lib-allow-linker-to-eliminate-unused-functions-fix.patch
 mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
 memcg-move-charges-of-anonymous-page-cleanup.patch
 memcg-implement-memory-thresholds-checkpatch-fixes.patch
