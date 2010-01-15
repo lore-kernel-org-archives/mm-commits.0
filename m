@@ -1,48 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + lib-allow-linker-to-eliminate-unused-functions-fix-2.patch added to -mm tree
-Date: Fri, 15 Jan 2010 15:01:52 -0800
-Message-ID: <201001152326.o0FNQuIq004644@imap1.linux-foundation.org>
+Subject: [failures] lib-allow-linker-to-eliminate-unused-functions-fix.patch removed from -mm tree
+Date: Fri, 15 Jan 2010 15:19:30 -0800
+Message-ID: <201001152344.o0FNiWOc005438@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51580 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54872 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758405Ab0AOX1x (ORCPT
+	by vger.kernel.org with ESMTP id S932409Ab0AOXpQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Jan 2010 18:27:53 -0500
+	Fri, 15 Jan 2010 18:45:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, airlied@redhat.com, ak@linux.intel.com, david@fromorbit.com
+To: akpm@linux-foundation.org, airlied@redhat.com, ak@linux.intel.com, david@fromorbit.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lib-allow-linker-to-eliminate-unused-functions-fix-2
-has been added to the -mm tree.  Its filename is
-     lib-allow-linker-to-eliminate-unused-functions-fix-2.patch
+     lib-allow-linker-to-eliminate-unused-functions-fix
+has been removed from the -mm tree.  Its filename was
+     lib-allow-linker-to-eliminate-unused-functions-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib-allow-linker-to-eliminate-unused-functions-fix-2
+Subject: lib-allow-linker-to-eliminate-unused-functions-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-i386 allnoconfig:
+ERROR: "list_sort" [drivers/gpu/drm/drm.ko] undefined!
 
-lib/div64.c: In function 'div_s64_rem':
-lib/div64.c:63: error: implicit declaration of function 'abs'
-lib/div64.c: In function 'div64_u64':
-lib/div64.c:84: error: implicit declaration of function 'fls'
+Update it for list_sort changes.
 
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Dave Airlie <airlied@redhat.com>
@@ -50,21 +37,33 @@ Cc: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/div64.c |    2 ++
- 1 file changed, 2 insertions(+)
+ lib/lib-syms.c  |    3 +++
+ lib/list_sort.c |    2 --
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN lib/div64.c~lib-allow-linker-to-eliminate-unused-functions-fix-2 lib/div64.c
---- a/lib/div64.c~lib-allow-linker-to-eliminate-unused-functions-fix-2
-+++ a/lib/div64.c
-@@ -16,6 +16,8 @@
-  * assembly versions such as arch/ppc/lib/div64.S and arch/sh/lib/div64.S.
-  */
+diff -puN lib/Makefile~lib-allow-linker-to-eliminate-unused-functions-fix lib/Makefile
+diff -puN lib/list_sort.c~lib-allow-linker-to-eliminate-unused-functions-fix lib/list_sort.c
+--- a/lib/list_sort.c~lib-allow-linker-to-eliminate-unused-functions-fix
++++ a/lib/list_sort.c
+@@ -98,5 +98,3 @@ void list_sort(void *priv, struct list_h
+ 	list->prev->next = head;
+ 	list->prev = head;
+ }
+-
+-EXPORT_SYMBOL(list_sort);
+diff -puN lib/lib-syms.c~lib-allow-linker-to-eliminate-unused-functions-fix lib/lib-syms.c
+--- a/lib/lib-syms.c~lib-allow-linker-to-eliminate-unused-functions-fix
++++ a/lib/lib-syms.c
+@@ -31,6 +31,9 @@ EXPORT_SYMBOL(iter_div_u64_rem);
+ #include <linux/sort.h>
+ EXPORT_SYMBOL(sort);
  
-+#include <linux/kernel.h>
-+#include <linux/bitops.h>
- #include <linux/math64.h>
- 
- /* Not needed on 64bit architectures */
++#include <linux/list_sort.h>
++EXPORT_SYMBOL(list_sort);
++
+ #include <linux/parser.h>
+ EXPORT_SYMBOL(match_token);
+ EXPORT_SYMBOL(match_int);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
