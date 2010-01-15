@@ -1,176 +1,215 @@
 From: akpm@linux-foundation.org
-Subject: + idr-fix-idr-corruption-when-id-crosses-a-layer-boundary.patch added to -mm tree
-Date: Fri, 15 Jan 2010 13:25:39 -0800
-Message-ID: <201001152125.o0FLPest031679@imap1.linux-foundation.org>
+Subject: [failures] memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory.patch removed from -mm tree
+Date: Fri, 15 Jan 2010 14:13:25 -0800
+Message-ID: <201001152238.o0FMcTW5002500@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48149 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52820 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755802Ab0AOV0c (ORCPT
+	by vger.kernel.org with ESMTP id S1758189Ab0AOWiq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Jan 2010 16:26:32 -0500
+	Fri, 15 Jan 2010 17:38:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: eparis@redhat.com, htejun@gmail.com
+To: shaohui.zheng@intel.com, ak@linux.intel.com, fengguang.wu@intel.com, haveblue@us.ibm.com, y-goto@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     idr: fix idr corruption when id crosses a layer boundary
-has been added to the -mm tree.  Its filename is
-     idr-fix-idr-corruption-when-id-crosses-a-layer-boundary.patch
+     memory-hotplug: create /sys/firmware/memmap entry for new memory
+has been removed from the -mm tree.  Its filename was
+     memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: idr: fix idr corruption when id crosses a layer boundary
-From: Eric Paris <eparis@redhat.com>
+Subject: memory-hotplug: create /sys/firmware/memmap entry for new memory
+From: Shaohui Zheng <shaohui.zheng@intel.com>
 
-inotify has for months been been having problems keeping the fsnotify view
-of its objects in sync with the idr view of its objects.  I discovered
-this was only ever the case with the 4096th object created.  What actually
-happened is that inotify would try to do the following operation:
+Interface firmware_map_add was not called explictly.  Remove it and add
+function firmware_map_add_hotplug as hotplug interface of memmap.
 
-idr_get_new_above(idr, NULL, 4095, &id);
-and would get id=4095.
-idr_get_new_above(idr, NULL, 4095, &id);
-and would get id=4096.
+When we hot-add new memory, sysfs does not export memmap entry for it.  we
+add a call in function add_memory to function firmware_map_add_hotplug.
 
-Notice I used 4095 both times.  Everything seems fine.  We would then do:
+Add a new function add_sysfs_fw_map_entry() to create memmap entry - it
+can avoid code duplication.
 
-idr_find(idr, 4095);
-and would get the entry for 4095.
-idr_find(idr, 4096);
-and would get NULL!!  WHOOPS!
+Thanks for the careful review from Fengguang Wu and Dave Hansen.
 
-idr_remove(idr, 4096) strangely enough didn't blow up.
-
-What I discovered was that when adding an id >= 4096 the idr needed to
-grow another layer.  This was normally dealt with in idr_get_empty_slot()
-if we found that the id was larger than the idr could hold.  The problem
-was that I was passing 4095 which appeared to be small enough to fit, but
-in sub_alloc() we found that 4095 was taken and bumped it up to 4096.  I
-added a test in sub_alloc() which kicks back out if the id is changed to
-be larger than fits in the idr.  I readily admit that I don't understand
-the other part of that test or how we 'get back to the top layer.' I
-wonder if that is not what was supposed to deal with this.  This certainly
-needs some review, but it fixes my problem and should finally silence the
-months and months old inotify complaints people's machines have been
-spewing...
-
-
- #include <linux/idr.h>
- #include <linux/kernel.h>
- #include <linux/module.h>
-
-static DEFINE_IDR(test_idr);
-
-int init_module(void)
-{
-	int ret, forty95, forty96;
-	void *addr;
-
-	/* add 2 entries both with 4095 as the start address */
-again1:
-	if (!idr_pre_get(&test_idr, GFP_KERNEL))
-		return -ENOMEM;
-	ret = idr_get_new_above(&test_idr, (void *)4095, 4095, &forty95);
-	if (ret) {
-		if (ret == -EAGAIN)
-			goto again1;
-		return ret;
-	}
-	if (forty95 != 4095)
-		printk(KERN_ERR "hmmm, forty95=%d\n", forty95);
-
-again2:
-	if (!idr_pre_get(&test_idr, GFP_KERNEL))
-		return -ENOMEM;
-	ret = idr_get_new_above(&test_idr, (void *)4096, 4095, &forty96);
-	if (ret) {
-		if (ret == -EAGAIN)
-			goto again2;
-		return ret;
-	}
-	if (forty96 != 4096)
-		printk(KERN_ERR "hmmm, forty96=%d\n", forty96);
-
-	/* try to find the 2 entries, noticing that 4096 broke */
-	addr = idr_find(&test_idr, forty95);
-	if ((int)addr != forty95)
-		printk(KERN_ERR "hmmm, after find forty95=%d addr=%d\n", forty95, (int)addr);
-	addr = idr_find(&test_idr, forty96);
-	if ((int)addr != forty96)
-		printk(KERN_ERR "hmmm, after find forty96=%d addr=%d\n", forty96, (int)addr);
-	/* really weird, the entry which should be at 4096 is actually at 0!! */
-	addr = idr_find(&test_idr, 0);
-	if ((int)addr)
-		printk(KERN_ERR "found an entry at id=0 for addr=%d\n", (int)addr);
-
-	idr_remove(&test_idr, forty95);
-	idr_remove(&test_idr, forty96);
-
-	return 0;
-}
-
-void cleanup_module(void)
-{
-}
-
-MODULE_AUTHOR("Eric Paris <eparis@redhat.com>");
-MODULE_DESCRIPTION("Simple idr test");
-MODULE_LICENSE("GPL");
-
-Signed-off-by: Eric Paris <eparis@redhat.com>
-Cc: Tejun Heo <htejun@gmail.com>
+Signed-off-by: Shaohui Zheng <shaohui.zheng@intel.com>
+Acked-by: Andi Kleen <ak@linux.intel.com>
+Acked-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+Reviewed-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/idr.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ drivers/firmware/memmap.c    |   62 ++++++++++++++++++++-------------
+ include/linux/firmware-map.h |    6 +--
+ mm/memory_hotplug.c          |    4 ++
+ 3 files changed, 46 insertions(+), 26 deletions(-)
 
-diff -puN lib/idr.c~idr-fix-idr-corruption-when-id-crosses-a-layer-boundary lib/idr.c
---- a/lib/idr.c~idr-fix-idr-corruption-when-id-crosses-a-layer-boundary
-+++ a/lib/idr.c
-@@ -155,8 +155,12 @@ static int sub_alloc(struct idr *idp, in
- 			oid = id;
- 			id = (id | ((1 << (IDR_BITS * l)) - 1)) + 1;
+diff -puN drivers/firmware/memmap.c~memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory drivers/firmware/memmap.c
+--- a/drivers/firmware/memmap.c~memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory
++++ a/drivers/firmware/memmap.c
+@@ -123,20 +123,40 @@ static int firmware_map_add_entry(u64 st
+ }
  
--			/* if already at the top layer, we need to grow */
--			if (!(p = pa[l])) {
-+			/*
-+			 * if already at the top layer or if we just rounded id
-+			 * to be so large the idp doesn't have enough layers,
-+			 * we need to grow.
-+			 */
-+			if (!(p = pa[l]) || (id >= (1 << (idp->layers * IDR_BITS)))) {
- 				*starting_id = id;
- 				return IDR_NEED_TO_GROW;
- 			}
-@@ -260,7 +264,7 @@ build_up:
- 
- static int idr_get_new_above_int(struct idr *idp, void *ptr, int starting_id)
+ /**
+- * firmware_map_add() - Adds a firmware mapping entry.
++ * Add memmap entry on sysfs
++ */
++static int add_sysfs_fw_map_entry(struct firmware_map_entry *entry)
++{
++	static int map_entries_nr;
++	static struct kset *mmap_kset;
++
++	if (!mmap_kset) {
++		mmap_kset = kset_create_and_add("memmap", NULL, firmware_kobj);
++		if (!mmap_kset)
++			return -ENOMEM;
++	}
++
++	entry->kobj.kset = mmap_kset;
++	if (kobject_add(&entry->kobj, NULL, "%d", map_entries_nr++))
++		kobject_put(&entry->kobj);
++
++	return 0;
++}
++
++/**
++ * firmware_map_add_early() - Adds a firmware mapping entry.
+  * @start: Start of the memory range.
+  * @end:   End of the memory range (inclusive).
+  * @type:  Type of the memory range.
+  *
+- * This function uses kmalloc() for memory
+- * allocation. Use firmware_map_add_early() if you want to use the bootmem
+- * allocator.
++ * Adds a firmware mapping entry. This function uses the bootmem allocator
++ * for memory allocation.
+  *
+  * That function must be called before late_initcall.
+  *
+  * Returns 0 on success, or -ENOMEM if no memory could be allocated.
+  **/
+-int firmware_map_add(u64 start, u64 end, const char *type)
++int __init firmware_map_add_early(u64 start, u64 end, const char *type)
  {
--	struct idr_layer *pa[MAX_LEVEL];
-+	struct idr_layer *pa[MAX_LEVEL] = { NULL, };
- 	int id;
+ 	struct firmware_map_entry *entry;
  
- 	id = idr_get_empty_slot(idp, starting_id, pa);
+@@ -148,27 +168,31 @@ int firmware_map_add(u64 start, u64 end,
+ }
+ 
+ /**
+- * firmware_map_add_early() - Adds a firmware mapping entry.
++ * firmware_map_add_hotplug() - Adds a firmware mapping entry when we do
++ * memory hotplug.
+  * @start: Start of the memory range.
+  * @end:   End of the memory range (inclusive).
+  * @type:  Type of the memory range.
+  *
+- * Adds a firmware mapping entry. This function uses the bootmem allocator
+- * for memory allocation. Use firmware_map_add() if you want to use kmalloc().
+- *
+- * That function must be called before late_initcall.
++ * Adds a firmware mapping entry. This function is for memory hotplug, it is
++ * simiar with function firmware_map_add_early. the only difference is that
++ * it will create the syfs entry dynamically.
+  *
+  * Returns 0 on success, or -ENOMEM if no memory could be allocated.
+  **/
+-int __init firmware_map_add_early(u64 start, u64 end, const char *type)
++int __meminit firmware_map_add_hotplug(u64 start, u64 end, const char *type)
+ {
+ 	struct firmware_map_entry *entry;
+ 
+-	entry = alloc_bootmem(sizeof(struct firmware_map_entry));
+-	if (WARN_ON(!entry))
++	entry = kzalloc(sizeof(struct firmware_map_entry), GFP_ATOMIC);
++	if (!entry)
+ 		return -ENOMEM;
+ 
+-	return firmware_map_add_entry(start, end, type, entry);
++	firmware_map_add_entry(start, end, type, entry);
++	/* create the memmap entry */
++	add_sysfs_fw_map_entry(entry);
++
++	return 0;
+ }
+ 
+ /*
+@@ -214,18 +238,10 @@ static ssize_t memmap_attr_show(struct k
+  */
+ static int __init memmap_init(void)
+ {
+-	int i = 0;
+ 	struct firmware_map_entry *entry;
+-	struct kset *memmap_kset;
+-
+-	memmap_kset = kset_create_and_add("memmap", NULL, firmware_kobj);
+-	if (WARN_ON(!memmap_kset))
+-		return -ENOMEM;
+ 
+ 	list_for_each_entry(entry, &map_entries, list) {
+-		entry->kobj.kset = memmap_kset;
+-		if (kobject_add(&entry->kobj, NULL, "%d", i++))
+-			kobject_put(&entry->kobj);
++		add_sysfs_fw_map_entry(entry);
+ 	}
+ 
+ 	return 0;
+diff -puN include/linux/firmware-map.h~memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory include/linux/firmware-map.h
+--- a/include/linux/firmware-map.h~memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory
++++ a/include/linux/firmware-map.h
+@@ -24,17 +24,17 @@
+  */
+ #ifdef CONFIG_FIRMWARE_MEMMAP
+ 
+-int firmware_map_add(u64 start, u64 end, const char *type);
+ int firmware_map_add_early(u64 start, u64 end, const char *type);
++int firmware_map_add_hotplug(u64 start, u64 end, const char *type);
+ 
+ #else /* CONFIG_FIRMWARE_MEMMAP */
+ 
+-static inline int firmware_map_add(u64 start, u64 end, const char *type)
++static inline int firmware_map_add_early(u64 start, u64 end, const char *type)
+ {
+ 	return 0;
+ }
+ 
+-static inline int firmware_map_add_early(u64 start, u64 end, const char *type)
++static inline int firmware_map_add_hotplug(u64 start, u64 end, const char *type)
+ {
+ 	return 0;
+ }
+diff -puN mm/memory_hotplug.c~memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory
++++ a/mm/memory_hotplug.c
+@@ -28,6 +28,7 @@
+ #include <linux/pfn.h>
+ #include <linux/suspend.h>
+ #include <linux/mm_inline.h>
++#include <linux/firmware-map.h>
+ 
+ #include <asm/tlbflush.h>
+ 
+@@ -523,6 +524,9 @@ int __ref add_memory(int nid, u64 start,
+ 		BUG_ON(ret);
+ 	}
+ 
++	/* create new memmap entry */
++	firmware_map_add_hotplug(start, start + size, "System RAM");
++
+ 	goto out;
+ 
+ error:
 _
 
-Patches currently in -mm which might be from eparis@redhat.com are
+Patches currently in -mm which might be from shaohui.zheng@intel.com are
 
-linux-next.patch
-idr-fix-idr-corruption-when-id-crosses-a-layer-boundary.patch
+sysdev-fix-prototype-for-memory_sysdev_class-show-store-functions.patch
+memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory.patch
 
