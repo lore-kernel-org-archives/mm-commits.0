@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-remove-function-free_hot_page-fix.patch added to -mm tree
-Date: Thu, 14 Jan 2010 15:58:06 -0800
-Message-ID: <201001150023.o0F0N8U8008686@imap1.linux-foundation.org>
+Subject: + mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch added to -mm tree
+Date: Thu, 14 Jan 2010 16:19:21 -0800
+Message-ID: <201001150044.o0F0iM56009603@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53776 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45741 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756213Ab0AOAZp (ORCPT
+	by vger.kernel.org with ESMTP id S1752367Ab0AOApL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Jan 2010 19:25:45 -0500
+	Thu, 14 Jan 2010 19:45:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, lihong.hi@gmail.com, lwoodman@redhat.com, macli@brc.ubc.ca, mel@csn.ul.ie, mingo@elte.hu, peterz@infradead.org, riel@redhat.com, xiyou.wangcong@gmail.com
+Cc: akpm@linux-foundation.org, fengguang.wu@intel.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, riel@redhat.com, rientjes@google.com, shijie8@gmail.com
 
 
 The patch titled
-     mm-remove-function-free_hot_page-fix
+     mm-restore-zone-all_unreclaimable-to-independence-word-fix
 has been added to the -mm tree.  Its filename is
-     mm-remove-function-free_hot_page-fix.patch
+     mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-remove-function-free_hot_page-fix
+Subject: mm-restore-zone-all_unreclaimable-to-independence-word-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-hm, that couldn't possible have worked for you :(
+mm-restore-zone-all_unreclaimable-to-independence-word.patch broke
+vmscan-kswapd-dont-retry-balance_pgdat-if-all-zones-are-unreclaimable.patch
 
-Cc: Americo Wang <xiyou.wangcong@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Huang Shijie <shijie8@gmail.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Larry Woodman <lwoodman@redhat.com>
-Cc: Li Hong <lihong.hi@gmail.com>
-Cc: Li Ming Chun <macli@brc.ubc.ca>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |    2 +-
- mm/page_alloc.c     |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/gfp.h~mm-remove-function-free_hot_page-fix include/linux/gfp.h
---- a/include/linux/gfp.h~mm-remove-function-free_hot_page-fix
-+++ a/include/linux/gfp.h
-@@ -325,7 +325,7 @@ void free_pages_exact(void *virt, size_t
+diff -puN mm/vmscan.c~mm-restore-zone-all_unreclaimable-to-independence-word-fix mm/vmscan.c
+--- a/mm/vmscan.c~mm-restore-zone-all_unreclaimable-to-independence-word-fix
++++ a/mm/vmscan.c
+@@ -1948,7 +1948,7 @@ static int sleeping_prematurely(pg_data_
+ 		if (!populated_zone(zone))
+ 			continue;
  
- extern void __free_pages(struct page *page, unsigned int order);
- extern void free_pages(unsigned long addr, unsigned int order);
--extern void free_hot_page(struct page *page);
-+extern void free_hot_cold_page(struct page *page, int cold);
+-		if (zone_is_all_unreclaimable(zone))
++		if (zone->all_unreclaimable)
+ 			continue;
  
- #define __free_page(page) __free_pages((page), 0)
- #define free_page(addr) free_pages((addr),0)
-diff -puN mm/page_alloc.c~mm-remove-function-free_hot_page-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-remove-function-free_hot_page-fix
-+++ a/mm/page_alloc.c
-@@ -1094,7 +1094,7 @@ void mark_free_pages(struct zone *zone)
-  * Free a 0-order page
-  * cold == 1 ? free a cold page : free a hot page
-  */
--static void free_hot_cold_page(struct page *page, int cold)
-+void free_hot_cold_page(struct page *page, int cold)
- {
- 	struct zone *zone = page_zone(page);
- 	struct per_cpu_pages *pcp;
+ 		if (!zone_watermark_ok(zone, order, high_wmark_pages(zone),
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -107,6 +94,7 @@ mm-add-lowmem-detection-logic-fix.patch
 mm-count-lowmem-rss-checkpatch-fixes.patch
 vmscan-check-high-watermark-after-shrink-zone-fix.patch
 mm-remove-function-free_hot_page-fix.patch
+mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
 memcg-move-charges-of-anonymous-page-cleanup.patch
