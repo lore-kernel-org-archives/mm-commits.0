@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + revert-drivers-video-s3c-fbc-fix-clock-setting-for-samsung-soc-framebuffer.patch added to -mm tree
-Date: Thu, 14 Jan 2010 16:15:08 -0800
-Message-ID: <201001150015.o0F0F8WQ008268@imap1.linux-foundation.org>
+Subject: + revert-drivers-video-s3c-fbc-fix-clock-setting-for-samsung-soc-framebuffer-fix.patch added to -mm tree
+Date: Thu, 14 Jan 2010 16:16:01 -0800
+Message-ID: <201001150016.o0F0G1wU008316@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37879 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56710 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757881Ab0AOAQh (ORCPT
+	by vger.kernel.org with ESMTP id S1757091Ab0AOARK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Jan 2010 19:16:37 -0500
+	Thu, 14 Jan 2010 19:17:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: broonie@opensource.wolfsonmicro.com, ben-linux@fluff.org, inki.dae@samsung.com, kmpark@infradead.org, krzysztof.h1@poczta.fm, m.szyprowski@samsung.com, stable@kernel.org
+Cc: akpm@linux-foundation.org, ben-linux@fluff.org, broonie@opensource.wolfsonmicro.com, inki.dae@samsung.com, kmpark@infradead.org, krzysztof.h1@poczta.fm, m.szyprowski@samsung.com, stable@kernel.org
 
 
 The patch titled
-     revert "drivers/video/s3c-fb.c: fix clock setting for Samsung SoC Framebuffer"
+     revert-drivers-video-s3c-fbc-fix-clock-setting-for-samsung-soc-framebuffer-fix
 has been added to the -mm tree.  Its filename is
-     revert-drivers-video-s3c-fbc-fix-clock-setting-for-samsung-soc-framebuffer.patch
+     revert-drivers-video-s3c-fbc-fix-clock-setting-for-samsung-soc-framebuffer-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,104 +34,84 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert "drivers/video/s3c-fb.c: fix clock setting for Samsung SoC Framebuffer"
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: revert-drivers-video-s3c-fbc-fix-clock-setting-for-samsung-soc-framebuffer-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix divide by zero and broken output Commit
-600ce1a0faafeed1ce6bcfd421bc040b941cbbc1.  ("fix clock setting for Samsung
-SoC Framebuffer") introduced a mandatory refresh parameter to the platform
-data for the S3C framebuffer but did not introduce any validation code,
-causing existing platforms (none of which have refresh set) to divide by
-zero whenever the framebuffer is configured, generating warnings and
-unusable output.
+don't revert the correct bit
 
-Ben Dooks noted several problems with the patch:
-
- - The platform data supplies the pixclk directly and should already
-   have taken care of the refresh rate.
- - The addition of a window ID parameter doesn't help since only the
-   root framebuffer can control the pixclk.
- - pixclk is specified in picoseconds (rather than Hz) as the patch
-   assumed.
-
-and suggests reverting the commit so do that.  Without fixing this no
-mainline user of the driver will produce output.
-
-Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: InKi Dae <inki.dae@samsung.com>
-Cc: Kyungmin Park <kmpark@infradead.org>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Ben Dooks <ben-linux@fluff.org>
 Cc: <stable@kernel.org>
+Cc: Ben Dooks <ben-linux@fluff.org>
+Cc: InKi Dae <inki.dae@samsung.com>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Cc: Kyungmin Park <kmpark@infradead.org>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/s3c-fb.c |   17 ++++++++++-------
- 1 file changed, 10 insertions(+), 7 deletions(-)
+ drivers/video/s3c-fb.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/video/s3c-fb.c~revert-drivers-video-s3c-fbc-fix-clock-setting-for-samsung-soc-framebuffer drivers/video/s3c-fb.c
---- a/drivers/video/s3c-fb.c~revert-drivers-video-s3c-fbc-fix-clock-setting-for-samsung-soc-framebuffer
+diff -puN drivers/video/s3c-fb.c~revert-drivers-video-s3c-fbc-fix-clock-setting-for-samsung-soc-framebuffer-fix drivers/video/s3c-fb.c
+--- a/drivers/video/s3c-fb.c~revert-drivers-video-s3c-fbc-fix-clock-setting-for-samsung-soc-framebuffer-fix
 +++ a/drivers/video/s3c-fb.c
-@@ -211,21 +211,23 @@ static int s3c_fb_check_var(struct fb_va
- 
- /**
-  * s3c_fb_calc_pixclk() - calculate the divider to create the pixel clock.
-- * @id: window id.
-  * @sfb: The hardware state.
-  * @pixclock: The pixel clock wanted, in picoseconds.
-  *
-  * Given the specified pixel clock, work out the necessary divider to get
-  * close to the output frequency.
-  */
--static int s3c_fb_calc_pixclk(unsigned char id, struct s3c_fb *sfb, unsigned int pixclk)
-+static int s3c_fb_calc_pixclk(struct s3c_fb *sfb, unsigned int pixclk)
- {
--	struct s3c_fb_pd_win *win = sfb->pdata->win[id];
- 	unsigned long clk = clk_get_rate(sfb->bus_clk);
-+	unsigned long long tmp;
- 	unsigned int result;
- 
--	pixclk *= win->win_mode.refresh;
--	result = clk / pixclk;
-+	tmp = (unsigned long long)clk;
-+	tmp *= pixclk;
-+
-+	do_div(tmp, 1000000000UL);
-+	result = (unsigned int)tmp / 1000;
- 
- 	dev_dbg(sfb->dev, "pixclk=%u, clk=%lu, div=%d (%lu)\n",
- 		pixclk, clk, result, clk / result);
-@@ -265,7 +267,6 @@ static int s3c_fb_set_par(struct fb_info
+@@ -267,6 +267,7 @@ static int s3c_fb_set_par(struct fb_info
  	struct s3c_fb *sfb = win->parent;
  	void __iomem *regs = sfb->regs;
  	int win_no = win->index;
--	u32 osdc_data = 0;
++	u32 osdc_data = 0;
  	u32 data;
  	u32 pagewidth;
  	int clkdiv;
-@@ -301,7 +302,7 @@ static int s3c_fb_set_par(struct fb_info
- 	/* use window 0 as the basis for the lcd output timings */
- 
- 	if (win_no == 0) {
--		clkdiv = s3c_fb_calc_pixclk(win_no, sfb, var->pixclock);
-+		clkdiv = s3c_fb_calc_pixclk(sfb, var->pixclock);
- 
- 		data = sfb->pdata->vidcon0;
- 		data &= ~(VIDCON0_CLKVAL_F_MASK | VIDCON0_CLKDIR);
-@@ -358,6 +359,8 @@ static int s3c_fb_set_par(struct fb_info
+@@ -359,8 +360,6 @@ static int s3c_fb_set_par(struct fb_info
  
  	data = var->xres * var->yres;
  
-+	u32 osdc_data = 0;
-+
+-	u32 osdc_data = 0;
+-
  	osdc_data = VIDISD14C_ALPHA1_R(0xf) |
  		VIDISD14C_ALPHA1_G(0xf) |
  		VIDISD14C_ALPHA1_B(0xf);
 _
 
-Patches currently in -mm which might be from broonie@opensource.wolfsonmicro.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+ttyh-make-function-static-fix.patch
 linux-next.patch
-revert-drivers-video-s3c-fbc-fix-clock-setting-for-samsung-soc-framebuffer.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
+drivers-media-video-cx23885-needs-kfifo-conversion.patch
+revert-drivers-video-s3c-fbc-fix-clock-setting-for-samsung-soc-framebuffer-fix.patch
+ibmphp-read-the-length-of-ebda-and-map-entire-ebda-region-fix.patch
+revert-clockevents-prevent-clockevent_devices-list-corruption-on-cpu-hotplug.patch
+drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
+drivers-media-video-pmsc-needs-versionh.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+jffs2-avoid-using-c-keyword-new-in-userspace-visible-header.patch
+3x59x-fix-pci-resource-management.patch
+drivers-usb-core-sysfsc-set_reset_quirk-remove-unused-local.patch
+fs-improve-remountro-vs-buffercache-coherency.patch
+mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
+mm-count-swap-usage-checkpatch-fixes.patch
+mm-add-lowmem-detection-logic-fix.patch
+mm-count-lowmem-rss-checkpatch-fixes.patch
+vmscan-check-high-watermark-after-shrink-zone-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
+memcg-move-charges-of-anonymous-page-cleanup.patch
+memcg-implement-memory-thresholds-checkpatch-fixes.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
