@@ -1,61 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [folded] ttyh-make-function-static-fix.patch removed from -mm tree
-Date: Fri, 15 Jan 2010 16:53:14 -0800
-Message-ID: <201001160053.o0G0rEdf008455@imap1.linux-foundation.org>
+Subject: [folded] revert-drivers-video-s3c-fbc-fix-clock-setting-for-samsung-soc-framebuffer-fix.patch removed from -mm tree
+Date: Fri, 15 Jan 2010 16:53:53 -0800
+Message-ID: <201001160053.o0G0rrTp008496@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38905 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48695 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758366Ab0APAx1 (ORCPT
+	by vger.kernel.org with ESMTP id S1758113Ab0APAzN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Jan 2010 19:53:27 -0500
+	Fri, 15 Jan 2010 19:55:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ben-linux@fluff.org, broonie@opensource.wolfsonmicro.com, inki.dae@samsung.com, kmpark@infradead.org, krzysztof.h1@poczta.fm, m.szyprowski@samsung.com, stab
 
 
 The patch titled
-     ttyh-make-function-static-fix
+     revert-drivers-video-s3c-fbc-fix-clock-setting-for-samsung-soc-framebuffer-fix
 has been removed from the -mm tree.  Its filename was
-     ttyh-make-function-static-fix.patch
+     revert-drivers-video-s3c-fbc-fix-clock-setting-for-samsung-soc-framebuffer-fix.patch
 
-This patch was dropped because it was folded into ttyh-make-function-static.patch
+This patch was dropped because it was folded into revert-drivers-video-s3c-fbc-fix-clock-setting-for-samsung-soc-framebuffer.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ttyh-make-function-static-fix
+Subject: revert-drivers-video-s3c-fbc-fix-clock-setting-for-samsung-soc-framebuffer-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-May as well convert tty_port_users() also.
+don't revert the correct bit
 
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: <stable@kernel.org>
+Cc: Ben Dooks <ben-linux@fluff.org>
+Cc: InKi Dae <inki.dae@samsung.com>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Cc: Kyungmin Park <kmpark@infradead.org>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/tty.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/s3c-fb.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN include/linux/tty.h~ttyh-make-function-static-fix include/linux/tty.h
---- a/include/linux/tty.h~ttyh-make-function-static-fix
-+++ a/include/linux/tty.h
-@@ -486,7 +486,7 @@ extern void tty_port_close(struct tty_po
- 				struct tty_struct *tty, struct file *filp);
- extern int tty_port_open(struct tty_port *port,
- 				struct tty_struct *tty, struct file *filp);
--extern inline int tty_port_users(struct tty_port *port)
-+static inline int tty_port_users(struct tty_port *port)
- {
- 	return port->count + port->blocked_open;
- }
+diff -puN drivers/video/s3c-fb.c~revert-drivers-video-s3c-fbc-fix-clock-setting-for-samsung-soc-framebuffer-fix drivers/video/s3c-fb.c
+--- a/drivers/video/s3c-fb.c~revert-drivers-video-s3c-fbc-fix-clock-setting-for-samsung-soc-framebuffer-fix
++++ a/drivers/video/s3c-fb.c
+@@ -267,6 +267,7 @@ static int s3c_fb_set_par(struct fb_info
+ 	struct s3c_fb *sfb = win->parent;
+ 	void __iomem *regs = sfb->regs;
+ 	int win_no = win->index;
++	u32 osdc_data = 0;
+ 	u32 data;
+ 	u32 pagewidth;
+ 	int clkdiv;
+@@ -359,8 +360,6 @@ static int s3c_fb_set_par(struct fb_info
+ 
+ 	data = var->xres * var->yres;
+ 
+-	u32 osdc_data = 0;
+-
+ 	osdc_data = VIDISD14C_ALPHA1_R(0xf) |
+ 		VIDISD14C_ALPHA1_G(0xf) |
+ 		VIDISD14C_ALPHA1_B(0xf);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 ttyh-make-function-static.patch
-ttyh-make-function-static-fix.patch
+revert-drivers-video-s3c-fbc-fix-clock-setting-for-samsung-soc-framebuffer.patch
 revert-drivers-video-s3c-fbc-fix-clock-setting-for-samsung-soc-framebuffer-fix.patch
 linux-next.patch
 linux-next-git-rejects.patch
