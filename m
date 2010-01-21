@@ -1,223 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged] nommu-fix-shared-mmap-after-truncate-shrinkage-problems.patch removed from -mm tree
-Date: Thu, 21 Jan 2010 13:28:22 -0800
-Message-ID: <201001212128.o0LLSMdK030714@imap1.linux-foundation.org>
+Subject: [merged] das_net-not-copied-but-assigned-to-itself-in-aarp_rcv.patch removed from -mm tree
+Date: Thu, 21 Jan 2010 13:28:45 -0800
+Message-ID: <201001212128.o0LLSj7P030755@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54330 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37824 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755343Ab0AUV2i (ORCPT
+	by vger.kernel.org with ESMTP id S1755351Ab0AUV2z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Jan 2010 16:28:38 -0500
+	Thu, 21 Jan 2010 16:28:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, gerg@snapgear.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, acme@ghostprotocols.net, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nommu: fix shared mmap after truncate shrinkage problems
+     net/appletalk/aarp.c: da.s_net not copied but assigned to itself in aarp_rcv()
 has been removed from the -mm tree.  Its filename was
-     nommu-fix-shared-mmap-after-truncate-shrinkage-problems.patch
+     das_net-not-copied-but-assigned-to-itself-in-aarp_rcv.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nommu: fix shared mmap after truncate shrinkage problems
-From: David Howells <dhowells@redhat.com>
+Subject: net/appletalk/aarp.c: da.s_net not copied but assigned to itself in aarp_rcv()
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Fix a problem in NOMMU mmap with ramfs whereby a shared mmap can happen
-over the end of a truncation.  The problem is that
-ramfs_nommu_check_mappings() checks that the reduced file size against the
-VMA tree, but not the vm_region tree.
+da.s_net was not copied but assigned to itself.
 
-The following sequence of events can cause the problem:
-
-	fd = open("/tmp/x", O_RDWR|O_TRUNC|O_CREAT, 0600);
-	ftruncate(fd, 32 * 1024);
-	a = mmap(NULL, 32 * 1024, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
-	b = mmap(NULL, 16 * 1024, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
-	munmap(a, 32 * 1024);
-	ftruncate(fd, 16 * 1024);
-	c = mmap(NULL, 32 * 1024, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
-
-Mapping 'a' creates a vm_region covering 32KB of the file.  Mapping 'b'
-sees that the vm_region from 'a' is covering the region it wants and so
-shares it, pinning it in memory.
-
-Mapping 'a' then goes away and the file is truncated to the end of VMA
-'b'.  However, the region allocated by 'a' is still in effect, and has
-_not_ been reduced.
-
-Mapping 'c' is then created, and because there's a vm_region covering the
-desired region, get_unmapped_area() is _not_ called to repeat the check,
-and the mapping is granted, even though the pages from the latter half of
-the mapping have been discarded.
-
-However:
-
-	d = mmap(NULL, 16 * 1024, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
-
-Mapping 'd' should work, and should end up sharing the region allocated by
-'a'.
-
-To deal with this, we shrink the vm_region struct during the truncation,
-lest do_mmap_pgoff() take it as licence to share the full region
-automatically without calling the get_unmapped_area() file op again.
-
-Signed-off-by: David Howells <dhowells@redhat.com>
-Acked-by: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Greg Ungerer <gerg@snapgear.com>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Arnaldo Carvalho de Melo <acme@ghostprotocols.net>
+Cc: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ramfs/file-nommu.c |   31 --------------------
- include/linux/mm.h    |    1 
- mm/nommu.c            |   62 ++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 64 insertions(+), 30 deletions(-)
+ net/appletalk/aarp.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ramfs/file-nommu.c~nommu-fix-shared-mmap-after-truncate-shrinkage-problems fs/ramfs/file-nommu.c
---- a/fs/ramfs/file-nommu.c~nommu-fix-shared-mmap-after-truncate-shrinkage-problems
-+++ a/fs/ramfs/file-nommu.c
-@@ -123,35 +123,6 @@ add_error:
+diff -puN net/appletalk/aarp.c~das_net-not-copied-but-assigned-to-itself-in-aarp_rcv net/appletalk/aarp.c
+--- a/net/appletalk/aarp.c~das_net-not-copied-but-assigned-to-itself-in-aarp_rcv
++++ a/net/appletalk/aarp.c
+@@ -819,7 +819,7 @@ static int aarp_rcv(struct sk_buff *skb,
+ 				ma = &ifa->address;
+ 			else { /* We need to make a copy of the entry. */
+ 				da.s_node = sa.s_node;
+-				da.s_net = da.s_net;
++				da.s_net = sa.s_net;
+ 				ma = &da;
+ 			}
  
- /*****************************************************************************/
- /*
-- * check that file shrinkage doesn't leave any VMAs dangling in midair
-- */
--static int ramfs_nommu_check_mappings(struct inode *inode,
--				      size_t newsize, size_t size)
--{
--	struct vm_area_struct *vma;
--	struct prio_tree_iter iter;
--
--	down_write(&nommu_region_sem);
--
--	/* search for VMAs that fall within the dead zone */
--	vma_prio_tree_foreach(vma, &iter, &inode->i_mapping->i_mmap,
--			      newsize >> PAGE_SHIFT,
--			      (size + PAGE_SIZE - 1) >> PAGE_SHIFT
--			      ) {
--		/* found one - only interested if it's shared out of the page
--		 * cache */
--		if (vma->vm_flags & VM_SHARED) {
--			up_write(&nommu_region_sem);
--			return -ETXTBSY; /* not quite true, but near enough */
--		}
--	}
--
--	up_write(&nommu_region_sem);
--	return 0;
--}
--
--/*****************************************************************************/
--/*
-  *
-  */
- static int ramfs_nommu_resize(struct inode *inode, loff_t newsize, loff_t size)
-@@ -169,7 +140,7 @@ static int ramfs_nommu_resize(struct ino
- 
- 	/* check that a decrease in size doesn't cut off any shared mappings */
- 	if (newsize < size) {
--		ret = ramfs_nommu_check_mappings(inode, newsize, size);
-+		ret = nommu_shrink_inode_mappings(inode, size, newsize);
- 		if (ret < 0)
- 			return ret;
- 	}
-diff -puN include/linux/mm.h~nommu-fix-shared-mmap-after-truncate-shrinkage-problems include/linux/mm.h
---- a/include/linux/mm.h~nommu-fix-shared-mmap-after-truncate-shrinkage-problems
-+++ a/include/linux/mm.h
-@@ -1089,6 +1089,7 @@ extern void zone_pcp_update(struct zone 
- 
- /* nommu.c */
- extern atomic_long_t mmap_pages_allocated;
-+extern int nommu_shrink_inode_mappings(struct inode *, size_t, size_t);
- 
- /* prio_tree.c */
- void vma_prio_tree_add(struct vm_area_struct *, struct vm_area_struct *old);
-diff -puN mm/nommu.c~nommu-fix-shared-mmap-after-truncate-shrinkage-problems mm/nommu.c
---- a/mm/nommu.c~nommu-fix-shared-mmap-after-truncate-shrinkage-problems
-+++ a/mm/nommu.c
-@@ -1914,3 +1914,65 @@ int access_process_vm(struct task_struct
- 	mmput(mm);
- 	return len;
- }
-+
-+/**
-+ * nommu_shrink_inode_mappings - Shrink the shared mappings on an inode
-+ * @inode: The inode to check
-+ * @size: The current filesize of the inode
-+ * @newsize: The proposed filesize of the inode
-+ *
-+ * Check the shared mappings on an inode on behalf of a shrinking truncate to
-+ * make sure that that any outstanding VMAs aren't broken and then shrink the
-+ * vm_regions that extend that beyond so that do_mmap_pgoff() doesn't
-+ * automatically grant mappings that are too large.
-+ */
-+int nommu_shrink_inode_mappings(struct inode *inode, size_t size,
-+				size_t newsize)
-+{
-+	struct vm_area_struct *vma;
-+	struct prio_tree_iter iter;
-+	struct vm_region *region;
-+	pgoff_t low, high;
-+	size_t r_size, r_top;
-+
-+	low = newsize >> PAGE_SHIFT;
-+	high = (size + PAGE_SIZE - 1) >> PAGE_SHIFT;
-+
-+	down_write(&nommu_region_sem);
-+
-+	/* search for VMAs that fall within the dead zone */
-+	vma_prio_tree_foreach(vma, &iter, &inode->i_mapping->i_mmap,
-+			      low, high) {
-+		/* found one - only interested if it's shared out of the page
-+		 * cache */
-+		if (vma->vm_flags & VM_SHARED) {
-+			up_write(&nommu_region_sem);
-+			return -ETXTBSY; /* not quite true, but near enough */
-+		}
-+	}
-+
-+	/* reduce any regions that overlap the dead zone - if in existence,
-+	 * these will be pointed to by VMAs that don't overlap the dead zone
-+	 *
-+	 * we don't check for any regions that start beyond the EOF as there
-+	 * shouldn't be any
-+	 */
-+	vma_prio_tree_foreach(vma, &iter, &inode->i_mapping->i_mmap,
-+			      0, ULONG_MAX) {
-+		if (!(vma->vm_flags & VM_SHARED))
-+			continue;
-+
-+		region = vma->vm_region;
-+		r_size = region->vm_top - region->vm_start;
-+		r_top = (region->vm_pgoff << PAGE_SHIFT) + r_size;
-+
-+		if (r_top > newsize) {
-+			region->vm_top -= r_top - newsize;
-+			if (region->vm_end > region->vm_top)
-+				region->vm_end = region->vm_top;
-+		}
-+	}
-+
-+	up_write(&nommu_region_sem);
-+	return 0;
-+}
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 origin.patch
 linux-next.patch
-kernel-credc-use-kmem_cache_free.patch
+acpi-fix-confusion-in-acpi_evaluate_string-in-comment.patch
+asus-acpi-remove-duplicate-comparison-of-asus_model-strings.patch
+gemini-wrong-registers-used-to-set-reg_level-in-gpio_set_irq_type.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+ia64-wrong-attribute-of-hub-chip-written-in-uv_setup.patch
+hisax-timeout-off-by-one-in-waitrecmsg.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
+ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
+scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
+dc395x-decrease-iteration-for-tag_number-of-max_command-in-start_scsi.patch
+mpt2sas-fix-confusion-in-_scsih_sas_device_status_change_event.patch
+paride-fix-off-by-one-test.patch
+musb-test-always-evaluates-to-false.patch
 frv-duplicate-output_buffer-of-e03.patch
-coredump-unify-dump_seek-implementations-for-each-binfmt_c.patch
-coredump-move-dump_write-and-dump_seek-into-a-header-file.patch
-elf-coredump-replace-elf_core_extra_-macros-by-functions.patch
-elf-coredump-make-offset-calculation-process-and-writing-process-explicit.patch
-elf-coredump-add-extended-numbering-support.patch
-mutex-subsystem-synchro-test-module.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+cryptocop-fix-assertion-in-create_output_descriptors.patch
+asiliantfb-fix-test-of-unsigned-in-asiliant_calc_dclk2.patch
+w1-fix-test-in-ds2482_wait_1wire_idle.patch
 
