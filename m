@@ -1,68 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged] scsi-remove-unnecessary-null-test.patch removed from -mm tree
-Date: Thu, 21 Jan 2010 13:29:03 -0800
-Message-ID: <201001212129.o0LLT3Cm030777@imap1.linux-foundation.org>
+Subject: [merged] usb-serial-fix-memory-leak-in-generic-driver.patch removed from -mm tree
+Date: Thu, 21 Jan 2010 13:28:34 -0800
+Message-ID: <201001212128.o0LLSYlm030723@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59247 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58480 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755358Ab0AUV3P (ORCPT
+	by vger.kernel.org with ESMTP id S1755359Ab0AUV3R (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Jan 2010 16:29:15 -0500
+	Thu, 21 Jan 2010 16:29:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, James.Bottomley@HansenPartnership.com, kxie@chelsio.com, michaelc@cs.wisc.edu, mm-commits@vger.kernel.org
+To: jhovold@gmail.com, greg@kroah.com, jason.wessel@windriver.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scsi: remove unnecessary NULL test
+     usb: serial: fix memory leak in generic driver
 has been removed from the -mm tree.  Its filename was
-     scsi-remove-unnecessary-null-test.patch
+     usb-serial-fix-memory-leak-in-generic-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi: remove unnecessary NULL test
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: usb: serial: fix memory leak in generic driver
+From: Johan Hovold <jhovold@gmail.com>
 
-Stanse found that c3cn is poked many times around in
-cxgb3i_conn_pdu_ready, there is no need to check if it is NULL.
+Fix a regression introduced by commit
+715b1dc01fe44537e8fce9566e4bb48d6821d84b ("USB: usb_debug,
+usb_generic_serial: implement multi urb write").
 
-Remove the test.
+URB transfer buffer was never freed when using multi-urb writes. 
+Currently the only driver enabling multi-urb writes is usb_debug.
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Reviewed-by: Mike Christie <michaelc@cs.wisc.edu>
-Acked-by: Karen Xie <kxie@chelsio.com>
+Signed-off-by: Johan Hovold <jhovold@gmail.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Jason Wessel <jason.wessel@windriver.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/cxgb3i/cxgb3i_pdu.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/usb/serial/generic.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/scsi/cxgb3i/cxgb3i_pdu.c~scsi-remove-unnecessary-null-test drivers/scsi/cxgb3i/cxgb3i_pdu.c
---- a/drivers/scsi/cxgb3i/cxgb3i_pdu.c~scsi-remove-unnecessary-null-test
-+++ a/drivers/scsi/cxgb3i/cxgb3i_pdu.c
-@@ -461,10 +461,8 @@ void cxgb3i_conn_pdu_ready(struct s3_con
- 		skb = skb_peek(&c3cn->receive_queue);
- 	}
- 	read_unlock(&c3cn->callback_lock);
--	if (c3cn) {
--		c3cn->copied_seq += read;
--		cxgb3i_c3cn_rx_credits(c3cn, read);
--	}
-+	c3cn->copied_seq += read;
-+	cxgb3i_c3cn_rx_credits(c3cn, read);
- 	conn->rxdata_octets += read;
+diff -puN drivers/usb/serial/generic.c~usb-serial-fix-memory-leak-in-generic-driver drivers/usb/serial/generic.c
+--- a/drivers/usb/serial/generic.c~usb-serial-fix-memory-leak-in-generic-driver
++++ a/drivers/usb/serial/generic.c
+@@ -492,6 +492,8 @@ void usb_serial_generic_write_bulk_callb
+ 	dbg("%s - port %d", __func__, port->number);
  
- 	if (err) {
+ 	if (port->serial->type->max_in_flight_urbs) {
++		kfree(urb->transfer_buffer);
++
+ 		spin_lock_irqsave(&port->lock, flags);
+ 		--port->urbs_in_flight;
+ 		port->tx_bytes_flight -= urb->transfer_buffer_length;
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from jhovold@gmail.com are
 
+origin.patch
 linux-next.patch
-reiser4.patch
-fs-reiser4-add-parenths-around-x-y.patch
 
