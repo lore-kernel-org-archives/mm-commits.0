@@ -1,126 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-improve-remountro-vs-buffercache-coherency.patch removed from -mm tree
-Date: Thu, 21 Jan 2010 13:29:24 -0800
-Message-ID: <201001212129.o0LLTOo8030803@imap1.linux-foundation.org>
+Subject: [merged] musb-dont-dereference-null-tusb_dma-in-dma_controller_destroy.patch removed from -mm tree
+Date: Thu, 21 Jan 2010 13:29:15 -0800
+Message-ID: <201001212129.o0LLTFs4030794@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45705 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52230 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755372Ab0AUV3c (ORCPT
+	by vger.kernel.org with ESMTP id S1755372Ab0AUV3X (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Jan 2010 16:29:32 -0500
+	Thu, 21 Jan 2010 16:29:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, jorge@dti2.net, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, felipe.balbi@nokia.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs: improve remount,ro vs buffercache coherency
+     musb: don't dereference NULL tusb_dma in dma_controller_destroy()
 has been removed from the -mm tree.  Its filename was
-     fs-improve-remountro-vs-buffercache-coherency.patch
+     musb-dont-dereference-null-tusb_dma-in-dma_controller_destroy.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs: improve remount,ro vs buffercache coherency
-From: Nick Piggin <npiggin@suse.de>
+Subject: musb: don't dereference NULL tusb_dma in dma_controller_destroy()
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Invalidate sb->s_bdev on remount,ro.
+Test whether tusb_dma is not NULL before dereferencing.
 
-Fixes a problem reported by Jorge Boncompte who is seeing corruption
-trying to snapshot a minix filesystem image.  Some filesystems modify
-their metadata via a path other than the bdev buffer cache (eg.  they may
-use a private linear mapping for their metadata, or implement directories
-in pagecache, etc).  Also, file data modifications usually go to the bdev
-via their own mappings.
-
-These updates are not coherent with buffercache IO (eg.  via /dev/bdev)
-and never have been.  However there could be a reasonable expectation that
-after a mount -oremount,ro operation then the buffercache should
-subsequently be coherent with previous filesystem modifications.
-
-So invalidate the bdev mappings on a remount,ro operation to provide a
-coherency point.
-
-The problem was exposed when we switched the old rd to brd because old rd
-didn't really function like a normal block device and updates to rd via
-mappings other than the buffercache would still end up going into its
-buffercache.  But the same problem has always affected other "normal"
-block devices, including loop.
-
-[akpm@linux-foundation.org: repair comment layout]
-Reported-by: "Jorge Boncompte [DTI2]" <jorge@dti2.net>
-Tested-by: "Jorge Boncompte [DTI2]" <jorge@dti2.net>
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Felipe Balbi <felipe.balbi@nokia.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/super.c |   18 +++++++++++++++---
- 1 file changed, 15 insertions(+), 3 deletions(-)
+ drivers/usb/musb/tusb6010_omap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/super.c~fs-improve-remountro-vs-buffercache-coherency fs/super.c
---- a/fs/super.c~fs-improve-remountro-vs-buffercache-coherency
-+++ a/fs/super.c
-@@ -569,7 +569,7 @@ out:
- int do_remount_sb(struct super_block *sb, int flags, void *data, int force)
- {
- 	int retval;
--	int remount_rw;
-+	int remount_rw, remount_ro;
- 
- 	if (sb->s_frozen != SB_UNFROZEN)
- 		return -EBUSY;
-@@ -584,9 +584,12 @@ int do_remount_sb(struct super_block *sb
- 	shrink_dcache_sb(sb);
- 	sync_filesystem(sb);
- 
-+	remount_ro = (flags & MS_RDONLY) && !(sb->s_flags & MS_RDONLY);
-+	remount_rw = !(flags & MS_RDONLY) && (sb->s_flags & MS_RDONLY);
-+
- 	/* If we are remounting RDONLY and current sb is read/write,
- 	   make sure there are no rw files opened */
--	if ((flags & MS_RDONLY) && !(sb->s_flags & MS_RDONLY)) {
-+	if (remount_ro) {
- 		if (force)
- 			mark_files_ro(sb);
- 		else if (!fs_may_remount_ro(sb))
-@@ -595,7 +598,6 @@ int do_remount_sb(struct super_block *sb
- 		if (retval < 0 && retval != -ENOSYS)
- 			return -EBUSY;
+diff -puN drivers/usb/musb/tusb6010_omap.c~musb-dont-dereference-null-tusb_dma-in-dma_controller_destroy drivers/usb/musb/tusb6010_omap.c
+--- a/drivers/usb/musb/tusb6010_omap.c~musb-dont-dereference-null-tusb_dma-in-dma_controller_destroy
++++ a/drivers/usb/musb/tusb6010_omap.c
+@@ -648,7 +648,7 @@ void dma_controller_destroy(struct dma_c
+ 		}
  	}
--	remount_rw = !(flags & MS_RDONLY) && (sb->s_flags & MS_RDONLY);
  
- 	if (sb->s_op->remount_fs) {
- 		retval = sb->s_op->remount_fs(sb, &flags, data);
-@@ -605,6 +607,16 @@ int do_remount_sb(struct super_block *sb
- 	sb->s_flags = (sb->s_flags & ~MS_RMT_MASK) | (flags & MS_RMT_MASK);
- 	if (remount_rw)
- 		vfs_dq_quota_on_remount(sb);
-+	/*
-+	 * Some filesystems modify their metadata via some other path than the
-+	 * bdev buffer cache (eg. use a private mapping, or directories in
-+	 * pagecache, etc). Also file data modifications go via their own
-+	 * mappings. So If we try to mount readonly then copy the filesystem
-+	 * from bdev, we could get stale data, so invalidate it to give a best
-+	 * effort at coherency.
-+	 */
-+	if (remount_ro && sb->s_bdev)
-+		invalidate_bdev(sb->s_bdev);
- 	return 0;
- }
+-	if (!tusb_dma->multichannel && tusb_dma && tusb_dma->ch >= 0)
++	if (tusb_dma && !tusb_dma->multichannel && tusb_dma->ch >= 0)
+ 		omap_free_dma(tusb_dma->ch);
  
+ 	kfree(tusb_dma);
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 origin.patch
 linux-next.patch
-mlock_vma_pages_range-never-return-negative-value.patch
-mlock_vma_pages_range-only-return-success-or-failure.patch
-mm-lockdep-annotate-reclaim-context-to-zone-reclaim-too.patch
-reiser4.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
+acpi-fix-confusion-in-acpi_evaluate_string-in-comment.patch
+asus-acpi-remove-duplicate-comparison-of-asus_model-strings.patch
+gemini-wrong-registers-used-to-set-reg_level-in-gpio_set_irq_type.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+ia64-wrong-attribute-of-hub-chip-written-in-uv_setup.patch
+hisax-timeout-off-by-one-in-waitrecmsg.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
+ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
+scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
+dc395x-decrease-iteration-for-tag_number-of-max_command-in-start_scsi.patch
+mpt2sas-fix-confusion-in-_scsih_sas_device_status_change_event.patch
+paride-fix-off-by-one-test.patch
+musb-test-always-evaluates-to-false.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+cryptocop-fix-assertion-in-create_output_descriptors.patch
+asiliantfb-fix-test-of-unsigned-in-asiliant_calc_dclk2.patch
+w1-fix-test-in-ds2482_wait_1wire_idle.patch
 
