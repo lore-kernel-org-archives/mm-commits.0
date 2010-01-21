@@ -1,87 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch removed from -mm tree
-Date: Thu, 21 Jan 2010 13:24:54 -0800
-Message-ID: <201001212124.o0LLOsKb030460@imap1.linux-foundation.org>
+Subject: [alternative-merged] drivers-usb-correct-the-size-argument-to-kzalloc.patch removed from -mm tree
+Date: Thu, 21 Jan 2010 13:25:46 -0800
+Message-ID: <201001212125.o0LLPkSp030492@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53052 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41883 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754932Ab0AUVZV (ORCPT
+	by vger.kernel.org with ESMTP id S1755284Ab0AUV0M (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Jan 2010 16:25:21 -0500
+	Thu, 21 Jan 2010 16:26:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, James.Bottomley@HansenPartnership.com, bharrosh@panasas.com, michaelc@cs.wisc.edu, yjwei@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: julia@diku.dk, avorontsov@ru.mvista.com, gregkh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     zfcp: test kmalloc failure in scsi_get_vpd_page()
+     drivers/usb/host/fhci-hcd.c: correct the size argument to kzalloc
 has been removed from the -mm tree.  Its filename was
-     zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
+     drivers-usb-correct-the-size-argument-to-kzalloc.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because an alternative patch was merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: zfcp: test kmalloc failure in scsi_get_vpd_page()
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: drivers/usb/host/fhci-hcd.c: correct the size argument to kzalloc
+From: Julia Lawall <julia@diku.dk>
 
-kmalloc() may fail, so test whether it succeeded.
+urb_priv->tds has type struct td **, not struct td *, so the elements of
+the array should have pointer type, not structure type.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Wei Yongjun <yjwei@cn.fujitsu.com>
-Cc: Mike Christie <michaelc@cs.wisc.edu>
-Cc: Boaz Harrosh <bharrosh@panasas.com>
+The semantic patch that makes this change is as follows:
+(http://coccinelle.lip6.fr/)
+
+// <smpl>
+@disable sizeof_type_expr@
+type T;
+T **x;
+@@
+
+  x =
+  <+...sizeof(
+- T
++ *x
+  )...+>
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Anton Vorontsov <avorontsov@ru.mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/scsi.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/usb/host/fhci-hcd.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/scsi.c~zfcp-test-kmalloc-failure-in-scsi_get_vpd_page drivers/scsi/scsi.c
---- a/drivers/scsi/scsi.c~zfcp-test-kmalloc-failure-in-scsi_get_vpd_page
-+++ a/drivers/scsi/scsi.c
-@@ -1066,6 +1066,8 @@ unsigned char *scsi_get_vpd_page(struct 
+diff -puN drivers/usb/host/fhci-hcd.c~drivers-usb-correct-the-size-argument-to-kzalloc drivers/usb/host/fhci-hcd.c
+--- a/drivers/usb/host/fhci-hcd.c~drivers-usb-correct-the-size-argument-to-kzalloc
++++ a/drivers/usb/host/fhci-hcd.c
+@@ -432,7 +432,7 @@ static int fhci_urb_enqueue(struct usb_h
+ 		return -ENOMEM;
  
- 	kfree(buf);
- 	buf = kmalloc(len, GFP_KERNEL);
-+	if (!buf)
-+		return NULL;
- 	result = scsi_vpd_inquiry(sdev, buf, page, len);
- 	if (result)
- 		goto fail;
+ 	/* allocate the private part of the URB */
+-	urb_priv->tds = kzalloc(size * sizeof(struct td), mem_flags);
++	urb_priv->tds = kzalloc(size * sizeof(*urb_priv->tds), mem_flags);
+ 	if (!urb_priv->tds) {
+ 		kfree(urb_priv);
+ 		return -ENOMEM;
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from julia@diku.dk are
 
 origin.patch
 linux-next.patch
-acpi-fix-confusion-in-acpi_evaluate_string-in-comment.patch
-asus-acpi-remove-duplicate-comparison-of-asus_model-strings.patch
-gemini-wrong-registers-used-to-set-reg_level-in-gpio_set_irq_type.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-ia64-wrong-attribute-of-hub-chip-written-in-uv_setup.patch
-hisax-timeout-off-by-one-in-waitrecmsg.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-zfcp-test-kmalloc-failure-in-scsi_get_vpd_page.patch
-ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
-scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
-dc395x-decrease-iteration-for-tag_number-of-max_command-in-start_scsi.patch
-mpt2sas-fix-confusion-in-_scsih_sas_device_status_change_event.patch
-paride-fix-off-by-one-test.patch
-80211core-fix-confusion.patch
-rtl8192u-ieee80211-currentmpdudensity-assigned-to-itself-in-htusedefaultsetting.patch
-musb-test-always-evaluates-to-false.patch
-musb-dont-dereference-null-tusb_dma-in-dma_controller_destroy.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-cryptocop-fix-assertion-in-create_output_descriptors.patch
-asiliantfb-fix-test-of-unsigned-in-asiliant_calc_dclk2.patch
-w1-fix-test-in-ds2482_wait_1wire_idle.patch
+drivers-scsi-sesc-eliminate-double-free.patch
+kernel-credc-use-kmem_cache_free.patch
+arch-arm-plat-pxa-dmac-correct-null-test.patch
+drivers-gpu-drm-nouveau-nouveau_grctxc-correct-null-test.patch
+drivers-media-video-move-dereference-after-null-test.patch
+net-ipv4-correct-the-size-argument-to-kzalloc.patch
+drivers-scsi-libsas-use-sam_good.patch
+drivers-scsi-remove-unnecessary-null-test.patch
+drivers-message-move-dereference-after-null-test.patch
+drivers-scsi-correct-the-size-argument-to-kmalloc.patch
+drivers-staging-tm6000-tm6000-videoc-correct-null-test.patch
+drivers-usb-correct-the-size-argument-to-kzalloc.patch
+drivers-edac-introduce-missing-kfree.patch
 
