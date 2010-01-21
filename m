@@ -1,82 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtl8192u-ieee80211-currentmpdudensity-assigned-to-itself-in-htusedefaultsetting.patch removed from -mm tree
-Date: Thu, 21 Jan 2010 13:29:12 -0800
-Message-ID: <201001212129.o0LLTCL3030791@imap1.linux-foundation.org>
+Subject: [merged] usb-fhci-avoid-null-pointer-dereference.patch removed from -mm tree
+Date: Thu, 21 Jan 2010 13:29:21 -0800
+Message-ID: <201001212129.o0LLTLII030800@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54910 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58404 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755366Ab0AUV3b (ORCPT
+	by vger.kernel.org with ESMTP id S1755374Ab0AUV3g (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Jan 2010 16:29:31 -0500
+	Thu, 21 Jan 2010 16:29:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, devel@driverdev.osuosl.org, gregkh@suse.de, mchehab@redhat.com, mm-commits@vger.kernel.org
+To: a.beregalov@gmail.com, avorontsov@ru.mvista.com, gregkh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtl8192u/ieee80211/rtl819x_HTProc.c: CurrentMPDUDensity assigned to itself in HTUseDefaultSetting()
+     usb: fhci: avoid NULL pointer dereference
 has been removed from the -mm tree.  Its filename was
-     rtl8192u-ieee80211-currentmpdudensity-assigned-to-itself-in-htusedefaultsetting.patch
+     usb-fhci-avoid-null-pointer-dereference.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtl8192u/ieee80211/rtl819x_HTProc.c: CurrentMPDUDensity assigned to itself in HTUseDefaultSetting()
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: usb: fhci: avoid NULL pointer dereference
+From: Alexander Beregalov <a.beregalov@gmail.com>
 
-CurrentMPDUDensity was designed to itself.
+Assign fhci only if usb is not NULL.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Signed-off-by: Alexander Beregalov <a.beregalov@gmail.com>
 Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: <devel@driverdev.osuosl.org>
+Cc: Anton Vorontsov <avorontsov@ru.mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/rtl8192u/ieee80211/rtl819x_HTProc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/usb/host/fhci-hcd.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/staging/rtl8192u/ieee80211/rtl819x_HTProc.c~rtl8192u-ieee80211-currentmpdudensity-assigned-to-itself-in-htusedefaultsetting drivers/staging/rtl8192u/ieee80211/rtl819x_HTProc.c
---- a/drivers/staging/rtl8192u/ieee80211/rtl819x_HTProc.c~rtl8192u-ieee80211-currentmpdudensity-assigned-to-itself-in-htusedefaultsetting
-+++ a/drivers/staging/rtl8192u/ieee80211/rtl819x_HTProc.c
-@@ -1342,7 +1342,7 @@ void HTUseDefaultSetting(struct ieee8021
+diff -puN drivers/usb/host/fhci-hcd.c~usb-fhci-avoid-null-pointer-dereference drivers/usb/host/fhci-hcd.c
+--- a/drivers/usb/host/fhci-hcd.c~usb-fhci-avoid-null-pointer-dereference
++++ a/drivers/usb/host/fhci-hcd.c
+@@ -242,9 +242,10 @@ err:
+ static void fhci_usb_free(void *lld)
+ {
+ 	struct fhci_usb *usb = lld;
+-	struct fhci_hcd *fhci = usb->fhci;
++	struct fhci_hcd *fhci;
  
- 		pHTInfo->CurrentAMPDUFactor = pHTInfo->AMPDU_Factor;
- 
--		pHTInfo->CurrentMPDUDensity = pHTInfo->CurrentMPDUDensity;
-+		pHTInfo->CurrentMPDUDensity = pHTInfo->MPDU_Density;
- 
- 		// Set BWOpMode register
- 
+ 	if (usb) {
++		fhci = usb->fhci;
+ 		fhci_config_transceiver(fhci, FHCI_PORT_POWER_OFF);
+ 		fhci_ep0_free(usb);
+ 		kfree(usb->actual_frame);
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from a.beregalov@gmail.com are
 
 origin.patch
 linux-next.patch
-acpi-fix-confusion-in-acpi_evaluate_string-in-comment.patch
-asus-acpi-remove-duplicate-comparison-of-asus_model-strings.patch
-gemini-wrong-registers-used-to-set-reg_level-in-gpio_set_irq_type.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-ia64-wrong-attribute-of-hub-chip-written-in-uv_setup.patch
-hisax-timeout-off-by-one-in-waitrecmsg.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
-scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
-dc395x-decrease-iteration-for-tag_number-of-max_command-in-start_scsi.patch
-mpt2sas-fix-confusion-in-_scsih_sas_device_status_change_event.patch
-paride-fix-off-by-one-test.patch
-musb-test-always-evaluates-to-false.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-cryptocop-fix-assertion-in-create_output_descriptors.patch
-asiliantfb-fix-test-of-unsigned-in-asiliant_calc_dclk2.patch
-w1-fix-test-in-ds2482_wait_1wire_idle.patch
+rtc-mxc-fix-memory-leak.patch
 
