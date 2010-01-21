@@ -1,78 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [merged] markup_oopspl-fix-error-with-x86.patch removed from -mm tree
-Date: Thu, 21 Jan 2010 13:27:08 -0800
-Message-ID: <201001212127.o0LLR8jt030614@imap1.linux-foundation.org>
+Subject: [merged] m68knommu-fix-invalid-flags-on-coldfire-pit-clocksource.patch removed from -mm tree
+Date: Thu, 21 Jan 2010 13:27:14 -0800
+Message-ID: <201001212127.o0LLRESl030624@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55911 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34265 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755306Ab0AUV1K (ORCPT
+	by vger.kernel.org with ESMTP id S1755315Ab0AUV1Z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Jan 2010 16:27:10 -0500
+	Thu, 21 Jan 2010 16:27:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: teawater@gmail.com, arjan@linux.intel.com, mm-commits@vger.kernel.org
+To: johnstul@us.ibm.com, gerg@snapgear.com, sfking@fdwdc.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     markup_oops.pl: fix error with x86
+     m68knommu: fix invalid flags on coldfire pit clocksource
 has been removed from the -mm tree.  Its filename was
-     markup_oopspl-fix-error-with-x86.patch
+     m68knommu-fix-invalid-flags-on-coldfire-pit-clocksource.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: markup_oops.pl: fix error with x86
-From: Hui Zhu <teawater@gmail.com>
+Subject: m68knommu: fix invalid flags on coldfire pit clocksource
+From: john stultz <johnstul@us.ibm.com>
 
-When I try to use markup_oops.pl in x86, I always get:
+The m68knommu coldfire pit clocksource looks like it was incorrectly
+marked as a continuous clocksource.  Running with it marked as a
+continuous clocksource could cause hangs when the system switches to
+highres mode or enables nohz.
 
-cat 1 | perl markup_oops.pl ./vmlinux
-objdump: --start-address: bad number: NaN
-No matching code found
+This patch removes the CLOCK_SOURCE_IS_CONTINUOUS flag on the coldfire pit
+clocksource.  This will disallow systems using this clocksource from
+entering oneshot mode (disabling highres timers and nohz).
 
-This is because in line:
-	if ($line =~ /EIP is at ([a-zA-Z0-9\_]+)\+0x([0-9a-f]+)\/[a-f0-9]/) {
- 		$function = $1;
- 		$func_offset = $2;
- 	}
-
-$func_offset will get a number like "0x2"
-
-But in follow code:
-
-my $decodestart = Math::BigInt->from_hex("0x$target") -
-Math::BigInt->from_hex("0x$func_offset");
-
-It add other ox to ox2.  Then this value will be set to NaN.
-
-So I made a small patch to fix it.
-
-Signed-off-by: Hui Zhu <teawater@gmail.com>
-Acked-by: Arjan van de Ven <arjan@linux.intel.com>
+Signed-off-by: John Stultz <johnstul@us.ibm.com>
+Acked-by: Greg Ungerer <gerg@snapgear.com>
+Cc: Steven King <sfking@fdwdc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/markup_oops.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/m68knommu/platform/coldfire/pit.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN scripts/markup_oops.pl~markup_oopspl-fix-error-with-x86 scripts/markup_oops.pl
---- a/scripts/markup_oops.pl~markup_oopspl-fix-error-with-x86
-+++ a/scripts/markup_oops.pl
-@@ -154,7 +154,7 @@ while (<STDIN>) {
- 	if ($line =~ /RIP: 0010:\[\<([a-z0-9]+)\>\]/) {
- 		$target = $1;
- 	}
--	if ($line =~ /EIP is at ([a-zA-Z0-9\_]+)\+(0x[0-9a-f]+)\/0x[a-f0-9]/) {
-+	if ($line =~ /EIP is at ([a-zA-Z0-9\_]+)\+0x([0-9a-f]+)\/0x[a-f0-9]/) {
- 		$function = $1;
- 		$func_offset = $2;
- 	}
+diff -puN arch/m68knommu/platform/coldfire/pit.c~m68knommu-fix-invalid-flags-on-coldfire-pit-clocksource arch/m68knommu/platform/coldfire/pit.c
+--- a/arch/m68knommu/platform/coldfire/pit.c~m68knommu-fix-invalid-flags-on-coldfire-pit-clocksource
++++ a/arch/m68knommu/platform/coldfire/pit.c
+@@ -146,7 +146,6 @@ static struct clocksource pit_clk = {
+ 	.read	= pit_read_clk,
+ 	.shift	= 20,
+ 	.mask	= CLOCKSOURCE_MASK(32),
+-	.flags	= CLOCK_SOURCE_IS_CONTINUOUS,
+ };
+ 
+ /***************************************************************************/
 _
 
-Patches currently in -mm which might be from teawater@gmail.com are
+Patches currently in -mm which might be from johnstul@us.ibm.com are
 
 origin.patch
+arm-convert-to-arch_gettimeoffset.patch
+clocksource-add-argument-to-resume-callback.patch
+clocksource-start-cmt-at-clocksource-resume.patch
+clocksource-add-suspend-callback.patch
+genirq-warn-about-irqf_sharedirqf_disabled-at-the-right-place.patch
+convert-sparc-to-arch_gettimeoffset.patch
+convert-sparc-to-arch_gettimeoffset-fix.patch
+cris-convert-to-use-arch_gettimeoffset.patch
 
