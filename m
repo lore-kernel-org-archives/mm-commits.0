@@ -1,84 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ttyh-make-function-static.patch removed from -mm tree
-Date: Thu, 21 Jan 2010 13:27:20 -0800
-Message-ID: <201001212127.o0LLRKFM030635@imap1.linux-foundation.org>
+Subject: [merged] kernelh-add-build_bug_on_not_power_of_2.patch removed from -mm tree
+Date: Thu, 21 Jan 2010 13:27:46 -0800
+Message-ID: <201001212127.o0LLRkAB030666@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38795 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53967 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755322Ab0AUV1f (ORCPT
+	by vger.kernel.org with ESMTP id S1755324Ab0AUV14 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Jan 2010 16:27:35 -0500
+	Thu, 21 Jan 2010 16:27:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
+To: rdreier@cisco.com, bvanassche@acm.org, dave@thedillows.org, rolandd@cisco.com, rpjday@crashcourse.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tty.h: make tty_port_get() static inline
+     kernel.h: add BUILD_BUG_ON_NOT_POWER_OF_2()
 has been removed from the -mm tree.  Its filename was
-     ttyh-make-function-static.patch
+     kernelh-add-build_bug_on_not_power_of_2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tty.h: make tty_port_get() static inline
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: kernel.h: add BUILD_BUG_ON_NOT_POWER_OF_2()
+From: Roland Dreier <rdreier@cisco.com>
 
-I get a few dozen of these warnings when using
-  gcc (GCC) 4.4.1 20090725 (Red Hat 4.4.1-2):
+Add BUILD_BUG_ON_NOT_POWER_OF_2()
 
-In file included from mmotm-2010-0113-1217/init/do_mounts.c:5:
-mmotm-2010-0113-1217/include/linux/tty.h: In function 'tty_port_get':
-mmotm-2010-0113-1217/include/linux/tty.h:469: warning: '______f' is static but declared in inline function 'tty_port_get' which is not static
+When code relies on a constant being a power of 2:
 
-so make the function static inline.
+	#define FOO	512	/* must be a power of 2 */
 
-[akpm@linux-foundation.org: may as well convert tty_port_users() also]
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+it would be nice to be able to do:
+
+	BUILD_BUG_ON(!is_power_of_2(FOO));
+
+However applying an inline function does not result in a compile-time
+constant that can be used with BUILD_BUG_ON(), so trying that gives
+results in:
+
+	error: bit-field '<anonymous>' width not an integer constant
+
+As suggested by akpm, rather than monkeying around with is_power_of_2()
+and risking gcc warts about constant expressions, just create a macro
+BUILD_BUG_ON_NOT_POWER_OF_2() to encapsulate this common requirement.
+
+Signed-off-by: Roland Dreier <rolandd@cisco.com>
+Cc: Bart Van Assche <bvanassche@acm.org>
+Cc: David Dillow <dave@thedillows.org>
+Cc: "Robert P. J. Day" <rpjday@crashcourse.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/tty.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/kernel.h |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN include/linux/tty.h~ttyh-make-function-static include/linux/tty.h
---- a/include/linux/tty.h~ttyh-make-function-static
-+++ a/include/linux/tty.h
-@@ -464,7 +464,7 @@ extern int tty_port_alloc_xmit_buf(struc
- extern void tty_port_free_xmit_buf(struct tty_port *port);
- extern void tty_port_put(struct tty_port *port);
+diff -puN include/linux/kernel.h~kernelh-add-build_bug_on_not_power_of_2 include/linux/kernel.h
+--- a/include/linux/kernel.h~kernelh-add-build_bug_on_not_power_of_2
++++ a/include/linux/kernel.h
+@@ -734,6 +734,10 @@ struct sysinfo {
+ /* Force a compilation error if condition is constant and true */
+ #define MAYBE_BUILD_BUG_ON(cond) ((void)sizeof(char[1 - 2 * !!(cond)]))
  
--extern inline struct tty_port *tty_port_get(struct tty_port *port)
-+static inline struct tty_port *tty_port_get(struct tty_port *port)
- {
- 	if (port)
- 		kref_get(&port->kref);
-@@ -486,7 +486,7 @@ extern void tty_port_close(struct tty_po
- 				struct tty_struct *tty, struct file *filp);
- extern int tty_port_open(struct tty_port *port,
- 				struct tty_struct *tty, struct file *filp);
--extern inline int tty_port_users(struct tty_port *port)
-+static inline int tty_port_users(struct tty_port *port)
- {
- 	return port->count + port->blocked_open;
- }
++/* Force a compilation error if a constant expression is not a power of 2 */
++#define BUILD_BUG_ON_NOT_POWER_OF_2(n)			\
++	BUILD_BUG_ON((n) == 0 || (((n) & ((n) - 1)) != 0))
++
+ /* Force a compilation error if condition is true, but also produce a
+    result (of value 0 and type size_t), so the expression can be used
+    e.g. in a structure initializer (or where-ever else comma expressions
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from rdreier@cisco.com are
 
 origin.patch
-linux-next.patch
-mfgpt-move-clocksource-menu.patch
-xen-add-kconfig-menu.patch
-gpio-add-driver-for-max7300-i2c-gpio-extender.patch
-cgroups-subsystem-module-unloading-fix.patch
-memcg-move-charges-of-anonymous-swap-fix.patch
-memcg-improve-performance-in-moving-swap-charge-fix.patch
-cgroup-implement-eventfd-based-generic-api-for-notifications-kconfig-fix.patch
-reiser4-export-remove_from_page_cache-fix.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
+ecryptfs-another-lockdep-issue.patch
 
