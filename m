@@ -1,55 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [merged] musb-dont-dereference-null-tusb_dma-in-dma_controller_destroy.patch removed from -mm tree
-Date: Thu, 21 Jan 2010 13:29:15 -0800
-Message-ID: <201001212129.o0LLTFs4030794@imap1.linux-foundation.org>
+Subject: [merged] rtl8192u-ieee80211-currentmpdudensity-assigned-to-itself-in-htusedefaultsetting.patch removed from -mm tree
+Date: Thu, 21 Jan 2010 13:29:12 -0800
+Message-ID: <201001212129.o0LLTCL3030791@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52230 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54910 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755372Ab0AUV3X (ORCPT
+	by vger.kernel.org with ESMTP id S1755366Ab0AUV3b (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Jan 2010 16:29:23 -0500
+	Thu, 21 Jan 2010 16:29:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, felipe.balbi@nokia.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, devel@driverdev.osuosl.org, gregkh@suse.de, mchehab@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     musb: don't dereference NULL tusb_dma in dma_controller_destroy()
+     rtl8192u/ieee80211/rtl819x_HTProc.c: CurrentMPDUDensity assigned to itself in HTUseDefaultSetting()
 has been removed from the -mm tree.  Its filename was
-     musb-dont-dereference-null-tusb_dma-in-dma_controller_destroy.patch
+     rtl8192u-ieee80211-currentmpdudensity-assigned-to-itself-in-htusedefaultsetting.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: musb: don't dereference NULL tusb_dma in dma_controller_destroy()
+Subject: rtl8192u/ieee80211/rtl819x_HTProc.c: CurrentMPDUDensity assigned to itself in HTUseDefaultSetting()
 From: Roel Kluin <roel.kluin@gmail.com>
 
-Test whether tusb_dma is not NULL before dereferencing.
+CurrentMPDUDensity was designed to itself.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Felipe Balbi <felipe.balbi@nokia.com>
-Cc: Greg KH <greg@kroah.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: <devel@driverdev.osuosl.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/musb/tusb6010_omap.c |    2 +-
+ drivers/staging/rtl8192u/ieee80211/rtl819x_HTProc.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/usb/musb/tusb6010_omap.c~musb-dont-dereference-null-tusb_dma-in-dma_controller_destroy drivers/usb/musb/tusb6010_omap.c
---- a/drivers/usb/musb/tusb6010_omap.c~musb-dont-dereference-null-tusb_dma-in-dma_controller_destroy
-+++ a/drivers/usb/musb/tusb6010_omap.c
-@@ -648,7 +648,7 @@ void dma_controller_destroy(struct dma_c
- 		}
- 	}
+diff -puN drivers/staging/rtl8192u/ieee80211/rtl819x_HTProc.c~rtl8192u-ieee80211-currentmpdudensity-assigned-to-itself-in-htusedefaultsetting drivers/staging/rtl8192u/ieee80211/rtl819x_HTProc.c
+--- a/drivers/staging/rtl8192u/ieee80211/rtl819x_HTProc.c~rtl8192u-ieee80211-currentmpdudensity-assigned-to-itself-in-htusedefaultsetting
++++ a/drivers/staging/rtl8192u/ieee80211/rtl819x_HTProc.c
+@@ -1342,7 +1342,7 @@ void HTUseDefaultSetting(struct ieee8021
  
--	if (!tusb_dma->multichannel && tusb_dma && tusb_dma->ch >= 0)
-+	if (tusb_dma && !tusb_dma->multichannel && tusb_dma->ch >= 0)
- 		omap_free_dma(tusb_dma->ch);
+ 		pHTInfo->CurrentAMPDUFactor = pHTInfo->AMPDU_Factor;
  
- 	kfree(tusb_dma);
+-		pHTInfo->CurrentMPDUDensity = pHTInfo->CurrentMPDUDensity;
++		pHTInfo->CurrentMPDUDensity = pHTInfo->MPDU_Density;
+ 
+ 		// Set BWOpMode register
+ 
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
