@@ -1,81 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ibmmca-buffer-overflow.patch removed from -mm tree
-Date: Thu, 21 Jan 2010 13:28:54 -0800
-Message-ID: <201001212128.o0LLSsTw030764@imap1.linux-foundation.org>
+Subject: [merged] acpi-fix-unused-variable-warning-in-sbsc.patch removed from -mm tree
+Date: Thu, 21 Jan 2010 13:28:37 -0800
+Message-ID: <201001212128.o0LLSbCC030726@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58212 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58216 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755362Ab0AUV3T (ORCPT
+	by vger.kernel.org with ESMTP id S1755363Ab0AUV3T (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 21 Jan 2010 16:29:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, James.Bottomley@HansenPartnership.com, langa2@kph.uni-mainz.de, mm-commits@vger.kernel.org
+To: rakib.mullick@gmail.com, astarikovskiy@suse.de, lenb@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ibmmca: fix buffer overflow
+     acpi: fix unused variable warning in sbs.c
 has been removed from the -mm tree.  Its filename was
-     ibmmca-buffer-overflow.patch
+     acpi-fix-unused-variable-warning-in-sbsc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ibmmca: fix buffer overflow
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: acpi: fix unused variable warning in sbs.c
+From: Rakib Mullick <rakib.mullick@gmail.com>
 
-Allows i == IM_MAX_HOSTS, which is out of range.
+When CONFIG_ACPI_SYSFS_POWER=n and CONFIG_ACPI_PROCFS_POWER=n, then
+we're warned by the following warning:
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Michael Lang <langa2@kph.uni-mainz.de>
-Cc: James E.J. Bottomley <James.Bottomley@HansenPartnership.com>
+drivers/acpi/sbs.c: In function `acpi_battery_remove':
+drivers/acpi/sbs.c:825: warning: unused variable `battery'
+
+Signed-off-by: Rakib Mullick <rakib.mullick@gmail.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/ibmmca.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/sbs.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN drivers/scsi/ibmmca.c~ibmmca-buffer-overflow drivers/scsi/ibmmca.c
---- a/drivers/scsi/ibmmca.c~ibmmca-buffer-overflow
-+++ a/drivers/scsi/ibmmca.c
-@@ -2336,7 +2336,7 @@ static int option_setup(char *str)
- 	char *cur = str;
- 	int i = 1;
+diff -puN drivers/acpi/sbs.c~acpi-fix-unused-variable-warning-in-sbsc drivers/acpi/sbs.c
+--- a/drivers/acpi/sbs.c~acpi-fix-unused-variable-warning-in-sbsc
++++ a/drivers/acpi/sbs.c
+@@ -822,7 +822,10 @@ static int acpi_battery_add(struct acpi_
  
--	while (cur && isdigit(*cur) && i <= IM_MAX_HOSTS) {
-+	while (cur && isdigit(*cur) && i < IM_MAX_HOSTS) {
- 		ints[i++] = simple_strtoul(cur, NULL, 0);
- 		if ((cur = strchr(cur, ',')) != NULL)
- 			cur++;
+ static void acpi_battery_remove(struct acpi_sbs *sbs, int id)
+ {
++#if defined(CONFIG_ACPI_SYSFS_POWER) || defined(CONFIG_ACPI_PROCFS_POWER)
+ 	struct acpi_battery *battery = &sbs->battery[id];
++#endif
++
+ #ifdef CONFIG_ACPI_SYSFS_POWER
+ 	if (battery->bat.dev) {
+ 		if (battery->have_sysfs_alarm)
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from rakib.mullick@gmail.com are
 
 origin.patch
 linux-next.patch
-acpi-fix-confusion-in-acpi_evaluate_string-in-comment.patch
-asus-acpi-remove-duplicate-comparison-of-asus_model-strings.patch
-gemini-wrong-registers-used-to-set-reg_level-in-gpio_set_irq_type.patch
-powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
-ia64-wrong-attribute-of-hub-chip-written-in-uv_setup.patch
-hisax-timeout-off-by-one-in-waitrecmsg.patch
-drivers-scsi-fnic-fnic_scsic-clean-up.patch
-drivers-scsi-gdthc-fix-buffer-overflow.patch
-drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
-osst-fix-read-buffer-overflow.patch
-gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
-ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
-scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
-dc395x-decrease-iteration-for-tag_number-of-max_command-in-start_scsi.patch
-mpt2sas-fix-confusion-in-_scsih_sas_device_status_change_event.patch
-paride-fix-off-by-one-test.patch
-musb-test-always-evaluates-to-false.patch
-frv-duplicate-output_buffer-of-e03.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-cryptocop-fix-assertion-in-create_output_descriptors.patch
-asiliantfb-fix-test-of-unsigned-in-asiliant_calc_dclk2.patch
-w1-fix-test-in-ds2482_wait_1wire_idle.patch
+smp-fix-documentation-in-include-linux-smph.patch
 
