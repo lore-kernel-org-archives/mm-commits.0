@@ -1,55 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [merged] 80211core-fix-confusion.patch removed from -mm tree
-Date: Thu, 21 Jan 2010 13:29:06 -0800
-Message-ID: <201001212129.o0LLT6MN030780@imap1.linux-foundation.org>
+Subject: [merged] scsi-eata-fix-buffer-overflow.patch removed from -mm tree
+Date: Thu, 21 Jan 2010 13:28:57 -0800
+Message-ID: <201001212128.o0LLSvsR030770@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45108 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39205 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755356Ab0AUV3K (ORCPT
+	by vger.kernel.org with ESMTP id S1755355Ab0AUV3I (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Jan 2010 16:29:10 -0500
+	Thu, 21 Jan 2010 16:29:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, devel@driverdev.osuosl.org, greg@kroah.com, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, James.Bottomley@HansenPartnership.com, ballabio_dario@emc.com, mike@i-Connect.Net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     80211core: fix &&/|| confusion
+     scsi/eata: fix buffer overflow
 has been removed from the -mm tree.  Its filename was
-     80211core-fix-confusion.patch
+     scsi-eata-fix-buffer-overflow.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: 80211core: fix &&/|| confusion
+Subject: scsi/eata: fix buffer overflow
 From: Roel Kluin <roel.kluin@gmail.com>
 
-This always evaluates to true.
+Allows i == MAX_INT_PARAM, which is out of range.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: <devel@driverdev.osuosl.org>
+Cc: Michael Neuffer <mike@i-Connect.Net>
+Cc: Dario Ballabio <ballabio_dario@emc.com>
+Cc: James E.J. Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/otus/80211core/cmmsta.c |    2 +-
+ drivers/scsi/eata.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/staging/otus/80211core/cmmsta.c~80211core-fix-confusion drivers/staging/otus/80211core/cmmsta.c
---- a/drivers/staging/otus/80211core/cmmsta.c~80211core-fix-confusion
-+++ a/drivers/staging/otus/80211core/cmmsta.c
-@@ -2808,7 +2808,7 @@ void zfStaProcessProbeReq(zdev_t* dev, z
-     zmw_get_wlan_dev(dev);
+diff -puN drivers/scsi/eata.c~scsi-eata-fix-buffer-overflow drivers/scsi/eata.c
+--- a/drivers/scsi/eata.c~scsi-eata-fix-buffer-overflow
++++ a/drivers/scsi/eata.c
+@@ -1509,7 +1509,7 @@ static int option_setup(char *str)
+ 	char *cur = str;
+ 	int i = 1;
  
-     /* check mode : AP/IBSS */
--    if ((wd->wlanMode != ZM_MODE_AP) || (wd->wlanMode != ZM_MODE_IBSS))
-+    if ((wd->wlanMode != ZM_MODE_AP) && (wd->wlanMode != ZM_MODE_IBSS))
-     {
-         zm_msg0_mm(ZM_LV_3, "Ignore probe req");
-         return;
+-	while (cur && isdigit(*cur) && i <= MAX_INT_PARAM) {
++	while (cur && isdigit(*cur) && i < MAX_INT_PARAM) {
+ 		ints[i++] = simple_strtoul(cur, NULL, 0);
+ 
+ 		if ((cur = strchr(cur, ',')) != NULL)
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
