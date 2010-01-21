@@ -1,89 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] drivers-usb-correct-the-size-argument-to-kzalloc.patch removed from -mm tree
-Date: Thu, 21 Jan 2010 13:25:46 -0800
-Message-ID: <201001212125.o0LLPkSp030492@imap1.linux-foundation.org>
+Subject: [obsolete] undeprecate-pci_find_device.patch removed from -mm tree
+Date: Thu, 21 Jan 2010 13:26:48 -0800
+Message-ID: <201001212126.o0LLQmbh030591@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41883 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48109 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755284Ab0AUV0M (ORCPT
+	by vger.kernel.org with ESMTP id S1755285Ab0AUV0u (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Jan 2010 16:26:12 -0500
+	Thu, 21 Jan 2010 16:26:50 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id o0LLQmXZ032269
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Thu, 21 Jan 2010 13:26:49 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: julia@diku.dk, avorontsov@ru.mvista.com, gregkh@suse.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/usb/host/fhci-hcd.c: correct the size argument to kzalloc
+     undeprecate-pci_find_device
 has been removed from the -mm tree.  Its filename was
-     drivers-usb-correct-the-size-argument-to-kzalloc.patch
+     undeprecate-pci_find_device.patch
 
-This patch was dropped because an alternative patch was merged
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/usb/host/fhci-hcd.c: correct the size argument to kzalloc
-From: Julia Lawall <julia@diku.dk>
+Subject: undeprecate-pci_find_device
+From: Andrew Morton <akpm@linux-foundation.org>
 
-urb_priv->tds has type struct td **, not struct td *, so the elements of
-the array should have pointer type, not structure type.
+fed up with those stupid warnings
 
-The semantic patch that makes this change is as follows:
-(http://coccinelle.lip6.fr/)
 
-// <smpl>
-@disable sizeof_type_expr@
-type T;
-T **x;
-@@
-
-  x =
-  <+...sizeof(
-- T
-+ *x
-  )...+>
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Anton Vorontsov <avorontsov@ru.mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/host/fhci-hcd.c |    2 +-
+ include/linux/pci.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/usb/host/fhci-hcd.c~drivers-usb-correct-the-size-argument-to-kzalloc drivers/usb/host/fhci-hcd.c
---- a/drivers/usb/host/fhci-hcd.c~drivers-usb-correct-the-size-argument-to-kzalloc
-+++ a/drivers/usb/host/fhci-hcd.c
-@@ -432,7 +432,7 @@ static int fhci_urb_enqueue(struct usb_h
- 		return -ENOMEM;
+diff -puN include/linux/pci.h~undeprecate-pci_find_device include/linux/pci.h
+--- a/include/linux/pci.h~undeprecate-pci_find_device
++++ a/include/linux/pci.h
+@@ -613,7 +613,7 @@ extern void pci_sort_breadthfirst(void);
+ /* Generic PCI functions exported to card drivers */
  
- 	/* allocate the private part of the URB */
--	urb_priv->tds = kzalloc(size * sizeof(struct td), mem_flags);
-+	urb_priv->tds = kzalloc(size * sizeof(*urb_priv->tds), mem_flags);
- 	if (!urb_priv->tds) {
- 		kfree(urb_priv);
- 		return -ENOMEM;
+ #ifdef CONFIG_PCI_LEGACY
+-struct pci_dev __deprecated *pci_find_device(unsigned int vendor,
++struct pci_dev *pci_find_device(unsigned int vendor,
+ 					     unsigned int device,
+ 					     struct pci_dev *from);
+ #endif /* CONFIG_PCI_LEGACY */
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-drivers-scsi-sesc-eliminate-double-free.patch
-kernel-credc-use-kmem_cache_free.patch
-arch-arm-plat-pxa-dmac-correct-null-test.patch
-drivers-gpu-drm-nouveau-nouveau_grctxc-correct-null-test.patch
-drivers-media-video-move-dereference-after-null-test.patch
-net-ipv4-correct-the-size-argument-to-kzalloc.patch
-drivers-scsi-libsas-use-sam_good.patch
-drivers-scsi-remove-unnecessary-null-test.patch
-drivers-message-move-dereference-after-null-test.patch
-drivers-scsi-correct-the-size-argument-to-kmalloc.patch
-drivers-staging-tm6000-tm6000-videoc-correct-null-test.patch
-drivers-usb-correct-the-size-argument-to-kzalloc.patch
-drivers-edac-introduce-missing-kfree.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+i-need-old-gcc.patch
+revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
+drivers-media-video-cx23885-needs-kfifo-conversion.patch
+ibmphp-read-the-length-of-ebda-and-map-entire-ebda-region-fix.patch
+revert-clockevents-prevent-clockevent_devices-list-corruption-on-cpu-hotplug.patch
+drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
+drivers-media-video-pmsc-needs-versionh.patch
+timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
+jffs2-avoid-using-c-keyword-new-in-userspace-visible-header.patch
+3x59x-fix-pci-resource-management.patch
+mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
+mm-count-swap-usage-checkpatch-fixes.patch
+mm-add-lowmem-detection-logic-fix.patch
+mm-count-lowmem-rss-checkpatch-fixes.patch
+vmscan-check-high-watermark-after-shrink-zone-fix.patch
+mm-remove-function-free_hot_page-fix.patch
+mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
+memcg-move-charges-of-anonymous-page-cleanup.patch
+memcg-implement-memory-thresholds-checkpatch-fixes.patch
+reiser4-export-remove_from_page_cache-fix.patch
+reiser4.patch
+reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
+fs-reiser4-contextc-current_is_pdflush-got-removed.patch
+reiser4-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 
