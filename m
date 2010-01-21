@@ -1,107 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [merged] virtio-fix-section-mismatch-warnings.patch removed from -mm tree
-Date: Thu, 21 Jan 2010 13:27:55 -0800
-Message-ID: <201001212127.o0LLRtGe030681@imap1.linux-foundation.org>
+Subject: [merged] memory-hotplug-add-0x-prefix-to-hex-block_size_bytes.patch removed from -mm tree
+Date: Thu, 21 Jan 2010 13:28:03 -0800
+Message-ID: <201001212128.o0LLS3Xd030690@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60635 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40054 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755310Ab0AUV2F (ORCPT
+	by vger.kernel.org with ESMTP id S1755325Ab0AUV2I (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Jan 2010 16:28:05 -0500
+	Thu, 21 Jan 2010 16:28:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeffm@suse.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: fengguang.wu@intel.com, andi@firstfloor.org, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     virtio: fix section mismatch warnings
+     memory-hotplug: add 0x prefix to HEX block_size_bytes
 has been removed from the -mm tree.  Its filename was
-     virtio-fix-section-mismatch-warnings.patch
+     memory-hotplug-add-0x-prefix-to-hex-block_size_bytes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: virtio: fix section mismatch warnings
-From: Jeff Mahoney <jeffm@suse.com>
+Subject: memory-hotplug: add 0x prefix to HEX block_size_bytes
+From: Wu Fengguang <fengguang.wu@intel.com>
 
-Fix fixes the following warnings by renaming the driver structures to be
-suffixed with _driver.
-
-WARNING: drivers/virtio/virtio_balloon.o(.data+0x88): Section mismatch in reference from the variable virtio_balloon to the function .devexit.text:virtballoon_remove()
-
-WARNING: drivers/char/hw_random/virtio-rng.o(.data+0x88): Section mismatch in reference from the variable virtio_rng to the function .devexit.text:virtrng_remove()
-
-Signed-off-by: Jeff Mahoney <jeffm@suse.com>
-Acked-by: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/hw_random/virtio-rng.c |    6 +++---
- drivers/virtio/virtio_balloon.c     |    6 +++---
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ drivers/base/memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/hw_random/virtio-rng.c~virtio-fix-section-mismatch-warnings drivers/char/hw_random/virtio-rng.c
---- a/drivers/char/hw_random/virtio-rng.c~virtio-fix-section-mismatch-warnings
-+++ a/drivers/char/hw_random/virtio-rng.c
-@@ -114,7 +114,7 @@ static struct virtio_device_id id_table[
- 	{ 0 },
- };
- 
--static struct virtio_driver virtio_rng = {
-+static struct virtio_driver virtio_rng_driver = {
- 	.driver.name =	KBUILD_MODNAME,
- 	.driver.owner =	THIS_MODULE,
- 	.id_table =	id_table,
-@@ -124,12 +124,12 @@ static struct virtio_driver virtio_rng =
- 
- static int __init init(void)
+diff -puN drivers/base/memory.c~memory-hotplug-add-0x-prefix-to-hex-block_size_bytes drivers/base/memory.c
+--- a/drivers/base/memory.c~memory-hotplug-add-0x-prefix-to-hex-block_size_bytes
++++ a/drivers/base/memory.c
+@@ -311,7 +311,7 @@ static SYSDEV_ATTR(removable, 0444, show
+ static ssize_t
+ print_block_size(struct class *class, char *buf)
  {
--	return register_virtio_driver(&virtio_rng);
-+	return register_virtio_driver(&virtio_rng_driver);
+-	return sprintf(buf, "%lx\n", (unsigned long)PAGES_PER_SECTION * PAGE_SIZE);
++	return sprintf(buf, "%#lx\n", (unsigned long)PAGES_PER_SECTION * PAGE_SIZE);
  }
  
- static void __exit fini(void)
- {
--	unregister_virtio_driver(&virtio_rng);
-+	unregister_virtio_driver(&virtio_rng_driver);
- }
- module_init(init);
- module_exit(fini);
-diff -puN drivers/virtio/virtio_balloon.c~virtio-fix-section-mismatch-warnings drivers/virtio/virtio_balloon.c
---- a/drivers/virtio/virtio_balloon.c~virtio-fix-section-mismatch-warnings
-+++ a/drivers/virtio/virtio_balloon.c
-@@ -266,7 +266,7 @@ static void __devexit virtballoon_remove
- 
- static unsigned int features[] = { VIRTIO_BALLOON_F_MUST_TELL_HOST };
- 
--static struct virtio_driver virtio_balloon = {
-+static struct virtio_driver virtio_balloon_driver = {
- 	.feature_table = features,
- 	.feature_table_size = ARRAY_SIZE(features),
- 	.driver.name =	KBUILD_MODNAME,
-@@ -279,12 +279,12 @@ static struct virtio_driver virtio_ballo
- 
- static int __init init(void)
- {
--	return register_virtio_driver(&virtio_balloon);
-+	return register_virtio_driver(&virtio_balloon_driver);
- }
- 
- static void __exit fini(void)
- {
--	unregister_virtio_driver(&virtio_balloon);
-+	unregister_virtio_driver(&virtio_balloon_driver);
- }
- module_init(init);
- module_exit(fini);
+ static CLASS_ATTR(block_size_bytes, 0444, print_block_size, NULL);
 _
 
-Patches currently in -mm which might be from jeffm@suse.com are
+Patches currently in -mm which might be from fengguang.wu@intel.com are
 
 origin.patch
 linux-next.patch
-drivers-scsi-hpsac-fix-section-mismatch.patch
+mm-introduce-dump_page-and-print-symbolic-flag-names.patch
+vmscan-check-high-watermark-after-shrink-zone.patch
+vmscan-check-high-watermark-after-shrink-zone-fix.patch
+mm-restore-zone-all_unreclaimable-to-independence-word.patch
+mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
 
