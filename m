@@ -1,57 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-scsi-u14-34fc-fix-uffer-overflow.patch removed from -mm tree
-Date: Thu, 21 Jan 2010 13:29:00 -0800
-Message-ID: <201001212129.o0LLT0nb030773@imap1.linux-foundation.org>
+Subject: [merged] 80211core-fix-confusion.patch removed from -mm tree
+Date: Thu, 21 Jan 2010 13:29:06 -0800
+Message-ID: <201001212129.o0LLT6MN030780@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37632 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45108 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755354Ab0AUV3H (ORCPT
+	by vger.kernel.org with ESMTP id S1755356Ab0AUV3K (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Jan 2010 16:29:07 -0500
+	Thu, 21 Jan 2010 16:29:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, James.Bottomley@HansenPartnership.com, ballabio_dario@emc.com, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, devel@driverdev.osuosl.org, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/scsi/u14-34f.c: fix uffer overflow
+     80211core: fix &&/|| confusion
 has been removed from the -mm tree.  Its filename was
-     drivers-scsi-u14-34fc-fix-uffer-overflow.patch
+     80211core-fix-confusion.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/scsi/u14-34f.c: fix uffer overflow
+Subject: 80211core: fix &&/|| confusion
 From: Roel Kluin <roel.kluin@gmail.com>
 
-This allows i == MAX_INT_PARAM, which is out of range for ints[]
-
-Found with Parfait, http://research.sun.com/projects/parfait/
+This always evaluates to true.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Dario Ballabio <ballabio_dario@emc.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: <devel@driverdev.osuosl.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/u14-34f.c |    2 +-
+ drivers/staging/otus/80211core/cmmsta.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/u14-34f.c~drivers-scsi-u14-34fc-fix-uffer-overflow drivers/scsi/u14-34f.c
---- a/drivers/scsi/u14-34f.c~drivers-scsi-u14-34fc-fix-uffer-overflow
-+++ a/drivers/scsi/u14-34f.c
-@@ -1070,7 +1070,7 @@ static int option_setup(char *str) {
-    char *cur = str;
-    int i = 1;
+diff -puN drivers/staging/otus/80211core/cmmsta.c~80211core-fix-confusion drivers/staging/otus/80211core/cmmsta.c
+--- a/drivers/staging/otus/80211core/cmmsta.c~80211core-fix-confusion
++++ a/drivers/staging/otus/80211core/cmmsta.c
+@@ -2808,7 +2808,7 @@ void zfStaProcessProbeReq(zdev_t* dev, z
+     zmw_get_wlan_dev(dev);
  
--   while (cur && isdigit(*cur) && i <= MAX_INT_PARAM) {
-+   while (cur && isdigit(*cur) && i < MAX_INT_PARAM) {
-       ints[i++] = simple_strtoul(cur, NULL, 0);
- 
-       if ((cur = strchr(cur, ',')) != NULL) cur++;
+     /* check mode : AP/IBSS */
+-    if ((wd->wlanMode != ZM_MODE_AP) || (wd->wlanMode != ZM_MODE_IBSS))
++    if ((wd->wlanMode != ZM_MODE_AP) && (wd->wlanMode != ZM_MODE_IBSS))
+     {
+         zm_msg0_mm(ZM_LV_3, "Ignore probe req");
+         return;
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
