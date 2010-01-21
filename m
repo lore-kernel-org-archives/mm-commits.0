@@ -1,80 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kernelh-add-build_bug_on_not_power_of_2.patch removed from -mm tree
-Date: Thu, 21 Jan 2010 13:27:46 -0800
-Message-ID: <201001212127.o0LLRkAB030666@imap1.linux-foundation.org>
+Subject: [merged] serial-8250_pnp-add-a-new-fujitsu-wacom-tablet-pc-device.patch removed from -mm tree
+Date: Thu, 21 Jan 2010 13:27:11 -0800
+Message-ID: <201001212127.o0LLRBS4030621@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53967 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48038 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755324Ab0AUV14 (ORCPT
+	by vger.kernel.org with ESMTP id S1754720Ab0AUV17 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Jan 2010 16:27:56 -0500
+	Thu, 21 Jan 2010 16:27:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rdreier@cisco.com, bvanassche@acm.org, dave@thedillows.org, rolandd@cisco.com, rpjday@crashcourse.ca, mm-commits@vger.kernel.org
+To: pinglinux@gmail.com, alan@lxorguk.ukuu.org.uk, dtor@mail.ru, pingc@wacom.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernel.h: add BUILD_BUG_ON_NOT_POWER_OF_2()
+     serial/8250_pnp: add a new Fujitsu Wacom Tablet PC device
 has been removed from the -mm tree.  Its filename was
-     kernelh-add-build_bug_on_not_power_of_2.patch
+     serial-8250_pnp-add-a-new-fujitsu-wacom-tablet-pc-device.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel.h: add BUILD_BUG_ON_NOT_POWER_OF_2()
-From: Roland Dreier <rdreier@cisco.com>
+Subject: serial/8250_pnp: add a new Fujitsu Wacom Tablet PC device
+From: Ping <pinglinux@gmail.com>
 
-Add BUILD_BUG_ON_NOT_POWER_OF_2()
+This is a new two finger touch Fujitsu Wacom Tablet PC.
 
-When code relies on a constant being a power of 2:
-
-	#define FOO	512	/* must be a power of 2 */
-
-it would be nice to be able to do:
-
-	BUILD_BUG_ON(!is_power_of_2(FOO));
-
-However applying an inline function does not result in a compile-time
-constant that can be used with BUILD_BUG_ON(), so trying that gives
-results in:
-
-	error: bit-field '<anonymous>' width not an integer constant
-
-As suggested by akpm, rather than monkeying around with is_power_of_2()
-and risking gcc warts about constant expressions, just create a macro
-BUILD_BUG_ON_NOT_POWER_OF_2() to encapsulate this common requirement.
-
-Signed-off-by: Roland Dreier <rolandd@cisco.com>
-Cc: Bart Van Assche <bvanassche@acm.org>
-Cc: David Dillow <dave@thedillows.org>
-Cc: "Robert P. J. Day" <rpjday@crashcourse.ca>
+Signed-off-by: Ping Cheng <pingc@wacom.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/serial/8250_pnp.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN include/linux/kernel.h~kernelh-add-build_bug_on_not_power_of_2 include/linux/kernel.h
---- a/include/linux/kernel.h~kernelh-add-build_bug_on_not_power_of_2
-+++ a/include/linux/kernel.h
-@@ -734,6 +734,10 @@ struct sysinfo {
- /* Force a compilation error if condition is constant and true */
- #define MAYBE_BUILD_BUG_ON(cond) ((void)sizeof(char[1 - 2 * !!(cond)]))
- 
-+/* Force a compilation error if a constant expression is not a power of 2 */
-+#define BUILD_BUG_ON_NOT_POWER_OF_2(n)			\
-+	BUILD_BUG_ON((n) == 0 || (((n) & ((n) - 1)) != 0))
-+
- /* Force a compilation error if condition is true, but also produce a
-    result (of value 0 and type size_t), so the expression can be used
-    e.g. in a structure initializer (or where-ever else comma expressions
+diff -puN drivers/serial/8250_pnp.c~serial-8250_pnp-add-a-new-fujitsu-wacom-tablet-pc-device drivers/serial/8250_pnp.c
+--- a/drivers/serial/8250_pnp.c~serial-8250_pnp-add-a-new-fujitsu-wacom-tablet-pc-device
++++ a/drivers/serial/8250_pnp.c
+@@ -354,6 +354,8 @@ static const struct pnp_device_id pnp_de
+ 	{	"FUJ02E5",		0	},
+ 	/* Fujitsu P-series tablet PC device */
+ 	{	"FUJ02E6",		0	},
++	/* Fujitsu Wacom 2FGT Tablet PC device */
++	{	"FUJ02E7",		0	},
+ 	/*
+ 	 * LG C1 EXPRESS DUAL (C1-PB11A3) touch screen (actually a FUJ02E6 in
+ 	 * disguise)
 _
 
-Patches currently in -mm which might be from rdreier@cisco.com are
+Patches currently in -mm which might be from pinglinux@gmail.com are
 
 origin.patch
-ecryptfs-another-lockdep-issue.patch
 
