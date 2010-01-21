@@ -1,71 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [merged] viafb-fix-acceleration-for-some-chips.patch removed from -mm tree
-Date: Thu, 21 Jan 2010 13:27:05 -0800
-Message-ID: <201001212127.o0LLR52U030606@imap1.linux-foundation.org>
+Subject: [merged] markup_oopspl-fix-error-with-x86.patch removed from -mm tree
+Date: Thu, 21 Jan 2010 13:27:08 -0800
+Message-ID: <201001212127.o0LLR8jt030614@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43224 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55911 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755312Ab0AUV1J (ORCPT
+	by vger.kernel.org with ESMTP id S1755306Ab0AUV1K (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Jan 2010 16:27:09 -0500
+	Thu, 21 Jan 2010 16:27:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ej.lfs@xs4all.nl, FlorianSchandinat@gmx.de, JosephChan@via.com.tw, ScottFang@viatech.com.cn, mm-commits@vger.kernel.org
+To: teawater@gmail.com, arjan@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     viafb: fix acceleration for some chips
+     markup_oops.pl: fix error with x86
 has been removed from the -mm tree.  Its filename was
-     viafb-fix-acceleration-for-some-chips.patch
+     markup_oopspl-fix-error-with-x86.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: viafb: fix acceleration for some chips
-From: Erik-Jan Post <ej.lfs@xs4all.nl>
+Subject: markup_oops.pl: fix error with x86
+From: Hui Zhu <teawater@gmail.com>
 
-Fix a regression in hardware acceleration which made the accelerated
-framebuffer unusable on some chips.  These need extra initialization and
-an extra flag which is no longer needed/available on current chips.
+When I try to use markup_oops.pl in x86, I always get:
 
-Signed-off-by: Erik-Jan Post <ej.lfs@xs4all.nl>
-Signed-off-by: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Cc: Scott Fang <ScottFang@viatech.com.cn>
-Cc: Joseph Chan <JosephChan@via.com.tw>
+cat 1 | perl markup_oops.pl ./vmlinux
+objdump: --start-address: bad number: NaN
+No matching code found
+
+This is because in line:
+	if ($line =~ /EIP is at ([a-zA-Z0-9\_]+)\+0x([0-9a-f]+)\/[a-f0-9]/) {
+ 		$function = $1;
+ 		$func_offset = $2;
+ 	}
+
+$func_offset will get a number like "0x2"
+
+But in follow code:
+
+my $decodestart = Math::BigInt->from_hex("0x$target") -
+Math::BigInt->from_hex("0x$func_offset");
+
+It add other ox to ox2.  Then this value will be set to NaN.
+
+So I made a small patch to fix it.
+
+Signed-off-by: Hui Zhu <teawater@gmail.com>
+Acked-by: Arjan van de Ven <arjan@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/via/accel.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ scripts/markup_oops.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/via/accel.c~viafb-fix-acceleration-for-some-chips drivers/video/via/accel.c
---- a/drivers/video/via/accel.c~viafb-fix-acceleration-for-some-chips
-+++ a/drivers/video/via/accel.c
-@@ -137,7 +137,7 @@ static int hw_bitblt_1(void __iomem *eng
- 			tmp, dst_pitch);
- 		return -EINVAL;
+diff -puN scripts/markup_oops.pl~markup_oopspl-fix-error-with-x86 scripts/markup_oops.pl
+--- a/scripts/markup_oops.pl~markup_oopspl-fix-error-with-x86
++++ a/scripts/markup_oops.pl
+@@ -154,7 +154,7 @@ while (<STDIN>) {
+ 	if ($line =~ /RIP: 0010:\[\<([a-z0-9]+)\>\]/) {
+ 		$target = $1;
  	}
--	tmp = (tmp >> 3) | (dst_pitch << (16 - 3));
-+	tmp = VIA_PITCH_ENABLE | (tmp >> 3) | (dst_pitch << (16 - 3));
- 	writel(tmp, engine + 0x38);
- 
- 	if (op == VIA_BITBLT_FILL)
-@@ -352,6 +352,9 @@ int viafb_init_engine(struct fb_info *in
- 	viapar->shared->vq_vram_addr = viapar->fbmem_free;
- 	viapar->fbmem_used += VQ_SIZE;
- 
-+	/* Init 2D engine reg to reset 2D engine */
-+	writel(0x0, engine + VIA_REG_KEYCONTROL);
-+
- 	/* Init AGP and VQ regs */
- 	switch (chip_name) {
- 	case UNICHROME_K8M890:
+-	if ($line =~ /EIP is at ([a-zA-Z0-9\_]+)\+(0x[0-9a-f]+)\/0x[a-f0-9]/) {
++	if ($line =~ /EIP is at ([a-zA-Z0-9\_]+)\+0x([0-9a-f]+)\/0x[a-f0-9]/) {
+ 		$function = $1;
+ 		$func_offset = $2;
+ 	}
 _
 
-Patches currently in -mm which might be from ej.lfs@xs4all.nl are
+Patches currently in -mm which might be from teawater@gmail.com are
 
 origin.patch
 
