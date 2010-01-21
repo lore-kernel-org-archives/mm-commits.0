@@ -1,73 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-staging-pohmelfs-inodec-remove-uses-of-nipquad-use-%pi4.patch removed from -mm tree
-Date: Thu, 21 Jan 2010 13:29:09 -0800
-Message-ID: <201001212129.o0LLT9kb030788@imap1.linux-foundation.org>
+Subject: [merged] fs-improve-remountro-vs-buffercache-coherency.patch removed from -mm tree
+Date: Thu, 21 Jan 2010 13:29:24 -0800
+Message-ID: <201001212129.o0LLTOo8030803@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33630 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45705 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755365Ab0AUV3W (ORCPT
+	by vger.kernel.org with ESMTP id S1755372Ab0AUV3c (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Jan 2010 16:29:22 -0500
+	Thu, 21 Jan 2010 16:29:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, gregkh@suse.de, zbr@ioremap.net, mm-commits@vger.kernel.org
+To: npiggin@suse.de, jorge@dti2.net, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/staging/pohmelfs/inode.c: remove uses of NIPQUAD, use %pI4
+     fs: improve remount,ro vs buffercache coherency
 has been removed from the -mm tree.  Its filename was
-     drivers-staging-pohmelfs-inodec-remove-uses-of-nipquad-use-%pi4.patch
+     fs-improve-remountro-vs-buffercache-coherency.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/staging/pohmelfs/inode.c: remove uses of NIPQUAD, use %pI4
-From: Joe Perches <joe@perches.com>
+Subject: fs: improve remount,ro vs buffercache coherency
+From: Nick Piggin <npiggin@suse.de>
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Evgeniy Polyakov <zbr@ioremap.net>
+Invalidate sb->s_bdev on remount,ro.
+
+Fixes a problem reported by Jorge Boncompte who is seeing corruption
+trying to snapshot a minix filesystem image.  Some filesystems modify
+their metadata via a path other than the bdev buffer cache (eg.  they may
+use a private linear mapping for their metadata, or implement directories
+in pagecache, etc).  Also, file data modifications usually go to the bdev
+via their own mappings.
+
+These updates are not coherent with buffercache IO (eg.  via /dev/bdev)
+and never have been.  However there could be a reasonable expectation that
+after a mount -oremount,ro operation then the buffercache should
+subsequently be coherent with previous filesystem modifications.
+
+So invalidate the bdev mappings on a remount,ro operation to provide a
+coherency point.
+
+The problem was exposed when we switched the old rd to brd because old rd
+didn't really function like a normal block device and updates to rd via
+mappings other than the buffercache would still end up going into its
+buffercache.  But the same problem has always affected other "normal"
+block devices, including loop.
+
+[akpm@linux-foundation.org: repair comment layout]
+Reported-by: "Jorge Boncompte [DTI2]" <jorge@dti2.net>
+Tested-by: "Jorge Boncompte [DTI2]" <jorge@dti2.net>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/pohmelfs/inode.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/super.c |   18 +++++++++++++++---
+ 1 file changed, 15 insertions(+), 3 deletions(-)
 
-diff -puN drivers/staging/pohmelfs/inode.c~drivers-staging-pohmelfs-inodec-remove-uses-of-nipquad-use-%pi4 drivers/staging/pohmelfs/inode.c
---- a/drivers/staging/pohmelfs/inode.c~drivers-staging-pohmelfs-inodec-remove-uses-of-nipquad-use-%pi4
-+++ a/drivers/staging/pohmelfs/inode.c
-@@ -1767,8 +1767,7 @@ static int pohmelfs_show_stats(struct se
- 		seq_printf(m, "%u ", ctl->idx);
- 		if (ctl->addr.sa_family == AF_INET) {
- 			struct sockaddr_in *sin = (struct sockaddr_in *)&st->ctl.addr;
--			/* seq_printf(m, "%pi4:%u", &sin->sin_addr.s_addr, ntohs(sin->sin_port)); */
--			seq_printf(m, "%u.%u.%u.%u:%u", NIPQUAD(sin->sin_addr.s_addr), ntohs(sin->sin_port));
-+			seq_printf(m, "%pI4:%u", &sin->sin_addr.s_addr, ntohs(sin->sin_port));
- 		} else if (ctl->addr.sa_family == AF_INET6) {
- 			struct sockaddr_in6 *sin = (struct sockaddr_in6 *)&st->ctl.addr;
- 			seq_printf(m, "%pi6:%u", &sin->sin6_addr, ntohs(sin->sin6_port));
+diff -puN fs/super.c~fs-improve-remountro-vs-buffercache-coherency fs/super.c
+--- a/fs/super.c~fs-improve-remountro-vs-buffercache-coherency
++++ a/fs/super.c
+@@ -569,7 +569,7 @@ out:
+ int do_remount_sb(struct super_block *sb, int flags, void *data, int force)
+ {
+ 	int retval;
+-	int remount_rw;
++	int remount_rw, remount_ro;
+ 
+ 	if (sb->s_frozen != SB_UNFROZEN)
+ 		return -EBUSY;
+@@ -584,9 +584,12 @@ int do_remount_sb(struct super_block *sb
+ 	shrink_dcache_sb(sb);
+ 	sync_filesystem(sb);
+ 
++	remount_ro = (flags & MS_RDONLY) && !(sb->s_flags & MS_RDONLY);
++	remount_rw = !(flags & MS_RDONLY) && (sb->s_flags & MS_RDONLY);
++
+ 	/* If we are remounting RDONLY and current sb is read/write,
+ 	   make sure there are no rw files opened */
+-	if ((flags & MS_RDONLY) && !(sb->s_flags & MS_RDONLY)) {
++	if (remount_ro) {
+ 		if (force)
+ 			mark_files_ro(sb);
+ 		else if (!fs_may_remount_ro(sb))
+@@ -595,7 +598,6 @@ int do_remount_sb(struct super_block *sb
+ 		if (retval < 0 && retval != -ENOSYS)
+ 			return -EBUSY;
+ 	}
+-	remount_rw = !(flags & MS_RDONLY) && (sb->s_flags & MS_RDONLY);
+ 
+ 	if (sb->s_op->remount_fs) {
+ 		retval = sb->s_op->remount_fs(sb, &flags, data);
+@@ -605,6 +607,16 @@ int do_remount_sb(struct super_block *sb
+ 	sb->s_flags = (sb->s_flags & ~MS_RMT_MASK) | (flags & MS_RMT_MASK);
+ 	if (remount_rw)
+ 		vfs_dq_quota_on_remount(sb);
++	/*
++	 * Some filesystems modify their metadata via some other path than the
++	 * bdev buffer cache (eg. use a private mapping, or directories in
++	 * pagecache, etc). Also file data modifications go via their own
++	 * mappings. So If we try to mount readonly then copy the filesystem
++	 * from bdev, we could get stale data, so invalidate it to give a best
++	 * effort at coherency.
++	 */
++	if (remount_ro && sb->s_bdev)
++		invalidate_bdev(sb->s_bdev);
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from npiggin@suse.de are
 
+origin.patch
 linux-next.patch
-net-rds-remove-uses-of-nipquad-use-%pi4.patch
-net-sunrpc-remove-uses-of-nipquad-use-%pi4.patch
-fs-ocfs2-cluster-tcpc-remove-use-of-nipquad-use-%pi4.patch
-drivers-scsi-correct-the-size-argument-to-kmalloc.patch
-drivers-scsi-remove-uses-of-nipquad-use-%pi4.patch
-drivers-firmware-iscsi_ibftc-remove-nipquad_fmt-use-%pi4.patch
-scripts-get_maintainerpl-add-file-emails-find-embedded-email-addresses.patch
-scripts-get_maintainerpl-add-file-emails-find-embedded-email-addresses-v2.patch
-scripts-get_maintainerpl-add-sections-print-entire-matched-subsystem.patch
-maintainers-remove-amd-geode-f-arch-x86-kernel-geode_32c.patch
-maintainers-remove-hayes-esp-serial-driver.patch
-maintainers-update-performance-events-f-patterns.patch
-maintainers-starmode-radio-ip-strip-moved-to-staging.patch
-maintainers-wavelan-moved-to-staging.patch
-scripts-checkpatchpl-add-warn-on-sizeof.patch
-checkpatchpl-allow-80-char-lines-for-logging-functions-not-just-printk.patch
+mlock_vma_pages_range-never-return-negative-value.patch
+mlock_vma_pages_range-only-return-success-or-failure.patch
+mm-lockdep-annotate-reclaim-context-to-zone-reclaim-too.patch
+reiser4.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
