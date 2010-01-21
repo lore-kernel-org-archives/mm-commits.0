@@ -1,74 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [merged] nfs-avoid-warnings-when-config_nfs_v4=n.patch removed from -mm tree
-Date: Thu, 21 Jan 2010 13:28:48 -0800
-Message-ID: <201001212128.o0LLSmaA030758@imap1.linux-foundation.org>
+Subject: [merged] scsi-remove-unnecessary-null-test.patch removed from -mm tree
+Date: Thu, 21 Jan 2010 13:29:03 -0800
+Message-ID: <201001212129.o0LLT3Cm030777@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47271 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59247 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755357Ab0AUV3N (ORCPT
+	by vger.kernel.org with ESMTP id S1755358Ab0AUV3P (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Jan 2010 16:29:13 -0500
+	Thu, 21 Jan 2010 16:29:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, James.Bottomley@HansenPartnership.com, kxie@chelsio.com, michaelc@cs.wisc.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nfs: avoid warnings when CONFIG_NFS_V4=n
+     scsi: remove unnecessary NULL test
 has been removed from the -mm tree.  Its filename was
-     nfs-avoid-warnings-when-config_nfs_v4=n.patch
+     scsi-remove-unnecessary-null-test.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nfs: avoid warnings when CONFIG_NFS_V4=n
-From: David Howells <dhowells@redhat.com>
+Subject: scsi: remove unnecessary NULL test
+From: Jiri Slaby <jirislaby@gmail.com>
 
-Avoid the following warnings when CONFIG_NFS_V4=n:
+Stanse found that c3cn is poked many times around in
+cxgb3i_conn_pdu_ready, there is no need to check if it is NULL.
 
-	fs/nfs/sysctl.c:19: warning: unused variable `nfs_set_port_max'
-	fs/nfs/sysctl.c:18: warning: unused variable `nfs_set_port_min'
+Remove the test.
 
-by making those variables contingent on NFSv4 being configured.
-
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Reviewed-by: Mike Christie <michaelc@cs.wisc.edu>
+Acked-by: Karen Xie <kxie@chelsio.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/sysctl.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/scsi/cxgb3i/cxgb3i_pdu.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN fs/nfs/sysctl.c~nfs-avoid-warnings-when-config_nfs_v4=n fs/nfs/sysctl.c
---- a/fs/nfs/sysctl.c~nfs-avoid-warnings-when-config_nfs_v4=n
-+++ a/fs/nfs/sysctl.c
-@@ -15,8 +15,10 @@
+diff -puN drivers/scsi/cxgb3i/cxgb3i_pdu.c~scsi-remove-unnecessary-null-test drivers/scsi/cxgb3i/cxgb3i_pdu.c
+--- a/drivers/scsi/cxgb3i/cxgb3i_pdu.c~scsi-remove-unnecessary-null-test
++++ a/drivers/scsi/cxgb3i/cxgb3i_pdu.c
+@@ -461,10 +461,8 @@ void cxgb3i_conn_pdu_ready(struct s3_con
+ 		skb = skb_peek(&c3cn->receive_queue);
+ 	}
+ 	read_unlock(&c3cn->callback_lock);
+-	if (c3cn) {
+-		c3cn->copied_seq += read;
+-		cxgb3i_c3cn_rx_credits(c3cn, read);
+-	}
++	c3cn->copied_seq += read;
++	cxgb3i_c3cn_rx_credits(c3cn, read);
+ 	conn->rxdata_octets += read;
  
- #include "callback.h"
- 
-+#ifdef CONFIG_NFS_V4
- static const int nfs_set_port_min = 0;
- static const int nfs_set_port_max = 65535;
-+#endif
- static struct ctl_table_header *nfs_callback_sysctl_table;
- 
- static ctl_table nfs_cb_sysctls[] = {
+ 	if (err) {
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
-origin.patch
 linux-next.patch
-kernel-credc-use-kmem_cache_free.patch
-frv-duplicate-output_buffer-of-e03.patch
-coredump-unify-dump_seek-implementations-for-each-binfmt_c.patch
-coredump-move-dump_write-and-dump_seek-into-a-header-file.patch
-elf-coredump-replace-elf_core_extra_-macros-by-functions.patch
-elf-coredump-make-offset-calculation-process-and-writing-process-explicit.patch
-elf-coredump-add-extended-numbering-support.patch
-mutex-subsystem-synchro-test-module.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
+reiser4.patch
+fs-reiser4-add-parenths-around-x-y.patch
 
