@@ -1,110 +1,169 @@
 From: akpm@linux-foundation.org
-Subject: [folded] revert-drivers-video-s3c-fbc-fix-clock-setting-for-samsung-soc-framebuffer-fix.patch removed from -mm tree
-Date: Fri, 15 Jan 2010 16:53:53 -0800
-Message-ID: <201001160053.o0G0rrTp008496@imap1.linux-foundation.org>
+Subject: [alternative-merged] sysdev-fix-prototype-for-memory_sysdev_class-show-store-functions.patch removed from -mm tree
+Date: Thu, 21 Jan 2010 13:16:53 -0800
+Message-ID: <201001212116.o0LLGspo030099@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48695 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58775 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758113Ab0APAzN (ORCPT
+	by vger.kernel.org with ESMTP id S1754670Ab0AUVRJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Jan 2010 19:55:13 -0500
+	Thu, 21 Jan 2010 16:17:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ben-linux@fluff.org, broonie@opensource.wolfsonmicro.com, inki.dae@samsung.com, kmpark@infradead.org, krzysztof.h1@poczta.fm, m.szyprowski@samsung.com, stab
+To: fengguang.wu@intel.com, andi@firstfloor.org, gregkh@suse.de, shaohui.zheng@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert-drivers-video-s3c-fbc-fix-clock-setting-for-samsung-soc-framebuffer-fix
+     sysdev: fix prototype for memory_sysdev_class show/store functions
 has been removed from the -mm tree.  Its filename was
-     revert-drivers-video-s3c-fbc-fix-clock-setting-for-samsung-soc-framebuffer-fix.patch
+     sysdev-fix-prototype-for-memory_sysdev_class-show-store-functions.patch
 
-This patch was dropped because it was folded into revert-drivers-video-s3c-fbc-fix-clock-setting-for-samsung-soc-framebuffer.patch
+This patch was dropped because an alternative patch was merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert-drivers-video-s3c-fbc-fix-clock-setting-for-samsung-soc-framebuffer-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: sysdev: fix prototype for memory_sysdev_class show/store functions
+From: Wu Fengguang <fengguang.wu@intel.com>
 
-don't revert the correct bit
+The function prototype mismatches in call stack:
 
-Cc: <stable@kernel.org>
-Cc: Ben Dooks <ben-linux@fluff.org>
-Cc: InKi Dae <inki.dae@samsung.com>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
-Cc: Kyungmin Park <kmpark@infradead.org>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+                [<ffffffff81494268>] print_block_size+0x58/0x60
+                [<ffffffff81487e3f>] sysdev_class_show+0x1f/0x30
+                [<ffffffff811d629b>] sysfs_read_file+0xcb/0x1f0
+                [<ffffffff81176328>] vfs_read+0xc8/0x180
+
+Due to prototype mismatch, print_block_size() will sprintf() into
+*attribute instead of *buf, hence user space will read the initial
+zeros from *buf:
+	$ hexdump /sys/devices/system/memory/block_size_bytes
+	0000000 0000 0000 0000 0000
+	0000008
+
+After patch:
+	cat /sys/devices/system/memory/block_size_bytes
+	0x8000000
+
+This complements commits c29af9636 and 4a0b2b4dbe.
+
+Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: "Zheng, Shaohui" <shaohui.zheng@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/s3c-fb.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/base/memory.c |   32 ++++++++++++++++++++------------
+ 1 file changed, 20 insertions(+), 12 deletions(-)
 
-diff -puN drivers/video/s3c-fb.c~revert-drivers-video-s3c-fbc-fix-clock-setting-for-samsung-soc-framebuffer-fix drivers/video/s3c-fb.c
---- a/drivers/video/s3c-fb.c~revert-drivers-video-s3c-fbc-fix-clock-setting-for-samsung-soc-framebuffer-fix
-+++ a/drivers/video/s3c-fb.c
-@@ -267,6 +267,7 @@ static int s3c_fb_set_par(struct fb_info
- 	struct s3c_fb *sfb = win->parent;
- 	void __iomem *regs = sfb->regs;
- 	int win_no = win->index;
-+	u32 osdc_data = 0;
- 	u32 data;
- 	u32 pagewidth;
- 	int clkdiv;
-@@ -359,8 +360,6 @@ static int s3c_fb_set_par(struct fb_info
+diff -puN drivers/base/memory.c~sysdev-fix-prototype-for-memory_sysdev_class-show-store-functions drivers/base/memory.c
+--- a/drivers/base/memory.c~sysdev-fix-prototype-for-memory_sysdev_class-show-store-functions
++++ a/drivers/base/memory.c
+@@ -309,17 +309,19 @@ static SYSDEV_ATTR(removable, 0444, show
+  * Block size attribute stuff
+  */
+ static ssize_t
+-print_block_size(struct class *class, char *buf)
++print_block_size(struct sysdev_class *class,
++		 struct sysdev_class_attribute *class_attr,
++		 char *buf)
+ {
+ 	return sprintf(buf, "%#lx\n", (unsigned long)PAGES_PER_SECTION * PAGE_SIZE);
+ }
  
- 	data = var->xres * var->yres;
+-static CLASS_ATTR(block_size_bytes, 0444, print_block_size, NULL);
++static SYSDEV_CLASS_ATTR(block_size_bytes, 0444, print_block_size, NULL);
  
--	u32 osdc_data = 0;
--
- 	osdc_data = VIDISD14C_ALPHA1_R(0xf) |
- 		VIDISD14C_ALPHA1_G(0xf) |
- 		VIDISD14C_ALPHA1_B(0xf);
+ static int block_size_init(void)
+ {
+ 	return sysfs_create_file(&memory_sysdev_class.kset.kobj,
+-				&class_attr_block_size_bytes.attr);
++				&attr_block_size_bytes.attr);
+ }
+ 
+ /*
+@@ -330,7 +332,9 @@ static int block_size_init(void)
+  */
+ #ifdef CONFIG_ARCH_MEMORY_PROBE
+ static ssize_t
+-memory_probe_store(struct class *class, const char *buf, size_t count)
++memory_probe_store(struct sysdev_class *class,
++		   struct sysdev_class_attribute *class_attr,
++		   const char *buf, size_t count)
+ {
+ 	u64 phys_addr;
+ 	int nid;
+@@ -346,12 +350,12 @@ memory_probe_store(struct class *class, 
+ 
+ 	return count;
+ }
+-static CLASS_ATTR(probe, S_IWUSR, NULL, memory_probe_store);
++static SYSDEV_CLASS_ATTR(probe, S_IWUSR, NULL, memory_probe_store);
+ 
+ static int memory_probe_init(void)
+ {
+ 	return sysfs_create_file(&memory_sysdev_class.kset.kobj,
+-				&class_attr_probe.attr);
++				&attr_probe.attr);
+ }
+ #else
+ static inline int memory_probe_init(void)
+@@ -367,7 +371,9 @@ static inline int memory_probe_init(void
+ 
+ /* Soft offline a page */
+ static ssize_t
+-store_soft_offline_page(struct class *class, const char *buf, size_t count)
++store_soft_offline_page(struct sysdev_class *class,
++			struct sysdev_class_attribute *class_attr,
++			const char *buf, size_t count)
+ {
+ 	int ret;
+ 	u64 pfn;
+@@ -384,7 +390,9 @@ store_soft_offline_page(struct class *cl
+ 
+ /* Forcibly offline a page, including killing processes. */
+ static ssize_t
+-store_hard_offline_page(struct class *class, const char *buf, size_t count)
++store_hard_offline_page(struct sysdev_class *class,
++			struct sysdev_class_attribute *class_attr,
++			const char *buf, size_t count)
+ {
+ 	int ret;
+ 	u64 pfn;
+@@ -397,18 +405,18 @@ store_hard_offline_page(struct class *cl
+ 	return ret ? ret : count;
+ }
+ 
+-static CLASS_ATTR(soft_offline_page, 0644, NULL, store_soft_offline_page);
+-static CLASS_ATTR(hard_offline_page, 0644, NULL, store_hard_offline_page);
++static SYSDEV_CLASS_ATTR(soft_offline_page, 0644, NULL, store_soft_offline_page);
++static SYSDEV_CLASS_ATTR(hard_offline_page, 0644, NULL, store_hard_offline_page);
+ 
+ static __init int memory_fail_init(void)
+ {
+ 	int err;
+ 
+ 	err = sysfs_create_file(&memory_sysdev_class.kset.kobj,
+-				&class_attr_soft_offline_page.attr);
++				&attr_soft_offline_page.attr);
+ 	if (!err)
+ 		err = sysfs_create_file(&memory_sysdev_class.kset.kobj,
+-				&class_attr_hard_offline_page.attr);
++				&attr_hard_offline_page.attr);
+ 	return err;
+ }
+ #else
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from fengguang.wu@intel.com are
 
 origin.patch
-ttyh-make-function-static.patch
-revert-drivers-video-s3c-fbc-fix-clock-setting-for-samsung-soc-framebuffer.patch
-revert-drivers-video-s3c-fbc-fix-clock-setting-for-samsung-soc-framebuffer-fix.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-i-need-old-gcc.patch
-revert-input-wistron_btns-switch-to-using-sparse-keymap-library.patch
-drivers-media-video-cx23885-needs-kfifo-conversion.patch
-ibmphp-read-the-length-of-ebda-and-map-entire-ebda-region-fix.patch
-revert-clockevents-prevent-clockevent_devices-list-corruption-on-cpu-hotplug.patch
-drivers-gpu-drm-radeon-radeon_combiosc-fix-warning.patch
-drivers-media-video-pmsc-needs-versionh.patch
-timer-stats-fix-del_timer_sync-and-try_to_del_timer_sync.patch
-jffs2-avoid-using-c-keyword-new-in-userspace-visible-header.patch
-3x59x-fix-pci-resource-management.patch
-drivers-usb-core-sysfsc-set_reset_quirk-remove-unused-local.patch
-fs-improve-remountro-vs-buffercache-coherency.patch
-mm-avoid-false-sharing-of-mm_counter-checkpatch-fixes.patch
-mm-count-swap-usage-checkpatch-fixes.patch
-mm-add-lowmem-detection-logic-fix.patch
-mm-count-lowmem-rss-checkpatch-fixes.patch
+sysdev-fix-prototype-for-memory_sysdev_class-show-store-functions.patch
+mm-introduce-dump_page-and-print-symbolic-flag-names.patch
+vmscan-check-high-watermark-after-shrink-zone.patch
 vmscan-check-high-watermark-after-shrink-zone-fix.patch
-mm-remove-function-free_hot_page-fix.patch
+mm-restore-zone-all_unreclaimable-to-independence-word.patch
 mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-mm-pass-mm-flags-as-a-coredump-parameter-for-consistency-fix.patch
-memcg-move-charges-of-anonymous-page-cleanup.patch
-memcg-implement-memory-thresholds-checkpatch-fixes.patch
-reiser4-export-remove_from_page_cache-fix.patch
-reiser4.patch
-reiser4-remove-simple_prepare_write-usage-checkpatch-fixes.patch
-fs-reiser4-contextc-current_is_pdflush-got-removed.patch
-reiser4-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
 
