@@ -1,149 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: [merged] nommu-dont-need-get_unmapped_area-for-nommu.patch removed from -mm tree
-Date: Thu, 21 Jan 2010 13:28:15 -0800
-Message-ID: <201001212128.o0LLSFUc030708@imap1.linux-foundation.org>
+Subject: [merged] kfifo-add-kfifo_initialized.patch removed from -mm tree
+Date: Thu, 21 Jan 2010 13:27:33 -0800
+Message-ID: <201001212127.o0LLRX8F030653@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39231 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33142 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755340Ab0AUV2f (ORCPT
+	by vger.kernel.org with ESMTP id S1755331Ab0AUV20 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Jan 2010 16:28:35 -0500
+	Thu, 21 Jan 2010 16:28:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, gerg@snapgear.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: andi@firstfloor.org, ak@linux.intel.com, awalls@radix.net, dhillonv10@gmail.com, dmitry.torokhov@gmail.com, rdreier@cisco.com, stefani@seibold.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nommu: don't need get_unmapped_area() for NOMMU
+     kfifo: add kfifo_initialized
 has been removed from the -mm tree.  Its filename was
-     nommu-dont-need-get_unmapped_area-for-nommu.patch
+     kfifo-add-kfifo_initialized.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nommu: don't need get_unmapped_area() for NOMMU
-From: David Howells <dhowells@redhat.com>
+Subject: kfifo: add kfifo_initialized
+From: Andi Kleen <andi@firstfloor.org>
 
-get_unmapped_area() is unnecessary for NOMMU as no-one calls it.
+Simple inline that checks if kfifo_init() has been executed on a fifo.
 
-Signed-off-by: David Howells <dhowells@redhat.com>
-Acked-by: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Greg Ungerer <gerg@snapgear.com>
+This is useful for walking all per CPU fifos, when some of them might not
+have been brought up yet.
+
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Acked-by: Stefani Seibold <stefani@seibold.net>
+Cc: Roland Dreier <rdreier@cisco.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Andy Walls <awalls@radix.net>
+Cc: Vikram Dhillon <dhillonv10@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |    2 ++
- include/linux/sched.h    |    7 +++++--
- mm/nommu.c               |   21 ---------------------
- mm/util.c                |    2 +-
- 4 files changed, 8 insertions(+), 24 deletions(-)
+ include/linux/kfifo.h |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN include/linux/mm_types.h~nommu-dont-need-get_unmapped_area-for-nommu include/linux/mm_types.h
---- a/include/linux/mm_types.h~nommu-dont-need-get_unmapped_area-for-nommu
-+++ a/include/linux/mm_types.h
-@@ -205,10 +205,12 @@ struct mm_struct {
- 	struct vm_area_struct * mmap;		/* list of VMAs */
- 	struct rb_root mm_rb;
- 	struct vm_area_struct * mmap_cache;	/* last find_vma result */
-+#ifdef CONFIG_MMU
- 	unsigned long (*get_unmapped_area) (struct file *filp,
- 				unsigned long addr, unsigned long len,
- 				unsigned long pgoff, unsigned long flags);
- 	void (*unmap_area) (struct mm_struct *mm, unsigned long addr);
-+#endif
- 	unsigned long mmap_base;		/* base of mmap area */
- 	unsigned long task_size;		/* size of task vm space */
- 	unsigned long cached_hole_size; 	/* if non-zero, the largest hole below free_area_cache */
-diff -puN include/linux/sched.h~nommu-dont-need-get_unmapped_area-for-nommu include/linux/sched.h
---- a/include/linux/sched.h~nommu-dont-need-get_unmapped_area-for-nommu
-+++ a/include/linux/sched.h
-@@ -377,6 +377,8 @@ extern int sysctl_max_map_count;
+diff -puN include/linux/kfifo.h~kfifo-add-kfifo_initialized include/linux/kfifo.h
+--- a/include/linux/kfifo.h~kfifo-add-kfifo_initialized
++++ a/include/linux/kfifo.h
+@@ -116,6 +116,16 @@ extern __must_check unsigned int kfifo_o
+ extern __must_check unsigned int kfifo_out_peek(struct kfifo *fifo,
+ 				void *to, unsigned int len, unsigned offset);
  
- #include <linux/aio.h>
++/**
++ * kfifo_initialized - Check if kfifo is initialized.
++ * @fifo: fifo to check
++ * Return %true if FIFO is initialized, otherwise %false.
++ * Assumes the fifo was 0 before.
++ */
++static inline bool kfifo_initialized(struct kfifo *fifo)
++{
++	return fifo->buffer != 0;
++}
  
-+#ifdef CONFIG_MMU
-+extern void arch_pick_mmap_layout(struct mm_struct *mm);
- extern unsigned long
- arch_get_unmapped_area(struct file *, unsigned long, unsigned long,
- 		       unsigned long, unsigned long);
-@@ -386,6 +388,9 @@ arch_get_unmapped_area_topdown(struct fi
- 			  unsigned long flags);
- extern void arch_unmap_area(struct mm_struct *, unsigned long);
- extern void arch_unmap_area_topdown(struct mm_struct *, unsigned long);
-+#else
-+static inline void arch_pick_mmap_layout(struct mm_struct *mm) {}
-+#endif
- 
- #if USE_SPLIT_PTLOCKS
- /*
-@@ -2491,8 +2496,6 @@ static inline void set_task_cpu(struct t
- 
- #endif /* CONFIG_SMP */
- 
--extern void arch_pick_mmap_layout(struct mm_struct *mm);
--
- #ifdef CONFIG_TRACING
- extern void
- __trace_special(void *__tr, void *__data,
-diff -puN mm/nommu.c~nommu-dont-need-get_unmapped_area-for-nommu mm/nommu.c
---- a/mm/nommu.c~nommu-dont-need-get_unmapped_area-for-nommu
-+++ a/mm/nommu.c
-@@ -1761,27 +1761,6 @@ void unmap_mapping_range(struct address_
- EXPORT_SYMBOL(unmap_mapping_range);
- 
- /*
-- * ask for an unmapped area at which to create a mapping on a file
-- */
--unsigned long get_unmapped_area(struct file *file, unsigned long addr,
--				unsigned long len, unsigned long pgoff,
--				unsigned long flags)
--{
--	unsigned long (*get_area)(struct file *, unsigned long, unsigned long,
--				  unsigned long, unsigned long);
--
--	get_area = current->mm->get_unmapped_area;
--	if (file && file->f_op && file->f_op->get_unmapped_area)
--		get_area = file->f_op->get_unmapped_area;
--
--	if (!get_area)
--		return -ENOSYS;
--
--	return get_area(file, addr, len, pgoff, flags);
--}
--EXPORT_SYMBOL(get_unmapped_area);
--
--/*
-  * Check that a process has enough memory to allocate a new virtual
-  * mapping. 0 means there is enough memory for the allocation to
-  * succeed and -ENOMEM implies there is not.
-diff -puN mm/util.c~nommu-dont-need-get_unmapped_area-for-nommu mm/util.c
---- a/mm/util.c~nommu-dont-need-get_unmapped_area-for-nommu
-+++ a/mm/util.c
-@@ -220,7 +220,7 @@ char *strndup_user(const char __user *s,
- }
- EXPORT_SYMBOL(strndup_user);
- 
--#ifndef HAVE_ARCH_PICK_MMAP_LAYOUT
-+#if defined(CONFIG_MMU) && !defined(HAVE_ARCH_PICK_MMAP_LAYOUT)
- void arch_pick_mmap_layout(struct mm_struct *mm)
- {
- 	mm->mmap_base = TASK_UNMAPPED_BASE;
+ /**
+  * kfifo_reset - removes the entire FIFO contents
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from andi@firstfloor.org are
 
 origin.patch
 linux-next.patch
-kernel-credc-use-kmem_cache_free.patch
-frv-duplicate-output_buffer-of-e03.patch
+hardware-latency-detector-remove-default-m.patch
+mm-add-swap-slot-free-callback-to-block_device_operations.patch
+kbuild-move-fno-dwarf2-cfi-asm-to-powerpc-only.patch
+mm-introduce-dump_page-and-print-symbolic-flag-names.patch
 coredump-unify-dump_seek-implementations-for-each-binfmt_c.patch
 coredump-move-dump_write-and-dump_seek-into-a-header-file.patch
 elf-coredump-replace-elf_core_extra_-macros-by-functions.patch
 elf-coredump-make-offset-calculation-process-and-writing-process-explicit.patch
 elf-coredump-add-extended-numbering-support.patch
-mutex-subsystem-synchro-test-module.patch
-mutex-subsystem-synchro-test-module-add-missing-header-file.patch
+tracehooks-kill-some-pt_ptraced-checks.patch
+tracehooks-check-pt_ptraced-before-reporting-the-single-step.patch
+ptrace_signal-check-pt_ptraced-before-reporting-a-signal.patch
+export-__ptrace_detach-and-do_notify_parent_cldstop.patch
+reorder-the-code-in-kernel-ptracec.patch
+implement-utrace-ptrace.patch
+utrace-core.patch
+rcu-add-rcustring-adt-for-rcu-protected-strings.patch
+add-a-kernel_address-that-works-for-data-too.patch
+sysctl-add-proc_rcu_string-to-manage-sysctls-using-rcu-strings.patch
+sysctl-use-rcu-strings-for-core_pattern-sysctl.patch
+sysctl-add-call_usermodehelper_cleanup.patch
+sysctl-convert-modprobe_path-to-proc_rcu_string.patch
+sysctl-convert-poweroff_command-to-proc_rcu_string.patch
+sysctl-convert-hotplug-helper-string-to-proc_rcu_string.patch
+sysctl-use-rcu-protected-sysctl-for-ocfs-group-add-helper.patch
 
