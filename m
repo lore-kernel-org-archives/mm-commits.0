@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-get_maintainerpl-change-sections-to-print-in-the-same-style-as-maintainers.patch added to -mm tree
-Date: Fri, 22 Jan 2010 15:07:30 -0800
-Message-ID: <201001222307.o0MN7UOk001806@imap1.linux-foundation.org>
+Subject: + mm-restore-zone-all_unreclaimable-to-independence-word-fix-2.patch added to -mm tree
+Date: Fri, 22 Jan 2010 15:08:45 -0800
+Message-ID: <201001222308.o0MN8jG2001834@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45320 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53421 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753976Ab0AVXIM (ORCPT
+	by vger.kernel.org with ESMTP id S1755190Ab0AVXKL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 22 Jan 2010 18:08:12 -0500
+	Fri, 22 Jan 2010 18:10:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, stefanr@s5r6.in-berlin.de
+Cc: kosaki.motohiro@jp.fujitsu.com, fengguang.wu@intel.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, riel@redhat.com, rientjes@google.com, shijie8@gmail.com
 
 
 The patch titled
-     scripts/get_maintainer.pl: change --sections to print in the same style as MAINTAINERS
+     mm-restore-zone-all_unreclaimable-to-independence-word-fix-2
 has been added to the -mm tree.  Its filename is
-     scripts-get_maintainerpl-change-sections-to-print-in-the-same-style-as-maintainers.patch
+     mm-restore-zone-all_unreclaimable-to-independence-word-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,70 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts/get_maintainer.pl: change --sections to print in the same style as MAINTAINERS
-From: Joe Perches <joe@perches.com>
+Subject: mm-restore-zone-all_unreclaimable-to-independence-word-fix-2
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Sure. page allocator obviously touch zone->lock at first.
+Incremental patch is here.
+
+Cc: David Rientjes <rientjes@google.com>
+Cc: Huang Shijie <shijie8@gmail.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/mmzone.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-change-sections-to-print-in-the-same-style-as-maintainers scripts/get_maintainer.pl
---- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-change-sections-to-print-in-the-same-style-as-maintainers
-+++ a/scripts/get_maintainer.pl
-@@ -381,8 +381,10 @@ foreach my $file (@files) {
- 			$line =~ s/\\\./\./g;       	##Convert \. to .
- 			$line =~ s/\.\*/\*/g;       	##Convert .* to *
- 		    }
-+		    $line =~ s/^([A-Z]):/$1:\t/g;
- 		    print("$line\n");
- 		}
-+		print("\n");
- 	    }
-     }
+diff -puN include/linux/mmzone.h~mm-restore-zone-all_unreclaimable-to-independence-word-fix-2 include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-restore-zone-all_unreclaimable-to-independence-word-fix-2
++++ a/include/linux/mmzone.h
+@@ -306,6 +306,7 @@ struct zone {
+ 	 * free areas of different sizes
+ 	 */
+ 	spinlock_t		lock;
++	int                     all_unreclaimable; /* All pages pinned */
+ #ifdef CONFIG_MEMORY_HOTPLUG
+ 	/* see spanned/present_pages for more description */
+ 	seqlock_t		span_seqlock;
+@@ -333,7 +334,6 @@ struct zone {
  
+ 	unsigned long		pages_scanned;	   /* since last reclaim */
+ 	unsigned long		flags;		   /* zone flags, see below */
+-	int                     all_unreclaimable; /* All pages pinned */
+ 
+ 	/* Zone statistics */
+ 	atomic_long_t		vm_stat[NR_VM_ZONE_STAT_ITEMS];
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 linux-next.patch
-net-rds-remove-uses-of-nipquad-use-%pi4.patch
-net-sunrpc-remove-uses-of-nipquad-use-%pi4.patch
-fs-ocfs2-cluster-tcpc-remove-use-of-nipquad-use-%pi4.patch
-drivers-scsi-correct-the-size-argument-to-kmalloc.patch
-drivers-scsi-remove-uses-of-nipquad-use-%pi4.patch
-drivers-firmware-iscsi_ibftc-remove-nipquad_fmt-use-%pi4.patch
-scripts-get_maintainerpl-add-file-emails-find-embedded-email-addresses.patch
-scripts-get_maintainerpl-add-file-emails-find-embedded-email-addresses-v2.patch
-scripts-get_maintainerpl-add-sections-print-entire-matched-subsystem.patch
-scripts-get_maintainerpl-change-sections-to-print-in-the-same-style-as-maintainers.patch
-maintainers-remove-amd-geode-f-arch-x86-kernel-geode_32c.patch
-maintainers-remove-hayes-esp-serial-driver.patch
-maintainers-update-performance-events-f-patterns.patch
-maintainers-starmode-radio-ip-strip-moved-to-staging.patch
-maintainers-wavelan-moved-to-staging.patch
-scripts-checkpatchpl-add-warn-on-sizeof.patch
-checkpatchpl-allow-80-char-lines-for-logging-functions-not-just-printk.patch
+mm-introduce-dump_page-and-print-symbolic-flag-names.patch
+page-allocator-reduce-fragmentation-in-buddy-allocator-by-adding-buddies-that-are-merging-to-the-tail-of-the-free-lists.patch
+mlock_vma_pages_range-never-return-negative-value.patch
+mlock_vma_pages_range-only-return-success-or-failure.patch
+vmscan-check-high-watermark-after-shrink-zone.patch
+vmscan-check-high-watermark-after-shrink-zone-fix.patch
+vmscan-get_scan_ratio-cleanup.patch
+vmstat-add-anon_scan_ratio-field-to-zoneinfo.patch
+memcg-add-anon_scan_ratio-to-memorystat-file.patch
+mm-lockdep-annotate-reclaim-context-to-zone-reclaim-too.patch
+mm-page_allocc-remove-duplicate-call-to-trace_mm_page_free_direct.patch
+mm-page_allocc-adjust-a-call-site-to-trace_mm_page_free_direct.patch
+mm-remove-function-free_hot_page.patch
+mm-remove-function-free_hot_page-fix.patch
+mm-restore-zone-all_unreclaimable-to-independence-word.patch
+mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
+mm-restore-zone-all_unreclaimable-to-independence-word-fix-2.patch
+mm-fix-mbind-vma-merge-problem.patch
+prctl-add-pr_set_proctitle_area-option-for-prctl.patch
+mm-pass-mm-flags-as-a-coredump-parameter-for-consistency.patch
+memcg-move-charges-of-anonymous-swap-fix-2.patch
+fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
 
