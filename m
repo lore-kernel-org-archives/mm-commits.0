@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + uml-linec-avoid-null-pointer-dereference.patch added to -mm tree
-Date: Thu, 21 Jan 2010 15:47:39 -0800
-Message-ID: <201001212347.o0LNldT3004535@imap1.linux-foundation.org>
+Subject: + hardware-misdn-misdninfineonc-bail-out-of-loop-on-error.patch added to -mm tree
+Date: Thu, 21 Jan 2010 16:05:24 -0800
+Message-ID: <201001220005.o0M05OjB005298@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59860 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49706 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755322Ab0AUXsW (ORCPT
+	by vger.kernel.org with ESMTP id S1755263Ab0AVAF3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Jan 2010 18:48:22 -0500
+	Thu, 21 Jan 2010 19:05:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: a.beregalov@gmail.com, jdike@addtoit.com
+Cc: darrenrjenkins@gmail.com, isdn@linux-pingi.de
 
 
 The patch titled
-     uml: line.c: avoid NULL pointer dereference
+     hardware/mISDN/mISDNinfineon.c: bail out of loop on error
 has been added to the -mm tree.  Its filename is
-     uml-linec-avoid-null-pointer-dereference.patch
+     hardware-misdn-misdninfineonc-bail-out-of-loop-on-error.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: line.c: avoid NULL pointer dereference
-From: Alexander Beregalov <a.beregalov@gmail.com>
+Subject: hardware/mISDN/mISDNinfineon.c: bail out of loop on error
+From: Darren Jenkins <darrenrjenkins@gmail.com>
 
-Assign tty only if line is not NULL.
+If setup_instance() fails we kfree() the card, and then use it in the next
+loop iteration.  So lets bail out of the loop instead.
 
-Signed-off-by: Alexander Beregalov <a.beregalov@gmail.com>
-Cc: Jeff Dike <jdike@addtoit.com>
+Coverity CID: 13357
+
+Signed-off-by: Darren Jenkins <darrenrjenkins@gmail.com>
+Cc: Karsten Keil <isdn@linux-pingi.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/drivers/line.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/isdn/hardware/mISDN/mISDNinfineon.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/um/drivers/line.c~uml-linec-avoid-null-pointer-dereference arch/um/drivers/line.c
---- a/arch/um/drivers/line.c~uml-linec-avoid-null-pointer-dereference
-+++ a/arch/um/drivers/line.c
-@@ -18,10 +18,12 @@ static irqreturn_t line_interrupt(int ir
- {
- 	struct chan *chan = data;
- 	struct line *line = chan->line;
--	struct tty_struct *tty = line->tty;
-+	struct tty_struct *tty;
- 
--	if (line)
-+	if (line) {
-+		tty = line->tty;
- 		chan_interrupt(&line->chan_list, &line->task, tty, irq);
-+	}
- 	return IRQ_HANDLED;
- }
- 
+diff -puN drivers/isdn/hardware/mISDN/mISDNinfineon.c~hardware-misdn-misdninfineonc-bail-out-of-loop-on-error drivers/isdn/hardware/mISDN/mISDNinfineon.c
+--- a/drivers/isdn/hardware/mISDN/mISDNinfineon.c~hardware-misdn-misdninfineonc-bail-out-of-loop-on-error
++++ a/drivers/isdn/hardware/mISDN/mISDNinfineon.c
+@@ -1133,6 +1133,7 @@ inf_probe(struct pci_dev *pdev, const st
+ 			if (err) {
+ 				kfree(sc);
+ 				release_card(card);
++				break;
+ 			} else
+ 				card->sc[i - 1] = sc;
+ 		}
 _
 
-Patches currently in -mm which might be from a.beregalov@gmail.com are
+Patches currently in -mm which might be from darrenrjenkins@gmail.com are
 
 origin.patch
-linux-next.patch
-uml-linec-avoid-null-pointer-dereference.patch
-uml-linec-avoid-null-pointer-dereference-simplify.patch
-rtc-mxc-fix-memory-leak.patch
+hardware-misdn-misdninfineonc-bail-out-of-loop-on-error.patch
 
