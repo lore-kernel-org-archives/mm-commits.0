@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cgroup-implement-eventfd-based-generic-api-for-notifications-fixes.patch added to -mm tree
-Date: Fri, 22 Jan 2010 15:13:13 -0800
-Message-ID: <201001222313.o0MNDD8R002034@imap1.linux-foundation.org>
+Subject: + memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory.patch added to -mm tree
+Date: Fri, 22 Jan 2010 15:35:59 -0800
+Message-ID: <201001222335.o0MNZxPt003423@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48190 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51579 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755322Ab0AVXNv (ORCPT
+	by vger.kernel.org with ESMTP id S1755399Ab0AVXgr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 22 Jan 2010 18:13:51 -0500
+	Fri, 22 Jan 2010 18:36:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kirill@shutemov.name, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com
+Cc: shaohui.zheng@intel.com, ak@linux.intel.com, fengguang.wu@intel.com, haveblue@us.ibm.com, y-goto@jp.fujitsu.com
 
 
 The patch titled
-     cgroup-implement-eventfd-based-generic-api-for-notifications-fixes
+     memory-hotplug: create /sys/firmware/memmap entry for new memory
 has been added to the -mm tree.  Its filename is
-     cgroup-implement-eventfd-based-generic-api-for-notifications-fixes.patch
+     memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,122 +34,185 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroup-implement-eventfd-based-generic-api-for-notifications-fixes
-From: "Kirill A. Shutemov" <kirill@shutemov.name>
+Subject: memory-hotplug: create /sys/firmware/memmap entry for new memory
 
-Several random fixes.
 
-Signed-off-by: Kirill A. Shutemov <kirill@shutemov.name>
-Cc: Paul Menage <menage@google.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Paul Menage <menage@google.com>
+A memmap is a directory in sysfs which includes 3 text files: start, end
+and type.  For example:
+
+start: 	0x100000
+end:	0x7e7b1cff
+type:	System RAM
+
+Interface firmware_map_add was not called explicitly.  Remove it and add
+function firmware_map_add_hotplug as hotplug interface of memmap.  
+
+Each memory entry has a memmap in sysfs, When we hot-add new memory, sysfs
+does not export memmap entry for it.  We add a call in function add_memory
+to function firmware_map_add_hotplug.
+
+Add a new function add_sysfs_fw_map_entry() to create memmap entry, it
+will be called when initialize memmap and hot-add memory.
+
+Signed-off-by: Shaohui Zheng <shaohui.zheng@intel.com>
+Acked-by: Andi Kleen <ak@linux.intel.com>
+Acked-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+Reviewed-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/cgroups.txt |    1 +
- kernel/cgroup.c                   |   26 +++++++++++++++++++++++---
- 2 files changed, 24 insertions(+), 3 deletions(-)
+ drivers/firmware/memmap.c    |   57 ++++++++++++++++++++-------------
+ include/linux/firmware-map.h |    6 +--
+ mm/memory_hotplug.c          |    4 ++
+ 3 files changed, 43 insertions(+), 24 deletions(-)
 
-diff -puN Documentation/cgroups/cgroups.txt~cgroup-implement-eventfd-based-generic-api-for-notifications-fixes Documentation/cgroups/cgroups.txt
---- a/Documentation/cgroups/cgroups.txt~cgroup-implement-eventfd-based-generic-api-for-notifications-fixes
-+++ a/Documentation/cgroups/cgroups.txt
-@@ -23,6 +23,7 @@ CONTENTS:
-   2.1 Basic Usage
-   2.2 Attaching processes
-   2.3 Mounting hierarchies by name
-+  2.4 Notification API
- 3. Kernel API
-   3.1 Overview
-   3.2 Synchronization
-diff -puN kernel/cgroup.c~cgroup-implement-eventfd-based-generic-api-for-notifications-fixes kernel/cgroup.c
---- a/kernel/cgroup.c~cgroup-implement-eventfd-based-generic-api-for-notifications-fixes
-+++ a/kernel/cgroup.c
-@@ -2978,13 +2978,18 @@ static int cgroup_write_notify_on_releas
+diff -puN drivers/firmware/memmap.c~memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory drivers/firmware/memmap.c
+--- a/drivers/firmware/memmap.c~memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory
++++ a/drivers/firmware/memmap.c
+@@ -123,28 +123,52 @@ static int firmware_map_add_entry(u64 st
+ }
+ 
+ /**
+- * firmware_map_add() - Adds a firmware mapping entry.
++ * Add memmap entry on sysfs
++ */
++static int add_sysfs_fw_map_entry(struct firmware_map_entry *entry)
++{
++	static int map_entries_nr;
++	static struct kset *mmap_kset;
++
++	if (!mmap_kset) {
++		mmap_kset = kset_create_and_add("memmap", NULL, firmware_kobj);
++		if (!mmap_kset)
++			return -ENOMEM;
++	}
++
++	entry->kobj.kset = mmap_kset;
++	if (kobject_add(&entry->kobj, NULL, "%d", map_entries_nr++))
++		kobject_put(&entry->kobj);
++
++	return 0;
++}
++
++/**
++ * firmware_map_add_hotplug() - Adds a firmware mapping entry when we do
++ * memory hotplug.
+  * @start: Start of the memory range.
+  * @end:   End of the memory range (inclusive).
+  * @type:  Type of the memory range.
+  *
+- * This function uses kmalloc() for memory
+- * allocation. Use firmware_map_add_early() if you want to use the bootmem
+- * allocator.
+- *
+- * That function must be called before late_initcall.
++ * Adds a firmware mapping entry. This function is for memory hotplug, it is
++ * similar to function firmware_map_add_early(). The only difference is that
++ * it will create the syfs entry dynamically.
+  *
+  * Returns 0 on success, or -ENOMEM if no memory could be allocated.
+  **/
+-int firmware_map_add(u64 start, u64 end, const char *type)
++int __meminit firmware_map_add_hotplug(u64 start, u64 end, const char *type)
+ {
+ 	struct firmware_map_entry *entry;
+ 
+-	entry = kmalloc(sizeof(struct firmware_map_entry), GFP_ATOMIC);
++	entry = kzalloc(sizeof(struct firmware_map_entry), GFP_ATOMIC);
+ 	if (!entry)
+ 		return -ENOMEM;
+ 
+-	return firmware_map_add_entry(start, end, type, entry);
++	firmware_map_add_entry(start, end, type, entry);
++	/* create the memmap entry */
++	add_sysfs_fw_map_entry(entry);
++
++	return 0;
+ }
+ 
+ /**
+@@ -154,7 +178,7 @@ int firmware_map_add(u64 start, u64 end,
+  * @type:  Type of the memory range.
+  *
+  * Adds a firmware mapping entry. This function uses the bootmem allocator
+- * for memory allocation. Use firmware_map_add() if you want to use kmalloc().
++ * for memory allocation.
+  *
+  * That function must be called before late_initcall.
+  *
+@@ -214,19 +238,10 @@ static ssize_t memmap_attr_show(struct k
+  */
+ static int __init memmap_init(void)
+ {
+-	int i = 0;
+ 	struct firmware_map_entry *entry;
+-	struct kset *memmap_kset;
+-
+-	memmap_kset = kset_create_and_add("memmap", NULL, firmware_kobj);
+-	if (WARN_ON(!memmap_kset))
+-		return -ENOMEM;
+ 
+-	list_for_each_entry(entry, &map_entries, list) {
+-		entry->kobj.kset = memmap_kset;
+-		if (kobject_add(&entry->kobj, NULL, "%d", i++))
+-			kobject_put(&entry->kobj);
+-	}
++	list_for_each_entry(entry, &map_entries, list)
++		add_sysfs_fw_map_entry(entry);
+ 
+ 	return 0;
+ }
+diff -puN include/linux/firmware-map.h~memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory include/linux/firmware-map.h
+--- a/include/linux/firmware-map.h~memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory
++++ a/include/linux/firmware-map.h
+@@ -24,17 +24,17 @@
+  */
+ #ifdef CONFIG_FIRMWARE_MEMMAP
+ 
+-int firmware_map_add(u64 start, u64 end, const char *type);
+ int firmware_map_add_early(u64 start, u64 end, const char *type);
++int firmware_map_add_hotplug(u64 start, u64 end, const char *type);
+ 
+ #else /* CONFIG_FIRMWARE_MEMMAP */
+ 
+-static inline int firmware_map_add(u64 start, u64 end, const char *type)
++static inline int firmware_map_add_early(u64 start, u64 end, const char *type)
+ {
  	return 0;
  }
  
-+/*
-+ * Unregister event and free resources.
-+ *
-+ * Gets called from workqueue.
-+ */
- static void cgroup_event_remove(struct work_struct *work)
+-static inline int firmware_map_add_early(u64 start, u64 end, const char *type)
++static inline int firmware_map_add_hotplug(u64 start, u64 end, const char *type)
  {
- 	struct cgroup_event *event = container_of(work, struct cgroup_event,
- 			remove);
- 	struct cgroup *cgrp = event->cgrp;
- 
--	/* TODO: check return code*/
-+	/* TODO: check return code */
- 	event->cft->unregister_event(cgrp, event->cft, event->eventfd);
- 
- 	eventfd_ctx_put(event->eventfd);
-@@ -2992,6 +2997,11 @@ static void cgroup_event_remove(struct w
- 	kfree(event);
+ 	return 0;
  }
+diff -puN mm/memory_hotplug.c~memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory
++++ a/mm/memory_hotplug.c
+@@ -28,6 +28,7 @@
+ #include <linux/pfn.h>
+ #include <linux/suspend.h>
+ #include <linux/mm_inline.h>
++#include <linux/firmware-map.h>
  
-+/*
-+ * Gets called on POLLHUP on eventfd when user closes it.
-+ *
-+ * Called with wqh->lock held and interrupts disabled.
-+ */
- static int cgroup_event_wake(wait_queue_t *wait, unsigned mode,
- 		int sync, void *key)
- {
-@@ -3004,6 +3014,10 @@ static int cgroup_event_wake(wait_queue_
- 		spin_lock(&cgrp->event_list_lock);
- 		list_del(&event->list);
- 		spin_unlock(&cgrp->event_list_lock);
-+		/*
-+		 * We are in atomic context, but cgroup_event_remove() may
-+		 * sleep, so we have to call it in workqueue.
-+		 */
- 		schedule_work(&event->remove);
+ #include <asm/tlbflush.h>
+ 
+@@ -523,6 +524,9 @@ int __ref add_memory(int nid, u64 start,
+ 		BUG_ON(ret);
  	}
  
-@@ -3020,6 +3034,12 @@ static void cgroup_event_ptable_queue_pr
- 	add_wait_queue(wqh, &event->wait);
- }
++	/* create new memmap entry */
++	firmware_map_add_hotplug(start, start + size, "System RAM");
++
+ 	goto out;
  
-+/*
-+ * Parse input and register new cgroup event handler.
-+ *
-+ * Input must be in format '<event_fd> <control_fd> <args>'.
-+ * Interpretation of args is defined by control file implementation.
-+ */
- static int cgroup_write_event_control(struct cgroup *cgrp, struct cftype *cft,
- 				      const char *buffer)
- {
-@@ -3104,13 +3124,13 @@ static int cgroup_write_event_control(st
- 	return 0;
- 
- fail:
--	if (!IS_ERR(cfile))
-+	if (!cfile)
- 		fput(cfile);
- 
- 	if (event && event->eventfd && !IS_ERR(event->eventfd))
- 		eventfd_ctx_put(event->eventfd);
- 
--	if (!IS_ERR(efile))
-+	if (!IS_ERR_OR_NULL(efile))
- 		fput(efile);
- 
- 	kfree(event);
+ error:
 _
 
-Patches currently in -mm which might be from kirill@shutemov.name are
+Patches currently in -mm which might be from shaohui.zheng@intel.com are
 
-cgroups-fix-contents-in-cgroups-documentation.patch
-cgroup-implement-eventfd-based-generic-api-for-notifications.patch
-cgroup-implement-eventfd-based-generic-api-for-notifications-kconfig-fix.patch
-cgroup-implement-eventfd-based-generic-api-for-notifications-fixes.patch
-memcg-extract-mem_group_usage-from-mem_cgroup_read.patch
-memcg-rework-usage-of-stats-by-soft-limit.patch
-memcg-implement-memory-thresholds.patch
-memcg-implement-memory-thresholds-checkpatch-fixes.patch
-memcg-implement-memory-thresholds-checkpatch-fixes-fix.patch
-memcg-typo-in-comment-to-mem_cgroup_print_oom_info.patch
+linux-next.patch
+memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory.patch
+memory-hotplug-create-sys-firmware-memmap-entry-for-new-memory-fix.patch
 
