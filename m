@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-usb-serial-eliminate-useless-code.patch added to -mm tree
-Date: Fri, 22 Jan 2010 17:07:11 -0800
-Message-ID: <201001230107.o0N17BOJ007762@imap1.linux-foundation.org>
+Subject: + drivers-gpu-drm-drm_crtc_helperc-fix-setting-of-fb_changed-in-drm_crtc_helper_set_config.patch added to -mm tree
+Date: Fri, 22 Jan 2010 17:27:39 -0800
+Message-ID: <201001230127.o0N1RdCO008606@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36388 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49403 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754308Ab0AWBHS (ORCPT
+	by vger.kernel.org with ESMTP id S1754504Ab0AWB1q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 22 Jan 2010 20:07:18 -0500
+	Fri, 22 Jan 2010 20:27:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, dignome@gmail.com, gregkh@suse.de, jhovold@gmail.com
+Cc: roel.kluin@gmail.com, airlied@linux.ie, jbarnes@virtuousgeek.org, yakui.zhao@intel.com
 
 
 The patch titled
-     drivers/usb/serial: eliminate useless code
+     drivers/gpu/drm/drm_crtc_helper.c: fix setting of fb_changed in drm_crtc_helper_set_config()
 has been added to the -mm tree.  Its filename is
-     drivers-usb-serial-eliminate-useless-code.patch
+     drivers-gpu-drm-drm_crtc_helperc-fix-setting-of-fb_changed-in-drm_crtc_helper_set_config.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,84 +34,59 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/usb/serial: eliminate useless code
-From: Julia Lawall <julia@diku.dk>
+Subject: drivers/gpu/drm/drm_crtc_helper.c: fix setting of fb_changed in drm_crtc_helper_set_config()
+From: Roel Kluin <roel.kluin@gmail.com>
 
-The variables priv and portdata are initialized twice to the same (side
-effect-free) expressions.  Drop one initialization in each case.
+Only set fb_changed if bits_per_pixel or depth changed.
 
-A simplified version of the semantic match that finds this problem is:
-(http://coccinelle.lip6.fr/)
-
-// <smpl>
-@forall@
-idexpression *x;
-identifier f!=ERR_PTR;
-@@
-
-x = f(...)
-... when != x
-(
-x = f(...,<+...x...+>,...)
-|
-* x = f(...)
-)
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Lonnie Mendez <dignome@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Johan Hovold <jhovold@gmail.com>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: David Airlie <airlied@linux.ie>
+Cc: Zhao Yakui <yakui.zhao@intel.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/cypress_m8.c |    1 -
- drivers/usb/serial/sierra.c     |    2 +-
- 2 files changed, 1 insertion(+), 2 deletions(-)
+ drivers/gpu/drm/drm_crtc_helper.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/usb/serial/cypress_m8.c~drivers-usb-serial-eliminate-useless-code drivers/usb/serial/cypress_m8.c
---- a/drivers/usb/serial/cypress_m8.c~drivers-usb-serial-eliminate-useless-code
-+++ a/drivers/usb/serial/cypress_m8.c
-@@ -691,7 +691,6 @@ static void cypress_dtr_rts(struct usb_s
- {
- 	struct cypress_private *priv = usb_get_serial_port_data(port);
- 	/* drop dtr and rts */
--	priv = usb_get_serial_port_data(port);
- 	spin_lock_irq(&priv->lock);
- 	if (on == 0)
- 		priv->line_control = 0;
-diff -puN drivers/usb/serial/sierra.c~drivers-usb-serial-eliminate-useless-code drivers/usb/serial/sierra.c
---- a/drivers/usb/serial/sierra.c~drivers-usb-serial-eliminate-useless-code
-+++ a/drivers/usb/serial/sierra.c
-@@ -476,7 +476,7 @@ static void sierra_outdat_callback(struc
- static int sierra_write(struct tty_struct *tty, struct usb_serial_port *port,
- 					const unsigned char *buf, int count)
- {
--	struct sierra_port_private *portdata = usb_get_serial_port_data(port);
-+	struct sierra_port_private *portdata;
- 	struct sierra_intf_private *intfdata;
- 	struct usb_serial *serial = port->serial;
- 	unsigned long flags;
+diff -puN drivers/gpu/drm/drm_crtc_helper.c~drivers-gpu-drm-drm_crtc_helperc-fix-setting-of-fb_changed-in-drm_crtc_helper_set_config drivers/gpu/drm/drm_crtc_helper.c
+--- a/drivers/gpu/drm/drm_crtc_helper.c~drivers-gpu-drm-drm_crtc_helperc-fix-setting-of-fb_changed-in-drm_crtc_helper_set_config
++++ a/drivers/gpu/drm/drm_crtc_helper.c
+@@ -840,8 +840,6 @@ int drm_crtc_helper_set_config(struct dr
+ 			 set->crtc->fb->bits_per_pixel) ||
+ 			 set->fb->depth != set->crtc->fb->depth)
+ 			fb_changed = true;
+-		else
+-			fb_changed = true;
+ 	}
+ 
+ 	if (set->x != set->crtc->x || set->y != set->crtc->y)
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 linux-next.patch
-drivers-scsi-sesc-eliminate-double-free.patch
-kernel-credc-use-kmem_cache_free.patch
-arch-arm-plat-pxa-dmac-correct-null-test.patch
-drivers-gpu-drm-nouveau-nouveau_grctxc-correct-null-test.patch
-drivers-media-video-move-dereference-after-null-test.patch
-net-ipv4-correct-the-size-argument-to-kzalloc.patch
-drivers-scsi-libsas-use-sam_good.patch
-drivers-scsi-remove-unnecessary-null-test.patch
-drivers-message-move-dereference-after-null-test.patch
-drivers-scsi-correct-the-size-argument-to-kmalloc.patch
-drivers-scsi-bfa-bfad_imc-eliminate-useless-code.patch
-drivers-staging-tm6000-tm6000-videoc-correct-null-test.patch
-drivers-staging-go7007-s2250-loaderc-eliminate-useless-code.patch
-drivers-usb-serial-eliminate-useless-code.patch
-drivers-misc-iwmc3200top-mainc-eliminate-useless-code.patch
-drivers-edac-introduce-missing-kfree.patch
-drivers-char-mmtimerc-eliminate-useless-code.patch
+acpi-fix-confusion-in-acpi_evaluate_string-in-comment.patch
+asus-acpi-remove-duplicate-comparison-of-asus_model-strings.patch
+gemini-wrong-registers-used-to-set-reg_level-in-gpio_set_irq_type.patch
+powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
+drivers-gpu-drm-drm_crtc_helperc-fix-setting-of-fb_changed-in-drm_crtc_helper_set_config.patch
+ia64-wrong-attribute-of-hub-chip-written-in-uv_setup.patch
+hisax-timeout-off-by-one-in-waitrecmsg.patch
+drivers-scsi-fnic-fnic_scsic-clean-up.patch
+drivers-scsi-gdthc-fix-buffer-overflow.patch
+drivers-scsi-lpfc-lpfc_vportc-fix-read-buffer-overflow.patch
+osst-fix-read-buffer-overflow.patch
+gdth-unmap-ccb_phys-when-scsi_add_host-fails-in-gdth_eisa_probe_one.patch
+ncr5380-bit-mr_dma_mode-set-twice-in-ncr5380_transfer_dma.patch
+scsi-pmcraid-redundant-check-in-pmcraid_check_ioctl_buffer.patch
+dc395x-decrease-iteration-for-tag_number-of-max_command-in-start_scsi.patch
+mpt2sas-fix-confusion-in-_scsih_sas_device_status_change_event.patch
+paride-fix-off-by-one-test.patch
+musb-test-always-evaluates-to-false.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+cryptocop-fix-assertion-in-create_output_descriptors.patch
+asiliantfb-fix-test-of-unsigned-in-asiliant_calc_dclk2.patch
+w1-fix-test-in-ds2482_wait_1wire_idle.patch
 
