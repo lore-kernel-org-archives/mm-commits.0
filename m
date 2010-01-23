@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-media-video-kconfig-add-video_dev-dependency-as-needed-in-drivers-media-video-kconfig.patch added to -mm tree
-Date: Fri, 22 Jan 2010 15:59:49 -0800
-Message-ID: <201001222359.o0MNxn9P004363@imap1.linux-foundation.org>
+Subject: + mm-fix-mbind-vma-merge-problem-fix.patch added to -mm tree
+Date: Fri, 22 Jan 2010 16:16:58 -0800
+Message-ID: <201001230016.o0N0Gw3v005184@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52483 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47736 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752245Ab0AWAAC (ORCPT
+	by vger.kernel.org with ESMTP id S1753986Ab0AWARz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 22 Jan 2010 19:00:02 -0500
+	Fri, 22 Jan 2010 19:17:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mpagano@gentoo.org, mchehab@infradead.org
+Cc: minchan.kim@gmail.com, aarcange@redhat.com, cl@linux-foundation.org, hugh.dickins@tiscali.co.uk, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, mel@csn.ul.ie, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     drivers/media/video/Kconfig: add VIDEO_DEV dependency as needed in drivers/media/video/Kconfig
+     mm-fix-mbind-vma-merge-problem-fix
 has been added to the -mm tree.  Its filename is
-     drivers-media-video-kconfig-add-video_dev-dependency-as-needed-in-drivers-media-video-kconfig.patch
+     mm-fix-mbind-vma-merge-problem-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,113 +34,70 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/media/video/Kconfig: add VIDEO_DEV dependency as needed in drivers/media/video/Kconfig
-From: Mike Pagano <mpagano@gentoo.org>
+Subject: mm-fix-mbind-vma-merge-problem-fix
+From: Minchan Kim <minchan.kim@gmail.com>
 
-Add VIDEO_DEV as dependency of VIDEO_CAPTURE_DRIVERS and all of the
-devices listed under this setting.
+mm-fix-mbind-vma-merge-problem.patch added vma_merge in mbind to merge
+mergeable vmas.  But it passed wrong offset of vm_file.
 
-Signed-off-by: Mike Pagano <mpagano@gentoo.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+This patch fixes it.
+
+Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/Kconfig |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ mm/mempolicy.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/media/video/Kconfig~drivers-media-video-kconfig-add-video_dev-dependency-as-needed-in-drivers-media-video-kconfig drivers/media/video/Kconfig
---- a/drivers/media/video/Kconfig~drivers-media-video-kconfig-add-video_dev-dependency-as-needed-in-drivers-media-video-kconfig
-+++ a/drivers/media/video/Kconfig
-@@ -51,14 +51,14 @@ config VIDEO_TUNER
+diff -puN mm/mempolicy.c~mm-fix-mbind-vma-merge-problem-fix mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-fix-mbind-vma-merge-problem-fix
++++ a/mm/mempolicy.c
+@@ -570,6 +570,7 @@ static int mbind_range(struct mm_struct 
+ 	struct vm_area_struct *prev;
+ 	struct vm_area_struct *vma;
+ 	int err = 0;
++	pgoff_t pgoff;
+ 	unsigned long vmstart;
+ 	unsigned long vmend;
  
- menuconfig VIDEO_CAPTURE_DRIVERS
- 	bool "Video capture adapters"
--	depends on VIDEO_V4L2
-+	depends on VIDEO_V4L2 && VIDEO_DEV
- 	default y
- 	---help---
- 	  Say Y here to enable selecting the video adapters for
- 	  webcams, analog TV, and hybrid analog/digital TV.
- 	  Some of those devices also supports FM radio.
+@@ -582,9 +583,9 @@ static int mbind_range(struct mm_struct 
+ 		vmstart = max(start, vma->vm_start);
+ 		vmend   = min(end, vma->vm_end);
  
--if VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2
-+if VIDEO_DEV && VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2
- 
- config VIDEO_ADV_DEBUG
- 	bool "Enable advanced debug functionality"
-@@ -500,7 +500,7 @@ endmenu # encoder / decoder chips
- 
- config DISPLAY_DAVINCI_DM646X_EVM
- 	tristate "DM646x EVM Video Display"
--	depends on VIDEO_DEV && MACH_DAVINCI_DM6467_EVM
-+	depends on MACH_DAVINCI_DM6467_EVM
- 	select VIDEOBUF_DMA_CONTIG
- 	select VIDEO_DAVINCI_VPIF
- 	select VIDEO_ADV7343
-@@ -513,7 +513,7 @@ config DISPLAY_DAVINCI_DM646X_EVM
- 
- config CAPTURE_DAVINCI_DM646X_EVM
- 	tristate "DM646x EVM Video Capture"
--	depends on VIDEO_DEV && MACH_DAVINCI_DM6467_EVM
-+	depends on MACH_DAVINCI_DM6467_EVM
- 	select VIDEOBUF_DMA_CONTIG
- 	select VIDEO_DAVINCI_VPIF
- 	help
-@@ -533,7 +533,7 @@ config VIDEO_DAVINCI_VPIF
- 
- config VIDEO_VIVI
- 	tristate "Virtual Video Driver"
--	depends on VIDEO_DEV && VIDEO_V4L2 && !SPARC32 && !SPARC64
-+	depends on VIDEO_V4L2 && !SPARC32 && !SPARC64
- 	select VIDEOBUF_VMALLOC
- 	default n
- 	---help---
-@@ -884,7 +884,7 @@ config MX1_VIDEO
- 
- config VIDEO_MX1
- 	tristate "i.MX1/i.MXL CMOS Sensor Interface driver"
--	depends on VIDEO_DEV && ARCH_MX1 && SOC_CAMERA
-+	depends on ARCH_MX1 && SOC_CAMERA
- 	select FIQ
- 	select VIDEOBUF_DMA_CONTIG
- 	select MX1_VIDEO
-@@ -896,7 +896,7 @@ config MX3_VIDEO
- 
- config VIDEO_MX3
- 	tristate "i.MX3x Camera Sensor Interface driver"
--	depends on VIDEO_DEV && MX3_IPU && SOC_CAMERA
-+	depends on MX3_IPU && SOC_CAMERA
- 	select VIDEOBUF_DMA_CONTIG
- 	select MX3_VIDEO
- 	---help---
-@@ -904,21 +904,21 @@ config VIDEO_MX3
- 
- config VIDEO_PXA27x
- 	tristate "PXA27x Quick Capture Interface driver"
--	depends on VIDEO_DEV && PXA27x && SOC_CAMERA
-+	depends on PXA27x && SOC_CAMERA
- 	select VIDEOBUF_DMA_SG
- 	---help---
- 	  This is a v4l2 driver for the PXA27x Quick Capture Interface
- 
- config VIDEO_SH_MOBILE_CEU
- 	tristate "SuperH Mobile CEU Interface driver"
--	depends on VIDEO_DEV && SOC_CAMERA && HAS_DMA && HAVE_CLK
-+	depends on SOC_CAMERA && HAS_DMA && HAVE_CLK
- 	select VIDEOBUF_DMA_CONTIG
- 	---help---
- 	  This is a v4l2 driver for the SuperH Mobile CEU Interface
- 
- config VIDEO_OMAP2
- 	tristate "OMAP2 Camera Capture Interface driver"
--	depends on VIDEO_DEV && ARCH_OMAP2
-+	depends on ARCH_OMAP2
- 	select VIDEOBUF_DMA_SG
- 	---help---
- 	  This is a v4l2 driver for the TI OMAP2 camera capture interface
++		pgoff = vma->vm_pgoff + ((start - vma->vm_start) >> PAGE_SHIFT);
+ 		prev = vma_merge(mm, prev, vmstart, vmend, vma->vm_flags,
+-				  vma->anon_vma, vma->vm_file, vma->vm_pgoff,
+-				  new_pol);
++				  vma->anon_vma, vma->vm_file, pgoff, new_pol);
+ 		if (prev) {
+ 			vma = prev;
+ 			next = vma->vm_next;
 _
 
-Patches currently in -mm which might be from mpagano@gentoo.org are
+Patches currently in -mm which might be from minchan.kim@gmail.com are
 
-drivers-media-video-kconfig-add-video_dev-dependency-as-needed-in-drivers-media-video-kconfig.patch
+linux-next.patch
+mm-clean-up-mm_counter.patch
+mm-avoid-false-sharing-of-mm_counter.patch
+mm-count-swap-usage.patch
+mm-count-swap-usage-checkpatch-fixes.patch
+mm-add-lowmem-detection-logic.patch
+mm-count-lowmem-rss.patch
+vmscan-check-high-watermark-after-shrink-zone.patch
+vmscan-check-high-watermark-after-shrink-zone-fix.patch
+vmscan-get_scan_ratio-cleanup.patch
+vmstat-add-anon_scan_ratio-field-to-zoneinfo.patch
+memcg-add-anon_scan_ratio-to-memorystat-file.patch
+mm-lockdep-annotate-reclaim-context-to-zone-reclaim-too.patch
+mm-restore-zone-all_unreclaimable-to-independence-word.patch
+mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
+mm-restore-zone-all_unreclaimable-to-independence-word-fix-2.patch
+mm-fix-mbind-vma-merge-problem-fix.patch
 
