@@ -1,24 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-mbind-vma-merge-problem-fix.patch added to -mm tree
-Date: Fri, 22 Jan 2010 16:16:58 -0800
-Message-ID: <201001230016.o0N0Gw3v005184@imap1.linux-foundation.org>
+Subject: + lib-stringc-simplify-stricmp.patch added to -mm tree
+Date: Fri, 22 Jan 2010 16:27:48 -0800
+Message-ID: <201001230027.o0N0Rmh1005756@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47736 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57442 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753986Ab0AWARz (ORCPT
+	by vger.kernel.org with ESMTP id S1755418Ab0AWA2V (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 22 Jan 2010 19:17:55 -0500
+	Fri, 22 Jan 2010 19:28:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: minchan.kim@gmail.com, aarcange@redhat.com, cl@linux-foundation.org, hugh.dickins@tiscali.co.uk, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, mel@csn.ul.ie, nickpiggin@yahoo.com.au
+Cc: andre.goddard@gmail.com, fweisbec@gmail.com, joe@perches.com
 
 
 The patch titled
-     mm-fix-mbind-vma-merge-problem-fix
+     lib/string.c: simplify stricmp()
 has been added to the -mm tree.  Its filename is
-     mm-fix-mbind-vma-merge-problem-fix.patch
+     lib-stringc-simplify-stricmp.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -26,78 +29,86 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: mm-fix-mbind-vma-merge-problem-fix
-From: Minchan Kim <minchan.kim@gmail.com>
+Subject: lib/string.c: simplify stricmp()
+=46rom: Andr=E9 Goddard Rosa <andre.goddard@gmail.com>
 
-mm-fix-mbind-vma-merge-problem.patch added vma_merge in mbind to merge
-mergeable vmas.  But it passed wrong offset of vm_file.
+Removes 32 bytes on core2 with gcc 4.4.1:
+   text    data     bss     dec     hex filename
+   3196       0       0    3196     c7c lib/string-BEFORE.o
+   3164       0       0    3164     c5c lib/string-AFTER.o
 
-This patch fixes it.
-
-Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Signed-off-by: Andr=E9 Goddard Rosa <andre.goddard@gmail.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Frederic Weisbecker <fweisbec@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ lib/string.c |   34 +++++++++++++++-------------------
+ 1 file changed, 15 insertions(+), 19 deletions(-)
 
-diff -puN mm/mempolicy.c~mm-fix-mbind-vma-merge-problem-fix mm/mempolicy.c
---- a/mm/mempolicy.c~mm-fix-mbind-vma-merge-problem-fix
-+++ a/mm/mempolicy.c
-@@ -570,6 +570,7 @@ static int mbind_range(struct mm_struct 
- 	struct vm_area_struct *prev;
- 	struct vm_area_struct *vma;
- 	int err = 0;
-+	pgoff_t pgoff;
- 	unsigned long vmstart;
- 	unsigned long vmend;
- 
-@@ -582,9 +583,9 @@ static int mbind_range(struct mm_struct 
- 		vmstart = max(start, vma->vm_start);
- 		vmend   = min(end, vma->vm_end);
- 
-+		pgoff = vma->vm_pgoff + ((start - vma->vm_start) >> PAGE_SHIFT);
- 		prev = vma_merge(mm, prev, vmstart, vmend, vma->vm_flags,
--				  vma->anon_vma, vma->vm_file, vma->vm_pgoff,
--				  new_pol);
-+				  vma->anon_vma, vma->vm_file, pgoff, new_pol);
- 		if (prev) {
- 			vma = prev;
- 			next = vma->vm_next;
+diff -puN lib/string.c~lib-stringc-simplify-stricmp lib/string.c
+--- a/lib/string.c~lib-stringc-simplify-stricmp
++++ a/lib/string.c
+@@ -36,25 +36,21 @@ int strnicmp(const char *s1, const char=20
+ 	/* Yes, Virginia, it had better be unsigned */
+ 	unsigned char c1, c2;
+=20
+-	c1 =3D c2 =3D 0;
+-	if (len) {
+-		do {
+-			c1 =3D *s1;
+-			c2 =3D *s2;
+-			s1++;
+-			s2++;
+-			if (!c1)
+-				break;
+-			if (!c2)
+-				break;
+-			if (c1 =3D=3D c2)
+-				continue;
+-			c1 =3D tolower(c1);
+-			c2 =3D tolower(c2);
+-			if (c1 !=3D c2)
+-				break;
+-		} while (--len);
+-	}
++	if (!len)
++		return 0;
++
++	do {
++		c1 =3D *s1++;
++		c2 =3D *s2++;
++		if (!c1 || !c2)
++			break;
++		if (c1 =3D=3D c2)
++			continue;
++		c1 =3D tolower(c1);
++		c2 =3D tolower(c2);
++		if (c1 !=3D c2)
++			break;
++	} while (--len);
+ 	return (int)c1 - (int)c2;
+ }
+ EXPORT_SYMBOL(strnicmp);
 _
 
-Patches currently in -mm which might be from minchan.kim@gmail.com are
+Patches currently in -mm which might be from andre.goddard@gmail.com ar=
+e
 
-linux-next.patch
-mm-clean-up-mm_counter.patch
-mm-avoid-false-sharing-of-mm_counter.patch
-mm-count-swap-usage.patch
-mm-count-swap-usage-checkpatch-fixes.patch
-mm-add-lowmem-detection-logic.patch
-mm-count-lowmem-rss.patch
-vmscan-check-high-watermark-after-shrink-zone.patch
-vmscan-check-high-watermark-after-shrink-zone-fix.patch
-vmscan-get_scan_ratio-cleanup.patch
-vmstat-add-anon_scan_ratio-field-to-zoneinfo.patch
-memcg-add-anon_scan_ratio-to-memorystat-file.patch
-mm-lockdep-annotate-reclaim-context-to-zone-reclaim-too.patch
-mm-restore-zone-all_unreclaimable-to-independence-word.patch
-mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
-mm-restore-zone-all_unreclaimable-to-independence-word-fix-2.patch
-mm-fix-mbind-vma-merge-problem-fix.patch
+lib-stringc-simplify-stricmp.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
