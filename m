@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + vgaarb-add-user-selectability-of-the-number-of-gpus-in-a-system.patch added to -mm tree
-Date: Mon, 25 Jan 2010 15:57:21 -0800
-Message-ID: <201001252357.o0PNvLBY018711@imap1.linux-foundation.org>
+Subject: + x86_64-uv-update-uv-arch-to-target-legacy-vga-i-o-correctly.patch added to -mm tree
+Date: Mon, 25 Jan 2010 15:57:15 -0800
+Message-ID: <201001252357.o0PNvFeU018705@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46749 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35053 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750939Ab0AYX5k (ORCPT
+	by vger.kernel.org with ESMTP id S1751437Ab0AYX5m (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jan 2010 18:57:40 -0500
+	Mon, 25 Jan 2010 18:57:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: travis@sgi.com, holt@sgi.com, hpa@zytor.com, jbarnes@virtuousgeek.org, mingo
 
 
 The patch titled
-     vgaarb: add user selectability of the number of GPUS in a system
+     x86_64 UV: update UV arch to target Legacy VGA I/O correctly.
 has been added to the -mm tree.  Its filename is
-     vgaarb-add-user-selectability-of-the-number-of-gpus-in-a-system.patch
+     x86_64-uv-update-uv-arch-to-target-legacy-vga-i-o-correctly.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vgaarb: add user selectability of the number of GPUS in a system
+Subject: x86_64 UV: update UV arch to target Legacy VGA I/O correctly.
 From: Mike Travis <travis@sgi.com>
 
-Update the VGA Arbiter to allow the user to select the number of GPU's
-supported in a system.
+Add function to direct Legacy VGA I/O traffic to correct I/O Hub.
 
 Signed-off-by: Mike Travis <travis@sgi.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
@@ -50,40 +49,120 @@ Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/vga/Kconfig  |    8 ++++++++
- drivers/gpu/vga/vgaarb.c |    4 ++++
- 2 files changed, 12 insertions(+)
+ arch/x86/include/asm/uv/bios.h     |    4 ++-
+ arch/x86/kernel/apic/x2apic_uv_x.c |   30 +++++++++++++++++++++++++++
+ arch/x86/kernel/bios_uv.c          |   19 +++++++++++++++++
+ 3 files changed, 52 insertions(+), 1 deletion(-)
 
-diff -puN drivers/gpu/vga/Kconfig~vgaarb-add-user-selectability-of-the-number-of-gpus-in-a-system drivers/gpu/vga/Kconfig
---- a/drivers/gpu/vga/Kconfig~vgaarb-add-user-selectability-of-the-number-of-gpus-in-a-system
-+++ a/drivers/gpu/vga/Kconfig
-@@ -8,3 +8,11 @@ config VGA_ARB
- 	  are accessed at same time they need some kind of coordination. Please
- 	  see Documentation/vgaarbiter.txt for more details. Select this to
- 	  enable VGA arbiter.
-+
-+config VGA_ARB_MAX_GPUS
-+	int "Maximum number of GPUs"
-+	default 64
-+	depends on VGA_ARB
-+	help
-+	  Reserves space in the kernel to maintain resource locking for
-+	  multiple GPUS.  The overhead for each GPU is very small.
-diff -puN drivers/gpu/vga/vgaarb.c~vgaarb-add-user-selectability-of-the-number-of-gpus-in-a-system drivers/gpu/vga/vgaarb.c
---- a/drivers/gpu/vga/vgaarb.c~vgaarb-add-user-selectability-of-the-number-of-gpus-in-a-system
-+++ a/drivers/gpu/vga/vgaarb.c
-@@ -688,7 +688,11 @@ EXPORT_SYMBOL(vga_client_register);
-  * the arbiter.
-  */
- 
-+#ifdef CONFIG_VGA_ARB_MAX_GPUS
-+#define MAX_USER_CARDS         CONFIG_VGA_ARB_MAX_GPUS
-+#else
- #define MAX_USER_CARDS         16
-+#endif
- #define PCI_INVALID_CARD       ((struct pci_dev *)-1UL)
+diff -puN arch/x86/include/asm/uv/bios.h~x86_64-uv-update-uv-arch-to-target-legacy-vga-i-o-correctly arch/x86/include/asm/uv/bios.h
+--- a/arch/x86/include/asm/uv/bios.h~x86_64-uv-update-uv-arch-to-target-legacy-vga-i-o-correctly
++++ a/arch/x86/include/asm/uv/bios.h
+@@ -36,7 +36,8 @@ enum uv_bios_cmd {
+ 	UV_BIOS_WATCHLIST_ALLOC,
+ 	UV_BIOS_WATCHLIST_FREE,
+ 	UV_BIOS_MEMPROTECT,
+-	UV_BIOS_GET_PARTITION_ADDR
++	UV_BIOS_GET_PARTITION_ADDR,
++	UV_BIOS_SET_LEGACY_VGA_TARGET
+ };
  
  /*
+@@ -96,6 +97,7 @@ extern int uv_bios_mq_watchlist_alloc(un
+ extern int uv_bios_mq_watchlist_free(int, int);
+ extern s64 uv_bios_change_memprotect(u64, u64, enum uv_memprotect);
+ extern s64 uv_bios_reserved_page_pa(u64, u64 *, u64 *, u64 *);
++extern int uv_bios_set_legacy_vga_target(bool decode, int domain, int bus);
+ 
+ extern void uv_bios_init(void);
+ 
+diff -puN arch/x86/kernel/apic/x2apic_uv_x.c~x86_64-uv-update-uv-arch-to-target-legacy-vga-i-o-correctly arch/x86/kernel/apic/x2apic_uv_x.c
+--- a/arch/x86/kernel/apic/x2apic_uv_x.c~x86_64-uv-update-uv-arch-to-target-legacy-vga-i-o-correctly
++++ a/arch/x86/kernel/apic/x2apic_uv_x.c
+@@ -20,6 +20,7 @@
+ #include <linux/cpu.h>
+ #include <linux/init.h>
+ #include <linux/io.h>
++#include <linux/pci.h>
+ 
+ #include <asm/uv/uv_mmrs.h>
+ #include <asm/uv/uv_hub.h>
+@@ -34,6 +35,8 @@
+ 
+ DEFINE_PER_CPU(int, x2apic_extra_bits);
+ 
++#define PR_DEVEL(fmt, args...)	pr_devel("%s: " fmt, __func__, args)
++
+ static enum uv_system_type uv_system_type;
+ static u64 gru_start_paddr, gru_end_paddr;
+ int uv_min_hub_revision_id;
+@@ -552,6 +555,30 @@ late_initcall(uv_init_heartbeat);
+ 
+ #endif /* !CONFIG_HOTPLUG_CPU */
+ 
++/* Direct Legacy VGA I/O traffic to designated IOH */
++int uv_set_vga_state(struct pci_dev *pdev, bool decode,
++		      unsigned int command_bits, bool change_bridge)
++{
++	int domain, bus, rc;
++
++	PR_DEVEL("devfn %x decode %d cmd %x chg_brdg %d\n",
++			pdev->devfn, decode, command_bits, change_bridge);
++
++	if (!change_bridge)
++		return 0;
++
++	if ((command_bits & PCI_COMMAND_IO) == 0)
++		return 0;
++
++	domain = pci_domain_nr(pdev->bus);
++	bus = pdev->bus->number;
++
++	rc = uv_bios_set_legacy_vga_target(decode, domain, bus);
++	PR_DEVEL("vga decode %d %x:%x, rc: %d\n", decode, domain, bus, rc);
++
++	return rc;
++}
++
+ /*
+  * Called on each cpu to initialize the per_cpu UV data area.
+  * FIXME: hotplug not supported yet
+@@ -690,4 +717,7 @@ void __init uv_system_init(void)
+ 	uv_cpu_init();
+ 	uv_scir_register_cpu_notifier();
+ 	proc_mkdir("sgi_uv", NULL);
++
++	/* register Legacy VGA I/O redirection handler */
++	pci_register_set_vga_state(uv_set_vga_state);
+ }
+diff -puN arch/x86/kernel/bios_uv.c~x86_64-uv-update-uv-arch-to-target-legacy-vga-i-o-correctly arch/x86/kernel/bios_uv.c
+--- a/arch/x86/kernel/bios_uv.c~x86_64-uv-update-uv-arch-to-target-legacy-vga-i-o-correctly
++++ a/arch/x86/kernel/bios_uv.c
+@@ -163,6 +163,25 @@ s64 uv_bios_freq_base(u64 clock_type, u6
+ }
+ EXPORT_SYMBOL_GPL(uv_bios_freq_base);
+ 
++/*
++ * uv_bios_set_legacy_vga_target - Set Legacy VGA I/O Target
++ * @decode: true to enable target, false to disable target
++ * @domain: PCI domain number
++ * @bus: PCI bus number
++ *
++ * Returns:
++ *    0: Success
++ *    -EINVAL: Invalid domain or bus number
++ *    -ENOSYS: Capability not available
++ *    -EBUSY: Legacy VGA I/O cannot be retargeted at this time
++ */
++int uv_bios_set_legacy_vga_target(bool decode, int domain, int bus)
++{
++	return uv_bios_call(UV_BIOS_SET_LEGACY_VGA_TARGET,
++				(u64)decode, (u64)domain, (u64)bus, 0, 0);
++}
++EXPORT_SYMBOL_GPL(uv_bios_set_legacy_vga_target);
++
+ 
+ #ifdef CONFIG_EFI
+ void uv_bios_init(void)
 _
 
 Patches currently in -mm which might be from travis@sgi.com are
