@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-mempolicyc-fix-indentation-of-the-comments-of-do_migrate_pages.patch added to -mm tree
-Date: Mon, 25 Jan 2010 15:16:04 -0800
-Message-ID: <201001252316.o0PNG44D016957@imap1.linux-foundation.org>
+Subject: + pci-update-pci_set_vga_state-to-call-arch-functions.patch added to -mm tree
+Date: Mon, 25 Jan 2010 15:57:12 -0800
+Message-ID: <201001252357.o0PNvCjI018698@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48678 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58626 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750931Ab0AYXQI (ORCPT
+	by vger.kernel.org with ESMTP id S1751294Ab0AYX51 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jan 2010 18:16:08 -0500
+	Mon, 25 Jan 2010 18:57:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, cl@linux-foundation.org
+Cc: travis@sgi.com, holt@sgi.com, hpa@zytor.com, jbarnes@virtuousgeek.org, mingo@elte.hu, steiner@sgi.com, tglx@linutronix.de
 
 
 The patch titled
-     mm/mempolicy.c: fix indentation of the comments of do_migrate_pages
+     pci: update pci_set_vga_state() to call arch functions
 has been added to the -mm tree.  Its filename is
-     mm-mempolicyc-fix-indentation-of-the-comments-of-do_migrate_pages.patch
+     pci-update-pci_set_vga_state-to-call-arch-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,123 +34,78 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/mempolicy.c: fix indentation of the comments of do_migrate_pages
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: pci: update pci_set_vga_state() to call arch functions
+From: Mike Travis <travis@sgi.com>
 
-Currently, do_migrate_pages() have very long comment and this is not
-indent properly.  I often misunderstand it is function starting commnents
-and confused it.
+Update pci_set_vga_state to call arch dependent functions to enable Legacy
+VGA I/O transactions to be redirected to correct target.
 
-this patch fixes it.
-
-note: this patch doesn't break 80 column rule. I guess original
-      author intended this indentaion, but an accident corrupted it.
-
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Reviewed-by: Christoph Lameter <cl@linux-foundation.org>
+Signed-off-by: Mike Travis <travis@sgi.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Robin Holt <holt@sgi.com>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Jack Steiner <steiner@sgi.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   60 +++++++++++++++++++++++------------------------
- 1 file changed, 30 insertions(+), 30 deletions(-)
+ drivers/pci/pci.c   |   25 ++++++++++++++++++++++++-
+ include/linux/pci.h |    5 +++++
+ 2 files changed, 29 insertions(+), 1 deletion(-)
 
-diff -puN mm/mempolicy.c~fix-indentation-of-the-comments-of-do_migrate_pages mm/mempolicy.c
---- a/mm/mempolicy.c~fix-indentation-of-the-comments-of-do_migrate_pages
-+++ a/mm/mempolicy.c
-@@ -888,36 +888,36 @@ int do_migrate_pages(struct mm_struct *m
- 	if (err)
- 		goto out;
+diff -puN drivers/pci/pci.c~pci-update-pci_set_vga_state-to-call-arch-functions drivers/pci/pci.c
+--- a/drivers/pci/pci.c~pci-update-pci_set_vga_state-to-call-arch-functions
++++ a/drivers/pci/pci.c
+@@ -2754,6 +2754,23 @@ int pci_resource_bar(struct pci_dev *dev
+ 	return 0;
+ }
  
--/*
-- * Find a 'source' bit set in 'tmp' whose corresponding 'dest'
-- * bit in 'to' is not also set in 'tmp'.  Clear the found 'source'
-- * bit in 'tmp', and return that <source, dest> pair for migration.
-- * The pair of nodemasks 'to' and 'from' define the map.
-- *
-- * If no pair of bits is found that way, fallback to picking some
-- * pair of 'source' and 'dest' bits that are not the same.  If the
-- * 'source' and 'dest' bits are the same, this represents a node
-- * that will be migrating to itself, so no pages need move.
-- *
-- * If no bits are left in 'tmp', or if all remaining bits left
-- * in 'tmp' correspond to the same bit in 'to', return false
-- * (nothing left to migrate).
-- *
-- * This lets us pick a pair of nodes to migrate between, such that
-- * if possible the dest node is not already occupied by some other
-- * source node, minimizing the risk of overloading the memory on a
-- * node that would happen if we migrated incoming memory to a node
-- * before migrating outgoing memory source that same node.
-- *
-- * A single scan of tmp is sufficient.  As we go, we remember the
-- * most recent <s, d> pair that moved (s != d).  If we find a pair
-- * that not only moved, but what's better, moved to an empty slot
-- * (d is not set in tmp), then we break out then, with that pair.
-- * Otherwise when we finish scannng from_tmp, we at least have the
-- * most recent <s, d> pair that moved.  If we get all the way through
-- * the scan of tmp without finding any node that moved, much less
-- * moved to an empty node, then there is nothing left worth migrating.
-- */
-+	/*
-+	 * Find a 'source' bit set in 'tmp' whose corresponding 'dest'
-+	 * bit in 'to' is not also set in 'tmp'.  Clear the found 'source'
-+	 * bit in 'tmp', and return that <source, dest> pair for migration.
-+	 * The pair of nodemasks 'to' and 'from' define the map.
-+	 *
-+	 * If no pair of bits is found that way, fallback to picking some
-+	 * pair of 'source' and 'dest' bits that are not the same.  If the
-+	 * 'source' and 'dest' bits are the same, this represents a node
-+	 * that will be migrating to itself, so no pages need move.
-+	 *
-+	 * If no bits are left in 'tmp', or if all remaining bits left
-+	 * in 'tmp' correspond to the same bit in 'to', return false
-+	 * (nothing left to migrate).
-+	 *
-+	 * This lets us pick a pair of nodes to migrate between, such that
-+	 * if possible the dest node is not already occupied by some other
-+	 * source node, minimizing the risk of overloading the memory on a
-+	 * node that would happen if we migrated incoming memory to a node
-+	 * before migrating outgoing memory source that same node.
-+	 *
-+	 * A single scan of tmp is sufficient.  As we go, we remember the
-+	 * most recent <s, d> pair that moved (s != d).  If we find a pair
-+	 * that not only moved, but what's better, moved to an empty slot
-+	 * (d is not set in tmp), then we break out then, with that pair.
-+	 * Otherwise when we finish scannng from_tmp, we at least have the
-+	 * most recent <s, d> pair that moved.  If we get all the way through
-+	 * the scan of tmp without finding any node that moved, much less
-+	 * moved to an empty node, then there is nothing left worth migrating.
-+	 */
++/* Some architectures require additional programming to enable VGA */
++static arch_set_vga_state_t arch_set_vga_state;
++
++void pci_register_set_vga_state(arch_set_vga_state_t func)
++{
++	arch_set_vga_state = func;	/* NULL disables */
++}
++
++static int pci_set_vga_state_arch(struct pci_dev *dev, bool decode,
++		      unsigned int command_bits, bool change_bridge)
++{
++	if (arch_set_vga_state)
++		return arch_set_vga_state(dev, decode, command_bits,
++						change_bridge);
++	return 0;
++}
++
+ /**
+  * pci_set_vga_state - set VGA decode state on device and parents if requested
+  * @dev: the PCI device
+@@ -2767,9 +2784,15 @@ int pci_set_vga_state(struct pci_dev *de
+ 	struct pci_bus *bus;
+ 	struct pci_dev *bridge;
+ 	u16 cmd;
++	int rc;
  
- 	tmp = *from_nodes;
- 	while (!nodes_empty(tmp)) {
-_
-
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
-
-origin.patch
-sched-cpuacct-use-bigger-percpu-counter-batch-values-for-stats-counters.patch
-mm-introduce-dump_page-and-print-symbolic-flag-names.patch
-page-allocator-reduce-fragmentation-in-buddy-allocator-by-adding-buddies-that-are-merging-to-the-tail-of-the-free-lists.patch
-mlock_vma_pages_range-never-return-negative-value.patch
-mlock_vma_pages_range-only-return-success-or-failure.patch
-vmscan-check-high-watermark-after-shrink-zone.patch
-vmscan-check-high-watermark-after-shrink-zone-fix.patch
-vmscan-get_scan_ratio-cleanup.patch
-memcg-add-anon_scan_ratio-to-memorystat-file.patch
-mm-lockdep-annotate-reclaim-context-to-zone-reclaim-too.patch
-mm-page_allocc-remove-duplicate-call-to-trace_mm_page_free_direct.patch
-mm-page_allocc-adjust-a-call-site-to-trace_mm_page_free_direct.patch
-mm-remove-function-free_hot_page.patch
-mm-remove-function-free_hot_page-fix.patch
-mm-restore-zone-all_unreclaimable-to-independence-word.patch
-mm-restore-zone-all_unreclaimable-to-independence-word-fix.patch
-mm-restore-zone-all_unreclaimable-to-independence-word-fix-2.patch
-mm-fix-mbind-vma-merge-problem.patch
-mm-fix-mbind-vma-merge-problem-fix.patch
-mm-mempolicyc-fix-indentation-of-the-comments-of-do_migrate_pages.patch
-prctl-add-pr_set_proctitle_area-option-for-prctl.patch
-mm-pass-mm-flags-as-a-coredump-parameter-for-consistency.patch
-memcg-move-charges-of-anonymous-swap-fix-2.patch
-fs-symlink-write_begin-allocation-context-fix-reiser4-fix.patch
-
+ 	WARN_ON(command_bits & ~(PCI_COMMAND_IO|PCI_COMMAND_MEMORY));
+ 
++	/* ARCH specific VGA enables */
++	rc = pci_set_vga_state_arch(dev, decode, command_bits, change_bridge);
++	if (rc)
++		return rc;
++
+ 	pci_read_config_word(dev, PCI_COMMAND, &cmd);
+ 	if (decode == true)
+ 		cmd |= command_bits;
+@@ -2984,6 +3007,7 @@ EXPORT_SYMBOL(pcim_pin_device);
+ EXPORT_SYMBOL(pci_disable_device);
+ EXPORT_SYMBOL(pci_find_capability);
+ EXPORT_SYMBOL(pci_bus_find_capability);
++EXPORT_SYMBOL(pci_register_set_vga_state);
+ EXPORT_SYMBOL(pci_release_regions);
+ EXPORT_SYMBOL(pci_request_regions);
+ EXPORT_SYMBOL(pci_request_regions_exclusive);
+@@ -3015,4 +3039,3 @@ EXPORT_SYMBOL(pci_target_state);
+ EXPORT_SYMBOL(pci_prepare_to_sleep);
+ EXPORT_SYMBOL(pci_back_from_sleep);
+ EXPORT_SYMBOL_GPL(pci_set_pcie_reset_state);
