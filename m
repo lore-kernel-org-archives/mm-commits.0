@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rt2860-sta_ioctlc-two-branches-the-same-in-rt_ioctl_giwscan.patch added to -mm tree
-Date: Mon, 25 Jan 2010 14:44:08 -0800
-Message-ID: <201001252244.o0PMi8rA015467@imap1.linux-foundation.org>
+Subject: + serqt_usb2-two-branches-the-same-in-qt_set_termios.patch added to -mm tree
+Date: Mon, 25 Jan 2010 14:45:01 -0800
+Message-ID: <201001252245.o0PMj1OV015485@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49311 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58509 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753846Ab0AYWoP (ORCPT
+	by vger.kernel.org with ESMTP id S1752541Ab0AYWpI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jan 2010 17:44:15 -0500
+	Mon, 25 Jan 2010 17:45:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, bzolnier@gmail.com, devel@driverdev.osuosl.org, gregkh@suse.de
+Cc: roel.kluin@gmail.com, gregkh@suse.de, oliver@neukum.org, wfp5p@virginia.edu
 
 
 The patch titled
-     rt2860/sta_ioctl.c: two branches the same in rt_ioctl_giwscan()
+     drivers/staging/serqt_usb2/serqt_usb2.c: two branches the same in qt_set_termios()
 has been added to the -mm tree.  Its filename is
-     rt2860-sta_ioctlc-two-branches-the-same-in-rt_ioctl_giwscan.patch
+     serqt_usb2-two-branches-the-same-in-qt_set_termios.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rt2860/sta_ioctl.c: two branches the same in rt_ioctl_giwscan()
+Subject: drivers/staging/serqt_usb2/serqt_usb2.c: two branches the same in qt_set_termios()
 From: Roel Kluin <roel.kluin@gmail.com>
 
-Regardless of the condition, the branches execute the same code
+Regardless of the condition, the branches executed the same code
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
 Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Cc: <devel@driverdev.osuosl.org>
+Cc: Bill Pemberton <wfp5p@virginia.edu>
+Cc: Oliver Neukum <oliver@neukum.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/rt2860/sta_ioctl.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/staging/serqt_usb2/serqt_usb2.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/staging/rt2860/sta_ioctl.c~rt2860-sta_ioctlc-two-branches-the-same-in-rt_ioctl_giwscan drivers/staging/rt2860/sta_ioctl.c
---- a/drivers/staging/rt2860/sta_ioctl.c~rt2860-sta_ioctlc-two-branches-the-same-in-rt_ioctl_giwscan
-+++ a/drivers/staging/rt2860/sta_ioctl.c
-@@ -975,10 +975,7 @@ int rt_ioctl_giwscan(struct net_device *
- 		/*================================ */
- 		memset(&iwe, 0, sizeof(iwe));
- 		iwe.cmd = SIOCGIWFREQ;
--		if (INFRA_ON(pAdapter) || ADHOC_ON(pAdapter))
--			iwe.u.freq.m = pAdapter->ScanTab.BssEntry[i].Channel;
--		else
--			iwe.u.freq.m = pAdapter->ScanTab.BssEntry[i].Channel;
-+		iwe.u.freq.m = pAdapter->ScanTab.BssEntry[i].Channel;
- 		iwe.u.freq.e = 0;
- 		iwe.u.freq.i = 0;
+diff -puN drivers/staging/serqt_usb2/serqt_usb2.c~serqt_usb2-two-branches-the-same-in-qt_set_termios drivers/staging/serqt_usb2/serqt_usb2.c
+--- a/drivers/staging/serqt_usb2/serqt_usb2.c~serqt_usb2-two-branches-the-same-in-qt_set_termios
++++ a/drivers/staging/serqt_usb2/serqt_usb2.c
+@@ -1277,7 +1277,7 @@ static void qt_set_termios(struct tty_st
+ 	if (cflag & CSTOPB)
+ 		new_LCR |= SERIAL_TWO_STOPB;
+ 	else
+-		new_LCR |= SERIAL_TWO_STOPB;
++		new_LCR |= SERIAL_ONE_STOPB;
+ 
+ 	dbg("%s - 4\n", __func__);
  
 _
 
@@ -88,6 +85,7 @@ mpt2sas-fix-confusion-in-_scsih_sas_device_status_change_event.patch
 lpfc-two-branches-the-same-in-lpfc_decode_firmware_rev.patch
 paride-fix-off-by-one-test.patch
 rt2860-sta_ioctlc-two-branches-the-same-in-rt_ioctl_giwscan.patch
+serqt_usb2-two-branches-the-same-in-qt_set_termios.patch
 musb-test-always-evaluates-to-false.patch
 frv-duplicate-output_buffer-of-e03.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
