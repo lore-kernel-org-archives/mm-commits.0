@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + video-backlight-progear-fix-pci-device-refcounting.patch added to -mm tree
-Date: Tue, 26 Jan 2010 13:42:36 -0800
-Message-ID: <201001262142.o0QLgain022206@imap1.linux-foundation.org>
+Subject: + mx3fb-some-debug-and-initialisation-fixes.patch added to -mm tree
+Date: Tue, 26 Jan 2010 13:47:01 -0800
+Message-ID: <201001262147.o0QLl1gE022450@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38384 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33905 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752624Ab0AZVmv (ORCPT
+	by vger.kernel.org with ESMTP id S1751788Ab0AZVrv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jan 2010 16:42:51 -0500
+	Tue, 26 Jan 2010 16:47:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jslaby@suse.cz, jbarnes@virtuousgeek.org, rpurdie@rpsys.net
+Cc: maramaopercheseimorto@gmail.com, s.hauer@pengutronix.de, stable@kernel.org
 
 
 The patch titled
-     video: backlight/progear, fix pci device refcounting
+     mx3fb: some debug and initialisation fixes.
 has been added to the -mm tree.  Its filename is
-     video-backlight-progear-fix-pci-device-refcounting.patch
+     mx3fb-some-debug-and-initialisation-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,83 +34,59 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: video: backlight/progear, fix pci device refcounting
-From: Jiri Slaby <jslaby@suse.cz>
+Subject: mx3fb: some debug and initialisation fixes.
+From: Alberto Panizzo <maramaopercheseimorto@gmail.com>
 
-Stanse found an ommitted pci_dev_puts on error path in progearbl_probe. 
-pmu_dev and sb_dev are gotten, but never put when
-backlight_device_register fails.
+Fix the kernel oops when dev_dbg is called with mx3_fbi->txd == NULL
 
-So unify fail paths and put the devs when the failure occurs.
+Fix the late initialisation of mx3fb->backlight_level.  If not, in the
+chain of function started by init_fb_chan(), in __blank() call
+sdc_set_brightness(mx3fb, mx3fb->backlight_level) that will shut down the
+CONTRAST PWM output.
 
-Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Signed-off-by: Alberto Panizzo <maramaopercheseimorto@gmail.com>
+Acked-by: Guennadi Liakhovetski <g.liakhovetski <at> gmx.de>
+Cc: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/progear_bl.c |   16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+ drivers/video/mx3fb.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN drivers/video/backlight/progear_bl.c~video-backlight-progear-fix-pci-device-refcounting drivers/video/backlight/progear_bl.c
---- a/drivers/video/backlight/progear_bl.c~video-backlight-progear-fix-pci-device-refcounting
-+++ a/drivers/video/backlight/progear_bl.c
-@@ -63,6 +63,7 @@ static int progearbl_probe(struct platfo
- {
- 	u8 temp;
- 	struct backlight_device *progear_backlight_device;
-+	int ret;
+diff -puN drivers/video/mx3fb.c~mx3fb-some-debug-and-initialisation-fixes drivers/video/mx3fb.c
+--- a/drivers/video/mx3fb.c~mx3fb-some-debug-and-initialisation-fixes
++++ a/drivers/video/mx3fb.c
+@@ -324,8 +324,11 @@ static void sdc_enable_channel(struct mx
+ 	unsigned long flags;
+ 	dma_cookie_t cookie;
  
- 	pmu_dev = pci_get_device(PCI_VENDOR_ID_AL, PCI_DEVICE_ID_AL_M7101, NULL);
- 	if (!pmu_dev) {
-@@ -73,8 +74,8 @@ static int progearbl_probe(struct platfo
- 	sb_dev = pci_get_device(PCI_VENDOR_ID_AL, PCI_DEVICE_ID_AL_M1533, NULL);
- 	if (!sb_dev) {
- 		printk("ALI 1533 SB not found.\n");
--		pci_dev_put(pmu_dev);
--		return -ENODEV;
-+		ret = -ENODEV;
-+		goto put_pmu;
+-	dev_dbg(mx3fb->dev, "mx3fbi %p, desc %p, sg %p\n", mx3_fbi,
+-		to_tx_desc(mx3_fbi->txd), to_tx_desc(mx3_fbi->txd)->sg);
++	if (mx3_fbi->txd)
++		dev_dbg(mx3fb->dev, "mx3fbi %p, desc %p, sg %p\n", mx3_fbi,
++			to_tx_desc(mx3_fbi->txd), to_tx_desc(mx3_fbi->txd)->sg);
++	else
++		dev_dbg(mx3fb->dev, "mx3fbi %p, txd = NULL\n", mx3_fbi);
+ 
+ 	/* This enables the channel */
+ 	if (mx3_fbi->cookie < 0) {
+@@ -646,6 +649,7 @@ static int sdc_set_global_alpha(struct m
+ 
+ static void sdc_set_brightness(struct mx3fb_data *mx3fb, uint8_t value)
+ {
++	dev_dbg(mx3fb->dev, "%s: value = %d\n", __func__, value);
+ 	/* This might be board-specific */
+ 	mx3fb_write_reg(mx3fb, 0x03000000UL | value << 16, SDC_PWM_CTRL);
+ 	return;
+@@ -1486,12 +1490,12 @@ static int mx3fb_probe(struct platform_d
+ 		goto ersdc0;
  	}
  
- 	/*     Set SB_MPS1 to enable brightness control. */
-@@ -84,8 +85,10 @@ static int progearbl_probe(struct platfo
- 	progear_backlight_device = backlight_device_register("progear-bl",
- 							     &pdev->dev, NULL,
- 							     &progearbl_ops);
--	if (IS_ERR(progear_backlight_device))
--		return PTR_ERR(progear_backlight_device);
-+	if (IS_ERR(progear_backlight_device)) {
-+		ret = PTR_ERR(progear_backlight_device);
-+		goto put_sb;
-+	}
++	mx3fb->backlight_level = 255;
++
+ 	ret = init_fb_chan(mx3fb, to_idmac_chan(chan));
+ 	if (ret < 0)
+ 		goto eisdc0;
  
- 	platform_set_drvdata(pdev, progear_backlight_device);
- 
-@@ -95,6 +98,11 @@ static int progearbl_probe(struct platfo
- 	progearbl_set_intensity(progear_backlight_device);
- 
- 	return 0;
-+put_sb:
-+	pci_dev_put(sb_dev);
-+put_pmu:
-+	pci_dev_put(pmu_dev);
-+	return ret;
- }
- 
- static int progearbl_remove(struct platform_device *pdev)
-_
-
-Patches currently in -mm which might be from jslaby@suse.cz are
-
-origin.patch
-linux-next.patch
-gpu-drm-i915-fix-potential-null-dereference.patch
-infiniband-use-rlimit-helpers.patch
-mtd-chips-cfi-remove-unneeded-null-checks.patch
-video-backlight-progear-fix-pci-device-refcounting.patch
-pci-hotplug-cpcihp-fix-pci-device-refcounting.patch
-mm-use-rlimit-helpers.patch
-fs-use-rlimit-helpers.patch
-ipc-use-rlimit-helpers.patch
-
+-	mx3fb->backlight_level = 255;
