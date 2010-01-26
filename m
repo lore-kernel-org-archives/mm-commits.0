@@ -1,93 +1,159 @@
 From: akpm@linux-foundation.org
-Subject: [merged] convert-sparc-to-arch_gettimeoffset-fix.patch removed from -mm tree
-Date: Tue, 26 Jan 2010 13:30:41 -0800
-Message-ID: <201001262130.o0QLUfk4021417@imap1.linux-foundation.org>
+Subject: + cpu-timers-change-sigev_none-timer-implementation.patch added to -mm tree
+Date: Tue, 26 Jan 2010 13:39:32 -0800
+Message-ID: <201001262139.o0QLdWHS021904@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51741 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46398 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753612Ab0AZVbO (ORCPT
+	by vger.kernel.org with ESMTP id S932132Ab0AZVkN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jan 2010 16:31:14 -0500
+	Tue, 26 Jan 2010 16:40:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: johnstul@us.ibm.com, davem@davemloft.net, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: sgruszka@redhat.com, a.p.zijlstra@chello.nl, balbir@in.ibm.com, mingo@elte.hu, oleg@redhat.com, seto.hidetoshi@jp.fujitsu.com, tglx@linutronix.de
 
 
 The patch titled
-     convert-sparc-to-arch_gettimeoffset-fix
-has been removed from the -mm tree.  Its filename was
-     convert-sparc-to-arch_gettimeoffset-fix.patch
+     cpu-timers: change SIGEV_NONE timer implementation
+has been added to the -mm tree.  Its filename is
+     cpu-timers-change-sigev_none-timer-implementation.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: convert-sparc-to-arch_gettimeoffset-fix
-From: john stultz <johnstul@us.ibm.com>
+Subject: cpu-timers: change SIGEV_NONE timer implementation
+From: Stanislaw Gruszka <sgruszka@redhat.com>
 
-Move do_arch_gettimeoffset function pointer declaration to a timex_32.h
+When user will setup timer without associated signal and process does not
+use any other cpu timers and does not exit, tsk->signal->cputimer is
+enabled and running forever, change that.
 
-Signed-off-by: John Stultz <johnstul@us.ibm.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+I used below program to check patch does not break current user space
+visible behavior.
+
+ #include <sys/time.h>
+ #include <signal.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+ #include <time.h>
+ #include <unistd.h>
+ #include <assert.h>
+
+ void consume_cpu(void)
+ {
+	int i = 0;
+	int count = 0;
+
+	for(i=0; i<100000000; i++)
+		count++;
+ }
+
+ int main(void)
+ {
+	int i;
+	struct sigaction act;
+	struct sigevent evt = { };
+	timer_t tid;
+	struct itimerspec spec = { };
+
+	evt.sigev_notify = SIGEV_NONE;
+	assert(timer_create(CLOCK_PROCESS_CPUTIME_ID, &evt,  &tid) == 0);
+
+	spec.it_value.tv_sec = 10;
+	assert(timer_settime(tid, 0, &spec,  NULL) == 0);
+
+	for (i = 0; i < 30; i++) {
+		consume_cpu();
+		memset(&spec, 0, sizeof(spec));
+		assert(timer_gettime(tid, &spec) == 0);
+		printf("%lu.%09lu\n",
+			(unsigned long) spec.it_value.tv_sec,
+			(unsigned long) spec.it_value.tv_nsec);
+	}
+
+	assert(timer_delete(tid) == 0);
+	return 0;
+ }
+
+Signed-off-by: Stanislaw Gruszka <sgruszka@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/include/asm/timex_32.h |    1 +
- arch/sparc/kernel/pcic.c          |    3 +--
- arch/sparc/kernel/time_32.c       |    1 +
- 3 files changed, 3 insertions(+), 2 deletions(-)
+ kernel/posix-cpu-timers.c |   28 ++++++----------------------
+ 1 file changed, 6 insertions(+), 22 deletions(-)
 
-diff -puN arch/sparc/include/asm/timex_32.h~convert-sparc-to-arch_gettimeoffset-fix arch/sparc/include/asm/timex_32.h
---- a/arch/sparc/include/asm/timex_32.h~convert-sparc-to-arch_gettimeoffset-fix
-+++ a/arch/sparc/include/asm/timex_32.h
-@@ -12,4 +12,5 @@
- typedef unsigned long cycles_t;
- #define get_cycles()	(0)
- 
-+extern u32 (*do_arch_gettimeoffset)(void);
- #endif
-diff -puN arch/sparc/kernel/pcic.c~convert-sparc-to-arch_gettimeoffset-fix arch/sparc/kernel/pcic.c
---- a/arch/sparc/kernel/pcic.c~convert-sparc-to-arch_gettimeoffset-fix
-+++ a/arch/sparc/kernel/pcic.c
-@@ -30,6 +30,7 @@
- #include <asm/oplib.h>
- #include <asm/prom.h>
- #include <asm/pcic.h>
-+#include <asm/timex.h>
- #include <asm/timer.h>
- #include <asm/uaccess.h>
- #include <asm/irq_regs.h>
-@@ -714,8 +715,6 @@ static irqreturn_t pcic_timer_handler (i
- #define USECS_PER_JIFFY  10000  /* We have 100HZ "standard" timer for sparc */
- #define TICK_TIMER_LIMIT ((100*1000000/4)/100)
- 
--extern u32 (*do_arch_gettimeoffset)(void);
--
- u32 pci_gettimeoffset(void)
+diff -puN kernel/posix-cpu-timers.c~cpu-timers-change-sigev_none-timer-implementation kernel/posix-cpu-timers.c
+--- a/kernel/posix-cpu-timers.c~cpu-timers-change-sigev_none-timer-implementation
++++ a/kernel/posix-cpu-timers.c
+@@ -614,7 +614,12 @@ static void arm_timer(struct k_itimer *t
+  */
+ static void cpu_timer_fire(struct k_itimer *timer)
  {
- 	/*
-diff -puN arch/sparc/kernel/time_32.c~convert-sparc-to-arch_gettimeoffset-fix arch/sparc/kernel/time_32.c
---- a/arch/sparc/kernel/time_32.c~convert-sparc-to-arch_gettimeoffset-fix
-+++ a/arch/sparc/kernel/time_32.c
-@@ -35,6 +35,7 @@
- #include <linux/platform_device.h>
+-	if (unlikely(timer->sigq == NULL)) {
++	if ((timer->it_sigev_notify & ~SIGEV_THREAD_ID) == SIGEV_NONE) {
++		/*
++		 * User don't want any signal.
++		 */
++		timer->it.cpu.expires.sched = 0;
++	} else if (unlikely(timer->sigq == NULL)) {
+ 		/*
+ 		 * This a special case for clock_nanosleep,
+ 		 * not a normal timer from sys_timer_create.
+@@ -783,7 +788,6 @@ int posix_cpu_timer_set(struct k_itimer 
+ 	 */
+ 	timer->it.cpu.expires = new_expires;
+ 	if (new_expires.sched != 0 &&
+-	    (timer->it_sigev_notify & ~SIGEV_THREAD_ID) != SIGEV_NONE &&
+ 	    cpu_time_before(timer->it_clock, val, new_expires)) {
+ 		arm_timer(timer);
+ 	}
+@@ -808,7 +812,6 @@ int posix_cpu_timer_set(struct k_itimer 
+ 	timer->it_overrun = -1;
  
- #include <asm/oplib.h>
-+#include <asm/timex.h>
- #include <asm/timer.h>
- #include <asm/system.h>
- #include <asm/irq.h>
-_
-
-Patches currently in -mm which might be from johnstul@us.ibm.com are
-
-origin.patch
-arm-convert-to-arch_gettimeoffset.patch
-clocksource-add-argument-to-resume-callback.patch
-clocksource-start-cmt-at-clocksource-resume.patch
-clocksource-add-suspend-callback.patch
-genirq-warn-about-irqf_sharedirqf_disabled-at-the-right-place.patch
-cris-convert-to-use-arch_gettimeoffset.patch
-
+ 	if (new_expires.sched != 0 &&
+-	    (timer->it_sigev_notify & ~SIGEV_THREAD_ID) != SIGEV_NONE &&
+ 	    !cpu_time_before(timer->it_clock, val, new_expires)) {
+ 		/*
+ 		 * The designated time already passed, so we notify
+@@ -882,25 +885,6 @@ void posix_cpu_timer_get(struct k_itimer
+ 		read_unlock(&tasklist_lock);
+ 	}
+ 
+-	if ((timer->it_sigev_notify & ~SIGEV_THREAD_ID) == SIGEV_NONE) {
+-		if (timer->it.cpu.incr.sched == 0 &&
+-		    cpu_time_before(timer->it_clock,
+-				    timer->it.cpu.expires, now)) {
+-			/*
+-			 * Do-nothing timer expired and has no reload,
+-			 * so it's as if it was never set.
+-			 */
+-			timer->it.cpu.expires.sched = 0;
+-			itp->it_value.tv_sec = itp->it_value.tv_nsec = 0;
+-			return;
+-		}
+-		/*
+-		 * Account for any expirations and reloads that should
+-		 * have happened.
+-		 */
+-		bump_cpu_timer(timer, now);
+-	}
