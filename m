@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + proc-warn-on-non-existing-proc-entries.patch added to -mm tree
-Date: Tue, 26 Jan 2010 13:56:34 -0800
-Message-ID: <201001262156.o0QLuYX3022957@imap1.linux-foundation.org>
+Subject: + proc-do-translation-unlink-atomically-at-remove_proc_entry.patch added to -mm tree
+Date: Tue, 26 Jan 2010 13:56:31 -0800
+Message-ID: <201001262156.o0QLuVUA022954@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51497 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43488 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754768Ab0AZV4g (ORCPT
+	by vger.kernel.org with ESMTP id S1754678Ab0AZV4e (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jan 2010 16:56:36 -0500
+	Tue, 26 Jan 2010 16:56:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: adobriyan@gmail.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     proc: warn on non-existing proc entries
+     proc: do translation + unlink atomically at remove_proc_entry()
 has been added to the -mm tree.  Its filename is
-     proc-warn-on-non-existing-proc-entries.patch
+     proc-do-translation-unlink-atomically-at-remove_proc_entry.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,101 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc: warn on non-existing proc entries
+Subject: proc: do translation + unlink atomically at remove_proc_entry()
 From: Alexey Dobriyan <adobriyan@gmail.com>
 
-* warn if creation goes on to non-existent directory
-* warn if removal goes on from non-existing directory
-* warn if non-existing proc entry is removed
+remove_proc_entry() does
+
+	lock
+	lookup parent
+	unlock
+	lock
+	unlink proc entry from lists
+	unlock
+
+which can be made bit more correct by doing parent translation + unlink
+without dropping lock.
 
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/generic.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ fs/proc/generic.c |   31 +++++++++++++++++++------------
+ 1 file changed, 19 insertions(+), 12 deletions(-)
 
-diff -puN fs/proc/generic.c~proc-warn-on-non-existing-proc-entries fs/proc/generic.c
---- a/fs/proc/generic.c~proc-warn-on-non-existing-proc-entries
+diff -puN fs/proc/generic.c~proc-do-translation-unlink-atomically-at-remove_proc_entry fs/proc/generic.c
+--- a/fs/proc/generic.c~proc-do-translation-unlink-atomically-at-remove_proc_entry
 +++ a/fs/proc/generic.c
-@@ -312,8 +312,10 @@ static int __xlate_proc_name(const char 
+@@ -291,19 +291,17 @@ static const struct inode_operations pro
+  * returns the struct proc_dir_entry for "/proc/tty/driver", and
+  * returns "serial" in residual.
+  */
+-static int xlate_proc_name(const char *name,
+-			   struct proc_dir_entry **ret, const char **residual)
++static int __xlate_proc_name(const char *name, struct proc_dir_entry **ret,
++			     const char **residual)
+ {
+ 	const char     		*cp = name, *next;
+ 	struct proc_dir_entry	*de;
+ 	int			len;
+-	int 			rtn = 0;
+ 
+ 	de = *ret;
+ 	if (!de)
+ 		de = &proc_root;
+ 
+-	spin_lock(&proc_subdir_lock);
+ 	while (1) {
+ 		next = strchr(cp, '/');
+ 		if (!next)
+@@ -314,17 +312,24 @@ static int xlate_proc_name(const char *n
  			if (proc_match(len, cp, de))
  				break;
  		}
--		if (!de)
-+		if (!de) {
-+			WARN(1, "name '%s'\n", name);
- 			return -ENOENT;
-+		}
+-		if (!de) {
+-			rtn = -ENOENT;
+-			goto out;
+-		}
++		if (!de)
++			return -ENOENT;
  		cp += len + 1;
  	}
  	*residual = cp;
-@@ -818,8 +820,10 @@ void remove_proc_entry(const char *name,
- 		}
- 	}
+ 	*ret = de;
+-out:
++	return 0;
++}
++
++static int xlate_proc_name(const char *name, struct proc_dir_entry **ret,
++			   const char **residual)
++{
++	int rv;
++
++	spin_lock(&proc_subdir_lock);
++	rv = __xlate_proc_name(name, ret, residual);
  	spin_unlock(&proc_subdir_lock);
--	if (!de)
-+	if (!de) {
-+		WARN(1, "name '%s'\n", name);
+-	return rtn;
++	return rv;
+ }
+ 
+ static DEFINE_IDA(proc_inum_ida);
+@@ -797,11 +802,13 @@ void remove_proc_entry(const char *name,
+ 	const char *fn = name;
+ 	int len;
+ 
+-	if (xlate_proc_name(name, &parent, &fn) != 0)
++	spin_lock(&proc_subdir_lock);
++	if (__xlate_proc_name(name, &parent, &fn) != 0) {
++		spin_unlock(&proc_subdir_lock);
  		return;
 +	}
+ 	len = strlen(fn);
  
- 	spin_lock(&de->pde_unload_lock);
- 	/*
+-	spin_lock(&proc_subdir_lock);
+ 	for (p = &parent->subdir; *p; p=&(*p)->next ) {
+ 		if (proc_match(len, fn, *p)) {
+ 			de = *p;
 _
 
 Patches currently in -mm which might be from adobriyan@gmail.com are
