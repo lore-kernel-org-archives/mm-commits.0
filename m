@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + comedi-g1-3-status-registers-not-read-in-ni_gpct_to_660x_register.patch added to -mm tree
-Date: Mon, 25 Jan 2010 16:58:06 -0800
-Message-ID: <201001260058.o0Q0w6t2021627@imap1.linux-foundation.org>
+Subject: + dma-cases-ipu_pix_fmt_bgra32-bgr32-and-abgr32-are-the-same-in-ipu_ch_param_set_size.patch added to -mm tree
+Date: Mon, 25 Jan 2010 17:02:14 -0800
+Message-ID: <201001260102.o0Q12ErR021868@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48925 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54375 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1749667Ab0AZA6N (ORCPT
+	by vger.kernel.org with ESMTP id S1751119Ab0AZBCU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jan 2010 19:58:13 -0500
+	Mon, 25 Jan 2010 20:02:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roel.kluin@gmail.com, devel@driverdev.osuosl.org, gregkh@suse.de, wfp5p@virginia.edu
+Cc: roel.kluin@gmail.com, dan.j.williams@intel.com, g.liakhovetski@gmx.de, maciej.sosnowski@intel.com
 
 
 The patch titled
-     comedi: G1-3 status registers not read in ni_gpct_to_660x_register()
+     dma: cases IPU_PIX_FMT_BGRA32, BGR32 and ABGR32 are the same in ipu_ch_param_set_size()
 has been added to the -mm tree.  Its filename is
-     comedi-g1-3-status-registers-not-read-in-ni_gpct_to_660x_register.patch
+     dma-cases-ipu_pix_fmt_bgra32-bgr32-and-abgr32-are-the-same-in-ipu_ch_param_set_size.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: comedi: G1-3 status registers not read in ni_gpct_to_660x_register()
+Subject: dma: cases IPU_PIX_FMT_BGRA32, BGR32 and ABGR32 are the same in ipu_ch_param_set_size()
 From: Roel Kluin <roel.kluin@gmail.com>
 
-Read from the right status register
+In these cases the same statements are executed.
 
 Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Bill Pemberton <wfp5p@virginia.edu>
-Cc: <devel@driverdev.osuosl.org>
+Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Maciej Sosnowski <maciej.sosnowski@intel.com
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/comedi/drivers/ni_660x.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/dma/ipu/ipu_idmac.c |   15 +--------------
+ 1 file changed, 1 insertion(+), 14 deletions(-)
 
-diff -puN drivers/staging/comedi/drivers/ni_660x.c~comedi-g1-3-status-registers-not-read-in-ni_gpct_to_660x_register drivers/staging/comedi/drivers/ni_660x.c
---- a/drivers/staging/comedi/drivers/ni_660x.c~comedi-g1-3-status-registers-not-read-in-ni_gpct_to_660x_register
-+++ a/drivers/staging/comedi/drivers/ni_660x.c
-@@ -691,13 +691,13 @@ static enum NI_660x_Register ni_gpct_to_
- 		ni_660x_register = G0StatusRegister;
+diff -puN drivers/dma/ipu/ipu_idmac.c~dma-cases-ipu_pix_fmt_bgra32-bgr32-and-abgr32-are-the-same-in-ipu_ch_param_set_size drivers/dma/ipu/ipu_idmac.c
+--- a/drivers/dma/ipu/ipu_idmac.c~dma-cases-ipu_pix_fmt_bgra32-bgr32-and-abgr32-are-the-same-in-ipu_ch_param_set_size
++++ a/drivers/dma/ipu/ipu_idmac.c
+@@ -348,6 +348,7 @@ static void ipu_ch_param_set_size(union 
  		break;
- 	case NITIO_G1_Status_Reg:
--		ni_660x_register = G0StatusRegister;
-+		ni_660x_register = G1StatusRegister;
+ 	case IPU_PIX_FMT_BGRA32:
+ 	case IPU_PIX_FMT_BGR32:
++	case IPU_PIX_FMT_ABGR32:
+ 		params->ip.bpp	= 0;
+ 		params->ip.pfs	= 4;
+ 		params->ip.npb	= 7;
+@@ -376,20 +377,6 @@ static void ipu_ch_param_set_size(union 
+ 		params->ip.wid2	= 7;		/* Blue bit width - 1 */
+ 		params->ip.wid3	= 7;		/* Alpha bit width - 1 */
  		break;
- 	case NITIO_G2_Status_Reg:
--		ni_660x_register = G0StatusRegister;
-+		ni_660x_register = G2StatusRegister;
- 		break;
- 	case NITIO_G3_Status_Reg:
--		ni_660x_register = G0StatusRegister;
-+		ni_660x_register = G3StatusRegister;
- 		break;
- 	case NITIO_G0_Interrupt_Enable_Reg:
- 		ni_660x_register = G0InterruptEnable;
+-	case IPU_PIX_FMT_ABGR32:
+-		params->ip.bpp	= 0;
+-		params->ip.pfs	= 4;
+-		params->ip.npb	= 7;
+-		params->ip.sat	= 2;		/* SAT = 32-bit access */
+-		params->ip.ofs0	= 8;		/* Red bit offset */
+-		params->ip.ofs1	= 16;		/* Green bit offset */
+-		params->ip.ofs2	= 24;		/* Blue bit offset */
+-		params->ip.ofs3	= 0;		/* Alpha bit offset */
+-		params->ip.wid0	= 7;		/* Red bit width - 1 */
+-		params->ip.wid1	= 7;		/* Green bit width - 1 */
+-		params->ip.wid2	= 7;		/* Blue bit width - 1 */
+-		params->ip.wid3	= 7;		/* Alpha bit width - 1 */
+-		break;
+ 	case IPU_PIX_FMT_UYVY:
+ 		params->ip.bpp	= 2;
+ 		params->ip.pfs	= 6;
 _
 
 Patches currently in -mm which might be from roel.kluin@gmail.com are
@@ -78,6 +90,7 @@ acpi-fix-confusion-in-acpi_evaluate_string-in-comment.patch
 asus-acpi-remove-duplicate-comparison-of-asus_model-strings.patch
 thinkpad-acpi-wrong-thermal-attribute_group-removed-in-thermal_exit.patch
 gemini-wrong-registers-used-to-set-reg_level-in-gpio_set_irq_type.patch
+dma-cases-ipu_pix_fmt_bgra32-bgr32-and-abgr32-are-the-same-in-ipu_ch_param_set_size.patch
 powerpc-sky-cpu-redundant-or-incorrect-tests-on-unsigned.patch
 drivers-gpu-drm-drm_crtc_helperc-fix-setting-of-fb_changed-in-drm_crtc_helper_set_config.patch
 ia64-wrong-attribute-of-hub-chip-written-in-uv_setup.patch
