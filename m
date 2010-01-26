@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-ep93xxc-cleanup-probe-remove-routines.patch added to -mm tree
-Date: Tue, 26 Jan 2010 14:14:18 -0800
-Message-ID: <201001262214.o0QMEIEC023804@imap1.linux-foundation.org>
+Subject: + bootmem-avoid-dma32-zone-by-default.patch added to -mm tree
+Date: Tue, 26 Jan 2010 14:17:23 -0800
+Message-ID: <201001262217.o0QMHNPS024000@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54938 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39490 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751974Ab0AZWOZ (ORCPT
+	by vger.kernel.org with ESMTP id S1753167Ab0AZWTJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jan 2010 17:14:25 -0500
+	Tue, 26 Jan 2010 17:19:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hartleys@visionengravers.com, a.zummo@towertech.it, hsweeten@visionengravers.com, p_gortmaker@yahoo.com
+Cc: hannes@cmpxchg.org, hpa@zytor.com, jslaby@suse.cz, mingo@elte.hu, ralf@linux-mips.org, stable@kernel.org, tglx@linutronix.de
 
 
 The patch titled
-     rtc-ep93xx.c: cleanup probe/remove routines
+     bootmem: avoid DMA32 zone by default
 has been added to the -mm tree.  Its filename is
-     rtc-ep93xxc-cleanup-probe-remove-routines.patch
+     bootmem-avoid-dma32-zone-by-default.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,144 +34,79 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-ep93xx.c: cleanup probe/remove routines
-From: H Hartley Sweeten <hartleys@visionengravers.com>
+Subject: bootmem: avoid DMA32 zone by default
+From: Johannes Weiner <hannes@cmpxchg.org>
 
-Fix issue with rtc device not getting unregistered in probe error path.
+Bootmem already tries normal allocations above the DMA zone to reserve it
+for users that can not cope with higher addresses.
 
-Use the devres managed resource functions in the probe routine to cleanup
-the error path.
+The same principle applies to the DMA32 zone, which is currently not
+spared from normal allocations.
 
-Use sysfs_{create/remove}_group to add/remove the sysfs files.
+This can lead to exhaustion of this limited amount of address space
+through things that can easily live elsewhere, like the mem_map e.g.
 
-Reduces the text size by 132 bytes, increases data by 12 bytes:
-    text	   data	    bss	    dec	    hex	filename
--    937	    124	      0	   1061	    425	rtc-ep93xx.o
-+    805	    136	      0	    941	    3ad	rtc-ep93xx.o
+Raise bootmem's default goal beyond DMA32 for architectures with this zone
+defined.  For now, these are x86 and mips.
 
-Signed-off-by: H Hartley Sweeten <hsweeten@visionengravers.com>
-Acked-by: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Paul Gortmaker <p_gortmaker@yahoo.com>
+I cc'd stable because this affects already released kernels.  But since
+this is the first report of DMA32 memory exhaustion through bootmem that I
+hear of, you guys might want to skip this patch due to the fragile nature
+of early memory management.
+
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reported-by: Jiri Slaby <jslaby@suse.cz>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: <stable@kernel.org>		[See above note]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ep93xx.c |   73 ++++++++++++++-----------------------
- 1 file changed, 29 insertions(+), 44 deletions(-)
+ include/linux/bootmem.h |   20 +++++++++++++-------
+ 1 file changed, 13 insertions(+), 7 deletions(-)
 
-diff -puN drivers/rtc/rtc-ep93xx.c~rtc-ep93xxc-cleanup-probe-remove-routines drivers/rtc/rtc-ep93xx.c
---- a/drivers/rtc/rtc-ep93xx.c~rtc-ep93xxc-cleanup-probe-remove-routines
-+++ a/drivers/rtc/rtc-ep93xx.c
-@@ -115,6 +115,15 @@ static ssize_t ep93xx_rtc_show_comp_dele
- }
- static DEVICE_ATTR(comp_delete, S_IRUGO, ep93xx_rtc_show_comp_delete, NULL);
+diff -puN include/linux/bootmem.h~bootmem-avoid-dma32-zone-by-default include/linux/bootmem.h
+--- a/include/linux/bootmem.h~bootmem-avoid-dma32-zone-by-default
++++ a/include/linux/bootmem.h
+@@ -96,20 +96,26 @@ extern void *__alloc_bootmem_low_node(pg
+ 				      unsigned long align,
+ 				      unsigned long goal);
  
-+static struct attribute *ep93xx_rtc_attrs[] = {
-+	&dev_attr_comp_preload.attr,
-+	&dev_attr_comp_delete.attr,
-+	NULL
-+};
++#ifdef MAX_DMA32_PFN
++#define BOOTMEM_DEFAULT_GOAL	(MAX_DMA32_PFN << PAGE_SHIFT)
++#else
++#define BOOTMEM_DEFAULT_GOAL	__pa(MAX_DMA_ADDRESS)
++#endif
 +
-+static const struct attribute_group ep93xx_rtc_sysfs_files = {
-+	.attrs	= ep93xx_rtc_attrs,
-+};
+ #define alloc_bootmem(x) \
+-	__alloc_bootmem(x, SMP_CACHE_BYTES, __pa(MAX_DMA_ADDRESS))
++	__alloc_bootmem(x, SMP_CACHE_BYTES, BOOTMEM_DEFAULT_GOAL)
+ #define alloc_bootmem_nopanic(x) \
+-	__alloc_bootmem_nopanic(x, SMP_CACHE_BYTES, __pa(MAX_DMA_ADDRESS))
++	__alloc_bootmem_nopanic(x, SMP_CACHE_BYTES, BOOTMEM_DEFAULT_GOAL)
+ #define alloc_bootmem_pages(x) \
+-	__alloc_bootmem(x, PAGE_SIZE, __pa(MAX_DMA_ADDRESS))
++	__alloc_bootmem(x, PAGE_SIZE, BOOTMEM_DEFAULT_GOAL)
+ #define alloc_bootmem_pages_nopanic(x) \
+-	__alloc_bootmem_nopanic(x, PAGE_SIZE, __pa(MAX_DMA_ADDRESS))
++	__alloc_bootmem_nopanic(x, PAGE_SIZE, BOOTMEM_DEFAULT_GOAL)
+ #define alloc_bootmem_node(pgdat, x) \
+-	__alloc_bootmem_node(pgdat, x, SMP_CACHE_BYTES, __pa(MAX_DMA_ADDRESS))
++	__alloc_bootmem_node(pgdat, x, SMP_CACHE_BYTES, BOOTMEM_DEFAULT_GOAL)
+ #define alloc_bootmem_pages_node(pgdat, x) \
+-	__alloc_bootmem_node(pgdat, x, PAGE_SIZE, __pa(MAX_DMA_ADDRESS))
++	__alloc_bootmem_node(pgdat, x, PAGE_SIZE, BOOTMEM_DEFAULT_GOAL)
+ #define alloc_bootmem_pages_node_nopanic(pgdat, x) \
+-	__alloc_bootmem_node_nopanic(pgdat, x, PAGE_SIZE, __pa(MAX_DMA_ADDRESS))
++	__alloc_bootmem_node_nopanic(pgdat, x, PAGE_SIZE, BOOTMEM_DEFAULT_GOAL)
  
- static int __init ep93xx_rtc_probe(struct platform_device *pdev)
- {
-@@ -123,27 +132,22 @@ static int __init ep93xx_rtc_probe(struc
- 	struct rtc_device *rtc;
- 	int err;
- 
--	ep93xx_rtc = kzalloc(sizeof(struct ep93xx_rtc), GFP_KERNEL);
--	if (ep93xx_rtc == NULL)
-+	ep93xx_rtc = devm_kzalloc(&pdev->dev, sizeof(*ep93xx_rtc), GFP_KERNEL);
-+	if (!ep93xx_rtc)
- 		return -ENOMEM;
- 
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	if (res == NULL) {
--		err = -ENXIO;
--		goto fail_free;
--	}
--
--	res = request_mem_region(res->start, resource_size(res), pdev->name);
--	if (res == NULL) {
--		err = -EBUSY;
--		goto fail_free;
--	}
-+	if (!res)
-+		return -ENXIO;
- 
--	ep93xx_rtc->mmio_base = ioremap(res->start, resource_size(res));
--	if (ep93xx_rtc->mmio_base == NULL) {
--		err = -ENXIO;
--		goto fail;
--	}
-+	if (!devm_request_mem_region(&pdev->dev, res->start,
-+				     resource_size(res), pdev->name))
-+		return -EBUSY;
-+
-+	ep93xx_rtc->mmio_base = devm_ioremap(&pdev->dev, res->start,
-+					     resource_size(res));
-+	if (!ep93xx_rtc->mmio_base)
-+		return -ENXIO;
- 
- 	pdev->dev.platform_data = ep93xx_rtc;
- 
-@@ -151,53 +155,34 @@ static int __init ep93xx_rtc_probe(struc
- 				&pdev->dev, &ep93xx_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(rtc)) {
- 		err = PTR_ERR(rtc);
--		goto fail;
-+		goto exit;
- 	}
- 
- 	platform_set_drvdata(pdev, rtc);
- 
--	err = device_create_file(&pdev->dev, &dev_attr_comp_preload);
-+	err = sysfs_create_group(&pdev->dev.kobj, &ep93xx_rtc_sysfs_files);
- 	if (err)
- 		goto fail;
--	err = device_create_file(&pdev->dev, &dev_attr_comp_delete);
--	if (err) {
--		device_remove_file(&pdev->dev, &dev_attr_comp_preload);
--		goto fail;
--	}
- 
- 	return 0;
- 
- fail:
--	if (ep93xx_rtc->mmio_base) {
--		iounmap(ep93xx_rtc->mmio_base);
--		pdev->dev.platform_data = NULL;
--	}
--	release_mem_region(res->start, resource_size(res));
--fail_free:
--	kfree(ep93xx_rtc);
-+	platform_set_drvdata(pdev, NULL);
-+	rtc_device_unregister(rtc);
-+exit:
-+	pdev->dev.platform_data = NULL;
- 	return err;
- }
- 
- static int __exit ep93xx_rtc_remove(struct platform_device *pdev)
- {
- 	struct rtc_device *rtc = platform_get_drvdata(pdev);
--	struct ep93xx_rtc *ep93xx_rtc = pdev->dev.platform_data;
--	struct resource *res;
--
--	/* cleanup sysfs */
--	device_remove_file(&pdev->dev, &dev_attr_comp_delete);
--	device_remove_file(&pdev->dev, &dev_attr_comp_preload);
- 
-+	sysfs_remove_group(&pdev->dev.kobj, &ep93xx_rtc_sysfs_files);
-+	platform_set_drvdata(pdev, NULL);
- 	rtc_device_unregister(rtc);
--
--	iounmap(ep93xx_rtc->mmio_base);
- 	pdev->dev.platform_data = NULL;
- 
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	release_mem_region(res->start, resource_size(res));
--
--	platform_set_drvdata(pdev, NULL);
+ #define alloc_bootmem_low(x) \
+ 	__alloc_bootmem_low(x, SMP_CACHE_BYTES, 0)
+_
+
+Patches currently in -mm which might be from hannes@cmpxchg.org are
+
+bootmem-avoid-dma32-zone-by-default.patch
+
